@@ -24,6 +24,15 @@ do
 	widgetDependencies = ok and module or nil
 end
 
+-- Watches what user widgets allocate and hold, and LuaUI's share of the engine's Lua memory pool.
+-- Optional for the same reason. The instance is made once the sandbox it looks through exists.
+local MemoryGuard
+do
+	local ok, module = pcall(VFS.Include, LUAUI_DIRNAME .. "Include/memory_guard.lua", nil, VFS.ZIP)
+	MemoryGuard = ok and module or nil
+end
+local memoryGuard
+
 -- Avoid deep copies and cycles.
 local function copyTable(source)
 	local copy = {}
@@ -1039,6 +1048,8 @@ function widgetHandler:Initialize()
 		widgetHandler:InsertWidgetRaw(w)
 	end
 	insertingStartupWidgets = false
+	-- Kept, the list would hold every startup widget in memory after it is switched off.
+	unsortedWidgets = {}
 
 	-- Since Initialize is run out of the normal callin wrapper by InsertWidget, we, need to reorder explicitly here.
 	widgetHandler:PerformReorders()
@@ -1138,6 +1149,24 @@ local function loadFailed(basename, reason)
 	widgetHandler:RecordError(basename, nil, reason, true)
 end
 
+-- A user widget's file runs under the memory guard like its call-ins do, and the WG entries it
+-- makes count as its own.
+local function runWidgetChunk(chunk, widget, fromZip, basename)
+	if fromZip or not memoryGuard then
+		return pcall(chunk)
+	end
+	memoryGuard.register(widget)
+	local wgKeys = memoryGuard.snapshotWG()
+	memoryGuard.enter(widget)
+	local success, err = pcall(chunk)
+	local tripped = memoryGuard.leave()
+	memoryGuard.claimWG(widget, wgKeys)
+	if tripped then
+		return false, memoryGuard.takeTrip(widget, basename)
+	end
+	return success, err
+end
+
 -- Whether a source reaches for the RmlUi API (`RmlUi.x`, `RmlUi[x]`, `not RmlUi`), not just names it.
 -- Plain finds first: two pattern searches over every widget's source cost ~60 ms per LuaUI load.
 local function usesRmlUi(text)
@@ -1170,7 +1199,9 @@ end
 local newWidget ---@type function
 
 -- User widgets can read its own environment and an env it builds. Everything else returns its own env.
-local ownedEnvs = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
+-- Weak values too: a widget's own entry points at itself, and Lua 5.1 keeps a weak key alive
+-- while its value is, which kept every widget ever loaded in memory.
+local ownedEnvs = setmetatable({}, { __mode = "kv" }) ---@type table<table, table>
 
 local function userEnv(widget, env)
 	return ownedEnvs[env] == widget and env or widget
@@ -1264,7 +1295,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			widget.debug.getlocal = getLocalName -- the detector needs getlocal -- ! do not give to user widgets
 		end
 		setfenv(chunk, widget)
-		local success, err = pcall(chunk)
+		local success, err = runWidgetChunk(chunk, widget, fromZip, basename)
 		if not success then
 			return loadFailed(basename, err)
 		end
@@ -1284,7 +1315,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	local widget, canControlUnits = newWidget(widgetHandler, enableLocalsAccess, fromZip)
 	setfenv(chunk, widget)
-	local success, err = pcall(chunk)
+	local success, err = runWidgetChunk(chunk, widget, fromZip, basename)
 	if not success then
 		return loadFailed(basename, err)
 	end
@@ -1420,6 +1451,71 @@ local SandboxedWidgetMeta = {
 	__index = SandboxedSystem,
 	__metatable = true,
 }
+
+-- Turned off for its memory: it stays off next game, and the selector says why.
+local function disableForMemory(w, reason)
+	local info = w.whInfo
+	local entry = widgetHandler:RecordError(info.basename, nil, reason, true)
+	entry.memory = true
+	widgetHandler:DisableWidget(info.name)
+end
+
+if MemoryGuard then
+	local spGetTimer, spGetTimerMicros, spDiffTimers = Spring.GetTimer, Spring.GetTimerMicros, Spring.DiffTimers
+	local spGetLuaMemUsage = Spring.GetLuaMemUsage
+	local startTimer = spGetTimer()
+	memoryGuard = MemoryGuard.new({
+		now = function()
+			return spDiffTimers(spGetTimer(), startTimer)
+		end,
+		startTimer = spGetTimerMicros,
+		elapsedMs = function(timer)
+			return spDiffTimers(spGetTimerMicros(), timer, true, true)
+		end,
+		poolUsage = function()
+			local _, _, globalKB = spGetLuaMemUsage()
+			return globalKB
+		end,
+		gameFrame = Spring.GetGameFrame,
+		setCollectorBudget = function(ms)
+			Spring.GarbageCollectCtrl(nil, nil, nil, nil, nil, nil, ms)
+		end,
+		activeWidgets = function()
+			return widgetHandler.widgets
+		end,
+		isActive = function(w)
+			return table.getKeyOf(widgetHandler.widgets, w) ~= nil
+		end,
+		ownsEnv = function(env, w)
+			return ownedEnvs[env] == w
+		end,
+		stopRoots = function()
+			return {
+				{ System, 1 },
+				{ SandboxedSystem, 1 },
+				{ _G, 1 },
+				{ widgetHandler, 1 },
+				{ widgetHandler.WG, 2 },
+				{ UnitDefs, 1 },
+				{ WeaponDefs, 1 },
+				{ FeatureDefs, 1 },
+				{ WidgetMeta, 0 },
+				{ SandboxedWidgetMeta, 0 },
+			}
+		end,
+		WG = widgetHandler.WG,
+		disable = disableForMemory,
+		notify = function(text)
+			spEcho("\255\255\170\100" .. text)
+		end,
+		log = spEcho,
+		translate = function(key, vars)
+			return BAR.I18N("ui.widgetMemory." .. key, vars)
+		end,
+		-- 0 for widget authors who want to see their numbers without anything being stopped
+		enforce = Spring.GetConfigInt("UserWidgetMemoryLimits", 1) ~= 0,
+	})
+end
 
 newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	tracyZoneBeginN("W:NewWidget")
@@ -1805,6 +1901,10 @@ end
 --------------------------------------------------------------------------------
 
 local function widgetFailure(w, funcName, errorMsg)
+	local memory = memoryGuard and memoryGuard.failure(w, funcName, errorMsg)
+	if memory == "handled" then
+		return nil
+	end
 	local name = w.whInfo.name
 	-- Kept against the widget as well as said, and before anything below can reload it: the
 	-- log is how the widget selector shows what went wrong once the line has scrolled out of
@@ -1822,6 +1922,10 @@ local function widgetFailure(w, funcName, errorMsg)
 	end
 	spEcho(errorBase .. " in " .. funcName .. "(): " .. tostring(errorMsg))
 	spEcho("Removed widget: " .. name)
+	if memory == "reload" then
+		-- Ran out of memory that a user widget most likely filled, and was freed since.
+		widgetHandler:EnableWidget(name)
+	end
 	return nil
 end
 
@@ -1850,6 +1954,26 @@ local function SafeWrapFuncGL(func, funcName)
 	end
 end
 
+-- What a user widget's call-in allocates is counted, and one that allocates far too much is stopped.
+local function SafeWrapFuncUser(func, funcName)
+	local guard = memoryGuard --[[@as table]]
+	local guardEnter, guardLeave, tripError = guard.enter, guard.leave, guard.TRIP_ERROR
+	local function wrapper(w, ...)
+		guardEnter(w)
+		local r1, r2, r3 = pcall(func, w, ...)
+		if guardLeave() then
+			r1, r2 = false, tripError -- also when the widget caught it itself
+		end
+		if r1 then
+			return r2, r3
+		else
+			return widgetFailure(w, funcName, r2)
+		end
+	end
+	guard.addWrapper(wrapper)
+	return wrapper
+end
+
 local function SafeWrapFunc(func, funcName)
 	if not SAFEDRAW then
 		return SafeWrapFuncNoGL(func, funcName)
@@ -1863,23 +1987,26 @@ local function SafeWrapFunc(func, funcName)
 end
 
 local function SafeWrapWidget(widget)
+	-- User widgets cannot opt out: the memory guard sits in the wrapper.
+	local user = memoryGuard ~= nil and memoryGuard.isUser(widget)
 	if SAFEWRAP <= 0 then
 		return
 	elseif SAFEWRAP == 1 then
-		if widget.whInfo.unsafe then
+		if widget.whInfo.unsafe and not user then
 			spEcho("LuaUI: loaded unsafe widget: " .. widget.whInfo.name)
 			return
 		end
 	end
 
+	local wrap = user and SafeWrapFuncUser or SafeWrapFunc
 	for _, ciName in ipairs(callInLists) do
 		if widget[ciName] then
-			widget[ciName] = SafeWrapFunc(widget[ciName], ciName)
+			widget[ciName] = wrap(widget[ciName], ciName)
 		end
 	end
 
 	if widget.Initialize then
-		widget.Initialize = SafeWrapFunc(widget.Initialize, "Initialize")
+		widget.Initialize = wrap(widget.Initialize, "Initialize")
 	end
 end
 
@@ -2080,7 +2207,14 @@ function widgetHandler:InsertWidgetRaw(widget)
 	self.widgetsRevision = self.widgetsRevision + 1
 
 	if widget.Initialize then
+		local wgKeys = memoryGuard and memoryGuard.isUser(widget) and memoryGuard.snapshotWG()
 		widget:Initialize()
+		if wgKeys then
+			memoryGuard.claimWG(widget, wgKeys)
+		end
+	end
+	if memoryGuard then
+		memoryGuard.settle(widget)
 	end
 end
 
@@ -2813,78 +2947,10 @@ function widgetHandler:InitPause()
 	self:RegisterGlobal(self, "GameUnpausing", gameUnpausing)
 end
 
--- Backstop for LuaUI memory: the engine's incremental collector normally keeps garbage bounded.
--- Past the gradual limit a full cycle is stepped a bounded amount per update instead of one
--- stalling collectgarbage("collect"); only past the emergency limit is it done at once.
-local gcCheckCounter = 0
-local gcGradualLimit = 1000000 -- kB
-local gcEmergencyLimit = 1300000 -- kB
-local gcStepKB = 1024 -- about 1 ms of collector stepping per update
-local gcStepping = false
--- adaptive collector budget, see luarules/gadgets/api_garbage_collector.lua
-local gcCapMin, gcCapMax, gcCap = 1, 4, 1
-local gcTrendWindow = 1800 -- frames
-local gcGrowthStepKB = 20000
-local gcTrendFrame, gcTrendMem
-
-local function gcAdaptCap(count)
-	local n = Spring.GetGameFrame()
-	if not gcTrendFrame then
-		gcTrendFrame, gcTrendMem = n, count
-		return
-	end
-	if n - gcTrendFrame < gcTrendWindow then
-		return
-	end
-	local growth = count - gcTrendMem
-	gcTrendFrame, gcTrendMem = n, count
-	local newCap = gcCap
-	if growth > gcGrowthStepKB then
-		newCap = math.min(gcCapMax, gcCap + 1)
-	elseif growth < gcGrowthStepKB / 4 then
-		newCap = math.max(gcCapMin, gcCap - 1)
-	end
-	if newCap ~= gcCap then
-		gcCap = newCap
-		Spring.GarbageCollectCtrl(nil, nil, nil, nil, nil, nil, gcCap)
-		spEcho(
-			string.format(
-				"LuaUI memory %s %d MB in the last minute, garbage collector budget set to %d ms",
-				growth >= 0 and "grew" or "shrank",
-				math.floor(math.abs(growth) / 1000),
-				gcCap
-			)
-		)
-	end
-end
-
 function widgetHandler:Update()
-	if gcStepping then
-		if collectgarbage("step", gcStepKB) then
-			gcStepping = false
-			gcTrendFrame, gcTrendMem = Spring.GetGameFrame(), collectgarbage("count")
-			spEcho(
-				"Gradual garbage collection done, LuaUI now uses "
-					.. math.floor(collectgarbage("count") / 1000)
-					.. " MB"
-			)
-		end
-	else
-		gcCheckCounter = gcCheckCounter + 1
-		if gcCheckCounter >= 30 then
-			gcCheckCounter = 0
-			local count = collectgarbage("count")
-			gcAdaptCap(count)
-			if count > gcEmergencyLimit then
-				spEcho("Warning: Emergency garbage collection due to exceeding 1.3GB LuaRAM")
-				collectgarbage("collect")
-			elseif count > gcGradualLimit then
-				spEcho(
-					"Warning: LuaUI uses " .. math.floor(count / 1000) .. " MB, starting a gradual garbage collection"
-				)
-				gcStepping = true
-			end
-		end
+	-- Collects LuaUI's garbage when the shared Lua memory pool runs high, and watches user widgets.
+	if memoryGuard then
+		memoryGuard.update()
 	end
 
 	local deltaTime = Spring.GetLastUpdateSeconds()
@@ -2949,6 +3015,9 @@ function widgetHandler:ConfigureLayout(command)
 		return true
 	elseif stringFind(command, "disablewidget") == 1 then
 		self:DisableWidgetRaw(stringSub(command, 15))
+		return true
+	elseif command == "widgetmemory" and memoryGuard then
+		memoryGuard.report()
 		return true
 	end
 

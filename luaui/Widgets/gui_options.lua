@@ -117,20 +117,30 @@ local continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) ==
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 --local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local fontfile3 = "fonts/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
-
 local vsx, vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 7
 
-local backwardTex = ":l:LuaUI/Images/backward.dds"
-local forwardTex = ":l:LuaUI/Images/forward.dds"
-
-local screenHeightOrg = 550
-local screenWidthOrg = 1100
+local screenHeightOrg = 610
+local screenWidthOrg = 950
+-- the window's sizes in pixels at 1080p, and how its list is laid out
+local tuning = {
+	controlsWidth = 200, -- the column the controls share; sliders and dropdowns span it
+	controlsAlignLeft = true, -- toggles at the left edge of that column, else at its right end
+	compactColumns = 2, -- toggles per line in grids: notifications, playlist tracks, auto cloak units
+	rowHeight = 25, -- a setting's row; its controls scale with it, and section headings are 1.35x
+	fontSize = 14, -- setting names and values; the switch captions scale with it
+	controlFontSize = 12.5, -- the text in the controls: a dropdown's choice and a slider's value
+	dropdownFontSize = 12.5, -- the entries of an open dropdown
+	headingFontSize = 14, -- section headings in the list
+	categoryHeight = 29, -- a tab's row in the column
+	categoryFontSize = 14, -- the tabs in the column; a tab's name over its search results is 1.25x
+	subcategoryHeight = 25, -- a section's row under the open tab in the column
+	subcategoryFontSize = 14, -- the sections under the open tab in the column
+	descriptionLines = 3, -- lines under the setting's name in the strip below the list
+	rowHighlight = true, -- light up the row under the mouse (what folds a family always lights up)
+}
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
@@ -150,10 +160,17 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local os_clock = os.clock
 local math_isInRect = math.isInRect
 
-local chobbyInterface, font, font2, font3, backgroundGuishader, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
-local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
-local forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover, scheduleInit
-local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide, selectScrollOffset
+local chobbyInterface, backgroundGuishader, currentGroupTab, windowList
+---@type LuaFont, LuaFont
+local font, font2
+local sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
+local forceUpdate, sliderValueChanged, selectOptionsList, prevSelectHover, scheduleInit
+local fontOption, lastSliderSound, selectClickAllowHide, selectScrollOffset
+-- the option whose dropdown is open, and the slider being dragged
+---@type table?
+local openSelect
+---@type table?
+local draggingSlider
 local guishaderWasActive = false
 
 local glColor = gl.Color
@@ -167,7 +184,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
+local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
+local UiScroller, UiScrollerAt
 
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local isReplay = Spring.IsReplay()
@@ -211,10 +229,139 @@ local options = {}
 local unfilteredOptions = {}
 local customOptions = {}
 local optionGroups = {}
-local optionButtons = {}
-local optionHover = {}
-local optionSelect = {}
-local windowRect = { 0, 0, 0, 0 }
+
+-- The window, in the shape of the game info panel: the tabs and the open tab's sections in a
+-- column on the left, that tab's settings in one list that scrolls, the search field and the
+-- advanced switch above it, and below it a strip with the hovered setting's description.
+-- look: its colors. metrics: its sizes, set from the screen size in view.setLayout. layout: where
+-- the last DrawWindow put everything, read back by hover and clicks. view: what the list shows.
+local look = {
+	sidebarFill = { 0, 0, 0, 0.24 },
+	sidebarFillTop = { 0, 0, 0, 0.16 },
+	selectedFill = { 1, 1, 1, 0.13 },
+	-- the section the list is showing, marked down its left edge
+	sectionAccent = { 1, 0.78, 0.35, 0.7 },
+	white = { 1, 1, 1 },
+	hoverOpacity = 0.14,
+	headingSheen = { 1, 1, 1, 0.05 },
+	headingLine = { 1, 0.78, 0.51, 0.4 },
+	headingLineFade = { 1, 0.78, 0.51, 0 },
+	stripFill = { 0, 0, 0, 0.18 },
+	stripFillTop = { 0, 0, 0, 0.12 },
+	-- a row that does something when clicked lights up green
+	clickRow = { 0.5, 1, 0.25 },
+	controlHover = { 0.5, 0.5, 0.5, 0.22 },
+	controlHoverTop = { 1, 1, 1, 0.22 },
+	presetRow = { 0, 0, 0, 0.15 },
+	presetRowTop = { 1, 1, 1, 0.15 },
+	selectBorder = { 0, 0, 0, 0.25 },
+	selectBack = { 0.3, 0.3, 0.3, 0.84 },
+	selectBackTop = { 0.35, 0.35, 0.35, 0.84 },
+	selectBackSolid = { 0.3, 0.3, 0.3, 0.94 },
+	selectBackSolidTop = { 0.35, 0.35, 0.35, 0.94 },
+	selectCurrent = { 1, 1, 1, 0.08 },
+	scrollTrack = { 0.15, 0.15, 0.15, 0.85 },
+	scrollThumb = { 0.65, 0.65, 0.65, 0.9 },
+	chevron = { 1, 1, 1, 0.5 },
+	chevronLit = { 1, 1, 1, 1 },
+	-- the row picked by a click or the arrow keys
+	selectedRow = { 1, 1, 1, 0.06 },
+	title = "\255\235\235\235",
+	heading = "\255\255\200\130",
+	group = "\255\175\175\175",
+	groupSelected = "\255\245\245\245",
+	section = "\255\140\140\140",
+	sectionLit = "\255\235\215\185",
+	count = "\255\120\120\120",
+	caption = "\255\160\160\160",
+	captionOn = "\255\210\210\205",
+	value = "\255\200\200\200",
+	description = "\255\170\170\170",
+	command = "\255\060\060\060",
+	commandLit = "\255\200\200\200",
+	restart = "\255\255\120\120",
+	restartMark = "\255\255\090\090*",
+	-- the sub-options of a widget that is switched off
+	inactive = "\255\105\105\105",
+}
+
+local metrics = { wheelRows = 3 }
+
+local layout = {
+	window = { 0, 0, 0, 0 },
+	area = { 0, 0, 0, 0 },
+	rows = {} --[[@as table<integer, table>]],
+	rowOf = {} --[[@as table<table, table>]],
+	sidebar = {},
+	selectItems = {},
+	switch = { 0, 0, 0, 0 },
+	switchHit = { 0, 0, 0, 0 },
+	unfoldSwitch = { 0, 0, 0, 0 },
+	unfoldSwitchHit = { 0, 0, 0, 0 },
+	totalH = 0,
+	-- the strip's /option command where a click copies it, with the command as [5]
+	stripCommand = false --[[@as table|false]],
+}
+
+-- lines: what the list shows. scroll: the first line shown. scrollOf: where each tab was left.
+-- folded: families folded or opened by hand; it and unfoldAll are kept in the config.
+-- childCount: rows under each parent. startsOpen: the parents with a basic row that is not a cell.
+-- matches/headingOf: per tab under a search, how many rows matched and where they start.
+local view = {
+	lines = {} --[[@as table<integer, table>]],
+	scroll = 0,
+	scrollOf = {},
+	folded = {} --[[@as table<string, boolean>]],
+	unfoldAll = false --[[@as boolean]],
+	childCount = {} --[[@as table<table, integer>]],
+	startsOpen = {} --[[@as table<table, boolean>]],
+	matches = {},
+	headingOf = {},
+	dragging = false,
+	dragGrab = 0,
+	-- the heading last jumped to from the column, marked there until the list is scrolled otherwise
+	litPin = false --[[@as table|false]],
+	-- the row a click or the arrow keys picked, and the one the strip shows: that or the last hovered
+	selected = false --[[@as table|false]],
+	stripOption = false --[[@as table|false]],
+	-- the open dropdown's entry the arrow keys are on
+	selectKey = false --[[@as number|false]],
+	-- a slider dragged with shift held, and where that started
+	fineDrag = false --[[@as table|false]],
+	-- when the strip's /option command was last copied
+	copiedAt = -10 --[[@as number]],
+}
+
+-- the parts of the window, each drawing itself and recording in layout where it went
+local draw = {}
+-- per option type: draws the control at the right end of a row and returns where it starts
+local drawControl = {}
+
+-- Shared with the keybind editor and the game info panel.
+local Editbox = require("luaui/Include/keybind_editbox")
+local text = require("luaui/Include/keybind_text")
+---@type table
+local searchBox
+-- the search, kept in step with searchBox for applyFilter
+local inputText = ""
+
+-- a slider's range: its lowest and highest step, or min and max
+local function sliderRange(option)
+	if option.steps then
+		local min, max = option.steps[1], option.steps[1]
+		for _, v in ipairs(option.steps) do
+			if v > max then
+				max = v
+			end
+			if v < min then
+				min = v
+			end
+		end
+		return min, max
+	end
+	return option.min, option.max
+end
+
 local showOnceMore = false -- used because of GUI shader delay
 local resettedTonemapDefault = false
 local heightmapChangeClock
@@ -365,16 +512,21 @@ function widget:ViewResize()
 
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
-	UiButton = WG.FlowUI.Draw.Button
 	UiSlider = WG.FlowUI.Draw.Slider
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 	UiToggle = WG.FlowUI.Draw.Toggle
 	UiSelector = WG.FlowUI.Draw.Selector
 	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
+	UiScroller = WG.FlowUI.Draw.Scroller
+	UiScrollerAt = WG.FlowUI.Draw.ScrollerGeometry
 
 	font = WG.fonts.getFont()
 	font2 = WG.fonts.getFont(2)
-	font3 = WG.fonts.getFont(2, 1.6)
+
+	if not searchBox then
+		view.makeSearchBox()
+	end
+	view.setLayout()
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
@@ -382,17 +534,9 @@ function widget:ViewResize()
 		setEngineFont()
 	end
 
-	if windowList then
-		gl.DeleteList(windowList)
-		backgroundGuishader = glDeleteList(backgroundGuishader)
-		consoleCmdDlist = glDeleteList(consoleCmdDlist)
-		textInputDlist = glDeleteList(textInputDlist)
-	end
-	windowList = gl.CreateList(DrawWindow)
-
-	if backgroundGuishader ~= nil then
-		backgroundGuishader = glDeleteList(backgroundGuishader)
-	end
+	backgroundGuishader = glDeleteList(backgroundGuishader)
+	view.build()
+	view.refresh()
 
 	adjustShadowQuality()
 end
@@ -406,63 +550,58 @@ local function detectWater()
 end
 
 local Search = require("luaui/Include/search")
-local utf8 = require("common/luaUtilities/utf8")
---local textInputDlist, consoleCmdDlist, textCursorRect
-local updateTextInputDlist = true
-local showTextInput = true
-local inputText = ""
-local inputTextPosition = 0
-local cursorBlinkTimer = 0
-local cursorBlinkDuration = 1
-local maxTextInputChars = 127 -- tested 127 as being the true max
-local inputTextInsertActive = false
-local floor = math.floor
-local inputMode = ""
 
 function widget:TextInput(char) -- if it isn't working: chobby probably hijacked it
-	if not chobbyInterface and not Spring.IsGUIHidden() and showTextInput and show then
-		if inputTextInsertActive then
-			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition + 2)
-			if inputTextPosition <= utf8.len(inputText) then
-				inputTextPosition = inputTextPosition + 1
-			end
-		else
-			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition + 1)
-			inputTextPosition = inputTextPosition + 1
-		end
-		if string.len(inputText) > maxTextInputChars then
-			inputText = string.sub(inputText, 1, maxTextInputChars)
-			if inputTextPosition > maxTextInputChars then
-				inputTextPosition = maxTextInputChars
-			end
-		end
-		cursorBlinkTimer = 0
-		updateTextInputDlist = true
+	if not chobbyInterface and not Spring.IsGUIHidden() and show then
+		-- typing searches straight away; until then the field shows what it is for
+		searchBox:focus()
+		searchBox:textInput(char)
 		if WG.limitidlefps and WG.limitidlefps.update then
 			WG.limitidlefps.update()
 		end
-
-		applyFilter()
 		return true
 	end
 end
 
-local function clearChatInput()
-	inputText = ""
-	inputTextPosition = 0
-	inputTextInsertActive = false
-	-- Invalidate guishader so it rebuilds with tab blur regions included
-	backgroundGuishader = glDeleteList(backgroundGuishader)
-	applyFilter()
+-- the search field, kept in step with inputText; made again when the language changes
+function view.makeSearchBox()
+	searchBox = Editbox.new({
+		placeholder = BAR.I18N("ui.gameInfo.search"),
+		clearable = true,
+		text = inputText,
+		onChange = function(value)
+			inputText = value
+			view.scroll = 0
+			applyFilter()
+		end,
+	})
 end
 
--- only called when show = false
-local function cancelChatInput()
-	local doReinit = inputText ~= ""
+-- Opening takes text input for the search field, so typing searches straight away; closing gives
+-- it back. The search itself is kept for the next time.
+function view.open()
+	if not show and WG.topbar then
+		WG.topbar.hideWindows()
+	end
+	show = true
+	widgetHandler.textOwner = widget --widgetHandler:OwnText()
+	Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+	if searchBox then
+		-- other widgets may have changed settings while it was closed
+		view.build()
+		view.refresh()
+	end
+	forceUpdate = true -- Update reads again what can change elsewhere, like the window's size
+end
+
+function view.close()
+	show = false
+	openSelect = nil
+	draggingSlider = nil
+	view.dragging = false
 	backgroundGuishader = glDeleteList(backgroundGuishader)
 	if WG.guishader then
 		WG.guishader.RemoveDlist("options")
-		WG.guishader.RemoveRect("optionsinput")
 		if selectOptionsList then
 			WG.guishader.RemoveScreenRect("options_select")
 			WG.guishader.RemoveScreenRect("options_select_options")
@@ -474,165 +613,24 @@ local function cancelChatInput()
 	end
 	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil --widgetHandler:DisownText()
-	if doReinit then
-		applyFilter()
+	if searchBox then
+		searchBox:blur()
 	end
 end
 
-function drawChatInputCursor()
-	if textCursorRect then
-		local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
-		glColor(0.7, 0.7, 0.7, a)
-		gl.Rect(textCursorRect[1], textCursorRect[2], textCursorRect[3], textCursorRect[4])
-		glColor(1, 1, 1, 1)
-	end
-end
-
-function updateInputDlist()
-	updateTextInputDlist = false
-	glDeleteList(textInputDlist)
-	textInputDlist = glCreateList(function()
-		local activationArea = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
-		local usedFontSize = 15 * widgetScale
-		local lineHeight = floor(usedFontSize * 1.15)
-		local x, y, _ = Spring.GetMouseState()
-		local chatlogHeightDiff = 0
-		local inputFontSize = floor(usedFontSize * 1.03)
-		local inputHeight = floor(inputFontSize * 2.15)
-		local leftOffset = floor(lineHeight * 0.7)
-		local distance = 0 --elementMargin
-		local usedFont = font
-		local modeText = BAR.I18N("ui.settings.filter")
-		if inputMode ~= "" then
-			modeText = inputMode
-		end
-		local modeTextPosX = floor(activationArea[1] + elementPadding + elementPadding + leftOffset)
-		local textPosX =
-			floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
-		local textCursorWidth = 1 + math.floor(inputFontSize / 14)
-		if inputTextInsertActive then
-			textCursorWidth = math.floor(textCursorWidth * 5)
-		end
-		local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
-
-		-- background
-		local x2 = math.max(
-			textPosX + lineHeight + floor(usedFont:GetTextWidth(inputText) * inputFontSize),
-			floor(activationArea[1] + ((activationArea[3] - activationArea[1]) / 5))
-		)
-		chatInputArea = {
-			activationArea[1],
-			activationArea[2] + chatlogHeightDiff - distance - inputHeight,
-			x2,
-			activationArea[2] + chatlogHeightDiff - distance,
-		}
-		UiElement(
-			chatInputArea[1],
-			chatInputArea[2],
-			chatInputArea[3],
-			chatInputArea[4],
-			0,
-			0,
-			nil,
-			nil,
-			0,
-			nil,
-			nil,
-			nil,
-			WG.FlowUI.clampedOpacity
-		)
-		if WG.guishader then
-			WG.guishader.InsertRect(
-				activationArea[1],
-				activationArea[2] + chatlogHeightDiff - distance - inputHeight,
-				x2,
-				activationArea[2] + chatlogHeightDiff - distance,
-				"optionsinput",
-				widget
-			)
-		end
-
-		-- button background
-		local inputButtonRect = {
-			activationArea[1] + elementPadding,
-			activationArea[2] + chatlogHeightDiff - distance - inputHeight + elementPadding,
-			textPosX - inputFontSize,
-			activationArea[2] + chatlogHeightDiff - distance,
-		}
-		if inputMode ~= "" then
-			glColor(0.03, 0.12, 0.03, 0.3)
-		else
-			glColor(0, 0, 0, 0.3)
-		end
-		RectRound(
-			inputButtonRect[1],
-			inputButtonRect[2],
-			inputButtonRect[3],
-			inputButtonRect[4],
-			elementCorner * 0.6,
-			0,
-			0,
-			0,
-			1
-		)
-		glColor(1, 1, 1, 0.033)
-		gl.Rect(inputButtonRect[3] - 1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
-
-		-- button text
-		usedFont:Begin()
-		usedFont:SetOutlineColor(0, 0, 0, 0.4)
-		usedFont:SetTextColor(0.62, 0.62, 0.62, 1)
-		usedFont:Print(
-			modeText,
-			modeTextPosX,
-			activationArea[2] + chatlogHeightDiff - distance - (inputHeight * 0.61),
-			inputFontSize,
-			"o"
-		)
-
-		-- text cursor
-		textCursorRect = {
-			textPosX + textCursorPos,
-			activationArea[2] + chatlogHeightDiff - distance - (inputHeight * 0.5) - (inputFontSize * 0.6),
-			textPosX + textCursorPos + textCursorWidth,
-			activationArea[2] + chatlogHeightDiff - distance - (inputHeight * 0.5) + (inputFontSize * 0.64),
-		}
-
-		usedFont:SetTextColor(0.95, 0.95, 0.95, 1)
-		usedFont:Print(
-			inputText,
-			textPosX,
-			activationArea[2] + chatlogHeightDiff - distance - (inputHeight * 0.61),
-			inputFontSize,
-			"o"
-		)
-		usedFont:End()
-	end)
-end
-
-local optionIdIndex = {}
-local function rebuildOptionIdIndex()
-	optionIdIndex = {}
-	for i, option in pairs(options) do
-		if option.id then
-			optionIdIndex[option.id] = i
+-- every option by id. During init() this is the list being built, afterwards the full list
+-- (the search filter only changes what is shown).
+local optionsById = {}
+local function indexOptions()
+	optionsById = {}
+	for _, option in ipairs(options) do
+		if option.id and not optionsById[option.id] then
+			optionsById[option.id] = option
 		end
 	end
 end
-
-function getOptionByID(id)
-	local idx = optionIdIndex[id]
-	if idx and options[idx] and options[idx].id == id then
-		return idx
-	end
-	-- fallback: linear scan + update index
-	for i, option in pairs(options) do
-		if option.id == id then
-			optionIdIndex[id] = i
-			return i
-		end
-	end
-	return false
+local function getOption(id)
+	return optionsById[id]
 end
 
 -- Main name color, and the one for sub-options and for what follows a prefix. Labels get one color.
@@ -653,694 +651,913 @@ local function getOptionLabel(option)
 	return option.prefix and (option.prefix .. "  " .. option.name) or option.name
 end
 
--- Cuts text down to maxWidth and appends "...", dropping whole UTF-8 characters
-local function truncateText(text, maxWidth, fontSize)
-	while text ~= "" and font:GetTextWidth(text) * fontSize > maxWidth do
-		local last = string.len(text)
-		while last > 1 and string.byte(text, last) >= 128 and string.byte(text, last) < 192 do
-			last = last - 1
-		end
-		text = string.sub(text, 1, last - 1)
-	end
-	return text .. "..."
+-- what a line takes up in the list, with the gap a section leaves before the next heading
+local function lineHeight(line)
+	return line.h
 end
 
-function mouseoverGroupTab(id)
-	if optionGroups[id].id == currentGroupTab then
+-- what a line draws in, at the top of what it takes up
+local function contentHeight(line)
+	return line.kind == "heading" and metrics.headingHeight or metrics.rowHeight
+end
+
+-- r is { x1, y1, x2, y2 }; its edges count as inside
+local function inRect(r, mx, my)
+	return r ~= nil and math_isInRect(mx, my, r[1], r[2], r[3], r[4])
+end
+
+-- Decimals a number needs, up to 4. Counted, not read off tostring: Lua numbers are 32-bit floats in
+-- the engine, which writes 0.15 as "0.15000001".
+local function decimalsOf(x)
+	for d = 0, 3 do
+		local scaled = x * 10 ^ d
+		if math.abs(scaled - math.floor(scaled + 0.5)) <= 0.00001 * math.max(1, math.abs(scaled)) then
+			return d
+		end
+	end
+	return 4
+end
+
+-- the value a slider shows, rounded to its step
+local function sliderValueText(option)
+	if option.steps then
+		local value = NearestValue(option.steps, option.value)
+		return string.format("%." .. decimalsOf(value) .. "f", value)
+	end
+	return string.format("%." .. decimalsOf(option.step or 1) .. "f", option.value)
+end
+
+-- whitespace alone is not a search
+function view.searching()
+	return string.find(inputText, "%S") ~= nil
+end
+
+-- The header switch is the advanced one, or the developer UI's while that is on: it shows every
+-- setting, so advanced does nothing then. A dev build shows everything and has no switch.
+function view.switchCaption()
+	if devUI and not devMode then
+		return BAR.I18N("ui.settings.option.devmode")
+	end
+	return BAR.I18N("ui.settings.advanced")
+end
+
+-- indent levels: the rows under a section heading do not step in
+local function indentOf(option)
+	local n, parent = 0, option.parentOption
+	while parent do
+		if parent.type then
+			n = n + 1
+		end
+		parent = parent.parentOption
+	end
+	return n
+end
+
+-- a sub-option of a widget that is switched off does nothing for now
+local function inactive(option)
+	local parent = option.parentOption
+	while parent do
+		if parent.type == "bool" and parent.widget and not parent.value then
+			return true
+		end
+		parent = parent.parentOption
+	end
+	return false
+end
+
+-- draws the window again into its display list
+function view.refresh()
+	if windowList then
+		gl.DeleteList(windowList)
+	end
+	windowList = gl.CreateList(DrawWindow)
+end
+
+-- Whole pixels throughout, so edges and glyphs do not land between pixels.
+function view.setLayout()
+	local s = widgetScale
+	local pad = math.floor(8 * s)
+	layout.window = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
+	local a = { screenX + pad, screenY - screenHeight + pad, screenX + screenWidth - pad, screenY - pad }
+	layout.area = a
+
+	metrics.rowHeight = math.floor(tuning.rowHeight * s)
+	metrics.rowFs = math.floor(tuning.fontSize * s)
+	metrics.dropdownFs = math.floor(tuning.dropdownFontSize * s)
+	metrics.headingHeight = math.floor(metrics.rowHeight * 1.35)
+	metrics.headingFs = math.floor(tuning.headingFontSize * s)
+	metrics.sectionGap = math.floor(10 * s)
+	metrics.tabHeadingFs = math.floor(tuning.categoryFontSize * s * 1.25)
+	metrics.groupHeight = math.floor(tuning.categoryHeight * s)
+	metrics.groupFs = math.floor(tuning.categoryFontSize * s)
+	metrics.sectionHeight = math.floor(tuning.subcategoryHeight * s)
+	metrics.sectionFs = math.floor(tuning.subcategoryFontSize * s)
+	metrics.rowPad = math.floor(6 * s)
+	metrics.sidePad = math.floor(12 * s)
+	metrics.inset = math.floor(4 * s)
+	metrics.headerH = math.floor(34 * s)
+	metrics.gap = math.floor(12 * s)
+	metrics.cardLip = math.floor(5 * s)
+	metrics.titleY = math.floor(17 * s)
+	metrics.titleFs = math.floor(tuning.fontSize * s * 1.55)
+	metrics.sidebarW = math.floor(230 * s)
+	metrics.barW = math.floor(14 * s)
+	metrics.accentW = math.max(2, math.floor(3 * s))
+	metrics.underlineH = math.max(1, math.floor(2 * s))
+	metrics.indent = math.floor(18 * s)
+	metrics.chevron = math.floor(8 * s)
+	metrics.toggleW = math.floor(36 * s)
+	metrics.toggleH = math.floor(metrics.rowHeight * 0.6)
+	-- the text inside the controls, and the room a slider's value takes after its track
+	metrics.controlFs = math.floor(tuning.controlFontSize * s)
+	metrics.valueW = math.floor(tuning.controlFontSize * s * 4)
+	metrics.stripLineH = math.floor(metrics.rowFs * 1.45)
+	metrics.stripH = metrics.stripLineH * (1 + tuning.descriptionLines) + math.floor(10 * s)
+	metrics.captionFs = math.floor(metrics.rowFs * 1.05)
+	metrics.csPanel = math.floor(elementCorner)
+	metrics.csSmall = math.floor(elementCorner * 0.66)
+	metrics.selectPadding = math.floor(4 * s)
+	metrics.selectScrollbar = math.max(3, math.floor(4 * s))
+	metrics.selectBorder = math.max(1, math.floor(vsy / 900))
+
+	layout.sidebarTop = a[4] - metrics.headerH - metrics.inset - math.floor(8 * s)
+	-- the column and the strip are cards side by side, as far apart as they are from the window edge
+	layout.listX1 = a[1] + metrics.sidebarW + pad
+	layout.listTop = a[4] - metrics.headerH - metrics.inset
+	layout.stripTop = a[2] + metrics.stripH
+	layout.listBottom = layout.stripTop + metrics.inset
+	layout.barX1 = a[3] - metrics.inset - metrics.barW
+	layout.listRight = layout.barX1 - metrics.gap
+	-- the controls share a column, all starting on one line, with sliders and dropdowns across it
+	metrics.controlW = math.floor(tuning.controlsWidth * s)
+
+	-- the header band: the search field, then the unfold all and advanced switches, each with its caption
+	local rowTop = a[4] - math.floor(4 * s)
+	local rowBottom = a[4] - metrics.headerH + math.floor(4 * s)
+	local togH = math.floor((rowTop - rowBottom) * 0.62)
+	local togY1 = math.floor((rowTop + rowBottom) * 0.5) - math.floor(togH * 0.5)
+	local togW = math.floor(38 * s)
+	-- a click on a switch or its caption flips it
+	local function hitArea(switch, caption)
+		local captionW = math.floor(font:GetTextWidth(caption) * metrics.captionFs)
+		return { switch[1] - metrics.rowPad * 2 - captionW, rowBottom, switch[3] + metrics.rowPad, rowTop }
+	end
+	local x2 = a[3] - metrics.inset
+	layout.switch = { x2 - togW, togY1, x2, togY1 + togH }
+	layout.switchHit = hitArea(layout.switch, view.switchCaption())
+	local unfoldX2 = math.floor(layout.switchHit[1] - 16 * s)
+	layout.unfoldSwitch = { unfoldX2 - togW, togY1, unfoldX2, togY1 + togH }
+	layout.unfoldSwitchHit = hitArea(layout.unfoldSwitch, BAR.I18N("ui.settings.unfoldall"))
+	searchBox:setRect(
+		layout.listX1,
+		rowBottom,
+		layout.unfoldSwitchHit[1] - math.floor(28 * s),
+		rowTop,
+		math.floor((rowTop - rowBottom) * 0.5)
+	)
+end
+
+-- A family is folded or opened by hand, or all open under "unfold all". Otherwise it starts folded
+-- while its widget is off, and when it holds only advanced rows or a grid of toggles.
+function view.isFolded(option)
+	if not option.type then
+		return false -- section headings do not fold
+	end
+	local folded = option.id and view.folded[option.id]
+	if folded ~= nil then
+		return folded
+	end
+	if view.unfoldAll then
+		return false
+	end
+	if option.type == "bool" and option.widget ~= nil and not option.value then
+		return true
+	end
+	return not view.startsOpen[option]
+end
+
+-- The list: section headings and the rows of the open tab, without the rows of folded families;
+-- compact toggles share lines. Under a search, the matches of every tab, under a heading per tab.
+function view.build()
+	local lines, childCount, startsOpen = {}, {}, {}
+	local searching = view.searching()
+	-- only rows the list can show: a family of advanced rows has nothing to unfold in basic mode
+	for _, option in ipairs(options) do
+		local parent = option.parentOption
+		if parent and option.name and showOption(option) then
+			childCount[parent] = (childCount[parent] or 0) + 1
+			if not option.compact and (not option.category or option.category == types.basic) then
+				startsOpen[parent] = true
+			end
+		end
+	end
+	view.childCount, view.startsOpen = childCount, startsOpen
+	view.matches, view.headingOf = {}, {}
+
+	-- the open tab has to be one the column shows
+	local valid
+	for _, group in ipairs(optionGroups) do
+		if group.id == currentGroupTab and group.numOptions > 0 and (devMode or devUI or group.id ~= "dev") then
+			valid = true
+		end
+	end
+	if not valid and optionGroups[1] then
+		currentGroupTab = optionGroups[1].id
+	end
+
+	local cells
+	local function add(option)
+		if option.type == nil then
+			if option.name then
+				lines[#lines + 1] = { kind = "heading", option = option, text = option.name }
+			end
+			cells = nil
+		elseif option.compact then
+			if cells and #cells.cells < tuning.compactColumns and cells.parent == option.parentOption then
+				cells.cells[#cells.cells + 1] = option
+			else
+				cells = { kind = "cells", cells = { option }, parent = option.parentOption, depth = indentOf(option) }
+				lines[#lines + 1] = cells
+			end
+		else
+			lines[#lines + 1] = { kind = "row", option = option }
+			cells = nil
+		end
+	end
+	local function folded(option)
+		local parent = option.parentOption
+		while parent do
+			if childCount[parent] and view.isFolded(parent) then
+				return true
+			end
+			parent = parent.parentOption
+		end
+		return false
+	end
+
+	if searching then
+		for _, group in ipairs(optionGroups) do
+			for _, option in ipairs(options) do
+				if option.group == group.id and option.name and showOption(option) then
+					if not view.headingOf[group] then
+						lines[#lines + 1] = { kind = "heading", group = group, text = group.name }
+						view.headingOf[group] = #lines
+						view.matches[group] = 0
+						cells = nil
+					end
+					if option.type then
+						view.matches[group] = view.matches[group] + 1
+					end
+					add(option)
+				end
+			end
+		end
+	else
+		for _, option in ipairs(options) do
+			if option.group == currentGroupTab and showOption(option) and not folded(option) then
+				add(option)
+			end
+		end
+	end
+
+	-- a section leaves some room before the next heading, a tab's results more before the next tab's
+	local off = 0
+	for i, line in ipairs(lines) do
+		local nextLine = lines[i + 1]
+		line.h = contentHeight(line)
+		if nextLine and nextLine.kind == "heading" and line.kind ~= "heading" then
+			line.h = line.h + (nextLine.group and metrics.sectionGap * 2 or metrics.sectionGap)
+		end
+		line.off = off
+		off = off + line.h
+	end
+	view.lines, layout.totalH = lines, off
+	view.setScroll(view.scroll)
+end
+
+-- the furthest the first line can go with the band still full
+function view.maxScroll()
+	local band = (layout.listTop or 0) - (layout.listBottom or 0)
+	local used, i = 0, #view.lines
+	while i > 0 do
+		local h = lineHeight(view.lines[i])
+		if used + h > band then
+			break
+		end
+		used = used + h
+		i = i - 1
+	end
+	return i
+end
+
+function view.setScroll(n)
+	view.scroll = math.max(0, math.min(n, view.maxScroll()))
+end
+
+-- pixels of the list above the first line shown
+function view.offset()
+	local first = view.lines[view.scroll + 1]
+	return first and first.off or 0
+end
+
+-- how many lines the band holds from where the list is now, or going up, the page that ends there
+function view.pageLines(up)
+	local band, used, n = layout.listTop - layout.listBottom, 0, 0
+	local from, to, dir = view.scroll + 1, #view.lines, 1
+	if up then
+		from, to, dir = view.scroll, 1, -1
+	end
+	for i = from, to, dir do
+		used = used + lineHeight(view.lines[i])
+		if used > band then
+			break
+		end
+		n = n + 1
+	end
+	return math.max(1, n)
+end
+
+function view.scrollBy(n)
+	local before = view.scroll
+	view.setScroll(view.scroll + n)
+	if view.scroll ~= before then
+		view.litPin = false
+		view.refresh()
+	end
+end
+
+-- The heading the column marks (a tab heading under a search): the one last jumped to from the
+-- column, as the list may not scroll far enough to bring it to the top; else at the end of the list
+-- the last one, and otherwise the last one at or above the first line shown.
+function view.litLine(tabsOnly)
+	local lit, pinned
+	local atEnd = view.scroll > 0 and view.scroll >= view.maxScroll()
+	for i, line in ipairs(view.lines) do
+		if line.kind == "heading" and (line.group or not tabsOnly) then
+			if view.litPin and (line.option or line.group) == view.litPin then
+				pinned = i
+			end
+			if atEnd or i <= view.scroll + 1 then
+				lit = i
+			end
+		end
+	end
+	return pinned or lit
+end
+
+-- one of the window's sounds, unless they are off
+function view.sound(name, volume)
+	if playSounds then
+		Spring.PlaySoundFile(sounds[name], volume, "ui")
+	end
+end
+
+-- What the arrow keys go through, in order: each row, and each cell of a line of cells.
+function view.selectable()
+	local items = {} --[[@as table<integer, table>]]
+	for i, line in ipairs(view.lines) do
+		if line.kind == "row" then
+			items[#items + 1] = { option = line.option, line = i }
+		elseif line.kind == "cells" then
+			for c, option in ipairs(line.cells) do
+				items[#items + 1] = { option = option, line = i, cell = c }
+			end
+		end
+	end
+	return items
+end
+
+-- Scrolls as little as it takes to show line i whole, with the heading right above it going up.
+---@param i integer
+function view.scrollTo(i)
+	local line = view.lines[i]
+	if not line then
 		return
 	end
-
-	local tabFontSize = 16 * widgetScale
-	local groupMargin = math.floor(bgpadding * 0.8)
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(
-		groupRect[id][1] + groupMargin,
-		groupRect[id][2],
-		groupRect[id][3] - groupMargin,
-		groupRect[id][4] - groupMargin,
-		groupMargin * 1.8,
-		1,
-		1,
-		0,
-		0,
-		{ 1, 1, 1, 0 },
-		{ 1, 1, 1, 0.07 }
-	)
-	-- gloss
-	RectRound(
-		groupRect[id][1] + groupMargin,
-		groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5),
-		groupRect[id][3] - groupMargin,
-		groupRect[id][4] - groupMargin,
-		groupMargin * 1.8,
-		1,
-		1,
-		0,
-		0,
-		{ 1, 1, 1, 0 },
-		{ 1, 1, 1, 0.1 }
-	)
-	RectRound(
-		groupRect[id][1] + groupMargin,
-		groupRect[id][2],
-		groupRect[id][3] - groupMargin,
-		groupRect[id][2] + groupMargin + ((groupRect[id][4] - groupRect[id][2]) * 0.5),
-		groupMargin * 1.25,
-		0,
-		0,
-		0,
-		0,
-		{ 1, 1, 1, 0.05 },
-		{ 0, 0, 0, 0 }
-	)
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-	font2:Begin()
-	font2:SetTextColor(1, 0.9, 0.66, 1)
-	font2:SetOutlineColor(0.4, 0.3, 0.15, 0.4)
-	font2:Print(
-		optionGroups[id].name,
-		groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2),
-		screenY + (9 * widgetScale),
-		tabFontSize,
-		"con"
-	)
-	font2:End()
+	local target = view.scroll
+	if i <= view.scroll then
+		target = i - 1
+		if view.lines[i - 1] and view.lines[i - 1].kind == "heading" then
+			target = i - 2
+		end
+	else
+		local band = layout.listTop - layout.listBottom
+		while target < i - 1 and line.off + contentHeight(line) - view.lines[target + 1].off > band do
+			target = target + 1
+		end
+	end
+	view.scrollBy(math.max(0, target) - view.scroll)
 end
 
-local startColumn = 1 -- used for navigation
-local maxShownColumns = 3
-local totalColumns = 0 -- gets calculated
+-- selects a row, shown in the strip, and scrolls it into view
+function view.select(option, lineIndex)
+	view.selected, view.stripOption = option, option
+	if lineIndex then
+		view.scrollTo(lineIndex)
+	end
+end
 
+-- init() makes the options and tabs anew: what the window holds on to becomes the new one of its id
+function view.rebind()
+	local function same(item)
+		if item and item.numOptions then
+			for _, group in ipairs(optionGroups) do
+				if group.id == item.id then
+					return group
+				end
+			end
+		end
+		return item and item.id and getOption(item.id) or false
+	end
+	view.selected, view.stripOption, view.litPin = same(view.selected), same(view.stripOption), same(view.litPin)
+	openSelect, draggingSlider = same(openSelect) or nil, same(draggingSlider) or nil
+end
+
+-- Up and down go a line along, in lines of cells to the same column; across goes a cell along. With
+-- nothing selected yet, it starts at the first line shown, or going up the last one.
+function view.moveSelection(dir, across)
+	local items = view.selectable()
+	local at = 0
+	for i, item in ipairs(items) do
+		if item.option == view.selected then
+			at = i
+		end
+	end
+	local target
+	if at == 0 then
+		local first, last
+		for i, item in ipairs(items) do
+			if item.line > view.scroll then
+				first = first or i
+				last = layout.rowOf[item.option] and i or last
+			end
+		end
+		target = items[dir > 0 and (first or 1) or (last or first or #items)]
+	elseif across then
+		target = items[at + dir]
+	else
+		local from, i = items[at], at
+		repeat
+			i = i + dir
+		until not items[i] or items[i].line ~= from.line
+		if items[i] then
+			local same = {}
+			for _, item in ipairs(items) do
+				if item.line == items[i].line then
+					same[#same + 1] = item
+				end
+			end
+			target = same[math.min(from.cell or 1, #same)]
+		end
+	end
+	if target then
+		view.select(target.option, target.line)
+	end
+end
+
+-- moves a slider n steps along, or to the n-th next of its listed steps
+function view.stepSlider(option, n)
+	local min, max = sliderRange(option)
+	local value
+	if option.steps then
+		local index = 1
+		for i, v in ipairs(option.steps) do
+			if math.abs(v - option.value) < math.abs(option.steps[index] - option.value) then
+				index = i
+			end
+		end
+		value = option.steps[math.max(1, math.min(#option.steps, index + n))]
+	else
+		local step = option.step or (max - min) / 100
+		value = math.max(min, math.min(max, math.floor((option.value + n * step) / step + 0.5) * step))
+	end
+	if value ~= option.value then
+		applyOptionValue(option, value)
+		view.sound("sliderDrag", 0.3)
+	end
+end
+
+-- Left and right on the selected row: a family folds or unfolds as in a tree (on a slider's row, which
+-- they step, with ctrl), a slider steps (ten at a time with ctrl), a toggle goes off or on, and along
+-- a line of cells the selection moves.
+function view.adjustSelected(dir, ctrl)
+	local option = view.selected
+	if not (option and layout.rowOf[option]) then
+		return
+	end
+	if option.compact then
+		view.moveSelection(dir, true)
+	elseif view.childCount[option] and not view.searching() and (ctrl or option.type ~= "slider") then
+		view.folded[option.id] = dir < 0
+		view.build()
+		view.refresh()
+	elseif option.type == "slider" then
+		view.stepSlider(option, ctrl and dir * 10 or dir)
+	elseif option.type == "bool" and option.value ~= (dir > 0) then
+		applyOptionValue(option, dir > 0)
+		view.sound(dir > 0 and "toggleOnClick" or "toggleOffClick", 0.75)
+	end
+end
+
+-- Enter on the selected row: flips a toggle, opens a dropdown, runs a row's click, or folds a row
+-- with no control.
+function view.activateSelected()
+	local option = view.selected
+	if not (option and layout.rowOf[option]) then
+		return
+	end
+	if option.type == "bool" then
+		applyOptionValue(option, not option.value)
+		view.sound(option.value and "toggleOnClick" or "toggleOffClick", 0.75)
+	elseif option.type == "select" then
+		openSelect = option
+		view.selectKey = tonumber(option.value) or 1
+		selectScrollOffset = math.max(0, view.selectKey - 8)
+		view.sound("selectUnfoldClick", 0.6)
+	elseif option.onclick then
+		option.onclick(option)
+	elseif view.childCount[option] and not view.searching() then
+		view.adjustSelected(view.isFolded(option) and 1 or -1, true)
+	end
+end
+
+-- Tab and shift-tab: the next tab in the column, or the one before, round the end
+function view.cycleTab(dir)
+	local tabs, at = {}, 1
+	for _, group in ipairs(optionGroups) do
+		if group.numOptions > 0 and (devMode or devUI or group.id ~= "dev") then
+			tabs[#tabs + 1] = group
+			if group.id == currentGroupTab then
+				at = #tabs
+			end
+		end
+	end
+	if #tabs > 0 then
+		view.openTab(tabs[(at - 1 + dir) % #tabs + 1])
+	end
+end
+
+-- a small triangle: pointing right while its family is folded, down while it is open
+local chevron = { x = 0, y = 0, h = 0, folded = false }
+local function chevronVertices()
+	local x, y, h = chevron.x, chevron.y, chevron.h
+	if chevron.folded then
+		gl.Vertex(x, y + h)
+		gl.Vertex(x, y - h)
+		gl.Vertex(x + math.floor(h * 1.3), y)
+	else
+		gl.Vertex(x - math.floor(h * 0.2), y + math.floor(h * 0.65))
+		gl.Vertex(x + math.floor(h * 1.5), y + math.floor(h * 0.65))
+		gl.Vertex(x + math.floor(h * 0.65), y - math.floor(h * 0.65))
+	end
+end
+function draw.chevron(x, cy, size, folded, color)
+	color = color or look.chevron
+	chevron.x, chevron.y, chevron.h, chevron.folded = x, cy, math.floor(size * 0.5), folded
+	gl.Color(color[1], color[2], color[3], color[4])
+	gl.BeginEnd(GL.TRIANGLES, chevronVertices)
+	gl.Color(1, 1, 1, 1)
+end
+
+-- The column: the title, then the tabs, with the open one's sections under it and the section the
+-- list is showing marked. Under a search, the tabs with matches and how many.
+function draw.sidebar()
+	local a = layout.area
+	local x1, x2 = a[1], a[1] + metrics.sidebarW
+	RectRound(
+		x1,
+		a[2],
+		x2,
+		layout.sidebarTop + metrics.cardLip,
+		metrics.csPanel,
+		1,
+		1,
+		1,
+		1,
+		look.sidebarFill,
+		look.sidebarFillTop
+	)
+	font:Print(
+		look.title .. BAR.I18N("ui.topbar.button.settings"),
+		x1 + metrics.sidePad,
+		a[4] - metrics.titleY,
+		metrics.titleFs,
+		"ov"
+	)
+
+	-- made changes that wait for a restart: said at the foot of the column, where it stays in sight
+	local bottom = a[2]
+	if changesRequireRestart then
+		local note =
+			text.wrap(font, BAR.I18N("ui.settings.madechanges"), x2 - x1 - metrics.sidePad * 2, metrics.sectionFs)
+		for i = #note, 1, -1 do
+			font:Print(
+				look.restart .. note[i],
+				x1 + metrics.sidePad,
+				bottom + math.floor(metrics.sectionHeight * 0.5),
+				metrics.sectionFs,
+				"ov"
+			)
+			bottom = bottom + math.floor(metrics.sectionFs * 1.3)
+		end
+		bottom = bottom + metrics.inset * 2
+	end
+
+	layout.sidebar = {}
+	local searching = view.searching()
+	local lit = view.litLine(searching)
+	local litGroup = searching and lit and view.lines[lit].group
+	local y = layout.sidebarTop
+	for _, group in ipairs(optionGroups) do
+		if
+			group.numOptions > 0
+			and (devMode or devUI or group.id ~= "dev")
+			and (not searching or view.matches[group])
+			and y - metrics.groupHeight >= bottom
+		then
+			local r = { x1, y - metrics.groupHeight, x2, y }
+			local open = not searching and group.id == currentGroupTab
+			local selected = open or group == litGroup
+			if selected then
+				RectRound(
+					r[1] + metrics.inset,
+					r[2],
+					r[3] - metrics.inset,
+					r[4],
+					metrics.csSmall,
+					1,
+					1,
+					1,
+					1,
+					look.selectedFill
+				)
+			end
+			local ty = math.floor((r[2] + r[4]) * 0.5)
+			font:Print(
+				(selected and look.groupSelected or look.group) .. group.name,
+				x1 + metrics.sidePad,
+				ty,
+				metrics.groupFs,
+				"ov"
+			)
+			if searching then
+				font:Print(look.count .. view.matches[group], x2 - metrics.sidePad, ty, metrics.groupFs, "rov")
+			end
+			layout.sidebar[#layout.sidebar + 1] = { rect = r, group = group, line = view.headingOf[group] }
+			y = r[2]
+
+			if open then
+				for i, line in ipairs(view.lines) do
+					if line.kind == "heading" and y - metrics.sectionHeight >= bottom then
+						local sr = { x1, y - metrics.sectionHeight, x2, y }
+						local isLit = i == lit
+						if isLit then
+							RectRound(
+								x1 + metrics.sidePad,
+								sr[2] + metrics.inset,
+								x1 + metrics.sidePad + metrics.accentW,
+								sr[4] - metrics.inset,
+								0,
+								0,
+								0,
+								0,
+								0,
+								look.sectionAccent
+							)
+						end
+						local caption = text.fit(font, line.text, x2 - x1 - metrics.sidePad * 3, metrics.sectionFs)
+						font:Print(
+							(isLit and look.sectionLit or look.section) .. caption,
+							x1 + metrics.sidePad * 2,
+							math.floor((sr[2] + sr[4]) * 0.5),
+							metrics.sectionFs,
+							"ov"
+						)
+						layout.sidebar[#layout.sidebar + 1] = { rect = sr, line = i }
+						y = sr[2]
+					end
+				end
+			end
+		end
+	end
+end
+
+-- A section heading on a sheen band, with a line closing it off underneath. Under a search, a tab's
+-- results start with its name on a band like the open tab's in the column, set apart from the
+-- section headings among them, with how many rows it found.
+function draw.heading(line, top, bottom)
+	local x1, x2 = layout.listX1, layout.listRight
+	local cy = math.floor((top + bottom) * 0.5)
+	if line.group then
+		RectRound(x1, bottom, x2, top, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
+		font:Print(look.groupSelected .. line.text, x1 + metrics.rowPad, cy, metrics.tabHeadingFs, "ov")
+		font:Print(look.count .. view.matches[line.group], x2 - metrics.rowPad, cy, metrics.rowFs, "rov")
+		return
+	end
+	RectRound(x1, bottom, x2, top - metrics.csSmall, metrics.csSmall, 1, 1, 0, 0, look.headingSheen, look.headingSheen)
+	RectRound(x1, bottom, x2, bottom + metrics.underlineH, 0, 0, 0, 0, 0, look.headingLine, look.headingLineFade)
+	font:Print(look.heading .. line.text, x1 + metrics.rowPad, cy, metrics.headingFs, "ov")
+end
+
+-- Each draws its control in the column from x1 to right and returns where it starts.
+
+function drawControl.bool(row, x1, right, cy)
+	local half = math.floor(metrics.toggleH * 0.5)
+	local tx1 = tuning.controlsAlignLeft and x1 or right - metrics.toggleW
+	local r = { tx1, cy - half, tx1 + metrics.toggleW, cy - half + metrics.toggleH }
+	row.control = r
+	UiToggle(r[1], r[2], r[3], r[4], row.option.value)
+	return tx1
+end
+
+-- the track with the value printed after it; the knob is the control, row.track the line it runs along
+function drawControl.slider(row, x1, right, cy)
+	local option = row.option
+	if type(option.value) ~= "number" then -- just to be safe
+		return right
+	end
+	local min, max = sliderRange(option)
+	-- a value from outside the range (set by a widget or the config) keeps the knob at an end
+	local pos = (option.value - min) / (max - min)
+	if pos ~= pos then -- a range of one value
+		pos = 0
+	end
+	pos = math.max(0, math.min(1, pos))
+	local knob = math.floor(metrics.rowHeight * 0.26)
+	local tx1, tx2 = x1 + knob, right - metrics.valueW
+	local trackH = math.max(2, math.floor(metrics.rowHeight * 0.16))
+	local trackY = cy - math.floor(trackH * 0.5)
+	UiSlider(tx1, trackY, tx2, trackY + trackH, option.steps and option.steps or option.step, option.min, option.max)
+	local kx = math.floor(tx1 + (tx2 - tx1) * pos)
+	UiSliderKnob(kx, cy, knob)
+	row.control = { kx - knob, cy - knob, kx + knob, cy + knob }
+	row.track = { tx1, tx2 }
+	row.knob = knob
+	font:Print(look.value .. sliderValueText(option), right, cy, metrics.controlFs, "rov")
+	return x1
+end
+
+-- the chosen entry inside the button, cut short of the square FlowUI draws at its right end
+function drawControl.select(row, x1, right, cy, top, bottom)
+	local option = row.option
+	local inset = math.floor(metrics.rowHeight * 0.12)
+	local r = { x1, bottom + inset, right, top - inset }
+	local square = r[4] - r[2]
+	row.control = r
+	UiSelector(r[1], r[2], r[3], r[4])
+	local h = math.floor(metrics.chevron * 0.5)
+	draw.chevron(r[3] - math.floor(square * 0.5) - math.floor(h * 0.65), cy, metrics.chevron, false)
+	local value = option.options[tonumber(option.value)]
+	if value ~= nil then
+		value = tostring(value)
+		local shown = text.fit(font, value, r[3] - r[1] - square - metrics.rowPad * 2, metrics.controlFs)
+		row.cutValue = shown ~= value and value or nil
+		if option.id == "font2" then
+			-- the second font's dropdown shows its value in that font
+			font:End()
+			font2:Begin()
+			font2:SetOutlineColor(0, 0, 0, 0.4)
+			font2:Print(look.value .. shown, r[1] + metrics.rowPad, cy, metrics.controlFs, "ov")
+			font2:End()
+			font:Begin()
+			font:SetOutlineColor(0, 0, 0, 0.4)
+		else
+			font:Print(look.value .. shown, r[1] + metrics.rowPad, cy, metrics.controlFs, "ov")
+		end
+	end
+	return r[1]
+end
+
+-- a row that does something when clicked is a button across its whole width
+function drawControl.click(row, _, right)
+	row.control = row.hover
+	return right
+end
+
+-- One setting: its name, indented under its parent with a fold arrow when it has sub-options (and how
+-- many while folded), and its control in the column at the right. Its hover, fold and control areas
+-- go into layout for clicks to find.
+function draw.row(option, top, bottom)
+	local cy = math.floor((top + bottom) * 0.5)
+	local depth = indentOf(option)
+	local x = layout.listX1 + metrics.rowPad * 2 + metrics.chevron + depth * metrics.indent
+	local right = layout.listRight - metrics.rowPad
+	local row = { option = option, hover = { layout.listX1, bottom, layout.listRight, top } }
+	layout.rows[#layout.rows + 1] = row
+	layout.rowOf[option] = row
+
+	local drawIt = drawControl[option.type]
+	local left = drawIt and drawIt(row, right - metrics.controlW, right, cy, top, bottom) or right
+
+	local family = view.childCount[option] and not view.searching()
+	local folded = family and view.isFolded(option)
+	local count = folded and "(" .. view.childCount[option] .. ")" or ""
+	local countW = folded and math.floor(font:GetTextWidth(count) * metrics.rowFs) + metrics.rowPad or 0
+	local markW = option.restart and math.floor(font:GetTextWidth("*") * metrics.rowFs) + metrics.inset or 0
+
+	local label = getOptionLabel(option)
+	local shown = text.fit(font, label, left - metrics.rowPad * 2 - x - markW - countW, metrics.rowFs)
+	row.cut = shown ~= label
+	local nameW = math.floor(font:GetTextWidth(shown) * metrics.rowFs)
+	if family then
+		row.chevronX = x - metrics.rowPad - metrics.chevron
+		draw.chevron(row.chevronX, cy, metrics.chevron, folded)
+		if folded then
+			font:Print(look.count .. count, x + nameW + markW + metrics.rowPad, cy, metrics.rowFs, "ov")
+		end
+		-- everything left of the control folds it, or the whole row when it has none
+		row.fold = { layout.listX1, bottom, left < right and left - metrics.rowPad or layout.listRight, top }
+	end
+
+	local mainColor, subColor = getNameColors(option)
+	if inactive(option) then
+		mainColor, subColor = look.inactive, look.inactive
+	end
+	if option.prefix and string.sub(shown, 1, string.len(option.prefix)) == option.prefix then
+		shown = mainColor
+			.. option.prefix
+			.. (subColor or mainColor)
+			.. string.sub(shown, string.len(option.prefix) + 1)
+	else
+		shown = (depth > 0 and subColor or mainColor) .. shown
+	end
+	font:Print(shown, x, cy, metrics.rowFs, "ov")
+	if option.restart then
+		font:Print(look.restartMark, x + nameW + metrics.inset, cy, metrics.rowFs, "ov")
+	end
+end
+
+-- a line of compact toggles, a switch and a name each, in columns
+function draw.cells(line, top, bottom)
+	local cy = math.floor((top + bottom) * 0.5)
+	local x0 = layout.listX1 + metrics.rowPad * 2 + metrics.chevron + line.depth * metrics.indent
+	local cellW = math.floor((layout.listRight - x0) / tuning.compactColumns)
+	local half = math.floor(metrics.toggleH * 0.5)
+	for i, option in ipairs(line.cells) do
+		local x1 = x0 + (i - 1) * cellW
+		local x2 = x1 + cellW - metrics.rowPad
+		local r = { x1, cy - half, x1 + metrics.toggleW, cy - half + metrics.toggleH }
+		local row = { option = option, hover = { x1 - metrics.inset, bottom, x2, top }, control = r }
+		layout.rows[#layout.rows + 1] = row
+		layout.rowOf[option] = row
+		UiToggle(r[1], r[2], r[3], r[4], option.value)
+		local label = getOptionLabel(option)
+		local shown = text.fit(font, label, x2 - r[3] - metrics.rowPad, metrics.rowFs)
+		row.cut = shown ~= label
+		local mainColor, subColor = getNameColors(option)
+		if inactive(option) then
+			mainColor, subColor = look.inactive, look.inactive
+		end
+		font:Print((line.depth > 0 and subColor or mainColor) .. shown, r[3] + metrics.rowPad, cy, metrics.rowFs, "ov")
+	end
+end
+
+-- whole lines only, from the first one scrolled to; the band can end mid-line
+function draw.lines()
+	layout.rows, layout.rowOf = {}, {}
+	local base = view.offset()
+	for i = view.scroll + 1, #view.lines do
+		local line = view.lines[i]
+		local top = layout.listTop - (line.off - base)
+		local bottom = top - contentHeight(line)
+		if bottom < layout.listBottom then
+			break
+		end
+		if line.kind == "heading" then
+			draw.heading(line, top, bottom)
+		elseif line.kind == "cells" then
+			draw.cells(line, top, bottom)
+		else
+			draw.row(line.option, top, bottom)
+		end
+	end
+end
+
+-- Draws the window into its display list and records in layout where everything went. The search
+-- field, the switch, the scrollbar, hover and the strip's text are drawn live in DrawScreen.
 function DrawWindow()
 	glTexture(false)
-	local x = screenX --rightwards
-	local y = screenY --upwards
-	windowRect = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
-
-	-- background
-	UiElement(
-		screenX,
-		screenY - screenHeight,
-		screenX + screenWidth,
-		screenY,
-		(showTextInput and inputText ~= "" and inputMode == "") and 1 or 0,
-		0,
-		1,
-		(showTextInput and 0 or 1),
-		1,
-		1,
-		1,
-		1,
-		WG.FlowUI.clampedOpacity
-	)
-
-	-- title
-	local groupMargin = math.floor(bgpadding * 0.8)
-	local color2 = "\255\125\125\125"
-	local color = "\255\255\255\255"
-	local title = ""
-	if devMode or devUI then
-		title = devOptionColor .. BAR.I18N("ui.settings.option.devmode")
-	elseif advSettings then
-		title = color2 .. BAR.I18N("ui.settings.basic") .. "  /  " .. color .. BAR.I18N("ui.settings.advanced")
-	else
-		title = color .. BAR.I18N("ui.settings.basic") .. color2 .. "  /  " .. BAR.I18N("ui.settings.advanced")
-	end
-	local titleFontSize = 18 * widgetScale
-	titleRect = {
-		math.floor((screenX + screenWidth) - ((font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5))),
-		screenY,
-		screenX + screenWidth,
-		math.floor(screenY + (titleFontSize * 1.7)),
-	}
-
-	-- title drawing
+	local w, a = layout.window, layout.area
+	UiElement(w[1], w[2], w[3], w[4], 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 	RectRound(
-		titleRect[1],
-		titleRect[2],
-		titleRect[3],
-		titleRect[4],
-		elementCorner,
+		layout.listX1,
+		a[2],
+		a[3],
+		layout.stripTop,
+		metrics.csSmall,
 		1,
 		1,
-		0,
-		0,
-		WG.guishader and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 },
-		WG.guishader and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 }
+		1,
+		1,
+		look.stripFill,
+		look.stripFillTop
 	)
-	RectRound(
-		titleRect[1] + groupMargin,
-		titleRect[4] - groupMargin - ((titleRect[4] - titleRect[2]) * 0.5),
-		titleRect[3] - groupMargin,
-		titleRect[4] - groupMargin,
-		elementCorner * 0.66,
-		1,
-		1,
-		0,
-		0,
-		{ 1, 0.95, 0.85, 0.03 },
-		{ 1, 0.95, 0.85, 0.15 }
-	)
-
-	font2:Begin()
-	font2:SetTextColor(1, 1, 1, 1)
-	font2:SetOutlineColor(0, 0, 0, 0.4)
-	font2:Print(title, titleRect[1] + (titleFontSize * 0.75), screenY + (8 * widgetScale), titleFontSize, "on")
-	font2:End()
-
-	-- group tabs
-	if not (showTextInput and inputText ~= "" and inputMode == "") then
-		local tabFontSize = 16 * widgetScale
-		local xpos = screenX
-		local groupPadding = 1
-		groupRect = {}
-		for id, group in pairs(optionGroups) do
-			if group.numOptions > 0 then
-				groupRect[id] = {
-					xpos,
-					titleRect[2],
-					math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)),
-					titleRect[4],
-				}
-				if devMode or devUI or group.id ~= "dev" then
-					xpos = groupRect[id][3]
-					if currentGroupTab == nil or currentGroupTab ~= group.id then
-						RectRound(
-							groupRect[id][1],
-							groupRect[id][2],
-							groupRect[id][3],
-							groupRect[id][4],
-							elementCorner,
-							1,
-							1,
-							0,
-							0,
-							WG.guishader and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 },
-							WG.guishader and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 }
-						)
-						RectRound(
-							groupRect[id][1] + groupMargin,
-							groupRect[id][2],
-							groupRect[id][3] - groupMargin,
-							groupRect[id][4] - groupMargin,
-							elementCorner * 0.66,
-							1,
-							1,
-							0,
-							0,
-							{ 0.6, 0.47, 0.24, 0.2 },
-							{ 0.88, 0.68, 0.33, 0.2 }
-						)
-
-						RectRound(
-							groupRect[id][1] + groupMargin + groupPadding,
-							groupRect[id][2],
-							groupRect[id][3] - groupMargin - groupPadding,
-							groupRect[id][4] - groupMargin - groupPadding,
-							elementCorner * 0.5,
-							1,
-							1,
-							0,
-							0,
-							{ 0, 0, 0, 0.13 },
-							{ 0, 0, 0, 0.13 }
-						)
-
-						glBlending(GL_SRC_ALPHA, GL_ONE)
-						-- gloss
-						RectRound(
-							groupRect[id][1] + groupMargin,
-							groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5),
-							groupRect[id][3] - groupMargin,
-							groupRect[id][4] - groupMargin,
-							bgpadding * 1.2,
-							1,
-							1,
-							0,
-							0,
-							{ 1, 0.88, 0.66, 0 },
-							{ 1, 0.88, 0.66, 0.1 }
-						)
-						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-						font2:Begin()
-						font2:SetTextColor(0.7, 0.58, 0.44, 1)
-						font2:SetOutlineColor(0, 0, 0, 0.4)
-						font2:Print(
-							group.name,
-							groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2),
-							screenY + (9 * widgetScale),
-							tabFontSize,
-							"con"
-						)
-						font2:End()
-					else
-						RectRound(
-							groupRect[id][1],
-							groupRect[id][2],
-							groupRect[id][3],
-							groupRect[id][4],
-							elementCorner,
-							1,
-							1,
-							0,
-							0,
-							WG.guishader and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 },
-							WG.guishader and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 }
-						)
-						RectRound(
-							groupRect[id][1] + groupMargin,
-							groupRect[id][2] - bgpadding,
-							groupRect[id][3] - groupMargin,
-							groupRect[id][4] - groupMargin,
-							elementCorner * 0.8,
-							1,
-							1,
-							0,
-							0,
-							{ 0.7, 0.7, 0.7, 0.15 },
-							{ 0.8, 0.8, 0.8, 0.15 }
-						)
-
-						font2:Begin()
-						font2:SetTextColor(1, 0.75, 0.4, 1)
-						font2:SetOutlineColor(0, 0, 0, 0.4)
-						font2:Print(
-							group.name,
-							groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2),
-							screenY + (9 * widgetScale),
-							tabFontSize,
-							"con"
-						)
-						font2:End()
-					end
-				end
-			end
-		end
-	end
-
 	font:Begin()
 	font:SetOutlineColor(0, 0, 0, 0.4)
-
-	-- draw options
-	local oHeight = math.floor(15 * widgetScale)
-	local oPadding = math.floor(6 * widgetScale)
-	y = math.floor(math.floor(y - oPadding - (17 * widgetScale)))
-	local oWidth = math.floor((screenWidth / 3) - oPadding - oPadding)
-	local yHeight = math.floor(screenHeight - (65 * widgetScale) - oPadding)
-	local xPos = math.floor(x + oPadding + (5 * widgetScale))
-	local xPosMax = xPos + oWidth - oPadding - oPadding
-	local yPosMax = y - yHeight
-	local boolWidth = math.floor(40 * widgetScale)
-	local sliderWidth = math.floor(110 * widgetScale)
-	local selectWidth = math.floor(140 * widgetScale)
-	local indentWidth = font:GetTextWidth("   ") * oHeight
-	local i = 0
-	local rows = 0
-	local column = 1
-	local drawColumnPos = 1
-
-	local dontFilterGroup = false
-	if inputText and inputText ~= "" and inputMode == "" then
-		dontFilterGroup = true
-	end
-
-	-- A column takes rows while they fit, and a label moves on to the next one when the spacer row
-	-- below it would not fit. Counted over all rows first, for the paging.
-	local rowStep = oHeight + oPadding + oPadding
-	local function rowFits(slot)
-		return math.floor(y - ((rowStep * slot) - oPadding)) - oHeight >= yPosMax
-	end
-	local function startsNewColumn(option, slot)
-		return not rowFits(slot) or (option.spacer ~= nil and not rowFits(slot + 1))
-	end
-	totalColumns = 1
-	local slot = 0
-	for _, option in ipairs(options) do
-		if showOption(option) and (currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup) then
-			if startsNewColumn(option, slot) then
-				totalColumns = totalColumns + 1
-				slot = 0
-			end
-			slot = slot + 1
-		end
-	end
-
-	optionButtons = {}
-	optionHover = {}
-
-	-- require restart notification
-	if changesRequireRestart then
-		glColor(1, 0, 0, 0.06)
-		RectRound(
-			screenX + bgpadding,
-			screenY - screenHeight + bgpadding,
-			screenX + screenWidth - bgpadding,
-			screenY - screenHeight + (31 * widgetScale),
-			elementCorner,
-			0,
-			0,
-			1,
-			0
-		)
-		RectRound(
-			screenX + bgpadding,
-			screenY - screenHeight + bgpadding + (30 * widgetScale) - 1,
-			screenX + screenWidth - bgpadding,
-			screenY - screenHeight + (30 * widgetScale),
-			0,
-			0,
-			0,
-			0,
-			0
-		)
-		font:SetTextColor(0.9, 0.3, 0.3, 1)
-		font:SetOutlineColor(0, 0, 0, 0.4)
-		font:Print(
-			BAR.I18N("ui.settings.madechanges"),
-			screenX + math.floor(screenWidth * 0.5),
-			screenY - screenHeight + (12 * widgetScale),
-			15 * widgetScale,
-			"cn"
-		)
-	end
-
-	-- draw navigation... backward/forward
-	if totalColumns > maxShownColumns then
-		local buttonSize = 35 * widgetScale
-		local buttonMarginX = 15 * widgetScale
-		local buttonMarginY = 10 * widgetScale
-		local startX = x + screenWidth
-		local startY = screenY - screenHeight + buttonMarginY
-
-		glColor(1, 1, 1, 1)
-
-		if (startColumn - 1) + maxShownColumns < totalColumns then
-			optionButtonForward =
-				{ startX - buttonSize - buttonMarginX, startY, startX - buttonMarginX, startY + buttonSize }
-			glColor(1, 1, 1, 1)
-			glTexture(forwardTex)
-			glTexRect(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4])
-			glTexture(false)
-			UiButton(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4])
-		else
-			optionButtonForward = nil
-		end
-
-		font:SetTextColor(1, 1, 1, 0.4)
-		font:Print(
-			math.ceil(startColumn / maxShownColumns) .. " / " .. math.ceil(totalColumns / maxShownColumns),
-			startX - (buttonSize * 2.6) - buttonMarginX,
-			startY + buttonSize / 2.6,
-			buttonSize / 2.4,
-			"rn"
-		)
-		if startColumn > 1 then
-			optionButtonBackward = {
-				startX - (buttonSize * 2) - buttonMarginX - (buttonMarginX / 1.5),
-				startY,
-				startX - (buttonSize * 1) - buttonMarginX - (buttonMarginX / 1.5),
-				startY + buttonSize,
-			}
-			glColor(1, 1, 1, 1)
-			glTexture(backwardTex)
-			glTexRect(
-				optionButtonBackward[1],
-				optionButtonBackward[2],
-				optionButtonBackward[3],
-				optionButtonBackward[4]
-			)
-			glTexture(false)
-			UiButton(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4])
-		else
-			optionButtonBackward = nil
-		end
-	end
-
-	-- draw options
-	local yPos
-	for oid, option in ipairs(options) do
-		if showOption(option) then
-			if currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup then
-				yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
-				if startsNewColumn(option, i) then
-					i = 0
-					column = column + 1
-					if column >= startColumn and rows > 0 then
-						drawColumnPos = drawColumnPos + 1
-					end
-					if drawColumnPos > 3 then
-						break
-					end
-					if rows > 0 then
-						xPos = math.floor(x + ((screenWidth / 3) * (drawColumnPos - 1)))
-						xPosMax = math.floor(xPos + oWidth)
-					end
-					yPos = y - (((oHeight + oPadding + oPadding) * i) - oPadding)
-				end
-
-				if column >= startColumn then
-					rows = rows + 1
-					if option.name then
-						local label = getOptionLabel(option)
-						local truncated = false
-						local cutValue -- full text of a select value that did not fit
-						local mainColor, subColor = getNameColors(option)
-
-						font:SetTextColor(1, 1, 1, 1)
-						font:SetOutlineColor(0, 0, 0, 0.4)
-
-						if option.type == nil then
-							font:End()
-							font3:Begin()
-							font3:SetOutlineColor(0, 0, 0, 0.4)
-							font3:Print(
-								mainColor .. option.name,
-								xPos + (oPadding * 0.5),
-								yPos - (oHeight * 1.8) - oPadding,
-								oHeight * 1.5,
-								"no"
-							)
-							font3:End()
-							font:Begin()
-							font:SetOutlineColor(0, 0, 0, 0.4)
-							font:SetTextColor(1, 1, 1, 1)
-							font:SetOutlineColor(0, 0, 0, 0.4)
-						else
-							local indent = option.depth * indentWidth
-							local maxWidthMult = 1
-							if option.type == "bool" then
-								maxWidthMult = 0.85
-							elseif option.type == "select" then
-								maxWidthMult = 0.5
-							elseif option.type == "slider" then
-								maxWidthMult = 0.55
-							end
-							local text = label
-							if font:GetTextWidth(text) * oHeight > (xPosMax - xPos - 45) * maxWidthMult - indent then
-								text = truncateText(text, (xPosMax - xPos - 50) * maxWidthMult - indent, oHeight)
-								truncated = true
-							end
-							if option.prefix and string.sub(text, 1, string.len(option.prefix)) == option.prefix then
-								text = mainColor
-									.. option.prefix
-									.. subColor
-									.. string.sub(text, string.len(option.prefix) + 1)
-							else
-								text = (option.depth > 0 and subColor or mainColor) .. text
-							end
-							if option.restart then
-								font:Print(
-									"\255\255\090\090*",
-									xPos + (oPadding * 0.3),
-									yPos - (oHeight / 5) - oPadding,
-									oHeight,
-									"no"
-								)
-							end
-							font:Print(
-								text,
-								xPos + (oPadding * 2) + indent,
-								yPos - (oHeight / 2.4) - oPadding,
-								oHeight,
-								"no"
-							)
-						end
-
-						-- define hover area
-						optionHover[oid] = {
-							math.floor(xPos),
-							math.floor(yPos - oHeight - oPadding),
-							math.floor(xPosMax),
-							math.floor(yPos + oPadding),
-						}
-
-						-- option controller
-						local rightPadding = 4
-						if option.type == "click" then
-							optionButtons[oid] = {}
-							optionButtons[oid] = {
-								math.floor(xPos + rightPadding),
-								math.floor(yPos - oHeight),
-								math.floor(xPosMax - rightPadding),
-								math.floor(yPos),
-							}
-						elseif option.type == "bool" then
-							optionButtons[oid] = {}
-							optionButtons[oid] = {
-								math.floor(xPosMax - boolWidth - rightPadding),
-								math.floor(yPos - oHeight),
-								math.floor(xPosMax - rightPadding),
-								math.floor(yPos),
-							}
-							UiToggle(
-								optionButtons[oid][1],
-								optionButtons[oid][2],
-								optionButtons[oid][3],
-								optionButtons[oid][4],
-								option.value
-							)
-						elseif option.type == "slider" then
-							if type(option.value) == "number" then -- just to be safe
-								local sliderSize = oHeight * 0.75
-								local sliderPos = 0
-								if option.steps then
-									local min, max = option.steps[1], option.steps[1]
-									for k, v in ipairs(option.steps) do
-										if v > max then
-											max = v
-										end
-										if v < min then
-											min = v
-										end
-									end
-									sliderPos = (option.value - min) / (max - min)
-								else
-									sliderPos = (option.value - option.min) / (option.max - option.min)
-								end
-								if type(sliderPos) == "number" then
-									UiSlider(
-										math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding),
-										math.floor(yPos - ((oHeight / 7) * 4.5)),
-										math.floor(xPosMax - (sliderSize / 2) - rightPadding),
-										math.floor(yPos - ((oHeight / 7) * 2.8)),
-										option.steps and option.steps or option.step,
-										option.min,
-										option.max
-									)
-									UiSliderKnob(
-										math.floor(
-											xPosMax
-												- (sliderSize / 2)
-												- sliderWidth
-												+ (sliderWidth * sliderPos)
-												- rightPadding
-										),
-										math.floor(yPos - oHeight + (oHeight / 2)),
-										math.floor(sliderSize / 2)
-									)
-									optionButtons[oid] = {
-										xPosMax
-											- (sliderSize / 2)
-											- sliderWidth
-											+ (sliderWidth * sliderPos)
-											- (sliderSize / 2)
-											- rightPadding,
-										yPos - oHeight + ((oHeight - sliderSize) / 2),
-										xPosMax
-											- (sliderSize / 2)
-											- sliderWidth
-											+ (sliderWidth * sliderPos)
-											+ (sliderSize / 2)
-											- rightPadding,
-										yPos - ((oHeight - sliderSize) / 2),
-									}
-									optionButtons[oid].sliderXpos = {
-										xPosMax - (sliderSize / 2) - sliderWidth - rightPadding,
-										xPosMax - (sliderSize / 2) - rightPadding,
-									}
-								end
-							end
-						elseif option.type == "select" then
-							optionButtons[oid] = {
-								math.floor(xPosMax - selectWidth - rightPadding),
-								math.floor(yPos - oHeight),
-								math.floor(xPosMax - rightPadding),
-								math.floor(yPos),
-							}
-							UiSelector(
-								optionButtons[oid][1],
-								optionButtons[oid][2],
-								optionButtons[oid][3],
-								optionButtons[oid][4],
-								option.value
-							)
-
-							if option.options[tonumber(option.value)] ~= nil then
-								local fontSize = oHeight * 0.85
-
-								local text = option.options[tonumber(option.value)]
-								local buttonWidth = optionButtons[oid][3] - optionButtons[oid][1]
-								if font:GetTextWidth(text) * oHeight > buttonWidth * 0.93 then
-									cutValue = text
-									text = truncateText(text, buttonWidth * 0.9, oHeight)
-								end
-								if option.id == "font2" then
-									font:End()
-									font2:Begin()
-									font2:SetOutlineColor(0, 0, 0, 0.4)
-									font2:SetTextColor(1, 1, 1, 1)
-									font2:Print(
-										text,
-										xPosMax - selectWidth + 5 - rightPadding,
-										yPos - (fontSize / 2) - oPadding,
-										fontSize,
-										"no"
-									)
-									font2:End()
-									font:Begin()
-									font:SetOutlineColor(0, 0, 0, 0.4)
-								else
-									font:SetTextColor(1, 1, 1, 1)
-									font:Print(
-										text,
-										xPosMax - selectWidth + 5 - rightPadding,
-										yPos - (fontSize / 2) - oPadding,
-										fontSize,
-										"no"
-									)
-								end
-							end
-						end
-
-						-- the tooltip spells out what got cut off, then the description
-						local description = option.description
-						if description == "" or description == " " or description == label then
-							description = nil
-						end
-						local header = truncated and label or nil
-						if cutValue then
-							header = header and (header .. "\n" .. cutValue) or cutValue
-						end
-						local tooltip = (header and description and (header .. "\n\255\255\255\255" .. description))
-							or header
-							or description
-						if tooltip then
-							if option.restart then
-								tooltip = tooltip
-									.. "\n\n\255\255\120\120"
-									.. BAR.I18N("ui.settings.changesrequirerestart")
-							end
-							optionHover[oid].tooltip = tooltip
-						end
-					end
-				end
-				i = i + 1
-			end
-		end
-	end
+	draw.sidebar()
+	draw.lines()
 	font:End()
+	glColor(1, 1, 1, 1)
 end
 
 local function updateGrabinput()
@@ -1383,13 +1600,6 @@ function resetUserVolume()
 end
 
 function widget:Update(dt)
-	if show then
-		cursorBlinkTimer = cursorBlinkTimer + dt
-		if cursorBlinkTimer > cursorBlinkDuration then
-			cursorBlinkTimer = 0
-		end
-	end
-
 	local now = os_clock()
 
 	-- throttle offscreen detection to ~4x/sec (unless actively fading)
@@ -1438,12 +1648,6 @@ function widget:Update(dt)
 				end
 			end
 		end
-	end
-
-	if countDownOptionID and countDownOptionClock and countDownOptionClock < now then
-		applyOptionValue(countDownOptionID)
-		countDownOptionID = nil
-		countDownOptionClock = nil
 	end
 
 	if not initialized then
@@ -1558,40 +1762,42 @@ function widget:Update(dt)
 				changes = true
 			end
 		end
+		local resolution = getOption("resolution")
+		if resolution and resolution.onload then
+			local before = resolution.options[resolution.value]
+			resolution.onload(resolution)
+			changes = changes or resolution.options[resolution.value] ~= before
+		end
+		if view.rereadBound() then
+			changes = true
+		end
+		local masterVolume, musicVolume = getOption("sndvolmaster"), getOption("sndvolmusic")
+		if masterVolume then
+			local value = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40) -- update value because other widgets can adjust this too
+			changes = changes or value ~= masterVolume.value
+			masterVolume.value = value
+		end
+		if musicVolume then
+			local value
+			if WG.music and WG.music.GetMusicVolume then
+				value = WG.music.GetMusicVolume()
+			else
+				value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50)
+			end
+			changes = changes or value ~= musicVolume.value
+			musicVolume.value = value
+		end
 		if changes then
 			applyFilter()
-		end
-		if getOptionByID("sndvolmaster") then
-			options[getOptionByID("sndvolmaster")].value = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40) -- update value because other widgets can adjust this too
-		end
-		if getOptionByID("sndvolmusic") then
-			if WG.music and WG.music.GetMusicVolume then
-				options[getOptionByID("sndvolmusic")].value = WG.music.GetMusicVolume()
-			else
-				options[getOptionByID("sndvolmusic")].value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50)
-			end
 		end
 	end
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if show then
-		--on window
-		local mx, my, _ = Spring.GetMouseState()
-		if math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
+		local mx, my = Spring.GetMouseState()
+		if inRect(layout.window, mx, my) then
 			return true
-		elseif titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-			return true
-		elseif groupRect ~= nil then
-			for id, group in pairs(optionGroups) do
-				if devMode or devUI or group.id ~= "dev" then
-					if
-						math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4])
-					then
-						return true
-					end
-				end
-			end
 		end
 	end
 end
@@ -1647,527 +1853,440 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+-- the thumb, where it is now; nil when the list fits and no bar is drawn
+function view.thumb()
+	return UiScrollerAt(
+		layout.barX1,
+		layout.listBottom,
+		layout.barX1 + metrics.barW,
+		layout.listTop,
+		layout.totalH,
+		view.offset()
+	)
+end
+
+function draw.scrollbar(mx, my)
+	local top, height = view.thumb()
+	if top then
+		local x1, x2 = layout.barX1, layout.barX1 + metrics.barW
+		local over = mx >= x1 and mx <= x2 and my <= top and my >= top - height
+		UiScroller(x1, layout.listBottom, x2, layout.listTop, layout.totalH, view.offset(), over, view.dragging)
+	end
+end
+
+-- a switch with its caption on its left, lit while hovered
+function draw.switch(switch, hit, on, caption, mx, my)
+	local hovered = inRect(hit, mx, my)
+	if hovered then
+		UiSelectHighlight(hit[1], hit[2], hit[3], hit[4], metrics.csSmall, look.hoverOpacity, look.white)
+	end
+	UiToggle(switch[1], switch[2], switch[3], switch[4], on, hovered)
+	font:Print(caption, switch[1] - metrics.rowPad, math.floor((hit[2] + hit[4]) * 0.5), metrics.captionFs, "rov")
+end
+
+-- beside the search field: unfold all, then the switch from view.switchCaption, or in a dev build a
+-- note that it shows all
+function draw.header(mx, my)
+	local unfold = view.unfoldAll
+	local caption = (unfold and look.captionOn or look.caption) .. BAR.I18N("ui.settings.unfoldall")
+	draw.switch(layout.unfoldSwitch, layout.unfoldSwitchHit, unfold, caption, mx, my)
+	if devMode then
+		local hit = layout.switchHit
+		local cy = math.floor((hit[2] + hit[4]) * 0.5)
+		font:Print(
+			devOptionColor .. BAR.I18N("ui.settings.option.devmode"),
+			layout.switch[3],
+			cy,
+			metrics.captionFs,
+			"rov"
+		)
+		return
+	end
+	local on = devUI or advSettings
+	caption = (devUI and devOptionColor or on and look.captionOn or look.caption) .. view.switchCaption()
+	draw.switch(layout.switch, layout.switchHit, on, caption, mx, my)
+end
+
+-- The selected row is marked, and what the mouse is over lights up: a tab or section in the column, the
+-- part of a row that folds its family, or a row (green when clicking it does something) and its
+-- control. Returns the hovered row, for the strip.
+function draw.hover(mx, my, ml)
+	-- the selected row: a faint band, with the accent the column marks its section with
+	local selected = view.selected and layout.rowOf[view.selected]
+	if selected then
+		local h = selected.hover
+		RectRound(h[1], h[2], h[3], h[4], metrics.csSmall, 1, 1, 1, 1, look.selectedRow)
+		RectRound(
+			h[1],
+			h[2] + metrics.inset,
+			h[1] + metrics.accentW,
+			h[4] - metrics.inset,
+			0,
+			0,
+			0,
+			0,
+			0,
+			look.sectionAccent
+		)
+	end
+	if openSelect then
+		return layout.rowOf[openSelect]
+	end
+	for _, entry in ipairs(layout.sidebar) do
+		local r = entry.rect
+		if inRect(r, mx, my) then
+			if not (entry.group and entry.group.id == currentGroupTab and not view.searching()) then
+				UiSelectHighlight(
+					r[1] + metrics.inset,
+					r[2],
+					r[3] - metrics.inset,
+					r[4],
+					metrics.csSmall,
+					look.hoverOpacity,
+					look.white
+				)
+			end
+			return nil
+		end
+	end
+	if my < layout.listBottom or my > layout.listTop then
+		return nil
+	end
+	for _, row in ipairs(layout.rows) do
+		local h, o, option = row.hover, row.control, row.option
+		if inRect(h, mx, my) then
+			local f = row.fold
+			if f and inRect(f, mx, my) then
+				-- a button of its own, with its arrow lit
+				UiSelectHighlight(f[1], f[2], f[3], f[4], metrics.csSmall, ml and 0.3 or 0.2, look.white)
+				local cy = math.floor((h[2] + h[4]) * 0.5)
+				draw.chevron(row.chevronX, cy, metrics.chevron, view.isFolded(option), look.chevronLit)
+				return row
+			end
+			if o and option.onclick == nil and option.type ~= "click" and inRect(o, mx, my) then
+				RectRound(o[1], o[2], o[3], o[4], 1, 2, 2, 2, 2, look.controlHover, look.controlHoverTop)
+			end
+			-- tuning can leave the row dark; one that does something when clicked still lights up
+			if (option.type ~= "text" or row.fold) and (tuning.rowHighlight or option.onclick) then
+				UiSelectHighlight(
+					h[1],
+					h[2],
+					h[3],
+					h[4],
+					metrics.csSmall,
+					option.onclick and (ml and 0.35 or 0.22) or look.hoverOpacity,
+					option.onclick and look.clickRow or look.white
+				)
+			end
+			return row
+		end
+	end
+end
+
+-- The strip under the list: the name of the setting last hovered or selected, what it does, and a last
+-- line with its restart note and /option command, which a click copies. A description longer than
+-- its lines also goes to the tooltip, while the row or the strip is under the mouse. Laid out again
+-- only when the setting changes.
+local strip = {}
+function draw.strip(hovered, mx, my)
+	if hovered then
+		view.stripOption = hovered.option
+	end
+	local option = view.stripOption or nil
+	local row = option and layout.rowOf[option]
+	local cutValue = row and row.cutValue
+	local width = layout.area[3] - layout.listX1 - metrics.sidePad * 2
+	if option ~= strip.option or cutValue ~= strip.cutValue or width ~= strip.width then
+		strip.option, strip.cutValue, strip.width = option, cutValue, width
+		strip.title, strip.restart, strip.command, strip.lines, strip.tooltip = nil, nil, nil, {}, nil
+		if option and option.name then
+			local fs = metrics.rowFs
+			if option.restart then
+				strip.restart = look.restart .. BAR.I18N("ui.settings.changesrequirerestart")
+			end
+			if
+				option.id
+				and (advSettings or devMode or devUI)
+				and (option.onchange or option.widget or option.widgetConfig or option.configInt or option.configFloat)
+			then
+				strip.command = "/option " .. option.id
+			end
+			local title = getOptionLabel(option)
+			if cutValue then
+				title = title .. ":  " .. cutValue
+			end
+			strip.title = look.title .. text.fit(font, title, width, fs)
+			local description = option.description
+			if type(description) == "string" and description:find("%S") and description ~= option.name then
+				-- the last line is the restart note's and the command's when there are any
+				local room = tuning.descriptionLines - ((strip.restart or strip.command) and 1 or 0)
+				local lines = text.wrap(font, description, width, fs)
+				for i = 1, math.min(room, #lines) do
+					strip.lines[i] = look.description .. lines[i]
+				end
+				if room > 0 and lines[room + 1] then
+					strip.lines[room] = look.description
+						.. text.fit(font, lines[room] .. " " .. lines[room + 1], width, fs)
+					strip.tooltip = description
+				end
+			end
+		end
+	end
+
+	layout.stripCommand = false
+	if not strip.title then
+		return
+	end
+	local x1, x2 = layout.listX1 + metrics.sidePad, layout.area[3] - metrics.sidePad
+	local lh = metrics.stripLineH
+	local y = layout.stripTop - math.floor(metrics.inset * 1.5) - math.floor(lh * 0.5)
+	font:Print(strip.title, x1, y, metrics.rowFs, "ov")
+	for i, line in ipairs(strip.lines) do
+		font:Print(line, x1, y - lh * i, metrics.rowFs, "ov")
+	end
+	local footY = y - lh * tuning.descriptionLines
+	if strip.restart then
+		font:Print(strip.restart, x1, footY, metrics.rowFs, "ov")
+	end
+	if strip.command then
+		local w = math.floor(font:GetTextWidth(strip.command) * metrics.rowFs)
+		local half = math.floor(lh * 0.5)
+		local r = { x2 - w, footY - half, x2, footY + half, strip.command }
+		layout.stripCommand = r
+		-- lit while it can be clicked, and for a moment once copied
+		local lit = inRect(r, mx, my) or os_clock() - view.copiedAt < 1
+		font:Print((lit and look.commandLit or look.command) .. strip.command, x2, footY, metrics.rowFs, "rov")
+	end
+	local overStrip = mx >= layout.listX1 and mx <= layout.area[3] and my >= layout.area[2] and my <= layout.stripTop
+	if strip.tooltip and WG.tooltip and (hovered or overStrip) then
+		WG.tooltip.ShowTooltip("options_description", font:WrapText(strip.tooltip, WG.tooltip.getFontsize() * 90))
+	end
+end
+
+-- The open dropdown's entries under its button, or above it when they would run off the screen;
+-- at most 16 at a time, with a scrollbar beyond that. The graphics preset's dropdown also marks
+-- the rows the presets set. Its display list is made again only when what it shows changed.
+local popup = {}
+function draw.selectPopup(mx, my)
+	local option = openSelect
+	local row = option and layout.rowOf[option]
+	if not (option and row and row.control) then
+		openSelect = nil
+		return
+	end
+	if option.id == "preset" then
+		for optionID, _ in pairs(presets.lowest) do
+			local presetRow = layout.rowOf[getOption(optionID)]
+			if presetRow ~= nil then
+				local h = presetRow.hover
+				RectRound(h[1], h[2] + 1, h[3], h[4] - 1, 1, 2, 2, 2, 2, look.presetRow, look.presetRowTop)
+			end
+		end
+	end
+
+	local button = row.control
+	local itemH = button[4] - button[2]
+	local pad = metrics.selectPadding
+	local step = itemH + pad * 2
+	local fontSize = metrics.dropdownFs
+	local numItems = 0
+	local width = button[3] - button[1]
+	for _, value in pairs(option.options) do
+		numItems = numItems + 1
+		width = math.max(width, math.floor(font:GetTextWidth(tostring(value)) * fontSize) + pad * 6)
+	end
+	local maxVisible = math.min(numItems, 16)
+	selectScrollOffset = math.max(0, math.min(selectScrollOffset or 0, numItems - maxVisible))
+	local height = step * maxVisible
+	local top = button[2]
+	if button[2] - height < 0 and vsy - button[4] > button[2] then
+		top = button[4] + height
+	end
+
+	layout.selectItems = {}
+	local hovered
+	local i = 0
+	for k, _ in pairs(option.options) do
+		i = i + 1
+		local vi = i - selectScrollOffset
+		if vi >= 1 and vi <= maxVisible then
+			local item = { button[1], top - step * vi, button[1] + width, top - step * (vi - 1), k }
+			layout.selectItems[vi] = item
+			if inRect(item, mx, my) then
+				hovered = k
+			end
+		end
+	end
+	-- the mouse moves the entry the arrow keys go from
+	if hovered ~= nil then
+		view.selectKey = hovered --[[@as number]]
+	end
+	if hovered ~= nil and hovered ~= prevSelectHover and playSounds then
+		Spring.PlaySoundFile(sounds.selectHoverClick, 0.04, "ui")
+	end
+	prevSelectHover = hovered
+
+	local sig = table.concat({
+		option.id or "",
+		selectScrollOffset,
+		tostring(view.selectKey),
+		tostring(option.value),
+		button[1],
+		top,
+		width,
+		WG.guishader and 1 or 0,
+	}, "|")
+	if sig ~= popup.sig or not selectOptionsList then
+		popup.sig = sig
+		if selectOptionsList then
+			if WG.guishader then
+				WG.guishader.removeRenderDlist(selectOptionsList)
+			end
+			glDeleteList(selectOptionsList)
+		end
+		local items = layout.selectItems
+		selectOptionsList = glCreateList(function()
+			local border = metrics.selectBorder
+			local cs = math.floor(itemH * 0.1)
+			RectRound(
+				button[1] - border,
+				top - height - border,
+				button[1] + width + border,
+				top + border,
+				cs,
+				1,
+				1,
+				1,
+				1,
+				look.selectBorder,
+				look.selectBorder
+			)
+			RectRound(
+				button[1],
+				top - height,
+				button[1] + width,
+				top,
+				cs,
+				1,
+				1,
+				1,
+				1,
+				WG.guishader and look.selectBack or look.selectBackSolid,
+				WG.guishader and look.selectBackTop or look.selectBackSolidTop
+			)
+			UiSelector(button[1], button[2], button[3], button[4])
+			for _, item in ipairs(items) do
+				local k = item[5]
+				if k == option.value then
+					RectRound(item[1], item[2], item[3], item[4], cs, 1, 1, 1, 1, look.selectCurrent)
+				end
+				if k == view.selectKey then
+					UiSelectHighlight(item[1], item[2], item[3], item[4])
+				end
+				local itemFont = (option.optionsFont and fontOption and fontOption[k]) or font
+				itemFont:Begin()
+				itemFont:SetOutlineColor(0, 0, 0, 0.4)
+				itemFont:Print(
+					optionColor .. tostring(option.options[k]),
+					item[1] + pad * 2,
+					text.baseline(itemFont, item[2], item[4], fontSize),
+					fontSize,
+					"o"
+				)
+				itemFont:End()
+			end
+			if numItems > maxVisible then
+				local x2 = button[1] + width
+				local x1 = x2 - metrics.selectScrollbar
+				local y1, y2 = top - height, top
+				local thumbH = math.max((y2 - y1) * maxVisible / numItems, metrics.selectScrollbar * 2)
+				local thumbY2 = y2 - (selectScrollOffset / (numItems - maxVisible)) * ((y2 - y1) - thumbH)
+				gl.Color(look.scrollTrack[1], look.scrollTrack[2], look.scrollTrack[3], look.scrollTrack[4])
+				gl.Rect(x1, y1, x2, y2)
+				gl.Color(look.scrollThumb[1], look.scrollThumb[2], look.scrollThumb[3], look.scrollThumb[4])
+				gl.Rect(x1, thumbY2 - thumbH, x2, thumbY2)
+				gl.Color(1, 1, 1, 1)
+			end
+		end)
+		if WG.guishader then
+			WG.guishader.InsertScreenRect(button[1], button[2], button[3], button[4], "options_select", widget)
+			WG.guishader.InsertScreenRect(
+				button[1],
+				top - height,
+				button[1] + width,
+				top,
+				"options_select_options",
+				widget
+			)
+			WG.guishader.insertRenderDlist(selectOptionsList)
+		end
+	end
+	if not WG.guishader then
+		glCallList(selectOptionsList)
+	end
+end
+
 function widget:DrawScreen()
 	-- doing it here so other widgets having higher layer number value are also loaded
 	if not initialized then
 		init()
 		initialized = true
 	else
-		-- update new slider value
+		-- a slider moved
 		if sliderValueChanged then
-			gl.DeleteList(windowList)
-			windowList = gl.CreateList(DrawWindow)
+			view.refresh()
 			sliderValueChanged = nil
 		end
 
-		if not showSelectOptions and selectOptionsList then
+		if not openSelect and selectOptionsList then
 			if WG.guishader then
 				WG.guishader.RemoveScreenRect("options_select")
 				WG.guishader.RemoveScreenRect("options_select_options")
 				WG.guishader.removeRenderDlist(selectOptionsList)
 			end
 			selectOptionsList = glDeleteList(selectOptionsList)
+			popup.sig = nil
 		end
 
 		if (show or showOnceMore) and windowList then
-			--on window
 			local mx, my, ml = Spring.GetMouseState()
-			if
-				(math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]))
-				or (titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
-				or (
-					chatInputArea
-					and math_isInRect(mx, my, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4])
-				)
-			then
+			if view.dragging then
+				if ml then
+					view.scrollFromY(my)
+				else
+					view.dragging = false
+				end
+			end
+			if inRect(layout.window, mx, my) then
 				Spring.SetMouseCursor("cursornormal")
 			end
-			if groupRect ~= nil then
-				for id, group in pairs(optionGroups) do
-					if group.numOptions > 0 then
-						if devMode or devUI or group.id ~= "dev" then
-							if
-								math_isInRect(
-									mx,
-									my,
-									groupRect[id][1],
-									groupRect[id][2],
-									groupRect[id][3],
-									groupRect[id][4]
-								)
-							then
-								Spring.SetMouseCursor("cursornormal")
-								break
-							end
-						end
-					end
-				end
-			end
 
-			-- draw the options panel
 			glCallList(windowList)
-			if WG.guishader then
-				if not backgroundGuishader then
-					backgroundGuishader = glCreateList(function()
-						-- background
-						RectRound(
-							screenX,
-							screenY - screenHeight,
-							screenX + screenWidth,
-							screenY,
-							elementCorner,
-							0,
-							1,
-							1,
-							1
-						)
-						-- title
-						RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
-						-- tabs
-						if not (showTextInput and inputText ~= "" and inputMode == "") then
-							guishaderedTabs = true
-							for id, group in pairs(optionGroups) do
-								if group.numOptions > 0 then
-									if devMode or devUI or group.id ~= "dev" then
-										if groupRect[id] then
-											RectRound(
-												groupRect[id][1],
-												groupRect[id][2],
-												groupRect[id][3],
-												groupRect[id][4],
-												elementCorner,
-												1,
-												1,
-												0,
-												0
-											)
-										end
-									end
-								end
-							end
-						else
-							guishaderedTabs = false
-						end
-					end)
-					-- 'self' rather than 'widget': this function sits at the Lua 5.1 upvalue cap
-					WG.guishader.InsertDlist(backgroundGuishader, "options", nil, self)
-				end
+			if WG.guishader and not backgroundGuishader then
+				backgroundGuishader = glCreateList(function()
+					local w = layout.window
+					RectRound(w[1], w[2], w[3], w[4], elementCorner, 1, 1, 1, 1)
+				end)
+				WG.guishader.InsertDlist(backgroundGuishader, "options", nil, self)
 			end
 			showOnceMore = false
 
-			-- mouseover (highlight and tooltip)
-			if
-				not (devMode or devUI)
-				and titleRect ~= nil
-				and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4])
-			then
-				local groupMargin = math.floor(bgpadding * 0.8)
-				-- gloss
-				glBlending(GL_SRC_ALPHA, GL_ONE)
-				RectRound(
-					titleRect[1] + groupMargin,
-					titleRect[2],
-					titleRect[3] - groupMargin,
-					titleRect[4] - groupMargin,
-					groupMargin * 1.8,
-					1,
-					1,
-					0,
-					0,
-					{ 1, 1, 1, 0 },
-					{ 1, 1, 1, 0.12 }
-				)
-				RectRound(
-					titleRect[1] + groupMargin,
-					titleRect[4] - groupMargin - ((titleRect[4] - titleRect[2]) * 0.5),
-					titleRect[3] - groupMargin,
-					titleRect[4] - groupMargin,
-					groupMargin * 1.8,
-					1,
-					1,
-					0,
-					0,
-					{ 1, 0.88, 0.66, 0 },
-					{ 1, 0.88, 0.66, 0.09 }
-				)
-				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-			end
-			if not (showTextInput and inputText ~= "" and inputMode == "") then
-				if groupRect ~= nil then
-					for id, group in pairs(optionGroups) do
-						if group.numOptions > 0 then
-							if devMode or devUI or group.id ~= "dev" then
-								if
-									math_isInRect(
-										mx,
-										my,
-										groupRect[id][1],
-										groupRect[id][2],
-										groupRect[id][3],
-										groupRect[id][4]
-									)
-								then
-									mouseoverGroupTab(id)
-								end
-							end
-						end
-					end
-				end
-			end
-			if
-				optionButtonForward ~= nil
-				and math_isInRect(
-					mx,
-					my,
-					optionButtonForward[1],
-					optionButtonForward[2],
-					optionButtonForward[3],
-					optionButtonForward[4]
-				)
-			then
-				RectRound(
-					optionButtonForward[1],
-					optionButtonForward[2],
-					optionButtonForward[3],
-					optionButtonForward[4],
-					(optionButtonForward[4] - optionButtonForward[2]) / 12,
-					2,
-					2,
-					2,
-					2,
-					ml and { 1, 0.91, 0.66, 0.1 } or { 1, 0.91, 0.66, 0.3 },
-					{ 1, 0.91, 0.66, 0.2 }
-				)
-			end
-			if
-				optionButtonBackward ~= nil
-				and math_isInRect(
-					mx,
-					my,
-					optionButtonBackward[1],
-					optionButtonBackward[2],
-					optionButtonBackward[3],
-					optionButtonBackward[4]
-				)
-			then
-				RectRound(
-					optionButtonBackward[1],
-					optionButtonBackward[2],
-					optionButtonBackward[3],
-					optionButtonBackward[4],
-					(optionButtonBackward[4] - optionButtonBackward[2]) / 12,
-					2,
-					2,
-					2,
-					2,
-					ml and { 1, 0.91, 0.66, 0.1 } or { 1, 0.91, 0.66, 0.3 },
-					{ 1, 0.91, 0.66, 0.2 }
-				)
-			end
-
-			if not showSelectOptions then
-				local tooltipShowing = false
-				for i, o in pairs(optionButtons) do
-					if options[i] and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-						if options[i].onclick == nil then
-							RectRound(o[1], o[2], o[3], o[4], 1, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.22 }, { 1, 1, 1, 0.22 })
-						end
-						if WG.tooltip ~= nil and options[i].type == "slider" then
-							local value = options[i].value
-							if options[i].steps then
-								value = NearestValue(options[i].steps, value)
-							else
-								local decimalValue, floatValue = math.modf(options[i].step)
-								if floatValue ~= 0 then
-									value = string.format(
-										"%." .. string.len(string.sub("" .. options[i].step, 3)) .. "f",
-										value
-									) -- do rounding via a string because floats show rounding errors at times
-								end
-							end
-							WG.tooltip.ShowTooltip("options_showvalue", value)
-							tooltipShowing = true
-						end
-					end
-				end
-				if not tooltipShowing then
-					for i, o in pairs(optionHover) do
-						if
-							options[i]
-							and math_isInRect(mx, my, o[1], o[2], o[3], o[4])
-							and options[i].type
-							and options[i].type ~= "text"
-						then
-							-- display console command at the bottom
-							if
-								(advSettings or devMode or devUI) and (options[i].onchange ~= nil or options[i].widget)
-							then
-								if
-									not consoleCmdDlist
-									or not lastConsoleCmdOption
-									or lastConsoleCmdOption ~= options[i].id
-								then
-									if consoleCmdDlist then
-										consoleCmdDlist = glDeleteList(consoleCmdDlist)
-									end
-									consoleCmdDlist = glCreateList(function()
-										font:Begin()
-										font:SetOutlineColor(0, 0, 0, 0.4)
-										font:SetTextColor(0.5, 0.5, 0.5, 0.27)
-										font:Print(
-											"/option " .. options[i].id,
-											screenX + (8 * widgetScale),
-											screenY - screenHeight + (11 * widgetScale),
-											14 * widgetScale,
-											"n"
-										)
-										font:End()
-									end)
-								end
-								glCallList(consoleCmdDlist)
-								lastConsoleCmdOption = options[i].id
-							end
-							-- highlight option
-							UiSelectHighlight(
-								o[1] - 4,
-								o[2],
-								o[3] + 4,
-								o[4],
-								nil,
-								options[i].onclick and (ml and 0.35 or 0.22) or 0.14,
-								options[i].onclick and { 0.5, 1, 0.25 }
-							)
-							if WG.tooltip and o.tooltip then
-								WG.tooltip.ShowTooltip(
-									"options_description",
-									font:WrapText(o.tooltip, WG.tooltip.getFontsize() * 90)
-								)
-							end
-							break
-						end
-					end
-				end
-			end
-
-			-- draw select options
-			if showSelectOptions ~= nil then
-				-- highlight all that are affected by presets
-				if options[showSelectOptions].id == "preset" then
-					for optionID, _ in pairs(presets.lowest) do
-						local optionKey = getOptionByID(optionID)
-						if optionHover[optionKey] ~= nil then
-							RectRound(
-								optionHover[optionKey][1],
-								optionHover[optionKey][2] + 1,
-								optionHover[optionKey][3],
-								optionHover[optionKey][4] - 1,
-								1,
-								2,
-								2,
-								2,
-								2,
-								{ 0, 0, 0, 0.15 },
-								{ 1, 1, 1, 0.15 }
-							)
-						end
-					end
-				end
-
-				local oHeight = optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]
-				local oPadding = math.floor(4 * widgetScale)
-				local y = optionButtons[showSelectOptions][4] - oPadding
-				optionSelect = {}
-
-				-- count total items and clamp scroll offset
-				local numItems = 0
-				for _ in pairs(options[showSelectOptions].options) do
-					numItems = numItems + 1
-				end
-				local maxVisible = math.min(numItems, 16)
-				if selectScrollOffset == nil then
-					selectScrollOffset = 0
-				end
-				selectScrollOffset = math.max(0, math.min(selectScrollOffset, numItems - maxVisible))
-
-				-- yPos at bottom of last visible item
-				local yPos = y - (((oHeight + oPadding + oPadding) * maxVisible) - oPadding)
-
-				-- get max text option width
-				local fontSize = oHeight * 0.85
-				local maxWidth = optionButtons[showSelectOptions][3] - optionButtons[showSelectOptions][1]
-				for i, option in pairs(options[showSelectOptions].options) do
-					maxWidth = math.max(maxWidth, font:GetTextWidth(option .. "   ") * fontSize)
-				end
-				if selectOptionsList then
-					if WG.guishader then
-						WG.guishader.removeRenderDlist(selectOptionsList)
-					end
-					glDeleteList(selectOptionsList)
-				end
-				selectOptionsList = glCreateList(function()
-					local borderSize = math.max(1, math.floor(vsy / 900))
-					RectRound(
-						optionButtons[showSelectOptions][1] - borderSize,
-						yPos - oHeight - oPadding - borderSize,
-						optionButtons[showSelectOptions][1] + maxWidth + borderSize,
-						optionButtons[showSelectOptions][2] + borderSize,
-						(optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]) * 0.1,
-						1,
-						1,
-						1,
-						1,
-						{ 0, 0, 0, 0.25 },
-						{ 0, 0, 0, 0.25 }
-					)
-					RectRound(
-						optionButtons[showSelectOptions][1],
-						yPos - oHeight - oPadding,
-						optionButtons[showSelectOptions][1] + maxWidth,
-						optionButtons[showSelectOptions][2],
-						(optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]) * 0.1,
-						1,
-						1,
-						1,
-						1,
-						{ 0.3, 0.3, 0.3, WG.guishader and 0.84 or 0.94 },
-						{ 0.35, 0.35, 0.35, WG.guishader and 0.84 or 0.94 }
-					)
-					UiSelector(
-						optionButtons[showSelectOptions][1],
-						optionButtons[showSelectOptions][2],
-						optionButtons[showSelectOptions][3],
-						optionButtons[showSelectOptions][4]
-					)
-
-					local i = 0
-					local vi = 0 -- visible index in the current scrollbar
-					for k, option in pairs(options[showSelectOptions].options) do
-						i = i + 1
-						if i > selectScrollOffset and vi < maxVisible then
-							vi = vi + 1
-							local itemYPos = math.floor(y - (((oHeight + oPadding + oPadding) * vi) - oPadding))
-							optionSelect[#optionSelect + 1] = {
-								math.floor(optionButtons[showSelectOptions][1]),
-								math.floor(itemYPos - oHeight - oPadding),
-								math.floor(optionButtons[showSelectOptions][1] + maxWidth),
-								math.floor(itemYPos + oPadding) - 1,
-								k,
-							}
-
-							if
-								math_isInRect(
-									mx,
-									my,
-									optionSelect[#optionSelect][1],
-									optionSelect[#optionSelect][2],
-									optionSelect[#optionSelect][3],
-									optionSelect[#optionSelect][4]
-								)
-							then
-								UiSelectHighlight(
-									optionButtons[showSelectOptions][1],
-									math.floor(itemYPos - oHeight - oPadding),
-									optionButtons[showSelectOptions][1] + maxWidth,
-									math.floor(itemYPos + oPadding)
-								)
-								if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
-									Spring.PlaySoundFile(sounds.selectHoverClick, 0.04, "ui")
-								end
-								prevSelectHover = k
-							end
-							if options[showSelectOptions].optionsFont and fontOption and fontOption[i] then
-								fontOption[i]:Begin()
-								fontOption[i]:SetOutlineColor(0, 0, 0, 0.4)
-								fontOption[i]:Print(
-									optionColor .. option,
-									optionButtons[showSelectOptions][1] + 7,
-									itemYPos - (oHeight / 2) - oPadding,
-									fontSize,
-									"no"
-								)
-								fontOption[i]:End()
-							else
-								font:Begin()
-								font:SetOutlineColor(0, 0, 0, 0.4)
-								font:Print(
-									optionColor .. option,
-									optionButtons[showSelectOptions][1] + 7,
-									itemYPos - (oHeight / 2) - oPadding,
-									fontSize,
-									"no"
-								)
-								font:End()
-							end
-						end
-					end
-					-- scrollbar
-					if numItems > 16 then
-						local sbWidth = math.max(3, math.floor(4 * widgetScale))
-						local dropY1 = yPos - oHeight - oPadding
-						local dropY2 = optionButtons[showSelectOptions][2]
-						local dropH = dropY2 - dropY1
-						local sbX1 = optionButtons[showSelectOptions][1] + maxWidth - sbWidth
-						local sbX2 = optionButtons[showSelectOptions][1] + maxWidth
-						-- track
-						gl.Color(0.15, 0.15, 0.15, 0.85)
-						gl.Rect(sbX1, dropY1, sbX2, dropY2)
-						-- thumb
-						local thumbH = math.max(dropH * maxVisible / numItems, sbWidth * 2)
-						local thumbY2 = dropY2 - (selectScrollOffset / (numItems - maxVisible)) * (dropH - thumbH)
-						local thumbY1 = thumbY2 - thumbH
-						gl.Color(0.65, 0.65, 0.65, 0.9)
-						gl.Rect(sbX1, thumbY1, sbX2, thumbY2)
-						gl.Color(1, 1, 1, 1)
-					end
-				end)
-				if WG.guishader then
-					WG.guishader.InsertScreenRect(
-						optionButtons[showSelectOptions][1],
-						optionButtons[showSelectOptions][2],
-						optionButtons[showSelectOptions][3],
-						optionButtons[showSelectOptions][4],
-						"options_select",
-						self
-					)
-					WG.guishader.InsertScreenRect(
-						optionButtons[showSelectOptions][1],
-						yPos - oHeight - oPadding,
-						optionButtons[showSelectOptions][1] + maxWidth,
-						optionButtons[showSelectOptions][2],
-						"options_select_options",
-						self
-					)
-					WG.guishader.insertRenderDlist(selectOptionsList)
-				else
-					glCallList(selectOptionsList)
-				end
+			searchBox:draw()
+			font:Begin()
+			font:SetOutlineColor(0, 0, 0, 0.4)
+			draw.header(mx, my)
+			draw.scrollbar(mx, my)
+			draw.strip(draw.hover(mx, my, ml), mx, my)
+			font:End()
+			if openSelect ~= nil then
+				draw.selectPopup(mx, my)
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
-			if showTextInput then
-				if not textInputDlist or inputText ~= prevInputText or updateTextInputDlist then
-					prevInputText = inputText
-					updateInputDlist()
-				end
-				if textInputDlist then
-					glCallList(textInputDlist)
-					drawChatInputCursor()
-				elseif WG.guishader then
-					WG.guishader.RemoveRect("optionsinput")
-					textInputDlist = glDeleteList(textInputDlist)
-				end
-			end
-		else
-			if WG.guishader then
-				if backgroundGuishader then
-					WG.guishader.RemoveDlist("options")
-					backgroundGuishader = glDeleteList(backgroundGuishader)
-				end
-				if textInputDlist then
-					WG.guishader.RemoveRect("optionsinput")
-					textInputDlist = glDeleteList(textInputDlist)
-				end
-			end
+			glColor(1, 1, 1, 1)
+		elseif WG.guishader and backgroundGuishader then
+			WG.guishader.RemoveDlist("options")
+			backgroundGuishader = glDeleteList(backgroundGuishader)
 		end
 		if checkedWidgetDataChanges == nil then
 			checkedWidgetDataChanges = true
@@ -2210,83 +2329,84 @@ function widget:KeyRelease()
 	return false
 end
 
-function widget:KeyPress(key)
+-- ESC closes the open dropdown first, then clears the search, then closes the window. The arrow
+-- keys, Enter, Tab, Home and End work the rows (view.moveSelection and the ones after it), the arrows
+-- and Enter an open dropdown too; while the search field is typed in, it keeps left, right, Enter,
+-- Home and End. Every other key goes to the search field, and none reach the game while the window
+-- is open.
+function widget:KeyPress(key, mods)
 	if not show then
 		return false
 	end
-	if key == 27 then -- ESC
-		if showTextInput and inputText ~= "" then
-			clearChatInput()
-			return true
+	if key == 27 then
+		if openSelect then
+			openSelect = nil
+		elseif searchBox:getText() ~= "" then
+			searchBox:setText("")
+			searchBox:blur()
 		else
-			if showSelectOptions then
-				showSelectOptions = nil
-			else
-				show = false
-				cancelChatInput()
-			end
-			if not guishaderedTabs then
-				backgroundGuishader = glDeleteList(backgroundGuishader)
-			end
+			view.close()
 		end
+		return true
 	end
 
 	if key >= 282 and key <= 293 then -- Function keys
 		return false
 	end
 
-	if inputText == "" and guishaderedTabs then
-		backgroundGuishader = glDeleteList(backgroundGuishader)
+	if key == 280 then -- PGUP
+		view.scrollBy(-view.pageLines(true))
+		return true
+	elseif key == 281 then -- PGDN
+		view.scrollBy(view.pageLines())
+		return true
 	end
 
-	--local alt, ctrl, _, shift = Spring.GetModKeyState()
-	if key == 27 then -- ESC
-		clearChatInput()
-	elseif key == 8 then -- BACKSPACE
-		if inputTextPosition > 0 then
-			inputText = utf8.sub(inputText, 1, inputTextPosition - 1) .. utf8.sub(inputText, inputTextPosition + 1)
-			inputTextPosition = inputTextPosition - 1
+	local enter = key == 13 or key == 271
+	if openSelect then
+		if key == 273 or key == 274 then -- up, down: the entry before or after, kept among those shown
+			local k = (view.selectKey or tonumber(openSelect.value) or 0) + (key == 274 and 1 or -1)
+			view.selectKey = math.max(1, math.min(#openSelect.options, k))
+			selectScrollOffset = math.max(view.selectKey - 16, math.min(view.selectKey - 1, selectScrollOffset or 0))
+			return true
+		elseif enter then
+			if view.selectKey then
+				applyOptionValue(openSelect, view.selectKey)
+				view.sound("selectClick", 0.5)
+			end
+			openSelect = nil
+			return true
 		end
-		cursorBlinkTimer = 0
-		if inputText == "" then
-			clearChatInput()
-		else
-			applyFilter()
+	end
+	if key == 273 or key == 274 then -- up, down
+		view.moveSelection(key == 274 and 1 or -1)
+		return true
+	end
+	if not searchBox:isFocused() then
+		if key == 275 or key == 276 then -- right, left
+			view.adjustSelected(key == 275 and 1 or -1, mods and mods.ctrl)
+			return true
+		elseif enter then
+			view.activateSelected()
+			return true
+		elseif key == 9 and not view.searching() then -- tab, back with shift
+			view.cycleTab(mods and mods.shift and -1 or 1)
+			return true
+		elseif key == 278 or key == 279 then -- home, end
+			local items = view.selectable()
+			if #items > 0 then
+				local item = items[key == 278 and 1 or #items]
+				view.select(item.option, item.line)
+			end
+			return true
 		end
-	elseif key == 127 then -- DELETE
-		if inputTextPosition < utf8.len(inputText) then
-			inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition + 2)
-		end
-		cursorBlinkTimer = 0
-		applyFilter()
-	elseif key == 277 then -- INSERT
-		inputTextInsertActive = not inputTextInsertActive
-	elseif key == 276 then -- LEFT
-		inputTextPosition = inputTextPosition - 1
-		if inputTextPosition < 0 then
-			inputTextPosition = 0
-		end
-		cursorBlinkTimer = 0
-	elseif key == 275 then -- RIGHT
-		inputTextPosition = inputTextPosition + 1
-		if inputTextPosition > utf8.len(inputText) then
-			inputTextPosition = utf8.len(inputText)
-		end
-		cursorBlinkTimer = 0
-	elseif key == 278 or key == 280 then -- HOME / PGUP
-		inputTextPosition = 0
-		cursorBlinkTimer = 0
-	elseif key == 279 or key == 281 then -- END / PGDN
-		inputTextPosition = utf8.len(inputText)
-		cursorBlinkTimer = 0
-	elseif key == 273 then -- UP
-	elseif key == 274 then -- DOWN
-	elseif key == 9 then -- TAB
-	else
-		-- regular chars/keys handled in widget:TextInput
 	end
 
-	updateTextInputDlist = true
+	-- editing keys work on a search kept from before without clicking into it first
+	if searchBox:getText() ~= "" then
+		searchBox:focus()
+	end
+	searchBox:keyPress(key)
 	return true
 end
 
@@ -2301,68 +2421,154 @@ function NearestValue(table, number)
 	return table[smallestIndex]
 end
 
-function getSliderValue(draggingSlider, mx)
-	local sliderWidth = optionButtons[draggingSlider].sliderXpos[2] - optionButtons[draggingSlider].sliderXpos[1]
-	local value = (mx - optionButtons[draggingSlider].sliderXpos[1]) / sliderWidth
-	local min, max
-	if options[draggingSlider].steps then
-		min, max = options[draggingSlider].steps[1], options[draggingSlider].steps[1]
-		for k, v in ipairs(options[draggingSlider].steps) do
-			if v > max then
-				max = v
-			end
-			if v < min then
-				min = v
-			end
-		end
-	else
-		min = options[draggingSlider].min
-		max = options[draggingSlider].max
+-- the value a slider takes with the mouse at mx, clamped and snapped to its step
+local function sliderValueAt(option, mx)
+	local row = layout.rowOf[option]
+	if not (row and row.track) then
+		return option.value
 	end
-	value = min + ((max - min) * value)
+	local track = row.track
+	local min, max = sliderRange(option)
+	local value
+	local fine = view.fineDrag
+	if fine and fine.option == option then
+		-- dragged with shift held: a fifth of the speed, from where the drag started
+		value = fine.value + (max - min) * 0.2 * (mx - fine.x) / (track[2] - track[1])
+	else
+		value = min + (max - min) * (mx - track[1]) / (track[2] - track[1])
+	end
 	if value < min then
 		value = min
 	end
 	if value > max then
 		value = max
 	end
-	if options[draggingSlider].steps ~= nil then
-		value = NearestValue(options[draggingSlider].steps, value)
-	elseif options[draggingSlider].step ~= nil then
-		value = math.floor((value + (options[draggingSlider].step / 2)) / options[draggingSlider].step)
-			* options[draggingSlider].step
+	if option.steps ~= nil then
+		value = NearestValue(option.steps, value)
+	elseif option.step ~= nil then
+		value = math.floor((value + (option.step / 2)) / option.step) * option.step
 	end
-	return value -- is a string now :(
+	return value
 end
 
+-- scrolls so the thumb's top sits where the cursor has dragged it
+function view.scrollFromY(y)
+	local _, _, trackTop, travel = view.thumb()
+	if not travel or travel <= 0 then
+		return
+	end
+	local f = math.max(0, math.min(1, (trackTop - (y - view.dragGrab)) / travel))
+	view.scrollBy(math.floor(f * view.maxScroll() + 0.5) - view.scroll)
+end
+
+-- Takes hold of the bar: on the thumb that is a grab and the list stays put, on the track the
+-- thumb jumps to the cursor first and is dragged from its middle.
+function view.grabScroller(y)
+	local top, height = view.thumb()
+	if not top then
+		return
+	end
+	view.dragging = true
+	if y <= top and y >= top - height then
+		view.dragGrab = y - top
+	else
+		view.dragGrab = -math.floor(height * 0.5)
+		view.scrollFromY(y)
+	end
+end
+
+-- each tab keeps where its list was left
+function view.openTab(group)
+	view.scrollOf[currentGroupTab] = view.scroll
+	currentGroupTab = group.id
+	openSelect = nil
+	selectClickAllowHide = nil
+	view.litPin = false
+	view.selected, view.stripOption = false, false
+	view.scroll = view.scrollOf[group.id] or 0
+	view.build()
+	view.refresh()
+end
+
+-- opens the tab an option is on, unfolds its family and scrolls its row into view
+function view.reveal(option)
+	if searchBox and searchBox:getText() ~= "" then
+		searchBox:setText("")
+	end
+	view.litPin = false
+	if option.group ~= currentGroupTab then
+		view.scrollOf[currentGroupTab] = view.scroll
+		currentGroupTab = option.group
+	end
+	local parent = option.parentOption
+	while parent do
+		if parent.id and view.isFolded(parent) then
+			view.folded[parent.id] = false
+		end
+		parent = parent.parentOption
+	end
+	view.build()
+	for i, line in ipairs(view.lines) do
+		local found = line.option == option
+		for _, cell in ipairs(line.cells or {}) do
+			found = found or cell == option
+		end
+		if found then
+			view.setScroll(i - 3)
+			break
+		end
+	end
+	view.refresh()
+end
+
+-- The wheel scrolls the open dropdown, or else the list: three lines, nine with ctrl, a page with
+-- shift. Nothing gets past the window while it is open.
 function widget:MouseWheel(up, value)
-	local x, y = Spring.GetMouseState()
-	if show then
-		if showSelectOptions ~= nil then
-			local numItems = 0
-			for _ in pairs(options[showSelectOptions].options) do
-				numItems = numItems + 1
-			end
-			local maxVisible = math.min(numItems, 16)
-			if selectScrollOffset == nil then
-				selectScrollOffset = 0
-			end
-			if up then
-				selectScrollOffset = math.max(0, selectScrollOffset - 1)
-			else
-				selectScrollOffset = math.min(numItems - maxVisible, selectScrollOffset + 1)
-			end
+	if not show then
+		return
+	end
+	if openSelect ~= nil then
+		local numItems = 0
+		for _ in pairs(openSelect.options) do
+			numItems = numItems + 1
+		end
+		local maxVisible = math.min(numItems, 16)
+		if up then
+			selectScrollOffset = math.max(0, (selectScrollOffset or 0) - 1)
+		else
+			selectScrollOffset = math.min(numItems - maxVisible, (selectScrollOffset or 0) + 1)
 		end
 		return true
 	end
+	local mx, my = Spring.GetMouseState()
+	if inRect(layout.window, mx, my) then
+		local _, ctrl, _, shift = Spring.GetModKeyState()
+		-- over the selected slider the wheel steps it (ten steps with ctrl); not over others, which a
+		-- list scrolled past would change
+		local row = view.selected and layout.rowOf[view.selected]
+		if
+			row
+			and row.track
+			and math_isInRect(mx, my, row.track[1] - row.knob, row.hover[2], row.track[2] + row.knob, row.hover[4])
+		then
+			view.stepSlider(view.selected, (up and 1 or -1) * (ctrl and 10 or 1))
+			return true
+		end
+		local step = ctrl and metrics.wheelRows * 3 or metrics.wheelRows
+		if shift then
+			step = view.pageLines(up)
+		end
+		view.scrollBy(up and -step or step)
+	end
+	return true
 end
 
 function widget:MouseMove(mx, my)
 	if draggingSlider ~= nil then
-		local newValue = getSliderValue(draggingSlider, mx)
-		if options[draggingSlider].value ~= newValue then
+		local newValue = sliderValueAt(draggingSlider, mx)
+		if draggingSlider.value ~= newValue then
 			sliderValueChanged = true
-			applyOptionValue(draggingSlider, newValue) -- disabled so only on release it gets applied
+			applyOptionValue(draggingSlider, newValue, true) -- the window is drawn again next frame
 			if playSounds and (lastSliderSound == nil or os_clock() - lastSliderSound > 0.04) then
 				lastSliderSound = os_clock()
 				Spring.PlaySoundFile(sounds.sliderDrag, 0.4, "ui")
@@ -2379,241 +2585,219 @@ function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
+-- a release on a row: fold or unfold a family, flip a toggle, or run the row's click action
+local function releaseOnRows(mx, my)
+	for _, row in ipairs(layout.rows) do
+		local o, option = row.control, row.option
+		if row.fold and inRect(row.fold, mx, my) then
+			view.folded[option.id] = not view.isFolded(option)
+			view.build()
+			if playSounds then
+				Spring.PlaySoundFile(sounds.buttonClick, 0.5, "ui")
+			end
+			return
+		elseif o then
+			if option.type == "bool" and inRect(o, mx, my) then
+				applyOptionValue(option, not option.value)
+				if playSounds then
+					if option.value then
+						Spring.PlaySoundFile(sounds.toggleOnClick, 0.75, "ui")
+					else
+						Spring.PlaySoundFile(sounds.toggleOffClick, 0.75, "ui")
+					end
+				end
+				return
+			elseif (option.type == "slider" or option.type == "select") and inRect(o, mx, my) then
+				-- handled on press
+				return
+			elseif option.onclick ~= nil and inRect(row.hover, mx, my) then
+				option.onclick(option)
+				return
+			end
+		end
+	end
+end
+
+-- A press on a row selects it, and grabs a slider anywhere along its track (with shift held, where
+-- the knob is, to drag it finely) or opens a dropdown.
+local function pressOnRows(mx, my)
+	for _, row in ipairs(layout.rows) do
+		if inRect(row.hover, mx, my) then
+			view.selected, view.stripOption = row.option, row.option
+		end
+	end
+	for _, row in ipairs(layout.rows) do
+		local o, option = row.control, row.option
+		if o and option.type == "slider" and row.track then
+			local h = row.hover
+			if math_isInRect(mx, my, row.track[1] - row.knob, h[2], row.track[2] + row.knob, h[4]) then
+				draggingSlider = option
+				local _, _, _, shift = Spring.GetModKeyState()
+				view.fineDrag = shift and { option = option, x = mx, value = option.value } or false
+				local newValue = sliderValueAt(option, mx)
+				if option.value ~= newValue then
+					sliderValueChanged = true
+					applyOptionValue(option, newValue, true)
+					if playSounds then
+						Spring.PlaySoundFile(sounds.sliderDrag, 0.3, "ui")
+					end
+				end
+				return
+			end
+		elseif o and option.type == "select" and inRect(o, mx, my) then
+			if playSounds then
+				Spring.PlaySoundFile(sounds.selectUnfoldClick, 0.6, "ui")
+			end
+			openSelect = option
+			selectScrollOffset = 0
+			view.selectKey = false
+			return
+		end
+	end
+end
+
+-- a press on a header switch: unfold all, or advanced (the developer UI's while that is on)
+local function pressOnHeader(mx, my)
+	if inRect(layout.unfoldSwitchHit, mx, my) then
+		-- every family follows the switch, so what was folded or opened by hand is let go
+		view.unfoldAll = not view.unfoldAll
+		view.folded = {}
+		view.build()
+		view.refresh()
+	elseif not devMode and inRect(layout.switchHit, mx, my) then
+		if devUI then
+			-- the way its own row turns it off: reloads the UI
+			applyOptionValueByID("devmode", false)
+		else
+			advSettings = not advSettings
+			view.build()
+			view.refresh()
+		end
+	else
+		return false
+	end
+	if playSounds then
+		Spring.PlaySoundFile(sounds.buttonClick, 0.6, "ui")
+	end
+	return true
+end
+
+-- a press in the column: open a tab, or scroll to a section (or a tab's search results)
+local function pressOnSidebar(mx, my)
+	for _, entry in ipairs(layout.sidebar) do
+		if inRect(entry.rect, mx, my) then
+			if entry.group and not view.searching() then
+				if entry.group.id == currentGroupTab then
+					view.scrollBy(-view.scroll)
+					view.litPin = false
+					view.refresh()
+				else
+					view.openTab(entry.group)
+				end
+			elseif entry.line then
+				view.scrollBy(entry.line - 1 - view.scroll)
+				local line = view.lines[entry.line]
+				view.litPin = line and (line.option or line.group) or false
+				view.refresh()
+			end
+			if playSounds then
+				Spring.PlaySoundFile(sounds.paginatorClick, 0.9, "ui")
+			end
+			return true
+		end
+	end
+end
+
+-- A press in the window goes to the search field, a header switch, the column, the scrollbar or a
+-- row; a release outside closes the window, unless it ends something that started inside.
 function mouseEvent(mx, my, button, release)
 	if Spring.IsGUIHidden() then
 		return false
 	end
-
-	if show then
-		-- A press on a top bar button is the top bar's to handle: it closes the open windows
-		-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
-		if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(mx, my) then
-			return false
-		end
-
-		local windowClick = (math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]))
-		local titleClick = (titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
-		local chatinputClick = (
-			chatInputArea
-			and math_isInRect(mx, my, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4])
-		)
-		local tabClick
-		if not (inputText and inputText ~= "" and inputMode == "") and groupRect ~= nil then
-			for id, group in pairs(optionGroups) do
-				if group.numOptions > 0 then
-					if devMode or devUI or group.id ~= "dev" then
-						if
-							math_isInRect(
-								mx,
-								my,
-								groupRect[id][1],
-								groupRect[id][2],
-								groupRect[id][3],
-								groupRect[id][4]
-							)
-						then
-							if not release then
-								currentGroupTab = group.id
-								startColumn = 1
-								showSelectOptions = nil
-								selectClickAllowHide = nil
-								if playSounds then
-									Spring.PlaySoundFile(sounds.paginatorClick, 0.9, "ui")
-								end
-							end
-							tabClick = true
-						end
-					end
-				end
-			end
-		end
-
-		if button == 1 then
-			if release then
-				if not (devMode or devUI) and titleClick then
-					advSettings = not advSettings
-					startColumn = 1
-				end
-				-- navigation buttons
-				if
-					optionButtonForward ~= nil
-					and math_isInRect(
-						mx,
-						my,
-						optionButtonForward[1],
-						optionButtonForward[2],
-						optionButtonForward[3],
-						optionButtonForward[4]
-					)
-				then
-					startColumn = startColumn + maxShownColumns
-					if startColumn > totalColumns + (maxShownColumns - 1) then
-						startColumn = (totalColumns - maxShownColumns) + 1
-					end
-					if playSounds then
-						Spring.PlaySoundFile(sounds.paginatorClick, 0.6, "ui")
-					end
-					showSelectOptions = nil
-					selectClickAllowHide = nil
-				end
-				if
-					optionButtonBackward ~= nil
-					and math_isInRect(
-						mx,
-						my,
-						optionButtonBackward[1],
-						optionButtonBackward[2],
-						optionButtonBackward[3],
-						optionButtonBackward[4]
-					)
-				then
-					startColumn = startColumn - maxShownColumns
-					if startColumn < 1 then
-						startColumn = 1
-					end
-					if playSounds then
-						Spring.PlaySoundFile(sounds.paginatorClick, 0.6, "ui")
-					end
-					showSelectOptions = nil
-					selectClickAllowHide = nil
-				end
-
-				-- apply new slider value
-				if draggingSlider ~= nil then
-					applyOptionValue(draggingSlider, getSliderValue(draggingSlider, mx))
-					draggingSlider = nil
-					draggingSliderPreDragValue = nil
-					return
-				end
-
-				-- select option
-				if showSelectOptions ~= nil then
-					for i, o in pairs(optionSelect) do
-						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-							applyOptionValue(showSelectOptions, o[5])
-							if playSounds then
-								Spring.PlaySoundFile(sounds.selectClick, 0.5, "ui")
-							end
-						end
-					end
-					if
-						selectClickAllowHide ~= nil
-						or not math_isInRect(
-							mx,
-							my,
-							optionButtons[showSelectOptions][1],
-							optionButtons[showSelectOptions][2],
-							optionButtons[showSelectOptions][3],
-							optionButtons[showSelectOptions][4]
-						)
-					then
-						showSelectOptions = nil
-						selectClickAllowHide = nil
-					else
-						selectClickAllowHide = true
-					end
-					return
-				end
-			end
-
-			if not tabClick and windowClick then
-				-- on window
-				if release then
-					-- select option
-					if showSelectOptions == nil then
-						if optionButtons then
-							for i, o in pairs(optionButtons) do
-								if options[i] then
-									if options[i].type == "bool" and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-										applyOptionValue(i, not options[i].value)
-										if playSounds then
-											if options[i] and options[i].value then
-												Spring.PlaySoundFile(sounds.toggleOnClick, 0.75, "ui")
-											else
-												Spring.PlaySoundFile(sounds.toggleOffClick, 0.75, "ui")
-											end
-										end
-									elseif
-										options[i].type == "slider" and math_isInRect(mx, my, o[1], o[2], o[3], o[4])
-									then
-									elseif
-										options[i].type == "select" and math_isInRect(mx, my, o[1], o[2], o[3], o[4])
-									then
-									elseif
-										optionHover[i]
-										and options[i].onclick ~= nil
-										and math_isInRect(
-											mx,
-											my,
-											optionHover[i][1],
-											optionHover[i][2],
-											optionHover[i][3],
-											optionHover[i][4]
-										)
-									then
-										options[i].onclick(i)
-									end
-								end
-							end
-						end
-					end
-				else -- press
-					if not showSelectOptions then
-						for i, o in pairs(optionButtons) do
-							if not options[i] then
-								-- skip: options table was rebuilt and this index is stale
-							elseif
-								options[i].type == "slider"
-								and (
-									math_isInRect(mx, my, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4])
-									or math_isInRect(mx, my, o[1], o[2], o[3], o[4])
-								)
-							then
-								draggingSlider = i
-								draggingSliderPreDragValue = options[draggingSlider].value
-								local newValue = getSliderValue(draggingSlider, mx)
-								if options[draggingSlider].value ~= newValue then
-									applyOptionValue(draggingSlider, getSliderValue(draggingSlider, mx)) -- disabled so only on release it gets applied
-									if playSounds then
-										Spring.PlaySoundFile(sounds.sliderDrag, 0.3, "ui")
-									end
-								end
-							elseif options[i].type == "select" and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-								if playSounds then
-									Spring.PlaySoundFile(sounds.selectUnfoldClick, 0.6, "ui")
-								end
-								if showSelectOptions == nil then
-									showSelectOptions = i
-									selectScrollOffset = 0
-								elseif showSelectOptions == i then
-									--showSelectOptions = nil
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-
-		local needsRedraw = windowClick or titleClick or tabClick
-		if needsRedraw then
-			if windowList then
-				gl.DeleteList(windowList)
-			end
-			windowList = gl.CreateList(DrawWindow)
-		end
-
-		if windowClick or titleClick or chatinputClick or tabClick then
-			return true
-		elseif not tabClick then
-			if release and draggingSlider == nil then
-				showOnceMore = true -- show once more because the guishader lags behind, though this will not fully fix it
-				show = false
-				cancelChatInput()
-			end
-			return true
-		end
+	if not show then
+		return
 	end
+
+	-- A press on a top bar button is the top bar's to handle: it closes the open windows
+	-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
+	if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(mx, my) then
+		return false
+	end
+
+	local inWindow = inRect(layout.window, mx, my)
+	local pressedInside = view.pressedInside
+	if release then
+		view.pressedInside = nil
+	end
+
+	if button == 1 then
+		if release then
+			if view.dragging then
+				view.dragging = false
+				return true
+			end
+
+			-- apply new slider value
+			if draggingSlider ~= nil then
+				applyOptionValue(draggingSlider, sliderValueAt(draggingSlider, mx))
+				draggingSlider = nil
+				view.fineDrag = false
+				return true
+			end
+
+			-- select option
+			if openSelect ~= nil then
+				for _, item in ipairs(layout.selectItems) do
+					if inRect(item, mx, my) then
+						applyOptionValue(openSelect, item[5])
+						if playSounds then
+							Spring.PlaySoundFile(sounds.selectClick, 0.5, "ui")
+						end
+					end
+				end
+				local row = layout.rowOf[openSelect]
+				if selectClickAllowHide ~= nil or not (row and inRect(row.control, mx, my)) then
+					openSelect = nil
+					selectClickAllowHide = nil
+				else
+					selectClickAllowHide = true
+				end
+				return true
+			end
+
+			if inWindow then
+				releaseOnRows(mx, my)
+				view.refresh()
+			end
+		elseif inWindow and not openSelect then
+			view.pressedInside = true
+			if searchBox:mousePress(mx, my) then
+				return true
+			end
+			if not pressOnHeader(mx, my) and not pressOnSidebar(mx, my) then
+				if mx >= layout.barX1 and my >= layout.listBottom and my <= layout.listTop then
+					view.grabScroller(my)
+				elseif layout.stripCommand and inRect(layout.stripCommand, mx, my) then
+					-- the /option command in the strip, to paste in the chat or a key bind
+					Spring.SetClipboard(layout.stripCommand[5])
+					view.copiedAt = os_clock()
+				else
+					pressOnRows(mx, my)
+				end
+			end
+		end
+	elseif inWindow and not release then
+		view.pressedInside = true
+	end
+
+	if inWindow then
+		return true
+	end
+	if release and not pressedInside and draggingSlider == nil then
+		showOnceMore = true -- show once more because the guishader lags behind, though this will not fully fix it
+		view.close()
+	end
+	return true
 end
 
 function GetWidgetToggleValue(widgetname)
@@ -2632,80 +2816,152 @@ function GetWidgetToggleValue(widgetname)
 	end
 end
 
--- configVar: path to the value in the widget's config data, e.g. {'Config','console','maxlines'}; the option keeps its value when the path is missing
-function loadWidgetData(widgetName, optionId, configVar)
-	local optionID = getOptionByID(optionId)
+-- the value at a path in a widget's saved config data, e.g. {'Config','console','maxlines'}; nil when it is missing
+local function widgetConfigValue(widgetName, path)
 	local value = widgetHandler.configData[widgetName]
-	for _, key in ipairs(configVar) do
+	for _, key in ipairs(path) do
 		if type(value) ~= "table" then
-			return
+			return nil
 		end
 		value = value[key]
 	end
-	if optionID and value ~= nil then
-		options[optionID].value = value
+	return value
+end
+
+-- the option keeps its value when the path is missing
+function loadWidgetData(widgetName, optionId, configVar)
+	local option = getOption(optionId)
+	local value = widgetConfigValue(widgetName, configVar)
+	if option and value ~= nil then
+		option.value = value
+	end
+end
+
+-- Most options only mirror one value, and declare where it lives instead of handling it:
+--   widgetConfig = { widget name, config key or path, api = WG table, get = getter, set = setter, key = ... }
+--     read from the API when the list is built, loaded from the widget's saved config, and on
+--     change saved there and handed to the setter; with key, the getter gets key and the setter { key, value }
+--   configInt / configFloat = engine config key; a toggle stores 1 or 0
+local function boundPath(config)
+	return type(config[2]) == "table" and config[2] or { config[2] }
+end
+
+local function readBoundValue(option)
+	local config = option.widgetConfig
+	if config then
+		local api = config.api and WG[config.api]
+		if config.get and api and api[config.get] then
+			local value = api[config.get](config.key)
+			if value ~= nil then
+				option.value = value
+			end
+		end
+	elseif option.configInt then
+		if option.type == "bool" then
+			option.value = Spring.GetConfigInt(option.configInt, option.value and 1 or 0) == 1
+		else
+			option.value = Spring.GetConfigInt(option.configInt, option.value)
+		end
+	elseif option.configFloat then
+		option.value = Spring.GetConfigFloat(option.configFloat, option.value)
+	end
+end
+
+local function loadBoundValue(option)
+	local config = option.widgetConfig
+	local value = widgetConfigValue(config[1], boundPath(config))
+	if value ~= nil then
+		option.value = value
+	end
+end
+
+-- Reads the bound settings again, as their widget or the engine config can change them by other means
+-- while the window is open; not the one being dragged or picked from. Returns whether any changed.
+function view.rereadBound()
+	local changed = false --[[@as boolean]]
+	for _, option in ipairs(unfilteredOptions) do
+		if
+			(option.widgetConfig or option.configInt or option.configFloat)
+			and option ~= draggingSlider
+			and option ~= openSelect
+		then
+			local before = option.value
+			readBoundValue(option)
+			changed = changed or option.value ~= before
+		end
+	end
+	return changed
+end
+
+local function saveBoundValue(option)
+	local config = option.widgetConfig
+	if config then
+		local param = config.key and { config.key, option.value } or nil
+		saveOptionValue(config[1], config.api, config.set, boundPath(config), option.value, param)
+	elseif option.configInt then
+		Spring.SetConfigInt(option.configInt, option.type == "bool" and (option.value and 1 or 0) or option.value)
+	elseif option.configFloat then
+		Spring.SetConfigFloat(option.configFloat, option.value)
+	end
+end
+
+-- dev mode, once: a binding to a widget the handler does not know, or to an API its running widget lacks
+local bindingsChecked = false
+local function checkBindings()
+	bindingsChecked = true
+	for _, option in ipairs(options) do
+		local config = option.widgetConfig
+		local known = config and widgetHandler.knownWidgets[config[1]]
+		local api = config and config.api and WG[config.api]
+		local problem
+		if config and not known then
+			problem = "unknown widget " .. config[1]
+		elseif config and known.active and config.api then
+			if not api then
+				problem = "WG." .. config.api .. " missing"
+			elseif config.get and not api[config.get] then
+				problem = "WG." .. config.api .. "." .. config.get .. " missing"
+			elseif config.set and not api[config.set] then
+				problem = "WG." .. config.api .. "." .. config.set .. " missing"
+			end
+		end
+		if problem then
+			Spring.Echo("Options: '" .. option.id .. "' widgetConfig: " .. problem)
+		end
 	end
 end
 
 function checkRequireRestart()
 	changesRequireRestart = false
 	for id, value in pairs(requireRestartDefaults) do
-		local i = getOptionByID(id)
-		if options[i] and options[i].value ~= value then
+		local option = getOption(id)
+		if option and option.value ~= value then
 			changesRequireRestart = true
 		end
 	end
 end
 
-local function optionsFiltered()
-	return options ~= unfilteredOptions and inputText ~= "" and inputMode == ""
-end
-
--- For lookups from outside the window, which the search filter must not limit.
-local function getUnfilteredOption(id)
-	for _, option in ipairs(unfilteredOptions) do
-		if option.id == id then
-			return option
-		end
-	end
-end
-
--- Option callbacks look up other options by id, which fails for the ones the search filter
--- hides, so this applies against the full list and filters again afterwards.
 function applyOptionValueByID(id, newValue, skipRedrawWindow, force)
-	local filtered = optionsFiltered()
-	if filtered then
-		options = unfilteredOptions
-		rebuildOptionIdIndex()
-	end
-	applyOptionValue(getOptionByID(id), newValue, filtered or skipRedrawWindow, force)
-	if filtered then
-		applyFilter()
-	end
+	applyOptionValue(getOption(id), newValue, skipRedrawWindow, force)
 end
 
-function applyOptionValue(i, newValue, skipRedrawWindow, force)
-	if options[i] == nil then
+function applyOptionValue(option, newValue, skipRedrawWindow, force)
+	if option == nil then
 		return
 	end
 
-	if optionsFiltered() then
-		applyOptionValueByID(options[i].id, newValue, skipRedrawWindow, force)
-		return
-	end
-
-	local id = options[i].id
+	local id = option.id
 
 	if newValue ~= nil then
-		options[i].value = newValue
+		option.value = newValue
 	end
 
-	if options[i].restart and requireRestartDefaults[id] ~= nil then
+	if option.restart and requireRestartDefaults[id] ~= nil then
 		checkRequireRestart()
 	end
 
-	if options[i].id ~= "preset" and presets.lowest[options[i].id] ~= nil and manualChange then
-		local preset = options[getOptionByID("preset")]
+	if id ~= "preset" and presets.lowest[id] ~= nil and manualChange then
+		local preset = getOption("preset")
 		if preset then
 			preset.value = #preset.options -- custom
 			Spring.SetConfigString("graphicsPreset", "custom")
@@ -2713,14 +2969,14 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 	end
 
 	-- a toggle turns its widget on and off; other options only name the widget they belong to
-	if options[i].widget ~= nil and options[i].type == "bool" and widgetHandler.orderList[options[i].widget] ~= nil then
-		if options[i].value then
-			if widgetHandler.orderList[options[i].widget] < 0.5 then
-				widgetHandler:EnableWidget(options[i].widget)
+	if option.widget ~= nil and option.type == "bool" and widgetHandler.orderList[option.widget] ~= nil then
+		if option.value then
+			if widgetHandler.orderList[option.widget] < 0.5 then
+				widgetHandler:EnableWidget(option.widget)
 			end
 		else
-			if widgetHandler.orderList[options[i].widget] > 0 then
-				widgetHandler:DisableWidget(options[i].widget)
+			if widgetHandler.orderList[option.widget] > 0 then
+				widgetHandler:DisableWidget(option.widget)
 			end
 		end
 		forceUpdate = true
@@ -2730,8 +2986,9 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 		end
 	end
 
-	if options[i] and options[i].onchange then
-		options[i].onchange(i, options[i].value, force)
+	saveBoundValue(option)
+	if option.onchange then
+		option.onchange(option, option.value, force)
 	end
 
 	if skipRedrawWindow == nil then
@@ -2742,9 +2999,12 @@ end
 
 -- loads values via stored game config in luaui/configs
 function loadAllWidgetData()
-	for i, option in ipairs(options) do
+	for _, option in ipairs(options) do
+		if option.widgetConfig then
+			loadBoundValue(option)
+		end
 		if option.onload then
-			option.onload(i)
+			option.onload(option)
 		end
 	end
 end
@@ -2753,16 +3013,13 @@ end
 -- A match is shown below its parents, and the rows of one family stay together, ranked by their
 -- best match.
 function applyFilter()
-	if inputText and inputText ~= "" and inputMode == "" then
+	if inputText ~= "" then
 		local query = Search.query(inputText)
 		-- Nothing but whitespace is not something anyone is searching for.
 		if query.empty then
 			options = unfilteredOptions
-			rebuildOptionIdIndex()
-			if windowList then
-				gl.DeleteList(windowList)
-			end
-			windowList = gl.CreateList(DrawWindow)
+			view.build()
+			view.refresh()
 			return
 		end
 
@@ -2833,18 +3090,12 @@ function applyFilter()
 		end
 
 		options = result
-		startColumn = 1
 	else
 		-- No filter, use the cached unfiltered options
 		options = unfilteredOptions
 	end
-	rebuildOptionIdIndex()
-
-	-- Rebuild window display list
-	if windowList then
-		gl.DeleteList(windowList)
-	end
-	windowList = gl.CreateList(DrawWindow)
+	view.build()
+	view.refresh()
 end
 
 -------------------------------------------------------------------------------
@@ -3127,26 +3378,59 @@ function init()
 		end
 	end
 
-	-- only allow dualscreen-mode on single displays when super ultrawide screen or Multi Display option shows
-	if (#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == Spring.GetNumDisplays()) then
-		if Spring.GetConfigInt("DualScreenMode", 0) ~= 0 then
-			Spring.SetConfigInt("DualScreenMode", 0)
+	-- The entry the window is in now, if one is: fullscreen or borderless (the switcher's mode types 1 and
+	-- 2), or the windowed mode of its size, borders included as the switcher sets it.
+	local function currentResolution()
+		local fullscreen = Spring.GetConfigInt("Fullscreen", 0) == 1
+		local borderless = Spring.GetConfigInt("WindowBorderless", 0) == 1
+		local w, h, _, _, top, left, bottom, right = Spring.GetWindowGeometry()
+		for i = 1, #resolutionNames do
+			local mode = screenModes[i + screenmodeOffset]
+			if not mode then
+				break
+			elseif fullscreen and mode.type == (borderless and 2 or 1) then
+				return i
+			elseif
+				not fullscreen
+				and not borderless
+				and mode.type == 3
+				and mode.width == w + left + right
+				and mode.height == h + top + bottom
+			then
+				return i
+			end
 		end
+	end
+
+	-- only allow dualscreen-mode on single displays when super ultrawide screen or Multi Display option shows
+	local dualScreen = not (
+		(#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == Spring.GetNumDisplays())
+	)
+	if not dualScreen and Spring.GetConfigInt("DualScreenMode", 0) ~= 0 then
+		Spring.SetConfigInt("DualScreenMode", 0)
 	end
 
 	-- the start of infolog.txt, which this reads, does not change while the game runs
 	if not soundDevices then
 		soundDevices = { "default" }
 		soundDevicesByName = { [""] = 1 }
+		-- SDL plays the sound by default and only opens its own names, which older engines list with OpenAL's prefix
+		local sdlAudio = Spring.GetConfigInt("UseSDLAudio", 1) ~= 0
+		for _, device in ipairs(Spring.GetSoundDevices()) do
+			local name = sdlAudio and device.name:gsub("^OpenAL Soft on ", "") or device.name
+			if not soundDevicesByName[name] then
+				soundDevices[#soundDevices + 1] = name
+				soundDevicesByName[name] = #soundDevices
+			end
+		end
+		-- a device saved with that prefix still shows as selected
+		local savedDevice = Spring.GetConfigString("snd_device", "") or ""
+		soundDevicesByName[savedDevice] = soundDevicesByName[savedDevice]
+			or soundDevicesByName[(savedDevice:gsub("^OpenAL Soft on ", ""))]
 		local infolog = VFS.LoadFile("infolog.txt")
 		if infolog then
 			local fileLines = string.lines(infolog)
 			for i, line in ipairs(fileLines) do
-				if string.find(line, "     [", nil, true) then
-					local device = string.sub(string.match(line, "     %[([0-9a-zA-Z _%/%%-%(%)]*)"), 1)
-					soundDevices[#soundDevices + 1] = device
-					soundDevicesByName[device] = #soundDevices
-				end
 				-- scan for shader version error
 				if string.find(line, "error: GLSL 1.50 is not supported", nil, true) then
 					Spring.SetConfigInt("LuaShaders", 0)
@@ -3242,9 +3526,28 @@ function init()
 		end
 	end
 
+	local hasUserWidgets = false
+	for _, data in pairs(widgetHandler.knownWidgets) do
+		if not data.fromZip then
+			hasUserWidgets = true
+		end
+	end
+	local aiDetected = false
+	for _, teamID in ipairs(Spring.GetTeamList()) do
+		if select(4, Spring.GetTeamInfo(teamID, false)) then
+			aiDetected = true
+		end
+	end
+	local gridMenuOn = GetWidgetToggleValue("Grid menu") and true or false
+	local holidays = BAR.Utilities.Gametype.GetCurrentHolidays()
+	local camMode = Spring.GetConfigInt("CamMode", 2)
+
 	-- Rows show in this order within their tab; one without a type is a section label.
 	-- parent: id of the option this sub-option belongs to (indented below it, found along with it)
 	-- prefix: shown ahead of the name, which then takes the sub-option color
+	-- compact: a plain toggle that shares a line with the ones beside it
+	-- available: false leaves the row out
+	-- widgetConfig, configInt, configFloat: where the value lives, see readBoundValue
 	options = {
 		--GFX
 		{
@@ -3254,30 +3557,28 @@ function init()
 			name = BAR.I18N("ui.settings.option.preset"),
 			type = "select",
 			options = presetNames,
-			onload = function(i)
+			onload = function(option)
 				local preset = Spring.GetConfigString("graphicsPreset", "custom")
-				options[i].value = table.getKeyOf(presetKeys, preset) or #presetKeys
+				option.value = table.getKeyOf(presetKeys, preset) or #presetKeys
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local configSetting = presetKeys[value]
 				Spring.SetConfigString("graphicsPreset", configSetting)
 				if configSetting == "custom" then
 					return
 				end
 
-				Spring.Echo("Loading preset:   " .. options[i].options[value])
+				Spring.Echo("Loading preset:   " .. option.options[value])
 				manualChange = false
 				for optionID, value in pairs(presets[configSetting]) do
-					local i = getOptionByID(optionID)
-					if options[i] ~= nil then
-						applyOptionValue(i, value, true)
+					local presetOption = getOption(optionID)
+					if presetOption ~= nil then
+						applyOptionValue(presetOption, value, true)
 					end
 				end
 
-				if windowList then
-					gl.DeleteList(windowList)
-				end
-				windowList = gl.CreateList(DrawWindow)
+				view.build()
+				view.refresh()
 				manualChange = true
 			end,
 		},
@@ -3291,11 +3592,12 @@ function init()
 			id = "display",
 			group = "gfx",
 			category = types.basic,
+			available = #displayNames > 1, -- without it, resolution moves up a level
 			name = BAR.I18N("ui.settings.option.display"),
 			type = "select",
 			options = displayNames,
 			value = currentDisplay,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				--currentDisplay = value
 				selectedDisplay = value
 				Spring.SetConfigInt("SelectedDisplay", value)
@@ -3308,11 +3610,11 @@ function init()
 						screenmodeOffset = screenmodeOffset + 1
 					end
 				end
-				options[getOptionByID("resolution")].options = resolutionNames
+				getOption("resolution").options = resolutionNames
 				if selectedDisplay == currentDisplay then
-					options[getOptionByID("resolution")].value = Spring.GetConfigInt("SelectedScreenMode", 1)
+					getOption("resolution").value = Spring.GetConfigInt("SelectedScreenMode", 1)
 				else
-					options[getOptionByID("resolution")].value = 0
+					getOption("resolution").value = 0
 				end
 				forceUpdate = true
 			end,
@@ -3327,13 +3629,36 @@ function init()
 			options = resolutionNames,
 			value = Spring.GetConfigInt("SelectedScreenMode", 1),
 			description = BAR.I18N("ui.settings.option.resolution_descr"),
-			onload = function(i, value)
+			-- also run while the window is open, as the game window can be resized meanwhile
+			onload = function(option)
 				-- FIXME: disabled for now due to "Now whenever i do fullscreen or borderless the game will go to monitor 2 regardless of the chosen option. (I want the game on monitor 1)."
 				--if Spring.GetConfigInt('SelectedScreenMode', -1) >= 1 then		-- chobby sets SelectedScreenMode to -1 when it changes game window mode
 				--	WG['screenMode'].SetScreenMode(Spring.GetConfigInt('SelectedScreenMode', 1))
 				--end
+
+				-- the mode the window is in, not the last one picked
+				if selectedDisplay ~= currentDisplay then
+					return -- another display's modes are listed
+				end
+				local current = currentResolution()
+				option.options = resolutionNames
+				if current then
+					option.value = current
+				else
+					local w, h = Spring.GetWindowGeometry()
+					local names = {}
+					for i, name in ipairs(resolutionNames) do
+						names[i] = name
+					end
+					names[#names + 1] = BAR.I18N("ui.resolutionswitcher.window") .. " " .. w .. " × " .. h
+					option.options = names
+					option.value = #names
+				end
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
+				if value > #resolutionNames then
+					return -- the size the window has now
+				end
 				Spring.SetConfigInt("SelectedScreenMode", value)
 
 				if WG.screenMode then
@@ -3357,39 +3682,36 @@ function init()
 			id = "dualmode_enabled",
 			group = "gfx",
 			category = types.dev,
+			available = dualScreen,
 			name = BAR.I18N("ui.settings.option.dualmode"),
 			type = "bool",
-			value = Spring.GetConfigInt("DualScreenMode", 0) == 1,
+			value = false,
 			description = BAR.I18N("ui.settings.option.dualmode_enabled_descr"),
-			onchange = function(_, value)
-				Spring.SetConfigInt("DualScreenMode", value and 1 or 0)
-			end,
+			configInt = "DualScreenMode",
 		},
 		{
 			id = "dualmode_left",
 			parent = "dualmode_enabled",
 			group = "gfx",
 			category = types.dev,
+			available = dualScreen,
 			name = BAR.I18N("ui.settings.option.dualmode_left"),
 			type = "bool",
-			value = Spring.GetConfigInt("DualScreenMiniMapOnLeft", 0) == 1,
+			value = false,
 			description = BAR.I18N("ui.settings.option.dualmode_left_descr"),
-			onchange = function(_, value)
-				Spring.SetConfigInt("DualScreenMiniMapOnLeft", value and 1 or 0)
-			end,
+			configInt = "DualScreenMiniMapOnLeft",
 		},
 		{
 			id = "dualmode_minimap_aspectratio",
 			parent = "dualmode_enabled",
 			group = "gfx",
 			category = types.dev,
+			available = dualScreen,
 			name = BAR.I18N("ui.settings.option.dualmode_minimap_aspectratio"),
 			type = "bool",
-			value = Spring.GetConfigInt("DualScreenMiniMapAspectRatio", 0) == 1,
+			value = false,
 			description = BAR.I18N("ui.settings.option.dualmode_minimap_aspectratio_descr"),
-			onchange = function(_, value)
-				Spring.SetConfigInt("DualScreenMiniMapAspectRatio", value and 1 or 0)
-			end,
+			configInt = "DualScreenMiniMapAspectRatio",
 		},
 		{
 			id = "vsync",
@@ -3404,17 +3726,17 @@ function init()
 			},
 			value = 2,
 			description = BAR.I18N("ui.settings.option.vsync_descr"),
-			onload = function(i)
+			onload = function(option)
 				local vsync = Spring.GetConfigInt("VSyncGame", -1)
 				if vsync > 0 then
-					options[i].value = 2
+					option.value = 2
 				elseif vsync < 0 then
-					options[i].value = 3
+					option.value = 3
 				else
-					options[i].value = 1
+					option.value = 1
 				end
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				-- VSyncGame is the mode (1 on, -1 adaptive, 0 off), times VSyncFraction here and in the lobby
 				local mode = 0
 				if value == 2 then
@@ -3438,7 +3760,7 @@ function init()
 			type = "slider",
 			value = Spring.GetConfigInt("VSyncFraction", 1),
 			description = BAR.I18N("ui.settings.option.vsync_fraction_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("VSyncFraction", value)
 				local vsync = Spring.GetConfigInt("VSyncGame", -1)
 				if vsync ~= 0 then
@@ -3464,11 +3786,9 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.limitidlefps"),
 			type = "bool",
-			value = (Spring.GetConfigInt("LimitIdleFps", 0) == 1),
+			value = false,
 			description = BAR.I18N("ui.settings.option.limitidlefps_descr"),
-			onchange = function(i, value)
-				Spring.SetConfigInt("LimitIdleFps", (value and 1 or 0))
-			end,
+			configInt = "LimitIdleFps",
 		},
 
 		{
@@ -3481,29 +3801,26 @@ function init()
 			restart = true,
 			value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0),
 			description = BAR.I18N("ui.settings.option.msaa_descr"),
-			onload = function(i)
+			onload = function(option)
 				local msaa = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0)
 				if msaa <= 0 then
-					options[getOptionByID("msaa")].value = 1
+					option.value = 1
 				else
-					for k, v in ipairs(options[getOptionByID("msaa")].options) do
+					for k, v in ipairs(option.options) do
 						if v == "x" .. msaa then
-							options[getOptionByID("msaa")].value = k
+							option.value = k
 							break
 						end
 					end
 				end
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				if value == 1 then
 					Spring.SetConfigInt("MSAA", 0)
 					Spring.SetConfigInt("MSAALevel", -1) -- setting 0 will reset it to default x4 :(
 				else
 					Spring.SetConfigInt("MSAA", 1)
-					Spring.SetConfigInt(
-						"MSAALevel",
-						tonumber(string.sub(options[getOptionByID("msaa")].options[value], 2))
-					)
+					Spring.SetConfigInt("MSAALevel", tonumber(string.sub(option.options[value], 2)))
 				end
 			end,
 		},
@@ -3518,7 +3835,7 @@ function init()
 			restart = false,
 			value = (Spring.GetConfigFloat("MinSampleShadingRate", 0.0) == 1.0),
 			description = BAR.I18N("ui.settings.option.supersampling_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigFloat("MinSampleShadingRate", (value and 1.0 or 0.0))
 			end,
 		},
@@ -3534,20 +3851,14 @@ function init()
 			type = "slider",
 			value = 1.0,
 			description = BAR.I18N("ui.settings.option.cas_sharpness_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { "SHARPNESS" })
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				if not GetWidgetToggleValue("Contrast Adaptive Sharpen") then
 					widgetHandler:EnableWidget("Contrast Adaptive Sharpen")
 				end
-				saveOptionValue(
-					"Contrast Adaptive Sharpen",
-					"cas",
-					"setSharpness",
-					{ "SHARPNESS" },
-					options[getOptionByID("cas_sharpness")].value
-				)
+				saveOptionValue("Contrast Adaptive Sharpen", "cas", "setSharpness", { "SHARPNESS" }, option.value)
 			end,
 		},
 
@@ -3571,12 +3882,7 @@ function init()
 			step = 0.02,
 			type = "slider",
 			value = 0.5,
-			onload = function(i)
-				loadWidgetData("Sepia Tone", "sepiatone_gamma", { "gamma" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Sepia Tone", "sepia", "setGamma", { "gamma" }, value)
-			end,
+			widgetConfig = { "Sepia Tone", "gamma", api = "sepia", set = "setGamma" },
 		},
 		{
 			id = "sepiatone_saturation",
@@ -3589,12 +3895,7 @@ function init()
 			step = 0.02,
 			type = "slider",
 			value = 0.5,
-			onload = function(i)
-				loadWidgetData("Sepia Tone", "sepiatone_saturation", { "saturation" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Sepia Tone", "sepia", "setSaturation", { "saturation" }, value)
-			end,
+			widgetConfig = { "Sepia Tone", "saturation", api = "sepia", set = "setSaturation" },
 		},
 		{
 			id = "sepiatone_contrast",
@@ -3607,12 +3908,7 @@ function init()
 			step = 0.02,
 			type = "slider",
 			value = 0.5,
-			onload = function(i)
-				loadWidgetData("Sepia Tone", "sepiatone_contrast", { "contrast" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Sepia Tone", "sepia", "setContrast", { "contrast" }, value)
-			end,
+			widgetConfig = { "Sepia Tone", "contrast", api = "sepia", set = "setContrast" },
 		},
 		{
 			id = "sepiatone_sepia",
@@ -3626,12 +3922,7 @@ function init()
 			type = "slider",
 			value = 0.5,
 			description = BAR.I18N("ui.settings.option.sepiatone_sepia_descr"),
-			onload = function(i)
-				loadWidgetData("Sepia Tone", "sepiatone_sepia", { "sepia" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Sepia Tone", "sepia", "setSepia", { "sepia" }, value)
-			end,
+			widgetConfig = { "Sepia Tone", "sepia", api = "sepia", set = "setSepia" },
 		},
 		{
 			id = "sepiatone_shadeui",
@@ -3641,12 +3932,7 @@ function init()
 			name = BAR.I18N("ui.settings.option.sepiatone_shadeui"),
 			type = "bool",
 			value = false,
-			onload = function(i)
-				loadWidgetData("Sepia Tone", "sepiatone_shadeui", { "shadeUI" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Sepia Tone", "sepia", "setShadeUI", { "shadeUI" }, value)
-			end,
+			widgetConfig = { "Sepia Tone", "shadeUI", api = "sepia", set = "setShadeUI" },
 		},
 
 		{
@@ -3664,7 +3950,7 @@ function init()
 			type = "bool",
 			value = (Spring.GetConfigInt("AdvMapShading", 1) == 1),
 			description = BAR.I18N("ui.settings.option.advmapshading_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
 				Spring.SendCommands("advmapshading " .. (value and "1" or "0"))
 			end,
@@ -3678,7 +3964,7 @@ function init()
 			type = "bool",
 			value = (Spring.GetConfigInt("cus2", 1) == 1),
 			description = BAR.I18N("ui.settings.option.cus_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				if value == 0.5 then
 					Spring.SendCommands("luarules disablecusgl4")
 				else
@@ -3704,7 +3990,7 @@ function init()
 			},
 			value = Spring.GetConfigInt("ShadowQuality", 3) + 1,
 			description = BAR.I18N("ui.settings.option.shadowslider_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("ShadowQuality", value - 1)
 				adjustShadowQuality()
 			end,
@@ -3722,7 +4008,7 @@ function init()
 			step = 0.01,
 			value = gl.GetSun("shadowDensity"),
 			description = "",
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetSunLighting({ groundShadowDensity = value, modelShadowDensity = value })
 			end,
 		},
@@ -3749,12 +4035,7 @@ function init()
 			step = 1,
 			value = 10,
 			description = "",
-			onload = function(i)
-				loadWidgetData("SSAO", "ssao_strength", { "strength" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("SSAO", "ssao", "setStrength", { "strength" }, value)
-			end,
+			widgetConfig = { "SSAO", "strength", api = "ssao", set = "setStrength" },
 		},
 		{
 			id = "ssao_quality",
@@ -3770,12 +4051,12 @@ function init()
 			},
 			value = (WG.ssao ~= nil and WG.ssao.getPreset() or 2),
 			description = BAR.I18N("ui.settings.option.ssao_quality_descr"),
-			onload = function(i)
+			onload = function(option)
 				if widgetHandler.configData.SSAO ~= nil and widgetHandler.configData.SSAO.preset ~= nil then
-					options[getOptionByID("ssao_quality")].value = widgetHandler.configData.SSAO.preset
+					option.value = widgetHandler.configData.SSAO.preset
 				end
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("SSAO", "ssao", "setPreset", { "preset" }, value)
 			end,
 		},
@@ -3802,12 +4083,7 @@ function init()
 			step = 0.05,
 			value = 1.0,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Bloom Shader Deferred", "bloomdeferredbrightness", { "glowAmplifier" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Bloom Shader Deferred", "bloomdeferred", "setBrightness", { "glowAmplifier" }, value)
-			end,
+			widgetConfig = { "Bloom Shader Deferred", "glowAmplifier", api = "bloomdeferred", set = "setBrightness" },
 		},
 		{
 			id = "bloomdeferred_quality",
@@ -3823,16 +4099,15 @@ function init()
 			},
 			value = (WG.bloomdeferred ~= nil and WG.bloomdeferred.getPreset() or 2),
 			description = BAR.I18N("ui.settings.option.bloomdeferred_quality_descr"),
-			onload = function(i)
+			onload = function(option)
 				if
 					widgetHandler.configData["Bloom Shader Deferred"] ~= nil
 					and widgetHandler.configData["Bloom Shader Deferred"].preset ~= nil
 				then
-					options[getOptionByID("bloomdeferred_quality")].value =
-						widgetHandler.configData["Bloom Shader Deferred"].preset
+					option.value = widgetHandler.configData["Bloom Shader Deferred"].preset
 				end
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Bloom Shader Deferred", "bloomdeferred", "setPreset", { "preset" }, value)
 			end,
 		},
@@ -3845,8 +4120,7 @@ function init()
 			type = "bool",
 			value = GetWidgetToggleValue("Deferred rendering GL4"),
 			description = BAR.I18N("ui.settings.option.lighteffects_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				if value then
 					widgetHandler:EnableWidget("Deferred rendering GL4")
 				else
@@ -3863,7 +4137,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("headlights", 1) == 1,
 			description = BAR.I18N("ui.settings.option.lighteffects_headlights_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("headlights", value and 1 or 0)
 				if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
 					widgetHandler:DisableWidget("Deferred rendering GL4")
@@ -3880,7 +4154,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("buildlights", 1) == 1,
 			description = BAR.I18N("ui.settings.option.lighteffects_buildlights_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("buildlights", value and 1 or 0)
 				if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
 					widgetHandler:DisableWidget("Deferred rendering GL4")
@@ -3900,18 +4174,12 @@ function init()
 			type = "slider",
 			value = 1,
 			description = BAR.I18N("ui.settings.option.lighteffects_brightness_descr"),
-			onload = function(i)
-				loadWidgetData("Deferred rendering GL4", "lighteffects_brightness", { "intensityMultiplier" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Deferred rendering GL4",
-					"lightsgl4",
-					"IntensityMultiplier",
-					{ "intensityMultiplier" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Deferred rendering GL4",
+				"intensityMultiplier",
+				api = "lightsgl4",
+				set = "IntensityMultiplier",
+			},
 		},
 		{
 			id = "lighteffects_radius",
@@ -3925,18 +4193,7 @@ function init()
 			type = "slider",
 			value = 1,
 			description = BAR.I18N("ui.settings.option.lighteffects_radius_descr"),
-			onload = function(i)
-				loadWidgetData("Deferred rendering GL4", "lighteffects_radius", { "radiusMultiplier" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Deferred rendering GL4",
-					"lightsgl4",
-					"RadiusMultiplier",
-					{ "radiusMultiplier" },
-					value
-				)
-			end,
+			widgetConfig = { "Deferred rendering GL4", "radiusMultiplier", api = "lightsgl4", set = "RadiusMultiplier" },
 		},
 
 		{
@@ -3951,18 +4208,12 @@ function init()
 			type = "slider",
 			value = 2,
 			description = BAR.I18N("ui.settings.option.lighteffects_screenspaceshadows_descr"),
-			onload = function(i)
-				loadWidgetData("Deferred rendering GL4", "lighteffects_screenspaceshadows", { "screenSpaceShadows" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Deferred rendering GL4",
-					"lightsgl4",
-					"ScreenSpaceShadows",
-					{ "screenSpaceShadows" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Deferred rendering GL4",
+				"screenSpaceShadows",
+				api = "lightsgl4",
+				set = "ScreenSpaceShadows",
+			},
 		},
 
 		{
@@ -3972,11 +4223,9 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.nanoparticlelights"),
 			type = "bool",
-			value = Spring.GetConfigInt("NanoParticlesUpdateLuaUI", 0) == 1,
+			value = false,
 			description = BAR.I18N("ui.settings.option.nanoparticlelights_descr"),
-			onchange = function(i, value)
-				Spring.SetConfigInt("NanoParticlesUpdateLuaUI", value and 1 or 0)
-			end,
+			configInt = "NanoParticlesUpdateLuaUI",
 		},
 
 		{
@@ -4001,12 +4250,7 @@ function init()
 			type = "slider",
 			value = 0,
 			description = BAR.I18N("ui.settings.option.darkenmap_descr"),
-			onload = function(i)
-				loadWidgetData("Darken map", "darkenmap", { "darknessvalue" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Darken map", "darkenmap", "setMapDarkness", { "darknessvalue" }, value)
-			end,
+			widgetConfig = { "Darken map", "darknessvalue", api = "darkenmap", set = "setMapDarkness" },
 		},
 
 		{
@@ -4027,7 +4271,7 @@ function init()
 			step = 500,
 			value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)),
 			description = BAR.I18N("ui.settings.option.featuredrawdist_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("FeatureFadeDistance", math.floor(value * 0.8))
 				Spring.SetConfigInt("FeatureDrawDistance", value)
 			end,
@@ -4043,14 +4287,9 @@ function init()
 			min = 0.01,
 			max = 1,
 			step = 0.01,
-			value = (WG.los ~= nil and WG.los.getOpacity ~= nil and WG.los.getOpacity()) or 0.66,
+			value = 0.66,
 			description = "",
-			onload = function(i)
-				loadWidgetData("LOS colors", "losopacity", { "opacity" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("LOS colors", "los", "setOpacity", { "opacity" }, value)
-			end,
+			widgetConfig = { "LOS colors", "opacity", api = "los", get = "getOpacity", set = "setOpacity" },
 		},
 
 		{
@@ -4063,15 +4302,15 @@ function init()
 			min = 0,
 			max = 1,
 			step = 0.01,
-			value = (WG.fogdiaglines ~= nil and WG.fogdiaglines.getStrength ~= nil and WG.fogdiaglines.getStrength())
-				or 0.30,
+			value = 0.30,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Fog Diagonal Lines GL4", "fogdiaglines", { "strength" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Fog Diagonal Lines GL4", "fogdiaglines", "setStrength", { "strength" }, value)
-			end,
+			widgetConfig = {
+				"Fog Diagonal Lines GL4",
+				"strength",
+				api = "fogdiaglines",
+				get = "getStrength",
+				set = "setStrength",
+			},
 		},
 
 		{
@@ -4084,18 +4323,15 @@ function init()
 			min = 0,
 			max = 1,
 			step = 0.01,
-			value = (
-				WG.fogdiaglines ~= nil
-				and WG.fogdiaglines.getBlurriness ~= nil
-				and WG.fogdiaglines.getBlurriness()
-			) or 0.187,
+			value = 0.187,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Fog Diagonal Lines GL4", "fogdiaglines_blur", { "blurriness" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Fog Diagonal Lines GL4", "fogdiaglines", "setBlurriness", { "blurriness" }, value)
-			end,
+			widgetConfig = {
+				"Fog Diagonal Lines GL4",
+				"blurriness",
+				api = "fogdiaglines",
+				get = "getBlurriness",
+				set = "setBlurriness",
+			},
 		},
 
 		{
@@ -4107,11 +4343,9 @@ function init()
 			min = 0.5,
 			max = 2.0,
 			step = 0.05,
-			value = Spring.GetConfigFloat("dominion_height_opacity", 1.0),
+			value = 1.0,
 			description = BAR.I18N("ui.settings.option.dominion_height_opacity_descr"),
-			onchange = function(i, value)
-				Spring.SetConfigFloat("dominion_height_opacity", value)
-			end,
+			configFloat = "dominion_height_opacity",
 		},
 
 		{
@@ -4122,8 +4356,7 @@ function init()
 			type = "select",
 			options = { BAR.I18N("ui.settings.option.select_low"), BAR.I18N("ui.settings.option.select_high") },
 			value = desiredWaterValue == 4 and 2 or 1,
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				desiredWaterValue = value > 1 and 4 or 0
 				if waterDetected then
 					if desiredWaterValue > 0 then
@@ -4158,12 +4391,7 @@ function init()
 			type = "slider",
 			value = 0.3,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Map Edge Extension", "mapedgeextension_brightness", { "brightness" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Map Edge Extension", "mapedgeextension", "setBrightness", { "brightness" }, value)
-			end,
+			widgetConfig = { "Map Edge Extension", "brightness", api = "mapedgeextension", set = "setBrightness" },
 		},
 		{
 			id = "mapedgeextension_curvature",
@@ -4174,12 +4402,7 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.mapedgeextension_curvature_descr"),
-			onload = function(i)
-				loadWidgetData("Map Edge Extension", "mapedgeextension_curvature", { "curvature" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Map Edge Extension", "mapedgeextension", "setCurvature", { "curvature" }, value)
-			end,
+			widgetConfig = { "Map Edge Extension", "curvature", api = "mapedgeextension", set = "setCurvature" },
 		},
 
 		{
@@ -4203,23 +4426,17 @@ function init()
 			type = "slider",
 			value = 1,
 			description = BAR.I18N("ui.settings.option.decalsgl4_lifetime_descr"),
-			onload = function(i)
-				loadWidgetData("Decals GL4", "decalsgl4_lifetime", { "lifeTimeMult" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Decals GL4", "decalsgl4", "SetLifeTimeMult", { "lifeTimeMult" }, value)
-			end,
+			widgetConfig = { "Decals GL4", "lifeTimeMult", api = "decalsgl4", set = "SetLifeTimeMult" },
 		},
 		{
 			id = "decals",
 			group = "gfx",
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.decals"),
-			restart = true,
 			type = "bool",
 			value = Spring.GetConfigInt("GroundDecals", 1) > 0,
 			description = BAR.I18N("ui.settings.option.decals_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				-- the engine draws ground decals or not, it has no levels
 				Spring.SetConfigInt("GroundDecals", value and 1 or 0)
 				Spring.SendCommands("GroundDecals " .. (value and 1 or 0))
@@ -4248,12 +4465,7 @@ function init()
 			step = 0.01,
 			value = 1,
 			description = BAR.I18N("ui.settings.option.grassdistance_desc"),
-			onload = function(i)
-				loadWidgetData("Map Grass GL4", "grassdistance", { "distanceMult" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Map Grass GL4", "grassgl4", "setDistanceMult", { "distanceMult" }, value)
-			end,
+			widgetConfig = { "Map Grass GL4", "distanceMult", api = "grassgl4", set = "setDistanceMult" },
 		},
 
 		{
@@ -4264,8 +4476,7 @@ function init()
 			type = "bool",
 			value = tonumber(Spring.GetConfigInt("TreeWind", 1) or 1) == 1,
 			description = BAR.I18N("ui.settings.option.treewind_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SendCommands("luarules treewind " .. (value and 1 or 0))
 				Spring.SetConfigInt("TreeWind", (value and 1 or 0))
 			end,
@@ -4290,10 +4501,10 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.snowmap_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Snow", "snowmap", { "snowMaps", Game.mapName:lower() })
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Snow", "snow", "setSnowMap", { "snowMaps", Game.mapName:lower() }, value)
 			end,
 		},
@@ -4306,12 +4517,7 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.snowautoreduce_descr"),
-			onload = function(i)
-				loadWidgetData("Snow", "snowautoreduce", { "autoReduce" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Snow", "snow", "setAutoReduce", { "autoReduce" }, value)
-			end,
+			widgetConfig = { "Snow", "autoReduce", api = "snow", set = "setAutoReduce" },
 		},
 		{
 			id = "snowamount",
@@ -4325,12 +4531,7 @@ function init()
 			step = 0.2,
 			value = 1,
 			description = BAR.I18N("ui.settings.option.snowamount_descr"),
-			onload = function(i)
-				loadWidgetData("Snow", "snowamount", { "customParticleMultiplier" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Snow", "snow", "setMultiplier", { "customParticleMultiplier" }, value)
-			end,
+			widgetConfig = { "Snow", "customParticleMultiplier", api = "snow", set = "setMultiplier" },
 		},
 
 		{
@@ -4355,12 +4556,7 @@ function init()
 			step = 0.05,
 			value = 1,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Volumetric Clouds", "clouds_opacity", { "opacityMult" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Volumetric Clouds", "clouds", "setOpacity", { "opacityMult" }, value)
-			end,
+			widgetConfig = { "Volumetric Clouds", "opacityMult", api = "clouds", set = "setOpacity" },
 		},
 		{
 			id = "fogmult",
@@ -4373,10 +4569,10 @@ function init()
 			step = 0.01,
 			value = Spring.GetConfigFloat("FogMult", 1),
 			description = BAR.I18N("ui.settings.option.fogmult_descr"),
-			onload = function(i)
-				options[i].onchange(i, options[i].value)
+			onload = function(option)
+				option.onchange(option, option.value)
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigFloat("FogMult", value)
 				value = 1 / value -- inverse
 				local newFogStart = math.min(9, (defaultMapFog.fogStart * ((value + 4) * 0.2)))
@@ -4406,8 +4602,7 @@ function init()
 			step = 1000,
 			value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000),
 			description = BAR.I18N("ui.settings.option.particles_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("MaxParticles", value)
 				-- Keep the engine nano-spray budget in sync when the gadget is
 				-- handing particles back to the engine (NanoParticleMode 0).
@@ -4444,12 +4639,7 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.dof_autofocus_descr"),
-			onload = function(i)
-				loadWidgetData("Depth of Field", "dof_autofocus", { "autofocus" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Depth of Field", "dof", "setAutofocus", { "autofocus" }, value)
-			end,
+			widgetConfig = { "Depth of Field", "autofocus", api = "dof", set = "setAutofocus" },
 		},
 		{
 			id = "dof_fstop",
@@ -4463,12 +4653,7 @@ function init()
 			step = 0.1,
 			value = 2,
 			description = BAR.I18N("ui.settings.option.dof_fstop_descr"),
-			onload = function(i)
-				loadWidgetData("Depth of Field", "dof_fstop", { "fStop" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Depth of Field", "dof", "setFstop", { "fStop" }, value)
-			end,
+			widgetConfig = { "Depth of Field", "fStop", api = "dof", set = "setFstop" },
 		},
 
 		-- SOUND
@@ -4476,17 +4661,19 @@ function init()
 			id = "snddevice",
 			group = "sound",
 			category = types.advanced,
+			available = soundDevices[2] ~= nil,
 			name = BAR.I18N("ui.settings.option.snddevice"),
 			type = "select",
-			restart = true,
+			-- the engine switches the device in game while SDL plays the sound
+			restart = not (Engine.FeatureSupport.liveConfigChanges and Spring.GetConfigInt("UseSDLAudio", 1) ~= 0),
 			options = soundDevices,
 			value = soundDevicesByName[Spring.GetConfigString("snd_device")],
 			description = BAR.I18N("ui.settings.option.snddevice_descr"),
-			onchange = function(i, value)
-				if options[i].options[options[i].value] == "default" then
+			onchange = function(option, value)
+				if option.options[option.value] == "default" then
 					Spring.SetConfigString("snd_device", "")
 				else
-					Spring.SetConfigString("snd_device", options[i].options[options[i].value])
+					Spring.SetConfigString("snd_device", option.options[option.value])
 				end
 			end,
 		},
@@ -4501,11 +4688,8 @@ function init()
 			min = 0,
 			max = 80,
 			step = 2,
-			value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 80),
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigInt("snd_volmaster", value)
-			end,
+			value = 1,
+			configInt = "snd_volmaster",
 		},
 		{
 			id = "sndvolgeneral",
@@ -4517,11 +4701,8 @@ function init()
 			min = 0,
 			max = 100,
 			step = 2,
-			value = tonumber(Spring.GetConfigInt("snd_volgeneral", 1) or 100),
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigInt("snd_volgeneral", value)
-			end,
+			value = 1,
+			configInt = "snd_volgeneral",
 		},
 		{
 			id = "sndvolbattle",
@@ -4533,11 +4714,8 @@ function init()
 			min = 0,
 			max = 100,
 			step = 2,
-			value = tonumber(Spring.GetConfigInt("snd_volbattle_options", 100) or 100),
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigInt("snd_volbattle_options", value)
-			end,
+			value = 100,
+			configInt = "snd_volbattle_options",
 		},
 		{
 			id = "sndvolui",
@@ -4549,23 +4727,20 @@ function init()
 			min = 0,
 			max = 100,
 			step = 2,
-			value = tonumber(Spring.GetConfigInt("snd_volui", 1) or 100),
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigInt("snd_volui", value)
-			end,
+			value = 1,
+			configInt = "snd_volui",
 		},
 		--{ id = "sndambient", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolambient'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volambient", 1) or 100),
-		--  onload = function(i)
+		--  onload = function(option)
 		--  end,
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigInt("snd_volambient", value)
 		--  end,
 		--},
 		--{ id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolunitreply'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
-		--  onload = function(i)
+		--  onload = function(option)
 		--  end,
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigInt("snd_volunitreply", value)
 		--  end,
 		--},
@@ -4579,14 +4754,9 @@ function init()
 			min = 0,
 			max = 1,
 			step = 0.01,
-			value = (WG.chat ~= nil and WG.chat.getChatVolume() or 0),
+			value = 0,
 			description = BAR.I18N("ui.settings.option.console_chatvolume_descr"),
-			onload = function(i)
-				loadWidgetData("Chat", "console_chatvolume", { "sndChatFileVolume" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Chat", "chat", "setChatVolume", { "sndChatFileVolume" }, value)
-			end,
+			widgetConfig = { "Chat", "sndChatFileVolume", api = "chat", get = "getChatVolume", set = "setChatVolume" },
 		},
 		{
 			id = "mapmarkvolume",
@@ -4598,14 +4768,15 @@ function init()
 			min = 0,
 			max = 1,
 			step = 0.01,
-			value = (WG.mapmarkping ~= nil and WG.mapmarkping.getMapmarkVolume() or 0.6),
+			value = 0.6,
 			description = BAR.I18N("ui.settings.option.console_mapmarkvolume_descr"),
-			onload = function(i)
-				loadWidgetData("Mapmark Ping", "mapmarkvolume", { "volume" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Mapmark Ping", "mapmarkping", "setMapmarkVolume", { "volume" }, value)
-			end,
+			widgetConfig = {
+				"Mapmark Ping",
+				"volume",
+				api = "mapmarkping",
+				get = "getMapmarkVolume",
+				set = "setMapmarkVolume",
+			},
 		},
 		{
 			id = "sndvolmusic",
@@ -4618,8 +4789,7 @@ function init()
 			max = 99,
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				if WG.music and WG.music.SetMusicVolume then
 					WG.music.SetMusicVolume(value)
 				else
@@ -4634,11 +4804,9 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.sndunitsound"),
 			type = "bool",
-			value = (Spring.GetConfigInt("snd_unitsound", 1) == 1),
+			value = true,
 			description = BAR.I18N("ui.settings.option.sndunitsound_desc"),
-			onchange = function(i, value)
-				Spring.SetConfigInt("snd_unitsound", (value and 1 or 0))
-			end,
+			configInt = "snd_unitsound",
 		},
 
 		{
@@ -4650,12 +4818,9 @@ function init()
 			min = 0,
 			max = 0.4,
 			step = 0.01,
-			value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", 0.35) or 0.35),
+			value = 0.35,
 			description = BAR.I18N("ui.settings.option.sndairabsorption_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigFloat("snd_airAbsorption", value)
-			end,
+			configFloat = "snd_airAbsorption",
 		},
 
 		{
@@ -4667,12 +4832,9 @@ function init()
 			min = 0,
 			max = 3,
 			step = 0.01,
-			value = tonumber(Spring.GetConfigFloat("snd_zoomVolume", 1.00) or 1.00),
+			value = 1.00,
 			description = BAR.I18N("ui.settings.option.sndzoomvolume_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigFloat("snd_zoomVolume", value)
-			end,
+			configFloat = "snd_zoomVolume",
 		},
 
 		{
@@ -4681,11 +4843,9 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.muteoffscreen"),
 			type = "bool",
-			value = (Spring.GetConfigInt("muteOffscreen", 0) == 1),
+			value = false,
 			description = BAR.I18N("ui.settings.option.muteoffscreen_descr"),
-			onchange = function(i, value)
-				Spring.SetConfigInt("muteOffscreen", (value and 1 or 0))
-			end,
+			configInt = "muteOffscreen",
 		},
 
 		{
@@ -4703,7 +4863,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("UseSoundtrackNew", 1) == 1,
 			description = BAR.I18N("ui.settings.option.soundtracknew_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("UseSoundtrackNew", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
@@ -4720,7 +4880,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("UseSoundtrackRaptors", 0) == 1,
 			description = BAR.I18N("ui.settings.option.soundtrackraptors_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("UseSoundtrackRaptors", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
@@ -4737,7 +4897,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("UseSoundtrackScavengers", 0) == 1,
 			description = BAR.I18N("ui.settings.option.soundtrackscavengers_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("UseSoundtrackScavengers", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
@@ -4750,11 +4910,12 @@ function init()
 			parent = "soundtrackNew",
 			group = "sound",
 			category = types.basic,
+			available = holidays.aprilfools == true,
 			name = BAR.I18N("ui.settings.option.soundtrackaprilfools"),
 			type = "bool",
 			value = Spring.GetConfigInt("UseSoundtrackAprilFools", 1) == 1,
 			description = BAR.I18N("ui.settings.option.soundtrackaprilfools_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("UseSoundtrackAprilFools", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
@@ -4767,11 +4928,12 @@ function init()
 			parent = "soundtrackNew",
 			group = "sound",
 			category = types.basic,
+			available = not holidays.aprilfools,
 			name = BAR.I18N("ui.settings.option.soundtrackaprilfoolspostevent"),
 			type = "bool",
 			value = Spring.GetConfigInt("UseSoundtrackAprilFoolsPostEvent", 0) == 1,
 			description = BAR.I18N("ui.settings.option.soundtrackaprilfoolspostevent_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("UseSoundtrackAprilFoolsPostEvent", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
@@ -4784,11 +4946,12 @@ function init()
 			parent = "soundtrackNew",
 			group = "sound",
 			category = types.basic,
+			available = holidays.halloween == true,
 			name = BAR.I18N("ui.settings.option.soundtrackhalloween"),
 			type = "bool",
 			value = Spring.GetConfigInt("UseSoundtrackHalloween", 1) == 1,
 			description = BAR.I18N("ui.settings.option.soundtrackhalloween_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("UseSoundtrackHalloween", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
@@ -4801,11 +4964,12 @@ function init()
 			parent = "soundtrackNew",
 			group = "sound",
 			category = types.basic,
+			available = not holidays.halloween,
 			name = BAR.I18N("ui.settings.option.soundtrackhalloweenpostevent"),
 			type = "bool",
 			value = Spring.GetConfigInt("UseSoundtrackHalloweenPostEvent", 0) == 1,
 			description = BAR.I18N("ui.settings.option.soundtrackhalloweenpostevent_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("UseSoundtrackHalloweenPostEvent", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
@@ -4818,11 +4982,12 @@ function init()
 			parent = "soundtrackNew",
 			group = "sound",
 			category = types.basic,
+			available = holidays.xmas == true,
 			name = BAR.I18N("ui.settings.option.soundtrackxmas"),
 			type = "bool",
 			value = Spring.GetConfigInt("UseSoundtrackXmas", 1) == 1,
 			description = BAR.I18N("ui.settings.option.soundtrackxmas_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("UseSoundtrackXmas", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
@@ -4835,11 +5000,12 @@ function init()
 			parent = "soundtrackNew",
 			group = "sound",
 			category = types.basic,
+			available = not holidays.xmas,
 			name = BAR.I18N("ui.settings.option.soundtrackxmaspostevent"),
 			type = "bool",
 			value = Spring.GetConfigInt("UseSoundtrackXmasPostEvent", 0) == 1,
 			description = BAR.I18N("ui.settings.option.soundtrackxmaspostevent_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("UseSoundtrackXmasPostEvent", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
@@ -4855,7 +5021,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("UseSoundtrackCustom", 1) == 1,
 			description = BAR.I18N("ui.settings.option.soundtrackcustom_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("UseSoundtrackCustom", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
@@ -4871,7 +5037,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("UseSoundtrackInterruption", 1) == 1,
 			description = BAR.I18N("ui.settings.option.soundtrackinterruption_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("UseSoundtrackInterruption", value and 1 or 0)
 				if WG.music and WG.music.RefreshSettings then
 					WG.music.RefreshSettings()
@@ -4886,7 +5052,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("UseSoundtrackFades", 1) == 1,
 			description = BAR.I18N("ui.settings.option.soundtrackfades_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("UseSoundtrackFades", value and 1 or 0)
 				if WG.music and WG.music.RefreshSettings then
 					WG.music.RefreshSettings()
@@ -4895,7 +5061,7 @@ function init()
 		},
 
 		--{ id = "loadscreen_music", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.loadscreen_music'), type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = Spring.I18N('ui.settings.option.loadscreen_music_descr'),
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
 		--  end,
 		--},
@@ -4908,9 +5074,8 @@ function init()
 			type = "select",
 			options = {},
 			value = 1,
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigString("voiceset", options[i].options[options[i].value])
+			onchange = function(option, value)
+				Spring.SetConfigString("voiceset", option.options[option.value])
 				if widgetHandler.orderList.Notifications ~= nil then
 					widgetHandler:DisableWidget("Notifications")
 					widgetHandler:EnableWidget("Notifications")
@@ -4920,10 +5085,10 @@ function init()
 		},
 
 		--{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
-		--  onload = function(i)
+		--  onload = function(option)
 		--	  loadWidgetData("Notifications", "notifications_tutorial", { 'tutorialMode' })
 		--  end,
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  saveOptionValue('Notifications', 'notifications', 'setTutorial', { 'tutorialMode' }, value)
 		--  end,
 		--},
@@ -4933,14 +5098,15 @@ function init()
 			name = BAR.I18N("ui.settings.option.notifications_messages"),
 			category = types.basic,
 			type = "bool",
-			value = (WG.notifications ~= nil and WG.notifications.getMessages()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.notifications_messages_descr"),
-			onload = function(i)
-				loadWidgetData("Notifications", "notifications_messages", { "displayMessages" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Notifications", "notifications", "setMessages", { "displayMessages" }, value)
-			end,
+			widgetConfig = {
+				"Notifications",
+				"displayMessages",
+				api = "notifications",
+				get = "getMessages",
+				set = "setMessages",
+			},
 		},
 		{
 			id = "notifications_spoken",
@@ -4948,14 +5114,9 @@ function init()
 			name = BAR.I18N("ui.settings.option.notifications_spoken"),
 			category = types.basic,
 			type = "bool",
-			value = (WG.notifications ~= nil and WG.notifications.getSpoken()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.notifications_spoken_descr"),
-			onload = function(i)
-				loadWidgetData("Notifications", "notifications_spoken", { "spoken" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Notifications", "notifications", "setSpoken", { "spoken" }, value)
-			end,
+			widgetConfig = { "Notifications", "spoken", api = "notifications", get = "getSpoken", set = "setSpoken" },
 		},
 		{
 			id = "notifications_volume",
@@ -4968,12 +5129,7 @@ function init()
 			step = 0.05,
 			value = 0.7,
 			description = BAR.I18N("ui.settings.option.notifications_volume_descr"),
-			onload = function(i)
-				loadWidgetData("Notifications", "notifications_volume", { "globalVolume" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Notifications", "notifications", "setVolume", { "globalVolume" }, value)
-			end,
+			widgetConfig = { "Notifications", "globalVolume", api = "notifications", set = "setVolume" },
 		},
 		{
 			id = "notifications_substitute",
@@ -4983,7 +5139,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("NotificationsSubstitute", 0) == 1,
 			description = BAR.I18N("ui.settings.option.notifications_substitute_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("NotificationsSubstitute", value and 1 or 0)
 				widgetHandler:DisableWidget("Notifications")
 				widgetHandler:EnableWidget("Notifications")
@@ -4998,7 +5154,7 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.notifications_refresh_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				widgetHandler:DisableWidget("Notifications")
 				widgetHandler:EnableWidget("Notifications")
 				init()
@@ -5029,7 +5185,7 @@ function init()
 			options = keyLayouts.layouts,
 			value = 1,
 			description = BAR.I18N("ui.settings.option.keylayout_descr"),
-			onload = function()
+			onload = function(option)
 				local keyLayout = Spring.GetConfigString("KeyboardLayout")
 
 				if not keyLayout or keyLayout == "" then
@@ -5045,7 +5201,7 @@ function init()
 					end
 				end
 
-				options[getOptionByID("keylayout")].value = value
+				option.value = value
 			end,
 			onchange = function(_, value)
 				Spring.SetConfigString("KeyboardLayout", keyLayouts.layouts[value])
@@ -5059,11 +5215,12 @@ function init()
 			id = "gridmenu",
 			group = "control",
 			category = types.basic,
+			available = Spring.GetConfigString("KeybindingFile") == "uikeys.txt",
 			name = BAR.I18N("ui.settings.option.gridmenu"),
 			type = "bool",
 			value = GetWidgetToggleValue("Grid menu"),
 			description = BAR.I18N("ui.settings.option.gridmenu_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				if value then
 					widgetHandler:DisableWidget("Build menu")
 					widgetHandler:EnableWidget("Grid menu")
@@ -5078,11 +5235,11 @@ function init()
 			id = "gridmenu_alwaysreturn",
 			group = "control",
 			category = types.advanced,
+			available = gridMenuOn,
 			name = BAR.I18N("ui.settings.option.gridmenu_alwaysreturn"),
 			type = "bool",
 			value = (WG.gridmenu ~= nil and WG.gridmenu.getAlwaysReturn ~= nil and WG.gridmenu.getAlwaysReturn()),
 			description = BAR.I18N("ui.settings.option.gridmenu_alwaysreturn_descr"),
-			onload = function() end,
 			onchange = function(_, value)
 				saveOptionValue("Grid menu", "gridmenu", "setAlwaysReturn", { "alwaysReturn" }, value)
 			end,
@@ -5091,11 +5248,11 @@ function init()
 			id = "gridmenu_autoselectfirst",
 			group = "control",
 			category = types.advanced,
+			available = gridMenuOn,
 			name = BAR.I18N("ui.settings.option.gridmenu_autoselectfirst"),
 			type = "bool",
 			value = (WG.gridmenu ~= nil and WG.gridmenu.getAutoSelectFirst ~= nil and WG.gridmenu.getAutoSelectFirst()),
 			description = BAR.I18N("ui.settings.option.gridmenu_autoselectfirst_descr"),
-			onload = function() end,
 			onchange = function(_, value)
 				saveOptionValue("Grid menu", "gridmenu", "setAutoSelectFirst", { "autoSelectFirst" }, value)
 			end,
@@ -5104,11 +5261,11 @@ function init()
 			id = "gridmenu_labbuildmode",
 			group = "control",
 			category = types.advanced,
+			available = gridMenuOn,
 			name = BAR.I18N("ui.settings.option.gridmenu_labbuildmode"),
 			type = "bool",
 			value = (WG.gridmenu ~= nil and WG.gridmenu.getUseLabBuildMode ~= nil and WG.gridmenu.getUseLabBuildMode()),
 			description = BAR.I18N("ui.settings.option.gridmenu_labbuildmode_descr"),
-			onload = function() end,
 			onchange = function(_, value)
 				saveOptionValue("Grid menu", "gridmenu", "setUseLabBuildMode", { "useLabBuildMode" }, value)
 			end,
@@ -5118,6 +5275,7 @@ function init()
 			id = "gridmenu_ctrlkeymodifier",
 			group = "control",
 			category = types.advanced,
+			available = gridMenuOn,
 			name = BAR.I18N("ui.settings.option.gridmenu_ctrlkeymodifier"),
 			type = "slider",
 			min = -20,
@@ -5125,7 +5283,6 @@ function init()
 			step = 1,
 			value = (WG.gridmenu ~= nil and WG.gridmenu.getCtrlKeyModifier ~= nil and WG.gridmenu.getCtrlKeyModifier()),
 			description = BAR.I18N("ui.settings.option.gridmenu_ctrlkeymodifier_descr"),
-			onload = function() end,
 			onchange = function(_, value)
 				saveOptionValue("Grid menu", "gridmenu", "setCtrlKeyModifier", { "ctrlKeyModifier" }, value)
 			end,
@@ -5134,6 +5291,7 @@ function init()
 			id = "gridmenu_shiftkeymodifier",
 			group = "control",
 			category = types.advanced,
+			available = gridMenuOn,
 			name = BAR.I18N("ui.settings.option.gridmenu_shiftkeymodifier"),
 			type = "slider",
 			min = -20,
@@ -5145,7 +5303,6 @@ function init()
 				and WG.gridmenu.getShiftKeyModifier()
 			),
 			description = BAR.I18N("ui.settings.option.gridmenu_shiftkeymodifier_descr"),
-			onload = function() end,
 			onchange = function(_, value)
 				saveOptionValue("Grid menu", "gridmenu", "setShiftKeyModifier", { "shiftKeyModifier" }, value)
 			end,
@@ -5166,8 +5323,7 @@ function init()
 			type = "bool",
 			value = tonumber(Spring.GetConfigInt("HardwareCursor", 0) or 0) == 1,
 			description = BAR.I18N("ui.settings.option.hwcursor_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SendCommands("HardwareCursor " .. (value and 1 or 0))
 				Spring.SetConfigInt("HardwareCursor", (value and 1 or 0))
 			end,
@@ -5180,10 +5336,10 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("SetCameraEveryFrame", 1) == 1,
 			description = BAR.I18N("ui.settings.option.setcamera_bugfix_descr"),
-			onload = function(i)
-				WG.setcamera_bugfix = options[i].value
+			onload = function(option)
+				WG.setcamera_bugfix = option.value
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				WG.setcamera_bugfix = value
 				Spring.SetConfigInt("SetCameraEveryFrame", value and 1 or 0)
 			end,
@@ -5199,8 +5355,7 @@ function init()
 			step = 0.1,
 			value = 1,
 			description = BAR.I18N("ui.settings.option.cursorsize_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				if WG.cursors then
 					WG.cursors.setsizemult(value)
 				end
@@ -5215,8 +5370,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("grabinput", 1) == 1,
 			description = BAR.I18N("ui.settings.option.containmouse_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("grabinput", (value and 1 or 0))
 				updateGrabinput()
 			end,
@@ -5226,18 +5380,15 @@ function init()
 			id = "doubleclicktime",
 			group = "control",
 			category = types.advanced,
-			restart = true,
+			restart = not Engine.FeatureSupport.liveConfigChanges,
 			name = BAR.I18N("ui.settings.option.doubleclicktime"),
 			type = "slider",
 			min = 150,
 			max = 400,
 			step = 10,
-			value = Spring.GetConfigInt("DoubleClickTime", 200),
+			value = 200,
 			description = BAR.I18N("ui.settings.option.doubleclicktime_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigInt("DoubleClickTime", value)
-			end,
+			configInt = "DoubleClickTime",
 		},
 
 		{
@@ -5252,8 +5403,7 @@ function init()
 			step = 1,
 			value = Spring.GetConfigInt("MouseDragSelectionThreshold", 4),
 			description = BAR.I18N("ui.settings.option.dragthreshold_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("MouseDragSelectionThreshold", value)
 				Spring.SetConfigInt("MouseDragCircleCommandThreshold", value)
 				Spring.SetConfigInt("MouseDragBoxCommandThreshold", value + 12)
@@ -5276,8 +5426,7 @@ function init()
 			type = "bool",
 			value = (Spring.GetConfigFloat("MouseDragScrollThreshold", 0.3) ~= 0),
 			description = BAR.I18N("ui.settings.option.middleclicktoggle_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigFloat("MouseDragScrollThreshold", (value and 0.3 or 0))
 			end,
 		},
@@ -5290,7 +5439,7 @@ function init()
 			type = "bool",
 			value = tonumber(Spring.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1,
 			description = BAR.I18N("ui.settings.option.screenedgemove_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
 				Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
 				if value then
@@ -5312,7 +5461,7 @@ function init()
 			step = 0.01,
 			value = edgeMoveWidth,
 			description = BAR.I18N("ui.settings.option.screenedgemovewidth_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				edgeMoveWidth = value
 				Spring.SetConfigFloat("EdgeMoveWidth", value)
 			end,
@@ -5324,12 +5473,9 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.screenedgemovedynamic"),
 			type = "bool",
-			restart = true,
-			value = tonumber(Spring.GetConfigInt("EdgeMoveDynamic", 1) or 1) == 1,
+			value = true,
 			description = BAR.I18N("ui.settings.option.screenedgemovedynamic_descr"),
-			onchange = function(i, value)
-				Spring.SetConfigInt("EdgeMoveDynamic", (value and 1 or 0))
-			end,
+			configInt = "EdgeMoveDynamic",
 		},
 
 		{
@@ -5346,7 +5492,7 @@ function init()
 				BAR.I18N("ui.settings.option.select_free"),
 			},
 			value = (tonumber((Spring.GetConfigInt("CamMode", 1) + 1) or 2)),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("CamMode", (value - 1))
 				if value == 1 then
 					Spring.SendCommands("viewfps")
@@ -5367,6 +5513,7 @@ function init()
 			parent = "camera",
 			group = "control",
 			category = types.advanced,
+			available = camMode == 2,
 			name = BAR.I18N("ui.settings.option.springcamheightmode"),
 			type = "select",
 			options = {
@@ -5376,7 +5523,7 @@ function init()
 			},
 			value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1,
 			description = BAR.I18N("ui.settings.option.springcamheightmode_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
 			end,
 		},
@@ -5392,7 +5539,7 @@ function init()
 			step = 1,
 			value = Spring.GetConfigInt("CamSpringMinZoomDistance", 0),
 			description = BAR.I18N("ui.settings.option.mincamheight_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("CamSpringMinZoomDistance", value)
 				Spring.SetConfigInt("OverheadMinZoomDistance", value)
 			end,
@@ -5409,13 +5556,13 @@ function init()
 			step = 10,
 			value = 80,
 			description = BAR.I18N("ui.settings.option.camerashake_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("CameraShake", "camerashake", { "powerScale" })
-				if options[i].value > 0 then
+				if option.value > 0 then
 					widgetHandler:EnableWidget("CameraShake")
 				end
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("CameraShake", "camerashake", "setStrength", { "powerScale" }, value)
 				if value > 0 then
 					widgetHandler:EnableWidget("CameraShake")
@@ -5423,9 +5570,9 @@ function init()
 			end,
 		},
 		--{ id = "camerasmoothing", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.camerasmoothing'), type = "bool", value = (tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1), description = "",
-		--  onload = function(i)
+		--  onload = function(option)
 		--  end,
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigInt("CameraSmoothing", (value and 1 or 0))
 		--	  if value then
 		--		  Spring.SendCommands("set CamFrameTimeCorrection 1")
@@ -5448,7 +5595,7 @@ function init()
 				BAR.I18N("ui.settings.option.smoothing_spring"),
 			},
 			value = (Spring.GetConfigInt("CamTransitionMode", 1) + 1),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("CamTransitionMode", (value - 1))
 			end,
 		},
@@ -5464,8 +5611,7 @@ function init()
 			step = 0.01,
 			value = cameraTransitionTime,
 			description = BAR.I18N("ui.settings.option.camerasmoothness_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				cameraTransitionTime = value
 				local halfLife = value
 				if halfLife <= 1 then
@@ -5481,17 +5627,15 @@ function init()
 			parent = "camera",
 			group = "control",
 			category = types.basic,
+			available = camMode == 1, -- only the overhead camera reads MiddleClickScrollSpeed
 			name = BAR.I18N("ui.settings.option.camerapanspeed"),
 			type = "slider",
 			min = -0.01,
 			max = -0.00195,
 			step = 0.0001,
-			value = Spring.GetConfigFloat("MiddleClickScrollSpeed", 0.0035),
+			value = 0.0035,
 			description = BAR.I18N("ui.settings.option.camerapanspeed_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigFloat("MiddleClickScrollSpeed", value)
-			end,
+			configFloat = "MiddleClickScrollSpeed",
 		},
 		{
 			id = "cameramovespeed",
@@ -5505,8 +5649,7 @@ function init()
 			step = 1,
 			value = Spring.GetConfigInt("CamSpringScrollSpeed", 10),
 			description = BAR.I18N("ui.settings.option.cameramovespeed_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				--cameraPanTransitionTime = value
 				Spring.SetConfigInt("FPSScrollSpeed", value) -- spring default: 10
 				Spring.SetConfigInt("OverheadScrollSpeed", value) -- spring default: 10
@@ -5527,9 +5670,8 @@ function init()
 			step = 1,
 			value = math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25)),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
-				if getOptionByID("scrollinverse") and options[getOptionByID("scrollinverse")].value then
+			onchange = function(option, value)
+				if getOption("scrollinverse") and getOption("scrollinverse").value then
 					Spring.SetConfigInt("ScrollWheelSpeed", -value)
 				else
 					Spring.SetConfigInt("ScrollWheelSpeed", value)
@@ -5545,13 +5687,12 @@ function init()
 			type = "bool",
 			value = (tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25) < 0),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
-				if getOptionByID("scrollspeed") then
+			onchange = function(option, value)
+				if getOption("scrollspeed") then
 					if value then
-						Spring.SetConfigInt("ScrollWheelSpeed", -options[getOptionByID("scrollspeed")].value)
+						Spring.SetConfigInt("ScrollWheelSpeed", -getOption("scrollspeed").value)
 					else
-						Spring.SetConfigInt("ScrollWheelSpeed", options[getOptionByID("scrollspeed")].value)
+						Spring.SetConfigInt("ScrollWheelSpeed", getOption("scrollspeed").value)
 					end
 				end
 			end,
@@ -5561,28 +5702,24 @@ function init()
 			parent = "camera",
 			group = "control",
 			category = types.advanced,
+			available = camMode == 2,
 			name = BAR.I18N("ui.settings.option.zoomtocursor"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("CamSpringZoomInToMousePos", 1)) == 1,
+			value = true,
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigInt("CamSpringZoomInToMousePos", value and 1 or 0)
-			end,
+			configInt = "CamSpringZoomInToMousePos",
 		},
 		{
 			id = "zoomfromcursor",
 			parent = "camera",
 			group = "control",
 			category = types.advanced,
+			available = camMode == 2,
 			name = BAR.I18N("ui.settings.option.zoomfromcursor"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("CamSpringZoomOutFromMousePos", 0)) == 1,
+			value = false,
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigInt("CamSpringZoomOutFromMousePos", value and 1 or 0)
-			end,
+			configInt = "CamSpringZoomOutFromMousePos",
 		},
 		{
 			id = "invertmouse",
@@ -5591,12 +5728,9 @@ function init()
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.invertmouse"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("InvertMouse", 0)) == 1,
+			value = false,
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigInt("InvertMouse", value and 1 or 0)
-			end,
+			configInt = "InvertMouse",
 		},
 		{
 			id = "scrolltoggleoverview",
@@ -5626,20 +5760,21 @@ function init()
 			id = "lockcamera_transitiontime",
 			group = "control",
 			category = types.advanced,
+			available = WG.lockcamera ~= nil, -- these act while watching a player's camera
 			prefix = BAR.I18N("ui.settings.option.lockcamera"),
 			name = BAR.I18N("ui.settings.option.lockcamera_transitiontime"),
 			type = "slider",
 			min = 0.5,
 			max = 1.7,
 			step = 0.01,
-			value = (WG.lockcamera and WG.lockcamera.GetTransitionTime ~= nil and WG.lockcamera.GetTransitionTime()),
 			description = BAR.I18N("ui.settings.option.lockcamera_transitiontime_descr"),
-			onload = function(i)
-				loadWidgetData("Lockcamera", "lockcamera_transitiontime", { "transitionTime" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Lockcamera", "lockcamera", "SetTransitionTime", { "transitionTime" }, value)
-			end,
+			widgetConfig = {
+				"Lockcamera",
+				"transitionTime",
+				api = "lockcamera",
+				get = "GetTransitionTime",
+				set = "SetTransitionTime",
+			},
 		},
 
 		{
@@ -5647,54 +5782,48 @@ function init()
 			parent = "lockcamera_transitiontime",
 			group = "control",
 			category = types.advanced,
+			available = WG.lockcamera ~= nil, -- these act while watching a player's camera
 			name = BAR.I18N("ui.settings.option.allyselunits_select"),
 			type = "bool",
-			value = (WG.allyselectedunits ~= nil and WG.allyselectedunits.getSelectPlayerUnits()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.allyselunits_select_descr"),
-			onload = function(i)
-				loadWidgetData("Ally Selected Units", "allyselunits_select", { "selectPlayerUnits" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Ally Selected Units",
-					"allyselectedunits",
-					"setSelectPlayerUnits",
-					{ "selectPlayerUnits" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Ally Selected Units",
+				"selectPlayerUnits",
+				api = "allyselectedunits",
+				get = "getSelectPlayerUnits",
+				set = "setSelectPlayerUnits",
+			},
 		},
 		{
 			id = "lockcamera_hideenemies",
 			parent = "lockcamera_transitiontime",
 			group = "control",
 			category = types.advanced,
+			available = WG.lockcamera ~= nil, -- these act while watching a player's camera
 			name = BAR.I18N("ui.settings.option.lockcamera_hideenemies"),
 			type = "bool",
-			value = (WG.lockcamera and WG.lockcamera.GetHideEnemies()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.lockcamera_hideenemies_descr"),
-			onload = function(i)
-				loadWidgetData("Lockcamera", "lockcamera_hideenemies", { "lockcameraHideEnemies" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Lockcamera", "lockcamera", "SetHideEnemies", { "lockcameraHideEnemies" }, value)
-			end,
+			widgetConfig = {
+				"Lockcamera",
+				"lockcameraHideEnemies",
+				api = "lockcamera",
+				get = "GetHideEnemies",
+				set = "SetHideEnemies",
+			},
 		},
 		{
 			id = "lockcamera_los",
 			parent = "lockcamera_transitiontime",
 			group = "control",
 			category = types.advanced,
+			available = WG.lockcamera ~= nil, -- these act while watching a player's camera
 			name = BAR.I18N("ui.settings.option.lockcamera_los"),
 			type = "bool",
-			value = (WG.lockcamera and WG.lockcamera.GetLos()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.lockcamera_los_descr"),
-			onload = function(i)
-				loadWidgetData("Lockcamera", "lockcamera_los", { "lockcameraLos" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Lockcamera", "lockcamera", "SetLos", { "lockcameraLos" }, value)
-			end,
+			widgetConfig = { "Lockcamera", "lockcameraLos", api = "lockcamera", get = "GetLos", set = "SetLos" },
 		},
 
 		{
@@ -5712,8 +5841,7 @@ function init()
 			type = "bool",
 			value = (WG.customformations ~= nil and WG.customformations.getRepeatForSingleUnit()),
 			description = BAR.I18N("ui.settings.option.drag_multicommand_shift_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue(
 					"CustomFormations2",
 					"customformations",
@@ -5739,7 +5867,7 @@ function init()
 			type = "select",
 			options = languageNames,
 			value = languageCodes[BAR.I18N.getLocale()],
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local language = languageCodes[value]
 				WG.language.setLanguage(language)
 				if widgetHandler.orderList.Notifications ~= nil then
@@ -5754,10 +5882,11 @@ function init()
 			parent = "language",
 			group = "ui",
 			category = types.basic,
+			available = BAR.I18N.getLocale() ~= "en",
 			name = BAR.I18N("ui.settings.option.language_english_unit_names"),
 			type = "bool",
 			value = Spring.GetConfigInt("language_english_unit_names", 0) == 1,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				WG.language.setEnglishUnitNames(value)
 			end,
 		},
@@ -5773,8 +5902,7 @@ function init()
 			step = 0.01,
 			value = Spring.GetConfigFloat("ui_scale", 1),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value, force)
+			onchange = function(option, value, force)
 				if force then
 					Spring.SetConfigFloat("ui_scale", value)
 					Spring.SendCommands("luarules reloadluaui")
@@ -5795,8 +5923,7 @@ function init()
 			step = 0.01,
 			value = Spring.GetConfigFloat("ui_opacity", 0.7),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value, force)
+			onchange = function(option, value, force)
 				Spring.SetConfigFloat("ui_opacity", value)
 				ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 				forceUpdate = true
@@ -5821,8 +5948,7 @@ function init()
 			step = 1,
 			value = Spring.GetConfigFloat("ui_tilescale", 7),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value, force)
+			onchange = function(option, value, force)
 				if force then
 					Spring.SetConfigFloat("ui_tilescale", value)
 					Spring.SendCommands("luarules reloadluaui")
@@ -5843,8 +5969,7 @@ function init()
 			step = 0.001,
 			value = Spring.GetConfigFloat("ui_tileopacity", 0.014),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value, force)
+			onchange = function(option, value, force)
 				if force then
 					Spring.SetConfigFloat("ui_tileopacity", value)
 					Spring.SendCommands("luarules reloadluaui")
@@ -5877,7 +6002,7 @@ function init()
 			step = 0.01,
 			value = Spring.GetConfigFloat("MinimapMaxHeight", 0.32),
 			description = BAR.I18N("ui.settings.option.minimap_maxheight_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigFloat("MinimapMaxHeight", value)
 				if WG.minimap and WG.minimap.setMaxHeight then
 					WG.minimap.setMaxHeight(value)
@@ -5893,7 +6018,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1,
 			description = BAR.I18N("ui.settings.option.minimapleftclick_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
 				if WG.minimap and WG.minimap.setLeftClickMove then
 					WG.minimap.setLeftClickMove(value)
@@ -5912,8 +6037,7 @@ function init()
 			step = 0.25,
 			value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigFloat("MinimapIconScale", value)
 				Spring.SendCommands("minimap unitsize " .. value) -- spring won't remember what you set with '/minimap iconssize #'
 				if WG.minimap and WG.minimap.setBaseIconScale then
@@ -5930,7 +6054,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("MinimapMinimize", 0) == 1,
 			description = BAR.I18N("ui.settings.option.minimapminimized_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SendCommands("minimap minimize " .. (value and "1" or "0"))
 				Spring.SetConfigInt("MinimapMinimize", (value and "1" or "0"))
 			end,
@@ -5949,13 +6073,13 @@ function init()
 				BAR.I18N("ui.settings.option.minimaprotation_autolandscape"),
 			},
 			description = BAR.I18N("ui.settings.option.minimaprotation_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Minimap Rotation Manager", "minimaprotation", { "mode" })
-				if options[i].value == nil then -- first load to migrate from old behavior smoothly, might wanna remove it later
-					options[i].value = Spring.GetConfigInt("MiniMapCanFlip", 0) + 1
+				if option.value == nil then -- first load to migrate from old behavior smoothly, might wanna remove it later
+					option.value = Spring.GetConfigInt("MiniMapCanFlip", 0) + 1
 				end
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				if WG.minimaprotationmanager ~= nil and WG.minimaprotationmanager.setMode ~= nil then
 					saveOptionValue("Minimap Rotation Manager", "minimaprotationmanager", "setMode", { "mode" }, value)
 				else
@@ -5983,7 +6107,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("PipAltKeyRequiredForZoom", 1) == 1,
 			description = BAR.I18N("ui.settings.option.pip_altkeyzoom_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("PipAltKeyRequiredForZoom", value and 1 or 0)
 				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
 					if WG["pip" .. n] and WG["pip" .. n].setAltKeyRequiredForZoom then
@@ -6002,7 +6126,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("PipDrawCommandFX", 1) == 1,
 			description = BAR.I18N("ui.settings.option.pip_commandfx_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("PipDrawCommandFX", value and 1 or 0)
 				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
 					if WG["pip" .. n] and WG["pip" .. n].setDrawCommandFX then
@@ -6020,7 +6144,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("PipDrawNanoStreams", 1) == 1,
 			description = BAR.I18N("ui.settings.option.pip_nanostreams_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("PipDrawNanoStreams", value and 1 or 0)
 				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
 					if WG["pip" .. n] and WG["pip" .. n].setDrawNanoStreams then
@@ -6038,7 +6162,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("PipNanoStreamReflectUsage", 1) == 1,
 			description = BAR.I18N("ui.settings.option.pip_nanostream_usage_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("PipNanoStreamReflectUsage", value and 1 or 0)
 				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
 					if WG["pip" .. n] and WG["pip" .. n].setNanoStreamReflectUsage then
@@ -6056,7 +6180,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("PipShowMapDrawings", 1) == 1,
 			description = BAR.I18N("ui.settings.option.pip_mapdrawings_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("PipShowMapDrawings", value and 1 or 0)
 				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
 					if WG["pip" .. n] and WG["pip" .. n].setShowMapDrawings then
@@ -6077,7 +6201,7 @@ function init()
 			step = 1,
 			value = Spring.GetConfigFloat("PipMapDrawingDuration", 15),
 			description = BAR.I18N("ui.settings.option.pip_mapdrawing_duration_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigFloat("PipMapDrawingDuration", value)
 				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
 					if WG["pip" .. n] and WG["pip" .. n].setMapDrawingDuration then
@@ -6095,15 +6219,15 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.pip_history_descr"),
-			onload = function(i)
+			onload = function(option)
 				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
 					if WG["pip" .. n] and WG["pip" .. n].getHistoryEnabled then
-						options[getOptionByID("pip_history")].value = WG["pip" .. n].getHistoryEnabled()
+						option.value = WG["pip" .. n].getHistoryEnabled()
 						break
 					end
 				end
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
 					if WG["pip" .. n] and WG["pip" .. n].setHistoryEnabled then
 						WG["pip" .. n].setHistoryEnabled(value)
@@ -6112,12 +6236,12 @@ function init()
 			end,
 		},
 		-- { id = "minimap_engine_fallback", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_minimap_engine_fallback'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.pip_minimap_engine_fallback_descr'),
-		--   onload = function(i)
+		--   onload = function(option)
 		-- 	  if WG['minimap'] and WG['minimap'].getEngineMinimapFallback then
-		-- 		  options[getOptionByID('minimap_engine_fallback')].value = WG['minimap'].getEngineMinimapFallback()
+		-- 		  getOption('minimap_engine_fallback').value = WG['minimap'].getEngineMinimapFallback()
 		-- 	  end
 		--   end,
-		--   onchange = function(i, value)
+		--   onchange = function(option, value)
 		-- 	  if WG['minimap'] and WG['minimap'].setEngineMinimapFallback then
 		-- 		  WG['minimap'].setEngineMinimapFallback(value)
 		-- 	  end
@@ -6135,13 +6259,12 @@ function init()
 			step = 100,
 			value = 4000,
 			description = BAR.I18N("ui.settings.option.pip_engine_fallback_threshold_descr"),
-			onload = function(i)
+			onload = function(option)
 				if WG.minimap and WG.minimap.getEngineMinimapFallbackThreshold then
-					options[getOptionByID("pip_engine_fallback_threshold")].value =
-						WG.minimap.getEngineMinimapFallbackThreshold()
+					option.value = WG.minimap.getEngineMinimapFallbackThreshold()
 				end
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				if WG.minimap and WG.minimap.setEngineMinimapFallbackThreshold then
 					WG.minimap.setEngineMinimapFallbackThreshold(value)
 				end
@@ -6182,8 +6305,7 @@ function init()
 				and WG.buildmenu.getBottomPosition()
 			),
 			description = BAR.I18N("ui.settings.option.buildmenu_bottom_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Build menu", "buildmenu", "setBottomPosition", { "stickToBottom" }, value)
 				saveOptionValue("Grid menu", "buildmenu", "setBottomPosition", { "stickToBottom" }, value)
 			end,
@@ -6193,6 +6315,7 @@ function init()
 			parent = "buildmenu_bottom",
 			group = "ui",
 			category = types.advanced,
+			available = not gridMenuOn, -- the grid menu has a fixed height
 			name = BAR.I18N("ui.settings.option.buildmenu_maxposy"),
 			type = "slider",
 			min = 0.66,
@@ -6200,12 +6323,7 @@ function init()
 			step = 0.01,
 			value = 0.74,
 			description = BAR.I18N("ui.settings.option.buildmenu_maxposy_descr"),
-			onload = function(i)
-				loadWidgetData("Build menu", "buildmenu_maxposy", { "maxPosY" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Build menu", "buildmenu", "setMaxPosY", { "maxPosY" }, value)
-			end,
+			widgetConfig = { "Build menu", "maxPosY", api = "buildmenu", set = "setMaxPosY" },
 		},
 		{
 			id = "buildmenu_alwaysshow",
@@ -6216,8 +6334,7 @@ function init()
 			type = "bool",
 			value = (WG.buildmenu ~= nil and WG.buildmenu.getAlwaysShow ~= nil and WG.buildmenu.getAlwaysShow()),
 			description = BAR.I18N("ui.settings.option.buildmenu_alwaysshow_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Build menu", "buildmenu", "setAlwaysShow", { "alwaysShow" }, value)
 				saveOptionValue("Grid menu", "buildmenu", "setAlwaysShow", { "alwaysShow" }, value)
 			end,
@@ -6231,8 +6348,7 @@ function init()
 			type = "bool",
 			value = (WG.buildmenu ~= nil and WG.buildmenu.getShowPrice ~= nil and WG.buildmenu.getShowPrice()),
 			description = BAR.I18N("ui.settings.option.buildmenu_prices_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Build menu", "buildmenu", "setShowPrice", { "showPrice" }, value)
 				saveOptionValue("Grid menu", "buildmenu", "setShowPrice", { "showPrice" }, value)
 			end,
@@ -6246,8 +6362,7 @@ function init()
 			type = "bool",
 			value = (WG.buildmenu ~= nil and WG.buildmenu.getShowGroupIcon ~= nil and WG.buildmenu.getShowGroupIcon()),
 			description = BAR.I18N("ui.settings.option.buildmenu_groupicon_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Build menu", "buildmenu", "setShowGroupIcon", { "showGroupIcon" }, value)
 				saveOptionValue("Grid menu", "buildmenu", "setShowGroupIcon", { "showGroupIcon" }, value)
 			end,
@@ -6261,8 +6376,7 @@ function init()
 			type = "bool",
 			value = (WG.buildmenu ~= nil and WG.buildmenu.getShowRadarIcon ~= nil and WG.buildmenu.getShowRadarIcon()),
 			description = BAR.I18N("ui.settings.option.buildmenu_radaricon_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Build menu", "buildmenu", "setShowRadarIcon", { "showRadarIcon" }, value)
 				saveOptionValue("Grid menu", "buildmenu", "setShowRadarIcon", { "showRadarIcon" }, value)
 			end,
@@ -6281,8 +6395,7 @@ function init()
 				and WG.ordermenu.getBottomPosition()
 			),
 			description = BAR.I18N("ui.settings.option.ordermenu_bottompos_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Order menu", "ordermenu", "setBottomPosition", { "stickToBottom" }, value)
 			end,
 		},
@@ -6298,12 +6411,7 @@ function init()
 			step = 0.1,
 			value = 0.5,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Order menu", "ordermenu_colorize", { "colorize" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Order menu", "ordermenu", "setColorize", { "colorize" }, value)
-			end,
+			widgetConfig = { "Order menu", "colorize", api = "ordermenu", set = "setColorize" },
 		},
 		{
 			id = "ordermenu_alwaysshow",
@@ -6314,8 +6422,7 @@ function init()
 			type = "bool",
 			value = (WG.ordermenu ~= nil and WG.ordermenu.getAlwaysShow ~= nil and WG.ordermenu.getAlwaysShow()),
 			description = BAR.I18N("ui.settings.option.ordermenu_alwaysshow_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Order menu", "ordermenu", "setAlwaysShow", { "alwaysShow" }, value)
 			end,
 		},
@@ -6332,8 +6439,7 @@ function init()
 				and WG.ordermenu.getDisabledCmd("Move")
 			),
 			description = BAR.I18N("ui.settings.option.ordermenu_hideset_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local cmds =
 					{ "Move", "Stop", "Attack", "Patrol", "Fight", "Wait", "Guard", "Reclaim", "Repair", "ManualFire" }
 				for k, cmd in pairs(cmds) do
@@ -6358,8 +6464,7 @@ function init()
 			type = "bool",
 			value = (WG.info and WG.info.getShowBuilderBuildlist ~= nil and WG.info.getShowBuilderBuildlist()),
 			description = BAR.I18N("ui.settings.option.info_buildlist_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Info", "info", "setShowBuilderBuildlist", { "showBuilderBuildlist" }, value)
 			end,
 		},
@@ -6372,8 +6477,7 @@ function init()
 			type = "bool",
 			value = (WG.info and WG.info.getDisplayMapPosition ~= nil and WG.info.getDisplayMapPosition()),
 			description = BAR.I18N("ui.settings.option.info_mappos_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Info", "info", "setDisplayMapPosition", { "displayMapPosition" }, value)
 			end,
 		},
@@ -6385,8 +6489,7 @@ function init()
 			name = BAR.I18N("ui.settings.option.info_alwaysshow"),
 			type = "bool",
 			value = (WG.info ~= nil and WG.info.getAlwaysShow ~= nil and WG.info.getAlwaysShow()),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Info", "info", "setAlwaysShow", { "alwaysShow" }, value)
 			end,
 		},
@@ -6400,19 +6503,13 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.advplayerlist_country_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_country", { "m_active_Table", "country" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AdvPlayersList",
-					"advplayerlist_api",
-					"SetModuleActive",
-					{ "m_active_Table", "country" },
-					value,
-					{ "country", value }
-				)
-			end,
+			widgetConfig = {
+				"AdvPlayersList",
+				{ "m_active_Table", "country" },
+				api = "advplayerlist_api",
+				set = "SetModuleActive",
+				key = "country",
+			},
 		},
 		{
 			id = "advplayerlist_scale",
@@ -6426,12 +6523,7 @@ function init()
 			type = "slider",
 			value = 1,
 			description = BAR.I18N("ui.settings.option.advplayerlist_scale_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_scale", { "customScale" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("AdvPlayersList", "advplayerlist_api", "SetScale", { "customScale" }, value)
-			end,
+			widgetConfig = { "AdvPlayersList", "customScale", api = "advplayerlist_api", set = "SetScale" },
 		},
 		{
 			id = "advplayerlist_showallyid",
@@ -6442,19 +6534,13 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.advplayerlist_showallyid_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_showallyid", { "m_active_Table", "allyid" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AdvPlayersList",
-					"advplayerlist_api",
-					"SetModuleActive",
-					{ "m_active_Table", "allyid" },
-					value,
-					{ "allyid", value }
-				)
-			end,
+			widgetConfig = {
+				"AdvPlayersList",
+				{ "m_active_Table", "allyid" },
+				api = "advplayerlist_api",
+				set = "SetModuleActive",
+				key = "allyid",
+			},
 		},
 		{
 			id = "advplayerlist_showid",
@@ -6465,19 +6551,13 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.advplayerlist_showid_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_showid", { "m_active_Table", "id" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AdvPlayersList",
-					"advplayerlist_api",
-					"SetModuleActive",
-					{ "m_active_Table", "id" },
-					value,
-					{ "id", value }
-				)
-			end,
+			widgetConfig = {
+				"AdvPlayersList",
+				{ "m_active_Table", "id" },
+				api = "advplayerlist_api",
+				set = "SetModuleActive",
+				key = "id",
+			},
 		},
 		{
 			id = "advplayerlist_showplayerid",
@@ -6488,19 +6568,13 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.advplayerlist_showplayerid_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_showplayerid", { "m_active_Table", "playerid" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AdvPlayersList",
-					"advplayerlist_api",
-					"SetModuleActive",
-					{ "m_active_Table", "playerid" },
-					value,
-					{ "playerid", value }
-				)
-			end,
+			widgetConfig = {
+				"AdvPlayersList",
+				{ "m_active_Table", "playerid" },
+				api = "advplayerlist_api",
+				set = "SetModuleActive",
+				key = "playerid",
+			},
 		},
 		{
 			id = "advplayerlist_rank",
@@ -6511,25 +6585,19 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.advplayerlist_rank_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_rank", { "m_active_Table", "rank" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AdvPlayersList",
-					"advplayerlist_api",
-					"SetModuleActive",
-					{ "m_active_Table", "rank" },
-					value,
-					{ "rank", value }
-				)
-			end,
+			widgetConfig = {
+				"AdvPlayersList",
+				{ "m_active_Table", "rank" },
+				api = "advplayerlist_api",
+				set = "SetModuleActive",
+				key = "rank",
+			},
 		},
 		--{ id = "advplayerlist_side", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_side'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_side_descr'),
-		--  onload = function(i)
+		--  onload = function(option)
 		--	  loadWidgetData("AdvPlayersList", "advplayerlist_side", { 'm_active_Table', 'side' })
 		--  end,
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'side' }, value, { 'side', value })
 		--  end,
 		--},
@@ -6542,19 +6610,13 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.advplayerlist_skill_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_skill", { "m_active_Table", "skill" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AdvPlayersList",
-					"advplayerlist_api",
-					"SetModuleActive",
-					{ "m_active_Table", "skill" },
-					value,
-					{ "skill", value }
-				)
-			end,
+			widgetConfig = {
+				"AdvPlayersList",
+				{ "m_active_Table", "skill" },
+				api = "advplayerlist_api",
+				set = "SetModuleActive",
+				key = "skill",
+			},
 		},
 		{
 			id = "advplayerlist_cpuping",
@@ -6565,19 +6627,13 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.advplayerlist_cpuping_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_cpuping", { "m_active_Table", "cpuping" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AdvPlayersList",
-					"advplayerlist_api",
-					"SetModuleActive",
-					{ "m_active_Table", "cpuping" },
-					value,
-					{ "cpuping", value }
-				)
-			end,
+			widgetConfig = {
+				"AdvPlayersList",
+				{ "m_active_Table", "cpuping" },
+				api = "advplayerlist_api",
+				set = "SetModuleActive",
+				key = "cpuping",
+			},
 		},
 		{
 			id = "advplayerlist_resources",
@@ -6588,19 +6644,13 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.advplayerlist_resources_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_resources", { "m_active_Table", "resources" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AdvPlayersList",
-					"advplayerlist_api",
-					"SetModuleActive",
-					{ "m_active_Table", "resources" },
-					value,
-					{ "resources", value }
-				)
-			end,
+			widgetConfig = {
+				"AdvPlayersList",
+				{ "m_active_Table", "resources" },
+				api = "advplayerlist_api",
+				set = "SetModuleActive",
+				key = "resources",
+			},
 		},
 		{
 			id = "advplayerlist_income",
@@ -6611,19 +6661,13 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.advplayerlist_income_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_income", { "m_active_Table", "income" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AdvPlayersList",
-					"advplayerlist_api",
-					"SetModuleActive",
-					{ "m_active_Table", "income" },
-					value,
-					{ "income", value }
-				)
-			end,
+			widgetConfig = {
+				"AdvPlayersList",
+				{ "m_active_Table", "income" },
+				api = "advplayerlist_api",
+				set = "SetModuleActive",
+				key = "income",
+			},
 		},
 		{
 			id = "advplayerlist_absresbars",
@@ -6634,18 +6678,12 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.advplayerlist_absresbars_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_absresbars", { "absoluteResbarValues" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AdvPlayersList",
-					"advplayerlist_api",
-					"SetAbsoluteResbars",
-					{ "absoluteResbarValues" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"AdvPlayersList",
+				"absoluteResbarValues",
+				api = "advplayerlist_api",
+				set = "SetAbsoluteResbars",
+			},
 		},
 		{
 			id = "advplayerlist_share",
@@ -6656,19 +6694,13 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.advplayerlist_share_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_share", { "m_active_Table", "share" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AdvPlayersList",
-					"advplayerlist_api",
-					"SetModuleActive",
-					{ "m_active_Table", "share" },
-					value,
-					{ "share", value }
-				)
-			end,
+			widgetConfig = {
+				"AdvPlayersList",
+				{ "m_active_Table", "share" },
+				api = "advplayerlist_api",
+				set = "SetModuleActive",
+				key = "share",
+			},
 		},
 		{
 			id = "advplayerlist_hidespecs",
@@ -6679,18 +6711,12 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.advplayerlist_hidespecs_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList", "advplayerlist_hidespecs", { "alwaysHideSpecs" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AdvPlayersList",
-					"advplayerlist_api",
-					"SetAlwaysHideSpecs",
-					{ "alwaysHideSpecs" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"AdvPlayersList",
+				"alwaysHideSpecs",
+				api = "advplayerlist_api",
+				set = "SetAlwaysHideSpecs",
+			},
 		},
 		{
 			id = "unittotals",
@@ -6710,14 +6736,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.musicplayer"),
 			type = "bool",
-			value = (WG.music ~= nil and WG.music.GetShowGui() or false),
+			value = false,
 			description = BAR.I18N("ui.settings.option.musicplayer_descr"),
-			onload = function(i)
-				loadWidgetData("AdvPlayersList Music Player New", "musicplayer", { "showGUI" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("AdvPlayersList Music Player New", "music", "SetShowGui", { "showGUI" }, value)
-			end,
+			widgetConfig = {
+				"AdvPlayersList Music Player New",
+				"showGUI",
+				api = "music",
+				get = "GetShowGui",
+				set = "SetShowGui",
+			},
 		},
 		{
 			id = "mascot",
@@ -6737,14 +6764,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.displayselectedname"),
 			type = "bool",
-			value = (WG.playertv ~= nil and WG.playertv.GetAlwaysDisplayName() or false),
+			value = false,
 			description = BAR.I18N("ui.settings.option.displayselectedname_descr"),
-			onload = function(i)
-				loadWidgetData("Player-TV", "displayselectedname", { "alwaysDisplayName" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Player-TV", "playertv", "SetAlwaysDisplayName", { "alwaysDisplayName" }, value)
-			end,
+			widgetConfig = {
+				"Player-TV",
+				"alwaysDisplayName",
+				api = "playertv",
+				get = "GetAlwaysDisplayName",
+				set = "SetAlwaysDisplayName",
+			},
 		},
 
 		{
@@ -6757,14 +6785,9 @@ function init()
 			min = 0.92,
 			max = 1.12,
 			step = 0.02,
-			value = (WG.chat ~= nil and WG.chat.getFontsize() or 1),
+			value = 1,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Chat", "console_fontsize", { "fontsizeMult" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Chat", "chat", "setFontsize", { "fontsizeMult" }, value)
-			end,
+			widgetConfig = { "Chat", "fontsizeMult", api = "chat", get = "getFontsize", set = "setFontsize" },
 		},
 		{
 			id = "console_backgroundopacity",
@@ -6776,14 +6799,15 @@ function init()
 			min = 0,
 			max = 0.45,
 			step = 0.01,
-			value = (WG.chat ~= nil and WG.chat.getBackgroundOpacity() or 0),
+			value = 0,
 			description = BAR.I18N("ui.settings.option.console_backgroundopacity_descr"),
-			onload = function(i)
-				loadWidgetData("Chat", "console_backgroundopacity", { "chatBackgroundOpacity" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Chat", "chat", "setBackgroundOpacity", { "chatBackgroundOpacity" }, value)
-			end,
+			widgetConfig = {
+				"Chat",
+				"chatBackgroundOpacity",
+				api = "chat",
+				get = "getBackgroundOpacity",
+				set = "setBackgroundOpacity",
+			},
 		},
 		{
 			id = "console_hidespecchat",
@@ -6792,12 +6816,9 @@ function init()
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.console_hidespecchat"),
 			type = "bool",
-			value = (Spring.GetConfigInt("HideSpecChat", 0) == 1),
+			value = false,
 			description = BAR.I18N("ui.settings.option.console_hidespecchat_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigInt("HideSpecChat", value and 1 or 0)
-			end,
+			configInt = "HideSpecChat",
 		},
 		{
 			id = "console_hidespecchatplayer",
@@ -6806,12 +6827,9 @@ function init()
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.console_hidespecchatplayer"),
 			type = "bool",
-			value = (Spring.GetConfigInt("HideSpecChatPlayer", 1) == 1),
+			value = true,
 			description = BAR.I18N("ui.settings.option.console_hidespecchatplayer_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigInt("HideSpecChatPlayer", value and 1 or 0)
-			end,
+			configInt = "HideSpecChatPlayer",
 		},
 		{
 			id = "console_hide",
@@ -6820,14 +6838,9 @@ function init()
 			category = types.dev,
 			name = BAR.I18N("ui.settings.option.console_hide"),
 			type = "bool",
-			value = (WG.chat ~= nil and WG.chat.getHide() or false),
+			value = false,
 			description = BAR.I18N("ui.settings.option.console_hide_descr"),
-			onload = function(i)
-				loadWidgetData("Chat", "console_hide", { "hide" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Chat", "chat", "setHide", { "hide" }, value)
-			end,
+			widgetConfig = { "Chat", "hide", api = "chat", get = "getHide", set = "setHide" },
 		},
 		{
 			id = "console_maxlines",
@@ -6839,14 +6852,9 @@ function init()
 			min = 3,
 			max = 7,
 			step = 1,
-			value = (WG.chat ~= nil and WG.chat.getMaxLines() or 5),
+			value = 5,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Chat", "console_maxlines", { "maxLines" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Chat", "chat", "setMaxLines", { "maxLines" }, value)
-			end,
+			widgetConfig = { "Chat", "maxLines", api = "chat", get = "getMaxLines", set = "setMaxLines" },
 		},
 		{
 			id = "console_maxconsolelines",
@@ -6858,28 +6866,29 @@ function init()
 			min = 2,
 			max = 12,
 			step = 1,
-			value = (WG.chat ~= nil and WG.chat.getMaxConsoleLines() or 2),
+			value = 2,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Chat", "console_maxconsolelines", { "maxConsoleLines" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Chat", "chat", "setMaxConsoleLines", { "maxConsoleLines" }, value)
-			end,
+			widgetConfig = {
+				"Chat",
+				"maxConsoleLines",
+				api = "chat",
+				get = "getMaxConsoleLines",
+				set = "setMaxConsoleLines",
+			},
 		},
 		--{ id = "console_handleinput", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_handleinput'), type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHandleInput() or 0), description = Spring.I18N('ui.settings.option.console_handleinput_descr'),
-		--  onload = function(i)
+		--  onload = function(option)
 		--	  loadWidgetData("Chat", "console_handleinput", { 'handleTextInput' })
 		--  end,
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  saveOptionValue('Chat', 'chat', 'setHandleInput', { 'handleTextInput' }, value)
 		--  end,
 		--},
 		--{ id = "console_inputbutton", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_inputbutton'), type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getInputButton() or 0), description = Spring.I18N('ui.settings.option.console_inputbutton_descr'),
-		--  onload = function(i)
+		--  onload = function(option)
 		--	  loadWidgetData("Chat", "console_inputbutton", { 'inputButton' })
 		--  end,
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  saveOptionValue('Chat', 'chat', 'setInputButton', { 'inputButton' }, value)
 		--  end,
 		--},
@@ -6905,12 +6914,7 @@ function init()
 			step = 5,
 			value = 60,
 			description = BAR.I18N("ui.settings.option.autoeraser_erasetime_descr"),
-			onload = function(i)
-				loadWidgetData("Auto mapmark eraser", "autoeraser_erasetime", { "eraseTime" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Auto mapmark eraser", "autoeraser", "setEraseTime", { "eraseTime" }, value)
-			end,
+			widgetConfig = { "Auto mapmark eraser", "eraseTime", api = "autoeraser", set = "setEraseTime" },
 		},
 
 		{
@@ -6920,14 +6924,14 @@ function init()
 			prefix = BAR.I18N("ui.settings.option.topbar"),
 			name = BAR.I18N("ui.settings.option.topbar_hidebuttons"),
 			type = "bool",
-			value = (WG.topbar ~= nil and WG.topbar.getAutoHideButtons ~= nil and WG.topbar.getAutoHideButtons())
-				or false,
-			onload = function(i)
-				loadWidgetData("Top Bar Buttons", "topbar_hidebuttons", { "autoHideButtons" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Top Bar Buttons", "topbar", "setAutoHideButtons", { "autoHideButtons" }, value)
-			end,
+			value = false,
+			widgetConfig = {
+				"Top Bar Buttons",
+				"autoHideButtons",
+				api = "topbar",
+				get = "getAutoHideButtons",
+				set = "setAutoHideButtons",
+			},
 		},
 
 		{
@@ -6938,7 +6942,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1,
 			description = BAR.I18N("ui.settings.option.continuouslyclearmapmarks_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("ContinuouslyClearMapmarks", (value and 1 or 0))
 				if value then
 					Spring.SendCommands({ "clearmapmarks" })
@@ -6992,13 +6996,12 @@ function init()
 			id = "widgetselector",
 			group = "ui",
 			category = types.advanced,
+			available = not (devMode or devUI) and hasUserWidgets,
 			name = BAR.I18N("ui.settings.option.widgetselector"),
 			type = "bool",
-			value = Spring.GetConfigInt("widgetselector", 0) == 1,
+			value = false,
 			description = BAR.I18N("ui.settings.option.widgetselector_descr"),
-			onchange = function(i, value)
-				Spring.SetConfigInt("widgetselector", (value and 1 or 0))
-			end,
+			configInt = "widgetselector",
 		},
 
 		{
@@ -7009,7 +7012,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("WindowsHideInterface", 0) == 1,
 			description = BAR.I18N("ui.settings.option.windows_hideinterface_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("WindowsHideInterface", (value and 1 or 0))
 				-- pushed through as well so it takes effect now instead of at the next poll
 				widgetHandler:SetWindowsHideInterface(value)
@@ -7034,7 +7037,7 @@ function init()
 			step = 0.05,
 			value = tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1),
 			description = BAR.I18N("ui.settings.option.uniticonscaleui_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SendCommands("iconscaleui " .. value)
 				Spring.SetConfigFloat("UnitIconScaleUI", value)
 			end,
@@ -7051,7 +7054,7 @@ function init()
 			step = 50,
 			value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 2700) or 1),
 			description = BAR.I18N("ui.settings.option.uniticondistance_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SendCommands("iconfadestart " .. value)
 				Spring.SetConfigInt("UnitIconFadeStart", value)
 				-- update UnitIconFadeVanish too
@@ -7068,7 +7071,7 @@ function init()
 			type = "bool",
 			value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1),
 			description = BAR.I18N("ui.settings.option.uniticonhidewithui_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SendCommands("iconshidewithui " .. (value and 1 or 0))
 				Spring.SetConfigInt("UnitIconsHideWithUI", (value and 1 or 0))
 			end,
@@ -7076,7 +7079,7 @@ function init()
 
 		-- { id = "teamcolors", group = "ui", category = types.basic, widget = "Player Color Palette", name = Spring.I18N('ui.settings.option.teamcolors'), type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = Spring.I18N('ui.settings.option.teamcolors_descr') },
 		-- { id = "sameteamcolors", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sameteamcolors'), type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = Spring.I18N('ui.settings.option.sameteamcolors_descr'),
-		--   onchange = function(i, value)
+		--   onchange = function(option, value)
 		-- 	  saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
 		--   end,
 		-- },
@@ -7103,12 +7106,7 @@ function init()
 			type = "slider",
 			value = 0.25,
 			description = BAR.I18N("ui.settings.option.teamplatter_opacity_descr"),
-			onload = function(i)
-				loadWidgetData("TeamPlatter", "teamplatter_opacity", { "opacity" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("TeamPlatter", "teamplatter", "setOpacity", { "opacity" }, value)
-			end,
+			widgetConfig = { "TeamPlatter", "opacity", api = "teamplatter", set = "setOpacity" },
 		},
 		{
 			id = "teamplatter_skipownteam",
@@ -7119,12 +7117,7 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.teamplatter_skipownteam_descr"),
-			onload = function(i)
-				loadWidgetData("TeamPlatter", "teamplatter_skipownteam", { "skipOwnTeam" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("TeamPlatter", "teamplatter", "setSkipOwnTeam", { "skipOwnTeam" }, value)
-			end,
+			widgetConfig = { "TeamPlatter", "skipOwnTeam", api = "teamplatter", set = "setSkipOwnTeam" },
 		},
 
 		{
@@ -7149,12 +7142,7 @@ function init()
 			type = "slider",
 			value = 0.15,
 			description = BAR.I18N("ui.settings.option.enemyspotter_opacity_descr"),
-			onload = function(i)
-				loadWidgetData("EnemySpotter", "enemyspotter_opacity", { "opacity" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("EnemySpotter", "enemyspotter", "setOpacity", { "opacity" }, value)
-			end,
+			widgetConfig = { "EnemySpotter", "opacity", api = "enemyspotter", set = "setOpacity" },
 		},
 
 		--{ id = "selectedunits", group = "ui", category = types.basic, widget = "Selected Units GL4", name = "Selection", type = "bool", value = GetWidgetToggleValue("Selected Units GL4"), description = Spring.I18N('ui.settings.option.selectedunits_descr') },
@@ -7170,12 +7158,7 @@ function init()
 			type = "slider",
 			value = 0.19,
 			description = BAR.I18N("ui.settings.option.selectedunits_opacity_descr"),
-			onload = function(i)
-				loadWidgetData("Selected Units GL4", "selectedunits_opacity", { "opacity" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Selected Units GL4", "selectedunits", "setOpacity", { "opacity" }, value)
-			end,
+			widgetConfig = { "Selected Units GL4", "opacity", api = "selectedunits", set = "setOpacity" },
 		},
 		{
 			id = "selectedunits_teamcoloropacity",
@@ -7189,18 +7172,12 @@ function init()
 			type = "slider",
 			value = 0.6,
 			description = BAR.I18N("ui.settings.option.selectedunits_teamcoloropacity_descr"),
-			onload = function(i)
-				loadWidgetData("Selected Units GL4", "selectedunits_teamcoloropacity", { "teamcolorOpacity" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Selected Units GL4",
-					"selectedunits",
-					"setTeamcolorOpacity",
-					{ "teamcolorOpacity" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Selected Units GL4",
+				"teamcolorOpacity",
+				api = "selectedunits",
+				set = "setTeamcolorOpacity",
+			},
 		},
 
 		--{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units GL4", name = Spring.I18N('ui.settings.option.highlightselunits'), type = "bool", value = GetWidgetToggleValue("Highlight Selected Units GL4"), description = Spring.I18N('ui.settings.option.highlightselunits_descr') },
@@ -7214,32 +7191,26 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.highlightselunits_descr"),
-			onload = function(i)
-				loadWidgetData("Selected Units GL4", "highlightselunits", { "selectionHighlight" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Selected Units GL4",
-					"selectedunits",
-					"setSelectionHighlight",
-					{ "selectionHighlight" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Selected Units GL4",
+				"selectionHighlight",
+				api = "selectedunits",
+				set = "setSelectionHighlight",
+			},
 		},
 		--{ id = "highlightselunits_opacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightselunits_opacity'), min = 0.02, max = 0.12, step = 0.01, type = "slider", value = 0.05, description = Spring.I18N('ui.settings.option.highlightselunits_opacity_descr'),
-		--  onload = function(i)
+		--  onload = function(option)
 		--	  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_opacity", { 'highlightAlpha' })
 		--  end,
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
 		--  end,
 		--},
 		--{ id = "highlightselunits_teamcolor", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightselunits_teamcolor'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.highlightselunits_teamcolor_descr'),
-		--  onload = function(i)
+		--  onload = function(option)
 		--	  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_teamcolor", { 'useTeamcolor' })
 		--  end,
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setTeamcolor', { 'useTeamcolor' }, value)
 		--  end,
 		--},
@@ -7254,18 +7225,12 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.highlightunit_descr"),
-			onload = function(i)
-				loadWidgetData("Selected Units GL4", "highlightunit", { "mouseoverHighlight" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Selected Units GL4",
-					"selectedunits",
-					"setMouseoverHighlight",
-					{ "mouseoverHighlight" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Selected Units GL4",
+				"mouseoverHighlight",
+				api = "selectedunits",
+				set = "setMouseoverHighlight",
+			},
 		},
 
 		-- Jammed units highlight
@@ -7289,11 +7254,9 @@ function init()
 			max = 1.0,
 			step = 0.15,
 			type = "slider",
-			value = Spring.GetConfigFloat("UnitGhostIconsDimming", 0.8),
+			value = 0.8,
 			description = BAR.I18N("ui.settings.option.ghosticons_brightness_descr"),
-			onchange = function(i, value)
-				Spring.SetConfigFloat("UnitGhostIconsDimming", value)
-			end,
+			configFloat = "UnitGhostIconsDimming",
 		},
 
 		{
@@ -7304,18 +7267,12 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.cursorlight_descr"),
-			onload = function(i)
-				loadWidgetData("Deferred rendering GL4", "cursorlight", { "showPlayerCursorLight" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Deferred rendering GL4",
-					"lightsgl4",
-					"ShowPlayerCursorLight",
-					{ "showPlayerCursorLight" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Deferred rendering GL4",
+				"showPlayerCursorLight",
+				api = "lightsgl4",
+				set = "ShowPlayerCursorLight",
+			},
 		},
 		{
 			id = "cursorlight_lightradius",
@@ -7329,18 +7286,12 @@ function init()
 			step = 0.05,
 			value = 1,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Deferred rendering GL4", "cursorlight_lightradius", { "playerCursorLightRadius" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Deferred rendering GL4",
-					"lightsgl4",
-					"PlayerCursorLightRadius",
-					{ "playerCursorLightRadius" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Deferred rendering GL4",
+				"playerCursorLightRadius",
+				api = "lightsgl4",
+				set = "PlayerCursorLightRadius",
+			},
 		},
 		{
 			id = "cursorlight_lightstrength",
@@ -7354,18 +7305,12 @@ function init()
 			step = 0.05,
 			value = 1,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Deferred rendering GL4", "cursorlight_lightstrength", { "playerCursorLightBrightness" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Deferred rendering GL4",
-					"lightsgl4",
-					"PlayerCursorLightBrightness",
-					{ "playerCursorLightBrightness" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Deferred rendering GL4",
+				"playerCursorLightBrightness",
+				api = "lightsgl4",
+				set = "PlayerCursorLightBrightness",
+			},
 		},
 
 		{
@@ -7384,20 +7329,14 @@ function init()
 			type = "bool",
 			value = (WG.metalspots ~= nil and WG.metalspots.getShowValue()),
 			description = BAR.I18N("ui.settings.option.metalspots_values_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Metalspots", "metalspots_values", { "showValue" })
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				if WG.metalspots then
 					WG.metalspots.setShowValue(value)
 				end
-				saveOptionValue(
-					"Metalspots",
-					"metalspots",
-					"setShowValue",
-					{ "showValue" },
-					options[getOptionByID("metalspots_values")].value
-				)
+				saveOptionValue("Metalspots", "metalspots", "setShowValue", { "showValue" }, option.value)
 			end,
 		},
 		{
@@ -7409,18 +7348,7 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.metalspots_metalviewonly_descr"),
-			onload = function(i)
-				loadWidgetData("Metalspots", "metalspots_metalviewonly", { "metalViewOnly" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Metalspots",
-					"metalspots",
-					"setMetalViewOnly",
-					{ "metalViewOnly" },
-					options[getOptionByID("metalspots_metalviewonly")].value
-				)
-			end,
+			widgetConfig = { "Metalspots", "metalViewOnly", api = "metalspots", set = "setMetalViewOnly" },
 		},
 
 		{
@@ -7446,12 +7374,7 @@ function init()
 			step = 0.1,
 			value = 1,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Health Bars GL4", "healthbarsscale", { "barScale" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Health Bars GL4", "healthbars", "setScale", { "barScale" }, value)
-			end,
+			widgetConfig = { "Health Bars GL4", "barScale", api = "healthbars", set = "setScale" },
 		},
 		{
 			id = "healthbarsheight",
@@ -7465,10 +7388,10 @@ function init()
 			step = 0.1,
 			value = (WG.healthbars ~= nil and WG.healthbars.getHeight() or 0.9),
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Health Bars GL4", "healthbarsheight", { "barHeight" })
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Health Bars GL4", "healthbars", "setHeight", { "barHeight" }, value)
 				widgetHandler:DisableWidget("Health Bars GL4")
 				widgetHandler:EnableWidget("Health Bars GL4")
@@ -7481,14 +7404,15 @@ function init()
 			category = types.dev,
 			name = BAR.I18N("ui.settings.option.healthbarsvariable"),
 			type = "bool",
-			value = (WG.healthbars ~= nil and WG.healthbars.getVariableSizes()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.healthbarsvariable_descr"),
-			onload = function(i)
-				loadWidgetData("Health Bars GL4", "healthbarsvariable", { "variableBarSizes" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Health Bars GL4", "healthbars", "setVariableSizes", { "variableBarSizes" }, value)
-			end,
+			widgetConfig = {
+				"Health Bars GL4",
+				"variableBarSizes",
+				api = "healthbars",
+				get = "getVariableSizes",
+				set = "setVariableSizes",
+			},
 		},
 		{
 			id = "healthbarswhenguihidden",
@@ -7497,14 +7421,15 @@ function init()
 			category = types.dev,
 			name = BAR.I18N("ui.settings.option.healthbarswhenguihidden"),
 			type = "bool",
-			value = (WG.healthbars ~= nil and WG.healthbars.getDrawWhenGuiHidden()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.healthbarswhenguihidden_descr"),
-			onload = function(i)
-				loadWidgetData("Health Bars GL4", "healthbarswhenguihidden", { "drawWhenGuiHidden" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Health Bars GL4", "healthbars", "setDrawWhenGuiHidden", { "drawWhenGuiHidden" }, value)
-			end,
+			widgetConfig = {
+				"Health Bars GL4",
+				"drawWhenGuiHidden",
+				api = "healthbars",
+				get = "getDrawWhenGuiHidden",
+				set = "setDrawWhenGuiHidden",
+			},
 		},
 		{
 			id = "rankicons",
@@ -7528,8 +7453,7 @@ function init()
 			step = 0.05,
 			value = (WG.rankicons ~= nil and WG.rankicons.getDrawDistance ~= nil and WG.rankicons.getDrawDistance()),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Rank Icons GL4", "rankicons", "setDrawDistance", { "distanceMult" }, value)
 			end,
 		},
@@ -7545,8 +7469,7 @@ function init()
 			step = 0.1,
 			value = (WG.rankicons ~= nil and WG.rankicons.getScale ~= nil and WG.rankicons.getScale()),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Rank Icons GL4", "rankicons", "setScale", { "iconsizeMult" }, value)
 			end,
 		},
@@ -7570,12 +7493,7 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.allycursors_playername_descr"),
-			onload = function(i)
-				loadWidgetData("AllyCursors", "allycursors_playername", { "showPlayerName" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("AllyCursors", "allycursors", "setPlayerNames", { "showPlayerName" }, value)
-			end,
+			widgetConfig = { "AllyCursors", "showPlayerName", api = "allycursors", set = "setPlayerNames" },
 		},
 		{
 			id = "allycursors_showdot",
@@ -7586,12 +7504,7 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.allycursors_showdot_descr"),
-			onload = function(i)
-				loadWidgetData("AllyCursors", "allycursors_showdot", { "showCursorDot" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("AllyCursors", "allycursors", "setCursorDot", { "showCursorDot" }, value)
-			end,
+			widgetConfig = { "AllyCursors", "showCursorDot", api = "allycursors", set = "setCursorDot" },
 		},
 		{
 			id = "allycursors_spectatorname",
@@ -7602,12 +7515,7 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.allycursors_spectatorname_descr"),
-			onload = function(i)
-				loadWidgetData("AllyCursors", "allycursors_spectatorname", { "showSpectatorName" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("AllyCursors", "allycursors", "setSpectatorNames", { "showSpectatorName" }, value)
-			end,
+			widgetConfig = { "AllyCursors", "showSpectatorName", api = "allycursors", set = "setSpectatorNames" },
 		},
 		{
 			id = "allycursors_lights",
@@ -7618,18 +7526,7 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.allycursors_lights_descr"),
-			onload = function(i)
-				loadWidgetData("AllyCursors", "allycursors_lights", { "addLights" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"AllyCursors",
-					"allycursors",
-					"setLights",
-					{ "addLights" },
-					options[getOptionByID("allycursors_lights")].value
-				)
-			end,
+			widgetConfig = { "AllyCursors", "addLights", api = "allycursors", set = "setLights" },
 		},
 		{
 			id = "allycursors_lightradius",
@@ -7643,12 +7540,7 @@ function init()
 			step = 0.05,
 			value = 0.5,
 			description = "",
-			onload = function(i)
-				loadWidgetData("AllyCursors", "allycursors_lightradius", { "lightRadiusMult" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("AllyCursors", "allycursors", "setLightRadius", { "lightRadiusMult" }, value)
-			end,
+			widgetConfig = { "AllyCursors", "lightRadiusMult", api = "allycursors", set = "setLightRadius" },
 		},
 		{
 			id = "allycursors_lightstrength",
@@ -7662,12 +7554,7 @@ function init()
 			step = 0.05,
 			value = 0.85,
 			description = "",
-			onload = function(i)
-				loadWidgetData("AllyCursors", "allycursors_lightstrength", { "lightStrengthMult" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("AllyCursors", "allycursors", "setLightStrength", { "lightStrengthMult" }, value)
-			end,
+			widgetConfig = { "AllyCursors", "lightStrengthMult", api = "allycursors", set = "setLightStrength" },
 		},
 		{
 			id = "allycursors_selfshadowing",
@@ -7678,12 +7565,7 @@ function init()
 			type = "bool",
 			value = false,
 			description = "",
-			onload = function(i)
-				loadWidgetData("AllyCursors", "allycursors_selfshadowing", { "lightSelfShadowing" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("AllyCursors", "allycursors", "setLightSelfShadowing", { "lightSelfShadowing" }, value)
-			end,
+			widgetConfig = { "AllyCursors", "lightSelfShadowing", api = "allycursors", set = "setLightSelfShadowing" },
 		},
 
 		{
@@ -7749,12 +7631,7 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.nametags_rank_descr"),
-			onload = function(i)
-				loadWidgetData("Commander Name Tags", "nametags_rank", { "showPlayerRank" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Commander Name Tags", "nametags", "SetShowPlayerRank", { "showPlayerRank" }, value)
-			end,
+			widgetConfig = { "Commander Name Tags", "showPlayerRank", api = "nametags", set = "SetShowPlayerRank" },
 		},
 
 		{
@@ -7780,12 +7657,7 @@ function init()
 			step = 0.1,
 			value = 1,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Commands FX", "commandsfxopacity", { "opacity" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Commands FX", "commandsfx", "setOpacity", { "opacity" }, value)
-			end,
+			widgetConfig = { "Commands FX", "opacity", api = "commandsfx", set = "setOpacity" },
 		},
 		{
 			id = "commandsfxduration",
@@ -7799,28 +7671,19 @@ function init()
 			step = 0.01,
 			value = 1,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Commands FX", "commandsfxduration", { "duration" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Commands FX", "commandsfx", "setDuration", { "duration" }, value)
-			end,
+			widgetConfig = { "Commands FX", "duration", api = "commandsfx", set = "setDuration" },
 		},
 		{
 			id = "commandsfxfilterai",
 			parent = "commandsfx",
 			group = "ui",
 			category = types.dev,
+			available = aiDetected,
 			name = BAR.I18N("ui.settings.option.commandsfxfilterai"),
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.commandsfxfilterai_descr"),
-			onload = function(i)
-				loadWidgetData("Commands FX", "commandsfxfilterai", { "filterAIteams" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Commands FX", "commandsfx", "setFilterAI", { "filterAIteams" }, value)
-			end,
+			widgetConfig = { "Commands FX", "filterAIteams", api = "commandsfx", set = "setFilterAI" },
 		},
 		{
 			id = "commandsfxuseteamcolors",
@@ -7831,12 +7694,7 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.commandsfxuseteamcolors_descr"),
-			onload = function(i)
-				loadWidgetData("Commands FX", "commandsfxuseteamcolors", { "useTeamColors" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Commands FX", "commandsfx", "setUseTeamColors", { "useTeamColors" }, value)
-			end,
+			widgetConfig = { "Commands FX", "useTeamColors", api = "commandsfx", set = "setUseTeamColors" },
 		},
 		{
 			id = "commandsfxuseteamcolorswhenspec",
@@ -7845,20 +7703,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.commandsfxuseteamcolorswhenspec"),
 			type = "bool",
-			value = (WG.commandsfx ~= nil and WG.commandsfx.getUseTeamColorsWhenSpec()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.commandsfxuseteamcolorswhenspec_descr"),
-			onload = function(i)
-				loadWidgetData("Commands FX", "commandsfxuseteamcolorswhenspec", { "useTeamColorsWhenSpec" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Commands FX",
-					"commandsfx",
-					"setUseTeamColorsWhenSpec",
-					{ "useTeamColorsWhenSpec" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Commands FX",
+				"useTeamColorsWhenSpec",
+				api = "commandsfx",
+				get = "getUseTeamColorsWhenSpec",
+				set = "setUseTeamColorsWhenSpec",
+			},
 		},
 
 		{
@@ -7878,12 +7731,9 @@ function init()
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.displaydps"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1,
+			value = false,
 			description = BAR.I18N("ui.settings.option.displaydps_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				Spring.SetConfigInt("DisplayDPS", (value and 1 or 0))
-			end,
+			configInt = "DisplayDPS",
 		},
 
 		{
@@ -7918,18 +7768,12 @@ function init()
 			options = reclaimFieldHighlightOptions,
 			value = 3,
 			description = BAR.I18N("ui.settings.option.reclaimfieldhighlight_metal_descr"),
-			onload = function(i)
-				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight_metal", { "showOption" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Reclaim Field Highlight",
-					"reclaimfieldhighlight",
-					"setShowOption",
-					{ "showOption" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Reclaim Field Highlight",
+				"showOption",
+				api = "reclaimfieldhighlight",
+				set = "setShowOption",
+			},
 		},
 
 		{
@@ -7943,18 +7787,12 @@ function init()
 			options = reclaimFieldHighlightOptions,
 			value = 3,
 			description = BAR.I18N("ui.settings.option.reclaimfieldhighlight_energy_descr"),
-			onload = function(i)
-				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight_energy", { "showEnergyOption" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Reclaim Field Highlight",
-					"reclaimfieldhighlight",
-					"setShowEnergyOption",
-					{ "showEnergyOption" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Reclaim Field Highlight",
+				"showEnergyOption",
+				api = "reclaimfieldhighlight",
+				set = "setShowEnergyOption",
+			},
 		},
 
 		{
@@ -7976,18 +7814,12 @@ function init()
 			type = "bool",
 			value = true,
 			description = BAR.I18N("ui.settings.option.highlightcomwrecks_teamcolor_descr"),
-			onload = function(i)
-				loadWidgetData("Highlight Commander Wrecks", "highlightcomwrecks_teamcolor", { "useTeamColor" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Highlight Commander Wrecks",
-					"highlightcomwrecks",
-					"setUseTeamColor",
-					{ "useTeamColor" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Highlight Commander Wrecks",
+				"useTeamColor",
+				api = "highlightcomwrecks",
+				set = "setUseTeamColor",
+			},
 		},
 
 		{
@@ -8010,15 +7842,15 @@ function init()
 			min = 0.3,
 			max = 1,
 			step = 0.05,
-			value = (WG.buildinggrid ~= nil and WG.buildinggrid.getOpacity ~= nil and WG.buildinggrid.getOpacity())
-				or 1,
+			value = 1,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Building Grid GL4", "buildinggridopacity", { "opacity" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Building Grid GL4", "buildinggrid", "setOpacity", { "opacity" }, value)
-			end,
+			widgetConfig = {
+				"Building Grid GL4",
+				"opacity",
+				api = "buildinggrid",
+				get = "getOpacity",
+				set = "setOpacity",
+			},
 		},
 		{
 			id = "startpositionsuggestions",
@@ -8074,14 +7906,15 @@ function init()
 			min = 0.01,
 			max = 0.33,
 			step = 0.01,
-			value = (WG.radarrange ~= nil and WG.radarrange.getOpacity ~= nil and WG.radarrange.getOpacity()) or 0.08,
+			value = 0.08,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Sensor Ranges Radar", "radarrangeopacity", { "opacity" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Sensor Ranges Radar", "radarrange", "setOpacity", { "opacity" }, value)
-			end,
+			widgetConfig = {
+				"Sensor Ranges Radar",
+				"opacity",
+				api = "radarrange",
+				get = "getOpacity",
+				set = "setOpacity",
+			},
 		},
 		-- Sonar range
 		{
@@ -8105,14 +7938,15 @@ function init()
 			min = 0.01,
 			max = 0.33,
 			step = 0.01,
-			value = (WG.sonarrange ~= nil and WG.sonarrange.getOpacity ~= nil and WG.sonarrange.getOpacity()) or 0.08,
+			value = 0.08,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Sensor Ranges Sonar", "sonarrangeopacity", { "opacity" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Sensor Ranges Sonar", "sonarrange", "setOpacity", { "opacity" }, value)
-			end,
+			widgetConfig = {
+				"Sensor Ranges Sonar",
+				"opacity",
+				api = "sonarrange",
+				get = "getOpacity",
+				set = "setOpacity",
+			},
 		},
 		-- Jammer range
 
@@ -8138,14 +7972,9 @@ function init()
 			min = 0.01,
 			max = 0.33,
 			step = 0.01,
-			value = (WG.losrange ~= nil and WG.losrange.getOpacity ~= nil and WG.losrange.getOpacity()) or 0.08,
+			value = 0.08,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Sensor Ranges LOS", "losrangeopacity", { "opacity" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Sensor Ranges LOS", "losrange", "setOpacity", { "opacity" }, value)
-			end,
+			widgetConfig = { "Sensor Ranges LOS", "opacity", api = "losrange", get = "getOpacity", set = "setOpacity" },
 		},
 		{
 			id = "losrangeteamcolors",
@@ -8154,14 +7983,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.losrangeteamcolors"),
 			type = "bool",
-			value = (WG.losrange ~= nil and WG.losrange.getUseTeamColors ~= nil and WG.losrange.getUseTeamColors()),
+			value = false,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Sensor Ranges LOS", "losrangeteamcolors", { "useteamcolors" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Sensor Ranges LOS", "losrange", "setUseTeamColors", { "useteamcolors" }, value)
-			end,
+			widgetConfig = {
+				"Sensor Ranges LOS",
+				"useteamcolors",
+				api = "losrange",
+				get = "getUseTeamColors",
+				set = "setUseTeamColors",
+			},
 		},
 
 		{
@@ -8181,14 +8011,15 @@ function init()
 			group = "ui",
 			name = BAR.I18N("ui.settings.option.attackrange_shiftonly"),
 			type = "bool",
-			value = (WG.attackrange ~= nil and WG.attackrange.getShiftOnly ~= nil and WG.attackrange.getShiftOnly()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.attackrange_shiftonly_descr"),
-			onload = function(i)
-				loadWidgetData("Attack Range GL4", "attackrange_shiftonly", { "shift_only" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Attack Range GL4", "attackrange", "setShiftOnly", { "shift_only" }, value)
-			end,
+			widgetConfig = {
+				"Attack Range GL4",
+				"shift_only",
+				api = "attackrange",
+				get = "getShiftOnly",
+				set = "setShiftOnly",
+			},
 		},
 		{
 			id = "attackrange_cursorunitrange",
@@ -8197,18 +8028,15 @@ function init()
 			group = "ui",
 			name = BAR.I18N("ui.settings.option.attackrange_cursorunitrange"),
 			type = "bool",
-			value = (
-				WG.attackrange ~= nil
-				and WG.attackrange.getCursorUnitRange ~= nil
-				and WG.attackrange.getCursorUnitRange()
-			),
+			value = false,
 			description = BAR.I18N("ui.settings.option.attackrange_cursorunitrange_descr"),
-			onload = function(i)
-				loadWidgetData("Attack Range GL4", "attackrange_cursorunitrange", { "cursor_unit_range" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Attack Range GL4", "attackrange", "setCursorUnitRange", { "cursor_unit_range" }, value)
-			end,
+			widgetConfig = {
+				"Attack Range GL4",
+				"cursor_unit_range",
+				api = "attackrange",
+				get = "getCursorUnitRange",
+				set = "setCursorUnitRange",
+			},
 		},
 		{
 			id = "attackrange_numrangesmult",
@@ -8220,24 +8048,15 @@ function init()
 			min = 0.3,
 			max = 1,
 			step = 0.1,
-			value = (
-				WG.attackrange ~= nil
-				and WG.attackrange.getNumRangesMult ~= nil
-				and WG.attackrange.getNumRangesMult()
-			) or 1,
+			value = 1,
 			description = BAR.I18N("ui.settings.option.attackrange_numrangesmult_descr"),
-			onload = function(i)
-				loadWidgetData("Attack Range GL4", "attackrange_numrangesmult", { "selectionDisableThresholdMult" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Attack Range GL4",
-					"attackrange",
-					"setNumRangesMult",
-					{ "selectionDisableThresholdMult" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Attack Range GL4",
+				"selectionDisableThresholdMult",
+				api = "attackrange",
+				get = "getNumRangesMult",
+				set = "setNumRangesMult",
+			},
 		},
 
 		{
@@ -8258,15 +8077,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.defrange_allyair"),
 			type = "bool",
-			value = (WG.defrange ~= nil and WG.defrange.getAllyAir ~= nil and WG.defrange.getAllyAir()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.defrange_allyair_descr"),
-			onload = function(i)
-				loadWidgetData("Defense Range GL4", "defrange_allyair", { "enabled", "ally", "air" })
-			end,
-			onchange = function(i, value)
-				--saveOptionValue('Defense Range', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
-				saveOptionValue("Defense Range GL4", "defrange", "setAllyAir", { "enabled", "ally", "air" }, value)
-			end,
+			widgetConfig = {
+				"Defense Range GL4",
+				{ "enabled", "ally", "air" },
+				api = "defrange",
+				get = "getAllyAir",
+				set = "setAllyAir",
+			},
 		},
 		{
 			id = "defrange_allyground",
@@ -8277,10 +8096,10 @@ function init()
 			type = "bool",
 			value = (WG.defrange ~= nil and WG.defrange.getAllyGround ~= nil and WG.defrange.getAllyGround()),
 			description = BAR.I18N("ui.settings.option.defrange_allyground_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Defense Range GL4", "defrange_allyground", { "enabled", "ally", "ground" })
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				--saveOptionValue('Defense Range', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
 				saveOptionValue(
 					"Defense Range GL4",
@@ -8305,15 +8124,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.defrange_allynuke"),
 			type = "bool",
-			value = (WG.defrange ~= nil and WG.defrange.getAllyNuke ~= nil and WG.defrange.getAllyNuke()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.defrange_allynuke_descr"),
-			onload = function(i)
-				loadWidgetData("Defense Range GL4", "defrange_allynuke", { "enabled", "ally", "nuke" })
-			end,
-			onchange = function(i, value)
-				--saveOptionValue('Defense Range', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
-				saveOptionValue("Defense Range GL4", "defrange", "setAllyNuke", { "enabled", "ally", "nuke" }, value)
-			end,
+			widgetConfig = {
+				"Defense Range GL4",
+				{ "enabled", "ally", "nuke" },
+				api = "defrange",
+				get = "getAllyNuke",
+				set = "setAllyNuke",
+			},
 		},
 		{
 			id = "defrange_allylrpc",
@@ -8322,15 +8141,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.defrange_allylrpc"),
 			type = "bool",
-			value = (WG.defrange ~= nil and WG.defrange.getAllyLRPC ~= nil and WG.defrange.getAllyLRPC()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.defrange_allylrpc_descr"),
-			onload = function(i)
-				loadWidgetData("Defense Range GL4", "defrange_allylrpc", { "enabled", "ally", "lrpc" })
-			end,
-			onchange = function(i, value)
-				--saveOptionValue('Defense Range', 'defrange', 'setAllyLRPC', { 'enabled', 'ally', 'lrpc' }, value)
-				saveOptionValue("Defense Range GL4", "defrange", "setAllyLRPC", { "enabled", "ally", "lrpc" }, value)
-			end,
+			widgetConfig = {
+				"Defense Range GL4",
+				{ "enabled", "ally", "lrpc" },
+				api = "defrange",
+				get = "getAllyLRPC",
+				set = "setAllyLRPC",
+			},
 		},
 		{
 			id = "defrange_enemyair",
@@ -8339,15 +8158,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.defrange_enemyair"),
 			type = "bool",
-			value = (WG.defrange ~= nil and WG.defrange.getEnemyAir ~= nil and WG.defrange.getEnemyAir()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.defrange_enemyair_descr"),
-			onload = function(i)
-				loadWidgetData("Defense Range GL4", "defrange_enemyair", { "enabled", "enemy", "air" })
-			end,
-			onchange = function(i, value)
-				--saveOptionValue('Defense Range', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
-				saveOptionValue("Defense Range GL4", "defrange", "setEnemyAir", { "enabled", "enemy", "air" }, value)
-			end,
+			widgetConfig = {
+				"Defense Range GL4",
+				{ "enabled", "enemy", "air" },
+				api = "defrange",
+				get = "getEnemyAir",
+				set = "setEnemyAir",
+			},
 		},
 		{
 			id = "defrange_enemyground",
@@ -8358,10 +8177,10 @@ function init()
 			type = "bool",
 			value = (WG.defrange ~= nil and WG.defrange.getEnemyGround ~= nil and WG.defrange.getEnemyGround()),
 			description = BAR.I18N("ui.settings.option.defrange_enemyground_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Defense Range GL4", "defrange_enemyground", { "enabled", "enemy", "ground" })
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				--saveOptionValue('Defense Range', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
 				saveOptionValue(
 					"Defense Range GL4",
@@ -8386,15 +8205,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.defrange_enemynuke"),
 			type = "bool",
-			value = (WG.defrange ~= nil and WG.defrange.getEnemyNuke ~= nil and WG.defrange.getEnemyNuke()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.defrange_enemynuke_descr"),
-			onload = function(i)
-				loadWidgetData("Defense Range GL4", "defrange_enemynuke", { "enabled", "enemy", "nuke" })
-			end,
-			onchange = function(i, value)
-				--saveOptionValue('Defense Range', 'defrange', 'setEnemyNuke', { 'enabled', 'enemy', 'nuke' }, value)
-				saveOptionValue("Defense Range GL4", "defrange", "setEnemyNuke", { "enabled", "enemy", "nuke" }, value)
-			end,
+			widgetConfig = {
+				"Defense Range GL4",
+				{ "enabled", "enemy", "nuke" },
+				api = "defrange",
+				get = "getEnemyNuke",
+				set = "setEnemyNuke",
+			},
 		},
 		{
 			id = "defrange_enemylrpc",
@@ -8403,15 +8222,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.defrange_enemylrpc"),
 			type = "bool",
-			value = (WG.defrange ~= nil and WG.defrange.getEnemyLRPC ~= nil and WG.defrange.getEnemyLRPC()),
+			value = false,
 			description = BAR.I18N("ui.settings.option.defrange_enemylrpc_descr"),
-			onload = function(i)
-				loadWidgetData("Defense Range GL4", "defrange_enemylrpc", { "enabled", "enemy", "lrpc" })
-			end,
-			onchange = function(i, value)
-				--saveOptionValue('Defense Range', 'defrange', 'setEnemyLRPC', { 'enabled', 'enemy', 'lrpc' }, value)
-				saveOptionValue("Defense Range GL4", "defrange", "setEnemyLRPC", { "enabled", "enemy", "lrpc" }, value)
-			end,
+			widgetConfig = {
+				"Defense Range GL4",
+				{ "enabled", "enemy", "lrpc" },
+				api = "defrange",
+				get = "getEnemyLRPC",
+				set = "setEnemyLRPC",
+			},
 		},
 
 		{
@@ -8441,18 +8260,15 @@ function init()
 			min = 0.1,
 			max = 2,
 			step = 0.1,
-			value = (
-				WG.spectator_hud ~= nil
-				and WG.spectator_hud.getWidgetSize ~= nil
-				and WG.spectator_hud.getWidgetSize()
-			) or 0.8,
+			value = 0.8,
 			description = "",
-			onload = function(i)
-				loadWidgetData("Spectator HUD", "spectator_hud_size", { "widgetScale" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue("Spectator HUD", "spectator_hud", "setWidgetSize", { "widgetScale" }, value)
-			end,
+			widgetConfig = {
+				"Spectator HUD",
+				"widgetScale",
+				api = "spectator_hud",
+				get = "getWidgetSize",
+				set = "setWidgetSize",
+			},
 		},
 
 		{
@@ -8466,10 +8282,10 @@ function init()
 			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getConfig ~= nil and WG.spectator_hud.getConfig())
 				or 1,
 			description = BAR.I18N("ui.settings.option.spectator_hud_config_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Spectator HUD", "spectator_hud_config", { "widgetConfig" })
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("Spectator HUD", "spectator_hud", "setConfig", { "widgetConfig" }, value)
 				init()
 			end,
@@ -8482,25 +8298,16 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.spectator_hud.metalIncome_title"),
 			type = "bool",
-			value = (
-				WG.spectator_hud ~= nil
-				and WG.spectator_hud.getMetricEnabled ~= nil
-				and WG.spectator_hud.getMetricEnabled("metalIncome")
-			) or false,
+			value = false,
 			description = BAR.I18N("ui.spectator_hud.metalIncome_tooltip"),
-			onload = function(i)
-				loadWidgetData("Spectator HUD", "spectator_hud_metric_metalIncome", { "metricsEnabled", "metalIncome" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Spectator HUD",
-					"spectator_hud",
-					"setMetricEnabled",
-					{ "metricsEnabled", "metalIncome" },
-					value,
-					{ "metalIncome", value }
-				)
-			end,
+			widgetConfig = {
+				"Spectator HUD",
+				{ "metricsEnabled", "metalIncome" },
+				api = "spectator_hud",
+				get = "getMetricEnabled",
+				set = "setMetricEnabled",
+				key = "metalIncome",
+			},
 		},
 		{
 			id = "spectator_hud_metric_energyIncome",
@@ -8515,14 +8322,14 @@ function init()
 				and WG.spectator_hud.getMetricEnabled("energyIncome")
 			) or false,
 			description = BAR.I18N("ui.spectator_hud.energyIncome_tooltip"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData(
 					"Spectator HUD",
 					"spectator_hud_metric_energyIncome",
 					{ "metricsEnabled", "energyIncome" }
 				)
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue(
 					"Spectator HUD",
 					"spectator_hud",
@@ -8540,25 +8347,16 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.spectator_hud.buildPower_title"),
 			type = "bool",
-			value = (
-				WG.spectator_hud ~= nil
-				and WG.spectator_hud.getMetricEnabled ~= nil
-				and WG.spectator_hud.getMetricEnabled("buildPower")
-			) or false,
+			value = false,
 			description = BAR.I18N("ui.spectator_hud.buildPower_tooltip"),
-			onload = function(i)
-				loadWidgetData("Spectator HUD", "spectator_hud_metric_buildPower", { "metricsEnabled", "buildPower" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Spectator HUD",
-					"spectator_hud",
-					"setMetricEnabled",
-					{ "metricsEnabled", "buildPower" },
-					value,
-					{ "buildPower", value }
-				)
-			end,
+			widgetConfig = {
+				"Spectator HUD",
+				{ "metricsEnabled", "buildPower" },
+				api = "spectator_hud",
+				get = "getMetricEnabled",
+				set = "setMetricEnabled",
+				key = "buildPower",
+			},
 		},
 		{
 			id = "spectator_hud_metric_metalProduced",
@@ -8573,14 +8371,14 @@ function init()
 				and WG.spectator_hud.getMetricEnabled("metalProduced")
 			) or false,
 			description = BAR.I18N("ui.spectator_hud.metalProduced_tooltip"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData(
 					"Spectator HUD",
 					"spectator_hud_metric_metalProduced",
 					{ "metricsEnabled", "metalProduced" }
 				)
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue(
 					"Spectator HUD",
 					"spectator_hud",
@@ -8604,14 +8402,14 @@ function init()
 				and WG.spectator_hud.getMetricEnabled("energyProduced")
 			) or false,
 			description = BAR.I18N("ui.spectator_hud.energyProduced_tooltip"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData(
 					"Spectator HUD",
 					"spectator_hud_metric_energyProduced",
 					{ "metricsEnabled", "energyProduced" }
 				)
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue(
 					"Spectator HUD",
 					"spectator_hud",
@@ -8629,25 +8427,16 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.spectator_hud.metalExcess_title"),
 			type = "bool",
-			value = (
-				WG.spectator_hud ~= nil
-				and WG.spectator_hud.getMetricEnabled ~= nil
-				and WG.spectator_hud.getMetricEnabled("metalExcess")
-			) or false,
+			value = false,
 			description = BAR.I18N("ui.spectator_hud.metalExcess_tooltip"),
-			onload = function(i)
-				loadWidgetData("Spectator HUD", "spectator_hud_metric_metalExcess", { "metricsEnabled", "metalExcess" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Spectator HUD",
-					"spectator_hud",
-					"setMetricEnabled",
-					{ "metricsEnabled", "metalExcess" },
-					value,
-					{ "metalExcess", value }
-				)
-			end,
+			widgetConfig = {
+				"Spectator HUD",
+				{ "metricsEnabled", "metalExcess" },
+				api = "spectator_hud",
+				get = "getMetricEnabled",
+				set = "setMetricEnabled",
+				key = "metalExcess",
+			},
 		},
 		{
 			id = "spectator_hud_metric_energyExcess",
@@ -8662,14 +8451,14 @@ function init()
 				and WG.spectator_hud.getMetricEnabled("energyExcess")
 			) or false,
 			description = BAR.I18N("ui.spectator_hud.energyExcess_tooltip"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData(
 					"Spectator HUD",
 					"spectator_hud_metric_energyExcess",
 					{ "metricsEnabled", "energyExcess" }
 				)
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue(
 					"Spectator HUD",
 					"spectator_hud",
@@ -8687,25 +8476,16 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.spectator_hud.armyValue_title"),
 			type = "bool",
-			value = (
-				WG.spectator_hud ~= nil
-				and WG.spectator_hud.getMetricEnabled ~= nil
-				and WG.spectator_hud.getMetricEnabled("armyValue")
-			) or false,
+			value = false,
 			description = BAR.I18N("ui.spectator_hud.armyValue_tooltip"),
-			onload = function(i)
-				loadWidgetData("Spectator HUD", "spectator_hud_metric_armyValue", { "metricsEnabled", "armyValue" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Spectator HUD",
-					"spectator_hud",
-					"setMetricEnabled",
-					{ "metricsEnabled", "armyValue" },
-					value,
-					{ "armyValue", value }
-				)
-			end,
+			widgetConfig = {
+				"Spectator HUD",
+				{ "metricsEnabled", "armyValue" },
+				api = "spectator_hud",
+				get = "getMetricEnabled",
+				set = "setMetricEnabled",
+				key = "armyValue",
+			},
 		},
 		{
 			id = "spectator_hud_metric_defenseValue",
@@ -8720,14 +8500,14 @@ function init()
 				and WG.spectator_hud.getMetricEnabled("defenseValue")
 			) or false,
 			description = BAR.I18N("ui.spectator_hud.defenseValue_tooltip"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData(
 					"Spectator HUD",
 					"spectator_hud_metric_defenseValue",
 					{ "metricsEnabled", "defenseValue" }
 				)
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue(
 					"Spectator HUD",
 					"spectator_hud",
@@ -8751,14 +8531,14 @@ function init()
 				and WG.spectator_hud.getMetricEnabled("utilityValue")
 			) or false,
 			description = BAR.I18N("ui.spectator_hud.utilityValue_tooltip"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData(
 					"Spectator HUD",
 					"spectator_hud_metric_utilityValue",
 					{ "metricsEnabled", "utilityValue" }
 				)
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue(
 					"Spectator HUD",
 					"spectator_hud",
@@ -8782,14 +8562,14 @@ function init()
 				and WG.spectator_hud.getMetricEnabled("economyValue")
 			) or false,
 			description = BAR.I18N("ui.spectator_hud.economyValue_tooltip"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData(
 					"Spectator HUD",
 					"spectator_hud_metric_economyValue",
 					{ "metricsEnabled", "economyValue" }
 				)
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue(
 					"Spectator HUD",
 					"spectator_hud",
@@ -8807,25 +8587,16 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.spectator_hud.damageDealt_title"),
 			type = "bool",
-			value = (
-				WG.spectator_hud ~= nil
-				and WG.spectator_hud.getMetricEnabled ~= nil
-				and WG.spectator_hud.getMetricEnabled("damageDealt")
-			) or false,
+			value = false,
 			description = BAR.I18N("ui.spectator_hud.damageDealt_tooltip"),
-			onload = function(i)
-				loadWidgetData("Spectator HUD", "spectator_hud_metric_damageDealt", { "metricsEnabled", "damageDealt" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Spectator HUD",
-					"spectator_hud",
-					"setMetricEnabled",
-					{ "metricsEnabled", "damageDealt" },
-					value,
-					{ "damageDealt", value }
-				)
-			end,
+			widgetConfig = {
+				"Spectator HUD",
+				{ "metricsEnabled", "damageDealt" },
+				api = "spectator_hud",
+				get = "getMetricEnabled",
+				set = "setMetricEnabled",
+				key = "damageDealt",
+			},
 		},
 
 		-- SQUAD HULLS (widget: "Squad Selection", WG['squadselection']).
@@ -8853,7 +8624,7 @@ function init()
 				or (WG["squadselection"].getShowReserveSquads() and 2)
 				or 3,
 			description = BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_descr"),
-			onload = function(i)
+			onload = function(option)
 				local v = 1
 				if WG["squadselection"] ~= nil then
 					if WG["squadselection"].getVisualizationMode() ~= "convexHull" then
@@ -8864,7 +8635,7 @@ function init()
 						v = 3
 					end
 				end
-				options[i].value = v
+				option.value = v
 			end,
 			onchange = function(_, value)
 				saveOptionValue(
@@ -8902,24 +8673,15 @@ function init()
 			min = 0,
 			max = 200,
 			step = 5,
-			value = (
-				WG["squadselectionhull"] ~= nil
-				and WG["squadselectionhull"].getConvexHullPadding ~= nil
-				and WG["squadselectionhull"].getConvexHullPadding()
-			) or 60,
+			value = 60,
 			description = BAR.I18N("ui.settings.option.squadSelectionHull_Padding_descr"),
-			onload = function(i)
-				loadWidgetData("Squad Selection Hull", "squad_convexHullPadding", { "convexHullPadding" })
-			end,
-			onchange = function(_, value)
-				saveOptionValue(
-					"Squad Selection Hull",
-					"squadselectionhull",
-					"setConvexHullPadding",
-					{ "convexHullPadding" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Squad Selection Hull",
+				"convexHullPadding",
+				api = "squadselectionhull",
+				get = "getConvexHullPadding",
+				set = "setConvexHullPadding",
+			},
 		},
 
 		{
@@ -8932,24 +8694,15 @@ function init()
 			min = 0.05,
 			max = 1.0,
 			step = 0.05,
-			value = (
-				WG["squadselectionhull"] ~= nil
-				and WG["squadselectionhull"].getConvexHullArcResolution ~= nil
-				and WG["squadselectionhull"].getConvexHullArcResolution()
-			) or 0.4,
+			value = 0.4,
 			description = BAR.I18N("ui.settings.option.squadSelectionHull_ArcResolution_descr"),
-			onload = function(i)
-				loadWidgetData("Squad Selection Hull", "squad_convexHullArcResolution", { "convexHullArcResolution" })
-			end,
-			onchange = function(_, value)
-				saveOptionValue(
-					"Squad Selection Hull",
-					"squadselectionhull",
-					"setConvexHullArcResolution",
-					{ "convexHullArcResolution" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Squad Selection Hull",
+				"convexHullArcResolution",
+				api = "squadselectionhull",
+				get = "getConvexHullArcResolution",
+				set = "setConvexHullArcResolution",
+			},
 		},
 
 		{
@@ -8962,24 +8715,15 @@ function init()
 			min = 0,
 			max = 1,
 			step = 0.05,
-			value = (
-				WG["squadselectionhull"] ~= nil
-				and WG["squadselectionhull"].getConvexHullFillOpacity ~= nil
-				and WG["squadselectionhull"].getConvexHullFillOpacity()
-			) or 0.25,
+			value = 0.25,
 			description = BAR.I18N("ui.settings.option.squadSelectionHull_FillOpacity_descr"),
-			onload = function(i)
-				loadWidgetData("Squad Selection Hull", "squad_convexHullFillOpacity", { "convexHullFillOpacity" })
-			end,
-			onchange = function(_, value)
-				saveOptionValue(
-					"Squad Selection Hull",
-					"squadselectionhull",
-					"setConvexHullFillOpacity",
-					{ "convexHullFillOpacity" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Squad Selection Hull",
+				"convexHullFillOpacity",
+				api = "squadselectionhull",
+				get = "getConvexHullFillOpacity",
+				set = "setConvexHullFillOpacity",
+			},
 		},
 
 		{
@@ -8992,23 +8736,14 @@ function init()
 			min = 0,
 			max = 1,
 			step = 0.05,
-			value = (
-				WG["squadselectionhull"] ~= nil
-				and WG["squadselectionhull"].getConvexHullBorderOpacity ~= nil
-				and WG["squadselectionhull"].getConvexHullBorderOpacity()
-			) or 0.3,
-			onload = function(i)
-				loadWidgetData("Squad Selection Hull", "squad_convexHullBorderOpacity", { "convexHullBorderOpacity" })
-			end,
-			onchange = function(_, value)
-				saveOptionValue(
-					"Squad Selection Hull",
-					"squadselectionhull",
-					"setConvexHullBorderOpacity",
-					{ "convexHullBorderOpacity" },
-					value
-				)
-			end,
+			value = 0.3,
+			widgetConfig = {
+				"Squad Selection Hull",
+				"convexHullBorderOpacity",
+				api = "squadselectionhull",
+				get = "getConvexHullBorderOpacity",
+				set = "setConvexHullBorderOpacity",
+			},
 		},
 
 		{
@@ -9026,7 +8761,7 @@ function init()
 				and WG["squadselectionhull"].getConvexHullBorderThickness ~= nil
 				and WG["squadselectionhull"].getConvexHullBorderThickness()
 			) or 2,
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData(
 					"Squad Selection Hull",
 					"squad_convexHullBorderThickness",
@@ -9060,7 +8795,7 @@ function init()
 				or (WG["squadselection"].getSquadColorMode() == "squad" and 3)
 				or 1,
 			description = BAR.I18N("ui.settings.option.squadSelection_squadColorMode_descr"),
-			onload = function(i)
+			onload = function(option)
 				local raw = (
 					WG["squadselection"] ~= nil
 					and WG["squadselection"].getSquadColorMode ~= nil
@@ -9069,7 +8804,7 @@ function init()
 				local modes = { "player", "custom", "squad" }
 				for idx, v in ipairs(modes) do
 					if v == raw then
-						options[i].value = idx
+						option.value = idx
 						break
 					end
 				end
@@ -9096,24 +8831,15 @@ function init()
 			min = 0,
 			max = 1,
 			step = 0.05,
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getSquadCustomColorR ~= nil
-				and WG["squadselection"].getSquadCustomColorR()
-			) or 0,
+			value = 0,
 			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorR_descr"),
-			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_convexHullCustomColorR", { "squadCustomColorR" })
-			end,
-			onchange = function(_, value)
-				saveOptionValue(
-					"Squad Selection",
-					"squadselection",
-					"setSquadCustomColorR",
-					{ "squadCustomColorR" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Squad Selection",
+				"squadCustomColorR",
+				api = "squadselection",
+				get = "getSquadCustomColorR",
+				set = "setSquadCustomColorR",
+			},
 		},
 
 		{
@@ -9126,24 +8852,15 @@ function init()
 			min = 0,
 			max = 1,
 			step = 0.05,
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getSquadCustomColorG ~= nil
-				and WG["squadselection"].getSquadCustomColorG()
-			) or 0.3,
+			value = 0.3,
 			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorG_descr"),
-			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_convexHullCustomColorG", { "squadCustomColorG" })
-			end,
-			onchange = function(_, value)
-				saveOptionValue(
-					"Squad Selection",
-					"squadselection",
-					"setSquadCustomColorG",
-					{ "squadCustomColorG" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Squad Selection",
+				"squadCustomColorG",
+				api = "squadselection",
+				get = "getSquadCustomColorG",
+				set = "setSquadCustomColorG",
+			},
 		},
 
 		{
@@ -9156,29 +8873,21 @@ function init()
 			min = 0,
 			max = 1,
 			step = 0.05,
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getSquadCustomColorB ~= nil
-				and WG["squadselection"].getSquadCustomColorB()
-			) or 0.7,
+			value = 0.7,
 			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorB_descr"),
-			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_convexHullCustomColorB", { "squadCustomColorB" })
-			end,
-			onchange = function(_, value)
-				saveOptionValue(
-					"Squad Selection",
-					"squadselection",
-					"setSquadCustomColorB",
-					{ "squadCustomColorB" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Squad Selection",
+				"squadCustomColorB",
+				api = "squadselection",
+				get = "getSquadCustomColorB",
+				set = "setSquadCustomColorB",
+			},
 		},
 
 		{
 			id = "label_ui_developer",
 			group = "ui",
+			available = not devMode,
 			name = BAR.I18N("ui.settings.option.label_developer"),
 			category = types.advanced,
 		},
@@ -9187,11 +8896,12 @@ function init()
 			id = "devmode",
 			group = "ui",
 			category = types.advanced,
+			available = not devMode,
 			name = BAR.I18N("ui.settings.option.devmode"),
 			type = "bool",
 			value = devUI,
 			description = BAR.I18N("ui.settings.option.devmode_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				devUI = value
 				Spring.SetConfigInt("DevUI", value and 1 or 0)
 				Spring.SendCommands("luaui reload")
@@ -9201,17 +8911,17 @@ function init()
 		-- GAME
 		{
 			id = "networksmoothing",
-			restart = true,
+			restart = not Engine.FeatureSupport.liveConfigChanges,
 			category = types.basic,
 			group = "game",
 			name = BAR.I18N("ui.settings.option.networksmoothing"),
 			type = "bool",
 			value = useNetworkSmoothing,
 			description = BAR.I18N("ui.settings.option.networksmoothing_descr"),
-			onload = function(i)
-				options[i].onchange(i, options[i].value)
+			onload = function(option)
+				option.onchange(option, option.value)
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				useNetworkSmoothing = value
 				if useNetworkSmoothing then
 					Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
@@ -9249,7 +8959,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("WindowsPauseGame", 1) == 1,
 			description = BAR.I18N("ui.settings.option.singleplayerpause_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("WindowsPauseGame", (value and 1 or 0))
 				-- pushed through as well so it takes effect now instead of at the next poll
 				widgetHandler:SetWindowsPauseGame(value)
@@ -9261,32 +8971,28 @@ function init()
 			group = "game",
 			category = types.dev,
 			name = BAR.I18N("ui.settings.option.catchupsmoothness"),
-			restart = true,
+			restart = not Engine.FeatureSupport.liveConfigChanges,
 			type = "slider",
 			min = 0.05,
 			max = 0.3,
 			step = 0.01,
-			value = Spring.GetConfigFloat("MinSimDrawBalance", 0.15),
+			value = 0.15,
 			description = BAR.I18N("ui.settings.option.catchupsmoothness_descr"),
-			onchange = function(i, value)
-				Spring.SetConfigFloat("MinSimDrawBalance", value)
-			end,
+			configFloat = "MinSimDrawBalance",
 		},
 		{
 			id = "catchupminfps",
 			group = "game",
 			category = types.dev,
 			name = BAR.I18N("ui.settings.option.catchupminfps"),
-			restart = true,
+			restart = not Engine.FeatureSupport.liveConfigChanges,
 			type = "slider",
 			min = 2,
 			max = 15,
 			step = 1,
-			value = Spring.GetConfigInt("MinDrawFPS", 2),
+			value = 2,
 			description = BAR.I18N("ui.settings.option.catchupminfps_descr"),
-			onchange = function(i, value)
-				Spring.SetConfigInt("MinDrawFPS", value)
-			end,
+			configInt = "MinDrawFPS",
 		},
 
 		{
@@ -9304,8 +9010,7 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.smartselect_includebuildings_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue(
 					"SmartSelect",
 					"smartselect",
@@ -9324,8 +9029,7 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.smartselect_includebuilders_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("SmartSelect", "smartselect", "setIncludeBuilders", { "includeBuilders" }, value)
 			end,
 		},
@@ -9338,8 +9042,7 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.smartselect_includeresurrectors_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue(
 					"SmartSelect",
 					"smartselect",
@@ -9358,8 +9061,7 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.smartselect_includeantinuke_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("SmartSelect", "smartselect", "setIncludeAntinuke", { "includeAntinuke" }, value)
 			end,
 		},
@@ -9372,8 +9074,7 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.smartselect_includeradar_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("SmartSelect", "smartselect", "setIncludeRadar", { "includeRadar" }, value)
 			end,
 		},
@@ -9386,8 +9087,7 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.smartselect_includejammer_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				saveOptionValue("SmartSelect", "smartselect", "setIncludeJammer", { "includeJammer" }, value)
 			end,
 		},
@@ -9421,24 +9121,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.builderpriority_nanos"),
 			type = "bool",
-			value = (
-				WG.builderpriority ~= nil
-				and WG.builderpriority.getLowPriorityNanos ~= nil
-				and WG.builderpriority.getLowPriorityNanos()
-			),
+			value = false,
 			description = BAR.I18N("ui.settings.option.builderpriority_nanos_descr"),
-			onload = function(i)
-				loadWidgetData("Builder Priority", "builderpriority_nanos", { "lowpriorityNanos" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Builder Priority",
-					"builderpriority",
-					"setLowPriorityNanos",
-					{ "lowpriorityNanos" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Builder Priority",
+				"lowpriorityNanos",
+				api = "builderpriority",
+				get = "getLowPriorityNanos",
+				set = "setLowPriorityNanos",
+			},
 		},
 
 		{
@@ -9448,24 +9139,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.builderpriority_cons"),
 			type = "bool",
-			value = (
-				WG.builderpriority ~= nil
-				and WG.builderpriority.getLowPriorityCons ~= nil
-				and WG.builderpriority.getLowPriorityCons()
-			),
+			value = false,
 			description = BAR.I18N("ui.settings.option.builderpriority_cons_descr"),
-			onload = function(i)
-				loadWidgetData("Builder Priority", "builderpriority_cons", { "lowpriorityCons" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Builder Priority",
-					"builderpriority",
-					"setLowPriorityCons",
-					{ "lowpriorityCons" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Builder Priority",
+				"lowpriorityCons",
+				api = "builderpriority",
+				get = "getLowPriorityCons",
+				set = "setLowPriorityCons",
+			},
 		},
 
 		{
@@ -9475,24 +9157,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.builderpriority_labs"),
 			type = "bool",
-			value = (
-				WG.builderpriority ~= nil
-				and WG.builderpriority.getLowPriorityLabs ~= nil
-				and WG.builderpriority.getLowPriorityLabs()
-			),
+			value = false,
 			description = BAR.I18N("ui.settings.option.builderpriority_labs_descr"),
-			onload = function(i)
-				loadWidgetData("Builder Priority", "builderpriority_labs", { "lowpriorityLabs" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Builder Priority",
-					"builderpriority",
-					"setLowPriorityLabs",
-					{ "lowpriorityLabs" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Builder Priority",
+				"lowpriorityLabs",
+				api = "builderpriority",
+				get = "getLowPriorityLabs",
+				set = "setLowPriorityLabs",
+			},
 		},
 
 		{
@@ -9551,7 +9224,7 @@ function init()
 				and WG.transportFactoryGuard.getBlacklistOrderedUnits()
 			),
 			description = "If enabled, transports guarding factories will not transport units that were given explicit orders during construction to their move waypoint.",
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Transport Factory Guard", "transportOrderedUnits", { "blacklistOrderedUnits" })
 			end,
 			onchange = function(_, value)
@@ -9638,10 +9311,10 @@ function init()
 			type = "bool",
 			value = (WG.autogroup ~= nil and WG.autogroup.getImmediate ~= nil and WG.autogroup.getImmediate()),
 			description = BAR.I18N("ui.settings.option.autogroup_immediate_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Auto Group", "autogroup_immediate", { "immediate" })
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				if widgetHandler.configData["Auto Group"] == nil then
 					widgetHandler.configData["Auto Group"] = {}
 				end
@@ -9658,10 +9331,10 @@ function init()
 			type = "bool",
 			value = (WG.autogroup ~= nil and WG.autogroup.getPersist ~= nil and WG.autogroup.getPersist()),
 			description = BAR.I18N("ui.settings.option.autogroup_persist_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Auto Group", "autogroup_persist", { "persist" })
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				if widgetHandler.configData["Auto Group"] == nil then
 					widgetHandler.configData["Auto Group"] = {}
 				end
@@ -9677,7 +9350,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("QuickStartSuggestions", 1) == 1,
 			description = BAR.I18N("ui.settings.option.quickstartsuggestions_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("QuickStartSuggestions", value and 1 or 0)
 				if WG.quickStart and WG.quickStart.setAutoGenerateSuggestions then
 					WG.quickStart.setAutoGenerateSuggestions(value)
@@ -9726,8 +9399,8 @@ function init()
 			},
 			value = squadPreset.index[squadPreset.get()] or 1,
 			description = BAR.I18N("ui.settings.option.squadSelection_preset_descr"),
-			onload = function(i)
-				options[i].value = squadPreset.index[squadPreset.get()] or 1
+			onload = function(option)
+				option.value = squadPreset.index[squadPreset.get()] or 1
 			end,
 			onchange = function(_, value)
 				-- Toggles widgets, so it schedules the rebuild for next frame rather than rebuilding here. See squadPreset.apply().
@@ -9741,24 +9414,15 @@ function init()
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.squadSelection_cyclingToNextSquad"),
 			type = "bool",
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getCyclingToNextSquad ~= nil
-				and WG["squadselection"].getCyclingToNextSquad()
-			),
+			value = false,
 			description = BAR.I18N("ui.settings.option.squadSelection_cyclingToNextSquad_descr"),
-			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_cyclingToNextSquad", { "cyclingToNextSquad" })
-			end,
-			onchange = function(_, value)
-				saveOptionValue(
-					"Squad Selection",
-					"squadselection",
-					"setCyclingToNextSquad",
-					{ "cyclingToNextSquad" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Squad Selection",
+				"cyclingToNextSquad",
+				api = "squadselection",
+				get = "getCyclingToNextSquad",
+				set = "setCyclingToNextSquad",
+			},
 		},
 
 		{
@@ -9767,24 +9431,15 @@ function init()
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.squadSelection_leftClickSelectsSquad"),
 			type = "bool",
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getLeftClickSelectsSquad ~= nil
-				and WG["squadselection"].getLeftClickSelectsSquad()
-			),
+			value = false,
 			description = BAR.I18N("ui.settings.option.squadSelection_leftClickSelectsSquad_descr"),
-			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_leftClickSelectsSquad", { "leftClickSelectsSquad" })
-			end,
-			onchange = function(_, value)
-				saveOptionValue(
-					"Squad Selection",
-					"squadselection",
-					"setLeftClickSelectsSquad",
-					{ "leftClickSelectsSquad" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Squad Selection",
+				"leftClickSelectsSquad",
+				api = "squadselection",
+				get = "getLeftClickSelectsSquad",
+				set = "setLeftClickSelectsSquad",
+			},
 		},
 
 		{
@@ -9800,7 +9455,7 @@ function init()
 				and WG["squadselection"].getLeftClickAlternativeSelection()
 			),
 			description = BAR.I18N("ui.settings.option.squadSelection_leftClickAlternativeSelection_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData(
 					"Squad Selection",
 					"squad_leftClickAlternativeSelection",
@@ -9837,7 +9492,7 @@ function init()
 				or (WG["squadselection"].getCtrlRightClickDragCreatesSquad() and 4)
 				or 1,
 			description = BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_descr"),
-			onload = function(i)
+			onload = function(option)
 				local v = 1
 				if WG["squadselection"] ~= nil then
 					if WG["squadselection"].getRightClickSquadCreate() then
@@ -9848,7 +9503,7 @@ function init()
 						v = 4
 					end
 				end
-				options[i].value = v
+				option.value = v
 			end,
 			onchange = function(_, value)
 				saveOptionValue(
@@ -9881,24 +9536,15 @@ function init()
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.squadSelection_rightClickMovesSquad"),
 			type = "bool",
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getRightClickMovesSquad ~= nil
-				and WG["squadselection"].getRightClickMovesSquad()
-			),
+			value = false,
 			description = BAR.I18N("ui.settings.option.squadSelection_rightClickMovesSquad_descr"),
-			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_rightClickMovesSquad", { "rightClickMovesSquad" })
-			end,
-			onchange = function(_, value)
-				saveOptionValue(
-					"Squad Selection",
-					"squadselection",
-					"setRightClickMovesSquad",
-					{ "rightClickMovesSquad" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Squad Selection",
+				"rightClickMovesSquad",
+				api = "squadselection",
+				get = "getRightClickMovesSquad",
+				set = "setRightClickMovesSquad",
+			},
 		},
 
 		-- Synthetic select owning the rightClickMoveControlsReserves boolean.
@@ -9920,7 +9566,7 @@ function init()
 				and 2
 			) or 1,
 			description = BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_descr"),
-			onload = function(i)
+			onload = function(option)
 				local v = 1
 				if
 					WG["squadselection"] ~= nil
@@ -9929,7 +9575,7 @@ function init()
 				then
 					v = 2
 				end
-				options[i].value = v
+				option.value = v
 			end,
 			onchange = function(_, value)
 				saveOptionValue(
@@ -9948,24 +9594,15 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.squadSelection_mergeIntoReserves"),
 			type = "bool",
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getMergeIntoReserves ~= nil
-				and WG["squadselection"].getMergeIntoReserves()
-			),
+			value = false,
 			description = BAR.I18N("ui.settings.option.squadSelection_mergeIntoReserves_descr"),
-			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_mergeIntoReserves", { "mergeIntoReserves" })
-			end,
-			onchange = function(_, value)
-				saveOptionValue(
-					"Squad Selection",
-					"squadselection",
-					"setMergeIntoReserves",
-					{ "mergeIntoReserves" },
-					value
-				)
-			end,
+			widgetConfig = {
+				"Squad Selection",
+				"mergeIntoReserves",
+				api = "squadselection",
+				get = "getMergeIntoReserves",
+				set = "setMergeIntoReserves",
+			},
 		},
 
 		{
@@ -9977,18 +9614,15 @@ function init()
 			min = 1,
 			max = 9,
 			step = 1,
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getMruSize ~= nil
-				and WG["squadselection"].getMruSize()
-			) or 3,
+			value = 3,
 			description = BAR.I18N("ui.settings.option.squadSelection_mruSize_descr"),
-			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_mruSize", { "mruSize" })
-			end,
-			onchange = function(_, value)
-				saveOptionValue("Squad Selection", "squadselection", "setMruSize", { "mruSize" }, value)
-			end,
+			widgetConfig = {
+				"Squad Selection",
+				"mruSize",
+				api = "squadselection",
+				get = "getMruSize",
+				set = "setMruSize",
+			},
 		},
 
 		{
@@ -10003,7 +9637,7 @@ function init()
 				and WG["squadselection"].getExcludeConstructors()
 			),
 			description = BAR.I18N("ui.settings.option.squadSelection_excludeConstructors_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Squad Selection", "squad_excludeConstructors", { "excludeConstructors" })
 			end,
 			onchange = function(_, value)
@@ -10032,7 +9666,7 @@ function init()
 				and WG["squadselection"].getExcludeResurrectionUnits()
 			),
 			description = BAR.I18N("ui.settings.option.squadSelection_excludeResurrectionUnits_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Squad Selection", "squad_excludeResurrectionUnits", { "excludeResurrectionUnits" })
 			end,
 			onchange = function(_, value)
@@ -10061,7 +9695,7 @@ function init()
 				and WG["squadselection"].getExcludeCombatEngineers()
 			),
 			description = BAR.I18N("ui.settings.option.squadSelection_excludeCombatEngineers_descr"),
-			onload = function(i)
+			onload = function(option)
 				loadWidgetData("Squad Selection", "squad_excludeCombatEngineers", { "excludeCombatEngineers" })
 			end,
 			onchange = function(_, value)
@@ -10092,6 +9726,7 @@ function init()
 			parent = "label_teamcolors",
 			group = "accessibility",
 			category = types.basic,
+			available = anonymousMode ~= "disabled",
 			name = BAR.I18N("ui.settings.option.anonymous_r"),
 			type = "slider",
 			min = 0,
@@ -10099,7 +9734,7 @@ function init()
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("anonymousColorR", 255)),
 			description = BAR.I18N("ui.settings.option.anonymous_descr"),
-			onchange = function(i, value, force)
+			onchange = function(option, value, force)
 				if force then
 					Spring.SetConfigInt("anonymousColorR", value)
 					Spring.SendCommands("luarules reloadluaui")
@@ -10114,6 +9749,7 @@ function init()
 			parent = "label_teamcolors",
 			group = "accessibility",
 			category = types.basic,
+			available = anonymousMode ~= "disabled",
 			name = BAR.I18N("ui.settings.option.anonymous_g"),
 			type = "slider",
 			min = 0,
@@ -10121,7 +9757,7 @@ function init()
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("anonymousColorG", 0)),
 			description = BAR.I18N("ui.settings.option.anonymous_descr"),
-			onchange = function(i, value, force)
+			onchange = function(option, value, force)
 				if force then
 					Spring.SetConfigInt("anonymousColorG", value)
 					Spring.SendCommands("luarules reloadluaui")
@@ -10136,6 +9772,7 @@ function init()
 			parent = "label_teamcolors",
 			group = "accessibility",
 			category = types.basic,
+			available = anonymousMode ~= "disabled",
 			name = BAR.I18N("ui.settings.option.anonymous_b"),
 			type = "slider",
 			min = 0,
@@ -10143,7 +9780,7 @@ function init()
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("anonymousColorB", 0)),
 			description = BAR.I18N("ui.settings.option.anonymous_descr"),
-			onchange = function(i, value, force)
+			onchange = function(option, value, force)
 				if force then
 					Spring.SetConfigInt("anonymousColorB", value)
 					Spring.SendCommands("luarules reloadluaui")
@@ -10161,7 +9798,7 @@ function init()
 			type = "bool",
 			value = tonumber(Spring.GetConfigInt("SimpleTeamColors", 0) or 0) == 1,
 			description = BAR.I18N("ui.settings.option.simpleteamcolors_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColors", (value and 1 or 0))
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
@@ -10175,9 +9812,9 @@ function init()
 			name = BAR.I18N("ui.settings.option.simpleteamcolors_reset"),
 			type = "bool",
 			value = false,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColorsUseGradient", 0)
-				options[getOptionByID("simpleteamcolors_use_gradient")].value = false
+				getOption("simpleteamcolors_use_gradient").value = false
 				for id, default in pairs({
 					simpleteamcolors_player_r = { "SimpleTeamColorsPlayerR", 0 },
 					simpleteamcolors_player_g = { "SimpleTeamColorsPlayerG", 77 },
@@ -10190,9 +9827,9 @@ function init()
 					simpleteamcolors_enemy_b = { "SimpleTeamColorsEnemyB", 5 },
 				}) do
 					Spring.SetConfigInt(default[1], default[2])
-					options[getOptionByID(id)].value = default[2]
+					getOption(id).value = default[2]
 				end
-				options[i].value = false -- a button, not a setting
+				option.value = false -- a button, not a setting
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
@@ -10204,7 +9841,7 @@ function init()
 			name = BAR.I18N("ui.settings.option.simpleteamcolors_use_gradient"),
 			type = "bool",
 			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) or 0) == 1,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColorsUseGradient", (value and 1 or 0))
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
@@ -10218,7 +9855,7 @@ function init()
 			type = "bool",
 			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsFactionSpecific", 0) or 0) == 1,
 			description = BAR.I18N("ui.settings.option.simpleteamcolorsfactionspecific_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColorsFactionSpecific", (value and 1 or 0))
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
@@ -10234,7 +9871,7 @@ function init()
 			max = 255,
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColorsPlayerR", value)
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
@@ -10250,7 +9887,7 @@ function init()
 			max = 255,
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColorsPlayerG", value)
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
@@ -10266,7 +9903,7 @@ function init()
 			max = 255,
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColorsPlayerB", value)
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
@@ -10283,7 +9920,7 @@ function init()
 			max = 255,
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColorsAllyR", value)
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
@@ -10299,7 +9936,7 @@ function init()
 			max = 255,
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColorsAllyG", value)
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
@@ -10315,7 +9952,7 @@ function init()
 			max = 255,
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColorsAllyB", value)
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
@@ -10332,7 +9969,7 @@ function init()
 			max = 255,
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColorsEnemyR", value)
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
@@ -10348,7 +9985,7 @@ function init()
 			max = 255,
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColorsEnemyG", value)
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
@@ -10364,7 +10001,7 @@ function init()
 			max = 255,
 			step = 1,
 			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("SimpleTeamColorsEnemyB", value)
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
@@ -10379,7 +10016,7 @@ function init()
 			type = "bool",
 			value = widgetHandler.allowUserWidgets,
 			description = BAR.I18N("ui.settings.option.customwidgets_descr"),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				widgetHandler.__allowUserWidgets = value
 				Spring.SendCommands("luarules reloadluaui")
 			end,
@@ -10403,8 +10040,8 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.restart_descr"),
-			onchange = function(i, value)
-				options[getOptionByID("restart")].value = false
+			onchange = function(option, value)
+				option.value = false
 				Spring.Restart("", startScript)
 			end,
 		},
@@ -10412,12 +10049,13 @@ function init()
 			id = "restart_with_state",
 			group = "dev",
 			category = types.dev,
+			available = isSinglePlayer,
 			name = BAR.I18N("ui.settings.option.restart_with_state"),
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.restart_with_state_descr"),
-			onchange = function(i, value)
-				options[getOptionByID("restart_with_state")].value = false
+			onchange = function(option, value)
+				option.value = false
 				Spring.SendLuaRulesMsg("restart_with_state")
 			end,
 		},
@@ -10447,7 +10085,7 @@ function init()
 			name = BAR.I18N("ui.settings.option.profiler_gadget"),
 			type = "bool",
 			value = false,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SendCommands("luarules profile")
 			end,
 		},
@@ -10458,11 +10096,9 @@ function init()
 			category = types.dev,
 			name = BAR.I18N("ui.settings.option.profiler_sort_by_load"),
 			type = "bool",
-			value = Spring.GetConfigInt("profiler_sort_by_load", 1) == 1,
+			value = true,
 			description = BAR.I18N("ui.settings.option.profiler_sort_by_load_descr"),
-			onchange = function(i, value)
-				Spring.SetConfigInt("profiler_sort_by_load", value and 1 or 0)
-			end,
+			configInt = "profiler_sort_by_load",
 		},
 		{
 			id = "profiler_averagetime",
@@ -10474,11 +10110,9 @@ function init()
 			min = 0.1,
 			max = 10,
 			step = 0.1,
-			value = Spring.GetConfigFloat("profiler_averagetime", 2),
+			value = 2,
 			description = BAR.I18N("ui.settings.option.profiler_averagetime_descr"),
-			onchange = function(i, value)
-				Spring.SetConfigFloat("profiler_averagetime", value)
-			end,
+			configFloat = "profiler_averagetime",
 		},
 		{
 			id = "framegrapher",
@@ -10499,7 +10133,7 @@ function init()
 			type = "bool",
 			value = false,
 			description = "",
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SendCommands("DebugColVol " .. (value and "1" or "0"))
 			end,
 		},
@@ -10511,8 +10145,8 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.echocamerastate_descr"),
-			onchange = function(i, value)
-				options[getOptionByID("echocamerastate")].value = false
+			onchange = function(option, value)
+				option.value = false
 				Spring.Echo(Spring.GetCameraState())
 			end,
 		},
@@ -10530,11 +10164,9 @@ function init()
 			category = types.dev,
 			name = BAR.I18N("ui.settings.option.storedefaultsettings"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("StoreDefaultSettings", 0) or 0) == 1,
+			value = false,
 			description = BAR.I18N("ui.settings.option.storedefaultsettings_descr"),
-			onchange = function(i, value)
-				Spring.SetConfigInt("StoreDefaultSettings", (value and 1 or 0))
-			end,
+			configInt = "StoreDefaultSettings",
 		},
 
 		{
@@ -10567,7 +10199,7 @@ function init()
 			type = "select",
 			options = devLanguageNames,
 			value = devLanguageCodes[BAR.I18N.getLocale()],
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local devLanguage = devLanguageCodes[value]
 				WG.language.setLanguage(devLanguage)
 			end,
@@ -10581,17 +10213,16 @@ function init()
 			options = {},
 			value = 1,
 			description = BAR.I18N("ui.settings.option.font_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				if VFS.FileExists("fonts/" .. options[i].optionsFont[value]) then
-					Spring.SetConfigString("bar_font", options[i].optionsFont[value])
+			onchange = function(option, value)
+				if VFS.FileExists("fonts/" .. option.optionsFont[value]) then
+					Spring.SetConfigString("bar_font", option.optionsFont[value])
 					Spring.SendCommands("luarules reloadluaui")
 				end
 			end,
 		},
 		{
 			id = "font2",
-			parent = "font",
+			--parent = "font",
 			group = "dev",
 			category = types.dev,
 			name = BAR.I18N("ui.settings.option.font2"),
@@ -10599,10 +10230,9 @@ function init()
 			options = {},
 			value = 1,
 			description = BAR.I18N("ui.settings.option.font2_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				if VFS.FileExists("fonts/" .. options[i].optionsFont[value]) then
-					Spring.SetConfigString("bar_font2", options[i].optionsFont[value])
+			onchange = function(option, value)
+				if VFS.FileExists("fonts/" .. option.optionsFont[value]) then
+					Spring.SetConfigString("bar_font2", option.optionsFont[value])
 					Spring.SendCommands("luarules reloadluaui")
 				end
 			end,
@@ -10612,70 +10242,70 @@ function init()
 		--{ id = "label_dev_unit_spacer", group = "dev", category = types.dev },
 		--
 		--{ id = "tonemapA", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.tonemap') .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigFloat("tonemapA", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
 		--{ id = "tonemapB", group = "dev", category = types.dev, name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 2, step = 0.01, value = Spring.GetConfigFloat("tonemapB", 0.75), description = "",
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigFloat("tonemapB", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
 		--{ id = "tonemapC", group = "dev", category = types.dev, name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 5, step = 0.01, value = Spring.GetConfigFloat("tonemapC", 3.5), description = "",
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigFloat("tonemapC", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
 		--{ id = "tonemapD", group = "dev", category = types.dev, name = widgetOptionColor .. "   4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 0.85), description = "",
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigFloat("tonemapD", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
 		--{ id = "tonemapE", group = "dev", category = types.dev, name = widgetOptionColor .. "   5", type = "slider", min = 0.75, max = 1.5, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.0), description = "",
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigFloat("tonemapE", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
 		--{ id = "envAmbient", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.envAmbient'), type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.25), description = "",
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigFloat("envAmbient", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
 		--{ id = "unitSunMult", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.unitSunMult'), type = "slider", min = 0.7, max = 1.6, step = 0.01, value = Spring.GetConfigFloat("unitSunMult", 1.0), description = "",
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigFloat("unitSunMult", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
 		--{ id = "unitExposureMult", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.unitExposureMult'), type = "slider", min = 0.6, max = 1.25, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigFloat("unitExposureMult", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
 		--{ id = "modelGamma", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.modelGamma'), type = "slider", min = 0.7, max = 1.7, step = 0.01, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigFloat("modelGamma", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
 		--{ id = "tonemapDefaults", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.tonemapDefaults'), type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetConfigFloat("tonemapA", 4.75)
 		--	  Spring.SetConfigFloat("tonemapB", 0.75)
 		--	  Spring.SetConfigFloat("tonemapC", 3.5)
@@ -10685,18 +10315,18 @@ function init()
 		--	  Spring.SetConfigFloat("unitSunMult", 1.0)
 		--	  Spring.SetConfigFloat("unitExposureMult", 1.0)
 		--	  Spring.SetConfigFloat("modelGamma", 1.0)
-		--	  options[getOptionByID('tonemapA')].value = Spring.GetConfigFloat("tonemapA")
-		--	  options[getOptionByID('tonemapB')].value = Spring.GetConfigFloat("tonemapB")
-		--	  options[getOptionByID('tonemapC')].value = Spring.GetConfigFloat("tonemapC")
-		--	  options[getOptionByID('tonemapD')].value = Spring.GetConfigFloat("tonemapD")
-		--	  options[getOptionByID('tonemapE')].value = Spring.GetConfigFloat("tonemapE")
-		--	  options[getOptionByID('envAmbient')].value = Spring.GetConfigFloat("envAmbient")
-		--	  options[getOptionByID('unitSunMult')].value = Spring.GetConfigFloat("unitSunMult")
-		--	  options[getOptionByID('unitExposureMult')].value = Spring.GetConfigFloat("unitExposureMult")
-		--	  options[getOptionByID('modelGamma')].value = Spring.GetConfigFloat("modelGamma")
+		--	  getOption('tonemapA').value = Spring.GetConfigFloat("tonemapA")
+		--	  getOption('tonemapB').value = Spring.GetConfigFloat("tonemapB")
+		--	  getOption('tonemapC').value = Spring.GetConfigFloat("tonemapC")
+		--	  getOption('tonemapD').value = Spring.GetConfigFloat("tonemapD")
+		--	  getOption('tonemapE').value = Spring.GetConfigFloat("tonemapE")
+		--	  getOption('envAmbient').value = Spring.GetConfigFloat("envAmbient")
+		--	  getOption('unitSunMult').value = Spring.GetConfigFloat("unitSunMult")
+		--	  getOption('unitExposureMult').value = Spring.GetConfigFloat("unitExposureMult")
+		--	  getOption('modelGamma').value = Spring.GetConfigFloat("modelGamma")
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
-		--	  options[getOptionByID('tonemapDefaults')].value = false
+		--	  getOption('tonemapDefaults').value = false
 		--  end,
 		--},
 
@@ -10718,16 +10348,16 @@ function init()
 			max = 0.9999,
 			step = 0.0001,
 			value = select(2, gl.GetSun("pos")),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local sunX, sunY, sunZ = gl.GetSun("pos")
 				sunY = value
-				if sunY < options[getOptionByID("sun_y")].min then
-					sunY = options[getOptionByID("sun_y")].min
+				if sunY < option.min then
+					sunY = option.min
 				end
-				if sunY > options[getOptionByID("sun_y")].max then
-					sunY = options[getOptionByID("sun_y")].max
+				if sunY > option.max then
+					sunY = option.max
 				end
-				options[getOptionByID("sun_y")].value = sunY
+				option.value = sunY
 				Spring.SetSunDirection(sunX, sunY, sunZ)
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting({
@@ -10748,16 +10378,16 @@ function init()
 			max = 0.9999,
 			step = 0.0001,
 			value = select(1, gl.GetSun("pos")),
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local sunX, sunY, sunZ = gl.GetSun("pos")
 				sunX = value
-				if sunX < options[getOptionByID("sun_x")].min then
-					sunX = options[getOptionByID("sun_x")].min
+				if sunX < option.min then
+					sunX = option.min
 				end
-				if sunX > options[getOptionByID("sun_x")].max then
-					sunX = options[getOptionByID("sun_x")].max
+				if sunX > option.max then
+					sunX = option.max
 				end
-				options[getOptionByID("sun_x")].value = sunX
+				option.value = sunX
 				Spring.SetSunDirection(sunX, sunY, sunZ)
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting({
@@ -10778,17 +10408,16 @@ function init()
 			max = 0.9999,
 			step = 0.0001,
 			value = select(3, gl.GetSun("pos")),
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local sunX, sunY, sunZ = gl.GetSun("pos")
 				sunZ = value
-				if sunZ < options[getOptionByID("sun_z")].min then
-					sunZ = options[getOptionByID("sun_z")].min
+				if sunZ < option.min then
+					sunZ = option.min
 				end
-				if sunZ > options[getOptionByID("sun_z")].max then
-					sunZ = options[getOptionByID("sun_z")].max
+				if sunZ > option.max then
+					sunZ = option.max
 				end
-				options[getOptionByID("sun_z")].value = sunZ
+				option.value = sunZ
 				Spring.SetSunDirection(sunX, sunY, sunZ)
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting({
@@ -10806,12 +10435,11 @@ function init()
 			name = BAR.I18N("ui.settings.option.sun_reset"),
 			type = "bool",
 			value = false,
-			onload = function(i) end,
-			onchange = function(i, value)
-				options[getOptionByID("sun_x")].value = defaultMapSunPos[1]
-				options[getOptionByID("sun_y")].value = defaultMapSunPos[2]
-				options[getOptionByID("sun_z")].value = defaultMapSunPos[3]
-				options[getOptionByID("sun_reset")].value = false
+			onchange = function(option, value)
+				getOption("sun_x").value = defaultMapSunPos[1]
+				getOption("sun_y").value = defaultMapSunPos[2]
+				getOption("sun_z").value = defaultMapSunPos[3]
+				option.value = false
 				Spring.SetSunDirection(defaultMapSunPos[1], defaultMapSunPos[2], defaultMapSunPos[3])
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting({
@@ -10833,10 +10461,9 @@ function init()
 			max = 1.99,
 			step = 0.01,
 			value = gl.GetAtmosphere("fogStart"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				if getOptionByID("fog_end") and value >= options[getOptionByID("fog_end")].value then
-					applyOptionValue(getOptionByID("fog_end"), value + 0.01)
+			onchange = function(option, value)
+				if getOption("fog_end") and value >= getOption("fog_end").value then
+					applyOptionValue(getOption("fog_end"), value + 0.01)
 				end
 				Spring.SetAtmosphere({ fogStart = value })
 			end,
@@ -10852,10 +10479,9 @@ function init()
 			max = 2,
 			step = 0.01,
 			value = gl.GetAtmosphere("fogEnd"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				if getOptionByID("fog_start") and value <= options[getOptionByID("fog_start")].value then
-					applyOptionValue(getOptionByID("fog_start"), value - 0.01)
+			onchange = function(option, value)
+				if getOption("fog_start") and value <= getOption("fog_start").value then
+					applyOptionValue(getOption("fog_start"), value - 0.01)
 				end
 				Spring.SetAtmosphere({ fogEnd = value })
 			end,
@@ -10869,12 +10495,11 @@ function init()
 			type = "bool",
 			value = false,
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
-				if getOptionByID("fog_start") then
-					options[getOptionByID("fog_start")].value = defaultMapFog.fogStart
-					options[getOptionByID("fog_end")].value = defaultMapFog.fogEnd
-					options[getOptionByID("fog_reset")].value = false
+			onchange = function(option, value)
+				if getOption("fog_start") then
+					getOption("fog_start").value = defaultMapFog.fogStart
+					getOption("fog_end").value = defaultMapFog.fogEnd
+					option.value = false
 				end
 				Spring.SetAtmosphere({ fogStart = defaultMapFog.fogStart, fogEnd = defaultMapFog.fogEnd })
 			end,
@@ -10892,8 +10517,7 @@ function init()
 			step = 0.01,
 			value = select(1, gl.GetAtmosphere("fogColor")),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local fogColor = { gl.GetAtmosphere("fogColor") }
 				Spring.SetAtmosphere({ fogColor = { value, fogColor[2], fogColor[3], fogColor[4] } })
 			end,
@@ -10910,8 +10534,7 @@ function init()
 			step = 0.01,
 			value = select(2, gl.GetAtmosphere("fogColor")),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local fogColor = { gl.GetAtmosphere("fogColor") }
 				Spring.SetAtmosphere({ fogColor = { fogColor[1], value, fogColor[3], fogColor[4] } })
 			end,
@@ -10928,8 +10551,7 @@ function init()
 			step = 0.01,
 			value = select(3, gl.GetAtmosphere("fogColor")),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local fogColor = { gl.GetAtmosphere("fogColor") }
 				Spring.SetAtmosphere({ fogColor = { fogColor[1], fogColor[2], value, fogColor[4] } })
 			end,
@@ -10943,12 +10565,11 @@ function init()
 			type = "bool",
 			value = false,
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
-				options[getOptionByID("fog_r")].value = defaultMapFog.fogColor[1]
-				options[getOptionByID("fog_g")].value = defaultMapFog.fogColor[2]
-				options[getOptionByID("fog_b")].value = defaultMapFog.fogColor[3]
-				options[getOptionByID("fog_color_reset")].value = false
+			onchange = function(option, value)
+				getOption("fog_r").value = defaultMapFog.fogColor[1]
+				getOption("fog_g").value = defaultMapFog.fogColor[2]
+				getOption("fog_b").value = defaultMapFog.fogColor[3]
+				option.value = false
 				Spring.SetAtmosphere({ fogColor = defaultMapFog.fogColor })
 				Spring.Echo("reset map fog color defaults")
 			end,
@@ -10962,10 +10583,10 @@ function init()
 			type = "bool",
 			value = false,
 			description = "",
-			onload = function(i)
-				options[i].value = gl.GetMapRendering("voidWater")
+			onload = function(option)
+				option.value = gl.GetMapRendering("voidWater")
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetMapRenderingParams({ voidWater = value })
 			end,
 		},
@@ -10977,10 +10598,10 @@ function init()
 			type = "bool",
 			value = false,
 			description = "",
-			onload = function(i)
-				options[i].value = gl.GetMapRendering("voidGround")
+			onload = function(option)
+				option.value = gl.GetMapRendering("voidGround")
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetMapRenderingParams({ voidGround = value })
 			end,
 		},
@@ -10993,10 +10614,10 @@ function init()
 			type = "bool",
 			value = false,
 			description = "",
-			onload = function(i)
-				options[i].value = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
+			onload = function(option)
+				option.value = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetMapRenderingParams({ splatDetailNormalDiffuseAlpha = value })
 			end,
 		},
@@ -11013,11 +10634,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, _, _, _ = gl.GetMapRendering("splatTexMults")
-				options[i].value = r
+				option.value = r
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexMults")
 				Spring.SetMapRenderingParams({ splatTexMults = { value, g, b, a } })
 			end,
@@ -11034,11 +10655,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, g, _, _ = gl.GetMapRendering("splatTexMults")
-				options[i].value = g
+				option.value = g
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexMults")
 				Spring.SetMapRenderingParams({ splatTexMults = { r, value, b, a } })
 			end,
@@ -11055,11 +10676,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, _, b, _ = gl.GetMapRendering("splatTexMults")
-				options[i].value = b
+				option.value = b
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexMults")
 				Spring.SetMapRenderingParams({ splatTexMults = { r, g, value, a } })
 			end,
@@ -11076,11 +10697,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, g, b, a = gl.GetMapRendering("splatTexMults")
-				options[i].value = a
+				option.value = a
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b, _ = gl.GetMapRendering("splatTexMults")
 				Spring.SetMapRenderingParams({ splatTexMults = { r, g, b, value } })
 			end,
@@ -11098,11 +10719,11 @@ function init()
 			step = 0.0001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, _, _, _ = gl.GetMapRendering("splatTexScales")
-				options[i].value = r
+				option.value = r
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexScales")
 				Spring.SetMapRenderingParams({ splatTexScales = { value, g, b, a } })
 			end,
@@ -11119,11 +10740,11 @@ function init()
 			step = 0.0001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, g, _, _ = gl.GetMapRendering("splatTexScales")
-				options[i].value = g
+				option.value = g
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexScales")
 				Spring.SetMapRenderingParams({ splatTexScales = { r, value, b, a } })
 			end,
@@ -11140,11 +10761,11 @@ function init()
 			step = 0.0001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, _, b, _ = gl.GetMapRendering("splatTexScales")
-				options[i].value = b
+				option.value = b
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexScales")
 				Spring.SetMapRenderingParams({ splatTexScales = { r, g, value, a } })
 			end,
@@ -11161,11 +10782,11 @@ function init()
 			step = 0.0001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, g, b, a = gl.GetMapRendering("splatTexScales")
-				options[i].value = a
+				option.value = a
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b, _ = gl.GetMapRendering("splatTexScales")
 				Spring.SetMapRenderingParams({ splatTexScales = { r, g, b, value } })
 			end,
@@ -11182,11 +10803,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local groundshadowDensity = gl.GetSun("shadowDensity", "ground")
-				options[i].value = groundshadowDensity
+				option.value = groundshadowDensity
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetSunLighting({ groundShadowDensity = value })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -11203,11 +10824,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local groundshadowDensity = gl.GetSun("shadowDensity", "unit")
-				options[i].value = groundshadowDensity
+				option.value = groundshadowDensity
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetSunLighting({ modelShadowDensity = value })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -11225,11 +10846,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, _, _ = gl.GetSun("ambient")
-				options[i].value = r
+				option.value = r
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetSun("ambient")
 				Spring.SetSunLighting({ groundAmbientColor = { value, g, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11247,11 +10868,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, g, _ = gl.GetSun("ambient")
-				options[i].value = g
+				option.value = g
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetSun("ambient")
 				Spring.SetSunLighting({ groundAmbientColor = { r, value, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11269,11 +10890,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, g, b = gl.GetSun("ambient")
-				options[i].value = b
+				option.value = b
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, _ = gl.GetSun("ambient")
 				Spring.SetSunLighting({ groundAmbientColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
@@ -11292,11 +10913,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, _, _ = gl.GetSun("diffuse")
-				options[i].value = r
+				option.value = r
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetSun("diffuse")
 				Spring.SetSunLighting({ groundDiffuseColor = { value, g, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11314,11 +10935,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, g, _ = gl.GetSun("diffuse")
-				options[i].value = g
+				option.value = g
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetSun("diffuse")
 				Spring.SetSunLighting({ groundDiffuseColor = { r, value, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11336,11 +10957,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, g, b = gl.GetSun("diffuse")
-				options[i].value = b
+				option.value = b
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, _ = gl.GetSun("diffuse")
 				Spring.SetSunLighting({ groundDiffuseColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
@@ -11359,11 +10980,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, _, _ = gl.GetSun("specular")
-				options[i].value = r
+				option.value = r
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetSun("specular")
 				Spring.SetSunLighting({ groundSpecularColor = { value, g, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11381,11 +11002,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, g, _ = gl.GetSun("specular")
-				options[i].value = g
+				option.value = g
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetSun("specular")
 				Spring.SetSunLighting({ groundSpecularColor = { r, value, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11403,11 +11024,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, g, b = gl.GetSun("specular")
-				options[i].value = b
+				option.value = b
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, _ = gl.GetSun("specular")
 				Spring.SetSunLighting({ groundSpecularColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
@@ -11426,11 +11047,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, _, _ = gl.GetSun("ambient", "unit")
-				options[i].value = r
+				option.value = r
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetSun("ambient", "unit")
 				Spring.SetSunLighting({ unitAmbientColor = { value, g, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11448,11 +11069,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, g, _ = gl.GetSun("ambient", "unit")
-				options[i].value = g
+				option.value = g
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetSun("ambient", "unit")
 				Spring.SetSunLighting({ unitAmbientColor = { r, value, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11470,11 +11091,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, g, b = gl.GetSun("ambient", "unit")
-				options[i].value = b
+				option.value = b
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, _ = gl.GetSun("ambient", "unit")
 				Spring.SetSunLighting({ unitAmbientColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
@@ -11493,11 +11114,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, _, _ = gl.GetSun("diffuse", "unit")
-				options[i].value = r
+				option.value = r
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetSun("diffuse", "unit")
 				Spring.SetSunLighting({ unitDiffuseColor = { value, g, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11515,11 +11136,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, g, _ = gl.GetSun("diffuse", "unit")
-				options[i].value = g
+				option.value = g
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetSun("diffuse", "unit")
 				Spring.SetSunLighting({ unitDiffuseColor = { r, value, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11537,11 +11158,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, g, b = gl.GetSun("diffuse", "unit")
-				options[i].value = b
+				option.value = b
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, _ = gl.GetSun("diffuse", "unit")
 				Spring.SetSunLighting({ unitDiffuseColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
@@ -11560,11 +11181,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, _, _ = gl.GetSun("specular", "unit")
-				options[i].value = r
+				option.value = r
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetSun("specular", "unit")
 				Spring.SetSunLighting({ unitSpecularColor = { value, g, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11582,11 +11203,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, g, _ = gl.GetSun("specular", "unit")
-				options[i].value = g
+				option.value = g
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetSun("specular", "unit")
 				Spring.SetSunLighting({ unitSpecularColor = { r, value, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11604,11 +11225,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, g, b = gl.GetSun("specular", "unit")
-				options[i].value = b
+				option.value = b
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, _ = gl.GetSun("specular", "unit")
 				Spring.SetSunLighting({ unitSpecularColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
@@ -11627,11 +11248,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, _, _ = gl.GetAtmosphere("sunColor")
-				options[i].value = r
+				option.value = r
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetAtmosphere("sunColor")
 				Spring.SetAtmosphere({ sunColor = { value, g, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11649,11 +11270,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, g, _ = gl.GetAtmosphere("sunColor")
-				options[i].value = g
+				option.value = g
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetAtmosphere("sunColor")
 				Spring.SetAtmosphere({ sunColor = { r, value, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11671,11 +11292,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, g, b = gl.GetAtmosphere("sunColor")
-				options[i].value = b
+				option.value = b
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, _ = gl.GetAtmosphere("sunColor")
 				Spring.SetAtmosphere({ sunColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
@@ -11694,11 +11315,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, _, _ = gl.GetAtmosphere("skyColor")
-				options[i].value = r
+				option.value = r
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetAtmosphere("skyColor")
 				Spring.SetAtmosphere({ skyColor = { value, g, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11716,11 +11337,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, g, _ = gl.GetAtmosphere("skyColor")
-				options[i].value = g
+				option.value = g
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, b = gl.GetAtmosphere("skyColor")
 				Spring.SetAtmosphere({ skyColor = { r, value, b } })
 				Spring.SendCommands("luarules updatesun")
@@ -11738,11 +11359,11 @@ function init()
 			step = 0.001,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local r, g, b = gl.GetAtmosphere("skyColor")
-				options[i].value = b
+				option.value = b
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local r, g, _ = gl.GetAtmosphere("skyColor")
 				Spring.SetAtmosphere({ skyColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
@@ -11757,9 +11378,8 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.sunlighting_reset_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				options[getOptionByID("sunlighting_reset")].value = false
+			onchange = function(option, value)
+				option.value = false
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting(defaultSunLighting)
 				Spring.Echo("reset ground/unit coloring")
@@ -11779,11 +11399,11 @@ function init()
 			step = 0.01,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
-				options[i].value = angle
+				option.value = angle
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
 				angle = value
 				Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
@@ -11801,11 +11421,11 @@ function init()
 			step = 0.01,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local x, _, _, _ = gl.GetAtmosphere("skyAxisAngle")
-				options[i].value = x
+				option.value = x
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
 				x = value
 				Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
@@ -11823,11 +11443,11 @@ function init()
 			step = 0.01,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, y, _, _ = gl.GetAtmosphere("skyAxisAngle")
-				options[i].value = y
+				option.value = y
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
 				y = value
 				Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
@@ -11845,11 +11465,11 @@ function init()
 			step = 0.01,
 			value = 0,
 			description = "",
-			onload = function(i)
+			onload = function(option)
 				local _, _, z, _ = gl.GetAtmosphere("skyAxisAngle")
-				options[i].value = z
+				option.value = z
 			end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
 				z = value
 				Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
@@ -11865,9 +11485,8 @@ function init()
 			type = "bool",
 			value = false,
 			description = BAR.I18N("ui.settings.option.sunlighting_reset_descr"),
-			onload = function(i) end,
-			onchange = function(i, value)
-				options[getOptionByID("skyaxisangle_reset")].value = false
+			onchange = function(option, value)
+				option.value = false
 				Spring.SetAtmosphere({ skyAxisAngle = defaultSkyAxisAngle })
 				Spring.Echo("reset skyAxisAngle atmosphere")
 				init()
@@ -11890,10 +11509,10 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterShoreWaves", 1) == 1,
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterShoreWaves", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				-- rebuilds the water from the config; /water 4 does nothing while it is already 4
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11904,11 +11523,10 @@ function init()
 			name = "dynamic waves",
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterDynamicWaves", 1) == 1,
-			description = "Springsettings.cfg config, Probably requires a restart",
-			onload = function(i) end,
-			onchange = function(i, value)
+			description = "Springsettings.cfg config",
+			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterDynamicWaves", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11919,11 +11537,10 @@ function init()
 			name = "endless",
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterEndlessOcean", 1) == 1,
-			description = "Springsettings.cfg config, Probably requires a restart",
-			onload = function(i) end,
-			onchange = function(i, value)
+			description = "Springsettings.cfg config",
+			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterEndlessOcean", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11934,11 +11551,10 @@ function init()
 			name = "occlusion query",
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterOcclusionQuery", 1) == 1,
-			description = "Springsettings.cfg config, Probably requires a restart",
-			onload = function(i) end,
-			onchange = function(i, value)
+			description = "Springsettings.cfg config",
+			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterOcclusionQuery", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11949,11 +11565,10 @@ function init()
 			name = "blur reflection",
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterBlurReflection", 1) == 1,
-			description = "Springsettings.cfg config, Probably requires a restart",
-			onload = function(i) end,
-			onchange = function(i, value)
+			description = "Springsettings.cfg config",
+			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterBlurReflection", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11967,11 +11582,10 @@ function init()
 			max = 16,
 			step = 1,
 			value = Spring.GetConfigFloat("BumpWaterAnisotropy", 0),
-			description = "Springsettings.cfg config, Probably requires a restart",
-			onload = function(i) end,
-			onchange = function(i, value)
+			description = "Springsettings.cfg config",
+			onchange = function(option, value)
 				Spring.SetConfigFloat("BumpWaterAnisotropy", value)
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11982,11 +11596,10 @@ function init()
 			name = "use depth texture",
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterUseDepthTexture", 1) == 1,
-			description = "Springsettings.cfg config, Probably requires a restart",
-			onload = function(i) end,
-			onchange = function(i, value)
+			description = "Springsettings.cfg config",
+			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterUseDepthTexture", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11997,11 +11610,10 @@ function init()
 			name = "use uniforms",
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterUseUniforms", 1) == 1,
-			description = "Springsettings.cfg config, Probably requires a restart",
-			onload = function(i) end,
-			onchange = function(i, value)
+			description = "Springsettings.cfg config",
+			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterUseUniforms", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 
@@ -12014,9 +11626,8 @@ function init()
 			name = "shorewaves",
 			type = "bool",
 			value = gl.GetWaterRendering("shoreWaves"),
-			description = "Springsettings.cfg config, Probably requires a restart",
-			onload = function(i) end,
-			onchange = function(i, value)
+			description = "",
+			onchange = function(option, value)
 				Spring.SetWaterParams({ shoreWaves = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12030,8 +11641,7 @@ function init()
 			type = "bool",
 			value = gl.GetWaterRendering("hasWaterPlane"),
 			description = "The WaterPlane is a single Quad beneath the map.\nIt should have the same color as the ocean floor to hide the map -> background boundary. Specifying waterPlaneColor in mapinfo.lua will turn this on.",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ hasWaterPlane = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12045,8 +11655,7 @@ function init()
 			type = "bool",
 			value = gl.GetWaterRendering("forceRendering"),
 			description = "Should the water be rendered even when minMapHeight>0.\nUse it to avoid the jumping of the outside-map water rendering (BumpWater: endlessOcean option) when combat explosions reach groundwater.",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ forceRendering = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12063,8 +11672,7 @@ function init()
 			step = 1,
 			value = gl.GetWaterRendering("repeatX"),
 			description = "water 0 texture repeat horizontal",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ repeatX = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12081,8 +11689,7 @@ function init()
 			step = 1,
 			value = gl.GetWaterRendering("repeatY"),
 			description = "water 0 texture repeat vertical",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ repeatY = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12099,17 +11706,16 @@ function init()
 			step = 0.001,
 			value = gl.GetWaterRendering("surfaceAlpha"),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ surfaceAlpha = value })
 				Spring.SendCommands("water 4")
 			end,
 		},
 		-- gl.GetWaterRendering("windSpeed") seems to not exist
 		--{ id = "water_windspeed", group = "dev", category = types.dev, name = widgetOptionColor .. "   windspeed", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("windSpeed"), description = "The speed of bumpwater tiles moving",
-		--  onload = function(i)
+		--  onload = function(option)
 		--  end,
-		--  onchange = function(i, value)
+		--  onchange = function(option, value)
 		--	  Spring.SetWaterParams({ windSpeed = value })
 		--	  Spring.SendCommands("water 4")
 		--  end,
@@ -12126,8 +11732,7 @@ function init()
 			step = 0.001,
 			value = gl.GetWaterRendering("ambientFactor"),
 			description = "How much ambient lighting the water surface gets (ideally very little)",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ ambientFactor = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12144,8 +11749,7 @@ function init()
 			step = 0.001,
 			value = gl.GetWaterRendering("diffuseFactor"),
 			description = "How strong the diffuse lighting should be on the water",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ diffuseFactor = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12162,8 +11766,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("specularFactor"),
 			description = "How much light should be reflected straight from the sun",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ specularFactor = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12180,8 +11783,7 @@ function init()
 			step = 0.1,
 			value = gl.GetWaterRendering("specularPower"),
 			description = "How polished the surface of the water is",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ specularPower = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12198,8 +11800,7 @@ function init()
 			step = 1,
 			value = gl.GetWaterRendering("perlinStartFreq"),
 			description = "The initial frequency of the bump map repetition rate. Larger numbers mean more tiles",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ perlinStartFreq = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12216,8 +11817,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("perlinLacunarity"),
 			description = "How much smaller each additional repetition of the normal map should be. Larger numbers mean smaller",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ perlinLacunarity = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12234,8 +11834,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("perlinAmplitude"),
 			description = "How strong each additional repetition of the normal map should be",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ perlinAmplitude = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12252,8 +11851,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("fresnelMin"),
 			description = "Minimum reflection strength, e.g. the reflectivity of the water when looking straight down on it",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ fresnelMin = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12270,8 +11868,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("fresnelMax"),
 			description = "Maximum reflection strength, the reflectivity of the water when looking parallel to the water plane",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ fresnelMax = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12288,8 +11885,7 @@ function init()
 			step = 0.1,
 			value = gl.GetWaterRendering("fresnelPower"),
 			description = "Determines how fast the reflection increases when going from straight down view to parallel.",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ fresnelPower = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12306,8 +11902,7 @@ function init()
 			step = 1.0,
 			value = gl.GetWaterRendering("numTiles"),
 			description = "How many (squared) Tiles does the `normalTexture` have?\nSuch Tiles are used when DynamicWaves are enabled in BumpWater, the more the better.\nCheck the example php script to generate such tiled bumpmaps.",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ numTiles = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12324,8 +11919,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("blurBase"),
 			description = "How much should the reflection be blurred",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ blurBase = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12342,8 +11936,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("blurExponent"),
 			description = "How much should the reflection be blurred",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ blurExponent = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12360,8 +11953,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("reflectionDistortion"),
 			description = "",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ reflectionDistortion = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12379,8 +11971,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("waveOffsetFactor"),
 			description = "Set this to 0.1 to make waves break shores not all at the same time",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ waveOffsetFactor = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12397,8 +11988,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("waveLength"),
 			description = "How long the waves are",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ waveLength = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12415,8 +12005,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("waveFoamDistortion"),
 			description = "How much the waters movement distorts the foam texture",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ waveFoamDistortion = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12433,8 +12022,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("waveFoamIntensity"),
 			description = "How strong the foam texture is",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ waveFoamIntensity = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12451,8 +12039,7 @@ function init()
 			step = 1.0,
 			value = gl.GetWaterRendering("causticsResolution"),
 			description = "The tiling rate of the caustics texture",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ causticsResolution = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12469,8 +12056,7 @@ function init()
 			step = 0.01,
 			value = gl.GetWaterRendering("causticsStrength"),
 			description = "How intense the caustics effects are",
-			onload = function(i) end,
-			onchange = function(i, value)
+			onchange = function(option, value)
 				Spring.SetWaterParams({ causticsStrength = value })
 				Spring.SendCommands("water 4")
 			end,
@@ -12485,13 +12071,24 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
+	options = table.filterArray(options, function(option)
+		return option.available ~= false
+	end)
+	indexOptions()
+	for _, option in ipairs(options) do
+		readBoundValue(option)
+	end
+	if devMode and not bindingsChecked then
+		checkBindings()
+	end
+
 	-- keeps the list without holes, so it stays in order and # and ipairs work on it
 	local function removeOptions(ids)
 		local remove = table.invert(ids)
 		options = table.filterArray(options, function(option)
 			return not remove[option.id]
 		end)
-		rebuildOptionIdIndex()
+		indexOptions()
 	end
 
 	if not isPotatoGpu and not devMode and not devUI then
@@ -12502,39 +12099,11 @@ function init()
 
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
-		local optionID = getOptionByID("tonemapDefaults")
-		if optionID then
-			applyOptionValue(optionID, true, true)
+		local tonemapDefaults = getOption("tonemapDefaults")
+		if tonemapDefaults then
+			applyOptionValue(tonemapDefaults, true, true)
 			resettedTonemapDefault = true
 		end
-	end
-
-	local localWidgetCount = 0
-	for name, data in pairs(widgetHandler.knownWidgets) do
-		if not data.fromZip then
-			localWidgetCount = localWidgetCount + 1
-		end
-	end
-
-	if devMode then
-		removeOptions({ "devmode", "label_ui_developer" })
-	end
-
-	if devMode or devUI or localWidgetCount == 0 then
-		removeOptions({ "widgetselector" })
-	end
-
-	if not GetWidgetToggleValue("Grid menu") then
-		removeOptions({
-			"gridmenu_alwaysreturn",
-			"gridmenu_autoselectfirst",
-			"gridmenu_labbuildmode",
-			"gridmenu_ctrlkeymodifier",
-			"gridmenu_shiftkeymodifier",
-		})
-	else
-		-- the grid menu has a fixed height
-		removeOptions({ "buildmenu_maxposy" })
 	end
 
 	-- Squad selection: the playstyle preset decides how much of the section is drawn. Off leaves just the preset select, Custom shows everything, and any other preset hides the rows it owns because it writes them itself.
@@ -12556,7 +12125,7 @@ function init()
 	end
 
 	if
-		spectatorHUDConfigOptions[options[getOptionByID("spectator_hud_config")].value]
+		spectatorHUDConfigOptions[getOption("spectator_hud_config").value]
 		~= BAR.I18N("ui.settings.option.spectator_hud_config_custom")
 	then
 		removeOptions({
@@ -12575,34 +12144,19 @@ function init()
 		})
 	end
 
-	if not BAR.Utilities.Gametype.GetCurrentHolidays().aprilfools then
-		removeOptions({ "soundtrackAprilFools" })
+	-- outside its event, an event soundtrack is switched back on
+	if not holidays.aprilfools then
 		Spring.SetConfigInt("UseSoundtrackAprilFools", 1)
-	else
-		removeOptions({ "soundtrackAprilFoolsPostEvent" })
 	end
-
-	if not BAR.Utilities.Gametype.GetCurrentHolidays().halloween then
-		removeOptions({ "soundtrackHalloween" })
+	if not holidays.halloween then
 		Spring.SetConfigInt("UseSoundtrackHalloween", 1)
-	else
-		removeOptions({ "soundtrackHalloweenPostEvent" })
 	end
-
-	if not BAR.Utilities.Gametype.GetCurrentHolidays().xmas then
-		removeOptions({ "soundtrackXmas" })
+	if not holidays.xmas then
 		Spring.SetConfigInt("UseSoundtrackXmas", 1)
-	else
-		removeOptions({ "soundtrackXmasPostEvent" })
-	end
-
-	-- hide English unit names toggle if using English
-	if BAR.I18N.getLocale() == "en" then
-		removeOptions({ "language_english_unit_names" })
 	end
 
 	-- add fonts
-	if getOptionByID("font") then
+	if getOption("font") then
 		local fonts = {}
 		local fontsFull = {}
 		local fontsn = {}
@@ -12630,40 +12184,33 @@ function init()
 			end
 		end
 
-		options[getOptionByID("font")].options = fonts
-		options[getOptionByID("font")].optionsFont = fontsFull
+		getOption("font").options = fonts
+		getOption("font").optionsFont = fontsFull
 		local fname = Spring.GetConfigString("bar_font", "Poppins-Regular.otf"):lower()
-		options[getOptionByID("font")].value =
-			getSelectKey(options[getOptionByID("font")], string.sub(fname, 1, string.len(fname) - 4))
+		getOption("font").value = getSelectKey(getOption("font"), string.sub(fname, 1, string.len(fname) - 4))
 
-		options[getOptionByID("font2")].options = fonts
-		options[getOptionByID("font2")].optionsFont = fontsFull
+		getOption("font2").options = fonts
+		getOption("font2").optionsFont = fontsFull
 		local fname = Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"):lower()
-		options[getOptionByID("font2")].value =
-			getSelectKey(options[getOptionByID("font2")], string.sub(fname, 1, string.len(fname) - 4))
+		getOption("font2").value = getSelectKey(getOption("font2"), string.sub(fname, 1, string.len(fname) - 4))
 	end
 
 	-- check if cus is disabled by auto disable cus widget (in case options widget has been reloaded)
-	if getOptionByID("sun_y") then
+	if getOption("sun_y") then
 		local sunX, sunY, sunZ = gl.GetSun("pos")
-		if sunY < options[getOptionByID("sun_y")].min then
-			Spring.SetSunDirection(sunX, options[getOptionByID("sun_y")].min, sunZ)
+		if sunY < getOption("sun_y").min then
+			Spring.SetSunDirection(sunX, getOption("sun_y").min, sunZ)
 		end
 	end
 
 	-- set minimal shadow opacity
-	if getOptionByID("shadows_opacity") then
-		if gl.GetSun("shadowDensity") < options[getOptionByID("shadows_opacity")].min then
+	if getOption("shadows_opacity") then
+		if gl.GetSun("shadowDensity") < getOption("shadows_opacity").min then
 			Spring.SetSunLighting({
-				groundShadowDensity = options[getOptionByID("shadows_opacity")].min,
-				modelShadowDensity = options[getOptionByID("shadows_opacity")].min,
+				groundShadowDensity = getOption("shadows_opacity").min,
+				modelShadowDensity = getOption("shadows_opacity").min,
 			})
 		end
-	end
-
-	-- remove anonymous color sliders
-	if anonymousMode == "disabled" then
-		removeOptions({ "anonymous_r", "anonymous_g", "anonymous_b" })
 	end
 
 	if Spring.GetGameFrame() == 0 then
@@ -12676,19 +12223,9 @@ function init()
 		Spring.SendCommands("water 0")
 	end
 
-	-- resolution then moves up a level, as sub-options of a removed option do
-	if #displayNames <= 1 then
-		removeOptions({ "display" })
-	end
-
-	-- only allow dualscreen-mode on single displays when super ultrawide screen or Multi Display option shows
-	if (#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == Spring.GetNumDisplays()) then
-		removeOptions({ "dualmode_enabled", "dualmode_left", "dualmode_minimap_aspectratio" })
-	end
-
 	-- reduce options for potatoes (skip in dev mode to keep all options available)
 	if (isPotatoGpu or isPotatoCpu) and not devMode and not devUI then
-		--local id = getOptionByID('shadowslider')
+		--local id = getOption('shadowslider')
 		--options[id].options = { 1, 2, 3 }
 		--if options[id].value > 3 then
 		--	options[id].value = 3
@@ -12704,19 +12241,19 @@ function init()
 
 		if isPotatoGpu then
 			-- limit available msaa levels to 'off' and 'x2'
-			if options[getOptionByID("msaa")] then
-				for k, v in pairs(options[getOptionByID("msaa")].options) do
+			if getOption("msaa") then
+				for k, v in pairs(getOption("msaa").options) do
 					if k >= 3 then
-						options[getOptionByID("msaa")].options[k] = nil
+						getOption("msaa").options[k] = nil
 					end
 				end
 			end
 
 			-- turn off and drop these effects with their sub-options
 			for _, ids in ipairs({ { "ssao", "ssao_strength", "ssao_quality" }, { "clouds", "clouds_opacity" } }) do
-				local id = getOptionByID(ids[1])
-				if id and GetWidgetToggleValue(options[id].widget) then
-					widgetHandler:DisableWidget(options[id].widget)
+				local effect = getOption(ids[1])
+				if effect and GetWidgetToggleValue(effect.widget) then
+					widgetHandler:DisableWidget(effect.widget)
 				end
 				removeOptions(ids)
 			end
@@ -12728,11 +12265,11 @@ function init()
 		end
 	elseif gpuMem >= 3000 then
 		if Spring.GetConfigInt("cus2", 1) ~= 1 then
-			local id = getOptionByID("cusgl4")
-			options[id].onchange(id, 1)
+			local cus = getOption("cusgl4")
+			cus.onchange(cus, 1)
 		end
 
-		--local id = getOptionByID('shadowslider')
+		--local id = getOption('shadowslider')
 		--options[id].options[1] = nil
 		--if options[id].value == 1 then
 		--	options[id].value = 2
@@ -12765,23 +12302,6 @@ function init()
 	end
 	removeOptions(unknownWidgetOptions)
 
-	-- detect AI
-	local aiDetected = false
-	local t = Spring.GetTeamList()
-	for _, teamID in ipairs(t) do
-		if select(4, Spring.GetTeamInfo(teamID, false)) then
-			aiDetected = true
-		end
-	end
-	if not aiDetected then
-		removeOptions({ "commandsfxfilterai" })
-	end
-
-	-- remove sound device selector if there is only 1 device
-	if not soundDevices[2] then
-		removeOptions({ "snddevice" })
-	end
-
 	-- add music tracks options
 	local trackList
 	if WG.music ~= nil then
@@ -12792,6 +12312,7 @@ function init()
 		local count = 0
 		local prevCategory = ""
 		local categoryID
+		local categories = 0
 		for i, option in ipairs(options) do
 			count = count + 1
 			newOptions[count] = option
@@ -12807,7 +12328,8 @@ function init()
 				for k, v in pairs(trackList) do
 					if prevCategory ~= v[1] then
 						prevCategory = v[1]
-						categoryID = "music_track_" .. v[2]
+						categories = categories + 1
+						categoryID = "music_category_" .. categories
 						count = count + 1
 						newOptions[count] =
 							{ id = categoryID, group = "sound", category = types.basic, name = v[1], type = "text" }
@@ -12816,6 +12338,7 @@ function init()
 					newOptions[count] = {
 						id = "music_track_" .. count,
 						parent = categoryID,
+						compact = true,
 						group = "sound",
 						category = types.basic,
 						name = v[2],
@@ -12835,10 +12358,11 @@ function init()
 			end
 		end
 		options = newOptions
+		indexOptions()
 	end
 
 	-- add sound notification sets
-	if getOptionByID("notifications_set") then
+	if getOption("notifications_set") then
 		local voiceset = Spring.GetConfigString("voiceset", "en/cephis")
 		local currentVoiceSetOption
 		local sets = {}
@@ -12868,9 +12392,9 @@ function init()
 		if setCount == 0 then
 			removeOptions({ "notifications_set", "notifications_spoken", "notifications_volume" })
 		else
-			options[getOptionByID("notifications_set")].options = sets
+			getOption("notifications_set").options = sets
 			if currentVoiceSetOption then
-				options[getOptionByID("notifications_set")].value = currentVoiceSetOption
+				getOption("notifications_set").value = currentVoiceSetOption
 			end
 		end
 	end
@@ -12898,13 +12422,14 @@ function init()
 						newOptions[count] = {
 							id = "notifications_notif_" .. v[1],
 							parent = "label_notif_messages",
+							compact = true,
 							group = "notif",
 							category = types.basic,
 							name = BAR.I18N(v[3]),
 							dimmed = v[4] == 0, -- no voice lines in this set
 							type = "bool",
 							value = v[2], --description = v[3] and Spring.I18N(v[3]) or "",
-							onchange = function(i, value)
+							onchange = function(_, value)
 								saveOptionValue(
 									"Notifications",
 									"notifications",
@@ -12924,6 +12449,7 @@ function init()
 			end
 		end
 		options = newOptions
+		indexOptions()
 	end
 
 	-- add auto cloak toggles
@@ -12974,13 +12500,14 @@ function init()
 							newOptions[count] = {
 								id = "autocloak_" .. k,
 								parent = "autocloak",
+								compact = true,
 								group = "game",
 								category = types.basic,
 								name = UnitDefs[k].translatedHumanName .. "  (" .. faction .. ")",
 								type = "bool",
 								value = v,
 								description = UnitDefs[k].translatedTooltip,
-								onchange = function(i, value)
+								onchange = function(_, value)
 									saveOptionValue(
 										"Auto Cloak Units",
 										"autocloak",
@@ -12997,11 +12524,12 @@ function init()
 			end
 		end
 		options = newOptions
+		indexOptions()
 	end
 
 	-- cursors
 	if WG.cursors ~= nil and WG.cursors.getsizemult then
-		options[getOptionByID("cursorsize")].value = WG.cursors.getsizemult()
+		getOption("cursorsize").value = WG.cursors.getsizemult()
 	else
 		removeOptions({ "cursorsize" })
 	end
@@ -13016,42 +12544,21 @@ function init()
 			"smartselect_includejammer",
 		})
 	else
-		options[getOptionByID("smartselect_includebuildings")].value = WG.smartselect.getIncludeBuildings()
-		options[getOptionByID("smartselect_includebuilders")].value = WG.smartselect.getIncludeBuilders()
-		options[getOptionByID("smartselect_includeresurrectors")].value = WG.smartselect.getIncludeResurrectors()
-		options[getOptionByID("smartselect_includeantinuke")].value = WG.smartselect.getIncludeAntinuke()
-		options[getOptionByID("smartselect_includeradar")].value = WG.smartselect.getIncludeRadar()
-		options[getOptionByID("smartselect_includejammer")].value = WG.smartselect.getIncludeJammer()
+		getOption("smartselect_includebuildings").value = WG.smartselect.getIncludeBuildings()
+		getOption("smartselect_includebuilders").value = WG.smartselect.getIncludeBuilders()
+		getOption("smartselect_includeresurrectors").value = WG.smartselect.getIncludeResurrectors()
+		getOption("smartselect_includeantinuke").value = WG.smartselect.getIncludeAntinuke()
+		getOption("smartselect_includeradar").value = WG.smartselect.getIncludeRadar()
+		getOption("smartselect_includejammer").value = WG.smartselect.getIncludeJammer()
 	end
 
 	if WG.snow ~= nil and WG.snow.getSnowMap ~= nil then
-		options[getOptionByID("snowmap")].value = WG.snow.getSnowMap()
+		getOption("snowmap").value = WG.snow.getSnowMap()
 	end
 
 	-- doing this in order to detect if vsync is actually on due to the only when spectator setting
-	local vsyncID = getOptionByID("vsync")
-	options[vsyncID].onchange(vsyncID, options[vsyncID].value)
-
-	-- these all act while watching a player's camera
-	if WG.lockcamera == nil then
-		removeOptions({ "lockcamera_transitiontime", "allyselunits_select", "lockcamera_hideenemies", "lockcamera_los" })
-	end
-
-	if Spring.GetConfigInt("CamMode", 2) ~= 2 then
-		removeOptions({ "springcamheightmode", "zoomtocursor", "zoomfromcursor" })
-	end
-	-- only the overhead camera reads MiddleClickScrollSpeed
-	if Spring.GetConfigInt("CamMode", 2) ~= 1 then
-		removeOptions({ "camerapanspeed" })
-	end
-
-	if Spring.GetConfigString("KeybindingFile") ~= "uikeys.txt" then
-		removeOptions({ "gridmenu" })
-	end
-
-	if not isSinglePlayer then
-		removeOptions({ "restart_with_state" })
-	end
+	local vsync = getOption("vsync")
+	vsync.onchange(vsync, vsync.value)
 
 	-- add user widgets
 
@@ -13059,7 +12566,7 @@ function init()
 	local userwidgetOptions = {}
 	local usedCustomOptions = {}
 	for k, option in ipairs(customOptions) do
-		if not getOptionByID(option.id) and option.widgetname then -- prevent adding duplicate
+		if not getOption(option.id) and option.widgetname then -- prevent adding duplicate
 			if not userwidgetOptions[option.widgetname] then
 				userwidgetOptions[option.widgetname] = {}
 			end
@@ -13117,11 +12624,13 @@ function init()
 		end
 	end
 
+	indexOptions()
+
 	-- add custom added options (done via WG.options.addOption)
 	local otherCustomOptions, otherCustomIDs = {}, {}
 	for k, option in ipairs(customOptions) do
 		-- prevent adding duplicate (a label may come without an id)
-		local duplicate = option.id ~= nil and (otherCustomIDs[option.id] or getOptionByID(option.id))
+		local duplicate = option.id ~= nil and (otherCustomIDs[option.id] or getOption(option.id))
 		if not usedCustomOptions[k] and not duplicate then
 			if option.id ~= nil then
 				otherCustomIDs[option.id] = true
@@ -13180,6 +12689,7 @@ function init()
 		table.append(unfilteredOptions, groupRows[group.id])
 	end
 	options = unfilteredOptions
+	indexOptions()
 
 	if not requireRestartDefaultsInit then
 		requireRestartDefaultsInit = true
@@ -13192,11 +12702,12 @@ function init()
 
 	changesRequireRestart = false
 	for id, value in pairs(requireRestartDefaults) do
-		if options[getOptionByID(id)] and options[getOptionByID(id)].value ~= value then
+		if getOption(id) and getOption(id).value ~= value then
 			changesRequireRestart = true
 		end
 	end
 
+	view.rebind()
 	-- Filter last, the checks above need every option. Also rebuilds the window.
 	applyFilter()
 end
@@ -13222,18 +12733,10 @@ function widget:GameOver()
 end
 
 local function optionsCmd(_, _, params)
-	local newShow = not show
-	if newShow and WG.topbar then
-		WG.topbar.hideWindows()
-	end
-	show = newShow
-	if showTextInput then
-		if show then
-			widgetHandler.textOwner = widget --widgetHandler:OwnText()
-			Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-		else
-			cancelChatInput()
-		end
+	if show then
+		view.close()
+	else
+		view.open()
 	end
 end
 
@@ -13242,7 +12745,7 @@ local function optionCmd(_, _, params)
 		return
 	end
 
-	local option = getUnfilteredOption(params[1])
+	local option = getOption(params[1])
 	if not option then
 		return
 	end
@@ -13251,11 +12754,8 @@ local function optionCmd(_, _, params)
 		if option.type == "bool" then
 			applyOptionValueByID(option.id, not option.value)
 		else
-			show = true
-			if showTextInput then
-				widgetHandler.textOwner = widget --widgetHandler:OwnText()
-				Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-			end
+			view.open()
+			view.reveal(option)
 		end
 	else
 		if option.type == "select" then
@@ -13464,21 +12964,13 @@ function widget:Initialize()
 
 	WG.options = {}
 	WG.options.toggle = function(state)
-		local newShow = state
-		if newShow == nil then
-			newShow = not show
+		if state == nil then
+			state = not show
 		end
-		if newShow and WG.topbar then
-			WG.topbar.hideWindows()
-		end
-		show = newShow
-		if showTextInput then
-			if show then
-				widgetHandler.textOwner = widget --widgetHandler:OwnText()
-				Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-			else
-				cancelChatInput()
-			end
+		if state then
+			view.open()
+		else
+			view.close()
 		end
 	end
 	WG.options.getOptionsList = function()
@@ -13492,7 +12984,7 @@ function widget:Initialize()
 		return show
 	end
 	WG.options.getOptionValue = function(id)
-		local option = getUnfilteredOption(id)
+		local option = getOption(id)
 		if option then
 			return option.value
 		end
@@ -13501,7 +12993,7 @@ function widget:Initialize()
 		return cameraTransitionTime
 	end
 	WG.options.disallowEsc = function()
-		if showSelectOptions then
+		if openSelect then
 			--or draggingSlider then
 			return true
 		else
@@ -13533,7 +13025,7 @@ function widget:Initialize()
 		return WG.options.removeOptions({ name })
 	end
 	WG.options.applyOptionValue = function(id, value)
-		local option = getUnfilteredOption(id)
+		local option = getOption(id)
 		if not option then
 			Spring.Echo("Options widget: applyOptionValue: option '" .. id .. "' not found")
 			return
@@ -13567,7 +13059,7 @@ function widget:GameFrame(n)
 end
 
 function widget:Shutdown()
-	cancelChatInput()
+	view.close()
 	if windowList then
 		glDeleteList(windowList)
 		glDeleteList(backgroundGuishader)
@@ -13579,7 +13071,6 @@ function widget:Shutdown()
 	end
 	if WG.guishader then
 		WG.guishader.RemoveDlist("options")
-		WG.guishader.RemoveRect("optionsinput")
 		WG.guishader.RemoveScreenRect("options_select")
 		WG.guishader.RemoveScreenRect("options_select_options")
 		if selectOptionsList then
@@ -13589,8 +13080,6 @@ function widget:Shutdown()
 	if selectOptionsList then
 		glDeleteList(selectOptionsList)
 	end
-	glDeleteList(consoleCmdDlist)
-	glDeleteList(textInputDlist)
 	WG.options = nil
 
 	resetUserVolume()
@@ -13623,6 +13112,8 @@ function widget:GetConfigData()
 		-- options widget settings
 		firsttimesetupDone = firstlaunchsetupDone,
 		advSettings = advSettings,
+		folded = view.folded,
+		unfoldAll = view.unfoldAll,
 		currentGroupTab = currentGroupTab,
 		show = show,
 		waterDetected = waterDetected,
@@ -13680,7 +13171,7 @@ function widget:SetConfigData(data)
 		end
 		if data.show ~= nil then
 			show = data.show
-			if show and showTextInput then
+			if show then
 				widgetHandler.textOwner = widget --widgetHandler:OwnText()
 				Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			end
@@ -13689,6 +13180,14 @@ function widget:SetConfigData(data)
 	if data.advSettings ~= nil then
 		advSettings = data.advSettings
 	end
+	if type(data.folded) == "table" then
+		for id, folded in pairs(data.folded) do
+			if type(folded) == "boolean" then
+				view.folded[id] = folded
+			end
+		end
+	end
+	view.unfoldAll = data.unfoldAll == true
 	if data.mapChecksum and data.mapChecksum == Game.mapChecksum then
 		if data.defaultMapSunPos ~= nil then
 			defaultMapSunPos = data.defaultMapSunPos
@@ -13716,5 +13215,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:LanguageChanged()
+	view.makeSearchBox()
+	view.setLayout()
 	init()
 end
