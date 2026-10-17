@@ -62,7 +62,7 @@ local soundData = {
 		dopplerscale = 0,
 		maxconcurrent = 8,
 		--priority = 1,
-		rolloff = 0.1,
+		rolloff = 1.1,
 	},
 
 	--[[
