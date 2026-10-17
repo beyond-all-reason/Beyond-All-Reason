@@ -38,13 +38,18 @@ end
 --     the window that power-based revival times are clamped to.
 --   zombie_ghost_respawn_chance (0 to 1, default 0.66)
 --     the chance that a death feeding the apparitions enters the apparition respawn queue.
---   zombie_ghost_power_multiplier (default 1, minimum 0)
+--   zombie_ghost_power_multiplier (default 1)
 --     multiplies a unit's power when an apparition respawn spends it on substitutes. Units that rise as
 --     themselves are unchanged. Revived corpses and captures do not use this multiplier.
---   zombie_ghost_respawn_delay_multiplier (default 4, minimum 0)
+--   zombie_ghost_respawn_delay_multiplier (default 4)
 --     multiplies a unit's revival delay when a feeding death enters the apparition respawn queue.
---   zombie_factory_buildpower_tech_multiplier (default 1.7, minimum 0)
+--   zombie_factory_buildpower_tech_multiplier (default 1.7)
 --     a zombie factory's buildpower is its build speed times this value raised to the current tech level.
+--   zombie_rez_power_speed_multiplier (default 1)
+--     multiplies the tech-level resurrection power speeds. Higher values shorten power-based revival delays.
+--   zombie_ghost_spawn_max_units_per_spawn_multiplier (default 1)
+--     scales how many copies a pool unit may take and still stay in the substitute roll range.
+--     The permitted count is the spawn maximum times this value, rounded up.
 --   zombie_enable_oni (1 enables, 0 disables)
 --     a corpse on every eligible death, in every mode.
 --   zombie_enable_yokai (1 enables, 0 disables)
@@ -82,6 +87,8 @@ local zombieModeSettings = {
 	ghostPowerMultiplier = 1,
 	ghostRespawnDelayMultiplier = 4,
 	factoryBuildpowerTechMultiplier = 1.7,
+	rezPowerSpeedMultiplier = 1,
+	ghostSpawnMaxUnitsPerSpawnMultiplier = 1,
 }
 
 ---One of the zombie modes, matching the keys of `ZOMBIE_MODE_FEATURES`.
@@ -172,7 +179,7 @@ local RULES_PARAM = {
 	PUBLIC_ACCESS = { public = true },
 	PREVIOUS_STATE = { "previous_xp", "previous_firestate", "previous_movestate" },
 }
-local isCreatingReplacementFeature = false
+local replacementDeathData ---@type table?
 
 local ghostPoolUnitDefIDs = {}
 local ghosts = {} ---@type table<UnitID, table?>
@@ -327,6 +334,8 @@ do
 		setSetting(customParams, "zombie_ghost_power_multiplier", "ghostPowerMultiplier")
 		setSetting(customParams, "zombie_ghost_respawn_delay_multiplier", "ghostRespawnDelayMultiplier")
 		setSetting(customParams, "zombie_factory_buildpower_tech_multiplier", "factoryBuildpowerTechMultiplier")
+		setSetting(customParams, "zombie_rez_power_speed_multiplier", "rezPowerSpeedMultiplier")
+		setSetting(customParams, "zombie_ghost_spawn_max_units_per_spawn_multiplier", "ghostSpawnMaxUnitsPerSpawnMultiplier")
 		setSetting(customParams, "zombie_minimum_spawns", "spawnCountMinimum")
 		setSetting(customParams, "zombie_maximum_spawns", "spawnCountMaximum")
 		setSetting(customParams, "zombie_minimum_respawn_delay", "respawnDelayMinimum")
@@ -495,7 +504,8 @@ local function updateRezSpeed()
 	if tooLong then
 		adjustedRezPowerSpeed = TOO_LONG_REZ_POWER_SPEED
 	else
-		adjustedRezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[techLevel] or TECH_TO_REZ_POWER_SPEEDS[1]
+		local rezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[techLevel] or TECH_TO_REZ_POWER_SPEEDS[1]
+		adjustedRezPowerSpeed = rezPowerSpeed * zombieModeSettings.rezPowerSpeedMultiplier
 	end
 	currentTechLevel = techLevel
 	rebuildZombieCorpseSpawnDelays()
@@ -680,6 +690,9 @@ local function resolveSpawnPlan(unitDefID, wasZombie, unitPower, spawnCount)
 
 	local borrowedPower = math.min(excessPower, unitPower)
 	local totalPower = unitPower * spawnCount + borrowedPower
+	local ghostSpawnMaxUnits = math.ceil(
+		zombieModeSettings.spawnCountMaximum * zombieModeSettings.ghostSpawnMaxUnitsPerSpawnMultiplier
+	)
 	excessPower = excessPower - borrowedPower
 
 	local lowestIndex
@@ -690,7 +703,7 @@ local function resolveSpawnPlan(unitDefID, wasZombie, unitPower, spawnCount)
 			break
 		end
 		highestIndex = poolIndex
-		if not lowestIndex and floor(totalPower / poolPower) <= zombieModeSettings.spawnCountMaximum then
+		if not lowestIndex and floor(totalPower / poolPower) <= ghostSpawnMaxUnits then
 			lowestIndex = poolIndex
 		end
 	end
@@ -1352,30 +1365,32 @@ local function registerDeathFeature(featureID, featureDefID, deathData)
 	end
 end
 
+local function setUpReplacementFeature(featureID, featureDefID, deathData)
+	applyPreviousStates(featureID, deathData.previousStates)
+	if featureDefID == zombieUnitDefs[deathData.unitDefID].corpseDefID then
+		local featureFacing = spring.GetFacingFromHeading(spring.GetFeatureHeading(featureID) or 0)
+		spring.SetFeatureResurrect(featureID, deathData.unitDefID, featureFacing)
+	end
+	registerDeathFeature(featureID, featureDefID, deathData)
+end
+
 local function createDeathCorpse(deathData, featureX, featureY, featureZ, heading, teamID)
 	local corpseDefID = zombieUnitDefs[deathData.unitDefID].corpseDefID
-	isCreatingReplacementFeature = true
+	replacementDeathData = deathData
 	local featureID = spring.CreateFeature(corpseDefID, featureX, featureY, featureZ, heading, teamID)
-	isCreatingReplacementFeature = false
+	replacementDeathData = nil
 	if not featureID then
 		feedGhostQueue(deathData.unitDefID, featureX, featureZ, deathData.wasZombie)
-		return
 	end
-	applyPreviousStates(featureID, deathData.previousStates)
-	local featureFacing = spring.GetFacingFromHeading(spring.GetFeatureHeading(featureID) or 0)
-	spring.SetFeatureResurrect(featureID, deathData.unitDefID, featureFacing)
-	registerDeathFeature(featureID, corpseDefID, deathData)
 end
 
 local function demoteCorpseToHeap(featureID, deathData)
+	deathData.previousStates = nil
 	deathData.forcedHeap = true
-	isCreatingReplacementFeature = true
-	local heapID = spring.CreateFeatureWreck(featureID, 1)
-	isCreatingReplacementFeature = false
+	replacementDeathData = deathData
+	spring.CreateFeatureWreck(featureID, 1)
+	replacementDeathData = nil
 	spring.DestroyFeature(featureID)
-	if heapID then
-		registerDeathFeature(heapID, spring.GetFeatureDefID(heapID), deathData)
-	end
 end
 
 local function promoteHeapToCorpse(featureID, deathData, featureX, featureY, featureZ)
@@ -1536,10 +1551,11 @@ local function getWreckSwap(featureID, featureDefID, deathData)
 end
 
 function gadget:FeatureCreated(featureID, _, sourceID)
-	if isCreatingReplacementFeature then
+	local featureDefID = spring.GetFeatureDefID(featureID)
+	if replacementDeathData then
+		setUpReplacementFeature(featureID, featureDefID, replacementDeathData)
 		return
 	end
-	local featureDefID = spring.GetFeatureDefID(featureID)
 	local deathData = sourceID and pendingDeaths[sourceID] or nil
 	if deathData then
 		pendingDeaths[sourceID] = nil
