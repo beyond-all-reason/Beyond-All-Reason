@@ -8,7 +8,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.mygravity = 0.25
 	end
 
-	if canfly == true and hoverattack ~= true then
+	if uDef.canfly == true and uDef.hoverattack ~= true then
 		uDef.maxdec = 0.12
 	end
 
