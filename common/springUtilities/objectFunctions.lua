@@ -1,5 +1,9 @@
 -- Objects include units and features (and maybe other things later)
 
+if not Game then
+	return -- parser environments such as modrules have no Game
+end
+
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 

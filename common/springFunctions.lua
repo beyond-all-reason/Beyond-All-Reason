@@ -62,8 +62,8 @@ utilities = {
 	HeadingToFacing = facingFunctions.HeadingToFacing,
 	IsFacingEW = facingFunctions.IsFacingEW,
 
-	GetObjectPosition = objectFunctions.GetObjectPosition,
-	GetObjectCentroid = objectFunctions.GetObjectCentroid,
+	GetObjectPosition = objectFunctions and objectFunctions.GetObjectPosition,
+	GetObjectCentroid = objectFunctions and objectFunctions.GetObjectCentroid,
 
 	Color = colorFunctions,
 	ConvertColor = colorFunctions and colorFunctions.ConvertColor,
