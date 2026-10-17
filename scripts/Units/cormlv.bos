@@ -4,7 +4,7 @@
 #define SIGNAL_MOVE 1
 #define SIGNAL_BUILD 2
 
-piece  base, turret, tracks, beamhinge, beamcase, flare, mineflare, link;
+piece  base, turret, crane, link, tracks, beamhinge, beamcase, flare, mineflare;
 
 static-var  notBuilding, isMoving, readyToBuild;
 
@@ -133,21 +133,6 @@ QueryWeapon1(pieceIndex)
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = turret;
-}
-
-// transport stuff
-TransportPickup(unitid)
-{
-	set BUSY to 1;
-	attach-unit unitid to link;
-	set BUSY to 0;
-}
-
-TransportDrop(unitid, position)
-{
-	set BUSY to 1;
-	drop-unit unitid;
-	set BUSY to 0;
 }
 
 Killed(severity, corpsetype)

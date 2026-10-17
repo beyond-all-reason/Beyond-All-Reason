@@ -1,8 +1,8 @@
 
 #include "../recoil_common_includes.h"
 
-piece  	base, tracks, turret, shoulder, leg, lankle, rankle, lwheel, rwheel, 
- 		nanosleeve, lnano, rnano, lflare, rflare, link; 
+piece  	base, tracks, turret, crane, link, shoulder, leg, lankle, rankle, lwheel, rwheel, 
+ 		nanosleeve, lnano, rnano, lflare, rflare; 
 
 
 static-var  gun_2, oldHeading;
