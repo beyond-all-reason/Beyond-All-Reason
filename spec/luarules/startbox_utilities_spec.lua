@@ -1,5 +1,5 @@
 -- Arrangement resolution and the whole-map fill for allyteams the arrangement does not
--- reach. Modoptions go through the spec helper's zlib and base64 stubs.
+-- reach. Modoptions use the shared test helper's compressed-payload round trip.
 
 local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 
