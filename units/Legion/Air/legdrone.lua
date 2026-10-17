@@ -36,6 +36,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air",
 			unitgroup = "weapon",
+			crashable = 0,
 			drone = 1,
 			nohealthbars = 1,
 		},
