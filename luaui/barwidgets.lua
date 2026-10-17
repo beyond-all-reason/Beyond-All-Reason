@@ -359,6 +359,7 @@ local callInLists = {
 	"SelectedUnitsAdd",
 	"LavaRenderState",
 	"ClearMapMarks",
+	"RecvSkirmishAIMessage",
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -4041,6 +4042,19 @@ function widgetHandler:ClearMapMarks()
 	tracyZoneBeginN("W:ClearMapMarks")
 	for _, w in ipairs(self.ClearMapMarksList) do
 		w:ClearMapMarks()
+	end
+	tracyZoneEnd()
+	return
+end
+
+function widgetHandler:RecvSkirmishAIMessage(aiTeam, dataStr)
+	tracyZoneBeginN("W:RecvSkirmishAIMessage")
+	for _, w in ipairs(self.RecvSkirmishAIMessageList) do
+		local dataRet = w:RecvSkirmishAIMessage(aiTeam, dataStr)
+		if dataRet then
+			tracyZoneEnd()
+			return dataRet
+		end
 	end
 	tracyZoneEnd()
 	return
