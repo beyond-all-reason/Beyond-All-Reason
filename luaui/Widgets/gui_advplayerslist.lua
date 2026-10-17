@@ -250,7 +250,6 @@ local timeCounter = 9
 local timeFastCounter = 9
 local updateRate = 0.8
 local updateFastRate = 0.15 -- only updates resources
-local lastTakeMsg = -120
 local hoverPlayerlist = false
 
 local updateRateMult = 1 -- goes up when more players	auto adjusts in UpdatePlayerResources()
@@ -272,9 +271,7 @@ local mainList3Tex ---@type string?
 
 local deadPlayerHeightReduction = 8
 
-local reportTake = false
-local tookTeamID
-local tookTeamName
+local takePending = false
 local tookFrame = -120
 
 local playSounds = true
@@ -1357,7 +1354,6 @@ function CreatePlayer(playerID)
 	local history = (accountID and WG.playernames) and WG.playernames.getAccountHistory(accountID) or {}
 	local pname = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID) or tname
 	local isAliasName = tname ~= pname
-	tname = pname
 	local _, _, teamIsDead, _, tside, tallyteam, tincomeMultiplier = sp.GetTeamInfo(tteam, false)
 	local tred, tgreen, tblue = sp.GetTeamColor(tteam)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
@@ -4144,7 +4140,7 @@ function widget:MousePress(x, y, button)
 						if ctrl and i < specOffset then
 							sp.SendCommands(
 								"toggleignore "
-									.. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name)
+									.. (clickedPlayer.accountID or clickedPlayer.orgname or clickedPlayer.name)
 							)
 							return true
 						elseif alt and not clickedPlayer.ai then
@@ -4193,7 +4189,7 @@ function widget:MousePress(x, y, button)
 							if clickedPlayer.totake then
 								if IsOnRect(x, y, widgetPosX - 57, posY, widgetPosX - 12, posY + 17) then
 									--take button
-									Take(clickedPlayer.team, clickedPlayer.orgname or clickedPlayer.name, i)
+									Take(clickedPlayer.team)
 									return true
 								end
 							end
@@ -4274,7 +4270,8 @@ function widget:MousePress(x, y, button)
 									posY + (playerOffset * playerScale)
 								)
 							then
-								sp.SendCommands("chatall", "pastetext /w " .. clickedPlayer.name .. " \1")
+								-- /w takes the engine name; the list may show an alias
+								sp.SendCommands("chatall", "pastetext /w " .. sp.GetPlayerInfo(i, false) .. " \1")
 								return true
 							end
 						end
@@ -4337,7 +4334,7 @@ function widget:MousePress(x, y, button)
 							if ctrl then
 								sp.SendCommands(
 									"toggleignore "
-										.. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name)
+										.. (clickedPlayer.accountID or clickedPlayer.orgname or clickedPlayer.name)
 								)
 								return true
 							end
@@ -4787,10 +4784,9 @@ function updateTake(allyTeamID)
 	end
 end
 
-function Take(teamID, name, i)
-	reportTake = true
-	tookTeamID = teamID
-	tookTeamName = name
+-- the take gadget (cmd_idle_players) announces what was taken
+function Take(teamID)
+	takePending = true
 	tookFrame = spGetGameFrame()
 	sp.SendCommands("luarules take2 " .. teamID)
 end
@@ -4914,46 +4910,15 @@ function widget:Update(delta)
 		CreateShareSlider()
 	end
 
-	if curFrame >= 30 + tookFrame then
-		if lastTakeMsg + 120 < tookFrame and reportTake then
-			local teamID = tookTeamID
-			local afterE = sp.GetTeamResources(teamID, "energy")
-			local afterM = sp.GetTeamResources(teamID, "metal")
-			local afterU = sp.GetTeamUnitCount(teamID)
-			local detailedToSay = false
-			if afterE and afterM and afterU then
-				if afterE > 1.0 or afterM > 1.0 or afterU > 0 then
-					detailedToSay = true
+	if takePending and curFrame >= 30 + tookFrame then
+		takePending = false
+		for j = 0, (specOffset * 2) - 1 do
+			if player[j].allyteam == myAllyTeamID then
+				if player[j].totake then
+					player[j] = CreatePlayerFromTeam(player[j].team)
+					forceMainListRefresh = true
 				end
 			end
-			if detailedToSay then
-				Spring.SendLuaRulesMsg(
-					"msg:ui.playersList.chat.takeTeam:name="
-						.. tookTeamName
-						.. ":units="
-						.. mathFloor(afterU)
-						.. ":energy="
-						.. mathFloor(afterE)
-						.. ":metal="
-						.. mathFloor(afterE)
-				)
-			else
-				Spring.SendLuaRulesMsg("msg:ui.playersList.chat.takeTeam:name=" .. tookTeamName)
-			end
-
-			for j = 0, (specOffset * 2) - 1 do
-				if player[j].allyteam == myAllyTeamID then
-					if player[j].totake then
-						player[j] = CreatePlayerFromTeam(player[j].team)
-						forceMainListRefresh = true
-					end
-				end
-			end
-
-			lastTakeMsg = tookFrame
-			reportTake = false
-		else
-			reportTake = false
 		end
 	end
 	if curFrame <= 0 and timeCounter > updateRate * updateRateMult then
