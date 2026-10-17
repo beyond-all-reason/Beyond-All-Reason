@@ -19,6 +19,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.buildtime = 14000
 		uDef.speed = 180
 		uDef.health = 2700
+
 		--[[uDef.maxacc = 0.13
 		uDef.maxrudder = 0.011
 		uDef.maxaileron = 0.007
@@ -29,6 +30,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.sightdistance = 460
 		uDef.cruisealtitude = 160
 		--uDef.turnradius = 128]]--
+
 		uDef.maxacc = 0.09
 		uDef.hoverattack = true
 		uDef.turnrate = 500
@@ -94,7 +96,8 @@ local function airReworkUnitTweaks(name, uDef)
 	end
 
 
-	if name == "armhawk" then
+
+	if name == "armhawk" or name == "corvamp" then
 		uDef.metalcost = 250
 		uDef.energycost = 7600
 		uDef.buildtime = 12000
@@ -107,7 +110,9 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.health = 740
 		uDef.sightdistance = 550
 		uDef.cruisealtitude = 240
+	end
 
+	if name == "armhawk" then
 		uDef.weapondefs.armvtol_advmissile.proximitypriority = 0
 		uDef.weapondefs.armvtol_advmissile.areaofeffect = 45
 		uDef.weapondefs.armvtol_advmissile.impactonly = 0
@@ -129,8 +134,30 @@ local function airReworkUnitTweaks(name, uDef)
 			vtol = 500,
 		}
 	end
+	if name == "corvamp" then
+		uDef.weapondefs.corvtol_advmissile.impactonly = 0
+		uDef.weapondefs.corvtol_advmissile.proximitypriority = 0
+		uDef.weapondefs.corvtol_advmissile.areaofeffect = 32
+		uDef.weapondefs.corvtol_advmissile.flighttime = 2.2
+		uDef.weapondefs.corvtol_advmissile.range = 710
+		uDef.weapondefs.corvtol_advmissile.reloadtime = 1.7
+		uDef.weapondefs.corvtol_advmissile.startvelocity = 100
+		uDef.weapondefs.corvtol_advmissile.tolerance = 100000
+		uDef.weapondefs.corvtol_advmissile.turnrate = 37000
+		uDef.weapondefs.corvtol_advmissile.weaponacceleration = 310
+		uDef.weapondefs.corvtol_advmissile.smoketrail = true
+		uDef.weapondefs.corvtol_advmissile.smokePeriod = 12
+		uDef.weapondefs.corvtol_advmissile.smoketime = 24
+		uDef.weapondefs.corvtol_advmissile.smokesize = 6
+		uDef.weapondefs.corvtol_advmissile.cegtag = "missiletrailaa"
+		uDef.weapondefs.corvtol_advmissile.explosiongenerator = "custom:genericshellexplosion-medium-bomb"
+		uDef.weapondefs.corvtol_advmissile.damage = {
+			default = 1,
+			vtol = 300,
+		}
+	end
 
-	if name == "armfig" then
+	if name == "armfig" or name == "corveng" then
 		uDef.metalcost = 150
 		uDef.energycost = 4500
 		uDef.buildtime = 5000
@@ -140,9 +167,10 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.maxrudder = 0.01
 		uDef.maxbank = 0.65
 		uDef.health = 460
-		uDef.sightdistance = 460
 		uDef.cruisealtitude = 160
 		uDef.turnradius = 64
+	end
+	if name == "armfig" then
 		--uDef.speedtofront = 0.025
 		--uDef.weapondefs.armvtol_missile.explosiongenerator = "custom:genericshellexplosion-tiny"
 		--uDef.weapondefs.armvtol_missile.smokePeriod = 8
@@ -167,54 +195,7 @@ local function airReworkUnitTweaks(name, uDef)
 		--uDef.weapons[1].onlytargetcategory = "NOTSUB"
 	end
 
-	if name == "corvamp" then
-		uDef.metalcost = 250
-		uDef.energycost = 7600
-		uDef.buildtime = 12000
-		uDef.maxacc = 0.25
-		uDef.maxdec = 0.12
-		uDef.speed = 320
-		uDef.maxrudder = 0.0088
-		uDef.maxbank = 0.7
-		uDef.health = 740
-		uDef.sightdistance = 550
-		uDef.cruisealtitude = 240
-
-		uDef.weapondefs.corvtol_advmissile.impactonly = 0
-		uDef.weapondefs.corvtol_advmissile.proximitypriority = 0
-		uDef.weapondefs.corvtol_advmissile.areaofeffect = 32
-		uDef.weapondefs.corvtol_advmissile.flighttime = 2.2
-		uDef.weapondefs.corvtol_advmissile.range = 710
-		uDef.weapondefs.corvtol_advmissile.reloadtime = 1.7
-		uDef.weapondefs.corvtol_advmissile.startvelocity = 100
-		uDef.weapondefs.corvtol_advmissile.tolerance = 100000
-		uDef.weapondefs.corvtol_advmissile.turnrate = 37000
-		uDef.weapondefs.corvtol_advmissile.weaponacceleration = 310
-		uDef.weapondefs.corvtol_advmissile.smoketrail = true
-		uDef.weapondefs.corvtol_advmissile.smokePeriod = 12
-		uDef.weapondefs.corvtol_advmissile.smoketime = 24
-		uDef.weapondefs.corvtol_advmissile.smokesize = 6
-		uDef.weapondefs.corvtol_advmissile.cegtag = "missiletrailaa"
-		uDef.weapondefs.corvtol_advmissile.explosiongenerator = "custom:genericshellexplosion-medium-bomb"
-		uDef.weapondefs.corvtol_advmissile.damage = {
-			default = 1,
-			vtol = 300,
-		}
-	end
 	if name == "corveng" then
-		uDef.metalcost = 150
-		uDef.energycost = 4500
-		uDef.buildtime = 5000
-		uDef.speed = 270
-		uDef.maxacc = 0.14
-		uDef.maxdec = 0.12
-		uDef.maxrudder = 0.01
-		uDef.maxbank = 0.65
-		uDef.health = 460
-		uDef.sightdistance = 460
-		uDef.cruisealtitude = 160
-		uDef.turnradius = 64
-		--uDef.speedtofront = 0.025
 		--uDef.weapondefs.corvtol_missile.explosiongenerator = "custom:genericshellexplosion-tiny"
 		--uDef.weapondefs.corvtol_missile.smokePeriod = 8
 		--uDef.weapondefs.corvtol_missile.smoketime = 14
@@ -282,7 +263,14 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.turnrate = 900
 		uDef.maxdec = 0.5
 		uDef.turninplaceanglelimit = 360
+	end
 
+	if name == "armawac" or name == "corawac" then
+		uDef.cruisealtitude = 200
+		uDef.hoverattack = true
+		uDef.turnrate = 600
+		uDef.maxdec = 0.4
+		uDef.turninplaceanglelimit = 360
 	end
 
 	if name == "armaap" then
