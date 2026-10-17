@@ -3098,6 +3098,58 @@ function applyFilter()
 	view.refresh()
 end
 
+-- Lookups for the squad selects that merge several widget settings into select inputs.
+squadSelectValue = {}
+
+function squadSelectValue.get(getterName)
+	local api = WG["squadselection"]
+	if api == nil or api[getterName] == nil then
+		return nil
+	end
+	return api[getterName]()
+end
+
+function squadSelectValue.hullDisplayMode()
+	if squadSelectValue.get("getVisualizationMode") ~= "convexHull" then
+		return 1
+	end
+	if squadSelectValue.get("getShowReserveSquads") then
+		return 2
+	end
+	return 3
+end
+
+function squadSelectValue.squadColorMode()
+	local mode = squadSelectValue.get("getSquadColorMode")
+	if mode == "custom" then
+		return 2
+	end
+	if mode == "squad" then
+		return 3
+	end
+	return 1
+end
+
+function squadSelectValue.squadCreateMethod()
+	if squadSelectValue.get("getRightClickSquadCreate") then
+		return 2
+	end
+	if squadSelectValue.get("getCtrlRightClickCreatesSquad") then
+		return 3
+	end
+	if squadSelectValue.get("getCtrlRightClickDragCreatesSquad") then
+		return 4
+	end
+	return 1
+end
+
+function squadSelectValue.rightClickMoveControlsReserves()
+	if squadSelectValue.get("getRightClickMoveControlsReserves") then
+		return 2
+	end
+	return 1
+end
+
 -------------------------------------------------------------------------------
 -- Squad selection presets
 --
@@ -3166,8 +3218,9 @@ function squadPreset.get()
 	if not GetWidgetToggleValue("Squad Selection") then
 		return "off"
 	end
-	if WG["squadselection"] ~= nil and WG["squadselection"].getPreset ~= nil then
-		return WG["squadselection"].getPreset()
+	local preset = squadSelectValue.get("getPreset")
+	if preset ~= nil then
+		return preset
 	end
 	local data = widgetHandler.configData["Squad Selection"]
 	return (data and data.preset) or "custom"
@@ -8610,25 +8663,10 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt2"),
 				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt3"),
 			},
-			-- Derive the index from WG now (at init), so the cached draw list shows the
-			-- right option immediately. onload re-derives the same value on panel open.
-			value = (WG["squadselection"] == nil and 1)
-				or (WG["squadselection"].getVisualizationMode() ~= "convexHull" and 1)
-				or (WG["squadselection"].getShowReserveSquads() and 2)
-				or 3,
+			value = squadSelectValue.hullDisplayMode(),
 			description = BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_descr"),
 			onload = function(option)
-				local v = 1
-				if WG["squadselection"] ~= nil then
-					if WG["squadselection"].getVisualizationMode() ~= "convexHull" then
-						v = 1
-					elseif WG["squadselection"].getShowReserveSquads() then
-						v = 2
-					else
-						v = 3
-					end
-				end
-				option.value = v
+				option.value = squadSelectValue.hullDisplayMode()
 			end,
 			onchange = function(_, value)
 				saveOptionValue(
@@ -8783,24 +8821,10 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt2"),
 				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt3"),
 			},
-			value = (WG["squadselection"] == nil and 1)
-				or (WG["squadselection"].getSquadColorMode() == "custom" and 2)
-				or (WG["squadselection"].getSquadColorMode() == "squad" and 3)
-				or 1,
+			value = squadSelectValue.squadColorMode(),
 			description = BAR.I18N("ui.settings.option.squadSelection_squadColorMode_descr"),
 			onload = function(option)
-				local raw = (
-					WG["squadselection"] ~= nil
-					and WG["squadselection"].getSquadColorMode ~= nil
-					and WG["squadselection"].getSquadColorMode()
-				) or "player"
-				local modes = { "player", "custom", "squad" }
-				for idx, v in ipairs(modes) do
-					if v == raw then
-						option.value = idx
-						break
-					end
-				end
+				option.value = squadSelectValue.squadColorMode()
 			end,
 			onchange = function(_, value)
 				local modes = { "player", "custom", "squad" }
@@ -9442,11 +9466,7 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.squadSelection_leftClickAlternativeSelection"),
 			type = "bool",
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getLeftClickAlternativeSelection ~= nil
-				and WG["squadselection"].getLeftClickAlternativeSelection()
-			),
+			value = squadSelectValue.get("getLeftClickAlternativeSelection") or false,
 			description = BAR.I18N("ui.settings.option.squadSelection_leftClickAlternativeSelection_descr"),
 			onload = function(option)
 				loadWidgetData(
@@ -9479,24 +9499,10 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt3"),
 				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt4"),
 			},
-			value = (WG["squadselection"] == nil and 1)
-				or (WG["squadselection"].getRightClickSquadCreate() and 2)
-				or (WG["squadselection"].getCtrlRightClickCreatesSquad() and 3)
-				or (WG["squadselection"].getCtrlRightClickDragCreatesSquad() and 4)
-				or 1,
+			value = squadSelectValue.squadCreateMethod(),
 			description = BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_descr"),
 			onload = function(option)
-				local v = 1
-				if WG["squadselection"] ~= nil then
-					if WG["squadselection"].getRightClickSquadCreate() then
-						v = 2
-					elseif WG["squadselection"].getCtrlRightClickCreatesSquad() then
-						v = 3
-					elseif WG["squadselection"].getCtrlRightClickDragCreatesSquad() then
-						v = 4
-					end
-				end
-				option.value = v
+				option.value = squadSelectValue.squadCreateMethod()
 			end,
 			onchange = function(_, value)
 				saveOptionValue(
@@ -9552,23 +9558,10 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt1"),
 				BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt2"),
 			},
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getRightClickMoveControlsReserves ~= nil
-				and WG["squadselection"].getRightClickMoveControlsReserves()
-				and 2
-			) or 1,
+			value = squadSelectValue.rightClickMoveControlsReserves(),
 			description = BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_descr"),
 			onload = function(option)
-				local v = 1
-				if
-					WG["squadselection"] ~= nil
-					and WG["squadselection"].getRightClickMoveControlsReserves ~= nil
-					and WG["squadselection"].getRightClickMoveControlsReserves()
-				then
-					v = 2
-				end
-				option.value = v
+				option.value = squadSelectValue.rightClickMoveControlsReserves()
 			end,
 			onchange = function(_, value)
 				saveOptionValue(
@@ -9624,11 +9617,7 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.squadSelection_excludeConstructors"),
 			type = "bool",
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getExcludeConstructors ~= nil
-				and WG["squadselection"].getExcludeConstructors()
-			),
+			value = squadSelectValue.get("getExcludeConstructors") or false,
 			description = BAR.I18N("ui.settings.option.squadSelection_excludeConstructors_descr"),
 			onload = function(option)
 				loadWidgetData("Squad Selection", "squad_excludeConstructors", { "excludeConstructors" })
@@ -9653,11 +9642,7 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.squadSelection_excludeResurrectionUnits"),
 			type = "bool",
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getExcludeResurrectionUnits ~= nil
-				and WG["squadselection"].getExcludeResurrectionUnits()
-			),
+			value = squadSelectValue.get("getExcludeResurrectionUnits") or false,
 			description = BAR.I18N("ui.settings.option.squadSelection_excludeResurrectionUnits_descr"),
 			onload = function(option)
 				loadWidgetData("Squad Selection", "squad_excludeResurrectionUnits", { "excludeResurrectionUnits" })
@@ -9682,11 +9667,7 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.squadSelection_excludeCombatEngineers"),
 			type = "bool",
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getExcludeCombatEngineers ~= nil
-				and WG["squadselection"].getExcludeCombatEngineers()
-			),
+			value = squadSelectValue.get("getExcludeCombatEngineers") or false,
 			description = BAR.I18N("ui.settings.option.squadSelection_excludeCombatEngineers_descr"),
 			onload = function(option)
 				loadWidgetData("Squad Selection", "squad_excludeCombatEngineers", { "excludeCombatEngineers" })
