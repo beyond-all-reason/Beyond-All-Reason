@@ -50,6 +50,8 @@ return {
 			[5] = "cordrag",
 			[6] = "coreyes",
 			[7] = "corjamt",
+			[8] = "corspy",
+			[9] = "corfav",
 		},
 		customparams = {
 			fall_damage_multiplier = 0,
