@@ -37,7 +37,7 @@ return {
 			buildinggrounddecalsizex = 7,
 			buildinggrounddecalsizey = 7,
 			buildinggrounddecaltype = "decals/corfus_aoplane.dds",
-			model_author = "Mr Bob",
+			model_author = "LitLuigi73 (based on Mr Bob's corfus & corfhlt)",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			reaimtime = 5,
