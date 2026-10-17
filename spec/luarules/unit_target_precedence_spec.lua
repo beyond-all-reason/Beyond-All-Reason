@@ -1,11 +1,14 @@
-local function loadTargetGadget(sourceCount)
+local function loadTargetGadget(sourceCount, unitTeams)
 	sourceCount = sourceCount or 1
 	local currentCommand
 	local target
+	local targetsByUnit = {}
 	local rules = {}
 	local events = {}
 	local checks = {}
+	local trackingChecks = {}
 	local released = {}
+	---@type table<integer, boolean>
 	local deadTargets = {}
 	local canTarget = function(_targetID)
 		return true
@@ -57,7 +60,7 @@ local function loadTargetGadget(sourceCount)
 				return 1
 			end,
 			GetUnitTeam = function(unitID)
-				return unitID <= sourceCount and 1 or 2
+				return unitTeams and unitTeams[unitID] or (unitID <= sourceCount and 1 or 2)
 			end,
 			GetUnitAllyTeam = function(unitID)
 				return unitID <= sourceCount and 1 or 2
@@ -69,6 +72,7 @@ local function loadTargetGadget(sourceCount)
 				return deadTargets[unitID] or false
 			end,
 			GetUnitLosState = function(unitID)
+				trackingChecks[#trackingChecks + 1] = unitID
 				-- Destroyed units have no LOS state, which is how the gadget notices them.
 				if deadTargets[unitID] then
 					return nil
@@ -95,6 +99,7 @@ local function loadTargetGadget(sourceCount)
 			end,
 			SetUnitTarget = function(unitID, newTarget)
 				target = newTarget
+				targetsByUnit[unitID] = newTarget
 				if newTarget == nil then
 					released[#released + 1] = unitID
 				end
@@ -140,6 +145,7 @@ local function loadTargetGadget(sourceCount)
 	return {
 		env = env,
 		checks = checks,
+		trackingChecks = trackingChecks,
 		released = released,
 		deadTargets = deadTargets,
 		canTarget = function(fn)
@@ -148,6 +154,9 @@ local function loadTargetGadget(sourceCount)
 		update = function(frame)
 			for i = #checks, 1, -1 do
 				checks[i] = nil
+			end
+			for index = #trackingChecks, 1, -1 do
+				trackingChecks[index] = nil
 			end
 			env.gadget:GameFrame(frame)
 		end,
@@ -159,6 +168,7 @@ local function loadTargetGadget(sourceCount)
 		target = function()
 			return target
 		end,
+		targetsByUnit = targetsByUnit,
 		set = function(targetID, append, shared, sourceID)
 			env.gadget:AllowCommand(
 				sourceID or 1,
@@ -175,6 +185,41 @@ local function loadTargetGadget(sourceCount)
 end
 
 describe("Set Target precedence after shared-list updates", function()
+	for _, frame in ipairs({ 1, 15 }) do
+		it("reasserts targets outside the scan chunk on frame " .. frame, function()
+			local g = loadTargetGadget(80)
+			for unitID = 1, 80 do
+				g.set(1000, false, true, unitID)
+				g.env.Spring.SetUnitTarget(unitID, 2000)
+			end
+			g.update(frame)
+			for unitID = 1, 80 do
+				assert.are.equal(1000, g.targetsByUnit[unitID])
+			end
+			assert.is_true(#g.checks <= 32)
+		end)
+	end
+
+	it("reasserts engaged targets after the scan budget is exhausted", function()
+		local g = loadTargetGadget(400)
+		local targets = {}
+		for index = 1, 300 do
+			targets[index] = 1000 + index
+		end
+		for unitID = 1, 400 do
+			g.set(targets, false, true, unitID)
+			g.env.Spring.SetUnitTarget(unitID, 2000)
+		end
+		g.canTarget(function()
+			return false
+		end)
+		g.update(1)
+		assert.are.equal(8192, #g.checks)
+		for unitID = 65, 400 do
+			assert.are.equal(1001, g.targetsByUnit[unitID])
+		end
+	end)
+
 	for _, shared in ipairs({ false, true }) do
 		local label = shared and "explicit shared list" or "legacy single target"
 		it("keeps a new " .. label .. " paused during Wait and resumes it afterward", function()
@@ -222,7 +267,72 @@ describe("Set Target precedence after shared-list updates", function()
 end)
 
 describe("Set Target scan budgets", function()
-	it("retires empty lists in unit order rather than list creation order", function()
+	it("bounds shared validation on slow frames and eventually visits every list", function()
+		local g = loadTargetGadget(40)
+		g.command(g.env.CMD.WAIT)
+		for unitID = 1, 40 do
+			local targets = {}
+			for index = 1, 300 do
+				targets[index] = unitID * 1000 + index
+			end
+			g.set(targets, false, true, unitID)
+		end
+		local seen = {}
+		for frame = 15, 18 do
+			g.update(frame)
+			assert.is_true(#g.trackingChecks <= 8192)
+			for _, targetID in ipairs(g.trackingChecks) do
+				seen[targetID] = true
+			end
+		end
+		for unitID = 1, 40 do
+			for index = 1, 300 do
+				assert.is_true(seen[unitID * 1000 + index])
+			end
+		end
+	end)
+
+	it("continues acquiring targets on slow-update frames", function()
+		local g = loadTargetGadget()
+		g.canTarget(function()
+			return false
+		end)
+		g.set(1000, false, true)
+		g.canTarget(function()
+			return true
+		end)
+		g.update(15)
+		assert.are.equal(1000, g.target())
+		assert.same({ 1000 }, g.checks)
+	end)
+
+	it("batches transferred targets without rebuilding shared lists in transfer callbacks", function()
+		local teams = {}
+		local g = loadTargetGadget(80, teams)
+		local targets = {}
+		for index = 1, 600 do
+			targets[index] = 1000 + index
+		end
+		for unitID = 1, 80 do
+			g.set(targets, false, true, unitID)
+		end
+		local originalID = g.env.GG.GetUnitTargetListID(1)
+		for targetID = 1001, 1200 do
+			teams[targetID] = 1
+			g.env.gadget:UnitGiven(targetID, 1, 1)
+		end
+		assert.are.equal(originalID, g.env.GG.GetUnitTargetListID(1))
+		for frame = 1, 3 do
+			g.update(frame)
+		end
+		for unitID = 1, 80 do
+			assert.are.equal(400, #g.env.GG.GetUnitTargetList(unitID))
+			assert.are.equal(1201, g.targetsByUnit[unitID])
+			assert.are.equal(g.env.GG.GetUnitTargetListID(1), g.env.GG.GetUnitTargetListID(unitID))
+		end
+	end)
+
+	it("retires every empty list despite validation-queue removals", function()
 		local g = loadTargetGadget(4)
 		for sourceID = 4, 1, -1 do
 			g.set(1000 + sourceID, false, true, sourceID)
@@ -231,6 +341,7 @@ describe("Set Target scan budgets", function()
 			g.deadTargets[targetID] = true
 		end
 		g.update(15)
+		table.sort(g.released)
 		assert.same({ 1, 2, 3, 4 }, g.released)
 		for sourceID = 1, 4 do
 			assert.is_nil(g.env.GG.GetUnitTargetList(sourceID))
@@ -314,7 +425,7 @@ describe("Set Target scan budgets", function()
 		assert.are.equal(1001, g.target())
 	end)
 
-	it("shares selection removals without advancing owners outside the current update chunk", function()
+	it("shares validation removals with every owner before resuming target acquisition", function()
 		local g = loadTargetGadget(80)
 		for unitID = 1, 80 do
 			g.set({ 1000, 1001 }, false, true, unitID)
@@ -324,13 +435,9 @@ describe("Set Target scan budgets", function()
 		g.update(1)
 		local reducedID = g.env.GG.GetUnitTargetListID(1)
 		assert.are_not.equal(originalID, reducedID)
-		for unitID = 1, 32 do
+		for unitID = 1, 80 do
 			assert.are.equal(reducedID, g.env.GG.GetUnitTargetListID(unitID))
 			assert.are.equal(1001, g.env.GG.GetUnitTargetList(unitID)[1].target)
-		end
-		for unitID = 33, 80 do
-			assert.are.equal(originalID, g.env.GG.GetUnitTargetListID(unitID))
-			assert.are.equal(1000, g.env.GG.GetUnitTargetList(unitID)[1].target)
 		end
 		g.update(2)
 		g.update(3)

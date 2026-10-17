@@ -14,7 +14,7 @@ local SharedTargetListStore = {}
 ---@field lookup table<number, integer>
 ---@field units table<integer, table> Assignment owners, including both command kinds.
 ---@field unavailable table<any, integer?> Tracking-state reason; nil means available.
----@field unseenUntil table<any, integer?> Slow-update frame at which an unseen target expires
+---@field unseenUntil table<any, integer?> Frame at which an unseen target expires
 ---@field unseenUntilShared boolean? Expiry storage also belongs to a related reduced list
 ---@field validationIndex integer
 ---@field refCount integer

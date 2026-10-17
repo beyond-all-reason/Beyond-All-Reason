@@ -455,8 +455,7 @@ describe("Set Target drawing while shared-list removal is pending", function()
 				assert.is_true(draw()[20])
 				g[kind == "dead" and "deadTargets" or "crashingTargets"][20] = true
 				g.update(2)
-				-- Selection stops at 10, so 20 is still physically present until the slow sweep.
-				assert.are.equal(2, #g.env.GG.GetUnitTargetList(1))
+				assert.are.equal(1, #g.env.GG.GetUnitTargetList(1))
 				local icons = draw()
 				assert.is_true(icons[10])
 				assert.is_nil(icons[20])
