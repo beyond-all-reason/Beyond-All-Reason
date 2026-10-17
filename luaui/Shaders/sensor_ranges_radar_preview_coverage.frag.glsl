@@ -23,6 +23,12 @@ uniform vec4 losParams;         // emitter cell x, emitter cell y, radius in cel
 // 0: the target texture is the (2 * radius + 1)^2 disc around the emitter (texel = cell offset + radius)
 // 1: the target texture is the whole map (texel = absolute radar cell), used to union allied radars
 uniform float coverageAbsolute = 0.0;
+// 0: the coverage (0/1). Allied circle passes, MAX-blended over the allied radars into map-sized textures: 1, per radar
+// cell the radar whose range circle reaches farthest past the cell center among those covering the cell's terrain,
+// packed as (distance level, circle index); 2, the runner-up, the same leaving out the radar of pass 1.
+uniform float alliedCirclePass = 0.0;
+uniform vec4 alliedCircle = vec4(0.0); // circle passes: center x, center z, range (elmos), index into the circle list
+uniform sampler2D alliedWinnerTex;     // pass 2: the result of pass 1
 
 // per first-quadrant cell (y * (radius + 1) + x): (offset, count); then per ray through a cell: (targetX, targetY)
 layout(std430, binding = 5) buffer RayData {
@@ -81,19 +87,16 @@ bool visibleAlongRay(ivec2 target, int steps, int rot, ivec2 base, float losHeig
 	return vis;
 }
 
-void main() {
+float engineCoverage(ivec2 off) {
 	int radius = int(losParams.z);
 	ivec2 base = ivec2(losParams.xy);
-	ivec2 off = ivec2(gl_FragCoord.xy) - ((coverageAbsolute > 0.5) ? base : ivec2(radius));
 	float losHeight = losParams.w;
 
 	if (any(greaterThan(abs(off), ivec2(radius)))) {
-		fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-		return;
+		return 0.0;
 	}
 	if (off == ivec2(0)) {
-		fragColor = vec4(1.0, 0.0, 0.0, 1.0);
-		return;
+		return 1.0;
 	}
 
 	int stride = radius + 1;
@@ -118,5 +121,40 @@ void main() {
 		}
 	}
 
-	fragColor = vec4((onDisk && visible) ? 1.0 : 0.0, 0.0, 0.0, 1.0);
+	return (onDisk && visible) ? 1.0 : 0.0;
+}
+
+void main() {
+	ivec2 base = ivec2(losParams.xy);
+	ivec2 off = ivec2(gl_FragCoord.xy) - ((coverageAbsolute > 0.5) ? base : ivec2(int(losParams.z)));
+	if (alliedCirclePass < 0.5) {
+		fragColor = vec4(engineCoverage(off), 0.0, 0.0, 1.0);
+		return;
+	}
+
+	// distance from the cell center to the range circle (elmos, > 0 inside); cells past the band record nothing
+	float band = float(ALLIED_CIRCLE_BAND);
+	float sdf = alliedCircle.z - distance(gl_FragCoord.xy * float(RADAR_CELL_SIZE), alliedCircle.xy);
+	if (sdf <= -band) {
+		discard;
+	}
+	float coverage = engineCoverage(off);
+	// past the disc the perimeter's terrain shadow carries on outward, as the sheet's circleCoverage does
+	float dist = length(vec2(off));
+	if (coverage <= 0.0 && dist > losParams.z) {
+		coverage = engineCoverage(ivec2(floor(vec2(off) * (max(losParams.z - 0.75, 0.0) / dist) + 0.5)));
+	}
+	if (coverage <= 0.0) {
+		discard;
+	}
+	// level 1.. (0 = no radar) above the index: MAX blending keeps the largest distance, and the packed value stays an
+	// integer below 2^24, exact in the R32F target
+	float slots = float(ALLIED_CIRCLE_SLOTS);
+	float levels = 16777216.0 / slots;
+	float level = 1.0 + floor(clamp(sdf / (2.0 * band) + 0.5, 0.0, 1.0) * (levels - 2.0) + 0.5);
+	float entry = level * slots + alliedCircle.w;
+	if (alliedCirclePass > 1.5 && texelFetch(alliedWinnerTex, ivec2(gl_FragCoord.xy), 0).r == entry) {
+		discard;
+	}
+	fragColor = vec4(entry, 0.0, 0.0, 1.0);
 }

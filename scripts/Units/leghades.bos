@@ -21,7 +21,7 @@ static-var  restore_delay, currentSpeed, moveSpeed, wheelSpeed, oldHeading, last
 #define TB_BANK_Z <0.1> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
-Steering(heading, steery, currentSpeed)
+Steering(heading, steery, curSpeed)
 {
 	while(1)
 	{
@@ -33,9 +33,9 @@ Steering(heading, steery, currentSpeed)
 		turn wheelbl to y-axis 0 - steery speed <120>;
 		turn wheelbr to y-axis 0 - steery speed <120>;
 		
-		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		wheelSpeed = currentSpeed * 50; //original speed 7
-		if (currentSpeed<1) currentSpeed=1;	// prevent infinite timing	
+		curSpeed = (get CURRENT_SPEED)*20/moveSpeed;
+		wheelSpeed = curSpeed * 50; //original speed 7
+		if (curSpeed<1) curSpeed=1;	// prevent infinite timing
 		
 		spin wheelfl around x-axis speed  (<1> * wheelSpeed);
 		spin wheelfr around x-axis speed  (<1> * wheelSpeed);
@@ -56,7 +56,6 @@ Create()
 	moveSpeed = get MAX_SPEED;
 	oldheading = get HEADING;
 	call-script TB_Init();
-	start-script Steering();
 	SLEEP_UNTIL_UNITFINISHED;
 }
 
@@ -64,6 +63,7 @@ StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
+	oldheading = get HEADING;
     start-script Steering();
 	START_TILTBANK;
 }
@@ -78,6 +78,10 @@ StopMoving()
     stop-spin wheelmr around x-axis;
     stop-spin wheelbl around x-axis;
     stop-spin wheelbr around x-axis;
+	turn wheelfl to y-axis <0> speed <120>;
+	turn wheelfr to y-axis <0> speed <120>;
+	turn wheelbl to y-axis <0> speed <120>;
+	turn wheelbr to y-axis <0> speed <120>;
 	STOP_TILTBANK;
 }
 

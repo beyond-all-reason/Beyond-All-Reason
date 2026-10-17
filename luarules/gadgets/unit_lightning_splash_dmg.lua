@@ -256,4 +256,7 @@ end
 
 function gadget:Initialize()
 	weaponDamageFactors = GG.UnitAttributes.WeaponDamageFactors
+	for weaponDefID in pairs(sparkWeapons) do
+		gadgetHandler:RegisterUnitPreDamagedWeapon(weaponDefID)
+	end
 end

@@ -290,7 +290,6 @@ function M.attach(doc, ctx)
 	-- every keystroke and these cannot be typed into (see widgetState.wireTextInput).
 	ctx.widgetState.wireTextInput(orientPitchInput)
 	ctx.widgetState.wireTextInput(orientYawInput)
-	local globeKeyReturn -- resolved lazily on first keydown
 
 	local function applyGlobeDirection()
 		if not globeEl then
@@ -383,14 +382,11 @@ function M.attach(doc, ctx)
 			Spring.SDLStopTextInput()
 			widgetState.focusedRmlInput = nil
 		end, false)
+		-- Through widgetState, not RmlUi directly: this listener is dispatched by
+		-- RmlUi and has no globals, so a bare `RmlUi.key_identifier` here reads
+		-- nil and Enter dies silently. The host resolves the id once.
 		inputEl:AddEventListener("keydown", function(event)
-			if not globeKeyReturn then
-				pcall(function()
-					globeKeyReturn = RmlUi.key_identifier.RETURN
-				end)
-			end
-			local p = event.parameters
-			if p and globeKeyReturn and p.key_identifier == globeKeyReturn then
+			if widgetState.isReturnEvent and widgetState.isReturnEvent(event) then
 				applyVal()
 				inputEl:Blur()
 			end

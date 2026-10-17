@@ -331,6 +331,7 @@ if gadgetHandler:IsSyncedCode() then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
+		gadgetHandler:RegisterUnitPreDamagedWeapon(DAMAGE_EXTSOURCE_WATER)
 		gadgetHandler:AddChatAction('lavalevel', lavalevel, 'Adjust the lava level in-game. Usage: /lavalevel [level] [speed] [remainTime]')
 		minGroundHeight = select(3, Spring.GetGroundExtremes())
 		_G.lavaLevel = lavaLevel
@@ -618,6 +619,7 @@ else -- UNSYCNED
 		lavaPlaneVAO = gl.GetVAO()
 		lavaPlaneVAO:AttachVertexBuffer(vertexBuffer)
 		lavaPlaneVAO:AttachIndexBuffer(indexBuffer)
+		InstanceVBOTable.fillVAOSlots(lavaPlaneVAO, true, false)
 
 		lavaShader = LuaShader.CheckShaderUpdates(lavaShaderSourceCache)
 

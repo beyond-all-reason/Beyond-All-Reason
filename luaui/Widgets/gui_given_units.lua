@@ -12,9 +12,6 @@ function widget:GetInfo()
 	}
 end
 
--- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-
 -- config
 local selectedFadeTime = 0.75
 local timeoutFadeTime = 3
@@ -23,51 +20,81 @@ local timeoutTime = 6.5
 --TODO
 -- better icon because bloom makes the letters unreadable
 
+local fadeStartTime = timeoutTime - timeoutFadeTime
+local iconTexture = "LuaUI/Images/new.dds"
+
+local glColor = gl.Color
 local glDrawListAtUnit = gl.DrawListAtUnit
+local spGetGameFrame = Spring.GetGameFrame
 local spIsGUIHidden = Spring.IsGUIHidden
-local spGetUnitDefID = Spring.GetUnitDefID
 local spIsUnitInView = Spring.IsUnitInView
 local spGetCameraDirection = Spring.GetCameraDirection
+local osClock = os.clock
 
-local drawList
-local givenUnits = {}
-local unitScale = {}
-local unitHeight = {}
-local sec = 0
-local prevCam = { spGetCameraDirection() }
+local drawList ---@type integer
+local camDirX, camDirY, camDirZ ---@type number, number, number
 local myTeamID = Spring.GetLocalTeamID()
+local gameStarted
+local lastReceiveFrame = 0
 
-local gameStarted, selectionChanged
+-- given units as parallel arrays, unitIndex maps unitID to its slot
+local givenCount = 0
+local givenIDs = {} ---@type table<integer, UnitID>
+local givenScale = {} ---@type table<integer, number>
+local givenStart = {} ---@type table<integer, number> os.clock the timeout counts from, reset while out of view
+local givenSelected = {} ---@type table<integer, number|false> os.clock the selected fade counts from
+local unitIndex = {} ---@type table<UnitID, integer?>
 
+local unitScale = {}
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
 	local scale = 6 * (xsize * xsize + zsize * zsize) ^ 0.5
 	unitScale[udid] = 7 + (scale / 2.5)
-	unitHeight[udid] = unitDef.height
 end
 
-function DrawIcon()
+local function drawIcon()
 	local iconSize = 1
 	gl.Translate(0, 1, 1.4)
 	gl.Billboard()
 	gl.TexRect(-(iconSize / 2), 0, (iconSize / 2), iconSize)
 end
 
--- add unit-icon to unit
-function AddGivenUnit(unitID)
-	local unitDefID = spGetUnitDefID(unitID)
-	givenUnits[unitID] = {}
-	givenUnits[unitID].osClock = os.clock()
-	givenUnits[unitID].lastInViewClock = os.clock()
-	givenUnits[unitID].unitHeight = unitHeight[unitDefID]
-	givenUnits[unitID].unitScale = unitScale[unitDefID]
+local function addGivenUnit(unitID, unitDefID)
+	local i = unitIndex[unitID]
+	if not i then
+		i = givenCount + 1
+		givenCount = i
+		givenIDs[i] = unitID
+		unitIndex[unitID] = i
+	end
+	givenScale[i] = unitScale[unitDefID]
+	givenStart[i] = osClock()
+	givenSelected[i] = false
+end
+
+local function removeGivenUnit(i)
+	local last = givenCount
+	unitIndex[givenIDs[i]] = nil
+	if i ~= last then
+		local unitID = givenIDs[last]
+		givenIDs[i] = unitID
+		givenScale[i] = givenScale[last]
+		givenStart[i] = givenStart[last]
+		givenSelected[i] = givenSelected[last]
+		unitIndex[unitID] = i
+	end
+	givenIDs[last] = nil
+	givenScale[last] = nil
+	givenStart[last] = nil
+	givenSelected[last] = nil
+	givenCount = last - 1
 end
 
 --------------------------------------------------------------------------------
 -- Engine Calls
 --------------------------------------------------------------------------------
 
-function maybeRemoveSelf()
+local function maybeRemoveSelf()
 	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
@@ -83,109 +110,111 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+	camDirX, camDirY, camDirZ = spGetCameraDirection()
+	drawList = gl.CreateList(drawIcon)
 	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
-	drawList = gl.CreateList(DrawIcon)
 end
 
 function widget:Shutdown()
 	gl.DeleteList(drawList)
 end
 
-function widget:Update(dt)
-	sec = sec + dt
-	if sec > 0.25 then
-		sec = 0
-		if selectionChanged then
-			selectionChanged = nil
-			local selectedUnitsCount = Spring.GetSelectedUnitsSorted()
-			for uDID, unit in pairs(selectedUnitsCount) do
-				for i = 1, #unit do
-					local unitID = unit[i]
-					if givenUnits[unitID] then
-						local currentAlpha = 1
-							- (
-								(os.clock() - (givenUnits[unitID].osClock + (timeoutTime - timeoutFadeTime)))
-								/ timeoutFadeTime
-							)
-						if currentAlpha > 1 then
-							currentAlpha = 1
-						end
-						givenUnits[unitID].selected = os.clock() - (selectedFadeTime * (1 - currentAlpha))
-						--givenUnits[unitID].selectedGameSecs = Spring.GetGameSeconds() + UnitDefs[spGetUnitDefID(unitID)].selfDCountdown
-					else
-						-- uncomment line below for testing
-						-- AddGivenUnit(unitID)
-					end
-				end
-			end
-		end
-
-		local camX, camY, camZ = spGetCameraDirection()
-		if camX ~= prevCam[1] or camY ~= prevCam[2] or camZ ~= prevCam[3] then
-			gl.DeleteList(drawList)
-			drawList = gl.CreateList(DrawIcon)
-		end
-		prevCam[1], prevCam[2], prevCam[3] = camX, camY, camZ
-	end
-end
-
 function widget:DrawWorld()
-	if spIsGUIHidden() then
+	if givenCount == 0 or spIsGUIHidden() then
 		return
 	end
-	local osClock = os.clock()
-	--local gameSecs = Spring.GetGameSeconds()
 
+	-- the billboard matrix is baked into the list
+	local dirX, dirY, dirZ = spGetCameraDirection()
+	if dirX ~= camDirX or dirY ~= camDirY or dirZ ~= camDirZ then
+		camDirX, camDirY, camDirZ = dirX, dirY, dirZ
+		gl.DeleteList(drawList)
+		drawList = gl.CreateList(drawIcon)
+	end
+
+	local now = osClock()
 	gl.DepthMask(true)
 	gl.DepthTest(true)
-	gl.Texture("LuaUI/Images/new.dds")
+	gl.Texture(iconTexture)
+	local color ---@type number?
 
-	local alpha
-	for unitID, unit in pairs(givenUnits) do
-		if unit.selected then
-			alpha = 1 - ((osClock - unit.selected) / selectedFadeTime)
-		else
-			alpha = 1 - ((osClock - (unit.osClock + (timeoutTime - timeoutFadeTime))) / timeoutFadeTime)
-		end
-		if spIsUnitInView(unitID) then
+	for i = givenCount, 1, -1 do
+		local unitID = givenIDs[i]
+		local inView = spIsUnitInView(unitID)
+		if inView then
+			local selected = givenSelected[i]
+			local alpha
+			if selected then
+				alpha = 1 - ((now - selected) / selectedFadeTime)
+			else
+				alpha = 1 - ((now - (givenStart[i] + fadeStartTime)) / timeoutFadeTime)
+			end
 			if alpha <= 0 then
-				givenUnits[unitID] = nil
+				removeGivenUnit(i)
 			else
-				gl.Color(1, 1, 1, alpha)
-				glDrawListAtUnit(unitID, drawList, false, unit.unitScale, unit.unitScale, unit.unitScale)
+				if alpha > 1 then
+					alpha = 1
+				end
+				if alpha ~= color then
+					color = alpha
+					glColor(1, 1, 1, alpha)
+				end
+				local scale = givenScale[i]
+				glDrawListAtUnit(unitID, drawList, false, scale, scale, scale)
 			end
+		elseif inView == nil then
+			-- dead or no longer readable
+			removeGivenUnit(i)
+		elseif givenSelected[i] then
+			givenSelected[i] = now
 		else
-			if unit.selected then
-				givenUnits[unitID].selected = osClock
-			else
-				givenUnits[unitID].osClock = osClock
-			end
+			givenStart[i] = now
 		end
 	end
 
-	gl.Color(1, 1, 1, 1)
+	glColor(1, 1, 1, 1)
 	gl.Texture(false)
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 end
 
-local lastreceiveframe = 0
 -- add given units
 function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if newTeam == myTeamID then
-		AddGivenUnit(unitID)
-		if lastreceiveframe < spGetGameFrame() then
+		addGivenUnit(unitID, unitDefID)
+		local frame = spGetGameFrame()
+		if lastReceiveFrame < frame then
 			local x, y, z = Spring.GetUnitPosition(unitID)
-			if x and y and z then
+			if x then
 				Spring.SetLastMessagePosition(x, y, z)
 			end
-			lastreceiveframe = spGetGameFrame()
+			lastReceiveFrame = frame
 		end
+	elseif oldTeam == myTeamID and unitIndex[unitID] then
+		removeGivenUnit(unitIndex[unitID])
 	end
 end
 
 function widget:SelectionChanged(sel)
-	selectionChanged = true
+	if givenCount == 0 then
+		return
+	end
+	local now = osClock()
+	for j = 1, #sel do
+		local i = unitIndex[sel[j]]
+		if i then
+			if not givenSelected[i] then
+				local currentAlpha = 1 - ((now - (givenStart[i] + fadeStartTime)) / timeoutFadeTime)
+				if currentAlpha > 1 then
+					currentAlpha = 1
+				end
+				givenSelected[i] = now - (selectedFadeTime * (1 - currentAlpha))
+			end
+		else
+			-- uncomment line below for testing
+			-- addGivenUnit(sel[j], Spring.GetUnitDefID(sel[j]))
+		end
+	end
 end
