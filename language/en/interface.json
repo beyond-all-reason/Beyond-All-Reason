@@ -3208,7 +3208,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[normal|hard|nightmare|akumu] Set zombie mode"
+			"zombiemode": "[basic|oni|yokai|nani|akumu|spidergeddon] Set zombie mode"
 		}
 	},
 	"modoptions": {
@@ -3961,26 +3961,35 @@
 		},
 		"zombies": {
 			"name": "Scavenger Zombies",
+			"desc": "Corpses left on the battlefield rise again as hostile zombies that attack every player. Revival takes 45 to 120 seconds, with stronger units taking longer and revival speeding up as the game reaches higher tech. Reclaim or resurrect corpses to stop them from rising. After 60 minutes, zombies stay permanently aggressive, and revival times chosen after that use a fixed speed instead of the tech estimate. Corpses already counting down keep their old timer.",
 			"items": {
 				"disabled": {
 					"name": "Disabled",
-					"desc": "Disabled"
+					"desc": "No zombies. Corpses stay where they fall."
 				},
-				"normal": {
-					"name": "Normal",
-					"desc": "Normal revival rate, normal strength."
+				"basic": {
+					"name": "Basic",
+					"desc": "Unit dies, after a while it comes back to life as a zombie."
 				},
-				"hard": {
-					"name": "Hard",
-					"desc": "Faster revival rate, stronger Zombies."
+				"oni": {
+					"name": "Oni",
+					"desc": "Every eligible death leaves a corpse no matter how badly it was overkilled, including the deaths of zombies themselves, so the dead keep coming back. Reclaims, script or cheat removals, units turned into features, units lost out of bounds, unfinished or cancelled construction, metal extractors, geothermals, drowning, and lava that kills a unit on its own are not guaranteed a corpse. A unit shot while standing in lava still leaves one. Zombies that drown or die to lava on their own leave no corpse. Zombie turrets vanish after 10 minutes."
 				},
-				"nightmare": {
-					"name": "Nightmare",
-					"desc": "Faster revival rate, stronger Zombies, 2-5 spawn per corpse."
+				"yokai": {
+					"name": "Yokai",
+					"desc": "Ghostly apparitions haunt the battlefield. Units overkilled into heaps or nothing, corpses destroyed by anything other than reclaim or resurrection, and zombie turrets that expire have a 66% chance to respawn later, at 4 times the normal revival delay. A failed roll drops the unit. An apparition still appears at that death after the first 5 minutes, unless 25 are already out and none is 30 seconds old. Zombies killed without overkill stay dead. Harmless economy, radar, sonar, and jammer structures are ignored. After the first 5 minutes, up to 3 extra apparitions appear at random every minute, up to 25. Each lasts 2 minutes."
+				},
+				"nani": {
+					"name": "Nani?!",
+					"desc": "Each corpse raises 2 to 6 zombies instead of one. Counts lean low early in the game and for slow-reviving units, and lean high for fast-reviving units later on. Structures and former zombies still rise as a single zombie, and killed zombies leave only heaps."
 				},
 				"akumu": {
 					"name": "Akumu",
-					"desc": "Faster revival rate, stronger Zombies, 2-8 spawn per corpse, zombies leave corpses."
+					"desc": "Oni, Yokai, and Nani?! combined. Eligible deaths leave a corpse. Mobile units that were not already zombies raise 2 to 6 zombies. Structures and former zombies raise one. Killed zombies keep rising, except when they drown, die to lava on their own, or a turret expires. Ordinary overkill still leaves a corpse. Apparitions respawn destroyed corpses, deaths that were not given a corpse, and turrets that expire, at a 66% chance."
+				},
+				"spidergeddon": {
+					"name": "Spidergeddon",
+					"desc": "Akumu, but revived corpses, captured units, and apparition respawns come back as substitutes from a fixed group of all-terrain units, spending about the same value as what was lost. Substitutes that are already zombies come back as themselves."
 				}
 			}
 		},

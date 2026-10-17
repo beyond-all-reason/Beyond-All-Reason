@@ -5,19 +5,55 @@ function gadget:GetInfo()
 		author = "SethDGamre, code snippets/inspiration from Rafal",
 		date = "March 2024",
 		license = "GNU GPL, v2 or later",
-		layer = 2, -- after game_team_resources.lua  (to override resources) and ai_ruins.lua (to overwrite gaia unit cap)
+		layer = 6, -- after game_team_resources.lua, ai_ruins.lua, and unit_resurrected.lua so previous_xp is already on the corpse
 		enabled = true,
 	}
 end
 
--- To customize zombie respawn time, use customParams.zombie_respawn_time (seconds):
---   < 0  never respawn as a zombie
---   0    respawn instantly
---   > 0  custom respawn delay in seconds
--- this overrides default timing based on unit power, difficulty, and gamestate.
+-- Modder customParams.
+--
+-- Per unit, affecting only that unit:
+--   zombie_respawn_time (seconds)
+--     < 0  never respawn as a zombie
+--     0    respawn instantly
+--     > 0  custom respawn delay in seconds
+--     this replaces the power-based delay. Spawn-count rolls still use the power-based delay.
+--   zombie_ghost_respawn_pool (any value)
+--     adds the unit to the substitute pool. When the pool has any units, revived corpses, apparition
+--     respawns, and units captured by zombies rise as pool units instead of the original unit. Pool units
+--     always respawn, even if their corpse is not resurrectable. A unit and its _scav variant count as one
+--     pool entry. Pool units that were already zombies rise as themselves instead of being substituted.
+--   scav_swap_override_captured (unit name or "delete")
+--     when the unit is captured by zombies, it becomes the named unit instead, or is removed with "delete".
+--     With a substitute pool, the named unit's power is spent on substitutes. "delete" removes the unit
+--     and does not add its power to the excess.
+--
+-- On any unit def, applied to the whole mode. The highest unitDefID that sets a value wins:
+--   zombie_minimum_spawns (integer, default 2)
+--   zombie_maximum_spawns (integer, default 6)
+--     the range rolled per corpse when multiple spawns are enabled. The maximum also caps how many
+--     substitutes one spawn can buy.
+--   zombie_minimum_respawn_delay (seconds, default 45)
+--   zombie_maximum_respawn_delay (seconds, default 120)
+--     the window that power-based revival times are clamped to.
+--   zombie_ghost_respawn_chance (0 to 1, default 0.66)
+--     the chance that a death feeding the apparitions enters the apparition respawn queue.
+--   zombie_ghost_power_multiplier (default 1, minimum 0)
+--     multiplies a unit's power when an apparition respawn spends it on substitutes. Units that rise as
+--     themselves are unchanged. Revived corpses and captures do not use this multiplier.
+--   zombie_ghost_respawn_delay_multiplier (default 4, minimum 0)
+--     multiplies a unit's revival delay when a feeding death enters the apparition respawn queue.
+--   zombie_factory_buildpower_tech_multiplier (default 1.7, minimum 0)
+--     a zombie factory's buildpower is its build speed times this value raised to the current tech level.
+--   zombie_enable_oni (1 enables, 0 disables)
+--     a corpse on every eligible death, in every mode.
+--   zombie_enable_yokai (1 enables, 0 disables)
+--     apparitions and the apparition respawn queue, in every mode.
+--   zombie_enable_nani (1 enables, 0 disables)
+--     multiple spawns per corpse, in every mode.
 
 if not gadgetHandler:IsSyncedCode() then
-	return false
+	return
 end
 
 local spring = Spring
@@ -28,28 +64,45 @@ if not modOptionEnabled and not isIdleMode then
 	return false
 end
 
-local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
-local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
-local ZOMBIE_REZ_FRAME_PARAM = "zombie_rez_frame"
-local WAS_ZOMBIE_PARAM = "wasZombie"
-local PUBLIC_RULES_PARAM_ACCESS = { public = true }
-local WAS_ZOMBIE_TIMEOUT_FRAMES = Game.gameSpeed * 3
-local MIN_ZOMBIE_XP = 0.25
-local ZOMBIE_MAX_XP = 1.5
+local unitDefs = UnitDefs
+local unitDefNames = UnitDefNames
+local random = math.random
+local floor = math.floor
+local clamp = math.clamp
 
-local standardTechToRezPowerSpeeds = {
-	[0.5] = 1,
-	[1] = 1,	
-	[1.5] = 3,
-	[2] = 8,
-	[2.5] = 25,
-	[3] = 42,
-	[3.5] = 63,
-	[4] = 83,
-	[4.5] = 104,
+local scavTeamID = BAR.Utilities.GetScavTeamID()
+local gaiaTeamID = spring.GetGaiaTeamID()
+
+local zombieModeSettings = {
+	spawnCountMinimum = 2,
+	spawnCountMaximum = 6,
+	respawnDelayMinimum = 45,
+	respawnDelayMaximum = 120,
+	ghostFeedSuccessChance = 0.66,
+	ghostPowerMultiplier = 1,
+	ghostRespawnDelayMultiplier = 4,
+	factoryBuildpowerTechMultiplier = 1.7,
 }
 
-local harderTechToRezPowerSpeeds = {
+---One of the zombie modes, matching the keys of `ZOMBIE_MODE_FEATURES`.
+---@alias ZombieMode "basic"|"oni"|"yokai"|"nani"|"akumu"|"spidergeddon"
+
+local ZOMBIE_MODE_FEATURES = {
+	basic = {},
+	oni = { alwaysCorpses = true },
+	yokai = { ghostRespawns = true },
+	nani = { multipleSpawns = true },
+	akumu = { alwaysCorpses = true, ghostRespawns = true, multipleSpawns = true },
+	spidergeddon = { alwaysCorpses = true, ghostRespawns = true, multipleSpawns = true },
+}
+local DEFAULT_ZOMBIE_MODE = "basic"
+
+---@type ZombieMode
+local currentZombieMode = DEFAULT_ZOMBIE_MODE
+local currentModeFeatures = ZOMBIE_MODE_FEATURES[DEFAULT_ZOMBIE_MODE]
+local autoSpawningEnabled = true
+
+local TECH_TO_REZ_POWER_SPEEDS = { -- calibrated manually, spitballed numbers that seemed to be balanced.
 	[0.5] = 1,
 	[1] = 2,
 	[1.5] = 5,
@@ -60,165 +113,227 @@ local harderTechToRezPowerSpeeds = {
 	[4] = 108,
 	[4.5] = 130,
 }
-
----One of the zombie difficulty presets, matching the keys of `zombieModeConfigs`.
----@alias ZombieMode "normal"|"hard"|"nightmare"|"akumu"
-
-local zombieModeConfigs = {
-	normal = {
-		techToRezPowerSpeeds = standardTechToRezPowerSpeeds,
-		rezMin = 90,
-		rezMax = 180,
-		countMin = 1,
-		countMax = 1,
-		zombieCorpses = false,
-	},
-	hard = {
-		techToRezPowerSpeeds = harderTechToRezPowerSpeeds,
-		rezMin = 60,
-		rezMax = 180,
-		countMin = 1,
-		countMax = 1,
-		zombieCorpses = false,
-	},
-	nightmare = {
-		techToRezPowerSpeeds = harderTechToRezPowerSpeeds,
-		rezMin = 60,
-		rezMax = 120,
-		countMin = 2,
-		countMax = 6,
-		zombieCorpses = false,
-	},
-	akumu = {
-		techToRezPowerSpeeds = harderTechToRezPowerSpeeds,
-		rezMin = 60,
-		rezMax = 120,
-		countMin = 2,
-		countMax = 8,
-		zombieCorpses = true,
-	},
-}
-
----@type ZombieMode
-local currentZombieMode = "normal"
-local currentZombieConfig = zombieModeConfigs.normal
-
+local TOO_LONG_GAME_FRAMES = Game.gameSpeed * 60 * 60
+local TOO_LONG_REZ_POWER_SPEED = 20
 local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed -- How often (in frames) everything else is checked
 local REZ_SPEED_UPDATE_INTERVAL = Game.gameSpeed * 60
-local WATER_DAMAGE_DEF_ID = Game.envDamageTypes.Water
-local CORPSE_RESET_CEG = "selfrepair-sparks-purple"
-local CORPSE_RESET_CEG_HEIGHT = 15
-local UNAUTHORIZED_TEXT = "You are not authorized to use zombie commands" --i18n library doesn't exist in gadget space.
-local spValidUnitID = spring.ValidUnitID
-local spGetGroundHeight = spring.GetGroundHeight
-local spGetUnitPosition = spring.GetUnitPosition
-local spGetFeaturePosition = spring.GetFeaturePosition
-local spGetFeatureResurrect = spring.GetFeatureResurrect
-local spGetFeatureResources = spring.GetFeatureResources
-local spGetFeatureHealth = spring.GetFeatureHealth
-local spGetUnitDefID = spring.GetUnitDefID
-local spGetUnitHealth = spring.GetUnitHealth
-local spGetUnitRulesParam = spring.GetUnitRulesParam
-local spSpawnCEG = spring.SpawnCEG
-local random = math.random
-local floor = math.floor
-local clamp = math.clamp
-local ceil = math.ceil
-
-local teams = spring.GetTeamList()
-local scavTeamID
-local gaiaTeamID = spring.GetGaiaTeamID()
-for _, teamID in ipairs(teams) do
-	local teamLuaAI = spring.GetTeamLuaAI(teamID)
-	if teamLuaAI and string.find(teamLuaAI, "ScavengersAI") then
-		scavTeamID = teamID
-	end
-end
 
 local gameFrame = 0
-local adjustedRezPowerSpeed = currentZombieConfig.techToRezPowerSpeeds[1]
+local tooLong = false
+local adjustedRezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[1]
 local currentTechLevel = nil
-local autoSpawningEnabled = true
 
-local zombiesBeingBuilt = {}
-local rezzedCorpses = {}
-local zombieCorpseDefs = {}
-local corpseCheckFrames = {}
-local corpsesData = {}
-local wereZombies = {}
-local pendingUnitXp = {}
-local pendingZombieCaptures = {}
-local heapingZombies = {}
-local zombieHeapDefs = {}
-local captureSwapOverride = {}
-local unitDefs = UnitDefs
-local unitDefNames = UnitDefNames
-local featureDefNames = FeatureDefNames
-local featureDefs = FeatureDefs
+local PICK_LOWEST = true
+local PICK_HIGHEST = false
+local SUBSTITUTE_FAIR_ROLL_FRAMES = Game.gameSpeed * 60 * 20
+local COMMANDER_SUBSTITUTION_POWER_MULTIPLIER = 0.5 -- to prevent T3 from being substituted in for commanders that die super early in the game.
 
-local warningEffects = {
-	"scavmist",
-	"scavradiation-lightning",
+local excessPower = 0
+
+local GHOST = {
+	MIST_UNIT_NAME = "scavapparition",
+	SAFE_TIME = Game.gameSpeed * 20,
+	MINIMUM_LIFE = Game.gameSpeed * 30,
+	EXPIRATION_TIME = Game.gameSpeed * 120,
+	MAP_MARGIN = 16,
+	SPAWN_GRACE_PERIOD = Game.gameSpeed * 60 * 5,
+	SPAWN_CHECK_INTERVAL = Game.gameSpeed * 60,
+	SPAWN_ATTEMPT_COUNT = 3,
+	SPAWN_OFFSET_DISTANCE = 50,
+	RANDOM_SPAWN_INTERVAL = Game.gameSpeed * 60,
+	MAX_RANDOM_SPAWNS_PER_CHECK = 3,
+	MAX_COUNT = 25,
+	MAX_BUFFER_SPAWNS_PER_PASS = 100,
+	SUBSTITUTE_ROLL_COUNT = 2,
 }
-local spawnEffects = {
+local ghostMistUnitDefID = unitDefNames[GHOST.MIST_UNIT_NAME] and unitDefNames[GHOST.MIST_UNIT_NAME].id
+local ghostCount = 0
+
+local ZOMBIE_TURRET_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't want random zombie immobile trash taking up unit cap forever.
+local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
+
+local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
+local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
+
+local WATER_DAMAGE_DEF_ID = Game.envDamageTypes.Water
+local PENDING_DEATH_TIMEOUT_FRAMES = Game.gameSpeed * 10
+local DEATH_NAMES_WITHOUT_CORPSE = {
+	Reclaimed = true,
+	KilledByLua = true,
+	TurnedIntoFeature = true,
+	FactoryCancel = true,
+	ConstructionDecay = true,
+	OutOfBounds = true,
+	KilledByCheat = true,
+}
+local RULES_PARAM = {
+	REZ_FRAME = "zombie_rez_frame",
+	WAS_ZOMBIE = "wasZombie",
+	PUBLIC_ACCESS = { public = true },
+	PREVIOUS_STATE = { "previous_xp", "previous_firestate", "previous_movestate" },
+}
+local replacementDeathData = nil ---@type table? --zzz why nil?
+
+local ghostPoolUnitDefIDs = {}
+local substitutePoolMemberUnitDefIDs = {}
+local ghosts = {} ---@type table<UnitID, table?>
+local ghostRespawnFrames = {}
+local ghostSpawnBuffer = {}
+local zombieUnitRoles = {}
+local zombieFactories = {} ---@type table<UnitID, table?>
+local zombieTurretExpirationFrames = {}
+local zombieUnitDefs = {}
+local zombieCorpseDefs = {} ---@type table<FeatureDefID, table?>
+local zombieHeapDefs = {}
+local corpsesData = {}
+local corpseCheckFrames = {}
+local rezzedCorpses = {}
+local pendingDeaths = {}
+local pendingWreckSwaps = {}
+local suppressedDeaths = {}
+local DEATHS_WITHOUT_CORPSE = {}
+local captureSwapOverride = {}
+local pendingZombieCaptures = {}
+local zombiesBeingBuilt = {}
+
+for deathName, damageTypeID in pairs(Game.envDamageTypes) do
+	DEATHS_WITHOUT_CORPSE[damageTypeID] = DEATH_NAMES_WITHOUT_CORPSE[deathName]
+end
+
+local EFFECT = {
+	CORPSE_RESET = "selfrepair-sparks-purple",
+	CORPSE_RESET_HEIGHT = 15,
+	SPAWN_TRAIL = "scaspawn-trail",
+	RADIATION_LIGHTNING = "scavradiation-lightning",
+}
+local SPAWN_EXPLOSION_CEGS = {
+	huge = "scav-spawnexplo-huge",
+	large = "scav-spawnexplo-large",
+	medium = "scav-spawnexplo-medium",
+	small = "scav-spawnexplo-small",
+	tiny = "scav-spawnexplo-tiny",
+}
+local SPAWN_EFFECT_SIZE_THRESHOLDS = {
+	{ threshold = 4.5, name = "huge" },
+	{ threshold = 3.5, name = "large" },
+	{ threshold = 2.5, name = "medium" },
+	{ threshold = 1.5, name = "small" },
+}
+local SPAWN_SOUNDS = {
 	"xploelc2",
 	"xploelc3",
 }
+local WARNING_CEGS = {
+	"scavmist",
+	"scavradiation-lightning",
+}
 
-for unitDefID, unitDef in pairs(unitDefs) do
-	local captureOverride = unitDef.customParams.scav_swap_override_captured
-	if captureOverride == "delete" or unitDefNames[captureOverride] then
-		captureSwapOverride[unitDefID] = captureOverride
+local GAIA_RESOURCE_AMOUNT = 1000000
+local GAIA_RESOURCES = {
+	{ resourceName = "metal", storageKey = "ms" },
+	{ resourceName = "energy", storageKey = "es" },
+}
+
+local UNAUTHORIZED_TEXT = "You are not authorized to use zombie commands" --i18n library doesn't exist in gadget space.
+local ZOMBIE_AI_FORWARDED_METHODS = {
+	{ methodName = "PacifyZombies" },
+	{ methodName = "SuspendAutoOrders" },
+	{ methodName = "AggroTeamID", missingResult = false },
+	{ methodName = "AggroAllyID", missingResult = false },
+	{ methodName = "KillAllZombies" },
+	{ methodName = "ClearAllOrders" },
+}
+
+local function unitRequiresSpecificPlacement(unitDef)
+	if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
+		return true
+	end
+	local customParams = unitDef.customParams
+	return customParams and customParams.geothermal and true or false
+end
+
+do
+	local function setSetting(customParams, customParamName, settingName, boolean)
+		local value = tonumber(customParams[customParamName])
+		if value then
+			if boolean then
+				for _, modeFeatures in pairs(ZOMBIE_MODE_FEATURES) do
+					modeFeatures[settingName] = value == 1
+				end
+			else
+				zombieModeSettings[settingName] = value
+			end
+		end
 	end
 
-	local corpseDefName = unitDef.corpse
-	if featureDefNames[corpseDefName] then
-		local corpseDefID = featureDefNames[corpseDefName].id
-		local corpseFeatureDef = featureDefs[corpseDefID]
-		if corpseFeatureDef.resurrectable ~= 0 then
-			local corpseDefData = { unitDefID = unitDefID }
-			local customRespawnTime = tonumber(unitDef.customParams and unitDef.customParams.zombie_respawn_time)
+	for unitDefID = 1, #unitDefs do
+		local unitDef = unitDefs[unitDefID]
+		local customParams = unitDef.customParams ---@type table<string, any>
+		setSetting(customParams, "zombie_ghost_respawn_chance", "ghostFeedSuccessChance")
+		setSetting(customParams, "zombie_ghost_power_multiplier", "ghostPowerMultiplier")
+		setSetting(customParams, "zombie_ghost_respawn_delay_multiplier", "ghostRespawnDelayMultiplier")
+		setSetting(customParams, "zombie_factory_buildpower_tech_multiplier", "factoryBuildpowerTechMultiplier")
+		setSetting(customParams, "zombie_minimum_spawns", "spawnCountMinimum")
+		setSetting(customParams, "zombie_maximum_spawns", "spawnCountMaximum")
+		setSetting(customParams, "zombie_minimum_respawn_delay", "respawnDelayMinimum")
+		setSetting(customParams, "zombie_maximum_respawn_delay", "respawnDelayMaximum")
+		setSetting(customParams, "zombie_enable_yokai", "ghostRespawns", true)
+		setSetting(customParams, "zombie_enable_oni", "alwaysCorpses", true)
+		setSetting(customParams, "zombie_enable_nani", "multipleSpawns", true)
+
+		local captureOverride = customParams.scav_swap_override_captured
+		if captureOverride == "delete" or unitDefNames[captureOverride] then
+			captureSwapOverride[unitDefID] = captureOverride
+		end
+
+		local corpseFeatureDef = FeatureDefNames[unitDef.corpse]
+		if corpseFeatureDef then
+			local corpseDefID = corpseFeatureDef.id
+			local unitDefData = { unitDefID = unitDefID }
+			local customRespawnTime = tonumber(customParams and customParams.zombie_respawn_time)
 			if customRespawnTime then
 				if customRespawnTime < 0 then
-					corpseDefData.neverRespawn = true
+					unitDefData.neverRespawn = true
 				else
-					corpseDefData.customRespawnTime = customRespawnTime
+					unitDefData.customRespawnTime = customRespawnTime
 				end
 			end
-			zombieCorpseDefs[corpseDefID] = corpseDefData
+			if unitRequiresSpecificPlacement(unitDef) then
+				unitDefData.neverRespawn = true
+			end
+			local isGhostPoolUnit = customParams and customParams.zombie_ghost_respawn_pool
+			if isGhostPoolUnit then
+				unitDefData.forceRespawn = true
+			end
+			zombieUnitDefs[unitDefID] = unitDefData
+			if corpseFeatureDef.resurrectable ~= 0 or isGhostPoolUnit then
+				zombieCorpseDefs[corpseDefID] = unitDefData
+			end
+
+			local zombieDefData = {}
+			zombieDefData.corpseDefID = corpseDefID
+
+			local heapDefID = corpseFeatureDef.deathFeatureID
+			if heapDefID then
+				zombieDefData.heapDefID = heapDefID
+			end
+
+			zombieHeapDefs[unitDefID] = zombieDefData
 		end
-
-		local zombieDefData = {}
-		local deathExplosionName = unitDef.deathExplosion
-		local explosionDefID = WeaponDefNames[deathExplosionName].id
-		zombieDefData.explosionDefID = explosionDefID
-
-		local heapDefName = corpseFeatureDef.deathFeatureID
-		if heapDefName then
-			zombieDefData.heapDefID = heapDefName
-		end
-
-		zombieHeapDefs[unitDefID] = zombieDefData
 	end
-
 end
 
 local function isZombie(unitID)
-	return spGetUnitRulesParam(unitID, "zombie") == 1
+	return spring.GetUnitRulesParam(unitID, "zombie") == 1
 end
 
 local function setGaiaStorage()
-	local metalStorageToSet = 1000000
-	local energyStorageToSet = 1000000
-
-	local _, currentMetalStorage = spring.GetTeamResources(gaiaTeamID, "metal")
-	if currentMetalStorage and currentMetalStorage < metalStorageToSet then
-		spring.SetTeamResource(gaiaTeamID, "ms", metalStorageToSet)
-	end
-
-	local _, currentEnergyStorage = spring.GetTeamResources(gaiaTeamID, "energy")
-	if currentEnergyStorage and currentEnergyStorage < energyStorageToSet then
-		spring.SetTeamResource(gaiaTeamID, "es", energyStorageToSet)
+	for resourceIndex = 1, #GAIA_RESOURCES do
+		local resource = GAIA_RESOURCES[resourceIndex]
+		local _, currentStorage = spring.GetTeamResources(gaiaTeamID, resource.resourceName)
+		if currentStorage and currentStorage < GAIA_RESOURCE_AMOUNT then
+			spring.SetTeamResource(gaiaTeamID, resource.storageKey, GAIA_RESOURCE_AMOUNT)
+		end
 	end
 end
 
@@ -226,126 +341,213 @@ local function getUnitRezPower(unitDef)
 	return math.max(1, unitDef.power or 1)
 end
 
-local function calculateSpawnDelayFrames(unitPower)
-	local spawnSeconds = floor(unitPower / adjustedRezPowerSpeed)
-	spawnSeconds = clamp(spawnSeconds, currentZombieConfig.rezMin, currentZombieConfig.rezMax)
-	return spawnSeconds * Game.gameSpeed
+-- Commanders being available immediately in the beginning of the game can cause T3 to cancerously spawn via substitutes. We decrease the value in the beginning to compensate.
+local function getSubstitutionPower(unitDef)
+	local unitPower = getUnitRezPower(unitDef)
+	if unitDef.customParams and unitDef.customParams.iscommander then
+		return unitPower * COMMANDER_SUBSTITUTION_POWER_MULTIPLIER * (currentTechLevel or 1)
+	end
+	return unitPower
 end
 
-local function getRezPowerSpeedForTechLevel(config, techLevel)
-	local speeds = config.techToRezPowerSpeeds
-	if speeds[techLevel] then
-		return speeds[techLevel]
+local function addToFrameList(frameLists, frame, id)
+	local list = frameLists[frame]
+	if not list then
+		list = {}
+		frameLists[frame] = list
 	end
-	return speeds[1]
+	list[#list + 1] = id
+end
+
+local function rebuildGhostPoolUnitDefIDs()
+	local unitDefIDsByBaseName = {}
+	substitutePoolMemberUnitDefIDs = {}
+	for unitDefID, unitDef in pairs(unitDefs) do
+		if unitDef.customParams and unitDef.customParams.zombie_ghost_respawn_pool then
+			substitutePoolMemberUnitDefIDs[unitDefID] = true
+			local baseName = string.gsub(unitDef.name, "_scav$", "")
+			local existingUnitDefID = unitDefIDsByBaseName[baseName]
+			if not existingUnitDefID or unitDef.name == baseName then
+				unitDefIDsByBaseName[baseName] = unitDefID
+			end
+		end
+	end
+
+	ghostPoolUnitDefIDs = {}
+	for _, unitDefID in pairs(unitDefIDsByBaseName) do
+		ghostPoolUnitDefIDs[#ghostPoolUnitDefIDs + 1] = unitDefID
+	end
+	table.sort(ghostPoolUnitDefIDs, function(firstUnitDefID, secondUnitDefID)
+		local firstPower = getUnitRezPower(unitDefs[firstUnitDefID])
+		local secondPower = getUnitRezPower(unitDefs[secondUnitDefID])
+		if firstPower == secondPower then
+			return firstUnitDefID < secondUnitDefID
+		end
+		return firstPower < secondPower
+	end)
+end
+
+local function calculateSpawnDelayFrames(unitPower)
+	local spawnSeconds = clamp(
+		floor(unitPower / adjustedRezPowerSpeed),
+		zombieModeSettings.respawnDelayMinimum,
+		zombieModeSettings.respawnDelayMaximum
+	)
+	return floor(spawnSeconds * Game.gameSpeed)
+end
+
+local function getRezPowerSpeedForTechLevel(techLevel)
+	return TECH_TO_REZ_POWER_SPEEDS[techLevel] or TECH_TO_REZ_POWER_SPEEDS[1]
 end
 
 local function rebuildZombieCorpseSpawnDelays()
-	for _, corpseDefData in pairs(zombieCorpseDefs) do
-		if corpseDefData.neverRespawn then
-			corpseDefData.spawnDelayFrames = nil
-		elseif corpseDefData.customRespawnTime then
-			corpseDefData.spawnDelayFrames = floor(corpseDefData.customRespawnTime * Game.gameSpeed)
+	for _, unitDefData in pairs(zombieUnitDefs) do
+		if unitDefData.neverRespawn then
+			unitDefData.spawnDelayFrames = nil
+		elseif unitDefData.customRespawnTime then
+			unitDefData.spawnDelayFrames = floor(unitDefData.customRespawnTime * Game.gameSpeed)
 		else
-			local unitDef = unitDefs[corpseDefData.unitDefID]
-			corpseDefData.spawnDelayFrames = calculateSpawnDelayFrames(getUnitRezPower(unitDef))
+			local unitDef = unitDefs[unitDefData.unitDefID]
+			unitDefData.spawnDelayFrames = calculateSpawnDelayFrames(getUnitRezPower(unitDef))
+		end
+	end
+end
+
+rebuildGhostPoolUnitDefIDs()
+
+local function calculateFactoryBuildpower(baseBuildpower, techLevel)
+	return baseBuildpower * zombieModeSettings.factoryBuildpowerTechMultiplier ^ techLevel
+end
+
+local function applyZombieFactoryBuildpower(unitID, unitDefID)
+	local unitDef = unitDefs[unitDefID]
+	if not unitDef or not unitDef.isFactory then
+		return
+	end
+
+	local techLevel = currentTechLevel or 1
+	local buildpower = calculateFactoryBuildpower(unitDef.buildSpeed, techLevel)
+	spring.SetUnitBuildSpeed(unitID, buildpower)
+	zombieFactories[unitID] = zombieFactories[unitID] or { unitDefID = unitDefID, baseBuildSpeed = unitDef.buildSpeed }
+end
+
+local function revertZombieFactoryBuildpower(unitID)
+	local factoryData = zombieFactories[unitID]
+	if factoryData then
+		spring.SetUnitBuildSpeed(unitID, factoryData.baseBuildSpeed)
+	end
+	zombieFactories[unitID] = nil
+end
+
+local function refreshZombieFactoryBuildpower()
+	for unitID, factoryData in pairs(zombieFactories) do
+		if not spring.ValidUnitID(unitID) then
+			zombieFactories[unitID] = nil
+		elseif spring.GetUnitTeam(unitID) ~= gaiaTeamID then
+			revertZombieFactoryBuildpower(unitID)
+		else
+			applyZombieFactoryBuildpower(unitID, factoryData.unitDefID)
 		end
 	end
 end
 
 local function updateAdjustedRezPowerSpeed()
 	local techLevel = 1
-	adjustedRezPowerSpeed = getRezPowerSpeedForTechLevel(currentZombieConfig, techLevel)
 	if GG.PowerLib and GG.PowerLib.HighestPlayerTeamPower and GG.PowerLib.TechGuesstimate then
 		local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
 		techLevel = GG.PowerLib.TechGuesstimate(highestPowerData.power)
-		adjustedRezPowerSpeed = getRezPowerSpeedForTechLevel(currentZombieConfig, techLevel)
 	end
-
+	if tooLong then
+		adjustedRezPowerSpeed = TOO_LONG_REZ_POWER_SPEED
+	else
+		adjustedRezPowerSpeed = getRezPowerSpeedForTechLevel(techLevel)
+	end
 	currentTechLevel = techLevel
 end
 
 local function updateRezSpeed()
 	updateAdjustedRezPowerSpeed()
 	rebuildZombieCorpseSpawnDelays()
+	refreshZombieFactoryBuildpower()
 end
 
----Applies a preset's tuning to the live zombie config, falling back to `normal`
----for an unknown mode.
----@param mode ZombieMode
-local function applyZombieModeSettings(mode)
-	local config = zombieModeConfigs[mode]
-	---@diagnostic disable-next-line: unnecessary-if
-	if not config then
-		config = zombieModeConfigs.normal
+local function updateTooLong(frame)
+	if tooLong or frame < TOO_LONG_GAME_FRAMES then
+		return
 	end
-
-	currentZombieMode = mode
-	currentZombieConfig = config
-
+	tooLong = true
+	GG.Zombies.tooLong = true
 	updateRezSpeed()
+	if GG.ZombieAI and GG.ZombieAI.EnablePermanentAggro then
+		GG.ZombieAI.EnablePermanentAggro()
+	end
+end
+
+local function featureResourceRatio(currentAmount, maximumAmount)
+	if currentAmount and maximumAmount and currentAmount ~= 0 and maximumAmount ~= 0 then
+		return currentAmount / maximumAmount
+	end
+	return 1
 end
 
 local function calculateHealthRatio(featureID)
-	local partialReclaimRatio = 1
-	local damagedReductionRatio = 1
 	local currentMetal, maxMetal = spring.GetFeatureResources(featureID)
-	if currentMetal and maxMetal and currentMetal ~= 0 and maxMetal ~= 0 then
-		partialReclaimRatio = currentMetal / maxMetal
-	end
 	local health, maxHealth = spring.GetFeatureHealth(featureID)
-	if health and maxHealth and health ~= 0 and maxHealth ~= 0 then
-		damagedReductionRatio = health / maxHealth
+	local partialReclaimRatio = featureResourceRatio(currentMetal, maxMetal)
+	local damagedReductionRatio = featureResourceRatio(health, maxHealth)
+	return (partialReclaimRatio + damagedReductionRatio) * 0.5 --average the two ratios to skew the result towards maximum health
+end
+
+local function spawnWarningEffects(x, y, z, radius)
+	local selectedEffect = WARNING_CEGS[random(#WARNING_CEGS)] or WARNING_CEGS[1]
+	if selectedEffect == EFFECT.RADIATION_LIGHTNING and GG.SpawnEnvironmentalLightning then
+		GG.SpawnEnvironmentalLightning("scavradiation", x, y, z)
+	else
+		spring.SpawnCEG(selectedEffect, x, y, z, 0, 0, 0, radius * 0.25)
 	end
-	local healthRatio = (partialReclaimRatio + damagedReductionRatio) * 0.5 --average the two ratios to skew the result towards maximum health
-	return healthRatio
+	spring.SpawnCEG(EFFECT.SPAWN_TRAIL, x, y, z, 0, 0, 0, radius)
 end
 
 local function warningCEG(featureID, x, y, z)
-	local radius = spring.GetFeatureRadius(featureID)
-
-	local selectedEffect = warningEffects[random(#warningEffects)]
-	if selectedEffect == "scavradiation-lightning" and GG.SpawnEnvironmentalLightning then
-		GG.SpawnEnvironmentalLightning("scavradiation", x, y, z)
-	else
-		spSpawnCEG(selectedEffect, x, y, z, 0, 0, 0, radius * 0.25)
-	end
-	spSpawnCEG("scaspawn-trail", x, y, z, 0, 0, 0, radius)
+	spawnWarningEffects(x, y, z, spring.GetFeatureRadius(featureID))
 end
 
 local function playSpawnSound(x, y, z)
-	local selectedEffect = spawnEffects[random(#spawnEffects)]
-	spring.PlaySoundFile(selectedEffect, 0.5, x, y, z, 0)
+	local selectedSound = SPAWN_SOUNDS[random(#SPAWN_SOUNDS)] or SPAWN_SOUNDS[1]
+	spring.PlaySoundFile(selectedSound, 0.5, x, y, z, 0)
 end
 
 local function setCorpseRezRulesParam(featureID, spawnFrame)
-	spring.SetFeatureRulesParam(featureID, ZOMBIE_REZ_FRAME_PARAM, spawnFrame, PUBLIC_RULES_PARAM_ACCESS)
+	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME, spawnFrame, RULES_PARAM.PUBLIC_ACCESS)
 end
 
 local function clearCorpseRezRulesParam(featureID)
-	spring.SetFeatureRulesParam(featureID, ZOMBIE_REZ_FRAME_PARAM, nil, PUBLIC_RULES_PARAM_ACCESS)
+	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME, nil, RULES_PARAM.PUBLIC_ACCESS)
 end
 
 local function wasZombieCorpse(featureID, corpseData)
 	if corpseData and corpseData.wasZombie then
 		return true
 	end
-	local wasZombieParam = spring.GetFeatureRulesParam(featureID, WAS_ZOMBIE_PARAM)
+	local wasZombieParam = spring.GetFeatureRulesParam(featureID, RULES_PARAM.WAS_ZOMBIE)
 	return wasZombieParam == 1
+end
+
+local function armCorpseSpawn(featureID, featureData, spawnFrame)
+	featureData.spawnFrame = spawnFrame
+	setCorpseRezRulesParam(featureID, spawnFrame)
+	addToFrameList(corpseCheckFrames, spawnFrame, featureID)
 end
 
 local function resetSpawn(featureID, featureData, featureX, featureZ)
 	local newFrame = featureData.tamperedFrame + featureData.spawnDelayFrames
-	featureData.spawnFrame = newFrame
 	featureData.creationFrame = featureData.tamperedFrame
 	featureData.tamperedFrame = nil -- reclaim/rez progress restarts the spawn timer from this frame
-	setCorpseRezRulesParam(featureID, newFrame)
-	corpseCheckFrames[newFrame] = corpseCheckFrames[newFrame] or {}
-	corpseCheckFrames[newFrame][#corpseCheckFrames[newFrame] + 1] = featureID
-	spSpawnCEG(
-		CORPSE_RESET_CEG,
+	armCorpseSpawn(featureID, featureData, newFrame)
+	spring.SpawnCEG(
+		EFFECT.CORPSE_RESET,
 		featureX,
-		spGetGroundHeight(featureX, featureZ) + CORPSE_RESET_CEG_HEIGHT,
+		spring.GetGroundHeight(featureX, featureZ) + EFFECT.CORPSE_RESET_HEIGHT,
 		featureZ,
 		0,
 		0,
@@ -355,7 +557,7 @@ end
 
 local function getScavVariantUnitDefID(unitDefID)
 	local unitDef = unitDefs[unitDefID]
-	if string.find(unitDef.name, "_scav") then
+	if not unitDef or string.find(unitDef.name, "_scav") then
 		return unitDefID
 	end
 
@@ -370,94 +572,622 @@ local function initializeZombieAI(unitID, unitDefID)
 	end
 end
 
-local function rollSpawnCount()
-	return random(currentZombieConfig.countMin, currentZombieConfig.countMax)
+local function rollFor(keep, rollCount, minimum, maximum)
+	local result = random(minimum, maximum)
+	for _ = 2, rollCount do
+		local roll = random(minimum, maximum)
+		if (keep == PICK_LOWEST and roll < result) or (keep == PICK_HIGHEST and roll > result) then
+			result = roll
+		end
+	end
+	return result
+end
+
+local function rollSpawnCount(keep, rollCount)
+	return rollFor(keep, rollCount, zombieModeSettings.spawnCountMinimum, zombieModeSettings.spawnCountMaximum)
 end
 
 local function calculateSpawnCount(unitDefID)
-	local countMin = currentZombieConfig.countMin
-	local countMax = currentZombieConfig.countMax
-	if countMin == countMax then
-		return countMin
+	if not currentModeFeatures.multipleSpawns then
+		return 1
 	end
 
 	local unitDef = unitDefs[unitDefID]
 	local rezTimeSeconds = calculateSpawnDelayFrames(getUnitRezPower(unitDef)) / Game.gameSpeed
-	local rezMin = currentZombieConfig.rezMin
-	local rezMax = currentZombieConfig.rezMax
 
 	if currentTechLevel <= 1 then
-		return math.min(rollSpawnCount(), rollSpawnCount(), rollSpawnCount()) -- extra min() rolls skew the count down except for cheap, fast-rez units
+		return rollSpawnCount(PICK_LOWEST, 3)
 	end
 
-	if rezTimeSeconds == rezMin then
-		return rollSpawnCount()
+	if rezTimeSeconds == zombieModeSettings.respawnDelayMinimum then
+		return rollSpawnCount(PICK_HIGHEST, 2)
 	end
-	if rezTimeSeconds == rezMax then
-		return math.min(rollSpawnCount(), rollSpawnCount(), rollSpawnCount())
+	if rezTimeSeconds == zombieModeSettings.respawnDelayMaximum then
+		return rollSpawnCount(PICK_LOWEST, 3)
 	end
-	return math.min(rollSpawnCount(), rollSpawnCount())
+	return rollSpawnCount(PICK_LOWEST, 1)
 end
 
-local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z, wasZombie, pastXp)
+local function scheduleZombieTurretExpiration(unitID, unitDefID)
+	local unitRole = zombieUnitRoles[unitDefID]
+	if not unitRole or not unitRole.isExpiringBuilding then
+		return
+	end
+	addToFrameList(zombieTurretExpirationFrames, gameFrame + ZOMBIE_TURRET_LIFETIME, unitID)
+end
+
+local function getSpawnEffectSizeName(sizeCategory)
+	for thresholdIndex = 1, #SPAWN_EFFECT_SIZE_THRESHOLDS do
+		local sizeThreshold = SPAWN_EFFECT_SIZE_THRESHOLDS[thresholdIndex]
+		if sizeCategory > sizeThreshold.threshold then
+			return sizeThreshold.name
+		end
+	end
+	return "tiny"
+end
+
+---@return integer spawnedCount
+local function spawnZombieUnits(
+	unitDefID,
+	spawnCount,
+	healthReductionRatio,
+	spawnX,
+	spawnY,
+	spawnZ,
+	inheritedXp,
+	useExactPosition
+)
 	local unitDef = unitDefs[unitDefID]
-	local spawnCount = 1 -- dead zombies never multiply, so they can't snowball
-	if not wasZombie and unitDef.speed > 0 then
-		spawnCount = calculateSpawnCount(unitDefID)
+	if not unitDef then
+		return 0
 	end
 	local size = unitDef.xsize
 	local unitDefToCreate = getScavVariantUnitDefID(unitDefID)
-	local sizeCategory = ceil((unitDef.xsize / 2 + unitDef.zsize / 2) / 2)
-	local sizeName = "small"
-	if sizeCategory > 4.5 then
-		sizeName = "huge"
-	elseif sizeCategory > 3.5 then
-		sizeName = "large"
-	elseif sizeCategory > 2.5 then
-		sizeName = "medium"
-	elseif sizeCategory > 1.5 then
-		sizeName = "small"
-	else
-		sizeName = "tiny"
-	end
+	local sizeCategory = math.ceil((unitDef.xsize / 2 + unitDef.zsize / 2) / 2)
+	local sizeName = getSpawnEffectSizeName(sizeCategory)
 
-	if pastXp == nil then
-		local corpseData = featureID and corpsesData[featureID]
-		if corpseData then
-			pastXp = corpseData.pastXp
-		elseif featureID then
-			pastXp = spring.GetFeatureRulesParam(featureID, "previous_xp") or 0
-		else
-			pastXp = 0
+	playSpawnSound(spawnX, spawnY, spawnZ)
+
+	local spawnedCount = 0
+	while spawnedCount < spawnCount do
+		local offsetX = 0
+		local offsetZ = 0
+		if not useExactPosition then
+			offsetX = random(-size * spawnCount, size * spawnCount)
+			offsetZ = random(-size * spawnCount, size * spawnCount)
 		end
-	end
-
-	if featureID then
-		spring.DestroyFeature(featureID)
-		corpsesData[featureID] = nil
-	end
-	playSpawnSound(x, y, z)
-
-	for i = 1, spawnCount do
-		local randomX = x + random(-size * spawnCount, size * spawnCount)
-		local randomZ = z + random(-size * spawnCount, size * spawnCount)
-		local adjustedY = spGetGroundHeight(randomX, randomZ)
+		local randomX = clamp(spawnX + offsetX, size, Game.mapSizeX - size)
+		local randomZ = clamp(spawnZ + offsetZ, size, Game.mapSizeZ - size)
+		local adjustedY = spring.GetGroundHeight(randomX, randomZ)
 
 		local unitID = spring.CreateUnit(unitDefToCreate, randomX, adjustedY, randomZ, 0, gaiaTeamID)
 		if unitID then
-			spSpawnCEG("scav-spawnexplo-" .. sizeName, randomX, adjustedY, randomZ, 0, 0, 0)
-			local generatedXp = 0
-			if modOptions.zombies ~= "normal" then
-				generatedXp = math.max(MIN_ZOMBIE_XP, math.min(random() * ZOMBIE_MAX_XP, random() * ZOMBIE_MAX_XP, random() * ZOMBIE_MAX_XP)) -- triple-roll min keeps most extra XP low
+			spring.SpawnCEG(SPAWN_EXPLOSION_CEGS[sizeName], randomX, adjustedY, randomZ, 0, 0, 0)
+			local spawnExperience = inheritedXp or 0
+			if spawnExperience > 0 then
+				spring.SetUnitExperience(unitID, spawnExperience)
 			end
-			spring.SetUnitExperience(unitID, math.max(pastXp, generatedXp))
-			local unitHealth = spGetUnitHealth(unitID)
-			spring.SetUnitHealth(unitID, unitHealth * healthReductionRatio)
+			local unitHealth = spring.GetUnitHealth(unitID)
+			if unitHealth then
+				spring.SetUnitHealth(unitID, unitHealth * healthReductionRatio)
+			end
 			spring.SetUnitRulesParam(unitID, "zombie", 1)
+			applyZombieFactoryBuildpower(unitID, unitDefToCreate)
 			if scavTeamID then
 				spring.TransferUnit(unitID, scavTeamID)
 			else
 				initializeZombieAI(unitID, unitDefToCreate)
+			end
+			scheduleZombieTurretExpiration(unitID, unitDefToCreate)
+			spawnedCount = spawnedCount + 1
+		else
+			break
+		end
+	end
+	return spawnedCount
+end
+
+local function pushGhostSpawn(unitDefID)
+	local unitValue = getUnitRezPower(unitDefs[unitDefID])
+	local insertIndex = #ghostSpawnBuffer + 1
+	for bufferIndex = 1, #ghostSpawnBuffer do
+		if unitValue > getUnitRezPower(unitDefs[ghostSpawnBuffer[bufferIndex]]) then
+			insertIndex = bufferIndex
+			break
+		end
+	end
+	table.insert(ghostSpawnBuffer, insertIndex, unitDefID)
+end
+
+local function pickSubstituteUnitDefID(totalPower)
+	local lowestIndex
+	local highestIndex
+	local substituteRollCount = GHOST.SUBSTITUTE_ROLL_COUNT
+	if gameFrame >= SUBSTITUTE_FAIR_ROLL_FRAMES then
+		substituteRollCount = 1
+	end
+	for poolIndex = 1, #ghostPoolUnitDefIDs do
+		local substitutePower = getUnitRezPower(unitDefs[ghostPoolUnitDefIDs[poolIndex]])
+		if substitutePower > totalPower then
+			break
+		end
+		highestIndex = poolIndex
+		if not lowestIndex and floor(totalPower / substitutePower) <= zombieModeSettings.spawnCountMaximum then
+			lowestIndex = poolIndex
+		end
+	end
+	if not highestIndex then
+		return nil
+	end
+	return ghostPoolUnitDefIDs[rollFor(PICK_LOWEST, substituteRollCount, lowestIndex or highestIndex, highestIndex)]
+end
+
+local function purchaseSubstitutes(unitPower, spawnCount)
+	local borrowedPower = math.min(excessPower, unitPower)
+	local totalPower = unitPower * spawnCount + borrowedPower
+	excessPower = excessPower - borrowedPower
+	local substituteUnitDefID = pickSubstituteUnitDefID(totalPower)
+	if not substituteUnitDefID then
+		excessPower = excessPower + totalPower
+		return nil, 0
+	end
+	local substitutePower = getUnitRezPower(unitDefs[substituteUnitDefID])
+	local purchaseCount = math.min(floor(totalPower / substitutePower), zombieModeSettings.spawnCountMaximum)
+	excessPower = excessPower + totalPower - purchaseCount * substitutePower
+	return substituteUnitDefID, purchaseCount
+end
+
+local function retryFailedSubstitutes(substituteUnitDefID, failedCount)
+	if currentModeFeatures.ghostRespawns then
+		for _ = 1, failedCount do
+			pushGhostSpawn(substituteUnitDefID)
+		end
+		return
+	end
+	excessPower = excessPower + failedCount * getUnitRezPower(unitDefs[substituteUnitDefID])
+end
+
+local function spawnsAsItself(unitDefID, wasZombie)
+	return #ghostPoolUnitDefIDs == 0 or (wasZombie and substitutePoolMemberUnitDefIDs[unitDefID]) or false
+end
+
+local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z, wasZombie, inheritedXp)
+	local unitDef = unitDefs[unitDefID]
+	if not unitDef then
+		return
+	end
+	local spawnCount = 1 -- dead zombies never multiply, so they can't snowball
+	if not wasZombie and unitDef.speed > 0 then
+		spawnCount = calculateSpawnCount(unitDefID)
+	end
+
+	if featureID then
+		inheritedXp = spring.GetFeatureRulesParam(featureID, "previous_xp") or 0
+		corpsesData[featureID] = nil
+		spring.DestroyFeature(featureID)
+	end
+	if not spawnsAsItself(unitDefID, wasZombie) then
+		local substituteUnitDefID, purchaseCount = purchaseSubstitutes(getSubstitutionPower(unitDef), spawnCount)
+		if substituteUnitDefID then
+			local spawnedCount =
+				spawnZombieUnits(substituteUnitDefID, purchaseCount, healthReductionRatio, x, y, z, inheritedXp)
+			retryFailedSubstitutes(substituteUnitDefID, purchaseCount - spawnedCount)
+		end
+		return
+	end
+	spawnZombieUnits(unitDefID, spawnCount, healthReductionRatio, x, y, z, inheritedXp)
+end
+
+local function spawnZombiesFromFeature(featureID, unitDefID, wasZombie)
+	local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
+	if not featureX then
+		return false
+	end
+	spawnZombies(featureID, unitDefID, calculateHealthRatio(featureID), featureX, featureY, featureZ, wasZombie)
+	return true
+end
+
+local function buildZombieUnitRoles()
+	local function unitDefHasDamagingWeapon(unitDef)
+		if not unitDef.weapons then
+			return false
+		end
+		for weaponIndex = 1, #unitDef.weapons do
+			local weapon = unitDef.weapons[weaponIndex]
+			local weaponDefID = weapon.weaponDef
+			local weaponDef = weaponDefID and WeaponDefs[weaponDefID]
+			if
+				weaponDef
+				and weaponDef.range
+				and weaponDef.range > 0
+				and not (weaponDef.customParams and weaponDef.customParams.bogus)
+			then
+				return true
+			end
+		end
+		return false
+	end
+
+	local function unitHasSensorRadius(unitDef)
+		return (unitDef.radarRadius or 0) > 0
+			or (unitDef.jammerRadius or 0) > 0
+			or (unitDef.sonarRadius or 0) > 0
+			or (unitDef.sonarJamRadius or 0) > 0
+	end
+
+	local function isHarmlessEconomyUnit(unitDef)
+		local unitGroup = unitDef.customParams and unitDef.customParams.unitgroup
+		if unitGroup ~= "metal" and unitGroup ~= "energy" then
+			return false
+		end
+		return not unitDefHasDamagingWeapon(unitDef)
+	end
+
+	local function isRadarOrJammerUnit(unitDef)
+		local unitGroup = unitDef.customParams and unitDef.customParams.unitgroup
+		if unitGroup ~= "util" then
+			return false
+		end
+		return unitHasSensorRadius(unitDef)
+	end
+
+	for unitDefID, unitDef in pairs(unitDefs) do
+		local isHarmlessEconomy = isHarmlessEconomyUnit(unitDef)
+		local isRadarOrJammer = isRadarOrJammerUnit(unitDef)
+		local unitPower = getUnitRezPower(unitDef)
+		local isExpiringBuilding = unitDef.speed <= 0
+			and not unitDef.isFactory
+			and unitPower <= ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT
+		zombieUnitRoles[unitDefID] = {
+			isExpiringBuilding = isExpiringBuilding,
+			excludedFromGhostSpawn = isHarmlessEconomy or isRadarOrJammer,
+		}
+	end
+end
+
+buildZombieUnitRoles()
+
+local function canFeedGhostQueue(unitDefID)
+	local unitDefData = zombieUnitDefs[unitDefID]
+	local unitRole = zombieUnitRoles[unitDefID]
+	if not unitDefData or unitDefData.neverRespawn or not unitRole or unitRole.excludedFromGhostSpawn then
+		return false
+	end
+	return true
+end
+
+local function resolveGhostRespawn(unitDefID, wasZombie)
+	if spawnsAsItself(unitDefID, wasZombie) then
+		pushGhostSpawn(unitDefID)
+		return
+	end
+	local unitPower = getSubstitutionPower(unitDefs[unitDefID]) * zombieModeSettings.ghostPowerMultiplier
+	local substituteUnitDefID, purchaseCount = purchaseSubstitutes(unitPower, 1)
+	for _ = 1, purchaseCount do
+		pushGhostSpawn(substituteUnitDefID)
+	end
+end
+
+local function queueGhostRespawn(unitDefID, wasZombie, respawnFrame)
+	if respawnFrame <= gameFrame then
+		resolveGhostRespawn(unitDefID, wasZombie)
+		return
+	end
+	addToFrameList(ghostRespawnFrames, respawnFrame, { unitDefID = unitDefID, wasZombie = wasZombie })
+end
+
+local function processDueGhostRespawns(frame)
+	local respawns = ghostRespawnFrames[frame]
+	if not respawns then
+		return
+	end
+	ghostRespawnFrames[frame] = nil
+	for respawnIndex = 1, #respawns do
+		local respawn = respawns[respawnIndex]
+		resolveGhostRespawn(respawn.unitDefID, respawn.wasZombie)
+	end
+end
+
+---@return UnitID[]
+local function getSortedGhostIDs()
+	local ghostIDs = {}
+	for unitID in pairs(ghosts) do
+		ghostIDs[#ghostIDs + 1] = unitID
+	end
+	table.sort(ghostIDs)
+	return ghostIDs
+end
+
+local function forgetGhost(unitID)
+	if not ghosts[unitID] then
+		return
+	end
+	ghosts[unitID] = nil
+	ghostCount = ghostCount - 1
+end
+
+local function removeGhost(unitID)
+	forgetGhost(unitID)
+	spring.DestroyUnit(unitID, false, true)
+end
+
+local function getOldestReplaceableGhostID()
+	local oldestUnitID
+	local oldestCreationFrame
+	for unitID, ghostData in pairs(ghosts) do
+		local creationFrame = ghostData.creationFrame
+		if gameFrame - creationFrame >= GHOST.MINIMUM_LIFE then
+			if
+				not oldestCreationFrame
+				or creationFrame < oldestCreationFrame
+				or (creationFrame == oldestCreationFrame and unitID < oldestUnitID)
+			then
+				oldestUnitID = unitID
+				oldestCreationFrame = creationFrame
+			end
+		end
+	end
+	return oldestUnitID
+end
+
+local function createGhost(spawnX, spawnZ)
+	if not ghostMistUnitDefID or gameFrame < GHOST.SPAWN_GRACE_PERIOD then
+		return nil
+	end
+
+	local replacedGhostID
+	if ghostCount >= GHOST.MAX_COUNT then
+		replacedGhostID = getOldestReplaceableGhostID()
+		if not replacedGhostID then
+			return nil
+		end
+	end
+
+	local ghostX = clamp(spawnX, GHOST.MAP_MARGIN, Game.mapSizeX - GHOST.MAP_MARGIN)
+	local ghostZ = clamp(spawnZ, GHOST.MAP_MARGIN, Game.mapSizeZ - GHOST.MAP_MARGIN)
+	local unitID =
+		spring.CreateUnit(ghostMistUnitDefID, ghostX, spring.GetGroundHeight(ghostX, ghostZ), ghostZ, 0, gaiaTeamID)
+	if not unitID then
+		return nil
+	end
+
+	if replacedGhostID then
+		removeGhost(replacedGhostID)
+	end
+
+	spring.SetUnitNeutral(unitID, true)
+	spring.SetUnitBuildSpeed(unitID, 0)
+	spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
+	if GG.SetWantedCloaked then
+		GG.SetWantedCloaked(unitID, 1)
+	else
+		spring.SetUnitCloak(unitID, 1)
+	end
+
+	ghosts[unitID] = {
+		creationFrame = gameFrame,
+		readyFrame = gameFrame + GHOST.SAFE_TIME,
+		expirationFrame = gameFrame + GHOST.EXPIRATION_TIME,
+	}
+	ghostCount = ghostCount + 1
+	return unitID
+end
+
+local function spawnRandomMapGhosts()
+	if not autoSpawningEnabled or not currentModeFeatures.ghostRespawns or gameFrame < GHOST.SPAWN_GRACE_PERIOD then
+		return
+	end
+
+	local minimumX = GHOST.MAP_MARGIN
+	local maximumX = floor(Game.mapSizeX - GHOST.MAP_MARGIN)
+	local minimumZ = GHOST.MAP_MARGIN
+	local maximumZ = floor(Game.mapSizeZ - GHOST.MAP_MARGIN)
+	if maximumX < minimumX or maximumZ < minimumZ then
+		return
+	end
+
+	for _ = 1, GHOST.MAX_RANDOM_SPAWNS_PER_CHECK do
+		if ghostCount >= GHOST.MAX_COUNT then
+			return
+		end
+		local spawnX = random(minimumX, maximumX)
+		local spawnZ = random(minimumZ, maximumZ)
+		createGhost(spawnX, spawnZ)
+	end
+end
+
+local function feedGhostQueue(unitDefID, spawnX, spawnZ, wasZombie)
+	if not autoSpawningEnabled or not currentModeFeatures.ghostRespawns or not canFeedGhostQueue(unitDefID) then
+		return
+	end
+	if random() < zombieModeSettings.ghostFeedSuccessChance then
+		local spawnDelayFrames = (zombieUnitDefs[unitDefID].spawnDelayFrames or 0)
+			* zombieModeSettings.ghostRespawnDelayMultiplier
+		queueGhostRespawn(unitDefID, wasZombie, gameFrame + spawnDelayFrames)
+	end
+	createGhost(spawnX, spawnZ)
+end
+
+local function expireZombieTurret(unitID)
+	if not spring.ValidUnitID(unitID) then
+		return
+	end
+	local unitDefID = spring.GetUnitDefID(unitID)
+	local unitRole = unitDefID and zombieUnitRoles[unitDefID]
+	if not unitDefID or not isZombie(unitID) or not unitRole or not unitRole.isExpiringBuilding then
+		return
+	end
+	local unitX, _, unitZ = spring.GetUnitPosition(unitID)
+	suppressedDeaths[unitID] = true
+	if unitX then
+		feedGhostQueue(unitDefID, unitX, unitZ, true)
+	end
+	spring.DestroyUnit(unitID, true, true)
+end
+
+local function expireDueZombieTurrets(frame)
+	local expiringTurrets = zombieTurretExpirationFrames[frame]
+	if not expiringTurrets then
+		return
+	end
+	zombieTurretExpirationFrames[frame] = nil
+	for turretIndex = 1, #expiringTurrets do
+		expireZombieTurret(expiringTurrets[turretIndex])
+	end
+end
+
+local function collectReadyGhosts()
+	local readyGhosts = {}
+	for unitID, ghostData in pairs(ghosts) do
+		if gameFrame >= ghostData.readyFrame then
+			local ghostX, _, ghostZ = spring.GetUnitPosition(unitID)
+			if ghostX then
+				readyGhosts[#readyGhosts + 1] = { x = ghostX, z = ghostZ, assignedCount = 0 }
+			else
+				forgetGhost(unitID)
+			end
+		end
+	end
+	return readyGhosts
+end
+
+local function getGhostSpawnAttemptPosition(originX, originZ, size)
+	local angle = random() * 2 * math.pi
+	local distance = random() * GHOST.SPAWN_OFFSET_DISTANCE
+	local spawnX = clamp(originX + math.cos(angle) * distance, size, Game.mapSizeX - size)
+	local spawnZ = clamp(originZ + math.sin(angle) * distance, size, Game.mapSizeZ - size)
+	local spawnY = spring.GetGroundHeight(spawnX, spawnZ)
+	return spawnX, spawnY, spawnZ
+end
+
+local function canSpawnUnitAt(unitDefID, spawnX, spawnY, spawnZ)
+	local unitDef = unitDefs[unitDefID]
+	if not unitDef then
+		return false
+	end
+	if unitDef.speed > 0 then
+		return spring.TestMoveOrder(unitDefID, spawnX, spawnY, spawnZ) and true or false
+	end
+	return spring.TestBuildOrder(unitDefID, spawnX, spawnY, spawnZ, 0) > 0
+end
+
+local function isTeamAtUnitCap(teamID)
+	local maxUnits, currentUnits = spring.GetTeamMaxUnits(teamID)
+	return maxUnits ~= nil and currentUnits ~= nil and currentUnits >= maxUnits
+end
+
+local function attemptGhostBufferSpawn(unitDefID, readyGhosts)
+	local unitDefToCreate = getScavVariantUnitDefID(unitDefID)
+	local size = unitDefs[unitDefToCreate].xsize
+	for ghostIndex = 1, #readyGhosts do
+		local readyGhost = readyGhosts[ghostIndex]
+		for _ = 1, GHOST.SPAWN_ATTEMPT_COUNT do
+			local spawnX, spawnY, spawnZ = getGhostSpawnAttemptPosition(readyGhost.x, readyGhost.z, size)
+			if canSpawnUnitAt(unitDefToCreate, spawnX, spawnY, spawnZ) then
+				if spawnZombieUnits(unitDefID, 1, 1, spawnX, spawnY, spawnZ, 0, true) > 0 then
+					readyGhost.assignedCount = readyGhost.assignedCount + 1
+					return "spawned"
+				end
+				return "failed"
+			end
+		end
+	end
+	return "unspawned"
+end
+
+local function orderReadyGhostsByAssignedCount(readyGhosts)
+	for ghostIndex = #readyGhosts, 2, -1 do
+		local swapIndex = random(1, ghostIndex)
+		readyGhosts[ghostIndex], readyGhosts[swapIndex] = readyGhosts[swapIndex], readyGhosts[ghostIndex]
+	end
+	table.sort(readyGhosts, function(firstGhost, secondGhost)
+		return firstGhost.assignedCount < secondGhost.assignedCount
+	end)
+end
+
+local function spawnBufferedGhostUnits()
+	local readyGhosts = collectReadyGhosts()
+	if #readyGhosts == 0 then
+		return
+	end
+	local remainingSpawns = {}
+	local unspawnableUnitDefIDs = {}
+	local bufferIndex = 1
+	local lastAttemptIndex = math.min(#ghostSpawnBuffer, GHOST.MAX_BUFFER_SPAWNS_PER_PASS)
+	while bufferIndex <= lastAttemptIndex do
+		if isTeamAtUnitCap(gaiaTeamID) then
+			break
+		end
+
+		local unitDefID = ghostSpawnBuffer[bufferIndex]
+		local spawnResult = "unspawned"
+		if not unspawnableUnitDefIDs[unitDefID] then
+			orderReadyGhostsByAssignedCount(readyGhosts)
+			spawnResult = attemptGhostBufferSpawn(unitDefID, readyGhosts)
+			if spawnResult == "unspawned" then
+				unspawnableUnitDefIDs[unitDefID] = true
+			end
+		end
+		if spawnResult ~= "spawned" then
+			remainingSpawns[#remainingSpawns + 1] = unitDefID
+		end
+		bufferIndex = bufferIndex + 1
+		if spawnResult == "failed" then
+			break
+		end
+	end
+
+	for spawnIndex = bufferIndex, #ghostSpawnBuffer do
+		remainingSpawns[#remainingSpawns + 1] = ghostSpawnBuffer[spawnIndex]
+	end
+	ghostSpawnBuffer = remainingSpawns
+end
+
+local function hasPendingGhostSpawn()
+	if #ghostSpawnBuffer > 0 then
+		return true
+	end
+	for _, respawns in pairs(ghostRespawnFrames) do
+		if #respawns > 0 then
+			return true
+		end
+	end
+	return false
+end
+
+local function spawnGhostReadyLightning(ghostX, ghostY, ghostZ)
+	if random() < 0.5 then
+		return
+	end
+	local lightningY = ghostY + 100
+	if GG.SpawnEnvironmentalLightning then
+		GG.SpawnEnvironmentalLightning("scavradiation", ghostX, lightningY, ghostZ, 0.5)
+	end
+	spring.SpawnCEG(EFFECT.RADIATION_LIGHTNING, ghostX, lightningY, ghostZ, 0, 0, 0)
+	spring.SpawnCEG(EFFECT.SPAWN_TRAIL, ghostX, ghostY, ghostZ, 0, 0, 0, 32)
+end
+
+local function updateGhosts()
+	local ghostIDs = getSortedGhostIDs()
+	local pendingGhostSpawn = hasPendingGhostSpawn()
+	local gaiaAtUnitCap = isTeamAtUnitCap(gaiaTeamID)
+	for ghostIndex = 1, #ghostIDs do
+		local unitID = ghostIDs[ghostIndex]
+		local ghostData = ghosts[unitID]
+		if ghostData then
+			local unitDefID = spring.GetUnitDefID(unitID)
+			local ghostX, ghostY, ghostZ = spring.GetUnitPosition(unitID)
+			if not unitDefID or not ghostX then
+				forgetGhost(unitID)
+			elseif gameFrame >= ghostData.expirationFrame then
+				removeGhost(unitID)
+			else
+				local enemyNearby = GG.ZombieAI and GG.ZombieAI.CommandGhost(unitID, unitDefID, ghostX, ghostY, ghostZ)
+				if enemyNearby then
+					ghostData.readyFrame = gameFrame + GHOST.SAFE_TIME
+				elseif gameFrame >= ghostData.readyFrame and pendingGhostSpawn and not gaiaAtUnitCap then
+					spawnGhostReadyLightning(ghostX, ghostY, ghostZ)
+				end
 			end
 		end
 	end
@@ -466,7 +1196,7 @@ end
 ---Turns a unit into a zombie, swapping it for its `_scav` variant where one exists.
 ---@param unitID UnitID
 local function setZombie(unitID)
-	local unitDefID = spGetUnitDefID(unitID)
+	local unitDefID = spring.GetUnitDefID(unitID)
 	if not unitDefID then
 		return
 	end
@@ -474,18 +1204,21 @@ local function setZombie(unitID)
 	local scavUnitDefID = getScavVariantUnitDefID(unitDefID)
 
 	-- If we need to convert to _scav variant
-	if scavUnitDefID ~= unitDefID then
-		local x, y, z = spGetUnitPosition(unitID)
-		local facing = spring.GetUnitDirection(unitID)
-		local teamID = spring.GetUnitTeam(unitID)
-		local newUnitID = spring.CreateUnit(scavUnitDefID, x, y, z, facing, teamID)
+	local unitX, unitY, unitZ = spring.GetUnitPosition(unitID)
+	local teamID = spring.GetUnitTeam(unitID)
+	if scavUnitDefID ~= unitDefID and unitX and teamID then
+		local facing = spring.GetUnitBuildFacing(unitID) or 0
+		local newUnitID = spring.CreateUnit(scavUnitDefID, unitX, unitY, unitZ, facing, teamID)
 		if newUnitID then
-			local health, maxHealth = spGetUnitHealth(unitID)
-			local originalHealthRatio = health / maxHealth
-			spring.SetUnitHealth(newUnitID, originalHealthRatio * maxHealth)
+			local health, maxHealth = spring.GetUnitHealth(unitID)
+			local _, newMaxHealth = spring.GetUnitHealth(newUnitID)
+			if health and maxHealth > 0 then
+				spring.SetUnitHealth(newUnitID, health / maxHealth * newMaxHealth)
+			end
 			local experience = spring.GetUnitExperience(unitID)
 			spring.SetUnitExperience(newUnitID, experience)
 
+			suppressedDeaths[unitID] = true
 			spring.DestroyUnit(unitID, false, true)
 
 			unitID = newUnitID
@@ -494,7 +1227,9 @@ local function setZombie(unitID)
 	end
 
 	spring.SetUnitRulesParam(unitID, "zombie", 1)
+	applyZombieFactoryBuildpower(unitID, unitDefID)
 	initializeZombieAI(unitID, unitDefID)
+	scheduleZombieTurretExpiration(unitID, unitDefID)
 end
 
 function gadget:FeatureBuildStepPost(featureID)
@@ -503,9 +1238,9 @@ function gadget:FeatureBuildStepPost(featureID)
 		if not featureData.tamperedFrame then
 			local remainingFrames = featureData.spawnFrame - gameFrame
 			if remainingFrames < featureData.spawnDelayFrames - TIMER_NEAR_MAX_THRESHOLD then
-				local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
-				if featureX then
-					spSpawnCEG("scaspawn-trail", featureX, featureY + 15, featureZ, 0, 0, 0)
+				local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
+				if featureX and featureY then
+					spring.SpawnCEG(EFFECT.SPAWN_TRAIL, featureX, featureY + 15, featureZ, 0, 0, 0)
 				end
 			end
 		end
@@ -525,12 +1260,12 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		corpseData.zombieStepFrame = gameFrame
 	end
 	local corpseDefData = zombieCorpseDefs[featureDefID]
-	local metal, maxMetal = spGetFeatureResources(featureID)
-	local _, _, resurrectProgress = spGetFeatureHealth(featureID)
+	local metal, maxMetal = spring.GetFeatureResources(featureID)
+	local _, _, resurrectProgress = spring.GetFeatureHealth(featureID)
 	if not corpseDefData or metal < maxMetal or resurrectProgress + part < 1 then
 		return true
 	end
-	local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
+	local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
 	if not featureX then
 		return true
 	end
@@ -542,216 +1277,10 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		featureX,
 		featureY,
 		featureZ,
-		false,
+		wasZombieCorpse(featureID, corpseData),
 		corpseData and corpseData.pastXp
 	)
 	return false
-end
-
-function gadget:GameFrame(frame)
-	gameFrame = frame
-
-	if frame % REZ_SPEED_UPDATE_INTERVAL == 0 then
-		updateRezSpeed()
-	end
-
-	local corpsesToCheck = corpseCheckFrames[frame]
-	if corpsesToCheck then
-		for i = 1, #corpsesToCheck do
-			local featureID = corpsesToCheck[i]
-			local corpseData = corpsesData[featureID]
-			local featureX, featureY, featureZ
-			if corpseData then
-				featureX, featureY, featureZ = spGetFeaturePosition(featureID)
-			end
-			if not featureX then --feature is gone
-				corpsesData[featureID] = nil
-			else --feature is still there
-				local featureDefData = zombieCorpseDefs[corpseData.featureDefID]
-				if corpseData.tamperedFrame then
-					resetSpawn(featureID, corpseData, featureX, featureZ)
-				else
-					local healthReductionRatio = calculateHealthRatio(featureID)
-					spawnZombies(
-						featureID,
-						featureDefData.unitDefID,
-						healthReductionRatio,
-						featureX,
-						featureY,
-						featureZ,
-						corpseData.wasZombie,
-						corpseData.pastXp
-					)
-				end
-			end
-		end
-		corpseCheckFrames[frame] = nil
-	end
-
-	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
-		spring.AddTeamResource(gaiaTeamID, "metal", 1000000)
-		spring.AddTeamResource(gaiaTeamID, "energy", 1000000)
-		for unitID, timeoutFrame in pairs(wereZombies) do
-			if timeoutFrame < frame then
-				wereZombies[unitID] = nil
-			end
-		end
-		for unitID, xpData in pairs(pendingUnitXp) do
-			if xpData.timeout < frame then
-				pendingUnitXp[unitID] = nil
-			end
-		end
-		for featureID, featureData in pairs(corpsesData) do
-			if featureData.spawnFrame - frame < WARNING_TIME then
-				local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
-				if not featureX then --doesn't exist anymore
-					corpsesData[featureID] = nil
-				elseif not featureData.tamperedFrame then
-					warningCEG(featureID, featureX, featureY, featureZ)
-				end
-			end
-		end
-	end
-end
-
-local function isCorpseResurrectable(featureID)
-	local resurrectUnitName = spGetFeatureResurrect(featureID)
-	return resurrectUnitName ~= nil and resurrectUnitName ~= ""
-end
-
-local function queueCorpseForSpawning(featureID, override, wasZombie, pastXp)
-	if not override and not autoSpawningEnabled then
-		return
-	end
-
-	local featureDefID = spring.GetFeatureDefID(featureID)
-	local corpseDefData = zombieCorpseDefs[featureDefID]
-	if not corpseDefData or corpseDefData.neverRespawn or not isCorpseResurrectable(featureID) then
-		return
-	end
-
-	wasZombie = wasZombie or wasZombieCorpse(featureID)
-	if pastXp == nil then
-		local existingCorpseData = corpsesData[featureID]
-		if existingCorpseData then
-			pastXp = existingCorpseData.pastXp
-		else
-			pastXp = spring.GetFeatureRulesParam(featureID, "previous_xp") or 0
-		end
-	end
-
-	local spawnDelayFrames = corpseDefData.spawnDelayFrames
-	if spawnDelayFrames == 0 then
-		local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
-		if featureX then
-			local healthReductionRatio = calculateHealthRatio(featureID)
-			spawnZombies(
-				featureID,
-				corpseDefData.unitDefID,
-				healthReductionRatio,
-				featureX,
-				featureY,
-				featureZ,
-				wasZombie,
-				pastXp
-			)
-		end
-		return
-	end
-
-	local spawnFrame = gameFrame + spawnDelayFrames
-	corpsesData[featureID] = {
-		featureDefID = featureDefID,
-		spawnDelayFrames = spawnDelayFrames,
-		creationFrame = gameFrame,
-		spawnFrame = spawnFrame,
-		wasZombie = wasZombie,
-		pastXp = pastXp,
-	}
-	setCorpseRezRulesParam(featureID, spawnFrame)
-	corpseCheckFrames[spawnFrame] = corpseCheckFrames[spawnFrame] or {}
-	corpseCheckFrames[spawnFrame][#corpseCheckFrames[spawnFrame] + 1] = featureID
-end
-
-function gadget:FeatureCreated(featureID, allyTeam, sourceID)
-	local wasZombie = false
-	local pastXp = 0
-	if sourceID and wereZombies[sourceID] then
-		wasZombie = true
-		wereZombies[sourceID] = nil
-		spring.SetFeatureRulesParam(featureID, WAS_ZOMBIE_PARAM, 1, PUBLIC_RULES_PARAM_ACCESS)
-	end
-	if sourceID and pendingUnitXp[sourceID] then
-		pastXp = pendingUnitXp[sourceID].xp
-		pendingUnitXp[sourceID] = nil
-	else
-		pastXp = spring.GetFeatureRulesParam(featureID, "previous_xp") or 0
-	end
-	queueCorpseForSpawning(featureID, false, wasZombie, pastXp)
-end
-
-function gadget:FeatureDestroyed(featureID, allyTeam)
-	clearCorpseRezRulesParam(featureID)
-	corpsesData[featureID] = nil
-	rezzedCorpses[featureID] = nil
-end
-
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if unitTeam == gaiaTeamID and builderID and isZombie(builderID) then
-		zombiesBeingBuilt[unitID] = true
-		spring.SetUnitRulesParam(unitID, "resurrected", 0, { inlos = true })
-	end
-end
-
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if unitTeam == gaiaTeamID and zombiesBeingBuilt[unitID] then
-		zombiesBeingBuilt[unitID] = nil
-		setZombie(unitID)
-	end
-end
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if zombieHeapDefs[unitDefID] then
-		pendingUnitXp[unitID] =
-			{ xp = spring.GetUnitExperience(unitID) or 0, timeout = gameFrame + WAS_ZOMBIE_TIMEOUT_FRAMES }
-	end
-	if isZombie(unitID) and currentZombieConfig.zombieCorpses and not heapingZombies[unitID] then
-		wereZombies[unitID] = gameFrame + WAS_ZOMBIE_TIMEOUT_FRAMES -- FeatureCreated may land later, so stash zombie-ness for a few seconds
-	end
-	heapingZombies[unitID] = nil
-	pendingZombieCaptures[unitID] = nil
-	zombiesBeingBuilt[unitID] = nil
-end
-
-function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, part)
-	if isZombie(builderID) then
-		pendingZombieCaptures[unitID] = true
-	end
-	return true
-end
-
-function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if pendingZombieCaptures[unitID] then
-		pendingZombieCaptures[unitID] = nil
-		if not isZombie(unitID) then
-			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-			local health, maxHealth = spGetUnitHealth(unitID)
-			local pastXp = spring.GetUnitExperience(unitID) or 0
-			local healthReductionRatio = 1
-			if health and maxHealth and maxHealth ~= 0 then
-				healthReductionRatio = health / maxHealth
-			end
-			spring.DestroyUnit(unitID, false, true)
-			local spawnDefID = unitDefID
-			local swapOverride = captureSwapOverride[unitDefID]
-			if swapOverride then
-				spawnDefID = swapOverride ~= "delete" and unitDefNames[swapOverride].id or nil
-			end
-			if unitX and spawnDefID then
-				spawnZombies(nil, spawnDefID, healthReductionRatio, unitX, unitY, unitZ, false, pastXp)
-			end
-		end
-	end
 end
 
 local function isUnitInLava(unitID)
@@ -776,7 +1305,7 @@ local function isUnitInLava(unitID)
 	return false
 end
 
-local function shouldAlwaysLeaveHeap(unitID, weaponDefID, attackerID) -- water/lava deaths always heap so they can't rez from the fluid
+local function isFluidDeath(unitID, weaponDefID, attackerID)
 	if weaponDefID == WATER_DAMAGE_DEF_ID then
 		return true
 	end
@@ -786,40 +1315,434 @@ local function shouldAlwaysLeaveHeap(unitID, weaponDefID, attackerID) -- water/l
 	if not weaponDefID or weaponDefID < 0 then
 		return true
 	end
-	if not attackerID or attackerID < 0 or not spValidUnitID(attackerID) then
+	if not attackerID or attackerID < 0 or not spring.ValidUnitID(attackerID) then
 		return true
 	end
 	return false
 end
 
-local function leaveZombieHeap(unitID, unitDefID, attackerID)
-	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+local function isCorpseGuaranteeEligible(unitID, unitDefID, weaponDefID, inFluid)
+	if not currentModeFeatures.alwaysCorpses or inFluid or DEATHS_WITHOUT_CORPSE[weaponDefID] then
+		return false
+	end
+	local unitDefData = zombieUnitDefs[unitDefID]
+	if not unitDefData or unitDefData.neverRespawn or not zombieCorpseDefs[zombieHeapDefs[unitDefID].corpseDefID] then
+		return false
+	end
+	local _, _, _, _, buildProgress = spring.GetUnitHealth(unitID)
+	return buildProgress == nil or buildProgress >= 1
+end
+
+local function recordPendingDeath(unitID, unitDefID, unitTeam, attackerID, weaponDefID)
+	if not zombieHeapDefs[unitDefID] then
+		return
+	end
+	local unitX, unitY, unitZ = spring.GetUnitPosition(unitID)
 	if not unitX then
 		return
 	end
-	local defData = zombieHeapDefs[unitDefID]
-	if not defData then
+	local wasZombie = isZombie(unitID)
+	local inFluid = currentModeFeatures.alwaysCorpses and isFluidDeath(unitID, weaponDefID, attackerID)
+	local guaranteeCorpse = isCorpseGuaranteeEligible(unitID, unitDefID, weaponDefID, inFluid)
+	local deathData = {
+		unitDefID = unitDefID,
+		teamID = unitTeam,
+		x = unitX,
+		y = unitY,
+		z = unitZ,
+		wasZombie = wasZombie,
+		demoteCorpse = wasZombie and (inFluid or not currentModeFeatures.alwaysCorpses),
+		forcedHeap = false,
+		guaranteeCorpse = guaranteeCorpse,
+		timeoutFrame = gameFrame + PENDING_DEATH_TIMEOUT_FRAMES,
+	}
+	if guaranteeCorpse then
+		local unitStates = spring.GetUnitStates(unitID)
+		deathData.heading = spring.GetUnitHeading(unitID) or 0
+		deathData.experience = spring.GetUnitExperience(unitID) or 0
+		deathData.fireState = unitStates and unitStates.firestate
+		deathData.moveState = unitStates and unitStates.movestate
+	end
+	pendingDeaths[unitID] = deathData
+end
+
+local function readPreviousStates(featureID)
+	local previousStates = {}
+	for paramIndex = 1, #RULES_PARAM.PREVIOUS_STATE do
+		local paramName = RULES_PARAM.PREVIOUS_STATE[paramIndex]
+		previousStates[paramName] = spring.GetFeatureRulesParam(featureID, paramName)
+	end
+	return previousStates
+end
+
+local function applyPreviousStates(featureID, previousStates)
+	if not previousStates then
 		return
 	end
-	heapingZombies[unitID] = true -- eat the killing blow and leave a heap instead of a rez-able wreck
-	spring.DestroyUnit(unitID, false, true, attackerID)
-	spring.SpawnExplosion(unitX, unitY, unitZ, 0, 0, 0, { weaponDef = defData.explosionDefID, owner = unitID })
-	if defData.heapDefID then
-		spring.CreateFeature(defData.heapDefID, unitX, unitY, unitZ)
+	for paramIndex = 1, #RULES_PARAM.PREVIOUS_STATE do
+		local paramName = RULES_PARAM.PREVIOUS_STATE[paramIndex]
+		local paramValue = previousStates[paramName]
+		if paramValue then
+			spring.SetFeatureRulesParam(featureID, paramName, paramValue)
+		end
 	end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID)
-	if not isZombie(unitID) then
+local function createDeathCorpse(deathData, featureX, featureY, featureZ, heading, teamID)
+	replacementDeathData = deathData
+	local featureID = spring.CreateFeature(
+		zombieHeapDefs[deathData.unitDefID].corpseDefID,
+		featureX,
+		featureY,
+		featureZ,
+		heading,
+		teamID
+	)
+	replacementDeathData = nil
+	if not featureID then
+		feedGhostQueue(deathData.unitDefID, featureX, featureZ, deathData.wasZombie)
+	end
+end
+
+local function demoteCorpseToHeap(featureID, deathData)
+	deathData.previousStates = nil
+	deathData.forcedHeap = true
+	replacementDeathData = deathData
+	spring.CreateFeatureWreck(featureID, 1)
+	replacementDeathData = nil
+	spring.DestroyFeature(featureID)
+end
+
+local function promoteHeapToCorpse(featureID, deathData, featureX, featureY, featureZ)
+	deathData.previousStates = readPreviousStates(featureID)
+	local heading = spring.GetFeatureHeading(featureID)
+	local teamID = spring.GetFeatureTeam(featureID)
+	spring.DestroyFeature(featureID)
+	createDeathCorpse(deathData, featureX, featureY, featureZ, heading, teamID)
+end
+
+local function processWreckSwaps()
+	if #pendingWreckSwaps == 0 then
 		return
 	end
-	local leaveHeap = not currentZombieConfig.zombieCorpses or shouldAlwaysLeaveHeap(unitID, weaponDefID, attackerID)
-	if not leaveHeap then
+	local wreckSwaps = pendingWreckSwaps
+	pendingWreckSwaps = {}
+	for _, wreckSwap in ipairs(wreckSwaps) do
+		local featureID = wreckSwap.featureID
+		local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
+		if featureX then
+			if wreckSwap.demote then
+				demoteCorpseToHeap(featureID, wreckSwap.deathData)
+			else
+				promoteHeapToCorpse(featureID, wreckSwap.deathData, featureX, featureY, featureZ)
+			end
+		end
+	end
+end
+
+local function resolveDeathWithoutWreck(deathData)
+	if not deathData.guaranteeCorpse then
+		feedGhostQueue(deathData.unitDefID, deathData.x, deathData.z, deathData.wasZombie)
 		return
 	end
-	local health = spGetUnitHealth(unitID)
-	if damage >= health then
-		leaveZombieHeap(unitID, unitDefID, attackerID)
+	deathData.previousStates = {
+		previous_xp = deathData.experience,
+		previous_firestate = deathData.fireState,
+		previous_movestate = deathData.moveState,
+	}
+	createDeathCorpse(deathData, deathData.x, deathData.y, deathData.z, deathData.heading, deathData.teamID)
+end
+
+local function resolveVanishedDeaths()
+	if next(pendingDeaths) == nil then
+		return
+	end
+	local vanishedDeaths = {}
+	for unitID, deathData in pairs(pendingDeaths) do
+		if spring.GetUnitIsDead(unitID) ~= true then
+			pendingDeaths[unitID] = nil
+			vanishedDeaths[#vanishedDeaths + 1] = deathData
+		elseif deathData.timeoutFrame <= gameFrame then
+			pendingDeaths[unitID] = nil
+		end
+	end
+	for deathIndex = 1, #vanishedDeaths do
+		resolveDeathWithoutWreck(vanishedDeaths[deathIndex])
+	end
+end
+
+local function processDueCorpse(featureID)
+	local corpseData = corpsesData[featureID]
+	if not corpseData then
+		return
+	end
+	local featureX, _, featureZ = spring.GetFeaturePosition(featureID)
+	if not featureX then
+		corpsesData[featureID] = nil
+		return
+	end
+	if corpseData.tamperedFrame then
+		resetSpawn(featureID, corpseData, featureX, featureZ)
+		return
+	end
+	local featureDefData = zombieCorpseDefs[corpseData.featureDefID]
+	if featureDefData then
+		spawnZombiesFromFeature(featureID, featureDefData.unitDefID, corpseData.wasZombie)
+	end
+end
+
+local function processDueCorpses(frame)
+	local corpsesToCheck = corpseCheckFrames[frame]
+	if not corpsesToCheck then
+		return
+	end
+	for _, featureID in ipairs(corpsesToCheck) do
+		processDueCorpse(featureID)
+	end
+	corpseCheckFrames[frame] = nil
+end
+
+function gadget:GameFrame(frame)
+	gameFrame = frame
+
+	processWreckSwaps()
+	resolveVanishedDeaths()
+	expireDueZombieTurrets(frame)
+	if currentModeFeatures.ghostRespawns then
+		processDueGhostRespawns(frame)
+		if frame % GHOST.SPAWN_CHECK_INTERVAL == 0 then
+			spawnBufferedGhostUnits()
+		end
+		if frame >= GHOST.SPAWN_GRACE_PERIOD and frame % GHOST.RANDOM_SPAWN_INTERVAL == 0 then
+			spawnRandomMapGhosts()
+		end
+	end
+
+	if frame % REZ_SPEED_UPDATE_INTERVAL == 0 then
+		updateRezSpeed()
+	end
+
+	processDueCorpses(frame)
+
+	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
+		updateTooLong(frame)
+		if currentModeFeatures.ghostRespawns then
+			updateGhosts()
+		end
+		for resourceIndex = 1, #GAIA_RESOURCES do
+			spring.AddTeamResource(gaiaTeamID, GAIA_RESOURCES[resourceIndex].resourceName, GAIA_RESOURCE_AMOUNT)
+		end
+		for featureID, featureData in pairs(corpsesData) do
+			if featureData.spawnFrame - frame < WARNING_TIME then
+				local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
+				if not featureX then --doesn't exist anymore
+					corpsesData[featureID] = nil
+				elseif not featureData.tamperedFrame then
+					warningCEG(featureID, featureX, featureY, featureZ)
+				end
+			end
+		end
+	end
+end
+
+local function isCorpseResurrectable(featureID)
+	local resurrectUnitName = spring.GetFeatureResurrect(featureID)
+	return resurrectUnitName ~= nil and resurrectUnitName ~= ""
+end
+
+local function corpseCanRespawn(featureID, corpseDefData)
+	if not corpseDefData or corpseDefData.neverRespawn then
+		return false
+	end
+	if corpseDefData.forceRespawn or isCorpseResurrectable(featureID) then
+		return true
+	end
+	local featureDefID = spring.GetFeatureDefID(featureID)
+	local featureDef = featureDefID and FeatureDefs[featureDefID]
+	local fromUnitName = featureDef and featureDef.customParams and featureDef.customParams.fromunit or ""
+	return string.sub(fromUnitName, -5) == "_scav"
+end
+
+local function queueCorpseForSpawning(featureID, override, wasZombie)
+	if not override and not autoSpawningEnabled then
+		return
+	end
+
+	local featureDefID = spring.GetFeatureDefID(featureID)
+	local corpseDefData = featureDefID and zombieCorpseDefs[featureDefID]
+	if not corpseDefData or not corpseCanRespawn(featureID, corpseDefData) then
+		return
+	end
+
+	wasZombie = wasZombie or wasZombieCorpse(featureID)
+
+	local existingRezFrame = spring.GetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME)
+	existingRezFrame = tonumber(existingRezFrame)
+	local spawnDelayFrames = corpseDefData.spawnDelayFrames
+	local spawnFrame = gameFrame + (spawnDelayFrames or 0)
+	if existingRezFrame and existingRezFrame > 0 then
+		spawnFrame = floor(existingRezFrame)
+	end
+	if spawnFrame <= gameFrame then
+		spawnZombiesFromFeature(featureID, corpseDefData.unitDefID, wasZombie)
+		return
+	end
+
+	local featureX, _, featureZ = spring.GetFeaturePosition(featureID)
+	if not featureX then
+		return
+	end
+	local featureData = {
+		featureDefID = featureDefID,
+		spawnDelayFrames = spawnDelayFrames,
+		creationFrame = gameFrame,
+		wasZombie = wasZombie,
+		x = featureX,
+		z = featureZ,
+	}
+	corpsesData[featureID] = featureData
+	armCorpseSpawn(featureID, featureData, spawnFrame)
+end
+
+local function getWreckSwap(featureID, featureDefID, deathData)
+	local heapDefData = zombieHeapDefs[deathData.unitDefID]
+	if not heapDefData then
+		return nil
+	end
+	if featureDefID == heapDefData.corpseDefID and deathData.demoteCorpse then
+		return { featureID = featureID, deathData = deathData, demote = true }
+	end
+	if featureDefID == heapDefData.heapDefID and deathData.guaranteeCorpse then
+		return { featureID = featureID, deathData = deathData, demote = false }
+	end
+	return nil
+end
+
+local function handleFeatureCreated(featureID, sourceID)
+	local featureDefID = spring.GetFeatureDefID(featureID)
+	local deathData = replacementDeathData
+	if deathData then
+		applyPreviousStates(featureID, deathData.previousStates)
+		if featureDefID == zombieHeapDefs[deathData.unitDefID].corpseDefID then
+			local featureFacing = spring.GetFacingFromHeading(spring.GetFeatureHeading(featureID) or 0)
+			spring.SetFeatureResurrect(featureID, deathData.unitDefID, featureFacing)
+		end
+	elseif sourceID and pendingDeaths[sourceID] then
+		deathData = pendingDeaths[sourceID]
+		pendingDeaths[sourceID] = nil
+		local wreckSwap = getWreckSwap(featureID, featureDefID, deathData)
+		if wreckSwap then
+			pendingWreckSwaps[#pendingWreckSwaps + 1] = wreckSwap
+			return
+		end
+	end
+
+	local wasZombie = deathData and deathData.wasZombie
+	if wasZombie then
+		spring.SetFeatureRulesParam(featureID, RULES_PARAM.WAS_ZOMBIE, 1, RULES_PARAM.PUBLIC_ACCESS)
+	end
+	if zombieCorpseDefs[featureDefID] then
+		queueCorpseForSpawning(featureID, false, wasZombie)
+		return
+	end
+
+	if not deathData or deathData.forcedHeap then
+		return
+	end
+	local featureX, _, featureZ = spring.GetFeaturePosition(featureID)
+	if featureX then
+		feedGhostQueue(deathData.unitDefID, featureX, featureZ, deathData.wasZombie)
+	end
+end
+
+function gadget:FeatureCreated(featureID, _, sourceID)
+	handleFeatureCreated(featureID, sourceID)
+end
+
+local function wasCorpseReclaimedOrResurrected(featureID)
+	local remainingMetal, _, _, _, reclaimLeft = spring.GetFeatureResources(featureID)
+	if (remainingMetal and remainingMetal <= 0) or (reclaimLeft and reclaimLeft <= 0) then
+		return true
+	end
+	local _, _, resurrectProgress = spring.GetFeatureHealth(featureID)
+	return resurrectProgress ~= nil and resurrectProgress >= 1
+end
+
+function gadget:FeatureDestroyed(featureID, allyTeam)
+	local corpseData = corpsesData[featureID]
+	if corpseData and not wasCorpseReclaimedOrResurrected(featureID) then
+		local corpseDefData = zombieCorpseDefs[corpseData.featureDefID]
+		local featureX = corpseData.x
+		local featureZ = corpseData.z
+		if corpseDefData then
+			feedGhostQueue(corpseDefData.unitDefID, featureX, featureZ, corpseData.wasZombie)
+		end
+	end
+	clearCorpseRezRulesParam(featureID)
+	corpsesData[featureID] = nil
+	rezzedCorpses[featureID] = nil
+end
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if unitTeam == gaiaTeamID and builderID and isZombie(builderID) then
+		zombiesBeingBuilt[unitID] = true
+		spring.SetUnitRulesParam(unitID, "resurrected", 0, { inlos = true })
+	end
+end
+
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	if unitTeam == gaiaTeamID and zombiesBeingBuilt[unitID] then
+		zombiesBeingBuilt[unitID] = nil
+		setZombie(unitID)
+	end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	local wasGhost = ghosts[unitID] ~= nil
+	forgetGhost(unitID)
+
+	if not suppressedDeaths[unitID] and not wasGhost and unitDefID ~= ghostMistUnitDefID then
+		recordPendingDeath(unitID, unitDefID, unitTeam, attackerID, weaponDefID)
+	end
+
+	suppressedDeaths[unitID] = nil
+	pendingZombieCaptures[unitID] = nil
+	zombiesBeingBuilt[unitID] = nil
+	zombieFactories[unitID] = nil
+end
+
+function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, part)
+	if isZombie(builderID) then
+		pendingZombieCaptures[unitID] = true
+	end
+	return true
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if newTeam ~= gaiaTeamID then
+		revertZombieFactoryBuildpower(unitID)
+	end
+	if pendingZombieCaptures[unitID] then
+		pendingZombieCaptures[unitID] = nil
+		if not isZombie(unitID) then
+			local unitX, unitY, unitZ = spring.GetUnitPosition(unitID)
+			local health, maxHealth = spring.GetUnitHealth(unitID)
+			local inheritedXp = spring.GetUnitExperience(unitID) or 0
+			local healthReductionRatio = 1.0
+			if health and maxHealth and maxHealth ~= 0 then
+				healthReductionRatio = health / maxHealth
+			end
+			suppressedDeaths[unitID] = true
+			spring.DestroyUnit(unitID, false, true)
+			local spawnDefID = unitDefID
+			local swapOverride = captureSwapOverride[unitDefID]
+			if swapOverride then
+				spawnDefID = swapOverride ~= "delete" and unitDefNames[swapOverride].id or nil
+			end
+			if unitX and spawnDefID then
+				spawnZombies(nil, spawnDefID, healthReductionRatio, unitX, unitY, unitZ, false, inheritedXp)
+			end
+		end
 	end
 end
 
@@ -829,24 +1752,11 @@ end
 local function createZombieFromFeature(featureID)
 	if isIdleMode then
 		local featureDefID = spring.GetFeatureDefID(featureID)
-		local featureDefData = zombieCorpseDefs[featureDefID]
-		if featureDefData and not featureDefData.neverRespawn and isCorpseResurrectable(featureID) then
-			local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
-			if featureX then
-				local healthReductionRatio = calculateHealthRatio(featureID)
-				local corpseData = corpsesData[featureID]
-				local wasZombie = wasZombieCorpse(featureID, corpseData)
-				local pastXp = corpseData and corpseData.pastXp
-				spawnZombies(
-					featureID,
-					featureDefData.unitDefID,
-					healthReductionRatio,
-					featureX,
-					featureY,
-					featureZ,
-					wasZombie,
-					pastXp
-				)
+		local featureDefData = featureDefID and zombieCorpseDefs[featureDefID]
+		if featureDefData and corpseCanRespawn(featureID, featureDefData) then
+			local corpseData = corpsesData[featureID]
+			local wasZombie = wasZombieCorpse(featureID, corpseData)
+			if spawnZombiesFromFeature(featureID, featureDefData.unitDefID, wasZombie) then
 				return true
 			end
 		end
@@ -858,49 +1768,17 @@ end
 local function queueAllCorpsesForSpawning()
 	local features = spring.GetAllFeatures()
 	for _, featureID in ipairs(features) do
-		queueCorpseForSpawning(featureID, true)
+		local featureDefID = spring.GetFeatureDefID(featureID)
+		if zombieCorpseDefs[featureDefID] then
+			queueCorpseForSpawning(featureID, true)
+		end
 	end
 end
 
----Switches all zombies between return-fire with no auto-orders and normal aggression.
----@param enabled boolean `true` to pacify, `false` to restore normal behavior.
-local function pacifyZombies(enabled)
-	if GG.ZombieAI then
-		GG.ZombieAI.PacifyZombies(enabled)
-	end
-end
-
----Stops or resumes the automatic orders given to zombies, without changing fire state.
----@param enabled boolean `true` to suspend auto-orders, `false` to resume them.
-local function suspendAutoOrders(enabled)
-	if GG.ZombieAI then
-		GG.ZombieAI.SuspendAutoOrders(enabled)
-	end
-end
-
-local function aggroTeamID(teamID)
-	if GG.ZombieAI then
-		return GG.ZombieAI.AggroTeamID(teamID)
-	end
-	return false
-end
-
-local function aggroAllyID(allyID)
-	if GG.ZombieAI then
-		return GG.ZombieAI.AggroAllyID(allyID)
-	end
-	return false
-end
-
-local function killAllZombies()
-	if GG.ZombieAI then
-		GG.ZombieAI.KillAllZombies()
-	end
-end
-
-local function clearAllOrders()
-	if GG.ZombieAI then
-		GG.ZombieAI.ClearAllOrders()
+local function callZombieAI(methodName, ...)
+	local zombieAI = GG.ZombieAI
+	if zombieAI then
+		return zombieAI[methodName](...)
 	end
 end
 
@@ -914,6 +1792,17 @@ local function setAutoSpawning(enabled)
 	end
 end
 
+local function clearGhostState()
+	local ghostIDs = getSortedGhostIDs()
+	ghosts = {}
+	ghostCount = 0
+	for ghostIndex = 1, #ghostIDs do
+		spring.DestroyUnit(ghostIDs[ghostIndex], false, true)
+	end
+	ghostSpawnBuffer = {}
+	ghostRespawnFrames = {}
+end
+
 ---Drops every queued corpse spawn without affecting zombies already raised.
 local function clearAllZombieSpawns()
 	for featureID in pairs(corpsesData) do
@@ -921,25 +1810,18 @@ local function clearAllZombieSpawns()
 	end
 	corpsesData = {}
 	corpseCheckFrames = {}
+	excessPower = 0
+	clearGhostState()
 end
 
 local function isAuthorized(playerID)
 	if spring.IsCheatingEnabled() then
 		return true
 	end
-	local playername = spring.GetPlayerInfo(playerID)
+	local playerName = spring.GetPlayerInfo(playerID)
 	local accountID = BAR.Utilities.GetAccountID(playerID)
-	if
-		(
-			_G.permissions.devhelpers
-			and (_G.permissions.devhelpers[accountID] or (playername and _G.permissions.devhelpers[playername]))
-		)
-		or (
-			SYNCED
-			and SYNCED.permissions.devhelpers
-			and (SYNCED.permissions.devhelpers[accountID] or (playername and SYNCED.permissions.devhelpers[playername]))
-		)
-	then
+	local devHelpers = _G.permissions.devhelpers
+	if devHelpers and (devHelpers[accountID] or (playerName and devHelpers[playerName])) then
 		return true
 	end
 	return false
@@ -955,7 +1837,7 @@ local function convertUnitsToZombies(unitIDs)
 
 	local convertedCount = 0
 	for _, unitID in ipairs(unitIDs) do
-		if spValidUnitID(unitID) then
+		if spring.ValidUnitID(unitID) then
 			setZombie(unitID)
 			convertedCount = convertedCount + 1
 		end
@@ -972,7 +1854,7 @@ local function setAllGaiaToZombies()
 
 	for _, unitID in ipairs(allUnits) do
 		local unitTeam = spring.GetUnitTeam(unitID)
-		if unitTeam == gaiaTeamID and not isZombie(unitID) then
+		if unitTeam == gaiaTeamID and not isZombie(unitID) and not ghosts[unitID] then
 			setZombie(unitID)
 			convertedCount = convertedCount + 1
 		end
@@ -981,180 +1863,34 @@ local function setAllGaiaToZombies()
 	return convertedCount
 end
 
-local function commandSetAllGaiaToZombies(_, line, words, playerID)
-	if not isAuthorized(playerID) then
-		spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
-		return
+---Returns `modeName` when it is a known zombie mode, otherwise the default mode.
+---@param modeName string?
+---@return ZombieMode
+local function resolveZombieMode(modeName)
+	if modeName and ZOMBIE_MODE_FEATURES[modeName] then
+		return modeName ---@as ZombieMode
 	end
-
-	local convertedCount = setAllGaiaToZombies()
-	spring.SendMessageToPlayer(playerID, "Set " .. convertedCount .. " Gaia units as zombies")
+	return DEFAULT_ZOMBIE_MODE
 end
 
-local function commandQueueAllCorpsesForReanimation(_, line, words, playerID)
-	if not isAuthorized(playerID) then
-		spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
-		return
-	end
-
-	queueAllCorpsesForSpawning()
-	spring.SendMessageToPlayer(playerID, "Queued all corpses for spawning")
-end
-
-local function commandToggleAutoReanimation(_, line, words, playerID)
-	if not isAuthorized(playerID) then
-		spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
-		return
-	end
-
-	if #words == 0 then
-		spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieautospawn 0|1")
-		return
-	end
-
-	local enabled = tonumber(words[1])
-	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
-		spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
-		return
-	end
-
-	setAutoSpawning(enabled == 1)
-	spring.SendMessageToPlayer(playerID, "Auto spawning " .. (enabled == 1 and "enabled" or "disabled"))
-end
-
-local function commandPacifyZombies(_, line, words, playerID)
-	if not isAuthorized(playerID) then
-		spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
-		return
-	end
-
-	if #words == 0 then
-		spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiepacify 0|1")
-		return
-	end
-
-	local enabled = tonumber(words[1])
-	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
-		spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
-		return
-	end
-
-	pacifyZombies(enabled == 1)
-	spring.SendMessageToPlayer(playerID, "Zombies " .. (enabled == 1 and "pacified" or "unpacified"))
-end
-
-local function commandSuspendAutoOrders(_, line, words, playerID)
-	if not isAuthorized(playerID) then
-		spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
-		return
-	end
-
-	if #words == 0 then
-		spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiesuspendorders 0|1")
-		return
-	end
-
-	local enabled = tonumber(words[1])
-	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
-		spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
-		return
-	end
-
-	suspendAutoOrders(enabled == 1)
-	spring.SendMessageToPlayer(playerID, "Zombie auto-orders " .. (enabled == 1 and "suspended" or "resumed"))
-end
-
-local function commandAggroZombiesToTeam(_, line, words, playerID)
-	if not isAuthorized(playerID) then
-		spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
-		return
-	end
-
-	if #words == 0 then
-		spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroteam <teamID>")
-		return
-	end
-
-	local targetTeamID = tonumber(words[1])
-	if not targetTeamID or targetTeamID < 0 then
-		spring.SendMessageToPlayer(playerID, "Invalid team ID")
-		return
-	end
-
-	local success = aggroTeamID(targetTeamID)
-	if success then
-		spring.SendMessageToPlayer(playerID, "Zombies aggroed to team " .. targetTeamID)
-	else
-		spring.SendMessageToPlayer(playerID, "Team " .. targetTeamID .. " not found or has no units")
-	end
-end
-
-local function commandAggroZombiesToAlly(_, line, words, playerID)
-	if not isAuthorized(playerID) then
-		spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
-		return
-	end
-
-	if #words == 0 then
-		spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroally <allyID>")
-		return
-	end
-
-	local targetAllyID = tonumber(words[1])
-	if not targetAllyID or targetAllyID < 0 then
-		spring.SendMessageToPlayer(playerID, "Invalid ally ID")
-		return
-	end
-
-	local success = aggroAllyID(targetAllyID)
-	if success then
-		spring.SendMessageToPlayer(playerID, "Zombies aggroed to ally team " .. targetAllyID)
-	else
-		spring.SendMessageToPlayer(playerID, "Ally team " .. targetAllyID .. " not found or has no units")
-	end
-end
-
-local function commandKillAllZombies(_, line, words, playerID)
-	if not isAuthorized(playerID) then
-		spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
-		return
-	end
-
-	killAllZombies()
-	spring.SendMessageToPlayer(playerID, "Killed all zombies")
-end
-
-local function commandClearAllZombieOrders(_, line, words, playerID)
-	if not isAuthorized(playerID) then
-		spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
-		return
-	end
-
-	clearAllOrders()
-	spring.SendMessageToPlayer(playerID, "Cleared zombie orders")
-end
-
-local function commandClearZombieSpawns(_, line, words, playerID)
-	if not isAuthorized(playerID) then
-		spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
-		return
-	end
-
-	clearAllZombieSpawns()
-	spring.SendMessageToPlayer(playerID, "Cleared all queued zombie spawns")
-end
-
----Switches the zombie difficulty preset.
+---Switches the live zombie mode, removing apparitions when the new mode has no ghosts.
 ---@param mode ZombieMode
----@return boolean applied `false` when `mode` is not a known preset.
-local function setZombieMode(mode)
-	---@diagnostic disable-next-line: unnecessary-if
-	if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "akumu" then
+local function applyZombieModeSettings(mode)
+	currentZombieMode = mode
+	currentModeFeatures = ZOMBIE_MODE_FEATURES[mode]
+	if not currentModeFeatures.ghostRespawns then
+		clearGhostState()
+	end
+end
+
+---Switches the zombie mode.
+---@param modeName string
+---@return boolean applied `false` when `modeName` is not a known mode.
+local function setZombieMode(modeName)
+	if not ZOMBIE_MODE_FEATURES[modeName] then
 		return false
 	end
-
-	currentZombieMode = mode
-	applyZombieModeSettings(mode)
+	applyZombieModeSettings(resolveZombieMode(modeName))
 	return true
 end
 
@@ -1162,34 +1898,185 @@ local function getZombieMode()
 	return currentZombieMode
 end
 
-local function commandSetZombieMode(_, line, words, playerID)
+local function readToggleArgument(words, playerID, usageText)
+	if #words == 0 then
+		spring.SendMessageToPlayer(playerID, usageText)
+		return nil
+	end
+	local enabled = tonumber(words[1])
+	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
+		spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
+		return nil
+	end
+	return enabled == 1
+end
+
+local function readNonNegativeID(words, playerID, usageText, invalidText)
+	if #words == 0 then
+		spring.SendMessageToPlayer(playerID, usageText)
+		return nil
+	end
+	local targetID = tonumber(words[1])
+	if not targetID or targetID < 0 then
+		spring.SendMessageToPlayer(playerID, invalidText)
+		return nil
+	end
+	return targetID
+end
+
+local function runZombieChatAction(action, words, playerID)
 	if not isAuthorized(playerID) then
 		spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
-
-	if #words == 0 then
-		spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiemode normal|hard|nightmare|akumu")
-		return
-	end
-
-	local mode = string.lower(words[1])
-	if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "akumu" then
-		spring.SendMessageToPlayer(playerID, "Invalid mode. Use: normal, hard, nightmare, or akumu")
-		return
-	end
-
-	setZombieMode(mode)
-	spring.SendMessageToPlayer(playerID, "Zombie mode set to " .. mode)
+	action(words, playerID)
 end
 
+local ZOMBIE_CHAT_ACTIONS = {
+	{
+		name = "zombiesetallgaia",
+		description = "Set all Gaia units as zombies",
+		run = function(words, playerID)
+			local convertedCount = setAllGaiaToZombies()
+			spring.SendMessageToPlayer(playerID, "Set " .. convertedCount .. " Gaia units as zombies")
+		end,
+	},
+	{
+		name = "zombiequeueallcorpses",
+		description = "Queue all corpses for spawning",
+		run = function(words, playerID)
+			queueAllCorpsesForSpawning()
+			spring.SendMessageToPlayer(playerID, "Queued all corpses for spawning")
+		end,
+	},
+	{
+		name = "zombieautospawn",
+		description = "Enable/disable auto spawning",
+		run = function(words, playerID)
+			local enabled = readToggleArgument(words, playerID, "Usage: /luarules zombieautospawn 0|1")
+			if enabled == nil then
+				return
+			end
+			setAutoSpawning(enabled)
+			spring.SendMessageToPlayer(playerID, "Auto spawning " .. (enabled and "enabled" or "disabled"))
+		end,
+	},
+	{
+		name = "zombieclearspawns",
+		description = "Clear all queued zombie spawns",
+		run = function(words, playerID)
+			clearAllZombieSpawns()
+			spring.SendMessageToPlayer(playerID, "Cleared all queued zombie spawns")
+		end,
+	},
+	{
+		name = "zombiepacify",
+		description = "Pacify/unpacify zombies",
+		run = function(words, playerID)
+			local enabled = readToggleArgument(words, playerID, "Usage: /luarules zombiepacify 0|1")
+			if enabled == nil then
+				return
+			end
+			callZombieAI("PacifyZombies", enabled)
+			spring.SendMessageToPlayer(playerID, "Zombies " .. (enabled and "pacified" or "unpacified"))
+		end,
+	},
+	{
+		name = "zombiesuspendorders",
+		description = "Suspend/resume zombie auto-orders",
+		run = function(words, playerID)
+			local enabled = readToggleArgument(words, playerID, "Usage: /luarules zombiesuspendorders 0|1")
+			if enabled == nil then
+				return
+			end
+			callZombieAI("SuspendAutoOrders", enabled)
+			spring.SendMessageToPlayer(playerID, "Zombie auto-orders " .. (enabled and "suspended" or "resumed"))
+		end,
+	},
+	{
+		name = "zombieaggroteam",
+		description = "Make zombies aggro to specific team",
+		run = function(words, playerID)
+			local targetTeamID =
+				readNonNegativeID(words, playerID, "Usage: /luarules zombieaggroteam <teamID>", "Invalid team ID")
+			if targetTeamID == nil then
+				return
+			end
+			local success = callZombieAI("AggroTeamID", targetTeamID)
+			if success then
+				spring.SendMessageToPlayer(playerID, "Zombies aggroed to team " .. targetTeamID)
+			else
+				spring.SendMessageToPlayer(playerID, "Team " .. targetTeamID .. " not found or has no units")
+			end
+		end,
+	},
+	{
+		name = "zombieaggroally",
+		description = "Make zombies aggro to entire ally team",
+		run = function(words, playerID)
+			local targetAllyID =
+				readNonNegativeID(words, playerID, "Usage: /luarules zombieaggroally <allyID>", "Invalid ally ID")
+			if targetAllyID == nil then
+				return
+			end
+			local success = callZombieAI("AggroAllyID", targetAllyID)
+			if success then
+				spring.SendMessageToPlayer(playerID, "Zombies aggroed to ally team " .. targetAllyID)
+			else
+				spring.SendMessageToPlayer(playerID, "Ally team " .. targetAllyID .. " not found or has no units")
+			end
+		end,
+	},
+	{
+		name = "zombiekillall",
+		description = "Kill all zombies",
+		run = function(words, playerID)
+			callZombieAI("KillAllZombies")
+			spring.SendMessageToPlayer(playerID, "Killed all zombies")
+		end,
+	},
+	{
+		name = "zombieclearallorders",
+		description = "Clear all zombie orders",
+		run = function(words, playerID)
+			callZombieAI("ClearAllOrders")
+			spring.SendMessageToPlayer(playerID, "Cleared zombie orders")
+		end,
+	},
+	{
+		name = "zombiemode",
+		description = "Set zombie mode (basic/oni/yokai/nani/akumu/spidergeddon)",
+		run = function(words, playerID)
+			if #words == 0 then
+				spring.SendMessageToPlayer(
+					playerID,
+					"Usage: /luarules zombiemode basic|oni|yokai|nani|akumu|spidergeddon"
+				)
+				return
+			end
+			local mode = string.lower(words[1])
+			if not setZombieMode(mode) then
+				spring.SendMessageToPlayer(
+					playerID,
+					"Invalid mode. Use: basic, oni, yokai, nani, akumu, or spidergeddon"
+				)
+				return
+			end
+			spring.SendMessageToPlayer(playerID, "Zombie mode set to " .. mode)
+		end,
+	},
+}
+
 function gadget:Initialize()
-	local initialMode = modOptions.zombies or "normal"
-	applyZombieModeSettings(initialMode)
+	gameFrame = spring.GetGameFrame()
+	if gameFrame >= TOO_LONG_GAME_FRAMES then
+		tooLong = true
+	end
+
+	applyZombieModeSettings(resolveZombieMode(modOptions.zombies))
+	updateRezSpeed()
 
 	autoSpawningEnabled = modOptionEnabled and not isIdleMode
-
-	gameFrame = spring.GetGameFrame()
 
 	local units = spring.GetAllUnits()
 	for _, unitID in ipairs(units) do
@@ -1201,11 +2088,11 @@ function gadget:Initialize()
 	if not isIdleMode then
 		local features = spring.GetAllFeatures()
 		for _, featureID in ipairs(features) do
-			gadget:FeatureCreated(featureID, gaiaTeamID)
+			handleFeatureCreated(featureID)
 		end
 	end
 
-	GG.Zombies = { IdleMode = isIdleMode }
+	GG.Zombies = { IdleMode = isIdleMode, tooLong = tooLong }
 	GG.Zombies.SetZombie = setZombie
 	GG.Zombies.ConvertUnitsToZombies = convertUnitsToZombies
 	GG.Zombies.SetAllGaiaToZombies = setAllGaiaToZombies
@@ -1213,44 +2100,30 @@ function gadget:Initialize()
 	GG.Zombies.QueueAllCorpsesForSpawning = queueAllCorpsesForSpawning
 	GG.Zombies.SetAutoSpawning = setAutoSpawning
 	GG.Zombies.ClearAllZombieSpawns = clearAllZombieSpawns
-	GG.Zombies.PacifyZombies = pacifyZombies
-	GG.Zombies.SuspendAutoOrders = suspendAutoOrders
-	GG.Zombies.AggroTeamID = aggroTeamID
-	GG.Zombies.AggroAllyID = aggroAllyID
-	GG.Zombies.KillAllZombies = killAllZombies
-	GG.Zombies.ClearAllOrders = clearAllOrders
 	GG.Zombies.SetZombieMode = setZombieMode
 	GG.Zombies.GetZombieMode = getZombieMode
+	for methodIndex = 1, #ZOMBIE_AI_FORWARDED_METHODS do
+		local forwardedMethod = ZOMBIE_AI_FORWARDED_METHODS[methodIndex]
+		local methodName = forwardedMethod.methodName
+		GG.Zombies[methodName] = function(...)
+			if not GG.ZombieAI then
+				return forwardedMethod.missingResult
+			end
+			return callZombieAI(methodName, ...)
+		end
+	end
 
-	gadgetHandler:AddChatAction("zombiesetallgaia", commandSetAllGaiaToZombies, "Set all Gaia units as zombies")
-	gadgetHandler:AddChatAction(
-		"zombiequeueallcorpses",
-		commandQueueAllCorpsesForReanimation,
-		"Queue all corpses for spawning"
-	)
-	gadgetHandler:AddChatAction("zombieautospawn", commandToggleAutoReanimation, "Enable/disable auto spawning")
-	gadgetHandler:AddChatAction("zombieclearspawns", commandClearZombieSpawns, "Clear all queued zombie spawns")
-	gadgetHandler:AddChatAction("zombiepacify", commandPacifyZombies, "Pacify/unpacify zombies")
-	gadgetHandler:AddChatAction("zombiesuspendorders", commandSuspendAutoOrders, "Suspend/resume zombie auto-orders")
-	gadgetHandler:AddChatAction("zombieaggroteam", commandAggroZombiesToTeam, "Make zombies aggro to specific team")
-	gadgetHandler:AddChatAction("zombieaggroally", commandAggroZombiesToAlly, "Make zombies aggro to entire ally team")
-	gadgetHandler:AddChatAction("zombiekillall", commandKillAllZombies, "Kill all zombies")
-	gadgetHandler:AddChatAction("zombieclearallorders", commandClearAllZombieOrders, "Clear allzombie orders")
-	gadgetHandler:AddChatAction("zombiemode", commandSetZombieMode, "Set zombie mode (normal/hard/nightmare/akumu)")
+	for _, chatAction in ipairs(ZOMBIE_CHAT_ACTIONS) do
+		gadgetHandler:AddChatAction(chatAction.name, function(_, _, words, playerID)
+			runZombieChatAction(chatAction.run, words, playerID)
+		end, chatAction.description)
+	end
 end
 
 function gadget:Shutdown()
-	gadgetHandler:RemoveChatAction("zombiesetallgaia")
-	gadgetHandler:RemoveChatAction("zombiequeueallcorpses")
-	gadgetHandler:RemoveChatAction("zombieautospawn")
-	gadgetHandler:RemoveChatAction("zombieclearspawns")
-	gadgetHandler:RemoveChatAction("zombiepacify")
-	gadgetHandler:RemoveChatAction("zombiesuspendorders")
-	gadgetHandler:RemoveChatAction("zombieaggroteam")
-	gadgetHandler:RemoveChatAction("zombieaggroally")
-	gadgetHandler:RemoveChatAction("zombiekillall")
-	gadgetHandler:RemoveChatAction("zombieclearallorders")
-	gadgetHandler:RemoveChatAction("zombiemode")
+	for _, chatAction in ipairs(ZOMBIE_CHAT_ACTIONS) do
+		gadgetHandler:RemoveChatAction(chatAction.name)
+	end
 end
 
 function gadget:GameStart()

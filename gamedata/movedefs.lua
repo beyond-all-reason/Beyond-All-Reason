@@ -202,7 +202,7 @@ local moveDatas = {
 		slopeMod = SLOPE_MOD.SLOW,
 		maxwaterslope = SLOPE.MAXIMUM,
 	},
-	-- armlun corsok armthover corthovr lootboxgold lootboxplatinum
+	-- armlun corsok armthover corthovr lootboxgold lootboxplatinum scavapparition
 	HHOVER4 = {
 		badslope = SLOPE.MODERATE,
 		badwaterslope = SLOPE.MAXIMUM,

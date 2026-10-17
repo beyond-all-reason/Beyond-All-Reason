@@ -225,6 +225,25 @@ local function unitDef_Post(name, uDef)
 	local weapondefs = uDef.weapondefs
 	local weapons = uDef.weapons
 
+	local ZOMBIE_GHOST_RESPAWN_POOL_UNITS = {
+		legsrail = true,
+		corkarg = true,
+		cortermite = true,
+		armsptk = true,
+		armspid = true,
+		corkarganetht4 = true,
+		corthermite = true,
+		armvang = true,
+		armsptkt4 = true,
+		legpede = true,
+		corsktl = true,
+		armflea = true,
+		leganavybattleship = true,
+	}
+	if modOptions.zombies == "spidergeddon" and ZOMBIE_GHOST_RESPAWN_POOL_UNITS[basename] then
+		customparams.zombie_ghost_respawn_pool = true
+	end
+
 	if not uDef.icontype then
 		uDef.icontype = name
 	end
