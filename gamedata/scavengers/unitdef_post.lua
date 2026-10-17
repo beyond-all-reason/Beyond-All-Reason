@@ -349,7 +349,6 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 2] = "cornanotct2_scav" -- T2 Constructor Turret
 		uDef.buildoptions[numBuildoptions + 3] = "cormwall_scav" -- Dragon's Rage - T2 Pop-up Wall Turret
 		uDef.buildoptions[numBuildoptions + 4] = "corgatet3_scav" -- Sanctuary - Advanced Shield Generator
-		uDef.buildoptions[numBuildoptions + 5] = "corhltfus_scav" -- Overlord - Weaponized Fusion Reactor
 	end
 
 	-- Cortex T2 Sea Constructors
