@@ -99,8 +99,17 @@ local zombieModeConfigs = {
 	},
 }
 
+---@class ZombieModeConfig
+---@field techToRezPowerSpeeds table<number, number>
+---@field rezMin number
+---@field rezMax number
+---@field countMin number
+---@field countMax number
+---@field zombieCorpses boolean
+
 ---@type ZombieMode
 local currentZombieMode = "normal"
+---@type ZombieModeConfig
 local currentZombieConfig = zombieModeConfigs.normal
 
 local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed -- How often (in frames) everything else is checked
@@ -813,13 +822,14 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	if not isZombie(unitID) then
 		return
 	end
-	local leaveHeap = not currentZombieConfig.zombieCorpses or shouldAlwaysLeaveHeap(unitID, weaponDefID, attackerID)
-	if not leaveHeap then
+	local health = spGetUnitHealth(unitID)
+	if damage < health then
 		return
 	end
-	local health = spGetUnitHealth(unitID)
-	if damage >= health then
+	if not currentZombieConfig.zombieCorpses or shouldAlwaysLeaveHeap(unitID, weaponDefID, attackerID) then
 		leaveZombieHeap(unitID, unitDefID, attackerID)
+	elseif paralyzer then
+		spring.DestroyUnit(unitID, false, false, attackerID) -- paralyze damage can't kill on its own, so EMP kills in corpse modes die normally and leave a corpse
 	end
 end
 
