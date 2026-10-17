@@ -1018,7 +1018,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "rez-small",
 	},
 	--armtship
-		armtship = {
+	armtship = {
 		BaseSoundSelectType = "arm-shp-medium-sel",
 		BaseSoundMovementType = "arm-shp-medium-ok",
 		BaseSoundWeaponType = "transport-large",
