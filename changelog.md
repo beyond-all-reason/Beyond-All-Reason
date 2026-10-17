@@ -1,5 +1,6 @@
 # October
 - [Blitz] Better at avoiding friendly fire
+- [Mygalomorph] New Scavenger miniboss, a mutated Pawn. Replaces the Epic Pawn in the gantry build options.
 - [Shuriken] 280.5 -> 270 speed
 - [Tiger] 462 -> 410 LoS, DPS -4%, Projectile velocity 410 -> 330
 - [Cortex Gantry] 8400m -> 8000m cost
