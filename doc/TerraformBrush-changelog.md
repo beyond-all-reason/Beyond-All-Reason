@@ -4,6 +4,12 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N` up to 1.10, `tf-improvements-N` from 1.11): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## 1.17.1 - 2026-10-15
+
+### Fixes
+
+- **LAYERS works on every canvas again.** A canvas made without a splat set (no DNTS pack installed, or a map project saved from such a canvas) had no splat distribution texture, so LAYERS refused to open and the tileset shader had nothing to paint into. New Map and Open Project now ask the engine for its fallback distribution when there is no splat set, and the LAYERS painter makes one of its own on a canvas started some other way. Existing projects need nothing: open them again.
+
 ## 1.17 - 2026-10-13
 
 ### New
