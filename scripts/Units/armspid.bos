@@ -7,7 +7,7 @@
 //#define WALK_PERIOD 100
 
 
-piece	flare, base, turret, barrel, leg1a, leg1b, leg2a, leg2b, leg3a, leg3b, leg4a, leg4b, leg5a, leg5b, leg6a, leg6b, aimy1, emplight;
+piece	flare, base, abdomen, turret, barrel, leg1a, leg1b, leg2a, leg2b, leg3a, leg3b, leg4a, leg4b, leg5a, leg5b, leg6a, leg6b, aimy1, emplight;
 
 static-var fire_count, firing, notBuilding, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
@@ -99,7 +99,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		}
 		if (isMoving) { //Frame:10
 			turn base to z-axis <2.0> speed <30.0> / animSpeed; //delta=-1.00 
-			turn base to y-axis <-3.0> speed <45.0> / animSpeed; //delta=-1.50 
+			turn base to y-axis <-3.0> speed <45.0> / animSpeed; //delta=-1.50
+			turn abdomen to z-axis <2.0> speed <30.0> / animSpeed; //delta=-1.00 
+			turn abdomen to y-axis <-3.0> speed <45.0> / animSpeed; //delta=-1.50 
 			turn leg1a to x-axis <7.199865> speed <629.782894> / animSpeed; //delta=-20.99 
 			turn leg1a to z-axis <18.035842> speed <569.695560> / animSpeed; //delta=18.99 
 			turn leg1a to y-axis <-62.167924> speed <216.718487> / animSpeed; //delta=7.22 
@@ -141,7 +143,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		if (isMoving) { //Frame:13
 			turn base to x-axis <-4.301008> speed <129.030243> / animSpeed; //delta=4.30 
 			turn base to z-axis <0.887162> speed <33.385138> / animSpeed; //delta=1.11 
-			turn base to y-axis <-1.504237> speed <44.872886> / animSpeed; //delta=1.50 
+			turn base to y-axis <-1.504237> speed <44.872886> / animSpeed; //delta=1.50
+			turn abdomen to x-axis <-4.301008> speed <129.030243> / animSpeed; //delta=4.30 
+			turn abdomen to z-axis <0.887162> speed <33.385138> / animSpeed; //delta=1.11 
+			turn abdomen to y-axis <-1.504237> speed <44.872886> / animSpeed; //delta=1.50  
 			turn leg1a to x-axis <9.425072> speed <66.756220> / animSpeed; //delta=-2.23 
 			turn leg1a to z-axis <10.870601> speed <214.957221> / animSpeed; //delta=7.17 
 			turn leg1a to y-axis <-49.694725> speed <374.195978> / animSpeed; //delta=12.47 
@@ -183,6 +188,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn base to x-axis <-0.0> speed <129.030243> / animSpeed; //delta=-4.30 
 			turn base to z-axis <-0.0> speed <26.614862> / animSpeed; //delta=0.89 
 			turn base to y-axis <0.0> speed <45.127116> / animSpeed; //delta=1.50 
+			turn abdomen to x-axis <-0.0> speed <129.030243> / animSpeed; //delta=-4.30 
+			turn abdomen to z-axis <-0.0> speed <26.614862> / animSpeed; //delta=0.89 
+			turn abdomen to y-axis <0.0> speed <45.127116> / animSpeed; //delta=1.50 
 			turn leg1a to x-axis <4.548910> speed <146.284864> / animSpeed; //delta=4.88 
 			turn leg1a to z-axis <-8.298538> speed <575.074180> / animSpeed; //delta=19.17 
 			turn leg1a to y-axis <-33.635868> speed <481.765720> / animSpeed; //delta=16.06 
@@ -223,6 +231,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		if (isMoving) { //Frame:19
 			turn base to z-axis <-1.0> speed <30.0> / animSpeed; //delta=1.00 
 			turn base to y-axis <1.500000> speed <45.0> / animSpeed; //delta=1.50 
+			turn abdomen to z-axis <-1.0> speed <30.0> / animSpeed; //delta=1.00 
+			turn abdomen to y-axis <1.500000> speed <45.0> / animSpeed; //delta=1.50 
 			turn leg1a to x-axis <1.870687> speed <80.346685> / animSpeed; //delta=2.68 
 			turn leg1a to z-axis <-10.925008> speed <78.794095> / animSpeed; //delta=2.63 
 			turn leg1a to y-axis <-19.998831> speed <409.111085> / animSpeed; //delta=13.64 
@@ -264,6 +274,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		if (isMoving) { //Frame:22
 			turn base to z-axis <-2.0> speed <30.0> / animSpeed; //delta=1.00 
 			turn base to y-axis <3.0> speed <45.0> / animSpeed; //delta=1.50 
+			turn abdomen to z-axis <2.0> speed <30.0> / animSpeed; //delta=-1.00 
+			turn abdomen to y-axis <-3.0> speed <45.0> / animSpeed; //delta=-1.50 
 			turn leg1a to x-axis <2.282489> speed <12.354064> / animSpeed; //delta=-0.41 
 			turn leg1a to z-axis <-16.639857> speed <171.445475> / animSpeed; //delta=5.71 
 			turn leg1a to y-axis <-25.666143> speed <170.019357> / animSpeed; //delta=-5.67 
@@ -306,6 +318,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn base to x-axis <-4.300000> speed <128.999994> / animSpeed; //delta=4.30 
 			turn base to z-axis <-1.0> speed <30.0> / animSpeed; //delta=-1.00 
 			turn base to y-axis <1.500000> speed <45.0> / animSpeed; //delta=-1.50 
+			turn abdomen to x-axis <-4.300000> speed <128.999994> / animSpeed; //delta=4.30 
+			turn abdomen to z-axis <-1.0> speed <30.0> / animSpeed; //delta=-1.00 
+			turn abdomen to y-axis <1.500000> speed <45.0> / animSpeed; //delta=-1.50 
 			turn leg1a to x-axis <2.018192> speed <7.928902> / animSpeed; //delta=0.26 
 			turn leg1a to z-axis <-13.542274> speed <92.927490> / animSpeed; //delta=-3.10 
 			turn leg1a to y-axis <-39.134696> speed <404.056574> / animSpeed; //delta=-13.47 
@@ -346,7 +361,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		if (isMoving) { //Frame:28
 			turn base to x-axis <-0.0> speed <128.999994> / animSpeed; //delta=-4.30 
 			turn base to z-axis <0.0> speed <30.0> / animSpeed; //delta=-1.00 
-			turn base to y-axis <-0.0> speed <45.0> / animSpeed; //delta=-1.50 
+			turn base to y-axis <-0.0> speed <45.0> / animSpeed; //delta=-1.50
+			turn abdomen to x-axis <-0.0> speed <128.999994> / animSpeed; //delta=-4.30 
+			turn abdomen to z-axis <0.0> speed <30.0> / animSpeed; //delta=-1.00 
+			turn abdomen to y-axis <-0.0> speed <45.0> / animSpeed; //delta=-1.50  
 			turn leg1a to x-axis <-3.803232> speed <174.642746> / animSpeed; //delta=5.82 
 			turn leg1a to z-axis <-0.253780> speed <398.654820> / animSpeed; //delta=-13.29 
 			turn leg1a to y-axis <-54.068167> speed <448.004129> / animSpeed; //delta=-14.93 
@@ -391,6 +409,9 @@ StopWalking() {
 	turn base to x-axis <0.0> speed <43.010081>;
 	turn base to y-axis <0.0> speed <15.042372>;
 	turn base to z-axis <0.0> speed <11.128379>;
+	turn abdomen to x-axis <0.0> speed <43.010081>;
+	turn abdomen to y-axis <0.0> speed <15.042372>;
+	turn abdomen to z-axis <0.0> speed <11.128379>;
 	turn leg1a to x-axis <0.0> speed <209.927631>;
 	turn leg1a to y-axis <-39.999995> speed <160.588573>;
 	turn leg1a to z-axis <0.0> speed <372.794740>;
@@ -455,6 +476,7 @@ StopMoving(){
 }
 
 #define BASEPIECE base
+#define BASEPIECE abdomen
 #define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 2
@@ -474,6 +496,7 @@ Create()
 	firing=FALSE;
 	SLEEP_UNTIL_UNITFINISHED;
 	restore_delay=2000;
+	start-script AbdomenSpin();
 }
 
 SetMaxReloadTime(t)
@@ -553,13 +576,25 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
+AbdomenSpin()//Cement Mixer
+{
+	while(TRUE) {
+		spin abdomen around z-axis speed <65.0>;
+		sleep 25;
+	}
+	// sleep 50;
+	start-script AbdomenSpin();
+}
+
 Activate()
 {
+	start-script AbdomenSpin();
 	return (0);
 }
 
 Deactivate()
 {
+	stop-spin abdomen around z-axis;
 	return (0);
 }
 
@@ -592,6 +627,7 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode abdomen type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type BITMAPONLY | NOHEATCLOUD;
@@ -601,6 +637,7 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode abdomen type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
 		explode barrel type FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -610,6 +647,7 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode abdomen type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
@@ -618,6 +656,7 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode abdomen type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
