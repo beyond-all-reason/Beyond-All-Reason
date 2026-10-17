@@ -627,6 +627,7 @@ local function spawnZombieUnits(
 	spawnX,
 	spawnY,
 	spawnZ,
+	facing,
 	inheritedXp,
 	useExactPosition
 )
@@ -651,7 +652,7 @@ local function spawnZombieUnits(
 		local randomZ = clamp(spawnZ + offsetZ, size, Game.mapSizeZ - size)
 		local adjustedY = spring.GetGroundHeight(randomX, randomZ)
 
-		local unitID = spring.CreateUnit(unitDefToCreate, randomX, adjustedY, randomZ, 0, gaiaTeamID)
+		local unitID = spring.CreateUnit(unitDefToCreate, randomX, adjustedY, randomZ, facing, gaiaTeamID)
 		if unitID then
 			spring.SpawnCEG(unitDefData.spawnExplosionCeg, randomX, adjustedY, randomZ, 0, 0, 0)
 			local spawnExperience = inheritedXp or 0
@@ -734,7 +735,7 @@ local function retryFailedSubstitutes(substituteUnitDefID, failedCount)
 	excessPower = excessPower + failedCount * zombieUnitDefs[substituteUnitDefID].rezPower
 end
 
-local function spawnZombies(unitDefID, healthReductionRatio, spawnX, spawnY, spawnZ, wasZombie, inheritedXp)
+local function spawnZombies(unitDefID, healthReductionRatio, spawnX, spawnY, spawnZ, facing, wasZombie, inheritedXp)
 	local unitDefData = zombieUnitDefs[unitDefID]
 	if not unitDefData then
 		return
@@ -749,8 +750,16 @@ local function spawnZombies(unitDefID, healthReductionRatio, spawnX, spawnY, spa
 	if not spawnUnitDefID then
 		return
 	end
-	local spawnedCount =
-		spawnZombieUnits(spawnUnitDefID, plannedCount, healthReductionRatio, spawnX, spawnY, spawnZ, inheritedXp)
+	local spawnedCount = spawnZombieUnits(
+		spawnUnitDefID,
+		plannedCount,
+		healthReductionRatio,
+		spawnX,
+		spawnY,
+		spawnZ,
+		facing,
+		inheritedXp
+	)
 	if isSubstitute then
 		retryFailedSubstitutes(spawnUnitDefID, plannedCount - spawnedCount)
 	end
@@ -763,9 +772,10 @@ local function spawnZombiesFromFeature(featureID, unitDefID, wasZombie)
 	end
 	local healthReductionRatio = calculateHealthRatio(featureID)
 	local inheritedXp = spring.GetFeatureRulesParam(featureID, "previous_xp") or 0
+	local facing = spring.GetFacingFromHeading(spring.GetFeatureHeading(featureID) or 0)
 	corpsesData[featureID] = nil
 	spring.DestroyFeature(featureID)
-	spawnZombies(unitDefID, healthReductionRatio, featureX, featureY, featureZ, wasZombie, inheritedXp)
+	spawnZombies(unitDefID, healthReductionRatio, featureX, featureY, featureZ, facing, wasZombie, inheritedXp)
 	return true
 end
 
@@ -972,7 +982,7 @@ local function getGhostSpawnAttemptPosition(originX, originZ, size)
 	return spawnX, spawnY, spawnZ
 end
 
-local function canSpawnUnitAt(unitDefID, spawnX, spawnY, spawnZ)
+local function canSpawnUnitAt(unitDefID, spawnX, spawnY, spawnZ, facing)
 	local unitDefData = zombieUnitDefs[unitDefID]
 	if not unitDefData then
 		return false
@@ -980,7 +990,7 @@ local function canSpawnUnitAt(unitDefID, spawnX, spawnY, spawnZ)
 	if unitDefData.isMobile then
 		return spring.TestMoveOrder(unitDefID, spawnX, spawnY, spawnZ) and true or false
 	end
-	return spring.TestBuildOrder(unitDefID, spawnX, spawnY, spawnZ, 0) > 0
+	return spring.TestBuildOrder(unitDefID, spawnX, spawnY, spawnZ, facing) > 0
 end
 
 local function isTeamAtUnitCap(teamID)
@@ -995,8 +1005,9 @@ local function attemptGhostBufferSpawn(unitDefID, readyGhosts)
 		local readyGhost = readyGhosts[ghostIndex]
 		for _ = 1, GHOST.SPAWN_ATTEMPT_COUNT do
 			local spawnX, spawnY, spawnZ = getGhostSpawnAttemptPosition(readyGhost.x, readyGhost.z, size)
-			if canSpawnUnitAt(unitDefToCreate, spawnX, spawnY, spawnZ) then
-				if spawnZombieUnits(unitDefID, 1, 1, spawnX, spawnY, spawnZ, 0, true) > 0 then
+			local facing = random(0, 3)
+			if canSpawnUnitAt(unitDefToCreate, spawnX, spawnY, spawnZ, facing) then
+				if spawnZombieUnits(unitDefID, 1, 1, spawnX, spawnY, spawnZ, facing, 0, true) > 0 then
 					readyGhost.assignedCount = readyGhost.assignedCount + 1
 					return "spawned"
 				end
@@ -1642,6 +1653,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	local unitX, unitY, unitZ = spring.GetUnitPosition(unitID)
 	local health, maxHealth = spring.GetUnitHealth(unitID)
 	local inheritedXp = spring.GetUnitExperience(unitID) or 0
+	local facing = spring.GetUnitBuildFacing(unitID) or 0
 	local healthReductionRatio = 1.0
 	if health and maxHealth and maxHealth ~= 0 then
 		healthReductionRatio = health / maxHealth
@@ -1655,7 +1667,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 		spawnDefID = swapOverride ~= "delete" and unitDefNames[swapOverride].id or nil
 	end
 	if unitX and spawnDefID then
-		spawnZombies(spawnDefID, healthReductionRatio, unitX, unitY, unitZ, false, inheritedXp)
+		spawnZombies(spawnDefID, healthReductionRatio, unitX, unitY, unitZ, facing, false, inheritedXp)
 	end
 end
 
