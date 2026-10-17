@@ -1680,6 +1680,10 @@ local icontypes = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991,
 	},
+	corhltfus = {
+		bitmap = "icons/fusion.png",
+		size = 1.46999991,
+	},
 	corgant = {
 		bitmap = "icons/factory_gantry.png",
 		size = 2.51999998,
