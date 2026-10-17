@@ -46,10 +46,10 @@ local difficultyParameters = {
 		minScavs = 15 * economyScale,
 		maxScavs = 45 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
-		bossName = "scavengerbossv4_veryeasy_scav",
+		bossName = "scavengerbossv5_scav",
 		bossResistanceMult = 1 * economyScale,
 		bossStagger = {
-			health = math.ceil(UnitDefNames.scavengerbossv4_veryeasy_scav.health * 0.33),
+			health = math.ceil(UnitDefNames.scavengerbossv5_scav.health * 0.33),
 			time = 40,
 		},
 	},
@@ -70,10 +70,10 @@ local difficultyParameters = {
 		minScavs = 15 * economyScale,
 		maxScavs = 45 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
-		bossName = "scavengerbossv4_easy_scav",
+		bossName = "scavengerbossv5_scav",
 		bossResistanceMult = 1.5 * economyScale,
 		bossStagger = {
-			health = math.ceil(UnitDefNames.scavengerbossv4_easy_scav.health * 0.33),
+			health = math.ceil(UnitDefNames.scavengerbossv5_scav.health * 0.33),
 			time = 35,
 		},
 	},
@@ -93,10 +93,10 @@ local difficultyParameters = {
 		minScavs = 15 * economyScale,
 		maxScavs = 45 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
-		bossName = "scavengerbossv4_normal_scav",
+		bossName = "scavengerbossv5_scav",
 		bossResistanceMult = 2 * economyScale,
 		bossStagger = {
-			health = math.ceil(UnitDefNames.scavengerbossv4_normal_scav.health * 0.33),
+			health = math.ceil(UnitDefNames.scavengerbossv5_scav.health * 0.33),
 			time = 30,
 		},
 	},
@@ -116,10 +116,10 @@ local difficultyParameters = {
 		minScavs = 20 * economyScale,
 		maxScavs = 60 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
-		bossName = "scavengerbossv4_hard_scav",
+		bossName = "scavengerbossv5_scav",
 		bossResistanceMult = 2.5 * economyScale,
 		bossStagger = {
-			health = math.ceil(UnitDefNames.scavengerbossv4_hard_scav.health * 0.33),
+			health = math.ceil(UnitDefNames.scavengerbossv5_scav.health * 0.33),
 			time = 30,
 		},
 	},
@@ -139,10 +139,10 @@ local difficultyParameters = {
 		minScavs = 25 * economyScale,
 		maxScavs = 75 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
-		bossName = "scavengerbossv4_veryhard_scav",
+		bossName = "scavengerbossv5_scav",
 		bossResistanceMult = 3 * economyScale,
 		bossStagger = {
-			health = math.ceil(UnitDefNames.scavengerbossv4_veryhard_scav.health * 0.33),
+			health = math.ceil(UnitDefNames.scavengerbossv5_scav.health * 0.33),
 			time = 30,
 		},
 	},
@@ -162,10 +162,10 @@ local difficultyParameters = {
 		minScavs = 30 * economyScale,
 		maxScavs = 90 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
-		bossName = "scavengerbossv4_epic_scav",
+		bossName = "scavengerbossv5_scav",
 		bossResistanceMult = 3.5 * economyScale,
 		bossStagger = {
-			health = math.ceil(UnitDefNames.scavengerbossv4_epic_scav.health * 0.33),
+			health = math.ceil(UnitDefNames.scavengerbossv5_scav.health * 0.33),
 			time = 30,
 		},
 	},
@@ -1754,41 +1754,17 @@ scavBehaviours = {
 		[UnitDefNames.squadarmsptkt4_scav.id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames.squadcorkarganetht4_scav.id] = { distance = 500, chance = 0.1 },
 
-		[UnitDefNames.scavengerbossv4_veryeasy.id] = {
+		[UnitDefNames.scavengerbossv5.id] = {
 			distance = 750,
 			chance = 0.001,
 			teleport = true,
-			teleportcooldown = 60,
+			teleportcooldown = 70 - difficulty * 10,
 		},
-		[UnitDefNames.scavengerbossv4_easy.id] = {
+		[UnitDefNames.scavengerbossv4.id] = {
 			distance = 750,
 			chance = 0.001,
 			teleport = true,
-			teleportcooldown = 50,
-		},
-		[UnitDefNames.scavengerbossv4_normal.id] = {
-			distance = 750,
-			chance = 0.001,
-			teleport = true,
-			teleportcooldown = 40,
-		},
-		[UnitDefNames.scavengerbossv4_hard.id] = {
-			distance = 750,
-			chance = 0.001,
-			teleport = true,
-			teleportcooldown = 30,
-		},
-		[UnitDefNames.scavengerbossv4_veryhard.id] = {
-			distance = 750,
-			chance = 0.001,
-			teleport = true,
-			teleportcooldown = 20,
-		},
-		[UnitDefNames.scavengerbossv4_epic.id] = {
-			distance = 750,
-			chance = 0.001,
-			teleport = true,
-			teleportcooldown = 10,
+			teleportcooldown = 70 - difficulty * 10,
 		},
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
@@ -1961,6 +1937,7 @@ local squadSpawnOptionsTable = {
 		legcomlvl8_scav = { minAnger = 70, maxAnger = 1000, maxAlive = 1 },
 		legcomlvl9_scav = { minAnger = 80, maxAnger = 1000, maxAlive = 1 },
 		legcomlvl10_scav = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
+		scavengerbossv4_scav = { minAnger = 75, maxAnger = 1000, maxAlive = 1 },
 	},
 
 	decoyCommanders = {
