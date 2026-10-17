@@ -132,6 +132,11 @@ local DEFAULT_KEYBINDS = {
 	tool_lights = { key = 0, label = "-", desc = "Lights tool" },
 	tool_startpos = { key = 0, label = "-", desc = "Start Positions tool" },
 	tool_clone = { key = 106, label = "J", desc = "Clone tool" },
+	-- S and T are the square and triangle shapes while a terrain mode is on; from any
+	-- other tool they switch tools (see KeyPress).
+	tool_surface = { key = 115, label = "S", desc = "Surface tool" },
+	tool_layers = { key = 116, label = "T", desc = "Layers (textures) tool" },
+	tool_units = { key = 117, label = "U", desc = "Units tool" },
 	-- Scroll controls: key = primary hold-key, key2 = secondary hold-key (0=none)
 	-- Scroll itself is always scroll wheel; these control which modifier(s) activate each.
 	scroll_size = {
@@ -215,7 +220,7 @@ local function loadKeybindsFromDisk()
 	if VFS.FileExists(KEYBINDS_FILE, VFS.RAW) then
 		local raw = VFS.LoadFile(KEYBINDS_FILE, VFS.RAW)
 		if raw then
-			local fn, _err = loadstring(raw)
+			local fn, _err = loadstring(raw, nil, {})
 			if fn then
 				local ok, data = pcall(fn)
 				if ok and type(data) == "table" then
@@ -2160,6 +2165,7 @@ local function loadPresetsFromDisk()
 		local ok, data = pcall(function()
 			local chunk = loadfile(path)
 			if chunk then
+				setfenv(chunk, {})
 				return chunk()
 			end
 		end)
@@ -2435,6 +2441,8 @@ extraState._heightmapPNG = require("luaui/Widgets/cmd_terraform_brush_png")
 -- map transform hands its turn/mirror/fit to the import below. Attached to
 -- extraState for the same 200-local reason.
 extraState._mapTransform = VFS.Include("luaui/Include/map_transform.lua")
+-- the camera stops riding the ground a stroke changes (see the module); on extraState for the same reason
+extraState.camHold = VFS.Include("luaui/Include/tf_camera_hold.lua")
 
 -- Procedural map generator for the New Map feature (noise/symmetry/water shaping).
 -- Pure module; attached to extraState (no new chunk-level local — 200-local limit).
@@ -2484,7 +2492,7 @@ extraState._newmapConsumeRecipe = function()
 		wf:close()
 	end
 	local ok, recipe = pcall(function()
-		return loadstring(raw)()
+		return loadstring(raw, nil, {})()
 	end)
 	if ok and type(recipe) == "table" then
 		return recipe
@@ -2716,7 +2724,7 @@ extraState._newmapDrive = function()
 end
 
 ---Which height a sampling click picks: the brush's own height caps, or an altitude bound of another tool's filter or influence band.
----@alias TerraformHeightSamplingTarget "max"|"min"|"fpAltMax"|"fpAltMin"|"gbAltMax"|"gbAltMin"|"spAltMax"|"spAltMin"|"sfAltMax"|"sfAltMin"|"sfInfAltMax"|"sfInfAltMin"|"spInfAltMax"|"spInfAltMin"
+---@alias TerraformHeightSamplingTarget "max"|"min"|"fpAltMax"|"fpAltMin"|"unAltMax"|"unAltMin"|"gbAltMax"|"gbAltMin"|"spAltMax"|"spAltMin"|"sfAltMax"|"sfAltMin"|"sfInfAltMax"|"sfInfAltMin"|"spInfAltMax"|"spInfAltMin"
 
 ---A snapshot of the terrain brush, for the UI to render.
 ---@class TerraformBrushState : TerraformBrushBase
@@ -3931,6 +3939,8 @@ function widget:Initialize()
 				min = true,
 				fpAltMax = true,
 				fpAltMin = true,
+				unAltMax = true,
+				unAltMin = true,
 				gbAltMax = true,
 				gbAltMin = true,
 				spAltMax = true,
@@ -4422,6 +4432,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	extraState.camHold.release()
 	invalidateDrawCache()
 	if extraState.splineCacheList then
 		glDeleteList(extraState.splineCacheList)
@@ -5017,6 +5028,11 @@ function extraState.drawAutorampPreview(suppressed)
 end
 
 function widget:Update(dt)
+	-- Camera hold: every frame and before the tool gates below, so it can always let go
+	do
+		local _, _, lmb, _, rmb = GetMouseState()
+		extraState.camHold.update(activeMode ~= nil and lockedWorldX ~= nil and (lmb or (rmb and rightMouseHeld)))
+	end
 	-- Pen pressure: poll tablet pressure from shared file
 	extraState.readPenPressure(dt)
 	-- D5: parameter HUD fade timer (runs regardless of activeMode)
@@ -5791,6 +5807,7 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 				or (stSt and stSt.active)
 				or (clSt and clSt.active)
 				or (sfSt and sfSt.active)
+				or (WG.UnitPlacerTool and WG.UnitPlacerTool.isActive and WG.UnitPlacerTool.isActive())
 			)
 		then
 			return
@@ -8977,6 +8994,15 @@ function widget:DrawWorld()
 		-- Height colormap overlay: works when feature placer or other tools are active
 		if extraState.heightColormap then
 			local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
+			-- The UNITS tool's brush has the same shape fields as the feature placer's
+			if
+				not (fpState and fpState.active)
+				and WG.UnitPlacerTool
+				and WG.UnitPlacerTool.isActive()
+				and WG.UnitPlacerTool.getState
+			then
+				fpState = WG.UnitPlacerTool.getState()
+			end
 			if fpState and fpState.active then
 				local wx, wz = getWorldMousePosition()
 				if wx and not extraState.symmetryHoveringOrigin then
@@ -9778,9 +9804,25 @@ function widget:DrawWorld()
 	penRestoreDraw()
 end
 
-function widget:KeyPress(key, mods, isRepeat)
+--- A key that means something to a terrain mode (mode, shape, clay toggle).
+--- On extraState: the main chunk is at Lua 5.1's 200-local ceiling.
+extraState.isTerrainKey = function(key)
+	for action, kb in pairs(activeKeybinds) do
+		if kb.key == key and (action:find("^mode_") or action:find("^shape_") or action:find("^toggle_")) then
+			return true
+		end
+	end
+	return false
+end
+
+function widget:KeyPress(key, mods, isRepeat, _label, _unicode, scanCode)
 	-- When game chat input is open, pass all keys through so chat works normally
 	if WG.chat and WG.chat.isInputActive() then
+		return false
+	end
+	-- The open unit library's grid keys (Q W E R / A S D F / Z X C V) pick units; the tool and
+	-- shape hotkeys on the same letters wait until it closes or lets the keys go.
+	if WG.UnitLibrary and WG.UnitLibrary.claimsKey and WG.UnitLibrary.claimsKey(scanCode, mods) then
 		return false
 	end
 
@@ -9804,18 +9846,25 @@ function widget:KeyPress(key, mods, isRepeat)
 		return true
 	end
 
-	if not activeMode then
-		-- Tool switching keys (only when NOT in terrain mode, so terrain keys take
-		-- priority). Gated on the editor actually being in use: with no tool or
-		-- passthrough panel up, an enabled-but-dormant Terraformer must pass every
-		-- key through to the engine's own keybinds instead of clicking tool
-		-- buttons from cold (f/m/g/... were invisibly swallowed in normal games).
-		local ui = WG.TerraformBrushUI
-		if not mods.ctrl and not mods.alt and ui and ui.handleToolKey and (not ui.isEngaged or ui.isEngaged()) then
-			if ui.handleToolKey(key) then
-				return true
-			end
+	-- Tool switching keys. Gated on the editor actually being in use: with no tool or
+	-- passthrough panel up, an enabled-but-dormant Terraformer must pass every key
+	-- through to the engine's own keybinds instead of clicking tool buttons from cold
+	-- (f/m/g/... were invisibly swallowed in normal games). In a terrain mode the
+	-- letters that are terrain keys there (modes, shapes, clay) keep that meaning:
+	-- S and T are the square and triangle shapes, not SURFACE and LAYERS.
+	if
+		not mods.ctrl
+		and not mods.alt
+		and WG.TerraformBrushUI
+		and WG.TerraformBrushUI.handleToolKey
+		and (not WG.TerraformBrushUI.isEngaged or WG.TerraformBrushUI.isEngaged())
+		and not (activeMode and extraState.isTerrainKey(key))
+	then
+		if WG.TerraformBrushUI.handleToolKey(key) then
+			return true
 		end
+	end
+	if not activeMode then
 		return false
 	end
 	if mods.ctrl and key == 122 then -- Ctrl+Z
@@ -10051,6 +10100,20 @@ function widget:MousePress(mx, my, button)
 				end
 				WG.FeaturePlacer.setSmartFilter("altMinEnable", true)
 				WG.FeaturePlacer.setSmartFilter("altMin", rounded)
+			elseif sampledTarget == "unAltMax" and WG.UnitPlacerTool then
+				local sf = (WG.UnitPlacerTool.getState() or {}).smartFilters or {}
+				if sf.altMinEnable and rounded < (sf.altMin or 0) then
+					WG.UnitPlacerTool.setSmartFilter("altMin", rounded)
+				end
+				WG.UnitPlacerTool.setSmartFilter("altMaxEnable", true)
+				WG.UnitPlacerTool.setSmartFilter("altMax", rounded)
+			elseif sampledTarget == "unAltMin" and WG.UnitPlacerTool then
+				local sf = (WG.UnitPlacerTool.getState() or {}).smartFilters or {}
+				if sf.altMaxEnable and rounded > (sf.altMax or 0) then
+					WG.UnitPlacerTool.setSmartFilter("altMax", rounded)
+				end
+				WG.UnitPlacerTool.setSmartFilter("altMinEnable", true)
+				WG.UnitPlacerTool.setSmartFilter("altMin", rounded)
 			elseif sampledTarget == "gbAltMax" and WG.GrassBrush then
 				local sf = (WG.GrassBrush.getState() or {}).smartFilters or {}
 				if sf.altMinEnable and rounded < (sf.altMin or 0) then
