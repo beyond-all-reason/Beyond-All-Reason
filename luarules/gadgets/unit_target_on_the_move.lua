@@ -30,7 +30,6 @@ if gadgetHandler:IsSyncedCode() then
 	-- applying the command that removes a target near the clicked position.
 	local deleteMaxDistance = 30
 	-- Keep a unit target for this many seconds after it leaves LOS or radar.
-	-- Removal happens on the 15-frame slow update, matching per-unit lists.
 	local unseenGraceTime = 1.5
 	-- Per-unit and global caps on expensive weapon-targetability checks. The
 	-- global cap prevents a large shared order from monopolizing a sim frame.
@@ -170,8 +169,6 @@ if gadgetHandler:IsSyncedCode() then
 	local validationWorkQueueLookup = {}
 	local validationWorkQueueLength = 0
 	local validationWorkQueueIndex = 1
-	---@type fun(targetID: integer, targetTeam: integer)
-	local removeTransferredTargetFromLists
 	local pendingTargetListUpdates = {}
 	local pendingTargetListReferences = {}
 	local pendingTargetListReleases = {}
@@ -206,6 +203,9 @@ if gadgetHandler:IsSyncedCode() then
 		validationWorkQueueLookup[list.id] = nil
 		if validationWorkQueueIndex > index then
 			validationWorkQueueIndex = validationWorkQueueIndex - 1
+		end
+		if validationWorkQueueIndex > validationWorkQueueLength then
+			validationWorkQueueIndex = 1
 		end
 	end
 
@@ -249,9 +249,6 @@ if gadgetHandler:IsSyncedCode() then
 	local workQueueLookup = {} -- unitID => queue index lookup -- TODO: shadows activeTargets
 	local workQueueLength = 0
 	local workQueueIndex = 1
-	-- At most chunkSizeMin units will be processed on every frame except slow update frames.
-	-- So the update interval below is matched only from (updateFrames x chunkSizeMin) units,
-	-- and up to (updateFrames x chunkSizeMax) units, and could be lower or higher otherwise.
 	local updateFrames = 0.1667 * Game.gameSpeed
 	local chunkSizeMin = 32
 	local chunkSizeMax = 1024
@@ -281,7 +278,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local unseenGraceFrames = math.floor(unseenGraceTime / 0.5) * 15
+	local unseenGraceFrames = math.floor(unseenGraceTime * Game.gameSpeed)
 
 	--------------------------------------------------------------------------------
 	-- Commands
@@ -494,12 +491,12 @@ if gadgetHandler:IsSyncedCode() then
 		pendingTargetIndices[unitID] = { 1, false }
 	end
 
-	local function getTargetTrackingState(target, alwaysSeen, allyTeam)
+	local function getTargetTrackingState(target, alwaysSeen, allyTeam, teamID)
 		if type(target) ~= "number" then
 			-- Target is a ground attack
 			return TARGET_AVAILABLE
 		end
-		if isDeadOrCrashing(target) then
+		if isDeadOrCrashing(target) or isAlliedUnit(teamID, target) then
 			return TARGET_GONE
 		end
 		if alwaysSeen then
@@ -844,8 +841,6 @@ if gadgetHandler:IsSyncedCode() then
 				removeUnit(unitID)
 				return
 			end
-			-- Replay A/B parity needs each unit to switch during its own update,
-			-- but the reduced list value is shared rather than copied per unit.
 			assignTargetList(unitData, replacement)
 			if index == unitData.currentIndex then
 				if not selecting then
@@ -990,7 +985,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 		removeUnit(unitID)
-		removeTransferredTargetFromLists(unitID, unitTeam)
 	end
 
 	function gadget:UnitTaken(unitID, unitDefID, unitTeam)
@@ -1326,9 +1320,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function processSlowListUpdates()
 		for unitID, unitData in pairsNext, setTargetData do
-			local pendingEmptyList = unitData.pendingEmptyList
-			unitData.pendingEmptyList = nil
-			if pendingEmptyList == unitData.targetList or not unitData.targets[1] then
+			if not unitData.targets[1] then
 				removeUnit(unitID)
 			elseif activeTargets[unitID] then
 				if not hasTargetPrecedence(unitID, unitData) then
@@ -1345,8 +1337,7 @@ if gadgetHandler:IsSyncedCode() then
 	---@param oldList SharedTargetList
 	---@param retainedEntries table[]
 	---@param oldToNewIndex table<integer, integer?>
-	---@param deferRemoval boolean?
-	local function replaceSharedTargetList(oldList, retainedEntries, oldToNewIndex, deferRemoval)
+	local function replaceSharedTargetList(oldList, retainedEntries, oldToNewIndex)
 		local owners = {}
 		for _, data in pairsNext, oldList.units do
 			owners[#owners + 1] = data
@@ -1354,12 +1345,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if not retainedEntries[1] then
 			for _, data in ipairs(owners) do
-				if deferRemoval then
-					-- Preserve scan-queue order only for strict replay A/B parity; direct removal is otherwise valid.
-					data.pendingEmptyList = oldList
-				else
-					removeUnit(data.unitID)
-				end
+				removeUnit(data.unitID)
 			end
 			return
 		end
@@ -1384,6 +1370,9 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			return 1
 		end
+		if newList.refCount == 0 then
+			newList.validationIndex = nextRetainedIndex(oldList.validationIndex)
+		end
 
 		for _, unitData in ipairs(owners) do
 			local unitID = unitData.unitID
@@ -1402,32 +1391,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	removeTransferredTargetFromLists = function(targetID, targetTeam)
-		---@type SharedTargetList[]
-		local lists = {}
-		for index = 1, validationWorkQueueLength do
-			lists[index] = validationWorkQueue[index]
-		end
-
-		for index = 1, #lists do
-			local list = lists[index]
-			local removeIndex = list.lookup[targetID]
-			if removeIndex and spAreTeamsAllied(list.teamID, targetTeam) then
-				local retainedEntries = {}
-				---@type table<integer, integer?>
-				local oldToNewIndex = {}
-				for oldIndex = 1, #list.entries do
-					if oldIndex ~= removeIndex then
-						local newIndex = #retainedEntries + 1
-						retainedEntries[newIndex] = list.entries[oldIndex]
-						oldToNewIndex[oldIndex] = newIndex
-					end
-				end
-				replaceSharedTargetList(list, retainedEntries, oldToNewIndex)
-			end
-		end
-	end
-
 	function GG.ClearTargetListsForAllianceChange(teamA, teamB)
 		local unitIDs = {}
 		for unitID, unitData in pairsNext, setTargetData do
@@ -1440,15 +1403,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function updateSharedTargetList(list, frame, checkBudget, slowUpdate)
+	local function updateSharedTargetList(list, frame, checkBudget)
 		local checks = 0
 		local maxChecks = min(listValidityChecksPerUpdate, checkBudget, #list.entries)
 		local index = list.validationIndex or 1
-		if slowUpdate then
-			-- Slow updates walk the whole list so removal timing matches the legacy lists.
-			maxChecks = #list.entries
-			index = 1
-		end
 		---@type table<integer, boolean>?
 		local removeIndices
 
@@ -1462,28 +1420,24 @@ if gadgetHandler:IsSyncedCode() then
 			checks = checks + 1
 
 			local wasUnavailable = list.unavailable[target]
-			local targetState = getTargetTrackingState(target, targetData.alwaysSeen, list.allyTeam)
+			local targetState = getTargetTrackingState(target, targetData.alwaysSeen, list.allyTeam, list.teamID)
 			-- Keep the reason so fullview can reveal unseen targets without revealing
 			-- dead/crashing ones, including transitions from unseen to gone.
 			list.unavailable[target] = targetState ~= TARGET_AVAILABLE and targetState or nil
 			if wasUnavailable ~= list.unavailable[target] and sentSharedTargetLists[list.id] then
 				sendSharedTargetEntryToUnsynced(list, index)
 			end
-			if slowUpdate then
-				if targetState == TARGET_AVAILABLE then
-					list.unseenUntil[target] = nil
-				elseif targetState == TARGET_UNSEEN then
-					-- Start on the first slow update, preserving the legacy expiry frame.
-					-- Reduced lists share deadlines, so validating both cannot tick twice.
-					local expires = list.unseenUntil[target]
-					if not expires then
-						list.unseenUntil[target] = frame + unseenGraceFrames
-					elseif frame >= expires then
-						removeTargetFromList = true
-					end
-				else
+			if targetState == TARGET_AVAILABLE then
+				list.unseenUntil[target] = nil
+			elseif targetState == TARGET_UNSEEN then
+				local expires = list.unseenUntil[target]
+				if not expires then
+					list.unseenUntil[target] = frame + unseenGraceFrames
+				elseif frame >= expires then
 					removeTargetFromList = true
 				end
+			else
+				removeTargetFromList = true
 			end
 
 			if removeTargetFromList then
@@ -1493,9 +1447,7 @@ if gadgetHandler:IsSyncedCode() then
 			index = index + 1
 		end
 
-		if not slowUpdate then
-			list.validationIndex = index > #list.entries and 1 or index
-		end
+		list.validationIndex = index > #list.entries and 1 or index
 		if removeIndices then
 			local retainedEntries = {}
 			local oldToNewIndex = {}
@@ -1506,25 +1458,12 @@ if gadgetHandler:IsSyncedCode() then
 					oldToNewIndex[oldIndex] = newIndex
 				end
 			end
-			replaceSharedTargetList(list, retainedEntries, oldToNewIndex, slowUpdate)
+			replaceSharedTargetList(list, retainedEntries, oldToNewIndex)
 		end
 		return checks
 	end
 
 	local function processSharedTargetLists(frame)
-		local slowUpdate = frame % 15 == 0
-		if slowUpdate then
-			-- Full sweeps preserve legacy pruning frames for replay A/B parity.
-			-- Deadlines preserve lifetime across list reductions; the sweep retains the exact pruning frame.
-			local lists = {}
-			for index = 1, validationWorkQueueLength do
-				lists[index] = validationWorkQueue[index]
-			end
-			for index = 1, #lists do
-				updateSharedTargetList(lists[index], frame, math.huge, true)
-			end
-			return
-		end
 		local checks = 0
 		local processedLists = 0
 		local listsAtStart = validationWorkQueueLength
@@ -1535,7 +1474,7 @@ if gadgetHandler:IsSyncedCode() then
 			local list = validationWorkQueue[validationWorkQueueIndex]
 			validationWorkQueueIndex = validationWorkQueueIndex + 1
 			processedLists = processedLists + 1
-			checks = checks + updateSharedTargetList(list, frame, listValidityChecksPerFrame - checks, false)
+			checks = checks + updateSharedTargetList(list, frame, listValidityChecksPerFrame - checks)
 		end
 	end
 
@@ -1545,6 +1484,7 @@ if gadgetHandler:IsSyncedCode() then
 			removeFromQueue(unitID)
 			return 0
 		end
+		unitData.lastTargetUpdateFrame = frame
 
 		local checks = 0
 		local maxChecks = min(targetChecksPerUnitUpdate, checkBudget, #unitData.targets)
@@ -1617,8 +1557,16 @@ if gadgetHandler:IsSyncedCode() then
 		processSharedTargetLists(frame)
 		if frame % 15 == 0 then
 			processSlowListUpdates()
-		else
-			processTargetListChunk(frame)
+		end
+		processTargetListChunk(frame)
+		for unitID, unitData in pairsNext, activeTargets do
+			if unitData.activeTarget and unitData.lastTargetUpdateFrame ~= frame then
+				if checkTarget(unitData.teamID, unitData.activeTarget) then
+					setTargetActive(unitID, unitData, unitData.currentIndex)
+				else
+					setTargetPassive(unitID, unitData)
+				end
+			end
 		end
 		flushTargetsToUnsynced()
 	end
