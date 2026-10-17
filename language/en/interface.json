@@ -1312,6 +1312,7 @@
 			"showdata": "Show data",
 			"showdatadesc": "Everything this widget has saved, the way it is stored. Click to read all of it.",
 			"errorsloading": "while loading",
+			"errorsmemory": "memory limit",
 			"errorsmore": "more",
 			"depsuses": "Uses",
 			"depsusedby": "Used by",
@@ -1336,6 +1337,20 @@
 			"deletesettitle": "Delete widget set",
 			"deletesetwarn": "Forgets this set. The widgets it switched on stay as they are.",
 			"loadset": "Load"
+		},
+		"widgetMemory": {
+			"turnedOff": "Turned off the user widget \"%{name}\": %{reason}. A widget using that much memory can crash the interface or the whole game. If you trust it, turn it back on in the widget list (F11).",
+			"reasonCall": "one %{callin} call allocated more than %{limit} MB",
+			"reasonLoad": "loading it allocated more than %{limit} MB",
+			"reasonHeld": "it held more than %{mb} MB of memory",
+			"reasonOutOfMemory": "Lua ran out of memory while it was running",
+			"reasonOutOfMemoryOther": "Lua ran out of memory and it was the user widget most likely to blame",
+			"reasonPool": "Lua memory reached %{percent}%% of its limit and it was the user widget most likely to blame",
+			"warnHeld": "The user widget \"%{name}\" holds about %{mb} MB of memory.",
+			"warnHeldAtLeast": "The user widget \"%{name}\" holds at least %{mb} MB of memory.",
+			"warnGrowing": "The user widget \"%{name}\" keeps growing: %{mb} MB now, up %{grown} MB in %{minutes} minutes. It may be leaking memory.",
+			"warnRate": "The user widget \"%{name}\" allocates %{mb} MB of memory per second, which keeps the garbage collector busy.",
+			"warnPool": "Lua memory is at %{percent}%% of its limit. The user widget most likely to blame is \"%{name}\"."
 		},
 		"unitstats": {
 			"prog": "Prog",
