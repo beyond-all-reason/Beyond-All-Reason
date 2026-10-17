@@ -123,7 +123,7 @@ local fontfileSize = 36
 local fontfileOutlineSize = 7
 
 local screenHeightOrg = 610
-local screenWidthOrg = 850
+local screenWidthOrg = 950
 -- the window's sizes in pixels at 1080p, and how its list is laid out
 local tuning = {
 	controlsWidth = 200, -- the column the controls share; sliders and dropdowns span it
@@ -1055,6 +1055,22 @@ function view.select(option, lineIndex)
 	if lineIndex then
 		view.scrollTo(lineIndex)
 	end
+end
+
+-- init() makes the options and tabs anew: what the window holds on to becomes the new one of its id
+function view.rebind()
+	local function same(item)
+		if item and item.numOptions then
+			for _, group in ipairs(optionGroups) do
+				if group.id == item.id then
+					return group
+				end
+			end
+		end
+		return item and item.id and getOption(item.id) or false
+	end
+	view.selected, view.stripOption, view.litPin = same(view.selected), same(view.stripOption), same(view.litPin)
+	openSelect, draggingSlider = same(openSelect) or nil, same(draggingSlider) or nil
 end
 
 -- Up and down go a line along, in lines of cells to the same column; across goes a cell along. With
@@ -3398,15 +3414,23 @@ function init()
 	if not soundDevices then
 		soundDevices = { "default" }
 		soundDevicesByName = { [""] = 1 }
+		-- SDL plays the sound by default and only opens its own names, which older engines list with OpenAL's prefix
+		local sdlAudio = Spring.GetConfigInt("UseSDLAudio", 1) ~= 0
+		for _, device in ipairs(Spring.GetSoundDevices()) do
+			local name = sdlAudio and device.name:gsub("^OpenAL Soft on ", "") or device.name
+			if not soundDevicesByName[name] then
+				soundDevices[#soundDevices + 1] = name
+				soundDevicesByName[name] = #soundDevices
+			end
+		end
+		-- a device saved with that prefix still shows as selected
+		local savedDevice = Spring.GetConfigString("snd_device", "") or ""
+		soundDevicesByName[savedDevice] = soundDevicesByName[savedDevice]
+			or soundDevicesByName[(savedDevice:gsub("^OpenAL Soft on ", ""))]
 		local infolog = VFS.LoadFile("infolog.txt")
 		if infolog then
 			local fileLines = string.lines(infolog)
 			for i, line in ipairs(fileLines) do
-				if string.find(line, "     [", nil, true) then
-					local device = string.sub(string.match(line, "     %[([0-9a-zA-Z _%/%%-%(%)]*)"), 1)
-					soundDevices[#soundDevices + 1] = device
-					soundDevicesByName[device] = #soundDevices
-				end
 				-- scan for shader version error
 				if string.find(line, "error: GLSL 1.50 is not supported", nil, true) then
 					Spring.SetConfigInt("LuaShaders", 0)
@@ -4409,7 +4433,6 @@ function init()
 			group = "gfx",
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.decals"),
-			restart = true,
 			type = "bool",
 			value = Spring.GetConfigInt("GroundDecals", 1) > 0,
 			description = BAR.I18N("ui.settings.option.decals_descr"),
@@ -4641,7 +4664,8 @@ function init()
 			available = soundDevices[2] ~= nil,
 			name = BAR.I18N("ui.settings.option.snddevice"),
 			type = "select",
-			restart = true,
+			-- the engine switches the device in game while SDL plays the sound
+			restart = not (Engine.FeatureSupport.liveConfigChanges and Spring.GetConfigInt("UseSDLAudio", 1) ~= 0),
 			options = soundDevices,
 			value = soundDevicesByName[Spring.GetConfigString("snd_device")],
 			description = BAR.I18N("ui.settings.option.snddevice_descr"),
@@ -5356,7 +5380,7 @@ function init()
 			id = "doubleclicktime",
 			group = "control",
 			category = types.advanced,
-			restart = true,
+			restart = not Engine.FeatureSupport.liveConfigChanges,
 			name = BAR.I18N("ui.settings.option.doubleclicktime"),
 			type = "slider",
 			min = 150,
@@ -5449,7 +5473,6 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.screenedgemovedynamic"),
 			type = "bool",
-			restart = true,
 			value = true,
 			description = BAR.I18N("ui.settings.option.screenedgemovedynamic_descr"),
 			configInt = "EdgeMoveDynamic",
@@ -8888,7 +8911,7 @@ function init()
 		-- GAME
 		{
 			id = "networksmoothing",
-			restart = true,
+			restart = not Engine.FeatureSupport.liveConfigChanges,
 			category = types.basic,
 			group = "game",
 			name = BAR.I18N("ui.settings.option.networksmoothing"),
@@ -8948,7 +8971,7 @@ function init()
 			group = "game",
 			category = types.dev,
 			name = BAR.I18N("ui.settings.option.catchupsmoothness"),
-			restart = true,
+			restart = not Engine.FeatureSupport.liveConfigChanges,
 			type = "slider",
 			min = 0.05,
 			max = 0.3,
@@ -8962,7 +8985,7 @@ function init()
 			group = "game",
 			category = types.dev,
 			name = BAR.I18N("ui.settings.option.catchupminfps"),
-			restart = true,
+			restart = not Engine.FeatureSupport.liveConfigChanges,
 			type = "slider",
 			min = 2,
 			max = 15,
@@ -11488,7 +11511,8 @@ function init()
 			description = "",
 			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterShoreWaves", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				-- rebuilds the water from the config; /water 4 does nothing while it is already 4
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11499,10 +11523,10 @@ function init()
 			name = "dynamic waves",
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterDynamicWaves", 1) == 1,
-			description = "Springsettings.cfg config, Probably requires a restart",
+			description = "Springsettings.cfg config",
 			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterDynamicWaves", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11513,10 +11537,10 @@ function init()
 			name = "endless",
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterEndlessOcean", 1) == 1,
-			description = "Springsettings.cfg config, Probably requires a restart",
+			description = "Springsettings.cfg config",
 			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterEndlessOcean", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11527,10 +11551,10 @@ function init()
 			name = "occlusion query",
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterOcclusionQuery", 1) == 1,
-			description = "Springsettings.cfg config, Probably requires a restart",
+			description = "Springsettings.cfg config",
 			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterOcclusionQuery", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11541,10 +11565,10 @@ function init()
 			name = "blur reflection",
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterBlurReflection", 1) == 1,
-			description = "Springsettings.cfg config, Probably requires a restart",
+			description = "Springsettings.cfg config",
 			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterBlurReflection", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11558,10 +11582,10 @@ function init()
 			max = 16,
 			step = 1,
 			value = Spring.GetConfigFloat("BumpWaterAnisotropy", 0),
-			description = "Springsettings.cfg config, Probably requires a restart",
+			description = "Springsettings.cfg config",
 			onchange = function(option, value)
 				Spring.SetConfigFloat("BumpWaterAnisotropy", value)
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11572,10 +11596,10 @@ function init()
 			name = "use depth texture",
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterUseDepthTexture", 1) == 1,
-			description = "Springsettings.cfg config, Probably requires a restart",
+			description = "Springsettings.cfg config",
 			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterUseDepthTexture", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 		{
@@ -11586,10 +11610,10 @@ function init()
 			name = "use uniforms",
 			type = "bool",
 			value = Spring.GetConfigInt("BumpWaterUseUniforms", 1) == 1,
-			description = "Springsettings.cfg config, Probably requires a restart",
+			description = "Springsettings.cfg config",
 			onchange = function(option, value)
 				Spring.SetConfigInt("BumpWaterUseUniforms", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				Spring.SetWaterParams({})
 			end,
 		},
 
@@ -11602,7 +11626,7 @@ function init()
 			name = "shorewaves",
 			type = "bool",
 			value = gl.GetWaterRendering("shoreWaves"),
-			description = "Springsettings.cfg config, Probably requires a restart",
+			description = "",
 			onchange = function(option, value)
 				Spring.SetWaterParams({ shoreWaves = value })
 				Spring.SendCommands("water 4")
@@ -12683,6 +12707,7 @@ function init()
 		end
 	end
 
+	view.rebind()
 	-- Filter last, the checks above need every option. Also rebuilds the window.
 	applyFilter()
 end
