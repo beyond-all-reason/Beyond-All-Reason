@@ -245,7 +245,7 @@ local function unitDef_Post(name, uDef)
 		customparams.zombie_ghost_respawn_delay_multiplier = 3
 		customparams.zombie_ghost_respawn_chance = 1
 		customparams.zombie_rez_power_speed_multiplier = 1.2
-		customparams.zombie_ghost_spawn_max_units_per_spawn_multiplier = 1.5
+		customparams.zombie_ghost_spawn_max_units_per_spawn_multiplier = 1.8
 	end
 
 	if not uDef.icontype then
