@@ -1,6 +1,6 @@
-local function loadController(hasUnitDeleted, hasTargetRemoved)
-	if hasUnitDeleted == nil then
-		hasUnitDeleted = true
+local function loadController(hasUnitPreDelete, hasTargetRemoved)
+	if hasUnitPreDelete == nil then
+		hasUnitPreDelete = true
 	end
 	local queue, targets, dead, deleted, crashing = {}, {}, {}, {}, {}
 	local nextTag, listID, stunned = 0, 1, false
@@ -23,8 +23,8 @@ local function loadController(hasUnitDeleted, hasTargetRemoved)
 		UnitDefs = { { canAttack = true } },
 		Script = {
 			GetCallInList = function()
-				return hasUnitDeleted
-						and { UnitDeleted = {}, UnitAttackTargetRemoved = hasTargetRemoved ~= false and {} or nil }
+				return hasUnitPreDelete
+						and { UnitPreDelete = {}, UnitAttackTargetRemoved = hasTargetRemoved ~= false and {} or nil }
 					or {}
 			end,
 		},
@@ -142,8 +142,9 @@ local function loadController(hasUnitDeleted, hasTargetRemoved)
 			table.remove(queue, 1)
 		end,
 		delete = function(id)
-			dead[id], deleted[id] = true, true
-			env.gadget:UnitDeleted(id)
+			dead[id] = true
+			env.gadget:UnitPreDelete(id)
+			deleted[id] = true
 		end,
 		reuse = function(id)
 			dead[id], deleted[id] = nil, nil
@@ -176,7 +177,7 @@ describe("pending Attack controller targets", function()
 		g.crashing[20] = true
 		assert.are.equal(20, g.env.GG.GetPendingAttackTarget(1, -1))
 	end)
-	it("advances at deletion, not at UnitDestroyed", function()
+	it("advances at UnitPreDelete, not at UnitDestroyed", function()
 		local g = loadController()
 		g.eraseActive()
 		g.dead[20] = true
@@ -185,6 +186,16 @@ describe("pending Attack controller targets", function()
 		g.delete(20)
 		assert.are.equal(20, g.queue[1].id)
 		assert.are.equal(30, g.queue[1].params[1])
+	end)
+	it("notifies UnitPreDelete while the target ID is still valid", function()
+		local controller = loadController()
+		local onPreDelete = controller.env.gadget.UnitPreDelete
+		controller.env.gadget.UnitPreDelete = function(self, targetID)
+			assert.is_true(controller.env.Spring.ValidUnitID(targetID))
+			onPreDelete(self, targetID)
+		end
+		controller.delete(20)
+		assert.is_false(controller.env.Spring.ValidUnitID(20))
 	end)
 	it("advances even when the shared list was pruned before deletion", function()
 		local g = loadController()
@@ -370,7 +381,7 @@ describe("neutralized controller reference cleanup", function()
 		assert.are.equal(20, g.queue[1].params[1])
 		assert.same({}, g.stops)
 	end)
-	it("uses native orders if only UnitDeleted is available", function()
+	it("uses native orders if only UnitPreDelete is available", function()
 		local g = loadController(true, false)
 		local before = #g.queue
 		assert.is_false(g.env.gadget:AllowCommand(2, 1, 0, 34927, { 50, 60 }, { coded = 0 }))
