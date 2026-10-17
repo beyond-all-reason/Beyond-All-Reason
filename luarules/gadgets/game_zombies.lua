@@ -50,11 +50,11 @@ end
 --   zombie_ghost_spawn_max_units_per_spawn_multiplier (default 1)
 --     scales how many copies a pool unit may take and still stay in the substitute roll range.
 --     The permitted count is the spawn maximum times this value, rounded up.
---   zombie_enable_oni (1 enables, 0 disables)
+--   zombie_enable_draugr (1 enables, 0 disables)
 --     a corpse on every eligible death, in every mode.
---   zombie_enable_yokai (1 enables, 0 disables)
+--   zombie_enable_wraith (1 enables, 0 disables)
 --     apparitions and the apparition respawn queue, in every mode.
---   zombie_enable_nani (1 enables, 0 disables)
+--   zombie_enable_hydra (1 enables, 0 disables)
 --     multiple spawns per corpse, in every mode.
 
 if not gadgetHandler:IsSyncedCode() then
@@ -92,13 +92,13 @@ local zombieModeSettings = {
 }
 
 ---One of the zombie modes, matching the keys of `ZOMBIE_MODE_FEATURES`.
----@alias ZombieMode "basic"|"oni"|"yokai"|"nani"|"akumu"|"spidergeddon"
+---@alias ZombieMode "basic"|"draugr"|"wraith"|"hydra"|"akumu"|"spidergeddon"
 
 local ZOMBIE_MODE_FEATURES = {
 	basic = {},
-	oni = { alwaysCorpses = true },
-	yokai = { ghostRespawns = true },
-	nani = { multipleSpawns = true },
+	draugr = { alwaysCorpses = true },
+	wraith = { ghostRespawns = true },
+	hydra = { multipleSpawns = true },
 	akumu = { alwaysCorpses = true, ghostRespawns = true, multipleSpawns = true },
 	spidergeddon = { alwaysCorpses = true, ghostRespawns = true, multipleSpawns = true },
 }
@@ -340,9 +340,9 @@ do
 		setSetting(customParams, "zombie_maximum_spawns", "spawnCountMaximum")
 		setSetting(customParams, "zombie_minimum_respawn_delay", "respawnDelayMinimum")
 		setSetting(customParams, "zombie_maximum_respawn_delay", "respawnDelayMaximum")
-		setSetting(customParams, "zombie_enable_yokai", "ghostRespawns", true)
-		setSetting(customParams, "zombie_enable_oni", "alwaysCorpses", true)
-		setSetting(customParams, "zombie_enable_nani", "multipleSpawns", true)
+		setSetting(customParams, "zombie_enable_wraith", "ghostRespawns", true)
+		setSetting(customParams, "zombie_enable_draugr", "alwaysCorpses", true)
+		setSetting(customParams, "zombie_enable_hydra", "multipleSpawns", true)
 
 		local rezPower = math.max(1, unitDef.power or 1)
 		local isPoolMember = customParams.zombie_ghost_respawn_pool and true or false
@@ -1961,12 +1961,12 @@ local ZOMBIE_CHAT_ACTIONS = {
 	},
 	{
 		name = "zombiemode",
-		description = "Set zombie mode (basic/oni/yokai/nani/akumu/spidergeddon)",
+		description = "Set zombie mode (basic/draugr/wraith/hydra/akumu/spidergeddon)",
 		run = function(words, playerID)
 			if #words == 0 then
 				spring.SendMessageToPlayer(
 					playerID,
-					"Usage: /luarules zombiemode basic|oni|yokai|nani|akumu|spidergeddon"
+					"Usage: /luarules zombiemode basic|draugr|wraith|hydra|akumu|spidergeddon"
 				)
 				return
 			end
@@ -1974,7 +1974,7 @@ local ZOMBIE_CHAT_ACTIONS = {
 			if not setZombieMode(mode) then
 				spring.SendMessageToPlayer(
 					playerID,
-					"Invalid mode. Use: basic, oni, yokai, nani, akumu, or spidergeddon"
+					"Invalid mode. Use: basic, draugr, wraith, hydra, akumu, or spidergeddon"
 				)
 				return
 			end

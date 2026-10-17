@@ -1797,24 +1797,24 @@ local options = {
 				desc = "Unit dies, after a while it comes back to life as a zombie. Destroyed zombies leave heaps.",
 			},
 			{
-				key = "oni",
-				name = "Oni",
+				key = "draugr",
+				name = "Draugr",
 				desc = "Basic, and destroyed zombies always leave corpses that can become zombies again.",
 			},
 			{
-				key = "yokai",
-				name = "Yokai",
+				key = "wraith",
+				name = "Wraith",
 				desc = "Basic, and ghostly apparitions appear when corpses are destroyed and at random on the map. When a zombie's corpse is destroyed, it can respawn at an isolated Apparition.",
 			},
 			{
-				key = "nani",
-				name = "Nani?!",
+				key = "hydra",
+				name = "Hydra",
 				desc = "Basic, and each corpse will resurrect between 2 and 6 zombies.",
 			},
 			{
 				key = "akumu",
 				name = "Akumu",
-				desc = "Basic, Oni, Yokai, and Nani?! combined.",
+				desc = "Basic, Draugr, Wraith, and Hydra combined.",
 			},
 			{
 				key = "spidergeddon",

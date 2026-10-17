@@ -3223,7 +3223,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[basic|oni|yokai|nani|akumu|spidergeddon] Set zombie mode"
+			"zombiemode": "[basic|draugr|wraith|hydra|akumu|spidergeddon] Set zombie mode"
 		}
 	},
 	"modoptions": {
@@ -3986,21 +3986,21 @@
 					"name": "Basic",
 					"desc": "Unit dies, after a while it comes back to life as a zombie. Destroyed zombies leave heaps."
 				},
-				"oni": {
-					"name": "Oni",
+				"draugr": {
+					"name": "Draugr",
 					"desc": "Basic, and destroyed zombies always leave corpses that can become zombies again."
 				},
-				"yokai": {
-					"name": "Yokai",
+				"wraith": {
+					"name": "Wraith",
 					"desc": "Basic, and ghostly apparitions appear when corpses are destroyed and at random on the map. When a zombie's corpse is destroyed, it can respawn at an isolated Apparition."
 				},
-				"nani": {
-					"name": "Nani?!",
+				"hydra": {
+					"name": "Hydra",
 					"desc": "Basic, and each corpse will resurrect between 2 and 6 zombies."
 				},
 				"akumu": {
 					"name": "Akumu",
-					"desc": "Basic, Oni, Yokai, and Nani?! combined."
+					"desc": "Basic, Draugr, Wraith, and Hydra combined."
 				},
 				"spidergeddon": {
 					"name": "Spidergeddon (LIMITED TIME)",
