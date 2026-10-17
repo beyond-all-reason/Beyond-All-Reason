@@ -445,6 +445,9 @@ function widget:Initialize()
 		refreshText()
 		doUpdate = true
 	end
+	WG.keybinds.hasStagedEdits = function()
+		return keybindEditor.hasStagedEdits()
+	end
 	widget:ViewResize()
 end
 

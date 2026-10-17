@@ -70,6 +70,12 @@ local WEAPON_ALL = 0 -- Packing index for non-specific weapon attributes scopes.
 local WEAPON_DEATH = -1
 local WEAPON_SELFD = -2
 
+---Parameter keys passed to `SetUnitWeaponDamages` for unit explosion weapons.
+local EXPLOSIONS = {
+	explode = WEAPON_DEATH,
+	selfDestruct = WEAPON_SELFD,
+}
+
 return {
 	UnitAttributeDefinitions = unitAttributes,
 	WeaponAttributeDefinitions = weaponAttributes,
@@ -78,4 +84,5 @@ return {
 	WEAPON_ALL = WEAPON_ALL,
 	WEAPON_DEATH = WEAPON_DEATH,
 	WEAPON_SELFD = WEAPON_SELFD,
+	EXPLOSIONS = EXPLOSIONS,
 }

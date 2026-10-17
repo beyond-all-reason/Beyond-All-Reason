@@ -62,8 +62,8 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
-local losStencilShader = nil
-local losCircleShader = nil
+local losStencilShader ---@type LuaShader
+local losCircleShader ---@type LuaShader
 ---@type InstanceVBOTable?
 local circleInstanceVBO = nil
 
@@ -82,6 +82,10 @@ local circleShaderSourceCache = {
 		PADDING = 1,
 		USE_TEAMCOLOR = 1,
 		VISIBILITYCULLING = 1,
+		LINE_THIN_START = 3000, -- elmos from the camera where the line starts thinning
+		LINE_THIN_END = 8000, -- elmos from the camera where it has thinned to LINE_THIN_SCALE
+		LINE_THIN_SCALE = 0.4, -- line width at LINE_THIN_END and further, relative to its full width
+		LINE_MIN_WIDTH = 0.7, -- screen pixels (not scaled with the resolution) the thinning stops at
 	},
 	uniformInt = {
 		heightmapTex = 0,
@@ -96,6 +100,7 @@ local circleShaderSourceCache = {
 
 local stencilShaderSourceCache = table.copy(circleShaderSourceCache) -- copy the circle shader source cache, and modify it for stencil pass
 stencilShaderSourceCache.shaderConfig.STENCILPASS = 1 -- this is a stencil pass
+stencilShaderSourceCache.shaderName = "LOS Ranges Stencil GL4"
 
 local function goodbye(reason)
 	spEcho("Sensor Ranges LOS widget exiting with reason: " .. reason)
@@ -103,8 +108,19 @@ local function goodbye(reason)
 	return false
 end
 
+local builtVsx, builtVsy = -1, -1 -- view size the stencil shaders (VSX/VSY defines) and texture were made for
+
+local function finalizeShader(shader)
+	if shader then
+		shader:Finalize()
+	end
+end
+
 local function CreateStencilShaderAndTexture()
 	vsx, vsy = spGetViewGeometry()
+	if vsx == builtVsx and vsy == builtVsy then
+		return -- e.g. the handler's first ViewResize after load, at the size Initialize built for
+	end
 	circleShaderSourceCache.shaderConfig.VSX = vsx
 	circleShaderSourceCache.shaderConfig.VSY = vsy
 	circleShaderSourceCache.forceupdate = true
@@ -112,6 +128,7 @@ local function CreateStencilShaderAndTexture()
 	stencilShaderSourceCache.shaderConfig.VSY = vsy
 	stencilShaderSourceCache.forceupdate = true
 
+	local oldStencilShader, oldCircleShader = losStencilShader, losCircleShader
 	losStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache, 0)
 
 	if not losStencilShader then
@@ -121,6 +138,8 @@ local function CreateStencilShaderAndTexture()
 	if not losCircleShader then
 		return goodbye("Failed to compile losrange shader GL4 ")
 	end
+	finalizeShader(oldStencilShader)
+	finalizeShader(oldCircleShader)
 
 	local GL_R8 = 0x8229
 	vsx, vsy = spGetViewGeometry()
@@ -137,6 +156,7 @@ local function CreateStencilShaderAndTexture()
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 	})
+	builtVsx, builtVsy = vsx, vsy
 end
 local function initgl4()
 	-- Due to the view size being part of the shader config, we need to initialize the shaders after the view size is known.
@@ -151,8 +171,11 @@ local function initgl4()
 	circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 128, "losrangeVBO", 2)
 	circleInstanceVBO.numVertices = numVertices
 	circleInstanceVBO.vertexVBO = circleVBO
-	circleInstanceVBO.VAO =
-		InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
+	circleInstanceVBO.VAO = InstanceVBOTable.fillVAOSlots(
+		InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO),
+		false,
+		true
+	)
 
 	CreateStencilShaderAndTexture()
 end
@@ -279,6 +302,8 @@ function widget:Shutdown()
 	if losStencilTexture then
 		gl.DeleteTexture(losStencilTexture)
 	end
+	finalizeShader(losStencilShader)
+	finalizeShader(losCircleShader)
 	WG.losrange = nil
 end
 
@@ -349,8 +374,10 @@ function widget:DrawWorld()
 	)
 	--spEcho("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
 	losCircleShader:SetUniform("teamColorMix", useteamcolors and 1 or 0)
+	local lineWidth = rangeLineWidth * lineScale
+	losCircleShader:SetUniform("lineWidthPx", lineWidth) -- the shader thins it far from the camera
 
-	gl.LineWidth(rangeLineWidth * lineScale * 1.0)
+	gl.LineWidth(lineWidth)
 
 	gl.DepthTest(true)
 	-- Note that we are skipping the first and last vertex, as those are the center of the circle :
@@ -363,9 +390,12 @@ function widget:DrawWorld()
 	gl.Texture(1, false)
 	gl.DepthTest(true)
 	gl.StencilTest(false) -- Disable stencil testing
+	-- the engine's area command volumes expect stencil bit 1 to be clear
+	gl.StencilMask(1)
+	gl.Clear(GL.STENCIL_BUFFER_BIT, 0)
+	gl.StencilMask(255)
 
 	gl.LineWidth(1.0)
-	--gl.Clear(GL.STENCIL_BUFFER_BIT)
 end
 
 function widget:GetConfigData(data)

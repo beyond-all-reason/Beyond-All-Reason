@@ -1694,6 +1694,10 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("cleargrass")
 	widgetHandler:RemoveAction("savegrassconfig")
 	widgetHandler:RemoveAction("dumpgrassshaders")
+	if type(grassShader) == "table" then
+		grassShader:Finalize()
+		grassShader = nil
+	end
 end
 
 function widget:SetConfigData(data)
@@ -1723,6 +1727,13 @@ end
 local glTexture = gl.Texture
 
 local smoothGrassFadeExp = 1
+
+-- Visible instance ranges of the last tile cull as {start1, count1, start2, count2, ...}, replayed while the
+-- camera, fade range and tile tables are unchanged (the cull is ~200 sphere tests per frame)
+local cullRuns = { n = 0 } ---@type { n: integer, [integer]: integer }
+local cullKey = {}
+local spGetCameraRotation = Spring.GetCameraRotation
+local spGetCameraFOV = Spring.GetCameraFOV
 
 function widget:DrawWorldPreUnit()
 	if not processChanges then
@@ -1800,65 +1811,95 @@ function widget:DrawWorldPreUnit()
 		local halfZ = tileWorldZ * 0.5
 		local tileRadius = math.sqrt(halfX * halfX + halfZ * halfZ) + tileHeightSlack
 		local fadeBound = fadeEnd + tileRadius
-		local fadeCullSq = fadeBound * fadeBound
-		local spIsSphereInView = Spring.IsSphereInView
-		local drawnInstances = 0
-		local visibleCount = 0
-		-- Only tile centers inside the fade circle can pass the distance test, so bound the
-		-- sweep to the circle's bounding box instead of scanning the whole grid (full grid
-		-- in placement mode; the loops simply don't run when the box misses the map).
-		local tx0, tx1, tz0, tz1
-		if placementMode then
-			tx0, tx1, tz0, tz1 = 0, gridCols - 1, 0, gridRows - 1
-		else
-			local minTx = mathFloor((cx - fadeBound) / tileWorldX)
-			local maxTx = mathFloor((cx + fadeBound) / tileWorldX)
-			local minTz = mathFloor((cz - fadeBound) / tileWorldZ)
-			local maxTz = mathFloor((cz + fadeBound) / tileWorldZ)
-			tx0, tx1 = mathMax(0, minTx), mathMin(gridCols - 1, maxTx)
-			tz0, tz1 = mathMax(0, minTz), mathMin(gridRows - 1, maxTz)
-		end
-		for tz = tz0, tz1 do
-			local czw = tz * tileWorldZ + halfZ
-			local ddz = czw - cz
-			local runStart, runCount = -1, 0
-			for tx = tx0, tx1 do
-				local tile = tz * gridCols + tx
-				local count = tileCount[tile]
-				local visible = false
-				if count and count > 0 then
-					if placementMode then
-						visible = true
-					else
-						local cxw = tx * tileWorldX + halfX
-						local ddx = cxw - cx
-						if
-							ddx * ddx + ddz * ddz < fadeCullSq
-							and spIsSphereInView(cxw, tileMidHeight, czw, tileRadius)
-						then
+		local rx, ry, rz = spGetCameraRotation()
+		local vFov, hFov = spGetCameraFOV()
+		local key = cullKey
+		if
+			placementMode
+			or key.tiles ~= tileCount
+			or key.bound ~= fadeBound
+			or key.x ~= cx
+			or key.y ~= cy
+			or key.z ~= cz
+			or key.rx ~= rx
+			or key.ry ~= ry
+			or key.rz ~= rz
+			or key.vFov ~= vFov
+			or key.hFov ~= hFov
+		then
+			key.tiles, key.bound, key.x, key.y, key.z = tileCount, fadeBound, cx, cy, cz
+			key.rx, key.ry, key.rz, key.vFov, key.hFov = rx, ry, rz, vFov, hFov
+			local fadeCullSq = fadeBound * fadeBound
+			local spIsSphereInView = Spring.IsSphereInView
+			local runs, numRuns = cullRuns, 0
+			local visibleCount = 0
+			-- Only tile centers inside the fade circle can pass the distance test, so bound the
+			-- sweep to the circle's bounding box instead of scanning the whole grid (full grid
+			-- in placement mode; the loops simply don't run when the box misses the map).
+			local tx0, tx1, tz0, tz1
+			if placementMode then
+				tx0, tx1, tz0, tz1 = 0, gridCols - 1, 0, gridRows - 1
+			else
+				local minTx = mathFloor((cx - fadeBound) / tileWorldX)
+				local maxTx = mathFloor((cx + fadeBound) / tileWorldX)
+				local minTz = mathFloor((cz - fadeBound) / tileWorldZ)
+				local maxTz = mathFloor((cz + fadeBound) / tileWorldZ)
+				tx0, tx1 = mathMax(0, minTx), mathMin(gridCols - 1, maxTx)
+				tz0, tz1 = mathMax(0, minTz), mathMin(gridRows - 1, maxTz)
+			end
+			for tz = tz0, tz1 do
+				local czw = tz * tileWorldZ + halfZ
+				local ddz = czw - cz
+				local runStart, runCount = -1, 0
+				for tx = tx0, tx1 do
+					local tile = tz * gridCols + tx
+					local count = tileCount[tile]
+					local visible = false
+					if count and count > 0 then
+						if placementMode then
 							visible = true
+						else
+							local cxw = tx * tileWorldX + halfX
+							local ddx = cxw - cx
+							if
+								ddx * ddx + ddz * ddz < fadeCullSq
+								and spIsSphereInView(cxw, tileMidHeight, czw, tileRadius)
+							then
+								visible = true
+							end
 						end
 					end
-				end
-				if visible then
-					visibleCount = visibleCount + 1
-					if runStart < 0 then
-						runStart = tileOffset[tile]
-						runCount = count
-					else
-						runCount = runCount + count
+					if visible then
+						visibleCount = visibleCount + 1
+						if runStart < 0 then
+							runStart = tileOffset[tile]
+							runCount = count
+						else
+							runCount = runCount + count
+						end
+					elseif runStart >= 0 then
+						runs[numRuns + 1], runs[numRuns + 2] = runStart, runCount
+						numRuns = numRuns + 2
+						runStart, runCount = -1, 0
 					end
-				elseif runStart >= 0 then
-					grassVAO:DrawElements(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, 0, runStart)
-					drawnInstances = drawnInstances + runCount
-					runStart, runCount = -1, 0
+				end
+				if runStart >= 0 then
+					runs[numRuns + 1], runs[numRuns + 2] = runStart, runCount
+					numRuns = numRuns + 2
 				end
 			end
-			if runStart >= 0 then
-				grassVAO:DrawElements(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, 0, runStart)
-				drawnInstances = drawnInstances + runCount
-			end
+			runs.n = numRuns
+			key.visibleCount = visibleCount
 		end
+
+		local runs = cullRuns
+		local drawnInstances = 0
+		for i = 1, runs.n, 2 do
+			local runCount = runs[i + 1]
+			grassVAO:DrawElements(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, 0, runs[i])
+			drawnInstances = drawnInstances + runCount
+		end
+		local visibleCount = key.visibleCount
 
 		if placementMode and Spring.GetGameFrame() % 30 == 0 then
 			spEcho("Drawing", drawnInstances, "grass patches")

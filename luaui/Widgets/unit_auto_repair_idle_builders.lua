@@ -101,7 +101,7 @@ local myTeam = spGetMyTeamID()
 -- [unitID] = { homeX, homeY, homeZ }
 local idleBuilders = {}
 
--- [builderID] = { targetID, homeX, homeY, homeZ }
+-- [builderID] = { targetID, homeX, homeY, homeZ, returning }
 local activeRepairs = table.ensureTable(WG, "InIdleWorkerTask")
 
 -- [unitID] = expiryFrame
@@ -149,7 +149,7 @@ end
 
 local function sendHome(builderID, info)
 	spGiveOrderToUnit(builderID, CMD_MOVE, { info.homeX, info.homeY, info.homeZ }, CMD_OPT_INTERNAL)
-	activeRepairs[builderID] = nil
+	info.returning = true
 end
 
 local function removeBuilder(unitID)
@@ -159,7 +159,7 @@ end
 
 local function removeTarget(unitID)
 	for builderID, info in pairs(activeRepairs) do
-		if info.targetID == unitID then
+		if info.targetID == unitID and not info.returning then
 			if isUnitAlive(builderID) then
 				sendHome(builderID, info)
 			else
@@ -260,7 +260,9 @@ function widget:PlayerChanged()
 	end
 
 	idleBuilders = {}
-	activeRepairs = {}
+	for unitID in pairs(activeRepairs) do
+		activeRepairs[unitID] = nil -- do not replace table just for some spec joining etc
+	end
 	activeReclaimers = {}
 	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
 		local unitDefID = spGetUnitDefID(unitID)
@@ -380,6 +382,10 @@ function widget:GameFrame(frame)
 		local wantsCloak = (cloakState and cloakState == 1)
 		if not isUnitAlive(builderID) then
 			activeRepairs[builderID] = nil
+		elseif info.returning then
+			if spGetUnitCurrentCommand(builderID, 1) ~= CMD_MOVE then
+				activeRepairs[builderID] = nil
+			end
 		elseif not isUnitAlive(info.targetID) or reclaimBlacklist[info.targetID] or wantsCloak then
 			sendHome(builderID, info)
 		else

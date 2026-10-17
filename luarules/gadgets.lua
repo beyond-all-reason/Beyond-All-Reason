@@ -43,6 +43,9 @@ VFS.Include(SCRIPT_DIR .. "utilities.lua", nil, VFSMODE)
 
 local actionHandler = VFS.Include(HANDLER_DIR .. "actions.lua", nil, VFSMODE)
 
+local tracyZoneBeginN = tracy.ZoneBeginN -- set by system.lua
+local tracyZoneEnd = tracy.ZoneEnd
+
 local CHAT_ACTION_PREFIX = "gui_chat:chataction:"
 local CHAT_ACTION_REQUEST = "gui_chat:requestChatActions"
 local CHAT_ACTION_SNAPSHOT = "snapshot"
@@ -523,6 +526,9 @@ local VFSMODE_OVERRIDE = {
 	["luagaia/gadgets/fp_featureplacer.lua"] = VFS.GAME,
 }
 
+-- Nothing runs between two startup inserts, so the next insert only has to update its own callins.
+local startupInsertUpdatesOwnCallIns = false
+
 function gadgetHandler:Initialize()
 	gadgetHandler:CreateQueuedReorderFuncs()
 	local syncedHandler = Script.GetSynced()
@@ -580,7 +586,8 @@ function gadgetHandler:Initialize()
 	end)
 
 	-- add the gadgets
-	for _, g in ipairs(unsortedGadgets) do
+	for i, g in ipairs(unsortedGadgets) do
+		startupInsertUpdatesOwnCallIns = i > 1
 		gadgetHandler:InsertGadgetRaw(g)
 
 		local gtype = ((syncedHandler and "synced") or "unsynced")
@@ -776,6 +783,9 @@ function gadgetHandler:NewGadget()
 	end
 	gh.RegisterUnitCommand = function(_, cmdID)
 		return self:RegisterUnitCommand(gadget, cmdID)
+	end
+	gh.RegisterUnitPreDamagedWeapon = function(_, weaponDefID)
+		return self:RegisterUnitPreDamagedWeapon(gadget, weaponDefID)
 	end
 
 	if not IsSyncedCode() then
@@ -985,6 +995,8 @@ end
 --- Unsafe insert/remove
 
 function gadgetHandler:InsertGadgetRaw(gadget)
+	local ownCallInsOnly = startupInsertUpdatesOwnCallIns
+	startupInsertUpdatesOwnCallIns = false
 	if gadget == nil then
 		return
 	end
@@ -1003,7 +1015,15 @@ function gadgetHandler:InsertGadgetRaw(gadget)
 		kbytes = collectgarbage("count")
 	end
 
-	self:UpdateCallIns()
+	if ownCallInsOnly then
+		for _, listname in ipairs(callInLists) do
+			if type(gadget[listname]) == "function" then
+				self:UpdateCallIn(listname)
+			end
+		end
+	else
+		self:UpdateCallIns()
+	end
 	if gadget.Initialize then
 		gadget:Initialize()
 	end
@@ -1066,40 +1086,50 @@ end
 
 --------------------------------------------------------------------------------
 
+-- name -> { router, handler, installed global } of the last update. Every gadget insert updates all
+-- callins twice, so most updates change nothing and are skipped.
+local lastCallInUpdate = {} ---@type table<string, table>
+
 function gadgetHandler:UpdateCallIn(name)
 	local listName = name .. "List"
 	local forceUpdate = (name == "GotChatMsg" or name == "RecvFromSynced") -- redundant?
 
-	_G[name] = nil
-
-	if isHeadless and headlessDisabledCallIns[name] then
-		Script.UpdateCallIn(name)
-		return
-	end
-
-	if forceUpdate or #self[listName] > 0 or self:HoldsCallIn(listName) then
-		local selffunc = self[name]
-
-		if selffunc ~= nil then
-			-- max 2 return parameters for top level callins!
-			_G[name] = function(...)
-				callinDepth = callinDepth + 1
-
-				local res1, res2 = selffunc(self, ...)
-
-				callinDepth = callinDepth - 1
-				if reorderNeeded and callinDepth == 0 then
-					self:PerformReorders()
-				end
-
-				return res1, res2
+	local selffunc
+	if not (isHeadless and headlessDisabledCallIns[name]) then
+		if forceUpdate or #self[listName] > 0 or self:HoldsCallIn(listName) then
+			selffunc = self[name]
+			if selffunc == nil then
+				Spring.Log(LOG_SECTION, LOG.ERROR, "UpdateCallIn: " .. name .. " is not implemented")
 			end
-		else
-			Spring.Log(LOG_SECTION, LOG.ERROR, "UpdateCallIn: " .. name .. " is not implemented")
 		end
 	end
 
+	local last = lastCallInUpdate[name]
+	if last and last[1] == selffunc and last[2] == self and _G[name] == last[3] then
+		return
+	end
+
+	_G[name] = nil
+	local installed
+	if selffunc ~= nil then
+		-- max 2 return parameters for top level callins!
+		installed = function(...)
+			callinDepth = callinDepth + 1
+
+			local res1, res2 = selffunc(self, ...)
+
+			callinDepth = callinDepth - 1
+			if reorderNeeded and callinDepth == 0 then
+				self:PerformReorders()
+			end
+
+			return res1, res2
+		end
+		_G[name] = installed
+	end
+
 	Script.UpdateCallIn(name)
+	lastCallInUpdate[name] = { selffunc, self, installed }
 end
 
 function gadgetHandler:UpdateGadgetCallInRaw(name, g)
@@ -1420,27 +1450,32 @@ function gadgetHandler:GameFrame(frameNum)
 	-- Since GameGrame should never be called nested ensure here the callinDepth
 	-- is ok. We set it to 1 so after the run it will be set to 0 again.
 	callinDepth = 1
-	tracy.ZoneBeginN("G:GameFrame")
-	for _, g in ipairs(self.GameFrameList) do
-		tracy.ZoneBeginN(g._tracyGameFrameName)
+	tracyZoneBeginN("G:GameFrame")
+	-- while loops in the hot routers keep ipairs semantics without its per-gadget call
+	local list = self.GameFrameList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
+		tracyZoneBeginN(g._tracyGameFrameName)
 		g:GameFrame(frameNum)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
+		i = i + 1
+		g = list[i]
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function gadgetHandler:GameFramePost(frameNum)
 	callinDepth = 1 -- See notes on GameFrame.
-	tracy.ZoneBeginN("G:GameFramePost")
+	tracyZoneBeginN("G:GameFramePost")
 	local list = self.GameFramePostList
 	for i = #list, 1, -1 do
 		local g = list[i]
-		tracy.ZoneBeginN(g._tracyGameFramePostName)
+		tracyZoneBeginN(g._tracyGameFramePostName)
 		g:GameFramePost(frameNum)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function gadgetHandler:GamePaused(playerID, paused)
@@ -1464,21 +1499,21 @@ function gadgetHandler:RecvFromSynced(...)
 		return true
 	end
 	if type(arg1) == "string" then
-		tracy.ZoneBeginN("G:RecvFromSynced:" .. arg1)
+		tracyZoneBeginN("G:RecvFromSynced:" .. arg1)
 	else
-		tracy.ZoneBeginN("G:RecvFromSynced")
+		tracyZoneBeginN("G:RecvFromSynced")
 	end
 	if actionHandler.RecvFromSynced(...) then
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return
 	end
 	for _, g in ipairs(self.RecvFromSyncedList) do
 		if g:RecvFromSynced(...) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -1525,14 +1560,14 @@ function gadgetHandler:RecvLuaMsg(msg, player)
 		end
 		return true
 	end
-	tracy.ZoneBeginN("G:RecvLuaMsg")
+	tracyZoneBeginN("G:RecvLuaMsg")
 	for _, g in ipairs(self.RecvLuaMsgList) do
 		if g:RecvLuaMsg(msg, player) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
@@ -1562,13 +1597,13 @@ function gadgetHandler:SetViewSize(vsx, vsy)
 end
 
 function gadgetHandler:ViewResize(vsx, vsy)
-	tracy.ZoneBeginN("G:ViewResize")
+	tracyZoneBeginN("G:ViewResize")
 	for _, g in ipairs(self.ViewResizeList) do
-		tracy.ZoneBeginN(g._tracyViewResizeName)
+		tracyZoneBeginN(g._tracyViewResizeName)
 		g:ViewResize(vsx, vsy)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -1606,13 +1641,13 @@ function gadgetHandler:TeamChanged(teamID)
 end
 
 function gadgetHandler:PlayerChanged(playerID)
-	tracy.ZoneBeginN("G:PlayerChanged")
+	tracyZoneBeginN("G:PlayerChanged")
 	for _, g in ipairs(self.PlayerChangedList) do
-		tracy.ZoneBeginN(g._tracyPlayerChangedName)
+		tracyZoneBeginN(g._tracyPlayerChangedName)
 		g:PlayerChanged(playerID)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -1765,9 +1800,9 @@ function gadgetHandler:AllowCommand(
 		end
 	end
 
-	tracy.ZoneBeginN("G:AllowCommand")
+	tracyZoneBeginN("G:AllowCommand")
 	for _, g in ipairs(allowCommandList[cmdKey]) do
-		--tracy.ZoneBeginN("G:AllowCommand:"..g.ghInfo.name)
+		--tracyZoneBeginN("G:AllowCommand:"..g.ghInfo.name)
 		if
 			not g:AllowCommand(
 				unitID,
@@ -1783,13 +1818,13 @@ function gadgetHandler:AllowCommand(
 				fromInsert
 			)
 		then
-			--tracy.ZoneEnd()
-			tracy.ZoneEnd()
+			--tracyZoneEnd()
+			tracyZoneEnd()
 			return false
 		end
-		--tracy.ZoneEnd()
+		--tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return true
 end
 
@@ -1910,13 +1945,17 @@ function gadgetHandler:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, ca
 end
 
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
-	tracy.ZoneBeginN("G:AllowUnitBuildStep")
+	tracyZoneBeginN("G:AllowUnitBuildStep")
 
-	for _, g in ipairs(self.AllowUnitBuildStepList) do
+	local list = self.AllowUnitBuildStepList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
 		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return false
 		end
+		i = i + 1
+		g = list[i]
 	end
 
 	-- Disallowed requests record no marks and no totals.
@@ -1935,7 +1974,7 @@ function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDe
 		end
 	end
 
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return true
 end
 
@@ -1967,13 +2006,17 @@ function gadgetHandler:AllowUnitDecloak(unitID, objectID, weaponID)
 end
 
 function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
-	tracy.ZoneBeginN("G:AllowFeatureBuildStep")
+	tracyZoneBeginN("G:AllowFeatureBuildStep")
 
-	for _, g in ipairs(self.AllowFeatureBuildStepList) do
+	local list = self.AllowFeatureBuildStepList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
 		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return false
 		end
+		i = i + 1
+		g = list[i]
 	end
 
 	-- Disallowed requests record no marks and no totals.
@@ -1992,7 +2035,7 @@ function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, 
 		end
 	end
 
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return true
 end
 
@@ -2129,24 +2172,28 @@ end
 --
 
 function gadgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	tracy.ZoneBeginN("G:UnitCreated")
+	tracyZoneBeginN("G:UnitCreated")
 	self:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
-	for _, g in ipairs(self.UnitCreatedList) do
+	local list = self.UnitCreatedList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
 		g:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+		i = i + 1
+		g = list[i]
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("G:UnitFinished")
+	tracyZoneBeginN("G:UnitFinished")
 	for _, g in ipairs(self.UnitFinishedList) do
-		tracy.ZoneBeginN(g._tracyUnitFinishedName)
+		tracyZoneBeginN(g._tracyUnitFinishedName)
 		g:UnitFinished(unitID, unitDefID, unitTeam)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2176,13 +2223,17 @@ function gadgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 end
 
 function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	tracy.ZoneBeginN("G:UnitDestroyed")
+	tracyZoneBeginN("G:UnitDestroyed")
 	self:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	for _, g in ipairs(self.UnitDestroyedList) do
+	local list = self.UnitDestroyedList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
 		g:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		i = i + 1
+		g = list[i]
 	end
 	markIdle(unitID)
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2223,12 +2274,12 @@ function gadgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, o
 end
 
 function gadgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("G:UnitIdle")
+	tracyZoneBeginN("G:UnitIdle")
 	for _, g in ipairs(self.UnitIdleList) do
 		g:UnitIdle(unitID, unitDefID, unitTeam)
 	end
 	markIdle(unitID)
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2251,7 +2302,7 @@ function gadgetHandler:UnitPreDamaged(
 	attackerDefID,
 	attackerTeam
 )
-	tracy.ZoneBeginN("G:UnitPreDamaged")
+	tracyZoneBeginN("G:UnitPreDamaged")
 	local retDamage = damage
 	local retImpulse = 1.0
 
@@ -2261,29 +2312,36 @@ function gadgetHandler:UnitPreDamaged(
 	-- so if your new UnitPreDamaged is behaving weird
 	-- check every other gadget that may be handing damage or impulse
 	-- and check the layering and ordering of the gadgets
-	for _, g in ipairs(self.UnitPreDamagedList) do
-		local dmg, imp = g:UnitPreDamaged(
-			unitID,
-			unitDefID,
-			unitTeam,
-			retDamage,
-			paralyzer,
-			weaponDefID,
-			projectileID,
-			attackerID,
-			attackerDefID,
-			attackerTeam
-		)
+	local list = self.UnitPreDamagedList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
+		local weapons = g._preDamagedWeapons
+		if not weapons or weapons[weaponDefID] then
+			local dmg, imp = g:UnitPreDamaged(
+				unitID,
+				unitDefID,
+				unitTeam,
+				retDamage,
+				paralyzer,
+				weaponDefID,
+				projectileID,
+				attackerID,
+				attackerDefID,
+				attackerTeam
+			)
 
-		if dmg ~= nil then
-			retDamage = dmg
+			if dmg ~= nil then
+				retDamage = dmg
+			end
+			if imp ~= nil then
+				retImpulse = retImpulse * imp
+			end
 		end
-		if imp ~= nil then
-			retImpulse = retImpulse * imp
-		end
+		i = i + 1
+		g = list[i]
 	end
 
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return retDamage, retImpulse
 end
 
@@ -2299,8 +2357,10 @@ function gadgetHandler:UnitDamaged(
 	attackerDefID,
 	attackerTeam
 )
-	tracy.ZoneBeginN("G:UnitDamaged")
-	for _, g in ipairs(self.UnitDamagedList) do
+	tracyZoneBeginN("G:UnitDamaged")
+	local list = self.UnitDamagedList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
 		g:UnitDamaged(
 			unitID,
 			unitDefID,
@@ -2313,8 +2373,10 @@ function gadgetHandler:UnitDamaged(
 			attackerDefID,
 			attackerTeam
 		)
+		i = i + 1
+		g = list[i]
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
@@ -2342,6 +2404,13 @@ function gadgetHandler:RegisterUnitCommand(gadget, cmdID)
 	gadget._unitCommandIDs[cmdID] = true
 end
 
+-- Limits gadget:UnitPreDamaged to hits by the registered weaponDefIDs (environmental damage types
+-- included). Gadgets that never register get every hit.
+function gadgetHandler:RegisterUnitPreDamagedWeapon(gadget, weaponDefID)
+	gadget._preDamagedWeapons = gadget._preDamagedWeapons or {}
+	gadget._preDamagedWeapons[weaponDefID] = true
+end
+
 function gadgetHandler:UnitCommand(
 	unitID,
 	unitDefID,
@@ -2354,7 +2423,7 @@ function gadgetHandler:UnitCommand(
 	fromSynced,
 	fromLua
 )
-	tracy.ZoneBeginN("G:UnitCommand")
+	tracyZoneBeginN("G:UnitCommand")
 	local list = self.UnitCommandList
 	for i = 1, #list do
 		local g = list[i]
@@ -2364,7 +2433,7 @@ function gadgetHandler:UnitCommand(
 		end
 	end
 	markIdle(unitID)
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2404,11 +2473,11 @@ function gadgetHandler:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function gadgetHandler:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	tracy.ZoneBeginN("G:UnitEnteredLos")
+	tracyZoneBeginN("G:UnitEnteredLos")
 	for _, g in ipairs(self.UnitEnteredLosList) do
 		g:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2420,11 +2489,11 @@ function gadgetHandler:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function gadgetHandler:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	tracy.ZoneBeginN("G:UnitLeftLos")
+	tracyZoneBeginN("G:UnitLeftLos")
 	for _, g in ipairs(self.UnitLeftLosList) do
 		g:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2493,20 +2562,28 @@ end
 --
 
 function gadgetHandler:FeatureCreated(featureID, allyTeam, sourceID)
-	tracy.ZoneBeginN("G:FeatureCreated")
-	for _, g in ipairs(self.FeatureCreatedList) do
+	tracyZoneBeginN("G:FeatureCreated")
+	local list = self.FeatureCreatedList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
 		g:FeatureCreated(featureID, allyTeam, sourceID)
+		i = i + 1
+		g = list[i]
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function gadgetHandler:FeatureDestroyed(featureID, allyTeam)
-	tracy.ZoneBeginN("G:FeatureDestroyed")
-	for _, g in ipairs(self.FeatureDestroyedList) do
+	tracyZoneBeginN("G:FeatureDestroyed")
+	local list = self.FeatureDestroyedList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
 		g:FeatureDestroyed(featureID, allyTeam)
+		i = i + 1
+		g = list[i]
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2580,20 +2657,28 @@ end
 --
 
 function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
-	tracy.ZoneBeginN("G:ProjectileCreated")
-	for _, g in ipairs(self.ProjectileCreatedList) do
+	tracyZoneBeginN("G:ProjectileCreated")
+	local list = self.ProjectileCreatedList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
 		g:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
+		i = i + 1
+		g = list[i]
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function gadgetHandler:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
-	tracy.ZoneBeginN("G:ProjectileDestroyed")
-	for _, g in ipairs(self.ProjectileDestroyedList) do
+	tracyZoneBeginN("G:ProjectileDestroyed")
+	local list = self.ProjectileDestroyedList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
 		g:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
+		i = i + 1
+		g = list[i]
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2680,13 +2765,17 @@ function gadgetHandler:Update()
 		BroadcastChatActionSnapshot("unsynced", self.actionHandler.textActions)
 		chatActionInitialSnapshotUpdates = chatActionInitialSnapshotUpdates - 1
 	end
-	tracy.ZoneBeginN("G:Update")
-	for _, g in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN(g._tracyUpdateName)
+	tracyZoneBeginN("G:Update")
+	local list = self.UpdateList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
+		tracyZoneBeginN(g._tracyUpdateName)
 		g:Update(deltaTime)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
+		i = i + 1
+		g = list[i]
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2732,33 +2821,41 @@ function gadgetHandler:CommandNotify(id, params, options)
 end
 
 function gadgetHandler:DrawGenesis()
-	tracy.ZoneBeginN("G:DrawGenesis")
+	tracyZoneBeginN("G:DrawGenesis")
 	for _, g in ipairs(self.DrawGenesisList) do
 		g:DrawGenesis()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function gadgetHandler:DrawWorld()
-	tracy.ZoneBeginN("G:DrawWorld")
-	for _, g in ipairs(self.DrawWorldList) do
-		tracy.ZoneBeginN(g._tracyDrawWorldName)
+	tracyZoneBeginN("G:DrawWorld")
+	local list = self.DrawWorldList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
+		tracyZoneBeginN(g._tracyDrawWorldName)
 		g:DrawWorld()
-		tracy.ZoneEnd()
+		tracyZoneEnd()
+		i = i + 1
+		g = list[i]
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function gadgetHandler:DrawWorldPreUnit()
-	tracy.ZoneBeginN("G:DrawWorldPreUnit")
-	for _, g in ipairs(self.DrawWorldPreUnitList) do
-		tracy.ZoneBeginN(g._tracyDrawWorldPreUnitName)
+	tracyZoneBeginN("G:DrawWorldPreUnit")
+	local list = self.DrawWorldPreUnitList ---@type table[]
+	local i, g = 1, list[1]
+	while g do
+		tracyZoneBeginN(g._tracyDrawWorldPreUnitName)
 		g:DrawWorldPreUnit()
-		tracy.ZoneEnd()
+		tracyZoneEnd()
+		i = i + 1
+		g = list[i]
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2826,38 +2923,38 @@ function gadgetHandler:DrawWorldRefraction()
 end
 
 function gadgetHandler:DrawScreenEffects(vsx, vsy)
-	tracy.ZoneBeginN("G:DrawScreenEffects")
+	tracyZoneBeginN("G:DrawScreenEffects")
 	for _, g in ipairs(self.DrawScreenEffectsList) do
 		g:DrawScreenEffects(vsx, vsy)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function gadgetHandler:DrawScreenPost()
-	tracy.ZoneBeginN("G:DrawScreenPost")
+	tracyZoneBeginN("G:DrawScreenPost")
 	for _, g in ipairs(self.DrawScreenPostList) do
 		g:DrawScreenPost(vsx, vsy)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function gadgetHandler:DrawScreen(vsx, vsy)
-	tracy.ZoneBeginN("G:DrawScreen")
+	tracyZoneBeginN("G:DrawScreen")
 	for _, g in ipairs(self.DrawScreenList) do
 		g:DrawScreen(vsx, vsy)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function gadgetHandler:DrawInMiniMap(mmsx, mmsy)
-	tracy.ZoneBeginN("G:DrawInMiniMap")
+	tracyZoneBeginN("G:DrawInMiniMap")
 	for _, g in ipairs(self.DrawInMiniMapList) do
 		g:DrawInMiniMap(mmsx, mmsy)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2898,27 +2995,27 @@ function gadgetHandler:MousePress(x, y, button)
 end
 
 function gadgetHandler:MouseMove(x, y, dx, dy, button)
-	tracy.ZoneBeginN("G:MouseMove")
+	tracyZoneBeginN("G:MouseMove")
 	local mo = self.mouseOwner
 	if mo and mo.MouseMove then
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return mo:MouseMove(x, y, dx, dy, button)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function gadgetHandler:MouseRelease(x, y, button)
-	tracy.ZoneBeginN("G:MouseRelease")
+	tracyZoneBeginN("G:MouseRelease")
 	local mo = self.mouseOwner
 	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
 	if not (lmb or mmb or rmb) then
 		self.mouseOwner = nil
 	end
 	if mo and mo.MouseRelease then
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return mo:MouseRelease(x, y, button)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return -1
 end
 
@@ -2998,13 +3095,13 @@ end
 --------------------------------------------------------------------------------
 
 function gadgetHandler:FontsChanged()
-	tracy.ZoneBeginN("G:FontsChanged")
+	tracyZoneBeginN("G:FontsChanged")
 	local list = self.FontsChangedList
 	for i = #list, 1, -1 do
 		local g = list[i]
 		g:FontsChanged()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 

@@ -57,7 +57,8 @@ pileextension6,
 pileextension7,
 pileextension8,
 pileextension9,
-pile;
+pile,
+torsofirepoint;
 
 
 static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, restore_delay, stunned, oldHeadingTS, torsofunkyHeading, oldHeadingBunker, oldHeadingRailgun, fuelSaver, isturning;
@@ -212,7 +213,7 @@ Setstunned(State)
 
 QueryWeapon1(piecenum)
 {
-	piecenum = torso;
+	piecenum = torsofirepoint;
 }
 
 AimFromWeapon1(piecenum)
@@ -228,7 +229,7 @@ AimFromWeapon2(piecenum)
 
 QueryWeapon2(piecenum)
 {
-	piecenum = piledriver;
+	piecenum = aimflarebunker;
 }
 
 //Targeting System / Responsible for torso rotation and saving that info for the other turrets.

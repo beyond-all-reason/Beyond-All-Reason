@@ -97,8 +97,6 @@ local curFrame = spGetGameFrame()
 
 local font, font2
 
-local AdvPlayersListAtlas
-
 --------------------------------------------------------------------------------
 -- SPEED UPS
 --------------------------------------------------------------------------------
@@ -252,7 +250,6 @@ local timeCounter = 9
 local timeFastCounter = 9
 local updateRate = 0.8
 local updateFastRate = 0.15 -- only updates resources
-local lastTakeMsg = -120
 local hoverPlayerlist = false
 
 local updateRateMult = 1 -- goes up when more players	auto adjusts in UpdatePlayerResources()
@@ -269,13 +266,12 @@ local guishaderWasActive = false
 --local specJoinedOnce, scheduledSpecFullView
 --local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
 local lockPlayerID --leftPosX, lastSliderSound, release
-local MainList, MainList2, MainList3, drawListOffset
+local MainList, MainList2, drawListOffset
+local mainList3Tex ---@type string?
 
 local deadPlayerHeightReduction = 8
 
-local reportTake = false
-local tookTeamID
-local tookTeamName
+local takePending = false
 local tookFrame = -120
 
 local playSounds = true
@@ -1155,8 +1151,9 @@ function widget:Shutdown()
 	if MainList2 then
 		gl_DeleteList(MainList2)
 	end
-	if MainList3 then
-		gl_DeleteList(MainList3)
+	if mainList3Tex then
+		gl.DeleteTexture(mainList3Tex)
+		mainList3Tex = nil
 	end
 	if Background then
 		gl_DeleteList(Background)
@@ -1357,7 +1354,6 @@ function CreatePlayer(playerID)
 	local history = (accountID and WG.playernames) and WG.playernames.getAccountHistory(accountID) or {}
 	local pname = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID) or tname
 	local isAliasName = tname ~= pname
-	tname = pname
 	local _, _, teamIsDead, _, tside, tallyteam, tincomeMultiplier = sp.GetTeamInfo(tteam, false)
 	local tred, tgreen, tblue = sp.GetTeamColor(tteam)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
@@ -1886,9 +1882,6 @@ function widget:DrawScreen()
 	drawState.sawSpareDrawFrame = renderOnlyFrame
 	drawState.lastDrawGameFrame = drawGameFrame
 
-	AdvPlayersListAtlas:RenderTasks()
-	--AdvPlayersListAtlas:DrawToScreen()
-
 	-- draw the background element
 	if mainListBgTex then
 		gl.R2tHelper.BlendTexRect(
@@ -1975,17 +1968,21 @@ function widget:DrawScreen()
 		gl.PushMatrix()
 	end
 
+	if mainList3Tex and (MainList or mainListTex) and (MainList2 or mainList2Tex) then
+		gl.R2tHelper.BlendTexRect(
+			mainList3Tex,
+			apiAbsPosition[2],
+			apiAbsPosition[3],
+			apiAbsPosition[4],
+			apiAbsPosition[1],
+			true
+		)
+	end
+
 	local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
 	local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
 	gl.Scale(widgetScale, widgetScale, 0)
 	gl.Translate(scaleDiffX, scaleDiffY, 0)
-
-	if not MainList3 then
-		CreateMainList(true, true, true)
-	end
-	if (MainList or mainListTex) and (MainList2 or mainList2Tex) and MainList3 then
-		gl_CallList(MainList3)
-	end
 
 	-- handle/draw hover highlight
 	local posY
@@ -2091,6 +2088,9 @@ function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
 	if not mainList2Tex then
 		onlyMainList2 = true
 	end
+	if not mainList3Tex then
+		onlyMainList3 = true
+	end
 	CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 end
 
@@ -2162,6 +2162,10 @@ function CreateBackground()
 		if mainList2Tex then
 			gl.DeleteTexture(mainList2Tex)
 			mainList2Tex = nil
+		end
+		if mainList3Tex then
+			gl.DeleteTexture(mainList3Tex)
+			mainList3Tex = nil
 		end
 		if mainListBgTex then
 			gl.DeleteTexture(mainListBgTex)
@@ -2463,21 +2467,40 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 	end
 
 	if onlyMainList3 then
-		if MainList3 then
-			MainList3 = gl_DeleteList(MainList3)
+		if not mainList3Tex then
+			local width, height =
+				mathFloor(apiAbsPosition[4] - apiAbsPosition[2]), mathFloor(apiAbsPosition[1] - apiAbsPosition[3])
+			if width > 0 and height > 0 then
+				mainList3Tex = gl.CreateTexture(width, height, {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+			end
 		end
-		MainList3 = gl_CreateList(function()
-			local leader
-			for i, drawObject in ipairs(drawList) do
-				if drawObject == -1 then
-					leader = true
-				elseif drawObject >= 0 then
-					if not player[drawObject].spec then -- specs have no resources
-						DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, false, true)
+		if mainList3Tex then
+			-- the resource bars, with the scale DrawScreen used to draw them directly
+			gl.R2tHelper.RenderToTexture(mainList3Tex, function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (apiAbsPosition[4] - apiAbsPosition[2]), 2 / (apiAbsPosition[1] - apiAbsPosition[3]), 0)
+				gl.Translate(
+					widgetPosX * (1 - widgetScale) - apiAbsPosition[2],
+					widgetPosY * (1 - widgetScale) - apiAbsPosition[3],
+					0
+				)
+				gl.Scale(widgetScale, widgetScale, 0)
+				local leader
+				for i, drawObject in ipairs(drawList) do
+					if drawObject == -1 then
+						leader = true
+					elseif drawObject >= 0 then
+						if not player[drawObject].spec then -- specs have no resources
+							DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, false, true)
+						end
 					end
 				end
-			end
-		end)
+			end, true)
+		end
 	end
 end
 
@@ -4117,7 +4140,7 @@ function widget:MousePress(x, y, button)
 						if ctrl and i < specOffset then
 							sp.SendCommands(
 								"toggleignore "
-									.. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name)
+									.. (clickedPlayer.accountID or clickedPlayer.orgname or clickedPlayer.name)
 							)
 							return true
 						elseif alt and not clickedPlayer.ai then
@@ -4134,7 +4157,8 @@ function widget:MousePress(x, y, button)
 							end
 							return true
 						elseif not player[i].spec then
-							if i ~= myTeamPlayerID then
+							-- Selecting units can update the team separate to the camera lock.
+							if i ~= myTeamPlayerID or (lockPlayerID and lockPlayerID ~= i) then
 								clickedPlayerTime = osClock()
 								clickedPlayerID = clickedPlayer.id
 								-- handled in Update() after dblclick delay
@@ -4165,7 +4189,7 @@ function widget:MousePress(x, y, button)
 							if clickedPlayer.totake then
 								if IsOnRect(x, y, widgetPosX - 57, posY, widgetPosX - 12, posY + 17) then
 									--take button
-									Take(clickedPlayer.team, clickedPlayer.orgname or clickedPlayer.name, i)
+									Take(clickedPlayer.team)
 									return true
 								end
 							end
@@ -4246,7 +4270,8 @@ function widget:MousePress(x, y, button)
 									posY + (playerOffset * playerScale)
 								)
 							then
-								sp.SendCommands("chatall", "pastetext /w " .. clickedPlayer.name .. " \1")
+								-- /w takes the engine name; the list may show an alias
+								sp.SendCommands("chatall", "pastetext /w " .. sp.GetPlayerInfo(i, false) .. " \1")
 								return true
 							end
 						end
@@ -4309,7 +4334,7 @@ function widget:MousePress(x, y, button)
 							if ctrl then
 								sp.SendCommands(
 									"toggleignore "
-										.. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name)
+										.. (clickedPlayer.accountID or clickedPlayer.orgname or clickedPlayer.name)
 								)
 								return true
 							end
@@ -4332,7 +4357,7 @@ function widget:MousePress(x, y, button)
 								and clickTime - prevClickTime < dblclickPeriod
 								and clickedPlayer == prevClickedPlayer
 							then
-								LockCamera(clickedPlayer.team)
+								LockCamera(i)
 								prevClickedPlayer = {}
 								return true
 							end
@@ -4759,10 +4784,9 @@ function updateTake(allyTeamID)
 	end
 end
 
-function Take(teamID, name, i)
-	reportTake = true
-	tookTeamID = teamID
-	tookTeamName = name
+-- the take gadget (cmd_idle_players) announces what was taken
+function Take(teamID)
+	takePending = true
 	tookFrame = spGetGameFrame()
 	sp.SendCommands("luarules take2 " .. teamID)
 end
@@ -4886,46 +4910,15 @@ function widget:Update(delta)
 		CreateShareSlider()
 	end
 
-	if curFrame >= 30 + tookFrame then
-		if lastTakeMsg + 120 < tookFrame and reportTake then
-			local teamID = tookTeamID
-			local afterE = sp.GetTeamResources(teamID, "energy")
-			local afterM = sp.GetTeamResources(teamID, "metal")
-			local afterU = sp.GetTeamUnitCount(teamID)
-			local detailedToSay = false
-			if afterE and afterM and afterU then
-				if afterE > 1.0 or afterM > 1.0 or afterU > 0 then
-					detailedToSay = true
+	if takePending and curFrame >= 30 + tookFrame then
+		takePending = false
+		for j = 0, (specOffset * 2) - 1 do
+			if player[j].allyteam == myAllyTeamID then
+				if player[j].totake then
+					player[j] = CreatePlayerFromTeam(player[j].team)
+					forceMainListRefresh = true
 				end
 			end
-			if detailedToSay then
-				Spring.SendLuaRulesMsg(
-					"msg:ui.playersList.chat.takeTeam:name="
-						.. tookTeamName
-						.. ":units="
-						.. mathFloor(afterU)
-						.. ":energy="
-						.. mathFloor(afterE)
-						.. ":metal="
-						.. mathFloor(afterE)
-				)
-			else
-				Spring.SendLuaRulesMsg("msg:ui.playersList.chat.takeTeam:name=" .. tookTeamName)
-			end
-
-			for j = 0, (specOffset * 2) - 1 do
-				if player[j].allyteam == myAllyTeamID then
-					if player[j].totake then
-						player[j] = CreatePlayerFromTeam(player[j].team)
-						forceMainListRefresh = true
-					end
-				end
-			end
-
-			lastTakeMsg = tookFrame
-			reportTake = false
-		else
-			reportTake = false
 		end
 	end
 	if curFrame <= 0 and timeCounter > updateRate * updateRateMult then
@@ -5001,26 +4994,6 @@ function widget:ViewResize()
 	font = WG.fonts.getFont()
 	font2 = WG.fonts.getFont(2, 1.5, 0.13, 20)
 
-	local MakeAtlasOnDemand = require("luaui/Include/AtlasOnDemand")
-	if AdvPlayersListAtlas then
-		--AdvPlayersListAtlas:Delete()
-	end
-
-	local cellheight = mathMax(32, mathCeil(mathMax(font.size, font2.size) + 4))
-	local cellwidth = mathCeil(cellheight * 1.25)
-	local cellcount = mathCeil(math.sqrt(32 + 32 + 200))
-	local atlasconfig = {
-		sizex = cellheight * cellcount,
-		sizey = cellwidth * cellcount,
-		xresolution = cellheight,
-		yresolution = cellwidth,
-		name = "AdvPlayersListAtlas",
-		defaultfont = { font = font, options = "o" },
-	}
-	AdvPlayersListAtlas = MakeAtlasOnDemand(atlasconfig)
-	for i = 0, 99 do
-		AdvPlayersListAtlas:AddText(string.format("%02d", i))
-	end
 	forceMainListRefresh = true
 end
 

@@ -914,10 +914,14 @@ end
 function widget:GetConfigData() -- Saving
 	return {
 		maxHungarianUnits = maxHungarianUnits,
+		repeatForSingleUnit = repeatForSingleUnit,
 	}
 end
 function widget:SetConfigData(data) -- Loading
 	maxHungarianUnits = data.maxHungarianUnits or defaultHungarianUnits
+	if data.repeatForSingleUnit ~= nil then
+		repeatForSingleUnit = data.repeatForSingleUnit
+	end
 end
 
 ---------------------------------------------------------------------------------------------------------

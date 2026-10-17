@@ -13,6 +13,11 @@ uniform float weights[BLUR_HALF_KERNEL_SIZE];
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
+#if BLUR_COMPOSITE == 1
+	// At DOWNSAMPLE 1 the vertical pass draws straight onto the screen in place of ssaoComposite
+	uniform sampler2D modelDepthTex;
+	uniform sampler2D mapDepthTex;
+#endif
 uniform vec2 dir;
 uniform float strengthMult;
 
@@ -25,6 +30,14 @@ in DataVS {
 
 out vec4 fragColor;
 
+#if BLUR_COMPOSITE == 1
+// As in ssaoComposite: the closest gbuffer depth, so the LEQUAL test rejects grass/decals drawn over it
+float GbufferDepth() {
+	ivec2 pixel = ivec2(gl_FragCoord.xy);
+	return min(texelFetch(modelDepthTex, pixel, 0).r, texelFetch(mapDepthTex, pixel, 0).r) - 1e-5;
+}
+#endif
+
 #line 1018
 void main(void)
 {
@@ -33,9 +46,16 @@ void main(void)
 	vec2 uv = gl_FragCoord.xy / vec2(HSX,HSY);
 
 
-	#if USE_STENCIL == 1 
+	#if USE_STENCIL == 1
 		if (textureLod(unitStencilTex, uv, 0.0).r < 0.1) {
-			fragColor = vec4(0.0,0.0, 0.0, 1.0);	return;
+			#if (BLUR_COMPOSITE == 1) && (DEBUG_BLUR == 1)
+				fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+				gl_FragDepth = GbufferDepth();
+				return;
+			#else
+				// Output would be vec4(0,0,0,1): the widget clears the blur targets to it, and on screen it is a no-op
+				discard;
+			#endif
 		}
 	#endif
 
@@ -132,4 +152,18 @@ void main(void)
 			#endif
 
 		};
+
+	#if BLUR_COMPOSITE == 1
+		#if DEBUG_BLUR == 0
+			// Quantised like the RGBA8 target of the separate vertical pass, then no-op blends are skipped
+			vec4 stored = round(clamp(fragColor, 0.0, 1.0) * 255.0);
+			#if BRIGHTEN != 0
+				if (stored == vec4(0.0, 0.0, 0.0, 255.0)) discard;
+			#else
+				if (stored.a == 255.0) discard;
+			#endif
+			fragColor = stored / 255.0;
+		#endif
+		gl_FragDepth = GbufferDepth();
+	#endif
 }
