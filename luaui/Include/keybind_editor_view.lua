@@ -3456,6 +3456,12 @@ local function sidebarTop()
 	return state.sidebarCardTop() - metrics.catRowHeight - metrics.catInset * 2
 end
 
+-- The column has no footer of its own below it - that band only runs under the list - so
+-- entries use the card's whole height rather than stopping level with the list's footer.
+function state.sidebarBottom()
+	return area.y1 + metrics.catInset
+end
+
 -- `i` is the entry place in `categories`, not on screen: the two differ by however far the
 -- column is scrolled.
 local function categoryRect(i)
@@ -3463,7 +3469,7 @@ local function categoryRect(i)
 	-- The right edge gives way to the bar when there is one, or an entry hover plate disappears
 	-- beneath it rather than stopping beside it.
 	local right = area.x1 + sidebarW
-	if #categories > math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight)) then
+	if #categories > math.max(1, floor((sidebarTop() - state.sidebarBottom()) / metrics.catRowHeight)) then
 		right = right - metrics.catInset - metrics.catBarW - metrics.catInset
 	end
 	if right - area.x1 ~= state.columnW then
@@ -3477,7 +3483,7 @@ end
 -- Answers how far it can be scrolled at all, so nought means everything fits; passing 0
 -- just clamps.
 local function catScrolled(delta)
-	local page = math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight))
+	local page = math.max(1, floor((sidebarTop() - state.sidebarBottom()) / metrics.catRowHeight))
 	local most = math.max(0, #categories - page)
 	local n = hover.cat + delta
 	hover.cat = (n < 0 and 0) or (n > most and most) or n
@@ -3489,7 +3495,7 @@ end
 -- one point never lands in two entries.
 local function sidebarIndexAt(x, y)
 	local top = sidebarTop()
-	if x < area.x1 or x > area.x1 + sidebarW or y > top or y <= listBottom() then
+	if x < area.x1 or x > area.x1 + sidebarW or y > top or y <= state.sidebarBottom() then
 		return nil
 	end
 
@@ -3499,7 +3505,7 @@ local function sidebarIndexAt(x, y)
 	end
 
 	local _, y1 = categoryRect(i)
-	if y1 < listBottom() then
+	if y1 < state.sidebarBottom() then
 		return nil
 	end
 
@@ -3625,10 +3631,11 @@ local function drawSidebar(hoverIdx)
 		local bx2 = area.x1 + sidebarW - metrics.catInset
 		Scroller(
 			bx2 - metrics.catBarW,
-			-- Over the entries rather than the whole card: a bar running past the last row reads as dead
-			-- space, and its thumb then says more fits than does.
+			-- Over the entries rather than the whole card: a bar running past the last row reads
+			-- as dead space, and its thumb then says more fits than does.
 			sidebarTop()
-				- math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight)) * metrics.catRowHeight,
+				- math.max(1, floor((sidebarTop() - state.sidebarBottom()) / metrics.catRowHeight))
+					* metrics.catRowHeight,
 			bx2,
 			sidebarTop(),
 			#categories * metrics.catRowHeight,
@@ -3643,7 +3650,7 @@ local function drawSidebar(hoverIdx)
 		fitCategories()
 	end
 
-	local lb = listBottom()
+	local lb = state.sidebarBottom()
 	for i, c in ipairs(categories) do
 		local x1, y1, x2, y2 = categoryRect(i)
 		if i > hover.cat and y1 >= lb then
@@ -5046,7 +5053,7 @@ function view.mouseWheel(up, value)
 	local mx, my = spGetMouseState()
 	-- Over the column it scrolls the column, over anything else the list. A wheel that
 	-- moved the list while the cursor was on the categories would read as broken.
-	if mx <= area.x1 + sidebarW and my > listBottom() and my <= sidebarTop() then
+	if mx <= area.x1 + sidebarW and my > state.sidebarBottom() and my <= sidebarTop() then
 		catScrolled(up and -1 or 1)
 	elseif my >= listBottom() and my <= listTop then
 		-- Ctrl moves three notches at once, Shift a whole page - the rows the band holds from where
@@ -5090,7 +5097,7 @@ local function sidebarPress(x, y)
 
 		return true
 	end
-	if x < area.x1 or x > area.x1 + sidebarW or y < listBottom() or y > sidebarTop() then
+	if x < area.x1 or x > area.x1 + sidebarW or y < state.sidebarBottom() or y > sidebarTop() then
 		return false
 	end
 
