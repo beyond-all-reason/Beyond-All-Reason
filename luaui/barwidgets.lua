@@ -76,6 +76,7 @@ local spIsReplay = Spring.IsReplay
 local LOG = copyTable(LOG)
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer
 local getAccountID = BAR.Utilities.GetAccountID
+local widgetManifestVerifier = VFS.Include(LUAUI_DIRNAME .. "Include/widget_manifest_verifier.lua", nil, VFS.ZIP)
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
@@ -100,17 +101,23 @@ Spring.SendCommands({
 	"echo LuaUI: bound F11 to the widget selector",
 })
 
-local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
-local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
+local modOptions = Spring.GetModOptions()
+local allowuserwidgets = true
+local allowunitcontrolwidgets = modOptions.allowunitcontrolwidgets
 local isHeadless = Platform.isHeadless or false
+local onlyVerifiedUserWidgets = (modOptions.userwidgetmode or "verified") ~= "all"
+-- Set in anonymous mode, where of the verified widgets only those the manifest marks anonymous_safe may load
+local onlyAnonymousSafeUserWidgets = false
 
 local SandboxedSystem = {}
 local SANDBOXED_ERROR_UNIT_CONTROL = "User 'unit control' widgets disallowed on this game"
 local SANDBOXED_ERROR_USER_WIDGETS = "User widgets cannot control other widgets or execute remote code"
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousMode = modOptions.teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
-	allowuserwidgets = false
+	-- Nothing checks an unverified widget hides players, so only reviewed ones get through
+	onlyVerifiedUserWidgets = true
+	onlyAnonymousSafeUserWidgets = true
 
 	-- disabling individual Spring functions isn't really good enough
 	-- disabling user widget draw access would probably do the job but that wouldn't be easy to do
@@ -123,9 +130,12 @@ if anonymousMode ~= "disabled" then
 	end
 end
 
-if spIsReplay() or spGetSpectatingState() then
+-- Widget restrictions only matter against other players, so skirmish, challenges and scenarios are exempt
+if spIsReplay() or spGetSpectatingState() or isSinglePlayer() then
 	allowuserwidgets = true
 	allowunitcontrolwidgets = true
+	onlyVerifiedUserWidgets = false
+	onlyAnonymousSafeUserWidgets = false
 end
 
 -- Convenience copies for protected member access.
@@ -681,6 +691,40 @@ local function grantUserRmlUi()
 	return permissions.userrmlui_player == true
 end
 
+-- User files that passed manifest verification, mapped to their verified source text.
+local verifiedUserWidgetFiles = {}
+
+local function loadVerifiedUserWidgetFiles(widgetDirectory)
+	local widgetFiles, errors, notAnonymousSafe, verifiedContents = widgetManifestVerifier.GetVerifiedWidgetFiles(
+		widgetDirectory,
+		{ requireAnonymousSafe = onlyAnonymousSafeUserWidgets }
+	)
+	for _, err in ipairs(errors) do
+		spEcho("LuaUI: User widget verification failed: " .. err .. " (" .. widgetDirectory .. ")")
+	end
+	for _, widgetId in ipairs(notAnonymousSafe or {}) do
+		spEcho("LuaUI: User widget not loaded in anonymous mode: " .. widgetId .. " (" .. widgetDirectory .. ")")
+	end
+	if not widgetFiles then
+		return
+	end
+
+	for _, file in ipairs(widgetFiles) do
+		local gameName = zipOnlyFiles[(file:lower():gsub("\\", "/"))] ---@as boolean|string
+		if gameName then
+			spEcho("Ignoring user copy: " .. file .. "  (the game provides " .. gameName .. ")")
+		else
+			verifiedUserWidgetFiles[file] = verifiedContents and verifiedContents[file] or nil
+			local widget = widgetHandler:LoadWidget(file, false)
+			local excludeWidget = widget and zipOnly[widget.whInfo.name]
+			if widget and not excludeWidget then
+				tableInsert(unsortedWidgets, widget)
+				Yield()
+			end
+		end
+	end
+end
+
 local function CreateSandboxedSystem()
 	local sandboxedTable = copyTable(table)
 	sandboxedTable.save = function(t, filename, header)
@@ -991,9 +1035,20 @@ function widgetHandler:Initialize()
 	CreateSandboxedSystem()
 
 	if self.allowUserWidgets and allowuserwidgets then
-		spEcho("LuaUI: Allowing User Widgets")
-		loadWidgetFiles(WIDGET_DIRNAME, vfsRaw)
-		loadWidgetFiles(RML_WIDGET_DIRNAME, vfsRaw)
+		if onlyVerifiedUserWidgets then
+			spEcho(
+				"LuaUI: Allowing Verified User Widgets"
+					.. (onlyAnonymousSafeUserWidgets and " (anonymous-safe only)" or "")
+			)
+			loadVerifiedUserWidgetFiles(WIDGET_DIRNAME)
+			-- WidgetHub currently doesn't use the RML directory, 
+			-- to be honest, i'm not even sure why they are split to begin with.
+			-- loadVerifiedUserWidgetFiles(RML_WIDGET_DIRNAME)
+		else
+			spEcho("LuaUI: Allowing User Widgets")
+			loadWidgetFiles(WIDGET_DIRNAME, vfsRaw)
+			loadWidgetFiles(RML_WIDGET_DIRNAME, vfsRaw)
+		end
 	else
 		spEcho("LuaUI: Disallowing User Widgets")
 	end
@@ -1237,10 +1292,17 @@ end
 
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
-	local text = vfsLoadFile(
-		filename,
-		not (self.allowUserWidgets and allowuserwidgets and not fromZip and not reload) and vfsZip or vfsRawFirst
-	)
+	local text
+	if self.allowUserWidgets and allowuserwidgets and not fromZip and not reload then
+		if onlyVerifiedUserWidgets then
+			-- Game widgets stay on VFS.ZIP, so a raw file cannot shadow one under its path
+			text = verifiedUserWidgetFiles[filename] or vfsLoadFile(filename, vfsZip)
+		else
+			text = vfsLoadFile(filename, vfsRawFirst)
+		end
+	else
+		text = vfsLoadFile(filename, vfsZip)
+	end
 	if text == nil then
 		return loadFailed(basename, "missing file: " .. filename)
 	end
