@@ -21,7 +21,7 @@ return {
 		leavetracks = false,
 		mass = 740,
 		maxacc = 0.07135,
-		maxdec = 0.1427,
+		maxdec = 0.4281,
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 57,
