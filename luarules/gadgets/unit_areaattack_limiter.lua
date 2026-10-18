@@ -21,27 +21,33 @@ local COMMAND_LIMIT = 2000
 -- River splits aim for lanes about this wide. The actual width varies with the targets.
 local LANE_WIDTH = 400
 
-local CMD_ATTACK = CMD.ATTACK
-local CMD_REMOVE = CMD.REMOVE
-local CMD_STOP = CMD.STOP
-local CMD_OPT_SHIFT = CMD.OPT_SHIFT
-local ENEMY_UNITS = Spring.ENEMY_UNITS
-
 local math_ceil = math.ceil
 local math_max = math.max
 local table_sort = table.sort
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
+local ENEMY_UNITS = Spring.ENEMY_UNITS
+local CMD_ATTACK = CMD.ATTACK
+local CMD_FIGHT = CMD.FIGHT
+local CMD_REMOVE = CMD.REMOVE
+local CMD_STOP = CMD.STOP
+local CMD_OPT_SHIFT = CMD.OPT_SHIFT
+
 local getCentroid = BAR.Utilities.GetObjectCentroid
 local splitRivers = require("modules/split_targets").Rivers
 
-local isReissuing = false
+local canFight = {} -- excludes bombers, which generally cannot execute FIGHT
+for unitDefID, unitDef in pairs(UnitDefs) do
+	local weapon = unitDef.weapons[1]
+	canFight[unitDefID] = unitDef.canFight and weapon and not WeaponDefs[weapon.weaponDef].type == "AircraftBomb"
+end
 
 local queueEnd = {} -- queued area attacks start after the last-queued command position
 
@@ -84,6 +90,8 @@ local function sortNearestCenter(_, targets)
 		return distances[a] < distances[b]
 	end)
 end
+
+local isReissuing = false
 
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if isReissuing then
@@ -158,10 +166,22 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			end
 		end
 
-		local maxTargetsPerUnit = math_max(math_ceil(COMMAND_LIMIT / #attackers), 1)
 		centerX, centerZ = getCentroid(attackers, unitPositionAtQueueEnd)
 		local targetsPerUnit =
 			splitRivers(attackers, targets, unitPositionAtQueueEnd, sortNearestCenter, COMMAND_LIMIT, LANE_WIDTH)
+
+		local laneSize, laneIndex = {}, {}
+		for i = 1, #attackers do
+			local unitID = attackers[i]
+			local first = targetsPerUnit[unitID][1]
+			if first and not canFight[spGetUnitDefID(unitID)] then
+				laneSize[first] = (laneSize[first] or 0) + 1
+				laneIndex[unitID] = laneSize[first]
+			end
+		end
+
+		local maxTargetsPerUnit = math_max(math_ceil(COMMAND_LIMIT / #attackers), 1)
+
 		for i = 1, #attackers do
 			local unitID = attackers[i]
 			local unitTargets = targetsPerUnit[unitID]
@@ -171,15 +191,28 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				orders[1] = { CMD_STOP, {}, 0 }
 			end
 			local alreadyQueued = queuedAttacks and queuedAttacks[unitID]
-			local count = 0
+			local count, headEnd = 0, #unitTargets
 			for j = 1, #unitTargets do
-				if count == maxTargetsPerUnit then
-					break
-				end
 				local targetID = unitTargets[j]
 				if not (alreadyQueued and alreadyQueued[targetID]) then
 					count = count + 1
 					orders[#orders + 1] = { CMD_ATTACK, { targetID }, opts + CMD_OPT_SHIFT }
+					if count == maxTargetsPerUnit then
+						headEnd = j
+						break
+					end
+				end
+			end
+			-- A unit that can FIGHT ends with a FIGHT order to the end of the lane.
+			-- One that can't ATTACKs some of the remainder.
+			if headEnd < #unitTargets then
+				if canFight[spGetUnitDefID(unitID)] then
+					local x, y, z = spGetUnitPosition(unitTargets[#unitTargets])
+					orders[#orders + 1] = { CMD_FIGHT, { x, y, z }, opts + CMD_OPT_SHIFT }
+				else
+					for j = headEnd + laneIndex[unitID], #unitTargets, laneSize[unitTargets[1]] do
+						orders[#orders + 1] = { CMD_ATTACK, { unitTargets[j] }, opts + CMD_OPT_SHIFT }
+					end
 				end
 			end
 			if orders[1] then

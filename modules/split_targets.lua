@@ -86,9 +86,9 @@ end
 local function getLaneCount(countUnits, countTargets, span, maxOrders, laneWidth)
 	local lanes = math_min(countUnits, countTargets)
 	if maxOrders or laneWidth then
-		local lanesForBudget = maxOrders and maxOrders > 0 and math_ceil(countUnits * countTargets / maxOrders) or 1
-		local lanesForWidth = laneWidth and laneWidth > 0 and math_ceil(span / laneWidth) or 1
-		lanes = math_max(1, math_min(lanes, math_max(lanesForBudget, lanesForWidth)))
+		local lanesForBudget = maxOrders and maxOrders > 0 and countUnits * countTargets / maxOrders or 1
+		local lanesForWidth = laneWidth and laneWidth > 0 and span / laneWidth or 1
+		lanes = math_max(1, math_min(lanes, math_floor(math_sqrt(lanesForBudget * lanesForWidth) + 0.5)))
 	end
 	return lanes
 end
