@@ -128,7 +128,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "corhllt" then
 		uDef.health = 1500
 		uDef.weapondefs.hllt_bottom.range = 435
-		uDef.weapondefs.hllt_bottom.reloadtime = 0.6
+		uDef.weapondefs.hllt_bottom.reloadtime = 0.5
 		uDef.weapondefs.hllt_top.reloadtime = 0.4
 	end
 	if name == "armbeamer" then
