@@ -157,7 +157,7 @@ local function airReworkUnitTweaks(name, uDef)
 		}
 	end
 
-	if name == "armfig" or name == "corveng" then
+	if name == "armfig" or name == "corveng" or name == "armsfig" or name == "corsfig" then
 		uDef.metalcost = 150
 		uDef.energycost = 4500
 		uDef.buildtime = 5000
@@ -268,7 +268,8 @@ local function airReworkUnitTweaks(name, uDef)
 	if name == "armawac" or name == "corawac" then
 		uDef.cruisealtitude = 200
 		uDef.hoverattack = true
-		uDef.turnrate = 600
+		uDef.turnrate = 500
+		uDef.maxacc = 0.12
 		uDef.maxdec = 0.4
 		uDef.turninplaceanglelimit = 360
 	end
