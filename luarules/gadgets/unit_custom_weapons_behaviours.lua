@@ -370,7 +370,7 @@ weaponCustomParamKeys.retarget = {
 }
 
 local retargetWeapons = {}
-local retargetHashWidth = #WeaponDefs + 1
+local hashBaseDefs = #WeaponDefs + 1
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local weaponDefToNum = {}
 	for weaponNum, weapon in ipairs(unitDef.weapons) do
@@ -381,7 +381,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		if customParams.speceffect == "retarget" then
 			local targetingDef = customParams.retarget_weapon and WeaponDefNames[customParams.retarget_weapon]
 			local retargetNum = targetingDef and weaponDefToNum[targetingDef.id] or weaponNum
-			retargetWeapons[weaponDefID + unitDefID * retargetHashWidth] = retargetNum
+			retargetWeapons[weaponDefID + unitDefID * hashBaseDefs] = retargetNum
 		end
 	end
 end
@@ -406,7 +406,7 @@ specialEffectFunction.retarget = function(_, projectileID)
 	end
 
 	---@diagnostic disable-next-line: need-check-nil -- OK: owner is alive, projectile is alive
-	local weaponNum = retargetWeapons[spGetProjectileDefID(projectileID) + spGetUnitDefID(ownerID) * retargetHashWidth] or 1
+	local weaponNum = retargetWeapons[spGetProjectileDefID(projectileID) + spGetUnitDefID(ownerID) * hashBaseDefs] or 1
 	local ownerTargetType, _fromUser, ownerTarget = spGetUnitWeaponTarget(ownerID, weaponNum)
 	setProjectileTarget(projectileID, ownerTarget, ownerTargetType)
 	return false
