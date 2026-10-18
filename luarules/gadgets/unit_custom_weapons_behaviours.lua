@@ -387,25 +387,29 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 specialEffectFunction.retarget = function(_, projectileID)
-	if spGetProjectileTimeToLive(projectileID) > 0 then
-		local targetType, target = spGetProjectileTarget(projectileID)
-
-		if targetType == targetedUnit then
-			---@cast target UnitID
-			if spGetUnitIsDead(target) ~= false then
-				local ownerID = spGetProjectileOwnerID(projectileID)
-				if ownerID then
-					---@diagnostic disable-next-line: need-check-nil -- OK: owner is alive, projectile is alive
-					local weaponNum = retargetWeapons[spGetProjectileDefID(projectileID) + spGetUnitDefID(ownerID) * retargetHashWidth] or 1
-					local ownerTargetType, _fromUser, ownerTarget = spGetUnitWeaponTarget(ownerID, weaponNum)
-					setProjectileTarget(projectileID, ownerTarget, ownerTargetType)
-				end
-			end
-			return false
-		end
-	else
+	if spGetProjectileTimeToLive(projectileID) <= 0 then
 		return true
 	end
+
+	local targetType, target = spGetProjectileTarget(projectileID)
+	if targetType ~= targetedUnit then
+		return false -- retarget doesn't allow prefiring at the ground & reaiming onto targets
+	end
+	---@cast target UnitID
+	if spGetUnitIsDead(target) == false then
+		return false
+	end
+
+	local ownerID = spGetProjectileOwnerID(projectileID)
+	if not ownerID then
+		return true
+	end
+
+	---@diagnostic disable-next-line: need-check-nil -- OK: owner is alive, projectile is alive
+	local weaponNum = retargetWeapons[spGetProjectileDefID(projectileID) + spGetUnitDefID(ownerID) * retargetHashWidth] or 1
+	local ownerTargetType, _fromUser, ownerTarget = spGetUnitWeaponTarget(ownerID, weaponNum)
+	setProjectileTarget(projectileID, ownerTarget, ownerTargetType)
+	return false
 end
 
 -- Guidance
