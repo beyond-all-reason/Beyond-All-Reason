@@ -139,9 +139,9 @@ return {
 				weaponvelocity = 900,
 				damage = {
 					-- commanders = 350,
-					default = 650,
+					default = 750,
 					-- default = 231,
-					vtol = 325,
+					vtol = 425,
 				},
 			},
 		},
