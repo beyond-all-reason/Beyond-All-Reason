@@ -1,16 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, turrbase, turret, barrels, flare, lida, lidb, aimfrom, aimpoint;
 
-static-var  restore_delay, is_open, shotcount;
+static-var  restore_delay, isOpen, shotcount;
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_OPENCLOSE       4
+#define SIGNAL_AIM1 256
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -18,13 +15,13 @@ static-var  Stunned;
 #define UNITSIZE 5
 #define MAXTILT 0
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Close()
 {
-	set-signal-mask SIG_AIM;
-	is_open = 0;
-	turn turret to y-axis 0 speed <100.000000>;
+	set-signal-mask SIGNAL_AIM1;
+	isOpen = FALSE;
+	turn turret to y-axis 0 speed <100.0>;
 	wait-for-turn turret around y-axis;
 	move turrbase to y-axis [-16] speed [69];
 	wait-for-move turrbase along y-axis;
@@ -40,9 +37,9 @@ Open()
 	turn lida to z-axis <-179> speed <250>;
 	turn lidb to z-axis <179> speed <250>;
 	wait-for-turn lidb around z-axis;
-	move turrbase to y-axis [12] speed [69.000000];
+	move turrbase to y-axis [12] speed [69.0];
 	wait-for-move turrbase along y-axis;
-	is_open = 1;
+	isOpen = TRUE;
 }
 
 ExecuteRestoreAfterDelay()
@@ -71,43 +68,40 @@ Create()
 	shotcount = 1;
 	hide flare;
 	restore_delay = 3000;
-	is_open = 0;
+	isOpen = FALSE;
 	move turrbase to y-axis [-12] now;
 	move turret to y-axis [5] now;
 
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	// close and armor once construction is done
 	// only if no target in range when done
 	sleep 1000;
-	if ( is_open == 0 )
+	if (!isOpen)
 	{
 		start-script Close();
 	}
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	if ( is_open == 0 )
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	if (!isOpen)
 	{
 		start-script Open();
 		start-script RestoreAfterDelay();
 	}
-	while( is_open == 0 )
+	while (!isOpen)
 	{
 		sleep 150;
 	}
-	turn turret to y-axis heading speed <200.000000>;
+	turn turret to y-axis heading speed <200.0>;
 	wait-for-turn turret around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	wait-for-turn barrels around y-axis;
 	sleep 50;
@@ -115,7 +109,8 @@ FirePrimary()
 	sleep 50;
 	wait-for-turn barrels around y-axis;
 }
-Shot1() {
+Shot1(zero)
+{
 	if (shotcount == 1) {
 		turn barrels to z-axis <120> speed <250>;
 		shotcount = 2;
@@ -128,26 +123,21 @@ Shot1() {
 	}
 	emit-sfx 1024 + 0 from flare;
 }
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	if (is_open == 1)
+	if (isOpen == 1)
 	{
-		piecenum = flare;
+		pieceIndex = flare;
 	}
 	else
 	{
-		piecenum = aimfrom;
+		pieceIndex = aimfrom;
 	}
 }
 
-SweetSpot(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
-}
-
-AimFromPrimary(piecenum)
-{
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
 Killed(severity, corpsetype)

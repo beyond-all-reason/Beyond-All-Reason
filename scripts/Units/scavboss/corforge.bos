@@ -1,15 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  base, turret, lloarm, flare, nano, beam;
 
 static-var  restore_delay, last_primary_heading;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_BUILD		4
+#define SIGNAL_AIM1 256
+#define SIGNAL_BUILD 2
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -17,10 +15,16 @@ static-var  restore_delay, last_primary_heading;
 #define UNITSIZE 3
 #define MAXTILT 100
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+#include "../../unit_hitbyweaponid_and_smoke.h"
 
 
-PilotLight(Func_Var_1)
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../../tilt_bank_mobileunit.h"
+
+PilotLight()
 {
 	while( TRUE )
 	{
@@ -34,15 +38,9 @@ Create()
 	hide flare;
 	restore_delay = 3000;
 	last_primary_heading = -1000000;
+	call-script TB_Init();
 	start-script PilotLight();
-	return (0);
 }
-
-//SetMaxReloadTime(Func_Var_1)
-//{
-//	restore_delay = Func_Var_1 * 2;
-//	return (0);
-//}
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -50,8 +48,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <50>;
-	turn nano to y-axis <0.000000> speed <50>;
+	turn turret to y-axis <0.0> speed <50>;
+	turn nano to y-axis <0.0> speed <50>;
 }
 
 Restore_Primary()
@@ -60,7 +58,7 @@ Restore_Primary()
 	if (Stunned) {
 			return (1);
 	}
-	turn turret to y-axis <0.000000> speed <50>;
+	turn turret to y-axis <0.0> speed <50>;
 	last_primary_heading = -1000000;
 }
 
@@ -70,27 +68,27 @@ Restore_Nano()
 	if (Stunned) {
 			return (1);
 	}
-	turn nano to y-axis <0.000000> speed <50>;
+	turn nano to y-axis <0.0> speed <50>;
 }
 
 SetStunned(State)
 {
   Stunned = State;
 	if (!Stunned) {
-	    start-script Restore_Primary();
+ 	    start-script Restore_Primary();
 			start-script Restore_Nano();
 	}
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn turret to y-axis heading speed <500.000000>;
+	turn turret to y-axis heading speed <500.0>;
 	// only wait-for-turn if it takes more than 3 frames to finish the turn
 	if ( (get ABS(last_primary_heading-heading)>9000) )
 	{
@@ -103,53 +101,45 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 
 }
 
-Shot1(zero)
+Shot1()
 {
 	emit-sfx 1024 + 1 from flare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
-	return (0);
+	pieceIndex = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
-	return (0);
+	pieceIndex = flare;
 }
 
 StartBuilding(heading, pitch)
 {
-	signal SIG_BUILD;
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	turn nano to y-axis heading speed <160>;
 	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-	signal SIG_BUILD;
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	start-script Restore_Nano();
 	set INBUILDSTANCE to 0;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
+	pieceIndex = nano;
 }
 
 Killed(severity, corpsetype)
@@ -160,7 +150,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode lloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -169,7 +158,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -178,13 +166,11 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lloarm type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode lloarm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

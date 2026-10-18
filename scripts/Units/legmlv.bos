@@ -1,15 +1,10 @@
 
 #include "../recoil_common_includes.h"
 
-#include "sfxtype.h"
-#include "exptype.h"
-
-#define SIG_BUILD		2	
-
 piece  flare1, flare2, base, aimy1, turret, aimx1, sleeve, nanogun, larmor, rarmor, 
 	   susfl, susfr, susbl, susbr, wheelfl, wheelfr, wheelbl, wheelbr;
 
-static-var  notBuilding, bMoving, statechg_DesiredState, statechg_StateChanging, currentSpeed, wheelSpeed, movespeed, animSpeed, maxSpeed, animFramesPerKeyframe, gun;
+static-var  notBuilding, currentSpeed, wheelSpeed, moveSpeed, gun;
 
 #define BASEPIECE base
 #define HITSPEED <65.0>
@@ -17,100 +12,27 @@ static-var  notBuilding, bMoving, statechg_DesiredState, statechg_StateChanging,
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 WheelControl()
 {
 	while(TRUE)
 	{
 		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		wheelSpeed = currentSpeed * 30; 
-		if (currentSpeed<1) currentSpeed=1;	// prevent infinite timing			
-		spin wheelfl around x-axis speed  (<1> * wheelSpeed);
-		spin wheelfr around x-axis speed  (<1> * wheelSpeed);			
-		spin wheelbl around x-axis speed  (<1> * wheelSpeed);			
-		spin wheelbr around x-axis speed  (<1> * wheelSpeed);			 
+		wheelSpeed = currentSpeed * 30;
+		if (currentSpeed<1) currentSpeed=1;	// prevent infinite timing
+		spin wheelfl around x-axis speed (<1> * wheelSpeed);
+		spin wheelfr around x-axis speed (<1> * wheelSpeed);
+		spin wheelbl around x-axis speed (<1> * wheelSpeed);
+		spin wheelbr around x-axis speed (<1> * wheelSpeed);
 		sleep 98; //200
 	}
-}
-
-Go()
-{
-	turn rarmor to z-axis <-30> speed <60>;
-	turn larmor to z-axis <30> speed <60>;
-	
-	turn susfl to x-axis <15> speed <30>;
-	turn susfr to x-axis <15> speed <30>;
-	turn susbl to x-axis <-45> speed <90>;
-	turn susbr to x-axis <-45> speed <90>;
-	
-	move base to y-axis [4] speed [8];
-	turn base to x-axis <10> speed <40>;
-	
-	
-	wait-for-turn susfl around x-axis;
-	turn turret to x-axis <90> speed <180>;
-	wait-for-turn turret around x-axis;
-	move aimy1 to z-axis [7] speed [16];
-	
-	move nanogun to y-axis [-4] speed [8];
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	
-	turn turret to z-axis <0> speed <180>;
-	turn aimx1 to x-axis <0> speed <180>;
-	wait-for-turn turret around x-axis;	
-
-	move nanogun to y-axis [0] speed [8];
-	
-	turn aimy1 to y-axis <0> speed <240>;
-	move aimy1 to z-axis [0] speed [20];
-	
-	wait-for-turn aimy1 around y-axis;
-	turn turret to x-axis <0> speed <180>;
-	
-	wait-for-turn turret around x-axis;
-	turn rarmor to z-axis <0> speed <60>;
-	turn larmor to z-axis <0> speed <60>;
-	
-	turn susfl to x-axis <0> speed <30>;
-	turn susfr to x-axis <0> speed <30>;
-	turn susbl to x-axis <0> speed <90>;
-	turn susbr to x-axis <0> speed <90>;
-	
-	move base to y-axis [0] speed [8];
-	turn base to x-axis <0> speed <40>;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
@@ -118,35 +40,74 @@ Create()
 	hide flare1;
 	hide flare2;
 	moveSpeed = get MAX_SPEED;
-	bMoving = FALSE;
 	notBuilding = 1;
 	gun = 0;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	animSpeed = 4;
+	call-script TB_Init();
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script RequestState(1);
 	start-script WheelControl();
 }
 
 Activate()
 {
-	start-script RequestState(0);
+	turn rarmor to z-axis <-30> speed <60>;
+	turn larmor to z-axis <30> speed <60>;
+
+	turn susfl to x-axis <15> speed <30>;
+	turn susfr to x-axis <15> speed <30>;
+	turn susbl to x-axis <-45> speed <90>;
+	turn susbr to x-axis <-45> speed <90>;
+
+	move base to y-axis [4] speed [8];
+	turn base to x-axis <10> speed <40>;
+
+
+	wait-for-turn susfl around x-axis;
+	turn turret to x-axis <90> speed <180>;
+	wait-for-turn turret around x-axis;
+	move aimy1 to z-axis [7] speed [16];
+
+	move nanogun to y-axis [-4] speed [8];
+	notBuilding = 0;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	set INBUILDSTANCE to 0;
+
+	turn turret to z-axis <0> speed <180>;
+	turn aimx1 to x-axis <0> speed <180>;
+	wait-for-turn turret around x-axis;
+
+	move nanogun to y-axis [0] speed [8];
+
+	turn aimy1 to y-axis <0> speed <240>;
+	move aimy1 to z-axis [0] speed [20];
+
+	wait-for-turn aimy1 around y-axis;
+	turn turret to x-axis <0> speed <180>;
+
+	wait-for-turn turret around x-axis;
+	turn rarmor to z-axis <0> speed <60>;
+	turn larmor to z-axis <0> speed <60>;
+
+	turn susfl to x-axis <0> speed <30>;
+	turn susfr to x-axis <0> speed <30>;
+	turn susbl to x-axis <0> speed <90>;
+	turn susbr to x-axis <0> speed <90>;
+
+	move base to y-axis [0] speed [8];
+	turn base to x-axis <0> speed <40>;
+	notBuilding = 1;
 }
 
 StartBuilding(heading, pitch)
 {
 	show flare1;
 	show flare2;
-	start-script RequestState(0);
+	start-script Activate();
 	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
-	turn aimy1 to y-axis heading + <180> speed <360.000000>;
+	signal SIGNAL_BUILD;
+	turn aimy1 to y-axis heading + <180> speed <360.0>;
 	turn aimx1 to x-axis pitch - <-5> speed <180>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
@@ -154,50 +115,40 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
-    signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	sleep 6000;
 	set-signal-mask 0;
-	signal SIG_BUILD;	
-	start-script RequestState(1);
+	signal SIGNAL_BUILD;
+	start-script Deactivate();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
- return (0);
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 }
 
 StopMoving()
 {
- return (0);
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = gun;
+	pieceIndex = flare1 + gun;
 	gun = !gun;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
-	turn aimy1 to y-axis heading + <180> speed <360>;
+	start-script Activate();
+	turn aimy1 to y-axis heading + <180> speed <360.0>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
 	return (1);
-}
-
-/*
-TargetHeading(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-}
-*/
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
 }
 
 Killed(severity, corpsetype)

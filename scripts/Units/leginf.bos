@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece turretHeadingPivot,
 turrretPitchPivot,
@@ -19,13 +17,11 @@ topBarrelLightB,
 rightBarrelLight,
 leftBarrelLight;
 
-
-
 static-var  gun_1, restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
-
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
 
 
 #define BASEPIECE base
@@ -34,15 +30,21 @@ static-var  gun_1, restore_delay;
 #define UNITSIZE 3
 #define MAXTILT 100
 
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
+
 RockUnit(anglex, anglez)
 {
-	turn base to x-axis anglex speed <50.000000>;
-	turn base to z-axis <0> - anglez speed <50.000000>;
+	turn base to x-axis anglex speed <50.0>;
+	turn base to z-axis <0> - anglez speed <50.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
-	return (0);
+	turn base to z-axis <0.0> speed <20.0>;
+	turn base to x-axis <0.0> speed <20.0>;
 }
 
 Create()
@@ -50,13 +52,27 @@ Create()
 	turn turrretPitchPivot to x-axis <-18> now;
 	gun_1 = 0;
 	restore_delay = 3000;
-	return (0);
+	call-script TB_Init();
 }
 
-SetMaxReloadTime(Func_Var_1)
+StartMoving(reversing)
 {
-	restore_delay = Func_Var_1 * 2;
-	return (0);
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+
+	STOP_TILTBANK;
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;
@@ -68,8 +84,8 @@ ExecuteRestoreAfterDelay()
 		move topBarrel to y-axis [0] speed [10];
 		move leftBarrel to y-axis [0] speed [10];
 		move rightBarrel to y-axis [0] speed [10];
-	turn turretHeadingPivot to y-axis <0.000000> speed <40.000000>;
-	turn turrretPitchPivot to x-axis <-18.000000> speed <40.000000>;
+	turn turretHeadingPivot to y-axis <0.0> speed <40.0>;
+	turn turrretPitchPivot to x-axis <-18.0> speed <40.0>;
 	wait-for-turn turretHeadingPivot around y-axis;
 	wait-for-turn turrretPitchPivot around x-axis;
 }
@@ -88,29 +104,29 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	if(heading < <90> AND heading > <-90>){	
-		turn turretHeadingPivot to y-axis heading speed <40.000000>;
+		turn turretHeadingPivot to y-axis heading speed <40.0>;
 		if(-1*pitch > <0>){
 			move topBarrel to y-axis [1] speed [10];
 			move leftBarrel to y-axis [1] speed [10];
 			move rightBarrel to y-axis [1] speed [10];
-			turn turrretPitchPivot to x-axis <0> speed <40.000000>;
+			turn turrretPitchPivot to x-axis <0> speed <40.0>;
 		}
 		else if(-1*pitch > <-18> and -1*pitch < <0>){
 			move topBarrel to y-axis [1] speed [10];
 			move leftBarrel to y-axis [1] speed [10];
 			move rightBarrel to y-axis [1] speed [10];
-			turn turrretPitchPivot to x-axis -1*pitch speed <40.000000>;
+			turn turrretPitchPivot to x-axis -1*pitch speed <40.0>;
 		}
 		else {
 			move topBarrel to y-axis [0] speed [10];
 			move leftBarrel to y-axis [0] speed [10];
 			move rightBarrel to y-axis [0] speed [10];
-			turn turrretPitchPivot to x-axis -1*pitch speed <40.000000>;
+			turn turrretPitchPivot to x-axis -1*pitch speed <40.0>;
 		}
 		wait-for-turn turretHeadingPivot around y-axis;
 		wait-for-turn turrretPitchPivot around x-axis;
@@ -122,97 +138,53 @@ AimPrimary(heading, pitch)
 	}
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	// // emit-sfx 1024 + 0 from flare;
-	// if( gun_1 == 0 )
-	// {
-	// 	move topBarrel to z-axis [-3] speed [30];
-	// 	emit-sfx 1024 + 0 from topFlare;
-	// 	sleep 250;
-	// 	move topBarrel to z-axis [0] speed [6];
-	// }
-	// else if( gun_1 == 1 )
-	// {
-	// 	move leftBarrel to z-axis [-3] speed [30];
-	// 	emit-sfx 1024 + 0 from leftFlare;
-	// 	sleep 250;
-	// 	move leftBarrel to z-axis [0] speed [6];
-	// }
-	// else if( gun_1 == 2 )
-	// {
-	// 	move rightBarrel to z-axis [-3] speed [30];
-	// 	emit-sfx 1024 + 0 from rightFlare;
-	// 	sleep 250;
-	// 	move rightBarrel to z-axis [0] speed [6];
-	// }
-	// ++gun_1;
-	// if( gun_1 >= 3 ) gun_1 = 0;
 }
 
 Shot1(){
-	// emit-sfx 1024 + 0 from flare;
 	if( gun_1 == 0 )
 	{
 		move topBarrel to z-axis [-7] speed [60];
 		emit-sfx 1024 + 0 from topFlare;
-		// sleep 250;
-		// move topBarrel to z-axis [0] speed [6];
 	}
 	else if( gun_1 == 1 )
 	{
 		move leftBarrel to z-axis [-7] speed [60];
 		emit-sfx 1024 + 0 from leftFlare;
-		// sleep 250;
-		// move leftBarrel to z-axis [0] speed [6];
 	}
 	else if( gun_1 == 2 )
 	{
 		move rightBarrel to z-axis [-7] speed [60];
 		emit-sfx 1024 + 0 from rightFlare;
-		// sleep 250;
-		// move rightBarrel to z-axis [0] speed [6];
 	}
 
-
-	++gun_1;
-	if( gun_1 >= 3 ) gun_1 = 0;
+	gun_1 = (gun_1 + 1) % 3;
 	sleep 500;
 	move topBarrel to z-axis [0] speed [2];
 	move leftBarrel to z-axis [0] speed [2];
 	move rightBarrel to z-axis [0] speed [2];
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	// piecenum = flare;
-	// return (0);
-
 	if( gun_1 == 0 )
 	{
-		piecenum = topFlare;
+		pieceIndex = topFlare;
 	}
 	else if( gun_1 == 1 )
 	{
-		piecenum = leftFlare;
+		pieceIndex = leftFlare;
 	}
 	else if( gun_1 == 2 )
 	{
-		piecenum = rightFlare;
+		pieceIndex = rightFlare;
 	}
-	return(0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turrretPitchPivot;
-	return (0);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
+	pieceIndex = turrretPitchPivot;
 }
 
 Killed(severity, corpsetype)
@@ -223,9 +195,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turretHeadingPivot type BITMAPONLY | NOHEATCLOUD;
 		explode turrretPitchPivot type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -234,9 +203,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turretHeadingPivot type FALL | NOHEATCLOUD;
 		explode turrretPitchPivot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode topBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -245,9 +212,7 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turretHeadingPivot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turrretPitchPivot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode topBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -256,6 +221,5 @@ Killed(severity, corpsetype)
 		explode turrretPitchPivot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode topBarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode leftBarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -1,27 +1,19 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, turret, A0, A, A1, A2, A3, A4, A51, A52, B, B1, B2, B31, B32, C0, C, C1, C2, C3, C4, C51, C52, D0, D, D1, D2, D3, D4, D51, D52, E, E1, E2, E31, E32, F0, F, F1, F2, F3, F4, F51, F52, container;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, status, sunheading, unitheading;
-
-lua_solarpoint() 
-{
+lua_solarpoint() {
 	return(0);
 }
 
-solarreturn(status, sunheading) 
-{
+solarreturn(status, sunheading) {
+	var unitheading;
 	unitheading = get(HEADING);
 	if (status==1) {
 		turn container to y-axis (0-unitheading) + (sunheading*182) now;
 		turn turret to y-axis (0+unitheading) + (sunheading*(-182)) now;
-		while( get BUILD_PERCENT_LEFT )
-		{
-			sleep 400;
-		}
+		SLEEP_UNTIL_UNITFINISHED;
 		sleep 1800;
 		turn container to x-axis <30> speed <12>;
 	}
@@ -29,7 +21,6 @@ solarreturn(status, sunheading)
 
 Create()
 {
-	dont-cache turret;
 	call-script lua_solarpoint();
 	turn A0 to y-axis <60> now;
 	turn C0 to y-axis <-60> now;
@@ -89,10 +80,7 @@ Create()
 	turn E32 to z-axis <22.2> now;
 	turn F51 to y-axis <22.2> now;
 	turn F52 to y-axis <-22.2> now;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	turn A0 to x-axis <0> speed <50>;
 	turn B to x-axis <0> speed <50>;
 	turn C0 to x-axis <0> speed <50>;
@@ -112,39 +100,6 @@ Create()
 	turn F51 to y-axis <0> speed <12.333>;
 	turn F52 to y-axis <0> speed <12.333>;
 	wait-for-turn F52 around y-axis;
-	return (0);
-}
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = SFXTYPE_BLACKSMOKE;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = SFXTYPE_WHITESMOKE;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
 }
 
 Killed(severity, corpsetype)

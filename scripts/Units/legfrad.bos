@@ -1,12 +1,9 @@
-#define TA			// This is a TA script
 
-static-var  Stunned;
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece base, strut, dishA, dishA1, dishA2, dishA3, dishB, dishB1, dishB2, dishB3, blink;
-// piece  base, dish, blink;
+
+static-var  Stunned;
 
 #define WATER_ROCK_UNITSIZE 5
 // Otherwise it won't move up!
@@ -20,7 +17,7 @@ piece base, strut, dishA, dishA1, dishA2, dishA3, dishB, dishB1, dishB2, dishB3,
 #define MAXTILT 200
 #define RECOIL_POWER -50000
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Go()
 {
@@ -48,7 +45,6 @@ Go()
 	spin strut around y-axis speed <30>;
 	spin dishA around x-axis speed <40>;
 	spin dishB around x-axis speed <-40>;
-	return (0);
 }
 
 Stop()
@@ -76,7 +72,6 @@ Stop()
 	stop-spin dishA around x-axis;
 	stop-spin dishB around x-axis;
 	stop-spin strut around y-axis;
-	return (0);
 }
 
 
@@ -113,16 +108,9 @@ Create()
 	turn dishB3 to z-axis <90> now;
 
 	hide blink;
-
-		while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-    start-script FloatMotion();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
 	call-script Go();
-
-
-	return (0);
 }
 
 Lights()
@@ -134,27 +122,17 @@ Lights()
 		}
 		sleep 2500;
 	}
-	sleep 50;
-	start-script Lights();
 }
 
 Activate()
 {
 	start-script Lights();
 	start-script Go();
-	return (0);
 }
 
 Deactivate()
 {
 	start-script Stop();
-	return (0);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
 }
 
 Killed(severity, corpsetype)

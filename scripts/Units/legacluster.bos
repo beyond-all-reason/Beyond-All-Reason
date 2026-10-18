@@ -1,14 +1,8 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 #include "smart_weapon_select.h"
 
 
-//piece base, turret, sleeve, barrel, flare;
-//piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
-
-//pieces below
 piece base,
 door1Pivot,
 door2Pivot,
@@ -24,22 +18,16 @@ door5,
 door6,
 mainStrut, supportStrut, housingStrut, sleeveHousing, sleeveBottom, sleeveTop, barrelBottom, barrelTop, flareBottom, flareTop, turretmidpoint;
 
-static-var  turretOpen, nextBarrel, lastHeading, stunned, restoreDelay;
+static-var  turretOpen, nextBarrel, stunned, restoreDelay;
 
-#define SIGNAL_AIM			1
+#define SIGNAL_AIM1		1
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#include "../damagedsmoke.h"
 
 Create()
 {
     hide flareBottom;
 	hide flareTop;
-
-	/**turn sleeveHousing to x-axis <-123> now;
-	turn housingStrut to x-axis <-57> now;
-	turn supportStrut to x-axis <90> now;
-	move mainStrut to y-axis [-75] now;**/
 
 	move door1Pivot to y-axis [30] now;
 	move door2Pivot to y-axis [30] now;
@@ -64,10 +52,8 @@ Create()
 
 	turretOpen = 0;
 	restoreDelay = 10000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
 	start-script RestoreAfterDelay();
 	return (0);
 	
@@ -87,19 +73,10 @@ openTurret(){
 	sleep 10;
 	turn door6 to x-axis <90> speed <250>;
 	wait-for-turn door6 around x-axis;
-	//sleep 100;
 
 	move mainStrut to y-axis [0] speed [100];
-	//spin mainStrut around y-axis speed [1.25];
 	
-	/**turn mainStrut to y-axis <180> speed <720>;
-	wait-for-turn mainStrut around y-axis;
-	sleep 1;
-	turn mainStrut to y-axis <0> speed <720>;
-	//wait-for-turn mainStrut around y-axis;**/
-
 	wait-for-move mainStrut along y-axis;
-	//stop-spin mainStrut around y-axis;
 
 	turn supportStrut to x-axis <0> speed <220>;
 	turn housingStrut to x-axis <0> speed <140>;
@@ -113,7 +90,6 @@ closeTurret(){
 	turn housingStrut to x-axis <-57> speed <140>;
 	turn supportStrut to x-axis <90> speed <220>;
 	wait-for-turn supportStrut around x-axis;
-	//sleep 100;
 	move mainStrut to y-axis [-75] speed [35];
 	wait-for-move mainStrut along y-axis;
 	turn door1 to x-axis <0> speed <250>;
@@ -153,8 +129,8 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn mainStrut to y-axis <0.000000> speed <100.016484>;
-	turn sleeveHousing to x-axis <0.000000> speed <50.005495>;
+	turn mainStrut to y-axis <0.0> speed <100.016484>;
+	turn sleeveHousing to x-axis <0.0> speed <50.005495>;
 	wait-for-turn mainStrut around y-axis;
 	wait-for-turn sleeveHousing around x-axis;
 	
@@ -172,7 +148,7 @@ SetStunned(State)
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restoreDelay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -185,8 +161,8 @@ aimCommon(heading, pitch)
 	}
 	turn supportStrut to x-axis <0> speed <50>;
 	turn housingStrut to x-axis <0> speed <50>;
-	turn mainStrut to y-axis heading speed <30.000000>;
-	turn sleeveHousing to x-axis <0.000000> - pitch speed <90.000000>;
+	turn mainStrut to y-axis heading speed <30.0>;
+	turn sleeveHousing to x-axis <0.0> - pitch speed <90.0>;
 	wait-for-turn mainStrut around y-axis;
 	wait-for-turn sleeveHousing around x-axis;
 }
@@ -198,15 +174,15 @@ aimCommonHigh(heading, pitch)
 		sleep 250;
 	}
 
-	turn mainStrut to y-axis heading speed <30.000000>;
-	turn sleeveHousing to x-axis <50.000000> - pitch speed <90.000000>;
+	turn mainStrut to y-axis heading speed <30.0>;
+	turn sleeveHousing to x-axis <50.0> - pitch speed <90.0>;
 	turn supportStrut to x-axis <-25> speed <50>;
 	turn housingStrut to x-axis <-25> speed <50>;
 	wait-for-turn mainStrut around y-axis;
 	wait-for-turn sleeveHousing around x-axis;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	start-script Go();
 	
@@ -215,8 +191,8 @@ AimPrimary(heading, pitch)
 		return(0);
 	}
 
-	signal SIGNAL_AIM;
-	set-signal-mask SIGNAL_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
 
@@ -231,7 +207,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	start-script Go();
 
@@ -240,8 +216,8 @@ AimSecondary(heading, pitch)
 		return(0);
 	}
 
-	signal SIGNAL_AIM;
-	set-signal-mask SIGNAL_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	call-script aimCommonHigh(heading, pitch);
 	start-script RestoreAfterDelay();
@@ -257,19 +233,19 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-AimTertiary(piecenum)
+AimWeapon3(pieceIndex)
 {
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = sleeveHousing;
+	pieceIndex = sleeveHousing;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = sleeveHousing;
+	pieceIndex = sleeveHousing;
 }
 
 fireCommon()
@@ -279,60 +255,55 @@ fireCommon()
 			emit-sfx 1024 + 0 from flareTop;
 			move barrelTop to z-axis [-6.250000] now;
 			sleep 100;
-			move barrelTop to z-axis [0.000000] speed [2.500000];
+			move barrelTop to z-axis [0.0] speed [2.500000];
 		}
 		if( nextBarrel == 1 )
 		{
 			emit-sfx 1024 + 0 from flareBottom;
 			move barrelBottom to z-axis [-6.250000] now;
 			sleep 100;
-			move barrelBottom to z-axis [0.000000] speed [2.500000];
+			move barrelBottom to z-axis [0.0] speed [2.500000];
 		}
 		nextBarrel = !nextBarrel;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	call-script fireCommon();
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	call-script fireCommon();
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( nextBarrel == 0 )
 	{
-		piecenum = flareTop;
+		pieceIndex = flareTop;
 	}
 	if( nextBarrel == 1 )
 	{
-		piecenum = flareBottom;
+		pieceIndex = flareBottom;
 	}
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if( nextBarrel == 0 )
 	{
-		piecenum = flareTop;
+		pieceIndex = flareTop;
 	}
 	if( nextBarrel == 1 )
 	{
-		piecenum = flareBottom;
+		pieceIndex = flareBottom;
 	}
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = turretmidpoint;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = turretmidpoint;
 }
 
 Killed(severity, corpsetype)

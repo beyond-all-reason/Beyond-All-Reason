@@ -1,31 +1,12 @@
-#define TA			// This is a TA script
+#include "../recoil_common_includes.h"
 
-#include "sfxtype.h"
-#include "exptype.h"
-
-// piece  base, center, plate, pad1, pad2, pad3, pad4, drone1, drone2, drone3, drone4;
 piece chassis, lfTrack, rfTrack, rrTrack, lrTrack, dirtRight, dirtLeft, targetingTower, targetLightFlash, targetLightGlow, rotationPad,
 pad1, pad2, pad3, pad4, pad5, pad6, drone1, drone2, drone3, drone4, drone5, drone6;
 
-static-var  moveSpeed, currentSpeed, animSpeed, terrain, restore_delay;
+static-var  terrain, restore_delay;
 
 #define TURRET_SPEED_WEAPONS 1
-#include "unitDefsTurretSpeeds.h"
-
-// Signal definitions
-#define SIG_AIM				2
-
-UnitSpeed()
-{
-	while(TRUE)
-	{
-		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		if (currentSpeed<4) currentSpeed=4;
-		animSpeed = 1800 / currentSpeed;
-		sleep 142;
-	}
-}
-
+#include "../unitDefsTurretSpeeds.h"
 
 #define BASEPIECE chassis
 #define HITSPEED <55.0>
@@ -33,10 +14,14 @@ UnitSpeed()
 #define UNITSIZE 6
 #define MAXTILT 50
 
+#define TB_BASE chassis 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 Create()
 {
-	moveSpeed = get (MAX_SPEED);
-	animSpeed = 100;
 	restore_delay = 200;
 	move drone1 to y-axis [0] now;
 	move drone2 to y-axis [0] now;
@@ -45,6 +30,20 @@ Create()
 	move drone5 to y-axis [0] now;
 	move drone6 to y-axis [0] now;
 	spin rotationPad around y-axis speed <10> accelerate <1>;
+	call-script TB_Init();
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 setSFXoccupy(state)
@@ -52,9 +51,9 @@ setSFXoccupy(state)
 	terrain = state;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;
@@ -69,8 +68,8 @@ SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	}
+ 	    start-script ExecuteRestoreAfterDelay();
+ 	}
 }
 RestoreAfterDelay()
 {
@@ -78,32 +77,26 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script RestoreAfterDelay();
-	return (0);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	return (1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = targetLightFlash;
+	pieceIndex = targetLightFlash;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = targetLightFlash;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = chassis;
+	pieceIndex = targetLightFlash;
 }
 
 Killed(severity, corpsetype)
@@ -130,8 +123,6 @@ Killed(severity, corpsetype)
 		explode chassis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
-
-
 
 DroneDocked(arg1, dockpiece, arg2, arg3)
 {

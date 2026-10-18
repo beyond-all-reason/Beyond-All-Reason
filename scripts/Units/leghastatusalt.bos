@@ -1,114 +1,38 @@
-#define TA			// This is a TA script
+#include "../recoil_common_includes.h"
 
-#include "sfxtype.h"
-#include "exptype.h"
+piece base, wake1, wake2, turret1, sleevea, barrela, flarea, turret2, sleeve2, barrel1, flare1, barrel2, flare2;
 
-piece  base, ground, wake1, wake2, turret1, sleevea, barrela, flarea, turret2, sleeve2, barrel1, flare1, barrel2, flare2;
-		
-static-var  gun_1, gun_2, restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead;
-
-// Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_AIM_3			8
-#define SIG_MOVE			4096
+static-var  restore_delay, aimDir1, aimDir2, aimDir3;
 
 
+#define RB_MASS 40
+#define RB_LENGTH 8
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_RECOIL_ENERGY_1 700
+#define RB_RECOIL_ENERGY_2 700
+#define RB_RECOIL_ENERGY_3 700
+#define RB_WAKE_PIECE wake1
+#define RB_WAKE_PIECE2 wake2
+#define RB_WAKE_CEG 1024 + 0
 
-#define BASEPIECE base
-#define HITSPEED <25.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 3
-#define MAXTILT 200
-
-#include "unit_hitbyweaponid_and_smoke.h"
-
-SetDirection(heading)
-{
-	var spd;
-	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
-	turn ground to y-axis heading speed spd;
-	turn base to y-axis 0-heading speed spd;
-	oldHead = heading;
-}
-
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn ground to x-axis rockAng speed rockSpeed*4;
-			wait-for-turn ground around x-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
-
-ProjXPW(Func_Var_1, Func_Var_2)
-{
-	if( Func_Var_2 < -21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( Func_Var_2 + 32760 ) / 10920;
-	}
-	else if( Func_Var_2 > 21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( 32760 - Func_Var_2 ) / 10920;
-	}
-	else if( Func_Var_2 < -10920 )
-	{
-		Static_Var_7 = 0 - Func_Var_1;
-	}
-	else if( Func_Var_2 > 10920 )
-	{
-		Static_Var_7 = Func_Var_1;
-	}
-	else
-	{
-		Static_Var_7 = Func_Var_1 * Func_Var_2 / 10920;
-	}
-}
-
-RockZ(Func_Var_1, Func_Var_2)
-{
-	signal 4096;
-	set-signal-mask 4096;
-	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
-	Static_Var_8 = Static_Var_8 + Static_Var_7;
-	Static_Var_7 = get ABS(Static_Var_8);
-	while( Static_Var_7 > 91 )
-	{
-		turn base to z-axis Static_Var_8 speed Static_Var_7 * <0.0125>;
-		wait-for-turn base around z-axis;
-		Static_Var_8 = Static_Var_8 * -1 / 2;
-		Static_Var_7 = get ABS(Static_Var_8);
-	}
-	turn base to z-axis <0.000000> speed <1.5>;
-}
+#include "../bar_ships_common.h"
 
 
 Create()
 {
 	hide wake2;
 	hide wake1;
-
 	restore_delay = 3000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script RockOnWaves();
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;
@@ -118,15 +42,14 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	//get PRINT(3333);
-	turn turret1 to y-axis <0.000000> speed <180.000000>;
-	turn turret2 to y-axis <0.000000> speed <180.000000>;
+	turn turret1 to y-axis <0.0> speed <180.0>;
+	turn turret2 to y-axis <0.0> speed <180.0>;
 }
 SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+   	    start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -135,90 +58,50 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-waveSplash()
+StartMoving(reversing)
 {
-	while( TRUE )
-	{
-		turn base to x-axis <-3.0> speed <3.0>;
-		move base to y-axis [0.32] speed [0.25];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <3.0>;
-		move base to y-axis [0.0] speed [0.25];
-		wait-for-turn base around x-axis;
-	}
-}
-
-StartMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	var waketime;
-	start-script waveSplash();
-	var bowtime;
-	bowtime = 0;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake1;
-		if (bowtime) emit-sfx 1024 + 1 from wake2;
-		bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 10000 / waketime;
-	}
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	turn base to x-axis <0.0> speed <3.0>;
-	move base to y-axis [0.0] speed [0.25];
 }
 
-
-
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret1 to y-axis heading speed <170.000000>;
-	turn sleevea to x-axis <0.000000> - pitch speed <80.000000>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	aimDir1 = heading;
+	turn turret1 to y-axis heading speed <170.0>;
+	turn sleevea to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <80.0>;
 	wait-for-turn turret1 around y-axis;
 	wait-for-turn sleevea around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-//todo: if version kept, delay reaiming until firing complete. and/or potentially use beambursts with control on them
-FirePrimary()
+FireWeapon1()
 {
-		//move barrela to z-axis [-1.400000] speed [500.000000];
-		emit-sfx 1024 + 0 from flare1;
-		//sleep 550;
-		//wait-for-move barrela along z-axis;
-		//move barrela to z-axis [0.000000] speed [3.000000];
-
-		return (0);
+	emit-sfx 1024 + 0 from flare1;
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret1;
-	return (0);
+	pieceIndex = turret1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flarea;
-	return (0);
+	pieceIndex = flarea;
 }
-////////////////////
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
-	turn turret2 to y-axis heading speed <170.000000>;
-	turn sleeve2 to x-axis <0.000000> - pitch speed <80.000000>;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	aimDir2 = heading;
+	turn turret2 to y-axis heading speed <170.0>;
+	turn sleeve2 to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <80.0>;
 	wait-for-turn turret2 around y-axis;
 	wait-for-turn sleeve2 around x-axis;
 	start-script RestoreAfterDelay();
@@ -227,35 +110,26 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-
-	//move barrel1 to z-axis [-1.400000] speed [500.000000];
 	emit-sfx 1024 + 0 from flare1;
-	//sleep 550;
-	//wait-for-move barrel1 along z-axis;
-	//move barrel1 to z-axis [0.000000] speed [3.000000];
-	return (0);
-
+	RB_RECOILBOAT(aimDir2, RB_RECOIL_ENERGY_2);
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turret2;
-	return (0);
+	pieceIndex = turret2;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare1;
-	return (0);
+	pieceIndex = flare1;
 }
-
-////////
 
 //second barrel on rear gun, slaved to weapon 2
 AimWeapon3(heading, pitch)
 {
-	turn turret2 to y-axis heading speed <170.000000>;
-	turn sleeve2 to x-axis <0.000000> - pitch speed <80.000000>;
+	aimDir3 = heading;
+	turn turret2 to y-axis heading speed <170.0>;
+	turn sleeve2 to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <80.0>;
 	wait-for-turn turret2 around y-axis;
 	wait-for-turn sleeve2 around x-axis;
 	return (1);
@@ -263,31 +137,18 @@ AimWeapon3(heading, pitch)
 
 FireWeapon3()
 {
-	//move barrel2 to z-axis [-1.400000] speed [500.000000];
 	emit-sfx 1024 + 0 from flare2;
-	//sleep 550;
-	//wait-for-move barrel2 along z-axis;
-	//move barrel2 to z-axis [0.000000] speed [3.000000];
-	return (0);
-
+	RB_RECOILBOAT(aimDir3, RB_RECOIL_ENERGY_3);
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = turret2;
-	return (0);
+	pieceIndex = turret2;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = flare2;
-	return (0);
-}
-
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = flare2;
 }
 
 Killed(severity, corpsetype)
@@ -295,24 +156,16 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		//explode barrel12 type BITMAPONLY | BITMAP1 | NOHEATCLOUD;
 		explode base type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
-		//explode turret2 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
-		//explode wake1 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
-		//explode wake2 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
 		explode base type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
-		//explode wake1 type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		//explode wake2 type FALL | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
-	//explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	//explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	return corpsetype;
 }

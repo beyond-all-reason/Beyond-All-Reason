@@ -1,58 +1,44 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, top, spark, barrel, flare, aimpoint, firepoint;
 
-static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  isOpen, restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
+#include "../damagedsmoke.h"
+
+Create()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
+	hide aimpoint;
+	hide firepoint;
+	hide flare;
+	restore_delay = 2000;
+	isOpen = 0;
+	start-script Activate();
+	SLEEP_UNTIL_UNITFINISHED;
+	move aimpoint to y-axis [8] now;
+	start-script DamagedSmoke();
+	start-script Deactivate();
 }
 
-
-Go()
+Activate()
 {
 	set ARMORED to 0;
-	move top to y-axis [8.000000] speed [19.989014];
+	move top to y-axis [8.0] speed [19.989014];
 	wait-for-move top along y-axis;
-	move spark to z-axis [0.000000] speed [19.989014];
-	move barrel to z-axis [0.000000] speed [19.989014];
-	Static_Var_1 = 1;
+	move spark to z-axis [0.0] speed [19.989014];
+	move barrel to z-axis [0.0] speed [19.989014];
+	isOpen = 1;
 }
 
-Stop()
+Deactivate()
 {
 	set ARMORED to 1;
-	Static_Var_1 = 0;
-	turn top to y-axis <0.000000> speed <300.000000>;
+	isOpen = 0;
+	turn top to y-axis <0.0> speed <300.0>;
 	move spark to z-axis [-6] speed [19.989014];
 	move barrel to z-axis [-6.5] speed [19.989014];
 	wait-for-move barrel along z-axis;
@@ -61,70 +47,9 @@ Stop()
 	wait-for-move top along y-axis;
 }
 
-InitState()
+SetMaxReloadTime(reloadMS)
 {
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-Create()
-{
-	hide aimpoint;
-	hide firepoint;
-	hide flare;
-	hide flare;
-	restore_delay = 2000;
-	Static_Var_1 = 0;
-	call-script InitState();
-	start-script RequestState(0);
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
-	move aimpoint to y-axis [8] now;
-	start-script SmokeUnit();
-	start-script RequestState(1);
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
-
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = Func_Var_1 * 3;
+	restore_delay = reloadMS * 3;
 }
 
 static-var  Stunned;
@@ -134,7 +59,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script Deactivate();
 }
 SetStunned(State)
 {
@@ -149,16 +74,16 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
+	if (!isOpen) start-script Activate();
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	while( !isOpen )
 	{
 		sleep 250;
 	}
-	turn top to y-axis heading speed <300.000000>;
+	turn top to y-axis heading speed <300.0>;
 	wait-for-turn top around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
@@ -170,23 +95,18 @@ Shot1()
 	return (TRUE);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-SweetSpot(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
-}
-
-AimFromPrimary(piecenum)
-{
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
 Killed(severity, corpsetype)

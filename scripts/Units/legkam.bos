@@ -1,21 +1,10 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, thrust, firepoint, bomb, basefirepoint;
 
-static-var  statechg_DesiredState, statechg_StateChanging, detonating;
+piece base, thrust, firepoint, bomb, basefirepoint;
 
-#define SIG_AIM				2
-
-Go()
-{
-}
-
-Stop()
-{
-}
+static-var  detonating;
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -23,54 +12,19 @@ Stop()
 #define UNITSIZE 3
 #define MAXTILT 100
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide thrust;
-	call-script InitState();
 }
 
 Activate()
 {
 	show thrust;
-	start-script RequestState(0);
 }
 
 Deactivate()
 {
 	hide thrust;
-	start-script RequestState(1);
 }
 
 AimWeapon1()
@@ -85,8 +39,8 @@ AimWeapon2()
 
 AimWeapon3()
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	sleep 10000;
 	return (FALSE);
 }
@@ -97,17 +51,16 @@ FireWeapon1()
 	emit-sfx 1024 + 1 from base;
 	detonating = TRUE; // Killed reads this rather than inferring the cause of death from severity
 	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 fires
-	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = thrust;
+	pieceIndex = thrust;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 FireWeapon2()
@@ -115,14 +68,14 @@ FireWeapon2()
 	return (1);
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = basefirepoint;
+	pieceIndex = basefirepoint;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 FireWeapon3()
@@ -130,19 +83,14 @@ FireWeapon3()
 	return (1);
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = thrust;
+	pieceIndex = thrust;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = base;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = base;
 }
 
 Killed(severity, corpsetype)
@@ -182,6 +130,6 @@ Killed(severity, corpsetype)
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-    explode base type BITMAPONLY | NOHEATCLOUD;
+	explode base type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }

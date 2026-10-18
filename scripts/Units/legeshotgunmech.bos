@@ -1,7 +1,4 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 ///
 
@@ -64,24 +61,17 @@ firepoint;
 
 ///
 
-static-var 	torsoaim, movespeed, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, wpn5_lasthead, InMotion, 
-			missile_count, shottieArm, Delay, deployed, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, aimingPose;
+static-var 	torsoaim, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, wpn5_lasthead, InMotion, 
+			missile_count, shottieArm, Delay, 	deployed, animSpeed, isMoving, aimingPose;
 ///
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIG_AIM_1	2
-#define SIG_AIM_2 	4
-#define SIG_AIM_3 	8
-#define SIG_AIM_4 	16
-#define SIG_RESTORE 32
-#define SIG_AIM_5 	64
-#define SIG_WALK	128
-#define SIG_FIRE2 	256
-#define SIG_FIRE3 	512
-#define SIG_TRANS 	1024
+// Custom signals (no canonical twin in recoil_common_includes.h)
+#define SIGNAL_SHOOT3 16384
+#define SIGNAL_TRANS 32768
 
-Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\Tier 3\legpraet8.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+Walk() {
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:1
 
@@ -457,8 +447,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 // Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
-	move torso to y-axis [0.000000] speed [48.383546] / animSpeed;
-	move torso to z-axis [0.000000] speed [38.890266] / animSpeed;
+	move torso to y-axis [0.0] speed [48.383546] / animSpeed;
+	move torso to z-axis [0.0] speed [38.890266] / animSpeed;
 	move hip to y-axis [0] speed [50] / animSpeed; 
 	turn hip to y-axis <0> speed <271.647238> / animSpeed;
 	turn lArmGun to x-axis <0> speed <186.817262> / animSpeed;
@@ -475,33 +465,21 @@ StopWalking() {
 	turn rLowerLeg to x-axis <0> speed <1944.440289> / animSpeed;
 	turn rUpperLeg to x-axis <0> speed <1688.428654> / animSpeed;
 	turn rUpperLeg to z-axis <0> speed <125.703468> / animSpeed;
-	turn rUpperLeg to y-axis <-15> speed <50>;
+    turn rUpperLeg to y-axis <-15> speed <50>;
     turn lUpperLeg to y-axis <15> speed <50>;
 }
-// REMEMBER TO animspeed = 4 in Create() !!
-UnitSpeed(){
-	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
-	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
-	while(TRUE){
-		animSpeed = (get CURRENT_SPEED);
-		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<2) animSpeed=2;
-		if (animspeed>9) animSpeed = 9;
-		sleep 161;
-	}
-}
-StartMoving(){
+
+StartMoving(reversing)
+{
 	signal SIGNAL_MOVE;
-	isMoving=TRUE;
+	isMoving = TRUE;
     animSpeed = 4;
 	start-script Walk();
 }
-StopMoving(){
+StopMoving()
+{
 	signal SIGNAL_MOVE;
-	isMoving=FALSE;
+	isMoving = FALSE;
 	call-script StopWalking();
 }
 
@@ -509,9 +487,9 @@ Open()
 {
 	if( !aimingPose )
 	{
-		signal SIG_TRANS;
-		set-signal-mask SIG_TRANS;
-		signal SIG_RESTORE;
+		signal SIGNAL_TRANS;
+		set-signal-mask SIGNAL_TRANS;
+		signal SIGNAL_IDLE;
 		start-script RestoreAfterDelay();
 		aimingPose = 1;
 		
@@ -531,8 +509,8 @@ Close()
 {
 	if( aimingPose )
 	{
-		signal SIG_TRANS;
-		set-signal-mask SIG_TRANS;
+		signal SIGNAL_TRANS;
+		set-signal-mask SIGNAL_TRANS;
 		aimingPose = 0;
 		deployed = 0;
         
@@ -552,7 +530,7 @@ Create()
     InMotion = 0;
 	missile_count=0;
     shottieArm =  0;
-	moveSpeed = get MAX_SPEED;
+	// REMEMBER TO animspeed = 4 in Create() !!
 	animSpeed = 4;
 	wpn1_lasthead = 1000000;
     wpn2_lasthead = 0;
@@ -560,8 +538,6 @@ Create()
     wpn4_lasthead = 0;
     wpn5_lasthead = 0;
 	Delay = 0;
-
-	// move aaMinigunFlare to z-axis [-60] now;
 
     turn lbatteryPivotFlare to z-axis <65> now;
 	turn rbatteryPivotFlare to z-axis <-65> now;
@@ -582,10 +558,7 @@ Create()
 	hide rmissileFlare4;
     hide rmissileFlare5;
     hide rmissileFlare6;
-    while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+    SLEEP_UNTIL_UNITFINISHED;
 	start-script RestoreAfterDelay();
     turn rArmGun to z-axis <15> speed <50>;
     turn lArmGun to z-axis <-15> speed <50>;
@@ -597,7 +570,7 @@ Create()
 }
 
 RestoreAfterDelay(){
-	set-signal-mask SIG_RESTORE;
+	set-signal-mask SIGNAL_IDLE;
 	sleep 3000;
     start-script Close();
 	turn torso to y-axis <0> speed <50>;
@@ -632,41 +605,16 @@ RestoreAfterDelay(){
 	wait-for-turn lArmGun around x-axis;
     wait-for-turn lArmUpper around y-axis;
 	InMotion = 0;
-    // start-script Close();
 }
 
-SweetSpot(piecenum)
+QueryWeapon1(pieceIndex) //Hull Rotation
 {
-	piecenum = torso;
-	return (0);
+    pieceIndex = firepoint;
 }
 
-QueryWeapon1(piecenum) //Hull Rotation
+AimFromWeapon1(pieceIndex)
 {
-
-    piecenum = firepoint;
-	// if(missile_count==0)
-	// {
-	// 	piecenum=mis1;	
-	// }
-	// if(missile_count==1)
-	// {
-	// 	piecenum=mis2;
-	// }
-	// if(missile_count==2)
-	// {
-	// 	piecenum=mis3;
-	// }
-	// if(missile_count==3)
-	// {
-	// 	piecenum=mis4;
-	// }
-}
-
-AimFromWeapon1(piecenum)
-{
-	piecenum = torso;
-	return (0);
+	pieceIndex = torso;
 }
 
 AimWeapon1(heading, pitch)
@@ -675,10 +623,10 @@ AimWeapon1(heading, pitch)
 	{
 		start-script Open();
 	}
-	signal SIG_AIM_1;
-	signal SIG_RESTORE;
-	set-signal-mask SIG_AIM_1;
-	turn torso to y-axis heading speed <100.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	signal SIGNAL_AIM1;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_AIM1;
+	turn torso to y-axis heading speed <100.0>;
 	var gun_xz;
     gun_xz = get PIECE_XZ(torso);                                //get packed gun coordinates
     var gun_x;
@@ -723,9 +671,7 @@ AimWeapon1(heading, pitch)
     cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180 degrees), positive or negative depending on direction
     cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180 degrees), positive or negative depending on direction
     
-    //var torsoaim;
     torsoaim = cauface - cauaim;                                //calculate angle of turret relative to the hull
-	//torsoaim = heading;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536-<5>)))
 	{
 		wpn1_lasthead = 1000000;
@@ -741,44 +687,35 @@ FireWeapon1()
 	return (1);
 }
 
-QueryWeapon2(piecenum) //R Shotgun
+QueryWeapon2(pieceIndex) //R Shotgun
 {
 	if(shottieArm==1)
 	{
-		piecenum=rArmFlare;	
-		return(0);	
+		pieceIndex = rArmFlare;
 	}
 	if(shottieArm==0)
 	{
-		piecenum=lArmFlare;
-		return(0);	
+		pieceIndex = lArmFlare;
 	}
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
 	if(shottieArm==0)
 	{
-		piecenum=rArmFlare;
-        return(0);	
+		pieceIndex = rArmFlare;
 	}
 	if(shottieArm==1)
 	{
-		piecenum=lArmFlare;
-        return(0);	
+		pieceIndex = lArmFlare;
 	}
-
-    //piecenum = torso;
-    // return(0);
-
-
 }
 
 AimWeapon2(heading, pitch) //pew pew
 {
-	signal SIG_AIM_2;
-	signal SIG_RESTORE;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_AIM2;
 	InMotion = 1;
     if (Delay==1)
 	{
@@ -786,13 +723,13 @@ AimWeapon2(heading, pitch) //pew pew
 	}
 	if(shottieArm==0)
 	{
-		turn rArmGun to y-axis heading - torsoaim speed <200.0000>;
-		turn rArmUpper to x-axis -1*pitch speed <100.0000>;
+		turn rArmGun to y-axis heading - torsoaim speed <200.0>;
+		turn rArmUpper to x-axis -1*pitch speed <100.0>;
 	}
 	if(shottieArm==1)
 	{
-		turn lArmGun to y-axis heading - torsoaim speed <200.0000>;
-		turn lArmUpper to x-axis -1*pitch speed <100.0000>;
+		turn lArmGun to y-axis heading - torsoaim speed <200.0>;
+		turn lArmUpper to x-axis -1*pitch speed <100.0>;
 	}
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > <30>) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - <30>)))
 	{
@@ -856,63 +793,61 @@ Shot2(zero)
 	return(1);
 }
 
-QueryWeapon3(piecenum) 
+QueryWeapon3(pieceIndex)
 {
 	if(missile_count == 0)
 	{
-		piecenum = lmissileFlare1;
+		pieceIndex = lmissileFlare1;
 	}
 	if(missile_count == 1)
 	{
-		piecenum = rmissileFlare1;
+		pieceIndex = rmissileFlare1;
 	}
 	if(missile_count == 2)
 	{
-		piecenum = lmissileFlare2;
+		pieceIndex = lmissileFlare2;
 	}
 	if(missile_count == 3)
 	{
-		piecenum = rmissileFlare2;
+		pieceIndex = rmissileFlare2;
 	}
 	if(missile_count == 4)
 	{
-		piecenum = lmissileFlare3;
+		pieceIndex = lmissileFlare3;
 	}
 	if(missile_count == 5)
 	{
-		piecenum = rmissileFlare3;
+		pieceIndex = rmissileFlare3;
 	}
 	if(missile_count == 6)
 	{
-		piecenum = lmissileFlare4;
+		pieceIndex = lmissileFlare4;
 	}
 	if(missile_count == 7)
 	{
-		piecenum = rmissileFlare4;
+		pieceIndex = rmissileFlare4;
 	}
 	if(missile_count == 8)
 	{
-		piecenum = lmissileFlare5;
+		pieceIndex = lmissileFlare5;
 	}
 	if(missile_count == 9)
 	{
-		piecenum = rmissileFlare5;
+		pieceIndex = rmissileFlare5;
 	}
 	if(missile_count == 10)
 	{
-		piecenum = lmissileFlare6;
+		pieceIndex = lmissileFlare6;
 	}
 	if(missile_count == 11)
 	{
-		piecenum = rmissileFlare6;
+		pieceIndex = rmissileFlare6;
 	}
-	// return (0);
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = rmissileBattery1;
-	// return (0);
+	pieceIndex = rmissileBattery1;
 }
 
 AimWeapon3(heading, pitch)
@@ -921,9 +856,9 @@ AimWeapon3(heading, pitch)
 	{
 		return (0);
 	}
-	signal SIG_AIM_4;
-	signal SIG_RESTORE;
-	set-signal-mask SIG_AIM_4;
+	signal SIGNAL_AIM3;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_AIM3;
 	if (((get ABS(wpn4_lasthead - heading)) > 65536) OR(((get ABS(wpn4_lasthead - heading)) > 1300) AND ((get ABS(wpn4_lasthead - heading)) < 64236)))
 	{
 		wait-for-turn torso around y-axis;
@@ -941,8 +876,8 @@ FireWeapon3()
 
 Shot3(zero)
 {
-	signal SIG_FIRE3;
-	set-signal-mask SIG_FIRE3;
+	signal SIGNAL_SHOOT3;
+	set-signal-mask SIGNAL_SHOOT3;
 	sleep 32;
 	if(missile_count == 0)
 	{
@@ -992,41 +927,33 @@ Shot3(zero)
 	{
 		emit-sfx 1024 + 3 from rmissileFlare6;
 	}
-	++missile_count;
-	if(missile_count>11)
-	{
-		missile_count=0;
-	}
+	missile_count = (missile_count + 1) % 12;
 	return(1);
 }
 
 
 
-QueryWeapon4(piecenum) 
+QueryWeapon4(pieceIndex)
 {
-	piecenum = aaMinigunFlare;
-	// return (0);
+	pieceIndex = aaMinigunFlare;
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = aaMinigunBase;
-	// return (0);
+	pieceIndex = aaMinigunBase;
 }
 
 AimWeapon4(heading, pitch) //pew pew
 {
-	signal SIG_AIM_5;
-	signal SIG_RESTORE;
-	set-signal-mask SIG_AIM_5;
+	signal SIGNAL_AIM4;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_AIM4;
     stop-spin aaMinigunBase around y-axis;
-	turn aaMinigunBase to y-axis heading - torsoaim speed <300.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn aaMinigunTurret to x-axis -1*pitch speed <300.0000>;
+	turn aaMinigunBase to y-axis heading - torsoaim speed <300.0>;
+	turn aaMinigunTurret to x-axis -1*pitch speed <300.0>;
 	if (((get ABS(wpn5_lasthead - heading)) > 65536) OR(((get ABS(wpn5_lasthead - heading)) > 2500) AND ((get ABS(wpn5_lasthead - heading)) < 64236)))
 	{
 		wpn5_lasthead = 1000000;
-		//wait-for-turn aaMinigunBase around y-axis;
-		//wait-for-turn aaMinigunTurret around x-axis;
 	}
 	wpn5_lasthead = heading;
 	start-script RestoreAfterDelay();
@@ -1044,12 +971,6 @@ Shot4(zero){
 	emit-sfx 1024+2 from aaMuzzleFlare;
 }
 
-
-
-//-----------------------------------------------------------------------
-//-- death stuffs
-//-----------------------------------------------------------------------
-
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
@@ -1064,7 +985,7 @@ Killed(severity, corpsetype)
 		explode rFrontFoot 		type BITMAPONLY | NOHEATCLOUD;
 		explode rArmGun 		type BITMAPONLY | NOHEATCLOUD;
 		explode torso 			type BITMAPONLY | NOHEATCLOUD;
-		return(corpsetype);
+		return corpsetype;
 	}
 	if( severity <= 50 )
 	{
@@ -1079,7 +1000,7 @@ Killed(severity, corpsetype)
 		explode rArmGun 			type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso 				type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rBackFoot 			type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		return corpsetype;
 	}
 	if( severity <= 99 )
 	{
@@ -1093,7 +1014,7 @@ Killed(severity, corpsetype)
 		explode rFrontFoot 		type BITMAPONLY | NOHEATCLOUD;
 		explode rArmGun 		type SMOKE | FALL | NOHEATCLOUD;
 		explode torso 			type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		return corpsetype;
 	}
 	corpsetype = 3 ;
 		explode hip 				type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;

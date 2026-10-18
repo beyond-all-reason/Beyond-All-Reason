@@ -1,36 +1,12 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "recoil_common_includes.h"
 
 piece  base, column1,column2,column3,column4,fusionsphere, emit;
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "unit_hitbyweaponid_and_smoke.h"
+
 Activate()
 {
 	spin fusionsphere around y-axis speed <80> accelerate <1>;
@@ -70,14 +46,10 @@ Activate()
 Create()
 {
 	hide emit;
-	start-script SmokeUnit();
 	start-script Activate();
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

@@ -1,12 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, fan, cradle;
 
 static-var  WindSpeed, WindDirection, LastDirection, Built, Stunned;
 
+#define SMOKE_PIECE base
+#include "../damagedsmoke.h"
 
 Go()
 {
@@ -29,21 +29,16 @@ Create()
 	WindSpeed = 800;
 	WindDirection = 0;
 	LastDirection = 0;
-	Built = 0;	
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	Built = 0;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
 	Built = 1;
 	call-script Go();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
-
-SetSpeed(windSpd) //called every 450 frames
+SetSpeed(windOrMetal) //called every 450 frames
 {
-	WindSpeed = windSpd; //invert if desired
+	WindSpeed = windOrMetal; //invert if desired
 	if (!Stunned) {
 		if(Built)
 		{
@@ -52,7 +47,7 @@ SetSpeed(windSpd) //called every 450 frames
 	}
 }
 
-SetDirection(windDir) //called every 450 frames
+SetDirection(windDir, windStrength) //called every 450 frames
 {
 	LastDirection = WindDirection;
 	WindDirection = windDir;

@@ -1,13 +1,8 @@
-#define TA			// This is a TA script
-
-static-var  Stunned;
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece base, strut, dishA, dishA1, dishA2, dishA3, dishB, dishB1, dishB2, dishB3, blink;
-// piece  base, dish, blink;
 
+static-var  Stunned;
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -15,7 +10,7 @@ piece base, strut, dishA, dishA1, dishA2, dishA3, dishB, dishB1, dishB2, dishB3,
 #define UNITSIZE 5
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Go()
 {
@@ -43,35 +38,33 @@ Go()
 	spin strut around y-axis speed <30>;
 	spin dishA around x-axis speed <40>;
 	spin dishB around x-axis speed <-40>;
-	return (0);
 }
 
 Stop()
 {
 	turn dishA1 to x-axis <-25> speed <40>;
 	turn dishA1 to z-axis <-33> speed <40>;
-	turn dishA1 to y-axis <73.300000> speed <40>;
+	turn dishA1 to y-axis <73.3> speed <40>;
 
 	turn dishA2 to x-axis <25> speed <40>;
 	turn dishA2 to z-axis <-33> speed <40>;
-	turn dishA2 to y-axis <-73.300000> speed <40>;
+	turn dishA2 to y-axis <-73.3> speed <40>;
 
 	turn dishA3 to z-axis <90> speed <40>;
 
 	turn dishB1 to x-axis <25> speed <40>;
 	turn dishB1 to z-axis <-33> speed <40>;
-	turn dishB1 to y-axis <-73.300000> speed <40>;
+	turn dishB1 to y-axis <-73.3> speed <40>;
 
 	turn dishB2 to x-axis <-25> speed <40>;
 	turn dishB2 to z-axis <-33> speed <40>;
-	turn dishB2 to y-axis <73.300000> speed <40>;
+	turn dishB2 to y-axis <73.3> speed <40>;
 
 	turn dishB3 to z-axis <90> speed <40>;
 
 	stop-spin dishA around x-axis;
 	stop-spin dishB around x-axis;
 	stop-spin strut around y-axis;
-	return (0);
 }
 
 
@@ -89,35 +82,27 @@ Create()
 {
 	turn dishA1 to x-axis <-25> now;
 	turn dishA1 to z-axis <-33> now;
-	turn dishA1 to y-axis <73.300000> now;
+	turn dishA1 to y-axis <73.3> now;
 
 	turn dishA2 to x-axis <25> now;
 	turn dishA2 to z-axis <-33> now;
-	turn dishA2 to y-axis <-73.300000> now;
+	turn dishA2 to y-axis <-73.3> now;
 
 	turn dishA3 to z-axis <90> now;
 
 	turn dishB1 to x-axis <25> now;
 	turn dishB1 to z-axis <-33> now;
-	turn dishB1 to y-axis <-73.300000> now;
+	turn dishB1 to y-axis <-73.3> now;
 
 	turn dishB2 to x-axis <-25> now;
 	turn dishB2 to z-axis <-33> now;
-	turn dishB2 to y-axis <73.300000> now;
+	turn dishB2 to y-axis <73.3> now;
 
 	turn dishB3 to z-axis <90> now;
 
 	hide blink;
-
-		while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-
+	SLEEP_UNTIL_UNITFINISHED;
 	call-script Go();
-
-
-	return (0);
 }
 
 Lights()
@@ -129,27 +114,17 @@ Lights()
 		}
 		sleep 2500;
 	}
-	sleep 50;
-	start-script Lights();
 }
 
 Activate()
 {
 	start-script Lights();
 	start-script Go();
-	return (0);
 }
 
 Deactivate()
 {
 	start-script Stop();
-	return (0);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
 }
 
 Killed(severity, corpsetype)

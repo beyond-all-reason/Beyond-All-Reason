@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, fan, cradle;
 
@@ -12,16 +10,14 @@ Go()
 {
 	sleep RAND(1, 500);
 
-	//get PRINT(get GAME_FRAME, WindSpeed, WindDirection);
 	//No wind direction, because it's vertical turbine.
 
 	spin cradle around y-axis speed WindSpeed / -5.0 accelerate <1.0>;
 	spin fan around y-axis speed WindSpeed accelerate <1.0>;
 	//The angular acceleration should always be positive, even if you are spinning the piece at a negative angular speed.
-	//It is measured in Spring angles per frame-second (sa/f*s); in other words, 
-	//the speed of the piece will increase by that amount every frame, not every second. There are 30 frames per second. 
+	//It is measured in Spring angles per frame-second (sa/f*s); in other words,
+	//the speed of the piece will increase by that amount every frame, not every second. There are 30 frames per second.
 	//spin [piece] around [axis] speed [angular speed] accelerate [angular acceleration];
-	
 }
 
 Create()
@@ -29,21 +25,19 @@ Create()
 	WindSpeed = 800;
 	WindDirection = 0;
 	LastDirection = 0;
-	Built = 0;	
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	Built = 0;
+	SLEEP_UNTIL_UNITFINISHED;
 	Built = 1;
 	call-script Go();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-SetSpeed(windSpd) //called every 450 frames
+SetSpeed(windOrMetal) //called every 450 frames
 {
-	WindSpeed = windSpd; //invert if desired
+	WindSpeed = windOrMetal; //invert if desired
 	if (!Stunned) {
 		if(Built)
 		{
@@ -52,11 +46,11 @@ SetSpeed(windSpd) //called every 450 frames
 	}
 }
 
-SetDirection(windDir) //called every 450 frames
+SetDirection(windDir, windStrength) //called every 450 frames
 {
 	LastDirection = WindDirection;
 	WindDirection = windDir;
-	
+
 	if (!Stunned) {
 		if(Built)
 		{

@@ -1,10 +1,7 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  
-
 legThighR,
 legTibiaR,
 footR,
@@ -29,15 +26,10 @@ topFlare,
 bottomFlare,
 torsoPivot;
 
-static-var  bMoving, bAiming, restore_delay, wpn1_lasthead, currentSpeed, movespeed, explosions, shieldup, whichBarrel;
+static-var  isAiming, restore_delay, explosions, shieldup, whichBarrel;
 
 static-var  animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
-// Signal definitions
-#define SIG_AIM				4
-#define SIG_WALK			2
-#define SIGNAL_REPAIR		16
 
-#define SIGNAL_MOVE 1
 Walk() {
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:1
@@ -236,13 +228,12 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 2) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>5) animSpeed = 5;
 		sleep 94;
 	}
 }
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	animspeed = 3;
 	isMoving=TRUE;
@@ -261,28 +252,24 @@ StopMoving(){
 #define UNITSIZE 3
 #define MAXTILT 100
 
-//#include "unit_hitbyweaponid_and_smoke.h"
-
 HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
 {
 	var amount;//, speedz, speedx;
 	amount = damage / (100 * UNITSIZE);
 	if (amount < 3  ) return (0);
 	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
 	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
 	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
 
 // Disable armored state when 2000 damage is taken
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
-	signal SIGNAL_REPAIR;
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
 }
@@ -302,15 +289,6 @@ ReactiveArmorRestore()
 }
 
 // Break pieces individually from damage:
-
-LimitExplosions()
-{
-	while (TRUE)
-	{
-		explosions = 0;
-		sleep 85;
-	}
-}
 
 ReactiveArmorBreak1()
 {
@@ -413,10 +391,7 @@ ReactiveArmorRestore7()
 
 Create()
 {
-	bMoving = FALSE;
-	bAiming = FALSE;
-	currentSpeed = 200;
-	moveSpeed = get MAX_SPEED;
+	isAiming = FALSE;
 	animSpeed = 9;
 	restore_delay = 10000;
 	shieldup = 1;
@@ -426,14 +401,9 @@ Create()
 	turn legThighR to y-axis <-10> speed <1931.974545> / animSpeed;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
 	restore_delay = 10000;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = torso;
 }
 
 static-var  Stunned;
@@ -442,51 +412,51 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn torsoPivot to y-axis <0.000000> speed <90.000000>;
-	turn gunSleeve to x-axis <0.000000> speed <90.000000>;
+	turn torsoPivot to y-axis <0.0> speed <90.0>;
+	turn gunSleeve to x-axis <0.0> speed <90.0>;
 	wait-for-turn torsoPivot around y-axis;
 	wait-for-turn gunSleeve around x-axis;
-	bAiming = FALSE;
+	isAiming = FALSE;
 }
 
 SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+ 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = topFlare;
+	pieceIndex = topFlare;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	bAiming = TRUE;
-	turn torsoPivot to y-axis heading speed <200.000000>;
-	turn gunSleeve to x-axis <0.000000> - pitch speed <90.000000>;
+	signal SIGNAL_AIM1;
+	isAiming = TRUE;
+	turn torsoPivot to y-axis heading speed <200.0>;
+	turn gunSleeve to x-axis <0.0> - pitch speed <90.0>;
 	wait-for-turn torsoPivot around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary(){
+FireWeapon1(){
 	if (whichBarrel == 0){
- 		emit-sfx 1024 + 0 from topFlare;
+  		emit-sfx 1024 + 0 from topFlare;
 		move topBarrel to z-axis [-5] speed [100];
 		turn torso to y-axis <-10> speed <300>;
 		wait-for-turn torso around y-axis;
@@ -496,7 +466,7 @@ FirePrimary(){
 		return (0);
     }
     if (whichBarrel == 1){
- 		emit-sfx 1024 + 0 from bottomFlare;
+  		emit-sfx 1024 + 0 from bottomFlare;
 		move bottomBarrel to z-axis [-5] speed [100];
 		turn torso to y-axis <-10> speed <300>;
 		wait-for-turn torso around y-axis;
@@ -514,15 +484,8 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode hip type BITMAPONLY | NOHEATCLOUD;
 		explode legThighR type BITMAPONLY | NOHEATCLOUD;
-		//explode rleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode lleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lfoot type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		//explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode legThighL type BITMAPONLY | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -530,15 +493,8 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode hip type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode legThighR type FALL | NOHEATCLOUD;
-		//explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type FALL | NOHEATCLOUD;
-		//explode lleg type FALL | NOHEATCLOUD;
-		//explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type FALL | NOHEATCLOUD;
-		//explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode legThighL type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -546,28 +502,15 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode hip type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode legThighR type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode luparm type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode legThighL type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode hip type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode legThighR type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode legShinR type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode legThighL type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

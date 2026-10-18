@@ -1,18 +1,24 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, turretbase, turretstrut, barrel, flare, firepoint, lida, lidb, aimfrom, aimpoint;
 
 static-var  is_open, restore_delay, Stunned;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
+
+#define BASEPIECE base
+#define HITSPEED <20.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 5
+#define MAXTILT 0
+
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Close()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	is_open = 0;
 	turn barrel to x-axis <30> speed <50>;
 	wait-for-turn barrel around x-axis;
@@ -39,10 +45,35 @@ Open()
 	move turretbase to y-axis [0] speed [150]; //move turretbase, turretstrut, barrel to original open spot
 	wait-for-move turretbase along y-axis; // wait for turretbase, turretstrut, barrel to move
 	turn turretstrut to x-axis <0> speed <150>; // turn turretstrut, barrel, around x-axis to partially open position
-	// wait-for-turn turretstrut around x-axis; // wait for turretstrut
 	turn barrel to x-axis <0> speed <150>; // turn barrel around x-axis to fully open position
 	wait-for-turn barrel around x-axis;
-	is_open = 1;	
+	is_open = 1;
+}
+
+ExecuteRestoreAfterDelay()
+{
+	if (Stunned) {
+		return (1);
+	}
+	hide aimpoint;
+	hide aimfrom;
+	hide flare;
+	hide firepoint;
+	start-script Close();
+}
+
+SetStunned(State)
+{
+	Stunned = State;
+	if (!Stunned) {
+		start-script ExecuteRestoreAfterDelay();
+	}
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 Create()
@@ -53,14 +84,7 @@ Create()
 	hide firepoint;
 	restore_delay = 2000;
 	is_open = 0;
-	// move turretbase to y-axis [-20] now;
-	// move turretstrut to y-axis [-10] now;
-	// move barrel to y-axis [-5] now;
-
-	while ( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	sleep 250;
 	if ( is_open == 0 )
 	{
@@ -68,37 +92,10 @@ Create()
 	}
 }
 
-
-ExecuteRestoreAfterDelay()
+AimWeapon1(heading, pitch)
 {
-    if (Stunned) {
-        return (1);
-    }
-	hide aimpoint;
-	hide aimfrom;
-	hide flare;
-	hide firepoint;
-	start-script Close();
-}
-
-SetStunned(State)
-{
-    Stunned = State;
-	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	}
-}
-
-RestoreAfterDelay()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
-}
-
-AimPrimary(heading, pitch)
-{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	if ( is_open == 0 )
 	{
@@ -111,39 +108,34 @@ AimPrimary(heading, pitch)
 		sleep 150;
 	}
 
-	turn turretbase to y-axis heading speed <200.000000>;
-	turn barrel to x-axis <0.000000> - pitch speed <200.000000>;
+	turn turretbase to y-axis heading speed <200.0>;
+	turn barrel to x-axis <0.0> - pitch speed <200.0>;
 	wait-for-turn turretbase around y-axis;
 	wait-for-turn barrel around x-axis;
 	start-script RestoreAfterDelay();
 	return(1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if (is_open == 1)
 	{
-		piecenum = flare;
+		pieceIndex = flare;
 	}
 	else
 	{
-		piecenum = aimfrom;
+		pieceIndex = aimfrom;
 	}
 }
 
-SweetSpot(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
-}
-
-AimFromPrimary(piecenum)
-{
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
 Killed(severity, corpsetype)
