@@ -70,8 +70,9 @@ local function readQueue(unitID)
 	return queuedAttacks, endPosition
 end
 
-local function sortNearestGroup(group, targets)
-	local centerX, centerZ = getCentroid(group, unitPositionAtQueueEnd)
+local centerX, centerZ = 0.0, 0.0
+
+local function sortNearestCenter(_, targets)
 	local distances = {}
 	for i = 1, #targets do
 		local targetID = targets[i]
@@ -85,7 +86,6 @@ local function sortNearestGroup(group, targets)
 end
 
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	-- Guard against re-entrancy: reissued orders can trigger CommandNotify again
 	if isReissuing then
 		return
 	end
@@ -159,8 +159,9 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 
 		local maxTargetsPerUnit = math_max(math_ceil(COMMAND_LIMIT / #attackers), 1)
+		centerX, centerZ = getCentroid(attackers, unitPositionAtQueueEnd)
 		local targetsPerUnit =
-			splitRivers(attackers, targets, unitPositionAtQueueEnd, sortNearestGroup, COMMAND_LIMIT, LANE_WIDTH)
+			splitRivers(attackers, targets, unitPositionAtQueueEnd, sortNearestCenter, COMMAND_LIMIT, LANE_WIDTH)
 		for i = 1, #attackers do
 			local unitID = attackers[i]
 			local unitTargets = targetsPerUnit[unitID]
@@ -176,7 +177,7 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 					break
 				end
 				local targetID = unitTargets[j]
-				if targetID ~= unitID and not (alreadyQueued and alreadyQueued[targetID]) then
+				if not (alreadyQueued and alreadyQueued[targetID]) then
 					count = count + 1
 					orders[#orders + 1] = { CMD_ATTACK, { targetID }, opts + CMD_OPT_SHIFT }
 				end

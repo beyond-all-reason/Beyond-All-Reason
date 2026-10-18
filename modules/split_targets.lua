@@ -113,33 +113,47 @@ local function assignLanes(units, unitIndex, targets, targetIndex, lanes, sortTa
 		end
 	end
 
-	for lane = 1, lanes do
-		local squad, band = laneUnits[lane], laneTargets[lane]
-		if #squad == 1 then
-			for j = 1, #band do
-				if band[j] == squad[1] then
-					-- The unit is alone in the lane and is targeting itself.
-					if lanes > 1 then
+	if lanes > 1 then
+		for lane = 1, lanes do
+			local squad, band = laneUnits[lane], laneTargets[lane]
+			if #squad == 1 then
+				for j = 1, #band do
+					if band[j] == squad[1] then
 						local neighbor = laneTargets[lane < lanes and lane + 1 or lane - 1]
-						band[j], neighbor[1] = neighbor[1], band[j]
-					else
-						band[j] = band[#band]
-						band[#band] = nil
+						band[j], neighbor[1] = neighbor[1], band[j] -- swap self-targets with neighbor lanes
+						break
 					end
-					break
 				end
 			end
 		end
 	end
 
+	if sortTargets then
+		for lane = 1, lanes do
+			sortTargets(laneUnits[lane], laneTargets[lane])
+		end
+	end
+
 	local result = table_new(0, countUnits)
 	for lane = 1, lanes do
-		local squad, band = laneUnits[lane], laneTargets[lane]
-		if sortTargets then
-			sortTargets(squad, band)
-		end
+		local squad = laneUnits[lane]
 		for s = 1, #squad do
-			result[squad[s]] = band
+			local unitID = squad[s]
+			local list, band = {}, laneTargets[lane]
+			for j = 1, #band do
+				if band[j] ~= unitID then
+					list[#list + 1] = band[j]
+				end
+			end
+			if not list[1] and lanes > 1 then
+				band = laneTargets[lane < lanes and lane + 1 or lane - 1]
+				for j = 1, #band do
+					if band[j] ~= unitID then
+						list[#list + 1] = band[j]
+					end
+				end
+			end
+			result[unitID] = list
 		end
 	end
 	return result
@@ -213,7 +227,7 @@ local function splitRoundRobin(units, targets, _, sortTargets)
 	if sortTargets then
 		for index = 1, countUnits do
 			local unitID = units[index]
-			sortTargets({ unitID }, result[unitID]) -- :c
+			sortTargets({ unitID }, result[unitID])
 		end
 	end
 	return result
