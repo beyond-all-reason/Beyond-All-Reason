@@ -393,7 +393,7 @@ specialEffectFunction.retarget = function(_, projectileID)
 
 	local targetType, target = spGetProjectileTarget(projectileID)
 	if targetType ~= targetedUnit then
-		return false -- retarget doesn't allow prefiring at the ground & reaiming onto targets
+		return true -- retarget doesn't allow prefiring at the ground & reaiming onto targets
 	end
 	---@cast target UnitID
 	if spGetUnitIsDead(target) == false then
