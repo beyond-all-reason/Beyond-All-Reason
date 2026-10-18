@@ -100,7 +100,7 @@ return {
 		},
 		weapondefs = {
 			corfhlt_laser = {
-				areaofeffect = 24,
+				areaofeffect = 96,
 				-- areaofeffect = 8,
 				avoidfeature = false,
 				beamtime = 0.3,
@@ -136,7 +136,7 @@ return {
 				weaponvelocity = 900,
 				damage = {
 					-- commanders = 350,
-					default = 300,
+					default = 650,
 					-- default = 231,
 					vtol = 52,
 				},
