@@ -20,7 +20,7 @@ return {
 		health = 335,
 		leavetracks = false,
 		mass = 740,
-		maxacc = 0.07135,
+		maxacc = 0.07,
 		maxdec = 0.4,
 		maxslope = 16,
 		maxwaterdepth = 0,
