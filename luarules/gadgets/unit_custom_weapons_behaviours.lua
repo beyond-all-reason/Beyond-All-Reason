@@ -402,12 +402,14 @@ specialEffectFunction.retarget = function(_, projectileID)
 	end
 
 	local ownerID = spGetProjectileOwnerID(projectileID)
-	if not ownerID then
+	local ownerDefID = ownerID and spGetUnitDefID(ownerID)
+	if not ownerDefID then
 		return true
 	end
 
-	---@diagnostic disable-next-line: need-check-nil -- OK: owner is alive, projectile is alive
-	local weaponNum = retargetWeapons[spGetProjectileDefID(projectileID) + spGetUnitDefID(ownerID) * hashBaseDefs] or 1
+	---@diagnostic disable-next-line: need-check-nil -- OK: projectile is alive
+	local weaponNum = retargetWeapons[spGetProjectileDefID(projectileID) + ownerDefID * hashBaseDefs] or 1
+	---@diagnostic disable-next-line: param-type-mismatch -- OK: owner is alive
 	local ownerTargetType, _fromUser, ownerTarget = spGetUnitWeaponTarget(ownerID, weaponNum)
 	setProjectileTarget(projectileID, ownerTarget, ownerTargetType)
 	return false
