@@ -123,9 +123,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
-				customparams = {
-					exclude_preaim = true,
-				},
 				damage = {
 					commanders = 112.5,
 					default = 75,
