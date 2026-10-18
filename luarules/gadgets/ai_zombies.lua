@@ -1268,7 +1268,7 @@ local function giveGhostMoveOrder(unitID, unitDefID, targetX, targetZ)
 	targetX = clamp(targetX, GHOST_MAP_MARGIN, MAP_SIZE_X - GHOST_MAP_MARGIN)
 	targetZ = clamp(targetZ, GHOST_MAP_MARGIN, MAP_SIZE_Z - GHOST_MAP_MARGIN)
 	local targetY = spGetGroundHeight(targetX, targetZ)
-	if spTestMoveOrder(unitDefID, targetX, targetY, targetZ) then
+	if aircraftUnitDefs[unitDefID] or spTestMoveOrder(unitDefID, targetX, targetY, targetZ) then
 		spGiveOrderToUnit(unitID, CMD_MOVE, { targetX, targetY, targetZ }, 0)
 		return true
 	end
