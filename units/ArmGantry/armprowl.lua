@@ -33,7 +33,6 @@ return {
 		turnrate = 1214.40002,
 		upright = true,
 		customparams = {
-			i18nfromunit = "armmar",
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmGantry",
