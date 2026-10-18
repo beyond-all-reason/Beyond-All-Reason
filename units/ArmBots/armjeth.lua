@@ -177,11 +177,6 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "BOGUS_MISSILE",
-				onlytargetcategory = "VTOL",
-			},
-			[2] = {
-				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARMBOT_MISSILE",
 				fastautoretargeting = true,
 				onlytargetcategory = "VTOL",
