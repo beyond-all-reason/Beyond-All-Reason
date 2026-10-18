@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "SethDGamre, code snippets/inspiration from Rafal",
 		date = "March 2024",
 		license = "GNU GPL, v2 or later",
-		layer = 6, -- after game_team_resources.lua, ai_ruins.lua, and unit_resurrected.lua so previous_xp is already on the corpse
+		layer = 6, -- after unit_corpse_link.lua, game_team_resources.lua, ai_ruins.lua, and unit_resurrected.lua so the corpse is already linked and previous_xp is on it
 		enabled = true,
 	}
 end
@@ -170,8 +170,9 @@ local BUILD_STEP_CHECK_INTERVAL = floor(Game.gameSpeed / 3)
 local ZOMBIE_REZ_HIJACK_LEAD_FRAMES = BUILD_STEP_CHECK_INTERVAL * 2.5
 
 local WATER_DAMAGE_DEF_ID = Game.envDamageTypes.Water
+local KILLED_BY_LUA_DAMAGE_DEF_ID = Game.envDamageTypes.KilledByLua
 local WATER_IS_LAVA = BAR.Lava ~= nil and BAR.Lava.isLavaMap == true
-local PENDING_DEATH_TIMEOUT_FRAMES = Game.gameSpeed * 10
+local PENDING_DEATH_TIMEOUT_FRAMES = Game.gameSpeed * 3
 local VANISHED_DEATH_CHECK_INTERVAL = 3
 local DEATH_NAMES_WITHOUT_CORPSE = {
 	Reclaimed = true,
@@ -181,6 +182,19 @@ local DEATH_NAMES_WITHOUT_CORPSE = {
 	ConstructionDecay = true,
 	OutOfBounds = true,
 	KilledByCheat = true,
+}
+local WATER_FEEDS_GHOSTS = WATER_IS_LAVA or (Game.waterDamage or 0) > 0
+local DEATH_NAMES_BLOCKING_GHOSTS = {
+	SetNegativeHealth = true,
+	KilledByCheat = true,
+	Reclaimed = true,
+	OutOfBounds = true,
+	FactoryKilled = true,
+	FactoryCancel = true,
+	ConstructionDecay = true,
+	TurnedIntoFeature = true,
+	KilledByLua = true,
+	Water = not WATER_FEEDS_GHOSTS,
 }
 local RULES_PARAM = {
 	REZ_FRAME = "zombie_rez_frame",
@@ -214,6 +228,7 @@ local vanishedDeaths = {}
 local pendingWreckSwaps = {}
 local suppressedDeaths = {}
 local DEATHS_WITHOUT_CORPSE = {}
+local DEATHS_BLOCKING_GHOSTS = {}
 local pendingZombieCaptures = {}
 local unitTamperFrames = {}
 local zombiesBeingBuilt = {}
@@ -221,6 +236,7 @@ local zombieUnitIDs = {}
 
 for deathName, damageTypeID in pairs(Game.envDamageTypes) do
 	DEATHS_WITHOUT_CORPSE[damageTypeID] = DEATH_NAMES_WITHOUT_CORPSE[deathName]
+	DEATHS_BLOCKING_GHOSTS[damageTypeID] = DEATH_NAMES_BLOCKING_GHOSTS[deathName]
 end
 
 local EFFECT = {
@@ -317,6 +333,9 @@ do
 	end
 
 	local function isExcludedFromGhostSpawn(unitDef)
+		if unitDef.customParams.drone or string.find(unitDef.name, "assistdrone", 1, true) then
+			return true
+		end
 		local unitGroup = unitDef.customParams.unitgroup
 		if unitGroup == "metal" or unitGroup == "energy" then
 			return not unitDefHasDamagingWeapon(unitDef)
@@ -1141,6 +1160,17 @@ local function isCorpseGuaranteeEligible(unitID, unitDefID, weaponDefID, isDrown
 	return not spring.GetUnitIsBeingBuilt(unitID)
 end
 
+local function isGhostFeedingDeath(unitID, unitDefID, weaponDefID)
+	-- The crashing aircraft gadget finishes the crash with Spring.DestroyUnit, which reports KilledByLua.
+	if weaponDefID == KILLED_BY_LUA_DAMAGE_DEF_ID and unitDefs[unitDefID].canFly then
+		return not spring.GetUnitIsBeingBuilt(unitID)
+	end
+	if DEATHS_BLOCKING_GHOSTS[weaponDefID] then
+		return false
+	end
+	return not spring.GetUnitIsBeingBuilt(unitID)
+end
+
 local function recordPendingDeath(unitID, unitDefID, unitTeam, attackerID, weaponDefID)
 	if not zombieUnitDefs[unitDefID].corpseDefID then
 		return
@@ -1162,6 +1192,7 @@ local function recordPendingDeath(unitID, unitDefID, unitTeam, attackerID, weapo
 		demoteCorpse = wasZombie and (isDrowned or not currentModeFeatures.alwaysCorpses),
 		forcedHeap = false,
 		guaranteeCorpse = guaranteeCorpse,
+		feedsGhost = isGhostFeedingDeath(unitID, unitDefID, weaponDefID),
 		timeoutFrame = gameFrame + PENDING_DEATH_TIMEOUT_FRAMES,
 	}
 	if guaranteeCorpse then
@@ -1261,7 +1292,7 @@ local function registerDeathFeature(featureID, featureDefID, deathData)
 		return
 	end
 
-	if not deathData or deathData.forcedHeap then
+	if not deathData or deathData.forcedHeap or not deathData.feedsGhost then
 		return
 	end
 	local featureX, _, featureZ = spring.GetFeaturePosition(featureID)
@@ -1284,7 +1315,7 @@ local function createDeathCorpse(deathData, featureX, featureY, featureZ, headin
 	replacementDeathData = deathData
 	local featureID = spring.CreateFeature(corpseDefID, featureX, featureY, featureZ, heading, teamID)
 	replacementDeathData = nil
-	if not featureID then
+	if not featureID and deathData.feedsGhost then
 		feedGhostQueue(deathData.unitDefID, featureX, featureZ, deathData.wasZombie)
 	end
 end
@@ -1327,7 +1358,9 @@ end
 
 local function resolveDeathWithoutWreck(deathData)
 	if not deathData.guaranteeCorpse then
-		feedGhostQueue(deathData.unitDefID, deathData.x, deathData.z, deathData.wasZombie)
+		if deathData.feedsGhost then
+			feedGhostQueue(deathData.unitDefID, deathData.x, deathData.z, deathData.wasZombie)
+		end
 		return
 	end
 	deathData.previousStates = {
@@ -1348,7 +1381,7 @@ local function resolveVanishedDeaths()
 			pendingDeaths[unitID] = nil
 			vanishedCount = vanishedCount + 1
 			vanishedDeaths[vanishedCount] = deathData
-		elseif deathData.timeoutFrame <= gameFrame then
+		elseif deathData.timeoutFrame < gameFrame then
 			pendingDeaths[unitID] = nil
 		end
 	end
