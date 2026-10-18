@@ -528,6 +528,10 @@ staticPieceCollisionVolume.armthor = {
 	[0] = { 80, 25, 80, 0, 10, 0, 2, 1 },
 	[15] = { 55, 25, 40, 0, 0, 0, 2, 1 },
 }
+staticPieceCollisionVolume.armmygalomorph = {
+	[0] = { 82, 32, 52, 0, -8.1, 1, 2, 1 },
+	[2] = { 49, 39, 28, 0, 14.4, 1, 2, 1 },
+}
 staticPieceCollisionVolume.legfloat = {
 	[0] = { 40, 18, 50, 0, -1.5, 0, 2, 1 },
 	[8] = { 18, 9, 30, 0, 1, -5, 2, 1 },
