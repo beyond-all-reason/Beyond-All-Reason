@@ -44,6 +44,9 @@ uniform vec4 rangeColor;
 #if defined(LINE_THIN_END) && !defined(STENCILPASS)
 	uniform float lineWidthPx = 1.0; // the line width set with glLineWidth
 #endif
+#if defined(FADE_END) && !defined(STENCILPASS)
+	uniform float fadeStrength = 1.0; // 0 turns the camera distance fade off
+#endif
 
 uniform sampler2D heightmapTex;
 
@@ -142,11 +145,13 @@ void main() {
 		#if defined(STIPPLE_RATE) || defined(LINE_THIN_END)
 			v_lineClipXYW = gl_Position.xyw;
 		#endif
+		#if defined(LINE_THIN_END) || defined(FADE_END)
+			float camDist = distance(cameraViewInv[3].xyz, circleVertexWorldPos.xyz);
+		#endif
 		#ifdef LINE_THIN_END
 			// LINE_THIN_SCALE of the width from LINE_THIN_END elmos from the camera on, easing in from LINE_THIN_START,
 			// though not below LINE_MIN_WIDTH pixels unless it was thinner to begin with
 			float thinStart = float(LINE_THIN_START);
-			float camDist = distance(cameraViewInv[3].xyz, circleVertexWorldPos.xyz);
 			float thin = mix(1.0, float(LINE_THIN_SCALE), smoothstep(thinStart, max(float(LINE_THIN_END), thinStart + 1.0), camDist));
 			v_lineHalfWidth = 0.5 * max(lineWidthPx * thin, min(lineWidthPx, float(LINE_MIN_WIDTH)));
 		#endif
@@ -156,6 +161,11 @@ void main() {
 		vec2 mymin = min(circleVertexWorldPos.xz,mapSize.xy - circleVertexWorldPos.xz);
 		float inboundsness = min(mymin.x, mymin.y); // how distant the vertex is from the map edge
 		inboundsness = 1.0 - clamp(inboundsness*(-0.02),0.0,1.0); // clamp to [0,1] range, and invert it so that the closer to the edge, the lower the value
+		#ifdef FADE_END
+			// fades out with the distance from the camera: full up to FADE_START elmos, gone from FADE_END elmos on
+			float fadeStart = float(FADE_START);
+			inboundsness *= 1.0 - fadeStrength * smoothstep(fadeStart, max(float(FADE_END), fadeStart + 1.0), camDist);
+		#endif
 		v_blendedcolor.rgb = rangeColor.rgb;
 		#ifdef USE_TEAMCOLOR
 			uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
