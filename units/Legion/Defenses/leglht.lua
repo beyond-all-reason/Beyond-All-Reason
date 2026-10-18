@@ -25,7 +25,7 @@ return {
 		script = "Units/LEGLHT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 494,
+		sightdistance = 500,
 		yardmap = "oooo",
 		customparams = {
 			usebuildinggrounddecal = true,

@@ -29,7 +29,7 @@ return {
 		script = "Units/COREXP.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 455,
+		sightdistance = 500,
 		yardmap = "h cbbbbbbc bssssosb bosbbssb bsbbbbsb bsbbbbsb bssbbsob bsossssb cbbbbbbc",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,

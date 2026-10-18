@@ -24,7 +24,7 @@ return {
 		script = "Units/CORHLLT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 475,
+		sightdistance = 500,
 		yardmap = "oooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
