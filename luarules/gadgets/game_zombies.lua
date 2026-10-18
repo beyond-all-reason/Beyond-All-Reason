@@ -157,6 +157,7 @@ local GHOST = {
 }
 local ghostMistUnitDefID = unitDefNames[GHOST.MIST_UNIT_NAME] and unitDefNames[GHOST.MIST_UNIT_NAME].id
 local ghostCount = 0
+local IDLEMODE_FLY = 0
 
 local ZOMBIE_EXPIRING_BUILDING_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't want random zombie immobile trash taking up unit cap forever.
 local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
@@ -1540,6 +1541,9 @@ function gadget:FeatureDestroyed(featureID, allyTeam)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if unitDefID == ghostMistUnitDefID then
+		spring.GiveOrderToUnit(unitID, CMD.IDLEMODE, { IDLEMODE_FLY }, 0)
+	end
 	if unitTeam == gaiaTeamID and builderID and isZombie(builderID) then
 		zombiesBeingBuilt[unitID] = true
 		spring.SetUnitRulesParam(unitID, "resurrected", 0, { inlos = true })

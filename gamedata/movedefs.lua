@@ -459,13 +459,6 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.MAXIMUM,
 		maxwaterslope = SLOPE.MAXIMUM,
 	},
-	-- scavapparition
-	SCAVAPPARITION = {
-		crushstrength = CRUSH.NONE,
-		footprint = 4,
-		maxslope = SLOPE.MAXIMUM,
-		speedModClass = SPEED_CLASS.Hover,
-	},
 	-- scavmist  scavmistxl scavmisstxxl
 	SCAVMIST = {
 		badwaterslope = SLOPE.MAXIMUM,
