@@ -1809,9 +1809,9 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 		return
 	end
 
-	-- units shared by the Share Unit command (luarules/gadgets/cmd_share_unit.lua) aren't announced,
-	-- a factory rally with a share order would spam the chat
-	local shareCommandFrame = tonumber(Spring.GetUnitRulesParam(unitID, "shareCommandFrame"))
+	-- units shared by the Share Unit command (luarules/gadgets/cmd_share_unit.lua) aren't announced
+	-- when used as part of a factory rally. Otherwise, it would spam the chat. 
+	local shareCommandFrame = Spring.GetUnitRulesParam(unitID, "shareCommandFrame")
 	if shareCommandFrame and spGetGameFrame() - shareCommandFrame < 30 then
 		return
 	end
