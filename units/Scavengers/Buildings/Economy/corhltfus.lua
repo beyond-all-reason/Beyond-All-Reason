@@ -138,7 +138,7 @@ return {
 					-- commanders = 350,
 					default = 650,
 					-- default = 231,
-					vtol = 52,
+					vtol = 325,
 				},
 			},
 		},
