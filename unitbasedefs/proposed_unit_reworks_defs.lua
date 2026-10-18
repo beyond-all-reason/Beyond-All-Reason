@@ -74,8 +74,8 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.speed = 46 -- was 58
 		uDef.weapondefs.cor_artillery.edgeeffectiveness = 0.15
 		uDef.weapondefs.cor_artillery.accuracy = 0
-		uDef.weapondefs.cor_artillery.reloadtime = 6 --5
-		uDef.weapondefs.cor_artillery.damage.default = 500 --420.
+		uDef.weapondefs.cor_artillery.reloadtime = 6.4 --5
+		uDef.weapondefs.cor_artillery.damage.default = 540 --420.
 	end
 
 	if name == "armsam" then
@@ -106,15 +106,15 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 	if name == "armllt" then
 		uDef.buildtime = uDef.buildtime - 700
-		uDef.health = uDef.health - 180
-		uDef.weapondefs.arm_lightlaser.range = uDef.weapondefs.arm_lightlaser.range - 10
+		uDef.health = uDef.health - 140
+		--uDef.weapondefs.arm_lightlaser.range = uDef.weapondefs.arm_lightlaser.range - 10
 		uDef.weapondefs.arm_lightlaser.energypershot = 15
 		uDef.weapondefs.arm_lightlaser.reloadtime = 0.6
 	end
 	if name == "corllt" then
 		uDef.buildtime = uDef.buildtime - 700
-		uDef.health = uDef.health - 180
-		uDef.weapondefs.cor_lightlaser.range = uDef.weapondefs.cor_lightlaser.range - 10
+		uDef.health = uDef.health - 140
+		--uDef.weapondefs.cor_lightlaser.range = uDef.weapondefs.cor_lightlaser.range - 10
 		uDef.weapondefs.cor_lightlaser.energypershot = 15
 		uDef.weapondefs.cor_lightlaser.reloadtime = 0.6
 	end
@@ -123,12 +123,12 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.metalcost = 200
 		uDef.health = 1100
 		uDef.weapondefs.hllt_bottom.reloadtime = 0.6
-		uDef.weapondefs.hllt_bottom.range = 425
+		--uDef.weapondefs.hllt_bottom.range = 425
 	end
 	if name == "corhllt" then
 		uDef.health = 1500
-		uDef.weapondefs.hllt_bottom.range = 425
-		uDef.weapondefs.hllt_bottom.reloadtime = 0.4
+		uDef.weapondefs.hllt_bottom.range = 435
+		uDef.weapondefs.hllt_bottom.reloadtime = 0.6
 		uDef.weapondefs.hllt_top.reloadtime = 0.4
 	end
 	if name == "armbeamer" then
