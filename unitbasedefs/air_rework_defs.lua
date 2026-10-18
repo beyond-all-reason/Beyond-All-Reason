@@ -12,7 +12,6 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.maxdec = 0.12
 	end
 
-
 	if name == "armsfig2" or name == "corsfig2" then
 		uDef.metalcost = 450
 		uDef.energycost = 6500
@@ -94,8 +93,6 @@ local function airReworkUnitTweaks(name, uDef)
 			vtol = 1000,
 		}
 	end
-
-
 
 	if name == "armhawk" or name == "corvamp" then
 		uDef.metalcost = 250
@@ -219,8 +216,6 @@ local function airReworkUnitTweaks(name, uDef)
 		--uDef.weapons[1].onlytargetcategory = "NOTSUB"
 	end
 
-
-
 	if name == "corshad" or name == "armthund" then
 		uDef.metalcost = uDef.metalcost * 1.2
 		uDef.health = uDef.health * 1.25
@@ -245,7 +240,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.coradvbomb.burstrate = 0.26
 		uDef.weapondefs.coradvbomb.mygravity = nil
 		uDef.weapondefs.coradvbomb.damage = {
-			default = 500
+			default = 500,
 		}
 	end
 	if name == "armpnix" then
@@ -253,8 +248,8 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.armadvbomb.burst = 6
 		uDef.weapondefs.armadvbomb.areaofeffect = 200
 		uDef.weapondefs.armadvbomb.mygravity = nil
-		uDef.weapondefs.armadvbomb.damage= {
-			default = 330
+		uDef.weapondefs.armadvbomb.damage = {
+			default = 330,
 		}
 	end
 
@@ -282,7 +277,6 @@ local function airReworkUnitTweaks(name, uDef)
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corsfig2"
 	end
-	
 
 	return uDef
 end
