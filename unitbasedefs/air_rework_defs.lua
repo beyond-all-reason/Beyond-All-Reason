@@ -28,7 +28,8 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.health = 2700
 		uDef.sightdistance = 460
 		uDef.cruisealtitude = 160
-		--uDef.turnradius = 128]]--
+		--uDef.turnradius = 128]]
+		--
 
 		uDef.maxacc = 0.09
 		uDef.hoverattack = true
@@ -292,7 +293,8 @@ local function airReworkWeaponTweaks(weaponDef)
 	end
 	if weaponDef.weapontype == "Cannon" and damage.default then
 		damage.vtol = damage.default * 0.35
-	end]]--
+	end]]
+	--
 end
 
 return {
