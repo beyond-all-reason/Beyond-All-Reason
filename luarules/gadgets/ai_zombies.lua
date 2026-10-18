@@ -44,10 +44,6 @@ local ENEMY_ATTACK_DISTANCE = 1000
 local ENEMY_ATTACK_DISTANCE_SQUARED = ENEMY_ATTACK_DISTANCE ^ 2
 local GHOST_ENEMY_RADIUS = 300
 local GHOST_ENEMY_RADIUS_SQUARED = GHOST_ENEMY_RADIUS * GHOST_ENEMY_RADIUS
-local GHOST_MOVE_ORDER_INTERVAL = Game.gameSpeed * 6
-local GHOST_MOVE_DISTANCE = 1000
-local GHOST_ENEMY_SEARCH_RADIUS = 99999
-local GHOST_MAP_MARGIN = 16
 local ORDER_DISTANCE = 1600
 local OBJECTIVE_REACHED_DISTANCE = 200
 local OBJECTIVE_REACHED_DISTANCE_SQUARED = OBJECTIVE_REACHED_DISTANCE ^ 2
@@ -93,8 +89,9 @@ local MAP_PERIMETER = 2 * (MAP_SIZE_X + MAP_SIZE_Z)
 local FEATURE_ID_OFFSET = Game.maxUnits
 local OBJECTIVE_TYPE_NORMAL = 1
 local OBJECTIVE_TYPE_AGGRO = 2
+local ENEMY_DIRECTION_TOWARD = 1
+local ENEMY_DIRECTION_AWAY = -1
 
-local sqrt = math.sqrt
 local clamp = math.clamp
 local spGetUnitNearestEnemy = spring.GetUnitNearestEnemy
 local spValidUnitID = spring.ValidUnitID
@@ -155,6 +152,7 @@ local teamAllyTeamIDs = {}
 local unitAllyTeamIDs = {}
 local unitAllyTeamIndices = {}
 local zombieWatch = {}
+local ghostWatch = {}
 local flyingUnits = {}
 local zombieOrderBuckets = {}
 local zombieStuckBuckets = {}
@@ -632,22 +630,31 @@ local function assignZombieAggroEvenly()
 	end
 end
 
-local function rememberEnemyDirection(unitID, zombieData, targetX, targetZ)
+local function setEnemyDirectionObjective(unitID, zombieData, targetX, targetZ, enemyDirection)
 	local unitX, _, unitZ = spGetUnitPosition(unitID)
 	if not unitX then
-		return
+		return false
 	end
-	local deltaX = targetX - unitX
-	local deltaZ = targetZ - unitZ
+	local deltaX = (targetX - unitX) * enemyDirection
+	local deltaZ = (targetZ - unitZ) * enemyDirection
 	if deltaX == 0 and deltaZ == 0 then
-		return
+		return false
 	end
-	local boundaryScale = math.min( -- project the enemy bearing out to the map edge for later pursuit
+	local boundaryScale = math.min( -- project the enemy bearing out to the map edge
 		mapEdgeScale(unitX, deltaX, MAP_SIZE_X),
 		mapEdgeScale(unitZ, deltaZ, MAP_SIZE_Z)
 	)
 	zombieData.rememberedObjectiveX = clampToMap(unitX + deltaX * boundaryScale, MAP_SIZE_X)
 	zombieData.rememberedObjectiveZ = clampToMap(unitZ + deltaZ * boundaryScale, MAP_SIZE_Z)
+	if zombieData.objective and zombieData.objective.type == OBJECTIVE_TYPE_AGGRO then
+		return false
+	end
+	zombieData.objective = {
+		type = OBJECTIVE_TYPE_NORMAL,
+		x = zombieData.rememberedObjectiveX,
+		z = zombieData.rememberedObjectiveZ,
+	}
+	return true
 end
 
 local function objectiveIsRememberedEdge(zombieData, objective)
@@ -957,7 +964,7 @@ local function updateOrders(unitID, unitDefID)
 				zombieData.combatTargetID = closestKnownEnemy
 				targetX, targetZ, shouldCapture, weaponRange, shouldReclaim =
 					nearestX, nearestZ, nearestShouldCapture, nearestWeaponRange, nearestShouldReclaim
-				rememberEnemyDirection(unitID, zombieData, targetX, targetZ)
+				setEnemyDirectionObjective(unitID, zombieData, targetX, targetZ, ENEMY_DIRECTION_TOWARD)
 			end
 		end
 
@@ -1264,48 +1271,39 @@ local function updateStuckZombies()
 	end)
 end
 
-local function giveGhostMoveOrder(unitID, unitDefID, targetX, targetZ)
-	targetX = clamp(targetX, GHOST_MAP_MARGIN, MAP_SIZE_X - GHOST_MAP_MARGIN)
-	targetZ = clamp(targetZ, GHOST_MAP_MARGIN, MAP_SIZE_Z - GHOST_MAP_MARGIN)
-	local targetY = spGetGroundHeight(targetX, targetZ)
-	if aircraftUnitDefs[unitDefID] or spTestMoveOrder(unitDefID, targetX, targetY, targetZ) then
-		spGiveOrderToUnit(unitID, CMD_MOVE, { targetX, targetY, targetZ }, 0)
-		return true
+local function getGhostData(unitID, unitDefID)
+	local ghostData = ghostWatch[unitID]
+	if not ghostData then
+		ghostData = {
+			unitDefID = unitDefID,
+			noGoZones = {},
+		}
+		setRandomEdgeObjective(ghostData)
+		ghostWatch[unitID] = ghostData
 	end
-	return false
+	return ghostData
 end
 
 local function commandGhost(unitID, unitDefID, ghostX, ghostY, ghostZ)
+	local ghostData = getGhostData(unitID, unitDefID)
 	local nearestEnemyID =
-		spGetClosestEnemyUnit(ghostX, ghostY, ghostZ, GHOST_ENEMY_SEARCH_RADIUS, gaiaAllyTeamID, false)
-	local fled = false
+		spGetClosestEnemyUnit(ghostX, ghostY, ghostZ, ENEMY_ATTACK_DISTANCE, gaiaAllyTeamID, false)
 	local enemyWithinRadius = false
-	local issueMoveOrder = gameFrame % GHOST_MOVE_ORDER_INTERVAL == 0
+	local objectiveRegenerated = false
 	if nearestEnemyID then
 		local enemyX, _, enemyZ = spGetUnitPosition(nearestEnemyID)
 		if enemyX then
-			local differenceX = ghostX - enemyX
-			local differenceZ = ghostZ - enemyZ
-			local enemyDistanceSquared = differenceX * differenceX + differenceZ * differenceZ
-			enemyWithinRadius = enemyDistanceSquared <= GHOST_ENEMY_RADIUS_SQUARED
-			if issueMoveOrder and enemyDistanceSquared > 0 then
-				local enemyDistance = sqrt(enemyDistanceSquared)
-				fled = giveGhostMoveOrder(
-					unitID,
-					unitDefID,
-					ghostX + differenceX / enemyDistance * GHOST_MOVE_DISTANCE,
-					ghostZ + differenceZ / enemyDistance * GHOST_MOVE_DISTANCE
-				)
+			enemyWithinRadius = distance2dSquared(ghostX, ghostZ, enemyX, enemyZ) <= GHOST_ENEMY_RADIUS_SQUARED
+			if nearestEnemyID ~= ghostData.threatTargetID then
+				objectiveRegenerated =
+					setEnemyDirectionObjective(unitID, ghostData, enemyX, enemyZ, ENEMY_DIRECTION_AWAY)
 			end
 		end
 	end
-	if issueMoveOrder and not fled then
-		giveGhostMoveOrder(
-			unitID,
-			unitDefID,
-			random(GHOST_MAP_MARGIN, MAP_SIZE_X - GHOST_MAP_MARGIN),
-			random(GHOST_MAP_MARGIN, MAP_SIZE_Z - GHOST_MAP_MARGIN)
-		)
+	ghostData.threatTargetID = nearestEnemyID
+	local objective, objectiveChanged = ensureMovementObjective(unitID, ghostData)
+	if objectiveRegenerated or objectiveChanged or spGetUnitCurrentCommand(unitID) ~= getMovementCommand(unitDefID) then
+		issueObjectiveMove(unitID, unitDefID, ghostData, objective)
 	end
 	return enemyWithinRadius
 end
@@ -1367,6 +1365,7 @@ end
 
 function gadget:UnitDestroyed(unitID)
 	flyingUnits[unitID] = nil
+	ghostWatch[unitID] = nil
 	unwatchZombie(unitID)
 	removeAllyTeamUnit(unitID)
 end
