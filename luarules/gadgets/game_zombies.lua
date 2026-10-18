@@ -163,6 +163,7 @@ local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reani
 local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
 
 local WATER_DAMAGE_DEF_ID = Game.envDamageTypes.Water
+local WATER_IS_LAVA = BAR.Lava ~= nil and BAR.Lava.isLavaMap == true
 local PENDING_DEATH_TIMEOUT_FRAMES = Game.gameSpeed * 10
 local DEATH_NAMES_WITHOUT_CORPSE = {
 	Reclaimed = true,
@@ -1198,46 +1199,8 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 	return false
 end
 
-local function isUnitInLava(unitID)
-	local _, unitY = spring.GetUnitBasePosition(unitID)
-	if not unitY then
-		return false
-	end
-
-	local lavaLevel = spring.GetGameRulesParam("lavaLevel")
-	if lavaLevel ~= nil and unitY < lavaLevel then
-		return true
-	end
-
-	local waterTypeOverlay = GG.WaterTypeOverlay
-	if waterTypeOverlay and waterTypeOverlay.isActive() and waterTypeOverlay.getActiveType() == "lava" then
-		local overlayLevel = waterTypeOverlay.getLevel()
-		if overlayLevel and unitY < overlayLevel then
-			return true
-		end
-	end
-
-	return false
-end
-
-local function isFluidDeath(unitID, weaponDefID, attackerID)
-	if weaponDefID == WATER_DAMAGE_DEF_ID then
-		return true
-	end
-	if not isUnitInLava(unitID) then
-		return false
-	end
-	if not weaponDefID or weaponDefID < 0 then
-		return true
-	end
-	if not attackerID or attackerID < 0 or not spring.ValidUnitID(attackerID) then
-		return true
-	end
-	return false
-end
-
-local function isCorpseGuaranteeEligible(unitID, unitDefID, weaponDefID, inFluid)
-	if not currentModeFeatures.alwaysCorpses or inFluid or DEATHS_WITHOUT_CORPSE[weaponDefID] then
+local function isCorpseGuaranteeEligible(unitID, unitDefID, weaponDefID, isDrowned)
+	if not currentModeFeatures.alwaysCorpses or isDrowned or DEATHS_WITHOUT_CORPSE[weaponDefID] then
 		return false
 	end
 	local unitDefData = zombieUnitDefs[unitDefID]
@@ -1257,8 +1220,8 @@ local function recordPendingDeath(unitID, unitDefID, unitTeam, attackerID, weapo
 		return
 	end
 	local wasZombie = isZombie(unitID)
-	local inFluid = currentModeFeatures.alwaysCorpses and isFluidDeath(unitID, weaponDefID, attackerID)
-	local guaranteeCorpse = isCorpseGuaranteeEligible(unitID, unitDefID, weaponDefID, inFluid)
+	local isDrowned = weaponDefID == WATER_DAMAGE_DEF_ID and not WATER_IS_LAVA
+	local guaranteeCorpse = isCorpseGuaranteeEligible(unitID, unitDefID, weaponDefID, isDrowned)
 	local deathData = {
 		unitDefID = unitDefID,
 		teamID = unitTeam,
@@ -1266,7 +1229,7 @@ local function recordPendingDeath(unitID, unitDefID, unitTeam, attackerID, weapo
 		y = unitY,
 		z = unitZ,
 		wasZombie = wasZombie,
-		demoteCorpse = wasZombie and (inFluid or not currentModeFeatures.alwaysCorpses),
+		demoteCorpse = wasZombie and (isDrowned or not currentModeFeatures.alwaysCorpses),
 		forcedHeap = false,
 		guaranteeCorpse = guaranteeCorpse,
 		timeoutFrame = gameFrame + PENDING_DEATH_TIMEOUT_FRAMES,
