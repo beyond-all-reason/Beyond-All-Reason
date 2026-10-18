@@ -18,7 +18,7 @@ return {
 		footprintz = 5,
 		health = 5500,
 		-- health = 4300,
-		hidedamage = true,
+		hidedamage = false,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
