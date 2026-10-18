@@ -832,7 +832,6 @@ local function createGhost(spawnX, spawnZ)
 	end
 
 	spring.SetUnitNeutral(unitID, true)
-	spring.SetUnitBuildSpeed(unitID, 0)
 	spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
 	if GG.SetWantedCloaked then
 		GG.SetWantedCloaked(unitID, 1)
