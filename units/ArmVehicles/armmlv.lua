@@ -10,6 +10,7 @@ return {
 		canreclaim = false,
 		canrepair = true,
 		canrestore = false,
+		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "22 28 35",
 		collisionvolumetype = "Box",
