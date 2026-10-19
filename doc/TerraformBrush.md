@@ -305,19 +305,13 @@ the screen edge.
 - The scale rides the placement wire format and save files, so save/load,
   undo/redo and map projects keep it.
 
-Why baked variants rather than scaling at runtime: the engine has no
-feature-scale API. `Spring.Set{Unit,Feature}PieceMatrix` looks like one, but
-`LocalModelPiece::SetPieceSpaceMatrix` is only
-`return blockScriptAnims = mat.IsRotOrRotTranMatrix();` -- it validates the
-matrix, sets a flag, and **discards the geometry entirely** (no member stores
-it; a piece's transform comes solely from `CalcPieceSpaceTransform(pos, rot,
-scale)`, and `SetPosition`/`SetRotation`/`SetScaling` are reachable only from
-unit animation scripts). Features therefore cannot be scaled -- or have their
-pieces posed at all -- from Lua. The gadget still understands a per-entry scale
-token on the wire (4/5/7/8-token forms) and applies collision/radius/mid-aim
-scaling, but only when the engine reports the matrix accepted, so on current
-engines that path is a clean no-op and it lights up automatically if a real API
-ever lands.
+Why the shader rather than the engine: the engine has no feature-scale API.
+`Spring.Set{Unit,Feature}PieceMatrix` looks like one, but
+`LocalModelPiece::SetPieceSpaceMatrix` only validates the matrix and discards
+the geometry, and piece scaling is reachable only from unit animation scripts.
+So the size is drawn (the CUS per-object uniform) and the interaction is scaled
+by the gadget (collision, radius and height, mid/aim). The scale rides the wire
+as the 5th token (no tilt) or the 8th (with tilt).
 
 #### WYSIWYG Preview
 
@@ -370,7 +364,8 @@ update queue, so a lifted feature stays lifted. Features created above the groun
 *are* queued and would fall, so the gadget zeroes their movement masks
 (`SetFeatureMoveCtrl` with `enabled = false`) to hold them in place.
 
-**Scale is not available.** The engine exposes no feature-scale setter.
+**The gizmo does not scale.** A feature keeps the scale it was placed with; the
+gizmo moves and turns it, and its ghosts draw at that scale.
 
 While dragging, the real features are hidden client-side
 (`Spring.SetFeatureNoDraw`) and ghosts follow the cursor, so nothing goes over
@@ -435,7 +430,7 @@ Brush-based grass density painting over the GL4 grass system.
 
 ### Weather Brush
 
-Places CEG-based weather effects (particles, ambient sounds) with persistence/cadence/frequency controls. Similar panel layout to Feature Placer.
+Places CEG-based weather effects (particles, ambient sounds) with persistence and cadence controls. Similar panel layout to Feature Placer.
 
 ### Clone Tool
 

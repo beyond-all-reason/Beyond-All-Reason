@@ -2392,7 +2392,6 @@ function widget:MouseWheel(up, value)
 		v = clampScale(v)
 		fp.scaleMin = v
 		fp.scaleMax = v
-		Echo(string.format("[Feature Placer] Scale: %.2fx", v))
 		return true
 	end
 
