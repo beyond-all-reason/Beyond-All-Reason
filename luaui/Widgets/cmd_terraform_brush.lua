@@ -773,7 +773,8 @@ extraState.getSymmetryOrigin = function()
 end
 
 -- Symmetry: compute all symmetric copies of a point + rotation.
--- Returns array of {x, z, rot} including the original.
+-- Returns array of {x, z, rot} including the original. Copies made by a mirror
+-- axis also carry mirror = true: they are reflections, not just turned.
 extraState.getSymmetricPositions = function(wx, wz, rot)
 	if not extraState.symmetryActive then
 		return { { x = wx, z = wz, rot = rot } }
@@ -810,14 +811,14 @@ extraState.getSymmetricPositions = function(wx, wz, rot)
 			local rx = ox + (adx * cosA - -adz * sinA)
 			local rz = oz + (adx * sinA + -adz * cosA)
 			positions[#positions + 1] =
-				{ x = rx, z = rz, rot = (2 * (extraState.symmetryMirrorAngle or 0) - rot) % 360 }
+				{ x = rx, z = rz, rot = (2 * (extraState.symmetryMirrorAngle or 0) - rot) % 360, mirror = true }
 		end
 		if mirrorY then
 			-- Reflect across rotated Y axis (negate aligned-X, transform back)
 			local rx = ox + (-adx * cosA - adz * sinA)
 			local rz = oz + (-adx * sinA + adz * cosA)
 			positions[#positions + 1] =
-				{ x = rx, z = rz, rot = (180 + 2 * (extraState.symmetryMirrorAngle or 0) - rot) % 360 }
+				{ x = rx, z = rz, rot = (180 + 2 * (extraState.symmetryMirrorAngle or 0) - rot) % 360, mirror = true }
 		end
 		if mirrorX and mirrorY then
 			-- Both: point symmetry through origin

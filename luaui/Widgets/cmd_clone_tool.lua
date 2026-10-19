@@ -1265,8 +1265,8 @@ end
 
 -- Where a click at (wx, wz) pastes: grid snap, then one target per symmetric copy.
 -- The click and the preview both go through here so the ghost sits exactly where
--- the paste lands. Every copy is pasted with the global rotation and mirror (see
--- applyPaste), so the rot each symmetric copy carries is not used.
+-- the paste lands. Each copy keeps its own turn (rot) and, when a mirror axis made
+-- it, mirror = true; copyTransform turns that into the copy's paste transform.
 local function resolvePasteTargets(wx, wz)
 	local tb = WG.TerraformBrush
 	local px, pz = wx, wz
@@ -1280,6 +1280,17 @@ local function resolvePasteTargets(wx, wz)
 		end
 	end
 	return { { x = px, z = pz } }
+end
+
+-- The paste transform of one symmetric copy: its own turn in degrees, and the
+-- mirror flags. A reflection across any axis is the same as flipping Z and turning
+-- by the copy's rot, so a mirrored copy flips the Z mirror.
+local function copyTransform(p)
+	local mirZ = pasteMirrorZ
+	if p.mirror then
+		mirZ = not mirZ
+	end
+	return p.rot or pasteRotation, pasteMirrorX, mirZ
 end
 
 -- Height of the pasted terrain at a box-local point: the same bilinear lookup the
@@ -1299,12 +1310,12 @@ end
 
 -- Footprint outline at the current ground, for a clipboard without terrain (or the
 -- ghost switched off): four corners, so it cuts through hills, which is fine there.
-local function drawFlatFootprint(buf, rotRad, targetX, targetZ)
+local function drawFlatFootprint(buf, rotRad, mirX, mirZ, targetX, targetZ)
 	local sX, sZ = buf.sizeX, buf.sizeZ
-	local c1x, c1z = transformPoint(0, 0, sX, sZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-	local c2x, c2z = transformPoint(sX, 0, sX, sZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-	local c3x, c3z = transformPoint(sX, sZ, sX, sZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-	local c4x, c4z = transformPoint(0, sZ, sX, sZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+	local c1x, c1z = transformPoint(0, 0, sX, sZ, rotRad, mirX, mirZ, targetX, targetZ)
+	local c2x, c2z = transformPoint(sX, 0, sX, sZ, rotRad, mirX, mirZ, targetX, targetZ)
+	local c3x, c3z = transformPoint(sX, sZ, sX, sZ, rotRad, mirX, mirZ, targetX, targetZ)
+	local c4x, c4z = transformPoint(0, sZ, sX, sZ, rotRad, mirX, mirZ, targetX, targetZ)
 	local yoff = 4
 	local c1y = spGetGroundHeight(c1x, c1z) + yoff
 	local c2y = spGetGroundHeight(c2x, c2z) + yoff
@@ -1329,12 +1340,11 @@ local function drawFlatFootprint(buf, rotRad, targetX, targetZ)
 end
 
 -- Small squares for the features and metal the paste carries, on the pasted surface
-local function drawPasteMarkers(buf, rotRad, targetX, targetZ)
+local function drawPasteMarkers(buf, rotRad, mirX, mirZ, targetX, targetZ)
 	local t = buf.terrain
 	local function markers(list, ms)
 		for _, e in ipairs(list) do
-			local wx, wz =
-				transformPoint(e.lx, e.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+			local wx, wz = transformPoint(e.lx, e.lz, buf.sizeX, buf.sizeZ, rotRad, mirX, mirZ, targetX, targetZ)
 			local wy = (t and pastedHeightAt(t, e.lx, e.lz) or spGetGroundHeight(wx, wz)) + 4
 			glVertex(wx - ms, wy, wz - ms)
 			glVertex(wx + ms, wy, wz - ms)
@@ -1358,16 +1368,15 @@ local function drawPastePreview(cursorX, cursorZ)
 		return
 	end
 	local buf = cloneBuffer
-	local rotRad = rad(pasteRotation)
 	local targets = resolvePasteTargets(cursorX, cursorZ)
 	local n = min(#targets, ClonePreview.MAX_INSTANCES)
-	local mirrorBits = (pasteMirrorX and 1 or 0) + (pasteMirrorZ and 2 or 0)
 	for i = 1, n do
 		local k = (i - 1) * 4
+		local rot, mirX, mirZ = copyTransform(targets[i])
 		previewInst[k + 1] = targets[i].x
 		previewInst[k + 2] = targets[i].z
-		previewInst[k + 3] = rotRad
-		previewInst[k + 4] = mirrorBits
+		previewInst[k + 3] = rad(rot)
+		previewInst[k + 4] = (mirX and 1 or 0) + (mirZ and 2 or 0)
 	end
 	previewLast.n, previewLast.x, previewLast.z = n, targets[1].x, targets[1].z
 
@@ -1379,11 +1388,13 @@ local function drawPastePreview(cursorX, cursorZ)
 		glDepthTest(true)
 	else
 		for i = 1, n do
-			drawFlatFootprint(buf, rotRad, targets[i].x, targets[i].z)
+			local rot, mirX, mirZ = copyTransform(targets[i])
+			drawFlatFootprint(buf, rad(rot), mirX, mirZ, targets[i].x, targets[i].z)
 		end
 	end
 	for i = 1, n do
-		drawPasteMarkers(buf, rotRad, targets[i].x, targets[i].z)
+		local rot, mirX, mirZ = copyTransform(targets[i])
+		drawPasteMarkers(buf, rad(rot), mirX, mirZ, targets[i].x, targets[i].z)
 	end
 	glColor(1, 1, 1, 1)
 end
@@ -1664,8 +1675,15 @@ function widget:MousePress(mx, my, button)
 			return true
 		elseif state == "paste_preview" then
 			-- Apply paste at cursor position (with snap + symmetric fan-out)
+			-- applyPaste reads the global transform: set each copy's own, then put it back
+			local rot0, mirX0, mirZ0 = pasteRotation, pasteMirrorX, pasteMirrorZ
 			for _, p in ipairs(resolvePasteTargets(wx, wz)) do
-				applyPaste(p.x, p.z)
+				pasteRotation, pasteMirrorX, pasteMirrorZ = copyTransform(p)
+				local ok, err = pcall(applyPaste, p.x, p.z)
+				pasteRotation, pasteMirrorX, pasteMirrorZ = rot0, mirX0, mirZ0
+				if not ok then
+					error(err, 0)
+				end
 			end
 			-- Stay in paste_preview for re-pasting
 			return true
