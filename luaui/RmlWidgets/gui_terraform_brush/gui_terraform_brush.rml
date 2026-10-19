@@ -1243,6 +1243,15 @@
 						<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Z (Shift+Z)</div>
 					</div>
 				</div>
+
+				<!-- Ghost opacity: how solid the pasted-terrain preview looks (0 = outline only) -->
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">PREVIEW OPACITY</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<input id="slider-cl-opacity" type="range" class="tf-slider" min="0" max="100" step="5" value="70" data-event-change="onClOpacityChange()" />
+					<input type="text" id="slider-cl-opacity-numbox" class="tf-slider-numbox" value="70" />
+				</div>
 				</div><!-- /section-cl-paste -->
 			</div><!-- /frame-cl-paste -->
 			</div>

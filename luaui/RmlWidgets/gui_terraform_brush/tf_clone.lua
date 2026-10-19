@@ -9,7 +9,7 @@ function M.attach(doc, ctx)
 
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 	-- Slider change events are wired declaratively via data-event-change= in RML.
-	for _, sid in ipairs({ "cl-rotation", "cl-height", "cl-history" }) do
+	for _, sid in ipairs({ "cl-rotation", "cl-height", "cl-history", "cl-opacity" }) do
 		local sl = doc:GetElementById("slider-" .. sid)
 		if sl then
 			trackSliderDrag(sl, sid)
@@ -81,6 +81,14 @@ function M.sync(doc, ctx, clState, setSummary)
 			local heightNumbox = getCachedEl(doc, "slider-cl-height-numbox")
 			if heightNumbox and ds ~= "cl-height" and clState then
 				heightNumbox:SetAttribute("value", tostring(math.floor(clState.pasteHeightOffset)))
+			end
+
+			-- Ghost opacity: dirty-checked, a raw SetAttribute raises a change every frame
+			if ds ~= "cl-opacity" and clState and clState.previewOpacity then
+				local v = tostring(math.floor(clState.previewOpacity * 100 + 0.5))
+				local setAttr = ctx.setAttrValueIfChanged
+				setAttr(getCachedEl(doc, "slider-cl-opacity"), "slider-cl-opacity", v)
+				setAttr(getCachedEl(doc, "slider-cl-opacity-numbox"), "slider-cl-opacity-numbox", v)
 			end
 
 			-- Sync mirror buttons (dm)

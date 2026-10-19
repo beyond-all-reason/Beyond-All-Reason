@@ -435,7 +435,9 @@ Places CEG-based weather effects (particles, ambient sounds) with persistence/ca
 
 Region-based copy & paste across all map data layers. Select an area, capture its contents, and stamp it elsewhere with rotation, mirroring, and height offset.
 
-**Files:** `luaui/Widgets/cmd_clone_tool.lua` · `luarules/gadgets/cmd_clone_tool.lua`
+**Files:** `luaui/Widgets/cmd_clone_tool.lua` · `luarules/gadgets/cmd_clone_tool.lua` · `luaui/Include/clone_preview_gl4.lua`
+
+**Paste preview.** Once a region is copied, the paste shows as a lit, textured copy of the terrain at the cursor, following rotation, mirroring, height offset, symmetry and grid snap, with buried parts drawn through the ground. PASTE > PREVIEW OPACITY sets how solid it looks (0 leaves the outline only). On tileset maps the ghost wears the biome colour without the slope rock the shader adds per pixel.
 
 #### Layer Toggles
 

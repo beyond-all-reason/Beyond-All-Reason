@@ -6733,6 +6733,12 @@ local initialModel = {
 			WG.CloneTool.setHeightOffset(math.max(-500, cur - 10))
 		end
 	end,
+	onClOpacityChange = function(_event)
+		if uiState.updatingFromCode or not (WG.CloneTool and WG.CloneTool.setPreviewOpacity) then
+			return
+		end
+		WG.CloneTool.setPreviewOpacity(_noSliderVal("cl-opacity", 70) / 100)
+	end,
 	onClToggleMirrorX = function(_event)
 		if not WG.CloneTool then
 			return
