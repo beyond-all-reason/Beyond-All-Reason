@@ -576,42 +576,43 @@ local function doCopy()
 		buf.decals = decalData
 	end
 
-	-- Weather (read from weather brush widget state)
+	-- Weather: the weather brush's persistent spawners whose centre is in the box
 	if layers.weather then
 		local weatherApi = WG.WeatherBrush
-		if weatherApi and weatherApi.getState then
-			local ws = weatherApi.getState()
-			-- Weather stores active placements; capture those in our box
-			buf.weather = {} -- Will be populated if weather brush exposes placed instances
+		if weatherApi and weatherApi.getPersistentSpawners then
+			local now = Spring.GetGameFrame()
+			local weatherData = {}
+			for _, s in ipairs(weatherApi.getPersistentSpawners()) do
+				if s.x >= box.x1 and s.x <= box.x2 and s.z >= box.z1 and s.z <= box.z2 then
+					s.lx, s.lz = s.x - box.x1, s.z - box.z1
+					-- remaining lifetime in seconds, -1 = permanent (addSpawnerRaw's persistence)
+					s.persistence = s.expireFrame and max(1, (s.expireFrame - now) / Game.gameSpeed) or -1
+					weatherData[#weatherData + 1] = s
+				end
+			end
+			buf.weather = weatherData
 		end
 	end
 
-	-- Lights (read from light placer widget state)
+	-- Lights: the light placer's placed lights in the box, kept with their
+	-- height above the ground so they land as high above the pasted ground
 	if layers.lights then
 		local lightApi = WG.LightPlacer
-		if lightApi and lightApi.getState then
-			local ls = lightApi.getState()
-			if ls and ls.placedLights then
-				local lightData = {}
-				for _, light in ipairs(ls.placedLights) do
-					if
-						light.x
-						and light.x >= box.x1
-						and light.x <= box.x2
-						and light.z
-						and light.z >= box.z1
-						and light.z <= box.z2
-					then
-						lightData[#lightData + 1] = {
-							lx = light.x - box.x1,
-							ly = light.y or 0,
-							lz = light.z - box.z1,
-							params = light.params,
-						}
-					end
+		if lightApi and lightApi.getPlacedLights then
+			local lightData = {}
+			for _, rec in ipairs(lightApi.getPlacedLights()) do
+				local x, y, z = rec.pos[1], rec.pos[2], rec.pos[3]
+				if x >= box.x1 and x <= box.x2 and z >= box.z1 and z <= box.z2 then
+					local elevation = rec.elevation or 0
+					lightData[#lightData + 1] = {
+						lx = x - box.x1,
+						lz = z - box.z1,
+						groundY = y - elevation,
+						def = rec,
+					}
 				end
-				buf.lights = lightData
 			end
+			buf.lights = lightData
 		end
 	end
 
@@ -1031,24 +1032,70 @@ local function applyPaste(targetX, targetZ)
 		end
 	end
 
-	-- Lights
+	-- A yaw (degrees, 0 = +z, 90 = +x) turned and mirrored like the paste
+	local function pasteYaw(yawDeg)
+		local dx, dz = sin(rad(yawDeg or 0)), cos(rad(yawDeg or 0))
+		if pasteMirrorX then
+			dx = -dx
+		end
+		if pasteMirrorZ then
+			dz = -dz
+		end
+		local c, s = cos(rotRad), sin(rotRad)
+		return math.deg(math.atan2(dx * c - dz * s, dx * s + dz * c))
+	end
+
+	-- Lights: through the light placer, one undo step there. When the terrain
+	-- is pasted too the ground under a light is the copied ground plus the
+	-- height offset; the gadget has not applied it yet, so the height is given.
 	local function applyLights()
-		if not buf.lights then
+		local lightApi = WG.LightPlacer
+		if not (buf.lights and lightApi and lightApi.addLights) then
 			return
 		end
+		local list = {}
 		for _, l in ipairs(buf.lights) do
 			local wx, wz =
 				transformPoint(l.lx, l.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 			wx, wz = clampToMap(wx, wz)
-			local wy = l.ly + pasteHeightOffset
-			if l.params then
-				local p = {}
-				for k, v in pairs(l.params) do
-					p[k] = v
-				end
-				p.position = { wx, wy, wz }
-				Spring.AddMapLight(p)
+			local def = {}
+			for k, v in pairs(l.def) do
+				def[k] = v
 			end
+			def.yaw = pasteYaw(l.def.yaw)
+			local y = buf.terrain and (l.groundY + pasteHeightOffset + (l.def.elevation or 0)) or nil
+			list[#list + 1] = { x = wx, z = wz, y = y, def = def }
+		end
+		lightApi.addLights(list)
+	end
+
+	-- Weather: persistent spawners through the weather brush. Their shape
+	-- angle turns with the paste (a direction (cos, sin) in the x, z plane).
+	local function applyWeather()
+		local weatherApi = WG.WeatherBrush
+		if not (buf.weather and weatherApi and weatherApi.addSpawnerRaw) then
+			return
+		end
+		for _, s in ipairs(buf.weather) do
+			local wx, wz =
+				transformPoint(s.lx, s.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+			wx, wz = clampToMap(wx, wz)
+			local a = rad(s.angleDeg or 0)
+			local ax, az = cos(a), sin(a)
+			if pasteMirrorX then
+				ax = -ax
+			end
+			if pasteMirrorZ then
+				az = -az
+			end
+			local c, sn = cos(rotRad), sin(rotRad)
+			local entry = {}
+			for k, v in pairs(s) do
+				entry[k] = v
+			end
+			entry.x, entry.z = wx, wz
+			entry.angleDeg = math.deg(math.atan2(ax * sn + az * c, ax * c - az * sn))
+			weatherApi.addSpawnerRaw(entry)
 		end
 	end
 
@@ -1061,7 +1108,7 @@ local function applyPaste(targetX, targetZ)
 	applyFeatures()
 	applyDecals()
 	applyLights()
-	-- Weather: would need to place CEGs at positions; deferred for now
+	applyWeather()
 
 	spEcho("[Clone Tool] Paste applied" .. heapNote(heapGC, heapAlloc))
 end

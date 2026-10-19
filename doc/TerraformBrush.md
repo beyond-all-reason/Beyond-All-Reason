@@ -458,8 +458,8 @@ Each layer can be independently enabled/disabled. Only enabled layers are captur
 | **Surface** | `WG.SurfacePainter.region.copy()` of the tileset variant mask(s) | `region.paste()` onto the four destination corners | ✅ Full (needs the surface painter installed) |
 | **Grass** | `WG['grassgl4'].getDensityAt(x,z)` per patch | `setDensityAt(x,z,val)` per patch | ✅ Full |
 | **Decals** | `Spring.GetAllGroundDecals()` + per-decal queries | `Spring.CreateGroundDecal()` with transforms | ✅ Implemented (toggle disabled) |
-| **Weather** | Widget Lua table (weather brush state) | Re-emit via weather brush message | ⬜ Stub (awaiting `WG.WeatherBrush` API) |
-| **Lights** | `WG.LightPlacer` API state | `Spring.AddMapLight` with rotation/offset | ✅ Implemented (toggle disabled) |
+| **Weather** | `WG.WeatherBrush.getPersistentSpawners()` (spawners centred in the box) | `addSpawnerRaw()` per spawner, shape angle turned with the paste | ✅ Full (no undo: the weather brush keeps none) |
+| **Lights** | `WG.LightPlacer.getPlacedLights()` (height above ground kept) | `WG.LightPlacer.addLights()`, aim turned and mirrored, one undo step in LIGHTS | ✅ Full |
 | **Terrain Texture (PBR)** | *Deferred* | *Deferred* | ⬜ Deferred |
 
 **Surface** is the tileset shader's variant paint: the material a patch of ground wears under the new terrain shader. It travels with Splats so a cloned piece of map keeps the look it was painted with, not just its height. The painter owns the masks (there are two once variant 4 is in use), so the clone tool asks it to cut the patch out and lay it down again; the paste snapshots for undo on the painter's own stack, so Ctrl+Z in the SURFACE tool takes it back. The mask belongs to a write-dir widget, so the layer quietly carries nothing on an install without it.

@@ -425,9 +425,11 @@ local function generateScatterPositions(cx, cz, radius, count, shape, rotDeg, di
 end
 
 ----------------------------------------------------------------
--- Add a single GL4 deferred light and track it
+-- Add a single GL4 deferred light and track it. absY places it at that
+-- height instead of elevation above the ground under it (the clone tool
+-- pastes lights before the pasted terrain has reached the ground).
 ----------------------------------------------------------------
-local function addOneLight(px, pz, lightDef)
+local function addOneLight(px, pz, lightDef, absY)
 	local lightsAPI = WG.lightsgl4
 	if not lightsAPI then
 		return nil
@@ -439,7 +441,7 @@ local function addOneLight(px, pz, lightDef)
 	end
 	-- Elevate above ground: prefer per-light elevation (e.g. from save) over live slider.
 	local elevation = lightDef.elevation or lp.elevation
-	py = py + elevation
+	py = absY or (py + elevation)
 
 	local r = lightDef.color[1] * lightDef.brightness
 	local g = lightDef.color[2] * lightDef.brightness
@@ -1695,6 +1697,37 @@ function widget:Initialize()
 				n = n + 1
 			end
 			return n
+		end,
+
+		-- Copies of every placed light record (pos, elevation, colour and the
+		-- rest of its definition), for the clone tool.
+		getPlacedLights = function()
+			local out = {}
+			for _, rec in pairs(placedLights) do
+				local copy = {}
+				for k, v in pairs(rec) do
+					copy[k] = v
+				end
+				copy.pos = { rec.pos[1], rec.pos[2], rec.pos[3] }
+				copy.color = { rec.color[1], rec.color[2], rec.color[3] }
+				out[#out + 1] = copy
+			end
+			return out
+		end,
+		-- Places a list of { x, z, y, def } (def = a light record, y = absolute
+		-- height or nil for def.elevation above the ground) as one undo step.
+		addLights = function(list)
+			local added = {}
+			for _, item in ipairs(list or {}) do
+				local rec = addOneLight(item.x, item.z, item.def, item.y)
+				if rec then
+					added[#added + 1] = rec
+				end
+			end
+			if #added > 0 then
+				pushUndo("add", added)
+			end
+			return #added
 		end,
 	}
 end
