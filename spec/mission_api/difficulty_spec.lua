@@ -2,7 +2,7 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
-local difficulty = MissionSpecEnv.registerModules(env).Difficulty
+local difficulty = MissionSpecEnv.registerModules(env).Difficulty ---@type table
 
 -- Difficulties from luarules/mission_api/difficulties.json: Story = 1, Easy = 2, Medium = 3, Hard = 4.
 local STORY, EASY, MEDIUM, HARD = 1, 2, 3, 4
@@ -235,6 +235,23 @@ describe("mission_api.difficulty", function()
 			difficulty.ResolveObjectives(objectives)
 
 			assert.are.equal(trigger, objectives.o.trigger)
+		end)
+
+		describe("ResolveCutscenes", function()
+			it("resolves wrapped cutscene fields in place and leaves plain ones alone", function()
+				withDifficulty(HARD)
+				local cutscenes = {
+					intro = { videoFile = { difficulties = { Easy = "videos/easy.mp4", Hard = "videos/hard.mp4" } } },
+					landing = { script = "landingParty" },
+				}
+
+				difficulty.ResolveCutscenes(cutscenes)
+
+				assert.are.same({
+					intro = { videoFile = "videos/hard.mp4" },
+					landing = { script = "landingParty" },
+				}, cutscenes)
+			end)
 		end)
 	end)
 end)
