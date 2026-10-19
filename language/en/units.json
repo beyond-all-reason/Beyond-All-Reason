@@ -13,6 +13,7 @@
 		"scavCommanderNameTag": "Scav Commander",
 		"scavDecoyCommanderNameTag": "Scav Decoy",
 		"names": {
+			"portal_gate": "Portal",
 			"legsplab": "Offshore Seaplane Platform",
 			"legspcon": "Construction Seaplane",
 			"legspsurfacegunship": "Enyo",
@@ -982,6 +983,7 @@
 			"xmasball2_6": "Xmas ball"
 		},
 		"descriptions": {
+			"portal_gate": "Right click with mobile units to travel",
 			"legsplab": "Constructs Seaplanes",
 			"legspcon": "Tech 1 Constructor",
 			"legspsurfacegunship": "Riot Cannon Seaplane Gunship",

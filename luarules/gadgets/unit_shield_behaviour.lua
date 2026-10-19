@@ -417,13 +417,15 @@ local function setCoveredUnits(shieldUnitID)
 	local covered = oldCovered or {} -- reuse cleared table to reduce GC
 	for i = 1, #unitsTable do
 		local unitID = unitsTable[i]
-		local shieldSet = unitCoverages[unitID]
-		if not shieldSet then
-			shieldSet = {}
-			unitCoverages[unitID] = shieldSet
+		if not GG.PortalIsolation or GG.PortalIsolation.UnitRegion(unitID) == GG.PortalIsolation.UnitRegion(shieldUnitID) then
+			local shieldSet = unitCoverages[unitID]
+			if not shieldSet then
+				shieldSet = {}
+				unitCoverages[unitID] = shieldSet
+			end
+			shieldSet[shieldUnitID] = true
+			covered[unitID] = true
 		end
-		shieldSet[shieldUnitID] = true
-		covered[unitID] = true
 	end
 	shieldCoverages[shieldUnitID] = covered
 
@@ -923,13 +925,15 @@ end
 ---@return integer[] shieldUnits
 ---@return integer count
 local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
+	local isolation = GG.PortalIsolation
+	local region = isolation and isolation.Region(x, z)
 	radius = mathMax(radius or 0, 0.001)
 
 	local units, count = {}, 0
 	local position, intersect = getUnitShieldWeaponPosition, isBallShellIntersection
 
 	for unitID, unitData in pairs(shieldUnitsData) do
-		if unitData.shieldEnabled then
+		if unitData.shieldEnabled and (not isolation or isolation.UnitRegion(unitID) == region) then
 			local sx, sy, sz, shieldRadius = position(unitID, unitData)
 			if sx and intersect(x - sx, y - sy, z - sz, radius, shieldRadius) then
 				count = count + 1
@@ -943,7 +947,7 @@ local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
 	end
 
 	for unitID, unitData in pairs(destroyedUnitData) do
-		if unitData.shieldEnabled then
+		if unitData.shieldEnabled and (not isolation or isolation.UnitRegion(unitID) == region) then
 			local sx, sy, sz, shieldRadius = position(unitID, unitData)
 			if intersect(x - sx, y - sy, z - sz, radius, shieldRadius) then
 				count = count + 1
@@ -966,13 +970,16 @@ end
 ---@return integer[] shieldUnits
 ---@return integer count
 local function getBlockingShieldUnits(x, y, z, radius, allyTeam, onlyAlive)
+	local isolation = GG.PortalIsolation
+	local region = isolation and isolation.Region(x, z)
 	radius = mathMax(radius or 0, 0.001)
 
 	local units, count = {}, 0
 	local position, blocking = getUnitShieldWeaponPosition, isExternalBallShellIntersection
 
 	for unitID, unitData in pairs(shieldUnitsData) do
-		if unitData.shieldEnabled and allyTeam ~= spGetUnitAllyTeam(unitID) then
+		if unitData.shieldEnabled and allyTeam ~= spGetUnitAllyTeam(unitID)
+			and (not isolation or isolation.UnitRegion(unitID) == region) then
 			local sx, sy, sz, shieldRadius = position(unitID, unitData)
 			if sx and blocking(x - sx, y - sy, z - sz, radius, shieldRadius) then
 				count = count + 1
@@ -986,7 +993,8 @@ local function getBlockingShieldUnits(x, y, z, radius, allyTeam, onlyAlive)
 	end
 
 	for unitID, unitData in pairs(destroyedUnitData) do
-		if unitData.shieldEnabled and allyTeam ~= spGetUnitAllyTeam(unitID) then
+		if unitData.shieldEnabled and allyTeam ~= spGetUnitAllyTeam(unitID)
+			and (not isolation or isolation.UnitRegion(unitID) == region) then
 			local sx, sy, sz, shieldRadius = position(unitID, unitData)
 			if blocking(x - sx, y - sy, z - sz, radius, shieldRadius) then
 				count = count + 1
@@ -1009,13 +1017,15 @@ end
 ---@return integer[] shieldUnits
 ---@return integer count
 local function getCoveringShieldUnits(x, y, z, radius, onlyAlive)
+	local isolation = GG.PortalIsolation
+	local region = isolation and isolation.Region(x, z)
 	radius = mathMax(radius or 0, 0.001)
 
 	local units, count = {}, 0
 	local position, contained = getUnitShieldWeaponPosition, isBallInsideShell
 
 	for unitID, unitData in pairs(shieldUnitsData) do
-		if unitData.shieldEnabled then
+		if unitData.shieldEnabled and (not isolation or isolation.UnitRegion(unitID) == region) then
 			local sx, sy, sz, shieldRadius = position(unitID, unitData)
 			if sx and contained(x - sx, y - sy, z - sz, radius, shieldRadius) then
 				count = count + 1
@@ -1029,7 +1039,7 @@ local function getCoveringShieldUnits(x, y, z, radius, onlyAlive)
 	end
 
 	for unitID, unitData in pairs(destroyedUnitData) do
-		if unitData.shieldEnabled then
+		if unitData.shieldEnabled and (not isolation or isolation.UnitRegion(unitID) == region) then
 			local sx, sy, sz, shieldRadius = position(unitID, unitData)
 			if contained(x - sx, y - sy, z - sz, radius, shieldRadius) then
 				count = count + 1

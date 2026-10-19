@@ -15,6 +15,8 @@ layout (location = 2) in uvec4 instData;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
+uniform vec4 portalBounds;
+bool outsidePortal(vec2 p) { return portalBounds.z > portalBounds.x && (any(lessThan(p, portalBounds.xy)) || any(greaterThanEqual(p, portalBounds.zw))); }
 
 struct SUniformsBuffer {
     uint composite; //     u8 drawFlag; u8 unused1; u16 id;
@@ -52,6 +54,7 @@ uniform sampler2D heightmapTex;
 
 out DataVS {
 	vec4 v_radius_circum_height;
+	vec2 v_worldXZ;
 	#ifndef STENCILPASS
 		flat vec4 v_blendedcolor;
 		#if defined(STIPPLE_RATE) || defined(LINE_THIN_END)
@@ -75,6 +78,10 @@ void main() {
 	
 	// Get the center position of each unit. 
 	vec4 circleCenterWorldPos = vec4(uni[instData.y].drawPos.xyz, 1.0);
+	if (outsidePortal(circleCenterWorldPos.xz)) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
+	}
 	// sensors sit at the unit's midPos: the model's mid offset turned with the heading (drawPos.w, radians)
 	vec2 front = vec2(sin(uni[instData.y].drawPos.w), cos(uni[instData.y].drawPos.w));
 	circleCenterWorldPos.xz += front * radius_params.w + vec2(-front.y, front.x) * radius_params.z;
@@ -136,6 +143,7 @@ void main() {
 	#endif
 	
 
+	v_worldXZ = circleVertexWorldPos.xz;
 	gl_Position = cameraViewProj * circleVertexWorldPos;
 	#ifndef STENCILPASS // Circle Pass
 		// depth tested 16 elmos closer to the camera, so terrain bulging between the vertices doesn't hide the line
