@@ -524,7 +524,7 @@ local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTe
 		for shieldUnitID in pairs(unitShields) do
 			if
 				not (attackerShields and attackerShields[shieldUnitID])
-				and spGetUnitAllyTeam(shieldUnitID) ~= attackerAllyTeam -- No coverage for third parties.
+				and spGetUnitAllyTeam(shieldUnitID) ~= attackerAllyTeam -- Allied damages are passed through.
 			then
 				return true
 			end
