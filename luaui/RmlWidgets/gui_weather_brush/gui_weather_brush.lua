@@ -194,9 +194,9 @@ local categoryGroups = {
 	{ label = "FOG &amp; ATMOSPHERE", startIdx = 10 },
 	{ label = "FIRE &amp; VOLCANIC", startIdx = 15 },
 	{ label = "AMBIENT &amp; MAGICAL", startIdx = 19 },
-	{ label = "STORM &amp; ENERGY", startIdx = 25 },
-	{ label = "SMOKE &amp; INDUSTRIAL", startIdx = 27 },
-	{ label = "SPECIAL", startIdx = 29 },
+	{ label = "STORM &amp; ENERGY", startIdx = 24 },
+	{ label = "SMOKE &amp; INDUSTRIAL", startIdx = 26 },
+	{ label = "SPECIAL", startIdx = 28 },
 }
 
 -- ===========================================================================
