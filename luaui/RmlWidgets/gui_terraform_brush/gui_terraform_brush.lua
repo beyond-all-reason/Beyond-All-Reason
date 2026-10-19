@@ -1821,11 +1821,17 @@ local _tbFollowModes = { raise = true, lower = true, level = true, smooth = true
 -- impassable purple, so a cliff can be judged while sculpting. Degrees are read
 -- off a representative unit's movedef so the band matches what F6 draws; the
 -- literals are gamedata/movedefs.lua's own SLOPE values as a fallback.
+-- SHIP is not a slope: ships need water deeper than their movedef's minimum, so
+-- that class switches the engine's own traversability view to a ship movedef
+-- (/showpathtype, the F6 colours, no unit selected) and needs no tileset shader.
+-- `prevDrawMode` is the view to go back to afterwards.
 local _tbPassClasses = {
 	{ key = "BOT", unit = "armpw", deg = 54 },
 	{ key = "VEH", unit = "armflash", deg = 27 },
 	{ key = "HOVER", unit = "corch", deg = 33 },
 	{ key = "AMPH", unit = "coramph", deg = 54 },
+	{ key = "SHIP", unit = "armpt", engine = true },
+	prevDrawMode = nil,
 }
 local _tbPassIdx = 0 -- 0 = off
 local function _tbPassDeg(entry)
@@ -14745,13 +14751,36 @@ local initialModel = {
 	end,
 	onTbCyclePassability = function(_event)
 		local TT = WG.TilesetTerrain
-		if not (TT and TT.setKnob) then
-			Spring.Echo("[Terraform Brush] PASSABILITY needs the tileset shader (SHADER in the SCENE window)")
-			return
+		local hasTT = TT and TT.setKnob
+		-- The slope classes are drawn by the tileset shader; SHIP by the engine,
+		-- so without the shader the cycle is off -> SHIP -> off.
+		local entry
+		repeat
+			_tbPassIdx = (_tbPassIdx + 1) % (#_tbPassClasses + 1)
+			entry = _tbPassClasses[_tbPassIdx]
+		until not entry or entry.engine or hasTT
+		if hasTT then
+			TT.setKnob("passSlopeDeg", (entry and not entry.engine) and _tbPassDeg(entry) or 0)
+		elseif not entry then
+			Spring.Echo(
+				"[Terraform Brush] BOT, VEH, HOVER and AMPH need the tileset shader (SHADER in the SCENE window)"
+			)
 		end
-		_tbPassIdx = (_tbPassIdx + 1) % (#_tbPassClasses + 1)
-		local entry = _tbPassClasses[_tbPassIdx]
-		TT.setKnob("passSlopeDeg", entry and _tbPassDeg(entry) or 0)
+		if entry and entry.engine then
+			_tbPassClasses.prevDrawMode = _tbPassClasses.prevDrawMode or Spring.GetMapDrawMode()
+			Spring.SendCommands("showpathtype " .. entry.unit)
+		elseif _tbPassClasses.prevDrawMode then
+			-- back to the view the engine class replaced (LOS in a normal session)
+			local prev = _tbPassClasses.prevDrawMode
+			_tbPassClasses.prevDrawMode = nil
+			if Spring.GetMapDrawMode() == "pathTraversability" then
+				Spring.SendCommands("showstandard")
+				local restore = { los = "togglelos", height = "showelevation", metal = "showmetalmap" }
+				if restore[prev] then
+					Spring.SendCommands(restore[prev])
+				end
+			end
+		end
 		local dm = widgetState.dmHandle
 		if dm then
 			dm.tbPassActive = entry ~= nil

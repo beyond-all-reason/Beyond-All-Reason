@@ -20,6 +20,7 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 
 ### Improvements
 
+- **PASSABILITY shows ships** (asked for by Moose). The DISPLAY chip now cycles BOT, VEH, HOVER, AMPH, SHIP and off. Ships care about water depth, not slope, so SHIP switches to the game's own traversability view for a ship movedef, F6's colours without selecting a ship: green where ships sail, purple where the water is too shallow or there is land. Leaving SHIP brings back the view that was on before. SHIP works without the tileset shader.
 - **A much quieter console.** Routine messages from every tool are gone: activation and deactivation banners, wheel and slider echoes, the sculpt Fill diagnostics (17 lines per click on every client), the metal gadget's lines on every client, and the map project's step-by-step save and load progress. Results, warnings and errors stay.
 - The WEATHER summary strip shows the brush rotation where it showed the frequency.
 - The TILESET biome library has new art. Tileset shader build 18 adds Perseus Gate, Pale Hang and Cetheta (Enborelde's textures under its own config), and the placeholder biomes (Namaqualand, Protodesert, Prototemperate) are gone.
