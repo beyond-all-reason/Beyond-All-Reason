@@ -93,7 +93,9 @@ local dp = {
 	placeTimer = 0,
 	-- Undo/Redo
 	undoStack = {}, -- each entry = { decalIDs = {id1,id2,...} }
-	redoStack = {},
+	redoStack = {}, -- each entry = { specs = { spec, ... } } (see specs)
+	-- How each placed decal was made, by id, so an undone batch can be made again
+	specs = {},
 	-- Registry of decals this tool placed (set of ids). GetAllGroundDecals() also
 	-- returns engine decals (unit tracks, scars, building plates); project export
 	-- must only serialize our own placements.
@@ -326,6 +328,17 @@ local function applyDecal(tex, wx, wz, sizeX, sizeZ, rotRad)
 		SetGroundDecalNormal(id, 0, 0, 0)
 	end
 	dp.projectIDs[id] = true
+	dp.specs[id] = {
+		tex = tex,
+		x = wx,
+		z = wz,
+		sx = sizeX,
+		sz = sizeZ,
+		rot = rotRad,
+		alpha = dp.alpha,
+		tint = { dp.tintR, dp.tintG, dp.tintB, dp.tintA },
+		align = dp.alignToNormal,
+	}
 	return id
 end
 
@@ -447,12 +460,47 @@ local function decalUndo()
 		return
 	end
 	dp.undoStack[#dp.undoStack] = nil
+	local specs = {}
 	for _, id in ipairs(entry.decalIDs) do
+		specs[#specs + 1] = dp.specs[id]
+		dp.specs[id] = nil
 		DestroyGroundDecal(id)
 		dp.projectIDs[id] = nil
 	end
+	dp.redoStack[#dp.redoStack + 1] = { specs = specs }
 	dp.undoCount = #dp.undoStack
-	-- redoStack would need re-creation info; skip redo for destructive ops
+	dp.redoCount = #dp.redoStack
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("decals")
+	end
+end
+
+-- Makes an undone batch again, with the alpha, tint and alignment it had
+local function decalRedo()
+	local entry = dp.redoStack[#dp.redoStack]
+	if not entry then
+		return
+	end
+	dp.redoStack[#dp.redoStack] = nil
+	local saved = { dp.alpha, dp.tintR, dp.tintG, dp.tintB, dp.tintA, dp.alignToNormal }
+	local ids = {}
+	for _, s in ipairs(entry.specs) do
+		dp.alpha, dp.alignToNormal = s.alpha, s.align
+		dp.tintR, dp.tintG, dp.tintB, dp.tintA = s.tint[1], s.tint[2], s.tint[3], s.tint[4]
+		ids[#ids + 1] = applyDecal(s.tex, s.x, s.z, s.sx, s.sz, s.rot)
+	end
+	dp.alpha, dp.tintR, dp.tintG, dp.tintB, dp.tintA, dp.alignToNormal =
+		saved[1], saved[2], saved[3], saved[4], saved[5], saved[6]
+	dp.undoStack[#dp.undoStack + 1] = { decalIDs = ids }
+	dp.undoCount = #dp.undoStack
+	dp.redoCount = #dp.redoStack
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("decals")
+	end
 end
 
 local function decalClearAll()
@@ -466,6 +514,7 @@ local function decalClearAll()
 		end
 	end
 	dp.projectIDs = {}
+	dp.specs = {}
 	dp.undoStack = {}
 	dp.redoStack = {}
 	dp.undoCount = 0
@@ -816,6 +865,7 @@ function widget:Initialize()
 		toggleDecal = toggleDecal,
 		clearSelectedDecals = clearSelectedDecals,
 		undo = decalUndo,
+		redo = decalRedo,
 		clearAll = decalClearAll,
 		save = decalSave,
 		saveProject = decalSaveProject,
@@ -872,8 +922,16 @@ function widget:KeyPress(key, mods)
 		deactivate()
 		return true
 	end
+	if mods.ctrl and key == 122 and mods.shift then -- Ctrl+Shift+Z
+		decalRedo()
+		return true
+	end
 	if mods.ctrl and key == 122 then -- Ctrl+Z
 		decalUndo()
+		return true
+	end
+	if mods.ctrl and key == 121 then -- Ctrl+Y
+		decalRedo()
 		return true
 	end
 	return false

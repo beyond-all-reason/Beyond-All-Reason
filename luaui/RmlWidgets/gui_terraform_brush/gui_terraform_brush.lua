@@ -10131,7 +10131,10 @@ local initialModel = {
 		end
 	end,
 	onDcRedo = function(_event)
-		-- placeholder; DC redo not implemented
+		if WG.DecalPlacer and WG.DecalPlacer.redo then
+			playSound("undo")
+			WG.DecalPlacer.redo()
+		end
 	end,
 	onDcHistoryChange = function(_event)
 		if uiState.updatingFromCode or not WG.DecalPlacer then
@@ -10147,6 +10150,10 @@ local initialModel = {
 		if diff < 0 then
 			for _ = 1, -diff do
 				WG.DecalPlacer.undo()
+			end
+		elseif diff > 0 and WG.DecalPlacer.redo then
+			for _ = 1, diff do
+				WG.DecalPlacer.redo()
 			end
 		end
 	end,

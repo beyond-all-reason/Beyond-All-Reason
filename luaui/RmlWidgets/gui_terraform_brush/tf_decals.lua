@@ -129,7 +129,7 @@ function M.sync(doc, ctx, setSummary)
 		local slDcHist = doc and getCachedEl(doc, "slider-dc-history")
 		local nbDcHist = doc and getCachedEl(doc, "slider-dc-history-numbox")
 		if slDcHist and uiState.draggingSlider ~= "dc-history" then
-			local dcMax = math.max(dcUndoCnt, 1)
+			local dcMax = math.max(dcUndoCnt + (dpState.redoCount or 0), 1)
 			slDcHist:SetAttribute("max", tostring(dcMax))
 			slDcHist:SetAttribute("value", tostring(dcUndoCnt))
 		end
