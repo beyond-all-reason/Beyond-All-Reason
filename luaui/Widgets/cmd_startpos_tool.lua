@@ -1092,8 +1092,8 @@ function boxExport.encode()
 	return value, #arrangement
 end
 
--- The value is only useful pasted into lobby chat, and the server truncates that, so the
--- length is reported alongside it rather than left for the user to discover.
+-- The value is pasted into lobby chat and can be long, so the echo reports its length
+-- rather than printing it; the clipboard carries the command.
 local function copyStartboxOverride()
 	local value, boxes = boxExport.encode()
 	local mapSuggestions, _ = roleConfig.buildSuggestionsData()
