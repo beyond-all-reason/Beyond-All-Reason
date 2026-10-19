@@ -1415,7 +1415,10 @@ function M.attach(doc, ctx)
 	-- Snow auto-reduce checkbox
 	do
 		local snowApi = WG.snow
-		local autoReduce = snowApi and snowApi.getAutoReduce and snowApi.getAutoReduce() or true
+		local autoReduce = true
+		if snowApi and snowApi.getAutoReduce and snowApi.getAutoReduce() ~= nil then
+			autoReduce = snowApi.getAutoReduce()
+		end
 		envCheckbox("btn-env-snow-autoreduce", autoReduce, function(val)
 			if WG.snow then
 				WG.snow.setAutoReduce(val)
