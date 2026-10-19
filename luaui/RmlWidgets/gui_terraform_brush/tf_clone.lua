@@ -186,9 +186,9 @@ function M.sync(doc, ctx, clState, setSummary)
 	if doc and ctx.setDisabledIds and clState then
 		local cs = clState.state or "idle"
 		local hasBuf = clState.hasBuffer == true
-		local hasSel = (cs == "selecting" or cs == "box_drawn")
+		local hasSel = (cs == "selecting" or cs == "box_drawn" or cs == "copied")
 		local inPaste = (cs == "paste_preview")
-		-- Copy: needs an active selection
+		-- Copy: needs an active selection (a copied box can be copied again, as Ctrl+C does)
 		ctx.setDisabled(doc, "btn-cl-copy", not hasSel)
 		-- Paste: needs a buffer
 		ctx.setDisabled(doc, "btn-cl-paste", not hasBuf)
