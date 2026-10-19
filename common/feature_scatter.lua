@@ -325,6 +325,14 @@ local function generateClustered(
 	if numClusters <= 0 then
 		numClusters = max(2, min(6, floor(sqrt(count) * 0.7 + 0.5)))
 	end
+	---@class ScatterClump
+	---@field [1] number centre x
+	---@field [2] number centre z
+	---@field weight number? share of the features (variety on only)
+	---@field spread number? sigma multiplier (variety on only)
+	---@field age number? 0 young (small) .. 1 old (large) (variety on only)
+
+	---@type ScatterClump[]
 	local clusterCenters = {}
 	local nattempts = 0
 	while #clusterCenters < numClusters and nattempts < numClusters * 20 do
@@ -346,14 +354,14 @@ local function generateClustered(
 	local totalWeight = #clusterCenters
 	if variety > 0 then
 		totalWeight = 0
-		for i = 1, #clusterCenters do
-			local cc = clusterCenters[i]
+		for _, cc in ipairs(clusterCenters) do
 			-- Squared roll: most clumps sparse, a few dense, like real stands.
 			local w = rng:next()
-			cc.weight = 1 + variety * (0.1 + 3 * w * w - 1)
+			local weight = 1 + variety * (0.1 + 3 * w * w - 1)
+			cc.weight = weight
 			cc.spread = 1 + variety * (0.4 + rng:next() * 1.4 - 1)
 			cc.age = rng:next()
-			totalWeight = totalWeight + cc.weight
+			totalWeight = totalWeight + weight
 		end
 	end
 
@@ -379,18 +387,19 @@ local function generateClustered(
 			end
 		else
 			-- Box-Muller for a normally-distributed offset from a nucleus.
-			local cc
+			-- (never empty: a single centre is added above when none fit)
+			local cc = clusterCenters[#clusterCenters] --[[@as ScatterClump]]
 			if variety > 0 then
 				local pick = rng:next() * totalWeight
-				for i = 1, #clusterCenters do
-					cc = clusterCenters[i]
-					pick = pick - cc.weight
+				for _, c in ipairs(clusterCenters) do
+					cc = c
+					pick = pick - (c.weight or 1)
 					if pick <= 0 then
 						break
 					end
 				end
 			else
-				cc = clusterCenters[rng:int(1, #clusterCenters)]
+				cc = clusterCenters[rng:int(1, #clusterCenters)] --[[@as ScatterClump]]
 			end
 			local ccSigma = sigma * (cc.spread or 1)
 			local u1 = max(1e-7, rng:next())
@@ -402,7 +411,7 @@ local function generateClustered(
 				if hasScale then
 					-- Core of the clump = big, fringe = small, plus jitter so the
 					-- gradient does not read as concentric rings.
-					local closeness = 1 - min(1, mag / (ccSigma * 1.5))
+					local closeness = 1.0 - min(1.0, mag / (ccSigma * 1.5))
 					local t = closeness + (rng:next() - 0.5) * 0.4
 					if cc.age then
 						-- An old clump leans large, a young one small.
