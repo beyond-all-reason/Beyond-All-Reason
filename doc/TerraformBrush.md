@@ -276,6 +276,8 @@ Distribution mode (random/regular/clustered) · Size/rotation/count/cadence slid
 
 **Files:** `luaui/Widgets/cmd_feature_placer.lua` · `luaui/RmlWidgets/gui_feature_placer/`
 
+**Randomize alignment and tilt.** The last two CONTROLS rows. RANDOMIZE ALIGNMENT turns each placed feature's heading by up to ± that share of a full turn. RANDOMIZE TILT (0-45°) leans each feature up to that many degrees in a random direction; most stay close to upright and a few lean hard (`rollTilt` in `common/feature_scatter.lua`). The lean is rolled with the layout, so the ghost preview shows it, and it travels as the feature's pitch and roll, so undo, redo, saves and map projects keep it.
+
 #### Scale Variation
 
 Scale Min / Scale Max sliders (0.1-5.0x) roll a per-feature scale at placement

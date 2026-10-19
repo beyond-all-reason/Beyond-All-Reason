@@ -796,6 +796,7 @@ function M.attach(doc, ctx)
 	widgetState.chipToggle("fp-param-chip-alignment", "fp-param-alignment-row", true)
 	widgetState.chipToggle("fp-param-chip-count", "fp-param-count-row", true)
 	widgetState.chipToggle("fp-param-chip-rate", "fp-param-rate-row", true)
+	widgetState.chipToggle("fp-param-chip-tilt", "fp-param-tilt-row", true)
 
 	-- Unit placer control pill toggles
 	widgetState.chipToggle("un-param-chip-size", "un-param-size-row", true)

@@ -6236,6 +6236,7 @@ local initialModel = {
 	fpRadiusStr = "200",
 	fpRotationStr = "0",
 	fpRotRandomStr = "0",
+	fpTiltRandomStr = "0",
 	fpScaleMinStr = "1.00",
 	fpClumpsStr = "AUTO",
 	fpClumpSizeStr = "1.00",
@@ -8270,6 +8271,28 @@ local initialModel = {
 		end
 		local st = WG.FeaturePlacer.getState()
 		WG.FeaturePlacer.setRotRandom(math.max(0, (st.rotRandom or 100) - 5))
+	end,
+
+	-- Tilt randomness (largest lean, degrees)
+	onFpTiltRandomChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setTiltRandom(_elemSliderVal("fp-slider-tilt-random", 0))
+	end,
+	onFpTiltRandomUp = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		local st = WG.FeaturePlacer.getState()
+		WG.FeaturePlacer.setTiltRandom((st.tiltRandom or 0) + 1)
+	end,
+	onFpTiltRandomDown = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		local st = WG.FeaturePlacer.getState()
+		WG.FeaturePlacer.setTiltRandom((st.tiltRandom or 0) - 1)
 	end,
 
 	-- Scale variation (per-feature visual scale range)
@@ -16249,6 +16272,7 @@ local guideHints = {
 	["fp-slider-size"] = "Radius of the feature placement area. Ctrl+Scroll to resize while painting.",
 	["fp-slider-rotation"] = "Base rotation angle for all placed features. Individual randomization is added on top of this value.",
 	["fp-slider-rot-random"] = "Randomizes each feature's orientation by ±this percentage. 100% = fully random; 0% = all face the same direction.",
+	["fp-slider-tilt-random"] = "Leans each placed feature up to this many degrees, in a random direction. Most stay close to upright and a few lean hard, like a natural stand. 0 = all upright.",
 	["fp-slider-scale-min"] = "Smallest scale a placed feature can roll, anywhere from 0.1x to 5x. Most features land near this end: natural stands are mostly small with a few large. Shift+Scroll sets one fixed scale for both MIN and MAX.",
 	["fp-slider-scale-max"] = "Largest scale a placed feature can roll. With Clustered distribution, large features gather at the clump cores and small ones at the fringes.",
 	["fp-slider-clumps"] = "How many clumps one stamp grows. 0 = automatic (more features, more clumps).",
@@ -17095,6 +17119,7 @@ widgetState.regTransports = function(doc)
 		"fp-slider-size",
 		"fp-slider-rotation",
 		"fp-slider-rot-random",
+		"fp-slider-tilt-random",
 		"fp-slider-count",
 		"fp-slider-cadence",
 		"fp-slider-slope-max",

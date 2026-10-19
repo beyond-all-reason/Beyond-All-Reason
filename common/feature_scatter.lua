@@ -157,6 +157,25 @@ local function rollScale(rng, smin, smax)
 end
 
 ----------------------------------------------------------------
+-- Tilt variation
+----------------------------------------------------------------
+-- A lean of up to maxDeg in a random direction, as the pitch and roll (radians)
+-- SetFeatureRotation takes. Squaring the draw keeps most features near upright
+-- with a few leaning hard, the way a real stand looks. The direction is split
+-- over pitch and roll the same way the placer gadget's landing wobble does.
+-- Returns 0, 0 without touching the rng when maxDeg is 0, so untilted layouts
+-- roll exactly as before.
+local function rollTilt(rng, maxDeg)
+	if not maxDeg or maxDeg <= 0 then
+		return 0, 0
+	end
+	local t = rng:next()
+	local lean = maxDeg * t * t * pi / 180
+	local dir = rng:next() * 2 * pi
+	return lean * cos(dir), lean * sin(dir)
+end
+
+----------------------------------------------------------------
 -- Distribution: random
 ----------------------------------------------------------------
 local function generateRandom(radius, shape, lengthScale, count, rng)
@@ -423,9 +442,9 @@ end
 -- Public: layout generation
 ----------------------------------------------------------------
 ---Build a brush-relative layout. Deterministic for a given (seed, params).
----@param params table shape, radius, rotation, count, distribution, rotRandom, defNames, lengthScale, scaleMin, scaleMax, minSpacing (clustered: replaces the FeatureDefNames radius), clumps, clumpSize, clumpLoose, clumpVariety (clustered, see generateClustered)
+---@param params table shape, radius, rotation, count, distribution, rotRandom, tiltRandom (max lean, degrees), defNames, lengthScale, scaleMin, scaleMax, minSpacing (clustered: replaces the FeatureDefNames radius), clumps, clumpSize, clumpLoose, clumpVariety (clustered, see generateClustered)
 ---@param seed number
----@return table layout array of { dx, dz, defName, heading, scale }
+---@return table layout array of { dx, dz, defName, heading, scale, pitch, roll }
 local function generateLocal(params, seed)
 	local defNames = params.defNames or {}
 	if #defNames == 0 then
@@ -478,6 +497,7 @@ local function generateLocal(params, seed)
 	local angleDeg = params.rotation or 0
 	local baseHeading = floor((angleDeg / 360) * 65536) % 65536
 	local spread = floor((params.rotRandom or 100) / 100 * 32768)
+	local tiltMax = params.tiltRandom or 0
 	local numDefs = #defNames
 
 	local layout = {}
@@ -489,13 +509,15 @@ local function generateLocal(params, seed)
 		if hasScale then
 			s = positions[i][3] or rollScale(rng, scaleMin, scaleMax)
 		end
-		layout[#layout + 1] = {
+		local entry = {
 			dx = wx,
 			dz = wz,
 			defName = defNames[rng:int(1, numDefs)],
 			heading = (baseHeading + rng:int(-spread, spread)) % 65536,
 			scale = s,
 		}
+		entry.pitch, entry.roll = rollTilt(rng, tiltMax)
+		layout[#layout + 1] = entry
 	end
 
 	return layout
@@ -582,8 +604,8 @@ local function resolve(layout, centerX, centerZ, params, extraRotDeg)
 				y = y,
 				z = z,
 				heading = (entry.heading + headingOffset) % 65536,
-				pitch = 0,
-				roll = 0,
+				pitch = entry.pitch or 0,
+				roll = entry.roll or 0,
 				scale = entry.scale,
 			}
 		end
@@ -598,4 +620,5 @@ return {
 	resolve = resolve,
 	rotatePoint = rotatePoint,
 	rollScale = rollScale,
+	rollTilt = rollTilt,
 }

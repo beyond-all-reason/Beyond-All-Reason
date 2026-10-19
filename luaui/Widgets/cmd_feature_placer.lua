@@ -117,6 +117,7 @@ local fp = {
 	radius = DEFAULT_RADIUS,
 	rotation = 0,
 	rotRandom = 0, -- 0 = all same heading, 100 = fully random
+	tiltRandom = 0, -- largest lean in degrees (0..45), random direction per feature
 	featureCount = 1,
 	cadence = 10, -- 1-1000 logarithmic (higher = faster)
 	distribution = "random", -- "random", "regular", or "clustered"
@@ -560,6 +561,7 @@ local function layoutParams()
 		count = fp.featureCount,
 		distribution = fp.distribution,
 		rotRandom = fp.rotRandom,
+		tiltRandom = fp.tiltRandom,
 		scaleMin = fp.scaleMin,
 		scaleMax = fp.scaleMax,
 		clumps = fp.clumps,
@@ -582,6 +584,7 @@ local function layoutKey(params)
 		params.count,
 		params.distribution,
 		params.rotRandom,
+		params.tiltRandom,
 		params.scaleMin,
 		params.scaleMax,
 		params.clumps,
@@ -638,15 +641,15 @@ local function ensureLayout(params)
 		if params.scaleMin ~= 1 or params.scaleMax ~= 1 then
 			scale = Scatter.rollScale(rng, params.scaleMin, params.scaleMax)
 		end
-		preview.layout = applyScaleVariants({
-			{
-				dx = 0,
-				dz = 0,
-				defName = params.defNames[rng:int(1, #params.defNames)],
-				heading = (baseHeading + rng:int(-spread, spread)) % 65536,
-				scale = scale,
-			},
-		})
+		local entry = {
+			dx = 0,
+			dz = 0,
+			defName = params.defNames[rng:int(1, #params.defNames)],
+			heading = (baseHeading + rng:int(-spread, spread)) % 65536,
+			scale = scale,
+		}
+		entry.pitch, entry.roll = Scatter.rollTilt(rng, params.tiltRandom)
+		preview.layout = applyScaleVariants({ entry })
 	else
 		preview.layout = applyScaleVariants(Scatter.generateLocal(params, preview.seed))
 	end
@@ -1892,6 +1895,7 @@ local function getState()
 		radius = fp.radius,
 		rotation = fp.rotation,
 		rotRandom = fp.rotRandom,
+		tiltRandom = fp.tiltRandom,
 		featureCount = fp.featureCount,
 		cadence = fp.cadence,
 		distribution = fp.distribution,
@@ -2733,6 +2737,10 @@ function widget:Initialize()
 		setRotation = setRotation,
 		rotate = rotate,
 		setRotRandom = setRotRandom,
+		-- Inline rather than a file local: this widget sits near Lua's 200-local ceiling.
+		setTiltRandom = function(v)
+			fp.tiltRandom = max(0, min(45, floor(v + 0.5)))
+		end,
 		setFeatureCount = setFeatureCount,
 		setCadence = setCadence,
 		setDistribution = setDistribution,

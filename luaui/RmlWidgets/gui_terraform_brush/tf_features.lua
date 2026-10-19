@@ -118,6 +118,10 @@ function M.sync(doc, ctx, fpState, setSummary)
 			if dm.fpRotRandomStr ~= v then
 				dm.fpRotRandomStr = v
 			end
+			v = tostring(fpState.tiltRandom or 0)
+			if dm.fpTiltRandomStr ~= v then
+				dm.fpTiltRandomStr = v
+			end
 			v = string.format("%.2f", fpState.scaleMin or 1)
 			if dm.fpScaleMinStr ~= v then
 				dm.fpScaleMinStr = v
@@ -156,6 +160,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 		syncAndFlash(getCachedEl(doc, "fp-slider-size"), "fp-size", tostring(fpState.radius))
 		syncAndFlash(getCachedEl(doc, "fp-slider-rotation"), "fp-rotation", tostring(fpState.rotation))
 		syncAndFlash(getCachedEl(doc, "fp-slider-rot-random"), "fp-rot-random", tostring(fpState.rotRandom))
+		syncAndFlash(getCachedEl(doc, "fp-slider-tilt-random"), "fp-tilt-random", tostring(fpState.tiltRandom or 0))
 		syncAndFlash(getCachedEl(doc, "fp-slider-scale-min"), "fp-scale-min", tostring(fpState.scaleMin or 1))
 		syncAndFlash(getCachedEl(doc, "fp-slider-scale-max"), "fp-scale-max", tostring(fpState.scaleMax or 1))
 		syncAndFlash(getCachedEl(doc, "fp-slider-clumps"), "fp-clumps", tostring(fpState.clumps or 0))
@@ -406,13 +411,18 @@ function M.sync(doc, ctx, fpState, setSummary)
 			"btn-fp-rot-cw",
 		}, remove and circular)
 
-		-- Randomise-alignment perturbs each feature's own heading. Nothing to
-		-- do with the brush shape; only meaningless when placing nothing.
+		-- Randomise-alignment and randomise-tilt perturb each feature's own
+		-- heading and lean. Nothing to do with the brush shape; only
+		-- meaningless when placing nothing.
 		ctx.setDisabledIds(doc, {
 			"fp-slider-rot-random",
 			"fp-slider-rot-random-numbox",
 			"btn-fp-rot-random-down",
 			"btn-fp-rot-random-up",
+			"fp-slider-tilt-random",
+			"fp-slider-tilt-random-numbox",
+			"btn-fp-tilt-random-down",
+			"btn-fp-tilt-random-up",
 		}, remove)
 
 		-- Scale variation applies to whatever gets placed -- scatter and point
