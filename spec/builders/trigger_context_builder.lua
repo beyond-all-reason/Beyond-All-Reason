@@ -20,6 +20,7 @@
 ---@field IsFeatureInArea fun(featureID: number, area: table): boolean
 ---@field PreviousUnitsInAreas table
 ---@field ConstructionState table
+---@field StockpileState table
 ---@field DwellingUnitsInAreas table
 ---@field GetReclaimIncomeSnapshot fun(teamID: number): table?
 ---@field calls TriggerContextMockCalls
@@ -108,6 +109,7 @@ function TCB:Build()
 		IsFeatureInArea = asFunction(true),
 		PreviousUnitsInAreas = {},
 		ConstructionState = {},
+		StockpileState = {},
 		DwellingUnitsInAreas = {},
 		GetReclaimIncomeSnapshot = asFunction(nil),
 
