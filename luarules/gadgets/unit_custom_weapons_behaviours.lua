@@ -371,7 +371,7 @@ weaponCustomParamKeys.retarget = {
 
 local retargetWeapons = {}
 local hashBaseDefs = #WeaponDefs + 1
-assert(hashBaseDefs * #UnitDefs <= math.int_max)
+assert(hashBaseDefs * (#UnitDefs + 1) <= math.int_max)
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local weaponDefToNum = {}
 	for weaponNum, weapon in ipairs(unitDef.weapons) do
