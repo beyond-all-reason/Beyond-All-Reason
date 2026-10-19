@@ -364,7 +364,7 @@ Create()
 	//start-script Lights();
 }
 
-StartBuilding(torsoing, pitch)
+StartBuilding(torsoing, pitch, heading)
 {
 	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
@@ -379,8 +379,11 @@ StartBuilding(torsoing, pitch)
 	wait-for-turn luparm around x-axis;
 
 	torsoRotation = torsoing;
+	wait-for-turn torso around y-axis;
 	turn aimy1 to y-axis torsoing speed <480.0>;
 	wait-for-turn aimy1 around y-axis;
+	turn aimx1 to x-axis heading speed <225.0>;
+	wait-for-turn aimx1 around y-axis;
 	set INBUILDSTANCE to 1;
 }
 
