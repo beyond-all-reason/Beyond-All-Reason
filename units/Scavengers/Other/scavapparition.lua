@@ -53,6 +53,7 @@ return {
 			inheritxpratemultiplier = 0.1,
 			childreninheritxp = "BOTCANNON",
 			parentsinheritxp = "BOTCANNON",
+			nohealthbars = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {

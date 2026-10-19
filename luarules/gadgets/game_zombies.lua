@@ -141,18 +141,14 @@ local excessPower = 0
 local GHOST = {
 	MIST_UNIT_NAME = "scavapparition",
 	SAFE_TIME = Game.gameSpeed * 20,
-	EXPIRATION_TIME = Game.gameSpeed * 120,
+	EXPIRATION_TIME = Game.gameSpeed * 480,
+	REPLACEMENT_MIN_AGE = Game.gameSpeed * 60,
 	MAP_MARGIN = 16,
-	SPAWN_GRACE_PERIOD = Game.gameSpeed * 60 * 5,
-	SPAWN_CHECK_INTERVAL = Game.gameSpeed * 60,
+	SPAWN_CHECK_INTERVAL = Game.gameSpeed,
 	SPAWN_ATTEMPT_COUNT = 3,
 	SPAWN_OFFSET_DISTANCE = 100,
-	RANDOM_SPAWN_INTERVAL = Game.gameSpeed * 60,
-	MAX_RANDOM_SPAWNS_PER_CHECK = 5,
 	ENEMY_REJECTION_DISTANCE = 300,
-	MAX_COUNT = 25,
-	WAVE_SPAWNS_PER_FRAME = 50,
-	WAVE_FRAME_COUNT = 7,
+	MAX_COUNT = Game.mapSizeX / 1024 + Game.mapSizeZ / 1024, -- Scalable to ensure there isn't too many or too few apparitions at any time.
 	SUBSTITUTE_ROLL_COUNT = 2,
 }
 local ghostMistUnitDefID = unitDefNames[GHOST.MIST_UNIT_NAME] and unitDefNames[GHOST.MIST_UNIT_NAME].id
@@ -210,8 +206,6 @@ local ghostPoolUnitDefIDs = {}
 local ghosts = {} ---@type table<UnitID, table?>
 local ghostRespawnFrames = {}
 local ghostSpawnBuffer = {}
-local ghostWave = {}
-local ghostWaveIndex = 1
 local pendingGhostFeeds = {}
 local zombieFactories = {} ---@type table<UnitID, table?>
 local expiringBuildingFrames = {}
@@ -817,12 +811,13 @@ local function setGhostReadyFrame(unitID, readyFrame)
 	spring.SetUnitRulesParam(unitID, RULES_PARAM.GHOST_READY_FRAME, readyFrame)
 end
 
-local function trackGhost(unitID, readyFrame, expirationFrame)
+local function trackGhost(unitID, readyFrame, expirationFrame, birthFrame)
 	spring.SetUnitRulesParam(unitID, RULES_PARAM.GHOST_READY_FRAME, readyFrame)
 	spring.SetUnitRulesParam(unitID, RULES_PARAM.GHOST_EXPIRATION_FRAME, expirationFrame)
 	ghosts[unitID] = {
 		readyFrame = readyFrame,
 		expirationFrame = expirationFrame,
+		birthFrame = birthFrame,
 	}
 	ghostCount = ghostCount + 1
 end
@@ -834,11 +829,37 @@ local function registerExistingGhost(unitID)
 		readyFrame = gameFrame
 		expirationFrame = gameFrame + GHOST.EXPIRATION_TIME
 	end
-	trackGhost(unitID, readyFrame, expirationFrame)
+	trackGhost(unitID, readyFrame, expirationFrame, expirationFrame - GHOST.EXPIRATION_TIME)
+end
+
+local function getOldestGhostID()
+	local oldestUnitID = nil
+	local oldestBirthFrame = nil
+	for unitID, ghostData in pairs(ghosts) do
+		local birthFrame = ghostData.birthFrame
+		if not oldestBirthFrame or birthFrame < oldestBirthFrame or (birthFrame == oldestBirthFrame and unitID < oldestUnitID) then
+			oldestBirthFrame = birthFrame
+			oldestUnitID = unitID
+		end
+	end
+	return oldestUnitID
+end
+
+local function freeGhostSlotForNewGhost()
+	if ghostCount < GHOST.MAX_COUNT then
+		return true
+	end
+	local oldestUnitID = getOldestGhostID()
+	local oldestGhost = oldestUnitID and ghosts[oldestUnitID]
+	if not oldestGhost or gameFrame - oldestGhost.birthFrame <= GHOST.REPLACEMENT_MIN_AGE then
+		return false
+	end
+	removeGhost(oldestUnitID)
+	return true
 end
 
 local function createGhost(spawnX, spawnZ)
-	if not ghostMistUnitDefID or gameFrame < GHOST.SPAWN_GRACE_PERIOD or ghostCount >= GHOST.MAX_COUNT then
+	if not ghostMistUnitDefID or not freeGhostSlotForNewGhost() then
 		return nil
 	end
 
@@ -858,7 +879,7 @@ local function createGhost(spawnX, spawnZ)
 		spring.SetUnitCloak(unitID, 1)
 	end
 
-	trackGhost(unitID, gameFrame + GHOST.SAFE_TIME, gameFrame + GHOST.EXPIRATION_TIME)
+	trackGhost(unitID, gameFrame + GHOST.SAFE_TIME, gameFrame + GHOST.EXPIRATION_TIME, gameFrame)
 	return unitID
 end
 
@@ -902,11 +923,7 @@ local function expireDueBuildings(frame)
 		local unitID = expiringBuildings[buildingIndex]
 		local unitDefID = spring.ValidUnitID(unitID) and spring.GetUnitDefID(unitID)
 		if unitDefID and isZombie(unitID) and zombieUnitDefs[unitDefID].isExpiringBuilding then
-			local unitX, _, unitZ = spring.GetUnitPosition(unitID)
 			suppressedDeaths[unitID] = true
-			if unitX then
-				feedGhostQueue(unitDefID, unitX, unitZ, true)
-			end
 			spring.DestroyUnit(unitID, true, true)
 		end
 	end
@@ -965,16 +982,10 @@ local function spawnAtGhost(unitDefID, ghostID)
 	return false
 end
 
-local function endGhostWave()
-	for waveIndex = ghostWaveIndex, #ghostWave do
-		ghostSpawnBuffer[#ghostSpawnBuffer + 1] = ghostWave[waveIndex].unitDefID
+local function spawnDueGhostUnits()
+	if #ghostSpawnBuffer == 0 then
+		return
 	end
-	ghostWave = {}
-	ghostWaveIndex = 1
-end
-
-local function startGhostWave()
-	endGhostWave()
 	local readyGhostIDs = getReadyGhostIDs()
 	if #readyGhostIDs == 0 then
 		return
@@ -982,36 +993,19 @@ local function startGhostWave()
 	local pendingSpawns = ghostSpawnBuffer
 	ghostSpawnBuffer = {}
 	table.shuffle(pendingSpawns)
-	local waveSize = math.min(#pendingSpawns, GHOST.WAVE_SPAWNS_PER_FRAME * GHOST.WAVE_FRAME_COUNT)
 	for spawnIndex = 1, #pendingSpawns do
-		if spawnIndex <= waveSize then
-			ghostWave[spawnIndex] = {
-				ghostID = readyGhostIDs[(spawnIndex - 1) % #readyGhostIDs + 1],
-				unitDefID = pendingSpawns[spawnIndex],
-			}
-		else
-			ghostSpawnBuffer[#ghostSpawnBuffer + 1] = pendingSpawns[spawnIndex]
-		end
-	end
-end
-
-local function spawnGhostWaveUnits()
-	if ghostWaveIndex > #ghostWave then
-		return
-	end
-	local lastWaveIndex = math.min(#ghostWave, ghostWaveIndex + GHOST.WAVE_SPAWNS_PER_FRAME - 1)
-	for waveIndex = ghostWaveIndex, lastWaveIndex do
+		local unitDefID = pendingSpawns[spawnIndex]
 		if isTeamAtUnitCap(gaiaTeamID) then
-			ghostWaveIndex = waveIndex
-			endGhostWave()
+			for remainingIndex = spawnIndex, #pendingSpawns do
+				ghostSpawnBuffer[#ghostSpawnBuffer + 1] = pendingSpawns[remainingIndex]
+			end
 			return
 		end
-		local waveSpawn = ghostWave[waveIndex]
-		if not spawnAtGhost(waveSpawn.unitDefID, waveSpawn.ghostID) then
-			ghostSpawnBuffer[#ghostSpawnBuffer + 1] = waveSpawn.unitDefID
+		local ghostID = readyGhostIDs[(spawnIndex - 1) % #readyGhostIDs + 1]
+		if not spawnAtGhost(unitDefID, ghostID) then
+			ghostSpawnBuffer[#ghostSpawnBuffer + 1] = unitDefID
 		end
 	end
-	ghostWaveIndex = lastWaveIndex + 1
 end
 
 local function spawnGhostReadyLightning(ghostX, ghostY, ghostZ)
@@ -1485,18 +1479,7 @@ function gadget:GameFrame(frame)
 		processGhostFeeds()
 		processDueGhostRespawns(frame)
 		if frame % GHOST.SPAWN_CHECK_INTERVAL == 0 then
-			startGhostWave()
-		end
-		spawnGhostWaveUnits()
-		if autoSpawningEnabled and frame % GHOST.RANDOM_SPAWN_INTERVAL == 0 then
-			for _ = 1, GHOST.MAX_RANDOM_SPAWNS_PER_CHECK do
-				local spawnX = random(GHOST.MAP_MARGIN, Game.mapSizeX - GHOST.MAP_MARGIN)
-				local spawnZ = random(GHOST.MAP_MARGIN, Game.mapSizeZ - GHOST.MAP_MARGIN)
-				local spawnY = spring.GetGroundHeight(spawnX, spawnZ)
-				if not isEnemyTooClose(spawnX, spawnY, spawnZ) then
-					createGhost(spawnX, spawnZ)
-				end
-			end
+			spawnDueGhostUnits()
 		end
 	end
 
@@ -1703,8 +1686,6 @@ local function clearGhostState()
 		removeGhost(ghostIDs[ghostIndex])
 	end
 	ghostSpawnBuffer = {}
-	ghostWave = {}
-	ghostWaveIndex = 1
 	ghostRespawnFrames = {}
 	pendingGhostFeeds = {}
 end

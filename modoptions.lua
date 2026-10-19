@@ -1804,7 +1804,7 @@ local options = {
 			{
 				key = "wraith",
 				name = "Wraith",
-				desc = "Basic, and ghostly apparitions appear when corpses are destroyed and at random on the map. When a zombie's corpse is destroyed, it can respawn at an isolated Apparition.",
+				desc = "Basic, and ghostly apparitions appear from overkill and from destroyed corpses. When a zombie's corpse is destroyed, it can respawn at an isolated Apparition.",
 			},
 			{
 				key = "hydra",
