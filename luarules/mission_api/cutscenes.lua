@@ -39,6 +39,13 @@ local function startCutscene(cutsceneID, skippable)
 	end
 end
 
+local function skipCutscene()
+	if playingVideoCount > 0 then
+		GG.VideoPlayback.Stop()
+	end
+end
+
 return {
 	StartCutscene = startCutscene,
+	SkipCutscene = skipCutscene,
 }
