@@ -15,6 +15,7 @@ end, math.huge)
 --- ---@type { Countdowns: table<string, MissionCountdown> }
 ---@class MissionApiMock
 ---@field Difficulty number
+---@field Teams table<integer|string, string|integer>
 ---@field trackedUnitIDs table<string, table<number, boolean>>
 ---@field trackedUnitNames table<number, table<string, boolean>>
 ---@field trackedFeatureIDs table<string, table<number, boolean>>
@@ -106,6 +107,7 @@ end
 function MB.new()
 	return setmetatable({
 		difficulty = LOWEST_DIFFICULTY,
+		teams = {}, -- team ID to name, and name to team ID
 		trackedUnits = {}, -- array of { name, id }
 		trackedFeatures = {}, -- array of { name, id }
 		markerNames = {},
@@ -133,6 +135,16 @@ end
 ---@return MissionApiBuilder
 function MB:WithDifficulty(difficulty)
 	self.difficulty = difficulty
+	return self
+end
+
+---Name a team, both ways round as game_setup.lua does.
+---@param name string
+---@param teamID number
+---@return MissionApiBuilder
+function MB:WithTeam(name, teamID)
+	self.teams[name] = teamID
+	self.teams[teamID] = name
 	return self
 end
 
@@ -515,6 +527,7 @@ function MB:Build(installed)
 	---@type MissionApiMock
 	local mock = {
 		Difficulty = self.difficulty,
+		Teams = self.teams,
 		trackedUnitIDs = trackedUnitIDs,
 		trackedUnitNames = trackedUnitNames,
 		trackedFeatureIDs = trackedFeatureIDs,

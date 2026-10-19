@@ -991,6 +991,29 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("TeamName", function()
+			before_each(function()
+				GG["MissionAPI"].Teams = { rebels = 0, [0] = "rebels" }
+			end)
+
+			it("accepts a named team", function()
+				actionErrors({ type = actionTypes.ChangeTeam, parameters = { oldTeam = "rebels", newTeam = "rebels" } })
+				assert.are.same({}, logged)
+			end)
+
+			it("rejects wrong type", function()
+				actionErrors({ type = actionTypes.ChangeTeam, parameters = { oldTeam = 0, newTeam = "rebels" } })
+				assert.is_true(
+					hasError("Unexpected parameter type, expected string, got number. Action: a, Parameter: oldTeam")
+				)
+			end)
+
+			it("rejects an unknown team name", function()
+				actionErrors({ type = actionTypes.ChangeTeam, parameters = { oldTeam = "rebels", newTeam = "nobody" } })
+				assert.is_true(hasError("Invalid teamName: nobody. Action: a, Parameter: newTeam"))
+			end)
+		end)
+
 		describe("AllyTeamID", function()
 			it("rejects wrong type", function()
 				triggerErrors({
@@ -1946,6 +1969,55 @@ describe("mission_api.validation", function()
 			}
 			validation.ValidateReferences()
 			assert.is_false(hasError("Stage refers to non-existent objective. Stage: badStage, Objective: 123"))
+		end)
+
+		describe("ChangeTeam actions", function()
+			before_each(function()
+				GG["MissionAPI"].Teams = { rebels = 0, [0] = "rebels", loyalists = 1, [1] = "loyalists" }
+				env.Spring.GetTeamInfo = function(teamID)
+					return teamID, 0, false, teamID == 1
+				end
+			end)
+
+			it("warns that the AI of the old team stays", function()
+				GG["MissionAPI"].Actions = {
+					defect = {
+						type = actionTypes.ChangeTeam,
+						parameters = { oldTeam = "loyalists", newTeam = "rebels" },
+					},
+				}
+				validation.ValidateReferences()
+				assert.is_true(
+					hasError("ChangeTeam moves players only, the AI of team 'loyalists' stays. Action: defect")
+				)
+			end)
+
+			it("checks every difficulty's old team", function()
+				GG["MissionAPI"].Actions = {
+					defect = {
+						type = actionTypes.ChangeTeam,
+						parameters = {
+							oldTeam = { difficulties = { Easy = "rebels", Hard = "loyalists" } },
+							newTeam = "rebels",
+						},
+					},
+				}
+				validation.ValidateReferences()
+				assert.is_true(
+					hasError("ChangeTeam moves players only, the AI of team 'loyalists' stays. Action: defect")
+				)
+			end)
+
+			it("does not warn for a team without an AI", function()
+				GG["MissionAPI"].Actions = {
+					defect = {
+						type = actionTypes.ChangeTeam,
+						parameters = { oldTeam = "rebels", newTeam = "loyalists" },
+					},
+				}
+				validation.ValidateReferences()
+				assert.are.same({}, logged)
+			end)
 		end)
 
 		describe("attribute actions", function()

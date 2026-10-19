@@ -30,6 +30,7 @@ local types = {
 	UnitDefName = "UnitDefName",
 	FeatureDefName = "FeatureDefName",
 	WeaponDefName = "WeaponDefName",
+	TeamName = "TeamName",
 	Facing = "Facing",
 	SoundFile = "SoundFile",
 	VideoFile = "VideoFile",
