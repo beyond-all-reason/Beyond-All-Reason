@@ -14751,7 +14751,8 @@ local initialModel = {
 	end,
 	onTbCyclePassability = function(_event)
 		local TT = WG.TilesetTerrain
-		local hasTT = TT and TT.setKnob
+		local setKnob = TT and TT.setKnob
+		local hasTT = setKnob ~= nil
 		-- The slope classes are drawn by the tileset shader; SHIP by the engine,
 		-- so without the shader the cycle is off -> SHIP -> off.
 		local entry
@@ -14759,8 +14760,8 @@ local initialModel = {
 			_tbPassIdx = (_tbPassIdx + 1) % (#_tbPassClasses + 1)
 			entry = _tbPassClasses[_tbPassIdx]
 		until not entry or entry.engine or hasTT
-		if hasTT then
-			TT.setKnob("passSlopeDeg", (entry and not entry.engine) and _tbPassDeg(entry) or 0)
+		if setKnob then
+			setKnob("passSlopeDeg", (entry and not entry.engine) and _tbPassDeg(entry) or 0)
 		elseif not entry then
 			Spring.Echo(
 				"[Terraform Brush] BOT, VEH, HOVER and AMPH need the tileset shader (SHADER in the SCENE window)"

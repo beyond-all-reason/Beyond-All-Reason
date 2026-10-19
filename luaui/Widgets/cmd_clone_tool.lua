@@ -122,6 +122,7 @@ local layers = {
 }
 
 -- Clone buffer
+---@type table?
 local cloneBuffer = nil
 
 -- Paste state
@@ -159,6 +160,7 @@ local coroutineProgress = 0
 local coroutineLabel = ""
 
 -- Splat FBO
+---@type string?
 local splatCaptureFBO = nil
 local splatCaptureW = 0
 local splatCaptureH = 0
@@ -586,7 +588,7 @@ local function doCopy()
 	if layers.weather then
 		local weatherApi = WG.WeatherBrush
 		if weatherApi and weatherApi.getPersistentSpawners then
-			local now = Spring.GetGameFrame()
+			local now = spGetGameFrame()
 			local weatherData = {}
 			for _, s in ipairs(weatherApi.getPersistentSpawners()) do
 				if s.x >= box.x1 and s.x <= box.x2 and s.z >= box.z1 and s.z <= box.z2 then
@@ -934,7 +936,7 @@ local function applyPaste(targetX, targetZ)
 			local cosR, sinR = cos(rotRad), sin(rotRad)
 			for _, fid in ipairs(spGetFeaturesInRectangle(clearX1, clearZ1, clearX2, clearZ2) or {}) do
 				local fx, _, fz = spGetFeaturePosition(fid)
-				if fx then
+				if fx and fz then
 					local dx, dz = fx - targetX, fz - targetZ
 					local lx = dx * cosR + dz * sinR + sX * 0.5
 					local lz = -dx * sinR + dz * cosR + sZ * 0.5
@@ -971,34 +973,38 @@ local function applyPaste(targetX, targetZ)
 				landing[#landing + 1] = { f = f, wx = wx, wz = wz }
 			end
 		end
-		local offset = 0
-		while offset < #landing do
-			local chunkSize = min(50, #landing - offset)
-			local parts = { tostring(chunkSize) }
-			for i = 1, chunkSize do
-				local e = landing[offset + i]
-				local f, wx, wz = e.f, e.wx, e.wz
-				local wy = spGetGroundHeight(wx, wz)
-				local newHeading = f.heading
-				if pasteRotation ~= 0 then
-					-- heading is 0-65535 range, add rotation
-					newHeading = (newHeading + floor(pasteRotation / 360 * 65536)) % 65536
-				end
-				if pasteMirrorX then
-					newHeading = (65536 - newHeading) % 65536
-				end
-				if pasteMirrorZ then
-					newHeading = (32768 - newHeading) % 65536
-				end
-				parts[#parts + 1] = f.defName
-				parts[#parts + 1] = tostring(floor(wx))
-				parts[#parts + 1] = tostring(floor(wy))
-				parts[#parts + 1] = tostring(floor(wz))
-				parts[#parts + 1] = tostring(newHeading)
+		local parts, inChunk = {}, 0
+		local function flush()
+			if inChunk > 0 then
+				sendMsg(MSG_FEATURES .. inChunk .. " " .. table.concat(parts, " "))
+				parts, inChunk = {}, 0
 			end
-			sendMsg(MSG_FEATURES .. table.concat(parts, " "))
-			offset = offset + chunkSize
 		end
+		for _, e in ipairs(landing) do
+			local f, wx, wz = e.f, e.wx, e.wz
+			local wy = spGetGroundHeight(wx, wz)
+			local newHeading = f.heading
+			if pasteRotation ~= 0 then
+				-- heading is 0-65535 range, add rotation
+				newHeading = (newHeading + floor(pasteRotation / 360 * 65536)) % 65536
+			end
+			if pasteMirrorX then
+				newHeading = (65536 - newHeading) % 65536
+			end
+			if pasteMirrorZ then
+				newHeading = (32768 - newHeading) % 65536
+			end
+			parts[#parts + 1] = f.defName
+			parts[#parts + 1] = tostring(floor(wx))
+			parts[#parts + 1] = tostring(floor(wy))
+			parts[#parts + 1] = tostring(floor(wz))
+			parts[#parts + 1] = tostring(newHeading)
+			inChunk = inChunk + 1
+			if inChunk >= 50 then
+				flush()
+			end
+		end
+		flush()
 	end
 
 	-- Splats: defer GL operations to next DrawWorld
@@ -1298,7 +1304,7 @@ local function drawFeatureMarkers(box)
 	glBeginEnd(GL_QUADS, function()
 		for _, fid in ipairs(feats) do
 			local fx, fy, fz = spGetFeaturePosition(fid)
-			if fx then
+			if fx and fz then
 				glVertex(fx - markerSize, fy + 4, fz - markerSize)
 				glVertex(fx + markerSize, fy + 4, fz - markerSize)
 				glVertex(fx + markerSize, fy + 4, fz + markerSize)
@@ -1960,6 +1966,7 @@ function widget:MouseWheel(up, value)
 
 	if altHeld then
 		-- Rotate (snap to TB protractor step when angleSnap on)
+		---@type number
 		local step = 15
 		local tb = WG.TerraformBrush
 		local tbs = tb and tb.getState and tb.getState() or nil

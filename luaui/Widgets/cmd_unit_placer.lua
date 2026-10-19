@@ -228,6 +228,8 @@ local pv = {
 ---@field clipboard table?
 ---@field pruneTimer number
 ---@field boxAdditive boolean?
+---@field silent boolean? set while an owner selects, so its sink is not told back
+---@field pointer { x: number, z: number }? a harness point standing in for the mouse
 
 ---@type UnitPlacerSelection
 local sel = {
@@ -246,6 +248,7 @@ local sel = {
 
 -- The lasso round a multi-selection (see "The lasso" below); here because the selection
 -- code above that section marks it dirty.
+---@type { hull: table?, dirty: boolean, age: number, hover: boolean }
 local lasso = { hull = nil, dirty = true, age = 0, hover = false }
 
 -- Built in widget:Initialize, before any callin that reads it.
@@ -310,7 +313,7 @@ local engineProvider = {
 		return Spring.GetMyTeamID()
 	end,
 	--- The unit under a screen point, or nil (what a click selects).
-	pick = function(mx, my)
+	pick = function(mx, my, _gx, _gz)
 		local kind, target = Spring.TraceScreenRay(mx, my)
 		return kind == "unit" and target or nil
 	end,
@@ -1078,7 +1081,11 @@ local function unitsInBrush(x, z)
 			if not seen[unitID] then
 				local info = owner.provider.info(unitID)
 				local ux, uz = info and info.x, info and info.z
-				if ux and BrushShapes.isInside(ux - p.x, uz - p.z, up.radius, up.shape, p.rot or up.rotation) then
+				if
+					ux
+					and uz
+					and BrushShapes.isInside(ux - p.x, uz - p.z, up.radius, up.shape, p.rot or up.rotation)
+				then
 					seen[unitID] = true
 					ids[#ids + 1] = unitID
 				end
@@ -1100,7 +1107,7 @@ end
 ----------------------------------------------------------------
 -- Ghosts (DrawUnitShapeGL4): the stamp preview and the selection drag
 ----------------------------------------------------------------
-local function newGhostPool(owner)
+local function newGhostPool(ghostOwner)
 	local pool = { handles = {}, count = 0 }
 
 	function pool.clear()
@@ -1148,7 +1155,7 @@ local function newGhostPool(owner)
 				0.15,
 				0,
 				handles[n + 1],
-				owner
+				ghostOwner
 			)
 			if handle then
 				n = n + 1
@@ -2013,7 +2020,8 @@ end
 function Tool.pointerDown(mods)
 	local sx, sy = pointerScreen()
 	return withMods(mods, function()
-		return widget:MousePress(sx, sy, tonumber(mods and mods.button) or 1)
+		local press = widget.MousePress
+		return press and press(widget, sx, sy, tonumber(mods and mods.button) or 1)
 	end)
 end
 
@@ -2034,7 +2042,7 @@ end
 --- A key, as if pressed over the map: for an owner that sees keys first and passes some
 --- on (the mission editor), and for its harness.
 function Tool.keyPress(key, mods)
-	return widget:KeyPress(key, mods or {})
+	return widget:KeyPress(key, mods or {}, false, "", 0, 0)
 end
 
 function Tool.placeAt(x1, z1, x2, z2)
@@ -2199,8 +2207,8 @@ local function selectPress(mx, my)
 	end
 	-- Empty ground inside the lasso: grab the whole group, as a press on one of them would.
 	if not shift and #sel.ids >= 2 then
-		local gx, gz = groundUnderMouse()
-		if gx and insideLasso(gx, gz) and beginSelectionDrag(sel.ids[1], mx, my) then
+		local ix, iz = groundUnderMouse()
+		if ix and insideLasso(ix, iz) and beginSelectionDrag(sel.ids[1], mx, my) then
 			return true
 		end
 	end
@@ -2639,7 +2647,7 @@ local function drawLasso()
 	end
 	local hot = lasso.hover or sel.drag ~= nil
 	gl.DepthTest(false)
-	local cx, cz = 0, 0
+	local cx, cz = 0.0, 0.0
 	for _, point in ipairs(hull) do
 		cx, cz = cx + point.x, cz + point.z
 	end

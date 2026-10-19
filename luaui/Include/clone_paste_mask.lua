@@ -190,7 +190,8 @@ void main() {
 }
 ]]
 
-local splatShader, surfaceShader
+local splatShader ---@type integer?
+local surfaceShader ---@type integer?
 local shaderFailed = false
 
 local function shaders()
@@ -225,8 +226,9 @@ function M.drawSplatQuad(srcTex, curTexName, mask, quad, tw, th)
 	if not (maskTex and shaders()) then
 		return false
 	end
-	gl.UseShader(splatShader)
-	gl.Uniform(gl.GetUniformLocation(splatShader, "dims"), mask.cols, mask.rows, tw, th)
+	local sh = splatShader --[[@as integer]] -- set by shaders() above
+	gl.UseShader(sh)
+	gl.Uniform(gl.GetUniformLocation(sh, "dims"), mask.cols, mask.rows, tw, th)
 	gl.Blending(false)
 	gl.Texture(0, srcTex)
 	gl.Texture(1, maskTex)
@@ -263,11 +265,12 @@ local function blendOne(srcTex, dstTex, w, h, maskTex, mask, quad, du0, dv0, dw,
 		return nil
 	end
 	gl.RenderToTexture(out, function()
-		gl.UseShader(surfaceShader)
-		gl.Uniform(gl.GetUniformLocation(surfaceShader, "dims"), mask.cols, mask.rows, w, h)
-		gl.Uniform(gl.GetUniformLocation(surfaceShader, "q0"), quad[1], quad[2], quad[3], quad[4])
-		gl.Uniform(gl.GetUniformLocation(surfaceShader, "q1"), quad[7], quad[8], du0, dv0)
-		gl.Uniform(gl.GetUniformLocation(surfaceShader, "q2"), dw, dh, srcTex and 1 or 0, dstTex and 1 or 0)
+		local sh = surfaceShader --[[@as integer]] -- set by shaders() in blendSurface
+		gl.UseShader(sh)
+		gl.Uniform(gl.GetUniformLocation(sh, "dims"), mask.cols, mask.rows, w, h)
+		gl.Uniform(gl.GetUniformLocation(sh, "q0"), quad[1], quad[2], quad[3], quad[4])
+		gl.Uniform(gl.GetUniformLocation(sh, "q1"), quad[7], quad[8], du0, dv0)
+		gl.Uniform(gl.GetUniformLocation(sh, "q2"), dw, dh, srcTex and 1 or 0, dstTex and 1 or 0)
 		gl.Blending(false)
 		gl.Texture(0, srcTex or false)
 		gl.Texture(1, maskTex)

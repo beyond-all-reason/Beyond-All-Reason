@@ -4251,7 +4251,7 @@ function widget:Initialize()
 	autosavePruneAt = os.clock() + 60
 	-- Units export round-trip receivers (cmd_map_project_units.lua relays the
 	-- synced walk through these; see stepUnits for why collection is synced).
-	widgetHandler:RegisterGlobal("mapproject_units_save_begin", function(count)
+	widgetHandler:RegisterGlobal("mapproject_units_save_begin", function(_count)
 		unitsRx = { batches = {}, done = false }
 	end)
 	widgetHandler:RegisterGlobal("mapproject_units_save_data", function(payload)

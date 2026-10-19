@@ -28,7 +28,7 @@ local TILE_COLUMNS = 3
 local TILE_GAP_DP = 2
 
 local widgetState = {
-	rmlContext = nil,
+	rmlContext = nil --[[@as table?]],
 	document = nil,
 	dmHandle = nil,
 	rootElement = nil,

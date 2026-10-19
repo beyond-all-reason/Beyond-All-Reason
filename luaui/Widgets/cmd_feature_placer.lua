@@ -2389,11 +2389,12 @@ function widget:MouseWheel(up, value)
 		-- what is in effect and the ghost preview grows and shrinks live. Steps
 		-- are multiplicative (10 % a notch) and snap onto 1x when passing it.
 		local cur = (fp.scaleMin + fp.scaleMax) * 0.5
+		---@type number
 		local v = up and cur * 1.1 or cur / 1.1
 		if (cur < 1 and v > 1) or (cur > 1 and v < 1) or abs(v - 1) < 0.03 then
 			v = 1
 		end
-		v = clampScale(v)
+		v = clampScale(v) or v
 		fp.scaleMin = v
 		fp.scaleMax = v
 		return true
