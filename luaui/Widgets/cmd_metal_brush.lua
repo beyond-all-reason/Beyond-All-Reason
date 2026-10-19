@@ -77,6 +77,13 @@ local SAVE_DIR = "Terraform Brush/MetalMaps/"
 local CACHE_REBUILD_THROTTLE = 0.25
 local CACHE_REBUILD_DELAY = 0.12 -- wait for gadget RecvLuaMsg to apply SetMetalAmount
 local cacheRebuildHoldUntil = 0 -- os.clock() threshold; don't rebuild before this
+-- Declared here so the paint and stamp senders below mark these, not globals
+local spotsCacheDirty = true
+local clusterCacheDirty = true
+local overlayListDirty = true
+local clusterVisDirty = true
+local lastCacheBuildClock = 0
+local balanceAxisSumsDirty = true
 
 -- State
 local active = false
@@ -514,15 +521,10 @@ local LASSO_DRAG_THRESHOLD_PX = 6
 local LASSO_FREEDRAW_MIN_SPACING_SQ = 24 * 24 -- world elmos^2 between appended points
 
 local spotsCache = nil
-local spotsCacheDirty = true
 local clusterCache = nil
 local clusterCacheRadius = -1
-local clusterCacheDirty = true
 local overlayList = nil
-local overlayListDirty = true
 local clusterVisList = nil
-local clusterVisDirty = true
-local lastCacheBuildClock = 0
 
 local function invalidateMetalCaches()
 	spotsCacheDirty = true
@@ -1053,7 +1055,6 @@ local balanceAxisOriginZ = nil
 local balanceAxisPlacingOrigin = false -- next LMB sets origin
 local balanceAxisSumA = 0 -- positive side (normal direction)
 local balanceAxisSumB = 0 -- negative side
-local balanceAxisSumsDirty = true
 local balanceAxisHovering = false
 local balanceAxisDragging = false
 local BALANCE_AXIS_HOVER_DIST = 48 -- world elmos perpendicular hover threshold
