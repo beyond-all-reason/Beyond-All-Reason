@@ -573,7 +573,7 @@ Pressing it opens the **unit library** window, and the panel shows the tool's ow
 - The tool **stays armed** after a placement, so one drag follows another. A **right click** lets go.
 - `Ctrl+Z` / `Ctrl+Y` undo and redo a whole placement at a time.
 
-**Picking several.** `Shift+click` tiles to pick a set; the tiles show their order. Each placement then uses the next unit of the set, in order (A B C) or at random, as the CYCLE chips say.
+**Picking several.** The same gestures as the asset library: `Ctrl+click` adds a tile to the set or takes it out, and `Shift+click` adds every tile from the last one clicked to this one, in the list as it is filtered and sorted. With the grid keys, `Shift` plus a key adds or removes that tile. The tiles show their order. Each placement then uses the next unit of the set, in order (A B C) or at random, as the CYCLE chips say.
 
 **The library.** One window, shared with the mission editor.
 
