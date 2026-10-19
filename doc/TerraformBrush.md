@@ -272,6 +272,8 @@ The panel exposes a **Tools row** of icon buttons. Each tool has its own sub-pan
 
 Distribution mode (random/regular/clustered) · Size/rotation/count/cadence sliders · Scale variation · Undo/redo · Save/load/clear
 
+**Picking features.** A click on a tile in the asset library picks that feature alone. `Ctrl+click` adds a feature to the pick or takes it out, and `Shift+click` adds every tile from the last one clicked to this one, in the list as it is filtered. Placement draws from all picked features.
+
 **Files:** `luaui/Widgets/cmd_feature_placer.lua` · `luaui/RmlWidgets/gui_feature_placer/`
 
 #### Scale Variation

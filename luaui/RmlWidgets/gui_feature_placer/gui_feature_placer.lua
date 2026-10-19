@@ -533,13 +533,37 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 		if not WG.FeaturePlacer then
 			return
 		end
-		local _, _, _, shift = Spring.GetModKeyState()
-		if shift then
-			WG.FeaturePlacer.toggleFeature(name)
-		else
-			WG.FeaturePlacer.selectFeature(name)
+		-- Click picks one, Ctrl+click adds or removes one, Shift+click adds every
+		-- tile from the last clicked one to this one (in the list as filtered).
+		local _, ctrl, _, shift = Spring.GetModKeyState()
+		local fp = WG.FeaturePlacer
+		local from, to
+		if shift and widgetState.pickAnchor then
+			for i, item in ipairs(virtualItems) do
+				if item.name == widgetState.pickAnchor then
+					from = i
+				end
+				if item.name == name then
+					to = i
+				end
+			end
 		end
-		local st = WG.FeaturePlacer.getState()
+		if from and to then
+			local selected = fp.getState().selectedSet
+			for i = math.min(from, to), math.max(from, to) do
+				local n = virtualItems[i].name
+				if not selected[n] then
+					fp.toggleFeature(n)
+				end
+			end
+		elseif ctrl or shift then
+			fp.toggleFeature(name)
+			widgetState.pickAnchor = name
+		else
+			fp.selectFeature(name)
+			widgetState.pickAnchor = name
+		end
+		local st = fp.getState()
 		local ss = st and st.selectedSet or {}
 		for n, el in pairs(featureElements) do
 			el:SetClass("selected", ss[n] or false)
