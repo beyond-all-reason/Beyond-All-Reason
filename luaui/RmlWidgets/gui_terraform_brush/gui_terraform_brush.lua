@@ -15896,10 +15896,9 @@ local function trackSliderDrag(element, id)
 
 		-- A plain click on a locked slider still releases it: the lock steals
 		-- the wheel, so there has to be an escape that needs no second thought.
-		if ls[id] then
-			ls[id] = nil
-			element:SetClass("slider-locked", false)
-			element:SetClass("slider-pulse", false)
+		-- Locks are keyed by the element id, not the short id passed in here.
+		if ls[element.id] then
+			widgetState.setWheelLock(element, false)
 			uiState.draggingSlider = id
 			uiState.draggingSliderEl = element
 			return
