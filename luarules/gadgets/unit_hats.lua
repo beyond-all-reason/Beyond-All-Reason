@@ -190,7 +190,11 @@ local PlayerCosmeticList = {
 	},
 
 	[9999999999] = { -- Debug
-		"HalloweenHat",
+		"HalloweenPumpkinHat",
+		"HalloweenWitchHat",
+		"HalloweenWitchBroom",
+		"HalloweenFredMask",
+		"HalloweenLegMask",
 		"FightNightHat",
 		"LegionChampionHat",
 		"VikingHat",
@@ -201,7 +205,18 @@ local PlayerCosmeticList = {
 		"CortexNationWarsGERLeftShoulder",
 		"CortexNationWarsEECLeftShoulder",
 		"CortexNationWarsUSLeftShoulder",
+		"BronzeMedalNecklace",
+		"SilverMedalNecklace",
+		"GoldMedalNecklace",
 	},
+}
+
+local HalloweenCosmeticList = {
+	"HalloweenPumpkinHat",
+	"HalloweenWitchHat",
+	"HalloweenWitchBroom",
+	"HalloweenFredMask",
+	"HalloweenLegMask",
 }
 
 -- Cosmetic Defs
@@ -222,15 +237,44 @@ local CosmeticDefinitions = {
 	-- Hats
 	------------------------------------------
 
-	HalloweenHat = {
+	HalloweenPumpkinHat = {
+		name = "HalloweenPumpkinHat",
 		slot = "hat",
 		implementation = "unit",
-		unitDefID = UnitDefNames.cor_hat_hw and UnitDefNames.cor_hat_hw.id,
+		unitDefID = UnitDefNames.cor_hat_halloween_pumpkin and UnitDefNames.cor_hat_halloween_pumpkin.id,
+		faction = { arm = true, cor = true, leg = true },
+		conflictsWith = { "HalloweenWitchBroom" },
+	},
+
+	HalloweenWitchHat = {
+		name = "HalloweenWitchHat",
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.arm_hat_halloween_witch and UnitDefNames.arm_hat_halloween_witch.id,
 		faction = { arm = true, cor = true, leg = true },
 		conflictsWith = {},
 	},
 
+	HalloweenFredMask = {
+		name = "HalloweenFredMask",
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_hat_halloween_mask and UnitDefNames.cor_hat_halloween_mask.id,
+		faction = { arm = true, cor = true, leg = true },
+		conflictsWith = { "HalloweenWitchBroom" },
+	},
+
+	HalloweenLegMask = {
+		name = "HalloweenLegMask",
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.leg_hat_halloween_mask and UnitDefNames.leg_hat_halloween_mask.id,
+		faction = { arm = true, cor = true, leg = true },
+		conflictsWith = { "HalloweenWitchBroom" },
+	},
+
 	FightNightHat = {
+		name = "FightNightHat",
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_fightnight and UnitDefNames.cor_hat_fightnight.id,
@@ -239,6 +283,7 @@ local CosmeticDefinitions = {
 	},
 
 	LegionChampionHat = {
+		name = "LegionChampionHat",
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_legfn and UnitDefNames.cor_hat_legfn.id,
@@ -247,6 +292,7 @@ local CosmeticDefinitions = {
 	},
 
 	VikingHat = {
+		name = "VikingHat",
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_viking and UnitDefNames.cor_hat_viking.id,
@@ -255,6 +301,7 @@ local CosmeticDefinitions = {
 	},
 
 	PirateHat = {
+		name = "PirateHat",
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_pirate and UnitDefNames.cor_hat_pirate.id,
@@ -263,6 +310,7 @@ local CosmeticDefinitions = {
 	},
 
 	GnomeHat = {
+		name = "GnomeHat",
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_gnome and UnitDefNames.cor_hat_gnome.id,
@@ -271,6 +319,7 @@ local CosmeticDefinitions = {
 	},
 
 	KingCrownHat = {
+		name = "KingCrownHat",
 		slot = "hat",
 		implementation = "baked",
 		scriptCall = "ShowCrown",
@@ -287,6 +336,7 @@ local CosmeticDefinitions = {
 	------------------------------------------
 
 	ArmadaNationWarsGERLeftShoulder = {
+		name = "ArmadaNationWarsGERLeftShoulder",
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.arm_leftshoulder_nationwars_ger and UnitDefNames.arm_leftshoulder_nationwars_ger.id,
@@ -295,6 +345,7 @@ local CosmeticDefinitions = {
 	},
 
 	ArmadaNationWarsEECLeftShoulder = {
+		name = "ArmadaNationWarsEECLeftShoulder",
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.arm_leftshoulder_nationwars_eec and UnitDefNames.arm_leftshoulder_nationwars_eec.id,
@@ -303,6 +354,7 @@ local CosmeticDefinitions = {
 	},
 
 	ArmadaNationWarsUSLeftShoulder = {
+		name = "ArmadaNationWarsUSLeftShoulder",
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.arm_leftshoulder_nationwars_us and UnitDefNames.arm_leftshoulder_nationwars_us.id,
@@ -311,6 +363,7 @@ local CosmeticDefinitions = {
 	},
 
 	CortexNationWarsGERLeftShoulder = {
+		name = "CortexNationWarsGERLeftShoulder",
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_ger and UnitDefNames.cor_leftshoulder_nationwars_ger.id,
@@ -319,6 +372,7 @@ local CosmeticDefinitions = {
 	},
 
 	CortexNationWarsEECLeftShoulder = {
+		name = "CortexNationWarsEECLeftShoulder",
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_eec and UnitDefNames.cor_leftshoulder_nationwars_eec.id,
@@ -327,6 +381,7 @@ local CosmeticDefinitions = {
 	},
 
 	CortexNationWarsUSLeftShoulder = {
+		name = "CortexNationWarsUSLeftShoulder",
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_us and UnitDefNames.cor_leftshoulder_nationwars_us.id,
@@ -338,7 +393,17 @@ local CosmeticDefinitions = {
 	-- Necklaces
 	------------------------------------------
 
+	HalloweenWitchBroom = {
+		name = "HalloweenWitchBroom",
+		slot = "necklace",
+		implementation = "unit",
+		unitDefID = UnitDefNames.arm_necklace_halloween_broom and UnitDefNames.arm_necklace_halloween_broom.id,
+		faction = { arm = true, cor = true, leg = true },
+		conflictsWith = { "HalloweenPumpkinHat", "HalloweenFredMask", "HalloweenLegMask" },
+	},
+
 	BronzeMedalNecklace = {
+		name = "BronzeMedalNecklace",
 		slot = "necklace",
 		implementation = "baked",
 		scriptCall = "ShowMedalBronze",
@@ -347,6 +412,7 @@ local CosmeticDefinitions = {
 	},
 
 	SilverMedalNecklace = {
+		name = "SilverMedalNecklace",
 		slot = "necklace",
 		implementation = "baked",
 		scriptCall = "ShowMedalSilver",
@@ -355,6 +421,7 @@ local CosmeticDefinitions = {
 	},
 
 	GoldMedalNecklace = {
+		name = "GoldMedalNecklace",
 		slot = "necklace",
 		implementation = "baked",
 		scriptCall = "ShowMedalGold",
@@ -476,11 +543,12 @@ function gadget:GameFrame(gf)
 			if DEBUG then
 				accountID = 9999999999
 			end
-			if not spec and PlayerCosmeticList[accountID] then
+			if not spec then
 				-- Process Player
 				local playerCosmeticOptions =
 					{ hat = {}, rightshoulder = {}, leftshoulder = {}, necklace = {}, belt = {} }
 				local playerFaction = ""
+				local createdCosmetics = {}
 				if true then
 					local units = spGetTeamUnits(teamID) or {}
 					local unitDefID = spGetUnitDefID(units[1])
@@ -488,11 +556,23 @@ function gadget:GameFrame(gf)
 				end
 
 				-- Collect all possible cosmetics for this player
-				for i = 1, #PlayerCosmeticList[accountID] do
-					local cosmetic = PlayerCosmeticList[accountID][i]
-					if CosmeticDefinitions[cosmetic] and CosmeticDefinitions[cosmetic].faction[playerFaction] then
-						playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot][#playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot] + 1] =
-							CosmeticDefinitions[cosmetic]
+				if PlayerCosmeticList[accountID] then
+					for i = 1, #PlayerCosmeticList[accountID] do
+						local cosmetic = PlayerCosmeticList[accountID][i]
+						if CosmeticDefinitions[cosmetic] and CosmeticDefinitions[cosmetic].faction[playerFaction] then
+							playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot][#playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot] + 1] =
+								CosmeticDefinitions[cosmetic]
+						end
+					end
+				end
+
+				if BAR.Utilities.Gametype.GetCurrentHolidays().halloween then
+					for i = 1, #HalloweenCosmeticList do
+						local cosmetic = HalloweenCosmeticList[i]
+						if CosmeticDefinitions[cosmetic] and CosmeticDefinitions[cosmetic].faction[playerFaction] then
+							playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot][#playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot] + 1] =
+								CosmeticDefinitions[cosmetic]
+						end
 					end
 				end
 
@@ -502,32 +582,50 @@ function gadget:GameFrame(gf)
 						math.random()
 						math.random()
 						math.random()
+						local conflicting = false
 						local pick = math.random(1, #list)
-
-						if list[pick].implementation == "unit" then
-							local units = spGetTeamUnits(teamID) or {}
-							for k = 1, #units do
-								if not unitDefHat[spGetUnitDefID(units[k])] then
-									local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(units[k])
-									CreateAndGiveHat(list[pick].unitDefID, unitPosX, unitPosY, unitPosZ, teamID)
+						local attempts = 0
+						repeat
+							attempts = attempts + 1
+							for c = 1, #list[pick].conflictsWith do
+								local conflictCandidate = list[pick].conflictsWith[c]
+								if createdCosmetics[conflictCandidate] then
+									conflicting = true
+									pick = math.random(1, #list)
+									break
+								else
+									conflicting = false
 								end
 							end
-						elseif list[pick].implementation == "baked" then
-							local units = spGetTeamUnits(teamID) or {}
-							for k = 1, #units do
-								local unitID = units[k]
-								local unitDefID = spGetUnitDefID(unitID)
-								if not unitDefHat[unitDefID] then
-									if stringSub(UnitDefs[unitDefID].name, 1, 3) == "arm" then
-										local scriptEnv = spGetUnitScriptEnv(unitID)
-										if scriptEnv then
-											if scriptEnv[list[pick].scriptCall] then
-												spCallAsUnit(unitID, scriptEnv[list[pick].scriptCall], true)
+						until conflicting == false or attempts >= 5
+
+						if not conflicting then
+							createdCosmetics[list[pick].name] = true
+							if list[pick].implementation == "unit" then
+								local units = spGetTeamUnits(teamID) or {}
+								for k = 1, #units do
+									if not unitDefHat[spGetUnitDefID(units[k])] then
+										local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(units[k])
+										CreateAndGiveHat(list[pick].unitDefID, unitPosX, unitPosY, unitPosZ, teamID)
+									end
+								end
+							elseif list[pick].implementation == "baked" then
+								local units = spGetTeamUnits(teamID) or {}
+								for k = 1, #units do
+									local unitID = units[k]
+									local unitDefID = spGetUnitDefID(unitID)
+									if not unitDefHat[unitDefID] then
+										if stringSub(UnitDefs[unitDefID].name, 1, 3) == "arm" then
+											local scriptEnv = spGetUnitScriptEnv(unitID)
+											if scriptEnv then
+												if scriptEnv[list[pick].scriptCall] then
+													spCallAsUnit(unitID, scriptEnv[list[pick].scriptCall], true)
+												end
 											end
-										end
-									else
-										if spGetCOBScriptID(unitID, list[pick].scriptCall) then
-											spCallCOBScript(unitID, list[pick].scriptCall, 0)
+										else
+											if spGetCOBScriptID(unitID, list[pick].scriptCall) then
+												spCallCOBScript(unitID, list[pick].scriptCall, 0)
+											end
 										end
 									end
 								end
