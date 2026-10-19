@@ -670,14 +670,15 @@ function M.new(ctx)
 	end
 
 	-- Ally teams as the units of the legend bar, in a game where a side has more than one
-	-- player to group: the switch's grouping, or the open custom graph's own.
+	-- player to group and more than one side is listed: the switch's grouping, or the open
+	-- custom graph's own.
 	local function grouped()
 		local graph = page.openGraph()
 		local on = page.grouped
 		if graph then
 			on = graph.grouped
 		end
-		return on and not ctx.ungrouped
+		return on and ctx.canGroup()
 	end
 
 	-- The stat a chart shows, whatever its entry is called.
@@ -796,7 +797,7 @@ function M.new(ctx)
 
 	-- The units a chart of these settings is drawn with: ally teams or players.
 	local function unitsFor(settings)
-		local list = (settings.grouped and not ctx.ungrouped) and page.allyUnits or page.playerUnits
+		local list = (settings.grouped and ctx.canGroup()) and page.allyUnits or page.playerUnits
 		return list or page.units
 	end
 
