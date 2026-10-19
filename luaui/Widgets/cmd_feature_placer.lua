@@ -95,7 +95,7 @@ local ROTATION_STEP = 3
 -- Bounds of the per-feature scale sliders. Wide on purpose: making trees read
 -- small against the units is the whole point, so well below 1 matters most.
 local SCALE_LIMIT_MIN = 0.1
-local SCALE_LIMIT_MAX = 3.0
+local SCALE_LIMIT_MAX = 5.0
 local KEYSYMS_SPACE = 0x20
 local gridSnapSize = 48 -- mutable; user-adjustable via setGridSnapSize
 
@@ -124,6 +124,12 @@ local fp = {
 	-- scale at all, keeping wire traffic and save files byte-identical.
 	scaleMin = 1.0,
 	scaleMax = 1.0,
+	-- Clustered distribution shape, see generateClustered in common/feature_scatter.lua.
+	-- Defaults reproduce the original fixed stand.
+	clumps = 0, -- 0 = auto
+	clumpSize = 1.0,
+	clumpLoose = 25, -- percent of features scattered between clumps
+	clumpVariety = 0, -- percent
 	smartEnabled = false, -- terrain-aware filtering applied on top of distribution
 	smartFilters = {
 		avoidWater = false, -- reject underwater positions (height < 0)
@@ -556,6 +562,10 @@ local function layoutParams()
 		rotRandom = fp.rotRandom,
 		scaleMin = fp.scaleMin,
 		scaleMax = fp.scaleMax,
+		clumps = fp.clumps,
+		clumpSize = fp.clumpSize,
+		clumpLoose = fp.clumpLoose / 100,
+		clumpVariety = fp.clumpVariety / 100,
 		defNames = fp.selectedDefs,
 		smartEnabled = fp.smartEnabled,
 		smartFilters = fp.smartFilters,
@@ -574,23 +584,27 @@ local function layoutKey(params)
 		params.rotRandom,
 		params.scaleMin,
 		params.scaleMax,
+		params.clumps,
+		params.clumpSize,
+		params.clumpLoose,
+		params.clumpVariety,
 		table.concat(params.defNames, ","),
 	}, "\0")
 end
 
--- Swap each rolled scale for the nearest baked variant def. The scale field is
--- cleared afterwards: the size is baked into the variant's model, so ghosts
--- draw it unscaled and the wire carries a plain entry -- def swap IS the scale.
--- Defs without variants drop the roll entirely, which keeps the preview honest
--- about the engine's limits.
+-- Defs with baked size variants swap the rolled scale for the nearest variant
+-- def and clear the scale field: the size is baked into the variant's model, so
+-- ghosts draw it unscaled and the wire carries a plain entry. Every other def
+-- keeps its scale, which the gadget hands to the CUS shaders as a per-feature
+-- uniform (continuous sizes, no baked models needed).
 local function applyScaleVariants(layout)
 	for i = 1, #layout do
 		local entry = layout[i]
 		local scale = entry.scale
 		if scale then
-			entry.scale = nil
 			local set = variantSets[entry.defName]
 			if set then
+				entry.scale = nil
 				local best = set[1]
 				local bestDiff = abs(set[1].factor - scale)
 				for j = 2, #set do
@@ -705,6 +719,14 @@ local function headingToYaw(heading)
 	return -(heading or 0) * HEADING_TO_RAD
 end
 
+-- The visual scale the gadget gave a live feature (its public "visualScale"
+-- rules param, drawn by the CUS shaders). 1 for anything never scaled. Needed so
+-- removal highlights and gizmo ghosts drawn over an already scaled feature match
+-- it instead of reverting to model size.
+local function getFeatureVisualScale(featureID)
+	return Spring.GetFeatureRulesParam(featureID, "visualScale") or 1
+end
+
 local function clearGhosts()
 	if WG.StopDrawFeatureShapesGL4 and preview.ghostCount > 0 then
 		WG.StopDrawFeatureShapesGL4(GHOST_OWNER)
@@ -760,7 +782,7 @@ local function syncGhosts(items)
 				item.tintG or 1,
 				item.tintB or 1,
 				item.tintAmount or 0,
-				1,
+				item.scale or 1,
 				ghosts[n + 1],
 				GHOST_OWNER
 			)
@@ -804,6 +826,7 @@ local function collectRemovalTargets(worldX, worldZ)
 						heading = (yaw or 0) / (2 * pi) * 65536,
 						pitch = pitch or 0,
 						roll = roll or 0,
+						scale = getFeatureVisualScale(fid),
 						alpha = 0.7,
 						tintR = 1,
 						tintG = 0.15,
@@ -851,13 +874,16 @@ local function sendPlacements(placements)
 	for i = 1, #placements do
 		local p = placements[i]
 		local entry
-		-- Token counts are the wire protocol: 4 plain, 7 with tilt/lift. See
-		-- parsePlacement in the gadget. Scale is baked into the variant def.
+		-- Token counts are the wire protocol: 4 plain, 5 with scale, 7 with
+		-- tilt/lift, 8 with both. See parsePlacement in the gadget.
 		if p.pitch ~= 0 or p.roll ~= 0 or p.y ~= GetGroundHeight(p.x, p.z) then
 			entry =
 				string.format("%s %.1f %.1f %d %.4f %.4f %.1f", p.defName, p.x, p.z, p.heading, p.pitch, p.roll, p.y)
 		else
 			entry = string.format("%s %.1f %.1f %d", p.defName, p.x, p.z, p.heading)
+		end
+		if p.scale and abs(p.scale - 1) > 0.001 then
+			entry = entry .. string.format(" %.3f", p.scale)
 		end
 		batch[#batch + 1] = entry
 		if #batch >= PLACE_BATCH then
@@ -949,12 +975,14 @@ local function readFeatureTransform(featureID)
 		pitch = pitch or 0,
 		yaw = yaw or 0,
 		roll = roll or 0,
+		scale = getFeatureVisualScale(featureID),
 	}
 end
 
 -- How far a feature reaches from its own origin. Position is the model's base,
 -- so a tall tree needs its height counted, not just its collision radius, or the
--- gizmo would sit around the trunk with the canopy hiding it.
+-- gizmo would sit around the trunk with the canopy hiding it. Def dimensions are
+-- model-space, so the live visual scale multiplies in.
 local function featureReach(featureID)
 	local defID = GetFeatureDefID(featureID)
 	local def = defID and FeatureDefs[defID]
@@ -963,7 +991,7 @@ local function featureReach(featureID)
 	end
 	local r = def.radius or 16
 	local h = def.model and def.model.maxy or 0
-	return (h > r) and h or r
+	return ((h > r) and h or r) * getFeatureVisualScale(featureID)
 end
 
 local function recomputePivot()
@@ -1209,6 +1237,7 @@ local function computeDragTargets(dx, dy, dz, dPitch, dYaw, dRoll)
 				pitch = pitch,
 				yaw = yaw,
 				roll = roll,
+				scale = base.scale,
 			}
 		end
 	end
@@ -1241,7 +1270,7 @@ local function syncGizmoGhosts(targets)
 				1,
 				1,
 				0,
-				1,
+				t.scale or getFeatureVisualScale(t.id),
 				gz.ghosts[n + 1],
 				GIZMO_OWNER
 			)
@@ -1522,6 +1551,35 @@ end
 local function setSmartEnabled(val)
 	fp.smartEnabled = val and true or false
 end
+
+-- Clump controls for the clustered distribution. One table, not four locals:
+-- this chunk sits at Lua 5.1's 200-local limit.
+local clumpSetters = {
+	setClumps = function(v)
+		v = tonumber(v)
+		if v then
+			fp.clumps = max(0, min(24, floor(v + 0.5)))
+		end
+	end,
+	setClumpSize = function(v)
+		v = tonumber(v)
+		if v then
+			fp.clumpSize = max(0.2, min(3, v))
+		end
+	end,
+	setClumpLoose = function(v)
+		v = tonumber(v)
+		if v then
+			fp.clumpLoose = max(0, min(100, floor(v + 0.5)))
+		end
+	end,
+	setClumpVariety = function(v)
+		v = tonumber(v)
+		if v then
+			fp.clumpVariety = max(0, min(100, floor(v + 0.5)))
+		end
+	end,
+}
 
 local function setSmartFilter(key, val)
 	if fp.smartFilters[key] ~= nil then
@@ -1839,6 +1897,10 @@ local function getState()
 		distribution = fp.distribution,
 		scaleMin = fp.scaleMin,
 		scaleMax = fp.scaleMax,
+		clumps = fp.clumps,
+		clumpSize = fp.clumpSize,
+		clumpLoose = fp.clumpLoose,
+		clumpVariety = fp.clumpVariety,
 		smartEnabled = fp.smartEnabled,
 		smartFilters = fp.smartFilters,
 		selectedDefs = fp.selectedDefs,
@@ -2310,10 +2372,27 @@ function widget:MouseWheel(up, value)
 		return true
 	end
 
-	if shift then
-		-- Shift+Scroll = feature count
+	if shift and ctrl then
+		-- Ctrl+Shift+Scroll = feature count
 		local step = up and 1 or -1
 		setFeatureCount(fp.featureCount + step)
+		return true
+	end
+
+	if shift then
+		-- Shift+Scroll = one fixed scale for everything placed, superseding the
+		-- SCALE MIN / MAX range: both bounds collapse onto it, so the sliders show
+		-- what is in effect and the ghost preview grows and shrinks live. Steps
+		-- are multiplicative (10 % a notch) and snap onto 1x when passing it.
+		local cur = (fp.scaleMin + fp.scaleMax) * 0.5
+		local v = up and cur * 1.1 or cur / 1.1
+		if (cur < 1 and v > 1) or (cur > 1 and v < 1) or abs(v - 1) < 0.03 then
+			v = 1
+		end
+		v = clampScale(v)
+		fp.scaleMin = v
+		fp.scaleMax = v
+		Echo(string.format("[Feature Placer] Scale: %.2fx", v))
 		return true
 	end
 
@@ -2660,6 +2739,10 @@ function widget:Initialize()
 		setDistribution = setDistribution,
 		setScaleMin = setScaleMin,
 		setScaleMax = setScaleMax,
+		setClumps = clumpSetters.setClumps,
+		setClumpSize = clumpSetters.setClumpSize,
+		setClumpLoose = clumpSetters.setClumpLoose,
+		setClumpVariety = clumpSetters.setClumpVariety,
 		setSmartEnabled = setSmartEnabled,
 		setSmartFilter = setSmartFilter,
 		selectFeature = selectFeature,

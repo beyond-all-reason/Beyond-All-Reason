@@ -10,6 +10,12 @@ function M.attach(doc, ctx)
 		"size",
 		"rotation",
 		"rot-random",
+		"scale-min",
+		"scale-max",
+		"clumps",
+		"clump-size",
+		"clump-loose",
+		"clump-variety",
 		"count",
 		"cadence",
 		"slope-max",
@@ -120,6 +126,22 @@ function M.sync(doc, ctx, fpState, setSummary)
 			if dm.fpScaleMaxStr ~= v then
 				dm.fpScaleMaxStr = v
 			end
+			v = (fpState.clumps or 0) == 0 and "AUTO" or tostring(fpState.clumps)
+			if dm.fpClumpsStr ~= v then
+				dm.fpClumpsStr = v
+			end
+			v = string.format("%.2f", fpState.clumpSize or 1)
+			if dm.fpClumpSizeStr ~= v then
+				dm.fpClumpSizeStr = v
+			end
+			v = tostring(fpState.clumpLoose or 25)
+			if dm.fpClumpLooseStr ~= v then
+				dm.fpClumpLooseStr = v
+			end
+			v = tostring(fpState.clumpVariety or 0)
+			if dm.fpClumpVarietyStr ~= v then
+				dm.fpClumpVarietyStr = v
+			end
 			v = tostring(fpState.featureCount)
 			if dm.fpCountStr ~= v then
 				dm.fpCountStr = v
@@ -136,6 +158,14 @@ function M.sync(doc, ctx, fpState, setSummary)
 		syncAndFlash(getCachedEl(doc, "fp-slider-rot-random"), "fp-rot-random", tostring(fpState.rotRandom))
 		syncAndFlash(getCachedEl(doc, "fp-slider-scale-min"), "fp-scale-min", tostring(fpState.scaleMin or 1))
 		syncAndFlash(getCachedEl(doc, "fp-slider-scale-max"), "fp-scale-max", tostring(fpState.scaleMax or 1))
+		syncAndFlash(getCachedEl(doc, "fp-slider-clumps"), "fp-clumps", tostring(fpState.clumps or 0))
+		syncAndFlash(getCachedEl(doc, "fp-slider-clump-size"), "fp-clump-size", tostring(fpState.clumpSize or 1))
+		syncAndFlash(getCachedEl(doc, "fp-slider-clump-loose"), "fp-clump-loose", tostring(fpState.clumpLoose or 25))
+		syncAndFlash(
+			getCachedEl(doc, "fp-slider-clump-variety"),
+			"fp-clump-variety",
+			tostring(fpState.clumpVariety or 0)
+		)
 		syncAndFlash(getCachedEl(doc, "fp-slider-count"), "fp-count", tostring(fpState.featureCount))
 		syncAndFlash(getCachedEl(doc, "fp-slider-cadence"), "fp-cadence", tostring(cadenceToSlider(fpState.cadence)))
 
@@ -409,6 +439,22 @@ function M.sync(doc, ctx, fpState, setSummary)
 			"btn-fp-dist-random",
 			"btn-fp-dist-regular",
 			"btn-fp-dist-clustered",
+			"fp-slider-clumps",
+			"fp-slider-clumps-numbox",
+			"btn-fp-clumps-down",
+			"btn-fp-clumps-up",
+			"fp-slider-clump-size",
+			"fp-slider-clump-size-numbox",
+			"btn-fp-clump-size-down",
+			"btn-fp-clump-size-up",
+			"fp-slider-clump-loose",
+			"fp-slider-clump-loose-numbox",
+			"btn-fp-clump-loose-down",
+			"btn-fp-clump-loose-up",
+			"fp-slider-clump-variety",
+			"fp-slider-clump-variety-numbox",
+			"btn-fp-clump-variety-down",
+			"btn-fp-clump-variety-up",
 		}, not scatter)
 	end
 

@@ -6237,6 +6237,10 @@ local initialModel = {
 	fpRotationStr = "0",
 	fpRotRandomStr = "0",
 	fpScaleMinStr = "1.00",
+	fpClumpsStr = "AUTO",
+	fpClumpSizeStr = "1.00",
+	fpClumpLooseStr = "25",
+	fpClumpVarietyStr = "0",
 	fpScaleMaxStr = "1.00",
 	fpCountStr = "1",
 	fpCadenceStr = "1",
@@ -8304,6 +8308,80 @@ local initialModel = {
 			return
 		end
 		WG.FeaturePlacer.setScaleMax(((WG.FeaturePlacer.getState() or {}).scaleMax or 1) + 0.1)
+	end,
+
+	-- Clump shape (Clustered distribution only)
+	onFpClumpsChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setClumps(_elemSliderVal("fp-slider-clumps", 0))
+	end,
+	onFpClumpsDown = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setClumps(((WG.FeaturePlacer.getState() or {}).clumps or 0) - 1)
+	end,
+	onFpClumpsUp = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setClumps(((WG.FeaturePlacer.getState() or {}).clumps or 0) + 1)
+	end,
+	onFpClumpSizeChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setClumpSize(_elemSliderVal("fp-slider-clump-size", 1))
+	end,
+	onFpClumpSizeDown = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setClumpSize(((WG.FeaturePlacer.getState() or {}).clumpSize or 1) - 0.1)
+	end,
+	onFpClumpSizeUp = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setClumpSize(((WG.FeaturePlacer.getState() or {}).clumpSize or 1) + 0.1)
+	end,
+	onFpClumpLooseChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setClumpLoose(_elemSliderVal("fp-slider-clump-loose", 25))
+	end,
+	onFpClumpLooseDown = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setClumpLoose(((WG.FeaturePlacer.getState() or {}).clumpLoose or 25) - 5)
+	end,
+	onFpClumpLooseUp = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setClumpLoose(((WG.FeaturePlacer.getState() or {}).clumpLoose or 25) + 5)
+	end,
+	onFpClumpVarietyChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setClumpVariety(_elemSliderVal("fp-slider-clump-variety", 0))
+	end,
+	onFpClumpVarietyDown = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setClumpVariety(((WG.FeaturePlacer.getState() or {}).clumpVariety or 0) - 5)
+	end,
+	onFpClumpVarietyUp = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setClumpVariety(((WG.FeaturePlacer.getState() or {}).clumpVariety or 0) + 5)
 	end,
 
 	-- Count
@@ -16165,8 +16243,12 @@ local guideHints = {
 	["fp-slider-size"] = "Radius of the feature placement area. Ctrl+Scroll to resize while painting.",
 	["fp-slider-rotation"] = "Base rotation angle for all placed features. Individual randomization is added on top of this value.",
 	["fp-slider-rot-random"] = "Randomizes each feature's orientation by ±this percentage. 100% = fully random; 0% = all face the same direction.",
-	["fp-slider-scale-min"] = "Smallest scale a placed feature can roll; snaps to the nearest baked size variant (trees have them). Most features land near this end — natural stands are mostly small with a few large.",
-	["fp-slider-scale-max"] = "Largest scale a placed feature can roll; snaps to the nearest baked size variant (trees have them). With Clustered distribution, large features gather at the clump cores and small ones at the fringes.",
+	["fp-slider-scale-min"] = "Smallest scale a placed feature can roll, anywhere from 0.1x to 5x. Most features land near this end: natural stands are mostly small with a few large. Shift+Scroll sets one fixed scale for both MIN and MAX.",
+	["fp-slider-scale-max"] = "Largest scale a placed feature can roll. With Clustered distribution, large features gather at the clump cores and small ones at the fringes.",
+	["fp-slider-clumps"] = "How many clumps one stamp grows. 0 = automatic (more features, more clumps).",
+	["fp-slider-clump-size"] = "How far each clump spreads. Low = tight thickets, high = open groves.",
+	["fp-slider-clump-loose"] = "Share of features scattered loosely between the clumps instead of inside one.",
+	["fp-slider-clump-variety"] = "How unlike each other the clumps are. At 0 every clump is alike; higher mixes dense and sparse, tight and wide, young (small trees) and old (large trees) clumps.",
 	["fp-slider-count"] = "Number of features placed per brush stroke — higher counts fill the area more densely.",
 	["fp-slider-cadence"] = "How fast features are placed while dragging — lower values produce more features per distance traveled.",
 	-- Feature undo/save/load

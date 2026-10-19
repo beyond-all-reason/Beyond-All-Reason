@@ -3076,6 +3076,60 @@
 				<div class="tf-btn-text">Clustered</div>
 			</div>
 		</div>
+		<div id="fp-clump-controls" data-class-hidden="fpDistMode != 'clustered'">
+		<div class="flex flex-row items-center mb-1">
+			<div class="text-lg text-light">CLUMPS: <span class="text-xl font-bold tf-slider-val">{{fpClumpsStr}}</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-fp-clumps-down" class="tf-sm-btn" data-event-mousedown="onFpClumpsDown()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="fp-slider-clumps" class="tf-slider" min="0" max="24" step="1" value="0" data-event-change="onFpClumpsChange()" />
+			<div id="btn-fp-clumps-up" class="tf-sm-btn" data-event-mousedown="onFpClumpsUp()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="fp-slider-clumps-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		<div class="flex flex-row items-center mb-1">
+			<div class="text-lg text-light">CLUMP SIZE: <span class="text-xl font-bold tf-slider-val">{{fpClumpSizeStr}}</span>x</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-fp-clump-size-down" class="tf-sm-btn" data-event-mousedown="onFpClumpSizeDown()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="fp-slider-clump-size" class="tf-slider" min="0.2" max="3" step="0.05" value="1" data-event-change="onFpClumpSizeChange()" />
+			<div id="btn-fp-clump-size-up" class="tf-sm-btn" data-event-mousedown="onFpClumpSizeUp()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="fp-slider-clump-size-numbox" class="tf-slider-numbox" value="1" />
+		</div>
+		<div class="flex flex-row items-center mb-1">
+			<div class="text-lg text-light">STRAGGLERS: <span class="text-xl font-bold tf-slider-val">{{fpClumpLooseStr}}</span>%</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-fp-clump-loose-down" class="tf-sm-btn" data-event-mousedown="onFpClumpLooseDown()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="fp-slider-clump-loose" class="tf-slider" min="0" max="100" step="1" value="25" data-event-change="onFpClumpLooseChange()" />
+			<div id="btn-fp-clump-loose-up" class="tf-sm-btn" data-event-mousedown="onFpClumpLooseUp()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="fp-slider-clump-loose-numbox" class="tf-slider-numbox" value="25" />
+		</div>
+		<div class="flex flex-row items-center mb-1">
+			<div class="text-lg text-light">CLUMP VARIETY: <span class="text-xl font-bold tf-slider-val">{{fpClumpVarietyStr}}</span>%</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-fp-clump-variety-down" class="tf-sm-btn" data-event-mousedown="onFpClumpVarietyDown()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="fp-slider-clump-variety" class="tf-slider" min="0" max="100" step="1" value="0" data-event-change="onFpClumpVarietyChange()" />
+			<div id="btn-fp-clump-variety-up" class="tf-sm-btn" data-event-mousedown="onFpClumpVarietyUp()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="fp-slider-clump-variety-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		</div><!-- /fp-clump-controls -->
 		</div><!-- /section-fp-dist -->
 		</div><!-- /frame-fp-dist -->
 
@@ -3442,6 +3496,7 @@
 		<div id="fp-param-scale-row">
 		<div class="flex flex-row items-center mb-1">
 			<div class="text-lg text-light">SCALE MIN: <span class="text-xl font-bold tf-slider-val">{{fpScaleMinStr}}</span>x</div>
+			<div id="kbhint-fp-scale" class="text-sm text-keybind" style="margin-left: auto;">Shift+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div id="btn-fp-scale-min-down" class="tf-sm-btn" data-event-mousedown="onFpScaleMinDown()">
@@ -3477,6 +3532,7 @@
 				<div id="fp-slider-count-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
 				<div id="fp-slider-count-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 			</div>
+			<div id="kbhint-fp-count" class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Shift+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div id="btn-fp-count-down" class="tf-sm-btn" data-event-mousedown="onFpCountDown()">

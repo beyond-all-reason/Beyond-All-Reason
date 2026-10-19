@@ -23,16 +23,118 @@ if not gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	-- Visual scale lives in the per-object uniform buffer the CUS vertex shaders
+	-- read (userDefined[3].z, buffer index 14; 0 = unscaled). The synced side
+	-- keeps the authoritative value in the public "visualScale" feature rules
+	-- param and pings this side to upload it. Brush placement also plays a short
+	-- grow-in: the uniform is animated from a sliver up to the final scale.
+	local SCALE_UNIFORM_INDEX = 14
+	local GROW_SECONDS = 0.35
+	local SetFeatureBufferUniforms = gl.SetFeatureBufferUniforms
+	local GetFeatureRulesParam = Spring.GetFeatureRulesParam
+	local ValidFeatureID = Spring.ValidFeatureID
+	local scaleUniform = { 0 }
+	local growing = {} -- featureID -> { target, t }
+	local growCount = 0
+
+	local function writeScale(featureID, s)
+		if SetFeatureBufferUniforms and ValidFeatureID(featureID) then
+			scaleUniform[1] = s
+			SetFeatureBufferUniforms(featureID, scaleUniform, SCALE_UNIFORM_INDEX)
+		end
+	end
+
+	-- Overshoots a little before settling, which reads as sprouting rather than
+	-- a linear zoom.
+	local function easeOutBack(t)
+		local c1 = 1.4
+		local u = t - 1
+		return 1 + (c1 + 1) * u * u * u + c1 * u * u
+	end
+
 	local syncActions = {
 		FeaturePlacerHistory = forwardToLuaUI("terraform_feature_history"),
 		feature_save_begin = forwardToLuaUI("terraform_feature_save_begin"),
 		feature_save_data = forwardToLuaUI("terraform_feature_save_data"),
 		feature_save_end = forwardToLuaUI("terraform_feature_save_end"),
+		fpFeatureScale = function(_, featureID, s, grow)
+			-- Mouse picking (hover, click, reclaim targeting) tests the selection
+			-- volume, a separate engine volume the synced half cannot reach: it
+			-- scaled the collision volume, which only weapons and projectiles hit.
+			-- One message per created feature, carrying its final scale.
+			if s ~= 1 and Spring.SetFeatureSelectionVolumeData then
+				local sx, sy, sz, ox, oy, oz, vtype, ttype, axis = Spring.GetFeatureSelectionVolumeData(featureID)
+				if sx then
+					Spring.SetFeatureSelectionVolumeData(
+						featureID,
+						sx * s,
+						sy * s,
+						sz * s,
+						ox * s,
+						oy * s,
+						oz * s,
+						vtype,
+						ttype,
+						axis
+					)
+				end
+			end
+			if grow == 1 then
+				if not growing[featureID] then
+					growCount = growCount + 1
+				end
+				growing[featureID] = { target = s, t = 0 }
+				writeScale(featureID, s * 0.05)
+			else
+				if growing[featureID] then
+					growing[featureID] = nil
+					growCount = growCount - 1
+				end
+				writeScale(featureID, s)
+			end
+			return true
+		end,
 	}
+
+	function gadget:Update()
+		if growCount == 0 then
+			return
+		end
+		local dt = Spring.GetLastUpdateSeconds() or 0.033
+		local step = math.min(dt, 0.1) / GROW_SECONDS
+		for featureID, g in pairs(growing) do
+			g.t = g.t + step
+			if g.t >= 1 or not ValidFeatureID(featureID) then
+				writeScale(featureID, g.target)
+				growing[featureID] = nil
+				growCount = growCount - 1
+			else
+				writeScale(featureID, g.target * math.max(0.05, easeOutBack(g.t)))
+			end
+		end
+	end
+
+	function gadget:FeatureDestroyed(featureID)
+		if growing[featureID] then
+			growing[featureID] = nil
+			growCount = growCount - 1
+		end
+	end
 
 	function gadget:Initialize()
 		for name, func in pairs(syncActions) do
 			gadgetHandler:AddSyncAction(name, func)
+		end
+		-- Re-upload every scaled feature, so a /luarules reload (or a feature
+		-- that predates this gadget instance) keeps its size. Rules params are
+		-- plain sim data: unlike the piece callouts, reading them at load is
+		-- safe on map features.
+		local features = Spring.GetAllFeatures()
+		for i = 1, #features do
+			local s = GetFeatureRulesParam(features[i], "visualScale")
+			if s then
+				writeScale(features[i], s)
+			end
 		end
 	end
 
@@ -97,6 +199,14 @@ local GetFeatureRotation = Spring.GetFeatureRotation
 local SetFeaturePosition = Spring.SetFeaturePosition
 local SetFeatureMoveCtrl = Spring.SetFeatureMoveCtrl
 local GetGameFrame = Spring.GetGameFrame
+local SetFeatureRulesParam = Spring.SetFeatureRulesParam
+local PUBLIC_PARAM = { public = true }
+local GetFeatureCollisionVolumeData = Spring.GetFeatureCollisionVolumeData
+local SetFeatureCollisionVolumeData = Spring.SetFeatureCollisionVolumeData
+local GetFeatureRadius = Spring.GetFeatureRadius
+local GetFeatureHeight = Spring.GetFeatureHeight
+local SetFeatureRadiusAndHeight = Spring.SetFeatureRadiusAndHeight
+local SetFeatureMidAndAimPos = Spring.SetFeatureMidAndAimPos
 
 -- Same containment module the widget draws its brush outline from, so removal
 -- matches the shape the user sees. The copy that used to live here was
@@ -110,6 +220,89 @@ local isInsideShape = BrushShapes.isInside
 local undoStack = {}
 local redoStack = {}
 local gaiaTeamID
+
+-- Visual scale applied per feature, keyed by live featureID. Mirrored into the
+-- public "visualScale" feature rules param (widgets read it back, the unsynced
+-- half re-uploads it after a reload); this table stays the authority for
+-- capture/save. Entries exist only for features that were actually scaled.
+local featureScales = {}
+
+----------------------------------------------------------------
+-- Per-feature scaling
+----------------------------------------------------------------
+-- The engine cannot scale a feature's model: Spring.SetFeaturePieceMatrix looks
+-- like the API for it, but LocalModelPiece::SetPieceSpaceMatrix only validates
+-- the matrix and throws the geometry away, and piece scale is reachable only from
+-- unit animation scripts, which features do not have.
+--
+-- So the size is drawn, not simulated: the CUS vertex shaders multiply the model
+-- by a per-object uniform (see the unsynced half at the top of this file), in
+-- every pass including shadows. Interaction is scaled here to match -- collision
+-- volume, selection/reclaim radius+height (which also drives draw culling), and
+-- the mid/aim positions. Footprint blocking stays def-side, which is fine for the
+-- 1x1 feature defs this tool mostly places.
+local SCALE_EPSILON = 0.001
+local SCALE_MIN = 0.05
+local SCALE_MAX = 10
+
+-- `grow` asks the unsynced half to animate the size in from nothing; a brush
+-- stroke sets it, loads and undo do not. Unscaled features only send the
+-- message when they grow, and then settle on 1.
+local function applyFeatureScale(featureID, s, grow)
+	local scaled = s and abs(s - 1) >= SCALE_EPSILON
+	if not scaled then
+		if grow then
+			SendToUnsynced("fpFeatureScale", featureID, 1, 1)
+		end
+		return
+	end
+	-- Model-less defs (editor_geocrack and friends) have nothing to draw scaled.
+	local def = FeatureDefs[GetFeatureDefID(featureID) or -1]
+	if not def or (def.modelname or "") == "" then
+		return
+	end
+	s = max(SCALE_MIN, min(SCALE_MAX, s))
+
+	local vsx, vsy, vsz, vox, voy, voz, vtype, ttype, axis = GetFeatureCollisionVolumeData(featureID)
+	if vsx and SetFeatureCollisionVolumeData then
+		SetFeatureCollisionVolumeData(
+			featureID,
+			vsx * s,
+			vsy * s,
+			vsz * s,
+			vox * s,
+			voy * s,
+			voz * s,
+			vtype,
+			ttype,
+			axis
+		)
+	end
+
+	local r = GetFeatureRadius and GetFeatureRadius(featureID)
+	local h = GetFeatureHeight and GetFeatureHeight(featureID)
+	if r and h and SetFeatureRadiusAndHeight then
+		SetFeatureRadiusAndHeight(featureID, r * s, h * s)
+	end
+
+	local bx, by, bz, mx, my, mz, ax, ay, az = GetFeaturePosition(featureID, true, true)
+	if mx and SetFeatureMidAndAimPos then
+		SetFeatureMidAndAimPos(
+			featureID,
+			(mx - bx) * s,
+			(my - by) * s,
+			(mz - bz) * s,
+			(ax - bx) * s,
+			(ay - by) * s,
+			(az - bz) * s,
+			true
+		)
+	end
+
+	SetFeatureRulesParam(featureID, "visualScale", s, PUBLIC_PARAM)
+	SendToUnsynced("fpFeatureScale", featureID, s, grow and 1 or 0)
+	featureScales[featureID] = s
+end
 
 ----------------------------------------------------------------
 -- Wobble animation
@@ -210,11 +403,11 @@ end
 
 -- Wire format, entries separated by "|":
 --   defName x z heading                     (4 tokens, the common case)
+--   defName x z heading scale               (5)
 --   defName x z heading pitch roll y        (7)
--- Disambiguated by token count; the tilt tail is omitted whenever it holds the
--- default, so an untouched map's wire traffic stays byte-identical. Older files
--- can carry a scale as the 5th or 8th token; it is accepted and ignored (scale
--- ships as baked variant defs).
+--   defName x z heading pitch roll y scale  (8)
+-- Disambiguated by token count; each optional tail is omitted whenever it holds
+-- the default, so an untouched map's wire traffic stays byte-identical.
 local function parsePlacement(entry)
 	local parts = {}
 	for word in entry:gmatch("%S+") do
@@ -231,8 +424,16 @@ local function parsePlacement(entry)
 	x = max(0, min(Game.mapSizeX, x))
 	z = max(0, min(Game.mapSizeZ, z))
 
+	local n = #parts
+	local scale
+	if n == 5 then
+		scale = tonumber(parts[5])
+	elseif n >= 8 then
+		scale = tonumber(parts[8])
+	end
+
 	local pitch, roll, y
-	if #parts >= 6 then
+	if n >= 6 then
 		pitch = tonumber(parts[5]) or 0
 		roll = tonumber(parts[6]) or 0
 		y = tonumber(parts[7])
@@ -246,10 +447,11 @@ local function parsePlacement(entry)
 		pitch = pitch or 0,
 		roll = roll or 0,
 		y = y or GetGroundHeight(x, z),
+		scale = scale,
 	}
 end
 
-local function createFromPlacement(p)
+local function createFromPlacement(p, grow)
 	local id = CreateFeature(p.defName, p.x, p.y, p.z, p.heading, gaiaTeamID)
 	if not id then
 		return nil
@@ -267,6 +469,11 @@ local function createFromPlacement(p)
 		local _, yaw = GetFeatureRotation(id)
 		SetFeatureRotation(id, p.pitch, yaw or 0, p.roll)
 	end
+
+	-- After creation on purpose: FeatureCreated callins (the dynamic collision
+	-- volume gadget among them) fire inside CreateFeature, so scaling here
+	-- multiplies on top of whatever they set rather than being stomped by it.
+	applyFeatureScale(id, p.scale, grow)
 
 	return id
 end
@@ -330,7 +537,7 @@ local function placeFromList(payload, wobble)
 	for chunk in payload:sub(bodyStart):gmatch("[^|]+") do
 		local p = parsePlacement(chunk)
 		if p then
-			local id = createFromPlacement(p)
+			local id = createFromPlacement(p, wobble)
 			if id then
 				p.id = id
 				placed[#placed + 1] = p
@@ -409,6 +616,7 @@ local function captureFeature(featureID)
 		heading = GetFeatureHeading(featureID) or 0,
 		pitch = pitch or 0,
 		roll = roll or 0,
+		scale = featureScales[featureID],
 		resting = isRestingOrientation(featureID, def, x, z),
 	}
 end
@@ -639,6 +847,11 @@ local function exportAllFeatures()
 			if tilted then
 				entry = entry .. string.format(" %.4f %.4f %.1f", snapshot.pitch, snapshot.roll, snapshot.y)
 			end
+			-- Scale rides as the 5th token (no tilt) or 8th (tilt): the token
+			-- count is what tells the two tails apart on the other side.
+			if snapshot.scale then
+				entry = entry .. string.format(" %.3f", snapshot.scale)
+			end
 			data[#data + 1] = entry
 		end
 	end
@@ -802,8 +1015,27 @@ end
 function gadget:Initialize()
 	gaiaTeamID = GetGaiaTeamID()
 
+	-- Rebuild the scale table from the rules params, which survive a /luarules
+	-- reload. Never touch piece callouts here: GetFeatureRootPiece /
+	-- GetFeaturePieceMatrix during LuaRules load CRASH the engine (map features'
+	-- local piece models are instantiated lazily by the drawer).
+	local features = GetAllFeatures()
+	for i = 1, #features do
+		local s = Spring.GetFeatureRulesParam(features[i], "visualScale")
+		if s then
+			featureScales[features[i]] = s
+		end
+	end
+
 	-- Idle until the first wobble is queued (see addWobble).
 	gadgetHandler:RemoveCallIn("GameFrame")
+end
+
+-- Feature ids are recycled by the engine; without this a reclaimed or burned
+-- scaled feature would leave its stale scale behind for whatever feature
+-- inherits the id.
+function gadget:FeatureDestroyed(featureID, allyTeamID)
+	featureScales[featureID] = nil
 end
 
 function gadget:GameFrame(frame)

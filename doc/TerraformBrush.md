@@ -278,27 +278,32 @@ Distribution mode (random/regular/clustered) · Size/rotation/count/cadence slid
 
 #### Scale Variation
 
-Scale Min / Scale Max sliders (0.1-3.0x) roll a per-feature scale at placement
-time. The roll is realised by snapping to the nearest **pre-baked model
-variant** of the chosen def and placing that variant instead: a def opts in by
-shipping sibling defs tagged `customParams.scale_base` (the def they vary) and
-`scale_factor` (their size), with the model, collision cylinder, wood value and
-mass all baked at that size. Variant defs are hidden from the asset library --
-the placer reaches them only through snapping.
+Scale Min / Scale Max sliders (0.1-5.0x) roll a per-feature scale at placement
+time, any size in between. The engine cannot scale a feature's model
+(`Spring.SetFeaturePieceMatrix` discards its matrix, and only unit scripts can
+scale pieces), so the size is drawn rather than simulated: the feature placer
+gadget writes the scale into the feature's per-object uniform
+(`userDefined[3].z`, buffer index 14) and the CUS vertex shader multiplies the
+model by it, in every pass, shadows included. The gadget also scales the
+collision volume, the selection radius and height, and the mid/aim points, and
+keeps the scale in the public feature rules param `visualScale`. Brush
+placements grow in over a third of a second.
 
-**No variant sets ship yet**, so the sliders are currently inert: a def with no
-variants ignores the roll and places at its normal size, and the ghost preview
-shows exactly that. The fir tree variants that drove this feature are shelved on
-the `feature-densification` branch along with the tree clump work, together
-with the offline script that bakes them.
+A def can still ship **pre-baked model variants** (sibling defs tagged
+`customParams.scale_base` and `scale_factor`); the roll then snaps to the
+nearest variant and places that def instead. No variant sets ship at the moment.
+
+Limits: the footprint keeps the def's size, and the engine culls a feature by
+its unscaled model radius, so a feature scaled far above 1 can pop out early at
+the screen edge.
 
 - Rolls are bottom-heavy (many small, few large), matching a natural stand.
 - With **Clustered** distribution, scale correlates with distance to the cluster
   nucleus: big features in the core, small ones at the fringe, and the minimum
   spacing scales per pair so small features pack tighter.
 - Point mode rolls a scale per placement too.
-- Variants are ordinary defs, so save/load, undo/redo, gizmo, and map projects
-  need no special handling.
+- The scale rides the placement wire format and save files, so save/load,
+  undo/redo and map projects keep it.
 
 Why baked variants rather than scaling at runtime: the engine has no
 feature-scale API. `Spring.Set{Unit,Feature}PieceMatrix` looks like one, but
@@ -382,9 +387,10 @@ entry.
 #### Clustered Distribution
 Simulates real-world ecological spacing patterns:
 
-- **Cluster nuclei**: 2–6 anchor points are randomly seeded inside the brush (count scales with √featureCount).
-- **Cluster attraction**: ~75 % of features spawn near a randomly chosen nucleus via a Gaussian offset (σ ≈ radius / numClusters × 1.2).
-- **Free scatter**: remaining ~25 % are placed uniformly at random inside the brush for a natural sparse background.
+- **Cluster nuclei** (CLUMPS): anchor points seeded inside the brush. 0 = AUTO, 2–6 scaling with √featureCount; or set 1–24.
+- **Cluster attraction** (CLUMP SIZE): features spawn near a nucleus via a Gaussian offset, σ ≈ radius / clumps × 1.2 × CLUMP SIZE (0.2–3).
+- **Free scatter** (STRAGGLERS, default 25 %): this share is placed uniformly at random inside the brush for a sparse background.
+- **CLUMP VARIETY** (0–100 %): how unlike each other the clumps are. Each clump rolls its share of the features (a few dense, most sparse), its own spread, and an age that shifts its sizes (young clumps of saplings next to old groves of large trees). At 0 every clump is alike, exactly the old behaviour.
 - **Minimum separation**: each candidate position is rejected if it is closer than `featureDef.radius × 1.4` to an already-placed feature. This lets mixed selections self-regulate — large-radius objects (trees) space apart for "sunlight competition"; small-radius objects (bushes) cluster tightly. A safety clamp prevents deadlock when the count is high relative to the brush size.
 
 #### Smart Filter
