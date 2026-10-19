@@ -131,7 +131,7 @@ local function cacheKey(modOptions)
 	return table.concat(parts, ";")
 end
 
-local function parse(modOptions)
+local function parse(modOptions, holidays)
 	local options = getUnitDefRequireModoptionDefaults()
 	for key, value in pairs(modOptions) do
 		options[key] = value
@@ -166,7 +166,7 @@ local function parse(modOptions)
 						return false
 					end,
 					GetCurrentHolidays = function()
-						return {}
+						return holidays
 					end,
 				},
 			},
@@ -196,13 +196,15 @@ local parsed = {}
 
 ---The real unit defs by name. gamedata never fills UnitDefNames, so there are no numeric IDs.
 ---@param modOptions table|nil  merged over the defaults the def files require
+---@param holidays table<string, boolean>|nil  the holiday events running, as GetCurrentHolidays reports them
 ---@return table
-function RealUnitDefs.byName(modOptions)
+function RealUnitDefs.byName(modOptions, holidays)
 	modOptions = modOptions or {}
+	holidays = holidays or {}
 
-	local key = cacheKey(modOptions)
+	local key = cacheKey(modOptions) .. "|" .. cacheKey(holidays)
 	if parsed[key] == nil then
-		parsed[key] = parse(modOptions)
+		parsed[key] = parse(modOptions, holidays)
 	end
 
 	-- A copy, so a caller adding or dropping a def does not change what the next one gets.
