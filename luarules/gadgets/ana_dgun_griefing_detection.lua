@@ -46,7 +46,6 @@ local CallAsTeam = CallAsTeam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitsInPlanes = Spring.GetUnitsInPlanes
 local spGetTeamInfo = Spring.GetTeamInfo
@@ -623,7 +622,6 @@ function gadget:PlayerChanged(playerID)
 end
 
 local function ProcessDGunCommand(unitID, unitDefID, cmdParams)
-	-- FIXME some commands seem to be getting consumed first by cmd_dgun_no_ally...
 	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 	if not unitX then
 		return
@@ -683,21 +681,11 @@ local function ProcessDGunCommand(unitID, unitDefID, cmdParams)
 	})
 end
 
--- Observe DGun commands and write analytics. This always returns false
-function gadget:CommandNotify(cmdID, cmdParams, cmdOptions)
-	Spring.Echo("Hello this command did not get dropped :)")
-	if cmdID ~= CMD_DGUN then
-		return false
+-- Observe DGun commands and write analytics for local commanders only.
+function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
+	if cmdID ~= CMD_DGUN or unitTeam ~= myTeamID or not isCommander[unitDefID] then
+		return
 	end
 
-	local selectedUnits = spGetSelectedUnits()
-	for i = 1, #selectedUnits do
-		local unitID = selectedUnits[i]
-		local unitDefID = spGetUnitDefID(unitID)
-		if spGetUnitTeam(unitID) == myTeamID and isCommander[unitDefID] then
-			ProcessDGunCommand(unitID, unitDefID, cmdParams)
-		end
-	end
-
-	return false
+	ProcessDGunCommand(unitID, unitDefID, cmdParams)
 end
