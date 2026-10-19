@@ -143,6 +143,10 @@ function M.sync(doc, ctx, clState, setSummary)
 				if widgetState.dmHandle.clQuality ~= tq then
 					widgetState.dmHandle.clQuality = tq
 				end
+				local pb = clState.pasteBlend or "replace"
+				if widgetState.dmHandle.clBlend ~= pb then
+					widgetState.dmHandle.clBlend = pb
+				end
 			end
 
 			-- Sync history slider

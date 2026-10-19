@@ -1151,6 +1151,24 @@
 				</div>
 			</div>
 
+			<!-- Paste mode: REPLACE lays the copy down as it is; RAISE ONLY keeps the
+			     higher of copy and ground (a max blend), LOWER ONLY the lower (a min
+			     blend). Every other layer pastes only where the terrain does. -->
+			<div class="flex flex-row items-center gap-1 mb-1">
+				<div class="text-sm text-keybind">PASTE MODE</div>
+			</div>
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-cl-blend-replace" class="tf-overlay-chip" data-class-active="clBlend == 'replace'" style="flex: 1; text-align: center;" data-event-mousedown="onClSetBlend('replace')">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Replace</div>
+				</div>
+				<div id="btn-cl-blend-raise" class="tf-overlay-chip" data-class-active="clBlend == 'raise'" style="flex: 1; text-align: center;" data-event-mousedown="onClSetBlend('raise')">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Raise only</div>
+				</div>
+				<div id="btn-cl-blend-lower" class="tf-overlay-chip" data-class-active="clBlend == 'lower'" style="flex: 1; text-align: center;" data-event-mousedown="onClSetBlend('lower')">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Lower only</div>
+				</div>
+			</div>
+
 
 			<!-- Undo & Redo -->
 			<div class="tf-section-frame tf-collapsed" id="frame-cl-undo">

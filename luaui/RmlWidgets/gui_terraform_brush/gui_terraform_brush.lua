@@ -6436,6 +6436,7 @@ local initialModel = {
 	clMirrorX = false,
 	clMirrorZ = false,
 	clQuality = "full",
+	clBlend = "replace",
 	clLayerTerrain = true,
 	clLayerMetal = true,
 	clLayerFeatures = true,
@@ -6761,6 +6762,11 @@ local initialModel = {
 	onClSetQuality = function(_event, qName)
 		if WG.CloneTool then
 			WG.CloneTool.setTerrainQuality(qName)
+		end
+	end,
+	onClSetBlend = function(_event, mode)
+		if WG.CloneTool and WG.CloneTool.setPasteBlend then
+			WG.CloneTool.setPasteBlend(mode)
 		end
 	end,
 	onClUndo = function(_event)
@@ -16273,6 +16279,9 @@ local guideHints = {
 	["fp-slider-rotation"] = "Base rotation angle for all placed features. Individual randomization is added on top of this value.",
 	["fp-slider-rot-random"] = "Randomizes each feature's orientation by ±this percentage. 100% = fully random; 0% = all face the same direction.",
 	["fp-slider-tilt-random"] = "Leans each placed feature up to this many degrees, in a random direction. Most stay close to upright and a few lean hard, like a natural stand. 0 = all upright.",
+	["btn-cl-blend-replace"] = "Paste the copy as it is, replacing the ground and everything on it.",
+	["btn-cl-blend-raise"] = "Paste only what stands above the ground here: the copy never lowers anything. A copied hill and valley pasted on flat ground leave just the hill. Features, paint and the other layers come only where the terrain does.",
+	["btn-cl-blend-lower"] = "Paste only what lies below the ground here: the copy never raises anything. A copied hill and valley pasted on flat ground leave just the valley. Features, paint and the other layers come only where the terrain does.",
 	["fp-slider-scale-min"] = "Smallest scale a placed feature can roll, anywhere from 0.1x to 5x. Most features land near this end: natural stands are mostly small with a few large. Shift+Scroll sets one fixed scale for both MIN and MAX.",
 	["fp-slider-scale-max"] = "Largest scale a placed feature can roll. With Clustered distribution, large features gather at the clump cores and small ones at the fringes.",
 	["fp-slider-clumps"] = "How many clumps one stamp grows. 0 = automatic (more features, more clumps).",

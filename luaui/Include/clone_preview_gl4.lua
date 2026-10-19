@@ -56,6 +56,7 @@ out DataVS {
 	vec2 srcUV;
 	vec2 localPos;
 	float skirt;
+	float lift; // what the anti-z-fight lift added to worldPos.y
 };
 
 float hAt(ivec2 c) {
@@ -137,9 +138,11 @@ void main() {
 	vec3 wp = vec3(w.x, h, w.y);
 	// a lift that grows with distance: the engine's ground mesh coarsens far away, where
 	// polygon offset alone would let a ghost at offset 0 z-fight the real ground
-	if (!bottom) wp.y += liftParams.x + liftParams.y * length(camPos - wp);
+	float liftY = bottom ? 0.0 : liftParams.x + liftParams.y * length(camPos - wp);
+	wp.y += liftY;
 
 	worldPos = wp;
+	lift = liftY;
 	normal = n;
 	skirt = isSkirt ? 1.0 : 0.0;
 	gl_Position = cameraViewProj * vec4(wp, 1.0);
@@ -158,7 +161,7 @@ uniform sampler2D colorTex;
 uniform sampler2D heightmapTex;
 uniform vec4 box; // size x, size z, height offset, cells along z
 uniform vec4 look; // opacity, brightness, delta tint, pass (0 colour, 1 x-ray, 2 depth)
-uniform vec4 rimParams; // rim strength, unused x3
+uniform vec4 rimParams; // rim strength, paste mode (0 replace, 1 raise only, 2 lower only), mode slack (elmos), unused
 
 in DataVS {
 	vec3 worldPos;
@@ -166,13 +169,22 @@ in DataVS {
 	vec2 srcUV;
 	vec2 localPos;
 	float skirt;
+	float lift; // what the anti-z-fight lift added to worldPos.y
 };
 
 out vec4 fragColor;
 
 void main() {
+	// RAISE ONLY keeps what stands above the ground, LOWER ONLY what lies below it,
+	// judged on the unlifted height exactly as the paste judges each vertex
+	float groundAt = textureLod(heightmapTex, heightmapUVatWorldPos(worldPos.xz), 0.0).x;
+	float pasteD = worldPos.y - lift - groundAt;
+	int mode = int(rimParams.y + 0.5);
+	bool cut = (mode == 1 && pasteD <= rimParams.z) || (mode == 2 && pasteD >= -rimParams.z);
+
 	// depth prepass: only the map clamp matters, skip the shading
 	if (look.w > 1.5) {
+		if (cut) discard;
 		if (any(lessThan(worldPos.xz, vec2(0.0))) || any(greaterThan(worldPos.xz, mapSize.xy))) discard;
 		fragColor = vec4(0.0);
 		return;
@@ -186,10 +198,17 @@ void main() {
 	// the paste clamps to the map, so must the ghost
 	if (any(lessThan(worldPos.xz, vec2(0.0))) || any(greaterThan(worldPos.xz, mapSize.xy))) discard;
 
-	float groundH = textureLod(heightmapTex, heightmapUVatWorldPos(worldPos.xz), 0.0).x;
+	float groundH = groundAt;
 	float delta = worldPos.y - groundH;
 	bool xray = look.w > 0.5;
-	if (xray && delta > -2.0) discard;
+	if (xray && (cut || delta > -2.0)) discard;
+	if (cut) {
+		// not pasted: only the footprint outline stays, so the box still shows
+		float rimCut = (skirt < 0.5) ? (1.0 - smoothstep(edgeW * 1.0, edgeW * 2.5, edge)) * rimParams.x : 0.0;
+		if (rimCut < 0.05) discard;
+		fragColor = vec4(0.1, 0.9, 1.0, rimCut * 0.9);
+		return;
+	}
 
 	vec3 N = normalize(normal);
 	vec3 albedo = texture(colorTex, srcUV).rgb;
@@ -220,8 +239,15 @@ void main() {
 		a = max(a, rim * rimParams.x * 0.9);
 	}
 	if (xray) {
-		col = mix(col, vec3(0.35, 0.65, 1.0), 0.5);
-		a *= 0.35;
+		if (mode == 2) {
+			// LOWER ONLY pastes nothing but what lies below the ground, so the
+			// buried pass is the preview: drawn nearly as solid as the ghost
+			col = mix(col, vec3(0.35, 0.65, 1.0), 0.2);
+			a *= 0.85;
+		} else {
+			col = mix(col, vec3(0.35, 0.65, 1.0), 0.5);
+			a *= 0.35;
+		}
 	}
 	fragColor = vec4(clamp(col, 0.0, 1.0), a);
 }
@@ -470,7 +496,7 @@ function CP.draw(h, inst, n, opts)
 	gl.Texture(2, h.colorTex or "$grass")
 	ghostShader:Activate()
 	local offset = opts.offset or 0
-	ghostShader:SetUniform("rimParams", opts.rim or 1, 0, 0, 0)
+	ghostShader:SetUniform("rimParams", opts.rim or 1, opts.blend or 0, opts.blendSlack or 1, 0)
 	local opacity = opts.opacity or 0.7
 	local brightness = opts.brightness or 1
 	local tint = opts.tint or 0

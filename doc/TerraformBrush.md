@@ -442,6 +442,8 @@ Region-based copy & paste across all map data layers. Select an area, capture it
 
 **Paste preview.** Once a region is copied, the paste shows as a lit, textured copy of the terrain at the cursor, following rotation, mirroring, height offset, symmetry and grid snap, with buried parts drawn through the ground. PASTE > PREVIEW OPACITY sets how solid it looks (0 leaves the outline only). On tileset maps the ghost wears the biome colour without the slope rock the shader adds per pixel.
 
+**Paste mode.** PASTE MODE under INCLUDE LAYERS picks how the copy meets the ground. REPLACE lays it down as it is. RAISE ONLY keeps the higher of the copy and the ground (a heightmap max blend), so only what stands above the ground arrives; LOWER ONLY keeps the lower (a min blend). A copied hill and valley pasted on flat ground leave just the hill or just the valley. The other layers follow the terrain: features, metal, grass, decals, lights and weather spawners paste only where it does, standing features are cleared only there, and splats and surface paint blend in through a mask of the same cells (`luaui/Include/clone_paste_mask.lua`). Everything is judged against the ground as it is before the paste, with one elmo of slack. A masked paste always writes every 8-elmo vertex at full precision, whatever TERRAIN QUALITY says. The preview shows only what will paste: the ghost drops what is cut (keeping the box outline), LOWER ONLY draws the sunken part solidly through the ground, and feature and metal markers show only for what lands. Without copied terrain the mode has nothing to judge by and the paste replaces.
+
 #### Layer Toggles
 
 Each layer can be independently enabled/disabled. Only enabled layers are captured on copy and applied on paste.
