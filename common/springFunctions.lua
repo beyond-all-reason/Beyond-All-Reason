@@ -2,6 +2,7 @@ local utilitiesDirectory = "common/springUtilities/"
 
 local tga = VFS.Include(utilitiesDirectory .. "image_tga.lua")
 local team = VFS.Include(utilitiesDirectory .. "teamFunctions.lua")
+local player = VFS.Include(utilitiesDirectory .. "playerFunctions.lua")
 local syncFunctions = VFS.Include(utilitiesDirectory .. "synced.lua")
 local tableFunctions = VFS.Include(utilitiesDirectory .. "tableFunctions.lua")
 local colorFunctions = VFS.Include(utilitiesDirectory .. "color.lua")
@@ -10,10 +11,7 @@ local facingFunctions = VFS.Include(utilitiesDirectory .. "facingFunctions.lua")
 
 local accountIDCache = {}
 
--- forward-declare: IsDevModeCached (upstream #6918) references `utilities`
--- inside its own constructor, where the local is not yet in scope — that
--- resolved as a GLOBAL (nil at call time). Declare first, then assign.
-local utilities
+local utilities ---@type table forward-declared to resolve scoping
 utilities = {
 	LoadTGA = tga.LoadTGA,
 	SaveTGA = tga.SaveTGA,
@@ -30,6 +28,9 @@ utilities = {
 	GetScavTeamID = team.GetScavTeamID,
 	GetRaptorAllyTeamID = team.GetRaptorAllyTeamID,
 
+	GetHostCommandPlayerID = player.GetHostCommandPlayerID,
+	IsPlayerLagging = player.IsPlayerLagging,
+
 	IsDevMode = function()
 		local devMode = Spring.GetGameRulesParam("isDevMode")
 		return (devMode and devMode > 0) and true or false
@@ -42,7 +43,7 @@ utilities = {
 
 	--- Cached variant of IsDevMode, refreshed per call but avoids repeated lookups
 	--- within the same frame when multiple widgets query it.
-	_devModeCache = nil,
+	_devModeCache = false,
 	_devModeCacheFrame = -1,
 	IsDevModeCached = function()
 		local frame = Spring.GetGameFrame()
@@ -64,8 +65,9 @@ utilities = {
 	Color = colorFunctions,
 	ConvertColor = colorFunctions and colorFunctions.ConvertColor,
 
+	---@param playerID PlayerID
 	GetAccountID = function(playerID)
-		local cached = accountIDCache[playerID]
+		local cached = accountIDCache[playerID] ---@as integer?
 		if cached then
 			return cached
 		end

@@ -141,6 +141,7 @@ local state = {
 	consoleActivationArea = { 0, 0, 0, 0 },
 	currentChatLine = 0,
 	currentConsoleLine = 0,
+	gadgetPaused = false,
 	historyMode = false,
 	prevCurrentConsoleLine = -1,
 	prevCurrentChatLine = -1,
@@ -752,11 +753,23 @@ local function addChatLine(
 	local startTime = clock()
 
 	local text_orig = text
+	local shareToMe = false
 
 	-- metal/energy given
 	if lineType == LineTypes.Player and ssub(text, 5, 6) == "> " then
 		text = ssub(text, 7)
 		lineType = LineTypes.System
+		-- a share sent to me is a transfer, not chat, so it shows when the sender is muted
+		-- (digits-only amounts: a muted player can't pass text through a fake share)
+		local resource, recipient = string.match(text, "^ui%.playersList%.chat%.give(%a+):amount=%d+:name=([^:]+)$")
+		if not resource then
+			resource, recipient =
+				string.match(text, "^ui%.playersList%.chat%.give(%a+)_taxed:amount=%d+:name=([^:]+):amount2=%d+$")
+		end
+		shareToMe = (resource == "Metal" or resource == "Energy") and recipient == myName
+		if shareToMe then
+			ignore = nil
+		end
 		local params = string.split(text, ":")
 		local t = {}
 		if params[1] then
@@ -849,6 +862,7 @@ local function addChatLine(
 			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
 			orgLineID = orgLineID,
 			ignore = ignore,
+			shareToMe = shareToMe,
 		}
 		if lineType == LineTypes.Mapmark and lastMapmarkCoords then
 			chatLines[chatLineID].coords = lastMapmarkCoords
@@ -1656,13 +1670,24 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 					line = ssub(line, 1, n - 3)
 				end
 			elseif sfind(line, " paused the game", nil, true) then
-				lineColor = "\255\225\225\255"
-				local playername = ssub(line, 1, sfind(line, " paused the game", nil, true) - 1)
-				line = formatSystemMessage("ui.chat.pausedthegame", playername, gameFrame, lineColor)
+				if not orgLineID then -- a reprocessed line was shown
+					state.gadgetPaused = (Spring.GetGameRulesParam("gamePaused") or 0) == 1
+					bypassThisMessage = state.gadgetPaused
+				end
+				if not bypassThisMessage then
+					lineColor = "\255\225\225\255"
+					local playername = ssub(line, 1, sfind(line, " paused the game", nil, true) - 1)
+					line = formatSystemMessage("ui.chat.pausedthegame", playername, gameFrame, lineColor)
+				end
 			elseif sfind(line, " unpaused the game", nil, true) then
-				lineColor = "\255\225\255\225"
-				local playername = ssub(line, 1, sfind(line, " unpaused the game", nil, true) - 1)
-				line = formatSystemMessage("ui.chat.unpausedthegame", playername, gameFrame, lineColor)
+				if state.gadgetPaused and not orgLineID then
+					state.gadgetPaused = false
+					bypassThisMessage = true
+				else
+					lineColor = "\255\225\255\225"
+					local playername = ssub(line, 1, sfind(line, " unpaused the game", nil, true) - 1)
+					line = formatSystemMessage("ui.chat.unpausedthegame", playername, gameFrame, lineColor)
+				end
 			elseif sfind(line, "Sync error for", nil, true) then
 				local playername = ssub(line, 16, sfind(line, " in frame", nil, true) - 1)
 				lineColor = (playernames[playername] and not playernames[playername][2]) and "\255\255\133\133"
@@ -2131,7 +2156,7 @@ function widget:Update(dt)
 			for accountID_or_name, _ in pairs(WG.ignoredAccounts) do
 				if not ignoredAccounts[accountID_or_name] then
 					for i = 1, #chatLines do
-						if chatLines[i].playerName == accountID_or_name then
+						if chatLines[i].playerName == accountID_or_name and not chatLines[i].shareToMe then
 							chatLines[i].ignore = true
 							state.uiDirty = true
 						end
@@ -4661,7 +4686,7 @@ function widget:Initialize()
 		widget:ViewResize()
 	end
 	WG.chat.getMaxConsoleLines = function()
-		return maxLines
+		return maxConsoleLines
 	end
 	WG.chat.setMaxConsoleLines = function(value)
 		maxConsoleLines = value

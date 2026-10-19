@@ -1135,6 +1135,9 @@ local rebuildRows
 local graphs
 ---@type table<string, any>
 local tables
+-- The tables and categories the player made, kept in a file of their own as well, out of reach
+-- of the config an older version of this widget writes in a replay.
+local store = require("luaui/Include/teamstats_store").new("LuaUI/Config/teamstats.json")
 
 ----------------------------------------------------------------
 -- Numbers
@@ -4310,6 +4313,10 @@ function widget:PlayerChanged()
 end
 
 function widget:Initialize()
+	-- No config to hand over (a first game, or a reset config): the file still has the player's.
+	if not store.loaded() then
+		widget:SetConfigData({})
+	end
 	loadLabels()
 	handover.rememberNames()
 	widget:ViewResize()
@@ -4400,6 +4407,7 @@ function widget:GetConfigData()
 	for key, value in pairs(graphs.getConfig()) do
 		data[key] = value
 	end
+	store.write(data.tables, data.customCategories)
 	return data
 end
 
@@ -4408,6 +4416,7 @@ function widget:SetConfigData(data)
 	if type(data) ~= "table" then
 		return
 	end
+	data = store.merge(data)
 	-- The names read in this same game, from before a reload, and the team the viewer played.
 	if data.gameID and data.gameID == (Game.gameID or spGetGameRulesParam("GameID")) then
 		for teamID, name in pairs(type(data.names) == "table" and data.names or {}) do

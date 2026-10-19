@@ -14,6 +14,8 @@ local everything = {
 	modmarker = true,
 	sysinfo = true,
 	volcano = true,
+	userrmlui_player = true, -- short-term exception to rmlui sandboxing, with granular grants
+	userrmlui_spectator = true,
 }
 local moderator = {
 	give = false,
@@ -26,6 +28,8 @@ local moderator = {
 	modmarker = true,
 	sysinfo = true,
 	volcano = true,
+	userrmlui_player = false,
+	userrmlui_spectator = true,
 }
 local eventmanager = {
 	give = true,
@@ -40,6 +44,8 @@ local eventmanager = {
 	modmarker = true,
 	sysinfo = false,
 	volcano = true,
+	userrmlui_player = false,
+	userrmlui_spectator = true,
 }
 local singleplayer = { -- note: these permissions override others when singleplayer
 	give = true,

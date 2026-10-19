@@ -85,7 +85,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO() --  -1, -1, 1, 0,   0,0,1, 0.5)
+	fullScreenQuadVAO = InstanceVBOTable.fillVAOSlots(InstanceVBOTable.MakeTexRectVAO()) --  -1, -1, 1, 0,   0,0,1, 0.5)
 	WG.infolosapi.GetInfoLOSTexture() -- starts the API's updates before our first draw
 end
 

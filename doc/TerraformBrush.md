@@ -26,6 +26,7 @@ Each icon switches the panel into a different tool. All tools share the same bru
 | **Splat Painter** | Paint per-channel splat textures into the SSMF splat distribution map. |
 | **Decal Placer** | Stamp ground decals (cracks, scorches, custom PNGs). |
 | **Clone Tool** | Region copy/paste across all map layers (terrain, metal, features, grass, splats, decals, lights). |
+| **Units** | Place real units from the unit library: click or drag formations, pick several to cycle through, undo a whole placement. See [Units](#units). |
 | **Environment** | Skybox, fog, sun, water, atmosphere, scene presets — see below. |
 
 Tools that are not currently active hide their sub-panel; click the icon to expand.
@@ -85,7 +86,7 @@ Tilted features keep their lean, and mirrored features keep their silhouette rat
 | `Ctrl+R+Scroll` | Ring inner-ratio |
 | `Shift+drag` | Axis-lock + grid snap |
 | `RMB drag` | Temporary Lower (restores previous mode on release) |
-| `MMB` on a slider | Lock it to the mouse wheel (click it again, or any click on it, to release; `ESC` clears all) |
+| `MMB` twice on a slider | Lock it to the mouse wheel; several can be locked at once. Twice again on it releases it, `ESC` releases all. The line under the status strip lists what is locked |
 | `Ctrl+Z` / `Ctrl+Shift+Z` | Undo / Redo |
 
 Full table in [Interaction → Keyboard](#interaction).
@@ -95,6 +96,7 @@ Full table in [Interaction → Keyboard](#interaction).
 - **Full map projects / team library**: **File > Save / Save As** saves a project; **File > Open Project** is one browser over this disk and the campaign team's private library, with a Sync column, a Team Sync line at the top and a start card for the companion. The team workflow is documented for the team in the library repository itself.
 - **Autosave**: on by default (Settings > General). Every 10 minutes while the open project has unsaved changes, a snapshot lands under `MapProjects/_autosave/<project>-YYYYMMDDHHMM`; snapshots list under the Autosaves chip in **File > Open Project** and are swept after 3 days (the newest per project after 10). Opening one makes its project the Save target again.
 - **Quitting with unsaved changes** asks first (Save, then continue / Don't save / Cancel) on the top bar's Quit and on New Map. The window's own close button cannot be caught; autosave covers that.
+- **New Map** sets the canvas size and its **MEX RADIUS** (default 90 elmos), written into the generated mapinfo with a metal cap of 2 per square and saved with the project. Needs an engine with the blank map metal options (beyond-all-reason/RecoilEngine#3506); older engines keep the mapinfo defaults (radius 500, cap 0.02).
 - **Terrain heightmap**: `/terraformexport` writes a PNG + metadata to your writeable data dir; `/terraformimport <file>` reloads it.
 - **Features / grass / splats / decals**: each tool has its own Save/Load/Clear row in its sub-panel.
 - **Environment**: Save/Load preset buttons in the env panel.
@@ -233,7 +235,11 @@ Sent as `instant` field (`0`/`1`) in the `$terraform_brush$` message (field 15).
 | RMB drag | Temporarily switch to Lower, restore previous mode on release |
 | Shift+drag | Axis-lock (X or Z, determined after 25 screen-pixel threshold, zoom-independent) + grid snap |
 
+While a stroke runs the camera holds still: the view does not ride the ground it changes. The hold lasts until you pan, zoom, rotate or switch camera; terrain raised into the camera still lifts it.
+
 ### Keyboard
+While an editor tool is in use, the game's own hotkeys (unit orders, build keys, selection, groups) are held back so they cannot fight the editor's; the camera, chat (Enter), Esc, F1-F12 and screenshots still work. The **pause** button on the panel hands every key back to the game.
+
 | Key | Action |
 |-----|--------|
 | `C` `S` `T` `H` `O` | Select shape (Circle / Square / Triangle / Hexagon / Octagon) |
@@ -343,7 +349,7 @@ excluded: an empty library is the normal way to use the erase brush.
 | Ctrl + A | Select everything on screen |
 | Delete / Backspace | Remove the selection |
 | Esc | Clear the selection; a second press leaves the tool |
-| RMB | Unchanged — erase brush, in every mode |
+| RMB | Drops the library pick (back to selecting); features come off only through Delete or REMOVE mode |
 
 The gizmo has three translate arrows, three rotation rings and a centre handle
 that slides the selection over the terrain. Multi-selections transform rigidly
@@ -637,6 +643,33 @@ transform(lx, lz):
   height values += heightOffset
   feature headings += rotation
 ```
+
+### Units
+
+**UNITS** on the tool row places real units on the map: to lay out a base, a battle or a scene to light and screenshot. It needs `/cheat`, like the rest of the editor.
+
+Pressing it opens the **unit library** window, and the panel shows the tool's own controls: LIBRARY (reopens the window), TEAM (the team placed units join; `T` does the same), UNDO and REDO.
+
+**Placing.** Pick a unit in the library, then on the map:
+
+- **Click** places one; **drag** lays out several in the current shape. `Tab` cycles the shape (SINGLE, LINE, GRID, BOX) and `R` turns the units a quarter (`Shift+R` back).
+- The preview and the layout are the game's own blueprint tool: footprints are outlined, red where the ground refuses, and a drag lays units out exactly as a build drag would.
+- The tool **stays armed** after a placement, so one drag follows another. A **right click** lets go.
+- `Ctrl+Z` / `Ctrl+Y` undo and redo a whole placement at a time.
+
+**Picking several.** `Shift+click` tiles to pick a set; the tiles show their order. Each placement then uses the next unit of the set, in order (A B C) or at random, as the CYCLE chips say.
+
+**The library.** One window, shared with the mission editor.
+
+| Part | What it does |
+|------|--------------|
+| Search | Names and tags as you type, e.g. `t2 arty cor`. Arrows move the highlight, `Enter` picks it, `Esc` closes. |
+| FILTERS | A row per filter, labelled at the left: FACTION, TIER, MOBILE and BUILDING (the unit types, split into units and buildings), ROLE and DOMAIN. A click keeps that value alone (again clears the row), `Shift+click` adds or removes it, and a click on a row's label clears the row (the label lights while its row filters). Every chip shows how many units it would leave. Roles are inferred from stats against the other units of the same tier. |
+| SORT | NAME, POWER (metal + energy / 60), TYPE, SIZE (footprint), TIER, SPEED, RANGE, HEALTH. Click the active one again to reverse it; the arrow shows the direction. |
+| RECENT | The last units picked, one row; folded until opened. |
+| BLUEPRINTS | Saved groups of units (`LuaUI/Config/UnitBlueprints/`), below the units and folded until opened. Picking one arms the whole group; `x` deletes the file. |
+
+Units show four to a row, picture and name. Each section folds with its title row. The library remembers its filters, sort and folds between sessions.
 
 ---
 

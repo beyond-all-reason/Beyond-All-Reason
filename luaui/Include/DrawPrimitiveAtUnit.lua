@@ -155,7 +155,7 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname, sharedShader)
 	if useGeometryShaderForThisShader then
 		local DrawPrimitiveAtUnitVAO = gl.GetVAO()
 		DrawPrimitiveAtUnitVAO:AttachVertexBuffer(DrawPrimitiveAtUnitVBO.instanceVBO)
-		DrawPrimitiveAtUnitVBO.VAO = DrawPrimitiveAtUnitVAO
+		DrawPrimitiveAtUnitVBO.VAO = InstanceVBOTable.fillVAOSlots(DrawPrimitiveAtUnitVAO)
 	else
 		-- Build a template triangle-fan mesh whose perimeter slots are expanded
 		-- per primitive inside the fallback vertex shader. numSlots must cover the

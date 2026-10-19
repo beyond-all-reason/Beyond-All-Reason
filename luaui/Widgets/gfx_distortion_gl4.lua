@@ -425,7 +425,7 @@ local function initGL4()
 		return false
 	end
 
-	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO() --  -1, -1, 1, 0,   0,0,1, 0.5)
+	fullScreenQuadVAO = InstanceVBOTable.fillVAOSlots(InstanceVBOTable.MakeTexRectVAO()) --  -1, -1, 1, 0,   0,0,1, 0.5)
 	-- init the VBO
 	local vboLayout = {
 		{ id = 3, name = "worldposrad", size = 4 },
