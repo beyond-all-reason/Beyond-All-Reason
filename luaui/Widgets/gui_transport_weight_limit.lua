@@ -210,7 +210,6 @@ function widget:RecvLuaMsg(msg)
 end
 
 function widget:DrawWorldPreUnit()
-	-- the indicators follow the pointer: not while a window or a scripted lock keeps it away from the world
 	if chobbyInterface or not widgetHandler:ModalAllows(widget) then
 		return
 	end

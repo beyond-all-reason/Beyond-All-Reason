@@ -6,6 +6,7 @@ describe("luaui.Widgets.api_player_input_lock", function()
 	local config ---@type table<string, integer>
 	local configWrites ---@type table<integer, { key: string, value: integer, overlay: boolean }>
 	local handlerCalls ---@type table<integer, any[]>
+	local activeCommandSets ---@type integer[]
 	local windowOpen = false
 
 	local function loadWidget()
@@ -16,6 +17,9 @@ describe("luaui.Widgets.api_player_input_lock", function()
 			:WithSpringFn("SetConfigInt", function(key, value, overlay)
 				config[key] = value
 				configWrites[#configWrites + 1] = { key = key, value = value, overlay = overlay }
+			end)
+			:WithSpringFn("SetActiveCommand", function(index)
+				activeCommandSets[#activeCommandSets + 1] = index
 			end)
 			:LoadWidget(WIDGET_PATH)
 		local handler = loaded.env.widgetHandler
@@ -35,10 +39,11 @@ describe("luaui.Widgets.api_player_input_lock", function()
 		config = { WindowedEdgeMove = 1, FullscreenEdgeMove = 0 }
 		configWrites = {}
 		handlerCalls = {}
+		activeCommandSets = {}
 		windowOpen = false
 	end)
 
-	it("hides the interface but the menu buttons, drops keys but Esc, and stops edge scrolling", function()
+	it("hides all but the menu buttons, passes only Esc and the quit menu, stops edge scrolling", function()
 		local loaded = loadWidget()
 
 		loaded.WG.playerInputLock.Lock({ "Chat" })
@@ -46,8 +51,9 @@ describe("luaui.Widgets.api_player_input_lock", function()
 		assert.is_true(loaded.WG.playerInputLock.IsLocked())
 		assert.are.same({
 			{ "HideInterface", "playerInputLock", { "Top Bar Buttons", "Player Input Lock", "Chat" } },
-			{ "LockKeyboard", "playerInputLock", { 27 } },
+			{ "LockKeyboard", "playerInputLock", { 27, "quitmenu" } },
 		}, handlerCalls)
+		assert.are.same({ 0 }, activeCommandSets)
 		assert.are.same({
 			{ key = "WindowedEdgeMove", value = 0, overlay = true },
 			{ key = "FullscreenEdgeMove", value = 0, overlay = true },
@@ -56,11 +62,15 @@ describe("luaui.Widgets.api_player_input_lock", function()
 
 	it("eats the mouse wheel only while locked", function()
 		local loaded = loadWidget()
-		assert.is_falsy(loaded.env.widget:MouseWheel(true, 1))
+		local function wheelConsumed()
+			local consumed = loaded.env.widget:MouseWheel(true, 1)
+			return consumed == true
+		end
+		assert.is_false(wheelConsumed())
 		loaded.WG.playerInputLock.Lock()
-		assert.is_true(loaded.env.widget:MouseWheel(true, 1))
+		assert.is_true(wheelConsumed())
 		windowOpen = true -- a showing window gets the wheel, as it gets the keys
-		assert.is_falsy(loaded.env.widget:MouseWheel(true, 1))
+		assert.is_false(wheelConsumed())
 	end)
 
 	it("puts everything back on unlock", function()
@@ -91,6 +101,7 @@ describe("luaui.Widgets.api_player_input_lock", function()
 			handlerCalls
 		)
 		assert.are.same({}, configWrites)
+		assert.are.same({}, activeCommandSets)
 		assert.is_false(loaded.WG.playerInputLock.IsLocked())
 	end)
 

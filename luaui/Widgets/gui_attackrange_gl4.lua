@@ -1314,7 +1314,6 @@ function widget:Update(dt)
 			return
 		end
 
-		-- no ranges under the pointer while a window or a scripted lock keeps it away from the world
 		local mUnitID
 		if widgetHandler:ModalAllows(widget) then
 			local desc, args = spTraceScreenRay(mx, my, false)

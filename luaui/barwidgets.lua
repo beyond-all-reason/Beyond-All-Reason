@@ -1579,8 +1579,8 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	wh.IsAnyWindowOpen = function(_)
 		return self:IsAnyWindowOpen()
 	end
-	wh.LockKeyboard = function(_, reason, passKeys)
-		return self:LockKeyboard(reason, passKeys)
+	wh.LockKeyboard = function(_, reason, pass)
+		return self:LockKeyboard(reason, pass)
 	end
 	wh.UnlockKeyboard = function(_, reason)
 		return self:UnlockKeyboard(reason)
@@ -2377,8 +2377,8 @@ end
 --  interface returns once the last one is released.
 --
 --  Hiding leaves keybinds working. A scripted sequence that must also keep them from
---  firing locks the keyboard, naming the keys that still pass:
---      widgetHandler:LockKeyboard("cutscene", { KEYSYMS.ESCAPE })
+--  firing locks the keyboard, naming the keys, and the bound actions, that still pass:
+--      widgetHandler:LockKeyboard("cutscene", { KEYSYMS.ESCAPE, "quitmenu" })
 --      widgetHandler:UnlockKeyboard("cutscene")
 --  While a window is showing, locked keys still reach the widgets (never the keybinds), so
 --  the window can answer them. The lock lifts once the last reason is released.
@@ -2410,9 +2410,10 @@ local interfaceAllowedNames = {} -- union of the names every active reason keeps
 local DEFAULT_INTERFACE_ALLOW = { "Top Bar Buttons" }
 
 -- Keyboard lock, checked in KeyPress before the action handler (which hiding leaves alone).
-local keyboardLockReasons = {} -- reason -> set of key codes that still pass
+local keyboardLockReasons = {} -- reason -> { keys = set of key codes, actions = set of action names } that pass
 local keyboardLocked = false
-local keyboardPassKeys = {} -- union of every active reason's pass-through keys
+local keyboardPassKeys = {} -- union of every active reason's pass-through key codes
+local keyboardPassActions = {} -- union of every active reason's pass-through action names
 local keyboardSwallowed = {} -- scanCode -> what the lock kept the press from: "all", or "binds" only
 
 -- The single question every filtered call-in asks. Kept cheap: two upvalue reads
@@ -2515,31 +2516,52 @@ end
 
 local function rebuildKeyboardLock()
 	local locked = false
-	local passKeys = {}
-	for _, keys in pairs(keyboardLockReasons) do
+	local passKeys, passActions = {}, {}
+	for _, pass in pairs(keyboardLockReasons) do
 		locked = true
-		for key in pairs(keys) do
+		for key in pairs(pass.keys) do
 			passKeys[key] = true
+		end
+		for action in pairs(pass.actions) do
+			passActions[action] = true
 		end
 	end
 	keyboardPassKeys = passKeys
+	keyboardPassActions = passActions
 	keyboardLocked = locked
+end
+
+-- Whether the lock lets a press through: by its key code, or by an action it is bound to.
+local function keyboardLockPasses(key, actions)
+	if keyboardPassKeys[key] then
+		return true
+	end
+	for _, bound in ipairs(actions or {}) do
+		if keyboardPassActions[bound.command] then
+			return true
+		end
+	end
+	return false
 end
 
 ---Drop every key press, keybinds included, until the same reason is released. While a window
 ---is showing, presses still reach the widgets so the window can answer them.
 ---@param reason string caller-chosen key; pass the same one to UnlockKeyboard
----@param passKeys integer[]? key codes that still reach keybinds and widgets
-function widgetHandler:LockKeyboard(reason, passKeys)
+---@param pass (integer|string)[]? key codes, and names of bound actions, that still reach keybinds and widgets
+function widgetHandler:LockKeyboard(reason, pass)
 	if type(reason) ~= "string" then
 		Spring.Log("barwidgets.lua", LOG.ERROR, "LockKeyboard: expected a reason name")
 		return false
 	end
-	local keys = {}
-	for _, key in ipairs(passKeys or {}) do
-		keys[key] = true
+	local keys, actions = {}, {}
+	for _, entry in ipairs(pass or {}) do
+		if type(entry) == "string" then
+			actions[entry] = true
+		else
+			keys[entry] = true
+		end
 	end
-	keyboardLockReasons[reason] = keys
+	keyboardLockReasons[reason] = { keys = keys, actions = actions }
 	rebuildKeyboardLock()
 	return true
 end
@@ -3320,7 +3342,7 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 
 	-- A locked key never reaches the keybinds. It goes nowhere at all, unless a window is
 	-- showing: then it still reaches the widgets, so the window can answer it.
-	local keyLocked = keyboardLocked and not keyboardPassKeys[key]
+	local keyLocked = keyboardLocked and not keyboardLockPasses(key, actions)
 	if keyLocked then
 		if not anyWindowOpen(true) then
 			keyboardSwallowed[scanCode] = "all"

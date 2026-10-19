@@ -81,7 +81,6 @@ end
 
 function widget:DrawWorldPreUnit()
 	local _, cmdId, _, _ = spGetActiveCmd()
-	-- the ring follows the pointer: not while a window or a scripted lock keeps it away from the world
 	if cmdId ~= CMD_UNLOAD_UNITS or not widgetHandler:ModalAllows(widget) then
 		return
 	end
