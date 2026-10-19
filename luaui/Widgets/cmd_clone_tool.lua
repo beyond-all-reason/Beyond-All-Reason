@@ -127,6 +127,7 @@ local cloneBuffer = nil
 -- Paste state
 local pasteRotation = 0
 local pasteHeightOffset = 0
+local PASTE_HEIGHT_LIMIT = 500 -- the panel slider's range; Shift+wheel stops here too
 local pasteMirrorX = false
 local pasteMirrorZ = false
 
@@ -360,7 +361,7 @@ local function setRotation(deg)
 end
 
 local function setHeightOffset(val)
-	pasteHeightOffset = val
+	pasteHeightOffset = max(-PASTE_HEIGHT_LIMIT, min(PASTE_HEIGHT_LIMIT, val))
 end
 
 local function setMirrorX(val)
@@ -1876,11 +1877,7 @@ function widget:MouseWheel(up, value)
 	if shiftHeld then
 		-- Height offset
 		local step = 10
-		if up then
-			pasteHeightOffset = pasteHeightOffset + step
-		else
-			pasteHeightOffset = pasteHeightOffset - step
-		end
+		setHeightOffset(pasteHeightOffset + (up and step or -step))
 		return true
 	end
 
