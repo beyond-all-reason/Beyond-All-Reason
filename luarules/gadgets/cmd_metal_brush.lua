@@ -69,7 +69,8 @@ local sqrt = math.sqrt
 
 -- Shared falloff curve (also used by the brush widgets) so the metal apply and
 -- the previewed ring stay in lockstep. See common/brush_shapes.lua.
-local computeFalloff = require("common/brush_shapes").computeFalloff
+local BrushShapes = require("common/brush_shapes")
+local computeFalloff = BrushShapes.computeFalloff
 
 local spGetMetalAmount = Spring.GetMetalAmount
 local spSetMetalAmount = Spring.SetMetalAmount
@@ -209,6 +210,8 @@ isInsideShape = function(dx, dz, radius, shape, angleDeg)
 		local ax, az = abs(rx), abs(rz)
 		local d = max(ax, az, (ax + az) * 0.7071068)
 		return d <= radius, d / radius
+	elseif shape == "triangle" then
+		return BrushShapes.isInside(dx, dz, radius, shape, angleDeg)
 	end
 	return false, 1
 end

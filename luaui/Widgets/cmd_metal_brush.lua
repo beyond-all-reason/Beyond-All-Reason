@@ -248,12 +248,16 @@ local function drawShapeOutline(worldX, worldZ, radius, shape, angleDeg)
 			sides = 6
 		elseif shape == "octagon" then
 			sides = 8
+		elseif shape == "triangle" then
+			sides = 3
 		end
 		-- square/hexagon isInsideShape uses inradius (center-to-edge = radius);
 		-- offset vertices by half-step and scale to circumradius so outline matches painted area.
 		-- octagon isInsideShape uses circumradius, so no correction needed.
-		local angleOffset = (shape ~= "octagon") and (pi / sides) or 0
-		local outlineRadius = (shape ~= "octagon") and (radius / cos(pi / sides)) or radius
+		-- triangle comes from common/brush_shapes: circumradius, vertex on +x.
+		local inradiusShape = shape ~= "octagon" and shape ~= "triangle"
+		local angleOffset = inradiusShape and (pi / sides) or 0
+		local outlineRadius = inradiusShape and (radius / cos(pi / sides)) or radius
 		local angleRad = (angleDeg or 0) * pi / 180
 		local c, s = cos(angleRad), sin(angleRad)
 		glBeginEnd(GL_LINE_LOOP, function()
