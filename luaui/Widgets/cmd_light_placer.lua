@@ -1283,14 +1283,22 @@ local function updatePresetPreviewLights(worldX, worldZ)
 	local qx = floor(worldX + 0.5)
 	local qz = floor(worldZ + 0.5)
 	local pp = presetPreviewLast
-	if pp.valid and pp.x == qx and pp.z == qz and pp.count == #pendingPreset.lights and #presetPreviewLights > 0 then
+	if
+		pp.valid
+		and pp.x == qx
+		and pp.z == qz
+		and pp.count == #pendingPreset.lights
+		and pp.elevation == lp.elevation
+		and #presetPreviewLights > 0
+	then
 		return
 	end
 	removePresetPreviewLights()
 	for _, l in ipairs(pendingPreset.lights) do
 		local px = worldX + (l.offsetX or 0)
 		local pz = worldZ + (l.offsetZ or 0)
-		local py = (GetGroundHeight(px, pz) or 0) + (l.elevation or 0)
+		-- Same elevation rule as addOneLight, so the preview sits where the lights land
+		local py = (GetGroundHeight(px, pz) or 0) + (l.elevation or lp.elevation)
 		local color = l.color or { 1, 1, 1 }
 		local br = l.brightness or 1
 		local r, g, b = color[1] * br, color[2] * br, color[3] * br
@@ -1390,6 +1398,7 @@ local function updatePresetPreviewLights(worldX, worldZ)
 	presetPreviewLast.valid = true
 	presetPreviewLast.x, presetPreviewLast.z = qx, qz
 	presetPreviewLast.count = #pendingPreset.lights
+	presetPreviewLast.elevation = lp.elevation
 end
 
 local function setPendingPreset(preset)
