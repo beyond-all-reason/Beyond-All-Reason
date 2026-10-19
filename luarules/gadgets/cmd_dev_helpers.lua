@@ -789,6 +789,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n == 1 and isTerrainMod(Spring.GetModOptions().debugcommands) then
 			adjustFeatureHeight()
 		end
+		-- ! FIXME: These are console commands on every client.
 		if debugcommands then
 			if debugcommands[n] then
 				Spring.Echo("Executing debugcommand", debugcommands[n])

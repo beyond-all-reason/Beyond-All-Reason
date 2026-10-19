@@ -27,6 +27,7 @@
 				<div id="btn-cat-trees" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/mode_features.png" /><span class="fp-cat-label">Trees</span></div>
 				<div id="btn-cat-foliage" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/fp_foliage.png" /><span class="fp-cat-label">Foliage</span></div>
 				<div id="btn-cat-crystals" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/fp_crystal.png" /><span class="fp-cat-label">Crystals</span></div>
+				<div id="btn-cat-osemo" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_osemo.png" /><span class="fp-cat-label">Osemo</span></div>
 				<div id="btn-cat-christmas" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/fp_xmas.png" /><span class="fp-cat-label">Xmas</span></div>
 				<div id="btn-cat-raptor" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_raptor.png" /><span class="fp-cat-label">Raptor</span></div>
 				<div id="btn-cat-other" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_other.png" /><span class="fp-cat-label">Other</span></div>

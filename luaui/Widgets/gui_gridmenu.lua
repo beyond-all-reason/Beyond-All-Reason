@@ -1474,6 +1474,11 @@ function widget:Initialize()
 	WG.gridmenu.getActiveBuilder = function()
 		return activeBuilder
 	end
+	WG.gridmenu.changeQueueCount = function(factoryID, unitDefID, change)
+		if builderIsFactory and activeBuilderID == factoryID and type(change) == "number" then
+			updateQueueNr(unitDefID, change)
+		end
+	end
 	WG.gridmenu.getAlwaysReturn = function()
 		return alwaysReturn
 	end

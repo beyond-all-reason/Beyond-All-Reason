@@ -496,6 +496,12 @@ local largeCircleSegments = 1024
 local smallCircleVBO = nil
 local smallCircleSegments = 128
 
+-- Heightmap fetches per ring vertex while fitting rings to the terrain (shader HEIGHTMAP_SAMPLE_STEPS):
+-- cannon rings do a binary search of this many steps, so the radius is exact to range / 2^steps; sphere rings
+-- iterate half as many times. The original 16 steps were precise to centimetres, far below the 8 elmo heightmap
+-- grid, and the search runs for every vertex of every pass. Raise back to 16 to compare.
+local rangeHeightmapSampleSteps = 8
+
 local allyenemypairs = { "ally", "enemy" }
 local defenseRangeClasses = {}
 for allyenemy, ringclasses in pairs(buttonConfig) do
@@ -533,11 +539,10 @@ local shaderSourceCache = {
 		DEBUG = autoReload and 1 or 0,
 		MOUSEOVERALPHAMULTIPLIER = 5.0,
 		MASKPASS = 0,
+		HEIGHTMAP_SAMPLE_STEPS = rangeHeightmapSampleSteps,
 	},
 	uniformInt = {
 		heightmapTex = 0,
-		losTex = 1,
-		mapNormalTex = 2,
 		maskTex = 3,
 	},
 	uniformFloat = {
@@ -577,11 +582,10 @@ local maskShaderSourceCache = {
 		DEBUG = 0,
 		MOUSEOVERALPHAMULTIPLIER = 5.0,
 		MASKPASS = 1,
+		HEIGHTMAP_SAMPLE_STEPS = rangeHeightmapSampleSteps,
 	},
 	uniformInt = {
 		heightmapTex = 0,
-		losTex = 1,
-		mapNormalTex = 2,
 	},
 	uniformFloat = {
 		lineAlphaUniform = 1,
@@ -636,7 +640,7 @@ local function initGL4()
 			defenseRangeVAOs[defRangeClass].vertexVBO,
 			defenseRangeVAOs[defRangeClass].instanceVBO
 		)
-		defenseRangeVAOs[defRangeClass].VAO = newVAO
+		defenseRangeVAOs[defRangeClass].VAO = InstanceVBOTable.fillVAOSlots(newVAO, false, true)
 	end
 	return makeShaders()
 end
@@ -653,17 +657,16 @@ function widget:Initialize()
 	WG.defrange = {}
 	for _, ae in ipairs({ "ally", "enemy" }) do
 		local Ae = string.upper(string.sub(ae, 1, 1)) .. string.sub(ae, 2)
-		for _, wt in ipairs({ "ground", "air", "nuke" }) do
-			local Wt = string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2)
+		for _, wt in ipairs({ "ground", "air", "nuke", "lrpc" }) do
+			local Wt = wt == "lrpc" and "LRPC" or (string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2))
 			WG.defrange["get" .. Ae .. Wt] = function()
 				return buttonConfig[ae][wt]
 			end
 			WG.defrange["set" .. Ae .. Wt] = function(value)
+				buttonConfig[ae][wt] = value
+				-- cannons count as ground defenses, as they do for /defrange
 				if wt == "ground" then
-					buttonConfig[ae].ground = value
-					buttonConfig[ae].lrpc = value
-				else
-					buttonConfig[ae][wt] = value
+					buttonConfig[ae].cannon = value
 				end
 				spEcho(string.format("Defense Range GL4 Setting %s%s to %s", Ae, Wt, value and "on" or "off"))
 				if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
@@ -692,6 +695,10 @@ function widget:Shutdown()
 	if maskShader then
 		maskShader:Finalize()
 		maskShader = nil
+	end
+	if type(defenseRangeShader) == "table" then
+		defenseRangeShader:Finalize()
+		defenseRangeShader = nil
 	end
 end
 
