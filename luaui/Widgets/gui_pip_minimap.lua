@@ -1,3 +1,6 @@
+-- Portal mode uses the native cropped minimap for consistent input and overlays.
+local portalMode = Spring.GetModOptions().portal_worlds
+if portalMode and portalMode ~= "off" then return false end
 -- This widget replaces the standard minimap with a PIP-style minimap
 -- It uses pipNumber = 0 to trigger minimap replacement mode in gui_pip.lua
 -- Features:
