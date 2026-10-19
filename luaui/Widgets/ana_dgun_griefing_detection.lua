@@ -34,7 +34,9 @@ function widget:GameOver()
 
 	for i = 1, #cachedEvents do
 		local event = cachedEvents[i]
-		WG.Analytics.SendEvent(event.eventType, event.eventData)
+		if event then
+			WG.Analytics.SendEvent(event.eventType, event.eventData)
+		end
 	end
 
 	cachedEvents = {}

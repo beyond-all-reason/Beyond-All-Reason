@@ -79,7 +79,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.name == "armcom" and unitDef.weapons then
 		for i = 1, #unitDef.weapons do
 			local wDef = WeaponDefs[unitDef.weapons[i].weaponDef]
-			if wDef.type == "DGun" then
+			if wDef and wDef.type == "DGun" then
 				armcomDGunRange = wDef.range
 				armcomDGunRadius = wDef.damageAreaOfEffect
 			end
@@ -234,7 +234,7 @@ end
 local function PruneExpiredContacts(currentFrame)
 	while contactsHead <= #contactsCache do
 		local contact = contactsCache[contactsHead]
-		if contact.expiresFrame > currentFrame then
+		if contact and contact.expiresFrame > currentFrame then
 			break
 		end
 
@@ -456,9 +456,11 @@ local function HasKnownEnemyNearby(targetX, targetY, targetZ)
 	-- Treat recent contacts as enemy presence.
 	for i = contactsHead, #contactsCache do
 		local ping = contactsCache[i]
-		local deltaX, deltaY, deltaZ = ping.x - targetX, ping.y - targetY, ping.z - targetZ
-		if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) <= (FRONTLINE_SCAN_RADIUS * FRONTLINE_SCAN_RADIUS) then
-			return true, "Enemies recently on radar/seismic within range"
+		if ping then
+			local deltaX, deltaY, deltaZ = ping.x - targetX, ping.y - targetY, ping.z - targetZ
+			if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) <= (FRONTLINE_SCAN_RADIUS * FRONTLINE_SCAN_RADIUS) then
+				return true, "Enemies recently on radar/seismic within range"
+			end
 		end
 	end
 
