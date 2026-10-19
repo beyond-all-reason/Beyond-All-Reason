@@ -781,7 +781,7 @@ end
 -- to work when the shader widget is missing or stale, which is exactly when it
 -- is not loaded. Hidden outright without a companion, like the team library tab.
 -- the shader manifest's brush_versions series: patch releases (1.17.1) keep their minor
-local BRUSH_VERSION = "1.17"
+local BRUSH_VERSION = "1.18"
 
 local function shaderFitsBrush(shader)
 	local wanted = shader.brush_versions

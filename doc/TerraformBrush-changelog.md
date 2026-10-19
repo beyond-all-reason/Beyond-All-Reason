@@ -4,6 +4,41 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## 1.18 - 2026-10-19
+
+### New
+
+- **Features scale to any size.** SCALE MIN and MAX now give a real size anywhere from 0.1x to 5x, not only the sizes a def ships baked variants for. The size draws in every pass, shadows included; the collision volume, selection size and aim points scale with it, and brush placements grow in over a third of a second. Undo, redo, saves and map projects keep each feature's scale. Shift+Scroll sets one fixed scale (both ends together, 10% a notch, snapping to 1x); feature count moved to Ctrl+Shift+Scroll.
+- **Clustered stamps grow in clumps.** With Clustered distribution four controls appear: CLUMPS (0 picks a number from the feature count), CLUMP SIZE, STRAGGLERS (the share scattered between the clumps) and CLUMP VARIETY (how unlike each other the clumps are, from dense thickets to open groves, young to old). Their defaults keep the old clustering.
+- **Picking several features in the asset library.** Ctrl+click adds a feature to the pick or takes it out, and Shift+click adds every tile from the last one clicked to this one, in the list as it is filtered. A plain click still picks one feature.
+- **The clone paste preview is the copied terrain itself,** lit and textured at the cursor instead of a wire grid. It follows rotation, mirroring, height offset, symmetry and grid snap, and parts below the ground show through it. PASTE > PREVIEW OPACITY sets how solid it looks (0 leaves the outline). On tileset maps it wears the biome colour without the slope rock.
+- **The clone tool's WEATHER and LIGHTS layers copy and paste.** Both chips did nothing before. Lights land as high above the pasted ground as they stood, with cone and beam aim turned and mirrored with the paste; one undo in LIGHTS takes the paste back. Weather spawners paste with their shape angle turned; the weather brush keeps no undo.
+- **UNITS: a selection of two or more units gets a loop around it,** and pressing on empty ground inside the loop drags the whole group.
+
+### Improvements
+
+- **A much quieter console.** Routine messages from every tool are gone: activation and deactivation banners, wheel and slider echoes, the sculpt Fill diagnostics (17 lines per click on every client), the metal gadget's lines on every client, and the map project's step-by-step save and load progress. Results, warnings and errors stay.
+- The WEATHER summary strip shows the brush rotation where it showed the frequency.
+
+### Fixes
+
+- **Symmetric clone pastes turn each copy.** Radial copies all faced one way and mirror copies were turned instead of reflected, in the preview and in the paste.
+- The clone Copy button stays live after a copy, like Ctrl+C, and Shift+Scroll on the height offset stops at 500 like the slider.
+- **Decal REDO works.** The button did nothing; Ctrl+Y and Ctrl+Shift+Z redo, the history slider moves forward, and a redone batch keeps its alpha and tint.
+- **The triangle brush paints metal,** and the metal cursor draws a triangle for it. Painting metal refreshes the overlay, clusters and balance sums.
+- The LIGHTS preset preview sits at the height the lights land (it was 20 elmos low).
+- The WEATHER library headers sit on the right presets, and SPECIAL shows.
+- A plain click on a wheel-locked slider frees it and clears the WHEEL LOCK line.
+- The snow auto-reduce checkbox shows off when it is off, and seven LIGHTS and SURFACE section headers play their toggle sound once.
+
+### Removed
+
+- WEATHER FREQUENCY and DISTRIBUTION, and DECALS DISTRIBUTION: none of them did anything.
+- The DECALS heatmap (SAVE HEATMAP, RESET, "Explosions tracked"): it could never record an explosion.
+- Console commands with no button, key or caller: `/featureplacer*`, `/decalplacer*`, `/weatherbrush*` (open the tools from the panel), and the debug commands `/tf_sunlog` (1.15.1), `decalsdump`, `decaldumpres` and `/mapproject dirty`.
+
+The TILESET SHADER UPDATE row matches 1.18 from tileset shader build 18 on.
+
 ## 1.17.1 - 2026-10-15
 
 ### Fixes
