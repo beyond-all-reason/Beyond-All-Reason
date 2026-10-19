@@ -16,6 +16,7 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 - **The clone tool's WEATHER and LIGHTS layers copy and paste.** Both chips did nothing before. Lights land as high above the pasted ground as they stood, with cone and beam aim turned and mirrored with the paste; one undo in LIGHTS takes the paste back. Weather spawners paste with their shape angle turned; the weather brush keeps no undo.
 - **Clone PASTE MODE: RAISE ONLY and LOWER ONLY.** RAISE ONLY pastes only what stands above the ground under it, LOWER ONLY only what lies below, so a copied hill and valley pasted on flat ground leave just the hill or just the valley. Features, metal, paint and the other layers come along only where the terrain does, and the preview shows exactly that. REPLACE, the default, pastes as before.
 - **UNITS: a selection of two or more units gets a loop around it,** and pressing on empty ground inside the loop drags the whole group.
+- **Start position suggestions** (by NortySpock, #9386). STARTS > Roles gives each start position a role: left click for the next role, right click for the previous. Save and Load keep the names and roles, and the save also writes the rowy JSON and a `bset` command to `Terraform Brush/StartPositions/Suggestions/` for trying a layout in a skirmish.
 
 ### Improvements
 
