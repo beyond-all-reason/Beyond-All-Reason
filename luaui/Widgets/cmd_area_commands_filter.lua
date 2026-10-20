@@ -375,29 +375,17 @@ local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
 	end
 end
 
-local function attackOrdersHandler(cmdId, selectedUnits, filteredTargets, options)
+local function targetListHandler(cmdId, selectedUnits, filteredTargets, options)
+	local listCommandID = cmdId == CMD.ATTACK and CMD.ATTACK or CMD_UNIT_SET_TARGETS
 	if options.shift and options.meta then
 		local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
 		for selectedUnitID, targetIDs in pairs(unitTargetsMap) do
 			sortTargetsByDistance({ selectedUnitID }, targetIDs, true)
-			giveTargetList(CMD.ATTACK, { selectedUnitID }, targetIDs, options)
+			giveTargetList(listCommandID, { selectedUnitID }, targetIDs, options)
 		end
 	else
 		sortTargetsByDistance(selectedUnits, filteredTargets, true)
-		giveTargetList(CMD.ATTACK, selectedUnits, filteredTargets, options)
-	end
-end
-
-local function setTargetListHandler(cmdId, selectedUnits, filteredTargets, options)
-	if options.shift and options.meta then
-		local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
-		for selectedUnitID, targetIDs in pairs(unitTargetsMap) do
-			sortTargetsByDistance({ selectedUnitID }, targetIDs, true)
-			giveTargetList(CMD_UNIT_SET_TARGETS, { selectedUnitID }, targetIDs, options)
-		end
-	else
-		sortTargetsByDistance(selectedUnits, filteredTargets, true)
-		giveTargetList(CMD_UNIT_SET_TARGETS, selectedUnits, filteredTargets, options)
+		giveTargetList(listCommandID, selectedUnits, filteredTargets, options)
 	end
 end
 
@@ -439,10 +427,10 @@ end
 
 ---@type table<number, CommandConfig>
 local allowedCommands = {
-	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, attackOrdersHandler),
+	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, targetListHandler),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler),
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, targetListHandler),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, targetListHandler),
 	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS),
