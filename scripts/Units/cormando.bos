@@ -433,6 +433,13 @@ RestoreAfterDelay()
 	lastTargetID = -4;
 
 	turn turret to y-axis <0.0> speed <300.0>;
+	wait-for-turn turret around y-axis;
+
+	// The rotation messes up the aim of the weapon, so we need to wait for the turret to finish turning before we turn the sleeve.
+	// turn barrel to x-axis <-180.0> speed <225.0>;
+	// turn sleeve to x-axis <-180.0> speed <225.0>;
+	
+	turn barrel to x-axis <0.0> speed <225.0>;
 	turn sleeve to x-axis <0.0> speed <225.0>;
 	move turret to y-axis [0.0] speed [20.0];
 }
