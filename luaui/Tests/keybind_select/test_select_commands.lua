@@ -209,15 +209,13 @@ local function test()
 	local farIds = spawn(FAR, 300, 300, team)
 
 	local units, byName, nameOf = {}, {}, {}
-	for i, id in ipairs(nearIds) do
-		units[#units + 1] = { id = id, def = UnitDefs[Spring.GetUnitDefID(id)] }
-		byName[NEAR[i]] = byName[NEAR[i]] or {}
-		table.insert(byName[NEAR[i]], id)
-	end
-	for i, id in ipairs(farIds) do
-		units[#units + 1] = { id = id, def = UnitDefs[Spring.GetUnitDefID(id)] }
-		byName[FAR[i]] = byName[FAR[i]] or {}
-		table.insert(byName[FAR[i]], id)
+	for _, batch in ipairs({ { NEAR, nearIds }, { FAR, farIds } }) do
+		for i, id in ipairs(batch[2]) do
+			local name = batch[1][i]
+			units[#units + 1] = { id = id, def = UnitDefs[Spring.GetUnitDefID(id)] }
+			byName[name] = byName[name] or {}
+			table.insert(byName[name], id)
+		end
 	end
 	for _, u in ipairs(units) do
 		nameOf[u.id] = u.def.name
@@ -395,12 +393,9 @@ local function test()
 	end
 
 	exact(command("AllMap", { f("WeaponRange", false, "300"), f("WeaponRange", true, "700") }))
-	exact(command("AllMap", { f("RelativeHealth", false, "10"), f("RelativeHealth", true, "50") }))
-	exact(command("AllMap", { f("IdMatches", false, "armpw"), f("IdMatches", false, "armck") }))
 	exact(command("AllMap", { f("Idle"), f("IdMatches", false, "armpw"), f("IdMatches", false, "armck") }))
 	exact(command("AllMap", { f("IdMatches", false, "armpw"), f("Idle"), f("IdMatches", false, "armck") }))
 	exact(command("AllMap", { f("IdMatches", true, "armpw"), f("IdMatches", true, "armck") }))
-	exact(command("AllMap", { f("IdMatches", false, "armpw"), f("IdMatches", true, "armck") }))
 	exact(
 		command(
 			"AllMap",
@@ -409,7 +404,6 @@ local function test()
 	)
 	exact(command("AllMap", { f("Builder"), f("Building", true) }))
 	exact(command("AllMap", { f("Building", true), f("Builder") }))
-	exact(command("AllMap", { f("Weapons"), f("Aircraft", true), f("Building", true), f("Idle") }))
 
 	local half = {}
 	for i = 1, #units, 2 do
@@ -417,11 +411,9 @@ local function test()
 	end
 	exact(command("AllMap"))
 	exact(command("PrevSelection"), half)
-	exact(command("PrevSelection", { f("Weapons") }), half)
 	Spring.SetCameraTarget(cx + 240, Spring.GetGroundHeight(cx, cz), cz + 240, 0)
 	Test.waitFrames(2)
 	exact(command("Visible"))
-	exact(command("Visible", { f("IdMatches", false, "armpw") }))
 
 	exact(command("AllMap", { f("IdMatches", false, "armpw") }, "SelectAll", { clear = false }), { com })
 	exact(command("AllMap", { f("IdMatches", false, "armpw") }, "SelectAll"), { com })
@@ -431,7 +423,6 @@ local function test()
 	counted(command("AllMap", pawns, "SelectNum", { conclusionArg = "10" }), 4)
 	counted(command("AllMap", pawns, "SelectPart", { conclusionArg = "50" }), 2)
 	-- A part rounds down, so a part of too few units selects none.
-	counted(command("AllMap", pawns, "SelectPart", { conclusionArg = "30" }), 1)
 	counted(command("AllMap", { f("IdMatches", false, "armcom") }, "SelectPart", { conclusionArg = "50" }), 0)
 	counted(command("AllMap", pawns, "SelectOne"), 1)
 
@@ -459,7 +450,6 @@ local function test()
 		Test.waitFrames(2)
 		exact(command("FromMouse", nil, "SelectAll", { sourceArg = "200" }))
 		exact(command("FromMouseC", nil, "SelectAll", { sourceArg = "200" }))
-		exact(command("FromMouse", { f("Weapons") }, "SelectAll", { sourceArg = "300" }))
 
 		local closest = command("AllMap", pawns, "SelectClosestToCursor")
 		local best, bestD

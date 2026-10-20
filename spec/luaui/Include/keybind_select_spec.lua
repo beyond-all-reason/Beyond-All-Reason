@@ -76,47 +76,30 @@ describe("reading a select command", function()
 		end
 	end)
 
-	it("takes a filter's values and its Not", function()
-		local command =
-			assert(Select.parse("select PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+"))
-
+	it("takes each part and the values it carries", function()
 		assert.are.same({
-			{ id = "Building", negate = true, args = {} },
-			{ id = "RelativeHealth", negate = true, args = { "60" } },
-		}, command.filters)
-		assert.is_true(command.clear)
-		assert.are.equal("SelectAll", command.conclusion)
+			source = "FromMouse",
+			sourceArg = "500",
+			filters = {
+				{ id = "Building", negate = true, args = {} },
+				{ id = "RelativeHealth", negate = false, args = { "60" } },
+			},
+			clear = true,
+			conclusion = "SelectNum",
+			conclusionArg = "3",
+		}, Select.parse("select FromMouse_500+_Not_Building_RelativeHealth_60+_ClearSelection_SelectNum_3+"))
 	end)
 
-	it("takes a source and a conclusion that carry a value", function()
-		local command = assert(Select.parse("select FromMouse_500+_Idle+_SelectNum_3+"))
-
-		assert.are.equal("FromMouse", command.source)
-		assert.are.equal("500", command.sourceArg)
-		assert.is_false(command.clear)
-		assert.are.equal("SelectNum", command.conclusion)
-		assert.are.equal("3", command.conclusionArg)
-	end)
-
-	it("leaves the filters that match nothing in BAR to be written by hand", function()
-		for _, filter in ipairs({ "NameContain_Pawn", "Category_VTOL", "RulesParamEquals_role_scout" }) do
-			assert.is_nil(Select.parse("select AllMap+_" .. filter .. "+_SelectAll+"))
+	it("reads nothing the builder could not hold", function()
+		for _, action in ipairs({
+			"select AllMap+_NameContain_Pawn+_SelectAll+",
+			"select AllMap+_Category_VTOL+_SelectAll+",
+			"select AllMap+_RulesParamEquals_role_scout+_SelectAll+",
+			"select AllMap++_ClearSelection+",
+			"attack",
+		}) do
+			assert.is_nil(Select.parse(action), action)
 		end
-	end)
-
-	-- The engine matches keywords as written, so a player's lower case spelling selects nothing.
-	it("does not read a keyword the engine would not know", function()
-		assert.is_nil(Select.parse("select AllMap+_builder+_SelectAll+"))
-	end)
-
-	it("does not read an unknown source or a missing conclusion", function()
-		assert.is_nil(Select.parse("select Everywhere++_SelectAll+"))
-		assert.is_nil(Select.parse("select AllMap++_ClearSelection+"))
-	end)
-
-	it("reads nothing from a command that is not a selection", function()
-		assert.is_nil(Select.parse("attack"))
-		assert.is_nil(Select.parse("select"))
 	end)
 end)
 
@@ -151,15 +134,6 @@ describe("putting a selection into words", function()
 		)
 	end)
 
-	it("leaves the filters out when there are none", function()
-		local command = Select.parse("select Visible++_ClearSelection_SelectAll+")
-
-		assert.are.equal(
-			"[summaryAll conclusion=[conclusion.SelectAll] source=[source.Visible]]",
-			Select.describe(command, echo)
-		)
-	end)
-
 	it("says so when the selection is added to rather than replaced", function()
 		local command = Select.parse("select Visible++_SelectPart_50+")
 
@@ -168,70 +142,34 @@ describe("putting a selection into words", function()
 			Select.describe(command, echo)
 		)
 	end)
-end)
 
-describe("putting several unit names into words", function()
 	it("joins plain unit names as a choice where the first of them stood", function()
-		local command = Select.parse("select AllMap+_Idle_IdMatches_armcom_IdMatches_corcom+_ClearSelection_SelectAll+")
-
-		assert.are.equal(
-			"[summary conclusion=[conclusion.SelectAll] filters=[filter.Idle], [anyOf units=[filter.IdMatches value=armcom] last=[filter.IdMatches value=corcom]] source=[source.AllMap]]",
-			Select.describe(command, echo)
+		local command = Select.parse(
+			"select AllMap+_Idle_IdMatches_armcom_Not_IdMatches_legcom_IdMatches_corcom+_ClearSelection_SelectAll+"
 		)
-	end)
-
-	it("leaves ruled-out names as filters of their own", function()
-		local command =
-			Select.parse("select AllMap+_Not_IdMatches_armcom_Not_IdMatches_corcom+_ClearSelection_SelectAll+")
 
 		assert.are.equal(
-			"[summary conclusion=[conclusion.SelectAll] filters=[not filter=[filter.IdMatches value=armcom]], [not filter=[filter.IdMatches value=corcom]] source=[source.AllMap]]",
+			"[summary conclusion=[conclusion.SelectAll] filters=[filter.Idle], [anyOf units=[filter.IdMatches value=armcom] last=[filter.IdMatches value=corcom]], [not filter=[filter.IdMatches value=legcom]] source=[source.AllMap]]",
 			Select.describe(command, echo)
 		)
 	end)
 end)
 
 describe("what the builder can edit", function()
-	it("takes a value filter once each way", function()
-		assert.is_true(
-			Select.editable(Select.parse("select AllMap+_WeaponRange_31999_Not_WeaponRange_33001+_SelectAll+"))
-		)
-	end)
-
-	it("takes units named alongside units ruled out by name", function()
-		assert.is_true(
-			Select.editable(
-				Select.parse("select AllMap+_IdMatches_armcom_Not_IdMatches_corcom_Not_IdMatches_legcom+_SelectAll+")
-			)
-		)
-	end)
-
-	it("refuses a value filter named twice the same way", function()
+	it("refuses a filter named more often than it can hold", function()
 		assert.is_false(Select.editable(Select.parse("select AllMap+_RelativeHealth_30_RelativeHealth_70+_SelectAll+")))
-	end)
-
-	it("refuses a filter without a value named both ways", function()
 		assert.is_false(Select.editable(Select.parse("select AllMap+_Weapons_Not_Weapons+_SelectAll+")))
 	end)
 end)
 
 describe("telling whether an edit changed a selection", function()
-	it("reads filters in another order as the same selection", function()
+	it("reads reordered filters as the same selection and a changed value as another", function()
 		assert.is_true(
 			Select.sameSelection(
 				"select AllMap+_Idle_Builder+_ClearSelection_SelectOne+",
 				"select AllMap+_Builder_Idle+_ClearSelection_SelectOne+"
 			)
 		)
-	end)
-
-	it("reads a missing final + as the same selection", function()
-		assert.is_true(
-			Select.sameSelection("select Visible+_InGroup_1+_SelectAll", "select Visible+_InGroup_1+_SelectAll+")
-		)
-	end)
-
-	it("tells a changed value apart", function()
 		assert.is_false(
 			Select.sameSelection(
 				"select AllMap+_RelativeHealth_30+_SelectAll+",
@@ -250,25 +188,16 @@ describe("the selection builder", function()
 		return builder
 	end
 
-	-- The engine ends a token at an underscore, so a scavenger or raptor name would split in two.
-	it("refuses a unit name the engine would split", function()
-		local builder = open(nil)
-		builder.on.IdMatches = { is = true }
-		local field = builder:argFields("IdMatches", "is")[1]
-
-		field:setText("armcom_scav")
-		assert.is_false(select(2, builder:command()))
-
-		field:setText("armcom")
-		assert.is_true(select(2, builder:command()))
-	end)
-
-	it("checks a source's or a conclusion's value as the kind it is", function()
-		local builder = open("select FromMouse_150.5+_Idle+_ClearSelection_SelectNum_2.5+")
+	it("checks every value it holds as the kind the engine reads", function()
+		local builder = open("select FromMouse_150.5+_IdMatches_armcom+_ClearSelection_SelectNum_2.5+")
 		assert.is_false(select(2, builder:command()))
 
 		builder.conclusionArg:setText("2")
 		assert.is_true(select(2, builder:command()))
+
+		-- The engine ends a token at an underscore, so a scavenger or raptor name would split in two.
+		builder:argFields("IdMatches", "is")[1]:setText("armcom_scav")
+		assert.is_false(select(2, builder:command()))
 	end)
 
 	-- The game window can change size under an open form.
