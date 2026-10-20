@@ -33,6 +33,7 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 
 ### Fixes
 
+- **FEATURES no longer gets stuck in selection mode** (Moose). A right click on the map lets go of the asset library's picks, but the library kept those tiles lit, so it looked picked while a left click drew the selection box. The tiles now follow the picks, and only a right click lets go of them, not a right drag.
 - **Symmetric clone pastes turn each copy.** Radial copies all faced one way and mirror copies were turned instead of reflected, in the preview and in the paste.
 - The clone Copy button stays live after a copy, like Ctrl+C, and Shift+Scroll on the height offset stops at 500 like the slider.
 - **Decal REDO works.** The button did nothing; Ctrl+Y and Ctrl+Shift+Z redo, the history slider moves forward, and a redone batch keeps its alpha and tint.

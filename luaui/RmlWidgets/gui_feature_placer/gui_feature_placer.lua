@@ -429,6 +429,21 @@ local function updateSelectedCount()
 			el.inner_rml = s
 		end
 	end
+	-- The tiles follow the placer's picks, whatever changed them: a right-click on the map
+	-- drops them (the mouse goes back to selecting), and a library still showing them lit
+	-- read as "stuck in selection mode" (Moose, 2026-10-20). Only on a change.
+	if WG.FeaturePlacer then
+		local state = WG.FeaturePlacer.getState()
+		local defs = state and state.selectedDefs or {}
+		local sig = table.concat(defs, ",")
+		if widgetState.lastPickSig ~= sig then
+			widgetState.lastPickSig = sig
+			local ss = state and state.selectedSet or {}
+			for name, tile in pairs(featureElements) do
+				tile:SetClass("selected", ss[name] or false)
+			end
+		end
+	end
 end
 
 ----------------------------------------------------------------

@@ -2310,9 +2310,10 @@ function widget:MousePress(mx, my, button)
 
 	-- Right-click lets go of what the asset library has picked, so the mouse is empty and
 	-- selects again (the UNITS tool does the same). It never removes: that is Delete on a
-	-- selection, or the REMOVE mode's brush.
+	-- selection, or the REMOVE mode's brush. Decided on the RELEASE, and only for a click:
+	-- a right drag (camera, habit) must not empty the mouse behind the artist's back.
 	if button == 3 and fp.mode ~= "remove" and #fp.selectedDefs > 0 then
-		clearSelectedFeatures()
+		fp.rightPress = { mx, my }
 		return true
 	end
 
@@ -2345,6 +2346,15 @@ function widget:MouseRelease(mx, my, button)
 		else
 			-- A click on empty ground, not a drag: deselect.
 			clearSelection()
+		end
+		return true
+	end
+
+	if button == 3 and fp.rightPress then
+		local px, py = fp.rightPress[1], fp.rightPress[2]
+		fp.rightPress = nil
+		if abs(mx - px) < BOX_MIN_PX and abs(my - py) < BOX_MIN_PX then
+			clearSelectedFeatures()
 		end
 		return true
 	end
