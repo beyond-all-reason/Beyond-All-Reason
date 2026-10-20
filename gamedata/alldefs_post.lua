@@ -1094,10 +1094,10 @@ local function weaponDef_Post(name, wDef)
 			and not string.find(name, "raptor")
 			and math.bit_and(wDef.interceptor or 0, 1) == 1
 		then
-			-- Interceptors all work on about the same time-to-impact, 3.5 seconds, plus some margin.
+			-- Interceptors fire about 5 seconds from impact and stop ~4 nukes fired at the same time.
 			-- Unit scripts have long opening delays. Add that time to the net interception lead time.
-			customparams.terminal_intercept_time = 3.5 + (tonumber(customparams.intercept_lead_time) or 0)
-			wDef.reloadtime = 0.5
+			customparams.terminal_intercept_time = 5.0 + (tonumber(customparams.intercept_lead_time) or 0.0)
+			wDef.reloadtime = 0.9
 			wDef.weapontimer = 0.3
 			wDef.startvelocity = 600
 			wDef.weaponacceleration = 3600
