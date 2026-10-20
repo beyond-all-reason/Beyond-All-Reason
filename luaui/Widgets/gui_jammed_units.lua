@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Jammed Units Highlight",
-		desc = "Faint red tint on allied units standing in allied radar jammer coverage (hidden from enemy radar)",
+		desc = "Faint red tint and outline on allied units standing in allied radar jammer coverage (hidden from enemy radar)",
 		author = "Floris",
 		date = "2026.10.11",
 		license = "GNU GPL v2",
@@ -21,7 +21,8 @@ end
 -- writes a time stamp into unit buffer uniform #7 (Spring.GetDrawSeconds, which is the shaders' timeInfo.y):
 -- positive = jammed since then, negative = unjammed since then, 0 = never jammed. The CUS model shaders
 -- (modelmaterials_gl4/templates/cus_gl4.vert/frag.glsl, JAMMED_* tunables) fade a red tint and rim in or out
--- from that stamp, so this widget draws nothing itself and only writes on changes. The highlight is shown while the
+-- from that stamp, so this widget draws nothing itself and only writes on changes. Jammed units also get a red
+-- outline from Outline Shader GL4 (WG.unitOutlines) while that widget runs. The highlight is shown while the
 -- jammer coverage preview (Sensor Ranges Jammer Preview) draws coverage, or at all times without that widget.
 -- Players see their own allyteam's units. Spectators with full view see every allyteam's units, each against
 -- its own jammers; spectators following a team see that team's allyteam.
@@ -30,6 +31,9 @@ end
 -- Tunables
 local POLL_FRAMES = 6 -- game frames between two checks of the same unit (6 = 5 checks per second)
 local UNIFORM_INDEX = 7 -- unit buffer uniform (userDefined[1].w) the CUS shaders read
+local OUTLINE_OWNER = "jammed"
+-- width and blur in pixels at 1080p, see gfx_outline_shader_gl4.lua
+local OUTLINE_STYLE = { color = { 1, 0.25, 0.18, 0.2 }, width = 0.8, blur = 0.5, fadeTime = 0.3 }
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetPositionLosState = Spring.GetPositionLosState
@@ -64,6 +68,7 @@ local cursor = 1 -- next trackedUnits index to check
 local pollBudget = 0 -- unit checks owed, in units * frames: every unit gets checked once per POLL_FRAMES frames
 
 local shown = false -- whether the highlights are written at the moment
+local outlineApi = nil -- WG.unitOutlines when last seen, to outline the jammed units again when it (re)loads
 
 local uniformCache = { 0 }
 
@@ -75,6 +80,17 @@ end
 local function setStamp(unitID, stamp)
 	uniformCache[1] = stamp
 	glSetUnitBufferUniforms(unitID, uniformCache, UNIFORM_INDEX)
+end
+
+local function setOutline(unitID, on)
+	local outlines = WG.unitOutlines ---@type table?
+	if outlines then
+		if on then
+			outlines.add(OUTLINE_OWNER, unitID, OUTLINE_STYLE)
+		else
+			outlines.remove(OUTLINE_OWNER, unitID)
+		end
+	end
 end
 
 -- Fades the highlight out, also for units this viewer can no longer see (after a spectator view switch), which
@@ -121,6 +137,7 @@ local function checkUnit(unitID, now)
 	if is ~= was then
 		jammed[unitID] = is or nil
 		setStamp(unitID, is and now or -now)
+		setOutline(unitID, is)
 	end
 end
 
@@ -155,12 +172,14 @@ local function removeUnit(unitID, now)
 	if jammed[unitID] then
 		jammed[unitID] = nil
 		clearStamp(unitID, now)
+		setOutline(unitID, false)
 	end
 end
 
 local function hideAll(now)
 	for unitID in pairs(jammed) do
 		clearStamp(unitID, now)
+		setOutline(unitID, false)
 	end
 	jammed = {}
 end
@@ -221,6 +240,13 @@ local function coverageShown()
 end
 
 function widget:Update()
+	local outlines = WG.unitOutlines ---@type table?
+	if outlines ~= outlineApi then
+		outlineApi = outlines
+		for unitID in pairs(jammed) do
+			setOutline(unitID, true)
+		end
+	end
 	local show = coverageShown()
 	if show ~= shown then
 		shown = show

@@ -1,5 +1,6 @@
 # October
 - [Blitz] Better at avoiding friendly fire
+- [Rampart] Now leaves a wreck.
 - [Shuriken] 280.5 -> 270 speed
 - [Tiger] 462 -> 410 LoS, DPS -4%, Projectile velocity 410 -> 330
 - [Cortex Gantry] 8400m -> 8000m cost
@@ -38,6 +39,7 @@
   - Advanced Fusion health was increased by 5% last month by mistake, reverted.
   - Cortex / Legion advanced UW mexes had an unintended 50% damage reduction, removed.
   - Defenses that open and close cannot fire during their open or close animations.
+  - Lens flares of searchlights, headlights and other unit lights no longer flicker.
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.

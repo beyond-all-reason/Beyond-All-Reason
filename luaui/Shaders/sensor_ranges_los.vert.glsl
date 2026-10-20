@@ -10,7 +10,7 @@
 #line 10000
 
 layout (location = 0) in vec4 circlepointposition;
-layout (location = 1) in vec4 radius_params; //x is startradius, pos y is growstarttime, neg y is shrinkstarttime
+layout (location = 1) in vec4 radius_params; //x is startradius, pos y is growstarttime, neg y is shrinkstarttime, zw: model mid offset x, z (0 = unit position)
 layout (location = 2) in uvec4 instData;
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -41,6 +41,12 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 
 uniform float teamColorMix = 1.0;
 uniform vec4 rangeColor;
+#if defined(LINE_THIN_END) && !defined(STENCILPASS)
+	uniform float lineWidthPx = 1.0; // the line width set with glLineWidth
+#endif
+#if defined(FADE_END) && !defined(STENCILPASS)
+	uniform float fadeStrength = 1.0; // 0 turns the camera distance fade off
+#endif
 
 uniform sampler2D heightmapTex;
 
@@ -48,6 +54,12 @@ out DataVS {
 	vec4 v_radius_circum_height;
 	#ifndef STENCILPASS
 		flat vec4 v_blendedcolor;
+		#if defined(STIPPLE_RATE) || defined(LINE_THIN_END)
+			vec3 v_lineClipXYW; // line centre: lines interpolate varyings along their length only
+		#endif
+		#ifdef LINE_THIN_END
+			float v_lineHalfWidth; // pixels, thinned far from the camera
+		#endif
 	#endif
 };
 
@@ -63,6 +75,9 @@ void main() {
 	
 	// Get the center position of each unit. 
 	vec4 circleCenterWorldPos = vec4(uni[instData.y].drawPos.xyz, 1.0);
+	// sensors sit at the unit's midPos: the model's mid offset turned with the heading (drawPos.w, radians)
+	vec2 front = vec2(sin(uni[instData.y].drawPos.w), cos(uni[instData.y].drawPos.w));
+	circleCenterWorldPos.xz += front * radius_params.w + vec2(-front.y, front.x) * radius_params.z;
 
 	float nowTime = timeInfo.x + timeInfo.w;
 	float sizeFactor;
@@ -82,14 +97,15 @@ void main() {
 		}
 	#endif
 
-	circleCenterWorldPos.y = max(0.0, circleCenterWorldPos.y + 16.0); // add 16 to the height to avoid z-fighting with the ground
+	circleCenterWorldPos.y = max(0.0, circleCenterWorldPos.y);
 
 	vec4 circleVertexWorldPos = vec4(circleCenterWorldPos.xyz, 1.0);
 	circleVertexWorldPos.xz += circlepointposition.xy * circleRadius;
 	
 
 	float groundHeight = heightAtWorldPos(circleVertexWorldPos.xz); //the y component of v_radius_circum_height
-	circleVertexWorldPos.y = max(0.0, groundHeight + 16.0); // add the height offset to the vertex position
+	// on the ground (the water surface over water), where the radar preview's sheet lies, so they line up from any angle
+	circleVertexWorldPos.y = max(0.0, groundHeight);
 
 	#ifdef STENCILPASS
 		// the circlepointposition is zero at the center vertex of the circle, and we will be using the these varyings as a distance from the center
@@ -122,12 +138,34 @@ void main() {
 
 	gl_Position = cameraViewProj * circleVertexWorldPos;
 	#ifndef STENCILPASS // Circle Pass
+		// depth tested 16 elmos closer to the camera, so terrain bulging between the vertices doesn't hide the line
+		vec3 toCamera = normalize(cameraViewInv[3].xyz - circleVertexWorldPos.xyz);
+		vec4 depthTestPos = cameraViewProj * vec4(circleVertexWorldPos.xyz + toCamera * 16.0, 1.0);
+		gl_Position.z = depthTestPos.z / depthTestPos.w * gl_Position.w;
+		#if defined(STIPPLE_RATE) || defined(LINE_THIN_END)
+			v_lineClipXYW = gl_Position.xyw;
+		#endif
+		#if defined(LINE_THIN_END) || defined(FADE_END)
+			float camDist = distance(cameraViewInv[3].xyz, circleVertexWorldPos.xyz);
+		#endif
+		#ifdef LINE_THIN_END
+			// LINE_THIN_SCALE of the width from LINE_THIN_END elmos from the camera on, easing in from LINE_THIN_START,
+			// though not below LINE_MIN_WIDTH pixels unless it was thinner to begin with
+			float thinStart = float(LINE_THIN_START);
+			float thin = mix(1.0, float(LINE_THIN_SCALE), smoothstep(thinStart, max(float(LINE_THIN_END), thinStart + 1.0), camDist));
+			v_lineHalfWidth = 0.5 * max(lineWidthPx * thin, min(lineWidthPx, float(LINE_MIN_WIDTH)));
+		#endif
 
 		v_radius_circum_height.z = groundHeight; // store the ground height here for sonar and stuff
 		// -- MAP OUT OF BOUNDS
 		vec2 mymin = min(circleVertexWorldPos.xz,mapSize.xy - circleVertexWorldPos.xz);
 		float inboundsness = min(mymin.x, mymin.y); // how distant the vertex is from the map edge
 		inboundsness = 1.0 - clamp(inboundsness*(-0.02),0.0,1.0); // clamp to [0,1] range, and invert it so that the closer to the edge, the lower the value
+		#ifdef FADE_END
+			// fades out with the distance from the camera: full up to FADE_START elmos, gone from FADE_END elmos on
+			float fadeStart = float(FADE_START);
+			inboundsness *= 1.0 - fadeStrength * smoothstep(fadeStart, max(float(FADE_END), fadeStart + 1.0), camDist);
+		#endif
 		v_blendedcolor.rgb = rangeColor.rgb;
 		#ifdef USE_TEAMCOLOR
 			uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex

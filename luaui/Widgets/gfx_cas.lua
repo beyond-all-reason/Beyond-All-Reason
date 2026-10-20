@@ -258,9 +258,10 @@ local function CompileShader(rcas, preserve, noise)
 		string.format("#define FOOT_LO %.3f", GRAIN_NOISE_FOOTPRINT[1]),
 		string.format("#define FOOT_HI %.3f", GRAIN_NOISE_FOOTPRINT[2]),
 	}
+	local fragment = fsCAS:gsub("//__ENGINEUNIFORMBUFFERDEFS__", LuaShader.GetEngineUniformBufferDefs())
 	local shader = LuaShader({
 		vertex = vsCAS,
-		fragment = fsCAS:gsub("//__DEFINES__", table.concat(defines, "\n")),
+		fragment = fragment:gsub("//__DEFINES__", table.concat(defines, "\n")),
 		uniformInt = {
 			screenCopyTex = 0,
 		},
@@ -373,7 +374,8 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if data.SHARPNESS ~= nil and data.version ~= nil and data.version == version then
+	-- a version only comes with what this widget saved itself; the options menu writes SHARPNESS alone
+	if data.SHARPNESS ~= nil and (data.version == nil or data.version == version) then
 		SHARPNESS = data.SHARPNESS
 	end
 end

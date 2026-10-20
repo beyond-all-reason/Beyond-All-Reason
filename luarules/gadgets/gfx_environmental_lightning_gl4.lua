@@ -161,6 +161,11 @@ end
 --   scatterIntensityScale intensity multiplier for sparks
 --   scatterWidthScale     width multiplier for sparks (thickness only)
 --   alwaysVisible     when true, bypasses local LOS filtering (still per-client)
+--
+-- Optional ground scorch at the origin, drawn by the Decals GL4 widget so it follows
+-- the terrain and stays under the unit platters (a CEG billboard does neither):
+--   scorch = { texture = decal atlas path, size = elmos, lifeFrames,
+--              alpha = start alpha (above 1 holds full opacity longer), fadeInFrames }
 --------------------------------------------------------------------------------
 local lightningConfigs = {
 	scavradiation = {
@@ -400,6 +405,14 @@ local lightningConfigs = {
 		scatterSizeMax = 0.7,
 		scatterIntensityScale = 1.0,
 		scatterWidthScale = 2.0,
+		-- full at the spawn explosion (CEG delay 20), fades out over the last ~40% of its life
+		scorch = {
+			texture = "luaui/images/decals_gl4/groundscars/t_groundcrack_17_a.tga",
+			size = 160,
+			lifeFrames = 800,
+			alpha = 2.5,
+			fadeInFrames = 20,
+		},
 	},
 }
 
@@ -1694,6 +1707,27 @@ local function handleSpawn(_, configName, x, y, z, sizeScale, intensityScale, ow
 		return
 	end
 	requestLightning(configName, x, y, z, sizeScale, intensityScale)
+
+	local scorch = cfg and cfg.scorch
+	if scorch and Script.LuaUI("AddDecalGL4") then
+		Script.LuaUI.AddDecalGL4(
+			scorch.texture,
+			x,
+			z,
+			mathRandom() * 2 * mathPi,
+			scorch.size,
+			scorch.size,
+			0, -- heatstart
+			1, -- heatdecay
+			scorch.alpha,
+			scorch.alpha / scorch.lifeFrames,
+			1, -- maxalpha
+			0.5, -- bwfactor
+			0, -- glowsustain
+			0, -- glowadd
+			scorch.fadeInFrames * scorch.alpha -- the shader ramps alphastart over this, so this reaches 1 at fadeInFrames
+		)
+	end
 end
 
 function gadget:Initialize()

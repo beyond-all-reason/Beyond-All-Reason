@@ -24,6 +24,15 @@ do
 	widgetDependencies = ok and module or nil
 end
 
+-- Watches what user widgets allocate and hold, and LuaUI's share of the engine's Lua memory pool.
+-- Optional for the same reason. The instance is made once the sandbox it looks through exists.
+local MemoryGuard
+do
+	local ok, module = pcall(VFS.Include, LUAUI_DIRNAME .. "Include/memory_guard.lua", nil, VFS.ZIP)
+	MemoryGuard = ok and module or nil
+end
+local memoryGuard
+
 -- Avoid deep copies and cycles.
 local function copyTable(source)
 	local copy = {}
@@ -159,6 +168,7 @@ local widgetHandler = {
 	widgetHashes = {}, -- this is a table of widget md5 values to file names, used for user widget hashing
 
 	WG = {}, -- shared table for widgets
+	widgetsRevision = 0,
 
 	globals = {}, -- global vars/funcs
 
@@ -330,6 +340,7 @@ local callInLists = {
 	"UnitScriptLight",
 	"UnitScriptDistortion",
 	"UnitScriptDecal",
+	"UnitScriptDecalBatch",
 	"GadgetRemoveGrass",
 	"GadgetCoopStartPoint",
 	"NotificationEvent",
@@ -977,7 +988,7 @@ function widgetHandler:Initialize()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 	self:SetWindowsHideInterface(Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
-	self:InitWindowPause()
+	self:InitPause()
 
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
@@ -1037,6 +1048,8 @@ function widgetHandler:Initialize()
 		widgetHandler:InsertWidgetRaw(w)
 	end
 	insertingStartupWidgets = false
+	-- Kept, the list would hold every startup widget in memory after it is switched off.
+	unsortedWidgets = {}
 
 	-- Since Initialize is run out of the normal callin wrapper by InsertWidget, we, need to reorder explicitly here.
 	widgetHandler:PerformReorders()
@@ -1136,6 +1149,24 @@ local function loadFailed(basename, reason)
 	widgetHandler:RecordError(basename, nil, reason, true)
 end
 
+-- A user widget's file runs under the memory guard like its call-ins do, and the WG entries it
+-- makes count as its own.
+local function runWidgetChunk(chunk, widget, fromZip, basename)
+	if fromZip or not memoryGuard then
+		return pcall(chunk)
+	end
+	memoryGuard.register(widget)
+	local wgKeys = memoryGuard.snapshotWG()
+	memoryGuard.enter(widget)
+	local success, err = pcall(chunk)
+	local tripped = memoryGuard.leave()
+	memoryGuard.claimWG(widget, wgKeys)
+	if tripped then
+		return false, memoryGuard.takeTrip(widget, basename)
+	end
+	return success, err
+end
+
 -- Whether a source reaches for the RmlUi API (`RmlUi.x`, `RmlUi[x]`, `not RmlUi`), not just names it.
 -- Plain finds first: two pattern searches over every widget's source cost ~60 ms per LuaUI load.
 local function usesRmlUi(text)
@@ -1168,7 +1199,9 @@ end
 local newWidget ---@type function
 
 -- User widgets can read its own environment and an env it builds. Everything else returns its own env.
-local ownedEnvs = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
+-- Weak values too: a widget's own entry points at itself, and Lua 5.1 keeps a weak key alive
+-- while its value is, which kept every widget ever loaded in memory.
+local ownedEnvs = setmetatable({}, { __mode = "kv" }) ---@type table<table, table>
 
 local function userEnv(widget, env)
 	return ownedEnvs[env] == widget and env or widget
@@ -1262,7 +1295,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			widget.debug.getlocal = getLocalName -- the detector needs getlocal -- ! do not give to user widgets
 		end
 		setfenv(chunk, widget)
-		local success, err = pcall(chunk)
+		local success, err = runWidgetChunk(chunk, widget, fromZip, basename)
 		if not success then
 			return loadFailed(basename, err)
 		end
@@ -1282,7 +1315,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	local widget, canControlUnits = newWidget(widgetHandler, enableLocalsAccess, fromZip)
 	setfenv(chunk, widget)
-	local success, err = pcall(chunk)
+	local success, err = runWidgetChunk(chunk, widget, fromZip, basename)
 	if not success then
 		return loadFailed(basename, err)
 	end
@@ -1418,6 +1451,71 @@ local SandboxedWidgetMeta = {
 	__index = SandboxedSystem,
 	__metatable = true,
 }
+
+-- Turned off for its memory: it stays off next game, and the selector says why.
+local function disableForMemory(w, reason)
+	local info = w.whInfo
+	local entry = widgetHandler:RecordError(info.basename, nil, reason, true)
+	entry.memory = true
+	widgetHandler:DisableWidget(info.name)
+end
+
+if MemoryGuard then
+	local spGetTimer, spGetTimerMicros, spDiffTimers = Spring.GetTimer, Spring.GetTimerMicros, Spring.DiffTimers
+	local spGetLuaMemUsage = Spring.GetLuaMemUsage
+	local startTimer = spGetTimer()
+	memoryGuard = MemoryGuard.new({
+		now = function()
+			return spDiffTimers(spGetTimer(), startTimer)
+		end,
+		startTimer = spGetTimerMicros,
+		elapsedMs = function(timer)
+			return spDiffTimers(spGetTimerMicros(), timer, true, true)
+		end,
+		poolUsage = function()
+			local _, _, globalKB = spGetLuaMemUsage()
+			return globalKB
+		end,
+		gameFrame = Spring.GetGameFrame,
+		setCollectorBudget = function(ms)
+			Spring.GarbageCollectCtrl(nil, nil, nil, nil, nil, nil, ms)
+		end,
+		activeWidgets = function()
+			return widgetHandler.widgets
+		end,
+		isActive = function(w)
+			return table.getKeyOf(widgetHandler.widgets, w) ~= nil
+		end,
+		ownsEnv = function(env, w)
+			return ownedEnvs[env] == w
+		end,
+		stopRoots = function()
+			return {
+				{ System, 1 },
+				{ SandboxedSystem, 1 },
+				{ _G, 1 },
+				{ widgetHandler, 1 },
+				{ widgetHandler.WG, 2 },
+				{ UnitDefs, 1 },
+				{ WeaponDefs, 1 },
+				{ FeatureDefs, 1 },
+				{ WidgetMeta, 0 },
+				{ SandboxedWidgetMeta, 0 },
+			}
+		end,
+		WG = widgetHandler.WG,
+		disable = disableForMemory,
+		notify = function(text)
+			spEcho("\255\255\170\100" .. text)
+		end,
+		log = spEcho,
+		translate = function(key, vars)
+			return BAR.I18N("ui.widgetMemory." .. key, vars)
+		end,
+		-- 0 for widget authors who want to see their numbers without anything being stopped
+		enforce = Spring.GetConfigInt("UserWidgetMemoryLimits", 1) ~= 0,
+	})
+end
 
 newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	tracyZoneBeginN("W:NewWidget")
@@ -1655,6 +1753,12 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	wh.GetModalRevision = function(_)
 		return self:GetModalRevision()
 	end
+	wh.GetWidgetsRevision = function(_)
+		return self:GetWidgetsRevision()
+	end
+	wh.GetActiveWidgetFiles = function(_)
+		return self:GetActiveWidgetFiles()
+	end
 	wh.SetWindowsHideInterface = function(_, enabled)
 		return self:SetWindowsHideInterface(enabled)
 	end
@@ -1670,6 +1774,14 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	wh.IsInterfaceHidden = function(_)
 		return self:IsInterfaceHidden()
 	end
+	-- see widgetHandler:Pause
+	wh.Pause = function(_, source)
+		return self:Pause(source)
+	end
+	wh.Unpause = function(_, source)
+		return self:Unpause(source)
+	end
+
 	if not fromZip then
 		-- Warnings are not repeated to avoid clogging the infolog. Error logs are repeated on purpose.
 		local warned = {}
@@ -1766,6 +1878,13 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		widget._tracyGameFrameName = "W:GameFrame:" .. wi.name
 		widget._tracyGameFramePostName = "W:GameFramePost:" .. wi.name
 		widget._tracyVisibleUnitsChangedName = "W:VisibleUnitsChanged:" .. wi.name
+		widget._tracyVisibleUnitAddedName = "W:VisibleUnitAdded:" .. wi.name
+		widget._tracyVisibleUnitRemovedName = "W:VisibleUnitRemoved:" .. wi.name
+		widget._tracyUnitFinishedName = "W:UnitFinished:" .. wi.name
+		widget._tracyUnitDestroyedName = "W:UnitDestroyed:" .. wi.name
+		widget._tracyFeatureCreatedName = "W:FeatureCreated:" .. wi.name
+		widget._tracyFeatureDestroyedName = "W:FeatureDestroyed:" .. wi.name
+		widget._tracyVisibleExplosionName = "W:VisibleExplosion:" .. wi.name
 		widget._tracyCommandNotifyName = "W:CommandNotify:" .. wi.name
 		widget._tracyRecvLuaMsgName = "W:RecvLuaMsg:" .. wi.name
 	end
@@ -1782,6 +1901,10 @@ end
 --------------------------------------------------------------------------------
 
 local function widgetFailure(w, funcName, errorMsg)
+	local memory = memoryGuard and memoryGuard.failure(w, funcName, errorMsg)
+	if memory == "handled" then
+		return nil
+	end
 	local name = w.whInfo.name
 	-- Kept against the widget as well as said, and before anything below can reload it: the
 	-- log is how the widget selector shows what went wrong once the line has scrolled out of
@@ -1799,6 +1922,10 @@ local function widgetFailure(w, funcName, errorMsg)
 	end
 	spEcho(errorBase .. " in " .. funcName .. "(): " .. tostring(errorMsg))
 	spEcho("Removed widget: " .. name)
+	if memory == "reload" then
+		-- Ran out of memory that a user widget most likely filled, and was freed since.
+		widgetHandler:EnableWidget(name)
+	end
 	return nil
 end
 
@@ -1827,6 +1954,26 @@ local function SafeWrapFuncGL(func, funcName)
 	end
 end
 
+-- What a user widget's call-in allocates is counted, and one that allocates far too much is stopped.
+local function SafeWrapFuncUser(func, funcName)
+	local guard = memoryGuard --[[@as table]]
+	local guardEnter, guardLeave, tripError = guard.enter, guard.leave, guard.TRIP_ERROR
+	local function wrapper(w, ...)
+		guardEnter(w)
+		local r1, r2, r3 = pcall(func, w, ...)
+		if guardLeave() then
+			r1, r2 = false, tripError -- also when the widget caught it itself
+		end
+		if r1 then
+			return r2, r3
+		else
+			return widgetFailure(w, funcName, r2)
+		end
+	end
+	guard.addWrapper(wrapper)
+	return wrapper
+end
+
 local function SafeWrapFunc(func, funcName)
 	if not SAFEDRAW then
 		return SafeWrapFuncNoGL(func, funcName)
@@ -1840,23 +1987,26 @@ local function SafeWrapFunc(func, funcName)
 end
 
 local function SafeWrapWidget(widget)
+	-- User widgets cannot opt out: the memory guard sits in the wrapper.
+	local user = memoryGuard ~= nil and memoryGuard.isUser(widget)
 	if SAFEWRAP <= 0 then
 		return
 	elseif SAFEWRAP == 1 then
-		if widget.whInfo.unsafe then
+		if widget.whInfo.unsafe and not user then
 			spEcho("LuaUI: loaded unsafe widget: " .. widget.whInfo.name)
 			return
 		end
 	end
 
+	local wrap = user and SafeWrapFuncUser or SafeWrapFunc
 	for _, ciName in ipairs(callInLists) do
 		if widget[ciName] then
-			widget[ciName] = SafeWrapFunc(widget[ciName], ciName)
+			widget[ciName] = wrap(widget[ciName], ciName)
 		end
 	end
 
 	if widget.Initialize then
-		widget.Initialize = SafeWrapFunc(widget.Initialize, "Initialize")
+		widget.Initialize = wrap(widget.Initialize, "Initialize")
 	end
 end
 
@@ -2054,8 +2204,17 @@ function widgetHandler:InsertWidgetRaw(widget)
 		self:UpdateCallIns()
 	end
 
+	self.widgetsRevision = self.widgetsRevision + 1
+
 	if widget.Initialize then
+		local wgKeys = memoryGuard and memoryGuard.isUser(widget) and memoryGuard.snapshotWG()
 		widget:Initialize()
+		if wgKeys then
+			memoryGuard.claimWG(widget, wgKeys)
+		end
+	end
+	if memoryGuard then
+		memoryGuard.settle(widget)
 	end
 end
 
@@ -2090,6 +2249,7 @@ function widgetHandler:RemoveWidgetRaw(widget)
 		ArrayRemove(self[listname .. "List"], widget)
 	end
 	self:UpdateCallIns()
+	self.widgetsRevision = self.widgetsRevision + 1
 end
 
 --------------------------------------------------------------------------------
@@ -2413,7 +2573,7 @@ function widgetHandler:Shutdown()
 	-- save config. SaveConfigData knows about the two reset flags, so a widget's own
 	-- Shutdown calling it below cannot put back what a reset just took out.
 	self:SaveConfigData()
-	self:SaveWindowPause()
+	self:SavePause()
 
 	for _, w in ipairs(self.ShutdownList) do
 		w:Shutdown()
@@ -2438,6 +2598,12 @@ end
 --  In singleplayer and replays an open window (or the lobby overlay) also pauses the
 --  game (springsetting "WindowsPauseGame", default on) until the last one closes. A
 --  pause the player made or lifted themselves in the meantime is left alone.
+--
+--  Widgets pause the game under a source, as gadgets do (api_game_pause.lua), and the
+--  game resumes once the last source on either side unpauses:
+--      widgetHandler:Pause("modals")
+--      widgetHandler:Unpause("modals")
+--  Unpause also takes a gadget's source, when that gadget publishes it to widgets.
 --
 --  A window widget opts in from its Initialize with an is-open predicate:
 --      widgetHandler:RegisterModalWindow(function() return show end)
@@ -2475,11 +2641,18 @@ local modalEnabled = false
 local modalConfigTimer = 0
 local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /set)
 
--- pausing while a window is open, see UpdateWindowPause
-local windowPauseEnabled = true
-local windowPauseAllowed = false -- singleplayer or a replay: nobody else to pause for
-local windowPauseHeld = false -- the open windows have paused the game, or found it paused
-local windowPauseOwned = false -- they paused it, so closing them resumes it
+-- pausing under a source, see widgetHandler:Pause
+local PAUSESOURCE_MODALS = "modals"
+local RULESPARAM_GADGET_PAUSE = "gamePaused"
+local RULESPARAM_GADGET_PAUSE_GENERATION = "gamePauseGeneration"
+local RULESPARAM_GADGET_PAUSE_PUBLISH = "gamePausePublished"
+local MESSAGE_GADGET_UNPAUSE = "GamePauseUnpause:"
+local MESSAGE_WIDGETS_UNPAUSED = "GamePauseWidgetsUnpaused:"
+local pauseSources = {}
+local widgetPaused = false
+-- pausing while a modal window is open, see UpdatePause
+local modalPauseEnabled = true
+local modalPauseAllowed = false -- only in singleplayer and replays
 
 -- The same hiding, asked for outright rather than driven by an open window: for a
 -- cutscene, a screenshot mode, an editor. Requests are named so two callers cannot
@@ -2596,6 +2769,21 @@ function widgetHandler:GetModalRevision()
 	return modalRevision
 end
 
+-- Bumped whenever a widget goes in or comes out, so state derived from the running set can tell
+-- it moved.
+function widgetHandler:GetWidgetsRevision()
+	return self.widgetsRevision
+end
+
+function widgetHandler:GetActiveWidgetFiles()
+	local files = {}
+	for i, w in ipairs(self.widgets) do
+		files[i] = w.whInfo.filename
+	end
+
+	return files
+end
+
 -- Whether a widget is drawing and taking input right now, whether it is a window
 -- or an outright hide that is covering it. A nil widget (e.g. an unowned guishader
 -- region) counts as not allowed, which is the wanted default.
@@ -2613,7 +2801,7 @@ function widgetHandler:SetWindowsHideInterface(enabled)
 end
 
 function widgetHandler:SetWindowsPauseGame(enabled)
-	windowPauseEnabled = enabled and true or false
+	modalPauseEnabled = enabled and true or false
 	modalConfigTimer = 0
 end
 
@@ -2641,7 +2829,7 @@ function widgetHandler:UpdateModalState(deltaTime)
 		if modalConfigTimer >= MODAL_CONFIG_INTERVAL then
 			modalConfigTimer = 0
 			modalEnabled = (Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
-			windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
+			modalPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 		end
 	end
 
@@ -2653,127 +2841,116 @@ local function isClientPaused()
 	return paused
 end
 
--- Once per frame, after the widgets' Update: a window closing as another opens, or one
--- reopening itself after a reload, never lets the game run in between.
-function widgetHandler:UpdateWindowPause()
-	if not windowPauseAllowed then
-		return
+local function inGadgetPause()
+	return (Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE) or 0) == 1
+end
+
+local function getPauseReleaseKey(source)
+	local publishedRule = Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE_PUBLISH) or "[]"
+	if publishedRule == "[]" then
+		return nil
 	end
-	local wanted = windowPauseEnabled and (self.chobbyInterface or anyWindowOpen())
-	if wanted == windowPauseHeld then
-		if windowPauseOwned and not isClientPaused() then
-			windowPauseOwned = false -- unpaused by the player with a window open: theirs from here
-		end
-		return
+	local published = Json.decode(publishedRule)
+	if type(published) ~= "table" then
+		return nil
 	end
-	if wanted then
-		if Spring.GetGameFrame() == 0 then
-			return -- the engine refuses to pause before the game has started
+	for _, entry in ipairs(published) do
+		if type(entry) == "table" and entry[1] == source then
+			return entry[2]
 		end
-		windowPauseHeld = true
-		windowPauseOwned = not isClientPaused()
-		if windowPauseOwned then
+	end
+end
+
+---Pause and resume the game using basic claims and releases on claims.
+---@param source string key set by caller; pass the same key to Unpause
+function widgetHandler:Pause(source)
+	if type(source) ~= "string" then
+		Spring.Log("barwidgets.lua", LOG.ERROR, "Pause: expected a source name")
+		return false
+	end
+	if Spring.GetGameFrame() == 0 then
+		return false -- cannot pause until the game starts
+	end
+	if next(pauseSources) == nil and not widgetPaused then
+		widgetPaused = not isClientPaused()
+		if widgetPaused then
 			Spring.SendCommands("pause 1")
 		end
-	else
-		windowPauseHeld = false
-		if windowPauseOwned and isClientPaused() then
-			Spring.SendCommands("pause 0")
+	end
+	pauseSources[source] = true
+	return true
+end
+
+---Unpause one source. The game resumes once no source on either side is left.
+---@param source string # a widget's source, or a gadget's published source
+function widgetHandler:Unpause(source)
+	if pauseSources[source] then
+		pauseSources[source] = nil
+		if next(pauseSources) == nil then
+			if widgetPaused and isClientPaused() then
+				if inGadgetPause() then
+					local generation = Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE_GENERATION) or 0
+					Spring.SendLuaRulesMsg(MESSAGE_WIDGETS_UNPAUSED .. generation) -- the gadgets resume the game
+				else
+					Spring.SendCommands("pause 0")
+				end
+			end
+			widgetPaused = false
 		end
-		windowPauseOwned = false
+		return true
+	end
+	local release = getPauseReleaseKey(source)
+	if release then
+		Spring.SendLuaRulesMsg(MESSAGE_GADGET_UNPAUSE .. release .. ":" .. source)
+		return true
+	end
+	return false
+end
+
+local function gameUnpausing()
+	if next(pauseSources) == nil then
+		return false
+	end
+	widgetPaused = true
+	return true
+end
+
+-- This runs after the widgets update, so the game stays paused when:
+-- one modal closes -and- another opens, or a modal reopens after a reload.
+function widgetHandler:UpdatePause()
+	if widgetPaused and not isClientPaused() then
+		widgetPaused = false -- the player unpaused during another pause, so the pause remains
+	end
+	local wanted = modalPauseAllowed and modalPauseEnabled and (self.chobbyInterface or anyWindowOpen())
+	if wanted ~= (pauseSources[PAUSESOURCE_MODALS] == true) then
+		if wanted then
+			self:Pause(PAUSESOURCE_MODALS)
+		else
+			self:Unpause(PAUSESOURCE_MODALS)
+		end
 	end
 end
 
--- A LuaUI reload hands the pause over in memory, tied to the frame it froze, so a window
--- that reopens after the reload keeps it and closing that window still resumes the game.
-function widgetHandler:SaveWindowPause()
-	Spring.SetConfigInt("WindowsPausedAtFrame", windowPauseOwned and Spring.GetGameFrame() or 0, true)
+-- A LuaUI reload hands the pause over in memory, tied to the frame it froze, so widgets
+-- that pause again after the reload, like a modal reopening, still resume the game.
+function widgetHandler:SavePause()
+	Spring.SetConfigInt("WidgetsPausedAtFrame", widgetPaused and Spring.GetGameFrame() or 0, true)
 end
 
-function widgetHandler:InitWindowPause()
-	-- headless, nobody would ever close a window that opened by itself
-	windowPauseAllowed = not isHeadless and (spIsReplay() or isSinglePlayer())
-	windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
+function widgetHandler:InitPause()
+	-- headless, nobody would ever close a modal that opened by itself
+	modalPauseAllowed = not isHeadless and (spIsReplay() or isSinglePlayer())
+	modalPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 	local frame = Spring.GetGameFrame()
-	if frame > 0 and Spring.GetConfigInt("WindowsPausedAtFrame", 0) == frame and isClientPaused() then
-		windowPauseHeld = true
-		windowPauseOwned = true
-	end
-	Spring.SetConfigInt("WindowsPausedAtFrame", 0, true)
-end
-
--- Backstop for LuaUI memory: the engine's incremental collector normally keeps garbage bounded.
--- Past the gradual limit a full cycle is stepped a bounded amount per update instead of one
--- stalling collectgarbage("collect"); only past the emergency limit is it done at once.
-local gcCheckCounter = 0
-local gcGradualLimit = 1000000 -- kB
-local gcEmergencyLimit = 1300000 -- kB
-local gcStepKB = 1024 -- about 1 ms of collector stepping per update
-local gcStepping = false
--- adaptive collector budget, see luarules/gadgets/api_garbage_collector.lua
-local gcCapMin, gcCapMax, gcCap = 1, 4, 1
-local gcTrendWindow = 1800 -- frames
-local gcGrowthStepKB = 20000
-local gcTrendFrame, gcTrendMem
-
-local function gcAdaptCap(count)
-	local n = Spring.GetGameFrame()
-	if not gcTrendFrame then
-		gcTrendFrame, gcTrendMem = n, count
-		return
-	end
-	if n - gcTrendFrame < gcTrendWindow then
-		return
-	end
-	local growth = count - gcTrendMem
-	gcTrendFrame, gcTrendMem = n, count
-	local newCap = gcCap
-	if growth > gcGrowthStepKB then
-		newCap = math.min(gcCapMax, gcCap + 1)
-	elseif growth < gcGrowthStepKB / 4 then
-		newCap = math.max(gcCapMin, gcCap - 1)
-	end
-	if newCap ~= gcCap then
-		gcCap = newCap
-		Spring.GarbageCollectCtrl(nil, nil, nil, nil, nil, nil, gcCap)
-		spEcho(
-			string.format(
-				"LuaUI memory %s %d MB in the last minute, garbage collector budget set to %d ms",
-				growth >= 0 and "grew" or "shrank",
-				math.floor(math.abs(growth) / 1000),
-				gcCap
-			)
-		)
-	end
+	widgetPaused = frame > 0 and Spring.GetConfigInt("WidgetsPausedAtFrame", 0) == frame and isClientPaused()
+	Spring.SetConfigInt("WidgetsPausedAtFrame", 0, true)
+	self:RegisterGlobal(self, "GameUnpausing", gameUnpausing)
 end
 
 function widgetHandler:Update()
-	if gcStepping then
-		if collectgarbage("step", gcStepKB) then
-			gcStepping = false
-			gcTrendFrame, gcTrendMem = Spring.GetGameFrame(), collectgarbage("count")
-			spEcho(
-				"Gradual garbage collection done, LuaUI now uses "
-					.. math.floor(collectgarbage("count") / 1000)
-					.. " MB"
-			)
-		end
-	else
-		gcCheckCounter = gcCheckCounter + 1
-		if gcCheckCounter >= 30 then
-			gcCheckCounter = 0
-			local count = collectgarbage("count")
-			gcAdaptCap(count)
-			if count > gcEmergencyLimit then
-				spEcho("Warning: Emergency garbage collection due to exceeding 1.3GB LuaRAM")
-				collectgarbage("collect")
-			elseif count > gcGradualLimit then
-				spEcho(
-					"Warning: LuaUI uses " .. math.floor(count / 1000) .. " MB, starting a gradual garbage collection"
-				)
-				gcStepping = true
-			end
-		end
+	-- Collects LuaUI's garbage when the shared Lua memory pool runs high, and watches user widgets.
+	if memoryGuard then
+		memoryGuard.update()
 	end
 
 	local deltaTime = Spring.GetLastUpdateSeconds()
@@ -2792,7 +2969,7 @@ function widgetHandler:Update()
 	end
 	tracyZoneEnd()
 
-	self:UpdateWindowPause()
+	self:UpdatePause()
 	return
 end
 
@@ -2838,6 +3015,9 @@ function widgetHandler:ConfigureLayout(command)
 		return true
 	elseif stringFind(command, "disablewidget") == 1 then
 		self:DisableWidgetRaw(stringSub(command, 15))
+		return true
+	elseif command == "widgetmemory" and memoryGuard then
+		memoryGuard.report()
 		return true
 	end
 
@@ -3954,7 +4134,9 @@ end
 function widgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	tracyZoneBeginN("W:UnitFinished")
 	for _, w in ipairs(self.UnitFinishedList) do
+		tracyZoneBeginN(w._tracyUnitFinishedName)
 		w:UnitFinished(unitID, unitDefID, unitTeam)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 	return
@@ -3973,7 +4155,9 @@ function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, at
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	tracyZoneBeginN("W:UnitDestroyed")
 	for _, w in ipairs(self.UnitDestroyedList) do
+		tracyZoneBeginN(w._tracyUnitDestroyedName)
 		w:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 	return
@@ -4261,7 +4445,9 @@ end
 function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	tracyZoneBeginN("W:VisibleUnitAdded")
 	for _, w in ipairs(self.VisibleUnitAddedList) do
+		tracyZoneBeginN(w._tracyVisibleUnitAddedName)
 		w:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 end
@@ -4269,7 +4455,9 @@ end
 function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	tracyZoneBeginN("W:VisibleUnitRemoved")
 	for _, w in ipairs(self.VisibleUnitRemovedList) do
+		tracyZoneBeginN(w._tracyVisibleUnitRemovedName)
 		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 end
@@ -4326,12 +4514,16 @@ end
 function widgetHandler:VisibleExplosionBatch(events, count)
 	tracyZoneBeginN("W:VisibleExplosionBatch")
 	for _, w in ipairs(self.VisibleExplosionBatchList) do
+		tracyZoneBeginN(w._tracyVisibleExplosionName)
 		w:VisibleExplosionBatch(events, count)
+		tracyZoneEnd()
 	end
 	for _, w in ipairs(self.VisibleExplosionList) do
+		tracyZoneBeginN(w._tracyVisibleExplosionName)
 		for i = 1, count, 5 do
 			w:VisibleExplosion(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
 		end
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 end
@@ -4530,12 +4722,22 @@ function widgetHandler:UnitScriptDistortion(unitID, unitDefID, distortionIndex, 
 end
 
 function widgetHandler:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
-	tracyZoneBeginN("W:UnitScriptDecal")
+	self:UnitScriptDecalBatch({ unitID, unitDefID, decalIndex, posx, posz, heading }, 6)
+end
+
+-- a sim frame's decals as unitID, unitDefID, decalIndex, posx, posz, heading runs: batch widgets get the
+-- array, the others one call per decal
+function widgetHandler:UnitScriptDecalBatch(decals, count)
+	tracyZoneBeginN("W:UnitScriptDecalBatch")
+	for _, w in ipairs(self.UnitScriptDecalBatchList) do
+		w:UnitScriptDecalBatch(decals, count)
+	end
 	for _, w in ipairs(self.UnitScriptDecalList) do
-		w:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+		for i = 1, count, 6 do
+			w:UnitScriptDecal(decals[i], decals[i + 1], decals[i + 2], decals[i + 3], decals[i + 4], decals[i + 5])
+		end
 	end
 	tracyZoneEnd()
-	return
 end
 
 function widgetHandler:GadgetRemoveGrass(posx, posz, radius)
@@ -4699,7 +4901,9 @@ end
 function widgetHandler:FeatureCreated(featureID, allyTeam)
 	tracyZoneBeginN("W:FeatureCreated")
 	for _, w in ipairs(self.FeatureCreatedList) do
+		tracyZoneBeginN(w._tracyFeatureCreatedName)
 		w:FeatureCreated(featureID, allyTeam)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 	return
@@ -4708,7 +4912,9 @@ end
 function widgetHandler:FeatureDestroyed(featureID, allyTeam)
 	tracyZoneBeginN("W:FeatureDestroyed")
 	for _, w in ipairs(self.FeatureDestroyedList) do
+		tracyZoneBeginN(w._tracyFeatureDestroyedName)
 		w:FeatureDestroyed(featureID, allyTeam)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 	return

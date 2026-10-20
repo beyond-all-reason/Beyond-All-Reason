@@ -355,6 +355,7 @@ local function attachStencilVAO(stencilVBO, templateVBO, indexVBO, indexCount)
 	if useGeometryShader then
 		stencilVBO.VAO = gl.GetVAO()
 		stencilVBO.VAO:AttachVertexBuffer(stencilVBO.instanceVBO)
+		InstanceVBOTable.fillVAOSlots(stencilVBO.VAO)
 	else
 		local realVAO = InstanceVBOTable.makeVAOandAttach(templateVBO, stencilVBO.instanceVBO, indexVBO)
 		-- so the resize can find the template mesh when it rebuilds the VAO

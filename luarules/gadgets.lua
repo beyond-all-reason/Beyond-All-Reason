@@ -782,6 +782,9 @@ function gadgetHandler:NewGadget()
 	gh.RegisterUnitCommand = function(_, cmdID)
 		return self:RegisterUnitCommand(gadget, cmdID)
 	end
+	gh.RegisterUnitPreDamagedWeapon = function(_, weaponDefID)
+		return self:RegisterUnitPreDamagedWeapon(gadget, weaponDefID)
+	end
 
 	if not IsSyncedCode() then
 		gh.AddSyncAction = function(_, cmd, func, help)
@@ -2290,24 +2293,27 @@ function gadgetHandler:UnitPreDamaged(
 	local list = self.UnitPreDamagedList ---@type table[]
 	local i, g = 1, list[1]
 	while g do
-		local dmg, imp = g:UnitPreDamaged(
-			unitID,
-			unitDefID,
-			unitTeam,
-			retDamage,
-			paralyzer,
-			weaponDefID,
-			projectileID,
-			attackerID,
-			attackerDefID,
-			attackerTeam
-		)
+		local weapons = g._preDamagedWeapons
+		if not weapons or weapons[weaponDefID] then
+			local dmg, imp = g:UnitPreDamaged(
+				unitID,
+				unitDefID,
+				unitTeam,
+				retDamage,
+				paralyzer,
+				weaponDefID,
+				projectileID,
+				attackerID,
+				attackerDefID,
+				attackerTeam
+			)
 
-		if dmg ~= nil then
-			retDamage = dmg
-		end
-		if imp ~= nil then
-			retImpulse = retImpulse * imp
+			if dmg ~= nil then
+				retDamage = dmg
+			end
+			if imp ~= nil then
+				retImpulse = retImpulse * imp
+			end
 		end
 		i = i + 1
 		g = list[i]
@@ -2374,6 +2380,13 @@ end
 function gadgetHandler:RegisterUnitCommand(gadget, cmdID)
 	gadget._unitCommandIDs = gadget._unitCommandIDs or {}
 	gadget._unitCommandIDs[cmdID] = true
+end
+
+-- Limits gadget:UnitPreDamaged to hits by the registered weaponDefIDs (environmental damage types
+-- included). Gadgets that never register get every hit.
+function gadgetHandler:RegisterUnitPreDamagedWeapon(gadget, weaponDefID)
+	gadget._preDamagedWeapons = gadget._preDamagedWeapons or {}
+	gadget._preDamagedWeapons[weaponDefID] = true
 end
 
 function gadgetHandler:UnitCommand(

@@ -1135,6 +1135,9 @@ local rebuildRows
 local graphs
 ---@type table<string, any>
 local tables
+-- The tables and categories the player made, kept in a file of their own as well, out of reach
+-- of the config an older version of this widget writes in a replay.
+local store = require("luaui/Include/teamstats_store").new("LuaUI/Config/teamstats.json")
 
 ----------------------------------------------------------------
 -- Numbers
@@ -1452,9 +1455,15 @@ local function gameTime(frames)
 	return stringFormat("%d:%02d", mathFloor(frames / 1800), mathFloor(frames / 30) % 60)
 end
 
--- Whether the table has ally teams to show: the grouping switch, in a game with teams.
+-- Whether there are ally teams to group: a game with teams, and more than one side listed.
+-- A player sees only their own until the game is over, and grouped that is a single line.
+local function canGroup()
+	return not ungrouped and #allies > 1
+end
+
+-- Whether the table has ally teams to show: the grouping switch, when they can be grouped.
 local function grouped()
-	return filters.groupByTeam and not ungrouped
+	return filters.groupByTeam and canGroup()
 end
 
 -- Whether amounts are shown as the share of the total of every team listed.
@@ -2284,12 +2293,14 @@ local function setLayout()
 
 	-- Group by team at the right end of the strip along the top in both views, captioned like
 	-- Remove unselected beside it: next to the teams the page picks, over the table's rows.
-	-- Without a side of more than one player there is nothing to group.
+	-- Without a side of more than one player, or another side to be seen, there is nothing
+	-- to group.
 	---@type number
 	local barX2 = area.x2 - metrics.edgeInset
+	local groupable = canGroup()
 	for i = 1, #switches do
 		local sw = switches[i]
-		if sw.top and not ungrouped then
+		if sw.top and groupable then
 			local togH = mathFloor(metrics.rowHeight * 0.52)
 			local cy = metrics.barTop - mathFloor(metrics.barH * 0.5)
 			local labelW = mathFloor(font:GetTextWidth(sw.label or "") * metrics.catFs)
@@ -3525,11 +3536,23 @@ local function refresh()
 	-- switch laid out out of step is laid out again: a layout rebuilds every chart.
 	---@diagnostic disable-next-line: undefined-field
 	local canCompare = allies.me ~= nil
+	-- Grouping is offered once another side is to be seen: as a spectator, or at game over.
+	local groupable = canGroup()
+	local stale, regrouped = false, false
 	for i = 1, #switches do
 		local sw = switches[i]
 		if sw.key == "vsMe" and sw.hit and (sw.disabled == true) == canCompare then
-			setLayout()
+			stale = true
+		elseif sw.key == "groupByTeam" and (sw.hit ~= nil) ~= groupable then
+			stale, regrouped = true, true
 		end
+	end
+	if stale then
+		setLayout()
+	end
+	-- As the switch's own press does: the rows follow the layout grouping decides.
+	if regrouped and not graphs.open then
+		rebuildRows()
 	end
 	-- The page's histories are the table's trend lines too.
 	if graphs.open or filters.trend then
@@ -4310,6 +4333,10 @@ function widget:PlayerChanged()
 end
 
 function widget:Initialize()
+	-- No config to hand over (a first game, or a reset config): the file still has the player's.
+	if not store.loaded() then
+		widget:SetConfigData({})
+	end
 	loadLabels()
 	handover.rememberNames()
 	widget:ViewResize()
@@ -4400,6 +4427,7 @@ function widget:GetConfigData()
 	for key, value in pairs(graphs.getConfig()) do
 		data[key] = value
 	end
+	store.write(data.tables, data.customCategories)
 	return data
 end
 
@@ -4408,6 +4436,7 @@ function widget:SetConfigData(data)
 	if type(data) ~= "table" then
 		return
 	end
+	data = store.merge(data)
 	-- The names read in this same game, from before a reload, and the team the viewer played.
 	if data.gameID and data.gameID == (Game.gameID or spGetGameRulesParam("GameID")) then
 		for teamID, name in pairs(type(data.names) == "table" and data.names or {}) do
@@ -4568,7 +4597,7 @@ graphs = require("luaui/Include/teamstats_graphs").new({
 	end,
 	filters = filters,
 	soloTeams = soloTeams,
-	ungrouped = ungrouped,
+	canGroup = canGroup,
 	selectedGroup = function()
 		return selectedGroup
 	end,

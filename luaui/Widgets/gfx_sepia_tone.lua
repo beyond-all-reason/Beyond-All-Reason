@@ -99,7 +99,11 @@ local function CreateTriangleVAO()
 	return vao
 end
 
-local function UpdateShader()
+-- set by the param setters, ViewResize and Initialize, none of which may touch GL; uploaded at the next draw
+local uniformsDirty = true
+
+local function UploadUniforms()
+	uniformsDirty = false
 	local _, _, vpx, vpy = Spring.GetViewGeometry()
 	-- the old shader's contrast offset was scaled by its unwritten output alpha (0 on NVIDIA), so contrast
 	-- scales from black
@@ -112,7 +116,6 @@ local function UpdateShader()
 		end
 	end
 
-	sepiaShader:Activate()
 	sepiaShader:SetUniformInt("viewPos", vpx, vpy)
 	sepiaShader:SetUniform("gamma", params.gamma + 0.5)
 	for i = 1, 3 do
@@ -123,7 +126,6 @@ local function UpdateShader()
 		end
 		sepiaShader:SetUniform(COLOR_ROWS[i], row[1], row[2], row[3])
 	end
-	sepiaShader:Deactivate()
 end
 
 -- only the callin that draws the effect stays registered, none while the params are at the default
@@ -144,7 +146,7 @@ local function UpdateParams()
 		widgetHandler:RemoveCallIn("DrawScreenEffects")
 		widgetHandler:RemoveCallIn("DrawScreenPost")
 	end
-	UpdateShader()
+	uniformsDirty = true
 end
 
 local function sepiatoneCmd(_, line)
@@ -247,7 +249,7 @@ function widget:Shutdown()
 end
 
 function widget:ViewResize()
-	UpdateShader()
+	uniformsDirty = true
 end
 
 -- the shared screen copy instead of an own full-screen texture; the drawing has to invalidate it
@@ -259,6 +261,9 @@ local function DoSepia(screenCopyManager)
 	glTexture(0, screenCopyTex)
 	glBlending(false) -- the shader writes alpha 1, blending would only read the screen back
 	sepiaShader:Activate()
+	if uniformsDirty then
+		UploadUniforms()
+	end
 	fullTexQuad:DrawArrays(GL_TRIANGLES, 3)
 	sepiaShader:Deactivate()
 	glBlending("alpha")
