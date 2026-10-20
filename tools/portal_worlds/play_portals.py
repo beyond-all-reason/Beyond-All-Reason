@@ -9,6 +9,8 @@ import signal
 import subprocess
 import time
 
+from income_settings import team_income_multipliers
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -29,8 +31,10 @@ def main():
     parser.add_argument('--ai', help='BARb for ordinary play; NullAI for scripted tests')
     parser.add_argument('--ai-profile', choices=['easy', 'medium', 'hard', 'hard_aggressive'], help='Stock BARb profile for team 0')
     parser.add_argument('--opponent-profile', choices=['easy', 'medium', 'hard', 'hard_aggressive'], help='Stock BARb profile for the other teams')
-    parser.add_argument('--duel-income-multiplier', type=float, default=1,
+    income_options = parser.add_mutually_exclusive_group()
+    income_options.add_argument('--duel-income-multiplier', type=float, default=1,
                         help='Metal and energy income factor for the first team in each region (default: 1)')
+    income_options.add_argument('--region-income-multipliers', help='Comma-separated income factors for the first team in each authored region, e.g. 2,4,8,16')
     parser.add_argument('--ai-seed', type=int, help='Reproducible stock BARb random seed')
     parser.add_argument('--test', default='none')
     parser.add_argument('--human', action='store_true', help='Use a local player offscreen for input fixtures')
@@ -55,6 +59,10 @@ def main():
             parser.error('--normal needs the first original source map; pass --original-map-dir')
         layout = dict(layout, name=region['name'], size=[region['width'], region['height']],
                       teams=[t for t in layout['teams'] if t['region'] == 1])
+    try:
+        income_multipliers = team_income_multipliers(layout['teams'], args.duel_income_multiplier, args.region_income_multipliers)
+    except ValueError as error:
+        parser.error(str(error))
     run = args.workspace.resolve() / 'runs' / args.name
     run.mkdir(parents=True, exist_ok=False)
     isolation, write = run / 'isolation', run / 'write'
@@ -97,11 +105,6 @@ maxspeed=100; minspeed=0.1; }}
 ''']
     colors = ['0.2 0.6 1', '1 0.25 0.2', '0.2 1 0.65', '1 0.7 0.15',
               '0.7 0.4 1', '1 0.4 0.75', '0.2 0.9 1', '0.8 0.9 0.2']
-    champions = {}
-    for team, entry in enumerate(layout['teams']):
-        champions.setdefault(entry['region'], team)
-    income_multipliers = {team: args.duel_income_multiplier if champions[entry['region']] == team else 1
-                          for team, entry in enumerate(layout['teams'])}
     for team, entry in enumerate(layout['teams']):
         x, z = entry['start']
         if not (human and team == 0):
