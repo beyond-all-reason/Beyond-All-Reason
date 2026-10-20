@@ -416,6 +416,8 @@ function gadget:AllowCommand(id, def, team, cmd, params, opts)
 	end
 	return true
 end
+---@return boolean used
+---@return boolean finished
 function gadget:CommandFallback(id, def, team, cmd)
 	if cmd == PORTAL then
 		return true, false
@@ -689,6 +691,8 @@ function gadget:GameFrame(f)
 				if def == nil then
 					error("Team unit has no definition")
 				end
+				-- Native UnitDefs proxy fields are absent from this API library version.
+				---@cast def {isFactory: boolean, customParams: table<string, any>}
 				if def.isFactory then
 					factories = factories + 1
 				end
