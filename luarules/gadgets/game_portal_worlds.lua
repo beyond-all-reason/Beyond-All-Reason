@@ -58,6 +58,7 @@ end
 local regions, connections = world.regions, world.connections
 local Region, TeamHome = world.Region, world.TeamHome
 local endFrame = tonumber(options.portal_worlds_end) or 0
+local PORTAL_RADIUS, APPROACH_RADIUS = 180, 80
 local RAW_MOVE = CMD.MOVE
 local PORTAL = GameCMD.PORTAL_TRAVEL
 local home, cooldown, travelers, pendingLoss, beacons = {}, {}, {}, {}, {}
@@ -208,9 +209,15 @@ local function Route(id, region, destination, manual, chosen, commandTag)
 	Spring.SetUnitTarget(id, nil)
 	travelers[id] =
 		{ region = region, destination = nextRegion, manual = manual, edge = edge, commandTag = commandTag }
-	Spring.GiveOrderToUnit(id, CMD.INSERT, { 0, RAW_MOVE, CMD.OPT_INTERNAL, m.x, m.y, m.z }, CMD.OPT_ALT)
-	local _, _, tag = Spring.GetUnitCurrentCommand(id)
-	travelers[id].moveTag = tag
+	-- Fixed-wing defaults may finish outside the portal activation radius.
+	Spring.GiveOrderToUnit(id, CMD.INSERT, { 0, RAW_MOVE, CMD.OPT_INTERNAL, m.x, m.y, m.z, APPROACH_RADIUS }, CMD.OPT_ALT)
+	local current, _, tag = Spring.GetUnitCurrentCommand(id)
+	-- A completed approach can expose the original request immediately,
+	-- especially for fixed-wing aircraft. Never record that request as an
+	-- approach tag: removing it after transit would delete the remaining route.
+	if current == RAW_MOVE and tag ~= commandTag then
+		travelers[id].moveTag = tag
+	end
 end
 local unitTargets = {
 	[CMD.ATTACK] = true, [CMD.GUARD] = true, [CMD.REPAIR] = true,
@@ -463,18 +470,22 @@ local function StepTravelers(frame)
 		if Valid(id) then
 			local x, y, z = Spring.GetUnitPosition(id)
 			local m = mouths[trip.edge][trip.region]
-			local nearMouth = (x - m.x) ^ 2 + (z - m.z) ^ 2 < 180 ^ 2
+			local nearMouth = (x - m.x) ^ 2 + (z - m.z) ^ 2 < PORTAL_RADIUS ^ 2
 			local _, _, tag = Spring.GetUnitCurrentCommand(id)
-			if tag ~= trip.moveTag then
+			if tag ~= (trip.moveTag or trip.commandTag) or (not trip.moveTag and not nearMouth) then
 				travelers[id] = nil
 				-- An inserted waypoint may pause travel without clearing its queue.
 				-- Drop only our approach; route again when the request reaches front.
-				Spring.GiveOrderToUnit(id, CMD.REMOVE, { trip.moveTag }, 0)
+				if trip.moveTag then
+					Spring.GiveOrderToUnit(id, CMD.REMOVE, { trip.moveTag }, 0)
+				end
 			elseif (frame % 10 == 0 or nearMouth) and not HasTravelOrder(id, trip) then
 				-- Removing the original queued order must also cancel its internal
 				-- approach. Check periodically en route and before every activation.
 				travelers[id] = nil
-				Spring.GiveOrderToUnit(id, CMD.REMOVE, { trip.moveTag }, 0)
+				if trip.moveTag then
+					Spring.GiveOrderToUnit(id, CMD.REMOVE, { trip.moveTag }, 0)
+				end
 			end
 			if
 				travelers[id]

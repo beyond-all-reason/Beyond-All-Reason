@@ -351,7 +351,7 @@ def capture(args):
     control.setblocking(False)
     config = work / "spring.conf"
     config.write_text(
-        "Sound=0\nWorkerThreadCount=2\nUseLuaMemPools=0\nDemoFromDemo=0\nHangTimeout=120\n"
+        "Sound=0\nWorkerThreadCount=2\nUseLuaMemPools=0\nDemoFromDemo=0\nHostPortDefault=0\nHangTimeout=120\n"
         f"AutohostIP=127.0.0.1\nAutohostPort={control.getsockname()[1]}\n"
     )
     command = [
