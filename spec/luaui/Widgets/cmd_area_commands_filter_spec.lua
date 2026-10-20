@@ -16,8 +16,22 @@ describe("Area Command Filter drag origin", function()
 			widget = widget,
 			UnitDefs = {},
 			Game = { maxUnits = 32000 },
-			CMD = { ATTACK = 20, CAPTURE = 21, GUARD = 25, REPAIR = 40, RECLAIM = 90, LOAD_UNITS = 75, RESURRECT = 125 },
-			GameCMD = { UNIT_SET_TARGET = 34923, UNIT_SET_TARGET_NO_GROUND = 34924 },
+			CMD = {
+				ATTACK = 20,
+				CAPTURE = 21,
+				GUARD = 25,
+				REPAIR = 40,
+				RECLAIM = 90,
+				LOAD_UNITS = 75,
+				RESURRECT = 125,
+				INSERT = 1,
+				OPT_SHIFT = 32,
+				OPT_CTRL = 64,
+				OPT_ALT = 128,
+				OPT_RIGHT = 16,
+				OPT_META = 4,
+			},
+			GameCMD = { UNIT_SET_TARGET = 34923, UNIT_SET_TARGET_NO_GROUND = 34924, UNIT_SET_TARGETS = 34926 },
 			Spring = {
 				ENEMY_UNITS = -4,
 				ALLY_UNITS = -2,
@@ -58,11 +72,25 @@ describe("Area Command Filter drag origin", function()
 				GetUnitPosition = function(id)
 					return id, 0, 0
 				end,
+				GiveOrderArrayToUnitArray = function(_, commands)
+					for _, command in ipairs(commands) do
+						orders[#orders + 1] = command[2][1]
+					end
+				end,
 				GiveOrderToUnitArray = function(_, _, params)
-					orders[#orders + 1] = params[1]
+					for _, targetID in ipairs(params) do
+						orders[#orders + 1] = targetID
+					end
 				end,
 			},
 		}, { __index = _G })
+		env.VFS = {
+			Include = function(path)
+				local chunk = assert(loadfile(path))
+				setfenv(chunk, env)
+				return chunk()
+			end,
+		}
 		setfenv(assert(loadfile(widgetPath)), env)()
 		widget:Initialize()
 	end)
@@ -107,12 +135,12 @@ describe("Area Command Filter drag origin", function()
 		assert.same({ 101, 102 }, orders)
 	end)
 
-	it("leaves direct clicks and unmodified areas alone", function()
+	it("leaves direct clicks alone and batches unmodified areas", function()
 		widget:MousePress(10, 20, 1)
 		assert.is_false(notify({ alt = true }, { 101 }))
 		widget:MousePress(10, 20, 1)
-		assert.is_false(notify({}))
-		assert.same({}, orders)
+		assert.is_true(notify({}))
+		assert.same({ 101, 102, 103 }, orders)
 	end)
 
 	it("expires a cancelled gesture after release", function()
