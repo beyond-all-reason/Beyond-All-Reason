@@ -30,7 +30,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- applying the command that removes a target near the clicked position.
 	local deleteMaxDistance = 30
 	-- Maximum entries per Set Target list, including ground targets and appends.
-	local MAX_TARGETS = 512
+	local targetListLengthMax = 512
 	-- Keep a unit target for this many seconds after it leaves LOS or radar.
 	local unseenGraceTime = 1.5
 	-- Per-unit and global caps on expensive weapon-targetability checks. The
@@ -164,6 +164,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- reference is reassigned to the shared list matching the new contents.
 	-- Automatic target removal reassigns every unit referencing the old list.
 	local targetListStore = SharedTargetListStore.new()
+	-- nil: not sent; false: partially sent; true: complete and safe to reference.
 	local sentSharedTargetLists = {}
 	---@type table<integer, SharedTargetList?>
 	local validationWorkQueue = {}
@@ -220,7 +221,7 @@ if gadgetHandler:IsSyncedCode() then
 		if list.refCount == 0 then
 			removeListFromValidationQueue(list)
 			targetListStore:removeSharedTargetList(list)
-			if sentSharedTargetLists[list.id] then
+			if sentSharedTargetLists[list.id] ~= nil then
 				sentSharedTargetLists[list.id] = nil
 				pendingTargetListReleases[list.id] = true
 			end
@@ -579,6 +580,9 @@ if gadgetHandler:IsSyncedCode() then
 					sentSharedTargetLists[listID] = true
 					pendingTargetListUpdates[listID] = nil
 				else
+					if sentSharedTargetLists[listID] == nil then
+						sentSharedTargetLists[listID] = false
+					end
 					local lastIndex = min(#list.entries, update.nextIndex + remainingBudget - 1)
 					for index = update.nextIndex, lastIndex do
 						sendSharedTargetEntryToUnsynced(list, index)
@@ -718,14 +722,14 @@ if gadgetHandler:IsSyncedCode() then
 		if providedSharedList then
 			entries = providedSharedList.entries
 		elseif append and data.targets then
-			for index = 1, min(#data.targets, MAX_TARGETS) do
+			for index = 1, min(#data.targets, targetListLengthMax) do
 				entries[index] = data.targets[index]
 			end
 		end
 		local targetCount = #entries
 		if not providedSharedList or append then
 			for i = 1, #incomingEntries do
-				if targetCount >= MAX_TARGETS then
+				if targetCount >= targetListLengthMax then
 					break
 				end
 				local targetData = incomingEntries[i]
@@ -741,8 +745,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if prepend and data.targets then
-			for index = 1, min(#data.targets, MAX_TARGETS) do
-				if targetCount >= MAX_TARGETS then
+			for index = 1, min(#data.targets, targetListLengthMax) do
+				if targetCount >= targetListLengthMax then
 					break
 				end
 				local targetData = data.targets[index]
@@ -1013,7 +1017,7 @@ if gadgetHandler:IsSyncedCode() then
 		local entries = {}
 		local seen = {}
 		for index = 1, #targetIDs do
-			if #entries >= MAX_TARGETS then
+			if #entries >= targetListLengthMax then
 				break
 			end
 			local targetID = targetIDs[index]
