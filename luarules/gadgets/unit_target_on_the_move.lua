@@ -1089,7 +1089,7 @@ if gadgetHandler:IsSyncedCode() then
 		local entries = {}
 		local seen = {}
 		for index = 1, #targetIDs do
-			if #entries >= targetListLengthMax then
+			if weaponTest and #entries >= targetListLengthMax then
 				break
 			end
 			local targetID = targetIDs[index]
@@ -1270,7 +1270,8 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				if targets and targets[1] then
-					addTargetList = getExplicitTargetList(unitID, unitDefID, unitTeam, targets, ignoreStop, userTarget)
+					addTargetList =
+						getExplicitTargetList(unitID, unitDefID, unitTeam, targets, ignoreStop, userTarget, true)
 				end
 			elseif nParams == 3 then
 				if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
