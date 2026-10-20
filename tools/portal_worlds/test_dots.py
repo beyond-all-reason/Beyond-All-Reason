@@ -136,6 +136,17 @@ class RecordingTests(unittest.TestCase):
         self.assertEqual(data[-2]["frame"], 15)
         self.assertEqual(data[-1]["samples"], 1)
 
+    def test_display_rounding_cannot_move_a_gap_sample_into_a_world(self):
+        sample = self.sample(frame=30)
+        sample["units"][0][3] = 131.98
+        sample["units"][0][14] = 0
+        self.check_rows([sample])
+        display = self.path.with_suffix(".gz")
+        display.write_bytes(dots.presentation_copy(self.path, 30))
+        decoded = list(dots.read(display))
+        self.assertEqual(decoded[1]["units"][0][3], 131.98)
+        self.assertEqual(dots.review(display)["counts"]["unit_gap_samples"], 1)
+
     def test_footer_cannot_predate_a_sample(self):
         with self.assertRaisesRegex(ValueError, "predates"):
             self.check_rows([self.sample(frame=45)])
