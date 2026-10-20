@@ -262,6 +262,7 @@ function gadget:Initialize()
 		Spring.SetMapDamageRegions(sensorRegions),
 		"Portal crater regions must be configured before simulation starts"
 	)
+	Spring.SetGameRulesParam("portal_ai_version", 1)
 	Spring.SetGameRulesParam("portal_regions", #regions)
 	Spring.SetGameRulesParam("portal_edges", #connections)
 	Spring.SetGameRulesParam("portal_open", 0)
@@ -270,8 +271,15 @@ function gadget:Initialize()
 			Spring.SetGameRulesParam("portal_r" .. i .. "_" .. k, r[k])
 		end
 	end
-	for i in ipairs(connections) do
+	for i, edge in ipairs(connections) do
 		Spring.SetGameRulesParam("portal_e" .. i .. "_open", 0)
+		Spring.SetGameRulesParam("portal_e" .. i .. "_a", edge[1])
+		Spring.SetGameRulesParam("portal_e" .. i .. "_b", edge[2])
+	end
+	-- Native AI reads topology and public elimination state, never hidden enemies.
+	for _, entry in ipairs(world.teams) do
+		Spring.SetGameRulesParam("portal_team" .. entry.team .. "_region", entry.region)
+		Spring.SetGameRulesParam("portal_team" .. entry.team .. "_alive", select(3, Spring.GetTeamInfo(entry.team, false)) and 0 or 1)
 	end
 	Spring.SetTerrainTypeData(255, 0, 0, 0, 0, 1000000, false, "Cubicle barrier")
 	-- Cubicle barriers: impassable terrain and build masks between authored regions.
@@ -375,6 +383,9 @@ function gadget:CommandFallback(id, def, team, cmd)
 		return true, false
 	end -- RouteOrders starts it when it reaches the queue front.
 	return false
+end
+function gadget:TeamDied(team)
+	Spring.SetGameRulesParam("portal_team" .. team .. "_alive", 0)
 end
 function gadget:UnitPreDamaged(id, def, team, dmg)
 	if beacons[id] then

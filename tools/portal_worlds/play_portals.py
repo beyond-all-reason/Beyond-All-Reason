@@ -24,6 +24,7 @@ def main():
     display.add_argument('--watch', action='store_true', help='Open an AI game; runs until closed')
     display.add_argument('--headless', action='store_true', help='Run the native headless engine without rendering')
     parser.add_argument('--prepare-only', action='store_true')
+    parser.add_argument('--ai-dir', type=Path, help='Optional isolated AI root containing Interfaces/ and Skirmish/')
     parser.add_argument('--ai', help='BARb for ordinary play; NullAI for scripted tests')
     parser.add_argument('--ai-profile', choices=['easy', 'medium', 'hard', 'hard_aggressive'], help='Stock BARb profile for team 0')
     parser.add_argument('--opponent-profile', choices=['easy', 'medium', 'hard', 'hard_aggressive'], help='Stock BARb profile for the other teams')
@@ -58,9 +59,11 @@ def main():
         path.mkdir(parents=True)
     (isolation / 'games/BAR.sdd').symlink_to(game)
     (isolation / 'maps/worlds.sdd').symlink_to(map_dir)
-    for name in ('base', 'fonts', 'AI'):
+    for name in ('base', 'fonts'):
         (isolation / name).symlink_to(engine / name)
-    ai_root = engine / 'AI/Skirmish' / ai
+    ai_dir = args.ai_dir.resolve() if args.ai_dir else engine / 'AI'
+    (isolation / 'AI').symlink_to(ai_dir)
+    ai_root = ai_dir / 'Skirmish' / ai
     versions = sorted(p.name for p in ai_root.iterdir() if p.is_dir())
     version = 'stable' if 'stable' in versions else versions[-1]
     options = {
@@ -128,6 +131,9 @@ maxspeed=100; minspeed=0.1; }}
     metadata = {'command': command, 'team_income_multipliers': income_multipliers, 'game_commit': subprocess.check_output(['git', '-C', str(game), 'rev-parse', 'HEAD'], text=True).strip(),
                 'engine_version': subprocess.check_output([command[0], '--sync-version'], text=True).strip(),
                 'options': {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()}}
+    ai_build = ai_dir / 'build-info.json'
+    if ai_build.exists():
+        metadata['ai_build'] = json.loads(ai_build.read_text())
     (run / 'command.json').write_text(json.dumps(metadata, indent=2) + '\n')
     print(f'Run: {run}\nLog: {run / "console.log"}\nEngine log: {write / "infolog.txt"}\nScreenshots: {write / "screenshots"}', flush=True)
     if args.prepare_only:
