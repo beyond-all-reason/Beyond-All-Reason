@@ -50,6 +50,29 @@ local KNOBS = {
 	{ "intermediateScatter", "%.2f" },
 	{ "intermediateStartDeg", "%.1f" },
 	{ "intermediateFullDeg", "%.1f" },
+	-- NEW SORT (MrBob's 3-band sort, shader build 19): the two intermediary bands
+	-- in dot space (1 flat, 0 vertical) and the two shared colour sets. The flip
+	-- knobs are checkboxes (synced by hand below), not sliders.
+	{ "nLowerStart", "%.3f" },
+	{ "nLowerFade", "%.3f" },
+	{ "nUpperStart", "%.3f" },
+	{ "nUpperFade", "%.3f" },
+	{ "aLowerStart", "%.3f" },
+	{ "aLowerFade", "%.3f" },
+	{ "aUpperStart", "%.3f" },
+	{ "aUpperFade", "%.3f" },
+	{ "rockHue", "%.3f" },
+	{ "rockSat", "%.2f" },
+	{ "rockVal", "%.2f" },
+	{ "rockTintR", "%.2f" },
+	{ "rockTintG", "%.2f" },
+	{ "rockTintB", "%.2f" },
+	{ "topsHue", "%.3f" },
+	{ "topsSat", "%.2f" },
+	{ "topsVal", "%.2f" },
+	{ "topsTintR", "%.2f" },
+	{ "topsTintG", "%.2f" },
+	{ "topsTintB", "%.2f" },
 	-- cliffProtect is not here: it is on/off, so it renders as the PROTECT
 	-- CLIFFS highlight button (mirrored to dm.tsCliffProtectOn below), not a
 	-- 0/1 slider.
@@ -361,6 +384,11 @@ local TUNING_FRAMES = {
 	"frame-ts-metal",
 	"frame-ts-scale",
 	"frame-ts-normals",
+	"frame-ts-rocknorm",
+	"frame-ts-rockcol",
+	"frame-ts-sortn",
+	"frame-ts-sorta",
+	"frame-ts-topscol",
 	"frame-ts-cliffs",
 	"frame-ts-place",
 	"frame-ts-slot4",
@@ -400,6 +428,37 @@ function M.attach(doc, ctx)
 		local el = doc:GetElementById("ts-slider-" .. k[1])
 		if el and trackSliderDrag then
 			trackSliderDrag(el, "ts-" .. k[1])
+		end
+	end
+	-- LAYER SORT A/B chips and the rock normal flip checkboxes: plain listeners
+	-- (no data-model fields), mirrored from the widget in syncSortModel
+	ctx.widgetState.tsSortLast = nil
+	ctx.widgetState.tsFlipLast = nil
+	ctx.widgetState.tsSortSumLast = nil
+	for _, b in ipairs({ { "btn-ts-sort-old", "old" }, { "btn-ts-sort-new", "new" } }) do
+		local el = doc:GetElementById(b[1])
+		if el then
+			el:AddEventListener("mousedown", function(_event)
+				local T = WG.TilesetTerrain
+				if T and T.setSortModel and T.setSortModel(b[2]) and ctx.playSound then
+					ctx.playSound("click")
+				end
+			end, false)
+		end
+	end
+	for _, f in ipairs({ { "btn-ts-flip-inter", "flipIntermediateNormal" }, { "btn-ts-flip-cliff", "flipCliffNormal" } }) do
+		local el = doc:GetElementById(f[1])
+		if el then
+			el:AddEventListener("mousedown", function(_event)
+				local T = WG.TilesetTerrain
+				local k = T and T.getKnobs and T.getKnobs()
+				if k and k[f[2]] ~= nil and T.setKnob then
+					T.setKnob(f[2], (k[f[2]] >= 1) and 0 or 1)
+					if ctx.playSound then
+						ctx.playSound("click")
+					end
+				end
+			end, false)
 		end
 	end
 	-- HEIGHT TINT: the shared colour trio tracks drags like the knob rows; the
@@ -860,6 +919,139 @@ function M.syncShader(doc, ctx)
 	end
 end
 
+-- LAYER SORT A/B (shader build 19). The SORT chips flip the look AND the slider
+-- set: OLD shows the sections every biome was tuned with, NEW shows MrBob's
+-- groups and hides what only feeds the old sort. Both knob sets persist side
+-- by side, so switching back and forth loses nothing. On a shader that has no
+-- sort switch (build 18 and older) the chips, the flips and the NEW sections
+-- stay hidden: the panel then looks exactly like 1.17's.
+local OLD_SORT_FRAMES = { "frame-ts-cliffs", "frame-ts-place", "frame-ts-slot4" }
+local NEW_SORT_FRAMES = { "frame-ts-rockcol", "frame-ts-sortn", "frame-ts-sorta", "frame-ts-topscol" }
+-- single rows (found by their slider) that only feed the old sort
+local OLD_SORT_ROWS = {
+	"footNormStrength",
+	"platNormStrength",
+	"scaleFoot",
+	"scalePlat",
+	"albTilePlat",
+	"albedoSortMode",
+	"staggerAmount",
+	"lumaBlend",
+	"lumaTops",
+	"heightBlend",
+	"heightDepth",
+	"splatPunchPlat",
+	"platTintR",
+	"platTintG",
+	"platTintB",
+}
+
+-- the angle a dot-space value puts on the ground (1 flat = 0 deg, 0 = a wall)
+local function degOf(d)
+	return math.deg(math.acos(math.max(0, math.min(1, tonumber(d) or 1))))
+end
+
+local function bandSummary(ls, lf, us, uf)
+	return string.format(
+		"Top until %.0f deg, full intermediary %.0f to %.0f deg, full cliff from %.0f deg.",
+		degOf((us or 0) + (uf or 0)),
+		degOf(us),
+		degOf(ls),
+		degOf((ls or 0) - (lf or 0))
+	)
+end
+
+local function syncSortModel(doc, ctx, knobs)
+	local widgetState = ctx.widgetState
+	local T = WG.TilesetTerrain
+	local has = T.getSortModel ~= nil and knobs.nLowerStart ~= nil
+	local newOn = has and T.getSortModel() == 1
+	local sig = tostring(has) .. ":" .. tostring(newOn)
+	if widgetState.tsSortLast ~= sig then
+		widgetState.tsSortLast = sig
+		local function hide(id, on)
+			local el = doc:GetElementById(id)
+			if el then
+				el:SetClass("hidden", on)
+			end
+		end
+		-- A .flex row ignores the .hidden class (same specificity, .flex wins, the
+		-- trap the rcss notes for .tf-mode-btn), so flex rows hide by an inline
+		-- style. None of these rows carries a style of its own, and all are flex rows.
+		local function hideFlex(el, on)
+			if el then
+				el:SetClass("hidden", on)
+				-- explicit both ways: RmlUi keeps an inline display after RemoveAttribute
+				el:SetAttribute("style", on and "display: none;" or "display: flex;")
+			end
+		end
+		hideFlex(doc:GetElementById("ts-sort-row"), not has)
+		hide("ts-sort-desc", not has)
+		for _, id in ipairs(OLD_SORT_FRAMES) do
+			hide(id, newOn)
+		end
+		for _, id in ipairs(NEW_SORT_FRAMES) do
+			hide(id, not newOn)
+		end
+		for _, key in ipairs(OLD_SORT_ROWS) do
+			local el = doc:GetElementById("ts-slider-" .. key)
+			hideFlex(el and el.parent_node, newOn)
+		end
+		-- the flips and the per-pass debug views need the build 19 shader; the
+		-- two normal multipliers work on any build
+		for _, id in ipairs({ "btn-ts-flip-inter", "btn-ts-flip-cliff" }) do
+			local el = doc:GetElementById(id)
+			hideFlex(el and el.parent_node, not has)
+		end
+		hide("ts-rocknorm-note", not has)
+		hide("btn-ts-dbg-sortn", not has)
+		hide("btn-ts-dbg-sorta", not has)
+		local o, n = doc:GetElementById("btn-ts-sort-old"), doc:GetElementById("btn-ts-sort-new")
+		if o then
+			o:SetClass("active", not newOn)
+		end
+		if n then
+			n:SetClass("active", newOn)
+		end
+		local d = doc:GetElementById("ts-sort-desc")
+		if d then
+			d.inner_rml = newOn
+					and "NEW: three layers (top, intermediary, cliff) placed by slope, twice: normal maps by the terrain's slope, colour by the normal-mapped slope. No plateau, no foothills. Only you see this choice: it is never saved into a biome, preset or map."
+				or "OLD: the layer sort every biome was tuned with so far. Switch to NEW to compare. Only you see this choice: it is never saved into a biome, preset or map."
+		end
+	end
+	if not has then
+		return
+	end
+	local fi, fc = (knobs.flipIntermediateNormal or 0) >= 1, (knobs.flipCliffNormal or 0) >= 1
+	local fsig = tostring(fi) .. tostring(fc)
+	if widgetState.tsFlipLast ~= fsig then
+		widgetState.tsFlipLast = fsig
+		for _, f in ipairs({ { "btn-ts-flip-inter", fi }, { "btn-ts-flip-cliff", fc } }) do
+			local el = doc:GetElementById(f[1])
+			if el then
+				el:SetAttribute(
+					"src",
+					f[2] and "/luaui/images/terraform_brush/check_on.png"
+						or "/luaui/images/terraform_brush/check_off.png"
+				)
+			end
+		end
+	end
+	local sn = bandSummary(knobs.nLowerStart, knobs.nLowerFade, knobs.nUpperStart, knobs.nUpperFade)
+	local sa = bandSummary(knobs.aLowerStart, knobs.aLowerFade, knobs.aUpperStart, knobs.aUpperFade)
+	if widgetState.tsSortSumLast ~= sn .. sa then
+		widgetState.tsSortSumLast = sn .. sa
+		local en, ea = doc:GetElementById("ts-sortn-sum"), doc:GetElementById("ts-sorta-sum")
+		if en then
+			en.inner_rml = sn
+		end
+		if ea then
+			ea.inner_rml = sa
+		end
+	end
+end
+
 function M.sync(doc, ctx, setSummary)
 	if not doc or not WG.TilesetTerrain then
 		return
@@ -1026,6 +1218,9 @@ function M.sync(doc, ctx, setSummary)
 	end
 
 	stampKnobRows(doc, ctx, knobs, nil)
+
+	-- LAYER SORT A/B: section and row visibility, flips, band summaries
+	syncSortModel(doc, ctx, knobs)
 
 	-- LAYER PLACEMENT: past 1.0 the scatter's noise multiplier goes negative and wipes the intermediate layer
 	-- (live while dragging: the knob is already written when this runs)

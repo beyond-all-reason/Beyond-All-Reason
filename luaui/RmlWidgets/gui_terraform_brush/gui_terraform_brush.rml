@@ -6711,17 +6711,17 @@
 						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">TOPS (base + variants)</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Tint R</div>
-							<input type="range" id="surf-slider-topsTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('topsTintR')" />
+							<input type="range" id="surf-slider-topsTintR" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onSurfKnob('topsTintR')" />
 							<input type="text" id="surf-slider-topsTintR-numbox" class="tf-slider-numbox" readonly value="1.00" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Tint G</div>
-							<input type="range" id="surf-slider-topsTintG" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('topsTintG')" />
+							<input type="range" id="surf-slider-topsTintG" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onSurfKnob('topsTintG')" />
 							<input type="text" id="surf-slider-topsTintG-numbox" class="tf-slider-numbox" readonly value="1.00" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Tint B</div>
-							<input type="range" id="surf-slider-topsTintB" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('topsTintB')" />
+							<input type="range" id="surf-slider-topsTintB" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onSurfKnob('topsTintB')" />
 							<input type="text" id="surf-slider-topsTintB-numbox" class="tf-slider-numbox" readonly value="1.00" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -6732,17 +6732,17 @@
 						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">ROCK (intermediary + cliff)</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Tint R</div>
-							<input type="range" id="surf-slider-rockTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('rockTintR')" />
+							<input type="range" id="surf-slider-rockTintR" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onSurfKnob('rockTintR')" />
 							<input type="text" id="surf-slider-rockTintR-numbox" class="tf-slider-numbox" readonly value="1.00" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Tint G</div>
-							<input type="range" id="surf-slider-rockTintG" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('rockTintG')" />
+							<input type="range" id="surf-slider-rockTintG" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onSurfKnob('rockTintG')" />
 							<input type="text" id="surf-slider-rockTintG-numbox" class="tf-slider-numbox" readonly value="1.00" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Tint B</div>
-							<input type="range" id="surf-slider-rockTintB" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('rockTintB')" />
+							<input type="range" id="surf-slider-rockTintB" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onSurfKnob('rockTintB')" />
 							<input type="text" id="surf-slider-rockTintB-numbox" class="tf-slider-numbox" readonly value="1.00" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -6783,6 +6783,13 @@
 					</div>
 				</div>
 				<div class="text-base text-light mb-1" style="opacity: 0.7;">Shader off hands the ground back to the engine, so old maps keep their own textures.</div>
+				<!-- LAYER SORT A/B (MrBob's 3-band sort, 2026-10-20): a viewer setting, never saved into a
+				     biome, preset or project. Flips the look and the slider set together (tf_tileset.sync). -->
+				<div id="ts-sort-row" class="flex flex-row gap-1 mb-1 hidden">
+					<div id="btn-ts-sort-old" class="tf-mode-btn tf-ts-row-btn"><div class="tf-btn-text">OLD SORT</div></div>
+					<div id="btn-ts-sort-new" class="tf-mode-btn tf-ts-row-btn"><div class="tf-btn-text">NEW SORT (3 LAYERS)</div></div>
+				</div>
+				<div id="ts-sort-desc" class="text-base text-light mb-1 hidden" style="opacity: 0.7;"></div>
 
 				<div class="tf-section-frame" id="frame-ts-library">
 						<div id="btn-toggle-ts-library" class="tf-section-title-row" style="cursor: pointer;">
@@ -7115,19 +7122,9 @@
 							<input type="text" id="ts-slider-baseNormStrength-numbox" class="tf-slider-numbox" readonly value="1" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Intermediate norm str</div>
-							<input type="range" id="ts-slider-intermediateNormStrength" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('intermediateNormStrength')" />
-							<input type="text" id="ts-slider-intermediateNormStrength-numbox" class="tf-slider-numbox" readonly value="1" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Plateau norm str</div>
 							<input type="range" id="ts-slider-platNormStrength" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('platNormStrength')" />
 							<input type="text" id="ts-slider-platNormStrength-numbox" class="tf-slider-numbox" readonly value="1" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Cliff normal</div>
-							<input type="range" id="ts-slider-cliffNormStrength" class="tf-slider" min="0" max="4" step="0.02" value="1.0" data-event-change="onTilesetKnob('cliffNormStrength')" />
-							<input type="text" id="ts-slider-cliffNormStrength-numbox" class="tf-slider-numbox" readonly value="1.0" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Foothill norm</div>
@@ -7136,6 +7133,180 @@
 						</div>
 					</div>
 				</div><!-- /frame-ts-normals -->
+
+				<div class="tf-section-frame tf-collapsed" id="frame-ts-rocknorm">
+					<div id="btn-toggle-ts-rocknorm" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-ts-rocknorm" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">INTERMEDIARY / CLIFF NORMALS</div>
+						<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('rocknorm')">RESET</div>
+					</div>
+					<div id="section-ts-rocknorm" class="hidden">
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<img id="btn-ts-flip-inter" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
+							<div class="text-sm text-light">Flip intermediary normal</div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<img id="btn-ts-flip-cliff" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
+							<div class="text-sm text-light">Flip cliff normal</div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Intermediary normal x</div>
+							<input type="range" id="ts-slider-intermediateNormStrength" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('intermediateNormStrength')" />
+							<input type="text" id="ts-slider-intermediateNormStrength-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Cliff normal x</div>
+							<input type="range" id="ts-slider-cliffNormStrength" class="tf-slider" min="0" max="4" step="0.02" value="1.0" data-event-change="onTilesetKnob('cliffNormStrength')" />
+							<input type="text" id="ts-slider-cliffNormStrength-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div id="ts-rocknorm-note" class="text-base text-light mb-1" style="opacity: 0.7;">With the new sort the intermediary's normal strength also decides how far it scatters across a surface: the albedo sorts by the pixel normal.</div>
+					</div>
+				</div><!-- /frame-ts-rocknorm -->
+
+				<div class="tf-section-frame tf-collapsed hidden" id="frame-ts-rockcol">
+					<div id="btn-toggle-ts-rockcol" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-ts-rockcol" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">INTERMEDIARY / CLIFF COLOR</div>
+						<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('rockcol')">RESET</div>
+					</div>
+					<div id="section-ts-rockcol" class="hidden">
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Hue shift</div>
+							<input type="range" id="ts-slider-rockHue" class="tf-slider" min="0" max="1" step="0.005" value="0" data-event-change="onTilesetKnob('rockHue')" />
+							<input type="text" id="ts-slider-rockHue-numbox" class="tf-slider-numbox" readonly value="0.000" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Saturation</div>
+							<input type="range" id="ts-slider-rockSat" class="tf-slider" min="0" max="1" step="0.005" value="1" data-event-change="onTilesetKnob('rockSat')" />
+							<input type="text" id="ts-slider-rockSat-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Value</div>
+							<input type="range" id="ts-slider-rockVal" class="tf-slider" min="0" max="2" step="0.01" value="1" data-event-change="onTilesetKnob('rockVal')" />
+							<input type="text" id="ts-slider-rockVal-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">R multiplier</div>
+							<input type="range" id="ts-slider-rockTintR" class="tf-slider" min="0" max="2" step="0.01" value="1" data-event-change="onTilesetKnob('rockTintR')" />
+							<input type="text" id="ts-slider-rockTintR-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">G multiplier</div>
+							<input type="range" id="ts-slider-rockTintG" class="tf-slider" min="0" max="2" step="0.01" value="1" data-event-change="onTilesetKnob('rockTintG')" />
+							<input type="text" id="ts-slider-rockTintG-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">B multiplier</div>
+							<input type="range" id="ts-slider-rockTintB" class="tf-slider" min="0" max="2" step="0.01" value="1" data-event-change="onTilesetKnob('rockTintB')" />
+							<input type="text" id="ts-slider-rockTintB-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+					</div>
+				</div><!-- /frame-ts-rockcol -->
+
+				<div class="tf-section-frame tf-collapsed hidden" id="frame-ts-sortn">
+					<div id="btn-toggle-ts-sortn" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-ts-sortn" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">ANGLE: NORMALS</div>
+						<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('sortn')">RESET</div>
+					</div>
+					<div id="section-ts-sortn" class="hidden">
+						<div id="ts-sortn-sum" class="text-base text-light mb-1" style="opacity: 0.7;"></div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Lower start</div>
+							<input type="range" id="ts-slider-nLowerStart" class="tf-slider" min="0" max="1" step="0.005" value="0.5" data-event-change="onTilesetKnob('nLowerStart')" />
+							<input type="text" id="ts-slider-nLowerStart-numbox" class="tf-slider-numbox" readonly value="0.500" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Lower fade</div>
+							<input type="range" id="ts-slider-nLowerFade" class="tf-slider" min="0" max="1" step="0.005" value="0.3" data-event-change="onTilesetKnob('nLowerFade')" />
+							<input type="text" id="ts-slider-nLowerFade-numbox" class="tf-slider-numbox" readonly value="0.300" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Upper start</div>
+							<input type="range" id="ts-slider-nUpperStart" class="tf-slider" min="0" max="1" step="0.005" value="0.588" data-event-change="onTilesetKnob('nUpperStart')" />
+							<input type="text" id="ts-slider-nUpperStart-numbox" class="tf-slider-numbox" readonly value="0.588" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Upper fade</div>
+							<input type="range" id="ts-slider-nUpperFade" class="tf-slider" min="0" max="1" step="0.005" value="0.303" data-event-change="onTilesetKnob('nUpperFade')" />
+							<input type="text" id="ts-slider-nUpperFade-numbox" class="tf-slider-numbox" readonly value="0.303" />
+						</div>
+						<div id="ts-sortn-note" class="text-base text-light mb-1" style="opacity: 0.7;">Sorts the normal maps by the terrain's own slope. 1 = flat, 0 = a vertical wall. Upper start 0.588 / fade 0.303 = top until 27 deg (vehicles stop), full intermediary from 54 deg (bots stop).</div>
+					</div>
+				</div><!-- /frame-ts-sortn -->
+
+				<div class="tf-section-frame tf-collapsed hidden" id="frame-ts-sorta">
+					<div id="btn-toggle-ts-sorta" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-ts-sorta" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">ANGLE: ALBEDO / ROUGHNESS</div>
+						<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('sorta')">RESET</div>
+					</div>
+					<div id="section-ts-sorta" class="hidden">
+						<div id="ts-sorta-sum" class="text-base text-light mb-1" style="opacity: 0.7;"></div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Lower start</div>
+							<input type="range" id="ts-slider-aLowerStart" class="tf-slider" min="0" max="1" step="0.005" value="0.2" data-event-change="onTilesetKnob('aLowerStart')" />
+							<input type="text" id="ts-slider-aLowerStart-numbox" class="tf-slider-numbox" readonly value="0.200" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Lower fade</div>
+							<input type="range" id="ts-slider-aLowerFade" class="tf-slider" min="0" max="1" step="0.005" value="0.3" data-event-change="onTilesetKnob('aLowerFade')" />
+							<input type="text" id="ts-slider-aLowerFade-numbox" class="tf-slider-numbox" readonly value="0.300" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Upper start</div>
+							<input type="range" id="ts-slider-aUpperStart" class="tf-slider" min="0" max="1" step="0.005" value="0.6" data-event-change="onTilesetKnob('aUpperStart')" />
+							<input type="text" id="ts-slider-aUpperStart-numbox" class="tf-slider-numbox" readonly value="0.600" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Upper fade</div>
+							<input type="range" id="ts-slider-aUpperFade" class="tf-slider" min="0" max="1" step="0.005" value="0.3" data-event-change="onTilesetKnob('aUpperFade')" />
+							<input type="text" id="ts-slider-aUpperFade-numbox" class="tf-slider-numbox" readonly value="0.300" />
+						</div>
+						<div id="ts-sorta-note" class="text-base text-light mb-1" style="opacity: 0.7;">Sorts colour and roughness by the pixel normal (after the normal maps).</div>
+					</div>
+				</div><!-- /frame-ts-sorta -->
+
+				<div class="tf-section-frame tf-collapsed hidden" id="frame-ts-topscol">
+					<div id="btn-toggle-ts-topscol" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-ts-topscol" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">TOP COLOR</div>
+						<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('topscol')">RESET</div>
+					</div>
+					<div id="section-ts-topscol" class="hidden">
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Hue shift</div>
+							<input type="range" id="ts-slider-topsHue" class="tf-slider" min="0" max="1" step="0.005" value="0" data-event-change="onTilesetKnob('topsHue')" />
+							<input type="text" id="ts-slider-topsHue-numbox" class="tf-slider-numbox" readonly value="0.000" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Saturation</div>
+							<input type="range" id="ts-slider-topsSat" class="tf-slider" min="0" max="1" step="0.005" value="1" data-event-change="onTilesetKnob('topsSat')" />
+							<input type="text" id="ts-slider-topsSat-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Value</div>
+							<input type="range" id="ts-slider-topsVal" class="tf-slider" min="0" max="2" step="0.01" value="1" data-event-change="onTilesetKnob('topsVal')" />
+							<input type="text" id="ts-slider-topsVal-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">R multiplier</div>
+							<input type="range" id="ts-slider-topsTintR" class="tf-slider" min="0" max="2" step="0.01" value="1" data-event-change="onTilesetKnob('topsTintR')" />
+							<input type="text" id="ts-slider-topsTintR-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">G multiplier</div>
+							<input type="range" id="ts-slider-topsTintG" class="tf-slider" min="0" max="2" step="0.01" value="1" data-event-change="onTilesetKnob('topsTintG')" />
+							<input type="text" id="ts-slider-topsTintG-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">B multiplier</div>
+							<input type="range" id="ts-slider-topsTintB" class="tf-slider" min="0" max="2" step="0.01" value="1" data-event-change="onTilesetKnob('topsTintB')" />
+							<input type="text" id="ts-slider-topsTintB-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div id="ts-topscol-note" class="text-base text-light mb-1" style="opacity: 0.7;">The base and every painted SURFACE variant together.</div>
+					</div>
+				</div><!-- /frame-ts-topscol -->
 
 				<div class="tf-section-frame tf-collapsed" id="frame-ts-cliffs">
 					<div id="btn-toggle-ts-cliffs" class="tf-section-title-row" style="cursor: pointer;">
@@ -8021,6 +8192,8 @@
 						</div>
 						<div class="flex flex-row gap-1 mb-1">
 							<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsDebugView == 8" data-event-mousedown="onTilesetDebugView(8)"><div class="tf-btn-text">Metal</div></div>
+							<div id="btn-ts-dbg-sortn" class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsDebugView == 9" data-event-mousedown="onTilesetDebugView(9)"><div class="tf-btn-text">Sort N</div></div>
+							<div id="btn-ts-dbg-sorta" class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsDebugView == 10" data-event-mousedown="onTilesetDebugView(10)"><div class="tf-btn-text">Sort A</div></div>
 						</div>
 					</div>
 				</div><!-- /frame-ts-debug -->
