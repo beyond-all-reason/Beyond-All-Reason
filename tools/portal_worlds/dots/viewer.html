@@ -658,6 +658,21 @@ __PORTAL_MAP_CREDITS__</pre
           throw Error("Expected a complete portal-dots v1 recording");
         const ss = rows.filter((r) => r.type === "sample"),
           ee = rows.filter((r) => r.type === "event");
+        const encoding = h.presentation?.unit_encoding;
+        if (encoding && encoding !== "previous-sample-refs")
+          throw Error("Unknown display unit encoding");
+        if (encoding) {
+          let previous = new Map();
+          for (const sample of ss) {
+            sample.units = sample.units.map((unit) => {
+              if (typeof unit !== "number") return unit;
+              const value = previous.get(unit);
+              if (!value) throw Error("Missing previous-sample unit reference");
+              return value;
+            });
+            previous = new Map(sample.units.map((unit) => [unit[0], unit]));
+          }
+        }
         if (
           !ss.length ||
           ss.length !== tail.samples ||
