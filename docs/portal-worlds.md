@@ -167,6 +167,7 @@ are one-based, and team identifiers retain their native values:
 | Parameter | Meaning |
 | --- | --- |
 | `portal_ai_version` | Protocol version; absent on ordinary maps |
+| `portal_ai_diagnostics` | Per-unit AI logging, enabled only for the `ai_match` test |
 | `portal_regions`, `portal_edges` | Region and edge counts |
 | `portal_r{r}_x0/z0/x1/z1` | Region rectangle, maximum edges exclusive |
 | `portal_e{e}_a/b/open` | Connected regions and whether travel is open |

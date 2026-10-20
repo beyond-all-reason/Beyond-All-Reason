@@ -263,6 +263,7 @@ function gadget:Initialize()
 		"Portal crater regions must be configured before simulation starts"
 	)
 	Spring.SetGameRulesParam("portal_ai_version", 1)
+	Spring.SetGameRulesParam("portal_ai_diagnostics", options.portal_worlds_test == "ai_match" and 1 or 0)
 	Spring.SetGameRulesParam("portal_regions", #regions)
 	Spring.SetGameRulesParam("portal_edges", #connections)
 	Spring.SetGameRulesParam("portal_open", 0)
