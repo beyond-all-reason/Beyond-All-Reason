@@ -27,7 +27,8 @@ analysis; use `--sample-frames 15` to keep its sample cadence.
 Share that single file for playback; `.jsonl.gz` plus `dots/viewer.html` is an
 alternative. The optional map background uses Pillow and the composed map’s
 original minimap; it is presentation only. Preserve the map authors’ attribution
-with any distributed recording/background.
+with any distributed recording/background. The single-file bundle embeds the
+composed map’s `ATTRIBUTION.txt` under Map credits.
 
 Play/pause, seek, change playback speed, inspect units, follow recent paths and
 orders, or switch between all worlds and one enlarged world. Each world can be
