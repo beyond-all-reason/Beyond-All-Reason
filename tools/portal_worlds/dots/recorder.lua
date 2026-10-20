@@ -33,7 +33,13 @@ local function JSON(value)
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	local file, path, failed
+	local file, path, failed, accelerated
+	function gadget:Update()
+		if not accelerated and options.portal_record_speed and Spring.GetGameFrame() > 0 then
+			accelerated = true
+			Spring.SendCommands("setspeed " .. options.portal_record_speed)
+		end
+	end
 	local function Receive(_, line)
 		-- Full-state output is restricted to an actual all-team spectator/replay.
 		local spectator, fullView = Spring.GetSpectatingState()
