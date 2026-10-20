@@ -48,11 +48,7 @@ return {
 			juno_kill = true,
 			model_author = "SethDGamre",
 			normaltex = "unittextures/Arm_normal.dds",
-			paralyzemultiplier = 0.001,
 			subfolder = "Scavengers",
-			inheritxpratemultiplier = 0.1,
-			childreninheritxp = "BOTCANNON",
-			parentsinheritxp = "BOTCANNON",
 			nohealthbars = true,
 		},
 		sfxtypes = {
