@@ -1,8 +1,7 @@
 -- What the select builder writes, run through the engine and held to its words.
 -- In game: /runtests keybind_select (the mouse cases need a window).
 local Select = require("luaui/Include/keybind_select")
--- BAR is missing from the test sandbox but not from the widget handler's environment.
-local translate = debug.getfenv(widgetHandler.FindWidget).BAR.I18N
+local translate = BAR.I18N
 
 local NEAR = {
 	"armcom",
