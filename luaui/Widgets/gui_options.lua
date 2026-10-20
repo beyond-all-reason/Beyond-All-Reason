@@ -1462,24 +1462,18 @@ function drawControl.select(row, x1, right, cy, top, bottom)
 	return r[1]
 end
 
--- a swatch of the color with its channels after it; a press opens the picker
-function drawControl.color(row, x1, right, cy, top, bottom)
+-- a swatch of the color, where a toggle would sit; a press opens the picker
+function drawControl.color(row, x1, right, _, top, bottom)
 	local option = row.option
-	local value = option.value
-	if type(value) ~= "table" then -- just to be safe
+	if type(option.value) ~= "table" then -- just to be safe
 		return right
 	end
 	local inset = math.floor(metrics.rowHeight * 0.12)
-	local r = { x1, bottom + inset, right, top - inset }
+	local sx1 = tuning.controlsAlignLeft and x1 or right - metrics.toggleW
+	local r = { sx1, bottom + inset, sx1 + metrics.toggleW, top - inset }
 	row.control = r
-	WG.FlowUI.Draw.ColorSwatch(r[1], r[2], r[1] + metrics.toggleW, r[4], view.shownColor(option))
-	local channels = view.channelText(option, value[1])
-		.. "  "
-		.. view.channelText(option, value[2])
-		.. "  "
-		.. view.channelText(option, value[3])
-	font:Print(look.value .. channels, r[1] + metrics.toggleW + metrics.rowPad, cy, metrics.controlFs, "ov")
-	return r[1]
+	WG.FlowUI.Draw.ColorSwatch(r[1], r[2], r[3], r[4], view.shownColor(option))
+	return sx1
 end
 
 -- a row that does something when clicked is a button across its whole width
