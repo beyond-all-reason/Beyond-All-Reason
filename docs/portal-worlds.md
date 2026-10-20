@@ -18,7 +18,9 @@ maps, arranged in a ring: Living Lands 4.1, Barren 2, FrozenPlanetV3 and Calayo2
 The portable launcher is `tools/portal_worlds/play_portals.py`. It prints the run,
 console log, engine log and screenshot locations. `--play` opens a human-vs-BARb
 match with passive viewing unavailable until a connection opens; `--watch` opens
-an AI match. Automated runs use SDL offscreen, 15 FPS and two engine workers.
+an AI match. Default automated runs use SDL offscreen, 15 FPS and two engine
+workers. `--headless` selects the native headless executable for unattended
+simulation without drawing.
 
 ```sh
 python3 tools/portal_worlds/play_portals.py \
@@ -79,12 +81,37 @@ assertion counts and exit status, rather than successful startup alone.
 Coverage includes physical start membership, commander-loss opening, locked views,
 real player right-click travel, physical destination coordinates for ground/air
 units, cargo and carrier drones, a multi-selection walking from outside the
-entrance radius after a UI right-click, stale queues, native nuke/anti-nuke launches, launch provenance after owner travel,
+entrance radius after a UI right-click, stale queues, native nuke/anti-nuke
+launches, launch provenance after owner travel,
 GPU metal-spot drawing with active/foreign/ordinary bounds in both water passes,
 edge craters/building footprints, timed area damage and local/foreign shield
 queries. Graphical fixtures capture all four materials and minimaps. The barrier
 fixture flattens terrain only for that test, to distinguish terrain slopes from
 movement masks.
+
+The separate `ai_match` observer runs an unassisted match: it records native
+commander deaths, death-site portal openings, physical map transitions and
+`GameOver` winners. It never spawns units, kills commanders or issues unit orders.
+For example:
+
+```sh
+python3 tools/portal_worlds/play_portals.py \
+  --engine-dir /path/RecoilEngine/build-amd64-linux/install \
+  --map-dir /path/content/maps/portal_worlds_v3.sdd \
+  --workspace /path/bar-portal-data --headless --test ai_match --ai BARb \
+  --frames 108000 --speed 20 --seconds 1200
+python3 tools/portal_worlds/verify_ai_match.py /path/bar-portal-data/runs/RUN
+```
+
+The frame limit is simulation time; `--seconds` is the wall-clock limit. Reaching
+either limit is not a victory. The verifier requires a single native winner,
+physical travel by that winner and a foreign-map commander kill for a completed
+portal campaign. `--normal` runs a control match on the original source map.
+Optional `--ai-profile` and `--opponent-profile` select stock BARb profiles for
+team 0 and the remaining teams; omitted profiles retain the AI defaults.
+`--ai-seed` sets a fixed BARb random seed; the command, start script and recording
+are preserved in each run directory. AI fixtures select BARb by default, while
+scripted mechanics fixtures retain NullAI.
 
 This is ongoing WIP pending human playtesting and review, longer multiplayer and
 mixed-platform runs, large-match performance, broader optional mechanics and

@@ -1,3 +1,6 @@
+-- Picture-in-picture requires shader support, which the headless engine omits.
+if not gl.CreateShader then return false end
+
 local devUI = BAR.Utilities.ShowDevUI()
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local isSpectator = Spring.GetSpectatingState()
