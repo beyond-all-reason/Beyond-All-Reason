@@ -56,8 +56,7 @@ local function Snapshot()
 			if def == nil then
 				error("Team unit has no definition")
 			end
-			-- Native UnitDefs proxy fields are absent from this API library version.
-			---@cast def {isFactory: boolean, canFly: boolean, isBuilder: boolean, isImmobile: boolean, weapons: table[], customParams: table<string, any>}
+
 			local region, x, z = Region(id)
 			if region then
 				unitRegions[region] = (unitRegions[region] or 0) + 1

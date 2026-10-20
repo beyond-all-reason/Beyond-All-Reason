@@ -691,8 +691,7 @@ function gadget:GameFrame(f)
 				if def == nil then
 					error("Team unit has no definition")
 				end
-				-- Native UnitDefs proxy fields are absent from this API library version.
-				---@cast def {isFactory: boolean, customParams: table<string, any>}
+
 				if def.isFactory then
 					factories = factories + 1
 				end
