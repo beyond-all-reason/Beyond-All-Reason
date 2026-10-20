@@ -27,6 +27,10 @@ local lineScale = 1 -- this is a multiplier for the line width, to make it look 
 
 local circleSegments = 62 -- To ensure its only 2 warps per instance
 local rangecorrectionelmos = debugmode and -16 or 16 -- how much smaller they are drawn than truth due to LOS mipping
+local fadeStart = 4000 -- elmos from the camera where the lines start fading out
+local fadeEnd = 8000 -- elmos from the camera where they are gone
+-- players outside the LOS view (L) see their coverage only through these lines, so those don't fade for them
+local noFadeWithoutLosView = true
 --------- End configurables ------
 
 local minSightDistance = 100
@@ -86,6 +90,8 @@ local circleShaderSourceCache = {
 		LINE_THIN_END = 8000, -- elmos from the camera where it has thinned to LINE_THIN_SCALE
 		LINE_THIN_SCALE = 0.4, -- line width at LINE_THIN_END and further, relative to its full width
 		LINE_MIN_WIDTH = 0.7, -- screen pixels (not scaled with the resolution) the thinning stops at
+		FADE_START = fadeStart,
+		FADE_END = fadeEnd,
 	},
 	uniformInt = {
 		heightmapTex = 0,
@@ -202,10 +208,6 @@ local function DrawLOSStencil() -- about 0.025 ms
 	end
 end
 
-function widget:DrawGenesis()
-	gl.RenderToTexture(losStencilTexture, DrawLOSStencil)
-end
-
 -- This shows the debug stencil texture in the bottom left corner of the screen
 if debugmode then
 	function widget:DrawScreen()
@@ -223,6 +225,9 @@ end
 local spGetSpectatingState = Spring.GetSpectatingState
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetCameraPosition = Spring.GetCameraPosition
+local spGetGroundExtremes = Spring.GetGroundExtremes
+local spGetMapDrawMode = Spring.GetMapDrawMode
 local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_KEEP = GL.KEEP
@@ -234,6 +239,24 @@ local allyTeamID = Spring.GetLocalAllyTeamID()
 
 -- find all unit types with radar in the game and place ranges into unitRange table
 local unitRange = {} -- table of unit types with their radar ranges
+
+-- 1 when the lines fade out with the camera distance, 0 when they don't
+local function getFadeStrength()
+	if noFadeWithoutLosView and not spec and spGetMapDrawMode() ~= "los" then
+		return 0
+	end
+	return 1
+end
+
+-- true when the camera is so far above the ground that every line (they sit at max(0, ground)) has faded out
+local function fadedOut(fadeStrength)
+	if fadeStrength <= 0 then
+		return false
+	end
+	local _, camY = spGetCameraPosition()
+	local _, _, _, maxHeight = spGetGroundExtremes()
+	return camY - math.max(maxHeight, 0) >= fadeEnd
+end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	-- save perf by excluding low los range units
@@ -349,9 +372,17 @@ function widget:VisibleUnitRemoved(unitID)
 	end
 end
 
+function widget:DrawGenesis()
+	if fadedOut(getFadeStrength()) then
+		return -- nothing reads the stencil texture this frame
+	end
+	gl.RenderToTexture(losStencilTexture, DrawLOSStencil)
+end
+
 function widget:DrawWorld()
 	--if spec and fullview then return end
-	if Spring.IsGUIHidden() or (circleInstanceVBO.usedElements == 0) or (opacity <= 0.01) then
+	local fadeStrength = getFadeStrength()
+	if Spring.IsGUIHidden() or (circleInstanceVBO.usedElements == 0) or (opacity <= 0.01) or fadedOut(fadeStrength) then
 		return
 	end
 
@@ -376,6 +407,7 @@ function widget:DrawWorld()
 	losCircleShader:SetUniform("teamColorMix", useteamcolors and 1 or 0)
 	local lineWidth = rangeLineWidth * lineScale
 	losCircleShader:SetUniform("lineWidthPx", lineWidth) -- the shader thins it far from the camera
+	losCircleShader:SetUniform("fadeStrength", fadeStrength)
 
 	gl.LineWidth(lineWidth)
 

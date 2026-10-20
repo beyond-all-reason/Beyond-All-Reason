@@ -5,12 +5,12 @@ return {
 	armassistdrone = "armada_assistdrone",
 	armassistdrone_land = "armada_assistvehicle",
 	armcom = "armada_commander",
-	armcomcon = "armada_commandercon", -- TODO no display name
+	armcomcon = "armada_commandercon", -- shares display name with armcom, armdecom
 	armcomnew = "armada_commandernew", -- TODO no display name
 	corassistdrone = "cortex_assistdrone",
 	corassistdrone_land = "cortex_assistvehicle",
 	corcom = "cortex_commander",
-	corcomcon = "cortex_commandercon", -- TODO no display name
+	corcomcon = "cortex_commandercon", -- shares display name with corcom, cordecom
 	legassistdrone = "legion_assistdrone",
 	legassistdrone_land = "legion_assistvehicle",
 	-- units/ArmAircraft
@@ -177,7 +177,7 @@ return {
 	armbanth = "armada_titan",
 	armlun = "armada_lunkhead",
 	armmar = "armada_marauder",
-	armprowl = "armada_prowl", -- TODO no display name
+	armprowl = "armada_prowler",
 	armraz = "armada_razorback",
 	armthor = "armada_thor",
 	armvang = "armada_vanguard",
