@@ -122,6 +122,22 @@ checks them against the launch record. This is an explicitly resource-asymmetric
 test; the observer still gives no unit orders and never forces a death or victory.
 The option defaults to 1 and does not change ordinary play.
 
+The command router reacts to move/fight/attack orders into another region. It
+does not supply an AI strategy. Stock BARb's `CanMoveToPos` and `CanMobileReachAt`
+checks use physical terrain connectivity without portal edges. Ground armies can
+therefore reject foreign destinations before issuing an order for the router to
+handle. Aircraft bypass that connectivity restriction and have crossed portals
+in unattended matches. Extra income helps local victories but does not teach the
+AI when or how to invade. A complete autonomous campaign remains unverified.
+
+A four-region native headless run with one 10×-income AI per duel produced four
+real local victories and four verified death-site portals. Aircraft made 133
+physical crossings. At the 60-minute simulation cap all four local winners were
+still alive, with no foreign commander kill and no native `GameOver`; the
+campaign verifier correctly failed that run. An ordinary original-map control
+reached native `GameOver` with a single winner. Successful mechanical travel is
+therefore separate from a successful autonomous conquest strategy.
+
 This is ongoing WIP pending human playtesting and review, longer multiplayer and
 mixed-platform runs, large-match performance, broader optional mechanics and
 full-game persistence coverage. BARb plays its ordinary local economy; deciding
