@@ -156,9 +156,10 @@ aircraft crossings but reached its 60-minute cap without an overall winner.
 
 The companion native BARb portal-missions branch adds a dedicated military task.
 After local hostile teams are eliminated, it finds a contested region through
-open connections and dispatches mobile ground combat units. Builders,
-commanders, aircraft, retreating units and player-controlled units retain their
-normal tasks. Nearby known threats keep defenders from leaving. Arrival refreshes
+open connections and dispatches mobile ground and air combat units. Builders,
+commanders, retreating units and player-controlled units retain their
+normal tasks. Nearby known threats keep defenders from leaving. Ordinary combat tasks keep movement goals and path searches within the unit’s
+current region, and avoid merging squads across regions. Arrival refreshes
 the cached physical terrain area and hands units back to ordinary combat;
 missions have a five-minute timeout. This native planner supplies the missing
 orders; the game observer remains read-only. It is an initial invasion policy,
