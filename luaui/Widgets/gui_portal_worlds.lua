@@ -24,6 +24,7 @@ local active, origin, generation, ready = 1, 1, 0, false
 local cameraStates = {}
 local pendingCamera, cameraDrawFrame
 local buttons, menuVisible, vsx, vsy = {}, false, 0, 0
+---@type number
 local nextCountsUpdate = 0
 local function IsOpen(edge)
 	return Spring.GetGameRulesParam("portal_e" .. edge .. "_open") == 1
@@ -196,9 +197,18 @@ function widget:MousePress(x, y, button)
 		return false -- Preserve normal command cancellation and formation controls.
 	end
 	local kind, id = Spring.TraceScreenRay(x, y, false, true)
-	local edge = kind == "unit" and Spring.GetUnitRulesParam(id, "portal_portal")
-	if edge and Spring.GetUnitRulesParam(id, "portal_region") ~= active then
-		edge = nil
+	---@type integer?
+	local edge
+	if kind == "unit" and type(id) == "number" then
+		local unitID = math.floor(id)
+		local candidate = Spring.GetUnitRulesParam(unitID, "portal_portal")
+		if
+			type(candidate) == "number"
+			and candidate % 1 == 0
+			and Spring.GetUnitRulesParam(unitID, "portal_region") == active
+		then
+			edge = math.floor(candidate)
+		end
 	end
 	if not edge then
 		local _, pos = Spring.TraceScreenRay(x, y, true, true)
