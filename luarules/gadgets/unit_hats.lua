@@ -195,6 +195,9 @@ local PlayerCosmeticList = {
 		"HalloweenWitchBroom",
 		"HalloweenFredMask",
 		"HalloweenLegMask",
+		"XmasSantaHat",
+		"XmasReindeerHat",
+		"XmasSantaBag",
 		"FightNightHat",
 		"LegionChampionHat",
 		"VikingHat",
@@ -217,6 +220,12 @@ local HalloweenCosmeticList = {
 	"HalloweenWitchBroom",
 	"HalloweenFredMask",
 	"HalloweenLegMask",
+}
+
+local XmasCosmeticList = {
+	"XmasSantaHat",
+	"XmasReindeerHat",
+	"XmasSantaBag",
 }
 
 -- Cosmetic Defs
@@ -269,8 +278,26 @@ local CosmeticDefinitions = {
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.leg_hat_halloween_mask and UnitDefNames.leg_hat_halloween_mask.id,
-		faction = { arm = true, cor = true, leg = true },
+		faction = { arm = true, cor = false, leg = true },
 		conflictsWith = { "HalloweenWitchBroom" },
+	},
+
+	XmasSantaHat = {
+		name = "XmasSantaHat",
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.arm_hat_xmas_santa and UnitDefNames.arm_hat_xmas_santa.id,
+		faction = { arm = true, cor = true, leg = true },
+		conflictsWith = { },
+	},
+
+	XmasReindeerHat = {
+		name = "XmasReindeerHat",
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_hat_xmas_reindeer and UnitDefNames.cor_hat_xmas_reindeer.id,
+		faction = { arm = true, cor = true, leg = true },
+		conflictsWith = { "XmasSantaBag" },
 	},
 
 	FightNightHat = {
@@ -400,6 +427,15 @@ local CosmeticDefinitions = {
 		unitDefID = UnitDefNames.arm_necklace_halloween_broom and UnitDefNames.arm_necklace_halloween_broom.id,
 		faction = { arm = true, cor = true, leg = true },
 		conflictsWith = { "HalloweenPumpkinHat", "HalloweenFredMask", "HalloweenLegMask" },
+	},
+
+	XmasSantaBag = {
+		name = "XmasSantaBag",
+		slot = "necklace",
+		implementation = "unit",
+		unitDefID = UnitDefNames.arm_necklace_xmas_santabag and UnitDefNames.arm_necklace_xmas_santabag.id,
+		faction = { arm = true, cor = false, leg = false },
+		conflictsWith = { "XmasReindeerHat" },
 	},
 
 	BronzeMedalNecklace = {
@@ -576,40 +612,55 @@ function gadget:GameFrame(gf)
 					end
 				end
 
+				if BAR.Utilities.Gametype.GetCurrentHolidays().xmas then
+					for i = 1, #XmasCosmeticList do
+						local cosmetic = XmasCosmeticList[i]
+						if CosmeticDefinitions[cosmetic] and CosmeticDefinitions[cosmetic].faction[playerFaction] then
+							playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot][#playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot] + 1] =
+								CosmeticDefinitions[cosmetic]
+						end
+					end
+				end
+
 				-- Randomly pick the cosmetics from available options
+				table.shuffle(playerCosmeticOptions)
 				for _, list in pairs(playerCosmeticOptions) do
 					if #list > 0 then
 						math.random()
 						math.random()
 						math.random()
-						local conflicting = false
-						local pick = math.random(1, #list)
-						local attempts = 0
-						repeat
-							attempts = attempts + 1
-							for c = 1, #list[pick].conflictsWith do
-								local conflictCandidate = list[pick].conflictsWith[c]
-								if createdCosmetics[conflictCandidate] then
-									conflicting = true
-									pick = math.random(1, #list)
-									break
-								else
-									conflicting = false
-								end
-							end
-						until conflicting == false or attempts >= 5
+						local candidates = {}
+						for c = 1, #list do
+						    local cosmetic = list[c]
+						    local blocked = false
+						    for k = 1, #cosmetic.conflictsWith do
+						        if createdCosmetics[cosmetic.conflictsWith[k]] then
+						            blocked = true
+						            break
+						        end
+						    end
+						    if not blocked then
+						        candidates[#candidates + 1] = cosmetic
+						    end
+						end
+						if #candidates > 0 then
+						    local cosmetic = candidates[math.random(1, #candidates)]
+						    createdCosmetics[cosmetic.name] = true
+						    -- create the unit or call the baked script as before
+						end
 
-						if not conflicting then
-							createdCosmetics[list[pick].name] = true
-							if list[pick].implementation == "unit" then
+						if #candidates > 0 then
+							local cosmetic = candidates[math.random(1, #candidates)]
+							createdCosmetics[cosmetic.name] = true
+							if cosmetic.implementation == "unit" then
 								local units = spGetTeamUnits(teamID) or {}
 								for k = 1, #units do
 									if not unitDefHat[spGetUnitDefID(units[k])] then
 										local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(units[k])
-										CreateAndGiveHat(list[pick].unitDefID, unitPosX, unitPosY, unitPosZ, teamID)
+										CreateAndGiveHat(cosmetic.unitDefID, unitPosX, unitPosY, unitPosZ, teamID)
 									end
 								end
-							elseif list[pick].implementation == "baked" then
+							elseif cosmetic.implementation == "baked" then
 								local units = spGetTeamUnits(teamID) or {}
 								for k = 1, #units do
 									local unitID = units[k]
@@ -618,13 +669,13 @@ function gadget:GameFrame(gf)
 										if stringSub(UnitDefs[unitDefID].name, 1, 3) == "arm" then
 											local scriptEnv = spGetUnitScriptEnv(unitID)
 											if scriptEnv then
-												if scriptEnv[list[pick].scriptCall] then
-													spCallAsUnit(unitID, scriptEnv[list[pick].scriptCall], true)
+												if scriptEnv[cosmetic.scriptCall] then
+													spCallAsUnit(unitID, scriptEnv[cosmetic.scriptCall], true)
 												end
 											end
 										else
-											if spGetCOBScriptID(unitID, list[pick].scriptCall) then
-												spCallCOBScript(unitID, list[pick].scriptCall, 0)
+											if spGetCOBScriptID(unitID, cosmetic.scriptCall) then
+												spCallCOBScript(unitID, cosmetic.scriptCall, 0)
 											end
 										end
 									end

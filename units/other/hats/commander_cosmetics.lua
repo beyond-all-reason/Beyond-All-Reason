@@ -51,12 +51,12 @@ units.arm_necklace_halloween_broom = table.copy(def)
 units.arm_necklace_halloween_broom.objectname = "hats/arm_necklace_halloween_broom.s3o"
 units.arm_necklace_halloween_broom.customparams.normaltex = "unittextures/arm_normal.dds"
 
--- Halloween Hat - Pumpkin
+-- Halloween Hat - Fred Mask
 units.cor_hat_halloween_mask = table.copy(def)
 units.cor_hat_halloween_mask.objectname = "hats/cor_hat_halloween_mask.s3o"
 units.cor_hat_halloween_mask.customparams.normaltex = "unittextures/cor_normal.dds"
 
--- Halloween Hat - Fred Mask
+-- Halloween Hat - Pumpkin
 units.cor_hat_halloween_pumpkin = table.copy(def)
 units.cor_hat_halloween_pumpkin.objectname = "hats/cor_hat_halloween_pumpkin.s3o"
 units.cor_hat_halloween_pumpkin.customparams.normaltex = "unittextures/cor_normal.dds"
@@ -65,6 +65,21 @@ units.cor_hat_halloween_pumpkin.customparams.normaltex = "unittextures/cor_norma
 units.leg_hat_halloween_mask = table.copy(def)
 units.leg_hat_halloween_mask.objectname = "hats/leg_hat_halloween_mask.s3o"
 units.leg_hat_halloween_mask.customparams.normaltex = "unittextures/leg_normal.dds"
+
+-- Xmas Hat - Santa
+units.arm_hat_xmas_santa = table.copy(def)
+units.arm_hat_xmas_santa.objectname = "hats/arm_hat_xmas_santa.s3o"
+units.arm_hat_xmas_santa.customparams.normaltex = "unittextures/arm_normal.dds"
+
+-- Xmas Necklace - Santa Bag
+units.arm_necklace_xmas_santabag = table.copy(def)
+units.arm_necklace_xmas_santabag.objectname = "hats/arm_necklace_xmas_santabag.s3o"
+units.arm_necklace_xmas_santabag.customparams.normaltex = "unittextures/arm_normal.dds"
+
+-- Xmas Hat - Reindeer
+units.cor_hat_xmas_reindeer = table.copy(def)
+units.cor_hat_xmas_reindeer.objectname = "hats/cor_hat_xmas_reindeer.s3o"
+units.cor_hat_xmas_reindeer.customparams.normaltex = "unittextures/cor_normal.dds"
 
 -- Fight Night - Grunt with boxing gloves
 units.cor_hat_fightnight = table.copy(def)
