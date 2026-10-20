@@ -117,6 +117,8 @@ function gadget:Initialize()
 	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
 	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
+	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
+
 	loadMission(gameSetup)
 end
 
