@@ -25,6 +25,20 @@ local function Check(key, value, detail)
 		"[BAR_PORTAL_UI] ASSERT " .. key .. " pass=" .. tostring(not not value) .. " " .. tostring(detail or "")
 	)
 end
+local function FixtureUnitID(key)
+	local value = Spring.GetGameRulesParam(key)
+	assert(type(value) == "number" and value % 1 == 0, "Missing fixture unit: " .. key)
+	return math.floor(value)
+end
+---@param id UnitID
+---@return number x
+---@return number y
+---@return number z
+local function Position(id)
+	local x, y, z = Spring.GetUnitPosition(id)
+	assert(x and y and z, "Fixture unit has no position: " .. id)
+	return x, y, z
+end
 function widget:Update()
 	local f = Spring.GetGameFrame()
 	if test == "baseline" then
@@ -58,24 +72,24 @@ function widget:Update()
 		-- Settle the camera in draw frames without racing the synced deadline
 		-- at accelerated simulation speed or a low offscreen render rate.
 		Spring.SendCommands("pause")
-		local gate = Spring.GetGameRulesParam("portal_test_gate")
-		local id = Spring.GetGameRulesParam("portal_test_ui")
-		local x, y, z = Spring.GetUnitPosition(gate)
+		local gate = FixtureUnitID("portal_test_gate")
+		local id = FixtureUnitID("portal_test_ui")
+		local x, y, z = Position(gate)
 		api.View(1, { name = "ta", mode = 1, px = x, py = y, pz = z, height = 1000, angle = 0.2, flipped = 0 })
 		local selected = { id }
 		for i = 1, 8 do
-			selected[#selected + 1] = Spring.GetGameRulesParam("portal_test_approach_" .. i)
+			selected[#selected + 1] = FixtureUnitID("portal_test_approach_" .. i)
 		end
 		Spring.SelectUnitArray(selected)
 		checked.clickAfter = Spring.GetDrawFrame() + 4
 	end
 	if checked.clickAfter and Spring.GetDrawFrame() >= checked.clickAfter then
 		checked.clickAfter = nil
-		local gate = Spring.GetGameRulesParam("portal_test_gate")
-		local x, y, z = Spring.GetUnitPosition(gate)
+		local gate = FixtureUnitID("portal_test_gate")
+		local x, y, z = Position(gate)
 		local sx, sy = Spring.WorldToScreenCoords(x, y + 10, z)
 		local ui = widgetHandler:FindWidget("Portal view bounds")
-		Check("real_portal_right_click", ui:MousePress(sx, sy, 3) == true)
+		Check("real_portal_right_click", ui:MousePress(math.floor(sx), math.floor(sy), 3) == true)
 		Spring.SendCommands("pause")
 	end
 	if f >= 700 and stage < 4 and not pending then
@@ -108,7 +122,7 @@ function widget:DrawScreenPost()
 			and camera.pz < view.rect.z1
 	)
 	local x, y, w, h = Spring.GetMiniMapGeometry()
-	local _, hit = Spring.TraceScreenRay(x + w / 2, y + h / 2, true, true)
+	local _, hit = Spring.TraceScreenRay(math.floor(x + w / 2), math.floor(y + h / 2), true, true)
 	Check(
 		"minimap_region_" .. region,
 		type(hit) == "table"

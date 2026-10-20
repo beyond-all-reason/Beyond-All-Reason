@@ -96,6 +96,7 @@ function gadget:GameFrame(f)
 		Check("local_wreck_damage_allowed", Spring.GetFeatureHealth(feature) < featureHealth)
 	end
 	if f == 240 then
+		---@type UnitID?
 		local id
 		for _, unit in ipairs(Spring.GetTeamUnits(1) or {}) do
 			if UnitDefs[Spring.GetUnitDefID(unit)].customParams.iscommander then
@@ -103,11 +104,11 @@ function gadget:GameFrame(f)
 				break
 			end
 		end
-		Spring.DestroyUnit(id, false, false)
+		Spring.DestroyUnit(assert(id, "Fixture commander missing"), false, false)
 	end
 	if f == 300 then
 		local m = GG.PortalWorlds.mouths[1][1]
-		movingOwner = Spring.CreateUnit("armpeep", m.x, m.y + 150, m.z, 0, 0)
+		movingOwner = assert(Spring.CreateUnit("armpeep", m.x, m.y + 150, m.z, 0, 0))
 		Spring.GiveOrderToUnit(movingOwner, CMD.FIRE_STATE, { 0 }, 0)
 		movingTarget = Spawn("armsolar", 1, 2800, 1300, 2)
 		movingHealth = Spring.GetUnitHealth(movingTarget)
@@ -121,15 +122,15 @@ function gadget:GameFrame(f)
 			ttl = 1800,
 			upTime = 900,
 		})
-		Spring.GiveOrderToUnit(movingOwner, GameCMD.PORTAL_TRAVEL, { 1 }, 0)
+		Spring.GiveOrderToUnit(assert(movingOwner), GameCMD.PORTAL_TRAVEL, { 1 }, 0)
 	end
 	if f == 420 then
 		Check("missile_owner_travelled", GG.PortalWorlds.home[movingOwner] == 2)
 		local record = GG.PortalIsolation.projectiles[movingProjectile]
 		Check("launch_region_survives_owner_transit", record and record.region == 1)
 		local x, y, z = Spring.GetUnitPosition(movingTarget)
-		Spring.SetProjectilePosition(movingProjectile, x, y + 25, z)
-		Spring.SetProjectileCollision(movingProjectile)
+		Spring.SetProjectilePosition(assert(movingProjectile), x, y + 25, z)
+		Spring.SetProjectileCollision(assert(movingProjectile))
 	end
 	if f == 600 then
 		Check(
