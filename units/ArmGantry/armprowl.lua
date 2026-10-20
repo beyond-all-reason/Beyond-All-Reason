@@ -34,7 +34,6 @@ return {
 		upright = true,
 		customparams = {
 			maxrange = 350,
-			i18nfromunit = "armmar",
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmGantry",
