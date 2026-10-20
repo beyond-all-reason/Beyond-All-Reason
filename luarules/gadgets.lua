@@ -2340,7 +2340,9 @@ function gadgetHandler:UnitDamaged(
 	attackerTeam
 )
 	local isolation = self.GG.PortalIsolation
-	if isolation and not isolation.UnitDamageAllowed(unitID, attackerID, projectileID) then return end
+	if isolation and not isolation.UnitDamageAllowed(unitID, attackerID, projectileID) then
+		return
+	end
 	tracyZoneBeginN("G:UnitDamaged")
 	local list = self.UnitDamagedList ---@type table[]
 	local i, g = 1, list[1]
@@ -2677,7 +2679,14 @@ function gadgetHandler:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
 	local isolation = self.GG.PortalIsolation
 	local projectile = isolation and isolation.projectiles[proID]
 	if projectile and projectile.region then
-		return isolation.DamageInRegion(projectile.region, DispatchProjectileDestroyed, self, proID, proOwnerID, proWeaponDefID)
+		return isolation.DamageInRegion(
+			projectile.region,
+			DispatchProjectileDestroyed,
+			self,
+			proID,
+			proOwnerID,
+			proWeaponDefID
+		)
 	end
 	return DispatchProjectileDestroyed(self, proID, proOwnerID, proWeaponDefID)
 end
@@ -2754,7 +2763,9 @@ function gadgetHandler:Explosion(weaponID, px, py, pz, ownerID, projectileID)
 	local isolation = self.GG.PortalIsolation
 	if isolation then
 		local projectile = projectileID and isolation.projectiles[projectileID]
-		local region = (projectile and projectile.region) or (ownerID and isolation.UnitRegion(ownerID)) or isolation.Region(px, pz)
+		local region = (projectile and projectile.region)
+			or (ownerID and isolation.UnitRegion(ownerID))
+			or isolation.Region(px, pz)
 		if not region or isolation.Region(px, pz) ~= region then
 			return true
 		end

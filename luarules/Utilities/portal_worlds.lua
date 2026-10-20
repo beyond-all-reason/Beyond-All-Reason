@@ -37,10 +37,7 @@ for i, a in ipairs(world.regions) do
 	end
 end
 for _, edge in ipairs(world.connections) do
-	assert(
-		world.regions[edge[1]] and world.regions[edge[2]] and edge[1] ~= edge[2],
-		"Invalid portal connection"
-	)
+	assert(world.regions[edge[1]] and world.regions[edge[2]] and edge[1] ~= edge[2], "Invalid portal connection")
 end
 
 function world.Region(x, z)
@@ -60,6 +57,9 @@ function world.TeamHome(team)
 		end
 	end
 end
+---@param edge integer[]
+---@param region integer
+---@return integer?
 function world.Other(edge, region)
 	if edge[1] == region then
 		return edge[2]
@@ -69,11 +69,19 @@ function world.Other(edge, region)
 	end
 end
 -- Return the first edge of a shortest open route, plus its next region.
+---@param source integer
+---@param destination integer
+---@param isOpen fun(edge: integer): boolean
+---@return integer? edge
+---@return integer? nextRegion
 function world.Route(source, destination, isOpen)
 	if source == destination then
 		return
 	end
-	local queue, seen = { { source } }, { [source] = true }
+	---@type table<integer, integer[]?>
+	local queue = { { source } }
+	---@type table<integer, boolean?>
+	local seen = { [source] = true }
 	local cursor = 1
 	while queue[cursor] do
 		local step = queue[cursor]

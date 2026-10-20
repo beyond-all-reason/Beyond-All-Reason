@@ -8,9 +8,7 @@ end
 local world = VFS.Include("luarules/Utilities/portal_worlds.lua")
 local cases = {}
 local function Check(name, value, detail)
-	Spring.Echo(
-		"[BAR_BARRIER_TEST] ASSERT " .. name .. " pass=" .. tostring(not not value) .. " " .. (detail or "")
-	)
+	Spring.Echo("[BAR_BARRIER_TEST] ASSERT " .. name .. " pass=" .. tostring(not not value) .. " " .. (detail or ""))
 end
 local function Team(region)
 	for _, entry in ipairs(world.teams) do
@@ -84,8 +82,7 @@ function gadget:GameFrame(f)
 			end
 			Check(
 				"strip_blocks_building_" .. index,
-				Spring.TestBuildOrder(UnitDefNames.armsolar.id, bx, Spring.GetGroundHeight(bx, bz), bz, 0)
-					== 0
+				Spring.TestBuildOrder(UnitDefNames.armsolar.id, bx, Spring.GetGroundHeight(bx, bz), bz, 0) == 0
 			)
 			-- Extractors intentionally ignore native building masks. The normal
 			-- portal command gate must still reject their orders into the strip.
@@ -101,14 +98,10 @@ function gadget:GameFrame(f)
 			Spring.SetUnitPosition(c.air, fx, 400, fz)
 		end
 		if f == start + 90 then
-			Check(
-				"air_cannot_cross_without_portal_" .. index,
-				GG.PortalWorlds.home[c.air] == c.a
-					and (function()
-						local ax, _, az = Spring.GetUnitPosition(c.air)
-						return world.Region(ax, az) == c.a
-					end)()
-			)
+			Check("air_cannot_cross_without_portal_" .. index, GG.PortalWorlds.home[c.air] == c.a and (function()
+				local ax, _, az = Spring.GetUnitPosition(c.air)
+				return world.Region(ax, az) == c.a
+			end)())
 			local lx, _, lz = Spring.GetUnitPosition(c.localWalker)
 			Check("local_path_works_" .. index, (lx - c.localX) ^ 2 + (lz - c.localZ) ^ 2 < 64 ^ 2)
 			local wx, _, wz = Spring.GetUnitPosition(c.foreignWalker)

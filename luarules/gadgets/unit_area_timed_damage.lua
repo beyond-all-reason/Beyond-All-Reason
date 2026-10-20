@@ -503,8 +503,15 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 		for j = 1, #unitsInRange do
 			local unitID = unitsInRange[j]
 			local data = unitData[unitID]
-			if data and not data.resistances[weapon] and data.immuneUntil < gameFrame
-				and (not GG.PortalIsolation or GG.PortalIsolation.UnitRegion(unitID) == GG.PortalIsolation.Region(area.x, area.z)) then
+			if
+				data
+				and not data.resistances[weapon]
+				and data.immuneUntil < gameFrame
+				and (
+					not GG.PortalIsolation
+					or GG.PortalIsolation.UnitRegion(unitID) == GG.PortalIsolation.Region(area.x, area.z)
+				)
+			then
 				local hitX, hitY, hitZ =
 					getAreaHitPosition(area, spGetUnitRadius(unitID), spGetUnitPosition(unitID, true))
 
@@ -523,7 +530,15 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 					inExplosion[1] = area
 					-- GetFlankingBonus evaluates the zero-vector to 50% flanking bonus, so conditionally remove:
 					if GG.PortalIsolation then
-						GG.PortalIsolation.DamageInRegion(GG.PortalIsolation.Region(area.x, area.z), spAddUnitDamage, unitID, damage, nil, area.owner ~= unitID and area.owner or nil, weapon)
+						GG.PortalIsolation.DamageInRegion(
+							GG.PortalIsolation.Region(area.x, area.z),
+							spAddUnitDamage,
+							unitID,
+							damage,
+							nil,
+							area.owner ~= unitID and area.owner or nil,
+							weapon
+						)
 					else
 						spAddUnitDamage(unitID, damage, nil, area.owner ~= unitID and area.owner or nil, weapon)
 					end
@@ -549,8 +564,16 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 			local data = featureData[featureID]
 
 			local fx, _, fz
-			if GG.PortalIsolation then fx, _, fz = spGetFeaturePosition(featureID) end
-			if data and (not GG.PortalIsolation or GG.PortalIsolation.Region(fx, fz) == GG.PortalIsolation.Region(area.x, area.z)) then
+			if GG.PortalIsolation then
+				fx, _, fz = spGetFeaturePosition(featureID)
+			end
+			if
+				data
+				and (
+					not GG.PortalIsolation
+					or GG.PortalIsolation.Region(fx, fz) == GG.PortalIsolation.Region(area.x, area.z)
+				)
+			then
 				local hitX, hitY, hitZ =
 					getAreaHitPosition(area, spGetFeatureRadius(featureID), spGetFeaturePosition(featureID, true))
 
@@ -568,7 +591,15 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 					data.damageTaken = damageTaken + damageDealt
 					inExplosion[1] = area
 					if GG.PortalIsolation then
-						GG.PortalIsolation.DamageInRegion(GG.PortalIsolation.Region(area.x, area.z), spAddFeatureDamage, featureID, damageDealt, nil, area.owner, area.weapon)
+						GG.PortalIsolation.DamageInRegion(
+							GG.PortalIsolation.Region(area.x, area.z),
+							spAddFeatureDamage,
+							featureID,
+							damageDealt,
+							nil,
+							area.owner,
+							area.weapon
+						)
 					else
 						spAddFeatureDamage(featureID, damageDealt, nil, area.owner, area.weapon)
 					end

@@ -3484,7 +3484,9 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 			gl.Scale(Game.mapSizeX / width, Game.mapSizeZ / height, 1)
 		end
 		list[i]:DrawInMiniMap(xSize, ySize)
-		if r then gl.PopMatrix() end
+		if r then
+			gl.PopMatrix()
+		end
 	end
 	tracyZoneEnd()
 	return

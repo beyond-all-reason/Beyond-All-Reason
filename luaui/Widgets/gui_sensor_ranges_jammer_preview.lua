@@ -1526,8 +1526,12 @@ function widget:Shutdown()
 		shader:Delete()
 	end
 	for _, layer in ipairs(layers) do
-		if layer.sheetShader then layer.sheetShader:Delete() end
-		if layer.minimapShader then layer.minimapShader:Delete() end
+		if layer.sheetShader then
+			layer.sheetShader:Delete()
+		end
+		if layer.minimapShader then
+			layer.minimapShader:Delete()
+		end
 	end
 end
 

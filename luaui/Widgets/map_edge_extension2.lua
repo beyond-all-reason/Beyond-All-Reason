@@ -1,5 +1,7 @@
 local portalMode = Spring.GetModOptions().portal_worlds
-if portalMode and portalMode ~= "off" then return false end
+if portalMode and portalMode ~= "off" then
+	return false
+end
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
