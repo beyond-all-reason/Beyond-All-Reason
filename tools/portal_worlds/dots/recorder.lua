@@ -111,7 +111,8 @@ local function Header()
 	local teams, defs, weapons, maps = Array({}), {}, {}, Array({})
 	for _, id in ipairs(Spring.GetTeamList()) do
 		teams[#teams+1] = {id=id,ally=select(6,Spring.GetTeamInfo(id,false)),color="team:" .. id,
-			income_multiplier=select(7,Spring.GetTeamInfo(id,false)) or 1}
+			income_multiplier=(gadget.GetRecordingIncomeMultiplier and gadget:GetRecordingIncomeMultiplier(id))
+				or select(7,Spring.GetTeamInfo(id,false)) or 1}
 	end
 	for id, d in pairs(UnitDefs) do
 		defs[tostring(id)] = {name=d.name,title=d.humanName or d.name,speed=d.speed,

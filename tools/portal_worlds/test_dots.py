@@ -201,5 +201,44 @@ class RecordingTests(unittest.TestCase):
             self.check_rows([sample])
 
 
+class LaunchIncomeTests(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.path = Path(self.directory.name) / "start.txt"
+
+    def test_reads_explicit_values_and_nested_custom_keys(self):
+        self.path.write_text("[GAME]{[TEAM4]{IncomeMultiplier=10;[CUSTOMKEYS]{x=1;}}"
+                             "[TEAM9]{IncomeMultiplier=1;}}")
+        result = dots.launch_team_income(self.path)
+        self.assertEqual(result["teams"], {4: 10, 9: 1})
+        self.assertEqual(result["start_script_sha256"], dots.digest(self.path))
+
+    def test_rejects_missing_duplicate_and_nonfinite_income(self):
+        for text in ("[TEAM0]{Side=arm;}", "[TEAM0]{IncomeMultiplier=10;IncomeMultiplier=1;}",
+                     "[TEAM0]{IncomeMultiplier=nan;}", "[TEAM0]{IncomeMultiplier=0;}",
+                     "[TEAM0]{IncomeMultiplier=10;}[TEAM0]{IncomeMultiplier=1;}"):
+            with self.subTest(text=text):
+                self.path.write_text(text)
+                with self.assertRaises(ValueError):
+                    dots.launch_team_income(self.path)
+
+    def test_display_income_enrichment_preserves_full_source(self):
+        recording = self.path.with_suffix(".jsonl")
+        header = dict(type="header", teams=[dict(id=4, income_multiplier=1)], regions=[])
+        footer = dict(type="end", frame=0, samples=0, events=0, winners=[])
+        recording.write_text(json.dumps(header) + "\n" + json.dumps(footer) + "\n")
+        before = dots.digest(recording)
+        income = {"teams": {4: 10}, "start_script_sha256": "fixture"}
+        rows = [json.loads(line) for line in gzip.decompress(
+            dots.presentation_copy(recording, 30, income)).splitlines()]
+        self.assertEqual(rows[0]["teams"][0]["income_multiplier"], 10)
+        self.assertEqual(rows[0]["presentation"]["income_labels"]["start_script_sha256"], "fixture")
+        self.assertEqual(dots.digest(recording), before)
+        income["teams"][999] = 10
+        with self.assertRaisesRegex(ValueError, "unknown recording teams"):
+            dots.presentation_copy(recording, 30, income)
+
+
 if __name__ == "__main__":
     unittest.main()
