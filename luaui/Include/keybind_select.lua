@@ -102,16 +102,16 @@ function M.parse(action)
 	end
 
 	local r = reader(body)
-	local spec = { filters = {}, clear = false }
+	local command = { filters = {}, clear = false }
 
-	spec.source = r.token()
-	local source = sourceById[spec.source]
+	command.source = r.token()
+	local source = sourceById[command.source]
 	if not source then
 		return nil
 	end
 	if source.arg then
 		r.delimiter()
-		spec.sourceArg = r.token()
+		command.sourceArg = r.token()
 	end
 	if r.delimiter() ~= "+" then
 		return nil
@@ -144,36 +144,36 @@ function M.parse(action)
 			r.delimiter()
 			entry.args[i] = r.token()
 		end
-		spec.filters[#spec.filters + 1] = entry
+		command.filters[#command.filters + 1] = entry
 	end
 
 	r.delimiter()
 	local conclusion = r.token()
 	if conclusion == "ClearSelection" then
-		spec.clear = true
+		command.clear = true
 		r.delimiter()
 		conclusion = r.token()
 	end
 	if not conclusionById[conclusion] then
 		return nil
 	end
-	spec.conclusion = conclusion
+	command.conclusion = conclusion
 	if conclusionById[conclusion].arg then
 		r.delimiter()
-		spec.conclusionArg = r.token()
+		command.conclusionArg = r.token()
 	end
 
-	return spec
+	return command
 end
 
--- The bind action for a spec, spelled the way the shipped presets spell theirs.
-function M.format(spec)
-	local out = { "select ", spec.source }
-	if spec.sourceArg then
-		out[#out + 1] = "_" .. spec.sourceArg
+-- The bind action for a command, spelled the way the shipped presets spell theirs.
+function M.format(command)
+	local out = { "select ", command.source }
+	if command.sourceArg then
+		out[#out + 1] = "_" .. command.sourceArg
 	end
 	out[#out + 1] = "+"
-	for _, f in ipairs(spec.filters or {}) do
+	for _, f in ipairs(command.filters or {}) do
 		out[#out + 1] = f.negate and "_Not_" or "_"
 		out[#out + 1] = f.id
 		for _, arg in ipairs(f.args or {}) do
@@ -181,12 +181,12 @@ function M.format(spec)
 		end
 	end
 	out[#out + 1] = "+"
-	if spec.clear then
+	if command.clear then
 		out[#out + 1] = "_ClearSelection"
 	end
-	out[#out + 1] = "_" .. spec.conclusion
-	if spec.conclusionArg then
-		out[#out + 1] = "_" .. spec.conclusionArg
+	out[#out + 1] = "_" .. command.conclusion
+	if command.conclusionArg then
+		out[#out + 1] = "_" .. command.conclusionArg
 	end
 	out[#out + 1] = "+"
 
@@ -198,10 +198,10 @@ function M.bothWays(id)
 	return filterById[id].args ~= nil
 end
 
--- Whether the builder can hold a spec without changing it.
-function M.editable(spec)
+-- Whether the builder can hold a command without changing it.
+function M.editable(command)
 	local seen = {}
-	for _, f in ipairs(spec.filters) do
+	for _, f in ipairs(command.filters) do
 		if f.id ~= "IdMatches" then
 			local way = f.id .. (f.negate and "-" or "+")
 			local oneWay = not M.bothWays(f.id)
@@ -218,23 +218,23 @@ end
 -- Filters in any order select the same units, so an edit that only reorders them is no edit.
 function M.sameSelection(a, b)
 	local function canonical(action)
-		local spec = M.parse(action)
-		if not spec then
+		local command = M.parse(action)
+		if not command then
 			return action
 		end
 
 		local keys = {}
-		for i, f in ipairs(spec.filters) do
+		for i, f in ipairs(command.filters) do
 			keys[i] = { f = f, key = f.id .. (f.negate and "-" or "+") .. table.concat(f.args or {}, "_") }
 		end
 		table.sort(keys, function(x, y)
 			return x.key < y.key
 		end)
 		for i, k in ipairs(keys) do
-			spec.filters[i] = k.f
+			command.filters[i] = k.f
 		end
 
-		return M.format(spec)
+		return M.format(command)
 	end
 
 	return canonical(a) == canonical(b)
@@ -260,15 +260,15 @@ local function filterWords(f, t)
 	return f.negate and t(KEY .. "not", { filter = words }) or words
 end
 
-function M.describe(spec, t)
+function M.describe(command, t)
 	---@type fun(key: string, values: table?): string
 	t = t or BAR.I18N
-	local conclusion = t(KEY .. "conclusion." .. spec.conclusion, { value = spec.conclusionArg })
-	local source = t(KEY .. "source." .. spec.source, { value = spec.sourceArg })
+	local conclusion = t(KEY .. "conclusion." .. command.conclusion, { value = command.conclusionArg })
+	local source = t(KEY .. "source." .. command.source, { value = command.sourceArg })
 
 	-- The engine ORs plain IdMatches and ANDs the rest, so those names read as one choice.
 	local filters, units, unitsAt = {}, {}, nil
-	for _, f in ipairs(spec.filters or {}) do
+	for _, f in ipairs(command.filters or {}) do
 		if f.id == "IdMatches" and not f.negate then
 			units[#units + 1] = filterWords(f, t)
 			unitsAt = unitsAt or #filters + 1
@@ -288,7 +288,7 @@ function M.describe(spec, t)
 	else
 		words = t(KEY .. "summaryAll", { conclusion = conclusion, source = source })
 	end
-	if not spec.clear then
+	if not command.clear then
 		words = t(KEY .. "keepSelection", { summary = words })
 	end
 

@@ -5230,9 +5230,9 @@ function state.openSelectionBuilder(action)
 		title = action and L.selectionEdit or L.selectionAdd,
 		acceptLabel = action and L.save or L.selectionChooseKey,
 		cancelLabel = L.cancel,
-		onAccept = function(newAction, spec)
+		onAccept = function(newAction, built)
 			if not action then
-				startCapture(newAction, command.describe(spec))
+				startCapture(newAction, command.describe(built))
 			elseif not command.sameSelection(newAction, action) then
 				state.renameAction(action, newAction)
 			end

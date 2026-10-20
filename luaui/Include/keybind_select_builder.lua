@@ -105,7 +105,7 @@ local function labels()
 	return L
 end
 
-function M:show(spec, opts)
+function M:show(command, opts)
 	self.open = true
 	self.scroll = 0
 	self.title = opts.title
@@ -120,17 +120,17 @@ function M:show(spec, opts)
 	self.conclusionArg = field()
 	self.L = labels()
 
-	spec = spec or { source = "AllMap", filters = {}, clear = true, conclusion = "SelectAll" }
-	self.source = spec.source
-	self.sourceArg:setText(spec.sourceArg or "")
-	self.conclusion = spec.conclusion
-	self.conclusionArg:setText(spec.conclusionArg or "")
-	self.clear = spec.clear
+	command = command or { source = "AllMap", filters = {}, clear = true, conclusion = "SelectAll" }
+	self.source = command.source
+	self.sourceArg:setText(command.sourceArg or "")
+	self.conclusion = command.conclusion
+	self.conclusionArg:setText(command.conclusionArg or "")
+	self.clear = command.clear
 
 	-- Written back in the order they came in, so an edit changes only what the player changed.
 	self.order = {}
 	local names = {}
-	for _, f in ipairs(spec.filters or {}) do
+	for _, f in ipairs(command.filters or {}) do
 		local way = f.negate and "not" or "is"
 		if not self.on[f.id] then
 			self.on[f.id], self.ways[f.id] = {}, {}
@@ -216,8 +216,8 @@ function M:fields()
 	return out
 end
 
--- The spec the form describes, and whether every value it needs is one the engine can read.
-function M:spec()
+-- The command the form describes, and whether every value it needs is one the engine can read.
+function M:command()
 	local valid = true
 	local function value(box, kind)
 		local v = box:getText()
@@ -228,14 +228,14 @@ function M:spec()
 		return v
 	end
 
-	local spec = { source = self.source, filters = {}, clear = self.clear, conclusion = self.conclusion }
+	local command = { source = self.source, filters = {}, clear = self.clear, conclusion = self.conclusion }
 	local sourceKind = Select.sourceById[self.source].arg
 	if sourceKind then
-		spec.sourceArg = value(self.sourceArg, sourceKind)
+		command.sourceArg = value(self.sourceArg, sourceKind)
 	end
 	local conclusionKind = Select.conclusionById[self.conclusion].arg
 	if conclusionKind then
-		spec.conclusionArg = value(self.conclusionArg, conclusionKind)
+		command.conclusionArg = value(self.conclusionArg, conclusionKind)
 	end
 
 	for _, id in ipairs(self.order) do
@@ -249,7 +249,7 @@ function M:spec()
 					for name in fields[1]:getText():gmatch("[^,%s]+") do
 						listed = true
 						valid = valid and Select.validArg(name, "text")
-						spec.filters[#spec.filters + 1] = { id = id, negate = negate, args = { name } }
+						command.filters[#command.filters + 1] = { id = id, negate = negate, args = { name } }
 					end
 					valid = valid and listed
 				else
@@ -257,13 +257,13 @@ function M:spec()
 					for i, kind in ipairs(Select.filterById[id].args or {}) do
 						args[i] = value(fields[i], kind)
 					end
-					spec.filters[#spec.filters + 1] = { id = id, negate = negate, args = args }
+					command.filters[#command.filters + 1] = { id = id, negate = negate, args = args }
 				end
 			end
 		end
 	end
 
-	return spec, valid
+	return command, valid
 end
 
 function M:setArea(x1, y1, x2, y2, scale, wx1, wy1, wx2, wy2)
@@ -377,11 +377,11 @@ end
 function M:draw(mx, my)
 	local g = self.g
 	local font = WG["fonts"].getFont()
-	local spec, valid = self:spec()
-	local action = Select.format(spec)
+	local command, valid = self:command()
+	local action = Select.format(command)
 	if self.summaryFor ~= action then
 		self.summaryFor = action
-		self.summary = Select.describe(spec)
+		self.summary = Select.describe(command)
 	end
 	local s = self.scale or 1
 
@@ -555,14 +555,14 @@ function M:focus(box)
 end
 
 function M:accept()
-	local spec, valid = self:spec()
+	local command, valid = self:command()
 	if not valid then
 		return
 	end
 
 	self.open = false
 	if self.onAccept then
-		self.onAccept(Select.format(spec), spec)
+		self.onAccept(Select.format(command), command)
 	end
 end
 

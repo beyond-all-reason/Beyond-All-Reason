@@ -71,32 +71,32 @@ describe("reading a select command", function()
 		local actions = shippedSelectActions()
 		assert.is_true(#actions > 0)
 		for _, action in ipairs(actions) do
-			local spec = Select.parse(action)
-			assert(spec, action)
-			assert.are.equal(action, Select.format(spec))
+			local command = Select.parse(action)
+			assert(command, action)
+			assert.are.equal(action, Select.format(command))
 		end
 	end)
 
 	it("takes a filter's values and its Not", function()
-		local spec =
+		local command =
 			assert(Select.parse("select PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+"))
 
 		assert.are.same({
 			{ id = "Building", negate = true, args = {} },
 			{ id = "RelativeHealth", negate = true, args = { "60" } },
-		}, spec.filters)
-		assert.is_true(spec.clear)
-		assert.are.equal("SelectAll", spec.conclusion)
+		}, command.filters)
+		assert.is_true(command.clear)
+		assert.are.equal("SelectAll", command.conclusion)
 	end)
 
 	it("takes a source and a conclusion that carry a value", function()
-		local spec = assert(Select.parse("select FromMouse_500+_Idle+_SelectNum_3+"))
+		local command = assert(Select.parse("select FromMouse_500+_Idle+_SelectNum_3+"))
 
-		assert.are.equal("FromMouse", spec.source)
-		assert.are.equal("500", spec.sourceArg)
-		assert.is_false(spec.clear)
-		assert.are.equal("SelectNum", spec.conclusion)
-		assert.are.equal("3", spec.conclusionArg)
+		assert.are.equal("FromMouse", command.source)
+		assert.are.equal("500", command.sourceArg)
+		assert.is_false(command.clear)
+		assert.are.equal("SelectNum", command.conclusion)
+		assert.are.equal("3", command.conclusionArg)
 	end)
 
 	it("leaves the filters that match nothing in BAR to be written by hand", function()
@@ -144,49 +144,50 @@ end)
 
 describe("putting a selection into words", function()
 	it("names the conclusion, the filters and the source", function()
-		local spec = Select.parse("select AllMap+_Builder_Not_Idle+_ClearSelection_SelectOne+")
+		local command = Select.parse("select AllMap+_Builder_Not_Idle+_ClearSelection_SelectOne+")
 
 		assert.are.equal(
 			"[summary conclusion=[conclusion.SelectOne] filters=[filter.Builder], [not filter=[filter.Idle]] source=[source.AllMap]]",
-			Select.describe(spec, echo)
+			Select.describe(command, echo)
 		)
 	end)
 
 	it("leaves the filters out when there are none", function()
-		local spec = Select.parse("select Visible++_ClearSelection_SelectAll+")
+		local command = Select.parse("select Visible++_ClearSelection_SelectAll+")
 
 		assert.are.equal(
 			"[summaryAll conclusion=[conclusion.SelectAll] source=[source.Visible]]",
-			Select.describe(spec, echo)
+			Select.describe(command, echo)
 		)
 	end)
 
 	it("says so when the selection is added to rather than replaced", function()
-		local spec = Select.parse("select Visible++_SelectPart_50+")
+		local command = Select.parse("select Visible++_SelectPart_50+")
 
 		assert.are.equal(
 			"[keepSelection summary=[summaryAll conclusion=[conclusion.SelectPart value=50] source=[source.Visible]]]",
-			Select.describe(spec, echo)
+			Select.describe(command, echo)
 		)
 	end)
 end)
 
 describe("putting several unit names into words", function()
 	it("joins plain unit names as a choice where the first of them stood", function()
-		local spec = Select.parse("select AllMap+_Idle_IdMatches_armcom_IdMatches_corcom+_ClearSelection_SelectAll+")
+		local command = Select.parse("select AllMap+_Idle_IdMatches_armcom_IdMatches_corcom+_ClearSelection_SelectAll+")
 
 		assert.are.equal(
 			"[summary conclusion=[conclusion.SelectAll] filters=[filter.Idle], [anyOf units=[filter.IdMatches value=armcom] last=[filter.IdMatches value=corcom]] source=[source.AllMap]]",
-			Select.describe(spec, echo)
+			Select.describe(command, echo)
 		)
 	end)
 
 	it("leaves ruled-out names as filters of their own", function()
-		local spec = Select.parse("select AllMap+_Not_IdMatches_armcom_Not_IdMatches_corcom+_ClearSelection_SelectAll+")
+		local command =
+			Select.parse("select AllMap+_Not_IdMatches_armcom_Not_IdMatches_corcom+_ClearSelection_SelectAll+")
 
 		assert.are.equal(
 			"[summary conclusion=[conclusion.SelectAll] filters=[not filter=[filter.IdMatches value=armcom]], [not filter=[filter.IdMatches value=corcom]] source=[source.AllMap]]",
-			Select.describe(spec, echo)
+			Select.describe(command, echo)
 		)
 	end)
 end)
@@ -257,18 +258,18 @@ describe("the selection builder", function()
 		local field = builder:argFields("IdMatches", "is")[1]
 
 		field:setText("armcom_scav")
-		assert.is_false(select(2, builder:spec()))
+		assert.is_false(select(2, builder:command()))
 
 		field:setText("armcom")
-		assert.is_true(select(2, builder:spec()))
+		assert.is_true(select(2, builder:command()))
 	end)
 
 	it("checks a source's or a conclusion's value as the kind it is", function()
 		local builder = open("select FromMouse_150.5+_Idle+_ClearSelection_SelectNum_2.5+")
-		assert.is_false(select(2, builder:spec()))
+		assert.is_false(select(2, builder:command()))
 
 		builder.conclusionArg:setText("2")
-		assert.is_true(select(2, builder:spec()))
+		assert.is_true(select(2, builder:command()))
 	end)
 
 	-- The game window can change size under an open form.
@@ -295,7 +296,7 @@ describe("the selection builder", function()
 			"select Visible+_InGroup_1_Not_Guarding+_ClearSelection_SelectAll",
 		}) do
 			assert.is_true(Select.editable(Select.parse(action)), action)
-			assert.is_true(Select.sameSelection(action, Select.format((open(action):spec()))), action)
+			assert.is_true(Select.sameSelection(action, Select.format((open(action):command()))), action)
 		end
 	end)
 

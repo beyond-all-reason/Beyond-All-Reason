@@ -182,9 +182,9 @@ local means = {
 	end,
 }
 
-local function passes(u, spec, ctx)
+local function passes(u, command, ctx)
 	local names = {}
-	for _, f in ipairs(spec.filters) do
+	for _, f in ipairs(command.filters) do
 		if f.id == "IdMatches" and not f.negate then
 			names[f.args[1]] = true
 		end
@@ -192,7 +192,7 @@ local function passes(u, spec, ctx)
 	if next(names) and not names[u.def.name] then
 		return false
 	end
-	for _, f in ipairs(spec.filters) do
+	for _, f in ipairs(command.filters) do
 		if not (f.id == "IdMatches" and not f.negate) then
 			if (means[f.id](u, f.args, ctx) and true or false) == f.negate then
 				return false
@@ -278,15 +278,15 @@ local function test()
 		return asSet(Spring.GetSelectedUnits())
 	end
 
-	local function source(spec, pre)
+	local function source(command, pre)
 		local out = {}
 		for _, u in ipairs(units) do
-			local take = spec.source == "AllMap"
-				or (spec.source == "PrevSelection" and pre[u.id])
-				or (spec.source == "Visible" and Spring.IsUnitInView(u.id))
-			if spec.source == "FromMouse" or spec.source == "FromMouseC" then
-				local d2 = cursorDistance(u.id, spec.source == "FromMouse")
-				take = d2 ~= nil and d2 < assert(tonumber(spec.sourceArg)) ^ 2
+			local take = command.source == "AllMap"
+				or (command.source == "PrevSelection" and pre[u.id])
+				or (command.source == "Visible" and Spring.IsUnitInView(u.id))
+			if command.source == "FromMouse" or command.source == "FromMouseC" then
+				local d2 = cursorDistance(u.id, command.source == "FromMouse")
+				take = d2 ~= nil and d2 < assert(tonumber(command.sourceArg)) ^ 2
 			end
 			if take then
 				out[#out + 1] = u
@@ -296,15 +296,15 @@ local function test()
 		return out
 	end
 
-	local function candidates(spec, preList)
+	local function candidates(command, preList)
 		local pre = asSet(preList or {})
 		local ctx = { preTypes = {} }
 		for id in pairs(pre) do
 			ctx.preTypes[Spring.GetUnitDefID(id)] = true
 		end
 		local out = {}
-		for _, u in ipairs(source(spec, pre)) do
-			if passes(u, spec, ctx) then
+		for _, u in ipairs(source(command, pre)) do
+			if passes(u, command, ctx) then
 				out[u.id] = true
 			end
 		end
@@ -313,10 +313,10 @@ local function test()
 	end
 
 	-- Selects exactly the units the words name.
-	local function exact(spec, preList)
-		local action = Select.format(spec)
-		local want = candidates(spec, preList)
-		if not spec.clear then
+	local function exact(command, preList)
+		local action = Select.format(command)
+		local want = candidates(command, preList)
+		if not command.clear then
 			for _, id in ipairs(preList or {}) do
 				want[id] = true
 			end
@@ -340,13 +340,13 @@ local function test()
 		elseif next(want) == nil then
 			detail = detail .. " | vacuous: nothing to select either way"
 		end
-		report(ok and "PASS" or "FAIL", Select.describe(spec, translate), action, detail)
+		report(ok and "PASS" or "FAIL", Select.describe(command, translate), action, detail)
 	end
 
 	-- Selects some number of the units the words name, and none it doesn't.
-	local function counted(spec, n)
-		local action = Select.format(spec)
-		local pool = candidates(spec)
+	local function counted(command, n)
+		local action = Select.format(command)
+		local pool = candidates(command)
 		local got = run(action)
 		local stray = {}
 		for id in pairs(got) do
@@ -357,7 +357,7 @@ local function test()
 		local ok = size(got) == n and next(stray) == nil
 		report(
 			ok and "PASS" or "FAIL",
-			Select.describe(spec, translate),
+			Select.describe(command, translate),
 			action,
 			("of %d, want %s got %d%s"):format(
 				size(pool),
@@ -368,7 +368,7 @@ local function test()
 		)
 	end
 
-	local function spec(sourceId, filters, conclusion, extra)
+	local function command(sourceId, filters, conclusion, extra)
 		local s = { source = sourceId, filters = filters or {}, clear = true, conclusion = conclusion or "SelectAll" }
 		for k, v in pairs(extra or {}) do
 			s[k] = v
@@ -391,52 +391,52 @@ local function test()
 	for _, filter in ipairs(Select.filters) do
 		for _, negate in ipairs({ false, true }) do
 			local args = argsFor[filter.id] or {}
-			exact(spec("AllMap", { f(filter.id, negate, unpack(args)) }), filter.id == "InPrevSel" and pre or nil)
+			exact(command("AllMap", { f(filter.id, negate, unpack(args)) }), filter.id == "InPrevSel" and pre or nil)
 		end
 	end
 
-	exact(spec("AllMap", { f("WeaponRange", false, "300"), f("WeaponRange", true, "700") }))
-	exact(spec("AllMap", { f("RelativeHealth", false, "10"), f("RelativeHealth", true, "50") }))
-	exact(spec("AllMap", { f("IdMatches", false, "armpw"), f("IdMatches", false, "armck") }))
-	exact(spec("AllMap", { f("Idle"), f("IdMatches", false, "armpw"), f("IdMatches", false, "armck") }))
-	exact(spec("AllMap", { f("IdMatches", false, "armpw"), f("Idle"), f("IdMatches", false, "armck") }))
-	exact(spec("AllMap", { f("IdMatches", true, "armpw"), f("IdMatches", true, "armck") }))
-	exact(spec("AllMap", { f("IdMatches", false, "armpw"), f("IdMatches", true, "armck") }))
+	exact(command("AllMap", { f("WeaponRange", false, "300"), f("WeaponRange", true, "700") }))
+	exact(command("AllMap", { f("RelativeHealth", false, "10"), f("RelativeHealth", true, "50") }))
+	exact(command("AllMap", { f("IdMatches", false, "armpw"), f("IdMatches", false, "armck") }))
+	exact(command("AllMap", { f("Idle"), f("IdMatches", false, "armpw"), f("IdMatches", false, "armck") }))
+	exact(command("AllMap", { f("IdMatches", false, "armpw"), f("Idle"), f("IdMatches", false, "armck") }))
+	exact(command("AllMap", { f("IdMatches", true, "armpw"), f("IdMatches", true, "armck") }))
+	exact(command("AllMap", { f("IdMatches", false, "armpw"), f("IdMatches", true, "armck") }))
 	exact(
-		spec(
+		command(
 			"AllMap",
 			{ f("IdMatches", false, "armpw"), f("IdMatches", false, "corak"), f("IdMatches", true, "corak") }
 		)
 	)
-	exact(spec("AllMap", { f("Builder"), f("Building", true) }))
-	exact(spec("AllMap", { f("Building", true), f("Builder") }))
-	exact(spec("AllMap", { f("Weapons"), f("Aircraft", true), f("Building", true), f("Idle") }))
+	exact(command("AllMap", { f("Builder"), f("Building", true) }))
+	exact(command("AllMap", { f("Building", true), f("Builder") }))
+	exact(command("AllMap", { f("Weapons"), f("Aircraft", true), f("Building", true), f("Idle") }))
 
 	local half = {}
 	for i = 1, #units, 2 do
 		half[#half + 1] = units[i].id
 	end
-	exact(spec("AllMap"))
-	exact(spec("PrevSelection"), half)
-	exact(spec("PrevSelection", { f("Weapons") }), half)
+	exact(command("AllMap"))
+	exact(command("PrevSelection"), half)
+	exact(command("PrevSelection", { f("Weapons") }), half)
 	Spring.SetCameraTarget(cx + 240, Spring.GetGroundHeight(cx, cz), cz + 240, 0)
 	Test.waitFrames(2)
-	exact(spec("Visible"))
-	exact(spec("Visible", { f("IdMatches", false, "armpw") }))
+	exact(command("Visible"))
+	exact(command("Visible", { f("IdMatches", false, "armpw") }))
 
-	exact(spec("AllMap", { f("IdMatches", false, "armpw") }, "SelectAll", { clear = false }), { com })
-	exact(spec("AllMap", { f("IdMatches", false, "armpw") }, "SelectAll"), { com })
+	exact(command("AllMap", { f("IdMatches", false, "armpw") }, "SelectAll", { clear = false }), { com })
+	exact(command("AllMap", { f("IdMatches", false, "armpw") }, "SelectAll"), { com })
 
 	local pawns = { f("IdMatches", false, "armpw") }
-	counted(spec("AllMap", pawns, "SelectNum", { conclusionArg = "2" }), 2)
-	counted(spec("AllMap", pawns, "SelectNum", { conclusionArg = "10" }), 4)
-	counted(spec("AllMap", pawns, "SelectPart", { conclusionArg = "50" }), 2)
+	counted(command("AllMap", pawns, "SelectNum", { conclusionArg = "2" }), 2)
+	counted(command("AllMap", pawns, "SelectNum", { conclusionArg = "10" }), 4)
+	counted(command("AllMap", pawns, "SelectPart", { conclusionArg = "50" }), 2)
 	-- A part rounds down, so a part of too few units selects none.
-	counted(spec("AllMap", pawns, "SelectPart", { conclusionArg = "30" }), 1)
-	counted(spec("AllMap", { f("IdMatches", false, "armcom") }, "SelectPart", { conclusionArg = "50" }), 0)
-	counted(spec("AllMap", pawns, "SelectOne"), 1)
+	counted(command("AllMap", pawns, "SelectPart", { conclusionArg = "30" }), 1)
+	counted(command("AllMap", { f("IdMatches", false, "armcom") }, "SelectPart", { conclusionArg = "50" }), 0)
+	counted(command("AllMap", pawns, "SelectOne"), 1)
 
-	local oneAction = Select.format(spec("AllMap", pawns, "SelectOne"))
+	local oneAction = Select.format(command("AllMap", pawns, "SelectOne"))
 	local seen = {}
 	for _ = 1, #pw do
 		for id in pairs(run(oneAction)) do
@@ -445,7 +445,7 @@ local function test()
 	end
 	report(
 		size(seen) == #pw and "PASS" or "FAIL",
-		Select.describe(spec("AllMap", pawns, "SelectOne"), translate) .. ", pressed " .. #pw .. " times",
+		Select.describe(command("AllMap", pawns, "SelectOne"), translate) .. ", pressed " .. #pw .. " times",
 		oneAction,
 		("want all %d in turn got %d: %s"):format(#pw, size(seen), names(seen))
 	)
@@ -458,11 +458,11 @@ local function test()
 		local sx, sy = Spring.WorldToScreenCoords(x, y, z)
 		Spring.WarpMouse(math.floor(sx), math.floor(sy))
 		Test.waitFrames(2)
-		exact(spec("FromMouse", nil, "SelectAll", { sourceArg = "200" }))
-		exact(spec("FromMouseC", nil, "SelectAll", { sourceArg = "200" }))
-		exact(spec("FromMouse", { f("Weapons") }, "SelectAll", { sourceArg = "300" }))
+		exact(command("FromMouse", nil, "SelectAll", { sourceArg = "200" }))
+		exact(command("FromMouseC", nil, "SelectAll", { sourceArg = "200" }))
+		exact(command("FromMouse", { f("Weapons") }, "SelectAll", { sourceArg = "300" }))
 
-		local closest = spec("AllMap", pawns, "SelectClosestToCursor")
+		local closest = command("AllMap", pawns, "SelectClosestToCursor")
 		local best, bestD
 		for _, id in ipairs(pw) do
 			local d = cursorDistance(id, true)
