@@ -6244,6 +6244,7 @@ local initialModel = {
 	fpRotationStr = "0",
 	fpRotRandomStr = "0",
 	fpTiltRandomStr = "0",
+	fpHeightOffsetStr = "0",
 	fpScaleMinStr = "1.00",
 	fpClumpsStr = "AUTO",
 	fpClumpSizeStr = "1.00",
@@ -8306,6 +8307,26 @@ local initialModel = {
 		end
 		local st = WG.FeaturePlacer.getState()
 		WG.FeaturePlacer.setTiltRandom((st.tiltRandom or 0) - 1)
+	end,
+
+	-- HEIGHT OFFSET of the next placements (elmos; negative sinks them)
+	onFpHeightOffsetChange = function(_event)
+		if uiState.updatingFromCode or not (WG.FeaturePlacer and WG.FeaturePlacer.setHeightOffset) then
+			return
+		end
+		WG.FeaturePlacer.setHeightOffset(_elemSliderVal("fp-slider-height-offset", 0))
+	end,
+	onFpHeightOffsetUp = function(_event)
+		if not (WG.FeaturePlacer and WG.FeaturePlacer.setHeightOffset) then
+			return
+		end
+		WG.FeaturePlacer.setHeightOffset(((WG.FeaturePlacer.getState() or {}).heightOffset or 0) + 4)
+	end,
+	onFpHeightOffsetDown = function(_event)
+		if not (WG.FeaturePlacer and WG.FeaturePlacer.setHeightOffset) then
+			return
+		end
+		WG.FeaturePlacer.setHeightOffset(((WG.FeaturePlacer.getState() or {}).heightOffset or 0) - 4)
 	end,
 
 	-- Scale variation (per-feature visual scale range)
@@ -16331,7 +16352,8 @@ local guideHints = {
 	["fp-slider-size"] = "Radius of the feature placement area. Ctrl+Scroll to resize while painting.",
 	["fp-slider-rotation"] = "Base rotation angle for all placed features. Individual randomization is added on top of this value.",
 	["fp-slider-rot-random"] = "Randomizes each feature's orientation by ±this percentage. 100% = fully random; 0% = all face the same direction.",
-	["fp-slider-tilt-random"] = "Leans each placed feature up to this many degrees, in a random direction. Most stay close to upright and a few lean hard, like a natural stand. 0 = all upright.",
+	["fp-slider-height-offset"] = "Places the next features this many elmos above the ground, or below it when negative, so a rock can sit half buried or a tree stand on a ledge. The ghost preview shows it. Ctrl+Shift+Scroll steps it.",
+	["fp-slider-tilt-random"] = "Leans each placed feature up to this many degrees, in a random direction. Most stay close to upright and a few lean hard, like a natural stand. 0 = all upright. Alt+Shift+Scroll steps it.",
 	["btn-cl-blend-replace"] = "Paste the copy as it is, replacing the ground and everything on it.",
 	["btn-cl-blend-raise"] = "Paste only what stands above the ground here: the copy never lowers anything. A copied hill and valley pasted on flat ground leave just the hill. Features, paint and the other layers come only where the terrain does.",
 	["btn-cl-blend-lower"] = "Paste only what lies below the ground here: the copy never raises anything. A copied hill and valley pasted on flat ground leave just the valley. Features, paint and the other layers come only where the terrain does.",
@@ -16341,7 +16363,7 @@ local guideHints = {
 	["fp-slider-clump-size"] = "How far each clump spreads. Low = tight thickets, high = open groves.",
 	["fp-slider-clump-loose"] = "Share of features scattered loosely between the clumps instead of inside one.",
 	["fp-slider-clump-variety"] = "How unlike each other the clumps are. At 0 every clump is alike; higher mixes dense and sparse, tight and wide, young (small trees) and old (large trees) clumps.",
-	["fp-slider-count"] = "Number of features placed per brush stroke — higher counts fill the area more densely.",
+	["fp-slider-count"] = "Number of features placed per brush stroke — higher counts fill the area more densely. Ctrl+Alt+Scroll steps it.",
 	["fp-slider-cadence"] = "How fast features are placed while dragging — lower values produce more features per distance traveled.",
 	-- Feature undo/save/load
 	["btn-fp-undo"] = "Undo the last batch of placed or removed features, restoring the previous state.",
@@ -17182,6 +17204,7 @@ widgetState.regTransports = function(doc)
 		"fp-slider-rotation",
 		"fp-slider-rot-random",
 		"fp-slider-tilt-random",
+		"fp-slider-height-offset",
 		"fp-slider-count",
 		"fp-slider-cadence",
 		"fp-slider-slope-max",

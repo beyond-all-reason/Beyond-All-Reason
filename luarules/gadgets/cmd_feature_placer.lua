@@ -367,9 +367,19 @@ end
 -- the height it was given. Deliberately not unlocked again if it later returns
 -- to the ground: this is authored scenery, and staying put is what the author
 -- asked for.
-local function lockFeatureInPlace(featureID)
+--
+-- A SUNK feature (below the ground: the brush's HEIGHT OFFSET) needs more: the
+-- engine's non-moveCtrl update lifts anything buried back onto the ground
+-- (CFeature::UpdatePosition, "the ground moved and buried us"), masks or not.
+-- moveCtrl ENABLED with zero velocity and acceleration is raw movement, never
+-- clamped, so it stays where it was put (and in the update queue, at no cost).
+local function lockFeatureInPlace(featureID, sunk)
 	if SetFeatureMoveCtrl then
-		SetFeatureMoveCtrl(featureID, false, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+		if sunk then
+			SetFeatureMoveCtrl(featureID, true, 0, 0, 0, 0, 0, 0)
+		else
+			SetFeatureMoveCtrl(featureID, false, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+		end
 	end
 end
 
@@ -392,8 +402,9 @@ local function applyTransform(featureID, t)
 	-- restore the pre-transform orientation when it finished.
 	wobbleQueue[featureID] = nil
 
-	if t.y > GetGroundHeight(t.x, t.z) + LIFT_EPSILON then
-		lockFeatureInPlace(featureID)
+	local groundY = GetGroundHeight(t.x, t.z)
+	if abs(t.y - groundY) > LIFT_EPSILON then
+		lockFeatureInPlace(featureID, t.y < groundY)
 	end
 
 	SetFeaturePosition(featureID, t.x, t.y, t.z)
@@ -457,8 +468,10 @@ local function createFromPlacement(p, grow)
 		return nil
 	end
 
-	if p.y > GetGroundHeight(p.x, p.z) + LIFT_EPSILON then
-		lockFeatureInPlace(id)
+	-- lifted OR sunk (the brush's HEIGHT OFFSET can push it into the ground): held where it was put
+	local groundY = GetGroundHeight(p.x, p.z)
+	if abs(p.y - groundY) > LIFT_EPSILON then
+		lockFeatureInPlace(id, p.y < groundY)
 		SetFeaturePosition(id, p.x, p.y, p.z)
 	end
 

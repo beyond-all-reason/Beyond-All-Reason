@@ -122,6 +122,10 @@ function M.sync(doc, ctx, fpState, setSummary)
 			if dm.fpTiltRandomStr ~= v then
 				dm.fpTiltRandomStr = v
 			end
+			v = tostring(fpState.heightOffset or 0)
+			if dm.fpHeightOffsetStr ~= v then
+				dm.fpHeightOffsetStr = v
+			end
 			v = string.format("%.2f", fpState.scaleMin or 1)
 			if dm.fpScaleMinStr ~= v then
 				dm.fpScaleMinStr = v
@@ -161,6 +165,11 @@ function M.sync(doc, ctx, fpState, setSummary)
 		syncAndFlash(getCachedEl(doc, "fp-slider-rotation"), "fp-rotation", tostring(fpState.rotation))
 		syncAndFlash(getCachedEl(doc, "fp-slider-rot-random"), "fp-rot-random", tostring(fpState.rotRandom))
 		syncAndFlash(getCachedEl(doc, "fp-slider-tilt-random"), "fp-tilt-random", tostring(fpState.tiltRandom or 0))
+		syncAndFlash(
+			getCachedEl(doc, "fp-slider-height-offset"),
+			"fp-height-offset",
+			tostring(fpState.heightOffset or 0)
+		)
 		syncAndFlash(getCachedEl(doc, "fp-slider-scale-min"), "fp-scale-min", tostring(fpState.scaleMin or 1))
 		syncAndFlash(getCachedEl(doc, "fp-slider-scale-max"), "fp-scale-max", tostring(fpState.scaleMax or 1))
 		syncAndFlash(getCachedEl(doc, "fp-slider-clumps"), "fp-clumps", tostring(fpState.clumps or 0))
@@ -428,6 +437,10 @@ function M.sync(doc, ctx, fpState, setSummary)
 		-- Scale variation applies to whatever gets placed -- scatter and point
 		-- alike -- so like randomise-alignment it only greys out in remove mode.
 		ctx.setDisabledIds(doc, {
+			"fp-slider-height-offset",
+			"fp-slider-height-offset-numbox",
+			"btn-fp-height-down",
+			"btn-fp-height-up",
 			"fp-slider-scale-min",
 			"fp-slider-scale-min-numbox",
 			"btn-fp-scale-min-down",

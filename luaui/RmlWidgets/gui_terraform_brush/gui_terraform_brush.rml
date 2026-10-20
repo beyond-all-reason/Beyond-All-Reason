@@ -3541,7 +3541,7 @@
 				<div id="fp-slider-count-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
 				<div id="fp-slider-count-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 			</div>
-			<div id="kbhint-fp-count" class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Shift+Scroll</div>
+			<div id="kbhint-fp-count" class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Alt+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div id="btn-fp-count-down" class="tf-sm-btn" data-event-mousedown="onFpCountDown()">
@@ -3603,6 +3603,7 @@
 		<div id="fp-param-tilt-row">
 		<div class="flex flex-row items-center mb-1">
 			<div class="text-lg text-light">RANDOMIZE TILT: <span class="text-xl font-bold tf-slider-val">{{fpTiltRandomStr}}</span>&#176;</div>
+			<div id="kbhint-fp-tilt" class="text-sm text-keybind" style="margin-left: auto;">Alt+Shift+Scroll</div>
 			<div id="fp-slider-tilt-random-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-tilt-random-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-tilt-random-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -3621,6 +3622,23 @@
 			<input type="text" id="fp-slider-tilt-random-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /fp-param-tilt-row -->
+
+		<div id="fp-param-height-row">
+		<div class="flex flex-row items-center mb-1">
+			<div class="text-lg text-light">HEIGHT OFFSET: <span class="text-xl font-bold tf-slider-val">{{fpHeightOffsetStr}}</span></div>
+			<div id="kbhint-fp-height" class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Shift+Scroll</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-fp-height-down" class="tf-sm-btn" data-event-mousedown="onFpHeightOffsetDown()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="fp-slider-height-offset" class="tf-slider" min="-500" max="500" step="2" value="0" data-event-change="onFpHeightOffsetChange()" />
+			<div id="btn-fp-height-up" class="tf-sm-btn" data-event-mousedown="onFpHeightOffsetUp()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="fp-slider-height-offset-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		</div><!-- /fp-param-height-row -->
 
 		</div><!-- /section-fp-controls -->
 		</div><!-- /frame-fp-controls -->

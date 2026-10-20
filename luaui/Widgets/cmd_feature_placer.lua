@@ -124,6 +124,9 @@ local fp = {
 	-- Per-feature visual scale range. 1/1 means untouched: entries then carry no
 	-- scale at all, keeping wire traffic and save files byte-identical.
 	scaleMin = 1.0,
+	-- elmos above (+) or below (-) the ground the next placements land at: Alt+Shift+Scroll or the
+	-- HEIGHT OFFSET slider. Rides each placement's own y, so undo, saves and projects keep it.
+	heightOffset = 0,
 	scaleMax = 1.0,
 	-- Clustered distribution shape, see generateClustered in common/feature_scatter.lua.
 	-- Defaults reproduce the original fixed stand.
@@ -564,6 +567,7 @@ local function layoutParams()
 		tiltRandom = fp.tiltRandom,
 		scaleMin = fp.scaleMin,
 		scaleMax = fp.scaleMax,
+		heightOffset = fp.heightOffset,
 		clumps = fp.clumps,
 		clumpSize = fp.clumpSize,
 		clumpLoose = fp.clumpLoose / 100,
@@ -699,7 +703,13 @@ local function resolvePlacements(worldX, worldZ)
 		local copyRot = (p.rot or fp.rotation) - fp.rotation
 		local resolved = Scatter.resolve(layoutInsideMap(layout, p.x, p.z, copyRot), p.x, p.z, params, copyRot)
 		for j = 1, #resolved do
-			placements[#placements + 1] = resolved[j]
+			local r = resolved[j]
+			-- resolve hands back fresh entries at ground height: the offset lifts or sinks them,
+			-- preview and placement alike
+			if fp.heightOffset ~= 0 then
+				r.y = r.y + fp.heightOffset
+			end
+			placements[#placements + 1] = r
 		end
 	end
 	return placements
@@ -1901,6 +1911,7 @@ local function getState()
 		distribution = fp.distribution,
 		scaleMin = fp.scaleMin,
 		scaleMax = fp.scaleMax,
+		heightOffset = fp.heightOffset,
 		clumps = fp.clumps,
 		clumpSize = fp.clumpSize,
 		clumpLoose = fp.clumpLoose,
@@ -2373,6 +2384,18 @@ function widget:MouseWheel(up, value)
 
 	local alt, ctrl, _, shift = GetModKeyState()
 
+	if alt and shift then
+		-- Alt+Shift+Scroll = RANDOMIZE TILT, 3 degrees a notch
+		fp.tiltRandom = max(0, min(45, (fp.tiltRandom or 0) + (up and 3 or -3)))
+		return true
+	end
+
+	if ctrl and alt then
+		-- Ctrl+Alt+Scroll = feature count
+		setFeatureCount(fp.featureCount + (up and 1 or -1))
+		return true
+	end
+
 	if alt then
 		-- Alt+Scroll = rotate brush (snap to TB protractor step when angleSnap on)
 		local step = ROTATION_STEP
@@ -2387,9 +2410,8 @@ function widget:MouseWheel(up, value)
 	end
 
 	if shift and ctrl then
-		-- Ctrl+Shift+Scroll = feature count
-		local step = up and 1 or -1
-		setFeatureCount(fp.featureCount + step)
+		-- Ctrl+Shift+Scroll = HEIGHT OFFSET of the next placements, 4 elmos a notch
+		fp.heightOffset = max(-500, min(500, fp.heightOffset + (up and 4 or -4)))
 		return true
 	end
 
@@ -2749,6 +2771,9 @@ function widget:Initialize()
 		rotate = rotate,
 		setRotRandom = setRotRandom,
 		-- Inline rather than a file local: this widget sits near Lua's 200-local ceiling.
+		setHeightOffset = function(v)
+			fp.heightOffset = max(-500, min(500, floor((tonumber(v) or 0) + 0.5)))
+		end,
 		setTiltRandom = function(v)
 			fp.tiltRandom = max(0, min(45, floor(v + 0.5)))
 		end,
