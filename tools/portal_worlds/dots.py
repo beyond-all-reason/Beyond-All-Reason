@@ -523,13 +523,11 @@ def presentation_copy(path, sample_frames):
             for original in row["units"]:
                 unit = original.copy()
                 for index in (3, 4, 5, 6, 7):
-                    value = round(unit[index], 1)
-                    if index in (3, 5) and unit[14]:
-                        r = header["regions"][unit[14] - 1]
-                        key = "x" if index == 3 else "z"
-                        if not r[key + "0"] <= value < r[key + "1"]:
-                            continue
-                    unit[index] = value
+                    unit[index] = round(unit[index], 1)
+                if region(header, unit[3], unit[5]) != unit[14]:
+                    # Preserve membership on both sides of a boundary, including
+                    # the brief outside-region samples that diagnostics retain.
+                    unit[3], unit[5] = original[3], original[5]
                 # Unchanged rows share storage in the player as well as bytes on
                 # disk. Full-row equality includes the birth frame, so ID reuse
                 # or reappearance cannot inherit an earlier unit's state.
