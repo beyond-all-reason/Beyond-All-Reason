@@ -372,11 +372,13 @@ StartBuilding(torsoing, pitch, heading)
 	show lnano;
 	show rnano;
 
+	wait-for-turn luparm around x-axis;
+	wait-for-turn ruparm around x-axis;
+	
 	turn luparm to x-axis <-45> speed <375.000000>;
 	turn larm to x-axis <-45> speed <375.000000>;
 	turn ruparm to x-axis <-45> speed <375.000000>;
 	turn rarm to x-axis <-45> speed <375.000000>;
-	wait-for-turn luparm around x-axis;
 
 	torsoRotation = torsoing;
 	wait-for-turn torso around y-axis;
