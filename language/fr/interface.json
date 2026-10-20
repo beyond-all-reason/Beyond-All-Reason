@@ -230,7 +230,7 @@
 				"trajectory_tooltip": "Définit l'angle de tir de l'artillerie",
 				"siegeMode": "Tir dispersé",
 				"suppressiveFire": "Tir focalisé",
-				"siege_tooltip": "Alterne entre un tir focalisé et un tir dispersé plus longue portée.",
+				"siege_tooltip": "Alterne entre un tir focalisé et un tir dispersé plus longue portée."
 			}
 		},
 		"idleBuilders": {
