@@ -140,6 +140,49 @@ class RecordingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "predates"):
             self.check_rows([self.sample(frame=45)])
 
+    def test_display_references_roundtrip_and_do_not_reuse_old_lifetimes(self):
+        first = self.sample(frame=0)
+        second = self.sample(frame=15)
+        third = self.sample(frame=30)
+        third["units"][0][15] = 30
+        self.check_rows([first, second, third])
+        display = self.path.with_suffix(".gz")
+        display.write_bytes(dots.presentation_copy(self.path, 15))
+        packed = [
+            json.loads(line)
+            for line in gzip.decompress(display.read_bytes()).splitlines()
+        ]
+        self.assertEqual(packed[2]["units"], [7])
+        self.assertIsInstance(packed[3]["units"][0], list)
+        decoded = list(dots.read(display))
+        self.assertEqual(decoded[1]["units"], first["units"])
+        self.assertEqual(decoded[2]["units"], second["units"])
+        self.assertEqual(decoded[3]["units"][0][15], 30)
+        self.assertEqual(dots.review(display)["counts"]["samples"], 3)
+
+    def test_display_reference_cannot_survive_an_absent_sample(self):
+        self.header["presentation"] = {"unit_encoding": "previous-sample-refs"}
+        first = self.sample(frame=0)
+        absent = self.sample(frame=15)
+        absent["units"] = []
+        invalid = self.sample(frame=30)
+        invalid["units"] = [7]
+        with self.assertRaisesRegex(ValueError, "Missing previous-sample"):
+            self.check_rows([first, absent, invalid])
+
+    def test_display_preserves_zero_coordinates_after_absent_parameters(self):
+        first, second = self.sample(frame=0), self.sample(frame=15)
+        first["units"][0][11:14] = [False, False, False]
+        second["units"][0][11:14] = [0, 0, 0]
+        self.check_rows([first, second])
+        display = self.path.with_suffix(".gz")
+        display.write_bytes(dots.presentation_copy(self.path, 15))
+        decoded = list(dots.read(display))
+        self.assertEqual(decoded[2]["units"][0][11:14], [0, 0, 0])
+        self.assertTrue(
+            all(type(value) is int for value in decoded[2]["units"][0][11:14])
+        )
+
     def test_nonfinite_json_is_rejected(self):
         sample = self.sample()
         sample["units"][0][3] = float("nan")

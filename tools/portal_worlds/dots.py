@@ -31,6 +31,8 @@ def digest(path):
 
 def read(path):
     opener = gzip.open if path.suffix == ".gz" else open
+    references = False
+    previous_units = {}
     with opener(path, "rt") as source:
         for line in source:
             # Synced Lua may serialize integral IDs with a decimal suffix.
@@ -43,7 +45,23 @@ def read(path):
             def invalid(value):
                 raise ValueError("Non-finite recording number: " + value)
 
-            yield json.loads(line, parse_float=number, parse_constant=invalid)
+            row = json.loads(line, parse_float=number, parse_constant=invalid)
+            if row.get("type") == "header":
+                encoding = row.get("presentation", {}).get("unit_encoding")
+                if encoding not in (None, "previous-sample-refs"):
+                    raise ValueError("Unknown display unit encoding")
+                references = encoding == "previous-sample-refs"
+            elif references and row.get("type") == "sample":
+                units = []
+                for unit in row["units"]:
+                    if type(unit) is int:
+                        if unit not in previous_units:
+                            raise ValueError("Missing previous-sample unit reference")
+                        unit = previous_units[unit].copy()
+                    units.append(unit)
+                row["units"] = units
+                previous_units = {unit[0]: unit for unit in units}
+            yield row
 
 
 def region(header, x, z):
@@ -488,6 +506,7 @@ def presentation_copy(path, sample_frames):
     stream = io.BytesIO()
     samples = 0
     previous = None
+    previous_units = {}
     with gzip.GzipFile(fileobj=stream, mode="wb", compresslevel=6) as target:
 
         def write(row):
@@ -497,6 +516,33 @@ def presentation_copy(path, sample_frames):
                 ).encode()
             )
 
+        def write_sample(row):
+            nonlocal previous_units
+            units = []
+            current = {}
+            for original in row["units"]:
+                unit = original.copy()
+                for index in (3, 4, 5, 6, 7):
+                    value = round(unit[index], 1)
+                    if index in (3, 5) and unit[14]:
+                        r = header["regions"][unit[14] - 1]
+                        key = "x" if index == 3 else "z"
+                        if not r[key + "0"] <= value < r[key + "1"]:
+                            continue
+                    unit[index] = value
+                # Unchanged rows share storage in the player as well as bytes on
+                # disk. Full-row equality includes the birth frame, so ID reuse
+                # or reappearance cannot inherit an earlier unit's state.
+                prior = previous_units.get(unit[0])
+                same = prior == unit and all(
+                    (type(a) is bool) == (type(b) is bool) for a, b in zip(prior, unit)
+                )
+                units.append(unit[0] if same else unit)
+                current[unit[0]] = unit
+            previous_units = current
+            row["units"] = units
+            write(row)
+
         for row in read(path):
             if row["type"] == "header":
                 row["presentation"] = {
@@ -504,6 +550,7 @@ def presentation_copy(path, sample_frames):
                     "sample_frames": sample_frames,
                     "position_precision": 0.1,
                     "health_precision": 0.1,
+                    "unit_encoding": "previous-sample-refs",
                 }
                 row["sample_frames"] = sample_frames
                 header = row
@@ -512,21 +559,12 @@ def presentation_copy(path, sample_frames):
                 previous = row
                 if row["frame"] % sample_frames != 0:
                     continue
-                for unit in row["units"]:
-                    for index in (3, 4, 5, 6):
-                        value = round(unit[index], 1)
-                        if index in (3, 5) and unit[14]:
-                            r = header["regions"][unit[14] - 1]
-                            key = "x" if index == 3 else "z"
-                            if not r[key + "0"] <= value < r[key + "1"]:
-                                continue
-                        unit[index] = value
-                write(row)
+                write_sample(row)
                 samples += 1
                 previous = None
             elif row["type"] == "end":
                 if previous is not None:
-                    write(previous)
+                    write_sample(previous)
                     samples += 1
                 row["samples"] = samples
                 write(row)
@@ -624,7 +662,11 @@ def main():
         credits = "No map background included."
         if args.map_dir:
             attribution = args.map_dir / "ATTRIBUTION.txt"
-            credits = attribution.read_text() if attribution.exists() else "See the original map for its author credits and terms."
+            credits = (
+                attribution.read_text()
+                if attribution.exists()
+                else "See the original map for its author credits and terms."
+            )
             import io
             from PIL import Image
 

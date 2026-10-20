@@ -22,8 +22,9 @@ Open `match.html` in a current Chrome, Chromium, Firefox or Safari browser. It
 contains the recording and player, works offline and needs no server or engine.
 The shareable copy uses one-second samples and rounds displayed positions/HP
 to 0.1 units. It records those display changes and the original data hash in its
-header and a receipt. The full half-second recording remains unchanged for
-analysis; use `--sample-frames 15` to keep its sample cadence.
+header and a receipt. Unchanged unit rows use references to the immediately preceding display
+sample, reducing file size and player memory without changing those states.
+The full half-second recording remains unchanged for analysis; use `--sample-frames 15` to keep its sample cadence.
 Share that single file for playback; `.jsonl.gz` plus `dots/viewer.html` is an
 alternative. The optional map background uses Pillow and the composed map’s
 original minimap; it is presentation only. Preserve the map authors’ attribution
@@ -46,7 +47,12 @@ player fog of war or the AI’s knowledge. The player sends no game commands.
 FPS and compact array columns; samples hold unit/projectile positions, current
 orders, resources and portal mouths; exact-frame events hold shots, damage,
 deaths, observed region changes and portal openings. A footer reconciles the
-sample/event counts. Unit samples are half a simulation second apart. Numeric
+sample/event counts. Footer winners are ally-team IDs, not unit-team IDs.
+The optional display `presentation.unit_encoding = "previous-sample-refs"`
+allows an integer unit ID instead of its identical previous row. References
+expire when that unit is absent; birth frames distinguish reused IDs. The player
+and `dots.py` decode this display transport before inspecting samples.
+Unit samples are half a simulation second apart. Numeric
 `false` slots mean an absent command parameter, not a zero coordinate.
 
 The recorder only reads simulation state, registers projectile observations and
