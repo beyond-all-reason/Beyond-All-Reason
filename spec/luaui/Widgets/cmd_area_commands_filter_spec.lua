@@ -11,8 +11,17 @@ describe("Area Command Filter drag origin", function()
 	---@type { units: integer[], command: integer, options: string[] }[]
 	local orderDetails
 	local traceType, traceID, activeCommand, held
+	local expectedCommand
 	local function notify(options, params, command)
-		return widget:CommandNotify(command or 20, params or { 100, 0, 100, 200 }, options or { alt = true })
+		command = command or env.CMD.ATTACK
+		if command == env.CMD.ATTACK then
+			expectedCommand = env.GameCMD.ATTACK_TARGETS
+		elseif command == env.GameCMD.UNIT_SET_TARGET then
+			expectedCommand = env.GameCMD.UNIT_SET_TARGETS
+		else
+			expectedCommand = command
+		end
+		return widget:CommandNotify(command, params or { 100, 0, 100, 200 }, options or { alt = true })
 	end
 
 	before_each(function()
@@ -69,7 +78,12 @@ describe("Area Command Filter drag origin", function()
 				OPT_RIGHT = 16,
 				OPT_META = 4,
 			},
-			GameCMD = { UNIT_SET_TARGET = 34923, UNIT_SET_TARGET_NO_GROUND = 34924, UNIT_SET_TARGETS = 34926 },
+			GameCMD = {
+				UNIT_SET_TARGET = 34923,
+				UNIT_SET_TARGET_NO_GROUND = 34924,
+				ATTACK_TARGETS = 34927,
+				UNIT_SET_TARGETS = 34926,
+			},
 			Spring = {
 				ENEMY_UNITS = -4,
 				ALLY_UNITS = -2,
@@ -128,6 +142,7 @@ describe("Area Command Filter drag origin", function()
 					end
 				end,
 				GiveOrderToUnitArray = function(units, command, params, options)
+					assert.equal(expectedCommand, command)
 					orderDetails[#orderDetails + 1] = { units = units, command = command, options = options }
 					for _, targetID in ipairs(params) do
 						orders[#orders + 1] = targetID
