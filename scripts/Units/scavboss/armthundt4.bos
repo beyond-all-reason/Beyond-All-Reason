@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, engines, enginec, wingl, wingr, doorl, doorr, thrustc, thrust1, thrust2, thrust3, thrust4, blinka, blinkb;
+piece  base, engines, enginec, wingl, wingr, doorl, doorr, thrustc, thrust1, thrust2, thrust3, thrust4, blinka, blinkb, firepoint;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
@@ -178,6 +178,11 @@ Deactivate()
 }
 
 QueryPrimary(piecenum)
+{
+	piecenum = firepoint;
+}
+
+AimFromWeapon1(piecenum)
 {
 	piecenum = base;
 }

@@ -8,7 +8,6 @@ return {
 		collisionvolumescales = "42 28 55",
 		collisionvolumetype = "BOX",
 		corpse = "DEAD",
-		damagemodifier = 0.5,
 		energycost = 36000,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 3,
@@ -38,7 +37,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.188,
-		turnrate = 550.29999,
+		turnrate = 550,
 		customparams = {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",

@@ -9,6 +9,8 @@
 --
 -- Nothing here reaches disk: the store and the keymap the migration writes are both discarded.
 
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
 local Json = require("common/luaUtilities/json")
 
 local function readFile(path)
@@ -25,54 +27,48 @@ end
 
 -- The profile the migration makes of a bind file the player wrote themselves.
 local function migrate(uikeys)
-	local realOpen, realLoadFile = io.open, VFS.LoadFile
-	local realGetConfig, realSetConfig = Spring.GetConfigString, Spring.SetConfigString
-	local realGetKeyCode = Spring.GetKeyCode
+	local env = SpecEnv.new({
+		VFS = {
+			LoadFile = function(path)
+				if path == "uikeys.txt" then
+					return uikeys
+				end
 
-	VFS.LoadFile = function(path)
-		if path == "uikeys.txt" then
-			return uikeys
-		end
+				local file = io.open(path, "rb")
+				if not file then
+					return nil
+				end
 
-		local file = realOpen(path, "rb")
-		if not file then
-			return nil
-		end
+				local contents = file:read("*a")
+				file:close()
 
-		local contents = file:read("*a")
-		file:close()
+				return contents
+			end,
+		},
+		Spring = {
+			GetConfigString = function(_, default)
+				return default
+			end,
+			SetConfigString = function() end,
+			GetKeyCode = function()
+				return 1
+			end,
+		},
+		io = {
+			open = function(path, mode)
+				if mode == "w" then
+					return { write = function() end, close = function() end }
+				end
 
-		return contents
-	end
-	Spring.GetConfigString = function(_, default)
-		return default
-	end
-	Spring.SetConfigString = function() end
-	Spring.GetKeyCode = function()
-		return 1
-	end
-	io.open = function(path, mode)
-		if mode == "w" then
-			return { write = function() end, close = function() end }
-		end
+				return io.open(path, mode)
+			end,
+		},
+	})
 
-		return realOpen(path, mode)
-	end
+	local profiles = SpecEnv.include(env, "luaui/Include/keybind_profiles.lua")
+	profiles.load()
 
-	local ok, result = pcall(function()
-		local profiles = require("luaui/Include/keybind_profiles")
-		profiles.load()
-
-		return profiles.get(profiles.list()[1])
-	end)
-
-	io.open, VFS.LoadFile = realOpen, realLoadFile
-	Spring.GetConfigString, Spring.SetConfigString = realGetConfig, realSetConfig
-	Spring.GetKeyCode = realGetKeyCode
-
-	assert(ok, tostring(result))
-
-	return result
+	return profiles.get(profiles.list()[1])
 end
 
 local function shippedProfile(defaults, name)
@@ -135,30 +131,29 @@ describe("migrating a keyload of a bind file the game no longer ships", function
 	end)
 end)
 
--- The module with its shipped profiles read in. Included rather than required so each call
--- gets a store of its own, and only the reader is stubbed: nothing here has a store on disk.
 local function includeProfiles()
-	local realLoadFile, realGetKeyCode = VFS.LoadFile, Spring.GetKeyCode
-	VFS.LoadFile = function(path)
-		local file = io.open(path, "rb")
-		if not file then
-			return nil
-		end
+	local env = SpecEnv.new({
+		VFS = {
+			LoadFile = function(path)
+				local file = io.open(path, "rb")
+				if not file then
+					return nil
+				end
 
-		local contents = file:read("*a")
-		file:close()
+				local contents = file:read("*a")
+				file:close()
 
-		return contents
-	end
-	Spring.GetKeyCode = function()
-		return 1
-	end
+				return contents
+			end,
+		},
+		Spring = {
+			GetKeyCode = function()
+				return 1
+			end,
+		},
+	})
 
-	local ok, result = pcall(VFS.Include, "luaui/Include/keybind_profiles.lua")
-	VFS.LoadFile, Spring.GetKeyCode = realLoadFile, realGetKeyCode
-	assert(ok, tostring(result))
-
-	return result
+	return SpecEnv.include(env, "luaui/Include/keybind_profiles.lua")
 end
 
 describe("the binds that switch between profiles", function()
@@ -202,27 +197,8 @@ describe("the binds that switch between profiles", function()
 end)
 
 -- What a player wrote in their own uikeys.txt, read the way the engine would have read it.
--- The reader resolves a keyload itself, so the file stub has to outlast the include.
 local function parse(text)
-	local profiles = includeProfiles()
-	local realLoadFile = VFS.LoadFile
-	VFS.LoadFile = function(path)
-		local file = io.open(path, "rb")
-		if not file then
-			return nil
-		end
-
-		local contents = file:read("*a")
-		file:close()
-
-		return contents
-	end
-
-	local ok, binds = pcall(profiles.parseBindFile, text)
-	VFS.LoadFile = realLoadFile
-	assert(ok, tostring(binds))
-
-	return binds or {}
+	return includeProfiles().parseBindFile(text) or {}
 end
 
 local function keysetsFor(binds, action)
@@ -309,6 +285,72 @@ describe("unbinding a keychain", function()
 	end)
 end)
 
+-- The order binds land in uikeys.txt, for a chain and the keyset that is just its tail.
+local function bindOrder(binds)
+	local text = includeProfiles().exportText({ name = "Test", binds = binds })
+	local order = {}
+	for keyset in text:gmatch("\nbind%s+(%S+)%s") do
+		order[#order + 1] = keyset
+	end
+
+	return order
+end
+
+describe("ordering a chain bind against the keyset that is just its tail", function()
+	-- CKeyChain::fit matches a chain's own trailing taps too, so once "g,g" is fully pressed,
+	-- a bind on "g" alone fits just as well. The engine tries binds in file order and stops at
+	-- the first match, so "g,g" has to be written first or the second "g" is always claimed by
+	-- the shorter bind before "g,g" ever gets a look.
+	it("writes the chain before the keyset it ends with, however it was added", function()
+		local order = bindOrder({
+			{ keyset = "g", action = "probe_single" },
+			{ keyset = "g,g", action = "probe_chain" },
+		})
+
+		assert.are.same({ "g,g", "g" }, order)
+	end)
+
+	it("writes the chain first even when it was added second", function()
+		local order = bindOrder({
+			{ keyset = "g,g", action = "probe_chain" },
+			{ keyset = "g", action = "probe_single" },
+		})
+
+		assert.are.same({ "g,g", "g" }, order)
+	end)
+
+	it("leaves unrelated binds in their original order", function()
+		local order = bindOrder({
+			{ keyset = "h", action = "probe_h" },
+			{ keyset = "g,g", action = "probe_chain" },
+			{ keyset = "g", action = "probe_single" },
+		})
+
+		assert.are.same({ "h", "g,g", "g" }, order)
+	end)
+
+	-- CKeyChain::fit compares only the trailing taps of whatever chain is pressed, so any chain
+	-- ending in "g" - not just "g,g" - also satisfies a bare "g" bind once it completes.
+	it("still moves a chain ahead of a bind on its own last tap, whatever came before", function()
+		local order = bindOrder({
+			{ keyset = "g", action = "probe_single" },
+			{ keyset = "a,g", action = "probe_chain" },
+		})
+
+		assert.are.same({ "a,g", "g" }, order)
+	end)
+
+	it("still orders a three-tap chain ahead of both of its own tails", function()
+		local order = bindOrder({
+			{ keyset = "g", action = "probe_single" },
+			{ keyset = "g,g,g", action = "probe_triple" },
+			{ keyset = "g,g", action = "probe_chain" },
+		})
+
+		assert.are.same({ "g,g,g", "g,g", "g" }, order)
+	end)
+end)
+
 describe("inferring which shipped profile a keymap came from", function()
 	-- The engine lowercases a command word as it parses a bind, and the shipped data has moved
 	-- between spellings, so a profile carrying the older one is still that profile.
@@ -321,5 +363,87 @@ describe("inferring which shipped profile a keymap came from", function()
 		end
 
 		assert.are.equal("Grid", profiles.inferBase({ binds = capitalised }))
+	end)
+end)
+
+describe("importing bind lines into the preset on screen", function()
+	-- Pasted lines run against the preset the way the console runs them against a live keymap.
+	local function current()
+		return {
+			{ keyset = "sc_w", action = "resurrect" },
+			{ keyset = "sc_y", action = "wait" },
+		}
+	end
+
+	it("adds its binds after the preset's own", function()
+		local binds = includeProfiles().applyBindText(current(), "bind sc_q probe_add\n")
+
+		assert.are.same({
+			{ keyset = "sc_w", action = "resurrect" },
+			{ keyset = "sc_y", action = "wait" },
+			{ keyset = "sc_q", action = "probe_add" },
+		}, binds)
+	end)
+
+	-- The engine refuses a bind it already holds, so a second copy would be a row doing nothing.
+	it("refuses a bind the preset already holds, however the keyset is spelled", function()
+		local binds = includeProfiles().applyBindText(current(), "bind SC_Y wait\n")
+
+		assert.are.same(current(), binds)
+	end)
+
+	it("takes an unbind from the preset's own binds", function()
+		local binds = includeProfiles().applyBindText(current(), "unbindkeyset sc_w\nbind sc_w wait\n")
+
+		assert.are.same({
+			{ keyset = "sc_y", action = "wait" },
+			{ keyset = "sc_w", action = "wait" },
+		}, binds)
+	end)
+
+	it("leaves the list it was given alone", function()
+		local given = current()
+		includeProfiles().applyBindText(given, "unbindall\n")
+
+		assert.are.same(current(), given)
+	end)
+end)
+
+describe("reading a bind copied from chat", function()
+	it("takes the slash it was typed with", function()
+		local binds = parse("/bind sc_q probe_slash\n")
+
+		assert.are.same({ "sc_q" }, keysetsFor(binds, "probe_slash"))
+	end)
+
+	it("shows the line as a bind in the preview", function()
+		local lines, binds, errors = includeProfiles().classifyBindFile("/bind sc_q probe_slash")
+
+		assert.are.equal("bind", lines[1].kind)
+		assert.are.equal(1, binds)
+		assert.are.equal(0, errors)
+	end)
+
+	it("leaves a // comment a comment", function()
+		local lines = includeProfiles().classifyBindFile("//bind sc_q probe_slash")
+
+		assert.are.equal("comment", lines[1].kind)
+	end)
+end)
+
+describe("telling a whole preset from a few binds", function()
+	it("reads our own export as a preset", function()
+		local profiles = includeProfiles()
+		local text = profiles.exportText({ name = "Mine", binds = { { keyset = "sc_q", action = "attack" } } })
+
+		assert.is_true(profiles.isWholeProfile(text))
+	end)
+
+	it("reads text that clears the keymap first as a preset", function()
+		assert.is_true(includeProfiles().isWholeProfile("unbindall\nbind sc_q attack\n"))
+	end)
+
+	it("reads loose bind lines as binds to add", function()
+		assert.is_false(includeProfiles().isWholeProfile("bind sc_q attack\n/bind sc_w wait\n"))
 	end)
 end)

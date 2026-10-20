@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Minimum time between checks per-builder. Increase to improve performance.
-local safeguardDuration = 0.1 ---@type number in seconds
+local safeguardDurationMin = 0.1 ---@type number in seconds
 -- Remove non-terminating commands
 local removableCommand = {
 	[CMD.GUARD] = true,
@@ -43,7 +43,10 @@ local recentUnits = {}
 local updateTime = 0
 local gameTime = 0
 -- Regardless of the preference above, we don't need to go any lower than the double-click speed.
-safeguardDuration = math.max(safeguardDuration, Spring.GetConfigInt("DoubleClickTime", 200) / 1000)
+local function getSafeguardDuration()
+	return math.max(safeguardDurationMin, Spring.GetConfigInt("DoubleClickTime", 200) / 1000)
+end
+local safeguardDuration = getSafeguardDuration()
 
 local validUnit = {}
 for udid, ud in pairs(UnitDefs) do
@@ -51,6 +54,7 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local function clearRecentUnits()
+	safeguardDuration = getSafeguardDuration() -- the double-click time can change in game
 	local release = gameTime - safeguardDuration
 	for unitID, seconds in pairs(recentUnits) do
 		if seconds <= release then

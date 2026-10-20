@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, thrust, firepoint, bomb;
+piece  base, thrust, firepoint, bomb, basefirepoint;
 
 static-var  statechg_DesiredState, statechg_StateChanging, detonating;
 
@@ -117,7 +117,7 @@ FireWeapon2()
 
 QueryWeapon2(piecenum)
 {
-	piecenum = base;
+	piecenum = basefirepoint;
 }
 
 AimFromWeapon2(piecenum)

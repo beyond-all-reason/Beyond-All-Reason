@@ -133,7 +133,7 @@ Killed(severity, corpsetype)
 
 
 
-Dronedocked(arg1, dockpiece, arg2, arg3)
+DroneDocked(arg1, dockpiece, arg2, arg3)
 {
 	var piece_xz;
 	var piece_angle;

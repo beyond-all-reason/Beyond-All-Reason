@@ -3531,4 +3531,468 @@ WG.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy, cs, opacity, color)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
+---------------------------------------------------------------------------------------
+-- Colors
+---------------------------------------------------------------------------------------
+
+local function clamp01(x)
+	return mathMax(0, mathMin(1, x))
+end
+
+-- Hue and saturation from 0 to 1, and value as high as the brightest channel, which may be past 1.
+-- Grey has no hue and black no saturation either: nil for those, so a picker keeps what it had.
+local function rgbToHsv(r, g, b)
+	local max = mathMax(r, g, b)
+	local delta = max - mathMin(r, g, b)
+	if max <= 0 then
+		return nil, nil, 0
+	elseif delta <= 0 then
+		return nil, 0, max
+	end
+	local h
+	if max == r then
+		h = ((g - b) / delta) % 6
+	elseif max == g then
+		h = (b - r) / delta + 2
+	else
+		h = (r - g) / delta + 4
+	end
+	return h / 6, delta / max, max
+end
+
+local function hsvToRgb(h, s, v)
+	local sector = h * 6
+	local i = mathFloor(sector)
+	local f = sector - i
+	local p, q, t = v * (1 - s), v * (1 - s * f), v * (1 - s * (1 - f))
+	i = i % 6
+	if i == 0 then
+		return v, t, p
+	elseif i == 1 then
+		return q, v, p
+	elseif i == 2 then
+		return p, v, t
+	elseif i == 3 then
+		return p, q, v
+	elseif i == 4 then
+		return t, p, v
+	end
+	return v, p, q
+end
+
+-- A quad with a color at each corner, going round from the bottom left. A gradient that only runs
+-- across or only runs up is linear over the quad, so its two triangles show it exactly.
+local function DrawGradientQuad(x1, y1, x2, y2, c1, c2, c3, c4)
+	gl.Color(c1[1], c1[2], c1[3], c1[4])
+	gl.Vertex(x1, y1, 0)
+	gl.Color(c2[1], c2[2], c2[3], c2[4])
+	gl.Vertex(x2, y1, 0)
+	gl.Color(c3[1], c3[2], c3[3], c3[4])
+	gl.Vertex(x2, y2, 0)
+	gl.Color(c4[1], c4[2], c4[3], c4[4])
+	gl.Vertex(x1, y2, 0)
+end
+
+-- red, yellow, green, cyan, blue, magenta and red again: the hue strip from its bottom up
+---@type table<integer, table<integer, number>>
+local hueStops = { { 1, 0, 0 }, { 1, 1, 0 }, { 0, 1, 0 }, { 0, 1, 1 }, { 0, 0, 1 }, { 1, 0, 1 }, { 1, 0, 0 } }
+
+local function DrawHueStrip(x1, y1, x2, y2)
+	local step = (y2 - y1) / 6
+	for i = 1, 6 do
+		local below, above = hueStops[i], hueStops[i + 1]
+		local yb, ya = y1 + step * (i - 1), y1 + step * i
+		gl.Color(below[1], below[2], below[3], 1)
+		gl.Vertex(x1, yb, 0)
+		gl.Vertex(x2, yb, 0)
+		gl.Color(above[1], above[2], above[3], 1)
+		gl.Vertex(x2, ya, 0)
+		gl.Vertex(x1, ya, 0)
+	end
+end
+
+-- a dark band `width` wide around r = { x1, y1, x2, y2 }
+local function DrawRim(r, width)
+	local w = width
+	WG.FlowUI.Draw.RectRound(r[1] - w, r[2] - w, r[3] + w, r[4] + w, w, 1, 1, 1, 1, { 0, 0, 0, 0.5 })
+end
+
+-- a ring round x, y: white between two dark edges, so it shows on any color
+local function DrawRing(x, y, radius, width)
+	local cs = mathMax(1, mathFloor(radius * 0.4))
+	local dark, white = { 0, 0, 0, 0.6 }, { 1, 1, 1, 1 }
+	local r = radius + 1
+	WG.FlowUI.Draw.RectRoundOutline(x - r, y - r, x + r, y + r, cs + 1, width + 2, 1, 1, 1, 1, dark, dark)
+	WG.FlowUI.Draw.RectRoundOutline(x - radius, y - radius, x + radius, y + radius, cs, width, 1, 1, 1, 1, white, white)
+end
+
+-- whether x, y lies in r = { x1, y1, x2, y2 }, grown by margin
+local function within(r, x, y, margin)
+	margin = margin or 0
+	return x >= r[1] - margin and x <= r[3] + margin and y >= r[2] - margin and y <= r[4] + margin
+end
+
+---Draws a swatch of a color: the color flat, as it is, in a dark rim with a faint light edge inside,
+---so black and white both stand out wherever it sits.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param color rgb|rgba Channels past 1 show as 1; alpha is left out
+---@param hovered boolean? Lights the edge
+WG.FlowUI.Draw.ColorSwatch = function(px, py, sx, sy, color, hovered)
+	local height = sy - py
+	local cs = mathMax(1, mathFloor(height * 0.12))
+	local edgeWidth = mathMax(1, mathFloor(height * 0.07))
+	WG.FlowUI.Draw.RectRound(
+		px - edgeWidth,
+		py - edgeWidth,
+		sx + edgeWidth,
+		sy + edgeWidth,
+		cs * 1.5,
+		1,
+		1,
+		1,
+		1,
+		{ 0, 0, 0, 0.45 }
+	)
+	local fill = { clamp01(color[1]), clamp01(color[2]), clamp01(color[3]), 1 }
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1, 1, 1, 1, fill)
+	WG.FlowUI.Draw.RectRoundOutline(
+		px,
+		py,
+		sx,
+		sy,
+		cs,
+		edgeWidth * 2,
+		1,
+		1,
+		1,
+		1,
+		{ 1, 1, 1, hovered and 0.45 or 0.22 },
+		{ 1, 1, 1, 0 }
+	)
+end
+
+local channelLetters = { "R", "G", "B" } ---@type table<integer, string>
+
+---One of a color picker's bars: left, bottom, right and top, and where its row and text go.
+---@class FlowUIColorPickerChannel
+---@field [1] number
+---@field [2] number
+---@field [3] number
+---@field [4] number
+---@field top number Of the row
+---@field bottom number Of the row
+---@field y number The row's middle, for its text
+---@field letter string "R", "G" or "B"
+---@field labelX number Where the letter starts
+---@field valueX number Where the value ends
+
+---Where setRect laid a color picker out; each area is left, bottom, right and top.
+---@class FlowUIColorPickerParts
+---@field rect table<integer, number>
+---@field pad number
+---@field field table<integer, number>
+---@field hue table<integer, number>
+---@field new table<integer, number>
+---@field previous table<integer, number>
+---@field knob number
+---@field fontSize number
+---@field channels table<integer, FlowUIColorPickerChannel>
+
+---@class FlowUIColorPicker
+---@field range number
+---@field h number
+---@field s number
+---@field v number
+---@field color table<integer, number> Red, green and blue, from 0 to the range
+---@field previous table<integer, number> The color it started from
+---@field parts FlowUIColorPickerParts? Until setRect, nil
+---@field dragging string|integer|nil The part being dragged
+local ColorPicker = {}
+ColorPicker.__index = ColorPicker
+
+WG.FlowUI.ColorPicker = {}
+
+---Makes a color picker: a field of saturation (across) and value (up) in the hue picked on the strip
+---beside it, a bar for each of red, green and blue under them, and the color picked shown over the
+---one it started from, which a press on puts back. Its owner lays it out with `setRect`, hands it
+---presses, drags and releases, reads `color` (the picker's own table: copy it to keep it) and draws
+---it, along with the text: see `draw`.
+---@param color number[] Red, green and blue, each from 0 to `range`
+---@param range number? How far the channels go, where 1 is as bright as the screen shows. Past 1 the
+---bars run on at full and a mark shows where full is. Defaults to `1`
+---@return FlowUIColorPicker picker
+WG.FlowUI.ColorPicker.new = function(color, range)
+	local picker = setmetatable({}, ColorPicker) --[[@as FlowUIColorPicker]]
+	picker.range = range or 1
+	picker.h, picker.s, picker.v = 0, 0, 0
+	picker.color = { 0, 0, 0 }
+	picker:setColor(color)
+	picker.previous = { picker.color[1], picker.color[2], picker.color[3] }
+	return picker
+end
+
+---Sets the color, each channel held between 0 and the range. Hue and saturation stay where they
+---were for a grey or black, which have none.
+---@param color number[] Red, green and blue
+function ColorPicker:setColor(color)
+	local c = self.color
+	for i = 1, 3 do
+		c[i] = mathMax(0, mathMin(self.range, color[i] or 0))
+	end
+	local h, s, v = rgbToHsv(c[1], c[2], c[3])
+	self.h, self.s, self.v = h or self.h, s or self.s, v
+end
+
+---Lays the picker out in a panel: a square field as tall as the three bars under it leave room for,
+---the hue strip beside it, and the two colors in what is left on the right, so a panel a little
+---wider than it is tall suits it.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+function ColorPicker:setRect(px, py, sx, sy)
+	local rect = self.parts and self.parts.rect
+	if rect and rect[1] == px and rect[2] == py and rect[3] == sx and rect[4] == sy then
+		return
+	end
+	local width, height = sx - px, sy - py
+	local pad = mathMax(3, mathFloor(height * 0.045))
+	local rowH = mathFloor(height * 0.1)
+	local size = height - pad * 3 - rowH * 3
+	local top = sy - pad
+	local hueX = px + pad * 2 + size
+	local hue = { hueX, top - size, hueX + mathMax(4, mathFloor(size * 0.11)), top }
+	local mid = top - mathFloor(size * 0.5)
+	local barH = mathMax(2, mathFloor(rowH * 0.36))
+	local labelW = mathFloor(rowH * 0.9)
+	local valueW = mathFloor(width * 0.19)
+	local channels = {} ---@type table<integer, FlowUIColorPickerChannel>
+	for i = 1, 3 do
+		local rowTop = top - size - pad - rowH * (i - 1)
+		local y = rowTop - mathFloor(rowH * 0.5)
+		local y1 = y - mathFloor(barH * 0.5)
+		channels[i] = {
+			px + pad + labelW,
+			y1,
+			sx - pad - valueW,
+			y1 + barH,
+			top = rowTop,
+			bottom = rowTop - rowH,
+			y = y,
+			letter = channelLetters[i],
+			labelX = px + pad,
+			valueX = sx - pad,
+		}
+	end
+	self.parts = {
+		rect = { px, py, sx, sy },
+		pad = pad,
+		field = { px + pad, top - size, px + pad + size, top },
+		hue = hue,
+		new = { hue[3] + pad, mid, sx - pad, top },
+		previous = { hue[3] + pad, top - size, sx - pad, mid },
+		knob = mathMax(2, mathFloor(rowH * 0.3)),
+		fontSize = mathFloor(rowH * 0.55),
+		channels = channels,
+	}
+end
+
+---The part of the picker at mx, my: "field", "hue", "previous", a channel's number, "panel"
+---elsewhere on it, or nil off it.
+---@param mx number
+---@param my number
+---@return string|integer|nil
+function ColorPicker:partAt(mx, my)
+	local parts = self.parts
+	if not (parts and within(parts.rect, mx, my)) then
+		return nil
+	end
+	-- a little past an edge still picks it, as the field and the strip hold their ends
+	local margin = mathFloor(parts.pad * 0.5)
+	if within(parts.field, mx, my, margin) then
+		return "field"
+	elseif within(parts.hue, mx, my, margin) then
+		return "hue"
+	elseif within(parts.previous, mx, my) then
+		return "previous"
+	end
+	for i, bar in ipairs(parts.channels) do
+		if mx >= bar[1] - parts.knob and mx <= bar[3] + parts.knob and my >= bar.bottom and my <= bar.top then
+			return i
+		end
+	end
+	return "panel"
+end
+
+---A press on the picker. On the field, the hue strip or a bar it starts a drag, which moves the color
+---there straight away; on the color it started from it puts that back.
+---@param mx number
+---@param my number
+---@return boolean changed
+---@return string|integer|nil part What was pressed, as partAt has it
+function ColorPicker:press(mx, my)
+	local part = self:partAt(mx, my)
+	if part == "previous" then
+		local c = self.color
+		local r, g, b = c[1], c[2], c[3]
+		self:setColor(self.previous)
+		return r ~= c[1] or g ~= c[2] or b ~= c[3], part
+	elseif part and part ~= "panel" then
+		self.dragging = part
+		return self:drag(mx, my), part
+	end
+	return false, part
+end
+
+---Moves what is being dragged to mx, my, held at its ends.
+---@param mx number
+---@param my number
+---@return boolean changed
+function ColorPicker:drag(mx, my)
+	local part, parts, c = self.dragging, self.parts, self.color
+	if not (part and parts) then
+		return false
+	end
+	local r, g, b = c[1], c[2], c[3]
+	local bar = type(part) == "number" and parts.channels[part]
+	if part == "field" then
+		local f = parts.field
+		self.s = clamp01((mx - f[1]) / (f[3] - f[1]))
+		self.v = clamp01((my - f[2]) / (f[4] - f[2]))
+		c[1], c[2], c[3] = hsvToRgb(self.h, self.s, self.v)
+	elseif part == "hue" then
+		-- keeps the value, so a color brighter than full stays as bright
+		local hue = parts.hue
+		self.h = clamp01((my - hue[2]) / (hue[4] - hue[2]))
+		c[1], c[2], c[3] = hsvToRgb(self.h, self.s, self.v)
+	elseif bar then
+		c[part] = clamp01((mx - bar[1]) / (bar[3] - bar[1])) * self.range
+		local h, s, v = rgbToHsv(c[1], c[2], c[3])
+		self.h, self.s, self.v = h or self.h, s or self.s, v
+	end
+	return r ~= c[1] or g ~= c[2] or b ~= c[3]
+end
+
+---Ends a drag.
+function ColorPicker:release()
+	self.dragging = nil
+end
+
+---Draws the picker where setRect laid it out. The text is the caller's to print: each of
+---`parts.channels` has a `letter` to put at `labelX` and room for its value right-aligned at
+---`valueX`, both centred on its `y`, at about `parts.fontSize`.
+---@param hovered string|integer|nil The part under the cursor, as partAt has it; the color it started
+---from lights up, as a press on it puts that back
+---@param opacity number? Of the background. Defaults to `0.9`
+function ColorPicker:draw(hovered, opacity)
+	local parts, c, range = self.parts, self.color, self.range
+	if not parts then
+		return
+	end
+	local rect = parts.rect
+	local RectRound = WG.FlowUI.Draw.RectRound
+	opacity = opacity or 0.9
+	local pad = parts.pad
+	local border = mathMax(1, mathFloor(pad * 0.12))
+	local cs = mathMax(2, mathFloor(pad * 0.6))
+	gl.Texture(false)
+
+	RectRound(rect[1] - border, rect[2] - border, rect[3] + border, rect[4] + border, cs, 1, 1, 1, 1, { 0, 0, 0, 0.3 })
+	RectRound(
+		rect[1],
+		rect[2],
+		rect[3],
+		rect[4],
+		cs,
+		1,
+		1,
+		1,
+		1,
+		{ 0.24, 0.24, 0.24, opacity },
+		{ 0.3, 0.3, 0.3, opacity }
+	)
+
+	-- the field: from white across to the hue at full, and from black up
+	local f = parts.field
+	DrawRim(f, border)
+	local hr, hg, hb = hsvToRgb(self.h, 1, 1)
+	local white, full = { 1, 1, 1, 1 }, { hr, hg, hb, 1 }
+	gl.BeginEnd(GL.QUADS, DrawGradientQuad, f[1], f[2], f[3], f[4], white, full, full, white)
+	local black, clear = { 0, 0, 0, 1 }, { 0, 0, 0, 0 }
+	gl.BeginEnd(GL.QUADS, DrawGradientQuad, f[1], f[2], f[3], f[4], black, black, clear, clear)
+	local ring = mathMax(3, mathFloor(pad * 0.55))
+	DrawRing(
+		mathFloor(f[1] + (f[3] - f[1]) * self.s + 0.5),
+		mathFloor(f[2] + (f[4] - f[2]) * mathMin(1, self.v) + 0.5),
+		ring,
+		mathMax(1, mathFloor(ring * 0.35))
+	)
+
+	-- the hue strip, red at both ends, marked at the hue
+	local hue = parts.hue
+	DrawRim(hue, border)
+	gl.BeginEnd(GL.QUADS, DrawHueStrip, hue[1], hue[2], hue[3], hue[4])
+	local y = mathFloor(hue[2] + (hue[4] - hue[2]) * self.h + 0.5)
+	local mark = mathMax(1, mathFloor(pad * 0.2))
+	RectRound(hue[1] - mark * 2, y - mark * 2, hue[3] + mark * 2, y + mark * 2, mark, 1, 1, 1, 1, { 0, 0, 0, 0.6 })
+	RectRound(hue[1] - mark, y - mark, hue[3] + mark, y + mark, 1, 1, 1, 1, 1, white)
+
+	-- Each bar runs its channel from none to full with the other two as they are. In a picker whose
+	-- channels go past full, the rest of the bar stays at full, with a mark where full is.
+	local shown = { clamp01(c[1]), clamp01(c[2]), clamp01(c[3]) }
+	for i, bar in ipairs(parts.channels) do
+		DrawRim(bar, border)
+		local from = { shown[1], shown[2], shown[3], 1 } ---@type table<integer, number>
+		local to = { shown[1], shown[2], shown[3], 1 } ---@type table<integer, number>
+		from[i], to[i] = 0, mathMin(1, range)
+		local knee = bar[3]
+		if range > 1 then
+			knee = mathFloor(bar[1] + (bar[3] - bar[1]) / range + 0.5)
+			gl.BeginEnd(GL.QUADS, DrawGradientQuad, knee, bar[2], bar[3], bar[4], to, to, to, to)
+		end
+		gl.BeginEnd(GL.QUADS, DrawGradientQuad, bar[1], bar[2], knee, bar[4], from, to, to, from)
+		if range > 1 then
+			RectRound(knee, bar[2] - border * 2, knee + border, bar[4] + border * 2, 1, 0, 0, 0, 0, { 1, 1, 1, 0.5 })
+		end
+		WG.FlowUI.Draw.SliderKnob(mathFloor(bar[1] + (bar[3] - bar[1]) * c[i] / range + 0.5), bar.y, parts.knob)
+	end
+
+	-- the color picked, over the one it started from
+	local new, previous, p = parts.new, parts.previous, self.previous
+	DrawRim({ new[1], previous[2], new[3], new[4] }, border)
+	RectRound(new[1], new[2], new[3], new[4], 1, 0, 0, 0, 0, { shown[1], shown[2], shown[3], 1 })
+	RectRound(
+		previous[1],
+		previous[2],
+		previous[3],
+		previous[4],
+		1,
+		0,
+		0,
+		0,
+		0,
+		{ clamp01(p[1]), clamp01(p[2]), clamp01(p[3]), 1 }
+	)
+	if hovered == "previous" then
+		WG.FlowUI.Draw.RectRoundOutline(
+			previous[1],
+			previous[2],
+			previous[3],
+			previous[4],
+			1,
+			mathMax(2, mark * 2),
+			0,
+			0,
+			0,
+			0,
+			{ 1, 1, 1, 0.7 },
+			{ 1, 1, 1, 0 }
+		)
+	end
+	gl.Color(1, 1, 1, 1)
+end
+
 Initialize()
