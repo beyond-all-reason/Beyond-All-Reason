@@ -28,9 +28,7 @@ local halloweenModels = {
 	armspy = { model = "units/event/halloween/armspy.s3o" },
 }
 
-local xmasModels = {
-
-}
+local xmasModels = {}
 
 return {
 	AprilFools = aprilFoolsModels,
