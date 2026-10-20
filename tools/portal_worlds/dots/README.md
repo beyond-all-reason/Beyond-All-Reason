@@ -1,10 +1,11 @@
 # Dots recordings
 
-Record an AI match from its spectator client with the portal launcher’s
+Record an AI-only match from its spectator client with the portal launcher’s
 `--record --headless` or `--record --watch` options. `--watch` opens the actual
 game window; headless recording needs no display or GPU. `--play` is ordinary
 human gameplay and does not enable this all-team recorder. Recording is off by
-default. The launcher prints its run directory; the data is written under
+default. Live capture starts only when every human player is a spectator.
+The launcher prints its run directory; the data is written under
 `RUN/write/recordings/`. A game-over or configured frame limit closes the file.
 An interrupted recording lacks a footer and is rejected.
 

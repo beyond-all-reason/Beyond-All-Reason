@@ -4,6 +4,14 @@ local exportPath = "tools/portal_worlds/dots/export.lua"
 local export = VFS.FileExists(exportPath) and VFS.Include(exportPath) or {}
 local options = Spring.GetModOptions()
 if tostring(options.portal_record or "0") ~= "1" and not export.enabled then return false end
+-- Live capture is for AI-only matches; human gameplay uses the ordinary mode.
+-- Replay export is a separate full-state observer capture.
+if not export.enabled then
+	for _, player in ipairs(Spring.GetPlayerList()) do
+		local _, _, spectator = Spring.GetPlayerInfo(player, false)
+		if not spectator then return false end
+	end
+end
 local endFrame = export.end_frame or tonumber(options.portal_record_end)
 local tag = "portal-dots-row"
 
