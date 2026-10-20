@@ -1,4 +1,4 @@
-local function loadTargetGadget(unitTeams, areaTargets)
+local function loadTargetGadget(unitTeams, areaTargets, allied)
 	local currentCommand
 	local target
 	local rules = {}
@@ -68,7 +68,7 @@ local function loadTargetGadget(unitTeams, areaTargets)
 				return unitTeams and unitTeams[unitID] or (unitID == 1 and 1 or 2)
 			end,
 			AreTeamsAllied = function(a, b)
-				return a == b
+				return a == b or (allied and allied(a, b))
 			end,
 			GetUnitIsDead = function(unitID)
 				return deadTargets[unitID] or false
@@ -82,6 +82,15 @@ local function loadTargetGadget(unitTeams, areaTargets)
 			GetUnitWeaponTryTarget = function(_, _, targetID)
 				checks[#checks + 1] = targetID
 				return canTarget(targetID)
+			end,
+			GetGroundHeight = function()
+				return 0
+			end,
+			GetUnitWeaponTestRange = function()
+				return true
+			end,
+			GetUnitWeaponHaveFreeLineOfFire = function()
+				return true
 			end,
 			GetUnitWeaponTestTarget = function()
 				return true
@@ -567,5 +576,136 @@ describe("Shared crashing membership", function()
 		controller:UnitPreDamaged(11, 1, 2, 101, true, 1)
 		controller:UnitPreDamaged(12, 1, 2, 101, false, 99)
 		assert.same({}, shared.Crashing)
+	end)
+end)
+
+describe("Set Target review regressions", function()
+	local function order(g, targets, options, unitID)
+		g.env.gadget:AllowCommand(
+			unitID or 1,
+			1,
+			1,
+			g.env.GameCMD.UNIT_SET_TARGETS,
+			targets,
+			options or { coded = 0 },
+			1,
+			1
+		)
+	end
+	local function ids(first, last)
+		local result = {}
+		for id = first, last do
+			result[#result + 1] = id
+		end
+		return result
+	end
+	it("caps replacement lists at 512 distinct targets", function()
+		local g = loadTargetGadget()
+		local targets = ids(10, 609)
+		table.insert(targets, 1, 10)
+		order(g, targets)
+		local list = g.env.GG.GetUnitTargetList(1)
+		assert.equal(512, #list)
+		assert.equal(10, list[1].target)
+		assert.equal(521, list[512].target)
+	end)
+	it("caps repeated single appends and compact appends consistently", function()
+		for _, compact in ipairs({ false, true }) do
+			local g = loadTargetGadget()
+			order(g, ids(10, 509))
+			if compact then
+				order(g, ids(500, 609), { shift = true })
+			else
+				for id = 500, 609 do
+					g.set(id, true)
+				end
+			end
+			local list = g.env.GG.GetUnitTargetList(1)
+			assert.equal(512, #list)
+			assert.equal(521, list[512].target)
+		end
+	end)
+	it("gives prepended targets priority within the same 512 entry limit", function()
+		local g = loadTargetGadget()
+		order(g, ids(1000, 1511))
+		order(g, ids(10, 29), { meta = true })
+		local list = g.env.GG.GetUnitTargetList(1)
+		assert.equal(512, #list)
+		assert.equal(10, list[1].target)
+		assert.equal(29, list[20].target)
+		assert.equal(1000, list[21].target)
+		assert.equal(1491, list[512].target)
+	end)
+	it("caps area orders using the same list limit", function()
+		local g = loadTargetGadget(nil, ids(10, 609))
+		g.set({ 100, 0, 100, 100 })
+		assert.equal(512, #g.env.GG.GetUnitTargetList(1))
+	end)
+	it("shares identical lists produced by individual appends", function()
+		local g = loadTargetGadget({ [2] = 1 })
+		order(g, { 10 }, nil, 1)
+		order(g, { 10 }, nil, 2)
+		for unitID = 1, 2 do
+			g.env.gadget:AllowCommand(unitID, 1, 1, g.env.GameCMD.UNIT_SET_TARGET, { 11 }, { shift = true }, 1, 1)
+		end
+		assert.equal(g.env.GG.GetUnitTargetListID(1), g.env.GG.GetUnitTargetListID(2))
+	end)
+	it("does not resend unchanged active indices or rewrite their rules parameter", function()
+		local g = loadTargetGadget()
+		g.set(10)
+		g.update(1)
+		local writes = 0
+		g.env.Spring.SetUnitTarget(1, 99)
+		-- The gadget caches Spring functions, so observe the rules table writes.
+		g.rules.unitTargetID = nil
+		setmetatable(g.rules, {
+			__newindex = function(t, key, value)
+				if key == "unitTargetID" then
+					writes = writes + 1
+				end
+				rawset(t, key, value)
+			end,
+		})
+		local first = #g.events + 1
+		for frame = 2, 20 do
+			g.update(frame)
+		end
+		assert.equal(10, g.target())
+		assert.equal(0, writes)
+		for index = first, #g.events do
+			assert.are_not.equal("targetIndex", g.events[index][1])
+		end
+	end)
+	it("retains third-party and ground targets when alliances change", function()
+		local allied = false
+		local g = loadTargetGadget({ [1] = 1, [2] = 1, [10] = 2, [20] = 3 }, nil, function(a, b)
+			return allied and a == 1 and b == 2
+		end)
+		order(g, { 10, 20 }, nil, 1)
+		order(g, { 10, 20 }, nil, 2)
+		for unitID = 1, 2 do
+			g.env.gadget:AllowCommand(
+				unitID,
+				1,
+				1,
+				g.env.GameCMD.UNIT_SET_TARGET,
+				{ 100, 0, 100 },
+				{ shift = true },
+				1,
+				1
+			)
+		end
+		allied = true
+		g.env.GG.ClearTargetListsForAllianceChange(1, 2)
+		for unitID = 1, 2 do
+			local list = g.env.GG.GetUnitTargetList(unitID)
+			assert.equal(2, #list)
+			assert.equal(20, list[1].target)
+			assert.same({ 100, 0, 100 }, list[2].target)
+		end
+		assert.equal(g.env.GG.GetUnitTargetListID(1), g.env.GG.GetUnitTargetListID(2))
+		allied = false
+		g.env.GG.ClearTargetListsForAllianceChange(1, 2)
+		assert.equal(20, g.env.GG.GetUnitTargetList(1)[1].target)
 	end)
 end)

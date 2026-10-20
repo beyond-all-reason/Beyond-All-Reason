@@ -326,7 +326,7 @@ describe("Set Target scan budgets", function()
 			g.update(frame)
 		end
 		for unitID = 1, 80 do
-			assert.are.equal(400, #g.env.GG.GetUnitTargetList(unitID))
+			assert.are.equal(312, #g.env.GG.GetUnitTargetList(unitID))
 			assert.are.equal(1201, g.targetsByUnit[unitID])
 			assert.are.equal(g.env.GG.GetUnitTargetListID(1), g.env.GG.GetUnitTargetListID(unitID))
 		end

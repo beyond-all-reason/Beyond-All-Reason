@@ -29,6 +29,8 @@ if gadgetHandler:IsSyncedCode() then
 	-- Ground targets within this many elmos are treated as the same target when
 	-- applying the command that removes a target near the clicked position.
 	local deleteMaxDistance = 30
+	-- Maximum entries per Set Target list, including ground targets and appends.
+	local MAX_TARGETS = 512
 	-- Keep a unit target for this many seconds after it leaves LOS or radar.
 	local unseenGraceTime = 1.5
 	-- Per-unit and global caps on expensive weapon-targetability checks. The
@@ -428,19 +430,26 @@ if gadgetHandler:IsSyncedCode() then
 		return hasAutoTarget(options) or not testTarget(unitID, unitData.teamID, unitData.weapons, param1)
 	end
 
+	local function reapplyTarget(unitID, targetData)
+		local target = targetData.target
+		if type(target) == "number" then
+			spSetUnitTarget(unitID, target, false, targetData.userTarget)
+		else
+			spSetUnitTarget(unitID, target[1], target[2], target[3], false, targetData.userTarget)
+		end
+	end
+
 	local function setTargetActive(unitID, unitData, targetIndex)
 		local targetData = unitData.targets[targetIndex]
 		local target = targetData.target
+		local changed = unitData.activeTarget ~= target or unitData.currentIndex ~= targetIndex
 		unitData.activeTarget = target
 		unitData.currentIndex = targetIndex
-		if type(target) == "number" then
-			spSetUnitTarget(unitID, target, false, targetData.userTarget)
-			spSetUnitRulesParam(unitID, "unitTargetID", target)
-		else
-			spSetUnitTarget(unitID, target[1], target[2], target[3], false, targetData.userTarget)
-			spSetUnitRulesParam(unitID, "unitTargetID", nil)
+		reapplyTarget(unitID, targetData)
+		if changed then
+			spSetUnitRulesParam(unitID, "unitTargetID", type(target) == "number" and target or nil)
+			pendingTargetIndices[unitID] = targetIndex
 		end
-		pendingTargetIndices[unitID] = { targetIndex, true }
 	end
 
 	-- Drop any automatic command that would restore a dropped target to the unit or its weapons.
@@ -488,7 +497,7 @@ if gadgetHandler:IsSyncedCode() then
 			spSetUnitTarget(unitID, nil)
 		end
 		spSetUnitRulesParam(unitID, "unitTargetID", nil)
-		pendingTargetIndices[unitID] = { 1, false }
+		pendingTargetIndices[unitID] = -1
 	end
 
 	local function getTargetTrackingState(target, alwaysSeen, allyTeam, teamID)
@@ -598,7 +607,7 @@ if gadgetHandler:IsSyncedCode() then
 		for unitID, indexData in pairsNext, pendingTargetIndices do
 			local unitData = setTargetData[unitID]
 			if unitData and sentSharedTargetLists[unitData.targetList.id] then
-				SendToUnsynced("targetIndex", unitID, indexData[1], indexData[2])
+				SendToUnsynced("targetIndex", unitID, math.abs(indexData), indexData > 0)
 				pendingTargetIndices[unitID] = nil
 			end
 		end
@@ -665,8 +674,7 @@ if gadgetHandler:IsSyncedCode() then
 	---@param targetList table
 	---@param append boolean?
 	---@param prepend boolean?
-	---@param useSharedAppend boolean?
-	local function addUnitTargets(unitID, unitDefID, targetList, append, prepend, useSharedAppend)
+	local function addUnitTargets(unitID, unitDefID, targetList, append, prepend)
 		if not spValidUnitID(unitID) then
 			return
 		end
@@ -699,57 +707,7 @@ if gadgetHandler:IsSyncedCode() then
 			providedSharedList = nil
 		end
 
-		-- The legacy area Set Target path calls this function once per shifted
-		-- unit target. Once a unit owns its list exclusively, copying the growing
-		-- list for every appended target is quadratic and can exhaust synced Lua.
-		-- Detach a shared list once, then extend the private list and its unsynced
-		-- mirror in place. Explicit multi-target commands still use immutable,
-		-- shared lists and retain cross-unit sharing. useSharedAppend keeps explicit
-		-- list commands on that path even when a packet chunk contains one target.
 		local incomingEntries = targetList.sharedList and targetList.sharedList.entries or targetList
-		if append and not useSharedAppend and data.targetList and #incomingEntries == 1 then
-			local targetData = incomingEntries[1]
-			local target = targetData.target
-			local alreadyPresent = type(target) == "number" and data.currentTargets[target]
-			if not alreadyPresent and checkTarget(teamID, target) then
-				local list = data.targetList
-				local entries
-				if list.refCount == 1 then
-					targetListStore:makeTargetListPrivate(list)
-					entries = list.entries
-					entries[#entries + 1] = targetData
-					if type(target) == "number" then
-						list.lookup[target] = #entries
-					end
-				else
-					entries = {}
-					for index = 1, #list.entries do
-						entries[index] = list.entries[index]
-					end
-					entries[#entries + 1] = targetData
-					assignAppendedTargetList(
-						data,
-						targetListStore:createTargetList(entries, data.teamID, data.allyTeam)
-					)
-					list = data.targetList
-				end
-
-				data.scanIndex = min(data.scanIndex or 1, #entries)
-				setTargetData[unitID] = data
-				spSetUnitRulesParam(unitID, "hasPriorityTarget", 1)
-				activeTargets[unitID] = data
-				pausedTargets[unitID] = nil
-				addToQueue(unitID)
-				if not hasTargetPrecedence(unitID, data) then
-					pauseTargeting(unitID, data)
-				elseif not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, entries[1].target) then
-					setTargetActive(unitID, data, 1)
-				end
-				queueTargetsToUnsynced(unitID, #entries)
-				pendingTargetPauses[unitID] = pausedTargets[unitID] ~= nil
-				return
-			end
-		end
 
 		local seenTargets = {}
 		if append and data.currentTargets then
@@ -760,13 +718,16 @@ if gadgetHandler:IsSyncedCode() then
 		if providedSharedList then
 			entries = providedSharedList.entries
 		elseif append and data.targets then
-			for index = 1, #data.targets do
+			for index = 1, min(#data.targets, MAX_TARGETS) do
 				entries[index] = data.targets[index]
 			end
 		end
 		local targetCount = #entries
 		if not providedSharedList or append then
 			for i = 1, #incomingEntries do
+				if targetCount >= MAX_TARGETS then
+					break
+				end
 				local targetData = incomingEntries[i]
 				local target = targetData.target
 				local alreadyPresent = type(target) == "number" and seenTargets[target]
@@ -780,7 +741,10 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if prepend and data.targets then
-			for index = 1, #data.targets do
+			for index = 1, min(#data.targets, MAX_TARGETS) do
+				if targetCount >= MAX_TARGETS then
+					break
+				end
 				local targetData = data.targets[index]
 				local target = targetData.target
 				local alreadyPresent = type(target) == "number" and seenTargets[target]
@@ -830,7 +794,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function refreshSendData(unitID, unitData, minIndex)
 		queueTargetsToUnsynced(unitID)
-		pendingTargetIndices[unitID] = { unitData.currentIndex, unitData.activeTarget ~= nil }
+		pendingTargetIndices[unitID] = unitData.activeTarget and unitData.currentIndex or -unitData.currentIndex
 	end
 
 	local function removeTarget(unitID, unitData, index, selecting)
@@ -999,7 +963,6 @@ if gadgetHandler:IsSyncedCode() then
 	-- Command Tracking
 
 	local teamQueryCaches = {}
-	local preparedTargetListCache = {}
 	---@type table<string, any>
 	local explicitTargetListCache = {}
 	local ENEMY_UNITS = -4 -- From UnitAllegiance enum. Includes Gaia and ceasefired targets.
@@ -1048,13 +1011,19 @@ if gadgetHandler:IsSyncedCode() then
 
 		local weaponList = unitWeapons[unitDefID]
 		local entries = {}
+		local seen = {}
 		for index = 1, #targetIDs do
+			if #entries >= MAX_TARGETS then
+				break
+			end
 			local targetID = targetIDs[index]
 			if
-				spValidUnitID(targetID)
+				not seen[targetID]
+				and spValidUnitID(targetID)
 				and not spAreTeamsAllied(unitTeam, spGetUnitTeam(targetID))
 				and allowTargetUnit(unitID, weaponList, targetID)
 			then
+				seen[targetID] = true
 				entries[#entries + 1] = {
 					alwaysSeen = unitAlwaysSeen[spGetUnitDefID(targetID)],
 					ignoreStop = ignoreStop,
@@ -1160,38 +1129,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				if targets and targets[1] then
-					local cacheKey = table.concat({
-						spGetUnitAllyTeam(unitID),
-						queryHash,
-						unitDefID,
-						ignoreStop and 1 or 0,
-						userTarget and 1 or 0,
-					}, ":")
-					addTargetList = preparedTargetListCache[cacheKey]
-					if addTargetList == nil then
-						local targetList, count = {}, 0
-						for i = 1, #targets do
-							local target = targets[i]
-							if allowTargetUnit(unitID, weaponList, target) then
-								count = count + 1
-								targetList[count] = {
-									alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
-									ignoreStop = ignoreStop,
-									userTarget = userTarget,
-									target = target,
-								}
-							end
-						end
-						if count > 0 then
-							addTargetList = targetList
-							preparedTargetListCache[cacheKey] = targetList
-						else
-							preparedTargetListCache[cacheKey] = false
-						end
-					end
-					if addTargetList == false then
-						addTargetList = nil
-					end
+					addTargetList = getExplicitTargetList(unitID, unitDefID, unitTeam, targets, ignoreStop, userTarget)
 				end
 			elseif nParams == 3 then
 				if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
@@ -1235,7 +1173,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if addTargetList then
-				addUnitTargets(unitID, unitDefID, addTargetList, append, prepend, cmdID == CMD_UNIT_SET_TARGETS)
+				addUnitTargets(unitID, unitDefID, addTargetList, append, prepend)
 			elseif unitData and not append and not prepend then
 				removeUnit(unitID)
 			end
@@ -1386,20 +1324,31 @@ if gadgetHandler:IsSyncedCode() then
 				unitData.currentIndex = newCurrentIndex or 1
 				unitData.scanIndex = newScanIndex
 				queueTargetsToUnsynced(unitID)
-				pendingTargetIndices[unitID] = { unitData.currentIndex, unitData.activeTarget ~= nil }
+				pendingTargetIndices[unitID] = unitData.activeTarget and unitData.currentIndex or -unitData.currentIndex
 			end
 		end
 	end
 
 	function GG.ClearTargetListsForAllianceChange(teamA, teamB)
-		local unitIDs = {}
-		for unitID, unitData in pairsNext, setTargetData do
+		-- Validate each shared list once. Breaking an alliance must not erase
+		-- orders against unrelated teams or ground positions.
+		local lists = {}
+		for _, unitData in pairsNext, setTargetData do
 			if unitData.teamID == teamA or unitData.teamID == teamB then
-				unitIDs[#unitIDs + 1] = unitID
+				lists[unitData.targetList.id] = unitData.targetList
 			end
 		end
-		for index = 1, #unitIDs do
-			removeUnit(unitIDs[index])
+		for _, list in pairsNext, lists do
+			local entries, indices = {}, {}
+			for index, entry in ipairs(list.entries) do
+				if type(entry.target) ~= "number" or not isAlliedUnit(list.teamID, entry.target) then
+					entries[#entries + 1] = entry
+					indices[index] = #entries
+				end
+			end
+			if #entries ~= #list.entries then
+				replaceSharedTargetList(list, entries, indices)
+			end
 		end
 	end
 
@@ -1552,7 +1501,6 @@ if gadgetHandler:IsSyncedCode() then
 	-- the unit is able to fire. So we re-apply the target every frame to prevent target jittering.
 	function gadget:GameFrame(frame)
 		teamQueryCaches = {}
-		preparedTargetListCache = {}
 		explicitTargetListCache = {}
 		processSharedTargetLists(frame)
 		if frame % 15 == 0 then
@@ -1562,7 +1510,7 @@ if gadgetHandler:IsSyncedCode() then
 		for unitID, unitData in pairsNext, activeTargets do
 			if unitData.activeTarget and unitData.lastTargetUpdateFrame ~= frame then
 				if checkTarget(unitData.teamID, unitData.activeTarget) then
-					setTargetActive(unitID, unitData, unitData.currentIndex)
+					reapplyTarget(unitID, unitData.targets[unitData.currentIndex])
 				else
 					setTargetPassive(unitID, unitData)
 				end
