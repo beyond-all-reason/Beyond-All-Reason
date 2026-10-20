@@ -5,7 +5,9 @@ function widget:GetInfo()
 		desc = "Connected-map selector and cropped world/minimap views",
 		author = "Codex",
 		license = "GPL v2 or later",
-		layer = 10001,
+		-- BAR dispatches mouse presses in ascending layer order. Handle portal
+		-- clicks before CustomFormations2 (10000) turns them into ground moves.
+		layer = 9999,
 		enabled = true,
 	}
 end

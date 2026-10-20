@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import re
 
-EXPECTED = {'four': {'BAR_PORTAL_TEST': 67, 'BAR_PORTAL_UI': 28, 'BAR_METAL_UI': 25},
+EXPECTED = {'four': {'BAR_PORTAL_TEST': 67, 'BAR_PORTAL_UI': 29, 'BAR_METAL_UI': 25},
             'weapons': {'BAR_WEAPON_TEST': 17}, 'barriers': {'BAR_BARRIER_TEST': 58},
             'baseline': {'BAR_PORTAL_TEST': 2, 'BAR_PORTAL_UI': 1},
             'ai': {'BAR_AI_TEST': 18}}
