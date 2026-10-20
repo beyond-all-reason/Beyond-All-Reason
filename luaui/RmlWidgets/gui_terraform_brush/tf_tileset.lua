@@ -470,11 +470,20 @@ end
 function M.savePresetFile(name)
 	local T = WG.TilesetTerrain
 	if not (T and T.setPresetFiled and T.getKnobs and T.getActiveBiome) then
+		-- shader older than build 21: it keeps the preset in its own widget config
+		Spring.Echo(
+			"[TerraformBrush] tileset preset '"
+				.. name
+				.. "' saved in the game's config (LuaUI/Config/BYAR.lua, written on quit); tileset shader build 21 saves presets as files"
+		)
 		return false
 	end
 	local _, _, bkey = T.getActiveBiome()
 	if writePresetFile(name, T.getKnobs(), bkey) then
 		T.setPresetFiled(name, true)
+		local path = presetFile[name]
+		local okAbs, abs = pcall(VFS.GetFileAbsolutePath, path, VFS.RAW)
+		Spring.Echo("[TerraformBrush] tileset preset '" .. name .. "' saved to " .. ((okAbs and abs) or path))
 		return true
 	end
 	return false
