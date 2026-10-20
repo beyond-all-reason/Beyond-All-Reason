@@ -263,7 +263,7 @@ local function initGL4(DPATname)
 	if decalUseGeometryShader then
 		local smallDecalVAO = gl.GetVAO()
 		smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
-		decalVBO.VAO = smallDecalVAO
+		decalVBO.VAO = InstanceVBOTable.fillVAOSlots(smallDecalVAO)
 	else
 		local planeVBOsmall, _ = InstanceVBOTable.makePlaneVBO(1, 1, 4, 4)
 		local planeIndexVBOsmall, _ = InstanceVBOTable.makePlaneIndexVBO(4, 4)
@@ -2341,8 +2341,10 @@ function widget:Initialize()
 	end
 end
 
-function widget:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
-	UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+function widget:UnitScriptDecalBatch(decals, count)
+	for i = 1, count, 6 do
+		UnitScriptDecal(decals[i], decals[i + 1], decals[i + 2], decals[i + 3], decals[i + 4], decals[i + 5])
+	end
 end
 
 function widget:SunChanged()
@@ -2475,5 +2477,16 @@ function widget:SetConfigData(data) -- Called on load (and config change), just 
 			decals = savedDecals,
 			saveFrame = data.saveFrame or 0,
 		}
+	end
+end
+
+function widget:Shutdown()
+	if type(decalShader) == "table" then
+		decalShader:Finalize()
+		decalShader = nil
+	end
+	if type(decalLargeShader) == "table" then
+		decalLargeShader:Finalize()
+		decalLargeShader = nil
 	end
 end

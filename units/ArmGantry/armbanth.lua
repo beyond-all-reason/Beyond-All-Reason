@@ -170,11 +170,11 @@ return {
 				texture3 = "null",
 				tolerance = 9000,
 				tracks = true,
-				turnrate = 35000,
-				weaponacceleration = 260,
-				weapontimer = 1.1,
+				turnrate = 16000,
+				weaponacceleration = 250,
+				weapontimer = 0.9,
 				weapontype = "StarburstLauncher",
-				weaponvelocity = 800,
+				weaponvelocity = 510,
 				customparams = {
 					overrange_distance = 980,
 					projectile_destruction_method = "descend",
@@ -261,7 +261,7 @@ return {
 			[3] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "BANTHA_ROCKET",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[4] = {
 				def = "BANTHFOOTSTEP",

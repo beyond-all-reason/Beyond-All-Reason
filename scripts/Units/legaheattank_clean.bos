@@ -136,10 +136,20 @@ StopMoving()
 
 AimPrimary(heading, pitch)
 { 
+	var pitchSpeed, deltaHeading;
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
+	// Turn the pitch and heading together
+	pitchSpeed = Weapon1TurretX;
+	deltaHeading = get ABS(gun_lasthead - heading);
+	if ((deltaHeading > <1>) AND (deltaHeading < <20>))
+	{
+		pitchSpeed = Weapon1TurretY * (get ABS(gun_lastpitch - pitch)) / deltaHeading;
+		if (pitchSpeed > Weapon1TurretX) pitchSpeed = Weapon1TurretX;
+		if (pitchSpeed < <5>) pitchSpeed = <5>;
+	}
 	turn turretBase to y-axis heading - aimAdj speed Weapon1TurretY;
-	turn turretStrut to x-axis <0.000000> - pitch speed Weapon1TurretX;
+	turn turretStrut to x-axis <0.000000> - pitch speed pitchSpeed;
 	start-script RestoreAfterDelay();
 	if (cooldown > fireTime)
 	{

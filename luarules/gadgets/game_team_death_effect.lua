@@ -19,6 +19,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local wavePeriod = 550
+local noCratersWhenGameOver = true -- units of the last losing allyteam leave the terrain alone, craters cost sim time
 
 local math_floor = math.floor
 local math_min = math.min
@@ -32,6 +33,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spDestroyUnit = Spring.DestroyUnit
 
 local DISTANCE_LIMIT = math_max(Game.mapSizeX, Game.mapSizeZ) * math_max(Game.mapSizeX, Game.mapSizeZ)
+local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 GG.wipeoutWithWreckage = GG.wipeoutWithWreckage or false -- FFA can enable this
 
 local isCommander = {}
@@ -57,9 +59,11 @@ local destroyByFrame = {} ---@type table<integer, UnitID[]?>
 ---@param originZ number? Wave epicentre; when omitted the death frames are randomized.
 ---@param attackerUnitID UnitID? Credited as the killer of the destroyed units.
 ---@param periodMult number? Scales how long the wave takes. Defaults to `1.0`.
-local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult) -- only teamID is required
+---@param noCraters boolean? The death explosions don't deform the terrain.
+local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult, noCraters) -- only teamID is required
 	local setUnitNeutral, setUnitSensorRadius = Spring.SetUnitNeutral, Spring.SetUnitSensorRadius
 	local setUnitTarget, setUnitWeaponHoldFire = Spring.SetUnitTarget, Spring.UnitWeaponHoldFire
+	local setUnitWeaponDamages = Spring.SetUnitWeaponDamages
 	periodMult = periodMult or 1
 	local gameFrame = Spring.GetGameFrame()
 	local maxDeathFrame = 0
@@ -103,6 +107,10 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 			setUnitSensorRadius(unitID, "airLos", 0)
 			setUnitSensorRadius(unitID, "radar", 0)
 			setUnitSensorRadius(unitID, "sonar", 0)
+			if noCraters then
+				setUnitWeaponDamages(unitID, "selfDestruct", "craterMult", 0)
+				setUnitWeaponDamages(unitID, "explode", "craterMult", 0)
+			end
 			local weapons = weaponCount[unitDefID]
 			if weapons > 0 then
 				for weaponNum = 1, weapons do
@@ -120,6 +128,24 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 	end
 	wipedoutTeams[teamID] = math_max(wipedoutTeams[teamID] or 0, gameFrame + math_max(maxDeathFrame, 300))
 	GG.maxDeathFrame = GG.maxDeathFrame and math_max(GG.maxDeathFrame, maxDeathFrame) or maxDeathFrame -- storing frame of total unit wipeout
+end
+
+---Whether at most one allyteam is left standing once this one is gone.
+---@param allyTeamID AllyTeamID
+---@return boolean
+local function isGameDecidedWithout(allyTeamID)
+	local survivors = 0
+	for _, otherAllyTeamID in ipairs(Spring.GetAllyTeamList()) do
+		if otherAllyTeamID ~= allyTeamID and otherAllyTeamID ~= gaiaAllyTeamID then
+			for _, teamID in ipairs(Spring.GetTeamList(otherAllyTeamID)) do
+				if not wipedoutTeams[teamID] and not select(3, Spring.GetTeamInfo(teamID, false)) then
+					survivors = survivors + 1
+					break
+				end
+			end
+		end
+	end
+	return survivors <= 1
 end
 
 ---Wipes out every team in an allyteam, shortening the wave when few units remain.
@@ -142,9 +168,11 @@ local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, per
 	end
 	periodMult = (periodMult or 1.0) * math.clamp(totalUnits / 300, 0.33, 1.0) -- make low unitcount blow up faster
 
+	local noCraters = noCratersWhenGameOver and isGameDecidedWithout(allyTeamID)
+
 	-- destroy all teams
 	for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
-		wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
+		wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult, noCraters)
 	end
 end
 

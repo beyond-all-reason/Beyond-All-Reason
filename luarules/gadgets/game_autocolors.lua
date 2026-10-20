@@ -15,8 +15,8 @@ end
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local teamList = Spring.GetTeamList()
-local allyTeamList = Spring.GetAllyTeamList()
-local allyTeamCount = #allyTeamList - 1
+local allyTeamList = BAR.Utilities.GetAllyTeamList()
+local allyTeamCount = #allyTeamList
 local isSurvival = BAR.Utilities.Gametype.IsPvE()
 
 local survivalColorNum = 1 -- Starting from color #1
@@ -566,23 +566,20 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 		}
 	elseif isSurvival and survivalColors[(#Spring.GetTeamList()) - 2] then
 		teamColorsTable[teamID] = {
-			r = hex2RGB(survivalColors[survivalColorNum])[1]
-				+ teamColorVariation(teamID, 1, survivalColorVariation),
-			g = hex2RGB(survivalColors[survivalColorNum])[2]
-				+ teamColorVariation(teamID, 2, survivalColorVariation),
-			b = hex2RGB(survivalColors[survivalColorNum])[3]
-				+ teamColorVariation(teamID, 3, survivalColorVariation),
+			r = hex2RGB(survivalColors[survivalColorNum])[1] + teamColorVariation(teamID, 1, survivalColorVariation),
+			g = hex2RGB(survivalColors[survivalColorNum])[2] + teamColorVariation(teamID, 2, survivalColorVariation),
+			b = hex2RGB(survivalColors[survivalColorNum])[3] + teamColorVariation(teamID, 3, survivalColorVariation),
 		}
 		survivalColorNum = survivalColorNum + 1 -- Will start from the next color next time
 
 	-- auto ffa gradient colored for huge player games
 	elseif
 		useFFAColors
-		or (#Spring.GetTeamList(allyTeamCount - 1) > 1 and (not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(
-			allyTeamCount - 1
+		or (#Spring.GetTeamList(allyTeamList[#allyTeamList]) > 1 and (not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(
+			allyTeamList[#allyTeamList]
 		)]))
 		or #Spring.GetTeamList() > 30
-		or (#Spring.GetTeamList(allyTeamCount - 1) == 1 and not ffaColors[allyTeamCount])
+		or (#Spring.GetTeamList(allyTeamList[#allyTeamList]) == 1 and not ffaColors[allyTeamCount])
 	then
 		local color = hex2RGB(ffaColors[allyTeamID + 1] or "#333333")
 		local maxIterations = math.floor((#teamList - 1) / #ffaColors)

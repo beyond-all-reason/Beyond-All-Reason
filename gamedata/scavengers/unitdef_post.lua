@@ -562,7 +562,6 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 2] = "corves_scav" -- Vesuvius
 		uDef.buildoptions[numBuildoptions + 3] = "corakt4_scav" -- Epic Grunt
 		uDef.buildoptions[numBuildoptions + 4] = "corthermite_scav" -- Thermite/Epic Termite
-		uDef.buildoptions[numBuildoptions + 5] = "cormandot4_scav" -- Epic Commando
 	end
 
 	-- Cortex T3 Underwater Gantry
@@ -571,7 +570,6 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4_scav" -- Epic Karganeth
 		uDef.buildoptions[numBuildoptions + 2] = "corves_scav" -- Vesuvius
 		uDef.buildoptions[numBuildoptions + 3] = "corakt4_scav" -- Epic Grunt
-		uDef.buildoptions[numBuildoptions + 4] = "cormandot4_scav" -- Epic Commando
 	end
 
 	-- Legion T1 Land Constructors

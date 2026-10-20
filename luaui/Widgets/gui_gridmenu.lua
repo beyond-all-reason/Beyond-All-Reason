@@ -1410,6 +1410,9 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
+	widgetHandler:RegisterUnitCommand(widget, CMD.BUILD)
+	widgetHandler:RegisterUnitCommand(widget, CMD.INSERT)
+	widgetHandler:RegisterUnitCommand(widget, GameCMD.STOP_PRODUCTION)
 	refreshUnitDefs()
 	units.loadBlocked()
 
@@ -1470,6 +1473,11 @@ function widget:Initialize()
 
 	WG.gridmenu.getActiveBuilder = function()
 		return activeBuilder
+	end
+	WG.gridmenu.changeQueueCount = function(factoryID, unitDefID, change)
+		if builderIsFactory and activeBuilderID == factoryID and type(change) == "number" then
+			updateQueueNr(unitDefID, change)
+		end
 	end
 	WG.gridmenu.getAlwaysReturn = function()
 		return alwaysReturn
