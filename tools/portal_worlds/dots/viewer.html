@@ -58,6 +58,14 @@
       color: #b9c9d7;
       overflow-wrap: anywhere;
     }
+    #scenario {
+      margin: 0 14px 12px;
+      padding: 10px 14px;
+      background: #243546;
+      border-left: 3px solid #8fbedf;
+      line-height: 1.6;
+    }
+    #scenario[hidden] { display: none; }
     main {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 300px;
@@ -198,6 +206,7 @@
   <div id="status" role="status">
     Open a portal-dots .jsonl or .jsonl.gz recording.
   </div>
+  <div id="scenario" hidden></div>
   <main>
     <section class="stage">
       <div class="toolbar">
@@ -696,6 +705,13 @@ __PORTAL_MAP_CREDITS__</pre
           new Option("All worlds", "all"),
           ...h.regions.map((r, i) => new Option(r.name, i + 1)),
         );
+        const advantaged = h.teams.filter((t) => (t.income_multiplier || 1) > 1);
+        $("scenario").hidden = !advantaged.length;
+        $("scenario").textContent = advantaged.length
+          ? "AI income advantage: " + advantaged.map((t) =>
+              "Team " + t.id + " (" + t.income_multiplier + "× income)").join(", ") +
+            ". Other teams have normal income. These teams are separate opponents, not allies."
+          : "";
         $("teams").replaceChildren();
         for (const t of h.teams) {
           const row = document.createElement("div");
@@ -711,8 +727,8 @@ __PORTAL_MAP_CREDITS__</pre
               "Team " +
                 t.id +
                 ((t.income_multiplier || 1) > 1
-                  ? " · " + t.income_multiplier + "× income"
-                  : ""),
+                  ? " · advantaged · " + t.income_multiplier + "×"
+                  : " · normal income"),
             ),
             value,
           );

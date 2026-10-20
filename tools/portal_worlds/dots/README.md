@@ -35,6 +35,11 @@ composed map’s `ATTRIBUTION.txt` under Map credits.
 Play/pause, seek, change playback speed, inspect units, follow recent paths and
 orders, or switch between all worlds and one enlarged world. Each world can be
 panned/zoomed independently. Portal rings use matching connection numbers.
+An explicit banner and colour legend identify advantaged teams and their income
+multipliers; these teams remain opponents. Older captures with missing income
+labels can be bundled with `--start-script /path/RUN/start.txt`. This changes only
+the labelled display copy and records the script hash; full source data stays
+unchanged. Use the matching original launcher script.
 Commander losses, portal openings and first arrivals have timeline bookmarks.
 Unit IDs are paired with birth frames, and interpolation never crosses a world
 change or a reused ID. Building squares, mobile dots, team colours, health,

@@ -10,6 +10,7 @@ import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 import shutil
 import signal
@@ -499,7 +500,28 @@ def capture(args):
     )
 
 
-def presentation_copy(path, sample_frames):
+def launch_team_income(path):
+    """Read explicit team incomes from our launcher scripts, not game outcomes.
+
+    Launchers put team properties before their nested CUSTOMKEYS block. Reject
+    missing or ambiguous values instead of guessing an advantage from team IDs.
+    """
+    teams = {}
+    for match in re.finditer(r"\[TEAM(\d+)\]\s*\{([^{}]*)", path.read_text(), re.I):
+        team = int(match[1])
+        values = re.findall(r"\bIncomeMultiplier\s*=\s*([^;\s]+)\s*;", match[2], re.I)
+        if team in teams or len(values) != 1:
+            raise ValueError("Expected one explicit income multiplier per launch team")
+        value = float(values[0])
+        if not math.isfinite(value) or value <= 0:
+            raise ValueError("Invalid launch income multiplier")
+        teams[team] = value
+    if not teams:
+        raise ValueError("No explicit launch team settings")
+    return {"teams": teams, "start_script_sha256": digest(path)}
+
+
+def presentation_copy(path, sample_frames, launch_income=None):
     """Make a labelled display copy; retain the full recording for analysis."""
     import io
 
@@ -550,6 +572,14 @@ def presentation_copy(path, sample_frames):
                     "health_precision": 0.1,
                     "unit_encoding": "previous-sample-refs",
                 }
+                if launch_income:
+                    known = {team["id"] for team in row["teams"]}
+                    if not set(launch_income["teams"]).issubset(known):
+                        raise ValueError("Launch income settings contain unknown recording teams")
+                    for team in row["teams"]:
+                        if team["id"] in launch_income["teams"]:
+                            team["income_multiplier"] = launch_income["teams"][team["id"]]
+                    row["presentation"]["income_labels"] = launch_income
                 row["sample_frames"] = sample_frames
                 header = row
                 write(row)
@@ -615,6 +645,10 @@ def main():
         type=Path,
         help="Optional composed map for original minimap background",
     )
+    bundle.add_argument(
+        "--start-script", type=Path,
+        help="Recover income labels from a launcher script for older captures; display copy only",
+    )
     args = parser.parse_args()
     if args.action == "export":
         capture(args)
@@ -655,7 +689,8 @@ def main():
             parser.error(
                 "--sample-frames must be a positive multiple of the native 15-frame cadence"
             )
-        payload = presentation_copy(args.recording, args.sample_frames)
+        launch_income = launch_team_income(args.start_script) if args.start_script else None
+        payload = presentation_copy(args.recording, args.sample_frames, launch_income)
         image = ""
         credits = "No map background included."
         if args.map_dir:
@@ -691,6 +726,7 @@ def main():
                     "display_recording_sha256": hashlib.sha256(payload).hexdigest(),
                     "html_sha256": digest(args.out),
                     "viewer_sha256": digest(ROOT / "dots/viewer.html"),
+                    "income_labels": launch_income,
                     "display_sample_frames": args.sample_frames,
                     "position_precision": 0.1,
                     "health_precision": 0.1,
