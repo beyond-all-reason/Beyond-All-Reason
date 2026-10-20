@@ -21,8 +21,12 @@ def main():
     display = parser.add_mutually_exclusive_group()
     display.add_argument('--play', action='store_true', help='Open a human-vs-AI game; runs until closed')
     display.add_argument('--watch', action='store_true', help='Open an AI game; runs until closed')
+    display.add_argument('--headless', action='store_true', help='Run the native headless engine without rendering')
     parser.add_argument('--prepare-only', action='store_true')
     parser.add_argument('--ai', help='BARb for ordinary play; NullAI for scripted tests')
+    parser.add_argument('--ai-profile', choices=['easy', 'medium', 'hard', 'hard_aggressive'], help='Stock BARb profile for team 0')
+    parser.add_argument('--opponent-profile', choices=['easy', 'medium', 'hard', 'hard_aggressive'], help='Stock BARb profile for the other teams')
+    parser.add_argument('--ai-seed', type=int, help='Reproducible stock BARb random seed')
     parser.add_argument('--test', default='none')
     parser.add_argument('--human', action='store_true', help='Use a local player offscreen for input fixtures')
     parser.add_argument('--side', choices=['Armada', 'Cortex', 'Legion'], default='Armada')
@@ -34,7 +38,7 @@ def main():
     layout = json.loads((map_dir / 'composition.json').read_text())
     visible = args.play or args.watch
     human = args.play or args.human or args.test == 'four'
-    ai = args.ai or ('NullAI' if args.test != 'none' else 'BARb')
+    ai = args.ai or ('BARb' if args.test in ('none', 'ai', 'ai_match') else 'NullAI')
     if args.normal:
         region = layout['regions'][0]
         map_dir = (args.original_map_dir or map_dir.parent.parent / (region['id'] + '-source')).resolve()
@@ -85,14 +89,19 @@ maxspeed=100; minspeed=0.1; }}
     for team, entry in enumerate(layout['teams']):
         x, z = entry['start']
         if not (human and team == 0):
-            parts.append(f'[AI{team}] {{ Name=Opponent{team}; ShortName={ai}; Version={version}; Team={team}; Host=0; }}')
+            profile = args.ai_profile if team == 0 else args.opponent_profile
+            option_values = [f'profile={profile};'] if profile else []
+            if args.ai_seed is not None:
+                option_values.append(f'random_seed={args.ai_seed};')
+            ai_options = '[OPTIONS] { ' + ' '.join(option_values) + ' }' if option_values else ''
+            parts.append(f'[AI{team}] {{ Name=Opponent{team}; ShortName={ai}; Version={version}; Team={team}; Host=0; {ai_options} }}')
         parts.append(f'[TEAM{team}] {{ TeamLeader=0; AllyTeam={team}; Side={args.side}; RgbColor={colors[team % len(colors)]}; StartPosX={x}; StartPosZ={z}; }}')
         box = entry['boxes'][0]
         left, right = min(p[0] for p in box) / layout['size'][0], max(p[0] for p in box) / layout['size'][0]
         top, bottom = min(p[1] for p in box) / layout['size'][1], max(p[1] for p in box) / layout['size'][1]
         parts.append(f'[ALLYTEAM{team}] {{ NumAllies=0; StartRectLeft={left}; StartRectTop={top}; StartRectRight={right}; StartRectBottom={bottom}; }}')
     script.write_text('\n'.join(parts) + '\n}\n')
-    command = [str(engine / 'spring'),
+    command = [str(engine / ('spring-headless' if args.headless else 'spring')),
                '--isolation', '--isolation-dir', str(isolation), '--write-dir', str(write),
                '--config', str(config), '--nocolor', str(script)]
     fontconfig = run / 'fonts.conf'
@@ -100,6 +109,7 @@ maxspeed=100; minspeed=0.1; }}
     env = dict(os.environ, FONTCONFIG_FILE=str(fontconfig))
     if not visible:
         env.update(DISPLAY='', WAYLAND_DISPLAY='', SDL_VIDEODRIVER='offscreen', SDL_AUDIODRIVER='dummy')
+    if not visible and not args.headless:
         helper = Path(__file__).parent / 'limit_swap.c'
         limiter = args.workspace.resolve() / 'limit_swap.so'
         if not limiter.exists() or limiter.stat().st_mtime < helper.stat().st_mtime:

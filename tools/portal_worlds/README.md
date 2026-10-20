@@ -13,4 +13,7 @@ python3 verify_runs.py /path/workspace/runs/portal-test
 
 AI assistance: OpenAI Codex prepared these prototype tools and their checks.
 
-Automated BAR checks use the graphical engine with SDL offscreen.
+Automated BAR checks default to the graphical engine with SDL offscreen.
+`--headless` uses the native headless executable. The `ai_match` observer and
+`verify_ai_match.py` distinguish an unassisted native victory from a timed run;
+see the gameplay document for a complete invocation.
