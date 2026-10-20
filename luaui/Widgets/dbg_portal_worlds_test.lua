@@ -87,9 +87,28 @@ function widget:Update()
 		checked.clickAfter = nil
 		local gate = FixtureUnitID("portal_test_gate")
 		local x, y, z = Position(gate)
+		local gx, gz = x - 150, z
+		local groundX, groundY = Spring.WorldToScreenCoords(gx, Spring.GetGroundHeight(gx, gz), gz)
+		Spring.WarpMouse(math.floor(groundX), math.floor(groundY))
+		widgetHandler:MousePress(math.floor(groundX), math.floor(groundY), 3)
+		local owner = widgetHandler.mouseOwner
+		Check(
+			"normal_ground_right_click",
+			owner and owner.whInfo.name == "CustomFormations2",
+			owner and owner.whInfo.name
+		)
+		widgetHandler:MouseRelease(math.floor(groundX), math.floor(groundY), 3)
 		local sx, sy = Spring.WorldToScreenCoords(x, y + 10, z)
-		local ui = widgetHandler:FindWidget("Portal view bounds")
-		Check("real_portal_right_click", ui:MousePress(math.floor(sx), math.floor(sy), 3) == true)
+		Spring.WarpMouse(math.floor(sx), math.floor(sy))
+		-- Use normal widget dispatch so formations and other input widgets participate.
+		local consumed = widgetHandler:MousePress(math.floor(sx), math.floor(sy), 3)
+		owner = widgetHandler.mouseOwner
+		Check(
+			"real_portal_right_click",
+			consumed and owner and owner.whInfo.name == "Portal view bounds",
+			owner and owner.whInfo.name
+		)
+		widgetHandler:MouseRelease(math.floor(sx), math.floor(sy), 3)
 		Spring.SendCommands("pause")
 	end
 	if f >= 700 and stage < 4 and not pending then
