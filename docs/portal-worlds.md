@@ -13,6 +13,22 @@ and visual profiles belong to the map metadata. The example uses four real 8×8
 maps, arranged in a ring: Living Lands 4.1, Barren 2, FrozenPlanetV3 and Calayo2.
 512-elmo **cubicle barriers** and outer SMF page padding produce an 18×18 archive.
 
+## Downloadable preview and recordings
+
+The [Linux preview](https://github.com/gajop/bar-spring/releases/tag/portal-preview-20261020)
+provides the engine, both native AIs, the composed map, checksums and clean-PC
+play instructions. Download the standalone **BAR gameplay HTML** and open
+it in a browser to watch four worlds at once, seek, pause and inspect units.
+
+The latest live AI demonstration uses `--region-income-multipliers 2,4,8,16`:
+teams 0, 2, 4 and 6 receive those respective native income factors, while their
+opening opponents stay at 1×. The banner and colour legend identify them. All
+teams remain enemies. Team 6 (16× income) won at 49:13.9, with 1,435 observed transfers.
+The observer issues no orders, kills no commanders and forces no winner.
+Native AI logistics and lava avoidance remain limitations; the release review
+retains the findings and an unresolved intermittent native pathfinder crash.
+This preview is WIP and is not merge-ready.
+
 ## Playing locally
 
 The portable launcher is `tools/portal_worlds/play_portals.py`. It prints the run,
@@ -165,7 +181,7 @@ missions have a five-minute timeout. This native planner supplies the missing
 orders; the game observer remains read-only. It is an initial invasion policy,
 without supply-base or coordinated multi-region defence planning.
 
-The reviewed resource-asymmetric campaign reached native `GameOver` at 21:30.1.
+An earlier uniform-10× resource-asymmetric campaign reached native `GameOver` at 21:30.1.
 Team 6 visited all four maps and had three credited foreign commander kills.
 The recorder observed 297 crossings, including 296 ground and one aircraft.
 The one short return-trip candidate was inspected as pursuit of an enemy through
@@ -220,7 +236,7 @@ remain shared by one simulation.
 
 AI assistance: OpenAI Codex adapted the game mode, UI, tooling and automated
 fixtures and ran the checks. Human review/editing and manual verification remain
-pending. No BAR pull request has been submitted.
+pending.
 
 
 The opt-in `aircraft`, `aircraft-diagonal` and `aircraft-multihop` fixtures
