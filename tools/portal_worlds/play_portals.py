@@ -91,7 +91,7 @@ MapName={layout['name']};
 IsHost=1; HostIP=127.0.0.1; HostPort={port};
 GameStartDelay=0; StartPosType=3; MyPlayerName=Player;
 [MODOPTIONS] {{ portal_worlds={mode}; portal_worlds_test={args.test}; portal_worlds_end={duration};
-portal_worlds_speed={1 if visible else args.speed}; portal_record={1 if args.record else 0}; portal_record_end={duration}; portal_record_quit={0 if visible else 1}; {legion} deathmode=com; startmetal=1000; startenergy=1000;
+portal_worlds_speed={1 if visible else args.speed}; portal_record={1 if args.record else 0}; portal_record_end={duration}; portal_record_quit={0 if visible else 1}; portal_record_speed={1 if visible else args.speed}; {legion} deathmode=com; startmetal=1000; startenergy=1000;
 maxspeed=100; minspeed=0.1; }}
 [PLAYER0] {{ Name=Player; Spectator={0 if human else 1}; Team=0; }}
 ''']
