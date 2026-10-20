@@ -724,15 +724,15 @@ local function buildResolvedCatalog()
 					local label = item.label and BAR.I18N(item.label) or item.action
 					local stem = item.action and look.cursors[item.action:match("^%S+")]
 					local cursor = stem and look.cursorTextures[stem] or nil
+					-- The picture a key shows for the action: the catalog's own where it names
+					-- one, else the cursor an order is already known by.
+					local icon = (item.icon and VFS.FileExists(item.icon) and item.icon) or cursor
 					g.items[#g.items + 1] = {
 						action = item.action,
 						actionLower = item.action and item.action:lower(),
 						label = label,
 						labelLower = label:lower(),
-						cursor = cursor,
-						-- The picture a key shows for the action: the catalog's own where it names
-						-- one, else the cursor an order is already known by.
-						icon = (item.icon and VFS.FileExists(item.icon) and item.icon) or cursor,
+						icon = icon,
 						description = describe(item),
 					}
 					if item.action then
@@ -740,7 +740,7 @@ local function buildResolvedCatalog()
 						state.sources[item.action] = title
 					end
 					-- One picture in a group gives every row in it the column, so the names line up.
-					g.hasCursors = g.hasCursors or cursor ~= nil
+					g.hasCursors = g.hasCursors or icon ~= nil
 				end
 			end
 			if g.layout == "grid" then
@@ -1295,7 +1295,7 @@ local function rebuildRows()
 						type = "editable",
 						action = item.action,
 						label = item.label,
-						cursor = item.cursor,
+						cursor = item.icon,
 						cursorColumn = group.hasCursors,
 						description = item.description,
 						change = change,
