@@ -138,7 +138,8 @@ missions have a five-minute timeout. This native planner supplies the missing
 orders; the game observer remains read-only. It is an initial invasion policy,
 without supply-base or coordinated multi-region defence planning.
 
-The native planner completed a four-map headless campaign at 32:44.5: team 6 won
+The native planner completed four-map headless campaigns at 32:44.5 and 43:55.1.
+In the first run, team 6 won
 its local duel, visited all four maps, killed three foreign commanders and reached
 native `GameOver`. There were 2,198 physical crossings, including ground units.
 A single-map control with this native AI also reached `GameOver`, with no portal
@@ -154,8 +155,9 @@ python3 tools/portal_worlds/build_barb.py \
   --output /path/bar-portal-data/portal-ai
 ```
 
-The helper builds only the Linux `BARb` target, uses two jobs/CPUs by default,
-records source/library hashes, and refuses to overwrite an existing AI root.
+The helper uses Docker to build only the Linux `BARb` target in a separate
+cache. It uses two jobs/CPUs by default, records source/library hashes, and
+refuses to overwrite an existing AI root.
 Pass `--ai-dir /path/bar-portal-data/portal-ai` to the launcher. Without it the
 portable launcher uses the engine's existing AI. `--ai-dir` affects AI loading,
 not the engine executable. The companion source must be committed locally so
@@ -180,8 +182,8 @@ ordinary maps do not enable the planner.
 
 This is ongoing WIP pending human playtesting and review, longer multiplayer and
 mixed-platform runs, large-match performance, broader optional mechanics and
-full-game persistence coverage. The native invasion policy remains experimental. The earlier AI smoke run verifies
-factory/unit production and a portal opening, and does not assert autonomous
+full-game persistence coverage. The native invasion policy remains experimental.
+The earlier AI smoke run verifies factory/unit production and a portal opening, and does not assert autonomous
 portal strategy. Gravity, water height, path storage, unit limits and team economy
 remain shared by one simulation.
 
