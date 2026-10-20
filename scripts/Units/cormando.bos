@@ -372,9 +372,10 @@ StartBuilding(torsoing, pitch, heading)
 	show lnano;
 	show rnano;
 
+	// Wait for the torso to rotate to the correct heading before moving the arms into position.
 	wait-for-turn luparm around x-axis;
 	wait-for-turn ruparm around x-axis;
-	
+
 	turn luparm to x-axis <-45> speed <375.000000>;
 	turn larm to x-axis <-45> speed <375.000000>;
 	turn ruparm to x-axis <-45> speed <375.000000>;
