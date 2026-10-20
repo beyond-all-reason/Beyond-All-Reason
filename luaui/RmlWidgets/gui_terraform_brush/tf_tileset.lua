@@ -404,9 +404,142 @@ local TUNING_FRAMES = {
 	"frame-ts-presets",
 }
 
+-- TILESET PRESETS AS FILES (2026-10-20, PtaQ): one file per saved preset in
+-- Terraform Brush/TilesetPresets/, written the moment SAVE is pressed, in the
+-- same format as the shader's shipped tileset_dev/presets/*.lua. The brush does
+-- the file work because the tileset shader is a user widget, and the sandbox
+-- lets it write only under LuaUI/. The shader holds the presets in memory and
+-- stops carrying filed ones in its BYAR.lua entry. Needs shader build 21
+-- (addUserPreset); on older builds presets stay in the widget config as before.
+local PRESET_DIR = "Terraform Brush/TilesetPresets/"
+local presetFile = {} -- preset name -> its file
+
+local function presetPath(name)
+	if presetFile[name] then
+		return presetFile[name]
+	end
+	local base = name:gsub("[^%w%-_ ]", "_"):gsub("%s+", "_")
+	if base == "" then
+		base = "preset"
+	end
+	local path, n = PRESET_DIR .. base .. ".lua", 1
+	while VFS.FileExists(path, VFS.RAW) do
+		n = n + 1
+		path = PRESET_DIR .. base .. "_" .. n .. ".lua"
+	end
+	return path
+end
+
+local function writePresetFile(name, knobs, biome)
+	local keys = {}
+	for k, v in pairs(knobs) do
+		if type(v) == "number" then
+			keys[#keys + 1] = k
+		end
+	end
+	table.sort(keys)
+	local out = {
+		"-- Tileset preset, saved from the TILESET window. One preset per file: copy it to",
+		"-- share it, or into LuaUI/Widgets/tileset_dev/presets/ to ship it with the shader.",
+		"return {",
+		string.format("\tname = %q,", name),
+	}
+	if type(biome) == "string" and biome ~= "" then
+		out[#out + 1] = string.format("\tbiome = %q,", biome)
+	end
+	out[#out + 1] = "\tknobs = {"
+	for _, k in ipairs(keys) do
+		out[#out + 1] = string.format("\t\t%s = %s,", k, tostring(knobs[k]))
+	end
+	out[#out + 1] = "\t},"
+	out[#out + 1] = "}"
+	Spring.CreateDir(PRESET_DIR)
+	local path = presetPath(name)
+	local f = io.open(path, "w")
+	if not f then
+		Spring.Echo("[TerraformBrush] could not write tileset preset " .. path)
+		return false
+	end
+	f:write(table.concat(out, "\n") .. "\n")
+	f:close()
+	presetFile[name] = path
+	return true
+end
+
+-- SAVE in the panel: the shader has just snapshotted the knobs under `name`
+function M.savePresetFile(name)
+	local T = WG.TilesetTerrain
+	if not (T and T.setPresetFiled and T.getKnobs and T.getActiveBiome) then
+		return false
+	end
+	local _, _, bkey = T.getActiveBiome()
+	if writePresetFile(name, T.getKnobs(), bkey) then
+		T.setPresetFiled(name, true)
+		return true
+	end
+	return false
+end
+
+-- DELETE in the preset list: the shader has dropped it from memory
+function M.deletePresetFile(name)
+	local path = presetFile[name]
+	if path then
+		os.remove(path)
+		presetFile[name] = nil
+	end
+end
+
+-- Once per tileset widget instance: hand every preset file to the shader, then
+-- write out the user presets it still carries in its widget config (presets
+-- saved before this change, or by an older brush), so they move into files.
+local function loadPresetFiles(T)
+	presetFile = {}
+	local files = VFS.DirList(PRESET_DIR, "*.lua", VFS.RAW) or {}
+	table.sort(files)
+	local n = 0
+	for _, path in ipairs(files) do
+		local chunk = VFS.LoadFile(path, VFS.RAW)
+		local fn = chunk and loadstring(chunk, "=" .. path)
+		local ok, data = false, nil
+		if fn then
+			setfenv(fn, {})
+			ok, data = pcall(fn)
+		end
+		if ok and type(data) == "table" and type(data.name) == "string" and type(data.knobs) == "table" then
+			if T.addUserPreset(data.name, data.knobs, data.biome) then
+				presetFile[data.name] = path
+				n = n + 1
+			end
+		else
+			Spring.Echo("[TerraformBrush] skipped tileset preset file " .. path .. ": not a preset")
+		end
+	end
+	local moved = 0
+	for _, p in ipairs(T.getUnfiledPresets() or {}) do
+		if writePresetFile(p.name, p.knobs, p.biome) then
+			T.setPresetFiled(p.name, true)
+			moved = moved + 1
+		end
+	end
+	if moved > 0 then
+		Spring.Echo(
+			string.format(
+				"[TerraformBrush] moved %d saved tileset preset(s) into %s (one file each)",
+				moved,
+				PRESET_DIR
+			)
+		)
+	end
+	return n
+end
+
 function M.attach(doc, ctx)
 	local trackSliderDrag = ctx.trackSliderDrag
 	ctx.widgetState.tsLastVal = ctx.widgetState.tsLastVal or {}
+	-- the panel's preset SAVE / DELETE reach the file side through these (the
+	-- handlers are defined before the module is required)
+	ctx.widgetState.tsSavePresetFile = M.savePresetFile
+	ctx.widgetState.tsDeletePresetFile = M.deletePresetFile
 	-- fresh document: the section gray-out is back at its markup default, so
 	-- drop the cache and let the next M.sync re-apply it from the widget
 	ctx.widgetState.tsShaderLast = nil
@@ -1057,6 +1190,13 @@ function M.sync(doc, ctx, setSummary)
 		return
 	end
 	local widgetState = ctx.widgetState
+	-- tileset preset files: once per shader widget instance (a reload of the
+	-- shader replaces the table and drops its in-memory presets), window open or not
+	local tsW = WG.TilesetTerrain
+	if tsW.addUserPreset and widgetState.tsPresetFilesFor ~= tsW then
+		widgetState.tsPresetFilesFor = tsW
+		loadPresetFiles(tsW)
+	end
 	local dm = widgetState.dmHandle
 	-- Only push values while the TILESET floating window (SCENE menu) is open.
 	-- It is independent of the active tool by design, so this is the only gate.

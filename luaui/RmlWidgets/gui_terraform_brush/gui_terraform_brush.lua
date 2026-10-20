@@ -14161,6 +14161,10 @@ local initialModel = {
 			return
 		end
 		WG.TilesetTerrain.savePreset(name)
+		-- one file per preset in Terraform Brush/TilesetPresets/ (tf_tileset.lua)
+		if widgetState.tsSavePresetFile then
+			widgetState.tsSavePresetFile(name)
+		end
 		if inp then
 			inp:SetAttribute("value", "")
 		end
@@ -18473,6 +18477,9 @@ local function attachEventListeners()
 				playSound("reset")
 				if WG.TilesetTerrain and WG.TilesetTerrain.deletePreset then
 					WG.TilesetTerrain.deletePreset(name)
+					if widgetState.tsDeletePresetFile then
+						widgetState.tsDeletePresetFile(name)
+					end
 					rebuildTsPresetList()
 				end
 				event:StopPropagation()

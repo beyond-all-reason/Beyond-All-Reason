@@ -28,6 +28,7 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 - The TILESET biome library has new art. Tileset shader build 18 adds Perseus Gate, Pale Hang and Cetheta (Enborelde's textures under its own config), and the placeholder biomes (Namaqualand, Protodesert, Prototemperate) are gone.
 - Tileset shader build 20 adds **Cetheta_02**, MrBob's own Cetheta tops; the first Cetheta is now Cetheta_01. Teizer opens with MrBob's new config.
 - **DuneMaker** joins the built-in brush presets: MrBob's dune shaper, a large soft triangle that rides the stroke.
+- **Tileset presets are files.** SAVE in the TILESET window writes the preset straight away to `Terraform Brush/TilesetPresets/<name>.lua`, one file per preset, with the biome it was tuned on (loading it switches there). Deleting it in the list deletes the file. Presets saved before move out of the game's config into files the first time this version runs. Needs tileset shader build 21.
 
 ### Fixes
 
