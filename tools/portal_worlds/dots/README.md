@@ -36,7 +36,8 @@ Commander losses, portal openings and first arrivals have timeline bookmarks.
 Unit IDs are paired with birth frames, and interpolation never crosses a world
 change or a reused ID. Building squares, mobile dots, team colours, health,
 construction progress and current engine orders come from recorded state.
-Shots are native projectile positions and damage-event markers. They do not
+A factory’s current engine command describes its produced-unit default order;
+this recorder does not capture the production queue. Shots are native projectile positions and damage-event markers. They do not
 recreate particles, meshes, terrain occlusion, weapon timing between samples,
 player fog of war or the AI’s knowledge. The player sends no game commands.
 

@@ -608,7 +608,7 @@
                 ? `\nGoal: ${Math.round(u[11])}, ${Math.round(u[13])} (world ${physical(u[11], u[13]) || "barrier"})`
                 : "";
           $("inspect").textContent =
-            `${d.title} · #${u[0]} · team ${u[2]}\n${r?.name || "Outside worlds"}\nHP ${Math.ceil(u[6])} / ${Math.ceil(u[7])}\nBuild ${Math.round(u[8] * 100)}%\n${commandName(u[9])} · tag ${u[10] || "—"}${goal}\nPosition ${Math.round(u[3])}, ${Math.round(u[5])}`;
+            `${d.title} · #${u[0]} · team ${u[2]}\n${r?.name || "Outside worlds"}\nHP ${Math.ceil(u[6])} / ${Math.ceil(u[7])}\nBuild ${Math.round(u[8] * 100)}%\n${d.factory ? "Produced-unit default: " : ""}${commandName(u[9])} · tag ${u[10] || "—"}${goal}\nPosition ${Math.round(u[3])}, ${Math.round(u[5])}`;
         } else
           $("inspect").textContent = "Selected unit is absent at this time.";
       }
@@ -718,7 +718,7 @@
         $("title").textContent =
           (h.game || "Portal worlds") + " · Dots playback";
         status(
-          `${h.map} · ${h.regions.length} worlds · ${clock(tail.frame / h.fps)} · all-team recording · ${h.sample_frames / h.fps}s samples`,
+          `${h.scenario && h.scenario !== "none" ? "Scenario: " + h.scenario + " · " : ""}${h.map} · ${h.regions.length} worlds · ${clock(tail.frame / h.fps)} · all-team recording · ${h.sample_frames / h.fps}s samples`,
         );
         setTime(0);
         resize();
