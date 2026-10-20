@@ -3,6 +3,7 @@
 uniform sampler2D heightMap;
 
 uniform vec4 visibilitycontrols;
+uniform vec4 portalBounds; // x0, z0, x1, z1; zero width disables region clipping
 uniform float drawPass; // 0 = above-water only, 1 = underwater only
 uniform float waterLevel; // dynamic water/lava surface level in elmos
 // SPDX-License-Identifier: MIT
@@ -18,6 +19,7 @@ out DataVS {
 	float circlealpha;
 	vec4 v_targetcolor;
 	vec4 v_uvcoords;
+	vec2 v_worldXZ;
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -40,6 +42,13 @@ float heightAtWorldPos(vec2 w){
 
 void main()
 {
+	// Cull the entire spot, including its billboard, when viewing another map.
+	if (portalBounds.z > portalBounds.x &&
+		(any(lessThan(worldpos_radius.xz, portalBounds.xy)) ||
+		 any(greaterThanEqual(worldpos_radius.xz, portalBounds.zw)))) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
+	}
 	circlealpha = mix(
 		0.5 - ((timeInfo.x + timeInfo.w)- visibility.y) / 30.0, // turned unoccipied, fading into visibility
 		      ((timeInfo.x + timeInfo.w) - visibility.y) / 30.0, // going into occupied, so fade out from visibility.y
@@ -80,6 +89,7 @@ void main()
 
 	//dump to FS:
 	gl_Position = cameraViewProj * vec4(vertexWorldPos,1.0);
+	v_worldXZ = vertexWorldPos.xz;
 
 	v_targetcolor = vec4(vec3(1),circlealpha);
 	
@@ -104,6 +114,7 @@ void main()
 		mat3 rotY = mat3(cameraViewInv[0].xyz,cameraViewInv[2].xyz, cameraViewInv[1].xyz); // swizzle cause we use xz
 		bbpos.xyz =  (rotY * bbpos.xyz * 0.25 + worldXYZ) ;
 		gl_Position = cameraViewProj * bbpos;
+		v_worldXZ = bbpos.xz;
 		// interpolate the goddamned uvs here:
 		if (localpos_dir_angle.x <= 0) v_uvcoords.x = uvcoords.x;
 		else v_uvcoords.x = uvcoords.y;

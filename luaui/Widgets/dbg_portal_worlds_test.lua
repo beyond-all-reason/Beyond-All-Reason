@@ -41,7 +41,9 @@ function widget:Update()
 		local id=Spring.GetGameRulesParam("portal_test_ui")
 		local x,y,z=Spring.GetUnitPosition(gate)
 		api.View(1,{name="ta",mode=1,px=x,py=y,pz=z,height=1000,angle=0.2,flipped=0})
-		Spring.SelectUnitArray({id})
+		local selected={id}
+		for i=1,8 do selected[#selected+1]=Spring.GetGameRulesParam("portal_test_approach_"..i) end
+		Spring.SelectUnitArray(selected)
 		checked.clickAfter=Spring.GetDrawFrame()+4
 	end
 	if checked.clickAfter and Spring.GetDrawFrame()>=checked.clickAfter then
@@ -72,5 +74,8 @@ function widget:DrawScreenPost()
 	local _,hit=Spring.TraceScreenRay(x+w/2,y+h/2,true,true)
 	Check("minimap_region_"..region,type(hit)=="table" and hit[1]>=view.rect.x0 and hit[1]<view.rect.x1 and hit[3]>=view.rect.z0 and hit[3]<view.rect.z1)
 	Spring.SendCommands("screenshot")
-	if region==4 then Spring.Echo("[BAR_PORTAL_UI] DONE checks="..checks.." failures="..failures) end
+	if region==4 then
+		WG.PortalWorldsUITestsDone=true
+		Spring.Echo("[BAR_PORTAL_UI] DONE checks="..checks.." failures="..failures)
+	end
 end

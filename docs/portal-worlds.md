@@ -54,7 +54,9 @@ the carrier gadget's transit-member provider.
 The right-side selector and N cycling appear only after opening. Only reachable
 maps can be selected, and each keeps its camera. Native world rendering, cameras,
 minimap input/icons, selection overlays and sensor range rings follow the active
-region. Materials/DNTS, sun, atmosphere and water presentation switch with it.
+region. Metal-spot rings and yield billboards also follow the region, including
+clipping at its edges in both above-water and underwater drawing passes.
+Materials/DNTS, sun, atmosphere and water presentation switch with it.
 Portal mode currently uses BAR's classic native minimap; the separate PIP minimap
 renderer is disabled in this mode. Global map-edge mirrors are disabled too.
 
@@ -75,8 +77,10 @@ loss. Lua geometry checks run with `lua5.1 tests/portal_worlds.lua`.
 assertion counts and exit status, rather than successful startup alone.
 
 Coverage includes physical start membership, commander-loss opening, locked views,
-real player right-click travel, ground/air orders, cargo and carrier drones,
-stale queues, native nuke/anti-nuke launches, launch provenance after owner travel,
+real player right-click travel, physical destination coordinates for ground/air
+units, cargo and carrier drones, a multi-selection walking from outside the
+entrance radius after a UI right-click, stale queues, native nuke/anti-nuke launches, launch provenance after owner travel,
+GPU metal-spot drawing with active/foreign/ordinary bounds in both water passes,
 edge craters/building footprints, timed area damage and local/foreign shield
 queries. Graphical fixtures capture all four materials and minimaps. The barrier
 fixture flattens terrain only for that test, to distinguish terrain slopes from

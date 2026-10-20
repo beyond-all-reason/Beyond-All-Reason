@@ -29,6 +29,10 @@ local function Spawn(name, x, z, team, air)
 	Spring.GiveOrderToUnit(id, CMD.FIRE_STATE, {0}, 0)
 	return id
 end
+local function Arrived(id, region)
+	local x, _, z = Spring.GetUnitPosition(id)
+	return GG.PortalWorlds.home[id] == region and GG.PortalWorlds.world.Region(x, z) == region
+end
 local function QueueStays(id, region)
 	for _, order in ipairs(Spring.GetUnitCommands(id,-1)) do
 		if #order.params >= 3 and GG.PortalWorlds.world.Region(order.params[1],order.params[3]) ~= region then return false end
@@ -78,6 +82,14 @@ function gadget:GameFrame(f)
 		for _, name in ipairs({"nearby","move","fight","attack","click","air","cancel","ui"}) do
 			units[name]=Spawn(name=="air" and "armpeep" or "armflea",mouth.x+100,mouth.z+60,0,name=="air")
 		end
+		units.approach = {}
+		for i=1,8 do
+			local id=Spawn("armflea",mouth.x+800+(i%4)*40,mouth.z-500-math.floor(i/4)*40,0)
+			units.approach[i]=id
+			Spring.SetGameRulesParam("portal_test_approach_"..i,id)
+			local x,_,z=Spring.GetUnitPosition(id)
+			Check("group_starts_far_"..i,(x-mouth.x)^2+(z-mouth.z)^2>700^2)
+		end
 		Spring.SetGameRulesParam("portal_test_ui", units.ui)
 		Spring.SetGameRulesParam("portal_test_gate", gate)
 		units.transport=Spawn("armatlas",mouth.x+80,mouth.z+40,0,true)
@@ -104,14 +116,14 @@ function gadget:GameFrame(f)
 	elseif f == 390 then
 		for _,name in ipairs({"move","fight","attack","click","air","transport","cargo","carrier"}) do
 			local id=units[name]
-			Check("arrived_"..name,portal.home[id]==2,portal.home[id])
+			Check("arrived_"..name,Arrived(id,2),portal.home[id])
 			Check("queue_clean_"..name,QueueStays(id,2))
 		end
 		local droneCount = 0
 		for _, id in ipairs(Spring.GetTeamUnits(0)) do
 			if UnitDefs[Spring.GetUnitDefID(id)].name == "legdrone" then
 				droneCount = droneCount + 1
-				Check("carrier_drone_arrived_"..droneCount,portal.home[id]==2)
+				Check("carrier_drone_arrived_"..droneCount,Arrived(id,2))
 			end
 		end
 		Check("carrier_roster_present",droneCount>=3,droneCount)
@@ -159,7 +171,7 @@ function gadget:GameFrame(f)
 			Check("foreign_shield_query_excluded",not foreignPresent)
 		end
 	elseif f == 550 then
-		Check("real_ui_click_arrived",portal.home[units.ui]==2)
+		Check("real_ui_click_arrived",Arrived(units.ui,2))
 	elseif f == 600 then
 		Check("timed_area_owner_travelled",portal.home[units.nearby]==2)
 		Check("timed_area_keeps_origin_after_transit",Spring.GetUnitHealth(units.areaTarget)<units.areaHealth)
@@ -169,6 +181,10 @@ function gadget:GameFrame(f)
 		end
 	elseif f == 660 then
 		for i in ipairs(world.connections) do Check("opened_edge_"..i,portal.openEdges[i]) end
+	elseif f == 1100 then
+		for i,id in ipairs(units.approach) do
+			Check("group_walked_and_arrived_"..i,Arrived(id,2))
+		end
 	elseif f == 1500 then
 		Spring.Echo("[BAR_PORTAL_TEST] DONE checks="..checks.." failures="..failures)
 		Spring.SetGameRulesParam("portal_test_failures",failures)

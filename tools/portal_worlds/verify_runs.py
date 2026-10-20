@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import re
 
-EXPECTED = {'four': {'BAR_PORTAL_TEST': 51, 'BAR_PORTAL_UI': 28},
+EXPECTED = {'four': {'BAR_PORTAL_TEST': 67, 'BAR_PORTAL_UI': 28, 'BAR_METAL_UI': 25},
             'weapons': {'BAR_WEAPON_TEST': 17}, 'barriers': {'BAR_BARRIER_TEST': 58},
             'baseline': {'BAR_PORTAL_TEST': 2, 'BAR_PORTAL_UI': 1},
             'ai': {'BAR_AI_TEST': 18}}
@@ -20,7 +20,7 @@ def main():
         text = (run / 'console.log').read_text(errors='replace')
         metadata = json.loads((run / 'command.json').read_text())
         fixture = metadata['options']['test']
-        observed = re.findall(r'\[(BAR_PORTAL_TEST|BAR_PORTAL_UI|BAR_WEAPON_TEST|BAR_BARRIER_TEST|BAR_AI_TEST)\] ASSERT (\S+) pass=(true|false)', text)
+        observed = re.findall(r'\[(BAR_PORTAL_TEST|BAR_PORTAL_UI|BAR_METAL_UI|BAR_WEAPON_TEST|BAR_BARRIER_TEST|BAR_AI_TEST)\] ASSERT (\S+) pass=(true|false)', text)
         expected = dict(EXPECTED[fixture])
         counts = {tag: sum(item[0] == tag for item in observed) for tag in expected}
         errors = [line for line in text.splitlines() if 'LUA_ERRRUN' in line or 'Error in ' in line or 'Segmentation fault' in line]
