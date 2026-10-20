@@ -29,10 +29,7 @@ local halloweenModels = {
 }
 
 local xmasModels = {
-	armcom = { model = "units/event/xmas/armcom.s3o" },
-	armdecom = { model = "units/event/xmas/armcom.s3o" },
-	corcom = { model = "units/event/xmas/corcom.s3o" },
-	cordecom = { model = "units/event/xmas/corcom.s3o" },
+
 }
 
 return {
