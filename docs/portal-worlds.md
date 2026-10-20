@@ -122,26 +122,64 @@ checks them against the launch record. This is an explicitly resource-asymmetric
 test; the observer still gives no unit orders and never forces a death or victory.
 The option defaults to 1 and does not change ordinary play.
 
-The command router reacts to move/fight/attack orders into another region. It
-does not supply an AI strategy. Stock BARb's `CanMoveToPos` and `CanMobileReachAt`
-checks use physical terrain connectivity without portal edges. Ground armies can
-therefore reject foreign destinations before issuing an order for the router to
-handle. Aircraft bypass that connectivity restriction and have crossed portals
-in unattended matches. Extra income helps local victories but does not teach the
-AI when or how to invade. A complete autonomous campaign remains unverified.
+The game command router reacts to move/fight/attack orders into another region.
+Unmodified BARb uses physical connectivity in `CanMoveToPos` and
+`CanMobileReachAt`, so ground armies can reject foreign destinations before
+issuing an order. A stock-AI run with 10× income won local duels and made 133
+aircraft crossings but reached its 60-minute cap without an overall winner.
 
-A four-region native headless run with one 10×-income AI per duel produced four
-real local victories and four verified death-site portals. Aircraft made 133
-physical crossings. At the 60-minute simulation cap all four local winners were
-still alive, with no foreign commander kill and no native `GameOver`; the
-campaign verifier correctly failed that run. An ordinary original-map control
-reached native `GameOver` with a single winner. Successful mechanical travel is
-therefore separate from a successful autonomous conquest strategy.
+The companion native BARb portal-missions branch adds a dedicated military task.
+After local hostile teams are eliminated, it finds a contested region through
+open connections and dispatches mobile ground combat units. Builders,
+commanders, aircraft, retreating units and player-controlled units retain their
+normal tasks. Nearby known threats keep defenders from leaving. Arrival refreshes
+the cached physical terrain area and hands units back to ordinary combat;
+missions have a five-minute timeout. This native planner supplies the missing
+orders; the game observer remains read-only. It is an initial invasion policy,
+without supply-base or coordinated multi-region defence planning.
+
+The native planner completed a four-map headless campaign at 32:44.5: team 6 won
+its local duel, visited all four maps, killed three foreign commanders and reached
+native `GameOver`. There were 2,198 physical crossings, including ground units.
+A single-map control with this native AI also reached `GameOver`, with no portal
+missions. These resource-asymmetric checks do not establish balanced AI strength
+or complete coverage of every unit and map layout.
+
+Build an isolated native AI installation from the companion source checkout:
+
+```sh
+python3 tools/portal_worlds/build_barb.py \
+  --engine-source /path/RecoilEngine \
+  --ai-source /path/BARb-with-portal-missions \
+  --output /path/bar-portal-data/portal-ai
+```
+
+The helper builds only the Linux `BARb` target, uses two jobs/CPUs by default,
+records source/library hashes, and refuses to overwrite an existing AI root.
+Pass `--ai-dir /path/bar-portal-data/portal-ai` to the launcher. Without it the
+portable launcher uses the engine's existing AI. `--ai-dir` affects AI loading,
+not the engine executable. The companion source must be committed locally so
+build provenance is exact; these changes remain separate from the engine patch.
+
+The opt-in public GameRulesParam protocol has version 1. Region/edge identifiers
+are one-based, and team identifiers retain their native values:
+
+| Parameter | Meaning |
+| --- | --- |
+| `portal_ai_version` | Protocol version; absent on ordinary maps |
+| `portal_regions`, `portal_edges` | Region and edge counts |
+| `portal_r{r}_x0/z0/x1/z1` | Region rectangle, maximum edges exclusive |
+| `portal_e{e}_a/b/open` | Connected regions and whether travel is open |
+| `portal_e{e}_r{r}_x/z` | Physical mouth position for an open connection |
+| `portal_team{t}_region/alive` | Original region and public elimination state |
+
+The protocol publishes topology and elimination information, with no hidden unit
+positions or targets. The native AI reads it through existing game callbacks;
+ordinary maps do not enable the planner.
 
 This is ongoing WIP pending human playtesting and review, longer multiplayer and
 mixed-platform runs, large-match performance, broader optional mechanics and
-full-game persistence coverage. BARb plays its ordinary local economy; deciding
-when and how to invade through portals needs AI work. The AI smoke run verifies
+full-game persistence coverage. The native invasion policy remains experimental. The earlier AI smoke run verifies
 factory/unit production and a portal opening, and does not assert autonomous
 portal strategy. Gravity, water height, path storage, unit limits and team economy
 remain shared by one simulation.

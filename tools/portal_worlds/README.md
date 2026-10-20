@@ -21,3 +21,9 @@ see the gameplay document for a complete invocation.
 Use `--duel-income-multiplier 10` to give one team in each map 10× income for
 faster opening duels. Defaults to ordinary income; the observer and verifier
 record and check the actual native team multipliers.
+
+Native ground invasion needs the companion BARb portal-missions source. Use
+`build_barb.py` to compile it into a new isolated AI root, then pass `--ai-dir`
+to `play_portals.py`. The helper preserves the existing engine/AI installation;
+it builds only the native AI target and records its exact source and library
+hashes. See the gameplay document for the protocol and full commands.
