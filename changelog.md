@@ -1,11 +1,19 @@
 # October
+- [Minelayers] 3x faster deceleration
+- [LLTs] Will turn to aim at enemies before they enter range
+- [Laser turrets] LoS varied between 455-494 before. Now set to 500 for all. Notably Beamers and Twin Guards now have LoS > range
+- [AA missiles] Missiles will switch targets when the current target becomes invalid, making them waste fewer shots against swarms of air units
+- [T2 flak trucks] Now will swap targets immediately, instead of only every 0.5 seconds
+- [Archangel] Shorter-range missiles velocity increased
 - [Blitz] Better at avoiding friendly fire
+- [Rampart] Now leaves a wreck
 - [Shuriken] 280.5 -> 270 speed
 - [Tiger] 462 -> 410 LoS, DPS -4%, Projectile velocity 410 -> 330
 - [Cortex Gantry] 8400m -> 8000m cost
 - [Vertical launcher weapons]
-  - Acceleration and other flight characteristics finetuned, to better fit last month's change. Results in a slightly (~10%) faster time to hit a target at max range.
-  - Hotfix: Ambassador, Negotiator, and Boreas were undodgeable. Lowered their projectile speed buff to 30% and retuned them.
+  - October 20th: Mobile units reverted to using old flight path behavior with linear descent. Flight speeds changed accordingly. Missile launcher buildings keep the new flight path.
+  - ~~Acceleration and other flight characteristics finetuned, to better fit last month's change. Results in a slightly (~10%) faster time to hit a target at max range.~~
+  - ~~Hotfix: Ambassador, Negotiator, and Boreas were undodgeable. Lowered their projectile speed buff to 30% and retuned them.~~
   - Edgeeffectiveness (damage falloff rate) set for all non-EMP, non-nuke vertical launch missiles to 0.5, and impulse set to 1.
   - Individual unit changes:
     - Missile Hovercraft: EE 0.15 -> 0.5, Impulse added
@@ -28,9 +36,11 @@
   - Railguns never skip a collision, before they sometimes could.
   - Sweepfire heatrays have a smoother motion and do not slip off their targets on slopes.
   - Drones spread out better, guard moving carriers better (unused in vanilla), and land and launch smoothly.
+  - T1 Drones no longer crash on death.  Drones will be weaker against AA because the AA won't overkill them and will swap targets faster.  
 - [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
+  - Turtle and other mixed ground/air units no longer stop outside their ground-weapon range when attacking ground or ghost buildings.
   - Temporary preventative measures against cheats. We have no evidence for common cheats but have locked down user widgets while we upgrade the engine. Hang tight.
   - Twitcher can leave behind wrecks and debris again.
   - Autotargeting for dozens of weapons (and most Raptors units) now reads the weapon's position and direction correctly.
@@ -39,6 +49,7 @@
   - Cortex / Legion advanced UW mexes had an unintended 50% damage reduction, removed.
   - Defenses that open and close cannot fire during their open or close animations.
   - Lens flares of searchlights, headlights and other unit lights no longer flicker.
+  
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.

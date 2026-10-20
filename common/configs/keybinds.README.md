@@ -218,10 +218,9 @@ three namespaces above and none of that.
 
 ## Widget-declared actions
 
-A widget from the widget hub can declare bindable actions and their default keys in its
-`manifest.json`, in the format the hub's manifest schema sets. Each loaded widget gets an editor
-category titled by its `display_name`, its rows labelled by the action the way a custom keybind
-is. A shipped profile adds the defaults it lacks every time it is
+A widget from the widget hub can declare bindable actions, their labels and their default keys
+in its `manifest.json`, in the format the hub's manifest schema sets. Each loaded widget gets an
+editor category of its own. A shipped profile adds the defaults it lacks every time it is
 written; a player's profile takes each one once and records it under `seeded`, so one the
 player removes stays removed.
 
@@ -232,4 +231,4 @@ player removes stays removed.
   card's tooltip (`commands.<name>_tooltip`, for a row labelled `commands.<name>`) and then
   to the engine's command description (`cmd.<command>`, `cmd.<command>._description` for the
   structured ones, `cmd.luarules.<command>` for gadget commands). Roughly a third of the
-  catalog still has none of those, and a widget action has none.
+  catalog still has none of those; a widget action's comes from its manifest.

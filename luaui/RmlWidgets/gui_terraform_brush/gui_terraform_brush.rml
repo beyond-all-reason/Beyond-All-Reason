@@ -18,7 +18,7 @@
 					<span class="tf-title-accent">BRUSH</span>
 					<!-- Version tracks the tf-brush-improvements-N branch this shipped from:
 					     branch N is version 1.N. -->
-					<span class="tf-title-version">1.17</span>
+					<span class="tf-title-version">1.17.1</span>
 				</div>
 				<div class="tf-header-top-btns">
 					<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -567,9 +567,15 @@
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_hexagon.png" />
 					<div class="tf-btn-text">Shape</div>
 				</div>
+			</div>
+			<div class="flex flex-row gap-1 mb-1">
 				<div id="btn-sp-startbox" class="tf-mode-btn tf-sp-btn-startbox" data-class-active="stpSubMode == 'startbox'" data-event-mousedown="onSpSetSubMode('startbox')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_square.png" />
 					<div class="tf-btn-text">Startbox</div>
+				</div>
+				<div id="btn-sp-roles" class="tf-mode-btn tf-sp-btn-roles" data-class-active="stpSubMode == 'roles'" data-event-mousedown="onSpSetSubMode('roles')">
+					<img class="tf-icon-md" src="/luaui/images/terraform_brush/edit_pencil.png" />
+					<div class="tf-btn-text">Roles</div>
 				</div>
 			</div>
 			<!-- Startbox placement-mode picker (only visible in startbox submode). Same styling as main submode row. -->
@@ -885,6 +891,10 @@
 				<div id="sp-sbx-hint-polygon" class="text-sm text-keybind mb-1" data-if="stpStartboxMode == 'polygon'">LMB: add vertex &amp;middot; RMB: finish box &amp;middot; Drag vertices to move</div>
 				<div id="sp-sbx-hint-freedraw" class="text-sm text-keybind mb-1" data-if="stpStartboxMode == 'freedraw'">LMB drag: free-draw (smoothed) &amp;middot; RMB: cancel &amp;middot; Drag vertices to tweak</div>
 			</div>
+			<!-- Roles mode hint -->
+			<div id="sp-roles-hint" data-if="stpSubMode == 'roles'">
+				<div class="text-sm text-keybind mb-1">LMB: next role &amp;middot; RMB: previous role</div>
+			</div>
 
 			<!-- Action buttons -->
 			<div class="flex flex-row gap-1 mb-1">
@@ -902,15 +912,22 @@
 				<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
 			</div>
 		<div id="section-st-save" class="hidden">
-		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-sp-save" class="tf-action-btn tf-save-btn" style="flex: 1;" data-event-click="onSpSave()">
-				<div class="tf-action-btn-text">SAVE</div>
+		<div class="flex flex-col gap-1 mb-1">
+			<div class="flex flex-row gap-1">
+				<div id="btn-sp-save" class="tf-action-btn tf-save-btn" style="flex: 1;" data-event-click="onSpSave()">
+					<div class="tf-action-btn-text">SAVE</div>
+				</div>
+				<div id="btn-sp-load" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onSpLoad()">
+					<div class="tf-action-btn-text">LOAD</div>
+				</div>
 			</div>
-			<div id="btn-sp-load" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onSpLoad()">
-				<div class="tf-action-btn-text">LOAD</div>
-			</div>
-			<div id="btn-sp-copy" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onSpCopy()">
-				<div class="tf-action-btn-text">COPY</div>
+			<div class="flex flex-row gap-1">
+				<div id="btn-sp-copy" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onSpCopy()">
+					<div class="tf-action-btn-text">COPY</div>
+				</div>
+				<div id="btn-sp-export" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onSpExport()">
+					<div class="tf-action-btn-text">EXPORT</div>
+				</div>
 			</div>
 		</div>
 		</div><!-- /section-st-save -->

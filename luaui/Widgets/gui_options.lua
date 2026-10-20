@@ -330,6 +330,10 @@ local view = {
 	fineDrag = false --[[@as table|false]],
 	-- when the strip's /option command was last copied
 	copiedAt = -10 --[[@as number]],
+	-- the open color picker: its option, FlowUI's picker and the value it opened on
+	picker = false --[[@as table|false]],
+	-- a press went to the picker, so its release does nothing else
+	pickerHeld = false --[[@as boolean]],
 }
 
 -- the parts of the window, each drawing itself and recording in layout where it went
@@ -598,6 +602,7 @@ function view.close()
 	show = false
 	openSelect = nil
 	draggingSlider = nil
+	view.closePicker()
 	view.dragging = false
 	backgroundGuishader = glDeleteList(backgroundGuishader)
 	if WG.guishader then
@@ -685,6 +690,22 @@ local function sliderValueText(option)
 		return string.format("%." .. decimalsOf(value) .. "f", value)
 	end
 	return string.format("%." .. decimalsOf(option.step or 1) .. "f", option.value)
+end
+
+-- A color option's value is { r, g, b }, each from 0 to max on its step. White is what shows as full
+-- color (max when not given); up to max a channel goes brighter than the screen can show.
+function view.shownColor(option)
+	local white, value = option.white or option.max, option.value
+	return { value[1] / white, value[2] / white, value[3] / white }
+end
+
+-- a channel of a color option, rounded to its step
+function view.channelText(option, value)
+	return string.format("%." .. decimalsOf(option.step or 1) .. "f", value)
+end
+
+function view.sameColor(a, b)
+	return a[1] == b[1] and a[2] == b[2] and a[3] == b[3]
 end
 
 -- whitespace alone is not a search
@@ -779,6 +800,9 @@ function view.setLayout()
 	metrics.selectPadding = math.floor(4 * s)
 	metrics.selectScrollbar = math.max(3, math.floor(4 * s))
 	metrics.selectBorder = math.max(1, math.floor(vsy / 900))
+	-- the color picker, a little wider than it is tall for its square field
+	metrics.pickerH = math.floor(metrics.rowHeight * 9.5)
+	metrics.pickerW = math.floor(metrics.pickerH * 1.06)
 
 	layout.sidebarTop = a[4] - metrics.headerH - metrics.inset - math.floor(8 * s)
 	-- the column and the strip are cards side by side, as far apart as they are from the window edge
@@ -1071,6 +1095,14 @@ function view.rebind()
 	end
 	view.selected, view.stripOption, view.litPin = same(view.selected), same(view.stripOption), same(view.litPin)
 	openSelect, draggingSlider = same(openSelect) or nil, same(draggingSlider) or nil
+	if view.picker then
+		local option = same(view.picker.option)
+		if option and option.type == "color" then
+			view.picker.option = option
+		else
+			view.closePicker()
+		end
+	end
 end
 
 -- Up and down go a line along, in lines of cells to the same column; across goes a cell along. With
@@ -1159,8 +1191,8 @@ function view.adjustSelected(dir, ctrl)
 	end
 end
 
--- Enter on the selected row: flips a toggle, opens a dropdown, runs a row's click, or folds a row
--- with no control.
+-- Enter on the selected row: flips a toggle, opens a dropdown or a color picker, runs a row's click,
+-- or folds a row with no control.
 function view.activateSelected()
 	local option = view.selected
 	if not (option and layout.rowOf[option]) then
@@ -1174,6 +1206,8 @@ function view.activateSelected()
 		view.selectKey = tonumber(option.value) or 1
 		selectScrollOffset = math.max(0, view.selectKey - 8)
 		view.sound("selectUnfoldClick", 0.6)
+	elseif option.type == "color" then
+		view.openPicker(option)
 	elseif option.onclick then
 		option.onclick(option)
 	elseif view.childCount[option] and not view.searching() then
@@ -1428,6 +1462,20 @@ function drawControl.select(row, x1, right, cy, top, bottom)
 	return r[1]
 end
 
+-- a swatch of the color, where a toggle would sit; a press opens the picker
+function drawControl.color(row, x1, right, _, top, bottom)
+	local option = row.option
+	if type(option.value) ~= "table" then -- just to be safe
+		return right
+	end
+	local inset = math.floor(metrics.rowHeight * 0.12)
+	local sx1 = tuning.controlsAlignLeft and x1 or right - metrics.toggleW
+	local r = { sx1, bottom + inset, sx1 + metrics.toggleW, top - inset }
+	row.control = r
+	WG.FlowUI.Draw.ColorSwatch(r[1], r[2], r[3], r[4], view.shownColor(option))
+	return sx1
+end
+
 -- a row that does something when clicked is a button across its whole width
 function drawControl.click(row, _, right)
 	row.control = row.hover
@@ -1669,7 +1717,9 @@ function widget:Update(dt)
 	end
 
 	if sceduleOptionApply then
-		if sceduleOptionApply[1] <= now then
+		-- waits while its color is still being picked
+		local picking = view.picker and view.picker.option.id == sceduleOptionApply[2]
+		if sceduleOptionApply[1] <= now and not picking then
 			applyOptionValueByID(sceduleOptionApply[2], nil, true, true)
 			sceduleOptionApply = nil
 		end
@@ -1931,6 +1981,9 @@ function draw.hover(mx, my, ml)
 	end
 	if openSelect then
 		return layout.rowOf[openSelect]
+	end
+	if view.picker then
+		return layout.rowOf[view.picker.option]
 	end
 	for _, entry in ipairs(layout.sidebar) do
 		local r = entry.rect
@@ -2226,6 +2279,194 @@ function draw.selectPopup(mx, my)
 	end
 end
 
+-- Opens FlowUI's color picker on a color option. Its changes apply as it goes; ESC puts back the
+-- color it opened on, and a click anywhere off it closes it.
+function view.openPicker(option)
+	view.closePicker()
+	local white, value = option.white or option.max, option.value
+	view.picker = {
+		option = option,
+		original = { value[1], value[2], value[3] },
+		ui = WG.FlowUI.ColorPicker.new({ value[1] / white, value[2] / white, value[3] / white }, option.max / white),
+	}
+	view.sound("selectUnfoldClick", 0.6)
+end
+
+function view.dropPickerList()
+	local picker = view.picker
+	local guishader = WG.guishader ---@type table?
+	if picker and picker.list then
+		if guishader then
+			guishader.removeRenderDlist(picker.list)
+		end
+		picker.list = glDeleteList(picker.list)
+	end
+end
+
+function view.closePicker()
+	local guishader = WG.guishader ---@type table?
+	if view.picker then
+		view.dropPickerList()
+		if guishader then
+			guishader.RemoveScreenRect("options_color")
+		end
+		view.picker = false
+	end
+end
+
+-- the picker's color in its option's units, each channel on its step
+function view.pickerValue(picker)
+	local option, color = picker.option, picker.ui.color
+	local white, step = option.white or option.max, option.step
+	local value = {}
+	for i = 1, 3 do
+		local v = color[i] * white
+		if step then
+			v = math.floor(v / step + 0.5) * step
+		end
+		value[i] = math.max(0, math.min(option.max, v))
+	end
+	return value
+end
+
+-- Hands the picker's color to its option when that changed it. While a drag goes on the list is not
+-- built again (the next frame draws the swatch anew); at its end it is.
+function view.applyPicked(final)
+	local picker = view.picker
+	if not picker then
+		return
+	end
+	local value = view.pickerValue(picker)
+	if not view.sameColor(value, picker.option.value) then
+		if final then
+			applyOptionValue(picker.option, value)
+		else
+			sliderValueChanged = true
+			applyOptionValue(picker.option, value, true)
+			if lastSliderSound == nil or os_clock() - lastSliderSound > 0.04 then
+				lastSliderSound = os_clock()
+				view.sound("sliderDrag", 0.3)
+			end
+		end
+	end
+end
+
+-- puts back the color the picker opened on
+function view.revertPicked()
+	local picker = view.picker
+	if picker and not view.sameColor(picker.original, picker.option.value) then
+		local original = picker.original
+		picker.ui:setColor(picker.ui.previous)
+		applyOptionValue(picker.option, { original[1], original[2], original[3] })
+	end
+end
+
+-- the wheel over a bar: a step of its channel, or ten
+function view.stepPickerChannel(channel, n)
+	local picker = view.picker
+	local option = picker.option
+	local value = { option.value[1], option.value[2], option.value[3] }
+	local step = option.step or option.max / 100
+	value[channel] = math.max(0, math.min(option.max, math.floor((value[channel] + n * step) / step + 0.5) * step))
+	if not view.sameColor(value, option.value) then
+		local white = option.white or option.max
+		picker.ui:setColor({ value[1] / white, value[2] / white, value[3] / white })
+		applyOptionValue(option, value)
+		view.sound("sliderDrag", 0.3)
+	end
+end
+
+-- While the picker is open a press is its own: on it, it picks or puts back the color it opened on;
+-- anywhere else, its own swatch too, it closes it. The release that follows does nothing else.
+function view.pickerMouse(mx, my, release)
+	local picker = view.picker
+	if release then
+		if not view.pickerHeld then
+			return false
+		end
+		view.pickerHeld = false
+		if picker and picker.ui.dragging then
+			picker.ui:release()
+			view.applyPicked(true)
+		end
+		return true
+	end
+	if not picker then
+		return false
+	end
+	view.pickerHeld = true
+	view.pressedInside = true
+	local changed, part = picker.ui:press(mx, my)
+	if part == "previous" then
+		view.revertPicked()
+	elseif changed then
+		view.applyPicked()
+	elseif part == nil then
+		view.closePicker()
+	end
+	return true
+end
+
+-- The open color picker under its swatch, or above it where it would run off the screen, with each
+-- channel's letter and value beside its bar. Like the dropdown it is drawn after guishader's blur,
+-- and its display list is made again only when what it shows changed.
+function draw.picker(mx, my)
+	local picker = view.picker
+	local row = layout.rowOf[picker.option]
+	if not (row and row.control) then
+		view.closePicker()
+		return
+	end
+	local control, w, h = row.control, metrics.pickerW, metrics.pickerH
+	local x1 = math.max(0, math.min(control[3] - w, vsx - w))
+	local top = control[2] - metrics.selectPadding
+	if top - h < 0 and vsy - control[4] > control[2] then
+		top = control[4] + metrics.selectPadding + h
+	end
+	local ui, option = picker.ui, picker.option
+	local guishader = WG.guishader ---@type table?
+	ui:setRect(x1, top - h, x1 + w, top)
+	local hovered = ui.dragging or ui:partAt(mx, my)
+	local value, c = option.value, ui.color
+	local sig = table.concat({
+		x1,
+		top,
+		ui.h,
+		ui.s,
+		ui.v,
+		c[1],
+		c[2],
+		c[3],
+		value[1],
+		value[2],
+		value[3],
+		tostring(hovered),
+		guishader and 1 or 0,
+	}, "|")
+	if sig ~= picker.sig or not picker.list then
+		picker.sig = sig
+		view.dropPickerList()
+		picker.list = glCreateList(function()
+			ui:draw(hovered, guishader and look.selectBack[4] or look.selectBackSolid[4])
+			font:Begin()
+			font:SetOutlineColor(0, 0, 0, 0.4)
+			for i, channel in ipairs(ui.parts.channels) do
+				font:Print(look.caption .. channel.letter, channel.labelX, channel.y, metrics.controlFs, "ov")
+				local shown = view.channelText(option, value[i])
+				font:Print(look.value .. shown, channel.valueX, channel.y, metrics.controlFs, "rov")
+			end
+			font:End()
+		end)
+		if guishader then
+			guishader.InsertScreenRect(x1, top - h, x1 + w, top, "options_color", widget)
+			guishader.insertRenderDlist(picker.list)
+		end
+	end
+	if not guishader then
+		glCallList(picker.list)
+	end
+end
+
 function widget:DrawScreen()
 	-- doing it here so other widgets having higher layer number value are also loaded
 	if not initialized then
@@ -2283,6 +2524,9 @@ function widget:DrawScreen()
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
+			if view.picker then
+				draw.picker(mx, my)
+			end
 			glColor(1, 1, 1, 1)
 		elseif WG.guishader and backgroundGuishader then
 			WG.guishader.RemoveDlist("options")
@@ -2329,14 +2573,21 @@ function widget:KeyRelease()
 	return false
 end
 
--- ESC closes the open dropdown first, then clears the search, then closes the window. The arrow
--- keys, Enter, Tab, Home and End work the rows (view.moveSelection and the ones after it), the arrows
--- and Enter an open dropdown too; while the search field is typed in, it keeps left, right, Enter,
--- Home and End. Every other key goes to the search field, and none reach the game while the window
--- is open.
+-- ESC closes the open dropdown or color picker first (the picker puts back the color it opened on,
+-- where Enter keeps the new one), then clears the search, then closes the window. The arrow keys,
+-- Enter, Tab, Home and End work the rows (view.moveSelection and the ones after it), the arrows and
+-- Enter an open dropdown too; while the search field is typed in, it keeps left, right, Enter, Home
+-- and End. Every other key goes to the search field, and none reach the game while the window is open.
 function widget:KeyPress(key, mods)
 	if not show then
 		return false
+	end
+	if view.picker and (key == 27 or key == 13 or key == 271) then
+		if key == 27 then
+			view.revertPicked()
+		end
+		view.closePicker()
+		return true
 	end
 	if key == 27 then
 		if openSelect then
@@ -2482,6 +2733,7 @@ function view.openTab(group)
 	view.scrollOf[currentGroupTab] = view.scroll
 	currentGroupTab = group.id
 	openSelect = nil
+	view.closePicker()
 	selectClickAllowHide = nil
 	view.litPin = false
 	view.selected, view.stripOption = false, false
@@ -2521,11 +2773,19 @@ function view.reveal(option)
 	view.refresh()
 end
 
--- The wheel scrolls the open dropdown, or else the list: three lines, nine with ctrl, a page with
--- shift. Nothing gets past the window while it is open.
+-- The wheel scrolls the open dropdown, steps a channel over the color picker's bars (ten steps with
+-- ctrl), or else scrolls the list: three lines, nine with ctrl, a page with shift. Nothing gets past
+-- the window while it is open.
 function widget:MouseWheel(up, value)
 	if not show then
 		return
+	end
+	local mx, my = Spring.GetMouseState()
+	-- on the color picker the list stays put
+	local part = view.picker and view.picker.ui:partAt(mx, my)
+	if type(part) == "number" then
+		local _, ctrl = Spring.GetModKeyState()
+		view.stepPickerChannel(part, (up and 1 or -1) * (ctrl and 10 or 1))
 	end
 	if openSelect ~= nil then
 		local numItems = 0
@@ -2540,8 +2800,7 @@ function widget:MouseWheel(up, value)
 		end
 		return true
 	end
-	local mx, my = Spring.GetMouseState()
-	if inRect(layout.window, mx, my) then
+	if not part and inRect(layout.window, mx, my) then
 		local _, ctrl, _, shift = Spring.GetModKeyState()
 		-- over the selected slider the wheel steps it (ten steps with ctrl); not over others, which a
 		-- list scrolled past would change
@@ -2564,6 +2823,9 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:MouseMove(mx, my)
+	if view.picker and view.picker.ui:drag(mx, my) then
+		view.applyPicked()
+	end
 	if draggingSlider ~= nil then
 		local newValue = sliderValueAt(draggingSlider, mx)
 		if draggingSlider.value ~= newValue then
@@ -2607,7 +2869,9 @@ local function releaseOnRows(mx, my)
 					end
 				end
 				return
-			elseif (option.type == "slider" or option.type == "select") and inRect(o, mx, my) then
+			elseif
+				(option.type == "slider" or option.type == "select" or option.type == "color") and inRect(o, mx, my)
+			then
 				-- handled on press
 				return
 			elseif option.onclick ~= nil and inRect(row.hover, mx, my) then
@@ -2619,7 +2883,7 @@ local function releaseOnRows(mx, my)
 end
 
 -- A press on a row selects it, and grabs a slider anywhere along its track (with shift held, where
--- the knob is, to drag it finely) or opens a dropdown.
+-- the knob is, to drag it finely) or opens a dropdown or a color picker.
 local function pressOnRows(mx, my)
 	for _, row in ipairs(layout.rows) do
 		if inRect(row.hover, mx, my) then
@@ -2651,6 +2915,9 @@ local function pressOnRows(mx, my)
 			openSelect = option
 			selectScrollOffset = 0
 			view.selectKey = false
+			return
+		elseif o and option.type == "color" and inRect(o, mx, my) then
+			view.openPicker(option)
 			return
 		end
 	end
@@ -2728,6 +2995,10 @@ function mouseEvent(mx, my, button, release)
 	local pressedInside = view.pressedInside
 	if release then
 		view.pressedInside = nil
+	end
+
+	if button == 1 and view.pickerMouse(mx, my, release) then
+		return true
 	end
 
 	if button == 1 then
@@ -2841,7 +3112,7 @@ end
 --   widgetConfig = { widget name, config key or path, api = WG table, get = getter, set = setter, key = ... }
 --     read from the API when the list is built, loaded from the widget's saved config, and on
 --     change saved there and handed to the setter; with key, the getter gets key and the setter { key, value }
---   configInt / configFloat = engine config key; a toggle stores 1 or 0
+--   configInt / configFloat = engine config key; a toggle stores 1 or 0, a color has a key per channel
 local function boundPath(config)
 	return type(config[2]) == "table" and config[2] or { config[2] }
 end
@@ -2859,6 +3130,15 @@ local function readBoundValue(option)
 	elseif option.configInt then
 		if option.type == "bool" then
 			option.value = Spring.GetConfigInt(option.configInt, option.value and 1 or 0) == 1
+		elseif option.type == "color" then
+			-- a new table only when it changed, so a read that finds the same color changes nothing
+			local value = {}
+			for i, key in ipairs(option.configInt) do
+				value[i] = Spring.GetConfigInt(key, option.value[i])
+			end
+			if not view.sameColor(value, option.value) then
+				option.value = value
+			end
 		else
 			option.value = Spring.GetConfigInt(option.configInt, option.value)
 		end
@@ -2879,11 +3159,13 @@ end
 -- while the window is open; not the one being dragged or picked from. Returns whether any changed.
 function view.rereadBound()
 	local changed = false --[[@as boolean]]
+	local picking = view.picker and view.picker.option
 	for _, option in ipairs(unfilteredOptions) do
 		if
 			(option.widgetConfig or option.configInt or option.configFloat)
 			and option ~= draggingSlider
 			and option ~= openSelect
+			and option ~= picking
 		then
 			local before = option.value
 			readBoundValue(option)
@@ -2898,6 +3180,10 @@ local function saveBoundValue(option)
 	if config then
 		local param = config.key and { config.key, option.value } or nil
 		saveOptionValue(config[1], config.api, config.set, boundPath(config), option.value, param)
+	elseif option.configInt and option.type == "color" then
+		for i, key in ipairs(option.configInt) do
+			Spring.SetConfigInt(key, option.value[i])
+		end
 	elseif option.configInt then
 		Spring.SetConfigInt(option.configInt, option.type == "bool" and (option.value and 1 or 0) or option.value)
 	elseif option.configFloat then
@@ -3098,6 +3384,70 @@ function applyFilter()
 	view.refresh()
 end
 
+-- Lookups for the squad selects that merge several widget settings into select inputs.
+squadSelectValue = {}
+
+function squadSelectValue.get(getterName)
+	local api = WG["squadselection"]
+	if api == nil or api[getterName] == nil then
+		return nil
+	end
+	return api[getterName]()
+end
+
+function squadSelectValue.hullDisplayMode()
+	if squadSelectValue.get("getVisualizationMode") ~= "convexHull" then
+		return 1
+	end
+	if squadSelectValue.get("getShowReserveSquads") then
+		return 2
+	end
+	return 3
+end
+
+function squadSelectValue.squadColorMode()
+	local mode = squadSelectValue.get("getSquadColorMode")
+	if mode == "custom" then
+		return 2
+	end
+	if mode == "squad" then
+		return 3
+	end
+	return 1
+end
+
+function squadSelectValue.squadCreateMethod()
+	if squadSelectValue.get("getRightClickSquadCreate") then
+		return 2
+	end
+	if squadSelectValue.get("getCtrlRightClickCreatesSquad") then
+		return 3
+	end
+	if squadSelectValue.get("getCtrlRightClickDragCreatesSquad") then
+		return 4
+	end
+	return 1
+end
+
+-- the custom squad color, from the widget's three channels
+function squadSelectValue.customColor()
+	local color = { 0, 0.3, 0.7 }
+	for i, channel in ipairs({ "R", "G", "B" }) do
+		local value = squadSelectValue.get("getSquadCustomColor" .. channel)
+		if type(value) == "number" then
+			color[i] = value
+		end
+	end
+	return color
+end
+
+function squadSelectValue.rightClickMoveControlsReserves()
+	if squadSelectValue.get("getRightClickMoveControlsReserves") then
+		return 2
+	end
+	return 1
+end
+
 -------------------------------------------------------------------------------
 -- Squad selection presets
 --
@@ -3136,9 +3486,7 @@ squadPreset = {
 		"squad_convexHullBorderOpacity",
 		"squad_convexHullBorderThickness",
 		"squad_convexHullColorMode",
-		"squad_convexHullCustomColorR",
-		"squad_convexHullCustomColorG",
-		"squad_convexHullCustomColorB",
+		"squad_convexHullCustomColor",
 	},
 
 	-- Rows that only make sense while the hull widget itself is running.
@@ -3149,9 +3497,7 @@ squadPreset = {
 		"squad_convexHullBorderOpacity",
 		"squad_convexHullBorderThickness",
 		"squad_convexHullColorMode",
-		"squad_convexHullCustomColorR",
-		"squad_convexHullCustomColorG",
-		"squad_convexHullCustomColorB",
+		"squad_convexHullCustomColor",
 	},
 }
 -- Index-aligned with the squad_preset select's option labels. 'off' is not a preset but the widget being disabled, so it leads the shared list.
@@ -3166,8 +3512,9 @@ function squadPreset.get()
 	if not GetWidgetToggleValue("Squad Selection") then
 		return "off"
 	end
-	if WG["squadselection"] ~= nil and WG["squadselection"].getPreset ~= nil then
-		return WG["squadselection"].getPreset()
+	local preset = squadSelectValue.get("getPreset")
+	if preset ~= nil then
+		return preset
 	end
 	local data = widgetHandler.configData["Squad Selection"]
 	return (data and data.preset) or "custom"
@@ -8617,25 +8964,10 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt2"),
 				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt3"),
 			},
-			-- Derive the index from WG now (at init), so the cached draw list shows the
-			-- right option immediately. onload re-derives the same value on panel open.
-			value = (WG["squadselection"] == nil and 1)
-				or (WG["squadselection"].getVisualizationMode() ~= "convexHull" and 1)
-				or (WG["squadselection"].getShowReserveSquads() and 2)
-				or 3,
+			value = squadSelectValue.hullDisplayMode(),
 			description = BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_descr"),
 			onload = function(option)
-				local v = 1
-				if WG["squadselection"] ~= nil then
-					if WG["squadselection"].getVisualizationMode() ~= "convexHull" then
-						v = 1
-					elseif WG["squadselection"].getShowReserveSquads() then
-						v = 2
-					else
-						v = 3
-					end
-				end
-				option.value = v
+				option.value = squadSelectValue.hullDisplayMode()
 			end,
 			onchange = function(_, value)
 				saveOptionValue(
@@ -8790,24 +9122,10 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt2"),
 				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt3"),
 			},
-			value = (WG["squadselection"] == nil and 1)
-				or (WG["squadselection"].getSquadColorMode() == "custom" and 2)
-				or (WG["squadselection"].getSquadColorMode() == "squad" and 3)
-				or 1,
+			value = squadSelectValue.squadColorMode(),
 			description = BAR.I18N("ui.settings.option.squadSelection_squadColorMode_descr"),
 			onload = function(option)
-				local raw = (
-					WG["squadselection"] ~= nil
-					and WG["squadselection"].getSquadColorMode ~= nil
-					and WG["squadselection"].getSquadColorMode()
-				) or "player"
-				local modes = { "player", "custom", "squad" }
-				for idx, v in ipairs(modes) do
-					if v == raw then
-						option.value = idx
-						break
-					end
-				end
+				option.value = squadSelectValue.squadColorMode()
 			end,
 			onchange = function(_, value)
 				local modes = { "player", "custom", "squad" }
@@ -8822,66 +9140,27 @@ function init()
 		},
 
 		{
-			id = "squad_convexHullCustomColorR",
+			id = "squad_convexHullCustomColor",
 			parent = "squad_hullDisplayMode",
 			group = "ui",
 			category = types.advanced,
-			name = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorR"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.squadSelection_squadCustomColor"),
+			type = "color",
 			max = 1,
-			step = 0.05,
-			value = 0,
-			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorR_descr"),
-			widgetConfig = {
-				"Squad Selection",
-				"squadCustomColorR",
-				api = "squadselection",
-				get = "getSquadCustomColorR",
-				set = "setSquadCustomColorR",
-			},
-		},
-
-		{
-			id = "squad_convexHullCustomColorG",
-			parent = "squad_hullDisplayMode",
-			group = "ui",
-			category = types.advanced,
-			name = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorG"),
-			type = "slider",
-			min = 0,
-			max = 1,
-			step = 0.05,
-			value = 0.3,
-			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorG_descr"),
-			widgetConfig = {
-				"Squad Selection",
-				"squadCustomColorG",
-				api = "squadselection",
-				get = "getSquadCustomColorG",
-				set = "setSquadCustomColorG",
-			},
-		},
-
-		{
-			id = "squad_convexHullCustomColorB",
-			parent = "squad_hullDisplayMode",
-			group = "ui",
-			category = types.advanced,
-			name = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorB"),
-			type = "slider",
-			min = 0,
-			max = 1,
-			step = 0.05,
-			value = 0.7,
-			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorB_descr"),
-			widgetConfig = {
-				"Squad Selection",
-				"squadCustomColorB",
-				api = "squadselection",
-				get = "getSquadCustomColorB",
-				set = "setSquadCustomColorB",
-			},
+			step = 0.01,
+			value = squadSelectValue.customColor(),
+			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColor_descr"),
+			onchange = function(_, value)
+				for i, channel in ipairs({ "R", "G", "B" }) do
+					saveOptionValue(
+						"Squad Selection",
+						"squadselection",
+						"setSquadCustomColor" .. channel,
+						{ "squadCustomColor" .. channel },
+						value[i]
+					)
+				end
+			end,
 		},
 
 		{
@@ -9449,11 +9728,7 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.squadSelection_leftClickAlternativeSelection"),
 			type = "bool",
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getLeftClickAlternativeSelection ~= nil
-				and WG["squadselection"].getLeftClickAlternativeSelection()
-			),
+			value = squadSelectValue.get("getLeftClickAlternativeSelection") or false,
 			description = BAR.I18N("ui.settings.option.squadSelection_leftClickAlternativeSelection_descr"),
 			onload = function(option)
 				loadWidgetData(
@@ -9486,24 +9761,10 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt3"),
 				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt4"),
 			},
-			value = (WG["squadselection"] == nil and 1)
-				or (WG["squadselection"].getRightClickSquadCreate() and 2)
-				or (WG["squadselection"].getCtrlRightClickCreatesSquad() and 3)
-				or (WG["squadselection"].getCtrlRightClickDragCreatesSquad() and 4)
-				or 1,
+			value = squadSelectValue.squadCreateMethod(),
 			description = BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_descr"),
 			onload = function(option)
-				local v = 1
-				if WG["squadselection"] ~= nil then
-					if WG["squadselection"].getRightClickSquadCreate() then
-						v = 2
-					elseif WG["squadselection"].getCtrlRightClickCreatesSquad() then
-						v = 3
-					elseif WG["squadselection"].getCtrlRightClickDragCreatesSquad() then
-						v = 4
-					end
-				end
-				option.value = v
+				option.value = squadSelectValue.squadCreateMethod()
 			end,
 			onchange = function(_, value)
 				saveOptionValue(
@@ -9559,23 +9820,10 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt1"),
 				BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt2"),
 			},
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getRightClickMoveControlsReserves ~= nil
-				and WG["squadselection"].getRightClickMoveControlsReserves()
-				and 2
-			) or 1,
+			value = squadSelectValue.rightClickMoveControlsReserves(),
 			description = BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_descr"),
 			onload = function(option)
-				local v = 1
-				if
-					WG["squadselection"] ~= nil
-					and WG["squadselection"].getRightClickMoveControlsReserves ~= nil
-					and WG["squadselection"].getRightClickMoveControlsReserves()
-				then
-					v = 2
-				end
-				option.value = v
+				option.value = squadSelectValue.rightClickMoveControlsReserves()
 			end,
 			onchange = function(_, value)
 				saveOptionValue(
@@ -9631,11 +9879,7 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.squadSelection_excludeConstructors"),
 			type = "bool",
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getExcludeConstructors ~= nil
-				and WG["squadselection"].getExcludeConstructors()
-			),
+			value = squadSelectValue.get("getExcludeConstructors") or false,
 			description = BAR.I18N("ui.settings.option.squadSelection_excludeConstructors_descr"),
 			onload = function(option)
 				loadWidgetData("Squad Selection", "squad_excludeConstructors", { "excludeConstructors" })
@@ -9660,11 +9904,7 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.squadSelection_excludeResurrectionUnits"),
 			type = "bool",
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getExcludeResurrectionUnits ~= nil
-				and WG["squadselection"].getExcludeResurrectionUnits()
-			),
+			value = squadSelectValue.get("getExcludeResurrectionUnits") or false,
 			description = BAR.I18N("ui.settings.option.squadSelection_excludeResurrectionUnits_descr"),
 			onload = function(option)
 				loadWidgetData("Squad Selection", "squad_excludeResurrectionUnits", { "excludeResurrectionUnits" })
@@ -9689,11 +9929,7 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.squadSelection_excludeCombatEngineers"),
 			type = "bool",
-			value = (
-				WG["squadselection"] ~= nil
-				and WG["squadselection"].getExcludeCombatEngineers ~= nil
-				and WG["squadselection"].getExcludeCombatEngineers()
-			),
+			value = squadSelectValue.get("getExcludeCombatEngineers") or false,
 			description = BAR.I18N("ui.settings.option.squadSelection_excludeCombatEngineers_descr"),
 			onload = function(option)
 				loadWidgetData("Squad Selection", "squad_excludeCombatEngineers", { "excludeCombatEngineers" })
@@ -9722,70 +9958,23 @@ function init()
 		},
 
 		{
-			id = "anonymous_r",
+			id = "anonymous_color",
 			parent = "label_teamcolors",
 			group = "accessibility",
 			category = types.basic,
 			available = anonymousMode ~= "disabled",
-			name = BAR.I18N("ui.settings.option.anonymous_r"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.anonymous_color"),
+			type = "color",
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("anonymousColorR", 255)),
+			value = { 255, 0, 0 },
+			configInt = { "anonymousColorR", "anonymousColorG", "anonymousColorB" },
 			description = BAR.I18N("ui.settings.option.anonymous_descr"),
 			onchange = function(option, value, force)
 				if force then
-					Spring.SetConfigInt("anonymousColorR", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, "anonymous_r" }
-				end
-			end,
-		},
-
-		{
-			id = "anonymous_g",
-			parent = "label_teamcolors",
-			group = "accessibility",
-			category = types.basic,
-			available = anonymousMode ~= "disabled",
-			name = BAR.I18N("ui.settings.option.anonymous_g"),
-			type = "slider",
-			min = 0,
-			max = 255,
-			step = 1,
-			value = tonumber(Spring.GetConfigInt("anonymousColorG", 0)),
-			description = BAR.I18N("ui.settings.option.anonymous_descr"),
-			onchange = function(option, value, force)
-				if force then
-					Spring.SetConfigInt("anonymousColorG", value)
-					Spring.SendCommands("luarules reloadluaui")
-				else
-					sceduleOptionApply = { os.clock() + 1.5, "anonymous_g" }
-				end
-			end,
-		},
-
-		{
-			id = "anonymous_b",
-			parent = "label_teamcolors",
-			group = "accessibility",
-			category = types.basic,
-			available = anonymousMode ~= "disabled",
-			name = BAR.I18N("ui.settings.option.anonymous_b"),
-			type = "slider",
-			min = 0,
-			max = 255,
-			step = 1,
-			value = tonumber(Spring.GetConfigInt("anonymousColorB", 0)),
-			description = BAR.I18N("ui.settings.option.anonymous_descr"),
-			onchange = function(option, value, force)
-				if force then
-					Spring.SetConfigInt("anonymousColorB", value)
-					Spring.SendCommands("luarules reloadluaui")
-				else
-					sceduleOptionApply = { os.clock() + 1.5, "anonymous_b" }
+					sceduleOptionApply = { os.clock() + 1.5, "anonymous_color" }
 				end
 			end,
 		},
@@ -9816,18 +10005,15 @@ function init()
 				Spring.SetConfigInt("SimpleTeamColorsUseGradient", 0)
 				getOption("simpleteamcolors_use_gradient").value = false
 				for id, default in pairs({
-					simpleteamcolors_player_r = { "SimpleTeamColorsPlayerR", 0 },
-					simpleteamcolors_player_g = { "SimpleTeamColorsPlayerG", 77 },
-					simpleteamcolors_player_b = { "SimpleTeamColorsPlayerB", 255 },
-					simpleteamcolors_ally_r = { "SimpleTeamColorsAllyR", 0 },
-					simpleteamcolors_ally_g = { "SimpleTeamColorsAllyG", 255 },
-					simpleteamcolors_ally_b = { "SimpleTeamColorsAllyB", 0 },
-					simpleteamcolors_enemy_r = { "SimpleTeamColorsEnemyR", 255 },
-					simpleteamcolors_enemy_g = { "SimpleTeamColorsEnemyG", 16 },
-					simpleteamcolors_enemy_b = { "SimpleTeamColorsEnemyB", 5 },
+					simpleteamcolors_player = { 0, 77, 255 },
+					simpleteamcolors_ally = { 0, 255, 0 },
+					simpleteamcolors_enemy = { 255, 16, 5 },
 				}) do
-					Spring.SetConfigInt(default[1], default[2])
-					getOption(id).value = default[2]
+					local color = getOption(id)
+					for i, key in ipairs(color.configInt) do
+						Spring.SetConfigInt(key, default[i])
+					end
+					color.value = default
 				end
 				option.value = false -- a button, not a setting
 				Spring.SetConfigInt("UpdateTeamColors", 1)
@@ -9861,148 +10047,47 @@ function init()
 			end,
 		},
 		{
-			id = "simpleteamcolors_player_r",
+			id = "simpleteamcolors_player",
 			parent = "simpleteamcolors",
 			group = "accessibility",
 			category = types.basic,
-			name = BAR.I18N("ui.settings.option.simpleteamcolors_player_r"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.simpleteamcolors_player"),
+			type = "color",
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
-			onchange = function(option, value)
-				Spring.SetConfigInt("SimpleTeamColorsPlayerR", value)
+			value = { 0, 77, 255 },
+			configInt = { "SimpleTeamColorsPlayerR", "SimpleTeamColorsPlayerG", "SimpleTeamColorsPlayerB" },
+			onchange = function()
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 		{
-			id = "simpleteamcolors_player_g",
+			id = "simpleteamcolors_ally",
 			parent = "simpleteamcolors",
 			group = "accessibility",
 			category = types.basic,
-			name = BAR.I18N("ui.settings.option.simpleteamcolors_player_g"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.simpleteamcolors_ally"),
+			type = "color",
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)),
-			onchange = function(option, value)
-				Spring.SetConfigInt("SimpleTeamColorsPlayerG", value)
+			value = { 0, 255, 0 },
+			configInt = { "SimpleTeamColorsAllyR", "SimpleTeamColorsAllyG", "SimpleTeamColorsAllyB" },
+			onchange = function()
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 		{
-			id = "simpleteamcolors_player_b",
+			id = "simpleteamcolors_enemy",
 			parent = "simpleteamcolors",
 			group = "accessibility",
 			category = types.basic,
-			name = BAR.I18N("ui.settings.option.simpleteamcolors_player_b"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.simpleteamcolors_enemy"),
+			type = "color",
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)),
-			onchange = function(option, value)
-				Spring.SetConfigInt("SimpleTeamColorsPlayerB", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
-			end,
-		},
-
-		{
-			id = "simpleteamcolors_ally_r",
-			parent = "simpleteamcolors",
-			group = "accessibility",
-			category = types.basic,
-			name = BAR.I18N("ui.settings.option.simpleteamcolors_ally_r"),
-			type = "slider",
-			min = 0,
-			max = 255,
-			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)),
-			onchange = function(option, value)
-				Spring.SetConfigInt("SimpleTeamColorsAllyR", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
-			end,
-		},
-		{
-			id = "simpleteamcolors_ally_g",
-			parent = "simpleteamcolors",
-			group = "accessibility",
-			category = types.basic,
-			name = BAR.I18N("ui.settings.option.simpleteamcolors_ally_g"),
-			type = "slider",
-			min = 0,
-			max = 255,
-			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)),
-			onchange = function(option, value)
-				Spring.SetConfigInt("SimpleTeamColorsAllyG", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
-			end,
-		},
-		{
-			id = "simpleteamcolors_ally_b",
-			parent = "simpleteamcolors",
-			group = "accessibility",
-			category = types.basic,
-			name = BAR.I18N("ui.settings.option.simpleteamcolors_ally_b"),
-			type = "slider",
-			min = 0,
-			max = 255,
-			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)),
-			onchange = function(option, value)
-				Spring.SetConfigInt("SimpleTeamColorsAllyB", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
-			end,
-		},
-
-		{
-			id = "simpleteamcolors_enemy_r",
-			parent = "simpleteamcolors",
-			group = "accessibility",
-			category = types.basic,
-			name = BAR.I18N("ui.settings.option.simpleteamcolors_enemy_r"),
-			type = "slider",
-			min = 0,
-			max = 255,
-			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)),
-			onchange = function(option, value)
-				Spring.SetConfigInt("SimpleTeamColorsEnemyR", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
-			end,
-		},
-		{
-			id = "simpleteamcolors_enemy_g",
-			parent = "simpleteamcolors",
-			group = "accessibility",
-			category = types.basic,
-			name = BAR.I18N("ui.settings.option.simpleteamcolors_enemy_g"),
-			type = "slider",
-			min = 0,
-			max = 255,
-			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)),
-			onchange = function(option, value)
-				Spring.SetConfigInt("SimpleTeamColorsEnemyG", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
-			end,
-		},
-		{
-			id = "simpleteamcolors_enemy_b",
-			parent = "simpleteamcolors",
-			group = "accessibility",
-			category = types.basic,
-			name = BAR.I18N("ui.settings.option.simpleteamcolors_enemy_b"),
-			type = "slider",
-			min = 0,
-			max = 255,
-			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)),
-			onchange = function(option, value)
-				Spring.SetConfigInt("SimpleTeamColorsEnemyB", value)
+			value = { 255, 16, 5 },
+			configInt = { "SimpleTeamColorsEnemyR", "SimpleTeamColorsEnemyG", "SimpleTeamColorsEnemyB" },
+			onchange = function()
 				Spring.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
@@ -10506,59 +10591,23 @@ function init()
 		},
 
 		{
-			id = "fog_r",
+			id = "fog_color",
 			group = "dev",
 			category = types.dev,
-			prefix = BAR.I18N("ui.settings.option.fog"),
-			name = BAR.I18N("ui.settings.option.red"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.fog_color"),
+			type = "color",
 			max = 1,
 			step = 0.01,
-			value = select(1, gl.GetAtmosphere("fogColor")),
+			value = { gl.GetAtmosphere("fogColor") },
 			description = "",
 			onchange = function(option, value)
-				local fogColor = { gl.GetAtmosphere("fogColor") }
-				Spring.SetAtmosphere({ fogColor = { value, fogColor[2], fogColor[3], fogColor[4] } })
-			end,
-		},
-		{
-			id = "fog_g",
-			parent = "fog_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.green"),
-			type = "slider",
-			min = 0,
-			max = 1,
-			step = 0.01,
-			value = select(2, gl.GetAtmosphere("fogColor")),
-			description = "",
-			onchange = function(option, value)
-				local fogColor = { gl.GetAtmosphere("fogColor") }
-				Spring.SetAtmosphere({ fogColor = { fogColor[1], value, fogColor[3], fogColor[4] } })
-			end,
-		},
-		{
-			id = "fog_b",
-			parent = "fog_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.blue"),
-			type = "slider",
-			min = 0,
-			max = 1,
-			step = 0.01,
-			value = select(3, gl.GetAtmosphere("fogColor")),
-			description = "",
-			onchange = function(option, value)
-				local fogColor = { gl.GetAtmosphere("fogColor") }
-				Spring.SetAtmosphere({ fogColor = { fogColor[1], fogColor[2], value, fogColor[4] } })
+				local alpha = select(4, gl.GetAtmosphere("fogColor"))
+				Spring.SetAtmosphere({ fogColor = { value[1], value[2], value[3], alpha } })
 			end,
 		},
 		{
 			id = "fog_color_reset",
-			parent = "fog_r",
+			parent = "fog_color",
 			group = "dev",
 			category = types.dev,
 			name = BAR.I18N("ui.settings.option.fog_color_reset"),
@@ -10566,9 +10615,8 @@ function init()
 			value = false,
 			description = "",
 			onchange = function(option, value)
-				getOption("fog_r").value = defaultMapFog.fogColor[1]
-				getOption("fog_g").value = defaultMapFog.fogColor[2]
-				getOption("fog_b").value = defaultMapFog.fogColor[3]
+				local fogColor = defaultMapFog.fogColor
+				getOption("fog_color").value = { fogColor[1], fogColor[2], fogColor[3] }
 				option.value = false
 				Spring.SetAtmosphere({ fogColor = defaultMapFog.fogColor })
 				Spring.Echo("reset map fog color defaults")
@@ -10835,537 +10883,159 @@ function init()
 		},
 
 		{
-			id = "color_groundambient_r",
+			id = "color_groundambient",
 			group = "dev",
 			category = types.dev,
-			prefix = BAR.I18N("ui.settings.option.color_groundambient"),
-			name = BAR.I18N("ui.settings.option.red"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.color_groundambient"),
+			type = "color",
 			max = 2,
+			white = 1,
 			step = 0.001,
-			value = 0,
+			value = { 0, 0, 0 },
 			description = "",
 			onload = function(option)
-				local r, _, _ = gl.GetSun("ambient")
-				option.value = r
+				option.value = { gl.GetSun("ambient") }
 			end,
 			onchange = function(option, value)
-				local r, g, b = gl.GetSun("ambient")
-				Spring.SetSunLighting({ groundAmbientColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "color_groundambient_g",
-			parent = "color_groundambient_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.green"),
-			type = "slider",
-			min = 0,
-			max = 2,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local _, g, _ = gl.GetSun("ambient")
-				option.value = g
-			end,
-			onchange = function(option, value)
-				local r, g, b = gl.GetSun("ambient")
-				Spring.SetSunLighting({ groundAmbientColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "color_groundambient_b",
-			parent = "color_groundambient_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.blue"),
-			type = "slider",
-			min = 0,
-			max = 2,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local r, g, b = gl.GetSun("ambient")
-				option.value = b
-			end,
-			onchange = function(option, value)
-				local r, g, _ = gl.GetSun("ambient")
-				Spring.SetSunLighting({ groundAmbientColor = { r, g, value } })
+				Spring.SetSunLighting({ groundAmbientColor = { value[1], value[2], value[3] } })
 				Spring.SendCommands("luarules updatesun")
 			end,
 		},
 
 		{
-			id = "color_grounddiffuse_r",
+			id = "color_grounddiffuse",
 			group = "dev",
 			category = types.dev,
-			prefix = BAR.I18N("ui.settings.option.color_grounddiffuse"),
-			name = BAR.I18N("ui.settings.option.red"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.color_grounddiffuse"),
+			type = "color",
 			max = 2,
+			white = 1,
 			step = 0.001,
-			value = 0,
+			value = { 0, 0, 0 },
 			description = "",
 			onload = function(option)
-				local r, _, _ = gl.GetSun("diffuse")
-				option.value = r
+				option.value = { gl.GetSun("diffuse") }
 			end,
 			onchange = function(option, value)
-				local r, g, b = gl.GetSun("diffuse")
-				Spring.SetSunLighting({ groundDiffuseColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "color_grounddiffuse_g",
-			parent = "color_grounddiffuse_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.green"),
-			type = "slider",
-			min = 0,
-			max = 2,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local _, g, _ = gl.GetSun("diffuse")
-				option.value = g
-			end,
-			onchange = function(option, value)
-				local r, g, b = gl.GetSun("diffuse")
-				Spring.SetSunLighting({ groundDiffuseColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "color_grounddiffuse_b",
-			parent = "color_grounddiffuse_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.blue"),
-			type = "slider",
-			min = 0,
-			max = 2,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local r, g, b = gl.GetSun("diffuse")
-				option.value = b
-			end,
-			onchange = function(option, value)
-				local r, g, _ = gl.GetSun("diffuse")
-				Spring.SetSunLighting({ groundDiffuseColor = { r, g, value } })
+				Spring.SetSunLighting({ groundDiffuseColor = { value[1], value[2], value[3] } })
 				Spring.SendCommands("luarules updatesun")
 			end,
 		},
 
 		{
-			id = "color_groundspecular_r",
+			id = "color_groundspecular",
 			group = "dev",
 			category = types.dev,
-			prefix = BAR.I18N("ui.settings.option.color_groundspecular"),
-			name = BAR.I18N("ui.settings.option.red"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.color_groundspecular"),
+			type = "color",
 			max = 2,
+			white = 1,
 			step = 0.001,
-			value = 0,
+			value = { 0, 0, 0 },
 			description = "",
 			onload = function(option)
-				local r, _, _ = gl.GetSun("specular")
-				option.value = r
+				option.value = { gl.GetSun("specular") }
 			end,
 			onchange = function(option, value)
-				local r, g, b = gl.GetSun("specular")
-				Spring.SetSunLighting({ groundSpecularColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "color_groundspecular_g",
-			parent = "color_groundspecular_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.green"),
-			type = "slider",
-			min = 0,
-			max = 2,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local _, g, _ = gl.GetSun("specular")
-				option.value = g
-			end,
-			onchange = function(option, value)
-				local r, g, b = gl.GetSun("specular")
-				Spring.SetSunLighting({ groundSpecularColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "color_groundspecular_b",
-			parent = "color_groundspecular_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.blue"),
-			type = "slider",
-			min = 0,
-			max = 2,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local r, g, b = gl.GetSun("specular")
-				option.value = b
-			end,
-			onchange = function(option, value)
-				local r, g, _ = gl.GetSun("specular")
-				Spring.SetSunLighting({ groundSpecularColor = { r, g, value } })
+				Spring.SetSunLighting({ groundSpecularColor = { value[1], value[2], value[3] } })
 				Spring.SendCommands("luarules updatesun")
 			end,
 		},
 
 		{
-			id = "color_unitambient_r",
+			id = "color_unitambient",
 			group = "dev",
 			category = types.dev,
-			prefix = BAR.I18N("ui.settings.option.color_unitambient"),
-			name = BAR.I18N("ui.settings.option.red"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.color_unitambient"),
+			type = "color",
 			max = 2,
+			white = 1,
 			step = 0.001,
-			value = 0,
+			value = { 0, 0, 0 },
 			description = "",
 			onload = function(option)
-				local r, _, _ = gl.GetSun("ambient", "unit")
-				option.value = r
+				option.value = { gl.GetSun("ambient", "unit") }
 			end,
 			onchange = function(option, value)
-				local r, g, b = gl.GetSun("ambient", "unit")
-				Spring.SetSunLighting({ unitAmbientColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "color_unitambient_g",
-			parent = "color_unitambient_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.green"),
-			type = "slider",
-			min = 0,
-			max = 2,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local _, g, _ = gl.GetSun("ambient", "unit")
-				option.value = g
-			end,
-			onchange = function(option, value)
-				local r, g, b = gl.GetSun("ambient", "unit")
-				Spring.SetSunLighting({ unitAmbientColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "color_unitambient_b",
-			parent = "color_unitambient_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.blue"),
-			type = "slider",
-			min = 0,
-			max = 2,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local r, g, b = gl.GetSun("ambient", "unit")
-				option.value = b
-			end,
-			onchange = function(option, value)
-				local r, g, _ = gl.GetSun("ambient", "unit")
-				Spring.SetSunLighting({ unitAmbientColor = { r, g, value } })
+				Spring.SetSunLighting({ unitAmbientColor = { value[1], value[2], value[3] } })
 				Spring.SendCommands("luarules updatesun")
 			end,
 		},
 
 		{
-			id = "color_unitdiffuse_r",
+			id = "color_unitdiffuse",
 			group = "dev",
 			category = types.dev,
-			prefix = BAR.I18N("ui.settings.option.color_unitdiffuse"),
-			name = BAR.I18N("ui.settings.option.red"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.color_unitdiffuse"),
+			type = "color",
 			max = 2,
+			white = 1,
 			step = 0.001,
-			value = 0,
+			value = { 0, 0, 0 },
 			description = "",
 			onload = function(option)
-				local r, _, _ = gl.GetSun("diffuse", "unit")
-				option.value = r
+				option.value = { gl.GetSun("diffuse", "unit") }
 			end,
 			onchange = function(option, value)
-				local r, g, b = gl.GetSun("diffuse", "unit")
-				Spring.SetSunLighting({ unitDiffuseColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "color_unitdiffuse_g",
-			parent = "color_unitdiffuse_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.green"),
-			type = "slider",
-			min = 0,
-			max = 2,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local _, g, _ = gl.GetSun("diffuse", "unit")
-				option.value = g
-			end,
-			onchange = function(option, value)
-				local r, g, b = gl.GetSun("diffuse", "unit")
-				Spring.SetSunLighting({ unitDiffuseColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "color_unitdiffuse_b",
-			parent = "color_unitdiffuse_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.blue"),
-			type = "slider",
-			min = 0,
-			max = 2,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local r, g, b = gl.GetSun("diffuse", "unit")
-				option.value = b
-			end,
-			onchange = function(option, value)
-				local r, g, _ = gl.GetSun("diffuse", "unit")
-				Spring.SetSunLighting({ unitDiffuseColor = { r, g, value } })
+				Spring.SetSunLighting({ unitDiffuseColor = { value[1], value[2], value[3] } })
 				Spring.SendCommands("luarules updatesun")
 			end,
 		},
 
 		{
-			id = "color_unitspecular_r",
+			id = "color_unitspecular",
 			group = "dev",
 			category = types.dev,
-			prefix = BAR.I18N("ui.settings.option.color_unitspecular"),
-			name = BAR.I18N("ui.settings.option.red"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.color_unitspecular"),
+			type = "color",
 			max = 2,
+			white = 1,
 			step = 0.001,
-			value = 0,
+			value = { 0, 0, 0 },
 			description = "",
 			onload = function(option)
-				local r, _, _ = gl.GetSun("specular", "unit")
-				option.value = r
+				option.value = { gl.GetSun("specular", "unit") }
 			end,
 			onchange = function(option, value)
-				local r, g, b = gl.GetSun("specular", "unit")
-				Spring.SetSunLighting({ unitSpecularColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "color_unitspecular_g",
-			parent = "color_unitspecular_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.green"),
-			type = "slider",
-			min = 0,
-			max = 2,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local _, g, _ = gl.GetSun("specular", "unit")
-				option.value = g
-			end,
-			onchange = function(option, value)
-				local r, g, b = gl.GetSun("specular", "unit")
-				Spring.SetSunLighting({ unitSpecularColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "color_unitspecular_b",
-			parent = "color_unitspecular_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.blue"),
-			type = "slider",
-			min = 0,
-			max = 2,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local r, g, b = gl.GetSun("specular", "unit")
-				option.value = b
-			end,
-			onchange = function(option, value)
-				local r, g, _ = gl.GetSun("specular", "unit")
-				Spring.SetSunLighting({ unitSpecularColor = { r, g, value } })
+				Spring.SetSunLighting({ unitSpecularColor = { value[1], value[2], value[3] } })
 				Spring.SendCommands("luarules updatesun")
 			end,
 		},
 
 		{
-			id = "suncolor_r",
+			id = "suncolor",
 			group = "dev",
 			category = types.dev,
-			prefix = "Sun",
-			name = BAR.I18N("ui.settings.option.red"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.suncolor"),
+			type = "color",
 			max = 1,
 			step = 0.001,
-			value = 0,
+			value = { 0, 0, 0 },
 			description = "",
 			onload = function(option)
-				local r, _, _ = gl.GetAtmosphere("sunColor")
-				option.value = r
+				option.value = { gl.GetAtmosphere("sunColor") }
 			end,
 			onchange = function(option, value)
-				local r, g, b = gl.GetAtmosphere("sunColor")
-				Spring.SetAtmosphere({ sunColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "suncolor_g",
-			parent = "suncolor_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.green"),
-			type = "slider",
-			min = 0,
-			max = 1,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local _, g, _ = gl.GetAtmosphere("sunColor")
-				option.value = g
-			end,
-			onchange = function(option, value)
-				local r, g, b = gl.GetAtmosphere("sunColor")
-				Spring.SetAtmosphere({ sunColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "suncolor_b",
-			parent = "suncolor_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.blue"),
-			type = "slider",
-			min = 0,
-			max = 1,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local r, g, b = gl.GetAtmosphere("sunColor")
-				option.value = b
-			end,
-			onchange = function(option, value)
-				local r, g, _ = gl.GetAtmosphere("sunColor")
-				Spring.SetAtmosphere({ sunColor = { r, g, value } })
+				Spring.SetAtmosphere({ sunColor = { value[1], value[2], value[3] } })
 				Spring.SendCommands("luarules updatesun")
 			end,
 		},
 
 		{
-			id = "skycolor_r",
+			id = "skycolor",
 			group = "dev",
 			category = types.dev,
-			prefix = BAR.I18N("ui.settings.option.skycolor"),
-			name = BAR.I18N("ui.settings.option.red"),
-			type = "slider",
-			min = 0,
+			name = BAR.I18N("ui.settings.option.skycolor"),
+			type = "color",
 			max = 1,
 			step = 0.001,
-			value = 0,
+			value = { 0, 0, 0 },
 			description = "",
 			onload = function(option)
-				local r, _, _ = gl.GetAtmosphere("skyColor")
-				option.value = r
+				option.value = { gl.GetAtmosphere("skyColor") }
 			end,
 			onchange = function(option, value)
-				local r, g, b = gl.GetAtmosphere("skyColor")
-				Spring.SetAtmosphere({ skyColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "skycolor_g",
-			parent = "skycolor_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.green"),
-			type = "slider",
-			min = 0,
-			max = 1,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local _, g, _ = gl.GetAtmosphere("skyColor")
-				option.value = g
-			end,
-			onchange = function(option, value)
-				local r, g, b = gl.GetAtmosphere("skyColor")
-				Spring.SetAtmosphere({ skyColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
-			end,
-		},
-		{
-			id = "skycolor_b",
-			parent = "skycolor_r",
-			group = "dev",
-			category = types.dev,
-			name = BAR.I18N("ui.settings.option.blue"),
-			type = "slider",
-			min = 0,
-			max = 1,
-			step = 0.001,
-			value = 0,
-			description = "",
-			onload = function(option)
-				local r, g, b = gl.GetAtmosphere("skyColor")
-				option.value = b
-			end,
-			onchange = function(option, value)
-				local r, g, _ = gl.GetAtmosphere("skyColor")
-				Spring.SetAtmosphere({ skyColor = { r, g, value } })
+				Spring.SetAtmosphere({ skyColor = { value[1], value[2], value[3] } })
 				Spring.SendCommands("luarules updatesun")
 			end,
 		},
@@ -12773,6 +12443,17 @@ local function optionCmd(_, _, params)
 				value = true
 			end
 			applyOptionValueByID(option.id, value)
+		elseif option.type == "color" then
+			-- the three channels, as the strip shows them
+			local value = {}
+			for i = 1, 3 do
+				local channel = tonumber(params[i + 1])
+				if not channel then
+					return
+				end
+				value[i] = math.max(0, math.min(option.max, channel))
+			end
+			applyOptionValueByID(option.id, value)
 		else
 			applyOptionValueByID(option.id, tonumber(params[2]))
 		end
@@ -12993,7 +12674,7 @@ function widget:Initialize()
 		return cameraTransitionTime
 	end
 	WG.options.disallowEsc = function()
-		if openSelect then
+		if openSelect or view.picker then
 			--or draggingSlider then
 			return true
 		else
@@ -13032,6 +12713,12 @@ function widget:Initialize()
 		end
 		if option.widget then
 			Spring.Echo("Options widget: applyOptionValue: option '" .. id .. "' denied by sandboxing")
+			return
+		end
+		if option.type == "color" then
+			if type(value) == "table" and tonumber(value[1]) and tonumber(value[2]) and tonumber(value[3]) then
+				applyOptionValueByID(id, { tonumber(value[1]), tonumber(value[2]), tonumber(value[3]) })
+			end
 			return
 		end
 		applyOptionValueByID(id, tonumber(value))
