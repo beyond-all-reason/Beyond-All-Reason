@@ -132,6 +132,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1250,
+				customparams = {
+					speceffect = "retarget",
+				},
 				damage = {
 					vtol = 90,
 				},
