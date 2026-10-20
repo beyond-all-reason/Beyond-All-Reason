@@ -5,6 +5,10 @@ Record an AI-only match from its spectator client with the portal launcher’s
 game window; headless recording needs no display or GPU. `--play` is ordinary
 human gameplay and does not enable this all-team recorder. Recording is off by
 default. Live capture starts only when every human player is a spectator.
+For different opening advantages, pass `--region-income-multipliers 2,4,8,16`
+to the launcher. This assigns the factors to the first team in each authored
+region, in layout order, keeping their opponents at normal income. Alternatively,
+`--duel-income-multiplier 10` uses the same factor in every region.
 The launcher prints its run directory; the data is written under
 `RUN/write/recordings/`. A game-over or configured frame limit closes the file.
 An interrupted recording lacks a footer and is rejected.
