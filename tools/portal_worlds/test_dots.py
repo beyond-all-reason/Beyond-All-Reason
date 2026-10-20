@@ -2,6 +2,7 @@
 """Schema and spatial-review regressions; no engine or browser required."""
 
 import copy
+import gzip
 import json
 from pathlib import Path
 import tempfile
@@ -107,6 +108,43 @@ class RecordingTests(unittest.TestCase):
         sample = self.sample()
         sample["units"][0] = [float(v) if type(v) is int else v for v in self.unit]
         self.assertEqual(self.check_rows([sample])["counts"]["samples"], 1)
+
+    def test_display_copy_keeps_world_membership_at_rounded_edge(self):
+        sample = self.sample(frame=30)
+        sample["units"][0][3] = 99.98
+        self.check_rows([sample])
+        data = [
+            json.loads(line)
+            for line in gzip.decompress(dots.presentation_copy(self.path, 30))
+            .decode()
+            .splitlines()
+        ]
+        self.assertEqual(data[1]["units"][0][3], 99.98)
+        self.assertEqual(data[-1]["samples"], 1)
+        self.assertEqual(
+            data[0]["presentation"]["source_sha256"], dots.digest(self.path)
+        )
+
+    def test_display_copy_keeps_a_final_partial_sample(self):
+        self.check_rows([self.sample(frame=15)])
+        data = [
+            json.loads(line)
+            for line in gzip.decompress(dots.presentation_copy(self.path, 30))
+            .decode()
+            .splitlines()
+        ]
+        self.assertEqual(data[-2]["frame"], 15)
+        self.assertEqual(data[-1]["samples"], 1)
+
+    def test_footer_cannot_predate_a_sample(self):
+        with self.assertRaisesRegex(ValueError, "predates"):
+            self.check_rows([self.sample(frame=45)])
+
+    def test_nonfinite_json_is_rejected(self):
+        sample = self.sample()
+        sample["units"][0][3] = float("nan")
+        with self.assertRaisesRegex(ValueError, "Non-finite"):
+            self.check_rows([sample])
 
 
 if __name__ == "__main__":

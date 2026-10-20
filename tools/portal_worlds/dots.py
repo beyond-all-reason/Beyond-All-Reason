@@ -8,6 +8,7 @@ from collections import Counter, defaultdict
 import gzip
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -35,9 +36,14 @@ def read(path):
             # Synced Lua may serialize integral IDs with a decimal suffix.
             def number(value):
                 parsed = float(value)
+                if not math.isfinite(parsed):
+                    raise ValueError("Non-finite recording number")
                 return int(parsed) if parsed.is_integer() else parsed
 
-            yield json.loads(line, parse_float=number)
+            def invalid(value):
+                raise ValueError("Non-finite recording number: " + value)
+
+            yield json.loads(line, parse_float=number, parse_constant=invalid)
 
 
 def region(header, x, z):
@@ -59,6 +65,7 @@ def review(path):
     last_transit = {}
     latest_units = {}
     maximum_units = 0
+    last_event_frame = -1
     for row in read(path):
         kind = row["type"]
         if footer is not None:
@@ -74,6 +81,7 @@ def review(path):
             footer = row
             continue
         if kind == "event":
+            last_event_frame = max(last_event_frame, row["frame"])
             count["events"] += 1
             count[row["kind"]] += 1
             data = row["data"]
@@ -209,6 +217,8 @@ def review(path):
         raise ValueError("Incomplete recording: missing header, samples or footer")
     if footer["samples"] != count["samples"] or footer["events"] != count["events"]:
         raise ValueError("Recording counts do not reconcile")
+    if footer["frame"] < max(last_frame, last_event_frame):
+        raise ValueError("Recording footer predates its observations")
     return {
         "recording": str(path),
         "sha256": digest(path),
