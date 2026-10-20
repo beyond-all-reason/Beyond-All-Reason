@@ -288,7 +288,7 @@ local CosmeticDefinitions = {
 		implementation = "unit",
 		unitDefID = UnitDefNames.arm_hat_xmas_santa and UnitDefNames.arm_hat_xmas_santa.id,
 		faction = { arm = true, cor = true, leg = true },
-		conflictsWith = { },
+		conflictsWith = {},
 	},
 
 	XmasReindeerHat = {
@@ -631,22 +631,22 @@ function gadget:GameFrame(gf)
 						math.random()
 						local candidates = {}
 						for c = 1, #list do
-						    local cosmetic = list[c]
-						    local blocked = false
-						    for k = 1, #cosmetic.conflictsWith do
-						        if createdCosmetics[cosmetic.conflictsWith[k]] then
-						            blocked = true
-						            break
-						        end
-						    end
-						    if not blocked then
-						        candidates[#candidates + 1] = cosmetic
-						    end
+							local cosmetic = list[c]
+							local blocked = false
+							for k = 1, #cosmetic.conflictsWith do
+								if createdCosmetics[cosmetic.conflictsWith[k]] then
+									blocked = true
+									break
+								end
+							end
+							if not blocked then
+								candidates[#candidates + 1] = cosmetic
+							end
 						end
 						if #candidates > 0 then
-						    local cosmetic = candidates[math.random(1, #candidates)]
-						    createdCosmetics[cosmetic.name] = true
-						    -- create the unit or call the baked script as before
+							local cosmetic = candidates[math.random(1, #candidates)]
+							createdCosmetics[cosmetic.name] = true
+							-- create the unit or call the baked script as before
 						end
 
 						if #candidates > 0 then
