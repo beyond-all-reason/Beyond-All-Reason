@@ -685,7 +685,10 @@ function gadget:GameFrame(f)
 			local t = entry.team
 			local factories, here, away = 0, 0, 0
 			for _, id in ipairs(Spring.GetTeamUnits(t) or {}) do
-				local def = assert(UnitDefs[Spring.GetUnitDefID(id)], "Team unit has no definition")
+				local def = UnitDefs[Spring.GetUnitDefID(id)]
+				if def == nil then
+					error("Team unit has no definition")
+				end
 				if def.isFactory then
 					factories = factories + 1
 				end

@@ -52,7 +52,10 @@ local function Snapshot()
 		local unitRegions, commands, commanders = {}, {}, {}
 		local factories, combat, aircraft = 0, 0, 0
 		for _, id in ipairs(list) do
-			local def = assert(UnitDefs[Spring.GetUnitDefID(id)], "Team unit has no definition")
+			local def = UnitDefs[Spring.GetUnitDefID(id)]
+			if def == nil then
+				error("Team unit has no definition")
+			end
 			local region, x, z = Region(id)
 			if region then
 				unitRegions[region] = (unitRegions[region] or 0) + 1
