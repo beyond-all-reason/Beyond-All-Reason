@@ -89,7 +89,7 @@ queries. Graphical fixtures capture all four materials and minimaps. The barrier
 fixture flattens terrain only for that test, to distinguish terrain slopes from
 movement masks.
 
-The separate `ai_match` observer runs an unassisted match: it records native
+The separate `ai_match` observer runs an autonomous AI match: it records native
 commander deaths, death-site portal openings, physical map transitions and
 `GameOver` winners. It never spawns units, kills commanders or issues unit orders.
 For example:
@@ -112,6 +112,15 @@ team 0 and the remaining teams; omitted profiles retain the AI defaults.
 `--ai-seed` sets a fixed BARb random seed; the command, start script and recording
 are preserved in each run directory. AI fixtures select BARb by default, while
 scripted mechanics fixtures retain NullAI.
+
+To accelerate the opening duels, add `--duel-income-multiplier 10`. This gives the
+first team in each region 10× metal and energy income through the native team
+`IncomeMultiplier` start-script setting; its opponent keeps ordinary income.
+The teams are chosen from the composition metadata. Starting stores remain the
+same. The observer records the engine's actual multipliers and the verifier
+checks them against the launch record. This is an explicitly resource-asymmetric
+test; the observer still gives no unit orders and never forces a death or victory.
+The option defaults to 1 and does not change ordinary play.
 
 This is ongoing WIP pending human playtesting and review, longer multiplayer and
 mixed-platform runs, large-match performance, broader optional mechanics and
