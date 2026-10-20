@@ -3,7 +3,7 @@ function widget:GetInfo()
 	return {name="Portal worlds UI tests", desc="Opt-in BAR view and minimap checks", author="Codex", license="GPL v2 or later", layer=10002, enabled=true, handler=true}
 end
 local test=Spring.GetModOptions().portal_worlds_test
-if test~="four" and test~="baseline" then return false end
+if (test~="four" and test~="baseline") or Platform.isHeadless then return false end
 local checked, stage, pending, drawAfter = {},0,nil,nil
 local checks,failures=0,0
 local function Check(key,value,detail)
@@ -37,6 +37,9 @@ function widget:Update()
 	end
 	if f>=400 and not checked.input then
 		checked.input=true
+		-- Settle the camera in draw frames without racing the synced deadline
+		-- at accelerated simulation speed or a low offscreen render rate.
+		Spring.SendCommands("pause")
 		local gate=Spring.GetGameRulesParam("portal_test_gate")
 		local id=Spring.GetGameRulesParam("portal_test_ui")
 		local x,y,z=Spring.GetUnitPosition(gate)
@@ -53,8 +56,10 @@ function widget:Update()
 		local sx,sy=Spring.WorldToScreenCoords(x,y+10,z)
 		local ui=widgetHandler:FindWidget("Portal view bounds")
 		Check("real_portal_right_click",ui:MousePress(sx,sy,3)==true)
+		Spring.SendCommands("pause")
 	end
 	if f>=700 and stage<4 and not pending then
+		if stage==0 then Spring.SendCommands("pause") end
 		stage=stage+1
 		Check("open_view_"..stage,api.View(stage))
 		pending=stage
@@ -75,6 +80,7 @@ function widget:DrawScreenPost()
 	Check("minimap_region_"..region,type(hit)=="table" and hit[1]>=view.rect.x0 and hit[1]<view.rect.x1 and hit[3]>=view.rect.z0 and hit[3]<view.rect.z1)
 	Spring.SendCommands("screenshot")
 	if region==4 then
+		Spring.SendCommands("pause")
 		WG.PortalWorldsUITestsDone=true
 		Spring.Echo("[BAR_PORTAL_UI] DONE checks="..checks.." failures="..failures)
 	end
