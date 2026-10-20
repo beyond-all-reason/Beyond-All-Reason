@@ -3,7 +3,9 @@ local widgetPath = "luaui/Widgets/cmd_area_commands_filter.lua"
 
 describe("Area Command Filter drag origin", function()
 	local widget, env, orders, traceType, traceID, activeCommand, held
+	local expectedListCommand
 	local function notify(options, params, command)
+		expectedListCommand = (command or 20) == 20 and 34927 or 34926
 		return widget:CommandNotify(command or 20, params or { 100, 0, 100, 200 }, options or { alt = true })
 	end
 
@@ -31,7 +33,12 @@ describe("Area Command Filter drag origin", function()
 				OPT_RIGHT = 16,
 				OPT_META = 4,
 			},
-			GameCMD = { UNIT_SET_TARGET = 34923, UNIT_SET_TARGET_NO_GROUND = 34924, UNIT_SET_TARGETS = 34926 },
+			GameCMD = {
+				UNIT_SET_TARGET = 34923,
+				UNIT_SET_TARGET_NO_GROUND = 34924,
+				ATTACK_TARGETS = 34927,
+				UNIT_SET_TARGETS = 34926,
+			},
 			Spring = {
 				ENEMY_UNITS = -4,
 				ALLY_UNITS = -2,
@@ -77,7 +84,8 @@ describe("Area Command Filter drag origin", function()
 						orders[#orders + 1] = command[2][1]
 					end
 				end,
-				GiveOrderToUnitArray = function(_, _, params)
+				GiveOrderToUnitArray = function(_, commandID, params)
+					assert.equal(expectedListCommand, commandID)
 					for _, targetID in ipairs(params) do
 						orders[#orders + 1] = targetID
 					end
