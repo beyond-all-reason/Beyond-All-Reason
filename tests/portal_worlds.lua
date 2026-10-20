@@ -23,17 +23,20 @@ local function World(gap)
 end
 local function Load(w)
 	local chunk = assert(loadfile("luarules/Utilities/portal_worlds.lua"))
-	local env = { VFS = {
-		MAP = "map",
-		FileExists = function()
-			return true
-		end,
-		Include = function()
-			return w
-		end,
-	} }
+	local env = {
+		VFS = {
+			MAP = "map",
+			FileExists = function()
+				return true
+			end,
+			Include = function()
+				return w
+			end,
+		},
+	}
 	setmetatable(env, { __index = _G })
-	return setfenv(chunk, env)()
+	setfenv(chunk, env)
+	return chunk()
 end
 local w = Load(World(10))
 Check(w.minimumGap == 10) -- Nominal metadata says 2048; physical geometry wins.

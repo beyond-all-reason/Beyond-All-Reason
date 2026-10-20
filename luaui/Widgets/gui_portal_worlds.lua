@@ -74,47 +74,76 @@ local function UpdateSelector()
 	for _, id in ipairs(Spring.GetTeamUnits(Spring.GetMyTeamID()) or {}) do
 		local x, _, z = Spring.GetUnitPosition(id)
 		local region = world.Region(x, z)
-		if region then counts[region] = (counts[region] or 0) + 1 end
+		if region then
+			counts[region] = (counts[region] or 0) + 1
+		end
 	end
 end
 local function RefreshSelector()
 	local accessible = {}
 	for i in ipairs(world.regions) do
-		if Accessible(i) then accessible[#accessible + 1] = i end
+		if Accessible(i) then
+			accessible[#accessible + 1] = i
+		end
 	end
 	menuVisible = #accessible > 1
 	buttons = {}
-	if not menuVisible then return end
+	if not menuVisible then
+		return
+	end
 	vsx, vsy = Spring.GetViewGeometry()
 	local top = vsy * 0.65
 	for row, region in ipairs(accessible) do
-		buttons[#buttons + 1] = {region = region, x0 = vsx - 254, x1 = vsx - 14,
-			y0 = top - row * 34, y1 = top - (row - 1) * 34 - 3}
+		buttons[#buttons + 1] =
+			{ region = region, x0 = vsx - 254, x1 = vsx - 14, y0 = top - row * 34, y1 = top - (row - 1) * 34 - 3 }
 	end
 end
 function widget:DrawScreen()
-	if not menuVisible or Spring.IsGUIHidden() then return end
+	if not menuVisible or Spring.IsGUIHidden() then
+		return
+	end
 	local element = WG.FlowUI and WG.FlowUI.Draw.Element
 	for _, button in ipairs(buttons) do
 		local i = button.region
-		if element then element(button.x0, button.y0, button.x1, button.y1)
-		else gl.Color(0.06, 0.08, 0.09, 0.94); gl.Rect(button.x0, button.y0, button.x1, button.y1) end
+		if element then
+			element(button.x0, button.y0, button.x1, button.y1)
+		else
+			gl.Color(0.06, 0.08, 0.09, 0.94)
+			gl.Rect(button.x0, button.y0, button.x1, button.y1)
+		end
 		gl.Color(active == i and 0.4 or 0.85, 0.9, 1, 1)
-		gl.Text((active == i and "> " or "") .. world.regions[i].name .. " (" .. (counts[i] or 0) .. ")",
-			button.x0 + 10, button.y0 + 10, 14, "o")
+		gl.Text(
+			(active == i and "> " or "") .. world.regions[i].name .. " (" .. (counts[i] or 0) .. ")",
+			button.x0 + 10,
+			button.y0 + 10,
+			14,
+			"o"
+		)
 	end
 	gl.Color(1, 1, 1, 1)
 end
 function widget:IsAbove(x, y)
-	if Spring.IsGUIHidden() then return false end
+	if Spring.IsGUIHidden() then
+		return false
+	end
 	for _, b in ipairs(buttons) do
-		if x >= b.x0 and x <= b.x1 and y >= b.y0 and y <= b.y1 then return true end
+		if x >= b.x0 and x <= b.x1 and y >= b.y0 and y <= b.y1 then
+			return true
+		end
 	end
 	return false
 end
-function widget:GetTooltip() return "Connected maps — click to view; N cycles maps" end
+function widget:GetTooltip()
+	return "Connected maps — click to view; N cycles maps"
+end
 function widget:Initialize()
-	WG.PortalWorlds = {View = View, Accessible = Accessible, GetState = function() return active, menuVisible end}
+	WG.PortalWorlds = {
+		View = View,
+		Accessible = Accessible,
+		GetState = function()
+			return active, menuVisible
+		end,
+	}
 	origin = world.TeamHome(Spring.GetMyTeamID()) or 1
 	active = origin
 end
@@ -138,7 +167,7 @@ function widget:DrawWorldPreUnit()
 end
 function widget:KeyPress(key, mods)
 	if key ~= string.byte("n") or mods.ctrl or mods.alt or mods.meta then
-		return
+		return false
 	end
 	for offset = 1, #world.regions - 1 do
 		local i = (active - 1 + offset) % #world.regions + 1
@@ -148,6 +177,7 @@ function widget:KeyPress(key, mods)
 			return true
 		end
 	end
+	return false
 end
 function widget:MousePress(x, y, button)
 	if button == 1 and menuVisible then
@@ -178,9 +208,12 @@ function widget:MousePress(x, y, button)
 		for i, connection in ipairs(world.connections) do
 			if IsOpen(i) and world.Other(connection, active) then
 				local prefix = "portal_e" .. i .. "_r" .. active
-				local mx, mz =
-					Spring.GetGameRulesParam(prefix .. "_x"), Spring.GetGameRulesParam(prefix .. "_z")
-				if mx and (pos[1] - mx) ^ 2 + (pos[3] - mz) ^ 2 <= 64 ^ 2 then
+				local mx, mz = Spring.GetGameRulesParam(prefix .. "_x"), Spring.GetGameRulesParam(prefix .. "_z")
+				if
+					type(mx) == "number"
+					and type(mz) == "number"
+					and (pos[1] - mx) ^ 2 + (pos[3] - mz) ^ 2 <= 64 ^ 2
+				then
 					edge = i
 					break
 				end
@@ -198,12 +231,7 @@ function widget:MousePress(x, y, button)
 	if Spring.GetInvertQueueKey() then
 		shift = not shift
 	end
-	Spring.GiveOrderToUnitArray(
-		selected,
-		GameCMD.PORTAL_TRAVEL,
-		{ edge, active },
-		shift and CMD.OPT_SHIFT or 0
-	)
+	Spring.GiveOrderToUnitArray(selected, GameCMD.PORTAL_TRAVEL, { edge, active }, shift and CMD.OPT_SHIFT or 0)
 	return true
 end
 function widget:Shutdown()

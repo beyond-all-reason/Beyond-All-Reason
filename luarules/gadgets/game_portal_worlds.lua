@@ -61,8 +61,12 @@ local endFrame = tonumber(options.portal_worlds_end) or 0
 local PORTAL_RADIUS, APPROACH_RADIUS = 180, 80
 local RAW_MOVE = CMD.MOVE
 local PORTAL = GameCMD.PORTAL_TRAVEL
-local home, cooldown, travelers, pendingLoss, beacons = {}, {}, {}, {}, {}
-local openEdges, mouths, lossOpened = {}, {}, {}
+local home, cooldown, travelers, pendingLoss = {}, {}, {}, {}
+---@type table<UnitID, {edge: integer, region: integer}>
+local beacons = {}
+local openEdges, lossOpened = {}, {}
+---@type table<integer, table<integer, {x: number, y: number, z: number}>>
+local mouths = {}
 local damage, created = {}, {}
 local transitMemberProviders = {}
 local passages, blockedDamage, wallHits, blockedOrders = 0, 0, 0, 0
@@ -155,7 +159,7 @@ local function OpenPortal(team, frame, loss)
 		local y = Spring.GetGroundHeight(x, z)
 		if region ~= source then
 			x, y, z = FreeSpot(UnitDefNames.armflea.id, x, z, region)
-			assert(x, "No central portal site in " .. r.name)
+			assert(x and y and z, "No central portal site in " .. r.name)
 		end
 		local m = { x = x, y = y, z = z }
 		mouths[chosen][region] = m
@@ -207,10 +211,14 @@ local function Route(id, region, destination, manual, chosen, commandTag)
 	end
 	local m = mouths[edge][region]
 	Spring.SetUnitTarget(id, nil)
-	travelers[id] =
-		{ region = region, destination = nextRegion, manual = manual, edge = edge, commandTag = commandTag }
+	travelers[id] = { region = region, destination = nextRegion, manual = manual, edge = edge, commandTag = commandTag }
 	-- Fixed-wing defaults may finish outside the portal activation radius.
-	Spring.GiveOrderToUnit(id, CMD.INSERT, { 0, RAW_MOVE, CMD.OPT_INTERNAL, m.x, m.y, m.z, APPROACH_RADIUS }, CMD.OPT_ALT)
+	Spring.GiveOrderToUnit(
+		id,
+		CMD.INSERT,
+		{ 0, RAW_MOVE, CMD.OPT_INTERNAL, m.x, m.y, m.z, APPROACH_RADIUS },
+		CMD.OPT_ALT
+	)
 	local current, _, tag = Spring.GetUnitCurrentCommand(id)
 	-- A completed approach can expose the original request immediately,
 	-- especially for fixed-wing aircraft. Never record that request as an
@@ -220,16 +228,33 @@ local function Route(id, region, destination, manual, chosen, commandTag)
 	end
 end
 local unitTargets = {
-	[CMD.ATTACK] = true, [CMD.GUARD] = true, [CMD.REPAIR] = true,
-	[CMD.RECLAIM] = true, [CMD.CAPTURE] = true, [CMD.LOAD_UNITS] = true,
-	[CMD.MANUALFIRE] = true, [GameCMD.UNIT_SET_TARGET] = true,
+	[CMD.ATTACK] = true,
+	[CMD.GUARD] = true,
+	[CMD.REPAIR] = true,
+	[CMD.RECLAIM] = true,
+	[CMD.CAPTURE] = true,
+	[CMD.LOAD_UNITS] = true,
+	[CMD.MANUALFIRE] = true,
+	[GameCMD.UNIT_SET_TARGET] = true,
 	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = true,
 }
-local travelCommands = {[CMD.MOVE] = true, [CMD.FIGHT] = true, [CMD.ATTACK] = true, [GameCMD.RAW_MOVE] = true}
+local travelCommands = { [CMD.MOVE] = true, [CMD.FIGHT] = true, [CMD.ATTACK] = true, [GameCMD.RAW_MOVE] = true }
 local positionCommands = {}
-for cmd in pairs(travelCommands) do positionCommands[cmd] = true end
-for cmd in pairs(unitTargets) do positionCommands[cmd] = true end
-for _, cmd in ipairs({CMD.PATROL, CMD.RESTORE, CMD.RESURRECT, CMD.UNLOAD_UNITS, CMD.UNLOAD_UNIT, GameCMD.UNIT_SET_TARGET_RECTANGLE, GameCMD.AREA_ATTACK_GROUND}) do
+for cmd in pairs(travelCommands) do
+	positionCommands[cmd] = true
+end
+for cmd in pairs(unitTargets) do
+	positionCommands[cmd] = true
+end
+for _, cmd in ipairs({
+	CMD.PATROL,
+	CMD.RESTORE,
+	CMD.RESURRECT,
+	CMD.UNLOAD_UNITS,
+	CMD.UNLOAD_UNIT,
+	GameCMD.UNIT_SET_TARGET_RECTANGLE,
+	GameCMD.AREA_ATTACK_GROUND,
+}) do
 	positionCommands[cmd] = true
 end
 local function CommandRegion(cmd, params)
@@ -287,8 +312,13 @@ function gadget:Initialize()
 	-- Native AI reads topology and public elimination state, never hidden enemies.
 	for _, entry in ipairs(world.teams) do
 		Spring.SetGameRulesParam("portal_team" .. entry.team .. "_region", entry.region)
-		Spring.SetGameRulesParam("portal_team" .. entry.team .. "_alive", select(3, Spring.GetTeamInfo(entry.team, false)) and 0 or 1)
+		Spring.SetGameRulesParam(
+			"portal_team" .. entry.team .. "_alive",
+			select(3, Spring.GetTeamInfo(entry.team, false)) and 0 or 1
+		)
 	end
+	-- The generated API library omits the native hardness, tracks and name parameters.
+	---@diagnostic disable-next-line: redundant-parameter
 	Spring.SetTerrainTypeData(255, 0, 0, 0, 0, 1000000, false, "Cubicle barrier")
 	-- Cubicle barriers: impassable terrain and build masks between authored regions.
 	for x = 0, Game.mapSizeX - 8, 8 do
@@ -296,7 +326,7 @@ function gadget:Initialize()
 			if not Region(x + 4, z + 4) then
 				Spring.SetMapSquareTerrainType(x, z, 255)
 				if x % 16 == 0 and z % 16 == 0 then
-					Spring.SetSquareBuildingMask(x / 16, z / 16, 0)
+					Spring.SetSquareBuildingMask(math.floor(x / 16), math.floor(z / 16), 0)
 				end
 			end
 		end
@@ -342,7 +372,11 @@ function gadget:AllowCommand(id, def, team, cmd, params, opts)
 				and world.Other(connections[edge], home[id]) ~= nil
 			or false
 	end
-	local target = unitTargets[actual] and #p == 1 and beacons[p[1]]
+	---@type {edge: integer, region: integer}?
+	local target
+	if unitTargets[actual] and #p == 1 then
+		target = beacons[p[1]]
+	end
 	if target then
 		if
 			(
@@ -371,11 +405,7 @@ function gadget:AllowCommand(id, def, team, cmd, params, opts)
 	end
 	local destination = CommandRegion(actual, p)
 	if destination and home[id] and destination ~= home[id] then
-		if
-			not travelCommands[actual]
-			or not mobileDefs[def]
-			or not world.Route(home[id], destination, IsOpen)
-		then
+		if not travelCommands[actual] or not mobileDefs[def] or not world.Route(home[id], destination, IsOpen) then
 			blockedOrders = blockedOrders + 1
 			return false
 		end
@@ -390,7 +420,7 @@ function gadget:CommandFallback(id, def, team, cmd)
 	if cmd == PORTAL then
 		return true, false
 	end -- RouteOrders starts it when it reaches the queue front.
-	return false
+	return false, false
 end
 function gadget:TeamDied(team)
 	Spring.SetGameRulesParam("portal_team" .. team .. "_alive", 0)
@@ -399,7 +429,7 @@ function gadget:UnitPreDamaged(id, def, team, dmg)
 	if beacons[id] then
 		return 0, 0
 	end
-	return dmg
+	return dmg, 1
 end
 function gadget:UnitDamaged(id, def, team, dmg)
 	damage[team] = (damage[team] or 0) + dmg
@@ -409,14 +439,7 @@ function gadget:UnitDestroyed(id, def, team)
 		local x, _, z = Spring.GetUnitPosition(id)
 		local region = Region(x, z) or home[id] or TeamHome(team)
 		pendingLoss[team] = { due = Spring.GetGameFrame() + 30, x = x, z = z, region = region }
-		Log(
-			"COM_DESTROYED frame="
-				.. Spring.GetGameFrame()
-				.. " team="
-				.. team
-				.. " region="
-				.. tostring(region)
-		)
+		Log("COM_DESTROYED frame=" .. Spring.GetGameFrame() .. " team=" .. team .. " region=" .. tostring(region))
 	end
 	travelers[id] = nil
 	home[id] = nil
@@ -467,8 +490,10 @@ local function HasTravelOrder(id, trip)
 end
 local function StepTravelers(frame)
 	for id, trip in pairs(travelers) do
-		if Valid(id) then
-			local x, y, z = Spring.GetUnitPosition(id)
+		local x, y, z = Spring.GetUnitPosition(id)
+		local defID = Spring.GetUnitDefID(id)
+		local def = defID and UnitDefs[defID]
+		if Valid(id) and def and x and y and z then
 			local m = mouths[trip.edge][trip.region]
 			local nearMouth = (x - m.x) ^ 2 + (z - m.z) ^ 2 < PORTAL_RADIUS ^ 2
 			local _, _, tag = Spring.GetUnitCurrentCommand(id)
@@ -487,12 +512,7 @@ local function StepTravelers(frame)
 					Spring.GiveOrderToUnit(id, CMD.REMOVE, { trip.moveTag }, 0)
 				end
 			end
-			if
-				travelers[id]
-				and not Spring.MoveCtrl.GetTag(id)
-				and nearMouth
-				and (cooldown[id] or 0) <= frame
-			then
+			if travelers[id] and not Spring.MoveCtrl.GetTag(id) and nearMouth and (cooldown[id] or 0) <= frame then
 				local to = mouths[trip.edge][trip.destination]
 				local r = regions[trip.destination]
 				local vx, vz = (r.x0 + r.x1) / 2 - to.x, (r.z0 + r.z1) / 2 - to.z
@@ -507,23 +527,24 @@ local function StepTravelers(frame)
 					trip.destination,
 					to
 				)
-				if dx then
+				if dx and dy and dz then
 					-- Native cargo moves with ForcedMove; independent followers need
 					-- their pre-transit offsets, including MoveCtrl-driven nanoframes.
 					local companions, providerNames = {}, {}
-					for name in pairs(transitMemberProviders) do providerNames[#providerNames + 1] = name end
+					for name in pairs(transitMemberProviders) do
+						providerNames[#providerNames + 1] = name
+					end
 					table.sort(providerNames)
 					for _, name in ipairs(providerNames) do
 						for _, child in ipairs(transitMemberProviders[name](id) or {}) do
 							local transporter = Valid(child) and Spring.GetUnitTransporter(child)
 							if child ~= id and Valid(child) and (not transporter or transporter == id) then
 								local cx, cy, cz = Spring.GetUnitPosition(child)
-								companions[child] = {cx, cy, cz, attached = transporter ~= nil}
+								companions[child] = { cx, cy, cz, attached = transporter ~= nil }
 							end
 						end
 					end
 					Spring.SpawnCEG("portal-transit", x, y + 10, z, 0, 1, 0, 30)
-					local def = UnitDefs[Spring.GetUnitDefID(id)]
 					if def.canFly then
 						Spring.SetUnitPosition(id, dx, dy + math.max(100, def.wantedHeight or 100), dz)
 					else
@@ -531,15 +552,20 @@ local function StepTravelers(frame)
 					end
 					SetHome(id, trip.destination)
 					for child, pos in pairs(companions) do
-						RemoveApproachOrders(child, {region = home[child]})
+						RemoveApproachOrders(child, { region = home[child] })
 						local cx = math.max(r.x0 + 24, math.min(r.x1 - 24, dx + pos[1] - x))
 						local cz = math.max(r.z0 + 24, math.min(r.z1 - 24, dz + pos[3] - z))
 						local cy = dy + math.max(20, pos[2] - y)
 						if not pos.attached then
-							if Spring.MoveCtrl.GetTag(child) then Spring.MoveCtrl.SetPosition(child, cx, cy, cz)
-							else Spring.SetUnitPosition(child, cx, cy, cz) end
+							if Spring.MoveCtrl.GetTag(child) then
+								Spring.MoveCtrl.SetPosition(child, cx, cy, cz)
+							else
+								Spring.SetUnitPosition(child, cx, cy, cz)
+							end
 						end
-						if home[child] ~= trip.destination then SetHome(child, trip.destination) end
+						if home[child] ~= trip.destination then
+							SetHome(child, trip.destination)
+						end
 						Spring.SetUnitVelocity(child, 0, 0, 0)
 						Spring.SetUnitTarget(child, nil)
 					end
@@ -577,22 +603,21 @@ local function RouteOrders()
 		if home[id] and not travelers[id] and mobileDefs[Spring.GetUnitDefID(id)] then
 			local commands = Spring.GetUnitCommands(id, 1)
 			local command = commands and commands[1]
+			local params = command and command.params or {}
 			if command and command.id == PORTAL then
-				local edge = command.params[1]
+				local edge = params[1]
 				if
 					openEdges[edge]
 					and world.Other(connections[edge], home[id])
-					and (not command.params[2] or command.params[2] == home[id])
+					and (not params[2] or params[2] == home[id])
 				then
 					Route(id, home[id], nil, true, edge, command.tag)
 				else
 					Spring.GiveOrderToUnit(id, CMD.REMOVE, { command.tag }, 0)
 				end
 			end
-			local destination = command
-				and travelCommands[command.id]
-				and CommandRegion(command.id, command.params)
-			if destination and destination ~= home[id] then
+			local destination = command and travelCommands[command.id] and CommandRegion(command.id, params)
+			if command and destination and destination ~= home[id] then
 				Route(id, home[id], destination, false, nil, command.tag)
 			end
 		end
@@ -602,7 +627,7 @@ function gadget:GameFrame(f)
 	for team, loss in pairs(pendingLoss) do
 		if f >= loss.due then
 			local comm = false
-			for _, id in ipairs(Spring.GetTeamUnits(team)) do
+			for _, id in ipairs(Spring.GetTeamUnits(team) or {}) do
 				if Valid(id) and commanderDefs[Spring.GetUnitDefID(id)] then
 					comm = true
 					break
@@ -659,8 +684,8 @@ function gadget:GameFrame(f)
 		for _, entry in ipairs(world.teams) do
 			local t = entry.team
 			local factories, here, away = 0, 0, 0
-			for _, id in ipairs(Spring.GetTeamUnits(t)) do
-				local def = UnitDefs[Spring.GetUnitDefID(id)]
+			for _, id in ipairs(Spring.GetTeamUnits(t) or {}) do
+				local def = assert(UnitDefs[Spring.GetUnitDefID(id)], "Team unit has no definition")
 				if def.isFactory then
 					factories = factories + 1
 				end

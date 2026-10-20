@@ -103,12 +103,7 @@ function gadget:Initialize()
 	-- filtering alone cannot protect the heightmap across compact barriers.
 	assert(Engine.FeatureSupport.mapDamageRegions, "Portal worlds require native crater-region support")
 	Spring.Echo(
-		"[PORTAL_ISOLATION] maxCrater="
-			.. maxCrater
-			.. " maxDamageRadius="
-			.. maxArea
-			.. " gap="
-			.. world.minimumGap
+		"[PORTAL_ISOLATION] maxCrater=" .. maxCrater .. " maxDamageRadius=" .. maxArea .. " gap=" .. world.minimumGap
 	)
 	GG.PortalIsolation = {
 		projectiles = projectiles,
@@ -174,13 +169,13 @@ function gadget:GameFrame(f)
 			end
 		elseif not p.deleted then
 			local x, _, z = Spring.GetProjectilePosition(id)
-			if not x or world.Region(x, z) ~= p.region then
+			if not x or not z or world.Region(x, z) ~= p.region then
 				Delete(id)
 			else
 				local vx, _, vz = Spring.GetProjectileVelocity(id)
 				-- Remove before a fast projectile can cross a boundary during the
 				-- next simulation step and deform or spawn effects on another map.
-				if vx and world.Region(x + vx, z + vz) ~= p.region then
+				if vx and vz and world.Region(x + vx, z + vz) ~= p.region then
 					Delete(id)
 				else
 					local target = TargetRegion(id)
@@ -211,7 +206,7 @@ end
 -- Keep this callin subscribed even when no other gadget uses feature damage.
 -- The dispatcher applies the isolation gate before invoking gadget callbacks.
 function gadget:FeaturePreDamaged(id, def, team, damage)
-	return damage
+	return damage, 1
 end
 function gadget:Shutdown()
 	GG.PortalIsolation = nil

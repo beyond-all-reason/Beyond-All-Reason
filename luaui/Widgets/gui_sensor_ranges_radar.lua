@@ -384,7 +384,13 @@ function widget:DrawWorld()
 
 	radarCircleShader:Activate()
 	local portalRect = WG.PortalWorldView and WG.PortalWorldView.rect
-	radarCircleShader:SetUniform("portalBounds", portalRect and portalRect.x0 or 0, portalRect and portalRect.z0 or 0, portalRect and portalRect.x1 or 0, portalRect and portalRect.z1 or 0)
+	radarCircleShader:SetUniform(
+		"portalBounds",
+		portalRect and portalRect.x0 or 0,
+		portalRect and portalRect.z0 or 0,
+		portalRect and portalRect.x1 or 0,
+		portalRect and portalRect.z1 or 0
+	)
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 
 	radarCircleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity)

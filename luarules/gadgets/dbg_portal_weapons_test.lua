@@ -19,9 +19,7 @@ local feature, featureHealth
 local antiShots = 0
 local nukeDef = WeaponDefNames.armsilo_nuclear_missile.id
 local function Check(name, pass, detail)
-	Spring.Echo(
-		"[BAR_WEAPON_TEST] ASSERT " .. name .. " pass=" .. tostring(not not pass) .. " " .. (detail or "")
-	)
+	Spring.Echo("[BAR_WEAPON_TEST] ASSERT " .. name .. " pass=" .. tostring(not not pass) .. " " .. (detail or ""))
 end
 local function Spawn(name, region, x, z, team)
 	local r = world.regions[region]
@@ -42,12 +40,7 @@ function gadget:ProjectileCreated(id, owner, weapon)
 			if owner == silo then
 				launched[i] = (launched[i] or 0) + 1
 				Spring.Echo(
-					"[BAR_WEAPON_TEST] LAUNCH case="
-						.. i
-						.. " frame="
-						.. Spring.GetGameFrame()
-						.. " projectile="
-						.. id
+					"[BAR_WEAPON_TEST] LAUNCH case=" .. i .. " frame=" .. Spring.GetGameFrame() .. " projectile=" .. id
 				)
 			end
 		end
@@ -104,7 +97,7 @@ function gadget:GameFrame(f)
 	end
 	if f == 240 then
 		local id
-		for _, unit in ipairs(Spring.GetTeamUnits(1)) do
+		for _, unit in ipairs(Spring.GetTeamUnits(1) or {}) do
 			if UnitDefs[Spring.GetUnitDefID(unit)].customParams.iscommander then
 				id = unit
 				break
@@ -119,18 +112,15 @@ function gadget:GameFrame(f)
 		movingTarget = Spawn("armsolar", 1, 2800, 1300, 2)
 		movingHealth = Spring.GetUnitHealth(movingTarget)
 		local x, y, z = Spring.GetUnitPosition(movingTarget)
-		movingProjectile = Spring.SpawnProjectile(
-			nukeDef,
-			{
-				pos = { m.x, m.y + 500, m.z },
-				["end"] = { x, y, z },
-				speed = { 0, 2, 0 },
-				owner = movingOwner,
-				team = 0,
-				ttl = 1800,
-				upTime = 900,
-			}
-		)
+		movingProjectile = Spring.SpawnProjectile(nukeDef, {
+			pos = { m.x, m.y + 500, m.z },
+			["end"] = { x, y, z },
+			speed = { 0, 2, 0 },
+			owner = movingOwner,
+			team = 0,
+			ttl = 1800,
+			upTime = 900,
+		})
 		Spring.GiveOrderToUnit(movingOwner, GameCMD.PORTAL_TRAVEL, { 1 }, 0)
 	end
 	if f == 420 then
@@ -168,9 +158,6 @@ function gadget:GameFrame(f)
 			"forced_remote_nuke_no_damage",
 			Spring.ValidUnitID(targets[3]) and Spring.GetUnitHealth(targets[3]) == health[3]
 		)
-		Check(
-			"forced_remote_projectile_removed",
-			(Spring.GetGameRulesParam("portal_deleted_projectiles") or 0) > 0
-		)
+		Check("forced_remote_projectile_removed", (Spring.GetGameRulesParam("portal_deleted_projectiles") or 0) > 0)
 	end
 end

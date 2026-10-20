@@ -195,8 +195,14 @@ local function DrawLOSStencil() -- about 0.025 ms
 
 		gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 		losStencilShader:Activate()
-	local portalRect = WG.PortalWorldView and WG.PortalWorldView.rect
-	losStencilShader:SetUniform("portalBounds", portalRect and portalRect.x0 or 0, portalRect and portalRect.z0 or 0, portalRect and portalRect.x1 or 0, portalRect and portalRect.z1 or 0)
+		local portalRect = WG.PortalWorldView and WG.PortalWorldView.rect
+		losStencilShader:SetUniform(
+			"portalBounds",
+			portalRect and portalRect.x0 or 0,
+			portalRect and portalRect.z0 or 0,
+			portalRect and portalRect.x1 or 0,
+			portalRect and portalRect.z1 or 0
+		)
 		circleInstanceVBO.VAO:DrawArrays(
 			GL.TRIANGLE_FAN,
 			circleInstanceVBO.numVertices,
@@ -396,7 +402,13 @@ function widget:DrawWorld()
 
 	losCircleShader:Activate()
 	local portalRect = WG.PortalWorldView and WG.PortalWorldView.rect
-	losCircleShader:SetUniform("portalBounds", portalRect and portalRect.x0 or 0, portalRect and portalRect.z0 or 0, portalRect and portalRect.x1 or 0, portalRect and portalRect.z1 or 0)
+	losCircleShader:SetUniform(
+		"portalBounds",
+		portalRect and portalRect.x0 or 0,
+		portalRect and portalRect.z0 or 0,
+		portalRect and portalRect.x1 or 0,
+		portalRect and portalRect.z1 or 0
+	)
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 	gl.Texture(1, losStencilTexture) -- Bind the heightmap texture
 
