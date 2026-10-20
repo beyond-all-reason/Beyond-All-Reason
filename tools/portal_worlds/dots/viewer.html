@@ -461,6 +461,7 @@ __PORTAL_MAP_CREDITS__</pre
                 old = last.get(k);
               if (
                 old &&
+                (old[3] !== u[3] || old[5] !== u[5]) &&
                 old[14] === u[14] &&
                 (old[3] - u[3]) ** 2 + (old[5] - u[5]) ** 2 < 600 ** 2
               )
@@ -638,6 +639,7 @@ __PORTAL_MAP_CREDITS__</pre
     async function load(bytes, name) {
       try {
         playing = false;
+        $("play").textContent = "Play";
         status("Reading recording…");
         const compressed = bytes[0] === 31 && bytes[1] === 139;
         const text = await new Response(
@@ -730,7 +732,9 @@ __PORTAL_MAP_CREDITS__</pre
         }
         bookmark(
           tail.reason +
-            (tail.winners.length ? " · winner " + tail.winners.join(", ") : ""),
+            (tail.winners.length
+              ? " · winning ally team " + tail.winners.join(", ")
+              : ""),
           tail.frame,
         );
         $("seek").max = tail.frame / h.fps;
@@ -763,6 +767,7 @@ __PORTAL_MAP_CREDITS__</pre
     };
     function toggle() {
       if (!end) return;
+      if (!playing && time >= end.frame / header.fps) setTime(0);
       playing = !playing;
       $("play").textContent = playing ? "Pause" : "Play";
       lastTick = performance.now();
