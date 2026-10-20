@@ -13,6 +13,7 @@
     - Negotiator: 6700 -> 9000 energycost, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Reloadtime 16 -> 15
     - Arbiter: 5800 -> 6500 energycost, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Damage 800 -> 850
     - Shiva: 1600m -> 1700 metalcost, Cannon: AoE 176 -> 160, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Damage 800 -> 850
+- [Interceptors] Now launch a few seconds before impact. Each antinuke can block 4 incoming nukes when loaded.
 - [Legion changes]
   - Helios 800 -> 1000 health, 160 -> 135 damage.
   - Alaris reloadtime 2.1 -> 1.2, damage 15 -> 10 (+16 % dps)
@@ -20,7 +21,6 @@
   - Prometheus metalcost 1250 -> 1050, energycost 19000 -> 15000, energypershot 10 -> 5 (firing continually costs 300 energy/s -> 150 energy/s), health 7700 -> 5700, damage 33 -> 25 (-24 % dps)
 - [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
-- [Modoptions] Added a new Experimental option to test the new antinuke interceptors before they go live.
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.

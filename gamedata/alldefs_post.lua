@@ -1088,25 +1088,6 @@ local function weaponDef_Post(name, wDef)
 			airReworkWeaponTweaks(wDef)
 		end
 
-		if
-			modOptions.terminal_interceptors
-			and wDef.weapontype == "StarburstLauncher"
-			and not string.find(name, "raptor")
-			and math.bit_and(wDef.interceptor or 0, 1) == 1
-		then
-			-- Interceptors fire about 5 seconds from impact and stop ~4 nukes fired at the same time.
-			-- Unit scripts have long opening delays. Add that time to the net interception lead time.
-			customparams.terminal_intercept_time = 5.0 + (tonumber(customparams.intercept_lead_time) or 0.0)
-			wDef.reloadtime = 0.9
-			wDef.weapontimer = 0.3
-			wDef.startvelocity = 600
-			wDef.weaponacceleration = 3600
-			wDef.turnrate = 30000
-			wDef.flighttime = 4
-			wDef.smokeperiod = 2
-			wDef.smoketime = 14
-		end
-
 		--[[Skyshift: Air rework
 		if modoptions.skyshift == true then
 			skyshiftUnits = require("unitbasedefs/skyshiftunits_post")
