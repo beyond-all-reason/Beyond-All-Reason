@@ -610,6 +610,7 @@ def main():
         print(args.out)
     elif args.action == "bundle":
         import base64
+        import html
 
         review(args.recording)
         if args.out.exists():
@@ -620,7 +621,10 @@ def main():
             )
         payload = presentation_copy(args.recording, args.sample_frames)
         image = ""
+        credits = "No map background included."
         if args.map_dir:
+            attribution = args.map_dir / "ATTRIBUTION.txt"
+            credits = attribution.read_text() if attribution.exists() else "See the original map for its author credits and terms."
             import io
             from PIL import Image
 
@@ -638,6 +642,7 @@ def main():
             .read_text()
             .replace("__PORTAL_DOTS_DATA__", base64.b64encode(payload).decode())
             .replace("__PORTAL_MAP_IMAGE__", image)
+            .replace("__PORTAL_MAP_CREDITS__", html.escape(credits))
         )
         args.out.with_name(args.out.name + ".provenance.json").write_text(
             json.dumps(

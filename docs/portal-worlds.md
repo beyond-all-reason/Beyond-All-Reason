@@ -217,3 +217,12 @@ remain shared by one simulation.
 AI assistance: OpenAI Codex adapted the game mode, UI, tooling and automated
 fixtures and ran the checks. Human review/editing and manual verification remain
 pending. No BAR pull request has been submitted.
+
+
+The opt-in `aircraft`, `aircraft-diagonal` and `aircraft-multihop` fixtures
+exercise real flight orders through one and several connections. They caught
+an immediately completed approach being confused with the original travel
+request. The router now tracks those tags separately and uses a stopping radius
+inside the activation radius, preserving the remaining multi-hop order. These
+fixtures open connections by scripted commander destruction and are labelled
+fixtures, separate from the autonomous AI recordings.
