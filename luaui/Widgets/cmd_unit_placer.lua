@@ -45,7 +45,57 @@ local MSG = {
 	clearAll = "$unit_clearall$",
 	undo = "$unit_place_undo$",
 	redo = "$unit_place_redo$",
+	mission = "$unit_mission$",
 }
+
+-- MISSION UNITS (Terraform Brush 1.18). The brush places either LIVE units (normal units
+-- to look at, fight with, light) or MISSION units: stand-ins for a mission, frozen in place
+-- by the gadget and carrying a mission TEAM NUMBER (0..TEAMS-1) that need not exist in this
+-- session (they stand on Gaia when it does not). The map project saves them with that
+-- number, which is what the mission editor takes as its loadout. The kind and the mission
+-- team are the brush's own (owner "terraform_brush"); another owner (the mission editor)
+-- brings its own sink and teams.
+local mission = {
+	TEAMS = 16,
+	PARAM = "mission_team",
+	-- one colour per mission team for the ground rings
+	PALETTE = {
+		{ 0.20, 0.45, 1.00 },
+		{ 1.00, 0.25, 0.20 },
+		{ 0.20, 0.85, 0.30 },
+		{ 1.00, 0.85, 0.15 },
+		{ 0.75, 0.30, 1.00 },
+		{ 0.15, 0.90, 0.90 },
+		{ 1.00, 0.55, 0.10 },
+		{ 1.00, 0.45, 0.75 },
+		{ 0.55, 0.75, 0.20 },
+		{ 0.45, 0.30, 0.15 },
+		{ 0.60, 0.60, 1.00 },
+		{ 0.90, 0.90, 0.90 },
+		{ 0.10, 0.40, 0.30 },
+		{ 0.70, 0.10, 0.30 },
+		{ 0.35, 0.35, 0.35 },
+		{ 0.95, 0.75, 0.55 },
+	},
+	markers = {}, -- { unitID, team } refreshed every few frames
+	markersAt = -1000,
+	lastGame = {}, -- the game's selection as the LIVE mirror last saw it (a set)
+}
+
+--- The mission team of a unit, nil for a live one.
+function mission.teamOf(unitID)
+	local m = Spring.GetUnitRulesParam(unitID, mission.PARAM)
+	return (m and m >= 0) and m or nil
+end
+
+--- The session team a team number stands on: itself when it exists, else Gaia.
+function mission.realTeam(team)
+	local tid, _, isDead = Spring.GetTeamInfo(team, false)
+	if tid and not isDead then
+		return team
+	end
+	return Spring.GetGaiaTeamID()
+end
 local LIBRARY_TITLE = "TERRAFORM BRUSH"
 local SAVE_DIR = "Terraform Brush/UnitMaps/"
 --- Units per message: a 40x40 grid is 1600 units, and one message carrying them all would
@@ -159,6 +209,8 @@ local up = {
 		altMax = 200,
 	},
 	team = nil,
+	kind = "live", -- "live" | "mission": what the brush places (see `mission`)
+	missionTeam = 0, -- the mission team number new mission units get
 	dragging = false, -- the button is held on a brush gesture
 	dragAction = nil, -- "place" | "remove"
 	dragStroke = nil, -- one hold is one stroke
@@ -294,7 +346,8 @@ local engineProvider = {
 			facing = (Spring.GetUnitBuildFacing(unitID) or 0) % 4,
 			xsize = def.xsize,
 			zsize = def.zsize,
-			team = Spring.GetUnitTeam(unitID),
+			-- a mission unit reports its mission team, so a copy pastes onto that team
+			team = mission.teamOf(unitID) or Spring.GetUnitTeam(unitID),
 		}
 	end,
 	all = function()
@@ -361,7 +414,15 @@ local function teams()
 	return out
 end
 
+--- The brush in MISSION mode (another owner brings its own placement rules).
+function mission.on()
+	return up.kind == "mission" and owner.name == "terraform_brush"
+end
+
 local function currentTeam()
+	if mission.on() then
+		return up.missionTeam
+	end
 	if up.team == nil then
 		up.team = owner.provider.myTeam()
 	end
@@ -676,8 +737,13 @@ local function gadgetPlace(spots, strokeId)
 	end
 	strokeId = strokeId or nextStrokeId()
 	local byTeam, order = {}, {}
+	local missionKind = mission.on()
 	for _, spot in ipairs(spots) do
 		local team = spot.team or currentTeam()
+		if not missionKind and not Spring.GetTeamInfo(team, false) then
+			-- a mission unit's copy pasted live: its mission team may not exist here
+			team = owner.provider.myTeam()
+		end
 		if not byTeam[team] then
 			byTeam[team] = {}
 			order[#order + 1] = team
@@ -692,7 +758,8 @@ local function gadgetPlace(spots, strokeId)
 			for index = first, min(first + BATCH - 1, #list) do
 				entries[#entries + 1] = list[index]
 			end
-			sendMsg(MSG.place .. strokeId .. "|" .. tostring(team) .. "|" .. table.concat(entries, ";"))
+			local teamField = missionKind and ("m" .. tostring(team)) or tostring(team)
+			sendMsg(MSG.place .. strokeId .. "|" .. teamField .. "|" .. table.concat(entries, ";"))
 		end
 	end
 	return strokeId
@@ -1151,7 +1218,7 @@ local function newGhostPool(ghostOwner)
 				item.z,
 				(item.facing or 0) * pi / 2,
 				alpha or GHOST_ALPHA,
-				item.team,
+				mission.realTeam(item.team),
 				0.15,
 				0,
 				handles[n + 1],
@@ -1182,11 +1249,24 @@ local dragGhosts = newGhostPool("cmd_unit_placer_drag")
 ----------------------------------------------------------------
 -- Selection
 ----------------------------------------------------------------
+--- LIVE mode: with nothing picked, plain clicks belong to the game (select and order the
+--- live units). MISSION mode and other owners keep the tool's own selection.
+function mission.gameOwnsClicks()
+	return owner.name == "terraform_brush" and up.kind ~= "mission"
+end
+
+--- The selection features (Delete, R, Ctrl+A, density, copy): on with nothing picked. In
+--- LIVE mode they act on the game's selection (mirrored into `sel`, see mission.mirror).
 local function selectModeActive()
 	return up.active
 		and (up.mode == "scatter" or up.mode == "point")
 		and lastPick == nil
 		and not (placer and placer.armed())
+end
+
+--- The tool takes plain clicks for its own selection: select mode, outside LIVE.
+local function selectClicksActive()
+	return selectModeActive() and not mission.gameOwnsClicks()
 end
 
 --- An owner that wants to know what is selected (the mission editor's roster follows the
@@ -1220,6 +1300,49 @@ local function setSelection(ids, additive)
 		end
 	end
 	notifySelection()
+	if mission.gameOwnsClicks() then
+		mission.pushToGame()
+	end
+end
+
+--- LIVE mode: the tool's selection becomes the game's.
+function mission.pushToGame()
+	Spring.SelectUnitArray(sel.ids)
+	local seen = {}
+	for _, unitID in ipairs(sel.ids) do
+		seen[unitID] = true
+	end
+	mission.lastGame = seen
+end
+
+--- LIVE mode: take the game's selection as the tool's (the other half of setSelection's
+--- push), so Delete, R, Ctrl+A, density and copy act on what was selected the normal way.
+--- Only the PLAYER's changes count: a unit added, or a living one let go. A unit the gadget
+--- re-creates (move, turn, undo) dies out of the game's selection before its remap arrives,
+--- and that must not drop it from the tool's.
+function mission.mirror()
+	local ids = Spring.GetSelectedUnits() or {}
+	local now, changed = {}, false
+	for _, unitID in ipairs(ids) do
+		now[unitID] = true
+		if not mission.lastGame[unitID] then
+			changed = true
+		end
+	end
+	for unitID in pairs(mission.lastGame) do
+		if not now[unitID] and Spring.ValidUnitID(unitID) then
+			changed = true
+		end
+	end
+	mission.lastGame = now
+	if changed then
+		sel.ids, sel.set = {}, {}
+		for _, unitID in ipairs(ids) do
+			sel.set[unitID] = true
+			sel.ids[#sel.ids + 1] = unitID
+		end
+		notifySelection()
+	end
 end
 
 local function toggleSelection(unitID)
@@ -1612,6 +1735,14 @@ local function deactivate()
 end
 
 local function cycleTeam()
+	if mission.on() then
+		up.missionTeam = (up.missionTeam + 1) % mission.TEAMS
+		pv.stampKey = nil
+		if placer.armed() then
+			syncArming()
+		end
+		return up.missionTeam
+	end
 	local list = teams()
 	local now = currentTeam()
 	local nextTeam = list[1]
@@ -1727,6 +1858,33 @@ Tool.deactivate = deactivate
 Tool.openLibrary = openLibrary
 Tool.team = currentTeam
 Tool.cycleTeam = cycleTeam
+--- The TEAM chip's text: "TEAM 1" live, "MISSION TEAM 2" in MISSION mode
+Tool.teamLabel = function()
+	return (mission.on() and "MISSION TEAM " or "TEAM ") .. tostring(currentTeam())
+end
+--- "live" | "mission"
+Tool.kind = function()
+	return up.kind
+end
+Tool.setKind = function(kind)
+	if kind ~= "live" and kind ~= "mission" then
+		return false
+	end
+	if up.kind ~= kind then
+		up.kind = kind
+		clearSelection()
+		pv.stampKey = nil
+		if placer.armed() then
+			syncArming()
+		end
+	end
+	return true
+end
+--- Every unit on the map into a mission unit (toMission) or back into a live one, in place,
+--- as one undo step. Each keeps its team as its mission team.
+Tool.convertAll = function(toMission)
+	sendMsg(MSG.mission .. nextStrokeId() .. "|" .. (toMission and "1" or "0") .. "|ALL")
+end
 Tool.reroll = reroll
 Tool.clearSelection = clearSelection
 Tool.deleteSelection = deleteSelection
@@ -1763,6 +1921,8 @@ function Tool.getState()
 		gridSnap = grid.snap,
 		gridSnapSize = grid.snapSize,
 		selectMode = selectModeActive() and true or false,
+		gameClicks = mission.gameOwnsClicks(), -- LIVE: plain clicks select and order as in a game
+		kind = up.kind,
 		selectionCount = #sel.ids,
 		dragging = up.dragging or (sel.drag ~= nil and sel.drag.moved) or false,
 		formation = isFormation(),
@@ -2077,12 +2237,17 @@ local function onRemap(oldID, newID)
 			sel.ids[index] = newID
 		end
 	end
+	if mission.gameOwnsClicks() then
+		mission.pushToGame()
+	end
 end
 
 ----------------------------------------------------------------
 -- Widget
 ----------------------------------------------------------------
 function widget:Initialize()
+	local modOptions = Spring.GetModOptions() or {}
+	mission.session = tostring(modOptions.editor_sandbox or "") == "1" or tostring(modOptions.mapeditor or "") == "1"
 	placer = Placer.new({
 		owner = "unit_placer_tool",
 		-- Stays armed after a placement: laying out a base is many drags of the same thing.
@@ -2267,8 +2432,11 @@ function widget:MousePress(mx, my, button)
 		if up.mode == "remove" then
 			return beginBrush("remove")
 		end
-		if selectModeActive() then
+		if selectClicksActive() then
 			return selectPress(mx, my)
+		end
+		if lastPick == nil and mission.gameOwnsClicks() then
+			return false
 		end
 		return beginBrush("place")
 	end
@@ -2426,6 +2594,9 @@ end
 function widget:Update(dt)
 	if not up.active then
 		return
+	end
+	if mission.gameOwnsClicks() then
+		mission.mirror()
 	end
 	if #sel.ids >= 2 then
 		lasso.age = lasso.age + (dt or 0)
@@ -2706,7 +2877,61 @@ local function brushColor(alpha)
 	return removing
 end
 
+--- Ground rings in the mission team's colour under every mission unit in view, so mission
+--- teams read apart even where they all stand on Gaia. Editor sessions only.
+function mission.drawMarkers()
+	local frame = Spring.GetDrawFrame()
+	if frame - mission.markersAt > 15 or frame < mission.markersAt then
+		mission.markersAt = frame
+		local list = {}
+		for _, unitID in ipairs(Spring.GetVisibleUnits(-1, nil, false) or {}) do
+			local m = mission.teamOf(unitID)
+			if m then
+				list[#list + 1] = { unitID, m }
+			end
+		end
+		mission.markers = list
+	end
+	if #mission.markers == 0 then
+		return
+	end
+	gl.LineWidth(3)
+	for _, entry in ipairs(mission.markers) do
+		local unitID, m = entry[1], entry[2]
+		local x, y, z = Spring.GetUnitPosition(unitID)
+		if x then
+			local c = mission.PALETTE[(m % #mission.PALETTE) + 1]
+			gl.Color(c[1], c[2], c[3], 0.85)
+			gl.DrawGroundCircle(x, y, z, (Spring.GetUnitRadius(unitID) or 20) * 1.1, 24)
+		end
+	end
+	gl.Color(1, 1, 1, 1)
+	gl.LineWidth(1)
+end
+
+--- "M<team>" over each marked mission unit (screen space, after DrawWorld's rings).
+function mission.drawLabels()
+	if #mission.markers == 0 then
+		return
+	end
+	for _, entry in ipairs(mission.markers) do
+		local x, y, z = Spring.GetUnitPosition(entry[1])
+		if x then
+			local sx, sy, sz = Spring.WorldToScreenCoords(x, y + (Spring.GetUnitHeight(entry[1]) or 30), z)
+			if sz and sz < 1 then
+				local c = mission.PALETTE[(entry[2] % #mission.PALETTE) + 1]
+				gl.Color(c[1], c[2], c[3], 1)
+				gl.Text("M" .. entry[2], sx, sy, 13, "co")
+			end
+		end
+	end
+	gl.Color(1, 1, 1, 1)
+end
+
 function widget:DrawWorld()
+	if mission.session then
+		mission.drawMarkers()
+	end
 	if grid.overlay then
 		if (not grid.dl) or grid.dlSize ~= grid.snapSize or grid.dirty then
 			buildFullMapGrid()
@@ -2722,10 +2947,10 @@ function widget:DrawWorld()
 		return
 	end
 
-	if #sel.ids > 0 then
+	if #sel.ids > 0 and not mission.gameOwnsClicks() then
 		drawSelection()
 	end
-	if #sel.ids >= 2 then
+	if #sel.ids >= 2 and not mission.gameOwnsClicks() then
 		drawLasso()
 	end
 
@@ -2790,6 +3015,9 @@ function widget:DrawWorld()
 end
 
 function widget:DrawScreen()
+	if mission.session then
+		mission.drawLabels()
+	end
 	if not sel.boxing then
 		return
 	end

@@ -211,6 +211,16 @@
 				<div class="tf-overlay-chip" data-event-mousedown="onTfUnitsLibrary()"><div class="tf-overlay-chip-label">Library</div></div>
 				<div class="tf-overlay-chip" data-event-mousedown="onTfUnitsTeam()"><div class="tf-overlay-chip-label">{{unitsTeam}}</div></div>
 			</div>
+			<!-- LIVE / MISSION (1.18): normal units, or frozen stand-ins on a mission team number
+			     that a map project saves for the mission editor -->
+			<div class="flex flex-row items-center gap-1 mb-1">
+				<div id="btn-un-kind-live" class="tf-overlay-chip" data-class-active="unitsKind == 'live'" data-event-mousedown="onTfUnitsKind('live')"><div class="tf-overlay-chip-label">Live units</div></div>
+				<div id="btn-un-kind-mission" class="tf-overlay-chip" data-class-active="unitsKind == 'mission'" data-event-mousedown="onTfUnitsKind('mission')"><div class="tf-overlay-chip-label">Mission units</div></div>
+			</div>
+			<div class="flex flex-row items-center gap-1 mb-1">
+				<div id="btn-un-all-mission" class="tf-overlay-chip" data-event-mousedown="onTfUnitsConvert('mission')"><div class="tf-overlay-chip-label">All to mission</div></div>
+				<div id="btn-un-all-live" class="tf-overlay-chip" data-event-mousedown="onTfUnitsConvert('live')"><div class="tf-overlay-chip-label">All to live</div></div>
+			</div>
 			<div class="tf-units-note">{{unNoteStr}}</div>
 			</div><!-- /section-un-mode -->
 			</div><!-- /frame-un-mode -->

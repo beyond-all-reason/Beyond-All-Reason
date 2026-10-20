@@ -1177,12 +1177,14 @@ local function stepFeatures()
 end
 
 -- Shared by the project save and by WG.MapProject.requestUnits: the gadget
--- streams pipe-joined "name x z rot team neutral" records in batches.
+-- streams pipe-joined "name x z rot team neutral [mission]" records in batches;
+-- `mission` = the mission team number of a Unit Placer MISSION unit (a frozen stand-in
+-- the mission editor takes as its loadout), absent for a live unit.
 local function parseUnitBatches(batches)
 	local entries = {}
 	for _, payload in ipairs(batches or {}) do
 		for entry in payload:gmatch("[^|]+") do
-			local name, x, z, rot, team, neutral = entry:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+)$")
+			local name, x, z, rot, team, neutral, mission = entry:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+) ?(%S*)$")
 			x, z = tonumber(x), tonumber(z)
 			if name and x and z then
 				entries[#entries + 1] = {
@@ -1192,6 +1194,7 @@ local function parseUnitBatches(batches)
 					rot = tonumber(rot) or 0,
 					team = tonumber(team) or 0,
 					neutral = neutral == "1",
+					mission = tonumber(mission),
 				}
 			end
 		end
@@ -1324,7 +1327,7 @@ local function stepUnits()
 			e.z,
 			e.rot,
 			e.team,
-			e.neutral and ", neutral = true" or ""
+			e.mission and format(", mission = %d", e.mission) or (e.neutral and ", neutral = true" or "")
 		)
 	end
 	lines[#lines + 1] = "\t},"
@@ -3559,13 +3562,14 @@ local function phaseUnits(c)
 			if type(u.name) == "string" and x and z then
 				count = count + 1
 				parts[#parts + 1] = format(
-					"%s %.1f %.1f %d %d %d",
+					"%s %.1f %.1f %d %d %d%s",
 					u.name,
 					x,
 					z,
 					tonumber(u.rot) or 0,
 					tonumber(u.team) or 0,
-					u.neutral and 1 or 0
+					u.neutral and 1 or 0,
+					tonumber(u.mission) and (" " .. math.floor(tonumber(u.mission))) or ""
 				)
 				if #parts >= 25 then
 					batches[#batches + 1] = table.concat(parts, "|")

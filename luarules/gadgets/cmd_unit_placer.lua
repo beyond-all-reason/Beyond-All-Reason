@@ -27,6 +27,11 @@ end
 --       destroyed and created again at its new spot (same team)
 --   $unit_clearall$<stroke>
 --       every unit on the map, all teams, as one remove stroke
+--   $unit_place$<stroke>|m<n>|...   (team field "m" + a number)
+--       MISSION units on mission team n: stand-ins for a mission, frozen in place (see freeze)
+--   $unit_mission$<stroke>|<1|0>|ALL   or   ...|<1|0>|<id>,<id>,...
+--       turn live units into mission units (1, each keeps its team as its mission team) or
+--       mission units back into live ones (0), in place, as one stroke
 --   $unit_place_undo$   /   $unit_place_redo$
 -- Back (here -> LuaUI, through the unsynced half):
 --   unit_placer_history(undoCount, redoCount) after every change
@@ -71,6 +76,7 @@ local PLACE_HEADER = "$unit_place$"
 local REMOVE_HEADER = "$unit_remove$"
 local TRANSFORM_HEADER = "$unit_transform$"
 local CLEARALL_HEADER = "$unit_clearall$"
+local MISSION_HEADER = "$unit_mission$"
 local UNDO_HEADER = "$unit_place_undo$"
 local REDO_HEADER = "$unit_place_redo$"
 local MAX_STROKES = 100
@@ -104,13 +110,62 @@ local function sendHistory()
 	SendToUnsynced("UnitPlacerHistory", #undoStack, #redoStack)
 end
 
-local function create(def, x, z, facing, team)
+-- MISSION UNITS (Terraform Brush 1.18): the UNITS tool's MISSION mode places stand-ins for a
+-- mission rather than units to play with: frozen in place (neutral, invulnerable, orders
+-- refused, MoveCtrl holds them), and carrying a mission TEAM NUMBER that need not exist in
+-- this session. They stand on that team when it exists (team colours for free), else on
+-- Gaia. The number is a public rules param, "mission_team" (-1 once a unit is live again),
+-- which the map project saves so the mission editor can take them as its loadout.
+local missionUnits = {} -- unitID -> mission team number
+local MISSION_PARAM = "mission_team"
+
+local function realTeamFor(missionTeam)
+	local tid, _, isDead = Spring.GetTeamInfo(missionTeam, false)
+	if tid and not isDead then
+		return missionTeam
+	end
+	return Spring.GetGaiaTeamID()
+end
+
+local function freeze(unitID, missionTeam)
+	missionUnits[unitID] = missionTeam
+	Spring.SetUnitRulesParam(unitID, MISSION_PARAM, missionTeam, { public = true })
+	Spring.MoveCtrl.Enable(unitID)
+	Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+	Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
+	Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
+	Spring.SetUnitNeutral(unitID, true)
+	Spring.SetUnitArmored(unitID, true, 0)
+end
+
+local function thaw(unitID)
+	missionUnits[unitID] = nil
+	Spring.SetUnitRulesParam(unitID, MISSION_PARAM, -1, { public = true })
+	Spring.MoveCtrl.Disable(unitID)
+	Spring.SetUnitNeutral(unitID, false)
+	Spring.SetUnitArmored(unitID, false)
+	Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 2 }, 0)
+	Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 1 }, 0)
+end
+
+-- the map project's units gadget restores saved mission units through the same freeze
+GG.UnitPlacer = { freeze = freeze, realTeamFor = realTeamFor }
+
+--- missionTeam nil = a live unit on `team`; a number = a mission unit (team is then derived)
+local function create(def, x, z, facing, team, missionTeam)
 	local unitDef = UnitDefNames[def]
 	if not unitDef then
 		return nil
 	end
+	if missionTeam then
+		team = realTeamFor(missionTeam)
+	end
 	local y = Spring.GetGroundHeight(x, z)
-	return Spring.CreateUnit(unitDef.id, x, y, z, facing, team)
+	local unitID = Spring.CreateUnit(unitDef.id, x, y, z, facing, team)
+	if unitID and missionTeam then
+		freeze(unitID, missionTeam)
+	end
+	return unitID
 end
 
 local function destroy(unitID)
@@ -137,6 +192,7 @@ local function capture(unitID)
 		z = math.floor(z + 0.5),
 		facing = (Spring.GetUnitBuildFacing(unitID) or 0) % 4,
 		team = Spring.GetUnitTeam(unitID),
+		missionTeam = missionUnits[unitID],
 	}
 end
 
@@ -189,15 +245,58 @@ local function openStroke(strokeId, kind)
 	return stroke
 end
 
-local function place(strokeId, team, body)
+local function place(strokeId, team, body, missionTeam)
 	local stroke = openStroke(strokeId, "place")
 	for def, xText, zText, facingText in body:gmatch("([%w_]+),(-?%d+%.?%d*),(-?%d+%.?%d*),(%d)") do
 		local x, z, facing = tonumber(xText), tonumber(zText), tonumber(facingText)
 		if x and z and FACING_OK[facing] then
-			local unitID = create(def, x, z, facing, team)
+			local unitID = create(def, x, z, facing, team, missionTeam)
 			if unitID then
-				stroke.units[#stroke.units + 1] =
-					{ unitID = unitID, def = def, x = x, z = z, facing = facing, team = team }
+				stroke.units[#stroke.units + 1] = {
+					unitID = unitID,
+					def = def,
+					x = x,
+					z = z,
+					facing = facing,
+					team = team,
+					missionTeam = missionTeam,
+				}
+			end
+		end
+	end
+end
+
+--- Live units into mission units (on = true, each keeps its team as its mission team) or
+--- back, in place: the ids stay, so nothing needs a remap.
+local function setMission(strokeId, on, unitIDs)
+	local stroke = openStroke(strokeId, "mission")
+	for _, unitID in ipairs(unitIDs) do
+		if Spring.ValidUnitID(unitID) then
+			local was = missionUnits[unitID]
+			if on and was == nil then
+				local missionTeam = Spring.GetUnitTeam(unitID)
+				freeze(unitID, missionTeam)
+				stroke.units[#stroke.units + 1] = { unitID = unitID, on = true, missionTeam = missionTeam }
+			elseif not on and was ~= nil then
+				thaw(unitID)
+				stroke.units[#stroke.units + 1] = { unitID = unitID, on = false, missionTeam = was }
+			end
+		end
+	end
+	if #stroke.units == 0 then
+		table.remove(undoStack)
+	end
+	return #stroke.units
+end
+
+--- Undo (back = true) or redo a mission stroke.
+local function replayMission(stroke, back)
+	for _, unit in ipairs(stroke.units) do
+		if Spring.ValidUnitID(unit.unitID) then
+			if unit.on == back then
+				thaw(unit.unitID)
+			else
+				freeze(unit.unitID, unit.missionTeam)
 			end
 		end
 	end
@@ -224,7 +323,7 @@ local function transform(strokeId, body)
 		local record = unitID and x and z and FACING_OK[facing] and capture(unitID)
 		if record then
 			destroy(unitID)
-			local newID = create(record.def, x, z, facing, record.team)
+			local newID = create(record.def, x, z, facing, record.team, record.missionTeam)
 			if newID then
 				-- The same unit moved twice in one stroke keeps its first "before".
 				local entry = stroke.byID[unitID]
@@ -234,6 +333,7 @@ local function transform(strokeId, body)
 					entry = {
 						def = record.def,
 						team = record.team,
+						missionTeam = record.missionTeam,
 						before = { x = record.x, z = record.z, facing = record.facing },
 					}
 					stroke.units[#stroke.units + 1] = entry
@@ -256,7 +356,7 @@ local function recreate(stroke, which)
 		local spot = which and unit[which] or unit
 		local oldID = unit.unitID
 		destroy(oldID)
-		unit.unitID = create(unit.def, spot.x, spot.z, spot.facing, unit.team)
+		unit.unitID = create(unit.def, spot.x, spot.z, spot.facing, unit.team, unit.missionTeam)
 		if oldID and unit.unitID and oldID ~= unit.unitID then
 			mapping[oldID] = unit.unitID
 		end
@@ -280,6 +380,8 @@ local function undo()
 		destroyStroke(stroke)
 	elseif stroke.kind == "remove" then
 		recreate(stroke)
+	elseif stroke.kind == "mission" then
+		replayMission(stroke, true)
 	else
 		recreate(stroke, "before")
 	end
@@ -295,10 +397,34 @@ local function redo()
 		recreate(stroke)
 	elseif stroke.kind == "remove" then
 		destroyStroke(stroke)
+	elseif stroke.kind == "mission" then
+		replayMission(stroke, false)
 	else
 		recreate(stroke, "after")
 	end
 	undoStack[#undoStack + 1] = stroke
+end
+
+local modOptions = Spring.GetModOptions() or {}
+if tostring(modOptions.editor_sandbox or "") == "1" or tostring(modOptions.mapeditor or "") == "1" then
+	--- Mission units take no orders but the ones this gadget gives them.
+	function gadget:AllowCommand(
+		unitID,
+		_unitDefID,
+		_teamID,
+		_cmdID,
+		_cmdParams,
+		_cmdOptions,
+		_cmdTag,
+		_playerID,
+		fromSynced
+	)
+		return fromSynced or missionUnits[unitID] == nil
+	end
+
+	function gadget:UnitDestroyed(unitID)
+		missionUnits[unitID] = nil
+	end
 end
 
 local function startsWith(msg, header)
@@ -312,7 +438,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	local isRemove = startsWith(msg, REMOVE_HEADER)
 	local isTransform = startsWith(msg, TRANSFORM_HEADER)
 	local isClear = startsWith(msg, CLEARALL_HEADER)
-	if not (isPlace or isRemove or isTransform or isClear or msg == UNDO_HEADER or msg == REDO_HEADER) then
+	local isMission = startsWith(msg, MISSION_HEADER)
+	if not (isPlace or isRemove or isTransform or isClear or isMission or msg == UNDO_HEADER or msg == REDO_HEADER) then
 		return
 	end
 	if not allowed() then
@@ -324,8 +451,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 	elseif msg == REDO_HEADER then
 		redo()
 	elseif isPlace then
-		local strokeId, team, body = msg:sub(#PLACE_HEADER + 1):match("^([%w_%.]+)|(%d+)|(.*)$")
-		team = tonumber(team)
+		local strokeId, teamText, body = msg:sub(#PLACE_HEADER + 1):match("^([%w_%.]+)|(m?%d+)|(.*)$")
+		local missionTeam = teamText and teamText:sub(1, 1) == "m" and tonumber(teamText:sub(2)) or nil
+		local team = missionTeam and realTeamFor(missionTeam) or tonumber(teamText)
 		if
 			not (
 				strokeId
@@ -336,7 +464,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 			Spring.Echo("[Unit Placer] bad place message")
 			return
 		end
-		place(strokeId, team, body)
+		place(strokeId, team, body, missionTeam)
 	elseif isRemove then
 		local strokeId, body = msg:sub(#REMOVE_HEADER + 1):match("^([%w_%.]+)|(.*)$")
 		if not strokeId then
@@ -358,6 +486,24 @@ function gadget:RecvLuaMsg(msg, playerID)
 			return
 		end
 		transform(strokeId, body)
+	elseif isMission then
+		local strokeId, onText, body = msg:sub(#MISSION_HEADER + 1):match("^([%w_%.]+)|([01])|(.*)$")
+		if not strokeId then
+			Spring.Echo("[Unit Placer] bad mission message")
+			return
+		end
+		local ids = {}
+		if body == "ALL" then
+			ids = Spring.GetAllUnits() or {}
+		else
+			for idText in body:gmatch("%d+") do
+				ids[#ids + 1] = tonumber(idText)
+			end
+		end
+		local n = setMission(strokeId, onText == "1", ids)
+		Spring.Echo(
+			string.format("[Unit Placer] %d unit(s) made %s", n, (onText == "1") and "mission units" or "live units")
+		)
 	else
 		local strokeId = msg:sub(#CLEARALL_HEADER + 1):match("^([%w_%.]+)")
 		local all = Spring.GetAllUnits() or {}

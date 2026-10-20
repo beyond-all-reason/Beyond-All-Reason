@@ -5810,6 +5810,7 @@ local initialModel = {
 	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl, diff.
 	activeTool = "",
 	unitsTeam = "TEAM 0",
+	unitsKind = "live",
 	-- Master SHADER button highlight in the TILESET window (+ grays its PAINT
 	-- SURFACES neighbour via data-class-disabled); synced from WG.TilesetTerrain.
 	tsShaderOn = false,
@@ -13385,7 +13386,8 @@ local initialModel = {
 		_deactivateAllTools()
 		WG.UnitPlacerTool.activate()
 		if widgetState.dmHandle then
-			widgetState.dmHandle.unitsTeam = "TEAM " .. tostring(WG.UnitPlacerTool.team())
+			widgetState.dmHandle.unitsTeam = WG.UnitPlacerTool.teamLabel()
+			widgetState.dmHandle.unitsKind = WG.UnitPlacerTool.kind()
 		end
 	end,
 	onTfUnitsLibrary = function(_event)
@@ -13395,7 +13397,24 @@ local initialModel = {
 	end,
 	onTfUnitsTeam = function(_event)
 		if WG.UnitPlacerTool and widgetState.dmHandle then
-			widgetState.dmHandle.unitsTeam = "TEAM " .. tostring(WG.UnitPlacerTool.cycleTeam())
+			WG.UnitPlacerTool.cycleTeam()
+			widgetState.dmHandle.unitsTeam = WG.UnitPlacerTool.teamLabel()
+		end
+	end,
+	-- LIVE places normal units; MISSION places frozen stand-ins on a mission team number,
+	-- which a map project saves for the mission editor (cmd_unit_placer.lua, `mission`)
+	onTfUnitsKind = function(_event, kind)
+		if WG.UnitPlacerTool and WG.UnitPlacerTool.setKind and widgetState.dmHandle then
+			WG.UnitPlacerTool.setKind(kind)
+			widgetState.dmHandle.unitsKind = WG.UnitPlacerTool.kind()
+			widgetState.dmHandle.unitsTeam = WG.UnitPlacerTool.teamLabel()
+			playSound("click")
+		end
+	end,
+	onTfUnitsConvert = function(_event, toKind)
+		if WG.UnitPlacerTool and WG.UnitPlacerTool.convertAll then
+			WG.UnitPlacerTool.convertAll(toKind == "mission")
+			playSound("click")
 		end
 	end,
 	onTfSwitchSplat = function(_event)
