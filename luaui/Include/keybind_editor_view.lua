@@ -1246,11 +1246,11 @@ local function rebuildRows()
 					end
 					local row, col = arg:match("^%s*(%S+)%s+(%S+)")
 					local label = item.label and prefixRowLabel(item.label, arg, row, col) or action
-					local selectSpec = item.selection and state.selectCommand.parse(action)
-					if selectSpec then
-						label = state.selectCommand.describe(selectSpec)
+					local command = item.selection and state.selectCommand.parse(action)
+					if command then
+						label = state.selectCommand.describe(command)
 					end
-					local buildable = selectSpec and state.selectCommand.editable(selectSpec)
+					local buildable = command and state.selectCommand.editable(command)
 					state.labels[action] = label
 					state.sources[action] = group.title
 					local change = rowChange(action)
@@ -5225,15 +5225,15 @@ function state.addBind(editing)
 end
 
 function state.openSelectionBuilder(action)
-	local command = state.selectCommand
-	state.selectionBuilder:show(action and command.parse(action), {
+	local Select = state.selectCommand
+	state.selectionBuilder:show(action and Select.parse(action), {
 		title = action and L.selectionEdit or L.selectionAdd,
 		acceptLabel = action and L.save or L.selectionChooseKey,
 		cancelLabel = L.cancel,
-		onAccept = function(newAction, built)
+		onAccept = function(newAction, command)
 			if not action then
-				startCapture(newAction, command.describe(built))
-			elseif not command.sameSelection(newAction, action) then
+				startCapture(newAction, Select.describe(command))
+			elseif not Select.sameSelection(newAction, action) then
 				state.renameAction(action, newAction)
 			end
 		end,
