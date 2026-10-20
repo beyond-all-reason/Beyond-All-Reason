@@ -821,7 +821,7 @@ __PORTAL_MAP_CREDITS__</pre
           y = e.clientY - r.top;
         const found = hits.reduce(
           (best, h) =>
-            Math.hypot(x - h.x, y - h.y) < (best?.distance || 12)
+            Math.hypot(x - h.x, y - h.y) < (best?.distance ?? 12)
               ? { ...h, distance: Math.hypot(x - h.x, y - h.y) }
               : best,
           null,
