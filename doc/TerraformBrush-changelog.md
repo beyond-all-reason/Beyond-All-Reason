@@ -26,6 +26,8 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 - **A much quieter console.** Routine messages from every tool are gone: activation and deactivation banners, wheel and slider echoes, the sculpt Fill diagnostics (17 lines per click on every client), the metal gadget's lines on every client, and the map project's step-by-step save and load progress. Results, warnings and errors stay.
 - The WEATHER summary strip shows the brush rotation where it showed the frequency.
 - The TILESET biome library has new art. Tileset shader build 18 adds Perseus Gate, Pale Hang and Cetheta (Enborelde's textures under its own config), and the placeholder biomes (Namaqualand, Protodesert, Prototemperate) are gone.
+- Tileset shader build 20 adds **Cetheta_02**, MrBob's own Cetheta tops; the first Cetheta is now Cetheta_01. Teizer opens with MrBob's new config.
+- **DuneMaker** joins the built-in brush presets: MrBob's dune shaper, a large soft triangle that rides the stroke.
 
 ### Fixes
 

@@ -465,6 +465,30 @@ local BUILTIN_PRESETS = {
 		noiseLacunarity = 2.0,
 		noiseSeed = 0,
 	},
+	{
+		-- MrBob's dune shaper (2026-10-20): a big, soft triangle riding the stroke,
+		-- so a drag lays down a dune ridge with a sharper crest.
+		name = "DuneMaker",
+		mode = "raise",
+		shape = "triangle",
+		radius = 611,
+		rotationDeg = 50.5,
+		curve = 2.7,
+		intensity = 0.55,
+		lengthScale = 1.0,
+		heightCapMin = nil,
+		heightCapMax = nil,
+		heightCapAbsolute = true,
+		clayMode = false,
+		followStroke = true,
+		ringInnerRatio = 0.6,
+		noiseType = "perlin",
+		noiseScale = 64,
+		noiseOctaves = 4,
+		noisePersistence = 0.5,
+		noiseLacunarity = 2.0,
+		noiseSeed = 0,
+	},
 }
 
 local builtinPresetNames = {}
