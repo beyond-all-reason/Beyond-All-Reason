@@ -9,7 +9,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		local weaponDef = WeaponDefs[weapon.weaponDef] ---@as table
 		if weaponDef.stockpile then
 			hasStockpile[unitDefID] = true
-			-- break -- Match `GetUnitStockpile` and keep the last match.
+			-- Match `GetUnitStockpile` and keep the last match.
 		end
 	end
 end
@@ -33,6 +33,8 @@ return {
 		{ name = 'progress',    required = true,  type = ParameterTypes.Fraction },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
+		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
+		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
 		GameFrame = function(trigger, triggerID, context, frameNumber)
@@ -52,7 +54,10 @@ return {
 				state.progress = progress
 				state.completed = false
 
-				if crossings > 0 and (not parameters.unitName or context.DoesUnitHaveName(unitID, parameters.unitName)) then
+				if crossings > 0
+					and (not parameters.unitName or context.DoesUnitHaveName(unitID, parameters.unitName))
+					and (not parameters.teamID or parameters.teamID == Spring.GetUnitTeam(unitID))
+				then
 					for _ = 1, crossings do
 						context.ActivateTrigger(trigger)
 					end

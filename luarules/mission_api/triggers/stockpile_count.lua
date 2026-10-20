@@ -6,11 +6,16 @@ return {
 		{ name = 'count',       required = true,  type = ParameterTypes.PositiveInteger },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
+		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
+		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
 		StockpileChanged = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 			local parameters = trigger.parameters
 			if oldCount >= parameters.count or newCount < parameters.count then
+				return
+			end
+			if parameters.teamID and parameters.teamID ~= unitTeam then
 				return
 			end
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then

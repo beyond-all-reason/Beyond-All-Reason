@@ -43,7 +43,7 @@ describe("mission_api.triggers.stockpile_count", function()
 		for _, parameter in ipairs(stockpileCount.parameters) do
 			required[parameter.name] = parameter.required
 		end
-		assert.are.same({ count = true, unitName = false, unitDefName = false }, required)
+		assert.are.same({ count = true, unitName = false, unitDefName = false, teamID = false }, required)
 	end)
 
 	it("fires when the count rises to the threshold", function()
