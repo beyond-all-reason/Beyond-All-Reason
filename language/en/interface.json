@@ -416,6 +416,7 @@
 					"IdMatches": "%{value}"
 				},
 				"not": "not %{filter}",
+				"separator": ", ",
 				"anyOf": "%{units} or %{last}",
 				"summary": "%{conclusion}: %{filters} (%{source})",
 				"summaryAll": "%{conclusion} (%{source})",

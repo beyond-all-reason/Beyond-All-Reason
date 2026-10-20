@@ -265,6 +265,7 @@ function M.describe(command, t)
 	t = t or BAR.I18N
 	local conclusion = t(KEY .. "conclusion." .. command.conclusion, { value = command.conclusionArg })
 	local source = t(KEY .. "source." .. command.source, { value = command.sourceArg })
+	local separator = t(KEY .. "separator")
 
 	-- The engine ORs plain IdMatches and ANDs the rest, so those names read as one choice.
 	local filters, units, unitsAt = {}, {}, nil
@@ -279,12 +280,13 @@ function M.describe(command, t)
 	end
 	if #units > 1 then
 		local last = table.remove(units)
-		filters[unitsAt] = t(KEY .. "anyOf", { units = table.concat(units, ", "), last = last })
+		filters[unitsAt] = t(KEY .. "anyOf", { units = table.concat(units, separator), last = last })
 	end
 
 	local words
 	if #filters > 0 then
-		words = t(KEY .. "summary", { conclusion = conclusion, filters = table.concat(filters, ", "), source = source })
+		local listed = table.concat(filters, separator)
+		words = t(KEY .. "summary", { conclusion = conclusion, filters = listed, source = source })
 	else
 		words = t(KEY .. "summaryAll", { conclusion = conclusion, source = source })
 	end

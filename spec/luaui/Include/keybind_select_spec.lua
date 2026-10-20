@@ -129,7 +129,7 @@ describe("putting a selection into words", function()
 		local command = Select.parse("select AllMap+_Builder_Not_Idle+_ClearSelection_SelectOne+")
 
 		assert.are.equal(
-			"[summary conclusion=[conclusion.SelectOne] filters=[filter.Builder], [not filter=[filter.Idle]] source=[source.AllMap]]",
+			"[summary conclusion=[conclusion.SelectOne] filters=[filter.Builder][separator][not filter=[filter.Idle]] source=[source.AllMap]]",
 			Select.describe(command, echo)
 		)
 	end)
@@ -149,7 +149,7 @@ describe("putting a selection into words", function()
 		)
 
 		assert.are.equal(
-			"[summary conclusion=[conclusion.SelectAll] filters=[filter.Idle], [anyOf units=[filter.IdMatches value=armcom] last=[filter.IdMatches value=corcom]], [not filter=[filter.IdMatches value=legcom]] source=[source.AllMap]]",
+			"[summary conclusion=[conclusion.SelectAll] filters=[filter.Idle][separator][anyOf units=[filter.IdMatches value=armcom] last=[filter.IdMatches value=corcom]][separator][not filter=[filter.IdMatches value=legcom]] source=[source.AllMap]]",
 			Select.describe(command, echo)
 		)
 	end)
