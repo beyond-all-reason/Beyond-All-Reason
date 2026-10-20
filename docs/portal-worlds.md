@@ -165,13 +165,17 @@ missions have a five-minute timeout. This native planner supplies the missing
 orders; the game observer remains read-only. It is an initial invasion policy,
 without supply-base or coordinated multi-region defence planning.
 
-The native planner completed four-map headless campaigns at 32:44.5 and 43:55.1.
-In the first run, team 6 won
-its local duel, visited all four maps, killed three foreign commanders and reached
-native `GameOver`. There were 2,198 physical crossings, including ground units.
-A single-map control with this native AI also reached `GameOver`, with no portal
-missions. These resource-asymmetric checks do not establish balanced AI strength
-or complete coverage of every unit and map layout.
+The reviewed resource-asymmetric campaign reached native `GameOver` at 21:30.1.
+Team 6 visited all four maps and had three credited foreign commander kills.
+The recorder observed 297 crossings, including 296 ground and one aircraft.
+The one short return-trip candidate was inspected as pursuit of an enemy through
+the same portal. A single-map control reached a native winner at 9:21.9 with no
+portal missions. These checks do not establish balanced AI strength or complete
+coverage of every unit and map layout.
+
+A repeated graphical fixture also hit a native QTPFS path-search crash; another
+repeat passed its 67 simulation and 28 UI assertions. The crash's relation to this
+mode has not been isolated. The preview remains WIP until that is resolved.
 
 Build an isolated native AI installation from the companion source checkout:
 
