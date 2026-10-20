@@ -599,6 +599,68 @@ describe("Set Target review regressions", function()
 		end
 		return result
 	end
+	for _, finishTransfer in ipairs({ false, true }) do
+		it(
+			"releases unsynced lists after " .. (finishTransfer and "complete" or "partial") .. " transmission",
+			function()
+				local teams = {}
+				for unitID = 1, 17 do
+					teams[unitID] = 1
+				end
+				local g = loadTargetGadget(teams)
+				-- Mixed lengths cross the 8192-entry budget inside a list, regardless
+				-- of iteration order. Each unit owns a distinct shared list.
+				for unitID = 1, 17 do
+					local first = 1000 + unitID * 600
+					order(g, ids(first, first + (unitID == 17 and 511 or 499)), nil, unitID)
+				end
+				g.update(1)
+				local started, complete = {}, {}
+				for _, event in ipairs(g.events) do
+					if event[1] == "targetListShared" then
+						if event[6] then
+							started[event[2]] = true
+						else
+							complete[event[2]] = true
+						end
+					end
+				end
+				local partialID
+				for listID in pairs(started) do
+					if not complete[listID] then
+						assert.is_nil(partialID)
+						partialID = listID
+					end
+				end
+				assert.is_not_nil(partialID)
+				for _, event in ipairs(g.events) do
+					if event[1] == "targetListReference" then
+						assert.is_not.equal(partialID, event[3])
+					end
+				end
+				if finishTransfer then
+					g.update(2)
+				end
+				local firstReleaseEvent = #g.events + 1
+				for unitID = 1, 17 do
+					g.env.gadget:UnitDestroyed(unitID, 1, 1)
+				end
+				for frame = 3, 7 do
+					g.update(frame)
+				end
+				local released = {}
+				for index = firstReleaseEvent, #g.events do
+					local event = g.events[index]
+					if event[1] == "targetListRelease" then
+						assert.is_nil(released[event[2]])
+						released[event[2]] = true
+					end
+					assert.is_not.equal("targetListShared", event[1])
+				end
+				assert.same(started, released)
+			end
+		)
+	end
 	it("caps replacement lists at 512 distinct targets", function()
 		local g = loadTargetGadget()
 		local targets = ids(10, 609)
