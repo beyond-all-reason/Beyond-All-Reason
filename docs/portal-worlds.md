@@ -35,13 +35,39 @@ python3 tools/portal_worlds/play_portals.py \
 on the first original source map. The graphical launcher targets Linux; offscreen
 tests require `cc` and the engine's offscreen cursor fallback.
 
-The map fetcher, pinned original-archive manifest, SMF packer and map helper
-sources are included in the [ZK portal draft](https://github.com/ZeroK-RTS/Zero-K/pull/5974)
-under `tools/portal_worlds/`. That packer uses the ZK checkout's authored map
-metadata to generate the game-neutral `portal_worlds.lua` contract consumed here.
-It preserves source terrain, diffuse tiles/mipmaps and attribution. Map media,
-engine binaries and generated archives are outside this game commit. Keep all
-launcher workspaces outside the game checkout as well.
+The map fetcher, pinned original archives, SMF packer, map helper sources and
+small authored metadata overrides are bundled in `tools/portal_worlds/`.
+They preserve source terrain, diffuse tiles/mipmaps, original map credits and
+the shared game-neutral metadata contract. The supplied example uses map-authored
+metadata with attributed Zero-K data overrides where needed; it does not require
+a second game checkout. From that tools directory:
+
+```sh
+export BAR_PORTAL_WORKSPACE="$HOME/.cache/bar/portal-worlds"
+python3 -m venv "$HOME/.cache/bar/portal-tools-venv"
+. "$HOME/.cache/bar/portal-tools-venv/bin/activate"
+python3 -m pip install -r requirements.txt
+python3 fetch_portal_maps.py
+python3 build_portal_worlds.py --engine-dir /path/engine
+python3 verify_four_worlds.py
+```
+
+`--engine-dir` reads the classic detail texture from a downloaded engine’s
+`base/spring/bitmaps.sdz`; authors may instead use `--engine-source`.
+The packer’s `--manifest`, `--target` and `--game-dir` metadata-root arguments
+support other source maps/compositions. Map media, binaries and generated archives
+stay outside the game checkout.
+
+## Dots playback
+
+Use `--headless --record` for a windowless AI recording, or `--watch --record`
+for an explicitly visible spectator game. The [dots tools](../tools/portal_worlds/dots/README.md)
+validate/compress its all-team stream and create a single offline HTML player.
+It shows all worlds simultaneously, with play/pause, seeking, unit inspection,
+paths/orders, native projectile samples and damage-event markers. These are
+recorded observations, not a browser simulation or reconstructed particle effects.
+Human `--play` gameplay retains the normal locked-until-opening world selector.
+
 
 ## Orders and views
 
