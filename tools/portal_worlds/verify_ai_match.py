@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Report unassisted AI outcomes without mistaking a timed run for a win."""
+"""Report autonomous AI outcomes without mistaking a timed run for a win."""
 import argparse
 from collections import Counter
 import json
@@ -13,6 +13,8 @@ def inspect(run):
               for line in lines if '[BAR_AI_MATCH] ' in line]
     results = [event for event in events if event['event'] == 'result']
     result = results[-1] if results else None
+    snapshots = [event for event in events if event['event'] == 'snapshot']
+    last_snapshot = snapshots[-1] if snapshots else None
     deaths = [event for event in events if event['event'] == 'commander_destroyed']
     openings = [event for event in events if event['event'] == 'portal_opened']
     verified = [event for event in events if event['event'] == 'death_portal_verified']
@@ -21,6 +23,13 @@ def inspect(run):
               ('LUA_ERRRUN', 'Error in ', 'Segmentation fault'))]
     exit_path = run / 'exit.json'
     exit_status = json.loads(exit_path.read_text()) if exit_path.exists() else None
+    expected_income = metadata.get('team_income_multipliers')
+    setup = next((event for event in events if event['event'] == 'setup'), {})
+    observed_income = {str(team['team']): team['incomeMultiplier']
+                       for team in setup.get('teamsState', [])}
+    income_verified = expected_income == observed_income if expected_income is not None else None
+    superseded_path = run / 'superseded.json'
+    superseded = json.loads(superseded_path.read_text()) if superseded_path.exists() else None
     normal = metadata['options']['normal']
     finished_cleanly = bool(result and exit_status and exit_status['exit_code'] == 0 and not errors)
     won = bool(result and result['outcome'] == 'game_over' and len(result['winners']) == 1)
@@ -33,8 +42,16 @@ def inspect(run):
                             and team_homes.get(event['attackerTeam']) != event['region']]
     campaign = bool(won and winner_transits and verified and winner_foreign_kills)
     return {
-        'passed': finished_cleanly and (won if normal else campaign),
+        'passed': finished_cleanly and (won if normal else campaign) and income_verified is not False,
         'normal_game': normal,
+        'income_multipliers_verified': income_verified,
+        'observed_income_multipliers': observed_income,
+        'termination': (result['outcome'] if result else
+                        'superseded' if superseded else 'wall_limit' if exit_status and exit_status['timed_out'] else 'incomplete'),
+        'elapsed_simulation_minutes': ((result or last_snapshot)['frame'] / 1800
+                                       if result or last_snapshot else 0),
+        'last_snapshot': last_snapshot,
+        'superseded': superseded,
         'finished_cleanly': finished_cleanly,
         'native_game_over_with_one_winner': won,
         'portal_campaign_completed': campaign,

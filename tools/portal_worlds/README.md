@@ -15,5 +15,9 @@ AI assistance: OpenAI Codex prepared these prototype tools and their checks.
 
 Automated BAR checks default to the graphical engine with SDL offscreen.
 `--headless` uses the native headless executable. The `ai_match` observer and
-`verify_ai_match.py` distinguish an unassisted native victory from a timed run;
+`verify_ai_match.py` distinguish an autonomous native victory from a timed run;
 see the gameplay document for a complete invocation.
+
+Use `--duel-income-multiplier 10` to give one team in each map 10× income for
+faster opening duels. Defaults to ordinary income; the observer and verifier
+record and check the actual native team multipliers.

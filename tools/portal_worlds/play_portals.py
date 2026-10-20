@@ -2,6 +2,7 @@
 """Launch BAR portal worlds in isolated data, with an explicit visible-play option."""
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import signal
@@ -26,6 +27,8 @@ def main():
     parser.add_argument('--ai', help='BARb for ordinary play; NullAI for scripted tests')
     parser.add_argument('--ai-profile', choices=['easy', 'medium', 'hard', 'hard_aggressive'], help='Stock BARb profile for team 0')
     parser.add_argument('--opponent-profile', choices=['easy', 'medium', 'hard', 'hard_aggressive'], help='Stock BARb profile for the other teams')
+    parser.add_argument('--duel-income-multiplier', type=float, default=1,
+                        help='Metal and energy income factor for the first team in each region (default: 1)')
     parser.add_argument('--ai-seed', type=int, help='Reproducible stock BARb random seed')
     parser.add_argument('--test', default='none')
     parser.add_argument('--human', action='store_true', help='Use a local player offscreen for input fixtures')
@@ -34,6 +37,8 @@ def main():
     parser.add_argument('--speed', type=float, default=3)
     parser.add_argument('--seconds', type=int, default=240)
     args = parser.parse_args()
+    if not math.isfinite(args.duel_income_multiplier) or args.duel_income_multiplier < 1:
+        parser.error('--duel-income-multiplier must be finite and at least 1')
     game, engine, map_dir = args.game_dir.resolve(), args.engine_dir.resolve(), args.map_dir.resolve()
     layout = json.loads((map_dir / 'composition.json').read_text())
     visible = args.play or args.watch
@@ -86,6 +91,11 @@ maxspeed=100; minspeed=0.1; }}
 ''']
     colors = ['0.2 0.6 1', '1 0.25 0.2', '0.2 1 0.65', '1 0.7 0.15',
               '0.7 0.4 1', '1 0.4 0.75', '0.2 0.9 1', '0.8 0.9 0.2']
+    champions = {}
+    for team, entry in enumerate(layout['teams']):
+        champions.setdefault(entry['region'], team)
+    income_multipliers = {team: args.duel_income_multiplier if champions[entry['region']] == team else 1
+                          for team, entry in enumerate(layout['teams'])}
     for team, entry in enumerate(layout['teams']):
         x, z = entry['start']
         if not (human and team == 0):
@@ -95,7 +105,7 @@ maxspeed=100; minspeed=0.1; }}
                 option_values.append(f'random_seed={args.ai_seed};')
             ai_options = '[OPTIONS] { ' + ' '.join(option_values) + ' }' if option_values else ''
             parts.append(f'[AI{team}] {{ Name=Opponent{team}; ShortName={ai}; Version={version}; Team={team}; Host=0; {ai_options} }}')
-        parts.append(f'[TEAM{team}] {{ TeamLeader=0; AllyTeam={team}; Side={args.side}; RgbColor={colors[team % len(colors)]}; StartPosX={x}; StartPosZ={z}; }}')
+        parts.append(f'[TEAM{team}] {{ TeamLeader=0; AllyTeam={team}; Side={args.side}; IncomeMultiplier={income_multipliers[team]}; RgbColor={colors[team % len(colors)]}; StartPosX={x}; StartPosZ={z}; }}')
         box = entry['boxes'][0]
         left, right = min(p[0] for p in box) / layout['size'][0], max(p[0] for p in box) / layout['size'][0]
         top, bottom = min(p[1] for p in box) / layout['size'][1], max(p[1] for p in box) / layout['size'][1]
@@ -115,7 +125,7 @@ maxspeed=100; minspeed=0.1; }}
         if not limiter.exists() or limiter.stat().st_mtime < helper.stat().st_mtime:
             subprocess.run(['cc', '-O2', '-shared', '-fPIC', str(helper), '-ldl', '-o', str(limiter)], check=True)
         env.update(LD_PRELOAD=str(limiter), SPRING_PROBE_FPS='15')
-    metadata = {'command': command, 'game_commit': subprocess.check_output(['git', '-C', str(game), 'rev-parse', 'HEAD'], text=True).strip(),
+    metadata = {'command': command, 'team_income_multipliers': income_multipliers, 'game_commit': subprocess.check_output(['git', '-C', str(game), 'rev-parse', 'HEAD'], text=True).strip(),
                 'engine_version': subprocess.check_output([command[0], '--sync-version'], text=True).strip(),
                 'options': {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()}}
     (run / 'command.json').write_text(json.dumps(metadata, indent=2) + '\n')

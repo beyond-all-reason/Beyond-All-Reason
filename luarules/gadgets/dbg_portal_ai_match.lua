@@ -52,6 +52,7 @@ local function Snapshot()
 		end
 		state[#state+1] = {team=team,dead=select(3,Spring.GetTeamInfo(team,false)),home=home[team],units=#list,
 			created=created[team] or 0,factories=factories,combat=combat,regions=unitRegions,commands=commands,
+			incomeMultiplier=select(7,Spring.GetTeamInfo(team,false)),
 			commanders=commanders,aircraft=aircraft,visited=visited[team],damage=combatDamage[team] or 0,kills=kills[team] or 0}
 	end
 	return state
@@ -72,7 +73,7 @@ function gadget:Initialize()
 			visited[team] = {}
 		end
 	end
-	Log("setup", {teams=teams,regions=world and #world.regions or 1,limit=endFrame,assisted=false})
+	Log("setup", {teams=teams,regions=world and #world.regions or 1,limit=endFrame,scriptedOrders=false,teamsState=Snapshot()})
 end
 function gadget:UnitCreated(id, def, team)
 	created[team] = (created[team] or 0) + 1
