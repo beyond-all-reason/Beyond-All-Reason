@@ -56,7 +56,7 @@ return {
 			mine_resistant = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.05,
+			paralyzemultiplier = 0.2,
 			paratrooper = true,
 			reaimtime = 2,
 			stealths_transport = true,
