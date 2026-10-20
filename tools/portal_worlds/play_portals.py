@@ -137,6 +137,12 @@ maxspeed=100; minspeed=0.1; }}
     ai_build = ai_dir / 'build-info.json'
     if ai_build.exists():
         metadata['ai_build'] = json.loads(ai_build.read_text())
+    elif not args.ai_dir and (engine / 'preview-manifest.json').exists():
+        preview = json.loads((engine / 'preview-manifest.json').read_text())
+        bundled = preview.get('native_ai', {}).get(args.ai)
+        if bundled:
+            metadata['ai_build'] = dict(bundled, from_engine_preview=True,
+                                        library_sha256=bundled['packaged_library_sha256'])
     (run / 'command.json').write_text(json.dumps(metadata, indent=2) + '\n')
     print(f'Run: {run}\nLog: {run / "console.log"}\nEngine log: {write / "infolog.txt"}\nScreenshots: {write / "screenshots"}\nRecordings: {write / "recordings"}', flush=True)
     if args.prepare_only:
