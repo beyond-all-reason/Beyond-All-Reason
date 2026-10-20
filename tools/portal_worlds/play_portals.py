@@ -24,6 +24,7 @@ def main():
     display.add_argument('--watch', action='store_true', help='Open an AI game; runs until closed')
     display.add_argument('--headless', action='store_true', help='Run the native headless engine without rendering')
     parser.add_argument('--prepare-only', action='store_true')
+    parser.add_argument('--record', action='store_true', help='Record all-world dots as a spectator (headless or --watch)')
     parser.add_argument('--ai-dir', type=Path, help='Optional isolated AI root containing Interfaces/ and Skirmish/')
     parser.add_argument('--ai', help='BARb for ordinary play; NullAI for scripted tests')
     parser.add_argument('--ai-profile', choices=['easy', 'medium', 'hard', 'hard_aggressive'], help='Stock BARb profile for team 0')
@@ -42,6 +43,8 @@ def main():
         parser.error('--duel-income-multiplier must be finite and at least 1')
     game, engine, map_dir = args.game_dir.resolve(), args.engine_dir.resolve(), args.map_dir.resolve()
     layout = json.loads((map_dir / 'composition.json').read_text())
+    if args.record and (args.play or args.human):
+        parser.error('--record requires a spectator; use --watch or --headless')
     visible = args.play or args.watch
     human = args.play or args.human or args.test == 'four'
     ai = args.ai or ('BARb' if args.test in ('none', 'ai', 'ai_match') else 'NullAI')
@@ -88,7 +91,7 @@ MapName={layout['name']};
 IsHost=1; HostIP=127.0.0.1; HostPort={port};
 GameStartDelay=0; StartPosType=3; MyPlayerName=Player;
 [MODOPTIONS] {{ portal_worlds={mode}; portal_worlds_test={args.test}; portal_worlds_end={duration};
-portal_worlds_speed={1 if visible else args.speed}; {legion} deathmode=com; startmetal=1000; startenergy=1000;
+portal_worlds_speed={1 if visible else args.speed}; portal_record={1 if args.record else 0}; portal_record_end={duration}; portal_record_quit={0 if visible else 1}; {legion} deathmode=com; startmetal=1000; startenergy=1000;
 maxspeed=100; minspeed=0.1; }}
 [PLAYER0] {{ Name=Player; Spectator={0 if human else 1}; Team=0; }}
 ''']
@@ -128,14 +131,14 @@ maxspeed=100; minspeed=0.1; }}
         if not limiter.exists() or limiter.stat().st_mtime < helper.stat().st_mtime:
             subprocess.run(['cc', '-O2', '-shared', '-fPIC', str(helper), '-ldl', '-o', str(limiter)], check=True)
         env.update(LD_PRELOAD=str(limiter), SPRING_PROBE_FPS='15')
-    metadata = {'command': command, 'team_income_multipliers': income_multipliers, 'game_commit': subprocess.check_output(['git', '-C', str(game), 'rev-parse', 'HEAD'], text=True).strip(),
+    metadata = {'command': command, 'game_worktree_changes': subprocess.check_output(['git','-C',str(game),'status','--porcelain'],text=True).splitlines(), 'team_income_multipliers': income_multipliers, 'game_commit': subprocess.check_output(['git', '-C', str(game), 'rev-parse', 'HEAD'], text=True).strip(),
                 'engine_version': subprocess.check_output([command[0], '--sync-version'], text=True).strip(),
                 'options': {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()}}
     ai_build = ai_dir / 'build-info.json'
     if ai_build.exists():
         metadata['ai_build'] = json.loads(ai_build.read_text())
     (run / 'command.json').write_text(json.dumps(metadata, indent=2) + '\n')
-    print(f'Run: {run}\nLog: {run / "console.log"}\nEngine log: {write / "infolog.txt"}\nScreenshots: {write / "screenshots"}', flush=True)
+    print(f'Run: {run}\nLog: {run / "console.log"}\nEngine log: {write / "infolog.txt"}\nScreenshots: {write / "screenshots"}\nRecordings: {write / "recordings"}', flush=True)
     if args.prepare_only:
         return
     with (run / 'console.log').open('w') as log:

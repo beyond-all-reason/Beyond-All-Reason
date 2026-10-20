@@ -1,0 +1,88 @@
+{
+  "name": "Portal Worlds",
+  "version": "v3",
+  "columns": 2,
+  "gap": 512,
+  "void_height": -300,
+  "maps": [
+    {
+      "id": "living",
+      "name": "Living Lands 4.1",
+      "source": "content/living-source",
+      "style": "wooded grassland",
+      "archive": {
+        "filename": "living_lands_4.1.sd7",
+        "md5": "92f439c03e5e8d386a5e75510d22e885",
+        "mirrors": [
+          "https://springfiles.springrts.com/files/maps/living_lands_4.1.sd7"
+        ]
+      }
+    },
+    {
+      "id": "barren",
+      "name": "Barren 2",
+      "source": "content/barren-source",
+      "style": "sand and rock",
+      "archive": {
+        "filename": "barren_2.sd7",
+        "md5": "6e6627fc93243edc28ab6dd32c381578",
+        "mirrors": [
+          "https://springfiles.springrts.com/files/maps/barren_2.sd7"
+        ]
+      }
+    },
+    {
+      "id": "frozen",
+      "name": "FrozenPlanetV3",
+      "source": "content/frozen-source",
+      "style": "snow and ice",
+      "starts": "map",
+      "archive": {
+        "filename": "frozenplanetv3.sd7",
+        "md5": "563ba8c575b098d47a1147f71985e9b8",
+        "mirrors": [
+          "https://springfiles.springrts.com/files/maps/frozenplanetv3.sd7"
+        ]
+      }
+    },
+    {
+      "id": "calayo",
+      "name": "Calayo2",
+      "source": "content/calayo-source",
+      "style": "volcanic",
+      "surface": {
+        "height": 0,
+        "damage": 20,
+        "render": "terrain"
+      },
+      "attribution": [
+        "Calayo lava texture: Patrick Hoesly, CC BY 2.0, as credited by Saktoth in the source map."
+      ],
+      "archive": {
+        "filename": "calayo2.sd7",
+        "md5": "2afffef08b92d87319a1c57c4aae89c4",
+        "mirrors": [
+          "https://springfiles.springrts.com/files/maps/calayo2.sd7"
+        ]
+      }
+    }
+  ],
+  "connections": [
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      4,
+      1
+    ]
+  ]
+}

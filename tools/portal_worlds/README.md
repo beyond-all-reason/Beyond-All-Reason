@@ -27,3 +27,12 @@ Native ground invasion needs the companion BARb portal-missions source. Use
 to `play_portals.py`. The helper preserves the existing engine/AI installation;
 it builds only the native AI target and records its exact source and library
 hashes. See the gameplay document for the protocol and full commands.
+
+The map fetcher/packer, pinned `portal_maps.json`, generic map helper sources and
+attributed `map-metadata` overrides are included here too. Install `requirements.txt`,
+set `BAR_PORTAL_WORKSPACE` outside this checkout, run `fetch_portal_maps.py`, then
+`build_portal_worlds.py --engine-dir /path/engine` and `verify_four_worlds.py`.
+Repacking needs Python/Pillow, Lua 5.1 and 7z; using an already composed map does not.
+
+`--record` writes dots for spectator AI matches. See [dots playback](dots/README.md)
+for validation, compact recording files, offline sharing and review limits.
