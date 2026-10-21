@@ -210,6 +210,16 @@ function TeamBuilder:WithEnergyStorage(storage)
 	return self
 end
 
+function TeamBuilder:WithMetalExcess(excess)
+	self.metal.excess = excess
+	return self
+end
+
+function TeamBuilder:WithEnergyExcess(excess)
+	self.energy.excess = excess
+	return self
+end
+
 function TeamBuilder:WithMetalStorage(storage)
 	self.metal.storage = storage
 	return self
