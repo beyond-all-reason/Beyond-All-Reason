@@ -656,8 +656,12 @@ function gadget:GameFrame(f)
 		for id, region in pairs(home) do
 			if Valid(id) and not Spring.GetUnitTransporter(id) then
 				local x, y, z = Spring.GetUnitPosition(id)
-				local r = regions[region]
-				if Region(x, z) ~= region then
+				local aircraft = UnitDefs[Spring.GetUnitDefID(id)].canFly
+				local r = aircraft and world.objectBounds[region] or regions[region]
+				-- Aircraft may use their half of the cubicle barriers to turn.
+				if
+					(aircraft and not world.ContainsObject(region, x, z)) or (not aircraft and Region(x, z) ~= region)
+				then
 					local tx = math.max(r.x0 + 24, math.min(r.x1 - 24, x))
 					local tz = math.max(r.z0 + 24, math.min(r.z1 - 24, z))
 					if UnitDefs[Spring.GetUnitDefID(id)].canFly then
