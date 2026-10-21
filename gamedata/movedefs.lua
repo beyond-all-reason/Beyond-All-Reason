@@ -333,7 +333,7 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
-	-- corkorg legeheatraymech
+	-- corkorg armbanth legeheatraymech
 	VBOT6 = {
 		crushstrength = CRUSH.HUGE,
 		depthMod = 0,
@@ -342,7 +342,7 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.DIFFICULT,
 	},
-	-- corjugg armbanth
+	-- corjugg
 	HBOT7 = {
 		crushstrength = CRUSH.HUGE,
 		footprint = 7,
