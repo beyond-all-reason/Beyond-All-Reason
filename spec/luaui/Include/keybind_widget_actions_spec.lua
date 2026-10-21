@@ -78,8 +78,8 @@ describe("reading a widget's declared actions", function()
 			{ action = "LOAD 1", label = "actions.again" },
 		}))
 
-		assert.are.same({ { action = "load 1", label = KEYS .. "actions.one" } }, actions)
-		assert.are.same({ 1, 2, 3, 4, 6 }, entriesNamed(warnings))
+		assert.are.same({ { action = "no_label" }, { action = "load 1", label = KEYS .. "actions.one" } }, actions)
+		assert.are.same({ 1, 2, 4, 6 }, entriesNamed(warnings))
 
 		local notList, notListWarnings = WidgetActions.parse(widgetEntry("gui_example", "subgroup_cycle"))
 		assert.are.same({}, notList)
