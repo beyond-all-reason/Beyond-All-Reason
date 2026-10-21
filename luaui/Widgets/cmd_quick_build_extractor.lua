@@ -33,6 +33,8 @@ local mathPiHalf = math.pi / 2
 -- Squared activation distances. Keep the familiar minimum; larger mex placement areas extend it per spot.
 local geoPlacementRadius = 5000
 local mexPlacementRadius = 2000
+local mexPlacementPadding = 16 -- one build-grid step beyond the outermost placement
+local mexActivationRadii = setmetatable({}, { __mode = "k" })
 
 local mexConstructors
 local geoConstructors
@@ -75,6 +77,16 @@ end
 
 local spotFinder
 local spotBuilder
+
+local function getMexActivationRadiusSquared(spot)
+	local radiusSquared = mexActivationRadii[spot]
+	if not radiusSquared then
+		local radius = math.sqrt(spotFinder.GetMexPlacementRadiusSquared(spot)) + mexPlacementPadding
+		radiusSquared = math.max(mexPlacementRadius, radius * radius)
+		mexActivationRadii[spot] = radiusSquared
+	end
+	return radiusSquared
+end
 
 function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
@@ -238,7 +250,7 @@ function widget:Update(dt)
 		local geoDist = mathHuge
 		if nearestMex and bestMex then
 			mexDist = mathDistance2dSquared(nearestMex.x, nearestMex.z, gpx, gpz)
-			mexRadiusSquared = math.max(mexPlacementRadius, spotFinder.GetMexPlacementRadiusSquared(nearestMex))
+			mexRadiusSquared = getMexActivationRadiusSquared(nearestMex)
 		end
 		if nearestGeo and bestGeo then
 			geoDist = mathDistance2dSquared(nearestGeo.x, nearestGeo.z, gpx, gpz)
