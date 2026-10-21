@@ -637,7 +637,6 @@ validators[Types.AttributeValue] = function(value)
 	end
 end
 
-
 local function validateVariableValue(value, suffix)
 	local valueType = type(value)
 	if valueType == "number" or valueType == "string" or valueType == "boolean" then
