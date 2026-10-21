@@ -637,7 +637,7 @@ validators[Types.AttributeValue] = function(value)
 	end
 end
 
--- Variables hold plain data, as persistent ones are saved as JSON.
+
 local function validateVariableValue(value, suffix)
 	local valueType = type(value)
 	if valueType == "number" or valueType == "string" or valueType == "boolean" then
