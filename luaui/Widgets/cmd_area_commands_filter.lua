@@ -32,6 +32,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -47,8 +48,19 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
+local CMD_ATTACK_TARGETS = GameCMD.ATTACK_TARGETS
+local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
+
+local objectifiedUnitDefs = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.objectify then
+		objectifiedUnitDefs[unitDefID] = true
+	end
+end
 
 local commandLimit = 2000
+
+local sendTargetList = VFS.Include("common/luaUtilities/target_list_orders.lua")
 
 local myAllyTeamID
 
@@ -327,21 +339,11 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 	end
 end
 
-local function splitTargets(selectedUnits, filteredTargets)
-	local unitTargetsMap = {}
-	for unitIdx, selectedUnitId in ipairs(selectedUnits) do
-		unitTargetsMap[selectedUnitId] = {}
-		for targetIdx, targetUnitId in ipairs(filteredTargets) do
-			if
-				targetIdx % #filteredTargets == unitIdx % #filteredTargets
-				or unitIdx % #selectedUnits == targetIdx % #selectedUnits
-			then
-				tableInsert(unitTargetsMap[selectedUnitId], targetUnitId)
-			end
-		end
-	end
-	return unitTargetsMap
+local function giveTargetList(listCommandID, selectedUnits, targetIDs, options)
+	return sendTargetList(listCommandID, selectedUnits, targetIDs, options, spGiveOrderToUnitArray)
 end
+
+local splitTargets = VFS.Include("common/luaUtilities/split_area_targets.lua")
 
 --- Each unit gets a chunk of the queue
 local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
@@ -366,6 +368,20 @@ local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
 		local closestFirst = not options.meta
 		sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
 		giveOrders(cmdId, selectedUnits, filteredTargets, options)
+	end
+end
+
+local function targetListHandler(cmdId, selectedUnits, filteredTargets, options)
+	local listCommandID = cmdId == CMD.ATTACK and CMD_ATTACK_TARGETS or CMD_UNIT_SET_TARGETS
+	if options.shift and options.meta then
+		local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
+		for selectedUnitID, targetIDs in pairs(unitTargetsMap) do
+			sortTargetsByDistance({ selectedUnitID }, targetIDs, true)
+			giveTargetList(listCommandID, { selectedUnitID }, targetIDs, options)
+		end
+	else
+		sortTargetsByDistance(selectedUnits, filteredTargets, true)
+		giveTargetList(listCommandID, selectedUnits, filteredTargets, options)
 	end
 end
 
@@ -407,10 +423,10 @@ end
 
 ---@type table<number, CommandConfig>
 local allowedCommands = {
-	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, targetListHandler),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, targetListHandler),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, targetListHandler),
 	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS),
@@ -458,6 +474,31 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegian
 	return filteredTargets
 end
 
+local function excludeNeutralWalls(targets)
+	if not targets or not targets[1] then
+		return
+	end
+
+	local targetsWithoutNeutralWalls = {}
+	for index = 1, #targets do
+		local targetID = targets[index]
+		---@cast targetID integer
+		if not objectifiedUnitDefs[spGetUnitDefID(targetID)] or not spGetUnitNeutral(targetID) then
+			targetsWithoutNeutralWalls[#targetsWithoutNeutralWalls + 1] = targetID
+		end
+	end
+	return targetsWithoutNeutralWalls[1] and targetsWithoutNeutralWalls or targets
+end
+
+local function getPlainAttackTargets(cmdX, cmdZ, radius)
+	return excludeNeutralWalls(spGetUnitsInCylinder(cmdX, cmdZ, radius, ENEMY_UNITS))
+end
+
+local function getPlainSetTargetTargets(cmdX, cmdZ, radius)
+	local targets = spGetUnitsInCylinder(cmdX, cmdZ, radius, ENEMY_UNITS)
+	return targets and targets[1] and targets or nil
+end
+
 local function getTechLevel(unitDefName)
 	local unitDef = UnitDefNames[unitDefName]
 	return unitDef and unitDef.customParams.techlevel
@@ -484,6 +525,7 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 
 	for i = 1, #featuresInArea do
 		local featureId = featuresInArea[i]
+		---@cast featureId integer
 		local shouldInsert = alt and spGetFeatureDefID(featureId) == featureDefId
 		if ctrl then
 			local unitDefName = spGetFeatureResurrect(featureId)
@@ -506,10 +548,39 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 	return filteredTargets
 end
 
-function widget:CommandNotify(cmdId, params, options)
-	if not (options.alt or options.ctrl) then
+-- Keep the object under the cursor when the drag starts. Reconstructing it
+-- from the ground-space area center can pick a different object for aircraft.
+local areaStart
+
+function widget:MousePress(x, y, button)
+	areaStart = nil
+	if button ~= 1 and button ~= 3 then
 		return false
 	end
+	local _, commandID = Spring.GetActiveCommand()
+	local command = allowedCommands[commandID]
+	if command and command.allowedTargetTypes[UNIT] then
+		local targetType, targetID = spTraceScreenRay(x, y)
+		areaStart = { commandID = commandID, button = button, targetType = targetType, targetID = targetID }
+	end
+	return false
+end
+
+function widget:Update()
+	if not areaStart then
+		return
+	end
+	-- This widget does not own the mouse, so it receives no MouseRelease.
+	-- CommandNotify runs before Update when the engine handles the release.
+	local _, _, leftPressed, _, rightPressed = Spring.GetMouseState()
+	if not ((areaStart.button == 1 and leftPressed) or (areaStart.button == 3 and rightPressed)) then
+		areaStart = nil
+	end
+end
+
+function widget:CommandNotify(cmdId, params, options)
+	local start = areaStart
+	areaStart = nil
 
 	if #params ~= 4 then
 		return false
@@ -526,8 +597,29 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
-	local mouseX, mouseY = spWorldToScreenCoords(cmdX, cmdY, cmdZ)
-	local targetType, targetId = spTraceScreenRay(mouseX, mouseY)
+	if not (options.alt or options.ctrl) then
+		local targets
+		if cmdId == CMD.ATTACK then
+			targets = getPlainAttackTargets(cmdX, cmdZ, radius)
+		elseif cmdId == GameCMD.UNIT_SET_TARGET or cmdId == GameCMD.UNIT_SET_TARGET_NO_GROUND then
+			targets = getPlainSetTargetTargets(cmdX, cmdZ, radius)
+		else
+			return false
+		end
+		if not targets then
+			-- Preserve ground/empty-area behavior for the original command.
+			return false
+		end
+		currentCommand.handle(cmdId, selectedUnits, targets, options)
+		return true
+	end
+	local targetType, targetId
+	if start and start.commandID == cmdId and start.button == (options.right and 3 or 1) then
+		targetType, targetId = start.targetType, start.targetID
+	else
+		local mouseX, mouseY = spWorldToScreenCoords(cmdX, cmdY, cmdZ)
+		targetType, targetId = spTraceScreenRay(mouseX, mouseY)
+	end
 
 	if not currentCommand.allowedTargetTypes[targetType] then
 		return false
@@ -536,8 +628,10 @@ function widget:CommandNotify(cmdId, params, options)
 	local filteredTargets
 
 	if targetType == UNIT then
+		---@cast targetId integer
 		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, currentCommand.targetAllegiance)
 	elseif targetType == FEATURE then
+		---@cast targetId integer
 		local unitDefName = spGetFeatureResurrect(targetId)
 		-- filter only wrecks which can be resurrected
 		if unitDefName == nil or unitDefName == "" then
@@ -550,6 +644,9 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
+	if cmdId == CMD.ATTACK then
+		filteredTargets = excludeNeutralWalls(filteredTargets)
+	end
 	currentCommand.handle(cmdId, selectedUnits, filteredTargets, options)
 	return true
 end

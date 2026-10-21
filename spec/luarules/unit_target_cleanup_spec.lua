@@ -1,4 +1,4 @@
-local function loadTargetGadget()
+local function loadTargetGadget(unitTeams, areaTargets, allied)
 	local currentCommand
 	local target
 	local rules = {}
@@ -6,6 +6,7 @@ local function loadTargetGadget()
 	local checks = {}
 	local deadTargets = {}
 	local crashingTargets = {}
+	local losStates = {}
 	local canTarget = function(_targetID)
 		return true
 	end
@@ -50,6 +51,10 @@ local function loadTargetGadget()
 		},
 		WeaponDefs = { { type = "Cannon", range = 1000, customParams = {} } },
 		Spring = {
+			InsertUnitCmdDesc = function() end,
+			GetUnitsInCylinder = function()
+				return areaTargets or {}
+			end,
 			ValidUnitID = function()
 				return true
 			end,
@@ -57,19 +62,19 @@ local function loadTargetGadget()
 				return 1
 			end,
 			GetUnitTeam = function(unitID)
-				return unitID == 1 and 1 or 2
+				return unitTeams and unitTeams[unitID] or (unitID == 1 and 1 or 2)
 			end,
 			GetUnitAllyTeam = function(unitID)
-				return unitID == 1 and 1 or 2
+				return unitTeams and unitTeams[unitID] or (unitID == 1 and 1 or 2)
 			end,
 			AreTeamsAllied = function(a, b)
-				return a == b
+				return a == b or (allied and allied(a, b))
 			end,
 			GetUnitIsDead = function(unitID)
 				return deadTargets[unitID] or false
 			end,
-			GetUnitLosState = function()
-				return 3
+			GetUnitLosState = function(unitID)
+				return losStates[unitID] or 3
 			end,
 			GetUnitMoveTypeData = function()
 				error("target selection must not allocate movement data")
@@ -77,6 +82,15 @@ local function loadTargetGadget()
 			GetUnitWeaponTryTarget = function(_, _, targetID)
 				checks[#checks + 1] = targetID
 				return canTarget(targetID)
+			end,
+			GetGroundHeight = function()
+				return 0
+			end,
+			GetUnitWeaponTestRange = function()
+				return true
+			end,
+			GetUnitWeaponHaveFreeLineOfFire = function()
+				return true
 			end,
 			GetUnitWeaponTestTarget = function()
 				return true
@@ -117,6 +131,10 @@ local function loadTargetGadget()
 		end,
 	}, { __index = math })
 	env.table = setmetatable({
+		ensureTable = function(parent, key)
+			parent[key] = parent[key] or {}
+			return parent[key]
+		end,
 		map = function(values, fn)
 			local result = {}
 			for k, v in pairs(values) do
@@ -135,6 +153,7 @@ local function loadTargetGadget()
 		checks = checks,
 		deadTargets = deadTargets,
 		crashingTargets = crashingTargets,
+		losStates = losStates,
 		canTarget = function(fn)
 			canTarget = fn
 		end,
@@ -168,6 +187,92 @@ local function loadTargetGadget()
 end
 
 describe("Set Target invalid-target cleanup", function()
+	it("retains all individually appended targets", function()
+		local g = loadTargetGadget()
+		for targetID = 10, 149 do
+			g.set(targetID, true)
+		end
+		local targets = g.env.GG.GetUnitTargetList(1)
+		assert.are.equal(140, #targets)
+		assert.are.equal(10, targets[1].target)
+		assert.are.equal(149, targets[140].target)
+	end)
+
+	it("retains all targets from compact Set Target commands", function()
+		local g = loadTargetGadget()
+		local targets = {}
+		for targetID = 10, 149 do
+			targets[#targets + 1] = targetID
+		end
+		g.env.gadget:AllowCommand(1, 1, 1, g.env.GameCMD.UNIT_SET_TARGETS, targets, { coded = 0 }, 1, 1)
+		assert.are.equal(140, #g.env.GG.GetUnitTargetList(1))
+	end)
+
+	it("retains all targets from shifted area commands", function()
+		local areaTargets = {}
+		for targetID = 20, 149 do
+			areaTargets[#areaTargets + 1] = targetID
+		end
+		local g = loadTargetGadget(nil, areaTargets)
+		g.set(10)
+		g.set({ 100, 0, 100, 100 }, true)
+		local targets = g.env.GG.GetUnitTargetList(1)
+		assert.are.equal(131, #targets)
+		assert.are.equal(10, targets[1].target)
+		assert.are.equal(149, targets[131].target)
+	end)
+
+	it("inherits a builder's entire compact target list", function()
+		local g = loadTargetGadget({ [2] = 1 })
+		local targets = {}
+		for targetID = 10, 149 do
+			targets[#targets + 1] = targetID
+		end
+		g.env.gadget:AllowCommand(1, 1, 1, g.env.GameCMD.UNIT_SET_TARGETS, targets, { coded = 0 }, 1, 1)
+		g.env.gadget:UnitCreated(2, 1, 1, 1)
+		assert.are.equal(140, #g.env.GG.GetUnitTargetList(2))
+	end)
+
+	it("preserves unseen expiry when an area command appends several targets", function()
+		local g = loadTargetGadget(nil, { 30, 40 })
+		g.set(10)
+		g.set(20, true)
+		g.losStates[10] = 0
+		g.canTarget(function(targetID)
+			return targetID ~= 10
+		end)
+		g.update(15)
+		g.set({ 100, 0, 100, 100 }, true)
+		g.update(30)
+		g.update(45)
+		assert.are.equal(4, #g.env.GG.GetUnitTargetList(1))
+		g.update(60)
+		local targets = g.env.GG.GetUnitTargetList(1)
+		assert.are.equal(3, #targets)
+		assert.are.equal(20, targets[1].target)
+	end)
+
+	it("preserves unseen expiry when a single append detaches a shared list", function()
+		local g = loadTargetGadget({ [2] = 1 })
+		for unitID = 1, 2 do
+			g.env.gadget:AllowCommand(unitID, 1, 1, g.env.GameCMD.UNIT_SET_TARGETS, { 10, 20 }, { coded = 0 }, 1, 1)
+		end
+		assert.are.equal(g.env.GG.GetUnitTargetListID(1), g.env.GG.GetUnitTargetListID(2))
+		g.losStates[10] = 0
+		g.canTarget(function(targetID)
+			return targetID ~= 10
+		end)
+		g.update(15)
+		g.set(30, true)
+		g.update(30)
+		g.update(45)
+		g.update(60)
+		assert.are.equal(2, #g.env.GG.GetUnitTargetList(1))
+		assert.are.equal(20, g.env.GG.GetUnitTargetList(1)[1].target)
+		assert.are.equal(1, #g.env.GG.GetUnitTargetList(2))
+		assert.are.equal(20, g.env.GG.GetUnitTargetList(2)[1].target)
+	end)
+
 	for _, kind in ipairs({ "dead", "crashing" }) do
 		it("skips a " .. kind .. " active target on the next selection update", function()
 			local g = loadTargetGadget()
@@ -202,6 +307,55 @@ describe("Set Target invalid-target cleanup", function()
 		end)
 	end
 
+	it("keeps an unseen target's expiry when other entries die during selection", function()
+		local g = loadTargetGadget()
+		g.set(10)
+		g.set(20, true)
+		g.set(30, true)
+		g.set(40, true)
+		g.losStates[20] = 0
+		g.canTarget(function(targetID)
+			return targetID ~= 20
+		end)
+		g.update(15)
+		g.deadTargets[10] = true
+		g.update(16)
+		g.update(30)
+		g.deadTargets[30] = true
+		g.update(31)
+		g.update(45)
+		assert.are.equal(2, #g.env.GG.GetUnitTargetList(1))
+		g.update(60)
+		assert.are.equal(1, #g.env.GG.GetUnitTargetList(1))
+		assert.are.equal(40, g.env.GG.GetUnitTargetList(1)[1].target)
+		g.losStates[20] = 3
+		g.canTarget(function()
+			return true
+		end)
+		g.update(61)
+		assert.are.equal(40, g.target())
+	end)
+
+	it("does not shorten grace while both the source and reduced lists remain active", function()
+		local g = loadTargetGadget({ [2] = 1 })
+		for unitID = 1, 2 do
+			g.env.gadget:AllowCommand(unitID, 1, 1, g.env.GameCMD.UNIT_SET_TARGETS, { 10, 20, 30 }, { coded = 0 }, 1, 1)
+		end
+		g.losStates[20] = 0
+		g.canTarget(function(targetID)
+			return targetID ~= 20
+		end)
+		g.update(15)
+		g.env.gadget:AllowCommand(1, 1, 1, g.env.GameCMD.UNIT_CANCEL_TARGET, { 10 }, { coded = 0 }, 1, 1)
+		g.update(30)
+		g.update(45)
+		assert.are.equal(2, #g.env.GG.GetUnitTargetList(1))
+		assert.are.equal(3, #g.env.GG.GetUnitTargetList(2))
+		g.update(60)
+		assert.are.equal(1, #g.env.GG.GetUnitTargetList(1))
+		assert.are.equal(2, #g.env.GG.GetUnitTargetList(2))
+	end)
+
 	it("clears the assignment when its last target starts crashing", function()
 		local g = loadTargetGadget()
 		g.set(10)
@@ -209,6 +363,127 @@ describe("Set Target invalid-target cleanup", function()
 		g.update(1)
 		assert.is_nil(g.target())
 		assert.is_nil(g.env.GG.GetUnitTargetList(1))
+	end)
+end)
+
+local function loadTargetDrawing(synced, fullview)
+	local actions, icons = {}, {}
+	local function noop() end
+	local env = setmetatable({
+		gadget = {},
+		GG = {},
+		GameCMD = synced.env.GameCMD,
+		CMD = synced.env.CMD,
+		GL = { LINE_BITS = 1, LINE_STRIP = 2, LINES = 3 },
+		gl = setmetatable({
+			BeginEnd = function(_, fn, ...)
+				fn(...)
+			end,
+		}, {
+			__index = function()
+				return noop
+			end,
+		}),
+		gadgetHandler = {
+			IsSyncedCode = function()
+				return false
+			end,
+			AddChatAction = noop,
+			AddSyncAction = function(_, name, fn)
+				actions[name] = fn
+			end,
+		},
+		Spring = setmetatable({
+			GetLocalAllyTeamID = function()
+				return 1
+			end,
+			GetLocalTeamID = function()
+				return 1
+			end,
+			GetSpectatingState = function()
+				return fullview, fullview
+			end,
+			GetUnitAllyTeam = function()
+				return 1
+			end,
+			GetUnitTeam = function()
+				return 1
+			end,
+			IsUnitSelected = function()
+				return true
+			end,
+			ValidUnitID = function()
+				return true
+			end,
+			GetUnitPosition = function(id)
+				return id, 0, 0, id, 0, 0
+			end,
+			GetUnitWeaponTarget = function()
+				return 1, true, 10
+			end,
+			AddWorldIcon = function(_, x)
+				icons[x] = true
+			end,
+		}, {
+			__index = function()
+				return noop
+			end,
+		}),
+		CallAsTeam = function(_, fn, ...)
+			return fn(...)
+		end,
+	}, { __index = _G })
+	local chunk = assert(loadfile("luarules/gadgets/unit_target_on_the_move.lua"))
+	setfenv(chunk, env)
+	chunk()
+	env.gadget:Initialize()
+	local nextEvent = 1
+	return function()
+		for i = nextEvent, #synced.events do
+			local event = synced.events[i]
+			if actions[event[1]] then
+				actions[event[1]](unpack(event))
+			end
+		end
+		nextEvent = #synced.events + 1
+		icons = {}
+		env.gadget:DrawWorld()
+		return icons
+	end
+end
+
+describe("Set Target drawing while shared-list removal is pending", function()
+	for _, fullview in ipairs({ false, true }) do
+		for _, kind in ipairs({ "dead", "crashing" }) do
+			it("hides a " .. kind .. " queued target with fullview=" .. tostring(fullview), function()
+				local g = loadTargetGadget()
+				local draw = loadTargetDrawing(g, fullview)
+				g.set(10)
+				g.set(20, true)
+				g.update(1)
+				assert.is_true(draw()[20])
+				g[kind == "dead" and "deadTargets" or "crashingTargets"][20] = true
+				g.update(2)
+				assert.are.equal(1, #g.env.GG.GetUnitTargetList(1))
+				local icons = draw()
+				assert.is_true(icons[10])
+				assert.is_nil(icons[20])
+			end)
+		end
+	end
+
+	it("keeps unseen live targets visible to fullview, then hides them when they crash", function()
+		local g = loadTargetGadget()
+		local playerDraw, spectatorDraw = loadTargetDrawing(g, false), loadTargetDrawing(g, true)
+		g.set(10)
+		g.set(20, true)
+		g.losStates[20] = 0
+		g.update(1)
+		assert.is_nil(playerDraw()[20])
+		assert.is_true(spectatorDraw()[20])
+		g.crashingTargets[20] = true
+		g.update(2)
+		assert.is_nil(spectatorDraw()[20])
 	end)
 end)
 
@@ -301,5 +576,198 @@ describe("Shared crashing membership", function()
 		controller:UnitPreDamaged(11, 1, 2, 101, true, 1)
 		controller:UnitPreDamaged(12, 1, 2, 101, false, 99)
 		assert.same({}, shared.Crashing)
+	end)
+end)
+
+describe("Set Target review regressions", function()
+	local function order(g, targets, options, unitID)
+		g.env.gadget:AllowCommand(
+			unitID or 1,
+			1,
+			1,
+			g.env.GameCMD.UNIT_SET_TARGETS,
+			targets,
+			options or { coded = 0 },
+			1,
+			1
+		)
+	end
+	local function ids(first, last)
+		local result = {}
+		for id = first, last do
+			result[#result + 1] = id
+		end
+		return result
+	end
+	for _, finishTransfer in ipairs({ false, true }) do
+		it(
+			"releases unsynced lists after " .. (finishTransfer and "complete" or "partial") .. " transmission",
+			function()
+				local teams = {}
+				for unitID = 1, 17 do
+					teams[unitID] = 1
+				end
+				local g = loadTargetGadget(teams)
+				-- Mixed lengths cross the 8192-entry budget inside a list, regardless
+				-- of iteration order. Each unit owns a distinct shared list.
+				for unitID = 1, 17 do
+					local first = 1000 + unitID * 600
+					order(g, ids(first, first + (unitID == 17 and 511 or 499)), nil, unitID)
+				end
+				g.update(1)
+				local started, complete = {}, {}
+				for _, event in ipairs(g.events) do
+					if event[1] == "targetListShared" then
+						if event[6] then
+							started[event[2]] = true
+						else
+							complete[event[2]] = true
+						end
+					end
+				end
+				local partialID
+				for listID in pairs(started) do
+					if not complete[listID] then
+						assert.is_nil(partialID)
+						partialID = listID
+					end
+				end
+				assert.is_not_nil(partialID)
+				for _, event in ipairs(g.events) do
+					if event[1] == "targetListReference" then
+						assert.is_not.equal(partialID, event[3])
+					end
+				end
+				if finishTransfer then
+					g.update(2)
+				end
+				local firstReleaseEvent = #g.events + 1
+				for unitID = 1, 17 do
+					g.env.gadget:UnitDestroyed(unitID, 1, 1)
+				end
+				for frame = 3, 7 do
+					g.update(frame)
+				end
+				local released = {}
+				for index = firstReleaseEvent, #g.events do
+					local event = g.events[index]
+					if event[1] == "targetListRelease" then
+						assert.is_nil(released[event[2]])
+						released[event[2]] = true
+					end
+					assert.is_not.equal("targetListShared", event[1])
+				end
+				assert.same(started, released)
+			end
+		)
+	end
+	it("caps replacement lists at 512 distinct targets", function()
+		local g = loadTargetGadget()
+		local targets = ids(10, 609)
+		table.insert(targets, 1, 10)
+		order(g, targets)
+		local list = g.env.GG.GetUnitTargetList(1)
+		assert.equal(512, #list)
+		assert.equal(10, list[1].target)
+		assert.equal(521, list[512].target)
+	end)
+	it("caps repeated single appends and compact appends consistently", function()
+		for _, compact in ipairs({ false, true }) do
+			local g = loadTargetGadget()
+			order(g, ids(10, 509))
+			if compact then
+				order(g, ids(500, 609), { shift = true })
+			else
+				for id = 500, 609 do
+					g.set(id, true)
+				end
+			end
+			local list = g.env.GG.GetUnitTargetList(1)
+			assert.equal(512, #list)
+			assert.equal(521, list[512].target)
+		end
+	end)
+	it("gives prepended targets priority within the same 512 entry limit", function()
+		local g = loadTargetGadget()
+		order(g, ids(1000, 1511))
+		order(g, ids(10, 29), { meta = true })
+		local list = g.env.GG.GetUnitTargetList(1)
+		assert.equal(512, #list)
+		assert.equal(10, list[1].target)
+		assert.equal(29, list[20].target)
+		assert.equal(1000, list[21].target)
+		assert.equal(1491, list[512].target)
+	end)
+	it("caps area orders using the same list limit", function()
+		local g = loadTargetGadget(nil, ids(10, 609))
+		g.set({ 100, 0, 100, 100 })
+		assert.equal(512, #g.env.GG.GetUnitTargetList(1))
+	end)
+	it("shares identical lists produced by individual appends", function()
+		local g = loadTargetGadget({ [2] = 1 })
+		order(g, { 10 }, nil, 1)
+		order(g, { 10 }, nil, 2)
+		for unitID = 1, 2 do
+			g.env.gadget:AllowCommand(unitID, 1, 1, g.env.GameCMD.UNIT_SET_TARGET, { 11 }, { shift = true }, 1, 1)
+		end
+		assert.equal(g.env.GG.GetUnitTargetListID(1), g.env.GG.GetUnitTargetListID(2))
+	end)
+	it("does not resend unchanged active indices or rewrite their rules parameter", function()
+		local g = loadTargetGadget()
+		g.set(10)
+		g.update(1)
+		local writes = 0
+		g.env.Spring.SetUnitTarget(1, 99)
+		-- The gadget caches Spring functions, so observe the rules table writes.
+		g.rules.unitTargetID = nil
+		setmetatable(g.rules, {
+			__newindex = function(t, key, value)
+				if key == "unitTargetID" then
+					writes = writes + 1
+				end
+				rawset(t, key, value)
+			end,
+		})
+		local first = #g.events + 1
+		for frame = 2, 20 do
+			g.update(frame)
+		end
+		assert.equal(10, g.target())
+		assert.equal(0, writes)
+		for index = first, #g.events do
+			assert.are_not.equal("targetIndex", g.events[index][1])
+		end
+	end)
+	it("retains third-party and ground targets when alliances change", function()
+		local allied = false
+		local g = loadTargetGadget({ [1] = 1, [2] = 1, [10] = 2, [20] = 3 }, nil, function(a, b)
+			return allied and a == 1 and b == 2
+		end)
+		order(g, { 10, 20 }, nil, 1)
+		order(g, { 10, 20 }, nil, 2)
+		for unitID = 1, 2 do
+			g.env.gadget:AllowCommand(
+				unitID,
+				1,
+				1,
+				g.env.GameCMD.UNIT_SET_TARGET,
+				{ 100, 0, 100 },
+				{ shift = true },
+				1,
+				1
+			)
+		end
+		allied = true
+		g.env.GG.ClearTargetListsForAllianceChange(1, 2)
+		for unitID = 1, 2 do
+			local list = g.env.GG.GetUnitTargetList(unitID)
+			assert.equal(2, #list)
+			assert.equal(20, list[1].target)
+			assert.same({ 100, 0, 100 }, list[2].target)
+		end
+		assert.equal(g.env.GG.GetUnitTargetListID(1), g.env.GG.GetUnitTargetListID(2))
+		allied = false
+		g.env.GG.ClearTargetListsForAllianceChange(1, 2)
+		assert.equal(20, g.env.GG.GetUnitTargetList(1)[1].target)
 	end)
 end)

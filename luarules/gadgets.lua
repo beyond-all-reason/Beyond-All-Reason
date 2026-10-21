@@ -271,6 +271,8 @@ local callInLists = {
 	"UnitReverseBuilt",
 	"UnitFromFactory",
 	"UnitDestroyed",
+	"UnitPreDelete",
+	"UnitAttackTargetRemoved",
 	"RenderUnitDestroyed",
 	"UnitExperience",
 	"UnitIdle",
@@ -2233,6 +2235,26 @@ function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, at
 	markIdle(unitID)
 	tracyZoneEnd()
 	return
+end
+
+function gadgetHandler:UnitPreDelete(unitID, unitDefID, unitTeam)
+	for _, g in ipairs(self.UnitPreDeleteList) do
+		g:UnitPreDelete(unitID, unitDefID, unitTeam)
+	end
+end
+
+function gadgetHandler:UnitAttackTargetRemoved(unitID, unitDefID, unitTeam, targetID)
+	local tags
+	for _, g in ipairs(self.UnitAttackTargetRemovedList) do
+		local removed = g:UnitAttackTargetRemoved(unitID, unitDefID, unitTeam, targetID)
+		if type(removed) == "table" then
+			tags = tags or {}
+			for _, tag in ipairs(removed) do
+				tags[#tags + 1] = tag
+			end
+		end
+	end
+	return tags
 end
 
 function gadgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)

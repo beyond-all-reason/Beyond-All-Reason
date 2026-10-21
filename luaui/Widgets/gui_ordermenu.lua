@@ -239,8 +239,10 @@ local hiddenCommands = {
 	[CMD.DEATHWAIT] = true,
 	[CMD.TIMEWAIT] = true,
 	[CMD.AUTOREPAIRLEVEL] = true, -- retreat/idle mode (air repair pads removed)
-	[39812] = true, -- raw move
-	[34922] = true, -- set unit target (no ground)
+	[GameCMD.RAW_MOVE] = true, -- raw move
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = true, -- set unit target (no ground)
+	[GameCMD.UNIT_SET_TARGETS] = true, -- set unit targets
+	[GameCMD.ATTACK_TARGETS] = true, -- attack targets
 }
 
 local hiddenCommandTypes = {
