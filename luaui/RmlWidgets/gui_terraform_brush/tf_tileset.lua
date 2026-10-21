@@ -1158,8 +1158,8 @@ local function syncSortModel(doc, ctx, knobs)
 		local d = doc:GetElementById("ts-sort-desc")
 		if d then
 			d.inner_rml = newOn
-					and "NEW: three layers (top, intermediary, cliff) placed by slope, twice: normal maps by the terrain's slope, colour by the normal-mapped slope. No plateau, no foothills. Only you see this choice: it is never saved into a biome, preset or map."
-				or "OLD: the layer sort every biome was tuned with so far. Switch to NEW to compare. Only you see this choice: it is never saved into a biome, preset or map."
+					and "NEW: three layers (top, intermediary, cliff) placed by slope, twice: normal maps by the terrain's slope, colour by the normal-mapped slope. No plateau, no foothills. Each biome opens in the sort its settings were tuned in; this switch compares the two until the next biome pick, and is never saved into a preset or map."
+				or "OLD: the layer sort biomes were tuned with before MrBob's three layers. Each biome opens in the sort its settings were tuned in; this switch compares the two until the next biome pick, and is never saved into a preset or map."
 		end
 	end
 	if not has then
