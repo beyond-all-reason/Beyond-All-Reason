@@ -626,9 +626,6 @@ function gadget:GameFrame(gf)
 				table.shuffle(playerCosmeticOptions)
 				for _, list in pairs(playerCosmeticOptions) do
 					if #list > 0 then
-						math.random()
-						math.random()
-						math.random()
 						local candidates = {}
 						for c = 1, #list do
 							local cosmetic = list[c]
@@ -643,21 +640,17 @@ function gadget:GameFrame(gf)
 								candidates[#candidates + 1] = cosmetic
 							end
 						end
-						if #candidates > 0 then
-							local cosmetic = candidates[math.random(1, #candidates)]
-							createdCosmetics[cosmetic.name] = true
-							-- create the unit or call the baked script as before
-						end
 
 						if #candidates > 0 then
 							local cosmetic = candidates[math.random(1, #candidates)]
-							createdCosmetics[cosmetic.name] = true
+							
 							if cosmetic.implementation == "unit" then
 								local units = spGetTeamUnits(teamID) or {}
 								for k = 1, #units do
 									if not unitDefHat[spGetUnitDefID(units[k])] then
 										local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(units[k])
 										CreateAndGiveHat(cosmetic.unitDefID, unitPosX, unitPosY, unitPosZ, teamID)
+										createdCosmetics[cosmetic.name] = true
 									end
 								end
 							elseif cosmetic.implementation == "baked" then
@@ -676,6 +669,7 @@ function gadget:GameFrame(gf)
 										else
 											if spGetCOBScriptID(unitID, cosmetic.scriptCall) then
 												spCallCOBScript(unitID, cosmetic.scriptCall, 0)
+												createdCosmetics[cosmetic.name] = true
 											end
 										end
 									end
