@@ -1109,15 +1109,19 @@ else -- UNSYNCED
 		end
 		local unitData = targetList[unitID]
 		local positions
+		local activeIndex
 		if unitData and (fullview or spGetUnitAllyTeam(unitID) == myAllyTeam) then
-			for _, targetData in ipairs(unitData.targets) do
+			for index, targetData in ipairs(unitData.targets) do
 				if targetData.userTarget and type(targetData.target) == "table" then
 					positions = positions or {}
 					positions[#positions + 1] = targetData.target
+					if index == unitData.targetIndex and unitData.targetActive then
+						activeIndex = #positions
+					end
 				end
 			end
 		end
-		Script.LuaUI[LUAUI_TARGET_CALLIN](unitID, positions)
+		Script.LuaUI[LUAUI_TARGET_CALLIN](unitID, positions, activeIndex)
 	end
 
 	function gadget:Update()
@@ -1254,8 +1258,12 @@ else -- UNSYNCED
 		if not targetList[unitID] then
 			return
 		end
+		local changed = targetList[unitID].targetIndex ~= index or targetList[unitID].targetActive ~= active
 		targetList[unitID].targetIndex = index
 		targetList[unitID].targetActive = active
+		if changed then
+			pushTargetListToLuaUI(unitID)
+		end
 	end
 
 	function handleUnitTargetDrawEvent(_, _, params)
