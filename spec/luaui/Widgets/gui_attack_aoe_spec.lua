@@ -42,5 +42,10 @@ describe("ground attack order rings", function()
 		assert.equals(2, #targets)
 		assert.same({ 1200, 678, 3107, true }, { targets[1].x, targets[1].y, targets[1].z, targets[1].active })
 		assert.same({ 1400, false }, { targets[2].x, targets[2].active })
+
+		weapon.primary.type = "juno"
+		targets = {}
+		collect(targets, {}, { { unitID = 1, weaponInfos = weapon } }, 20)
+		assert.equals(0, #targets, "Juno has no persistent order indicator")
 	end)
 end)

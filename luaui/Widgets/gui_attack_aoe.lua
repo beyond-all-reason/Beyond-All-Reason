@@ -2338,7 +2338,7 @@ local function GetOrderWeaponInfo(weaponInfos, unitID, tx, ty, tz)
 		end
 	end
 	local weaponType = weaponInfo.type
-	if weaponType == "dgun" or weaponType == "noexplode" then
+	if weaponType == "dgun" or weaponType == "noexplode" or weaponType == "juno" then
 		return nil
 	end
 	if not weaponInfo.aoe or weaponInfo.aoe < Config.Order.minAoe then
