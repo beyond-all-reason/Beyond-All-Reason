@@ -6,6 +6,11 @@ git:
     source_language: en
     source_file_dir: language/en
     translation_files_expression: 'language/<lang>/'
+  - filter_type: dynamic
+    file_format: KEYVALUEJSON
+    source_language: en
+    source_files_expression: modules/<dir>/language/en/<file>.json
+    translation_files_expression: 'modules/<dir>/language/<lang>/<file>.json'
 
   settings:
     pr_branch_name: transifex_<br_unique_id>
