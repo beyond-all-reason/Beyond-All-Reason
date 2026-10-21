@@ -33,7 +33,7 @@ local friendPowerRatio = 1.15
 
 local spamPowerMax = 50.0
 local spamRatioMin = 0.2
-local allowBadSpamTarget = false
+local allowBadSpamTarget = false ---@type boolean
 
 local unknownPower = spamPowerMax * 2.0 -- TODO: We incorrectly add power for crashing/dead, decoration, critter units.
 local unknownRadius = 20.0
@@ -62,11 +62,11 @@ local spGetUnitsInSphere = Spring.GetUnitsInSphere
 ---especially sensitive to the order or accuracy of eviction. We are memory-constrained as
 ---well as time-constrained, plus we need a rolling set of keys as units die or disappear.
 local function generateClearHalfTableFunc(hashTable)
-	local keyLists = { {}, {} }
+	local keyLists = { {}, {} } ---@type table[]
 	local keyListIndex = 1
 
 	return function()
-		local list = keyLists[keyListIndex]
+		local list = keyLists[keyListIndex] ---@as table
 		local listCount = #list
 
 		-- Remove half the keys immediately and save the other half for later.
@@ -79,7 +79,7 @@ local function generateClearHalfTableFunc(hashTable)
 
 		-- At the next "halving", then, we remove a "half" from a previous pass,
 		-- to guarantee that the table is empty of current keys after two passes.
-		local nextList = keyLists[keyListIndex]
+		local nextList = keyLists[keyListIndex] ---@as table
 		local nextCount = #nextList
 
 		local add = true
@@ -151,8 +151,8 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	unitDefRadius[unitDefID] = math.max(unitDef.radius - unitDefRadiusAverage * 0.5, 0)
 end
 
-local unitTeam = {}
-local unitAllyTeam = {}
+local unitTeam = {} ---@type integer[]
+local unitAllyTeam = {} ---@type integer[]
 local unitPower = setmetatable({}, {
 	__index = function(self, unitID)
 		return unknownPower
@@ -206,7 +206,7 @@ local function getWeaponGroups(unitDef)
 		}
 
 		-- This skips drone counts for now, so our `testDamageMin` case needs validating.
-		local weaponDef = WeaponDefs[weapon.weaponDef]
+		local weaponDef = WeaponDefs[weapon.weaponDef] ---@as table
 		for _, droneName in ipairs((weaponDef.customParams.carried_unit or ""):split()) do
 			if UnitDefNames[droneName] then
 				for _, entries in ipairs(getWeaponGroups(UnitDefNames[droneName])) do
@@ -280,17 +280,20 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 		damage = getWeaponDamage(weaponDef) * (isBaseWeapon and 1 or projectiles)
 
 		if weaponDef.customParams.cluster_def then
-			local clusterDef = WeaponDefNames[weaponDef.customParams.cluster_def]
+			local clusterDef = WeaponDefNames[weaponDef.customParams.cluster_def] ---@as table?
 			if clusterDef then
 				radius = radius + math.max(clusterDef.range - aoe, 0) + clusterDef.damageAreaOfEffect * 0.5
 				damage = damage
-					+ clusterDef.damages[0] * tonumber(weaponDef.customParams.cluster_number) * projectiles / 2
+					+ clusterDef.damages[0]
+						* tonumber(weaponDef.customParams.cluster_number) ---@as number
+						* projectiles
+						/ 2
 			end
 		elseif weaponDef.customParams.spark_range then
-			radius = math.max(radius, tonumber(weaponDef.customParams.spark_range), 0)
+			radius = math.max(radius, tonumber(weaponDef.customParams.spark_range) ---@as number, 0)
 			damage = damage * (1 + (tonumber(weaponDef.customParams.spark_forkdamage or 0.0) or 0.0))
 		elseif weaponDef.customParams.area_onhit_range then
-			radius = radius + math.max(tonumber(weaponDef.customParams.area_onhit_range) - aoe, 0)
+			radius = radius + math.max(tonumber(weaponDef.customParams.area_onhit_range) ---@as number - aoe, 0)
 			damage = damage + (tonumber(weaponDef.customParams.area_onhit_damage or 0) or 0) * projectiles
 		end
 	end
@@ -310,7 +313,7 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 	return radius, damage
 end
 
-local weaponSearchRadius = {}
+local weaponSearchRadius = {} ---@type number[]
 
 local function addWeaponCollateral(unitDef)
 	local groups = getWeaponGroups(unitDef)
@@ -320,14 +323,17 @@ local function addWeaponCollateral(unitDef)
 		local weaponDef = WeaponDefs[weaponDefID]
 
 		local radius, damage = getExplosionRadiusEffective(groups, weaponNum, weaponDef)
+		---@cast radius number
+		---@cast damage number
 
 		if radius >= searchRadiusMin and damage >= searchDamageMin then
-			if not weaponSearchRadius[weaponDefID] then
+			local searchRadius = weaponSearchRadius[weaponDefID]
+			if not searchRadius then
 				Script.SetWatchAllowTarget(weaponDefID, true)
 				weaponSearchRadius[weaponDefID] = radius
 			else
 				-- Games that use weaponDefs as shared components likely need to add handling here.
-				weaponSearchRadius[weaponDefID] = math.max(weaponSearchRadius[weaponDefID], radius)
+				weaponSearchRadius[weaponDefID] = math.max(searchRadius, radius)
 			end
 		end
 	end
@@ -339,6 +345,9 @@ local function getUnitCollateral(unitID, allyTeam, radius, targetID)
 	local friendPower, enemyPower = 0.0, 0.0
 
 	local _, _, _, tx, ty, tz = spGetUnitPosition(targetID, true)
+	---@cast tx number
+	---@cast ty number
+	---@cast tz number
 	local units = spGetUnitsInSphere(tx, ty, tz, radius + unitRadius[targetID])
 
 	for _, foundID in next, units do
@@ -377,7 +386,7 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 	end
 
 	-- Avoid collaterals of a similar scale to our own explosion radius.
-	local avoidRadius = avoidUnit[allyTeam][targetID]
+	local avoidRadius = avoidUnit[allyTeam][targetID] ---@as number?
 	if avoidRadius and avoidRadius == math_clamp(avoidRadius, searchRadius * 0.5, searchRadius + 10) then
 		return allowBadSpamTarget or not unitIsSpam[targetID], priority * PRIORITY_ANTI_COLLATERAL
 	end
@@ -390,7 +399,7 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 
 	-- This search was not cached yet to within our search radius +/- 10.
 	readAs.read = unitTeam[unitID]
-	local friendPower, enemyPower = CallAsTeam(readAs, getUnitCollateral, unitID, allyTeam, searchRadius, targetID)
+	local friendPower, enemyPower = CallAsTeam(readAs, getUnitCollateral, unitID, allyTeam, searchRadius, targetID) ---@type number, number
 
 	local allowed = true
 

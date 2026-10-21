@@ -78,7 +78,7 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	local airPriorityMultiplier = {}
+	local airPriorityMultiplier = {} ---@type table<UnitDefID?, number?>
 	local isAntiAirWeapon = {}
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
