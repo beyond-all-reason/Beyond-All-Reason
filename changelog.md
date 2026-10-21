@@ -1,4 +1,16 @@
 # October
+- [Zombies]
+  - Added a limited time Spidergeddon mode
+  - Difficulties have been reworked into distinctive sub-variants of Zombies mode, each with their own gimmick:
+    - Basic: the dead come back to life once
+    - Draugr: all dead always create a corpse
+    - Wraith: destroyed corpses leave apparitions that respawn 2/3rds of the dead with a 3x zombie resurrection time delay
+    - Hydra: spawn 2-6 zombies from each corpse
+    - Akumu: all of the above
+    - Spidergeddon: Akumu, but zombies are converted into an equivalent value of spider-like units
+  - Zombies are no longer given bonus XP
+  - Aircraft zombies are now supported
+  - Zombie factories have even more buildpower
 - [Minelayers] 3x faster deceleration
 - [LLTs] Will turn to aim at enemies before they enter range
 - [Laser turrets] LoS varied between 455-494 before. Now set to 500 for all. Notably Beamers and Twin Guards now have LoS > range
