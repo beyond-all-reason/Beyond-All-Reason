@@ -242,11 +242,11 @@ dynamicPieceCollisionVolume.cordoomt3 = {
 }
 dynamicPieceCollisionVolume.leganavybattleship = {
 	on = {
-		[1] = { 48, 48, 120, 0, 8, -58, 1, 2 },
+		[1] = { 48, 48, 120, 0, 0, -53, 1, 2 },
 		offsets = { 0, 30, 0 },
 	},
 	off = {
-		[1] = { 48, 48, 120, 0, 8, -58, 1, 2 },
+		[1] = { 48, 48, 120, 0, 0, -53, 1, 2 },
 		offsets = { 0, 0, 0 },
 	},
 }
@@ -262,7 +262,7 @@ dynamicPieceCollisionVolume.legacluster = {
 }
 dynamicPieceCollisionVolume.legapopupdef = {
 	on = {
-		[0] = { 35, 68, 35, 0, 0, 0, 1, 1 },
+		[0] = { 44, 44, 44, 0, 16.3, 0, 1, 1 },
 		offsets = { 0, 18, 0 },
 	},
 	off = {
@@ -332,8 +332,8 @@ staticPieceCollisionVolume.corhrk = {
 	[2] = { 35, 40, 30, 0, -8, 0, 2, 1 },
 }
 staticPieceCollisionVolume.legpede = {
-	[0] = { 26, 28, 90, 0, 5, -23, 2, 1 },
-	[32] = { 26, 28, 86, 0, 0, 7, 2, 1 },
+	[0] = { 29, 28, 73.3, 0, 5, -31.35, 2, 1 },
+	[32] = { 29, 28, 76.6, 0, 5, 11.7, 2, 1 },
 }
 staticPieceCollisionVolume.legelrpcmech = {
 	[0] = { 48, 48, 80, 0, -10, 0, 2, 0 },
@@ -369,7 +369,7 @@ staticPieceCollisionVolume.legamcluster = {
 	[2] = { 16, 12, 24, 0, 7.5, -2, 2, 1 },
 }
 staticPieceCollisionVolume.legaheattank = {
-	[0] = { 46, 17, 56, 0, 0, 0, 2, 1 },
+	[0] = { 41, 16, 57, 0, 0, 0, 2, 1 },
 	[2] = { 20, 20, 27, 0, 0, 0, 2, 1 },
 }
 staticPieceCollisionVolume.legerailtank = {
@@ -408,7 +408,7 @@ staticPieceCollisionVolume.corint = {
 	[3] = { 13, 13, 34, 0, 1, 28, 1, 2 },
 }
 staticPieceCollisionVolume.armvulc = {
-	[0] = { 98, 140, 98, 0, 40, 0, 1, 1 },
+	[0] = { 98, 128, 98, 0, 46.5, 0, 1, 1 },
 	[5] = { 55, 55, 174, 0, 18, 0, 1, 2 },
 }
 staticPieceCollisionVolume.corgator = {
@@ -416,7 +416,7 @@ staticPieceCollisionVolume.corgator = {
 	[3] = { 15, 5, 25, 0, 0, 2, 2, 1 },
 }
 staticPieceCollisionVolume.corsala = {
-	[0] = { 34, 20, 34, 0, 3.5, 0, 2, 1 },
+	[0] = { 33.3, 13, 34.6, 0, 6.6, -0.8, 2, 1 },
 	[1] = { 13.5, 6.2, 17, 0, 1.875, 1.5, 2, 1 },
 }
 staticPieceCollisionVolume.cortermite = {
@@ -425,7 +425,7 @@ staticPieceCollisionVolume.cortermite = {
 }
 
 staticPieceCollisionVolume.correap = {
-	[1] = { 35, 20, 46, 0, 1, 0, 2, 1 },
+	[1] = { 35, 16, 48, 0, 3.1, -0.6, 2, 1 },
 	[9] = { 19, 14, 20, 0, 2, 0, 2, 1 },
 }
 staticPieceCollisionVolume.corlevlr = {
@@ -433,7 +433,7 @@ staticPieceCollisionVolume.corlevlr = {
 	[1] = { 16, 10, 15, 0, 1.875, 1.5, 2, 1 },
 }
 staticPieceCollisionVolume.corraid = {
-	[0] = { 33, 18, 39, 0, 3.5, 0, 2, 1 },
+	[0] = { 32.5, 13, 41.5, 0, 6.4, 1.4, 2, 1 },
 	[4] = { 16, 7, 15, 0, 0, 1, 2, 1 },
 }
 staticPieceCollisionVolume.cormist = {
@@ -441,7 +441,7 @@ staticPieceCollisionVolume.cormist = {
 	[1] = { 20, 28, 24, 0, 0, 1.5, 2, 1 },
 }
 staticPieceCollisionVolume.corgarp = {
-	[0] = { 30, 21, 42, 0, 0, 6, 2, 1 },
+	[0] = { 32, 14.3, 39.2, 0, 4.2, 6.4, 2, 1 },
 	[6] = { 16, 7, 15, 0, -2, 1.5, 2, 1 },
 }
 staticPieceCollisionVolume.armstump = {
@@ -509,7 +509,7 @@ staticPieceCollisionVolume.cormart = {
 	[5] = { 12, 25, 12, 0, 2, 0, 2, 1 },
 }
 staticPieceCollisionVolume.armmart = {
-	[0] = { 44, 24, 50, 0, 0, 0, 2, 1 },
+	[0] = { 40, 16, 48, 0, 8, 1, 2, 1 },
 	[1] = { 16, 32, 16, 0, 0, 0, 2, 1 },
 }
 staticPieceCollisionVolume.armbull = {
@@ -525,7 +525,7 @@ staticPieceCollisionVolume.armmanni = {
 	[1] = { 24, 52, 24, 0, 0, 0, 2, 1 },
 }
 staticPieceCollisionVolume.armthor = {
-	[0] = { 80, 25, 80, 0, 10, 0, 2, 1 },
+	[0] = { 88, 21, 66, 0, 13.5, -1, 2, 1 },
 	[15] = { 55, 25, 40, 0, 0, 0, 2, 1 },
 }
 staticPieceCollisionVolume.legfloat = {
@@ -537,7 +537,7 @@ staticPieceCollisionVolume.legnavyfrigate = {
 	[3] = { 11, 13, 20, 0, 5, 0, 2, 1 },
 }
 staticPieceCollisionVolume.legcar = {
-	[0] = { 34, 16, 46, 0, -2.5, 1, 2, 1 },
+	[0] = { 38.5, 18, 53, 0, -1, 1.2, 2, 1 },
 	[4] = { 14, 12, 20, 0, -2, -6, 2, 1 },
 }
 
@@ -552,13 +552,14 @@ staticPieceCollisionVolume.legehovertank = {
 }
 
 staticPieceCollisionVolume.corsiegebreaker = {
-	[0] = { 36, 18, 64, 0, 4, 8, 2, 2 },
+	[0] = { 38.5, 15, 76.5, 0, 7.5, 8.5, 2, 2 },
 	[1] = { 19, 12, 24, 0, -2.5, -2.5, 2, 1 },
 }
 
 staticPieceCollisionVolume.armshockwave = {
 	[2] = { 22, 22, 22, 0, 10, 0, 1, 1 },
 	[0] = { 60, 65, 60, 0, 20, 0, 1, 1 },
+	[5] = { 75, 15, 75, 0, 36.8, 0, 1, 1 },
 }
 staticPieceCollisionVolume.legmohoconct = {
 	[0] = { 70, 30, 70, 0, -3, 0, 1, 1 },
