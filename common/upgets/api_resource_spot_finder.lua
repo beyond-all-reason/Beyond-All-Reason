@@ -164,6 +164,7 @@ local function GetMexPlacementRadiusSquared(spot)
 	if not spot.validLeft then
 		GetValidStrips(spot)
 	end
+	---@type number
 	local radiusSquared = 0
 	for z, left in pairs(spot.validLeft) do
 		local right = spot.validRight[z]
