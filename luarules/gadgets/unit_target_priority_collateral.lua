@@ -6,13 +6,13 @@ end
 
 function gadget:GetInfo()
 	return {
-		name    = "Collateral Target Priority",
-		desc    = "Target priority for large-area weapons based on nearby units.",
-		author  = "efrec",
+		name = "Collateral Target Priority",
+		desc = "Target priority for large-area weapons based on nearby units.",
+		author = "efrec",
 		version = "0.0",
-		date    = "2026",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 1000, -- process after allow/disallow checks
+		layer = 1000, -- process after allow/disallow checks
 		enabled = true, -- auto-disables
 	}
 end
@@ -127,8 +127,16 @@ do
 end
 
 -- TODO: Fallback is from when this code would use CallAsTeam to check unitDef properties. Should remove.
-local unitDefPower = setmetatable(table.new(#UnitDefs, 0), {__index = function() return unknownPower end})
-local unitDefRadius = setmetatable(table.new(#UnitDefs, 0), {__index = function() return unknownRadius end})
+local unitDefPower = setmetatable(table.new(#UnitDefs, 0), {
+	__index = function()
+		return unknownPower
+	end,
+})
+local unitDefRadius = setmetatable(table.new(#UnitDefs, 0), {
+	__index = function()
+		return unknownRadius
+	end,
+})
 local unitDefRadiusAverage = 0.0 -- TODO: median or something
 local unitDefIsSpam = {}
 
@@ -145,8 +153,16 @@ end
 
 local unitTeam = {}
 local unitAllyTeam = {}
-local unitPower = setmetatable({}, { __index = function(self, unitID) return unknownPower end})
-local unitRadius = setmetatable({}, { __index = function(self, unitID) return unknownRadius end})
+local unitPower = setmetatable({}, {
+	__index = function(self, unitID)
+		return unknownPower
+	end,
+})
+local unitRadius = setmetatable({}, {
+	__index = function(self, unitID)
+		return unknownRadius
+	end,
+})
 local unitIsSpam = {}
 
 local readAs = { read = -1 }
@@ -162,9 +178,7 @@ local function getWeaponDamage(weaponDef)
 end
 
 local function ignoreWeaponDef(weaponDef)
-	return weaponDef.customParams.bogus == "1"
-		or weaponDef.manualFire
-		or getWeaponDamage(weaponDef) <= 10
+	return weaponDef.customParams.bogus == "1" or weaponDef.manualFire or getWeaponDamage(weaponDef) <= 10
 end
 
 local function getWeaponTargetingParent(weapons, weaponNum)
@@ -208,14 +222,14 @@ local function getWeaponGroups(unitDef)
 end
 
 local weaponTypesExplosion = {
-	Cannon            = true,
-	BeamLaser         = true,
-	LaserCannon       = true,
-	LightningCannon   = true,
-	MissileLauncher   = true,
-	TorpedoLauncher   = true,
+	Cannon = true,
+	BeamLaser = true,
+	LaserCannon = true,
+	LightningCannon = true,
+	MissileLauncher = true,
+	TorpedoLauncher = true,
 	StarburstLauncher = true,
-	AircraftBomb      = true,
+	AircraftBomb = true,
 	-- TODO: Melee?
 }
 
@@ -224,7 +238,12 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 
 	if weaponTypesExplosion[weaponDef.type] and not ignoreWeaponDef(weaponDef) then
 		-- Start with stats that are based on firing: aiming, accuracy, burst size, etc.
-		local scatter = weaponDef.range * (math.max(weaponDef.accuracy, weaponDef.movingAccuracy * 0.5) + weaponDef.sprayAngle + 0.25 * weaponDef.targetMoveError)
+		local scatter = weaponDef.range
+			* (
+				math.max(weaponDef.accuracy, weaponDef.movingAccuracy * 0.5)
+				+ weaponDef.sprayAngle
+				+ 0.25 * weaponDef.targetMoveError
+			)
 		local projectiles = weaponDef.projectiles * weaponDef.salvoSize
 
 		if weaponDef.customParams.speceffect == "sector_fire" then
@@ -233,7 +252,8 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 		end
 
 		-- Some effects then can replace the delivered payload:
-		local isBaseWeapon = weaponDef.customParams.speceffect ~= "split" or not WeaponDefNames[weaponDef.customParams.speceffect_def]
+		local isBaseWeapon = weaponDef.customParams.speceffect ~= "split"
+			or not WeaponDefNames[weaponDef.customParams.speceffect_def]
 		if not isBaseWeapon then
 			if WeaponDefNames[weaponDef.customParams.speceffect_def] then
 				weaponDef = WeaponDefNames[weaponDef.customParams.speceffect_def]
@@ -263,7 +283,8 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 			local clusterDef = WeaponDefNames[weaponDef.customParams.cluster_def]
 			if clusterDef then
 				radius = radius + math.max(clusterDef.range - aoe, 0) + clusterDef.damageAreaOfEffect * 0.5
-				damage = damage + clusterDef.damages[0] * tonumber(weaponDef.customParams.cluster_number) * projectiles / 2
+				damage = damage
+					+ clusterDef.damages[0] * tonumber(weaponDef.customParams.cluster_number) * projectiles / 2
 			end
 		elseif weaponDef.customParams.spark_range then
 			radius = math.max(radius, tonumber(weaponDef.customParams.spark_range), 0)
@@ -274,7 +295,9 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 		end
 	end
 
-	local subordinates = table.map(groups[weaponNum] or {}, function(w, i) return w.weaponNum ~= weaponNum and w or nil, i end)
+	local subordinates = table.map(groups[weaponNum] or {}, function(w, i)
+		return w.weaponNum ~= weaponNum and w or nil, i
+	end)
 	if next(subordinates) then
 		for _, subEntry in pairs(subordinates) do
 			local subWeaponDef = WeaponDefs[subEntry.weaponDef]
