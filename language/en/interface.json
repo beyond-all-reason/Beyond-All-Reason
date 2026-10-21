@@ -3209,7 +3209,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[normal|hard|nightmare|akumu] Set zombie mode"
+			"zombiemode": "[basic|draugr|wraith|hydra|akumu|spidergeddon] Set zombie mode"
 		}
 	},
 	"modoptions": {
@@ -3962,26 +3962,35 @@
 		},
 		"zombies": {
 			"name": "Scavenger Zombies",
+			"desc": "Corpses left on the battlefield rise again as hostile zombies that attack every player. Revival takes 45 to 120 seconds, with stronger units taking longer and revival speeding up as the game reaches higher tech. Reclaim or resurrect corpses to stop them from rising. After 60 minutes, zombies stay permanently aggressive, and revival times chosen after that use a fixed speed instead of the tech estimate. Corpses already counting down keep their old timer.",
 			"items": {
 				"disabled": {
 					"name": "Disabled",
-					"desc": "Disabled"
+					"desc": "No zombies. Corpses stay where they fall."
 				},
-				"normal": {
-					"name": "Normal",
-					"desc": "Normal revival rate, normal strength."
+				"basic": {
+					"name": "Basic",
+					"desc": "Unit dies, after a while it comes back to life as a zombie. Destroyed zombies leave heaps."
 				},
-				"hard": {
-					"name": "Hard",
-					"desc": "Faster revival rate, stronger Zombies."
+				"draugr": {
+					"name": "Draugr",
+					"desc": "Basic, and destroyed zombies always leave corpses that can become zombies again."
 				},
-				"nightmare": {
-					"name": "Nightmare",
-					"desc": "Faster revival rate, stronger Zombies, 2-5 spawn per corpse."
+				"wraith": {
+					"name": "Wraith",
+					"desc": "Basic, and ghostly apparitions appear from overkill and from destroyed corpses. When a zombie's corpse is destroyed, it can respawn at an isolated Apparition."
+				},
+				"hydra": {
+					"name": "Hydra",
+					"desc": "Basic, and each corpse will resurrect between 2 and 6 zombies."
 				},
 				"akumu": {
 					"name": "Akumu",
-					"desc": "Faster revival rate, stronger Zombies, 2-8 spawn per corpse, zombies leave corpses."
+					"desc": "Basic, Draugr, Wraith, and Hydra combined."
+				},
+				"spidergeddon": {
+					"name": "Spidergeddon (LIMITED TIME)",
+					"desc": "A modified Akumu mode, but zombies resurrect as Spiders."
 				}
 			}
 		},
