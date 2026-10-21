@@ -9,7 +9,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		local weaponDef = WeaponDefs[weapon.weaponDef] ---@as table
 		if weaponDef.stockpile then
 			hasStockpile[unitDefID] = true
-			-- Match `GetUnitStockpile` and keep the last match.
+			-- Last wins if unit has multiple stockpiling weapons
 		end
 	end
 end
