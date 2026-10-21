@@ -133,3 +133,6 @@ function widget:PlayerChanged()
 	myTeam = spGetMyTeamID()
 	maybeRemoveSelf()
 end
+
+-- Shared batches contain only single-target ATTACK commands.
+function widget:UnitCommandBatch() end

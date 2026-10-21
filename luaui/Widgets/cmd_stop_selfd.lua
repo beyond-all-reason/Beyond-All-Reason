@@ -41,3 +41,6 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 	end
 end
+
+-- Shared batches contain only single-target ATTACK commands.
+function widget:UnitCommandBatch() end

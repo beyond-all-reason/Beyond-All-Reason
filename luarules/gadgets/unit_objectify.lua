@@ -171,6 +171,10 @@ if gadgetHandler:IsSyncedCode() then
 		return damage, nil
 	end
 
+	function gadget:AllowCommandBatch(unitID, unitDefID, teamID)
+		return numObjects == 0 and numDecorations == 0
+	end
+
 	function gadget:AllowCommand(
 		unitID,
 		unitDefID,

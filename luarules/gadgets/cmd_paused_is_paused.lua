@@ -26,6 +26,10 @@ function gadget:GamePaused(playerID, isPaused)
 	paused = isPaused
 end
 
+function gadget:AllowCommandBatch(unitID, unitDefID, teamID)
+	return not paused or Spring.IsCheatingEnabled()
+end
+
 function gadget:AllowCommand(
 	unitID,
 	unitDefID,

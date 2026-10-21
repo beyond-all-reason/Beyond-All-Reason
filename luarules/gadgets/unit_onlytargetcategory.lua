@@ -47,6 +47,40 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 end
 
+local batchProofs = setmetatable({}, { __mode = "k" })
+
+function gadget:UnitDestroyed()
+	batchProofs = setmetatable({}, { __mode = "k" })
+end
+
+function gadget:UnitCreated()
+	batchProofs = setmetatable({}, { __mode = "k" })
+end
+
+function gadget:AllowCommandBatch(unitID, unitDefID, teamID, commands)
+	local category = unitOnlyTargetsCategory[unitDefID]
+	if not category then
+		return true
+	end
+	local proofs = batchProofs[commands]
+	if not proofs then
+		proofs = {}
+		batchProofs[commands] = proofs
+	end
+	if proofs[category] ~= nil then
+		return proofs[category]
+	end
+	for i = 1, commands:GetCount() do
+		local categories = unitCategories[Spring.GetUnitDefID(commands:GetTarget(i))]
+		if not categories or not categories[category] then
+			proofs[category] = false
+			return false -- dispatcher falls back to per-command validation
+		end
+	end
+	proofs[category] = true
+	return true
+end
+
 function gadget:AllowCommand(
 	unitID,
 	unitDefID,

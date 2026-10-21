@@ -1134,3 +1134,7 @@ function widget:SetConfigData(data)
 		end
 	end
 end
+
+function widget:UnitCommandBatch(unitID, unitDefID, teamID)
+	self:UnitCommand(unitID, unitDefID, teamID, CMD.ATTACK)
+end
