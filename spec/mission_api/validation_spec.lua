@@ -789,6 +789,46 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("VariableValue", function()
+			local function writeErrors(value)
+				actionErrors({ type = actionTypes.WriteVariable, parameters = { key = "k", value = value } })
+			end
+
+			it("accepts numbers, strings, booleans and nested tables of them", function()
+				for _, value in ipairs({ 1, "text", false, { 1, 2 }, { a = { b = "c" }, [3] = true } }) do
+					writeErrors(value)
+				end
+				assert.are.same({}, logged)
+			end)
+
+			it("rejects a function", function()
+				writeErrors(function() end)
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected number, string, boolean or table, got function. Action: a, Parameter: value"
+					)
+				)
+			end)
+
+			it("rejects a function nested in a table", function()
+				writeErrors({ a = { 1, function() end } })
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected number, string, boolean or table, got function. Action: a, Parameter: value.a.2"
+					)
+				)
+			end)
+
+			it("rejects a table key that is not a number or string", function()
+				writeErrors({ [true] = 1 })
+				assert.is_true(
+					hasError(
+						"Unexpected table key type, expected number or string, got boolean. Action: a, Parameter: value.true"
+					)
+				)
+			end)
+		end)
+
 		describe("TriggerID", function()
 			it("rejects wrong type", function()
 				actionErrors({ type = actionTypes.EnableTrigger, parameters = { triggerID = 123 } })

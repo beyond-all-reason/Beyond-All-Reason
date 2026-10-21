@@ -59,6 +59,9 @@ local types = {
 	-- Number-or-String-or-Boolean Validators:
 	AttributeValue = "AttributeValue",
 
+	-- Number-or-String-or-Boolean-or-Table Validators:
+	VariableValue = "VariableValue",
+
 }
 
 -- Difficulties are read by the client, so must be available in JSON

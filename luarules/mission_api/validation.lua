@@ -637,6 +637,39 @@ validators[Types.AttributeValue] = function(value)
 	end
 end
 
+local function validateVariableValue(value, suffix)
+	local valueType = type(value)
+	if valueType == "number" or valueType == "string" or valueType == "boolean" then
+		return
+	elseif valueType ~= "table" then
+		return {
+			{
+				message = "Unexpected parameter type, expected number, string, boolean or table, got " .. valueType,
+				parameterNameSuffix = suffix,
+			},
+		}
+	end
+
+	local results = {}
+	for key, entry in pairs(value) do
+		local entrySuffix = (suffix or "") .. "." .. tostring(key)
+		local keyType = type(key)
+		if keyType ~= "number" and keyType ~= "string" then
+			results[#results + 1] = {
+				message = "Unexpected table key type, expected number or string, got " .. keyType,
+				parameterNameSuffix = entrySuffix,
+			}
+		end
+		for _, result in ipairs(validateVariableValue(entry, entrySuffix) or {}) do
+			results[#results + 1] = result
+		end
+	end
+	return results
+end
+validators[Types.VariableValue] = function(value)
+	return validateVariableValue(value)
+end
+
 validators[Types.SoundFile] = function(soundfile)
 	local luaTypeResult = validators[Types.String](soundfile)
 	if luaTypeResult then
