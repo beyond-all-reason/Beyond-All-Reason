@@ -13,10 +13,10 @@ return {
 	},
 	callins = {
 		GameFrame = function(trigger, triggerID, context)
-			local previousUnitsInAreasAll = context.PreviousUnitsInAreas
-			local previousUnitsInAreas = previousUnitsInAreasAll[triggerID]
-
 			local unitsInArea = context.GetUnitsInArea(trigger)
+			local previousUnitsInAreasAll = context.PreviousUnitsInAreas
+
+			local previousUnitsInAreas = previousUnitsInAreasAll[triggerID]
 			previousUnitsInAreasAll[triggerID] = unitsInArea
 
 			if previousUnitsInAreas == nil or next(previousUnitsInAreas) == nil then
