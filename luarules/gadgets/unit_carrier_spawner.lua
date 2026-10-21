@@ -1926,7 +1926,7 @@ local function landLoop(unitID, subUnitID, droneMetaData)
 		if not distance then
 			return
 		end
-		if distance < 25 and droneMetaData.isAirUnit then
+		if distance < carrierMetaData.dockHelperSpeed and droneMetaData.isAirUnit then
 			local landingspeed = carrierMetaData.dockHelperSpeed
 			if 0.2 * heightDifference > landingspeed then
 				landingspeed = 0.2 * heightDifference
@@ -1940,12 +1940,12 @@ local function landLoop(unitID, subUnitID, droneMetaData)
 			spSetUnitVelocity(subUnitID, vx, vy, vz)
 		elseif distance < carrierMetaData.dockRadius then
 			local landingspeed = carrierMetaData.dockHelperSpeed
-			local magnitude = diag((subx - px), (suby - py), (subz - pz))
+			local magnitude = distance
 			if magnitude == 0 then
 				magnitude = 0.0001
 			end
-			local vx, vy, vz = px - subx, py - suby, pz - subz
-			vx, vy, vz = landingspeed * vx / magnitude, landingspeed * vy / magnitude, landingspeed * vz / magnitude
+			local vx, vz = px - subx, pz - subz
+			vx, vz = landingspeed * vx / magnitude, landingspeed * vz / magnitude
 			mcEnable(subUnitID)
 			mcSetPosition(subUnitID, subx + vx, suby, subz + vz)
 			mcDisable(subUnitID)
