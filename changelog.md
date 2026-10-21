@@ -1,7 +1,7 @@
 # October
 - [Zombies]
   - Added a limited time Spidergeddon mode
-  - Difficulties have been reworked into distinctive sub-variants of Zombies mode, each with their own gimmick:
+  - Difficulty levels have been replaced with modes you can mix and match:
     - Basic: the dead come back to life once
     - Draugr: all dead always create a corpse
     - Wraith: destroyed corpses leave apparitions that respawn 2/3rds of the dead with a 3x zombie resurrection time delay
