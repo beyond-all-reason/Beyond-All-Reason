@@ -293,7 +293,18 @@ function widget:Update(dt)
 		local newDef = mathAbs(extractor)
 		local newX, newY, newZ = cmd[2], cmd[3], cmd[4]
 		-- check equality by position
-		if activeShape and unitShape and (unitShape[1] ~= newDef or unitShape[2] ~= newX or unitShape[3] ~= newY or unitShape[4] ~= newZ or unitShape[5] ~= cmd[5] or unitShape[6] ~= cmd[6]) then
+		if
+			activeShape
+			and unitShape
+			and (
+				unitShape[1] ~= newDef
+				or unitShape[2] ~= newX
+				or unitShape[3] ~= newY
+				or unitShape[4] ~= newZ
+				or unitShape[5] ~= cmd[5]
+				or unitShape[6] ~= cmd[6]
+			)
+		then
 			WG.StopDrawUnitShapeGL4(activeShape)
 			activeShape = nil
 		end
