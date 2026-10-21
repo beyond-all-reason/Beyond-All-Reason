@@ -2065,51 +2065,16 @@ describe("mission_api.validation", function()
 				return { type = triggerTypes.StockpileProgress, parameters = { progress = progress } }
 			end
 
-			it("accepts a progress between 0 and 1", function()
-				GG["MissionAPI"].Triggers = { half = stockpileProgress(0.5) }
-
-				validation.ValidateReferences()
-
-				assert.are.same({}, logged)
-			end)
-
-			it("rejects a progress of 0 or 1, which a stockpile progress cannot report", function()
-				GG["MissionAPI"].Triggers = { never = stockpileProgress(0), done = stockpileProgress(1) }
-
-				validation.ValidateReferences()
-
-				assert.is_true(
-					hasError(
-						"StockpileProgress progress must be above 0 and below 1, got 0; use StockpileCount for completed items. Trigger: never, Parameter: progress"
-					)
-				)
-				assert.is_true(
-					hasError(
-						"StockpileProgress progress must be above 0 and below 1, got 1; use StockpileCount for completed items. Trigger: done, Parameter: progress"
-					)
-				)
-			end)
-
-			it("rejects them in an objective's trigger under any difficulty", function()
-				GG["MissionAPI"].Objectives = {
-					finish = {
-						textKey = "finish",
-						trigger = stockpileProgress({ difficulties = { easy = 0.5, hard = 1 } }),
-					},
+			it("accepts any fractional progress value", function()
+				GG["MissionAPI"].Triggers = {
+					start = stockpileProgress(0),
+					half = stockpileProgress(0.5),
+					done = stockpileProgress(1),
 				}
 
 				validation.ValidateReferences()
 
-				assert.is_true(
-					hasError(
-						"StockpileProgress progress must be above 0 and below 1, got 1; use StockpileCount for completed items. Objective: finish, Parameter: progress"
-					)
-				)
-				assert.is_false(
-					hasError(
-						"StockpileProgress progress must be above 0 and below 1, got 0.5; use StockpileCount for completed items. Objective: finish, Parameter: progress"
-					)
-				)
+				assert.are.same({}, logged)
 			end)
 		end)
 

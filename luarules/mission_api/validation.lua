@@ -2028,20 +2028,6 @@ local function validateCutsceneReferences(objectives, triggers, actions, cutscen
 	end
 end
 
-local function validateStockpileProgressValue(progressValue, label)
-	for _, progress in ipairs(possibleValues(progressValue)) do
-		if type(progress) == "number" and (progress <= 0 or progress >= 1) then
-			logError(
-				"StockpileProgress progress must be above 0 and below 1, got "
-					.. progress
-					.. "; use StockpileCount for completed items. "
-					.. label
-					.. ", Parameter: progress"
-			)
-		end
-	end
-end
-
 local function hasStockpileWeapon(unitDef)
 	for _, weapon in ipairs(unitDef.weapons) do
 		if WeaponDefs[weapon.weaponDef].stockpile then
@@ -2069,9 +2055,6 @@ local function validateStockpileTrigger(trigger, label)
 		return
 	end
 	validateStockpileUnitDefName(trigger.parameters.unitDefName, label)
-	if trigger.type == triggerTypes.StockpileProgress then
-		validateStockpileProgressValue(trigger.parameters.progress, label)
-	end
 end
 
 local function validateStockpileTriggers(objectives, triggers)
