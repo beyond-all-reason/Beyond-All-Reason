@@ -88,6 +88,12 @@ local SAVE_DIR = "Terraform Brush/StartPositions/"
 local STARTBOX_SAVE_DIR = "Terraform Brush/Startboxes/"
 local VERTEX_PICK_DIST_SQ = 60 * 60 -- world distance^2 to pick a startbox vertex
 
+-- Role-labelling config and state for start-position-suggestions export.
+local roleConfig = {
+	options = { "front", "air", "tech", "sea", "front/air", "front/tech", "front/sea", "air/tech" },
+	saveDir = "Terraform Brush/StartPositions/Suggestions/",
+}
+
 -- Team colors matching game_autocolors.lua FFA palette (0-1 float RGBA); extended past 16 for 256-player support
 local TEAM_COLORS = {
 	{ 0.000, 0.302, 1.000, 1.0 }, --  1: Blue       #004DFF
@@ -128,7 +134,7 @@ local TEAM_COLORS = {
 -- State
 -- ============================================================
 local active = false
-local subMode = "express" -- "express" | "shape" | "startbox"
+local subMode = "express" -- "express" | "shape" | "startbox" | "roles"
 local positions = {} -- { {x=, z=, allyTeam=, teamSlot=, playerIdx=}, ... }
 local nextAllyTeam = 1 -- next allyteam in rotation
 local nextTeamSlot = 1 -- next player slot within that allyteam
@@ -508,6 +514,51 @@ local function advanceNextPlayer()
 	end
 	nextAllyTeam = ally
 	nextTeamSlot = slot
+end
+
+-- Pure role-cycling helper. Separated from the position mutation so the
+-- transition logic is easier to reason about and test
+local RoleCycle = {}
+
+function RoleCycle.nextRole(currentRole, direction, roleOptions)
+	direction = direction or 1
+	local n = #roleOptions
+	if n == 0 then
+		return nil
+	end
+	local currentRoleIdx
+	for i, r in ipairs(roleOptions) do
+		if r == currentRole then
+			currentRoleIdx = i
+			break
+		end
+	end
+	if not currentRoleIdx then
+		-- No role assigned yet: forward starts at first, backward at last.
+		return direction > 0 and roleOptions[1] or roleOptions[n]
+	end
+	if direction > 0 then
+		if currentRoleIdx < n then
+			return roleOptions[currentRoleIdx + 1]
+		end
+		-- Forward past the last role clears it so designers can panic-click back to blank.
+		return nil
+	else
+		if currentRoleIdx > 1 then
+			return roleOptions[currentRoleIdx - 1]
+		end
+		-- Backward past the first role clears it so cycling in either direction can blank the role.
+		return nil
+	end
+end
+
+function roleConfig.cyclePositionRole(idx, direction, roleOptions)
+	local pos = positions[idx]
+	if not pos then
+		return nil
+	end
+	pos.role = RoleCycle.nextRole(pos.role, direction, roleOptions or roleConfig.options)
+	return pos.role
 end
 
 local function removePosition(idx)
@@ -1025,42 +1076,89 @@ function boxExport.arrangement()
 	return out
 end
 
+local function encodeBSetValue(data)
+	if not data then
+		return nil, "no data"
+	end
+	if not Json then
+		return nil, "Json unavailable; cannot encode bSet."
+	end
+	local ok, raw = pcall(Json.encode, data)
+	if not ok or not raw then
+		return nil, "Failed to encode bSet JSON."
+	end
+	local packed = VFS.ZlibCompress(raw)
+	if not packed then
+		return nil, "Failed to compress bSet payload."
+	end
+	local b64 = VFS.Include("common/luaUtilities/base64.lua")
+	return (b64.Encode(packed):gsub("=+$", ""))
+end
+
 function boxExport.encode()
 	local arrangement = boxExport.arrangement()
 	if #arrangement == 0 then
 		return nil
 	end
 
-	-- Json is a LuaUI global (luaui/system.lua). Including the module directly fails in this
-	-- sandbox: it opens with `local base = _G`, and _G is not exposed here.
-	if not Json then
-		Echo("[StartPos Tool] Json unavailable; cannot encode.")
+	local value, err = encodeBSetValue({ startboxes = arrangement })
+	if not value then
 		return nil
 	end
-	boxExport.b64 = boxExport.b64 or require("common/luaUtilities/base64")
-	local ok, raw = pcall(Json.encode, { startboxes = arrangement })
-	if not ok or not raw then
-		return nil
-	end
-	local packed = VFS.ZlibCompress(raw)
-	if not packed then
-		return nil
-	end
-
-	return (boxExport.b64.Encode(packed):gsub("=+$", "")), #arrangement
+	return value, #arrangement
 end
 
 -- The value is only useful pasted into lobby chat, and the server truncates that, so the
 -- length is reported alongside it rather than left for the user to discover.
 local function copyStartboxOverride()
 	local value, boxes = boxExport.encode()
-	if not value then
-		Echo("[StartPos Tool] No startboxes to copy.")
+	local mapSuggestions, _ = roleConfig.buildSuggestionsData()
+	local mapSuggestionsEncoded = mapSuggestions and encodeBSetValue(mapSuggestions)
+
+	if not value and not mapSuggestionsEncoded then
+		Echo("[StartPos Tool] No startboxes or suggestions to copy.")
 		return false
 	end
 
-	Spring.SetClipboard("!bSet mapmetadata_startbox_override " .. value)
-	Echo(string.format("[StartPos Tool] Copied !bSet for %d startbox(es), %d chars of value.", boxes, #value))
+	local clipboard = ""
+	local msg = ""
+
+	if value then
+		clipboard = "!bset mapmetadata_startbox_override " .. value
+		msg = string.format("[StartPos Tool] Copied !bSet for %d startbox(es), %d chars of value.", boxes, #value)
+	end
+
+	if mapSuggestionsEncoded then
+		if clipboard ~= "" then
+			clipboard = clipboard .. "\n"
+			msg = msg .. " +"
+		end
+		clipboard = clipboard .. "!bset mapmetadata_startpos " .. mapSuggestionsEncoded
+		msg = msg .. string.format(" suggestions %d chars.", #mapSuggestionsEncoded)
+	end
+
+	Spring.SetClipboard(clipboard)
+	Echo(msg)
+
+	return true
+end
+
+local function exportSuggestions(name)
+	local data, err = roleConfig.buildSuggestionsData()
+	if not data then
+		Echo("[StartPos Tool] No positions to export: " .. (err or "unknown"))
+		return false
+	end
+
+	roleConfig.saveSuggestions(name)
+	roleConfig.saveSuggestionsBSet(name)
+
+	local value, err2 = encodeBSetValue(data)
+	if value then
+		Echo(string.format("[StartPos Tool] Exported suggestions (bSet %d chars, JSON written).", #value))
+	else
+		Echo("[StartPos Tool] Exported suggestions (JSON written, bSet encode failed: " .. (err2 or "unknown") .. ").")
+	end
 
 	return true
 end
@@ -1436,12 +1534,13 @@ local function saveStartPositions(name, explicitPath)
 	lines[#lines + 1] = "local startPositions = {"
 	for i, pos in ipairs(positions) do
 		lines[#lines + 1] = string.format(
-			"  [%d] = { x = %d, z = %d, allyTeam = %d, teamSlot = %d },",
+			"  [%d] = { x = %d, z = %d, allyTeam = %d, teamSlot = %d%s },",
 			i,
 			math_floor(pos.x),
 			math_floor(pos.z),
 			pos.allyTeam,
-			pos.teamSlot or 1
+			pos.teamSlot or 1,
+			pos.role and (", role = " .. string.format("%q", pos.role)) or ""
 		)
 	end
 	lines[#lines + 1] = "}"
@@ -1464,12 +1563,14 @@ end
 local function loadStartPositions(name, explicitPath)
 	local filename = explicitPath or (SAVE_DIR .. (name or getMapName()) .. ".lua")
 	local ok, data = pcall(function()
-		return VFS.Include(filename, nil, VFS.RAW_FIRST)
+		return VFS.Include(filename, {}, VFS.RAW_FIRST)
 	end)
 	if ok and data then
 		clearAllPositions() -- also clears undoHistory
 		for i, pos in ipairs(data) do
-			addPosition(pos.x, pos.z, pos.allyTeam or i, pos.teamSlot or 1)
+			if addPosition(pos.x, pos.z, pos.allyTeam or i, pos.teamSlot or 1) and pos.role then
+				positions[#positions].role = pos.role
+			end
 		end
 		undoHistory = {} -- load is a clean slate
 		Echo("[StartPos Tool] Loaded start positions from: " .. filename)
@@ -1490,6 +1591,134 @@ local function listSavedConfigs()
 		end
 	end
 	return names
+end
+
+function roleConfig.buildSuggestionsData()
+	if #positions == 0 then
+		return nil, "no positions"
+	end
+
+	local pointIdForIdx = {}
+	for i = 1, #positions do
+		pointIdForIdx[i] = "P" .. i
+	end
+
+	local allyTeamSet = {}
+	for _, pos in ipairs(positions) do
+		allyTeamSet[pos.allyTeam] = true
+	end
+
+	local allyTeamIds = {}
+	for at in pairs(allyTeamSet) do
+		allyTeamIds[#allyTeamIds + 1] = at
+	end
+	table.sort(allyTeamIds)
+
+	local byAlly = {}
+	for _, at in ipairs(allyTeamIds) do
+		byAlly[at] = {}
+	end
+	for idx, pos in ipairs(positions) do
+		table.insert(byAlly[pos.allyTeam], { idx = idx, pos = pos })
+	end
+	for _, at in ipairs(allyTeamIds) do
+		table.sort(byAlly[at], function(a, b)
+			return a.pos.teamSlot < b.pos.teamSlot
+		end)
+	end
+
+	local jsonPositions = {}
+	for i, pos in ipairs(positions) do
+		jsonPositions[pointIdForIdx[i]] = {
+			x = math_floor(pos.x),
+			y = math_floor(pos.z),
+		}
+	end
+
+	local sides = {}
+	local playersPerTeam = 0
+	for _, at in ipairs(allyTeamIds) do
+		local starts = {}
+		for _, entry in ipairs(byAlly[at]) do
+			local pos = entry.pos
+			local startEntry = { spawnPoint = pointIdForIdx[entry.idx] }
+			if pos.role and pos.role ~= "" then
+				startEntry.role = pos.role
+			end
+			starts[#starts + 1] = startEntry
+		end
+		sides[#sides + 1] = { starts = starts }
+		if #starts > playersPerTeam then
+			playersPerTeam = #starts
+		end
+	end
+
+	return {
+		positions = jsonPositions,
+		team = {
+			{
+				teamCount = #allyTeamIds,
+				playersPerTeam = math_max(1, playersPerTeam),
+				sides = sides,
+			},
+		},
+	}
+end
+
+function roleConfig.saveSuggestions(name, explicitPath)
+	local data, err = roleConfig.buildSuggestionsData()
+	if not data then
+		Echo("[StartPos Tool] Cannot export suggestions: " .. (err or "unknown error"))
+		return false
+	end
+	if not Json then
+		Echo("[StartPos Tool] Json unavailable; cannot encode suggestions.")
+		return false
+	end
+	local ok, encoded = pcall(Json.encode, data)
+	if not ok or not encoded then
+		Echo("[StartPos Tool] Failed to encode suggestions JSON.")
+		return false
+	end
+	Spring.CreateDir(roleConfig.saveDir)
+	local filename = explicitPath or (roleConfig.saveDir .. (name or getMapName()) .. "_rowy.json")
+	local file = io.open(filename, "w")
+	if file then
+		file:write(encoded)
+		file:close()
+		Echo("[StartPos Tool] Saved start position suggestions to: " .. filename)
+		return true
+	end
+	Echo("[StartPos Tool] ERROR: Could not write to: " .. filename)
+	return false
+end
+
+--- Encodes a suggestions data table as the bSet payload value.
+--- @param data table the output of roleConfig.buildSuggestionsData()
+--- @return string|nil value the base64 encoded value, or nil on failure
+--- @return string|nil err error message if encoding failed
+function roleConfig.saveSuggestionsBSet(name, explicitPath)
+	local data, err = roleConfig.buildSuggestionsData()
+	if not data then
+		Echo("[StartPos Tool] Cannot export bSet: " .. (err or "unknown error"))
+		return false
+	end
+	local value, err2 = encodeBSetValue(data)
+	if not value then
+		Echo("[StartPos Tool] Cannot export bSet: " .. (err2 or "unknown error"))
+		return false
+	end
+	Spring.CreateDir(roleConfig.saveDir)
+	local filename = explicitPath or (roleConfig.saveDir .. (name or getMapName()) .. "_bSet.txt")
+	local file = io.open(filename, "w")
+	if file then
+		file:write("!bset mapmetadata_startpos " .. value)
+		file:close()
+		Echo("[StartPos Tool] Saved bSet command to: " .. filename)
+		return true
+	end
+	Echo("[StartPos Tool] ERROR: Could not write bSet to: " .. filename)
+	return false
 end
 
 local function saveStartboxes(name, explicitPath)
@@ -1544,7 +1773,7 @@ end
 local function loadStartboxes(name, explicitPath)
 	local filename = explicitPath or (STARTBOX_SAVE_DIR .. (name or getMapName()) .. ".lua")
 	local ok, data = pcall(function()
-		return VFS.Include(filename, nil, VFS.RAW_FIRST)
+		return VFS.Include(filename, {}, VFS.RAW_FIRST)
 	end)
 	if ok and data then
 		clearAllStartboxes()
@@ -1589,6 +1818,11 @@ local function listSavedStartboxConfigs()
 		end
 	end
 	return names
+end
+
+local function saveAll(name)
+	saveStartPositions(name)
+	saveStartboxes(name)
 end
 
 -- ============================================================
@@ -1803,7 +2037,7 @@ local function deactivate()
 end
 
 local function setSubMode(mode)
-	if mode == "express" or mode == "shape" or mode == "startbox" then
+	if mode == "express" or mode == "shape" or mode == "startbox" or mode == "roles" then
 		subMode = mode
 	end
 end
@@ -2207,6 +2441,20 @@ function widget:MousePress(mx, my, button)
 				freeDrawPts = {}
 			else
 				removeLastStartbox()
+			end
+			return true
+		end
+	elseif subMode == "roles" then
+		if button == 1 then
+			local nearIdx = findNearestPosition(wx, wz)
+			if nearIdx then
+				roleConfig.cyclePositionRole(nearIdx)
+			end
+			return true
+		elseif button == 3 then
+			local nearIdx = findNearestPosition(wx, wz)
+			if nearIdx then
+				roleConfig.cyclePositionRole(nearIdx, -1)
 			end
 			return true
 		end
@@ -3051,7 +3299,7 @@ function widget:Update()
 
 	local wx, wz = getWorldMousePosition()
 	if wx then
-		if subMode == "express" then
+		if subMode == "express" or subMode == "roles" then
 			local bestIdx, bestDist = nil, DRAGGABLE_DIST_SQ
 			for i, pos in ipairs(positions) do
 				local d = distSq(wx, wz, pos.x, pos.z)
@@ -3579,7 +3827,7 @@ local glGetTextWidth = gl.GetTextWidth
 
 -- Draw a sleek screen-space badge: colored left-bar + "Team N" label.
 -- Uses filled quads via glBeginEnd + glText. "2026" aesthetic: minimal, high-contrast, CHUNKY.
-local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, fontSize, hovered)
+local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, fontSize, hovered, role)
 	local padX, padY = 14, 10
 	local barW = 5
 	local gap = 10
@@ -3591,9 +3839,14 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 		return w * sz
 	end
 	local bigSize = fontSize
+	local roleSize = math.floor(fontSize * 0.65)
+	local roleH = role and (roleSize * 1.18 + 4) or 0
 	local textW = measure(label, bigSize)
+	if role then
+		textW = math_max(textW, measure(role, roleSize))
+	end
 	local w = barW + gap + textW + padX * 2
-	local h = bigSize * 1.18 + padY * 2
+	local h = bigSize * 1.18 + roleH + padY * 2
 	local bx = cx - w * 0.5
 	local by = cy
 
@@ -3649,7 +3902,7 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 
 	-- "Team N" label (shadow + color-bright)
 	local textX = bx + padX + barW + gap
-	local textY = by + padY
+	local textY = by + padY + roleH -- screen y grows downward: "Team N" stays at top, role row sits below
 	glColor(0, 0, 0, 0.90)
 	glText(label, textX + 2, textY + 2, bigSize, "o")
 	glColor(
@@ -3659,6 +3912,15 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 		1.0
 	)
 	glText(label, textX, textY, bigSize, "o")
+
+	if role then
+		-- Role sub-label inside the card, below "Team N" (shadow + color-bright)
+		glColor(0, 0, 0, 0.90)
+		glText(role, textX + 2, by + padY + 2, roleSize, "o")
+		glColor(color[1], color[2], color[3], 0.95)
+		glText(role, textX, by + padY, roleSize, "o")
+	end
+	return h
 end
 
 function widget:DrawScreenEffects()
@@ -3675,7 +3937,8 @@ function widget:DrawScreenEffects()
 			local badgeY = sy + sr + LABEL_PAD
 			local fontSize = 32 -- 2026 chunky
 			local hovered = (hoverPosIdx == i) or (dragIdx == i)
-			drawScreenBadge(sx, badgeY, color, pos.allyTeam, getTeamName(pIdx), pIdx, fontSize, hovered)
+			local badgeH =
+				drawScreenBadge(sx, badgeY, color, pos.allyTeam, getTeamName(pIdx), pIdx, fontSize, hovered, pos.role)
 		end
 	end
 
@@ -3798,14 +4061,21 @@ function widget:Initialize()
 		listSavedConfigs = listSavedConfigs,
 		saveStartboxes = saveStartboxes,
 		copyStartboxOverride = copyStartboxOverride,
+		exportSuggestions = exportSuggestions,
 		loadStartboxes = loadStartboxes,
+		saveAll = saveAll,
 		listSavedStartboxConfigs = listSavedStartboxConfigs,
 		clearAllStartboxes = clearAllStartboxes,
 		setVertexStrength = strengthEdit.setVertex,
 		setBoxStrength = strengthEdit.setBox,
-		finishStartbox = finishStartbox,
 		generateStartScript = generateStartScript,
 		saveStartScript = saveStartScript,
+		cyclePositionRole = roleConfig.cyclePositionRole,
+		buildSuggestionsData = roleConfig.buildSuggestionsData,
+		encodeBSetValue = encodeBSetValue,
+		addStartboxVertex = addStartboxVertex,
+		finishStartbox = finishStartbox,
+		encodeStartboxes = boxExport.encode,
 	}
 end
 

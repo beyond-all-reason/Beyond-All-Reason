@@ -91,6 +91,63 @@ end
 
 ----------------------------
 -- load cursors
+
+-- replaced right away; the rest is animated (~60 frames each, ~0.7 s for all) and replaced one per Update
+local immediateCursorNames = {
+	"cursornormal",
+	"uiresizev",
+	"uiresizeh",
+	"uiresized1",
+	"uiresized2",
+	"uimove",
+}
+local deferredCursorNames = {
+	"cursorareaattack",
+	"cursorattack",
+	"cursorbuildbad",
+	"cursorbuildgood",
+	"cursorcapture",
+	"cursorcentroid",
+	"cursorwait",
+	"cursortime",
+	"cursorunload",
+	"cursordwatch",
+	"cursordgun",
+	"cursorfight",
+	"cursorgather",
+	"cursordefend",
+	"cursorpickup",
+	"cursorrepair",
+	"cursorrevive",
+	"cursorrestore",
+	"cursormove",
+	"cursorpatrol",
+	"cursorreclamate",
+	"cursorselfd",
+	"cursornumber",
+	"cursorsettarget",
+	"cursorupgmex",
+	"cursorareamex",
+}
+local pendingCursorDir ---@type string?
+local pendingCursorIndex = 0
+
+local function replaceCursor(cursorDir, cursorName)
+	Spring.ReplaceMouseCursor(cursorName, cursorDir .. "/" .. cursorName, (cursorName == "cursornormal"))
+end
+
+function widget:Update()
+	pendingCursorIndex = pendingCursorIndex + 1
+	local cursorName = deferredCursorNames[pendingCursorIndex]
+	if pendingCursorDir and cursorName then
+		replaceCursor(pendingCursorDir, cursorName)
+	end
+	if not pendingCursorDir or pendingCursorIndex >= #deferredCursorNames then
+		pendingCursorDir = nil
+		widgetHandler:RemoveCallIn("Update")
+	end
+end
+
 function SetCursor(cursorSet)
 	--Spring.Echo(autoCursorSize..'   '..cursorSets[cursorSet][NearestValue(cursorSets[cursorSet], autoCursorSize)])
 	local oldSetName = Settings.cursorSet .. "_" .. Settings.cursorSize
@@ -99,47 +156,12 @@ function SetCursor(cursorSet)
 	local cursorDir = cursorSet .. "_" .. Settings.cursorSize
 	if cursorDir ~= oldSetName or force then
 		force = false
-		local cursorNames = {
-			"cursornormal",
-			"cursorareaattack",
-			"cursorattack",
-			"cursorbuildbad",
-			"cursorbuildgood",
-			"cursorcapture",
-			"cursorcentroid",
-			"cursorwait",
-			"cursortime",
-			"cursorunload",
-			"cursordwatch",
-			"cursordgun",
-			"cursorfight",
-			"cursorgather",
-			"cursordefend",
-			"cursorpickup",
-			"cursorrepair",
-			"cursorrevive",
-			"cursorrestore",
-			"cursormove",
-			"cursorpatrol",
-			"cursorreclamate",
-			"cursorselfd",
-			"cursornumber",
-			"cursorsettarget",
-			"cursorupgmex",
-			"cursorareamex",
-			"uiresizev",
-			"uiresizeh",
-			"uiresized1",
-			"uiresized2",
-			"uimove",
-		}
-		for i = 1, #cursorNames do
-			Spring.ReplaceMouseCursor(
-				cursorNames[i],
-				cursorDir .. "/" .. cursorNames[i],
-				(cursorNames[i] == "cursornormal")
-			)
+		for i = 1, #immediateCursorNames do
+			replaceCursor(cursorDir, immediateCursorNames[i])
 		end
+		pendingCursorDir = cursorDir
+		pendingCursorIndex = 0
+		widgetHandler:UpdateCallIn("Update")
 
 		--local files = VFS.DirList("anims/"..cursorDir.."/")
 		--for i=1, #files do

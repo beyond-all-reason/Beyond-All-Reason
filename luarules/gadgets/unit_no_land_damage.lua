@@ -30,6 +30,12 @@ for weaponDefID, wd in pairs(WeaponDefs) do
 	end
 end
 
+function gadget:Initialize()
+	for weaponDefID in pairs(LAND_DAMAGE_MULT) do
+		gadgetHandler:RegisterUnitPreDamagedWeapon(weaponDefID)
+	end
+end
+
 function gadget:UnitPreDamaged(
 	unitID,
 	unitDefID,

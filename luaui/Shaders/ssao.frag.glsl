@@ -111,8 +111,9 @@ void main() {
 	vec2 texelSize = 0.5 / vec2(VSX,VSY);
 	vec2 uv = gl_FragCoord.xy * DOWNSAMPLE / vec2(VSX,VSY);
 
-	#if USE_STENCIL == 1 
-		if (textureLod(unitStencilTex, uv, 0.0).r < 0.1) { fragColor = vec4(1,0,1,1) ; return;}
+	#if USE_STENCIL == 1
+		// Output would be vec4(1,0,1,1), which the widget clears the target to
+		if (textureLod(unitStencilTex, uv, 0.0).r < 0.1) { discard; }
 	#endif
 
 	#if NOFUSE == 1 

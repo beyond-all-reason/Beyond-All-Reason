@@ -3398,6 +3398,7 @@ local function loadLabels()
 	L.showdataDesc =
 		tr("showdatadesc", "Everything this widget has saved, the way it is stored. Click to read all of it.")
 	L.errorsLoading = tr("errorsloading", "while loading")
+	L.errorsMemory = tr("errorsmemory", "memory limit")
 	L.errorsMore = tr("errorsmore", "more")
 	L.depsUses = tr("depsuses", "Uses")
 	L.depsUsedBy = tr("depsusedby", "Used by")
@@ -4091,7 +4092,8 @@ local function showTooltip(row)
 			msg = string.gsub(msg, '%[string "([^"]*)"%]', function(path)
 				return string.match(path, "([^/]+)$") or path
 			end)
-			local where = e.callin and (e.callin .. "()") or L.errorsLoading
+			-- `memory`: barwidgets turned it off for the memory it used, not for an error.
+			local where = e.memory and L.errorsMemory or e.callin and (e.callin .. "()") or L.errorsLoading
 			if e.count > 1 then
 				where = where .. ", x" .. e.count
 			end

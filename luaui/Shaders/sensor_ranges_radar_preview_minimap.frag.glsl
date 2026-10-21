@@ -14,6 +14,10 @@
 
 //__DEFINES__
 
+#ifndef COVERAGE_CORNER_RADIUS
+#define COVERAGE_CORNER_RADIUS 0.0
+#endif
+
 uniform sampler2D coverageTex;  // smoothed coverage of the previewed radar, R = coverage, one texel per radar cell of its disc
 uniform sampler2D radarInfoTex; // allied radar coverage map, R = 1 where any allied radar covers the radar cell (only read when discParams.w = 1)
 uniform sampler2D targetTex;    // exact engine coverage of the previewed radar (0/1), same layout as coverageTex
@@ -63,6 +67,42 @@ float alliedAt(ivec2 cell) {
 	return step(0.5, texelFetch(radarInfoTex, cell, 0).r);
 }
 
+float roundedBoundary(float covered, vec3 neighbours, vec2 edgeDist) {
+	float radius = float(COVERAGE_CORNER_RADIUS);
+	if (covered > 0.5) {
+		vec2 sideDist = vec2(neighbours.x < 0.5 ? edgeDist.x : 1e6, neighbours.y < 0.5 ? edgeDist.y : 1e6);
+		// The concave arc extends into the neighboring empty cell: its old straight edges
+		// must also be replaced on this covered side of the cell boundary.
+		if (neighbours.x < 0.5 && neighbours.y > 0.5 && neighbours.z > 0.5 && edgeDist.y < radius) {
+			sideDist.x = length(vec2(edgeDist.x + radius, edgeDist.y - radius)) - radius;
+		}
+		if (neighbours.y < 0.5 && neighbours.x > 0.5 && neighbours.z > 0.5 && edgeDist.x < radius) {
+			sideDist.y = length(vec2(edgeDist.x - radius, edgeDist.y + radius)) - radius;
+		}
+		float sdf = min(sideDist.x, sideDist.y);
+		if (neighbours.x < 0.5 && neighbours.y < 0.5 && all(lessThan(edgeDist, vec2(radius)))) {
+			sdf = radius - length(edgeDist - radius);
+		}
+		return sdf;
+	}
+	vec2 sideDist = vec2(neighbours.x > 0.5 ? edgeDist.x : 1e6, neighbours.y > 0.5 ? edgeDist.y : 1e6);
+	// Outside a convex corner, antialias against the arc rather than the removed square edge.
+	if (neighbours.x > 0.5 && neighbours.z < 0.5 && edgeDist.y < radius) {
+		sideDist.x = length(vec2(edgeDist.x + radius, edgeDist.y - radius)) - radius;
+	}
+	if (neighbours.y > 0.5 && neighbours.z < 0.5 && edgeDist.x < radius) {
+		sideDist.y = length(vec2(edgeDist.x - radius, edgeDist.y + radius)) - radius;
+	}
+	float sdf = -min(sideDist.x, sideDist.y);
+	if (neighbours.x < 0.5 && neighbours.y < 0.5 && neighbours.z > 0.5) {
+		sdf = radius - length(edgeDist + radius);
+	}
+	if (all(greaterThan(neighbours, vec3(0.5))) && all(lessThan(edgeDist, vec2(radius)))) {
+		sdf = length(edgeDist - radius) - radius;
+	}
+	return sdf;
+}
+
 void main() {
 	// minimap (y up) -> normalized world x/z, the inverse of the world -> minimap mapping the other
 	// GL4 minimap overlays use (gui_buildsquare_gl4, map_startpolygon_gl4)
@@ -110,7 +150,30 @@ void main() {
 	float outline = max(max(side.x * edge.x, side.y * edge.y), corner) * max(previewWeight, allied);
 	float outlineA = mix(alliedOutlineAlpha, outlineAlpha * mix(1.0, inactiveParams.z, inactive), previewWeight);
 
+	float boundaryMask = 1.0;
+	if (float(COVERAGE_CORNER_RADIUS) > 0.0) {
+		float ownSdf = roundedBoundary(own, ownN, edgeDist);
+		float alliedSdf = roundedBoundary(allied, alliedN, edgeDist);
+		float pixelCells = max(max(fwidth(cellPos).x, fwidth(cellPos).y), 1e-5);
+		float ownMask = clamp(ownSdf / pixelCells + 0.5, 0.0, 1.0);
+		float alliedMask = clamp(alliedSdf / pixelCells + 0.5, 0.0, 1.0);
+		// Concave rounding borrows the neighboring cells' fade rather than appearing fully opaque.
+		float ownStrength = own > 0.5 ? smoothed : max(smoothedAt(nx), max(smoothedAt(nz), smoothedAt(nd)));
+		smoothed = ownStrength * ownMask;
+		allied = max(allied, max(alliedN.x, max(alliedN.y, alliedN.z))) * alliedMask;
+		fill = max(smoothed * mix(1.0, inactiveParams.y, inactive), allied * alliedAlpha);
+		previewWeight = ownMask * smoothstep(0.0, 0.5, smoothed);
+		// the previewed radar's own border (inside allied coverage too) and the outer border of all coverage
+		float width = pixelCells * mapParams.w;
+		float outerSdf = max(smoothed > 0.00001 ? ownSdf : -1e6, allied > 0.00001 ? alliedSdf : -1e6);
+		float ownLine = (1.0 - smoothstep(0.0, width, ownSdf)) * previewWeight;
+		outline = max(ownLine, (1.0 - smoothstep(0.0, width, outerSdf)) * max(previewWeight, allied));
+		outlineA = mix(alliedOutlineAlpha, outlineAlpha * mix(1.0, inactiveParams.z, inactive), previewWeight);
+		boundaryMask = max(ownMask * step(0.00001, smoothed), alliedMask * step(0.00001, allied));
+	}
+
 	float alpha = mix(fill * fillAlpha, outlineA, outline);
+	alpha *= boundaryMask;
 	if (alpha < 0.002) {
 		discard;
 	}

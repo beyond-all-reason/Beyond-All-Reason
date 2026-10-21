@@ -5,6 +5,7 @@
 // world position from the map g-buffer depth and takes the coverage of its radar cell, outlined along the border
 // with uncovered radar cells. Being the rendered terrain itself, it covers steep cliffs a sheet of per-cell quads
 // cuts through. Over water it lies on the water surface; units and features in front of the terrain stay untinted.
+// Past the map's edge there is no fill, only the outline carrying on a little and fading out.
 
 //__DEFINES__
 
@@ -21,6 +22,14 @@ uniform float previewInactive; // 0 while the previewed jammer jams, 1 while it 
 uniform float stippleOffset; // radar cells the outline's stipple has travelled clockwise around the coverage
 uniform vec2 emitterXZ;     // world x, z of the previewed jammer's emitter, where the spawn ripple starts
 uniform vec2 alliedParams;  // allied coverage on (1) / off (0), its opacity
+uniform float fadeStrength; // 1: the sheet fades out from FADE_START to FADE_END elmos from the camera, 0: it doesn't
+
+// circle mode (SensorPreviewCircles): coverage as circles at the jammers' ranges instead of the engine's radar cells
+uniform float circleMode;       // 1 = circles, 0 = radar cells
+uniform vec4 circleParams;      // the previewed jammer's circle: center x, z, radius (elmos), fade-in (0..1)
+uniform sampler2D alliedSdfTex; // elmos inside the allied circles' union (disc pass), stored as 0..1, LINEAR filtered
+uniform float alliedCircles[MAX_ALLIED_CIRCLES * 3]; // center x, z and radius of the allied circles, for the stipple
+uniform float alliedCircleCount;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
@@ -37,12 +46,22 @@ const float sheetOutlineAlpha = float(SHEET_OUTLINE_ALPHA);
 const float outlineGapAlpha = float(OUTLINE_GAP_ALPHA);
 const float outlineWidth = float(OUTLINE_WIDTH); // pixels at 1080p, scaled with the vertical resolution
 const float outlineWorldWidth = float(OUTLINE_WORLD_WIDTH); // elmos
+const float outlineThinStart = float(OUTLINE_THIN_START); // elmos from the camera
+const float outlineThinEnd = max(float(OUTLINE_THIN_END), outlineThinStart + 1.0);
+const float outlineThinScale = float(OUTLINE_THIN_SCALE);
+const float outlineMinWidth = float(OUTLINE_MIN_WIDTH); // screen pixels
+const float offMapOutlineFade = max(float(OFFMAP_OUTLINE_FADE), 1.0); // elmos past the map's edge
+const float fadeStart = float(FADE_START); // elmos from the camera
+const float fadeEnd = max(float(FADE_END), fadeStart + 1.0);
 const float outlineDashes = float(OUTLINE_DASHES); // per radar cell side
 const float alliedAlpha = float(ALLIED_ALPHA);
 const float inactiveAlpha = float(INACTIVE_ALPHA);
 const float inactiveOutlineAlpha = float(INACTIVE_OUTLINE_ALPHA);
 const float minCoverage = float(MIN_COVERAGE);
 const float spawnSpeed = float(SPAWN_SPEED);
+const float sdfRange = float(CIRCLE_SDF_RANGE);
+const float sdfSlack = float(CIRCLE_SDF_SLACK); // elmos a mobile jammer's circle moves before the field is re-rendered
+const float PI = 3.14159265;
 
 // texel of the previewed jammer's disc textures for a radar cell, (-1, -1) outside its disc
 ivec2 discTexel(ivec2 cell) {
@@ -102,6 +121,58 @@ float borderLine(vec2 sides, float diagonalOut, vec2 edge, vec2 stipples, float 
 	return mix(line, cornerStipple, corner);
 }
 
+// 1 for a radar cell past the map's edge, 0 on the map
+float cellOffMap(ivec2 cell) {
+	return float(any(lessThan(cell, ivec2(0))) || any(greaterThanEqual(cell, ivec2(MAP_CELLS_X, MAP_CELLS_Z))));
+}
+
+// An outline width (`pixel`: one screen pixel in its unit) thinned by `thin` (OUTLINE_THIN_SCALE once far from the
+// camera), though not below OUTLINE_MIN_WIDTH pixels unless it was thinner to begin with
+vec2 thinOutline(vec2 width, vec2 pixel, float thin) {
+	return max(width * thin, min(width, pixel * outlineMinWidth));
+}
+
+// circle mode: elmos inside (+) or outside (-) the allied circles' union, clamped to CIRCLE_SDF_RANGE. Off the map
+// less the distance to it, or its edge texels would smear outward (the circle list is exact there)
+float alliedCircleSdf(vec2 w) {
+	if (alliedParams.x < 0.5) {
+		return -sdfRange;
+	}
+	float offMap = distance(w, clamp(w, vec2(0.0), mapSize.xy)); // mapSize.xy: the map in elmos
+	return (texture(alliedSdfTex, w / mapSize.xy).r - 0.5) * 2.0 * sdfRange - offMap;
+}
+
+// circle mode: the stipple along a circle (center x, z, radius), travelled `offset` cells clockwise. A whole number of
+// dash periods goes round it, so the pattern closes on itself.
+float arcStipple(vec2 w, vec3 circle, float offset, float rate) {
+	float periods = max(1.0, floor(2.0 * PI * circle.z * outlineDashes / cellSize + 0.5));
+	float turns = atan(w.y - circle.y, w.x - circle.x) / (2.0 * PI);
+	return stipple(turns * periods / outlineDashes - offset, rate);
+}
+
+// circle mode: elmos inside the allied circles from their list, exact where the distance field (one texel per radar
+// cell) would bend their edges into polygons, and the circle whose edge runs nearest: the one w lies deepest inside
+float alliedExactSdf(vec2 w, out vec3 owner) {
+	owner = vec3(0.0, 0.0, -1.0);
+	float best = -sdfRange;
+	int count = int(alliedCircleCount);
+	for (int i = 0; i < count; i++) {
+		vec3 circle = vec3(alliedCircles[i * 3], alliedCircles[i * 3 + 1], alliedCircles[i * 3 + 2]);
+		float inside = circle.z - distance(w, circle.xy);
+		if (inside > best) {
+			best = inside;
+			owner = circle;
+		}
+	}
+	return best;
+}
+
+// circle mode: a line along the inside of an edge at signed distance `sdf`, `width` elmos wide, anti-aliased over
+// `px` elmos on both sides
+float edgeBand(float sdf, float width, float px) {
+	return smoothstep(-px, 0.0, sdf) * (1.0 - smoothstep(width - px, width, sdf));
+}
+
 void main() {
 	vec2 screenUV = (gl_FragCoord.xy - viewGeometry.zw) / viewGeometry.xy;
 	float mapDepth = texture(mapDepths, screenUV).x;
@@ -123,65 +194,133 @@ void main() {
 	if (mapDepth >= 0.999999) {
 		discard; // sky
 	}
+
+	ivec2 cell = ivec2(floor(cellCoord));
+	float inactive = previewInactive;
+	bool circles = circleMode > 0.5;
+	vec2 w = worldPos.xz;
+	float px = max(pixelCells.x, pixelCells.y) * cellSize; // elmos per pixel
+	float camDist = distance(camPos, worldPos);
+	float distanceFade = 1.0 - fadeStrength * smoothstep(fadeStart, fadeEnd, camDist);
+	if (distanceFade <= 0.0) {
+		discard; // faded out with the distance from the camera
+	}
+	// the outline's width factor: 1 up close, OUTLINE_THIN_SCALE from OUTLINE_THIN_END elmos from the camera on
+	float thin = mix(1.0, outlineThinScale, smoothstep(outlineThinStart, outlineThinEnd, camDist));
+	// past the map's edge there is no fill, and the outline fades out over OFFMAP_OUTLINE_FADE elmos
+	float offMapDist = distance(w, clamp(w, vec2(0.0), mapSize.xy)); // mapSize.xy: the map in elmos
+	float mapFill = clamp(1.0 - offMapDist / px, 0.0, 1.0);
+	float mapLine = 1.0 - clamp(offMapDist / offMapOutlineFade, 0.0, 1.0);
+
+	// The previewed jammer's fill weight (spawn ripple and fade-in included), its exact coverage for the outline (so a
+	// moving jammer's old border doesn't linger) and the allied coverage: per radar cell, or per pixel inside the
+	// circles. The spawn ripple spreads the previewed coverage outward from the emitter when the preview appears.
+	float weight, ownIn, allied;
+	float ownSdf = -sdfRange; // circle mode: elmos inside the previewed jammer's circle
+	float alliedSdf = -sdfRange; // circle mode: elmos inside the allied circles
+	vec3 alliedOwner = vec3(0.0, 0.0, -1.0); // circle mode: the allied circle whose edge runs here, if known
+	// circle mode: OUTLINE_WIDTH pixels plus OUTLINE_WORLD_WIDTH elmos along the inside of the circles' edges, thinned
+	float bandWidth = px * outlineWidth * viewGeometry.y / 1080.0 + outlineWorldWidth;
+	bandWidth = thinOutline(vec2(bandWidth), vec2(px), thin).x;
+	if (circles) {
+		float ownDist = distance(w, circleParams.xy);
+		if (previewParams.z >= 0.0 && circleParams.z > 0.0) {
+			ownSdf = circleParams.z - ownDist;
+		}
+		alliedSdf = alliedCircleSdf(w);
+		// exact near an edge (filtering bends the distance field by up to cellSize / sqrt(2), most where circles cross,
+		// and it lags moving circles by up to sdfSlack) and off the map, where the field has no texels
+		float nearEdge = bandWidth + 2.0 * px + 4.0 + 0.75 * cellSize + sdfSlack;
+		if (alliedParams.x > 0.5 && alliedCircleCount > 0.5 && (abs(alliedSdf) < nearEdge || offMapDist > 0.0)) {
+			alliedSdf = alliedExactSdf(w, alliedOwner);
+		}
+		float distN = ownDist / max(circleParams.z, 1.0);
+		float spawn = smoothstep(distN - 0.10, distN + 0.02, previewParams.w * spawnSpeed);
+		float inside = clamp(ownSdf / px + 0.5, 0.0, 1.0);
+		weight = inside * spawn * circleParams.w;
+		ownIn = inside * step(0.5, spawn);
+		allied = clamp(alliedSdf / px + 0.5, 0.0, 1.0);
+	} else {
+		float distN = length((vec2(cell) + 0.5) * cellSize - emitterXZ) / (max(previewParams.z, 1.0) * cellSize);
+		float spawn = smoothstep(distN - 0.10, distN + 0.02, previewParams.w * spawnSpeed);
+		weight = smoothstep(0.0, 0.5, previewCoverageAt(cell)) * spawn;
+		ownIn = step(0.5, min(previewTargetAt(cell), spawn));
+		allied = alliedAt(cell);
+	}
+
+	// the previewed jammer's coverage blends in over the muted allied coverage. An inactive one jams nothing: it is a
+	// faint hint where no allied jammer covers the spot, allied coverage shows as it is.
+	float alliedFade = allied * alliedParams.y * alliedAlpha;
+	float fillFade = mix(mix(alliedFade, 1.0, weight), max(alliedFade, weight * inactiveAlpha), inactive) * mapFill;
+	float jammedFade = max(alliedFade, ownIn * weight * (1.0 - inactive)) * mapLine; // how strongly a jammer covers the spot
+	float ownLineFade = ownIn * weight * mix(1.0, inactiveOutlineAlpha, inactive) * mapLine;
+	if (max(fillFade, max(jammedFade, ownLineFade)) < minCoverage) {
+		discard;
+	}
 #if MODEL_DEPTH_TEST
 	if (texture(modelDepths, screenUV).x < mapDepth) {
 		discard; // a unit or feature in front of the terrain
 	}
 #endif
 
-	ivec2 cell = ivec2(floor(cellCoord));
-	float own = previewCoverageAt(cell);
-	float allied = alliedAt(cell);
-	float inactive = previewInactive;
-
-	// spawn ripple: the previewed jammer's coverage spreads outward from its emitter when the preview appears
-	float distN = length((vec2(cell) + 0.5) * cellSize - emitterXZ) / (max(previewParams.z, 1.0) * cellSize);
-	float spawn = smoothstep(distN - 0.10, distN + 0.02, previewParams.w * spawnSpeed);
-
-	// the previewed jammer's cells blend in over the muted allied coverage. An inactive one jams nothing: it is a
-	// faint hint where no allied jammer covers the cell, allied cells show as they are.
-	float weight = smoothstep(0.0, 0.5, own) * spawn;
-	float alliedFade = allied * alliedParams.y * alliedAlpha;
-	float fillFade = mix(mix(alliedFade, 1.0, weight), max(alliedFade, weight * inactiveAlpha), inactive);
-	// the outline follows the exact coverage instead, so a moving jammer's old border doesn't linger
-	float ownIn = step(0.5, min(previewTargetAt(cell), spawn));
-	float jammedFade = max(alliedFade, ownIn * weight * (1.0 - inactive)); // how strongly a jammer covers the cell
-	float ownLineFade = ownIn * weight * mix(1.0, inactiveOutlineAlpha, inactive);
-	if (max(fillFade, max(jammedFade, ownLineFade)) < minCoverage) {
-		discard;
+	// Stippled outline of the previewed jammer's coverage (drawn even inside allied coverage, faint and standing still
+	// while inactive) and of everything jammed. None where the position jumps between pixels (terrain silhouettes).
+	// The stipples and neighbour lookups only run where a line can be.
+	float ownLine = 0.0;
+	float coveredLine = 0.0;
+	float outlineOn;
+	if (circles) {
+		outlineOn = (max(cellPixels.x, cellPixels.y) < 4.0) ? sheetOutlineAlpha : 0.0;
+		float rate = px / cellSize;
+		ownLine = edgeBand(ownSdf, bandWidth, px);
+		if (ownLine > 0.0 && outlineOn > 0.0) {
+			ownLine *= arcStipple(w, circleParams.xyz, stippleOffset * (1.0 - inactive), rate);
+		}
+		float ownJamSdf = (inactive < 0.5) ? ownSdf : -sdfRange;
+		coveredLine = edgeBand(max(ownJamSdf, alliedSdf), bandWidth, px);
+		if (coveredLine > 0.0 && outlineOn > 0.0) {
+			// a solid line where the allied circle isn't known (more of them than MAX_ALLIED_CIRCLES)
+			vec3 owner = (ownJamSdf >= alliedSdf) ? circleParams.xyz : alliedOwner;
+			coveredLine *= (owner.z > 0.0) ? arcStipple(w, owner, stippleOffset, rate) : 1.0;
+		}
+	} else {
+		// nor once cells shrink below a pixel
+		outlineOn = (max(cellPixels.x, cellPixels.y) < 1.0) ? sheetOutlineAlpha : 0.0;
+		vec2 inCell = fract(cellCoord);
+		vec2 edgeDist = 0.5 - abs(inCell - 0.5); // distance to the nearer side, in cells
+		// OUTLINE_WIDTH pixels plus OUTLINE_WORLD_WIDTH elmos, so it gets a little thicker when zoomed in, thinned far
+		// from the camera; crisp, with a pixel of anti-aliasing on its inner edge
+		vec2 width = pixelCells * outlineWidth * viewGeometry.y / 1080.0 + outlineWorldWidth / cellSize;
+		width = thinOutline(width, pixelCells, thin);
+		if (outlineOn > 0.0 && any(lessThan(edgeDist, width))) {
+			// on the nearer x and z side of the cell when it borders a cell the previewed jammer does not cover, or
+			// that no jammer covers
+			vec2 nearSide = step(vec2(0.5), inCell); // 0 = the -x/-z side is nearer, 1 = the +x/+z side
+			ivec2 nx = cell + ivec2(int(nearSide.x) * 2 - 1, 0);
+			ivec2 nz = cell + ivec2(0, int(nearSide.y) * 2 - 1);
+			ivec2 nd = ivec2(nx.x, nz.y); // diagonally across the nearer corner
+			// the map's edge is no border: cells past it count as covered
+			vec3 offMapNeighbours = vec3(cellOffMap(nx), cellOffMap(nz), cellOffMap(nd));
+			vec3 ownNeighbours = max(vec3(previewTargetAt(nx), previewTargetAt(nz), previewTargetAt(nd)), offMapNeighbours);
+			vec3 alliedNeighbours = max(vec3(alliedAt(nx), alliedAt(nz), alliedAt(nd)), offMapNeighbours);
+			// x side, z side and diagonal facing outside the previewed jammer's coverage, and outside all jammed cells
+			vec3 ownOut = ownIn * (1.0 - ownNeighbours);
+			vec3 coveredOut = 1.0 - max(ownNeighbours * (1.0 - inactive), alliedNeighbours);
+			vec2 edge = 1.0 - smoothstep(width - pixelCells, width, edgeDist);
+			// corners sit in the middle of a dash; an inactive jammer's border stands still
+			vec2 stipples, ownStipples;
+			float cornerStipple, ownCornerStipple;
+			stipplesAt(cellCoord, nearSide, pixelCells, stippleOffset, stipples, cornerStipple);
+			stipplesAt(cellCoord, nearSide, pixelCells, stippleOffset * (1.0 - inactive), ownStipples, ownCornerStipple);
+			ownLine = borderLine(ownOut.xy, ownOut.z, edge, ownStipples, ownCornerStipple);
+			coveredLine = borderLine(coveredOut.xy, coveredOut.z, edge, stipples, cornerStipple);
+		}
 	}
-
-	// stippled outline on the nearer x and z side of the cell when it borders a cell the previewed jammer does not
-	// cover (its own border, drawn even inside allied coverage and faint while inactive) or that no jammer covers
-	vec2 inCell = fract(cellCoord);
-	vec2 nearSide = step(vec2(0.5), inCell); // 0 = the -x/-z side is nearer, 1 = the +x/+z side
-	vec2 edgeDist = 0.5 - abs(inCell - 0.5); // distance to the nearer side, in cells
-	ivec2 nx = cell + ivec2(int(nearSide.x) * 2 - 1, 0);
-	ivec2 nz = cell + ivec2(0, int(nearSide.y) * 2 - 1);
-	ivec2 nd = ivec2(nx.x, nz.y); // diagonally across the nearer corner
-	vec3 ownNeighbours = vec3(previewTargetAt(nx), previewTargetAt(nz), previewTargetAt(nd));
-	vec3 alliedNeighbours = vec3(alliedAt(nx), alliedAt(nz), alliedAt(nd));
-	// x side, z side and diagonal facing outside the previewed jammer's coverage, and outside all jammed cells
-	vec3 ownOut = ownIn * (1.0 - ownNeighbours);
-	vec3 coveredOut = 1.0 - max(ownNeighbours * (1.0 - inactive), alliedNeighbours);
-	// OUTLINE_WIDTH pixels plus OUTLINE_WORLD_WIDTH elmos, so it gets a little thicker when zoomed in; crisp, with a
-	// pixel of anti-aliasing on its inner edge
-	vec2 width = pixelCells * outlineWidth * viewGeometry.y / 1080.0 + outlineWorldWidth / cellSize;
-	vec2 edge = 1.0 - smoothstep(width - pixelCells, width, edgeDist);
-	// corners sit in the middle of a dash; an inactive jammer's border stands still
-	vec2 stipples, ownStipples;
-	float cornerStipple, ownCornerStipple;
-	stipplesAt(cellCoord, nearSide, pixelCells, stippleOffset, stipples, cornerStipple);
-	stipplesAt(cellCoord, nearSide, pixelCells, stippleOffset * (1.0 - inactive), ownStipples, ownCornerStipple);
-	// no outline where the position jumps between pixels (terrain silhouettes) or cells shrink below a pixel
-	float outlineOn = (max(cellPixels.x, cellPixels.y) < 1.0) ? sheetOutlineAlpha : 0.0;
-	float ownLine = borderLine(ownOut.xy, ownOut.z, edge, ownStipples, ownCornerStipple) * ownLineFade;
-	float coveredLine = borderLine(coveredOut.xy, coveredOut.z, edge, stipples, cornerStipple) * jammedFade;
-	float lineAlpha = max(ownLine, coveredLine) * outlineOn;
+	float lineAlpha = max(ownLine * ownLineFade, coveredLine * jammedFade) * outlineOn;
 
 	// the outline over the fill
 	vec3 fillColor = mix(alliedColor, sheetColor, weight * (1.0 - inactive * allied));
 	float fillAlpha = sheetAlpha * fillFade * (1.0 - lineAlpha);
 	float alpha = lineAlpha + fillAlpha;
-	fragColor = vec4((outlineColor * lineAlpha + fillColor * fillAlpha) / max(alpha, 1e-4), alpha);
+	fragColor = vec4((outlineColor * lineAlpha + fillColor * fillAlpha) / max(alpha, 1e-4), alpha * distanceFade);
 }
