@@ -259,7 +259,7 @@ void EnableDefenceFireState()
 		"corllt", "cortl", "corrl", "corhllt", "corhlt", "cormaw", "cormadsam", "corvipe",
 		"coratl", "corflak", "cortoast", "cordoom", "corpun", "corfmd", "cortarg", "corgate",
 		"corint", "corbuzz",
-		"cortron", "corfhlt",
+		"cortron", "corfhlt", "corhltfus",
 
 		// Armed Legion static defenses
 		"leglht", "legtl", "legrl", "legmg", "leghive", "legdtr", "legrhapsis", "leglupara",

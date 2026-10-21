@@ -4,7 +4,7 @@
 
 piece  base, pad, head, nano1, nano2, dish, cagelight, cagelight_emit, blink;
 
-static-var  spray;
+static-var  spray, hasOpened;
 static-var  Stunned;
 
 // Signal definitions
@@ -69,6 +69,7 @@ Create()
 	start-script Lights();
 	call-script DishSpin();
 	return (0);
+	hasOpened = 0;
 }
 
 #define BASEPIECE base
@@ -83,25 +84,26 @@ QueryNanoPiece(pieceIndex)
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	turn head to y-axis <0> now;
-	turn head to y-axis <109> speed <100>;
-	wait-for-turn head around y-axis;
-	
+	if( !hasOpened )
+	{
+		turn head to y-axis <0> now;
+		turn head to y-axis <109> speed <100>;
+		wait-for-turn head around y-axis;
+		hasOpened = 1;
+	}
 	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	sleep 5000;
-	
-	turn head to y-axis <0> speed <100>;
-	wait-for-turn head around y-axis;
-	
+
 	FACTORY_CLOSE_BUILD;
 }
 

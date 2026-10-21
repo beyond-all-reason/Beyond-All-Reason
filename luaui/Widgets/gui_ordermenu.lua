@@ -22,9 +22,9 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
-local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
-local OrderMenuFirestate = VFS.Include("luaui/Include/ordermenu_firestate.lua")
+local CustomFirestateDefs = require("modules/custom_firestate_defs")
+local OrderMenuFirestate = require("luaui/Include/ordermenu_firestate")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 local CANCEL_TARGET_CMD_ID = 34924
 local currentLayout
 
@@ -461,6 +461,7 @@ local function refreshCommands()
 		if type(command) == "table" and not disabledCommand[command.name] then
 			if command.type == CMDTYPE_ICON_MODE then
 				isStateCommand[command.id] = true
+				widgetHandler:RegisterUnitCommand(command.id)
 			end
 			if
 				not hiddenCommands[command.id]
@@ -520,7 +521,7 @@ local function refreshCommands()
 				or CustomFirestateDefs.stateLabel(cmd)
 			if commandState then
 				if not commandTextCache[commandState] then
-					commandTextCache[commandState] = getCachedTranslation("ui.orderMenu." .. commandState)
+					commandTextCache[commandState] = getCachedTranslation("commands." .. commandState)
 				end
 				cmd.cachedText = commandTextCache[commandState]
 			else
@@ -529,11 +530,11 @@ local function refreshCommands()
 		else
 			if cmd.action == "stockpile" then
 				-- Stockpile command name gets mutated to reflect the current status, so can't cache persistently
-				cmd.cachedText = getCachedTranslation("ui.orderMenu." .. cmd.action, { stockpileStatus = cmd.name })
+				cmd.cachedText = getCachedTranslation("commands." .. cmd.action, { stockpileStatus = cmd.name })
 			else
 				local actionKey = cmd.action
 				if not commandTextCache[actionKey] then
-					commandTextCache[actionKey] = getCachedTranslation("ui.orderMenu." .. actionKey)
+					commandTextCache[actionKey] = getCachedTranslation("commands." .. actionKey)
 				end
 				cmd.cachedText = commandTextCache[actionKey]
 			end
@@ -708,10 +709,11 @@ end
 
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
+	actionHotkeys = require("luaui/Include/action_hotkeys")
 end
 
 function widget:Initialize()
+	widgetHandler:RegisterUnitCommand(CMD.WAIT)
 	OrderMenuFirestate.init({
 		onOrderGiven = function()
 			doUpdate = true
@@ -1429,7 +1431,7 @@ function widget:DrawScreen()
 						local cmd = commands[cell]
 						if WG.tooltip then
 							local tooltipKey = cmd.action .. "_tooltip"
-							local tooltip = getCachedTranslation("ui.orderMenu." .. tooltipKey)
+							local tooltip = getCachedTranslation("commands." .. tooltipKey)
 
 							if not hotkeyCache[cmd.action] then
 								hotkeyCache[cmd.action] =
@@ -1442,7 +1444,7 @@ function widget:DrawScreen()
 								local commandState = OrderMenuFirestate.stateLabel(cmd)
 								local modeDescrKey = commandState and OrderMenuFirestate.descrByState[commandState]
 								if modeDescrKey then
-									local modeDescr = getCachedTranslation("ui.orderMenu." .. modeDescrKey)
+									local modeDescr = getCachedTranslation("commands." .. modeDescrKey)
 									local generalDescr = tooltip
 									if generalDescr ~= "" and hotkey ~= "" then
 										generalDescr = getCachedTranslation("ui.orderMenu.hotkeyTooltip", {
@@ -1478,10 +1480,10 @@ function widget:DrawScreen()
 											and OrderMenuFirestate.stateLabel(cmd)
 										or CustomFirestateDefs.stateLabel(cmd)
 									if commandState then
-										title = getCachedTranslation("ui.orderMenu." .. commandState)
+										title = getCachedTranslation("commands." .. commandState)
 									end
 								else
-									title = getCachedTranslation("ui.orderMenu." .. cmd.action)
+									title = getCachedTranslation("commands." .. cmd.action)
 								end
 								WG.tooltip.ShowTooltip("ordermenu", tooltip, nil, nil, title)
 							end

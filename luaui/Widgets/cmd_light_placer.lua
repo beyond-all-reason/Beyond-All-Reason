@@ -55,7 +55,7 @@ local pi = math.pi
 local sqrt = math.sqrt
 local rad = math.rad
 
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
 
 ----------------------------------------------------------------
 -- Light type defaults
@@ -659,6 +659,12 @@ local function pushUndo(action, lights)
 	end
 	undoStack[#undoStack + 1] = { action = action, lights = lights }
 	redoStack = {}
+	-- Every light edit passes here: the project has unsaved changes.
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("lights")
+	end
 end
 
 local function doUndo()
@@ -843,7 +849,7 @@ local function save(explicitPath)
 	local blocks = {}
 	for _, l in ipairs(lightList) do
 		local b = { "\t\t{\n" }
-		b[#b + 1] = string.format('\t\t\ttype = "%s",\n', l.type)
+		b[#b + 1] = string.format("\t\t\ttype = %q,\n", l.type)
 		b[#b + 1] = string.format("\t\t\tpos = { %.1f, %.1f, %.1f },\n", l.pos[1], l.pos[2], l.pos[3])
 		b[#b + 1] = string.format("\t\t\tradius = %.1f,\n", l.radius)
 		b[#b + 1] = string.format("\t\t\tcolor = { %.3f, %.3f, %.3f },\n", l.color[1], l.color[2], l.color[3])
@@ -875,8 +881,12 @@ local function save(explicitPath)
 	end
 	table.sort(blocks)
 
-	local lines =
-		{ "return {\n", "\tversion = 1,\n", '\tmapName = "' .. (Game.mapName or "unknown") .. '",\n', "\tlights = {\n" }
+	local lines = {
+		"return {\n",
+		"\tversion = 1,\n",
+		string.format("\tmapName = %q,\n", Game.mapName or "unknown"),
+		"\tlights = {\n",
+	}
 	for _, b in ipairs(blocks) do
 		lines[#lines + 1] = b
 	end
@@ -933,6 +943,7 @@ local function load(filename)
 		Echo("[LightPlacer] Error loading " .. filename .. ": " .. tostring(err))
 		return false
 	end
+	setfenv(chunk, {})
 	local data = chunk()
 	if not data or not data.lights then
 		Echo("[LightPlacer] Invalid light file format: " .. filename)
@@ -1018,10 +1029,10 @@ local function saveUserPreset(presetName)
 		lights = lightList,
 	}
 
-	local lines = { "return {\n", "\tversion = 1,\n", '\tname = "' .. presetName .. '",\n', "\tlights = {\n" }
+	local lines = { "return {\n", "\tversion = 1,\n", string.format("\tname = %q,\n", presetName), "\tlights = {\n" }
 	for _, l in ipairs(lightList) do
 		lines[#lines + 1] = "\t\t{\n"
-		lines[#lines + 1] = string.format('\t\t\ttype = "%s",\n', l.type)
+		lines[#lines + 1] = string.format("\t\t\ttype = %q,\n", l.type)
 		lines[#lines + 1] = string.format("\t\t\toffsetX = %.1f,\n", l.offsetX)
 		lines[#lines + 1] = string.format("\t\t\toffsetZ = %.1f,\n", l.offsetZ)
 		lines[#lines + 1] = string.format("\t\t\tradius = %.1f,\n", l.radius)
@@ -1105,6 +1116,7 @@ local function loadPresetFile(filename)
 		Echo("[LightPlacer] Error loading preset: " .. tostring(err))
 		return nil
 	end
+	setfenv(chunk, {})
 	return chunk()
 end
 

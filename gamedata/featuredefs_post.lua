@@ -11,7 +11,7 @@
 
 local system = VFS.Include("gamedata/system.lua")
 
-local mapFeatureProxies = VFS.Include("gamedata/map_feature_i18n_proxies.lua")
+local mapFeatureProxies = require("gamedata/map_feature_i18n_proxies")
 
 local function normalizeFeatureDef(featureDef)
 	system.lowerkeys(featureDef)

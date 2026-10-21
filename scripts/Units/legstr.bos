@@ -5,6 +5,9 @@ piece  	pelvis, aimy, torso, aimx, lthigh, rthigh, lleg, rleg, lkeel, rkeel, lfo
 
 static-var  isMoving, isAiming, Static_Var_3, restore_delay, wpn1_lasthead, miniguncount, animspeed, maxSpeed, animFramesPerKeyframe;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_AIM1				2
 #define SIGNAL_FIRE1 			4
@@ -368,6 +371,8 @@ StopMoving(){
 
 Create()
 {
+	Weapon1TurretX = <360>;
+	Weapon1TurretY = <180.0>;
 	hide lflare;
 	hide rflare;
 	hide aimx;
@@ -424,8 +429,8 @@ AimPrimary(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	isAiming = TRUE;
-	turn aimy to y-axis heading speed <180.0>;
-	turn aimx to x-axis 0 - pitch speed <360>;
+	turn aimy to y-axis heading speed Weapon1TurretY;
+	turn aimx to x-axis 0 - pitch speed Weapon1TurretX;
 	
 	if (get ABS(wpn1_lasthead - heading)> <20>)
 	{

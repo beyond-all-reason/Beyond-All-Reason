@@ -256,6 +256,12 @@ function farInv.flush(force)
 	if T and T.refreshSurface then
 		T.refreshSurface(d[1], d[2], d[3], d[4])
 	end
+	-- A flushed rect is paint on the map: the project has unsaved changes.
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("splat")
+	end
 	farInv.dirty = nil
 	farInv.at = now
 end
@@ -322,7 +328,7 @@ local function isPointValid(px, pz)
 	end
 
 	-- Slope checks
-	local nx, ny, nz = GetGroundNormal(px, pz)
+	local nx, ny, _ = GetGroundNormal(px, pz)
 	if nx then
 		if sf.avoidCliffs then
 			local cosMax = cos(sf.slopeMax * pi / 180)
@@ -689,9 +695,32 @@ end
 
 local noSplatWarned = false
 
+-- A canvas started without a DNTS set (no pack installed, a runner or launcher
+-- canvas, or a map project saved from one) has no $ssmf_splat_distr at all.
+-- The tileset shader only needs the distribution as its override mask, not the
+-- DNTS normals, so the painter can supply its own there; SetMapShadingTexture
+-- binds a Lua texture whether or not the engine made one.
+local function canSynthesizeDistribution()
+	local tt = WG.TilesetTerrain
+	if tt and tt.isActive and tt.isActive() then
+		return true
+	end
+	if (Game.mapName or ""):find("^Editor Flat %d+x%d+") then
+		return true
+	end
+	local mapOpts = Spring.GetMapOptions()
+	return type(mapOpts) == "table" and (tonumber(mapOpts.blank_map_x) or 0) > 0
+end
+
 local function initSplatTexture()
 	-- Get dimensions of existing splat distribution texture
 	local texInfo = gl.TextureInfo(SPLAT_TEX_NAME)
+	local synthesize = false
+	if (not texInfo or texInfo.xsize <= 0 or texInfo.ysize <= 0) and canSynthesizeDistribution() then
+		synthesize = true
+		texInfo = { xsize = 1, ysize = 1 }
+		Echo("[Splat Painter] This map has no splat distribution; creating one (every pixel starts on channel 1).")
+	end
 	if not texInfo or texInfo.xsize <= 0 or texInfo.ysize <= 0 then
 		-- Blank/generated maps carry no SSMF splat distribution. Warn once, calmly.
 		if not noSplatWarned then
@@ -745,6 +774,11 @@ local function initSplatTexture()
 
 	-- Copy existing splat distribution into our FBO
 	glRenderToTexture(fboTex, function()
+		if synthesize then
+			-- the engine's own fallback distribution is (255,0,0,0)
+			gl.Clear(GL.COLOR_BUFFER_BIT, 1, 0, 0, 0)
+			return
+		end
 		glBlending(false)
 
 		glUseShader(copyShader)
@@ -1357,6 +1391,11 @@ function widget:Initialize()
 		end,
 		hasSplatState = function()
 			return fboTex ~= nil
+		end,
+		-- true when painting can start: the map has a distribution, or the painter can make one
+		canPaintDistribution = function()
+			local info = gl.TextureInfo(SPLAT_TEX_NAME)
+			return fboTex ~= nil or (info ~= nil and (info.xsize or 0) > 0) or canSynthesizeDistribution()
 		end,
 		loadSplats = requestLoadSplats,
 		isLoadPending = function()

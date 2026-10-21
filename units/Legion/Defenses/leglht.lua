@@ -25,7 +25,7 @@ return {
 		script = "Units/LEGLHT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 494,
+		sightdistance = 500,
 		yardmap = "oooo",
 		customparams = {
 			usebuildinggrounddecal = true,
@@ -43,7 +43,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "CorBuildings/LandDefenceOffence",
+			subfolder = "Legion/Defenses",
 		},
 		featuredefs = {
 			dead = {
@@ -135,9 +135,6 @@ return {
 					commanders = 270,
 					default = 200,
 					vtol = 25,
-				},
-				customparams = {
-					exclude_preaim = true,
 				},
 			},
 		},

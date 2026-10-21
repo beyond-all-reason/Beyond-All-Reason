@@ -43,7 +43,7 @@ return {
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			reaimtime = 5,
-			subfolder = "CorAircraft/T2",
+			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 			attacksafetydistance = 300,
 			fighter = 1,
@@ -111,9 +111,6 @@ return {
 					commanders = 1,
 					default = 2,
 					vtol = 80,
-				},
-				customparams = {
-					noattackrangearc = 1,
 				},
 			},
 		},

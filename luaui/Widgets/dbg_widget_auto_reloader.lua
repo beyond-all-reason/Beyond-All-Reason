@@ -7,7 +7,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Widget Auto Reloader",
-		desc = "Reloads all widgets that have changed after the mouse returned to the game window",
+		desc = "Reloads all widgets that have changed after the mouse returned to the game window, including widgets whose VFS.Include'd or require'd files changed",
 		author = "Beherith, Floris",
 		date = "2024.03.12",
 		license = "GNU GPL v2",
@@ -24,18 +24,228 @@ local spEcho = Spring.Echo
 local widgetContents = {} -- maps widgetname to raw code
 local widgetFilesNames = {} -- maps widgetname to filename
 local widgetDependents = {} -- maps widgetname to {dependentName1, ...}
+local widgetIncludes = {} -- maps widgetname to { [includeKey] = path } of the files it VFS.Includes directly
+local includeFiles = {} -- maps includeKey (lowercased path) to { path, contents, includes = { [includeKey] = path }, changed }
 local mouseOffscreen = select(6, spGetMouseState())
 
-function widget:Initialize()
-	local widgets = widgetHandler.widgets
-	for _, widget in pairs(widgets) do
-		local whInfo = widget.whInfo
-		widgetFilesNames[whInfo.name] = whInfo.filename
-		if not widgetContents[whInfo.name] then
-			widgetContents[whInfo.name] = VFS.LoadFile(whInfo.filename)
+---------------------------------------------------------------------------------------------------
+-- Include tracking
+--
+-- A widget's own file doesn't change when a file it includes is edited, so the widget sources are
+-- scanned for VFS.Include and require calls and the included files are tracked as well (recursively,
+-- included files include further files). A widget is reloaded when its own file or any file in its
+-- include closure changed. Paths built from a variable (luaShaderDir .. "x.lua") are resolved when that
+-- variable is assigned a string literal somewhere in the same file; fully dynamic paths are skipped.
+---------------------------------------------------------------------------------------------------
+
+-- require("path/to/file") is the init.lua shim for VFS.Include("path/to/file.lua")
+local includeFunctions = { { name = "VFS.Include", extension = "" }, { name = "require", extension = ".lua" } }
+
+local function FollowsIdentifierChar(source, s)
+	return s > 1 and source:find("^[%w_]", s - 1) ~= nil
+end
+
+-- end of the comment starting at `s`: the closing ]] (or ]==]) of a block comment, else the end of the line
+local function CommentEnd(source, s)
+	local level, bodyStart = source:match("^%-%-%[(=*)%[()", s)
+	if level then
+		local _, e = source:find("]" .. level .. "]", bodyStart, true)
+		return e or #source
+	end
+	return source:find("\n", s + 2, true) or #source
+end
+
+-- returns a function telling whether a position is inside a comment, asked for increasing positions.
+-- Plain finds hop between the comments; a gsub copy without comments took ~20 ms for gui_pip.lua (1 MB)
+local function CommentWalker(source)
+	local searchPos, commentStart, commentEnd = 1, 0, 0
+	return function(pos)
+		while commentEnd < pos do
+			local s = source:find("--", searchPos, true)
+			if not s or s > pos then
+				break
+			end
+			commentStart, commentEnd = s, CommentEnd(source, s)
+			searchPos = commentEnd + 1
 		end
-		if widget.GetInfo then
-			local info = widget:GetInfo()
+		return commentStart <= pos and pos <= commentEnd
+	end
+end
+
+-- first string literal assigned to `name` outside comments, e.g. local luaShaderDir = "LuaUI/Include/"
+local function ResolveVariable(source, name)
+	local inComment = CommentWalker(source)
+	local pos = 1
+	while true do
+		local s, e = source:find(name, pos, true)
+		if not s then
+			return nil
+		end
+		pos = e + 1
+		local value = source:match('^%s*=%s*"([^"\r\n]*)"', pos) or source:match("^%s*=%s*'([^'\r\n]*)'", pos)
+		if value and not FollowsIdentifierChar(source, s) and not inComment(s) then
+			return value
+		end
+	end
+end
+
+-- parses the first argument of an include call, `pos` pointing just after the function name
+-- returns the path, or nil plus the identifier that could not be resolved
+local function ParseIncludeArgument(source, pos)
+	local s = source:match("^%s*[%(,]%s*()", pos) -- VFS.Include(...) or pcall(VFS.Include, ...)
+	if not s then
+		return nil
+	end
+	local path = ""
+	while true do
+		local quote = source:sub(s, s)
+		local term
+		if quote == '"' or quote == "'" then
+			local e = source:find(quote, s + 1, true)
+			if not e then
+				return nil
+			end
+			term = source:sub(s + 1, e - 1)
+			s = e + 1
+		else
+			local ident, e = source:match("^([%a_][%w_]*)()", s)
+			if not ident then
+				return nil
+			end
+			term = ResolveVariable(source, ident)
+			if not term then
+				return nil, ident
+			end
+			s = e
+		end
+		path = path .. term
+		local afterConcat = source:match("^%s*%.%.%s*()", s)
+		if not afterConcat then
+			return path
+		end
+		s = afterConcat
+	end
+end
+
+-- returns { [includeKey] = path } for every statically resolvable include target in the source,
+-- plus the list of identifiers whose include path could not be resolved
+local function ScanIncludes(source)
+	local includes, unresolved = {}, {}
+	for i = 1, #includeFunctions do
+		local name, extension = includeFunctions[i].name, includeFunctions[i].extension
+		local inComment = CommentWalker(source)
+		local pos = 1
+		while true do
+			local s, e = source:find(name, pos, true)
+			if not s then
+				break
+			end
+			pos = e + 1
+			if not FollowsIdentifierChar(source, s) and not inComment(s) then
+				local path, ident = ParseIncludeArgument(source, pos)
+				if path then
+					path = path .. extension
+					includes[path:lower()] = path
+				elseif ident then
+					unresolved[#unresolved + 1] = ident
+				end
+			end
+		end
+	end
+	return includes, unresolved
+end
+
+local function RegisterIncludeFile(key, path)
+	if includeFiles[key] then
+		return
+	end
+	local contents = VFS.LoadFile(path)
+	if not contents then
+		return -- not readable (e.g. a wrongly resolved dynamic path)
+	end
+	local entry = { path = path, contents = contents, includes = {} }
+	includeFiles[key] = entry -- registered before recursing: guards against include cycles
+	entry.includes = ScanIncludes(contents)
+	for childKey, childPath in pairs(entry.includes) do
+		RegisterIncludeFile(childKey, childPath)
+	end
+end
+
+local function RegisterWidgetIncludes(widgetName, contents)
+	local includes = ScanIncludes(contents)
+	widgetIncludes[widgetName] = includes
+	for key, path in pairs(includes) do
+		RegisterIncludeFile(key, path)
+	end
+end
+
+-- walks the widget's include closure; returns the path of the first changed file, if any
+local function FindChangedInclude(widgetName)
+	local includes = widgetIncludes[widgetName]
+	if not includes then
+		return nil
+	end
+	local visited, stack = {}, {}
+	for key in pairs(includes) do
+		stack[#stack + 1] = key
+	end
+	while #stack > 0 do
+		local key = stack[#stack]
+		stack[#stack] = nil
+		if not visited[key] then
+			visited[key] = true
+			local entry = includeFiles[key]
+			if entry then
+				if entry.changed then
+					return entry.path
+				end
+				for childKey in pairs(entry.includes) do
+					stack[#stack + 1] = childKey
+				end
+			end
+		end
+	end
+	return nil
+end
+
+local function CheckIncludeForChanges(key)
+	local entry = includeFiles[key]
+	local newContents = VFS.LoadFile(entry.path)
+	if newContents == nil or newContents == entry.contents then
+		return
+	end
+	entry.contents = newContents
+	entry.includes = ScanIncludes(newContents)
+	for childKey, childPath in pairs(entry.includes) do
+		RegisterIncludeFile(childKey, childPath)
+	end
+	local chunk, err = loadstring(newContents, entry.path)
+	if chunk == nil then
+		spEcho("Failed to load: " .. entry.path .. "  (" .. err .. ")")
+		return -- the including widgets are reloaded once the file compiles again
+	end
+	entry.changed = true -- consumed by the widget checks of the same sweep
+end
+
+---------------------------------------------------------------------------------------------------
+
+local function CacheContents(widgetName, fileName)
+	if not widgetContents[widgetName] then
+		local contents = VFS.LoadFile(fileName)
+		widgetContents[widgetName] = contents
+		if contents then
+			RegisterWidgetIncludes(widgetName, contents)
+		end
+	end
+end
+
+local function RefreshWidgetList()
+	for _, w in pairs(widgetHandler.widgets) do
+		local whInfo = w.whInfo
+		widgetFilesNames[whInfo.name] = whInfo.filename
+		CacheContents(whInfo.name, whInfo.filename)
+		if w.GetInfo then
+			local info = w:GetInfo()
 			if info.dependents then
 				widgetDependents[whInfo.name] = info.dependents
 			end
@@ -43,58 +253,119 @@ function widget:Initialize()
 	end
 end
 
-local function ReloadWidget(widgetName)
-	spEcho("Reloading widget: " .. widgetName)
+function widget:Initialize()
+	-- at startup the widgets sorted after this one are loaded but not inserted yet; reading their files on
+	-- the first sweep instead cost tens of ms in one Update
+	for name, ki in pairs(widgetHandler.knownWidgets) do
+		if ki.active then
+			CacheContents(name, ki.filename)
+		end
+	end
+	RefreshWidgetList()
+	local includeCount = 0
+	for _ in pairs(includeFiles) do
+		includeCount = includeCount + 1
+	end
+	spEcho("Widget Auto Reloader: tracking " .. includeCount .. " included files")
+end
+
+local function ReloadWidget(widgetName, reason)
+	spEcho("Reloading widget: " .. widgetName .. " (" .. reason .. ")")
 	widgetHandler:DisableWidget(widgetName)
 	widgetHandler:EnableWidget(widgetName)
 end
 
 local function CheckForChanges(widgetName, fileName)
 	local newContents = VFS.LoadFile(fileName)
+	local reason
 	if newContents ~= widgetContents[widgetName] then
 		widgetContents[widgetName] = newContents
-		local chunk, err = loadstring(newContents, fileName)
-		if not mouseOffscreen and chunk == nil then
-			spEcho("Failed to load: " .. fileName .. "  (" .. err .. ")")
-			return nil
+		if newContents == nil then
+			return
 		end
-		ReloadWidget(widgetName)
-		local deps = widgetDependents[widgetName]
-		if deps then
-			for i = 1, #deps do
-				local depName = deps[i]
-				if widgetHandler:FindWidget(depName) then
-					spEcho("Reloading dependent widget: " .. depName .. " (of " .. widgetName .. ")")
-					ReloadWidget(depName)
-				end
+		RegisterWidgetIncludes(widgetName, newContents)
+		local chunk, err = loadstring(newContents, fileName)
+		if chunk == nil then
+			spEcho("Failed to load: " .. fileName .. "  (" .. err .. ")")
+			return
+		end
+		reason = "file changed"
+	else
+		local changedInclude = FindChangedInclude(widgetName)
+		if not changedInclude then
+			return
+		end
+		reason = changedInclude .. " changed"
+	end
+	if not widgetHandler:FindWidget(widgetName) then
+		return -- disabled meanwhile; enabling it by hand loads the file fresh anyway
+	end
+	ReloadWidget(widgetName, reason)
+	local deps = widgetDependents[widgetName]
+	if deps then
+		for i = 1, #deps do
+			local depName = deps[i]
+			if widgetHandler:FindWidget(depName) then
+				ReloadWidget(depName, "dependent of " .. widgetName)
 			end
 		end
 	end
 end
 
 local lastUpdate = Spring.GetTimer()
-local updateQueue = {}
+local updateQueue = {} -- included files first, then widgets, so widgets see the include changes of the same sweep
+local queueIndex = 1
 local lastQueueRun = lastUpdate
 local gameFrameHappened = false
 local minimumQueueRate = 1 / 30
+
+local function StartSweep()
+	RefreshWidgetList()
+	updateQueue = {}
+	queueIndex = 1
+	for key in pairs(includeFiles) do
+		updateQueue[#updateQueue + 1] = { includeKey = key }
+	end
+	for widgetName, fileName in pairs(widgetFilesNames) do
+		updateQueue[#updateQueue + 1] = { widgetName = widgetName, fileName = fileName }
+	end
+end
+
+local function FinishSweep()
+	for _, entry in pairs(includeFiles) do
+		entry.changed = nil
+	end
+	updateQueue = {}
+	queueIndex = 1
+end
+
+local function ProcessQueueItem(item)
+	if item.includeKey then
+		tracy.ZoneBeginN("Widget Auto Reloader:" .. item.includeKey)
+		CheckIncludeForChanges(item.includeKey)
+	else
+		tracy.ZoneBeginN("Widget Auto Reloader:" .. item.widgetName)
+		CheckForChanges(item.widgetName, item.fileName)
+	end
+	tracy.ZoneEnd()
+end
 
 function widget:GameFrame()
 	gameFrameHappened = true
 end
 
 function widget:Update()
-	local widgetName, fileName = next(updateQueue)
 	local now = Spring.GetTimer()
-	if widgetName and (not gameFrameHappened or Spring.DiffTimers(now, lastQueueRun) >= minimumQueueRate) then
+	if queueIndex <= #updateQueue and (not gameFrameHappened or Spring.DiffTimers(now, lastQueueRun) >= minimumQueueRate) then
 		lastQueueRun = now
-		local startTime = now
 		-- 2 ms budget per frame
-		while widgetName and (Spring.DiffTimers(Spring.GetTimer(), startTime, true) < 2.0) do
-			tracy.ZoneBeginN("Widget Auto Reloader:" .. widgetName)
-			CheckForChanges(widgetName, fileName)
-			updateQueue[widgetName] = nil
-			widgetName, fileName = next(updateQueue)
-			tracy.ZoneEnd()
+		while queueIndex <= #updateQueue and Spring.DiffTimers(Spring.GetTimer(), now, true) < 2.0 do
+			local item = updateQueue[queueIndex]
+			queueIndex = queueIndex + 1
+			ProcessQueueItem(item)
+		end
+		if queueIndex > #updateQueue then
+			FinishSweep()
 		end
 	end
 	gameFrameHappened = false
@@ -108,10 +379,6 @@ function widget:Update()
 	mouseOffscreen = select(6, spGetMouseState())
 
 	if not mouseOffscreen and prevMouseOffscreen then
-		widget:Initialize()
-		updateQueue = {}
-		for widgetName, fileName in pairs(widgetFilesNames) do
-			updateQueue[widgetName] = fileName
-		end
+		StartSweep()
 	end
 end

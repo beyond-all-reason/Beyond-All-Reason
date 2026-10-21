@@ -23,7 +23,7 @@
 -- old gadget-local isInsideShape used an apothem-based polygon convention that
 -- did not match the drawn outline.
 
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
 local isInside = BrushShapes.isInside
 
 local max = math.max
@@ -250,17 +250,24 @@ end
 -- pair-separation test uses the two candidates' scales, so small features pack
 -- tighter than large ones. Both are what makes a scatter read as a grown stand
 -- rather than dice rolls.
-local function generateClustered(radius, shape, lengthScale, count, defNames, rng, scaleMin, scaleMax)
+--
+-- `spacingOverride` replaces the def-derived separation for callers whose names
+-- are not features (the unit placer scatters units, sized by footprint).
+local function generateClustered(radius, shape, lengthScale, count, defNames, rng, scaleMin, scaleMax, spacingOverride)
 	scaleMin = scaleMin or 1
 	scaleMax = scaleMax or 1
 	local minSpacing = 4
-	for i = 1, #defNames do
-		local def = FeatureDefNames[defNames[i]]
-		if def and def.radius and def.radius > minSpacing then
-			minSpacing = def.radius
+	if spacingOverride then
+		minSpacing = spacingOverride
+	else
+		for i = 1, #defNames do
+			local def = FeatureDefNames[defNames[i]]
+			if def and def.radius and def.radius > minSpacing then
+				minSpacing = def.radius
+			end
 		end
+		minSpacing = minSpacing * 1.4
 	end
-	minSpacing = minSpacing * 1.4
 
 	-- Guarantee the Poisson-disk capacity can actually fit `count`, or the
 	-- rejection loop burns its whole budget and returns short.
@@ -353,7 +360,7 @@ end
 -- Public: layout generation
 ----------------------------------------------------------------
 ---Build a brush-relative layout. Deterministic for a given (seed, params).
----@param params table shape, radius, rotation, count, distribution, rotRandom, defNames, lengthScale, scaleMin, scaleMax
+---@param params table shape, radius, rotation, count, distribution, rotRandom, defNames, lengthScale, scaleMin, scaleMax, minSpacing (clustered: replaces the FeatureDefNames radius)
 ---@param seed number
 ---@return table layout array of { dx, dz, defName, heading, scale }
 local function generateLocal(params, seed)
@@ -381,7 +388,17 @@ local function generateLocal(params, seed)
 	if distribution == "regular" then
 		positions = generateRegular(radius, shape, lengthScale, count, rng)
 	elseif distribution == "clustered" then
-		positions = generateClustered(radius, shape, lengthScale, count, defNames, rng, scaleMin, scaleMax)
+		positions = generateClustered(
+			radius,
+			shape,
+			lengthScale,
+			count,
+			defNames,
+			rng,
+			scaleMin,
+			scaleMax,
+			tonumber(params.minSpacing)
+		)
 	else
 		positions = generateRandom(radius, shape, lengthScale, count, rng)
 	end

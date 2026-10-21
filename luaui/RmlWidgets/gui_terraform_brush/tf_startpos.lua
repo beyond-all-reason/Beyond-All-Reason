@@ -129,7 +129,7 @@ function M.sync(doc, ctx, stpState, setSummary)
 			"slider-sp-teams-per-ally-numbox",
 			"btn-sp-teams-per-ally-up",
 			"btn-sp-teams-per-ally-down",
-		}, sm == "startbox")
+		}, sm == "startbox" or sm == "roles")
 		-- Rotation: shape-mode only AND non-circular shape type
 		local rotOff = (sm ~= "shape") or (stpState.shapeType == "circle")
 		ctx.setDisabledIds(doc, {

@@ -59,7 +59,8 @@ rmissileFlare4,
 rmissileFlare5,
 rmissileFlare6,
 rbatteryPivotFlare,
-aaMuzzleFlare;
+aaMuzzleFlare,
+firepoint;
 
 ///
 
@@ -643,7 +644,7 @@ SweetSpot(piecenum)
 QueryWeapon1(piecenum) //Hull Rotation
 {
 
-    piecenum = torso;
+    piecenum = firepoint;
 	// if(missile_count==0)
 	// {
 	// 	piecenum=mis1;	

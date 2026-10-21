@@ -3,8 +3,8 @@ return {
 		buildpic = "ARMFLASH.DDS",
 		buildtime = 2000,
 		canmove = true,
-		collisionvolumeoffsets = "0 -3 0",
-		collisionvolumescales = "25 25 31",
+		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumescales = "25 26 31",
 		collisionvolumetype = "Ellipsoid",
 		corpse = "DEAD",
 		energycost = 900,
@@ -145,6 +145,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "EMGX",
+				fastquerypointupdate = true,
 				onlytargetcategory = "NOTSUB",
 			},
 		},

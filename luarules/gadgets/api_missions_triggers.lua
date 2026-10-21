@@ -111,7 +111,7 @@ function gadget:Initialize()
 		return
 	end
 
-	actionsDispatcher = VFS.Include("luarules/mission_api/actions_dispatcher.lua")
+	actionsDispatcher = require("luarules/mission_api/actions_dispatcher")
 	types = GG.MissionAPI.TriggerTypes
 	triggers = GG.MissionAPI.Triggers
 	trackedUnits = GG.MissionAPI.TrackedUnits

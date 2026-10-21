@@ -4,7 +4,7 @@
 
 piece  flare1, flare2, flare3, flare4, pad, base, nanorod_l, nano_l, nanorod_r, nano_r, radar, blink, cagelight1, cagelight1_emit;
 
-static-var  spray, Stunned;
+static-var  spray, Stunned, hasOpened;
 
 // Signal definitions
 #define SIGNAL_BUILD 2
@@ -27,6 +27,7 @@ Create()
 	spin radar around y-axis speed <120> accelerate <1>;
 	start-script Lights();
 	call-script DishSpin();
+	hasOpened = 0;
 }
 
 #define BASEPIECE base
@@ -75,17 +76,10 @@ Activate()
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	sleep 5000;
-	
-	turn nanorod_l to y-axis 0 speed <30>;
-	turn nanorod_r to y-axis 0 speed <30>;
-	
-	turn nano_l to z-axis 0 speed <30>;
-	turn nano_r to z-axis 0 speed <30>;
-	wait-for-turn nano_l around z-axis;
-	
+
 	FACTORY_CLOSE_BUILD;
 }
 

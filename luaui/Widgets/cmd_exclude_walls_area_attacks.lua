@@ -50,14 +50,14 @@ for id, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local function addNewCommand(newCmds, unitID, cmdOpts, cmdID)
+local function addNewCommand(newCmds, unitID, cmdOpts, cmdID, reissueOpts)
 	if #newCmds == 0 and not cmdOpts.shift then
 		-- Need to clear orders if not in shift, since just sending the first one
 		-- as not-shift would sometimes fail if that unit is in the end not valid
 		local stopCmd = (cmdID == CMD_ATTACK) and CMD_STOP or CMD_UNIT_CANCEL_TARGET
 		newCmds[1] = { stopCmd, {}, {} }
 	end
-	newCmds[#newCmds + 1] = { cmdID, unitID, CMD.OPT_SHIFT }
+	newCmds[#newCmds + 1] = { cmdID, unitID, reissueOpts }
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
@@ -66,6 +66,12 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 
 	if cmdID == CMD_ATTACK then
+		-- Ctrl on an area Attack is the engine's "remove matching queued attacks" (SelectAttackNet).
+		-- It adds no orders, so there is nothing to exclude walls from; leave it to the engine.
+		if cmdOpts.ctrl then
+			return false
+		end
+
 		-- Deterministic handoff: if limiter would kick in (non-bomber overflow),
 		-- do not consume this command so LuaRules areaattack limiter can process it.
 		local selectedUnits = spGetSelectedUnits()
@@ -81,6 +87,12 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 	end
 
+	-- Set Target with Ctrl marks the targets as sticky (they survive Stop). Keep it on the re-issued orders.
+	local reissueOpts = CMD.OPT_SHIFT
+	if cmdID == CMD_UNIT_SET_TARGET and cmdOpts.ctrl then
+		reissueOpts = reissueOpts + CMD.OPT_CTRL
+	end
+
 	local cmdX, _, cmdZ, cmdRadius = unpack(cmdParams)
 	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, Spring.ENEMY_UNITS)
 
@@ -91,9 +103,9 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		local unitDefID = spGetUnitDefID(unitID)
 
 		if not excludedUnitsDefID[unitDefID] then
-			addNewCommand(newCmds, unitID, cmdOpts, cmdID)
+			addNewCommand(newCmds, unitID, cmdOpts, cmdID, reissueOpts)
 		elseif not spGetUnitNeutral(unitID) then
-			addNewCommand(newCmds, unitID, cmdOpts, cmdID)
+			addNewCommand(newCmds, unitID, cmdOpts, cmdID, reissueOpts)
 		else
 			somethingWasExcluded = true
 		end

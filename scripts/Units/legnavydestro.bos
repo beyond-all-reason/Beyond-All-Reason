@@ -22,7 +22,8 @@ heatrayFlare,
 rightBubbles,
 leftBubbles,
 wake,
-frontWakeFlare;
+frontWakeFlare,
+turretcasingfirepoint;
 
 static-var  gun_1, restore_delay, aimDir1, aimDir2;
 static-var deltaheading, newchassisheading, chassisheading, restore_position;
@@ -260,11 +261,12 @@ AimWeapon2(heading, pitch)
 FireWeapon2()
 {
 	sleep 150;
+	return (1);
 }
 
 QueryWeapon2(piecenum)
 {
-	piecenum = turretCasing;
+	piecenum = turretcasingfirepoint;
 	return (0);
 }
 

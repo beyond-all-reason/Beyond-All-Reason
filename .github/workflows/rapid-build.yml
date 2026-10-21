@@ -37,10 +37,10 @@ jobs:
         run: |
           if [ -z "${PR_OR_BRANCH//[0-9]/}" ]; then
             commit="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_OR_BRANCH" --jq .head.sha)"
-            echo "branch=pr:$PR_OR_BRANCH" >> "$GITHUB_OUTPUT"
+            echo "branch=pr-$PR_OR_BRANCH" >> "$GITHUB_OUTPUT"
           else
             commit="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$PR_OR_BRANCH" --jq .object.sha)"
-            echo "branch=br:$PR_OR_BRANCH" >> "$GITHUB_OUTPUT"
+            echo "branch=br-$PR_OR_BRANCH" >> "$GITHUB_OUTPUT"
           fi
           echo "commit=$commit" >> "$GITHUB_OUTPUT"
       - uses: beyond-all-reason/rapid-hosting/action@main

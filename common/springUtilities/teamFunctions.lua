@@ -2,7 +2,7 @@ local smallTeamThreshold = 4
 local initialized = false
 local settings = {}
 
-local holidaysList = VFS.Include("common/holidays.lua")
+local holidaysList = require("common/holidays")
 
 local function getSettings()
 	if initialized then

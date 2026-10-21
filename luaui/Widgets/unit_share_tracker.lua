@@ -41,8 +41,8 @@ local mathAbs = math.abs
 local pairs = pairs
 local next = next
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
+local ROTATION = require("luaui/Include/minimap_utils").ROTATION
 
 ----------------------------------------------------------------
 -- config

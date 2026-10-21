@@ -21,7 +21,17 @@ local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local GetGroundNormal = Spring.GetGroundNormal
 local GetGameFrame = Spring.GetGameFrame
-local SendLuaRulesMsg = Spring.SendLuaRulesMsg
+-- Every message this widget sends changes the feature set, so it is also
+-- where the project learns it has unsaved changes (a project load's own
+-- messages are ignored by markDirty while the load runs).
+local SendLuaRulesMsg = function(msg)
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("features")
+	end
+	return Spring.SendLuaRulesMsg(msg)
+end
 local GetAllFeatures = Spring.GetAllFeatures
 local GetFeaturePosition = Spring.GetFeaturePosition
 local GetFeatureDefID = Spring.GetFeatureDefID
@@ -73,9 +83,9 @@ local PREVIEW_GHOST_CAP = 300
 
 -- Same generators the gadget used to run, moved widget-side so the preview can
 -- see them. See the header of that file for why.
-local Scatter = VFS.Include("common/feature_scatter.lua")
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
-local Gizmo = VFS.Include("luaui/Include/gizmo3d_gl4.lua")
+local BrushShapes = require("common/brush_shapes")
+local Gizmo = require("luaui/Include/gizmo3d_gl4")
+local Scatter = require("common/feature_scatter")
 
 local abs = math.abs
 local asin = math.asin
@@ -167,6 +177,7 @@ local CATEGORY_ORDER = {
 	"trees",
 	"foliage",
 	"crystals",
+	"osemo",
 	"christmas",
 	"raptor",
 	"armada_wrecks",
@@ -181,6 +192,7 @@ local CATEGORY_LABELS = {
 	trees = "Trees",
 	foliage = "Foliage",
 	crystals = "Crystals",
+	osemo = "Osemo",
 	christmas = "Christmas",
 	raptor = "Raptor",
 	armada_wrecks = "Armada Wrecks",
@@ -195,6 +207,11 @@ local function classifyFeature(name, def)
 	-- and both buried in Other made it easy to place the wrong one.
 	if def and def.geoThermal then
 		return "geo"
+	end
+
+	-- Blockout models (off-map backdrop layers) are set in SCENE > BLOCKOUT, not placed
+	if def and def.customParams and def.customParams.blockout then
+		return nil
 	end
 
 	-- Exclude debris and heaps entirely
@@ -213,6 +230,11 @@ local function classifyFeature(name, def)
 	-- Raptor items
 	if name:find("^raptor_egg") then
 		return "raptor"
+	end
+
+	-- Osemo planet kit (clusters, small trees, background rings)
+	if name:find("^osemo_") then
+		return "osemo"
 	end
 
 	-- Crystals
@@ -1832,7 +1854,7 @@ local function featureLoad(filename)
 		return
 	end
 
-	local fn, err = loadstring(content)
+	local fn, err = loadstring(content, nil, {})
 	if not fn then
 		Echo("[Feature Placer] Parse error: " .. tostring(err))
 		return
@@ -2215,8 +2237,8 @@ function widget:KeyPress(key, mods, isRepeat)
 		return true
 	end
 
-	-- Delete / Backspace removes the gizmo selection. The right mouse button
-	-- keeps its brush-erase meaning in every mode, as it does in the other tools.
+	-- Delete / Backspace removes the gizmo selection: the only way, besides the REMOVE
+	-- mode's brush, that features come off the map.
 	if (key == 0x7F or key == 0x08) and #gz.selection > 0 then
 		deleteSelection()
 		return true
@@ -2328,23 +2350,11 @@ function widget:MousePress(mx, my, button)
 		return true
 	end
 
-	-- Right-click removes features regardless of current mode
-	if button == 3 then
-		local worldX, worldZ = getWorldMousePosition()
-		if not worldX then
-			return false
-		end
-		if gridSnap then
-			worldX, worldZ = snapToGrid(worldX, worldZ)
-		end
-
-		fp.dragging = true
-		fp.dragAction = "remove"
-		fp.lockedWorldX = worldX
-		fp.lockedWorldZ = worldZ
-		fp.placeTimer = 0
-
-		sendRemoveMessage(worldX, worldZ)
+	-- Right-click lets go of what the asset library has picked, so the mouse is empty and
+	-- selects again (the UNITS tool does the same). It never removes: that is Delete on a
+	-- selection, or the REMOVE mode's brush.
+	if button == 3 and fp.mode ~= "remove" and #fp.selectedDefs > 0 then
+		clearSelectedFeatures()
 		return true
 	end
 

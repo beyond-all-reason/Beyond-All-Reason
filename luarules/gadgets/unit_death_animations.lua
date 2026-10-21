@@ -23,10 +23,14 @@ local spMoveCtrlEnable = Spring.MoveCtrl.Enable
 local spMoveCtrlDisable = Spring.MoveCtrl.Disable
 local spMoveCtrlSetVelocity = Spring.MoveCtrl.SetVelocity
 local hasDeathAnim = {}
+-- only builders need the stop: they keep building their current target while dying, other units are
+-- frozen by MoveCtrl and dead units' weapons are off, so a stop there only fans out command callins
+local stopWhenDying = {}
 for udid, ud in pairs(UnitDefs) do
 	-- almost all raptors have dying anims
 	if ud.customParams.hasdeathanimation or ud.customParams.israptor then
 		hasDeathAnim[udid] = true
+		stopWhenDying[udid] = ud.isBuilder
 	end
 end
 
@@ -42,7 +46,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	if hasDeathAnim[unitDefID] then
 		spSetUnitBlocking(unitID, false) -- non blocking while dying
 		spSetUnitIconDraw(unitID, false) -- dont draw icons
-		spGiveOrderToUnit(unitID, CMD_STOP, 0, 0)
+		if stopWhenDying[unitDefID] then
+			spGiveOrderToUnit(unitID, CMD_STOP, 0, 0)
+		end
 		spMoveCtrlEnable(unitID)
 		spMoveCtrlSetVelocity(unitID, 0, 0, 0)
 		dyingUnits[unitID] = true
