@@ -77,7 +77,6 @@ local clamp = math.clamp
 
 local scavTeamID = BAR.Utilities.GetScavTeamID()
 local gaiaTeamID = spring.GetGaiaTeamID()
-local gaiaAllyTeamID = select(6, spring.GetTeamInfo(gaiaTeamID))
 
 local zombieModeSettings = {
 	spawnCountMinimum = 2,
@@ -147,7 +146,6 @@ local GHOST = {
 	SPAWN_CHECK_INTERVAL = Game.gameSpeed,
 	SPAWN_ATTEMPT_COUNT = 3,
 	SPAWN_OFFSET_DISTANCE = 100,
-	ENEMY_REJECTION_DISTANCE = 300,
 	MAX_COUNT = Game.mapSizeX / 1024 + Game.mapSizeZ / 1024, -- Scalable to ensure there isn't too many or too few apparitions at any time.
 	SUBSTITUTE_ROLL_COUNT = 2,
 }
@@ -865,8 +863,9 @@ local function createGhost(spawnX, spawnZ)
 
 	local ghostX = clamp(spawnX, GHOST.MAP_MARGIN, Game.mapSizeX - GHOST.MAP_MARGIN)
 	local ghostZ = clamp(spawnZ, GHOST.MAP_MARGIN, Game.mapSizeZ - GHOST.MAP_MARGIN)
+	local ghostY = spring.GetGroundHeight(ghostX, ghostZ)
 	local unitID =
-		spring.CreateUnit(ghostMistUnitDefID, ghostX, spring.GetGroundHeight(ghostX, ghostZ), ghostZ, 0, gaiaTeamID)
+		spring.CreateUnit(ghostMistUnitDefID, ghostX, ghostY, ghostZ, 0, gaiaTeamID)
 	if not unitID then
 		return nil
 	end
@@ -880,6 +879,9 @@ local function createGhost(spawnX, spawnZ)
 	end
 
 	trackGhost(unitID, gameFrame + GHOST.SAFE_TIME, gameFrame + GHOST.EXPIRATION_TIME, gameFrame)
+	if GG.ZombieAI then
+		GG.ZombieAI.CommandGhost(unitID, ghostMistUnitDefID, ghostX, ghostY, ghostZ)
+	end
 	return unitID
 end
 
@@ -1439,17 +1441,6 @@ local function activateDueWarnings(frame)
 	end
 end
 
-local function isEnemyTooClose(positionX, positionY, positionZ)
-	return spring.GetClosestEnemyUnit(
-		positionX,
-		positionY,
-		positionZ,
-		GHOST.ENEMY_REJECTION_DISTANCE,
-		gaiaAllyTeamID,
-		false
-	) and true or false
-end
-
 local function spawnCorpseWarnings(frame)
 	for featureID in pairs(warningCorpses) do
 		local featureData = corpsesData[featureID]
@@ -1542,11 +1533,8 @@ function gadget:FeatureDestroyed(featureID, allyTeam)
 	local corpseData = corpsesData[featureID]
 	if corpseData and not wasCorpseReclaimedOrResurrected(featureID) then
 		local corpseDefData = zombieCorpseDefs[corpseData.featureDefID]
-		local featureX = corpseData.x
-		local featureZ = corpseData.z
-		local featureY = spring.GetGroundHeight(featureX, featureZ)
-		if corpseDefData and not isEnemyTooClose(featureX, featureY, featureZ) then
-			feedGhostQueue(corpseDefData.unitDefID, featureX, featureZ, corpseData.wasZombie)
+		if corpseDefData then
+			feedGhostQueue(corpseDefData.unitDefID, corpseData.x, corpseData.z, corpseData.wasZombie)
 		end
 	end
 	clearCorpseRezRulesParam(featureID)

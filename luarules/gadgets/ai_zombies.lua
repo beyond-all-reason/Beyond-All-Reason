@@ -35,6 +35,7 @@ local STUCK_CHECK_INTERVAL = Game.gameSpeed * 12
 local AGGRO_CHECK_INTERVAL = Game.gameSpeed * 30
 local AGGRO_DURATION = Game.gameSpeed * 60
 local AGGRO_MIN_START_FRAME = Game.gameSpeed * 60 * 15
+local GHOST_ORDER_COOLDOWN = Game.gameSpeed * 5
 
 local STUCK_DISTANCE = 50
 local STUCK_DISTANCE_SQUARED = STUCK_DISTANCE ^ 2
@@ -1277,6 +1278,7 @@ local function getGhostData(unitID, unitDefID)
 		ghostData = {
 			unitDefID = unitDefID,
 			noGoZones = {},
+			nextOrderFrame = 0,
 		}
 		setRandomEdgeObjective(ghostData)
 		ghostWatch[unitID] = ghostData
@@ -1288,22 +1290,25 @@ local function commandGhost(unitID, unitDefID, ghostX, ghostY, ghostZ)
 	local ghostData = getGhostData(unitID, unitDefID)
 	local nearestEnemyID =
 		spGetClosestEnemyUnit(ghostX, ghostY, ghostZ, ENEMY_ATTACK_DISTANCE, gaiaAllyTeamID, false)
+	local enemyX, enemyZ
 	local enemyWithinRadius = false
-	local objectiveRegenerated = false
 	if nearestEnemyID then
-		local enemyX, _, enemyZ = spGetUnitPosition(nearestEnemyID)
+		enemyX, _, enemyZ = spGetUnitPosition(nearestEnemyID)
 		if enemyX then
 			enemyWithinRadius = distance2dSquared(ghostX, ghostZ, enemyX, enemyZ) <= GHOST_ENEMY_RADIUS_SQUARED
-			if nearestEnemyID ~= ghostData.threatTargetID then
-				objectiveRegenerated =
-					setEnemyDirectionObjective(unitID, ghostData, enemyX, enemyZ, ENEMY_DIRECTION_AWAY)
-			end
 		end
 	end
+	if gameFrame < ghostData.nextOrderFrame then -- delay issuing new orders so it has a chance to escape from the midst of the enemy
+		return enemyWithinRadius
+	end
+	local objectiveRegenerated = enemyX
+		and nearestEnemyID ~= ghostData.threatTargetID
+		and setEnemyDirectionObjective(unitID, ghostData, enemyX, enemyZ, ENEMY_DIRECTION_AWAY)
 	ghostData.threatTargetID = nearestEnemyID
 	local objective, objectiveChanged = ensureMovementObjective(unitID, ghostData)
 	if objectiveRegenerated or objectiveChanged or spGetUnitCurrentCommand(unitID) ~= getMovementCommand(unitDefID) then
 		issueObjectiveMove(unitID, unitDefID, ghostData, objective)
+		ghostData.nextOrderFrame = gameFrame + GHOST_ORDER_COOLDOWN
 	end
 	return enemyWithinRadius
 end
