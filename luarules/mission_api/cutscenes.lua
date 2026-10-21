@@ -2,6 +2,8 @@
 --- Cutscenes: a game pause while a video plays, or a scripted control session.
 ---
 
+local SYNC_ACTION_SKIPPABLE = "MissionCutsceneSkippable"
+
 -- STUB: Scripted control where units act out a script under Lua control is not implemented.
 local function startScriptedControl(scriptID)
 	Spring.Log(
@@ -13,10 +15,17 @@ end
 
 -- A replaced video still calls onVideoFinished, so count the videos and unpause after the last one ends.
 local playingVideoCount = 0
+local skippablePlayback = false
+
+local function setCanSkip(skippable)
+	skippablePlayback = skippable
+	SendToUnsynced(SYNC_ACTION_SKIPPABLE, skippable)
+end
 
 local function onVideoFinished()
 	playingVideoCount = playingVideoCount - 1
 	if playingVideoCount == 0 then
+		setCanSkip(false)
 		GG.GamePause.Unpause("cutscene")
 	end
 end
@@ -32,6 +41,7 @@ local function startCutscene(cutsceneID, skippable)
 		end
 
 		playingVideoCount = playingVideoCount + 1
+		setCanSkip(skippable == true)
 		GG.GamePause.Pause("cutscene")
 		GG.VideoPlayback.Play(cutscene.videoFile, onVideoFinished, skippable)
 	else
@@ -40,7 +50,7 @@ local function startCutscene(cutsceneID, skippable)
 end
 
 local function skipCutscene()
-	if playingVideoCount > 0 then
+	if skippablePlayback and playingVideoCount > 0 then
 		GG.VideoPlayback.Stop()
 	end
 end
