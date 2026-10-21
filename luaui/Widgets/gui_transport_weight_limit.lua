@@ -210,7 +210,7 @@ function widget:RecvLuaMsg(msg)
 end
 
 function widget:DrawWorldPreUnit()
-	if chobbyInterface then
+	if chobbyInterface or not widgetHandler:ModalAllows(widget) then
 		return
 	end
 
