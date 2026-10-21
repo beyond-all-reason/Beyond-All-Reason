@@ -56,6 +56,7 @@ local metalMap = false
 local buildCmd = {}
 
 -- Pre-allocated reusable tables to avoid per-update allocations
+---@type { x: number, y: number, z: number }
 local reusePos = { x = 0, y = 0, z = 0 }
 local reuseCmdPos = { 0, 0, 0 }
 local reuseUnitShape = { 0, 0, 0, 0, 0, 0 }
@@ -75,6 +76,7 @@ local function unitIsCloaked(uDefId)
 	return isCloakableBuilder[spGetUnitDefID(uDefId)] and select(5, spGetUnitStates(uDefId, false, true))
 end
 
+---@type table
 local spotFinder
 local spotBuilder
 
