@@ -243,10 +243,11 @@ _G.VFS.SubDirs = function(path)
 	-- Let's assume the input path might be wrong casing.
 
 	-- Simple heuristic: try to find the directory case-insensitively if it doesn't exist
-	local searchPath = path
+	local searchPath = nil
 	local handle = io.open(path)
 	if handle then
 		handle:close()
+		searchPath = path
 	else
 		-- Try to find matching directory
 		local parent = path:match("(.+)/[^/]+$") or "."
@@ -254,17 +255,18 @@ _G.VFS.SubDirs = function(path)
 		if base then
 			local pHandle = io.popen(string.format("find %s -maxdepth 1 -type d -iname '%s'", parent, base))
 			if pHandle then
-				local match = pHandle:read("*l")
-				if match then
-					searchPath = match
-				end
+				searchPath = pHandle:read("*l")
 				pHandle:close()
 			end
 		end
 	end
 
 	local dirs = {}
-	local handle = io.popen(string.format("find %s -maxdepth 1 -type d 2>/dev/null", searchPath))
+	-- a directory that is not there has no subdirectories, the engine returns an empty list
+	if not searchPath then
+		return dirs
+	end
+	local handle = io.popen(string.format("find %s -maxdepth 1 -type d", searchPath))
 	if handle then
 		for line in handle:lines() do
 			if line ~= searchPath then

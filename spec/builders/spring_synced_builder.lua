@@ -484,14 +484,32 @@ function SB:BuildSpring()
 			return true, amount
 		end,
 
+		-- as the engine: the amount is clamped to the storage, setting the storage clamps the amount,
+		-- and a key it does not know is ignored
 		SetTeamResource = function(teamID, resourceType, value)
-			local store = getResourceStore(teamID, resourceType)
-			store.current = math.max(0, value)
+			local team = ensureTeam(teamID)
+			value = math.max(0, value)
+			if resourceType == "m" or resourceType == "metal" then
+				team.metal.current = math.min(team.metal.storage, value)
+			elseif resourceType == "e" or resourceType == "energy" then
+				team.energy.current = math.min(team.energy.storage, value)
+			elseif resourceType == "ms" or resourceType == "metalStorage" then
+				team.metal.storage = value
+				team.metal.current = math.min(team.metal.current, value)
+			elseif resourceType == "es" or resourceType == "energyStorage" then
+				team.energy.storage = value
+				team.energy.current = math.min(team.energy.current, value)
+			end
 		end,
 
+		-- as the engine: the excess accumulates over the frame, the type is read from its first letter
 		AddTeamResourceExcessStats = function(teamID, resourceType, excess)
-			local store = getResourceStore(teamID, resourceType)
-			store.excess = math.max(0, excess or 0)
+			local team = ensureTeam(teamID)
+			local rtype = resourceType:sub(1, 1)
+			local store = (rtype == "m" and team.metal) or (rtype == "e" and team.energy)
+			if store then
+				store.excess = (store.excess or 0) + math.max(0, excess)
+			end
 		end,
 
 		ValidUnitID = function(unitID)
