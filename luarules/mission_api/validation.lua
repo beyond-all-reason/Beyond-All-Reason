@@ -436,6 +436,27 @@ validators[Types.Direction] = function(direction)
 	end
 end
 
+validators[Types.Color] = function(color)
+	local luaTypeResult = validators[Types.Table](color)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	local result = {}
+	for _, field in ipairs({ "r", "g", "b" }) do
+		local value = color[field]
+		local fieldResult = validateField(value, field, "number")
+		if not fieldResult and value < 0 then
+			fieldResult = { message = "Color channel must be >= 0, got " .. value, parameterNameSuffix = "." .. field }
+		end
+		if fieldResult then
+			result[#result + 1] = fieldResult
+		end
+	end
+
+	return result
+end
+
 local function getValidatorFromEnumSetSpec(enumSetName, enumSetList)
 	local valueSet = parameterTypes.Enums[enumSetName]
 	local allowedList = "'" .. table.concat(enumSetList, "', '") .. "'"
@@ -674,6 +695,22 @@ validators[Types.VideoFile] = function(videoFile)
 	end
 end
 
+-- Whether it is a cubemap is only known once the texture loads, in api_map_lighting.lua.
+validators[Types.SkyboxFile] = function(skyboxFile)
+	local luaTypeResult = validators[Types.String](skyboxFile)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not skyboxFile:lower():match("%.dds$") then
+		return { { message = "Invalid skyboxFile: " .. skyboxFile .. ". Expected a .dds cubemap" } }
+	end
+
+	if not VFS.FileExists(skyboxFile) then
+		return { { message = "Invalid skyboxFile: " .. skyboxFile .. ". File does not exist" } }
+	end
+end
+
 --- Number Validators:
 
 validators[Types.Quantity] = function(quantity)
@@ -706,6 +743,17 @@ validators[Types.Fraction] = function(fraction)
 
 	if fraction < 0.0 or fraction > 1.0 then
 		return { { message = "Fraction must be between 0 and 1, got " .. fraction } }
+	end
+end
+
+validators[Types.TimeOfDay] = function(hour)
+	local luaTypeResult = validators[Types.Number](hour)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if hour < 0 or hour > 24 then
+		return { { message = "TimeOfDay must be an hour from 0 to 24, got " .. hour } }
 	end
 end
 
