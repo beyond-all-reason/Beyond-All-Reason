@@ -35,6 +35,7 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 
 ### Fixes
 
+- SURFACE undo and redo (Ctrl+Z, Ctrl+Shift+Z) work again. Since 1.17 the editor's key gate offered keys only to the suite's own tools, and the SURFACE painter ships with the tileset shader, so its strokes could not be undone from the keyboard (reported by Moose).
 - **FEATURES no longer gets stuck in selection mode** (Moose). A right click on the map lets go of the asset library's picks, but the library kept those tiles lit, so it looked picked while a left click drew the selection box. The tiles now follow the picks, and only a right click lets go of them, not a right drag.
 - **Symmetric clone pastes turn each copy.** Radial copies all faced one way and mirror copies were turned instead of reflected, in the preview and in the paste.
 - The clone Copy button stays live after a copy, like Ctrl+C, and Shift+Scroll on the height offset stops at 500 like the slider.
