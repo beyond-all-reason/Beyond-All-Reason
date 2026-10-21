@@ -2394,8 +2394,8 @@ local function CollectOrderTargets(targets, seen, aimUnits, cmdID)
 		local commandCount = min(spGetUnitCommandCount(unitID) or 0, queueDepth)
 		for c = 1, commandCount do
 			local id, _, _, px, _, pz, radius = spGetUnitCurrentCommand(unitID, c)
-			-- 3 params is a ground position; 1 param is a unit, 4 params an area attack
-			if id == cmdID and pz and not radius then
+			-- Ground clicks may include a fourth parameter with zero radius.
+			if id == cmdID and pz and (not radius or radius == 0) then
 				AddOrderTarget(targets, seen, weaponInfos, unitID, px, pz, c == 1)
 			end
 		end
