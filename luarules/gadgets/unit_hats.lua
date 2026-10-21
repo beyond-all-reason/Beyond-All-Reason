@@ -643,7 +643,7 @@ function gadget:GameFrame(gf)
 
 						if #candidates > 0 then
 							local cosmetic = candidates[math.random(1, #candidates)]
-							
+
 							if cosmetic.implementation == "unit" then
 								local units = spGetTeamUnits(teamID) or {}
 								for k = 1, #units do
