@@ -552,6 +552,17 @@ validators[Types.FeatureDefName] = function(featureDefName)
 	end
 end
 
+validators[Types.TeamName] = function(teamName)
+	local luaTypeResult = validators[Types.String](teamName)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not GG["MissionAPI"].Teams[teamName] then
+		return { { message = "Invalid teamName: " .. teamName } }
+	end
+end
+
 validators[Types.Facing] = function(facing)
 	local expectedTypes = { string = true, number = true }
 	local actualType = type(facing)
@@ -1943,6 +1954,30 @@ local function validateAttributeActions(actions)
 	end
 end
 
+-- Recoil cannot move an AI to another team, so ChangeTeam moves only the players of oldTeam.
+local function validateChangeTeamActions(actionTypes, actions)
+	local teams = GG["MissionAPI"].Teams
+	for actionID, action in pairs(actions) do
+		if action.type == actionTypes.ChangeTeam then
+			for _, oldTeamName in ipairs(possibleValues(action.parameters and action.parameters.oldTeam)) do
+				local oldTeamID = type(oldTeamName) == "string" and teams[oldTeamName]
+				if oldTeamID then
+					local _, _, _, hasAI = Spring.GetTeamInfo(oldTeamID, false)
+					---@cast hasAI +boolean
+					if hasAI then
+						logWarn(
+							"ChangeTeam moves players only, the AI of team '"
+								.. oldTeamName
+								.. "' stays. Action: "
+								.. actionID
+						)
+					end
+				end
+			end
+		end
+	end
+end
+
 local function addCutsceneReferences(referencedCutsceneIDs, parameters, label)
 	for _, cutsceneID in ipairs(possibleValues(parameters and parameters.cutsceneID)) do
 		if type(cutsceneID) == "string" then
@@ -2015,6 +2050,7 @@ local function validateReferences()
 	validateCutsceneReferences(objectives, triggers, actions, cutscenes)
 	validateLoadouts(unitLoadout, featureLoadout)
 	validateAttributeActions(actions)
+	validateChangeTeamActions(actionTypes, actions)
 end
 
 return {

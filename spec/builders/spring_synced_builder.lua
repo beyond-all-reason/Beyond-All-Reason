@@ -33,6 +33,7 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 ---@field sendCommands table
 ---@field destroyFeature table
 ---@field destroyUnit table
+---@field assignPlayerToTeam table
 
 ---@class SpringSyncedBuilder : SpringSyncedMock
 ---@field modOptions table
@@ -275,6 +276,7 @@ function SB:BuildSpring()
 	local sendCommandsCalls = {}
 	local destroyFeatureCalls = {}
 	local destroyUnitCalls = {}
+	local assignPlayerCalls = {}
 
 	---@type SpringSyncedMock
 	local mock = {
@@ -425,6 +427,7 @@ function SB:BuildSpring()
 			sendCommands = sendCommandsCalls,
 			destroyFeature = destroyFeatureCalls,
 			destroyUnit = destroyUnitCalls,
+			assignPlayerToTeam = assignPlayerCalls,
 		},
 		clearResourceCalls = function()
 			for i = #addCalls, 1, -1 do
@@ -449,6 +452,7 @@ function SB:BuildSpring()
 				sendCommandsCalls,
 				destroyFeatureCalls,
 				destroyUnitCalls,
+				assignPlayerCalls,
 			}
 			for i = 1, #tracked do
 				local list = tracked[i]
@@ -593,6 +597,10 @@ function SB:BuildSpring()
 
 		GameOver = function(winners)
 			table.insert(gameOverCalls, winners)
+		end,
+
+		AssignPlayerToTeam = function(playerID, teamID)
+			table.insert(assignPlayerCalls, { playerID = playerID, teamID = teamID })
 		end,
 
 		SpawnExplosion = function(x, y, z, dx, dy, dz, params)
