@@ -74,10 +74,15 @@ end
 ---@field teams table<integer|string, string|integer> team ID to name, and name to team ID
 ---@field allyTeams table<integer|string, string|integer> allyteam ID to name, and name to allyteam ID
 ---@field dummyTeams table<integer, integer> allyteam ID to its dummy team ID
+---@field editorMode boolean no trigger or action runs until /luarules editormode off
 
 local missionOptions = readMissionOptions()
 if missionOptions == nil or missionOptions.entryPoint == nil then
 	return
+end
+
+if missionOptions.editorMode ~= nil and type(missionOptions.editorMode) ~= "boolean" then
+	Spring.Log("game_setup.lua", LOG.WARNING, "[Mission API] editorMode is not a boolean, the mission runs")
 end
 
 local teamNames, dummyTeams = readTeams()
@@ -93,4 +98,5 @@ return {
 	teams = toReversibleMap(teamNames),
 	allyTeams = toReversibleMap(allyTeamNames),
 	dummyTeams = dummyTeams,
+	editorMode = missionOptions.editorMode == true,
 }

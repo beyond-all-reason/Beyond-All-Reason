@@ -95,6 +95,25 @@ describe("mission_api.game_setup", function()
 			assert.are.equal("Hard", readGameSetup().difficulty)
 		end)
 
+		it("is in editor mode only when editorMode is true", function()
+			local function editorModeFor(json)
+				withGameSetup({
+					modOptions = { missionoptions = encodeMissionOptions(json) },
+					teams = { [0] = { allyTeam = 0, keys = { name = "player" } } },
+					allyTeams = { [0] = { keys = { name = "goodies" } } },
+				})
+				return readGameSetup().editorMode
+			end
+
+			assert.is_true(editorModeFor([[{"entryPoint":"mission.lua","editorMode":true}]]))
+			assert.is_false(editorModeFor([[{"entryPoint":"mission.lua"}]]))
+			assert.are.equal(0, #logged)
+
+			assert.is_false(editorModeFor([[{"entryPoint":"mission.lua","editorMode":"true"}]]))
+			assert.are.equal(1, #logged)
+			assert.are.equal(LOG.WARNING, logged[1].level)
+		end)
+
 		it("gives empty options and variables when missionoptions has none", function()
 			withGameSetup({
 				modOptions = { missionoptions = encodeMissionOptions([[{"entryPoint":"mission.lua"}]]) },

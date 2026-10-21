@@ -29,6 +29,17 @@ Nothing here works outside this sequence, so keep it in mind when something read
 Module and definition files run at include time and read `GG['MissionAPI']` directly. Never add a load-time read of
 something registered later in that sequence; move it into a function or into `Initialize()`.
 
+## Mission start
+
+`api_missions_triggers.lua` `GamePreload()` spawns the unit and feature loadouts and activates the initial stage, then
+`GameStart` dispatches `MissionStarted` and adds the TimeElapsed countdowns.
+
+With `editorMode = true` in missionoptions, no trigger call-in is dispatched and no trigger activates: the mission is
+loaded but not plugged in, while the game runs. `/luarules editormode off`, from a player who could release a game
+pause (see `api_game_pause.lua`), plugs it in: the loadout, the initial stage, then `GameStart` as above. Statistics
+keep counting in editor mode and detections carry over to the first frame after it. The game rules param
+`missionEditorMode` is 1 in editor mode. A saved game is never in editor mode.
+
 ## Type IDs are directory-order integers
 
 `triggers_loader` assigns each trigger type an integer from `ipairs(VFS.DirList(...))`; `actions_loader` does the

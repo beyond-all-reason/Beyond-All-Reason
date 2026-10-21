@@ -1,5 +1,5 @@
 ---
---- Loadout spawning logic used in :GamePreload() and the SpawnUnits and CreateFeatures actions.
+--- Loadout spawning logic used when the mission starts and in the SpawnUnits and CreateFeatures actions.
 ---
 
 local tracking = GG["MissionAPI"].Modules.Tracking

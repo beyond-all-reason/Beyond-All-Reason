@@ -77,6 +77,7 @@ function gadget:Initialize()
 	GG["MissionAPI"].Teams = gameSetup.teams
 	GG["MissionAPI"].AllyTeams = gameSetup.allyTeams
 	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
+	GG["MissionAPI"].EditorMode = gameSetup.editorMode
 	GG["MissionAPI"].trackedUnitIDs = {}
 	GG["MissionAPI"].trackedUnitNames = {}
 	GG["MissionAPI"].trackedFeatureIDs = {}
@@ -120,14 +121,6 @@ function gadget:Initialize()
 	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
 
 	loadMission(gameSetup)
-end
-
-function gadget:GamePreload()
-	local loadoutModule = GG["MissionAPI"].Modules.Loadout
-	loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
-	loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
-
-	GG["MissionAPI"].Modules.Objectives.ActivateStage(GG["MissionAPI"].CurrentStageID)
 end
 
 function gadget:GameFrame(frameNumber)
