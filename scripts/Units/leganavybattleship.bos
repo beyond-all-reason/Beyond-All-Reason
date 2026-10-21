@@ -1523,9 +1523,9 @@ Create()
 	aimy1position = 0;
 	aimy1target = 0;
 	aimy1delta = 0;
-    inWaterForm = 1;
+	isInWater = ((get GROUND_WATER_HEIGHT(get UNIT_XZ)) <-270000);
+	inWaterForm = isInWater;
 	justCreated = 1;
-	isInWater = 1;
 	isMoving = FALSE;
 	animSpeed = 6;
 	whichBarrel = 0;
@@ -1540,6 +1540,7 @@ Create()
 	turn cellRotation1 to z-axis <-15> now;
 
 	// CLOSE IT IMMEDIATELY
+	if (isInWater) {
 		// set-signal-mask SIGNAL_AIM1;
 		move base to y-axis [-25] now;
 		move legJointPivotRR to z-axis [0] now;
@@ -1601,7 +1602,7 @@ Create()
 		move legJointPivotFR to x-axis [-18] 	now;
 		move legJointPivotRL to x-axis [18] 	now;
 		move legJointPivotRR to x-axis [-18] 	now;
-
+	}
 
 	restore_delay = 3000;	
 	SLEEP_UNTIL_UNITFINISHED;
