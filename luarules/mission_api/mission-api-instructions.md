@@ -149,7 +149,8 @@ breaking change to both the function and every mission using it.
   Anything else **synthesises** a trigger `__objective_<objectiveID>` and an action `__updateObjective_<objectiveID>`
   into the raw tables. Adding or removing a `Quantity` parameter from a trigger silently moves every objective using
   it between those two paths.
-- Those `__` prefixes are reserved; mission scripts must not define IDs that collide.
+- Those `__` prefixes are reserved; mission scripts must not define IDs that collide. So is `__timeElapsed_`:
+  each TimeElapsed trigger runs on a hidden countdown `__timeElapsed_<triggerID>`, added when the mission starts.
 - Stage membership comes from `Stages[stageID].objectives`, and is copied onto the synthesised trigger's
   `settings.stages`. `stages_loader` is otherwise a pass-through.
 - `objective.textKey` is an I18N key, but there is currently **no LuaUI consumer** — `objectives.lua` only
