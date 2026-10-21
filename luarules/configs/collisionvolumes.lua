@@ -156,6 +156,7 @@ local COLVOL_AXIS = { X = 0, Y = 1, Z = 2 } ---@type table<string, VolumeAxisInd
 ---@field off UnitCollisionVolumeData
 
 ---@class ColVolPieceMap
+---@field bounding? UnitCollisionVolumeData the unit volume for bounding the pieces
 ---@field [integer] PieceCollisionVolumeData Keyed by the index the piece setter takes. Written from 0, shifted at load.
 ---@field offsets? number[] unit-space aimpoint offsets, `{ x, y, z }`
 
@@ -226,26 +227,32 @@ dynamicPieceCollisionVolume.legdtr = {
 }
 dynamicPieceCollisionVolume.armannit3 = {
 	on = {
+		bounding = { 96, 140, 96, 0, -8.25, 0, 2, 1, 1 },
 		[1] = { 96, 140, 96, 0, 5, 0, 2, 1 },
 	},
 	off = {
+		bounding = { 100, 83, 100, 0, -42.5, 0, 2, 1, 1 },
 		[0] = { 100, 83, 100, 0, 23.5, 0, 2, 1 },
 	},
 }
 dynamicPieceCollisionVolume.cordoomt3 = {
 	on = {
+		bounding = { 112, 180, 112, 0, 20.25, 0, 1, 1, 1 },
 		[1] = { 112, 180, 112, 0, 5, 0, 1, 1 },
 	},
 	off = {
+		bounding = { 112, 171.6, 112, 0, 2.8, 0, 1, 1, 1 },
 		[0] = { 112, 171.6, 112, 0, 67.8, 0, 1, 1 },
 	},
 }
 dynamicPieceCollisionVolume.leganavybattleship = {
 	on = {
+		bounding = { 48, 48, 120, 0, 0.5, -1, 1, 1, 2 },
 		[1] = { 48, 48, 120, 0, 0, -53, 1, 2 },
 		offsets = { 0, 30, 0 },
 	},
 	off = {
+		bounding = { 48, 48, 120, 0, -24.5, -1, 1, 1, 2 },
 		[1] = { 48, 48, 120, 0, 0, -53, 1, 2 },
 		offsets = { 0, 0, 0 },
 	},
@@ -262,10 +269,12 @@ dynamicPieceCollisionVolume.legacluster = {
 }
 dynamicPieceCollisionVolume.legapopupdef = {
 	on = {
+		bounding = { 44, 44, 44, 0, -2.9, 0, 1, 1, 1 },
 		[0] = { 44, 44, 44, 0, 16.3, 0, 1, 1 },
 		offsets = { 0, 18, 0 },
 	},
 	off = {
+		bounding = { 42, 42, 42, 0, -19.2, 0, 3, 1, 1 },
 		[0] = { 42, 42, 42, 0, 0, 0, 3, 1 },
 		offsets = { 0, 10, 0 },
 	},
