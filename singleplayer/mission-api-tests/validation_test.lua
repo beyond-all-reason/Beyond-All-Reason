@@ -255,6 +255,14 @@ local actions = {
 		},
 	},
 
+	actionWithInvalidTeamNames = {
+		type = actionTypes.ChangeTeam,
+		parameters = {
+			oldTeam = 0,                  -- error: team names are strings
+			newTeam = 'invalidTeamName',  -- error: no team has this name
+		},
+	},
+
 	actionWithInvalidOrders = {
 		type = actionTypes.IssueOrders,
 		parameters = {

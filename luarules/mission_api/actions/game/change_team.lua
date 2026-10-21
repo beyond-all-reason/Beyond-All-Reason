@@ -5,16 +5,6 @@ local function changeTeam(oldTeamName, newTeamName)
 	local teams = GG["MissionAPI"].Teams
 	local oldTeamID, newTeamID = teams[oldTeamName], teams[newTeamName]
 
-	local _, _, _, hasAI = Spring.GetTeamInfo(oldTeamID, false)
-	---@cast hasAI +boolean
-	if hasAI then
-		Spring.Log(
-			"change_team.lua",
-			LOG.WARNING,
-			"[Mission API] ChangeTeam moves players only, the AI of team '" .. oldTeamName .. "' stays"
-		)
-	end
-
 	for _, playerID in ipairs(Spring.GetPlayerList(oldTeamID) or {}) do
 		Spring.AssignPlayerToTeam(playerID, newTeamID)
 	end
