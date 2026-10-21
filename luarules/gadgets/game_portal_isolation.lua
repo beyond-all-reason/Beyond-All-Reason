@@ -110,7 +110,7 @@ function gadget:Initialize()
 		DeleteProjectile = Delete,
 		ProjectilePositionAllowed = function(id, x, z)
 			local p = projectiles[id]
-			return p and not p.deleted and p.region ~= nil and world.Region(x, z) == p.region
+			return p and not p.deleted and p.region ~= nil and world.ContainsObject(p.region, x, z)
 		end,
 		UnitRegion = UnitRegion,
 		Region = world.Region,
@@ -143,7 +143,7 @@ function gadget:ProjectileCreated(id, owner, weapon)
 	projectiles[id] = { region = region, owner = owner, weapon = weapon }
 	-- Lua gadgets may set the target immediately after SpawnProjectile returns.
 	-- Validate it on the next frame, after that initialization has completed.
-	if not region or positionRegion ~= region then
+	if not world.ContainsObject(region, x, z) then
 		Delete(id)
 	end
 end
@@ -169,13 +169,13 @@ function gadget:GameFrame(f)
 			end
 		elseif not p.deleted then
 			local x, _, z = Spring.GetProjectilePosition(id)
-			if not x or not z or world.Region(x, z) ~= p.region then
+			if not x or not z or not world.ContainsObject(p.region, x, z) then
 				Delete(id)
 			else
 				local vx, _, vz = Spring.GetProjectileVelocity(id)
-				-- Remove before a fast projectile can cross a boundary during the
+				-- Remove before a fast projectile can leave its flight margin during the
 				-- next simulation step and deform or spawn effects on another map.
-				if vx and vz and world.Region(x + vx, z + vz) ~= p.region then
+				if vx and vz and not world.ContainsObject(p.region, x + vx, z + vz) then
 					Delete(id)
 				else
 					local target = TargetRegion(id)

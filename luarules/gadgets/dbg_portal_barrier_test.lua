@@ -100,7 +100,7 @@ function gadget:GameFrame(f)
 		if f == start + 90 then
 			Check("air_cannot_cross_without_portal_" .. index, GG.PortalWorlds.home[c.air] == c.a and (function()
 				local ax, _, az = Spring.GetUnitPosition(c.air)
-				return world.Region(ax, az) == c.a
+				return world.ContainsObject(c.a, ax, az)
 			end)())
 			local lx, _, lz = Spring.GetUnitPosition(c.localWalker)
 			Check("local_path_works_" .. index, (lx - c.localX) ^ 2 + (lz - c.localZ) ^ 2 < 64 ^ 2)
