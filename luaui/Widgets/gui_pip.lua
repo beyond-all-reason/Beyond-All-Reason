@@ -25592,10 +25592,19 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 end
 
 function widget:DefaultCommand()
-	if uiState.inMinMode then
+	if uiState.inMinMode or miscState.apiInteractionLocked or Spring.IsGUIHidden() then
 		return
 	end
-	local mx, my = spFunc.GetMouseState()
+	if isMinimapMode and miscState.minimapMinimized then
+		return
+	end
+	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then
+		return
+	end
+	local mx, my, _, _, _, _, cameraPanMode = spFunc.GetMouseState()
+	if cameraPanMode then
+		return
+	end
 	if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 		local wx, wz = PipToWorldCoords(mx, my)
 		local uID = GetUnitAtPoint(wx, wz)
