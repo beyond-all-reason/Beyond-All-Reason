@@ -229,7 +229,7 @@ dynamicPieceCollisionVolume.armannit3 = {
 		[1] = { 96, 140, 96, 0, 5, 0, 2, 1 },
 	},
 	off = {
-		[0] = { 96, 80, 96, 0, 10, 0, 2, 1 },
+		[0] = { 100, 83, 100, 0, 23.5, 0, 2, 1 },
 	},
 }
 dynamicPieceCollisionVolume.cordoomt3 = {
@@ -237,7 +237,7 @@ dynamicPieceCollisionVolume.cordoomt3 = {
 		[1] = { 112, 180, 112, 0, 5, 0, 1, 1 },
 	},
 	off = {
-		[0] = { 96, 80, 96, 0, 10, 0, 2, 1 },
+		[0] = { 112, 171.6, 112, 0, 67.8, 0, 1, 1 },
 	},
 }
 dynamicPieceCollisionVolume.leganavybattleship = {
