@@ -41,7 +41,7 @@ end
 --   zombie_ghost_power_multiplier (default 1)
 --     multiplies a unit's power when an apparition respawn spends it on substitutes. Units that rise as
 --     themselves are unchanged. Revived corpses and captures do not use this multiplier.
---   zombie_ghost_respawn_delay_multiplier (default 4)
+--   zombie_ghost_respawn_delay_multiplier (default 3)
 --     multiplies a unit's revival delay when a feeding death enters the apparition respawn queue.
 --   zombie_factory_buildpower_tech_multiplier (default 1.7)
 --     a zombie factory's buildpower is its build speed times this value raised to the current tech level.
@@ -86,7 +86,7 @@ local zombieModeSettings = {
 	respawnDelayMaximum = 120,
 	ghostFeedSuccessChance = 0.66,
 	ghostPowerMultiplier = 1,
-	ghostRespawnDelayMultiplier = 4,
+	ghostRespawnDelayMultiplier = 3,
 	factoryBuildpowerTechMultiplier = 1.7,
 	rezPowerSpeedMultiplier = 1,
 	ghostSpawnMaxUnitsPerSpawnMultiplier = 1,
