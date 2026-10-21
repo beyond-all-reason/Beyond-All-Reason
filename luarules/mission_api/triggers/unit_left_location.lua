@@ -32,7 +32,7 @@ return {
 				if unitName and not context.DoesUnitHaveName(unitID, unitName) then
 					return false
 				end
-				if unitDefName then 
+				if unitDefName then
 					local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
 					if unitDef == nil or unitDef.name ~= unitDefName then
 						return false
