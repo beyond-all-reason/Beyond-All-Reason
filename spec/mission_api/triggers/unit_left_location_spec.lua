@@ -3,7 +3,7 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
--- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and UnitDefs / Spring.GetUnitDefID inside its handler.
+-- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load, and UnitDefs and Spring inside its handler.
 Builders.MissionApi.new():Install()
 
 local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
@@ -19,6 +19,9 @@ describe("mission_api.triggers.unit_left_location", function()
 	before_each(function()
 		env.Spring.GetUnitDefID = function()
 			return 1
+		end
+		env.Spring.GetUnitIsDead = function()
+			return false
 		end
 	end)
 
