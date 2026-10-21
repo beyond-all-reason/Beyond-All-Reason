@@ -260,7 +260,7 @@ local State = {
 	aoeTerrainQualityID = 1,
 
 	orderTargets = {}, ---@type OrderTarget[]
-	orderRefreshSec = 0,
+	orderRefreshSec = 0, ---@type number
 	-- User-set ground targets per unit, pushed by the set target gadget
 	setTargetPositions = {}, ---@type table<integer, number[][]>
 }
@@ -2357,7 +2357,20 @@ local function AddOrderTarget(targets, seen, weaponInfos, unitID, tx, tz)
 		ty = 0
 	end
 	-- Many units ordered onto the same spot with the same weapon share one indicator
-	local key = floor(tx) .. ":" .. floor(tz) .. ":" .. weaponInfo.aoe .. ":" .. weaponInfo.ee
+	local color = weaponInfo.color or Config.Colors.aoe
+	local key = floor(tx)
+		.. ":"
+		.. floor(tz)
+		.. ":"
+		.. weaponInfo.aoe
+		.. ":"
+		.. weaponInfo.ee
+		.. ":"
+		.. color[1]
+		.. ":"
+		.. color[2]
+		.. ":"
+		.. color[3]
 	if seen[key] then
 		return
 	end
@@ -2378,6 +2391,9 @@ local function CollectOrderTargets(targets, seen, aimUnits, cmdID)
 
 		local commandCount = min(spGetUnitCommandCount(unitID) or 0, queueDepth)
 		for c = 1, commandCount do
+			if #targets >= maxIndicators then
+				return
+			end
 			local id, _, _, px, _, pz, radius = spGetUnitCurrentCommand(unitID, c)
 			-- 3 params is a ground position; 1 param is a unit, 4 params an area attack
 			if id == cmdID and pz and not radius then
@@ -2392,6 +2408,9 @@ local function CollectOrderTargets(targets, seen, aimUnits, cmdID)
 		local setTargets = cmdID == CMD_ATTACK and State.setTargetPositions[unitID]
 		if setTargets then
 			for t = 1, #setTargets do
+				if #targets >= maxIndicators then
+					return
+				end
 				local position = setTargets[t]
 				AddOrderTarget(targets, seen, weaponInfos, unitID, position[1], position[3])
 			end
