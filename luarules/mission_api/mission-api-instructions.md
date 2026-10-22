@@ -29,6 +29,17 @@ Nothing here works outside this sequence, so keep it in mind when something read
 Module and definition files run at include time and read `GG['MissionAPI']` directly. Never add a load-time read of
 something registered later in that sequence; move it into a function or into `Initialize()`.
 
+## Mission start
+
+`api_missions_triggers.lua` `GamePreload()` spawns the unit and feature loadouts and activates the initial stage, then
+`GameStart` dispatches `MissionStarted` and adds the TimeElapsed countdowns.
+
+With `editorMode = true` in missionoptions, no trigger call-in is dispatched and no trigger activates: the mission is
+loaded but not plugged in, while the game runs. `/luarules editormode off`, from a player who could release a game
+pause (see `api_game_pause.lua`), plugs it in: the loadout, the initial stage, then `GameStart` as above. Statistics
+keep counting in editor mode and detections carry over to the first frame after it. The game rules param
+`missionEditorMode` is 1 in editor mode. A saved game is never in editor mode.
+
 ## Type IDs are directory-order integers
 
 `triggers_loader` assigns each trigger type an integer from `ipairs(VFS.DirList(...))`; `actions_loader` does the
@@ -149,7 +160,8 @@ breaking change to both the function and every mission using it.
   Anything else **synthesises** a trigger `__objective_<objectiveID>` and an action `__updateObjective_<objectiveID>`
   into the raw tables. Adding or removing a `Quantity` parameter from a trigger silently moves every objective using
   it between those two paths.
-- Those `__` prefixes are reserved; mission scripts must not define IDs that collide.
+- Those `__` prefixes are reserved; mission scripts must not define IDs that collide. So is `__timeElapsed_`:
+  each TimeElapsed trigger runs on a hidden countdown `__timeElapsed_<triggerID>`, added when the mission starts.
 - Stage membership comes from `Stages[stageID].objectives`, and is copied onto the synthesised trigger's
   `settings.stages`. `stages_loader` is otherwise a pass-through.
 - `objective.textKey` is an I18N key, but there is currently **no LuaUI consumer** — `objectives.lua` only

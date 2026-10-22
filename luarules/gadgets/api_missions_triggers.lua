@@ -33,6 +33,16 @@ local SEISMIC_INTERVAL_FRAMES
 local seismicContacts
 local detectionLevels
 
+local CHAT_ACTION_EDITOR_MODE = "editormode"
+local RULESPARAM_EDITOR_MODE = "missionEditorMode"
+
+local getHostCommandPlayerID = BAR.Utilities.GetHostCommandPlayerID
+
+local editorMode = false
+local gamePreloaded = false
+local gameStarted = false
+local gameOver = false
+
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local previousUnitsInAreas = {}
 local constructionState = {}
@@ -100,7 +110,7 @@ local function isTriggerValid(trigger)
 end
 
 local function activateTrigger(trigger)
-	if not isTriggerValid(trigger) then
+	if editorMode or not isTriggerValid(trigger) then
 		return false
 	end
 
@@ -189,6 +199,9 @@ end
 -- Dispatches a logical call-in to every per-trigger handler registered for it.
 -- Each handler receives (trigger, triggerID, triggerContext, ...call-in args).
 local function dispatchTriggerCallin(callinName, ...)
+	if editorMode then
+		return
+	end
 	local handlersByType = callins[callinName]
 	if not handlersByType then
 		return
@@ -210,6 +223,50 @@ local function markDetectionDirty(unitID)
 	end
 end
 local inactiveSeismicContacts = {}
+
+----------------------------------------------------------------
+--- Mission start:
+----------------------------------------------------------------
+
+local function spawnLoadoutAndActivateInitialStage()
+	local missionAPI = GG["MissionAPI"]
+	missionAPI.spawningUnit = true
+	missionAPI.Modules.Loadout.SpawnUnitLoadout(missionAPI.UnitLoadout)
+	missionAPI.Modules.Loadout.SpawnFeatureLoadout(missionAPI.FeatureLoadout)
+	missionAPI.spawningUnit = nil
+
+	missionAPI.Modules.Objectives.ActivateStage(missionAPI.CurrentStageID)
+end
+
+-- Leaving editor mode plugs the mission in, as it would have started: the loadout, the
+-- initial stage, then MissionStarted and the TimeElapsed countdowns (GameStart).
+local function leaveEditorMode()
+	if not editorMode or gameOver then
+		return
+	end
+	editorMode = false
+	Spring.SetGameRulesParam(RULESPARAM_EDITOR_MODE, 0)
+
+	if not gamePreloaded then
+		return
+	end
+	spawnLoadoutAndActivateInitialStage()
+	if gameStarted then
+		dispatchTriggerCallin("GameStart")
+	end
+end
+
+-- The same players who can release a game pause, see api_game_pause.lua.
+local function canLeaveEditorMode(playerID)
+	local _, active, spectator = Spring.GetPlayerInfo(playerID, false)
+	return (active and not spectator) or playerID == getHostCommandPlayerID()
+end
+
+local function editorModeCommand(_, _, words, playerID)
+	if words[1] == "off" and canLeaveEditorMode(playerID) then
+		leaveEditorMode()
+	end
+end
 
 ----------------------------------------------------------------
 --- Call-ins:
@@ -318,10 +375,33 @@ function gadget:Initialize()
 	end) then
 		gadgetHandler:RemoveCallIn("UnitDamaged")
 	end
+
+	-- A saved game is past its start: GamePreload is not called again.
+	if GG["MissionAPI"].EditorMode and Spring.GetGameFrame() == 0 then
+		editorMode = true
+		Spring.SetGameRulesParam(RULESPARAM_EDITOR_MODE, 1)
+		gadgetHandler:AddChatAction(CHAT_ACTION_EDITOR_MODE, editorModeCommand, "off: plug the mission in")
+	end
+end
+
+function gadget:Shutdown()
+	gadgetHandler:RemoveChatAction(CHAT_ACTION_EDITOR_MODE)
+end
+
+function gadget:GamePreload()
+	gamePreloaded = true
+	if not editorMode then
+		spawnLoadoutAndActivateInitialStage()
+	end
 end
 
 function gadget:GameStart()
+	gameStarted = true
 	dispatchTriggerCallin("GameStart")
+end
+
+function gadget:GameOver()
+	gameOver = true
 end
 
 function gadget:GameFrame(frameNumber)
@@ -352,7 +432,8 @@ function gadget:GameFrame(frameNumber)
 end
 
 function gadget:GameFramePost(frameNumber)
-	if detectionCount > 0 then
+	-- Detections made in editor mode are kept for the first frame after it.
+	if detectionCount > 0 and not editorMode then
 		detectionLevels.BeginUpdate()
 		dispatchTriggerCallin("DetectionUpdate", detections)
 		for unitID in pairs(detections) do
