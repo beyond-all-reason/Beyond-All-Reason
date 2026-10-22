@@ -16,13 +16,13 @@ local NONE = Game.noneID
 --  Declarations  --------------------------------------------------------------
 
 ---@class CallinRegistration
----@field idSetName string
 ---@field callins string[]
+---@field idSetName string
 ---@field filtersOn string only used for log messages
----@field sentinelIDs table<string, true>? excluding ANY which always counts
----@field negativeIDs (integer|string)?
+---@field negativeRange string?
 ---@field minimumID integer?
 ---@field maximumID integer?
+---@field nilID string?
 ---@field syncedOnly boolean?
 ---@field watcher fun(defID: integer, watch: boolean)?
 ---@field watched table<integer, true?>?
@@ -31,22 +31,21 @@ local NONE = Game.noneID
 ---@type table<string, CallinRegistration>
 local registrations = {
 	AllowCommand = {
-		idSetName = "_allowCommandIDs",
 		callins = { "AllowCommand" },
+		idSetName = "_allowCommandIDs",
 		filtersOn = "commands",
-		sentinelIDs = { [CMD.BUILD] = true, [CMD.NIL] = true },
-		negativeIDs = CMD.BUILD,
+		negativeRange = CMD.BUILD,
+		nilID = CMD.NIL,
 	},
 	UnitCommand = {
-		idSetName = "_unitCommandIDs",
 		callins = { "UnitCommand" },
+		idSetName = "_unitCommandIDs",
 		filtersOn = "commands",
-		sentinelIDs = { [CMD.BUILD] = true },
-		negativeIDs = CMD.BUILD,
+		negativeRange = CMD.BUILD,
 	},
 	Projectile = {
-		idSetName = "_projectileIDs",
 		callins = { "ProjectileCreated", "ProjectileDestroyed" },
+		idSetName = "_projectileIDs",
 		filtersOn = "weapons",
 		minimumID = -1, -- for piece projectiles
 		maximumID = #WeaponDefs,
@@ -55,8 +54,8 @@ local registrations = {
 		watched = {},
 	},
 	Explosion = {
-		idSetName = "_explosionIDs",
 		callins = { "Explosion" },
+		idSetName = "_explosionIDs",
 		filtersOn = "weapons",
 		minimumID = 0,
 		maximumID = #WeaponDefs,
@@ -65,8 +64,8 @@ local registrations = {
 		watched = {},
 	},
 	WeaponTarget = {
-		idSetName = "_weaponTargetIDs",
 		callins = { "AllowWeaponTargetCheck", "AllowWeaponTarget", "AllowWeaponInterceptTarget" },
+		idSetName = "_weaponTargetIDs",
 		filtersOn = "weapons",
 		minimumID = 0,
 		maximumID = #WeaponDefs,
@@ -109,8 +108,8 @@ for _, registration in pairs(registrations) do
 	for _, callin in ipairs(registration.callins) do
 		callinRegistration[callin] = registration
 		callinLists[callin] = { [ANY] = {} }
-		if registration.negativeIDs then
-			callinLists[callin][registration.negativeIDs] = {}
+		if registration.negativeRange then
+			callinLists[callin][registration.negativeRange] = {}
 		end
 		callinGadgets[callin] = {}
 		callinSubscribed[callin] = {}
@@ -125,14 +124,14 @@ end
 
 ---@param registration CallinRegistration
 local function rebuildIDList(callin, registration, id)
-	local idSetName, negativeIDs = registration.idSetName, registration.negativeIDs
-	local isNegative = negativeIDs ~= nil and type(id) == "number" and id < 0
+	local idSetName, negativeRange = registration.idSetName, registration.negativeRange
+	local isNegative = negativeRange ~= nil and type(id) == "number" and id < 0
 	local list, registered = {}, false
 
 	for _, g in ipairs(callinGadgets[callin]) do
 		local ids = g[idSetName]
 		if ids then
-			local wanted = ids[id] or (isNegative and ids[negativeIDs])
+			local wanted = ids[id] or (isNegative and ids[negativeRange])
 			if wanted then
 				registered = true
 			end
@@ -143,7 +142,7 @@ local function rebuildIDList(callin, registration, id)
 	end
 
 	local lists = callinLists[callin]
-	if registered or id == ANY or id == negativeIDs then
+	if registered or id == ANY or id == negativeRange then
 		lists[id] = list
 	elseif registration.maximumID then
 		lists[id] = lists[ANY]
@@ -155,7 +154,7 @@ end
 ---In-place add/remove of a gadget registered for ANY to every list of a callin.
 ---@param registration CallinRegistration
 local function updateAny(callin, registration, gadget)
-	local lists, negativeIDs = callinLists[callin], registration.negativeIDs
+	local lists, negativeRange = callinLists[callin], registration.negativeRange
 	local idSet = gadget[registration.idSetName]
 	local subscribed = callinSubscribed[callin][gadget] == true and idSet ~= nil
 	local any = lists[ANY]
@@ -170,8 +169,8 @@ local function updateAny(callin, registration, gadget)
 		if list ~= any or id == ANY then
 			local wanted = subscribed and idSet[ANY] == true
 			if subscribed and not wanted and list ~= any then
-				local isNegative = negativeIDs ~= nil and type(id) == "number" and id < 0
-				wanted = idSet[id] == true or (isNegative and idSet[negativeIDs] == true)
+				local isNegative = negativeRange ~= nil and type(id) == "number" and id < 0
+				wanted = idSet[id] == true or (isNegative and idSet[negativeRange] == true)
 			end
 
 			local listIndex
@@ -236,8 +235,8 @@ local function rebuildCallinLists(callin, registration)
 	local idSetName, lists = registration.idSetName, callinLists[callin]
 	local ids = { [ANY] = true }
 
-	if registration.negativeIDs then
-		ids[registration.negativeIDs] = true
+	if registration.negativeRange then
+		ids[registration.negativeRange] = true
 	end
 	if registration.watched then
 		for id in pairs(registration.watched) do
@@ -327,10 +326,10 @@ local function collectRelistedIDs(registration, before, after)
 		end
 	end
 
-	local idSetName, negativeIDs, relisted, relistedAny = registration.idSetName, registration.negativeIDs, {}, {}
+	local idSetName, negativeRange, relisted, relistedAny = registration.idSetName, registration.negativeRange, {}, {}
 	for _, g in ipairs(relistedGadgets) do
 		local ids = g[idSetName]
-		if negativeIDs ~= nil and ids[negativeIDs] then
+		if negativeRange ~= nil and ids[negativeRange] then
 			return -- do full rebuild
 		end
 		if ids[ANY] then
@@ -409,7 +408,7 @@ local function rebuildRegisteredID(registration, gadget, id)
 				updateAny(callin, registration, gadget)
 			end
 		end
-	elseif id == registration.negativeIDs then
+	elseif id == registration.negativeRange then
 		rebuildSubscribedCallins(registration, gadget)
 	else
 		for _, callin in ipairs(registration.callins) do
@@ -423,9 +422,10 @@ end
 
 ---@param registration CallinRegistration
 local function isRegistrableID(registration, id)
-	if type(id) ~= "number" then
-		local sentinelIDs = registration.sentinelIDs
-		return id == ANY or id == NONE or (sentinelIDs ~= nil and sentinelIDs[id] == true)
+	if id == nil then
+		return false
+	elseif type(id) ~= "number" then
+		return id == ANY or id == NONE or id == registration.negativeRange or id == registration.nilID
 	elseif id ~= math_floor(id) then
 		return false
 	end
@@ -510,7 +510,7 @@ end
 
 ---Limits gadget:AllowCommand to only registered commands.
 ---@param gadget table
----@param cmdID integer|string A commandID or one of CMD.ANY, CMD.NONE, CMD.BUILD, CMD.NIL
+---@param cmdID integer|string A command ID, CMD.ANY, CMD.NONE, CMD.BUILD, or CMD.NIL
 local function registerAllowCommand(_, gadget, cmdID)
 	registerGadgetID(registrations.AllowCommand, gadget, cmdID)
 end
@@ -523,7 +523,7 @@ end
 
 ---Limits gadget:UnitCommand to only registered commands.
 ---@param gadget table
----@param cmdID integer|string A commandID or one of CMD.ANY, CMD.NONE, CMD.BUILD, CMD.NIL
+---@param cmdID integer|string A command ID, CMD.ANY, CMD.NONE, CMD.BUILD, or CMD.NIL
 local function registerUnitCommand(_, gadget, cmdID)
 	registerGadgetID(registrations.UnitCommand, gadget, cmdID)
 end
