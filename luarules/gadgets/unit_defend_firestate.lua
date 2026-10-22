@@ -43,7 +43,6 @@ local defThreatRanges = {}
 local neverHesitateAttackers = {}
 local alwaysHarmlessUnitDefs = {}
 local weaponWatchRefCount = {}
-local watchedWeaponCount = 0
 local watchedWeaponsByUnitDef = {}
 local metaData = {}
 local gameFrame = 0
@@ -62,10 +61,6 @@ local function addWeaponWatches(weaponDefIDs)
 		weaponWatchRefCount[weaponDefID] = refCount
 		if refCount == 1 then
 			gadgetHandler:RegisterWeaponTarget(weaponDefID)
-			watchedWeaponCount = watchedWeaponCount + 1
-			if watchedWeaponCount == 1 then
-				gadgetHandler:UpdateCallIn("AllowWeaponTarget")
-			end
 		end
 	end
 end
@@ -77,10 +72,6 @@ local function removeWeaponWatches(weaponDefIDs)
 		if refCount <= 0 then
 			weaponWatchRefCount[weaponDefID] = nil
 			gadgetHandler:DeregisterWeaponTarget(weaponDefID)
-			watchedWeaponCount = watchedWeaponCount - 1
-			if watchedWeaponCount == 0 then
-				gadgetHandler:RemoveCallIn("AllowWeaponTarget")
-			end
 		else
 			weaponWatchRefCount[weaponDefID] = refCount
 		end
@@ -256,6 +247,7 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterUnitCommand(CMD_FIRE_STATE)
+	gadgetHandler:RegisterWeaponTarget(Game.noneID) -- registration is dynamic
 	defThreatRanges, watchedWeaponsByUnitDef, neverHesitateAttackers, alwaysHarmlessUnitDefs =
 		WeaponThreat.buildDefendData()
 
@@ -267,8 +259,5 @@ function gadget:Initialize()
 		if spGetUnitIsCloaked(unitID) then
 			meta[CLOAKED] = true
 		end
-	end
-	if watchedWeaponCount == 0 then
-		gadgetHandler:RemoveCallIn("AllowWeaponTarget")
 	end
 end
