@@ -91,23 +91,22 @@ AimWeapon3()
 	return (FALSE);
 }
 
-FireWeapon1()
+BlockShot1(targetID, block, userTarget)
 {
-	sleep 500;
+	block = TRUE;
 	emit-sfx 1024 + 1 from base;
 	detonating = TRUE; // Killed reads this rather than inferring the cause of death from severity
-	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 fires
-	return (0);
+	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 triggers
 }
 
 QueryWeapon1(piecenum)
 {
-	piecenum = thrust;
+	piecenum = firepoint;
 }
 
 AimFromWeapon1(piecenum)
 {
-	piecenum = base;
+	piecenum = firepoint;
 }
 
 FireWeapon2()

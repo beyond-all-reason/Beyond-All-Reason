@@ -77,8 +77,7 @@ return {
 			trigger = {
 				areaofeffect = 0,
 				avoidfeature = false,
-				burst = 3,
-				burstrate = 0.5,
+				burstrate = 0.03334,
 				collidefriendly = 0,
 				commandfire = false,
 				craterareaofeffect = 0,
@@ -87,7 +86,7 @@ return {
 				edgeeffectiveness = 0.15,
 				impulsefactor = 0,
 				model = "legnade.s3o",
-				mygravity = 0.23,
+				mygravity = 0.2,
 				name = "Martyr trigger",
 				range = 1280,
 				reloadtime = 10,
