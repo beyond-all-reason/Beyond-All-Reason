@@ -1,4 +1,7 @@
 # October
+- [Commands]
+  - Shift+Space area commands give your units a faster path to travel. Large areas can take 20%–70% less travel time.
+  - Area commands (with and without Shift+Space) no longer drop targets past the 2,000 command limit. Your unit selection gets split into groups that take their own targets, with no targets dropped.
 - [Zombies]
   - Added a limited time Spidergeddon mode
   - Difficulty levels have been replaced with modes you can mix and match:
@@ -52,6 +55,7 @@
 - [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
+  - Over-large area attacks no longer send only 30 units to Attack and the remainder to Fight. They split your selection into squads that Attack all the targets in one "lane" through the full area. Bomber behavior especially was non-functional with large area attacks; this is fixed.
   - Turtle and other mixed ground/air units no longer stop outside their ground-weapon range when attacking ground or ghost buildings.
   - Temporary preventative measures against cheats. We have no evidence for common cheats but have locked down user widgets while we upgrade the engine. Hang tight.
   - Twitcher can leave behind wrecks and debris again.
