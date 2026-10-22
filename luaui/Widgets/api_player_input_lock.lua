@@ -8,6 +8,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -99000,
 		enabled = true,
+		hidden = true, -- not in the widget selector: the player cannot switch it off
 	}
 end
 
@@ -19,11 +20,12 @@ local spGetGameRulesParam = Spring.GetGameRulesParam
 local REASON = "playerInputLock"
 -- Synced code locks with Spring.SetGameRulesParam("playerInputLock", 1) and unlocks with 0. Only
 -- synced code can set it, so no player's widget can lock or unlock, and a /luaui reload or a
--- rejoin picks the lock up again.
+-- rejoin picks the lock up again. Read every Update rather than GameFrame: synced code runs
+-- between frames too, so a change made during a pause takes effect at once.
 local RULES_PARAM = "playerInputLock"
--- The menu buttons are the way back to the quit dialog. This widget keeps itself on the list
--- because MouseWheel only reaches allowed widgets, and it is the one eating the wheel.
-local KEEP = { "Top Bar Buttons", "Player Input Lock" }
+-- This widget keeps itself drawn because MouseWheel only reaches allowed widgets, and it is the
+-- one eating the wheel. The menu buttons, the way back to the quit dialog, every hide keeps.
+local KEEP = { "Player Input Lock" }
 -- Edge scrolling moves the camera without any call-in a widget could refuse, so it is
 -- switched off in the config overlay (not persisted) for the lock's duration.
 local EDGE_MOVE_KEYS = { "WindowedEdgeMove", "FullscreenEdgeMove" }
@@ -62,7 +64,7 @@ local function followRulesParam()
 	end
 end
 
-function widget:GameFrame()
+function widget:Update()
 	followRulesParam()
 end
 

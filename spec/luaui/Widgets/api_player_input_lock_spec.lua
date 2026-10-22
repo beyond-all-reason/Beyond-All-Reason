@@ -45,7 +45,7 @@ describe("luaui.Widgets.api_player_input_lock", function()
 
 	local function setParam(loaded, value)
 		rulesParams.playerInputLock = value
-		loaded.env.widget:GameFrame()
+		loaded.env.widget:Update()
 	end
 
 	before_each(function()
@@ -58,13 +58,13 @@ describe("luaui.Widgets.api_player_input_lock", function()
 		gameOver = false
 	end)
 
-	it("locks on the rules param: hides all but the menu buttons, locks keys, stops edge scrolling", function()
+	it("locks on the rules param: hides the interface, locks keys, clears the command, stops edge scrolling", function()
 		local loaded = loadWidget()
 
 		setParam(loaded, 1)
 
 		assert.are.same({
-			{ "HideInterface", "playerInputLock", { "Top Bar Buttons", "Player Input Lock" } },
+			{ "HideInterface", "playerInputLock", { "Player Input Lock" } },
 			{ "LockKeyboard", "playerInputLock" },
 		}, handlerCalls)
 		assert.are.same({ 0 }, activeCommandSets)
@@ -76,11 +76,11 @@ describe("luaui.Widgets.api_player_input_lock", function()
 
 	it("does nothing while the rules param is unset, and locks only once while it stays set", function()
 		local loaded = loadWidget()
-		loaded.env.widget:GameFrame()
+		loaded.env.widget:Update()
 		assert.are.same({}, handlerCalls)
 
 		setParam(loaded, 1)
-		loaded.env.widget:GameFrame()
+		loaded.env.widget:Update()
 		assert.are.equal(2, #handlerCalls)
 		assert.are.equal(2, #configWrites) -- the edge-move settings were saved once, not overwritten with zeros
 	end)
@@ -123,10 +123,7 @@ describe("luaui.Widgets.api_player_input_lock", function()
 
 		loaded.env.widget:Initialize()
 
-		assert.are.same(
-			{ "HideInterface", "playerInputLock", { "Top Bar Buttons", "Player Input Lock" } },
-			handlerCalls[1]
-		)
+		assert.are.same({ "HideInterface", "playerInputLock", { "Player Input Lock" } }, handlerCalls[1])
 	end)
 
 	it("lets go at game over and ignores the rules param from then on", function()
@@ -135,7 +132,7 @@ describe("luaui.Widgets.api_player_input_lock", function()
 		handlerCalls = {}
 
 		loaded.env.widget:GameOver()
-		loaded.env.widget:GameFrame()
+		loaded.env.widget:Update()
 
 		assert.are.same(
 			{ { "ShowInterface", "playerInputLock" }, { "UnlockKeyboard", "playerInputLock" } },

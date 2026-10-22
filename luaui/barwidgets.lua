@@ -2634,9 +2634,10 @@ end
 --  The same hiding can also be asked for outright, with no window involved and
 --  regardless of the springsetting, for a cutscene or a tool:
 --      widgetHandler:HideInterface("cutscene")             -- keeps the menu buttons
---      widgetHandler:HideInterface("cutscene", {"Chat"})   -- keeps only chat
---      widgetHandler:HideInterface("cutscene", {})         -- keeps nothing
+--      widgetHandler:HideInterface("cutscene", {"Chat"})   -- keeps chat as well
 --      widgetHandler:ShowInterface("cutscene")
+--  The menu buttons stay through every hide, so the player always has the quit dialog,
+--  and a drag a now-hidden widget had going is dropped, so its release acts on nothing.
 --  Requests are named so two callers cannot switch each other off, and the
 --  interface returns once the last one is released.
 --
@@ -2645,8 +2646,9 @@ end
 --  besides Esc and the quit menu, which always do:
 --      widgetHandler:LockKeyboard("cutscene", { KEYSYMS.SPACE })
 --      widgetHandler:UnlockKeyboard("cutscene")
---  While a window is showing, locked keys still reach the widgets (never the keybinds), so
---  the window can answer them. The lock lifts once the last reason is released.
+--  A locked key reaches nothing, not even an open chat line, unless a window is showing:
+--  then it still reaches the widgets (never the keybinds), so the window can answer it.
+--  The lock lifts once the last reason is released.
 --
 --  Hiding and locking are for game widgets only. Both are released when the widget that
 --  asked goes away, and at game over.
@@ -2678,17 +2680,14 @@ local modalPauseAllowed = false -- only in singleplayer and replays
 -- cutscene, a screenshot mode, an editor. Requests are named so two callers cannot
 -- switch each other off, and each names the widgets it wants kept. Unlike the window
 -- case this ignores the springsetting: a caller that asks for it means it.
-local interfaceHiddenReasons = {} -- reason -> set of widget names to keep
-local interfaceHiddenOwners = {} -- reason -> widget that asked
+local interfaceHiddenReasons = {} -- reason -> { owner = widget that asked, keep = set of widget names }
 local interfaceHidden = false
 local interfaceAllowedNames = {} -- union of the names every active reason keeps
--- what a caller gets when it names nothing: the menu buttons, so there is always a
--- way back out. Pass an explicit (possibly empty) list to keep something else.
-local DEFAULT_INTERFACE_ALLOW = { "Top Bar Buttons" }
+-- kept through every hide, so there is always a way back out
+local INTERFACE_ALWAYS_KEEP = { "Top Bar Buttons" }
 
--- Keyboard lock, checked in KeyPress before the action handler (which hiding leaves alone).
-local keyboardLockReasons = {} -- reason -> { keys = set of key codes, actions = set of action names } that pass
-local keyboardLockOwners = {} -- reason -> widget that asked
+-- Keyboard lock, checked in KeyPress before the text owner and the action handler.
+local keyboardLockReasons = {} -- reason -> { owner, keys = set of key codes, actions = set of action names }
 local keyboardLocked = false
 local keyboardPassKeys = {} -- union of every active reason's pass-through key codes
 local keyboardPassActions = {} -- union of every active reason's pass-through action names
@@ -2743,9 +2742,9 @@ end
 local function rebuildInterfaceAllowed()
 	local hidden = false
 	local names = {}
-	for _, allow in pairs(interfaceHiddenReasons) do
+	for _, request in pairs(interfaceHiddenReasons) do
 		hidden = true
-		for name in pairs(allow) do
+		for name in pairs(request.keep) do
 			names[name] = true
 		end
 	end
@@ -2758,20 +2757,25 @@ end
 ---Hide every widget except the ones named, until the same reason is released.
 ---@param owner table? the widget asking; its removal releases the reason
 ---@param reason string caller-chosen key; pass the same one to ShowInterface
----@param keep string[]? widget names to keep drawing and clickable.
----Defaults to the menu buttons; pass {} to keep nothing at all.
+---@param keep string[]? widget names to keep drawing and clickable, besides the menu buttons
 function widgetHandler:HideInterface(owner, reason, keep)
 	if type(reason) ~= "string" then
 		spLog("barwidgets.lua", LOG.ERROR, "HideInterface: expected a reason name")
 		return false
 	end
 	local names = {}
-	for _, name in ipairs(keep or DEFAULT_INTERFACE_ALLOW) do
-		names[name] = true
+	for _, list in ipairs({ INTERFACE_ALWAYS_KEEP, keep or {} }) do
+		for _, name in ipairs(list) do
+			names[name] = true
+		end
 	end
-	interfaceHiddenReasons[reason] = names
-	interfaceHiddenOwners[reason] = owner
+	interfaceHiddenReasons[reason] = { owner = owner, keep = names }
 	rebuildInterfaceAllowed()
+	-- a drag a now-hidden widget had going ends here, or its release could still give orders
+	local mouseOwner = self.mouseOwner ---@type table?
+	if mouseOwner and not allowedWidget(mouseOwner) then
+		self.mouseOwner = nil
+	end
 	return true
 end
 
@@ -2782,7 +2786,6 @@ function widgetHandler:ShowInterface(reason)
 		return false
 	end
 	interfaceHiddenReasons[reason] = nil
-	interfaceHiddenOwners[reason] = nil
 	rebuildInterfaceAllowed()
 	return true
 end
@@ -2842,8 +2845,7 @@ function widgetHandler:LockKeyboard(owner, reason, pass)
 			end
 		end
 	end
-	keyboardLockReasons[reason] = { keys = keys, actions = actions }
-	keyboardLockOwners[reason] = owner
+	keyboardLockReasons[reason] = { owner = owner, keys = keys, actions = actions }
 	rebuildKeyboardLock()
 	return true
 end
@@ -2855,7 +2857,6 @@ function widgetHandler:UnlockKeyboard(reason)
 		return false
 	end
 	keyboardLockReasons[reason] = nil
-	keyboardLockOwners[reason] = nil
 	rebuildKeyboardLock()
 	return true
 end
@@ -2872,18 +2873,17 @@ function widgetHandler:ForgetWidgetState(widget)
 	modalExempt[widget] = nil
 	ModalAllowWidget(widget, false)
 
+	-- its hide and lock reasons go with it, or the player would stay locked out
 	local hid, locked = false, false
-	for reason, owner in pairs(interfaceHiddenOwners) do
-		if owner == widget then
+	for reason, request in pairs(interfaceHiddenReasons) do
+		if request.owner == widget then
 			interfaceHiddenReasons[reason] = nil
-			interfaceHiddenOwners[reason] = nil
 			hid = true
 		end
 	end
-	for reason, owner in pairs(keyboardLockOwners) do
-		if owner == widget then
+	for reason, request in pairs(keyboardLockReasons) do
+		if request.owner == widget then
 			keyboardLockReasons[reason] = nil
-			keyboardLockOwners[reason] = nil
 			locked = true
 		end
 	end
@@ -2899,12 +2899,10 @@ end
 local function releaseInputLocks()
 	if next(interfaceHiddenReasons) ~= nil then
 		interfaceHiddenReasons = {}
-		interfaceHiddenOwners = {}
 		rebuildInterfaceAllowed()
 	end
 	if next(keyboardLockReasons) ~= nil then
 		keyboardLockReasons = {}
-		keyboardLockOwners = {}
 		rebuildKeyboardLock()
 	end
 end
@@ -3670,8 +3668,16 @@ end
 
 function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 	tracyZoneBeginN("W:KeyPress")
-	local textOwner = self.textOwner
+	-- A locked key goes nowhere at all, not even to an open chat line, unless a window is
+	-- showing: then it still reaches the widgets, never the keybinds, so the window can answer it.
+	local keyLocked = keyboardLocked and not keyboardLockPasses(key, actions)
+	if keyLocked and not anyWindowOpen(true) then
+		keyboardSwallowed[scanCode] = "all"
+		tracyZoneEnd()
+		return true
+	end
 
+	local textOwner = self.textOwner
 	if textOwner then
 		if (not textOwner.KeyPress) or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
 			tracyZoneEnd()
@@ -3679,15 +3685,7 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 		end
 	end
 
-	-- A locked key never reaches the keybinds. It goes nowhere at all, unless a window is
-	-- showing: then it still reaches the widgets, so the window can answer it.
-	local keyLocked = keyboardLocked and not keyboardLockPasses(key, actions)
 	if keyLocked then
-		if not anyWindowOpen(true) then
-			keyboardSwallowed[scanCode] = "all"
-			tracyZoneEnd()
-			return true
-		end
 		keyboardSwallowed[scanCode] = "binds"
 	elseif self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode, actions) then
 		tracyZoneEnd()
@@ -3718,8 +3716,16 @@ end
 
 function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	tracyZoneBeginN("W:KeyRelease")
-	local textOwner = self.textOwner
+	-- The release of a press nothing saw ends here; one the lock kept from the keybinds only
+	-- is kept from them too.
+	local swallowed = keyboardSwallowed[scanCode]
+	keyboardSwallowed[scanCode] = nil
+	if swallowed == "all" then
+		tracyZoneEnd()
+		return true
+	end
 
+	local textOwner = self.textOwner
 	if textOwner then
 		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, actions) then
 			-- the action handler (actions.lua) never sees this release, so let's forget the key itself
@@ -3727,15 +3733,6 @@ function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 			tracyZoneEnd()
 			return true
 		end
-	end
-
-	-- The release of a press the lock kept from the keybinds is kept from them too, and one
-	-- nothing saw ends here.
-	local swallowed = keyboardSwallowed[scanCode]
-	keyboardSwallowed[scanCode] = nil
-	if swallowed == "all" then
-		tracyZoneEnd()
-		return true
 	end
 
 	if not swallowed and self.actionHandler:KeyAction(false, key, mods, false, scanCode, actions) then
@@ -3755,6 +3752,10 @@ end
 
 function widgetHandler:TextInput(utf8, ...)
 	tracyZoneBeginN("W:TextInput")
+	if keyboardLocked and not anyWindowOpen(true) then
+		tracyZoneEnd()
+		return true -- locked, as the key press that made it
+	end
 	local textOwner = self.textOwner
 
 	if textOwner then
