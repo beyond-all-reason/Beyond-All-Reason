@@ -2060,6 +2060,24 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("StockpileProgress", function()
+			local function stockpileProgress(progress)
+				return { type = triggerTypes.StockpileProgress, parameters = { progress = progress } }
+			end
+
+			it("accepts any fractional progress value", function()
+				GG["MissionAPI"].Triggers = {
+					start = stockpileProgress(0),
+					half = stockpileProgress(0.5),
+					done = stockpileProgress(1),
+				}
+
+				validation.ValidateReferences()
+
+				assert.are.same({}, logged)
+			end)
+		end)
+
 		describe("attribute actions", function()
 			local function referenceErrors(unitDefs, actions)
 				_G.UnitDefNames = unitDefs

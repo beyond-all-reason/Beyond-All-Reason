@@ -2028,6 +2028,47 @@ local function validateCutsceneReferences(objectives, triggers, actions, cutscen
 	end
 end
 
+local function hasStockpileWeapon(unitDef)
+	for _, weapon in ipairs(unitDef.weapons) do
+		if WeaponDefs[weapon.weaponDef].stockpile then
+			return true
+		end
+	end
+	return false
+end
+
+local function validateStockpileUnitDefName(unitDefNameValue, label)
+	for _, unitDefName in ipairs(possibleValues(unitDefNameValue)) do
+		local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
+		if unitDef and not hasStockpileWeapon(unitDef) then
+			logError("Unit '" .. unitDefName .. "' has no stockpiling weapon. " .. label .. ", Parameter: unitDefName")
+		end
+	end
+end
+
+local function validateStockpileTrigger(trigger, label)
+	local triggerTypes = triggerDefinitions.Types
+	if trigger.type ~= triggerTypes.StockpileCount and trigger.type ~= triggerTypes.StockpileProgress then
+		return
+	end
+	if not trigger.parameters then
+		return
+	end
+	validateStockpileUnitDefName(trigger.parameters.unitDefName, label)
+end
+
+local function validateStockpileTriggers(objectives, triggers)
+	for triggerID, trigger in pairs(triggers) do
+		validateStockpileTrigger(trigger, "Trigger: " .. triggerID)
+	end
+	for objectiveID, objective in pairs(objectives or {}) do
+		local trigger = (objective or {}).trigger
+		if trigger then
+			validateStockpileTrigger(trigger, "Objective: " .. objectiveID)
+		end
+	end
+end
+
 local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
 	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
@@ -2051,6 +2092,7 @@ local function validateReferences()
 	validateLoadouts(unitLoadout, featureLoadout)
 	validateAttributeActions(actions)
 	validateChangeTeamActions(actionTypes, actions)
+	validateStockpileTriggers(objectives, triggers)
 end
 
 return {
