@@ -4,6 +4,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.speed = uDef.speed + 4.3
 		uDef.turnrate = 840
 		uDef.buildtime = math.ceil(uDef.buildtime * 1.15 / 100) * 100
+		uDef.energycost = math.ceil(uDef.energycost * 1.1 / 100) * 100
 	end
 
 	if name == "armwar" then
@@ -36,18 +37,21 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "armart" then
 		uDef.speed = 56 --was 54
 		uDef.turnrate = 300 --394
+		uDef.maxacc = 0.02
 		uDef.weapondefs.tawf113_weapon.weaponvelocity = 390
 		uDef.weapondefs.tawf113_weapon.mygravity = nil
 		uDef.weapondefs.tawf113_weapon.areaofeffect = 80 --75
 		uDef.weapondefs.tawf113_weapon.range = 730 --710
 		uDef.weapondefs.tawf113_weapon.impulsefactor = 0.5
-		uDef.weapondefs.tawf113_weapon.damage.default = 230 --182
-		uDef.weapondefs.tawf113_weapon.reloadtime = 4.6
+		uDef.weapondefs.tawf113_weapon.damage.default = 260 --182
+		uDef.weapondefs.tawf113_weapon.reloadtime = 5
 		uDef.weapondefs.tawf113_weapon.accuracy = 100
+		uDef.weapons[1].maxangledif = 140
 	end
 	if name == "corwolv" then
 		uDef.speed = 53 --was 48
 		uDef.turnrate = 260 --466
+		uDef.maxacc = 0.019
 		uDef.metalcost = 200
 		uDef.energycost = 3000
 		uDef.buildtime = 4000
@@ -56,26 +60,33 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.corwolv_gun.range = 750 --710
 		uDef.weapondefs.corwolv_gun.areaofeffect = 144 --113
 		uDef.weapondefs.corwolv_gun.impulsefactor = 0.5
-		uDef.weapondefs.corwolv_gun.damage.default = 400
+		uDef.weapondefs.corwolv_gun.damage.default = 420
 		uDef.weapondefs.corwolv_gun.reloadtime = 8
+		uDef.weapons[1].maxangledif = 140
 		uDef.health = 1100
 	end
 
 	if name == "armmart" then
 		uDef.metalcost = 260 --320
 		uDef.speed = 48 --was 60
+		uDef.maxacc = 0.02
 		uDef.weapondefs.arm_artillery.edgeeffectiveness = 0.15
 		uDef.weapondefs.arm_artillery.accuracy = 0
 		uDef.weapondefs.arm_artillery.reloadtime = 3 --3.05
 		uDef.weapondefs.arm_artillery.damage.default = 260 --260.
+		uDef.weapons[1].maxangledif = 140
+		uDef.health = 1200
 	end
 	if name == "cormart" then
 		uDef.metalcost = 320 --400
 		uDef.speed = 46 -- was 58
+		uDef.maxacc = 0.019
 		uDef.weapondefs.cor_artillery.edgeeffectiveness = 0.15
 		uDef.weapondefs.cor_artillery.accuracy = 0
 		uDef.weapondefs.cor_artillery.reloadtime = 6.4 --5
 		uDef.weapondefs.cor_artillery.damage.default = 540 --420.
+		uDef.weapons[1].maxangledif = 140
+		uDef.health = 1400
 	end
 
 	if name == "armsam" then
@@ -86,6 +97,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.armtruck_missile.weaponvelocity = 550
 		uDef.weapondefs.armtruck_missile.reloadtime = 3
 		uDef.weapondefs.armtruck_aa.reloadtime = 3
+		uDef.buildtime = 3600
 	end
 	if name == "cormist" then
 		uDef.weapondefs.cortruck_missile.tracks = true
@@ -95,6 +107,11 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.cortruck_missile.weaponvelocity = 550
 		uDef.weapondefs.cortruck_missile.reloadtime = 2.2
 		uDef.weapondefs.cortruck_aa.reloadtime = 2.2
+		uDef.buildtime = 3600
+	end
+
+	if name == "corlevlr" then
+		uDef.buildtime = 3400
 	end
 
 	if name == "armjanus" then
@@ -102,6 +119,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.janus_rocket.impulsefactor = 1
 		uDef.speed = 56
 		uDef.turnrate = 300
+		uDef.buildtime = 3900
 	end
 
 	if name == "armllt" then
