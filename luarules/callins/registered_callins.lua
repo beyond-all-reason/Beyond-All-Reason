@@ -5,12 +5,12 @@
 --  brief:   per-ID subscriber lists for callins that many gadgets register
 --
 --  Gadgets register their wanted ID lists and receive filtered callin events
---  that contain only those IDs. Callins with no registered IDs get a warning.
+--  that contain only those IDs. Callins that never registered get a warning.
 --  Replaces the local Script.SetWatch* calls in each gadget via registration.
 
 local math_floor = math.floor
 local ANY = Game.anyID
-local isSynced = Script.GetSynced()
+local NONE = Game.noneID
 
 --------------------------------------------------------------------------------
 --  Declarations  --------------------------------------------------------------
@@ -89,6 +89,8 @@ local callinSubscribed = {} ---@type table<string, table<table, true?>>
 local virtualRegistration = {} ---@type table<string, CallinRegistration?>
 local virtualCallins = {} ---@type table<string, true?>
 local insertedGadgets = {} ---@type table[]
+
+local isSynced = Script.GetSynced()
 
 ---@param registration CallinRegistration
 local function fillUnregisteredIDs(registration, lists)
@@ -423,7 +425,7 @@ end
 local function isRegistrableID(registration, id)
 	if type(id) ~= "number" then
 		local sentinelIDs = registration.sentinelIDs
-		return id == ANY or (sentinelIDs ~= nil and sentinelIDs[id] == true)
+		return id == ANY or id == NONE or (sentinelIDs ~= nil and sentinelIDs[id] == true)
 	elseif id ~= math_floor(id) then
 		return false
 	end
@@ -456,6 +458,9 @@ local function registerGadgetID(registration, gadget, id)
 		ids = {}
 		gadget[registration.idSetName] = ids
 	elseif ids[id] then
+		return
+	end
+	if id == NONE then
 		return
 	end
 	ids[id] = true
@@ -505,7 +510,7 @@ end
 
 ---Limits gadget:AllowCommand to only registered commands.
 ---@param gadget table
----@param cmdID integer|string A commandID or one of CMD.ANY, CMD.BUILD, CMD.NIL
+---@param cmdID integer|string A commandID or one of CMD.ANY, CMD.NONE, CMD.BUILD, CMD.NIL
 local function registerAllowCommand(_, gadget, cmdID)
 	registerGadgetID(registrations.AllowCommand, gadget, cmdID)
 end
@@ -518,7 +523,7 @@ end
 
 ---Limits gadget:UnitCommand to only registered commands.
 ---@param gadget table
----@param cmdID integer|string A commandID or one of CMD.ANY, CMD.BUILD, CMD.NIL
+---@param cmdID integer|string A commandID or one of CMD.ANY, CMD.NONE, CMD.BUILD, CMD.NIL
 local function registerUnitCommand(_, gadget, cmdID)
 	registerGadgetID(registrations.UnitCommand, gadget, cmdID)
 end
