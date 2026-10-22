@@ -358,6 +358,9 @@ end
 -- Unit defs are files in units/, so they can always be checked. Weapon and feature
 -- defs are generated at runtime from those unit defs, so unless strictness is asked
 -- for they are accepted as-is rather than reported as invalid.
+-- Full defs only exist in the engine. Trigger files read them when they are included, so empty ones stand in.
+_G.UnitDefs = {}
+_G.WeaponDefs = {}
 _G.UnitDefNames = scanDefsFromDir("units")
 _G.WeaponDefNames = strictDefs and scanDefsFromDir("weapons") or anyDefName()
 _G.FeatureDefNames = strictDefs and scanDefsFromDir("features") or anyDefName()

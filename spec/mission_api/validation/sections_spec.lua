@@ -535,6 +535,62 @@ describe("mission_api.validation.sections", function()
 		end)
 	end)
 
+	describe("stockpile triggers", function()
+		local originalWeaponDefs
+
+		before_each(function()
+			originalWeaponDefs = _G.WeaponDefs
+			_G.WeaponDefs = { [1] = { stockpile = true }, [2] = { stockpile = false } }
+			_G.UnitDefNames = {
+				armmercury = { id = 1, weapons = { { weaponDef = 2 }, { weaponDef = 1 } } },
+				armwar = { id = 2, weapons = { { weaponDef = 2 } } },
+			}
+		end)
+
+		after_each(function()
+			_G.WeaponDefs = originalWeaponDefs
+		end)
+
+		it("accepts any fractional progress value", function()
+			for _, progress in ipairs({ 0, 0.5, 1 }) do
+				V.assertValid(V.validateTrigger(V.trigger(V.triggerTypes.StockpileProgress, {
+					progress = progress,
+					unitDefName = "armmercury",
+				})))
+			end
+		end)
+
+		it("reports a unit def without a stockpiling weapon", function()
+			V.assertMessage(
+				V.validateTrigger(V.trigger(V.triggerTypes.StockpileCount, { count = 1, unitDefName = "armwar" })),
+				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: unitDefName"
+			)
+		end)
+
+		it("checks every difficulty's unit def", function()
+			V.assertMessage(
+				V.validateTrigger(V.trigger(V.triggerTypes.StockpileProgress, {
+					progress = 0.5,
+					unitDefName = { difficulties = { Easy = "armmercury", Hard = "armwar" } },
+				})),
+				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: unitDefName"
+			)
+		end)
+
+		it("checks an objective's trigger", function()
+			V.assertMessage(
+				V.validate(V.mission():WithObjective("o", {
+					textKey = "stockpile",
+					trigger = {
+						type = V.triggerTypes.StockpileCount,
+						parameters = { count = 1, unitDefName = "armwar" },
+					},
+				})),
+				"Unit 'armwar' has no stockpiling weapon. Objective: o, Parameter: unitDefName"
+			)
+		end)
+	end)
+
 	describe("settings", function()
 		-- The loaders apply the setting defaults, and they run after validation.
 		it("passes for a trigger without a settings table", function()

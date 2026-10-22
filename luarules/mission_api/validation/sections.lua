@@ -218,6 +218,41 @@ local function validateStagesSection(context, report, validateValue, validateEnt
 end
 
 --------------------------------------------------------------------------------
+-- Stockpile triggers, as triggers and as objective triggers
+--------------------------------------------------------------------------------
+
+--- A unit def known only by name, as in the standalone validator, has no weapons to check.
+local function hasStockpileWeapon(unitDef)
+	if type(unitDef.weapons) ~= "table" then
+		return true
+	end
+	for _, weapon in ipairs(unitDef.weapons) do
+		if WeaponDefs[weapon.weaponDef].stockpile then
+			return true
+		end
+	end
+	return false
+end
+
+-- A unit def without a stockpiling weapon never changes its stockpile, so the trigger could never fire.
+local function validateStockpileTrigger(context, reporter, id, trigger)
+	local triggerTypes = context.TriggerTypes
+	if trigger.type ~= triggerTypes.StockpileCount and trigger.type ~= triggerTypes.StockpileProgress then
+		return
+	end
+	if type(trigger.parameters) ~= "table" then
+		return
+	end
+
+	for _, unitDefName in ipairs(context.PossibleValues(trigger.parameters.unitDefName)) do
+		local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
+		if unitDef and not hasStockpileWeapon(unitDef) then
+			reporter.Error(id, "Unit '" .. unitDefName .. "' has no stockpiling weapon", "Parameter: unitDefName")
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
 -- Objectives: fields and inline triggers
 --------------------------------------------------------------------------------
 
@@ -260,6 +295,7 @@ local function validateObjectiveInlineTrigger(
 		trigger.type,
 		parameters
 	)
+	validateStockpileTrigger(context, objectiveReport, objectiveID, trigger)
 end
 
 local function validateObjectivesSection(context, report, validateValueWithDifficulties, validateEntry, validateSchema)
@@ -363,6 +399,7 @@ local function validateTriggersSection(
 				trigger.type,
 				trigger.parameters
 			)
+			validateStockpileTrigger(context, triggerReport, triggerID, trigger)
 		end
 	end
 end
