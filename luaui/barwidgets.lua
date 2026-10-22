@@ -314,6 +314,7 @@ local callInLists = {
 	"AlliedUnitAdded",
 	"AlliedUnitRemoved",
 	"AlliedUnitsChanged",
+	"ParallelWorldShift",
 	"UnitSale",
 	"UnitSold",
 	"VisibleExplosion",
@@ -3472,7 +3473,22 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 	end
 	local list = self.DrawInMiniMapList
 	for i = #list, 1, -1 do
+		local regionView = rawget(self.WG, "MapRegionView")
+		local r = regionView and regionView.rect
+		if r then
+			gl.PushMatrix()
+			local width, height = r.x1 - r.x0, r.z1 - r.z0
+			if Spring.GetMiniMapRotation() > 1 then
+				gl.Translate(-xSize * (Game.mapSizeX - r.x1) / width, -ySize * r.z0 / height, 0)
+			else
+				gl.Translate(-xSize * r.x0 / width, ySize * (r.z1 - Game.mapSizeZ) / height, 0)
+			end
+			gl.Scale(Game.mapSizeX / width, Game.mapSizeZ / height, 1)
+		end
 		list[i]:DrawInMiniMap(xSize, ySize)
+		if r then
+			gl.PopMatrix()
+		end
 	end
 	tracyZoneEnd()
 	return
@@ -4922,6 +4938,15 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+function widgetHandler:ParallelWorldShift()
+	tracyZoneBeginN("W:ParallelWorldShift")
+	---@diagnostic disable-next-line: undefined-field
+	for _, w in ipairs(self.ParallelWorldShiftList) do
+		w:ParallelWorldShift()
+	end
+	tracyZoneEnd()
+end
 
 widgetHandler:ConfigLayoutHandler(true)
 widgetHandler:Initialize()
