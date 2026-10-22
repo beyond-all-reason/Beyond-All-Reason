@@ -160,7 +160,7 @@ local function assignLanes(units, unitIndex, targets, targetIndex, lanes, sortTa
 			result[unitID] = list
 		end
 	end
-	return result
+	return result, laneUnits
 end
 
 ---The lists are disjoint, so swapping the first target between neighbors cannot cause self-targeting.
@@ -189,15 +189,17 @@ end
 ---@param targets ObjectID[]
 ---@param sortTargets? fun(units: UnitID[], targets: ObjectID[])
 ---@return table<UnitID, ObjectID[]?> unitTargets
+---@return UnitID[][] squads
 local function splitRoundRobin(units, targets, _, sortTargets)
 	local countUnits = #units
 	local countTargets = #targets
-	local result = table_new(0, countUnits)
+	local result, squads = table_new(0, countUnits), table_new(countUnits, 0)
 	for index = 1, countUnits do
 		result[units[index]] = {}
+		squads[index] = { units[index] }
 	end
 	if countUnits == 0 or countTargets == 0 then
-		return result
+		return result, squads
 	end
 
 	if countTargets < countUnits then
@@ -211,7 +213,7 @@ local function splitRoundRobin(units, targets, _, sortTargets)
 			end
 			result[unitID][1] = targetID
 		end
-		return result
+		return result, squads
 	end
 
 	-- We save microseconds by diagonalizing on the index.
@@ -234,7 +236,7 @@ local function splitRoundRobin(units, targets, _, sortTargets)
 			sortTargets({ unitID }, result[unitID])
 		end
 	end
-	return result
+	return result, squads
 end
 
 ---Groups targets into "lanes" or "slices" from the unit-group center and outward.
@@ -248,6 +250,7 @@ end
 ---@param maxOrders? integer
 ---@param laneWidth? number
 ---@return table<UnitID, ObjectID[]?> unitTargets
+---@return UnitID[][] squads
 local function splitRivers(units, targets, unitPosition, sortTargets, lanes, maxOrders, laneWidth)
 	local countUnits = #units
 	local countTargets = #targets

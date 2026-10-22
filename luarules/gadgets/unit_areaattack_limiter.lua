@@ -18,11 +18,13 @@ end
 
 -- Commands expand into N = units x targets orders. Above this many, it's split instead.
 local COMMAND_LIMIT = 2000
+-- A maximum. Extra squads of units get more budget to keep the total count of squads low.
+local EXTRA_SQUAD_COMMANDS = 1600
 -- River splits aim for lanes about this wide. The actual width varies with the targets.
 local LANE_WIDTH = 400
 
 local math_ceil = math.ceil
-local math_max = math.max
+local math_min = math.min
 local table_sort = table.sort
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -186,55 +188,57 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 
 		centerX, centerZ = getCentroid(attackers, unitPositionAtQueueEnd) -- for sortNearestCenter
-		local targetsPerUnit =
+		local targetsPerUnit, squads =
 			splitRivers(attackers, targets, unitPositionAtQueueEnd, sortNearestCenter, nil, COMMAND_LIMIT, LANE_WIDTH)
 
-		local laneSize, laneIndex = {}, {}
-		for i = 1, #attackers do
-			local unitID = attackers[i]
-			local first = targetsPerUnit[unitID][1]
-			if first and not canFight[spGetUnitDefID(unitID)] then
-				laneSize[first] = (laneSize[first] or 0) + 1
-				laneIndex[unitID] = laneSize[first]
-			end
-		end
+		local commandLimit = math_min(
+			#attackers * total / #squads,
+			COMMAND_LIMIT + EXTRA_SQUAD_COMMANDS * (1 - 1 / #squads)
+		)
+		local maxTargetsPerUnit = math_ceil(commandLimit / #attackers)
 
-		local maxTargetsPerUnit = math_ceil(COMMAND_LIMIT / #attackers)
-		for i = 1, #attackers do
-			local unitID = attackers[i]
-			local unitTargets = targetsPerUnit[unitID]
+		for s = 1, #squads do
+			local squad = squads[s]
+			for k = 1, #squad do
+				local unitID = squad[k]
+				local unitTargets = targetsPerUnit[unitID]
+				local alreadyQueued = queuedAttacks and queuedAttacks[unitID]
 
-			local orders = {}
-			if not cmdOpts.shift then
-				orders[1] = { CMD_STOP, {}, 0 }
-			end
-			local alreadyQueued = queuedAttacks and queuedAttacks[unitID]
-			local count, headEnd = 0, #unitTargets
-			for j = 1, #unitTargets do
-				local targetID = unitTargets[j]
-				if not (alreadyQueued and alreadyQueued[targetID]) then
-					count = count + 1
-					orders[#orders + 1] = { CMD_ATTACK, { targetID }, opts + CMD_OPT_SHIFT }
-					if count == maxTargetsPerUnit then
-						headEnd = j
-						break
+				local orders = {}
+				if not cmdOpts.shift then
+					orders[1] = { CMD_STOP, {}, 0 }
+				end
+
+				-- The order being replaced would give all units a sequence of shared targets.
+				-- Squad orders do the same thing starting from the "head" of the shared lane.
+				local count, headEnd = 0, #unitTargets
+				for j = 1, #unitTargets do
+					local targetID = unitTargets[j]
+					if not (alreadyQueued and alreadyQueued[targetID]) then
+						count = count + 1
+						orders[#orders + 1] = { CMD_ATTACK, { targetID }, opts + CMD_OPT_SHIFT }
+						if count == maxTargetsPerUnit then
+							headEnd = j
+							break
+						end
 					end
 				end
-			end
-			-- A unit that can FIGHT ends with a FIGHT order to the end of the lane.
-			-- One that can't ATTACKs some of the remainder.
-			if headEnd < #unitTargets then
-				if canFight[spGetUnitDefID(unitID)] then
+
+				-- Uncovered targets are shared out equally, then a FIGHT to the end of the lane.
+				for j = headEnd + k, #unitTargets, #squad do
+					local targetID = unitTargets[j]
+					if not (alreadyQueued and alreadyQueued[targetID]) then
+						orders[#orders + 1] = { CMD_ATTACK, { targetID }, opts + CMD_OPT_SHIFT }
+					end
+				end
+				if headEnd < #unitTargets and canFight[spGetUnitDefID(unitID)] then
 					local x, y, z = spGetUnitPosition(unitTargets[#unitTargets])
 					orders[#orders + 1] = { CMD_FIGHT, { x, y, z }, opts + CMD_OPT_SHIFT }
-				else
-					for j = headEnd + laneIndex[unitID], #unitTargets, laneSize[unitTargets[1]] do
-						orders[#orders + 1] = { CMD_ATTACK, { unitTargets[j] }, opts + CMD_OPT_SHIFT }
-					end
 				end
-			end
-			if orders[1] ~= nil then
-				spGiveOrderArrayToUnit(unitID, orders)
+
+				if orders[1] ~= nil then
+					spGiveOrderArrayToUnit(unitID, orders)
+				end
 			end
 		end
 	end)
