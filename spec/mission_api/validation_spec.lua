@@ -1008,6 +1008,81 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("SkyboxFile", function()
+			it("rejects a file that is not a .dds", function()
+				actionErrors({ type = actionTypes.SetMapSkybox, parameters = { texture = "maps/sky.png" } })
+				assert.is_true(
+					hasError("Invalid skyboxFile: maps/sky.png. Expected a .dds cubemap. Action: a, Parameter: texture")
+				)
+			end)
+
+			it("rejects a file that does not exist", function()
+				actionErrors({ type = actionTypes.SetMapSkybox, parameters = { texture = "maps/missing.dds" } })
+				assert.is_true(
+					hasError("Invalid skyboxFile: maps/missing.dds. File does not exist. Action: a, Parameter: texture")
+				)
+			end)
+
+			it("accepts an existing .dds file", function()
+				local origFileExists = env.VFS.FileExists
+				env.VFS.FileExists = function(path)
+					return path == "maps/Sky.DDS"
+				end
+
+				actionErrors({ type = actionTypes.SetMapSkybox, parameters = { texture = "maps/Sky.DDS" } })
+
+				env.VFS.FileExists = origFileExists
+				assert.are.same({}, logged)
+			end)
+		end)
+
+		describe("Color", function()
+			it("rejects wrong type", function()
+				actionErrors({ type = actionTypes.SetMapLighting, parameters = { tint = "red" } })
+				assert.is_true(
+					hasError("Unexpected parameter type, expected table, got string. Action: a, Parameter: tint")
+				)
+			end)
+
+			it("rejects a missing channel", function()
+				actionErrors({ type = actionTypes.SetMapLighting, parameters = { tint = { r = 1, g = 1 } } })
+				assert.is_true(hasError("Missing required parameter. Action: a, Parameter: tint.b"))
+			end)
+
+			it("rejects a negative channel", function()
+				actionErrors({ type = actionTypes.SetMapLighting, parameters = { tint = { r = -1, g = 1, b = 1 } } })
+				assert.is_true(hasError("Color channel must be >= 0, got -1. Action: a, Parameter: tint.r"))
+			end)
+
+			it("accepts channels above 1", function()
+				actionErrors({
+					type = actionTypes.SetMapLighting,
+					parameters = { groundDiffuseColor = { r = 1.2, g = 1, b = 0 } },
+				})
+				assert.are.same({}, logged)
+			end)
+		end)
+
+		describe("TimeOfDay", function()
+			it("rejects wrong type", function()
+				actionErrors({ type = actionTypes.SetMapTimeOfDay, parameters = { hour = "noon" } })
+				assert.is_true(
+					hasError("Unexpected parameter type, expected number, got string. Action: a, Parameter: hour")
+				)
+			end)
+
+			it("rejects an hour outside 0 to 24", function()
+				actionErrors({ type = actionTypes.SetMapTimeOfDay, parameters = { hour = 25 } })
+				assert.is_true(hasError("TimeOfDay must be an hour from 0 to 24, got 25. Action: a, Parameter: hour"))
+			end)
+
+			it("accepts midnight as 0 and as 24", function()
+				actionErrors({ type = actionTypes.SetMapTimeOfDay, parameters = { hour = 0 } })
+				actionErrors({ type = actionTypes.SetMapTimeOfDay, parameters = { hour = 24 } })
+				assert.are.same({}, logged)
+			end)
+		end)
+
 		describe("TeamID", function()
 			it("rejects wrong type", function()
 				actionErrors({
@@ -1423,6 +1498,19 @@ describe("mission_api.validation", function()
 				assert.is_true(
 					hasError(
 						[[Trigger 't' is missing required parameter. At least one of {"unitName","unitDefName"} is required.]]
+					)
+				)
+			end)
+
+			it("logs an error for SetMapLighting without any lighting value", function()
+				actionErrors({ type = actionTypes.SetMapLighting, parameters = { transitionDuration = 2 } })
+				local names = actionDefinitions.Parameters[actionTypes.SetMapLighting].requiresOneOf
+				assert.are.equal(12, #names)
+				assert.is_true(
+					hasError(
+						"Action 'a' is missing required parameter. At least one of {\""
+							.. table.concat(names, '","')
+							.. '"} is required.'
 					)
 				)
 			end)
