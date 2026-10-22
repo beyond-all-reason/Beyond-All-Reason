@@ -1751,16 +1751,18 @@ function gadgetHandler:AllowCommand(
 	end
 
 	local cmdKey = cmdID or CMD_NIL
-	if not allowCommandLists[cmdKey] then
+	local allowCommandList = allowCommandLists[cmdKey]
+	if allowCommandList == nil then
 		if type(cmdKey) == "number" and cmdKey < 0 then
 			cmdKey = CMD_BUILD
 		else
 			cmdKey = CMD_ANY
 		end
+		allowCommandList = allowCommandLists[cmdKey]
 	end
 
 	tracyZoneBeginN("G:AllowCommand")
-	for _, g in ipairs(allowCommandLists[cmdKey]) do
+	for _, g in ipairs(allowCommandList) do
 		--tracyZoneBeginN("G:AllowCommand:"..g.ghInfo.name)
 		if
 			not g:AllowCommand(
