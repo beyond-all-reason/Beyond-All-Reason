@@ -290,10 +290,10 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 						/ 2
 			end
 		elseif weaponDef.customParams.spark_range then
-			radius = math.max(radius, tonumber(weaponDef.customParams.spark_range) ---@as number, 0)
+			radius = math.max(radius, tonumber(weaponDef.customParams.spark_range) --[[@as number]], 0)
 			damage = damage * (1 + (tonumber(weaponDef.customParams.spark_forkdamage or 0.0) or 0.0))
 		elseif weaponDef.customParams.area_onhit_range then
-			radius = radius + math.max(tonumber(weaponDef.customParams.area_onhit_range) ---@as number - aoe, 0)
+			radius = radius + math.max(tonumber(weaponDef.customParams.area_onhit_range) --[[@as number]] - aoe, 0)
 			damage = damage + (tonumber(weaponDef.customParams.area_onhit_damage or 0) or 0) * projectiles
 		end
 	end
@@ -382,7 +382,7 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 
 	local allyTeam = unitAllyTeam[unitID]
 	if not allyTeam then
-		return
+		return true, priority
 	end
 
 	-- Avoid collaterals of a similar scale to our own explosion radius.
@@ -457,7 +457,7 @@ local function callinRemoveUnitStats(self, unitID)
 end
 
 gadget.UnitCreated = callinCacheUnitStats
-gadget.UnitTaken = callinCacheUnitStats
+gadget.UnitGiven = callinCacheUnitStats
 gadget.UnitDestroyed = callinRemoveUnitStats
 
 function gadget:Initialize()
