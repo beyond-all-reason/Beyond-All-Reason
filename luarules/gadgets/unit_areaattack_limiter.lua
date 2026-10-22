@@ -27,6 +27,7 @@ local table_sort = table.sort
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
@@ -43,10 +44,15 @@ local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local getCentroid = BAR.Utilities.GetObjectCentroid
 local splitRivers = require("modules/split_targets").Rivers
 
-local canFight = {} -- excludes bombers, which generally cannot execute FIGHT
+local isObject = {}
+local canFight = {} -- excludes static units and bombers, which generally cannot execute FIGHT
 for unitDefID, unitDef in pairs(UnitDefs) do
+	isObject[unitDefID] = unitDef.customParams.objectify ~= nil
 	local weapon = unitDef.weapons[1]
-	canFight[unitDefID] = unitDef.canFight and weapon and not WeaponDefs[weapon.weaponDef].type == "AircraftBomb"
+	canFight[unitDefID] = unitDef.canFight
+		and not unitDef.isImmobile
+		and weapon
+		and WeaponDefs[weapon.weaponDef].type ~= "AircraftBomb"
 end
 
 local queueEnd = {} -- queued area attacks start after the last-queued command position
@@ -121,12 +127,21 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		opts = opts + CMD.OPT_RIGHT
 	end
 
-	local x, z, radius = cmdParams[1], cmdParams[3], cmdParams[4]
+	local ax, az, areaRadius = cmdParams[1], cmdParams[3], cmdParams[4]
 	local handled = false
 
 	CallAsTeam(Spring.GetLocalTeamID(), function()
-		local targets = spGetUnitsInCylinder(x, z, radius, ENEMY_UNITS)
-		if #attackers * #targets <= COMMAND_LIMIT then
+		local targets = spGetUnitsInCylinder(ax, az, areaRadius, ENEMY_UNITS)
+
+		local total = 0 -- TODO: Wall exclusion should be absorbed into other widgets. The separate/double handling is a pain.
+		for i = 1, #targets do
+			local targetID = targets[i]
+			if not (isObject[spGetUnitDefID(targetID)] and spGetUnitNeutral(targetID)) then
+				total = total + 1
+				targets[i], targets[total] = targets[total], targetID
+			end
+		end
+		if #attackers * total <= COMMAND_LIMIT then
 			return
 		end
 
@@ -155,6 +170,10 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			return
 		end
 
+		for i = #targets, total + 1, -1 do
+			targets[i] = nil
+		end
+
 		local queuedAttacks
 		queueEnd = {}
 		if cmdOpts.shift then
@@ -166,9 +185,9 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			end
 		end
 
-		centerX, centerZ = getCentroid(attackers, unitPositionAtQueueEnd)
+		centerX, centerZ = getCentroid(attackers, unitPositionAtQueueEnd) -- for sortNearestCenter
 		local targetsPerUnit =
-			splitRivers(attackers, targets, unitPositionAtQueueEnd, sortNearestCenter, COMMAND_LIMIT, LANE_WIDTH)
+			splitRivers(attackers, targets, unitPositionAtQueueEnd, sortNearestCenter, nil, COMMAND_LIMIT, LANE_WIDTH)
 
 		local laneSize, laneIndex = {}, {}
 		for i = 1, #attackers do
@@ -180,8 +199,7 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			end
 		end
 
-		local maxTargetsPerUnit = math_max(math_ceil(COMMAND_LIMIT / #attackers), 1)
-
+		local maxTargetsPerUnit = math_ceil(COMMAND_LIMIT / #attackers)
 		for i = 1, #attackers do
 			local unitID = attackers[i]
 			local unitTargets = targetsPerUnit[unitID]
@@ -215,7 +233,7 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 					end
 				end
 			end
-			if orders[1] then
+			if orders[1] ~= nil then
 				spGiveOrderArrayToUnit(unitID, orders)
 			end
 		end

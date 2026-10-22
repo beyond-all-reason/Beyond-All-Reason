@@ -365,7 +365,8 @@ local function splitOrders(cmdId, selectedUnits, filteredTargets, options, split
 	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
 
 	local split = splitStrategy or splitRivers
-	local unitTargetsMap = split(selectedUnits, filteredTargets, spGetUnitPosition, sortClosestToGroup)
+	local unitTargetsMap =
+		split(selectedUnits, filteredTargets, spGetUnitPosition, sortClosestToGroup, selectedUnitsLen)
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		giveOrders(cmdId, { selectedUnitId }, targets, options, maxAllowedTargetsPerUnit)
 	end

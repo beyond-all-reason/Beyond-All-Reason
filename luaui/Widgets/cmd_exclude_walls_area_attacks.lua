@@ -24,7 +24,7 @@ local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetSelectedUnits = Spring.GetSelectedUnits
 
 -- Keep in sync with unit_areaattack_limiter.lua
-local AREA_LIMIT = 30
+local COMMAND_LIMIT = 2000
 for id, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.objectify then
 		excludedUnitsDefID[id] = true
@@ -54,12 +54,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		if cmdOpts.ctrl then
 			return false
 		end
-
-		-- Deterministic handoff: if limiter would kick in (limited unit overflow),
-		-- do not consume this command so LuaRules areaattack limiter can process it.
-		if #selected > AREA_LIMIT then
-			return false
-		end
 	end
 
 	-- Set Target with Ctrl marks the targets as sticky (they survive Stop). Keep it on the re-issued orders.
@@ -86,6 +80,11 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 	end
 	if #newCmds > 0 and somethingWasExcluded then
+		-- The command limiter excludes walls already so we can skip sending new commands.
+		local targetCount = cmdOpts.shift and #newCmds or (#newCmds - 1) -- ignore the leading STOP
+		if cmdID == CMD_ATTACK and #selected * targetCount > COMMAND_LIMIT then
+			return false
+		end
 		Spring.GiveOrderArrayToUnitArray(selected, newCmds)
 		return true
 	end

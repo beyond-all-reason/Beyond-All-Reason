@@ -83,12 +83,16 @@ local function getValueSpan(value, count)
 end
 
 ---Units that share a lane form a "squad" and attack the lane's targets together.
-local function getLaneCount(countUnits, countTargets, span, maxOrders, laneWidth)
-	local lanes = math_min(countUnits, countTargets)
+local function getLaneCount(countUnits, countTargets, span, lanes, maxOrders, laneWidth)
+	local limit = math_min(countUnits, countTargets)
+	if lanes then
+		return math_max(1, math_min(limit, lanes))
+	end
+	lanes = limit
 	if maxOrders or laneWidth then
 		local lanesForBudget = maxOrders and maxOrders > 0 and countUnits * countTargets / maxOrders or 1
 		local lanesForWidth = laneWidth and laneWidth > 0 and span / laneWidth or 1
-		lanes = math_max(1, math_min(lanes, math_floor(math_sqrt(lanesForBudget * lanesForWidth) + 0.5)))
+		lanes = math_max(1, math_min(limit, math_floor(math_sqrt(lanesForBudget * lanesForWidth) + 0.5)))
 	end
 	return lanes
 end
@@ -240,10 +244,11 @@ end
 ---@param targets ObjectID[] Unit IDs, feature IDs, or both; features carry the Game.maxUnits offset when the engine expects it.
 ---@param unitPosition? fun(unitID: UnitID): number, number, number # Where each unit starts from; queued orders use the last order position
 ---@param sortTargets? fun(units: UnitID[], targets: ObjectID[])
+---@param lanes? integer else calculate the lane count from maxOrders and laneWidth
 ---@param maxOrders? integer
 ---@param laneWidth? number
 ---@return table<UnitID, ObjectID[]?> unitTargets
-local function splitRivers(units, targets, unitPosition, sortTargets, maxOrders, laneWidth)
+local function splitRivers(units, targets, unitPosition, sortTargets, lanes, maxOrders, laneWidth)
 	local countUnits = #units
 	local countTargets = #targets
 	if countUnits == 0 or countTargets == 0 then
@@ -266,21 +271,27 @@ local function splitRivers(units, targets, unitPosition, sortTargets, maxOrders,
 		-- Slice instead when the unit-group starts inside the target-group.
 		if 2 * length * length >= targetDepthSq then
 			local unitIndex, unitValue = measureAlongAxis(units, unitPosition, unitsX, unitsZ, axisX, axisZ)
-			local lanes =
-				getLaneCount(countUnits, countTargets, getValueSpan(targetValue, countTargets), maxOrders, laneWidth)
+			local count = getLaneCount(
+				countUnits,
+				countTargets,
+				getValueSpan(targetValue, countTargets),
+				lanes,
+				maxOrders,
+				laneWidth
+			)
 			sortIndexByValue(unitIndex, unitValue)
 			sortIndexByValue(targetIndex, targetValue)
-			return assignLanes(units, unitIndex, targets, targetIndex, lanes, sortTargets)
+			return assignLanes(units, unitIndex, targets, targetIndex, count, sortTargets)
 		end
 	end
 
 	local startAngle = getStartAngle(targets, countTargets, unitsX, unitsZ)
 	local targetIndex, targetValue = measureAroundOrigin(targets, objectPosition, unitsX, unitsZ, startAngle)
 	local unitIndex, unitValue = measureAroundOrigin(units, unitPosition, unitsX, unitsZ, startAngle)
-	local lanes = getLaneCount(countUnits, countTargets, 0, maxOrders, nil)
+	local count = getLaneCount(countUnits, countTargets, 0, lanes, maxOrders, nil)
 	sortIndexByValue(unitIndex, unitValue)
 	sortIndexByValue(targetIndex, targetValue)
-	return assignLanes(units, unitIndex, targets, targetIndex, lanes, sortTargets)
+	return assignLanes(units, unitIndex, targets, targetIndex, count, sortTargets)
 end
 
 return {
