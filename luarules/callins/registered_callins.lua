@@ -588,17 +588,14 @@ end
 
 local function install(handler)
 	if isSynced then
-		local function refuseSetWatch()
-			Spring.Log(
-				"registered_callins",
-				LOG.ERROR,
-				"This SetWatch* function is used only by the registered callins"
-			)
+		for _, name in ipairs({ "SetWatchWeapon", "SetWatchProjectile", "SetWatchExplosion", "SetWatchAllowTarget" }) do
+			if Script[name] then
+				Script[name] = function()
+					local message = name .. " is reserved. Watch IDs using gadgetHandler:Register<CallinName>."
+					Spring.Log("registered_callins", LOG.ERROR, message)
+				end
+			end
 		end
-		Script.SetWatchWeapon = refuseSetWatch
-		Script.SetWatchProjectile = refuseSetWatch
-		Script.SetWatchExplosion = refuseSetWatch
-		Script.SetWatchAllowTarget = refuseSetWatch
 	end
 
 	handler.RegisterAllowCommand = registerAllowCommand
