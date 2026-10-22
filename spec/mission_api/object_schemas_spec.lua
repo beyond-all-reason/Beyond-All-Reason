@@ -3,8 +3,6 @@
 --- the mission editor included, so these checks pin the shape they promise.
 ---
 
-require("spec_helper")
-
 local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 local Types = parameterTypes.Types
 
@@ -12,6 +10,7 @@ local objectivesSchema = VFS.Include("luarules/mission_api/objectives_schema.lua
 local stagesSchema = VFS.Include("luarules/mission_api/stages_schema.lua")
 local triggersSchema = VFS.Include("luarules/mission_api/triggers_schema.lua")
 local countdownsSchema = VFS.Include("luarules/mission_api/countdowns_schema.lua")
+local cutscenesSchema = VFS.Include("luarules/mission_api/cutscenes_schema.lua")
 
 describe("mission_api object schemas", function()
 	--- A type a validator does not know is silently accepted, so the schema would promise
@@ -23,6 +22,7 @@ describe("mission_api object schemas", function()
 			stages_schema = stagesSchema,
 			triggers_schema = triggersSchema,
 			countdowns_schema = countdownsSchema,
+			cutscenes_schema = cutscenesSchema,
 		}) do
 			for fieldName, fieldType in pairs(schema.Settings) do
 				if Types[fieldType] == nil then

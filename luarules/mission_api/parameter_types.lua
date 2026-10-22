@@ -27,13 +27,17 @@ local types = {
 	ObjectiveID = "ObjectiveID",
 	CountdownID = "CountdownID",
 	TriggerID = "TriggerID",
+	CutsceneID = "CutsceneID",
+	CutsceneScriptID = "CutsceneScriptID",
 	UnitName = "UnitName",
 	FeatureName = "FeatureName",
 	UnitDefName = "UnitDefName",
 	FeatureDefName = "FeatureDefName",
 	WeaponDefName = "WeaponDefName",
+	TeamName = "TeamName",
 	Facing = "Facing",
 	SoundFile = "SoundFile",
+	VideoFile = "VideoFile",
 	Difficulty = "Difficulty",
 	UnitAttribute = "UnitAttribute",
 	WeaponAttribute = "WeaponAttribute",
@@ -59,6 +63,9 @@ local types = {
 
 	-- Number-or-String-or-Boolean Validators:
 	AttributeValue = "AttributeValue",
+
+	-- Number-or-String-or-Boolean-or-Table Validators:
+	VariableValue = "VariableValue",
 
 }
 

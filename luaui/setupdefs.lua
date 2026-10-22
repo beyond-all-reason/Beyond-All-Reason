@@ -21,8 +21,9 @@ for _, ud in pairs(UnitDefs) do
 	ud.canParalyze = false
 	ud.canStockpile = false
 	ud.canAttackWater = false
-	ud.wDefs = table.new(#ud.weapons, 0)
-	for i, wt in ipairs(ud.weapons) do
+	local weapons = ud.weapons -- the engine builds a new table on every read
+	ud.wDefs = table.new(#weapons, 0)
+	for i, wt in ipairs(weapons) do
 		local wd = WeaponDefs[wt.weaponDef]
 		ud.wDefs[i] = wd
 		if wd then

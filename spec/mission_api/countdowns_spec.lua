@@ -1,6 +1,8 @@
-require("spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-local countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
+local env = MissionSpecEnv.new()
+
+local countdowns = MissionSpecEnv.include(env, "luarules/mission_api/countdowns.lua")
 
 describe("mission_api.countdowns", function()
 	---@type number
@@ -11,7 +13,7 @@ describe("mission_api.countdowns", function()
 		currentFrame = 0
 		-- GetGameFrame returns frameNum % dayFrames and frameNum / dayFrames; a
 		-- spec never reaches a second day, so the day count is always 0.
-		Spring.GetGameFrame = function()
+		env.Spring.GetGameFrame = function()
 			return currentFrame, 0
 		end
 	end)

@@ -3,8 +3,7 @@
 --- for validating a mission and asserting on the messages it produced.
 ---
 
-require("spec_helper")
-local registerMissionApiModules = require("mission_api.spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
 -- busted only exposes luassert as a global inside spec files, not in required modules.
 local assert = require("luassert")
@@ -14,12 +13,16 @@ local Builders = VFS.Include("spec/builders/index.lua")
 -- The definition files read the Mission API modules from GG when they are included, in a
 -- specific load order, mirroring the eager module loading in api_missions.lua. GG is put
 -- back afterwards, so no other spec's mock is disturbed.
+-- The engine globals are shared by every spec file, so validation runs in an env of its own,
+-- where a spec can stub them.
+local env = MissionSpecEnv.new()
 local previousMissionAPI = GG["MissionAPI"]
-local modules = registerMissionApiModules()
+local modules = MissionSpecEnv.registerModules(env)
 local definitions = {
 	ParameterTypes = modules.ParameterTypes,
-	ActionDefinitions = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions(),
-	TriggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions(),
+	ActionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua").LoadActionDefinitions(),
+	TriggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
+		.LoadTriggerDefinitions(),
 }
 GG["MissionAPI"] = previousMissionAPI
 
@@ -31,9 +34,12 @@ local missionAPI = {
 	TriggerDefinitions = definitions.TriggerDefinitions,
 }
 
-local validation = VFS.Include("luarules/mission_api/validation.lua")
+local validation = MissionSpecEnv.include(env, "luarules/mission_api/validation.lua")
+local originalCMD, originalGameCMD = env.CMD, env.GameCMD
 
 local helper = {
+	env = env,
+	validation = validation,
 	definitions = definitions,
 	triggerTypes = definitions.TriggerDefinitions.Types,
 	actionTypes = definitions.ActionDefinitions.Types,
@@ -41,10 +47,12 @@ local helper = {
 
 --- Engine globals the validators read. Set per test, since other specs reset them.
 function helper.mockEngineGlobals()
-	Spring.GetTeamAllyTeamID = function()
+	env.CMD, env.GameCMD = originalCMD, originalGameCMD
+	missionAPI.Teams = nil
+	env.Spring.GetTeamAllyTeamID = function()
 		return true
 	end
-	Spring.GetAllyTeamList = function()
+	env.Spring.GetAllyTeamList = function()
 		return { 0 }
 	end
 	_G.UnitDefNames = { armwar = { id = 1 } }

@@ -25,7 +25,7 @@ end
 
 --- The engine CMD table maps both ways: name -> id and id -> name.
 local function mockCommands()
-	_G.CMD = {}
+	V.env.CMD = {}
 	for index, name in ipairs({
 		"STOP",
 		"MOVE",
@@ -49,19 +49,19 @@ local function mockCommands()
 		"UNLOAD_UNITS",
 		"INTERNAL",
 	}) do
-		_G.CMD[name] = index
-		_G.CMD[index] = name
+		V.env.CMD[name] = index
+		V.env.CMD[index] = name
 	end
 	-- The ANY/BUILD qualifiers used by the Command parameter type, per common/constants.lua.
-	_G.CMD.ANY = "a"
-	_G.CMD.a = "ANY"
-	_G.CMD.BUILD = "b"
-	_G.CMD.b = "BUILD"
-	_G.GameCMD = { AREA_ATTACK_GROUND = 100, [100] = "AREA_ATTACK_GROUND" }
+	V.env.CMD.ANY = "a"
+	V.env.CMD.a = "ANY"
+	V.env.CMD.BUILD = "b"
+	V.env.CMD.b = "BUILD"
+	V.env.GameCMD = { AREA_ATTACK_GROUND = 100, [100] = "AREA_ATTACK_GROUND" }
 end
 
 -- Sound file validation reads the .wav header through these, which spec_helper does not mock.
-VFS.LoadFile = VFS.LoadFile
+V.env.VFS.LoadFile = V.env.VFS.LoadFile
 	or function(path)
 		local file = io.open(path, "rb")
 		if not file then
@@ -71,11 +71,12 @@ VFS.LoadFile = VFS.LoadFile
 		file:close()
 		return data
 	end
-VFS.UnpackU16 = VFS.UnpackU16 or function(bytes)
-	local b1, b2 = bytes:byte(1, 2)
-	return b1 + b2 * 256
-end
-VFS.UnpackU32 = VFS.UnpackU32
+V.env.VFS.UnpackU16 = V.env.VFS.UnpackU16
+	or function(bytes)
+		local b1, b2 = bytes:byte(1, 2)
+		return b1 + b2 * 256
+	end
+V.env.VFS.UnpackU32 = V.env.VFS.UnpackU32
 	or function(bytes)
 		local b1, b2, b3, b4 = bytes:byte(1, 4)
 		return b1 + b2 * 256 + b3 * 65536 + b4 * 16777216
@@ -103,7 +104,7 @@ local function validateMissionFile(fileName)
 	-- As for a mission started with no options in its startscript.
 	GG["MissionAPI"].Options = {}
 
-	return V.validate(VFS.Include(missionDirectory .. fileName))
+	return V.validate(V.env.VFS.Include(missionDirectory .. fileName))
 end
 
 describe("mission_api mission files", function()
@@ -113,8 +114,13 @@ describe("mission_api mission files", function()
 		V.mockEngineGlobals()
 		mockDefNames()
 		mockCommands()
-		Spring.GetAllyTeamList = function()
+		V.env.Spring.GetAllyTeamList = function()
 			return { 0, 1 }
+		end
+		-- The named teams of tools/StartScripts/startscript_mission_api_test_quicksilver.txt, neither run by an AI.
+		V.missionAPI().Teams = { player = 0, enemy = 1, [0] = "player", [1] = "enemy" }
+		V.env.Spring.GetTeamInfo = function(teamID)
+			return teamID, 0, false, false
 		end
 	end)
 

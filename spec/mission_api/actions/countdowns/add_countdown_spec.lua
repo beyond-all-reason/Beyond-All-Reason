@@ -1,15 +1,16 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 Builders.MissionApi.new():Install()
 
-local actions = VFS.Include("luarules/mission_api/actions/countdowns/add_countdown.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/countdowns/add_countdown.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
-local countdownsModule = VFS.Include("luarules/mission_api/countdowns.lua")
+local countdownsModule = MissionSpecEnv.include(env, "luarules/mission_api/countdowns.lua")
 
 describe("mission_api.actions.add_countdown", function()
 
@@ -20,7 +21,7 @@ describe("mission_api.actions.add_countdown", function()
 		missionApi = Builders.MissionApi.new():WithModule("Countdowns", countdownsModule):Install()
 		-- GetGameFrame returns frameNum % dayFrames and frameNum / dayFrames; a
 		-- spec never reaches a second day, so the day count is always 0.
-		Spring.GetGameFrame = function()
+		env.Spring.GetGameFrame = function()
 			return 0, 0
 		end
 	end)

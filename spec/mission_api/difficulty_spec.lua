@@ -1,8 +1,8 @@
-require("spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-local RegisterMissionApiModules = require("mission_api.spec_helper")
+local env = MissionSpecEnv.new()
 
-local difficulty = RegisterMissionApiModules().Difficulty
+local difficulty = MissionSpecEnv.registerModules(env).Difficulty ---@type table
 
 -- Difficulties from luarules/mission_api/difficulties.json: Story = 1, Easy = 2, Medium = 3, Hard = 4.
 local STORY, EASY, MEDIUM, HARD = 1, 2, 3, 4
@@ -19,7 +19,7 @@ describe("mission_api.difficulty", function()
 	end
 
 	before_each(function()
-		withDifficulty(0)
+		withDifficulty(STORY)
 	end)
 
 	-- Runs one wrapped value through ResolveActions and returns what it resolved to.
@@ -40,6 +40,40 @@ describe("mission_api.difficulty", function()
 			assert.is_false(difficulty.IsDifficultiesTable("Easy"))
 			assert.is_false(difficulty.IsDifficultiesTable(nil))
 			assert.is_false(difficulty.IsDifficultiesTable({ x = 100, z = 200, radius = 50 }))
+		end)
+	end)
+
+	describe("FromName", function()
+		local savedLog, logged
+
+		before_each(function()
+			savedLog = env.Spring.Log
+			logged = {}
+			env.Spring.Log = function(_, level, message)
+				logged[#logged + 1] = { level = level, message = message }
+			end
+		end)
+
+		after_each(function()
+			env.Spring.Log = savedLog
+		end)
+
+		it("returns the difficulty with that name", function()
+			assert.are.equal(STORY, difficulty.FromName("Story"))
+			assert.are.equal(EASY, difficulty.FromName("Easy"))
+			assert.are.equal(MEDIUM, difficulty.FromName("Medium"))
+			assert.are.equal(HARD, difficulty.FromName("Hard"))
+			assert.are.same({}, logged)
+		end)
+
+		it("returns the lowest difficulty without logging when no name is given", function()
+			assert.are.equal(STORY, difficulty.FromName(nil))
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an unknown name and returns the lowest difficulty", function()
+			assert.are.equal(STORY, difficulty.FromName("Nightmare"))
+			assert.are.same({ { level = LOG.ERROR, message = "[Mission API] Unknown difficulty: Nightmare" } }, logged)
 		end)
 	end)
 
@@ -201,6 +235,23 @@ describe("mission_api.difficulty", function()
 			difficulty.ResolveObjectives(objectives)
 
 			assert.are.equal(trigger, objectives.o.trigger)
+		end)
+
+		describe("ResolveCutscenes", function()
+			it("resolves wrapped cutscene fields in place and leaves plain ones alone", function()
+				withDifficulty(HARD)
+				local cutscenes = {
+					intro = { videoFile = { difficulties = { Easy = "videos/easy.mp4", Hard = "videos/hard.mp4" } } },
+					landing = { script = "landingParty" },
+				}
+
+				difficulty.ResolveCutscenes(cutscenes)
+
+				assert.are.same({
+					intro = { videoFile = "videos/hard.mp4" },
+					landing = { script = "landingParty" },
+				}, cutscenes)
+			end)
 		end)
 	end)
 end)

@@ -1,17 +1,18 @@
-require("spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-local RegisterMissionApiModules = require("mission_api.spec_helper")
+local env = MissionSpecEnv.new()
 
 -- mirror eager module loading in api_missions.lua; the trigger files read
 -- GG['MissionAPI'].Modules.ParameterTypes at load time.
 GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-RegisterMissionApiModules()
+GG["MissionAPI"].Modules.ParameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
+MissionSpecEnv.registerModules(env)
 
-local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
-local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
+local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
+	.LoadTriggerDefinitions()
+local parameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
+local schemaUtils = MissionSpecEnv.include(env, "luarules/mission_api/schema_utils.lua")
 
 local triggerTypes = triggerDefinitions.Types
 

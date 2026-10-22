@@ -1,23 +1,24 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and
 -- Game.gameSpeed / Spring.GetTeamResources / Spring.GetTeamUnits / UnitDefs inside its handler.
 Builders.MissionApi.new():Install()
 
-local resourceIncome = VFS.Include("luarules/mission_api/triggers/resource_income.lua")
+local resourceIncome = MissionSpecEnv.include(env, "luarules/mission_api/triggers/resource_income.lua")
 local onGameFrame = resourceIncome.callins.GameFrame
 
 describe("mission_api.triggers.resource_income", function()
 	before_each(function()
-		Spring.GetTeamUnits = function()
+		env.Spring.GetTeamUnits = function()
 			return {}
 		end
-		Spring.GetUnitDefID = function()
+		env.Spring.GetUnitDefID = function()
 			return 1
 		end
-		Spring.GetUnitMetalExtraction = function()
+		env.Spring.GetUnitMetalExtraction = function()
 			return 0
 		end
 	end)
@@ -66,28 +67,28 @@ describe("mission_api.triggers.resource_income", function()
 
 	it("only evaluates once per second", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when unfiltered income meets the metal threshold", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire when unfiltered income is below the metal threshold", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(1)
+		env.Spring.GetTeamResources = resources(1)
 		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire when unfiltered income is below the energy threshold", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(1)
+		env.Spring.GetTeamResources = resources(1)
 		onGameFrame(trigger({ teamID = 0, energy = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(0, fired())
 	end)
@@ -95,17 +96,17 @@ describe("mission_api.triggers.resource_income", function()
 	it("filters by source: production only, excluding extractor income", function()
 		local context, fired = newContext()
 		-- Total income 10; extractor income should be subtracted from production.
-		Spring.GetUnitDefID = function()
+		env.Spring.GetUnitDefID = function()
 			return 1
 		end
 		_G.UnitDefs = extractorUnitDefs()
-		Spring.GetTeamUnits = function()
+		env.Spring.GetTeamUnits = function()
 			return { 1 }
 		end
-		Spring.GetUnitMetalExtraction = function()
+		env.Spring.GetUnitMetalExtraction = function()
 			return 10
 		end
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
 			trigger({ teamID = 0, metal = 1, sources = { production = true } }),
 			triggerID,
@@ -119,13 +120,13 @@ describe("mission_api.triggers.resource_income", function()
 	it("filters by source: extractor income alone", function()
 		local context, fired = newContext()
 		_G.UnitDefs = extractorUnitDefs()
-		Spring.GetTeamUnits = function()
+		env.Spring.GetTeamUnits = function()
 			return { 1 }
 		end
-		Spring.GetUnitMetalExtraction = function()
+		env.Spring.GetUnitMetalExtraction = function()
 			return 10
 		end
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
 			trigger({ teamID = 0, metal = 5, sources = { extractor = true } }),
 			triggerID,
@@ -137,7 +138,7 @@ describe("mission_api.triggers.resource_income", function()
 
 	it("filters by source: transfer income from GetTeamResources' received index", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(10, 20)
+		env.Spring.GetTeamResources = resources(10, 20)
 		onGameFrame(
 			trigger({ teamID = 0, metal = 15, sources = { transfer = true } }),
 			triggerID,
@@ -152,7 +153,7 @@ describe("mission_api.triggers.resource_income", function()
 		context.GetReclaimIncomeSnapshot = function()
 			return { metal = 7 }
 		end
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
 			trigger({ teamID = 0, metal = 5, sources = { reclaim = true } }),
 			triggerID,
@@ -167,13 +168,13 @@ describe("mission_api.triggers.resource_income", function()
 		-- energy income should never exceed a positive threshold.
 		local context, fired = newContext()
 		_G.UnitDefs = extractorUnitDefs()
-		Spring.GetTeamUnits = function()
+		env.Spring.GetTeamUnits = function()
 			return { 1 }
 		end
-		Spring.GetUnitMetalExtraction = function()
+		env.Spring.GetUnitMetalExtraction = function()
 			return 10
 		end
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
 			trigger({ teamID = 0, energy = 1, sources = { extractor = true } }),
 			triggerID,

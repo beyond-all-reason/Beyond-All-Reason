@@ -1,16 +1,11 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local CMD = { INSERT = 34, MOVE = 10, RECLAIM = 90, ANY = "a", BUILD = "b" }
+local env = MissionSpecEnv.new({ CMD = CMD })
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time.
 Builders.MissionApi.new():Install()
-
-_G.CMD = _G.CMD or {}
-_G.CMD.INSERT = 34
-_G.CMD.MOVE = 10
-_G.CMD.RECLAIM = 90
-_G.CMD.ANY = "a"
-_G.CMD.BUILD = "b"
 
 local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 	[1] = { name = "armlab", isFactory = true },
@@ -18,18 +13,17 @@ local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 })
 _G.UnitDefs = unitDefs:GetUnitDefsByID()
 
--- VFS.Include caches source text, not results, so this re-runs the trigger file and captures the `CMD` values set above.
-local rallyOrdered = VFS.Include("luarules/mission_api/triggers/rally_ordered.lua")
+local rallyOrdered = MissionSpecEnv.include(env, "luarules/mission_api/triggers/rally_ordered.lua")
 local onUnitCommand = rallyOrdered.callins.UnitCommand
 
 describe("mission_api.triggers.rally_ordered", function()
 	before_each(function()
 		-- By default the factory does not queue this command (it consumes it, so it's not a rally order),
 		-- unless a test overrides FindUnitCmdDesc/GetUnitCmdDescs.
-		Spring.FindUnitCmdDesc = function()
+		env.Spring.FindUnitCmdDesc = function()
 			return nil
 		end
-		Spring.GetUnitCmdDescs = function()
+		env.Spring.GetUnitCmdDescs = function()
 			return { { queueing = false } }
 		end
 	end)
@@ -95,10 +89,10 @@ describe("mission_api.triggers.rally_ordered", function()
 
 	it("does not fire when the factory itself executes the command", function()
 		local context, fired = newContext()
-		Spring.FindUnitCmdDesc = function()
+		env.Spring.FindUnitCmdDesc = function()
 			return 1
 		end
-		Spring.GetUnitCmdDescs = function()
+		env.Spring.GetUnitCmdDescs = function()
 			return { { queueing = false } }
 		end
 		order(trigger({ command = CMD.MOVE, unitDefName = "armlab" }), context, CMD.MOVE, { 0, 0, 0 })

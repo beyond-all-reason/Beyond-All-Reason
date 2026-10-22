@@ -9,7 +9,7 @@ file in the same pull request.
 
 A data-driven mission runtime. A mission is a plain Lua table of **stages**, **objectives**, **triggers**, and
 **actions**; the engine-facing code is generic and knows nothing about any individual mission. Everything is synced;
-what synced code cannot do, pausing and showing translated text, goes through `GG.ScriptedPause` and the battle
+what synced code cannot do, pausing and showing translated text, goes through `GG.GamePause` and the battle
 log (see Runtime surfaces).
 
 ## Load order
@@ -118,13 +118,13 @@ breaking change to both the function and every mission using it.
 - Any validation error makes `api_missions.lua` drop `GG['MissionAPI']`, which in turn makes
   `api_missions_triggers.lua` remove itself, and ends the game once it starts. Validation failure aborts the whole
   mission — reserve errors for genuinely unrunnable missions and report warnings otherwise.
-- `validation/references.lua` cross-checks unit/feature/marker/line names and countdown IDs between the actions that
-  create them and the actions and triggers that consume them. The consuming types are read from the schemas, so an
-  action or trigger declaring a `UnitName`, `FeatureName` or `CountdownID` parameter is picked up without being
-  listed.
+- `validation/references.lua` cross-checks unit/feature/marker/line names, countdown IDs and cutscene IDs between
+  where they are created or defined and the actions and triggers that consume them. The consuming types are read from
+  the schemas, so an action or trigger declaring a `UnitName`, `FeatureName`, `CountdownID` or `CutsceneID` parameter
+  is picked up without being listed.
 - The shape of the objects a mission declares itself, rather than of a trigger or action, lives in a schema file
   next to the loaders: `stages_schema.lua` (stage fields), `objectives_schema.lua` (objective fields),
-  `triggers_schema.lua` (the settings every trigger shares) and `countdowns_schema.lua`. They are plain data, so
+  `triggers_schema.lua` (the settings every trigger shares), `countdowns_schema.lua` and `cutscenes_schema.lua`. They are plain data, so
   tools and the mission editor can read them; `validation/sections.lua` validates against them. Keep them in step
   with the loaders.
 
@@ -191,9 +191,11 @@ meaningful.
 
 Specs mirror the source tree under `spec/mission_api/` and are the primary way to verify this subsystem.
 
-- `require("mission_api.spec_helper")` returns `registerMissionApiModules`, which installs the ambient globals the
-  modules read at load time (`math.bit_and`, team layout, `CMD`/`GameCMD`, `Modules.ParameterTypes`). Extend it
-  instead of re-stubbing per file.
+- `require("mission_api.spec_helper")` returns `MissionSpecEnv`. `new(overrides)` builds a `SpecEnv` holding the
+  ambient globals the modules read at load time (`math.bit_and`, team layout, `CMD`/`GameCMD`), `include(env, path)`
+  loads the code under test into it, and `registerModules(env)` loads `Modules.ParameterTypes` and the other shared
+  modules. The shared globals are sealed, so per-test stubs go on `env.Spring` and the like. Extend it instead of
+  re-stubbing per file.
 - `Builders.MissionApi.new():...:Install()` (from `spec/builders/index.lua`) builds `GG['MissionAPI']` fluently
   (`WithTrackedUnit`, `WithTrigger`, `WithCurrentStage`, `WithModule`, …) and records module calls under
   `mock.calls`. Re-`Install()` in `before_each`; state is global and leaks between tests otherwise.

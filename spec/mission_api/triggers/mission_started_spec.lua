@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
 
 local missionStarted = VFS.Include("luarules/mission_api/triggers/mission_started.lua")

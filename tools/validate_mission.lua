@@ -13,6 +13,8 @@
 	                         are always checked, since those are files in units/.
 	    --teams <n>          Number of teams and ally teams the mission is played with,
 	                         since a standalone run has no game setup to read. Default 2.
+	    --team-names <a,b>   Names of teams 0, 1, ... as the startscript gives them. Without
+	                         it, any team name is accepted, since only the startscript has them.
 	    --verbose            Print informational output as well as the validation result.
 	    --help               Show this help and exit.
 
@@ -37,6 +39,7 @@ local missionPath = nil
 local strictDefs = false
 local verbose = false
 local teamCount = 2
+local teamNames = nil
 
 local argIndex = 1
 while argIndex <= #args do
@@ -51,6 +54,8 @@ Usage: lua tools/validate_mission.lua <mission_script.lua> [options]
                          tree, which under-reports them since both are generated at
                          runtime. Unit def names are always checked.
   --teams <n>            Number of teams and ally teams to assume (default 2).
+  --team-names <a,b>     Names of teams 0, 1, ... from the startscript. Any name is
+                         accepted without it.
   --verbose              Print informational output as well as the validation result.
   --help                 Show this help and exit.
 ]]):gsub("^\n", "")))
@@ -66,6 +71,16 @@ Usage: lua tools/validate_mission.lua <mission_script.lua> [options]
 			eprint("--teams needs a number")
 			os.exit(EXIT_ERROR)
 		end
+	elseif arg == "--team-names" then
+		argIndex = argIndex + 1
+		if not args[argIndex] then
+			eprint("--team-names needs a comma separated list of names")
+			os.exit(EXIT_ERROR)
+		end
+		teamNames = {}
+		for name in args[argIndex]:gmatch("[^,]+") do
+			teamNames[#teamNames + 1] = name
+		end
 	elseif missionPath == nil then
 		missionPath = arg
 	else
@@ -76,7 +91,9 @@ Usage: lua tools/validate_mission.lua <mission_script.lua> [options]
 end
 
 if missionPath == nil then
-	eprint("Usage: lua tools/validate_mission.lua <mission_script.lua> [--strict-defs] [--teams <n>] [--verbose]")
+	eprint(
+		"Usage: lua tools/validate_mission.lua <mission_script.lua> [--strict-defs] [--teams <n>] [--team-names <a,b>] [--verbose]"
+	)
 	os.exit(EXIT_ERROR)
 end
 
@@ -122,6 +139,11 @@ function Spring.GetAllyTeamList()
 		allyTeamIDs[#allyTeamIDs + 1] = allyTeamID
 	end
 	return allyTeamIDs
+end
+
+--- Teams run by an AI are only known from the game setup, so none are assumed.
+function Spring.GetTeamInfo(teamID)
+	return teamID, 0, false, false
 end
 
 --- Gaia sits on its own ally team, after the playing ones.
@@ -378,6 +400,22 @@ end
 _G.GG["MissionAPI"].Difficulty = lowestDifficulty
 -- As for a mission started with no options in its startscript.
 _G.GG["MissionAPI"].Options = {}
+
+-- Team names come from the startscript, which a standalone run does not have.
+if teamNames then
+	local teams = {}
+	for index, name in ipairs(teamNames) do
+		teams[name] = index - 1
+		teams[index - 1] = name
+	end
+	_G.GG["MissionAPI"].Teams = teams
+else
+	_G.GG["MissionAPI"].Teams = setmetatable({}, {
+		__index = function(_, name)
+			return type(name) == "string" and 0 or nil
+		end,
+	})
+end
 
 --------------------------------------------------------------------------------
 -- Load the mission

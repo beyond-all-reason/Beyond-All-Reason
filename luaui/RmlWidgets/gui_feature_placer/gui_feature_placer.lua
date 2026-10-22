@@ -824,6 +824,7 @@ local function attachEventListeners()
 		"trees",
 		"foliage",
 		"crystals",
+		"osemo",
 		"christmas",
 		"raptor",
 		"armada_wrecks",
@@ -831,8 +832,17 @@ local function attachEventListeners()
 		"legion_wrecks",
 		"other",
 	}
+	-- Categories whose features ship in a separate asset pack: the button only shows once the pack is installed
+	local OPTIONAL_PACKS = { osemo = true }
+	local featureCats = WG.FeaturePlacer
+		and WG.FeaturePlacer.getFeatureCategories
+		and WG.FeaturePlacer.getFeatureCategories()
 	for _, key in ipairs(catKeys) do
 		local btn = doc:GetElementById("btn-cat-" .. key)
+		if btn and OPTIONAL_PACKS[key] then
+			local installed = featureCats ~= nil and featureCats[key] ~= nil and #featureCats[key] > 0
+			btn:SetClass("hidden", not installed)
+		end
 		if btn then
 			categoryButtons[key] = btn
 			btn:AddEventListener("click", function(event)

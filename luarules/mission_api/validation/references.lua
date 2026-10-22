@@ -1,6 +1,6 @@
 ---
 --- Checks references: objective events, actions, unit, feature, marker and line names,
---- and countdown IDs.
+--- countdown IDs and cutscene IDs.
 --- Malformed entries are skipped, as sections.lua already reports them. A value that differs
 --- by difficulty refers to each of its difficulties' values, see context.PossibleValues.
 ---
@@ -394,6 +394,61 @@ local function validateCountdownIDReferences(context, report)
 end
 
 --------------------------------------------------------------------------------
+-- Cutscene ID references
+--------------------------------------------------------------------------------
+
+--- Unlike the names above, a cutscene is defined up front, so starting one that is not
+--- defined would fail at runtime.
+local function validateCutsceneIDReferences(context, report)
+	local referencedIDs = {}
+
+	local function recordCutsceneIDs(parameters, source)
+		for _, cutsceneID in ipairs(context.PossibleValues(parameters and parameters.cutsceneID)) do
+			if type(cutsceneID) == "string" then
+				recordSource(referencedIDs, cutsceneID, source)
+			end
+		end
+	end
+
+	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, context.Types.CutsceneID)
+	for actionID, action in pairs(context.Actions) do
+		if referencingActionTypes[type(action) == "table" and action.type] then
+			recordCutsceneIDs(parametersOf(action), "action " .. actionID)
+		end
+	end
+
+	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.CutsceneID)
+	for triggerID, trigger in pairs(context.Triggers) do
+		if referencingTriggerTypes[type(trigger) == "table" and trigger.type] then
+			recordCutsceneIDs(parametersOf(trigger), "trigger " .. triggerID)
+		end
+	end
+	for objectiveID, objective in pairs(context.Objectives) do
+		local trigger = type(objective) == "table" and objective.trigger
+		if referencingTriggerTypes[type(trigger) == "table" and trigger.type] then
+			recordCutsceneIDs(parametersOf(trigger), "objective " .. objectiveID .. " (trigger)")
+		end
+	end
+
+	for cutsceneID, sources in pairs(referencedIDs) do
+		if context.Cutscenes[cutsceneID] == nil then
+			report.Error(
+				SECTION,
+				"Cutscene",
+				cutsceneID,
+				"Cutscene is referenced, but not defined in Cutscenes",
+				"Referenced in: " .. describeSources(sources)
+			)
+		end
+	end
+	for cutsceneID in pairs(context.Cutscenes) do
+		if referencedIDs[cutsceneID] == nil then
+			report.Warn(SECTION, "Cutscene", cutsceneID, "Cutscene is defined, but never referenced")
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
 
 local function validate(context, report)
 	local actionTypes = context.ActionTypes
@@ -434,6 +489,7 @@ local function validate(context, report)
 	})
 
 	validateCountdownIDReferences(context, report)
+	validateCutsceneIDReferences(context, report)
 end
 
 return {

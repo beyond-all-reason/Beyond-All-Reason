@@ -1,16 +1,17 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
-local RegisterMissionApiModules = require("mission_api.spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The real trigger definitions, so event triggers carry the real Event type.
 -- (Trigger files read GG['MissionAPI'].Modules at include time.)
 Builders.MissionApi.new():Install()
-RegisterMissionApiModules()
-local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
+MissionSpecEnv.registerModules(env)
+local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
+	.LoadTriggerDefinitions()
 local T = triggerDefinitions.Types
 
-local Objectives = VFS.Include("luarules/mission_api/objectives.lua")
+local Objectives = MissionSpecEnv.include(env, "luarules/mission_api/objectives.lua")
 
 describe("mission_api.objectives", function()
 	---@type table

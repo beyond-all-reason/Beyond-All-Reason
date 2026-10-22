@@ -640,7 +640,7 @@ local function initGL4()
 			defenseRangeVAOs[defRangeClass].vertexVBO,
 			defenseRangeVAOs[defRangeClass].instanceVBO
 		)
-		defenseRangeVAOs[defRangeClass].VAO = newVAO
+		defenseRangeVAOs[defRangeClass].VAO = InstanceVBOTable.fillVAOSlots(newVAO, false, true)
 	end
 	return makeShaders()
 end

@@ -5,11 +5,12 @@
 
 piece  base, top, spike1, spike2, spike3, spike4, spike5, spike6, spike7, spike8, spike9, spike10, spike11, spike12, flare;
 
-static-var  restore_delay, deploy_state, animate_speed;
+static-var  restore_delay, animate_speed;
 
 // Signal definitions
 #define SIG_AIM				2
-#define SIG_DEPLOY			4
+
+#include "../popup_openclose.h"
 
 static-var  Stunned;
 SetStunned(State)
@@ -23,7 +24,11 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	sleep restore_delay;
-	signal SIG_DEPLOY;
+	start-script RequestClose();
+}
+
+CloseAnim()
+{
 	move spike1 to x-axis [12.32] speed animate_speed;
 	move spike4 to z-axis [12.32] speed animate_speed;
 	move spike7 to x-axis [-12.32] speed animate_speed;
@@ -40,9 +45,11 @@ RestoreAfterDelay()
 	move spike12 to z-axis [-12.32] speed animate_speed;
 
 	move top to y-axis [-24.62] speed animate_speed*2;
-	deploy_state = 0;
 	wait-for-move top along y-axis;
 	set ARMORED to 1;
+	wait-for-move spike1 along x-axis;
+	wait-for-move spike2 along x-axis;
+	wait-for-move spike3 along x-axis;
 }
 
 Create()
@@ -50,90 +57,77 @@ Create()
 	hide flare;
 
 	restore_delay = 3000;
-	deploy_state = 0;
 	animate_speed = [24];
 
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
-	start-script RestoreAfterDelay();
+	sleep restore_delay;
+	start-script CloseBuildPose();
 }
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-Deploy()
+OpenAnim()
 {
-	signal SIG_DEPLOY;
-	set-signal-mask SIG_DEPLOY;
 	set ARMORED to 0;
-	if (deploy_state==0 OR deploy_state==1)
-	{
-		deploy_state = 1;
-		move spike1 to x-axis [8.32] speed animate_speed;
-		move spike4 to z-axis [8.32] speed animate_speed;
-		move spike7 to x-axis [-8.32] speed animate_speed;
-		move spike10 to z-axis [-8.32] speed animate_speed;
-		wait-for-move spike1 along x-axis;
-		deploy_state = 2;
-	}
-	if (deploy_state==2 OR deploy_state==3)
-	{
-		deploy_state = 3;
-		move spike1 to x-axis [4.32] speed animate_speed;
-		move spike4 to z-axis [4.32] speed animate_speed;
-		move spike7 to x-axis [-4.32] speed animate_speed;
-		move spike10 to z-axis [-4.32] speed animate_speed;
+	move spike1 to x-axis [8.32] speed animate_speed;
+	move spike4 to z-axis [8.32] speed animate_speed;
+	move spike7 to x-axis [-8.32] speed animate_speed;
+	move spike10 to z-axis [-8.32] speed animate_speed;
+	wait-for-move spike1 along x-axis;
 
-		move spike2 to x-axis [8.32] speed animate_speed;
-		move spike5 to z-axis [8.32] speed animate_speed;
-		move spike8 to x-axis [-8.32] speed animate_speed;
-		move spike11 to z-axis [-8.32] speed animate_speed;
-		wait-for-move spike2 along x-axis;
-		deploy_state = 4;
-	}
-	if (deploy_state==4 OR deploy_state==5)
-	{
-		deploy_state = 5;
-		move spike1 to x-axis [0] speed animate_speed;
-		move spike4 to z-axis [0] speed animate_speed;
-		move spike7 to x-axis [0] speed animate_speed;
-		move spike10 to z-axis [0] speed animate_speed;
+	move spike1 to x-axis [4.32] speed animate_speed;
+	move spike4 to z-axis [4.32] speed animate_speed;
+	move spike7 to x-axis [-4.32] speed animate_speed;
+	move spike10 to z-axis [-4.32] speed animate_speed;
 
-		move spike2 to x-axis [4.32] speed animate_speed;
-		move spike5 to z-axis [4.32] speed animate_speed;
-		move spike8 to x-axis [-4.32] speed animate_speed;
-		move spike11 to z-axis [-4.32] speed animate_speed;
+	move spike2 to x-axis [8.32] speed animate_speed;
+	move spike5 to z-axis [8.32] speed animate_speed;
+	move spike8 to x-axis [-8.32] speed animate_speed;
+	move spike11 to z-axis [-8.32] speed animate_speed;
+	wait-for-move spike2 along x-axis;
 
-		move spike3 to x-axis [8.32] speed animate_speed;
-		move spike6 to z-axis [8.32] speed animate_speed;
-		move spike9 to x-axis [-8.32] speed animate_speed;
-		move spike12 to z-axis [-8.32] speed animate_speed;
-		wait-for-move spike3 along x-axis;
-		deploy_state = 6;
-	}
-	if (deploy_state==6 OR deploy_state==7)
-	{
-		deploy_state = 7;
-		move top to y-axis [0] speed animate_speed*2;
-		wait-for-move top along y-axis;
-		deploy_state = 8;
-	}
+	move spike1 to x-axis [0] speed animate_speed;
+	move spike4 to z-axis [0] speed animate_speed;
+	move spike7 to x-axis [0] speed animate_speed;
+	move spike10 to z-axis [0] speed animate_speed;
 
+	move spike2 to x-axis [4.32] speed animate_speed;
+	move spike5 to z-axis [4.32] speed animate_speed;
+	move spike8 to x-axis [-4.32] speed animate_speed;
+	move spike11 to z-axis [-4.32] speed animate_speed;
+
+	move spike3 to x-axis [8.32] speed animate_speed;
+	move spike6 to z-axis [8.32] speed animate_speed;
+	move spike9 to x-axis [-8.32] speed animate_speed;
+	move spike12 to z-axis [-8.32] speed animate_speed;
+	wait-for-move spike3 along x-axis;
+
+	move top to y-axis [0] speed animate_speed*2;
+	wait-for-move top along y-axis;
+	wait-for-move spike1 along x-axis;
+	wait-for-move spike2 along x-axis;
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	start-script Deploy();
+	start-script RequestOpen();
 	start-script RestoreAfterDelay();
-	while( !(deploy_state==8) )
+	while( !isOpen )
 	{
 		sleep 250;
 	}
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 FirePrimary()

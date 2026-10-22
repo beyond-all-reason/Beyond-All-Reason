@@ -833,6 +833,7 @@ local function CreateInstanceBuffers(geo, capacity)
 	end
 	vao:AttachVertexBuffer(geo.vertexVBO)
 	vao:AttachInstanceBuffer(instanceVBO)
+	gl.InstanceVBOTable.fillVAOSlots(vao, false, true)
 
 	geo.instanceVBO = instanceVBO
 	geo.vao = vao

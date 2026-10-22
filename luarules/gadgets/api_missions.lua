@@ -56,12 +56,15 @@ local function loadMission(gameSetup)
 	GG["MissionAPI"].Actions = actionsController.ProcessRawActions(rawActions)
 	GG["MissionAPI"].UnitLoadout = mission.UnitLoadout
 	GG["MissionAPI"].FeatureLoadout = mission.FeatureLoadout
+	GG["MissionAPI"].Cutscenes = mission.Cutscenes or {}
 
 	-- Difficulties tables stay unresolved through validation so every difficulty's value is checked.
 	local difficultyController = GG["MissionAPI"].Modules.Difficulty
+	GG["MissionAPI"].Difficulty = difficultyController.FromName(gameSetup.difficulty)
 	difficultyController.ResolveTriggers(GG["MissionAPI"].Triggers)
 	difficultyController.ResolveActions(GG["MissionAPI"].Actions)
 	difficultyController.ResolveObjectives(GG["MissionAPI"].Objectives)
+	difficultyController.ResolveCutscenes(GG["MissionAPI"].Cutscenes)
 
 	-- TODO: refactor loaders after merging loadouts
 	local parameterProcessing = VFS.Include("luarules/mission_api/parameter_processing.lua")
@@ -99,14 +102,6 @@ function gadget:Initialize()
 	GG["MissionAPI"].BattleLogRaw = {}
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-	-- No difficulty source exists yet (e.g. a modoption); default to the lowest difficulty.
-	GG["MissionAPI"].Difficulty = table.reduce(
-		GG["MissionAPI"].Modules.ParameterTypes.Enums.Difficulty,
-		function(lowest, difficulty)
-			return math.min(lowest, difficulty)
-		end,
-		math.huge
-	)
 	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
 	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
@@ -116,6 +111,7 @@ function gadget:Initialize()
 	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
 	GG["MissionAPI"].Modules.Countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
 	GG["MissionAPI"].Modules.BattleLog = VFS.Include("luarules/mission_api/battle_log.lua")
+	GG["MissionAPI"].Modules.Cutscenes = VFS.Include("luarules/mission_api/cutscenes.lua")
 	GG["MissionAPI"].Modules.MapLines = VFS.Include("luarules/mission_api/map_lines.lua")
 	GG["MissionAPI"].Modules.UnitMarkers = VFS.Include("luarules/mission_api/unit_markers.lua")
 	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
@@ -129,6 +125,8 @@ function gadget:Initialize()
 
 	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
 	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
+
+	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
 
 	loadMission(gameSetup)
 end

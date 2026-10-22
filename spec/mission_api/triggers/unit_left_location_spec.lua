@@ -1,8 +1,9 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
--- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and UnitDefs / Spring.GetUnitDefID inside its handler.
+local env = MissionSpecEnv.new()
+
+-- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load, and UnitDefs and Spring inside its handler.
 Builders.MissionApi.new():Install()
 
 local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
@@ -11,13 +12,16 @@ local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 })
 _G.UnitDefs = unitDefs:GetUnitDefsByID()
 
-local unitLeftLocation = VFS.Include("luarules/mission_api/triggers/unit_left_location.lua")
+local unitLeftLocation = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_left_location.lua")
 local onGameFrame = unitLeftLocation.callins.GameFrame
 
 describe("mission_api.triggers.unit_left_location", function()
 	before_each(function()
-		Spring.GetUnitDefID = function()
+		env.Spring.GetUnitDefID = function()
 			return 1
+		end
+		env.Spring.GetUnitIsDead = function()
+			return false
 		end
 	end)
 

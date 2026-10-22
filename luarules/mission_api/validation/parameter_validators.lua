@@ -183,6 +183,13 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
 	parameterValidators[Types.CountdownID] = validateString
+	parameterValidators[Types.CutsceneID] = validateString
+	-- TODO: A cutscene-type script has no definition yet.
+	parameterValidators[Types.CutsceneScriptID] = validateString
+
+	parameterValidators[Types.TeamName] = getLookupValidator(validateString, "teamName", function(teamName)
+		return context.Teams[teamName]
+	end)
 
 	--- List validators, checking each element with its own type's validator:
 	parameterValidators[Types.StageIDs] = getListValidator(parameterValidators[Types.StageID])
@@ -239,6 +246,27 @@ local function registerValueValidators(parameterValidators, context)
 		end
 	end
 
+	-- TODO: Whatever our file extensions are:
+	local videoFileExtensions = { "mp4", "webm" }
+
+	parameterValidators[Types.VideoFile] = function(videoFile)
+		local luaTypeResult = validateString(videoFile)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		local extension = videoFile:match("%.([^%./]+)$")
+		if not extension or not table.contains(videoFileExtensions, extension:lower()) then
+			local expected = table.concat(videoFileExtensions, ", ")
+			return { { message = "Invalid videoFile: " .. videoFile .. ". Expected a file of type: " .. expected } }
+		end
+
+		-- TODO: Read the video file as well.
+		if not VFS.FileExists(videoFile) then
+			return { { message = "Invalid videoFile: " .. videoFile .. ". File does not exist" } }
+		end
+	end
+
 	--- Attribute validators. Whether an attribute suits the action, value and unit def it
 	--- is used with is checked per action, see sections.lua.
 	parameterValidators[Types.UnitAttribute] = function(attribute)
@@ -283,6 +311,32 @@ local function registerValueValidators(parameterValidators, context)
 			}
 		end
 	end
+
+	--- Variables hold plain values, or tables of them nested to any depth.
+	local function validateVariableValue(value)
+		local valueType = type(value)
+		if valueType == "number" or valueType == "string" or valueType == "boolean" then
+			return
+		elseif valueType ~= "table" then
+			return {
+				{ message = "Unexpected parameter type, expected number, string, boolean or table, got " .. valueType },
+			}
+		end
+
+		local results = {}
+		for key, entry in pairs(value) do
+			local keyType = type(key)
+			if keyType ~= "number" and keyType ~= "string" then
+				results[#results + 1] = {
+					message = "Unexpected table key type, expected number or string, got " .. keyType,
+					parameterNameSuffix = "." .. tostring(key),
+				}
+			end
+			appendResults(results, validateVariableValue(entry), "." .. tostring(key))
+		end
+		return results
+	end
+	parameterValidators[Types.VariableValue] = validateVariableValue
 
 	--- Number validators:
 	parameterValidators[Types.Quantity] = function(quantity)

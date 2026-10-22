@@ -610,9 +610,13 @@ local function initializeInstanceVBOTable(myName, usesFeatures)
 	if useGeometryShader then
 		local newVAO = gl.GetVAO()
 		newVAO:AttachVertexBuffer(newVBOTable.instanceVBO)
-		newVBOTable.VAO = newVAO
+		newVBOTable.VAO = InstanceVBOTable.fillVAOSlots(newVAO)
 	else
-		newVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(unitQuadVBO, newVBOTable.instanceVBO)
+		newVBOTable.VAO = InstanceVBOTable.fillVAOSlots(
+			InstanceVBOTable.makeVAOandAttach(unitQuadVBO, newVBOTable.instanceVBO),
+			false,
+			true
+		)
 		-- so the resize can find the quad when it rebuilds the VAO
 		newVBOTable.vertexVBO = unitQuadVBO
 	end

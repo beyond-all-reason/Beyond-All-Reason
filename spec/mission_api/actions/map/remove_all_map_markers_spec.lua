@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.

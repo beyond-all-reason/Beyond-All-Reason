@@ -101,7 +101,7 @@ describe("mission_api.validation.references", function()
 	end)
 
 	it("treats the orders of an action as name references", function()
-		_G.CMD = { GUARD = 25, [25] = "GUARD" }
+		V.env.CMD = { GUARD = 25, [25] = "GUARD" }
 
 		V.assertValid(V.validate(V.mission()
 			:WithTrigger("t", {
@@ -112,10 +112,10 @@ describe("mission_api.validation.references", function()
 			:WithAction("spawn", spawnUnits("bot"))
 			:WithAction("order", {
 				type = V.actionTypes.IssueOrders,
-				parameters = { unitName = "bot", orders = { { CMD.GUARD, { unitName = "bot" } } } },
+				parameters = { unitName = "bot", orders = { { V.env.CMD.GUARD, { unitName = "bot" } } } },
 			})))
 
-		_G.CMD = {}
+		V.env.CMD = {}
 	end)
 
 	-- Referencing action types come from the action schema, so actions like
@@ -270,6 +270,61 @@ describe("mission_api.validation.references", function()
 				"Line name is referenced, but never created. Line name: noSuchLine, Referenced in: action removeUnknown"
 			)
 			V.assertNoMessageContaining(result, "Line name: wall")
+		end)
+	end)
+
+	describe("cutscene IDs", function()
+		--- A mission whose trigger 't' starts the given actions.
+		local function startedBy(actions)
+			local mission = V.mission()
+			local actionIDs = {}
+			for actionID, action in pairs(actions) do
+				mission:WithAction(actionID, action)
+				actionIDs[#actionIDs + 1] = actionID
+			end
+			return mission:WithTrigger(
+				"t",
+				{ type = V.triggerTypes.TimeElapsed, parameters = { seconds = 1 }, actions = actionIDs }
+			)
+		end
+
+		local function startCutscene(cutsceneID)
+			return { type = V.actionTypes.StartCutscene, parameters = { cutsceneID = cutsceneID } }
+		end
+
+		it("passes cutscenes that are defined and started", function()
+			V.assertValid(V.validate(startedBy({
+					playIntro = startCutscene("intro"),
+					playOutro = startCutscene({ difficulties = { Easy = "outro", Hard = "intro" } }),
+				})
+				:WithCutscene("intro", { script = "landingParty" })
+				:WithCutscene("outro", { script = "farewell" })))
+		end)
+
+		it("reports a cutscene that is not defined", function()
+			local result = V.validate(startedBy({ playGhost = startCutscene("ghost") }))
+
+			V.assertMessage(
+				result,
+				"Cutscene is referenced, but not defined in Cutscenes. Cutscene: ghost, Referenced in: action playGhost"
+			)
+			assert.is_false(result.ok)
+		end)
+
+		it("checks every difficulty's cutscene", function()
+			V.assertMessage(
+				V.validate(startedBy({
+					play = startCutscene({ difficulties = { Easy = "intro", Hard = "ghost" } }),
+				}):WithCutscene("intro", { script = "landingParty" })),
+				"Cutscene is referenced, but not defined in Cutscenes. Cutscene: ghost, Referenced in: action play"
+			)
+		end)
+
+		it("warns about a cutscene that nothing starts", function()
+			local result = V.validate(V.mission():WithCutscene("unused", { script = "landingParty" }))
+
+			assert.are.same({ "Cutscene is defined, but never referenced. Cutscene: unused" }, result.warnings)
+			assert.is_true(result.ok)
 		end)
 	end)
 

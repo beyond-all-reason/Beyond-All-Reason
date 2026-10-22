@@ -1,16 +1,18 @@
-require("spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-local RegisterMissionApiModules = require("mission_api.spec_helper")
+local env = MissionSpecEnv.new()
 
 -- The full loadMission sequence from api_missions.lua, with difficulty-wrapped parameters:
 -- validation of the raw mission (wrappers intact), loaders, then in-place resolution.
 
 GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-RegisterMissionApiModules()
-GG["MissionAPI"].ActionDefinitions = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
-GG["MissionAPI"].TriggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
+GG["MissionAPI"].Modules.ParameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
+MissionSpecEnv.registerModules(env)
+GG["MissionAPI"].ActionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua")
+	.LoadActionDefinitions()
+GG["MissionAPI"].TriggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
+	.LoadTriggerDefinitions()
 
 local function withCommandIDs(names, firstID)
 	local commands = {}
@@ -22,24 +24,24 @@ local function withCommandIDs(names, firstID)
 	return commands
 end
 
-local savedCMD, savedGameCMD = _G.CMD, _G.GameCMD
-_G.CMD = withCommandIDs({ "STOP", "MOVE", "ATTACK" }, 0)
-_G.GameCMD = withCommandIDs({ "AREA_ATTACK_GROUND" }, 1000)
-_G.CMD.ANY, _G.CMD.BUILD = "a", "b"
-local validation = VFS.Include("luarules/mission_api/validation.lua")
-_G.CMD, _G.GameCMD = savedCMD, savedGameCMD
+local savedCMD, savedGameCMD = env.CMD, env.GameCMD
+env.CMD = withCommandIDs({ "STOP", "MOVE", "ATTACK" }, 0)
+env.GameCMD = withCommandIDs({ "AREA_ATTACK_GROUND" }, 1000)
+env.CMD.ANY, env.CMD.BUILD = "a", "b"
+local validation = MissionSpecEnv.include(env, "luarules/mission_api/validation.lua")
+env.CMD, env.GameCMD = savedCMD, savedGameCMD
 
 -- Def-name globals the validators read, set at module scope for every test in this file.
 _G.UnitDefNames = { armwar = { id = 1 }, armpw = { id = 2 } }
 _G.FeatureDefNames = {}
 _G.WeaponDefNames = {}
 
-local originalLog = Spring.Log
+local originalLog = env.Spring.Log
 
-local stagesController = VFS.Include("luarules/mission_api/stages_loader.lua")
-local objectivesController = VFS.Include("luarules/mission_api/objectives_loader.lua")
-local triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
-local actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
+local stagesController = MissionSpecEnv.include(env, "luarules/mission_api/stages_loader.lua")
+local objectivesController = MissionSpecEnv.include(env, "luarules/mission_api/objectives_loader.lua")
+local triggersController = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
+local actionsController = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua")
 local difficulty = GG["MissionAPI"].Modules.Difficulty
 
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
@@ -53,17 +55,17 @@ local EASY, MEDIUM, HARD = 2, 3, 4
 describe("mission_api difficulty pipeline", function()
 	local logged
 
-	-- Team layout and lookups come from the shared spec_helper stubs; only the log capture
-	-- is swapped per test, and restored so later spec files keep the original.
+	-- Team layout and lookups come from the mission env's stubs; only the log capture
+	-- is swapped per test, and restored after it.
 	before_each(function()
 		logged = {}
-		Spring.Log = function(_, _, msg)
+		env.Spring.Log = function(_, _, msg)
 			logged[#logged + 1] = msg
 		end
 	end)
 
 	after_each(function()
-		Spring.Log = originalLog
+		env.Spring.Log = originalLog
 	end)
 
 	-- Mirrors loadMission() in api_missions.lua up to (not including) parameter_processing.
@@ -92,10 +94,12 @@ describe("mission_api difficulty pipeline", function()
 			objectivesController.ProcessRawObjectives(mission.Objectives or {}, rawTriggers, rawActions, mission.Stages)
 		GG["MissionAPI"].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
 		GG["MissionAPI"].Actions = actionsController.ProcessRawActions(rawActions)
+		GG["MissionAPI"].Cutscenes = mission.Cutscenes or {}
 
 		difficulty.ResolveTriggers(GG["MissionAPI"].Triggers)
 		difficulty.ResolveActions(GG["MissionAPI"].Actions)
 		difficulty.ResolveObjectives(GG["MissionAPI"].Objectives)
+		difficulty.ResolveCutscenes(GG["MissionAPI"].Cutscenes)
 
 		return GG["MissionAPI"], result
 	end

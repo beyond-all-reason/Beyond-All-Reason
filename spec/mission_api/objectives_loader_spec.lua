@@ -1,13 +1,15 @@
-require("spec_helper")
-local registerMissionApiModules = require("mission_api.spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- Trigger and action definition files read the Mission API modules from GG at include time.
-registerMissionApiModules()
-local actionDefinitions = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
-local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
+MissionSpecEnv.registerModules(env)
+local actionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
+local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
+	.LoadTriggerDefinitions()
 GG["MissionAPI"] = nil
 
-local objectivesLoader = VFS.Include("luarules/mission_api/objectives_loader.lua")
+local objectivesLoader = MissionSpecEnv.include(env, "luarules/mission_api/objectives_loader.lua")
 local triggerTypes = triggerDefinitions.Types
 local actionTypes = actionDefinitions.Types
 

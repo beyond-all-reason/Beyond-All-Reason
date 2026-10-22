@@ -267,7 +267,8 @@ local guishaderWasActive = false
 --local specJoinedOnce, scheduledSpecFullView
 --local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
 local lockPlayerID --leftPosX, lastSliderSound, release
-local MainList, MainList2, MainList3, drawListOffset
+local MainList, MainList2, drawListOffset
+local mainList3Tex ---@type string?
 
 local deadPlayerHeightReduction = 8
 
@@ -1153,8 +1154,9 @@ function widget:Shutdown()
 	if MainList2 then
 		gl_DeleteList(MainList2)
 	end
-	if MainList3 then
-		gl_DeleteList(MainList3)
+	if mainList3Tex then
+		gl.DeleteTexture(mainList3Tex)
+		mainList3Tex = nil
 	end
 	if Background then
 		gl_DeleteList(Background)
@@ -1970,17 +1972,21 @@ function widget:DrawScreen()
 		gl.PushMatrix()
 	end
 
+	if mainList3Tex and (MainList or mainListTex) and (MainList2 or mainList2Tex) then
+		gl.R2tHelper.BlendTexRect(
+			mainList3Tex,
+			apiAbsPosition[2],
+			apiAbsPosition[3],
+			apiAbsPosition[4],
+			apiAbsPosition[1],
+			true
+		)
+	end
+
 	local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
 	local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
 	gl.Scale(widgetScale, widgetScale, 0)
 	gl.Translate(scaleDiffX, scaleDiffY, 0)
-
-	if not MainList3 then
-		CreateMainList(true, true, true)
-	end
-	if (MainList or mainListTex) and (MainList2 or mainList2Tex) and MainList3 then
-		gl_CallList(MainList3)
-	end
 
 	-- handle/draw hover highlight
 	local posY
@@ -2086,6 +2092,9 @@ function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
 	if not mainList2Tex then
 		onlyMainList2 = true
 	end
+	if not mainList3Tex then
+		onlyMainList3 = true
+	end
 	CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 end
 
@@ -2157,6 +2166,10 @@ function CreateBackground()
 		if mainList2Tex then
 			gl.DeleteTexture(mainList2Tex)
 			mainList2Tex = nil
+		end
+		if mainList3Tex then
+			gl.DeleteTexture(mainList3Tex)
+			mainList3Tex = nil
 		end
 		if mainListBgTex then
 			gl.DeleteTexture(mainListBgTex)
@@ -2458,21 +2471,40 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 	end
 
 	if onlyMainList3 then
-		if MainList3 then
-			MainList3 = gl_DeleteList(MainList3)
+		if not mainList3Tex then
+			local width, height =
+				mathFloor(apiAbsPosition[4] - apiAbsPosition[2]), mathFloor(apiAbsPosition[1] - apiAbsPosition[3])
+			if width > 0 and height > 0 then
+				mainList3Tex = gl.CreateTexture(width, height, {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+			end
 		end
-		MainList3 = gl_CreateList(function()
-			local leader
-			for i, drawObject in ipairs(drawList) do
-				if drawObject == -1 then
-					leader = true
-				elseif drawObject >= 0 then
-					if not player[drawObject].spec then -- specs have no resources
-						DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, false, true)
+		if mainList3Tex then
+			-- the resource bars, with the scale DrawScreen used to draw them directly
+			gl.R2tHelper.RenderToTexture(mainList3Tex, function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (apiAbsPosition[4] - apiAbsPosition[2]), 2 / (apiAbsPosition[1] - apiAbsPosition[3]), 0)
+				gl.Translate(
+					widgetPosX * (1 - widgetScale) - apiAbsPosition[2],
+					widgetPosY * (1 - widgetScale) - apiAbsPosition[3],
+					0
+				)
+				gl.Scale(widgetScale, widgetScale, 0)
+				local leader
+				for i, drawObject in ipairs(drawList) do
+					if drawObject == -1 then
+						leader = true
+					elseif drawObject >= 0 then
+						if not player[drawObject].spec then -- specs have no resources
+							DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, false, true)
+						end
 					end
 				end
-			end
-		end)
+			end, true)
+		end
 	end
 end
 
@@ -4129,7 +4161,8 @@ function widget:MousePress(x, y, button)
 							end
 							return true
 						elseif not player[i].spec then
-							if i ~= myTeamPlayerID then
+							-- Selecting units can update the team separate to the camera lock.
+							if i ~= myTeamPlayerID or (lockPlayerID and lockPlayerID ~= i) then
 								clickedPlayerTime = osClock()
 								clickedPlayerID = clickedPlayer.id
 								-- handled in Update() after dblclick delay
@@ -4327,7 +4360,7 @@ function widget:MousePress(x, y, button)
 								and clickTime - prevClickTime < dblclickPeriod
 								and clickedPlayer == prevClickedPlayer
 							then
-								LockCamera(clickedPlayer.team)
+								LockCamera(i)
 								prevClickedPlayer = {}
 								return true
 							end

@@ -1,6 +1,7 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here),
 -- Game.envDamageTypes from the harness, and Spring / UnitDefs inside its handlers.
@@ -12,14 +13,14 @@ local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 })
 _G.UnitDefs = unitDefs:GetUnitDefsByID()
 
-local productionCanceled = VFS.Include("luarules/mission_api/triggers/production_canceled.lua")
+local productionCanceled = MissionSpecEnv.include(env, "luarules/mission_api/triggers/production_canceled.lua")
 local onUnitDestroyed = productionCanceled.callins.UnitDestroyed
 local onUnitTaken = productionCanceled.callins.UnitTaken
 
 describe("mission_api.triggers.production_canceled", function()
 	before_each(function()
 		-- Default: the unit was still under construction (a nanoframe).
-		Spring.GetUnitIsBeingBuilt = function()
+		env.Spring.GetUnitIsBeingBuilt = function()
 			return true
 		end
 	end)
@@ -98,7 +99,7 @@ describe("mission_api.triggers.production_canceled", function()
 	end)
 
 	it("does not fire for a finished unit that is taken", function()
-		Spring.GetUnitIsBeingBuilt = function()
+		env.Spring.GetUnitIsBeingBuilt = function()
 			return false
 		end
 		local context, fired = newContext()

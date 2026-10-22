@@ -389,6 +389,152 @@ describe("mission_api.validation.sections", function()
 		end)
 	end)
 
+	describe("cutscenes", function()
+		--- Validates a mission whose cutscenes are all started, so only the cutscene checks report.
+		local function validateCutscenes(cutscenes)
+			local mission = V.mission():WithTrigger("t", {
+				type = V.triggerTypes.TimeElapsed,
+				parameters = { seconds = 1 },
+				actions = {},
+			})
+			local actions = mission.fields.Triggers.t.actions
+			for cutsceneID, cutscene in pairs(cutscenes) do
+				mission:WithCutscene(cutsceneID, cutscene)
+				mission:WithAction(
+					"play_" .. cutsceneID,
+					{ type = V.actionTypes.StartCutscene, parameters = { cutsceneID = cutsceneID } }
+				)
+				actions[#actions + 1] = "play_" .. cutsceneID
+			end
+			return V.validate(mission)
+		end
+
+		local originalFileExists
+
+		before_each(function()
+			originalFileExists = V.env.VFS.FileExists
+			V.env.VFS.FileExists = function(path)
+				return path:find("^videos/") ~= nil
+			end
+		end)
+
+		after_each(function()
+			V.env.VFS.FileExists = originalFileExists
+		end)
+
+		it("passes for a video cutscene and a scripted cutscene", function()
+			V.assertValid(validateCutscenes({
+				intro = { videoFile = "videos/intro.mp4" },
+				landing = { script = "landingParty" },
+			}))
+		end)
+
+		it("reports a cutscene with neither a videoFile nor a script", function()
+			V.assertMessage(
+				validateCutscenes({ intro = {} }),
+				"Cutscene must have either a videoFile or a script, but not both. Cutscene: intro"
+			)
+		end)
+
+		it("reports a cutscene with both a videoFile and a script", function()
+			V.assertMessage(
+				validateCutscenes({ intro = { videoFile = "videos/intro.mp4", script = "landingParty" } }),
+				"Cutscene must have either a videoFile or a script, but not both. Cutscene: intro"
+			)
+		end)
+
+		it("reports a script that is not a string", function()
+			V.assertMessage(
+				validateCutscenes({ landing = { script = 7 } }),
+				"Unexpected parameter type, expected string, got number. Cutscene: landing, Field: script"
+			)
+		end)
+
+		it("accepts video file types in any case", function()
+			V.assertValid(validateCutscenes({ intro = { videoFile = "videos/intro.WebM" } }))
+		end)
+
+		it("reports a video file type that is not supported", function()
+			V.assertMessage(
+				validateCutscenes({ intro = { videoFile = "videos/intro.mov" } }),
+				"Invalid videoFile: videos/intro.mov. Expected a file of type: mp4, webm. Cutscene: intro, Field: videoFile"
+			)
+		end)
+
+		it("reports a video file without a type", function()
+			V.assertMessage(
+				validateCutscenes({ intro = { videoFile = "videos.mp4/intro" } }),
+				"Invalid videoFile: videos.mp4/intro. Expected a file of type: mp4, webm. Cutscene: intro, Field: videoFile"
+			)
+		end)
+
+		it("reports a video file that does not exist", function()
+			V.assertMessage(
+				validateCutscenes({ intro = { videoFile = "missing/intro.mp4" } }),
+				"Invalid videoFile: missing/intro.mp4. File does not exist. Cutscene: intro, Field: videoFile"
+			)
+		end)
+
+		it("validates the video file for every difficulty", function()
+			local result = validateCutscenes({
+				intro = { videoFile = { difficulties = { Easy = "videos/easy.mp4", Hard = "missing/hard.mp4" } } },
+			})
+
+			assert.are.same({
+				"Invalid videoFile: missing/hard.mp4. File does not exist. Cutscene: intro, Field: videoFile.difficulties.Hard",
+			}, result.messages)
+		end)
+	end)
+
+	describe("ChangeTeam actions", function()
+		local originalGetTeamInfo
+
+		before_each(function()
+			originalGetTeamInfo = V.env.Spring.GetTeamInfo
+			V.missionAPI().Teams = { rebels = 0, [0] = "rebels", loyalists = 1, [1] = "loyalists" }
+			V.env.Spring.GetTeamInfo = function(teamID)
+				return teamID, 0, false, teamID == 1
+			end
+		end)
+
+		after_each(function()
+			V.env.Spring.GetTeamInfo = originalGetTeamInfo
+		end)
+
+		it("warns that the AI of the old team stays", function()
+			local result = V.validate(V.mission():WithAction("defect", {
+				type = V.actionTypes.ChangeTeam,
+				parameters = { oldTeam = "loyalists", newTeam = "rebels" },
+			}))
+
+			V.assertMessage(result, "ChangeTeam moves players only, the AI of team 'loyalists' stays. Action: defect")
+			assert.are.same({}, result.errors)
+		end)
+
+		it("checks every difficulty's old team", function()
+			V.assertMessage(
+				V.validate(V.mission():WithAction("defect", {
+					type = V.actionTypes.ChangeTeam,
+					parameters = {
+						oldTeam = { difficulties = { Easy = "rebels", Hard = "loyalists" } },
+						newTeam = "rebels",
+					},
+				})),
+				"ChangeTeam moves players only, the AI of team 'loyalists' stays. Action: defect"
+			)
+		end)
+
+		it("does not warn for a team without an AI", function()
+			V.assertNoMessageContaining(
+				V.validate(V.mission():WithAction("defect", {
+					type = V.actionTypes.ChangeTeam,
+					parameters = { oldTeam = "rebels", newTeam = "loyalists" },
+				})),
+				"ChangeTeam"
+			)
+		end)
+	end)
+
 	describe("settings", function()
 		-- The loaders apply the setting defaults, and they run after validation.
 		it("passes for a trigger without a settings table", function()

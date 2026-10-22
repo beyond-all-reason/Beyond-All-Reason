@@ -1,11 +1,12 @@
 ---
---- Validation of a mission's top level sections: stages, objectives, triggers, actions, and loadouts.
+--- Validation of a mission's top level sections: stages, objectives, triggers, actions, cutscenes, and loadouts.
 ---
 
 local SECTIONS = VFS.Include("luarules/mission_api/validation/report.lua").Sections
 local stageFieldTypes = VFS.Include("luarules/mission_api/stages_schema.lua").Settings
 local objectiveFieldTypes = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
 local triggerSettingTypes = VFS.Include("luarules/mission_api/triggers_schema.lua").Settings
+local cutsceneFieldTypes = VFS.Include("luarules/mission_api/cutscenes_schema.lua").Settings
 local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local getTypesWithParameterName = schemaUtils.GetTypesWithParameterName
@@ -38,7 +39,8 @@ local function validateTypedFields(reporter, id, validateValue, fieldTypes, valu
 		if value ~= nil then
 			for _, result in ipairs(validateValue(fieldType, value, fieldName)) do
 				local details = valueLabel .. ": " .. fieldName .. (result.parameterNameSuffix or "")
-				reporter.Error(id, result.message, details)
+				local reportResult = result.isWarning and reporter.Warn or reporter.Error
+				reportResult(id, result.message, details)
 			end
 		end
 	end
@@ -456,6 +458,27 @@ local function createAttributeActionValidator(context, parameterValidators)
 	end
 end
 
+-- Recoil cannot move an AI to another team, so ChangeTeam moves only the players of oldTeam.
+local function validateChangeTeamAction(context, actionReport, actionID, action)
+	if action.type ~= context.ActionTypes.ChangeTeam or type(action.parameters) ~= "table" then
+		return
+	end
+
+	for _, oldTeamName in ipairs(context.PossibleValues(action.parameters.oldTeam)) do
+		local oldTeamID = type(oldTeamName) == "string" and context.Teams[oldTeamName]
+		if oldTeamID then
+			local _, _, _, hasAI = Spring.GetTeamInfo(oldTeamID, false)
+			---@cast hasAI +boolean
+			if hasAI then
+				actionReport.Warn(
+					actionID,
+					"ChangeTeam moves players only, the AI of team '" .. oldTeamName .. "' stays"
+				)
+			end
+		end
+	end
+end
+
 local function validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
@@ -464,6 +487,32 @@ local function validateActionsSection(context, report, parameterValidators, vali
 		if validateEntry(actionReport, actionID, action) then
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 			validateAttributeAction(actionReport, actionID, action)
+			validateChangeTeamAction(context, actionReport, actionID, action)
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Cutscenes: a video or a scripted control session, started by actions
+--------------------------------------------------------------------------------
+
+local function validateCutscenesSection(context, report, validateValueWithDifficulties, validateEntry)
+	local cutsceneReport = reporterFor(report, SECTIONS.Cutscenes, "Cutscene")
+
+	for cutsceneID, cutscene in pairs(context.Cutscenes) do
+		if validateEntry(cutsceneReport, cutsceneID, cutscene) then
+			if (cutscene.videoFile == nil) == (cutscene.script == nil) then
+				cutsceneReport.Error(cutsceneID, "Cutscene must have either a videoFile or a script, but not both")
+			end
+
+			validateTypedFields(
+				cutsceneReport,
+				cutsceneID,
+				validateValueWithDifficulties,
+				cutsceneFieldTypes,
+				cutscene,
+				"Field"
+			)
 		end
 	end
 end
@@ -501,6 +550,7 @@ local function validate(context, report, parameterValidators)
 	validateObjectivesSection(context, report, validateValueWithDifficulties, validateEntry, validateSchema)
 	validateTriggersSection(context, report, parameterValidators, validateValue, validateEntry, validateSchema)
 	validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
+	validateCutscenesSection(context, report, validateValueWithDifficulties, validateEntry)
 	validateLoadoutsSection(context, report, parameterValidators)
 end
 

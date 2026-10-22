@@ -4,7 +4,7 @@
 
 local V = require("mission_api.validation.validation_spec_helper")
 
-local validation = VFS.Include("luarules/mission_api/validation.lua")
+local validation = V.validation
 
 describe("mission_api.validation", function()
 	before_each(V.mockEngineGlobals)
@@ -20,7 +20,15 @@ describe("mission_api.validation", function()
 
 		-- Every mission table is normalised by the validation context, so a misdeclared
 		-- one is reported instead of breaking the validators that walk it.
-		for _, field in ipairs({ "Stages", "Objectives", "Triggers", "Actions", "UnitLoadout", "FeatureLoadout" }) do
+		for _, field in ipairs({
+			"Stages",
+			"Objectives",
+			"Triggers",
+			"Actions",
+			"UnitLoadout",
+			"FeatureLoadout",
+			"Cutscenes",
+		}) do
 			it("reports a non-table " .. field, function()
 				local result = V.validate(V.mission():WithField(field, "notATable"))
 
@@ -103,14 +111,14 @@ describe("mission_api.validation", function()
 
 		before_each(function()
 			logged = {}
-			originalLog = Spring.Log
-			Spring.Log = function(tag, level, message)
+			originalLog = V.env.Spring.Log
+			V.env.Spring.Log = function(tag, level, message)
 				logged[#logged + 1] = { tag = tag, level = level, message = message }
 			end
 		end)
 
 		after_each(function()
-			Spring.Log = originalLog
+			V.env.Spring.Log = originalLog
 		end)
 
 		it("logs errors before warnings, tagged and prefixed", function()

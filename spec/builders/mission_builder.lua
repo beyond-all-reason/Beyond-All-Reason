@@ -17,6 +17,7 @@ function MB.new()
 			Actions = {},
 			UnitLoadout = {},
 			FeatureLoadout = {},
+			Cutscenes = {},
 		},
 	}, MB)
 end
@@ -87,6 +88,15 @@ end
 ---@return MissionBuilder
 function MB:WithFeatureLoadout(loadout)
 	self.fields.FeatureLoadout = loadout
+	return self
+end
+
+---@param self MissionBuilder
+---@param cutsceneID string
+---@param cutscene table
+---@return MissionBuilder
+function MB:WithCutscene(cutsceneID, cutscene)
+	self.fields.Cutscenes[cutsceneID] = cutscene or {}
 	return self
 end
 

@@ -18,6 +18,7 @@ function gadget:GetInfo()
 end
 
 local SELF_NAME = "Gadget Auto Reloader"
+local SCAN_MSG = "gadgetAutoReloader:scan"
 
 local spEcho = Spring.Echo
 
@@ -104,8 +105,19 @@ if gadgetHandler:IsSyncedCode() then
 		CacheGadgets()
 	end
 
+	-- full scan when the unsynced half sees the mouse return to the game window (a scan every few seconds
+	-- re-read 8 gadget files per sim frame, ~190 us of every dev-mode sim frame)
+	function gadget:RecvLuaMsg(msg)
+		if msg == SCAN_MSG then
+			CacheGadgets()
+			updateQueue = {}
+			for gadgetName, fileName in pairs(gadgetFileNames) do
+				updateQueue[gadgetName] = fileName
+			end
+		end
+	end
+
 	local lastCheckFrame = 0
-	local lastFullScanFrame = 0
 	function gadget:GameFrame(frame)
 		if next(pendingReHook) then
 			for name in pairs(pendingReHook) do
@@ -128,15 +140,6 @@ if gadgetHandler:IsSyncedCode() then
 		lastCheckFrame = frame
 		for name, fileName in pairs(failedGadgets) do
 			CheckForChanges(name, fileName, "synced")
-		end
-		-- Full scan every ~3 seconds to catch synced-side changes
-		if frame - lastFullScanFrame >= 90 then
-			lastFullScanFrame = frame
-			CacheGadgets()
-			updateQueue = {}
-			for gadgetName, fileName in pairs(gadgetFileNames) do
-				updateQueue[gadgetName] = fileName
-			end
 		end
 	end
 else
@@ -177,6 +180,7 @@ else
 		mouseOffscreen = select(6, spGetMouseState())
 
 		if not mouseOffscreen and prevMouseOffscreen then
+			Spring.SendLuaRulesMsg(SCAN_MSG)
 			CacheGadgets()
 			updateQueue = {}
 			for gadgetName, fileName in pairs(gadgetFileNames) do

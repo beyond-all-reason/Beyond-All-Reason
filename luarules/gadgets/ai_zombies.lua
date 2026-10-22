@@ -102,6 +102,7 @@ local spGetUnitCurrentCommand = spring.GetUnitCurrentCommand
 local spGetUnitHeight = spring.GetUnitHeight
 local spGetUnitTeam = spring.GetUnitTeam
 local spGetUnitLosState = spring.GetUnitLosState
+local spGetUnitIsBeingBuilt = spring.GetUnitIsBeingBuilt
 local spGetUnitsInCylinder = spring.GetUnitsInCylinder
 local spGetFeaturesInCylinder = spring.GetFeaturesInCylinder
 local spGetFeatureResurrect = spring.GetFeatureResurrect
@@ -355,6 +356,7 @@ local function getCombatTargetData(unitDefID, targetID)
 	local targetDefID = spGetUnitDefID(targetID)
 	local shouldCapture = capturingUnits[unitDefID]
 		and UnitDefs[targetDefID].capturable ~= false
+		and not spGetUnitIsBeingBuilt(targetID)
 		and isUnitInGaiaLos(targetID)
 	local weaponRange = getWeaponRangeForTarget(unitDefID, targetID, targetY)
 	if shouldCapture or (weaponRange and weaponRange > 0) then

@@ -105,13 +105,24 @@ local function getUnitScriptEnv(unitID)
 	return getScriptEnv and getScriptEnv(unitID)
 end
 
-local function callUnitScript(unitID, luaEnv, methodName, ...)
+---COB function IDs belong to the script file, which every unit of a def shares.
+local cobFunctionIDsByDef = {} ---@type table<UnitDefID, table<string, integer|false>>
+
+local function callUnitScript(unitID, unitDefID, luaEnv, methodName, ...)
 	if luaEnv then
 		if luaEnv[methodName] then
 			spCallLuaScript(unitID, luaEnv[methodName], ...)
 		end
-	elseif spGetCOBScriptID(unitID, methodName) then
-		spCallCOBScript(unitID, methodName, 0, ...)
+		return
+	end
+	local functionIDs = cobFunctionIDsByDef[unitDefID]
+	local functionID = functionIDs[methodName]
+	if functionID == nil then
+		functionID = spGetCOBScriptID(unitID, methodName) or false
+		functionIDs[methodName] = functionID
+	end
+	if functionID then
+		spCallCOBScript(unitID, functionID, 0, ...)
 	end
 end
 
@@ -169,15 +180,6 @@ local function setMoveTypeValue(unitID, key, value)
 		return true -- Don't readd to the next flush.
 	end
 	setter(unitID, key, value)
-	return true
-end
-
-local function setMoveTypeData(unitID, data)
-	local setter = moveTypeSetterByDef[spGetUnitDefID(unitID)]
-	if not setter or spMoveCtrlIsEnabled(unitID) then
-		return false
-	end
-	setter(unitID, data)
 	return true
 end
 
@@ -258,6 +260,7 @@ local baseExplosions = {} ---@type table<UnitDefID, table<integer, table<integer
 
 for unitDefID in ipairs(UnitDefs) do
 	baseValues[unitDefID] = {}
+	cobFunctionIDsByDef[unitDefID] = {}
 end
 
 local function getBaseline(unitDefID, attribute)
@@ -582,11 +585,11 @@ local function setReloadTime(unitID, times)
 			spSetUnitWeaponState(unitID, weaponNum, "reloadState", gameFrame + framesLeft)
 		end
 
-		callUnitScript(unitID, luaEnv, reloadMethodByWeapon[weaponNum], reloadTime * 1000)
+		callUnitScript(unitID, unitDefID, luaEnv, reloadMethodByWeapon[weaponNum], reloadTime * 1000)
 		reloadMax = math_max(reloadMax, reloadTime)
 	end
 
-	callUnitScript(unitID, luaEnv, "SetMaxReloadTime", reloadMax * 1000)
+	callUnitScript(unitID, unitDefID, luaEnv, "SetMaxReloadTime", reloadMax * 1000)
 end
 
 local function setBuildSpeed(unitID, value)
@@ -623,11 +626,17 @@ local speedData = {}
 
 -- See MobileCAI. The maxWantedSpeed constantly resets so changing it will break formation movement.
 local function setMaxSpeed(unitID, value)
+	local setter = moveTypeSetterByDef[spGetUnitDefID(unitID)]
+	if not setter or spMoveCtrlIsEnabled(unitID) then
+		return false -- before reading the movetype data, which builds a table on every retry
+	end
+
 	local applied = appliedValues[unitID]
 	if applied and applied.maxWantedSpeed ~= nil then
 		speedData.maxSpeed = value
 		speedData.maxWantedSpeed = nil
-		return setMoveTypeData(unitID, speedData)
+		setter(unitID, speedData)
+		return true
 	end
 
 	local moveTypeData = spGetUnitMoveTypeData(unitID)
@@ -640,7 +649,8 @@ local function setMaxSpeed(unitID, value)
 	else
 		speedData.maxWantedSpeed = value
 	end
-	return setMoveTypeData(unitID, speedData)
+	setter(unitID, speedData)
+	return true
 end
 
 ---Each "apply" writes one attribute to the engine.
@@ -1266,8 +1276,9 @@ local function recordUnitAttribute(unitID, attribute, value, source, kind)
 		return
 	end
 
+	local written = false
 	if kind == "set" and value ~= nil then
-		applyUnitAttribute[attribute](unitID, value)
+		written = applyUnitAttribute[attribute](unitID, value) ~= false
 		if entry.isUnitState then
 			return
 		end
@@ -1294,6 +1305,10 @@ local function recordUnitAttribute(unitID, attribute, value, source, kind)
 
 	if record(factors, source or SOURCE_DEFAULT, kind, value) then
 		markUnitDirty(unitID, attribute)
+	end
+	if written then
+		-- The next update compares against what the engine has now, not a stale value, and skips a rewrite.
+		setApplied(unitID, attribute, value)
 	end
 	if value == nil then
 		pruneUnitFactors(unitID, attribute)
@@ -1538,6 +1553,9 @@ local function updateAll(frame)
 			for attribute in pairs(attributes) do
 				attributes[attribute] = nil
 			end
+			-- Nothing written to a free unitID may carry over to the next unit that reuses it.
+			unitFactors[unitID] = nil
+			appliedValues[unitID] = nil
 		end
 
 		if next(attributes) == nil then

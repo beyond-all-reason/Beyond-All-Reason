@@ -1,11 +1,12 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and Game.gameSpeed / Spring.GetTeamResources inside its handler.
 Builders.MissionApi.new():Install()
 
-local resourcePull = VFS.Include("luarules/mission_api/triggers/resource_pull.lua")
+local resourcePull = MissionSpecEnv.include(env, "luarules/mission_api/triggers/resource_pull.lua")
 local onGameFrame = resourcePull.callins.GameFrame
 
 describe("mission_api.triggers.resource_pull", function()
@@ -41,35 +42,35 @@ describe("mission_api.triggers.resource_pull", function()
 
 	it("only evaluates once per second", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when metal pull meets the threshold", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire when metal pull is below the threshold", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(1)
+		env.Spring.GetTeamResources = resources(1)
 		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when energy pull meets the threshold", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(trigger({ teamID = 0, energy = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(1, fired())
 	end)
 
 	it("requires both thresholds to be met when both are set", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(trigger({ teamID = 0, metal = 5, energy = 20 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(0, fired())
 	end)

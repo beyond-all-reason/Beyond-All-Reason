@@ -10,8 +10,8 @@ describe("mission_api.validation.parameter_validators", function()
 	--- Without a validator, the schema walker calls a nil value
 	it("has a validator for every parameter type the definitions use", function()
 		local parameterTypes = V.definitions.ParameterTypes
-		local parameterValidators = VFS.Include("luarules/mission_api/validation/parameter_validators.lua")
-			.CreateParameterValidators({
+		local parameterValidators =
+			V.env.VFS.Include("luarules/mission_api/validation/parameter_validators.lua").CreateParameterValidators({
 				Stages = {},
 				Objectives = {},
 				Triggers = {},
@@ -406,20 +406,20 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("rejects a file that is not a RIFF .wav", function()
-			local originalFileExists = VFS.FileExists
-			local originalReadWAV = _G.ReadWAV
-			VFS.FileExists = function(path)
+			local originalFileExists = V.env.VFS.FileExists
+			local originalReadWAV = V.env.ReadWAV
+			V.env.VFS.FileExists = function(path)
 				return path == "dummy.wav"
 			end
-			_G.ReadWAV = function()
+			V.env.ReadWAV = function()
 				return nil
 			end
 
 			local result =
 				V.validateAction({ type = V.actionTypes.PlaySound, parameters = { soundfile = "dummy.wav" } })
 
-			VFS.FileExists = originalFileExists
-			_G.ReadWAV = originalReadWAV
+			V.env.VFS.FileExists = originalFileExists
+			V.env.ReadWAV = originalReadWAV
 
 			V.assertMessage(
 				result,
@@ -629,6 +629,72 @@ describe("mission_api.validation.parameter_validators", function()
 		return V.validateAction({ type = V.actionTypes.Victory, parameters = { allyTeamIDs = allyTeamIDs } })
 	end
 
+	describe("TeamName", function()
+		before_each(function()
+			V.missionAPI().Teams = { rebels = 0, [0] = "rebels" }
+		end)
+
+		it("accepts a named team", function()
+			V.assertNoMessageContaining(
+				V.validateAction({
+					type = V.actionTypes.ChangeTeam,
+					parameters = { oldTeam = "rebels", newTeam = "rebels" },
+				}),
+				"Parameter:"
+			)
+		end)
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				V.validateAction({ type = V.actionTypes.ChangeTeam, parameters = { oldTeam = 0, newTeam = "rebels" } }),
+				"Unexpected parameter type, expected string, got number. Action: a, Parameter: oldTeam"
+			)
+		end)
+
+		it("rejects an unknown team name", function()
+			V.assertMessage(
+				V.validateAction({
+					type = V.actionTypes.ChangeTeam,
+					parameters = { oldTeam = "rebels", newTeam = "nobody" },
+				}),
+				"Invalid teamName: nobody. Action: a, Parameter: newTeam"
+			)
+		end)
+	end)
+
+	describe("VariableValue", function()
+		local function validateValue(value)
+			return V.validateAction({ type = V.actionTypes.WriteVariable, parameters = { key = "k", value = value } })
+		end
+
+		it("accepts numbers, strings, booleans and nested tables of them", function()
+			for _, value in ipairs({ 1, "text", false, { 1, 2 }, { a = { b = "c" }, [3] = true } }) do
+				V.assertValid(validateValue(value))
+			end
+		end)
+
+		it("rejects a function", function()
+			V.assertMessage(
+				validateValue(function() end),
+				"Unexpected parameter type, expected number, string, boolean or table, got function. Action: a, Parameter: value"
+			)
+		end)
+
+		it("rejects a function nested in a table", function()
+			V.assertMessage(
+				validateValue({ a = { 1, function() end } }),
+				"Unexpected parameter type, expected number, string, boolean or table, got function. Action: a, Parameter: value.a.2"
+			)
+		end)
+
+		it("rejects a table key that is not a number or string", function()
+			V.assertMessage(
+				validateValue({ [true] = 1 }),
+				"Unexpected table key type, expected number or string, got boolean. Action: a, Parameter: value.true"
+			)
+		end)
+	end)
+
 	describe("TeamID", function()
 		it("rejects the wrong type", function()
 			local result = V.validateAction({ type = V.actionTypes.AddResources, parameters = { teamID = "bad" } })
@@ -640,7 +706,7 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("rejects a team that does not exist", function()
-			Spring.GetTeamAllyTeamID = function()
+			V.env.Spring.GetTeamAllyTeamID = function()
 				return nil
 			end
 
@@ -722,7 +788,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 		-- The engine's CMD table maps both ways (name -> id and id -> name),
 		-- which is what the known-command lookup relies on.
-		_G.CMD = {}
+		V.env.CMD = {}
 		for i, name in ipairs({
 			"STOP",
 			"SELFD",
@@ -745,15 +811,15 @@ describe("mission_api.validation.parameter_validators", function()
 			"FIRE_STATE",
 			"MOVE_STATE",
 		}) do
-			CMD[name] = i
-			CMD[i] = name
+			V.env.CMD[name] = i
+			V.env.CMD[i] = name
 		end
-		_G.GameCMD = { AREA_ATTACK_GROUND = 21, [21] = "AREA_ATTACK_GROUND" }
+		V.env.GameCMD = { AREA_ATTACK_GROUND = 21, [21] = "AREA_ATTACK_GROUND" }
 	end)
 
 	after_each(function()
-		_G.CMD = {}
-		_G.GameCMD = {}
+		V.env.CMD = {}
+		V.env.GameCMD = {}
 	end)
 
 	it("rejects the wrong type", function()
@@ -783,35 +849,35 @@ describe("mission_api.validation.parameter_validators", function()
 
 	it("rejects an unknown order option", function()
 		V.assertMessage(
-			validateOrders({ { CMD.STOP, nil, { "diagonal" } } }),
+			validateOrders({ { V.env.CMD.STOP, nil, { "diagonal" } } }),
 			"Invalid order option: diagonal. Action: a, Parameter: orders[1][3]"
 		)
 	end)
 
 	it("rejects the wrong number of parameters for a move command", function()
 		V.assertMessage(
-			validateOrders({ { CMD.MOVE, {} } }),
+			validateOrders({ { V.env.CMD.MOVE, {} } }),
 			"Parameter must be an array of 3 numbers {x, y, z}. Action: a, Parameter: orders[1][2]"
 		)
 	end)
 
 	it("accepts a unit name instead of coordinates, for commands that allow it", function()
-		V.assertNoMessageContaining(validateOrders({ { CMD.ATTACK, { unitName = "x" } } }), "Parameter must be")
+		V.assertNoMessageContaining(validateOrders({ { V.env.CMD.ATTACK, { unitName = "x" } } }), "Parameter must be")
 	end)
 
 	it("rejects coordinates for a command that only takes a unit name", function()
 		V.assertMessage(
-			validateOrders({ { CMD.GUARD, { 0, 0, 0 } } }),
+			validateOrders({ { V.env.CMD.GUARD, { 0, 0, 0 } } }),
 			"Parameter must be { unitName = 'aUnitName' }. Action: a, Parameter: orders[1][2]"
 		)
 	end)
 
 	it("accepts a unit name for a command that only takes a unit name", function()
-		V.assertNoMessageContaining(validateOrders({ { CMD.GUARD, { unitName = "x" } } }), "Parameter must be")
+		V.assertNoMessageContaining(validateOrders({ { V.env.CMD.GUARD, { unitName = "x" } } }), "Parameter must be")
 	end)
 
 	it("reports every invalid order, named after its position in the list", function()
-		local result = validateOrders({ { CMD.MOVE, { 0, 0, 0 } }, { CMD.MOVE, {} }, { 99999 } })
+		local result = validateOrders({ { V.env.CMD.MOVE, { 0, 0, 0 } }, { V.env.CMD.MOVE, {} }, { 99999 } })
 
 		V.assertMessage(result, "Parameter must be an array of 3 numbers {x, y, z}. Action: a, Parameter: orders[2][2]")
 		V.assertMessage(result, "Unknown command ID: 99999. Action: a, Parameter: orders[3][1]")
@@ -820,8 +886,8 @@ describe("mission_api.validation.parameter_validators", function()
 	-- Commands that take no parameters are known, they just have nothing to validate.
 	it("accepts a command that takes no parameters", function()
 		V.assertNoMessage(
-			validateOrders({ { CMD.STOP } }),
-			"No validator implemented for orders with command ID: " .. CMD.STOP
+			validateOrders({ { V.env.CMD.STOP } }),
+			"No validator implemented for orders with command ID: " .. V.env.CMD.STOP
 		)
 	end)
 
@@ -839,17 +905,17 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("Command", function()
 		before_each(function()
-			_G.CMD = { MOVE = 1, [1] = "MOVE", CLOAK = 17, [17] = "CLOAK", ANY = "a", BUILD = "b" }
-			_G.GameCMD = {}
+			V.env.CMD = { MOVE = 1, [1] = "MOVE", CLOAK = 17, [17] = "CLOAK", ANY = "a", BUILD = "b" }
+			V.env.GameCMD = {}
 		end)
 
 		after_each(function()
-			_G.CMD = {}
-			_G.GameCMD = {}
+			V.env.CMD = {}
+			V.env.GameCMD = {}
 		end)
 
 		it("accepts a known command id", function()
-			V.assertNoMessageContaining(validateCommand(CMD.MOVE), "command")
+			V.assertNoMessageContaining(validateCommand(V.env.CMD.MOVE), "command")
 		end)
 
 		it("accepts a build order authored as a unitDefName", function()
@@ -857,15 +923,15 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("accepts the ANY qualifier", function()
-			V.assertNoMessageContaining(validateCommand(CMD.ANY), "command")
+			V.assertNoMessageContaining(validateCommand(V.env.CMD.ANY), "command")
 		end)
 
 		it("accepts the BUILD qualifier", function()
-			V.assertNoMessageContaining(validateCommand(CMD.BUILD), "command")
+			V.assertNoMessageContaining(validateCommand(V.env.CMD.BUILD), "command")
 		end)
 
 		it("warns, but does not error, for a command consumed in AllowCommand", function()
-			local result = validateCommand(CMD.CLOAK)
+			local result = validateCommand(V.env.CMD.CLOAK)
 
 			V.assertMessage(result, "Command CLOAK may fail to trigger in UnitOrdered. Trigger: t, Parameter: command")
 			assert.is_true(result.ok)

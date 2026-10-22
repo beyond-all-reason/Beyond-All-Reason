@@ -3,6 +3,11 @@
 
 local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 local UNIT_QUERY_PATH = "luarules/mission_api/unit_query.lua"
+local DIFFICULTIES_PATH = "luarules/mission_api/difficulties.json"
+
+local LOWEST_DIFFICULTY = table.reduce(Json.decode(VFS.LoadFile(DIFFICULTIES_PATH)), function(lowest, difficulty)
+	return math.min(lowest, difficulty) -- defaults to lowest
+end, math.huge)
 
 --- Only a name for readers: .emmyrc.json keeps spec/builders out of the
 --- workspace, so emmylua cannot resolve this class from a spec. A spec that
@@ -10,6 +15,7 @@ local UNIT_QUERY_PATH = "luarules/mission_api/unit_query.lua"
 --- ---@type { Countdowns: table<string, MissionCountdown> }
 ---@class MissionApiMock
 ---@field Difficulty number
+---@field Teams table<integer|string, string|integer>
 ---@field trackedUnitIDs table<string, table<number, boolean>>
 ---@field trackedUnitNames table<number, table<string, boolean>>
 ---@field trackedFeatureIDs table<string, table<number, boolean>>
@@ -100,7 +106,8 @@ end
 ---@return MissionApiBuilder
 function MB.new()
 	return setmetatable({
-		difficulty = 0,
+		difficulty = LOWEST_DIFFICULTY,
+		teams = {}, -- team ID to name, and name to team ID
 		trackedUnits = {}, -- array of { name, id }
 		trackedFeatures = {}, -- array of { name, id }
 		markerNames = {},
@@ -128,6 +135,16 @@ end
 ---@return MissionApiBuilder
 function MB:WithDifficulty(difficulty)
 	self.difficulty = difficulty
+	return self
+end
+
+---Name a team, both ways round as game_setup.lua does.
+---@param name string
+---@param teamID number
+---@return MissionApiBuilder
+function MB:WithTeam(name, teamID)
+	self.teams[name] = teamID
+	self.teams[teamID] = name
 	return self
 end
 
@@ -510,6 +527,7 @@ function MB:Build(installed)
 	---@type MissionApiMock
 	local mock = {
 		Difficulty = self.difficulty,
+		Teams = self.teams,
 		trackedUnitIDs = trackedUnitIDs,
 		trackedUnitNames = trackedUnitNames,
 		trackedFeatureIDs = trackedFeatureIDs,
@@ -598,12 +616,13 @@ end
 ---valid even if another spec replaces GG['MissionAPI'] with its own table.
 local installedTable = nil
 
----The real modules, included once and kept, as the gadget includes them once.
-local unitQueryModule = nil
+---The real modules, included once per env and kept, as the gadget includes them once.
+local unitQueryModules = {}
 
 ---Build the mock and install it as GG['MissionAPI'].
+---@param env table? A SpecEnv to load the real modules into, so they read its globals.
 ---@return MissionApiMock
-function MB:Install()
+function MB:Install(env)
 	_G.GG = _G.GG or {}
 
 	local target = installedTable
@@ -625,8 +644,9 @@ function MB:Install()
 	-- The mission_api modules read GG at load, so the real ones are included once the mock stands,
 	-- and kept, since what they captured is refilled by every install after this one.
 	if not self.moduleOverrides.UnitQuery then
-		unitQueryModule = unitQueryModule or VFS.Include(UNIT_QUERY_PATH)
-		target.Modules.UnitQuery = unitQueryModule
+		local scope = env or _G
+		unitQueryModules[scope] = unitQueryModules[scope] or scope.VFS.Include(UNIT_QUERY_PATH)
+		target.Modules.UnitQuery = unitQueryModules[scope]
 	end
 
 	return target

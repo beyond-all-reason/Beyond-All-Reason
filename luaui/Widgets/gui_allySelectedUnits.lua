@@ -20,6 +20,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
+local spIsGUIHidden = Spring.IsGUIHidden
 
 local showAsSpectator = true
 local selectPlayerUnits = true -- when lockcamera player
@@ -43,24 +44,26 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance = InstanceVBOTable.popElementInstance
+local uploadAllElements = InstanceVBOTable.uploadAllElements
 
-local selectionVBOGround = nil
-local selectionVBOWater = nil
-local selectShader = nil
-local waterShader = nil
+local selectionVBOGround ---@type InstanceVBOTable
+local selectionVBOWater ---@type InstanceVBOTable? -- only on maps with water
+local selectShader ---@type LuaShader -- ground and water platters
 local luaShaderDir = "LuaUI/Include/"
+local drawWorldEnabled = true
+local drawWorldPreUnitEnabled = true
 
 local glStencilFunc = gl.StencilFunc
 local glStencilOp = gl.StencilOp
 local glStencilTest = gl.StencilTest
 local glStencilMask = gl.StencilMask
 local glDepthTest = gl.DepthTest
-local glClear = gl.Clear
+local glColorMask = gl.ColorMask
 local GL_ALWAYS = GL.ALWAYS
 local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_KEEP = GL.KEEP
-local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
 local GL_REPLACE = GL.REPLACE
+local GL_ZERO = GL.ZERO
 local GL_POINTS = GL.POINTS
 
 local spGetUnitDefID = spGetUnitDefID
@@ -91,8 +94,10 @@ local playerTeamID = {}
 local lockPlayerID
 local lockPlayerLastAppliedID
 local lockPlayerLastAppliedVersion = -1
+local lockSelectionDirty = false
 
 local unitAllyteam = {}
+local unitDefOf = {}
 local spGetUnitTeam = Spring.GetUnitTeam
 local teamAllyTeam = {}
 local unitWaterPass = {}
@@ -155,29 +160,9 @@ function widget:LavaRenderState(tideLevel)
 	lavaWaterLevel = tideLevel
 end
 
-local function shouldUseWaterPass(unitID, unitDefID)
-	if not mapHasWater or unitCanFly[unitDefID] then
-		return false
-	end
+local function shouldUseWaterPassAtLevel(unitID, waterLevel)
 	local x, y, z = spGetUnitPosition(unitID)
-	if not x or not y or not z then
-		return false
-	end
-	local waterLevel = getWaterLevel()
-	local groundY = spGetGroundHeight(x, z)
-	return (groundY < waterLevel + 1) and (y <= waterLevel + 20)
-end
-
-local function shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
-	if not mapHasWater or unitCanFly[unitDefID] then
-		return false
-	end
-	local x, y, z = spGetUnitPosition(unitID)
-	if not x or not y or not z then
-		return false
-	end
-	local groundY = spGetGroundHeight(x, z)
-	return (groundY < waterLevel + 1) and (y <= waterLevel + 20)
+	return x ~= nil and y <= waterLevel + 20 and spGetGroundHeight(x, z) < waterLevel + 1
 end
 
 local function getTargetVBO(unitID, unitDefID)
@@ -185,13 +170,14 @@ local function getTargetVBO(unitID, unitDefID)
 		unitWaterPass[unitID] = false
 		return selectionVBOGround
 	end
-	local useWaterPass = shouldUseWaterPass(unitID, unitDefID)
+	local useWaterPass = mapHasWater and shouldUseWaterPassAtLevel(unitID, getWaterLevel())
 	unitWaterPass[unitID] = useWaterPass
 	return (useWaterPass and selectionVBOWater) or selectionVBOGround
 end
 
+-- Adds and removes only touch the Lua side of the VBOs, FlushVBOs uploads them once per event
 local function AddPrimitiveAtUnit(unitID)
-	local unitDefID = spGetUnitDefID(unitID)
+	local unitDefID = unitDefOf[unitID] or spGetUnitDefID(unitID)
 	if unitDefID == nil then
 		return
 	end -- these can't be selected
@@ -227,19 +213,117 @@ local function AddPrimitiveAtUnit(unitID)
 		instanceCache,
 		unitID, -- this is the key inside the VBO TAble,
 		true, -- update existing element
-		nil, -- noupload, dont use unless you
+		true, -- noupload
 		unitID -- last one should be UNITID?
 	)
 end
 
 local function RemovePrimitive(unitID)
-	if selectionVBOGround and selectionVBOGround.instanceIDtoIndex[unitID] then
-		popElementInstance(selectionVBOGround, unitID)
+	if selectionVBOGround.instanceIDtoIndex[unitID] then
+		popElementInstance(selectionVBOGround, unitID, true)
 	end
 	if selectionVBOWater and selectionVBOWater.instanceIDtoIndex[unitID] then
-		popElementInstance(selectionVBOWater, unitID)
+		popElementInstance(selectionVBOWater, unitID, true)
 	end
 	unitWaterPass[unitID] = nil
+end
+
+local function DrawSelections(selectionVBO)
+	local numElements = selectionVBO.usedElements
+	if numElements == 0 then
+		return
+	end
+	local vao = selectionVBO.VAO
+
+	-- Fill, marking stencil bit 0: NOTEQUAL ensures that overlapping transparent fragments dont get written multiple times
+	glDepthTest(true)
+	glStencilFunc(GL_NOTEQUAL, 1, 1)
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE)
+	vao:DrawArrays(GL_POINTS, numElements)
+
+	-- Outline: the enlarged platters, where no fill got drawn
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+	selectShader:SetUniform("addRadius", lineSize)
+	vao:DrawArrays(GL_POINTS, numElements)
+
+	-- Unmark the fill again, so bit 0 ends at 0 without full-screen stencil clears
+	glColorMask(false, false, false, false)
+	glDepthTest(false)
+	glStencilFunc(GL_ALWAYS, 0, 1)
+	glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO)
+	selectShader:SetUniform("addRadius", 0)
+	vao:DrawArrays(GL_POINTS, numElements)
+	glColorMask(true, true, true, true)
+end
+
+local iconDistanceSet = false
+local function DrawPlatters(selectionVBO)
+	if spGetGameFrame() < hideBelowGameframe or spIsGUIHidden() then
+		return
+	end
+	selectShader:Activate()
+	if not iconDistanceSet then
+		iconDistanceSet = true
+		selectShader:SetUniform("iconDistance", 99999) -- pass
+	end
+	glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
+	glStencilMask(1)
+	DrawSelections(selectionVBO)
+	selectShader:Deactivate()
+
+	-- Exit stencil mode properly (same as gui_selectedunits_gl4), so stencil state doesn't
+	-- leak into widgets drawn after this one:
+	glStencilFunc(GL_ALWAYS, 1, 1)
+	glDepthTest(true)
+	glStencilTest(false)
+	glStencilMask(255)
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+end
+
+local function DrawWorld()
+	if mapHasWater then
+		DrawPlatters(selectionVBOWater)
+	else
+		DrawPlatters(selectionVBOGround)
+	end
+end
+
+local function DrawWorldPreUnit()
+	DrawPlatters(selectionVBOGround)
+end
+
+widget.DrawWorld = DrawWorld
+widget.DrawWorldPreUnit = DrawWorldPreUnit
+
+-- Uploads the VBOs changed by an event, and runs each draw callin only while its VBO has platters
+local function FlushVBOs()
+	if selectionVBOGround.dirty then
+		uploadAllElements(selectionVBOGround)
+	end
+	if selectionVBOWater and selectionVBOWater.dirty then
+		uploadAllElements(selectionVBOWater)
+	end
+
+	local preUnit = selectionVBOGround.usedElements > 0
+	if preUnit ~= drawWorldPreUnitEnabled then
+		drawWorldPreUnitEnabled = preUnit
+		widget.DrawWorldPreUnit = preUnit and DrawWorldPreUnit or nil
+		widgetHandler:UpdateCallIn("DrawWorldPreUnit")
+	end
+	local world = (selectionVBOWater or selectionVBOGround).usedElements > 0
+	if world ~= drawWorldEnabled then
+		drawWorldEnabled = world
+		widget.DrawWorld = world and DrawWorld or nil
+		widgetHandler:UpdateCallIn("DrawWorld")
+	end
+end
+
+-- End of a selection event: upload, and re-apply the locked player's selection once in the next Update
+local function finishEvent(playerID)
+	if lockPlayerID and playerID == lockPlayerID then
+		lockSelectionDirty = true
+	end
+	FlushVBOs()
 end
 
 local function addUnit(unitID)
@@ -267,10 +351,19 @@ local function removeUnit(unitID)
 	end
 end
 
+local function unitRemoved(unitID)
+	removeUnit(unitID)
+	selectedUnits[unitID] = nil
+	unitAllyteam[unitID] = nil
+	unitDefOf[unitID] = nil
+end
+
 local function showSelectedUnit(unitID)
-	if not spGetUnitDefID(unitID) then
+	local unitDefID = spGetUnitDefID(unitID)
+	if not unitDefID then
 		return
 	end
+	unitDefOf[unitID] = unitDefID
 	selectedUnits[unitID] = false
 	local unitTeam = spGetUnitTeam(unitID)
 	local allyTeam = teamAllyTeam[unitTeam]
@@ -318,15 +411,11 @@ local function selectedUnitsClear(playerID)
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if selectedByPlayer then
 			for unitID in pairs(selectedByPlayer) do
-				widget:VisibleUnitRemoved(unitID)
+				unitRemoved(unitID)
 			end
 		end
 	end
-	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
-		selectPlayerSelectedUnits(lockPlayerID)
-		lockPlayerLastAppliedID = lockPlayerID
-		lockPlayerLastAppliedVersion = playerSelectionVersion[lockPlayerID] or 0
-	end
+	finishEvent(playerID)
 end
 
 -- called by gadget
@@ -348,11 +437,7 @@ local function selectedUnitsAdd(playerID, unitID)
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		showSelectedUnit(unitID)
 	end
-	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
-		selectPlayerSelectedUnits(lockPlayerID)
-		lockPlayerLastAppliedID = lockPlayerID
-		lockPlayerLastAppliedVersion = playerSelectionVersion[lockPlayerID] or 0
-	end
+	finishEvent(playerID)
 end
 
 -- called by gadget
@@ -371,13 +456,9 @@ local function selectedUnitsRemove(playerID, unitID)
 	end
 
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
-		widget:VisibleUnitRemoved(unitID)
+		unitRemoved(unitID)
 	end
-	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
-		selectPlayerSelectedUnits(lockPlayerID)
-		lockPlayerLastAppliedID = lockPlayerID
-		lockPlayerLastAppliedVersion = playerSelectionVersion[lockPlayerID] or 0
-	end
+	finishEvent(playerID)
 end
 
 -- called by gadget
@@ -408,7 +489,7 @@ local function selectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, 
 				changed = true
 			end
 			if unitID and shouldDraw then
-				widget:VisibleUnitRemoved(unitID)
+				unitRemoved(unitID)
 			end
 		end
 	end
@@ -435,11 +516,7 @@ local function selectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, 
 		bumpPlayerSelectionVersion(playerID)
 	end
 
-	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
-		selectPlayerSelectedUnits(lockPlayerID)
-		lockPlayerLastAppliedID = lockPlayerID
-		lockPlayerLastAppliedVersion = playerSelectionVersion[lockPlayerID] or 0
-	end
+	finishEvent(playerID)
 end
 
 local function selectedUnitsSet(playerID, units, unitCount)
@@ -464,7 +541,7 @@ local function selectedUnitsSet(playerID, units, unitCount)
 		if not nextSelection[unitID] then
 			changed = true
 			if shouldDraw then
-				widget:VisibleUnitRemoved(unitID)
+				unitRemoved(unitID)
 			end
 		end
 	end
@@ -483,11 +560,7 @@ local function selectedUnitsSet(playerID, units, unitCount)
 		bumpPlayerSelectionVersion(playerID)
 	end
 
-	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
-		selectPlayerSelectedUnits(lockPlayerID)
-		lockPlayerLastAppliedID = lockPlayerID
-		lockPlayerLastAppliedVersion = playerSelectionVersion[lockPlayerID] or 0
-	end
+	finishEvent(playerID)
 end
 
 function widget:SelectedUnitsClear(playerID)
@@ -519,8 +592,9 @@ function widget:PlayerRemoved(playerID, reason)
 	playerIsSpec[playerID] = nil
 	if selectedByPlayer then
 		for unitID in pairs(selectedByPlayer) do
-			widget:VisibleUnitRemoved(unitID)
+			unitRemoved(unitID)
 		end
+		FlushVBOs()
 	end
 end
 
@@ -567,22 +641,25 @@ function widget:PlayerChanged(playerID)
 		playerTeamID[playerID] = teamID
 		playerIsSpec[playerID] = isSpec
 	end
+	FlushVBOs()
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	addUnit(unitID)
+	if selectedUnits[unitID] == false then
+		addUnit(unitID)
+		FlushVBOs()
+	end
 end
 
 function widget:VisibleUnitRemoved(unitID)
-	removeUnit(unitID)
-	selectedUnits[unitID] = nil
-	unitAllyteam[unitID] = nil
+	if selectedUnits[unitID] ~= nil then
+		unitRemoved(unitID)
+		FlushVBOs()
+	end
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	if selectionVBOGround then
-		InstanceVBOTable.clearInstanceTable(selectionVBOGround)
-	end
+	InstanceVBOTable.clearInstanceTable(selectionVBOGround)
 	if selectionVBOWater then
 		InstanceVBOTable.clearInstanceTable(selectionVBOWater)
 	end
@@ -592,6 +669,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		addUnit(unitID)
 	end
+	FlushVBOs()
 end
 
 local updateTime = 0
@@ -602,17 +680,21 @@ function widget:Update(dt)
 		if gf >= nextWaterPassCheckFrame then
 			nextWaterPassCheckFrame = gf + waterPassCheckInterval
 			local waterLevel = getWaterLevel()
+			local changed = false
 			for unitID, drawn in pairs(selectedUnits) do
 				if drawn then
-					local unitDefID = spGetUnitDefID(unitID)
+					local unitDefID = unitDefOf[unitID]
 					if unitDefID and not unitCanFly[unitDefID] then
-						local desiredWaterPass = shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
-						if desiredWaterPass ~= unitWaterPass[unitID] then
+						if shouldUseWaterPassAtLevel(unitID, waterLevel) ~= unitWaterPass[unitID] then
 							RemovePrimitive(unitID)
 							AddPrimitiveAtUnit(unitID)
+							changed = true
 						end
 					end
 				end
+			end
+			if changed then
+				FlushVBOs()
 			end
 		end
 	end
@@ -626,17 +708,19 @@ function widget:Update(dt)
 				lockPlayerLastAppliedID = nil
 				lockPlayerLastAppliedVersion = -1
 			end
-			if lockPlayerID ~= nil and selectPlayerUnits then
-				local version = playerSelectionVersion[lockPlayerID] or 0
-				if lockPlayerLastAppliedID ~= lockPlayerID or lockPlayerLastAppliedVersion ~= version then
-					selectPlayerSelectedUnits(lockPlayerID)
-					lockPlayerLastAppliedID = lockPlayerID
-					lockPlayerLastAppliedVersion = version
-				end
-			end
 			updateTime = 0
 		end
 	end
+	-- once per frame: a "set" message arrives as a clear plus an add, each would change the selection
+	if lockPlayerID ~= nil and selectPlayerUnits then
+		local version = playerSelectionVersion[lockPlayerID] or 0
+		if lockSelectionDirty or lockPlayerLastAppliedID ~= lockPlayerID or lockPlayerLastAppliedVersion ~= version then
+			selectPlayerSelectedUnits(lockPlayerID)
+			lockPlayerLastAppliedID = lockPlayerID
+			lockPlayerLastAppliedVersion = version
+		end
+	end
+	lockSelectionDirty = false
 end
 
 local function init()
@@ -651,6 +735,8 @@ local function init()
 	shaderConfig.USETEXTURE = 0
 	shaderConfig.LINETRANSPARANCY = lineOpacity
 	shaderConfig.ROTATE_CIRCLES = 0
+	shaderConfig.MAXVERTICES = useHexagons and 8 or 64 -- cornered rects emit 8
+	shaderConfig.USE_QUADS = nil
 	shaderConfig.POST_SHADING =
 		"fragColor.rgba = vec4(g_color.rgb, TRANSPARENCY + step( 0.01, addRadius) * LINETRANSPARANCY);"
 	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "allySelectedUnitsGround")
@@ -659,15 +745,13 @@ local function init()
 		return false
 	end
 	if mapHasWater then
-		selectionVBOWater, waterShader = InitDrawPrimitiveAtUnit(shaderConfig, "allySelectedUnitsWater")
+		selectionVBOWater = InitDrawPrimitiveAtUnit(shaderConfig, "allySelectedUnitsWater", selectShader)
 		if selectionVBOWater == nil then
 			widgetHandler:RemoveWidget()
 			return false
 		end
-	else
-		selectionVBOWater = nil
-		waterShader = selectShader
 	end
+	FlushVBOs()
 	return true
 end
 
@@ -697,91 +781,12 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	for unitID, drawn in pairs(selectedUnits) do
-		removeUnit(unitID)
-	end
 	if type(selectShader) == "table" then
 		selectShader:Finalize()
-		selectShader = nil
 	end
-	if type(waterShader) == "table" then
-		waterShader:Finalize()
-		waterShader = nil
-	end
-end
-
-local drawFrame = 0
-local function DrawSelections(selectionVBO, shader)
-	if not selectShader then
-		return
-	end
-	if selectionVBO and selectionVBO.usedElements > 0 then
-		shader = shader or selectShader
-		shader:Activate()
-		shader:SetUniform("iconDistance", 99999) -- pass
-		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
-		glDepthTest(true)
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
-		glClear(GL_STENCIL_BUFFER_BIT) -- set stencil buffer to 0
-
-		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
-		glStencilMask(1)
-
-		shader:SetUniform("addRadius", 0)
-		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
-
-		glStencilFunc(GL_NOTEQUAL, 1, 1)
-		glStencilMask(0)
-		glDepthTest(true)
-
-		shader:SetUniform("addRadius", lineSize)
-		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
-
-		glStencilMask(1)
-		glStencilFunc(GL_ALWAYS, 1, 1)
-		glDepthTest(true)
-
-		shader:Deactivate()
-
-		-- Exit stencil mode properly (same as gui_selectedunits_gl4), so stencil state doesn't
-		-- leak into widgets drawn after this one:
-		glStencilTest(false)
-		glStencilMask(255)
-		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-		glClear(GL_STENCIL_BUFFER_BIT)
-	end
-end
-
-function widget:DrawWorld()
-	if spGetGameFrame() < hideBelowGameframe then
-		return
-	end
-
-	if Spring.IsGUIHidden() then
-		return
-	end
-
-	if enablePlatter then
-		if mapHasWater and selectionVBOWater and selectionVBOWater.usedElements > 0 then
-			DrawSelections(selectionVBOWater, waterShader)
-		elseif not mapHasWater and selectionVBOGround then
-			DrawSelections(selectionVBOGround)
-		end
-	end
-end
-
-function widget:DrawWorldPreUnit()
-	if spGetGameFrame() < hideBelowGameframe then
-		return
-	end
-
-	if Spring.IsGUIHidden() then
-		return
-	end
-
-	if enablePlatter then
-		drawFrame = drawFrame + 1
-		DrawSelections(selectionVBOGround)
+	-- init can fail halfway
+	for _, vbo in pairs({ selectionVBOGround, selectionVBOWater }) do
+		vbo:Delete()
 	end
 end
 

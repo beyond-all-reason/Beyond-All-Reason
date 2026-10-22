@@ -85,6 +85,12 @@ local function resolveActions(actions)
 	end
 end
 
+local function resolveCutscenes(cutscenes)
+	for _, cutscene in pairs(cutscenes) do
+		resolveParameters(cutscene)
+	end
+end
+
 --- Resolve objective fields, inline trigger parameters, and managed objective metadata in
 --- place. objectives_loader ran before the difficulty was resolved, so the maxRepeats it
 --- derives from amount is filled in here for synthesized triggers.
@@ -120,10 +126,27 @@ local function resolveObjectives(objectives)
 	end
 end
 
+---@param name string?
+---@return integer
+local function fromName(name)
+	if name ~= nil and difficulties[name] ~= nil then
+		return difficulties[name]
+	end
+	if name ~= nil then
+		Spring.Log("difficulty.lua", LOG.ERROR, "[Mission API] Unknown difficulty: " .. tostring(name))
+	end
+
+	return table.reduce(difficulties, function(lowest, difficulty)
+		return math.min(lowest, difficulty)
+	end, math.huge)
+end
+
 return {
+	FromName = fromName,
 	IsDifficultiesTable = isDifficultiesTable,
 	PossibleValues = possibleValues,
 	ResolveTriggers = resolveTriggers,
 	ResolveActions = resolveActions,
 	ResolveObjectives = resolveObjectives,
+	ResolveCutscenes = resolveCutscenes,
 }

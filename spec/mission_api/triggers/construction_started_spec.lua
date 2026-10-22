@@ -1,6 +1,7 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and
 -- Spring.GetUnitIsBeingBuilt / UnitDefs / Spring.GetUnitDefID inside its handler.
@@ -15,16 +16,16 @@ local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 })
 _G.UnitDefs = unitDefs:GetUnitDefsByID()
 
-local constructionStarted = VFS.Include("luarules/mission_api/triggers/construction_started.lua")
+local constructionStarted = MissionSpecEnv.include(env, "luarules/mission_api/triggers/construction_started.lua")
 local onUnitCreated = constructionStarted.callins.UnitCreated
 local onBuildAssisted = constructionStarted.callins.BuildAssisted -- Custom callin from the trigger gadget.
 
 describe("mission_api.triggers.construction_started", function()
 	before_each(function()
-		Spring.GetUnitIsBeingBuilt = function()
+		env.Spring.GetUnitIsBeingBuilt = function()
 			return true
 		end
-		Spring.GetUnitDefID = function(unitID)
+		env.Spring.GetUnitDefID = function(unitID)
 			return unitID
 		end
 	end)
@@ -100,7 +101,7 @@ describe("mission_api.triggers.construction_started", function()
 	end)
 
 	it("does not fire for a unit that is not being built", function()
-		Spring.GetUnitIsBeingBuilt = function()
+		env.Spring.GetUnitIsBeingBuilt = function()
 			return false
 		end
 		local context, fired = newContext()

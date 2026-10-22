@@ -45,6 +45,10 @@ local function createValidationContext(mission, report)
 		Actions = missionTable(mission.Actions, "Actions", sections.Actions, report),
 		UnitLoadout = missionTable(mission.UnitLoadout, "UnitLoadout", sections.Loadouts, report),
 		FeatureLoadout = missionTable(mission.FeatureLoadout, "FeatureLoadout", sections.Loadouts, report),
+		Cutscenes = missionTable(mission.Cutscenes, "Cutscenes", sections.Cutscenes, report),
+
+		-- Game setup:
+		Teams = missionAPI.Teams or {},
 
 		-- Parameter types:
 		Types = parameterTypes.Types,

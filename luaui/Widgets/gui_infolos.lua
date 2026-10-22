@@ -229,7 +229,7 @@ function widget:Initialize()
 		return
 	end
 
-	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO() --  -1, -1, 1, 0,   0,0,1, 0.5
+	fullScreenQuadVAO = InstanceVBOTable.fillVAOSlots(InstanceVBOTable.MakeTexRectVAO()) --  -1, -1, 1, 0,   0,0,1, 0.5
 
 	-- idle until the first texture request
 	widgetHandler:RemoveCallIn("GameFrame")

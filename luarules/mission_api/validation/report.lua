@@ -8,8 +8,9 @@ local sections = {
 	Objectives = 2,
 	Triggers = 3,
 	Actions = 4,
-	Loadouts = 5,
-	References = 6,
+	Cutscenes = 5,
+	Loadouts = 6,
+	References = 7,
 }
 
 --- A total order, so entries of the same entity keep the order they were reported in.

@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local BROKEN_INCLUDE = 'spec/spec_helper_spec/broken_include.lua'
 
 describe("spec_helper", function()

@@ -1,13 +1,14 @@
-require("spec_helper")
-local registerMissionApiModules = require("mission_api.spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
 -- Definition files and parameter_processing itself read from GG when they are included.
-local parameterTypes = registerMissionApiModules().ParameterTypes
-local actionDefinitions = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
-local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
+local env = MissionSpecEnv.new()
+local parameterTypes = MissionSpecEnv.registerModules(env).ParameterTypes
+local actionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
+local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
+	.LoadTriggerDefinitions()
 GG["MissionAPI"].ActionDefinitions = actionDefinitions
 GG["MissionAPI"].TriggerDefinitions = triggerDefinitions
-local parameterProcessing = VFS.Include("luarules/mission_api/parameter_processing.lua")
+local parameterProcessing = MissionSpecEnv.include(env, "luarules/mission_api/parameter_processing.lua")
 GG["MissionAPI"] = nil
 
 local actionTypes = actionDefinitions.Types
@@ -35,14 +36,14 @@ describe("mission_api.parameter_processing", function()
 
 	before_each(function()
 		GG["MissionAPI"] = { soundFiles = {} }
-		Spring.GetGroundHeight = function()
+		env.Spring.GetGroundHeight = function()
 			return GROUND_HEIGHT
 		end
 
 		originalUnitDefNames = _G.UnitDefNames
-		originalReadWAV = _G.ReadWAV
+		originalReadWAV = env.ReadWAV
 		_G.UnitDefNames = { armwar = { id = 7 } }
-		_G.ReadWAV = function()
+		env.ReadWAV = function()
 			return { Length = 1.5 }
 		end
 	end)
@@ -50,7 +51,7 @@ describe("mission_api.parameter_processing", function()
 	after_each(function()
 		GG["MissionAPI"] = nil
 		_G.UnitDefNames = originalUnitDefNames
-		_G.ReadWAV = originalReadWAV
+		env.ReadWAV = originalReadWAV
 	end)
 
 	describe("Position", function()
