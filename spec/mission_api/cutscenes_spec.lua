@@ -31,6 +31,7 @@ describe("mission_api.cutscenes", function()
 		env.Spring.Log = function(_, level, message)
 			calls[#calls + 1] = { level = level, message = message }
 		end
+		env.SendToUnsynced = function() end
 		GG["MissionAPI"] = {
 			Cutscenes = {
 				intro = { videoFile = "videos/intro.webm" },
