@@ -1,0 +1,15 @@
+// Keep the original Archaic Dragon production policy when Scav units for players are enabled.
+{
+	"factory": {
+		"coraap": {
+			"unit": [
+				"coraca",
+				"corvamp",
+				"corawac",
+				"corhurc",
+				"corape",
+				"corcrw"
+			]
+		}
+	}
+}

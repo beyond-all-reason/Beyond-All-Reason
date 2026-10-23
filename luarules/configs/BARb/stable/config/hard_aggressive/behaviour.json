@@ -1384,6 +1384,11 @@
 			"retreat": 0.75,
             "limit": 2
 		},
+		"armantiship": {
+			"role": ["support"],
+			"retreat": 0.75,
+            "limit": 2
+		},
 		"armmship": {
 			"role": ["artillery"],
 			"attribute": ["siege"],
@@ -1610,6 +1615,9 @@
 		"corseal": {
 			"role": ["raider"]
 		},
+		"corsala": {
+			"role": ["raider"]
+		},
 		"corparrow": {
 			"role": ["raider"]
 		},
@@ -1725,6 +1733,11 @@
 			"retreat": 0.75,
             "limit": 2
 		},
+		"corantiship": {
+			"role": ["support"],
+			"retreat": 0.75,
+            "limit": 2
+		},
 		"cormship": {
 			"role": ["artillery"],
 			"attribute": ["siege"],
@@ -1788,6 +1801,10 @@
 			"retreat": 0.8
 		},
 		"corcrw": {
+			"role": ["heavy", "air"],
+			"retreat": 0.4
+		},
+		"corcrwh": {
 			"role": ["heavy", "air"],
 			"retreat": 0.4
 		},
