@@ -85,7 +85,8 @@ local variables = GG["MissionAPI"].Modules.Variables
 local isVariableReference = variables.IsVariableReference
 local hasVariableReference = variables.HasVariableReference
 local callOnVariableKeys = variables.CallOnVariableKeys
-local substituteKnownValues = variables.SubstituteKnownValues
+local hasUnsetVariable = variables.HasUnsetVariable
+local resolveValue = variables.ResolveValue
 
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
@@ -811,11 +812,10 @@ local function validateReferencedValue(value, parameterType, actionOrTrigger, ac
 		return results
 	end
 
-	local substituted, allKnown = substituteKnownValues(value)
-	if not allKnown then
+	if hasUnsetVariable(value) then
 		return results
 	end
-	return validators[parameterType](substituted, actionOrTrigger, actionOrTriggerID, parameterName) or {}
+	return validators[parameterType](resolveValue(value), actionOrTrigger, actionOrTriggerID, parameterName) or {}
 end
 
 local function validate(
@@ -1509,7 +1509,7 @@ end
 --- consider all of them; a plain value is returned as a single-element list.
 local function possibleValues(value)
 	if hasVariableReference(value) then
-		value = (substituteKnownValues(value))
+		value = resolveValue(value)
 	end
 	if not isDifficultiesTable(value) then
 		return { value }

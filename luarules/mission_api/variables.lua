@@ -52,21 +52,18 @@ local function resolveValue(value)
 	return resolved
 end
 
---- Like resolveValue for validation. Returns `false` when any referenced variable is unset.
-local function substituteKnownValues(value)
+local function hasUnsetVariable(value)
 	if isVariableReference(value) then
-		local variableValue = GG["MissionAPI"].Variables[value.variable]
-		return variableValue, variableValue ~= nil
+		return GG["MissionAPI"].Variables[value.variable] == nil
 	elseif type(value) ~= "table" then
-		return value, true
+		return false
 	end
-	local substituted, areKnown = {}, true
-	for key, nested in pairs(value) do
-		local nestedValue, nestedKnown = substituteKnownValues(nested)
-		substituted[key] = nestedValue
-		areKnown = areKnown and nestedKnown
+	for _, nested in pairs(value) do
+		if hasUnsetVariable(nested) then
+			return true
+		end
 	end
-	return substituted, areKnown
+	return false
 end
 
 local function registerParameters(parameters, schema, registered)
@@ -172,7 +169,8 @@ return {
 	IsVariableReference = isVariableReference,
 	HasVariableReference = hasVariableReference,
 	CallOnVariableKeys = callOnVariableKeys,
-	SubstituteKnownValues = substituteKnownValues,
+	HasUnsetVariable = hasUnsetVariable,
+	ResolveValue = resolveValue,
 	ResolveReferences = resolveReferences,
 	Get = getVariable,
 	Set = setVariable,
