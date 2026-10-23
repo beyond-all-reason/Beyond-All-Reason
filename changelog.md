@@ -1,4 +1,5 @@
 # October
+- [BARb AI] Corrected outdated factory production choices in Hard and Hard Aggressive, preserving the Scav-player Dragon choice.
 - [Commands]
   - Shift+Space area commands give your units a faster path to travel. Large areas can take 20%–70% less travel time.
   - Area commands (with and without Shift+Space) no longer drop targets past the 2,000 command limit. Your unit selection gets split into groups that take their own targets, with no targets dropped.

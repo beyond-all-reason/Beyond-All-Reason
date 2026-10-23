@@ -254,7 +254,7 @@
 
 		"income_tier": [50, 100],
 
-		"unit":      ["armacsub", "armmls", "armsjam", "armsubk", "armserp", "armaas", "armcrus", "armcarry", "armmship", "armbats", "armepoch"],
+		"unit":      ["armacsub", "armmls", "armsjam", "armsubk", "armserp", "armaas", "armcrus", "armantiship", "armmship", "armbats", "armepoch"],
 
 		"water": {
 			"tier0": [ 0.20,        0.05,      0.05,    0.10,      0.00,       0.01,      0.50,      0.00,      0.20,        0.10,        0.00],
@@ -476,7 +476,7 @@
 
 		"income_tier": [30, 60],
 
-		"unit":      ["coracv", "correap", "corgol", "cormart", "corsent", "corvroc", "corban", "cortrem", "cormabm",	"corvrad",	"coreter",	"corseal",	"corparrow"],
+		"unit":      ["coracv", "correap", "corgol", "cormart", "corsent", "corvroc", "corban", "cortrem", "cormabm",	"corvrad",	"coreter",	"corsala",	"corparrow"],
 
 		"land": {
 			"tier0": [ 0.30,     0.35,      0.01,     0.20,      0.00,      0.04,      0.10,     0.00,      0.00,		0.03,		0.00,		0.00,		0.00],
@@ -578,7 +578,7 @@
 
 		"income_tier": [50],
 
-		"unit":      ["coraca", "corvamp", "corawac", "corhurc", "corape", "corcrw"],
+		"unit":      ["coraca", "corvamp", "corawac", "corhurc", "corape", "corcrwh"],
 
 		"land": {
 			"tier0": [ 0.10,     0.20,       0.15,      0.05,       0.40,      0.00],
@@ -617,7 +617,7 @@
 
 		"income_tier": [50, 100],
 
-		"unit":      ["coracsub", "cormls",  "corsjam",  "corshark", "corssub",  "corarch", "corcrus", "corcarry", "cormship", "corbats", "corblackhy"],
+		"unit":      ["coracsub", "cormls",  "corsjam",  "corshark", "corssub",  "corarch", "corcrus", "corantiship", "cormship", "corbats", "corblackhy"],
 
 		"land": {
 			"tier0": [ 0.20,     	0.05,		0.05,		0.20,		0.00,       0.01,      0.40,       0.00,      0.15,      0.20,      0.00],
@@ -674,7 +674,7 @@
 
 		"income_tier": [30],
 
-		"unit":      ["cormuskrat", "corgarp", "corseal", "corparrow", "corcrash", "coraak"],
+		"unit":      ["cormuskrat", "corgarp", "corsala", "corparrow", "corcrash", "coraak"],
 
 		"land": {
 			"tier0": [ 0.10,        0.00,       0.30,       0.00,       0.00,       0.00],
