@@ -364,12 +364,10 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		shouldCleanupTargeting = true
 	end
 
-	if isSetTargetCommand[cmdID] and not cmdOpts.alt then
-		shouldCleanupTargeting = true
-	end
-
-	if isSetTargetCommand[cmdID] and #cmdParams ~= 1 and #cmdParams ~= 4 then
-		shouldCleanupTargeting = true
+	if isSetTargetCommand[cmdID] then
+		if not cmdOpts.alt or (#cmdParams ~= 1 and #cmdParams ~= 4) then
+			shouldCleanupTargeting = true
+		end
 	end
 
 	if #cmdParams == 4 and not shouldCleanupTargeting then
