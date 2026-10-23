@@ -1,7 +1,6 @@
 ---
 --- Tracks units entering and leaving locations, defined by area parameters.
 --- Adds support for callbacks to act on units as they enter and leave areas.
---- Trackers can be reused efficiently when on the same area and team.
 ---
 --- Provides: onUnitsEntered(unitIDs, trackingID) and onUnitsLeft(unitIDs, trackingID).
 --- When a tracker is started, it calls onUnitsEntered on all units within the area.

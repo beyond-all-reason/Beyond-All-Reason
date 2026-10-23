@@ -199,7 +199,7 @@ end
 local inactiveSeismicContacts = {}
 
 -- Location triggers are dispatched through area tracking instead of by polling with GameFrame.
--- Each has its own tracker. Callbacks act on changed units that moved to the trigger's handler.
+-- Each has its own tracker. Callbacks then act on the units that crossed a tracking boundary.
 local triggersByTrackingID = {} ---@type table<integer, { trigger: table, triggerID: string }>
 local unitsEnteredAreaHandlers, unitsLeftAreaHandlers ---@type table<string, function?>, table<string, function?>
 
