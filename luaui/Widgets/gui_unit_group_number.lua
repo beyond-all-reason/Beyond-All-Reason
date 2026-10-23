@@ -48,6 +48,7 @@ for i = minGroupID, maxNumGroups do
 	grouptounitID[i] = {}
 end
 
+---@type InstanceVBOTable?
 local unitGroupVBO = nil
 local unitGroupShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -120,7 +121,11 @@ local function RemovePrimitive(unitID)
 	end
 end
 
-function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
+function widget:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
+	-- The tracker immediately re-adds finished units. Keep their labels and animation state.
+	if reason == "UnitFinished" then
+		return
+	end
 	RemovePrimitive(unitID, "VisibleUnitRemoved")
 end
 

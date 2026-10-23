@@ -19,23 +19,34 @@ end
 -- mid-swap (game-over logic watches for exactly that).
 
 if not gadgetHandler:IsSyncedCode() then
-	function gadget:RecvFromSynced(name, a)
-		if name == "mpunits_save_begin" then
-			if Script.LuaUI("mapproject_units_save_begin") then
-				Script.LuaUI.mapproject_units_save_begin(a)
+	-- Registered as sync actions (table lookup by message name) instead of a
+	-- RecvFromSynced callin, which would be invoked for every SendToUnsynced
+	-- message from every synced gadget. Returning true stops the broadcast.
+	local function forwardToLuaUI(luaUIName)
+		return function(_, a)
+			if Script.LuaUI(luaUIName) then
+				Script.LuaUI[luaUIName](a)
 			end
-		elseif name == "mpunits_save_data" then
-			if Script.LuaUI("mapproject_units_save_data") then
-				Script.LuaUI.mapproject_units_save_data(a)
-			end
-		elseif name == "mpunits_save_end" then
-			if Script.LuaUI("mapproject_units_save_end") then
-				Script.LuaUI.mapproject_units_save_end(a)
-			end
-		elseif name == "mpunits_save_denied" then
-			if Script.LuaUI("mapproject_units_save_denied") then
-				Script.LuaUI.mapproject_units_save_denied(a)
-			end
+			return true
+		end
+	end
+
+	local syncActions = {
+		mpunits_save_begin = forwardToLuaUI("mapproject_units_save_begin"),
+		mpunits_save_data = forwardToLuaUI("mapproject_units_save_data"),
+		mpunits_save_end = forwardToLuaUI("mapproject_units_save_end"),
+		mpunits_save_denied = forwardToLuaUI("mapproject_units_save_denied"),
+	}
+
+	function gadget:Initialize()
+		for name, func in pairs(syncActions) do
+			gadgetHandler:AddSyncAction(name, func)
+		end
+	end
+
+	function gadget:Shutdown()
+		for name in pairs(syncActions) do
+			gadgetHandler:RemoveSyncAction(name)
 		end
 	end
 	return

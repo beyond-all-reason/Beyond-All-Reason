@@ -2,7 +2,6 @@ local blueprintConfig =
 	VFS.Include("luarules/gadgets/ruins/Blueprints/" .. Game.gameShortName .. "/blueprint_tiers.lua")
 local tiers = blueprintConfig.Tiers
 local types = blueprintConfig.BlueprintTypes
-local UDN = UnitDefNames
 
 local function IRON_BEAM_RING()
 	return {
@@ -572,6 +571,7 @@ local function Power_fort_2()
 	}
 end
 
+--[[
 local function T1_short_def()
 	return {
 		type = types.Land,
@@ -588,6 +588,7 @@ local function T1_short_def()
 		},
 	}
 end
+]]
 
 local function Punisher_wall()
 	return {

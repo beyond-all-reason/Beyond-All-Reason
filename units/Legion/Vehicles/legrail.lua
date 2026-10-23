@@ -3,10 +3,10 @@ return {
 		maxacc = 0.0236,
 		airsightdistance = 900,
 		maxdec = 0.1,
-		energycost = 3800,
+		energycost = 3600,
 		metalcost = 240,
 		buildpic = "LEGRAIL.DDS",
-		buildtime = 3800,
+		buildtime = 3600,
 		canmove = true,
 		collisionvolumeoffsets = "0 7 4",
 		collisionvolumescales = "37 39 40",
@@ -41,7 +41,8 @@ return {
 			unitgroup = "weaponaa",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "ArmVehicles",
+			reaimtime = 5,
+			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {
 			dead = {

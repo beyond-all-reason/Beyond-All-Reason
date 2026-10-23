@@ -33,6 +33,7 @@ return {
 			buildinggrounddecaltype = "decals/armguard_aoplane.dds",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 5,
 			subfolder = "ArmBuildings/LandDefenceOffence",
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,

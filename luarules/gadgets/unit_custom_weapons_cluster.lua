@@ -50,7 +50,7 @@ local waterDepthCoef = 0.1 -- reduce "separation" from ground in water by a mult
 --------------------------------------------------------------------------------
 -- Localize --------------------------------------------------------------------
 
-local DirectionsUtil = VFS.Include("LuaRules/Gadgets/Include/DirectionsUtil.lua")
+local DirectionsUtil = require("luarules/gadgets/include/DirectionsUtil")
 
 local clamp = math.clamp
 local max = math.max
@@ -98,8 +98,8 @@ local spawnableTypes = {
 
 local clusterWeaponDefs = {}
 
-for unitDefID, unitDef in ipairs(UnitDefs) do
-	for _, weapon in pairs(unitDef.weapons) do
+for _, unitDef in ipairs(UnitDefs) do
+	for _, weapon in ipairs(unitDef.weapons) do
 		local weaponDefID, weaponDef = weapon.weaponDef, WeaponDefs[weapon.weaponDef]
 		local clusterDefName = weaponDef.customParams.cluster_def
 
@@ -276,7 +276,7 @@ local projectiles = setmetatable({
 	[-1] = false, -- beam weapons use projectileID -1
 }, {
 	__index = function(tbl, key)
-		return clusterWeaponDefs[spGetProjectileDefID(key)]
+		return clusterWeaponDefs[spGetProjectileDefID(key)] ~= nil
 	end,
 })
 
@@ -468,6 +468,7 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	params.owner = attackerID or -1
 	params.team = attackerTeam
 	params.ttl = data.weaponTtl
+
 	local speed = params.speed
 	local position = params.pos
 
@@ -563,8 +564,11 @@ function gadget:Initialize()
 		return
 	end
 
-	for weaponDefID in pairs(clusterWeaponDefs) do
+	-- Submunitions take their damage scaling from the parent weapon:
+	local setWeaponDefParent = GG.UnitAttributes.SetWeaponDefParent
+	for weaponDefID, data in pairs(clusterWeaponDefs) do
 		Script.SetWatchExplosion(weaponDefID, true)
+		setWeaponDefParent(data.weaponID, weaponDefID)
 	end
 
 	if not GG.Shields then

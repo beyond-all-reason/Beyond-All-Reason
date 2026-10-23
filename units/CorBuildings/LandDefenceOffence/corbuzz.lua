@@ -30,6 +30,7 @@ return {
 			buildinggrounddecalsizex = 11,
 			buildinggrounddecalsizey = 11,
 			buildinggrounddecaltype = "decals/corbuzz_aoplane.dds",
+			islrpc = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
@@ -122,7 +123,7 @@ return {
 				turret = true,
 				weapontimer = 14,
 				weapontype = "Cannon",
-				weaponvelocity = 1150,
+				weaponvelocity = 950,
 				damage = {
 					default = 2000,
 					shields = 1000,

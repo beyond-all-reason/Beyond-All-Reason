@@ -33,6 +33,8 @@ return { --costs should be same as legmohoconct and legmohoconin
 		sightdistance = 273,
 		yardmap = "h oooooooo osssssso osssssso ossoosso ossoosso osssssso osssssso oooooooo",
 		customparams = {
+			attached_con_turret = "legmohoconct",
+			attached_con_turret_mex = "legmohoconin",
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legmohocon_aoplane.dds",
 			buildinggrounddecalsizey = 7,
@@ -43,6 +45,7 @@ return { --costs should be same as legmohoconct and legmohoconin
 			metal_extractor = 4,
 			model_author = "Tharsis and Protar",
 			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Economy",
 			removestop = true,
 			removewait = true,
 			scav_swap_override_created = "null", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)

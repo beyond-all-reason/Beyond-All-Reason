@@ -20,7 +20,6 @@ local RML_PATH = "luaui/RmlWidgets/gui_feature_placer/gui_feature_placer.rml"
 local MODEL_NAME = "feature_placer_model"
 
 local WG = WG
-local GetViewGeometry = Spring.GetViewGeometry
 
 local INITIAL_LEFT_VW = 60
 local INITIAL_TOP_VH = 10
@@ -506,6 +505,10 @@ local FEATURE_DISPLAY_NAMES = {
 	geovent = "geovent",
 }
 
+local function escapeRml(s)
+	return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+end
+
 local function createTileElement(doc, entry, tileW, selectedSet)
 	local name = entry.name
 	local itemEl = doc:CreateElement("div")
@@ -533,7 +536,7 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 
 	local nameEl = doc:CreateElement("div")
 	nameEl:SetClass("fp-feature-name", true)
-	nameEl.inner_rml = FEATURE_DISPLAY_NAMES[name] or name
+	nameEl.inner_rml = escapeRml(FEATURE_DISPLAY_NAMES[name] or name)
 	itemEl:AppendChild(nameEl)
 
 	itemEl:AddEventListener("click", function(event)
@@ -821,6 +824,7 @@ local function attachEventListeners()
 		"trees",
 		"foliage",
 		"crystals",
+		"osemo",
 		"christmas",
 		"raptor",
 		"armada_wrecks",
@@ -828,8 +832,17 @@ local function attachEventListeners()
 		"legion_wrecks",
 		"other",
 	}
+	-- Categories whose features ship in a separate asset pack: the button only shows once the pack is installed
+	local OPTIONAL_PACKS = { osemo = true }
+	local featureCats = WG.FeaturePlacer
+		and WG.FeaturePlacer.getFeatureCategories
+		and WG.FeaturePlacer.getFeatureCategories()
 	for _, key in ipairs(catKeys) do
 		local btn = doc:GetElementById("btn-cat-" .. key)
+		if btn and OPTIONAL_PACKS[key] then
+			local installed = featureCats ~= nil and featureCats[key] ~= nil and #featureCats[key] > 0
+			btn:SetClass("hidden", not installed)
+		end
 		if btn then
 			categoryButtons[key] = btn
 			btn:AddEventListener("click", function(event)

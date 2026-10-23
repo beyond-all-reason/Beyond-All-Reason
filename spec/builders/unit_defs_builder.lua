@@ -8,6 +8,8 @@
 --   GetUnitDefsByName() string name   -> def     (gamedata pre-load shape, used by synced specs)
 -- Both views observe the same underlying defs.
 
+local RealUnitDefs = require("spec/support/real_unit_defs")
+
 ---@class UnitDefsBuilder
 ---@field _byID table<number, table>
 ---@field _byName table<string, table>
@@ -29,7 +31,7 @@ end
 
 ---Register a unit definition. Accepts either a UnitDefBuilder or a (defID, defTable) pair.
 ---@overload fun(self: UnitDefsBuilder, udb: UnitDefBuilder): UnitDefsBuilder
----@param defID number
+---@param defID UnitDefID
 ---@param def table
 ---@return UnitDefsBuilder
 function UDFB:WithUnitDef(defID, def)
@@ -55,7 +57,7 @@ end
 ---Register a live unit instance. defIDOrName accepts either a numeric defID
 ---or the name of a previously-registered def. Errors loudly if the def has
 ---not been registered (via WithUnitDef or WithRealUnitDefs).
----@param unitID number
+---@param unitID UnitID
 ---@param defIDOrName number|string
 ---@return UnitDefsBuilder
 function UDFB:WithUnit(unitID, defIDOrName)
@@ -86,68 +88,23 @@ function UDFB:WithUnit(unitID, defIDOrName)
 	return self
 end
 
----Load real BAR UnitDefs from gamedata into the registry.
----
----loadHarness is an optional callable: harness(fn) invokes fn() with whatever
----globals the loader needs (e.g. _G.Spring.GetModOptions, _G.VFS overrides).
----The synced builder passes its WithGlobalsDefined harness so modoptions are
----honored; callers who already have spec_helper's globals can pass nil.
----@param loadHarness? fun(loadFn: fun())
+---Load real BAR UnitDefs from gamedata into the registry. gamedata never fills
+---UnitDefNames, so these arrive name-keyed with no numeric IDs.
+---@param modOptions table|nil  merged over the defaults the def files require
 ---@return UnitDefsBuilder
-function UDFB:WithRealUnitDefs(loadHarness)
+function UDFB:WithRealUnitDefs(modOptions)
 	if self._realLoaded then
 		return self
 	end
 
-	local function load()
-		local prevDefs = _G.UnitDefs
-		local prevNames = _G.UnitDefNames
-
-		local success, defs = pcall(require, "gamedata.unitdefs")
-		if not success or type(defs) ~= "table" then
-			_G.UnitDefs = prevDefs
-			_G.UnitDefNames = prevNames
-			return
+	for name, def in pairs(RealUnitDefs.byName(modOptions)) do
+		if type(def) == "table" then
+			self._byName[name] = def
 		end
-		---@diagnostic disable-next-line: global-in-non-module
-		-- gamedata/unitdefs.lua includes unitdefs_post, which includes
-		-- alldefs_post, so the defs arrive fully processed. Running either pass
-		-- again here appends the generated category tokens a second time.
-		_G.UnitDefs = defs
-
-		local loaded = _G.UnitDefs
-		local names = _G.UnitDefNames
-		if type(loaded) == "table" then
-			for _, def in pairs(loaded) do
-				if def.builder ~= nil and def.isBuilder == nil then
-					def.isBuilder = def.builder
-				end
-			end
-			-- Post-load shape is name-keyed (BAR's gamedata flow);
-			-- UnitDefNames carries the numeric id mapping.
-			for name, def in pairs(loaded) do
-				if type(def) == "table" then
-					self._byName[name] = def
-					local info = names and names[name]
-					local id = info and info.id
-					if id then
-						self._byID[id] = def
-						self._names[name] = { id = id }
-					end
-				end
-			end
-		end
-		---@diagnostic disable-next-line: global-in-non-module
-		_G.UnitDefs = prevDefs
-		---@diagnostic disable-next-line: global-in-non-module
-		_G.UnitDefNames = prevNames
 	end
 
-	local harness = loadHarness or function(fn)
-		fn()
-	end
-	harness(load)
 	self._realLoaded = true
+
 	return self
 end
 
@@ -166,7 +123,7 @@ function UDFB:GetUnitDefNames()
 	return self._names
 end
 
----@param unitID number
+---@param unitID UnitID
 ---@return number|nil
 function UDFB:GetUnitDefID(unitID)
 	return self._instances[unitID]

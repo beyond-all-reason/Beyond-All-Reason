@@ -42,6 +42,7 @@ return {
 			buildinggrounddecaltype = "decals/armhp_aoplane.dds",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "ArmBuildings/LandFactories",
 			unitgroup = "builder",
 			usebuildinggrounddecal = true,

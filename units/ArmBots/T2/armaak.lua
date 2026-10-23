@@ -139,6 +139,9 @@ return {
 				weapontimer = 6,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					speceffect = "retarget",
+				},
 				damage = {
 					vtol = 150,
 				},
@@ -175,17 +178,20 @@ return {
 				soundhit = "xplosml2",
 				soundhitwet = "splshbig",
 				soundstart = "rocklit1",
-				startvelocity = 100,
+				startvelocity = 300,
 				texture1 = "null",
 				texture2 = "smoketrailaa",
 				tolerance = 26000,
 				tracks = true,
 				turnrate = 30000,
 				turret = true,
-				weaponacceleration = 400,
+				weaponacceleration = 300,
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 800,
+				weaponvelocity = 900,
+				customparams = {
+					speceffect = "retarget",
+				},
 				damage = {
 					vtol = 100,
 				},
@@ -195,11 +201,13 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "LONGRANGEMISSILE",
+				fastautoretargeting = true,
 				onlytargetcategory = "VTOL",
 			},
 			[2] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "SHORTRANGEMISSILE",
+				fastautoretargeting = true,
 				onlytargetcategory = "VTOL",
 			},
 		},

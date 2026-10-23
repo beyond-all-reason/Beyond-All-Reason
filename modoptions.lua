@@ -140,68 +140,73 @@ local options = {
 				key = "neverend",
 				name = "Never ending",
 				desc = "Teams are never eliminated",
-				lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
+				lock = { "dominion_config", "dominion_elimination_threshold_multiplier" },
 			},
 			{
 				key = "com",
 				name = "Kill all enemy Commanders",
 				desc = "When a team has no Commanders left, it loses",
-				lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
+				lock = { "dominion_config", "dominion_elimination_threshold_multiplier" },
 			},
 			{
-				key = "territorial_domination",
-				name = "Territorial Domination",
-				desc = "Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins.",
-				unlock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
+				key = "dominion",
+				name = "Dominion",
+				desc = "Teams earn points by capturing territory to stay in the game. At the end of the final Deadline, the team with the most points wins.",
+				unlock = { "dominion_config", "dominion_elimination_threshold_multiplier" },
 			},
 			{
 				key = "builders",
 				name = "Kill all Builders",
 				desc = "When a team has no builders left, it loses",
-				lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
+				lock = { "dominion_config", "dominion_elimination_threshold_multiplier" },
 			},
 			{
 				key = "killall",
 				name = "Kill everything",
 				desc = "Every last unit must be eliminated, no exceptions!",
-				lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
+				lock = { "dominion_config", "dominion_elimination_threshold_multiplier" },
 			},
 			{
 				key = "own_com",
 				name = "Player resign on Com death",
 				desc = "When player commander dies, you auto-resign.",
-				lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
+				lock = { "dominion_config", "dominion_elimination_threshold_multiplier" },
 			},
 		},
 	},
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "territorial_domination_config",
-		name = "Territorial Domination Length",
-		desc = "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
+		key = "dominion_config",
+		name = "Dominion Length",
+		desc = "Configures the number of six-minute Deadlines and the total time before final score resolution.",
 		type = "list",
-		def = "25_minutes",
+		def = "30_minutes",
 		section = "options_main",
 		items = {
 			{
-				key = "20_minutes",
-				name = "4 Rounds, 20 Minutes",
+				key = "18_minutes",
+				name = "3 Deadlines, 18 Minutes",
 				desc = "Early tech emphasis, comebacks very likely, elimination unlikely.",
 			},
 			{
-				key = "25_minutes",
-				name = "5 Rounds, 25 Minutes(Default)",
-				desc = "Mid/late-game tech, comebacks a significant factor, eliminations uncommon",
+				key = "24_minutes",
+				name = "4 Deadlines, 24 Minutes",
+				desc = "Early/mid-game tech, comebacks likely, elimination uncommon",
 			},
 			{
 				key = "30_minutes",
-				name = "6 Rounds, 30 Minutes",
+				name = "5 Deadlines, 30 Minutes(Default)",
+				desc = "Mid/late-game tech, comebacks a significant factor, eliminations uncommon",
+			},
+			{
+				key = "42_minutes",
+				name = "7 Deadlines, 42 Minutes",
 				desc = "Late-game tech, comebacks less significant, eliminations likely",
 			},
 			{
-				key = "35_minutes",
-				name = "7 Rounds, 35 Minutes",
+				key = "60_minutes",
+				name = "10 Deadlines, 60 Minutes",
 				desc = "Super lategame tech, eliminations extremely likely",
 			},
 		},
@@ -209,14 +214,14 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "territorial_domination_elimination_threshold_multiplier",
-		name = "Elimination Threshold Multiplier",
-		desc = "Teams are eliminated at round end when score < elimination threshold which is set by highest score multiplied by this value. Lower values are more lenient.",
+		key = "dominion_elimination_threshold_multiplier",
+		name = "Deadline Multiplier",
+		desc = "Teams below the Deadline value are eliminated when a Deadline ends. The next Deadline value is the leader's score multiplied by this value. Lower values are more lenient.",
 		type = "number",
-		def = 1.2,
-		min = 1.0,
+		def = 1.25,
+		min = 0,
 		max = 1.5,
-		step = 0.1,
+		step = 0.01,
 		section = "options_main",
 	},
 
@@ -1779,23 +1784,42 @@ local options = {
 	{
 		key = "zombies",
 		name = "Scavenger Zombies",
+		desc = "Corpses left on the battlefield rise again as hostile zombies that attack every player. Revival takes 45 to 120 seconds, with stronger units taking longer and revival speeding up as the game reaches higher tech. Reclaim or resurrect corpses to stop them from rising. After 60 minutes, zombies stay permanently aggressive, and revival times chosen after that use a fixed speed instead of the tech estimate. Corpses already counting down keep their old timer.",
 		type = "list",
 		def = "disabled",
 		section = "options_extra",
 		hidden = false,
 		items = {
-			{ key = "disabled", name = "Disabled", desc = "Disabled" },
-			{ key = "normal", name = "Normal", desc = "Normal revival rate, normal strength." },
-			{ key = "hard", name = "Hard", desc = "Faster revival rate, stronger Zombies." },
+			{ key = "disabled", name = "Disabled", desc = "No zombies. Corpses stay where they fall." },
 			{
-				key = "nightmare",
-				name = "Nightmare",
-				desc = "Faster revival rate, stronger Zombies, 2-5 spawn per corpse.",
+				key = "basic",
+				name = "Basic",
+				desc = "Unit dies, after a while it comes back to life as a zombie. Destroyed zombies leave heaps.",
+			},
+			{
+				key = "draugr",
+				name = "Draugr",
+				desc = "Basic, and destroyed zombies always leave corpses that can become zombies again.",
+			},
+			{
+				key = "wraith",
+				name = "Wraith",
+				desc = "Basic, and ghostly apparitions appear from overkill and from destroyed corpses. When a zombie's corpse is destroyed, it can respawn at an isolated Apparition.",
+			},
+			{
+				key = "hydra",
+				name = "Hydra",
+				desc = "Basic, and each corpse will resurrect between 2 and 6 zombies.",
 			},
 			{
 				key = "akumu",
 				name = "Akumu",
-				desc = "Faster revival rate, stronger Zombies, 2-8 spawn per corpse, zombies leave corpses.",
+				desc = "Basic, Draugr, Wraith, and Hydra combined.",
+			},
+			{
+				key = "spidergeddon",
+				name = "Spidergeddon (LIMITED TIME)",
+				desc = "A modified Akumu mode, but zombies resurrect as Spiders.",
 			},
 		},
 	},
@@ -1855,16 +1879,6 @@ local options = {
 		key = "experimentallegionfaction",
 		name = "Legion Faction",
 		desc = "3rd experimental faction",
-		type = "bool",
-		section = "options_experimental",
-		def = false,
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "legionsimplifiedmexes",
-		name = "Legion Simplified Mexes",
-		desc = "Changes the legion T1 mex to act the same as the other T1 mexes.\nAlso buffs the solar/wind generators on par with other factions.\nGoblin cost 25m/500e -> 30m/420e, Satyr 400 -> 600e",
 		type = "bool",
 		section = "options_experimental",
 		def = false,
@@ -2156,6 +2170,15 @@ local options = {
 		key = "animationcleanup",
 		name = "Animation Cleanup",
 		desc = "Use animations from the BOSCleanup branch", -- example: debugcommands=150:cheat 1|200:luarules benchmark|600:quitforce;
+		section = "dev",
+		type = "bool",
+		def = false,
+	},
+	-- NOTE: update language/en/interface.json when you change name or desc
+	{
+		key = "mapeditor",
+		name = "Map Editor Session",
+		desc = "Launch as a map editor: the combat UI is left out and the terraformer opens on load.",
 		section = "dev",
 		type = "bool",
 		def = false,
@@ -2743,7 +2766,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-for i = 1, 9 do
+for i = 1, 29 do
 	-- NOTE: update language/en/interface.json when you change name or desc
 	options[#options + 1] = {
 		key = "tweakunits" .. i,
@@ -2756,7 +2779,7 @@ for i = 1, 9 do
 	}
 end
 
-for i = 1, 9 do
+for i = 1, 29 do
 	-- NOTE: update language/en/interface.json when you change name or desc
 	options[#options + 1] = {
 		key = "tweakdefs" .. i,

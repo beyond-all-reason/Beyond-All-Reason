@@ -226,13 +226,55 @@ function ChatEmoji.HasEmojiAliasCandidate(text)
 	return sfind(text, ":", firstColon + 1, true) ~= nil
 end
 
-function ChatEmoji.WordWrapPlain(textLines, maxWidth, usedFont, fontSize)
+---@param line string
+---@return string[]
+local function colorSafeWords(line)
+	local words = {}
+	local count = 0
+	local len = #line
+	local wordStart = 0
+	local pos = 1
+	while pos <= len do
+		local c = sbyte(line, pos)
+		if c == 255 then
+			-- Inline color code: 255 followed by three color bytes, kept whole so a wrap cannot split it.
+			-- The font eats all four bytes even when fewer than three follow, so do the same here
+			if wordStart == 0 then
+				wordStart = pos
+			end
+			pos = pos + 4
+		elseif c == 32 or (c >= 9 and c <= 13) then
+			-- Whitespace, the same set as %s: space, tab, newline, vertical tab, form feed, carriage return
+			if wordStart > 0 then
+				count = count + 1
+				words[count] = ssub(line, wordStart, pos - 1)
+				wordStart = 0
+			end
+			pos = pos + 1
+		else
+			if wordStart == 0 then
+				wordStart = pos
+			end
+			pos = pos + 1
+		end
+	end
+	if wordStart > 0 then
+		count = count + 1
+		words[count] = ssub(line, wordStart, len)
+	end
+
+	return words
+end
+
+function ChatEmoji.WordWrapPlain(textLines, maxWidth, usedFont, fontSize, firstLineIndent)
 	local lines = {}
 	local lineCount = 0
+	local firstLineWidth = maxWidth - (firstLineIndent or 0)
 	for _, line in ipairs(textLines) do
 		local linebuffer = ""
-		for word in line:gmatch("%S+") do
-			if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > maxWidth then
+		for _, word in ipairs(colorSafeWords(line)) do
+			local lineWidth = lineCount == 0 and firstLineWidth or maxWidth
+			if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > lineWidth then
 				lineCount = lineCount + 1
 				lines[lineCount] = linebuffer
 				linebuffer = ""
@@ -416,9 +458,10 @@ function ChatEmoji.GetLeadingColorPrefix(text)
 	return text and string.byte(text, 1) == 255 and #text >= 4 and ssub(text, 1, 4) or ""
 end
 
-function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
+function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont, firstLineIndent)
 	local lines = {}
 	local lineCount = 0
+	local firstLineWidth = maxWidth - (firstLineIndent or 0)
 	local spaceWidth = usedFont:GetTextWidth(" ") * fontSize
 	for _, line in ipairs(text) do
 		local linebuffer = ""
@@ -426,8 +469,9 @@ function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
 		local lineHasEmoji = likelyContainsEmoji(line)
 
 		if not lineHasEmoji then
-			for word in line:gmatch("%S+") do
-				if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > maxWidth then
+			for _, word in ipairs(colorSafeWords(line)) do
+				local lineWidth = lineCount == 0 and firstLineWidth or maxWidth
+				if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > lineWidth then
 					lineCount = lineCount + 1
 					lines[lineCount] = linebuffer
 					linebuffer = ""
@@ -439,9 +483,10 @@ function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
 				lines[lineCount] = linebuffer
 			end
 		else
-			for word in line:gmatch("%S+") do
+			for _, word in ipairs(colorSafeWords(line)) do
 				local wordWidth = emojiTextWidth(word, fontSize, usedFont)
-				if linebuffer ~= "" and (linebufferWidth + spaceWidth + wordWidth) > maxWidth then
+				local lineWidth = lineCount == 0 and firstLineWidth or maxWidth
+				if linebuffer ~= "" and (linebufferWidth + spaceWidth + wordWidth) > lineWidth then
 					lineCount = lineCount + 1
 					lines[lineCount] = linebuffer
 					linebuffer = word

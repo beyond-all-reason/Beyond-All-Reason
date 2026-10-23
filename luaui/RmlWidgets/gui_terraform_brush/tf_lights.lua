@@ -74,7 +74,6 @@ function M.attach(doc, ctx)
 		ctx.attachTBMirrorControls(doc, "lp")
 	end
 	local widgetState = ctx.widgetState
-	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
 	local trackSliderDrag = ctx.trackSliderDrag
@@ -287,7 +286,10 @@ function M.attach(doc, ctx)
 	local globeDragging = false
 	local orientPitchInput = doc:GetElementById("lp-orient-pitch-input")
 	local orientYawInput = doc:GetElementById("lp-orient-yaw-input")
-	local globeKeyReturn -- resolved lazily on first keydown
+	-- Same keyboard capture the panel's other text fields get, or the game eats
+	-- every keystroke and these cannot be typed into (see widgetState.wireTextInput).
+	ctx.widgetState.wireTextInput(orientPitchInput)
+	ctx.widgetState.wireTextInput(orientYawInput)
 
 	local function applyGlobeDirection()
 		if not globeEl then
@@ -380,14 +382,11 @@ function M.attach(doc, ctx)
 			Spring.SDLStopTextInput()
 			widgetState.focusedRmlInput = nil
 		end, false)
+		-- Through widgetState, not RmlUi directly: this listener is dispatched by
+		-- RmlUi and has no globals, so a bare `RmlUi.key_identifier` here reads
+		-- nil and Enter dies silently. The host resolves the id once.
 		inputEl:AddEventListener("keydown", function(event)
-			if not globeKeyReturn then
-				pcall(function()
-					globeKeyReturn = RmlUi.key_identifier.RETURN
-				end)
-			end
-			local p = event.parameters
-			if p and globeKeyReturn and p.key_identifier == globeKeyReturn then
+			if widgetState.isReturnEvent and widgetState.isReturnEvent(event) then
 				applyVal()
 				inputEl:Blur()
 			end
@@ -412,8 +411,6 @@ function M.sync(doc, ctx, lpState, setSummary)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local syncAndFlash = ctx.syncAndFlash
-	local cadenceToSlider = ctx.cadenceToSlider
-	local shapeNames = ctx.shapeNames
 	-- btn-lights active state driven by data-class-active="activeTool == 'lp'" in RML.
 
 	-- Light type/mode/dist buttons driven by dm.lpLightType/lpMode/lpDistMode (data-class-active).

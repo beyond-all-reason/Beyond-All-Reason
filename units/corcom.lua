@@ -87,12 +87,16 @@ return {
 			[27] = "corfhp",
 		},
 		customparams = {
+			canwearcosmetics = true,
 			firestateoncloak = 0,
 			iscommander = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 5,
+			spawnpad_unit = "correspawn",
 			subfolder = "",
+			tombstone = "corstone",
 			unitgroup = "builder",
 		},
 		featuredefs = {

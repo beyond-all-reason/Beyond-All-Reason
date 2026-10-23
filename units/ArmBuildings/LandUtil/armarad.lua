@@ -36,6 +36,7 @@ return {
 			buildinggrounddecalsizex = 3.6,
 			buildinggrounddecalsizey = 3.6,
 			buildinggrounddecaltype = "decals/armarad_aoplane.dds",
+			juno_kill = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

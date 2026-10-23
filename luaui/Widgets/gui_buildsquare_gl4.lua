@@ -57,13 +57,15 @@ local spGetGroundBlocked = Spring.GetGroundBlocked
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spGetBuildFacing = Spring.GetBuildFacing
 local spTestBuildOrder = Spring.TestBuildOrder
+local spGetActiveCommand = Spring.GetActiveCommand
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 local spGetDrawFrame = Spring.GetDrawFrame
@@ -93,25 +95,31 @@ local CORNER_RADIUS = 0.22
 local STYLE_OPEN_YARDMAP_CELLS_AS_EXTENDED = true
 local EXTENDED_CELLS = 0
 local COMBINE_FOUR_CELLS = true
+local COMBINE_VALID_FOOTPRINT_CELLS = true -- merge same-styled cells of a placeable footprint into blocks with a single outline
+local FOLLOW_EXTRACTOR_SNAP = true -- draw the preview at the spot the extractor snap widget targets instead of at the cursor
 local EXTENDED_ALPHA_NEAR = 0.1
 local EXTENDED_ALPHA_FAR = 0.05
 local FOOTPRINT_BOUNDARY_ENABLED = true
 local FOOTPRINT_BOUNDARY_WIDTH = 0.22
-local SHOW_INVALID_FOOTPRINT_BOUNDARY = true
+local SHOW_INVALID_FOOTPRINT_BOUNDARY = false
 local EXTENDED_STATUS_UPDATE_INTERVAL = 0.20
 local TARGET_STATUS_CHECKS_PER_GAME_FRAME = 64
 local TARGET_STATUS_CELLS_PER_GAME_FRAME = 512
 local MAX_STATUS_CHECK_PERIOD = 10
 local SIMPLIFIED_FOOTPRINTS_ENABLED = true
 local SIMPLIFIED_OUTLINE_SCALE = 0.5
-local SIMPLIFIED_CORNER_RADIUS_SCALE = 0.5
+local SIMPLIFIED_CORNER_RADIUS_SCALE = 0.5 -- corner radius of simplified quads and merged blocks, relative to CORNER_RADIUS, at the reference footprint size
+local SIMPLIFIED_SIZE_REFERENCE_CELLS = 6 -- footprint size (cells) at which the simplified corner radius and outline scales apply unchanged
+local SIMPLIFIED_SIZE_FALLOFF = 0.55 -- corner radius and outline width vs footprint size: 0 = proportional, 1 = same for every size, in between = diminishing growth
 local SIMPLIFIED_BUILDING_THRESHOLD = 384
 local SIMPLIFIED_CELL_THRESHOLD = 8192
 local MINIMUM_SCREEN_DIAMETER = 3.0
-local MINIMUM_DETAILED_CELL_DIAMETER = 2.0
 local SIMPLIFIED_MINIMAP_ENABLED = true
 local MAX_MINIMAP_BUILDINGS = 16384
 local MAX_BATCH_CELLS = 262144
+local PREUNIT_PASS_ALPHA = 0.8 -- opacity multiplier of the base DrawWorldPreUnit pass
+local OVERLAY_PASS_ENABLED = true -- redraw the squares in DrawWorld (on top of units) so they stay faintly visible when covered
+local OVERLAY_PASS_ALPHA = 0.3 -- opacity multiplier of the DrawWorld overlay pass
 
 local STATUS_BLOCKED = 0
 local STATUS_OCCUPIED = 1
@@ -124,7 +132,7 @@ local STATUS_COLORS = {
 	[STATUS_RECLAIMABLE] = { 0.40, 1.0, 0.20, 0.33 },
 	[STATUS_OPEN] = { 0.70, 0.90, 0.10, 0.33 },
 }
-local VALID_FOOTPRINT_COLOR = { 0.0, 1.0, 0.3, 0.45 }
+local VALID_FOOTPRINT_COLOR = { 0.0, 1.0, 0.3, 0.37 }
 -- local STATUS_OUTLINE_COLORS = {
 -- 	[STATUS_BLOCKED]     = { 0.85, 0.05, 0.15, 0.5 },
 -- 	[STATUS_OCCUPIED]    = { 0.18, 0.25, 0.02, 0.7 },
@@ -137,7 +145,7 @@ local STATUS_OUTLINE_COLORS = {
 	[STATUS_RECLAIMABLE] = { 0.55, 0.20, 0.05, 0.4 },
 	[STATUS_OPEN] = { 0.30, 0.30, 0.05, 0.4 },
 }
-local VALID_FOOTPRINT_OUTLINE_COLOR = { 0.66, 1.00, 0.66, 0.5 }
+local VALID_FOOTPRINT_OUTLINE_COLOR = { 0.66, 1.00, 0.66, 0.45 }
 local INVALID_FOOTPRINT_BOUNDARY_COLOR = { 1.00, 0.15, 0.15, 0.4 }
 
 local HEIGHT_OFFSET = 0.5
@@ -152,6 +160,7 @@ local isMiniMapLoc = nil
 local rotationMiniMapLoc = nil
 local heightOffsetLoc = nil
 local waterLevelLoc = nil
+local alphaMultiplierLoc = nil
 local quadVBO = nil
 local batchInstanceVBO = nil
 local batchVAO = nil
@@ -175,6 +184,15 @@ local extendedStatuses = {}
 local sourceCellStatuses = {}
 local sourceOpenYardmapFlags = {}
 local sourceTerrainBlockedFlags = {}
+local mergeCellKeys = {}
+local mergeStyleColors = {}
+local mergeStyleOutlineColors = {}
+local mergeStyleAlphas = {}
+local mergeStyleOutlineAlphas = {}
+local mergeRectData = {}
+local mergeOpenRects = {}
+local styleColorIds = {}
+local styleColorIdCount = 0
 local candidateBuildHeights = {}
 local candidateBuildHeightGenerations = {}
 local candidateBuildHeightGeneration = 0
@@ -184,6 +202,7 @@ local previewRenderCacheCount = 0
 local nextPreviewRenderCache = 1
 local previewRenderCacheLookup = {}
 local extendedCellsDrawFrame = -1
+local overlayBatchDrawFrame = -1
 local drawSquareCount = 0
 local drawSquareCellCount = 0
 local effectiveExtendedCells = EXTENDED_CELLS
@@ -194,10 +213,36 @@ local statusChecksEnabled = true
 local statusCheckTargetPhase = 0
 local orderedPreviewCaches = {}
 local pregameStatuses = {}
-local pregameStatusCount = 0
-local queuedBuildFootprints = {}
-local queuedBuildFootprintCount = 0
-local queuedBuildFootprintsGameFrame = -1
+local snapStatuses = {}
+-- Queued build footprints of the selected units, hashed into map buckets so a preview only tests the footprints
+-- near it. Per-unit queues are re-read when their command count changes, a build command arrives, the selection
+-- changes or the periodic full refresh is due. Grouped in one table: the chunk is close to the 200 locals limit.
+local QUEUED_BUCKET_SIZE = 64
+local QUEUED_BUCKET_STRIDE = 1024
+local QUEUED_FULL_REFRESH_FRAMES = 30
+---@type { minX: table<integer, number>, maxX: table<integer, number>, minZ: table<integer, number>, maxZ: table<integer, number>, count: integer, buckets: table<integer, table<integer, integer>?>, revision: integer, gameFrame: integer, drawFrame: integer, lastFullRefresh: integer, unitQueues: table<number, table?>, dirtyUnits: table<number, boolean?>, selectedUnits: table<integer, UnitID>, selectionDirty: boolean, snapDrawFrame: integer, snapUnitDefID: integer?, snapFacing: integer?, snapX: number?, snapZ: number? }
+local queuedBuilds = {
+	minX = {},
+	maxX = {},
+	minZ = {},
+	maxZ = {},
+	count = 0,
+	buckets = {},
+	revision = 0,
+	gameFrame = -1,
+	drawFrame = -1,
+	lastFullRefresh = -1,
+	unitQueues = {},
+	dirtyUnits = {},
+	selectedUnits = {},
+	selectionDirty = true,
+	-- extractor snap placement, resolved once per draw frame
+	snapDrawFrame = -1,
+	snapUnitDefID = nil,
+	snapFacing = nil,
+	snapX = nil,
+	snapZ = nil,
+}
 
 local MAX_CELLS = 4096
 
@@ -307,27 +352,101 @@ local function getFootprintData(unitDefID, facing)
 end
 
 local function addQueuedBuildFootprint(unitDefID, x, z, facing)
-	local queuedFootprint = getFootprintData(unitDefID, facing or 0)
-	if not queuedFootprint then
+	local footprint = getFootprintData(unitDefID, facing)
+	if not footprint then
 		return
 	end
-	queuedBuildFootprintCount = queuedBuildFootprintCount + 1
-	local queuedBuildFootprint = queuedBuildFootprints[queuedBuildFootprintCount] or {}
-	queuedBuildFootprints[queuedBuildFootprintCount] = queuedBuildFootprint
-	queuedBuildFootprint.minX = x - queuedFootprint.halfXsize * SQUARE_SIZE
-	queuedBuildFootprint.maxX = queuedBuildFootprint.minX + queuedFootprint.xsize * SQUARE_SIZE
-	queuedBuildFootprint.minZ = z - queuedFootprint.halfZsize * SQUARE_SIZE
-	queuedBuildFootprint.maxZ = queuedBuildFootprint.minZ + queuedFootprint.zsize * SQUARE_SIZE
+	local minX = x - footprint.halfXsize * SQUARE_SIZE
+	local maxX = minX + footprint.xsize * SQUARE_SIZE
+	local minZ = z - footprint.halfZsize * SQUARE_SIZE
+	local maxZ = minZ + footprint.zsize * SQUARE_SIZE
+	local bucketMinX = math.max(0, math.floor(minX / QUEUED_BUCKET_SIZE))
+	local bucketMaxX = math.max(0, math.floor((maxX - 1) / QUEUED_BUCKET_SIZE))
+	local bucketMinZ = math.max(0, math.floor(minZ / QUEUED_BUCKET_SIZE))
+	local bucketMaxZ = math.max(0, math.floor((maxZ - 1) / QUEUED_BUCKET_SIZE))
+	local buckets = queuedBuilds.buckets
+	local minXs = queuedBuilds.minX
+	local maxXs = queuedBuilds.maxX
+	local minZs = queuedBuilds.minZ
+	local maxZs = queuedBuilds.maxZ
+
+	-- Builders sharing a queue would add the same footprint once per builder.
+	local firstBucket = buckets[bucketMinX + bucketMinZ * QUEUED_BUCKET_STRIDE]
+	if firstBucket then
+		for bucketIndex = 1, #firstBucket do
+			local other = firstBucket[bucketIndex]
+			if minXs[other] == minX and minZs[other] == minZ and maxXs[other] == maxX and maxZs[other] == maxZ then
+				return
+			end
+		end
+	end
+
+	local index = queuedBuilds.count + 1
+	queuedBuilds.count = index
+	minXs[index] = minX
+	maxXs[index] = maxX
+	minZs[index] = minZ
+	maxZs[index] = maxZ
+	for bucketZ = bucketMinZ, bucketMaxZ do
+		for bucketX = bucketMinX, bucketMaxX do
+			local key = bucketX + bucketZ * QUEUED_BUCKET_STRIDE
+			local bucket = buckets[key]
+			if bucket then
+				bucket[#bucket + 1] = index
+			else
+				buckets[key] = { index }
+			end
+		end
+	end
+end
+
+-- Reads the build commands of one unit into its flat (unitDefID, x, z, facing) list. Returns true when it changed.
+local function readUnitBuildQueue(unitID, commandCount, unitQueue)
+	local length = 0
+	local changed = false
+	for commandIndex = 1, commandCount do
+		local cmdID, _, _, x, _, z, facing = spGetUnitCurrentCommand(unitID, commandIndex)
+		if cmdID and cmdID < 0 and x and z then
+			facing = facing or 0
+			if
+				unitQueue[length + 1] ~= -cmdID
+				or unitQueue[length + 2] ~= x
+				or unitQueue[length + 3] ~= z
+				or unitQueue[length + 4] ~= facing
+			then
+				changed = true
+				unitQueue[length + 1] = -cmdID
+				unitQueue[length + 2] = x
+				unitQueue[length + 3] = z
+				unitQueue[length + 4] = facing
+			end
+			length = length + 4
+		end
+	end
+	if unitQueue.length ~= length then
+		changed = true
+		for index = length + 1, unitQueue.length do
+			unitQueue[index] = nil
+		end
+		unitQueue.length = length
+	end
+	return changed
+end
+
+local function rebuildQueuedBuildFootprints()
+	queuedBuilds.count = 0
+	queuedBuilds.buckets = {}
+	queuedBuilds.revision = queuedBuilds.revision + 1
 end
 
 local function updateQueuedBuildFootprints(gameFrame)
-	if gameFrame > 0 and queuedBuildFootprintsGameFrame == gameFrame then
-		return
-	end
-	queuedBuildFootprintsGameFrame = gameFrame
-	queuedBuildFootprintCount = 0
-
 	if gameFrame <= 0 then
+		-- Pregame: the queue lives in the pregame build widget and is small, re-read it every draw frame.
+		if queuedBuilds.drawFrame == extendedCellsDrawFrame then
+			return
+		end
+		queuedBuilds.drawFrame = extendedCellsDrawFrame
+		rebuildQueuedBuildFootprints()
 		local pregameBuild = WG["pregame-build"]
 		local getBuildQueue = pregameBuild and pregameBuild.getBuildQueue
 		local buildQueue = getBuildQueue and getBuildQueue()
@@ -335,45 +454,102 @@ local function updateQueuedBuildFootprints(gameFrame)
 			for queueIndex = 1, #buildQueue do
 				local buildData = buildQueue[queueIndex]
 				if buildData[1] and buildData[2] and buildData[4] then
-					addQueuedBuildFootprint(buildData[1], buildData[2], buildData[4], buildData[5])
+					addQueuedBuildFootprint(buildData[1], buildData[2], buildData[4], buildData[5] or 0)
 				end
 			end
 		end
 		return
 	end
 
-	local selectedUnits = spGetSelectedUnits()
+	if queuedBuilds.gameFrame == gameFrame then
+		return
+	end
+	queuedBuilds.gameFrame = gameFrame
+
+	local changed = false
+	local selectedUnits = queuedBuilds.selectedUnits
+	if queuedBuilds.selectionDirty or spGetSelectedUnitsCount() ~= #selectedUnits then
+		selectedUnits = spGetSelectedUnits()
+		queuedBuilds.selectedUnits = selectedUnits
+		queuedBuilds.selectionDirty = false
+		changed = true
+	end
+	local fullRefresh = gameFrame - queuedBuilds.lastFullRefresh >= QUEUED_FULL_REFRESH_FRAMES
+	if fullRefresh then
+		queuedBuilds.lastFullRefresh = gameFrame
+	end
+	local unitQueues = queuedBuilds.unitQueues
+	local dirtyUnits = queuedBuilds.dirtyUnits
 	for selectedIndex = 1, #selectedUnits do
-		local commands = spGetUnitCommands(selectedUnits[selectedIndex], -1)
-		if commands then
-			for commandIndex = 1, #commands do
-				local command = commands[commandIndex]
-				local commandID = command.id
-				local params = command.params
-				if commandID < 0 and params and params[1] and params[3] then
-					addQueuedBuildFootprint(-commandID, params[1], params[3], params[4])
-				end
+		local unitID = selectedUnits[selectedIndex]
+		local commandCount = spGetUnitCommandCount(unitID) or 0
+		local unitQueue = unitQueues[unitID]
+		if not unitQueue then
+			unitQueue = { length = 0, commandCount = -1 }
+			unitQueues[unitID] = unitQueue
+		end
+		if fullRefresh or dirtyUnits[unitID] or commandCount ~= unitQueue.commandCount then
+			unitQueue.commandCount = commandCount
+			if readUnitBuildQueue(unitID, commandCount, unitQueue) then
+				changed = true
+			end
+		end
+		unitQueue.gameFrame = gameFrame
+	end
+	for unitID in pairs(dirtyUnits) do
+		dirtyUnits[unitID] = nil
+	end
+	if not changed then
+		return
+	end
+
+	for unitID, unitQueue in pairs(unitQueues) do
+		if unitQueue.gameFrame ~= gameFrame then
+			unitQueues[unitID] = nil
+		end
+	end
+	rebuildQueuedBuildFootprints()
+	for selectedIndex = 1, #selectedUnits do
+		local unitQueue = unitQueues[selectedUnits[selectedIndex]]
+		if unitQueue then
+			for index = 1, unitQueue.length, 4 do
+				addQueuedBuildFootprint(
+					unitQueue[index],
+					unitQueue[index + 1],
+					unitQueue[index + 2],
+					unitQueue[index + 3]
+				)
 			end
 		end
 	end
 end
 
-local function hasQueuedBuildFootprintOverlap(unitDefID, x, z, facing, gameFrame)
-	updateQueuedBuildFootprints(gameFrame)
-	local footprint = getFootprintData(unitDefID, facing)
+local function hasQueuedBuildFootprintOverlap(footprint, x, z)
+	if queuedBuilds.count == 0 then
+		return false
+	end
 	local minX = x - footprint.halfXsize * SQUARE_SIZE
 	local maxX = minX + footprint.xsize * SQUARE_SIZE
 	local minZ = z - footprint.halfZsize * SQUARE_SIZE
 	local maxZ = minZ + footprint.zsize * SQUARE_SIZE
-	for index = 1, queuedBuildFootprintCount do
-		local queuedFootprint = queuedBuildFootprints[index]
-		if
-			minX < queuedFootprint.maxX
-			and maxX > queuedFootprint.minX
-			and minZ < queuedFootprint.maxZ
-			and maxZ > queuedFootprint.minZ
-		then
-			return true
+	local buckets = queuedBuilds.buckets
+	local minXs = queuedBuilds.minX
+	local maxXs = queuedBuilds.maxX
+	local minZs = queuedBuilds.minZ
+	local maxZs = queuedBuilds.maxZ
+	local bucketMinX = math.max(0, math.floor(minX / QUEUED_BUCKET_SIZE))
+	local bucketMaxX = math.max(0, math.floor((maxX - 1) / QUEUED_BUCKET_SIZE))
+	for bucketZ = math.max(0, math.floor(minZ / QUEUED_BUCKET_SIZE)), math.max(0, math.floor((maxZ - 1) / QUEUED_BUCKET_SIZE)) do
+		for bucketX = bucketMinX, bucketMaxX do
+			local bucket = buckets[bucketX + bucketZ * QUEUED_BUCKET_STRIDE]
+			if bucket then
+				for bucketIndex = 1, #bucket do
+					local index = bucket[bucketIndex]
+					if minX < maxXs[index] and maxX > minXs[index] and minZ < maxZs[index] and maxZ > minZs[index] then
+						return true
+					end
+				end
+			end
 		end
 	end
 	return false
@@ -417,12 +593,14 @@ local function collectPreview(
 	zsize,
 	extendedCells,
 	cellScale,
-	simplified
+	simplified,
+	merged
 )
 	appendCollectedPreview(renderCache)
 	if
 		renderCache.batchNumCells ~= numCells
 		or renderCache.batchSimplified ~= simplified
+		or renderCache.batchMerged ~= merged
 		or renderCache.batchOriginX ~= originX
 		or renderCache.batchOriginZ ~= originZ
 		or renderCache.batchCellScale ~= cellScale
@@ -436,6 +614,7 @@ local function collectPreview(
 		renderCache.batchExtendedCells = extendedCells
 		renderCache.batchCellScale = cellScale
 		renderCache.batchSimplified = simplified
+		renderCache.batchMerged = merged
 	end
 end
 
@@ -487,8 +666,6 @@ local function getCellGeometry(xsize, zsize, extendedCells, cellScale)
 			dataIndex = dataIndex + 1
 			geometryData[dataIndex] = zi * SQUARE_SIZE * cellScale
 			dataIndex = dataIndex + 1
-			geometryData[dataIndex] = cellScale > 1 and -cellScale or 0.0
-			dataIndex = dataIndex + 1
 			geometryData[dataIndex] = footprintEdges
 		end
 	end
@@ -527,22 +704,6 @@ local function getEffectiveExtendedCells()
 	end
 	drawSquareCount = drawSquareCount + 1
 	return effectiveExtendedCells, buildSquareGameFrame, statusCheckPeriod, drawSquareCount, simplifiedFootprintMode
-end
-
-local function needsDistanceSimplification(footprint, x, z)
-	local minX = x - footprint.halfXsize * SQUARE_SIZE
-	local maxX = minX + footprint.xsize * SQUARE_SIZE
-	local minZ = z - footprint.halfZsize * SQUARE_SIZE
-	local maxZ = minZ + footprint.zsize * SQUARE_SIZE
-	local screenLeftX = spWorldToScreenCoords(minX, spGetGroundHeight(minX, z), z)
-	local screenRightX = spWorldToScreenCoords(maxX, spGetGroundHeight(maxX, z), z)
-	local _, screenTopY = spWorldToScreenCoords(x, spGetGroundHeight(x, minZ), minZ)
-	local _, screenBottomY = spWorldToScreenCoords(x, spGetGroundHeight(x, maxZ), maxZ)
-	if not screenLeftX or not screenRightX or not screenTopY or not screenBottomY then
-		return false
-	end
-	return mathAbs(screenRightX - screenLeftX) / footprint.xsize < MINIMUM_DETAILED_CELL_DIAMETER
-		or mathAbs(screenBottomY - screenTopY) / footprint.zsize < MINIMUM_DETAILED_CELL_DIAMETER
 end
 
 local function getPredictedCellStatus(unitDef, worldX, worldZ, buildHeight)
@@ -697,6 +858,7 @@ local function getPreviewRenderCache(unitDefID, x, z, facing, sequenceIndex)
 	cache.extendedStatusCount = 0
 	cache.colorRevision = (cache.colorRevision or 0) + 1
 	cache.batchNumCells = nil
+	cache.mergedRectCount = nil
 	addPreviewRenderCache(cache)
 	orderedPreviewCaches[sequenceIndex] = cache
 	return cache
@@ -712,10 +874,11 @@ local vsSrc = [[
 #extension GL_ARB_shading_language_420pack: require
 
 layout (location = 0) in vec2 a_cornerPos;
-layout (location = 1) in vec4 a_cellData;
+layout (location = 1) in vec4 a_cellData; // x, z, quad width, quad height (world units)
 layout (location = 2) in vec4 a_color;
 layout (location = 3) in vec4 a_outlineColor;
-layout (location = 4) in float a_floatOnWater;
+layout (location = 4) in vec4 a_cellExtra; // floatOnWater, mode (0 cell, 1 simplified, 2 merged block), external edge mask, packed footprint data
+layout (location = 5) in vec2 a_footprintSize; // footprint size in cells; merged blocks measure corner radius and outline relative to it
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
@@ -724,7 +887,11 @@ out vec4 v_outlineColor;
 flat out float v_footprintEdges;
 flat out float v_footprintValid;
 flat out float v_queuedFootprintConflict;
-flat out float v_simplified;
+flat out float v_mode;
+flat out float v_externalEdges;
+flat out vec2 v_quadUnits;
+flat out vec2 v_cellToUnit;
+flat out float v_simplifiedSizeScale;
 out vec2 v_cellUV;
 
 uniform sampler2D heightmapTex;
@@ -732,6 +899,8 @@ uniform float heightOffset;
 uniform float waterLevel;
 uniform float cellInset;
 uniform float cellSize;
+uniform float simplifiedReferenceCells;
+uniform float simplifiedSizeFalloff;
 uniform float minimumScreenDiameter;
 uniform int isMiniMap;
 uniform int rotationMiniMap;
@@ -745,28 +914,60 @@ vec2 heightmapUVatWorldPos(vec2 worldpos) {
 }
 
 void main() {
-	float simplified = step(0.5, a_cellData.z);
-	float regularCellScale = max(1.0, -a_cellData.z);
-	vec2 quadSize = mix(vec2(cellSize * regularCellScale), a_cellData.zw, simplified);
+	float mode = a_cellExtra.y;
+	bool simplified = mode > 0.5 && mode < 1.5;
+	bool merged = mode > 1.5;
+	vec2 quadSize = a_cellData.zw;
 	vec2 cellUV = a_cornerPos / cellSize;
-	vec2 insetCorner = cellUV * (quadSize - 2.0 * cellInset) + vec2(cellInset);
+	// Merged blocks are only inset on edges that are not shared with a same-styled neighbour block.
+	vec2 insetMin = vec2(cellInset);
+	vec2 insetMax = vec2(cellInset);
+	if (merged) {
+		float externalEdges = a_cellExtra.z;
+		insetMin.x *= mod(floor(externalEdges), 2.0);
+		insetMax.x *= mod(floor(externalEdges / 2.0), 2.0);
+		insetMin.y *= mod(floor(externalEdges / 4.0), 2.0);
+		insetMax.y *= mod(floor(externalEdges / 8.0), 2.0);
+	}
+	vec2 insetQuadSize = quadSize - insetMin - insetMax;
+	vec2 insetCorner = insetMin + cellUV * insetQuadSize;
 	float wx = a_cellData.x + insetCorner.x;
 	float wz = a_cellData.y + insetCorner.y;
 
 	v_color = a_color;
 	v_outlineColor = a_outlineColor;
-	float packedFootprintData = mix(a_cellData.w, 0.0, simplified);
+	float packedFootprintData = a_cellExtra.w;
 	v_footprintEdges = mod(packedFootprintData, 16.0);
 	v_footprintValid = step(15.5, mod(packedFootprintData, 32.0));
 	v_queuedFootprintConflict = step(31.5, packedFootprintData);
-	v_simplified = simplified;
+	v_mode = mode;
+	v_externalEdges = a_cellExtra.z;
+	// Merged blocks measure distances relative to the inset footprint, exactly like the simplified quad of the
+	// whole footprint would, so a fully placeable footprint looks identical to the simplified rendering.
+	vec2 quadUnits = vec2(1.0);
+	vec2 cellToUnit = vec2(1.0);
+	float simplifiedSizeScale = 1.0;
+	if (simplified || merged) {
+		vec2 footprintInsetSize = max(a_footprintSize * cellSize - 2.0 * cellInset, vec2(0.001));
+		// Corner radius and outline width grow with the footprint but with diminishing returns: unchanged at the
+		// reference size, scaled by (reference / footprint) ^ falloff elsewhere (falloff 0 = proportional, 1 = constant).
+		float referenceInsetSize = max(simplifiedReferenceCells * cellSize - 2.0 * cellInset, 0.001);
+		simplifiedSizeScale = pow(referenceInsetSize / min(footprintInsetSize.x, footprintInsetSize.y), simplifiedSizeFalloff);
+		if (merged) {
+			quadUnits = insetQuadSize / footprintInsetSize;
+			cellToUnit = (cellSize - 2.0 * cellInset) / footprintInsetSize;
+		}
+	}
+	v_quadUnits = quadUnits;
+	v_cellToUnit = cellToUnit;
+	v_simplifiedSizeScale = simplifiedSizeScale;
 	v_cellUV = cellUV;
 	if (isMiniMap == 0) {
 		vec2 uvhm = heightmapUVatWorldPos(vec2(wx, wz));
 		float wy = textureLod(heightmapTex, uvhm, 0.0).x;
-		wy = mix(wy, max(wy, waterLevel), a_floatOnWater) + heightOffset;
+		wy = mix(wy, max(wy, waterLevel), a_cellExtra.x) + heightOffset;
 		vec4 clipPosition = cameraViewProj * vec4(wx, wy, wz, 1.0);
-		if (simplified > 0.5) {
+		if (simplified) {
 			vec2 centerWorldPos = a_cellData.xy + quadSize * 0.5;
 			vec4 centerClipPosition = cameraViewProj * vec4(centerWorldPos.x, wy, centerWorldPos.y, 1.0);
 			vec2 centerNdcPosition = centerClipPosition.xy / centerClipPosition.w;
@@ -805,23 +1006,85 @@ in vec4 v_outlineColor;
 flat in float v_footprintEdges;
 flat in float v_footprintValid;
 flat in float v_queuedFootprintConflict;
-flat in float v_simplified;
+flat in float v_mode;
+flat in float v_externalEdges;
+flat in vec2 v_quadUnits;
+flat in vec2 v_cellToUnit;
+flat in float v_simplifiedSizeScale;
 in vec2 v_cellUV;
 out vec4 fragColor;
 
 uniform float simplifiedOutlineScale;
 uniform float simplifiedCornerRadiusScale;
 uniform float cornerRadius;
+uniform float cellInset;
+uniform float cellSize;
 uniform float footprintBoundaryEnabled;
 uniform float footprintBoundaryWidth;
 uniform float showInvalidFootprintBoundary;
 uniform vec4 invalidFootprintBoundaryColor;
+uniform float alphaMultiplier;
 
 void main() {
-	float scaledCornerRadius = cornerRadius * mix(1.0, simplifiedCornerRadiusScale, v_simplified);
-	float outlineWidth = 0.045 * mix(1.0, simplifiedOutlineScale, v_simplified);
-	vec2 cornerDistance = abs(v_cellUV - vec2(0.5)) - vec2(0.5 - scaledCornerRadius);
-	float distanceToEdge = length(max(cornerDistance, 0.0)) - scaledCornerRadius;
+	bool merged = v_mode > 1.5;
+	// Simplified quads and merged blocks share the same corner radius and outline width (relative to the footprint).
+	float simplifiedMix = (v_mode > 0.5) ? 1.0 : 0.0;
+	float scaledCornerRadius = min(
+		cornerRadius * mix(1.0, simplifiedCornerRadiusScale * v_simplifiedSizeScale, simplifiedMix),
+		0.5
+	);
+	float outlineWidth = 0.045 * mix(1.0, simplifiedOutlineScale * v_simplifiedSizeScale, simplifiedMix);
+	// Distances are measured in inset-quad units for cells and simplified quads (the quad is one unit) and in
+	// inset-footprint units for merged blocks (v_quadUnits = block size relative to the footprint), whose edges
+	// shared with a same-styled neighbour are ignored so adjacent blocks join seamlessly.
+	vec2 quadUnits = merged ? v_quadUnits : vec2(1.0);
+	vec2 quadPos = v_cellUV * quadUnits;
+	float distanceToEdge;
+	if (merged) {
+		// Shared edges are pushed far away. Use exact selects, never mix() with the large constant: in float
+		// precision that quantises the distances and turns the corners into staircases.
+		float farAway = 1.0e5;
+		bool leftExternal = mod(floor(v_externalEdges), 2.0) > 0.5;
+		bool rightExternal = mod(floor(v_externalEdges / 2.0), 2.0) > 0.5;
+		bool topExternal = mod(floor(v_externalEdges / 4.0), 2.0) > 0.5;
+		bool bottomExternal = mod(floor(v_externalEdges / 8.0), 2.0) > 0.5;
+		// The rounding has to fit inside the block: half its extent on an axis with both edges exposed, the full
+		// extent with one exposed edge, unlimited when neither edge is exposed.
+		float radiusLimitX = (leftExternal && rightExternal) ? quadUnits.x * 0.5
+			: ((leftExternal || rightExternal) ? quadUnits.x : farAway);
+		float radiusLimitY = (topExternal && bottomExternal) ? quadUnits.y * 0.5
+			: ((topExternal || bottomExternal) ? quadUnits.y : farAway);
+		float blockCornerRadius = min(scaledCornerRadius, min(radiusLimitX, radiusLimitY));
+		float distanceX = min(leftExternal ? quadPos.x : farAway, rightExternal ? quadUnits.x - quadPos.x : farAway);
+		float distanceY = min(topExternal ? quadPos.y : farAway, bottomExternal ? quadUnits.y - quadPos.y : farAway);
+		vec2 cornerDistance = vec2(blockCornerRadius) - vec2(distanceX, distanceY);
+		distanceToEdge = length(max(cornerDistance, 0.0)) + min(max(cornerDistance.x, cornerDistance.y), 0.0) - blockCornerRadius;
+		// Concave corners (two shared edges meeting a diagonal block of another style): carve the cell inset around
+		// the corner point so that block's margin and outline continue around the corner.
+		float reflexCorners = floor(v_externalEdges / 16.0);
+		if (reflexCorners > 0.5) {
+			vec2 cellPos = quadPos / v_cellToUnit;
+			vec2 blockCells = quadUnits / v_cellToUnit;
+			float insetCells = cellInset / max(cellSize - 2.0 * cellInset, 0.001);
+			float reflexDistance = -farAway;
+			if (mod(reflexCorners, 2.0) > 0.5) {
+				reflexDistance = max(reflexDistance, insetCells - length(cellPos));
+			}
+			if (mod(floor(reflexCorners / 2.0), 2.0) > 0.5) {
+				reflexDistance = max(reflexDistance, insetCells - length(cellPos - vec2(blockCells.x, 0.0)));
+			}
+			if (mod(floor(reflexCorners / 4.0), 2.0) > 0.5) {
+				reflexDistance = max(reflexDistance, insetCells - length(cellPos - vec2(0.0, blockCells.y)));
+			}
+			if (mod(floor(reflexCorners / 8.0), 2.0) > 0.5) {
+				reflexDistance = max(reflexDistance, insetCells - length(cellPos - blockCells));
+			}
+			distanceToEdge = max(distanceToEdge, reflexDistance * v_cellToUnit.x);
+		}
+	} else {
+		vec2 cornerDistance = abs(v_cellUV - vec2(0.5)) - vec2(0.5 - scaledCornerRadius);
+		distanceToEdge = length(max(cornerDistance, 0.0)) - scaledCornerRadius;
+	}
 	float antialiasWidth = fwidth(distanceToEdge);
 	float coverage = 1.0 - smoothstep(0.0, antialiasWidth, distanceToEdge);
 	float outline = smoothstep(-outlineWidth - antialiasWidth, -outlineWidth + antialiasWidth, distanceToEdge);
@@ -835,16 +1098,18 @@ void main() {
 		float rightEdge = mod(floor(v_footprintEdges / 2.0), 2.0);
 		float topEdge = mod(floor(v_footprintEdges / 4.0), 2.0);
 		float bottomEdge = mod(floor(v_footprintEdges / 8.0), 2.0);
-		float leftOutline = leftEdge * (1.0 - smoothstep(0.0, footprintBoundaryWidth, v_cellUV.x));
-		float rightOutline = rightEdge * smoothstep(1.0 - footprintBoundaryWidth, 1.0, v_cellUV.x);
-		float topOutline = topEdge * (1.0 - smoothstep(0.0, footprintBoundaryWidth, v_cellUV.y));
-		float bottomOutline = bottomEdge * smoothstep(1.0 - footprintBoundaryWidth, 1.0, v_cellUV.y);
+		// The boundary band keeps its per-cell width on merged blocks.
+		vec2 boundaryWidth = footprintBoundaryWidth * v_cellToUnit;
+		float leftOutline = leftEdge * (1.0 - smoothstep(0.0, boundaryWidth.x, quadPos.x));
+		float rightOutline = rightEdge * smoothstep(quadUnits.x - boundaryWidth.x, quadUnits.x, quadPos.x);
+		float topOutline = topEdge * (1.0 - smoothstep(0.0, boundaryWidth.y, quadPos.y));
+		float bottomOutline = bottomEdge * smoothstep(quadUnits.y - boundaryWidth.y, quadUnits.y, quadPos.y);
 		float footprintOutline = max(max(leftOutline, rightOutline), max(topOutline, bottomOutline));
 		color = mix(color, invalidFootprintBoundaryColor.rgb, footprintOutline);
 		alpha = mix(alpha, invalidFootprintBoundaryColor.a, footprintOutline);
 	}
 
-	fragColor = vec4(color, alpha * coverage);
+	fragColor = vec4(color, alpha * coverage * alphaMultiplier);
 }
 ]]
 
@@ -889,10 +1154,13 @@ local function initGL4Resources()
 			cornerRadius = CORNER_RADIUS,
 			simplifiedOutlineScale = SIMPLIFIED_OUTLINE_SCALE,
 			simplifiedCornerRadiusScale = SIMPLIFIED_CORNER_RADIUS_SCALE,
+			simplifiedReferenceCells = SIMPLIFIED_SIZE_REFERENCE_CELLS,
+			simplifiedSizeFalloff = SIMPLIFIED_SIZE_FALLOFF,
 			footprintBoundaryEnabled = FOOTPRINT_BOUNDARY_ENABLED and 1.0 or 0.0,
 			footprintBoundaryWidth = FOOTPRINT_BOUNDARY_WIDTH,
 			showInvalidFootprintBoundary = SHOW_INVALID_FOOTPRINT_BOUNDARY and 1.0 or 0.0,
 			invalidFootprintBoundaryColor = INVALID_FOOTPRINT_BOUNDARY_COLOR,
+			alphaMultiplier = 1.0,
 		},
 	})
 
@@ -906,6 +1174,7 @@ local function initGL4Resources()
 	rotationMiniMapLoc = glGetUniformLocation(shaderID, "rotationMiniMap")
 	heightOffsetLoc = glGetUniformLocation(shaderID, "heightOffset")
 	waterLevelLoc = glGetUniformLocation(shaderID, "waterLevel")
+	alphaMultiplierLoc = glGetUniformLocation(shaderID, "alphaMultiplier")
 
 	local quadVerts = {
 		0.0,
@@ -929,7 +1198,8 @@ local function initGL4Resources()
 		{ id = 1, name = "a_cellData", size = 4 },
 		{ id = 2, name = "a_color", size = 4 },
 		{ id = 3, name = "a_outlineColor", size = 4 },
-		{ id = 4, name = "a_floatOnWater", size = 1 },
+		{ id = 4, name = "a_cellExtra", size = 4 },
+		{ id = 5, name = "a_footprintSize", size = 2 },
 	})
 
 	batchVAO = glGetVAO()
@@ -941,7 +1211,8 @@ local function initGL4Resources()
 		{ id = 1, name = "a_cellData", size = 4 },
 		{ id = 2, name = "a_color", size = 4 },
 		{ id = 3, name = "a_outlineColor", size = 4 },
-		{ id = 4, name = "a_floatOnWater", size = 1 },
+		{ id = 4, name = "a_cellExtra", size = 4 },
+		{ id = 5, name = "a_footprintSize", size = 2 },
 	})
 
 	minimapVAO = glGetVAO()
@@ -1001,9 +1272,19 @@ local function resetPreviewState()
 	batchInstanceCount = 0
 	minimapInstanceCount = 0
 	extendedCellsDrawFrame = -1
+	overlayBatchDrawFrame = -1
 	drawSquareCount = 0
 	drawSquareCellCount = 0
 	buildSquareGameFrame = -1
+	queuedBuilds.unitQueues = {}
+	queuedBuilds.dirtyUnits = {}
+	queuedBuilds.selectedUnits = {}
+	queuedBuilds.selectionDirty = true
+	queuedBuilds.gameFrame = -1
+	queuedBuilds.drawFrame = -1
+	queuedBuilds.lastFullRefresh = -1
+	queuedBuilds.snapDrawFrame = -1
+	rebuildQueuedBuildFootprints()
 end
 
 --------------------------------------------------------------------------------
@@ -1022,6 +1303,16 @@ function widget:Initialize()
 
 	WG["buildsquare-gl4"] = true
 	spSetEngineBuildSquareRendering(false)
+	widgetHandler:RegisterUnitCommand(CMD.BUILD)
+	widgetHandler:RegisterUnitCommand(CMD.INSERT)
+end
+
+function widget:SelectionChanged()
+	queuedBuilds.selectionDirty = true
+end
+
+function widget:UnitCommand(unitID)
+	queuedBuilds.dirtyUnits[unitID] = true
 end
 
 function widget:PlayerChanged(playerID)
@@ -1127,12 +1418,274 @@ local function updateExtendedStatuses(
 	return extendedStatuses, openYardmapStatuses, openYardmapStatusesChanged
 end
 
+-- Style of a cell inside the footprint (extended cells outside the footprint use a distance based alpha instead).
+local function getFootprintCellStyle(status, isOpenYardmapCell, isOpenYardmapTerrainBlocked, footprintIsValid)
+	local color = STATUS_COLORS[status] or STATUS_COLORS[STATUS_BLOCKED]
+	local outlineColor = STATUS_OUTLINE_COLORS[status] or STATUS_OUTLINE_COLORS[STATUS_BLOCKED]
+	local isPlaceableOverObject = footprintIsValid and (status == STATUS_OCCUPIED or status == STATUS_RECLAIMABLE)
+	if isOpenYardmapCell and status ~= STATUS_BLOCKED then
+		color = VALID_FOOTPRINT_COLOR
+		outlineColor = VALID_FOOTPRINT_OUTLINE_COLOR
+	elseif footprintIsValid and status == STATUS_OPEN then
+		color = VALID_FOOTPRINT_COLOR
+		outlineColor = VALID_FOOTPRINT_OUTLINE_COLOR
+	elseif isPlaceableOverObject then
+		outlineColor = VALID_FOOTPRINT_OUTLINE_COLOR
+	end
+	local alpha = isPlaceableOverObject and VALID_FOOTPRINT_COLOR[4] or color[4]
+	local outlineAlpha = outlineColor[4]
+	if OPEN_YARDMAP_ONLY_WHEN_BLOCKED and footprintIsValid and isOpenYardmapCell then
+		alpha = 0
+		outlineAlpha = 0
+	elseif isOpenYardmapCell and not isOpenYardmapTerrainBlocked then
+		alpha = EXTENDED_ALPHA_NEAR
+		outlineAlpha = outlineAlpha * alpha
+	end
+	return color, outlineColor, alpha, outlineAlpha
+end
+
+local function getStyleColorId(color)
+	local id = styleColorIds[color]
+	if not id then
+		styleColorIdCount = styleColorIdCount + 1
+		id = styleColorIdCount
+		styleColorIds[color] = id
+	end
+	return id
+end
+
+-- Merges same-styled cells of a placeable footprint into rectangles. Every rectangle edge is either fully shared
+-- with a same-styled neighbour rectangle (drawn without inset or outline so the blocks join into one shape) or
+-- fully exposed.
+-- Writes 14 numbers per rectangle into rectData: cell x, cell z, width, height (cells), external edge mask plus
+-- 16 * concave corner mask, packed footprint data, fill rgba, outline rgba. Returns the rectangle count.
+local function buildMergedFootprintRects(rectData, statuses, footprint, queuedFootprintConflict)
+	local xsize = footprint.xsize
+	local zsize = footprint.zsize
+	-- Hidden open yardmap cells get no rectangle, which keeps them as holes in the merged shape.
+	local openYardmapCells = footprint.openYardmapCells
+	local cellKeys = mergeCellKeys
+	for cellIndex = 1, xsize * zsize do
+		local status = statuses[cellIndex] or STATUS_BLOCKED
+		local isOpenYardmapCell = (openYardmapCells and openYardmapCells[cellIndex]) or false
+		local color, outlineColor, alpha, outlineAlpha = getFootprintCellStyle(status, isOpenYardmapCell, false, true)
+		if alpha <= 0 and outlineAlpha <= 0 then
+			cellKeys[cellIndex] = false
+		else
+			local key = getStyleColorId(color)
+				+ getStyleColorId(outlineColor) * 64
+				+ math.floor(alpha * 1000 + 0.5) * 4096
+				+ math.floor(outlineAlpha * 1000 + 0.5) * 4194304
+			cellKeys[cellIndex] = key
+			mergeStyleColors[key] = color
+			mergeStyleOutlineColors[key] = outlineColor
+			mergeStyleAlphas[key] = alpha
+			mergeStyleOutlineAlphas[key] = outlineAlpha
+		end
+	end
+
+	local function hasSameKey(xi, zi, key)
+		if xi < 0 or zi < 0 or xi >= xsize or zi >= zsize then
+			return false
+		end
+		return cellKeys[zi * xsize + xi + 1] == key
+	end
+
+	-- Pass 1: horizontal runs whose cells agree on whether the cell above / below is same-styled, so the top and
+	-- bottom edges of a run are uniform. Pass 2 (interleaved): extend the run from the previous row when x, width,
+	-- key and the left / right neighbour status match, keeping every edge of the rectangle uniform.
+	-- Scratch layout per rectangle (10 numbers): x, z, width, height, key, leftShared, rightShared, topShared,
+	-- bottomShared, last row.
+	local scratch = mergeRectData
+	local openRects = mergeOpenRects
+	for openX in pairs(openRects) do
+		openRects[openX] = nil
+	end
+	local rectCount = 0
+	for zi = 0, zsize - 1 do
+		local xi = 0
+		while xi < xsize do
+			local key = cellKeys[zi * xsize + xi + 1]
+			if not key then
+				xi = xi + 1
+			else
+				local topShared = hasSameKey(xi, zi - 1, key)
+				local bottomShared = hasSameKey(xi, zi + 1, key)
+				local width = 1
+				while
+					xi + width < xsize
+					and cellKeys[zi * xsize + xi + width + 1] == key
+					and hasSameKey(xi + width, zi - 1, key) == topShared
+					and hasSameKey(xi + width, zi + 1, key) == bottomShared
+				do
+					width = width + 1
+				end
+				local leftShared = hasSameKey(xi - 1, zi, key)
+				local rightShared = hasSameKey(xi + width, zi, key)
+				local rectIndex = openRects[xi]
+				local rectBase = rectIndex and (rectIndex - 1) * 10
+				if
+					rectBase
+					and scratch[rectBase + 10] == zi - 1
+					and scratch[rectBase + 3] == width
+					and scratch[rectBase + 5] == key
+					and scratch[rectBase + 6] == leftShared
+					and scratch[rectBase + 7] == rightShared
+				then
+					scratch[rectBase + 4] = scratch[rectBase + 4] + 1
+					scratch[rectBase + 9] = bottomShared
+					scratch[rectBase + 10] = zi
+				else
+					rectCount = rectCount + 1
+					rectBase = (rectCount - 1) * 10
+					scratch[rectBase + 1] = xi
+					scratch[rectBase + 2] = zi
+					scratch[rectBase + 3] = width
+					scratch[rectBase + 4] = 1
+					scratch[rectBase + 5] = key
+					scratch[rectBase + 6] = leftShared
+					scratch[rectBase + 7] = rightShared
+					scratch[rectBase + 8] = topShared
+					scratch[rectBase + 9] = bottomShared
+					scratch[rectBase + 10] = zi
+					openRects[xi] = rectCount
+				end
+				xi = xi + width
+			end
+		end
+	end
+
+	local packedFlags = 16 + (queuedFootprintConflict and 32 or 0)
+	local dataIndex = 0
+	for rectIndex = 0, rectCount - 1 do
+		local rectBase = rectIndex * 10
+		local rectX = scratch[rectBase + 1]
+		local rectZ = scratch[rectBase + 2]
+		local rectWidth = scratch[rectBase + 3]
+		local rectHeight = scratch[rectBase + 4]
+		local key = scratch[rectBase + 5]
+		local leftShared = scratch[rectBase + 6]
+		local rightShared = scratch[rectBase + 7]
+		local topShared = scratch[rectBase + 8]
+		local bottomShared = scratch[rectBase + 9]
+		local externalEdges = (leftShared and 0 or 1)
+			+ (rightShared and 0 or 2)
+			+ (topShared and 0 or 4)
+			+ (bottomShared and 0 or 8)
+		-- Concave corners: two shared edges meeting a diagonal cell of another style. The shader wraps the margin
+		-- and outline of the neighbouring block around such a corner point so hole outlines stay continuous.
+		local reflexCorners = (topShared and leftShared and not hasSameKey(rectX - 1, rectZ - 1, key) and 1 or 0)
+			+ (topShared and rightShared and not hasSameKey(rectX + rectWidth, rectZ - 1, key) and 2 or 0)
+			+ (bottomShared and leftShared and not hasSameKey(rectX - 1, rectZ + rectHeight, key) and 4 or 0)
+			+ (bottomShared and rightShared and not hasSameKey(rectX + rectWidth, rectZ + rectHeight, key) and 8 or 0)
+		local footprintEdges = (rectX == 0 and 1 or 0)
+			+ (rectX + rectWidth == xsize and 2 or 0)
+			+ (rectZ == 0 and 4 or 0)
+			+ (rectZ + rectHeight == zsize and 8 or 0)
+		local color = mergeStyleColors[key]
+		local outlineColor = mergeStyleOutlineColors[key]
+		rectData[dataIndex + 1] = rectX
+		rectData[dataIndex + 2] = rectZ
+		rectData[dataIndex + 3] = rectWidth
+		rectData[dataIndex + 4] = rectHeight
+		rectData[dataIndex + 5] = externalEdges + reflexCorners * 16
+		rectData[dataIndex + 6] = footprintEdges + packedFlags
+		rectData[dataIndex + 7] = color[1]
+		rectData[dataIndex + 8] = color[2]
+		rectData[dataIndex + 9] = color[3]
+		rectData[dataIndex + 10] = mergeStyleAlphas[key]
+		rectData[dataIndex + 11] = outlineColor[1]
+		rectData[dataIndex + 12] = outlineColor[2]
+		rectData[dataIndex + 13] = outlineColor[3]
+		rectData[dataIndex + 14] = mergeStyleOutlineAlphas[key]
+		dataIndex = dataIndex + 14
+	end
+	return rectCount
+end
+
+-- Per-cell statuses for a placement the engine did not evaluate for us (pregame, extractor snap target).
+local function fillPredictedStatuses(statusList, unitDef, x, buildHeight, z, footprint, placementValid)
+	local statusIndex = 0
+	for zi = 0, footprint.zsize - 1 do
+		for xi = 0, footprint.xsize - 1 do
+			statusIndex = statusIndex + 1
+			local status = STATUS_BLOCKED
+			if placementValid then
+				status = getPredictedCellStatus(
+					unitDef,
+					x + (xi - footprint.halfXsize) * SQUARE_SIZE,
+					z + (zi - footprint.halfZsize) * SQUARE_SIZE,
+					buildHeight
+				)
+				-- The engine accepted the order, so a cell the prediction calls blocked is really placeable
+				-- (e.g. an extractor upgrade over stackable / build-only yardmap squares).
+				if status == STATUS_BLOCKED then
+					status = STATUS_OPEN
+				end
+			end
+			statusList[statusIndex] = status
+		end
+	end
+	for index = statusIndex + 1, #statusList do
+		statusList[index] = nil
+	end
+end
+
+-- When the extractor snap widget targets a resource spot for the active build command, the preview belongs at
+-- that spot rather than at the cursor. Returns the snapped x, z and predicted statuses, or nil.
+local function getExtractorSnapPlacement(unitDefID, facing, footprint)
+	if not FOLLOW_EXTRACTOR_SNAP then
+		return nil
+	end
+	local extractorSnap = WG.ExtractorSnap
+	local snapPosition = extractorSnap and extractorSnap.position
+	if not snapPosition then
+		return nil
+	end
+	-- Resolved once per draw frame: every preview of a drag line asks with the same arguments.
+	if
+		queuedBuilds.snapDrawFrame == extendedCellsDrawFrame
+		and queuedBuilds.snapUnitDefID == unitDefID
+		and queuedBuilds.snapFacing == facing
+	then
+		return queuedBuilds.snapX, queuedBuilds.snapZ, snapStatuses
+	end
+	queuedBuilds.snapDrawFrame = extendedCellsDrawFrame
+	queuedBuilds.snapUnitDefID = unitDefID
+	queuedBuilds.snapFacing = facing
+	queuedBuilds.snapX = nil
+	queuedBuilds.snapZ = nil
+	if spGetGameFrame() > 0 then
+		local _, activeCmdID = spGetActiveCommand()
+		if not activeCmdID or -activeCmdID ~= unitDefID then
+			return nil
+		end
+	end
+	local x, buildHeight, z = spPos2BuildPos(unitDefID, snapPosition.x, snapPosition.y, snapPosition.z, facing)
+	if not x or not buildHeight or not z then
+		return nil
+	end
+	local unitDef = UnitDefs[unitDefID]
+	if not unitDef then
+		return nil
+	end
+	local placementValid = spTestBuildOrder(unitDefID, x, buildHeight, z, facing) ~= 0
+	fillPredictedStatuses(snapStatuses, unitDef, x, buildHeight, z, footprint, placementValid)
+	queuedBuilds.snapX = x
+	queuedBuilds.snapZ = z
+	return x, z, snapStatuses
+end
+
 function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	--Spring.Echo("DrawBuildSquare called with unitDefID:", unitDefID, "x:", x, "z:", z, "facing:", facing, "statuses length:", #statuses)
 	local extendedCells, gameFrame, footprintStatusCheckPeriod, sequenceIndex, simplified = getEffectiveExtendedCells()
 	local footprint = getFootprintData(unitDefID, facing)
 	if not footprint then
 		return
+	end
+	local snapX, snapZ, snapCellStatuses = getExtractorSnapPlacement(unitDefID, facing, footprint)
+	if snapX then
+		x, z, statuses = snapX, snapZ, snapCellStatuses
 	end
 	local footprintCellCount = footprint.cellCount
 	local footprintIsValid = true
@@ -1146,7 +1699,25 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	local centerGridZ = math.floor(z / SQUARE_SIZE)
 	local placementX = centerGridX * SQUARE_SIZE
 	local placementZ = centerGridZ * SQUARE_SIZE
-	local queuedFootprintConflict = hasQueuedBuildFootprintOverlap(unitDefID, placementX, placementZ, facing, gameFrame)
+	updateQueuedBuildFootprints(gameFrame)
+	local renderCache = orderedPreviewCaches[sequenceIndex]
+	local renderCacheMatches = renderCache ~= nil
+		and renderCache.unitDefID == unitDefID
+		and renderCache.facing == facing
+		and renderCache.inputX == x
+		and renderCache.inputZ == z
+	-- The queued-footprint test is only repeated when the queues changed.
+	local queuedBuildRevision = queuedBuilds.revision
+	local queuedFootprintConflict
+	if renderCacheMatches and renderCache.conflictRevision == queuedBuildRevision then
+		queuedFootprintConflict = renderCache.conflictValue
+	else
+		queuedFootprintConflict = hasQueuedBuildFootprintOverlap(footprint, placementX, placementZ)
+		if renderCacheMatches then
+			renderCache.conflictRevision = queuedBuildRevision
+			renderCache.conflictValue = queuedFootprintConflict
+		end
+	end
 	if ONLY_WHEN_BLOCKED and footprintIsValid and not queuedFootprintConflict then
 		extendedCells = 0
 	end
@@ -1159,20 +1730,15 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 		return
 	end
 	-- Avoid a one-frame VBO overflow before the next frame enables global simplification.
-	simplified = simplified
-		or drawSquareCellCount + sourceCellCount > SIMPLIFIED_CELL_THRESHOLD
-		or needsDistanceSimplification(footprint, placementX, placementZ)
-	local renderCache = orderedPreviewCaches[sequenceIndex]
+	simplified = simplified or drawSquareCellCount + sourceCellCount > SIMPLIFIED_CELL_THRESHOLD
+	local merged = COMBINE_VALID_FOOTPRINT_CELLS and not simplified and footprintIsValid and extendedCells == 0
 	if
 		extendedCells == 0
-		and renderCache
-		and renderCache.unitDefID == unitDefID
-		and renderCache.facing == facing
-		and renderCache.inputX == x
-		and renderCache.inputZ == z
+		and renderCacheMatches
 		and renderCache.colorValid
 		and renderCache.extendedStatusCount == 0
 		and renderCache.simplifiedMode == simplified
+		and renderCache.mergedMode == merged
 		and renderCache.queuedFootprintConflict == queuedFootprintConflict
 	then
 		local previewWasDrawnLastFrame = renderCache.lastDrawFrame == extendedCellsDrawFrame - 1
@@ -1191,17 +1757,24 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 		end
 	end
 
-	local cellScale = COMBINE_FOUR_CELLS and xsize % 2 == 0 and zsize % 2 == 0 and extendedCells % 2 == 0 and 2 or 1
+	local cellScale = not merged
+			and COMBINE_FOUR_CELLS
+			and xsize % 2 == 0
+			and zsize % 2 == 0
+			and extendedCells % 2 == 0
+			and 2
+		or 1
 	local renderXSize = totalXSize / cellScale
 	local renderZSize = totalZSize / cellScale
 	local renderCellCount = renderXSize * renderZSize
-	local renderInstanceCount = simplified and 1 or renderCellCount
 	drawSquareCellCount = drawSquareCellCount + sourceCellCount
 	local sx = centerGridX - footprint.halfXsize
 	local sz = centerGridZ - footprint.halfZsize
 	renderCache = getPreviewRenderCache(unitDefID, placementX, placementZ, facing, sequenceIndex)
 	renderCache.inputX = x
 	renderCache.inputZ = z
+	renderCache.conflictRevision = queuedBuildRevision
+	renderCache.conflictValue = queuedFootprintConflict
 	local previewWasDrawnLastFrame = renderCache.lastDrawFrame == extendedCellsDrawFrame - 1
 	renderCache.lastDrawFrame = extendedCellsDrawFrame
 	local statusCheckDue = not previewWasDrawnLastFrame
@@ -1216,18 +1789,20 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 		and renderCache.colorValid
 		and renderCache.extendedStatusCount == 0
 		and renderCache.simplifiedMode == simplified
+		and renderCache.mergedMode == merged
 		and not statusCheckDue
 	then
 		collectPreview(
 			renderCache,
 			sx * SQUARE_SIZE,
 			sz * SQUARE_SIZE,
-			renderInstanceCount,
+			simplified and 1 or (merged and renderCache.mergedRectCount) or renderCellCount,
 			xsize,
 			zsize,
 			extendedCells,
 			cellScale,
-			simplified
+			simplified,
+			merged
 		)
 		return
 	end
@@ -1252,6 +1827,7 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	local extendedStatusCount = sourceCellCount - footprintCellCount
 	local needsColorUpload = not renderCache.colorValid
 		or renderCache.simplifiedMode ~= simplified
+		or renderCache.mergedMode ~= merged
 		or openYardmapStatusesChanged
 		or renderCache.queuedFootprintConflict ~= queuedFootprintConflict
 
@@ -1282,6 +1858,7 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 		local colorData = renderCache.colorData
 		renderCache.colorValid = true
 		renderCache.simplifiedMode = simplified
+		renderCache.mergedMode = merged
 		renderCache.sourceCellCount = sourceCellCount
 		renderCache.statusCheckGameFrame = gameFrame
 		renderCache.extendedStatusCount = extendedStatusCount
@@ -1318,6 +1895,30 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 				zsize,
 				extendedCells,
 				cellScale,
+				true,
+				false
+			)
+			return
+		end
+		if merged then
+			local rectCount = buildMergedFootprintRects(colorData, statuses, footprint, queuedFootprintConflict)
+			for index = rectCount * 14 + 1, renderCache.colorDataLength or 0 do
+				colorData[index] = nil
+			end
+			renderCache.colorDataLength = rectCount * 14
+			renderCache.mergedRectCount = rectCount
+			renderCache.colorRevision = (renderCache.colorRevision or 0) + 1
+			tracy.ZoneEnd()
+			collectPreview(
+				renderCache,
+				sx * SQUARE_SIZE,
+				sz * SQUARE_SIZE,
+				rectCount,
+				xsize,
+				zsize,
+				extendedCells,
+				cellScale,
+				false,
 				true
 			)
 			return
@@ -1394,41 +1995,17 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 				local xi = renderXi - renderExtendedCells
 				local zi = renderZi - renderExtendedCells
 				local isFootprintCell = xi >= 0 and xi < renderFootprintXSize and zi >= 0 and zi < renderFootprintZSize
-				local color = STATUS_COLORS[status] or STATUS_COLORS[STATUS_BLOCKED]
-				local outlineColor = STATUS_OUTLINE_COLORS[status] or STATUS_OUTLINE_COLORS[STATUS_BLOCKED]
-				if isOpenYardmapCell and status ~= STATUS_BLOCKED then
-					color = VALID_FOOTPRINT_COLOR
-					outlineColor = VALID_FOOTPRINT_OUTLINE_COLOR
-				elseif isFootprintCell and footprintIsValid and status == STATUS_OPEN then
-					color = VALID_FOOTPRINT_COLOR
-					outlineColor = VALID_FOOTPRINT_OUTLINE_COLOR
-				elseif
-					isFootprintCell
-					and footprintIsValid
-					and (status == STATUS_OCCUPIED or status == STATUS_RECLAIMABLE)
-				then
-					outlineColor = VALID_FOOTPRINT_OUTLINE_COLOR
-				elseif not isFootprintCell and status ~= STATUS_BLOCKED then
-					color = VALID_FOOTPRINT_COLOR
-					outlineColor = VALID_FOOTPRINT_OUTLINE_COLOR
-				end
-
-				local alpha = color[4]
-				local outlineAlpha = outlineColor[4]
-				if
-					isFootprintCell
-					and footprintIsValid
-					and (status == STATUS_OCCUPIED or status == STATUS_RECLAIMABLE)
-				then
-					alpha = VALID_FOOTPRINT_COLOR[4]
-				end
-				if OPEN_YARDMAP_ONLY_WHEN_BLOCKED and footprintIsValid and isOpenYardmapCell then
-					alpha = 0
-					outlineAlpha = 0
-				elseif isOpenYardmapCell and not isOpenYardmapTerrainBlocked then
-					alpha = EXTENDED_ALPHA_NEAR
-					outlineAlpha = outlineAlpha * alpha
-				elseif not isFootprintCell then
+				local color, outlineColor, alpha, outlineAlpha
+				if isFootprintCell then
+					color, outlineColor, alpha, outlineAlpha =
+						getFootprintCellStyle(status, isOpenYardmapCell, isOpenYardmapTerrainBlocked, footprintIsValid)
+				else
+					color = STATUS_COLORS[status] or STATUS_COLORS[STATUS_BLOCKED]
+					outlineColor = STATUS_OUTLINE_COLORS[status] or STATUS_OUTLINE_COLORS[STATUS_BLOCKED]
+					if status ~= STATUS_BLOCKED then
+						color = VALID_FOOTPRINT_COLOR
+						outlineColor = VALID_FOOTPRINT_OUTLINE_COLOR
+					end
 					local dx = xi < 0 and -xi or (xi - renderFootprintXSize + 1)
 					local dz = zi < 0 and -zi or (zi - renderFootprintZSize + 1)
 					local distance = math.max(dx, dz)
@@ -1438,7 +2015,7 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 					local alphaFar = alphaMidpoint + (EXTENDED_ALPHA_FAR - alphaMidpoint) * alphaRangeScale
 					local t = (distance - 1) / math.max(1, renderExtendedCells - 1)
 					alpha = alphaNear + (alphaFar - alphaNear) * t
-					outlineAlpha = outlineAlpha * alpha
+					outlineAlpha = outlineColor[4] * alpha
 				end
 
 				colorDataIndex = colorDataIndex + 1
@@ -1472,12 +2049,13 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 		renderCache,
 		sx * SQUARE_SIZE,
 		sz * SQUARE_SIZE,
-		renderInstanceCount,
+		simplified and 1 or (merged and renderCache.mergedRectCount) or renderCellCount,
 		xsize,
 		zsize,
 		extendedCells,
 		cellScale,
-		simplified
+		simplified,
+		merged
 	)
 end
 
@@ -1521,26 +2099,7 @@ local function collectPregameBuildSquare()
 	end
 
 	local placementValid = spTestBuildOrder(unitDefID, x, buildHeight, z, facing) ~= 0
-	local statusIndex = 0
-	for zi = 0, footprint.zsize - 1 do
-		for xi = 0, footprint.xsize - 1 do
-			statusIndex = statusIndex + 1
-			if placementValid then
-				pregameStatuses[statusIndex] = getPredictedCellStatus(
-					unitDef,
-					x + (xi - footprint.halfXsize) * SQUARE_SIZE,
-					z + (zi - footprint.halfZsize) * SQUARE_SIZE,
-					buildHeight
-				)
-			else
-				pregameStatuses[statusIndex] = STATUS_BLOCKED
-			end
-		end
-	end
-	for index = statusIndex + 1, pregameStatusCount do
-		pregameStatuses[index] = nil
-	end
-	pregameStatusCount = statusIndex
+	fillPredictedStatuses(pregameStatuses, unitDef, x, buildHeight, z, footprint, placementValid)
 
 	widget:DrawBuildSquare(unitDefID, x, z, facing, pregameStatuses)
 end
@@ -1585,11 +2144,26 @@ local function rebuildBatchBuffer()
 			minimapInstanceData[minimapDataIndex] = minimapOutlineColor[4]
 			minimapDataIndex = minimapDataIndex + 1
 			minimapInstanceData[minimapDataIndex] = renderCache.floatOnWater
+			minimapDataIndex = minimapDataIndex + 1
+			minimapInstanceData[minimapDataIndex] = 1 -- simplified quad
+			minimapDataIndex = minimapDataIndex + 1
+			minimapInstanceData[minimapDataIndex] = 0
+			minimapDataIndex = minimapDataIndex + 1
+			minimapInstanceData[minimapDataIndex] = 0
+			minimapDataIndex = minimapDataIndex + 1
+			minimapInstanceData[minimapDataIndex] = renderCache.batchXsize
+			minimapDataIndex = minimapDataIndex + 1
+			minimapInstanceData[minimapDataIndex] = renderCache.batchZsize
 			minimapCount = minimapCount + 1
 		end
 
 		if not capacityReached and instanceCount + renderCache.batchNumCells <= MAX_BATCH_CELLS then
 			local colorData = renderCache.colorData
+			local originX = renderCache.batchOriginX
+			local originZ = renderCache.batchOriginZ
+			local floatOnWater = renderCache.floatOnWater
+			local footprintXsize = renderCache.batchXsize
+			local footprintZsize = renderCache.batchZsize
 			if renderCache.batchSimplified then
 				dataIndex = dataIndex + 1
 				batchInstanceData[dataIndex] = renderCache.batchOriginX
@@ -1616,30 +2190,67 @@ local function rebuildBatchBuffer()
 				dataIndex = dataIndex + 1
 				batchInstanceData[dataIndex] = colorData[8]
 				dataIndex = dataIndex + 1
-				batchInstanceData[dataIndex] = renderCache.floatOnWater
+				batchInstanceData[dataIndex] = floatOnWater
+				dataIndex = dataIndex + 1
+				batchInstanceData[dataIndex] = 1 -- simplified quad
+				dataIndex = dataIndex + 1
+				batchInstanceData[dataIndex] = 0
+				dataIndex = dataIndex + 1
+				batchInstanceData[dataIndex] = 0
+				dataIndex = dataIndex + 1
+				batchInstanceData[dataIndex] = footprintXsize
+				dataIndex = dataIndex + 1
+				batchInstanceData[dataIndex] = footprintZsize
+			elseif renderCache.batchMerged then
+				for rectIndex = 0, renderCache.batchNumCells - 1 do
+					local rectDataIndex = rectIndex * 14
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = originX + colorData[rectDataIndex + 1] * SQUARE_SIZE
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = originZ + colorData[rectDataIndex + 2] * SQUARE_SIZE
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = colorData[rectDataIndex + 3] * SQUARE_SIZE
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = colorData[rectDataIndex + 4] * SQUARE_SIZE
+					for colorIndex = 7, 14 do
+						dataIndex = dataIndex + 1
+						batchInstanceData[dataIndex] = colorData[rectDataIndex + colorIndex]
+					end
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = floatOnWater
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = 2 -- merged block
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = colorData[rectDataIndex + 5]
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = colorData[rectDataIndex + 6]
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = footprintXsize
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = footprintZsize
+				end
 			else
 				local cellScale = renderCache.batchCellScale or 1
+				local quadSize = SQUARE_SIZE * cellScale
 				local geometryData = getCellGeometry(
 					renderCache.batchXsize / cellScale,
 					renderCache.batchZsize / cellScale,
 					renderCache.batchExtendedCells / cellScale,
 					cellScale
 				)
-				local footprintValidityFlag = renderCache.footprintIsValid and 16 or 0
-				local queuedFootprintConflictFlag = renderCache.queuedFootprintConflict and 32 or 0
+				local packedFlags = (renderCache.footprintIsValid and 16 or 0)
+					+ (renderCache.queuedFootprintConflict and 32 or 0)
 				for cellIndex = 0, renderCache.batchNumCells - 1 do
-					local geometryIndex = cellIndex * 4
+					local geometryIndex = cellIndex * 3
 					local colorIndex = cellIndex * 8
 					dataIndex = dataIndex + 1
-					batchInstanceData[dataIndex] = geometryData[geometryIndex + 1] + renderCache.batchOriginX
+					batchInstanceData[dataIndex] = geometryData[geometryIndex + 1] + originX
 					dataIndex = dataIndex + 1
-					batchInstanceData[dataIndex] = geometryData[geometryIndex + 2] + renderCache.batchOriginZ
+					batchInstanceData[dataIndex] = geometryData[geometryIndex + 2] + originZ
 					dataIndex = dataIndex + 1
-					batchInstanceData[dataIndex] = geometryData[geometryIndex + 3]
+					batchInstanceData[dataIndex] = quadSize
 					dataIndex = dataIndex + 1
-					batchInstanceData[dataIndex] = geometryData[geometryIndex + 4]
-						+ footprintValidityFlag
-						+ queuedFootprintConflictFlag
+					batchInstanceData[dataIndex] = quadSize
 					dataIndex = dataIndex + 1
 					batchInstanceData[dataIndex] = colorData[colorIndex + 1]
 					dataIndex = dataIndex + 1
@@ -1657,7 +2268,17 @@ local function rebuildBatchBuffer()
 					dataIndex = dataIndex + 1
 					batchInstanceData[dataIndex] = colorData[colorIndex + 8]
 					dataIndex = dataIndex + 1
-					batchInstanceData[dataIndex] = renderCache.floatOnWater
+					batchInstanceData[dataIndex] = floatOnWater
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = 0 -- regular cell
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = 0
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = geometryData[geometryIndex + 3] + packedFlags
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = footprintXsize
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = footprintZsize
 				end
 			end
 			instanceCount = instanceCount + renderCache.batchNumCells
@@ -1720,7 +2341,38 @@ function widget:DrawWorldPreUnit()
 	glUseShader(shaderProgram)
 	glUniform(heightOffsetLoc, getCurrentHeightOffset())
 	glUniform(waterLevelLoc, spGetWaterPlaneLevel and spGetWaterPlaneLevel() or 0)
+	glUniform(alphaMultiplierLoc, PREUNIT_PASS_ALPHA)
 	glUniformInt(isMiniMapLoc, 0)
+	if PREUNIT_PASS_ALPHA > 0 then
+		batchVAO:DrawArrays(GL_TRIANGLE_STRIP, 4, 0, batchInstanceCount)
+	end
+	glUseShader(0)
+	glTexture(0, false)
+	glDepthTest(GL_LESS)
+	overlayBatchDrawFrame = drawFrame
+	tracy.ZoneEnd()
+end
+
+-- Overlay pass: redraws the batch that DrawWorldPreUnit just drew, on top of units, at reduced opacity so covered
+-- squares stay visible. Reuses the uploaded instance buffer and the uniforms set by the pre-unit pass this frame;
+-- only the alpha multiplier differs, so the extra cost is a single draw call.
+function widget:DrawWorld()
+	if
+		not OVERLAY_PASS_ENABLED
+		or OVERLAY_PASS_ALPHA <= 0
+		or batchInstanceCount == 0
+		or overlayBatchDrawFrame ~= spGetDrawFrame()
+	then
+		return
+	end
+
+	tracy.ZoneBeginN("W:BuildSquare:DrawOverlayBatch")
+	glTexture(0, "$heightmap")
+	glDepthTest(false)
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	glCulling(false)
+	glUseShader(shaderProgram)
+	glUniform(alphaMultiplierLoc, OVERLAY_PASS_ALPHA)
 	batchVAO:DrawArrays(GL_TRIANGLE_STRIP, 4, 0, batchInstanceCount)
 	glUseShader(0)
 	glTexture(0, false)
@@ -1747,6 +2399,7 @@ function widget:DrawInMiniMap()
 	glUseShader(shaderProgram)
 	local rotation = spGetMiniMapRotation and spGetMiniMapRotation() or 0
 	local rotationQuarterTurns = math.floor((rotation / math.pi * 2 + 0.5) % 4)
+	glUniform(alphaMultiplierLoc, 1.0)
 	glUniformInt(isMiniMapLoc, 1)
 	glUniformInt(rotationMiniMapLoc, rotationQuarterTurns)
 	minimapVAO:DrawArrays(GL_TRIANGLE_STRIP, 4, 0, minimapInstanceCount)

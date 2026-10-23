@@ -259,8 +259,6 @@ if not gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if a.sunDir and b.sunDir then
-			local asun = a.sunDir
-			local bsun = b.sunDir
 
 			local aworldrot, aheight = SunDirToAzimuthHeight(a.sunDir)
 			local bworldrot, bheight = SunDirToAzimuthHeight(b.sunDir)
@@ -290,10 +288,6 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	local initial_atmosphere_lighting = GetLightingAndAtmosphere()
-
-	local initlight
-	local endlight
-	local mixedlight
 
 	local function GetNightLight(fromlight, nightfactor, azimuth, altitude)
 		if fromlight == nil then
@@ -427,7 +421,6 @@ if not gadgetHandler:IsSyncedCode() then
 						nc.mixedlight = tablecopy(nc.endLight)
 					end
 
-					local transitionfactor = 0
 					if phase <= nc.dayDuration + nc.transitionDuration then -- moving to night
 						mixfac = math.smoothstep(nc.dayDuration, nc.dayDuration + nc.transitionDuration, phase)
 					else

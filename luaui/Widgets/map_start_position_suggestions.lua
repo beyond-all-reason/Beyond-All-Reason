@@ -30,7 +30,7 @@ local spGetTeamColor = Spring.GetTeamColor
 
 --todo: gl4 (also make circles more transparent as you zoom in)
 
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local base64 = require("common/luaUtilities/base64")
 
 -- config
 -- ======
@@ -120,8 +120,6 @@ local glUseShader = gl.UseShader
 ---@field positions ModOptionPositions
 ---@field team ModOptionTeams[]
 
----@alias AllyTeamID number
-
 ---@class WidgetMapPosition
 ---@field x number
 ---@field z number
@@ -192,6 +190,18 @@ local function selectModoptionConfigForPlayers(modoptionData, allyTeamCount, pla
 	return nil
 end
 
+--@param modoptionData ModOptionData
+--@param allyTeamCount number
+--@param playersPerTeam number
+--@return WidgetStartPositions?
+local function loadStartPositionsFromData(modoptionData, allyTeamCount, playersPerTeam)
+	local selectedConfig = selectModoptionConfigForPlayers(modoptionData, allyTeamCount, playersPerTeam)
+	if selectedConfig == nil then
+		return nil
+	end
+	return processModoptionTeamConfig(modoptionData.positions, selectedConfig)
+end
+
 local function loadStartPositions()
 	local modoptionDataRaw = Spring.GetModOptions().mapmetadata_startpos
 
@@ -205,16 +215,7 @@ local function loadStartPositions()
 	local parsed = Json.decode(decompressed)
 
 	local allyTeamCount, playersPerTeam = getTeamSizes()
-	local selectedConfig = selectModoptionConfigForPlayers(parsed, allyTeamCount, playersPerTeam)
-
-	if selectedConfig == nil then
-		Spring.Log(widget:GetInfo().name, LOG.WARNING, "Could not find matching start positions")
-		return
-	end
-
-	local positions = processModoptionTeamConfig(parsed.positions, selectedConfig)
-
-	return positions
+	return loadStartPositionsFromData(parsed, allyTeamCount, playersPerTeam)
 end
 
 -- widget code
@@ -258,9 +259,7 @@ local function invalidateCircleDisplayList()
 	end
 end
 
-local reusePositionTable = { 0, 0, 0 }
 local reuseColorTable = { 0, 0, 0, 0 }
-local reuseColorTable2 = { 0, 0, 0, 0 }
 local reuseColorsArray = {}
 local reuseGlowColorsArray = {}
 
@@ -852,3 +851,11 @@ function widget:DrawScreen()
 	drawTooltip()
 	drawTutorial()
 end
+
+-- exposed to support map-editor encode -> suggestion decode round-trip testing
+return {
+	loadFromData = loadStartPositionsFromData,
+	getStartPositions = function()
+		return startPositions
+	end,
+}

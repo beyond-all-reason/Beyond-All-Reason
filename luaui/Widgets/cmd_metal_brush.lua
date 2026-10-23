@@ -23,6 +23,13 @@ local CHEAT_TAG = "$c$"
 local function SendLuaRulesMsg(header, payload)
 	local tag = Spring.IsCheatingEnabled() and CHEAT_TAG or ""
 	Spring.SendLuaRulesMsg(header .. tag .. payload)
+	-- Every message here changes the metal map (a project load's own load
+	-- message is ignored by markDirty while the load runs).
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("metal")
+	end
 end
 
 local GetMouseState = Spring.GetMouseState
@@ -54,7 +61,6 @@ local cos = math.cos
 local sin = math.sin
 local abs = math.abs
 local pi = math.pi
-local sqrt = math.sqrt
 local format = string.format
 
 local METAL_SQ = Game.metalMapSquareSize or 16
@@ -79,6 +85,7 @@ local metalValue = DEFAULT_METAL_VALUE
 local painting = false
 local paintButton = 0 -- 1 = LMB (raise), 3 = RMB (lower/erase)
 local lastPaintTime = 0
+local edgeFade = 1 -- 1 on-map; <1 while the cursor is past the map edge (fades cursor visuals)
 
 local function getSharedState()
 	if WG.TerraformBrush then
@@ -108,9 +115,20 @@ local function snapToMetalGrid(wx, wz)
 end
 
 local function getWorldPos()
+	local tb = WG.TerraformBrush
+	if tb and tb.getWorldPositionExtended then
+		local wx, wz, fade = tb.getWorldPositionExtended(getSharedState().radius)
+		if wx then
+			edgeFade = fade or 1
+			return wx, wz
+		end
+		edgeFade = 1
+		return nil, nil
+	end
 	local mx, my = GetMouseState()
 	local kind, pos = TraceScreenRay(mx, my, true)
 	if kind == "ground" then
+		edgeFade = 1
 		return pos[1], pos[3]
 	end
 	return nil, nil
@@ -123,7 +141,8 @@ local frameTraceX, frameTraceZ = nil, nil
 
 local function sendPaintMessage(worldX, worldZ)
 	local ss = getSharedState()
-	local direction = (paintButton == 1) and 1 or -1
+	-- Remove submode always erases, whichever button started the drag
+	local direction = (subMode ~= "remove" and paintButton == 1) and 1 or -1
 	local tb = WG.TerraformBrush
 	local positions
 	if ss.gridSnap then
@@ -274,7 +293,7 @@ local function drawMetalOverlay(worldX, worldZ, radius)
 			if amount > 0.01 then
 				local wx = mx * METAL_SQ + halfSq
 				local brightness = min(1.0, amount / 120)
-				glColor(0.1, 0.4 + brightness * 0.6, 0.1, 0.35 + brightness * 0.3)
+				glColor(0.1, 0.4 + brightness * 0.6, 0.1, (0.35 + brightness * 0.3) * edgeFade)
 				local y = GetGroundHeight(wx, wz) + 0.5
 				glBeginEnd(GL_QUADS, function()
 					glVertex(wx - halfSq, y, wz - halfSq)
@@ -352,9 +371,9 @@ local function drawCursorInfo(worldX, worldZ)
 		text = format("Metal: %.1f  [spot: %.2f]", metalValue, spotMetal * 0.001)
 	end
 
-	glColor(0, 0, 0, 0.92)
+	glColor(0, 0, 0, 0.92 * edgeFade)
 	glText(text, sx + 2, sy - 2, 24, "ro")
-	glColor(1, 1, 1, 1.0)
+	glColor(1, 1, 1, 1.0 * edgeFade)
 	glText(text, sx, sy, 24, "ro")
 end
 
@@ -419,12 +438,13 @@ local function loadMetalMap()
 	local mapName = Game.mapName or "unknown"
 	local filename = SAVE_DIR .. mapName .. "_metalmap.lua"
 
-	local chunk, err = loadfile(filename)
+	local chunk, _err = loadfile(filename)
 	if not chunk then
 		Echo("[Metal Brush] No saved metal map found: " .. filename)
 		return
 	end
 
+	setfenv(chunk, {})
 	local ok, data = pcall(chunk)
 	if not ok or type(data) ~= "table" or not data.spots then
 		Echo("[Metal Brush] ERROR: Invalid metal map file: " .. filename)
@@ -781,13 +801,6 @@ local function commitCurrentLasso()
 	lassoPoints = {}
 end
 
--- Refresh every committed lasso's total (call after the spot cache changes).
-local function recomputeAllLassoTotals()
-	for i = 1, #lassos do
-		lassos[i].total = computePointsSum(lassos[i].points)
-	end
-end
-
 local function buildOverlayList()
 	ensureSpotCache()
 	if spotsCacheDirty then
@@ -1076,10 +1089,6 @@ local function recomputeBalanceAxisSums()
 	balanceAxisSumA = a * 0.001
 	balanceAxisSumB = b * 0.001
 	balanceAxisSumsDirty = false
-end
-
-local function invalidateBalanceAxisSums()
-	balanceAxisSumsDirty = true
 end
 
 -- Extend cache invalidator so map-edits refresh axis sums too.
@@ -1652,7 +1661,15 @@ function widget:MouseWheel(up, value)
 	return false
 end
 
+-- set by RecvLuaMsg, run here: reloading widgets inside a callin would change the list being dispatched
+local refreshSpotWidgets
+local spotWidgetsPending = false
+
 function widget:Update(dt)
+	if spotWidgetsPending then
+		spotWidgetsPending = false
+		refreshSpotWidgets()
+	end
 	-- Balance axis hover check (when not dragging, not placing)
 	if active and balanceAxisActive and not balanceAxisDragging and not balanceAxisPlacingOrigin then
 		local wx, wz = getWorldPos()
@@ -1793,16 +1810,26 @@ function widget:DrawWorld()
 	if not outlinePositions or #outlinePositions == 0 then
 		outlinePositions = { { x = worldX, z = worldZ, rot = ss.rotationDeg } }
 	end
-	glColor(colorR, colorG, colorB, 0.85)
+	glColor(colorR, colorG, colorB, 0.85 * edgeFade)
 	glLineWidth(2)
 	for oi = 1, #outlinePositions do
 		local op = outlinePositions[oi]
 		drawShapeOutline(op.x, op.z, ss.radius, ss.shape, op.rot or ss.rotationDeg)
 	end
+	-- A stamp only lays metal within a centred mex's reach (the gadget's applyStamp): show that
+	-- circle when the brush is wider, so the outline does not promise metal that never lands
+	local spotRad = math.max(EXTRACTOR_RADIUS - METAL_SQ, METAL_SQ)
+	if subMode == "stamp" and ss.radius > spotRad then
+		glColor(1, 1, 1, 0.6 * edgeFade)
+		for oi = 1, #outlinePositions do
+			local op = outlinePositions[oi]
+			drawShapeOutline(op.x, op.z, spotRad, "circle", 0)
+		end
+	end
 
 	-- Draw center cross
 	local groundY = GetGroundHeight(worldX, worldZ)
-	glColor(1, 1, 1, 0.5)
+	glColor(1, 1, 1, 0.5 * edgeFade)
 	glBeginEnd(GL_LINES, function()
 		glVertex(worldX - 8, groundY + 2, worldZ)
 		glVertex(worldX + 8, groundY + 2, worldZ)
@@ -1843,11 +1870,42 @@ function widget:DrawScreen()
 	drawCursorInfo(worldX, worldZ)
 end
 
+-- The gadget rescanned the resource spots after the metal stopped changing ("mb_spots_refreshed"): rescan
+-- LuaUI's copy too (refilled in place, so Area Mex and Extractor Snap follow on their own), then reload
+-- the widgets that build their state from the spot list once at start, or drop out on a map with too
+-- few spots. Only the ones switched on in the widget list: the saved config says which.
+local SPOT_WIDGETS = { "Metalspots", "Quick Build (mex/geo)" }
+refreshSpotWidgets = function()
+	local finder = WG.resource_spot_finder
+	if not (finder and finder.Refresh) then
+		return
+	end
+	local spots = finder.Refresh()
+	local order = {}
+	local chunk = loadfile("LuaUI/Config/" .. Game.gameShortName .. ".lua")
+	if chunk then
+		setfenv(chunk, {})
+		local ok, cfg = pcall(chunk)
+		if ok and type(cfg) == "table" and type(cfg.order) == "table" then
+			order = cfg.order
+		end
+	end
+	for _, name in ipairs(SPOT_WIDGETS) do
+		if (order[name] or 1) > 0 then
+			Spring.SendCommands("luaui disablewidget " .. name)
+			Spring.SendCommands("luaui enablewidget " .. name)
+		end
+	end
+	Spring.Echo("[Metal Brush] mex widgets updated: " .. (type(spots) == "table" and #spots or "metal map") .. " spots")
+end
+
 -- Gadget signals "mb_metal_updated" after every SetMetalAmount batch so we
 -- know the values are committed and can cancel the blind timer hold, letting
 -- the overlay cache rebuild on the very next DrawWorld call.
 function widget:RecvLuaMsg(msg, playerID)
-	if msg == "mb_metal_updated" then
+	if msg == "mb_spots_refreshed" then
+		spotWidgetsPending = true
+	elseif msg == "mb_metal_updated" then
 		spotsCacheDirty = true
 		clusterCacheDirty = true
 		overlayListDirty = true

@@ -49,6 +49,7 @@ return {
 			buildinggrounddecaltype = "decals/armvp_aoplane.dds",
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "ArmBuildings/LandFactories",
 			unitgroup = "builder",
 			usebuildinggrounddecal = true,

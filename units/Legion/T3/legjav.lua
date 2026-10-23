@@ -36,6 +36,7 @@ return {
 			maxrange = "450",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 1,
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",

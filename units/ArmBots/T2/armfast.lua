@@ -31,8 +31,10 @@ return {
 		turnrate = 1644.5,
 		upright = true,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "FireStorm, PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 2,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",

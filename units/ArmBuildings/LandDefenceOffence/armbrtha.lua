@@ -31,6 +31,7 @@ return {
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecaltype = "decals/armbrtha_aoplane.dds",
 			canareaattack = 1,
+			islrpc = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
@@ -124,7 +125,7 @@ return {
 				soundstart = "lrpcshot3",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 1100,
+				weaponvelocity = 900,
 				damage = {
 					default = 1625,
 					shields = 812,

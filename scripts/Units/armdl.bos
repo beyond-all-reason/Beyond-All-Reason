@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, turret, plunger, flare;
+piece  base, turret, plunger, flare, firepoint;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -47,7 +47,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = turret;
+	pieceIndex = firepoint;
 	return (0);
 }
 

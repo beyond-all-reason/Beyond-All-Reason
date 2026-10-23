@@ -1,7 +1,7 @@
 local widget = widget ---@type Widget
 
 -- Include the substitution logic directly with a shorter alias
-local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
+local SubLogic = require("luaui/Include/blueprint_substitution/logic")
 
 function widget:GetInfo()
 	return {
@@ -58,6 +58,9 @@ local prevStartDefID = startDefID
 local isMetalMap = false
 
 local unitshapes = {}
+local unitshapeStates = {} -- id -> { alpha, teamID, drawCount } of the last DrawWorld that drew it
+local drawCount = 0
+local widgetName = widget:GetInfo().name
 
 local cachedAlphaResults
 local cachedStartPosition
@@ -282,6 +285,12 @@ end
 ---               INIT                 ---
 ------------------------------------------
 function widget:Initialize()
+
+	if require("luaui/Include/mission_options").IsStartUnitSpawnDisabled() then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "p")
 	widgetHandler:AddAction("buildfacing", buildFacingHandler, nil, "p")
 	widgetHandler:AddAction("buildspacing", buildSpacingHandler, nil, "p")
@@ -671,14 +680,24 @@ local function removeUnitShape(id)
 		WG.StopDrawUnitShapeGL4(unitshapes[id])
 		unitshapes[id] = nil
 	end
+	unitshapeStates[id] = nil
 end
 
 local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, alpha)
-	if unitshapes[id] then
-		removeUnitShape(id)
+	alpha = alpha or 1
+	-- ids are unitDef, position and facing, so only alpha and team can change
+	local state = unitshapeStates[id]
+	if state then
+		state[3] = drawCount
+		if state[1] == alpha and state[2] == teamID then
+			return unitshapes[id]
+		end
+		state[1], state[2] = alpha, teamID
+	else
+		unitshapeStates[id] = { alpha, teamID, drawCount }
 	end
 	unitshapes[id] =
-		WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha or 1, teamID, nil, nil, nil, widget:GetInfo().name)
+		WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID, nil, nil, unitshapes[id], widgetName)
 	return unitshapes[id]
 end
 
@@ -1018,7 +1037,6 @@ function widget:MousePress(mx, my, button)
 
 	local _, pos = spTraceScreenRay(mx, my, true, false, false, isUnderwater(selBuildQueueDefID))
 	if button == 1 then
-		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 		if WG.ExtractorSnap then
 			local snapPos = WG.ExtractorSnap.position
 			if snapPos then
@@ -1164,20 +1182,17 @@ function widget:DrawWorld()
 		return
 	end
 
-	-- remove unit shape queue to re-add again later
-	for id, _ in pairs(unitshapes) do
-		removeUnitShape(id)
-	end
-
-	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
-	if spGetGameFrame() > 0 then
-		widgetHandler:RemoveCallIn("DrawWorld")
+	if spGetGameFrame() > 0 or not preGamestartPlayer then
+		for id in pairs(unitshapeStates) do
+			removeUnitShape(id)
+		end
+		-- Avoid unnecessary overhead after buildqueue has been setup in early frames
+		if spGetGameFrame() > 0 then
+			widgetHandler:RemoveCallIn("DrawWorld")
+		end
 		return
 	end
-
-	if not preGamestartPlayer then
-		return
-	end
+	drawCount = drawCount + 1
 
 	-- draw pregame build queue
 	local ALPHA_SPAWNED = 1.0
@@ -1552,6 +1567,13 @@ function widget:DrawWorld()
 		end
 	end
 
+	-- drop the ghosts that were not drawn this frame
+	for id, state in pairs(unitshapeStates) do
+		if state[3] ~= drawCount then
+			removeUnitShape(id)
+		end
+	end
+
 	-- Reset gl
 	gl.Color(1, 1, 1, 1)
 	gl.LineWidth(1.0)
@@ -1596,26 +1618,6 @@ function widget:GameFrame(n)
 		end
 	end
 	if tasker then
-		local quickStartOption = Spring.GetModOptions().quick_start
-		local quickStartEnabled = quickStartOption ~= "disabled"
-
-		if quickStartEnabled and #buildQueue > 0 then
-			--we have to temporary Echo data like this because there are reports of builds that should be spawned in quickstart not being spawned.
-			--Widget data isn't caught in replays so we have to echo this for now. 1/12/26
-			Spring.Echo(string.format("=== Build Queue for Commander (unitID: %d) ===", tasker))
-			for b = 1, #buildQueue do
-				local buildData = buildQueue[b]
-				local unitDefID = buildData[1]
-				local unitDefName = unitDefID > 0 and UnitDefs[unitDefID] and UnitDefs[unitDefID].name or "MOVE_COMMAND"
-				local x, y, z = buildData[2], buildData[3], buildData[4]
-				local facing = buildData[5] or 0
-				Spring.Echo(
-					string.format("  [%d] %s at (%.1f, %.1f, %.1f) facing: %d", b, unitDefName, x, y, z, facing)
-				)
-			end
-			Spring.Echo(string.format("=== Total queue items: %d ===", #buildQueue))
-		end
-
 		for b = 1, #buildQueue do
 			local buildData = buildQueue[b]
 			Spring.GiveOrderToUnit(
@@ -1682,7 +1684,7 @@ end
 function widget:Shutdown()
 	-- Stop drawing all ghosts
 	if WG.StopDrawUnitShapeGL4 then
-		for id, _ in pairs(unitshapes) do
+		for id in pairs(unitshapeStates) do
 			removeUnitShape(id)
 		end
 	end

@@ -34,8 +34,10 @@ return {
 		turnrate = 500,
 		waterline = 0,
 		customparams = {
+			maxrange = 350,
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "weapon",

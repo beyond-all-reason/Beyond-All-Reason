@@ -22,7 +22,6 @@ local mathRandom = math.random
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMouseState = Spring.GetMouseState
-local spEcho = Spring.Echo
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetConfigInt = Spring.GetConfigInt
@@ -52,8 +51,6 @@ Spring.CreateDir("music/custom/menu")
 ----------------------------------------------------------------------
 
 local showGUI = true
-local minSilenceTime = 30
-local maxSilenceTime = 120
 local warLowLevel = 1000
 local warHighLevel = 32500
 local warMeterResetTime = 40 -- seconds
@@ -68,7 +65,6 @@ local function applySpectatorThresholds()
 	warLowLevel = warLowLevel * 1.5
 	warHighLevel = warHighLevel * 1.5
 	appliedSpectatorThresholds = true
-	--spEcho("[Music Player] Spectator mode enabled")
 end
 
 if spGetSpectatingState() or Spring.IsReplay() then
@@ -423,28 +419,6 @@ local function ReloadMusicPlaylists()
 	eventWarHighTracks = shuffleMusic(eventWarHighTracks)
 	bonusTracks = shuffleMusic(bonusTracks)
 
-	-- spEcho("----- MUSIC PLAYER PLAYLIST -----")
-	-- spEcho("----- peaceTracks -----")
-	-- for i = 1,#peaceTracks do
-	-- 	spEcho(peaceTracks[i])
-	-- end
-	-- spEcho("----- warlowTracks -----")
-	-- for i = 1,#warlowTracks do
-	-- 	spEcho(warlowTracks[i])
-	-- end
-	-- spEcho("----- warhighTracks -----")
-	-- for i = 1,#warhighTracks do
-	-- 	spEcho(warhighTracks[i])
-	-- end
-	-- spEcho("----- gameoverTracks -----")
-	-- for i = 1,#gameoverTracks do
-	-- 	spEcho(gameoverTracks[i])
-	-- end
-	-- spEcho("----- bossFightTracks -----")
-	-- for i = 1,#bossFightTracks do
-	-- 	spEcho(bossFightTracks[i])
-	-- end
-
 	if #peaceTracks > 1 then
 		peaceTracksPlayCounter = mathRandom(#peaceTracks)
 	else
@@ -515,7 +489,6 @@ end
 local currentTrackList = peaceTracks
 local currentTrackListString = "intro"
 
-local defaultMusicVolume = 50
 local warMeter = 0
 local warMeterResetTimer = 0
 local gameOver = false
@@ -525,6 +498,10 @@ local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
 local prevPlayedTime = playedTime
+-- GetSoundStreamTime waits for the sound mutex, which the sound thread holds while decoding stream chunks:
+-- polled every frame it caught those waits (up to ms), so poll a few times a second unless the progress bar shows
+local STREAM_TIME_POLL_INTERVAL = 0.25
+local streamTimePollTimer = STREAM_TIME_POLL_INTERVAL
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 50) -- user value, cause actual volume will change during fadein/outc
 if maxMusicVolume > 99 then
@@ -566,7 +543,6 @@ local glTexRect = gl.TexRect
 local glTexture = gl.Texture
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
-local glCallList = gl.CallList
 
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -642,10 +618,6 @@ local function updateFade()
 			fadeDirection = nil
 		end
 	end
-end
-
-local function getSliderWidth()
-	return mathFloor((4.5 * widgetScale) + 0.5)
 end
 
 local function capitalize(text)
@@ -820,10 +792,6 @@ local function refreshUiDrawing()
 	local padding = mathFloor(1.5 * widgetScale) -- button background margin
 	local padding2 = mathFloor(2.5 * widgetScale) -- inner icon padding
 	local heightoffset = -mathFloor(0.9 * widgetScale)
-	local textsize = 11 * widgetScale
-	local textXPadding = 10 * widgetScale
-	--local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
-	local maxTextWidth = right - textXPadding - textXPadding
 
 	buttons.playpause = {
 		left + padding + padding,
@@ -959,6 +927,8 @@ function widget:Initialize()
 	--Spring.StopSoundStream() -- only for testing purposes
 
 	WG.music = {}
+	---Where the music player panel sits, so a neighbour can stack against it.
+	---@return DockedPanelPosition|false position `false` once the widget has shut down.
 	WG.music.GetPosition = function()
 		if shutdown then
 			return false
@@ -1306,7 +1276,11 @@ function widget:Update(dt)
 	local frame = spGetGameFrame()
 	local _, _, paused = Spring.GetGameSpeed()
 
-	playedTime, totalTime = Spring.GetSoundStreamTime()
+	streamTimePollTimer = streamTimePollTimer + dt
+	if streamTimePollTimer >= STREAM_TIME_POLL_INTERVAL or mouseover or draggingSlider then
+		streamTimePollTimer = 0
+		playedTime, totalTime = Spring.GetSoundStreamTime()
+	end
 
 	if not playingInit then
 		playingInit = true
@@ -1491,6 +1465,7 @@ function PlayNewTrack(paused)
 	end
 	isChangingTrack = true
 	lastTrackAttemptTime = spGetTimer()
+	streamTimePollTimer = STREAM_TIME_POLL_INTERVAL -- read the new stream's times on the next Update
 
 	if Spring.GetConfigInt("music", 1) ~= 1 then
 		isChangingTrack = false

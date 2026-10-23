@@ -115,6 +115,9 @@ function M.sync(doc, ctx, clState, setSummary)
 				if dm.clLayerSplats ~= (ly.splats == true) then
 					dm.clLayerSplats = ly.splats == true
 				end
+				if dm.clLayerSurface ~= (ly.surface == true) then
+					dm.clLayerSurface = ly.surface == true
+				end
 				if dm.clLayerGrass ~= (ly.grass == true) then
 					dm.clLayerGrass = ly.grass == true
 				end

@@ -38,6 +38,8 @@ return {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies, EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Vehicles/T2 Vehicles",
+			reaimtime = 5,
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -142,6 +144,7 @@ return {
 					projectile_destruction_method = "descend",
 					overrange_distance = 1093,
 					speceffect = "guidance",
+					soundstart_volume_multiplier = 0.7,
 				},
 			},
 			laser = {

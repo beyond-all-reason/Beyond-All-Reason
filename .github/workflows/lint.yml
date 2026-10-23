@@ -66,10 +66,43 @@ jobs:
 
           # The local reporter needs no token, so this behaves the same for
           # pull requests from forks, which is how most contributions arrive.
+          # Its output is captured rather than parsed: reviewdog owns the
+          # added-lines filtering, so whatever it prints is exactly the set
+          # that failed the job, and quoting it verbatim cannot drift from that.
+          set +e
           reviewdog \
             -f=rdjsonl \
             -diff="git diff $BASE_SHA" \
             -reporter=local \
             -filter-mode=added \
             -fail-level=any \
-            < luacheck.rdjsonl
+            < luacheck.rdjsonl > reviewdog.out 2>&1
+          reviewdog_status=$?
+          set -e
+          cat reviewdog.out
+
+          # Written for the CI Results comment as well as this job's summary.
+          if [ "$reviewdog_status" -ne 0 ] && [ -s reviewdog.out ]; then
+            {
+              echo "### Lint findings"
+              echo
+              echo "luacheck, on lines this pull request added:"
+              echo
+              echo '```'
+              head -c 8000 reviewdog.out
+              echo '```'
+            } > ci-report.md
+            cat ci-report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          exit "$reviewdog_status"
+
+      # Picked up by the CI Results comment. Named the same in every check, so
+      # that job can fetch it by name from whichever run it is looking at.
+      - name: Upload CI report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CI Report
+          path: ci-report.md
+          if-no-files-found: ignore

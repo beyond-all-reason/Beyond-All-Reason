@@ -1,7 +1,7 @@
 return {
 	legrhapsis = {
 		maxacc = 0,
-		airsightdistance = 850,
+		airsightdistance = 950,
 		maxdec = 0,
 		buildangle = 8192,
 		energycost = 6500,
@@ -113,7 +113,7 @@ return {
 				model = "cormissile.s3o",
 				name = "Advanced g2a Salvo Missile Launcher",
 				noselfdamage = true,
-				range = 840,
+				range = 950,
 				reloadtime = 0.5,
 				smoketrail = true,
 				smokePeriod = 7,
@@ -137,8 +137,11 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 2500,
+				customparams = {
+					speceffect = "retarget",
+				},
 				damage = {
-					vtol = 13,
+					vtol = 15,
 				},
 			},
 		},

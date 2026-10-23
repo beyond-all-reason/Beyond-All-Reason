@@ -45,6 +45,9 @@ local function generateWeaponTtlFunction(weaponDef)
 	if weaponDef.cylinderTargeting >= 1 then
 		return function(unitID, projectileID)
 			local ux, uy, uz = spGetUnitPosition(unitID)
+			if not ux then
+				return range / speed
+			end
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			local dx, dy, dz = spGetProjectileDirection(projectileID)
 			local projection = (px - ux) * dx + (pz - uz) * dz
@@ -53,6 +56,9 @@ local function generateWeaponTtlFunction(weaponDef)
 	else -- treat all other as cylinder == 0:
 		return function(unitID, projectileID)
 			local _, _, _, ux, uy, uz = spGetUnitPosition(unitID, true)
+			if not ux then
+				return range / speed
+			end
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			local dx, dy, dz = spGetProjectileDirection(projectileID)
 			local projection = (px - ux) * dx + (py - uy) * dy + (pz - uz) * dz
@@ -232,6 +238,9 @@ local shieldPreDamaged = function(
 end
 
 function gadget:Initialize()
+	for weaponDefID in pairs(dgunDef) do
+		gadgetHandler:RegisterUnitPreDamagedWeapon(weaponDefID)
+	end
 	if not GG.Shields then
 		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (dgun)")
 		return

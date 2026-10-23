@@ -24,6 +24,8 @@ local PACKET_HEADER = "$dev$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 local PH_B1 = string.byte(PACKET_HEADER, 1)
 
+local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 if gadgetHandler:IsSyncedCode() then
 	startPlayers = {}
 end
@@ -543,8 +545,7 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "modmarker"
 		end
 
-		local bypassSyncedAuthorization = cmd == "godmode" or cmd == "godmodeally"
-		if not bypassSyncedAuthorization and not isAuthorized(playerID, subPermission) then
+		if not isAuthorized(playerID, subPermission) then
 			return
 		end
 
@@ -788,6 +789,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n == 1 and isTerrainMod(Spring.GetModOptions().debugcommands) then
 			adjustFeatureHeight()
 		end
+		-- ! FIXME: These are console commands on every client.
 		if debugcommands then
 			if debugcommands[n] then
 				Spring.Echo("Executing debugcommand", debugcommands[n])
@@ -822,6 +824,31 @@ if gadgetHandler:IsSyncedCode() then
 				z = z + spacing
 			else
 				x = x + spacing
+			end
+		end
+	end
+
+	local hideFromSensors, restoreSensors ---@type function, function
+	do
+		local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+		local SENSOR_SOURCE = "setsensors"
+		local SENSOR_ATTRIBUTES = {
+			"losRadius",
+			"airLosRadius",
+			"radarRadius",
+			"sonarRadius",
+			"seismicRadius",
+			"jammerRadius",
+			"sonarJamRadius",
+		}
+		hideFromSensors = function(unitID)
+			for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+				setUnitModifier(unitID, attribute, 0, SENSOR_SOURCE)
+			end
+		end
+		restoreSensors = function(unitID)
+			for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+				setUnitModifier(unitID, attribute, nil, SENSOR_SOURCE)
 			end
 		end
 	end
@@ -866,25 +893,9 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				elseif action == "setsensors" then
 					if params == "0" then
-						Spring.SetUnitSensorRadius(unitID, "los", 0)
-						Spring.SetUnitSensorRadius(unitID, "airLos", 0)
-						Spring.SetUnitSensorRadius(unitID, "radar", 0)
-						Spring.SetUnitSensorRadius(unitID, "sonar", 0)
-						Spring.SetUnitSensorRadius(unitID, "seismic", 0)
-						Spring.SetUnitSensorRadius(unitID, "radarJammer", 0)
-						Spring.SetUnitSensorRadius(unitID, "sonarJammer", 0)
+						hideFromSensors(unitID)
 					else
-						local unitDefID = Spring.GetUnitDefID(unitID)
-						local ud = unitDefID and UnitDefs[unitDefID]
-						if ud then
-							Spring.SetUnitSensorRadius(unitID, "los", ud.losRadius or 0)
-							Spring.SetUnitSensorRadius(unitID, "airLos", ud.airLosRadius or ud.losRadius or 0)
-							Spring.SetUnitSensorRadius(unitID, "radar", ud.radarDistance or 0)
-							Spring.SetUnitSensorRadius(unitID, "sonar", ud.sonarDistance or 0)
-							Spring.SetUnitSensorRadius(unitID, "seismic", ud.seismicDistance or ud.seismicdistance or 0)
-							Spring.SetUnitSensorRadius(unitID, "radarJammer", ud.radarDistanceJam or 0)
-							Spring.SetUnitSensorRadius(unitID, "sonarJammer", ud.sonarDistanceJam or 0)
-						end
+						restoreSensors(unitID)
 					end
 				elseif action == "setblocking" then
 					Spring.SetUnitBlocking(unitID, params ~= "0")
@@ -1987,10 +1998,11 @@ else -- UNSYNCED
 			Spring.Echo("Starting Fightertest")
 			if Spring.GetModOptions().scenariooptions then
 				--Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
-				local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-				Spring.Echo(scenariooptions)
-				scenariooptions = Json.decode(scenariooptions)
-				if scenariooptions and scenariooptions.benchmarkcommand then
+				local scenariooptions = decodeModoption(Spring.GetModOptions().scenariooptions)
+				if not scenariooptions then
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Could not decode scenariooptions")
+				elseif scenariooptions.benchmarkcommand then
+					Spring.Echo(Json.encode(scenariooptions))
 					--This is where the magic happens!
 					isBenchMark = scenariooptions.benchmarkcommand
 					benchMarkFrames = scenariooptions.benchmarkframes
@@ -2131,7 +2143,6 @@ else -- UNSYNCED
 		local mx, my = Spring.GetMouseState()
 		local t, pos = Spring.TraceScreenRay(mx, my, true)
 		if type(pos) == "table" then
-			local n = 0
 			local ox, oy, oz = math.floor(pos[1]), math.floor(pos[2] + height), math.floor(pos[3])
 			local x, y, z = ox, oy, oz
 			local msg = "spawnceg "
@@ -2808,6 +2819,9 @@ else -- UNSYNCED
 				or (ud.metalMake or 0) > 0
 				or (cp and cp.unitgroup == "metal")
 		end)
+		addFilter("rework", function(ud)
+			return string.find(string.lower(ud.name or ""), "_rework", 1, true) ~= nil
+		end)
 		addFilter("all", function()
 			return true
 		end)
@@ -2835,7 +2849,7 @@ else -- UNSYNCED
 		end
 
 		-- give units
-		local exlusions = {
+		local exclusions = {
 			meteor = true,
 			raptor_hive = true,
 			nuketest = true,
@@ -2845,18 +2859,18 @@ else -- UNSYNCED
 			scavtacnukespawner = true,
 			scavempspawner = true,
 		}
-		local newExlusions = {}
-		for k, v in pairs(exlusions) do
-			newExlusions[k] = true
-			newExlusions[k .. "_scav"] = true
+		local newExclusions = {}
+		for k, v in pairs(exclusions) do
+			newExclusions[k] = true
+			newExclusions[k .. "_scav"] = true
 		end
-		exlusions = newExlusions
-		newExlusions = nil
+		exclusions = newExclusions
+		newExclusions = nil
 		local giveUnits = {}
 		for _, ud in pairs(UnitDefs) do
 			local give = true
 			for _, Condition in ipairs(Accept) do
-				if not Condition(ud) or exlusions[ud.name] then
+				if not Condition(ud) or exclusions[ud.name] then
 					give = false
 					break
 				end
@@ -2874,7 +2888,6 @@ else -- UNSYNCED
 		local mx, my = Spring.GetMouseState()
 		local t, pos = Spring.TraceScreenRay(mx, my, true)
 		if type(pos) == "table" then
-			local n = 0
 			local ox, oz = math.floor(pos[1]), math.floor(pos[3])
 			local x, z = ox, oz
 

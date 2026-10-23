@@ -123,6 +123,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			tombstone = "armstone",
 			workertimeboost = 3.5,
 			wtboostunittype = "TURRET MOBILE",
 			effigy = "comeffigylvl5",
@@ -253,6 +254,7 @@ return {
 					projectile_destruction_method = "descend",
 					stockpilelimit = 5,
 					weapons_group = 1,
+					soundstart_volume_multiplier = 0.7,
 				},
 				damage = {
 					default = 4400,
