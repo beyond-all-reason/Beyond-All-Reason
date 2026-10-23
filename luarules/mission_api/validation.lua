@@ -718,6 +718,17 @@ validators[Types.VideoFile] = function(videoFile)
 	end
 end
 
+validators[Types.EffectID] = function(effectID)
+	local luaTypeResult = validators[Types.String](effectID)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not parameterTypeEnums[Types.EffectID][effectID] then
+		return { { message = "Invalid effectID: " .. effectID } }
+	end
+end
+
 --- Number Validators:
 
 validators[Types.Quantity] = function(quantity)
@@ -1829,6 +1840,38 @@ local function validateLineNameReferences(actionTypes, actions)
 	end
 end
 
+local function validateEffectNameReferences(actionTypes, actions)
+	local appliedEffectNames = {}
+	local referencedEffectNames = {}
+	for actionID, action in pairs(actions) do
+		if action.type == actionTypes.ApplyStatusEffect then
+			for _, effectName in ipairs(possibleValues(action.parameters.effectName)) do
+				if effectName then
+					appliedEffectNames[effectName] = true
+				end
+			end
+		elseif action.type == actionTypes.ClearStatusEffect then
+			for _, effectName in ipairs(possibleValues(action.parameters.effectName)) do
+				if effectName then
+					referencedEffectNames[effectName] = referencedEffectNames[effectName] or {}
+					referencedEffectNames[effectName][#referencedEffectNames[effectName] + 1] = actionID
+				end
+			end
+		end
+	end
+
+	for effectName, actionIDs in pairs(referencedEffectNames) do
+		if not appliedEffectNames[effectName] then
+			logWarn(
+				"Effect name '"
+					.. effectName
+					.. "' is not applied in any action. Referenced in: "
+					.. table.concat(actionIDs, ", ")
+			)
+		end
+	end
+end
+
 local function validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
 	local triggerTypesReferencingCountdownIDs = getTypesWithParameterType(triggersSchemaParameters, Types.CountdownID)
 	-- AddCountdown declares a CountdownID parameter too, but it creates the ID and is
@@ -2091,6 +2134,7 @@ local function validateReferences()
 	validateCutsceneReferences(objectives, triggers, actions, cutscenes)
 	validateLoadouts(unitLoadout, featureLoadout)
 	validateAttributeActions(actions)
+	validateEffectNameReferences(actionTypes, actions)
 	validateChangeTeamActions(actionTypes, actions)
 	validateStockpileTriggers(objectives, triggers)
 end
