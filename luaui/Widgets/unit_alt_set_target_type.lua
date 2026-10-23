@@ -68,6 +68,11 @@ local SNAP_RADIUS = 100
 -- Number of targets that can be assigned. Used to set up the table pools.
 local TARGET_BY_TYPE_COUNT_MAX = 128
 
+local isSetTargetCommand = {
+	[GameCMD.UNIT_SET_TARGET] = true,
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = true,
+}
+
 local gameStarted
 
 for udid, ud in pairs(UnitDefs) do
@@ -279,7 +284,7 @@ end
 local function handleSelectionLine()
 	local _, cmdID = spGetActiveCommand()
 	local alt, ctrl, meta, _ = spGetModKeyState()
-	local correctCommand = cmdID == CMD_SET_TARGET and alt and not ctrl and not meta
+	local correctCommand = isSetTargetCommand[cmdID] and alt and not ctrl and not meta
 	if not correctCommand then
 		clear()
 		return
@@ -359,11 +364,11 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		shouldCleanupTargeting = true
 	end
 
-	if cmdID == CMD_SET_TARGET and not cmdOpts.alt then
+	if isSetTargetCommand[cmdID] and not cmdOpts.alt then
 		shouldCleanupTargeting = true
 	end
 
-	if cmdID == CMD_SET_TARGET and #cmdParams ~= 1 and #cmdParams ~= 4 then
+	if isSetTargetCommand[cmdID] and #cmdParams ~= 1 and #cmdParams ~= 4 then
 		shouldCleanupTargeting = true
 	end
 
@@ -387,7 +392,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 	end
 
-	if cmdID ~= CMD_SET_TARGET or not cmdOpts.alt or (#cmdParams ~= 1 and #cmdParams ~= 4) then
+	if not isSetTargetCommand[cmdID] or not cmdOpts.alt or (#cmdParams ~= 1 and #cmdParams ~= 4) then
 		return
 	end
 
