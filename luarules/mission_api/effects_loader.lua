@@ -7,7 +7,7 @@ local function loadEffectDefinitions()
 	local effects = {}
 	local effectTypes = {}
 	for _, filePath in ipairs(VFS.DirList(EFFECTS_DIR, EFFECT_FILES_PATTERN)) do
-		---@type { type:string, Create:fun(area, strength):string, Remove:fun(string) }
+		---@type { type:string, Create:fun(area, strength):any, Remove:fun(id) }
 		local effectDefinition = VFS.Include(filePath)
 		local effectType = effectDefinition.type
 		if effects[effectType] then
