@@ -2,8 +2,8 @@
 --- Mission variables, and the parameters that read them.
 ---
 --- Parameters and fields in mission scripts can receive values like { variable = <key> }.
---- References resolve in-place after difficulties do (so cannot use difficulty as a name).
---- Action and trigger paramters are re-resolved whenever their variables are written into,
+--- References resolve in-place after difficulties do and before any other parameter changes.
+--- Action and trigger paramters then re-resolve whenever their variables are written into,
 --- so trigger and action code receive plain values. Objective fields populate only at init.
 ---
 
