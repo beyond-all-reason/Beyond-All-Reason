@@ -1,5 +1,14 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
+local function matchesFilters(parameters, context, unitID)
+	if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then return false end
+	if parameters.unitDefName then
+		local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
+		if unitDef == nil or unitDef.name ~= parameters.unitDefName then return false end
+	end
+	return Spring.GetUnitIsDead(unitID) == false
+end
+
 return {
 	type = 'UnitLeftLocation',
 	parameters = {
@@ -12,36 +21,17 @@ return {
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
-		GameFrame = function(trigger, triggerID, context)
-			local unitsInArea = context.GetUnitsInArea(trigger)
-			local previousUnitsInAreasAll = context.PreviousUnitsInAreas
-
-			local previousUnitsInAreas = previousUnitsInAreasAll[triggerID]
-			previousUnitsInAreasAll[triggerID] = unitsInArea
-
-			if previousUnitsInAreas == nil or next(previousUnitsInAreas) == nil then
-				return
+		-- Every unit is checked before any activation, since an action may change what the next one matches.
+		UnitsLeftArea = function(trigger, triggerID, context, unitIDs)
+			local parameters = trigger.parameters
+			local matchCount = 0
+			for i = 1, #unitIDs do
+				if matchesFilters(parameters, context, unitIDs[i]) then
+					matchCount = matchCount + 1
+				end
 			end
 
-			local unitName = trigger.parameters.unitName
-			local unitDefName = trigger.parameters.unitDefName
-			local unitsLeftArea = table.filterArray(previousUnitsInAreas, function(unitID)
-				if table.contains(unitsInArea, unitID) then
-					return false
-				end
-				if unitName and not context.DoesUnitHaveName(unitID, unitName) then
-					return false
-				end
-				if unitDefName then
-					local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
-					if unitDef == nil or unitDef.name ~= unitDefName then
-						return false
-					end
-				end
-				return Spring.GetUnitIsDead(unitID) == false
-			end)
-
-			for _, unitID in ipairs(unitsLeftArea) do
+			for _ = 1, matchCount do
 				context.ActivateTrigger(trigger)
 			end
 		end,

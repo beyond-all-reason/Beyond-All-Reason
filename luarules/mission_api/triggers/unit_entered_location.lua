@@ -1,5 +1,11 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
+local function matchesFilters(parameters, context, unitID)
+	if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then return false end
+	if parameters.unitDefName and UnitDefs[Spring.GetUnitDefID(unitID)].name ~= parameters.unitDefName then return false end
+	return true
+end
+
 return {
 	type = 'UnitEnteredLocation',
 	parameters = {
@@ -12,18 +18,17 @@ return {
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
-		GameFrame = function(trigger, triggerID, context)
-			local previousUnitsInAreas = context.PreviousUnitsInAreas
-			local unitsInArea = context.GetUnitsInArea(trigger)
+		-- Every unit is checked before any activation, since an action may change what the next one matches.
+		UnitsEnteredArea = function(trigger, triggerID, context, unitIDs)
+			local parameters = trigger.parameters
+			local matchCount = 0
+			for i = 1, #unitIDs do
+				if matchesFilters(parameters, context, unitIDs[i]) then
+					matchCount = matchCount + 1
+				end
+			end
 
-			local unitsEnteredArea = table.filterArray(unitsInArea, function(unitID)
-				return not table.contains(previousUnitsInAreas[triggerID] or {}, unitID)
-					and (not trigger.parameters.unitName or context.DoesUnitHaveName(unitID, trigger.parameters.unitName))
-					and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName)
-			end)
-			previousUnitsInAreas[triggerID] = unitsInArea
-
-			for _, unitID in ipairs(unitsEnteredArea) do
+			for _ = 1, matchCount do
 				context.ActivateTrigger(trigger)
 			end
 		end,
