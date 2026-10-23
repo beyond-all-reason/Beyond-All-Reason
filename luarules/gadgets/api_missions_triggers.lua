@@ -256,6 +256,7 @@ function gadget:Initialize()
 	triggerContext = {
 		ActivateTrigger = activateTrigger,
 		DoesUnitHaveName = doesUnitHaveName,
+		DoesUnitMatch = GG["MissionAPI"].Modules.UnitQuery.DoesUnitMatch,
 		DoesFeatureHaveName = doesFeatureHaveName,
 		IsBuildFrameOwner = isBuildFrameOwner,
 		InFactory = inFactory,

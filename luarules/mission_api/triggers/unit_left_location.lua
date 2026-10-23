@@ -1,14 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function matchesFilters(parameters, context, unitID)
-	if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then return false end
-	if parameters.unitDefName then
-		local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
-		if unitDef == nil or unitDef.name ~= parameters.unitDefName then return false end
-	end
-	return Spring.GetUnitIsDead(unitID) == false
-end
-
 return {
 	type = 'UnitLeftLocation',
 	parameters = {
@@ -26,7 +17,7 @@ return {
 			local parameters = trigger.parameters
 			local matchCount = 0
 			for i = 1, #unitIDs do
-				if matchesFilters(parameters, context, unitIDs[i]) then
+				if context.DoesUnitMatch(unitID, parameters.unitName, parameters.unitDefName) and Spring.GetUnitIsDead(unitID) == false then
 					matchCount = matchCount + 1
 				end
 			end

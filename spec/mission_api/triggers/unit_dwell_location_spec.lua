@@ -3,14 +3,8 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
--- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load, and UnitDefs and Spring inside its handlers.
+-- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load, and Spring inside its handlers.
 Builders.MissionApi.new():Install()
-
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
-	[1] = { name = "armpw" },
-	[2] = { name = "corfast" },
-})
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local unitDwellLocation = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_dwell_location.lua")
 local onUnitsEnteredArea = unitDwellLocation.callins.UnitsEnteredArea
@@ -19,9 +13,6 @@ local onGameFrame = unitDwellLocation.callins.GameFrame
 
 describe("mission_api.triggers.unit_dwell_location", function()
 	before_each(function()
-		env.Spring.GetUnitDefID = function()
-			return 1
-		end
 		env.Spring.GetGameFrame = function()
 			return 10
 		end
@@ -99,10 +90,10 @@ describe("mission_api.triggers.unit_dwell_location", function()
 		assert.are.equal(1, fired())
 	end)
 
-	it("filters by unitName at the point of entering the area", function()
+	it("does not start a dwell for a unit the filters reject", function()
 		local t = trigger({ area = area, duration = 1, unitName = "scouts" })
 		local context, fired = newContext()
-		context.DoesUnitHaveName = function()
+		context.DoesUnitMatch = function()
 			return false
 		end
 		onUnitsEnteredArea(t, triggerID, context, { 100 })
@@ -110,10 +101,13 @@ describe("mission_api.triggers.unit_dwell_location", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by unitDefName at the point of entering the area", function()
-		local t = trigger({ area = area, duration = 1, unitDefName = "corfast" }) -- unitDefID 1 = armpw
+	it("does not fire for a unit that lost its name while dwelling", function()
+		local t = trigger({ area = area, duration = 1, unitName = "scouts" })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100 })
+		context.DoesUnitHaveName = function()
+			return false
+		end
 		onGameFrame(t, triggerID, context, 11)
 		assert.are.equal(0, fired())
 	end)

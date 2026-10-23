@@ -3,25 +3,13 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
--- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load, and UnitDefs and Spring inside its handlers.
+-- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load.
 Builders.MissionApi.new():Install()
-
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
-	[1] = { name = "armpw" },
-	[2] = { name = "corfast" },
-})
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local unitEnteredLocation = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_entered_location.lua")
 local onUnitsEnteredArea = unitEnteredLocation.callins.UnitsEnteredArea
 
 describe("mission_api.triggers.unit_entered_location", function()
-	before_each(function()
-		env.Spring.GetUnitDefID = function()
-			return 1
-		end
-	end)
-
 	local function trigger(parameters)
 		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
@@ -65,7 +53,7 @@ describe("mission_api.triggers.unit_entered_location", function()
 		local context, fired = newContext()
 		local activate = context.ActivateTrigger
 		context.ActivateTrigger = function(...)
-			context.DoesUnitHaveName = function()
+			context.DoesUnitMatch = function()
 				return false
 			end
 			return activate(...)
@@ -74,18 +62,12 @@ describe("mission_api.triggers.unit_entered_location", function()
 		assert.are.equal(2, fired())
 	end)
 
-	it("filters by unitName", function()
+	it("does not fire for a unit the filters reject", function()
 		local context, fired = newContext()
-		context.DoesUnitHaveName = function()
+		context.DoesUnitMatch = function()
 			return false
 		end
 		onUnitsEnteredArea(trigger({ area = area, unitName = "scouts" }), triggerID, context, { 100 })
-		assert.are.equal(0, fired())
-	end)
-
-	it("filters by unitDefName", function()
-		local context, fired = newContext()
-		onUnitsEnteredArea(trigger({ area = area, unitDefName = "corfast" }), triggerID, context, { 100 }) -- unitDefID 1 = armpw
 		assert.are.equal(0, fired())
 	end)
 end)

@@ -1,11 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function matchesFilters(parameters, context, unitID)
-	if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then return false end
-	if parameters.unitDefName and UnitDefs[Spring.GetUnitDefID(unitID)].name ~= parameters.unitDefName then return false end
-	return true
-end
-
 return {
 	type = 'UnitDwellLocation',
 	parameters = {
@@ -42,7 +36,7 @@ return {
 			local frameNumber = Spring.GetGameFrame()
 			for i = 1, #unitIDs do
 				local unitID = unitIDs[i]
-				if matchesFilters(parameters, context, unitID) then
+				if context.DoesUnitMatch(unitID, parameters.unitName, parameters.unitDefName) then
 					dwellingUnits[unitID] = frameNumber
 				end
 			end

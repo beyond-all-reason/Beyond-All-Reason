@@ -3,23 +3,14 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
--- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load, and UnitDefs and Spring inside its handlers.
+-- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load, and Spring inside its handler.
 Builders.MissionApi.new():Install()
-
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
-	[1] = { name = "armpw" },
-	[2] = { name = "corfast" },
-})
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local unitLeftLocation = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_left_location.lua")
 local onUnitsLeftArea = unitLeftLocation.callins.UnitsLeftArea
 
 describe("mission_api.triggers.unit_left_location", function()
 	before_each(function()
-		env.Spring.GetUnitDefID = function()
-			return 1
-		end
 		env.Spring.GetUnitIsDead = function()
 			return false
 		end
@@ -72,18 +63,12 @@ describe("mission_api.triggers.unit_left_location", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by unitName", function()
+	it("does not fire for a unit the filters reject", function()
 		local context, fired = newContext()
-		context.DoesUnitHaveName = function()
+		context.DoesUnitMatch = function()
 			return false
 		end
 		onUnitsLeftArea(trigger({ area = area, unitName = "scouts" }), triggerID, context, { 100 })
-		assert.are.equal(0, fired())
-	end)
-
-	it("filters by unitDefName", function()
-		local context, fired = newContext()
-		onUnitsLeftArea(trigger({ area = area, unitDefName = "corfast" }), triggerID, context, { 100 }) -- unitDefID 1 = armpw
 		assert.are.equal(0, fired())
 	end)
 end)

@@ -10,6 +10,7 @@
 ---@class TriggerContextMock
 ---@field ActivateTrigger fun(trigger: table): boolean
 ---@field DoesUnitHaveName fun(unitID: number, name: string): boolean
+---@field DoesUnitMatch fun(unitID: number, unitName: string?, unitDefName: string?): boolean
 ---@field DoesFeatureHaveName fun(featureID: number, name: string): boolean
 ---@field IsBuildFrameOwner fun(unbuiltID: number, builderName: string?, builderDefName: string?): boolean
 ---@field InFactory fun(buildeeID: number): boolean
@@ -75,6 +76,7 @@ function TCB:Build()
 			return true
 		end,
 		DoesUnitHaveName = asFunction(true),
+		DoesUnitMatch = asFunction(true),
 		DoesFeatureHaveName = asFunction(true),
 		IsBuildFrameOwner = asFunction(true),
 		InFactory = asFunction(instance.inFactory),
