@@ -49,5 +49,15 @@
 			"quicksharetotarget": "Share Unit",
 			"quicksharetotarget_tooltip": "Share unit to target player."
 		}
+	},
+	"modoptions": {
+		"mex_splitting": {
+			"name": "Mex Splitting",
+			"desc": "None: whoever builds the mex takes the spot. Map Assigned: the map's metal regions are dealt to teams at start, nearest first and round robin, and a mex may only go down in a region its team holds; needs a region layout for the map, without one the game says so in chat and mexes stay unrestricted."
+		},
+		"mex_regions_layout": {
+			"name": "Mex Regions: Layout",
+			"desc": "The map's region layout as json, plain or base64url(zlib(json)). Overrides the layout the game or the map ships."
+		}
 	}
 }

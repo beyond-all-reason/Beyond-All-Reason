@@ -23,6 +23,7 @@ describe("Customize mode policy bundle", function()
 	it("serializes its own dials and construction's to the values the literal preset declared", function()
 		local options = customizeMode.modOptions
 		assert.same({
+			[TransferEnums.ModOptions.MexSplitting] = { value = TransferEnums.MexSplitting.None, locked = false },
 			[TransferEnums.ModOptions.UnitSharingMode] = {
 				value = ConstructionEnums.UnitFilterCategory.All,
 				locked = false,
