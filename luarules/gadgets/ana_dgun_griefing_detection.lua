@@ -51,12 +51,10 @@ local spGetUnitsInPlanes = Spring.GetUnitsInPlanes
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPositionLosState = Spring.GetPositionLosState
 local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitLosState = Spring.GetUnitLosState
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMyPlayerID = Spring.GetMyPlayerID
-local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -377,6 +375,10 @@ local function HandleDGunAllyRisk(startX, startY, startZ, endX, endY, endZ)
 	local threatenedAllyPower = 0
 	local mostPowerfulThreatenedPower = 0
 	local mostPowerfulThreatenedUnitName = nil
+
+	if not candidates then
+		return false
+	end
 	for i = 1, #candidates do
 		local unitID = candidates[i]
 		local unitDefID = spGetUnitDefID(unitID)
@@ -443,14 +445,16 @@ local function HasKnownEnemyNearby(targetX, targetY, targetZ)
 	local candidates =
 		CallAsTeam(myTeamID, spGetUnitsInSphere, targetX, targetY, targetZ, FRONTLINE_SCAN_RADIUS, ENEMY_UNITS)
 
-	for i = 1, #candidates do
-		local unitID = candidates[i]
-		local losState = spGetUnitLosState(unitID, myAllyTeamID, true)
-		local unitTeam = spGetUnitTeam(unitID)
-		-- Turns out seagulls and such are counted. So need to gaia check
-		if unitTeam ~= gaiaTeamID then
-			return true, "Enemies on radar/LOS within range"
+	if candidates then
+		for i = 1, #candidates do
+			local unitID = candidates[i]
+			local unitTeam = spGetUnitTeam(unitID)
+			-- Turns out seagulls and such are counted. So need to gaia check
+			if unitTeam ~= gaiaTeamID then
+				return true, "Enemies on radar/LOS within range"
+			end
 		end
+
 	end
 
 	-- Treat recent contacts as enemy presence.
@@ -458,7 +462,10 @@ local function HasKnownEnemyNearby(targetX, targetY, targetZ)
 		local ping = contactsCache[i]
 		if ping then
 			local deltaX, deltaY, deltaZ = ping.x - targetX, ping.y - targetY, ping.z - targetZ
-			if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) <= (FRONTLINE_SCAN_RADIUS * FRONTLINE_SCAN_RADIUS) then
+			if
+				(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
+				<= (FRONTLINE_SCAN_RADIUS * FRONTLINE_SCAN_RADIUS)
+			then
 				return true, "Enemies recently on radar/seismic within range"
 			end
 		end
