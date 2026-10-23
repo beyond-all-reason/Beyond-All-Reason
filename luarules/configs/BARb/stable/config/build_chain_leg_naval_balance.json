@@ -1,0 +1,41 @@
+{
+	"porcupine": {
+		"unit": {
+			"legion": [
+				"leglht",
+				"legtl",
+				"legrl",
+				"legmg",
+				"leghive",
+				"legdtr",
+				"legrhapsis",
+				"leglupara",
+				"legapopupdef",
+				"leghive",
+				"legflak",
+				"legacluster",
+				"legbastion",
+				"legcluster",
+				"legabm",
+				"legrad",
+				"legjam",
+				"legestor",
+				"legmstor",
+				"legadvsol",
+				"legnanotc",
+				"legarad",
+				"legtarg",
+				"legadvestore",
+				"legperdition",
+				"legajam",
+				"legfus",
+				"legsolar",
+				"legdeflector",
+				"legnavaldefturret",
+				"leganavalaaturret",
+				"leganavaltorpturret",
+				"leganavaldefturret"
+			]
+		}
+	}
+}

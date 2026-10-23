@@ -22,6 +22,9 @@ SInitInfo AiInit()
 	} else {
 		AiLog("Ignoring Legion");
 	}
+	if (string(aiSetupMgr.GetModOptions()["naval_balance_tweaks"]) == "1") {
+		data.profile.insertAt(data.profile.length(), {"build_chain_naval_balance"});
+	}
 	if (string(aiSetupMgr.GetModOptions()["scavunitsforplayers"]) == "1") {
 		AiLog("Inserting Scav Units");
 		data.profile.insertAt(data.profile.length(), {"behaviour_scav_units"});
