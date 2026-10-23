@@ -435,11 +435,6 @@ RestoreAfterDelay()
 	turn turret to y-axis <0.0> speed <300.0>;
 	wait-for-turn turret around y-axis;
 
-	// The rotation messes up the aim of the weapon, so we need to wait for the turret to finish turning before we turn the sleeve.
-	turn barrel to x-axis <180.0> speed <225.0>;
-	// turn sleeve to x-axis <180.0> speed <225.0>;
-	turn flare to x-axis <180.0> speed <225.0>;
-	
 	turn barrel to x-axis <0.0> speed <225.0>;
 	turn sleeve to x-axis <0.0> speed <225.0>;
 	turn flare to x-axis <0.0> speed <225.0>;
@@ -466,7 +461,9 @@ AimWeapon1(heading, pitch)
 	// turn sleeve to x-axis <110.0> speed <225.0>;
 
 	wait-for-turn barrel around x-axis;
-	wait-for-turn sleeve around x-axis;
+
+	turn barrel to x-axis <180.0> speed <225.0>;
+	// turn sleeve to x-axis <180.0> speed <225.0>;
 
 	sleevePitch = <-270.0> - pitch;
 	worldHeading = (heading + (get HEADING)) % 65536;
