@@ -153,6 +153,9 @@ local function getVariable(key)
 end
 
 --- Write to the variable and rebuild action and trigger parameters that reference it.
+---
+--- A nil write works as though the mission omitted it. Optional parameters stop applying.
+--- Required ones are passed as nil, which validation already warned about at load-time.
 local function setVariable(key, value)
 	GG["MissionAPI"].Variables[key] = value
 
