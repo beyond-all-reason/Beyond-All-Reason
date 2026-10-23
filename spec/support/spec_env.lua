@@ -1,7 +1,10 @@
 -- The globals a module under test runs with, so a spec can stub Spring or VFS without
 -- touching the real ones. The module's own includes load into the same env.
 
+-- BAR is layered too: the module env (modules/module_env.lua) keeps its one instance per state on it, and a
+-- module file included under this env must resolve to the same instance the require shim in spec_helper holds.
 local CHAINED = {
+	BAR = true,
 	CMD = true,
 	Game = true,
 	GameCMD = true,
