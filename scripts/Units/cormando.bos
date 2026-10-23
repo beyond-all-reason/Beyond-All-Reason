@@ -299,7 +299,7 @@ UnitSpeed(){
 		animSpeed = (maxSpeed * 5) / animSpeed; 
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>10) animSpeed = 10;
-		sleep 164;
+		sleep 50;
 	}
 }
 StartMoving(reversing){
