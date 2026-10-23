@@ -591,7 +591,7 @@ local function install(handler)
 		for _, name in ipairs({ "SetWatchWeapon", "SetWatchProjectile", "SetWatchExplosion", "SetWatchAllowTarget" }) do
 			if Script[name] then
 				Script[name] = function()
-					local message = name .. " is reserved. Watch IDs using gadgetHandler:Register<CallinName>."
+					local message = name .. " is deprecated. Watch IDs using gadgetHandler:Register<CallinName>."
 					Spring.Log("registered_callins", LOG.ERROR, message)
 				end
 			end
