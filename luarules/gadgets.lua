@@ -1688,7 +1688,7 @@ end
 
 --------------------------------------------------------------------------------
 --
---  AllowCommand subscription
+--  LuaRules Game call-ins
 --
 
 local CMD_ANY = CMD.ANY
@@ -1696,11 +1696,6 @@ local CMD_NIL = CMD.NIL
 local CMD_BUILD = CMD.BUILD
 local CMD_INSERT = CMD.INSERT
 local unpackInsertParams = Game.Commands.UnpackInsertParams
-
---------------------------------------------------------------------------------
---
---  LuaRules Game call-ins
---
 
 function gadgetHandler:DrawProjectile(projectileID, drawMode)
 	for _, g in ipairs(self.DrawProjectileList) do
