@@ -42,6 +42,7 @@ local types = {
 	Difficulty = "Difficulty",
 	UnitAttribute = "UnitAttribute",
 	WeaponAttribute = "WeaponAttribute",
+	EffectID = "EffectID",
 
 	-- Number Validators:
 	Number = "Number",

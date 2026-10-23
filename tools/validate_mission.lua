@@ -399,6 +399,7 @@ local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua
 
 _G.GG["MissionAPI"].ActionDefinitions = actionDefinitions
 _G.GG["MissionAPI"].TriggerDefinitions = triggerDefinitions
+_G.GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
 local lowestDifficulty = math.huge
 for _, difficulty in pairs(parameterTypes.Enums.Difficulty) do
 	lowestDifficulty = math.min(lowestDifficulty, difficulty)
