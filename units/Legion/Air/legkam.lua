@@ -98,7 +98,7 @@ return {
 					bogus = 1,
 					release_gravity = 0.2,
 					release_pitch_tolerance = 0.5,
-					release_heading_tolerance = 15,
+					release_heading_tolerance = 18,
 				},
 				damage = {
 					default = 1,
