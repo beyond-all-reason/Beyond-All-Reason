@@ -50,7 +50,7 @@ if Game then
 	---Registers a gadget's callin for every ID.
 	---@type string
 	Game.anyID = anyID
-	---Registers a gadget's callin not to receive any IDs. Used for dynamic IDs.
+	---Registers a gadget's callin not to receive any IDs.
 	---@type string
 	Game.noneID = noneID
 
