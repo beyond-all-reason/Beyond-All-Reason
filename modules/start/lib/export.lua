@@ -44,6 +44,53 @@ function Export.Arrangement(areas, mapSizeX, mapSizeZ)
 	return out
 end
 
+---@class StartSuggestions what a map ships as mapmetadata_startpos: the spawn points, and per layout the ally
+---teams' starts on them
+---@field positions table<string, { x: integer, y: integer }>
+---@field team { teamCount: integer, playersPerTeam: integer, sides: { starts: { spawnPoint: string, role: string|nil }[] }[] }[]
+
+-- The starts' positions as the map's start position suggestions, one layout of every team that has a position: a
+-- team's starts in the order of its positions, each with its role. Points are in elmos, named P1.. in the order the
+-- starts hold them.
+---@param starts StartRegion[]
+---@return StartSuggestions|nil
+function Export.Suggestions(starts)
+	local seated = {} ---@type StartRegion[]
+	for _, start in ipairs(starts) do
+		if start.positions and #start.positions > 0 then
+			seated[#seated + 1] = start
+		end
+	end
+	if #seated == 0 then
+		return nil
+	end
+	local positions, sideOf = {}, {} ---@type table<string, { x: integer, y: integer }>, table<integer, table>
+	local count = 0
+	for _, start in ipairs(seated) do
+		sideOf[start.team] = sideOf[start.team] or { starts = {} }
+		for _, p in ipairs(start.positions) do
+			count = count + 1
+			local id = "P" .. count
+			positions[id] = { x = math.floor(p.x), y = math.floor(p.z) }
+			table.insert(sideOf[start.team].starts, { spawnPoint = id, role = p.role })
+		end
+	end
+	local teams = {} ---@type integer[]
+	for team in pairs(sideOf) do
+		teams[#teams + 1] = team
+	end
+	table.sort(teams)
+	local sides, playersPerTeam = {}, 1
+	for _, team in ipairs(teams) do
+		sides[#sides + 1] = sideOf[team]
+		playersPerTeam = math.max(playersPerTeam, #sideOf[team].starts)
+	end
+	return {
+		positions = positions,
+		team = { { teamCount = #teams, playersPerTeam = playersPerTeam, sides = sides } },
+	}
+end
+
 ---@class StartScriptOptions
 ---@field mapName string
 ---@field playerName string|nil
