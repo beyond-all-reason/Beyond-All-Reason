@@ -61,6 +61,7 @@
   - Cortex / Legion advanced UW mexes had an unintended 50% damage reduction, removed.
   - Defenses that open and close cannot fire during their open or close animations.
   - Lens flares of searchlights, headlights and other unit lights no longer flicker.
+  - AA missiles with retargeting now switch to a new target when their target starts crashing, instead of following the wreck down.
   
 
 # September
