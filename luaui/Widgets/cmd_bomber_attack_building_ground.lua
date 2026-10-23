@@ -36,8 +36,7 @@ for udid, ud in pairs(UnitDefs) do
 		isBuilding[udid] = true
 	end
 	if
-		(ud.weapons and ud.weapons[1] and isBomb[ud.weapons[1].weaponDef] == true)
-		or ud.customParams.areaattack_unlimited
+		(ud.weapons and ud.weapons[1] and isBomb[ud.weapons[1].weaponDef] == true) or ud.customParams.istorpedobomber
 	then
 		isBomber[udid] = true
 	end
