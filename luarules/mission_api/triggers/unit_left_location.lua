@@ -17,6 +17,7 @@ return {
 			local parameters = trigger.parameters
 			local matchCount = 0
 			for i = 1, #unitIDs do
+				local unitID = unitIDs[i]
 				if context.DoesUnitMatch(unitID, parameters.unitName, parameters.unitDefName) and Spring.GetUnitIsDead(unitID) == false then
 					matchCount = matchCount + 1
 				end
