@@ -1931,7 +1931,7 @@ local function validateVariableKeys(objectives, triggers, actions)
 	for key, labels in pairs(referencedKeys) do
 		if variableValues[key] == nil then
 			logWarn(
-				"Variable '" .. key .. "' is not set by the startscript. Referenced in: " .. table.concat(labels, ", ")
+				"Variable '" .. key .. "' has no value at the start of the mission. Referenced in: " .. table.concat(labels, ", ")
 			)
 		end
 	end
