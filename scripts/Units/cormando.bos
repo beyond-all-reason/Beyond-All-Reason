@@ -459,9 +459,7 @@ AimWeapon1(heading, pitch)
 
 	wait-for-turn barrel around x-axis;
 
-	turn barrel to x-axis <180.0> speed <225.0>;
-
-	sleevePitch = <-270.0> - pitch;
+	sleevePitch = <270.0> - pitch;
 	worldHeading = (heading + (get HEADING)) % 65536;
 	targetID = get TARGET_ID(1);
 
