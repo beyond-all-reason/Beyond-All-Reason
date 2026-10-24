@@ -36,7 +36,7 @@ local STUCK_SELF_DESTRUCT_INTERVAL = Game.gameSpeed * 60 * 3
 local AGGRO_CHECK_INTERVAL = Game.gameSpeed * 30
 local AGGRO_DURATION = Game.gameSpeed * 60
 local AGGRO_MIN_START_FRAME = Game.gameSpeed * 60 * 15
-local GHOST_ORDER_COOLDOWN = Game.gameSpeed * 5
+local WRAITH_ORDER_COOLDOWN = Game.gameSpeed * 5
 
 local STUCK_DISTANCE = 50
 local STUCK_DISTANCE_SQUARED = STUCK_DISTANCE ^ 2
@@ -46,8 +46,8 @@ local NOGO_ZONE_RADIUS = 600
 local NOGO_ZONE_RADIUS_SQUARED = NOGO_ZONE_RADIUS ^ 2
 local ENEMY_ATTACK_DISTANCE = 1000
 local ENEMY_ATTACK_DISTANCE_SQUARED = ENEMY_ATTACK_DISTANCE ^ 2
-local GHOST_ENEMY_RADIUS = 300
-local GHOST_ENEMY_RADIUS_SQUARED = GHOST_ENEMY_RADIUS * GHOST_ENEMY_RADIUS
+local WRAITH_ENEMY_RADIUS = 300
+local WRAITH_ENEMY_RADIUS_SQUARED = WRAITH_ENEMY_RADIUS * WRAITH_ENEMY_RADIUS
 local ORDER_DISTANCE = 1600
 local OBJECTIVE_REACHED_DISTANCE = 200
 local OBJECTIVE_REACHED_DISTANCE_SQUARED = OBJECTIVE_REACHED_DISTANCE ^ 2
@@ -158,7 +158,7 @@ local teamAllyTeamIDs = {}
 local unitAllyTeamIDs = {}
 local unitAllyTeamIndices = {}
 local zombieWatch = {}
-local ghostWatch = {}
+local wraithWatch = {}
 local flyingUnits = {}
 local zombieOrderBuckets = {}
 local zombieStuckBuckets = {}
@@ -1300,43 +1300,43 @@ local function updateStuckZombies()
 	end)
 end
 
-local function getGhostData(unitID, unitDefID)
-	local ghostData = ghostWatch[unitID]
-	if not ghostData then
-		ghostData = {
+local function getWraithData(unitID, unitDefID)
+	local wraithData = wraithWatch[unitID]
+	if not wraithData then
+		wraithData = {
 			unitDefID = unitDefID,
 			noGoZones = {},
 			nextOrderFrame = 0,
 		}
-		setRandomEdgeObjective(ghostData)
-		ghostWatch[unitID] = ghostData
+		setRandomEdgeObjective(wraithData)
+		wraithWatch[unitID] = wraithData
 	end
-	return ghostData
+	return wraithData
 end
 
-local function commandGhost(unitID, unitDefID, ghostX, ghostY, ghostZ)
-	local ghostData = getGhostData(unitID, unitDefID)
+local function commandWraith(unitID, unitDefID, wraithX, wraithY, wraithZ)
+	local wraithData = getWraithData(unitID, unitDefID)
 	local nearestEnemyID =
-		spGetClosestEnemyUnit(ghostX, ghostY, ghostZ, ENEMY_ATTACK_DISTANCE, gaiaAllyTeamID, false)
+		spGetClosestEnemyUnit(wraithX, wraithY, wraithZ, ENEMY_ATTACK_DISTANCE, gaiaAllyTeamID, false)
 	local enemyX, enemyZ
 	local enemyWithinRadius = false
 	if nearestEnemyID then
 		enemyX, _, enemyZ = spGetUnitPosition(nearestEnemyID)
 		if enemyX then
-			enemyWithinRadius = distance2dSquared(ghostX, ghostZ, enemyX, enemyZ) <= GHOST_ENEMY_RADIUS_SQUARED
+			enemyWithinRadius = distance2dSquared(wraithX, wraithZ, enemyX, enemyZ) <= WRAITH_ENEMY_RADIUS_SQUARED
 		end
 	end
-	if gameFrame < ghostData.nextOrderFrame then -- delay issuing new orders so it has a chance to escape from the midst of the enemy
+	if gameFrame < wraithData.nextOrderFrame then -- delay issuing new orders so it has a chance to escape from the midst of the enemy
 		return enemyWithinRadius
 	end
 	local objectiveRegenerated = enemyX
-		and nearestEnemyID ~= ghostData.threatTargetID
-		and setEnemyDirectionObjective(unitID, ghostData, enemyX, enemyZ, ENEMY_DIRECTION_AWAY)
-	ghostData.threatTargetID = nearestEnemyID
-	local objective, objectiveChanged = ensureMovementObjective(unitID, ghostData)
+		and nearestEnemyID ~= wraithData.threatTargetID
+		and setEnemyDirectionObjective(unitID, wraithData, enemyX, enemyZ, ENEMY_DIRECTION_AWAY)
+	wraithData.threatTargetID = nearestEnemyID
+	local objective, objectiveChanged = ensureMovementObjective(unitID, wraithData)
 	if objectiveRegenerated or objectiveChanged or spGetUnitCurrentCommand(unitID) ~= getMovementCommand(unitDefID) then
-		issueObjectiveMove(unitID, unitDefID, ghostData, objective)
-		ghostData.nextOrderFrame = gameFrame + GHOST_ORDER_COOLDOWN
+		issueObjectiveMove(unitID, unitDefID, wraithData, objective)
+		wraithData.nextOrderFrame = gameFrame + WRAITH_ORDER_COOLDOWN
 	end
 	return enemyWithinRadius
 end
@@ -1365,7 +1365,7 @@ function gadget:Initialize()
 		EnablePermanentAggro = enablePermanentAggro,
 		KillAllZombies = killAllZombies,
 		ClearAllOrders = clearAllOrders,
-		CommandGhost = commandGhost,
+		CommandWraith = commandWraith,
 	}
 end
 
@@ -1398,7 +1398,7 @@ end
 
 function gadget:UnitDestroyed(unitID)
 	flyingUnits[unitID] = nil
-	ghostWatch[unitID] = nil
+	wraithWatch[unitID] = nil
 	unwatchZombie(unitID)
 	removeAllyTeamUnit(unitID)
 end

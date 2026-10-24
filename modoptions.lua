@@ -1799,7 +1799,7 @@ local options = {
 			{
 				key = "wraith",
 				name = "Wraith",
-				desc = "Basic, and ghostly apparitions appear from overkill and from destroyed corpses. When a zombie's corpse is destroyed, it can respawn at any isolated Wraith.",
+				desc = "Basic, and Wraiths appear from overkill and from destroyed corpses. When a zombie's corpse is destroyed, it can respawn at any isolated Wraith.",
 			},
 			{
 				key = "hydra",
