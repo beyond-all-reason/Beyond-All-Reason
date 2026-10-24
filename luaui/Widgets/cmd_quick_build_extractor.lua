@@ -30,9 +30,11 @@ local mathHuge = math.huge
 local mathDistance2dSquared = math.distance2dSquared
 local mathPiHalf = math.pi / 2
 
--- These are arbitrary values that feel right - basing this on the ever-changing values of mex radius results in a really confusing experience
+-- Squared activation distances. Keep the familiar minimum; larger mex placement areas extend it per spot.
 local geoPlacementRadius = 5000
 local mexPlacementRadius = 2000
+local mexPlacementPadding = 16 -- one build-grid step beyond the outermost placement
+local mexActivationRadii = setmetatable({}, { __mode = "k" })
 
 local mexConstructors
 local geoConstructors
@@ -54,6 +56,7 @@ local metalMap = false
 local buildCmd = {}
 
 -- Pre-allocated reusable tables to avoid per-update allocations
+---@type { x: number, y: number, z: number }
 local reusePos = { x = 0, y = 0, z = 0 }
 local reuseCmdPos = { 0, 0, 0 }
 local reuseUnitShape = { 0, 0, 0, 0, 0, 0 }
@@ -73,8 +76,19 @@ local function unitIsCloaked(uDefId)
 	return isCloakableBuilder[spGetUnitDefID(uDefId)] and select(5, spGetUnitStates(uDefId, false, true))
 end
 
+---@type table
 local spotFinder
 local spotBuilder
+
+local function getMexActivationRadiusSquared(spot)
+	local radiusSquared = mexActivationRadii[spot]
+	if not radiusSquared then
+		local radius = math.sqrt(spotFinder.GetMexPlacementRadiusSquared(spot)) + mexPlacementPadding
+		radiusSquared = math.max(mexPlacementRadius, radius * radius)
+		mexActivationRadii[spot] = radiusSquared
+	end
+	return radiusSquared
+end
 
 function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
@@ -87,6 +101,13 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
+
+	-- Read-only preview command: {unitDefID, x, y, z, facing, teamID}.
+	WG.QuickBuildExtractor = {
+		GetPreviewCommand = function()
+			return buildCmd[1]
+		end,
+	}
 
 	spotBuilder = WG.resource_spot_builder
 	spotFinder = WG.resource_spot_finder
@@ -168,6 +189,10 @@ function widget:Update(dt)
 	selectionDirty = false
 
 	local extractor
+	selectedPos = nil
+	selectedMex = nil
+	selectedGeo = nil
+	selectedSpot = nil
 
 	-- First check unit under cursor. If it's an extractor, see if there's valid upgrades
 	-- If it's not an extractor, simply exit
@@ -215,20 +240,26 @@ function widget:Update(dt)
 			return
 		end
 		local gpx, gpz = groundPos[1], groundPos[3]
+		reusePos.x = gpx
+		reusePos.y = groundPos[2]
+		reusePos.z = gpz
+		selectedPos = reusePos
 		local nearestMex = spotFinder.GetClosestMexSpot(gpx, gpz)
 		local nearestGeo = spotFinder.GetClosestGeoSpot(gpx, gpz)
 
 		local mexDist = mathHuge
+		local mexRadiusSquared = mexPlacementRadius
 		local geoDist = mathHuge
 		if nearestMex and bestMex then
 			mexDist = mathDistance2dSquared(nearestMex.x, nearestMex.z, gpx, gpz)
+			mexRadiusSquared = getMexActivationRadiusSquared(nearestMex)
 		end
 		if nearestGeo and bestGeo then
 			geoDist = mathDistance2dSquared(nearestGeo.x, nearestGeo.z, gpx, gpz)
 		end
 
 		-- Figure out if mex or geo is in range
-		if mexDist < mathHuge and mexDist < geoDist and mexDist < mexPlacementRadius then
+		if mexDist < mathHuge and mexDist < geoDist and mexDist <= mexRadiusSquared then
 			selectedMex = bestMex
 			extractor = bestMex
 			selectedSpot = nearestMex
@@ -250,7 +281,7 @@ function widget:Update(dt)
 
 	-- Set up ghost
 	if extractor and (selectedSpot or (selectedPos and metalMap)) then
-		-- we only want to build on the center, so we pass the spot in for the position, instead of the groundPos
+		-- Use the cursor position to choose the nearest valid placement, just like extractor snap.
 		local src = selectedPos or selectedSpot
 		reuseCmdPos[1] = src.x
 		reuseCmdPos[2] = src.y
@@ -264,8 +295,20 @@ function widget:Update(dt)
 		local newDef = mathAbs(extractor)
 		local newX, newY, newZ = cmd[2], cmd[3], cmd[4]
 		-- check equality by position
-		if unitShape and (unitShape[2] ~= newX or unitShape[3] ~= newY or unitShape[4] ~= newZ) then
-			clearGhostBuild()
+		if
+			activeShape
+			and unitShape
+			and (
+				unitShape[1] ~= newDef
+				or unitShape[2] ~= newX
+				or unitShape[3] ~= newY
+				or unitShape[4] ~= newZ
+				or unitShape[5] ~= cmd[5]
+				or unitShape[6] ~= cmd[6]
+			)
+		then
+			WG.StopDrawUnitShapeGL4(activeShape)
+			activeShape = nil
 		end
 		reuseUnitShape[1] = newDef
 		reuseUnitShape[2] = newX
@@ -330,5 +373,6 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:Shutdown()
+	WG.QuickBuildExtractor = nil
 	clearGhostBuild()
 end
