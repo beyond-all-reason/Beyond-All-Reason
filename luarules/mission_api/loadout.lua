@@ -9,16 +9,17 @@ local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
 
 --- Units
 
+local BUILD_GRID_SIZE = Game.squareSize * Game.footprintScale
+
 local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpacing)
 	local positions = {}
-	local xGridSize = math.ceil(math.sqrt(quantity)) * xSpacing
-	local zGridSize = math.ceil(math.sqrt(quantity)) * zSpacing
-	local left = centerX - math.floor(xGridSize / 2)
-	local top = centerZ - math.floor(zGridSize / 2)
+	local side = math.ceil(math.sqrt(quantity))
+	local left = centerX - math.floor((side - 1) * xSpacing / 2)
+	local top = centerZ - math.floor((side - 1) * zSpacing / 2)
 	local count = 0
 
-	for x = left, left + xGridSize - xSpacing, xSpacing do
-		for z = top, top + zGridSize - zSpacing, zSpacing do
+	for x = left, left + (side - 1) * xSpacing, xSpacing do
+		for z = top, top + (side - 1) * zSpacing, zSpacing do
 			if count >= quantity then
 				return positions
 			end
@@ -105,8 +106,20 @@ local function spawnUnitLoadout(unitLoadout)
 			xsize, zsize = zsize, xsize
 		end
 
+		local snapToBuildGrid = unitDef.isImmobile
+		local buildFacing
+		if snapToBuildGrid then
+			-- Round up to whole grid cells so snapping keeps the buildings evenly spaced.
+			xsize = math.ceil(xsize / BUILD_GRID_SIZE) * BUILD_GRID_SIZE
+			zsize = math.ceil(zsize / BUILD_GRID_SIZE) * BUILD_GRID_SIZE
+			buildFacing = Spring.GetFacingFromHeading(BAR.Utilities.FacingToHeading(unit.facing))
+		end
+
 		local positions = generateGridPositions(unit.x, unit.z, unit.quantity or 1, xsize, zsize)
-		for _, pos in pairs(positions) do
+		for _, pos in ipairs(positions) do
+			if snapToBuildGrid then
+				pos.x, pos.y, pos.z = Spring.Pos2BuildPos(unitDef.id, pos.x, pos.y, pos.z, buildFacing)
+			end
 			local unitID = spawnUnit(unit, pos)
 			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 			GG["MissionAPI"].issuingOrders = true
