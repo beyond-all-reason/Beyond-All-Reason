@@ -455,11 +455,6 @@ body {
 	background-color: #2b2113;
 }
 
-.tf-lp-dist-btn.active {
-	border-color: #fdc04c;
-	background-color: #2b2113;
-}
-
 .lp-color-preview {
 	width: 100%;
 	height: 12dp;
@@ -489,33 +484,6 @@ body {
 	border-color: #8a8aa0bb;
 	decorator: vertical-gradient(#5c5c6c #383848);
 	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
-}
-
-/* === Light Distribution Buttons === */
-.tf-lp-dist-btn {
-	flex: 1;
-	height: 28dp;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background-color: #32323c;
-	border-radius: 6dp;
-	border: 1dp #50505a50;
-	cursor: pointer;
-	transition: background-color 0.15s;
-	decorator: vertical-gradient(#484856 #242430);
-	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
-}
-
-.tf-lp-dist-btn:hover {
-	background-color: #484858;
-	border-color: #8a8aa0bb;
-	decorator: vertical-gradient(#5c5c6c #383848);
-	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
-}
-
-.tf-lp-dist-btn .tf-btn-text {
-	font-size: 0.9rem;
 }
 
 /* === Light Action Buttons === */
@@ -694,26 +662,6 @@ body {
 	background-color: #2b2113;
 }
 
-/* Metal icon - big square M */
-.tf-metal-icon {
-	width: 22dp;
-	height: 22dp;
-	border: 2dp #fdc04c99;
-	border-radius: 3dp;
-	background-color: #2b2113;
-	color: #fdc04c;
-	font-size: 16dp;
-	font-weight: bold;
-	text-align: center;
-	line-height: 22dp;
-}
-
-.tf-btn-metal.active .tf-metal-icon {
-	border-color: #ffd47a;
-	color: #ffd47a;
-	background-color: #3b2d17;
-}
-
 /* Metal mode */
 .tf-btn-metal.active {
 	border-color: #fdc04c;
@@ -756,11 +704,6 @@ body {
 }
 
 .tf-btn-noise.active {
-	border-color: #fdc04c;
-	background-color: #2b2113;
-}
-
-.tf-btn-erode.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;
 }
@@ -860,76 +803,12 @@ body {
 	background-color: #2b2113;
 }
 
-.tf-cl-toggle {
-	height: 30dp;
-	background-color: #2c2c36;
-	border-color: #3e3e4a50;
-}
-
-.tf-cl-toggle.active {
-	border-color: #40e0c0;
-	background-color: #0d2c24;
-	box-shadow: 0dp 0dp 5dp 0dp #40e0c025;
-}
-
 /* Clone tool — layer chip grid (legacy, retained for compatibility) */
 .tf-cl-layer-grid {
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
 	gap: 4dp;
-}
-.tf-cl-chip {
-	flex: 1 0 22%;
-	padding: 6dp 6dp;
-	border-radius: 5dp;
-	background-color: #2a2a34;
-	border: 1dp #3e3e4a50;
-	cursor: pointer;
-	transition: background-color 0.1s, border-color 0.1s;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	decorator: vertical-gradient(#3a3a46 #1e1e28);
-	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
-}
-.tf-cl-chip:hover {
-	background-color: #3a3a46;
-	border-color: #5a5a6a;
-	decorator: vertical-gradient(#4a4a58 #2a2a36);
-	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff20;
-}
-.tf-cl-chip.active {
-	background-color: #0d2c24;
-	border-color: #40e0c080;
-}
-.tf-cl-chip.active:hover {
-	background-color: #133a30;
-	border-color: #40e0c0;
-}
-.tf-cl-chip-label {
-	font-size: 0.85rem;
-	color: #6b7280;
-}
-.tf-cl-chip.active .tf-cl-chip-label {
-	color: #d1d5db;
-}
-
-/* Clone tool — hints */
-.tf-cl-hints {
-	background-color: #12121a;
-	border-radius: 4dp;
-	padding: 5dp 8dp;
-	border: 1dp #ffffff0a;
-}
-.tf-cl-hint {
-	font-size: 0.72rem;
-	color: #6b728080;
-	margin-bottom: 1dp;
-}
-.tf-cl-status {
-	font-size: 0.9rem;
-	color: #d1d5db;
 }
 
 /* === Shape Buttons === */
@@ -951,11 +830,6 @@ body {
 
 .tf-shape-btn.hidden {
 	display: none;
-}
-
-#section-mb-shape .tf-shape-btn {
-	width: auto;
-	flex: 1;
 }
 
 .tf-shape-btn:hover {
@@ -1091,21 +965,6 @@ body {
 	color: #fca5a5;
 }
 
-/* === Undo Button (in shape row) === */
-.tf-undo-btn {
-	background-color: #2b2113;
-	border-color: #fdc04c70;
-	decorator: vertical-gradient(#3b2d17 #1e1509);
-	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
-}
-
-.tf-undo-btn:hover {
-	background-color: #3b2d17;
-	border-color: #ffd47a;
-	decorator: vertical-gradient(#4c3a1e #2b2113);
-	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
-}
-
 /* === History Row (Undo / Slider / Redo) === */
 .tf-history-btn {
 	width: 24dp;
@@ -1129,33 +988,6 @@ body {
 	decorator: vertical-gradient(#4c3a1e #2b2113);
 	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28, 0dp 0dp 4dp 0dp #fdc04c30;
 }
-
-/* === Undo Mode Toggle Buttons === */
-.tf-undo-mode-btn {
-	padding: 2dp 8dp;
-	font-size: 0.9rem;
-	color: #d8dce4;
-	background-color: #26262e;
-	border: 1dp #40404a60;
-	border-radius: 5dp;
-	transition: background-color 0.15s;
-	decorator: vertical-gradient(#343440 #1a1a22);
-	box-shadow: 0dp 1dp 3dp 0dp #00000048, inset 0dp 1dp 0dp 0dp #ffffff14;
-}
-
-.tf-undo-mode-btn:hover {
-	background-color: #3e3e4c;
-	border-color: #7878909a;
-	decorator: vertical-gradient(#4c4c5c #2c2c38);
-	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff22;
-}
-
-.tf-undo-mode-btn.active {
-	background-color: #2b2113;
-	border-color: #fdc04ccc;
-	color: #e5e7eb;
-}
-
 
 .tf-slider-history slidertrack {
 	background-color: #13131c;
@@ -1266,11 +1098,6 @@ body {
 	align-items: center;
 	justify-content: center;
 	transition: background-color 0.1s, border-color 0.1s;
-}
-
-.tf-icon-xs {
-	width: 12dp;
-	height: 12dp;
 }
 
 .tf-transport-btn:hover {
@@ -1440,15 +1267,6 @@ body {
 /* Flexible gap that pushes the icon cluster to the right edge of the rail */
 .tf-rail-spacer {
 	flex: 1;
-}
-
-/* Hairline divider between rail groups */
-.tf-rail-sep {
-	width: 1dp;
-	height: 16dp;
-	flex-shrink: 0;
-	background-color: #ffffff14;
-	margin: 0dp 2dp;
 }
 
 /* === Header Buttons (shared base) — flat until interacted with === */
@@ -1725,30 +1543,6 @@ body {
 	100% { opacity: 0.6; }
 }
 
-.tf-tooltip {
-	position: absolute;
-	bottom: 100%;
-	left: 50%;
-	z-index: 1000;
-	background-color: #1a1a1add;
-	border: 1dp #787878aa;
-	border-radius: 4dp;
-	padding: 4dp 8dp;
-	font-size: 0.9rem;
-	color: #d1d5db;
-	pointer-events: none;
-	animation: pulse-opacity 2s infinite;
-}
-
-/* === Disabled Load Button === */
-.tf-load-btn-disabled {
-	background-color: #2a2a2a;
-	border-color: #4a4a4a80;
-	cursor: default;
-	opacity: 0.5;
-	pointer-events: none;
-}
-
 /* === Grass tool disabled on maps with no grass data === */
 .tf-btn-grass.disabled {
 	background-color: #252528;
@@ -1916,22 +1710,6 @@ body {
 	padding: 2dp 10dp;
 	line-height: 30dp;
 	font-size: 1.4rem;
-}
-
-.tf-dim-input {
-	flex: 1;
-	height: 28dp;
-	padding: 2dp 6dp;
-	line-height: 20dp;
-	font-size: 1.0rem;
-	color: #d8dce4;
-	background-color: #161620;
-	border: 1dp #40404a60;
-	border-radius: 6dp;
-}
-
-.tf-dim-input:focus {
-	border-color: #6a6a80cc;
 }
 
 /* Dimensions window: the height-range mode switch. Text-only and short, so the
@@ -2102,11 +1880,6 @@ body {
 .tf-preset-toggle.open {
 	background-color: #40404c;
 	border-color: #7878909a;
-}
-
-.tf-dropdown-arrow {
-	font-size: 0.75rem;
-	color: #9ca3af;
 }
 
 .tf-preset-dropdown {
@@ -2377,45 +2150,20 @@ body {
 	margin-top: 6dp;
 }
 
-/* Mode tabs and the connection badge share one row: the tab pair switches a
-   destination, it is not the subject of the window, so it takes only the
-   width it needs and the badge trails on the right. */
-.tf-project-topbar {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	flex-shrink: 0;
-	gap: 8dp;
-	margin-bottom: 6dp;
-}
-
-.tf-project-window .tf-project-tabs {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	flex: 0 0 250dp;
-	gap: 6dp;
-	margin: 0;
-}
-
-.tf-project-window .tf-project-toolbar,
-.tf-project-window .tf-project-actions,
-/* Stepper row: quiet label, prominent value, small arrows. The arrows used
-   to be 28dp squares next to 1rem text, which read as the loudest thing in
-   the tray despite being the least important. */
-.tf-project-window .tf-project-destination {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	gap: 6dp;
-	margin-bottom: 6dp;
-}
-
 .tf-project-window .tf-project-toolbar {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	margin-bottom: 6dp;
 	flex-shrink: 0;
 }
 
 .tf-project-window .tf-project-actions {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
 	margin-bottom: 0;
 }
 
@@ -2444,10 +2192,6 @@ body {
 	min-height: 32dp;
 }
 
-.tf-project-window .tf-project-tab {
-	flex: 1;
-}
-
 .tf-project-window .tf-project-downloadall {
 	flex: 0 0 auto;
 	height: 32dp;
@@ -2462,26 +2206,6 @@ body {
 	height: 32dp;
 	padding: 0;
 	justify-content: center;
-}
-
-/* Whether the helper is up decides whether half this window works, so it is
-   set at the browser's own size rather than as fine print. */
-.tf-project-window .tf-project-connection {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: flex-end;
-	flex: 1;
-	flex-wrap: wrap;
-	gap: 6dp;
-	padding: 0;
-	margin: 0;
-	font-size: 1rem;
-}
-
-.tf-project-window .tf-project-connection-state {
-	font-weight: bold;
-	white-space: nowrap;
 }
 
 /* Offered only while the helper is down, so it reads as the way out of that
@@ -2500,19 +2224,6 @@ body {
 	border-color: #fdc04c;
 	background-color: #3b2d17;
 	color: #ffffff;
-}
-
-.tf-project-window .tf-project-repository {
-	flex: 0 1 auto;
-	text-align: right;
-	word-break: break-all;
-}
-
-.tf-project-window .tf-project-branch {
-	padding: 1dp 6dp;
-	border-radius: 4dp;
-	max-width: 130dp;
-	word-break: break-all;
 }
 
 /* The search wrapper stretches across the Open toolbar row, but in the Save
@@ -2561,12 +2272,12 @@ body {
 
 /* Header cells are blocks: this RmlUi build draws no bare text inside a
    flex container, which is why NAME and SYNC used to come out blank. */
-.tf-proj-colhead .tf-proj-c-name,
-.tf-proj-colhead .tf-proj-c-sync {
+.tf-proj-colhead .tf-proj-c-name {
 	display: block;
 }
 
 .tf-proj-colhead .tf-proj-c-sync {
+	display: block;
 	text-align: right;
 }
 
@@ -2873,17 +2584,6 @@ body {
 	margin-bottom: 6dp;
 }
 
-/* The destination, immediately before the name box and quieter than it: it is
-   context for what is being typed, and the box is the part that is being
-   edited. It can be a nested path, so it is allowed to shrink. */
-.tf-project-window .tf-project-namefolder {
-	flex: 0 1 auto;
-	min-width: 0;
-	white-space: nowrap;
-	overflow: hidden;
-	text-align: right;
-}
-
 /* The switch belongs beside the thing it switches, not at the far edge of the
    window: a label stretched across the row reads as two unrelated controls. */
 .tf-project-optrow-label {
@@ -2899,14 +2599,10 @@ body {
 	border-radius: 0;
 }
 
-.tf-project-window .tf-proj-folder-icon {
-	margin-left: 6dp;
-	margin-right: 6dp;
-}
-
 /* Stage icon sits between the expand glyph and the name, matched to the
    name's cap height rather than the row, so it reads as a label not a button. */
 .tf-project-window .tf-proj-folder-icon {
+	margin-left: 6dp;
 	width: 14dp;
 	height: 14dp;
 	flex-shrink: 0;
@@ -3218,12 +2914,6 @@ body {
 	background-color: #46c27a;
 }
 
-/* Here, but not the same version. */
-.tf-proj-dot.diverged {
-	border-color: #8a6520;
-	background-color: #fdc04c;
-}
-
 /* Not on this disk, and it was not in the library last time either. */
 .tf-proj-dot.missing {
 	border-color: #4a5364;
@@ -3468,34 +3158,6 @@ body {
 	font-weight: normal;
 	white-space: nowrap;
 	overflow: hidden;
-}
-
-/* === Absolute Height Cap Toggle === */
-.tf-abs-toggle {
-	width: 20dp;
-	height: 20dp;
-	min-width: 20dp;
-	max-width: 20dp;
-	min-height: 20dp;
-	max-height: 20dp;
-	padding: 0;
-	display: block;
-	border: 2dp #78787899;
-	background-color: #1d1d1dc8;
-	border-radius: 4dp;
-	cursor: pointer;
-	transition: background-color 0.15s;
-}
-
-.tf-abs-toggle:hover {
-	background-color: #2a2a2adc;
-	border-color: #9a9a9a99;
-}
-
-.tf-abs-toggle.active {
-	border-color: #40e0c0cc;
-	background-color: #0d2c24dc;
-	color: #40e0c0;
 }
 
 /* === Action Buttons (Save/Load) === */
@@ -3867,22 +3529,6 @@ body {
 	background-color: #3a1616;
 }
 
-/* === Weather Persistence slider === */
-.tf-slider-persist sliderbar {
-	width: 16dp;
-	height: 16dp;
-	background-color: #b0b4be;
-	border-radius: 8dp;
-	border: 2dp #ffffff38;
-	margin-top: 3dp;
-	box-shadow: 0dp 1dp 3dp 0dp #00000050;
-}
-
-.tf-slider-persist sliderbar:hover {
-	background-color: #dce0e8;
-	box-shadow: 0dp 0dp 6dp 2dp #ffffff38;
-}
-
 /* === Tools Buttons (shorter, 4 per row) === */
 #tf-tools-rows .tf-mode-btn,
 #tf-tools-rows2 .tf-mode-btn {
@@ -4015,11 +3661,6 @@ body {
 	border-color: #ffd47a;
 }
 
-.tf-btn-erode.active:hover {
-	background-color: #3b2d17;
-	border-color: #ffd47a;
-}
-
 .tf-noise-type-btn.active:hover {
 	background-color: #3b2d17;
 	border-color: #ffd47a;
@@ -4075,16 +3716,6 @@ body {
 .tf-wb-btn-remove.active:hover {
 	background-color: #55201f;
 	border-color: #f87171;
-}
-
-.tf-undo-mode-btn.active:hover {
-	background-color: #3b2d17;
-	border-color: #ffd47a;
-}
-
-.tf-abs-toggle.active:hover {
-	background-color: #133a30dc;
-	border-color: #7cecd6cc;
 }
 
 .tf-btn-splat.active:hover {
@@ -4324,13 +3955,6 @@ body {
  * Lock it to 4dp so the SHAPE→DISPLAY gap is consistent with all other section gaps. */
 #frame-shape {
 	margin-bottom: 4dp;
-}
-
-/* === Stronger Section Divider (use between major groups) === */
-.tf-section-divider {
-	height: 1dp;
-	background-color: #34343e;
-	margin: 6dp 0;
 }
 
 /* === Overlay Chip Row === */
@@ -4598,10 +4222,6 @@ body {
 	background-color: #24242c;
 }
 
-.tf-lp-dist-btn:active {
-	background-color: #24242c;
-}
-
 .tf-preset-btn:active {
 	background-color: #24242c;
 }
@@ -4616,12 +4236,6 @@ body {
 	z-index: 920;
 	width: 320dp;
 	min-height: 200dp;
-}
-
-.tf-settings-glyph {
-	font-size: 1.15rem;
-	color: #b0b4be;
-	pointer-events: none;
 }
 
 .tf-settings-btn.active {
@@ -4978,10 +4592,6 @@ margin-top: 3dp;
 	font-size: 0.75rem;
 	color: #d9c28a;
 	margin-bottom: 4dp;
-}
-.lp-orient-hint {
-	color: #d9c28a;
-	font-size: 0.75rem;
 }
 
 /* Grayed-out unavailable controls (e.g. scatter/distribution for cone/beam lights) */

@@ -552,19 +552,4 @@ function M.generate(opts)
 	return columns, info
 end
 
--- Default recipe (all 0..1 sliders) used by the UI and the randomizer.
-function M.defaults()
-	return {
-		hilliness = 0.5,
-		roughness = 0.5,
-		featureScale = 0.5,
-		jaggedness = 0.45,
-		waterLevel = 0.0,
-		islandness = 0.0,
-		metalDensity = 0.5,
-		symmetry = "rot180",
-		players = 2,
-	}
-end
-
 return M
