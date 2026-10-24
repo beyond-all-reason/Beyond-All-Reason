@@ -111,6 +111,11 @@ describe("SpringUnsyncedBuilder", function()
 		assert.is_true(result.sentinel)
 	end)
 
+	it("puts globals registered through widgetHandler in the env", function()
+		local widget = Builders.SpringUnsynced.new():LoadWidget(WIDGET_PATH)
+		assert.are.equal("called", widget.env.TmpUnsyncedGlobal())
+	end)
+
 	it("each LoadWidget call yields an isolated env", function()
 		local a = Builders.SpringUnsynced.new():LoadWidget(WIDGET_PATH)
 		local b = Builders.SpringUnsynced.new():LoadWidget(WIDGET_PATH)

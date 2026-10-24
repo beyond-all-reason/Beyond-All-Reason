@@ -13,6 +13,7 @@
 ---@field UnitTaken fun(self, unitID: UnitID, unitDefID: UnitDefID, newTeam: TeamID, oldTeam: TeamID, ...: any)?
 ---@field GameFrame fun(self, frame: integer, ...: any)?
 ---@field PlayerChanged fun(self, playerID: PlayerID, ...: any)?
+---@field RecvLuaMsg fun(self, msg: string, playerID: PlayerID, ...: any): boolean?
 ---@field ViewResize fun(self, viewSizeX: integer, viewSizeY: integer, ...: any)?
 ---@field MouseMove fun(self, x: number, y: number, dx: number, dy: number, button: number, ...: any): boolean?
 ---@field MousePress fun(self, x: number, y: number, button: number, ...: any): boolean?
