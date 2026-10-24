@@ -148,29 +148,24 @@ local function setCurrentHiddenPull(teamID, metal, energy)
 	currentHiddenEnergy[teamID] = energy
 end
 
-local function accumulateHiddenPull(frame, teamList)
-	if frame % TEAM_SLOWUPDATE_RATE == 1 then
-		for i = 1, #teamList do
-			local teamID = teamList[i]
-			setHiddenPull(
-				teamID,
-				(windowHiddenMetal[teamID] or 0) / TEAM_SLOWUPDATE_RATE,
-				(windowHiddenEnergy[teamID] or 0) / TEAM_SLOWUPDATE_RATE
-			)
-			windowHiddenMetal[teamID] = 0
-			windowHiddenEnergy[teamID] = 0
-		end
+local function accumulateHiddenPull(teamID, publishWindow)
+	if publishWindow then
+		setHiddenPull(
+			teamID,
+			(windowHiddenMetal[teamID] or 0) / TEAM_SLOWUPDATE_RATE,
+			(windowHiddenEnergy[teamID] or 0) / TEAM_SLOWUPDATE_RATE
+		)
+		windowHiddenMetal[teamID] = 0
+		windowHiddenEnergy[teamID] = 0
 	end
-	for i = 1, #teamList do
-		local teamID = teamList[i]
-		local metal = (currentHiddenMetal[teamID] or 0) + (nudgeHiddenMetal[teamID] or 0)
-		local energy = (currentHiddenEnergy[teamID] or 0) + (nudgeHiddenEnergy[teamID] or 0)
-		nudgeHiddenMetal[teamID] = nil
-		nudgeHiddenEnergy[teamID] = nil
-		if metal ~= 0 or energy ~= 0 then
-			windowHiddenMetal[teamID] = (windowHiddenMetal[teamID] or 0) + metal
-			windowHiddenEnergy[teamID] = (windowHiddenEnergy[teamID] or 0) + energy
-		end
+
+	local metal = (currentHiddenMetal[teamID] or 0) + (nudgeHiddenMetal[teamID] or 0)
+	local energy = (currentHiddenEnergy[teamID] or 0) + (nudgeHiddenEnergy[teamID] or 0)
+	nudgeHiddenMetal[teamID] = nil
+	nudgeHiddenEnergy[teamID] = nil
+	if metal ~= 0 or energy ~= 0 then
+		windowHiddenMetal[teamID] = (windowHiddenMetal[teamID] or 0) + metal
+		windowHiddenEnergy[teamID] = (windowHiddenEnergy[teamID] or 0) + energy
 	end
 end
 
@@ -631,9 +626,12 @@ function gadget:GameFrame(n)
 	end
 	nudgedCount = keptCount
 
-	-- Only process teams that have passive builders and are not dead
+	-- The engine's pull window for a team becomes readable on these frames (see accumulateHiddenPull)
+	local publishWindow = n % TEAM_SLOWUPDATE_RATE == 1
+
 	for i = 1, #teamList do
 		local teamID = teamList[i]
+		-- Only process teams that have passive builders and are not dead
 		if not deadTeamList[teamID] then
 			-- Skip teams with no passive builders
 			if passiveConsCount[teamID] and passiveConsCount[teamID] > 0 then
@@ -682,9 +680,10 @@ function gadget:GameFrame(n)
 				setCurrentHiddenPull(teamID, 0, 0)
 			end
 		end
-	end
 
-	accumulateHiddenPull(n, teamList)
+		-- After the team's evaluation, so this frame's restrictions are included
+		accumulateHiddenPull(teamID, publishWindow)
+	end
 end
 
 function gadget:TeamDied(teamID)
