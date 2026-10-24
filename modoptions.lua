@@ -1784,7 +1784,7 @@ local options = {
 	{
 		key = "zombies",
 		name = "Scavenger Zombies",
-		desc = "Corpses left on the battlefield rise again as hostile zombies. Revival takes 45 to 120 seconds, with stronger units taking longer and revival speeding up as the game reaches higher tech. Reclaim or resurrect corpses to stop them from rising. After 45 minutes, zombies stay permanently aggressive, and revival times chosen after that use a fixed speed instead of the tech estimate. Corpses already counting down keep their old timer.",
+		desc = "Corpses left on the battlefield rise again as hostile zombies. Revival takes 45 to 120 seconds, with stronger units taking longer and revival speeding up as the game reaches higher tech. Reclaim or resurrect corpses to stop them from rising.",
 		type = "list",
 		def = "disabled",
 		section = "options_extra",
