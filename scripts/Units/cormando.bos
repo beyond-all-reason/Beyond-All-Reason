@@ -1,9 +1,9 @@
 
 #include "../recoil_common_includes.h"
 
-piece  turret, sleeve, barrel, torso, rnano,
+piece  turret, sleeve, barrel, aaturret, box, torso, rnano,
        lnano, pelvis, lthigh, rthigh, rleg, lleg, lfoot, rfoot, luparm, ruparm,
-       rarm, larm, head, flare, aimy1, aimx1;
+       rarm, larm, head, flare, boxflare, aimy1, aimx1;
 
 
 
@@ -428,6 +428,8 @@ RestoreAfterDelay()
 
 	turn turret to y-axis <0.0> speed <300.0>;
 	turn sleeve to x-axis <0.0> speed <225.0>;
+	turn aaturret to x-axis <0.0> speed <80.0>;
+	turn aaturret to y-axis <0.0> speed <80.0>;
 	move turret to y-axis [0.0] speed [20.0];
 }
 
@@ -512,6 +514,19 @@ AimWeapon1(heading, pitch)
 	return (aimReady);
 }
 
+AimWeapon2(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	turn aaturret to y-axis heading speed <192.500000>;
+	turn box to x-axis -1*pitch speed <90>;
+	wait-for-turn aaturret around y-axis;
+	wait-for-turn box around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
@@ -519,6 +534,15 @@ FireWeapon1()
 	sleep 50;
 	move barrel to y-axis [0] now;
 }
+
+// FireWeapon2()
+// {
+// 	emit-sfx 1024 + 0 from boxflare;
+//     move box to y-axis [-0.5] speed [3.750000];
+// 	sleep 50;
+// 	move box to y-axis [0] now;
+// }
+
 
 QueryNanoPiece(pieceIndex)
 {
