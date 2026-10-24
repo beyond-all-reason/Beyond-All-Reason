@@ -205,6 +205,17 @@ else
 	local myTeamID = Spring.GetLocalTeamID()
 	local myPlayerID = Spring.GetLocalPlayerID()
 	local myAllyTeamID = Spring.GetLocalAllyTeamID()
+	local scavengerTeamID = BAR.Utilities.GetScavTeamID()
+	local raptorTeamID = BAR.Utilities.GetRaptorTeamID()
+	local GAIA_SCAVENGER_OR_RAPTOR_TEAM_IDS = {
+		[Spring.GetGaiaTeamID()] = true,
+	}
+	if scavengerTeamID then
+		GAIA_SCAVENGER_OR_RAPTOR_TEAM_IDS[scavengerTeamID] = true
+	end
+	if raptorTeamID then
+		GAIA_SCAVENGER_OR_RAPTOR_TEAM_IDS[raptorTeamID] = true
+	end
 	function gadget:PlayerChanged(playerID)
 		isSpec = Spring.GetSpectatingState()
 		myTeamID = Spring.GetLocalTeamID()
@@ -322,6 +333,7 @@ else
 			isCommander[unitDefID]
 			and not select(3, Spring.GetTeamInfo(unitTeam))
 			and not Spring.GetUnitRulesParam(unitID, "muteDestructionNotification")
+			and not GAIA_SCAVENGER_OR_RAPTOR_TEAM_IDS[unitTeam]
 		then
 			local myComCount = 0
 			local allyComCount = 0
