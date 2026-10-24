@@ -3,14 +3,13 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Share Unit Command",
-		desc = "Adds a command which allows you to quickly share unit to other player. Just target the command on any allied unit and you will share to this player",
+		desc = "Draws the target preview for the Share Unit command (see luarules/gadgets/cmd_share_unit.lua). Target the command on any allied unit to share to its owning player.",
 		author = "SuperKitowiec",
 		date = "2024",
 		license = "GNU GPL, v2 or later",
 		version = 1.0,
 		layer = 0,
 		enabled = true,
-		handler = true,
 	}
 end
 
@@ -25,19 +24,24 @@ local secondPart = 0
 local mouseDistance = 1000
 local range = 200
 
+-- queued share orders are marked with the share icon, in the target team's color
+local shareIconTexture = "luaui/images/advplayerslist/share.dds"
+local shareIconSize = 16 -- world units, half width
+local shareIconAlpha = 0.85
+local shareIconHeight = 24 -- above the spot where the unit is shared
+local queueRefreshInterval = 0.1
+local queueRefreshTimer = queueRefreshInterval
+local shareQueues = {} -- unitID -> command queue, for selected units that have a share order queued
+
 --------------------------------------------------------------------------------
 --speedups
 --------------------------------------------------------------------------------
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
 local GetMyTeamID = Spring.GetLocalTeamID
 local GetUnitTeam = Spring.GetUnitTeam
-local GetSelectedUnits = Spring.GetSelectedUnits
 local GetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local ShareResources = Spring.ShareResources
 local I18N = BAR.I18N
-local GetSpectatingState = Spring.GetSpectatingState
 local WorldToScreenCoords = Spring.WorldToScreenCoords
-local PlaySoundFile = Spring.PlaySoundFile
 local GetTeamColor = Spring.GetTeamColor
 local GetActiveCommand = Spring.GetActiveCommand
 local GetCameraPosition = Spring.GetCameraPosition
@@ -46,6 +50,14 @@ local TraceScreenRay = Spring.TraceScreenRay
 local GetPlayerList = Spring.GetPlayerList
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetGameRulesParam = Spring.GetGameRulesParam
+local GetSelectedUnits = Spring.GetSelectedUnits
+local GetUnitCommands = Spring.GetUnitCommands
+local GetUnitPosition = Spring.GetUnitPosition
+local GetFeaturePosition = Spring.GetFeaturePosition
+local ValidUnitID = Spring.ValidUnitID
+local IsGUIHidden = Spring.IsGUIHidden
+local GiveOrderToUnitArray = Spring.GiveOrderToUnitArray
+local maxUnits = Game.maxUnits
 
 local glBeginEnd = gl.BeginEnd
 local glCallList = gl.CallList
@@ -58,6 +70,10 @@ local glPushMatrix = gl.PushMatrix
 local glScale = gl.Scale
 local glTranslate = gl.Translate
 local glVertex = gl.Vertex
+local glDepthTest = gl.DepthTest
+local glBillboard = gl.Billboard
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
 local GL_LINE_LOOP = GL.LINE_LOOP
 
 local PI = math.pi
@@ -69,7 +85,7 @@ local max = math.max
 
 local defaultColor
 
-local cmdQuickShareToTargetId = 455624
+local cmdQuickShareToTargetId = GameCMD.SHARE_UNIT
 local myTeamID = GetMyTeamID()
 local myAllyTeamID = GetTeamAllyTeamID(myTeamID)
 
@@ -305,7 +321,107 @@ local function getSelectedTeam()
 	return tx, ty, tz, selectedTeam
 end
 
+function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
+	if cmdID ~= cmdQuickShareToTargetId then
+		return false
+	end
+
+	local targetTeamID
+	if #cmdParams == 1 then
+		targetTeamID = GetUnitTeam(cmdParams[1])
+	elseif #cmdParams == 3 then
+		local mouseX, mouseY = WorldToScreenCoords(cmdParams[1], cmdParams[2], cmdParams[3])
+		targetTeamID = tonumber(findTeamInArea(mouseX, mouseY))
+	end
+
+	if targetTeamID and isAlly(targetTeamID) then
+		GiveOrderToUnitArray(GetSelectedUnits(), cmdQuickShareToTargetId, { targetTeamID }, cmdOptions)
+	end
+	return true -- always consume, the raw target params are not a valid order
+end
+
+-- position a command in the queue points at, nil if it has none
+local function getCommandPosition(cmd)
+	local params = cmd.params
+	local paramCount = #params
+	if paramCount >= 3 then
+		return params[1], params[2], params[3]
+	elseif paramCount == 1 then
+		local targetID = params[1]
+		if targetID >= maxUnits then
+			return GetFeaturePosition(floor(targetID - maxUnits))
+		elseif ValidUnitID(targetID) then
+			return GetUnitPosition(targetID)
+		end
+	end
+end
+
+local function refreshShareQueues()
+	for unitID in pairs(shareQueues) do
+		shareQueues[unitID] = nil
+	end
+	local selectedUnits = GetSelectedUnits()
+	for i = 1, #selectedUnits do
+		local unitID = selectedUnits[i]
+		-- for factories this is the queue given to the units they build
+		local commands = GetUnitCommands(unitID, -1)
+		for j = 1, #commands do
+			if commands[j].id == cmdQuickShareToTargetId then
+				shareQueues[unitID] = commands
+				break
+			end
+		end
+	end
+end
+
+local function drawShareIcon(x, y, z, teamID)
+	local r, g, b = GetTeamColor(teamID)
+	glPushMatrix()
+	glTranslate(x, y + shareIconHeight, z)
+	glBillboard()
+	glColor(r or 1, g or 1, b or 1, shareIconAlpha)
+	glTexture(shareIconTexture)
+	glTexRect(-shareIconSize, -shareIconSize, shareIconSize, shareIconSize)
+	glTexture(false)
+	glPopMatrix()
+end
+
+local function drawShareQueueIcons()
+	glDepthTest(false)
+	for unitID, commands in pairs(shareQueues) do
+		local px, py, pz = GetUnitPosition(unitID)
+		for i = 1, #commands do
+			local cmd = commands[i]
+			if cmd.id == cmdQuickShareToTargetId then
+				local targetTeamID = cmd.params[1]
+				if targetTeamID and px then
+					drawShareIcon(px, py, pz, targetTeamID)
+				end
+			else
+				local x, y, z = getCommandPosition(cmd)
+				if x then
+					px, py, pz = x, y, z
+				end
+			end
+		end
+	end
+	glColor(1, 1, 1, 1)
+	glDepthTest(true)
+end
+
+function widget:Update(dt)
+	queueRefreshTimer = queueRefreshTimer + dt
+	if queueRefreshTimer >= queueRefreshInterval then
+		queueRefreshTimer = 0
+		refreshShareQueues()
+	end
+end
+
 function widget:DrawWorld()
+	if next(shareQueues) and not IsGUIHidden() then
+		drawShareQueueIcons()
+	end
+
 	local targetX, targetY, targetZ, selectedTeam = getSelectedTeam()
 
 	if not targetX then
@@ -323,55 +439,6 @@ function widget:DrawScreen()
 	end
 
 	drawName(selectedTeam)
-end
-
-function widget:CommandNotify(cmdID, cmdParams, _)
-	if cmdID == cmdQuickShareToTargetId then
-		local targetTeamID
-		if #cmdParams ~= 1 and #cmdParams ~= 3 then
-			return true
-		elseif #cmdParams == 1 then
-			-- click on unit
-			local targetUnitID = cmdParams[1]
-			targetTeamID = GetUnitTeam(targetUnitID)
-		elseif #cmdParams == 3 then
-			-- click on the ground
-			local mouseX, mouseY = WorldToScreenCoords(cmdParams[1], cmdParams[2], cmdParams[3])
-			targetTeamID = findTeamInArea(mouseX, mouseY)
-		end
-
-		if targetTeamID == nil or targetTeamID == myTeamID or GetTeamAllyTeamID(targetTeamID) ~= myAllyTeamID then
-			-- invalid target, don't do anything
-			return true
-		end
-
-		ShareResources(targetTeamID, "units")
-		PlaySoundFile("beep4", 1, "ui")
-		return false
-	end
-end
-
-function widget:CommandsChanged()
-	if GetSpectatingState() then
-		return
-	end
-
-	local teams = Spring.GetTeamList(myAllyTeamID)
-	if not teams or #teams <= 1 then
-		return -- no allied teams to share to
-	end
-
-	local selectedUnits = GetSelectedUnits()
-	if #selectedUnits > 0 then
-		local customCommands = widgetHandler.customCommands
-		customCommands[#customCommands + 1] = {
-			id = cmdQuickShareToTargetId,
-			type = CMDTYPE.ICON_UNIT_OR_MAP,
-			name = "Share Unit To Target",
-			cursor = "settarget",
-			action = "quicksharetotarget",
-		}
-	end
 end
 
 function widget:ViewResize(vsx, vsy)

@@ -26,6 +26,7 @@ local gameCommands = {
 
 	AREA_MEX = 30100,
 	SELL_UNIT = 30101,
+	SHARE_UNIT = 30102,
 
 	CARRIER_SPAWN_ONOFF = 31200,
 	MORPH = 31210,
