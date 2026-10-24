@@ -1,0 +1,2 @@
+# DXT1 DDS encoding is needed for the native SMF minimap.
+Pillow>=11.2.1

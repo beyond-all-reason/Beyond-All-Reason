@@ -2164,6 +2164,20 @@ function gadget:GameFramePost(f)
 end
 
 function gadget:Initialize()
+	if GG.PortalWorlds then
+		GG.PortalWorlds.RegisterTransitMembers("carriers", function(unitID)
+			local carrier = carrierMetaList[unitID]
+			if not carrier then
+				return
+			end
+			local drones = {}
+			for id in pairs(carrier.subUnitsList) do
+				drones[#drones + 1] = id
+			end
+			table.sort(drones)
+			return drones
+		end)
+	end
 	gadgetHandler:RegisterAllowCommand(CMD_CARRIER_SPAWN_ONOFF)
 	local allUnits = Spring.GetAllUnits()
 	local unitCount = #allUnits
@@ -2177,6 +2191,9 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
+	if GG.PortalWorlds then
+		GG.PortalWorlds.RegisterTransitMembers("carriers", nil)
+	end
 	for unitID, _ in pairsNext, safe(carrierMetaList) do
 		local carrierMetaData = carrierMetaList[unitID]
 		if carrierMetaData then
