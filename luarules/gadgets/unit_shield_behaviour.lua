@@ -241,6 +241,7 @@ local spSetUnitShieldRechargeDelay = Spring.SetUnitShieldRechargeDelay
 local spDeleteProjectile = Spring.DeleteProjectile
 local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitWeaponVectors = Spring.GetUnitWeaponVectors
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
@@ -517,15 +518,16 @@ local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTe
 	local unitShields = unitCoverages[unitID]
 	-- Empty shield lists are nil'd out, so existence implies non-empty
 	if unitShields and attackerID and not spAreTeamsAllied(unitTeam, attackerTeam) then
+		-- Shields are smart and stop only non-allied projectiles. This stops only non-allied explosions, too.
 		local attackerShields = unitCoverages[attackerID]
-		if not attackerShields then
-			return true
-		end
-
-		-- The loop only ever checked one entry (break on match, return on mismatch), so use next() directly
-		local shieldUnitID = next(unitShields)
-		if shieldUnitID and not attackerShields[shieldUnitID] then
-			return true
+		local attackerAllyTeam = spGetTeamAllyTeamID(attackerTeam)
+		for shieldUnitID in pairs(unitShields) do
+			if
+				not (attackerShields and attackerShields[shieldUnitID])
+				and spGetUnitAllyTeam(shieldUnitID) ~= attackerAllyTeam -- Allied damages are passed through.
+			then
+				return true
+			end
 		end
 	end
 
