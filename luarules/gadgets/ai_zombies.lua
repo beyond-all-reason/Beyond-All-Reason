@@ -32,6 +32,7 @@ local DEGREES_TO_RADIANS = math.pi / 180
 
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 3
 local STUCK_CHECK_INTERVAL = Game.gameSpeed * 12
+local STUCK_SELF_DESTRUCT_INTERVAL = Game.gameSpeed * 60 * 3
 local AGGRO_CHECK_INTERVAL = Game.gameSpeed * 30
 local AGGRO_DURATION = Game.gameSpeed * 60
 local AGGRO_MIN_START_FRAME = Game.gameSpeed * 60 * 15
@@ -39,6 +40,8 @@ local GHOST_ORDER_COOLDOWN = Game.gameSpeed * 5
 
 local STUCK_DISTANCE = 50
 local STUCK_DISTANCE_SQUARED = STUCK_DISTANCE ^ 2
+local STUCK_SELF_DESTRUCT_DISTANCE = 300
+local STUCK_SELF_DESTRUCT_DISTANCE_SQUARED = STUCK_SELF_DESTRUCT_DISTANCE ^ 2
 local NOGO_ZONE_RADIUS = 600
 local NOGO_ZONE_RADIUS_SQUARED = NOGO_ZONE_RADIUS ^ 2
 local ENEMY_ATTACK_DISTANCE = 1000
@@ -74,6 +77,7 @@ local CMD_CAPTURE = CMD.CAPTURE
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_RESURRECT = CMD.RESURRECT
 local CMD_STOP = CMD.STOP
+local CMD_SELF_DESTRUCT = CMD.SELFD
 local CMD_OPT_SHIFT = { "shift" }
 
 local FIRE_STATE_FIRE_AT_ALL = 3
@@ -87,6 +91,7 @@ local ENVIRONMENTAL_DAMAGE_ID = Game.envDamageTypes.GroundCollision
 local MAP_SIZE_X = Game.mapSizeX
 local MAP_SIZE_Z = Game.mapSizeZ
 local MAP_PERIMETER = 2 * (MAP_SIZE_X + MAP_SIZE_Z)
+local WATER_IS_LAVA = BAR.Lava ~= nil and BAR.Lava.isLavaMap == true
 local FEATURE_ID_OFFSET = Game.maxUnits
 local OBJECTIVE_TYPE_NORMAL = 1
 local OBJECTIVE_TYPE_AGGRO = 2
@@ -380,6 +385,10 @@ local function isUnitInGaiaLos(unitID)
 	return losState and losState % 2 == 1 -- raw LOS mask: odd means currently in Gaia sight
 end
 
+local function isPositionInLava(positionY)
+	return WATER_IS_LAVA and _G.lavaLevel ~= nil and positionY < _G.lavaLevel
+end
+
 local function getCombatTargetData(unitDefID, targetID)
 	if not targetID or not spValidUnitID(targetID) or spGetUnitIsDead(targetID) then
 		return
@@ -399,7 +408,7 @@ local function getCombatTargetData(unitDefID, targetID)
 		and not spGetUnitIsBeingBuilt(targetID)
 		and isUnitInGaiaLos(targetID)
 	local shouldReclaim = targetIsTakeable and isObjective
-	local shouldCapture = targetIsTakeable and not isObjective
+	local shouldCapture = targetIsTakeable and not isObjective and not isPositionInLava(targetY)
 	local weaponRange = getWeaponRangeForTarget(unitDefID, targetID, targetDefID, targetY)
 	if shouldReclaim or shouldCapture or (weaponRange and weaponRange > 0) then
 		return targetX, targetZ, shouldCapture, weaponRange, shouldReclaim
@@ -901,11 +910,13 @@ local function getNearestResurrectableWreck(unitID)
 	for featureIndex = 1, #features do
 		local featureID = features[featureIndex]
 		if isResurrectableWreck(featureID) then
-			local featureX, _, featureZ = spGetFeaturePosition(featureID)
-			local featureDistanceSquared = distance2dSquared(unitX, unitZ, featureX, featureZ)
-			if not bestDistanceSquared or featureDistanceSquared < bestDistanceSquared then
-				bestFeatureID = featureID
-				bestDistanceSquared = featureDistanceSquared
+			local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
+			if not isPositionInLava(featureY) then
+				local featureDistanceSquared = distance2dSquared(unitX, unitZ, featureX, featureZ)
+				if not bestDistanceSquared or featureDistanceSquared < bestDistanceSquared then
+					bestFeatureID = featureID
+					bestDistanceSquared = featureDistanceSquared
+				end
 			end
 		end
 	end
@@ -1061,6 +1072,9 @@ local function initializeZombie(unitID, unitDefID)
 	addZombieToBucket(zombieOrderBuckets, ZOMBIE_ORDER_CHECK_INTERVAL, unitID, zombieData, "orderBucketIndex")
 	addZombieToBucket(zombieStuckBuckets, STUCK_CHECK_INTERVAL, unitID, zombieData, "stuckBucketIndex")
 	if mobileUnitDefs[unitDefID] then
+		zombieData.selfDestructTimestamp = gameFrame
+		zombieData.selfDestructX = unitX
+		zombieData.selfDestructZ = unitZ
 		setRandomEdgeObjective(zombieData)
 		totalMobileZombiePower = totalMobileZombiePower + unitPower
 	end
@@ -1266,6 +1280,20 @@ local function updateStuckZombies()
 			end
 			local recoveryObjective = ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID))
 			issueObjectiveMove(unitID, unitDefID, zombieData, recoveryObjective)
+		end
+		if
+			mobileUnitDefs[unitDefID]
+			and gameFrame - zombieData.selfDestructTimestamp >= STUCK_SELF_DESTRUCT_INTERVAL
+		then
+			if
+				distance2dSquared(unitX, unitZ, zombieData.selfDestructX, zombieData.selfDestructZ)
+				<= STUCK_SELF_DESTRUCT_DISTANCE_SQUARED
+			then
+				spGiveOrderToUnit(unitID, CMD_SELF_DESTRUCT, {}, 0)
+			end
+			zombieData.selfDestructTimestamp = gameFrame
+			zombieData.selfDestructX = unitX
+			zombieData.selfDestructZ = unitZ
 		end
 		zombieData.lastX = unitX
 		zombieData.lastZ = unitZ
