@@ -194,7 +194,7 @@ return {
 			},
 		},
 	},
-	scavapparition = {
+	scavwraith = {
 		usedefaultexplosions = false,
 		grounddust = {
 			air = true,

@@ -1,4 +1,9 @@
 # October
+- [Zombies]
+  - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
+  - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
+  - Wraith respawns no longer have a 1/3rd chance to drop a queued zombie spawn. Each wave drops its lowest-value third instead.
+  - Wraith health 500 -> 100
 - [Commands]
   - Shift+Space area commands give your units a faster path to travel. Large areas can take 20%–70% less travel time.
   - Area commands (with and without Shift+Space) no longer drop targets past the 2,000 command limit. Your unit selection gets split into groups that take their own targets, with no targets dropped.
@@ -7,7 +12,7 @@
   - Difficulty levels have been replaced with modes you can mix and match:
     - Basic: the dead come back to life once
     - Draugr: all dead always create a corpse
-    - Wraith: destroyed corpses leave apparitions that respawn 2/3rds of the dead with a 3x zombie resurrection time delay
+    - Wraith: destroyed corpses leave Wraiths that respawn 2/3rds of the dead with a 3x zombie resurrection time delay
     - Hydra: spawn 2-6 zombies from each corpse
     - Akumu: all of the above
     - Spidergeddon: Akumu, but zombies are converted into an equivalent value of spider-like units
