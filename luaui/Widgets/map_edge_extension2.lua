@@ -1,3 +1,6 @@
+if VFS.Include("luarules/Utilities/map_regions.lua") then
+	return false
+end
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
