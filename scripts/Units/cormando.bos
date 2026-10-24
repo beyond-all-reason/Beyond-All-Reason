@@ -437,7 +437,6 @@ RestoreAfterDelay()
 
 	turn barrel to x-axis <0.0> speed <225.0>;
 	turn sleeve to x-axis <0.0> speed <225.0>;
-	turn flare to x-axis <0.0> speed <225.0>;
 	move turret to y-axis [0.0] speed [20.0];
 }
 
@@ -457,13 +456,10 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 
 	turretHeading = heading - torsoRotation;
-	// turn barrel to x-axis <150.0> speed <225.0>;
-	// turn sleeve to x-axis <110.0> speed <225.0>;
 
 	wait-for-turn barrel around x-axis;
 
 	turn barrel to x-axis <180.0> speed <225.0>;
-	// turn sleeve to x-axis <180.0> speed <225.0>;
 
 	sleevePitch = <-270.0> - pitch;
 	worldHeading = (heading + (get HEADING)) % 65536;
