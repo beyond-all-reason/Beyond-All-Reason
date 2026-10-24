@@ -7,6 +7,7 @@
 - [Commands]
   - Shift+Space area commands give your units a faster path to travel. Large areas can take 20%–70% less travel time.
   - Area commands (with and without Shift+Space) no longer drop targets past the 2,000 command limit. Your unit selection gets split into groups that take their own targets, with no targets dropped.
+- [Armada Amphibious Complex] Added Platypus to its production options.
 - [Zombies]
   - Added a limited time Spidergeddon mode
   - Difficulty levels have been replaced with modes you can mix and match:
