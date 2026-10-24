@@ -1,7 +1,7 @@
 return {
 	cormando = {
 		activatewhenbuilt = true,
-		autoheal = 10,
+		autoheal = 11,
 		builddistance = 275,
 		builder = true,
 		buildpic = "CORMANDO.DDS",
@@ -54,9 +54,10 @@ return {
 		customparams = {
 			fall_damage_multiplier = 0,
 			mine_resistant = true,
+			minesweeper = 450,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.2,
+			paralyzemultiplier = 0.0,
 			paratrooper = true,
 			reaimtime = 2,
 			stealths_transport = true,
