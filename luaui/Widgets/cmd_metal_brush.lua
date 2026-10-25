@@ -599,6 +599,11 @@ end
 
 local function buildClusters(radius)
 	ensureSpotCache()
+	-- The first build can still be on hold (waiting for the gadget to apply paint):
+	-- leave the clusters dirty so the next frame builds them.
+	if not spotsCache then
+		return
+	end
 	local r2 = radius * radius
 	---@type MetalCluster[]
 	local clusters = {}
@@ -815,6 +820,9 @@ local function computePointsSum(points)
 		return 0
 	end
 	ensureSpotCache()
+	if not spotsCache then
+		return 0
+	end
 	---@type number
 	local total = 0
 	for i = 1, #spotsCache do
@@ -943,6 +951,9 @@ end
 
 local function drawClusterLabels()
 	ensureClusters()
+	if not clusterCache then
+		return
+	end
 	for i = 1, #clusterCache do
 		local c = clusterCache[i]
 		local gy = GetGroundHeight(c.cx, c.cz)
