@@ -25,7 +25,7 @@ local INITIAL_LEFT_VW = 60
 local INITIAL_TOP_VH = 10
 
 ----------------------------------------------------------------
--- Type definitions (Lua LS only — strip at compile time, no runtime cost)
+-- Type definitions (Lua language server only, no runtime cost)
 ----------------------------------------------------------------
 
 ---Shape of the data model bound to the RML document.
@@ -37,14 +37,10 @@ local INITIAL_TOP_VH = 10
 ---@field onSearchBlur fun(event: any)                        -- data-event-blur on search input
 ---@field onSearchChange fun(event: any)                      -- data-event-change on search input
 ---@field onSearchClear fun(event: any)                       -- data-event-click on clear button
--- Note: panel visibility is NOT a model field. Show/hide is controlled at the
--- document level via document:Show() / document:Hide() so RmlUi drops the
--- whole document from its active set when off — no layout/draw cost when
--- closed.
--- Note: the tile grid is built imperatively via CreateElement/AppendChild.
--- Recoil's data-for does not propagate iterator scope to child element
--- bindings (d.field fails with "Could not find variable"), so we use the
--- same imperative DOM approach as gui_feature_placer.
+-- Panel visibility is not a model field: document:Show()/Hide() drops the whole
+-- document from RmlUi's active set, so a closed panel costs nothing.
+-- The tile grid is built with CreateElement/AppendChild because Recoil's data-for
+-- does not pass the iterator scope to child bindings ("Could not find variable").
 
 ---@class WidgetState
 ---@field rmlContext any
@@ -60,16 +56,14 @@ local widgetState = {
 	rootElement = nil,
 }
 
--- Hoisted above initialModel so model-resident handlers can capture them
--- as upvalues. Reassignments work because Lua closures bind to the local
--- slot, not the value at definition time.
+-- Declared above initialModel so its handlers capture the local slot; the
+-- function is assigned further down.
 local syncDecals -- forward decl, assigned further down
 local lastSearchFilter = ""
 
--- Set of currently-selected category keys. Plain click selects exactly one;
--- Shift+click toggles a category in/out. "all" is mutually exclusive with the
--- specific categories. Mirrored to dm boolean flags (dcCat*) for the
--- data-class-active highlight bindings.
+-- Selected category keys. Plain click selects one, Shift+click toggles one in or
+-- out; "all" excludes the specific categories. Mirrored to dm dcCat* flags for
+-- the data-class-active highlights.
 local selectedDecalCats = { all = true }
 local DECAL_CAT_KEYS =
 	{ "all", "scars", "explosions", "tracks", "builds", "footprints", "scorch", "groundplates", "other" }
@@ -130,8 +124,7 @@ local initialModel = {
 			end
 		end
 		applyDecalCatFlags()
-		-- syncDecals is defined below; forward declared via the closure since
-		-- this whole table is the model and `syncDecals` is in module scope.
+		-- syncDecals is the forward-declared module local, assigned below.
 		syncDecals()
 	end,
 
@@ -143,9 +136,8 @@ local initialModel = {
 		Spring.SDLStopTextInput()
 	end,
 
-	-- data-value="search" updates dm.search AFTER the change event fires
-	-- (RmlUi quirk, see rmlui_data_value_race memory note). So we read the
-	-- input element's value directly rather than dm.search.
+	-- RmlUi writes data-value="search" to dm.search only after the change event
+	-- fires, so read the input element directly.
 	onSearchChange = function(_event)
 		local doc = widgetState.document
 		local el = doc and doc:GetElementById("dp-search")
@@ -168,23 +160,19 @@ local initialModel = {
 	end,
 }
 
--- Tracks document:Show/Hide state so we don't issue redundant calls every frame.
--- See setVisible() below.
+-- Last document:Show/Hide state, so setVisible() does not repeat calls every frame.
 local documentVisible = false
 
--- One-shot guard for the lazy first sync. WG.DecalPlacer may not be ready in
--- widget:Initialize (engine resources still loading), so widget:Update retries
--- until categories arrive. After that — never. State changes (category click,
--- filter change) drive subsequent syncs explicitly; Update does NOT poll.
+-- Guard for the lazy first sync: WG.DecalPlacer may have no categories yet in
+-- widget:Initialize, so Update retries until they arrive. Later syncs come from
+-- state changes (category click, filter change); Update does not poll.
 local firstSyncDone = false
 
 local userDragged = false
 
 ----------------------------------------------------------------
--- Document-level visibility. document:Show()/Hide() takes the whole document
--- in/out of the RmlUi context's active set — when hidden, NO layout/draw/event
--- cost. This is the right primitive for "panel is closed" (vs CSS class
--- toggling, which keeps the document live).
+-- Document-level visibility: a hidden document has no layout, draw or event
+-- cost, unlike toggling a CSS class.
 ----------------------------------------------------------------
 local function setVisible(visible)
 	if visible == documentVisible then
@@ -202,13 +190,10 @@ local function setVisible(visible)
 	end
 end
 
--- Polls WG.DecalPlacer.state.active once per Update tick. The X button
--- deactivates the tool directly (see widget:OnQuit), so there's no separate
--- "manually closed" concept — tool active state is the single source of
--- truth for whether the panel is shown.
--- TODO: replace with an event-driven WG.DecalPlacer.onActiveChanged hook
--- when the WG layer grows callbacks; until then we poll.
--- Returns whether the tool is currently engaged so callers can early-bail.
+-- Show the panel while the tool is active. The X button deactivates the tool
+-- (widget:OnQuit), so tool state is the single source of truth. Polled once per
+-- Update; a WG.DecalPlacer change hook would remove the poll.
+-- Returns whether the tool is engaged so callers can bail early.
 local function syncVisibilityFromTool()
 	local state = WG.DecalPlacer and WG.DecalPlacer.getState()
 	local toolActive = state and state.active or false
@@ -260,10 +245,8 @@ local function findPreviewPath(decalName)
 end
 
 ----------------------------------------------------------------
--- Mask-shader pre-bake module — channel-encoded BMP atlases (mainscars,
--- tracks, footprints) have no alpha. Module composites them through a one-
--- shot shader into RGBA PNGs cached on disk, then <img> renders the cached
--- PNG normally. See dp_preview_bake.lua for the full API + design notes.
+-- Bakes channel-encoded BMP atlases (mainscars, tracks, footprints) into PNGs
+-- an <img> can show. API and design notes in dp_preview_bake.lua.
 ----------------------------------------------------------------
 local Bake = require("luaui/RmlWidgets/gui_decal_placer/dp_preview_bake")
 local PREVIEW_CACHE_DIR = "Terraform Brush/DecalPreviews/"
@@ -272,22 +255,18 @@ local PREVIEW_CACHE_DIR = "Terraform Brush/DecalPreviews/"
 -- Helpers
 ----------------------------------------------------------------
 local function buildRootStyle()
-	-- Width lives in RCSS (.dp-root); we only set position here.
+	-- Width lives in RCSS (.dp-root); only the position is set here.
 	return string.format("left: %.2fvw; top: %.2fvh;", INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
 ----------------------------------------------------------------
--- Tile elements by decal name — for updating selection visuals without a
--- full DOM rebuild. Reset on every full syncDecals call.
+-- Tile elements by decal name, for selection visuals without a full DOM rebuild.
+-- Reset on every syncDecals.
 local tileElements = {}
 
--- Derive the visible decal rows from WG state + active filter/category and
--- rebuild the tile grid imperatively.
--- NOTE: Recoil's data-for does not propagate iterator scope to child
--- element bindings, so we use CreateElement/AppendChild/AddEventListener
--- instead (same pattern as gui_feature_placer).
--- Idempotent — safe to call on category change, filter change, bake finish.
--- (Forward-declared above so initialModel handlers can capture it.)
+-- Rebuild the tile grid from WG state and the active filter/category (built by
+-- hand, see the data-for note at the top). Safe to call on category change,
+-- filter change or bake finish.
 ----------------------------------------------------------------
 syncDecals = function()
 	local dm = widgetState.dmHandle
@@ -389,7 +368,7 @@ syncDecals = function()
 						end, false)
 
 						tileElements[name] = itemEl
-						-- Wrap in dp-tile-host so RCSS 84dp×84dp sizing applies
+						-- Wrap in dp-tile-host so the RCSS 84dp x 84dp sizing applies
 						local hostEl = doc:CreateElement("div")
 						hostEl:SetClass("dp-tile-host", true)
 						hostEl:AppendChild(itemEl)
@@ -411,11 +390,9 @@ end
 -- Declarative event handlers (called from RML via onclick="widget:Foo()")
 ----------------------------------------------------------------
 function widget:OnQuit()
-	-- Closing the panel disengages the tool — this is the panel's whole UI,
-	-- so closing it without deactivating leaves the main terraform brush
-	-- still highlighting DECALS as active. Deactivating cascades through
-	-- WG.DecalPlacer.getState().active → syncVisibilityFromTool hides the
-	-- document on the next Update tick.
+	-- The panel is the tool's whole UI, so closing it deactivates the tool;
+	-- otherwise the main panel keeps DECALS highlighted. syncVisibilityFromTool
+	-- hides the document on the next Update.
 	if WG.DecalPlacer then
 		WG.DecalPlacer.clearSelectedDecals()
 		WG.DecalPlacer.deactivate()
@@ -431,8 +408,7 @@ function widget:OnClearSelection()
 end
 
 ----------------------------------------------------------------
--- Drag handle wiring (the only imperative event listener left — everything
--- else lives declaratively in the RML).
+-- Drag handle wiring (the only imperative listener; the rest is in the RML).
 ----------------------------------------------------------------
 local function wireDragHandle()
 	local doc = widgetState.document
@@ -477,9 +453,7 @@ function widget:Initialize()
 
 	widgetState.document:ReloadStyleSheet()
 
-	-- Document starts hidden. widget:Update() calls setVisible() based on
-	-- whether the DECALS tool is active, so the panel appears the first time
-	-- the user picks the tool — never paying layout cost in between.
+	-- Starts hidden; Update shows it the first time the DECALS tool is picked.
 	widgetState.document:Hide()
 	documentVisible = false
 
@@ -488,21 +462,18 @@ function widget:Initialize()
 	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
 	wireDragHandle()
-	-- Tile list is NOT built here. Building it triggers the backend decal
-	-- enumeration, bitmap-dir scans and the preview bake queue — real GL and
-	-- disk work every match start for players who never open the editor.
-	-- widget:Update's lazy first-build path populates it on first activation.
+	-- The tile list is not built here: that runs the decal enumeration, bitmap-dir
+	-- scans and the bake queue, real GL and disk work at every match start for
+	-- players who never open the editor. Update builds it on first activation.
 end
 
--- Drain bake queue. Spring restricts gl.RenderToTexture to draw callbacks,
--- so this is where the bake module's per-frame work happens.
+-- Drain the bake queue here: gl.RenderToTexture only works in draw callbacks.
 function widget:DrawScreen()
 	Bake.drainQueue()
 end
 
 function widget:Update()
-	-- After a batch of bakes completes, re-push the model so newly-cached
-	-- srcPaths land on their tiles.
+	-- Rebuild the tiles once a batch of bakes finishes so the new PNGs show.
 	if Bake.consumeResync() then
 		syncDecals()
 	end
@@ -516,7 +487,7 @@ function widget:Update()
 		return
 	end
 
-	-- Auto-position next to terraform main panel until user drags
+	-- Sit next to the terraform main panel until the user drags the window
 	local mainPanel = WG.TerraformerShared
 		and WG.TerraformerShared.getElementRect
 		and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
@@ -531,10 +502,7 @@ function widget:Update()
 		end
 	end
 
-	-- Lazy FIRST build only — WG.DecalPlacer's category data may not be ready
-	-- in widget:Initialize. After firstSyncDone, syncDecals is only ever called
-	-- in response to actual state changes (category click, filter change), never
-	-- from this Update tick.
+	-- Lazy first build only (see firstSyncDone).
 	if not firstSyncDone then
 		local cats = WG.DecalPlacer.getDecalCategories()
 		if cats and next(cats) then

@@ -96,9 +96,8 @@ local dp = {
 	redoStack = {}, -- each entry = { specs = { spec, ... } } (see specs)
 	-- How each placed decal was made, by id, so an undone batch can be made again
 	specs = {},
-	-- Registry of decals this tool placed (set of ids). GetAllGroundDecals() also
-	-- returns engine decals (unit tracks, scars, building plates); project export
-	-- must only serialize our own placements.
+	-- Ids of decals this tool placed. GetAllGroundDecals() also returns engine
+	-- decals (tracks, scars, building plates); project export saves only ours.
 	projectIDs = {},
 	undoCount = 0,
 	redoCount = 0,
@@ -158,13 +157,9 @@ local function classifyDecal(name)
 end
 
 ----------------------------------------------------------------
--- Normal-map detection + main<->norm pairing.
--- The engine decal atlas exposes both the color ("main*") and normal
--- ("norm*") halves of a pair as individual "main" textures (from
--- GetGroundDecalTextures' perspective), but the UX use is to pick ONE
--- entry that bundles both. We hide the norm-only entries from the UI and
--- bind the paired normal automatically when the main is placed.
-----------------------------------------------------------------
+-- Normal-map detection and main/norm pairing. The engine atlas lists both
+-- halves of a pair ("main*" and "norm*") as separate textures; the library
+-- shows one entry per pair and binds the normal when the main is placed.
 local function isNormalName(lname)
 	-- Leading "norm" / "nrm" / trailing "_norm" / "_nrm" / "_normal" / "_n"
 	return lname:find("^norm") ~= nil
@@ -176,9 +171,8 @@ local function isNormalName(lname)
 end
 
 local function normalBaseKey(lname)
-	-- Produce a canonical "pair key" so main and norm textures collide.
-	-- "mainscar_5" -> "scar_5", "normscar_5" -> "scar_5"
-	-- "armyork_tracks_norm" -> "armyork_tracks"
+	-- Canonical pair key so main and norm names collide:
+	-- "mainscar_5" and "normscar_5" -> "scar_5", "armyork_tracks_norm" -> "armyork_tracks"
 	local k = lname
 	k = k:gsub("^main", ""):gsub("^norm", ""):gsub("^nrm", "")
 	k = k:gsub("_norm$", ""):gsub("_nrm$", ""):gsub("_normal$", ""):gsub("_n$", "")
@@ -219,9 +213,8 @@ local function buildDecalList()
 		end
 	end
 
-	-- Pass 2: emit one library entry per pair, preferring the main half.
-	-- Any key that only has a norm half (orphan normal) is skipped — rendering
-	-- a raw normal map on terrain looks like nothing useful.
+	-- Pass 2: one library entry per pair, the main half. Orphan normals are
+	-- skipped: a raw normal map on terrain shows nothing useful.
 	for key, m in pairs(mainsByKey) do
 		local entry = {
 			name = m.name,
@@ -242,9 +235,8 @@ local function buildDecalList()
 		cl[#cl + 1] = entry
 	end
 
-	-- Custom ground decals are registered into the engine atlas via
-	-- gamedata/resources.lua `graphics.decals` subtable; engine assigns them
-	-- the atlas name `maindecal_<i>` and they show up here automatically.
+	-- Custom ground decals come from gamedata/resources.lua `graphics.decals`;
+	-- the engine names them `maindecal_<i>` and they appear here automatically.
 
 	table.sort(decalList, function(a, b)
 		return a.name < b.name
@@ -309,9 +301,8 @@ local function applyDecal(tex, wx, wz, sizeX, sizeZ, rotRad)
 		return nil
 	end
 	SetGroundDecalTexture(id, tex, true)
-	-- Bind matching normal map, if the atlas has one registered for this main.
-	-- Placing the main alone makes the decal unlit/flat; wiring the norm sibling
-	-- gives proper per-pixel lighting that blends with the terrain.
+	-- Bind the paired normal map if the atlas has one: without it the decal is
+	-- unlit and flat instead of lit per pixel like the terrain.
 	local norm = normPartnerByMain[tex]
 	if norm then
 		SetGroundDecalTexture(id, norm, false)
@@ -428,7 +419,7 @@ local function placeRemove(cx, cz)
 	end
 end
 
--- Apply TerraformBrush grid-snap + symmetric fan-out to a placement call.
+-- Apply the TerraformBrush grid snap and symmetric fan-out to a placement call.
 -- `fn(x, z)` is one of placeScatter / placePoint / placeRemove.
 local function placeSymmetric(fn, cx, cz)
 	local tb = WG.TerraformBrush
@@ -695,9 +686,9 @@ local function decalSave()
 	Echo("[Decal Placer] Saved " .. n .. " decals to " .. filename)
 end
 
--- Project-mode save: only decals placed by this tool (dp.projectIDs), stable order,
--- no timestamp comment — repeated saves of the same scene must serialize identically
--- (project files live in git). Returns the decal count written, or nil on error.
+-- Project save: only decals this tool placed (dp.projectIDs), stable order, no
+-- timestamp, so repeated saves of one scene match byte for byte (project files
+-- live in git). Returns the decal count written, or nil on error.
 local function decalSaveProject(explicitPath)
 	if not GetAllGroundDecals then
 		return nil
@@ -750,12 +741,11 @@ local function decalLoad(filename)
 		end
 		filename = saves[#saves]
 	end
-	-- Prefer loadfile (BAR's canonical pattern, see cmd_light_placer.load).
-	-- io.open + loadstring occasionally fails inside the widget sandbox for
-	-- files under SAVE_DIR; loadfile resolves the same path reliably.
+	-- loadfile first (as cmd_light_placer does): io.open + loadstring sometimes
+	-- fails in the widget sandbox for files under SAVE_DIR.
 	local fn, err = loadfile(filename)
 	if not fn then
-		-- Fallback: try io.open + loadstring in case the VFS path disagrees.
+		-- Fallback: io.open + loadstring in case the VFS path disagrees.
 		local f = io.open(filename, "r")
 		if not f then
 			Echo("[Decal Placer] Cannot open " .. filename .. ": " .. tostring(err))
@@ -875,12 +865,10 @@ function widget:Initialize()
 	}
 end
 
--- Persist the placement registry across /luaui reload: placed ground decals are
--- engine objects that survive a widget reload, but dp.projectIDs would not —
--- a project save right after a reload would then see zero owned decals and
--- delete the project's decals section. Guards: ids are only re-adopted in the
--- same session (game frame is monotonic within one) and are re-validated
--- against GetAllGroundDecals() at save time anyway.
+-- Persist the placement registry across /luaui reload: placed decals survive a
+-- widget reload but dp.projectIDs would not, and the next project save would
+-- drop the project's decals. Ids are re-adopted only within the same session
+-- (game frame is monotonic) and re-validated against GetAllGroundDecals() on save.
 function widget:GetConfigData()
 	local ids = {}
 	for id in pairs(dp.projectIDs) do
@@ -941,14 +929,14 @@ function widget:MousePress(mx, my, button)
 	if not dp.active or not dp.mode then
 		return false
 	end
-	-- Defer to measure tool when active so decal placement doesn't consume the click
+	-- Leave the click to the measure tool while it is active
 	do
 		local tb = WG.TerraformBrush
 		local st = tb and tb.getState and tb.getState() or nil
 		if st and st.measureActive then
 			return false
 		end
-		-- Defer to symmetry origin drag so terraform can grab the drag
+		-- Leave symmetry origin drags to the terraform brush
 		if st and st.symmetryActive then
 			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
 				return false
