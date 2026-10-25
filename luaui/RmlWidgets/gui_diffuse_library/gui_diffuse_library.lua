@@ -21,6 +21,12 @@ local MODEL_NAME = "diffuse_library_model"
 
 local WG = WG
 
+---@class DiffuseLibraryWidgetState
+---@field rmlContext table?
+---@field document table?
+---@field dmHandle table?
+---@field rootElement table?
+---@field dragHandle table?
 local widgetState = {
 	rmlContext = nil,
 	document = nil,
@@ -44,7 +50,9 @@ local thumbMatPath = {} -- { [matKey] = texture path } for selection re-derive
 local manuallyHidden = false
 local lastActive = false
 local userDragged = false
+---@type integer?
 local lastLibrarySig = nil -- detect material-library changes
+---@type string?
 local lastActivePath = nil -- detect active-layer texture changes (re-highlight)
 
 -- Categories, in display order. Derived from the material key by keyword.
@@ -95,6 +103,7 @@ local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 local THUMB_CACHE_DIR = "Terraform Brush/thumbs" -- write-dir, alongside textures/
 
 local thumbTextures = {} -- { [matKey] = cachePath string } kept for session
+---@type table<string, table?>
 local thumbImgEls = {} -- { [matKey] = <img> RmlUi element }
 local thumbFailed = {} -- { [matKey] = true } bake failed; don't retry it
 local thumbsPending = 0 -- filtered tiles still awaiting a thumbnail
@@ -292,6 +301,7 @@ local function onMaterialClick(mat)
 	end
 	local id = API.getActiveLayerId and API.getActiveLayerId()
 	local layers = API.getLayers and API.getLayers() or {}
+	---@type table?
 	local activeLayer
 	if id then
 		for j = 1, #layers do
@@ -321,6 +331,7 @@ local function rebuildMaterialList(filter)
 	if not listEl or not WG.DiffusePainter then
 		return
 	end
+	---@cast doc table
 
 	listEl.inner_rml = ""
 	materialElements = {}

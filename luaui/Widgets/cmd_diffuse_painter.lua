@@ -80,24 +80,84 @@ local MAX_FRACTAL_FREQ = 0.05
 -- ============================================================================
 local active = false
 
+---@type number, number
 local mapSizeX, mapSizeZ = 0, 0
 local numSqX, numSqZ = 0, 0
 
+---One SMF texture square the painter overrides.
+---@class DiffuseSquare
+---@field sx integer
+---@field sy integer
+---@field seedTex string? Engine diffuse copy (or the loaded project PNG).
+---@field compositeTex string? Baked result bound to the square.
+---@field bound boolean
+---@field dirty boolean
+---@field allocFailed boolean?
+
+---A paint layer; defaults in defaultLayer.
+---@class DiffuseLayer
+---@field id integer
+---@field name string
+---@field enabled boolean
+---@field opacity number
+---@field color [number, number, number]
+---@field blend string
+---@field altEnabled boolean
+---@field altMin number
+---@field altMax number
+---@field altFalloffLo number
+---@field altFalloffHi number
+---@field slopeEnabled boolean
+---@field slopeMin number
+---@field slopeMax number
+---@field slopeFalloffLo number
+---@field slopeFalloffHi number
+---@field handPaintEnabled boolean
+---@field texturePath string?
+---@field normalPath string?
+---@field roughPath string?
+---@field tileScale number
+---@field pbrStrength number?
+---@field hydroEnabled boolean
+---@field hydroStrength number
+---@field hydroFalloffLo number
+---@field hydroFalloffHi number
+---@field thermoEnabled boolean
+---@field thermoAngle number
+---@field thermoFalloff number
+---@field glowStrength number
+---@field grassDensity number
+---@field grassDensityCustom boolean
+
+---A material library entry (one diffuse texture plus its PBR siblings).
+---@class DiffuseMaterial
+---@field key string
+---@field name string
+---@field path string
+---@field resK number
+---@field normalPath string?
+---@field roughPath string?
+
 -- squares[key] = {sx, sy, seedTex, compositeTex, bound, dirty}
+---@type table<integer, DiffuseSquare?>
 local squares = {}
 -- masks[layerId][key] = RGBA8 paint-canvas FBO texture (per layer per square).
 -- For hand-paint layers, strokes are baked here with material*layerColor already
 -- composited in, so switching material later only affects FUTURE strokes.
+---@type table
 local masks = {}
 
 -- Layer records; Initialize adds one starter layer. Fields (full list and
 -- defaults in defaultLayer): id, name, enabled, opacity, color={r,g,b}, blend,
 -- alt*/slope* bands, handPaintEnabled, texture, erosion, glow and grass settings.
+---@type DiffuseLayer[]
 local layers = {}
+---@type integer?
 local activeLayerId = nil
 local nextLayerId = 1
 
 -- Material library catalog: array of { key, name, path, resK }
+---@type DiffuseMaterial[]
 local materialLibrary = {}
 
 -- ============================================================================
@@ -118,8 +178,18 @@ local CHANNEL_DEFS = {
 local CHANNEL_MAX_PX = 8192 -- GL-safe cap for 32x32 maps
 local CH_TILE_PX = 512 -- undo snapshot granularity on channel textures
 
+---One allocated shading-map channel texture.
+---@class DiffuseChannel
+---@field def table The CHANNEL_DEFS entry.
+---@field tex string
+---@field w integer
+---@field h integer
+---@field bound boolean
+
 -- channels[key] = { def, tex, w, h, bound }
+---@type table<string, DiffuseChannel?>
 local channels = {}
+---@type table<string, boolean>
 local channelsEnabled = { normals = false, specular = false, emission = false }
 -- Global specular intensity: how much of the material albedo leaks into the
 -- spec color (the mapping guide wants spec RGB to be the albedo "greatly darkened").
@@ -132,6 +202,7 @@ local grassAttachEnabled = true
 local GRASS_KEYWORDS = { "grass", "moss", "forest", "leaves", "meadow" }
 -- Each changed grass patch is an immediate VBO upload in grassgl4 and max-blend
 -- makes dense overlap redundant, so grass stamps run at their own, wider spacing.
+---@type number?, number?
 local grassLastX, grassLastZ = nil, nil
 local grassEditModeArmed = false
 
@@ -197,6 +268,7 @@ end
 
 -- Mouse drag
 local leftMouseHeld = false
+---@type number?, number?
 local lastPaintX, lastPaintZ = nil, nil
 
 -- Undo/redo: one entry per drag, holding the pre-stroke copy of every
@@ -205,39 +277,97 @@ local lastPaintX, lastPaintZ = nil, nil
 -- Mask snapshots are ~4 MB each and a max-radius drag with every channel on
 -- can add ~40 MB, so MAX_UNDO is the VRAM lever.
 local MAX_UNDO = 10
+
+---One undo record: a layer mask (layerId, key), a channel region (channel,
+---x0, y0, w, h) or a grass patch (grass, x, z, d). tex holds the saved state.
+---@class DiffuseHistoryItem
+---@field layerId integer?
+---@field key integer?
+---@field tex string|false|nil `false` = the mask did not exist.
+---@field channel string?
+---@field x0 integer?
+---@field y0 integer?
+---@field w integer?
+---@field h integer?
+---@field grass boolean?
+---@field x number?
+---@field z number?
+---@field d number?
+
+---The in-flight drag's undo entry.
+---@class DiffuseStrokeSnap
+---@field items DiffuseHistoryItem[]
+---@field seen table<string, boolean>
+
+---@type DiffuseHistoryItem[][]
 local undoStack = {} -- array of { {layerId=, key=, tex=texOrFalse}, ... }
+---@type DiffuseHistoryItem[][]
 local redoStack = {}
+---@type DiffuseStrokeSnap?
 local strokeSnap = nil -- in-flight drag: { items = {...}, seen = {"id:key"=true} }
 local pendingStrokeFinish = false -- mouse released but queued strokes not yet executed
+---@type any[]
 local pendingHistoryOps = {} -- "undo"/"redo"/number(target index); run in DrawWorld (GL context)
+
+---Map-project save job, advanced by projectSaveTick.
+---@class DiffuseProjectSaveJob
+---@field dir string
+---@field allSquares boolean
+---@field sx integer
+---@field sy integer
+---@field written string[]
+---@field failed integer?
+
+---Map-project load job, advanced by projectLoadTick.
+---@class DiffuseProjectLoadJob
+---@field squares table `{sx, sy, path}` entries.
+---@field channels table<string, string> Channel key -> PNG path.
+---@field i integer
+---@field cleared boolean?
+---@field loaded integer?
+---@field failed integer?
 
 -- Deferred GL work (Draw call-in context required)
 local pendingFullBake = false -- re-bake already-allocated squares
 local pendingFullCover = false -- allocate every map square + bake (heavy)
 local pendingExport = false -- /diffusepaintexport queued; runs in DrawWorld (GL context)
+---@type DiffuseProjectSaveJob?
 local pendingProjectSave = nil -- map-project save job (chunked in DrawWorld); see projectSaveTick
+---@type table?
 local projectSaveResult = nil -- result table once the save job finished
+---@type DiffuseProjectLoadJob?
 local pendingProjectLoad = nil -- map-project load job (chunked in DrawWorld); see projectLoadTick
+---@type table?
 local projectLoadResult = nil -- result table once the load job finished
 local PROJECT_SAVE_SQUARES_PER_TICK = 4 -- 1024^2 readback+PNG encode each; full-map capture must not freeze
 local PROJECT_LOAD_SQUARES_PER_TICK = 8
 local libraryScanned = false -- material library VFS walk done (deferred to first activate)
+---@type [number, number, integer, boolean][]
 local pendingPaintStrokes = {} -- array of {wx, wz, layerId, erase}
+---@type table<integer, boolean>
 local dirtySquares = {} -- squareKey -> true; consumed each Draw
 
 -- Shaders
+---@type integer?
 local compositorShader = nil
+---@type integer?
 local stampShader = nil
+---@type integer?
 local copyShader = nil
+---@type integer?
 local channelStampShader = nil
 
 -- Ping-pong scratch textures keyed by size (TILE_PX / MASK_PX). The compositor
 -- and stamp passes overwrite every texel (full quad, blending off), so one
 -- cached texture per size is safe to reuse.
+---@type table<number, string?>
 local scratchTex = {}
 
+---@type table<string, GL>
 local uComp = {} -- uniform locations on compositorShader
+---@type table<string, GL>
 local uStamp = {}
+---@type table<string, GL>
 local uChan = {} -- uniform locations on channelStampShader
 
 -- ============================================================================
@@ -389,6 +519,7 @@ local function snapshotMaskForStroke(layerId, key, existingMaskTex)
 		return
 	end
 	strokeSnap.seen[seenKey] = true
+	---@type DiffuseHistoryItem
 	local item = { layerId = layerId, key = key, tex = false }
 	if existingMaskTex then
 		local snapTex = glCreateTexture(MASK_PX, MASK_PX, {
@@ -508,6 +639,7 @@ end
 
 -- Restore one channel-region history item; forward-declared because it needs
 -- the channel helpers below, and assigned right after them.
+---@type fun(item: table)?
 local restoreChannelItem
 
 -- Swap an entry's saved state with the current one. Serves undo and redo: the
@@ -662,6 +794,8 @@ local function unbindChannel(ch)
 	ch.bound = false
 end
 
+---@param key string
+---@param on boolean?
 local function setChannelEnabled(key, on)
 	if channelsEnabled[key] == nil then
 		return
@@ -680,6 +814,7 @@ local function setChannelEnabled(key, on)
 end
 
 -- Snapshot the CH_TILE_PX tiles a stamp's pixel bbox covers, once per drag.
+---@param ch DiffuseChannel
 local function snapshotChannelTiles(ch, x0, y0, x1, y1)
 	if not strokeSnap then
 		return
@@ -954,6 +1089,7 @@ local function paintGrassAttach(wx, wz, layer, erase, effR, effS)
 	end
 	grassLastX, grassLastZ = wx, wz
 
+	---@type integer, number
 	local step, minVisible = 32, 0
 	if api.getConfig then
 		local cfg = api.getConfig()
@@ -1964,6 +2100,7 @@ end
 -- ============================================================================
 -- Layer management
 -- ============================================================================
+---@return DiffuseLayer
 local function defaultLayer(name, r, g, b)
 	return {
 		id = 0,
@@ -2614,6 +2751,7 @@ function widget:MouseMove(mx, my, dx, dy, button)
 	return false
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
 	if not active then
 		return false
@@ -2640,10 +2778,12 @@ end
 -- composite; untouched squares (full capture) read the engine's own diffuse
 -- through a transient texture, so a compiled map's shipped art rides along in
 -- the project. Returns true on success.
+---@return boolean
 local function projectSaveSquare(dir, sx, sy)
 	local fname = dir .. "sq_" .. sx .. "_" .. sy .. ".png"
 	local s = squares[squareKey(sx, sy)]
 	if s and s.compositeTex then
+		---@type boolean?
 		local ok
 		glRenderToTexture(s.compositeTex, function()
 			ok = gl.SaveImage(0, 0, TILE_PX, TILE_PX, fname, { yflip = false, alpha = true })
@@ -2671,6 +2811,7 @@ local function projectSaveSquare(dir, sx, sy)
 		glDeleteTexture(tmp)
 		return false
 	end
+	---@type boolean?
 	local ok
 	glRenderToTexture(scratch, function()
 		glBlending(false)
@@ -2688,6 +2829,7 @@ end
 
 local function projectSaveTick()
 	local req = pendingProjectSave
+	---@cast req DiffuseProjectSaveJob
 	if not copyShader then
 		if not createShaders() then
 			projectSaveResult = { error = "shader creation failed" }
@@ -2728,6 +2870,7 @@ local function projectSaveTick()
 	for key, ch in pairs(channels) do
 		if channelsEnabled[key] and ch.tex then
 			local fname = req.dir .. "channel_" .. key .. ".png"
+			---@type boolean?
 			local ok
 			glRenderToTexture(ch.tex, function()
 				-- alpha=true: normal-channel alpha carries the diffuse-blend weight
@@ -2756,6 +2899,7 @@ end
 
 local function projectLoadTick()
 	local req = pendingProjectLoad
+	---@cast req DiffuseProjectLoadJob
 	if not copyShader then
 		if not createShaders() then
 			projectLoadResult = { error = "shader creation failed" }
