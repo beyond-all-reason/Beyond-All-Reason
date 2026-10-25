@@ -200,6 +200,7 @@ local dragging = false
 local dragIdx = nil -- which position index is being dragged
 local dragStartX = nil
 local dragStartY = nil -- screen coords at mouse-down
+local dragFrom = nil -- { pos, x, z, y } of the position at mouse-down, for the drag's undo entry
 
 -- Hover state (drives cursor + marker highlight)
 local hoverPosIdx = nil -- index of position currently hovered (express mode)
@@ -1940,6 +1941,8 @@ function widget:MousePress(mx, my, button)
 				dragStartX = mx
 				dragStartY = my
 				dragging = false
+				local p = positions[nearIdx]
+				dragFrom = { pos = p, x = p.x, z = p.z, y = p.y }
 				return true
 			end
 			-- With symmetry on, each placed copy takes the next player in the rotation; a copy
@@ -1973,11 +1976,12 @@ function widget:MousePress(mx, my, button)
 			end
 			return true
 		elseif button == 3 then
-			-- RMB undoes the last placement. Take the newest position entry, not the newest
-			-- entry: startbox entries share the stack and have no count.
+			-- RMB undoes the last placement. Take the newest placement entry, not the newest
+			-- entry: startbox entries share the stack and have no count, and drag entries
+			-- ("move") are for Ctrl+Z only.
 			local at
 			for i = #undoHistory, 1, -1 do
-				if (undoHistory[i].mode or "express") ~= "startbox" then
+				if (undoHistory[i].mode or "express") ~= "startbox" and undoHistory[i].op ~= "move" then
 					at = i
 					break
 				end
@@ -2476,6 +2480,20 @@ function widget:MouseRelease(mx, my, button)
 	end
 
 	if subMode == "express" and dragIdx then
+		-- A drag that moved the position is one undo step. The entry holds the position
+		-- itself, not its index, so it stays right whatever is removed later.
+		local p = positions[dragIdx]
+		if dragging and dragFrom and p and dragFrom.pos == p and (p.x ~= dragFrom.x or p.z ~= dragFrom.z) then
+			undoHistory[#undoHistory + 1] = {
+				mode = "express",
+				op = "move",
+				pos = p,
+				x = dragFrom.x,
+				z = dragFrom.z,
+				y = dragFrom.y,
+			}
+		end
+		dragFrom = nil
 		dragIdx = nil
 		dragging = false
 		return true
@@ -2636,9 +2654,23 @@ function widget:KeyPress(key, mods, isRepeat)
 		local toStack = isUndo and boxUndo.redo or undoHistory
 		local at
 		for i = #fromStack, 1, -1 do
-			if (fromStack[i].mode or "express") == subMode then
-				at = i
-				break
+			local e = fromStack[i]
+			if (e.mode or "express") == subMode then
+				-- A drag entry whose position was taken back since is dropped, not spent.
+				local live = e.op ~= "move"
+				if not live then
+					for _, p in ipairs(positions) do
+						if p == e.pos then
+							live = true
+							break
+						end
+					end
+				end
+				if live then
+					at = i
+					break
+				end
+				table.remove(fromStack, i)
 			end
 		end
 		if not at then
@@ -2652,6 +2684,9 @@ function widget:KeyPress(key, mods, isRepeat)
 		end
 		if entry.mode == "startbox" then
 			table.insert(toStack, boxUndo.apply(entry))
+		elseif entry.op == "move" then
+			-- A drag puts the position back where the drag started. No redo, like placements.
+			entry.pos.x, entry.pos.z, entry.pos.y = entry.x, entry.z, entry.y
 		else
 			-- Positions rewind by count and restore the rotation counters. They get no redo.
 			for _ = 1, (entry.count or 0) do
