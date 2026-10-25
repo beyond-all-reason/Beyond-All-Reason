@@ -429,7 +429,6 @@ widgetState = { -- forward-declared above playSound so mute check works
 	envSkyboxGridEl = nil, -- grid container element for GL scissor clipping
 	envCurrentSkybox = nil,
 	envDefaultSkybox = nil,
-	envLoadedTextures = {}, -- every library DDS path (filled by tf_environment); not deleted, the panel never loads most of them
 	envBoundTextures = {}, -- [name] = true for each name the thumbnails or a skybox apply bound; Shutdown frees these
 	envAppliedSkyboxTex = nil, -- live skybox's named texture: Shutdown keeps it, the engine sky still draws with it
 	skyPreviewShader = nil, -- GLSL cubemap-face preview shader (lazy-created in DrawScreenPost)
@@ -22929,7 +22928,6 @@ function widget:Shutdown()
 		end
 	end
 	widgetState.envBoundTextures = {}
-	widgetState.envLoadedTextures = {}
 
 	-- Restore sun lighting if shut down mid-fade
 	if skyFade.active and skyFade.origUnitAmbient then

@@ -76,11 +76,6 @@ function M.attach(doc, ctx)
 	if gridEl then
 		-- Store grid element for GL scissoring in drawSkyboxThumbnailPreviews
 		widgetState.envSkyboxGridEl = gridEl
-		-- DDS paths for pre-loading in DrawScreen (gl.Texture only works in Draw callins)
-		for _, dds in ipairs(ddsFiles) do
-			widgetState.envLoadedTextures[#widgetState.envLoadedTextures + 1] = dds.path
-		end
-		widgetState.envTexturesPreloaded = false
 
 		for _, dds in ipairs(ddsFiles) do
 			local previewPath = findPreview(dds.baseLower)
