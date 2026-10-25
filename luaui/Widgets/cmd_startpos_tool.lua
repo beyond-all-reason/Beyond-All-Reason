@@ -603,7 +603,8 @@ local function recordPlacement(prevCount, prevNext, prevNextSlot)
 	end
 	if #placed > 0 then
 		undoHistory[#undoHistory + 1] = {
-			mode = subMode,
+			-- RANDOM through the WG API can run in any submode; "startbox" entries are box edits.
+			mode = subMode ~= "startbox" and subMode or "shape",
 			placed = placed,
 			prevNextAllyTeam = prevNext,
 			prevNextTeamSlot = prevNextSlot,
@@ -672,6 +673,8 @@ local function placeRandomPositions(cx, cz)
 	local pts = generateRandomPositions(cx, cz)
 	local numAlly = math_max(1, numAllyTeams)
 	local numSlot = math_max(1, numTeamsPerAlly)
+	-- One undo entry per press: Ctrl+Z takes back the whole batch.
+	local prevCount, prevNext, prevNextSlot = #positions, nextAllyTeam, nextTeamSlot
 	for i, pt in ipairs(pts) do
 		local zeroIdx = i - 1
 		local at, slot
@@ -684,6 +687,7 @@ local function placeRandomPositions(cx, cz)
 		end
 		addPosition(pt.x, pt.z, at, slot)
 	end
+	recordPlacement(prevCount, prevNext, prevNextSlot)
 end
 
 -- ============================================================
