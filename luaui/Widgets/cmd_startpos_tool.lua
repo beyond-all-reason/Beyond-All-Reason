@@ -277,8 +277,9 @@ local function generateCirclePositions(cx, cz, radius, count, rotation)
 end
 
 local function generatePolygonPositions(cx, cz, radius, sides, count, rotation)
-	-- Vertices first; if count > sides, subdivide every edge at its midpoint until there are
-	-- enough points (at most 6 levels).
+	-- Vertices first; if count > sides, subdivide edges at their midpoints until there are
+	-- enough points (at most 6 levels). The last level only splits as many edges as it needs,
+	-- spread evenly around the ring, so every vertex is always kept.
 	local pts = {}
 	local rotRad = rotation * math_pi / 180
 	local vertices = {}
@@ -297,12 +298,23 @@ local function generatePolygonPositions(cx, cz, radius, sides, count, rotation)
 	local level = 1
 	while #allPoints < count do
 		local prevPoints = {}
-		for i = 1, #allPoints do
-			local j = (i % #allPoints) + 1
-			local mx = (allPoints[i].x + allPoints[j].x) * 0.5
-			local mz = (allPoints[i].z + allPoints[j].z) * 0.5
+		local n = #allPoints
+		local need = count - n
+		local split = nil -- edges that get a midpoint on a partial level; nil = all of them
+		if need < n then
+			split = {}
+			for k = 0, need - 1 do
+				split[math_floor(k * n / need) + 1] = true
+			end
+		end
+		for i = 1, n do
 			prevPoints[#prevPoints + 1] = allPoints[i]
-			prevPoints[#prevPoints + 1] = { x = mx, z = mz }
+			if not split or split[i] then
+				local j = (i % n) + 1
+				local mx = (allPoints[i].x + allPoints[j].x) * 0.5
+				local mz = (allPoints[i].z + allPoints[j].z) * 0.5
+				prevPoints[#prevPoints + 1] = { x = mx, z = mz }
+			end
 		end
 		allPoints = prevPoints
 		level = level + 1
@@ -310,8 +322,8 @@ local function generatePolygonPositions(cx, cz, radius, sides, count, rotation)
 			break
 		end -- safety cap
 	end
-	-- The first `count` points walking around the ring, so a partial level leaves the
-	-- last vertices out.
+	-- The first `count` points walking around the ring: all of them when count > sides, the
+	-- first `count` vertices otherwise.
 	for i = 1, math_min(count, #allPoints) do
 		local x, z = clampToMap(allPoints[i].x, allPoints[i].z)
 		pts[i] = { x = x, z = z }
