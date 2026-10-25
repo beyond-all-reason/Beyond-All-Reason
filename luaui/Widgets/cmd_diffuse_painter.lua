@@ -2154,9 +2154,8 @@ local function setLayerTexture(id, path, tileScale, name)
 	layer.normalPath = mat and mat.normalPath or nil
 	layer.roughPath = mat and mat.roughPath or nil
 	-- Name the layer after its material ("snow 01") rather than "Layer N".
-	-- A layer with `customName` set keeps its name, but nothing sets that flag
-	-- today, so a material swap always renames.
-	if name and not layer.customName then
+	-- Layers cannot be renamed by hand, so a material swap always renames.
+	if name then
 		layer.name = name
 	end
 	-- Grass-like materials default to planting grass; a user-set density survives swaps.
