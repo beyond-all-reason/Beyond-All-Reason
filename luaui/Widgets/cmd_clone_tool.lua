@@ -82,7 +82,7 @@ local MSG_TBEGIN = "$clone_tbegin$"
 local MSG_TGRID = "$clone_tgrid$"
 local MSG_TEND = "$clone_tend$"
 
-local TERRAIN_CHUNK_SIZE = 400 -- vertices per message (legacy triplet format)
+local TERRAIN_CHUNK_SIZE = 400 -- vertices per triplet message; unused, terrain goes as grid chunks
 local GRID_HEIGHTS_PER_CHUNK = 3000 -- heights per grid message (~15KB)
 
 -- ---------------------------------------------------------------------------
@@ -112,8 +112,7 @@ local layers = {
 	features = true,
 	splats = true,
 	-- The tileset shader's variant paint (the SURFACE tool). Its mask belongs to
-	-- the surface painter, which is a write-dir widget, so the layer quietly
-	-- carries nothing when that widget is not installed.
+	-- the surface painter, a write-dir widget, so without it the layer carries nothing.
 	surface = true,
 	grass = true,
 	decals = false,
@@ -166,11 +165,9 @@ local splatCaptureW = 0
 local splatCaptureH = 0
 local SPLAT_TEX_NAME = "$ssmf_splat_distr"
 
--- gl.TextureInfo answers for a texture the map does not have (a canvas with no
--- DNTS set bound) with a TABLE whose sizes are zero, so `if info then` never
--- fires and the paste went on to ask for a 0x0 texture. gl.CreateTexture throws
--- on that, the error escaped DrawWorld and the handler REMOVED the clone tool -
--- every paste on such a map killed the widget.
+-- gl.TextureInfo returns a table with zero sizes (not nil) for a texture the map
+-- lacks (a canvas with no DNTS set). gl.CreateTexture throws on 0x0, and an error
+-- in DrawWorld makes the handler remove the widget, so check the sizes.
 local function splatTexSize()
 	local info = gl.TextureInfo(SPLAT_TEX_NAME)
 	local w = (info and info.xsize) or 0
@@ -231,20 +228,11 @@ local function transformPoint(lx, lz, sizeX, sizeZ, rot, mirX, mirZ, targetX, ta
 	return rx + targetX, rz + targetZ
 end
 
--- LuaUI runs ONE Lua heap (1.6 GB) shared by every widget, and a copy or a
--- paste is among the larger single allocations an editor session makes. Both
--- report where the heap stands and what the operation added, so an OOM report
--- names a culprit instead of leaving it to guesswork. Learned the hard way on
--- 2026-09-22: LuaUI died mid-paste, and a full heap cannot even load the code
--- to fix itself - `/luaui reload` failed with OOM inside LoadCode, so the
--- session was unrecoverable and the fix looked like it had not worked.
--- TWO numbers, because on 2026-09-22 they disagreed and only one of them kills
--- you: collectgarbage("count") is what the Lua GC tracks (barwidgets.lua runs an
--- emergency collect over 1.2 GB of it - that watchdog never fired), while
--- Spring.GetLuaMemUsage reports what the engine's allocator handed this Lua
--- state, which is the number in the OOM message. The crash came with the first
--- well under its limit and the second at the ceiling, so anything that shows
--- only the GC view can miss the growth entirely.
+-- LuaUI runs one Lua heap (1.6 GB) shared by every widget, and a copy or paste is
+-- among the largest allocations of an editor session, so both log the heap.
+-- Two numbers: collectgarbage("count") is the GC's view (barwidgets.lua's
+-- emergency collect watches it), Spring.GetLuaMemUsage is the allocator's, the
+-- one in the OOM message. They can disagree, and only the second one kills you.
 local function heapMB()
 	local gcMB = collectgarbage("count") / 1024
 	local allocMB = nil
@@ -270,11 +258,10 @@ local function heapNote(beforeGC, beforeAlloc)
 	return note
 end
 
--- The four destination corners of a pasted box in normalized map coordinates,
--- in the captured patch's own corner order ((0,0) (1,0) (1,1) (0,1)). Rotation
--- and mirroring already live in transformPoint, so the corner ORDER carries
--- them and a texture layer needs no separate rotation code: the same quad
--- serves the splat blit and the surface painter.
+-- The four destination corners of a pasted box in normalized map coordinates, in
+-- the captured patch's corner order ((0,0) (1,0) (1,1) (0,1)). The corner order
+-- carries rotation and mirroring from transformPoint, so the splat blit and the
+-- surface painter share one quad with no rotation code of their own.
 local function pasteQuadUV(sizeX, sizeZ, rot, mirX, mirZ, targetX, targetZ)
 	local quad = {}
 	local corners = { 0, 0, sizeX, 0, sizeX, sizeZ, 0, sizeZ }
@@ -499,7 +486,7 @@ local function doCopy()
 		buf.features = featureData
 	end
 
-	-- Splats: defer GL capture to next DrawWorld (GL calls not allowed in KeyPress)
+	-- Splats: GL capture deferred to the next DrawWorld (no GL in KeyPress)
 	local boxU0 = box.x1 / mapSizeX
 	local boxV0 = box.z1 / mapSizeZ
 	local boxU1 = box.x2 / mapSizeX
@@ -559,8 +546,8 @@ local function doCopy()
 		local allDecals = Spring.GetAllGroundDecals()
 		if allDecals then
 			for _, did in ipairs(allDecals) do
-				-- GetGroundDecalMiddlePos returns (posX, posZ); GetGroundDecalSizeAndHeight
-				-- returns half-extents (sizeX, sizeY) — same units SetGroundDecalPosAndDims takes.
+				-- GetGroundDecalSizeAndHeight returns half-extents (sizeX, sizeY), the same
+				-- units SetGroundDecalPosAndDims takes.
 				local dx, dz = Spring.GetGroundDecalMiddlePos(did)
 				if dx and dx >= box.x1 and dx <= box.x2 and dz >= box.z1 and dz <= box.z2 then
 					local sx, sz = Spring.GetGroundDecalSizeAndHeight(did)
@@ -602,8 +589,8 @@ local function doCopy()
 		end
 	end
 
-	-- Lights: the light placer's placed lights in the box, kept with their
-	-- height above the ground so they land as high above the pasted ground
+	-- Lights: the light placer's placed lights in the box, with their height above
+	-- the ground so they land as high above the pasted ground
 	if layers.lights then
 		local lightApi = WG.LightPlacer
 		if lightApi and lightApi.getPlacedLights then
@@ -665,9 +652,8 @@ local function applyPaste(targetX, targetZ)
 	local rotRad = rad(pasteRotation)
 
 	-- RAISE ONLY / LOWER ONLY: the terrain decides, every other layer pastes only
-	-- where it does. All of it is judged against the ground as it is now, before
-	-- the gadget applies the new heights. Without copied terrain there is nothing
-	-- to judge by, and the paste replaces as before.
+	-- where it does, all judged against the ground before the gadget applies the
+	-- new heights. Without copied terrain there is nothing to judge by: replace.
 	local blend = buf.terrain and pasteBlend or "replace"
 	local masked = blend ~= "replace"
 	local function keepAt(lx, lz, wx, wz)
@@ -783,7 +769,7 @@ local function applyPaste(targetX, targetZ)
 				local wx = gx0 + c * pasteStep
 				local h
 
-				-- Inverse transform: world → local source coords
+				-- Inverse transform: world to local source coords
 				local dx, dz = wx - targetX, wz - targetZ
 				local lx = dx * icosR - dz * isinR + cx
 				local lz = dx * isinR + dz * icosR + cz
@@ -1020,9 +1006,8 @@ local function applyPaste(targetX, targetZ)
 			tw = tw,
 			th = th,
 			fboHandle = buf.splats.fboHandle,
-			-- The quad, not a rectangle: the paste target is the box CENTRE and
-			-- may be turned or mirrored, which an axis-aligned blit from the
-			-- corner could represent neither of.
+			-- A quad, not a rectangle: the target is the box centre and may be turned
+			-- or mirrored, which an axis-aligned blit from the corner cannot express.
 			quad = pasteQuadUV(buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ),
 			mask = pasteMask,
 		}
@@ -1058,9 +1043,8 @@ local function applyPaste(targetX, targetZ)
 		if grassApi.enableEditMode then
 			grassApi.enableEditMode()
 		end
-		-- Suppress the built-in grass painting UI while we write density values,
-		-- otherwise placementMode=true + externalBrushActive=false causes the
-		-- grassgl4 widget to intercept all subsequent mouse clicks.
+		-- Suppress the grass painting UI while writing densities: placementMode=true
+		-- with externalBrushActive=false makes grassgl4 intercept every later click.
 		if grassApi.setExternalBrush then
 			grassApi.setExternalBrush(true)
 		end
@@ -1072,8 +1056,8 @@ local function applyPaste(targetX, targetZ)
 				grassApi.setDensityAt(wx, wz, g.density)
 			end
 		end
-		-- Flush spawn animations and disable the external-brush flag so the
-		-- grassgl4 widget returns to its normal dormant state.
+		-- Flush spawn animations and drop the external-brush flag so grassgl4 goes
+		-- back to its dormant state.
 		if grassApi.setExternalBrush then
 			grassApi.setExternalBrush(false)
 		end
@@ -1124,9 +1108,9 @@ local function applyPaste(targetX, targetZ)
 		return math.deg(math.atan2(dx * c - dz * s, dx * s + dz * c))
 	end
 
-	-- Lights: through the light placer, one undo step there. When the terrain
-	-- is pasted too the ground under a light is the copied ground plus the
-	-- height offset; the gadget has not applied it yet, so the height is given.
+	-- Lights: through the light placer, one undo step there. With terrain in the
+	-- paste, the ground under a light is the copied ground plus the height offset;
+	-- the gadget has not applied it yet, so the height is passed explicitly.
 	local function applyLights()
 		local lightApi = WG.LightPlacer
 		if not (buf.lights and lightApi and lightApi.addLights) then
@@ -1535,7 +1519,7 @@ function widget:DrawWorld()
 		return
 	end
 
-	-- Complete deferred splat capture (GL calls require Draw context)
+	-- Finish the deferred splat capture (GL calls need a Draw callin)
 	if pendingSplatCapture and cloneBuffer then
 		local sc = pendingSplatCapture
 		pendingSplatCapture = nil
@@ -1557,12 +1541,9 @@ function widget:DrawWorld()
 			end)
 			splatCaptureW = sc.pw
 			splatCaptureH = sc.ph
-			-- NO gl.ReadPixels here. It used to pull the whole patch back into a
-			-- nested Lua table purely so the paste could test that the capture
-			-- had happened - and that table is one small table per texel: a few
-			-- copies of a mid-sized box filled LuaUI's 1.6 GB Lua heap and the
-			-- engine killed the whole interface with an OOM inside DrawWorld
-			-- (2026-09-22). The paste only ever needed the texture handle.
+			-- No gl.ReadPixels here: a per-texel Lua table of the patch fills LuaUI's
+			-- 1.6 GB heap after a few copies and the engine kills the interface with an
+			-- OOM. The paste only needs the texture handle.
 			cloneBuffer.splats = {
 				fboHandle = splatCaptureFBO,
 				pixelW = sc.pw,
@@ -1619,7 +1600,7 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Complete deferred splat paste (GL calls require Draw context)
+	-- Finish the deferred splat paste (GL calls need a Draw callin)
 	if pendingSplatPaste then
 		local sp = pendingSplatPaste
 		pendingSplatPaste = nil
@@ -1649,9 +1630,8 @@ function widget:DrawWorld()
 				PasteMask.deleteTexture(sp.mask)
 			end
 			if not maskDone and sp.fboHandle and sp.quad then
-				-- Four corners, so the patch lands turned and mirrored the way
-				-- every other layer of the paste does, and centred on the
-				-- cursor rather than half a box down and to the right.
+				-- Four corners, so the patch lands turned, mirrored and centred like
+				-- every other layer of the paste.
 				local q = sp.quad
 				glRenderToTexture(fullFBO, function()
 					glTexture(0, sp.fboHandle)
@@ -1669,16 +1649,15 @@ function widget:DrawWorld()
 				end)
 			end
 			Spring.SetMapShadingTexture(SPLAT_TEX_NAME, fullFBO)
-			-- SetMapShadingTexture stores the GL id itself, so the texture the
-			-- PREVIOUS paste handed over stops being referenced the moment this
-			-- one is bound. Free it then, and never before: every paste used to
-			-- leave a full-map RGBA8 behind (16 MB on a 32x32 map).
+			-- SetMapShadingTexture stores the GL id itself, so the previous paste's
+			-- texture is unreferenced only once this one is bound. Free it then and
+			-- not before, or each paste leaks a full-map RGBA8 (16 MB on a 32x32 map).
 			if splatPasteFBO and splatPasteFBO ~= fullFBO then
 				glDeleteTexture(splatPasteFBO)
 			end
 			splatPasteFBO = fullFBO
-			-- the tileset's far cache / clipmap bake the splat channels: tell it
-			-- the pasted rect changed (elmos) or the paste vanishes at zoom-out
+			-- The tileset's far cache / clipmap bakes the splat channels: report the
+			-- pasted rect (elmos) or the paste vanishes at zoom-out.
 			local T = WG.TilesetTerrain
 			if T and T.refreshSurface and sp.quad then
 				local q = sp.quad
@@ -1734,7 +1713,7 @@ function widget:MousePress(mx, my, button)
 		return false
 	end
 
-	-- Defer to measure tool when active
+	-- Leave the click to the measure tool while it is active
 	do
 		local tb = WG.TerraformBrush
 		local stb = tb and tb.getState and tb.getState() or nil
@@ -1769,7 +1748,7 @@ function widget:MousePress(mx, my, button)
 				boxDrag.origBox = { x1 = box.x1, z1 = box.z1, x2 = box.x2, z2 = box.z2 }
 				return true
 			end
-			-- Clicking outside box in box_drawn → start new selection
+			-- Clicking outside the box in box_drawn starts a new selection
 			state = "selecting"
 			selBox.x1 = wx
 			selBox.z1 = wz
@@ -1778,8 +1757,8 @@ function widget:MousePress(mx, my, button)
 			discardBuffer()
 			return true
 		elseif state == "paste_preview" then
-			-- Apply paste at cursor position (with snap + symmetric fan-out)
-			-- applyPaste reads the global transform: set each copy's own, then put it back
+			-- Paste at the cursor (grid snap and symmetric fan-out). applyPaste reads the
+			-- global transform: set each copy's own, then restore it.
 			local rot0, mirX0, mirZ0 = pasteRotation, pasteMirrorX, pasteMirrorZ
 			for _, p in ipairs(resolvePasteTargets(wx, wz)) do
 				pasteRotation, pasteMirrorX, pasteMirrorZ = copyTransform(p)
@@ -1904,7 +1883,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		return false
 	end
 
-	-- Ctrl+C → Copy
+	-- Ctrl+C: copy
 	if key == 99 and mods.ctrl then -- 'c'
 		if state == "box_drawn" or state == "copied" then
 			doCopy()
@@ -1912,7 +1891,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		end
 	end
 
-	-- Ctrl+V → Paste
+	-- Ctrl+V: paste
 	if key == 118 and mods.ctrl then -- 'v'
 		if state == "copied" or cloneBuffer then
 			startPaste()
@@ -1920,25 +1899,25 @@ function widget:KeyPress(key, mods, isRepeat)
 		end
 	end
 
-	-- Ctrl+Z → Undo
+	-- Ctrl+Z: undo
 	if key == 122 and mods.ctrl and not mods.shift then
 		sendMsg(MSG_UNDO)
 		return true
 	end
 
-	-- Ctrl+Shift+Z → Redo
+	-- Ctrl+Shift+Z: redo
 	if key == 122 and mods.ctrl and mods.shift then
 		sendMsg(MSG_REDO)
 		return true
 	end
 
-	-- Escape → cancel
+	-- Escape: cancel
 	if key == 27 then
 		cancelOperation()
 		return true
 	end
 
-	-- Shift+X → Mirror X
+	-- Shift+X: mirror X
 	if key == 120 and mods.shift then -- 'x'
 		if state == "paste_preview" then
 			pasteMirrorX = not pasteMirrorX
@@ -1946,7 +1925,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		end
 	end
 
-	-- Shift+Z → Mirror Z
+	-- Shift+Z: mirror Z
 	if key == 122 and mods.shift and not mods.ctrl then -- 'z'
 		if state == "paste_preview" then
 			pasteMirrorZ = not pasteMirrorZ
@@ -1996,7 +1975,7 @@ end
 -- Lifecycle
 -- ---------------------------------------------------------------------------
 function widget:Initialize()
-	-- Expose API
+	-- Public API
 	WG.CloneTool = {
 		activate = activate,
 		deactivate = deactivate,

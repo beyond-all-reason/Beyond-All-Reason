@@ -11,9 +11,9 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	-- Registered as a sync action (table lookup by message name) instead of a
-	-- RecvFromSynced callin, which would be invoked for every SendToUnsynced
-	-- message from every synced gadget. Returning true stops the broadcast.
+	-- A sync action (looked up by name) rather than RecvFromSynced, which would run
+	-- for every SendToUnsynced message of every synced gadget. Returning true stops
+	-- the broadcast.
 	local function onStacks(_, undoCount, redoCount)
 		if Script.LuaUI("CloneToolStackUpdate") then
 			Script.LuaUI.CloneToolStackUpdate(undoCount, redoCount)
@@ -36,13 +36,10 @@ end
 -- ---------------------------------------------------------------------------
 local CHEAT_SIG = "$c$"
 local CHEAT_SIG_LEN = #CHEAT_SIG
--- Spring.IsReplay is a LuaUnsyncedRead call and is nil here, so the old
--- "certified and Spring.IsReplay()" fallback raised a Lua error on any certified
--- packet that arrived with live cheat off. Demos replay the /cheat chat command,
--- so cheat state is reproduced during playback anyway; what the certification is
--- really for is map-editor sessions, where /cheat is a toggle that competing
--- widgets can flip off mid-stream. The mapeditor modoption is synced from the
--- start script and cannot be forged by a client.
+-- Gates the self-asserted $c$ prefix (see isAllowed). Spring.IsReplay is
+-- unsynced-only and nil here; demos replay /cheat anyway. In map-editor sessions
+-- competing widgets can flip /cheat off mid-stream, and the mapeditor modoption
+-- comes from the start script, so a client cannot forge it.
 local MAP_EDITOR_SESSION = false
 do
 	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
@@ -87,7 +84,7 @@ local redoStack = {}
 local MAX_UNDO = 100
 
 -- ---------------------------------------------------------------------------
--- Height map application (same pattern as terraform brush)
+-- Height map application (same pattern as the terraform brush)
 -- ---------------------------------------------------------------------------
 local pendingFlatData
 local pendingFlatStart
@@ -248,12 +245,12 @@ local function handleCloneFeatures(payload)
 end
 
 -- ---------------------------------------------------------------------------
--- Grid-based terrain paste (transaction: begin → grid chunks → end)
+-- Grid-based terrain paste (transaction: begin, grid chunks, end)
 -- ---------------------------------------------------------------------------
 local pendingPaste = nil -- { gx0, gz0, srcStep, dstStep, srcCols, srcRows, grid, beforeSnapshot }
 
 local function handleTerrainBegin(payload)
-	-- Safety: clear any stale pending paste from a previous incomplete transaction
+	-- Drop a pending paste left by an incomplete transaction
 	pendingPaste = nil
 
 	local parts = parseParts(payload)
@@ -410,7 +407,7 @@ local function handleTerrainEnd()
 end
 
 -- ---------------------------------------------------------------------------
--- Undo / Redo handlers (height-only for now)
+-- Undo / Redo handlers (heights only)
 -- ---------------------------------------------------------------------------
 local function handleUndo()
 	if #undoStack == 0 then
