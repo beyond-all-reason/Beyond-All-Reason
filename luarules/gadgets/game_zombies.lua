@@ -185,6 +185,7 @@ local RULES_PARAM = {
 	WAS_ZOMBIE = "wasZombie",
 	WRAITH_READY_FRAME = "zombie_wraith_ready_frame",
 	WRAITH_EXPIRATION_FRAME = "zombie_wraith_expiration_frame",
+	TRANSITIONING = "unitTransitioning",
 	PUBLIC_ACCESS = { public = true },
 }
 local creatingForcedHeap = false
@@ -1072,6 +1073,7 @@ local function replaceWithScavVariant(unitID, scavUnitDefID)
 	spring.SetUnitExperience(newUnitID, spring.GetUnitExperience(unitID))
 
 	suppressedDeaths[unitID] = true
+	spring.SetUnitRulesParam(unitID, RULES_PARAM.TRANSITIONING, 1, RULES_PARAM.PUBLIC_ACCESS)
 	spring.DestroyUnit(unitID, false, true)
 	return newUnitID
 end
