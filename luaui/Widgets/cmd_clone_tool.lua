@@ -210,7 +210,7 @@ end
 -- Follows the mouse past the map edge like the other brush tools: a paste preview up to half its
 -- footprint, anything else (a selection corner, pinned to the edge where it is used) up to the fade band.
 local function getWorldMousePosition()
-	local radius = 0
+	local radius = 0.0
 	if state == "paste_preview" and cloneBuffer then
 		radius = max(cloneBuffer.sizeX, cloneBuffer.sizeZ) * 0.5
 	end

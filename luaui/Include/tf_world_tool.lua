@@ -51,10 +51,11 @@ local WorldTool = {
 -- for the sky. Engine trap: GetPixelDir wants raw window coordinates, while
 -- GetMouseState reports viewport bottom-origin ones (TraceScreenRay converts
 -- internally, GetPixelDir does not).
----@param mx number
----@param my number
----@param planeY number
----@return number?, number?
+---@param mx any
+---@param my any
+---@param planeY any
+---@return any x nil for the sky
+---@return any z
 function WorldTool.mouseRayOnPlane(mx, my, planeY)
 	local _, viewSizeY, viewPosX = Spring.GetViewGeometry()
 	local dirX, dirY, dirZ = Spring.GetPixelDir(mx + (viewPosX or 0), viewSizeY - 1 - my)
@@ -75,8 +76,10 @@ end
 -- while the footprint touches the map (within `radius` of the edge) and drops
 -- to 0 one fade span later, for dimming the cursor. The terraform brush exports
 -- it as WG.TerraformBrush.getWorldPositionExtended.
----@param radius number?
----@return number?, number?, number?
+---@param radius any
+---@return any x nil once past the fade band or for the sky
+---@return any z
+---@return any fade
 function WorldTool.extendedCursor(radius)
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
@@ -108,7 +111,9 @@ function WorldTool.extendedCursor(radius)
 end
 
 ---The ground under the mouse, plain (stops at the map edge): x, z and the traced y, or nil.
----@return number?, number?, number?
+---@return any x nil off the map
+---@return any z
+---@return any y
 function WorldTool.plainCursor()
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
@@ -119,11 +124,12 @@ function WorldTool.plainCursor()
 end
 
 ---plainCursor, but only a "ground" hit counts.
----@return number?, number?
+---@return any x nil unless the ground is hit
+---@return any z
 function WorldTool.groundCursor()
 	local mx, my = GetMouseState()
 	local kind, pos = TraceScreenRay(mx, my, true)
-	if kind == "ground" then
+	if kind == "ground" and pos then
 		return pos[1], pos[3]
 	end
 	return nil, nil
@@ -132,10 +138,13 @@ end
 ---The brush cursor the tools share: the terraform brush's edge-extended one while the brush is
 ---loaded, else `fallback` (plainCursor when nil). Returns x, z and the cursor fade; the fade is 1
 ---when there is no position or it comes from the fallback.
----@param radius number? the footprint that may hang over the map edge
----@param fallback (fun(): number?, number?)?
----@return number?, number?, number
+---@param radius any the footprint that may hang over the map edge
+---@param fallback any number?, number?)?
+---@return any x nil when there is no position
+---@return any z
+---@return any fade 1 without a position or from the fallback
 function WorldTool.cursor(radius, fallback)
+	---@type table?
 	local tb = WG.TerraformBrush
 	if tb and tb.getWorldPositionExtended then
 		local wx, wz, fade = tb.getWorldPositionExtended(radius)
@@ -149,14 +158,14 @@ function WorldTool.cursor(radius, fallback)
 end
 
 ---A regular polygon outline, vertex 0 on +X before the turn.
----@param cx number
----@param cz number
----@param radius number circumradius along X
----@param angleDeg number
----@param sides integer
----@param lengthScale number? Z stretch, 1 when nil
----@param lift number? elmos above the ground; nil hugs it with a polygon offset
----@param subdiv integer? points per edge
+---@param cx any
+---@param cz any
+---@param radius any circumradius along X
+---@param angleDeg any
+---@param sides any
+---@param lengthScale any Z stretch, 1 when nil
+---@param lift any elmos above the ground; nil hugs it with a polygon offset
+---@param subdiv any points per edge
 function WorldTool.drawPolygon(cx, cz, radius, angleDeg, sides, lengthScale, lift, subdiv)
 	lengthScale = lengthScale or 1.0
 	subdiv = subdiv or (sides <= 8 and WorldTool.EDGE_SEGMENTS or 1)
@@ -188,27 +197,37 @@ function WorldTool.drawPolygon(cx, cz, radius, angleDeg, sides, lengthScale, lif
 end
 
 ---A square outline, corners at (+-radius, +-radius * lengthScale) before the turn.
----@param cx number
----@param cz number
----@param radius number half the side along X
----@param angleDeg number
----@param lengthScale number? Z stretch, 1 when nil
----@param lift number? elmos above the ground; nil hugs it with a polygon offset
----@param subdiv integer? points per edge, EDGE_SEGMENTS when nil
+---@param cx any
+---@param cz any
+---@param radius any half the side along X
+---@param angleDeg any
+---@param lengthScale any Z stretch, 1 when nil
+---@param lift any elmos above the ground; nil hugs it with a polygon offset
+---@param subdiv any points per edge, EDGE_SEGMENTS when nil
 function WorldTool.drawSquare(cx, cz, radius, angleDeg, lengthScale, lift, subdiv)
 	lengthScale = lengthScale or 1.0
 	subdiv = subdiv or WorldTool.EDGE_SEGMENTS
 	local hug = lift == nil
 	local up = lift or 0
 	local rz = radius * lengthScale
-	local corners = { { -radius, -rz }, { radius, -rz }, { radius, rz }, { -radius, rz } }
+	-- corner k, from (-radius, -rz) round to (-radius, rz)
+	local function corner(k)
+		if k == 1 then
+			return -radius, -rz
+		elseif k == 2 then
+			return radius, -rz
+		elseif k == 3 then
+			return radius, rz
+		end
+		return -radius, rz
+	end
 	if hug then
 		glPolygonOffset(-2, -2)
 	end
 	glBeginEnd(GL_LINE_LOOP, function()
 		for i = 1, 4 do
-			local c0, c1 = corners[i], corners[(i % 4) + 1]
-			local x0, z0, x1, z1 = c0[1], c0[2], c1[1], c1[2]
+			local x0, z0 = corner(i)
+			local x1, z1 = corner((i % 4) + 1)
 			for s = 0, subdiv - 1 do
 				local t = s / subdiv
 				local ox, oz = rotate(x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, angleDeg)
@@ -222,18 +241,19 @@ function WorldTool.drawSquare(cx, cz, radius, angleDeg, lengthScale, lift, subdi
 	end
 end
 
+---@type table<string, integer?>
 local SHAPE_SIDES = { hexagon = 6, octagon = 8, triangle = 3 }
 
 ---The outline of a BrushShape; anything else draws nothing.
----@param shape string
----@param cx number
----@param cz number
----@param radius number
----@param angleDeg number
----@param lengthScale number?
----@param lift number?
----@param subdiv integer?
----@param circleSides integer the circle's segment count
+---@param shape any
+---@param cx any
+---@param cz any
+---@param radius any
+---@param angleDeg any
+---@param lengthScale any
+---@param lift any
+---@param subdiv any
+---@param circleSides any the circle's segment count
 function WorldTool.drawShape(shape, cx, cz, radius, angleDeg, lengthScale, lift, subdiv, circleSides)
 	if shape == "square" then
 		WorldTool.drawSquare(cx, cz, radius, angleDeg, lengthScale, lift, subdiv)
@@ -247,16 +267,16 @@ end
 ---The smart filter overlay: small quads on a grid over the brush, green where `predicate` lets a stamp land
 ---and red where it refuses. The grid is laid out unturned inside the shape and turned with the brush, the
 ---way placement lays out its stamps.
----@param cx number
----@param cz number
----@param radius number
----@param shape string
----@param angleDeg number
----@param lengthScale number? Z stretch, 1 when nil
----@param fade number cursor fade, scales the alpha
----@param step number elmos between grid points
----@param flatLift number? nil: each quad corner sits 3 elmos above the ground under it; a number: the whole quad at the ground height of its centre plus this
----@param predicate fun(wx: number, wz: number, a1: any, a2: any, a3: any): boolean
+---@param cx any
+---@param cz any
+---@param radius any
+---@param shape any
+---@param angleDeg any
+---@param lengthScale any Z stretch, 1 when nil
+---@param fade any cursor fade, scales the alpha
+---@param step any elmos between grid points
+---@param flatLift any nil: each quad corner sits 3 elmos above the ground under it; a number: the whole quad at the ground height of its centre plus this
+---@param predicate any number, wz: number, a1: any, a2: any, a3: any): boolean
 ---@param a1 any passed on to predicate
 ---@param a2 any
 ---@param a3 any
@@ -318,10 +338,10 @@ end
 
 ---Corner points of a shape's outline (offsets from the centre), for the altitude cap prism: 16 for a circle,
 ---else the outline's vertices.
----@param shape string
----@param radius number
----@param angleDeg number
----@return number[][]
+---@param shape any
+---@param radius any
+---@param angleDeg any
+---@return table corners { {dx, dz}, ... }
 function WorldTool.shapeCorners(shape, radius, angleDeg)
 	local corners = {}
 	local rad = angleDeg * pi / 180
@@ -345,13 +365,13 @@ function WorldTool.shapeCorners(shape, radius, angleDeg)
 end
 
 ---The altitude cap prism: the shape drawn at the min (cyan) and max (orange) caps with white struts between.
----@param cx number
----@param cz number
----@param radius number
----@param shape string
----@param angleDeg number
----@param sf SmartFilterSettings
----@param fade number cursor fade, scales the alpha
+---@param cx any
+---@param cz any
+---@param radius any
+---@param shape any
+---@param angleDeg any
+---@param sf any
+---@param fade any cursor fade, scales the alpha
 function WorldTool.drawAltitudePrism(cx, cz, radius, shape, angleDeg, sf, fade)
 	if not sf.altMinEnable and not sf.altMaxEnable then
 		return
@@ -382,12 +402,16 @@ function WorldTool.drawAltitudePrism(cx, cz, radius, shape, angleDeg, sf, fade)
 		end)
 	end
 	local stride = max(1, floor(#corners / 8))
+	---@type number
 	local strutBot = botY or (topY and topY - 100) or 0
+	---@type number
 	local strutTop = topY or (botY and botY + 100) or 0
 	glColor(1, 1, 1, 0.2 * fade)
 	glBeginEnd(GL_LINES, function()
 		for i = 1, #corners, stride do
+			---@type number
 			local wx = cx + corners[i][1]
+			---@type number
 			local wz = cz + corners[i][2]
 			glVertex(wx, strutBot, wz)
 			glVertex(wx, strutTop, wz)

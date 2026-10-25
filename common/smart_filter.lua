@@ -31,7 +31,7 @@ local GetGroundNormal = Spring.GetGroundNormal
 ---True when the filter lets a stamp land at (x, z).
 ---@param x number
 ---@param z number
----@param sf SmartFilterSettings
+---@param sf table SmartFilterSettings fields; the tools pass their own state tables
 ---@param h number? the ground height there, when the caller has it already
 ---@return boolean
 local function passes(x, z, sf, h)

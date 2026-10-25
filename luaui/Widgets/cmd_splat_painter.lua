@@ -44,9 +44,6 @@ local GL_TRIANGLES = GL.TRIANGLES
 local floor = math.floor
 local max = math.max
 local min = math.min
-local cos = math.cos
-local sin = math.sin
-local abs = math.abs
 local pi = math.pi
 local sqrt = math.sqrt
 
