@@ -395,6 +395,7 @@ Places map lights.
 
 - **LIGHT TYPE**: Point, Cone, Beam. **PLACEMENT MODE**: Single, Scatter, Remove. **DISTRIBUTION** for Scatter.
 - **CONTROLS**: BRIGHTNESS (Space+Wheel), LIGHT RADIUS (10 to 5000), ELEVATION above the ground (0 to 2000, Shift+Wheel), DIRECTION (N, E, S, W, Pitch and Yaw for cones and beams: Alt+Wheel turns yaw, Ctrl+Alt+Wheel pitch), Spread (cone), Length (beam), and the SCATTER count and brush radius.
+- **RATE**: how often a held Scatter or Remove drag repeats. 1, the default, is one stamp every 2 seconds; higher is faster.
 - **COLOR**: swatches and red, green, blue sliders.
 - **LIGHT LIBRARY** opens built-in presets and your own. Placed lights can be saved there as a user preset.
 - **SAVE** writes all placed lights to `lightmaps/` in the data folder; **LOAD** reads one back; CLEAR ALL removes every light.
