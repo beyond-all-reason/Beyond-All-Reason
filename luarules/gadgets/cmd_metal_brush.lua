@@ -492,9 +492,11 @@ function gadget:RecvLuaMsg(msg, playerID)
 			local exDefs = getExtractorDefs()
 			for i = 1, #allUnits do
 				local uid = allUnits[i]
-				local udid = spGetUnitDefID(uid)
-				if exDefs[udid] then
-					spSetUnitMetalExtraction(uid, 0)
+				local mult = exDefs[spGetUnitDefID(uid)]
+				if mult then
+					-- The def's own depth, as everywhere else: with no metal left the mex
+					-- extracts nothing, and a depth of 0 would outlive later metal edits.
+					spSetUnitMetalExtraction(uid, mult)
 				end
 			end
 		end
