@@ -212,13 +212,17 @@ local isInsideShape = BrushShapes.isInside
 ----------------------------------------------------------------
 -- State
 ----------------------------------------------------------------
+---Entries: action "place" | "remove" | "transform", features the snapshots it covers.
+---@type table<integer, {action: string, features: table<integer, table>}>
 local undoStack = {}
+---@type table<integer, {action: string, features: table<integer, table>}>
 local redoStack = {}
 local gaiaTeamID
 
 -- Visual scale per live featureID, only for scaled features. Mirrored into the
 -- public "visualScale" rules param (widgets read it, the unsynced half
 -- re-uploads it after a reload); this table is what capture and save use.
+---@type table<integer, any> featureID -> visual scale
 local featureScales = {}
 
 ----------------------------------------------------------------
@@ -476,6 +480,12 @@ end
 -- id append to one entry. Only one stroke is open at a time. The entry is pushed
 -- on the first real change, so a no-op message neither leaves an empty step nor
 -- clears the redo stack.
+---@class FeaturePlacerStroke
+---@field id string?
+---@field kind string?
+---@field entry {action: string, features: table<integer, table>}?
+---@field index table<number, integer>? featureID -> slot in entry.features
+---@field pushed boolean
 local stroke = { id = nil, kind = nil, entry = nil, index = nil, pushed = false }
 
 local function closeStroke()
@@ -560,6 +570,7 @@ local function isRestingOrientation(featureID, def, x, z)
 		return true
 	end
 
+	---@type number, number, number
 	local ex, ey, ez = 0, 1, 0
 	if not def.upright then
 		local nx, ny, nz = GetGroundNormal(x, z)
@@ -658,6 +669,8 @@ local function transformFeatures(payload)
 
 	local entry = openStroke(strokeID, "transform", "transform")
 	local index = stroke.index
+	---@cast entry -nil
+	---@cast index -nil
 	local applied = 0
 
 	for chunk in payload:sub(bodyStart):gmatch("[^|]+") do
@@ -724,6 +737,7 @@ local function remapFeatureIDs(mapping)
 end
 
 local function recreateInto(features)
+	---@type table<integer, integer>?
 	local mapping = nil
 	for i = 1, #features do
 		local f = features[i]
@@ -875,6 +889,7 @@ end
 ----------------------------------------------------------------
 -- Message parsing
 ----------------------------------------------------------------
+---@return boolean?
 function gadget:RecvLuaMsg(msg, playerID)
 	-- Undo
 	if msg == UNDO_HEADER then

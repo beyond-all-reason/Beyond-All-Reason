@@ -109,6 +109,33 @@ local sqrt = math.sqrt
 ----------------------------------------------------------------
 -- State (one table: this chunk sits at Lua 5.1's 200-local limit)
 ----------------------------------------------------------------
+---@class FeaturePlacerState
+---@field active boolean
+---@field mode string? "scatter" | "point" | "remove"
+---@field shape string
+---@field radius number
+---@field rotation number
+---@field rotRandom number
+---@field tiltRandom number
+---@field featureCount number
+---@field cadence number
+---@field distribution string
+---@field scaleMin number
+---@field heightOffset number
+---@field scaleMax number
+---@field clumps number
+---@field clumpSize number
+---@field clumpLoose number
+---@field clumpVariety number
+---@field smartEnabled boolean
+---@field smartFilters table<string, any>
+---@field selectedDefs string[]
+---@field selectedSet table<string, boolean>
+---@field dragging boolean
+---@field placeTimer number
+---@field undoCount integer
+---@field redoCount integer
+---@field rightPress table<integer, number>? screen point of the last right press
 local fp = {
 	active = false,
 	mode = nil, -- "scatter", "point", "remove"
@@ -159,7 +186,9 @@ local edgeFade = 1
 local gridOverlay = false
 local gridSnap = false
 local gridShowing = false
+---@type integer?
 local gridDL = nil
+---@type number?
 local gridDLSize = nil
 local gridDirty = false
 
@@ -299,6 +328,7 @@ end
 -- Baked scale variants (see tools/s3o_scale.py and features/enginetrees_override.lua).
 -- A def with variants snaps each rolled scale to the nearest variant def; other
 -- defs keep the rolled scale (see applyScaleVariants).
+---@type table<string, any>
 local variantSets = {} -- baseDefName -> sorted { { factor, name }, ... } including the base itself at 1.0
 
 local function buildFeatureDefList()
@@ -359,6 +389,7 @@ end
 ----------------------------------------------------------------
 -- Grid overlay / snap helpers
 ----------------------------------------------------------------
+---@type integer?
 local gridForceShowDefID
 for id, def in pairs(UnitDefs) do
 	if not def.modCategories or not def.modCategories.underwater then
@@ -371,6 +402,7 @@ local function showBuildGrid()
 	if gridShowing then
 		return
 	end
+	---@type table<string, any>?
 	local bg = WG.buildinggrid
 	if bg and bg.setForceShow and gridForceShowDefID then
 		bg.setForceShow("featureplacer", true, gridForceShowDefID)
@@ -382,6 +414,7 @@ local function hideBuildGrid()
 	if not gridShowing then
 		return
 	end
+	---@type table<string, any>?
 	local bg = WG.buildinggrid
 	if bg and bg.setForceShow then
 		bg.setForceShow("featureplacer", false)
@@ -482,6 +515,7 @@ local function getWorldMousePosition()
 	edgeFade = 1
 	-- Shared edge-extended cursor: keeps following the mouse slightly past the
 	-- map border, with fade < 1 once the footprint no longer touches the map.
+	---@type table<string, any>?
 	local tb = WG.TerraformBrush
 	if tb and tb.getWorldPositionExtended then
 		local radius = fp.mode == "point" and 64 or fp.radius
@@ -504,6 +538,7 @@ end
 -- Symmetry helper: delegates to the terraform brush's symmetry system
 ----------------------------------------------------------------
 local function getSymmetricPositions(wx, wz, rot)
+	---@type table<string, any>?
 	local tb = WG.TerraformBrush
 	if tb and tb.getSymmetricPositions then
 		return tb.getSymmetricPositions(wx, wz, rot or 0)
@@ -524,6 +559,13 @@ end
 -- The layout is brush-relative and cached, so the preview keeps its shape while
 -- the cursor moves. It is rebuilt when a brush parameter or the seed changes;
 -- the seed is rerolled after every stamp so consecutive stamps differ.
+---@class FeaturePlacerPreview
+---@field seed number
+---@field layout table?
+---@field layoutKey string?
+---@field ghosts table<integer, any>
+---@field ghostCount integer
+---@field warnedCap boolean
 local preview = {
 	-- Clock-derived so two sessions do not open with the same scatter.
 	seed = floor(os.clock() * 1000) % 16777216,
@@ -921,6 +963,24 @@ end
 -- Selection is only live on an "empty mouse": with nothing chosen in the asset
 -- library a click picks a feature instead of placing. Picking a library item
 -- returns the tool to placing and drops the gizmo.
+---@class FeaturePlacerGizmoState
+---@field selection table<integer, integer> feature IDs
+---@field selectedSet table<integer, boolean>
+---@field base table<integer, any> featureID -> transform snapshotted at drag start
+---@field pivotBase {x: number, y: number, z: number}? set at drag start
+---@field hovered string? gizmo handle under the cursor
+---@field dragging boolean
+---@field strokeID string?
+---@field boxing boolean
+---@field boxX1 number
+---@field boxY1 number
+---@field boxX2 number
+---@field boxY2 number
+---@field ghosts table<integer, any>
+---@field ghostCount integer
+---@field hidden table<integer, boolean>
+---@field settleTargets table?
+---@field settleDeadline number
 local gz = {
 	selection = {},
 	selectedSet = {},
@@ -994,6 +1054,7 @@ local function recomputePivot()
 		return
 	end
 
+	---@type number, number, number, integer
 	local sx, sy, sz, valid = 0, 0, 0, 0
 	for i = 1, n do
 		local t = readFeatureTransform(gz.selection[i])
@@ -1014,6 +1075,7 @@ local function recomputePivot()
 
 	-- Bounding radius of the whole selection about the pivot, so the handles sit
 	-- outside the group. The gizmo caps its own size against the viewport.
+	---@type number
 	local reach = 0
 	for i = 1, n do
 		local featureID = gz.selection[i]
@@ -1100,6 +1162,7 @@ end
 -- pre-multiply the world delta, read the eulers back. Recoil's convention, not
 -- GLSL's (see gfx_DrawFeatureShape_GL4.lua). Row-major m[row][col] on column vectors.
 local function mat3Mul(a, b)
+	---@type table<integer, table>
 	local r = { {}, {}, {} }
 	for i = 1, 3 do
 		local ai = a[i]
@@ -1175,6 +1238,7 @@ end
 local function computeDragTargets(dx, dy, dz, dPitch, dYaw, dRoll)
 	local pivotBase = gz.pivotBase
 
+	---@type table?
 	local delta = nil
 	if dPitch ~= 0 then
 		delta = worldRotation(1, dPitch)
@@ -1264,6 +1328,7 @@ local function beginGizmoDrag(handle, mx, my)
 	end
 
 	local pivot = Gizmo.getPivot()
+	---@cast pivot {x: number, y: number, z: number}
 	gz.pivotBase = { x = pivot.x, y = pivot.y, z = pivot.z }
 	gz.base = {}
 	for i = 1, #gz.selection do
@@ -1284,6 +1349,7 @@ local function beginGizmoDrag(handle, mx, my)
 	gz.dragging = true
 	gz.strokeID = nextStrokeID()
 
+	---@type table<string, any>?
 	local tb = WG.TerraformBrush
 	local tbState = tb and tb.getState and tb.getState()
 	Gizmo.setSnap({
@@ -1596,6 +1662,7 @@ local saveBuffer = {}
 -- One-shot feature-list read for other widgets, served by the synced gadget.
 -- Engine trap: Spring.GetFeatureRotation in LuaUI reads a transform that is only
 -- refreshed for features drawn this frame, so off-screen features read zero.
+---@type function?
 local dataWaiter = nil
 local dataWaiterTicks = 0
 local DATA_WAITER_TIMEOUT = 300 -- Update ticks, ~10s
@@ -1702,6 +1769,7 @@ local function handleSaveEnd(count)
 
 	for _, batchStr in ipairs(saveBuffer) do
 		for entry in batchStr:gmatch("[^|]+") do
+			---@type string[]
 			local parts = {}
 			for word in entry:gmatch("%S+") do
 				parts[#parts + 1] = word
@@ -1914,6 +1982,7 @@ local function drawRegularPolygon(cx, cz, radius, angleDeg, numSides)
 end
 
 local function drawRotatedSquare(cx, cz, radius, angleDeg)
+	---@type table<integer, table>
 	local corners = {
 		{ -radius, -radius },
 		{ radius, -radius },
@@ -2158,6 +2227,7 @@ function widget:MousePress(mx, my, button)
 	end
 
 	-- Defer to measure / symmetry origin tools when active
+	---@type table<string, any>?
 	local tb = WG.TerraformBrush
 	if tb and tb.getState then
 		local st = tb.getState()
@@ -2283,6 +2353,7 @@ function widget:MouseRelease(mx, my, button)
 	return false
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
 	if not fp.active then
 		return false
@@ -2304,7 +2375,9 @@ function widget:MouseWheel(up, value)
 
 	if alt then
 		-- Alt+Scroll = rotate brush (snap to TB protractor step when angleSnap on)
+		---@type number
 		local step = ROTATION_STEP
+		---@type table<string, any>?
 		local tb = WG.TerraformBrush
 		local tbs = tb and tb.getState and tb.getState() or nil
 		if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
@@ -2495,6 +2568,7 @@ function widget:DrawWorld()
 
 	local worldX, worldZ = getWorldMousePosition()
 	do
+		---@type table<string, any>?
 		local tb = WG.TerraformBrush
 		if tb and tb.animateUnmouse then
 			worldX, worldZ = tb.animateUnmouse("featurePlacer", worldX, worldZ, fp.radius, 1.0)

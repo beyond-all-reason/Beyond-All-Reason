@@ -19,6 +19,7 @@ end
 local RML_PATH = "luaui/RmlWidgets/gui_feature_placer/gui_feature_placer.rml"
 local MODEL_NAME = "feature_placer_model"
 
+---@type table<string, any>
 local WG = WG
 
 local INITIAL_LEFT_VW = 60
@@ -27,6 +28,18 @@ local BASE_WIDTH_DP = 220
 local TILE_COLUMNS = 3
 local TILE_GAP_DP = 2
 
+---@class FeaturePlacerUiState
+---@field rmlContext RmlUi.Context?
+---@field document RmlUi.Document?
+---@field dmHandle table?
+---@field rootElement RmlUi.Element?
+---@field panelWidthDp number
+---@field selectedCountEl RmlUi.Element?
+---@field lastSelectedCountRml string?
+---@field lastPickSig string?
+---@field pickAnchor string? last clicked tile, the start of a Shift+click range
+---@field dragHandle any
+---@field featureListEl RmlUi.Element?
 local widgetState = {
 	rmlContext = nil --[[@as table?]],
 	document = nil,
@@ -50,9 +63,13 @@ local lastSearchFilter = ""
 local selectedCategories = { all = true }
 local categoryButtons = {} -- { [catKey] = element }
 local featureElements = {} -- { [defName] = element }
+---@type boolean
 local manuallyHidden = false
+---@type boolean
 local lastActive = false
+---@type boolean
 local userDragged = false -- once user drags, stop auto-positioning
+---@type boolean
 local lobbyHidden = false -- true while the lobby/menu overlay is up (LobbyOverlayActive)
 
 ----------------------------------------------------------------
@@ -64,16 +81,23 @@ local THUMB_CACHE_DIR = "Terraform Brush/FeatureThumbs/"
 local GL_DEPTH_COMPONENT24 = 0x81A6
 local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 
+---@type table<string, string>
 local thumbTextures = {} -- { [defName] = file path string }
+---@type table<string, any>
 local thumbImgEls = {} -- { [defName] = <img> RmlUi element }
+---@type table<integer, {name: string, defID: integer}>
 local thumbQueue = {}
 local thumbQueueIdx = 0
 local thumbTotal = 0
 local thumbDone = 0
+---@type boolean
 local thumbGenerating = false
+---@type boolean
 local thumbGenAttempted = false
 local thumbRefreshTimer = 0
+---@type boolean
 local needsListRefresh = false
+---@type string?
 local depthTex -- shared depth buffer for rendering
 
 local function thumbCachePath(name)
@@ -103,6 +127,7 @@ end
 ----------------------------------------------------------------
 -- Thumbnail generation (render feature models to GL textures)
 ----------------------------------------------------------------
+---@type integer?
 local thumbShader
 
 local function initThumbShader()
@@ -198,7 +223,9 @@ local function renderOneThumb(name, defID)
 	Spring.PreloadFeatureDefModel(defID)
 
 	-- Frame the model by its bounds, or by its collision radius when it has none.
+	---@type number, number, number
 	local midX, midY, midZ = 0, 0, 0
+	---@type number?
 	local radius
 	local m = def.model
 	if m and m.minx and m.maxx then
@@ -241,6 +268,7 @@ local function renderOneThumb(name, defID)
 	end
 
 	local vsx, vsy = Spring.GetViewGeometry()
+	---@type string?
 	local savedPath
 
 	gl.ActiveFBO(fbo, function()
@@ -440,14 +468,19 @@ end
 -- The full filtered data lives in virtualItems; DOM is rebuilt
 -- on scroll / filter / category change for the visible window.
 ----------------------------------------------------------------
+---@type table<integer, table>
 local virtualItems = {} -- flat array of { name=..., id=..., category=... }
 local virtualTileW = 32 -- computed tile width (dp)
 local virtualScrollTop = -1 -- last known scroll_top
+---@type any
 local virtualTopSpacer = nil -- spacer div for items above viewport
+---@type any
 local virtualBotSpacer = nil -- spacer div for items below viewport
 local virtualVisStart = 0 -- first visible index (0-based)
 local virtualVisEnd = 0 -- last visible index (exclusive)
+---@type number
 local measuredRowHeightPx = 0 -- actual rendered tile row height in px (measured after first render)
+---@type number
 local lastBuildInnerPx = 0 -- client_width of feature-list at last rebuild, for resize detection
 
 local function getListInnerPx()
@@ -459,6 +492,7 @@ local function getListInnerPx()
 		end
 	end
 	local dpRatio = getDpRatio()
+	---@type number
 	local pwPx = (widgetState.rootElement and widgetState.rootElement.offset_width) or 0
 	if pwPx <= 0 then
 		pwPx = widgetState.panelWidthDp * dpRatio
@@ -535,6 +569,7 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 		-- tile from the last clicked one to this one (in the list as filtered).
 		local _, ctrl, _, shift = Spring.GetModKeyState()
 		local fp = WG.FeaturePlacer
+		---@type integer?, integer?
 		local from, to
 		if shift and widgetState.pickAnchor then
 			for i, item in ipairs(virtualItems) do
@@ -600,6 +635,7 @@ local function renderVirtualWindow(listEl, doc, startIdx, endIdx, selectedSet)
 	)
 	listEl:AppendChild(virtualTopSpacer)
 
+	---@type RmlUi.Element?
 	local firstItemEl
 	for i = startIdx + 1, math.min(endIdx, totalItems) do
 		local entry = virtualItems[i]

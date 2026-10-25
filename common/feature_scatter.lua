@@ -154,6 +154,7 @@ end
 -- Distribution: random
 ----------------------------------------------------------------
 local function generateRandom(radius, shape, lengthScale, count, rng)
+	---@type table<integer, table>
 	local positions = {}
 	local attempts = 0
 	local maxAttempts = count * 8
@@ -172,6 +173,7 @@ end
 -- Distribution: regular grids
 ----------------------------------------------------------------
 local function generateFibonacci(radius, count)
+	---@type table<integer, table>
 	local positions = {}
 	for i = 0, count - 1 do
 		local r = radius * sqrt(i / max(1, count - 1))
@@ -182,6 +184,7 @@ local function generateFibonacci(radius, count)
 end
 
 local function generateSquareGrid(radius, count, lengthScale)
+	---@type table<integer, table>
 	local positions = {}
 	local radZ = radius * lengthScale
 	local spacing = sqrt((2 * radius) * (2 * radZ) / max(1, count))
@@ -200,6 +203,7 @@ end
 -- Grid clipped to the shape mask. Used for hexagon and octagon, which have no
 -- natural lattice of their own but tile a square grid acceptably.
 local function generateClippedGrid(radius, shape, count, lengthScale)
+	---@type table<integer, table>
 	local positions = {}
 	local radZ = radius * lengthScale
 	-- Overshoot the spacing estimate: clipping throws points away, so a spacing
@@ -268,6 +272,7 @@ local function generateClustered(
 	local clumpSize = max(0.05, tonumber(clump.size) or 1)
 	local looseFrac = max(0, min(1, tonumber(clump.loose) or 0.25))
 	local variety = max(0, min(1, tonumber(clump.variety) or 0))
+	---@type number
 	local minSpacing = 4
 	if spacingOverride then
 		minSpacing = spacingOverride
@@ -319,6 +324,7 @@ local function generateClustered(
 
 	-- Per-clump character. Rolled only when variety is on, so a zero-variety
 	-- layout keeps the same random sequence for a given seed.
+	---@type number
 	local totalWeight = #clusterCenters
 	if variety > 0 then
 		totalWeight = 0
@@ -336,6 +342,7 @@ local function generateClustered(
 	local hasScale = scaleMax > scaleMin
 	local scaleRange = scaleMax - scaleMin
 
+	---@type table<integer, table>
 	local positions = {}
 	local maxAttempts = count * 15
 	local tries = 0
