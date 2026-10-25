@@ -767,7 +767,7 @@ function strengthEdit.buildRing(handles)
 end
 
 -- Rebuild a spline box's vertices from its controls, in place. Does not rebuild the fill:
--- callers invalidate it (_fillNeedsRebuild is never read).
+-- callers invalidate it.
 local function retessellateSpline(box)
 	if box.kind ~= "spline" or not box.controls then
 		return
@@ -788,7 +788,6 @@ local function retessellateSpline(box)
 		out[i] = nil
 	end
 	box.vertices = out
-	box._fillNeedsRebuild = true
 end
 
 -- A polygon keeps its vertices as its anchors until a corner is first curved; only then does
@@ -2825,7 +2824,6 @@ ensureBoxFillList = function(box)
 	local cell = isDraggingBox and (BOX_FILL_CELL * 3) or BOX_FILL_CELL
 	box._fillList = buildPolygonFillList(verts, BOX_FILL_LIFT, cell)
 	box._fillDirty = isDraggingBox -- final crisp rebuild on release
-	box._fillNeedsRebuild = false
 	if not isDraggingBox then
 		box._fillLastFrame = nil
 	end
