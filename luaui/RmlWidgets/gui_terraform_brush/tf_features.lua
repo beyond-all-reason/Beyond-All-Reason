@@ -9,6 +9,8 @@ function M.attach(doc, ctx)
 		"size",
 		"rotation",
 		"rot-random",
+		"tilt-random",
+		"height-offset",
 		"scale-min",
 		"scale-max",
 		"clumps",
