@@ -1924,7 +1924,8 @@ function widget:MousePress(mx, my, button)
 				dragging = false
 				return true
 			end
-			-- With symmetry on, each copy takes the next player in the rotation.
+			-- With symmetry on, each placed copy takes the next player in the rotation; a copy
+			-- refused (too steep, or the cap) passes its player on to the next copy.
 			do
 				---@type table?
 				local tb = WG.TerraformBrush
@@ -1935,8 +1936,9 @@ function widget:MousePress(mx, my, button)
 				if stb and stb.symmetryActive and tb.getSymmetricPositions then
 					local copies = tb.getSymmetricPositions(wx, wz, 0)
 					for _, p in ipairs(copies) do
-						addPosition(p.x, p.z, nextAllyTeam, nextTeamSlot)
-						advanceNextPlayer()
+						if addPosition(p.x, p.z, nextAllyTeam, nextTeamSlot) then
+							advanceNextPlayer()
+						end
 					end
 				elseif addPosition(wx, wz, nextAllyTeam, nextTeamSlot) then
 					advanceNextPlayer()
