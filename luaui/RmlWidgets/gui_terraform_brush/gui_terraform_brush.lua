@@ -17217,7 +17217,7 @@ local tfClone = require("luaui/RmlWidgets/gui_terraform_brush/tf_clone")
 local tfDecals = require("luaui/RmlWidgets/gui_terraform_brush/tf_decals")
 local tfDiffuse = require("luaui/RmlWidgets/gui_terraform_brush/tf_diffuse")
 local tfEnvironment = require("luaui/RmlWidgets/gui_terraform_brush/tf_environment")
-local tfFeatures = require("luaui/RmlWidgets/gui_terraform_brush/tf_features")
+widgetState.tfFeatures = require("luaui/RmlWidgets/gui_terraform_brush/tf_features")
 widgetState.tfUnits = require("luaui/RmlWidgets/gui_terraform_brush/tf_units")
 widgetState.tfBlockout = require("luaui/RmlWidgets/gui_terraform_brush/tf_blockout")
 local tfGrass = require("luaui/RmlWidgets/gui_terraform_brush/tf_grass")
@@ -18363,7 +18363,7 @@ local function attachEventListeners()
 	tfGrass.attach(doc, ctx)
 
 	-- Per-tool module attach
-	tfFeatures.attach(doc, ctx)
+	widgetState.tfFeatures.attach(doc, ctx)
 	widgetState.tfUnits.attach(doc, ctx)
 	tfWeather.attach(doc, ctx)
 	tfSplat.attach(doc, ctx)
@@ -21146,7 +21146,7 @@ function widget:Update()
 			local dfpState = WG.DiffusePainter and WG.DiffusePainter.getState and WG.DiffusePainter.getState()
 			tfDiffuse.sync(doc, ctx, dfpState, setSummary)
 		elseif fpActive then
-			tfFeatures.sync(doc, ctx, fpState, setSummary)
+			widgetState.tfFeatures.sync(doc, ctx, fpState, setSummary)
 		elseif envActive then
 			tfEnvironment.sync(doc, ctx, setSummary)
 		elseif lpActive then
