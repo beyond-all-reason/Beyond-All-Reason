@@ -613,6 +613,13 @@ The editor works with the game's dual-screen mode (`DualScreenMode = 1` in `spri
 
 On desks that mix display scaling (for example a 150% 4K beside a 100% 1440p screen), the engine must support per-monitor DPI, or Windows stretches the window on the second monitor.
 
+## Experimental (dev-only)
+
+These are in the panel for the people building them. They are unfinished, may change or disappear without notice, and need assets that are not part of the game download, so on a normal install they show little or nothing.
+
+- **BLOCKOUT** (SCENE > BLOCKOUT): a backdrop around the map, up to three layers of large scenery (near, middle and far ring), each picked from a list of blockout models and turned and scaled with its own sliders. The layers sit behind the map at sea level, are never culled or selected, and are covered by fog like the rest of the world. The game itself ships no blockout models, so the list only offers None. Layers are not saved with a project.
+- **Osemo** (the Osemo chip in the Asset Library): a separate feature pack for a biome in development. The chip only appears once that pack is installed.
+
 ## Reference tables
 
 ### Keys
