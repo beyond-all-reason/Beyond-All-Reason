@@ -372,6 +372,19 @@ local function metalChanged()
 	gadgetHandler:UpdateCallIn("GameFrame")
 end
 
+-- Other synced gadgets that write the metal map (the clone tool's paste) call this so
+-- the extractors and the resource spots catch up exactly as after a brush stroke.
+GG.MetalBrush = {
+	metalWritten = function(centerX, centerZ, radius)
+		recalcNearbyExtractors(centerX, centerZ, radius)
+		metalChanged()
+	end,
+}
+
+function gadget:Shutdown()
+	GG.MetalBrush = nil
+end
+
 function gadget:GameFrame(frame)
 	if spotRefreshFrame and frame < spotRefreshFrame then
 		return

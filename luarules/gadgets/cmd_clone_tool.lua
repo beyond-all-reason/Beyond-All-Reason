@@ -190,12 +190,25 @@ local function handleCloneMetal(payload)
 		return
 	end
 
+	local minX, minZ, maxX, maxZ = math.huge, math.huge, -math.huge, -math.huge
 	for i = 1, entryCount do
 		local pi = 1 + (i - 1) * 3 + 1
 		local mx = tonumber(parts[pi]) or 0
 		local mz = tonumber(parts[pi + 1]) or 0
 		local val = tonumber(parts[pi + 2]) or 0
 		spSetMetalAmount(mx, mz, val)
+		minX, maxX = math.min(minX, mx), math.max(maxX, mx)
+		minZ, maxZ = math.min(minZ, mz), math.max(maxZ, mz)
+	end
+
+	-- Extractors over the pasted squares and the resource spots catch up through the
+	-- metal brush gadget, the same as after a METAL stroke.
+	local metalBrush = GG.MetalBrush
+	if metalBrush and metalBrush.metalWritten then
+		local sq = Game.metalMapSquareSize or 16
+		local x0, x1 = minX * sq, (maxX + 1) * sq
+		local z0, z1 = minZ * sq, (maxZ + 1) * sq
+		metalBrush.metalWritten((x0 + x1) * 0.5, (z0 + z1) * 0.5, math.max(x1 - x0, z1 - z0) * 0.5)
 	end
 end
 
