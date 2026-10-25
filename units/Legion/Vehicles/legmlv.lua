@@ -1,7 +1,8 @@
 return {
 	legmlv = {
 		activatewhenbuilt = true,
-		builddistance = 96,
+		-- builddistance = 96,
+		builddistance = 200,
 		builder = true,
 		buildpic = "legmlv.DDS",
 		buildtime = 3640,
@@ -9,6 +10,7 @@ return {
 		canreclaim = false,
 		canrepair = true,
 		canrestore = false,
+		cantbetransported = true,
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "19 15 29",
 		collisionvolumetype = "Box",
@@ -34,6 +36,12 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 450,
 		speed = 69,
+		--transport stuff
+		transportcapacity = 1,
+		transportsize = 3,
+		transportunloadmethod = 0,
+		releaseheld = true,
+		----
 		stealth = true,
 		terraformspeed = 120,
 		trackoffset = 12,

@@ -1,7 +1,8 @@
 return {
 	armmlv = {
 		activatewhenbuilt = true,
-		builddistance = 96,
+		--- builddistance = 96,
+		builddistance = 200,
 		builder = true,
 		buildpic = "ARMMLV.DDS",
 		buildtime = 3520,
@@ -9,6 +10,7 @@ return {
 		canreclaim = false,
 		canrepair = true,
 		canrestore = false,
+		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "22 28 35",
 		collisionvolumetype = "Box",
@@ -18,6 +20,8 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 335,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = false,
 		mass = 740,
 		maxacc = 0.07,
@@ -34,6 +38,12 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 450,
 		speed = 75,
+		--transport stuff
+		transportcapacity = 1,
+		transportsize = 3,
+		transportunloadmethod = 0,
+		releaseheld = true,
+		----
 		stealth = true,
 		terraformspeed = 120,
 		trackoffset = 12,
@@ -128,7 +138,7 @@ return {
 				gravityaffected = "true",
 				name = "Seismic charge",
 				noselfdamage = true,
-				range = 220,
+				range = 230,
 				reloadtime = 3,
 				rgbcolor = "0.2 0.6 0.2",
 				tolerance = 3000,

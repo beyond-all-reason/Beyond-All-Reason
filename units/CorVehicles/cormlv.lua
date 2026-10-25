@@ -1,7 +1,8 @@
 return {
 	cormlv = {
 		activatewhenbuilt = true,
-		builddistance = 96,
+		--- builddistance = 96,
+		builddistance = 200,
 		builder = true,
 		buildpic = "CORMLV.DDS",
 		buildtime = 3640,
@@ -9,6 +10,7 @@ return {
 		canreclaim = false,
 		canrepair = true,
 		canrestore = false,
+		cantbetransported = true,
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "30 17 45",
 		collisionvolumetype = "Box",
@@ -18,6 +20,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 450,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		mass = 740,
 		maxacc = 0.067,
@@ -34,6 +38,12 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 450,
 		speed = 69,
+		--transport stuff
+		transportcapacity = 1,
+		transportsize = 3,
+		transportunloadmethod = 0,
+		releaseheld = true,
+		----
 		stealth = true,
 		terraformspeed = 120,
 		trackoffset = 12,
@@ -129,7 +139,7 @@ return {
 				gravityaffected = "true",
 				name = "Seismic charge",
 				noselfdamage = true,
-				range = 220,
+				range = 230,
 				reloadtime = 3,
 				rgbcolor = "0.2 0.6 0.2",
 				tolerance = 3000,
