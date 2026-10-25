@@ -58,59 +58,15 @@ local spGetUnitsInSphere = Spring.GetUnitsInSphere
 
 -- Initialization --------------------------------------------------------------
 
----We need predictable and aggressive shrinkage of the avoid/prefer tables and we are not
----especially sensitive to the order or accuracy of eviction. We are memory-constrained as
----well as time-constrained, plus we need a rolling set of keys as units die or disappear.
-local function generateClearHalfTableFunc(hashTable)
-	local keyLists = { {}, {} } ---@type table[]
-	local keyListIndex = 1
-
-	return function()
-		local list = keyLists[keyListIndex] ---@as table
-		local listCount = #list
-
-		-- Remove half the keys immediately and save the other half for later.
-		for index = 1, listCount do
-			hashTable[list[index]] = nil
-			list[index] = nil
-		end
-
-		keyListIndex = (keyListIndex % 2) + 1
-
-		-- At the next "halving", then, we remove a "half" from a previous pass,
-		-- to guarantee that the table is empty of current keys after two passes.
-		local nextList = keyLists[keyListIndex] ---@as table
-		local nextCount = #nextList
-
-		local add = true
-		local nextIndex = 0
-		for key in pairs(hashTable) do
-			if add then
-				nextIndex = nextIndex + 1
-				nextList[nextIndex] = key
-			end
-			add = not add
-		end
-
-		for index = nextIndex + 1, nextCount do
-			nextList[index] = nil
-		end
-	end
-end
-
-local function newClearHalfTable()
-	local tbl = {}
-	local clear = generateClearHalfTableFunc(tbl)
-	setmetatable(tbl, { __call = clear }) -- TODO: dislike this immensely
-	return tbl
-end
-
 local avoidUnit, preferUnit = {}, {}
+local avoidUnitPrevious, preferUnitPrevious = {}, {}
 do
 	local allyTeamList = Spring.GetAllyTeamList()
 	for _, allyTeam in pairs(allyTeamList) do
-		avoidUnit[allyTeam] = newClearHalfTable()
-		preferUnit[allyTeam] = newClearHalfTable()
+		avoidUnit[allyTeam] = {}
+		preferUnit[allyTeam] = {}
+		avoidUnitPrevious[allyTeam] = {}
+		preferUnitPrevious[allyTeam] = {}
 	end
 end
 
@@ -386,13 +342,13 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 	end
 
 	-- Avoid collaterals of a similar scale to our own explosion radius.
-	local avoidRadius = avoidUnit[allyTeam][targetID] ---@as number?
+	local avoidRadius = avoidUnit[allyTeam][targetID] or avoidUnitPrevious[allyTeam][targetID] ---@as number?
 	if avoidRadius and avoidRadius == math_clamp(avoidRadius, searchRadius * 0.5, searchRadius + 10) then
 		return allowBadSpamTarget or not unitIsSpam[targetID], priority * PRIORITY_ANTI_COLLATERAL
 	end
 
 	-- Prefer targets that are clean hits or bombarded by larger weapons.
-	local preferRadius = preferUnit[allyTeam][targetID]
+	local preferRadius = preferUnit[allyTeam][targetID] or preferUnitPrevious[allyTeam][targetID]
 	if preferRadius and preferRadius >= searchRadius - 10 then
 		return true, priority -- No priority bonus. Focus on bad targets.
 	end
@@ -434,8 +390,10 @@ function gadget:GameFramePost(frame)
 	if updateAllyTeams[frameIndex] then
 		-- Evicts half the allyTeam targeting cache per update:
 		for _, allyTeam in next, updateAllyTeams[frameIndex] do
-			avoidUnit[allyTeam]()
-			preferUnit[allyTeam]()
+			avoidUnitPrevious[allyTeam] = avoidUnit[allyTeam]
+			avoidUnit[allyTeam] = {}
+			preferUnitPrevious[allyTeam] = preferUnit[allyTeam]
+			preferUnit[allyTeam] = {}
 		end
 	end
 end
