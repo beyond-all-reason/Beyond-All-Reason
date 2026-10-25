@@ -689,7 +689,19 @@ end
 ----------------------------------------------------------------
 -- Undo / Redo
 ----------------------------------------------------------------
+-- While placeSymmetric fans one stamp out to its copies, their entries gather
+-- here and land as one undo step.
+---@type {action: string?, lights: table[]}?
+local undoGroup = nil
+
 local function pushUndo(action, lights)
+	if undoGroup then
+		undoGroup.action = action
+		for _, rec in ipairs(lights) do
+			undoGroup.lights[#undoGroup.lights + 1] = rec
+		end
+		return
+	end
 	if #undoStack >= MAX_UNDO then
 		table.remove(undoStack, 1)
 	end
@@ -843,7 +855,7 @@ local function copyMatrix(p, rot)
 end
 
 -- Apply the TerraformBrush grid snap and symmetric fan-out to a placement call;
--- each copy gets its copyMatrix.
+-- each copy gets its copyMatrix, and all copies are one undo step.
 local function placeSymmetric(fn, cx, cz)
 	local tb = WG.TerraformBrush
 	local rot = lp.rotation or 0
@@ -858,8 +870,14 @@ local function placeSymmetric(fn, cx, cz)
 		if st.symmetryActive and tb.getSymmetricPositions then
 			local positions = tb.getSymmetricPositions(cx, cz, rot)
 			if positions and #positions > 0 then
+				undoGroup = { lights = {} }
 				for _, p in ipairs(positions) do
 					fn(p.x, p.z, copyMatrix(p, rot))
+				end
+				local group = undoGroup
+				undoGroup = nil
+				if group.action then
+					pushUndo(group.action, group.lights)
 				end
 				return
 			end
