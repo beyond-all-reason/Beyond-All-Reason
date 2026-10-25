@@ -99,14 +99,11 @@ end
 
 local WG = WG
 -- Engine globals as chunk locals (the tf_* modules do the same): RmlUi event
--- closures can run outside the widget env where bare globals read nil, and
--- the CI analyzer counts every bare engine global as an undefined-global
--- finding. Same table objects, so Spring.X = ... still reaches every widget.
+-- closures can run outside the widget env, where bare globals read nil, and the
+-- CI analyzer flags bare globals. Same tables, so Spring.X = ... still reaches every widget.
 local Spring = Spring
--- RmlUi too: keydown and focus listeners are dispatched through RmlUi's own Lua
--- plugin, and a listener invoked that way does not see this widget's globals. A
--- bare `RmlUi` inside one of them reads nil, which is how Enter died silently in
--- every text field (the pcall around the lookup swallowed it).
+-- RmlUi too: listeners dispatched through RmlUi's own Lua plugin do not see this
+-- widget's globals, so a bare `RmlUi` inside one reads nil.
 local RmlUi = RmlUi
 local VFS = VFS
 local gl = gl
@@ -186,7 +183,6 @@ local currentLeftVw = INITIAL_LEFT_VW
 local currentTopVh = INITIAL_TOP_VH
 
 local uiState = { updatingFromCode = false, draggingSlider = nil }
--- guideMode lives on widgetState (shared with tf_guide module)
 
 -- Window drag state (module-level so widget:MouseMove/MouseRelease can access)
 local WINDOW_SNAP_THRESHOLD = 30
@@ -204,13 +200,13 @@ local windowDragState = {
 	snapRects = nil,
 }
 local windowDragAllWindows = {}
--- floatingTipEl, currentHint, lastRenderedHint live on widgetState (shared with tf_guide)
+-- Shared state for this panel and the tf_* modules. New state goes here as a
+-- field, not as a file-level local: this chunk is close to Lua 5.1's 200-local limit.
 
 widgetState = { -- forward-declared above playSound so mute check works
-	-- Text for the Projects browser, Team Sync and the quit prompt. Its own
-	-- module rather than language/en/interface.json: the translation files
-	-- are written by hand, and none of this editor is translated. A field
-	-- and not a local: this file is close to Lua's 200-local limit.
+	-- Text for the Projects browser, Team Sync and the quit prompt. Its own module,
+	-- not language/en/interface.json: the translation files are hand-written and
+	-- this editor is not translated.
 	text = require("luaui/RmlWidgets/gui_terraform_brush/tf_strings").text,
 	rmlContext = nil,
 	document = nil,
@@ -254,7 +250,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	envSkyboxGridEl = nil, -- grid container element for GL scissor clipping
 	envCurrentSkybox = nil,
 	envDefaultSkybox = nil,
-	envLoadedTextures = {}, -- DDS paths pre-loaded into GL, freed on shutdown
+	envLoadedTextures = {}, -- every library DDS path; Shutdown calls gl.DeleteTexture on each (nothing preloads them)
 	skyPreviewShader = nil, -- GLSL cubemap-face preview shader (lazy-created in DrawScreenPost)
 	-- Light placer section elements
 	lightControlsEl = nil,
@@ -304,11 +300,10 @@ widgetState = { -- forward-declared above playSound so mute check works
 	-- Passthrough mode: deactivate all tools but keep panel visible
 	passthroughMode = false,
 	passthroughSaved = nil, -- {tool=string, mode=string|nil}
-	-- Focus mode (game interface hidden, editor left alive): focusMode and
-	-- focusSetTimer are assigned by setFocusMode and deliberately NOT initialised
-	-- here. The analyzer takes a false/nil literal in this constructor as the
-	-- field's only value and flags every guard on it (the passthroughMode ones
-	-- above are all in the baseline for that reason).
+	-- Focus mode: focusMode and focusSetTimer are set by setFocusMode and left out
+	-- of this constructor on purpose. The analyzer reads a false/nil literal here as
+	-- the field's only value and flags every guard on it (the passthroughMode guards
+	-- are baselined for that reason).
 	-- Settings window
 	settingsRootEl = nil,
 	settingsOpen = false,
@@ -317,7 +312,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	settingsCaptureEl = nil, -- the DOM element currently being captured
 	settingsPendingBinds = nil, -- deep copy of keybinds being edited
 	settingsKeybindEls = {}, -- {[action] = keyElement}
-	-- G3: shortcut discovery tip state (guide mode only)
+	-- Shortcut discovery tip state (guide mode only)
 	g3GroupCounts = {}, -- {[groupKey] = interactionCount}
 	g3GroupShown = {}, -- {[groupKey] = true} once shown this session
 	g3Toast = { text = nil, expiry = 0 }, -- active proactive hint
@@ -347,8 +342,8 @@ widgetState = { -- forward-declared above playSound so mute check works
 	projectSaveNewFolders = {}, -- folders created this session (empty ones do not list)
 	-- Auto-scroll transport state (per-slider, keyed by slider element id)
 	transports = {},
-	-- Currently focused RmlUI input element (text/number boxes); cleared on blur.
-	-- Used to auto-blur when game chat is opened, so Tab autocomplete isn't stolen by RmlUI.
+	-- Focused RmlUi text input, cleared on blur. Blurred when game chat opens, so
+	-- RmlUi does not steal Tab autocomplete.
 	focusedRmlInput = nil,
 	-- Module-shared mutable state
 	noiseManuallyHidden = false,
@@ -387,37 +382,23 @@ widgetState = { -- forward-declared above playSound so mute check works
 		heightmapExportCustomMin = 0,
 		heightmapExportCustomMax = 1,
 		windowPositions = {},
-		-- Folder paths folded shut in the project browsers. One set for both,
-		-- so a folder folded in Open Project is folded in Save As too, and it
-		-- holds only the folders actually folded: anything absent is open, which
-		-- is the default a first run wants and keeps the file to what changed.
+		-- Folders folded shut in the project browsers, one set for both. Only folded
+		-- folders are stored: absent means open.
 		projectCollapsed = {},
-		-- Team projects the browser has already shown. Absent (not empty)
-		-- until the first viewing, which is how a first run avoids flagging
-		-- the entire library as new.
+		-- Team projects the browser has already shown. Absent (not empty) until the
+		-- first viewing, so a first run does not flag the whole library as new.
 		librarySeen = nil,
 	},
-	-- ========================================================================
-	-- Per-frame RmlUI performance caches (cleared on doc close in Shutdown).
-	-- elCache:        id -> element (avoid repeated doc:GetElementById in sync loop)
-	-- lastInnerRml:   id -> last-written inner_rml string (dirty-check)
-	-- lastAttrValue:  id -> last-written `value` attribute (dirty-check)
-	-- ========================================================================
+	-- Per-frame RmlUi caches, cleared when the document closes (Shutdown).
+	-- elCache: id -> element. lastInnerRml / lastAttrValue: id -> last written string (dirty checks).
 	elCache = {},
 	lastInnerRml = {},
 	lastAttrValue = {},
 }
 
--- Cached getElementById. Returns same element as doc:GetElementById(id) on
--- first call, then serves subsequent calls from widgetState.elCache. Caches
--- are invalidated in widget:Shutdown when the document closes. `nil` lookups
--- are NOT cached (so late-loaded elements can be found on subsequent frames).
--- Give an RmlUi text field the keyboard. Without this the game eats every
--- keystroke and the field never types: SDL text input has to be started while
--- the field has focus, and WG.TerraformBrushInputFocused is what tells the tool
--- widgets to stand their single-letter hotkeys down. Every <input type="text">
--- in the panel must go through here -- the search boxes shipped without it and
--- were simply dead (reported by Moose, 2026-09-04).
+-- Give an RmlUi text field the keyboard: SDL text input must start while the field
+-- has focus, and WG.TerraformBrushInputFocused stands the tools' letter hotkeys down.
+-- Every <input type="text"> in the panel must go through here, or it cannot type.
 widgetState.wireTextInput = function(el)
 	if not el then
 		return
@@ -434,6 +415,8 @@ widgetState.wireTextInput = function(el)
 	end, false)
 end
 
+-- Cached doc:GetElementById, cleared in Shutdown. nil results are not cached, so
+-- elements that load later are still found.
 local function getCachedEl(doc, id)
 	local cache = widgetState.elCache
 	local el = cache[id]
@@ -443,7 +426,7 @@ local function getCachedEl(doc, id)
 	if not doc then
 		return nil
 	end
-	-- NOTE: use raw DOM lookup here (method-call form). Do NOT recurse.
+	-- Raw lookup (method-call form). Do NOT recurse.
 	el = doc.GetElementById(doc, id)
 	if el then
 		cache[id] = el
@@ -451,9 +434,8 @@ local function getCachedEl(doc, id)
 	return el
 end
 
--- Dirty-check inner_rml write: skip if last-written string matches. Avoids
--- RmlUI re-parse + style recalc cascade on unchanged labels. Uses element id
--- as cache key (caller passes the id alongside the element).
+-- Dirty-checked inner_rml write: skips RmlUi's re-parse and style recalc on an
+-- unchanged label. The caller passes the element id as the cache key.
 local function setInnerRmlIfChanged(el, id, str)
 	if not el then
 		return
@@ -673,18 +655,10 @@ end
 
 widgetState.saveUiPrefs = saveUiPrefs
 
--- Settings > Performance and Stroke > Clay build-up live in ui_prefs and in
--- the brush widget: mirror the prefs into the data model and push them to
--- the widget. Idempotent; called on toggle, after the prefs load, and once
--- from Update if the widget shows up after this panel (load order is not
--- fixed between LuaUI widget folders).
--- QUIT GUARD. Unsaved changes stand between the user and anything that ends
--- the session: the top bar's QuitForce (desktop) and ReloadForce / showLobby
--- (lobby), Spring.Quit, and the editor's own New Map restart. The engine has
--- no callin for the window's close button or Alt+F4, so those cannot be
--- caught; autosave is the net under them. Everything Lua-side goes through
--- the three globals wrapped below, for the life of this widget and handed
--- back on shutdown, so a /luaui reload never stacks wrappers.
+-- Quit guard: unsaved changes stand between the user and anything that ends the
+-- session (QuitForce, ReloadForce / showLobby, Spring.Quit, the New Map restart).
+-- The engine has no callin for the window's close button or Alt+F4; autosave covers
+-- those. The wrapped globals are handed back on shutdown, so a /luaui reload never stacks wrappers.
 widgetState.quitGuardWords = { quitforce = true, quit = true, reloadforce = true, reload = true }
 
 widgetState.quitGuardShouldAsk = function()
@@ -806,8 +780,8 @@ widgetState.removeQuitGuard = function()
 	widgetState.quitGuardOriginals = nil
 end
 
--- The autosave values cycle through short lists on click (Settings > General):
--- a slider for a number that changes twice a year is not worth its wiring.
+-- The autosave values cycle through short lists on click (Settings > General)
+-- instead of using a slider.
 widgetState.autosaveSteps = {
 	autosaveMinutes = { 5, 10, 15, 30, 60 },
 	autosaveKeepDays = { 1, 3, 7, 14 },
@@ -818,6 +792,9 @@ widgetState.autosaveDaysText = function(value, default)
 	return tostring(days) .. (days == 1 and " DAY" or " DAYS")
 end
 
+-- Settings > Performance and Stroke > Clay build-up live in ui_prefs and in the
+-- brush widget: mirror them into the data model and push them to the widget.
+-- Idempotent; Update calls it once more if the widget loads after this panel.
 widgetState.pushPerfPrefs = function()
 	local up = widgetState.uiPrefs or {}
 	local perf = up.perfMode and true or false
@@ -885,11 +862,10 @@ widgetState.pushPerfPrefs = function()
 	end
 end
 
--- The terraform mirror in Update (900 lines of per-frame readout, slider
--- and class syncing that dirties RmlUi) is not being read while the brush
--- is down on the world: stride it to every 4th draw frame during a sculpt
--- drag, and always under performance mode. A hover over the panel ends the
--- stride so its controls answer at frame rate.
+-- The terraform mirror in Update (per-frame readouts and slider/class syncing
+-- that dirty RmlUi) is not read while the brush is down: stride it to every 4th
+-- draw frame during a sculpt drag and always under performance mode. Hovering
+-- the panel ends the stride so its controls answer at frame rate.
 widgetState.mirrorStrided = function(tfState)
 	if not (tfState.dragging or widgetState.perfMode) then
 		return false
@@ -930,21 +906,17 @@ function widgetState.saveWindowPosition(rootId, rootEl, vsx, vsy)
 	saveUiPrefs()
 end
 
--- =============================================================================
--- Blue-dot hint config: advertises one ergonomy-enhancing subtool per tool
--- via a cyan pulsing dot on the section header / target button.
--- Each entry:
+-- Blue-dot hints: a cyan pulsing dot on a section header or button advertises one
+-- helpful subtool per tool. Each entry:
 --   dotId            : element id of the <div class="tf-notify-dot">
 --   prefKey          : widgetState.uiPrefs.<key> boolean (persisted)
---   markOnClick      : list of element ids; clicking any marks hint as seen
---   sectionToggleId  : (optional) section toggle button id; clicking it while
---                      the section opens triggers a chip 2-pulse on pulseTargets
---   sectionId        : (optional) the section element id (for open-state check)
---   pulseTargets     : (optional) list of chip ids to animate on section open
---   pulseKey         : (optional) widgetState field storing pulse-fire frame
---   pulseExpiryKey   : (optional) widgetState field storing pulse-clear time
+--   markOnClick      : element ids; clicking any marks the hint as seen
+--   sectionToggleId  : (optional) section toggle button; opening the section pulses pulseTargets twice
+--   sectionId        : (optional) the section element id (for the open-state check)
+--   pulseTargets     : (optional) chip ids to animate on section open
+--   pulseKey         : (optional) widgetState field storing the pulse-fire frame
+--   pulseExpiryKey   : (optional) widgetState field storing the pulse-clear time
 -- Listeners are wired in tf_environment.lua; per-frame gating lives in Update.
--- =============================================================================
 widgetState.hintDots = {
 	{
 		dotId = "startpos-mode-notify-dot",
@@ -1016,7 +988,7 @@ widgetState.hintDots = {
 	},
 }
 
--- Skybox fade transition state (outside widgetState to avoid serialisation concerns)
+-- Skybox fade transition state
 local skyFade = {
 	active = false, -- is a transition in progress?
 	phase = "idle", -- "fadeout" | "fadein" | "idle"
@@ -1147,7 +1119,7 @@ local function tickSkyDynamic(dt)
 	end
 end
 
--- Helper: read a sun lighting colour as {r,g,b}
+-- Read a sun lighting colour as {r,g,b}
 local function getSunColor(kind, scope)
 	local r, g, b = gl.GetSun(kind, scope)
 	if r then
@@ -1156,17 +1128,15 @@ local function getSunColor(kind, scope)
 	return { 1, 1, 1 }
 end
 
--- Helper: scale a saved {r,g,b} colour and apply via SetSunLighting
+-- Scale a saved {r,g,b} colour and apply it via SetSunLighting
 local function setSunColorScaled(key, base, scale)
 	Spring.SetSunLighting({ [key] = { base[1] * scale, base[2] * scale, base[3] * scale } })
 end
 
 -- Apply skybox using the successfully GL-bound texture name.
 local function applySkyboxNow(boundTexName, rawPath)
-	-- Prefer the name that gl.Texture successfully bound (registered in
-	-- CNamedTextures so SetSkyBoxTexture can find it). Only fall back to the raw
-	-- path if no bound name is available. Calling SetSkyBoxTexture with an
-	-- unregistered name clears the skybox, so we apply exactly ONE name.
+	-- Apply exactly ONE name: the one gl.Texture bound (registered in CNamedTextures,
+	-- where SetSkyBoxTexture looks), else the raw path. An unregistered name clears the skybox.
 	local name = boundTexName
 	if not name or name == "" then
 		name = rawPath
@@ -1174,10 +1144,9 @@ local function applySkyboxNow(boundTexName, rawPath)
 	if not name or name == "" then
 		return
 	end
-	-- Swapping the skybox makes the engine re-derive sky state from mapinfo,
-	-- which stomps the LIVE fog params back to the map's baked values — fog
-	-- reappears while the ENV sliders still show the runtime values (seen on
-	-- biome skybox sync on loaded maps). Snapshot fog and re-assert it after.
+	-- Swapping the skybox makes the engine re-derive sky state from mapinfo, which
+	-- resets the live fog to the map's baked values while the ENV sliders still show
+	-- the runtime ones. Snapshot fog and re-assert it after.
 	local fogS = gl.GetAtmosphere("fogStart")
 	local fogE = gl.GetAtmosphere("fogEnd")
 	local fR, fG, fB, fA = gl.GetAtmosphere("fogColor")
@@ -1190,17 +1159,14 @@ end
 -- Start a skybox fade transition (screen overlay fade-to-black)
 local function startSkyboxFade(newTexturePath, rawTexturePath)
 	if skyFade.active then
-		-- A fade is already in progress: update the destination skybox.
-		-- IMPORTANT: do NOT re-capture orig* here. If we are mid-fadein the
-		-- lighting is partially restored (dimmed), so re-capturing would record
-		-- those dim values as the "full brightness" target, making restore
-		-- permanently lock the scene dark.
+		-- A fade is already running: update the destination only. Do NOT re-capture
+		-- orig* here: mid-fadein the lighting is partly dimmed, and recording that as
+		-- the full-brightness target would leave the scene dark for good.
 		skyFade.pendingTexture = newTexturePath
 		skyFade.pendingTextureRaw = rawTexturePath or newTexturePath
 		if skyFade.phase == "fadein" then
-			-- Reverse direction: jump back into fadeout symmetrically so the
-			-- screen dims to black before the new skybox appears. The already-
-			-- captured orig* values remain the correct full-brightness target.
+			-- Reverse into fadeout symmetrically so the screen dims to black before the new
+			-- skybox appears; the captured orig* values stay the full-brightness target.
 			skyFade.phase = "fadeout"
 			skyFade.progress = 1 - skyFade.progress
 		end
@@ -1227,34 +1193,27 @@ local function applySkybox(texturePath)
 		return
 	end
 	local normalized = texturePath:gsub("\\", "/")
-	-- VFS.RAW_FIRST ensures raw-filesystem skyboxes (Terraform Brush/SkyBoxes/)
-	-- are found, not just archive-resident ones.
+	-- VFS.RAW_FIRST so raw-filesystem skyboxes (Terraform Brush/SkyBoxes/) are found too.
 	if normalized ~= "" and not VFS.FileExists(normalized, VFS.RAW_FIRST) then
 		Spring.Echo("[Terraform Brush] Skybox texture not found: " .. normalized)
 		return
 	end
-	-- Spring.SetSkyBoxTexture looks up by CNamedTextures, which requires the path
-	-- to be registered via gl.Texture first. gl.Texture can only be called from
-	-- Draw call-ins. RmlUI click handlers fire from Update, so we defer: store the
-	-- path in a pending field and do gl.Texture + SetSkyBoxTexture in the
-	-- DrawScreenPost drain (drainDeferredApplies; DrawScreen is skipped while the
-	-- interface is hidden, and FOCUS MODE hides it on purpose).
+	-- SetSkyBoxTexture looks the name up in CNamedTextures, which needs gl.Texture
+	-- first, and gl.Texture only works in Draw call-ins (click handlers run from
+	-- Update). Defer to the DrawScreenPost drain (drainDeferredApplies); DrawScreen
+	-- is skipped while the interface is hidden, which focus mode does.
 	widgetState._pendingSkyboxPath = normalized
 end
 widgetState.applySkybox = applySkybox
 
--- Per-biome skybox ("each biome is a planet"). BAR only, since the mapped skyboxes
--- ship in this user's writable Terraform Brush/SkyBoxes/ library. Values are lowercase
--- basename fragments matched against the DDS library so exact filenames/versions can
--- vary (SpaceSkybox1/2/3, EarthSkybox1/2/3, ...). namaqualand -> red desert planet
--- is our pick (user specified only bismuth/teizer/enborelde).
+-- Per-biome skybox ("each biome is a planet"). BAR only: the mapped skyboxes ship
+-- in the user's writable Terraform Brush/SkyBoxes/ library.
 local IS_BAR = (Game.gameName or ""):find("Beyond All Reason") ~= nil
--- The fragment per biome comes from its manifest (tileset_dev/tilesets/<key>.lua,
--- field `skybox`), read through WG.TilesetTerrain.getBiomes(); nothing is
--- hardcoded here any more, so a new biome brings its own sky.
+-- Each biome's manifest names its sky (field `skybox`: a lowercase basename
+-- fragment matched against the DDS library), read through WG.TilesetTerrain.getBiomes().
 
--- Resolve a biome key to a full DDS path in the skybox library, or nil if unmapped /
--- the matching file is absent. Deterministic: lowest-sorted name wins (so *1 variants).
+-- Resolve a biome key to a DDS path in the skybox library, or nil if unmapped or
+-- the file is absent. Deterministic: the lowest-sorted name wins (the *1 variants).
 local function resolveBiomeSkybox(biomeKey)
 	local frag
 	local T = WG.TilesetTerrain
@@ -1296,9 +1255,7 @@ local function syncSkyboxToBiome(biomeKey)
 	end
 end
 
--- Pick a biome: the BIOME LIBRARY
--- tiles tf_tileset.lua builds at runtime from the manifests. On widgetState,
--- not a local: the main chunk sits near Lua 5.1's 200-local ceiling.
+-- Pick a biome: the BIOME LIBRARY tiles tf_tileset.lua builds from the manifests.
 widgetState.pickBiome = function(key)
 	if not (WG.TilesetTerrain and WG.TilesetTerrain.setBiome) then
 		return false
@@ -1371,8 +1328,8 @@ local function clampPanelPosition()
 	if vsx <= 0 or vsy <= 0 then
 		return
 	end
-	-- Prefer live rendered width (px); fall back to dp baseline for the very
-	-- first frame before layout has run.
+	-- Prefer the live rendered width (px); the dp baseline covers the first frame
+	-- before layout.
 	local panelWidthPx = (widgetState.rootElement and widgetState.rootElement.offset_width) or widgetState.panelWidthDp
 	local panelWidthVw = (panelWidthPx / vsx) * 100
 	local maxLeftVw = math.max(0, 100 - panelWidthVw - 1)
@@ -1383,17 +1340,14 @@ end
 
 local function buildRootStyle()
 	clampPanelPosition()
-	-- Width lives in RCSS (.tf-root, .tf-env-float-window, .tf-*-root); we only
-	-- emit position here so dragging can override it inline.
+	-- Width lives in RCSS (.tf-root, .tf-env-float-window, .tf-*-root); only the
+	-- position is emitted here, so dragging can override it inline.
 	return string.format("left: %.2fvw; top: %.2fvh;", currentLeftVw, currentTopVh)
 end
 
--- Every floating window pins its header and puts the rest of its content in a
--- `.tf-panel-body` scroll box (see the RML). Capping those to the space left
--- below each window is shared work across the whole editor suite, so it lives
--- in WG.TerraformerShared; this is just the "re-measure now" nudge for the
--- moments this widget knows about. Defined on widgetState rather than as a
--- file local — this chunk is close to Lua 5.1's 200-local ceiling.
+-- Floating windows pin their header and scroll the rest in a `.tf-panel-body`.
+-- Capping those to the space below each window is suite-wide work in
+-- WG.TerraformerShared; this is the "re-measure now" nudge.
 function widgetState.refreshPanelBodies()
 	local ts = WG.TerraformerShared
 	if ts and ts.refreshPanelBodies then
@@ -1401,11 +1355,10 @@ function widgetState.refreshPanelBodies()
 	end
 end
 
--- GL overlays that paint on top of a panel element (texture previews) have to
--- be clipped to the scroll box that element lives in — RmlUi clips its own
--- rendering, but a raw gl.TexRect would keep painting over the pinned header or
--- past the bottom of the panel once the content is scrolled. Returns true when
--- a scissor was pushed; the caller must then gl.Scissor(false).
+-- GL overlays drawn over a panel element (texture previews) must be clipped to its
+-- scroll box: RmlUi clips its own rendering, but a raw gl.TexRect would paint over
+-- the pinned header or past the panel. Returns true when a scissor was pushed;
+-- the caller must then gl.Scissor(false).
 function widgetState.pushPanelClip(el)
 	local vsy = select(2, GetViewGeometry())
 	if not vsy or vsy <= 0 then
@@ -1431,13 +1384,11 @@ function widgetState.pushPanelClip(el)
 	return false
 end
 
--- The FILE dropdown must stay on top of everything, but the GL thumbnail
--- passes run in DrawScreenPost, after RmlUi has rendered, so an open menu
--- would be painted over (reported by Moose for the SURFACE tiles; the same
--- held for every tile grid). Measured once per frame into widgetState.fmBox;
--- every pass skips tiles that touch it. Element coords, y down. Gated on the
--- data model, not the element box: an element that is not laid out can still
--- report a stale non-zero box (the panel-down lesson above).
+-- The FILE dropdown must stay on top, but the GL thumbnail passes run in
+-- DrawScreenPost, after RmlUi, so they would paint over an open menu. Measured once
+-- per frame into widgetState.fmBox*; every pass skips tiles that touch it. Element
+-- coords, y down. Gated on the data model, not the element box: an element that is
+-- not laid out can still report a stale non-zero box.
 function widgetState.measureFileMenuBox()
 	widgetState.fmBoxX = nil
 	local dm = widgetState.dmHandle
@@ -1457,21 +1408,13 @@ function widgetState.measureFileMenuBox()
 		widgetState.fmBoxH = h
 	end
 end
--- Every floating window that can cover a GL tile grid, in the order RmlUi
--- PAINTS them: z-index first (the rcss gives most of them 900, the light
--- library 910, the settings / project / capture / new-map dialogs 920), then
--- document order for the ones sharing a z, because nothing here raises a window
--- on click. The main panel is first, so every window is above it.
---
--- The tile passes run in DrawScreenPost, after RmlUi has rendered, so a grid is
--- painted on top of whatever is already there: it has to skip tiles that fall
--- under any window painted ABOVE the one it lives in. That is the same defect
--- the FILE menu box below fixes, reported again by Moose for the BIOME LIBRARY
--- tiles showing through DIMENSIONS.
---
--- Only the relative order of the windows that actually HOST a grid has to be
--- right (the panel, TILESET and the skybox library); the rest merely have to
--- sort after those. A new floating window belongs in this list.
+-- Every floating window that can cover a GL tile grid, in the order RmlUi paints
+-- them: z-index first (most 900, light library 910, settings / project / capture /
+-- new-map dialogs 920), then document order (nothing raises a window on click).
+-- Tile passes run after RmlUi, so a grid must skip tiles under any window painted
+-- above its own (same problem as the FILE menu box above). Only the relative order
+-- of grid hosts (panel, TILESET, skybox library) matters; the rest sort after them.
+-- A new floating window belongs in this list.
 widgetState.overlayWindows = {
 	"tf-root",
 	"tf-env-tileset-root",
@@ -1495,10 +1438,9 @@ widgetState.overlayWindows = {
 	"tf-capture-root",
 	"tf-newmap-root",
 }
--- The data-model flag that says a window is up. Gated on these and never on the
--- element box, for the reason measureFileMenuBox gives: an element that is not
--- laid out still reports a stale non-zero box. The panel has no entry because
--- nothing is painted below it, so it is never an occluder.
+-- The data-model flag that says a window is up. Gated on these, never on the
+-- element box (see measureFileMenuBox). The panel has no entry: nothing is painted
+-- below it, so it never occludes.
 widgetState.overlayFlags = {
 	["tf-env-tileset-root"] = "envTilesetVisible",
 	["tf-imgov-root"] = "imgOvVisible",
@@ -1556,9 +1498,9 @@ function widgetState.measureOverlayBoxes()
 	end
 end
 
--- True where a tile of a grid living in `ownerId` is covered by the file menu
--- or by a window painted above it. An unknown owner ranks 0, i.e. everything
--- covers it, which is the safe way round for a caller that forgets to say.
+-- True where a tile of a grid in `ownerId` is covered by the file menu or by a
+-- window painted above it. An unknown owner ranks 0 (everything covers it), the
+-- safe default for a caller that forgets to say.
 function widgetState.underOverlay(x, y, w, h, ownerId)
 	if widgetState.underFileMenu(x, y, w, h) then
 		return true
@@ -1589,16 +1531,15 @@ function widgetState.underFileMenu(x, y, w, h)
 	return x < bx + bw and x + w > bx and y < by + bh and y + h > by
 end
 
--- Forward declaration: clearPassthrough is defined after initialModel but captured as upvalue
--- by onCl* (and any future) model-king handlers inside initialModel.
+-- Forward declaration: defined after initialModel, captured as an upvalue by the
+-- onCl* data-model handlers inside it.
 local clearPassthrough
--- Forward declarations: populateKeybindList and updateAllKeybindBadges are defined after
--- initialModel but captured as upvalues by onGuide* model-king handlers inside initialModel.
+-- Forward declarations: defined after initialModel, captured as upvalues by the
+-- onGuide* data-model handlers inside it.
 local populateKeybindList
 local updateAllKeybindBadges
 
--- Helpers for noise/clone/splat DataModel handlers defined in initialModel below.
--- All use widgetState/uiState/WG/playSound upvalues (file-level locals).
+-- Helpers for the noise/clone/splat data-model handlers in initialModel below.
 local function _noSliderVal(id, default)
 	local doc = widgetState.document
 	if not doc then
@@ -1647,9 +1588,8 @@ local function _elemSetSliderVal(fullId, v)
 	if sl then
 		local vStr = tostring(v)
 		sl:SetAttribute("value", vStr)
-		-- Keep setAttrValueIfChanged's dirty-check cache coherent: some of the
-		-- ids written here (e.g. gb-/mb-slider-angle-snap-step) are also
-		-- synced per-frame through that guard, keyed by element id.
+		-- Keep setAttrValueIfChanged's cache coherent: some of these ids (e.g.
+		-- gb-/mb-slider-angle-snap-step) are also synced per frame through that guard.
 		widgetState.lastAttrValue[fullId] = vStr
 	end
 end
@@ -1767,8 +1707,8 @@ local function _mbSyncSymChipClasses()
 	end
 end
 
--- Helpers for environment DataModel handlers (onEnv*) defined in initialModel below.
--- Mirror tf_environment.lua's envSetSlider/updatePreview but use widgetState.document.
+-- Helpers for the onEnv* data-model handlers in initialModel below: tf_environment's
+-- envSetSlider/updatePreview, but on widgetState.document.
 local function _envSetSlider(sliderId, intVal)
 	local doc = widgetState.document
 	if not doc then
@@ -1794,12 +1734,12 @@ local function _envUpdatePreview(previewId, r, g, b)
 	el:SetAttribute("style", string.format("background-color: rgb(%d, %d, %d);", ri, gi, bi))
 end
 
--- Forward declarations for variables defined after initialModel but captured as
--- upvalues by onTf*/onTb* model-king handlers inside initialModel.
+-- Forward declarations: defined after initialModel, captured as upvalues by the
+-- onTf*/onTb* data-model handlers inside it.
 local shapeNames, CLAY_UNAVAILABLE_MODES
 local ringWidthPct, applyCap, capMaxValue, capMinValue, capEnabled
 
--- TB-shared helpers used by onTb* handlers in initialModel.
+-- Shared helpers for the onTb* handlers in initialModel.
 local TB_ANGLE_PRESETS = { 7.5, 15, 30, 45, 60, 90 }
 local function _tbFindAnglePresetIdx(val)
 	local best, bestD = 2, math.huge
@@ -1816,15 +1756,12 @@ end
 -- SHAPE row (metal, grass, features, splat) stamp rather than stroke, and ramp /
 -- noise / autoramp / restore / erode own their own sampling.
 local _tbFollowModes = { raise = true, lower = true, level = true, smooth = true, smudge = true }
--- PASSABILITY overlay (MrBob's F6 check without a selected unit): the tileset
--- shader tints everything steeper than the class's max slope in the engine's
--- impassable purple, so a cliff can be judged while sculpting. Degrees are read
--- off a representative unit's movedef so the band matches what F6 draws; the
--- literals are gamedata/movedefs.lua's own SLOPE values as a fallback.
--- SHIP is not a slope: ships need water deeper than their movedef's minimum, so
--- that class switches the engine's own traversability view to a ship movedef
--- (/showpathtype, the F6 colours, no unit selected) and needs no tileset shader.
--- `prevDrawMode` is the view to go back to afterwards.
+-- PASSABILITY overlay (the F6 check without a selected unit): the tileset shader
+-- tints everything steeper than the class's max slope in the engine's impassable
+-- purple. Degrees come from a representative unit's movedef so the band matches F6;
+-- the literals are gamedata/movedefs.lua's SLOPE values as a fallback. SHIP is not
+-- a slope (ships need deep enough water), so it switches the engine's own
+-- traversability view (/showpathtype) instead; `prevDrawMode` is the view to restore.
 local _tbPassClasses = {
 	{ key = "BOT", unit = "armpw", deg = 54 },
 	{ key = "VEH", unit = "armflash", deg = 27 },
@@ -1838,8 +1775,7 @@ local function _tbPassDeg(entry)
 	---@diagnostic disable-next-line: undefined-global
 	local ud = UnitDefNames and UnitDefNames[entry.unit]
 	local ms = ud and ud.moveDef and ud.moveDef.maxSlope
-	-- movedef maxSlope is stored as 1 - cos(angle), same space as
-	-- Spring.GetGroundNormal's fourth return.
+	-- movedef maxSlope is 1 - cos(angle), the same space as GetGroundNormal's fourth return.
 	if ms and ms > 0 and ms < 2 then
 		return math.deg(math.acos(1 - ms))
 	end
@@ -1857,11 +1793,9 @@ local function _tbMirrorToggle(P, stateKey, setter, dmKey)
 	end
 	playSound("tick")
 end
--- ── IMAGE overlay (DISPLAY > Image) ──────────────────────────────────────────
--- One overlay shared by every tool's DISPLAY row (WG.TerraformImageOverlay,
--- cmd_terraform_image_overlay.lua). The chips toggle it or open the single
--- IMAGE OVERLAY floating window (tf-imgov-root); the helpers sit on one table
--- to stay clear of the main chunk's local budget.
+-- ============ IMAGE overlay (DISPLAY > Image) ============
+-- One overlay shared by every tool's DISPLAY row (WG.TerraformImageOverlay). The
+-- chips toggle it or open the IMAGE OVERLAY window (tf-imgov-root).
 local _imgOv = {}
 -- { slider id suffix, state -> slider value, slider value -> overlay setter }
 _imgOv.SLIDERS = {
@@ -1992,8 +1926,8 @@ function _imgOv.stamp(force)
 		end
 	end
 	uiState.updatingFromCode = false
-	-- The change events these stamps raise land on a later frame (see
-	-- onTilesetKnob); onImgOvSlider drops them by this timestamp.
+	-- The change events these stamps raise land on a later frame (see onTilesetKnob);
+	-- onImgOvSlider drops them by this timestamp.
 	if stamped then
 		uiState.imgOvStampFrame = Spring.GetDrawFrame()
 	end
@@ -2096,8 +2030,8 @@ local function _deactivateAllTools()
 	if WG.SurfacePainter then
 		WG.SurfacePainter.deactivate()
 	end
-	-- SURFACE hard submode drives WG.SplatPainter (deactivated above); the pin
-	-- that keeps the SURFACE panel open over it must drop with the engine.
+	-- SURFACE hard submode drives WG.SplatPainter (deactivated above); the pin that
+	-- keeps the SURFACE panel open over it drops with it.
 	widgetState.surfHardActive = false
 	widgetState.surfPickerSlot = nil -- leaving the tool closes the variant picker
 	-- UNITS (the shared unit placer, cmd_unit_placer.lua).
@@ -2107,11 +2041,9 @@ local function _deactivateAllTools()
 end
 
 -- ============ New Map (FILE > New Map) helpers ============
--- Map dimensions are entered in "map units" where 1 unit = 512 elmos. The
--- Recoil blank-map generator (CBlankMapGenerator) takes blank_map_x/y in those
--- same spring map dimensions (it internally halves them: mapSize = N/2), so the
--- value entered here is passed through verbatim. Units must be even (the engine
--- divides by 2 and mapx must be a multiple of 128 heightmap squares).
+-- Map size is in map units (1 unit = 512 elmos), passed verbatim as
+-- blank_map_x/y to Recoil's blank-map generator, which halves it internally.
+-- Units must be even (mapx must be a multiple of 128 heightmap squares).
 local NEWMAP_MIN_UNITS = 4
 local NEWMAP_MAX_UNITS = 32
 local NEWMAP_DEFAULT_UNIT = 12
@@ -2119,21 +2051,19 @@ local NEWMAP_BASE_HEIGHT = 100 -- starting ground height (elmos)
 ---@type ColorRGBi
 local NEWMAP_COLOR = { 110, 130, 90 } -- base diffuse colour, muted grass
 
--- ---- DNTS splat-set catalog (harvested from BAR maps) ----
+-- ============ DNTS splat-set catalog (harvested from BAR maps) ============
 -- Each entry: { name, textures = {4 files}, scales = {4}, mults = {4}, diffuseAlpha }.
--- A fresh blank map has no SSMF splat textures, so the chosen set is injected into
--- the blank-map start script (blank_map_splat* keys) to give the splat painter a
--- detail-normal set to paint. The heavy asset library lives OUTSIDE the game
--- archive, in the write dir (Terraform Brush/textures/dnts/), so it isn't
--- committed; users drop the downloadable pack there. Loaded raw via VFS.RAW.
+-- A blank map has no SSMF splat textures, so the chosen set goes into the blank-map
+-- start script (blank_map_splat* keys) for the splat painter to paint. The asset
+-- pack lives outside the game archive, in Terraform Brush/textures/dnts/ in the
+-- write dir (users drop the downloadable pack there); loaded via VFS.RAW.
 local DNTS_DIR = "Terraform Brush/textures/dnts/"
 local dntsSets = {}
 do
 	local chunk = VFS.LoadFile(DNTS_DIR .. "dnts_sets.lua", VFS.RAW)
 	if chunk then
-		-- Strip a leading UTF-8 BOM: the engine's stock Lua 5.1 lexer does NOT skip
-		-- it, so loadstring() errors on the 0xEF byte and the catalog silently loads
-		-- empty (picker shows "None", arrows do nothing). dnts_sets.lua ships with a BOM.
+		-- Strip a leading UTF-8 BOM (dnts_sets.lua ships with one): Lua 5.1's lexer does
+		-- not skip it, and the catalog would silently load empty.
 		chunk = chunk:gsub("^\239\187\191", "")
 		local ok, list = pcall(function()
 			return loadstring(chunk, nil, {})()
@@ -2174,8 +2104,7 @@ end
 
 local function _isGeneratedBlankMap()
 	local mapName = Game.mapName or ""
-	-- Prefix match: generated names carry a per-session uniquifier suffix
-	-- (see buildBlankMapStartScript).
+	-- Prefix match: generated names carry a per-session suffix (see buildBlankMapStartScript).
 	if mapName:find("^Editor Flat %d+x%d+") then
 		return true
 	end
@@ -2190,10 +2119,8 @@ local function _newMapSplatNeedsDnts()
 	if not _isGeneratedBlankMap() or #dntsSets > 0 then
 		return false
 	end
-	-- No library pack installed. That only matters when the library would be
-	-- needed to PICK a set (a fresh New Map): a loaded map project is
-	-- self-contained and injects its own DNTS set through the blank-map keys,
-	-- so the tool must not gate on a pack the map never reads.
+	-- No library pack installed. That matters only when picking a set (a fresh New
+	-- Map): a loaded project injects its own DNTS set through the blank-map keys.
 	local mapOpts = Spring.GetMapOptions()
 	local tex1 = type(mapOpts) == "table" and mapOpts.blank_map_splatdetailnormaltex1 or nil
 	return type(tex1) ~= "string" or tex1 == ""
@@ -2221,22 +2148,19 @@ local function _mapHasUsableSplatTexture()
 end
 
 local function _splatToolUnavailable()
-	-- While the tileset shader owns the ground, $ssmf_splat_distr is repurposed
-	-- as its override mask (R=auto, G=intermediate, B=cliff, A=plateau) — the legacy
-	-- DNTS panel would paint nonsense. Hard-surface painting lives in the
-	-- SURFACE tool (HARD submode) instead, which reuses the same engine.
+	-- Under the tileset shader $ssmf_splat_distr is its override mask (R=auto,
+	-- G=intermediate, B=cliff, A=plateau), so the DNTS panel would paint nonsense.
+	-- Hard-surface painting lives in SURFACE (HARD submode), on the same engine.
 	if WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive() then
 		return true
 	end
 	if _newMapSplatUnavailable() then
 		return true
 	end
-	-- Generated blank maps expose only a 1x1 fallback splat distribution; the
-	-- splat painter PROMOTES that to a map-sized editable target (see
-	-- cmd_splat_painter initSplatTexture), so the tool works as long as the DNTS
-	-- normals are actually bound (the engine blank-map DNTS path plus the widget
-	-- fallback do this). The strict >1x1 check below would wrongly reject that
-	-- promotable case, leaving the button greyed even though painting succeeds.
+	-- Generated blank maps expose a 1x1 splat distribution, which the splat painter
+	-- promotes to a map-sized target (cmd_splat_painter initSplatTexture). The tool
+	-- works as long as the DNTS normals are bound; the strict >1x1 check below would
+	-- wrongly grey the button out.
 	if _isGeneratedBlankMap() then
 		local distr = gl.TextureInfo("$ssmf_splat_distr")
 		local normals = gl.TextureInfo("$ssmf_splat_normals:0")
@@ -2245,7 +2169,7 @@ local function _splatToolUnavailable()
 	return not _mapHasUsableSplatTexture()
 end
 
--- ---- Environment preset catalog (harvested from BAR maps) ----
+-- ============ Environment preset catalog (harvested from BAR maps) ============
 -- Real-map moods (atmosphere, lighting, water) that tools/mapgen/scan_environments.py
 -- writes to env_presets.lua in the environment editor's save schema. The New Map
 -- wizard offers them and applies the pick after the reload via applyEnvConfig.
@@ -2263,18 +2187,11 @@ do
 		end
 	end
 end
--- Environment a fresh map starts with. 0 = Default, 1..N = a harvested mood.
--- Default does NOT mean "leave the engine lighting alone": the engine's is
--- placeholder lighting, ground ambient and diffuse both a flat 0.5 against ~0.99
--- diffuse on a real BAR daylight map, so a new map receives roughly 60% of the
--- light it should. A baked map texture carries the mapper's own brightness and
--- hides that; the tileset shader draws raw PBR albedo and cannot, so new maps read
--- as though the SHADER were broken (diagnosed 2026-08-12 — /tileset probe
--- reported flat-lit 0.596 against ~0.91 for a real daylight mood). So Default
--- applies the canonical sun instead (widgetState.newMapDefaultEnv below): the
--- wizard opens on "Default" and a fresh map is still properly lit. The harvested
--- moods stay in the picker for anyone who wants one, and picking a mood brings its
--- water, fog and sky too, which Default deliberately leaves alone.
+-- Environment a fresh map starts with: 0 = Default, 1..N = a harvested mood.
+-- Default is not the engine lighting: that is placeholder (flat 0.5 ambient and
+-- diffuse), which the tileset shader's raw PBR albedo shows as a dark map. Default
+-- applies the canonical sun (newMapDefaultEnv below); a mood also brings its water,
+-- fog and sky, which Default leaves alone.
 widgetState.newMapEnvIdx = 0
 
 -- Push the selected environment name into the data-model label.
@@ -2291,21 +2208,18 @@ widgetState._nmRefreshEnvLabel = function()
 	end
 end
 
--- TEMPORARY: the current fog is a placeholder to be replaced, and its defaults
--- (fogStart ~0.8 / fogEnd ~1.0) heavily obscure fresh maps + reloads. Until the new
--- fog system lands, keep fog pushed past the far plane everywhere the widget touches
--- atmosphere. Values match maxing both ENV fog sliders (fogStart 1.99 / fogEnd 2.0);
--- manual slider drags still override this live (they SetAtmosphere directly). To bring
--- fog back, delete FOG_OFF/disableFog use and restore env-config fogStart/fogEnd below.
+-- Fog is forced past the far plane wherever the widget touches atmosphere: the
+-- current fog is a placeholder whose defaults (start ~0.8, end ~1.0) hide fresh
+-- maps. Values match both ENV fog sliders at max; manual drags still override live.
+-- To bring fog back, drop FOG_OFF / disableFog and the fogStart/fogEnd overrides below.
 local FOG_OFF = { fogStart = 1.99, fogEnd = 2.0 }
 widgetState.disableFog = function()
 	Spring.SetAtmosphere({ fogStart = FOG_OFF.fogStart, fogEnd = FOG_OFF.fogEnd })
 end
 
--- Push the live sun state into the ENV panel sliders. The sliders seed only once
--- at document attach, so an environment applied afterwards (project load) must
--- refresh them — otherwise the next nudge on any sun slider writes its stale
--- attach-time value back through Spring.SetSunDirection.
+-- Push the live sun state into the ENV sliders. They seed only at document attach,
+-- so an environment applied later (project load) must refresh them, or the next
+-- nudge writes the stale value back through SetSunDirection.
 widgetState.refreshEnvSunSliders = function()
 	local sx, sy, sz = gl.GetSun("pos")
 	if not sx then
@@ -2320,9 +2234,8 @@ widgetState.refreshEnvSunSliders = function()
 	uiState.updatingFromCode = false
 end
 
--- Same for the AZIMUTH / ELEVATION pair. Kept separate from the XYZ refresh so a
--- drag on either pair only restamps the other (restamping the slider under the
--- pointer fights the drag).
+-- Same for AZIMUTH / ELEVATION, kept apart from the XYZ refresh so a drag on one
+-- pair restamps only the other (restamping the slider under the pointer fights the drag).
 widgetState.refreshEnvSunAzEl = function()
 	local sx, sy, sz = gl.GetSun("pos")
 	if not sx then
@@ -2335,9 +2248,8 @@ widgetState.refreshEnvSunAzEl = function()
 	uiState.updatingFromCode = false
 end
 
--- Apply a full environment config table (schema = env_presets.lua / onEnvSave) to
--- the live engine. Mirrors onEnvLoad's apply body so the env editor and the New
--- Map preset path drive the engine identically. Every field is optional.
+-- Apply a full environment config (schema = env_presets.lua / onEnvSave) to the
+-- engine, the same way onEnvLoad does. Every field is optional.
 ---@param d table<string, any>? An environment snapshot as produced by
 ---`buildEnvConfigContent`: sun, fog and atmosphere values keyed by name.
 ---@return nil
@@ -2347,23 +2259,17 @@ widgetState.applyEnvConfig = function(d)
 	end
 	if d.sunDir then
 		local sdx, sdy, sdz = d.sunDir[1] or 0, d.sunDir[2] or 0, d.sunDir[3] or 0
-		-- A config saved while gl.GetSun returned nothing carries {0,0,0}: applying
-		-- it would black out the map, so a degenerate direction is ignored.
-		--
-		-- (0, 0.4472, 0.8944) is ignored for a different reason: it is the ENGINE
-		-- default (MapInfo.cpp normalizes sunDir (0,1,2)), so a config carrying it
-		-- recorded the absence of a sun rather than a chosen one. Projects saved
-		-- from a canvas that never had one are full of it; applying it would put
-		-- the flat southern light back every time they are opened. Leaving it
-		-- alone keeps whatever the canvas already applied.
+		-- A config saved while gl.GetSun returned nothing carries {0,0,0}, which would
+		-- black out the map: ignore it. (0, 0.4472, 0.8944) is ignored too: it is the
+		-- engine default (MapInfo normalizes (0,1,2)), so it records no chosen sun, and
+		-- applying it would undo whatever sun the canvas already has.
 		local isEngineDefault = math.abs(sdx) < 0.002
 			and math.abs(sdy - 0.4472136) < 0.002
 			and math.abs(sdz - 0.8944272) < 0.002
 		if isEngineDefault then
 			Spring.Echo("[Terraform Brush] environment carries the engine default sun; keeping the current one")
 		elseif sdx * sdx + sdy * sdy + sdz * sdz > 1e-6 then
-			-- A config without an intensity (the harvested map moods have none)
-			-- keeps the session's; only an explicit value changes it.
+			-- A config without an intensity (harvested moods have none) keeps the session's.
 			local intensity = d.sunIntensity or widgetState.envSunIntensity or 1.0
 			Spring.SetSunDirection(sdx, sdy, sdz, intensity)
 			widgetState.envSunIntensity = intensity
@@ -2405,9 +2311,8 @@ widgetState.applyEnvConfig = function(d)
 	if next(lightParams) then
 		Spring.SetSunLighting(lightParams)
 		Spring.SendCommands("luarules updatesun")
-		-- A skybox fade in flight scales the six sun colours from its captured
-		-- originals and restores those at the end, which would overwrite what
-		-- was just applied: retarget the fade at the new colours instead.
+		-- A skybox fade in flight restores its captured colours at the end, which would
+		-- overwrite what was just applied: retarget the fade at the new colours.
 		if skyFade.active then
 			skyFade.origGroundAmbient = lightParams.groundAmbientColor or skyFade.origGroundAmbient
 			skyFade.origGroundDiffuse = lightParams.groundDiffuseColor or skyFade.origGroundDiffuse
@@ -2418,7 +2323,7 @@ widgetState.applyEnvConfig = function(d)
 		end
 	end
 	local atmosParams = {}
-	-- Env-preset fog intentionally NOT applied (placeholder + obscuring): force it off.
+	-- Env-preset fog is not applied (placeholder fog, see FOG_OFF): force it off.
 	atmosParams.fogStart = FOG_OFF.fogStart
 	atmosParams.fogEnd = FOG_OFF.fogEnd
 	if d.fogColor then
@@ -2481,8 +2386,8 @@ widgetState.applyEnvConfig = function(d)
 		Spring.SetWaterParams(wcParams)
 		Spring.SendCommands("water 4")
 	end
-	-- Skybox: the engine has no getter for the active skybox, so the config
-	-- carries the library path the user picked (applySkybox re-validates it).
+	-- The engine has no getter for the active skybox, so the config carries the
+	-- library path the user picked (applySkybox re-validates it).
 	if type(d.skybox) == "string" and d.skybox ~= "" and widgetState.applySkybox then
 		widgetState.applySkybox(d.skybox)
 		widgetState.envCurrentSkybox = d.skybox
@@ -2498,9 +2403,8 @@ widgetState.applyEnvConfig = function(d)
 			Spring.Echo("[Terraform Brush] blockout not applied: " .. tostring(err))
 		end
 	end
-	-- The ENV panel's RESET buttons return to "the defaults": after a project
-	-- or preset apply those are the applied values, not whatever the engine
-	-- held when the panel first opened (often the flat blank-map lighting).
+	-- The ENV RESET buttons return to "the defaults": after a project or preset apply
+	-- those are the applied values, not the engine's at panel open.
 	if widgetState.captureEnvDefaults then
 		widgetState.captureEnvDefaults()
 	end
@@ -2527,14 +2431,12 @@ widgetState.azElFromSunDir = function(x, y, z)
 	return az, el
 end
 
--- Sun-only quick presets for the ENV panel: azimuth, elevation, intensity, the
--- six sun colours, the sun tint and both shadow densities. They never touch
--- water, fog or sky, so they are safe on any map. Three on purpose (PtaQ,
--- 2026-09-03): the canonical sun, a low warm one and a flat one.
+-- Sun-only quick presets for the ENV panel: azimuth, elevation, intensity, the six
+-- sun colours, the sun tint and both shadow densities. They never touch water, fog
+-- or sky, so they are safe on any map: the canonical sun, a low warm one, a flat one.
 widgetState.envSunPresets = {
 	{
-		-- PtaQ's canonical editor sun (Terraform Brush/Environments/Canonical sun.lua,
-		-- 2026-09-03): the default here and the New Map wizard's Clear Daylight sun.
+		-- The canonical editor sun: the default here and the New Map wizard's Clear Daylight sun.
 		name = "Canonical",
 		az = 33,
 		el = 34.4,
@@ -2581,12 +2483,10 @@ widgetState.envSunPresets = {
 	},
 }
 
--- The ENV panel's preset catalog: harvested map moods (the New Map wizard's
--- list), the user's own files in Terraform Brush/Environments/ (SAVE in the
--- panel; legacy Lightmaps/*_environ_*.lua saves are listed too), and the
--- sun-only quick presets above. Each entry = { name, kind, data | path }.
--- (Fields on widgetState, not chunk locals: the main chunk is near the Lua 5.1
--- 200-local ceiling.)
+-- The ENV panel's preset catalog: harvested map moods (the New Map wizard's list),
+-- the user's files in Terraform Brush/Environments/ (SAVE in the panel; legacy
+-- Lightmaps/*_environ_*.lua saves list too) and the sun-only quick presets above.
+-- Each entry = { name, kind, data | path }.
 widgetState.envPresetDir = "Terraform Brush/Environments/"
 widgetState.listEnvPresets = function()
 	local ENV_PRESET_DIR = widgetState.envPresetDir
@@ -2615,8 +2515,8 @@ widgetState.listEnvPresets = function()
 	return out
 end
 
--- Resolve an entry's config table (files load on demand, BOM-stripped: Recoil
--- runs stock Lua 5.1 and loadstring chokes on a UTF-8 BOM).
+-- Resolve an entry's config table. Files load on demand, BOM-stripped (Lua 5.1's
+-- loadstring chokes on a UTF-8 BOM).
 widgetState.loadEnvPresetData = function(entry)
 	if entry.data then
 		return entry.data
@@ -2637,9 +2537,8 @@ widgetState.loadEnvPresetData = function(entry)
 	return d
 end
 
--- Apply a preset with the panel's scope. "sun" takes only the sun keys (a
--- sun-only preset has nothing else anyway); "full" hands the whole table to
--- applyEnvConfig. A sun-only preset's az/el become a sunDir first.
+-- Apply a preset with the panel's scope: "sun" takes only the sun keys, "full"
+-- hands the whole table to applyEnvConfig. A sun-only preset's az/el become a sunDir first.
 widgetState.envSunKeys = {
 	"sunDir",
 	"sunIntensity",
@@ -2704,9 +2603,9 @@ end
 ---@field nodate boolean? Suppress the "generated on" date comment so that
 ---repeated saves of unchanged state will serialize/hash identically
 
--- Serialize the live environment state into the env-config Lua format (the same
--- format onEnvSave writes and applyEnvConfig consumes). Shared by the env editor's
--- SAVE button and the map-project orchestrator (cmd_map_project.lua).
+-- Serialize the live environment into the env-config Lua format (what onEnvSave
+-- writes and applyEnvConfig reads). Shared by the env editor's SAVE button and
+-- the map-project orchestrator (cmd_map_project.lua).
 ---@param opts EnvConfigOpts?
 ---@return string content
 widgetState.buildEnvConfigContent = function(opts)
@@ -2741,8 +2640,8 @@ widgetState.buildEnvConfigContent = function(opts)
 	local bstr = function(v)
 		return v and "true" or "false"
 	end
-	-- A nil or zero-length sun vector must not serialize as {0,0,0} — a config
-	-- carrying that would black out the map it is later applied to.
+	-- A nil or zero-length sun vector must not serialize as {0,0,0}: that config would
+	-- black out the map it is applied to.
 	local sunDirLine = "\t-- sunDir omitted: engine returned no sun position at save time"
 	if sX and ((sX * sX + (sY or 0) * (sY or 0) + (sZ or 0) * (sZ or 0)) > 1e-6) then
 		sunDirLine = "\tsunDir = " .. fmt3({ sX, sY, sZ }) .. ","
@@ -2877,12 +2776,10 @@ widgetState.buildEnvConfigContent = function(opts)
 	return table.concat(outLines, "\n")
 end
 
--- The wizard's "Default" environment: PtaQ's canonical sun and nothing else, so a
--- fresh map is lit like a real one without adopting some other map's water, fog and
--- sky. Built from envSunPresets[1], the single place that sun is defined, rather
--- than from a copy: the harvested moods in env_presets.lua are regenerated by
--- tools/mapgen/scan_environments.py, so a sun stored there cannot be trusted to
--- survive a re-harvest. Lazy on purpose (envSunKeys is defined further down).
+-- The wizard's "Default" environment: the canonical sun and nothing else, so a fresh
+-- map is lit like a real one without another map's water, fog and sky. Built from
+-- envSunPresets[1], not a copy in env_presets.lua (a re-harvest by
+-- tools/mapgen/scan_environments.py regenerates that). Lazy: envSunKeys is defined later.
 widgetState.newMapDefaultEnv = function()
 	local sun = widgetState.envSunPresets and widgetState.envSunPresets[1]
 	if not sun then
@@ -2894,8 +2791,7 @@ widgetState.newMapDefaultEnv = function()
 	for _, k in ipairs(widgetState.envSunKeys) do
 		local v = sun[k]
 		if k ~= "sunDir" and v ~= nil then
-			-- colours are copied element-wise: sharing the table would let an ENV
-			-- panel edit reach back into the preset
+			-- Copy colours element-wise: a shared table would let an ENV edit reach the preset.
 			out[k] = (type(v) == "table") and { v[1], v[2], v[3] } or v
 		end
 	end
@@ -2924,11 +2820,9 @@ local function _nmClampEven(v, default)
 	return v
 end
 
--- Source of truth for the dialog is widgetState.newMapW / newMapH (map units),
--- NOT the RML slider's `value` attribute: RmlUi range sliders only report the
--- dragged value via the change event's `event.parameters.value`; GetAttribute()
--- read later (e.g. on the Create click) returns the stale RML default. So we
--- capture into widgetState on every change and read widgetState on Create.
+-- The dialog's source of truth is widgetState.newMapW / newMapH (map units), not
+-- the slider's `value`: RmlUi range sliders report a drag only through the change
+-- event's parameters.value, and GetAttribute later returns the stale RML default.
 
 -- Push widgetState dimensions into the data-model labels (width/height/elmo).
 local function _nmRefreshLabels()
@@ -2951,12 +2845,10 @@ local function _nmRefreshLabels()
 	end
 end
 
--- Set one axis (explicit step / button path): clamp, store, move the slider
--- thumb, and refresh labels.
+-- Set one axis (step buttons): clamp, store, move the slider thumb, refresh labels.
 local function _nmSetAxis(axis, units)
 	units = _nmClampEven(units, NEWMAP_DEFAULT_UNIT)
-	-- Guard the code->thumb write so the resulting change event is ignored
-	-- (consistent with the terrain sliders; prevents any future feedback loop).
+	-- Guard the code->thumb write so the resulting change event is ignored.
 	uiState.updatingFromCode = true
 	if axis == "h" then
 		widgetState.newMapH = units
@@ -2969,8 +2861,8 @@ local function _nmSetAxis(axis, units)
 	_nmRefreshLabels()
 end
 
--- Mex pull radius of the new map (mapinfo extractorRadius): clamp, store, label; moveThumb for the
--- button path (the slider's own change already has the thumb where it belongs)
+-- Mex pull radius of the new map (mapinfo extractorRadius): clamp, store, label.
+-- moveThumb for the button path (a slider change already has its thumb in place).
 widgetState.nmSetMexRadius = function(raw, moveThumb)
 	local r = math.max(24, math.min(200, math.floor((tonumber(raw) or 90) + 0.5)))
 	widgetState.newMapMexRadius = r
@@ -2996,8 +2888,7 @@ end
 ---@field rawPaths boolean? texture entries are full VFS paths already (project-local
 ---assets/) instead of names under the library DNTS_DIR.
 
--- Blank map start script options
--- Defaults preserve the New Map behavior
+-- Blank map start script options; the defaults give the plain New Map.
 ---@class BaseMapOpts
 ---@field baseHeight number? blank_map_height (project manifests record theirs)
 ---@field baseColor ColorRGBi? blank_map_color
@@ -3005,9 +2896,8 @@ end
 ---@field customName string? user map name from the wizard; sanitized, still gets
 ---the " s<time>" uniquifier. Default: "Editor Flat WxH"
 
--- Build a start script for a blank/flat map of the given size by cloning the
--- current session's _script.txt (preserving players/teams/modoptions) and
--- injecting the engine blank-map-generator keys.
+-- Build a start script for a blank map of the given size: clone this session's
+-- _script.txt (players, teams, modoptions) and inject the blank-map generator keys.
 ---@param widthUnits number
 ---@param heightUnits number
 ---@param dntsSet DntsSet? `nil` writes no DNTS splat keys.
@@ -3025,20 +2915,12 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	local baseColor = opts.baseColor or NEWMAP_COLOR
 
 	local seed = math.random(1, 2000000000)
-	-- Unique name per restart: the engine's archive scanner (current master)
-	-- wrongly persists the generated map's VIRTUAL archive into ArchiveCache at
-	-- shutdown; a reused name then resolves to that stale entry (no file on
-	-- disk) and the next restart dies with "Dependent archive not found". A
-	-- fresh name can never collide with a poisoned cache entry. All name
-	-- matchers use the "^Editor Flat %dx%d" PREFIX, never an exact match.
-	-- Wall-clock, not the terrain seed above: this widget never seeds math.random
-	-- with real entropy, so reusing it here risked non-unique "unique" names.
-	--
-	-- Custom names (New Map wizard MAP NAME field) get the SAME " s<time>"
-	-- uniquifier: it dodges the poisoned-cache bug above and makes collision
-	-- with a real installed archive name impossible. The heightmap picker
-	-- strips the suffix back off (gated on blank-map mapoptions), so saves
-	-- group under the typed name across sessions.
+	-- Unique name per restart (" s<time>" suffix, custom names included): the engine
+	-- persists the generated VIRTUAL archive into ArchiveCache at shutdown, and a
+	-- reused name then hits that stale entry ("Dependent archive not found"). Matchers
+	-- use the "^Editor Flat %dx%d" prefix. Wall-clock, not math.random (never seeded
+	-- with real entropy). The heightmap picker strips the suffix again, so saves group
+	-- under the typed name.
 	local custom = tostring(opts.customName or "")
 	-- Strip characters that would break the start script (; = { }), the archive
 	-- name, or Windows filenames derived from the map name (heightmap exports).
@@ -3052,35 +2934,24 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 
 	local script = base
 
-	-- The engine rewrites _script.txt after every restart, so a previous New Map
-	-- leaves a [mapoptions] block plus initblank/mapseed keys behind. If we don't
-	-- remove them, our freshly injected values collide with the stale ones and the
-	-- old dimensions win (engine kept reading blank_map_x=12). Strip them first.
-	-- (case-insensitive: the engine normalises keys to lowercase on write)
+	-- The engine rewrites _script.txt after every restart, so a previous New Map leaves
+	-- [mapoptions] plus initblank/mapseed keys behind, and the stale dimensions would
+	-- win. Strip them first (case-insensitive: the engine lowercases keys on write).
 	script = script:gsub("%[[Mm][Aa][Pp][Oo][Pp][Tt][Ii][Oo][Nn][Ss]%]%s*{.-}", "")
 	script = script:gsub("[Ii][Nn][Ii][Tt][Bb][Ll][Aa][Nn][Kk]%s*=[^;\r\n]*;?", "")
 	script = script:gsub("[Mm][Aa][Pp][Ss][Ee][Ee][Dd]%s*=[^;\r\n]*;?", "")
 
-	-- An inherited disablemapdamage modoption would make the blank canvas
-	-- read-only (no terraform, no import replay) — strip it for both New Map
-	-- and project loads.
+	-- An inherited disablemapdamage would make the canvas read-only (no terraform, no
+	-- import replay): strip it for New Map and project loads.
 	script = script:gsub("[Dd][Ii][Ss][Aa][Bb][Ll][Ee][Mm][Aa][Pp][Dd][Aa][Mm][Aa][Gg][Ee]%s*=[^;\r\n]*;?", "")
 
-	-- Inherited startboxes (startrectleft/right/top/bottom in the allyteam
-	-- blocks) confine pregame commander placement to a sliver of the blank
-	-- canvas — every click outside a startrect is silently ignored before the
-	-- game starts, which reads as a dead mouse. The editor canvas allows
-	-- placement anywhere.
+	-- Inherited startboxes (startrect* in the allyteam blocks) confine pregame
+	-- placement to a sliver of the canvas, which reads as a dead mouse.
 	script = script:gsub("[Ss][Tt][Aa][Rr][Tt][Rr][Ee][Cc][Tt][A-Za-z]*%s*=[^;\r\n]*;?", "")
 
-	-- Startboxes have a SECOND source that the startrect strip above does not
-	-- cover: the lobby's mapmetadata_startbox* modoptions. game_startbox_config
-	-- decodes them into polygons, calls Spring.SetAllyTeamStartBox and enforces
-	-- them through GG.IsInsideStartbox, so inheriting them from a session that
-	-- was launched on a real map re-creates the dead-mouse symptom on the
-	-- canvas — placement silently confined to a band, scaled to the new map
-	-- size (the polygons are proportional, not absolute). Without them the
-	-- gadget falls back to a non-explicit config, which never restricts.
+	-- Startboxes have a second source: the lobby's mapmetadata_startbox* modoptions,
+	-- which game_startbox_config turns into enforced polygons (scaled to the new map).
+	-- Without them the gadget falls back to a config that never restricts.
 	local function stripKeyCI(text, key)
 		local pattern = key:gsub("%a", function(c)
 			return "[" .. c:upper() .. c:lower() .. "]"
@@ -3090,27 +2961,20 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	script = stripKeyCI(script, "mapmetadata_startboxes_set")
 	script = stripKeyCI(script, "mapmetadata_startbox_override")
 
-	-- Stripping alone is NOT enough: with no startrect keys the engine falls back
-	-- to its own default rect for the allyteam, and the engine resolves the
-	-- pregame placement click against that rect BEFORE any Lua callin runs — so
-	-- clicks land only near the default rect (observed: only the map corner
-	-- accepted a commander, flat ground mid-map did nothing). Write an explicit
-	-- full-map rect into every allyteam block instead, which is what an editor
-	-- canvas wants: place anywhere. Fractions of map size, 0..1.
+	-- Stripping is not enough: with no startrect keys the engine falls back to its
+	-- default rect and resolves the placement click against it before any Lua callin.
+	-- Write an explicit full-map rect (fractions 0..1) into every allyteam block.
 	script = script:gsub(
 		"(%[[Aa][Ll][Ll][Yy][Tt][Ee][Aa][Mm]%d+%]%s*\r?\n?%s*{)",
 		"%1\nstartrectleft=0;\nstartrecttop=0;\nstartrectright=1;\nstartrectbottom=1;"
 	)
 
-	-- Editor sessions must never end: with deathmode=neverend both game_end and
-	-- game_team_com_ends remove themselves at init, so teams survive with zero
-	-- units (edit without commanders) and commander death cannot end the session.
+	-- Editor sessions never end: with deathmode=neverend game_end and game_team_com_ends
+	-- remove themselves, so teams survive with zero units.
 	script = script:gsub("[Dd][Ee][Aa][Tt][Hh][Mm][Oo][Dd][Ee]%s*=[^;\r\n]*;?", "")
-	-- editor_sandbox=1 marks the session as a map editor canvas for the game
-	-- gadgets: game_initial_spawn spawns no commanders (the map maker edits an
-	-- empty canvas or the project's own unit loadout), and game_end /
-	-- game_team_com_ends stand down whatever deathmode the lobby set. Strip an
-	-- inherited copy first so editor-to-editor reloads stay idempotent.
+	-- editor_sandbox=1 marks an editor canvas for the gadgets: game_initial_spawn
+	-- spawns no commanders, and game_end / game_team_com_ends stand down whatever
+	-- deathmode the lobby set. Strip an inherited copy so reloads stay idempotent.
 	script = script:gsub("[Ee][Dd][Ii][Tt][Oo][Rr]_[Ss][Aa][Nn][Dd][Bb][Oo][Xx]%s*=[^;\r\n]*;?", "")
 	local needModoptions = true
 	local _, moE = script:find("%[[Mm][Oo][Dd][Oo][Pp][Tt][Ii][Oo][Nn][Ss]%]%s*\r?\n?%s*{")
@@ -3132,22 +2996,19 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 		"blank_map_color_g=" .. baseColor[2] .. ";",
 		"blank_map_color_b=" .. baseColor[3] .. ";",
 	}
-	-- the engine defaults (mex radius 500, metal cap 0.02 per square) fit no BAR map; older engines ignore both
+	-- The engine defaults (mex radius 500, metal cap 0.02 per square) fit no BAR map; older engines ignore both.
 	local mexRadius = math.floor((tonumber(opts and opts.extractorRadius) or 90) + 0.5)
 	opt[#opt + 1] = "blank_map_extractorradius=" .. mexRadius .. ";"
 	opt[#opt + 1] = "blank_map_maxmetal=2;"
 
-	-- Bake a skybox into the generated map's mapinfo. A non-empty atmosphere.skyBox
-	-- makes the engine build a real cubemap sky (CSkyBox) for the blank map instead
-	-- of the procedural cloud dome, so the map boots with the chosen sky already up.
-	-- Read back in mapgenerator/mapinfo_template.lua.
+	-- A non-empty atmosphere.skyBox makes the engine build a cubemap sky (CSkyBox) for
+	-- the blank map instead of the cloud dome. Read in mapgenerator/mapinfo_template.lua.
 	if skyboxPath and skyboxPath ~= "" then
 		opt[#opt + 1] = "blank_map_skybox=" .. skyboxPath .. ";"
 	end
 
-	-- Inject the chosen DNTS splat set so the generated map loads with splat detail
-	-- normal textures (distribution channels R,G,B,A). Paths are game-VFS relative;
-	-- the blank-map generator must honour these blank_map_splat* keys.
+	-- Inject the chosen DNTS set so the map loads with splat detail normals (channels
+	-- R,G,B,A). Paths are game-VFS relative.
 	local hasSplatNormals = false
 	if dntsSet and dntsSet.textures then
 		local t, sc, mu = dntsSet.textures, dntsSet.scales or {}, dntsSet.mults or {}
@@ -3160,27 +3021,22 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 				opt[#opt + 1] = "blank_map_splattexmult" .. ch .. "=" .. (mu[ch] or 1.0) .. ";"
 			end
 		end
-		-- Legacy SMFReadMap codepaths gate splat activation on splatDetailTex being
-		-- present, even when DNTS normals are the actual source. Prefer a real
-		-- captured detail texture (compiled-map projects record one); else feed
-		-- ch1 as a compatible placeholder so old gates don't silently disable
-		-- splats on blank maps.
+		-- SMFReadMap gates splat activation on splatDetailTex even when DNTS normals are the
+		-- source. Prefer a captured detail texture (compiled-map projects record one), else
+		-- ch1 as a placeholder.
 		local detailTex = dntsSet.detail or t[1]
 		if detailTex then
 			opt[#opt + 1] = "blank_map_splatdetailtex=" .. prefix .. detailTex .. ";"
 		end
-		-- Do not force blank_map_splatdistr here. New engine builds can synthesize
-		-- an empty distribution when absent; forcing a missing filename causes load
-		-- warnings and can interfere with splat activation.
+		-- Do not force blank_map_splatdistr: the engine synthesizes an empty distribution,
+		-- and a missing filename causes load warnings and can break splat activation.
 		opt[#opt + 1] = "blank_map_splatdetailnormaldiffusealpha=" .. (dntsSet.diffuseAlpha == 1 and 1 or 0) .. ";"
 	end
 	if not hasSplatNormals then
-		-- No DNTS normals (no pack installed, or a map project saved from a
-		-- canvas that had none): the engine then makes no $ssmf_splat_distr at
-		-- all, and the tileset shader's LAYERS mask has nothing to paint into.
-		-- Naming a classic detail/distribution pair makes the engine build its
-		-- fallback textures (grey detail, a (255,0,0,0) distribution). The
-		-- placeholder names never resolve, which costs a load warning each.
+		-- No DNTS normals (no pack, or a project from a canvas without one): the engine
+		-- would make no $ssmf_splat_distr and the LAYERS mask has nothing to paint into.
+		-- Naming a detail/distribution pair makes it build fallbacks (grey detail, a
+		-- (255,0,0,0) distribution); the names never resolve, one load warning each.
 		if not (dntsSet and dntsSet.detail) then
 			-- cmd_map_project knows this name and does not capture the grey fallback
 			opt[#opt + 1] = "blank_map_splatdetailtex=tf_no_splat_detail.png;"
@@ -3196,8 +3052,7 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 		table.concat(opt, "\n"),
 		"}",
 	}
-	-- Source script had no [modoptions] block to receive deathmode=neverend:
-	-- create one at game scope alongside the [mapoptions] injection.
+	-- No [modoptions] block to receive deathmode=neverend: create one at game scope.
 	if needModoptions then
 		injectParts[#injectParts + 1] = "[modoptions]"
 		injectParts[#injectParts + 1] = "{"
@@ -3217,13 +3072,9 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	return script
 end
 
--- Start script for OPENING a map project (cmd_map_project.lua calls this via
--- WG before restarting): blank map at the manifest's recorded size/height/color,
--- DNTS keys pointing at the project's own assets/dnts/ copies (self-contained —
--- the library may have mutated since the save), skybox resolved from the
--- library by basename. Returns (scriptText) or (nil, errorMessage).
--- Start script for opening a map project (blank map at the manifest's
--- size with project-local DNTS assets); called by WG.MapProject.open.
+-- Start script for opening a map project (WG.MapProject.open, before the restart):
+-- blank map at the manifest's size/height/colour, DNTS keys on the project's own
+-- assets/dnts/ copies (self-contained), skybox found in the library by basename.
 ---@param manifest MapProjectManifest
 ---@param slug string Project folder name under `MapProjects/`.
 ---@return string? scriptText `nil` on failure.
@@ -3251,8 +3102,8 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 				end
 			end
 		end
-		-- A captured detail texture alone (legacy SSMF map) still warrants a set:
-		-- blank_map_splatdetailtex is what old activation gates key on.
+		-- A captured detail texture alone (SSMF map) still warrants a set:
+		-- blank_map_splatdetailtex is what the activation gates key on.
 		local detail = nil
 		if type(m.dnts.detail) == "string" and m.dnts.detail ~= "" then
 			detail = "MapProjects/" .. slug .. "/" .. m.dnts.detail
@@ -3270,9 +3121,8 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 		end
 	end
 
-	-- The manifest records the skybox basename; find it in the library so the
-	-- project reopens with its own sky (widget:Initialize applies the
-	-- blank_map_skybox option at runtime, the engine does not).
+	-- The manifest records the skybox basename; find it in the library so the project
+	-- reopens with its sky (widget:Initialize applies blank_map_skybox, the engine does not).
 	local skyboxPath = nil
 	if type(m.skybox) == "string" and m.skybox ~= "" then
 		for _, thumb in ipairs(widgetState.envSkyboxThumbs or {}) do
@@ -3283,9 +3133,8 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 			end
 		end
 		if not skyboxPath then
-			-- The thumb cache only exists once the panel document has been built;
-			-- resolve straight against the library so a project reopens with its
-			-- sky even when the panel was never opened this session.
+			-- The thumb cache exists only once the panel is built; resolve against the library
+			-- directly so the sky comes back even if the panel was never opened.
 			local files = VFS.DirList("Terraform Brush/SkyBoxes/", "*.dds", VFS.RAW_FIRST) or {}
 			for _, fp in ipairs(files) do
 				if fp:match("([^/\\]+)$") == m.skybox then
@@ -3308,11 +3157,10 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 	})
 end
 
--- ---- Procedural terrain controls for New Map ----
--- The dialog collects a "recipe" of 0..1 sliders + symmetry + seed in
--- widgetState.newMap. On CREATE we serialize it to a write-dir file and reload
--- onto a flat blank map; the command widget (cmd_terraform_brush.lua) reads the
--- file post-reload, generates the heightmap and stamps it via the import path.
+-- ============ Procedural terrain controls for New Map ============
+-- The dialog collects a recipe (0..1 sliders, symmetry, seed) in widgetState.newMap.
+-- CREATE writes it to a write-dir file and reloads onto a blank map; the command
+-- widget (cmd_terraform_brush.lua) reads it, generates the heightmap and stamps it.
 local NEWMAP_SYMS = {
 	{ id = "rot180", label = "Rotational 180\194\176" },
 	{ id = "mirrorx", label = "Mirror H \226\134\148" },
@@ -3321,9 +3169,9 @@ local NEWMAP_SYMS = {
 	{ id = "none", label = "Asymmetric" },
 }
 
--- Push widgetState.newMap into the data-model labels (and optionally the slider
--- thumbs). setSliders is only true on dialog open / randomize, never inside a
--- slider change handler (which would fight the thumb the user is dragging).
+-- Push widgetState.newMap into the data-model labels (and optionally the thumbs).
+-- setSliders only on dialog open / randomize, never in a slider change handler
+-- (it would fight the thumb being dragged).
 local function _nmRefreshTerrain(setSliders)
 	local d = widgetState.dmHandle
 	if not d then
@@ -3414,9 +3262,8 @@ local function writePendingNewMapRecipe(nm)
 	return false
 end
 
--- Load the randomizer archetypes derived offline from a scan of all BAR maps
--- (tools/mapgen/build_archetypes.py). Optional: the randomizer falls back to
--- sensible hand ranges if the file is missing.
+-- Randomizer archetypes from an offline scan of BAR maps
+-- (tools/mapgen/build_archetypes.py). Optional: hand ranges if the file is missing.
 do
 	local ok, t = pcall(function()
 		local required = require("luaui/RmlWidgets/gui_terraform_brush/newmap_archetypes")
@@ -3427,15 +3274,11 @@ do
 	end
 end
 
--- ---- Capture (top-down map photo + per-unit SVG layer) ----
+-- ============ Capture (top-down map photo + per-unit SVG layer) ============
 -- The work lives in cmd_terraform_brush_capture.lua; this side owns the window,
--- mirrors that widget's settings into the data model, and keeps the
--- size/tiles/time readout live. A capture hijacks the camera for seconds and can
--- write a 12k-square PNG, so the cost is always on screen before CAPTURE is
--- pressed rather than discovered afterwards.
--- Grouped into one table on purpose: this chunk sits near Lua 5.1's 200-local
--- ceiling, so new file-level helpers go on a namespace rather than each taking
--- a slot.
+-- mirrors that widget's settings into the data model and keeps the size/tiles/time
+-- readout live, so the cost (camera held for seconds, PNGs up to 12k) shows before
+-- CAPTURE is pressed.
 local capUI = {}
 
 function capUI.readout()
@@ -3464,8 +3307,8 @@ function capUI.readout()
 			est.effectiveDetail
 		)
 	elseif est.strips then
-		-- Not an error: too big for one image, so it lands as horizontal strips
-		-- whose filenames carry their Y offset. Say so before CAPTURE is pressed.
+		-- Not an error: too big for one image, so it saves as horizontal strips with the Y
+		-- offset in each filename. Say so before CAPTURE is pressed.
 		warn = "Too big for one image \226\128\148 saves as horizontal strips (Y offset in each filename)."
 	end
 	return readout, warn
@@ -3500,8 +3343,8 @@ function capUI.sync()
 	d.captureWarn = warn
 end
 
--- Result bar. Two booleans rather than one flag plus a compound data expression,
--- matching the rest of this document's bindings.
+-- Result bar. Two booleans rather than a flag plus a compound data expression,
+-- like the rest of this document's bindings.
 function capUI.setResult(ok, head, body)
 	local d = widgetState.dmHandle
 	if not d then
@@ -3543,20 +3386,18 @@ function capUI.set(key, value)
 	capUI.sync()
 end
 
--- "3 h ago" / "yesterday" / "2026-08-22" for the project lists. Manifests and
--- the recent-projects journal stamp ISO-8601 UTC; os.time() reads a table as
--- local time, so the parsed stamp is shifted by the local UTC offset. Dates a
--- week or older show as the (local) calendar day. On widgetState: the main
--- chunk is near the Lua 5.1 200-local ceiling.
+-- "3 h ago" / "yesterday" / "2026-08-22" for the project lists. Manifests and the
+-- recent-projects journal stamp ISO-8601 UTC; os.time() reads a table as local
+-- time, so the stamp is shifted by the local UTC offset. A week or older shows the
+-- local calendar day.
 widgetState.relativeAge = function(iso, now)
 	local stamp = tostring(iso or "")
 	local y, mo, d, h, mi, s = stamp:match("^(%d+)%-(%d+)%-(%d+)T(%d+):(%d+):?(%d*)")
 	if not y then
 		return stamp ~= "" and stamp or "(no date)"
 	end
-	-- isdst = false on BOTH conversions: the stamp and the offset probe then go
-	-- through the same standard-time interpretation, so the offset cancels
-	-- exactly whatever the daylight-saving state of either date is.
+	-- isdst = false on both conversions: the stamp and the offset probe share one
+	-- standard-time reading, so the offset cancels whatever either date's DST state.
 	local t = os.time({
 		year = math.floor(tonumber(y) or 0),
 		month = math.floor(tonumber(mo) or 1),
@@ -3592,31 +3433,22 @@ widgetState.relativeAge = function(iso, now)
 	return os.date("%Y-%m-%d", epoch)
 end
 
--- ===== Project browser, shared by Save As and Open Project =====
--- Both dialogs draw the same single-line rows in the same three columns, sort
--- through the same comparator and share the header carets, so the two lists
--- read as one browser. Everything here hangs off widgetState rather than being
--- a chunk local: the main chunk is near the Lua 5.1 200-local ceiling.
+-- ============ Project browser, shared by Save As and Open Project ============
+-- Both dialogs draw the same rows in the same three columns, sort through one
+-- comparator and share the header carets, so the two lists read as one browser.
 
 widgetState.rmlEsc = function(s)
 	return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
 end
 
--- Is this file on disk right now? VFS answers first: it is the cheap probe and
--- the same lookup RmlUi will make for the <img>. But VFS can be blind to files
--- written during this session (cmd_map_project.lua documents the same thing and
--- reads manifests with a raw handle for it), which is exactly a project that was
--- just downloaded from the team library. A raw handle is the tiebreaker, so the
--- preview offers what is actually there rather than what the cache remembers.
 -- The two floating project dialogs, and the model flag that says each is up.
 widgetState.projectDialogWindows = {
 	{ id = "tf-project-open-root", open = "projectOpenOpen" },
 	{ id = "tf-project-root", open = "projectSaveOpen" },
 }
 
--- The editor panel's rectangle in Spring screen pixels (Y up from the bottom),
--- or nil while it is hidden or not built. Tools that park their brush instead
--- of working through the UI measure against this.
+-- The editor panel's rectangle in Spring screen pixels (Y up), or nil while hidden
+-- or not built. Tools that park their brush behind the UI measure against this.
 widgetState.panelBounds = function()
 	local _, vsy = Spring.GetViewGeometry()
 	local root = widgetState.rootElement
@@ -3636,10 +3468,8 @@ widgetState.panelBounds = function()
 	}
 end
 
--- The project dialog under the pointer, as the same rectangle, or nil. A dialog
--- covers the world the way the panel does, so the brush should park behind it
--- rather than keep working through it. Both dialogs are windows the user can
--- drag, so the rectangle is read each time rather than remembered.
+-- The project dialog under the pointer, as the same rectangle, or nil: the brush
+-- parks behind a dialog as it does behind the panel. Read each time (draggable windows).
 widgetState.projectDialogHoverBounds = function()
 	local d, doc = widgetState.dmHandle, widgetState.document
 	if not (d and doc) then
@@ -3664,10 +3494,9 @@ widgetState.projectDialogHoverBounds = function()
 	return nil
 end
 
--- The suite's floating window under the pointer (TILESET, the SCENE windows, noise,
--- the libraries, ...), topmost first, as the same rectangle, or nil. Read from the
--- boxes measureOverlayBoxes takes every frame. Without it the brush cursor only parked
--- at the main panel and kept drawing underneath every other window.
+-- The suite's floating window under the pointer (TILESET, SCENE windows, noise, the
+-- libraries, ...), topmost first, as the same rectangle, or nil. Read from the boxes
+-- measureOverlayBoxes takes every frame, so the brush parks behind every window.
 widgetState.overlayHoverBounds = function()
 	local boxes = widgetState.ovBoxes
 	if not boxes or #boxes == 0 then
@@ -3695,6 +3524,9 @@ widgetState.overlayHoverBounds = function()
 	return { left = best[2], right = best[2] + best[4], topY = vsy - best[3], bottomY = vsy - best[3] - best[5] }
 end
 
+-- Is this file on disk right now? VFS first (cheap, and the lookup RmlUi makes for
+-- an <img>), but VFS can miss files written this session (a project just downloaded
+-- from the team library), so a raw handle is the tiebreaker.
 widgetState.projectFileOnDisk = function(path)
 	if VFS.FileExists(path, VFS.RAW) then
 		return true
@@ -3707,9 +3539,8 @@ widgetState.projectFileOnDisk = function(path)
 	return true
 end
 
--- RECENT means last touched: the newer of "opened or saved through the editor"
--- (journal) and the manifest's modified stamp, both ISO-8601 so string order is
--- time order.
+-- RECENT means last touched: the newer of the journal's "opened or saved through
+-- the editor" and the manifest's modified stamp (ISO-8601, so string order is time order).
 widgetState.projectTouched = function(p)
 	local a, b = tostring(p.last_touched or ""), tostring(p.modified or "")
 	return a > b and a or b
@@ -3736,17 +3567,11 @@ widgetState.projectLess = function(a, b)
 	return a.slug < b.slug
 end
 
--- The indent, drawn as the tree's own lines. One tick per level in front of the
--- row's content, so the whole row (disclosure glyph, folder icon and name) steps
--- in together, and each tick is one indent step wide with its vertical rule
--- sitting exactly under the parent's disclosure glyph.
---
--- `ancestors` is one character per level above this row: "1" where that level
--- has more items below and its line carries on down, "0" where it does not and
--- the column is blank. The row's own level is an elbow: the rule comes down the
--- top half and turns right into the row, and the bottom half continues only
--- when this is not the last item in its folder. That is what joins a subfolder
--- to its parent instead of leaving two unrelated vertical strokes.
+-- The indent, drawn as the tree's own lines: one tick per level, each one indent
+-- wide with its rule under the parent's disclosure glyph. `ancestors` has one char
+-- per level above the row: "1" where that level's line carries on down, "0" blank.
+-- The row's own level is an elbow; its lower half continues unless this is the
+-- folder's last item.
 widgetState.projectTicks = function(ancestors, isLast)
 	if not ancestors then
 		return ""
@@ -3763,9 +3588,8 @@ widgetState.projectTicks = function(ancestors, isLast)
 	return table.concat(out)
 end
 
--- One row: name (with its folder path and an OPEN tag when it is the loaded
--- project) then the size and modified columns the header labels. The size wears
--- the same framed badge the heightmap browser uses.
+-- One row: name (with its folder path and an OPEN tag for the loaded project), then
+-- the size and modified columns. The size wears the heightmap browser's framed badge.
 widgetState.projectRowRml = function(id, ticks, name, path, tags, size, date, sync, extraClass)
 	local esc = widgetState.rmlEsc
 	local tagRml = {}
@@ -3780,8 +3604,7 @@ widgetState.projectRowRml = function(id, ticks, name, path, tags, size, date, sy
 			tagRml[#tagRml + 1] = '<div class="' .. (tag.cls or "tf-proj-tag") .. '">' .. esc(tag.text) .. "</div>"
 		end
 	end
-	-- The Sync column: a dot for the glance, a word for the meaning, the
-	-- sentence on hover.
+	-- The Sync column: a dot for the glance, a word for the meaning, the sentence on hover.
 	local syncRml = ""
 	if sync then
 		syncRml = '<div class="tf-proj-c-sync sync-'
@@ -3801,8 +3624,7 @@ widgetState.projectRowRml = function(id, ticks, name, path, tags, size, date, sy
 			.. '<div class="tf-proj-c-date">%s</div>%s</div>',
 		esc(id),
 		extraClass and (" " .. extraClass) or "",
-		-- The name column is narrow enough to clip a long slug, so the row
-		-- carries the whole thing as its tooltip.
+		-- The narrow name column can clip a long slug, so the row carries it as its tooltip.
 		esc(name),
 		ticks or "",
 		esc(name),
@@ -3814,8 +3636,8 @@ widgetState.projectRowRml = function(id, ticks, name, path, tags, size, date, sy
 	)
 end
 
--- Sort caret: "^" ascending, "v" descending, on the sorted column only. ASCII
--- on purpose, the UI font is not guaranteed to carry the geometric arrows.
+-- Sort caret: "^" ascending, "v" descending, on the sorted column only. ASCII on
+-- purpose: the UI font may lack the geometric arrows.
 widgetState.projectSyncSort = function()
 	local d = widgetState.dmHandle
 	if not d then
@@ -3849,8 +3671,8 @@ widgetState.projectCountText = function(shown, total)
 	return widgetState.text("countMany", { count = shown })
 end
 
--- "23 min ago (2026-09-09)". The date half stays as the manifest wrote it
--- (UTC): relativeAge already does the timezone maths for the part that matters.
+-- "23 min ago (2026-09-09)". The date half stays as the manifest wrote it (UTC);
+-- relativeAge does the timezone maths for the part that matters.
 widgetState.projectStampText = function(stamp, now)
 	local s = tostring(stamp or "")
 	local rel = widgetState.relativeAge(s, now)
@@ -3861,11 +3683,9 @@ widgetState.projectStampText = function(stamp, now)
 	return string.format("%s (%s-%s-%s)", rel, y, mo, d)
 end
 
--- Details pane for the selected row. The saved heightmap doubles as the
--- thumbnail: it is the one image every project has, and relief alone is enough
--- to recognise a map by. Only the selected project gets one, and only when it
--- is small enough to be worth the memory -- RmlUi decompresses an <img> in full
--- into TexMemPool, so a 32x32 map (4097^2 = 67 MB) is skipped.
+-- Details pane for the selected row. The saved heightmap doubles as a thumbnail
+-- (every project has one). RmlUi decompresses an <img> in full into TexMemPool,
+-- so large maps get none (32x32 is 4097^2 = 67 MB).
 widgetState.projectShowDetails = function(p, save)
 	local d = widgetState.dmHandle
 	local doc = widgetState.document
@@ -3894,10 +3714,9 @@ widgetState.projectShowDetails = function(p, save)
 	local mp = WG.MapProject
 	local now = os.time()
 	local slug = tostring(p.slug or "")
-	-- A download lands at the repository's own path, so a team row's slug is
-	-- also its path on this disk. Whether there is a copy here is the question
-	-- worth asking: everything read off the files themselves keys on this, and
-	-- a row with no copy here is a catalogue row, metadata read as text.
+	-- A download lands at the repository's own path, so a team row's slug is also its
+	-- path here. Everything read from the files keys on whether there is a copy here;
+	-- a row without one is a catalogue row (metadata read as text).
 	local folder = "MapProjects/" .. slug .. "/"
 	local mine = widgetState.projectFileOnDisk(folder .. "project.lua")
 	local remote = not mine
@@ -3910,8 +3729,8 @@ widgetState.projectShowDetails = function(p, save)
 	if mp and mp.hasUnitsSection and mine then
 		d[key .. "Units"] = widgetState.text((mp.hasUnitsSection(slug) and "unitsSaved" or "unitsNone"))
 	end
-	-- Team catalog rows carry no format_version (the helper reads the
-	-- manifest as text), so the flag is a local-project statement only.
+	-- Team catalogue rows carry no format_version (the helper reads the manifest as
+	-- text), so the flag applies to local projects only.
 	d[key .. "Legacy"] = (not remote) and (tonumber(p.format_version) or 0) < 1
 	d[key .. "Current"] = (mp and mp.current and mp.current() == slug) or false
 	if not save then
@@ -3958,8 +3777,7 @@ widgetState.projectShowDetails = function(p, save)
 	if save then
 		d.psaveInfoShown = true
 	end
-	-- Remember what this pane is showing so a change of preview mode can
-	-- redraw it without the caller having to hand the entry back.
+	-- Remember what this pane shows so a preview mode change can redraw it.
 	if save then
 		widgetState.projectShownSave = p
 	else
@@ -3968,17 +3786,12 @@ widgetState.projectShowDetails = function(p, save)
 	if not prev then
 		return
 	end
-	-- The minimap is the picture of the map, so it leads. The heightmap is the
-	-- fallback for projects saved before minimaps were written, and stays
-	-- available as a second view when both are there: relief answers different
-	-- questions than colour does.
-	-- Both tabs look in the same place (see `mine` above), so a downloaded team
-	-- project shows its picture; one that is not here has no files to find,
-	-- which is what its sync dot says too.
+	-- The minimap leads; the heightmap is the fallback for projects without a minimap
+	-- and a second view when both exist. Both look in the same place (see `mine`), so
+	-- a team project not on this disk has no picture, as its sync dot says.
 	local minimap = mine and widgetState.projectFileOnDisk(folder .. "minimap.png") and (folder .. "minimap.png") or nil
-	-- RmlUi decompresses an <img> in full into TexMemPool, so a heightmap is
-	-- only offered while the map is small enough to be worth it (a 32x32 map is
-	-- 4097^2 = 67 MB). The minimap is a 512px thumbnail and always fits.
+	-- RmlUi decompresses an <img> in full into TexMemPool, so the heightmap is offered
+	-- only for small enough maps (32x32 is 4097^2 = 67 MB). The 512px minimap always fits.
 	local sx, sz = tonumber(p.size_x) or 0, tonumber(p.size_z) or 0
 	local fits = sx > 0 and sz > 0 and (sx * 128 + 1) * (sz * 128 + 1) <= 10000000
 	local height = mine
@@ -4000,21 +3813,10 @@ widgetState.projectShowDetails = function(p, save)
 	end
 end
 
--- Enter in any text field, for every field in the brush.
---
--- `RmlUi.key_identifier` is a FUNCTION in this engine build (the binding is a
--- sol readonly_property returning a fresh table, which surfaces in Lua as
--- something you call). Reading it as a table throws; the pcall swallows that,
--- the id stays nil, the comparison below is never true, and Enter does nothing
--- at all with nothing in the log. Older builds handed out a plain table, so try
--- the call first and the property second, and say so rather than leaving the
--- key quietly dead if neither shape works.
---
--- Resolved ONCE (the call builds a fresh table each time) and reached through
--- upvalues only: `RmlUi` is captured at the top of this file because a listener
--- dispatched by RmlUi has no globals, and the tool modules call this through
--- widgetState for the same reason. false, not nil, marks a failed resolve so it
--- is attempted once and not on every keystroke.
+-- Enter in any text field, for every field in the brush. `RmlUi.key_identifier` is
+-- a function in this engine build and a plain table in older ones: try the call,
+-- then the property, and say so if neither works. Resolved once; false (not nil)
+-- marks a failed resolve. Reached through upvalues: RmlUi-dispatched listeners have no globals.
 widgetState.isReturnEvent = function(event)
 	if widgetState.keyReturnId == nil then
 		local ok, ids = pcall(function()
@@ -4036,9 +3838,8 @@ widgetState.isReturnEvent = function(event)
 	return (p and widgetState.keyReturnId and p.key_identifier == widgetState.keyReturnId) == true
 end
 
--- Live readout under the NAME field: says whether SAVE is about to create a
--- project or write over one before the button is pressed, instead of only
--- after the first click has armed the confirm.
+-- Live readout under the NAME field: says whether SAVE will create a project or
+-- overwrite one before the button is pressed.
 widgetState.projectSyncTarget = function()
 	local d = widgetState.dmHandle
 	if not d then
@@ -4056,8 +3857,8 @@ widgetState.projectSyncTarget = function()
 	local isStage = folder ~= "" and stages[folder] == true
 	d.projectSaveIsStage = isStage
 	d.projectSaveDestLabel = folder ~= "" and (folder:gsub("/", " / ")) or widgetState.text("rootFolder")
-	-- The upload switch: offered for a team stage, on by default while Team
-	-- Sync could carry it out, and remembered only until the folder changes.
+	-- The upload switch: offered for a team stage, on by default while Team Sync could
+	-- carry it out, remembered only until the folder changes.
 	local online, writable = d.libraryOnline == true, d.libraryWritable == true
 	local allowed = isStage and online and writable
 	d.projectSaveUploadAllowed = allowed
@@ -4105,16 +3906,14 @@ widgetState.projectSyncTarget = function()
 	)
 	d.psaveSumUnits = widgetState.text(widgetState.projectSaveUnits and "yes" or "no")
 	d.psaveSumUpload = upload and widgetState.text("sumUploadTo", { stage = folder }) or widgetState.text("no")
-	-- The existing project the name points at, if any, read from the listing
-	-- the browser already built: a fresh listDetailed() per keystroke would
-	-- walk the disk.
+	-- The existing project the name points at, from the browser's listing (a fresh
+	-- listDetailed() per keystroke would walk the disk).
 	widgetState.projectShowDetails(slug and (widgetState.projectSaveBySlug or {})[slug] or nil, true)
 end
 
--- Folding a folder: one set for both browsers, kept in ui_prefs so the tree
--- comes back the way it was left rather than fully open every session. Both
--- lists are rebuilt next frame, never from inside the click on a row the
--- rebuild destroys.
+-- Folding a folder: one set for both browsers, kept in ui_prefs so the tree comes
+-- back as it was left. Both lists rebuild next frame, never inside the click on a
+-- row the rebuild destroys.
 widgetState.projectToggleFolder = function(path)
 	local folded = widgetState.uiPrefs.projectCollapsed
 	folded[path] = (not folded[path]) and true or nil
@@ -4129,10 +3928,9 @@ widgetState.projectTeamBySlug = function()
 	return widgetState.projectTeamCache or {}
 end
 
--- Where one project stands: "local" (only on this disk), "team" (only in the
--- library), "synced", "mine" (this disk newer) or "theirs" (the team newer).
--- The two manifests' modified stamps are compared: both ISO-8601, so string
--- order is time order, and every save rewrites the stamp.
+-- Where one project stands: "local" (only here), "team" (only in the library),
+-- "synced", "mine" (this disk newer) or "theirs" (team newer). Compares the
+-- manifests' modified stamps (ISO-8601; every save rewrites it).
 widgetState.projectSyncState = function(slug)
 	slug = tostring(type(slug) == "table" and slug.slug or slug or "")
 	local mine = (widgetState.projectLocalBySlug or {})[slug]
@@ -4195,14 +3993,12 @@ widgetState.projectStageGroups = function(stages)
 	return set
 end
 
--- One list over this disk and the team library, keyed by path: a project on
--- both sides is one row. `view` narrows it: "local" keeps what is on this
--- disk, "team" what the library holds, "all" everything. Returns the list and
--- the same entries keyed by slug.
+-- One list over this disk and the team library, keyed by path: a project on both
+-- sides is one row. `view`: "local" (this disk), "team" (the library), "all".
+-- Returns the list and the same entries keyed by slug.
 widgetState.projectUnionList = function(view)
-	-- The Autosaves view is its own list: the timed snapshots under
-	-- MapProjects/_autosave, which the normal views never show. Cached with
-	-- the local snapshot, so a filter keystroke does not re-read manifests.
+	-- The Autosaves view is its own list: the snapshots under MapProjects/_autosave.
+	-- Cached with the local snapshot, so a filter keystroke does not re-read manifests.
 	if view == "autosave" then
 		local mp = WG.MapProject
 		if widgetState.projectLocalDirty or not widgetState.projectAutosaveList then
@@ -4236,8 +4032,8 @@ widgetState.projectUnionList = function(view)
 	if view ~= "local" then
 		for slug, entry in pairs(team) do
 			if not mine[slug] then
-				-- A catalogue row: what the companion read out of the manifest
-				-- as text, marked so the tree can dim it.
+				-- A catalogue row: what the companion read from the manifest as text, marked so the
+				-- tree can dim it.
 				local row = {
 					slug = slug,
 					folder = entry.folder or (slug:match("^(.*)/[^/]+$") or ""),
@@ -4255,21 +4051,10 @@ widgetState.projectUnionList = function(view)
 	return list, bySlug
 end
 
--- Which team projects are new since the browser last showed the library,
--- and the local manifests to compare the rest against. Both are snapshotted
--- when the team list is about to be drawn, so they hold still while the
--- list is filtered, sorted or folded; the seen set is written back when the
--- dialog closes, so a project stays flagged for the whole of one viewing.
--- What this disk holds, keyed by slug, for the team view's sync dots. Rebuilt
--- every time the list is drawn: a download that has just landed has to be able
--- to turn its own dot green, and this is the only thing that says so.
---
--- The folder walk behind listDetailed uses VFS.SubDirs, which cannot see a
--- directory created during this session, so a project downloaded a moment ago
--- is missing from it. Any catalogue slug it did not account for is therefore
--- read straight from its own manifest, which is raw io and disk truth. Only the
--- team's own slugs are looked up: this is about the rows that are on screen, not
--- a second walk of everything.
+-- What this disk holds, keyed by slug, for the team view's sync dots. Rebuilt every
+-- draw so a download that just landed turns its dot green. VFS.SubDirs (behind
+-- listDetailed) cannot see directories created this session, so any team slug it
+-- missed is read from its own manifest with raw io.
 widgetState.projectSnapshotLocal = function()
 	local ui = widgetState.projectLibraryUi
 	local mp = WG.MapProject
@@ -4290,9 +4075,9 @@ widgetState.projectSnapshotLocal = function()
 	widgetState.projectTeamCache = (ui and ui.teamBySlug and ui.teamBySlug()) or {}
 end
 
--- Which team projects are new since the browser last showed the library. This
--- half IS held still for the whole of one viewing, so a project stays flagged
--- while the list is filtered, sorted or folded.
+-- Which team projects are new since the browser last showed the library. Held
+-- still for one viewing, so a project stays flagged while the list is filtered,
+-- sorted or folded.
 widgetState.projectSnapshotLibrary = function()
 	local ui = widgetState.projectLibraryUi
 	widgetState.projectSnapshotLocal()
@@ -4308,8 +4093,8 @@ widgetState.projectSnapshotLibrary = function()
 	widgetState.libraryNewSlugs = fresh
 end
 
--- Everything on show has now been seen. Written on close rather than on
--- draw, so a new project keeps its mark for as long as the browser is open.
+-- Everything on show is now seen. Written on close, not on draw, so a new project
+-- keeps its mark while the browser is open.
 widgetState.projectCommitLibrarySeen = function()
 	local ui = widgetState.projectLibraryUi
 	local catalog = (ui and ui.projects()) or {}
@@ -4330,12 +4115,10 @@ widgetState.projectCommitLibrarySeen = function()
 	end
 end
 
--- Stage icons mirror the tool rail: noise for design, the SURFACE tool's splat
--- for texturing, UNITS for gameplay, decals for review.
--- `name` is a folder's leaf, so the three stages read the same under either
--- group and a folder nobody configured still gets the plain folder icon.
--- Keyed by a folder's leaf, so the three stages look the same under either
--- group and a folder nobody configured gets the plain folder icon.
+-- Stage icons from the tool rail: lights for map prototypes, the SURFACE splat for
+-- the texture pass, paint for drafts, decals for review, the sun for done. Keyed by
+-- a folder's leaf, so drafts / review / done look the same under either group and
+-- an unconfigured folder gets the plain folder icon.
 widgetState.projectStageIcons = {
 	["map prototypes"] = "mode_lights.png",
 	["texture pass"] = "mode_splat.png",
@@ -4344,10 +4127,8 @@ widgetState.projectStageIcons = {
 	done = "env_sun.png",
 }
 
--- Images whose mark sits in more transparent margin than the rest: the sun
--- fills 64% of its square where the pen beside it fills 80%, so drawn in the
--- same box it reads as the smaller icon. The box is what changes -- the artwork
--- is shared with other panels and stays as it is.
+-- Icons whose mark sits in more transparent margin: the sun fills 64% of its square
+-- where the pen fills 80%. Their box changes (tf-proj-icon-padded), not the shared artwork.
 widgetState.projectStagePaddedIcons = { ["env_sun.png"] = true }
 
 -- Returns the image, and the class for the box to draw it in.
@@ -4358,12 +4139,10 @@ widgetState.projectStageIcon = function(name)
 		widgetState.projectStagePaddedIcons[file] and " tf-proj-icon-padded" or ""
 end
 
--- The browser body, shared by both dialogs so Save As and Open Project list the
--- same projects in the same shape: a flat list while a filter is on (the folder
--- path travels with each row), a folder tree otherwise. A folder's own projects
--- come first in the chosen order, then its subfolders, and every intermediate
--- folder gets a node even when it holds no project of its own, so a cloned
--- repository's layout shows as it is on disk.
+-- The browser body, shared by both dialogs: a flat list while a filter is on (the
+-- folder path travels with each row), a folder tree otherwise. A folder's own
+-- projects come first, then its subfolders; every intermediate folder gets a node,
+-- so a cloned repository's layout shows as it is on disk.
 -- opts: idRow / idFolder (element id prefixes), collapsed (path -> true), flat,
 -- extraFolders (paths to show even when empty), current (slug to tag OPEN),
 -- dest (folder path to paint as selected), moves (slug -> staged destination),
@@ -4389,8 +4168,8 @@ widgetState.projectTreeRml = function(projects, opts)
 		if p.autosave and p.autosave_of and p.autosave_of ~= "" then
 			tags[#tags + 1] = { text = widgetState.text("autosaveOf", { name = p.autosave_of }) }
 		end
-		-- A staged team move rides on the row it applies to, rather than
-		-- redrawing the project under its future folder.
+		-- A staged team move rides on its row instead of redrawing the project under its
+		-- future folder.
 		local moving = opts.moves and opts.moves(p.slug)
 		if moving then
 			tags[#tags + 1] = { text = "-> " .. moving, cls = "tf-proj-tag tf-proj-moving" }
@@ -4444,10 +4223,9 @@ widgetState.projectTreeRml = function(projects, opts)
 			anc = parentOf(anc)
 		end
 	end
-	-- The library's folders are a pipeline, so they hold the order the
-	-- companion declares them in whatever the sort column says. A grouping row
-	-- takes the rank of its earliest child, and anything the library does not
-	-- name sorts after all of them the ordinary way.
+	-- The library's folders are a pipeline: they keep the companion's order whatever
+	-- the sort column. A grouping row takes its earliest child's rank; anything the
+	-- library does not name sorts after them the ordinary way.
 	local rank = {}
 	for index, path in ipairs(opts.order or {}) do
 		local walked = nil
@@ -4486,8 +4264,7 @@ widgetState.projectTreeRml = function(projects, opts)
 		end
 		return a:lower() < b:lower()
 	end
-	-- The title is wrapped: this RmlUi build draws no bare text inside a flex
-	-- container, so a heading typed straight into the row came out blank.
+	-- The title is wrapped: this RmlUi build draws no bare text inside a flex container.
 	local function sectionRow(title, note)
 		parts[#parts + 1] = '<div class="tf-proj-section"><div class="tf-proj-section-title">'
 			.. esc(title)
@@ -4495,11 +4272,10 @@ widgetState.projectTreeRml = function(projects, opts)
 			.. (note and ('<div class="tf-proj-section-note">' .. esc(note) .. "</div>") or "")
 			.. '<div class="tf-proj-section-rule"></div></div>'
 	end
-	-- Folders before loose projects at every level, the way a file browser
-	-- orders a directory. A grouping row over the team's stages is a heading,
-	-- not a folder: no glyph, no count, nothing to click, and the stages under
-	-- it sit at its own level. At the root, everything the library does not
-	-- name comes after a "This disk" heading of its own.
+	-- Folders before loose projects at every level, like a file browser. A grouping row
+	-- over the team's stages is a heading, not a folder (no glyph, count or click), and
+	-- its stages sit at its level. At the root, everything the library does not name
+	-- comes after a "This disk" heading.
 	local diskHeaded, teamHeaded = false, false
 	local function render(path, ancestors)
 		local subs = children[path] or {}
@@ -4523,9 +4299,8 @@ widgetState.projectTreeRml = function(projects, opts)
 				if not rank[sub] then
 					diskHeading()
 				elseif stages[sub] and parentOf(sub) == "" and not teamHeaded then
-					-- A stage with no grouping row over it ("Other") gets the same
-					-- heading the grouped ones have, so every team folder sits
-					-- under one that says so.
+					-- A stage with no grouping row over it ("Other") gets the same heading as the
+					-- grouped ones, so every team folder sits under one.
 					teamHeaded = true
 					sectionRow(widgetState.text("teamHeader"), widgetState.text("sectionTeam"))
 				end
@@ -4569,12 +4344,8 @@ widgetState.projectTreeRml = function(projects, opts)
 	return table.concat(parts), rows, folders
 end
 
--- The folder half and the leaf half of what is in the NAME field. Save As has
--- no separate "current directory": the field is the destination, so picking a
--- folder rewrites its folder half and leaves the name the user typed alone.
--- The destination folder, and the name being typed. A path typed into the box
--- still splits, so pasting one works, but the folder it names is taken out and
--- kept beside the field rather than left in it.
+-- The destination folder and the name being typed. A path typed or pasted into the
+-- box still splits; its folder is moved out and kept beside the field.
 widgetState.projectSaveSplitName = function()
 	local doc = widgetState.document
 	local inp = doc and doc:GetElementById("input-project-name")
@@ -4587,8 +4358,7 @@ widgetState.projectSaveSplitName = function()
 	return tostring(widgetState.projectSaveFolderStr or ""), raw
 end
 
--- The whole slug a save aims at: the folder beside the field plus the name in
--- it. Every caller that used to read the field is asking for this.
+-- The whole slug a save aims at: the folder beside the field plus the name in it.
 widgetState.projectSaveFullName = function()
 	local folder, leaf = widgetState.projectSaveSplitName()
 	if folder == "" then
@@ -4622,9 +4392,8 @@ widgetState.projectSaveSetName = function(name)
 	widgetState.projectSyncTarget()
 end
 
--- Clicking a folder in Save As saves into it: the folder half of the NAME field
--- is replaced, the typed name is kept, and a folded node opens (a click on the
--- disclosure glyph is what folds it again).
+-- Clicking a folder in Save As saves into it: the folder half is replaced, the
+-- typed name kept.
 widgetState.projectSavePickFolder = function(path)
 	local d = widgetState.dmHandle
 	if d and d.projectSavePending then
@@ -4633,8 +4402,7 @@ widgetState.projectSavePickFolder = function(path)
 	playSound("click")
 	local _, leaf = widgetState.projectSaveSplitName()
 	widgetState.projectSaveSetName((path ~= "" and (path .. "/") or "") .. leaf)
-	-- Picking a folder as the destination opens it; folding it again is the
-	-- disclosure glyph's job.
+	-- Picking a folder opens it; folding it again is the disclosure glyph's job.
 	if widgetState.uiPrefs.projectCollapsed[path] then
 		widgetState.uiPrefs.projectCollapsed[path] = nil
 		widgetState.saveUiPrefs()
@@ -4642,10 +4410,9 @@ widgetState.projectSavePickFolder = function(path)
 	widgetState.projectSaveNeedsRebuild = true
 end
 
--- "New folder" creates it under whatever folder the NAME field points at, then
--- points the field into it. The folder is made on disk so the next session sees
--- it, and remembered for this one because an empty folder holds no project and
--- would otherwise vanish from the tree the moment it is drawn.
+-- "New folder" creates it under the folder the NAME field points at, then points
+-- the field into it. Made on disk for the next session, and remembered for this
+-- one: an empty folder holds no project and would vanish from the tree.
 widgetState.projectSaveCreateFolder = function()
 	local d = widgetState.dmHandle
 	local doc = widgetState.document
@@ -4676,8 +4443,8 @@ widgetState.projectSaveCreateFolder = function()
 	widgetState.projectSaveNewFolders[tostring(ok)] = true
 	if inp then
 		inp:SetAttribute("value", "")
-		-- Blur before the row is hidden: focus stranded on a display:none
-		-- element leaves SDL text input running for the rest of the session.
+		-- Blur before the row is hidden: focus stranded on a display:none element leaves
+		-- SDL text input running for the rest of the session.
 		inp:Blur()
 	end
 	if d then
@@ -4690,11 +4457,10 @@ widgetState.projectSaveCreateFolder = function()
 	widgetState.projectSaveRebuild()
 end
 
--- Rename, from the row under the Projects list. A project on this disk is
--- renamed at once (a move within its folder; the manifest's name follows).
--- One the team library holds has the rename staged into the moves plan, so
--- CONFIRM MOVES renames the team copy too; until then the old name stays a
--- team-only row beside the new local one, which is what is true.
+-- Rename, from the row under the Projects list. A project on this disk is renamed
+-- at once (a move within its folder; the manifest's name follows). A team project
+-- gets the rename staged into the moves plan, so CONFIRM MOVES renames the team
+-- copy; until then the old name stays as a team-only row.
 widgetState.projectRenameApply = function()
 	local d = widgetState.dmHandle
 	local slug = widgetState.projectOpenSelectedSlug
@@ -4767,10 +4533,8 @@ widgetState.projectRenameApply = function()
 	end
 end
 
--- Destination picker. The pipeline folders are a short, fixed list that comes
--- from the helper, so they are drawn as one chip each: every destination is
--- visible and one click away, where the two-arrow stepper showed one at a time
--- and made the least important control in the tray the loudest.
+-- Destination picker: the pipeline folders are a short fixed list from the helper,
+-- drawn as one chip each so every destination is one click away.
 widgetState.projectStagesRebuild = function()
 	local doc = widgetState.document
 	local ui = widgetState.projectLibraryUi
@@ -4778,8 +4542,8 @@ widgetState.projectStagesRebuild = function()
 		return
 	end
 	local stages = ui.folders() or {}
-	-- The library's folders are drawn where they belong -- in the team view of
-	-- either browser -- rather than copied onto this disk as empty directories.
+	-- The library's folders are drawn in the team view of either browser, not copied
+	-- onto this disk as empty directories.
 	widgetState.projectOpenNeedsRebuild = true
 	widgetState.projectSaveNeedsRebuild = true
 	local active = widgetState.dmHandle and widgetState.dmHandle.libraryStage or ""
@@ -4789,8 +4553,7 @@ widgetState.projectStagesRebuild = function()
 		if el then
 			local parts = {}
 			for i, name in ipairs(stages) do
-				-- "Map Prototypes/Drafts" is a place, not a path: the group is
-				-- context for the stage beside it, so it is drawn quieter and the
+				-- "Map Prototypes/Drafts": the group is context for the stage, drawn quieter; the
 				-- stage keeps the chip's voice.
 				local group, leaf = name:match("^(.*)/([^/]+)$")
 				local icon, iconClass = widgetState.projectStageIcon(leaf or name)
@@ -4829,28 +4592,20 @@ widgetState.projectStagesRebuild = function()
 	end
 end
 
--- ===== Helper runner =====
--- LuaUI cannot start a process. The engine's whole unsynced API offers exactly
--- two launch calls, Spring.Restart and Spring.Start, and both start the spring
--- executable; there is no shell, no os.execute and no URL opener. That is the
--- same wall that keeps Git credentials and network access outside the game, so
--- it is a property worth having rather than a gap to route around.
---
--- What the editor can do is take the typing out of it: unpack the helper next
--- to the data directory and write a file the user double-clicks once. The
--- runner resolves its own paths from %~dp0, so nothing absolute is baked in and
--- it keeps working if the install moves.
+-- ============ Helper runner ============
+-- LuaUI cannot start a process: Spring.Restart and Spring.Start only start the
+-- spring executable, with no shell, os.execute or URL opener (which also keeps Git
+-- credentials and network access outside the game). The editor unpacks the helper
+-- next to the data directory and writes a runner the user double-clicks once; it
+-- resolves its paths from %~dp0, so it survives the install moving.
 widgetState.projectHelperFiles = {
 	{ vfs = "tools/map_library/map_library.py", name = "map_library.py" },
 	{ vfs = "tools/map_library/start_campaign_maps.ps1", name = "start_campaign_maps.ps1" },
 }
 
--- Re-extract the helper when the copy on disk no longer matches the one in
--- the game files. The runner is double-clicked, not rebuilt, so without
--- this it would go on running whatever snapshot was taken the day the
--- button was first pressed -- which is exactly how a fixed helper went on
--- behaving like the old one. Only ever touches a folder that already
--- exists: nothing is written until the runner has been asked for once.
+-- Re-extract the helper when the copy on disk no longer matches the game's: the
+-- runner is double-clicked, not rebuilt, so it would keep running a stale snapshot.
+-- Only touches a folder that already exists (the runner was asked for once).
 widgetState.projectSyncHelperFiles = function()
 	if not widgetState.teamSyncEnabled then
 		return
@@ -4894,8 +4649,8 @@ widgetState.projectWriteRunner = function()
 		playSound("reset")
 		return false
 	end
-	-- Read from the VFS, not from disk: the helper ships inside the game
-	-- archive on a normal install and is only loose in a development checkout.
+	-- Read from the VFS, not disk: the helper ships inside the game archive on a normal
+	-- install and is loose only in a development checkout.
 	local payload = {}
 	for _, file in ipairs(widgetState.projectHelperFiles) do
 		local raw = VFS.FileExists(file.vfs) and VFS.LoadFile(file.vfs)
@@ -4945,8 +4700,8 @@ widgetState.projectWriteRunner = function()
 			"",
 		}, "\r\n")
 	else
-		-- No shell launcher ships for these platforms, so call the helper the
-		-- way the PowerShell one does: identity from the user's own Git config.
+		-- No shell launcher ships for these platforms, so call the helper the way the
+		-- PowerShell one does: identity from the user's own Git config.
 		body = table.concat({
 			"#!/bin/sh",
 			"# Starts the Terraform Brush map library helper (the Git companion).",
@@ -4971,12 +4726,11 @@ widgetState.projectWriteRunner = function()
 	end
 	out:write(body)
 	out:close()
-	-- A replay path is the one absolute path this API hands out, so it is the
-	-- only way to tell the user where their data directory actually is.
+	-- A replay path is the one absolute path this API hands out, so it is the only way
+	-- to show the user where their data directory is.
 	local absolute = nil
-	-- The VFS names the file now that it is on disk. The replay recording
-	-- path below is the fallback; a session without a recording has none,
-	-- which used to leave the card with only the relative path.
+	-- The VFS names the file now that it is on disk. The replay recording path below
+	-- is the fallback; a session without a recording has none.
 	pcall(function()
 		if VFS.GetFileAbsolutePath then
 			local found = VFS.GetFileAbsolutePath(runner, VFS.RAW)
@@ -4995,9 +4749,9 @@ widgetState.projectWriteRunner = function()
 			absolute = root .. "/" .. runner
 		end
 	end)
-	-- Lua cannot set the executable bit, so on Linux and macOS the clipboard
-	-- gets a terminal command that sets it and starts the helper. Rewrites
-	-- later truncate the same file, which keeps the bit.
+	-- Lua cannot set the executable bit, so on Linux and macOS the clipboard gets a
+	-- terminal command that sets it and starts the helper. Later rewrites truncate the
+	-- same file, which keeps the bit.
 	local hintKey = absolute and "helperReadyPath" or "helperReady"
 	if absolute and not windows then
 		local quoted = "'" .. absolute:gsub("'", "'\\''") .. "'"
@@ -5019,32 +4773,24 @@ widgetState.projectWriteRunner = function()
 	return true, absolute or runner
 end
 
--- ===== Drag and drop: move a project into a folder =====
--- RmlUi's own drag events are not used anywhere in this UI. Window dragging
--- polls the mouse instead (see makeWindowDraggable), so this does too: mousedown
--- arms, the pointer has to travel a few pixels before it counts as a drag (a
--- click still selects), Update paints the folder under the cursor, and the drag
--- ends when the button comes back up -- polled rather than taken from a mouseup
--- event, so releasing the button off the panel cannot strand a drag.
+-- ============ Drag and drop: move a project into a folder ============
+-- RmlUi's drag events are not used in this UI; like window dragging
+-- (makeWindowDraggable) this polls. mousedown arms, the pointer must travel a few
+-- pixels before it is a drag (a click still selects), Update paints the folder
+-- under the cursor, and the release ends it.
 
 widgetState.projectDragArm = function(slug, save)
 	if not slug then
 		return
 	end
-	-- Two kinds of drag share this code. In the local views a drop moves the
-	-- folder on this disk straight away. In the team view it stages a move in
-	-- the repository instead, so it needs a helper that is allowed to push;
-	-- without one the row simply does not drag, rather than dragging into a
-	-- refusal.
-	-- A project on this disk moves on this disk (and the team copy is offered
-	-- the same move afterwards); one that is only in the team library can only
-	-- be staged for a team move, which Save As does not do.
+	-- In the local views a drop moves the folder on this disk at once. A project only
+	-- in the team library can only be staged for a team move (pushed by CONFIRM MOVES),
+	-- which Save As does not do.
 	local mine = widgetState.projectFileOnDisk("MapProjects/" .. slug .. "/project.lua")
 	local remote = not mine
 	local d = widgetState.dmHandle
-	-- A team-only row can only be planned, and a plan needs no companion at
-	-- hand: only CONFIRM MOVES waits for one that can push. A row on this disk
-	-- may move at once, which a running save or transfer must not interrupt.
+	-- A team-only row drags only while the library is writable. A row on this disk
+	-- moves at once, which a running save or transfer must not interrupt.
 	if remote and not (d and d.libraryWritable) then
 		return
 	end
@@ -5056,9 +4802,8 @@ widgetState.projectDragArm = function(slug, save)
 	widgetState.projectDrag = { slug = slug, save = save, remote = remote, x = mx, y = my, active = false }
 end
 
--- `side` is the dialog the drag belongs to (the drop entries' `save` flag).
--- Only that dialog's elements are touched: the other one's registrations
--- outlive it in the list, and its rows are gone the moment it is rebuilt.
+-- `side` is the dialog the drag belongs to (the drop entries' `save` flag). Only
+-- its elements are touched: the other dialog's registrations outlive its rows.
 widgetState.projectDragPaint = function(path, side)
 	for _, t in ipairs(widgetState.projectDropEls or {}) do
 		if side == nil or t.save == side then
@@ -5067,10 +4812,8 @@ widgetState.projectDragPaint = function(path, side)
 	end
 end
 
--- The team library's folders are fixed by the helper, and only the ones it
--- lists are destinations: a row above them ("Map Prototypes") is the shared
--- prefix of its children, not a place a project can be. So a team drag can
--- only land on one of these, and the root of the tree is not one either.
+-- Team drag destinations: only the folders the helper lists. A row above them
+-- ("Map Prototypes") is a shared prefix, not a place, and the tree root is not one either.
 widgetState.projectTeamDestinations = function()
 	local set = {}
 	local ui = widgetState.projectLibraryUi
@@ -5102,13 +4845,10 @@ widgetState.projectDragEnd = function(commit)
 	if d then
 		d.projectDragLabel = ""
 	end
-	-- Both of these touch elements, and a list rebuilt while the button was
-	-- down has destroyed the ones this drag started from. Tidying up is not
-	-- allowed to be what stops the move from happening, so it is guarded and
-	-- kept ahead of the decision below.
-	-- The ghost first, on its own: the row below may already be gone (the
-	-- list rebuilds on release) and its SetClass would abort the block
-	-- before the ghost was reached, leaving it parked on screen.
+	-- Both cleanups touch elements that a list rebuilt mid-drag has destroyed. They are
+	-- guarded and run before the decision below, so tidying up cannot stop the move.
+	-- The ghost goes first, on its own: a missing row's SetClass would abort the block
+	-- and leave the ghost on screen.
 	pcall(function()
 		local ghost = widgetState.projectDragGhost()
 		if ghost then
@@ -5124,17 +4864,16 @@ widgetState.projectDragEnd = function(commit)
 	if not (commit and drag and drag.active) then
 		return
 	end
-	-- RmlUi turns the press and release into a click once this returns, and the
-	-- row it lands on is the one the project just left. A drag is not a pick.
+	-- RmlUi turns the press and release into a click once this returns, on the row the
+	-- project just left. A drag is not a pick.
 	widgetState.projectDragClickEaten = true
 	if not drag.target then
 		return
 	end
-	-- One rule: a project the team library holds, dropped on one of the
-	-- team's stages, is a staged team move (its local copy follows when
-	-- CONFIRM MOVES runs); anything else is a local move, done now. Nothing
-	-- is pushed until CONFIRM MOVES, and dropping a project back into the
-	-- folder it is already in cancels its part of the plan.
+	-- One rule: a project the team library holds, dropped on a team stage, is a staged
+	-- team move (its local copy follows when CONFIRM MOVES runs); anything else is a
+	-- local move, done now. Dropping a project back into its own folder cancels its
+	-- part of the plan.
 	local inTeam = widgetState.projectTeamBySlug()[drag.slug] ~= nil
 	local ontoStage = widgetState.projectTeamDestinations()[drag.target] == true
 	if drag.remote or (inTeam and ontoStage) then
@@ -5178,14 +4917,10 @@ widgetState.projectDragUpdate = function()
 		return
 	end
 	local mx, my, lmb = Spring.GetMouseState()
-	-- The button is not what ends this drag. RmlUi consumes the press a row is
-	-- dragged from, so Spring's own button state can stay false for the whole
-	-- gesture -- reading it here ended every drag on its first frame, which is
-	-- why nothing could be dragged at all. The release arrives as the document's
-	-- mouseup instead, which is where makeWindowDraggable (the only other polled
-	-- drag in this widget, and one that works) has always taken it. What is left
-	-- here is the net for the other case: a press the engine did see, released
-	-- somewhere the document never hears about.
+	-- The engine's button state does not end this drag: RmlUi consumes the press on
+	-- the row, so GetMouseState's button can stay false for the whole gesture. The
+	-- release arrives as the document's mouseup (as for makeWindowDraggable); this is
+	-- the net for a press the engine saw, released where the document cannot hear it.
 	if lmb then
 		drag.sawButtonDown = true
 	elseif drag.sawButtonDown then
@@ -5201,8 +4936,8 @@ widgetState.projectDragUpdate = function()
 	local vsx, vsy = Spring.GetViewGeometry()
 	-- Spring measures y from the bottom, RmlUi from the top.
 	local py = (vsy or 0) - my
-	-- The row rides along under the pointer: its name, and its sync dot when
-	-- the library is configured. Built once per drag, moved every poll.
+	-- The row rides under the pointer: its name, and its sync dot when the library is
+	-- configured. Built once per drag, moved every poll.
 	local ghost = widgetState.projectDragGhost()
 	if ghost and vsx and vsx > 0 and vsy and vsy > 0 then
 		if not drag.ghostSet then
@@ -5223,9 +4958,8 @@ widgetState.projectDragUpdate = function()
 		ghost:SetClass("hidden", false)
 	end
 	local hit = nil
-	-- A team drag has a short list of places it may land (see
-	-- projectTeamDestinations); a local one may land anywhere in the tree,
-	-- including its root.
+	-- A team drag lands only on projectTeamDestinations; a local one anywhere in the
+	-- tree, root included.
 	for _, t in ipairs(widgetState.projectDropEls or {}) do
 		local el = t.el
 		if
@@ -5236,8 +4970,8 @@ widgetState.projectDragUpdate = function()
 			and py >= el.absolute_top
 			and py <= el.absolute_top + el.offset_height
 		then
-			-- Later entries win: the folder rows are registered after the list
-			-- they sit in, which is the top-level target.
+			-- Later entries win: folder rows register after the list (the top-level target)
+			-- they sit in.
 			hit = t
 		end
 	end
@@ -5259,9 +4993,8 @@ widgetState.projectDragUpdate = function()
 	end
 end
 
--- Selecting a folder in Open Project. A folder is a selection here as well as
--- a disclosure, because DELETE acts on whatever is picked and a folder full of
--- projects is a thing people want gone in one go. The glyph still folds it.
+-- Selecting a folder in Open Project: a folder is a selection as well as a
+-- disclosure, so DELETE can remove it in one go. The glyph still folds it.
 widgetState.projectSelectFolder = function(path)
 	local d = widgetState.dmHandle
 	if widgetState.projectLibraryUi then
@@ -5297,8 +5030,8 @@ widgetState.projectSelectFolder = function(path)
 	widgetState.projectShowDetails(nil)
 end
 
--- Selecting a row in Open Project: paints the selection, disarms whatever the
--- previous selection had armed, and refreshes the details pane.
+-- Selecting a row in Open Project: paint the selection, disarm what the previous
+-- one armed, refresh the details pane.
 widgetState.projectSelectRow = function(rec)
 	if not rec then
 		return
@@ -5329,8 +5062,7 @@ widgetState.projectSelectRow = function(rec)
 	widgetState.projectShowDetails(rec.p)
 end
 
--- Up/Down walk the list. Folder rows are skipped: only projects can be opened,
--- so only projects are steps.
+-- Up/Down walk the list, skipping folder rows: only projects can be opened.
 widgetState.projectStepSelection = function(dir)
 	local rows = widgetState.projectOpenRowEls or {}
 	if #rows == 0 then
@@ -5355,13 +5087,9 @@ widgetState.projectStepSelection = function(dir)
 	end)
 end
 
--- Opens the selected project (LOAD button, double click and Enter all land
--- here). Nothing to guard beyond the selection: the button is
--- pointer-events:none while nothing is picked.
--- `fromTeam` is the team view asking for the same open. Opening is a local act
--- either way -- it loads the copy on this disk -- but it is reachable from both
--- tabs, so the team view no longer has to pretend to be the Local tab to get
--- past this guard.
+-- Opens the selected project (LOAD, double click and Enter). The button is
+-- pointer-events:none while nothing is picked. `force` skips the unsaved-changes
+-- confirm (Update passes it once a requested download has landed).
 widgetState.projectOpenCommit = function(force)
 	local slug = widgetState.projectOpenSelectedSlug
 	if not slug or widgetState.projectOpenIsFolder then
@@ -5381,9 +5109,8 @@ widgetState.projectOpenCommit = function(force)
 		end
 		return
 	end
-	-- Not on this disk: fetch it first. Update takes it from there once the
-	-- download has landed (projectOpenChainReady), with force set, because
-	-- asking for the download was the confirmation.
+	-- Not on this disk: fetch it first. Update takes over once the download lands
+	-- (projectOpenChainReady), with force set: asking for the download was the confirmation.
 	if not widgetState.projectFileOnDisk("MapProjects/" .. slug .. "/project.lua") then
 		if widgetState.projectOpenAfterDownload == slug then
 			return
@@ -5403,8 +5130,7 @@ widgetState.projectOpenCommit = function(force)
 		ui.download(slug)
 		return
 	end
-	-- The restart drops unsaved work, so it asks once -- unless nothing has
-	-- changed since the last save, when there is nothing to lose.
+	-- The restart drops unsaved work, so ask once, unless nothing changed since the last save.
 	local dirty = not (mp.isDirty and not mp.isDirty())
 	if not force and dirty and widgetState.projectOpenArmed ~= slug then
 		widgetState.projectOpenArmed = slug
@@ -5450,8 +5176,8 @@ widgetState.wireProjectEnter = function(el, commit)
 	end, false)
 end
 
--- Clicking a row in Save As reuses its name (pick-to-overwrite); SAVE still
--- commits, and still asks its overwrite/units questions.
+-- Clicking a row in Save As reuses its name (pick-to-overwrite); SAVE still commits
+-- and still asks its overwrite/units questions.
 widgetState.projectSavePick = function(slug, quiet)
 	local d = widgetState.dmHandle
 	if d and d.projectSavePending then
@@ -5467,7 +5193,7 @@ widgetState.projectSavePick = function(slug, quiet)
 end
 
 -- Rebuilds the Save As browser (filter + sort + rows). Deferred through
--- projectSaveNeedsRebuild whenever the caller is inside a row's own event.
+-- projectSaveNeedsRebuild when the caller is inside a row's own event.
 widgetState.projectSaveRebuild = function()
 	local doc = widgetState.document
 	local listEl = doc and doc:GetElementById("tf-project-save-list")
@@ -5487,9 +5213,8 @@ widgetState.projectSaveRebuild = function()
 		end
 		return
 	end
-	-- One tree for both libraries: a save can aim at a folder on this disk or
-	-- at one of the team's stages, and the team's projects are listed so a
-	-- name already taken there is seen before it is typed over.
+	-- One tree for both libraries: a save can aim at a folder here or a team stage,
+	-- and team projects are listed so a taken name is seen before it is typed over.
 	local ui = widgetState.projectLibraryUi
 	local all, bySlug = widgetState.projectUnionList("all")
 	widgetState.projectSaveBySlug = bySlug
@@ -5514,8 +5239,7 @@ widgetState.projectSaveRebuild = function()
 		listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
 			.. esc(widgetState.text(#all == 0 and "localEmpty" or "noMatches"))
 			.. "</div>"
-		-- The team's folders draw even with nothing in them: they are where a
-		-- save is about to go.
+		-- The team's folders draw even when empty: they are where a save may go.
 		if not (#stages > 0 and filter == "") then
 			return
 		end
@@ -5561,8 +5285,7 @@ widgetState.projectSaveRebuild = function()
 	for i, p in ipairs(rows) do
 		local row = doc:GetElementById("tf-psave-r" .. i)
 		if row then
-			-- Nested projects hand their full path to the NAME field: that is
-			-- the string the save writes to.
+			-- Nested projects hand their full path to the NAME field: that is what the save writes to.
 			local slug = p.slug
 			widgetState.projectSaveRowEls[#widgetState.projectSaveRowEls + 1] = { slug = slug, el = row }
 			row:SetClass("selected", slug == selected)
@@ -5585,8 +5308,8 @@ widgetState.projectSaveRebuild = function()
 					row:SetClass("dragging", true)
 				end
 			end, false)
-			-- Double click saves straight over that project, the way a desktop
-			-- Save As does. The overwrite confirm still stands in the way.
+			-- Double click saves straight over that project, like a desktop Save As; the
+			-- overwrite confirm still applies.
 			row:AddEventListener("dblclick", function(ev)
 				ev:StopPropagation()
 				local dm = widgetState.dmHandle
@@ -5606,8 +5329,7 @@ widgetState.projectSaveRebuild = function()
 		if fEl then
 			widgetState.projectDropEls[#widgetState.projectDropEls + 1] =
 				{ path = path, el = fEl, row = true, save = true, dest = saveStageSet[path] == true }
-			-- Here a folder is a destination, so the row picks it and only the
-			-- disclosure glyph folds the node.
+			-- Here a folder is a destination: the row picks it, only the disclosure glyph folds it.
 			fEl:AddEventListener("click", function(ev)
 				ev:StopPropagation()
 				if widgetState.projectDragClickEaten then
@@ -5627,12 +5349,9 @@ widgetState.projectSaveRebuild = function()
 	end
 end
 
--- Opens the Save Project As dialog: prefills the name (current project >
--- last-typed > slugified map name) and rebuilds the existing-projects list,
--- where clicking a row fills the NAME field (pick-to-overwrite, modern Save
--- As semantics). Shared by FILE > Save As... and by FILE > Save when the
--- session has no current project yet. On widgetState, not a chunk local:
--- the main chunk is near the Lua 5.1 200-local ceiling.
+-- Opens the Save Project As dialog: prefills the name (current project > last typed
+-- > slugified map name) and rebuilds the list, where clicking a row fills the NAME
+-- field. Shared by FILE > Save As and by FILE > Save when there is no current project.
 widgetState.openProjectSaveDialog = function()
 	local d = widgetState.dmHandle
 	if d then
@@ -5666,8 +5385,7 @@ widgetState.openProjectSaveDialog = function()
 			name = (Game.mapName or "map"):lower():gsub("[^%w_%-]+", "-"):gsub("^%-+", ""):gsub("%-+$", "")
 		end
 		widgetState.projectSaveSetName(name)
-		-- Focused on open: a save dialog that needs a click before it can be
-		-- typed into is a save dialog with an extra step in it.
+		-- Focused on open, so the name can be typed without a click.
 		pcall(function()
 			inp:Focus()
 		end)
@@ -5675,12 +5393,13 @@ widgetState.openProjectSaveDialog = function()
 	widgetState.projectSyncSort()
 	widgetState.projectSyncHelperFiles()
 	widgetState.projectSaveRebuild()
-	-- After the rebuild: the target readout and the details pane both read the
-	-- listing it just cached.
+	-- After the rebuild: the target readout and the details pane read the listing it cached.
 	widgetState.projectSyncTarget()
 	widgetState.projectStagesRebuild()
 end
 
+-- The panel's data model. Every handler lives here, not in the tf_* modules'
+-- attach: Recoil rejects adding or changing function keys after OpenDataModel.
 local initialModel = {
 	radius = 100,
 	rotationDeg = 0,
@@ -5691,12 +5410,12 @@ local initialModel = {
 	heightCapMinStr = "--",
 	heightCapMaxStr = "--",
 
-	-- Phase 2 step 3: data-if visibility flags (tf_guide pilot)
+	-- data-if visibility flags
 	passthroughActive = false,
 	focusActive = false,
 	settingsOpen = false,
 	settingsTab = "keybinds",
-	-- Map Labels window (gui_map_labels widget) — header button highlight
+	-- Map Labels window (gui_map_labels widget): header button highlight
 	mapLabelsOpen = false,
 	-- Capture window (cmd_terraform_brush_capture.lua does the rendering)
 	captureOpen = false,
@@ -5709,8 +5428,8 @@ local initialModel = {
 	capturePhotoFeatures = true,
 	captureUnitLayer = true,
 	captureUnitStyle = "portrait",
-	-- Computed rather than an "&&" data expression: nothing else in this
-	-- document's bindings uses compound operators, so keep the RML trivial.
+	-- Computed rather than an "&&" data expression: no binding in this document uses
+	-- compound operators, so the RML stays trivial.
 	capturePortraitOpts = true,
 	captureUnitSizeStr = "96",
 	captureUnitScalingStr = "0.35",
@@ -5790,7 +5509,7 @@ local initialModel = {
 	psaveSumMap = "",
 	psaveSumUnits = "",
 	psaveSumUpload = "",
-	projectCurrentName = "", -- FILE > Save target ("" = none yet → Save acts as Save As)
+	projectCurrentName = "", -- FILE > Save target ("" = none yet, so Save acts as Save As)
 	-- Open Project dialog (FILE > Open Project, backed by WG.MapProject)
 	projectOpenOpen = false,
 	projectOpenHint = "",
@@ -5816,12 +5535,12 @@ local initialModel = {
 	newMapSeedStr = "\226\128\148",
 	newMapArchetypeStr = "",
 	newMapGen = false, -- procedural terrain toggle; off (default) = dead-flat map
-	-- Active tool slot for panel-mode swap (data-if="activeTool == 'fp'" etc).
-	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl, diff.
+	-- Active tool slot for the panel swap (data-if="activeTool == 'fp'" etc). "" is the
+	-- terraform base panel (tf-terraform-controls); others: fp, wb, sp, mb, gb, dc, env, lp, stp, cl, diff.
 	activeTool = "",
 	unitsTeam = "TEAM 0",
 	unitsKind = "live",
-	-- Master SHADER button highlight in the TILESET window (+ grays its PAINT
+	-- Master SHADER button highlight in the TILESET window (also greys its PAINT
 	-- SURFACES neighbour via data-class-disabled); synced from WG.TilesetTerrain.
 	tsShaderOn = false,
 	-- SHADER UPDATE row at the top of the TILESET window. Hidden unless the
@@ -5829,8 +5548,8 @@ local initialModel = {
 	tsShaderSyncShown = false,
 	tsShaderSyncState = "checking",
 	tsShaderSyncLabel = "",
-	-- PROTECT CLIFFS button highlight (the cliffProtect shader knob, on/off —
-	-- a button rather than a 0/1 slider); synced from WG.TilesetTerrain.
+	-- PROTECT CLIFFS button highlight (the cliffProtect shader knob, on/off, as a button
+	-- rather than a 0/1 slider); synced from WG.TilesetTerrain.
 	tsCliffProtectOn = true,
 	-- Active biome key for the TILESET tool BIOME LIBRARY tiles
 	-- (data-class-active="tsBiome == '<key>'"); synced from WG.TilesetTerrain.
@@ -5844,10 +5563,9 @@ local initialModel = {
 	tsDebugView = 0, -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
 	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
 	tsGlowOn = false, -- METAL SPOTS glow light master (grays the GLOW LIGHT block via data-class-disabled)
-	-- HEIGHT TINT (tileset shader 0.27): axis mode chips, the selected colour
-	-- chip (grade stops / strata beds / snow) the shared palette + trio edits,
-	-- strata chip visibility + layer-mask chips, ramp mode chips + file label.
-	-- Synced from the knob table in tf_tileset.sync (syncHeightTint).
+	-- HEIGHT TINT: axis mode chips, the selected colour chip (grade stops / strata beds
+	-- / snow) that the shared palette and trio edit, strata chip visibility, layer-mask
+	-- chips, ramp mode chips and file label. Synced in tf_tileset.sync (syncHeightTint).
 	tsHgRef = 0,
 	tsHgTarget = "low",
 	tsHgTargetName = "GRADE LOW",
@@ -5881,9 +5599,8 @@ local initialModel = {
 	surfFillV5 = true,
 	surfFillV6 = true,
 	surfFillV7 = true,
-	-- FILL WITH NOISE is a no-op unless some slot is both assigned and enabled
-	-- (the fill shader preserves channels it is not allowed to write), so the
-	-- button grays out rather than looking broken.
+	-- FILL WITH NOISE does nothing unless a slot is both assigned and enabled (the fill
+	-- shader keeps channels it may not write), so the button greys out instead.
 	surfCanFill = false,
 	-- NOW PAINTING strip + slot rail (persistent selection readout)
 	surfNowName = "base (erase)",
@@ -5906,13 +5623,13 @@ local initialModel = {
 	surfPickerHasPaint = false,
 	surfClearArm = false, -- CLEAR VARIANT armed, waiting for the confirm click
 	surfClearAllArm = false, -- CLEAR ALL armed
-	-- SURFACE/LAYERS mode. "soft" = variant mask (WG.SurfacePainter, SURFACE
-	-- tool); "hard" = splat override channels of the tileset shader
-	-- (WG.SplatPainter reused headless, LAYERS tool). Both map to
-	-- activeTool == 'surf'; the shared panel picks its sections off this field.
+	-- SURFACE/LAYERS mode: "soft" = variant mask (WG.SurfacePainter, SURFACE tool);
+	-- "hard" = the tileset shader's splat override channels (WG.SplatPainter run
+	-- headless, LAYERS tool). Both are activeTool == 'surf'; the shared panel picks
+	-- its sections off this field.
 	surfMode = "soft",
-	-- Tool-button highlights for the SURFACE/LAYERS pair (activeTool alone
-	-- cannot tell them apart — both run as 'surf').
+	-- Tool-button highlights for the SURFACE/LAYERS pair (both run as 'surf', so
+	-- activeTool cannot tell them apart).
 	surfSoftOn = false,
 	surfHardOn = false,
 	surfBiomeName = "\226\128\148", -- active tileset biome, shown under the submode row
@@ -5938,14 +5655,12 @@ local initialModel = {
 	surfInfAltMinSample = false,
 	surfInfAltMaxSample = false,
 	surfSoftAltMax = false,
-	-- WYSIWYG Ctrl sneak peek (DISPLAY chip, both submodes): holding Ctrl over
-	-- the map renders the selected layer inside the brush ring as if the
-	-- stroke had landed (engines drive WG.TilesetTerrain.setSurfacePreview),
-	-- so the artist can inspect where the texture's fixed features fall
-	-- before painting. This flag is the on/off gate, mirrored into both
-	-- engines by tf_surface's sync.
+	-- WYSIWYG Ctrl sneak peek (DISPLAY chip, both submodes): holding Ctrl renders the
+	-- selected layer inside the brush ring as if the stroke had landed (the engines
+	-- drive WG.TilesetTerrain.setSurfacePreview). This is the on/off gate, mirrored
+	-- into both engines by tf_surface's sync.
 	surfReveal = true,
-	-- sf (SURFACE/LAYERS shared panel) TB mirror set, syncTBMirrorControls
+	-- sf (SURFACE/LAYERS shared panel) TB mirror set, see syncTBMirrorControls
 	sfGridOverlay = false,
 	sfHeightColormap = false,
 	sfGridSnap = false,
@@ -5961,7 +5676,7 @@ local initialModel = {
 	sfMeasureStickyMode = false,
 	stpSubMode = "",
 	stpStartboxMode = "",
-	-- Diffuse painter (Phase A MVP)
+	-- Diffuse painter
 	dfpRadiusStr = "128",
 	dfpStrengthStr = "1.00",
 	dfpCurveStr = "1.5",
@@ -6033,20 +5748,20 @@ local initialModel = {
 	fpMeasureStickyMode = false,
 	fpSymMirrorX = false,
 	fpSymMirrorY = false,
-	-- features placer gizmo selection. fpShowSelection/fpShowReroll are combined
-	-- in Lua because nothing else in this document uses a compound data
-	-- expression, and this is not the place to be the first.
+	-- features placer gizmo selection. fpShowSelection/fpShowReroll are combined in
+	-- Lua: no binding in this document uses a compound data expression.
 	fpShowSelection = false,
 	fpShowReroll = false,
 	fpHasSelection = false,
 	fpSelectionStr = "none",
 	-- features placer save/load popup
 	fpSaveLoadOpen = false,
+	-- unit placer smart filters
 	unAvoidCliffs = false,
 	unPreferSlopes = false,
 	unAltMinEnable = false,
 	unAltMaxEnable = false,
-	-- features placer instruments
+	-- unit placer instruments
 	unSymmetryActive = false,
 	unSymmetryRadial = false,
 	unSymHasAxis = false,
@@ -6060,14 +5775,12 @@ local initialModel = {
 	unMeasureStickyMode = false,
 	unSymMirrorX = false,
 	unSymMirrorY = false,
-	-- features placer gizmo selection. unShowSelection/unShowReroll are combined
-	-- in Lua because nothing else in this document uses a compound data
-	-- expression, and this is not the place to be the first.
+	-- unit placer gizmo selection (combined in Lua, as for the features placer)
 	unShowSelection = false,
 	unShowReroll = false,
 	unHasSelection = false,
 	unSelectionStr = "none",
-	-- features placer save/load popup
+	-- unit placer save/load popup
 	unSaveLoadOpen = false,
 	unNoteStr = "",
 	unShowFormation = false,
@@ -6124,7 +5837,7 @@ local initialModel = {
 	gbAltMinEnable = false,
 	gbAltMaxEnable = false,
 	gbColorOpen = false,
-	-- Phase 2 step 2: active-state dm fields (data-class-active bindings)
+	-- Active-state fields (data-class-active bindings)
 	activeMode = "", -- "raise"/"lower"/"smooth"/"ramp"/"restore"/"noise"
 	activeShape = "circle", -- shared shape for all tools
 	activeSmoothMode = "", -- "smooth"/"level"/"smudge" when in the modify group, else ""
@@ -6141,8 +5854,8 @@ local initialModel = {
 	lpDistMode = "random", -- light placer distribution
 	guideMode = false, -- guide/help overlay
 	soundMuted = false, -- sound muted (data-class-muted on btn-sound)
-	-- TB mirror controls: data-class-active for syncTBMirrorControls prefixes
-	-- lp (light placer) - lpSymmetryRadial already declared above
+	-- TB mirror controls: data-class-active for the syncTBMirrorControls prefixes.
+	-- lp (light placer); lpSymmetryRadial is declared above
 	lpGridOverlay = false,
 	lpHeightColormap = false,
 	lpGridSnap = false,
@@ -6211,19 +5924,19 @@ local initialModel = {
 	clMeasureShowLength = false,
 	clMeasureRulerMode = false,
 	clMeasureStickyMode = false,
-	-- Phase 2 step 4: startpos label interpolation strings
+	-- startpos label strings
 	stpAllyTeamsStr = "2",
 	stpTeamsPerAllyStr = "1",
 	stpCountStr = "4",
 	stpSizeStr = "2000",
 	stpRotationStr = "0\194\176",
 	stpPlacementModeStr = "ROUND-ROBIN",
-	-- Phase 2 step 4: splat painter label interpolation strings
+	-- splat painter label strings
 	splatFractalStr = "0.00",
 	splatFractalFreqStr = "15",
 	splatExportFmtStr = "PNG",
 	grassCfgVisible = false,
-	-- Phase 2 step 4: metal brush label interpolation strings
+	-- metal brush label strings
 	mbValueStr = "2.0",
 	mbSizeStr = "100",
 	mbRotStr = "0\194\176",
@@ -6236,7 +5949,7 @@ local initialModel = {
 	mbAxisBStr = "0.00",
 	mbAxisBalanceStr = "--",
 	mbCleanLabelStr = "CLEAN",
-	-- Phase 2 step 4: grass brush label interpolation strings
+	-- grass brush label strings
 	gbDensityStr = "80%",
 	gbSizeStr = "100",
 	gbRotStr = "0\194\176",
@@ -6249,7 +5962,7 @@ local initialModel = {
 	gbColorThreshStr = "35",
 	gbColorPadStr = "0",
 	gbManualSpokeStr = "0",
-	-- Phase 2 step 4: feature placer label interpolation strings
+	-- feature placer label strings
 	fpRadiusStr = "200",
 	fpRotationStr = "0",
 	fpRotRandomStr = "0",
@@ -6276,18 +5989,18 @@ local initialModel = {
 	unSlopeMinStr = "10",
 	unAltMinStr = "0",
 	unAltMaxStr = "200",
-	-- Phase 2 step 4: light placer label interpolation strings
+	-- light placer label strings
 	lpBrightnessStr = "2.0",
 	lpLightRadiusStr = "300",
 	lpElevationStr = "20",
 	lpCountStr = "5",
 	lpBrushRadiusStr = "200",
 	lpPlacedCountStr = "0",
-	-- Phase 2 step 4: clone tool label interpolation strings
+	-- clone tool label strings
 	clStatusStr = "Select an area to clone",
 	clRotationStr = "0\194\176",
 	clHeightStr = "0",
-	-- Phase 2 step 4: environment dimensions label interpolation strings
+	-- environment dimensions label strings
 	envInitMinStr = "--",
 	envInitMaxStr = "--",
 	envCurrMinStr = "--",
@@ -6295,9 +6008,9 @@ local initialModel = {
 	envWaterPlaneStr = "--",
 	envWaterTargetStr = "Drag to move the shoreline.",
 	envDimRangeMode = "scale",
-	-- MAP TRANSFORM. The spec itself lives on widgetState (xformRot /
-	-- xformMirrorX / xformMirrorZ / xformW / xformH / xformFit / xformAnchor*);
-	-- these are what the panel shows, refreshed by envRefreshXform.
+	-- MAP TRANSFORM. The spec lives on widgetState (xformRot / xformMirrorX /
+	-- xformMirrorZ / xformW / xformH / xformFit / xformAnchor*); these are what the
+	-- panel shows, refreshed by envRefreshXform.
 	envXformMode = "transform",
 	envXformDir = "right",
 	envXformFill = "copy",
@@ -6317,17 +6030,17 @@ local initialModel = {
 	envXformSummaryStr = "",
 	envXformApplyStr = "APPLY",
 	envDimRangeDescStr = "Stretches the terrain onto the new range. Relief is kept, nothing is cut off.",
-	-- Phase 2 step 4: tf shared (ring/restore) label interpolation strings
+	-- tf shared (ring/restore) label strings
 	tfRingWidthStr = "40%",
 	tfRestoreStrengthStr = "100%",
-	-- Phase 2 step 4: tb shared instruments label interpolation strings (all tools share one value)
+	-- tb shared instruments label strings (all tools share one value)
 	tbGridSnapSizeStr = "48",
 	tbAngleSnapStepStr = "15",
 	tbSymCountStr = "2",
 	tbSymAngleStr = "0",
-	-- Phase 2 step 4: splat manual spoke label
+	-- splat manual spoke label
 	spManualSpokeStr = "0",
-	-- Phase 2 step 4: tf main panel readout labels
+	-- tf main panel readout labels
 	tfManualSpokeStr = "0",
 	tfPenIntStr = "0%",
 	tfPenSizeStr = "0%",
@@ -6339,7 +6052,7 @@ local initialModel = {
 	tfRestoreLabel2Str = "RESTORE",
 	tfRestoreConfirming = false,
 	mbCleanConfirming = false,
-	-- Phase 2 step 4: noise slider label interpolation strings
+	-- noise slider label strings
 	nsScaleStr = "64",
 	nsOctavesStr = "4",
 	nsPersistenceStr = "0.50",
@@ -6347,7 +6060,7 @@ local initialModel = {
 	nsSeedStr = "0",
 	-- Erode mode: repose angle slider label
 	tfErodeReposeStr = "33\xc2\xb0",
-	-- Phase 2 step 4: DJ / stroke pill labels
+	-- DJ / stroke pill labels
 	djModeStr = "OFF",
 	dustEffectsStr = "OFF",
 	seismicEffectsStr = "OFF",
@@ -6366,7 +6079,7 @@ local initialModel = {
 	disableTipsStr = "OFF",
 	keepAliveStr = "OFF", -- Settings > General: match end disabled for this session
 	penSensitivityStr = "100",
-	-- Phase 2 step 6: guide toggle active states (data-class-active bindings)
+	-- guide toggle active states (data-class-active bindings)
 	djModeActive = false,
 	dustActive = false,
 	seismicActive = false,
@@ -6380,16 +6093,16 @@ local initialModel = {
 	clayStackActive = false,
 	disableTipsActive = false,
 	keepAliveActive = false,
-	-- Phase 2 step 6: sub-panel dj-disabled states (true = grayed out)
+	-- sub-panel dj-disabled states (true = greyed out)
 	djSubDisabled = true,
 	penSubDisabled = true,
 	wiggleSubDisabled = true,
-	-- Phase 2 step 6: pen pressure curve chip active state (1=linear 2=quad 3=cubic 4=scurve 5=log)
+	-- pen pressure curve chip active state (1=linear 2=quad 3=cubic 4=scurve 5=log)
 	penCurveN = 2,
-	-- Phase 2 step 6: wiggle amp/spd chip active states (1-4)
+	-- wiggle amp/spd chip active states (1-4)
 	wiggleAmpIdx = 1,
 	wiggleSpdIdx = 1,
-	-- Phase 2 step 6: pen mod check icon src (data-attr-src)
+	-- pen mod check icon src (data-attr-src)
 	penModIntSrc = "/luaui/images/terraform_brush/check_on.png",
 	penModSizeSrc = "/luaui/images/terraform_brush/check_off.png",
 
@@ -6450,7 +6163,7 @@ local initialModel = {
 	tfCapEnabledSrc = "/luaui/images/terraform_brush/check_on.png",
 	-- clone paste transforms panel
 	clonePasteTransformsVisible = false,
-	-- clone tool active states (Phase 2 step 2 data-class-active bindings)
+	-- clone tool active states (data-class-active bindings)
 	clMirrorX = false,
 	clMirrorZ = false,
 	clQuality = "full",
@@ -6478,9 +6191,7 @@ local initialModel = {
 	envWaterVisible = false,
 	envDimensionsVisible = false,
 	envTilesetVisible = false,
-	-- Phase 2 step 6: tf_noise model-king handlers — defined here (not in M.attach)
-	-- because Recoil forbids adding OR changing function keys after OpenDataModel.
-	-- All closures capture file-level widgetState/uiState/WG/playSound upvalues.
+	-- ============ NOISE handlers (tf_noise) ============
 	onNoClose = function(_event)
 		playSound("click")
 		widgetState.noiseManuallyHidden = true
@@ -6641,9 +6352,7 @@ local initialModel = {
 		_noSetSliderVal("noise-seed", newVal)
 		_noDmLabel("nsSeedStr", tostring(newVal))
 	end,
-	-- Phase 2 step 6: tf_clone model-king handlers — defined here (not in M.attach)
-	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
-	-- Closures capture file-level widgetState/uiState/WG/playSound/ROTATION_STEP/clearPassthrough.
+	-- ============ CLONE handlers (tf_clone) ============
 	onClOnClone = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
@@ -6818,11 +6527,7 @@ local initialModel = {
 			end
 		end
 	end,
-	-- Phase 2 step 6: tf_weather model-king handlers — defined here (not in M.attach)
-	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
-	-- Closures capture widgetState/uiState/WG/playSound/ROTATION_STEP/LENGTH_SCALE_STEP/
-	-- RADIUS_STEP/sliderToCadence/sliderToPersist/PERSIST_PERMANENT_VAL/
-	-- _elemSliderVal/_elemSetSliderVal upvalues.
+	-- ============ WEATHER handlers (tf_weather) ============
 	onWbSetMode = function(_event, wmode)
 		playSound("modeSwitch")
 		if WG.WeatherBrush then
@@ -6962,10 +6667,7 @@ local initialModel = {
 			WG.WeatherBrush.clearAllPersistent()
 		end
 	end,
-	-- Phase 2 step 6: tf_startpos model-king handlers — defined here (not in M.attach)
-	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
-	-- Closures capture widgetState/uiState/WG/playSound/ROTATION_STEP/_noSliderVal upvalues.
-	-- Spring.GetMouseState/TraceScreenRay/Game accessed as globals (no upvalue cost).
+	-- ============ START POSITIONS handlers (tf_startpos) ============
 	onSpSetSubMode = function(_event, sm)
 		playSound("modeSwitch")
 		if WG.StartPosTool then
@@ -7120,8 +6822,8 @@ local initialModel = {
 			WG.StartPosTool.saveAll()
 		end
 	end,
-	-- Copies the startbox override as a !bSet the user can paste into lobby chat. Startbox
-	-- only: start positions travel as a different modoption entirely.
+	-- Copies the startbox override as a !bSet to paste into lobby chat. Startbox only:
+	-- start positions travel as a different modoption.
 	onSpCopy = function(_event)
 		playSound("apply")
 		if WG.StartPosTool then
@@ -7141,10 +6843,7 @@ local initialModel = {
 			WG.StartPosTool.loadStartboxes()
 		end
 	end,
-	-- Phase 2 step 6: tf_splat model-king handlers — defined here (not in M.attach)
-	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
-	-- Closures capture file-level widgetState/uiState/WG/playSound/ROTATION_STEP/
-	-- CURVE_STEP/RADIUS_STEP/_splFindAnglePresetIdx/_splApplyAnglePreset upvalues.
+	-- ============ SPLAT handlers (tf_splat) ============
 	onSplSetChannel = function(_event, ch)
 		playSound("modeSwitch")
 		if WG.SplatPainter then
@@ -7577,7 +7276,7 @@ local initialModel = {
 		end
 	end,
 
-	-- Phase 2 step 6: tf_grass model-king handlers
+	-- ============ GRASS handlers (tf_grass) ============
 	onGbSetSubMode = function(_event, gbMode)
 		playSound("modeSwitch")
 		if WG.GrassBrush then
@@ -7676,7 +7375,7 @@ local initialModel = {
 		WG.GrassBrush.setRadius((s.radius or 100) - RADIUS_STEP)
 	end,
 
-	-- Rotation (shared TerraformBrush — grass applyBrush always reads TB rotation)
+	-- Rotation (shared TerraformBrush: grass applyBrush always reads the TB rotation)
 	onGbRotChange = function(_event)
 		if uiState.updatingFromCode or not WG.TerraformBrush then
 			return
@@ -8215,7 +7914,7 @@ local initialModel = {
 		end
 	end,
 
-	-- Phase 2 step 6: tf_features model-king handlers
+	-- ============ FEATURES handlers (tf_features) ============
 	onFpSetMode = function(_event, fmode)
 		playSound("modeSwitch")
 		if WG.FeaturePlacer then
@@ -8529,7 +8228,7 @@ local initialModel = {
 		end
 	end,
 
-	-- Save / Clear / Load (fpLoad uses imperative DOM build for save list — justified)
+	-- Save / Clear / Load (the load list is an imperative DOM build)
 	onFpSave = function(_event)
 		playSound("save")
 		if WG.FeaturePlacer then
@@ -8560,9 +8259,8 @@ local initialModel = {
 			if #files == 0 then
 				listEl.inner_rml = '<div class="tf-hm-empty">No saved feature maps</div>'
 			else
-				-- Same row markup as the heightmap browser / Open Project list, and
-				-- hover comes from RCSS :hover: repainting it from mouseover/mouseout
-				-- left the highlight stuck on rows the pointer had already left.
+				-- Same row markup as the heightmap browser / Open Project list. Hover comes from
+				-- RCSS :hover: repainting from mouseover/mouseout left highlights stuck.
 				for _, filepath in ipairs(files) do
 					local fname = filepath:match("[^/\\]+$") or filepath
 					local item = doc:CreateElement("div")
@@ -8875,7 +8573,8 @@ local initialModel = {
 	onFpSnapSizeUp = function(_event)
 		_fpSnapStep(16)
 	end,
-	-- UNITS tool handlers: the FEATURES ones above, driving WG.UnitPlacerTool instead.
+	-- ============ UNITS handlers ============
+	-- The FEATURES handlers above, driving WG.UnitPlacerTool instead.
 	onUnSetMode = function(_event, fmode)
 		playSound("modeSwitch")
 		if WG.UnitPlacerTool then
@@ -9035,7 +8734,7 @@ local initialModel = {
 		end
 	end,
 
-	-- Save / Clear / Load (unLoad uses imperative DOM build for save list — justified)
+	-- Save / Clear / Load (the load list is an imperative DOM build)
 	onUnSave = function(_event)
 		playSound("save")
 		if WG.UnitPlacerTool then
@@ -9066,9 +8765,8 @@ local initialModel = {
 			if #files == 0 then
 				listEl.inner_rml = '<div class="tf-hm-empty">No saved unit maps</div>'
 			else
-				-- Same row markup as the heightmap browser / Open Project list, and
-				-- hover comes from RCSS :hover: repainting it from mouseover/mouseout
-				-- left the highlight stuck on rows the pointer had already left.
+				-- Same row markup as the heightmap browser / Open Project list. Hover comes from
+				-- RCSS :hover: repainting from mouseover/mouseout left highlights stuck.
 				for _, filepath in ipairs(files) do
 					local fname = filepath:match("[^/\\]+$") or filepath
 					local item = doc:CreateElement("div")
@@ -9404,11 +9102,7 @@ local initialModel = {
 			T.turnSelection(tonumber(dir) or 1)
 		end
 	end,
-	-- Phase 2 step 6: tf_metal model-king handlers — defined here (not in M.attach)
-	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
-	-- Closures capture file-level widgetState/uiState/WG/playSound/RADIUS_STEP/
-	-- ROTATION_STEP/LENGTH_SCALE_STEP/CURVE_STEP/_elemSliderVal/_elemSetSliderVal/
-	-- _noDmLabel/_mbFindAnglePresetIdx/_mbApplyAnglePreset/_mbSnapStep/_mbSyncSymChipClasses.
+	-- ============ METAL handlers (tf_metal) ============
 	onMbSetSubMode = function(_event, mbMode)
 		playSound("modeSwitch")
 		if WG.MetalBrush then
@@ -9930,9 +9624,7 @@ local initialModel = {
 			playSound("toggleOn")
 		end
 	end,
-	-- Phase 2 step 6: tf_decals model-king handlers — defined here (not in M.attach)
-	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
-	-- Closures capture file-level widgetState/uiState/WG/playSound/_elemSliderVal/_noSliderVal upvalues.
+	-- ============ DECALS handlers (tf_decals) ============
 	onDcLibScatter = function(_event)
 		playSound("tick")
 		if not WG.DecalPlacer then
@@ -10248,18 +9940,15 @@ local initialModel = {
 		end
 		WG.DecalPlacer.load(saves[#saves])
 	end,
-	-- Phase 2 step 6: tf_guide model-king handlers — defined here (not in M.attach)
-	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
-	-- Closures capture widgetState/uiState/WG/playSound/_elemSliderVal/
-	-- populateKeybindList/updateAllKeybindBadges upvalues.
-	-- ===== FILE menu + New Map dialog handlers =====
+	-- ============ GUIDE handlers (tf_guide) ============
+	-- ============ FILE menu + New Map dialog handlers ============
 	onFileMenuToggle = function(_event)
 		playSound("click")
 		local d = widgetState.dmHandle
 		if d then
 			d.fileMenuOpen = not d.fileMenuOpen
-			-- Refresh the Save item's target label on every open (the current
-			-- project changes when a save finishes or a project is deleted).
+			-- Refresh the Save item's target label on every open (the current project changes
+			-- when a save finishes or a project is deleted).
 			if d.fileMenuOpen then
 				local mp = WG.MapProject
 				local cur = (mp and mp.current and mp.current()) or ""
@@ -10273,8 +9962,8 @@ local initialModel = {
 	end,
 	onFileNewMap = function(_event)
 		playSound("click")
-		-- Reset to the RML slider default so widgetState, the thumb and the label
-		-- all agree when the (re)created dialog appears.
+		-- Reset to the RML slider default so widgetState, thumb and label agree when the
+		-- dialog appears.
 		widgetState.newMapW = NEWMAP_DEFAULT_UNIT
 		widgetState.newMapH = NEWMAP_DEFAULT_UNIT
 		-- Seed the procedural-terrain recipe (keep last session's feel, reroll seed).
@@ -10289,8 +9978,8 @@ local initialModel = {
 		nm.metalDensity = nm.metalDensity or 0.5
 		nm.symmetry = nm.symmetry or "rot180"
 		nm.seed = math.random(1, 999999)
-		-- Default to a flat canvas every time the dialog opens; procedural terrain
-		-- is opt-in via the GENERATE TERRAIN toggle.
+		-- A flat canvas every time the dialog opens; procedural terrain is opt-in (GENERATE
+		-- TERRAIN).
 		widgetState.newMapGen = false
 		local d = widgetState.dmHandle
 		if d then
@@ -10298,14 +9987,13 @@ local initialModel = {
 			d.newMapOpen = true
 			d.newMapGen = false
 		end
-		-- Reset the width/height slider thumbs too (label+state are reset above,
-		-- so the thumbs must follow or they desync if the user dragged last time).
+		-- Reset the width/height thumbs too, or they desync after a drag last time.
 		uiState.updatingFromCode = true
 		_elemSetSliderVal("slider-newmap-width", NEWMAP_DEFAULT_UNIT)
 		_elemSetSliderVal("slider-newmap-height", NEWMAP_DEFAULT_UNIT)
 		uiState.updatingFromCode = false
-		-- Fresh name field each open (a stale name is harmless — the uniquifier
-		-- makes reuse safe — but an unnoticed leftover would misname the map).
+		-- Fresh name field each open: a stale name is harmless (the uniquifier makes reuse
+		-- safe), but an unnoticed leftover would misname the map.
 		widgetState.newMapNameStr = ""
 		local nameInp = widgetState.document and widgetState.document:GetElementById("newmap-name-input")
 		if nameInp then
@@ -10323,9 +10011,9 @@ local initialModel = {
 			d.newMapOpen = false
 		end
 	end,
-	-- ===== Save / Save As dialog handlers (backed by WG.MapProject) =====
-	-- FILE > Save: one-click save to the session's current project (the one
-	-- last opened or saved). No current project yet → act as Save As.
+	-- ============ Save / Save As dialog handlers (backed by WG.MapProject) ============
+	-- FILE > Save: one-click save to the current project (last opened or saved); with
+	-- none yet it acts as Save As.
 	onFileSave = function(_event)
 		playSound("click")
 		local mp = WG.MapProject
@@ -10342,9 +10030,8 @@ local initialModel = {
 			Spring.Echo("[Terraform Brush] cannot save: a save or load is already running")
 			return
 		end
-		-- Keep the project's units loadout as it is on disk: re-record it when
-		-- the project has one, never silently add or drop one. Changing that is
-		-- what the Save As dialog's toggle is for.
+		-- Keep the project's units loadout as it is on disk: re-record it when the project
+		-- has one, never silently add or drop one (that is the Save As toggle's job).
 		local keepUnits = (mp.hasUnitsSection and mp.hasUnitsSection(current)) and true or false
 		if mp.save(current, { saveUnits = keepUnits }) then
 			playSound("save")
@@ -10376,17 +10063,15 @@ local initialModel = {
 		end
 	end,
 	onProjectSaveConfirm = function(_event)
-		-- Read the input at click time (the change listener also tracks it, but
-		-- typed-and-not-yet-blurred text must not be lost).
-		-- Read the pair at click time, not from the mirror: typed-and-not-yet-
-		-- blurred text has not reached it.
+		-- Read the pair at click time, not from the mirror: typed-and-not-yet-blurred text
+		-- has not reached it.
 		local name = widgetState.projectSaveFullName()
 		widgetState.projectNameStr = name
 		if widgetState.projectSaveUi.save(name) then
 			playSound("save")
 		end
 	end,
-	-- ===== Open Project dialog handlers (backed by WG.MapProject) =====
+	-- ============ Open Project dialog handlers (backed by WG.MapProject) ============
 	onFileOpenProject = function(_event)
 		playSound("click")
 		if widgetState.projectLibraryUi then
@@ -10399,8 +10084,7 @@ local initialModel = {
 			d.projectOpenOpen = true
 			d.projectOpenHint = ""
 			d.projectOpenConfirming = false
-			-- A fresh look at the window is not the moment the runner was
-			-- written; the hint about it belonged to that moment.
+			-- The runner hint belongs to the moment it was written, not to a fresh look.
 			if not widgetState.projectHelperHintSticky then
 				d.projectHelperHint = ""
 			end
@@ -10415,16 +10099,11 @@ local initialModel = {
 		widgetState.projectOpenArmed = nil
 		-- What is on this disk may have changed since the last look.
 		widgetState.projectLocalDirty = true
-		-- Imperative DOM list build (same justification as the feature placer's
-		-- save list: rows are dynamic, data-model arrays are not used here).
-		-- Markup, styling and the date/name/badge layout are shared with the Load
-		-- Heightmap browser (tf-hm-* classes): one atomic inner_rml write, then
-		-- click handlers wired by row id. Hover is RCSS :hover — painting it from
-		-- mouseover/mouseout handlers left highlights stuck on rows the pointer
-		-- had already left.
-		-- Clicking a row only selects it — LOAD and DELETE live at the bottom of
-		-- the dialog, like Save Project and New Map. Neither belongs on a stray
-		-- click in a list: one restarts the session, the other destroys files.
+		-- Imperative DOM list build (rows are dynamic; no data-model arrays here), sharing
+		-- markup and tf-hm-* styling with the Load Heightmap browser: one inner_rml write,
+		-- then handlers wired by row id. Hover is RCSS :hover (mouseover/mouseout painting
+		-- left highlights stuck). A click only selects: LOAD restarts the session and DELETE
+		-- destroys files, so both live at the bottom of the dialog.
 		---@type table?
 		local doc = widgetState.document
 		local listEl = doc and doc:GetElementById("tf-project-open-list")
@@ -10435,8 +10114,8 @@ local initialModel = {
 			if not doc then
 				return
 			end
-			-- The selection survives a folder toggle, a sort or a filter change;
-			-- it drops only when the selected project is no longer listed.
+			-- The selection survives a folder toggle, sort or filter change; it drops only when
+			-- the selected project is no longer listed.
 			local keepSlug = tostring(widgetState.projectOpenSelectedSlug or "")
 			local keepFolder = widgetState.projectOpenIsFolder == true
 			widgetState.projectOpenRowEls = {}
@@ -10461,15 +10140,14 @@ local initialModel = {
 					.. "</div>"
 				return
 			end
-			-- One list over this disk and the team library, keyed by path, then
-			-- narrowed by the filter chip.
+			-- One list over this disk and the team library, keyed by path, narrowed by the
+			-- filter chip.
 			local view = tostring(widgetState.projectFilter or "all")
 			local all, bySlug = widgetState.projectUnionList(view)
 			widgetState.projectOpenBySlug = bySlug
 			local stages = (widgetState.projectLibraryUi and widgetState.projectLibraryUi.folders()) or {}
-			-- The team's folders are drawn even when empty: the structure is
-			-- fixed and worth seeing before anything is in it. Not in the disk
-			-- view, which lists what is here.
+			-- The team's folders draw even when empty (the structure is fixed and worth seeing),
+			-- but not in the disk view, which lists what is here.
 			local treeFolders = (view ~= "local" and view ~= "autosave") and stages or {}
 			local hasLibraryFolders = #treeFolders > 0
 			if #all == 0 and not hasLibraryFolders then
@@ -10488,8 +10166,8 @@ local initialModel = {
 				return
 			end
 			local filter = tostring(widgetState.projectOpenFilter or ""):lower()
-			-- Search: case-insensitive substring over the name, the path and the
-			-- NxN size, so "cm0", "campaign/" and "16x16" all work.
+			-- Search: case-insensitive substring over the name, the path and the NxN size, so
+			-- "cm0", "campaign/" and "16x16" all work.
 			local projects = {}
 			for _, p in ipairs(all) do
 				if filter == "" then
@@ -10529,10 +10207,9 @@ local initialModel = {
 				moves = widgetState.projectLibraryUi and widgetState.projectLibraryUi.pendingMove,
 			})
 			listEl.inner_rml = markup
-			-- Drop targets, list first so a folder row registered later wins the
-			-- hit test; the list itself is the top level. A project that is only
-			-- in the team library can only be dropped on one of the team's own
-			-- folders, so each row is registered with whether it is one.
+			-- Drop targets, list first so a folder row registered later wins the hit test (the
+			-- list is the top level). Each row records whether it is a team folder, the only
+			-- place a team-only project may drop.
 			for i = #widgetState.projectDropEls, 1, -1 do
 				if widgetState.projectDropEls[i].save == false then
 					table.remove(widgetState.projectDropEls, i)
@@ -10543,8 +10220,8 @@ local initialModel = {
 			for i, p in ipairs(rows) do
 				local row = doc:GetElementById("tf-proj-r" .. i)
 				if row then
-					-- Nested projects select by their path so the details pane and
-					-- the console echoes say exactly what will open.
+					-- Nested projects select by their path, so the details pane and console echoes
+					-- name exactly what will open.
 					local rec = { slug = p.slug, label = p.slug, el = row, p = p }
 					widgetState.projectOpenRowEls[#widgetState.projectOpenRowEls + 1] = rec
 					row:AddEventListener("click", function(ev)
@@ -10567,8 +10244,7 @@ local initialModel = {
 							row:SetClass("dragging", true)
 						end
 					end, false)
-					-- Double click opens it, the way a file browser does. It still
-					-- goes through the same guards as the OPEN button.
+					-- Double click opens it, like a file browser, through the OPEN button's guards.
 					row:AddEventListener("dblclick", function(ev)
 						ev:StopPropagation()
 						widgetState.projectSelectRow(rec)
@@ -10588,8 +10264,7 @@ local initialModel = {
 						dest = stageSet[path] == true,
 					}
 					widgetState.projectOpenFolderEls[#widgetState.projectOpenFolderEls + 1] = { path = path, el = fEl }
-					-- The row picks the folder, because DELETE acts on whatever is
-					-- selected; only the glyph folds it.
+					-- The row picks the folder (DELETE acts on the selection); only the glyph folds it.
 					fEl:AddEventListener("click", function(ev)
 						ev:StopPropagation()
 						if widgetState.projectDragClickEaten then
@@ -10604,8 +10279,7 @@ local initialModel = {
 					gEl:AddEventListener("click", function(ev)
 						ev:StopPropagation()
 						playSound("click")
-						-- Rebuild next frame, not from inside the click on a row the
-						-- rebuild destroys.
+						-- Rebuild next frame, not inside the click on a row the rebuild destroys.
 						widgetState.projectToggleFolder(path)
 					end, false)
 				end
@@ -10636,24 +10310,20 @@ local initialModel = {
 				widgetState.projectShowDetails(nil)
 			end
 		end
-		-- Stashed on widgetState (not a chunk local) so the bottom buttons can
-		-- refresh the list after a delete.
+		-- On widgetState so the bottom buttons can refresh the list after a delete.
 		widgetState.projectOpenRebuild = rebuild
 		widgetState.projectSyncSort()
 		widgetState.projectSyncHelperFiles()
 		rebuild()
 	end,
-	-- LOAD PROJECT / DELETE act on the selected row. Both are pointer-events:none
-	-- while nothing is selected (data-class-disabled), so neither needs its own
-	-- empty-selection branch beyond the guard below.
+	-- LOAD PROJECT / DELETE act on the selected row. Both are pointer-events:none while
+	-- nothing is selected (data-class-disabled).
 	onProjectOpenLoad = function(_event)
 		widgetState.projectOpenCommit()
 	end,
-	-- Two-step, same as FULL RESTORE: first click arms, second commits, Update
+	-- DELETE acts on the selection: a project, or a folder and every project in it.
+	-- Two-step like FULL RESTORE: the first click arms, the second removes, Update
 	-- disarms after 3 s.
-	-- DELETE acts on whatever is selected: a project, or a folder and every
-	-- project inside it. Two clicks either way, and the second one is what
-	-- actually removes anything.
 	onProjectOpenDelete = function(_event)
 		if widgetState.projectLibraryRemote then
 			return
@@ -10692,8 +10362,8 @@ local initialModel = {
 				if d then
 					d.projectOpenHint = widgetState.text("deleted", { name = slug })
 				end
-				-- Rebuild next frame, not here: the rebuild destroys the rows while
-				-- this click is still being dispatched.
+				-- Rebuild next frame: the rebuild destroys the rows while this click is still being
+				-- dispatched.
 				widgetState.projectOpenNeedsRebuild = true
 			else
 				if d then
@@ -10708,9 +10378,9 @@ local initialModel = {
 			playSound("toggleOn")
 		end
 	end,
-	-- Save As has the Team Sync line but not the start card: Start… there goes
-	-- to the Projects window with the card open (Update opens it, where the
-	-- handler is in scope; opening Projects closes Save As).
+	-- Save As has the Team Sync line but not the start card: Start there opens the
+	-- Projects window with the card open (Update does it, where the handler is in
+	-- scope; opening Projects closes Save As).
 	onProjectSaveStartSync = function(_event)
 		playSound("click")
 		widgetState.projectOpenRequest = { card = true }
@@ -10766,16 +10436,15 @@ local initialModel = {
 		end
 		-- Never leave DELETE armed for the next time the dialog opens.
 		widgetState.projectDeleteConfirmExpiry = 0
-		-- Nor an OPEN waiting on a download nobody is watching any more.
+		-- Nor an OPEN waiting on a download nobody is watching.
 		widgetState.projectOpenAfterDownload = nil
 		widgetState.projectOpenArmed = nil
 		if d then
 			d.projectOpenConfirming = false
 		end
 	end,
-	-- Open Project search box (change fires per keystroke) and sort chips. All
-	-- three queue the deferred rebuild rather than rebuilding here: the list is
-	-- torn down and rebuilt, which must not happen inside an event dispatch.
+	-- Open Project search box (change fires per keystroke) and sort chips. They queue
+	-- the deferred rebuild: tearing the list down must not happen inside an event dispatch.
 	onProjectSearch = function(_event)
 		---@type table?
 		local doc2 = widgetState.document
@@ -10794,10 +10463,9 @@ local initialModel = {
 		widgetState.projectOpenFilter = ""
 		widgetState.projectOpenNeedsRebuild = true
 	end,
-	-- Column header sort. A new column takes its natural direction (names read
-	-- A to Z, sizes and dates biggest and newest first); clicking the column
-	-- that is already sorted flips it. One sort drives both dialogs, so the two
-	-- browsers never disagree about the order of the same projects.
+	-- Column header sort. A new column takes its natural direction (names A to Z,
+	-- sizes and dates biggest and newest first); clicking the sorted column flips it.
+	-- One sort drives both dialogs, so they never disagree.
 	onProjectSort = function(_event, mode)
 		playSound("click")
 		mode = mode or "recent"
@@ -10811,9 +10479,7 @@ local initialModel = {
 		widgetState.projectOpenNeedsRebuild = true
 		widgetState.projectSaveNeedsRebuild = true
 	end,
-	-- Save As browser filter. Same deferred rebuild as the Open Project search:
-	-- the list is torn down and rebuilt, which must not happen inside a
-	-- dispatch on one of its own rows.
+	-- Save As browser filter, with the same deferred rebuild as the Open Project search.
 	onProjectSaveSearch = function(_event)
 		---@type table?
 		local doc2 = widgetState.document
@@ -10821,8 +10487,8 @@ local initialModel = {
 		widgetState.projectSaveFilter = (inp and inp:GetAttribute("value")) or ""
 		widgetState.projectSaveNeedsRebuild = true
 	end,
-	-- MAP / HEIGHT under the preview. One setting for both panes, and both are
-	-- redrawn from the entry each is already showing.
+	-- MAP / HEIGHT under the preview: one setting for both panes, each redrawn from the
+	-- entry it shows.
 	onProjectPreviewMode = function(_event, mode)
 		local d = widgetState.dmHandle
 		if not d or d.projectPreviewMode == mode then
@@ -10833,8 +10499,8 @@ local initialModel = {
 		widgetState.projectShowDetails(widgetState.projectShownOpen, false)
 		widgetState.projectShowDetails(widgetState.projectShownSave, true)
 	end,
-	-- New folder: opens the inline row under the toolbar, creates on Enter or
-	-- on the tick, and aims the NAME field into the folder it made.
+	-- New folder: opens the inline row under the toolbar, creates on Enter or the tick,
+	-- and aims the NAME field into the new folder.
 	onProjectNewFolder = function(_event)
 		local d = widgetState.dmHandle
 		if d and d.projectSavePending then
@@ -10886,8 +10552,8 @@ local initialModel = {
 		widgetState.projectSaveFilter = ""
 		widgetState.projectSaveNeedsRebuild = true
 	end,
-	-- GENERATE TERRAIN toggle: off (default) creates a dead-flat map; on reveals
-	-- the procedural terrain/water/resources/layout controls and the randomizer.
+	-- GENERATE TERRAIN toggle: off (default) makes a flat map; on reveals the
+	-- procedural terrain/water/resources/layout controls and the randomizer.
 	onNewMapGenToggle = function(_event)
 		playSound("click")
 		widgetState.newMapGen = not widgetState.newMapGen
@@ -10918,8 +10584,8 @@ local initialModel = {
 		_nmRefreshSplatLabel()
 		playSound("click")
 	end,
-	-- Environment preset picker: cycles Default (0) + the harvested moods (1..N).
-	-- The choice is persisted on Create and applied to the fresh map after reload.
+	-- Environment preset picker: cycles Default (0) and the harvested moods (1..N),
+	-- saved on Create and applied to the fresh map after the reload.
 	onNewMapEnvPrev = function(_event)
 		local n = #(widgetState.newMapEnvPresets or {})
 		if n == 0 then
@@ -10996,7 +10662,7 @@ local initialModel = {
 		_nmSetAxis("h", (widgetState.newMapH or NEWMAP_DEFAULT_UNIT) - 2)
 	end,
 	-- Parametric terrain slider: data-event-change="onNewMapSlider('hilliness')".
-	-- Value arrives 0..100 (the slider range); stored as 0..1 in widgetState.newMap.
+	-- Arrives 0..100 (the slider range), stored as 0..1 in widgetState.newMap.
 	onNewMapSlider = function(event, key)
 		if uiState.updatingFromCode then
 			return
@@ -11040,10 +10706,9 @@ local initialModel = {
 		widgetState.newMap.seed = math.random(1, 999999)
 		_nmRefreshTerrain(false)
 	end,
-	-- Randomizer: samples a recipe from archetypes learned by scanning all BAR
-	-- maps (weight = real-map frequency; ranges = p20..p80 of maps in the bucket;
-	-- symmetry + size from the corpus distribution). Falls back to hand ranges if
-	-- the archetype file is missing.
+	-- Randomizer: samples a recipe from archetypes learned from a scan of BAR maps
+	-- (weight = real-map frequency, ranges = p20..p80 of the bucket, symmetry and size
+	-- from the corpus). Falls back to hand ranges without the archetype file.
 	onNewMapRandomize = function(_event)
 		playSound("exit")
 		local A = widgetState.newMapArchetypes
@@ -11133,16 +10798,15 @@ local initialModel = {
 	onNewMapCreate = function(_event)
 		local w = _nmClampEven(widgetState.newMapW or NEWMAP_DEFAULT_UNIT, NEWMAP_DEFAULT_UNIT)
 		local h = _nmClampEven(widgetState.newMapH or NEWMAP_DEFAULT_UNIT, NEWMAP_DEFAULT_UNIT)
-		-- Bake a skybox into the generated map so it loads as a real cubemap sky
-		-- (CSkyBox) rather than the procedural cloud dome. Prefer the currently
-		-- selected skybox, else the first library skybox.
+		-- Bake a skybox into the generated map so it loads as a cubemap sky (CSkyBox), not
+		-- the cloud dome: the selected skybox, else the first in the library.
 		local skyboxPath = widgetState.envCurrentSkybox
 		if not skyboxPath or skyboxPath == "" then
 			local first = widgetState.envSkyboxThumbs and widgetState.envSkyboxThumbs[1]
 			skyboxPath = first and first.path or nil
 		end
-		-- Prefer the change-mirrored value (GetAttribute can lag the last
-		-- keystroke on deferred clicks); fall back to the attribute.
+		-- Prefer the change-mirrored value (GetAttribute can lag the last keystroke on
+		-- deferred clicks); fall back to the attribute.
 		local customName = widgetState.newMapNameStr
 		if not customName or customName == "" then
 			local nameInp = widgetState.document and widgetState.document:GetElementById("newmap-name-input")
@@ -11159,10 +10823,9 @@ local initialModel = {
 			Spring.Echo("[Terraform Brush] New Map failed: " .. tostring(err))
 			return
 		end
-		-- Procedural terrain is opt-in. When GENERATE TERRAIN is on we persist the
-		-- recipe so the command widget can stamp terrain onto the flat map after the
-		-- reload (the engine only makes flat maps). When off we clear any leftover
-		-- recipe so the post-reload driver does nothing and a dead-flat canvas loads.
+		-- Procedural terrain is opt-in. With GENERATE TERRAIN on, the recipe is saved so
+		-- the command widget can stamp terrain onto the flat map after the reload (the
+		-- engine only makes flat maps).
 		local nm = widgetState.newMap or {}
 		if widgetState.newMapGen then
 			nm.seed = nm.seed or math.random(1, 999999)
@@ -11182,8 +10845,7 @@ local initialModel = {
 				)
 			)
 		else
-			-- Blank any leftover recipe so a stale procedural recipe from a previous
-			-- create can't be picked up by the post-reload driver on this flat map.
+			-- Blank any leftover recipe so the post-reload driver does nothing on this flat map.
 			Spring.CreateDir("Terraform Brush")
 			local rf = io.open("Terraform Brush/pending_newmap.lua", "w")
 			if rf then
@@ -11200,11 +10862,10 @@ local initialModel = {
 				)
 			)
 		end
-		-- Persist the chosen environment preset (independently of the terrain recipe,
-		-- since the environment applies to flat maps too). The file holds just the
-		-- preset name; after the reload the UI widget looks it up in the catalog and
-		-- applies it via widgetState.applyEnvConfig. Always (re)written — blank for
-		-- Default — so a plain /reload never re-applies a stale preset.
+		-- Save the chosen environment preset separately from the terrain recipe (it applies
+		-- to flat maps too). The file holds the preset name, looked up and applied via
+		-- applyEnvConfig after the reload. Always rewritten (blank for Default), so a plain
+		-- /reload never re-applies a stale preset.
 		Spring.CreateDir("Terraform Brush")
 		local envPreset = widgetState._nmCurrentEnvPreset()
 		local ef = io.open("Terraform Brush/pending_newmap_env.lua", "w")
@@ -11274,8 +10935,8 @@ local initialModel = {
 			elseif wbSt and wbSt.active then
 				saved = { tool = "weather", mode = wbSt.mode }
 			elseif widgetState.surfHardActive then
-				-- LAYERS: the splat engine runs headless under the SURFACE panel;
-				-- the pin (not the engine) tells it apart from the legacy SPLAT tool.
+				-- LAYERS: the splat engine runs headless under the SURFACE panel; the pin (not the
+				-- engine) tells it apart from the SPLAT tool.
 				saved = { tool = "surfaceHard" }
 			elseif spSt and spSt.active then
 				saved = { tool = "splat" }
@@ -11356,8 +11017,8 @@ local initialModel = {
 			---@type table?
 			local spPtr = WG.SplatPainter
 			if s then
-				-- Splat/Metal/Grass/StartPos expose activate(subMode), not setMode;
-				-- Weather's setMode only picks the submode without re-arming the tool.
+				-- Splat/Metal/Grass/StartPos expose activate(subMode), not setMode; Weather's
+				-- setMode only picks the submode without re-arming the tool.
 				if s.tool == "terraform" and WG.TerraformBrush then
 					WG.TerraformBrush.setMode(s.mode or "raise")
 				elseif s.tool == "features" and WG.FeaturePlacer then
@@ -11404,8 +11065,7 @@ local initialModel = {
 		end
 	end,
 	onToggleCapture = function(_event)
-		-- Opens even without the capture widget loaded: a window that says what
-		-- to enable beats a button that silently does nothing.
+		-- Opens even without the capture widget loaded: the window says what to enable.
 		widgetState.captureOpen = not widgetState.captureOpen
 		playSound(widgetState.captureOpen and "panelOpen" or "click")
 		local d = widgetState.dmHandle
@@ -11706,8 +11366,8 @@ local initialModel = {
 		if widgetState.saveUiPrefs then
 			widgetState.saveUiPrefs()
 		end
-		-- Both browsers change shape: the team's folders and projects come and
-		-- go, and a chip left on "Team" would show an empty list.
+		-- Both browsers change shape (team folders and projects come and go), and a chip
+		-- left on "Team" would show an empty list.
 		widgetState.projectFilter = "all"
 		local d = widgetState.dmHandle
 		if d then
@@ -11731,8 +11391,8 @@ local initialModel = {
 			widgetState.saveUiPrefs()
 		end
 	end,
-	-- One handler for the three value pills: the key names the pref, the
-	-- click moves to the next step (a hand-edited value snaps to the step above).
+	-- One handler for the three value pills: the key names the pref, a click moves to
+	-- the next step (a hand-edited value snaps to the step above).
 	onGuideCycleAutosave = function(_event, key)
 		---@type number[]?
 		local steps = widgetState.autosaveSteps[key]
@@ -11755,7 +11415,7 @@ local initialModel = {
 			widgetState.saveUiPrefs()
 		end
 	end,
-	-- QUIT GUARD popup buttons.
+	-- Quit guard popup buttons.
 	onQuitGuardCancel = function(_event)
 		playSound("click")
 		widgetState.quitGuardClose()
@@ -11764,10 +11424,9 @@ local initialModel = {
 		playSound("click")
 		widgetState.quitGuardProceed()
 	end,
-	-- Save first, then carry on: the quick save when a project is open (its
-	-- receipt is watched from Update and the deferred action follows), Save
-	-- As when there is none, which drops the pending action, so the user
-	-- quits again once the save has a name.
+	-- Save first, then carry on: the quick save when a project is open (Update watches
+	-- its receipt and runs the deferred action), else Save As, which drops the pending
+	-- action so the user quits again once the save has a name.
 	onQuitGuardSave = function(_event)
 		playSound("click")
 		local d = widgetState.dmHandle
@@ -11837,12 +11496,10 @@ local initialModel = {
 			end
 		end
 	end,
-	-- Keep match alive (sandbox): disable the two match-end gadgets for this
-	-- session via the gadget handler's cheat-gated "/luarules disablegadget"
-	-- path, so teams survive with zero units and commander death cannot end
-	-- the match. One-way: re-enabling game_end mid-session would rebuild its
-	-- state from the live team roster and could declare gameover instantly.
-	-- The actual sends run in widget:Update (cheat must be OBSERVED on first).
+	-- Keep match alive (sandbox): disable the two match-end gadgets for this session
+	-- via the cheat-gated "/luarules disablegadget", so teams survive with zero units.
+	-- One-way: re-enabling game_end mid-session rebuilds its state from the live roster
+	-- and could declare gameover at once. The sends run in Update (cheat must be seen on first).
 	onGuideToggleKeepAlive = function(_event)
 		local ka = widgetState.keepAlive
 		if ka and ka.active then
@@ -11856,9 +11513,9 @@ local initialModel = {
 		widgetState.keepAlive = ka or {}
 		widgetState.keepAlive.pending = true
 	end,
-	-- Remove all units: empty-loadout replace via the map project units gadget
-	-- ($mpunits_begin$ + $mpunits_end$ with no data = wipe). Arms keep-alive
-	-- first — wiping units while game_end is live would end the match.
+	-- Remove all units: an empty-loadout replace through the map project units gadget
+	-- ($mpunits_begin$ + $mpunits_end$ with no data). Arms keep-alive first: wiping
+	-- units while game_end is live would end the match.
 	onGuideClearAllUnits = function(_event)
 		playSound("click")
 		local ka = widgetState.keepAlive or {}
@@ -11870,11 +11527,9 @@ local initialModel = {
 			ka.pending = true
 		end
 	end,
-	-- Phase 2 step 6: tf_lights model-king handlers — defined here (not in M.attach)
-	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
-	-- Closures capture file-level widgetState/uiState/WG/playSound/_elemSliderVal upvalues.
-	-- widgetState.lpPalette + widgetState.lpPopulateBuiltinPresets/lpPopulateUserPresets
-	-- are stored by tf_lights M.attach (cross-file bridge via widgetState).
+	-- ============ LIGHTS handlers (tf_lights) ============
+	-- widgetState.lpPalette and lpPopulateBuiltinPresets / lpPopulateUserPresets are
+	-- set by tf_lights M.attach.
 	onLpSetType = function(_event, lt)
 		playSound("modeSwitch")
 		if WG.LightPlacer then
@@ -12284,11 +11939,9 @@ local initialModel = {
 		end
 	end,
 
-	-- ======== Environment handlers (tf_environment.lua) ========
-	-- Closures capture file-level widgetState/uiState/WG/playSound/skyDynamic/quatFromAxisAngle
-	-- and file-level _envSetSlider/_envUpdatePreview helpers above.
-	-- widgetState.envDefaults / envSkyboxThumbs / envRefreshDimExtremes etc. are
-	-- stored by tf_environment M.attach (cross-file bridge via widgetState).
+	-- ============ ENVIRONMENT handlers (tf_environment) ============
+	-- widgetState.envDefaults / envSkyboxThumbs / envRefreshDimExtremes etc. are set
+	-- by tf_environment M.attach.
 
 	onEnvResetSkybox = function(_event)
 		playSound("reset")
@@ -12539,10 +12192,9 @@ local initialModel = {
 		end
 		Spring.SendCommands("water 4")
 	end,
-	-- Commits the previewed shoreline: the terrain slides so the water plane
-	-- lands on the slider's height. The slider is then reseeded (the terrain it
-	-- was measured against just moved) on a short delay, once the sim has
-	-- applied the shift.
+	-- Commits the previewed shoreline: the terrain slides so the water plane lands on
+	-- the slider's height. The slider is reseeded after a short delay, once the sim has
+	-- applied the shift (its reference terrain just moved).
 	onEnvApplyWaterLevel = function(_event)
 		local tb = WG.TerraformBrush
 		if not (tb and tb.applyWaterLevel) then
@@ -12574,11 +12226,10 @@ local initialModel = {
 			dm.envDimRangeDescStr = "Stretches the terrain onto the new range. Relief is kept, nothing is cut off."
 		end
 	end,
-	-- ---- MAP TRANSFORM (Dimensions window) ----
-	-- TURN & SIZE moves the map you have; EXPAND doubles the canvas one way and
-	-- either leaves the new half empty or fills it with a copy. Both end up in
-	-- the same machinery (a list of placements of one source), so the preview,
-	-- the summary and APPLY are shared.
+	-- ============ MAP TRANSFORM (Dimensions window) ============
+	-- TURN & SIZE moves the map you have; EXPAND doubles the canvas one way and leaves
+	-- the new half empty or fills it with a copy. Both are a list of placements of one
+	-- source, so preview, summary and APPLY are shared.
 	onXformMode = function(_event, mode)
 		if widgetState.xformMode == mode then
 			return
@@ -12623,15 +12274,14 @@ local initialModel = {
 			widgetState.envRefreshXform()
 		end
 	end,
-	-- The buttons speak screen space: ROTATE RIGHT turns the preview right
-	-- whatever else is already set, FLIP flips what you see. The spec
-	-- underneath composes mirror THEN rotate, so a screen-space flip is not
-	-- always the mirror of the same name (map_transform.flipScreen converts).
+	-- The buttons speak screen space: ROTATE RIGHT turns the preview right, FLIP flips
+	-- what you see. The spec composes mirror THEN rotate, so a screen flip is not always
+	-- the mirror of the same name (map_transform.flipScreen converts).
 	onXformRotate = function(_event, dir)
 		local step = (dir == "ccw") and -90 or 90
 		widgetState.xformRot = ((widgetState.xformRot or 0) + step) % 360
-		-- A quarter turn swaps the footprint, so swap the target canvas with
-		-- it: the map keeps its shape unless the user asks for another size.
+		-- A quarter turn swaps the footprint, so swap the target canvas too: the map keeps
+		-- its shape unless the user asks for another size.
 		local w, h = widgetState.xformW, widgetState.xformH
 		widgetState.xformW, widgetState.xformH = h, w
 		widgetState.xformArmedUntil = nil
@@ -12651,8 +12301,8 @@ local initialModel = {
 			mirrorX = widgetState.xformMirrorX,
 			mirrorZ = widgetState.xformMirrorZ,
 		}, axis)
-		-- Two mirrors are a half turn, which flipScreen folds into rot; the
-		-- footprint parity is unchanged by that, so the size stays as it is.
+		-- Two mirrors are a half turn, which flipScreen folds into rot; the footprint
+		-- parity is unchanged, so the size stays.
 		widgetState.xformRot = flipped.rot
 		widgetState.xformMirrorX = flipped.mirrorX
 		widgetState.xformMirrorZ = flipped.mirrorZ
@@ -12714,9 +12364,8 @@ local initialModel = {
 			widgetState.envResetXform()
 		end
 	end,
-	-- Two clicks: the first arms the button, the second starts a transform that
-	-- restarts the session. Same shape as the Save As overwrite guard, and
-	-- cheaper than a modal for something that is reversible by not saving.
+	-- Two clicks: the first arms, the second starts a transform that restarts the
+	-- session (like the Save As overwrite guard; undone by not saving).
 	onXformApply = function(_event)
 		---@type table?
 		local mt = WG.MapTransform
@@ -12760,10 +12409,9 @@ local initialModel = {
 			widgetState.envRefreshXform()
 		end
 	end,
-	-- Applies the slider min/max to the whole map. RESCALE remaps the live
-	-- extremes onto the range (the thing the old clamp-only buttons could never
-	-- do: lowering the max used to just shear the mountain tops off); CLAMP is
-	-- the old behaviour, kept for shaving a single runaway peak.
+	-- Applies the slider min/max to the whole map. RESCALE remaps the live extremes
+	-- onto the range, keeping the relief; CLAMP cuts at the range, for shaving a single
+	-- runaway peak.
 	onEnvApplyHeightRange = function(_event)
 		local doc = widgetState.document
 		local minHEl = doc and doc:GetElementById("slider-env-dim-minheight")
@@ -12784,13 +12432,12 @@ local initialModel = {
 		end
 		local dm = widgetState.dmHandle
 		playSound("save")
-		-- No refresh here: the sim applies a frame or two later, so it would
-		-- only re-show the pre-edit numbers. The window poll picks it up.
+		-- No refresh here: the sim applies a frame or two later, so it would show the
+		-- pre-edit numbers. The window poll picks it up.
 		tb.remapHeights(newMin, newMax, dm and dm.envDimRangeMode or "scale")
 	end,
-	-- Put the water back where the map had it, undoing every water level apply
-	-- made this session. Parking the slider is not enough on its own: an apply
-	-- already recentres it, so a slider-only reset is a visible no-op.
+	-- Put the water back where the map had it, undoing every water level apply this
+	-- session. Parking the slider alone is a visible no-op: an apply already recentres it.
 	onEnvResetWaterLevel = function(_event)
 		local tb = WG.TerraformBrush
 		local shift = tb and tb.resetWaterLevel and tb.resetWaterLevel()
@@ -12806,25 +12453,24 @@ local initialModel = {
 			end
 		end
 	end,
-	-- "CURRENT" button: park the slider back on the water's live plane —
-	-- recentres the track and clears the shoreline preview without touching
-	-- the terrain (reseed = bounds centred on the plane, handle in the middle).
+	-- "CURRENT": park the slider on the water's live plane, recentring the track and
+	-- clearing the shoreline preview without touching the terrain.
 	onEnvWaterCurrent = function(_event)
 		if widgetState.envSeedWaterSlider then
 			playSound("click")
 			widgetState.envSeedWaterSlider()
 		end
 	end,
-	-- "RESET" chip: back to the map's own height range. Init min/max come from
-	-- the map's SMF header, so they survive every edit and stay a true default.
+	-- "RESET": back to the map's own height range. Init min/max come from the SMF
+	-- header, so they survive every edit.
 	onEnvResetBounds = function(_event)
 		if widgetState.envFillDimRangeInputs then
 			playSound("click")
 			widgetState.envFillDimRangeInputs(true)
 		end
 	end,
-	-- "CURRENT" button: refill both boxes from the live extremes, so editing one
-	-- end of the range does not need the other typed back in by hand.
+	-- "CURRENT": refill both boxes from the live extremes, so editing one end does not
+	-- need the other typed back in.
 	onEnvFillBoundsCurrent = function(_event)
 		if widgetState.envFillDimRangeInputs then
 			playSound("click")
@@ -12885,9 +12531,9 @@ local initialModel = {
 		playSound("save")
 		Spring.Echo("[Environ] Loaded environment config: " .. newest)
 	end,
-	-- ENV panel PRESETS (Sun & Shadows window): SAVE writes the live environment
-	-- under a name, BROWSE lists sun-only quick presets, the harvested map moods
-	-- and the user's files; the SUN ONLY / FULL chips set what a click applies.
+	-- ENV panel PRESETS (Sun & Shadows window): SAVE writes the live environment under a
+	-- name; BROWSE lists the sun-only quick presets, the harvested moods and the user's
+	-- files; the SUN ONLY / FULL chips set what a click applies.
 	onEnvPresetSave = function(_event)
 		---@type table?
 		local doc = widgetState.document
@@ -12929,7 +12575,7 @@ local initialModel = {
 		end
 	end,
 
-	-- ── Terraform mode buttons ────────────────────────────────────────────────
+	-- ============ Terraform mode buttons ============
 	-- data-event-click="onTfSetMode('raise')"
 	onTfSetMode = function(_event, mode)
 		if widgetState.noTerraform then
@@ -12996,7 +12642,7 @@ local initialModel = {
 		end
 	end,
 
-	-- ── Erode mode: repose angle slider ──────────────────────────────────────
+	-- ============ Erode mode: repose angle slider ============
 	-- data-event-change="onTfErodeReposeChange()"
 	onTfErodeReposeChange = function(_event)
 		if uiState.updatingFromCode or not WG.TerraformBrush then
@@ -13006,15 +12652,13 @@ local initialModel = {
 		if WG.TerraformBrush.setErodeReposeDeg then
 			WG.TerraformBrush.setErodeReposeDeg(val)
 		end
-		-- No echo-write of the value attribute here: a stamp raises a DEFERRED
-		-- change event (see syncAndFlash), which re-enters this handler with
-		-- updatingFromCode already false and fights the native thumb drag.
-		-- The steppers read widget state, and the per-sync restamp reconciles
-		-- the attribute after release, so nothing needs the write.
+		-- No echo-write of the value attribute: a stamp raises a DEFERRED change event (see
+		-- syncAndFlash) that re-enters this handler with updatingFromCode already false and
+		-- fights the thumb drag. The per-sync restamp reconciles it after release.
 		_noDmLabel("tfErodeReposeStr", tostring(val) .. "\xc2\xb0")
 	end,
-	-- Steppers read the authoritative widget state, not the slider attribute,
-	-- which is only guaranteed fresh inside a change handler.
+	-- Steppers read the widget state, not the slider attribute (fresh only inside a
+	-- change handler).
 	onTfErodeReposeUp = function(_event)
 		if not WG.TerraformBrush then
 			return
@@ -13040,18 +12684,17 @@ local initialModel = {
 		_noDmLabel("tfErodeReposeStr", tostring(val) .. "\xc2\xb0")
 	end,
 
-	-- ── Autoramp submode sliders ─────────────────────────────────────────────
-	-- data-event-change="onTfAutorampSlider('angle')" etc. Angle is degrees;
-	-- the percent sliders map 0–100 onto the widget's 0–1 knobs.
+	-- ============ Autoramp submode sliders ============
+	-- data-event-change="onTfAutorampSlider('angle')" etc. Angle is degrees; the
+	-- percent sliders map 0-100 onto the widget's 0-1 knobs.
 	onTfAutorampSlider = function(_event, key)
 		if uiState.updatingFromCode or not WG.TerraformBrush then
 			return
 		end
 		local tb = WG.TerraformBrush
-		-- Read-and-store only — no echo-write of the value attribute: a stamp
-		-- raises a deferred change event that re-enters this handler and fights
-		-- the native thumb drag (the marble sticks while the track still works).
-		-- The per-sync restamp reconciles the attribute once the drag ends.
+		-- Read and store only, no echo-write: a stamp raises a deferred change event that
+		-- re-enters this handler and fights the thumb drag. The per-sync restamp
+		-- reconciles the attribute once the drag ends.
 		if key == "angle" then
 			local val = _noSliderVal("ar-angle", 60)
 			if tb.setAutorampAngleDeg then
@@ -13073,7 +12716,7 @@ local initialModel = {
 		end
 	end,
 
-	-- data-event-click="onTfArStart('extend')" — autoramp cliff anchor chips
+	-- data-event-click="onTfArStart('extend')": autoramp cliff anchor chips
 	onTfArStart = function(_event, mode)
 		playSound("toggleOn")
 		if WG.TerraformBrush and WG.TerraformBrush.setAutorampStart then
@@ -13084,7 +12727,7 @@ local initialModel = {
 		end
 	end,
 
-	-- data-event-click="onTfArPreview()" — autoramp WYSIWYG preview toggle
+	-- data-event-click="onTfArPreview()": autoramp WYSIWYG preview toggle
 	onTfArPreview = function(_event)
 		local tb = WG.TerraformBrush
 		if not tb then
@@ -13341,8 +12984,8 @@ local initialModel = {
 		end
 	end,
 
-	-- data-event-click="onTfCapMaxUp()" etc. Bounds follow the dynamic
-	-- height-band envelope (updateHeightBandSliderBounds), not a fixed ±500.
+	-- data-event-click="onTfCapMaxUp()" etc. Bounds follow the dynamic height-band
+	-- envelope (updateHeightBandSliderBounds), not a fixed +-500.
 	onTfCapMaxUp = function(_event)
 		capMaxValue = math.min(widgetState.heightBandHi or 500, capMaxValue + HEIGHT_CAP_STEP)
 		if capMinValue > capMaxValue then
@@ -13376,7 +13019,7 @@ local initialModel = {
 		applyCap("min", capMinValue)
 	end,
 
-	-- ── Tool-switch buttons ───────────────────────────────────────────────────
+	-- ============ Tool-switch buttons ============
 	onTfSwitchFeatures = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
@@ -13399,9 +13042,9 @@ local initialModel = {
 	onTfSwitchUnits = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
-		-- The BUTTON (an event) is the map maker's: the tool comes back to the brush's own
-		-- engine pair when another owner (the mission editor) had it. switchToUnits passes no
-		-- event and keeps the owner.
+		-- The BUTTON (an event) belongs to the map maker: the tool returns to the brush's
+		-- own engine pair when another owner (the mission editor) had it. switchToUnits
+		-- passes no event and keeps the owner.
 		if
 			_event
 			and WG.UnitPlacerTool
@@ -13433,7 +13076,7 @@ local initialModel = {
 		end
 	end,
 	-- LIVE places normal units; MISSION places frozen stand-ins on a mission team number,
-	-- which a map project saves for the mission editor (cmd_unit_placer.lua, `mission`)
+	-- which a map project saves for the mission editor (cmd_unit_placer.lua, `mission`).
 	onTfUnitsKind = function(_event, kind)
 		if WG.UnitPlacerTool and WG.UnitPlacerTool.setKind and widgetState.dmHandle then
 			WG.UnitPlacerTool.setKind(kind)
@@ -13566,10 +13209,8 @@ local initialModel = {
 			Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchEnv: " .. tostring(err2))
 		end
 	end,
-	-- SURFACE tool: paints the soft-top variant mask of the tileset shader.
-	-- Active state lives in the painter widget (splat pattern). The old SOFT
-	-- submode of the combined panel — the SOFT|HARD switcher is gone, this
-	-- button IS soft now (LAYERS below is hard).
+	-- SURFACE tool: paints the tileset shader's soft-top variant mask. Active state
+	-- lives in the painter widget. This button is the soft side; LAYERS below is hard.
 	onTfSwitchSurface = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
@@ -13590,20 +13231,18 @@ local initialModel = {
 			if dm and dm.surfMode ~= "soft" then
 				dm.surfMode = "soft"
 			end
-			-- Sneak Peek re-arms on every entry into this mode: it is the
-			-- tool's discovery surface, so a mid-session toggle-off never
-			-- carries over to the next visit.
+			-- Sneak Peek re-arms on every entry into this mode: it is the tool's discovery
+			-- surface, so a toggle-off never carries over to the next visit.
 			if dm then
 				dm.surfReveal = true
 			end
 			WG.SurfacePainter.activate()
 		end
 	end,
-	-- LAYERS tool: paints the tileset shader's splat-override channels
-	-- (R=auto, G=intermediate, B=cliff, A=plateau) through the Splat Painter engine,
-	-- reused headless. The splat engine keeps full ownership of mouse/keys/draw
-	-- while active; widgetState.surfHardActive pins the shared panel to 'surf'
-	-- (surfMode == 'hard' sections) so the legacy SPLAT panel never opens.
+	-- LAYERS tool: paints the tileset shader's splat-override channels (R=auto,
+	-- G=intermediate, B=cliff, A=plateau) through the Splat Painter engine, run
+	-- headless. The engine owns mouse/keys/draw while active; surfHardActive pins the
+	-- shared panel to 'surf' (surfMode == 'hard') so the SPLAT panel never opens.
 	onTfSwitchLayers = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
@@ -13619,7 +13258,7 @@ local initialModel = {
 			end
 			return
 		end
-		-- the painter creates a distribution on canvases started without a DNTS set
+		-- The painter creates a distribution on canvases started without a DNTS set.
 		local canPaint = WG.SplatPainter.canPaintDistribution
 		local ti = gl.TextureInfo and gl.TextureInfo("$ssmf_splat_distr")
 		if not ((canPaint and canPaint()) or (ti and (ti.xsize or 0) > 0)) then
@@ -13637,8 +13276,8 @@ local initialModel = {
 		end
 		WG.SplatPainter.activate()
 		widgetState.surfHardActive = true
-		-- Strokes must be visible: the shader gates the override mask on
-		-- splatInfluence, so a zeroed knob would make painting look broken.
+		-- Strokes must be visible: the shader gates the override mask on splatInfluence,
+		-- so a zeroed knob would make painting look broken.
 		local T = WG.TilesetTerrain
 		if T and T.getKnobs and T.setKnob then
 			local k = T.getKnobs()
@@ -13650,18 +13289,16 @@ local initialModel = {
 			end
 		end
 	end,
-	-- SURFACE brush + fill sliders (ids surf-slider-<key>). The BRUSH section
-	-- serves both submodes: in HARD the size/strength/falloff sliders drive the
-	-- splat engine instead (same slider-unit mappings as the legacy panel).
+	-- SURFACE brush + fill sliders (ids surf-slider-<key>). The BRUSH section serves
+	-- both submodes: in HARD the size/strength/falloff sliders drive the splat engine
+	-- (same slider-unit mappings as the SPLAT panel).
 	onSurfSlider = function(_event, key)
 		if uiState.updatingFromCode or not WG.SurfacePainter then
 			return
 		end
-		-- RmlUi delivers change events a few frames after the value is stamped,
-		-- by which time updatingFromCode is false again. SOFT and HARD share
-		-- these three sliders, so an echo from the mode we just LEFT would
-		-- otherwise write one engine's value into the other (onTilesetKnob
-		-- carries the same guard).
+		-- RmlUi delivers change events a few frames after a stamp, when updatingFromCode is
+		-- false again. SOFT and HARD share these sliders, so an echo from the mode just left
+		-- would write one engine's value into the other (onTilesetKnob has the same guard).
 		if uiState.surfStampFrame and (Spring.GetDrawFrame() - uiState.surfStampFrame) < 3 then
 			return
 		end
@@ -13700,7 +13337,7 @@ local initialModel = {
 		elseif key == "fill-seed" then
 			sp.setFillSeed(_elemSliderVal("surf-slider-fill-seed", 0))
 		elseif sp.setSmartFilter then
-			-- soft-submode FILTERS sliders (ids surf-soft-slider-*)
+			-- Soft-submode FILTERS sliders (ids surf-soft-slider-*)
 			if key == "slope-max" then
 				sp.setSmartFilter("slopeMax", _elemSliderVal("surf-soft-slider-slope-max", 45))
 			elseif key == "alt-min" then
@@ -13726,9 +13363,9 @@ local initialModel = {
 		WG.SurfacePainter.setEraseMode(not st.eraseMode)
 		playSound(st.eraseMode and "toggleOff" or "toggleOn")
 	end,
-	-- WYSIWYG Ctrl sneak peek (DISPLAY chip, both submodes). Pure panel state:
-	-- tf_surface mirrors it into both paint engines each sync; the engines
-	-- watch Ctrl and drive WG.TilesetTerrain.setSurfacePreview themselves.
+	-- WYSIWYG Ctrl sneak peek (DISPLAY chip, both submodes). Panel state only:
+	-- tf_surface mirrors it into both engines each sync; the engines watch Ctrl and
+	-- drive WG.TilesetTerrain.setSurfacePreview.
 	onSurfRevealToggle = function(_event)
 		local dm = widgetState.dmHandle
 		if not dm then
@@ -13737,8 +13374,8 @@ local initialModel = {
 		dm.surfReveal = not dm.surfReveal
 		playSound(dm.surfReveal and "toggleOn" or "toggleOff")
 	end,
-	-- Soft-submode smart filters (engine = dev_surface_painter; mirrors
-	-- onSurfHardFilter's enable-follows-any-chip behaviour).
+	-- Soft-submode smart filters (engine = dev_surface_painter), with onSurfHardFilter's
+	-- enable-follows-any-chip behaviour.
 	onSurfFilter = function(_event, key)
 		local sp = WG.SurfacePainter
 		if not (sp and sp.setSmartFilter) then
@@ -13753,9 +13390,9 @@ local initialModel = {
 			(sf2.avoidWater or sf2.avoidCliffs or sf2.altMinEnable or sf2.altMaxEnable) and true or false
 		)
 	end,
-	-- INFLUENCE (soft altitude / slope bands scaling the stroke): SURFACE edits
-	-- the armed texture's profile in dev_surface_painter, LAYERS the active
-	-- channel's in the splat engine. Same three handlers for both submodes.
+	-- INFLUENCE (soft altitude / slope bands scaling the stroke): SURFACE edits the armed
+	-- texture's profile in dev_surface_painter, LAYERS the active channel's in the
+	-- splat engine. The same handlers serve both submodes.
 	onSurfInfluence = function(_event, key)
 		local dm = widgetState.dmHandle
 		local eng = (dm and dm.surfMode == "hard") and WG.SplatPainter or WG.SurfacePainter
@@ -13793,7 +13430,7 @@ local initialModel = {
 		end
 		local v = _elemSliderVal("surf-slider-inf-" .. key, m[2])
 		eng.setInfluence(m[1], v)
-		-- one Feather slider drives both altitude feathers
+		-- One Feather slider drives both altitude feathers.
 		if m[1] == "altFeatherLo" then
 			eng.setInfluence("altFeatherHi", v)
 		end
@@ -13807,9 +13444,9 @@ local initialModel = {
 		playSound("click")
 		Spring.Echo("[Terraform Brush] influence profile copied to " .. tostring(n) .. " texture(s)")
 	end,
-	-- SELECTED SLOT tint (GRADING): per-asset albedo tint of the armed variant
-	-- in the tileset shader (T.setSlotTint, keyed like FLIP). One slider sets
-	-- one channel; the other two come from the current entry.
+	-- SELECTED SLOT tint (GRADING): per-asset albedo tint of the armed variant in the
+	-- tileset shader (T.setSlotTint, keyed like FLIP). One slider sets one channel; the
+	-- other two come from the current entry.
 	onSurfSlotTint = function(_event, ch)
 		if uiState.updatingFromCode then
 			return
@@ -13846,7 +13483,7 @@ local initialModel = {
 		T.setSlotTint(asset, 1, 1, 1)
 		playSound("reset")
 	end,
-	-- LAYERS display: the splat engine's channel overlay, colored per override
+	-- LAYERS display: the splat engine's channel overlay, coloured per override
 	onSurfHardOverlay = function(_event)
 		local sp = WG.SplatPainter
 		if not (sp and sp.setSplatOverlay) then
@@ -13856,8 +13493,8 @@ local initialModel = {
 		sp.setSplatOverlay(not st.showSplatOverlay)
 		playSound(st.showSplatOverlay and "toggleOff" or "toggleOn")
 	end,
-	-- Slot rail: click BASE = erase-to-base brush; click a slot = paint that
-	-- slot's variant (no-op when the slot is empty — the palette assigns).
+	-- Slot rail: BASE = erase-to-base brush; a slot = paint its variant (nothing when the
+	-- slot is empty: the palette assigns).
 	onSurfSelectBase = function(_event)
 		if not (WG.SurfacePainter and WG.SurfacePainter.setVariant) then
 			return
@@ -13865,11 +13502,8 @@ local initialModel = {
 		WG.SurfacePainter.setVariant("")
 		playSound("click")
 	end,
-	-- The whole chip is the button: it opens that slot's palette, and if the slot
-	-- already holds a variant it also arms the brush with it, so one click both
-	-- switches which slot you are painting and offers the library to change it.
-	-- Clicking the open chip again closes the palette. There used to be a small
-	-- caret for this, which rendered as a missing-glyph box in the panel font.
+	-- The whole chip is the button. A slot holding a variant arms the brush with it;
+	-- an empty slot toggles its palette (there is nothing to paint with yet).
 	onSurfSlotSelect = function(_event, n)
 		if not WG.SurfacePainter then
 			return
@@ -13881,16 +13515,13 @@ local initialModel = {
 		end
 		local asset = st["slot" .. slot]
 		if asset and asset ~= "" then
-			-- ARM THE SLOT, nothing else. This used to open the library as well,
-			-- so switching brush threw the whole catalog on screen every time;
-			-- the tile's PICK button owns that now.
+			-- Arm the slot, nothing else: the tile's PICK button opens the library.
 			if WG.SurfacePainter.setVariant then
 				WG.SurfacePainter.setVariant(asset)
 			end
 			playSound("click")
 		else
-			-- an empty slot has nothing to paint with, so the only useful thing
-			-- a click can mean is "let me choose something for it"
+			-- An empty slot has nothing to paint with, so a click means "let me choose something".
 			local open = (widgetState.surfPickerSlot ~= slot) and slot or nil
 			widgetState.surfPickerSlot = open
 			widgetState.surfPaletteSig = nil
@@ -13901,10 +13532,9 @@ local initialModel = {
 		if not (WG.SurfacePainter and WG.SurfacePainter.noiseFill) then
 			return
 		end
-		-- The fill shader only writes a channel whose slot carries a variant
-		-- AND whose V1/V2 chip is on; with neither eligible it preserves the
-		-- mask verbatim, so the button silently did nothing. The RML grays it
-		-- in that state (dm.surfCanFill) — this is the backstop that explains.
+		-- The fill shader writes only channels whose slot carries a variant AND whose V1/V2
+		-- chip is on; otherwise it keeps the mask. The RML greys the button then
+		-- (dm.surfCanFill); this is the backstop that explains.
 		local st = (WG.SurfacePainter.getState and WG.SurfacePainter.getState()) or {}
 		local anyAssigned, anyFill = false, false
 		for i = 1, (st.slotCount or 0) do
@@ -13947,8 +13577,8 @@ local initialModel = {
 		end
 		playSound("tick")
 	end,
-	-- CLEAR buttons arm on the first click and execute on the second (the
-	-- spec's "with confirm"; projectDeleteConfirming precedent).
+	-- CLEAR buttons arm on the first click and execute on the second (as
+	-- projectDeleteConfirming does).
 	onSurfClearVariant = function(_event)
 		local dm = widgetState.dmHandle
 		if not (dm and WG.SurfacePainter) then
@@ -13959,8 +13589,8 @@ local initialModel = {
 			if WG.SurfacePainter.clearVariant() then
 				playSound("reset")
 			else
-				-- Base/erase selected: nothing to clear — say so instead of a
-				-- silent no-op the user reads as "cleared".
+				-- Base/erase selected: nothing to clear. Say so rather than a silent no-op that
+				-- reads as "cleared".
 				Spring.Echo("[Surface] select a variant tile first, then CLEAR VARIANT")
 			end
 		else
@@ -13990,16 +13620,16 @@ local initialModel = {
 		if uiState.updatingFromCode or not WG.TilesetTerrain then
 			return
 		end
-		-- No fallback default here: tint knobs default to 1.0, desat to 0, so a
-		-- failed element lookup writing 0 would black the whole group out.
+		-- No fallback default: tint knobs default to 1.0 and desat to 0, so a failed element
+		-- lookup writing 0 would black the whole group out.
 		local v = _elemSliderVal("surf-slider-" .. key, nil)
 		if v ~= nil and WG.TilesetTerrain.setKnob then
 			WG.TilesetTerrain.setKnob(key, v)
 		end
 	end,
-	-- ── SURFACE HARD submode (splat overrides via WG.SplatPainter) ──────────
-	-- All onSurfHard* handlers talk to the splat ENGINE only; the legacy
-	-- SPLAT panel keeps its own onSpl*/sp-* namespace untouched.
+	-- ============ SURFACE HARD submode (splat overrides via WG.SplatPainter) ============
+	-- The onSurfHard* handlers talk to the splat ENGINE only; the SPLAT panel keeps its
+	-- own onSpl*/sp-* namespace.
 	onSurfHardChannel = function(_event, n)
 		if not WG.SplatPainter then
 			return
@@ -14008,10 +13638,9 @@ local initialModel = {
 		WG.SplatPainter.setChannel(tonumber(n) or 1)
 	end,
 	-- SAMPLE buttons on the SURFACE altitude rows (FILTERS in both modes and the
-	-- INFLUENCE band): arm the brush widget's height sampler, which reads the
-	-- next click's ground height (or the colormap contour under the cursor)
-	-- into the target. 'infAltMin'/'infAltMax' resolve to the engine of the
-	-- active mode; the FILTERS rows pass their engine's target directly.
+	-- INFLUENCE band) arm the brush widget's height sampler, which reads the next
+	-- click's ground height (or the colormap contour under the cursor). 'infAltMin' /
+	-- 'infAltMax' resolve to the active mode's engine; FILTERS rows pass their own target.
 	onSurfAltSample = function(_event, target)
 		if not WG.TerraformBrush then
 			return
@@ -14087,12 +13716,9 @@ local initialModel = {
 			WG.SplatPainter.saveSplats()
 		end
 	end,
-	-- Albedo/normal tiling decoupling on the flat layers: off pins every albTile*
-	-- ratio to 1.0 in the shader, so this is the straight A/B against the coupled
-	-- look without having to reset the three sliders.
-	-- PROTECT CLIFFS: the cliffProtect shader knob as a highlight button. The
-	-- guard is one-way — soft strokes sweep around cliff bodies, painted CLIFF
-	-- always lands — so this only ever governs intermediate/plateau paint.
+	-- PROTECT CLIFFS: the cliffProtect shader knob as a highlight button. The guard is
+	-- one-way (soft strokes sweep around cliff bodies, painted CLIFF always lands), so
+	-- it only governs intermediate/plateau paint.
 	onTsToggleCliffProtect = function(_event)
 		if not (WG.TilesetTerrain and WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.setKnob) then
 			return
@@ -14128,12 +13754,11 @@ local initialModel = {
 		if uiState.updatingFromCode or not WG.TilesetTerrain then
 			return
 		end
-		-- Drop the deferred echo of programmatic slider stamps: tf_tileset.M.sync
-		-- raises change events via SetAttribute that RmlUi delivers frames later,
-		-- after updatingFromCode is back to false, and GetAttribute can then read
-		-- clamped/stale values back into the knobs (per-swap config drift).
-		-- Only for sliders the user is NOT dragging: a knob the sync keeps restamping would otherwise hold
-		-- this window open for good and every TILESET slider would go dead.
+		-- Drop the deferred echo of programmatic stamps: tf_tileset.M.sync raises change
+		-- events via SetAttribute that arrive frames later, after updatingFromCode is false,
+		-- and GetAttribute could read clamped or stale values back into the knobs. Only for
+		-- sliders not being dragged: a knob the sync keeps restamping would otherwise keep
+		-- this window open and every TILESET slider would go dead.
 		local tsDiag = widgetState.tsKnobDiag
 		if not tsDiag then
 			tsDiag = { recv = 0, dropped = 0, applied = 0 }
@@ -14149,16 +13774,14 @@ local initialModel = {
 			return
 		end
 		tsDiag.applied = tsDiag.applied + 1
-		-- nil fallback, not 0: a failed element lookup must not zero the knob
-		-- (same hazard onSurfKnob already guards against).
+		-- nil fallback, not 0: a failed element lookup must not zero the knob (as in onSurfKnob).
 		local v = _elemSliderVal("ts-slider-" .. key, nil)
 		if v ~= nil and WG.TilesetTerrain.setKnob then
 			WG.TilesetTerrain.setKnob(key, v)
 		end
 	end,
-	-- DEBUG view multi-toggle (replaces the old debugView slider). Sets the knob and
-	-- lights the matching button; tf_tileset.sync mirrors debugView -> tsDebugView so
-	-- console-driven changes stay in sync.
+	-- DEBUG view multi-toggle: sets the knob and lights the matching button;
+	-- tf_tileset.sync mirrors debugView -> tsDebugView so console changes stay in sync.
 	onTilesetDebugView = function(_event, n)
 		if not WG.TilesetTerrain then
 			return
@@ -14173,15 +13796,12 @@ local initialModel = {
 		end
 		playSound("click")
 	end,
-	-- Per-section RESET on the TILESET headers, matching the env windows'
-	-- convention. Restores only that section's knobs, to the same values the
-	-- panel-wide Restore Defaults would give them (global defaults overlaid with
-	-- the active biome's own recipe). The section->knobs map lives in
-	-- dev_tileset_terrain.lua next to the knob table it references.
+	-- Per-section RESET on the TILESET headers, like the env windows. Restores only that
+	-- section's knobs, to what Restore Defaults would give (global defaults overlaid with
+	-- the active biome's recipe). The section->knobs map lives in dev_tileset_terrain.lua.
 	onTilesetSectionReset = function(_event, section)
-		-- Belt and braces with the target check in envSectionToggle: this button
-		-- lives inside the header row that toggles the section, so the click must
-		-- not travel any further than here.
+		-- This button sits inside the header row that toggles the section, so the click
+		-- stops here (on top of the target check in envSectionToggle).
 		if _event and _event.StopPropagation then
 			_event:StopPropagation()
 		end
@@ -14211,7 +13831,7 @@ local initialModel = {
 			return
 		end
 		WG.TilesetTerrain.savePreset(name)
-		-- one file per preset in Terraform Brush/TilesetPresets/ (tf_tileset.lua)
+		-- One file per preset in Terraform Brush/TilesetPresets/ (tf_tileset.lua)
 		if widgetState.tsSavePresetFile then
 			widgetState.tsSavePresetFile(name)
 		end
@@ -14239,12 +13859,9 @@ local initialModel = {
 			playSound("click")
 		end
 	end,
-	-- SLOT 4 mode buttons (TILESET > PLACEMENT): the fourth material suite's
-	-- weight source (plateau / detail / interm 2 / cliff 2 / off). The shader
-	-- widget reseeds the two reused sliders on a change; tf_tileset.sync
-	-- restamps them and retitles their labels.
-	-- METAL SPOTS suite toggle: what TU22-24 serve. false = the metal-spot
-	-- material (legacy), true = a third paintable SURFACE variant (slot 3).
+	-- SLOT 4 mode buttons (TILESET > PLACEMENT): the fourth material suite's weight
+	-- source (plateau / detail / interm 2 / cliff 2 / off). The shader widget reseeds the
+	-- two reused sliders on a change; tf_tileset.sync restamps and retitles them.
 	onTsSlot4Mode = function(_event, name)
 		if not (WG.TilesetTerrain and WG.TilesetTerrain.setSlot4Mode) then
 			return
@@ -14291,11 +13908,8 @@ local initialModel = {
 			end
 		end
 	end,
-	-- Master SHADER switch. Off releases the map shader (and the $minimap/$grass
-	-- overrides) back to the engine, so maps that ship hand-authored textures
-	-- render the way they were authored; the tuning sections gray out in M.sync.
-	-- One button, four meanings: sync when an update is waiting, re-check when it
-	-- is not, and do nothing while busy or when the update wants a newer brush.
+	-- One button, four meanings: sync when an update is waiting, re-check when not, and
+	-- nothing while busy or when the update needs a newer brush.
 	onTsShaderSync = function(_event)
 		local project = WG.MapProject
 		local client = project and project.library
@@ -14305,9 +13919,8 @@ local initialModel = {
 		local d = widgetState.dmHandle
 		local state = d and d.tsShaderSyncState
 		if state == "offline" then
-			-- Team Sync is not running: the Projects window's start card is the
-			-- way to get it running. Opened from Update, where the handler is
-			-- in scope.
+			-- Team Sync is not running: open the Projects window's start card (from Update,
+			-- where the handler is in scope).
 			playSound("click")
 			widgetState.projectOpenRequest = { card = true }
 			return
@@ -14318,6 +13931,9 @@ local initialModel = {
 		playSound("click")
 		client.request(state == "update" and "shader_sync" or "shader_check")
 	end,
+	-- Master SHADER switch. Off hands the map shader (and the $minimap/$grass overrides)
+	-- back to the engine, so maps with hand-authored textures render as authored; the
+	-- tuning sections grey out in M.sync.
 	onTsToggleShader = function(_event)
 		if not (WG.TilesetTerrain and WG.TilesetTerrain.setActive) then
 			return
@@ -14325,15 +13941,15 @@ local initialModel = {
 		local was = WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive()
 		local on = WG.TilesetTerrain.setActive(not was)
 		playSound(on and "toggleOn" or "toggleOff")
-		-- Immediate highlight; tf_tileset.sync keeps it honest afterwards (and
-		-- handles the section gray-out via tsShaderLast).
+		-- Immediate highlight; tf_tileset.sync keeps it honest (and greys the sections via
+		-- tsShaderLast).
 		local d = widgetState.dmHandle
 		if d then
 			d.tsShaderOn = on and true or false
 		end
 	end,
-	-- METAL SPOTS style tiles (mirrors pickBiome; styles live in the shader
-	-- widget's METAL_STYLES and swap the metal material + knob baseline live).
+	-- METAL SPOTS style tiles (like pickBiome; the styles live in the shader widget's
+	-- METAL_STYLES and swap the metal material and knob baseline live).
 	onPickMetalStyle = function(_event, key)
 		if not (WG.TilesetTerrain and WG.TilesetTerrain.setMetalStyle) then
 			return
@@ -14371,8 +13987,7 @@ local initialModel = {
 		end
 	end,
 	-- GLOW LIGHT colour swatches, borrowed from the LIGHTS tool: they only write
-	-- tileset knobs; the shader widget rebuilds the deferred lights from the
-	-- knob table.
+	-- tileset knobs; the shader widget rebuilds the deferred lights from them.
 	onTsGlowSwatch = function(_event, idx)
 		local c = widgetState.lpPalette and widgetState.lpPalette[tonumber(idx) or 0]
 		if not (c and WG.TilesetTerrain and WG.TilesetTerrain.setKnob) then
@@ -14383,12 +13998,11 @@ local initialModel = {
 		WG.TilesetTerrain.setKnob("metalGlowB", c[3])
 		playSound("click")
 	end,
-	-- HEIGHT TINT (tileset shader 0.27). Axis mode chips, the colour target
-	-- chips (grade LOW / MID / HIGH, strata beds 1..8, SNOW) and the one shared
-	-- palette + R/G/B trio that edits whichever chip is selected. Everything
-	-- writes tileset knobs; tf_tileset.sync paints the chips and restamps the
-	-- trio from the knob table. The chip -> knob-prefix map comes from
-	-- tf_tileset (widgetState.tsHgTargets, set in its attach).
+	-- HEIGHT TINT: axis mode chips, the colour target chips (grade LOW / MID / HIGH,
+	-- strata beds 1..8, SNOW) and one shared palette + R/G/B trio that edits the
+	-- selected chip. Everything writes tileset knobs; tf_tileset.sync paints the chips
+	-- and restamps the trio. The chip -> knob-prefix map is widgetState.tsHgTargets
+	-- (set in tf_tileset's attach).
 	onTsHgRefMode = function(_event, n)
 		if WG.TilesetTerrain and WG.TilesetTerrain.setKnob then
 			WG.TilesetTerrain.setKnob("hgRefMode", tonumber(n) or 0)
@@ -14410,7 +14024,7 @@ local initialModel = {
 		if not (c and set and dm) then
 			return
 		end
-		-- tf_tileset converts to the chip's own storage (RGB, or HSV for the stops)
+		-- tf_tileset converts to the chip's own storage (RGB, or HSV for the stops).
 		if set(dm.tsHgTarget, c[1], c[2], c[3]) then
 			playSound("click")
 		end
@@ -14419,8 +14033,8 @@ local initialModel = {
 		if uiState.updatingFromCode or not WG.TilesetTerrain then
 			return
 		end
-		-- same deferred-echo guard as onTilesetKnob: a programmatic restamp of
-		-- the trio raises change events frames later (never for the dragged channel)
+		-- Same deferred-echo guard as onTilesetKnob: a programmatic restamp of the trio
+		-- raises change events frames later (never for the dragged channel).
 		if
 			uiState.tsStampFrame
 			and (Spring.GetDrawFrame() - uiState.tsStampFrame) < 3
@@ -14442,9 +14056,8 @@ local initialModel = {
 		if val == nil then
 			return
 		end
-		-- one slider moved: rebuild the colour in that slider's space from the
-		-- chip's current value and write it back through tf_tileset, which
-		-- converts to the chip's own storage (RGB, or HSV for the stops)
+		-- One slider moved: rebuild the colour in that slider's space from the chip's
+		-- current value and write it back through tf_tileset.
 		local r, g, b, h, s, v = get(k, dm.tsHgTarget)
 		if r == nil then
 			return
@@ -14565,8 +14178,8 @@ local initialModel = {
 		end
 	end,
 
-	-- ── TB shared instrument controls ─────────────────────────────────────────
-	-- Prefix P is 'st','cl','wb','sp','dc','lp' — one handler set covers all tools.
+	-- ============ TB shared instrument controls ============
+	-- Prefix P is 'st','cl','wb','sp','dc','lp': one handler set covers all tools.
 	-- Core terraform instrument handlers
 	onTfGridOverlay = function(_event)
 		_tbMirrorToggle("tf", "gridOverlay", function(v)
@@ -14807,8 +14420,8 @@ local initialModel = {
 		local TT = WG.TilesetTerrain
 		local setKnob = TT and TT.setKnob
 		local hasTT = setKnob ~= nil
-		-- The slope classes are drawn by the tileset shader; SHIP by the engine,
-		-- so without the shader the cycle is off -> SHIP -> off.
+		-- The slope classes are drawn by the tileset shader, SHIP by the engine, so without
+		-- the shader the cycle is off -> SHIP -> off.
 		local entry
 		repeat
 			_tbPassIdx = (_tbPassIdx + 1) % (#_tbPassClasses + 1)
@@ -14825,7 +14438,7 @@ local initialModel = {
 			_tbPassClasses.prevDrawMode = _tbPassClasses.prevDrawMode or Spring.GetMapDrawMode()
 			Spring.SendCommands("showpathtype " .. entry.unit)
 		elseif _tbPassClasses.prevDrawMode then
-			-- back to the view the engine class replaced (LOS in a normal session)
+			-- Back to the view the engine class replaced (LOS in a normal session)
 			local prev = _tbPassClasses.prevDrawMode
 			_tbPassClasses.prevDrawMode = nil
 			if Spring.GetMapDrawMode() == "pathTraversability" then
@@ -14843,10 +14456,10 @@ local initialModel = {
 		end
 		playSound(entry and "toggleOn" or "toggleOff")
 	end,
-	-- ── IMAGE overlay (DISPLAY > Image; chips and window shared by every tool) ──
+	-- ============ IMAGE overlay (DISPLAY > Image; chips and window shared by every tool) ============
 	onTbImageOverlay = function(event)
-		-- Left click toggles the overlay once an image is loaded; before that,
-		-- and on right click, it opens the IMAGE OVERLAY window instead.
+		-- Left click toggles the overlay once an image is loaded; before that, and on
+		-- right click, it opens the IMAGE OVERLAY window.
 		local p = event and event.parameters
 		local rightClick = p and p.button == 1
 		if rightClick or not _imgOv.toggleShow() then
@@ -15057,10 +14670,9 @@ local initialModel = {
 		end
 		playSound("click")
 	end,
-	-- NB: the custom range never goes into uiPrefs. These change events also
-	-- fire (deferred) for every programmatic stamp of the input, so persisting
-	-- here is what used to burn the canvas seed (-75..696) into the prefs and
-	-- resurrect it on every map.
+	-- The custom range never goes into uiPrefs: these change events also fire
+	-- (deferred) for every programmatic stamp, so persisting here would burn a stamped
+	-- range (the canvas seed) into the prefs and bring it back on every map.
 	onTfExportCustomMinChange = function(_event)
 		if not WG.TerraformBrush then
 			return
@@ -15314,7 +14926,7 @@ local initialModel = {
 		end
 	end,
 
-	-- ── Diffuse Painter handlers (Phase A MVP) ────────────────────────────────
+	-- ============ Diffuse Painter handlers ============
 	onDfpSliderRadius = function(_event)
 		if uiState.updatingFromCode or not WG.DiffusePainter then
 			return
@@ -15424,7 +15036,7 @@ local initialModel = {
 		playSound("tick")
 	end,
 
-	-- ── Diffuse Painter: SSMF material channels ──────────────────────────────
+	-- Diffuse Painter: SSMF material channels
 	onDfpToggleChannel = function(_event, key)
 		if not (WG.DiffusePainter and WG.DiffusePainter.setChannelEnabled) then
 			return
@@ -15486,7 +15098,7 @@ local initialModel = {
 		WG.DiffusePainter.setLayerGlow(st.activeLayerId, cur + (delta or 0))
 	end,
 
-	-- ── Diffuse Painter: grass attach ────────────────────────────────────────
+	-- Diffuse Painter: grass attach
 	onDfpToggleGrassAttach = function(_event)
 		if not (WG.DiffusePainter and WG.DiffusePainter.setGrassAttach) then
 			return
@@ -15526,7 +15138,7 @@ local initialModel = {
 		WG.DiffusePainter.setLayerGrassDensity(st.activeLayerId, cur + (delta or 0))
 	end,
 
-	-- ── Diffuse Painter: undo / redo / history ───────────────────────────────
+	-- Diffuse Painter: undo / redo / history
 	onDfpUndo = function(_event)
 		if WG.DiffusePainter and WG.DiffusePainter.undo then
 			playSound("undo")
@@ -15548,7 +15160,7 @@ local initialModel = {
 		end
 	end,
 
-	-- ── Diffuse Painter: fractal brush ───────────────────────────────────────
+	-- Diffuse Painter: fractal brush
 	onDfpSliderFractal = function(_event)
 		if uiState.updatingFromCode or not WG.DiffusePainter then
 			return
@@ -15571,7 +15183,7 @@ local initialModel = {
 		if uiState.updatingFromCode or not WG.DiffusePainter then
 			return
 		end
-		-- slider 1-50 maps linearly to freq 0.0002..0.01 (1/elmos)
+		-- Slider 1-50 maps linearly to freq 0.0002..0.01 (1/elmos)
 		local v = tonumber(_elemSliderVal("dfp-slider-fractal-freq", 30)) or 30
 		local freq = 0.0002 + (v - 1) / 49 * (0.01 - 0.0002)
 		if WG.DiffusePainter.setFractal then
@@ -15583,7 +15195,7 @@ local initialModel = {
 			return
 		end
 		local _, freq = WG.DiffusePainter.getFractal()
-		-- convert current freq back to slider units (1-50), step, clamp, convert back
+		-- Convert the freq back to slider units (1-50), step, clamp, convert back
 		local v = math.floor(0.5 + 1 + ((freq or 0.0002) - 0.0002) / (0.01 - 0.0002) * 49)
 		v = math.max(1, math.min(50, v + (delta or 0)))
 		local newFreq = 0.0002 + (v - 1) / 49 * (0.01 - 0.0002)
@@ -15592,7 +15204,7 @@ local initialModel = {
 		end
 	end,
 
-	-- ── Diffuse Painter: blend mode ───────────────────────────────────────────
+	-- Diffuse Painter: blend mode
 	onDfpSetBlend = function(_event, mode)
 		if not WG.DiffusePainter then
 			return
@@ -15604,7 +15216,7 @@ local initialModel = {
 		end
 	end,
 
-	-- ── Diffuse Painter: hydro erosion mask ───────────────────────────────────
+	-- Diffuse Painter: hydro erosion mask
 	onDfpToggleHydro = function(_event)
 		if not WG.DiffusePainter then
 			return
@@ -15730,7 +15342,7 @@ local initialModel = {
 		end
 	end,
 
-	-- ── Diffuse Painter: thermo erosion mask ──────────────────────────────────
+	-- Diffuse Painter: thermo erosion mask
 	onDfpToggleThermo = function(_event)
 		if not WG.DiffusePainter then
 			return
@@ -15852,15 +15464,11 @@ clearPassthrough = function()
 	end
 end
 
--- FOCUS MODE (the eye button next to pause): the engine's /hideinterface with
--- the editor left alive. RmlUi documents are rendered by the engine outside
--- the hidden-interface gate (CGame::Draw calls RmlGui::RenderFrame
--- unconditionally, DrawInputReceivers is the only block hideInterface skips),
--- so the panel survives on its own. The brush widget reads isFocusMode() to
--- keep its ring, grid and water overlays drawing through it, and the deferred
--- applies (skybox picks included) drain from DrawScreenPost because DrawScreen
--- is the one call-in the widget handler gates on Spring.IsGUIHidden().
--- widgetState field, not a chunk local: this chunk is near the 200-local cap.
+-- FOCUS MODE (the eye button next to pause): the engine's /hideinterface with the
+-- editor alive. RmlUi documents render outside the hidden-interface gate, so the
+-- panel survives. The brush widget reads isFocusMode() to keep its overlays drawing,
+-- and deferred applies drain from DrawScreenPost: DrawScreen is the one call-in the
+-- widget handler gates on Spring.IsGUIHidden().
 widgetState.setFocusMode = function(on)
 	on = on and true or false
 	if widgetState.focusMode == on then
@@ -15871,9 +15479,9 @@ widgetState.setFocusMode = function(on)
 	if widgetState.dmHandle then
 		widgetState.dmHandle.focusActive = on
 	end
-	-- Explicit argument, never the bare toggle: the toggle would desync from the
-	-- flag the moment anything else touched the interface (F5, a map capture).
-	-- A running capture owns the interface; its restoreScene lands on this flag.
+	-- Explicit argument, never the bare toggle, which desyncs from the flag once
+	-- anything else touches the interface (F5, a map capture). A running capture owns
+	-- the interface; its restoreScene lands on this flag.
 	---@type table?
 	local cap = WG.TerraformCapture
 	if not (cap and cap.isBusy and cap.isBusy()) then
@@ -15881,12 +15489,10 @@ widgetState.setFocusMode = function(on)
 	end
 end
 
--- Update-side bookkeeping, called once per Update after the panel visibility
--- sync. Two exits besides the button: every tool gone (panel close, quit, tool
--- deactivation) hands the HUD back so nobody is left with no UI at all; and the
--- interface coming back from outside (F5, /hideinterface) drops the flag so the
--- eye reads right and the next click hides again. The T hotkey (panelHidden) is
--- deliberately not an exit: focus + hidden panel is the clean-screenshot setup.
+-- Update-side bookkeeping, once per Update after the panel visibility sync. Two exits
+-- besides the button: every tool gone hands the HUD back so nobody is left without
+-- UI, and the interface returning from outside (F5, /hideinterface) drops the flag.
+-- The T hotkey (panelHidden) is not an exit: focus + hidden panel is the clean-screenshot setup.
 widgetState.syncFocusMode = function(panelVisible, panelHidden)
 	if not widgetState.focusMode then
 		return
@@ -15900,9 +15506,8 @@ widgetState.syncFocusMode = function(panelVisible, panelHidden)
 	if cap and cap.isBusy and cap.isBusy() then
 		return
 	end
-	-- SendCommands may land a frame late; give a fresh toggle time to take.
-	-- (Member access, not a local copy: the analyzer types a copied dynamic
-	-- field as nil and calls the guard impossible.)
+	-- SendCommands may land a frame late; give a fresh toggle time to take. Member
+	-- access, not a local copy: the analyzer types a copied dynamic field as nil.
 	if widgetState.focusSetTimer and Spring.DiffTimers(Spring.GetTimer(), widgetState.focusSetTimer) < 0.5 then
 		return
 	end
@@ -15924,8 +15529,8 @@ applyCap = function(which, value)
 	if not WG.TerraformBrush then
 		return
 	end
-	-- capEnabled gates the whole cap: when off, push nil so terraform is unclamped
-	-- but capMinValue/capMaxValue stay put so toggling back on restores them.
+	-- capEnabled gates the whole cap: off pushes nil (terraform unclamped) but keeps
+	-- capMinValue/capMaxValue, so toggling back on restores them.
 	local eff = (capEnabled and value ~= 0) and value or nil
 	if which == "max" then
 		WG.TerraformBrush.setHeightCapMax(eff)
@@ -15949,14 +15554,14 @@ local function trackSliderDrag(element, id)
 	element:AddEventListener("mousedown", function(event)
 		local ls = widgetState.lockedSliders
 
-		-- The wheel lock (a DOUBLE middle click) is one document-wide listener for every
+		-- The wheel lock (a double middle click) is one document-wide listener for every
 		-- slider: widgetState.attachWheelLockGesture.
 		if event.parameters.button == MOUSE_MIDDLE then
 			return
 		end
 
-		-- Click-to-jump: clicking on the track (not the thumb) jumps to mouse position
-		-- and then follows the mouse until mouseup (synthetic drag). Skipped when locked.
+		-- Click-to-jump: clicking the track (not the thumb) jumps to the mouse and follows
+		-- it until mouseup (synthetic drag). Skipped when locked.
 		local targetEl = event.target_element
 		if not ls[element.id] and targetEl and targetEl.tag_name ~= "sliderbar" then
 			local minVal = tonumber(element:GetAttribute("min")) or 0
@@ -15971,16 +15576,14 @@ local function trackSliderDrag(element, id)
 						v = math.floor((v - minVal) / step + 0.5) * step + minVal
 					end
 					element:SetAttribute("value", tostring(math.max(minVal, math.min(maxVal, v))))
-					-- This write bypasses setAttrValueIfChanged: invalidate its
-					-- dirty-check cache (keyed by element id) so the next sync
-					-- writes through even if the canonical value string is
-					-- unchanged (e.g. 360 wraps back to a state of 0).
+					-- This write bypasses setAttrValueIfChanged: clear its cache entry so the next sync
+					-- writes through even if the canonical string is unchanged (360 wraps back to 0).
 					widgetState.lastAttrValue[element.id] = nil
 				end
 				applyMX(event.parameters.mouse_x)
-				-- Attach synthetic drag: follow mouse until mouseup. One pair of document listeners
-				-- for the whole document (RemoveEventListener is not available): adding a pair per
-				-- click left thousands of dead closures running on every mouse move.
+				-- Synthetic drag: follow the mouse until mouseup. One pair of document listeners for
+				-- the whole document (RemoveEventListener is unavailable, and a pair per click piles
+				-- up dead closures on every mouse move).
 				local doc = widgetState.document
 				local sd = widgetState.synDrag
 				if not sd or sd.doc ~= doc then
@@ -15994,8 +15597,7 @@ local function trackSliderDrag(element, id)
 					doc:AddEventListener("mouseup", function()
 						if sd.apply then
 							sd.apply = nil
-							-- Drag ended: force the next sync to write through
-							-- (the element's value diverged from the guard cache).
+							-- Drag ended: force the next sync to write through (the value diverged from the cache).
 							if sd.elId then
 								widgetState.lastAttrValue[sd.elId] = nil
 							end
@@ -16007,9 +15609,8 @@ local function trackSliderDrag(element, id)
 			end
 		end
 
-		-- A plain click on a locked slider still releases it: the lock steals
-		-- the wheel, so there has to be an escape that needs no second thought.
-		-- Locks are keyed by the element id, not the short id passed in here.
+		-- A plain click on a locked slider releases it: the lock steals the wheel, so the
+		-- escape must be obvious. Locks are keyed by the element id, not the short id.
 		if ls[element.id] then
 			widgetState.setWheelLock(element, false)
 			uiState.draggingSlider = id
@@ -16022,14 +15623,12 @@ local function trackSliderDrag(element, id)
 		uiState.draggingSliderEl = element
 	end, false)
 	element:AddEventListener("mouseup", function()
-		-- Drag (or click) on this slider ended: the user may have moved the
-		-- element's value past the guard cache. Invalidate so the first
-		-- post-drag sync always writes the canonical value back through.
+		-- Drag or click ended: the value may have moved past the guard cache, so the first
+		-- post-drag sync must write the canonical value back.
 		widgetState.lastAttrValue[element.id] = nil
-		-- The release may land on a different slider than the one being dragged
-		-- (this handler fires for the element under the cursor). Invalidate the
-		-- dragged slider's cache too before dropping the tracking ref, or the
-		-- doc-level safety net would find it already nil'd and skip it.
+		-- The release may land on another slider (this fires for the element under the
+		-- cursor). Invalidate the dragged slider's cache too before dropping the ref, or the
+		-- doc-level safety net would skip it.
 		local dEl = uiState.draggingSliderEl
 		if dEl and dEl ~= element then
 			widgetState.lastAttrValue[dEl.id] = nil
@@ -16040,17 +15639,13 @@ local function trackSliderDrag(element, id)
 end
 
 -- ============ Slider wheel lock ============
--- A DOUBLE middle click on any slider ties it to the mouse wheel (widget:MouseWheel), a second
--- double middle click on it lets go, ESC lets go of all of them. Several can be locked at once.
--- One document-wide listener, so every range input in the panel and its floating windows takes
--- the gesture, whether or not trackSliderDrag wired it. A single middle click does nothing: two
--- clicks are what keep it from firing by accident (it used to be a double LEFT click, then a
--- single middle click; both fired while adjusting values). The line under the status strip says
--- what is locked and how to get out.
--- (on widgetState: this file is at the 200-local ceiling)
+-- A double middle click on any slider ties it to the mouse wheel (widget:MouseWheel);
+-- another double middle click lets go, ESC releases all. Several can be locked at
+-- once. One document-wide listener, so every range input takes the gesture. Two
+-- clicks keep it from firing while adjusting values. The status strip says what is locked.
 widgetState.WHEEL_LOCK_TAP = 0.4 -- seconds between the two middle clicks
 
--- the slider's own label from its row, for the status line
+-- The slider's own label from its row, for the status line
 widgetState.wheelLockLabel = function(el)
 	local row = el.parent_node
 	local label = row and row:QuerySelector(".tf-slider-label")
@@ -16059,7 +15654,7 @@ widgetState.wheelLockLabel = function(el)
 	if text ~= "" then
 		return text
 	end
-	-- rows that label the slider elsewhere: a readable name from the id ("slider-intensity" -> "Intensity")
+	-- Rows that label the slider elsewhere: a readable name from the id ("slider-intensity" -> "Intensity")
 	local name = el.id:gsub("^%a*%-?slider%-", ""):gsub("(%l)(%u)", "%1 %2"):gsub("[-_]", " ")
 	return (name:gsub("^%l", string.upper))
 end
@@ -16111,7 +15706,7 @@ widgetState.attachWheelLockGesture = function(doc)
 		if event.parameters.button ~= MOUSE_MIDDLE then
 			return
 		end
-		-- the click lands on the track, the thumb or the input itself
+		-- The click lands on the track, the thumb or the input itself
 		local el = event.target_element
 		for _ = 1, 3 do
 			if not el or (el.tag_name == "input" and el:GetAttribute("type") == "range") then
@@ -16134,12 +15729,10 @@ widgetState.attachWheelLockGesture = function(doc)
 	end, false)
 end
 
--- Helper: sync slider value from state and flash green if it changed externally
--- Returns true when it actually issued a SetAttribute. Callers that arm an
--- echo-suppression window (the deferred change event a stamp raises) must key
--- that window off this, NOT off "sync ran" — sync runs every frame, so an
--- unconditional stamp timestamp suppresses the user's own slider input
--- forever. See tf_surface / tf_tileset.
+-- Sync a slider from state and flash it green if it changed externally. Returns true
+-- when it issued a SetAttribute: callers arming an echo-suppression window must key
+-- it off this, not off "sync ran" (sync runs every frame, so that would swallow the
+-- user's own input). See tf_surface / tf_tileset.
 local function syncAndFlash(el, id, newValStr)
 	if not el or not newValStr then
 		return false
@@ -16148,13 +15741,11 @@ local function syncAndFlash(el, id, newValStr)
 		return false
 	end
 	local prev = widgetState.prevSyncValues[id]
-	-- Dirty-check: skip SetAttribute if value unchanged since last write.
-	-- Avoids triggering RmlUI slider re-layout on no-op syncs.
+	-- Dirty-check: skip SetAttribute (and RmlUi's slider re-layout) when unchanged.
 	local wrote = false
 	if prev ~= newValStr then
 		el:SetAttribute("value", newValStr)
-		-- Keep lastAttrValue cache coherent so setAttrValueIfChanged users
-		-- don't re-issue the same write if they target the same element.
+		-- Keep the lastAttrValue cache coherent for setAttrValueIfChanged users.
 		widgetState.lastAttrValue[id] = newValStr
 		wrote = true
 	end
@@ -16386,7 +15977,6 @@ local guideHints = {
 	["btn-wb-scatter"] = "Scatter weather effects randomly across the brush area each time you paint.",
 	["btn-wb-point"] = "Place a weather effect exactly at the clicked cursor position.",
 	["btn-wb-remove"] = "Erase persistent weather effects under the brush — removes effects that were painted earlier.",
-	-- Light distribution
 	-- Weather sliders
 	["wb-slider-size"] = "Area radius of the weather effect zone. Ctrl+Scroll to resize while painting.",
 	["wb-slider-length"] = "Elongates the weather pattern along its axis — makes rain streaks or gusts cover a longer area.",
@@ -16507,7 +16097,7 @@ local guideHints = {
 	["dfp-slider-grass"] = "Grass density planted by the active layer's strokes (0 = none). Grass-category materials default to 80.",
 }
 
--- G3: Shortcut discovery tip groups — shown near cursor after 3 interactions (guide mode only)
+-- Shortcut discovery tip groups: shown near the cursor after 3 interactions (guide mode only)
 local g3TipGroups = {
 	intensity = "Tip: Hold Space\xe2\x80\x94then scroll the mouse wheel to adjust intensity while sculpting. Faster than reaching for the slider!",
 	size = "Tip: Hold Ctrl and scroll to resize the brush in real time \xe2\x80\x94 no need to touch the slider.",
@@ -16518,7 +16108,7 @@ local g3TipGroups = {
 	undo = "Tip: Ctrl+Z undoes the last stroke \xe2\x80\x94 hold it down for rapid multi-step undo.",
 	redo = "Tip: Ctrl+Shift+Z redoes \xe2\x80\x94 hold it down for rapid multi-step redo.",
 }
--- Maps UI element IDs to their tip group key for G3 interaction counting
+-- Maps UI element IDs to their tip group key for interaction counting
 local g3ElemGroup = {
 	["slider-intensity"] = "intensity",
 	["btn-intensity-down"] = "intensity",
@@ -16544,7 +16134,7 @@ local function updateFloatingTip()
 	if not widgetState.floatingTipEl then
 		return
 	end
-	-- G3 toast takes priority over the hover hint while it is still active
+	-- The shortcut toast takes priority over the hover hint while it is active
 	local activeHint = widgetState.currentHint
 	local g3t = widgetState.g3Toast
 	if widgetState.guideMode and g3t.text then
@@ -16566,10 +16156,10 @@ local function updateFloatingTip()
 	if not mx or vsx <= 0 or vsy <= 0 then
 		return
 	end
-	-- Spring y is bottom-up (0=bottom of viewport); convert to RmlUi top-down (0=top)
+	-- Spring y is bottom-up (0 = bottom of viewport); RmlUi is top-down (0 = top)
 	local TIP_W, TIP_H = 168, 100 -- approximate tooltip pixel size for edge clamping
-	-- Show tooltip to the left of the cursor when in the right portion of the screen
-	-- (where the terraform brush panel lives, ~78vw+), so it never overlaps the panel.
+	-- Show the tooltip left of the cursor in the right part of the screen (where the
+	-- panel usually sits) so it does not overlap the panel.
 	local inRightRegion = mx > vsx * 0.62
 	local leftPx
 	if inRightRegion then
@@ -16586,8 +16176,8 @@ local function updateFloatingTip()
 	end
 	leftPx = math.max(0, leftPx)
 	topPx = math.max(0, topPx)
-	-- Moved by a transform, never by left/top: a left/top change re-lays out the whole panel
-	-- document every frame the cursor moves (measured 1.5 ms a frame); a transform only moves
+	-- Moved by a transform, never by left/top: a left/top change re-lays out the whole
+	-- panel document every frame the cursor moves (about 1.5 ms); a transform only moves
 	-- where the tip is drawn. Whole pixels, and no write while the cursor stays put.
 	local style = string.format("transform: translate(%dpx, %dpx);", math.floor(leftPx), math.floor(topPx))
 	if style ~= widgetState.lastTipStyle then
@@ -16601,10 +16191,8 @@ local function updateFloatingTip()
 	widgetState.floatingTipEl:SetClass("hidden", false)
 end
 
--- ═══════════════════════════════════════════════════════════════════════
--- KEYBIND BADGE SYSTEM (G5) + SETTINGS WINDOW SUPPORT
--- Maps button element IDs to keybind action names for dynamic badge text
--- ═══════════════════════════════════════════════════════════════════════
+-- ============ Keybind badges and settings window support ============
+-- Maps button element IDs to keybind action names for the badge text
 local BADGE_ACTION_MAP = {
 	-- Terrain mode buttons
 	["btn-level"] = "mode_level",
@@ -16635,7 +16223,7 @@ local BADGE_ACTION_MAP = {
 	["btn-units"] = "tool_units",
 }
 
--- Maps tool keybind action → button element ID for Click() dispatch
+-- Maps a tool keybind action to its button element ID for Click() dispatch
 local TOOL_BTN_MAP = {
 	tool_grass = "btn-grass",
 	tool_metal = "btn-metal",
@@ -16652,8 +16240,8 @@ local TOOL_BTN_MAP = {
 	tool_units = "btn-units",
 }
 
--- Keybind display order for the settings list (sorted)
--- Scroll controls first (most used), then regular keybinds
+-- Keybind display order for the settings list: scroll controls first (most used),
+-- then regular keybinds
 local SCROLL_DISPLAY_ORDER = {
 	"scroll_size",
 	"scroll_rotation",
@@ -16875,8 +16463,8 @@ populateKeybindList = function(doc)
 
 	listEl.inner_rml = table.concat(parts) or ""
 
-	-- Attach click listeners by traversing DOM children (GetElementById
-	-- does not find elements created via inner_rml in RmlUI).
+	-- Attach click listeners by walking DOM children: GetElementById does not find
+	-- elements created via inner_rml in RmlUi.
 	local childIdx = 0
 
 	-- Skip first separator (childIdx 0)
@@ -17047,8 +16635,8 @@ local function handleToolKey(keyCode)
 			local doc = widgetState.document
 			if doc then
 				local btn = getCachedEl(doc, btnId)
-				-- The tool buttons act on mousedown (data-event-mousedown="onTfSwitchX()"),
-				-- which element:Click() never sends: call that handler the way the press would.
+				-- The tool buttons act on mousedown (data-event-mousedown="onTfSwitchX()"), which
+				-- element:Click() never sends: call that handler the way the press would.
 				local call = btn and btn:GetAttribute("data-event-mousedown")
 				local name = call and call:match("^%s*([%w_]+)%(")
 				if name and type(initialModel[name]) == "function" then
@@ -17061,17 +16649,11 @@ local function handleToolKey(keyCode)
 	return false
 end
 
--- attachGuideMode moved to tf_guide.lua
+-- Wire the numbox text inputs next to every range slider: slider id="foo" has a
+-- sibling <input type="text" id="foo-numbox"> showing the raw value. Enter or blur
+-- writes the typed number to the slider (and fires its change handlers).
 
--- attachEnvironmentListeners moved to tf_environment.lua
-
--- Wire up the static numbox text inputs next to every range slider.
--- Each slider with id="foo" has a sibling <input type="text" id="foo-numbox">.
--- The numbox shows the raw slider value; typing a number and pressing Enter or
--- clicking away updates the slider (and triggers its existing change handlers).
-
--- The RETURN id is resolved once by widgetState.isReturnEvent (see there for
--- why it must be called and why it may not be reached as a global here).
+-- The RETURN id is resolved once by widgetState.isReturnEvent (see there).
 
 -- Wire a single slider+numbox pair by slider element and its numbox element.
 local function wireSliderNumbox(slider, numbox)
@@ -17102,8 +16684,8 @@ local function wireSliderNumbox(slider, numbox)
 		end
 		local valStr = tostring(val)
 		slider:SetAttribute("value", valStr)
-		-- Keep setAttrValueIfChanged's cache (keyed by element id) coherent so
-		-- the per-frame sync can still snap the slider to its canonical value.
+		-- Keep setAttrValueIfChanged's cache (keyed by element id) coherent so the per-frame
+		-- sync can still snap the slider to its canonical value.
 		widgetState.lastAttrValue[slider.id] = valStr
 		numbox:SetAttribute("value", valStr)
 	end
@@ -17131,15 +16713,15 @@ local function wireSliderNumbox(slider, numbox)
 	end, false)
 end
 
--- Find and wire all slider+numbox pairs by looking up numbox elements by class,
--- then deriving the slider ID by stripping the "-numbox" suffix.
+-- Find and wire all slider+numbox pairs: numboxes by class, the slider id by
+-- stripping the "-numbox" suffix.
 local function attachSliderInputBoxes(doc)
 	local numboxes = doc:GetElementsByClassName("tf-slider-numbox")
 	if not numboxes then
 		return
 	end
 
-	-- Iterate safely: try pairs (works for both tables and userdata with __pairs)
+	-- Iterate safely: pairs works for tables and for userdata with __pairs
 	local ok, err = pcall(function()
 		for _, numbox in pairs(numboxes) do
 			local numboxId = numbox.id or ""
@@ -17180,11 +16762,7 @@ local function wireExportRangeInput(inputEl, commitFn)
 	end, false)
 end
 
--- attachStartPosListeners moved to tf_startpos.lua
-
--- attachCloneToolListeners moved to tf_clone.lua
-
--- Transport listener registration extracted to avoid upvalue limit in attachEventListeners
+-- Transport listener registration, split out to stay under attachEventListeners' upvalue limit
 widgetState.regTransports = function(doc)
 	local TIDS = {
 		"slider-rotation",
@@ -17285,8 +16863,8 @@ widgetState.regTransports = function(doc)
 					wrap = (sid:find("rotation") ~= nil),
 					toggleEl = getCachedEl(doc, sid .. "-transport-toggle"),
 					groupEl = getCachedEl(doc, sid .. "-transport"),
-					-- min/max/step cached at creation (never change at runtime,
-					-- except slider-intensity max — refreshed at its write site).
+					-- min/max/step cached at creation (constant at runtime, except slider-intensity
+					-- max, refreshed at its write site).
 					rmin = tonumber(slEl:GetAttribute("min")) or 0,
 					rmax = tonumber(slEl:GetAttribute("max")) or 100,
 					rstep = tonumber(slEl:GetAttribute("step")) or 1,
@@ -17385,7 +16963,6 @@ local tfDecals = require("luaui/RmlWidgets/gui_terraform_brush/tf_decals")
 local tfDiffuse = require("luaui/RmlWidgets/gui_terraform_brush/tf_diffuse")
 local tfEnvironment = require("luaui/RmlWidgets/gui_terraform_brush/tf_environment")
 local tfFeatures = require("luaui/RmlWidgets/gui_terraform_brush/tf_features")
--- On widgetState, not a local: the main chunk sits near Lua 5.1's 200-local ceiling.
 widgetState.tfUnits = require("luaui/RmlWidgets/gui_terraform_brush/tf_units")
 widgetState.tfBlockout = require("luaui/RmlWidgets/gui_terraform_brush/tf_blockout")
 local tfGrass = require("luaui/RmlWidgets/gui_terraform_brush/tf_grass")
@@ -17423,8 +17000,8 @@ local ctx = {
 	g3TipGroups = g3TipGroups,
 }
 
--- Shared "warn chip" helper: shows the warn chip only when the section is
--- collapsed AND something is engaged. Called from each tool's M.sync.
+-- Shared "warn chip" helper: shows the chip only when the section is collapsed AND
+-- something is engaged. Called from each tool's M.sync.
 ctx.syncWarnChip = function(doc, chipId, sectionId, anyActive)
 	if not doc then
 		return
@@ -17446,8 +17023,8 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	local tb = WG.TerraformBrush
 	local s = tb and tb.getState() or {}
 	local dm = widgetState.dmHandle
-	-- Active-class state: write to data model (drives data-class-active in RML).
-	-- Toolbar sub-rows driven by data-if on {P}MeasureActive/{P}SymmetryActive.
+	-- Active-class state goes to the data model (data-class-active in the RML); the
+	-- toolbar sub-rows follow data-if on {P}MeasureActive / {P}SymmetryActive.
 	if dm then
 		local function setDm(f, v)
 			if dm[f] ~= v then
@@ -17468,17 +17045,15 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 		setDm(P .. "MeasureRulerMode", s.measureRulerMode)
 		setDm(P .. "MeasureStickyMode", s.measureStickyMode)
 	end
-	-- Warn chips on DISPLAY/INSTRUMENTS toggle headers: show when the section
-	-- is collapsed AND at least one mirrored control is engaged. Missing chips
-	-- (tools that never got a warn chip added in RML) silently no-op.
+	-- Warn chips on the DISPLAY/INSTRUMENTS headers: shown when the section is collapsed
+	-- AND a mirrored control is engaged. Missing chips are a no-op.
 	local dispActive = s.gridOverlay or s.heightColormap or _imgOv.active()
 	local instActive = s.gridSnap or s.angleSnap or s.measureActive or s.symmetryActive
 	ctx.syncWarnChip(doc, "warn-chip-" .. P .. "-overlays", "section-" .. P .. "-overlays", dispActive)
 	ctx.syncWarnChip(doc, "warn-chip-" .. P .. "-instruments", "section-" .. P .. "-instruments", instActive)
 
-	-- Per-prefix grid-snap-size + angle-step expand-row sync (st, cl, wb, dc,
-	-- lp; mb, gb, sp own their own labels via per-tool sync). Missing IDs
-	-- silently no-op so this is safe to run for all prefixes.
+	-- Per-prefix grid-snap-size + angle-step row sync (st, cl, wb, dc, lp; mb, gb, sp
+	-- own their labels in their own sync). Missing ids are a no-op.
 	local TB_ANGLE_PRESETS_SYNC = { 7.5, 15, 30, 45, 60, 90 }
 	local snapSize = tonumber(s.gridSnapSize) or 48
 	local snapSizeStr = tostring(snapSize)
@@ -17489,8 +17064,8 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	if sliSnap and uiState.draggingSlider ~= P .. "-grid-snap-size" then
 		setAttrValueIfChanged(sliSnap, P .. "-slider-grid-snap-size", snapSizeStr)
 	end
-	-- NB: numboxes stay unconditional — the per-frame write is what restores
-	-- the text after a rejected (non-numeric) manual edit.
+	-- Numboxes stay unconditional: the per-frame write restores the text after a
+	-- rejected (non-numeric) manual edit.
 	local nbSnap = getCachedEl(doc, P .. "-slider-grid-snap-size-numbox")
 	if nbSnap then
 		nbSnap:SetAttribute("value", snapSizeStr)
@@ -17537,10 +17112,9 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	end
 end
 
--- Phase 3 grayout helper: toggle the generic ".disabled" class on an element
--- by id. Disabled elements should be visible but non-interactive (CSS handles
--- opacity + pointer-events). Missing ids silently no-op. Use from per-tool
--- M.sync to gray controls that are irrelevant to the current sub-mode/shape.
+-- Grey-out helper: toggles the generic ".disabled" class on an element by id
+-- (visible but non-interactive; CSS handles opacity and pointer-events). Missing ids
+-- are a no-op. Per-tool M.sync uses it for controls the sub-mode/shape makes irrelevant.
 ctx.setDisabled = function(doc, id, on)
 	if not doc or not id then
 		return
@@ -17551,8 +17125,7 @@ ctx.setDisabled = function(doc, id, on)
 	end
 end
 
--- Bulk version: disable a list of ids to the same state. Useful for control
--- groups that don't share a wrapping row id (e.g. per-tool slider+buttons).
+-- Bulk version for control groups without a shared wrapping row id.
 ctx.setDisabledIds = function(doc, ids, on)
 	if not doc or not ids then
 		return
@@ -17565,18 +17138,12 @@ ctx.setDisabledIds = function(doc, ids, on)
 	end
 end
 
--- Register widget methods callable from inline RML onclick="widget:XXX()" handlers.
--- Kept separate from attachEventListeners() to avoid consuming its local budget.
--- All upvalues are chunk-level locals; no widget-local sharing needed here.
+-- Drag tracking for the data-bound sliders, kept out of attachEventListeners.
 local function attachDeclarativeHandlers(_ctx)
-	-- All tf*/tb*/env* handlers are now model-king closures in initialModel.
-	-- RML uses data-event-click/change/mousedown = "onXxx()" directly on the dm.
 
-	-- Register mousedown/mouseup drag-tracking for snap-size and angle-snap-step
-	-- sliders.  These use data-event-change (not AddEventListener) so
-	-- trackSliderDrag must be wired separately; without it draggingSlider is
-	-- never set and the per-frame sync overwrites the slider position every frame,
-	-- making the thumb fight the mouse and appear to lag during drag.
+	-- Snap-size, angle-snap-step and similar sliders use data-event-change, not
+	-- AddEventListener, so trackSliderDrag is wired here. Without it draggingSlider is
+	-- never set and the per-frame sync overwrites the thumb, which then fights the mouse.
 	local doc = widgetState.document
 	if not doc then
 		return
@@ -17604,9 +17171,8 @@ local function attachDeclarativeHandlers(_ctx)
 		{ "gb-slider-angle-snap-step", "gb-angle-snap-step" },
 		{ "mb-slider-angle-snap-step", "mb-angle-snap-step" },
 		{ "sf-slider-angle-snap-step", "sf-angle-snap-step" },
-		-- MODIFY/ERODE submode sliders: same data-event-change pattern, same
-		-- requirement. The drag ids must match the per-sync restamp guards
-		-- (uiState.draggingSlider ~= id) or the restamp fights the drag.
+		-- MODIFY/ERODE submode sliders: same pattern. The drag ids must match the per-sync
+		-- restamp guards (uiState.draggingSlider ~= id) or the restamp fights the drag.
 		{ "slider-ar-angle", "ar-angle" },
 		{ "slider-ar-falloff", "ar-falloff" },
 		{ "slider-ar-edgenoise", "ar-edgenoise" },
@@ -17633,10 +17199,8 @@ local function attachEventListeners()
 		return
 	end
 
-	-- Safety net: clear drag state if mouseup happens anywhere on document.
-	-- Also invalidate the dirty-write cache for the dragged slider so the
-	-- first post-drag sync writes through (the drag changed the element's
-	-- value behind setAttrValueIfChanged's back).
+	-- Safety net: clear drag state on a mouseup anywhere in the document, and drop the
+	-- dragged slider's dirty-write cache so the first post-drag sync writes through.
 	doc:AddEventListener("mouseup", function()
 		local dEl = uiState.draggingSliderEl
 		if dEl then
@@ -17646,10 +17210,10 @@ local function attachEventListeners()
 		uiState.draggingSlider = nil
 	end, false)
 
-	-- Register all w.xxx handler bridges (env + TB mirror controls etc.)
+	-- Drag tracking for the data-bound sliders (attachDeclarativeHandlers)
 	attachDeclarativeHandlers(ctx)
 
-	-- Shape buttons: still cached for disabled-state management (SetClass("disabled",...))
+	-- Shape buttons: cached for disabled-state management (SetClass("disabled", ...))
 	widgetState.shapeButtons.circle = getCachedEl(doc, "btn-circle")
 	widgetState.shapeButtons.square = getCachedEl(doc, "btn-square")
 	widgetState.shapeButtons.hexagon = getCachedEl(doc, "btn-hexagon")
@@ -17678,10 +17242,9 @@ local function attachEventListeners()
 			end
 			local currentUndoCount = state.undoCount or 0
 			local diff = val - currentUndoCount
-			-- Cap per-event undo/redo steps. Each step triggers a gadget msg +
-			-- heightmap rebuild, so unbounded loops here stall the frame on fast
-			-- slider drags. At 8 steps/event and multi-event drag semantics the
-			-- user still scrubs smoothly across arbitrary ranges.
+			-- Cap undo/redo steps per event: each step is a gadget message plus a heightmap
+			-- rebuild, so unbounded loops stall the frame on fast drags. Successive events
+			-- still scrub across any range.
 			local STEP_CAP = 8
 			if diff > STEP_CAP then
 				diff = STEP_CAP
@@ -17721,8 +17284,7 @@ local function attachEventListeners()
 			end
 			local currentUndoCount = state.undoCount or 0
 			local diff = val - currentUndoCount
-			-- See slider-history above: cap per-event step count to avoid
-			-- frame stalls on fast drags.
+			-- Cap steps per event, as for slider-history above.
 			local STEP_CAP = 8
 			if diff > STEP_CAP then
 				diff = STEP_CAP
@@ -17742,8 +17304,8 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	-- Capture window sliders. Both are pure settings (no live scene effect), so
-	-- they just push into WG.TerraformCapture and refresh the readout.
+	-- Capture window sliders: pure settings (no live scene effect), pushed into
+	-- WG.TerraformCapture with a readout refresh.
 	local sliderCapSize = getCachedEl(doc, "slider-capture-unitsize")
 	if sliderCapSize then
 		trackSliderDrag(sliderCapSize, "capture-unitsize")
@@ -17940,10 +17502,8 @@ local function attachEventListeners()
 	end
 	local importBtn = getCachedEl(doc, "btn-import")
 	local importDropdown = getCachedEl(doc, "import-dropdown")
-	-- Guard: AddEventListener must only be called once per document instance.
-	-- attachEventListeners can be called multiple times (widget re-enable); a second
-	-- registration means two click handlers fire per click, both see isOpen=false
-	-- (deferred DOM hasn't committed yet), both call rebuildImportList → doubled rows.
+	-- Wire once per document: attachEventListeners can run again (widget re-enable),
+	-- and two click handlers would both see isOpen=false (deferred DOM) and double the rows.
 	if importBtn and not importBtn:GetAttribute("data-import-wired") then
 		importBtn:SetAttribute("data-import-wired", "1")
 		local function closeImportDropdown()
@@ -17958,9 +17518,8 @@ local function attachEventListeners()
 			local entries = WG.TerraformBrush.listHeightmaps()
 			local count = #entries
 
-			-- Build entire list as HTML string and assign atomically via inner_rml.
-			-- Incremental AppendChild is unreliable when rebuild fires twice per click
-			-- (deferred DOM commits mean both clears see empty element, then both appends land).
+			-- Build the whole list as one string and assign it via inner_rml: incremental
+			-- AppendChild breaks when a rebuild fires twice per click (deferred DOM commits).
 			local function esc(s)
 				return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
 			end
@@ -17982,8 +17541,8 @@ local function attachEventListeners()
 				short = short:gsub("^heightmap_export_", "")
 				short = short:gsub("%.png$", "")
 				short = short:gsub("_%d%d%d%d%-%d%d%-%d%d_%d%d%-%d%d%-%d%d$", "")
-				-- Older generated-canvas saves embed the per-restart uniquifier
-				-- ("Editor Flat 12x12 s<time>") — hide it in the row label.
+				-- Generated-canvas saves may embed the per-restart uniquifier ("Editor Flat 12x12
+				-- s<time>"); hide it in the row label.
 				short = short:gsub("^(Editor Flat %d+x%d+) s%d+$", "%1")
 				parts[#parts + 1] = string.format(
 					'<div id="tf-hm-r%d" class="%s"><div class="tf-hm-row-line">'
@@ -18003,7 +17562,7 @@ local function attachEventListeners()
 				parts[#parts + 1] = '<div class="tf-hm-empty">No saved heightmaps yet for this map.</div>'
 			end
 
-			-- Single atomic write - guaranteed to replace all existing content.
+			-- Single atomic write: replaces all existing content.
 			importDropdown.inner_rml = table.concat(parts)
 
 			-- Wire click handlers to the freshly created row elements.
@@ -18071,11 +17630,11 @@ local function attachEventListeners()
 		grassBtn:AddEventListener("mouseout", function(event)
 			widgetState.grassHoverNoData = false
 		end, false)
-		-- click handled declaratively via onclick="widget:tfSwitchGrass()"
+		-- The click goes through the data model (data-event-mousedown="onTfSwitchGrass()").
 	end
 
-	-- Splat launch button: hover explains the contextual disable while the
-	-- tileset shader owns the splat texture (grass no-data precedent).
+	-- Splat launch button: the hover explains the disable while the tileset shader owns
+	-- the splat texture.
 	do
 		local splatBtn = getCachedEl(doc, "btn-splat")
 		if splatBtn then
@@ -18091,7 +17650,7 @@ local function attachEventListeners()
 
 	-- Decals launch button
 	local decalsBtn = getCachedEl(doc, "btn-decals")
-	-- (click handled declaratively via onclick="widget:tfSwitchDecals()")
+	-- The click goes through the data model (data-event-mousedown="onTfSwitchDecals()").
 
 	local quitBtn = getCachedEl(doc, "btn-quit")
 	if quitBtn then
@@ -18185,12 +17744,9 @@ local function attachEventListeners()
 		widgetState.wireTextInput(presetNameInput)
 	end
 
-	-- Save Project name input (FILE > Save Project): same SDL text-input capture
-	-- as the preset input, plus a change listener mirroring into widgetState so
-	-- the confirm handler has the value even if GetAttribute lags the keystroke.
-	-- The three search / name fields added later (Open Project filter, Light
-	-- Library filter and its preset name) shipped without the capture above and
-	-- could not be typed into at all.
+	-- Text fields that need the SDL text-input capture (wireTextInput), plus the Save
+	-- Project name input, whose change listener mirrors into widgetState so the confirm
+	-- handler has the value even if GetAttribute lags the keystroke.
 	widgetState.wireTextInput(getCachedEl(doc, "ll-search-input"))
 	widgetState.wireTextInput(getCachedEl(doc, "input-ll-preset-name"))
 	widgetState.wireTextInput(getCachedEl(doc, "tf-project-save-search"))
@@ -18200,16 +17756,16 @@ local function attachEventListeners()
 	widgetState.wireProjectEnter(getCachedEl(doc, "input-project-rename"), function()
 		widgetState.projectRenameApply()
 	end)
-	-- Enter in the Open Project search picks the first match, so a search can
-	-- be finished without reaching for the mouse.
+	-- Enter in the Open Project search picks the first match, so a search finishes
+	-- without the mouse.
 	widgetState.wireProjectEnter(getCachedEl(doc, "tf-project-search"), function()
 		widgetState.projectSelectRow((widgetState.projectOpenRowEls or {})[1])
 	end)
 
 	local projectNameInput = getCachedEl(doc, "input-project-name")
 	if projectNameInput then
-		-- Enter commits the save, as it does in every save dialog. The confirm
-		-- steps (overwrite, dropped units loadout) still apply.
+		-- Enter commits the save, as in every save dialog; the confirm steps (overwrite,
+		-- dropped units loadout) still apply.
 		widgetState.wireProjectEnter(projectNameInput, widgetState.projectSaveFromField)
 		projectNameInput:AddEventListener("change", function(_event)
 			widgetState.projectNameStr = widgetState.projectSaveFullName()
@@ -18218,8 +17774,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	-- New Map wizard MAP NAME input: same SDL text-input capture (without it the
-	-- game eats every keystroke and the field never types) + change mirror.
+	-- New Map wizard MAP NAME input: SDL text-input capture plus a change mirror.
 	local newMapNameInput = getCachedEl(doc, "newmap-name-input")
 	if newMapNameInput then
 		widgetState.wireTextInput(newMapNameInput)
@@ -18238,7 +17793,7 @@ local function attachEventListeners()
 		end
 	end
 
-	-- G7: build a compact one-line parameter summary string for a preset row
+	-- Compact one-line parameter summary for a preset row
 	local function buildPresetSummary(pdata, isBuiltin)
 		if not pdata then
 			return ""
@@ -18386,14 +17941,10 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	-- TILESET tool CONFIG & PRESETS dropdown (mirrors the raise-brush preset UI). A
-	-- tileset preset is just a named snapshot of the knob table, stored in the write-dir
-	-- widget via WG.TilesetTerrain.savePreset/loadPreset. Closures hang on widgetState so
-	-- the model handlers (onTilesetPreset*) can drive them.
-	-- Sun & Shadows PRESETS dropdown: same shape as the tileset one below. The
-	-- catalog is rebuilt on every open (user files change on disk); a row click
-	-- applies with the panel's scope; user rows carry an X that deletes the
-	-- file. In a do-block: this function is near the Lua 5.1 local/upvalue caps.
+	-- Sun & Shadows PRESETS dropdown, shaped like the tileset one below. The catalog is
+	-- rebuilt on every open (user files change on disk); a row click applies with the
+	-- panel's scope; user rows carry an X that deletes the file. In a do-block: this
+	-- function is near the Lua 5.1 local/upvalue caps.
 	do
 		local envPresetNameInput = getCachedEl(doc, "env-preset-name-input")
 		local envPresetDropdown = getCachedEl(doc, "env-preset-dropdown")
@@ -18471,6 +18022,9 @@ local function attachEventListeners()
 		end
 	end
 
+	-- TILESET CONFIG & PRESETS dropdown (like the brush preset UI): a tileset preset is
+	-- a named snapshot of the knob table (WG.TilesetTerrain.savePreset/loadPreset).
+	-- The closures hang on widgetState so the onTilesetPreset* handlers can drive them.
 	local tsPresetNameInput = getCachedEl(doc, "ts-preset-name-input")
 	local tsPresetDropdown = getCachedEl(doc, "ts-preset-dropdown")
 	local tsPresetToggleBtn = getCachedEl(doc, "btn-ts-preset-toggle")
@@ -18541,13 +18095,13 @@ local function attachEventListeners()
 	end
 	widgetState.rebuildTsPresetList = rebuildTsPresetList
 
-	-- Metal Brush controls (extracted to tf_metal.lua)
+	-- Metal Brush controls (tf_metal.lua)
 	tfMetal.attach(doc, ctx)
 
-	-- Grass Brush controls (extracted to tf_grass.lua)
+	-- Grass Brush controls (tf_grass.lua)
 	tfGrass.attach(doc, ctx)
 
-	-- Tool attach sections extracted to per-tool modules
+	-- Per-tool module attach
 	tfFeatures.attach(doc, ctx)
 	widgetState.tfUnits.attach(doc, ctx)
 	tfWeather.attach(doc, ctx)
@@ -18572,7 +18126,7 @@ local function attachEventListeners()
 
 	tfGuide.attach(doc, ctx)
 
-	-- ============ Keybind badges (G5) ============
+	-- ============ Keybind badges ============
 	initBadgeElements(doc)
 	updateAllKeybindBadges()
 
@@ -18619,9 +18173,8 @@ local function attachEventListeners()
 				end
 				local mx, my = GetMouseState()
 				local vsx, vsy = GetViewGeometry()
-				-- Clamp to the WINDOW, not the world view, like the shared helper: in
-				-- dual-screen mode the window is two monitors wide and a view-width
-				-- clamp snaps the panel off the free screen and refuses the way back.
+				-- Clamp to the WINDOW, not the world view, like the shared helper: in dual-screen
+				-- mode the window spans two monitors, and a view-width clamp would trap the panel.
 				local winX = Spring.GetWindowGeometry()
 				ds.active = true
 				ds.rootEl = rootEl
@@ -18651,16 +18204,14 @@ local function attachEventListeners()
 			end, false)
 		end
 
-		-- A project row being dragged between folders ends here too, for the
-		-- same reason window dragging does: this is the only report of the button
-		-- coming back up that is guaranteed to arrive, because RmlUi consumed the
-		-- press that started it.
+		-- A project row drag ends here too, as window dragging does: RmlUi consumed the
+		-- press that started it, so this is the only release report guaranteed to arrive.
 		doc:AddEventListener("mouseup", function(_event)
 			if widgetState.projectDrag then
 				widgetState.projectDragEnd(true)
 			elseif widgetState.projectDragClickEaten then
-				-- A drag that ended on a folder produces no row click to consume the
-				-- flag, so it expires here instead of lying in wait for the next one.
+				-- A drag that ended on a folder produces no row click to consume the flag, so it
+				-- expires here instead of eating the next click.
 				widgetState.projectDragClickEaten = nil
 			end
 		end, false)
@@ -18713,7 +18264,7 @@ local function attachEventListeners()
 		makeWindowDraggable("tf-imgov-handle", getCachedEl(doc, "tf-imgov-root"))
 	end
 
-	-- ===== Transport (auto-scroll) button listeners =====
+	-- ============ Transport (auto-scroll) button listeners ============
 	widgetState.regTransports(doc)
 
 	-- Map damage disabled: show notice banner and dim terrain deformation tools
@@ -18732,9 +18283,9 @@ local function attachEventListeners()
 	end
 end
 
--- Tools whose engine widget can raise the panel from cold. The remaining panel
--- modes (environment, lights, startpos, clone, decals) are driven by widgetState
--- flags the panel itself sets, so they cannot be live before the document exists.
+-- Tools whose engine widget can raise the panel from cold. The other panel modes
+-- (environment, lights, startpos, clone, decals) run on widgetState flags the panel
+-- itself sets, so they cannot be live before the document exists.
 local PANEL_TOOL_APIS = {
 	"TerraformBrush",
 	"FeaturePlacer",
@@ -18765,12 +18316,10 @@ local function editorWantsPanel()
 	return false
 end
 
--- Open the editor the way the terraformbrush action does: the brush in RAISE.
--- A fresh editor canvas is only ever started to edit it (requested by PtaQ
--- 2026-09-04), so a New Map opens it from its forcestart below and a project
--- load from cmd_map_project's finishLoad (WG.TerraformBrushUI.openEditor).
--- No-op while any tool already has the panel up, so it never yanks a user off
--- the tool they picked. widgetState field: this chunk is near the local cap.
+-- Open the editor the way the terraformbrush action does: the brush in RAISE. A fresh
+-- editor canvas is only started to edit it, so New Map opens it from its forcestart
+-- below and a project load from cmd_map_project's finishLoad. No-op while any tool
+-- already has the panel up.
 widgetState.openEditor = function()
 	if editorWantsPanel() then
 		return
@@ -18782,16 +18331,10 @@ widgetState.openEditor = function()
 	end
 end
 
--- Build the panel document on first use.
---
--- The RML is ~6200 elements and ~1800 data bindings, and RmlUi carries that in
--- its context update for as long as the document is loaded — Hide() only stops
--- it drawing. The Terraformer is an opt-in editor tool (enabled = false), so a
--- player who leaves the widget on must not pay for a panel they never open.
---
--- Built once and kept for the session rather than torn down on close: the tf_*
--- modules cache ~50 element handles into widgetState, and a closed document
--- would leave every one of them dangling.
+-- Build the panel document on first use. The RML is ~6200 elements and ~1800 data
+-- bindings that RmlUi updates for as long as the document is loaded (Hide() only
+-- stops drawing), and the editor is opt-in, so nobody pays for an unopened panel.
+-- Kept for the session once built: the tf_* modules cache element handles in widgetState.
 local function ensureDocument()
 	if widgetState.document then
 		return true
@@ -18803,15 +18346,15 @@ local function ensureDocument()
 
 	local document = rmlCtx:LoadDocument(RML_PATH, widget)
 	if not document then
-		-- Latch: Update calls this every frame while a tool is active, and a
-		-- failing load would otherwise echo once per frame forever.
+		-- Latch: Update calls this every frame while a tool is active, and a failing load
+		-- would echo every frame.
 		widgetState.documentLoadFailed = true
 		Spring.Echo("[Terraform Brush] Failed to load the panel document.")
 		return false
 	end
 	widgetState.document = document
-	-- RecvLuaMsg only toggles an existing document, so a document born while the
-	-- lobby overlay is up has to start hidden or it paints over the lobby.
+	-- RecvLuaMsg only toggles an existing document, so one born while the lobby overlay
+	-- is up must start hidden or it paints over the lobby.
 	if widgetState.lobbyHidden then
 		document:Hide()
 	else
@@ -18862,9 +18405,8 @@ function widget:Initialize()
 	widgetState.dmHandle = dm
 
 	-- Match-end state for Settings > General: editor canvases start with
-	-- deathmode=neverend (injected by buildBlankMapStartScript) and
-	-- single-allyteam sessions are engine sandbox (game_end removes itself) —
-	-- both mean the keep-alive toggle is already effectively ON.
+	-- deathmode=neverend (buildBlankMapStartScript) and single-allyteam sessions are
+	-- engine sandbox (game_end removes itself); both mean keep-alive is already ON.
 	do
 		local allyCount = #Spring.GetAllyTeamList() - 1 -- minus gaia
 		local mo = Spring.GetModOptions()
@@ -18875,29 +18417,24 @@ function widget:Initialize()
 		end
 	end
 
-	-- Placeholder fog is obscuring; push it off a few frames after (re)load so new maps
-	-- AND plain luaui reloads come up fog-free until the fog system is replaced.
-	-- Generated blank canvases only: on real maps the fog is the mapper's design and
-	-- killing it darkened every normal game this widget was enabled in.
+	-- Push the placeholder fog off a few frames after a (re)load. Generated blank
+	-- canvases only: on real maps the fog is the mapper's design.
 	if _isGeneratedBlankMap() then
 		widgetState._pendingFogOff = 15
 	end
 
-	-- Editor canvases have no commander to place (editor_sandbox=1 makes
-	-- game_initial_spawn skip it), so pregame has nothing to wait for, and
-	-- pregame clips every ground ray at the flat canvas height (see finishLoad in
-	-- cmd_map_project.lua): raise terrain before starting and it turns unclickable.
-	-- Start the game a few draw frames in. Project loads keep their own
-	-- forcestart at the end of the load pipeline; the countdown consumer skips
-	-- while one is running.
+	-- Editor canvases have no commander to place (editor_sandbox=1), so pregame has
+	-- nothing to wait for, and pregame clips ground rays at the flat canvas height (see
+	-- finishLoad in cmd_map_project.lua), so raised terrain would be unclickable. Start a
+	-- few draw frames in; project loads keep their own forcestart and the countdown
+	-- skips while one runs.
 	if _isGeneratedBlankMap() and Spring.GetGameFrame() <= 0 then
 		widgetState._pendingForceStart = 15
 	end
 
-	-- The document itself is deferred to ensureDocument(), called from Update the
-	-- first time a tool engages. Everything below is document-independent and has
-	-- to run at boot: prefs, the panel action, and the pending New Map preset all
-	-- apply to sessions where the panel is never opened.
+	-- The document is deferred to ensureDocument(), called from Update the first time a
+	-- tool engages. Everything below is document-independent and runs at boot: prefs,
+	-- the panel action and the pending New Map preset apply even if the panel never opens.
 
 	-- Load persisted UI prefs (disableTips, etc.)
 	if loadUiPrefs then
@@ -18913,10 +18450,9 @@ function widget:Initialize()
 			else
 				WG.TerraformBrush.setHeightmapExportRangeMode("auto")
 			end
-			-- The custom min/max are deliberately NOT restored from prefs: the
-			-- range is map-specific, and re-applying another map's numbers (or
-			-- the stale canvas seed) is exactly what clipped project exports.
-			-- The brush widget seeds fresh values from the real terrain.
+			-- The custom min/max are not restored from prefs: the range is map-specific, and
+			-- another map's numbers (or the canvas seed) would clip project exports. The brush
+			-- widget seeds fresh values from the terrain.
 		end
 	end
 
@@ -18953,14 +18489,11 @@ function widget:Initialize()
 		return true
 	end, nil, "t")
 
-	-- New Map environment preset: if the last Create wrote a pending preset, resolve
-	-- it from the catalog now and arm a short DrawScreen countdown to apply it once
-	-- the fresh map has fully settled. The file is DELETED on read: it used to be
-	-- blanked instead, and an existing-but-empty file read as "New Map with Default
-	-- environment" on ANY later map, stomping real maps' skyboxes with the first
-	-- library one every game. Consuming it is additionally gated on the map actually
-	-- being a generated blank canvas; elsewhere the stale file is just cleaned up
-	-- (cmd_map_project.lua deletes it for the same reason before opening a project).
+	-- New Map environment preset: if the last Create wrote a pending preset, resolve it
+	-- now and arm a short DrawScreen countdown to apply it once the map has settled. The
+	-- file is DELETED on read (an empty leftover would read as "Default environment" on
+	-- any later map), and only consumed on a generated blank canvas; elsewhere it is just
+	-- cleaned up (cmd_map_project.lua does the same before opening a project).
 	do
 		local rf = io.open("Terraform Brush/pending_newmap_env.lua", "r")
 		if rf then
@@ -18982,17 +18515,14 @@ function widget:Initialize()
 						end
 					end
 				else
-					-- New Map with Default selected. Default is not "leave the engine
-					-- lighting alone" - that is the flat 0.5 ambient/diffuse placeholder
-					-- that makes a fresh map look like the shader is broken. It is the
-					-- canonical sun, applied on the same countdown a mood would use.
+					-- New Map with Default: the canonical sun (not the engine's flat placeholder
+					-- lighting), on the same countdown a mood uses.
 					local envDef = widgetState.newMapDefaultEnv()
 					if envDef then
 						widgetState._pendingEnvApply = envDef
 						widgetState._pendingEnvCountdown = 15
 					end
-					-- blank maps often have no map-defined skybox, so apply the first
-					-- available library skybox
+					-- Blank maps often have no skybox of their own: apply the first library skybox.
 					local first = widgetState.envSkyboxThumbs and widgetState.envSkyboxThumbs[1]
 					if first and first.path then
 						widgetState._pendingSkyboxPath = first.path
@@ -19003,20 +18533,11 @@ function widget:Initialize()
 		end
 	end
 
-	-- Every OTHER way onto a blank canvas - the Chobby launcher, a map transform
-	-- restart, a /luaui reload, a project whose environment section carries no
-	-- sun - used to leave the ENGINE default lighting. rts/Map/MapInfo.cpp
-	-- defaults sunDir to (0,1,2), which normalizes to (0, 0.4472, 0.8944): a
-	-- flat light from due south that reads as "the sun reset itself", and which
-	-- the first FILE > Save then records into the project for good. Twelve of
-	-- the projects on this disk carry exactly that vector. Only New Map applied
-	-- the canonical sun, and only when it had written a pending preset, so the
-	-- launcher path never got one.
-	--
-	-- The engine default means "this map declares no sun", never a choice
-	-- somebody made, so a canvas still sitting on it gets the editor sun on the
-	-- same countdown a mood would use. A project load applies its own
-	-- environment later and wins.
+	-- Any other way onto a blank canvas (the launcher, a map transform restart, a /luaui
+	-- reload, a project without a sun) leaves the engine default sun: MapInfo's (0,1,2),
+	-- normalized (0, 0.4472, 0.8944), a flat light from due south that a save would then
+	-- record. That vector means "no sun declared", so a canvas still on it gets the editor
+	-- sun on the mood countdown; a project load applies its own environment later and wins.
 	if not widgetState._pendingEnvApply and _isGeneratedBlankMap() then
 		local sunX, sunY, sunZ = gl.GetSun("pos")
 		if
@@ -19033,10 +18554,9 @@ function widget:Initialize()
 		end
 	end
 
-	-- A reopened map project boots with its sky in the blank_map_skybox map option, but the engine never
-	-- shows it: the generated mapinfo leaves atmosphere.skyBox empty (and the engine would look for it
-	-- under maps/). Apply it at runtime like a library pick; a skybox in the project's environment
-	-- section still wins when that section loads.
+	-- A reopened project carries its sky in the blank_map_skybox option, but the engine
+	-- never shows it (the generated mapinfo leaves atmosphere.skyBox empty). Apply it at
+	-- runtime like a library pick; the project's environment section still wins.
 	if not widgetState._pendingSkyboxPath and _isGeneratedBlankMap() then
 		local mapOpts = Spring.GetMapOptions()
 		local sky = type(mapOpts) == "table" and mapOpts.blank_map_skybox or nil
@@ -19051,8 +18571,8 @@ function widget:Initialize()
 	-- Expose UI-side API for key capture and badge refresh
 	WG.TerraformBrushUI = {
 		---The UNITS tool, as its button switches to it: every other tool off first, so the
-		---brush does not step it aside. Another owner of the tool (the mission editor,
-		---units unification phase 2) calls this after WG.UnitPlacerTool.setOwner.
+		---brush does not step it aside. Another owner of the tool (the mission editor) calls
+		---this after WG.UnitPlacerTool.setOwner.
 		switchToUnits = function()
 			if initialModel.onTfSwitchUnits then
 				initialModel.onTfSwitchUnits(nil)
@@ -19076,22 +18596,19 @@ function widget:Initialize()
 		buildEnvConfigContent = function(opts)
 			return widgetState.buildEnvConfigContent(opts)
 		end,
-		-- Apply a full environment config table (schema = env_presets.lua / onEnvSave) to
-		-- the live engine. Mirrors onEnvLoad's apply body so the env editor and the New
-		-- Map preset path drive the engine identically. Every field is optional.
+		-- Apply a full environment config table (see widgetState.applyEnvConfig).
 		---@param d table<string, any>? An environment snapshot as produced by
 		---`buildEnvConfigContent`: sun, fog and atmosphere values keyed by name.
 		applyEnvConfig = function(d)
 			return widgetState.applyEnvConfig(d)
 		end,
-		-- Runtime skybox pick (library path, nil if untouched); the manifest
-		-- records its basename so reopening the project boots with the same sky.
+		-- Runtime skybox pick (library path, nil if untouched); the manifest records its
+		-- basename so the project reopens with the same sky.
 		---@return string? skyboxPath
 		getCurrentSkybox = function()
 			return widgetState.envCurrentSkybox
 		end,
-		-- Start script for opening a map project (blank map at the manifest's
-		-- size with project-local DNTS assets); called by WG.MapProject.open.
+		-- Start script for opening a map project (see widgetState.buildProjectStartScript).
 		---@param manifest MapProjectManifest
 		---@param slug string Project folder name under `MapProjects/`.
 		---@return string? scriptText `nil` on failure.
@@ -19115,9 +18632,8 @@ function widget:Initialize()
 		handleToolKey = function(keyCode)
 			return handleToolKey(keyCode)
 		end,
-		-- Called by cmd_terraform_brush when the user clicks a height in sampling mode
-		---Records a height picked by the user in sampling mode, so the state sync loop
-		---reflects it.
+		---Records a height picked by the user in sampling mode (called by cmd_terraform_brush),
+		---so the state sync loop reflects it.
 		---@param target TerraformHeightSamplingTarget Which height was sampled; only the brush's own caps are recorded.
 		---@param value number? Defaults to `0`.
 		onHeightSampled = function(target, value)
@@ -19128,40 +18644,38 @@ function widget:Initialize()
 				capMinValue = value or 0
 			end
 		end,
-		-- Programmatically expand the HEIGHT CAP section (e.g. triggered by Alt+Shift scroll)
+		-- Expand the HEIGHT CAP section from code (e.g. on Alt+Shift scroll)
 		expandHeightCap = function()
 			local ctrl = widgetState.heightCapSectionCtrl
 			if ctrl and ctrl.expand then
 				ctrl.expand()
 			end
 		end,
-		-- True while the editor is actually in use (a tool or passthrough has
-		-- the panel up). Gates tool-switch hotkeys in cmd_terraform_brush so an
-		-- enabled-but-dormant Terraformer never swallows engine keybinds.
+		-- True while the editor is in use (a tool or passthrough has the panel up). Gates the
+		-- tool-switch hotkeys in cmd_terraform_brush so a dormant Terraformer never swallows
+		-- engine keybinds.
 		isEngaged = function()
 			return widgetState.panelEngaged == true
 		end,
-		-- the pause button on the panel: tools off, the game has every key back
+		-- The panel's pause button: tools off, the game has every key back
 		isPaused = function()
 			return widgetState.passthroughMode == true
 		end,
-		-- FOCUS MODE: the game interface is hidden on purpose and the editor keeps
-		-- drawing through it. cmd_terraform_brush and the capture widget read this
-		-- to tell it apart from a plain F5 (see setFocusMode).
+		-- FOCUS MODE: the game interface is hidden on purpose and the editor keeps drawing.
+		-- cmd_terraform_brush and the capture widget read this to tell it from a plain F5
+		-- (see setFocusMode).
 		---@return boolean focusMode
 		isFocusMode = function()
 			return widgetState.focusMode == true
 		end,
-		-- Bring the editor up (brush in RAISE) unless a tool already has the
-		-- panel; cmd_map_project calls this when a project load completes.
+		-- Bring the editor up (brush in RAISE) unless a tool already has the panel;
+		-- cmd_map_project calls this when a project load completes.
 		openEditor = function()
 			widgetState.openEditor()
 		end,
-		-- The editor surface the pointer is inside, for tools that park their
-		-- brush rather than work through the UI: the panel, or whichever project
-		-- dialog is open and under the cursor. Falls back to the panel's own
-		-- bounds, so a caller can use this wherever it used getPanelBounds and
-		-- keep the same behaviour everywhere else.
+		-- The editor surface under the pointer, for tools that park their brush behind the
+		-- UI: the panel, or an open project dialog or floating window under the cursor.
+		-- Falls back to the panel's bounds, so it can replace getPanelBounds anywhere.
 		---@return TerraformBrushPanelBounds? bounds
 		getHoverBounds = function()
 			local dialog = widgetState.projectDialogHoverBounds()
@@ -19170,13 +18684,13 @@ function widget:Initialize()
 			end
 			return widgetState.overlayHoverBounds() or widgetState.panelBounds()
 		end,
-		-- Returns the panel pixel bounds in Spring screen coords (Y=0 at bottom).
-		-- Returns nil when the panel is hidden or not yet available.
+		-- The panel's pixel bounds in Spring screen coords (Y=0 at bottom), or nil when the
+		-- panel is hidden or not yet available.
 		---@return TerraformBrushPanelBounds? bounds
 		getPanelBounds = function()
 			return widgetState.panelBounds()
 		end,
-		-- Returns bounds of the light library floating window, or nil if not visible.
+		-- Bounds of the light library floating window, or nil if not visible.
 		---@return TerraformBrushPanelBounds? bounds
 		getLightLibraryBounds = function()
 			if not widgetState.lightLibraryOpen then
@@ -19207,11 +18721,9 @@ end
 local lastUpdateClock = Spring.GetTimer()
 
 function widget:DrawScreen()
-	-- NOTE: DDS skybox preloading removed. Spring.SetSkyBoxTexture() loads the
-	-- DDS file directly via the engine; eagerly binding all cubemaps into GL
-	-- exhausted the TexMemPool (512 MB) when many large skyboxes were present,
-	-- causing a std::bad_alloc crash. Thumbnails use the separate jpg/png
-	-- preview images so no upfront GL texture load is needed.
+	-- Skyboxes are not preloaded into GL: SetSkyBoxTexture loads the DDS itself, and
+	-- binding every cubemap exhausted the TexMemPool (std::bad_alloc). Thumbnails use
+	-- separate jpg/png previews.
 
 	-- Draw sun position indicator on screen when environment mode is active
 	if widgetState.envActive then
@@ -19281,14 +18793,11 @@ function widget:DrawScreen()
 		end
 	end
 
-	-- Sample terrain diffuse color under cursor via $map_gbuffer_difftex for splat preview tinting.
-	-- gl.ReadPixels below blocks until the GPU drains, so an ungated sample costs several
-	-- ms every frame — including with the panel hidden, where nothing reads the result.
-	-- Gate on the same condition the swatch draw uses (see DrawScreenPost) and only pay
-	-- the stall every Nth frame; the blend is dt-based, so a stride just coarsens its steps.
-	-- panelEngaged, not dm.activeTool alone: Update returns before writing activeTool
-	-- when the panel is down, so that field holds the last tool used and would keep
-	-- the sample alive after the splat tool closed.
+	-- Sample the terrain diffuse colour under the cursor ($map_gbuffer_difftex) to tint
+	-- the splat preview. gl.ReadPixels blocks until the GPU drains (several ms), so gate
+	-- on the swatch draw's condition (see DrawScreenPost) and stride it; the blend is
+	-- dt-based. panelEngaged, not dm.activeTool alone: activeTool goes stale while the
+	-- panel is down.
 	local sampleDm = widgetState.dmHandle
 	local sampleSec = widgetState.spChannelSectionEl
 	local wantTerrainSample = widgetState.panelEngaged
@@ -19325,7 +18834,7 @@ function widget:DrawScreen()
 							gl.TexRect(-1, -1, 1, 1, u, v, u, v)
 							gl.Texture(false)
 						end)
-						-- Pass 2: read back (separate call -- render+read in same callback is unreliable)
+						-- Pass 2: read back (a separate call: render + read in one callback is unreliable)
 						local sr, sg, sb
 						gl.RenderToTexture(fboTex, function()
 							sr, sg, sb = gl.ReadPixels(0, 0, 1, 1)
@@ -19354,9 +18863,8 @@ function widget:DrawScreen()
 	end
 end
 
--- Draw GL-rendered cubemap face previews over skybox thumbnail tiles that have no preview image.
--- Called from DrawScreenPost when the skybox library window is open.
--- Uses a simple GLSL shader to sample the -Z (front) face of the cubemap DDS.
+-- GL cubemap face previews (the -Z face, via a small GLSL shader) over skybox tiles
+-- that have no preview image. Called from DrawScreenPost while the library is open.
 local function drawSkyboxThumbnailPreviews()
 	if widgetState.lobbyHidden then
 		return
@@ -19364,12 +18872,8 @@ local function drawSkyboxThumbnailPreviews()
 	if not widgetState.skyboxLibraryOpen then
 		return
 	end
-	-- PANEL DOWN = NOTHING TO OVERLAY. dm.activeTool is only refreshed while the
-	-- panel is visible, so after closing the Terraformer it still reads as the
-	-- last tool, and these elements still report their last layout box - the
-	-- thumbs then hang in the world over the map (reported 2026-08-22). Both
-	-- checks are cheap: panelEngaged is what the sync itself uses, and the root
-	-- element carries the class the same sync sets.
+	-- Panel down = nothing to overlay. dm.activeTool and the element boxes keep their
+	-- last values after the panel closes, so without this the thumbs hang over the map.
 	if not widgetState.panelEngaged then
 		return
 	end
@@ -19422,8 +18926,8 @@ local function drawSkyboxThumbnailPreviews()
 
 	local vsx, vsy = Spring.GetViewGeometry()
 
-	-- Scissor to the grid element to clip scrolled-out thumbnails and prevent overdraw
-	-- outside the library window. Falls back to no scissor if element is unavailable.
+	-- Scissor to the grid element to clip scrolled-out thumbnails and overdraw outside the
+	-- library window; no scissor if the element is unavailable.
 	local gridEl = widgetState.envSkyboxGridEl
 	local useScissor = false
 	if gridEl then
@@ -19470,12 +18974,10 @@ local function drawSkyboxThumbnailPreviews()
 	gl.Blending(false)
 end
 
--- GL albedo thumbnails for the SURFACE palette tiles (called from
--- DrawScreenPost). Same approach as the splat channel previews below: the RML
--- tile holds an empty .tf-surf-thumb rect and we overdraw it with gl.TexRect.
--- The 4K albedos are already resident (the terrain shader binds these same
--- textures), while an RmlUi <img> would decode the full uncompressed bitmap
--- into the TexMemPool — the skybox-library bad_alloc lesson.
+-- GL albedo thumbnails for the SURFACE palette tiles (from DrawScreenPost), like the
+-- splat channel previews: the RML tile is an empty .tf-surf-thumb rect overdrawn with
+-- gl.TexRect. The 4K albedos are already resident (the terrain shader binds them),
+-- while an RmlUi <img> would decode the full bitmap into the TexMemPool.
 local function drawSurfPaletteThumbs()
 	local dm = widgetState.dmHandle
 	if not dm or dm.activeTool ~= "surf" then
@@ -19484,12 +18986,7 @@ local function drawSurfPaletteThumbs()
 	if widgetState.lobbyHidden then
 		return
 	end
-	-- PANEL DOWN = NOTHING TO OVERLAY. dm.activeTool is only refreshed while the
-	-- panel is visible, so after closing the Terraformer it still reads as the
-	-- last tool, and these elements still report their last layout box - the
-	-- thumbs then hang in the world over the map (reported 2026-08-22). Both
-	-- checks are cheap: panelEngaged is what the sync itself uses, and the root
-	-- element carries the class the same sync sets.
+	-- Panel down = nothing to overlay (see drawSkyboxThumbnailPreviews).
 	if not widgetState.panelEngaged then
 		return
 	end
@@ -19497,11 +18994,9 @@ local function drawSurfPaletteThumbs()
 	if rootEl and rootEl:IsClassSet("hidden") then
 		return
 	end
-	-- Draw call-ins do NOT auto-hide with RmlUi layout, and an element that is
-	-- not laid out can still report a stale non-zero box (the splat-preview
-	-- lesson), so every container that can hide these thumbs must be tested
-	-- explicitly: the whole palette frame is data-if'd away in HARD, and the
-	-- section itself collapses.
+	-- Draw call-ins do not follow RmlUi layout, and an element that is not laid out can
+	-- report a stale non-zero box, so test every container that can hide these thumbs:
+	-- the palette frame is data-if'd away in HARD, and the section collapses.
 	if dm.surfMode ~= "soft" then
 		return
 	end
@@ -19520,25 +19015,22 @@ local function drawSurfPaletteThumbs()
 	for i = 1, #els do
 		local div = els[i].el
 		local tex = els[i].tex
-		-- Entries tag their owning section (sculpt grid, picker); a collapsed or
-		-- closed owner must not paint its thumbs over whatever took its place.
+		-- Entries tag their owning section (sculpt grid, picker); a collapsed or closed owner
+		-- must not paint its thumbs over whatever took its place.
 		local owner = els[i].sec
 		if owner and owner:IsClassSet("hidden") then
 			div = nil
 		end
 		if div and tex then
-			-- collapsed sections / hidden panels report zero size, which is the
-			-- same guard the splat previews rely on
+			-- Collapsed sections / hidden panels report zero size (the splat previews' guard too)
 			local w = div.offset_width
 			local h = div.offset_height
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
 				if not widgetState.underOverlay(x, y, w, h, "tf-env-tileset-root") and gl.Texture(0, tex) then
-					-- centered crop: a full 4K tile at 52dp reads as noise, so a
-					-- quarter-window shows the material's actual character.
-					-- Entries may widen it (the picker's hover preview is big
-					-- enough to want the whole tile).
+					-- Centred crop: a full 4K tile at 52dp reads as noise, a quarter window shows the
+					-- material. Entries may widen it (the picker's big hover preview wants the whole tile).
 					local u0 = els[i].u0 or 0.25
 					local u1 = els[i].u1 or 0.75
 					gl.TexRect(x, vsy - y - h, x + w, vsy - y, u0, u0, u1, u1)
@@ -19555,17 +19047,15 @@ local function drawSurfPaletteThumbs()
 end
 
 -- GL albedo thumbnails for the EXTRA LAYER material tiles (tf_tileset.lua's
--- rebuildS4Palette). Same mechanism as drawSurfPaletteThumbs above, but gated
--- on the TILESET floating window, not the active tool — the window is
--- tool-independent by design. On widgetState, not a local: the main chunk sits
--- near Lua 5.1's 200-local ceiling.
+-- rebuildS4Palette): like drawSurfPaletteThumbs, but gated on the TILESET window,
+-- which is tool-independent.
 widgetState.drawTs4PaletteThumbs = function()
 	local dm = widgetState.dmHandle
 	if not dm or not dm.envTilesetVisible then
 		return
 	end
-	-- OFF mode grays the row out via the disabled class; GL overdraw ignores
-	-- CSS opacity, so it has to skip explicitly.
+	-- OFF greys the row out via the disabled class; GL overdraw ignores CSS opacity, so
+	-- skip explicitly.
 	if dm.tsSlot4Mode == "off" then
 		return
 	end
@@ -19592,16 +19082,14 @@ widgetState.drawTs4PaletteThumbs = function()
 		local div = els[i].el
 		local tex = els[i].tex
 		if div and tex then
-			-- collapsed sections / hidden windows report zero size (the same
-			-- guard the surf palette relies on)
+			-- Collapsed sections / hidden windows report zero size (as for the surf palette)
 			local w = div.offset_width
 			local h = div.offset_height
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
 				if not widgetState.underOverlay(x, y, w, h, "tf-env-tileset-root") and gl.Texture(0, tex) then
-					-- centered quarter-window crop, like the surf tiles: a full
-					-- 4K tile at 52dp reads as noise
+					-- Centred quarter crop, like the surf tiles: a full 4K tile at 52dp reads as noise
 					gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
 					gl.Texture(0, false)
 				end
@@ -19615,10 +19103,9 @@ widgetState.drawTs4PaletteThumbs = function()
 	gl.Color(1, 1, 1, 1)
 end
 
--- GL thumbnails for the BIOME LIBRARY tiles (tf_tileset.lua's rebuildBiomePalette):
--- the shipped biome_<key>.png or a manifest `thumb` drawn whole, or the base
--- layer's albedo as a centered crop when a biome has neither. Same mechanism and
--- gates as drawTs4PaletteThumbs above.
+-- GL thumbnails for the BIOME LIBRARY tiles (tf_tileset.lua's rebuildBiomePalette): the
+-- shipped biome_<key>.png or a manifest `thumb` drawn whole, else the base layer's
+-- albedo as a centred crop. Same gates as drawTs4PaletteThumbs.
 widgetState.drawTsBiomeThumbs = function()
 	local dm = widgetState.dmHandle
 	if not dm or not dm.envTilesetVisible then
@@ -19654,7 +19141,7 @@ widgetState.drawTsBiomeThumbs = function()
 				local y = div.absolute_top
 				if not widgetState.underOverlay(x, y, w, h, "tf-env-tileset-root") and gl.Texture(0, tex) then
 					if els[i].crop then
-						-- a 4K albedo at 60dp reads as noise: centered quarter crop
+						-- A 4K albedo at 60dp reads as noise: centred quarter crop
 						gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
 					else
 						gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0, 1, 1, 0)
@@ -19671,17 +19158,13 @@ widgetState.drawTsBiomeThumbs = function()
 	gl.Color(1, 1, 1, 1)
 end
 
--- Deferred applies that need a draw call-in (gl.Texture) or a frame count after
--- a reload. Drained from DrawScreenPost, NOT DrawScreen: the widget handler
--- skips DrawScreen while the interface is hidden (barwidgets.lua, IsGUIHidden)
--- and FOCUS MODE hides it on purpose, which used to leave a skybox pick parked
--- until the HUD came back and would stall a New Map reload's env preset,
--- fog-off and forcestart the same way. DrawScreenPost runs right after
--- DrawScreen in the same frame, so nothing else moves.
+-- Deferred applies that need a draw call-in (gl.Texture) or a frame count after a
+-- reload. Drained from DrawScreenPost, not DrawScreen: the widget handler skips
+-- DrawScreen while the interface is hidden (IsGUIHidden), which focus mode does.
+-- DrawScreenPost runs right after DrawScreen in the same frame.
 widgetState.drainDeferredApplies = function()
-	-- New Map environment preset: apply once, a few frames after a fresh-map reload
-	-- (gives the water renderer time to come up). Frame-counted rather than gated on
-	-- a game frame so it works while the editor is paused.
+	-- New Map environment preset: apply once, a few frames after a fresh-map reload (the
+	-- water renderer needs time). Counted in draw frames so it works while paused.
 	if widgetState._pendingEnvApply then
 		widgetState._pendingEnvCountdown = (widgetState._pendingEnvCountdown or 0) - 1
 		if widgetState._pendingEnvCountdown <= 0 then
@@ -19692,8 +19175,8 @@ widgetState.drainDeferredApplies = function()
 		end
 	end
 
-	-- Placeholder-fog suppression: disable fog a few frames after (re)load. Separate
-	-- from the preset apply above so it also fires on a plain luaui reload (no preset).
+	-- Placeholder-fog suppression a few frames after a (re)load, separate from the preset
+	-- so it also fires on a plain luaui reload.
 	if widgetState._pendingFogOff then
 		widgetState._pendingFogOff = widgetState._pendingFogOff - 1
 		if widgetState._pendingFogOff <= 0 then
@@ -19702,8 +19185,8 @@ widgetState.drainDeferredApplies = function()
 		end
 	end
 
-	-- Leave pregame on editor canvases (armed in Initialize). A project load
-	-- started from its pointer file owns the forcestart itself.
+	-- Leave pregame on editor canvases (armed in Initialize). A project load started from
+	-- its pointer file owns the forcestart itself.
 	if widgetState._pendingForceStart then
 		widgetState._pendingForceStart = widgetState._pendingForceStart - 1
 		if widgetState._pendingForceStart <= 0 then
@@ -19721,9 +19204,8 @@ widgetState.drainDeferredApplies = function()
 		end
 	end
 
-	-- Deferred skybox apply: RmlUI click fires from Update, so gl.Texture must be
-	-- done from a draw call-in. Register the DDS in the GL named-texture cache so
-	-- Spring.SetSkyBoxTexture (which calls CNamedTextures::GetInfo) can find it.
+	-- Deferred skybox apply: register the DDS in the named-texture cache from a draw
+	-- call-in so SetSkyBoxTexture (CNamedTextures::GetInfo) can find it.
 	if widgetState._pendingSkyboxPath then
 		local rawTex = widgetState._pendingSkyboxPath
 		local tex = rawTex
@@ -19779,11 +19261,10 @@ function widget:DrawScreenPost()
 	-- BIOME LIBRARY tile thumbnails (same gates).
 	widgetState.drawTsBiomeThumbs()
 
-	-- Render splat detail texture previews into the channel div elements.
-	-- Only render when splat tool is active; avoids gl.* overlay leaking over other tools/panels.
+	-- Splat detail texture previews in the channel divs, only while the splat tool is
+	-- active so the overlay does not leak over other tools.
 	local dm = widgetState.dmHandle
-	-- panelEngaged first: activeTool goes stale when the panel closes (Update returns
-	-- before writing it), so the tool check alone keeps this drawing into a dead panel.
+	-- panelEngaged first: activeTool goes stale when the panel closes.
 	if not widgetState.panelEngaged then
 		return
 	end
@@ -19799,11 +19280,8 @@ function widget:DrawScreenPost()
 		return
 	end
 
-	-- The Channel section can be collapsed independently of the tool being
-	-- active. Draw* call-ins don't auto-hide with the panel (the engine only
-	-- hides RmlUi layout, not our gl.* overlay), so when the section carries
-	-- the "hidden" class we must skip rendering or the preview PNGs leak on
-	-- screen after the section/menu is closed.
+	-- The Channel section can collapse while the tool stays active, and Draw call-ins do
+	-- not follow RmlUi layout, so skip while it carries "hidden" or the previews leak.
 	local secEl = widgetState.spChannelSectionEl
 	if secEl and secEl:IsClassSet("hidden") then
 		return
@@ -19815,9 +19293,9 @@ function widget:DrawScreenPost()
 		return
 	end
 
-	-- Feature 3: when the Tileset Terrain shader is active, the 4 splat channels
-	-- blend its 4 layers, so the swatches should preview those layer textures
-	-- instead of the map's DNTS normals. Re-run discovery whenever it flips.
+	-- With the Tileset Terrain shader active the 4 splat channels blend its 4 layers, so
+	-- the swatches preview those textures instead of the map's DNTS normals. Re-run
+	-- discovery whenever it flips.
 	local tilesetActive = (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive()) and true
 		or false
 	if tilesetActive ~= widgetState.spPreviewTilesetActive then
@@ -19825,9 +19303,8 @@ function widget:DrawScreenPost()
 		widgetState.spPreviewVerified = false
 		widgetState.spPreviewRetries = 0
 	end
-	-- A biome swap keeps the shader active (no flip above) while replacing the
-	-- four layer textures, which left the swatches stuck on the previous biome.
-	-- Re-arm discovery whenever the channel set itself changes.
+	-- A biome swap keeps the shader active while replacing the four layer textures:
+	-- re-arm discovery whenever the channel set changes.
 	if tilesetActive and WG.TilesetTerrain.getChannelTextures then
 		local chTex = WG.TilesetTerrain.getChannelTextures()
 		local sig = type(chTex) == "table"
@@ -19933,9 +19410,8 @@ function widget:DrawScreenPost()
 			end
 		end
 
-		-- Tileset Terrain shader owns the channels: override any map DNTS discovery
-		-- with the tileset's per-channel layer diffuse (rendered as lit diffuse,
-		-- isDNTS = false). Falls back to whatever was found if a texture is missing.
+		-- The Tileset Terrain shader owns the channels: its per-channel layer diffuse
+		-- (isDNTS = false) overrides map DNTS discovery, falling back if a texture is missing.
 		local tilesetPending = false
 		if tilesetActive and WG.TilesetTerrain.getChannelTextures then
 			local chTex = WG.TilesetTerrain.getChannelTextures()
@@ -19948,9 +19424,8 @@ function widget:DrawScreenPost()
 						if info and info.xsize and info.xsize > 0 then
 							tf[i] = p
 						else
-							-- Layer texture declared but not loadable yet: don't let a
-							-- partial set (or the map-DNTS fallback) win the race and
-							-- get cached as verified — keep retrying until the cap.
+							-- Layer texture declared but not loadable yet: do not let a partial set (or the
+							-- map-DNTS fallback) get cached as verified; keep retrying until the cap.
 							tilesetPending = true
 						end
 					end
@@ -20189,7 +19664,7 @@ function widget:DrawScreenPost()
 
 	gl.Color(1, 1, 1, 1)
 end
--- Shared: draw black overlay on sky pixels (depth == 1.0) for skybox fade
+-- Black overlay on sky pixels (depth == 1.0) for the skybox fade
 local function drawSkyFadeOverlay()
 	if not skyFade.active then
 		return
@@ -20245,10 +19720,9 @@ function widget:DrawWorldReflection()
 	drawSkyFadeOverlay()
 end
 
--- Sliders whose useful range is the map's height band. All ship with a
--- hardcoded ±500 in the RML, which walls off the height cap (and altitude
--- filters) on tall maps: CM03 tops out well past 500 and even TYPED values
--- clamp to the slider attributes (wireSliderNumbox reads min/max from them).
+-- Sliders whose useful range is the map's height band. The RML ships them at +-500,
+-- which walls off the height cap and altitude filters on tall maps (typed values
+-- clamp too: wireSliderNumbox reads min/max from the attributes).
 local HEIGHT_BAND_SLIDERS = {
 	"slider-cap-max",
 	"slider-cap-min",
@@ -20265,12 +19739,10 @@ local HEIGHT_BAND_SLIDERS = {
 	"surf-slider-inf-alt-max",
 }
 
--- Widen those sliders to a padded envelope of the map's real height range,
--- never narrower than the legacy ±500. Uses the union of init and current
--- ground extremes, so it covers real maps at boot and grows as project loads
--- or imports replace the canvas terrain (current extremes only ever widen —
--- fine here, an envelope is exactly what a bound wants). Cheap early-out:
--- only touches elements when the rounded band actually changes.
+-- Widen those sliders to a padded envelope of the map's height range, never narrower
+-- than +-500. Uses the union of init and current extremes, so it covers real maps at
+-- boot and grows as loads or imports replace the terrain. Touches elements only when
+-- the rounded band changes.
 local function updateHeightBandSliderBounds(doc)
 	local initMin, initMax, currMin, currMax = Spring.GetGroundExtremes()
 	local bandMin = math.min(initMin or 0, currMin or 0)
@@ -20292,22 +19764,17 @@ local function updateHeightBandSliderBounds(doc)
 end
 
 function widget:Update()
-	-- Every legitimate user of updatingFromCode sets and clears it within one call; an error in between
-	-- used to leave it true for good, and every slider handler returns early while it is set.
+	-- Every user of updatingFromCode sets and clears it within one call; reset it here so
+	-- an error in between cannot leave every slider handler returning early for good.
 	uiState.updatingFromCode = false
 	local ok, err = pcall(function()
 		-- A confirmed save/upload outlives either floating dialog and focus mode.
 		if widgetState.projectSaveUi then
 			widgetState.projectSaveUi.sync()
 		end
-		-- Lazy panel. While no tool is engaged there is no document, and nothing below
-		-- this point has anything to drive — the pumps and mirrors all feed panel state.
-		-- First engage builds the document (see ensureDocument) and the rest of the
-		-- session proceeds normally.
-		--
-		-- The skybox fade is the one exception: a New Map boots straight into one (the
-		-- default-skybox apply in Initialize, with envFadeEnabled on) and its driver is
-		-- below, so bailing out here would strand the screen mid-fade on black.
+		-- Lazy panel: with no tool engaged there is no document and nothing below has
+		-- anything to drive. The first engage builds it (ensureDocument). The skybox fade is
+		-- the exception: a New Map boots into one, and its driver is below.
 		if not widgetState.document and not skyFade.active then
 			if not editorWantsPanel() then
 				return
@@ -20317,8 +19784,7 @@ function widget:Update()
 			end
 		end
 
-		-- Performance / clay prefs reach the brush widget once it exists (it may
-		-- load after this panel).
+		-- Performance / clay prefs reach the brush widget once it exists (it may load later).
 		if not widgetState.perfPrefsPushed and WG.TerraformBrush and WG.TerraformBrush.setPerfMode then
 			widgetState.pushPerfPrefs()
 		end
@@ -20326,8 +19792,8 @@ function widget:Update()
 			widgetState.pushPerfPrefs()
 		end
 
-		-- QUIT GUARD: the save started from the popup finished; carry on, or
-		-- keep the popup up with the failure.
+		-- Quit guard: the save started from the popup finished; carry on, or keep the popup
+		-- up with the failure.
 		local qs = widgetState.quitGuardSaving
 		if qs and qs.done then
 			widgetState.quitGuardSaving = nil
@@ -20341,13 +19807,11 @@ function widget:Update()
 			end
 		end
 
-		-- Keep-match-alive / remove-all-units pump (Settings > General). Both need
-		-- /cheat OBSERVED on: "cheat" TOGGLES, so it is only (re)sent while observed
-		-- off, with a resend gap and an attempt cap (same rule as the project load
-		-- driver). The unit wipe waits a short delay after arming keep-alive because
-		-- the disablegadget chat path and SendLuaRulesMsg are separate channels with
-		-- no cross-ordering guarantee — wiping before game_end is gone would end the
-		-- match on the spot.
+		-- Keep-match-alive / remove-all-units pump (Settings > General). Both need /cheat
+		-- seen on; "cheat" TOGGLES, so it is only sent while seen off, with a resend gap and
+		-- an attempt cap. The unit wipe waits a moment after arming keep-alive: disablegadget
+		-- (chat) and SendLuaRulesMsg are separate channels with no ordering guarantee, and a
+		-- wipe before game_end is gone would end the match.
 		local ka = widgetState.keepAlive
 		if ka and (ka.pending or ka.clearQueued) then
 			if Spring.IsCheatingEnabled() then
@@ -20393,10 +19857,9 @@ function widget:Update()
 							"[Terraform Brush] Could not enable /cheat — match end protection unchanged. Enable cheats and try again."
 						)
 					else
-						-- "cheat" TOGGLES, and the project loader / brush widget
-						-- nudge it too. Share their single-flight window so two
-						-- observers of "off" cannot queue two toggles and leave
-						-- cheat off again; only count an attempt that went out.
+						-- "cheat" TOGGLES, and the project loader / brush widget nudge it too: share their
+						-- single-flight window so two observers of "off" cannot queue two toggles. Count only
+						-- an attempt that went out.
 						if type(WG.TerraformEnsureCheat) == "function" then
 							if WG.TerraformEnsureCheat() then
 								ka.cheatSends = (ka.cheatSends or 0) + 1
@@ -20412,7 +19875,7 @@ function widget:Update()
 			end
 		end
 
-		-- One-shot: when map damage is disabled, auto-switch to Features tool on first update
+		-- One-shot: with map damage disabled, switch to the Features tool on the first update
 		if widgetState.noTerraform and not widgetState.noTerraformInitDone and WG.FeaturePlacer then
 			widgetState.noTerraformInitDone = true
 			if WG.TerraformBrush then
@@ -20421,8 +19884,8 @@ function widget:Update()
 			WG.FeaturePlacer.setMode("point")
 		end
 
-		-- Mirror the Map Labels window state onto the header button highlight
-		-- (the window can close itself via its own X button)
+		-- Mirror the Map Labels window state onto the header button highlight (the window can
+		-- close itself via its own X)
 		do
 			local d = widgetState.dmHandle
 			if d then
@@ -20433,14 +19896,14 @@ function widget:Update()
 			end
 		end
 
-		-- Poll-based window drag (position only — mouseup ends drag via doc listener)
+		-- Poll-based window drag (position only; mouseup ends the drag via the doc listener)
 		local ds = windowDragState
 		if ds.active and ds.rootEl then
 			local mx, my = GetMouseState()
 			local vsx, vsy = ds.vsx, ds.vsy
 			local ew, eh = ds.ew, ds.eh
 			local T = WINDOW_SNAP_THRESHOLD
-			-- Spring Y is from bottom, RmlUI Y is from top
+			-- Spring Y is from the bottom, RmlUi Y from the top
 			local rmlY = vsy - my
 			local newX = mx - ds.offsetX
 			local newY = rmlY - ds.offsetY
@@ -20537,8 +20000,8 @@ function widget:Update()
 			end
 		end
 
-		-- When game chat input is open, auto-blur any focused RmlUI text input so
-		-- Tab reaches the chat widget for autocomplete instead of navigating RmlUI fields.
+		-- While game chat input is open, blur any focused RmlUi text input so Tab reaches the
+		-- chat autocomplete instead of navigating RmlUi fields.
 		if widgetState.focusedRmlInput and WG.chat and WG.chat.isInputActive() then
 			widgetState.focusedRmlInput:Blur()
 			widgetState.focusedRmlInput = nil
@@ -20556,8 +20019,8 @@ function widget:Update()
 			local TSPEEDS = { 0.005, 0.02, 0.08, 0.25 } -- fraction of range per second at each speed level
 			for tid, t in pairs(widgetState.transports) do
 				if not t.paused then
-					-- min/max/step cached at transport creation (see regTransports);
-					-- slider-intensity max refreshes the cache where it is written.
+					-- min/max/step cached at transport creation (see regTransports); slider-intensity max
+					-- refreshes the cache where it is written.
 					local rmin = t.rmin
 					local rmax = t.rmax
 					local rstep = t.rstep
@@ -20579,9 +20042,8 @@ function widget:Update()
 							if cur ~= nv then
 								local nvStr = tostring(nv)
 								t.el:SetAttribute("value", nvStr)
-								-- Transports are keyed by element id: keep the
-								-- setAttrValueIfChanged cache coherent so syncs
-								-- can still snap the value back when needed.
+								-- Transports are keyed by element id: keep the setAttrValueIfChanged cache coherent so
+								-- syncs can still snap the value back.
 								widgetState.lastAttrValue[tid] = nvStr
 							end
 						end
@@ -20601,9 +20063,8 @@ function widget:Update()
 			widgetState.refreshPanelBodies()
 		end
 
-		-- A locked slider takes over the mouse wheel (widget:MouseWheel drives it
-		-- from anywhere on screen), so the scrollable panel bodies stand down while
-		-- one is armed instead of fighting over the wheel under the cursor.
+		-- A locked slider takes over the mouse wheel from anywhere on screen, so the
+		-- scrollable panel bodies stand down while one is armed.
 		local pbLocked = next(widgetState.lockedSliders) ~= nil
 		if pbLocked ~= widgetState.panelBodyWheelHeld then
 			widgetState.panelBodyWheelHeld = pbLocked
@@ -20620,8 +20081,7 @@ function widget:Update()
 		local mbState = WG.MetalBrush and WG.MetalBrush.getState()
 		local gbState = WG.GrassBrush and WG.GrassBrush.getState()
 		local dfpActive = WG.DiffusePainter and WG.DiffusePainter.isActive and WG.DiffusePainter.isActive() or false
-		-- SURFACE painter active flag on widgetState, NOT a local: this function
-		-- has flirted with Lua 5.1's 200-local ceiling before (see the wbSync note).
+		-- SURFACE and UNITS active flags live on widgetState, not in locals (see wbSync below).
 		widgetState.surfActive = (
 			WG.SurfacePainter
 			and WG.SurfacePainter.getState
@@ -20629,7 +20089,6 @@ function widget:Update()
 		)
 				and true
 			or false
-		-- UNITS too, for the same reason
 		widgetState.unitsActive = (WG.UnitPlacerTool and WG.UnitPlacerTool.isActive and WG.UnitPlacerTool.isActive())
 				and true
 			or false
@@ -20641,20 +20100,15 @@ function widget:Update()
 		local fpActive = fpState and fpState.active
 		local wbActive = wbState and wbState.active
 		local spActive = spState and spState.active
-		-- SURFACE hard submode pin is only meaningful while its engine (the splat
-		-- painter) runs; anything that kills the engine (hotkey off, reload) must
-		-- also drop the pin or the panel would sit on a dead tool.
+		-- The SURFACE hard-submode pin only means something while its engine (the splat
+		-- painter) runs; whatever kills the engine (hotkey, reload) drops the pin too.
 		if widgetState.surfHardActive and not spActive then
 			widgetState.surfHardActive = false
 		end
-		-- Self-healing invariant: under the tileset shader the legacy splat panel
-		-- is never legitimate ($ssmf_splat_distr is the override mask), so any
-		-- splat-engine activation that arrives without the pin (/splatpaint
-		-- action, GUI widget reload over a live engine) is adopted by the SURFACE
-		-- tool's HARD submode instead of opening the legacy panel.
-		-- Only adopt when the SURFACE UI can actually take over (its module and
-		-- engine both loaded); otherwise the panel would show an unwired section
-		-- while the splat engine paints unlabelled.
+		-- Self-healing invariant: under the tileset shader the SPLAT panel is never right
+		-- ($ssmf_splat_distr is the override mask), so a splat-engine activation without the
+		-- pin (/splatpaint, a GUI reload over a live engine) is adopted by SURFACE's HARD
+		-- submode. Only when the SURFACE module and engine are both loaded.
 		if
 			spActive
 			and not widgetState.surfHardActive
@@ -20669,9 +20123,8 @@ function widget:Update()
 				widgetState.dmHandle.surfMode = "hard"
 			end
 		end
-		-- Mirror invariant: the SOFT engine being live means the panel must read
-		-- SOFT, or HARD's chips and the shared brush sliders would drive an engine
-		-- that is not painting (/surfacepaint while the panel was left in HARD).
+		-- Mirror invariant: a live SOFT engine means the panel reads SOFT, or HARD's chips and
+		-- the shared brush sliders would drive an engine that is not painting.
 		if widgetState.surfActive and widgetState.dmHandle and widgetState.dmHandle.surfMode ~= "soft" then
 			widgetState.dmHandle.surfMode = "soft"
 		end
@@ -20799,8 +20252,8 @@ function widget:Update()
 			end
 			decalsActive = false
 		end
-		-- Deactivate the SURFACE painter when any other tool becomes active (its
-		-- active flag lives in the painter widget, like the splat painter's).
+		-- Deactivate the SURFACE painter when any other tool becomes active (its active flag
+		-- lives in the painter widget, like the splat painter's).
 		if
 			widgetState.surfActive
 			and (
@@ -20824,8 +20277,8 @@ function widget:Update()
 			widgetState.surfActive = false
 		end
 
-		-- UNITS steps aside when another tool turns on outside the tool buttons (a hotkey),
-		-- or its placer would stay armed under that tool's panel.
+		-- UNITS steps aside when another tool turns on outside the tool buttons (a hotkey), or
+		-- its placer would stay armed under that tool's panel.
 		if
 			widgetState.unitsActive
 			and (
@@ -20866,18 +20319,17 @@ function widget:Update()
 			or widgetState.unitsActive
 			or widgetState.passthroughMode
 		) and not widgetState.panelHidden
-		-- "Editor engaged" flag for hotkey gating: some tool (or passthrough) has
-		-- the panel up. Merely having the widget enabled must not swallow keys —
-		-- cmd_terraform_brush checks isEngaged() before tool-switch handling, so a
-		-- dormant Terraformer leaves f/m/g/etc. to the engine's own keybinds.
+		-- "Editor engaged" flag for hotkey gating: some tool (or passthrough) has the panel up.
+		-- cmd_terraform_brush checks isEngaged(), so a dormant Terraformer leaves f/m/g/etc.
+		-- to the engine's keybinds.
 		widgetState.panelEngaged = panelVisible and true or false
 		widgetState.syncFocusMode(panelVisible, widgetState.panelHidden)
 		if widgetState.rootElement then
 			widgetState.rootElement:SetClass("hidden", not panelVisible)
 		end
 		if not panelVisible then
-			-- The water level preview plane is drawn in the world by the other
-			-- widget, so hiding the panel has to take it down explicitly.
+			-- The water level preview plane is drawn in the world by the other widget, so hiding
+			-- the panel takes it down explicitly.
 			if widgetState.envWaterPreviewAt ~= nil then
 				widgetState.envWaterPreviewAt = nil
 				if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
@@ -20899,7 +20351,7 @@ function widget:Update()
 
 		-- Toggle section visibility
 		if panelVisible then
-			-- Drive panel-mode swap via data-if="activeTool == 'X'" — single dm field instead of 13 imperative SetClass writes.
+			-- Panel-mode swap via data-if="activeTool == 'X'": one dm field.
 			do
 				local tool = ""
 				if widgetState.decalsActive then
@@ -20908,8 +20360,8 @@ function widget:Update()
 					tool = "fp"
 				elseif wbActive then
 					tool = "wb"
-				-- Hard-submode pin: the splat ENGINE is active but the SURFACE panel
-				-- owns it — the legacy splat panel must not open.
+				-- Hard-submode pin: the splat ENGINE is active but the SURFACE panel owns it; the
+				-- SPLAT panel must not open.
 				elseif spActive then
 					tool = widgetState.surfHardActive and "surf" or "sp"
 				elseif mbActive then
@@ -20947,7 +20399,7 @@ function widget:Update()
 							dmh.surfHardOn = hardOn
 						end
 					end
-					-- SURFACE clear-confirm arms don't survive leaving the tool
+					-- SURFACE clear-confirm arms do not survive leaving the tool
 					if tool ~= "surf" then
 						if widgetState.dmHandle.surfClearArm then
 							widgetState.dmHandle.surfClearArm = false
@@ -20956,9 +20408,8 @@ function widget:Update()
 							widgetState.dmHandle.surfClearAllArm = false
 						end
 					end
-					-- Mutual exclusion: terrain row (activeMode) and tools row (activeTool) share the
-					-- .active visual; only one button across both rows should highlight. When a non-tf
-					-- tool is active, clear activeMode so the stale terrain-mode highlight drops.
+					-- The terrain row (activeMode) and tools row (activeTool) share the .active look, and
+					-- only one button should highlight: a non-tf tool clears activeMode.
 					if tool ~= "" and widgetState.dmHandle.activeMode ~= "" then
 						widgetState.dmHandle.activeMode = ""
 					end
@@ -20984,9 +20435,9 @@ function widget:Update()
 					setDm("newMapEngineSplatNotice", generatedBlankMap)
 					setDm("newMapSplatNeedsDnts", generatedBlankMap and _newMapSplatUnavailable())
 					setDm("spToolDisabled", _splatToolUnavailable())
-					-- Contextual SPLAT-button hint: while the tileset shader owns
-					-- the splat texture, hovering the disabled button must explain
-					-- where the workflow moved (tf_guide reads guideHints live).
+					-- Contextual SPLAT-button hint: while the tileset shader owns the splat texture,
+					-- hovering the disabled button explains where the workflow is (tf_guide reads
+					-- guideHints live).
 					do
 						local tsOn = (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive())
 								and true
@@ -21004,9 +20455,8 @@ function widget:Update()
 					setDm("clonePasteTransformsVisible", showTransforms and true or false)
 					setDm("skyboxLibraryVisible", widgetState.skyboxLibraryOpen or false)
 
-					-- Capture window: the readout has to track things the window does not
-					-- own (viewport size, another widget cancelling the job), so it is
-					-- refreshed here rather than only on click.
+					-- Capture window: the readout tracks things the window does not own (viewport size,
+					-- another widget cancelling the job), so it refreshes here, not only on click.
 					if widgetState.captureOpen then
 						local capApi = WG.TerraformCapture
 						local busy = (capApi and capApi.isBusy and capApi.isBusy()) or false
@@ -21029,10 +20479,9 @@ function widget:Update()
 						end
 					end
 
-					-- env sub-windows: deliberately NOT gated on envActive — SCENE windows
-					-- (and the TILESET window) stay up while you work in any other tool,
-					-- so you can tweak the scene or shader while painting. Only their
-					-- open/close buttons and the window X control them.
+					-- Env sub-windows are not gated on envActive: the SCENE and TILESET windows stay up in
+					-- any tool, so the scene or shader can be tweaked while painting. Only their buttons
+					-- and window X control them.
 					setDm("envSunVisible", widgetState.envSunOpen or false)
 					setDm("envFogVisible", widgetState.envFogOpen or false)
 					setDm("envGroundLightingVisible", widgetState.envGroundLightingOpen or false)
@@ -21042,35 +20491,31 @@ function widget:Update()
 					setDm("envWaterVisible", widgetState.envWaterOpen or false)
 					setDm("envDimensionsVisible", widgetState.envDimensionsOpen or false)
 					setDm("envTilesetVisible", widgetState.envTilesetOpen or false)
-					-- IMAGE overlay: chip state on every DISPLAY row + the window readouts.
+					-- IMAGE overlay: chip state on every DISPLAY row plus the window readouts.
 					_imgOv.sync(setDm)
-					-- Dimensions window open edge: seed the HEIGHT RANGE sliders with
-					-- the range they are about to change.
+					-- Dimensions window open edge: seed the HEIGHT RANGE sliders with the range they are
+					-- about to change.
 					if widgetState.envDimensionsOpen and not widgetState.envDimWasOpen then
 						widgetState.envDimWasOpen = true
 						if widgetState.envFillDimRangeInputs then
 							widgetState.envFillDimRangeInputs()
 						end
-						-- MAP TRANSFORM starts from the map you have: no turn, no
-						-- flip, the current size. Anything else would be a transform
-						-- nobody asked for sitting armed in the panel.
+						-- MAP TRANSFORM starts from the map you have: no turn, no flip, the current size.
 						if widgetState.envResetXform then
 							widgetState.envResetXform()
 						end
 					elseif not widgetState.envDimensionsOpen then
 						widgetState.envDimWasOpen = false
 					end
-					-- Shoreline machinery runs while EITHER window holding a track is
-					-- open: WATER LEVEL lives in Dimensions, its FLUID LEVEL mirror in
-					-- Water. The extremes/plane readouts poll here too — they are the
-					-- only feedback that a range or water edit landed, and the sim
-					-- applies it a frame or two after the click (GetGroundExtremes is
-					-- an engine-cached read).
+					-- Shoreline machinery runs while EITHER window with a track is open: WATER LEVEL in
+					-- Dimensions, its FLUID LEVEL mirror in Water. The extremes/plane readouts poll here
+					-- too: the sim applies an edit a frame or two after the click (GetGroundExtremes is
+					-- an engine-cached read), and they are its only feedback.
 					if widgetState.envDimensionsOpen or widgetState.envWaterOpen then
 						if not widgetState.envWaterUIWasOpen then
 							widgetState.envWaterUIWasOpen = true
-							-- Seed on the open edge, but never over a live preview: the
-							-- other window may already be mid-adjustment on its track.
+							-- Seed on the open edge, but never over a live preview: the other window may be
+							-- mid-adjustment on its track.
 							if widgetState.envWaterPreviewAt == nil and widgetState.envSeedWaterSlider then
 								widgetState.envSeedWaterSlider()
 							end
@@ -21079,15 +20524,14 @@ function widget:Update()
 						if widgetState.envDimTick >= 10 and widgetState.envRefreshDimExtremes then
 							widgetState.envDimTick = 0
 							widgetState.envRefreshDimExtremes()
-							-- Same tick drives the MAP TRANSFORM button: the armed
-							-- state times out and a running transform reports its
-							-- step there.
+							-- Same tick drives the MAP TRANSFORM button: the armed state times out and a running
+							-- transform reports its step there.
 							if widgetState.envDimensionsOpen and widgetState.envRefreshXform then
 								widgetState.envRefreshXform()
 							end
 						end
-						-- Reseed after an apply, once the sim has moved the terrain the
-						-- slider's bounds were measured against.
+						-- Reseed after an apply, once the sim has moved the terrain the slider's bounds were
+						-- measured against.
 						if (widgetState.envWaterReseedTicks or 0) > 0 then
 							widgetState.envWaterReseedTicks = widgetState.envWaterReseedTicks - 1
 							if widgetState.envWaterReseedTicks == 0 and widgetState.envSeedWaterSlider then
@@ -21105,13 +20549,13 @@ function widget:Update()
 							WG.TerraformBrush.setWaterLevelPreview(nil)
 						end
 					end
-					-- light library already driven by dm.lpLibraryOpen in tf_lights; just reset widgetState when tool inactive
+					-- The light library is driven by dm.lpLibraryOpen in tf_lights; just reset widgetState when the tool is off
 					if not lpActive and widgetState.lightLibraryOpen then
 						widgetState.lightLibraryOpen = false
 						dm.lpLibraryOpen = false
 					end
-					-- shape row: hidden for env/clone/startpos/weather (weather has no shape picker)
-					-- and for SURFACE (v1 brush is circle-only)
+					-- Shape row: hidden for env/clone/startpos/weather (no shape picker) and for SURFACE
+					-- (its brush is circle-only)
 					local hideShape = envActive
 						or clActive
 						or stpActive
@@ -21127,7 +20571,7 @@ function widget:Update()
 						"tfFollowVisible",
 						(not hideShape) and tfActive and tfState and _tbFollowModes[tfState.mode] and true or false
 					)
-					-- smooth submodes: visible only in smooth/level terraform mode
+					-- Smooth submodes: visible only in smooth/level terraform mode
 					local otherToolActive = fpActive
 						or wbActive
 						or spActive
@@ -21144,14 +20588,12 @@ function widget:Update()
 						and tfState
 						and (tfState.mode == "smooth" or tfState.mode == "level" or tfState.mode == "smudge")
 					setDm("tfSmoothSubmodesVisible", not otherToolActive and inSmoothGroup and true or false)
-					-- erode controls: visible only in erode terraform mode
+					-- Erode controls: visible only in erode terraform mode
 					local inErode = tfActive and tfState and tfState.mode == "erode"
 					setDm("tfErodeControlsVisible", not otherToolActive and inErode and true or false)
-					-- Feature SELECTION / Reroll rows sit outside tf-feature-controls (they
-					-- belong above it in the panel), so activeTool does not gate them, and
-					-- their flags are only written by tf_features.sync, which runs for the
-					-- Features tool alone. Clear them here or the last state stays up and
-					-- follows you into whatever tool you switch to.
+					-- The feature SELECTION / Reroll rows sit outside tf-feature-controls, so activeTool
+					-- does not gate them, and only tf_features.sync (Features tool only) writes their
+					-- flags. Clear them here or the last state follows you into the next tool.
 					if not fpActive then
 						setDm("fpShowSelection", false)
 						setDm("fpShowReroll", false)
@@ -21163,7 +20605,7 @@ function widget:Update()
 						setDm("unHasSelection", false)
 						setDm("unShowFormation", false)
 					end
-					-- clay/full-restore visibility
+					-- Clay/full-restore visibility
 					local inTfRestore = tfActive and tfState and tfState.mode == "restore"
 					setDm("tfInRestore", inTfRestore and true or false)
 				end
@@ -21183,8 +20625,8 @@ function widget:Update()
 				widgetState.dmHandle.noiseWindowVisible = v
 			end
 		end
-		-- Position noise window to the LEFT of the main panel on first open.
-		-- data-if creates the element asynchronously, so retry each frame until found + laid out.
+		-- Position the noise window LEFT of the main panel on first open. data-if creates the
+		-- element asynchronously, so retry each frame until it is found and laid out.
 		if noiseActive and not widgetState.noiseManuallyHidden and not widgetState.noisePositioned then
 			local mainEl = widgetState.rootElement
 			local noiseDoc = widgetState.document
@@ -21201,7 +20643,7 @@ function widget:Update()
 			end
 		end
 
-		-- Disable ring shape when in feature, weather, splat, metal, or light mode
+		-- Disable the ring shape in feature, weather, splat, metal and light mode
 		local ringBtn = widgetState.shapeButtons.ring
 		if ringBtn then
 			ringBtn:SetClass(
@@ -21210,7 +20652,7 @@ function widget:Update()
 			)
 		end
 
-		-- Disable hexagon/octagon/triangle in light mode (LightPlacer only supports circle/square)
+		-- Disable hexagon/octagon/triangle in light mode (LightPlacer supports circle/square only)
 		local hexBtn = widgetState.shapeButtons.hexagon
 		if hexBtn then
 			hexBtn:SetClass("disabled", lpActive or false)
@@ -21224,7 +20666,7 @@ function widget:Update()
 			triBtn:SetClass("disabled", lpActive or false)
 		end
 
-		-- Disable fill+clay in metal mode; disable fill in feature/grass/weather/light/noise modes
+		-- Disable fill + clay in metal mode; disable fill in feature/grass/weather/light/noise modes
 		local fillBtn = widgetState.shapeButtons.fill
 		if fillBtn then
 			fillBtn:SetClass(
@@ -21247,13 +20689,13 @@ function widget:Update()
 			clayBtn:SetClass("disabled", mbActive or lpActive or false)
 		end
 
-		-- Keep height-band slider bounds in step with the map's real height range
+		-- Keep the height-band slider bounds in step with the map's real height range
 		if doc then
 			updateHeightBandSliderBounds(doc)
 		end
 
-		-- Blue-dot hint gating: hide dots already seen or when tips disabled,
-		-- and handle chip 2-pulse animations scheduled by tf_environment listeners.
+		-- Blue-dot hint gating: hide dots already seen or with tips disabled, and run the chip
+		-- 2-pulse animations scheduled by tf_environment listeners.
 		do
 			if doc and widgetState.hintDots then
 				local up = widgetState.uiPrefs
@@ -21324,10 +20766,9 @@ function widget:Update()
 			setInnerRmlIfChanged(sumEl, "status-summary", table.concat(buf))
 		end
 
-		-- Tool button .active class is driven by data-class-active="activeTool == '<code>'" in RML.
-		-- Do NOT SetClass("active", ...) on btn-metal/features/splat/decals/weather/environment/lights/grass/startpos/clone here:
-		-- a per-frame imperative clear fights data-class-active (which only fires on value change),
-		-- leaving most buttons un-highlighted. dm.activeTool (set above) is the single owner.
+		-- Tool button .active comes from data-class-active="activeTool == '<code>'" in the RML.
+		-- Do NOT SetClass("active", ...) on the tool buttons here: a per-frame clear fights
+		-- data-class-active (which only fires on change). dm.activeTool is the single owner.
 		if doc then
 			-- Reset ramp-type row and shape row visibility before per-tool branches
 			do
@@ -21348,9 +20789,8 @@ function widget:Update()
 					if widgetState.dmHandle.tfShapeRowVisible ~= not hideShape2 then
 						widgetState.dmHandle.tfShapeRowVisible = not hideShape2
 					end
-					-- Same predicate as the shape row plus the modes whose drag runs the stroke
-					-- resampler: this reset block re-opens the shape row every frame, so the
-					-- FOLLOW chip has to be recomputed alongside it.
+					-- The shape row predicate plus the modes whose drag runs the stroke resampler: this
+					-- block re-opens the shape row every frame, so the FOLLOW chip is recomputed with it.
 					local followVis = not hideShape2 and tfActive and tfState and _tbFollowModes[tfState.mode] and true
 						or false
 					if widgetState.dmHandle.tfFollowVisible ~= followVis then
@@ -21359,9 +20799,8 @@ function widget:Update()
 				end
 			end
 
-			-- Track whether this map currently has any grass data. Keep this
-			-- informational-only: generated blank maps start with zero grass and the
-			-- Grass tool should still be usable so users can paint the first patches.
+			-- Track whether the map has any grass data, for information only: blank maps start
+			-- with none and the Grass tool must still paint the first patches.
 			do
 				local gApi = WG.grassgl4
 				local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
@@ -21376,12 +20815,10 @@ function widget:Update()
 				widgetState.grassNoDataThisMap = not hasGrass
 			end
 
-			-- Front tool pair: the tileset shader decides which surface-painting set
-			-- leads the TOOLS grid. Shader ON = SURFACE (soft variants) + LAYERS
-			-- (hard overrides); shader OFF = the legacy DIFFUSE + SPLAT pair. The
-			-- two sets replace each other in the same two leading slots.
-			-- Availability still gates each button so a missing write-dir widget
-			-- never leaves a dead button (diffuse/surface reveal pattern).
+			-- Front tool pair: the tileset shader decides which surface-painting set leads the
+			-- TOOLS grid. Shader ON = SURFACE (soft variants) + LAYERS (hard overrides); OFF =
+			-- DIFFUSE + SPLAT, in the same two slots. Availability still gates each button, so a
+			-- missing write-dir widget never leaves a dead button.
 			do
 				local tsOn = (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive())
 						and true
@@ -21417,24 +20854,23 @@ function widget:Update()
 			end
 		end
 
-		-- TILESET floating window (opened from SCENE): synced whenever open, no
-		-- matter which tool is active — that is the point of it being a window.
-		-- The module early-outs on dm.envTilesetVisible, so this is cheap when
-		-- closed. No setSummary: the status strip belongs to the active tool.
+		-- TILESET floating window (opened from SCENE): synced whenever open, whatever tool is
+		-- active. The module early-outs on dm.envTilesetVisible, so this is cheap when closed.
+		-- No setSummary: the status strip belongs to the active tool.
 		tfTileset.sync(doc, ctx, nil)
-		-- Separate call: the shader row must still update when the shader widget
-		-- is absent, and tfTileset.sync early-outs on exactly that.
+		-- Separate call: the shader row must update even without the shader widget, which is
+		-- exactly when tfTileset.sync early-outs.
 		tfTileset.syncShader(doc, ctx)
 
 		if mbActive then
-			-- Metal Brush sync (extracted to tf_metal.lua)
+			-- Metal Brush sync (tf_metal.lua)
 			tfMetal.sync(doc, ctx, mbState, setSummary)
 		elseif gbActive then
-			-- Grass Brush sync (extracted to tf_grass.lua)
+			-- Grass Brush sync (tf_grass.lua)
 			tfGrass.sync(doc, ctx, gbState, setSummary, sumEl)
 		elseif spActive then
-			-- Hard-submode pin: SURFACE panel drives the splat engine, so it gets
-			-- the surf sync (surfMode == 'hard' branch), not the legacy splat one.
+			-- Hard-submode pin: the SURFACE panel drives the splat engine, so it gets the surf
+			-- sync (surfMode == 'hard'), not the splat one.
 			if widgetState.surfHardActive and tfSurface then
 				tfSurface.sync(
 					doc,
@@ -21480,8 +20916,8 @@ function widget:Update()
 				ctx.syncTBMirrorControls(doc, "wb")
 			end
 
-			-- Weather readout (without one the strip keeps the previous tool's
-			-- line). Six groups like the other tools — see tf_decals for why.
+			-- Weather readout (without one the strip keeps the previous tool's line). Six groups
+			-- like the other tools (see tf_decals).
 			do
 				setSummary(
 					"WEATHER",
@@ -21499,9 +20935,8 @@ function widget:Update()
 				)
 			end
 
-			-- Sync weather brush slider/label values from state.
-			-- Wrapped in a local function so its locals don't count against the
-			-- widget:Update pcall function's 200-local-variable limit.
+			-- Sync weather slider/label values from state, in a nested function so its locals do
+			-- not count against widget:Update's own local limit.
 			if doc then
 				local function wbSync(wbs, ctxx, uiS, getCE, docc)
 					uiS.updatingFromCode = true
@@ -21562,7 +20997,7 @@ function widget:Update()
 				wbSync(wbState, ctx, uiState, getCachedEl, doc)
 			end
 
-			-- P3.2 Weather grayouts (per Phase 3 relevance matrix)
+			-- Weather grey-outs by mode
 			if doc then
 				local mode = wbState.mode or "scatter"
 				local remove = (mode == "remove")
@@ -21598,8 +21033,8 @@ function widget:Update()
 				}, remove)
 			end
 		elseif tfActive and not widgetState.mirrorStrided(tfState) then
-			-- ===== Terraform mode: update terraform controls =====
-			-- (skipped on strided frames mid-drag, see widgetState.mirrorStrided)
+			-- Terraform mode: update the terraform controls (skipped on strided frames mid-drag,
+			-- see widgetState.mirrorStrided)
 			local state = tfState
 
 			local effectiveMaxIntensity = getEffectiveMaxIntensity()
@@ -21632,12 +21067,10 @@ function widget:Update()
 					stampBadge:SetClass("hidden", not isStamp)
 				end
 
-				-- Adopt cap changes made brush-side (Alt+Shift scroll lives in
-				-- cmd_terraform_brush and writes heightCapMax directly): mirror them
-				-- into the panel's cap state and slider, unless the user is mid-drag
-				-- on that slider or typing in its numbox. Without this the scroll
-				-- combo moved the real cap while the panel sat on the stale value —
-				-- and the next panel interaction stomped the cap right back.
+				-- Adopt cap changes made brush-side (Alt+Shift scroll in cmd_terraform_brush writes
+				-- heightCapMax directly): mirror them into the panel's cap state and slider unless the
+				-- user is dragging that slider or typing in its numbox. Otherwise the next panel
+				-- interaction would stomp the cap back.
 				do
 					local scrollCap = state.heightCapMax
 					if
@@ -21649,8 +21082,8 @@ function widget:Update()
 						local nb = doc and getCachedEl(doc, "slider-cap-max-numbox")
 						if not (nb and widgetState.focusedRmlInput == nb) then
 							capMaxValue = scrollCap
-							-- The scroll combo explicitly asked for a cap: flip the
-							-- master toggle on so what the user sees matches what clamps.
+							-- The scroll combo asked for a cap: turn the master toggle on so what the user sees
+							-- matches what clamps.
 							if not capEnabled then
 								capEnabled = true
 								dm.tfCapEnabledSrc = "/luaui/images/terraform_brush/check_on.png"
@@ -21743,7 +21176,7 @@ function widget:Update()
 
 				local ringWidthRowEl = getCachedEl(doc, "ring-width-row")
 				if ringWidthRowEl then
-					-- keep for cache; visibility driven by dm.tfRingVisible
+					-- Cached; visibility comes from dm.tfRingVisible
 				end
 				if widgetState.dmHandle then
 					local v = (state.shape == "ring")
@@ -21771,7 +21204,7 @@ function widget:Update()
 				end
 				local restoreStrengthRow = getCachedEl(doc, "restore-strength-row")
 				if restoreStrengthRow then
-					-- visibility driven by dm.tfInRestore
+					-- Visibility comes from dm.tfInRestore
 				end
 				local sliderRestoreStrength = getCachedEl(doc, "slider-restore-strength")
 				if sliderRestoreStrength and ds ~= "restoreStrength" then
@@ -21831,7 +21264,7 @@ function widget:Update()
 
 				local snapSizeRow = getCachedEl(doc, "grid-snap-size-row")
 				if snapSizeRow then
-					-- visibility driven by dm.tfGridSnap
+					-- Visibility comes from dm.tfGridSnap
 				end
 				if widgetState.dmHandle then
 					local v = state.gridSnap and true or false
@@ -21865,7 +21298,7 @@ function widget:Update()
 				-- Protractor state sync
 				local angleStepRow = getCachedEl(doc, "angle-snap-step-row")
 				if angleStepRow then
-					-- visibility driven by dm.tfAngleSnap
+					-- Visibility comes from dm.tfAngleSnap
 				end
 				if widgetState.dmHandle then
 					local v = state.angleSnap and true or false
@@ -21971,7 +21404,7 @@ function widget:Update()
 				end
 				local measureToolRow = getCachedEl(doc, "measure-toolbar-row")
 				if measureToolRow then
-					-- visibility driven by dm.tfMeasureActive
+					-- Visibility comes from dm.tfMeasureActive
 				end
 				if widgetState.dmHandle then
 					local v = state.measureActive and true or false
@@ -22088,14 +21521,14 @@ function widget:Update()
 					local pm = state.penPressureMapped or state.penPressure or 0
 					local pctStr = string.format("%d%%", math.floor(pm * 100 + 0.5))
 
-					-- Intensity pen pill: show only when pen enabled AND modulate intensity is on
+					-- Intensity pen pill: only when the pen is enabled AND modulates intensity
 					local showInt = penEnabled and (state.penPressureModulateIntensity == true)
 					if dm then
 						dm.tfPenIntActive = showInt
 					end
 					_noDmLabel("tfPenIntStr", pctStr)
 
-					-- Size pen pill: show only when pen enabled AND modulate size is on
+					-- Size pen pill: only when the pen is enabled AND modulates size
 					local showSize = penEnabled and (state.penPressureModulateSize == true)
 					if dm then
 						dm.tfPenSizeActive = showSize
@@ -22112,7 +21545,7 @@ function widget:Update()
 						end
 					end
 
-					-- Pen pressure labels only (no slider movement to avoid feedback loops)
+					-- Pen pressure labels only (no slider movement, to avoid feedback loops)
 					uiState.updatingFromCode = false
 
 					-- Settings panel sync
@@ -22160,20 +21593,20 @@ function widget:Update()
 					end
 				end
 
-				-- P3.2 Terraform grayouts (per Phase 3 relevance matrix in doc/TerraformBrush_1.0_Plan.md)
+				-- Terraform grey-outs by shape and mode
 				do
 					local tShape, tMode = state.shape, state.mode
 					local rotationIrrelevant = (tShape == "circle") or (tShape == "fill")
 					ctx.setDisabled(doc, "param-rotation-row", rotationIrrelevant)
-					-- Length irrelevant for circle/fill shapes (no directional footprint to stretch)
+					-- Length is irrelevant for circle/fill (no directional footprint to stretch)
 					ctx.setDisabled(doc, "param-length-row", (tShape == "circle") or (tShape == "fill"))
-					-- Intensity meaningful for raise/lower/smooth/noise/ramp/restore;
-					-- irrelevant for level and for autoramp (one-shot region op)
+					-- Intensity matters for raise/lower/smooth/noise/ramp/restore, not for level or
+					-- autoramp (a one-shot region op)
 					ctx.setDisabled(doc, "param-intensity-row", tMode == "level" or tMode == "autoramp")
-					-- Autoramp has its own Falloff knob in the AUTORAMP block; the
-					-- global FALL-OFF curve does not feed it
+					-- Autoramp has its own Falloff knob in the AUTORAMP block; the global FALL-OFF curve
+					-- does not feed it
 					ctx.setDisabled(doc, "param-falloff-row", tMode == "autoramp")
-					-- Height cap (min/max) irrelevant for ramp, restore and autoramp modes
+					-- Height cap (min/max) is irrelevant for ramp, restore and autoramp
 					ctx.setDisabled(
 						doc,
 						"section-heightcap",
@@ -22197,7 +21630,7 @@ function widget:Update()
 				dm.activeShape = state.shape
 			end
 
-			-- Smooth/Level submode active chip sync (visibility handled below, after tool-active checks)
+			-- Smooth/Level submode active chip sync (visibility is handled below, after the tool checks)
 			do
 				local inSmoothGroup = state.mode == "smooth" or state.mode == "level" or state.mode == "smudge"
 				local v = (inSmoothGroup and state.mode) or ""
@@ -22206,7 +21639,7 @@ function widget:Update()
 				end
 			end
 
-			-- Show ramp-type-row when in a ramp mode (incl. autoramp); hide normal shape row
+			-- Show ramp-type-row in a ramp mode (autoramp included); hide the normal shape row
 			do
 				local isRamp = state.mode == "ramp" or state.mode == "autoramp"
 				local rampType = ""
@@ -22227,9 +21660,9 @@ function widget:Update()
 					end
 				end
 			end
-			-- Ramp type active state driven by dm.tfRampType (data-class-active in RML)
+			-- The ramp type active state comes from dm.tfRampType (data-class-active in the RML)
 
-			-- D4: Update contextual status summary line
+			-- Contextual status summary line
 			do
 				local sumEl = doc and getCachedEl(doc, "status-summary")
 				if sumEl then
@@ -22264,8 +21697,7 @@ function widget:Update()
 						sep,
 						lv("Int ", string.format("%.1f", state.intensity)),
 					}
-					-- Restore appends Str below and Crv barely matters there — drop
-					-- it so the line fits the strip.
+					-- Restore appends Str below and Crv barely matters there: drop it so the line fits.
 					if state.mode ~= "restore" then
 						parts[#parts + 1] = sep
 						parts[#parts + 1] = lv("Crv ", string.format("%.1f", state.curve))
@@ -22291,7 +21723,7 @@ function widget:Update()
 					dm.noiseType = state.noiseType
 				end
 
-				-- Sync noise sliders from state (handles preset loads, keyboard changes, etc.)
+				-- Sync the noise sliders from state (preset loads, keyboard changes, etc.)
 				uiState.updatingFromCode = true
 				local ds = uiState.draggingSlider
 
@@ -22361,15 +21793,14 @@ function widget:Update()
 				uiState.updatingFromCode = false
 			end
 
-			-- Sync repose slider from state when in erode mode (document reloads,
-			-- external setters); same pattern as the noise sliders above.
+			-- Sync the repose slider from state in erode mode (document reloads, external setters),
+			-- as for the noise sliders above.
 			if state.mode == "erode" and state.erodeReposeDeg then
 				uiState.updatingFromCode = true
 				local erodeSlider = getCachedEl(doc, "slider-erode-repose")
 				if erodeSlider and uiState.draggingSlider ~= "erode-repose" then
-					-- Dirty-checked: an unconditional stamp raises a deferred change
-					-- event every sync pass (after updatingFromCode is already
-					-- cleared), re-entering the slider handler each frame.
+					-- Dirty-checked: an unconditional stamp raises a deferred change event every sync
+					-- pass (after updatingFromCode is cleared), re-entering the slider handler each frame.
 					setAttrValueIfChanged(erodeSlider, "slider-erode-repose", tostring(state.erodeReposeDeg))
 				end
 				if dm then
@@ -22381,8 +21812,8 @@ function widget:Update()
 				uiState.updatingFromCode = false
 			end
 
-			-- Sync the autoramp sliders from state when in autoramp mode; the
-			-- percent knobs are stored 0–1 widget-side, shown 0–100 here.
+			-- Sync the autoramp sliders from state in autoramp mode; the percent knobs are 0-1
+			-- widget-side, shown 0-100 here.
 			if state.mode == "autoramp" and state.autorampAngleDeg then
 				uiState.updatingFromCode = true
 				local arSync = {
@@ -22396,9 +21827,8 @@ function widget:Update()
 					local id, val = arSync[i][1], arSync[i][2]
 					local sl = getCachedEl(doc, "slider-" .. id)
 					if sl and uiState.draggingSlider ~= id then
-						-- Dirty-checked (cache keyed by element id, which is what
-						-- trackSliderDrag invalidates on mouseup): an unconditional
-						-- stamp raises a deferred change event every sync pass.
+						-- Dirty-checked (cache keyed by element id, which trackSliderDrag invalidates on
+						-- mouseup): an unconditional stamp raises a deferred change event every sync pass.
 						setAttrValueIfChanged(sl, "slider-" .. id, tostring(math.floor(val + 0.5)))
 					end
 				end
@@ -22445,7 +21875,7 @@ function widget:Update()
 				grassBtn7:SetClass("active", false)
 			end
 
-			-- Gray out unsupported shapes per mode
+			-- Grey out shapes the mode does not support
 			local isRamp = state.mode == "ramp"
 			local isLevel = state.mode == "level" or state.mode == "smooth"
 			local rampDisabled = { triangle = true, hexagon = true, octagon = true, ring = true }
@@ -22522,7 +21952,7 @@ function widget:Update()
 				end
 			end
 		end
-		-- Full restore confirm timeout: auto-reset after 3 s if not confirmed
+		-- Full restore confirm timeout: reset after 3 s if not confirmed
 		if widgetState.fullRestoreConfirmExpiry > 0 then
 			local now = Spring.GetGameSeconds() or 0
 			if now >= widgetState.fullRestoreConfirmExpiry then
@@ -22535,7 +21965,7 @@ function widget:Update()
 				_noDmLabel("tfRestoreLabel2Str", "RESTORE")
 			end
 		end
-		-- Metal clean confirm timeout: auto-reset after 3 s if not confirmed
+		-- Metal clean confirm timeout: reset after 3 s if not confirmed
 		if widgetState.metalCleanConfirmExpiry > 0 then
 			local now = Spring.GetGameSeconds() or 0
 			if now >= widgetState.metalCleanConfirmExpiry then
@@ -22558,14 +21988,13 @@ function widget:Update()
 				end
 			end
 		end
-		-- Always, not only while a window is open: the strip, the auto pull on
-		-- connect and the status echo in the editor strip all live in it. It is
-		-- throttled to four times a second and only reads tables.
+		-- Always, not only while a window is open: the strip, the auto pull on connect and
+		-- the status echo live in it. Throttled to four times a second; it only reads tables.
 		if widgetState.projectLibraryUi and widgetState.dmHandle then
 			widgetState.projectLibraryUi.sync(dt)
 		end
-		-- Somewhere without the handlers in scope asked for the Projects window
-		-- (the shader row, offline).
+		-- Code without the handlers in scope asked for the Projects window (the shader row,
+		-- offline).
 		if widgetState.projectOpenRequest then
 			local request = widgetState.projectOpenRequest
 			widgetState.projectOpenRequest = nil
@@ -22575,9 +22004,9 @@ function widget:Update()
 				widgetState.dmHandle.libraryCardCopied = false
 			end
 		end
-		-- Unsaved changes: terrain edits are noticed here (the terrain version
-		-- moves on every heightmap update); the painters report theirs. The
-		-- flag only decides whether OPEN asks before restarting.
+		-- Unsaved changes: terrain edits are noticed here (the terrain version moves on every
+		-- heightmap update); the painters report theirs. The flag only decides whether OPEN
+		-- asks before restarting.
 		widgetState.projectHeaderClock = (widgetState.projectHeaderClock or 0) + (dt or 0)
 		if widgetState.projectHeaderClock > 0.5 then
 			widgetState.projectHeaderClock = 0
@@ -22596,8 +22025,8 @@ function widget:Update()
 				widgetState.projectTerrainVersion = tv
 			end
 		end
-		-- Deferred Open Project list refresh (queued by a delete, which cannot
-		-- destroy its own row from inside the click handler)
+		-- Deferred Open Project list refresh (queued by a delete, which cannot destroy its own
+		-- row inside the click handler)
 		if widgetState.projectOpenNeedsRebuild then
 			widgetState.projectOpenNeedsRebuild = false
 			if widgetState.projectOpenRebuild then
@@ -22613,21 +22042,20 @@ function widget:Update()
 		if widgetState.projectDrag then
 			widgetState.projectDragUpdate()
 		end
-		-- A team-view OPEN whose download has landed: the model flags it, the
-		-- open happens here rather than inside the sync that noticed it.
+		-- An OPEN whose download has landed: the model flags it, and the open happens here
+		-- rather than inside the sync that noticed it.
 		if widgetState.projectOpenChainReady then
 			widgetState.projectOpenChainReady = false
 			local slug = widgetState.projectOpenAfterDownload
 			widgetState.projectOpenAfterDownload = nil
 			if slug then
-				-- Still in the team view, and opened from it: the download was
-				-- a step in opening, not a move to the other tab.
+				-- The download was a step in opening, so open it straight away.
 				widgetState.projectOpenSelectedSlug = slug
 				widgetState.projectOpenCommit(true)
 			end
 		end
-		-- Destination chips: the helper's folder list arrives asynchronously and
-		-- changes on every pull, so the row is redrawn when it moves.
+		-- Destination chips: the helper's folder list arrives asynchronously and changes on
+		-- every pull, so the row is redrawn when it moves.
 		if widgetState.projectStagesNeedsRebuild then
 			widgetState.projectStagesNeedsRebuild = false
 			widgetState.projectStagesRebuild()
@@ -22645,8 +22073,8 @@ function widget:Update()
 				end
 			end
 		end
-		-- Override status summary when hovering the grass button on maps with no grass data.
-		-- Done last so it beats any per-tool summary written above.
+		-- Override the status summary while hovering the grass button on maps without grass
+		-- data. Done last so it beats any per-tool summary above.
 		if widgetState.grassHoverNoData and widgetState.grassNoDataThisMap then
 			local sumEl2 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
 			if sumEl2 then
@@ -22660,8 +22088,8 @@ function widget:Update()
 				)
 			end
 		end
-		-- Same treatment for the SPLAT button while the tileset shader disables it:
-		-- hovering must say where hard-surface painting moved.
+		-- Same for the SPLAT button while the tileset shader disables it: the hover says
+		-- where hard-surface painting lives.
 		if widgetState.splatHoverTilesetOn then
 			local sumEl4 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
 			if sumEl4 then
@@ -22675,10 +22103,10 @@ function widget:Update()
 				)
 			end
 		end
-		-- Project save takes over the status summary strip (last override = top
-		-- priority): green SAVING with one segment per saver step while running,
-		-- then SAVED: <name> held 4 s, faded out, and the tool's own readout
-		-- faded back in. Timers use os.clock — the readout must run while paused.
+		-- Project save takes over the status strip (last override = top priority): green
+		-- SAVING with one segment per saver step while running, then SAVED: <name> held 4 s,
+		-- faded out, and the tool readout faded back in. Timers use os.clock: the readout
+		-- must run while paused.
 		do
 			local mp = WG.MapProject
 			local sumEl3 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
@@ -22712,7 +22140,7 @@ function widget:Update()
 			elseif widgetState.saveWasRunning then
 				-- The save just ended: latch its outcome and start the 4 s hold.
 				widgetState.saveWasRunning = false
-				-- ... and the listing is stale.
+				-- ...and the listing is stale.
 				widgetState.projectLocalDirty = true
 				local last = nil
 				if mp then
@@ -22766,10 +22194,9 @@ function widget:Update()
 					sumEl3.style.opacity = string.format("%.2f", math.max(0, o))
 				end
 			end
-			-- Library and load readouts share the strip with the save ones:
-			-- LOADING with the phase bar after a restart, UPLOADING while a
-			-- confirmed save + upload is in flight, and the last team outcome
-			-- held 4 s the way SAVED is. A running save always wins.
+			-- Library and load readouts share the strip: LOADING with the phase bar after a
+			-- restart, UPLOADING while a confirmed save + upload is in flight, and the last team
+			-- outcome held 4 s like SAVED. A running save always wins.
 			widgetState.libraryOwnsStrip = false
 			if sumEl3 and not step and not widgetState.saveDoneUntil then
 				local escS = widgetState.rmlEsc
@@ -22798,8 +22225,8 @@ function widget:Update()
 					buf[#buf + 1] = '<span class="tf-ss-label">' .. escS(phaseName or "") .. "</span>"
 					rml = table.concat(buf)
 				elseif widgetState.libraryProgress then
-					-- Same shape as SAVED: the mode, then the value with its own
-					-- leading space. Short on purpose; the strip is one line.
+					-- Same shape as SAVED: the mode, then the value with its own leading space. Short:
+					-- the strip is one line.
 					rml = '<span class="tf-ss-mode" style="color: #35d07f;">UPLOADING:</span>'
 						.. '<span class="tf-ss-val"> '
 						.. escS(widgetState.projectStripShort(widgetState.libraryProgress))
@@ -22826,9 +22253,8 @@ function widget:Update()
 					end
 					sumEl3.style.opacity = string.format("%.2f", math.max(0, o))
 				end
-				-- The readout has just let go: ease the tool's own text back in,
-				-- the way SAVED does. Without this the strip stayed at the
-				-- opacity the fade ended on, which is none.
+				-- The readout just let go: ease the tool's text back in as SAVED does, or the strip
+				-- stays at the fade's final opacity (none).
 				if widgetState.libraryOwnedStrip and not widgetState.libraryOwnsStrip then
 					widgetState.saveFadeInStart = os.clock()
 				end
@@ -22844,10 +22270,9 @@ function widget:Update()
 					sumEl3.style.opacity = string.format("%.2f", math.max(0, t))
 				end
 			end
-			-- Snappier version of the same fade for normal tool/mode switches:
-			-- hold the OLD readout while fading out (the new tool already rewrote
-			-- the strip this frame, so replay last frame's snapshot), then let the
-			-- new readout fade in. Suppressed while the save display owns the strip.
+			-- A snappier version of the same fade for tool/mode switches: hold the OLD readout
+			-- while fading out (the new tool already rewrote the strip, so replay last frame's
+			-- snapshot), then fade the new one in. Suppressed while the save display owns the strip.
 			local saveOwnsStrip = (step ~= nil)
 				or widgetState.saveDoneUntil
 				or widgetState.saveFadeInStart
@@ -22965,24 +22390,23 @@ function widget:MouseWheel(up, value)
 		local max = tonumber(element:GetAttribute("max")) or 100
 		local step = tonumber(element:GetAttribute("step")) or 1
 		local cur = tonumber(element:GetAttribute("value")) or min
-		-- Use 2% of range per tick, rounded to step, minimum 1 step
+		-- 2% of the range per tick, rounded to step, at least 1 step
 		local range = max - min
 		local wheelStep = math.max(step, math.floor(range * 0.02 / step + 0.5) * step)
 		local delta = up and wheelStep or -wheelStep
 		local newVal = math.max(min, math.min(max, cur + delta))
 		local newValStr = tostring(newVal)
 		element:SetAttribute("value", newValStr)
-		-- Keep the setAttrValueIfChanged cache coherent (keyed by element id;
-		-- `id` here is the drag-tracking id, which can differ).
+		-- Keep the setAttrValueIfChanged cache coherent (keyed by element id; `id` here is the
+		-- drag-tracking id, which can differ).
 		widgetState.lastAttrValue[element.id] = newValStr
 	end
 	return true
 end
 
--- The engine's AllowQuit callin (a window close request: the close button,
--- Alt+F4) on engines that have it: the same popup as for the top bar's Quit,
--- with Spring.Quit, which never asks, as the deferred action. SDL can report
--- one click as two events, so a popup already up just keeps saying no.
+-- The engine's AllowQuit callin (window close button, Alt+F4) on engines that have it:
+-- the same popup as the top bar's Quit, with Spring.Quit (which never asks) as the
+-- deferred action. SDL can report one click as two events, so an open popup keeps saying no.
 function widget:AllowQuit()
 	local d = widgetState.dmHandle
 	if d and d.quitGuardOpen then
@@ -22998,16 +22422,13 @@ function widget:AllowQuit()
 	return true
 end
 
--- RmlUi gets first refusal on every key: GameInputReceiver::KeyPressed returns
--- as soon as RmlGui::ProcessKeyPressed consumes one, before LuaUI is asked at
--- all. So a focused text field swallows its keys and this call-in never sees
--- them: Enter inside a field CANNOT be handled here, it needs an RmlUi keydown
--- listener (widgetState.isReturnEvent). The call-in still fires with a field
--- focused, just not for the keys that field took, which is why the
--- focusedRmlInput guards below are about ownership rather than delivery.
+-- RmlUi gets first refusal on every key (GameInputReceiver returns once
+-- RmlGui::ProcessKeyPressed consumes one), so keys a focused text field takes never
+-- reach this call-in: Enter in a field needs an RmlUi keydown listener
+-- (widgetState.isReturnEvent). The focusedRmlInput guards below are about ownership.
 function widget:KeyPress(key, mods, isRepeat)
-	-- QUIT GUARD popup: Esc cancels, Enter saves first; nothing else gets
-	-- through while it is up.
+	-- Quit guard popup: Esc cancels, Enter saves first; nothing else gets through while
+	-- it is up.
 	local qd = widgetState.dmHandle
 	if qd and qd.quitGuardOpen then
 		if key == 27 then
@@ -23022,8 +22443,8 @@ function widget:KeyPress(key, mods, isRepeat)
 		handleSettingsKeyCapture(key)
 		return true
 	end
-	-- Ctrl+S saves, Ctrl+Shift+S is Save As, Ctrl+O opens Projects: only while
-	-- the editor has the panel up and no text field owns the keys.
+	-- Ctrl+S saves, Ctrl+Shift+S is Save As, Ctrl+O opens Projects: only while the editor
+	-- has the panel up and no text field owns the keys.
 	if mods and mods.ctrl and not isRepeat and widgetState.panelEngaged and not widgetState.focusedRmlInput then
 		if key == 115 then
 			if mods.shift then
@@ -23037,17 +22458,16 @@ function widget:KeyPress(key, mods, isRepeat)
 			return true
 		end
 	end
-	-- The project dialogs answer to the keys their desktop counterparts do:
-	-- Esc closes, Up/Down walk the list, Enter opens the selection. The list
-	-- keys stand down while a text field has focus, where SDL text input owns
-	-- the keystrokes and the NAME field has its own Enter handler; Esc does
-	-- not, because the caret starts in that field.
+	-- The project dialogs take the keys their desktop counterparts do: Esc closes,
+	-- Up/Down walk the list, Enter opens the selection. The list keys stand down while a
+	-- text field has focus (SDL text input owns the keys, NAME has its own Enter); Esc
+	-- does not, because the caret starts in that field.
 	local pd = widgetState.dmHandle
 	if pd and (pd.projectSaveOpen or pd.projectOpenOpen) then
 		if key == 27 then
 			playSound("click")
-			-- Esc closes from inside the NAME field too, which is where the
-			-- caret starts. Blur first so SDL text input does not leak on.
+			-- Esc closes from inside the NAME field too. Blur first so SDL text input does not
+			-- leak on.
 			if widgetState.focusedRmlInput then
 				widgetState.focusedRmlInput:Blur()
 			end
@@ -23065,16 +22485,16 @@ function widget:KeyPress(key, mods, isRepeat)
 			end
 			return true
 		end
-		-- Save As sits on top of Open Project when both are up, and its list is
-		-- a name picker rather than a cursor, so list keys stay with Open.
+		-- Save As sits on top of Open Project when both are up, and its list is a name picker,
+		-- not a cursor, so the list keys stay with Open.
 		if pd.projectOpenOpen and not pd.projectSaveOpen and not widgetState.focusedRmlInput then
 			if not widgetState.projectArrowKeys then
-				-- SDL2 keysyms for the arrows; the engine is asked first in case
-				-- this build reports different values.
+				-- SDL2 keysyms for the arrows; the engine is asked first in case this build reports
+				-- different values.
 				widgetState.projectArrowKeys = { up = 1073741906, down = 1073741905, f2 = 1073741883 }
 				pcall(function()
-					-- 0 is Lua-truthy, and it is what an unknown key name
-					-- returns, so only a real code replaces the default.
+					-- 0 is Lua-truthy and is what an unknown key name returns, so only a real code
+					-- replaces the default.
 					local up, down = Spring.GetKeyCode("up"), Spring.GetKeyCode("down")
 					widgetState.projectArrowKeys.up = (tonumber(up) or 0) > 0 and up or widgetState.projectArrowKeys.up
 					widgetState.projectArrowKeys.down = (tonumber(down) or 0) > 0 and down
@@ -23121,7 +22541,7 @@ function widget:KeyPress(key, mods, isRepeat)
 			end
 			return true
 		else
-			-- if everything is paused, unpause
+			-- If everything is paused, unpause
 			local anyPaused = false
 			for _, t in pairs(widgetState.transports) do
 				if t.dir ~= 0 and t.paused then
@@ -23156,19 +22576,19 @@ function widget:Shutdown()
 	WG.TerraformBrushUI = nil
 	widgetState.removeQuitGuard()
 
-	-- Hand the game interface back before anything else: a /luaui reload with
-	-- focus mode on must not leave the user with no UI at all.
+	-- Hand the game interface back first: a /luaui reload with focus mode on must not
+	-- leave the user without UI.
 	widgetState.setFocusMode(false)
 
-	-- The water level preview plane is drawn by the other widget, so a shutdown
-	-- with the Dimensions window open would strand it on screen.
+	-- The water level preview plane is drawn by the other widget; a shutdown with the
+	-- Dimensions window open would strand it on screen.
 	if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
 		WG.TerraformBrush.setWaterLevelPreview(nil)
 	end
 
 	if WG.TerraformerShared then
-		-- Hand the mouse wheel back before leaving: a slider locked at shutdown
-		-- would otherwise leave every sibling panel unable to scroll.
+		-- Hand the mouse wheel back: a slider locked at shutdown would leave every sibling
+		-- panel unable to scroll.
 		if WG.TerraformerShared.setWheelHeld then
 			WG.TerraformerShared.setWheelHeld(false)
 		end
@@ -23177,8 +22597,8 @@ function widget:Shutdown()
 		end
 	end
 
-	-- If a text input had focus when we shut down, SDL text-input mode is still
-	-- active and will leak into the next session (causing key-event side-effects).
+	-- A text input focused at shutdown leaves SDL text-input mode on, leaking into the
+	-- next session.
 	if WG.TerraformBrushInputFocused then
 		WG.TerraformBrushInputFocused = false
 		Spring.SDLStopTextInput()
@@ -23189,15 +22609,15 @@ function widget:Shutdown()
 		widgetState.document = nil
 	end
 
-	-- Invalidate per-frame element + write caches (elements belong to the
-	-- just-closed document and must not be reused on next LoadDocument).
+	-- Drop the per-frame element and write caches: the elements belong to the closed
+	-- document.
 	widgetState.elCache = {}
 	widgetState.lastInnerRml = {}
 	widgetState.lastAttrValue = {}
 	widgetState.prevSyncValues = {}
 	widgetState.panelBodyWheelHeld = nil
-	-- Open Project row handles belong to the closed document too; a queued
-	-- rebuild must not run against it after shutdown.
+	-- Open Project row handles belong to the closed document too; a queued rebuild must
+	-- not run against it.
 	widgetState.projectOpenRowEls = {}
 	widgetState.projectOpenSelectedSlug = nil
 	widgetState.projectDeleteConfirmExpiry = 0
@@ -23272,7 +22692,7 @@ function widget:Shutdown()
 		WG.LightPlacer.deactivate()
 	end
 
-	-- Free pre-loaded skybox textures
+	-- gl.DeleteTexture on every collected library DDS path (nothing preloads them; see envLoadedTextures)
 	for _, texPath in ipairs(widgetState.envLoadedTextures or {}) do
 		gl.DeleteTexture(texPath)
 	end
