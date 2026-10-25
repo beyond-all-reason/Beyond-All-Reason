@@ -38,6 +38,7 @@ local random = math.random
 
 local BrushShapes = require("common/brush_shapes")
 
+---@type table<string, any>
 local WG = WG
 
 -- ===========================================================================
@@ -537,6 +538,26 @@ local weatherLibrary = {
 -- ===========================================================================
 -- State
 -- ===========================================================================
+---@class WeatherBrushState
+---@field active boolean
+---@field mode string "scatter" | "point" | "remove"
+---@field shape string
+---@field radius number
+---@field lengthScale number
+---@field rotation number
+---@field spawnCount number
+---@field cadence number
+---@field altitude number
+---@field selectedCegs string[]
+---@field selectedCegSet table<string, boolean>
+---@field persistenceSeconds number
+---@field persistentMode boolean
+---@field cegLifetimeS number?
+---@field dragging boolean
+---@field dragAction string? "place" | "remove"
+---@field dragSpawnerCreated boolean?
+---@field persistentSpawners table[]
+---@field nextSpawnerId integer
 local wb = {
 	active = false,
 	mode = "scatter", -- "scatter", "point", "remove"
@@ -569,6 +590,7 @@ local wb = {
 -- ===========================================================================
 -- Utility functions
 -- ===========================================================================
+---@return number?, number?, number?
 local function getWorldMousePosition()
 	local mx, my = GetMouseState()
 	local _, coords = TraceScreenRay(mx, my, true)
@@ -1196,6 +1218,7 @@ function widget:MousePress(mx, my, button)
 	return true
 end
 
+---@return boolean?
 function widget:MouseRelease(mx, my, button)
 	if wb.dragging then
 		wb.dragging = false
@@ -1203,6 +1226,7 @@ function widget:MouseRelease(mx, my, button)
 	end
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
 	if not wb.active then
 		return false
@@ -1218,6 +1242,7 @@ function widget:MouseWheel(up, value)
 
 	if alt then
 		-- Alt+Scroll: rotate brush (snap to TB protractor step when angleSnap on)
+		---@type number
 		local step = 15
 		local tb = WG.TerraformBrush
 		local tbs = tb and tb.getState and tb.getState() or nil
@@ -1244,6 +1269,7 @@ end
 -- ===========================================================================
 -- Update loop
 -- ===========================================================================
+---@type number
 local lastDt = 0
 
 function widget:Update(dt)

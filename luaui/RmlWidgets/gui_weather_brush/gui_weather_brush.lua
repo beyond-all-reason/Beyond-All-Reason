@@ -19,11 +19,23 @@ end
 local MODEL_NAME = "weather_brush_model"
 local RML_PATH = "luaui/RmlWidgets/gui_weather_brush/gui_weather_brush.rml"
 
+---@type table<string, any>
 local WG = WG
 
 local INITIAL_LEFT_VW = 60
 local INITIAL_TOP_VH = 25
 
+---@class WeatherBrushPanelState
+---@field rmlContext table?
+---@field document table?
+---@field dmHandle table?
+---@field rootElement table?
+---@field libraryBuilt boolean
+---@field cegListFilter string
+---@field cegListBuilt boolean
+---@field dragHandle table?
+---@field selectedCegsLabelEl table?
+---@field lastSelectedCegsRml string?
 local widgetState = {
 	rmlContext = nil,
 	document = nil,
