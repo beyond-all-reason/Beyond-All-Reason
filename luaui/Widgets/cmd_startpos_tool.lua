@@ -2142,6 +2142,7 @@ function widget:MousePress(mx, my, button)
 					local box = startboxes[dbi]
 					local handles = box and getEditHandles(box)
 					if handles and #handles > 3 then
+						boxUndo.push("edit", dbi, box)
 						table.remove(handles, dvi)
 						if box.kind == "spline" then
 							retessellateSpline(box)
