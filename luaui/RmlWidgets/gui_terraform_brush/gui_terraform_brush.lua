@@ -97,6 +97,7 @@ local function persistToSlider(s)
 	end
 end
 
+---@type table<string, any>
 local WG = WG
 -- Engine globals as chunk locals (the tf_* modules do the same): RmlUi event
 -- closures can run outside the widget env, where bare globals read nil, and the
@@ -146,9 +147,163 @@ local uiSoundVolumes = {
 	exit = 0.35,
 	sliderLock = 0.5,
 }
+---@type table<string, any>
 local soundCooldowns = {}
 local SOUND_COOLDOWN = 0.04 -- seconds between repeated sounds of the same type
 -- soundMuted lives on widgetState (shared with tf_guide module)
+---@class TFBrushPanelState
+---@field text fun(key: string, vars: table?): string
+---@field rmlContext table?
+---@field document table?
+---@field dmHandle table?
+---@field rootElement table?
+---@field panelWidthDp number
+---@field wbSubmodesEl table?
+---@field wbControlsEl table?
+---@field spPreviewEls table?
+---@field spPreviewTextures table?
+---@field spPreviewVerified boolean
+---@field spMinimapSampleTex string?
+---@field spTerrainColor table?
+---@field spTerrainSampleTick number
+---@field lobbyHidden boolean
+---@field decalsActive boolean
+---@field mbSubmodesEl table?
+---@field mbControlsEl table?
+---@field noiseRootEl table?
+---@field envControlsEl table?
+---@field envActive boolean
+---@field envSkyboxGridEl table?
+---@field envCurrentSkybox string?
+---@field envDefaultSkybox string?
+---@field skyPreviewShader integer|false|nil false = creation failed for good
+---@field lightControlsEl table?
+---@field lightActive boolean
+---@field lightLibraryOpen boolean
+---@field lightLibraryRootEl table?
+---@field lightLibraryTab string "builtin" | "user"
+---@field lightLibrarySelectedPreset table?
+---@field startposActive boolean
+---@field envFadeEnabled boolean
+---@field tsSkyboxSync boolean
+---@field skyboxLibraryRootEl table?
+---@field envSunRootEl table?
+---@field envFogRootEl table?
+---@field envGroundLightingRootEl table?
+---@field envUnitLightingRootEl table?
+---@field envMapRootEl table?
+---@field envBlockoutRootEl table?
+---@field envWaterRootEl table?
+---@field envDimensionsRootEl table?
+---@field envTilesetRootEl table?
+---@field splatTexRootEl table?
+---@field grassCfgRootEl table?
+---@field captureOpen boolean
+---@field envSunOpen boolean
+---@field envFogOpen boolean
+---@field envGroundLightingOpen boolean
+---@field envUnitLightingOpen boolean
+---@field envMapOpen boolean
+---@field envBlockoutOpen boolean
+---@field envWaterOpen boolean
+---@field envDimensionsOpen boolean
+---@field envTilesetOpen boolean
+---@field splatTexOpen boolean
+---@field grassCfgOpen boolean
+---@field envDefaults table?
+---@field lockedSliders table<string, any> slider element id -> element, while wheel-locked
+---@field sliderPulsePhase boolean
+---@field sliderPulseTimer number
+---@field passthroughMode boolean
+---@field passthroughSaved table?
+---@field focusMode boolean?
+---@field settingsRootEl table?
+---@field settingsOpen boolean
+---@field settingsCapturing string? keybind action being rebound
+---@field settingsCaptureField string? "key" | "key2"
+---@field settingsCaptureEl table?
+---@field settingsPendingBinds table?
+---@field fullRestoreConfirmExpiry number
+---@field metalCleanConfirmExpiry number
+---@field projectOpenSelectedSlug string?
+---@field projectDeleteConfirmExpiry number
+---@field projectOpenNeedsRebuild boolean
+---@field projectOpenFilter string
+---@field projectOpenSort string
+---@field projectOpenSortDesc boolean
+---@field projectSaveFilter string
+---@field projectSaveNeedsRebuild boolean
+---@field projectDrag table?
+---@field projectSaveFolderStr string
+---@field focusedRmlInput table?
+---@field noiseManuallyHidden boolean
+---@field lastNoiseActive boolean
+---@field noisePositioned boolean
+---@field skyboxLibraryOpen boolean
+---@field soundMuted boolean
+---@field guideMode boolean
+---@field floatingTipEl table?
+---@field currentHint string?
+---@field lastRenderedHint string?
+---@field uiPrefs table<string, any>
+---@field elCache table<string, any>
+---@field lastInnerRml table<string, any>
+---@field lastAttrValue table<any, any>
+---@field transports table<string, any> auto-scroll transports by slider element id
+---@field saveUiPrefs function?
+---@field projectLibraryUi table?
+---@field projectSaveUi any
+---@field projectDragClickEaten boolean?
+---@field projectOpenIsFolder boolean?
+---@field surfHardActive boolean?
+---@field panelEngaged boolean?
+---@field teamSyncEnabled boolean?
+---@field projectHelperHintSticky boolean?
+---@field cloneActive boolean?
+---@field noTerraform boolean?
+---@field noTerraformInitDone boolean?
+---@field envWaterUIWasOpen boolean?
+---@field envDimWasOpen boolean?
+---@field envWaterReseedTicks integer
+---@field mouseOverPanel boolean?
+---@field projectLibraryRemote boolean?
+---@field newMapGen boolean?
+---@field envPresetDropdownOpen boolean?
+---@field tsDropdownOpen boolean?
+---@field documentLoadFailed boolean?
+---@field perfPrefsPushed boolean?
+---@field autosavePrefsPushed boolean?
+---@field splatHintTsLast boolean?
+---@field splatHoverTilesetOn boolean?
+---@field saveWasRunning boolean?
+---@field ssSwitchStart number?
+---@field instrumentsPulseFrame integer?
+---@field projectOpenRequest table?
+---@field projectOpenChainReady boolean?
+---@field projectStagesNeedsRebuild boolean?
+---@field quitGuardOriginals table?
+---@field _pendingFogOff integer?
+---@field _pendingForceStart integer?
+---@field refreshEnvSunAzEl function?
+---@field updateTransportBtns function?
+---@field projectSyncCell function?
+---@field applySkybox function?
+---@field rebuildEnvPresetList function
+---@field setEnvPresetDropdownOpen function?
+---@field rebuildTsPresetList function?
+---@field setTsDropdownOpen function?
+---@field projectOpenRebuild function?
+---@field quitGuardPending function?
+---@field xformW number?
+---@field xformH number?
+---@field newMapArchetypes table?
+---@field ovBoxes any
+---@field projectArrowKeys table<string, integer>?
+---@field synDrag any
+---@field projectLocalBySlug table<string, any>?
+---@field quitGuardSaving table? the receipt of a save started from the quit popup
+---@field projectOpenAfterDownload string? slug to open once its download lands
+---@field [string] any
 local widgetState -- forward declaration so playSound can capture it as upvalue
 
 local function playSound(name)
@@ -172,6 +327,7 @@ end
 local UI_PREFS_DIR = "Terraform Brush/"
 local UI_PREFS_FILE = UI_PREFS_DIR .. "ui_prefs.lua"
 local loadUiPrefs -- defined after widgetState is declared
+---@type fun()
 local saveUiPrefs -- defined after widgetState is declared
 
 local INITIAL_LEFT_VW = 78
@@ -179,13 +335,33 @@ local INITIAL_TOP_VH = 25
 local BASE_WIDTH_DP = 162
 
 local lastVsx, lastVsy = 0, 0
+---@type number
 local currentLeftVw = INITIAL_LEFT_VW
+---@type number
 local currentTopVh = INITIAL_TOP_VH
 
+---@class TFBrushUiState
+---@field updatingFromCode boolean code is writing a control; change handlers stand down
+---@field draggingSlider string? short id of the slider under a drag
+---@field draggingSliderEl table? its element
+---@field [string] any
 local uiState = { updatingFromCode = false, draggingSlider = nil }
 
 -- Window drag state (module-level so widget:MouseMove/MouseRelease can access)
 local WINDOW_SNAP_THRESHOLD = 30
+---@class TFBrushWindowDrag
+---@field active boolean
+---@field rootEl any the window being dragged
+---@field rootId string?
+---@field offsetX number
+---@field offsetY number
+---@field ew number
+---@field eh number
+---@field vsx number
+---@field vsy number
+---@field lastX number
+---@field lastY number
+---@field snapRects table[]?
 local windowDragState = {
 	active = false,
 	rootEl = nil,
@@ -199,6 +375,7 @@ local windowDragState = {
 	lastY = -1,
 	snapRects = nil,
 }
+---@type { rootEl: any, handleId: string, rootId: string }[]
 local windowDragAllWindows = {}
 -- Shared state for this panel and the tf_* modules. New state goes here as a
 -- field, not as a file-level local: this chunk is close to Lua 5.1's 200-local limit.
@@ -989,6 +1166,19 @@ widgetState.hintDots = {
 }
 
 -- Skybox fade transition state
+---@class TFBrushSkyFade
+---@field active boolean
+---@field phase "fadeout"|"fadein"|"idle"
+---@field progress number
+---@field speed number
+---@field pendingTexture string?
+---@field pendingTextureRaw string?
+---@field origUnitAmbient number[]?
+---@field origUnitDiffuse number[]?
+---@field origUnitSpecular number[]?
+---@field origGroundAmbient number[]?
+---@field origGroundDiffuse number[]?
+---@field origGroundSpecular number[]?
 local skyFade = {
 	active = false, -- is a transition in progress?
 	phase = "idle", -- "fadeout" | "fadein" | "idle"
@@ -1005,6 +1195,21 @@ local skyFade = {
 }
 
 -- Dynamic skybox rotation state
+---@class TFBrushSkyDynamic
+---@field playing boolean
+---@field speedX number
+---@field speedY number
+---@field speedZ number
+---@field angleX number
+---@field angleY number
+---@field angleZ number
+---@field startQuat number[]?
+---@field sunSync boolean
+---@field origSunDir number[]?
+---@field origQuat number[]?
+---@field sunSliderX table?
+---@field sunSliderY table?
+---@field sunSliderZ table?
 local skyDynamic = {
 	playing = false,
 	speedX = 0, -- rad/s around X axis
@@ -1533,10 +1738,13 @@ end
 
 -- Forward declaration: defined after initialModel, captured as an upvalue by the
 -- onCl* data-model handlers inside it.
+---@type fun()
 local clearPassthrough
 -- Forward declarations: defined after initialModel, captured as upvalues by the
 -- onGuide* data-model handlers inside it.
+---@type fun(doc: table?)
 local populateKeybindList
+---@type fun()
 local updateAllKeybindBadges
 
 -- Helpers for the noise/clone/splat data-model handlers in initialModel below.
@@ -1736,7 +1944,9 @@ end
 
 -- Forward declarations: defined after initialModel, captured as upvalues by the
 -- onTf*/onTb* data-model handlers inside it.
+---@type table<string, string>, table<string, boolean>
 local shapeNames, CLAY_UNAVAILABLE_MODES
+---@type number, fun(which: string, value: number), number, number, boolean
 local ringWidthPct, applyCap, capMaxValue, capMinValue, capEnabled
 
 -- Shared helpers for the onTb* handlers in initialModel.
@@ -1762,6 +1972,9 @@ local _tbFollowModes = { raise = true, lower = true, level = true, smooth = true
 -- the literals are gamedata/movedefs.lua's SLOPE values as a fallback. SHIP is not
 -- a slope (ships need deep enough water), so it switches the engine's own
 -- traversability view (/showpathtype) instead; `prevDrawMode` is the view to restore.
+---@class TFBrushPassClasses
+---@field prevDrawMode string? the map draw mode to restore after SHIP
+---@field [integer] { key: string, unit: string, deg: number?, engine: boolean? }
 local _tbPassClasses = {
 	{ key = "BOT", unit = "armpw", deg = 54 },
 	{ key = "VEH", unit = "armflash", deg = 27 },
@@ -3952,6 +4165,7 @@ end
 widgetState.projectSyncCell = function(p)
 	local state = widgetState.projectSyncState(p)
 	local slug = tostring(p.slug or "")
+	---@type string, string, string?
 	local dot, key, title = state, "syncLocal", "dotMissing"
 	if state == "team" then
 		key = "syncTeam"
@@ -4728,6 +4942,7 @@ widgetState.projectWriteRunner = function()
 	out:close()
 	-- A replay path is the one absolute path this API hands out, so it is the only way
 	-- to show the user where their data directory is.
+	---@type string?
 	local absolute = nil
 	-- The VFS names the file now that it is on disk. The replay recording path below
 	-- is the fallback; a session without a recording has none.
@@ -4953,6 +5168,7 @@ widgetState.projectDragUpdate = function()
 			ghost.inner_rml = dotRml .. '<div class="tf-project-dragghost-text">' .. escG(leafG) .. "</div>"
 		end
 		local leftPx = math.max(0, mx + 14)
+		---@type number
 		local topPx = math.max(0, py + 12)
 		ghost:SetAttribute("style", string.format("left: %.2fvw; top: %.2fvh;", leftPx / vsx * 100, topPx / vsy * 100))
 		ghost:SetClass("hidden", false)
@@ -6231,6 +6447,7 @@ local initialModel = {
 		if not WG.TerraformBrush then
 			return
 		end
+		---@type number
 		local val = math.max(8, _noSliderVal("noise-scale", 64) - 8)
 		WG.TerraformBrush.setNoiseScale(val)
 		_noSetSliderVal("noise-scale", val)
@@ -6257,6 +6474,7 @@ local initialModel = {
 		if not WG.TerraformBrush then
 			return
 		end
+		---@type number
 		local val = math.max(1, _noSliderVal("noise-octaves", 4) - 1)
 		WG.TerraformBrush.setNoiseOctaves(val)
 		_noSetSliderVal("noise-octaves", val)
@@ -6283,6 +6501,7 @@ local initialModel = {
 		if not WG.TerraformBrush then
 			return
 		end
+		---@type number
 		local val = math.max(10, _noSliderVal("noise-persistence", 50) - 5)
 		WG.TerraformBrush.setNoisePersistence(val / 100)
 		_noSetSliderVal("noise-persistence", val)
@@ -6309,6 +6528,7 @@ local initialModel = {
 		if not WG.TerraformBrush then
 			return
 		end
+		---@type number
 		local val = math.max(10, _noSliderVal("noise-lacunarity", 20) - 1)
 		WG.TerraformBrush.setNoiseLacunarity(val / 10)
 		_noSetSliderVal("noise-lacunarity", val)
@@ -15226,6 +15446,7 @@ local initialModel = {
 			return
 		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		---@type table?
 		local layer = nil
 		for i = 1, #layers do
 			if layers[i].id == id then
@@ -15260,6 +15481,7 @@ local initialModel = {
 			return
 		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		---@type table?
 		local layer = nil
 		for i = 1, #layers do
 			if layers[i].id == id then
@@ -15295,6 +15517,7 @@ local initialModel = {
 			return
 		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		---@type table?
 		local layer = nil
 		for i = 1, #layers do
 			if layers[i].id == id then
@@ -15329,6 +15552,7 @@ local initialModel = {
 			return
 		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		---@type table?
 		local layer = nil
 		for i = 1, #layers do
 			if layers[i].id == id then
@@ -15352,6 +15576,7 @@ local initialModel = {
 			return
 		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		---@type table?
 		local layer = nil
 		for i = 1, #layers do
 			if layers[i].id == id then
@@ -15386,6 +15611,7 @@ local initialModel = {
 			return
 		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		---@type table?
 		local layer = nil
 		for i = 1, #layers do
 			if layers[i].id == id then
@@ -15419,6 +15645,7 @@ local initialModel = {
 			return
 		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		---@type table?
 		local layer = nil
 		for i = 1, #layers do
 			if layers[i].id == id then
@@ -19670,6 +19897,7 @@ local function drawSkyFadeOverlay()
 		return
 	end
 
+	---@type number
 	local alpha = 0
 	if skyFade.phase == "fadeout" then
 		alpha = skyFade.progress
@@ -22187,6 +22415,7 @@ function widget:Update()
 							.. " (see console)</span>"
 					end
 					setInnerRmlIfChanged(sumEl3, "status-summary", rml)
+					---@type number
 					local o = 1
 					if now > widgetState.saveDoneUntil then
 						o = 1 - (now - widgetState.saveDoneUntil) / FADE
@@ -22244,6 +22473,7 @@ function widget:Update()
 					widgetState.libraryOwnsStrip = true
 					widgetState.saveFadeInStart = nil
 					setInnerRmlIfChanged(sumEl3, "status-summary", rml)
+					---@type number
 					local o = 1
 					if out and not phase and not widgetState.libraryProgress then
 						local left = out.until_ - os.clock()
