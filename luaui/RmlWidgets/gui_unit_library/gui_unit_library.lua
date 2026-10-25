@@ -6,6 +6,7 @@ local widget = widget ---@type Widget
 
 -- Captured at chunk scope: RmlUi dispatches keydown/focus listeners through its own Lua plugin,
 -- where bare globals read nil.
+---@type table<string, any>
 local WG, Spring, RmlUi = WG, Spring, RmlUi
 
 function widget:GetInfo()
@@ -68,6 +69,7 @@ local COLUMNS = 4
 --- three letter rows of the keyboard, the way the game's build grid menu does it. By POSITION
 --- (SDL scancodes), so the same three rows of keys work on any layout. A row takes as many
 --- keys as the grid has columns: four columns use Q W E R, and T G B join if it grows to five.
+---@type table<integer, table<integer, {sc: integer, label: string}>>
 local GRID_KEYS = {
 	{
 		{ sc = 20, label = "Q" },
@@ -92,6 +94,7 @@ local GRID_KEYS = {
 	},
 }
 --- scancode -> tile index (1-based, in grid order), and tile index -> its key's label.
+---@type table<number, integer>, table<integer, string>
 local GRID_KEY_TILE, GRID_KEY_LABEL = {}, {}
 for row, keys in ipairs(GRID_KEYS) do
 	for col = 1, math.min(#keys, COLUMNS) do

@@ -58,6 +58,10 @@ local MSG = {
 -- number, which is what the mission editor takes as its loadout. The kind and the mission
 -- team are the brush's own (owner "terraform_brush"); another owner (the mission editor)
 -- brings its own sink and teams.
+---@class UnitPlacerMission
+---@field TEAMS integer
+---@field PARAM string
+---@field PALETTE table<number, number[]> one colour per mission team
 local mission = {
 	TEAMS = 16,
 	PARAM = "mission_team",
@@ -187,6 +191,8 @@ local cos, sin, pi = math.cos, math.sin, math.pi
 ---@field modBase string?
 ---@field lastStampX number?
 ---@field lastStampZ number?
+---@field kind string "live" | "mission": what the brush places
+---@field missionTeam number the mission team number new mission units get
 
 ---@type UnitPlacerState
 local up = {
