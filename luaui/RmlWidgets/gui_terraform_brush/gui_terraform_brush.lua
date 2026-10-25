@@ -16068,7 +16068,7 @@ local guideHints = {
 	["btn-triangle"] = "Three-sided brush for sharp wedge-shaped terrain edits, cliff faces and triangular plateaus.",
 	["btn-ring"] = "Hollow ring brush that only affects the outer edge of the area. Perfect for craters and moats.",
 	["btn-fill"] = "Fill brush: click inside any enclosed terrain shape to flood-fill it. Flat fill when walls are uniform height; smooth biharmonic surface when walls vary.",
-	["btn-clay-mode"] = "Clay Brush restricts edits to only push terrain in one direction, preventing accidental raise while lowering and vice versa.",
+	["btn-clay-mode"] = "Clay Brush lays flat layers instead of a dome: terrain moves toward a flat plane INTENSITY x 8 elmos above (raise) or below (lower) where the stroke started, never past it, so strokes build plateaus.",
 	-- Overlay / visual toggles
 	["btn-grid-overlay"] = "Draws a measurement grid across the terrain to help align structures and judge distances. Always visible, not just inside the brush.",
 	["btn-dust-effects"] = "Toggle dust particle effects when terraforming. Purely cosmetic — only applies when DJ Mode is active.",
