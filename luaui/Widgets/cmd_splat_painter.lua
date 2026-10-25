@@ -40,8 +40,6 @@ local glPolygonOffset = gl.PolygonOffset
 local glDepthTest = gl.DepthTest
 local glTexCoord = gl.TexCoord
 local GL_TRIANGLES = GL.TRIANGLES
-local GL_LINE_LOOP = GL.LINE_LOOP
-local GL_LINES = GL.LINES
 
 local floor = math.floor
 local max = math.max
@@ -518,24 +516,18 @@ local PAINT_FRAG_SRC = [[
 			// Square
 			dist = max(abs(rotDelta.x), abs(rotDelta.y)) / brushRadius;
 		} else if (brushShape == 2) {
-			// Triangle (equilateral, apex at -Z = north, matches outline)
-			vec2 p = rotDelta / brushRadius;
-			// Negate p.y so apex points toward -Z (north) matching the visual outline
-			float py = -p.y - 0.333333;
-			// Half-plane distances for equilateral triangle
-			float d1 = -py - 0.5;                              // south edge
-			float d2 =  0.866025 * p.x + 0.5 * py - 0.5;      // lower-right edge
-			float d3 = -0.866025 * p.x + 0.5 * py - 0.5;      // lower-left edge
-			dist = max(max(d1, d2), d3) + 1.0;
+			// Triangle: equilateral, vertex on +X at the circumradius (common/brush_shapes.lua)
+			float nx = rotDelta.x / brushRadius;
+			float az = abs(rotDelta.y) / brushRadius;
+			dist = max(nx + az * 1.7320508, -2.0 * nx);
 		} else if (brushShape == 3) {
-			// Hexagon
+			// Hexagon: vertex on +X at the circumradius (common/brush_shapes.lua)
 			vec2 a = abs(rotDelta) / brushRadius;
-			dist = max(a.x * 0.866025 + a.y * 0.5, a.y);
+			dist = max(a.x + a.y * 0.5773503, a.y * 1.1547005);
 		} else if (brushShape == 4) {
-			// Octagon
+			// Octagon: vertex on +X at the circumradius (common/brush_shapes.lua)
 			vec2 a = abs(rotDelta) / brushRadius;
-			float oct = 0.4142136 * (a.x + a.y);
-			dist = max(max(a.x, a.y), oct);
+			dist = max(a.x + a.y * 0.4142136, a.y + a.x * 0.4142136);
 		}
 
 		if (dist >= 1.0) {
@@ -1500,183 +1492,9 @@ function widget:KeyPress(key, mods, isRepeat)
 	return false
 end
 
--- ============ SMART FILTER OVERLAY ============
-
--- Check if a local-space point is inside the brush shape
-local function isInsideBrush(lx, lz, radius, shape)
-	if shape == "circle" then
-		return (lx * lx + lz * lz) <= radius * radius
-	elseif shape == "square" then
-		return abs(lx) <= radius and abs(lz) <= radius
-	elseif shape == "hexagon" then
-		local ax, az = abs(lx), abs(lz)
-		local apothem = radius * cos(pi / 6)
-		if az > apothem then
-			return false
-		end
-		if ax > radius then
-			return false
-		end
-		return ax * cos(pi / 6) + az * sin(pi / 6) <= apothem
-	elseif shape == "triangle" then
-		-- Equilateral triangle, apex at -Z (north) matching visual outline
-		local px, pz = lx / radius, lz / radius
-		local pz2 = -pz - 0.333333
-		local d1 = -pz2 - 0.5
-		local d2 = 0.866025 * px + 0.5 * pz2 - 0.5
-		local d3 = -0.866025 * px + 0.5 * pz2 - 0.5
-		return max(max(d1, d2), d3) < 0.0
-	elseif shape == "octagon" then
-		local ax, az = abs(lx), abs(lz)
-		local cut = radius * sin(pi / 8)
-		local side = radius * cos(pi / 8)
-		if ax > side or az > side then
-			return false
-		end
-		return (ax + az) <= (side + cut)
-	end
-	return true
-end
-
--- Draw colored terrain-following quads showing valid (green) vs rejected (red) areas
-local function drawSmartFilterOverlay(cx, cz, radius, shape, angleDeg)
-	local step = GRID_STEP
-	local halfStep = step * 0.3
-	local rad = angleDeg * pi / 180
-	local cosR, sinR = cos(rad), sin(rad)
-
-	glDepthTest(true)
-	glBeginEnd(GL_TRIANGLES, function()
-		for lx = -radius, radius, step do
-			for lz = -radius, radius, step do
-				if isInsideBrush(lx, lz, radius, shape) then
-					local wx = cx + lx * cosR - lz * sinR
-					local wz = cz + lx * sinR + lz * cosR
-					local valid = isPointValid(wx, wz)
-
-					if valid then
-						glColor(0.2, 0.85, 0.3, 0.08 * edgeFade)
-					else
-						glColor(0.9, 0.15, 0.15, 0.14 * edgeFade)
-					end
-
-					local x0 = wx - halfStep
-					local x1 = wx + halfStep
-					local z0 = wz - halfStep
-					local z1 = wz + halfStep
-					local y00 = GetGroundHeight(x0, z0) + 3
-					local y10 = GetGroundHeight(x1, z0) + 3
-					local y01 = GetGroundHeight(x0, z1) + 3
-					local y11 = GetGroundHeight(x1, z1) + 3
-
-					glVertex(x0, y00, z0)
-					glVertex(x1, y10, z0)
-					glVertex(x1, y11, z1)
-
-					glVertex(x0, y00, z0)
-					glVertex(x1, y11, z1)
-					glVertex(x0, y01, z1)
-				end
-			end
-		end
-	end)
-	glDepthTest(false)
-end
-
--- Get shape corner points for altitude cap prism drawing
-local function getShapeCorners(shape, radius, angleDeg)
-	local corners = {}
-	local rad = angleDeg * pi / 180
-	if shape == "circle" then
-		for i = 0, 15 do
-			local a = i * (2 * pi / 16) + rad
-			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
-		end
-	elseif shape == "square" then
-		local pts = { { -radius, -radius }, { radius, -radius }, { radius, radius }, { -radius, radius } }
-		for _, p in ipairs(pts) do
-			local rx = p[1] * cos(rad) - p[2] * sin(rad)
-			local rz = p[1] * sin(rad) + p[2] * cos(rad)
-			corners[#corners + 1] = { rx, rz }
-		end
-	elseif shape == "hexagon" then
-		for i = 0, 5 do
-			local a = i * (2 * pi / 6) + rad
-			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
-		end
-	elseif shape == "triangle" then
-		for i = 0, 2 do
-			local a = i * (2 * pi / 3) - pi / 2 + rad
-			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
-		end
-	elseif shape == "octagon" then
-		for i = 0, 7 do
-			local a = i * (2 * pi / 8) + rad
-			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
-		end
-	end
-	return corners
-end
-
--- Draw altitude cap prism (orange for max, cyan for min, white struts)
-local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg)
-	local sf = smartFilter
-	if not sf.altMinEnable and not sf.altMaxEnable then
-		return
-	end
-
-	local corners = getShapeCorners(shape, radius, angleDeg)
-	if #corners == 0 then
-		return
-	end
-
-	local botY = sf.altMinEnable and sf.altMin or nil
-	local topY = sf.altMaxEnable and sf.altMax or nil
-
-	glDepthTest(true)
-	glLineWidth(1.5)
-
-	if topY then
-		glColor(1.0, 0.6, 0.1, 0.55 * edgeFade)
-		glBeginEnd(GL_LINE_LOOP, function()
-			for i = 1, #corners do
-				glVertex(cx + corners[i][1], topY, cz + corners[i][2])
-			end
-		end)
-	end
-
-	if botY then
-		glColor(0.1, 0.6, 1.0, 0.55 * edgeFade)
-		glBeginEnd(GL_LINE_LOOP, function()
-			for i = 1, #corners do
-				glVertex(cx + corners[i][1], botY, cz + corners[i][2])
-			end
-		end)
-	end
-
-	local stride = max(1, floor(#corners / 8))
-	local strutBot = botY or (topY and topY - 100) or 0
-	local strutTop = topY or (botY and botY + 100) or 0
-	glColor(1, 1, 1, 0.2 * edgeFade)
-	glBeginEnd(GL_LINES, function()
-		for i = 1, #corners, stride do
-			local wx = cx + corners[i][1]
-			local wz = cz + corners[i][2]
-			glVertex(wx, strutBot, wz)
-			glVertex(wx, strutTop, wz)
-		end
-	end)
-
-	glLineWidth(1)
-	glDepthTest(false)
-end
-
 -- ============ DRAW ============
 
 local function generateBrushOutline(centerX, centerZ, groundY)
-	local rotRad = activeRotation * pi / 180
-	local cr = cos(rotRad)
-	local sr = sin(rotRad)
 	local r = activeRadius
 	local segments = CIRCLE_SEGMENTS
 	local shape = activeShape
@@ -1699,40 +1517,8 @@ local function generateBrushOutline(centerX, centerZ, groundY)
 	if shape == "circle" then
 		glDrawGroundCircle(centerX, groundY, centerZ, r, segments)
 	else
-		local verts = {}
-		if shape == "square" then
-			verts = {
-				{ -r, -r },
-				{ r, -r },
-				{ r, r },
-				{ -r, r },
-			}
-		elseif shape == "hexagon" then
-			for i = 0, 5 do
-				local angle = pi / 3 * i + pi / 6
-				verts[#verts + 1] = { r * cos(angle), r * sin(angle) }
-			end
-		elseif shape == "triangle" then
-			for i = 0, 2 do
-				local angle = (2 * pi / 3) * i - pi / 2
-				verts[#verts + 1] = { r * cos(angle), r * sin(angle) }
-			end
-		elseif shape == "octagon" then
-			for i = 0, 7 do
-				local angle = pi / 4 * i + pi / 8
-				verts[#verts + 1] = { r * cos(angle), r * sin(angle) }
-			end
-		end
-
-		-- Rotate and project to ground
-		glBeginEnd(GL.LINE_LOOP, function()
-			for _, v in ipairs(verts) do
-				local rx = v[1] * cr - v[2] * sr + centerX
-				local rz = v[1] * sr + v[2] * cr + centerZ
-				local gy = GetGroundHeight(rx, rz)
-				glVertex(rx, gy + 2, rz)
-			end
-		end)
+		-- vertex on +X at the circumradius, the BrushShapes convention the paint shader uses
+		WorldTool.drawShape(shape, centerX, centerZ, r, activeRotation, 1, 2, 1, segments)
 	end
 
 	-- Draw inner crosshair
@@ -1948,8 +1734,20 @@ function widget:DrawWorld()
 	glPolygonOffset(false)
 
 	if smartFilterEnabled then
-		drawSmartFilterOverlay(worldX, worldZ, activeRadius, activeShape, activeRotation)
-		drawAltitudeCapPrism(worldX, worldZ, activeRadius, activeShape, activeRotation)
+		-- the shared overlay and prism, in the BrushShapes convention the paint shader uses
+		WorldTool.drawFilterOverlay(
+			worldX,
+			worldZ,
+			activeRadius,
+			activeShape,
+			activeRotation,
+			1,
+			edgeFade,
+			GRID_STEP,
+			nil,
+			isPointValid
+		)
+		WorldTool.drawAltitudePrism(worldX, worldZ, activeRadius, activeShape, activeRotation, smartFilter, edgeFade)
 	end
 
 	glColor(1, 1, 1, 1)
