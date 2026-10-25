@@ -16241,7 +16241,7 @@ local guideHints = {
 	["slider-metal-value"] = "Target metal extraction rate for stamp mode. Standard mex spots use 2.0. Space+Scroll to adjust in-game.",
 	["btn-metal-value-down"] = "Decrease metal extraction value by ~10%.",
 	["btn-metal-value-up"] = "Increase metal extraction value by ~10%.",
-	["btn-metal-save"] = "Save the current metal map to a Lua data file in LuaUI/Config/MetalMaps/.",
+	["btn-metal-save"] = "Save the current metal map to a Lua data file in Terraform Brush/MetalMaps/.",
 	["btn-metal-load"] = "Load a previously saved metal map from disk and apply it to the map.",
 	["btn-metal-clean"] = "Remove ALL metal from the map. Click once to arm, click again to confirm.",
 	-- Grass brush
