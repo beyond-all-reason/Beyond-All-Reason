@@ -58,15 +58,14 @@ local spGetUnitsInSphere = Spring.GetUnitsInSphere
 
 -- Initialization --------------------------------------------------------------
 
-local avoidUnit, preferUnit = {}, {}
-local avoidUnitPrevious, preferUnitPrevious = {}, {}
+-- The positive indices go to radii to avoid. Negative go to radii to prefer.
+-- An avoided radius contains allied units. A preferred one is a clean shot.
+local targetCache, targetCachePrevious = {}, {}
 do
 	local allyTeamList = Spring.GetAllyTeamList()
 	for _, allyTeam in pairs(allyTeamList) do
-		avoidUnit[allyTeam] = {}
-		preferUnit[allyTeam] = {}
-		avoidUnitPrevious[allyTeam] = {}
-		preferUnitPrevious[allyTeam] = {}
+		targetCache[allyTeam] = {}
+		targetCachePrevious[allyTeam] = targetCache[allyTeam]
 	end
 end
 
@@ -341,14 +340,16 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		return true, priority
 	end
 
+	local cache, cachePrevious = targetCache[allyTeam], targetCachePrevious[allyTeam]
+
 	-- Avoid collaterals of a similar scale to our own explosion radius.
-	local avoidRadius = avoidUnit[allyTeam][targetID] or avoidUnitPrevious[allyTeam][targetID] ---@as number?
+	local avoidRadius = cache[targetID] or cachePrevious[targetID] ---@as number?
 	if avoidRadius and avoidRadius == math_clamp(avoidRadius, searchRadius * 0.5, searchRadius + 10) then
 		return allowBadSpamTarget or not unitIsSpam[targetID], priority * PRIORITY_ANTI_COLLATERAL
 	end
 
 	-- Prefer targets that are clean hits or bombarded by larger weapons.
-	local preferRadius = preferUnit[allyTeam][targetID] or preferUnitPrevious[allyTeam][targetID]
+	local preferRadius = cache[-targetID] or cachePrevious[-targetID]
 	if preferRadius and preferRadius >= searchRadius - 10 then
 		return true, priority -- No priority bonus. Focus on bad targets.
 	end
@@ -363,7 +364,7 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		-- The avoid radius shrinks because a smaller attack region can eliminate
 		-- specific targets trivially without causing any friendly-fire damages.
 		if not avoidRadius or avoidRadius > searchRadius then
-			avoidUnit[allyTeam][targetID] = searchRadius
+			cache[targetID] = searchRadius
 		end
 		if enemyPower <= spamPowerMax or enemyPower / friendPower <= spamRatioMin then
 			allowed = allowBadSpamTarget
@@ -375,7 +376,7 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		-- The preferred target radius grows since it represents the net region
 		-- of incoming attacks that will be (probably) directed at that unit.
 		if not preferRadius or preferRadius < searchRadius then
-			preferUnit[allyTeam][targetID] = searchRadius
+			cache[-targetID] = searchRadius
 		end
 		if friendPower <= spamPowerMax then
 			priority = priority * PRIORITY_CLEAN_SHOT
@@ -390,10 +391,11 @@ function gadget:GameFramePost(frame)
 	if updateAllyTeams[frameIndex] then
 		-- Evicts half the allyTeam targeting cache per update:
 		for _, allyTeam in next, updateAllyTeams[frameIndex] do
-			avoidUnitPrevious[allyTeam] = avoidUnit[allyTeam]
-			avoidUnit[allyTeam] = {}
-			preferUnitPrevious[allyTeam] = preferUnit[allyTeam]
-			preferUnit[allyTeam] = {}
+			local cache = targetCache[allyTeam]
+			targetCachePrevious[allyTeam] = cache
+			if next(cache) ~= nil then
+				targetCache[allyTeam] = {}
+			end
 		end
 	end
 end
