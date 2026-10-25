@@ -392,7 +392,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		dm.activeShape = gbState.shape
 	end
 
-	-- Re-enable every shape button except ring, which is left as the previous tool set it.
+	-- Re-enable every shape button except ring: the panel's Update disables ring for this tool every frame.
 	for shape, element in pairs(widgetState.shapeButtons) do
 		if element and shape ~= "ring" then
 			element:SetClass("disabled", false)
