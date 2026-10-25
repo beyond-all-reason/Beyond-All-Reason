@@ -574,6 +574,11 @@ local function stepSplat()
 		return false
 	end
 	c.ticks = c.ticks + 1
+	if not sp then
+		warn("splat painter was turned off during the save")
+		sectionSkip("splat", "painter turned off during the save")
+		return true
+	end
 	if sp.isSavePending() then
 		if c.ticks > SPLAT_TIMEOUT_TICKS then
 			warn("splat save timed out (painter draw pump never ran)")
@@ -632,6 +637,12 @@ local function stepSurface()
 		return false
 	end
 	c.ticks = c.ticks + 1
+	if not sp then
+		surfaceStage.clear()
+		warn("surface painter was turned off during the save")
+		sectionSkip("surface", "painter turned off during the save")
+		return true
+	end
 	if sp.isSavePending() then
 		if c.ticks > SPLAT_TIMEOUT_TICKS then
 			warn("surface mask save timed out (painter draw pump never ran)")
@@ -891,6 +902,9 @@ local function stepDiffuse()
 		return false
 	end
 	c.ticks = c.ticks + 1
+	if not dp then
+		return diffuseFailSkip("diffuse painter was turned off during the save")
+	end
 	if dp.isProjectSavePending() then
 		if c.ticks > DIFFUSE_TIMEOUT_TICKS then
 			return diffuseFailSkip("timed out (painter draw pump never finished)")
