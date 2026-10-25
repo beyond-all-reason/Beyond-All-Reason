@@ -92,6 +92,7 @@ end
 
 -- Metal per byte step of a metal square (maxMetal / 255; Lua cannot read maxMetal).
 -- Measured once by overfilling square 0,0, which clamps to 255 steps, then restored.
+---@type number?
 local metalStepCache = nil
 local function metalMapStep()
 	if not metalStepCache then
@@ -113,6 +114,7 @@ local undoStack = {}
 local redoStack = {}
 local MAX_UNDO = 50
 
+---@type fun(dx: number, dz: number, radius: number, shape: string, angleDeg: number?): boolean, number?
 local isInsideShape -- forward declaration
 
 local function snapshotShape(centerX, centerZ, radius, shape, angleDeg)
@@ -164,6 +166,7 @@ local function applySnapshot(snap)
 	return redo
 end
 
+---@return integer
 local function parseParts(payload)
 	local idx = 0
 	for word in payload:gmatch("[%-%.%w]+") do
@@ -290,7 +293,9 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 	local want = metalTarget * 1000
 	local perSquare = want / squareCount
 
+	---@type [integer, integer, number][]
 	local written = {}
+	---@type number
 	local got = 0
 	for mz = mzMin, mzMax do
 		local wz = mz * METAL_SQ + halfSq
@@ -317,6 +322,7 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 		local i = 1
 		while left > 0 and tries > 0 do
 			local sq = written[i]
+			---@cast sq -nil
 			local before = spGetMetalAmount(sq[1], sq[2])
 			spSetMetalAmount(sq[1], sq[2], before + dir * step)
 			if spGetMetalAmount(sq[1], sq[2]) ~= before then
@@ -364,6 +370,7 @@ end
 -- GameFrame is registered only while a rescan is pending.
 -- ============================================================
 local SPOT_REFRESH_DELAY = 15 -- frames after the last metal write
+---@type integer?
 local spotRefreshFrame = nil
 
 local function metalChanged()

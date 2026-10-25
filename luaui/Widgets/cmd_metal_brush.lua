@@ -76,12 +76,14 @@ local SAVE_DIR = "Terraform Brush/MetalMaps/"
 
 local CACHE_REBUILD_THROTTLE = 0.25
 local CACHE_REBUILD_DELAY = 0.12 -- wait for gadget RecvLuaMsg to apply SetMetalAmount
+---@type number
 local cacheRebuildHoldUntil = 0 -- os.clock() threshold; don't rebuild before this
 -- Declared here so the paint and stamp senders below mark these, not globals
 local spotsCacheDirty = true
 local clusterCacheDirty = true
 local overlayListDirty = true
 local clusterVisDirty = true
+---@type number
 local lastCacheBuildClock = 0
 local balanceAxisSumsDirty = true
 
@@ -90,8 +92,11 @@ local active = false
 local subMode = "stamp" -- "paint", "stamp" or "remove"
 local metalValue = DEFAULT_METAL_VALUE
 local painting = false
+---@type number
 local paintButton = 0 -- 1 = LMB (raise), 3 = RMB (lower/erase)
+---@type number
 local lastPaintTime = 0
+---@type number
 local edgeFade = 1 -- 1 on-map; <1 while the cursor is past the map edge (fades cursor visuals)
 
 local function getSharedState()
@@ -144,6 +149,7 @@ end
 -- Per-draw-frame mouse trace shared between DrawWorld and DrawScreen (both
 -- run inside the same draw pass, so the raw trace result is identical).
 local frameTraceDF = -1
+---@type number?, number?
 local frameTraceX, frameTraceZ = nil, nil
 
 local function sendPaintMessage(worldX, worldZ)
@@ -323,6 +329,7 @@ local function drawCursorInfo(worldX, worldZ)
 	local cz = floor(worldZ / METAL_SQ)
 	local cellRange = floor(EXTRACTOR_RADIUS / METAL_SQ) + 1
 	local mmX, mmZ = GetMetalMapSize()
+	---@type number
 	local spotMetal = 0
 	local halfSq = METAL_SQ * 0.5
 	for dz = -cellRange, cellRange do
@@ -504,23 +511,52 @@ local DEFAULT_CLUSTER_RADIUS = 256
 
 local mapOverlay = false
 local MAP_OVERLAY_DIM = 0.45 -- alpha of the map-dim quad drawn while overlay is active
+---@type {gridSnap: boolean, radius: number?, shape: (BrushShape|"ring"|"fill")?}?
 local savedBrushBeforeMetal = nil -- {gridSnap, radius, shape} to restore on tool exit
 local clusterCounter = false
+---@type number
 local clusterRadius = DEFAULT_CLUSTER_RADIUS
 local lassoActive = false
+---@type {x: number, z: number}[]
 local lassoPoints = {} -- in-progress polygon (not yet committed)
+---@type {points: {x: number, z: number}[], total: number}[]
 local lassos = {} -- array of { points = {...}, total = number } committed loops
 
 -- Free-draw (drag-while-held) lasso tracking
+---@type number?, number?
 local lassoDragStartSx, lassoDragStartSy = nil, nil
 local lassoDragDetected = false
 local LASSO_DRAG_THRESHOLD_PX = 6
 local LASSO_FREEDRAW_MIN_SPACING_SQ = 24 * 24 -- world elmos^2 between appended points
 
+---One metal map square with metal on it.
+---@class MetalSpot
+---@field mx integer
+---@field mz integer
+---@field wx number
+---@field wz number
+---@field amount number
+---@field cluster integer? Index into the cluster cache.
+
+---A greedy cluster of metal squares, centred on its amount-weighted mean.
+---@class MetalCluster
+---@field cx number
+---@field cz number
+---@field sumX number
+---@field sumZ number
+---@field sumW number
+---@field totalAmount number
+---@field count integer
+---@field members integer[] Indices into the spot cache.
+
+---@type MetalSpot[]?
 local spotsCache = nil
+---@type MetalCluster[]?
 local clusterCache = nil
 local clusterCacheRadius = -1
+---@type integer?
 local overlayList = nil
+---@type integer?
 local clusterVisList = nil
 
 local function invalidateMetalCaches()
@@ -564,9 +600,11 @@ end
 local function buildClusters(radius)
 	ensureSpotCache()
 	local r2 = radius * radius
+	---@type MetalCluster[]
 	local clusters = {}
 	for i = 1, #spotsCache do
 		local s = spotsCache[i]
+		---@type integer?, number
 		local best, bestD2 = nil, r2
 		for ci = 1, #clusters do
 			local c = clusters[ci]
@@ -580,6 +618,7 @@ local function buildClusters(radius)
 		end
 		if best then
 			local c = clusters[best]
+			---@cast c -nil
 			c.totalAmount = c.totalAmount + s.amount
 			c.count = c.count + 1
 			c.sumX = c.sumX + s.wx * s.amount
@@ -710,6 +749,7 @@ local function buildClusterVisList()
 			glBeginEnd(GL_QUADS, function()
 				for mi = 1, #mem do
 					local s = spots[mem[mi]]
+					---@cast s -nil
 					local wx, wz = s.wx, s.wz
 					local y = GetGroundHeight(wx, wz) + 0.6
 					glVertex(wx - halfSq, y, wz - halfSq)
@@ -729,6 +769,7 @@ local function buildClusterVisList()
 				local mem = c.members
 				for mi = 1, #mem do
 					local s = spots[mem[mi]]
+					---@cast s -nil
 					pts[#pts + 1] = { x = s.wx, z = s.wz }
 				end
 				local hull = convexHull2D(pts)
@@ -750,6 +791,7 @@ local function buildClusterVisList()
 	clusterVisDirty = false
 end
 
+---@return boolean
 local function pointInPoly(px, pz, pts)
 	local n = #pts
 	if n < 3 then
@@ -773,6 +815,7 @@ local function computePointsSum(points)
 		return 0
 	end
 	ensureSpotCache()
+	---@type number
 	local total = 0
 	for i = 1, #spotsCache do
 		local s = spotsCache[i]
@@ -784,6 +827,7 @@ local function computePointsSum(points)
 end
 
 local function lassoGrandTotal()
+	---@type number
 	local t = 0
 	for i = 1, #lassos do
 		t = t + (lassos[i].total or 0)
@@ -876,6 +920,7 @@ local function drawLassoWorld(cursorX, cursorZ)
 			glBeginEnd(GL_LINE_STRIP, function()
 				for i = 1, n do
 					local p = lassoPoints[i]
+					---@cast p -nil
 					glVertex(p.x, GetGroundHeight(p.x, p.z) + 4, p.z)
 				end
 			end)
@@ -883,6 +928,7 @@ local function drawLassoWorld(cursorX, cursorZ)
 		local cx, cz = cursorX, cursorZ
 		if cx then
 			local last = lassoPoints[n]
+			---@cast last -nil
 			glBeginEnd(GL_LINES, function()
 				glVertex(last.x, GetGroundHeight(last.x, last.z) + 4, last.z)
 				glVertex(cx, GetGroundHeight(cx, cz) + 4, cz)
@@ -1046,11 +1092,16 @@ end
 -- ============================================================
 
 local balanceAxisActive = false
+---@type number
 local balanceAxisAngleDeg = 0 -- 0 = axis runs along X (east-west line)
+---@type number?
 local balanceAxisOriginX = nil -- nil -> map center
+---@type number?
 local balanceAxisOriginZ = nil
 local balanceAxisPlacingOrigin = false -- next LMB sets origin
+---@type number
 local balanceAxisSumA = 0 -- positive side (normal direction)
+---@type number
 local balanceAxisSumB = 0 -- negative side
 local balanceAxisHovering = false
 local balanceAxisDragging = false
@@ -1078,6 +1129,7 @@ local function recomputeBalanceAxisSums()
 	-- axis direction (cosA, sinA); normal perpendicular is (-sinA, cosA)
 	local nx = -sin(ang)
 	local nz = cos(ang)
+	---@type number, number
 	local a, b = 0, 0
 	for i = 1, #spots do
 		local s = spots[i]
@@ -1543,6 +1595,7 @@ function widget:MouseMove(mx, my, dx, dy, button)
 	local n = #lassoPoints
 	if n > 0 then
 		local last = lassoPoints[n]
+		---@cast last -nil
 		local ddx = wx - last.x
 		local ddz = wz - last.z
 		if ddx * ddx + ddz * ddz < LASSO_FREEDRAW_MIN_SPACING_SQ then
@@ -1580,6 +1633,7 @@ function widget:MouseRelease(mx, my, button)
 	end
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
 	if not active then
 		return false
@@ -1631,6 +1685,7 @@ function widget:MouseWheel(up, value)
 
 	-- Alt+scroll: rotation (the angle snap step when angle snap is on)
 	if alt then
+		---@type number
 		local step = 3
 		if st.angleSnap and (st.angleSnapStep or 0) > 0 then
 			step = st.angleSnapStep
@@ -1653,6 +1708,7 @@ function widget:MouseWheel(up, value)
 end
 
 -- Set by RecvLuaMsg, run in Update: reloading widgets inside a callin would change the list being dispatched.
+---@type fun()
 local refreshSpotWidgets
 local spotWidgetsPending = false
 
