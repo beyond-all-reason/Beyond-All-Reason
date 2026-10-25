@@ -3153,6 +3153,15 @@ function widget:DrawWorld()
 
 	-- Shape mode: outline and preview markers at the cursor.
 	if subMode == "shape" and wx then
+		-- The click's centre: grid snap moves it, so the preview snaps the same way. Shadowed
+		-- locals keep the snap inside this block.
+		---@type table?
+		local tbs = WG.TerraformBrush
+		local stbs = tbs and tbs.getState and tbs.getState() or nil
+		local wx, wz = wx, wz
+		if stbs and stbs.gridSnap and tbs.snapWorld then
+			wx, wz = tbs.snapWorld(wx, wz, shapeRotation)
+		end
 		local previewPts = generateShapePositions(wx, wz)
 		glColor(1, 1, 1, 0.22)
 		glLineWidth(1.5)
@@ -3181,9 +3190,6 @@ function widget:DrawWorld()
 			end)
 		end
 
-		---@type table?
-		local tbs = WG.TerraformBrush
-		local stbs = tbs and tbs.getState and tbs.getState() or nil
 		local copies = stbs
 			and stbs.symmetryActive
 			and tbs.getSymmetricPositions
