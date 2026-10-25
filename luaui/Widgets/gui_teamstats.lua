@@ -3586,18 +3586,19 @@ function widget:ViewResize()
 	deleteGuishader()
 end
 
-local wrapTooltip ---@type function
+local wrapTooltip ---@type fun(tip: string): string
 do
-	local wrappedTip, wrappedFrom
+	local wrappedTip, wrappedFrom, wrappedWidth
 	wrapTooltip = function(tip)
-		if tip ~= wrappedFrom then
-			wrappedFrom = tip
+		local width = WG.tooltip.getFontsize() * 90
+		if tip ~= wrappedFrom or width ~= wrappedWidth then
+			wrappedFrom, wrappedWidth = tip, width
 			local lines, count, color = {}, 0, ""
-			for line in (font:WrapText(tip, WG.tooltip.getFontsize() * 90) .. "\n"):gmatch("(.-)\n") do
+			for line in (font:WrapText(tip, width) .. "\n"):gmatch("(.-)\n") do
 				count = count + 1
 				lines[count] = color .. line
 				for code in line:gmatch("\255...") do
-					color = code -- newly wrapped lines start with the color
+					color = code -- newly-wrapped lines start with the color
 				end
 			end
 			wrappedTip = table.concat(lines, "\n")
