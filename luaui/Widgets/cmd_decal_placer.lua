@@ -32,8 +32,11 @@ local DestroyGroundDecal = Spring.DestroyGroundDecal
 local SetGroundDecalTexture = Spring.SetGroundDecalTexture
 local SetGroundDecalPosAndDims = Spring.SetGroundDecalPosAndDims
 local SetGroundDecalRotation = Spring.SetGroundDecalRotation
+---@type function?
 local SetGroundDecalAlpha = Spring.SetGroundDecalAlpha
+---@type function?
 local SetGroundDecalTint = Spring.SetGroundDecalTint
+---@type function?
 local SetGroundDecalNormal = Spring.SetGroundDecalNormal
 local GetAllGroundDecals = Spring.GetAllGroundDecals
 local GetGroundDecalMiddlePos = Spring.GetGroundDecalMiddlePos
@@ -66,6 +69,34 @@ local SAVE_DIR = "Terraform Brush/DecalMaps/"
 ----------------------------------------------------------------
 -- State
 ----------------------------------------------------------------
+---@class DecalPlacerState
+---@field active boolean
+---@field mode string? "scatter" | "point" | "remove"
+---@field shape string
+---@field radius number
+---@field rotation number
+---@field rotRandom number 0 = all same, 100 = fully random
+---@field decalCount number
+---@field cadence number
+---@field sizeMin number
+---@field sizeMax number
+---@field alpha number
+---@field tintR number
+---@field tintG number
+---@field tintB number
+---@field tintA number
+---@field alignToNormal boolean
+---@field selectedDecals string[]
+---@field selectedSet table<string, boolean>
+---@field dragging boolean
+---@field dragAction string?
+---@field placeTimer number
+---@field undoStack table[]
+---@field redoStack table[]
+---@field specs table by decal id
+---@field projectIDs table<integer, boolean>
+---@field undoCount integer
+---@field redoCount integer
 local dp = {
 	active = false,
 	mode = nil, -- "scatter", "point", "remove"
@@ -104,6 +135,7 @@ local dp = {
 }
 local MAX_UNDO = 100
 
+---@type number
 local updateTimer = 0
 
 ----------------------------------------------------------------
@@ -179,6 +211,7 @@ local function normalBaseKey(lname)
 	return k
 end
 
+---@type table<string, string|nil>
 local normPartnerByMain = {} -- { [mainName] = normName }
 
 local function buildDecalList()
@@ -201,7 +234,9 @@ local function buildDecalList()
 	filenames = filenames or {}
 
 	-- Pass 1: bucket every entry into the main/norm side of its pair key.
+	---@type table<string, any>
 	local mainsByKey = {}
+	---@type table<string, any>
 	local normsByKey = {}
 	for i, name in ipairs(names) do
 		local lname = name:lower()
@@ -422,6 +457,7 @@ end
 -- Apply the TerraformBrush grid snap and symmetric fan-out to a placement call.
 -- `fn(x, z)` is one of placeScatter / placePoint / placeRemove.
 local function placeSymmetric(fn, cx, cz)
+	---@type table?
 	local tb = WG.TerraformBrush
 	local rot = dp.rotation or 0
 	if tb and tb.getState then
@@ -801,6 +837,7 @@ end
 local function drawCurrentBrush()
 	local cx, cz = getWorldMousePosition()
 	do
+		---@type table?
 		local tb = WG.TerraformBrush
 		if tb and tb.animateUnmouse then
 			cx, cz = tb.animateUnmouse("decalPlacer", cx, cz, dp.radius, 1.0)
@@ -982,6 +1019,7 @@ function widget:MouseRelease(_, _, button)
 	return false
 end
 
+---@return boolean
 function widget:MouseWheel(up, _)
 	if not dp.active then
 		return false
@@ -989,6 +1027,7 @@ function widget:MouseWheel(up, _)
 	local alt, ctrl, _, shift = GetModKeyState()
 	if alt then
 		local step = ROTATION_STEP
+		---@type table?
 		local tb = WG.TerraformBrush
 		local tbs = tb and tb.getState and tb.getState() or nil
 		if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then

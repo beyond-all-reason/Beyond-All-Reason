@@ -19,6 +19,7 @@ end
 local RML_PATH = "luaui/RmlWidgets/gui_decal_placer/gui_decal_placer.rml"
 local MODEL_NAME = "decal_placer_model"
 
+---@type table<string, any>
 local WG = WG
 
 local INITIAL_LEFT_VW = 60
@@ -36,6 +37,7 @@ local INITIAL_TOP_VH = 10
 ---@field onSearchFocus fun(event: any)                       -- data-event-focus on search input
 ---@field onSearchBlur fun(event: any)                        -- data-event-blur on search input
 ---@field onSearchChange fun(event: any)                      -- data-event-change on search input
+---@field [string] any the dcCat* highlight flags, keyed through DECAL_CAT_FLAG
 ---@field onSearchClear fun(event: any)                       -- data-event-click on clear button
 -- Panel visibility is not a model field: document:Show()/Hide() drops the whole
 -- document from RmlUi's active set, so a closed panel costs nothing.
@@ -46,6 +48,7 @@ local INITIAL_TOP_VH = 10
 ---@field rmlContext any
 ---@field document any
 ---@field dmHandle DecalPlacerModel? -- nil until widget:Initialize() opens the data model
+---@field dragHandle table?
 ---@field rootElement any
 
 ---@type WidgetState
@@ -58,12 +61,14 @@ local widgetState = {
 
 -- Declared above initialModel so its handlers capture the local slot; the
 -- function is assigned further down.
+---@type function
 local syncDecals -- forward decl, assigned further down
 local lastSearchFilter = ""
 
 -- Selected category keys. Plain click selects one, Shift+click toggles one in or
 -- out; "all" excludes the specific categories. Mirrored to dm dcCat* flags for
 -- the data-class-active highlights.
+---@type table<string, boolean|nil>
 local selectedDecalCats = { all = true }
 local DECAL_CAT_KEYS =
 	{ "all", "scars", "explosions", "tracks", "builds", "footprints", "scorch", "groundplates", "other" }
