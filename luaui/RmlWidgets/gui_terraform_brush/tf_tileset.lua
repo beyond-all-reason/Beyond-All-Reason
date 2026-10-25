@@ -968,7 +968,7 @@ end
 -- SHADER UPDATE row. Deliberately NOT gated on WG.TilesetTerrain: it must work
 -- when the shader widget is missing or stale. Hidden without Team Sync.
 -- Matched against the shader manifest's brush_versions; patch releases keep the minor.
-local BRUSH_VERSION = "1.18"
+local BRUSH_VERSION = "1.19"
 
 local function shaderFitsBrush(shader)
 	local wanted = shader.brush_versions
