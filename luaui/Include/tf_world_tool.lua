@@ -1,7 +1,7 @@
 -- Terraform Brush world tools: the drawing helpers they share.
 --
 -- Every brush tool (terraform, features, units, grass, decals, weather, ...) draws a shape outline on the
--- ground, and they used to carry their own copies. The shapes follow common/brush_shapes.lua: vertex on +X
+-- ground, and they all draw it through here. The shapes follow common/brush_shapes.lua: vertex on +X
 -- at the circumradius, `lengthScale` stretches Z, a positive angle turns clockwise on screen, so an outline
 -- drawn here is exactly the area BrushShapes.isInside accepts.
 --
@@ -26,6 +26,9 @@ local abs = math.abs
 local rotate = BrushShapes.rotate
 local isInside = BrushShapes.isInside
 
+-- Specs load the widgets that include this file without a GL context; only the draw helpers need it.
+local gl = gl or {}
+local GL = GL or {}
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 local glColor = gl.Color
