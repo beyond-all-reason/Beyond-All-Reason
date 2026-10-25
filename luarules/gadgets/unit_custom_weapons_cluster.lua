@@ -518,10 +518,7 @@ end
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
-	local weaponData = clusterWeaponDefs[weaponDefID]
-	if weaponData then
-		spawnClusterProjectiles(weaponData, x, y, z, attackerID, projectileID)
-	end
+	spawnClusterProjectiles(clusterWeaponDefs[weaponDefID], x, y, z, attackerID, projectileID)
 end
 
 function gadget:GameFramePost(frame)
@@ -567,7 +564,7 @@ function gadget:Initialize()
 	-- Submunitions take their damage scaling from the parent weapon:
 	local setWeaponDefParent = GG.UnitAttributes.SetWeaponDefParent
 	for weaponDefID, data in pairs(clusterWeaponDefs) do
-		Script.SetWatchExplosion(weaponDefID, true)
+		gadgetHandler:RegisterExplosion(weaponDefID)
 		setWeaponDefParent(data.weaponID, weaponDefID)
 	end
 
