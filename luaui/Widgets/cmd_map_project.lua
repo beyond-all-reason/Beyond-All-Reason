@@ -54,16 +54,78 @@ local DIFFUSE_TIMEOUT_TICKS = 3600 -- full-map diffuse capture/load is many chun
 local UNITS_TIMEOUT_TICKS = 300 -- synced units export round-trip
 local UNITS_ACK_PARAM = "mpu_ack" -- rules param set by the units gadget after a replace
 
+---@type table?
 local heightmapPNG = nil -- lazy require of the shared 16-bit PNG codec
 -- Shared with the DIMENSIONS tools: it defines when a world pattern frame is identity.
 local MapTransform = VFS.Include("luaui/Include/map_transform.lua")
 
 -- Built by startSave / maybeStartLoad; steps run only while their job exists.
 -- Typed as tables so the analyzer does not read the steps' field access as nil.
----@type table
+---@class MapProjectSaveReceipt
+---@field slug string
+---@field done boolean
+---@field ok boolean?
+---@field uploadReady boolean?
+
+---@class MapProjectDntsRecord
+---@field textures table<integer, string>
+---@field scales table
+---@field mults table
+---@field diffuse_alpha number?
+---@field set string?
+---@field detail string?
+
+---@class MapProjectSaveJob
+---@field slug string
+---@field result MapProjectSaveReceipt
+---@field dir string
+---@field step integer
+---@field cursor table per-step chunk state, reset between steps
+---@field sections table[]
+---@field skipped table[]
+---@field warnings string[]
+---@field saveUnits boolean
+---@field autosave boolean
+---@field internal boolean
+---@field uploadBlocked boolean?
+---@field prev table? the manifest of the previous save, if any
+---@field mapOptions table<string, any>
+---@field heightRange { min: number, max: number }?
+---@field diffuse table?
+---@field diffuseOnDiskUnloaded boolean?
+---@field diffuseStateEmpty boolean?
+---@field unitsCount integer?
+---@field grassPatchResolution number?
+---@field dnts MapProjectDntsRecord?
+---@field assetDecals table?
+---@field failed string?
+---@field minimapSize { w: integer, h: integer }?
+
+---@class MapProjectLoadJob
+---@field slug string
+---@field dir string
+---@field sizeX number
+---@field sizeZ number
+---@field transform table?
+---@field manifest table
+---@field phase integer
+---@field cursor table per-phase state, reset between phases
+---@field loaded table
+---@field skipped table
+---@field byteWarned table
+---@field missingWarned table
+---@field autosaveOf string?
+---@field transformOf string?
+---@field cheatTicks integer?
+---@field cheatSends integer?
+---@field cheatLastSend integer?
+
+--- `|any`: nil while idle, but the steps only run while their job exists.
+---@type MapProjectSaveJob|any
 local job = nil -- active save job, nil when idle
----@type table
+---@type MapProjectLoadJob|any
 local loadJob = nil -- active load job, nil when idle (never both at once)
+---@type { batches: string[], done: boolean, denied: string? }?
 local unitsRx = nil -- receive buffer for the synced units export (stepUnits)
 ---@type table?
 local mapLibrary = nil -- unsynced companion queue; Git runs outside the engine
@@ -75,6 +137,7 @@ local currentSlug = nil
 
 -- Outcome of the most recent save ({ok, slug}) for the UI's "SAVED: <name>"
 -- readout, read once saveProgress() stops reporting a running save.
+---@type MapProjectSaveReceipt?
 local lastSaveInfo = nil
 -- Edits reported through WG.MapProject.markDirty since the last save or load.
 -- Ignored for a few seconds after either, while the engine's own heightmap
@@ -84,6 +147,7 @@ local dirtyGraceUntil = 0.0
 -- The project whose diffuse/ squares the painter is known to hold. A save over a
 -- project whose squares this session never loaded must not read the painter's
 -- empty state as "no paint" and delete them.
+---@type string?
 local diffuseLoadedSlug = nil
 
 -- Autosave (Settings > General): snapshots of the open project while it has
@@ -453,7 +517,9 @@ local function stepHeightmap()
 	-- Canonical range: previous manifest range auto-widened to live extremes,
 	-- rounded outward to integers so an unchanged terrain re-quantizes to the
 	-- exact same PNG bytes. Never clip terrain (silent data loss).
+	---@type number
 	local minH = math.floor(c.minH)
+	---@type number
 	local maxH = math.ceil(c.maxH)
 	local prevRange = job.prev and job.prev.map and job.prev.map.height_range
 	if prevRange and prevRange.min and prevRange.max then
@@ -488,6 +554,7 @@ local function stepHeightmap()
 		samples[i] = floor(norm * 65535 + 0.5)
 	end
 
+	---@cast heightmapPNG table
 	local png = heightmapPNG.encodeGray16(c.w, c.h, samples, minH, maxH)
 	if not png then
 		warn("heightmap PNG encode failed; section skipped")
@@ -506,6 +573,7 @@ local function stepHeightmap()
 end
 
 local function stepSplat()
+	---@type table?
 	local sp = WG.SplatPainter
 	local c = job.cursor
 	if not c.requested then
@@ -559,6 +627,7 @@ function surfaceStage.clear()
 end
 
 local function stepSurface()
+	---@type table?
 	local sp = WG.SurfacePainter
 	local c = job.cursor
 	if not c.requested then
@@ -794,6 +863,7 @@ local function diffuseFailSkip(reason, notLoaded)
 end
 
 local function stepDiffuse()
+	---@type table?
 	local dp = WG.DiffusePainter
 	local c = job.cursor
 	if not c.requested then
@@ -959,6 +1029,7 @@ end
 -- whether a feature is ground-aligned or gizmo-tilted. Same request/poll shape
 -- as stepUnits.
 local FEATURES_TIMEOUT_TICKS = 300
+---@type { entries: table?, err: any, done: boolean }?
 local featuresRx = nil
 
 -- Fallback when the synced export is unavailable (it needs /cheat, as does any
@@ -970,7 +1041,9 @@ local function writeFeaturesUnsynced(reason)
 	for i = 1, #featureIDs do
 		local fid = featureIDs[i]
 		local defID = Spring.GetFeatureDefID(fid)
+		---@type table?
 		local def = defID and FeatureDefs[defID]
+		---@type number?, number?, number?
 		local x, _, z = Spring.GetFeaturePosition(fid)
 		if def and x then
 			entries[#entries + 1] = { name = def.name, x = x, z = z, rot = Spring.GetFeatureHeading(fid) or 0 }
@@ -1154,6 +1227,7 @@ end
 -- One-shot unit-list read for other widgets (Terraform Brush Capture builds its
 -- SVG unit layer from this). Same synced round-trip as the save path, so it sees
 -- units outside the player's LOS; refused while a save/load job owns the buffer.
+---@type function?
 local unitsWaiter = nil
 local unitsWaiterTicks = 0
 
@@ -1314,6 +1388,7 @@ local function stepLights()
 		sectionSkip("lights", "light placer not loaded")
 		return true
 	end
+	---@type number
 	local count = lp.getPlacedCount and lp.getPlacedCount() or 0
 	if count == 0 then
 		sectionSkip("lights", "no placed lights")
@@ -1499,6 +1574,7 @@ local function captureLiveTexture(texName, destPath)
 	if not fbo then
 		return nil
 	end
+	---@type boolean?
 	local ok
 	gl.RenderToTexture(fbo, function()
 		gl.Blending(false)
@@ -1517,6 +1593,7 @@ local function stepAssets()
 	-- DNTS set: copy the resolved textures INTO the project (libraries mutate
 	-- over months; projects must stay self-contained) and record the resolved
 	-- scales/mults so load does not depend on the library.
+	---@type MapProjectDntsRecord?
 	local dnts = nil
 	local seenSource = {} -- dest name -> source path (detects basename collisions across sets)
 	for ch = 1, 4 do
@@ -1595,6 +1672,7 @@ local function stepAssets()
 			local name = "capture_normals" .. ch .. ".png"
 			if captureLiveTexture("$ssmf_splat_normals:" .. (ch - 1), job.dir .. "assets/dnts/" .. name) then
 				dnts = dnts or { textures = {}, scales = {}, mults = {} }
+				---@cast dnts MapProjectDntsRecord
 				dnts.textures[ch] = "assets/dnts/" .. name
 				dnts.scales[ch] = tonumber(scales[ch]) or 0
 				dnts.mults[ch] = tonumber(mults[ch]) or 0
@@ -1609,8 +1687,10 @@ local function stepAssets()
 			and captureLiveTexture("$ssmf_splat_detail", job.dir .. "assets/dnts/capture_detail.png")
 		then
 			dnts = dnts or { textures = {}, scales = scales, mults = mults }
+			---@cast dnts MapProjectDntsRecord
 			dnts.detail = "assets/dnts/capture_detail.png"
 		end
+		---@cast dnts MapProjectDntsRecord?
 		if dnts then
 			dnts.set = "live-capture"
 			dnts.diffuse_alpha = gl.GetMapRendering("splatDetailNormalDiffuseAlpha") and 1 or 0
@@ -1628,6 +1708,7 @@ local function stepAssets()
 	-- strings carry the capture name). Install state is whether the capture also
 	-- lives in the game archive's decal atlas source.
 	job.assetDecals = {}
+	---@type string?
 	local decalsContent = nil
 	do
 		local f = io.open(job.dir .. "decals.lua", "rb")
@@ -1977,6 +2058,7 @@ local function stepMinimap()
 		return true
 	end
 	local path = job.dir .. "minimap.png"
+	---@type boolean?
 	local ok
 	gl.RenderToTexture(fbo, function()
 		gl.Blending(false)
@@ -3131,6 +3213,7 @@ local function phaseSurface(c)
 	if not c.surfMetaDone then
 		c.surfMetaDone = true
 		local meta = readLuaFile(loadJob.dir .. "surface.lua")
+		---@type table?
 		local T = WG.TilesetTerrain
 		if meta and T then
 			if meta.biome and meta.biome ~= "" and T.setBiome then
@@ -3529,6 +3612,7 @@ end
 local function phaseDecalsLights(c)
 	local decalPath = sectionFile("decals")
 	if decalPath then
+		---@type table?
 		local dp = WG.DecalPlacer
 		if dp and dp.load then
 			for _, a in ipairs((loadJob.manifest.assets and loadJob.manifest.assets.decals) or {}) do
@@ -3554,6 +3638,7 @@ local function phaseDecalsLights(c)
 	end
 	local lightPath = sectionFile("lights")
 	if lightPath then
+		---@type table?
 		local lp = WG.LightPlacer
 		if lp and lp.load then
 			if lp.load(lightPath) then
@@ -3566,6 +3651,7 @@ local function phaseDecalsLights(c)
 		end
 	end
 	local labelPath = sectionFile("labels")
+	---@type table?
 	local ml = WG.MapLabels
 	if labelPath then
 		if ml and ml.loadProject then
@@ -3628,6 +3714,7 @@ local function phaseWeather(c)
 	if not path then
 		return true
 	end
+	---@type table?
 	local wb = WG.WeatherBrush
 	if not (wb and wb.addSpawnerRaw) then
 		loadSkip("weather", "weather brush widget not loaded (or too old — needs addSpawnerRaw)")
@@ -3654,6 +3741,7 @@ end
 -- Phase 10: startpos + startboxes + grass (all need sim-acked terrain: slope
 -- validation and patch ground-snap read final heights).
 local function phaseStartposGrass(c)
+	---@type table?
 	local st = WG.StartPosTool
 	local posPath = sectionFile("startpos")
 	if posPath then
@@ -3720,6 +3808,7 @@ local function phaseStartposGrass(c)
 	return true
 end
 
+---@type { name: string, run: function }[]
 local LOAD_PHASES = {
 	{ name = "heightmap", run = phaseHeightmap },
 	{ name = "dnts+splat", run = phaseDntsSplat },

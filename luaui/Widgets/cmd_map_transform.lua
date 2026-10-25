@@ -76,7 +76,32 @@ local DIFFUSE_SQUARE_DEFAULT = 1024
 local MIN_UNITS = 4
 local MAX_UNITS = 32
 
----@type table
+---@class MapTransformJob
+---@field specs MapTransformSpec[]
+---@field label string
+---@field fillHeight number?
+---@field dstW number
+---@field dstH number
+---@field originSlug string?
+---@field step integer
+---@field cursor table per-step state, cleared between steps
+---@field srcDir string?
+---@field dstDir string?
+---@field manifest table?
+---@field sections table?
+---@field placements MapTransform[]?
+---@field T MapTransform? the first placement
+---@field tables string[]?
+---@field images table[]?
+---@field copies string[]?
+---@field diffuseSquare number?
+---@field diffuseHave table<string, string>?
+---@field diffusePx number?
+---@field diffuseWritten integer?
+---@field dropGrass boolean?
+
+--- `|any`: nil while idle, but every step runs only while it exists.
+---@type MapTransformJob|any
 local job = nil -- nil while idle; every step runs only while it exists
 
 local function echoT(msg)
@@ -244,6 +269,7 @@ end
 --   team     ally-team field, renumbered per copy when a map is duplicated
 ----------------------------------------------------------------
 
+---@type table<string, table>
 local FILE_RULES = {
 	["metal.lua"] = {
 		list = "spots",
@@ -385,6 +411,7 @@ end
 -- Highest value a field holds across the records, for the team renumbering
 -- below (-1 when the field is absent, so the first copy starts at 0).
 local function maxField(list, key)
+	---@type number
 	local top = -1
 	for _, rec in ipairs(list) do
 		local v = type(rec) == "table" and tonumber(rec[key]) or nil
@@ -436,6 +463,7 @@ local function transformSectionFile(srcPath, dstPath, name, placements, gridSqua
 	-- Copies of a start position or a box would land on the team the original
 	-- belongs to; shift each copy past the highest team in the source so a
 	-- doubled map comes out with somewhere for the extra players to stand.
+	---@type number
 	local teamShift = 0
 	if rule.team and #placements > 1 then
 		teamShift = maxField(list, rule.team) + 1
@@ -799,6 +827,7 @@ local function stepPrepare()
 	-- siblings no section points at (heightmap range sidecar, SURFACE slots, grass
 	-- settings).
 	job.copies = {}
+	---@type table<string, boolean>
 	local handled = { ["grass_dist.tga"] = true }
 	for _, name in ipairs(job.tables) do
 		handled[name] = true
