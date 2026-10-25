@@ -2,11 +2,7 @@
 local M = {}
 
 function M.attach(doc, ctx)
-	local widgetState = ctx.widgetState
 	local trackSliderDrag = ctx.trackSliderDrag
-
-	widgetState.gbSubmodesEl = doc:GetElementById("tf-grass-submodes")
-	widgetState.gbControlsEl = doc:GetElementById("tf-grass-controls")
 
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 	-- Slider change events wired declaratively via onchange= in RML.
@@ -118,7 +114,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 				setDm("gbSymmetryRadial", s.symmetryRadial and true or false)
 				setDm("gbSymMirrorX", s.symmetryMirrorX and true or false)
 				setDm("gbSymMirrorY", s.symmetryMirrorY and true or false)
-				setDm("gbSymmetryMirrorAny", (s.symmetryMirrorX or s.symmetryMirrorY) and true or false)
 				setDm("gbSymHasAxis", (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false)
 				setDm("gbAngleSnapAuto", s.angleSnapAuto and true or false)
 				setDm("gbMeasureRulerMode", s.measureRulerMode and true or false)
@@ -307,14 +302,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		-- Color filter UI sync
 		do
 			local colorOn = gbState.texFilterEnabled
-			local colorToggle = getCachedEl(doc, "btn-gb-color-toggle")
-			if colorToggle then
-				colorToggle:SetAttribute(
-					"src",
-					colorOn and "/luaui/images/terraform_brush/check_on.png"
-						or "/luaui/images/terraform_brush/check_off.png"
-				)
-			end
 			-- gb-color-options does not exist; gb-smart-color-content visibility driven by data-if="gbColorOpen"
 			local colorChip = getCachedEl(doc, "btn-gb-pill-color")
 			if colorChip then
