@@ -254,7 +254,9 @@ function widget:Initialize()
 	end
 
 	widgetState.rootElement = document:GetElementById("wb-root")
-	widgetState.rootElement:SetAttribute("style", buildRootStyle())
+	if widgetState.rootElement then
+		widgetState.rootElement:SetAttribute("style", buildRootStyle())
+	end
 
 	attachEventListeners()
 end

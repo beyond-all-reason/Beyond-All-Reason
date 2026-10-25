@@ -464,7 +464,9 @@ function widget:Initialize()
 
 	widgetState.rootElement = widgetState.document:GetElementById("dp-root")
 
-	widgetState.rootElement:SetAttribute("style", buildRootStyle())
+	if widgetState.rootElement then
+		widgetState.rootElement:SetAttribute("style", buildRootStyle())
+	end
 
 	wireDragHandle()
 	-- The tile list is not built here: that runs the decal enumeration, bitmap-dir
