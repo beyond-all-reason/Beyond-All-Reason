@@ -1336,6 +1336,10 @@ function widget:DrawWorld()
 		if st2 and st2.angleSnap then
 			rot = st2.rotationDeg or rot
 		end
+		-- and where it lands: the grid-snapped point, like placeSymmetric
+		if st2 and st2.gridSnap and tb2.snapWorld then
+			wx, wz = tb2.snapWorld(wx, wz, rot)
+		end
 	end
 
 	local groundY = (GetGroundHeight(wx, wz) or 0) + 4
