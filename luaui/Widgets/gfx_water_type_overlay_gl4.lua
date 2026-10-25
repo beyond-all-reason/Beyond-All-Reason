@@ -43,14 +43,20 @@ local planeVAO ---@type VAO?
 local planeVBO, planeIndexVBO ---@type VBO?, VBO?
 local engineWaterHidden = false
 
+---@type number
 local lavaLevel = 0
 local tideLevel = 0.0 -- set in DrawWorldPreUnit, reused by the fog pass in DrawWorld
 local targetLevel = 0
+---@type number
 local currentLevel = 0
+---@type number
 local baseWaterLevel = 0 -- engine water plane at activation time
 local LERP_SPEED = 4.0 -- controls ease-out convergence rate
+---@type number
 local heatdistortx = 0
+---@type number
 local heatdistortz = 0
+---@type number
 local smoothFPS = 30
 local tideAmplitude = 2
 local tidePeriod = 200
