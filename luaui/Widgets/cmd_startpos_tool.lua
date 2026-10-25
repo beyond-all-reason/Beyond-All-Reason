@@ -367,11 +367,17 @@ local function generateRandomPositions(cx, cz)
 			x, z = clampToMap(x, z)
 			pts[i] = { x = x, z = z }
 		else
-			-- Polygons sample their bounding circle too; points outside the polygon are kept.
-			local angle = math_random() * 2 * math_pi
-			local r = shapeRadius * math_sqrt(math_random())
-			local x = cx + r * math_cos(angle)
-			local z = cz + r * math_sin(angle)
+			-- Polygons: pick one of the equal centre-to-edge triangles, then a uniform point in
+			-- it, so every point lands inside the same rotated outline the shape mode draws.
+			local rotRad = shapeRotation * math_pi / 180
+			local step = 2 * math_pi / sides
+			local a1 = rotRad + math_floor(math_random() * sides) * step
+			local a2 = a1 + step
+			local s = math_sqrt(math_random())
+			local t = math_random()
+			local u, v = s * (1 - t), s * t
+			local x = cx + shapeRadius * (u * math_cos(a1) + v * math_cos(a2))
+			local z = cz + shapeRadius * (u * math_sin(a1) + v * math_sin(a2))
 			x, z = clampToMap(x, z)
 			pts[i] = { x = x, z = z }
 		end
