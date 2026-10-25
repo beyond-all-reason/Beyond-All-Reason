@@ -762,11 +762,18 @@ local function doRedo()
 end
 
 ----------------------------------------------------------------
--- Place lights (scatter or point mode)
+-- Place lights (scatter or point mode). A symmetry copy passes the matrix
+-- (x' = ma x + mb z, z' = mc x + md z) that maps the original onto it: the
+-- scatter layout and a cone or beam aim are turned or mirrored with it.
 ----------------------------------------------------------------
-local function placeAtPosition(worldX, worldZ)
+local function placeAtPosition(worldX, worldZ, ma, mb, mc, md)
 	local lightDef = buildLightDef()
 	local added = {}
+	if ma and lightDef.type ~= "point" then
+		local y = rad(lightDef.yaw or 0)
+		local sx, sz = sin(y), cos(y)
+		lightDef.yaw = math.deg(math.atan2(ma * sx + mb * sz, mc * sx + md * sz)) % 360
+	end
 
 	if lp.mode == "point" then
 		local rec = addOneLight(worldX, worldZ, lightDef)
@@ -777,6 +784,10 @@ local function placeAtPosition(worldX, worldZ)
 		local positions =
 			generateScatterPositions(worldX, worldZ, lp.radius, lp.lightCount, lp.shape, lp.rotation, lp.distribution)
 		for _, pos in ipairs(positions) do
+			if ma then
+				local dx, dz = pos[1] - worldX, pos[2] - worldZ
+				pos[1], pos[2] = worldX + ma * dx + mb * dz, worldZ + mc * dx + md * dz
+			end
 			local rec = addOneLight(pos[1], pos[2], lightDef)
 			if rec then
 				added[#added + 1] = rec
@@ -792,11 +803,15 @@ end
 ----------------------------------------------------------------
 -- Remove lights within brush area
 ----------------------------------------------------------------
-local function removeAtPosition(worldX, worldZ)
+local function removeAtPosition(worldX, worldZ, ma, mb, mc, md)
 	local removed = {}
 	for _, rec in pairs(placedLights) do
 		local dx = rec.pos[1] - worldX
 		local dz = rec.pos[3] - worldZ
+		if ma then
+			-- back into the original brush's frame (the matrix is orthogonal)
+			dx, dz = ma * dx + mc * dz, mb * dx + md * dz
+		end
 		if isInsideShape(dx, dz, lp.radius, lp.shape, lp.rotation) then
 			removed[#removed + 1] = rec
 		end
@@ -809,7 +824,26 @@ local function removeAtPosition(worldX, worldZ)
 	end
 end
 
--- Apply the TerraformBrush grid snap and symmetric fan-out to a placement call.
+-- The matrix that maps the original brush onto a symmetry copy: a turn by the
+-- copy's extra rotation, or for a mirror copy a reflection across the axis
+-- halfway between the two rotations. Nothing for the original itself.
+local function copyMatrix(p, rot)
+	local pr = p.rot or rot
+	if p.mirror then
+		local t = rad(pr + rot)
+		local c2, s2 = cos(t), sin(t)
+		return c2, s2, s2, -c2
+	end
+	if pr == rot then
+		return nil
+	end
+	local t = rad(pr - rot)
+	local c, s = cos(t), sin(t)
+	return c, -s, s, c
+end
+
+-- Apply the TerraformBrush grid snap and symmetric fan-out to a placement call;
+-- each copy gets its copyMatrix.
 local function placeSymmetric(fn, cx, cz)
 	local tb = WG.TerraformBrush
 	local rot = lp.rotation or 0
@@ -825,7 +859,7 @@ local function placeSymmetric(fn, cx, cz)
 			local positions = tb.getSymmetricPositions(cx, cz, rot)
 			if positions and #positions > 0 then
 				for _, p in ipairs(positions) do
-					fn(p.x, p.z)
+					fn(p.x, p.z, copyMatrix(p, rot))
 				end
 				return
 			end
