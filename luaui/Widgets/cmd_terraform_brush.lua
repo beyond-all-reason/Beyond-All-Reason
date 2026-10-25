@@ -490,6 +490,7 @@ for _, p in ipairs(BUILTIN_PRESETS) do
 	builtinPresetNames[p.name] = true
 end
 
+---@type number?
 local activeDirection = nil
 local activeRadius = DEFAULT_RADIUS
 ---@type BrushShape|"ring"|"fill"
@@ -499,9 +500,12 @@ local activeRotation = 0
 local activeCurve = DEFAULT_CURVE
 local activeIntensity = DEFAULT_INTENSITY
 local activeLengthScale = DEFAULT_LENGTH_SCALE
+---@type TerraformMode?
 local activeMode = nil
 local updateTimer = 0
+---@type number?
 local heightCapMin = nil
+---@type number?
 local heightCapMax = nil
 local heightCapAbsolute = true
 local brushOpacity = 1.0
@@ -509,8 +513,243 @@ local gridOverlay = false
 local dustEffects = false
 local seismicEffects = false
 local djMode = false
+
+---A measure endpoint: chain index and point index within it.
+---@class TerraformMeasurePointRef
+---@field chain integer
+---@field pt integer
+
+---A measure segment: chain index and segment index, plus the projected point for a body hit.
+---@class TerraformMeasureSegRef
+---@field chain integer
+---@field seg integer
+---@field wx number?
+---@field wz number?
+
+---Smoothed spline-ramp points already applied during the current stroke.
+---@class TerraformSplineCommit
+---@field pts [number, number][]
+---@field rawIdx integer Raw path index the committed part reaches.
+
+---Undo, wait one tick, then reapply a ramp chain after its geometry was dragged.
+---@class TerraformRampReapply
+---@field chain table The measure-layer ramp chain.
+---@field phase string `"sync"`, `"apply"`, then `"baseline"`.
+
+---Sticky-mode replay: undo the recorded strokes, wait for the gadget, then reapply them.
+---@class TerraformReplayQueue
+---@field phase string `"undo"`, `"sync"`, then `"apply"`.
+---@field remaining number Undo entries still to pop.
+---@field idx number Next linked stroke to reapply.
+
+---Shift axis lock for a drag.
+---@class TerraformShiftState
+---@field axis "x"|"z"|nil
+---@field originX number?
+---@field originZ number?
+---@field wasHeld boolean
+
 -- Most widget state lives in this table, and many helpers are its fields: the
 -- main chunk is at Lua 5.1's 200-local limit, so new file-scope state goes here.
+---@class TerraformBrushExtraState
+---@field heightColormap boolean
+---@field curveOverlay boolean
+---@field velocityIntensity boolean
+---@field perfMode boolean
+---@field clayStack boolean
+---@field followStroke boolean
+---@field followAngle number?
+---@field followManualRot number?
+---@field strokePath table Flat x, z pairs.
+---@field strokePathN number
+---@field strokePathHead number
+---@field strokeDabs table Flat x, z, angleDeg triples.
+---@field strokeBuckets table? Per-symmetry-copy dab lists, reused.
+---@field gridSnap boolean
+---@field gridSnapSize number
+---@field lastDragScreenX number?
+---@field lastDragScreenY number?
+---@field dragVelocityFactor number
+---@field restoreStrength number
+---@field seismicTimer number
+---@field angleSnap boolean
+---@field angleSnapStep number
+---@field angleSnapAuto boolean
+---@field angleSnapManualSpoke number
+---@field angleSnapScrollAccum number
+---@field angleSnapScrollDir number
+---@field snapCommittedSpokeAngle number?
+---@field protractorCursorX number?
+---@field protractorCursorZ number?
+---@field protractorSpokeLen number
+---@field protractorStep number
+---@field protractorHighlight number
+---@field protractorDL integer?
+---@field protractorDLX number?
+---@field protractorDLZ number?
+---@field protractorDLRadius number?
+---@field protractorDLStep number?
+---@field protractorDLHighlight number?
+---@field protractorDLTerrain number?
+---@field protractorTipHeights table?
+---@field protractorTipX number?
+---@field protractorTipZ number?
+---@field protractorTipLen number?
+---@field protractorTipStep number?
+---@field protractorTipTerrain number?
+---@field measureActive boolean
+---@field measureDrawing boolean
+---@field measureDrawStartTimer integer?
+---@field measureLines table Committed chains: `{pts = {{x, z}, ...}, ...}`.
+---@field measureDragLine TerraformMeasurePointRef?
+---@field measurePressDragCandidate TerraformMeasurePointRef?
+---@field measurePressCandidateWorld table? `{x, z}`
+---@field measurePressScreenX number?
+---@field measurePressScreenY number?
+---@field measurePressSnapStart boolean?
+---@field measureActivePt table? `{x, z}` of the pending first click.
+---@field measureActiveChain integer?
+---@field measureCursorX number?
+---@field measureCursorZ number?
+---@field measureHoverNear TerraformMeasurePointRef?
+---@field measureRulerMode boolean
+---@field measureHandleDrag TerraformMeasureSegRef?
+---@field measureHoverHandle TerraformMeasureSegRef?
+---@field measureHoverMidSeg TerraformMeasureSegRef?
+---@field measureStickyMode boolean
+---@field measureDistortMode boolean
+---@field measureShowLength boolean
+---@field measureHeightCacheTerrain number?
+---@field linkedStrokes table[]
+---@field gadgetUndoCount number
+---@field stickyUndoBaseline number?
+---@field squareFaces number[][]
+---@field gridDL integer?
+---@field gridDirty boolean
+---@field gridLastBuildT integer? Timer of the last full-map grid rebuild.
+---@field terrainVersion number
+---@field heightmapExportRangeMode "auto"|"initial"|"custom"
+---@field heightmapExportCustomMin number
+---@field heightmapExportCustomMax number
+---@field heightSamplingMode TerraformHeightSamplingTarget?
+---@field colormapHoverContour number?
+---@field colormapHoverPeak boolean
+---@field colormapContourStep number?
+---@field colormapHMin number?
+---@field colormapHMax number?
+---@field colormapLastMesh table?
+---@field colormapLabels table?
+---@field colormapPeak table?
+---@field unmouseActive boolean
+---@field unmouseAnimT number
+---@field unmouseFromX number
+---@field unmouseFromZ number
+---@field unmouseToX number
+---@field unmouseToZ number
+---@field unmouseLastTime integer?
+---@field subToolUnmouse table<string, table>
+---@field symmetryActive boolean
+---@field symmetryOriginX number?
+---@field symmetryOriginZ number?
+---@field symmetryMirrorX boolean
+---@field symmetryMirrorY boolean
+---@field symmetryRadial boolean
+---@field symmetryRadialCount number
+---@field symmetryPlacingOrigin boolean
+---@field symmetryDraggingOrigin boolean
+---@field symmetryHoveringOrigin boolean
+---@field symmetryMirrorAngle number
+---@field symmetryFlipped boolean
+---@field symmetryLastWorldX number?
+---@field symmetryLastWorldZ number?
+---@field symmetryDragPrevX number?
+---@field symmetryDragPrevZ number?
+---@field splineCacheList integer?
+---@field splineCacheCount number
+---@field splineCacheRadius number
+---@field splineRampLastSendCount number
+---@field splineCommitted TerraformSplineCommit?
+---@field paramHudText string?
+---@field paramHudTimer number
+---@field rampAutoAttach boolean
+---@field rampStrokeUndoBaseline number?
+---@field rampReapplyQueue TerraformRampReapply?
+---@field replayQueue TerraformReplayQueue?
+---@field wiggleEnabled boolean
+---@field wiggleAmpIdx number
+---@field wiggleSpdIdx number
+---@field wigglePhase number
+---@field penPressureEnabled boolean
+---@field penPressure number
+---@field penPressureMapped number?
+---@field penTiltX number
+---@field penTiltY number
+---@field penInContact boolean
+---@field penOverUI boolean
+---@field penPressureFile string?
+---@field penPressureReadTimer number
+---@field penPressureReadInterval number
+---@field penPressureModulateIntensity boolean
+---@field penPressureModulateSize boolean
+---@field penPressureSensitivity number
+---@field penPressureCurve number
+---@field erodeReposeDeg number
+---@field erodePhase number
+---@field autorampAngleDeg number
+---@field autorampFalloff number
+---@field autorampEdgeNoise number
+---@field autorampErosion number
+---@field autorampTalus number
+---@field autorampStart "extend"|"subtract"|"average"
+---@field autorampPreview boolean
+---@field autorampLastX number?
+---@field autorampLastZ number?
+---@field arPrevKey string?
+---@field arPrevData table?
+---@field arPrevDirty boolean
+---@field arPrevList integer?
+---@field lastAppliedX number?
+---@field lastAppliedZ number?
+---@field interpIntensityScale number?
+---@field brushEdgeFade number?
+---@field brushFadeAlpha number?
+---@field brushPulseTimer integer?
+---@field stampWarmSig string?
+---@field undoHoldStart number?
+---@field waterLevelShift number?
+---@field waterPreviewLevel number?
+---@field paramGroup string
+---@field modeParamSnapshots table<string, table?>
+---@field MODE_PARAM_GROUPS table<string, string>
+---@field CMAP_GRID number
+---@field CMAP_STOPS table
+---@field cmapStops table?
+---@field cmapN number?
+---@field cmapCache table?
+---@field EDGE_SEGMENTS number
+---@field MEASURE_KM_SCALE number
+---@field MEASURE_SNAP_PX number
+---@field shapeCornerCache table<string, number[][]?>
+---@field shapeCornerCacheOrder table
+---@field falloffCurveCache table<string, table?>
+---@field falloffCurveCacheOrder table
+---@field isMapEditorSession boolean
+---@field _cheatSentAt number?
+---@field _penDiagTimer number?
+---@field _exportRangeAutoSeed table? `{min, max}` the last auto-seed wrote.
+---@field _exportReseedFrames number Draw frames until the export range re-seed; read as `or 0`.
+---@field _importFallbackMin number?
+---@field _importFallbackMax number?
+---@field _importGateWaits number?
+---@field _importNeedsShadowRefresh number Draw frames of post-import shadow refresh; read as `or 0`.
+---@field _importXform table?
+---@field _newmapCertify boolean?
+---@field _newmapDNTSApplied boolean?
+---@field _newmapDNTSTries number?
+---@field _newmapPending table?
+---@field _newmapPlaceFrame number?
+---@field _newmapStartFrame number?
+---@field _noiseSetters table<string, function>
 local extraState = {
 	heightColormap = false,
 	curveOverlay = false,
@@ -858,9 +1097,11 @@ extraState.buildFullMapGrid = function()
 		glColor(1, 1, 0.6, 0.20)
 		glPolygonOffset(-2, -2)
 		-- Horizontal lines: walk Z rows, strip along X
+		---@type number
 		local z = 0
 		while z <= msz do
 			glBeginEnd(GL.LINE_STRIP, function()
+				---@type number
 				local x = 0
 				while x <= msx do
 					glVertex(x, GetGroundHeight(x, z) + BUMP, z)
@@ -873,9 +1114,11 @@ extraState.buildFullMapGrid = function()
 			z = z + gs
 		end
 		-- Vertical lines: walk X columns, strip along Z
+		---@type number
 		local x = 0
 		while x <= msx do
 			glBeginEnd(GL.LINE_STRIP, function()
+				---@type number
 				local zz = 0
 				while zz <= msz do
 					glVertex(x, GetGroundHeight(x, zz) + BUMP, zz)
@@ -932,22 +1175,33 @@ extraState.drawWaterLevelPreview = function()
 	gl.DepthTest(true)
 end
 
+---@type number?
 local lockedWorldX = nil
+---@type number?
 local lockedWorldZ = nil
+---@type number?
 local lockedGroundY = nil
+---@type number?
 local lastScreenX = nil
+---@type number?
 local lastScreenY = nil
+---@type number?
 local rampEndX = nil
+---@type number?
 local rampEndZ = nil
 local rampSplinePoints = {}
 local SPLINE_SAMPLE_DIST = 24
 local SPLINE_MAX_POINTS = 40
 local SPLINE_SEND_WINDOW = 14 -- raw points per intermediate gadget apply (caps bbox near cursor)
+---@type number?
 local dragOriginX = nil
+---@type number?
 local dragOriginZ = nil
+---@type TerraformShiftState
 local shiftState = { axis = nil, originX = nil, originZ = nil, wasHeld = false }
 local gridShowing = false
 local rightMouseHeld = false
+---@type TerraformMode?
 local savedModeBeforeRMB = nil
 local clayMode = false
 local stampApplied = false -- stamp mode: true after first apply at current position
@@ -1105,6 +1359,7 @@ end
 local AXIS_LOCK_THRESHOLD = 25 -- screen pixels
 
 -- Find any land unit def for force-showing the build grid
+---@type integer?
 local gridForceShowDefID
 for id, def in pairs(UnitDefs) do
 	if not def.modCategories or not def.modCategories.underwater then
@@ -1515,6 +1770,7 @@ local function activateTerraformRestore(_, _, args)
 	return activate(0, "restore", args)
 end
 
+---@type fun()
 local invalidateDrawCache
 
 ---Disables the terrain brush and restores the default cursor.
@@ -2308,6 +2564,7 @@ local function getPreset(n)
 end
 
 -- Heightmap import state (forward-declared before getState so import progress is visible)
+---@type table?
 local importHeightRows = nil
 local importRowIndex = 0
 local IMPORT_ROWS_PER_FRAME = 32
@@ -2574,13 +2831,13 @@ end
 ---@class TerraformBrushState : TerraformBrushBase
 ---@field active boolean
 ---@field mode TerraformMode? `nil` when the brush is off.
----@field direction integer? `1` raises, `-1` lowers; `nil` when the brush is off.
+---@field direction number? `1` raises, `-1` lowers; `nil` when the brush is off.
 ---@field dustEffects boolean
 ---@field seismicEffects boolean
 ---@field djMode boolean
 ---@field wiggleEnabled boolean
----@field wiggleAmpIdx integer
----@field wiggleSpdIdx integer
+---@field wiggleAmpIdx number
+---@field wiggleSpdIdx number
 ---@field heightColormap boolean
 ---@field heightSamplingMode TerraformHeightSamplingTarget? `nil` when not sampling.
 ---@field gridOverlay boolean
@@ -2633,7 +2890,7 @@ end
 ---@field symmetryMirrorX boolean
 ---@field symmetryMirrorY boolean
 ---@field symmetryRadial boolean
----@field symmetryRadialCount integer
+---@field symmetryRadialCount number
 ---@field symmetryPlacingOrigin boolean
 ---@field symmetryMirrorAngle number
 ---@field symmetryFlipped boolean
@@ -2760,6 +3017,7 @@ local function getState()
 end
 
 -- Display list cache, so the brush geometry is not rebuilt every frame
+---@type integer?
 local drawCacheList = nil
 local drawCacheParams = {}
 
@@ -2965,6 +3223,7 @@ local function doExportHeightmap()
 	)
 end
 
+---@type string?
 local pendingImportFile = nil
 
 local function importHeightmap(_, optLine, args)
@@ -2985,6 +3244,7 @@ end
 
 local function doImportHeightmapRead()
 	local filename = pendingImportFile
+	---@cast filename string
 	pendingImportFile = nil
 	local fallbackMin = extraState._importFallbackMin
 	local fallbackMax = extraState._importFallbackMax
@@ -3469,7 +3729,7 @@ function widget:Initialize()
 
 	WG.TerraformBrush = {
 		getImportStatus = extraState._importStatus,
-		---@return integer version Bumped on every heightmap update; the project widget's unsaved changes flag watches it.
+		---@return number version Bumped on every heightmap update; the project widget's unsaved changes flag watches it.
 		getTerrainVersion = function()
 			return extraState.terrainVersion
 		end,
@@ -4621,6 +4881,7 @@ end
 -- live knobs and sends one message per symmetry copy (off-map copies dropped).
 -- Shared by the MousePress dab and the swipe re-fires in Update. Returns
 -- whether anything was sent.
+---@return boolean sent
 extraState.sendAutorampAt = function(worldX, worldZ)
 	local es = extraState
 	local paramTail = " "
@@ -7426,6 +7687,7 @@ extraState.closestOnBezier = function(px, pz, ax, az, hx, hz, bx, bz)
 end
 
 -- Screen-space search for the nearest committed handle. Returns {chain=c,seg=s} or nil.
+---@return TerraformMeasureSegRef?
 extraState.measureFindNearHandle = function(sx, sy)
 	local ms = extraState.measureLines
 	local SNAP = extraState.MEASURE_SNAP_PX * 1.8
@@ -7452,6 +7714,7 @@ end
 
 -- Screen-space search for a segment body (no handle yet) close to cursor.
 -- Returns {chain=c, seg=s, wx=w, wz=z} projected onto the segment, or nil.
+---@return TerraformMeasureSegRef?
 extraState.measureFindNearSegMid = function(sx, sy)
 	local ms = extraState.measureLines
 	local SNPX = extraState.MEASURE_SNAP_PX * 2.5
@@ -7495,6 +7758,7 @@ end
 
 -- Returns the index of the nearest chain within snap distance of any segment (straight or Bezier).
 -- Used for RMB chain deletion.
+---@return integer? chainIndex
 extraState.measureFindNearChain = function(sx, sy)
 	local ms = extraState.measureLines
 	local SNPX = extraState.MEASURE_SNAP_PX * 2.5
@@ -7837,6 +8101,7 @@ end
 
 -- Returns {chain=i, pt=j} for the endpoint nearest to (sx,sy) in screen space,
 -- or nil if none is within MEASURE_SNAP_PX pixels.
+---@return TerraformMeasurePointRef?
 function extraState.measureFindNearEndpoint(sx, sy)
 	local ms = extraState.measureLines
 	local best = nil
@@ -9322,6 +9587,7 @@ function widget:DrawWorld()
 		local dir = activeDirection ~= 0 and activeDirection or 1
 		-- Scale falloff display height by intensity (20..180 elmos)
 		local baseDisplayHeight = 20 + intensityT * 160
+		---@type number
 		local effectHeight = baseDisplayHeight
 		if heightCapMax and dir > 0 then
 			effectHeight = heightCapMax
