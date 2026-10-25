@@ -3105,11 +3105,29 @@ function widget:DrawWorld()
 		end
 		if stb and stb.symmetryActive and tb.getSymmetricPositions then
 			local copies = tb.getSymmetricPositions(wx, wz, 0)
+			-- Walk the rotation the way the click will: each placeable copy takes the next player
+			-- (the same step as advanceNextPlayer), a refused one passes its player on.
+			local ally, slot = nextAllyTeam, nextTeamSlot or 1
 			for k, p in ipairs(copies) do
-				local pIdx = ((baseIdx - 1 + (k - 1)) % math_max(1, numAlly * numSlot)) + 1
+				local pIdx = (ally - 1) * numSlot + slot
 				local color = getColorForPlayer(pIdx)
 				local iconPath = COMMANDER_ICONS[((pIdx - 1) % #COMMANDER_ICONS) + 1]
 				drawPreviewMarker(p.x, p.z, tintForPlace(p.x, p.z, color), 0.5, iconPath, phase + k * 0.5)
+				if isPlaceableForCommander(p.x, p.z) then
+					if placementMode == "sequential" then
+						slot = slot + 1
+						if slot > numSlot then
+							slot = 1
+							ally = (ally % numAlly) + 1
+						end
+					else
+						ally = ally + 1
+						if ally > numAlly then
+							ally = 1
+							slot = (slot % numSlot) + 1
+						end
+					end
+				end
 			end
 		else
 			local color = getColorForPlayer(baseIdx)
