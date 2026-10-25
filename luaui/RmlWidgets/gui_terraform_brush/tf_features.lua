@@ -2,14 +2,7 @@
 local M = {}
 
 function M.attach(doc, ctx)
-	local widgetState = ctx.widgetState
 	local trackSliderDrag = ctx.trackSliderDrag
-
-	-- Cache section elements (used by M.sync)
-	widgetState.tfControlsEl = doc:GetElementById("tf-terraform-controls")
-	widgetState.fpControlsEl = doc:GetElementById("tf-feature-controls")
-	widgetState.fpSubmodesEl = doc:GetElementById("tf-feature-submodes")
-	widgetState.shapeRowEl = doc:GetElementById("tf-shape-row")
 
 	-- Slider drag tracking (legitimate imperative state).
 	-- Slider change events wired declaratively via onchange= in RML.
@@ -17,6 +10,12 @@ function M.attach(doc, ctx)
 		"size",
 		"rotation",
 		"rot-random",
+		"scale-min",
+		"scale-max",
+		"clumps",
+		"clump-size",
+		"clump-loose",
+		"clump-variety",
 		"count",
 		"cadence",
 		"slope-max",
@@ -119,6 +118,14 @@ function M.sync(doc, ctx, fpState, setSummary)
 			if dm.fpRotRandomStr ~= v then
 				dm.fpRotRandomStr = v
 			end
+			v = tostring(fpState.tiltRandom or 0)
+			if dm.fpTiltRandomStr ~= v then
+				dm.fpTiltRandomStr = v
+			end
+			v = tostring(fpState.heightOffset or 0)
+			if dm.fpHeightOffsetStr ~= v then
+				dm.fpHeightOffsetStr = v
+			end
 			v = string.format("%.2f", fpState.scaleMin or 1)
 			if dm.fpScaleMinStr ~= v then
 				dm.fpScaleMinStr = v
@@ -126,6 +133,22 @@ function M.sync(doc, ctx, fpState, setSummary)
 			v = string.format("%.2f", fpState.scaleMax or 1)
 			if dm.fpScaleMaxStr ~= v then
 				dm.fpScaleMaxStr = v
+			end
+			v = (fpState.clumps or 0) == 0 and "AUTO" or tostring(fpState.clumps)
+			if dm.fpClumpsStr ~= v then
+				dm.fpClumpsStr = v
+			end
+			v = string.format("%.2f", fpState.clumpSize or 1)
+			if dm.fpClumpSizeStr ~= v then
+				dm.fpClumpSizeStr = v
+			end
+			v = tostring(fpState.clumpLoose or 25)
+			if dm.fpClumpLooseStr ~= v then
+				dm.fpClumpLooseStr = v
+			end
+			v = tostring(fpState.clumpVariety or 0)
+			if dm.fpClumpVarietyStr ~= v then
+				dm.fpClumpVarietyStr = v
 			end
 			v = tostring(fpState.featureCount)
 			if dm.fpCountStr ~= v then
@@ -141,20 +164,26 @@ function M.sync(doc, ctx, fpState, setSummary)
 		syncAndFlash(getCachedEl(doc, "fp-slider-size"), "fp-size", tostring(fpState.radius))
 		syncAndFlash(getCachedEl(doc, "fp-slider-rotation"), "fp-rotation", tostring(fpState.rotation))
 		syncAndFlash(getCachedEl(doc, "fp-slider-rot-random"), "fp-rot-random", tostring(fpState.rotRandom))
+		syncAndFlash(getCachedEl(doc, "fp-slider-tilt-random"), "fp-tilt-random", tostring(fpState.tiltRandom or 0))
+		syncAndFlash(
+			getCachedEl(doc, "fp-slider-height-offset"),
+			"fp-height-offset",
+			tostring(fpState.heightOffset or 0)
+		)
 		syncAndFlash(getCachedEl(doc, "fp-slider-scale-min"), "fp-scale-min", tostring(fpState.scaleMin or 1))
 		syncAndFlash(getCachedEl(doc, "fp-slider-scale-max"), "fp-scale-max", tostring(fpState.scaleMax or 1))
+		syncAndFlash(getCachedEl(doc, "fp-slider-clumps"), "fp-clumps", tostring(fpState.clumps or 0))
+		syncAndFlash(getCachedEl(doc, "fp-slider-clump-size"), "fp-clump-size", tostring(fpState.clumpSize or 1))
+		syncAndFlash(getCachedEl(doc, "fp-slider-clump-loose"), "fp-clump-loose", tostring(fpState.clumpLoose or 25))
+		syncAndFlash(
+			getCachedEl(doc, "fp-slider-clump-variety"),
+			"fp-clump-variety",
+			tostring(fpState.clumpVariety or 0)
+		)
 		syncAndFlash(getCachedEl(doc, "fp-slider-count"), "fp-count", tostring(fpState.featureCount))
 		syncAndFlash(getCachedEl(doc, "fp-slider-cadence"), "fp-cadence", tostring(cadenceToSlider(fpState.cadence)))
 
 		-- Smart filter UI sync
-		local fpSmartToggle = getCachedEl(doc, "btn-fp-smart-toggle")
-		if fpSmartToggle then
-			fpSmartToggle:SetAttribute(
-				"src",
-				fpState.smartEnabled and "/luaui/images/terraform_brush/check_on.png"
-					or "/luaui/images/terraform_brush/check_off.png"
-			)
-		end
 		do
 			local sf = fpState.smartFilters or {}
 			local anyFilterOn = fpState.smartEnabled == true
@@ -180,18 +209,10 @@ function M.sync(doc, ctx, fpState, setSummary)
 				setDm("fpAltMaxEnable", sf.altMaxEnable == true)
 			end
 
-			-- Filter chips: Avoid Water mirrors filter state; slope sub-chips mirror avoidCliffs / preferSlopes
+			-- Filter chips: Avoid Water mirrors filter state (the slope sub-chips bind fpAvoidCliffs / fpPreferSlopes)
 			local avoidWaterChip = getCachedEl(doc, "fp-filter-chip-avoid-water")
 			if avoidWaterChip then
 				avoidWaterChip:SetClass("active", sf.avoidWater == true)
-			end
-			local slopeAvoidChip = getCachedEl(doc, "fp-slope-mode-avoid")
-			if slopeAvoidChip then
-				slopeAvoidChip:SetClass("active", sf.avoidCliffs == true)
-			end
-			local slopePreferChip = getCachedEl(doc, "fp-slope-mode-prefer")
-			if slopePreferChip then
-				slopePreferChip:SetClass("active", sf.preferSlopes == true)
 			end
 
 			-- Slope-max rows visibility driven by data-if="fpAvoidCliffs"
@@ -275,10 +296,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 		end
 
 		-- Grid snap chip sync (FP-specific snap state)
-		local fpGridSnapBtn = getCachedEl(doc, "btn-fp-grid-snap")
-		if fpGridSnapBtn then
-			fpGridSnapBtn:SetClass("active", fpState.gridSnap == true)
-		end
 		if widgetState.dmHandle then
 			local v = fpState.gridSnap == true
 			if widgetState.dmHandle.fpGridSnap ~= v then
@@ -303,18 +320,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 		if WG.TerraformBrush then
 			local tbState = WG.TerraformBrush.getState()
 			if tbState then
-				local fpHMap = getCachedEl(doc, "btn-fp-height-colormap")
-				if fpHMap then
-					fpHMap:SetClass("active", tbState.heightColormap == true)
-				end
-				local fpMeas = getCachedEl(doc, "btn-fp-measure")
-				if fpMeas then
-					fpMeas:SetClass("active", tbState.measureActive == true)
-				end
-				local fpSym = getCachedEl(doc, "btn-fp-symmetry")
-				if fpSym then
-					fpSym:SetClass("active", tbState.symmetryActive == true)
-				end
 				-- Mirror display + symmetry/measure flags into data-model.
 				if widgetState.dmHandle then
 					local dmh = widgetState.dmHandle
@@ -328,7 +333,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 					setDm("fpHeightColormap", tbState.heightColormap == true)
 					setDm("fpSymmetryActive", tbState.symmetryActive == true)
 					setDm("fpSymmetryRadial", tbState.symmetryRadial == true)
-					setDm("fpSymmetryMirrorAny", (tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false)
 					setDm(
 						"fpSymHasAxis",
 						(tbState.symmetryRadial or tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false
@@ -339,32 +343,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 					setDm("fpMeasureShowLength", tbState.measureShowLength == true)
 					setDm("fpSymMirrorX", tbState.symmetryMirrorX == true)
 					setDm("fpSymMirrorY", tbState.symmetryMirrorY == true)
-				end
-				-- fp-symmetry-toolbar-row visibility driven by data-if="fpSymmetryActive"
-				local fpSymRadial = getCachedEl(doc, "fp-btn-symmetry-radial")
-				if fpSymRadial then
-					fpSymRadial:SetClass("active", tbState.symmetryRadial == true)
-				end
-				local fpSymMX = getCachedEl(doc, "fp-btn-symmetry-mirror-x")
-				if fpSymMX then
-					fpSymMX:SetClass("active", tbState.symmetryMirrorX == true)
-				end
-				local fpSymMY = getCachedEl(doc, "fp-btn-symmetry-mirror-y")
-				if fpSymMY then
-					fpSymMY:SetClass("active", tbState.symmetryMirrorY == true)
-				end
-				-- Measure sub-chip active states
-				local fpMeasRL = getCachedEl(doc, "fp-btn-measure-ruler")
-				if fpMeasRL then
-					fpMeasRL:SetClass("active", tbState.measureRulerMode == true)
-				end
-				local fpMeasST = getCachedEl(doc, "fp-btn-measure-sticky")
-				if fpMeasST then
-					fpMeasST:SetClass("active", tbState.measureStickyMode == true)
-				end
-				local fpMeasSL = getCachedEl(doc, "fp-btn-measure-show-length")
-				if fpMeasSL then
-					fpMeasSL:SetClass("active", tbState.measureShowLength == true)
 				end
 				-- fp-symmetry-radial-count-row visibility driven by data-if="fpSymmetryRadial"
 				if widgetState.dmHandle then
@@ -377,7 +355,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 				if fpSymRadSlider then
 					fpSymRadSlider:SetAttribute("value", tostring(tbState.symmetryRadialCount or 2))
 				end
-				-- fp-symmetry-mirror-angle-row visibility driven by data-if="fpSymmetryMirrorAny"
+				-- fp-symmetry-mirror-angle-row visibility driven by data-if="fpSymHasAxis"
 				if widgetState.dmHandle then
 					local v = tostring(math.floor(tbState.symmetryMirrorAngle or 0))
 					if widgetState.dmHandle.tbSymAngleStr ~= v then
@@ -442,18 +420,27 @@ function M.sync(doc, ctx, fpState, setSummary)
 			"btn-fp-rot-cw",
 		}, remove and circular)
 
-		-- Randomise-alignment perturbs each feature's own heading. Nothing to
-		-- do with the brush shape; only meaningless when placing nothing.
+		-- Randomise-alignment and randomise-tilt perturb each feature's own
+		-- heading and lean. Nothing to do with the brush shape; only
+		-- meaningless when placing nothing.
 		ctx.setDisabledIds(doc, {
 			"fp-slider-rot-random",
 			"fp-slider-rot-random-numbox",
 			"btn-fp-rot-random-down",
 			"btn-fp-rot-random-up",
+			"fp-slider-tilt-random",
+			"fp-slider-tilt-random-numbox",
+			"btn-fp-tilt-random-down",
+			"btn-fp-tilt-random-up",
 		}, remove)
 
 		-- Scale variation applies to whatever gets placed -- scatter and point
 		-- alike -- so like randomise-alignment it only greys out in remove mode.
 		ctx.setDisabledIds(doc, {
+			"fp-slider-height-offset",
+			"fp-slider-height-offset-numbox",
+			"btn-fp-height-down",
+			"btn-fp-height-up",
 			"fp-slider-scale-min",
 			"fp-slider-scale-min-numbox",
 			"btn-fp-scale-min-down",
@@ -475,6 +462,22 @@ function M.sync(doc, ctx, fpState, setSummary)
 			"btn-fp-dist-random",
 			"btn-fp-dist-regular",
 			"btn-fp-dist-clustered",
+			"fp-slider-clumps",
+			"fp-slider-clumps-numbox",
+			"btn-fp-clumps-down",
+			"btn-fp-clumps-up",
+			"fp-slider-clump-size",
+			"fp-slider-clump-size-numbox",
+			"btn-fp-clump-size-down",
+			"btn-fp-clump-size-up",
+			"fp-slider-clump-loose",
+			"fp-slider-clump-loose-numbox",
+			"btn-fp-clump-loose-down",
+			"btn-fp-clump-loose-up",
+			"fp-slider-clump-variety",
+			"fp-slider-clump-variety-numbox",
+			"btn-fp-clump-variety-down",
+			"btn-fp-clump-variety-up",
 		}, not scatter)
 	end
 

@@ -77,6 +77,13 @@ local SAVE_DIR = "Terraform Brush/MetalMaps/"
 local CACHE_REBUILD_THROTTLE = 0.25
 local CACHE_REBUILD_DELAY = 0.12 -- wait for gadget RecvLuaMsg to apply SetMetalAmount
 local cacheRebuildHoldUntil = 0 -- os.clock() threshold; don't rebuild before this
+-- Declared here so the paint and stamp senders below mark these, not globals
+local spotsCacheDirty = true
+local clusterCacheDirty = true
+local overlayListDirty = true
+local clusterVisDirty = true
+local lastCacheBuildClock = 0
+local balanceAxisSumsDirty = true
 
 -- State
 local active = false
@@ -248,12 +255,16 @@ local function drawShapeOutline(worldX, worldZ, radius, shape, angleDeg)
 			sides = 6
 		elseif shape == "octagon" then
 			sides = 8
+		elseif shape == "triangle" then
+			sides = 3
 		end
 		-- square/hexagon isInsideShape uses inradius (center-to-edge = radius);
 		-- offset vertices by half-step and scale to circumradius so outline matches painted area.
 		-- octagon isInsideShape uses circumradius, so no correction needed.
-		local angleOffset = (shape ~= "octagon") and (pi / sides) or 0
-		local outlineRadius = (shape ~= "octagon") and (radius / cos(pi / sides)) or radius
+		-- triangle comes from common/brush_shapes: circumradius, vertex on +x.
+		local inradiusShape = shape ~= "octagon" and shape ~= "triangle"
+		local angleOffset = inradiusShape and (pi / sides) or 0
+		local outlineRadius = inradiusShape and (radius / cos(pi / sides)) or radius
 		local angleRad = (angleDeg or 0) * pi / 180
 		local c, s = cos(angleRad), sin(angleRad)
 		glBeginEnd(GL_LINE_LOOP, function()
@@ -510,15 +521,10 @@ local LASSO_DRAG_THRESHOLD_PX = 6
 local LASSO_FREEDRAW_MIN_SPACING_SQ = 24 * 24 -- world elmos^2 between appended points
 
 local spotsCache = nil
-local spotsCacheDirty = true
 local clusterCache = nil
 local clusterCacheRadius = -1
-local clusterCacheDirty = true
 local overlayList = nil
-local overlayListDirty = true
 local clusterVisList = nil
-local clusterVisDirty = true
-local lastCacheBuildClock = 0
 
 local function invalidateMetalCaches()
 	spotsCacheDirty = true
@@ -1049,7 +1055,6 @@ local balanceAxisOriginZ = nil
 local balanceAxisPlacingOrigin = false -- next LMB sets origin
 local balanceAxisSumA = 0 -- positive side (normal direction)
 local balanceAxisSumB = 0 -- negative side
-local balanceAxisSumsDirty = true
 local balanceAxisHovering = false
 local balanceAxisDragging = false
 local BALANCE_AXIS_HOVER_DIST = 48 -- world elmos perpendicular hover threshold
@@ -1293,13 +1298,9 @@ local function activate(mode)
 	if not mapOverlay then
 		setMapOverlay(true)
 	end
-	Echo("[Metal Brush] Activated: " .. subMode:upper() .. " | Metal Value: " .. metalValue)
 end
 
 local function deactivate()
-	if active then
-		Echo("[Metal Brush] Deactivated")
-	end
 	active = false
 	painting = false
 	paintButton = 0
@@ -1608,7 +1609,6 @@ function widget:MouseWheel(up, value)
 		else
 			metalValue = max(MIN_METAL_VALUE, metalValue - step)
 		end
-		Echo("[Metal Brush] Metal value: " .. format("%.2f", metalValue))
 		return true
 	end
 

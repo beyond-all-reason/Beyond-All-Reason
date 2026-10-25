@@ -31,7 +31,6 @@ local INITIAL_TOP_VH = 10
 ---Shape of the data model bound to the RML document.
 ---@class DecalPlacerModel
 ---@field search string               -- data-value on #dp-search
----@field activeCategory string       -- data-class-active on each fp-cat-btn
 ---@field selectedCount integer       -- {{selectedCount}} in tile header
 ---@field onCategorySelect fun(event: any, key: string)       -- data-event-click on category button
 ---@field onSearchFocus fun(event: any)                       -- data-event-focus on search input
@@ -98,7 +97,6 @@ end
 ---@type DecalPlacerModel
 local initialModel = {
 	search = "",
-	activeCategory = "all",
 	selectedCount = 0,
 	dcCatAll = true,
 	dcCatScars = false,

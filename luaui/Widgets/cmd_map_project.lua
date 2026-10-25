@@ -868,7 +868,6 @@ local function stepDiffuse()
 		if not dp.saveProject(job.dir .. "diffuse/", not isBlank) then
 			return diffuseFailSkip("painter is busy")
 		end
-		echoP("capturing diffuse squares" .. ((not isBlank) and " (full map)" or "") .. "...")
 		c.requested = true
 		c.ticks = 0
 		return false
@@ -906,7 +905,6 @@ local function stepDiffuse()
 				kept = kept + 1
 			else
 				os.remove(job.dir .. "diffuse/" .. name)
-				echoP("removed stale diffuse/" .. name)
 			end
 		end
 	end
@@ -1179,12 +1177,14 @@ local function stepFeatures()
 end
 
 -- Shared by the project save and by WG.MapProject.requestUnits: the gadget
--- streams pipe-joined "name x z rot team neutral" records in batches.
+-- streams pipe-joined "name x z rot team neutral [mission]" records in batches;
+-- `mission` = the mission team number of a Unit Placer MISSION unit (a frozen stand-in
+-- the mission editor takes as its loadout), absent for a live unit.
 local function parseUnitBatches(batches)
 	local entries = {}
 	for _, payload in ipairs(batches or {}) do
 		for entry in payload:gmatch("[^|]+") do
-			local name, x, z, rot, team, neutral = entry:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+)$")
+			local name, x, z, rot, team, neutral, mission = entry:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+) ?(%S*)$")
 			x, z = tonumber(x), tonumber(z)
 			if name and x and z then
 				entries[#entries + 1] = {
@@ -1194,6 +1194,7 @@ local function parseUnitBatches(batches)
 					rot = tonumber(rot) or 0,
 					team = tonumber(team) or 0,
 					neutral = neutral == "1",
+					mission = tonumber(mission),
 				}
 			end
 		end
@@ -1326,7 +1327,7 @@ local function stepUnits()
 			e.z,
 			e.rot,
 			e.team,
-			e.neutral and ", neutral = true" or ""
+			e.mission and format(", mission = %d", e.mission) or (e.neutral and ", neutral = true" or "")
 		)
 	end
 	lines[#lines + 1] = "\t},"
@@ -1670,7 +1671,6 @@ local function stepAssets()
 		if dnts then
 			dnts.set = "live-capture"
 			dnts.diffuse_alpha = gl.GetMapRendering("splatDetailNormalDiffuseAlpha") and 1 or 0
-			echoP("captured the map's live splat textures into assets/dnts/")
 		elseif findSection("splat") and not placeholderDetail then
 			warn(
 				"map has a splat distribution but no capturable splat textures — splat.png may not load onto a blank canvas"
@@ -1747,7 +1747,6 @@ local function stepCleanupStale()
 				local path = job.dir .. file
 				if fileSize(path) then
 					os.remove(path)
-					echoP("removed stale " .. file .. " (section now empty)")
 				end
 			end
 		end
@@ -1760,9 +1759,6 @@ local function stepCleanupStale()
 		local existing = VFS.DirList(job.dir .. "diffuse/", "*.png", VFS.RAW) or {}
 		for _, p in ipairs(existing) do
 			os.remove(job.dir .. "diffuse/" .. basename(p))
-		end
-		if #existing > 0 then
-			echoP("removed " .. #existing .. " stale diffuse square(s) (section now empty)")
 		end
 	end
 	return true
@@ -2148,9 +2144,6 @@ local function finishSave()
 		dirtyGraceUntil = os.clock() + 2
 		touchRecent(currentSlug)
 	end
-	for _, s in ipairs(job.sections) do
-		echoP(string.format("  %-12s %s (%d bytes%s)", s.name, s.file, s.bytes, s.extra and (", " .. s.extra) or ""))
-	end
 	for _, s in ipairs(job.skipped) do
 		echoP(string.format("  %-12s skipped: %s", s.name, s.reason))
 	end
@@ -2201,12 +2194,6 @@ local function startSave(slug, opts)
 		-- enter the recent list, or clear the unsaved-changes count.
 		internal = (opts and opts.internal) and true or false,
 	}
-	echoP(
-		(job.autosave and "autosaving to '" or (job.internal and "staging '" or "saving project '"))
-			.. slug
-			.. "'..."
-			.. (job.saveUnits and " (with units loadout)" or "")
-	)
 	return true, job.result
 end
 
@@ -2321,9 +2308,7 @@ local function listProjectsDetailed()
 			local manifest = readPrevManifest(PROJECTS_DIR .. e.slug .. "/")
 			if manifest and manifest.kind == "bar-map-project" then
 				seen[e.slug] = true
-				local p = projectEntry(e.slug, manifest, e.at)
-				p.discovered = "recent"
-				out[#out + 1] = p
+				out[#out + 1] = projectEntry(e.slug, manifest, e.at)
 			end
 		end
 	end
@@ -3031,7 +3016,6 @@ end
 
 local function loadOk(name, detail)
 	loadJob.loaded[#loadJob.loaded + 1] = { name = name, detail = detail }
-	echoP("loaded " .. name .. (detail and (" (" .. detail .. ")") or ""))
 end
 
 local function loadSkip(name, reason)
@@ -3093,27 +3077,19 @@ local function phaseHeightmap(c)
 		c.ackBase = Spring.GetGameRulesParam(ACK_PARAM) or 0
 		c.frameAtSend = Spring.GetGameFrame()
 		local range = loadJob.manifest.map and loadJob.manifest.map.height_range
-		if tb.importHeightmap then
-			-- loadJob.transform is set when the session was booted by the map
-			-- transform: the PNG is the OLD map's, and the importer resamples it
-			-- onto this canvas through that turn/mirror/fit instead of straight.
-			tb.importHeightmap(path, range and range.min, range and range.max, loadJob.transform)
-		else
-			Spring.SendCommands("terraformimport " .. path)
-		end
+		-- loadJob.transform is set when the session was booted by the map
+		-- transform: the PNG is the OLD map's, and the importer resamples it
+		-- onto this canvas through that turn/mirror/fit instead of straight.
+		tb.importHeightmap(path, range and range.min, range and range.max, loadJob.transform)
 		c.sent = true
 		c.ticks = 0
-		echoP("heightmap: importing " .. path .. " ...")
 		return false
 	end
 	c.ticks = c.ticks + 1
-	local busy, colsDone, colsTotal = tb.getImportStatus()
+	local busy = tb.getImportStatus()
 	if busy then
 		c.sawBusy = true
 		c.frameAtEnd = nil
-		if c.ticks % 180 == 0 and colsTotal and colsTotal > 0 then
-			echoP(string.format("heightmap: %d%% streamed", math.floor(colsDone / colsTotal * 100)))
-		end
 		return false
 	end
 	local ack = Spring.GetGameRulesParam(ACK_PARAM) or 0
@@ -3466,13 +3442,6 @@ local function phaseDiffuse(c)
 			loadSkip("diffuse", "painter is busy")
 			return true
 		end
-		echoP(
-			string.format(
-				"diffuse: loading %d squares%s...",
-				#sqs,
-				nChans > 0 and (" + " .. nChans .. " channel(s)") or ""
-			)
-		)
 		c.requested = true
 		c.ticks = 0
 		return false
@@ -3593,13 +3562,14 @@ local function phaseUnits(c)
 			if type(u.name) == "string" and x and z then
 				count = count + 1
 				parts[#parts + 1] = format(
-					"%s %.1f %.1f %d %d %d",
+					"%s %.1f %.1f %d %d %d%s",
 					u.name,
 					x,
 					z,
 					tonumber(u.rot) or 0,
 					tonumber(u.team) or 0,
-					u.neutral and 1 or 0
+					u.neutral and 1 or 0,
+					tonumber(u.mission) and (" " .. math.floor(tonumber(u.mission))) or ""
 				)
 				if #parts >= 25 then
 					batches[#batches + 1] = table.concat(parts, "|")
@@ -3620,11 +3590,9 @@ local function phaseUnits(c)
 		end
 		Spring.SendLuaRulesMsg("$mpunits_end$")
 		c.sent = true
-		c.count = count
 		c.ackBase = Spring.GetGameRulesParam(UNITS_ACK_PARAM) or 0
 		c.frameAtSend = Spring.GetGameFrame()
 		c.ticks = 0
-		echoP("units: replaying " .. count .. " units...")
 		return false
 	end
 	local ack = Spring.GetGameRulesParam(UNITS_ACK_PARAM) or 0
@@ -3866,12 +3834,6 @@ local LOAD_PHASES = {
 
 local function finishLoad()
 	echoP("PROJECT LOAD COMPLETE: '" .. loadJob.slug .. "'")
-	for _, s in ipairs(loadJob.loaded) do
-		echoP(string.format("  %-12s %s", s.name, s.detail or "ok"))
-	end
-	for _, s in ipairs(loadJob.skipped) do
-		echoP(string.format("  %-12s SKIPPED: %s", s.name, s.reason))
-	end
 	if #loadJob.skipped > 0 then
 		echoP(#loadJob.skipped .. " section(s) skipped — reasons above")
 	end
@@ -3954,7 +3916,6 @@ local function runLoadTick()
 			if sent then
 				c.cheatSends = (c.cheatSends or 0) + 1
 				c.cheatLastSend = c.cheatTicks
-				echoP("enabling /cheat for the load (attempt " .. c.cheatSends .. ")...")
 			end
 		end
 		return
@@ -3967,10 +3928,6 @@ local function runLoadTick()
 		finishLoad()
 		return
 	end
-	if not loadJob.announced then
-		loadJob.announced = true
-		echoP(string.format("phase %d/%d: %s", phaseIdx, #LOAD_PHASES, phase.name))
-	end
 	local ok, done = pcall(phase.run, loadJob.cursor)
 	if not ok then
 		echoP("ERROR in load phase '" .. phase.name .. "': " .. tostring(done))
@@ -3980,7 +3937,6 @@ local function runLoadTick()
 	if done then
 		loadJob.phase = phaseIdx
 		loadJob.cursor = {}
-		loadJob.announced = nil
 		-- Journal progress so /luaui reload mid-load resumes here.
 		writePointer({
 			path = loadJob.dir,
@@ -4122,8 +4078,6 @@ local function maybeStartLoad()
 	end
 	if loadJob.phase > 0 then
 		echoP(string.format("resuming project load '%s' at phase %d/%d", loadJob.slug, loadJob.phase + 1, #LOAD_PHASES))
-	else
-		echoP(string.format("loading project '%s' (%d phases)...", loadJob.slug, #LOAD_PHASES))
 	end
 end
 
@@ -4278,14 +4232,9 @@ local function mapProjectAction(_, optLine, params)
 		end
 	elseif sub == "prune" then
 		pruneAutosaves()
-	elseif sub == "dirty" then
-		-- Marks the session as having unsaved changes, for exercising the guards
-		-- (the quit popup, Open's confirm, the autosave timer) without an edit.
-		dirtyCount = dirtyCount + 1
-		echoP("session marked as changed (unsaved changes: " .. dirtyCount .. ")")
 	else
 		echoP(
-			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>  |  /mapproject autosave  |  /mapproject prune  |  /mapproject dirty"
+			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>  |  /mapproject autosave  |  /mapproject prune"
 		)
 	end
 end
@@ -4306,8 +4255,8 @@ function widget:Initialize()
 	autosavePruneAt = os.clock() + 60
 	-- Units export round-trip receivers (cmd_map_project_units.lua relays the
 	-- synced walk through these; see stepUnits for why collection is synced).
-	widgetHandler:RegisterGlobal("mapproject_units_save_begin", function(count)
-		unitsRx = { batches = {}, expected = count, done = false }
+	widgetHandler:RegisterGlobal("mapproject_units_save_begin", function(_count)
+		unitsRx = { batches = {}, done = false }
 	end)
 	widgetHandler:RegisterGlobal("mapproject_units_save_data", function(payload)
 		if unitsRx and type(payload) == "string" then
@@ -4327,7 +4276,6 @@ function widget:Initialize()
 		save = startSave,
 		validateSlug = validateSlug,
 		open = openProject,
-		list = listProjects,
 		listDetailed = listProjectsDetailed,
 		-- openStaged(slug, { transform = ... }): the map transform's restart. The
 		-- staged project is scratch (no recent entry), and the transform travels
@@ -4335,13 +4283,9 @@ function widget:Initialize()
 		openStaged = function(slug, opts)
 			return openProject(slug, { transform = opts and opts.transform, staging = true })
 		end,
-		clearTransformStaging = clearTransformStaging,
 		-- One known slug's entry, read from its manifest rather than found by
 		-- walking folders, so a project that landed this session is visible.
 		describe = describeProject,
-		-- { {slug, at}, ... } newest first: projects opened or saved through
-		-- this widget (the journal behind the dialog's RECENT order).
-		recent = readRecent,
 		delete = deleteProject,
 		deleteFolder = deleteFolder,
 		move = moveProject,

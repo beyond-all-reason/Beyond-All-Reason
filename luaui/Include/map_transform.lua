@@ -175,12 +175,6 @@ function MapTransform:isIdentity()
 	return self.rot == 0 and not self.mirrorX and not self.mirrorZ and self.srcW == self.dstW and self.srcH == self.dstH
 end
 
--- True when every destination texel comes from exactly one source texel, i.e.
--- the transform is a permutation and nothing is resampled.
-function MapTransform:isExact()
-	return self.dstW == self.oriW and self.dstH == self.oriH
-end
-
 ----------------------------------------------------------------
 -- Positions
 ----------------------------------------------------------------

@@ -4,7 +4,7 @@
 -- PURE. It knows nothing about missions, widgets or the engine: a unit type comes in as its
 -- footprint (`xsize`, `zsize`, in footprint squares, as a UnitDef counts them) and positions
 -- go out as numbers. What a consumer does with them -- write loadout records, spawn real units
--- -- is the consumer's business. Specs: spec/mission_editor/unit_placer_layout_spec.lua.
+-- -- is the consumer's business. Specs: spec/luaui/Include/unit_placer_layout_spec.lua.
 --
 -- The rules are the engine's own (`CGuiHandler::GetBuildPositions`), the ones a player feels
 -- every time they drag out a row of solars, as `luaui/Widgets/api_blueprint.lua` also ports
@@ -26,9 +26,6 @@ local KNOWN_MODE = {}
 for _, mode in ipairs(Layout.MODES) do
 	KNOWN_MODE[mode] = true
 end
-
---- The engine's facings: 0 south (+z), 1 east, 2 north, 3 west.
-Layout.FACING_NAMES = { [0] = "S", "E", "N", "W" }
 
 --- A facing as the Y rotation a model is drawn with: + pi/2 a quarter, as the Blueprint API
 --- draws it (api_blueprint.lua: `unit.facing * (mathPi / 2)`). DrawUnitShapeGL4's own comment
