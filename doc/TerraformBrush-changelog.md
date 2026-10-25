@@ -14,7 +14,7 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 
 ### Improvements
 
-- **Team Sync starts from a terminal on Linux and macOS** (asked for by Moose). The game cannot mark the starter file as executable, so it would not run until it was marked by hand. On Linux and macOS the clipboard now holds a command that marks it executable and starts it: paste it into a terminal and leave that open. After that the file runs directly.
+- **Team Sync starts from a terminal on Linux** (asked for by Moose). The game cannot mark the starter file as executable, so it would not run until it was marked by hand. On Linux the clipboard now holds a command that marks it executable and starts it: paste it into a terminal and leave that open. After that the file runs directly.
 - **The reference is a mapper's guide again.** `doc/TerraformBrush.md` is rewritten against the panel: getting started, sculpting, painting the ground, placing things, scene, instruments and overlays, capture and map labels, settings, multi-screen, and tables of keys, console commands, folders and file formats. SURFACE, LAYERS, METAL, STARTS, LIGHTS, DECALS, the TILESET window, HEIGHTMAP, New Map, Capture, Map Labels, Passability and Settings are covered for the first time, and the claims the old text got wrong are gone.
 
 ### Fixes

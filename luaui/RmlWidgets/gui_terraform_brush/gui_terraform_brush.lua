@@ -4968,7 +4968,7 @@ widgetState.projectWriteRunner = function()
 			absolute = root .. "/" .. runner
 		end
 	end)
-	-- Lua cannot set the executable bit, so on Linux and macOS the clipboard gets a
+	-- Lua cannot set the executable bit, so on Linux the clipboard gets a
 	-- terminal command that sets it and starts the helper. Later rewrites truncate the
 	-- same file, which keeps the bit.
 	local hintKey = absolute and "helperReadyPath" or "helperReady"
