@@ -871,13 +871,20 @@ local function placeSymmetric(fn, cx, cz)
 			local positions = tb.getSymmetricPositions(cx, cz, rot)
 			if positions and #positions > 0 then
 				undoGroup = { lights = {} }
-				for _, p in ipairs(positions) do
-					fn(p.x, p.z, copyMatrix(p, rot))
-				end
+				-- A copy that errors must not leave the group open: every later
+				-- undo entry would gather into it and never reach the stack.
+				local ok, err = pcall(function()
+					for _, p in ipairs(positions) do
+						fn(p.x, p.z, copyMatrix(p, rot))
+					end
+				end)
 				local group = undoGroup
 				undoGroup = nil
-				if group.action then
+				if group and group.action then
 					pushUndo(group.action, group.lights)
+				end
+				if not ok then
+					error(err, 0)
 				end
 				return
 			end
