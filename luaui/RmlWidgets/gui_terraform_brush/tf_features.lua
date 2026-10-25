@@ -52,7 +52,8 @@ function M.sync(doc, ctx, fpState, setSummary)
 	-- DISPLAY/INSTRUMENTS warn chips (shared TB state mirror)
 	if doc and ctx.syncWarnChip then
 		local tbs = (WG.TerraformBrush and WG.TerraformBrush.getState()) or {}
-		local dispActive = tbs.gridOverlay or tbs.heightColormap
+		-- The section's grid button is the placer's own grid, not the terrain brush grid.
+		local dispActive = fpState.gridOverlay or tbs.heightColormap
 		local instActive = fpState.gridSnap or tbs.measureActive or tbs.symmetryActive
 		ctx.syncWarnChip(doc, "warn-chip-fp-overlays", "section-fp-overlays", dispActive)
 		ctx.syncWarnChip(doc, "warn-chip-fp-instruments", "section-fp-instruments", instActive)
