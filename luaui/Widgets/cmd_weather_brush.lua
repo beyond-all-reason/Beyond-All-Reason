@@ -64,8 +64,8 @@ local cegNames = {} -- sorted list of all discovered CEG names
 local cegNameSet = {} -- quick lookup set
 local cegsLoaded = false
 
--- Deferred from Initialize: DirList + include over the effects/ trees is real
--- load-time work every player would pay; consumers call this lazily instead.
+-- Lazy: DirList + include over the effects/ trees is real load-time work every
+-- player would pay in Initialize.
 local function loadCEGNames()
 	if cegsLoaded then
 		return
@@ -96,7 +96,7 @@ end
 -- ===========================================================================
 local weatherLibrary = {
 	-- ===================================================================
-	-- PRECIPITATION — multi-layer altitude: sky rain, mid-air haze, ground
+	-- PRECIPITATION: multi-layer altitude (sky rain, mid-air haze, ground)
 	-- ===================================================================
 	{
 		name = "Light Rain",
@@ -125,8 +125,8 @@ local weatherLibrary = {
 		spawnCount = 12,
 		radius = 600,
 		cadence = 8,
-		-- Compromise: rain wants ~900 but watersplash is a ground hit.
-		-- 400 keeps rain mostly visible without floating splashes too high.
+		-- Rain wants ~900 but watersplash is a ground hit: 400 keeps rain mostly
+		-- visible without floating the splashes too high.
 		altitude = 400,
 		persistence = 600,
 		cegLifetimeS = 7,
@@ -135,7 +135,7 @@ local weatherLibrary = {
 		name = "Thunderstorm",
 		description = "Dark cloud ceiling, rain falling through, lightning arcing from sky to ground — full 3D storm",
 		icon = "storm",
-		-- HIGH: fogdirty as dark cloud ceiling (particles at y -50..+75, size 100-400)
+		-- HIGH: fogdirty as dark cloud ceiling (particles at y -50..+25, size 100-400)
 		-- MID-HIGH: lightningstorm spawns 14 bolts over 36s at y+128, length 1700
 		-- FALLING: raindrop from y+1250 downward
 		cegs = { "raindrop", "raindrop", "raindrop", "raindrop", "lightningstorm", "fogdirty" },
@@ -211,7 +211,7 @@ local weatherLibrary = {
 		cegLifetimeS = 2, -- particlelife 22 + spread 30 = ~52 frames
 	},
 	-- ===================================================================
-	-- WIND & SAND — lateral movement + overhead sand cloud layers
+	-- WIND & SAND: lateral movement and overhead sand cloud layers
 	-- ===================================================================
 	{
 		name = "Sandstorm",
@@ -244,13 +244,13 @@ local weatherLibrary = {
 		cegLifetimeS = 8, -- dunedust: 120+120 frames
 	},
 	-- ===================================================================
-	-- FOG & ATMOSPHERE — ground-hugging to mid-altitude
+	-- FOG & ATMOSPHERE: ground-hugging to mid-altitude
 	-- ===================================================================
 	{
 		name = "Ground Fog",
 		description = "Dense swirling fog banks at ground level using dirty fog texture — slow drift, massive particles",
 		icon = "fog",
-		-- fogdirty: pos y:-50..+75, size 100-400, life 520+260 frames,
+		-- fogdirty: pos y:-50..+25, size 100-400, life 520+260 frames,
 		-- airdrag 0.94, rotating slowly, fogdirty texture for gritty look
 		cegs = { "fogdirty" },
 		spawnCount = 3,
@@ -280,7 +280,7 @@ local weatherLibrary = {
 		name = "Overcast Sky",
 		description = "Enormous grey cloud layer 300m above the battlefield — blocks out the sky with slow lateral drift",
 		icon = "overcast",
-		-- thickcloud: cloudpuff 1240-3820 elmo particles!, pos y:-20..+130,
+		-- thickcloud: cloudpuff 1240-3820 elmo particles, pos y:-20..+130,
 		-- spawned with altitude offset 300 to push overhead
 		-- life 500+400 frames, extremely slow drift
 		cegs = { "thickcloud" },
@@ -321,7 +321,7 @@ local weatherLibrary = {
 		cegLifetimeS = 18,
 	},
 	-- ===================================================================
-	-- FIRE & VOLCANIC — ground fire + rising smoke/ash at altitude
+	-- FIRE & VOLCANIC: ground fire, rising smoke and ash at altitude
 	-- ===================================================================
 	{
 		name = "Volcanic Ash",
@@ -343,8 +343,8 @@ local weatherLibrary = {
 		name = "Rising Embers",
 		description = "Glowing orange sparks drifting upward from scorched earth with flickering ground fire below",
 		icon = "embers",
-		-- RISING: weather_embers — flare1 particles with positive Y gravity,
-		-- colormap fades orange→red→dark ember→invisible
+		-- RISING: weather_embers, flare1 particles with positive Y gravity,
+		-- colormap fades orange, red, dark ember, invisible
 		-- LOW: fire-burnground-small persistent ground flame glow
 		cegs = { "weather_embers", "weather_embers", "fire-burnground-small" },
 		spawnCount = 8,
@@ -358,7 +358,7 @@ local weatherLibrary = {
 		name = "Lava Field",
 		description = "Molten rock splashes with rings, sparks, and smoke trails over persistent ground fire",
 		icon = "lava",
-		-- lavasplash: complex multi-layer — ring, waves, upward rush,
+		-- lavasplash: multi-layer (ring, waves, upward rush,
 		-- orange sparks, smoke trails, lava chunks
 		-- fire-burnground: persistent ground flames
 		cegs = { "lavasplash", "fire-burnground" },
@@ -384,14 +384,14 @@ local weatherLibrary = {
 		cegLifetimeS = 3,
 	},
 	-- ===================================================================
-	-- AMBIENT & MAGICAL — low-altitude living atmosphere
+	-- AMBIENT & MAGICAL: low-altitude living atmosphere
 	-- ===================================================================
 	{
 		name = "Fireflies",
 		description = "Warm yellow-orange pinpricks pulsing just above the ground — 60 sub-sprites per spawn, 25s cycle",
 		icon = "fireflies",
 		-- fireflies: CExpGenSpawner with 60 firefly sub-CEGs over 750 frames,
-		-- each at y:5-30 above ground, flare1 texture, beautiful 6-step colormap
+		-- each at y:5-30 above ground, flare1 texture, 6-step colormap
 		cegs = { "fireflies" },
 		spawnCount = 2,
 		radius = 300,
@@ -453,7 +453,7 @@ local weatherLibrary = {
 		cegLifetimeS = 25,
 	},
 	-- ===================================================================
-	-- STORM & ENERGY — lightning at altitude + ground effects
+	-- STORM & ENERGY: lightning at altitude and ground effects
 	-- ===================================================================
 	{
 		name = "Lightning Storm",
@@ -482,7 +482,7 @@ local weatherLibrary = {
 		cegLifetimeS = 1,
 	},
 	-- ===================================================================
-	-- SMOKE & INDUSTRIAL — rising columns + settling debris
+	-- SMOKE & INDUSTRIAL: rising columns and settling debris
 	-- ===================================================================
 	{
 		name = "Smoke Plumes",
@@ -560,8 +560,8 @@ local wb = {
 	dragging = false,
 	dragAction = nil, -- "place" or "remove"
 
-	-- Active persistent spawner tracking
-	-- Each entry: { cegs={}, x=, z=, radius=, count=, interval=, expireFrame=nil/number, nextFrame=0 }
+	-- Active persistent spawners, each:
+	-- { cegs={}, x=, z=, radius=, count=, interval=, expireFrame=nil/number, nextFrame=0 }
 	persistentSpawners = {},
 	nextSpawnerId = 1,
 }
@@ -646,10 +646,9 @@ end
 local FADE_IN_SECONDS = 5 -- seconds to ramp from 1 to full count
 local FADE_OUT_SECONDS = 8 -- seconds to ramp from full count down to 0
 
--- Saturation: once enough cycles have run to reach steady-state particle
--- density, stop continuous spawning and switch to periodic refresh bursts
--- that fire once per particle lifetime so the area stays filled without
--- piling up additional particles on top of the existing ones.
+-- Saturation: once enough cycles have filled the area, stop continuous spawning
+-- and fire one refresh burst per particle lifetime, so the area stays filled
+-- without piling particles on top of each other.
 local ESTIMATED_PARTICLE_LIFETIME_S = 10 -- conservative CEG lifetime guess
 
 local function addPersistentSpawner(cegs, cx, cz, radius, count, shape, angleDeg, durationSeconds, cegLifetimeS)
@@ -739,10 +738,8 @@ local function updatePersistentSpawners()
 				end
 			end
 
-			-- Saturation: once enough cycles have run to fill the area,
-			-- stop continuous spawning and switch to periodic refresh
-			-- bursts — one full burst per particle lifetime keeps the
-			-- density roughly constant without additive buildup.
+			-- Saturated: switch to one full burst per particle lifetime
+			-- (see ESTIMATED_PARTICLE_LIFETIME_S).
 			local isSaturated = spawner.spawnCycles >= spawner.saturationCycles
 
 			if effectiveCount > 0 then
@@ -828,7 +825,7 @@ local function doRemove(cx, cz)
 	removePersistentSpawnersInArea(cx, cz, wb.radius, wb.shape, wb.rotation, wb.lengthScale)
 end
 
--- Apply TerraformBrush grid-snap + symmetric fan-out to a placement call.
+-- Apply the TerraformBrush grid snap and symmetric fan-out to a placement call.
 local function placeSymmetric(fn, cx, cz)
 	local tb = WG.TerraformBrush
 	local rot = wb.rotation or 0
@@ -923,11 +920,9 @@ local function setPersistenceSeconds(val)
 end
 
 -- CEG selection
--- Some CEGs are extremely bright, near full-screen flashes (the commander
--- death blast being the worst offender). Spraying them with the normal
--- multi-spawn / fast-cadence / persistent defaults flashbangs the player.
--- When such a CEG becomes the selection, clamp to a single, slow, one-shot
--- spawn so the effect stays usable without blinding.
+-- Some CEGs are near full-screen flashes (the commander death blast worst of
+-- all); the normal multi-spawn, fast-cadence, persistent defaults would
+-- flashbang the player, so selecting one clamps to a single slow one-shot.
 local function cegFlashbangOverride(name)
 	if not name then
 		return nil
@@ -1017,8 +1012,8 @@ local function clearAllPersistent()
 end
 
 -- Raw copies of all persistent spawners, for project serialization.
--- Frame fields (startFrame/expireFrame/nextFrame) are absolute game frames and
--- NOT portable across sessions; callers must convert to relative durations.
+-- Frame fields (startFrame/expireFrame/nextFrame) are absolute game frames, not
+-- portable across sessions: callers convert them to relative durations.
 local function getPersistentSpawners()
 	local out = {}
 	for _, s in pairs(wb.persistentSpawners) do
@@ -1044,11 +1039,10 @@ local function getPersistentSpawners()
 	return out
 end
 
--- Reconstruct a persistent spawner from a serialized project entry, honoring
--- the saved interval/refreshInterval instead of deriving them from the live UI
--- cadence (which addPersistentSpawner does). Synthesizes every runtime field
--- the Update loop dereferences — a missing one crashes the widget on the next
--- tick. entry.persistence: -1 = permanent, else remaining seconds.
+-- Rebuild a persistent spawner from a project entry, keeping its saved
+-- interval/refreshInterval rather than deriving them from the live cadence.
+-- Fills every runtime field the Update loop reads: a missing one crashes the
+-- widget on the next tick. entry.persistence: -1 = permanent, else seconds left.
 local function addSpawnerRaw(entry)
 	if type(entry) ~= "table" or type(entry.cegs) ~= "table" or #entry.cegs == 0 then
 		Echo("[Weather Brush] addSpawnerRaw: entry has no cegs, skipped")
@@ -1162,14 +1156,14 @@ function widget:MousePress(mx, my, button)
 		return false
 	end
 
-	-- Defer to measure tool when active
+	-- Leave the click to the measure tool while it is active
 	do
 		local tb = WG.TerraformBrush
 		local st = tb and tb.getState and tb.getState() or nil
 		if st and st.measureActive then
 			return false
 		end
-		-- Defer to symmetry origin drag so terraform can grab the drag
+		-- Leave symmetry origin drags to the terraform brush
 		if st and st.symmetryActive then
 			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
 				return false
@@ -1368,7 +1362,7 @@ end
 function widget:Initialize()
 	-- CEG names load lazily on first UI/selection use, not here.
 
-	-- Expose API for the RmlUI controller
+	-- API for the RmlUi panel
 	WG.WeatherBrush = {
 		activate = activate,
 		deactivate = deactivate,

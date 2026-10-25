@@ -1,21 +1,18 @@
--- tf_weather.lua: extracted tool module for gui_terraform_brush
+-- tf_weather.lua: weather tool wiring for the gui_terraform_brush panel
 local M = {}
 
 function M.attach(doc, ctx)
 	local trackSliderDrag = ctx.trackSliderDrag
 
-	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
-	-- drag ID must match the element ID so the Update sync can guard against
-	-- overwriting a slider the user is actively dragging.
+	-- Drag IDs match the element IDs so the Update sync skips a slider being dragged.
 	for _, sid in ipairs({ "size", "length", "rotation", "count", "cadence", "persist" }) do
 		local sl = doc:GetElementById("wb-slider-" .. sid)
 		if sl then
 			trackSliderDrag(sl, "wb-slider-" .. sid)
 		end
 	end
-	-- All data-event-click/change handlers (onWbXxx) are defined in initialModel
-	-- in gui_terraform_brush.lua — Recoil forbids adding or replacing function
-	-- keys in a DataModel after OpenDataModel.
+	-- The onWbXxx handlers live in initialModel (gui_terraform_brush.lua): Recoil
+	-- forbids adding function keys to a DataModel after OpenDataModel.
 end
 
 return M

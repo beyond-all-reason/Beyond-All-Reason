@@ -39,13 +39,12 @@ local lastActive = false
 local userDragged = false -- once user drags, stop auto-positioning
 
 local function buildRootStyle()
-	-- Width lives in RCSS (.wb-root) so it scales with dp_ratio and stays
-	-- readable via `min-width: Npx`. We only emit position here.
+	-- Width lives in RCSS (.wb-root) so it scales with dp_ratio; only the position is set here.
 	return string.format("left: %.2fvw; top: %.2fvh;", INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
 local initialModel = {
-	-- Root panel visibility — driven by data-class-hidden on #wb-root
+	-- Root panel visibility (data-class-hidden on #wb-root)
 	hidden = true,
 	-- Two-way-bound CEG name filter (data-value on #wb-ceg-filter)
 	filter = "",
@@ -54,7 +53,7 @@ local initialModel = {
 }
 
 -- ===========================================================================
--- Declarative event handlers (called from RML via onclick="widget:Foo()")
+-- Event handlers called from the RML (onclick="widget:Foo()")
 -- ===========================================================================
 function widget:OnQuit()
 	manuallyHidden = true
@@ -71,10 +70,8 @@ function widget:OnFilterBlur()
 	Spring.SDLStopTextInput()
 end
 
--- data-value="filter" only writes dm.filter AFTER the change event fires
--- (RmlUi quirk), so read the input element's value directly here. Without
--- this the per-frame poll of dm.filter never saw typed text, so the CEG
--- browser search appeared to do nothing.
+-- RmlUi writes data-value="filter" only after the change event fires, so read
+-- the input element directly; the per-frame poll of dm.filter would miss typing.
 function widget:OnFilterChange()
 	local doc = widgetState.document
 	local el = doc and doc:GetElementById("wb-ceg-filter")
@@ -186,8 +183,7 @@ local iconMap = {
 	meteor = "&#x2604;",
 }
 
--- Category groups: { label, startIndex, endIndex }
--- These insert visual headers into the library grid to organize presets
+-- Category groups { label, startIndex, endIndex }: headers inserted into the library grid
 local categoryGroups = {
 	{ label = "PRECIPITATION", startIdx = 1 },
 	{ label = "WIND &amp; SAND", startIdx = 8 },
@@ -200,7 +196,7 @@ local categoryGroups = {
 }
 
 -- ===========================================================================
--- Event Listeners (imperative — drag handle only; click/focus/blur live in RML)
+-- Event listeners: the drag handle only; click/focus/blur live in the RML
 -- ===========================================================================
 local function attachEventListeners()
 	local doc = widgetState.document
@@ -255,7 +251,7 @@ end
 -- Update: sync widget state to UI
 -- ===========================================================================
 function widget:Update()
-	-- Poll-based window drag (position only — mouseup ends drag via doc listener)
+	-- Poll-based window drag (position only; mouseup ends the drag via a doc listener)
 	if widgetState.dragHandle then
 		widgetState.dragHandle.tick()
 	end
@@ -263,7 +259,7 @@ function widget:Update()
 	local wbState = WG.WeatherBrush and WG.WeatherBrush.getState()
 	local wbActive = wbState and wbState.active
 
-	-- Show/hide entire panel (driven via data-class-hidden on #wb-root)
+	-- Show/hide the whole panel (data-class-hidden on #wb-root)
 	if wbActive and not lastActive then
 		manuallyHidden = false
 	end
@@ -303,7 +299,7 @@ function widget:Update()
 		return
 	end
 
-	-- Selected CEGs label (cached element + dirty-check: runs every Update tick)
+	-- Selected CEGs label: cached element and dirty check, since this runs every Update
 	local selectedLabel = widgetState.selectedCegsLabelEl
 	if not selectedLabel then
 		selectedLabel = doc:GetElementById("wb-selected-cegs-label")
@@ -384,7 +380,7 @@ function widget:Update()
 		end
 	end
 
-	-- CEG list: rebuild when filter changes (filter is two-way bound via data-value)
+	-- CEG list: rebuild when dm.filter changes (OnFilterChange keeps it current)
 	local filter = (widgetState.dmHandle and widgetState.dmHandle.filter) or ""
 	if filter ~= widgetState.cegListFilter or not widgetState.cegListBuilt then
 		widgetState.cegListFilter = filter
