@@ -1,26 +1,23 @@
--- tf_surface.lua: UI module for the SURFACE (soft variant paint) and LAYERS
--- (hard splat-override paint) tools of gui_terraform_brush. Both run as
--- activeTool 'surf' and share this panel; dm.surfMode ('soft'/'hard') picks
--- which sections show. The soft engine lives in the write-dir widget
--- dev_surface_painter.lua (WG.SurfacePainter), the hard engine is the Splat
--- Painter reused headless (WG.SplatPainter); the variant catalog, mask
--- binding and shader taps live in dev_tileset_terrain.lua (WG.TilesetTerrain).
--- Panel: palette tile grid (built imperatively — the variant list is
--- per-biome and dynamic), brush rows, fill/seed, sculpted hint, and the two
--- GROUP tint rows (TOPS / ROCK, meeting 2026-08-05).
+-- tf_surface.lua: panel for the SURFACE (soft variant paint) and LAYERS (hard
+-- splat-override paint) tools. Both run as activeTool 'surf'; dm.surfMode
+-- ('soft' / 'hard') picks which sections show.
+-- The engines are NOT in this repo: soft paint is the write-dir widget
+-- dev_surface_painter.lua (WG.SurfacePainter), and the variant catalog, mask
+-- binding and shader knobs live in the write-dir dev_tileset_terrain.lua
+-- (WG.TilesetTerrain). Hard paint reuses the splat painter (WG.SplatPainter).
+-- Every call into those APIs is nil-guarded, because either may be missing.
 local M = {}
 
--- Slot chips the RML draws. The painter is the authority on how many slots
--- actually exist (WG.SurfacePainter.getState().slotCount); this is only the
--- ceiling for element lookups.
+-- Slot chips the RML draws. The painter owns the real slot count
+-- (WG.SurfacePainter.getState().slotCount); this is only the lookup ceiling.
 local MAX_SLOTS = 7
 
--- Capture engine globals as module upvalues: RmlUi-dispatched event closures
--- can run outside the host widget's global env, where bare globals read nil.
+-- RmlUi listener closures can run outside the widget env, where bare globals
+-- read nil; capture them as upvalues.
 local WG = WG
 local Spring = Spring
 
--- Slider ids tracked for drag (change events are declarative in the RML).
+-- Sliders tracked for drag state (value changes come from the RML).
 local SLIDER_IDS = {
 	{ "surf-slider-size", "surf-size" },
 	{ "surf-slider-strength", "surf-strength" },
@@ -39,19 +36,19 @@ local SLIDER_IDS = {
 	{ "surf-slider-rockTintG", "surf-rockTintG" },
 	{ "surf-slider-rockTintB", "surf-rockTintB" },
 	{ "surf-slider-rockDesat", "surf-rockDesat" },
-	-- HARD submode smart-filter sliders (engine = WG.SplatPainter)
+	-- HARD smart filters (WG.SplatPainter)
 	{ "surf-hard-slider-slope-max", "surf-hard-slope-max" },
 	{ "surf-hard-slider-alt-min", "surf-hard-alt-min" },
 	{ "surf-hard-slider-alt-max", "surf-hard-alt-max" },
-	-- SOFT submode smart-filter sliders (engine = WG.SurfacePainter)
+	-- SOFT smart filters (WG.SurfacePainter)
 	{ "surf-soft-slider-slope-max", "surf-soft-slope-max" },
 	{ "surf-soft-slider-alt-min", "surf-soft-alt-min" },
 	{ "surf-soft-slider-alt-max", "surf-soft-alt-max" },
-	-- SELECTED SLOT tint (GRADING; per-asset, dev_tileset_terrain slotTintN)
+	-- SELECTED SLOT tint (GRADING), stored per asset by WG.TilesetTerrain
 	{ "surf-slider-slotTintR", "surf-slotTintR" },
 	{ "surf-slider-slotTintG", "surf-slotTintG" },
 	{ "surf-slider-slotTintB", "surf-slotTintB" },
-	-- INFLUENCE sliders (shared by both submodes; handler routes by surfMode)
+	-- INFLUENCE, shared by both submodes (the handler routes by surfMode)
 	{ "surf-slider-inf-alt-min", "surf-inf-alt-min" },
 	{ "surf-slider-inf-alt-max", "surf-inf-alt-max" },
 	{ "surf-slider-inf-alt-feather", "surf-inf-alt-feather" },
@@ -79,16 +76,15 @@ function M.attach(doc, ctx)
 	widgetState.surfControlsEl = doc:GetElementById("tf-surface-controls")
 	widgetState.surfPaletteGridEl = doc:GetElementById("surf-palette-grid")
 	widgetState.surfSculptGridEl = doc:GetElementById("surf-sculpt-grid")
-	-- One thumb per variant slot. MAX_SLOTS just has to be >= the painter's slot
-	-- count; missing elements are skipped, so the panel tolerates a painter with
-	-- fewer slots than the RML draws and vice versa.
+	-- One thumb per slot; a missing element is skipped, so the RML and the
+	-- painter may disagree on the slot count.
 	widgetState.surfSlotThumbEls = { base = doc:GetElementById("surf-slot-base-thumb") }
 	for slot = 1, MAX_SLOTS do
 		widgetState.surfSlotThumbEls[slot] = doc:GetElementById("surf-slot-" .. slot .. "-thumb")
 	end
 	widgetState.surfNowThumbEl = doc:GetElementById("surf-now-thumb")
 	widgetState.surfPaletteSectionEl = doc:GetElementById("section-surf-palette")
-	-- fresh document: rebuild the palette + re-stamp checkboxes on next sync
+	-- Fresh document: rebuild the palette on the next sync.
 	widgetState.surfPaletteSig = nil
 	widgetState.surfPaletteEls = {} -- { {el, tex} } for the GL thumbnail pass
 	widgetState.surfTintLast = widgetState.surfTintLast or {}
@@ -101,11 +97,9 @@ function M.attach(doc, ctx)
 	end
 
 	widgetState.surfPickerEl = doc:GetElementById("surf-picker")
-	-- The picker's hover preview shares the palette's GL thumbnail pass, but as
-	-- a PERSISTENT entry whose .tex the sync rewrites every frame: rebuilding
-	-- the tile grid on every mouse move would destroy the element the pointer is
-	-- over, and with it the hover it is meant to report. u0/u1 widen the crop —
-	-- the tiles show a quarter window, the preview shows the whole tile.
+	-- The hover preview is a persistent entry in the GL thumbnail pass whose .tex
+	-- the sync rewrites: rebuilding the grid on hover would destroy the hovered
+	-- element. u0/u1 show the whole texture (tiles show a quarter crop).
 	widgetState.surfPreviewEntry = {
 		el = doc:GetElementById("surf-picker-preview"),
 		tex = nil,
@@ -117,9 +111,8 @@ function M.attach(doc, ctx)
 	widgetState.surfSculptSectionEl = doc:GetElementById("section-surf-sculpt")
 	widgetState.surfPickerSlot = nil -- nil = closed, else the target slot
 
-	-- Slot buttons are imperative so a click on them does NOT also reach the
-	-- tile's select handler underneath. PICK owns opening the library; the tile
-	-- itself only arms the slot for painting.
+	-- Slot buttons are wired here so StopPropagation keeps the click off the
+	-- slot's own select handler. PICK opens the library; the slot itself only arms it.
 	for slot = 1, MAX_SLOTS do
 		local btn = doc:GetElementById("surf-slot-" .. slot .. "-free")
 		if btn then
@@ -134,8 +127,7 @@ function M.attach(doc, ctx)
 		local pick = doc:GetElementById("surf-slot-" .. slot .. "-pick")
 		if pick then
 			pick:AddEventListener("mousedown", function(event)
-				-- clicking PICK on the open slot closes it again (same button,
-				-- same place — no separate close to hunt for)
+				-- PICK on the slot that is already open closes the picker.
 				local open = (widgetState.surfPickerSlot ~= slot) and slot or nil
 				widgetState.surfPickerSlot = open
 				widgetState.surfPaletteSig = nil -- rebuild for the new target
@@ -145,11 +137,10 @@ function M.attach(doc, ctx)
 			end, false)
 		end
 	end
-	-- FLIP: per-texture normal G toggle, straight through to the tileset shader
-	-- (asset-keyed there, so re-picking the same texture into another slot keeps
-	-- the flag). ONE button acting on the SELECTED slot (BASE = slot 0, whose
-	-- texture is every empty slot's fallback): a FLIP on every tile left
-	-- PICK / FLIP / X too cramped to hit.
+	-- FLIP toggles the normal map's G channel for the SELECTED slot's texture
+	-- (BASE = slot 0). WG.TilesetTerrain keys the flag by asset, so it follows
+	-- the texture into any slot. One button, not one per tile, to keep the
+	-- slot buttons large enough to hit.
 	local function selectedSurfAsset()
 		local sp = WG.SurfacePainter
 		local st = sp and sp.getState and sp.getState()
@@ -191,14 +182,12 @@ function M.attach(doc, ctx)
 		end, false)
 	end
 
-	-- Section collapse for the surf-* frames is wired centrally in
-	-- tf_environment.lua (envSectionToggle), like every other tool.
+	-- Section collapse is wired in tf_environment.lua (envSectionToggle).
 end
 
--- Ctrl SNEAK PEEK toggle (DISPLAY chip). The peek itself is engine-driven —
--- dev_surface_painter / cmd_splat_painter watch Ctrl and feed the brush
--- footprint to WG.TilesetTerrain.setSurfacePreview — the panel only owns the
--- on/off gate and mirrors it into both engines each sync.
+-- Ctrl SNEAK PEEK gate (DISPLAY chip). The engines watch Ctrl and feed the
+-- brush footprint to WG.TilesetTerrain.setSurfacePreview; the panel only owns
+-- the on/off switch and pushes it to both engines every sync.
 local function pushPeekEnabled(dm)
 	local on = dm.surfReveal and true or false
 	local sp = WG.SurfacePainter
@@ -211,8 +200,8 @@ local function pushPeekEnabled(dm)
 	end
 end
 
--- Palette signature: biome + variant list + selection + slot assignment.
--- ≤ 11 tiles, so a rebuild on any of those changing is cheap.
+-- Palette signature: biome, variant list, selection, picker target and slots.
+-- A biome has only a handful of tiles, so a rebuild on any change is cheap.
 local function paletteSig(list, bkey, surfState, pickSlot)
 	local parts = {
 		tostring(bkey),
@@ -228,20 +217,18 @@ local function paletteSig(list, bkey, surfState, pickSlot)
 	return table.concat(parts, "|")
 end
 
--- targetSlot: the slot the picker is assigning into. Clicking a tile always
--- lands in THAT slot (no "first free slot" guessing, no refusals).
+-- targetSlot: the slot the picker assigns into; a tile click always lands there.
 local function buildTile(doc, ctx, v, surfState, targetSlot)
 	local playSound = ctx.playSound
 	local widgetState = ctx.widgetState
 	local tile = doc:CreateElement("div")
 	tile:SetClass("tf-biome-tile", true)
-	-- surf-tile scopes position:relative for the corner tag without touching
-	-- the shared biome-tile class.
+	-- surf-tile adds position: relative for the corner tag without touching the shared class.
 	tile:SetClass("surf-tile", true)
 	local sel = (v.base and (surfState.variant or "") == "") or (not v.base and surfState.variant == v.asset)
 	if sel then
 		tile:SetClass("active", true)
-		-- Ring in the CHANNEL color, so tile / rail / brush ring all agree.
+		-- Ring in the channel color, matching the slot rail and the brush ring.
 		for i = 1, (surfState.slotCount or MAX_SLOTS) do
 			if surfState["slot" .. i] == v.asset then
 				tile:SetClass("surf-sel-c" .. i, true)
@@ -250,16 +237,14 @@ local function buildTile(doc, ctx, v, surfState, targetSlot)
 		end
 	end
 
-	-- thumb placeholder: the actual albedo is GL-rendered over this rect in
-	-- DrawScreenPost (RmlUi <img> would decode the full 4K bitmap into the
-	-- TexMemPool — the skybox library lesson — while gl.Texture reuses the
-	-- terrain shader's already-resident texture for free)
+	-- Placeholder: the albedo is GL-drawn over this rect in DrawScreenPost. An
+	-- RmlUi <img> would decode the full 4K bitmap into the TexMemPool, while
+	-- gl.Texture reuses the texture the terrain shader already holds.
 	local thumb = doc:CreateElement("div")
 	thumb:SetClass("tf-surf-thumb", true)
 	tile:AppendChild(thumb)
 
-	-- Slot tag: colored corner badge in the slot's channel color (the same
-	-- color marks the slot rail, coverage bar and brush ring).
+	-- Corner badge with the slot number, in the slot's channel color.
 	if not v.base then
 		local slotN
 		for i = 1, (surfState.slotCount or MAX_SLOTS) do
@@ -282,9 +267,8 @@ local function buildTile(doc, ctx, v, surfState, targetSlot)
 	name.inner_rml = v.label
 	tile:AppendChild(name)
 
-	-- Hover drives the preview above the grid. mouseout only clears when this
-	-- tile is still the one on show, so the pointer crossing a gap between two
-	-- tiles cannot blank a preview the newer tile just claimed.
+	-- Hover drives the preview. mouseout clears only if this tile is still the
+	-- one shown, so crossing to the next tile cannot blank its preview.
 	tile:AddEventListener("mouseover", function(_event)
 		widgetState.surfHover = { asset = v.asset, diff = v.diff, label = v.label, base = v.base }
 	end, false)
@@ -303,8 +287,7 @@ local function buildTile(doc, ctx, v, surfState, targetSlot)
 		local ok, err
 		if targetSlot and sp.setVariantSlot then
 			ok, err = sp.setVariantSlot(targetSlot, v.base and "" or v.asset)
-			-- Choosing is a one-shot action: close the picker on success so the
-			-- panel returns to its compact state.
+			-- A successful pick closes the picker.
 			if ok then
 				widgetState.surfPickerSlot = nil
 			end
@@ -330,8 +313,8 @@ local function rebuildPalette(doc, ctx, list, surfState)
 	grid.inner_rml = ""
 	widgetState.surfPaletteEls = {}
 	local pickSlot = widgetState.surfPickerSlot
-	-- The tile grid only exists while the picker is open (per-slot dropdown);
-	-- the rail's thumbs below are what the panel shows the rest of the time.
+	-- The tile grid exists only while a slot's picker is open; otherwise the
+	-- panel shows the slot rail thumbs.
 	local row
 	if pickSlot then
 		for i = 1, #list do
@@ -349,9 +332,8 @@ local function rebuildPalette(doc, ctx, list, surfState)
 				{ el = thumb, tex = list[i].diff, sec = widgetState.surfPickerEl }
 		end
 	end
-	-- SCULPTED FEATURES: same tiles, surfaced separately to teach the workflow.
-	-- Only tagged layers appear; until the tileset tags them (b.sculpted), the
-	-- grid stays empty and the section shows its "not tagged yet" note.
+	-- SCULPTED FEATURES: the variants the tileset tags as sculpted, shown again
+	-- on their own. With none tagged the grid stays empty and the RML shows a note.
 	local sg = widgetState.surfSculptGridEl
 	if sg then
 		local tagged = {}
@@ -372,10 +354,7 @@ local function rebuildPalette(doc, ctx, list, surfState)
 				srow:SetClass("mb-1", true)
 				sg:AppendChild(srow)
 			end
-			-- Sculpted tiles assign like any other variant; target the picker's
-			-- slot when one is open, else slot 1 (never the removed
-			-- "first free slot" path, whose refusal message no longer matches
-			-- this UI).
+			-- Assign into the picker's slot when one is open, else slot 1.
 			local tile, thumb = buildTile(doc, ctx, srcList[i], surfState, pickSlot or 1)
 			srow:AppendChild(tile)
 			widgetState.surfPaletteEls[#widgetState.surfPaletteEls + 1] =
@@ -383,9 +362,8 @@ local function rebuildPalette(doc, ctx, list, surfState)
 		end
 	end
 
-	-- Fixed thumbs (NOW PAINTING strip + slot rail) join the same GL overlay
-	-- pass as the tiles. An empty slot registers nothing — the placeholder
-	-- background reads as "empty".
+	-- The NOW PAINTING strip and slot rail join the same GL thumbnail pass. An
+	-- empty slot registers nothing, so its placeholder background reads as empty.
 	local byAsset = {}
 	for i = 1, #list do
 		byAsset[list[i].asset] = list[i].diff
@@ -420,8 +398,7 @@ local function shortAsset(asset)
 	return asset:match("(%d+)$") or asset
 end
 
--- GRADING group tints (shader knobs) serve BOTH submodes, so the sync is
--- shared between the soft path and syncHard below.
+-- GRADING tints are WG.TilesetTerrain shader knobs and serve both submodes.
 local function syncTints(doc, ctx)
 	local T = WG.TilesetTerrain
 	if not (T and T.getKnobs) then
@@ -440,9 +417,8 @@ local function syncTints(doc, ctx)
 		cache = {}
 		widgetState.surfTintLast = cache
 	end
-	-- SELECTED SLOT tint: the armed texture's per-asset entry in the tileset
-	-- widget, restamped only when the asset or a channel changes (and never
-	-- under the slider being dragged).
+	-- SELECTED SLOT tint: the armed texture's per-asset entry, re-stamped only
+	-- when the asset or a channel changes and never under a dragged slider.
 	do
 		---@type table?
 		local TT = WG.TilesetTerrain
@@ -492,9 +468,9 @@ local function syncTints(doc, ctx)
 	uiState.updatingFromCode = false
 end
 
--- HARD submode: splat channels R/G/B/A are repurposed by the tileset shader
--- as auto/intermediate/cliff/plateau overrides (dev_tileset_terrain splatDistrTex).
--- Colors repeat on the chips + NOW strip (rcss surf-hard-*).
+-- HARD submode: the tileset shader reads splat channels R/G/B/A as auto /
+-- intermediate / cliff / plateau overrides (splatDistrTex in WG.TilesetTerrain).
+-- The chip colors live in the rcss (surf-hard-*).
 local HARD_CHANNELS = {
 	{ "AUTO", "painting removes the override \226\128\148 slope placement returns" },
 	{ "INTERMEDIATE", "forcing intermediate material where painted" },
@@ -519,12 +495,12 @@ local function syncHard(doc, ctx, setSummary)
 		end
 	end
 
-	-- Honesty line: with the shader off, hard strokes drive the legacy DNTS
-	-- distribution instead of tileset overrides.
+	-- With the tileset shader off, hard strokes paint the plain DNTS splat
+	-- distribution instead of overrides; the panel says so.
 	local T = WG.TilesetTerrain
 	setDm("surfShaderOff", not (T and T.isActive and T.isActive()))
 
-	-- Channel chips + NOW PAINTING strip: always says what the next stroke does.
+	-- The NOW PAINTING strip says what the next stroke does.
 	local ch = spState.channel or 1
 	setDm("surfHardCh", ch)
 	local info = HARD_CHANNELS[ch] or HARD_CHANNELS[1]
@@ -537,7 +513,7 @@ local function syncHard(doc, ctx, setSummary)
 	setDm("surfHardAltMin", sf.altMinEnable == true)
 	setDm("surfHardAltMax", sf.altMaxEnable == true)
 	do
-		-- SAMPLE buttons light while the brush widget's height sampler is armed on their target
+		-- SAMPLE buttons light while the terraform brush samples height for their bound.
 		local hs = WG.TerraformBrush
 			and WG.TerraformBrush.getState
 			and (WG.TerraformBrush.getState() or {}).heightSamplingMode
@@ -548,15 +524,14 @@ local function syncHard(doc, ctx, setSummary)
 	end
 	setDm("surfHardExportFmt", string.upper(spState.exportFormat or "png"))
 	setDm("surfHardOverlay", spState.showSplatOverlay == true)
-	-- FILTERS live in a canonical collapsed section now, so they get the
-	-- standard "engaged while folded" warn chip.
+	-- Warn chip: a filter is engaged while its section is folded.
 	ctx.syncWarnChip(
 		doc,
 		"warn-chip-sf-smart",
 		"section-sf-smart",
 		(sf.avoidWater or sf.avoidCliffs or sf.altMinEnable or sf.altMaxEnable) and true or false
 	)
-	-- INFLUENCE chips + the active channel's profile name
+	-- INFLUENCE chips and the active channel's profile name
 	local inf = spState.influence or {}
 	setDm("surfInfAlt", inf.altOn == true)
 	setDm("surfInfSlope", inf.slopeOn == true)
@@ -568,8 +543,7 @@ local function syncHard(doc, ctx, setSummary)
 		(inf.altOn or inf.slopeOn) and true or false
 	)
 
-	-- BRUSH sliders mirror the splat engine in this submode (same slider-unit
-	-- mappings as the legacy panel: strength*100, curve*10).
+	-- BRUSH sliders mirror the splat engine here (slider units: strength x100, curve x10).
 	uiState.updatingFromCode = true
 	local stamped = false
 	local function ss(id, key, val)
@@ -580,9 +554,8 @@ local function syncHard(doc, ctx, setSummary)
 	ss("surf-slider-size", "surf-size", tostring(spState.radius or 100))
 	ss("surf-slider-strength", "surf-strength", tostring(math.floor((spState.strength or 0.15) * 100 + 0.5)))
 	ss("surf-slider-falloff", "surf-falloff", tostring(math.floor((spState.curve or 1.0) * 10 + 0.5)))
-	-- Smart-filter sliders go through the same dirty-checked path: stamping
-	-- them every frame raised a change event every frame, which the echo guard
-	-- then had to swallow — taking the user's real drags with it.
+	-- Every slider goes through the dirty-checked path: a stamp raises a change
+	-- event, and an every-frame stamp would make the echo guard swallow real drags.
 	ss("surf-hard-slider-slope-max", "surf-hard-slope-max", tostring(sf.slopeMax or 45))
 	ss("surf-hard-slider-alt-min", "surf-hard-alt-min", tostring(sf.altMin or 0))
 	ss("surf-hard-slider-alt-max", "surf-hard-alt-max", tostring(sf.altMax or 200))
@@ -611,15 +584,13 @@ local function syncHard(doc, ctx, setSummary)
 		nb("surf-hard-slider-alt-max-numbox", tostring(sf.altMax or 200))
 	end
 	uiState.updatingFromCode = false
-	-- SOFT and HARD share Size/Strength/Falloff; RmlUi echoes these stamps back
-	-- as change events a few frames later, so the handlers ignore anything that
-	-- close to a stamp (see onSurfSlider). ONLY arm that window on a real
-	-- stamp — this sync runs every frame.
+	-- RmlUi echoes a stamp back as a change event a few frames later, so the
+	-- handlers ignore changes that close to one (see onSurfSlider). Arm that
+	-- window only on a real stamp: this sync runs every frame.
 	if stamped then
 		uiState.surfStampFrame = Spring.GetDrawFrame()
 	end
 
-	-- GRADING serves both submodes.
 	syncTints(doc, ctx)
 
 	if setSummary then
@@ -639,8 +610,7 @@ local function syncHard(doc, ctx, setSummary)
 end
 
 function M.sync(doc, ctx, surfState, setSummary)
-	-- HARD only needs the splat engine, so the soft painter is required for the
-	-- soft branch (below), not for the whole module.
+	-- HARD needs only the splat engine; WG.SurfacePainter is checked in the soft branch.
 	if not doc then
 		return
 	end
@@ -653,15 +623,13 @@ function M.sync(doc, ctx, surfState, setSummary)
 		return
 	end
 
-	-- Canonical DISPLAY/INSTRUMENTS mirror (shared TB state, sf prefix) —
-	-- serves both submodes, so it runs before the hard branch below.
+	-- Shared by both submodes, so these run before the hard branch.
 	if ctx.syncTBMirrorControls then
 		ctx.syncTBMirrorControls(doc, "sf")
 	end
-	-- Ctrl sneak-peek gate, mirrored into both paint engines (both submodes)
 	pushPeekEnabled(dm)
 
-	-- Active biome line under the submode row (serves both submodes).
+	-- Active biome line under the submode row.
 	do
 		local T = WG.TilesetTerrain
 		local name
@@ -675,7 +643,7 @@ function M.sync(doc, ctx, surfState, setSummary)
 		end
 	end
 
-	-- HARD submode: the panel mirrors the splat engine, not the variant mask.
+	-- HARD mirrors the splat engine, not the variant mask.
 	if dm.surfMode == "hard" and WG.SplatPainter then
 		syncHard(doc, ctx, setSummary)
 		return
@@ -684,9 +652,6 @@ function M.sync(doc, ctx, surfState, setSummary)
 		return
 	end
 
-	-- Palette rebuild on biome / list / selection / slot / picker-target change.
-	-- Per-slot picking replaced the old "first free slot" assignment, so there
-	-- is no unassignable state left to dim for.
 	---@type table?
 	local T = WG.TilesetTerrain
 	local list, bkey = nil, nil
@@ -694,9 +659,8 @@ function M.sync(doc, ctx, surfState, setSummary)
 		list, bkey = T.getSurfaceVariants()
 	end
 	local pickSlot = widgetState.surfPickerSlot
-	-- The painter's coverage histogram is a gl.ReadPixels (a GPU sync) and its
-	-- only reader here is the picker's "already carries paint" warning, so the
-	-- painter computes it only while a picker is open (gated readback).
+	-- Coverage is a gl.ReadPixels (a GPU sync) whose only reader is the picker's
+	-- "already carries paint" warning, so ask for it only while a picker is open.
 	do
 		---@type table?
 		local sp = WG.SurfacePainter
@@ -711,8 +675,7 @@ function M.sync(doc, ctx, surfState, setSummary)
 			rebuildPalette(doc, ctx, list, surfState)
 		end
 	end
-	-- Picker visibility + header (imperative: the open slot lives in
-	-- widgetState, and the grid inside is imperative anyway).
+	-- Picker visibility is set here: the open slot lives in widgetState, not the data model.
 	do
 		local pk = widgetState.surfPickerEl
 		if pk then
@@ -720,7 +683,6 @@ function M.sync(doc, ctx, surfState, setSummary)
 		end
 	end
 
-	-- dm flags for data-if / data-class-active
 	local function setDm(f, v)
 		if dm[f] ~= v then
 			dm[f] = v
@@ -742,14 +704,13 @@ function M.sync(doc, ctx, surfState, setSummary)
 	setDm("surfShaderOff", not surfState.shaderOn)
 	setDm("surfErase", surfState.eraseMode and true or false)
 	setDm("surfPreset", surfState.preset or "")
-	-- Soft smart filters (canonical FILTERS section) + its warn chip
+	-- Soft smart filters and their warn chip
 	do
 		local ssf = surfState.smartFilters or {}
 		setDm("surfSoftAvoidWater", ssf.avoidWater == true)
 		setDm("surfSoftAvoidCliffs", ssf.avoidCliffs == true)
 		setDm("surfSoftAltMin", ssf.altMinEnable == true)
 		setDm("surfSoftAltMax", ssf.altMaxEnable == true)
-		-- SAMPLE buttons light while the brush widget's height sampler is armed on their target
 		local hs = WG.TerraformBrush
 			and WG.TerraformBrush.getState
 			and (WG.TerraformBrush.getState() or {}).heightSamplingMode
@@ -764,7 +725,7 @@ function M.sync(doc, ctx, surfState, setSummary)
 			(ssf.avoidWater or ssf.avoidCliffs or ssf.altMinEnable or ssf.altMaxEnable) and true or false
 		)
 	end
-	-- INFLUENCE chips + the armed texture's profile name
+	-- INFLUENCE chips and the armed texture's profile name
 	do
 		local inf = surfState.influence or {}
 		setDm("surfInfAlt", inf.altOn == true)
@@ -777,8 +738,8 @@ function M.sync(doc, ctx, surfState, setSummary)
 			(inf.altOn or inf.slopeOn) and true or false
 		)
 	end
-	-- Per-slot chip state, and FILL WITH NOISE stays enabled only while some
-	-- channel is both assigned and switched on.
+	-- Per-slot chips. FILL WITH NOISE is enabled only while some slot is both
+	-- assigned and switched on.
 	local canFill = false
 	for i = 1, MAX_SLOTS do
 		local asset = surfState["slot" .. i]
@@ -790,7 +751,7 @@ function M.sync(doc, ctx, surfState, setSummary)
 			canFill = true
 		end
 	end
-	-- The single FLIP button mirrors the SELECTED slot's flag (BASE included)
+	-- FLIP mirrors the selected slot's flag (BASE included).
 	if widgetState.surfFlipSelEl then
 		local selAsset = widgetState.surfSelectedAsset and widgetState.surfSelectedAsset()
 		local fl = false
@@ -807,9 +768,7 @@ function M.sync(doc, ctx, surfState, setSummary)
 		setDm("surfPickerTitle", pickSlot and ("Assign to slot " .. pickSlot) or "")
 		setDm("surfPickerHasPaint", cov >= 0.005)
 
-		-- HOVER PREVIEW. Hovered tile wins; with nothing hovered the preview
-		-- shows what the slot being assigned already holds, so opening the
-		-- picker starts from the current material rather than an empty box.
+		-- HOVER PREVIEW: the hovered tile, else what the target slot already holds.
 		local hover = widgetState.surfHover
 		local prevDiff, prevName, prevHint
 		if hover then
@@ -841,7 +800,7 @@ function M.sync(doc, ctx, surfState, setSummary)
 		end
 	end
 
-	-- NOW PAINTING strip + selection slot for the rail's active ring
+	-- NOW PAINTING strip, and the selected slot for the rail's active ring
 	do
 		local sel = surfState.variant
 		local selSlot = surfState.selSlot or 0
@@ -849,9 +808,8 @@ function M.sync(doc, ctx, surfState, setSummary)
 		local nowName, nowDetail
 		if surfState.eraseMode or selSlot == 0 then
 			nowName = "BASE"
-			-- BASE is a paint target since the paintability flip: it forces
-			-- top_001 over whatever the automatic sort chose (plateau included).
-			-- Erasing is RMB and means "withdraw the claim, go back to automatic".
+			-- Painting BASE forces top_001 over the automatic choice (plateau
+			-- included). Erasing (RMB) withdraws the claim, back to automatic.
 			nowDetail = surfState.eraseMode and "strokes withdraw the claim (back to automatic)"
 				or "paints plain base over the automatic choice"
 		else
@@ -863,19 +821,9 @@ function M.sync(doc, ctx, surfState, setSummary)
 		setDm("surfNowMode", surfState.eraseMode and "ERASE" or "PAINT")
 	end
 
-	-- Coverage percentages are gone from the panel (2026-08-22): an artist reads
-	-- the ground, not a histogram, and the bar plus eight per-tile shares cost
-	-- more space than the slot buttons did. The painter still computes coverage
-	-- on stroke end — the picker uses it for the "this slot already carries
-	-- paint" warning, which is a consequence, not a metric.
-
-	-- Cliff protection moved to the TILESET window (PROTECT CLIFFS button): it
-	-- is a shader knob, and for THIS tool the sweep-around is structural
-	-- anyway — variants only ever retexture the soft top.
-	-- GRADING sliders (group tints live as shader knobs; shared with HARD)
 	syncTints(doc, ctx)
 
-	-- Brush + fill sliders / numboxes
+	-- Brush and fill sliders and numboxes
 	uiState.updatingFromCode = true
 	local stamped = false
 	local function ss(id, key, val)
@@ -936,10 +884,8 @@ function M.sync(doc, ctx, surfState, setSummary)
 		nb("surf-slider-inf-slope-feather-numbox", tostring(math.floor((inf.slopeFeather or 10) + 0.5)))
 	end
 	uiState.updatingFromCode = false
-	-- ONLY when a slider was actually re-stamped (see syncHard's note): this
-	-- sync runs every frame, so arming the window unconditionally would swallow
-	-- every change event the user's own dragging raises — which is exactly what
-	-- left FILL AND SEED dead (scale/seed never reached the painter).
+	-- Arm the echo window only on a real stamp (see syncHard): armed every frame
+	-- it would swallow the user's own slider changes.
 	if stamped then
 		uiState.surfStampFrame = Spring.GetDrawFrame()
 	end
