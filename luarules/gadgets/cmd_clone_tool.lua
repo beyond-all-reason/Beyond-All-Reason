@@ -79,21 +79,27 @@ local tonumber = tonumber
 -- ---------------------------------------------------------------------------
 -- Undo / Redo
 -- ---------------------------------------------------------------------------
+---@type table[]
 local undoStack = {}
+---@type table[]
 local redoStack = {}
 local MAX_UNDO = 100
 
 -- ---------------------------------------------------------------------------
 -- Height map application (same pattern as the terraform brush)
 -- ---------------------------------------------------------------------------
+---@type table
 local pendingFlatData
+---@type number
 local pendingFlatStart
+---@type number
 local pendingFlatEnd
 
 local function heightMapApplyFn()
 	local fd = pendingFlatData
 	for i = pendingFlatStart, pendingFlatEnd - 1 do
 		local base = i * 3
+		---@type number
 		local h = fd[base + 3]
 		if h == h then -- NaN guard
 			spSetHeightMap(fd[base + 1], fd[base + 2], h)
@@ -365,6 +371,7 @@ local function handleTerrainEnd()
 				if or_ % ratio ~= 0 or oc % ratio ~= 0 then
 					local sc = oc / ratio
 					local sr = or_ / ratio
+					---@type number
 					local c0 = floor(sc)
 					if c0 < 0 then
 						c0 = 0
@@ -372,6 +379,7 @@ local function handleTerrainEnd()
 					if c0 > srcCols - 1 then
 						c0 = srcCols - 1
 					end
+					---@type number
 					local r0 = floor(sr)
 					if r0 < 0 then
 						r0 = 0
@@ -460,6 +468,7 @@ end
 -- ---------------------------------------------------------------------------
 -- RecvLuaMsg dispatch
 -- ---------------------------------------------------------------------------
+---@return boolean?
 function gadget:RecvLuaMsg(msg, playerID)
 	local certified = msg:sub(1, CHEAT_SIG_LEN) == CHEAT_SIG
 	if certified then

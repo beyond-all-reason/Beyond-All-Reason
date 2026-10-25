@@ -93,9 +93,20 @@ local active = false
 local state = "idle"
 
 -- Selection box (world coords)
+---@class CloneToolBox
+---@field x1 number
+---@field z1 number
+---@field x2 number
+---@field z2 number
 local selBox = { x1 = 0, z1 = 0, x2 = 0, z2 = 0 }
 
 -- Box manipulation state
+---@class CloneToolBoxDrag
+---@field active boolean
+---@field handle string? "tl", "tr", "bl", "br", "top", "bot", "left", "right", "center"
+---@field anchorX number
+---@field anchorZ number
+---@field origBox CloneToolBox? set with handle, before active turns true
 local boxDrag = {
 	active = false,
 	handle = nil, -- "tl","tr","bl","br","top","bot","left","right","center"
@@ -105,6 +116,7 @@ local boxDrag = {
 }
 
 -- Layer toggles
+---@type table<string, boolean>
 local layers = {
 	terrain = true,
 	metal = true,
@@ -124,6 +136,7 @@ local layers = {
 local cloneBuffer = nil
 
 -- Paste state
+---@type number
 local pasteRotation = 0
 local pasteHeightOffset = 0
 local PASTE_HEIGHT_LIMIT = 500 -- the panel slider's range; Shift+wheel stops here too
@@ -139,10 +152,11 @@ local pasteBlend = "replace"
 -- uniforms and three instanced draws however large the box.
 local ClonePreview = VFS.Include("luaui/Include/clone_preview_gl4.lua")
 local previewOpacity = 0.7 -- 0 hides the ghost and falls back to the flat outline
+---@type table?
 local pendingPreviewCapture = nil -- GL needs a draw callin, like the splat capture
 local previewInst = {} -- reused per frame: x, z, rotRad, mirror bits per pasted copy
 local previewOpts = { offset = 0, opacity = 0.7 }
----@type { n: integer, x: number, z: number, pinX: number?, pinZ: number? }
+---@type { n: number, x: number, z: number, pinX: number?, pinZ: number? }
 local previewLast = { n = 0, x = 0, z = 0 }
 
 -- Terrain quality: "full" (float, step=8), "balanced" (int, step=8), "fast" (int, step=24, gadget fill)
@@ -176,10 +190,15 @@ local function splatTexSize()
 	end
 	return nil
 end
+---@type table?
 local pendingSplatCapture = nil -- deferred GL capture (GL calls need Draw context)
+---@type string?
 local splatPasteFBO = nil -- the texture the engine is currently showing (see the paste)
+---@type table?
 local pendingSurfaceCapture = nil -- same, for the tileset variant mask
+---@type table?
 local pendingSurfacePaste = nil
+---@type table?
 local pendingSplatPaste = nil -- deferred GL paste (GL calls need Draw context)
 
 -- ---------------------------------------------------------------------------
@@ -468,6 +487,7 @@ local function doCopy()
 		if feats then
 			for _, fid in ipairs(feats) do
 				local defID = spGetFeatureDefID(fid)
+				---@type table?
 				local def = FeatureDefs[defID]
 				if def then
 					local fx, fy, fz = spGetFeaturePosition(fid)
@@ -519,6 +539,7 @@ local function doCopy()
 
 	-- Grass
 	if layers.grass then
+		---@type table?
 		local grassApi = WG.grassgl4
 		if grassApi and grassApi.getDensityAt then
 			local grassData = {}
@@ -572,6 +593,7 @@ local function doCopy()
 
 	-- Weather: the weather brush's persistent spawners whose centre is in the box
 	if layers.weather then
+		---@type table?
 		local weatherApi = WG.WeatherBrush
 		if weatherApi and weatherApi.getPersistentSpawners then
 			local now = spGetGameFrame()
@@ -591,6 +613,7 @@ local function doCopy()
 	-- Lights: the light placer's placed lights in the box, with their height above
 	-- the ground so they land as high above the pasted ground
 	if layers.lights then
+		---@type table?
 		local lightApi = WG.LightPlacer
 		if lightApi and lightApi.getPlacedLights then
 			local lightData = {}
@@ -703,6 +726,7 @@ local function applyPaste(targetX, targetZ)
 		end
 
 		-- Compute rotated AABB in world space
+		---@type table
 		local corners = {
 			{ 0, 0 },
 			{ sX, 0 },
@@ -1035,6 +1059,7 @@ local function applyPaste(targetX, targetZ)
 		if not buf.grass then
 			return
 		end
+		---@type table?
 		local grassApi = WG.grassgl4
 		if not grassApi or not grassApi.setDensityAt then
 			return
@@ -1334,6 +1359,7 @@ end
 -- the paste lands. Each copy keeps its own turn (rot) and, when a mirror axis made
 -- it, mirror = true; copyTransform turns that into the copy's paste transform.
 local function resolvePasteTargets(wx, wz)
+	---@type table?
 	local tb = WG.TerraformBrush
 	local px, pz = wx, wz
 	if tb and tb.snapWorld then
@@ -1657,6 +1683,7 @@ function widget:DrawWorld()
 			splatPasteFBO = fullFBO
 			-- The tileset's far cache / clipmap bakes the splat channels: report the
 			-- pasted rect (elmos) or the paste vanishes at zoom-out.
+			---@type table?
 			local T = WG.TilesetTerrain
 			if T and T.refreshSurface and sp.quad then
 				local q = sp.quad
@@ -1800,6 +1827,7 @@ function widget:MouseMove(mx, my, dmx, dmy, button)
 		local dx = wx - boxDrag.anchorX
 		local dz = wz - boxDrag.anchorZ
 		local ob = boxDrag.origBox
+		---@cast ob CloneToolBox
 		local h = boxDrag.handle
 
 		if h == "center" then
@@ -1935,6 +1963,7 @@ function widget:KeyPress(key, mods, isRepeat)
 	return false
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
 	if not active or state ~= "paste_preview" then
 		return false
