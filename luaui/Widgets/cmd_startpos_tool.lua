@@ -51,6 +51,7 @@ local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
 -- Commander icons, cycled by player index (allyTeam when a position has no playerIdx).
+---@type string[]
 local COMMANDER_ICONS = {
 	"icons/armcom.png",
 	"icons/corcom.png",
@@ -93,6 +94,7 @@ local roleConfig = {
 
 -- Team colors: the game_autocolors.lua FFA palette (0-1 RGBA) plus 16 extras. Indices wrap,
 -- so 256 players reuse colors.
+---@type number[][]
 local TEAM_COLORS = {
 	{ 0.000, 0.302, 1.000, 1.0 }, --  1: Blue       #004DFF
 	{ 1.000, 0.063, 0.020, 1.0 }, --  2: Red        #FF1005
@@ -133,8 +135,11 @@ local TEAM_COLORS = {
 -- ============================================================
 local active = false
 local subMode = "express" -- "express" | "shape" | "startbox" | "roles"
+---@type table<integer, table>
 local positions = {} -- { {x=, z=, allyTeam=, teamSlot=, playerIdx=}, ... }
+---@type number
 local nextAllyTeam = 1 -- next allyteam in rotation
+---@type number
 local nextTeamSlot = 1 -- next player slot within that allyteam
 local numAllyTeams = 2 -- configurable count (ally teams)
 local numTeamsPerAlly = 1 -- configurable count (players per ally)
@@ -143,10 +148,12 @@ local placementMode = "roundrobin" -- "roundrobin" = A,B,C,A,B,C... | "sequentia
 -- Shape placement state
 local shapeType = "circle" -- "circle"|"square"|"hexagon"|"octagon"|"triangle"
 local shapeRadius = 2000
+---@type number
 local shapeRotation = 0 -- degrees
 local shapeCount = 4 -- number of positions to place with shape
 
 -- Startbox state
+---@type table<number, any>
 local startboxes = {} -- { {vertices={{x=,z=}, ...}, allyTeam=}, ... }
 -- Forward declarations: the fill-list helpers live in the drawing section but box edits up
 -- here call them. Typed so the analyzer does not read those calls as calls on nil.
@@ -162,16 +169,29 @@ local freeBoxFillList
 local worldRadiusForScreenPx
 local startboxMode = "polygon" -- "polygon" | "box" | "freedraw"
 local drawingBox = false
+---@type table<integer, any>
 local currentBoxVerts = {}
+---@type integer?
 local boxDragIdx = nil -- which vertex is being dragged
+---@type integer?
 local boxDragBoxIdx = nil -- which box
+---@type {bi: integer, edge: string}?
 local boxEdgeDrag = nil -- { bi = <box index>, edge = "L"/"R"/"T"/"B" } for box-kind edge drag
+---@type {bi: integer, edge: string}?
 local hoverBoxEdge = nil -- { bi, edge } for hover highlight of the edge currently under cursor
 -- Curvature editing: clicking a handle without moving selects it and raises a gizmo along
 -- its outward normal; dragging along the gizmo sets the anchor strength (0 to 1).
 -- One table instead of file-level locals: the main chunk sits on Lua's 200-local ceiling.
 -- selBox / selVert (box index, vertex index) are left out of the constructor: a `= nil`
 -- there makes the analyzer read them as never set.
+---@class StartposStrengthEdit
+---@field dragging boolean
+---@field GIZMO_LEN number
+---@field scratch table
+---@field selBox number? selected box index
+---@field selVert number? selected anchor index in that box
+---@field hoverKnob boolean?
+---@field spline table common/lib_spline
 local strengthEdit = {
 	dragging = false,
 	GIZMO_LEN = 240, -- world units from anchor to the strength-1 end of the gizmo
@@ -179,35 +199,50 @@ local strengthEdit = {
 }
 -- Whole-box drag (pressed inside a box body, not on a handle or edge): moves every vertex
 -- and spline control by the cursor delta between frames.
+---@type table?
 local boxBodyDrag = nil -- { bi = <box index>, lastX = <world x>, lastZ = <world z> }
 -- True during any startbox vertex, edge or body drag; ensureBoxFillList uses it to defer
 -- the costly fill rebuild until MouseRelease.
 local isDraggingBox = false
+---@type integer?
 local pendingFillRebuildIdx = nil -- box index whose fill needs rebuilding on drag end
 -- Box drag-rect (startboxMode == "box"): two corners, live-updated during drag
+---@type number?
 local boxRectStartX = nil
+---@type number?
 local boxRectStartZ = nil
+---@type number?
 local boxRectEndX = nil
+---@type number?
 local boxRectEndZ = nil
 local boxRectActive = false
 -- Free-draw state (startboxMode == "freedraw"): collect points with minimum spacing
+---@type table<integer, table>
 local freeDrawPts = {}
 local freeDrawActive = false
 local FREEDRAW_MIN_DIST_SQ = 40 * 40 -- minimum world distance between sample points
 
 -- Drag state
 local dragging = false
+---@type integer?
 local dragIdx = nil -- which position index is being dragged
+---@type number?
 local dragStartX = nil
+---@type number?
 local dragStartY = nil -- screen coords at mouse-down
+---@type table?
 local dragFrom = nil -- { pos, x, z, y } of the position at mouse-down, for the drag's undo entry
 
 -- Hover state (drives cursor + marker highlight)
+---@type integer?
 local hoverPosIdx = nil -- index of position currently hovered (express mode)
+---@type integer?
 local hoverBoxIdx = nil -- which startbox is being vertex-hovered
+---@type integer?
 local hoverVertIdx = nil
 -- Ghost handle at a polygon edge midpoint: click there to insert a vertex and drag it.
 -- { bi, edgeIdx, x, z }, edgeIdx is the index of the edge's start vertex.
+---@type table?
 local hoverPolyEdge = nil
 
 -- Undo history shared by both submodes; each entry carries the `mode` that made it so
@@ -215,9 +250,13 @@ local hoverPolyEdge = nil
 -- Placement entry: { mode, placed, prevNextAllyTeam, prevNextTeamSlot }: remove exactly the
 -- positions in `placed` and restore the rotation counters. Drag entry: { op = "move", pos,
 -- x, z, y }. Right-click removal entry: { op = "remove", pos, idx }.
+---@type table<integer, table>
 local undoHistory = {}
 -- Startbox entries snapshot just the box they touch, so no operation needs an inverse.
 -- The functions are assigned further down, after retessellateSpline is in scope.
+---@class StartposBoxUndo
+---@field redo table<integer, table>
+---@field pending table?
 local boxUndo = { redo = {} }
 -- Override-modoption export. Libs load on first use (a button press), not at include time.
 local boxExport = {}
@@ -253,6 +292,8 @@ local function distSq(x1, z1, x2, z2)
 	return dx * dx + dz * dz
 end
 
+---@return number x
+---@return number z
 local function clampToMap(x, z)
 	local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
 	x = math_max(0, math_min(mapX, x))
@@ -556,6 +597,7 @@ local function removePosition(idx)
 end
 
 local function removeNearestPosition(wx, wz)
+	---@type integer?
 	local bestIdx = nil
 	local bestDist = CLICK_DISTANCE_SQ
 	for i, pos in ipairs(positions) do
@@ -575,6 +617,7 @@ local function removeNearestPosition(wx, wz)
 end
 
 local function findNearestPosition(wx, wz)
+	---@type integer?
 	local bestIdx = nil
 	local bestDist = CLICK_DISTANCE_SQ
 	for i, pos in ipairs(positions) do
@@ -696,7 +739,7 @@ end
 
 local function addStartboxVertex(x, z)
 	-- The brush's grid snap applies to startbox vertices too.
-	---@type table?
+	---@type table<string, any>
 	local tb = WG.TerraformBrush
 	local stb = tb and tb.getState and tb.getState() or nil
 	if stb and stb.gridSnap and tb.snapWorld then
@@ -1239,6 +1282,7 @@ local function findNearestBoxVertex(wx, wz)
 end
 
 -- Crossing-number point-in-polygon test on the XZ plane, for any box kind's vertex list.
+---@return boolean
 local function pointInPolygon(wx, wz, verts)
 	local n = verts and #verts or 0
 	if n < 3 then
@@ -1299,7 +1343,9 @@ local function findNearestBoxEdge(wx, wz)
 				local dR = math.abs(wx - maxX) -- right  edge
 				local dT = math.abs(wz - minZ) -- top    edge (min Z)
 				local dB = math.abs(wz - maxZ) -- bottom edge
+				---@type number
 				local best = EDGE_PICK_DIST
+				---@type string?
 				local which = nil
 				if wz >= minZ - EDGE_PICK_DIST and wz <= maxZ + EDGE_PICK_DIST then
 					if dL < best then
@@ -1355,6 +1401,7 @@ function strengthEdit.axis(box, vi)
 		return nil
 	end
 
+	---@type number, number
 	local cx, cz = 0, 0
 	for i = 1, #handles do
 		cx = cx + handles[i].x
@@ -1523,9 +1570,13 @@ end
 -- midpoint is within VERTEX_PICK_DIST_SQ.
 local function findNearestPolygonEdgeMid(wx, wz)
 	local bestD = VERTEX_PICK_DIST_SQ
+	---@type integer?
 	local bestBi = nil
+	---@type integer?
 	local bestEi = nil
+	---@type number?
 	local bestMx = nil
+	---@type number?
 	local bestMz = nil
 	for bi, box in ipairs(startboxes) do
 		local handles = getEditHandles(box)
@@ -1980,7 +2031,7 @@ function widget:MousePress(mx, my, button)
 
 	-- The measure tool and the symmetry origin drag get the mouse first.
 	do
-		---@type table?
+		---@type table<string, any>
 		local tb = WG.TerraformBrush
 		local stb = tb and tb.getState and tb.getState() or nil
 		if stb and stb.measureActive then
@@ -2014,7 +2065,7 @@ function widget:MousePress(mx, my, button)
 			-- With symmetry on, each placed copy takes the next player in the rotation; a copy
 			-- refused (too steep, or the cap) passes its player on to the next copy.
 			do
-				---@type table?
+				---@type table<string, any>
 				local tb = WG.TerraformBrush
 				local stb = tb and tb.getState and tb.getState() or nil
 				local prevNext = nextAllyTeam
@@ -2037,6 +2088,7 @@ function widget:MousePress(mx, my, button)
 			-- RMB undoes the last placement. Take the newest placement entry, not the newest
 			-- entry: every other entry carries an op (startbox edits, drags, right-click
 			-- removals) and is for Ctrl+Z only.
+			---@type integer?
 			local at
 			for i = #undoHistory, 1, -1 do
 				if (undoHistory[i].mode or "express") ~= "startbox" and not undoHistory[i].op then
@@ -2057,7 +2109,7 @@ function widget:MousePress(mx, my, button)
 		end
 	elseif subMode == "shape" then
 		if button == 1 then
-			---@type table?
+			---@type table<string, any>
 			local tb = WG.TerraformBrush
 			local stb = tb and tb.getState and tb.getState() or nil
 			local sx, sz = wx, wz
@@ -2156,7 +2208,7 @@ function widget:MousePress(mx, my, button)
 			if startboxMode == "box" then
 				-- Press starts the rectangle, release finishes it.
 				local sx, sz = wx, wz
-				---@type table?
+				---@type table<string, any>
 				local tb = WG.TerraformBrush
 				local stb = tb and tb.getState and tb.getState() or nil
 				if stb and stb.gridSnap and tb.snapWorld then
@@ -2187,6 +2239,7 @@ function widget:MousePress(mx, my, button)
 		elseif button == 3 then
 			-- RMB on a polygon vertex or spline control deletes it (3 must remain). Checked first
 			-- so pruning a vertex never drops the whole box.
+			---@type integer?
 			local hitBox = nil -- box whose corner was clicked but cannot lose it (rect, or 3 left)
 			do
 				local dbi, dvi = findNearestBoxVertex(wx, wz)
@@ -2491,7 +2544,7 @@ function widget:MouseMove(mx, my, dx, dy, button)
 	if subMode == "startbox" and boxRectActive then
 		local wx, wz = getWorldMousePosition()
 		if wx then
-			---@type table?
+			---@type table<string, any>
 			local tb = WG.TerraformBrush
 			local stb = tb and tb.getState and tb.getState() or nil
 			if stb and stb.gridSnap and tb.snapWorld then
@@ -2611,6 +2664,7 @@ function widget:MouseRelease(mx, my, button)
 			smoothed = decimatePoints(smoothed, 50 * 50)
 			if #smoothed >= 3 then
 				-- One control per ~400 units of perimeter, clamped to [6, 24].
+				---@type number
 				local perim = 0
 				for i = 1, #smoothed do
 					local a = smoothed[i]
@@ -2649,6 +2703,7 @@ function widget:MouseRelease(mx, my, button)
 	return false
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
 	if not active then
 		return false
@@ -2660,7 +2715,7 @@ function widget:MouseWheel(up, value)
 		if altHeld then
 			-- Alt+Scroll rotates, in the brush's angle-snap step when that is on.
 			local step = 5
-			---@type table?
+			---@type table<string, any>
 			local tb = WG.TerraformBrush
 			local tbs = tb and tb.getState and tb.getState() or nil
 			if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
@@ -2701,6 +2756,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		local isUndo = not mods.shift
 		local fromStack = isUndo and undoHistory or boxUndo.redo
 		local toStack = isUndo and boxUndo.redo or undoHistory
+		---@type integer?
 		local at
 		for i = #fromStack, 1, -1 do
 			local e = fromStack[i]
@@ -2773,6 +2829,7 @@ local function buildPolygonFillList(verts, lift, cellSize)
 	if n < 3 then
 		return nil
 	end
+	---@type number, number
 	local cx, cz = 0, 0
 	for i = 1, n do
 		cx = cx + verts[i].x
@@ -3134,7 +3191,7 @@ function widget:DrawWorld()
 	-- DrawWorld is at Lua 5.1's 60-upvalue limit, so no new file-level locals.
 	self.frameTraceX, self.frameTraceZ, self.frameTraceDF = wx, wz, drawFrame
 	do
-		---@type table?
+		---@type table<string, any>
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
 		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then
@@ -3155,7 +3212,7 @@ function widget:DrawWorld()
 	if subMode == "shape" and wx then
 		-- The click's centre: grid snap moves it, so the preview snaps the same way. Shadowed
 		-- locals keep the snap inside this block.
-		---@type table?
+		---@type table<string, any>
 		local tbs = WG.TerraformBrush
 		local stbs = tbs and tbs.getState and tbs.getState() or nil
 		local wx, wz = wx, wz
@@ -3250,7 +3307,7 @@ function widget:DrawWorld()
 
 	-- Express mode: ghost preview of the next position (and its symmetric copies).
 	if subMode == "express" and wx and not dragIdx and hoverPosIdx == nil then
-		---@type table?
+		---@type table<string, any>
 		local tb = WG.TerraformBrush
 		local stb = tb and tb.getState and tb.getState() or nil
 		local numSlot = math_max(1, numTeamsPerAlly)
@@ -3363,6 +3420,7 @@ function widget:DrawWorld()
 					local function emitTip(signNormal, expand)
 						local sz = size + (expand or 0)
 						local hf = half + (expand or 0)
+						---@type number
 						local gp = math_max(0, gap - (expand or 0))
 						local bcx = mp.x + signNormal * gp * mp.nx
 						local bcz = mp.z + signNormal * gp * mp.nz
@@ -3773,6 +3831,7 @@ function widget:DrawScreenEffects()
 				end
 			end
 			if bestVis then
+				---@cast bestSy number
 				local color = getColorForAllyTeam(box.allyTeam)
 				drawScreenBadge(bestSx, bestSy + 28, color, box.allyTeam, 26, false)
 			end
@@ -3826,6 +3885,7 @@ end
 -- ============================================================
 
 function widget:Initialize()
+	---@type table?
 	WG.StartPosTool = {
 		activate = activate,
 		deactivate = deactivate,
