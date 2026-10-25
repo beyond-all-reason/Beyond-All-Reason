@@ -896,6 +896,11 @@ end
 
 local function removeLastStartbox()
 	if #startboxes > 0 then
+		if strengthEdit.selBox == #startboxes then
+			-- The selection goes with its box, so the next box drawn does not inherit it.
+			strengthEdit.selBox = nil
+			strengthEdit.selVert = nil
+		end
 		boxUndo.push("remove", #startboxes, startboxes[#startboxes])
 		freeBoxFillList(startboxes[#startboxes])
 		table.remove(startboxes, #startboxes)
@@ -1015,6 +1020,15 @@ function boxUndo.apply(entry)
 		if startboxes[entry.idx] then
 			freeBoxFillList(startboxes[entry.idx])
 			table.remove(startboxes, entry.idx)
+			-- The strength knob selection points into the list: clear it with its box, or
+			-- follow the shift.
+			if strengthEdit.selBox == entry.idx then
+				strengthEdit.selBox = nil
+				strengthEdit.selVert = nil
+				strengthEdit.dragging = false
+			elseif strengthEdit.selBox and strengthEdit.selBox > entry.idx then
+				strengthEdit.selBox = strengthEdit.selBox - 1
+			end
 		end
 	elseif entry.op == "remove" then
 		mirror.op = "add"
@@ -1026,6 +1040,9 @@ function boxUndo.apply(entry)
 		end
 		mirror.idx = at
 		table.insert(startboxes, at, boxUndo.build(entry.box))
+		if strengthEdit.selBox and strengthEdit.selBox >= at then
+			strengthEdit.selBox = strengthEdit.selBox + 1
+		end
 	else
 		mirror.box = boxUndo.snap(startboxes[entry.idx])
 		if startboxes[entry.idx] then
