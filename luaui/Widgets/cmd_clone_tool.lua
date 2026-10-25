@@ -207,7 +207,15 @@ local function sendMsg(msg)
 	spSendLuaRulesMsg(spIsCheatingEnabled() and ("$c$" .. msg) or msg)
 end
 
-local getWorldMousePosition = WorldTool.plainCursor
+-- Follows the mouse past the map edge like the other brush tools: a paste preview up to half its
+-- footprint, anything else (a selection corner, pinned to the edge where it is used) up to the fade band.
+local function getWorldMousePosition()
+	local radius = 0
+	if state == "paste_preview" and cloneBuffer then
+		radius = max(cloneBuffer.sizeX, cloneBuffer.sizeZ) * 0.5
+	end
+	return WorldTool.cursor(radius)
+end
 
 local function clampToMap(x, z)
 	return max(0, min(mapSizeX, x)), max(0, min(mapSizeZ, z))
@@ -1747,7 +1755,8 @@ function widget:MousePress(mx, my, button)
 		end
 
 		if state == "idle" then
-			-- Start selection
+			-- Start selection (a corner past the map edge sits on the edge)
+			wx, wz = clampToMap(wx, wz)
 			state = "selecting"
 			selBox.x1 = wx
 			selBox.z1 = wz
@@ -1767,6 +1776,7 @@ function widget:MousePress(mx, my, button)
 				return true
 			end
 			-- Clicking outside the box in box_drawn starts a new selection
+			wx, wz = clampToMap(wx, wz)
 			state = "selecting"
 			selBox.x1 = wx
 			selBox.z1 = wz
@@ -1810,8 +1820,7 @@ function widget:MouseMove(mx, my, dmx, dmy, button)
 	end
 
 	if state == "selecting" then
-		selBox.x2 = wx
-		selBox.z2 = wz
+		selBox.x2, selBox.z2 = clampToMap(wx, wz)
 		return true
 	end
 

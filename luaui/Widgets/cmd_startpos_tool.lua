@@ -265,8 +265,6 @@ local boxExport = {}
 -- Helper Functions
 -- ============================================================
 
-local getWorldMousePosition = WorldTool.plainCursor
-
 local function getColorForAllyTeam(at)
 	local idx = ((at - 1) % #TEAM_COLORS) + 1
 	return TEAM_COLORS[idx]
@@ -292,6 +290,17 @@ local function clampToMap(x, z)
 	x = math_max(0, math_min(mapX, x))
 	z = math_max(0, math_min(mapZ, z))
 	return x, z
+end
+
+-- The world cursor follows the mouse past the map edge like the other brush tools,
+-- pinned to the edge: a start position or box corner off the map is invalid.
+---@return number?, number?
+local function getWorldMousePosition()
+	local wx, wz = WorldTool.cursor(0)
+	if wx then
+		return clampToMap(wx, wz)
+	end
+	return nil, nil
 end
 
 -- ============================================================

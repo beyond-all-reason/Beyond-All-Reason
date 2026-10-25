@@ -84,6 +84,7 @@ local SAVE_DIR = "Terraform Brush/DecalMaps/"
 ---@field dragging boolean
 ---@field dragAction string?
 ---@field placeTimer number
+---@field edgeFade number cursor fade past the map edge (WorldTool.cursor)
 ---@field undoStack table[]
 ---@field redoStack table[]
 ---@field specs table by decal id
@@ -115,6 +116,7 @@ local dp = {
 	dragging = false,
 	dragAction = nil,
 	placeTimer = 0,
+	edgeFade = 1,
 	-- Undo/Redo
 	undoStack = {}, -- each entry = { decalIDs = {id1,id2,...} }
 	redoStack = {}, -- each entry = { specs = { spec, ... } } (see specs)
@@ -281,7 +283,12 @@ end
 ----------------------------------------------------------------
 -- World mouse position
 ----------------------------------------------------------------
-local getWorldMousePosition = WorldTool.plainCursor
+-- Follows the mouse up to one radius past the map edge, like the other brush tools.
+local function getWorldMousePosition()
+	local wx, wz, fade = WorldTool.cursor(dp.radius)
+	dp.edgeFade = fade
+	return wx, wz
+end
 
 local function getCadenceInterval()
 	return max(0.03, 2.0 / dp.cadence)
@@ -825,11 +832,11 @@ local function drawCurrentBrush()
 	glDepthTest(true)
 	glLineWidth(2)
 	if dp.dragAction == "remove" or dp.mode == "remove" then
-		glColor(1.0, 0.3, 0.3, 0.85)
+		glColor(1.0, 0.3, 0.3, 0.85 * dp.edgeFade)
 	elseif #dp.selectedDecals == 0 then
-		glColor(0.9, 0.85, 0.2, 0.85)
+		glColor(0.9, 0.85, 0.2, 0.85 * dp.edgeFade)
 	else
-		glColor(0.3, 0.85, 1.0, 0.85)
+		glColor(0.3, 0.85, 1.0, 0.85 * dp.edgeFade)
 	end
 	-- The brush is always a circle: nothing sets another shape.
 	WorldTool.drawPolygon(cx, cz, dp.radius, 0, 48, 1, 4, 1)

@@ -558,6 +558,7 @@ local weatherLibrary = {
 ---@field dragSpawnerCreated boolean?
 ---@field persistentSpawners table[]
 ---@field nextSpawnerId integer
+---@field edgeFade number cursor fade past the map edge (WorldTool.cursor)
 local wb = {
 	active = false,
 	mode = "scatter", -- "scatter", "point", "remove"
@@ -585,15 +586,21 @@ local wb = {
 	-- { cegs={}, x=, z=, radius=, count=, interval=, expireFrame=nil/number, nextFrame=0 }
 	persistentSpawners = {},
 	nextSpawnerId = 1,
+	edgeFade = 1,
 }
 
 -- ===========================================================================
 -- Utility functions
 -- ===========================================================================
+-- Follows the mouse up to one radius past the map edge, like the other brush tools.
 ---@return number?, number?, number?
 local function getWorldMousePosition()
-	local x, z, y = WorldTool.plainCursor()
-	return x, y, z
+	local wx, wz, fade = WorldTool.cursor(wb.radius)
+	wb.edgeFade = fade
+	if not wx then
+		return nil, nil, nil
+	end
+	return wx, GetGroundHeight(wx, wz), wz
 end
 
 local function getCadenceInterval()
@@ -1343,11 +1350,11 @@ function widget:DrawWorld()
 	local groundY = (GetGroundHeight(wx, wz) or 0) + 4
 
 	if wb.mode == "remove" or wb.dragAction == "remove" then
-		glColor(1, 0.3, 0.3, 0.8)
+		glColor(1, 0.3, 0.3, 0.8 * wb.edgeFade)
 	elseif wb.mode == "scatter" then
-		glColor(0.3, 0.8, 1, 0.8)
+		glColor(0.3, 0.8, 1, 0.8 * wb.edgeFade)
 	elseif wb.mode == "point" then
-		glColor(0.5, 0.5, 1, 0.8)
+		glColor(0.5, 0.5, 1, 0.8 * wb.edgeFade)
 	end
 
 	glLineWidth(2)
