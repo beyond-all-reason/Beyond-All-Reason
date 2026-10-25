@@ -82,7 +82,6 @@ local MSG_TBEGIN = "$clone_tbegin$"
 local MSG_TGRID = "$clone_tgrid$"
 local MSG_TEND = "$clone_tend$"
 
-local TERRAIN_CHUNK_SIZE = 400 -- vertices per triplet message; unused, terrain goes as grid chunks
 local GRID_HEIGHTS_PER_CHUNK = 3000 -- heights per grid message (~15KB)
 
 -- ---------------------------------------------------------------------------
