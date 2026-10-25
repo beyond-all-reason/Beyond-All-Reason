@@ -34,6 +34,7 @@ local COLORS = {
 local DEFAULT_COLOR = COLORS[1]
 local SNIPPET_LEN = 48
 
+---@type table<string, any>
 local WG = WG
 local GetViewGeometry = Spring.GetViewGeometry
 local GetMouseState = Spring.GetMouseState
@@ -41,6 +42,54 @@ local WorldToScreenCoords = Spring.WorldToScreenCoords
 local GetGroundHeight = Spring.GetGroundHeight
 local TraceScreenRay = Spring.TraceScreenRay
 
+---@class MapLabel
+---@field id number
+---@field x number
+---@field z number
+---@field color string
+---@field author string
+---@field created string?
+---@field ts number?
+---@field text string?
+
+---@class MapLabelsState
+---@field rmlContext table?
+---@field document table?
+---@field rootEl table?
+---@field dotsLayerEl table?
+---@field ghostEl table?
+---@field popupEl table?
+---@field listEl table?
+---@field newBtnEl table?
+---@field authorInputEl table?
+---@field popupViewEl table?
+---@field popupEditEl table?
+---@field popupTextEl table?
+---@field popupAuthorEl table?
+---@field popupDateEl table?
+---@field popupDotEl table?
+---@field editTextEl table?
+---@field colorPopEl table?
+---@field colorPickerOpen boolean
+---@field swatchEls table<integer, table>
+---@field dragHandle table?
+---@field windowOpen boolean
+---@field placing boolean
+---@field labels MapLabel[]
+---@field nextId number
+---@field authorName string
+---@field openLabelId number? label whose popup is open
+---@field popupEditing boolean
+---@field popupFresh boolean
+---@field uiDirty boolean
+---@field dotEls table per label id: { el, lastLeft, lastTop, lastHidden }
+---@field ghostLast number?
+---@field popupLast number?
+---@field draggingId number?
+---@field dragMoved boolean
+---@field dragStartX number
+---@field dragStartY number
+---@field hoverDotId number?
 local state = {
 	rmlContext = nil,
 	document = nil,
@@ -91,6 +140,7 @@ local uiSounds = {
 }
 
 local function playSound(name)
+	---@type table?
 	local s = uiSounds[name]
 	if s then
 		Spring.PlaySoundFile(s[1], s[2], "ui")
@@ -900,6 +950,7 @@ function widget:Update()
 				local pw = state.popupEl.offset_width or 240
 				local ph = state.popupEl.offset_height or 120
 				local left = math.floor(sx + 14)
+				---@type number
 				local top = math.floor(ry + 10)
 				if left + pw > vsx then
 					left = math.floor(sx - pw - 14)
