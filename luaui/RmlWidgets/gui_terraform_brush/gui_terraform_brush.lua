@@ -13457,6 +13457,14 @@ local initialModel = {
 				WG.TerraformBrush.setMode(ts and ts.mode or "raise")
 			end
 		else
+			-- Its button hides off the tileset shader (S and the TILESET window's PAINT
+			-- SURFACES still reach here): strokes would land in a mask nothing renders.
+			if not (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive()) then
+				Spring.Echo(
+					"[Terraform Brush] SURFACE needs the tileset shader: on this map paint with DIFFUSE and SPLAT."
+				)
+				return
+			end
 			_deactivateAllTools() -- clears a running LAYERS session too
 			local dm = widgetState.dmHandle
 			if dm and dm.surfMode ~= "soft" then
@@ -13487,6 +13495,12 @@ local initialModel = {
 				local ts = WG.TerraformBrush.getState()
 				WG.TerraformBrush.setMode(ts and ts.mode or "raise")
 			end
+			return
+		end
+		-- Its button hides off the tileset shader (T still reaches here): there the splat
+		-- engine would paint the map's own splat distribution under the LAYERS panel.
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive()) then
+			Spring.Echo("[Terraform Brush] LAYERS needs the tileset shader: on this map use SPLAT.")
 			return
 		end
 		-- The painter creates a distribution on canvases started without a DNTS set.
