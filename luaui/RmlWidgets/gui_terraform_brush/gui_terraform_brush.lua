@@ -1946,8 +1946,8 @@ end
 -- onTf*/onTb* data-model handlers inside it.
 ---@type table<string, string>, table<string, boolean>
 local shapeNames, CLAY_UNAVAILABLE_MODES
----@type number, fun(which: string, value: number), number, number, boolean
-local ringWidthPct, applyCap, capMaxValue, capMinValue, capEnabled
+---@type number, fun(which: string, value: number), number, number, boolean, boolean
+local ringWidthPct, applyCap, capMaxValue, capMinValue, capEnabled, capAbsolute
 
 -- Shared helpers for the onTb* handlers in initialModel.
 local TB_ANGLE_PRESETS = { 7.5, 15, 30, 45, 60, 90 }
@@ -15749,7 +15749,7 @@ end
 capMinValue = 0
 capMaxValue = 0
 capEnabled = true -- master on/off for the height cap; min/max values are retained when off
-local capAbsolute = true
+capAbsolute = true
 ringWidthPct = 40 -- percent of radius; inner ratio = 1 - ringWidthPct/100
 
 applyCap = function(which, value)
