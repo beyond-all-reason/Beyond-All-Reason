@@ -965,7 +965,10 @@ local function stampParams(names)
 	return {
 		shape = up.shape,
 		radius = up.radius,
-		rotation = up.rotation,
+		-- Negated: Scatter turns positions and headings together the engine heading
+		-- way, the mirror of how the outline (and the remove brush) turn, so this makes
+		-- the whole stamp turn with the outline the user aims with.
+		rotation = -up.rotation,
 		count = up.unitCount,
 		distribution = up.distribution,
 		rotRandom = up.rotRandom,
@@ -1055,7 +1058,8 @@ local function currentStamp(x, z)
 		local params = stampParams(names)
 		local layout = ensureLayout(params)
 		for _, p in ipairs(positions) do
-			local copyRot = (p.rot or up.rotation) - up.rotation
+			-- The copy's extra turn, negated like the base rotation in stampParams.
+			local copyRot = up.rotation - (p.rot or up.rotation)
 			local resolved = Scatter.resolve(layoutInsideMap(layout, p.x, p.z, copyRot), p.x, p.z, params, copyRot)
 			for _, placement in ipairs(resolved) do
 				local spot =
@@ -1068,7 +1072,8 @@ local function currentStamp(x, z)
 	elseif up.mode == "point" then
 		local rng = Scatter.newRng(pv.seed)
 		for _, p in ipairs(positions) do
-			local facing = degreesToFacing(p.rot or up.rotation)
+			-- Negated like stampParams, so POINT faces where a SCATTER stamp at this rotation does.
+			local facing = degreesToFacing(-(p.rot or up.rotation))
 			if up.rotRandom > 0 and rng:next() * 100 < up.rotRandom then
 				facing = rng:int(0, 3)
 			end
