@@ -87,7 +87,7 @@ local balanceAxisSumsDirty = true
 
 -- State
 local active = false
-local subMode = "stamp" -- "paint" or "stamp"
+local subMode = "stamp" -- "paint", "stamp" or "remove"
 local metalValue = DEFAULT_METAL_VALUE
 local painting = false
 local paintButton = 0 -- 1 = LMB (raise), 3 = RMB (lower/erase)
@@ -258,10 +258,9 @@ local function drawShapeOutline(worldX, worldZ, radius, shape, angleDeg)
 		elseif shape == "triangle" then
 			sides = 3
 		end
-		-- square/hexagon isInsideShape uses inradius (center-to-edge = radius);
-		-- offset vertices by half-step and scale to circumradius so outline matches painted area.
-		-- octagon isInsideShape uses circumradius, so no correction needed.
-		-- triangle comes from common/brush_shapes: circumradius, vertex on +x.
+		-- The gadget's square/hexagon test uses the inradius as `radius`, so offset
+		-- the vertices half a step and scale to the circumradius to match the painted
+		-- area. Octagon and triangle (common/brush_shapes) already use the circumradius.
 		local inradiusShape = shape ~= "octagon" and shape ~= "triangle"
 		local angleOffset = inradiusShape and (pi / sides) or 0
 		local outlineRadius = inradiusShape and (radius / cos(pi / sides)) or radius
@@ -291,7 +290,7 @@ local function drawMetalOverlay(worldX, worldZ, radius)
 	mxMax = min(mxMax, mmX - 1)
 	mzMax = min(mzMax, mmZ - 1)
 
-	-- Cap to prevent excessive draw calls
+	-- Skip huge brushes: one draw call per metal square.
 	if (mxMax - mxMin + 1) * (mzMax - mzMin + 1) > 4000 then
 		return
 	end
@@ -319,7 +318,7 @@ local function drawMetalOverlay(worldX, worldZ, radius)
 end
 
 local function drawCursorInfo(worldX, worldZ)
-	-- Sum metal within extractor radius (predicted mex "spot worth" at baseline T1)
+	-- Metal within the extractor radius: what a T1 mex here would be worth.
 	local cx = floor(worldX / METAL_SQ)
 	local cz = floor(worldZ / METAL_SQ)
 	local cellRange = floor(EXTRACTOR_RADIUS / METAL_SQ) + 1
@@ -344,12 +343,10 @@ local function drawCursorInfo(worldX, worldZ)
 
 	local sx, sy = WorldToScreenCoords(worldX, GetGroundHeight(worldX, worldZ), worldZ)
 
-	-- Anchor the readout just below the brush outline, right-aligned to its
-	-- right edge: close to where the eye already is, but never over the area
-	-- being painted. Sample 8 points on the shape's bounding circle
-	-- (circumradius — square/hexagon outlines reach past ss.radius at the
-	-- corners) for the outline's screen-space bottom and right extents,
-	-- whatever the camera angle.
+	-- Anchor the readout just below the brush outline, right-aligned to it, so it
+	-- never covers the painted area. 8 samples on the circumradius (square and
+	-- hexagon corners reach past ss.radius) give the screen-space extents at any
+	-- camera angle.
 	do
 		local ss = getSharedState()
 		local bound = ss.radius or 0
@@ -659,11 +656,11 @@ local function convexHull2D(pts)
 	return lower
 end
 
--- Color palette for clusters (HSV → RGB rotated by cluster id for contrast).
+-- Cluster colours: hue steps by the golden ratio per cluster id for contrast.
 local function clusterColor(idx)
 	local golden = 0.61803398875
 	local h = (idx * golden) % 1.0
-	-- HSV (h, 0.65, 1.0) → RGB
+	-- HSV (h, 0.70, 1.0) -> RGB
 	local s, v = 0.70, 1.0
 	local i = floor(h * 6)
 	local f = h * 6 - i
@@ -1096,7 +1093,7 @@ local function recomputeBalanceAxisSums()
 	balanceAxisSumsDirty = false
 end
 
--- Extend cache invalidator so map-edits refresh axis sums too.
+-- Wrap the cache invalidator so metal edits refresh the axis sums too.
 local _origInvalidateMetalCaches = invalidateMetalCaches
 invalidateMetalCaches = function()
 	_origInvalidateMetalCaches()
@@ -1269,9 +1266,9 @@ end
 -- ============================================================
 
 local function activate(mode)
-	-- Snapshot the shared brush settings on ENTRY (not on paint/stamp submode
-	-- re-activations) so leaving the metal tool can restore them — the forced
-	-- snap/square/3x3 defaults below must not bleed into the other tools
+	-- Snapshot the shared brush settings on entry (not on a submode switch) so
+	-- leaving the tool restores them: the forced snap / square / 3x3 defaults
+	-- below must not bleed into the other tools.
 	if not active and savedBrushBeforeMetal == nil then
 		local tb = WG.TerraformBrush
 		local st = tb and tb.getState and tb.getState()
@@ -1286,7 +1283,7 @@ local function activate(mode)
 	active = true
 	subMode = mode or "stamp"
 	painting = false
-	-- Apply metal-friendly defaults: 3x3 square brush, grid snap, map overlay
+	-- Metal defaults: 3x3 square brush, grid snap, map overlay
 	local tb = WG.TerraformBrush
 	if tb then
 		tb.setRadius(DEFAULT_RADIUS)
@@ -1339,10 +1336,10 @@ local function getState()
 		clusterCounter = clusterCounter,
 		clusterRadius = clusterRadius,
 		lassoActive = lassoActive,
-		lassoClosed = (#lassos > 0), -- back-compat: true if any committed loop exists
+		lassoClosed = (#lassos > 0), -- true if any committed loop exists
 		lassoPointCount = #lassoPoints,
-		lassoTotal = lassoGrandTotal(), -- back-compat: now the grand total across all committed loops
-		lassoCount = #lassos, -- new: number of committed loops
+		lassoTotal = lassoGrandTotal(), -- grand total across all committed loops
+		lassoCount = #lassos, -- number of committed loops
 		balanceAxisActive = balanceAxisActive,
 		balanceAxisAngleDeg = balanceAxisAngleDeg,
 		balanceAxisOriginX = balanceAxisOriginX,
@@ -1425,22 +1422,20 @@ function widget:MousePress(mx, my, button)
 		end
 	end
 
-	-- Balance axis drag: LMB on the line starts a drag (translates origin along
-	-- the axis normal so the whole line slides perpendicular to itself).
+	-- LMB on the balance axis line starts a drag that slides it along its normal.
 	if balanceAxisActive and balanceAxisHovering and button == 1 then
 		balanceAxisDragging = true
 		return true
 	end
 
-	-- Lasso tool: intercepts clicks before anything else (works without cheat)
+	-- Lasso clicks are handled before the cheat gate: the lasso works without cheat.
 	if lassoActive then
 		local worldX, worldZ = getWorldPos()
 		if not worldX then
 			return false
 		end
 		if button == 1 then
-			-- Reset drag tracking for this press; drag-mode activates if the
-			-- cursor moves beyond threshold before release (free-draw loop).
+			-- Moving past the drag threshold before release turns this press into a free-draw loop.
 			lassoDragStartSx, lassoDragStartSy = mx, my
 			lassoDragDetected = false
 
@@ -1456,9 +1451,8 @@ function widget:MousePress(mx, my, button)
 			lassoPoints[#lassoPoints + 1] = { x = worldX, z = worldZ }
 			return true
 		elseif button == 3 then
-			-- RMB behaviour:
-			--   * in-progress polygon exists -> close it (commit if ≥3 pts, else discard)
-			--   * otherwise -> remove the most recently committed loop
+			-- RMB closes the in-progress polygon (committed with 3+ points, else
+			-- discarded), or with none removes the most recent committed loop.
 			if #lassoPoints > 0 then
 				commitCurrentLasso()
 			else
@@ -1472,14 +1466,14 @@ function widget:MousePress(mx, my, button)
 		return false
 	end
 
-	-- Defer to measure tool when active so metal paint doesn't consume the click
+	-- Leave the click to the measure tool while it is active.
 	local tb = WG.TerraformBrush
 	if tb and tb.getState then
 		local st = tb.getState()
 		if st and st.measureActive then
 			return false
 		end
-		-- Defer to symmetry origin placement / drag-grab so terraform can handle it
+		-- ... and to symmetry origin placement or dragging, which the terraform brush handles.
 		if st and st.symmetryActive then
 			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
 				return false
@@ -1509,7 +1503,7 @@ function widget:MousePress(mx, my, button)
 end
 
 function widget:MouseMove(mx, my, dx, dy, button)
-	-- Balance axis drag: slide origin along axis normal so line stays parallel.
+	-- Balance axis drag: slide the origin along the normal so the line stays parallel.
 	if balanceAxisDragging then
 		local wx, wz = getWorldPos()
 		if wx then
@@ -1522,18 +1516,16 @@ function widget:MouseMove(mx, my, dx, dy, button)
 		return
 	end
 
-	-- Lasso free-draw: while LMB is held, append points along the cursor path
-	-- once the drag has crossed a small pixel threshold. Converts a single
-	-- click-and-drag gesture into a closed loop on release.
+	-- Lasso free-draw: once a held LMB drag crosses the pixel threshold, append
+	-- points along the cursor path; release closes the loop.
 	if not active or not lassoActive then
 		return
 	end
 	if not lassoDragStartSx then
 		return
 	end
-	-- button arg can be the held button id or nil depending on caller; we
-	-- already know LMB is held because MousePress captured it and we clear
-	-- the drag-start markers on release.
+	-- `button` is unreliable here; the drag-start marker set by MousePress and
+	-- cleared on release already means LMB is held.
 
 	if not lassoDragDetected then
 		local sdx = mx - lassoDragStartSx
@@ -1578,9 +1570,8 @@ function widget:MouseRelease(mx, my, button)
 	if painting and button == paintButton then
 		painting = false
 		paintButton = 0
-		-- sendPaintMessage already set cacheRebuildHoldUntil and lastCacheBuildClock=0.
-		-- Just mark the visual lists dirty; the hold mechanism defers the cache
-		-- rebuild until the gadget has had time to apply SetMetalAmount.
+		-- Only mark dirty: sendPaintMessage already armed the hold that defers the
+		-- rebuild until the gadget has applied SetMetalAmount.
 		spotsCacheDirty = true
 		clusterCacheDirty = true
 		overlayListDirty = true
@@ -1625,7 +1616,7 @@ function widget:MouseWheel(up, value)
 		return true
 	end
 
-	-- Ctrl+scroll: size — step by one metal pixel ring (METAL_SQ per step)
+	-- Ctrl+scroll: size, one metal square ring per step
 	if ctrl then
 		local currentR = st.radius or DEFAULT_RADIUS
 		local n = floor(currentR / METAL_SQ) -- current pixel ring index
@@ -1638,7 +1629,7 @@ function widget:MouseWheel(up, value)
 		return true
 	end
 
-	-- Alt+scroll: rotation (snap to TB protractor step when angleSnap on)
+	-- Alt+scroll: rotation (the angle snap step when angle snap is on)
 	if alt then
 		local step = 3
 		if st.angleSnap and (st.angleSnapStep or 0) > 0 then
@@ -1661,7 +1652,7 @@ function widget:MouseWheel(up, value)
 	return false
 end
 
--- set by RecvLuaMsg, run here: reloading widgets inside a callin would change the list being dispatched
+-- Set by RecvLuaMsg, run in Update: reloading widgets inside a callin would change the list being dispatched.
 local refreshSpotWidgets
 local spotWidgetsPending = false
 
@@ -1705,11 +1696,9 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorldPreUnit()
-	-- Map dim while the metal overlay is up, drawn pre-unit like the stock Darken
-	-- map widget so units stay bright. Deliberately NOT driven through WG.darkenmap:
-	-- that widget persists its live value, so a crash (or its Shutdown nil'ing
-	-- WG.darkenmap before our restore ran) saved the overlay dim as the user's
-	-- permanent darkenmap setting.
+	-- Map dim under the metal overlay, drawn pre-unit like the stock Darken map
+	-- widget so units stay bright. Not done through WG.darkenmap: that widget
+	-- saves its live value, so a crash would keep the dim as the user's setting.
 	if active and mapOverlay then
 		local drawMode = Spring.GetMapDrawMode()
 		if drawMode == "height" or drawMode == "path" then

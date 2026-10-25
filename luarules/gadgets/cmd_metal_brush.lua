@@ -32,13 +32,10 @@ local REDO_HEADER_LEN = #REDO_HEADER
 local CHEAT_SIG = "$c$"
 local CHEAT_SIG_LEN = #CHEAT_SIG
 
--- Spring.IsReplay is a LuaUnsyncedRead call and is nil here, so the old
--- "certified and Spring.IsReplay()" fallback raised a Lua error on any certified
--- packet that arrived with live cheat off. Demos replay the /cheat chat command,
--- so cheat state is reproduced during playback anyway; what the certification is
--- really for is map-editor sessions, where /cheat is a toggle that competing
--- widgets can flip off mid-stream. The mapeditor modoption is synced from the
--- start script and cannot be forged by a client.
+-- $c$ exists for map-editor sessions, where other widgets can toggle /cheat off
+-- mid-stream. The mapeditor modoption comes from the start script, so a client
+-- cannot forge it. (Spring.IsReplay is unsynced and nil here; demos replay the
+-- /cheat command anyway.)
 local MAP_EDITOR_SESSION = false
 do
 	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
@@ -67,8 +64,7 @@ local sin = math.sin
 local pi = math.pi
 local sqrt = math.sqrt
 
--- Shared falloff curve (also used by the brush widgets) so the metal apply and
--- the previewed ring stay in lockstep. See common/brush_shapes.lua.
+-- Same falloff curve as the brush widgets, so the applied metal matches the preview ring.
 local BrushShapes = require("common/brush_shapes")
 local computeFalloff = BrushShapes.computeFalloff
 
@@ -80,8 +76,7 @@ local spSetUnitMetalExtraction = Spring.SetUnitMetalExtraction
 
 local EXTRACTOR_RADIUS = Game.extractorRadius
 
--- Lookup: unitDefID -> extractsMetal for all extractor units. Built on first
--- editor use instead of walking all UnitDefs at load in every match.
+-- unitDefID -> extractsMetal, built on first editor use so normal matches never walk UnitDefs.
 local extractorDefs = nil
 local function getExtractorDefs()
 	if not extractorDefs then
@@ -95,8 +90,8 @@ local function getExtractorDefs()
 	return extractorDefs
 end
 
--- The metal one byte step of a metal square holds (the map's maxMetal, which Lua cannot read): a square
--- set far over the top clamps to 255 steps. Measured once on square 0,0, which is put back.
+-- Metal per byte step of a metal square (maxMetal / 255; Lua cannot read maxMetal).
+-- Measured once by overfilling square 0,0, which clamps to 255 steps, then restored.
 local metalStepCache = nil
 local function metalMapStep()
 	if not metalStepCache then
@@ -150,7 +145,6 @@ local function pushUndo(snap)
 	if #undoStack > MAX_UNDO then
 		table.remove(undoStack, 1)
 	end
-	-- New operation invalidates redo stack
 	for i = #redoStack, 1, -1 do
 		redoStack[i] = nil
 	end
@@ -182,7 +176,7 @@ local function parseParts(payload)
 	return idx
 end
 
--- Rotate a point by -angleDeg (inverse rotation for shape testing)
+-- Inverse-rotate an offset into the shape's own frame.
 local function rotateInv(dx, dz, angleDeg)
 	if angleDeg == 0 then
 		return dx, dz
@@ -192,8 +186,7 @@ local function rotateInv(dx, dz, angleDeg)
 	return dx * c - dz * s, dx * s + dz * c
 end
 
--- Test if world-space offset (dx, dz) from brush center is inside the shape,
--- returns (isInside, normalizedDistance)
+-- Returns (isInside, normalizedDistance) for a world-space offset from the brush centre.
 isInsideShape = function(dx, dz, radius, shape, angleDeg)
 	local rx, rz = rotateInv(dx, dz, angleDeg)
 	if shape == "circle" then
@@ -217,7 +210,7 @@ isInsideShape = function(dx, dz, radius, shape, angleDeg)
 end
 
 -- ============================================================
--- Paint: Raise/Lower metal under brush with falloff
+-- Paint: raise or lower metal under the brush with falloff
 -- ============================================================
 local function applyPaint(centerX, centerZ, radius, shape, angleDeg, curve, direction, intensity, metalTarget)
 	local halfSq = METAL_SQ * 0.5
@@ -245,7 +238,7 @@ local function applyPaint(centerX, centerZ, radius, shape, angleDeg, curve, dire
 end
 
 -- ============================================================
--- Stamp: Place a complete metal spot with uniform distribution
+-- Stamp: place a complete metal spot with uniform distribution
 -- ============================================================
 local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg, direction)
 	local halfSq = METAL_SQ * 0.5
@@ -254,7 +247,7 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 	local mzMin = max(0, floor((centerZ - radius) / METAL_SQ))
 	local mzMax = min(METAL_MAP_Z - 1, floor((centerZ + radius) / METAL_SQ))
 
-	-- Erase mode: clear all metal in shape
+	-- Erase clears every square in the shape.
 	if direction < 0 then
 		for mz = mzMin, mzMax do
 			local wz = mz * METAL_SQ + halfSq
@@ -269,13 +262,10 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 		return
 	end
 
-	-- Count squares inside shape, and separately count those also within extractor
-	-- radius of brush center. Stamp readout (spot: value) = sum of metal inside
-	-- extractor radius / 1000, so scale per-square such that the sum of in-radius
-	-- squares equals exactly metalTarget * 1000, regardless of brush size.
-	-- A stamp is a mex spot: its metal never reaches further from the centre than a mex built on it
-	-- can pull (one metal square short of the extractor radius, for the build grid's snap). Wider
-	-- metal is a spot no mex can cover whole, so the spot finder offers no build position for it.
+	-- A stamp is a mex spot: its metal stays within one metal square short of the
+	-- extractor radius (room for the build grid snap), or no mex could cover it whole
+	-- and the spot finder would offer no build position. The spot readout is the
+	-- summed metal / 1000, so the squares share metalTarget * 1000 at any brush size.
 	local spotRad = math.max(EXTRACTOR_RADIUS - METAL_SQ, METAL_SQ)
 	local spotRadSq = spotRad * spotRad
 	local function inSpot(wx, wz)
@@ -299,7 +289,6 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 		return
 	end
 
-	-- per-square value chosen so exactly metalTarget appears in the [spot] readout
 	local want = metalTarget * 1000
 	local perSquare = want / inExtractorCount
 
@@ -317,9 +306,8 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 		end
 	end
 
-	-- The metal map stores a square in byte steps of the map's maxMetal, so every square rounded off a
-	-- little (a 2.0 spot paid ~1.88). Settle the rounding one step at a time on the squares nearest the
-	-- centre until the spot pays exactly the target.
+	-- Each square is stored in byte steps of maxMetal, so the spot rounds short of the
+	-- target. Settle the rest one step at a time on the squares nearest the centre.
 	local step = metalMapStep()
 	local steps = floor((want - got) / step + 0.5)
 	if steps ~= 0 and #written > 0 then
@@ -343,7 +331,7 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 end
 
 -- ============================================================
--- Extractor recalculation: update mex income after metal map edit
+-- Extractor recalculation: update mex income after a metal map edit
 -- ============================================================
 local function recalcNearbyExtractors(centerX, centerZ, brushRadius)
 	local searchRadius = brushRadius + EXTRACTOR_RADIUS + METAL_SQ
@@ -364,19 +352,18 @@ local function recalcNearbyExtractors(centerX, centerZ, brushRadius)
 		local udid = spGetUnitDefID(uid)
 		local mult = exDefs[udid]
 		if mult then
-			-- The engine takes the extraction DEPTH (the def's extractsMetal) and sums depth x metal over the
-			-- squares itself; handing it the summed rate as the depth squared the income and made it grow
-			-- with every stamp nearby. Re-setting the def's own depth makes it rescan the new metal map.
+			-- SetUnitMetalExtraction takes the extraction DEPTH (the def's extractsMetal), not
+			-- a rate; re-setting the def's own depth makes the engine rescan the metal map.
 			spSetUnitMetalExtraction(uid, mult)
 		end
 	end
 end
 
 -- ============================================================
--- Resource spots: the mex denier, extractor snapping, area mex and the metal spot markers all read the
--- resource spot finder, which only scans the metal map at game start. Once the metal stops changing (a
--- stroke ended, a project finished loading) it rescans, and LuaUI is told to do the same.
--- GameFrame is only registered while a rescan is pending.
+-- Resource spots: the mex denier, extractor snapping, area mex and the spot markers
+-- read the resource spot finder, which scans the metal map only at game start.
+-- Rescan once the metal stops changing and tell LuaUI to do the same.
+-- GameFrame is registered only while a rescan is pending.
 -- ============================================================
 local SPOT_REFRESH_DELAY = 15 -- frames after the last metal write
 local spotRefreshFrame = nil
@@ -407,8 +394,8 @@ end
 -- Message Handler
 -- ============================================================
 function gadget:RecvLuaMsg(msg, playerID)
-	-- Check header first (before $c$) so cmd_sendcommand doesn't intercept
-	-- Format: $metal_paint$$c$payload  or  $metal_paint$payload
+	-- The header comes before $c$ so cmd_sendcommand (which claims $c$-prefixed
+	-- messages) does not intercept: $metal_paint$$c$payload or $metal_paint$payload.
 
 	-- PAINT: $metal_paint$[$c$]direction x z radius shape angleDeg curve intensity metalValue
 	if msg:sub(1, PAINT_HEADER_LEN) == PAINT_HEADER then
@@ -500,7 +487,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 				end
 			end
 		end
-		-- Recalc all extractors on the map
 		local allUnits = Spring.GetAllUnits()
 		if allUnits then
 			local exDefs = getExtractorDefs()
@@ -538,7 +524,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 			end
 		end
 		if loaded > 0 then
-			-- Recalc all extractors
 			local allUnits = Spring.GetAllUnits()
 			if allUnits then
 				local exDefs = getExtractorDefs()
@@ -546,7 +531,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 					local uid = allUnits[i]
 					local mult = exDefs[spGetUnitDefID(uid)]
 					if mult then
-						-- the def's own depth: the engine rescans the metal map (see recalcNearbyExtractors)
+						-- The def's own depth makes the engine rescan (see recalcNearbyExtractors).
 						spSetUnitMetalExtraction(uid, mult)
 					end
 				end
