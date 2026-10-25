@@ -13,8 +13,6 @@ function widget:GetInfo()
 end
 
 -- Engine API locals
-local GetMouseState = Spring.GetMouseState
-local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local Echo = Spring.Echo
 local SetMapShadingTexture = Spring.SetMapShadingTexture
@@ -338,24 +336,11 @@ local function invalidateDrawCache()
 end
 
 local function getWorldMousePosition()
-	local tb = WG.TerraformBrush
-	if tb and tb.getWorldPositionExtended then
-		local wx, wz, fade = tb.getWorldPositionExtended(activeRadius)
-		if wx then
-			edgeFade = fade or 1
-			return wx, wz
-		end
-		-- Reset so a stale fade does not dim the unmouse-target cursor.
-		edgeFade = 1
-		return nil, nil
-	end
-	local mx, my = GetMouseState()
-	local _, pos = TraceScreenRay(mx, my, true)
-	if pos then
-		edgeFade = 1
-		return pos[1], pos[3]
-	end
-	return nil, nil
+	-- The shared edge-extended cursor. A miss resets the fade so a stale one does
+	-- not dim the unmouse-target cursor.
+	local wx, wz, fade = WorldTool.cursor(activeRadius)
+	edgeFade = fade
+	return wx, wz
 end
 
 -- Smart filter: check if a world position is valid for painting

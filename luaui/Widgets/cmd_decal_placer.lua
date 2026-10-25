@@ -14,10 +14,8 @@ end
 -- Localize
 ----------------------------------------------------------------
 local Echo = Spring.Echo
-local GetMouseState = Spring.GetMouseState
 local GetModKeyState = Spring.GetModKeyState
 local GetKeyState = Spring.GetKeyState
-local TraceScreenRay = Spring.TraceScreenRay
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
@@ -283,14 +281,7 @@ end
 ----------------------------------------------------------------
 -- World mouse position
 ----------------------------------------------------------------
-local function getWorldMousePosition()
-	local mx, my = GetMouseState()
-	local _, pos = TraceScreenRay(mx, my, true)
-	if pos then
-		return pos[1], pos[3]
-	end
-	return nil, nil
-end
+local getWorldMousePosition = WorldTool.plainCursor
 
 local function getCadenceInterval()
 	return max(0.03, 2.0 / dp.cadence)

@@ -16,8 +16,6 @@ end
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMetalAmount = Spring.GetMetalAmount
 local spGetMetalMapSize = Spring.GetMetalMapSize
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
 local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
 local spIsCheatingEnabled = Spring.IsCheatingEnabled
@@ -63,6 +61,7 @@ local rad = math.rad
 local abs = math.abs
 local huge = math.huge
 local pi = math.pi
+local WorldTool = require("luaui/Include/tf_world_tool")
 
 local Game = Game
 local mapSizeX = Game.mapSizeX
@@ -208,14 +207,7 @@ local function sendMsg(msg)
 	spSendLuaRulesMsg(spIsCheatingEnabled() and ("$c$" .. msg) or msg)
 end
 
-local function getWorldMousePosition()
-	local mx, my = spGetMouseState()
-	local _, pos = spTraceScreenRay(mx, my, true)
-	if pos then
-		return pos[1], pos[3]
-	end
-	return nil, nil
-end
+local getWorldMousePosition = WorldTool.plainCursor
 
 local function clampToMap(x, z)
 	return max(0, min(mapSizeX, x)), max(0, min(mapSizeZ, z))

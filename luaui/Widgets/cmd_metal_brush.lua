@@ -32,8 +32,6 @@ local function SendLuaRulesMsg(header, payload)
 	end
 end
 
-local GetMouseState = Spring.GetMouseState
-local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local GetMetalAmount = Spring.GetMetalAmount
 local GetMetalMapSize = Spring.GetMetalMapSize
@@ -61,6 +59,7 @@ local cos = math.cos
 local sin = math.sin
 local abs = math.abs
 local pi = math.pi
+local WorldTool = require("luaui/Include/tf_world_tool")
 local format = string.format
 
 local METAL_SQ = Game.metalMapSquareSize or 16
@@ -127,23 +126,9 @@ local function snapToMetalGrid(wx, wz)
 end
 
 local function getWorldPos()
-	local tb = WG.TerraformBrush
-	if tb and tb.getWorldPositionExtended then
-		local wx, wz, fade = tb.getWorldPositionExtended(getSharedState().radius)
-		if wx then
-			edgeFade = fade or 1
-			return wx, wz
-		end
-		edgeFade = 1
-		return nil, nil
-	end
-	local mx, my = GetMouseState()
-	local kind, pos = TraceScreenRay(mx, my, true)
-	if kind == "ground" then
-		edgeFade = 1
-		return pos[1], pos[3]
-	end
-	return nil, nil
+	local wx, wz, fade = WorldTool.cursor(getSharedState().radius, WorldTool.groundCursor)
+	edgeFade = fade
+	return wx, wz
 end
 
 -- Per-draw-frame mouse trace shared between DrawWorld and DrawScreen (both

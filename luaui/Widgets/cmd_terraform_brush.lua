@@ -1259,60 +1259,12 @@ local function closeBrushStroke()
 	SendLuaRulesMsg(MSG.STROKE_END)
 end
 
--- Intersect the raw mouse ray with the plane y = planeY, so it works past the
--- map edge where TraceScreenRay reports nothing. Returns worldX, worldZ, or nil
--- for the sky. Engine trap: GetPixelDir wants raw window coordinates, while
--- GetMouseState reports viewport bottom-origin ones (TraceScreenRay converts
--- internally, GetPixelDir does not).
-extraState.mouseRayOnPlane = function(mx, my, planeY)
-	local _, viewSizeY, viewPosX = Spring.GetViewGeometry()
-	local dirX, dirY, dirZ = Spring.GetPixelDir(mx + (viewPosX or 0), viewSizeY - 1 - my)
-	if not dirX or abs(dirY) < 0.0001 then
-		return nil, nil
-	end
-	local camX, camY, camZ = GetCameraPosition()
-	local t = (planeY - camY) / dirY
-	if t <= 0 then
-		return nil, nil
-	end
-	return camX + dirX * t, camZ + dirZ * t
-end
-
--- Shared mouse-to-world resolver, extended past the map edge: when the ray
--- misses the terrain, the ground plane is extended so the brush keeps following
--- the mouse and can work right up against the border. Returns wx, wz, fade:
--- fade is 1 while the footprint touches the map (within `radius` of the edge)
--- and drops to 0 one fade span later, for dimming the cursor. Also exported
--- through WG.TerraformBrush for the sub-tool painters.
-extraState.worldMouseExtended = function(radius)
-	local mx, my = GetMouseState()
-	local _, pos = TraceScreenRay(mx, my, true)
-	if pos then
-		return pos[1], pos[3], 1
-	end
-	local wx, wz = extraState.mouseRayOnPlane(mx, my, 0)
-	if not wx then
-		return nil, nil, nil
-	end
-	-- Re-intersect at the height of the nearest in-map point (GetGroundHeight
-	-- clamps to the edge) so raised borders land where the cursor points.
-	local edgeY = GetGroundHeight(wx, wz)
-	if edgeY and edgeY ~= 0 then
-		local ex, ez = extraState.mouseRayOnPlane(mx, my, edgeY)
-		if ex then
-			wx, wz = ex, ez
-		end
-	end
-	local dx = max(0, -wx, wx - Game.mapSizeX)
-	local dz = max(0, -wz, wz - Game.mapSizeZ)
-	local dist = (dx * dx + dz * dz) ^ 0.5
-	local band = radius or 0
-	local fadeSpan = max(band, 100)
-	if dist >= band + fadeSpan then
-		return nil, nil, nil
-	end
-	return wx, wz, 1 - max(0, dist - band) / fadeSpan
-end
+-- The helpers every brush tool shares (luaui/Include/tf_world_tool.lua): outlines, the
+-- smart filter overlay, and the mouse resolver extended past the map edge, which the
+-- sub-tool painters reach through WG.TerraformBrush.getWorldPositionExtended.
+extraState.WorldTool = require("luaui/Include/tf_world_tool")
+extraState.mouseRayOnPlane = extraState.WorldTool.mouseRayOnPlane
+extraState.worldMouseExtended = extraState.WorldTool.extendedCursor
 
 local function getWorldMousePosition()
 	local wx, wz, fade = extraState.worldMouseExtended(activeRadius)
@@ -5549,8 +5501,6 @@ function widget:Update(dt)
 	end
 end
 
--- The outline helpers every brush tool shares (luaui/Include/tf_world_tool.lua).
-extraState.WorldTool = require("luaui/Include/tf_world_tool")
 local rotatePoint = extraState.WorldTool.rotate
 
 -- Returns the base RGB for the active mode

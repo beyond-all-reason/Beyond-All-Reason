@@ -15,8 +15,6 @@ end
 -- ============================================================
 -- Engine API Locals
 -- ============================================================
-local GetMouseState = Spring.GetMouseState
-local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local WorldToScreenCoords = Spring.WorldToScreenCoords
 local GetModKeyState = Spring.GetModKeyState
@@ -877,24 +875,11 @@ end
 -- ============================================================
 
 local function getWorldPos()
-	local tb = WG.TerraformBrush
-	if tb and tb.getWorldPositionExtended then
-		-- Shared edge-extended resolver: keeps following the mouse past the map
-		-- edge, returning fade < 1 once the brush footprint leaves the map.
-		local wx, wz, fade = tb.getWorldPositionExtended(brushRadius)
-		edgeFade = (wx and fade) or 1
-		if wx then
-			return wx, wz
-		end
-		return nil, nil
-	end
-	edgeFade = 1
-	local mx, my = GetMouseState()
-	local kind, pos = TraceScreenRay(mx, my, true)
-	if kind == "ground" then
-		return pos[1], pos[3]
-	end
-	return nil, nil
+	-- Shared edge-extended resolver: keeps following the mouse past the map
+	-- edge, returning fade < 1 once the brush footprint leaves the map.
+	local wx, wz, fade = WorldTool.cursor(brushRadius, WorldTool.groundCursor)
+	edgeFade = fade
+	return wx, wz
 end
 
 -- Per-draw-frame mouse trace shared between DrawWorld and DrawScreen (both

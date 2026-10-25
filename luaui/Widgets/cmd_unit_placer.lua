@@ -491,18 +491,10 @@ end
 --- The brush cursor: the terraform brush's edge-extended one when it is there, which keeps
 --- following the mouse a little past the map border and fades out.
 local function brushCursor()
-	up.edgeFade = 1
-	---@type table?
-	local tb = WG.TerraformBrush
-	if tb and tb.getWorldPositionExtended then
-		local wx, wz, fade = tb.getWorldPositionExtended(up.mode == "point" and 64 or up.radius)
-		if wx then
-			up.edgeFade = fade or 1
-			return wx, wz
-		end
-		return nil, nil
-	end
-	return groundUnderMouse()
+	-- Without the brush this is groundUnderMouse, which honours the harness pointer (Tool.setPointer).
+	local wx, wz, fade = WorldTool.cursor(up.mode == "point" and 64 or up.radius, groundUnderMouse)
+	up.edgeFade = fade
+	return wx, wz
 end
 
 local function getSymmetricPositions(wx, wz, rot)

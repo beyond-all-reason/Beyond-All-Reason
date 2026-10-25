@@ -510,26 +510,11 @@ end
 -- World mouse position
 ----------------------------------------------------------------
 local function getWorldMousePosition()
-	edgeFade = 1
 	-- Shared edge-extended cursor: keeps following the mouse slightly past the
 	-- map border, with fade < 1 once the footprint no longer touches the map.
-	---@type table<string, any>?
-	local tb = WG.TerraformBrush
-	if tb and tb.getWorldPositionExtended then
-		local radius = fp.mode == "point" and 64 or fp.radius
-		local wx, wz, fade = tb.getWorldPositionExtended(radius)
-		if wx then
-			edgeFade = fade or 1
-			return wx, wz
-		end
-		return nil, nil
-	end
-	local mx, my = GetMouseState()
-	local _, pos = TraceScreenRay(mx, my, true)
-	if pos then
-		return pos[1], pos[3]
-	end
-	return nil, nil
+	local wx, wz, fade = WorldTool.cursor(fp.mode == "point" and 64 or fp.radius)
+	edgeFade = fade
+	return wx, wz
 end
 
 ----------------------------------------------------------------

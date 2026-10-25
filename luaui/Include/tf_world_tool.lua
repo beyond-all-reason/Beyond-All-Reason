@@ -12,7 +12,7 @@
 -- instead of cutting under them), and 1 for anything rounder.
 --
 -- Also here: the smart filter overlay and altitude cap prism the placers draw, with the filter test itself
--- (common/smart_filter.lua) as WorldTool.smart.
+-- (common/smart_filter.lua) as WorldTool.smart, and the world cursor (WorldTool.cursor).
 
 local BrushShapes = require("common/brush_shapes")
 local SmartFilter = require("common/smart_filter")
@@ -22,6 +22,7 @@ local sin = math.sin
 local pi = math.pi
 local floor = math.floor
 local max = math.max
+local abs = math.abs
 local rotate = BrushShapes.rotate
 local isInside = BrushShapes.isInside
 
@@ -35,12 +36,117 @@ local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_LINES = GL.LINES
 local GL_TRIANGLES = GL.TRIANGLES
 local GetGroundHeight = Spring.GetGroundHeight
+local GetMouseState = Spring.GetMouseState
+local TraceScreenRay = Spring.TraceScreenRay
+local GetCameraPosition = Spring.GetCameraPosition
 
 local WorldTool = {
 	EDGE_SEGMENTS = 16,
 	rotate = rotate,
 	smart = SmartFilter,
 }
+
+-- Intersect the raw mouse ray with the plane y = planeY, so it works past the
+-- map edge where TraceScreenRay reports nothing. Returns worldX, worldZ, or nil
+-- for the sky. Engine trap: GetPixelDir wants raw window coordinates, while
+-- GetMouseState reports viewport bottom-origin ones (TraceScreenRay converts
+-- internally, GetPixelDir does not).
+---@param mx number
+---@param my number
+---@param planeY number
+---@return number?, number?
+function WorldTool.mouseRayOnPlane(mx, my, planeY)
+	local _, viewSizeY, viewPosX = Spring.GetViewGeometry()
+	local dirX, dirY, dirZ = Spring.GetPixelDir(mx + (viewPosX or 0), viewSizeY - 1 - my)
+	if not dirX or abs(dirY) < 0.0001 then
+		return nil, nil
+	end
+	local camX, camY, camZ = GetCameraPosition()
+	local t = (planeY - camY) / dirY
+	if t <= 0 then
+		return nil, nil
+	end
+	return camX + dirX * t, camZ + dirZ * t
+end
+
+-- Mouse-to-world resolver, extended past the map edge: when the ray misses the
+-- terrain, the ground plane is extended so the brush keeps following the mouse
+-- and can work right up against the border. Returns wx, wz, fade: fade is 1
+-- while the footprint touches the map (within `radius` of the edge) and drops
+-- to 0 one fade span later, for dimming the cursor. The terraform brush exports
+-- it as WG.TerraformBrush.getWorldPositionExtended.
+---@param radius number?
+---@return number?, number?, number?
+function WorldTool.extendedCursor(radius)
+	local mx, my = GetMouseState()
+	local _, pos = TraceScreenRay(mx, my, true)
+	if pos then
+		return pos[1], pos[3], 1
+	end
+	local wx, wz = WorldTool.mouseRayOnPlane(mx, my, 0)
+	if not wx then
+		return nil, nil, nil
+	end
+	-- Re-intersect at the height of the nearest in-map point (GetGroundHeight
+	-- clamps to the edge) so raised borders land where the cursor points.
+	local edgeY = GetGroundHeight(wx, wz)
+	if edgeY and edgeY ~= 0 then
+		local ex, ez = WorldTool.mouseRayOnPlane(mx, my, edgeY)
+		if ex then
+			wx, wz = ex, ez
+		end
+	end
+	local dx = max(0, -wx, wx - Game.mapSizeX)
+	local dz = max(0, -wz, wz - Game.mapSizeZ)
+	local dist = (dx * dx + dz * dz) ^ 0.5
+	local band = radius or 0
+	local fadeSpan = max(band, 100)
+	if dist >= band + fadeSpan then
+		return nil, nil, nil
+	end
+	return wx, wz, 1 - max(0, dist - band) / fadeSpan
+end
+
+---The ground under the mouse, plain (stops at the map edge): x, z and the traced y, or nil.
+---@return number?, number?, number?
+function WorldTool.plainCursor()
+	local mx, my = GetMouseState()
+	local _, pos = TraceScreenRay(mx, my, true)
+	if pos then
+		return pos[1], pos[3], pos[2]
+	end
+	return nil, nil, nil
+end
+
+---plainCursor, but only a "ground" hit counts.
+---@return number?, number?
+function WorldTool.groundCursor()
+	local mx, my = GetMouseState()
+	local kind, pos = TraceScreenRay(mx, my, true)
+	if kind == "ground" then
+		return pos[1], pos[3]
+	end
+	return nil, nil
+end
+
+---The brush cursor the tools share: the terraform brush's edge-extended one while the brush is
+---loaded, else `fallback` (plainCursor when nil). Returns x, z and the cursor fade; the fade is 1
+---when there is no position or it comes from the fallback.
+---@param radius number? the footprint that may hang over the map edge
+---@param fallback (fun(): number?, number?)?
+---@return number?, number?, number
+function WorldTool.cursor(radius, fallback)
+	local tb = WG.TerraformBrush
+	if tb and tb.getWorldPositionExtended then
+		local wx, wz, fade = tb.getWorldPositionExtended(radius)
+		if wx then
+			return wx, wz, fade or 1
+		end
+		return nil, nil, 1
+	end
+	local x, z = (fallback or WorldTool.plainCursor)()
+	return x, z, 1
+end
 
 ---A regular polygon outline, vertex 0 on +X before the turn.
 ---@param cx number

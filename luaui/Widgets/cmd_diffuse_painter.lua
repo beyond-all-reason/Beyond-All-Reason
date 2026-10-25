@@ -16,10 +16,9 @@ end
 -- Engine API aliases
 -- ============================================================================
 local Echo = Spring.Echo
-local GetMouseState = Spring.GetMouseState
-local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local SetMapSquareTexture = Spring.SetMapSquareTexture
+local WorldTool = require("luaui/Include/tf_world_tool")
 local GetMapSquareTextureFn = Spring.GetMapSquareTexture
 local SetMapShadingTexture = Spring.SetMapShadingTexture
 
@@ -427,23 +426,12 @@ end
 local function getWorldMousePosition()
 	-- Shared resolver: keeps following the mouse slightly past the map edge
 	-- (fade = 1 while the brush footprint still touches the map, then falls
-	-- to 0 over a further distance; nil once fully faded out).
-	local tfBrush = WG.TerraformBrush
-	if tfBrush and tfBrush.getWorldPositionExtended then
-		local wx, wz, fade = tfBrush.getWorldPositionExtended(brushRadius)
-		if wx then
-			edgeFade = fade or 1
-			return wx, wz
-		end
-		return nil, nil
+	-- to 0 over a further distance; nil once fully faded out). A miss keeps the last fade.
+	local wx, wz, fade = WorldTool.cursor(brushRadius)
+	if wx then
+		edgeFade = fade
 	end
-	local mx, my = GetMouseState()
-	local _, pos = TraceScreenRay(mx, my, true)
-	if pos then
-		edgeFade = 1
-		return pos[1], pos[3]
-	end
-	return nil, nil
+	return wx, wz
 end
 
 local function getScratchTexRect(w, h)

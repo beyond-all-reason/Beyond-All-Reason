@@ -17,9 +17,9 @@ end
 local Spring = Spring
 local Echo = Spring.Echo
 local GetMouseState = Spring.GetMouseState
-local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local WorldToScreenCoords = Spring.WorldToScreenCoords
+local WorldTool = require("luaui/Include/tf_world_tool")
 local GetDrawFrame = Spring.GetDrawFrame
 
 local gl = gl
@@ -265,14 +265,7 @@ local boxExport = {}
 -- Helper Functions
 -- ============================================================
 
-local function getWorldMousePosition()
-	local mx, my = GetMouseState()
-	local _, pos = TraceScreenRay(mx, my, true)
-	if pos then
-		return pos[1], pos[3]
-	end
-	return nil, nil
-end
+local getWorldMousePosition = WorldTool.plainCursor
 
 local function getColorForAllyTeam(at)
 	local idx = ((at - 1) % #TEAM_COLORS) + 1

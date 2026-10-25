@@ -16,7 +16,6 @@ end
 local SendLuaRulesMsg = Spring.SendLuaRulesMsg
 local GetMouseState = Spring.GetMouseState
 local GetGroundHeight = Spring.GetGroundHeight
-local TraceScreenRay = Spring.TraceScreenRay
 local GetGameFrame = Spring.GetGameFrame
 local Echo = Spring.Echo
 
@@ -37,6 +36,7 @@ local pi = math.pi
 local random = math.random
 
 local BrushShapes = require("common/brush_shapes")
+local WorldTool = require("luaui/Include/tf_world_tool")
 
 ---@type table<string, any>
 local WG = WG
@@ -592,12 +592,8 @@ local wb = {
 -- ===========================================================================
 ---@return number?, number?, number?
 local function getWorldMousePosition()
-	local mx, my = GetMouseState()
-	local _, coords = TraceScreenRay(mx, my, true)
-	if coords then
-		return coords[1], coords[2], coords[3]
-	end
-	return nil, nil, nil
+	local x, z, y = WorldTool.plainCursor()
+	return x, y, z
 end
 
 local function getCadenceInterval()
