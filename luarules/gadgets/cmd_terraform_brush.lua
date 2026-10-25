@@ -233,7 +233,7 @@ local function applyHeightChangesFlat(flatData, vertexCount)
 	Spring.SetHeightMapFunc(applyHeightChangesFlatWorker)
 	ahcFlat = nil
 	if nanHeightSkipped then
-		Spring.Echo("[Terraform Brush] Warning: NaN height skipped in undo/redo")
+		Spring.Echo("[Terraform Brush] Warning: NaN height skipped in heightmap import")
 		nanHeightSkipped = false
 	end
 end
