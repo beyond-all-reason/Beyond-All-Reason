@@ -2404,8 +2404,9 @@ function widget:DrawWorld()
 	else
 		WorldTool.drawShape(fp.shape, worldX, worldZ, fp.radius, fp.rotation, 1, 4, 1, CIRCLE_SEGMENTS)
 
-		-- Smart filter overlay: show valid/rejected terrain areas
-		if fp.smartEnabled then
+		-- Smart filter overlay: show valid/rejected terrain areas. Not in REMOVE, which
+		-- ignores the filters (UNITS hides it there too).
+		if fp.smartEnabled and fp.mode ~= "remove" then
 			local sf = fp.smartFilters
 			WorldTool.drawFilterOverlay(
 				worldX,
