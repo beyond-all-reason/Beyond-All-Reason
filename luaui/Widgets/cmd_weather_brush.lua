@@ -25,14 +25,10 @@ local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
-local GL_LINE_LOOP = GL.LINE_LOOP
 
 local floor = math.floor
 local max = math.max
 local min = math.min
-local cos = math.cos
-local sin = math.sin
-local pi = math.pi
 local random = math.random
 
 local BrushShapes = require("common/brush_shapes")
@@ -1143,19 +1139,6 @@ local function getWeatherLibrary()
 end
 
 -- ===========================================================================
--- Drawing (Brush Outline in World)
--- ===========================================================================
-local function drawRegularPolygon(cx, cy, cz, radius, sides, lengthScale)
-	lengthScale = lengthScale or 1.0
-	glBeginEnd(GL_LINE_LOOP, function()
-		for i = 0, sides - 1 do
-			local angle = (2 * pi * i) / sides
-			glVertex(cx + radius * cos(angle), cy, cz + radius * lengthScale * sin(angle))
-		end
-	end)
-end
-
--- ===========================================================================
 -- Input Handling
 -- ===========================================================================
 function widget:KeyPress(key, mods, isRepeat)
@@ -1342,11 +1325,16 @@ function widget:DrawWorld()
 	if not wx then
 		return
 	end
+	-- the turn placement uses: the shared (snapped) rotation while angle snap is on
+	local rot = wb.rotation or 0
 	do
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
 		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then
 			return
+		end
+		if st2 and st2.angleSnap then
+			rot = st2.rotationDeg or rot
 		end
 	end
 
@@ -1372,16 +1360,15 @@ function widget:DrawWorld()
 			glVertex(wx, groundY, wz + s)
 		end)
 	else
-		-- Area brush outline (always a circle: nothing sets another shape)
-		drawRegularPolygon(wx, groundY, wz, wb.radius, CIRCLE_SEGMENTS, wb.lengthScale)
+		-- Area brush outline: the spawn area (an ellipse with length), turned and on the ground
+		WorldTool.drawShape(wb.shape, wx, wz, wb.radius, rot, wb.lengthScale, 4, nil, CIRCLE_SEGMENTS)
 	end
 
 	-- Draw persistent spawner markers
 	glColor(0.2, 0.9, 0.9, 0.4)
 	glLineWidth(1)
 	for _, spawner in pairs(wb.persistentSpawners) do
-		local sy = (GetGroundHeight(spawner.x, spawner.z) or 0) + 4
-		drawRegularPolygon(spawner.x, sy, spawner.z, min(spawner.radius, 60), 12)
+		WorldTool.drawPolygon(spawner.x, spawner.z, min(spawner.radius, 60), 0, 12, 1, 4, 1)
 	end
 
 	glColor(1, 1, 1, 1)
