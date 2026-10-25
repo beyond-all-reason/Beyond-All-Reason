@@ -119,8 +119,11 @@ local MAX_UNDO = 10000
 -- undo), so eviction is the only knob.
 local MAX_SNAPSHOT_VERTICES = 8000000
 
+---@type table<integer, table>
 local undoStack = {}
+---@type table<integer, table>
 local redoStack = {}
+---@type number
 local totalVertexCount = 0 -- track approximate memory usage
 
 -- Import-completion counter, published as game rules param tfb_import_done. The
@@ -142,6 +145,7 @@ local scratchHeightDataMax = 0 -- high-water mark for reliable trimming (avoids 
 local scratchSnapFlat = {} -- flat buffer: x,z,h,x,z,h,... (no sub-table allocation)
 local scratchBlurHeights = {} -- padded (sw+2)x(sh+2) height grid for smooth-mode local blur
 local scratchBlurSAT = {} -- summed-area table over scratchBlurHeights (dense box mean)
+---@type table<integer, table>
 local smudgeBuffers = {} -- smudge mode: carried brush-space height grabs, one per active stroke chain
 local smudgeClock = 0 -- smudge dab counter, used to retire chains whose stroke has ended
 local scratchParts = {}
@@ -174,9 +178,11 @@ local SpawnCEG = Spring.SpawnCEG
 -- Apply a batch of {x, z, newHeight} entries to the heightmap. SetHeightMapFunc
 -- takes a function, so the workers are module-level closures fed via upvalues.
 local nanHeightSkipped = false
+---@type table<integer, table>?, integer
 local ahcData, ahcCount = nil, 0
 
 local function applyHeightChangesWorker()
+	---@cast ahcData -?
 	local SetHeightMap = Spring.SetHeightMap
 	for i = 1, ahcCount do
 		local entry = ahcData[i]
@@ -206,9 +212,11 @@ end
 
 -- Flat-buffer variant: reads {x1,z1,h1, x2,z2,h2,...} without sub-tables.
 -- Used by the heightmap import, which streams columns as flat triplets.
+---@type table<integer, number>?, integer
 local ahcFlat, ahcFlatCount = nil, 0
 
 local function applyHeightChangesFlatWorker()
+	---@cast ahcFlat -?
 	local SetHeightMap = Spring.SetHeightMap
 	for i = 0, ahcFlatCount - 1 do
 		local base = i * 3
@@ -493,6 +501,7 @@ local function remapMapHeights(newMin, newMax, clampOnly)
 		end
 	end
 
+	---@type number
 	local scale
 	if not clampOnly then
 		-- A flat map has no relief to stretch and would divide by zero.
@@ -542,15 +551,21 @@ local function remapMapHeights(newMin, newMax, clampOnly)
 	)
 end
 
+---@type table<integer, string>
 local DUST_CEGS = { "dust_cloud", "dust_cloud_dirt_light", "dust_cloud_fast", "dust_cloud_dirt", "dirtpoof" }
 local DUST_COUNT_PER_100 = 12 -- puffs per 100 radius
+---@type table<integer, string>
 local RUMBLE_SOUNDS =
 	{ "sounds/atmos/lavarumbleshort1.wav", "sounds/atmos/lavarumbleshort2.wav", "sounds/atmos/lavarumbleshort3.wav" }
 
+---@type table<integer, string>
 local SPLASH_CEGS_BIG = { "splash-large", "splash-huge", "splash-medium" }
+---@type table<integer, string>
 local SPLASH_CEGS_SMALL = { "splash-tiny", "splash-small", "watersplash_small", "watersplash_extrasmall" }
+---@type table<integer, string>
 local STEAM_CEGS = { "mistycloud" }
 local SPLASH_COUNT_PER_100 = 10
+---@type table<integer, string>
 local WATER_SOUNDS = { "sounds/replies/waterex1.wav", "sounds/replies/waterex2.wav" }
 
 local function spawnWaterFX(centerX, centerZ, radius, intensity)
@@ -622,6 +637,7 @@ local function spawnDust(centerX, centerZ, radius, intensity)
 end
 
 -- Memoised rotation: angleDeg is constant within one footprint, so sin/cos run once.
+---@type number?, number, number
 local _rpAngle, _rpCos, _rpSin
 local function rotatePoint(px, pz, angleDeg)
 	if angleDeg ~= _rpAngle then
@@ -735,6 +751,7 @@ end
 -- budget keeps every angle of a small or mid FOLLOW STROKE drag resident.
 local FALLOFF_STAMP_CELL_BUDGET = 3000000
 local FALLOFF_EPSILON = 1 / 255 -- below this, treat as zero (sub-quantisation)
+---@type table<string, any>
 local falloffStampCache = {}
 local falloffStampGen = {} -- key -> last-use generation (monotonic clock)
 local falloffStampSize = {} -- key -> w*h, for the budget accounting
@@ -1081,6 +1098,7 @@ local function applyTerraform(
 	-- broad bumps, capped at half the radius. The mean must be dense over the
 	-- whole box (sparse taps miss ripples at the tap spacing and leave grid
 	-- stripes); a summed-area table gives it in 4 lookups per cell.
+	---@type table, number, number, table, number, number
 	local blurBuf, blurStride, blurStep, blurSAT, satStride, blurInvArea
 	if localBlur then
 		local intensityT = max(0, min(1, math.log(intensity / 0.1) / math.log(100.0 / 0.1)))
@@ -1134,9 +1152,11 @@ local function applyTerraform(
 	-- along the stroke and tapers off. Chains are matched by proximity so each
 	-- symmetry copy keeps its own buffer; a widget-flagged stroke-start dab
 	-- always grabs fresh.
+	---@type table
 	local smudgeHeights
 	if localSmudge then
 		smudgeClock = smudgeClock + 1
+		---@type table?
 		local buf
 		if not smudgeStart then
 			local bestD
@@ -1231,6 +1251,7 @@ local function applyTerraform(
 					local xCell = centerCellX + (ix - sCx)
 					if xCell >= 0 and xCell <= maxXc then
 						local idx = rowIdx + xCell
+						---@type number
 						local current
 						local blurTarget
 						if localBlur then
@@ -1261,6 +1282,8 @@ local function applyTerraform(
 							end
 						end
 
+						---@cast current number
+						---@type number
 						local newHeight
 
 						if instant then
@@ -1467,6 +1490,7 @@ local function applySplineRamp(waypoints, width, clayMode, snapFull)
 		return
 	end
 
+	---@type table<integer, number>
 	local arcLengths = { 0 }
 	for i = 2, numPts do
 		local dx = waypoints[i][1] - waypoints[i - 1][1]
@@ -1512,6 +1536,7 @@ local function applySplineRamp(waypoints, width, clayMode, snapFull)
 		for x = minX, maxX, squareSize do
 			-- Find closest point on the polyline
 			local bestDist = math.huge
+			---@type number
 			local bestArc = 0
 
 			for i = 1, numPts - 1 do
@@ -1644,7 +1669,9 @@ end
 -- NOISE FUNCTIONS
 
 -- Seeded Perlin permutation table, cached per seed.
+---@type table?
 local cachedPerm = nil
+---@type number?
 local cachedPermSeed = nil
 
 local function buildPermTable(seed)
@@ -1715,9 +1742,13 @@ local function perlinNoise2D(x, y, perm)
 end
 
 local function fbmNoise(x, y, perm, octaves, persistence, lacunarity)
+	---@type number
 	local total = 0
+	---@type number
 	local amplitude = 1
+	---@type number
 	local frequency = 1
+	---@type number
 	local maxVal = 0
 	for _ = 1, octaves do
 		total = total + perlinNoise2D(x * frequency, y * frequency, perm) * amplitude
@@ -1729,9 +1760,13 @@ local function fbmNoise(x, y, perm, octaves, persistence, lacunarity)
 end
 
 local function ridgedNoise(x, y, perm, octaves, persistence, lacunarity)
+	---@type number
 	local total = 0
+	---@type number
 	local amplitude = 1
+	---@type number
 	local frequency = 1
+	---@type number
 	local maxVal = 0
 	for _ = 1, octaves do
 		local val = perlinNoise2D(x * frequency, y * frequency, perm)
@@ -1746,9 +1781,13 @@ local function ridgedNoise(x, y, perm, octaves, persistence, lacunarity)
 end
 
 local function billowNoise(x, y, perm, octaves, persistence, lacunarity)
+	---@type number
 	local total = 0
+	---@type number
 	local amplitude = 1
+	---@type number
 	local frequency = 1
+	---@type number
 	local maxVal = 0
 	for _ = 1, octaves do
 		local val = abs(perlinNoise2D(x * frequency, y * frequency, perm))
@@ -1763,6 +1802,7 @@ end
 local function voronoiNoise2D(x, y, perm)
 	local xi = floor(x)
 	local yi = floor(y)
+	---@type number
 	local minDist = 999
 
 	for dx = -1, 1 do
@@ -1788,9 +1828,13 @@ local function voronoiNoise2D(x, y, perm)
 end
 
 local function voronoiFBM(x, y, perm, octaves, persistence, lacunarity)
+	---@type number
 	local total = 0
+	---@type number
 	local amplitude = 1
+	---@type number
 	local frequency = 1
+	---@type number
 	local maxVal = 0
 	for _ = 1, octaves do
 		total = total + voronoiNoise2D(x * frequency, y * frequency, perm) * amplitude
@@ -1954,7 +1998,9 @@ local function applyErode(centerX, centerZ, radius, shape, angleDeg, curve, inte
 	local originCellX = centerCellX - sCx - 1 -- world cell of window column 0
 	local originCellZ = centerCellZ - sCz - 1 -- world cell of window row 0
 
+	---@type table<integer, number?>
 	local heights = {} -- [windowIdx] = lazily cached GetGroundHeight
+	---@type table<integer, number>
 	local delta = {} -- [windowIdx] = accumulated height change this pass
 	local touched = {} -- windowIdx list in first-touch order (deterministic apply)
 	local nTouched = 0
@@ -2113,7 +2159,9 @@ local function applyAutoramp(
 	local ox = res.ox
 	local oz = res.oz
 	local cs = res.cellSize
+	---@type table<integer, number?>
 	local orig = res.orig
+	---@type table<integer, number>
 	local out = res.newH
 	local heightData = scratchHeightData
 	local snapFlat = scratchSnapFlat
@@ -2328,6 +2376,7 @@ local function applyFill(cx, cz)
 	-- Phase 1: the highest point along each ray is the rim in that direction.
 	-- Its distance (in cells) bounds the basin in Phase 2.
 	local rimPX, rimPZ, rimPH = {}, {}, {}
+	---@type table<integer, number?>
 	local rimPeakStep = {} -- per-ray peak distance in cells (nil if rejected)
 	local rimN = 0
 	local WALL_MIN_RISE = 16 -- ray peak must be at least this above startH
@@ -2404,12 +2453,15 @@ local function applyFill(cx, cz)
 	-- than the rim distance at its angle. Rejected rays borrow the nearest
 	-- accepted neighbour's distance, and each ray is capped against the median of
 	-- its window so one ray that saw a far rim through a gap cannot leak.
+	---@type table<integer, number>, table<integer, number>
 	local basinX, basinZ = {}, {}
 	local bN = 0
 
 	-- Gap-fill rimPeakStep across rejected rays (nearest accepted neighbour)
+	---@type table<integer, number?>
 	local rimStepRaw = {}
 	do
+		---@type number?
 		local last = nil
 		for ri = 0, FILL_NUM_RAYS * 2 - 1 do
 			local r = ri % FILL_NUM_RAYS
@@ -2438,7 +2490,9 @@ local function applyFill(cx, cz)
 	-- Anti-leak filter: cap each ray at 2x the median of its window, which keeps
 	-- the typical rim distance but cuts outliers that shot through a gap.
 	local ANTI_LEAK_HALF = 2 -- window = 5 rays
+	---@type table<integer, number?>
 	local rimStep = {}
+	---@type table<integer, number>
 	local wbuf = {}
 	for ri = 0, FILL_NUM_RAYS - 1 do
 		if rimStepRaw[ri] then
@@ -2464,6 +2518,7 @@ local function applyFill(cx, cz)
 		end
 	end
 
+	---@type number
 	local maxStep = 0
 	for ri = 0, FILL_NUM_RAYS - 1 do
 		if rimStep[ri] and rimStep[ri] > maxStep then
@@ -2477,8 +2532,10 @@ local function applyFill(cx, cz)
 	local raysPerRad = FILL_NUM_RAYS / twoPi
 
 	-- Per-cell IDW target from rim peaks (also used in Phase 3).
+	---@type table<integer, number>
 	local basinT = {}
 	local function idwTarget(x, z)
+		---@type number, number
 		local sumW, sumWH = 0, 0
 		for j = 1, rimN do
 			local ddx = rimPX[j] - x
@@ -2570,6 +2627,7 @@ local function applyFill(cx, cz)
 	end
 end
 
+---@return boolean?
 function gadget:RecvLuaMsg(msg, playerID)
 	-- Lua 5.1 caps a function at 60 upvalues and this dispatcher sits near it, so
 	-- header lengths are spelled #X_HEADER rather than cached in locals. New
@@ -2628,6 +2686,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 		local targetStrokeId = undoStack[#undoStack].strokeId
 
+		---@type table<integer, table>
 		local collected = {}
 		while #undoStack > 0 do
 			local top = undoStack[#undoStack]
