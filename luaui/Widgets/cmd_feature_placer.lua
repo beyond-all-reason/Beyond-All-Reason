@@ -2074,6 +2074,12 @@ local function getShapeCorners(shape, radius, angleDeg)
 			local a = i * (2 * pi / 8) + rad
 			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
 		end
+	elseif shape == "triangle" then
+		-- Same vertices as the outline (drawRegularPolygon with 3 sides).
+		for i = 0, 2 do
+			local a = i * (2 * pi / 3) + rad
+			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
+		end
 	end
 	return corners
 end
