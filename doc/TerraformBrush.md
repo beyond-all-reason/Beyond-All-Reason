@@ -635,6 +635,7 @@ All keys in the first table can be changed in Settings > Keybinds.
 | C, S, T, H, O | Circle, Square, Triangle, Hexagon, Octagon (in a terrain mode) |
 | X | CLAY on or off |
 | S, T | SURFACE, LAYERS (outside a terrain mode) |
+| D | DIFFUSE (on maps without the tileset shader) |
 | P, M, F, K, G | SPLAT, METAL, FEATURES, GRASS, DECALS |
 | U, W, J, V | UNITS, WEATHER, CLONE, SCENE |
 | (unbound) | LIGHTS, STARTS |
