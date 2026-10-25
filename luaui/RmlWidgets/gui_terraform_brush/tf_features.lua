@@ -81,12 +81,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 	-- The SELECTION section only shows in select mode, the only time a map click selects
 	-- rather than places; Reroll is the mirror case, shown while scattering or pointing.
 	if widgetState.dmHandle then
-		local dmh = widgetState.dmHandle
-		local function setDm(f, v)
-			if dmh[f] ~= v then
-				dmh[f] = v
-			end
-		end
+		local setDm = ctx.setDm
 		local count = fpState.selectionCount or 0
 		setDm("fpShowSelection", fpState.selectMode == true)
 		setDm("fpShowReroll", fpState.selectMode ~= true and (fpState.mode == "scatter" or fpState.mode == "point"))
@@ -191,12 +186,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 
 			-- These flags drive data-if visibility of the filter rows.
 			if widgetState.dmHandle then
-				local dmh = widgetState.dmHandle
-				local function setDm(f, v)
-					if dmh[f] ~= v then
-						dmh[f] = v
-					end
-				end
+				local setDm = ctx.setDm
 				setDm("fpAvoidCliffs", sf.avoidCliffs == true)
 				setDm("fpPreferSlopes", sf.preferSlopes == true)
 				setDm("fpAltMinEnable", sf.altMinEnable == true)
@@ -306,12 +296,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 			local tbState = WG.TerraformBrush.getState()
 			if tbState then
 				if widgetState.dmHandle then
-					local dmh = widgetState.dmHandle
-					local function setDm(f, v)
-						if dmh[f] ~= v then
-							dmh[f] = v
-						end
-					end
+					local setDm = ctx.setDm
 					-- fpGridOverlay is the feature placer's own building grid, not the terrain grid.
 					setDm("fpGridOverlay", fpState.gridOverlay == true)
 					setDm("fpHeightColormap", tbState.heightColormap == true)

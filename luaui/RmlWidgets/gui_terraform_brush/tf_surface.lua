@@ -489,11 +489,7 @@ local function syncHard(doc, ctx, setSummary)
 	local dm = widgetState.dmHandle
 	local syncAndFlash = ctx.syncAndFlash
 	local getCachedEl = ctx.getCachedEl
-	local function setDm(f, v)
-		if dm[f] ~= v then
-			dm[f] = v
-		end
-	end
+	local setDm = ctx.setDm
 
 	-- With the tileset shader off, hard strokes paint the plain DNTS splat
 	-- distribution instead of overrides; the panel says so.
@@ -683,11 +679,7 @@ function M.sync(doc, ctx, surfState, setSummary)
 		end
 	end
 
-	local function setDm(f, v)
-		if dm[f] ~= v then
-			dm[f] = v
-		end
-	end
+	local setDm = ctx.setDm
 	setDm("surfHasVariants", (list and #list > 1) and true or false)
 	do
 		local anySculpted = false

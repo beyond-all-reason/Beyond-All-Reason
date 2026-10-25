@@ -52,11 +52,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 	do
 		local s = WG.TerraformBrush and WG.TerraformBrush.getState and WG.TerraformBrush.getState()
 		if dm and s then
-			local function setDm(f, v)
-				if dm[f] ~= v then
-					dm[f] = v
-				end
-			end
+			local setDm = ctx.setDm
 			setDm("mbGridSnap", s.gridSnap and true or false)
 			setDm("mbAngleSnap", s.angleSnap and true or false)
 			setDm("mbMeasureActive", s.measureActive and true or false)
@@ -218,11 +214,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 			or mbState.balanceAxisActive
 		widgetState.mbInspectorOpen = inspectorOpen and true or false
 		if dm then
-			local function setDm(f, v)
-				if dm[f] ~= v then
-					dm[f] = v
-				end
-			end
+			local setDm = ctx.setDm
 			setDm("mbInspectorOpen", inspectorOpen and true or false)
 			setDm("mbClusterOpen", mbState.clusterCounter and true or false)
 			setDm("mbLassoOpen", (mbState.lassoActive or mbState.lassoClosed) and true or false)

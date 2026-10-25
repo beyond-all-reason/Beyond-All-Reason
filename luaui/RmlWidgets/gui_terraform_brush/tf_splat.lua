@@ -123,12 +123,7 @@ function M.sync(doc, ctx, spState, setSummary)
 				local sf = spState.smartFilters
 				-- Filter flags drive data-if rows in the RML.
 				if widgetState.dmHandle then
-					local dmh = widgetState.dmHandle
-					local function setDm(f, v)
-						if dmh[f] ~= v then
-							dmh[f] = v
-						end
-					end
+					local setDm = ctx.setDm
 					setDm("spAvoidCliffs", sf.avoidCliffs == true)
 					setDm("spPreferSlopes", sf.preferSlopes == true)
 					setDm("spAltMinEnable", sf.altMinEnable == true)
@@ -254,11 +249,7 @@ function M.sync(doc, ctx, spState, setSummary)
 			local s = tb.getState()
 			local dm = widgetState.dmHandle
 			if dm then
-				local function setDm(f, v)
-					if dm[f] ~= v then
-						dm[f] = v
-					end
-				end
+				local setDm = ctx.setDm
 				setDm("spGridSnap", s.gridSnap and true or false)
 				setDm("spAngleSnap", s.angleSnap and true or false)
 				setDm("spMeasureActive", s.measureActive and true or false)

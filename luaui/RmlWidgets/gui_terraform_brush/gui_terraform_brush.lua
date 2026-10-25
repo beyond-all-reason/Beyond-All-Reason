@@ -17269,6 +17269,16 @@ ctx.syncWarnChip = function(doc, chipId, sectionId, anyActive)
 	end
 end
 
+-- Data model write that skips an unchanged value (a write marks the field dirty). Reads the
+-- live handle on every call and does nothing before the model exists. No caller passes a
+-- table, so the in-place mutation trap of DirtyVariable does not apply.
+ctx.setDm = function(f, v)
+	local dm = widgetState.dmHandle
+	if dm and dm[f] ~= v then
+		dm[f] = v
+	end
+end
+
 -- Reflect TB shared state onto a tool's mirror chips. Called from per-tool M.sync.
 ctx.syncTBMirrorControls = function(doc, prefix)
 	if not doc or not prefix then
@@ -17281,11 +17291,7 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	-- Active-class state goes to the data model (data-class-active in the RML); the
 	-- toolbar sub-rows follow data-if on {P}MeasureActive / {P}SymmetryActive.
 	if dm then
-		local function setDm(f, v)
-			if dm[f] ~= v then
-				dm[f] = v
-			end
-		end
+		local setDm = ctx.setDm
 		setDm(P .. "GridOverlay", s.gridOverlay)
 		setDm(P .. "HeightColormap", s.heightColormap)
 		setDm(P .. "GridSnap", s.gridSnap)
@@ -20682,11 +20688,7 @@ function widget:Update()
 			do
 				local dm = widgetState.dmHandle
 				if dm then
-					local function setDm(f, v)
-						if dm[f] ~= v then
-							dm[f] = v
-						end
-					end
+					local setDm = ctx.setDm
 					local generatedBlankMap = _isGeneratedBlankMap()
 					setDm("splatTexVisible", spActive and (widgetState.splatTexOpen or false))
 					setDm("grassCfgVisible", gbActive and (widgetState.grassCfgOpen or false))
@@ -21695,12 +21697,7 @@ function widget:Update()
 						)
 					end
 					if widgetState.dmHandle then
-						local dm = widgetState.dmHandle
-						local function setDm(f, v)
-							if dm[f] ~= v then
-								dm[f] = v
-							end
-						end
+						local setDm = ctx.setDm
 						setDm("tfSymmetryActive", state.symmetryActive and true or false)
 						setDm("tfSymmetryRadial", state.symmetryRadial and true or false)
 						setDm(

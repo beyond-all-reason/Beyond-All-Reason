@@ -44,11 +44,7 @@ function M.sync(doc, ctx, stpState, setSummary)
 
 	local dm = widgetState.dmHandle
 	if dm then
-		local function setDm(f, v)
-			if dm[f] ~= v then
-				dm[f] = v
-			end
-		end
+		local setDm = ctx.setDm
 		setDm("stpAllyTeamsStr", tostring(stpState.numAllyTeams))
 		setDm("stpCountStr", tostring(stpState.shapeCount))
 		setDm("stpSizeStr", tostring(math.floor(stpState.shapeRadius)))

@@ -95,11 +95,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 				)
 			end
 			if dm then
-				local function setDm(f, v)
-					if dm[f] ~= v then
-						dm[f] = v
-					end
-				end
+				local setDm = ctx.setDm
 				setDm("gbGridOverlay", s.gridOverlay and true or false)
 				setDm("gbHeightColormap", s.heightColormap and true or false)
 				setDm("gbGridSnap", s.gridSnap and true or false)
@@ -271,11 +267,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 				altChip:SetClass("active", altActive and true or false)
 			end
 			if dm then
-				local function setDm(f, v)
-					if dm[f] ~= v then
-						dm[f] = v
-					end
-				end
+				local setDm = ctx.setDm
 				setDm("gbSlopeActive", slopeActive and true or false)
 				setDm("gbAvoidCliffs", sf.avoidCliffs and true or false)
 				setDm("gbPreferSlopes", sf.preferSlopes and true or false)
