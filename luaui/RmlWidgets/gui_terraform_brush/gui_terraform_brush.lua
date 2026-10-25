@@ -13331,11 +13331,11 @@ local initialModel = {
 		if _splatToolUnavailable() then
 			if _newMapSplatNeedsDnts() then
 				Spring.Echo(
-					"[Terraform Brush] Splat Painter on New Map is waiting on queued Recoil engine changes. No DNTS splat-set pack is installed, so the tool stays unavailable on blank maps for now."
+					"[Terraform Brush] Splat Painter on New Map needs a DNTS splat set, and no DNTS pack is installed in Terraform Brush/textures/dnts/, so the tool stays unavailable on blank maps."
 				)
 			elseif _newMapSplatEnginePathMissing() then
 				Spring.Echo(
-					"[Terraform Brush] Splat Painter on New Map is waiting on queued Recoil engine changes. The generated blank map has no blank-map DNTS path from the engine yet, so the tool stays disabled for now."
+					"[Terraform Brush] This New Map was created without a DNTS splat set, so the Splat Painter stays disabled. Pick one under SPLAT SET in the New Map window and create the map again."
 				)
 			else
 				Spring.Echo(
@@ -20667,8 +20667,9 @@ function widget:Update()
 					local generatedBlankMap = _isGeneratedBlankMap()
 					setDm("splatTexVisible", spActive and (widgetState.splatTexOpen or false))
 					setDm("grassCfgVisible", gbActive and (widgetState.grassCfgOpen or false))
-					setDm("newMapEngineSplatNotice", generatedBlankMap)
-					setDm("newMapSplatNeedsDnts", generatedBlankMap and _newMapSplatUnavailable())
+					-- Only when the canvas really cannot splat-paint: with a DNTS set baked in it works.
+					setDm("newMapEngineSplatNotice", generatedBlankMap and _newMapSplatUnavailable())
+					setDm("newMapSplatNeedsDnts", generatedBlankMap and _newMapSplatNeedsDnts())
 					setDm("spToolDisabled", _splatToolUnavailable())
 					-- Contextual SPLAT-button hint: while the tileset shader owns the splat texture,
 					-- hovering the disabled button explains where the workflow is (tf_guide reads

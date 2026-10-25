@@ -4218,8 +4218,8 @@
 		<!-- ============ SPLAT PAINTER CONTROLS ============ -->
 		<div id="tf-splat-controls" data-if="activeTool == 'sp'">
 		<div class="tf-section-frame mb-1" data-if="newMapEngineSplatNotice">
-			<div class="text-sm text-keybind">New Map splat painting is waiting on queued Recoil engine changes already in flight. Existing maps still support the Splat Painter.</div>
-			<div class="text-xs text-light mt-1" data-if="newMapSplatNeedsDnts">No DNTS pack was found in Terraform Brush/textures/dnts/, so this tool stays disabled on blank maps for now.</div>
+			<div class="text-sm text-keybind">Splat painting on a New Map needs a DNTS splat set, picked under SPLAT SET when the map is created. Existing maps still support the Splat Painter.</div>
+			<div class="text-xs text-light mt-1" data-if="newMapSplatNeedsDnts">No DNTS pack was found in Terraform Brush/textures/dnts/, so this tool stays disabled on blank maps.</div>
 		</div>
 
 		<div class="tf-section-frame" id="frame-spl-channel">
