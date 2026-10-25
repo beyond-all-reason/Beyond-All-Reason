@@ -17354,7 +17354,14 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 		nbStep:SetAttribute("value", stepStr)
 	end
 
-	-- Symmetry radial count + mirror angle sync (shared sliders in st/cl/wb/dc/lp sections)
+	ctx.syncSymmetrySliders(doc, P, s)
+end
+
+-- Symmetry radial count + mirror angle labels and sliders for one tool prefix (the shared
+-- sliders in st/cl/wb/dc/lp, and FEATURES / UNITS). A slider being dragged is left alone
+-- and a slider is only written when its value changed, so nothing moves under the thumb.
+ctx.syncSymmetrySliders = function(doc, P, s)
+	local dm = widgetState.dmHandle
 	local countStr = tostring(math.floor(s.symmetryRadialCount or 2))
 	if dm and dm.tbSymCountStr ~= countStr then
 		dm.tbSymCountStr = countStr

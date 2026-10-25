@@ -314,26 +314,8 @@ function M.sync(doc, ctx, fpState, setSummary)
 					setDm("fpSymMirrorX", tbState.symmetryMirrorX == true)
 					setDm("fpSymMirrorY", tbState.symmetryMirrorY == true)
 				end
-				if widgetState.dmHandle then
-					local v = tostring(tbState.symmetryRadialCount or 2)
-					if widgetState.dmHandle.tbSymCountStr ~= v then
-						widgetState.dmHandle.tbSymCountStr = v
-					end
-				end
-				local fpSymRadSlider = getCachedEl(doc, "fp-slider-symmetry-radial-count")
-				if fpSymRadSlider then
-					fpSymRadSlider:SetAttribute("value", tostring(tbState.symmetryRadialCount or 2))
-				end
-				if widgetState.dmHandle then
-					local v = tostring(math.floor(tbState.symmetryMirrorAngle or 0))
-					if widgetState.dmHandle.tbSymAngleStr ~= v then
-						widgetState.dmHandle.tbSymAngleStr = v
-					end
-				end
-				local fpSymAngSlider = getCachedEl(doc, "fp-slider-symmetry-mirror-angle")
-				if fpSymAngSlider then
-					fpSymAngSlider:SetAttribute("value", tostring(tbState.symmetryMirrorAngle or 0))
-				end
+				-- Shared with the other tools: skips a dragged slider, writes only changes.
+				ctx.syncSymmetrySliders(doc, "fp", tbState)
 			end
 		end
 

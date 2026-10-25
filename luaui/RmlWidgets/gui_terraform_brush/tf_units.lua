@@ -284,26 +284,8 @@ function M.sync(doc, ctx, unState, setSummary)
 					setDm("unSymMirrorX", tbState.symmetryMirrorX == true)
 					setDm("unSymMirrorY", tbState.symmetryMirrorY == true)
 				end
-				if widgetState.dmHandle then
-					local v = tostring(tbState.symmetryRadialCount or 2)
-					if widgetState.dmHandle.tbSymCountStr ~= v then
-						widgetState.dmHandle.tbSymCountStr = v
-					end
-				end
-				local unSymRadSlider = getCachedEl(doc, "un-slider-symmetry-radial-count")
-				if unSymRadSlider then
-					unSymRadSlider:SetAttribute("value", tostring(tbState.symmetryRadialCount or 2))
-				end
-				if widgetState.dmHandle then
-					local v = tostring(math.floor(tbState.symmetryMirrorAngle or 0))
-					if widgetState.dmHandle.tbSymAngleStr ~= v then
-						widgetState.dmHandle.tbSymAngleStr = v
-					end
-				end
-				local unSymAngSlider = getCachedEl(doc, "un-slider-symmetry-mirror-angle")
-				if unSymAngSlider then
-					unSymAngSlider:SetAttribute("value", tostring(tbState.symmetryMirrorAngle or 0))
-				end
+				-- Shared with the other tools: skips a dragged slider, writes only changes.
+				ctx.syncSymmetrySliders(doc, "un", tbState)
 			end
 		end
 
