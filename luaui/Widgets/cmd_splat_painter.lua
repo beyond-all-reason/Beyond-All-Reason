@@ -93,11 +93,13 @@ local activeStrength = DEFAULT_STRENGTH
 local activeIntensity = DEFAULT_INTENSITY
 local activeRadius = DEFAULT_RADIUS
 local activeShape = "circle"
+---@type number
 local activeRotation = 0
 local activeCurve = DEFAULT_CURVE
 local activeFractalAmount = DEFAULT_FRACTAL
 local activeFractalFreq = DEFAULT_FRACTAL_FREQ
 local eraseMode = false
+---@type number
 local edgeFade = 1 -- cursor alpha factor when hovering past the map edge (TerraformBrush extended resolver)
 
 -- Export format state
@@ -106,6 +108,32 @@ local exportFormatIndex = 1
 
 -- Smart filter state
 local smartFilterEnabled = false
+
+---Soft altitude and slope bands that scale a stroke (one per channel).
+---@class SplatInfluenceProfile
+---@field altOn boolean
+---@field altMin number
+---@field altMax number
+---@field altFeatherLo number
+---@field altFeatherHi number
+---@field slopeOn boolean
+---@field slopeMin number
+---@field slopeMax number
+---@field slopeFeather number
+
+---@class SplatSmartFilter
+---@field avoidWater boolean
+---@field avoidCliffs boolean
+---@field slopeMax number
+---@field preferSlopes boolean
+---@field slopeMin number
+---@field altMinEnable boolean
+---@field altMin number
+---@field altMaxEnable boolean
+---@field altMax number
+---@field influenceDefault SplatInfluenceProfile
+---@field influence table<integer, table?> Channel (1..4) -> profile.
+---@field _uInf table Uniform locations of the influence bands.
 local smartFilter = {
 	avoidWater = false,
 	avoidCliffs = false,
@@ -137,34 +165,52 @@ local smartFilter = {
 -- Texture state
 local splatTexWidth = 0
 local splatTexHeight = 0
+---@type string?
 local fboTex = nil
 local texApplied = false
 
 -- Ping-pong temp texture for paint strokes. The paint shader overwrites every
 -- texel (full quad, blending off), so one cached texture is safe to reuse.
+---@type string?
 local paintTempTex = nil
 local paintTempW, paintTempH = 0, 0
 
 -- Paint shader
+---@type integer?
 local paintShader = nil
+---@type GL?
 local uLocBrushPos = nil
+---@type GL?
 local uLocBrushRadius = nil
+---@type GL?
 local uLocBrushStrength = nil
+---@type GL?
 local uLocBrushChannel = nil
+---@type GL?
 local uLocBrushErase = nil
+---@type GL?
 local uLocTexSize = nil
+---@type GL?
 local uLocMapSize = nil
+---@type GL?
 local uLocBrushCurve = nil
+---@type GL?
 local uLocBrushShape = nil
+---@type GL?
 local uLocBrushRotation = nil
+---@type GL?
 local uLocFractalAmount = nil
+---@type GL?
 local uLocFractalFreq = nil
+---@type table<string, GL>
 local uLocSf = {} -- smart filter uniform locations, filled by createShaders
 
 -- Copy shader (blit existing texture into FBO)
+---@type integer?
 local copyShader = nil
 
 -- Splatmap overlay shader (channel-colorized world overlay)
+---@type integer?
 local overlayShader = nil
 
 -- Overlay state
@@ -176,22 +222,31 @@ local showSplatOverlay = false
 local tilesetPreviewOn = true
 
 -- Drawing
+---@type integer?
 local drawCacheList = nil
 local leftMouseHeld = false
+---@type number?
 local lastPaintX = nil
+---@type number?
 local lastPaintZ = nil
 
 -- Deferred init: GL calls can only happen inside Draw call-ins
 local pendingInit = false
+---@type [number, number, number][]
 local pendingPaintStrokes = {}
 local pendingSave = false
+---@type string?
 local pendingSavePath = nil -- explicit target (project save); nil = default export dir
+---@type string?
 local pendingLoadPath = nil -- deferred project load (executes in DrawWorld)
+---@type string?
 local lastLoadResult = nil -- "ok" or "failed: <reason>" after the deferred load ran
 
 -- Undo/redo history (texture snapshots per drag)
 local MAX_UNDO_SPLAT = 20
+---@type string[]
 local undoStack = {}
+---@type string[]
 local redoStack = {}
 local pendingSnapshot = false -- set on MousePress, consumed before first stroke
 
@@ -204,7 +259,10 @@ local pendingSnapshot = false -- set on MousePress, consumed before first stroke
 -- One table for state and helpers: widget:DrawWorld is at the Lua 5.1 limit
 -- of 60 upvalues, so this costs it one, not four.
 local FAR_FLUSH_S = 0.03 -- every frame or two: the tileset routes rects to its clipmap per frame and throttles minimap + far bake itself
----@type table
+---Tileset far-cache invalidation state; its helpers are fields too.
+---@class SplatFarInvalidation
+---@field dirty number[]? `{ax, az, bx, bz}` elmos rect, nil when clean.
+---@field at any? Spring timer of the last flush.
 local farInv = {} -- dirty = { ax, az, bx, bz } elmos rect, nil when clean; at = last flush timer
 
 function farInv.mark(worldX, worldZ, radius)
@@ -698,6 +756,7 @@ local function canSynthesizeDistribution()
 end
 
 local function initSplatTexture()
+	---@type {xsize: integer, ysize: integer}?
 	local texInfo = gl.TextureInfo(SPLAT_TEX_NAME)
 	local synthesize = false
 	if (not texInfo or texInfo.xsize <= 0 or texInfo.ysize <= 0) and canSynthesizeDistribution() then
@@ -1425,6 +1484,7 @@ function widget:MouseMove(mx, my, dx, dy, button)
 	return false
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
 	if not active then
 		return false
@@ -1450,6 +1510,7 @@ function widget:MouseWheel(up, value)
 		return true
 	elseif alt then
 		-- Alt+Scroll: change rotation (the angle snap step when angle snap is on)
+		---@type number
 		local step = 3
 		local tb = WG.TerraformBrush
 		local tbs = tb and tb.getState and tb.getState() or nil
