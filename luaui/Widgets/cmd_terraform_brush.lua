@@ -130,7 +130,7 @@ local DEFAULT_KEYBINDS = {
 	tool_weather = { key = 119, label = "W", desc = "Weather tool" },
 	tool_environment = { key = 118, label = "V", desc = "Environment tool" },
 	tool_lights = { key = 0, label = "-", desc = "Lights tool" },
-	tool_startpos = { key = 0, label = "-", desc = "Start Positions tool" },
+	tool_regions = { key = 0, label = "-", desc = "Regions tool" },
 	tool_clone = { key = 106, label = "J", desc = "Clone tool" },
 	-- S and T are the square and triangle shapes while a terrain mode is on; from any
 	-- other tool they switch tools (see KeyPress).
@@ -2677,7 +2677,7 @@ extraState._newmapDrive = function()
 		-- result so a silent slope rejection can't quietly break spawn symmetry.
 		local placed, wanted = 0, #info.spawns
 		pcall(function()
-			local spt = WG.StartPosTool
+			local spt = WG.RegionsTool
 			if spt and spt.addPosition then
 				spt.clearAllPositions()
 				for idx, sp in ipairs(info.spawns) do
@@ -5792,7 +5792,7 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 		local dcSt = WG.DecalPlacer and WG.DecalPlacer.getState()
 		local wbSt = WG.WeatherBrush and WG.WeatherBrush.getState()
 		local lpSt = WG.LightPlacer and WG.LightPlacer.getState()
-		local stSt = WG.StartPosTool and WG.StartPosTool.getState()
+		local stSt = WG.RegionsTool and WG.RegionsTool.getState()
 		local clSt = WG.CloneTool and WG.CloneTool.getState()
 		local sfSt = WG.SurfacePainter and WG.SurfacePainter.getState()
 		if
@@ -9022,7 +9022,7 @@ function widget:DrawWorld()
 				local dcState = WG.DecalPlacer and WG.DecalPlacer.getState()
 				local wbState = WG.WeatherBrush and WG.WeatherBrush.getState()
 				local lpState = WG.LightPlacer and WG.LightPlacer.getState()
-				local stState = WG.StartPosTool and WG.StartPosTool.getState()
+				local stState = WG.RegionsTool and WG.RegionsTool.getState()
 				local clState = WG.CloneTool and WG.CloneTool.getState()
 				local sfState = WG.SurfacePainter and WG.SurfacePainter.getState()
 				if (mbState and mbState.active) or (gbState and gbState.active) then
@@ -9131,7 +9131,7 @@ function widget:DrawWorld()
 			local dcState = WG.DecalPlacer and WG.DecalPlacer.getState()
 			local wbState = WG.WeatherBrush and WG.WeatherBrush.getState()
 			local lpState = WG.LightPlacer and WG.LightPlacer.getState()
-			local stState = WG.StartPosTool and WG.StartPosTool.getState()
+			local stState = WG.RegionsTool and WG.RegionsTool.getState()
 			local clState = WG.CloneTool and WG.CloneTool.getState()
 			local sfState = WG.SurfacePainter and WG.SurfacePainter.getState()
 			local r
@@ -9305,7 +9305,7 @@ function widget:DrawWorld()
 		and not extraState.symmetryPlacingOrigin
 	then
 		-- Start-positions tool takes priority when hovering a draggable marker / box vertex
-		if WG.StartPosTool and WG.StartPosTool.hoveringDraggable then
+		if WG.RegionsTool and WG.RegionsTool.hoveringDraggable then
 			Spring.SetMouseCursor("Move")
 		else
 			Spring.SetMouseCursor(extraState.modeCursors[activeMode] or "cursornormal")
@@ -9703,7 +9703,7 @@ function widget:DrawWorld()
 		local dir = activeDirection ~= 0 and activeDirection or 1
 		-- Scale falloff display height by intensity (20..180 elmos)
 		local baseDisplayHeight = 20 + intensityT * 160
-		local effectHeight = baseDisplayHeight
+		local effectHeight = baseDisplayHeight ---@type number
 		if heightCapMax and dir > 0 then
 			effectHeight = heightCapMax
 		elseif heightCapMin and dir < 0 then
