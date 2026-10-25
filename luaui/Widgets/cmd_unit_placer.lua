@@ -12,9 +12,9 @@ function widget:GetInfo()
 	}
 end
 
--- The terraform brush's UNITS tool (refactor plan, U6). The same unit library and the same
--- placer as the mission editor (luaui/RmlWidgets/gui_unit_library, luaui/Include/unit_placer);
--- what differs is where a placement goes: here it becomes REAL units, through the Unit Placer
+-- The terraform brush's UNITS tool. The same unit library and the same placer as the
+-- mission editor (luaui/RmlWidgets/gui_unit_library, luaui/Include/unit_placer); what
+-- differs is where a placement goes: here it becomes REAL units, through the Unit Placer
 -- gadget, which keeps every gesture as one stroke to undo and redo.
 --
 -- It works the way the FEATURES tool (cmd_feature_placer.lua) does, with units:
@@ -22,15 +22,18 @@ end
 --            clustered spots; or, with distribution line / grid / box, a FORMATION dragged
 --            out through the shared placer (the Blueprint API draws it)
 --   POINT    one unit per click under the cursor (a multi-pick cycles the type)
---   REMOVE   the brush takes units away; in the other modes right-click lets go of the pick
--- Every placement honours the smart filters and the terraform brush's symmetry. With
--- nothing picked the left button SELECTS instead: click, Shift+click, box drag; drag a
--- selected unit to move them all, R turns them, Ctrl+click faces them at a point, Delete,
--- Ctrl+C / X / V.
+--   REMOVE   the brush takes units away (left button)
+-- Every placement honours the smart filters and the terraform brush's symmetry. Right-click
+-- lets go of the pick; it never removes. With nothing picked, LIVE mode leaves plain clicks
+-- to the game (select and order as usual); MISSION mode and other owners keep the tool's
+-- own selection: click, Shift+click, box drag, drag a selected unit to move them all,
+-- Ctrl+click faces them at a point. Either way Delete, R, Ctrl+A and Ctrl+C / X / V act on
+-- the selection.
 --
 -- Keys while active: Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z) undo and redo whole strokes, Tab cycles
--- the formation, R / Shift+R turn, Escape steps back (selection, then the pick). Wheel: Alt
--- rotate, Shift count, Space cadence, Ctrl radius. The panel's TEAM chip cycles the team.
+-- the formation of an armed placer, R / Shift+R turn, Escape steps back (selection, then the pick),
+-- Alt+Z / Alt+X or mouse 4 / 5 spread or pack. Wheel: Alt rotate, Shift count, Space
+-- cadence, Ctrl radius. There is no team key: the panel's TEAM chip cycles the team.
 
 local Placer = VFS.Include("luaui/Include/unit_placer/placer.lua")
 local Cycle = VFS.Include("luaui/Include/unit_placer/cycle.lua")
@@ -48,7 +51,7 @@ local MSG = {
 	mission = "$unit_mission$",
 }
 
--- MISSION UNITS (Terraform Brush 1.18). The brush places either LIVE units (normal units
+-- MISSION UNITS. The brush places either LIVE units (normal units
 -- to look at, fight with, light) or MISSION units: stand-ins for a mission, frozen in place
 -- by the gadget and carrying a mission TEAM NUMBER (0..TEAMS-1) that need not exist in this
 -- session (they stand on Gaia when it does not). The map project saves them with that
@@ -310,20 +313,21 @@ local lastPick -- { kind = "unit" | "blueprint" | "paste", value, facing, cycle 
 local Tool = {} -- WG.UnitPlacerTool
 
 ----------------------------------------------------------------
--- Provider and sink (units unification, phase 2)
+-- Provider and sink
 ----------------------------------------------------------------
 -- Everything the gestures READ about placed units goes through `owner.provider`, and
 -- everything they DO goes through `owner.sink`. The brush installs the engine pair (real
 -- units through the Unit Placer gadget, below); the mission editor installs a pair over its
 -- document (records keyed by string, its own undo), and the same gestures, brush,
 -- formations, keys and panel drive both. An id is whatever the provider hands out: a unit
--- id here, a record key there; the tool never arithmetics on it.
+-- id here, a record key there; the tool never does arithmetic on it.
 --
 -- provider = { valid(id), info(id) -> { id, name, defID, x, z, facing, xsize, zsize, team,
---   extra? } | nil, extra?(id) -> table (optional: what a copy carries besides type and place), all() -> ids, inScreenRect(x1, y1, x2, y2) -> ids, inCylinder(x, z, r)
---   -> ids, teams() -> teamIDs, myTeam() -> teamID, pick(mx, my) -> id | nil }
+--   extra? } | nil, extra?(id) -> table (optional: what a copy carries besides type and
+--   place), all() -> ids, inScreenRect(x1, y1, x2, y2) -> ids, inCylinder(x, z, r) -> ids,
+--   teams() -> teamIDs, myTeam() -> teamID, pick(mx, my, gx, gz) -> id | nil }
 -- sink = { place(spots, strokeId) -> strokeId, remove(ids, strokeId), transform(moves),
---   undo(), redo(), clearAll(strokeId) }
+--   undo(), redo(), clearAll(strokeId), selectionChanged?(ids) }
 local engineProvider = {
 	valid = function(unitID)
 		return Spring.ValidUnitID(unitID)
@@ -434,7 +438,7 @@ local function isFormation()
 end
 
 --- Is the pointer over the unit library, or (`withPanel`) over the terraform brush panel or
---- a project dialog in front of the world? Keys only step aside for the library, as before.
+--- a project dialog in front of the world? Keys only step aside for the library.
 local function overUi(withPanel)
 	-- A harness pointer is on the map by definition.
 	if sel.pointer then
@@ -855,8 +859,6 @@ local function pickedNames()
 	return out
 end
 
---- Does the shared placer (the Blueprint API drag) do the placing now? Groups always; a unit
---- pick when the scatter distribution is a formation.
 --- The game's own build-drag keys, as cmd_blueprint reads them (determineBuildMode):
 --- Shift drags a line, Shift+Ctrl a snapped line, Shift+Alt a filled grid and
 --- Shift+Alt+Ctrl a hollow box. nil without Shift.
@@ -871,6 +873,8 @@ local function gameBuildMode()
 	return ctrl and "SNAPLINE" or "LINE"
 end
 
+--- Does the shared placer (the Blueprint API drag) do the placing now? Groups and Shift
+--- drags always; a unit pick when the scatter distribution is a formation.
 local function placerWanted()
 	if not (up.active and lastPick and up.mode ~= "remove") then
 		return false
@@ -910,7 +914,8 @@ local function syncArming()
 	end
 end
 
---- The pick is gone (Escape, a right-click on the placer, deactivation): back to select mode.
+--- The pick is gone (Escape, a right-click, the placer cancelled, deactivation): back to
+--- select mode.
 local function dropPick()
 	lastPick = nil
 	if placer and placer.armed() then
@@ -1378,8 +1383,8 @@ end
 
 ----------------------------------------------------------------
 -- The lasso: a loop round a selection of two or more. A press on empty ground INSIDE it
--- grabs the whole group (a drag moves them all), one outside starts a box as ever. Drawn as
--- a faint fill, brighter under the pointer. (From the mission editor, PtaQ 2026-09-29.)
+-- grabs the whole group (a drag moves them all), one outside starts a box. Drawn as a
+-- faint fill, brighter under the pointer.
 ----------------------------------------------------------------
 local LASSO_PAD = 20
 local LASSO_SIDES = 12
@@ -1695,7 +1700,7 @@ local function openLibrary()
 	end
 	return WG.UnitLibrary.open({
 		title = libraryTitle(),
-		-- Several picked (Shift+click): each drop moves on to the next type (PtaQ's N2).
+		-- Several picked (Shift+click): each drop moves on to the next type.
 		onPick = function(unitDefName, set)
 			local names = set and set.names or { unitDefName }
 			local cycle = #names > 1 and Cycle.new(names, set.mode) or nil
@@ -1930,12 +1935,12 @@ function Tool.getState()
 	}
 end
 
---- Spacing of a line / grid / box drag, in build squares, kept across picks.
 --- Let go of the library pick, as a right-click on the map does.
 function Tool.dropPick()
 	dropPick()
 end
 
+--- Spacing of a line / grid / box drag, in build squares, kept across picks.
 function Tool.setSpacing(n)
 	up.spacing = max(0, min(LIMIT.spacingMax, floor(tonumber(n) or 0)))
 	local spec = placer and placer.spec()
@@ -2056,10 +2061,10 @@ function Tool.clearAll()
 	owner.sink.clearAll(nextStrokeId())
 end
 
---- Another owner takes the tool (units unification, phase 2): its provider says what is
---- placed, its sink does what a gesture asks. The mission editor installs a pair over its
---- document; `Tool.resetOwner` gives the brush its engine pair back. Both drop the
---- selection and the pick: ids mean nothing across owners.
+--- Another owner takes the tool: its provider says what is placed, its sink does what a
+--- gesture asks. The mission editor installs a pair over its document; `Tool.resetOwner`
+--- gives the brush its engine pair back. Both drop the selection and the pick: ids mean
+--- nothing across owners.
 ---@param name string
 ---@param provider table see PROVIDER_FIELDS
 ---@param sink table see SINK_FIELDS
@@ -2103,8 +2108,7 @@ function Tool.setHistory(undoCount, redoCount)
 	up.redoCount = tonumber(redoCount) or 0
 end
 
---- For the harness: the placer, the type armed now, and a drop at a world point as a click
---- would (a drag from (x1, z1) to (x2, z2) for the placer; a stamp at (x1, z1) for the brush).
+--- For the harness: the placer and the type armed now.
 function Tool.placer()
 	return placer
 end
@@ -2205,6 +2209,8 @@ function Tool.keyPress(key, mods)
 	return widget:KeyPress(key, mods or {}, false, "", 0, 0)
 end
 
+--- For the harness: a drop at a world point as a click would (a drag from (x1, z1) to
+--- (x2, z2) for the placer; a stamp at (x1, z1) for the brush).
 function Tool.placeAt(x1, z1, x2, z2)
 	if placer.armed() then
 		placer.mousePress(x1, z1, 1)
@@ -2485,8 +2491,8 @@ function widget:MouseRelease(mx, my, button)
 		return true
 	end
 	-- Only the left button ends a drag: this widget owns the mouse for the whole drag, so the
-	-- release of a spacing button (mouse 4 / 5) pressed mid-drag arrives here too, and used to
-	-- drop the formation on the spot.
+	-- release of a spacing button (mouse 4 / 5) pressed mid-drag arrives here too and must
+	-- not drop the formation on the spot.
 	if up.active and placer.armed() and button == 1 then
 		local consumed = placer.mouseRelease()
 		if up.modDrag then

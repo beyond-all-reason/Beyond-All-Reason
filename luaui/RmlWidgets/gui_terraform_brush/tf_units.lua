@@ -6,8 +6,7 @@ local M = {}
 function M.attach(doc, ctx)
 	local trackSliderDrag = ctx.trackSliderDrag
 
-	-- Slider drag tracking (legitimate imperative state).
-	-- Slider change events wired declaratively via onchange= in RML.
+	-- Change events are wired in the RML (onchange=); only drag tracking is set up here.
 	for _, sid in ipairs({
 		"size",
 		"rotation",
@@ -32,7 +31,7 @@ function M.attach(doc, ctx)
 		trackSliderDrag(sliderFpHistory, "un-history")
 	end
 
-	-- All data-event-click/change handlers (onUnXxx) are defined in initialModel in gui_terraform_brush.lua.
+	-- The onUnXxx event handlers live in initialModel in gui_terraform_brush.lua.
 end
 
 function M.sync(doc, ctx, unState, setSummary)
@@ -43,9 +42,6 @@ function M.sync(doc, ctx, unState, setSummary)
 	local getCachedEl = ctx.getCachedEl
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
-	-- ===== Unit Placer mode: update feature controls =====
-	-- btn-features active state driven by data-class-active="activeTool == 'fp'" in RML.
-	-- Clear terraform mode highlights
 
 	-- DISPLAY/INSTRUMENTS warn chips (shared TB state mirror)
 	if doc and ctx.syncWarnChip then
@@ -56,7 +52,7 @@ function M.sync(doc, ctx, unState, setSummary)
 		ctx.syncWarnChip(doc, "warn-chip-un-instruments", "section-un-instruments", instActive)
 	end
 
-	-- Feature sub-mode and distribution (driven by dm fields via data-class-active)
+	-- Sub-mode and distribution buttons bind these fields via data-class-active.
 	if widgetState.dmHandle then
 		local dmh = widgetState.dmHandle
 		local sm = unState.mode or "point"
@@ -69,7 +65,6 @@ function M.sync(doc, ctx, unState, setSummary)
 		end
 	end
 
-	-- Feature shape buttons
 	if widgetState.dmHandle then
 		local shp = unState.shape or "circle"
 		if widgetState.dmHandle.activeShape ~= shp then
@@ -77,9 +72,8 @@ function M.sync(doc, ctx, unState, setSummary)
 		end
 	end
 
-	-- Gizmo selection. The SELECTION section only appears on an empty mouse,
-	-- because that is the only time clicking the map selects rather than
-	-- places; Reroll is the mirror case, only useful while scattering.
+	-- The SELECTION section only shows in select mode, the only time a map click selects
+	-- rather than places; Reroll is the mirror case, shown while scattering or pointing.
 	if widgetState.dmHandle then
 		local dmh = widgetState.dmHandle
 		local function setDm(f, v)
@@ -122,8 +116,7 @@ function M.sync(doc, ctx, unState, setSummary)
 		uiState.updatingFromCode = true
 		local ds = uiState.draggingSlider
 
-		-- Labels driven by {{unRadiusStr}}/{{unRotationStr}}/{{unRotRandomStr}}/{{unCountStr}}/{{unCadenceStr}} in RML.
-		-- Phase 2 step 4: mirror to data-model {{Str}} interpolation
+		-- Slider labels read these {{un...Str}} fields in the RML.
 		if widgetState.dmHandle then
 			local dm = widgetState.dmHandle
 			local v = tostring(unState.radius)
@@ -148,14 +141,13 @@ function M.sync(doc, ctx, unState, setSummary)
 			end
 		end
 
-		-- Feature sliders
 		syncAndFlash(getCachedEl(doc, "un-slider-size"), "un-size", tostring(unState.radius))
 		syncAndFlash(getCachedEl(doc, "un-slider-rotation"), "un-rotation", tostring(unState.rotation))
 		syncAndFlash(getCachedEl(doc, "un-slider-rot-random"), "un-rot-random", tostring(unState.rotRandom))
 		syncAndFlash(getCachedEl(doc, "un-slider-count"), "un-count", tostring(unState.unitCount))
 		syncAndFlash(getCachedEl(doc, "un-slider-cadence"), "un-cadence", tostring(cadenceToSlider(unState.cadence)))
 
-		-- Smart filter UI sync
+		-- Smart filters.
 		do
 			local sf = unState.smartFilters or {}
 			local anyFilterOn = unState.smartEnabled == true
@@ -167,7 +159,7 @@ function M.sync(doc, ctx, unState, setSummary)
 		if unState.smartFilters then
 			local sf = unState.smartFilters
 
-			-- Mirror smart-filter flags into data-model for data-if visibility.
+			-- These flags drive data-if visibility of the filter rows.
 			if widgetState.dmHandle then
 				local dmh = widgetState.dmHandle
 				local function setDm(f, v)
@@ -181,14 +173,12 @@ function M.sync(doc, ctx, unState, setSummary)
 				setDm("unAltMaxEnable", sf.altMaxEnable == true)
 			end
 
-			-- Filter chips: Avoid Water mirrors filter state (the slope sub-chips bind unAvoidCliffs / unPreferSlopes)
+			-- Only Avoid Water is set by hand; the slope chips bind unAvoidCliffs / unPreferSlopes.
 			local avoidWaterChip = getCachedEl(doc, "un-filter-chip-avoid-water")
 			if avoidWaterChip then
 				avoidWaterChip:SetClass("active", sf.avoidWater == true)
 			end
 
-			-- Slope-max rows visibility driven by data-if="unAvoidCliffs"
-			-- Label driven by {{unSlopeMaxStr}} in RML.
 			if widgetState.dmHandle then
 				local v = tostring(sf.slopeMax)
 				if widgetState.dmHandle.unSlopeMaxStr ~= v then
@@ -200,8 +190,6 @@ function M.sync(doc, ctx, unState, setSummary)
 				unSSlopeMax:SetAttribute("value", tostring(sf.slopeMax))
 			end
 
-			-- Slope-min rows visibility driven by data-if="unPreferSlopes"
-			-- Label driven by {{unSlopeMinStr}} in RML.
 			if widgetState.dmHandle then
 				local v = tostring(sf.slopeMin)
 				if widgetState.dmHandle.unSlopeMinStr ~= v then
@@ -221,8 +209,6 @@ function M.sync(doc, ctx, unState, setSummary)
 						or "/luaui/images/terraform_brush/check_off.png"
 				)
 			end
-			-- Alt-min slider-row visibility driven by data-if="unAltMinEnable"
-			-- Label driven by {{unAltMinStr}} in RML.
 			if widgetState.dmHandle then
 				local v = tostring(sf.altMin)
 				if widgetState.dmHandle.unAltMinStr ~= v then
@@ -242,8 +228,6 @@ function M.sync(doc, ctx, unState, setSummary)
 						or "/luaui/images/terraform_brush/check_off.png"
 				)
 			end
-			-- Alt-max slider-row visibility driven by data-if="unAltMaxEnable"
-			-- Label driven by {{unAltMaxStr}} in RML.
 			if widgetState.dmHandle then
 				local v = tostring(sf.altMax)
 				if widgetState.dmHandle.unAltMaxStr ~= v then
@@ -255,7 +239,7 @@ function M.sync(doc, ctx, unState, setSummary)
 				unSAltMax:SetAttribute("value", tostring(sf.altMax))
 			end
 
-			-- SAMPLE button active state mirrors TerraformBrush heightSamplingMode
+			-- SAMPLE lights while the terraform brush is sampling a height for this filter.
 			local hsm = WG.TerraformBrush and (WG.TerraformBrush.getState() or {}).heightSamplingMode
 			local sampMin = getCachedEl(doc, "btn-un-alt-min-sample")
 			if sampMin then
@@ -267,13 +251,12 @@ function M.sync(doc, ctx, unState, setSummary)
 			end
 		end
 
-		-- Grid snap chip sync (FP-specific snap state)
+		-- Grid snap is the unit placer's own, not the terraform brush's.
 		if widgetState.dmHandle then
 			local v = unState.gridSnap == true
 			if widgetState.dmHandle.unGridSnap ~= v then
 				widgetState.dmHandle.unGridSnap = v
 			end
-			-- Snap size label + slider
 			local ss = tostring(unState.gridSnapSize or 48)
 			if widgetState.dmHandle.unGridSnapSizeStr ~= ss then
 				widgetState.dmHandle.unGridSnapSizeStr = ss
@@ -288,11 +271,10 @@ function M.sync(doc, ctx, unState, setSummary)
 			unSnapSizeNb:SetAttribute("value", tostring(unState.gridSnapSize or 48))
 		end
 
-		-- Display overlay sync (shared TerraformBrush state)
+		-- Display, symmetry and measure state is shared with the terraform brush.
 		if WG.TerraformBrush then
 			local tbState = WG.TerraformBrush.getState()
 			if tbState then
-				-- Mirror display + symmetry/measure flags into data-model.
 				if widgetState.dmHandle then
 					local dmh = widgetState.dmHandle
 					local function setDm(f, v)
@@ -300,7 +282,7 @@ function M.sync(doc, ctx, unState, setSummary)
 							dmh[f] = v
 						end
 					end
-					-- unGridOverlay is FP's own building grid, NOT the terrain grid
+					-- unGridOverlay is the unit placer's own building grid, not the terrain grid.
 					setDm("unGridOverlay", unState.gridOverlay == true)
 					setDm("unHeightColormap", tbState.heightColormap == true)
 					setDm("unSymmetryActive", tbState.symmetryActive == true)
@@ -316,7 +298,6 @@ function M.sync(doc, ctx, unState, setSummary)
 					setDm("unSymMirrorX", tbState.symmetryMirrorX == true)
 					setDm("unSymMirrorY", tbState.symmetryMirrorY == true)
 				end
-				-- un-symmetry-radial-count-row visibility driven by data-if="unSymmetryRadial"
 				if widgetState.dmHandle then
 					local v = tostring(tbState.symmetryRadialCount or 2)
 					if widgetState.dmHandle.tbSymCountStr ~= v then
@@ -327,7 +308,6 @@ function M.sync(doc, ctx, unState, setSummary)
 				if unSymRadSlider then
 					unSymRadSlider:SetAttribute("value", tostring(tbState.symmetryRadialCount or 2))
 				end
-				-- un-symmetry-mirror-angle-row visibility driven by data-if="unSymHasAxis"
 				if widgetState.dmHandle then
 					local v = tostring(math.floor(tbState.symmetryMirrorAngle or 0))
 					if widgetState.dmHandle.tbSymAngleStr ~= v then
@@ -341,7 +321,7 @@ function M.sync(doc, ctx, unState, setSummary)
 			end
 		end
 
-		-- Feature history slider sync
+		-- History slider: max is the total undo + redo steps, capped at 400.
 		local sliderFpHist = getCachedEl(doc, "slider-un-history")
 		if sliderFpHist and ds ~= "un-history" then
 			local totalSteps = (unState.undoCount or 0) + (unState.redoCount or 0)
@@ -360,31 +340,23 @@ function M.sync(doc, ctx, unState, setSummary)
 		uiState.updatingFromCode = false
 	end
 
-	-- Gray out unsupported shapes in feature mode (no ring, no fill)
+	-- Re-enable every shape button but ring and fill, which the unit brush does not support.
 	for shape, element in pairs(widgetState.shapeButtons) do
 		if element and shape ~= "ring" and shape ~= "fill" then
 			element:SetClass("disabled", false)
 		end
 	end
 
-	-- P3.2 Unit Placer grayouts (per Phase 3 relevance matrix)
+	-- Gray out controls that do nothing in the current mode.
 	if doc and ctx.setDisabledIds then
 		local mode = unState.mode or "point"
 		local circular = (unState.shape == "circle")
 		local remove = (mode == "remove")
 		local scatter = (mode == "scatter")
 
-		-- Rotation and randomise-alignment are separate concerns and used to
-		-- share one "circular or remove" condition, which greyed out
-		-- randomise-alignment for every circular brush -- the default shape,
-		-- and the only shape point mode has. It defaults to 100 (fully
-		-- random), so features came out randomly turned with no way to stop
-		-- it.
-		--
-		-- Brush rotation sets the base heading of everything placed (see
-		-- generateLocal / the point-mode branch of ensureLayout), so it is
-		-- meaningful whatever the shape. Only in remove mode is it purely a
-		-- shape orientation, and only then does a circle make it pointless.
+		-- Brush rotation sets the base heading of everything placed (ensureLayout), so it
+		-- matters for any shape. Only in remove mode is it purely a shape orientation, and
+		-- only then does a circle make it pointless.
 		ctx.setDisabledIds(doc, {
 			"un-slider-rotation",
 			"un-slider-rotation-numbox",
@@ -392,8 +364,8 @@ function M.sync(doc, ctx, unState, setSummary)
 			"btn-un-rot-cw",
 		}, remove and circular)
 
-		-- Randomise-alignment perturbs each feature's own heading. Nothing to
-		-- do with the brush shape; only meaningless when placing nothing.
+		-- Randomise-alignment perturbs each placed unit, whatever the brush shape; it only
+		-- does nothing in remove mode.
 		ctx.setDisabledIds(doc, {
 			"un-slider-rot-random",
 			"un-slider-rot-random-numbox",
