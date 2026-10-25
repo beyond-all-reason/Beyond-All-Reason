@@ -308,27 +308,6 @@ local function basename(path)
 	return path:match("([^/\\]+)$") or path
 end
 
--- Read a previously saved manifest (created timestamp + canonical height range
--- must survive re-saves). Raw io.open, never VFS: fresh files can be invisible
--- or stale in the VFS view within a session. Also the load-side manifest reader.
-local function readPrevManifest(dir)
-	local f = io.open(dir .. "project.lua", "r")
-	if not f then
-		return nil
-	end
-	local raw = f:read("*a")
-	f:close()
-	local chunk = loadstring(raw, nil, {})
-	if not chunk then
-		return nil
-	end
-	local ok, data = pcall(chunk)
-	if not ok or type(data) ~= "table" then
-		return nil
-	end
-	return data
-end
-
 -- Recently opened or saved projects, newest first, read by the Open Project list.
 -- It orders RECENT by last touch, and lists folders the VFS snapshot cannot see
 -- yet (saved this session, a fresh git clone) when raw io can read their manifest.
@@ -397,6 +376,12 @@ local function readLuaFile(path)
 		return nil, "not a table"
 	end
 	return data
+end
+
+-- Read a previously saved manifest (created timestamp + canonical height range
+-- must survive re-saves), or nil. Also the load-side manifest reader.
+local function readPrevManifest(dir)
+	return (readLuaFile(dir .. "project.lua"))
 end
 
 -- TGA header dims (18-byte header: width LE at offset 12, height LE at 14).
