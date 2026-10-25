@@ -551,7 +551,10 @@ local function layoutParams()
 	return {
 		shape = fp.shape,
 		radius = fp.radius,
-		rotation = fp.rotation,
+		-- Negated: Scatter turns positions and headings together the engine heading
+		-- way, which is the mirror of how the outline (and the remove brush) turn, so
+		-- this makes the whole stamp turn with the outline the user aims with.
+		rotation = -fp.rotation,
 		count = fp.featureCount,
 		distribution = fp.distribution,
 		rotRandom = fp.rotRandom,
@@ -687,8 +690,9 @@ local function resolvePlacements(worldX, worldZ)
 	for i = 1, #positions do
 		local p = positions[i]
 		-- Each symmetry copy carries its own rotation. The layout was rotated
-		-- once by the base rotation, so hand resolve() only the difference.
-		local copyRot = (p.rot or fp.rotation) - fp.rotation
+		-- once by the base rotation, so hand resolve() only the difference, negated
+		-- like the base rotation in layoutParams.
+		local copyRot = fp.rotation - (p.rot or fp.rotation)
 		local resolved = Scatter.resolve(layoutInsideMap(layout, p.x, p.z, copyRot), p.x, p.z, params, copyRot)
 		for j = 1, #resolved do
 			local r = resolved[j]
