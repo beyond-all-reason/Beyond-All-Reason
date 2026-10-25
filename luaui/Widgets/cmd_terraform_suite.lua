@@ -51,6 +51,22 @@ local SUITE_WIDGETS = {
 	"Terraform Key Gate",
 }
 
+-- Widgets the tileset shader sync installs in the write dir (LuaUI/Widgets/),
+-- not shipped with the game. They are off by default, and they only show up in
+-- knownWidgets when they are installed and user widgets are allowed, so the
+-- suite turns them on with itself when it finds them. Without them a project's
+-- TILESET and SURFACE sections are skipped on load. Tileset first: the surface
+-- painter draws into its variant mask.
+local OPTIONAL_WIDGETS = {
+	"Tileset Terrain Prototype",
+	"Surface Painter (Tileset Variants)",
+}
+-- The optional widgets this suite turned on, so Shutdown turns off only those:
+-- someone who enabled one by hand keeps it. Saved in our config data because
+-- EnableWidget saves the order list right away, and a crash must not leave the
+-- tileset shader on in normal games.
+local optionalEnabled = {}
+
 -- Entry commands that must work before the suite is loaded. Sub-tool actions
 -- (/diffusepaint, /grassbrush, ...) become available once the suite is up.
 local ENTRY_ACTIONS = {
@@ -70,11 +86,26 @@ local ENTRY_ACTIONS = {
 local suiteEnabled = false
 local pendingCommand, pendingFrames -- entry command to re-dispatch once the suite is in
 
+local function enableOptionalWidgets()
+	local known = widgetHandler.knownWidgets
+	if not (known and widgetHandler.orderList) then
+		return
+	end
+	for i = 1, #OPTIONAL_WIDGETS do
+		local name = OPTIONAL_WIDGETS[i]
+		if known[name] and (widgetHandler.orderList[name] or 0) <= 0 then
+			optionalEnabled[name] = true
+			widgetHandler:EnableWidget(name)
+		end
+	end
+end
+
 local function enableSuite()
 	if suiteEnabled then
 		return false
 	end
 	suiteEnabled = true
+	enableOptionalWidgets()
 	for i = 1, #SUITE_WIDGETS do
 		widgetHandler:EnableWidget(SUITE_WIDGETS[i])
 	end
@@ -91,6 +122,7 @@ function widget:Initialize()
 	local order = widgetHandler.orderList and widgetHandler.orderList["Terraform Brush"]
 	if order and order > 0 then
 		suiteEnabled = true
+		enableOptionalWidgets()
 		-- The suite came back enabled from a persisted order list, so enableSuite()
 		-- will never run this session. Widgets added to SUITE_WIDGETS since that
 		-- list was saved are not in it yet — enable the stragglers so newly shipped
@@ -146,12 +178,77 @@ function widget:Shutdown()
 	-- keeps the whole suite enabled for all of this player's future games.
 	-- Direct orderList write instead of DisableWidgetRaw: removing widgets
 	-- while the handler iterates its shutdown list is not safe.
-	if suiteEnabled and widgetHandler.orderList then
+	if not (widgetHandler.orderList and widgetHandler.widgets) then
+		return
+	end
+	-- Only when LuaUI itself goes down. Switching off just this launcher marks
+	-- it inactive before its Shutdown runs, and the suite it loaded keeps
+	-- running, so its config must keep saying so.
+	local own = widget.whInfo and widgetHandler.knownWidgets and widgetHandler.knownWidgets[widget.whInfo.name]
+	if own and own.active == false then
+		return
+	end
+	local release = {}
+	if suiteEnabled then
 		for i = 1, #SUITE_WIDGETS do
-			if (widgetHandler.orderList[SUITE_WIDGETS[i]] or 0) > 0 then
-				widgetHandler.orderList[SUITE_WIDGETS[i]] = 0
+			release[SUITE_WIDGETS[i]] = true
+		end
+	end
+	for name in pairs(optionalEnabled) do
+		release[name] = true
+	end
+	optionalEnabled = {}
+	if not next(release) then
+		return
+	end
+	-- SaveConfigData writes orderList[name] = position for every widget still
+	-- in the handler's list, and at Shutdown every widget still is: a plain
+	-- save turned the zeros back into "enabled", so the suite stayed on in
+	-- every later game. Saves also keep coming after this callin (an
+	-- EnableWidget queued during the shutdown pass runs once it ends and saves
+	-- again), so from here on every save leaves the released widgets out of
+	-- the list. Their own config data was collected by the handler's save just
+	-- before the shutdown pass, so nothing of theirs is lost. LuaUI is going
+	-- down; a reload builds a fresh handler without this override.
+	local handlerSave = widgetHandler.SaveConfigData
+	local function saveReleased(handler)
+		for name in pairs(release) do
+			if (handler.orderList[name] or 0) > 0 then
+				handler.orderList[name] = 0
 			end
 		end
-		widgetHandler:SaveConfigData()
+		local all = handler.widgets
+		local kept = {}
+		for i = 1, #all do
+			if not release[all[i].whInfo.name] then
+				kept[#kept + 1] = all[i]
+			end
+		end
+		handler.widgets = kept
+		local ok, err = pcall(handlerSave, handler)
+		handler.widgets = all
+		if not ok then
+			Spring.Echo("[Terraform Suite] could not save the widget config: " .. tostring(err))
+		end
+	end
+	widgetHandler.SaveConfigData = saveReleased
+	saveReleased(widgetHandler)
+end
+
+function widget:GetConfigData()
+	local names = {}
+	for name in pairs(optionalEnabled) do
+		names[#names + 1] = name
+	end
+	return { optionalEnabled = names }
+end
+
+function widget:SetConfigData(data)
+	if type(data) == "table" and type(data.optionalEnabled) == "table" then
+		for _, name in ipairs(data.optionalEnabled) do
+			if type(name) == "string" then
+				optionalEnabled[name] = true
+			end
+		end
 	end
 end
