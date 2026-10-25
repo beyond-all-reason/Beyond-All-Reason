@@ -703,6 +703,16 @@ local function shouldApplyAt(wx, wz, patchRes, grassApi, config)
 	return true
 end
 
+-- Half-extents of the brush footprint as turned: the (radius, radius * length) box rotated by
+-- brushRotation, so a turned square or polygon is painted out to its corners. Exactly
+-- (radius, radius * length) at rotation 0.
+local function brushExtent()
+	local rad = brushRotation * math.pi / 180
+	local c, s = math.abs(math.cos(rad)), math.abs(math.sin(rad))
+	local rz = brushRadius * brushLengthScale
+	return brushRadius * c + rz * s, brushRadius * s + rz * c
+end
+
 local function applyPaintBrush(worldX, worldZ, direction)
 	local grassApi = WG.grassgl4
 	if not grassApi or not grassApi.setDensityAt or not grassApi.getDensityAt then
@@ -715,10 +725,11 @@ local function applyPaintBrush(worldX, worldZ, direction)
 	local config = grassApi.getConfig()
 	local patchRes = config.patchResolution
 
-	local xMin = max(0, worldX - brushRadius)
-	local xMax = min(config.mapSizeX, worldX + brushRadius)
-	local zMin = max(0, worldZ - brushRadius * brushLengthScale)
-	local zMax = min(config.mapSizeZ, worldZ + brushRadius * brushLengthScale)
+	local ex, ez = brushExtent()
+	local xMin = max(0, worldX - ex)
+	local xMax = min(config.mapSizeX, worldX + ex)
+	local zMin = max(0, worldZ - ez)
+	local zMax = min(config.mapSizeZ, worldZ + ez)
 
 	-- Lowest density the GL4 grass renderer actually draws.
 	local minVisible = (config.grassMinSize or 1) / max(1, config.grassMaxSize or 20)
@@ -768,10 +779,11 @@ local function applyFillBrush(worldX, worldZ, direction)
 	local config = grassApi.getConfig()
 	local patchRes = config.patchResolution
 
-	local xMin = max(0, worldX - brushRadius)
-	local xMax = min(config.mapSizeX, worldX + brushRadius)
-	local zMin = max(0, worldZ - brushRadius * brushLengthScale)
-	local zMax = min(config.mapSizeZ, worldZ + brushRadius * brushLengthScale)
+	local ex, ez = brushExtent()
+	local xMin = max(0, worldX - ex)
+	local xMax = min(config.mapSizeX, worldX + ex)
+	local zMin = max(0, worldZ - ez)
+	local zMax = min(config.mapSizeZ, worldZ + ez)
 
 	local fillDensity = (direction > 0) and targetDensity or 0
 
@@ -802,10 +814,11 @@ local function applyEraseBrush(worldX, worldZ)
 	local patchRes = config.patchResolution
 	local minVisible = (config.grassMinSize or 1) / max(1, config.grassMaxSize or 20)
 
-	local xMin = max(0, worldX - brushRadius)
-	local xMax = min(config.mapSizeX, worldX + brushRadius)
-	local zMin = max(0, worldZ - brushRadius * brushLengthScale)
-	local zMax = min(config.mapSizeZ, worldZ + brushRadius * brushLengthScale)
+	local ex, ez = brushExtent()
+	local xMin = max(0, worldX - ex)
+	local xMax = min(config.mapSizeX, worldX + ex)
+	local zMin = max(0, worldZ - ez)
+	local zMax = min(config.mapSizeZ, worldZ + ez)
 
 	for x = xMin, xMax, patchRes do
 		for z = zMin, zMax, patchRes do
