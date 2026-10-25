@@ -2070,9 +2070,14 @@ function widget:MousePress(mx, my, button)
 			if stb and stb.symmetryActive and tb.getSymmetricPositions then
 				local copies = tb.getSymmetricPositions(sx, sz, shapeRotation)
 				if copies and #copies > 0 then
+					-- A copy refused entirely (all of it too steep, or the cap) passes its player
+					-- on to the next copy.
 					for _, p in ipairs(copies) do
+						local before = #positions
 						placeShapePositionsForTeam(p.x, p.z, nextAllyTeam)
-						advanceNextPlayer()
+						if #positions > before then
+							advanceNextPlayer()
+						end
 					end
 				else
 					placeShapePositions(sx, sz)
@@ -3176,22 +3181,64 @@ function widget:DrawWorld()
 			end)
 		end
 
-		for i, pt in ipairs(previewPts) do
-			local zeroIdx = i - 1
+		---@type table?
+		local tbs = WG.TerraformBrush
+		local stbs = tbs and tbs.getState and tbs.getState() or nil
+		local copies = stbs
+			and stbs.symmetryActive
+			and tbs.getSymmetricPositions
+			and tbs.getSymmetricPositions(wx, wz, shapeRotation)
+		if copies and #copies > 0 then
+			-- Symmetry: preview every copy the way the click places it. Each copy's whole shape
+			-- goes to the next ally team with slots cycling; a copy with no placeable spot passes
+			-- its player on (the same step as advanceNextPlayer).
 			local numSlot = math_max(1, numTeamsPerAlly)
 			local numAlly = math_max(1, numAllyTeams)
-			local at, slot
-			if placementMode == "sequential" then
-				at = math_floor(zeroIdx / numSlot) % numAlly + 1
-				slot = (zeroIdx % numSlot) + 1
-			else
-				at = (zeroIdx % numAlly) + 1
-				slot = math_floor(zeroIdx / numAlly) % numSlot + 1
+			local ally, aslot = nextAllyTeam, nextTeamSlot or 1
+			for k, cp in ipairs(copies) do
+				local pts = generateShapePositions(cp.x, cp.z)
+				local anyPlaced = false
+				for i, pt in ipairs(pts) do
+					local pIdx = (ally - 1) * numSlot + ((i - 1) % numSlot) + 1
+					local color = getColorForPlayer(pIdx)
+					local iconPath = COMMANDER_ICONS[((pIdx - 1) % #COMMANDER_ICONS) + 1]
+					drawPreviewMarker(pt.x, pt.z, color, 0.55, iconPath, phase + i * 0.4)
+					anyPlaced = anyPlaced or isPlaceableForCommander(pt.x, pt.z)
+				end
+				if anyPlaced then
+					if placementMode == "sequential" then
+						aslot = aslot + 1
+						if aslot > numSlot then
+							aslot = 1
+							ally = (ally % numAlly) + 1
+						end
+					else
+						ally = ally + 1
+						if ally > numAlly then
+							ally = 1
+							aslot = (aslot % numSlot) + 1
+						end
+					end
+				end
 			end
-			local pIdx = (at - 1) * numSlot + slot
-			local color = getColorForPlayer(pIdx)
-			local iconPath = COMMANDER_ICONS[((pIdx - 1) % #COMMANDER_ICONS) + 1]
-			drawPreviewMarker(pt.x, pt.z, color, 0.55, iconPath, phase + i * 0.4)
+		else
+			for i, pt in ipairs(previewPts) do
+				local zeroIdx = i - 1
+				local numSlot = math_max(1, numTeamsPerAlly)
+				local numAlly = math_max(1, numAllyTeams)
+				local at, slot
+				if placementMode == "sequential" then
+					at = math_floor(zeroIdx / numSlot) % numAlly + 1
+					slot = (zeroIdx % numSlot) + 1
+				else
+					at = (zeroIdx % numAlly) + 1
+					slot = math_floor(zeroIdx / numAlly) % numSlot + 1
+				end
+				local pIdx = (at - 1) * numSlot + slot
+				local color = getColorForPlayer(pIdx)
+				local iconPath = COMMANDER_ICONS[((pIdx - 1) % #COMMANDER_ICONS) + 1]
+				drawPreviewMarker(pt.x, pt.z, color, 0.55, iconPath, phase + i * 0.4)
+			end
 		end
 	end
 
