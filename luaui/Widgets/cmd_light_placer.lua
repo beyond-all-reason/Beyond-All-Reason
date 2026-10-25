@@ -100,6 +100,32 @@ local LIGHT_DEFAULTS = {
 ----------------------------------------------------------------
 -- State
 ----------------------------------------------------------------
+---@class LightPlacerState
+---@field active boolean
+---@field mode string? `"point"`, `"scatter"` or `"remove"`.
+---@field lightType string `"point"`, `"cone"` or `"beam"`.
+---@field shape string
+---@field radius number
+---@field rotation number
+---@field lightCount number
+---@field cadence number
+---@field distribution string
+---@field lightRadius number
+---@field color [number, number, number]
+---@field brightness number
+---@field modelfactor number
+---@field specular number
+---@field scattering number
+---@field lensflare number
+---@field pitch number
+---@field yaw number
+---@field roll number
+---@field theta number
+---@field beamLength number
+---@field elevation number
+---@field dragging boolean
+---@field dragAction string? `"place"` or `"remove"` during a drag.
+---@field placeTimer number
 local lp = {
 	active = false,
 	mode = nil, -- "point", "scatter", "remove"
@@ -140,15 +166,34 @@ local lp = {
 }
 
 -- Cursor preview light (removed on deactivate)
+---@type {id: integer?, shape: string?}
 local previewLight = { id = nil, shape = nil }
 -- Last-applied preview params; the cursor is quantized to whole elmos so
 -- sub-elmo jitter does not rebuild the light.
+---@class LightPreviewLast
+---@field valid boolean
+---@field x number?
+---@field z number?
+---@field lightType string?
+---@field r number?
+---@field g number?
+---@field b number?
+---@field brightness number?
+---@field lightRadius number?
+---@field pitch number?
+---@field yaw number?
+---@field theta number?
+---@field elevation number?
+---@field beamLength number?
 local previewLast = { valid = false }
 
 -- Armed preset: MousePress places the whole preset at the cursor, and the
 -- preview shows all its lights following the cursor.
+---@type table?
 local pendingPreset = nil -- presetData (with .lights array) or nil
+---@type {shape: string, id: integer}[]
 local presetPreviewLights = {} -- array of { shape, id }
+---@type {valid: boolean, x: number?, z: number?, count: integer?, elevation: number?}
 local presetPreviewLast = { valid = false }
 
 ----------------------------------------------------------------
@@ -339,8 +384,11 @@ local BUILTIN_PRESETS = {
 ----------------------------------------------------------------
 -- Placed lights tracking
 ----------------------------------------------------------------
+---@type table<integer, table?>
 local placedLights = {} -- { [instanceID] = lightDef }
+---@type {action: string, lights: table[]}[]
 local undoStack = {} -- { { action="add"|"remove", lights={...} }, ... }
+---@type {action: string, lights: table[]}[]
 local redoStack = {}
 local MAX_UNDO = 100
 
@@ -1141,6 +1189,7 @@ local function updatePreviewLight(worldX, worldZ)
 	local r = lp.color[1] * lp.brightness
 	local g = lp.color[2] * lp.brightness
 	local b = lp.color[3] * lp.brightness
+	---@type integer?
 	local id
 	if lp.lightType == "point" then
 		id = api.AddPointLight(
@@ -1300,6 +1349,7 @@ local function updatePresetPreviewLights(worldX, worldZ)
 		local br = l.brightness or 1
 		local r, g, b = color[1] * br, color[2] * br, color[3] * br
 		local radius = l.radius or 200
+		---@type integer?
 		local id
 		local ltype = l.type or "point"
 		if ltype == "point" then
@@ -2042,6 +2092,7 @@ function widget:KeyPress(key, mods, isRepeat)
 	return false
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
 	if not lp.active then
 		return false
