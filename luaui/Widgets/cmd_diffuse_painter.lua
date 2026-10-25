@@ -47,15 +47,11 @@ local sqrt, abs = math.sqrt, math.abs
 -- Constants
 -- ============================================================================
 local SQUARE_SIZE_ELMOS = 1024 -- engine constant (one SMF texture square)
--- TILE_PX is the texture we hand to the engine via SetMapSquareTexture; it MUST
--- match the engine's native square size (1024) or the bind is rejected and the
--- square shows nothing. So the composite is capped at 1 texel/elmo — we cannot
--- exceed native map diffuse resolution through this API.
--- MASK_PX is internal (the compositor samples it, the engine never sees it). It
--- used to be 512, i.e. hand-paint deposits were 0.5 texel/elmo and got upscaled
--- into the 1024 composite — that upscale was the blur. Matching it to TILE_PX
--- removes the upscale step entirely (2x sharper painted strokes), which is the
--- most fidelity we can get out of the 8K source at this composite resolution.
+-- TILE_PX is the texture handed to SetMapSquareTexture; it MUST match the
+-- engine's native square size (1024) or the bind is rejected and the square
+-- shows nothing, so the composite is capped at 1 texel per elmo.
+-- MASK_PX is internal (only the compositor samples it). Keep it equal to
+-- TILE_PX: a smaller mask is upscaled into the composite and blurs strokes.
 local TILE_PX = 1024 -- composite/seed resolution per square (engine-fixed, do not raise)
 local MASK_PX = 1024 -- per-layer hand-paint mask resolution (match TILE_PX: no upscale blur)
 local MAX_LAYERS = 8
@@ -94,11 +90,9 @@ local squares = {}
 -- composited in, so switching material later only affects FUTURE strokes.
 local masks = {}
 
--- Layer record table; one starter built-in layer pre-populated in Initialize.
--- layer = { id, name, enabled, opacity, color={r,g,b}, blend (string),
---           altMin, altMax, altFalloffLo, altFalloffHi, altEnabled,
---           slopeMin, slopeMax, slopeFalloffLo, slopeFalloffHi, slopeEnabled,
---           handPaintEnabled }
+-- Layer records; Initialize adds one starter layer. Fields (full list and
+-- defaults in defaultLayer): id, name, enabled, opacity, color={r,g,b}, blend,
+-- alt*/slope* bands, handPaintEnabled, texture, erosion, glow and grass settings.
 local layers = {}
 local activeLayerId = nil
 local nextLayerId = 1
@@ -107,16 +101,14 @@ local nextLayerId = 1
 local materialLibrary = {}
 
 -- ============================================================================
--- Shading-map channels (SSMF global textures painted alongside the diffuse).
--- This registry is the extension point: a future engine feature (e.g. biplanar
--- weights) becomes one more entry + one branch in the channel stamp shader.
--- All three current channels share a "zero alpha = no effect" contract in the
--- engine SMF shader ($ssmf_normals: a blends vs geometry normal; $ssmf_specular:
--- black rgb = no highlight; $ssmf_emission: a masks base color), so a fresh
--- texture is visually neutral and strokes accumulate alpha exactly like the
--- diffuse paint masks.
---   div: texture resolution divisor vs elmos (normals stay sharper than spec,
---        per Beherith's guide spec/splat can run at 1/4 of diffuse res).
+-- Shading-map channels: SSMF global textures painted alongside the diffuse. A
+-- new channel is one more entry here plus one branch in the channel stamp shader.
+-- In the engine SMF shader zero alpha means no effect for all three
+-- ($ssmf_normals: a blends against the geometry normal; $ssmf_specular: black
+-- rgb = no highlight; $ssmf_emission: a masks the base color), so a fresh
+-- texture is neutral and strokes accumulate alpha like the diffuse masks.
+--   div: resolution divisor vs elmos (the SSMF mapping guide allows spec and
+--        splat at 1/4 of diffuse resolution; normals stay sharper).
 -- ============================================================================
 local CHANNEL_DEFS = {
 	{ key = "normals", texName = "$ssmf_normals", div = 2, mode = 0, neutral = { 0.5, 0.5, 1.0, 0.0 } },
@@ -130,17 +122,16 @@ local CH_TILE_PX = 512 -- undo snapshot granularity on channel textures
 local channels = {}
 local channelsEnabled = { normals = false, specular = false, emission = false }
 -- Global specular intensity: how much of the material albedo leaks into the
--- spec color. The guide wants spec RGB to be the albedo "greatly darkened".
+-- spec color (the mapping guide wants spec RGB to be the albedo "greatly darkened").
 local specIntensity = 0.25
 
--- Grass attach: layers with grassDensity > 0 also plant grass (via the
--- grassgl4 patch API) along each stroke; erase strokes remove it. Master
--- toggle lets users paint texture-only without touching their grass work.
+-- Grass attach: layers with grassDensity > 0 also plant grass (grassgl4 patch
+-- API) along each stroke and erase removes it. The master toggle allows
+-- texture-only painting.
 local grassAttachEnabled = true
 local GRASS_KEYWORDS = { "grass", "moss", "forest", "leaves", "meadow" }
--- Grass stamps are far cheaper to skip than texture stamps (each changed patch
--- is an immediate VBO upload in grassgl4), and max-blend makes dense stamp
--- overlap redundant — so grass runs at its own, wider spacing within a drag.
+-- Each changed grass patch is an immediate VBO upload in grassgl4 and max-blend
+-- makes dense overlap redundant, so grass stamps run at their own, wider spacing.
 local grassLastX, grassLastZ = nil, nil
 local grassEditModeArmed = false
 
@@ -163,14 +154,11 @@ local brushFractalAmount = 0.0 -- 0 = no warp, 1 = maximum organic fractal edge
 local brushFractalFreq = 0.003 -- world-space fBm frequency (1/elmos)
 local edgeFade = 1 -- cursor fade past the map edge (from getWorldPositionExtended)
 
--- Pen-pressure modulation (reuses WG.TerraformBrush pen-pressure system).
--- Returns (effRadius, effStrength) for the current frame. When pressure is
--- disabled or the WG API is missing, returns the raw brush values.
---
--- Painter convention (differs from TerraformBrush): full pressure == slider
--- value, light touch == small fraction. Scale ∈ [floor, 1] where floor keeps
--- the pen barely usable at 0 pressure. Sensitivity stretches the curve so
--- "medium" feels harder/lighter.
+-- Pen pressure (from the terraform brush's pen state): returns effRadius,
+-- effStrength for this frame, or the raw brush values when pressure is off.
+-- Unlike the terraform brush, full pressure = the slider value and the scale
+-- runs from a floor (still usable at zero pressure) to 1; sensitivity
+-- stretches the curve.
 local PEN_RADIUS_FLOOR = 0.25
 local PEN_STRENGTH_FLOOR = 0.05
 local function getEffectiveBrush()
@@ -183,15 +171,13 @@ local function getEffectiveBrush()
 	if not tbState or not tbState.penPressureEnabled then
 		return effRadius, effStrength
 	end
-	-- Pen not actually touching tablet (mouse click, hover, lifted pen) →
-	-- pass through unmodulated. Without this, mouse-clicks paint at the
-	-- 5% floor because pressureMapped reads as 0.
+	-- Pen not touching (mouse click, hover, lifted pen): unmodulated, or a
+	-- mouse click would paint at the 5% floor (pressure reads 0).
 	if not tbState.penInContact then
 		return effRadius, effStrength
 	end
 	local pressureMapped = tbState.penPressureMapped or tbState.penPressure or 1.0
 	local sensitivity = tbState.penPressureSensitivity or 1.0
-	-- Stretch by sensitivity; clamp into [0,1].
 	local pressure = pressureMapped * sensitivity
 	if pressure < 0 then
 		pressure = 0
@@ -213,13 +199,11 @@ end
 local leftMouseHeld = false
 local lastPaintX, lastPaintZ = nil, nil
 
--- Undo/redo. One entry per drag stroke; each entry holds the pre-stroke copy of
--- every (layerId, squareKey) mask the stroke touched (false = mask did not
--- exist yet, undo clears it). Snapshot textures are MASK_PX RGBA8 (~4 MB each),
--- so the stack is capped: worst case MAX_UNDO strokes * touched squares.
--- Channel-tile snapshots (1 MB per 512px tile) and grass patches ride in the
--- same entries; a max-radius drag with all channels on can add ~40 MB/entry,
--- so MAX_UNDO is also the lever if channel VRAM ever becomes a complaint.
+-- Undo/redo: one entry per drag, holding the pre-stroke copy of every
+-- (layerId, squareKey) mask it touched (false = the mask did not exist; undo
+-- clears it), plus channel tiles (1 MB per 512px tile) and grass patches.
+-- Mask snapshots are ~4 MB each and a max-radius drag with every channel on
+-- can add ~40 MB, so MAX_UNDO is the VRAM lever.
 local MAX_UNDO = 10
 local undoStack = {} -- array of { {layerId=, key=, tex=texOrFalse}, ... }
 local redoStack = {}
@@ -247,10 +231,9 @@ local stampShader = nil
 local copyShader = nil
 local channelStampShader = nil
 
--- Reusable ping-pong scratch textures keyed by size (TILE_PX / MASK_PX).
--- Both the compositor and stamp passes overwrite every texel of the temp
--- target (full-quad TexRect with blending off), so previous contents never
--- leak through and one cached texture per size is safe to reuse.
+-- Ping-pong scratch textures keyed by size (TILE_PX / MASK_PX). The compositor
+-- and stamp passes overwrite every texel (full quad, blending off), so one
+-- cached texture per size is safe to reuse.
 local scratchTex = {}
 
 local uComp = {} -- uniform locations on compositorShader
@@ -451,8 +434,8 @@ local function finishStrokeSnapshot()
 	end
 end
 
--- Drop all undo/redo history (used when reset/bulk ops make snapshots stale —
--- restoring a single stroke over a cleared map would resurrect paint).
+-- Drop all undo/redo history when a reset or bulk op makes snapshots stale:
+-- restoring one stroke over a cleared map would resurrect paint.
 local function clearHistory()
 	for i = 1, #undoStack do
 		freeHistoryEntry(undoStack[i])
@@ -523,13 +506,12 @@ local function restoreMaskItem(item)
 	dirtySquares[item.key] = true
 end
 
--- Restore one channel-region history item (forward-declared: it needs the
--- channel table helpers defined below; assigned right after them).
+-- Restore one channel-region history item; forward-declared because it needs
+-- the channel helpers below, and assigned right after them.
 local restoreChannelItem
 
--- Swap an entry's saved state with the current one (works for both undo and
--- redo: the popped entry, with current state captured into it, goes onto the
--- opposite stack).
+-- Swap an entry's saved state with the current one. Serves undo and redo: the
+-- popped entry, now holding the current state, goes onto the opposite stack.
 local function applyHistoryEntry(entry)
 	for i = 1, #entry do
 		local item = entry[i]
@@ -552,9 +534,8 @@ local function applyHistoryEntry(entry)
 end
 
 local function runHistoryOps()
-	-- An undo landing mid-drag would rewrite masks the open snapshot already
-	-- captured, corrupting that stroke's "before" state. Keep ops queued until
-	-- the drag seals.
+	-- An undo mid-drag would rewrite masks the open snapshot already captured,
+	-- corrupting that stroke's "before" state; wait until the drag seals.
 	if leftMouseHeld or strokeSnap then
 		return
 	end
@@ -605,9 +586,8 @@ local function channelDef(key)
 end
 
 -- Fill a channel texture with the map's own shading texture when it has one
--- (so painting starts from the shipped art), else the neutral value.
--- Must run while the engine still binds ITS texture (or after unbinding ours),
--- otherwise we'd copy our own paint back onto itself.
+-- (painting starts from the shipped art), else the neutral value. Run it while
+-- the engine still binds ITS texture, or the copy reads our own paint back.
 local function seedChannelTex(ch)
 	local def = ch.def
 	local existing = gl.TextureInfo and gl.TextureInfo(def.texName)
@@ -694,8 +674,7 @@ local function setChannelEnabled(key, on)
 	if on then
 		pendingChannelEnable[#pendingChannelEnable + 1] = key
 	else
-		-- Keep the texture so re-enabling is instant; just hand the engine its
-		-- own texture back.
+		-- Keep the texture so re-enabling is instant; the engine gets its own back.
 		unbindChannel(channels[key])
 	end
 end
@@ -753,8 +732,8 @@ local function snapshotChannelTiles(ch, x0, y0, x1, y1)
 	end
 end
 
--- Channel-region history restore (assigned to the forward-declared local used
--- by applyHistoryEntry). Same capture-swap contract as restoreMaskItem.
+-- Channel-region history restore (the forward-declared local applyHistoryEntry
+-- uses); same capture-and-swap contract as restoreMaskItem.
 restoreChannelItem = function(item)
 	local ch = channels[item.channel]
 	if not ch or not ch.tex then
@@ -826,9 +805,9 @@ local function stampChannels(wx, wz, layer, erase, effR, effS)
 	if not channelStampShader then
 		return
 	end
-	-- The fractal warp displaces the sampled world position, so the touched
-	-- region extends past the radius by the warp reach (fBm amplitude sum is
-	-- ±0.871 per axis → warp vector length reaches ~1.23R·amount).
+	-- The fractal warp displaces the sampled position, so the touched region
+	-- reaches past the radius (fBm amplitude sum is +-0.871 per axis, so the
+	-- warp vector reaches about 1.23 * R * amount).
 	local pad = effR * brushFractalAmount * 1.25 + 8
 	local wx0 = max(0, wx - effR - pad)
 	local wz0 = max(0, wz - effR - pad)
@@ -848,11 +827,10 @@ local function stampChannels(wx, wz, layer, erase, effR, effS)
 				local x1 = min(ch.w, floor(wx1 / mapSizeX * ch.w) + 1)
 				local y1 = min(ch.h, floor(wz1 / mapSizeZ * ch.h) + 1)
 
-				-- Bounded scratch: only the bbox is staged, so the scratch can be
-				-- much smaller than the channel (a channel-sized scratch would
-				-- double channel VRAM — +256 MB on a 32x32 map). Brushes whose
-				-- bbox exceeds the scratch get a downsampled destination read
-				-- (LINEAR), which only ever happens at extreme radius+fractal.
+				-- Only the bbox is staged, so the scratch stays small (a
+				-- channel-sized one would double channel VRAM, +256 MB on a 32x32
+				-- map). A bbox larger than the scratch gets a downsampled
+				-- destination read, which only happens at extreme radius + fractal.
 				local SW = min(ch.w, 4096)
 				local SH = min(ch.h, 4096)
 				local scratch = getScratchTexRect(SW, SH)
@@ -954,8 +932,8 @@ local function paintGrassAttach(wx, wz, layer, erase, effR, effS)
 	if not (api and api.setDensityAt and api.getDensityAt) then
 		return
 	end
-	-- Blank/new maps ship no grass data; materialize the editable grass map
-	-- once instead of silently no-opping (the New Map flow is a primary user).
+	-- Blank and new maps ship no grass data: create the editable grass map once
+	-- instead of silently doing nothing.
 	if api.hasGrass and not api.hasGrass() then
 		if not grassEditModeArmed and api.enableEditMode then
 			grassEditModeArmed = true
@@ -966,8 +944,8 @@ local function paintGrassAttach(wx, wz, layer, erase, effR, effS)
 		end
 	end
 
-	-- Texture stamps land every 0.3*R; grass max-blend makes that overlap
-	-- redundant and each changed patch costs a VBO upload — thin to ~0.75*R.
+	-- Texture stamps land every 0.3*R; for grass that overlap is redundant
+	-- (max-blend) and each changed patch costs a VBO upload, so thin to 0.75*R.
 	if grassLastX then
 		local gdx, gdz = wx - grassLastX, wz - grassLastZ
 		if (gdx * gdx + gdz * gdz) < (effR * 0.75) * (effR * 0.75) then
@@ -1248,12 +1226,10 @@ local COMPOSITOR_FRAG_SRC = [[
 	}
 ]]
 
--- Brush stamp into a per-layer RGBA canvas. The shader samples the current
--- material texture (if any) at world UV / tileScale, multiplies by layerColor,
--- and blends it over the canvas using brush alpha. This way the deposited RGB
--- is fully baked at stroke time — switching material later only affects FUTURE
--- strokes. Erase reduces canvas alpha to fade the paint.
--- fractalAmount > 0 applies fBm domain-warp to create organic/fractal edges.
+-- Brush stamp into a per-layer RGBA canvas: material (if any) at world UV /
+-- tileScale times layerColor, blended over the canvas by brush alpha. The RGB
+-- is baked at stroke time, so a later material change only affects future
+-- strokes. Erase fades canvas alpha; fractalAmount > 0 warps the edge (fBm).
 local STAMP_FRAG_SRC = [[
 	#version 130
 	uniform sampler2D srcMask;     // current RGBA canvas
@@ -1379,12 +1355,11 @@ local STAMP_FRAG_SRC = [[
 	}
 ]]
 
--- Channel stamp: writes one brush stamp into a global SSMF shading texture.
--- Drawn as the brush's bbox sub-quad only; texcoords carry the channel
--- texture's own UVs, so worldXZ = uv * mapSize. The previous content arrives
--- pre-copied into dstTex (same UVs) because the falloff blend needs a read of
--- the destination and FBO feedback loops are undefined behaviour.
--- Engine semantics painted against (verified in SMFFragProg.glsl):
+-- Channel stamp: one brush stamp into a global SSMF shading texture, drawn as
+-- the bbox sub-quad only; texcoords are the channel's own UVs (worldXZ = uv *
+-- mapSize). The blend must read the destination and FBO feedback is undefined,
+-- so the bbox arrives pre-copied in dstTex (dstUvOffset / dstUvScale map into it).
+-- Engine semantics (SMFFragProg.glsl):
 --   normals : rgb*2-1 tangent normal, a = blend weight vs geometry normal
 --   specular: rgb additive highlight color (premultiply by exponent per the
 --             mapping guide), a*16 = Blinn exponent
@@ -1627,8 +1602,8 @@ local function allocateSquare(s)
 	if s.seedTex and s.compositeTex then
 		return true
 	end
-	-- A square that already failed to seed stays failed — callers poll this every
-	-- stroke, so without this guard one bad square spams the log indefinitely.
+	-- A square that failed to seed stays failed: callers poll this every stroke,
+	-- and one bad square would otherwise spam the log forever.
 	if s.allocFailed then
 		return false
 	end
@@ -1648,7 +1623,7 @@ local function allocateSquare(s)
 		return false
 	end
 
-	-- Ask engine to copy its current diffuse for this square into the seed tex
+	-- The engine copies its current diffuse for this square into the seed.
 	local ok = GetMapSquareTextureFn(s.sx, s.sy, 0, seedTex, 0)
 	if not ok then
 		Echo(
@@ -1678,7 +1653,7 @@ local function allocateSquare(s)
 		return false
 	end
 
-	-- Initialize composite = seed (so unpainted look identical to engine)
+	-- composite = seed, so unpainted squares look exactly like the engine's.
 	glRenderToTexture(compositeTex, function()
 		glBlending(false)
 		glUseShader(copyShader)
@@ -1732,7 +1707,7 @@ local function freeSquare(s)
 end
 
 -- ============================================================================
--- Compositor pass — bakes one square from seed through all enabled layers
+-- Compositor pass: bakes one square from the seed through every enabled layer
 -- ============================================================================
 local function bakeSquare(s)
 	if not s or not s.compositeTex or not s.seedTex then
@@ -1742,7 +1717,6 @@ local function bakeSquare(s)
 		return
 	end
 
-	-- Start by copying seed -> composite
 	glRenderToTexture(s.compositeTex, function()
 		glBlending(false)
 		glUseShader(copyShader)
@@ -1753,8 +1727,8 @@ local function bakeSquare(s)
 		glBlending(true)
 	end)
 
-	-- Ping-pong buffer: render composite -> temp using compositor, then copy back.
-	-- One temp per square per bake. Cheap (1024^2 RGBA8 ~4MB live).
+	-- Ping-pong per layer: composite -> shared TILE_PX scratch through the
+	-- compositor, then copy back.
 	local key = squareKey(s.sx, s.sy)
 	local squareOriginX = s.sx * SQUARE_SIZE_ELMOS
 	local squareOriginZ = s.sy * SQUARE_SIZE_ELMOS
@@ -1812,26 +1786,22 @@ local function bakeSquare(s)
 					glUniform(uComp.altFalloffLo, layer.altFalloffLo)
 					glUniform(uComp.altFalloffHi, layer.altFalloffHi)
 					glUniformInt(uComp.slopeEnabled, layer.slopeEnabled and 1 or 0)
-					-- slope params: layer.slopeMin/Max are degrees; convert to cos.
-					-- A "small angle" (flat) has large cos; "large angle" (steep) has small cos.
-					-- Layer says "apply between slopeMin..slopeMax degrees", so in cos space
-					-- the valid band is [cos(slopeMax), cos(slopeMin)].
+					-- Slope limits are degrees; flat ground has the larger cos, so the
+					-- band slopeMin..slopeMax becomes [cos(slopeMax), cos(slopeMin)].
 					local cosLo = cos(layer.slopeMax * pi / 180)
 					local cosHi = cos(layer.slopeMin * pi / 180)
 					glUniform(uComp.slopeMinCos, cosLo)
 					glUniform(uComp.slopeMaxCos, cosHi)
-					-- Falloff in cos units derived from degree falloff at the band edges
+					-- Falloff converted from degrees to cos units at each band edge.
 					local fLo = abs(cos((layer.slopeMax - (layer.slopeFalloffLo or 0)) * pi / 180) - cosLo)
 					local fHi = abs(cos((layer.slopeMin + (layer.slopeFalloffHi or 0)) * pi / 180) - cosHi)
 					glUniform(uComp.slopeFalloffLo, fLo)
 					glUniform(uComp.slopeFalloffHi, fHi)
 					glUniformInt(uComp.handPaintEnabled, (layer.handPaintEnabled and maskTex) and 1 or 0)
-					-- Hydro erosion mask
 					glUniformInt(uComp.hydroEnabled, layer.hydroEnabled and 1 or 0)
 					glUniform(uComp.hydroStrength, layer.hydroStrength or 0.02)
 					glUniform(uComp.hydroFalloffLo, layer.hydroFalloffLo or 0.1)
 					glUniform(uComp.hydroFalloffHi, layer.hydroFalloffHi or 0.6)
-					-- Thermo erosion mask
 					glUniformInt(uComp.thermoEnabled, layer.thermoEnabled and 1 or 0)
 					glUniform(uComp.thermoAngle, layer.thermoAngle or 30.0)
 					glUniform(uComp.thermoFalloff, layer.thermoFalloff or 8.0)
@@ -1846,7 +1816,6 @@ local function bakeSquare(s)
 					glBlending(true)
 				end)
 
-				-- Copy temp back into composite
 				glRenderToTexture(s.compositeTex, function()
 					glBlending(false)
 					glUseShader(copyShader)
@@ -1893,8 +1862,7 @@ local function executeStroke(wx, wz, layerId, erase)
 	if not layer then
 		return
 	end
-	-- Force hand-paint to be considered enabled for the duration of this layer
-	-- if the brush is being used (otherwise stamping has no visible effect).
+	-- Painting a layer turns its hand-paint on, or the stamp would not show.
 	layer.handPaintEnabled = true
 
 	local effR, effS = getEffectiveBrush()
@@ -1907,17 +1875,17 @@ local function executeStroke(wx, wz, layerId, erase)
 				allocateSquare(s)
 			end
 			local key = squareKey(sx, sy)
-			-- Snapshot the pre-stroke mask before ensureLayerMaskTex can create it
-			-- (a nil here records "mask did not exist" — undo will clear it).
+			-- Snapshot before ensureLayerMaskTex can create the mask: nil records
+			-- "mask did not exist", which undo clears.
 			snapshotMaskForStroke(layerId, key, masks[layerId] and masks[layerId][key])
 			local maskTex = ensureLayerMaskTex(layerId, key)
 			if maskTex then
-				-- Ping-pong stamp: write to temp, copy back
+				-- Ping-pong: stamp into the scratch, then copy back.
 				local tempMask = getScratchTex(MASK_PX)
 				if tempMask then
 					local squareOriginX = sx * SQUARE_SIZE_ELMOS
 					local squareOriginZ = sy * SQUARE_SIZE_ELMOS
-					-- Bind material textures to units 1/2/3 with safe fallbacks.
+					-- Material textures on units 1/2/3, $heightmap as the fallback.
 					local useTex = false
 					if layer.texturePath and layer.texturePath ~= "" then
 						local ok = pcall(glTexture, 1, layer.texturePath)
@@ -1969,7 +1937,6 @@ local function executeStroke(wx, wz, layerId, erase)
 					glTexture(3, false)
 					glTexture(2, false)
 					glTexture(1, false)
-					-- Copy back
 					glRenderToTexture(maskTex, function()
 						glBlending(false)
 						glUseShader(copyShader)
@@ -1985,12 +1952,11 @@ local function executeStroke(wx, wz, layerId, erase)
 		end
 	end
 
-	-- Mirror the stroke into the enabled global shading channels (normals /
-	-- specular / emission) so one gesture paints the whole material.
+	-- The same stroke paints the enabled shading channels (normals, specular,
+	-- emission), so one gesture lays down the whole material.
 	stampChannels(wx, wz, layer, erase, effR, effS)
 
-	-- Grass attach: plant/remove grass along the stroke for layers that carry
-	-- a grass density. Plain CPU patch writes (no GL), undo-tracked per patch.
+	-- Grass attach: CPU patch writes (no GL), undo-tracked per patch.
 	paintGrassAttach(wx, wz, layer, erase, effR, effS)
 end
 
@@ -2027,12 +1993,10 @@ local function defaultLayer(name, r, g, b)
 		thermoEnabled = false,
 		thermoAngle = 30.0,
 		thermoFalloff = 8.0,
-		-- Emission channel: layerColor * glowStrength is painted into
-		-- $ssmf_emission when the channel is enabled
+		-- Emission: layerColor * glowStrength goes into $ssmf_emission when that channel is on
 		glowStrength = 0.0,
 		-- Grass attach: strokes also plant grass at this density (0 = off).
-		-- grassDensityCustom marks a user override that material auto-defaults
-		-- must not clobber.
+		-- grassDensityCustom marks a user value the material default must not overwrite.
 		grassDensity = 0.0,
 		grassDensityCustom = false,
 	}
@@ -2065,7 +2029,6 @@ local function removeLayer(id)
 		return
 	end
 	table.remove(layers, idx)
-	-- Free that layer's masks
 	if masks[id] then
 		for _, maskTex in pairs(masks[id]) do
 			glDeleteTexture(maskTex)
@@ -2110,20 +2073,18 @@ end
 
 local function scanMaterialLibrary()
 	materialLibrary = {}
-	-- Write-dir asset library (not committed to the game repo). VFS.RAW_FIRST
-	-- below resolves it from <datadir>/Terraform Brush/textures/.
+	-- Write-dir asset library, not part of the game repo (VFS.RAW_FIRST
+	-- resolves it from <datadir>/Terraform Brush/textures/).
 	local ROOT = "Terraform Brush/textures/"
 	local byKey = {} -- prefer highest-resolution diffuse per material key (use the 8K)
 
-	-- Diffuse textures may sit at any depth under ROOT (the source packs nest
-	-- them in `<pack>.blend/textures/textures/`), so walk the tree explicitly
-	-- rather than relying on a recursive DirList flag that not every engine
-	-- build honours. Bounded depth guards against symlink/loop surprises.
+	-- Diffuse textures may sit at any depth (packs nest them in
+	-- `<pack>.blend/textures/textures/`), so walk the tree by hand rather than
+	-- trust a recursive DirList flag; the depth cap guards against loops.
 	local function consume(files)
 		for _, f in ipairs(files or {}) do
-			-- Windows write-dir listings come back with backslashes; strip both
-			-- separators or the "basename" keeps the whole path and every material
-			-- name/layer label becomes a full path string.
+			-- Windows listings use backslashes; strip both separators or every
+			-- material name becomes a full path.
 			local base = f:gsub("^.*[/\\]", "")
 			-- Parse: <name>_diff_<NK>.jpg
 			local mat, res = base:match("^(.-)_diff_(%d+)k%.jpg$")
@@ -2187,26 +2148,22 @@ local function setLayerTexture(id, path, tileScale, name)
 	if tileScale then
 		layer.tileScale = tileScale
 	end
-	-- Look up PBR siblings from the material library for the stamp shader.
+	-- PBR siblings (normal, roughness) for the stamp shader.
 	local mat = findMaterialByPath(path)
 	layer.normalPath = mat and mat.normalPath or nil
 	layer.roughPath = mat and mat.roughPath or nil
-	-- Auto-name the layer after the material when we have one. Keeps the
-	-- LAYERS list readable ("snow 01", "rock face 03") instead of generic
-	-- "Layer N" placeholders. User-renamed layers are preserved via the
-	-- `customName` flag (set if the caller renames explicitly later).
+	-- Name the layer after its material ("snow 01") rather than "Layer N".
+	-- A layer with `customName` set keeps its name, but nothing sets that flag
+	-- today, so a material swap always renames.
 	if name and not layer.customName then
 		layer.name = name
 	end
-	-- Grass-category materials default to planting grass; explicit user
-	-- settings survive material swaps.
+	-- Grass-like materials default to planting grass; a user-set density survives swaps.
 	if not layer.grassDensityCustom then
 		layer.grassDensity = defaultGrassDensityFor(name or path)
 	end
-	-- Hand-paint layers bake material at stroke time, so changing the active
-	-- material must NOT rebake the canvas — only future strokes use the new
-	-- texture. Procedural layers do sample texturePath in the compositor and
-	-- therefore need a re-bake.
+	-- Hand-paint layers bake their material at stroke time, so a swap must NOT
+	-- rebake them; procedural layers sample texturePath in the compositor and do.
 	if not layer.handPaintEnabled then
 		pendingFullBake = true
 	end
@@ -2221,9 +2178,7 @@ local function addLayerFromMaterial(path, name)
 		opacity = 1.0,
 	})
 	if id then
-		-- Route through setLayerTexture so PBR sibling pairing, auto-naming and
-		-- the grass-density default all apply (assigning texturePath directly
-		-- would skip them).
+		-- Through setLayerTexture, so PBR siblings, naming and the grass default apply.
 		setLayerTexture(id, path, nil, name)
 		activeLayerId = id
 	end
@@ -2243,8 +2198,7 @@ local function activate()
 			return
 		end
 	end
-	-- Deferred from Initialize: recursive VFS walk of the write-dir texture
-	-- library; only editor users should pay it.
+	-- The library walk waits for first use, so only editor users pay for it.
 	if not libraryScanned then
 		libraryScanned = true
 		scanMaterialLibrary()
@@ -2259,9 +2213,8 @@ local function deactivate()
 	active = false
 	leftMouseHeld = false
 	lastPaintX, lastPaintZ = nil, nil
-	-- Seal any in-flight drag so its snapshot textures land in the undo stack
-	-- instead of leaking (DrawWorld still processes queued strokes + the finish
-	-- flag while inactive).
+	-- Seal an in-flight drag so its snapshots land in the undo stack instead of
+	-- leaking (DrawWorld still runs queued strokes and the finish while inactive).
 	if strokeSnap then
 		pendingStrokeFinish = true
 	end
@@ -2281,9 +2234,8 @@ function widget:Initialize()
 		return
 	end
 
-	-- Single empty handpaint layer to start. User adds more by clicking
-	-- materials in the UI (each material click on an unassigned active layer
-	-- assigns it; otherwise spawns a new layer with that material).
+	-- Start with one empty hand-paint layer. A material click fills an empty
+	-- active layer, otherwise adds a new layer with that material.
 	local paintId = addLayer({
 		name = "Layer 1",
 		color = { 1.0, 1.0, 1.0 },
@@ -2293,7 +2245,7 @@ function widget:Initialize()
 	})
 	activeLayerId = paintId
 
-	-- Material library scan happens on first activate(), not here.
+	-- The material library is scanned on first activate(), not here.
 
 	widgetHandler:AddAction("diffusepaint", function()
 		if active then
@@ -2310,11 +2262,9 @@ function widget:Initialize()
 		pendingFullCover = true
 	end, nil, "t")
 
-	-- Dump every currently-composited square texture to disk as PNG so the
-	-- user can repackage them into a real SMF map (engine API only lets us
-	-- override diffuse per square at runtime; baked PBR shading is in RGB).
-	-- gl.SaveImage reads the bound framebuffer and needs the GL context, so the
-	-- action only queues; DrawWorld does the RenderToTexture + SaveImage reads.
+	-- Dump every composited square to PNG for repackaging into a real SMF map
+	-- (the engine only lets us override diffuse per square at runtime). SaveImage
+	-- needs the GL context, so the action only queues it for DrawWorld.
 	widgetHandler:AddAction("diffusepaintexport", function()
 		pendingExport = true
 	end, nil, "t")
@@ -2411,8 +2361,8 @@ function widget:Initialize()
 		exportSquares = function()
 			pendingExport = true
 		end,
-		-- Map project (cmd_map_project.lua): chunked DrawWorld jobs saving/loading
-		-- baked square diffuse + channel textures; poll the pending flags.
+		-- Map project (cmd_map_project.lua): chunked DrawWorld jobs that save or
+		-- load the baked squares and channel textures; poll the pending flags.
 		saveProject = function(dir, allSquares)
 			if pendingProjectSave or pendingProjectLoad then
 				return false
@@ -2587,7 +2537,7 @@ function widget:MousePress(mx, my, button)
 	if button ~= 1 and button ~= 3 then
 		return false
 	end
-	-- Defer to common tf instruments
+	-- Leave the click to the measure tool or the height sampler.
 	local tfBrush = WG.TerraformBrush
 	if tfBrush and tfBrush.getState then
 		local tbState = tfBrush.getState()
@@ -2683,13 +2633,13 @@ function widget:MouseWheel(up, value)
 end
 
 -- ============================================================================
--- Map project save/load (cmd_map_project.lua) — chunked in DrawWorld
+-- Map project save/load (cmd_map_project.lua), chunked in DrawWorld
 -- ============================================================================
 
 -- Save one square to <dir>sq_<sx>_<sy>.png. Painted squares save their baked
 -- composite; untouched squares (full capture) read the engine's own diffuse
--- through a transient texture, so a compiled map's shipped art (e.g. World
--- Machine output) rides along in the project. Returns true on success.
+-- through a transient texture, so a compiled map's shipped art rides along in
+-- the project. Returns true on success.
 local function projectSaveSquare(dir, sx, sy)
 	local fname = dir .. "sq_" .. sx .. "_" .. sy .. ".png"
 	local s = squares[squareKey(sx, sy)]
@@ -2750,9 +2700,8 @@ local function projectSaveTick()
 		local k = squareKey(req.sx, req.sy)
 		local s = squares[k]
 		if req.allSquares or (s and s.compositeTex) then
-			-- The bake pass drains dirtySquares in hash order at its own rate; a
-			-- square still dirty when the save cursor reaches it would capture a
-			-- stale composite (e.g. mid-save layer tweak). Bake it now.
+			-- The bake pass drains dirtySquares at its own rate, so a square still
+			-- dirty here (a mid-save layer tweak) would save stale. Bake it now.
 			if dirtySquares[k] and s and s.seedTex then
 				bakeSquare(s)
 				dirtySquares[k] = nil
@@ -2773,8 +2722,8 @@ local function projectSaveTick()
 	if req.sy < numSqZ then
 		return
 	end
-	-- Channels: enabled + allocated only (a disabled channel means the engine's
-	-- own texture is showing — not ours to record).
+	-- Channels: enabled and allocated only. A disabled channel shows the
+	-- engine's own texture, which is not ours to record.
 	local chans = {}
 	for key, ch in pairs(channels) do
 		if channelsEnabled[key] and ch.tex then
@@ -2795,9 +2744,9 @@ local function projectSaveTick()
 	projectSaveResult = {
 		squares = req.written,
 		channels = chans,
-		-- Coverage fact, not capture mode: a loaded full project re-saves from a
-		-- blank session with every square painted — recording the mode would
-		-- flip this field and break save->load->save byte-idempotence.
+		-- Record coverage, not the capture mode: a loaded full project re-saves
+		-- with every square painted, and recording the mode would flip this field
+		-- and break byte-identical save -> load -> save.
 		full = (#req.written == numSqX * numSqZ),
 		failed = req.failed or 0,
 		squareSize = TILE_PX,
@@ -2928,10 +2877,9 @@ local function projectLoadTick()
 end
 
 function widget:DrawWorld()
-	-- Channel enable requests (texture alloc + seed need this GL context).
-	-- Must run BEFORE strokes: channelsEnabled flips synchronously in the UI
-	-- handler, so a stroke queued the same frame would otherwise pass the
-	-- channelApplies check while channels[key] is still nil and skip silently.
+	-- Channel enables (allocation and seeding need GL) run BEFORE strokes: the
+	-- UI flips channelsEnabled at once, so a stroke queued the same frame would
+	-- pass channelApplies with channels[key] still nil and silently skip.
 	if #pendingChannelEnable > 0 then
 		for i = 1, #pendingChannelEnable do
 			local key = pendingChannelEnable[i]
@@ -2979,8 +2927,7 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Full bake = re-bake every ALREADY-allocated square. Cheap for layer
-	-- param tweaks; does not allocate new squares.
+	-- Full bake: re-bake every already-allocated square (layer tweaks); allocates nothing.
 	if pendingFullBake then
 		pendingFullBake = false
 		for k, s in pairs(squares) do
@@ -2990,8 +2937,7 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Full coverage = allocate every map square + bake. Heavy; opt-in via
-	-- /diffusepaintbake action.
+	-- Full coverage: allocate and bake every map square. Heavy; /diffusepaintbake only.
 	if pendingFullCover then
 		pendingFullCover = false
 		for sx = 0, numSqX - 1 do
@@ -3007,7 +2953,7 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Bake all dirty squares this frame (no rate limit yet)
+	-- Bake up to 16 dirty squares per frame.
 	local bakedCount = 0
 	for k, _ in pairs(dirtySquares) do
 		local s = squares[k]
