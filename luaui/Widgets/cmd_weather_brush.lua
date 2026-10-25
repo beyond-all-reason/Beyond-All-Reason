@@ -863,10 +863,16 @@ local function placeSymmetric(fn, cx, cz)
 		if st.symmetryActive and tb.getSymmetricPositions then
 			local positions = tb.getSymmetricPositions(cx, cz, rot)
 			if positions and #positions > 0 then
+				-- "one persistent spawner per drag" holds per copy: each copy may make its own
+				local createdBefore = wb.dragSpawnerCreated
+				local created = createdBefore
 				for _, p in ipairs(positions) do
+					wb.dragSpawnerCreated = createdBefore
 					-- each copy turns with its symmetry copy (radial or mirrored), on top of the brush rotation
 					fn(p.x, p.z, wb.rotation + ((p.rot or rot) - rot))
+					created = created or wb.dragSpawnerCreated
 				end
+				wb.dragSpawnerCreated = created
 				return
 			end
 		end
