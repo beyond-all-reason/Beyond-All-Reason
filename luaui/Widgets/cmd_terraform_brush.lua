@@ -24,7 +24,6 @@ local MSG = {
 	UNDO = "$terraform_undo$",
 	UNDO_STROKE = "$terraform_undo_stroke$",
 	REDO = "$terraform_redo$",
-	MERGE_END = "$terraform_merge_end$",
 	STROKE_END = "$terraform_stroke_end$",
 	NOISE = "$terraform_noise$",
 	ERODE = "$terraform_erode$",
@@ -1251,13 +1250,7 @@ function widget:UnsyncedHeightMapUpdate()
 end
 
 -- The gadget makes one undo entry per tick and tags each with the current
--- stroke ID until STROKE_END; UNDO_STROKE pops a whole stroke. MERGE_END only
--- clears the gadget's (unused) merge snapshot.
-
-local function afterBrushTick()
-	-- The mesh refresh is armed by UnsyncedHeightMapUpdate when the edit lands.
-	SendLuaRulesMsg(MSG.MERGE_END)
-end
+-- stroke ID until STROKE_END; UNDO_STROKE pops a whole stroke.
 
 -- Close the stroke on mouse release: STROKE_END advances the gadget's stroke ID.
 local function closeBrushStroke()
@@ -1558,7 +1551,7 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 		if not extraState.stickyUndoBaseline then
 			extraState.stickyUndoBaseline = extraState.gadgetUndoCount or 0
 		end
-		-- Send every symmetric copy, then ONE afterBrushTick(), so they share an undo entry.
+		-- Send every symmetric copy; they share the tick's stroke ID.
 		for i = 1, #positions do
 			local p = positions[i]
 			local dir = direction
@@ -1567,7 +1560,6 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 			end
 			SendLuaRulesMsg(MSG.BRUSH .. dir .. " " .. floor(p.x) .. " " .. floor(p.z) .. msgMid .. p.rot .. msgTail)
 		end
-		afterBrushTick()
 		return
 	end
 	for i = 1, #positions do
@@ -1579,8 +1571,6 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 		end
 		SendLuaRulesMsg(MSG.BRUSH .. dir .. " " .. floor(p.x) .. " " .. floor(p.z) .. msgMid .. p.rot .. msgTail)
 	end
-	-- Caller calls afterBrushTick() ONCE after the full interpolated loop so all
-	-- steps + symmetric copies land in the same per-tick undo entry.
 end
 
 -- One STROKE message for the whole tick instead of one BRUSH message per dab.
@@ -1692,7 +1682,6 @@ extraState.sendStrokeDabs = function(direction, dabs, nDabs, radius, shape, curv
 			bucket[i] = nil
 		end
 	end
-	-- Caller calls afterBrushTick() ONCE so the whole tick is one undo entry.
 end
 
 local function parseRadius(args)
@@ -2274,7 +2263,6 @@ local function sendNoiseMessage(worldX, worldZ, radius, shape, rotation, lengthS
 			.. (djMode and dustEffects and "1" or "0")
 		SendLuaRulesMsg(msg)
 	end
-	afterBrushTick()
 end
 
 -- Preset save/load system
@@ -4557,7 +4545,6 @@ extraState.sendSplinePts = function(pts, snapFull)
 		parts[#parts + 1] = snapFull and "1" or "0"
 		SendLuaRulesMsg(table.concat(parts))
 	end
-	afterBrushTick()
 end
 
 -- Commit settled early raw points: smooth raw[prevRawIdx..windowStart], snap-apply them,
@@ -4658,7 +4645,6 @@ extraState.reapplyRampChain = function(chain)
 	end
 	parts[#parts + 1] = " " .. clay .. " 0 1" -- clay, dustEffects=0, snapFull=1
 	SendLuaRulesMsg(table.concat(parts))
-	afterBrushTick()
 end
 
 -- After an endpoint or handle drag: one UNDO_STROKE pops the last ramp
@@ -5237,7 +5223,6 @@ function widget:Update(dt)
 						.. (djMode and dustEffects and "1" or "0")
 					SendLuaRulesMsg(msg)
 				end
-				afterBrushTick()
 			end
 		end
 	elseif activeMode == "restore" then
@@ -5282,7 +5267,6 @@ function widget:Update(dt)
 				.. string.format("%.2f", extraState.restoreStrength)
 			SendLuaRulesMsg(msg)
 		end
-		afterBrushTick()
 	elseif activeMode == "erode" then
 		if mx ~= lastScreenX or my ~= lastScreenY then
 			lastScreenX = mx
@@ -5330,7 +5314,6 @@ function widget:Update(dt)
 			SendLuaRulesMsg(msg)
 		end
 		extraState.erodePhase = extraState.erodePhase + 1
-		afterBrushTick()
 	elseif activeMode == "autoramp" then
 		-- Swipe: re-fire the one-click op along the drag once the cursor has moved
 		-- a fraction of the radius, so cliff rebuilds knit together without
@@ -5353,9 +5336,7 @@ function widget:Update(dt)
 				local adz = worldZ - lastZ
 				local spacing = max(16, activeRadius * 0.5)
 				if adx * adx + adz * adz >= spacing * spacing then
-					if es.sendAutorampAt(worldX, worldZ) then
-						afterBrushTick()
-					end
+					es.sendAutorampAt(worldX, worldZ)
 					es.autorampLastX = worldX
 					es.autorampLastZ = worldZ
 				end
@@ -5540,7 +5521,6 @@ function widget:Update(dt)
 		else
 			extraState.sendStrokeDabs(activeDirection, dabs, nDabs, activeRadius, activeShape, activeCurve, fh)
 		end
-		afterBrushTick()
 		-- endX/endZ, not lockedWorld: on a saturated tick the stroke has only
 		-- reached the lag point, and the next tick must continue from there.
 		extraState.lastAppliedX = endX
@@ -8039,7 +8019,6 @@ extraState.replayQueueTick = function()
 					.. " "
 					.. s.ringStr
 				SendLuaRulesMsg(msg)
-				afterBrushTick()
 			end
 		end
 	end
@@ -10240,9 +10219,7 @@ function widget:MousePress(mx, my, button)
 		if activeMode == "autoramp" then
 			local worldX, worldZ = getWorldMousePosition()
 			if worldX then
-				if extraState.sendAutorampAt(worldX, worldZ) then
-					afterBrushTick()
-				end
+				extraState.sendAutorampAt(worldX, worldZ)
 				-- Arm the swipe: the Update dispatch gates on lockedWorldX, and
 				-- the spacing check needs the last-applied anchor.
 				lockedWorldX = worldX

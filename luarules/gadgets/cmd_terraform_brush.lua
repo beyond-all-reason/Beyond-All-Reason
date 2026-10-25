@@ -128,10 +128,6 @@ local totalVertexCount = 0 -- track approximate memory usage
 -- columns have landed; a rules param, unlike SendToUnsynced, survives /luaui reload.
 local importDoneCounter = 0
 
--- Nothing in this file assigns mergeSnapshot; finalizeMerge (MERGE_END,
--- STROKE_END, every new undo entry) only clears it.
-local mergeSnapshot = nil
-local mergeSnapshotLen = 0 -- explicit length of mergeSnapshot (avoids # on growing tables)
 local currentStrokeId = 0 -- incremented on each STROKE_END; tags all entries in a stroke
 local MAX_RADIUS = 2000
 local MIN_RADIUS = 8
@@ -393,19 +389,10 @@ local function evictOldSnapshots()
 	end
 end
 
-local function finalizeMerge()
-	if mergeSnapshot then
-		mergeSnapshot.vertexCount = mergeSnapshotLen / 3
-	end
-	mergeSnapshot = nil
-	mergeSnapshotLen = 0
-end
-
 -- Push a ready bbox-grid snapshot as a new undo entry. Bookkeeping shared by
 -- the flat converter below and the per-tick batch commit (flushBatch).
 local function pushBboxSnapshot(snapshot)
 	local vertexCount = snapshot.vertexCount or 0
-	finalizeMerge()
 
 	for i = 1, #redoStack do
 		totalVertexCount = totalVertexCount - (redoStack[i].vertexCount or 0)
@@ -442,7 +429,6 @@ end
 -- MAX_SNAPSHOT_VERTICES gate on purpose: whole-map edits are explicit user
 -- actions, and cells still at their original height cost only a mask entry.
 local function snapshotWholeMap()
-	finalizeMerge()
 	local squareSize = Game.squareSize
 	local snapFlat = scratchSnapFlat
 	local vCount = 0
@@ -2320,8 +2306,6 @@ local FILL_NUM_RAYS = 128 -- radial rays for rim detection
 -- the fill can span almost the entire map (slow but correct on huge bowls).
 
 local function applyFill(cx, cz)
-	finalizeMerge()
-
 	local ss = Game.squareSize
 	local mapX = Game.mapSizeX
 	local mapZ = Game.mapSizeZ
@@ -2609,8 +2593,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 			return true
 		end
 
-		finalizeMerge()
-
 		local snapshot = undoStack[#undoStack]
 		undoStack[#undoStack] = nil
 		local vertexCount = snapshot.vertexCount or 0
@@ -2643,8 +2625,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if #undoStack == 0 then
 			return true
 		end
-
-		finalizeMerge()
 
 		local targetStrokeId = undoStack[#undoStack].strokeId
 
@@ -2685,8 +2665,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 			return true
 		end
 
-		finalizeMerge()
-
 		local snapshot = redoStack[#redoStack]
 		redoStack[#redoStack] = nil
 		local vertexCount = snapshot.vertexCount or 0
@@ -2711,13 +2689,13 @@ function gadget:RecvLuaMsg(msg, playerID)
 		return true
 	end
 
+	-- MERGE_END is retired (the gadget never merged across ticks), but replays
+	-- and older widgets still send it every tick: swallow it quietly.
 	if msg == MERGE_END_HEADER then
-		finalizeMerge()
 		return true
 	end
 
 	if msg == STROKE_END_HEADER then
-		finalizeMerge()
 		currentStrokeId = currentStrokeId + 1
 		clearStrokeOrigin()
 		return true
