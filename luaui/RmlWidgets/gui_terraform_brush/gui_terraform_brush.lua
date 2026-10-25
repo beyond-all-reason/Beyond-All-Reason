@@ -13353,6 +13353,13 @@ local initialModel = {
 		end
 	end,
 	onTfSwitchDiffuse = function(_event)
+		-- The button hides under the tileset shader; the D key must not open it either.
+		if WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive() then
+			Spring.Echo(
+				"[Terraform Brush] Tileset shader active: DIFFUSE paints legacy maps only, use SURFACE and LAYERS."
+			)
+			return
+		end
 		playSound("toolSwitch")
 		clearPassthrough()
 		if not WG.DiffusePainter then
@@ -16444,6 +16451,7 @@ local BADGE_ACTION_MAP = {
 	["btn-metal"] = "tool_metal",
 	["btn-features"] = "tool_features",
 	["btn-splat"] = "tool_splat",
+	["btn-diffuse"] = "tool_diffuse",
 	["btn-decals"] = "tool_decals",
 	["btn-weather"] = "tool_weather",
 	["btn-environment"] = "tool_environment",
@@ -16461,6 +16469,7 @@ local TOOL_BTN_MAP = {
 	tool_metal = "btn-metal",
 	tool_features = "btn-features",
 	tool_splat = "btn-splat",
+	tool_diffuse = "btn-diffuse",
 	tool_decals = "btn-decals",
 	tool_weather = "btn-weather",
 	tool_environment = "btn-environment",
@@ -16498,6 +16507,7 @@ local KEYBIND_DISPLAY_ORDER = {
 	"tool_metal",
 	"tool_features",
 	"tool_splat",
+	"tool_diffuse",
 	"tool_decals",
 	"tool_weather",
 	"tool_environment",

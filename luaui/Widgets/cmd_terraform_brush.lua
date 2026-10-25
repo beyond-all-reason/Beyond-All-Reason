@@ -119,6 +119,7 @@ local DEFAULT_KEYBINDS = {
 	tool_metal = { key = 109, label = "M", desc = "Metal tool" },
 	tool_features = { key = 102, label = "F", desc = "Features tool" },
 	tool_splat = { key = 112, label = "P", desc = "Splat tool" },
+	tool_diffuse = { key = 100, label = "D", desc = "Diffuse tool" },
 	tool_decals = { key = 103, label = "G", desc = "Decals tool" },
 	tool_weather = { key = 119, label = "W", desc = "Weather tool" },
 	tool_environment = { key = 118, label = "V", desc = "Environment tool" },
