@@ -364,6 +364,8 @@ local function readLuaFile(path)
 	end
 	local raw = f:read("*a")
 	f:close()
+	-- A text editor may save the file with a UTF-8 byte order mark, which Lua cannot parse.
+	raw = raw:gsub("^\239\187\191", "")
 	local chunk, err = loadstring(raw, nil, {})
 	if not chunk then
 		return nil, "parse error: " .. tostring(err)
