@@ -105,6 +105,14 @@ local corfusShieldSphere = table.merge(defaults, {
 	--colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
 })
 
+local corhltfusShieldSphere = table.merge(defaults, {
+	pos = { 0, 51, 0 },
+	size = 23,
+	light = 3.25,
+	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
+	--colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
+})
+
 local legfusShieldSphere = table.merge(defaults, {
 	pos = { 0, 10, 0 },
 	size = 23,
@@ -221,6 +229,13 @@ local UnitEffects = {
 	},
 	corfus = {
 		{ class = "ShieldSphere", options = corfusShieldSphere },
+		{
+			class = "ShieldJitter",
+			options = { life = math.huge, pos = { 0, 50, 0 }, size = 23.5, precision = 22, repeatEffect = true },
+		},
+	},
+	corhltfus = {
+		{ class = "ShieldSphere", options = corhltfusShieldSphere },
 		{
 			class = "ShieldJitter",
 			options = { life = math.huge, pos = { 0, 50, 0 }, size = 23.5, precision = 22, repeatEffect = true },

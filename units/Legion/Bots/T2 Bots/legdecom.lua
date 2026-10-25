@@ -72,6 +72,7 @@ return {
 			[16] = "legfeconv",
 		},
 		customparams = {
+			maxrange = 300,
 			unitgroup = "buildert2",
 			mine_resistant = true,
 			canwearcosmetics = true,

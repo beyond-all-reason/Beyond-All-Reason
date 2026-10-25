@@ -160,29 +160,6 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 5;
 }
 
-
-
-AimFromWeapon1(pieceIndex)
-{
-	pieceIndex = head;
-}
-
-QueryWeapon1(pieceIndex)
-{
-	pieceIndex = rflare + gun_3;
-}
-
-AimFromWeapon2(pieceIndex)
-{
-	pieceIndex = head;
-	return (0);
-}
-
-QueryWeapon2(pieceIndex)
-{
-	pieceIndex = rflare + gun_3;
-}
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -207,7 +184,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon2(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	turn aimy1 to y-axis heading speed <225.0>;
@@ -222,7 +199,7 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-FireWeapon2()
+FireWeapon1()
 {
 	if( gun_3 )
 	{
@@ -237,6 +214,17 @@ FireWeapon2()
 		move rbarrel to z-axis [0.0] speed [7.500000];
 	}
 	gun_3 = !gun_3;
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = head;
+	return (0);
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = rflare + gun_3;
 }
 
 Killed(severity, corpsetype)

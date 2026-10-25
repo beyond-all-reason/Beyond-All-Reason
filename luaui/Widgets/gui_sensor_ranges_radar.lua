@@ -27,6 +27,11 @@ local lineScale = 1 -- this is a multiplier for the line width, to make it look 
 
 local circleSegments = 126 -- To ensure its only 2 warps per instance
 local lineInset = 4 -- elmos inside the coverage edge: about one dash, so the visible (outer) half of the line stays within it
+-- radar ranges are large and still readable zoomed out, so they fade later than the LOS and sonar lines
+local fadeStart = 600000 -- elmos from the camera where the lines start fading out
+local fadeEnd = 1100000 -- elmos from the camera where they are gone
+-- players outside the LOS view (L) see their coverage only through these lines, so those don't fade for them
+local noFadeWithoutLosView = true
 --------- End configurables ------
 
 -- the engine rounds radar ranges down to whole radar cells (ILosType::GetRadius) and its disk ends half a cell past
@@ -53,7 +58,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
-local radarCircleShader = nil
+local radarCircleShader ---@type LuaShader
 ---@type InstanceVBOTable?
 local circleInstanceVBO = nil
 
@@ -79,6 +84,8 @@ local circleShaderSourceCache = {
 		CIRCLE_SSBO_BINDING = CIRCLE_SSBO_BINDING,
 		--VISIBILITYCULLING = 1,
 		STIPPLE_RATE = 1.0,
+		FADE_START = fadeStart,
+		FADE_END = fadeEnd,
 	},
 	uniformInt = {
 		heightmapTex = 0,
@@ -175,6 +182,9 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitIsActive = Spring.GetUnitIsActive
+local spGetCameraPosition = Spring.GetCameraPosition
+local spGetGroundExtremes = Spring.GetGroundExtremes
+local spGetMapDrawMode = Spring.GetMapDrawMode
 local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_KEEP = GL.KEEP
@@ -200,6 +210,24 @@ local function getUnitMid(unitDefID)
 end
 
 local unitList = {} -- all ally units and their coordinates and radar ranges
+
+-- 1 when the lines fade out with the camera distance, 0 when they don't
+local function getFadeStrength()
+	if noFadeWithoutLosView and not spec and spGetMapDrawMode() ~= "los" then
+		return 0
+	end
+	return 1
+end
+
+-- true when the camera is so far above the ground that every line (they sit at max(0, ground)) has faded out
+local function fadedOut(fadeStrength)
+	if fadeStrength <= 0 then
+		return false
+	end
+	local _, camY = spGetCameraPosition()
+	local _, _, _, maxHeight = spGetGroundExtremes()
+	return camY - math.max(maxHeight, 0) >= fadeEnd
+end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.radarDistance and unitDef.radarDistance > minRadarDistance then -- save perf by excluding low radar range units
@@ -340,7 +368,8 @@ end
 
 function widget:DrawWorld()
 	--if spec and fullview then return end
-	if Spring.IsGUIHidden() or (circleInstanceVBO.usedElements == 0) or (opacity <= 0.01) then
+	local fadeStrength = getFadeStrength()
+	if Spring.IsGUIHidden() or (circleInstanceVBO.usedElements == 0) or (opacity <= 0.01) or fadedOut(fadeStrength) then
 		return
 	end
 	if not UpdateCircleSSBO() then
@@ -360,6 +389,7 @@ function widget:DrawWorld()
 	--spEcho("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
 	radarCircleShader:SetUniform("teamColorMix", 0)
 	radarCircleShader:SetUniformInt("circleCount", circleInstanceVBO.usedElements)
+	radarCircleShader:SetUniform("fadeStrength", fadeStrength)
 
 	gl.LineWidth(rangeLineWidth * lineScale * 1.0)
 

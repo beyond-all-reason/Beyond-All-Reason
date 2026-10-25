@@ -100,6 +100,10 @@
 				"label": "actions.massSelect.deselectAll"
 			},
 			{
+				"prefix": "select ",
+				"selection": true
+			},
+			{
 				"action": "selectbox_idle",
 				"label": "actions.selection.boxIdle",
 				"alwaysModifier": "any"
@@ -575,6 +579,22 @@
 			{
 				"action": "squad_select_filtered append distance_850",
 				"label": "actions.squads.appendFiltered"
+			},
+			{
+				"action": "squad_select_portion 0.5 append_domain",
+				"label": "actions.squads.selectHalfAppend"
+			},
+			{
+				"action": "squad_select_portion 0.5",
+				"label": "actions.squads.selectHalf"
+			},
+			{
+				"action": "squad_select_portion_filtered 0.5 append_domain",
+				"label": "actions.squads.selectHalfFilteredAppend"
+			},
+			{
+				"action": "squad_select_portion_filtered 0.5",
+				"label": "actions.squads.selectHalfFiltered"
 			},
 			{
 				"action": "squad_select_portion 0",

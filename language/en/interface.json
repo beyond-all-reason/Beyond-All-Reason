@@ -320,6 +320,108 @@
 				"accept": "Accept",
 				"cancel": "Cancel"
 			},
+			"select": {
+				"addLink": "Add selection...",
+				"titleAdd": "Add selection",
+				"titleEdit": "Edit selection",
+				"chooseKey": "Choose key",
+				"from": "From",
+				"pick": "Select",
+				"replace": "Replace the current selection",
+				"filters": "Filters",
+				"incomplete": "Fill in the values the chosen filters need",
+				"state": {
+					"any": "Any",
+					"is": "Is",
+					"not": "Not"
+				},
+				"sourceName": {
+					"AllMap": "Whole map",
+					"Visible": "On screen",
+					"PrevSelection": "Current selection",
+					"FromMouse": "Around the cursor",
+					"FromMouseC": "Around the cursor, any height"
+				},
+				"source": {
+					"AllMap": "whole map",
+					"Visible": "on screen",
+					"PrevSelection": "current selection",
+					"FromMouse": "within %{value} of the cursor",
+					"FromMouseC": "within %{value} of the cursor, any height"
+				},
+				"conclusionName": {
+					"SelectAll": "All of them",
+					"SelectOne": "One at a time",
+					"SelectClosestToCursor": "The closest to the cursor",
+					"SelectNum": "A number of them",
+					"SelectPart": "A percentage of them"
+				},
+				"conclusion": {
+					"SelectAll": "Select all",
+					"SelectOne": "Select one at a time",
+					"SelectClosestToCursor": "Select the closest",
+					"SelectNum": "Select %{value}",
+					"SelectPart": "Select %{value}%%"
+				},
+				"filterName": {
+					"Builder": "Builders",
+					"Buildoptions": "Able to build",
+					"Building": "Buildings",
+					"Aircraft": "Aircraft",
+					"Transport": "Transports",
+					"Weapons": "Armed",
+					"ManualFireUnit": "Manual-fire weapon",
+					"Resurrect": "Able to resurrect",
+					"Radar": "Radar or sonar",
+					"Jammer": "Jammers",
+					"Stealth": "Stealthy",
+					"Cloak": "Able to cloak",
+					"Cloaked": "Cloaked",
+					"Idle": "Idle",
+					"Waiting": "Waiting",
+					"Guarding": "Guarding",
+					"Patrolling": "Patrolling",
+					"InHotkeyGroup": "In a control group",
+					"InPrevSel": "Same type as selected",
+					"InGroup": "In control group",
+					"RelativeHealth": "Health above (%%)",
+					"AbsoluteHealth": "Health above",
+					"WeaponRange": "Range above",
+					"IdMatches": "Unit (internal names)"
+				},
+				"filter": {
+					"Builder": "builders",
+					"Buildoptions": "able to build",
+					"Building": "buildings",
+					"Aircraft": "aircraft",
+					"Transport": "transports",
+					"Weapons": "armed",
+					"ManualFireUnit": "manual-fire weapon",
+					"Resurrect": "able to resurrect",
+					"Radar": "radar or sonar",
+					"Jammer": "jammers",
+					"Stealth": "stealthy",
+					"Cloak": "able to cloak",
+					"Cloaked": "cloaked",
+					"Idle": "idle",
+					"Waiting": "waiting",
+					"Guarding": "guarding",
+					"Patrolling": "patrolling",
+					"InHotkeyGroup": "in a control group",
+					"InPrevSel": "same type as selected",
+					"InGroup": "in control group %{value}",
+					"RelativeHealth": "health above %{value}%%",
+					"AbsoluteHealth": "health above %{value}",
+					"WeaponRange": "range above %{value}",
+					"IdMatches": "%{value}"
+				},
+				"not": "not %{filter}",
+				"separator": ", ",
+				"anyOf": "%{units} or %{last}",
+				"summary": "%{conclusion}: %{filters} (%{source})",
+				"summaryAll": "%{conclusion} (%{source})",
+				"keepSelection": "%{summary}, added to the selection"
+			},
 			"keyboard": {
 				"layerBase": "No modifier held",
 				"layer": "%{mods} held",
@@ -1312,6 +1414,7 @@
 			"showdata": "Show data",
 			"showdatadesc": "Everything this widget has saved, the way it is stored. Click to read all of it.",
 			"errorsloading": "while loading",
+			"errorsmemory": "memory limit",
 			"errorsmore": "more",
 			"depsuses": "Uses",
 			"depsusedby": "Used by",
@@ -1336,6 +1439,20 @@
 			"deletesettitle": "Delete widget set",
 			"deletesetwarn": "Forgets this set. The widgets it switched on stay as they are.",
 			"loadset": "Load"
+		},
+		"widgetMemory": {
+			"turnedOff": "Turned off the user widget \"%{name}\": %{reason}. A widget using that much memory can crash the interface or the whole game. If you trust it, turn it back on in the widget list (F11).",
+			"reasonCall": "one %{callin} call allocated more than %{limit} MB",
+			"reasonLoad": "loading it allocated more than %{limit} MB",
+			"reasonHeld": "it held more than %{mb} MB of memory",
+			"reasonOutOfMemory": "Lua ran out of memory while it was running",
+			"reasonOutOfMemoryOther": "Lua ran out of memory and it was the user widget most likely to blame",
+			"reasonPool": "Lua memory reached %{percent}%% of its limit and it was the user widget most likely to blame",
+			"warnHeld": "The user widget \"%{name}\" holds about %{mb} MB of memory.",
+			"warnHeldAtLeast": "The user widget \"%{name}\" holds at least %{mb} MB of memory.",
+			"warnGrowing": "The user widget \"%{name}\" keeps growing: %{mb} MB now, up %{grown} MB in %{minutes} minutes. It may be leaking memory.",
+			"warnRate": "The user widget \"%{name}\" allocates %{mb} MB of memory per second, which keeps the garbage collector busy.",
+			"warnPool": "Lua memory is at %{percent}%% of its limit. The user widget most likely to blame is \"%{name}\"."
 		},
 		"unitstats": {
 			"prog": "Prog",
@@ -1608,7 +1725,7 @@
 				"fog_end": "end",
 				"fog_reset": "reset map default",
 				"ssao": "Ambient Occlusion",
-				"ssao_descr": "WARNING: might introduce a bit of lag",
+				"ssao_descr": "Darkens crevices and corners to enhance depth perception",
 				"ssao_strength": "strength",
 				"ssao_quality": "quality",
 				"ssao_quality_descr": "Lower qualities have lower SSAO resolution, which can result in SSAO flicker for moving units/camera",
@@ -1835,24 +1952,16 @@
 				"sameteamcolors": "team colorisation",
 				"sameteamcolors_descr": "Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors",
 				"anonymous_descr": "Set the anonymized player color used for the interface\n(changing value will take a few seconds to reload interface)",
-				"anonymous_r": "Anonymous Red",
-				"anonymous_g": "Anonymous Green",
-				"anonymous_b": "Anonymous Blue",
+				"anonymous_color": "Anonymous color",
 				"playercolors": "Simple team colors",
 				"simpleteamcolors": "simple",
 				"simpleteamcolorsfactionspecific": "Faction Color",
 				"simpleteamcolorsfactionspecific_descr": "Replaces Simple Team Colors with Faction Colors based on player's starting commander, useful for cinematics.",
-				"simpleteamcolors_reset": "Reset (Restart to reset sliders)",
+				"simpleteamcolors_reset": "Reset colors",
 				"simpleteamcolors_use_gradient": "Use a different shade for each player.",
-				"simpleteamcolors_player_r": "Player Red",
-				"simpleteamcolors_player_g": "Player Green",
-				"simpleteamcolors_player_b": "Player Blue",
-				"simpleteamcolors_ally_r": "Ally Red",
-				"simpleteamcolors_ally_g": "Ally Green",
-				"simpleteamcolors_ally_b": "Ally Blue",
-				"simpleteamcolors_enemy_r": "Enemy Red",
-				"simpleteamcolors_enemy_g": "Enemy Green",
-				"simpleteamcolors_enemy_b": "Enemy Blue",
+				"simpleteamcolors_player": "Player color",
+				"simpleteamcolors_ally": "Ally color",
+				"simpleteamcolors_enemy": "Enemy color",
 				"simpleteamcolors_descr": "Make all enemies have the same color",
 				"dualmode": "Dual Screen Mode",
 				"dualmode_enabled": "enabled",
@@ -2281,6 +2390,7 @@
 				"modelGamma": "gamma value",
 				"tonemapDefaults": "restore defaults",
 				"debugcolvol": "Draw collision volumes",
+				"fog_color": "Fog color",
 				"fog_color_reset": "reset map default",
 				"map_voidwater": "Map voidWater",
 				"map_voidground": "Map voidGround",
@@ -2295,16 +2405,13 @@
 				"color_unitambient": "Unit ambient",
 				"color_unitdiffuse": "Unit diffuse",
 				"color_unitspecular": "Unit specular",
-				"suncolor": "Sun",
-				"skycolor": "Sky",
+				"suncolor": "Sun color",
+				"skycolor": "Sky color",
 				"skybox": "Skybox",
 				"angle": "angle",
 				"reset": "reset",
 				"sunlighting_reset": "Reset ground/unit coloring",
 				"sunlighting_reset_descr": "resets ground/unit ambient/diffuse/specular colors",
-				"red": "red",
-				"green": "green",
-				"blue": "blue",
 				"language": "Language",
 				"language_english_unit_names": "Display unit names in English",
 				"reclaimfieldhighlight": "Reclaim Field Highlight",
@@ -2340,18 +2447,18 @@
 				"squadSelection_header": "Squad selection",
 				"squadSelection_header_hulls": "Squad hulls",
 				"squadSelection_preset": "Squad selection",
-				"squadSelection_preset_descr": "Squads are groups of combat units the game keeps track of for you. You can select/command a whole squad with one click.\n\nOff: no squads at all.\nMinimal: the least surprising behaviour. (Ctrl+right-click drag creates squad)\nAuto-group focused: leans on the automatic squads to limit your auto-group selections with space+(Num). You can still use manual squads. (Ctrl+right-click drag creates squad)\nSquad focused: for constantly creating and merging squads and using primarily the squad selection features to select your units. (Plain right-click creates squad)\nCustom: set your own preferences (some are advanced settings).\n\nEach preset apart from Custom sets the settings it needs and hides them.",
+				"squadSelection_preset_descr": "Squads are groups of combat units the game keeps track of for you. You can select/command a whole squad with one click.\n\nOff: no squads at all.\nMinimal: the least surprising behavior. (Ctrl+right-click drag creates a squad)\nAutogroup focused: leans on the automatic squads to limit your autogroup selections with Space+(Num). You can still use manual squads. (Ctrl+right-click drag creates a squad)\nSquad focused: for constantly creating and merging squads, and selecting your units mainly through the squad selection features. (Plain right-click creates a squad)\nCustom: set your own preferences (some are advanced settings).\n\nEach preset apart from Custom sets the settings it needs and hides them.",
 				"squadSelection_preset_opt1": "Off",
 				"squadSelection_preset_opt2": "Minimal",
-				"squadSelection_preset_opt3": "Auto-group focused",
+				"squadSelection_preset_opt3": "Autogroup focused",
 				"squadSelection_preset_opt4": "Squad focused",
 				"squadSelection_preset_opt5": "Custom (advanced)",
-				"squadSelection_cyclingToNextSquad": "Selects next closest squad on re-tap",
-				"squadSelection_cyclingToNextSquad_descr": "If squad selection would produce the current selection, selects from the next-closest squad instead.",
+				"squadSelection_cyclingToNextSquad": "Re-tap selects the next nearest squad",
+				"squadSelection_cyclingToNextSquad_descr": "If a squad selection would only repeat your current selection, the next nearest squad is selected instead.",
 				"squadSelection_leftClickSelectsSquad": "Modifier + left-click selects a squad",
-				"squadSelection_leftClickSelectsSquad_descr": "Ctrl-clicking empty ground selects the nearest squad. Ctrl + Shift appends it; hold Alt to select with type filter.\n\nAppends stay within the domain of what you already have selected, e.g. a nearby air squad is skipped while you have a land selection. Double-tap the append to select across domains instead.",
+				"squadSelection_leftClickSelectsSquad_descr": "Ctrl+left-click on empty ground selects the nearest squad. Ctrl+Shift adds it to your selection; also hold Alt to select by unit type.\n\nAdding stays within the domain of what you already have selected, e.g. a nearby air squad is skipped while you have land units selected. Double-tap to add across domains instead.",
 				"squadSelection_leftClickAlternativeSelection": "Alternative left-click selection",
-				"squadSelection_leftClickAlternativeSelection_descr": "When on, left-click squad selections are limited by distance, and selecting the same squad again narrows the selection down to the closest half of it (useful to split up squads).",
+				"squadSelection_leftClickAlternativeSelection_descr": "When on, Ctrl+left-click squad selections are limited by distance, and selecting the same squad again narrows the selection to its closest half (useful for splitting squads).",
 				"squadSelection_squadCreateMethod": "Right-click creates a squad",
 				"squadSelection_squadCreateMethod_descr": "How right-click groups the current selection into a new squad. The engine's move command still issues alongside it.",
 				"squadSelection_squadCreateMethod_opt1": "Off",
@@ -2359,7 +2466,7 @@
 				"squadSelection_squadCreateMethod_opt3": "Ctrl+right-click",
 				"squadSelection_squadCreateMethod_opt4": "Ctrl+right-click drag",
 				"squadSelection_rightClickMovesSquad": "Right-click moves the nearest squad",
-				"squadSelection_rightClickMovesSquad_descr": "With nothing selected, right-click-drag move-orders the squad nearest the press point to the release point. Hold Alt to do this even when you have a selection. With shift you lock the squad and append the order to its queue. With ctrl it moves in formation. Hold Space to also select the squad.",
+				"squadSelection_rightClickMovesSquad_descr": "With nothing selected, right-click drag orders the squad nearest the press point to move to the release point. Hold Alt to do this even when you have a selection. Shift locks the squad and adds the order to its queue. Ctrl moves it in formation. Space also selects the squad.",
 				"squadSelection_rightClickMoveControlsReserves": "Right-click move on automatic squads",
 				"squadSelection_rightClickMoveControlsReserves_descr": "What the right-click move feature does when the nearest squad is an automatic one (the per-factory squads and the catch-all squad the game keeps for everything else).",
 				"squadSelection_rightClickMoveControlsReserves_opt1": "Ignore automatic squads",
@@ -2369,11 +2476,11 @@
 				"squadSelection_mruSize": "Recent-squad cycle size",
 				"squadSelection_mruSize_descr": "How many recent squads the `squad_cycle_recent` action cycles through.",
 				"squadSelection_excludeConstructors": "Exclude constructors & commanders",
-				"squadSelection_excludeConstructors_descr": "When on, basic constructors and commanders are never tracked as squad units. Independent of your manual exclusion list. (manual exclusion: \"/squad_setting add|remove excludedUnitTypes <unitDefID>\")\nWarning: changing this rebuilds all squads.",
+				"squadSelection_excludeConstructors_descr": "When on, basic constructors and commanders are never tracked as squad units. Independent of your manual exclusion list. (manual exclusion: \"/squad_setting add|remove excludedUnitTypes <unitName>\")\nWarning: changing this rebuilds all squads.",
 				"squadSelection_excludeResurrectionUnits": "Exclude resurrection units",
-				"squadSelection_excludeResurrectionUnits_descr": "When on, resurrection units are never tracked as squad units. Independent of your manual exclusion list. (manual exclusion: \"/squad_setting add|remove excludedUnitTypes <unitDefID>\")\nWarning: changing this rebuilds all squads.",
+				"squadSelection_excludeResurrectionUnits_descr": "When on, resurrection units are never tracked as squad units. Independent of your manual exclusion list. (manual exclusion: \"/squad_setting add|remove excludedUnitTypes <unitName>\")\nWarning: changing this rebuilds all squads.",
 				"squadSelection_excludeCombatEngineers": "Exclude combat engineers",
-				"squadSelection_excludeCombatEngineers_descr": "When on, combat engineers are never tracked as squad units. Independent of your manual exclusion list. (manual exclusion: \"/squad_setting add|remove excludedUnitTypes <unitDefID>\")\nWarning: changing this rebuilds all squads.",
+				"squadSelection_excludeCombatEngineers_descr": "When on, combat engineers are never tracked as squad units. Independent of your manual exclusion list. (manual exclusion: \"/squad_setting add|remove excludedUnitTypes <unitName>\")\nWarning: changing this rebuilds all squads.",
 				"squadSelection_hullDisplayMode": "Squad hulls",
 				"squadSelection_hullDisplayMode_descr": "Convex hull outlines around squads; 'Manual squads only' excludes the automatic ones.",
 				"squadSelection_hullDisplayMode_opt1": "Off",
@@ -2392,12 +2499,8 @@
 				"squadSelection_squadColorMode_opt1": "Player",
 				"squadSelection_squadColorMode_opt2": "Custom",
 				"squadSelection_squadColorMode_opt3": "Per squad",
-				"squadSelection_squadCustomColorR": "Custom color Red",
-				"squadSelection_squadCustomColorR_descr": "Red component of the custom squad color (used when Squad color mode is Custom).",
-				"squadSelection_squadCustomColorG": "Custom color Green",
-				"squadSelection_squadCustomColorG_descr": "Green component of the custom squad color (used when Squad color mode is Custom).",
-				"squadSelection_squadCustomColorB": "Custom color Blue",
-				"squadSelection_squadCustomColorB_descr": "Blue component of the custom squad color (used when Squad color mode is Custom)."
+				"squadSelection_squadCustomColor": "Custom color",
+				"squadSelection_squadCustomColor_descr": "The custom squad color (used when Squad color mode is Custom)."
 			}
 		},
 		"startPositionSuggestions": {
@@ -3208,7 +3311,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[normal|hard|nightmare|akumu] Set zombie mode"
+			"zombiemode": "[basic|wraith|hydra|akumu|spidergeddon] Set zombie mode"
 		}
 	},
 	"modoptions": {
@@ -3961,26 +4064,31 @@
 		},
 		"zombies": {
 			"name": "Scavenger Zombies",
+			"desc": "Corpses left on the battlefield rise again as hostile zombies. Revival takes 45 to 120 seconds, with stronger units taking longer and revival speeding up as the game reaches higher tech. Reclaim or resurrect corpses to stop them from rising.",
 			"items": {
 				"disabled": {
 					"name": "Disabled",
-					"desc": "Disabled"
+					"desc": "No zombies. Corpses stay where they fall."
 				},
-				"normal": {
-					"name": "Normal",
-					"desc": "Normal revival rate, normal strength."
+				"basic": {
+					"name": "Basic",
+					"desc": "The dead come back to life"
 				},
-				"hard": {
-					"name": "Hard",
-					"desc": "Faster revival rate, stronger Zombies."
+				"wraith": {
+					"name": "Wraith",
+					"desc": "Basic, and Wraiths appear from overkill and from destroyed corpses. When a zombie's corpse is destroyed, it can respawn at any isolated Wraith."
 				},
-				"nightmare": {
-					"name": "Nightmare",
-					"desc": "Faster revival rate, stronger Zombies, 2-5 spawn per corpse."
+				"hydra": {
+					"name": "Hydra",
+					"desc": "Basic, and each corpse will resurrect between 2 and 6 zombies."
 				},
 				"akumu": {
 					"name": "Akumu",
-					"desc": "Faster revival rate, stronger Zombies, 2-8 spawn per corpse, zombies leave corpses."
+					"desc": "Basic, Wraith, and Hydra combined."
+				},
+				"spidergeddon": {
+					"name": "Spidergeddon (LIMITED TIME)",
+					"desc": "A modified Akumu mode, but zombies resurrect as Spiders."
 				}
 			}
 		},

@@ -1656,8 +1656,14 @@ local function stepAssets()
 			end
 		end
 		-- Legacy SSMF maps modulate a single grayscale detail texture instead of
-		-- (or in addition to) DNTS normals — capture it too.
-		if captureLiveTexture("$ssmf_splat_detail", job.dir .. "assets/dnts/capture_detail.png") then
+		-- (or in addition to) DNTS normals — capture it too. A canvas without a
+		-- DNTS set names a placeholder (gui_terraform_brush buildBlankMapStartScript)
+		-- whose grey fallback is not worth keeping: the next open names it again.
+		local placeholderDetail = mo.blank_map_splatdetailtex == "tf_no_splat_detail.png"
+		if
+			not placeholderDetail
+			and captureLiveTexture("$ssmf_splat_detail", job.dir .. "assets/dnts/capture_detail.png")
+		then
 			dnts = dnts or { textures = {}, scales = scales, mults = mults }
 			dnts.detail = "assets/dnts/capture_detail.png"
 		end
@@ -1665,7 +1671,7 @@ local function stepAssets()
 			dnts.set = "live-capture"
 			dnts.diffuse_alpha = gl.GetMapRendering("splatDetailNormalDiffuseAlpha") and 1 or 0
 			echoP("captured the map's live splat textures into assets/dnts/")
-		elseif findSection("splat") then
+		elseif findSection("splat") and not placeholderDetail then
 			warn(
 				"map has a splat distribution but no capturable splat textures — splat.png may not load onto a blank canvas"
 			)
@@ -3182,7 +3188,10 @@ local function phaseDntsSplat(c)
 	if not splatPath then
 		return true
 	end
-	if not hasDnts and not c.noDntsWarned then
+	-- the tileset shader reads splat.png as its LAYERS mask and needs no DNTS textures
+	local tt = WG.TilesetTerrain
+	local tilesetOwnsSplat = tt and tt.isActive and tt.isActive()
+	if not hasDnts and not tilesetOwnsSplat and not c.noDntsWarned then
 		c.noDntsWarned = true
 		echoP(
 			"WARNING: project has splat.png but no DNTS record — the splat data will load with no textures to modulate"

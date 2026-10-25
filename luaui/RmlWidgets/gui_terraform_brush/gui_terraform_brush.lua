@@ -3619,11 +3619,13 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	-- Inject the chosen DNTS splat set so the generated map loads with splat detail
 	-- normal textures (distribution channels R,G,B,A). Paths are game-VFS relative;
 	-- the blank-map generator must honour these blank_map_splat* keys.
+	local hasSplatNormals = false
 	if dntsSet and dntsSet.textures then
 		local t, sc, mu = dntsSet.textures, dntsSet.scales or {}, dntsSet.mults or {}
 		local prefix = dntsSet.rawPaths and "" or DNTS_DIR
 		for ch = 1, 4 do
 			if t[ch] then
+				hasSplatNormals = true
 				opt[#opt + 1] = "blank_map_splatdetailnormaltex" .. ch .. "=" .. prefix .. t[ch] .. ";"
 				opt[#opt + 1] = "blank_map_splattexscale" .. ch .. "=" .. (sc[ch] or 0.01) .. ";"
 				opt[#opt + 1] = "blank_map_splattexmult" .. ch .. "=" .. (mu[ch] or 1.0) .. ";"
@@ -3642,6 +3644,19 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 		-- an empty distribution when absent; forcing a missing filename causes load
 		-- warnings and can interfere with splat activation.
 		opt[#opt + 1] = "blank_map_splatdetailnormaldiffusealpha=" .. (dntsSet.diffuseAlpha == 1 and 1 or 0) .. ";"
+	end
+	if not hasSplatNormals then
+		-- No DNTS normals (no pack installed, or a map project saved from a
+		-- canvas that had none): the engine then makes no $ssmf_splat_distr at
+		-- all, and the tileset shader's LAYERS mask has nothing to paint into.
+		-- Naming a classic detail/distribution pair makes the engine build its
+		-- fallback textures (grey detail, a (255,0,0,0) distribution). The
+		-- placeholder names never resolve, which costs a load warning each.
+		if not (dntsSet and dntsSet.detail) then
+			-- cmd_map_project knows this name and does not capture the grey fallback
+			opt[#opt + 1] = "blank_map_splatdetailtex=tf_no_splat_detail.png;"
+		end
+		opt[#opt + 1] = "blank_map_splatdistr=tf_no_splat_distr.png;"
 	end
 
 	local injectParts = {
@@ -7647,9 +7662,8 @@ local initialModel = {
 	end,
 	onSpSave = function(_event)
 		playSound("apply")
-		if WG.StartPosTool then
-			WG.StartPosTool.saveStartPositions()
-			WG.StartPosTool.saveStartboxes()
+		if WG.StartPosTool and WG.StartPosTool.saveAll then
+			WG.StartPosTool.saveAll()
 		end
 	end,
 	-- Copies the startbox override as a !bSet the user can paste into lobby chat. Startbox
@@ -7658,6 +7672,12 @@ local initialModel = {
 		playSound("apply")
 		if WG.StartPosTool then
 			WG.StartPosTool.copyStartboxOverride()
+		end
+	end,
+	onSpExport = function(_event)
+		playSound("apply")
+		if WG.StartPosTool and WG.StartPosTool.exportSuggestions then
+			WG.StartPosTool.exportSuggestions()
 		end
 	end,
 	onSpLoad = function(_event)
@@ -14150,8 +14170,10 @@ local initialModel = {
 			end
 			return
 		end
+		-- the painter creates a distribution on canvases started without a DNTS set
+		local canPaint = WG.SplatPainter.canPaintDistribution
 		local ti = gl.TextureInfo and gl.TextureInfo("$ssmf_splat_distr")
-		if not (ti and (ti.xsize or 0) > 0) then
+		if not ((canPaint and canPaint()) or (ti and (ti.xsize or 0) > 0)) then
 			Spring.Echo("[Terraform Brush] LAYERS needs a splat distribution texture; this map exposes none.")
 			return
 		end

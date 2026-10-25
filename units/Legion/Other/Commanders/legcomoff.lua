@@ -87,6 +87,7 @@ return {
 			[29] = "corjamt",
 		},
 		customparams = {
+			maxrange = 400,
 			unitgroup = "builder",
 			iscommander = true,
 			model_author = "FireStorm",

@@ -780,6 +780,7 @@ end
 -- SHADER UPDATE row. Deliberately NOT gated on WG.TilesetTerrain: the row has
 -- to work when the shader widget is missing or stale, which is exactly when it
 -- is not loaded. Hidden outright without a companion, like the team library tab.
+-- the shader manifest's brush_versions series: patch releases (1.17.1) keep their minor
 local BRUSH_VERSION = "1.17"
 
 local function shaderFitsBrush(shader)

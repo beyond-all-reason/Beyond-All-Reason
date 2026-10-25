@@ -23,7 +23,6 @@ return {
 		leavetracks = true,
 		mass = 740,
 		maxacc = 0.067,
-		--- maxdec = 0.1327,
 		maxdec = 0.4,
 		maxslope = 16,
 		maxwaterdepth = 0,
