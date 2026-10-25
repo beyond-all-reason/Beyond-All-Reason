@@ -660,10 +660,8 @@ function widget:MousePress(mx, my, button)
 			state.dragStartY = my
 			return true
 		end
-		-- Clicking away dismisses an open comment, Figma-style: an in-progress
-		-- edit is cancelled, an open comment is closed. The dismissing click is
-		-- consumed (return true) so the active brush does not also fire on it;
-		-- the next click reaches the brush normally.
+		-- Clicking away dismisses an open comment (an edit is cancelled, a view is
+		-- closed). The click is consumed so the active brush does not fire on it.
 		if state.openLabelId and button == 1 then
 			playSound("click")
 			if state.popupEditing then
@@ -1033,10 +1031,9 @@ function widget:Initialize()
 		isPlacing = function()
 			return state.placing
 		end,
-		-- Single answer for "is the terrain brush off right now" — the brush
-		-- widget hides its cursor ring whenever this is true. Covers label
-		-- placement, dot hover/drag, hovering our windows, and an open comment
-		-- (whose dismissing click is consumed instead of painting).
+		-- Single answer for "is the terrain brush off right now": the brush hides
+		-- its cursor ring while this is true. Covers placement, dot hover/drag,
+		-- hovering our windows, and an open comment (its dismissing click is consumed).
 		shouldSuppressBrush = function()
 			if state.placing or state.openLabelId then
 				return true
@@ -1105,9 +1102,8 @@ function widget:Initialize()
 			return #state.labels
 		end,
 
-		-- Opening a project whose manifest has no labels section: the project
-		-- genuinely has no comments, so drop whatever the previous project left
-		-- in the (map-name-keyed, hence shared) autosave file.
+		-- A project manifest with no labels section has no comments, so drop what
+		-- the previous project left in the shared per-map autosave file.
 		clearProject = function()
 			closePopup()
 			setPlacing(false)
