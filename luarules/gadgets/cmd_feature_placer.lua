@@ -944,7 +944,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 			Spring.Echo("[Feature Placer] Requires /cheat to be enabled")
 			return true
 		end
-		closeStroke()
+		-- No closeStroke() here, as in PLACELIST: every batch of one load carries
+		-- the same stroke id and must land in one undo entry.
 		loadFeatureBatch(msg:sub(#LOAD_HEADER + 1))
 		return true
 	end
