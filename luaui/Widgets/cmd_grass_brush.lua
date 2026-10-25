@@ -56,7 +56,7 @@ local BrushShapes = require("common/brush_shapes")
 local KEYSYMS_SPACE = 0x20
 local KEYSYMS_ESCAPE = 0x1B
 
--- Track the engine's active command so we can detect external tool switches
+-- The engine's active command, to notice a switch to another tool.
 local lastActiveCmd = nil
 
 -- ============================================================
@@ -66,7 +66,7 @@ local CIRCLE_SEGMENTS = 48
 local UPDATE_INTERVAL = 0.033
 local FILTER_GRID_STEP = 32
 
--- Parameter ranges (match terraform brush conventions)
+-- Parameter ranges, matching the terraform brush
 local MIN_RADIUS = 8
 local MAX_RADIUS = 2000
 local RADIUS_STEP = 8
@@ -157,9 +157,8 @@ local function strokeEnd()
 	end
 end
 
--- Feedback on every outcome: a silent no-op reads as "undo is broken", and
--- the two real failure modes (empty stack vs missing grass API) need to be
--- distinguishable from the console when players report it.
+-- Echo every outcome: a silent no-op reads as "undo is broken", and an empty
+-- stack must be told apart from a missing grass API in bug reports.
 local function grassUndo()
 	if #undoStack == 0 then
 		Echo("[Grass Brush] Nothing to undo")
@@ -230,11 +229,9 @@ local smartFilters = {
 
 -- Texture color filter state
 local texFilterEnabled = false
--- texFilterColor indices 1-3: include RGB
--- texFilterColor indices 4: exclude enabled flag (1/nil)
--- texFilterColor indices 5-7: exclude RGB
+-- texFilterColor: [1..3] include RGB, [4] exclude enabled (1 or nil), [5..7] exclude RGB
 local texFilterColor = { 0.25, 0.45, 0.15, nil, 0.65, 0.35, 0.10 } -- include=green, exclude=brown
-local texFilterThreshold = 0.35 -- color distance threshold (0–1)
+local texFilterThreshold = 0.35 -- color distance threshold (0..1)
 local texFilterPadding = 0 -- padding in elmos from excluded areas
 local pipetteMode = false -- true while waiting for user to click terrain (include)
 local pipettePending = nil -- { wx, wz } queued in MousePress, sampled in DrawScreen
@@ -245,9 +242,8 @@ local pipetteExcludePending = nil -- { wx, wz } queued for exclude sample
 -- Shape Testing
 -- ============================================================
 
--- Shared point-in-shape test (see common/brush_shapes.lua).
--- Signature: isInsideShape(dx, dz, radius, shape, angleDeg, lengthScale)
---   -> inside (boolean), normDist (number)
+-- Shared point-in-shape test (common/brush_shapes.lua):
+-- isInsideShape(dx, dz, radius, shape, angleDeg, lengthScale) -> inside, normDist
 local isInsideShape = BrushShapes.isInside
 local computeFalloff = BrushShapes.computeFalloff
 
@@ -286,27 +282,14 @@ local function isPointValid(px, pz, sf)
 end
 
 -- ============================================================
--- Texture Color Filter — Diffuse Sampling via $map_gbuffer_difftex
+-- Texture color filter: diffuse sampling from $map_gbuffer_difftex
 -- ============================================================
---
--- SOURCE: $map_gbuffer_difftex = terrain G-buffer diffuse, screen-space.
---   UV (0,0)→(1,1) maps to viewport bottom-left→top-right.
---   Matches the ACTUAL terrain renderer output (correct colors).
---   $minimap was dropped — different shading pipeline, wrong colors.
---
--- BATCH APPROACH (buildDiffuseCache):
---   1. WorldToScreenCoords for each grid cell → viewport pixel coords.
---   2. Compute screen bounding-box of all cells (minSX..maxSX).
---   3. Capture that bbox region from $map_gbuffer_difftex into a
---      (bboxW × bboxH) FBO via single TexRect (pass 1).
---   4. ReadPixels from the FBO (pass 2).
---   5. Look up each cell: FBO pixel = (sx - minSX, sy - minSY).
---
--- SINGLE-POINT APPROACH (sampleDiffuseAtPoint / pipette):
---   WorldToScreenCoords → screen UV → 1×1 FBO two-pass.
---
--- Runs in DrawScreen.  DrawWorld overlay uses cached dcR/dcG/dcB arrays.
--- SINGLE-SOURCE-OF-TRUTH: every consumer MUST call getDiffuseColorAt().
+-- The terrain G-buffer diffuse (screen space) matches what the renderer shows;
+-- $minimap uses a different shading pipeline and gives wrong colors.
+-- Batch (buildDiffuseCache): project a grid of cells to screen, copy their
+-- screen bounding box into a small FBO, read it back next frame. Pipette
+-- (sampleDiffuseAtPoint): one pixel through a 1x1 FBO. Both run in DrawScreen;
+-- every consumer reads through getDiffuseColorAt().
 -- ============================================================
 
 -- Cache constants
@@ -328,7 +311,7 @@ local dcInfo = {
 	stepX = 0,
 	stepZ = 0, -- world elmos per grid cell
 	fbo = nil, -- 1x1 FBO texture handle (pipette only)
-	gridTex = nil, -- viewport-sized FBO (gridW x gridH) for batch cache
+	gridTex = nil, -- batch cache FBO, the screen bbox capped to capW x capH
 	fboW = 0,
 	fboH = 0, -- current gridTex dimensions
 	wx1 = 0,
@@ -343,17 +326,15 @@ local dcInfo = {
 	pendingMinSY = 0,
 	pendingBboxW = 0, -- actual FBO size (capped)
 	pendingBboxH = 0, -- actual FBO size (capped)
-	pendingScaleX = 1, -- capW / fullBboxW — for scaled pixel lookup
+	pendingScaleX = 1, -- capW / fullBboxW, for the scaled pixel lookup
 	pendingScaleY = 1, -- capH / fullBboxH
 	pendingGridW = 0,
 	pendingGridH = 0,
 }
 
 -- ------------------------------------------------
--- buildDiffuseCache(cx, cz, halfExtent)
---   Screen-space G-buffer sampling.  Project each grid cell to screen,
---   capture screen bbox from $map_gbuffer_difftex in one TexRect,
---   read back all pixels, store per cell.  DrawScreen only.
+-- buildDiffuseCache(cx, cz, halfExtent): render pass of the batch sample
+-- (the readback is flushDiffuseRead, next frame). DrawScreen only.
 -- ------------------------------------------------
 local function buildDiffuseCache(cx, cz, halfExtent)
 	local GetGH = Spring.GetGroundHeight
@@ -361,7 +342,6 @@ local function buildDiffuseCache(cx, cz, halfExtent)
 	local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 	local msX, msZ = Game.mapSizeX, Game.mapSizeZ
 
-	-- Clamp world rectangle to map bounds
 	local x1 = max(0, cx - halfExtent)
 	local z1 = max(0, cz - halfExtent)
 	local x2 = min(msX, cx + halfExtent)
@@ -372,13 +352,12 @@ local function buildDiffuseCache(cx, cz, halfExtent)
 		return
 	end
 
-	-- Determine grid resolution
 	local stepX = max(CACHE_MIN_STEP, rangeX / DIFFUSE_GRID_MAX)
 	local stepZ = max(CACHE_MIN_STEP, rangeZ / DIFFUSE_GRID_MAX)
 	local gridW = max(1, floor(rangeX / stepX))
 	local gridH = max(1, floor(rangeZ / stepZ))
 
-	-- Pass 1: project each cell to screen coords, build bbox
+	-- Project each cell to screen and grow the bounding box.
 	local gridSX = {} -- viewport-relative pixel X per cell
 	local gridSY = {} -- viewport-relative pixel Y per cell
 	local minSX = vsx
@@ -424,15 +403,13 @@ local function buildDiffuseCache(cx, cz, halfExtent)
 	local bboxW = maxSX - minSX + 1
 	local bboxH = maxSY - minSY + 1
 
-	-- Cap FBO size to prevent huge ReadPixels Lua tables causing OOM.
-	-- ReadPixels returns bboxW*bboxH pixel tables; at 800×800 that's 640k
-	-- entries which overwhelms the 1.5GB LuaUI heap. 96×96 = 9216 entries max.
+	-- Cap the FBO: ReadPixels returns one Lua table per pixel, and an 800x800
+	-- box (640k tables) overwhelms the LuaUI heap. 96x96 is at most 9216.
 	local capW = min(bboxW, DIFFUSE_GRID_MAX * 2)
 	local capH = min(bboxH, DIFFUSE_GRID_MAX * 2)
 	local scaleX = capW / bboxW
 	local scaleY = capH / bboxH
 
-	-- Recreate FBO only if capped dimensions changed
 	if dcInfo.gridTex and (dcInfo.fboW ~= capW or dcInfo.fboH ~= capH) then
 		gl.DeleteTexture(dcInfo.gridTex)
 		dcInfo.gridTex = nil
@@ -450,9 +427,8 @@ local function buildDiffuseCache(cx, cz, halfExtent)
 		return
 	end
 
-	-- Render pass: capture screen bbox from gbuffer into FBO (scaled down to capW×capH).
-	-- ReadPixels is NOT done here — deferred to next DrawScreen frame
-	-- to avoid synchronous GPU→CPU stall (causes SwapBuffers lag).
+	-- Copy the screen bbox into the FBO (scaled to capW x capH). ReadPixels waits
+	-- for the next DrawScreen: reading now would stall the GPU (SwapBuffers lag).
 	local u0 = minSX / vsx
 	local v0 = minSY / vsy
 	local u1b = (maxSX + 1) / vsx
@@ -463,20 +439,19 @@ local function buildDiffuseCache(cx, cz, halfExtent)
 		gl.Texture(false)
 	end)
 
-	-- Store pending-read state for next frame
 	dcInfo.pendingGridSX = gridSX
 	dcInfo.pendingGridSY = gridSY
 	dcInfo.pendingMinSX = minSX
 	dcInfo.pendingMinSY = minSY
 	dcInfo.pendingBboxW = capW -- actual FBO size (capped)
 	dcInfo.pendingBboxH = capH -- actual FBO size (capped)
-	dcInfo.pendingScaleX = scaleX -- to convert screen-offset → FBO pixel
+	dcInfo.pendingScaleX = scaleX -- screen offset -> FBO pixel
 	dcInfo.pendingScaleY = scaleY
 	dcInfo.pendingGridW = gridW
 	dcInfo.pendingGridH = gridH
 	dcInfo.pendingRead = true
 
-	-- Update position metadata NOW so needsCacheRebuild won't re-fire next frame
+	-- Record the position now so needsCacheRebuild does not fire again next frame.
 	dcValid = false -- stays false until flushDiffuseRead() completes
 	dcInfo.cx = cx
 	dcInfo.cz = cz
@@ -492,10 +467,8 @@ local function buildDiffuseCache(cx, cz, halfExtent)
 end
 
 -- ------------------------------------------------
--- flushDiffuseRead()
---   Called at the START of DrawScreen each frame.
---   Completes the deferred ReadPixels from the previous frame's render pass.
---   GPU has had a full frame to finish rendering → no stall.
+-- flushDiffuseRead(): at the start of DrawScreen, read back last frame's
+-- render pass; the GPU has had a full frame, so there is no stall.
 -- ------------------------------------------------
 local function flushDiffuseRead()
 	if not dcInfo.pendingRead then
@@ -533,7 +506,7 @@ local function flushDiffuseRead()
 				local isy = gridSY[idx]
 				local r, g, b = 0, 0, 0
 				if isx and isx >= 0 then
-					-- scale screen-space offset → capped FBO pixel coords
+					-- screen-space offset -> capped FBO pixel
 					local fx = max(0, min(bboxW - 1, floor((isx - minSX) * scaleX)))
 					local fy = max(0, min(bboxH - 1, floor((isy - minSY) * scaleY)))
 					local row = pixels[fy + 1]
@@ -554,9 +527,8 @@ local function flushDiffuseRead()
 end
 
 -- ------------------------------------------------
--- getDiffuseColorAt(wx, wz)
---   SINGLE lookup function — every consumer calls this.
---   Returns r, g, b (0–1 floats) or nil if cache miss.
+-- getDiffuseColorAt(wx, wz): the one cache lookup every consumer uses.
+-- Returns r, g, b (0..1), or nil on a cache miss.
 -- ------------------------------------------------
 local function getDiffuseColorAt(wx, wz)
 	if not dcValid then
@@ -567,7 +539,6 @@ local function getDiffuseColorAt(wx, wz)
 		return nil
 	end
 
-	-- Nearest-neighbor grid lookup
 	local gx = floor((wx - dcInfo.wx1) / dcInfo.stepX)
 	gx = max(0, min(gW - 1, gx))
 	local gz = floor((wz - dcInfo.wz1) / dcInfo.stepZ)
@@ -581,10 +552,6 @@ local function getDiffuseColorAt(wx, wz)
 	return r, dcG[idx], dcB[idx]
 end
 
--- ------------------------------------------------
--- invalidateDiffuseCache()
---   Clear the cache so next frame rebuilds it.
--- ------------------------------------------------
 local function invalidateDiffuseCache()
 	dcValid = false
 	dcInfo.pendingRead = false
@@ -593,10 +560,7 @@ local function invalidateDiffuseCache()
 end
 
 -- ------------------------------------------------
--- sampleDiffuseAtPoint(wx, wz)
---   Single-point pipette sample from $map_gbuffer_difftex.
---   Projects world→screen, samples G-buffer via 1×1 FBO (two-pass).
---   Must be called from DrawScreen.
+-- sampleDiffuseAtPoint(wx, wz): pipette sample through a 1x1 FBO. DrawScreen only.
 -- ------------------------------------------------
 local function sampleDiffuseAtPoint(wx, wz)
 	local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
@@ -630,10 +594,6 @@ local function sampleDiffuseAtPoint(wx, wz)
 	return r, g, b
 end
 
--- ------------------------------------------------
--- needsCacheRebuild(cx, cz, requiredHalf)
---   Returns true when the cache needs to be rebuilt.
--- ------------------------------------------------
 local function needsCacheRebuild(cx, cz, requiredHalf)
 	if dcInfo.pendingRead then
 		return false
@@ -672,9 +632,8 @@ local function passesTexFilter(wx, wz)
 		return false
 	end
 	local distInclude = colorDistance(r, g, b, texFilterColor[1], texFilterColor[2], texFilterColor[3])
-	-- If exclusion color is set: score = distToInclude - distToExclude.
-	-- Negative score = closer to include than to exclude = good.
-	-- Threshold shifts the margin: score <= threshold allows some closeness to exclude.
+	-- With an exclude color, score = distInclude - distExclude (negative means
+	-- nearer the include color) and passes at score <= threshold - 0.5.
 	if texFilterColor[4] then
 		local distExclude = colorDistance(r, g, b, texFilterColor[5], texFilterColor[6], texFilterColor[7])
 		return (distInclude - distExclude) <= (texFilterThreshold - 0.5)
@@ -754,7 +713,7 @@ local function applyPaintBrush(worldX, worldZ, direction)
 	local zMin = max(0, worldZ - brushRadius * brushLengthScale)
 	local zMax = min(config.mapSizeZ, worldZ + brushRadius * brushLengthScale)
 
-	-- Minimum density that produces visible grass in the GL4 renderer
+	-- Lowest density the GL4 grass renderer actually draws.
 	local minVisible = (config.grassMinSize or 1) / max(1, config.grassMaxSize or 20)
 
 	for x = xMin, xMax, patchRes do
@@ -768,7 +727,7 @@ local function applyPaintBrush(worldX, worldZ, direction)
 
 					local newDensity
 					if direction > 0 then
-						-- Paint: max-blend toward target density * falloff
+						-- Paint: raise toward target density * falloff, never lower
 						local desired = targetDensity * falloff
 						if desired > 0 and desired < minVisible then
 							desired = minVisible
@@ -866,7 +825,7 @@ local function applyBrush(worldX, worldZ)
 	if tb and tb.getState then
 		local st = tb.getState()
 		rotDeg = st.rotationDeg or 0
-		-- Pull shared shape so the Shape row selection actually affects grass
+		-- Shape comes from the shared Shape row; unknown shapes fall back to circle.
 		if st.shape then
 			local s = st.shape
 			if s == "circle" or s == "square" or s == "hexagon" or s == "octagon" or s == "triangle" then
@@ -952,7 +911,7 @@ local function drawShapeOutline(worldX, worldZ, radius, shape, angleDeg, lengthS
 		local angleRad = (angleDeg or 0) * pi / 180
 		local c, s = cos(angleRad), sin(angleRad)
 		if shape == "square" then
-			-- axis-aligned square with corners at (±r, ±r*lengthScale) to match inside test
+			-- corners at (+-r, +-r*lengthScale) to match the inside test
 			local corners = { { 1, 1 }, { -1, 1 }, { -1, -1 }, { 1, -1 } }
 			glBeginEnd(GL_LINE_LOOP, function()
 				for i = 1, 4 do
@@ -1004,9 +963,8 @@ local function drawSmartFilterOverlay(cx, cz)
 	local rad = brushRotation * pi / 180
 	local cosR, sinR = cos(rad), sin(rad)
 
-	-- getDiffuseColorAt is a pure table lookup (no GL calls), so
-	-- shouldApplyAt is safe to call inside glBeginEnd — no need for
-	-- a pre-computed cells table (saves thousands of table allocations).
+	-- getDiffuseColorAt is a plain table lookup (no GL calls), so shouldApplyAt
+	-- can run inside glBeginEnd without a precomputed cell table.
 	glDepthTest(true)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	glBeginEnd(GL_TRIANGLES, function()
@@ -1066,8 +1024,7 @@ local function activate(mode)
 	subMode = mode or "paint"
 	painting = false
 	grassAvailable = ensureEditMode()
-	-- Snapshot the current engine command so Update() doesn't
-	-- immediately interpret it as a tool switch.
+	-- Snapshot the current engine command so Update() does not read it as a tool switch.
 	local _, cmdID = GetActiveCommand()
 	lastActiveCmd = cmdID
 	local grassApi = WG.grassgl4
@@ -1091,9 +1048,8 @@ local function deactivate()
 	end
 end
 
--- Defensive: detect when another tool has been activated (e.g. via keyboard
--- shortcut or direct API call) and self-deactivate so our mouse/draw handlers
--- don't bleed into the other tool's mode.
+-- Step aside when another tool turns on (a hotkey or a direct API call), so
+-- this widget's mouse and draw handlers do not bleed into it.
 local function checkConflictAndDeactivate()
 	if not active then
 		return false
@@ -1285,19 +1241,19 @@ function widget:MousePress(mx, my, button)
 		return false
 	end
 
-	-- Middle mouse: always pass through for camera
+	-- Middle mouse always passes through to the camera.
 	if button == 2 then
 		return false
 	end
 
-	-- Defer to measure tool when active so grass paint doesn't consume the click
+	-- Leave the click to the measure tool while it is active.
 	local tb = WG.TerraformBrush
 	if tb and tb.getState then
 		local st = tb.getState()
 		if st and st.measureActive then
 			return false
 		end
-		-- Defer to symmetry origin placement / drag-grab so terraform can handle it
+		-- ... and to symmetry origin placement or dragging, which the terraform brush handles.
 		if st and st.symmetryActive then
 			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
 				return false
@@ -1375,7 +1331,7 @@ function widget:MouseWheel(up, value)
 		return true
 	end
 
-	-- Alt: rotation (shared TerraformBrush — snap to TB protractor step when angleSnap on)
+	-- Alt: rotation, shared with the terraform brush (its angle snap step when snap is on)
 	if alt then
 		local step = ROTATION_STEP
 		local tb = WG.TerraformBrush
@@ -1432,10 +1388,9 @@ function widget:Update(dt)
 		return
 	end
 
-	-- Detect if the user selected an engine command (attack, move, build, etc.)
+	-- Picking an engine command (attack, move, build...) leaves the grass brush.
 	local _, cmdID = GetActiveCommand()
 	if cmdID and cmdID ~= lastActiveCmd then
-		-- An engine command became active — user switched away from grass brush
 		deactivate()
 		lastActiveCmd = cmdID
 		return
@@ -1512,7 +1467,7 @@ function widget:DrawWorld()
 			worldX, worldZ = tb.getUnmouseTarget(brushRadius, brushLengthScale or 1.0)
 		end
 	end
-	-- Apply visual grid snap so cursor position matches where paint will land
+	-- Snap the cursor like the stroke does, so it shows where paint will land.
 	if worldX then
 		local tb = WG.TerraformBrush
 		if tb and tb.snapWorld and tb.getState then
@@ -1586,7 +1541,7 @@ function widget:DrawScreen()
 		return
 	end
 
-	-- Complete deferred ReadPixels from previous frame (GPU already done → no stall)
+	-- Finish last frame's deferred ReadPixels (the GPU is done, so no stall).
 	flushDiffuseRead()
 
 	-- Reuse DrawWorld's mouse trace from this draw pass when available
@@ -1600,7 +1555,7 @@ function widget:DrawScreen()
 		return
 	end
 
-	-- Process pending pipette sample (queued by MousePress, executed here in DrawScreen GL context)
+	-- Pipette samples are queued by MousePress and taken here, where GL reads are allowed.
 	if pipettePending then
 		local pw, pz = pipettePending.wx, pipettePending.wz
 		pipettePending = nil
@@ -1612,7 +1567,6 @@ function widget:DrawScreen()
 		end
 	end
 
-	-- Process pending exclude pipette sample
 	if pipetteExcludePending then
 		local pw, pz = pipetteExcludePending.wx, pipetteExcludePending.wz
 		pipetteExcludePending = nil
@@ -1624,7 +1578,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	-- Build/refresh diffuse cache (viewport FBO, two-pass) in DrawScreen GL context
+	-- Rebuild the diffuse cache around the brush when it moved.
 	if texFilterEnabled then
 		local brushHalf = max(brushRadius, brushRadius * brushLengthScale) + CACHE_MARGIN
 		if needsCacheRebuild(worldX, worldZ, brushHalf) then

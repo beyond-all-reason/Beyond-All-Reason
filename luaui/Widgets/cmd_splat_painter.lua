@@ -69,9 +69,8 @@ local DEFAULT_CURVE = 1.0
 local MIN_CURVE = 0.1
 local MAX_CURVE = 5.0
 local CURVE_STEP = 0.1
--- Fractal brush-edge warp (ported from cmd_diffuse_painter): amount 0 = off,
--- freq is world-space fBm frequency in 1/elmos. Step granularity is applied
--- UI-side (the FRACTAL sliders), so only the defaults + clamps live here.
+-- Fractal brush-edge warp (same as cmd_diffuse_painter): amount 0 = off, freq
+-- is the world-space fBm frequency in 1/elmos. The panel sliders set the step.
 local DEFAULT_FRACTAL = 0.0
 local MIN_FRACTAL = 0.0
 local MAX_FRACTAL = 1.0
@@ -84,7 +83,7 @@ local MAX_INTENSITY = 10.0
 local INTENSITY_STEP = 0.1
 local GRID_STEP = 24 -- elmos between smart-filter sample points
 
--- Shapes (reuse from terraform brush)
+-- Shapes, as in the terraform brush
 local SHAPES = { "circle", "square", "triangle", "hexagon", "octagon" }
 
 -- State
@@ -118,11 +117,8 @@ local smartFilter = {
 	altMaxEnable = false,
 	altMax = 200,
 	-- INFLUENCE: soft altitude / slope bands that scale a stroke instead of
-	-- gating it, remembered per CHANNEL (the surface painter keeps the same
-	-- shape per texture). Inside this table on purpose: the paint pass runs
-	-- from DrawWorld, which sits at the Lua 5.1 upvalue ceiling, and this table
-	-- is already one of its upvalues. _uInf holds the uniform locations for the
-	-- same reason.
+	-- gating it, one profile per channel. Kept inside this table (as is _uInf,
+	-- the uniform locations) because DrawWorld is at the upvalue ceiling (see farInv).
 	influenceDefault = {
 		altOn = false,
 		altMin = 0,
@@ -144,9 +140,8 @@ local splatTexHeight = 0
 local fboTex = nil
 local texApplied = false
 
--- Reusable ping-pong temp texture for paint strokes. The paint shader
--- overwrites every texel each stroke (full-quad TexRect, blending off), so
--- one cached texture is safe to reuse; recreated only when the size changes.
+-- Ping-pong temp texture for paint strokes. The paint shader overwrites every
+-- texel (full quad, blending off), so one cached texture is safe to reuse.
 local paintTempTex = nil
 local paintTempW, paintTempH = 0, 0
 
@@ -175,10 +170,9 @@ local overlayShader = nil
 -- Overlay state
 local showSplatOverlay = false
 
--- Ctrl sneak-peek gate (Terraform Brush DISPLAY chip). While on and the
--- tileset shader is live, holding Ctrl renders the selected override channel's
--- material inside the brush ring before any stroke lands (LAYERS tool; also
--- works from the legacy splat panel since the engine is shared).
+-- Ctrl sneak-peek gate (DISPLAY chip). While on and the tileset shader is live,
+-- holding Ctrl previews the selected override channel's material inside the
+-- brush ring (LAYERS tool, and the SPLAT panel, which shares this engine).
 local tilesetPreviewOn = true
 
 -- Drawing
@@ -201,17 +195,14 @@ local undoStack = {}
 local redoStack = {}
 local pendingSnapshot = false -- set on MousePress, consumed before first stroke
 
--- Tileset far cache / clipmap invalidation. The tileset shader serves every
--- pixel past its handoff from a baked composite (far cache + clipmap), and that
--- bake samples $ssmf_splat_distr at bake time: a stroke that only rewrites the
--- texture is invisible there until something else re-bakes the region (the
--- "layers vanish when I zoom out" report, 2026-09-01). Every executed stroke
--- widens a dirty rect (elmos); it is flushed to WG.TilesetTerrain.refreshSurface
--- (rect -> sub-rect far bake + clipmap edit, ~free for a brush footprint) every
--- FAR_FLUSH_S during a drag and as soon as the drag ends. Whole-texture changes
--- (undo, redo, load) pass no rect = a throttled whole-map refill.
--- One table for state + helpers: widget:DrawWorld sits at 58/60 upvalues
--- (Lua 5.1 ceiling), so this costs it one, not four.
+-- Tileset far cache / clipmap invalidation. Past its handoff distance the
+-- tileset shader draws a baked composite that sampled $ssmf_splat_distr at
+-- bake time, so a stroke stays invisible there until the region is re-baked.
+-- Each stroke widens a dirty rect (elmos), flushed to
+-- WG.TilesetTerrain.refreshSurface every FAR_FLUSH_S during a drag and when it
+-- ends; whole-texture changes (undo, redo, load) pass no rect (whole-map refill).
+-- One table for state and helpers: widget:DrawWorld is at the Lua 5.1 limit
+-- of 60 upvalues, so this costs it one, not four.
 local FAR_FLUSH_S = 0.03 -- every frame or two: the tileset routes rects to its clipmap per frame and throttles minimap + far bake itself
 ---@type table
 local farInv = {} -- dirty = { ax, az, bx, bz } elmos rect, nil when clean; at = last flush timer
@@ -271,7 +262,7 @@ end
 local pendingUndoCount = 0
 local pendingRedoCount = 0
 
--- Shape index mapping for shader
+-- Shape index passed to the shader
 local SHAPE_INDEX = {
 	circle = 0,
 	square = 1,
@@ -295,7 +286,7 @@ local function getWorldMousePosition()
 			edgeFade = fade or 1
 			return wx, wz
 		end
-		-- Reset so a stale fade doesn't dim the unmouse-target cursor
+		-- Reset so a stale fade does not dim the unmouse-target cursor.
 		edgeFade = 1
 		return nil, nil
 	end
@@ -690,11 +681,10 @@ end
 
 local noSplatWarned = false
 
--- A canvas started without a DNTS set (no pack installed, a runner or launcher
--- canvas, or a map project saved from one) has no $ssmf_splat_distr at all.
--- The tileset shader only needs the distribution as its override mask, not the
--- DNTS normals, so the painter can supply its own there; SetMapShadingTexture
--- binds a Lua texture whether or not the engine made one.
+-- A canvas without a DNTS set (no pack installed, a runner or launcher canvas,
+-- or a project saved from one) has no $ssmf_splat_distr. The tileset shader
+-- only needs it as an override mask, so the painter may create its own:
+-- SetMapShadingTexture binds a Lua texture whether or not the engine made one.
 local function canSynthesizeDistribution()
 	local tt = WG.TilesetTerrain
 	if tt and tt.isActive and tt.isActive() then
@@ -708,7 +698,6 @@ local function canSynthesizeDistribution()
 end
 
 local function initSplatTexture()
-	-- Get dimensions of existing splat distribution texture
 	local texInfo = gl.TextureInfo(SPLAT_TEX_NAME)
 	local synthesize = false
 	if (not texInfo or texInfo.xsize <= 0 or texInfo.ysize <= 0) and canSynthesizeDistribution() then
@@ -717,7 +706,7 @@ local function initSplatTexture()
 		Echo("[Splat Painter] This map has no splat distribution; creating one (every pixel starts on channel 1).")
 	end
 	if not texInfo or texInfo.xsize <= 0 or texInfo.ysize <= 0 then
-		-- Blank/generated maps carry no SSMF splat distribution. Warn once, calmly.
+		-- Blank and generated maps have no SSMF splat distribution. Warn once.
 		if not noSplatWarned then
 			Echo(
 				"[Splat Painter] This map has no SSMF splat textures, so splat painting is unavailable here. (A New Map needs a splat set baked in at generation, which requires engine DNTS support.)"
@@ -732,15 +721,13 @@ local function initSplatTexture()
 	splatTexWidth = sourceW
 	splatTexHeight = sourceH
 
-	-- New blank-map startup can expose a 1x1 fallback splat distribution.
-	-- Painting over a 1x1 texture looks like "whole-map fill" and appears broken.
-	-- Promote tiny fallback textures to a practical map-sized edit target.
+	-- A blank map can expose a 1x1 fallback distribution, where any stroke fills
+	-- the whole map. Edit a map-sized texture instead.
 	if sourceW <= 1 or sourceH <= 1 then
 		splatTexWidth = max(64, floor((Game.mapSizeX or 0) / 8))
 		splatTexHeight = max(64, floor((Game.mapSizeZ or 0) / 8))
 	end
 
-	-- Create FBO texture at matching size
 	fboTex = glCreateTexture(splatTexWidth, splatTexHeight, {
 		border = false,
 		min_filter = GL.LINEAR,
@@ -756,10 +743,9 @@ local function initSplatTexture()
 		return false
 	end
 
-	-- Copy existing splat distribution into our FBO
 	glRenderToTexture(fboTex, function()
 		if synthesize then
-			-- the engine's own fallback distribution is (255,0,0,0)
+			-- Same as the engine's own fallback distribution: (255,0,0,0).
 			gl.Clear(GL.COLOR_BUFFER_BIT, 1, 0, 0, 0)
 			return
 		end
@@ -774,7 +760,6 @@ local function initSplatTexture()
 		glBlending(true)
 	end)
 
-	-- Apply our FBO as the new splat distribution
 	local ok = SetMapShadingTexture(SPLAT_TEX_NAME, fboTex)
 	if not ok then
 		Echo("[Splat Painter] Warning: SetMapShadingTexture failed. Splat painting may not be visible.")
@@ -786,7 +771,7 @@ end
 
 local function destroySplatTexture()
 	if texApplied then
-		-- Restore original by passing empty string
+		-- An empty name restores the engine's own texture.
 		SetMapShadingTexture(SPLAT_TEX_NAME, "")
 		texApplied = false
 	end
@@ -808,26 +793,24 @@ local function paintBrushStroke(worldX, worldZ, rotDeg)
 		return
 	end
 
-	-- Queue stroke for execution in DrawWorld where GL context is available
+	-- GL work must wait for DrawWorld.
 	pendingPaintStrokes[#pendingPaintStrokes + 1] = { worldX, worldZ, rotDeg or activeRotation }
 end
 
--- Paint at a world point, integrating TerraformBrush grid-snap, angle-snap,
--- and symmetric-position fan-out when those instruments are active.
+-- Paint at a world point, honoring the terraform brush's grid snap, angle snap
+-- and symmetry when those instruments are on.
 local function paintAtSymmetric(worldX, worldZ)
 	local tb = WG.TerraformBrush
 	local rot = activeRotation
 	if tb and tb.getState then
 		local st = tb.getState()
-		-- Protractor: use shared snap angle if active
+		-- With angle snap on, use the shared (snapped) rotation.
 		if st.angleSnap then
 			rot = st.rotationDeg or rot
 		end
-		-- Grid snap
 		if st.gridSnap and tb.snapWorld then
 			worldX, worldZ = tb.snapWorld(worldX, worldZ, rot)
 		end
-		-- Symmetric fan-out
 		if st.symmetryActive and tb.getSymmetricPositions then
 			local positions = tb.getSymmetricPositions(worldX, worldZ, rot)
 			if positions and #positions > 0 then
@@ -841,15 +824,14 @@ local function paintAtSymmetric(worldX, worldZ)
 	paintBrushStroke(worldX, worldZ, rot)
 end
 
--- Actually execute a paint stroke (must be called from a Draw call-in)
+-- Run one queued stroke (Draw call-ins only).
 local function executePaintStroke(worldX, worldZ, rotDeg)
 	if not fboTex or not paintShader then
 		return
 	end
 	rotDeg = rotDeg or activeRotation
 
-	-- We need a second FBO to ping-pong (read from current, write to new).
-	-- Reuse the cached temp texture; recreate only when the size changed.
+	-- Ping-pong: read fboTex, write the temp texture, copy back.
 	if paintTempTex and (paintTempW ~= splatTexWidth or paintTempH ~= splatTexHeight) then
 		glDeleteTexture(paintTempTex)
 		paintTempTex = nil
@@ -877,12 +859,10 @@ local function executePaintStroke(worldX, worldZ, rotDeg)
 
 		glUseShader(paintShader)
 
-		-- Bind current splat texture as source
 		glTexture(0, fboTex)
-		-- Bind engine heightmap for smart-filter slope / altitude checks
+		-- The heightmap feeds the smart-filter slope and altitude checks.
 		glTexture(1, "$heightmap")
 
-		-- Set uniforms
 		glUniform(uLocBrushPos, worldX, worldZ)
 		glUniform(uLocBrushRadius, activeRadius)
 		glUniform(uLocBrushStrength, activeStrength * activeIntensity)
@@ -896,7 +876,6 @@ local function executePaintStroke(worldX, worldZ, rotDeg)
 		glUniform(uLocFractalAmount, activeFractalAmount)
 		glUniform(uLocFractalFreq, activeFractalFreq)
 
-		-- Smart filter uniforms
 		local sf = smartFilter
 		glUniformInt(uLocSf.enabled, smartFilterEnabled and 1 or 0)
 		glUniformInt(uLocSf.avoidWater, sf.avoidWater and 1 or 0)
@@ -916,7 +895,6 @@ local function executePaintStroke(worldX, worldZ, rotDeg)
 		glUniformInt(u.slopeOn, inf.slopeOn and 1 or 0)
 		glUniform(u.slope, inf.slopeMin, inf.slopeMax, inf.slopeFeather, inf.slopeFeather)
 
-		-- Draw fullscreen quad
 		glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
 
 		glTexture(1, false)
@@ -925,7 +903,6 @@ local function executePaintStroke(worldX, worldZ, rotDeg)
 		glBlending(true)
 	end)
 
-	-- Copy result back to main FBO
 	glRenderToTexture(fboTex, function()
 		glBlending(false)
 		glUseShader(copyShader)
@@ -936,7 +913,6 @@ local function executePaintStroke(worldX, worldZ, rotDeg)
 		glBlending(true)
 	end)
 
-	-- Re-apply to engine
 	if texApplied then
 		SetMapShadingTexture(SPLAT_TEX_NAME, fboTex)
 	end
@@ -944,7 +920,7 @@ end
 
 -- ============ SAVE / EXPORT ============
 
--- Execute the actual save (must be called from a Draw call-in)
+-- Draw call-ins only.
 local function executeSaveSplats(explicitPath)
 	if not fboTex then
 		return
@@ -959,8 +935,7 @@ local function executeSaveSplats(explicitPath)
 	end
 
 	glRenderToTexture(fboTex, function()
-		-- alpha=true: the distribution is 4 channels — without it the A channel
-		-- (splat 4) is silently dropped from the export.
+		-- alpha = true, or the A channel (splat 4) is silently dropped.
 		glSaveImage(0, 0, splatTexWidth, splatTexHeight, filename, { yflip = false, alpha = true })
 	end)
 
@@ -975,7 +950,7 @@ local function executeSaveSplats(explicitPath)
 	)
 end
 
--- Public API: always defers to DrawWorld
+-- Public API; the save runs in DrawWorld.
 local function requestSaveSplats(explicitPath)
 	if not fboTex and not active then
 		Echo("[Splat Painter] No splat texture to save")
@@ -987,11 +962,9 @@ end
 
 -- ============ PROJECT LOAD ============
 
--- Blit a saved splat distribution PNG INTO the painter's own fboTex (must be
--- called from a Draw call-in). Ownership rule: fboTex stays the single owner of
--- the splat state — a loader-owned texture would be clobbered by the first
--- paint stroke and dangle on widget reload. Because the PNG lands inside
--- fboTex, a paint stroke after load extends the loaded state.
+-- Blit a saved splat PNG into the painter's own fboTex (Draw call-ins only).
+-- fboTex stays the single owner of the splat state: a loader-owned texture
+-- would be clobbered by the first stroke and dangle on widget reload.
 local function executeLoadSplats(path)
 	if not paintShader then
 		if not createShaders() then
@@ -1036,8 +1009,7 @@ local function executeLoadSplats(path)
 	end)
 	gl.DeleteTexture(texName)
 
-	-- Rebind through the painter's own path so the engine points at fboTex and
-	-- the binding inherits the painter's reload lifecycle.
+	-- Rebind so the engine points at fboTex and follows the painter's reload lifecycle.
 	SetMapShadingTexture(SPLAT_TEX_NAME, fboTex)
 	texApplied = true
 
@@ -1054,7 +1026,7 @@ local function executeLoadSplats(path)
 	return "ok"
 end
 
--- Public API: defers to DrawWorld (GL work). Poll isLoadPending / getLoadResult.
+-- Public API; the load runs in DrawWorld. Poll isLoadPending / getLoadResult.
 local function requestLoadSplats(path)
 	if not path or path == "" then
 		Echo("[Splat Painter] loadSplats: no path given")
@@ -1067,7 +1039,7 @@ end
 
 -- ============ UNDO/REDO ============
 
--- Must be called from a Draw call-in (uses GL)
+-- Draw call-ins only.
 local function takeSnapshot()
 	if not fboTex then
 		return
@@ -1352,7 +1324,7 @@ function widget:MousePress(mx, my, button)
 		return false
 	end
 
-	-- Defer to measure / height-sampler tools when active so splat paint doesn't consume the click
+	-- Leave the click to the measure tool or the height sampler while either is active.
 	do
 		local tb = WG.TerraformBrush
 		local st = tb and tb.getState and tb.getState() or nil
@@ -1365,7 +1337,7 @@ function widget:MousePress(mx, my, button)
 		if tb and tb.getHeightSamplingMode and tb.getHeightSamplingMode() then
 			return false
 		end
-		-- Defer to symmetry origin drag so terraform can grab the drag
+		-- ... and to symmetry origin placement or dragging, which the terraform brush handles.
 		if st and st.symmetryActive then
 			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
 				return false
@@ -1427,7 +1399,7 @@ function widget:MouseMove(mx, my, dx, dy, button)
 		return false
 	end
 
-	-- Paint along drag path with spacing to avoid gaps
+	-- Paint along the drag path at a spacing that leaves no gaps.
 	local spacing = max(activeRadius * 0.3, 8)
 	if lastPaintX and lastPaintZ then
 		local ddx = worldX - lastPaintX
@@ -1477,7 +1449,7 @@ function widget:MouseWheel(up, value)
 		setCurve(activeCurve + delta)
 		return true
 	elseif alt then
-		-- Alt+Scroll: change rotation (snap to TB protractor step when angleSnap on)
+		-- Alt+Scroll: change rotation (the angle snap step when angle snap is on)
 		local step = 3
 		local tb = WG.TerraformBrush
 		local tbs = tb and tb.getState and tb.getState() or nil
@@ -1824,8 +1796,8 @@ function widget:DrawWorld()
 		executeSaveSplats(savePath)
 	end
 
-	-- Deferred project load: also before the active guard — the map project
-	-- orchestrator loads splats without the paint tool being active.
+	-- Deferred project load, also before the active guard: map projects load
+	-- splats without the paint tool being active.
 	if pendingLoadPath then
 		local loadPath = pendingLoadPath
 		pendingLoadPath = nil
@@ -1846,7 +1818,7 @@ function widget:DrawWorld()
 		return
 	end
 
-	-- Deferred GL initialization (must happen inside a Draw call-in)
+	-- Deferred GL initialization (needs a Draw call-in)
 	if pendingInit then
 		pendingInit = false
 		if not initSplatTexture() then
@@ -1856,7 +1828,7 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Handle undo/redo (texture swaps — no GL rendering needed)
+	-- Undo and redo swap whole textures; no rendering needed.
 	if pendingUndoCount > 0 then
 		local changed = false
 		for _ = 1, pendingUndoCount do
@@ -1892,13 +1864,12 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Snapshot current state before first stroke of a new drag
+	-- Snapshot before the first stroke of a new drag.
 	if pendingSnapshot and #pendingPaintStrokes > 0 then
 		pendingSnapshot = false
 		takeSnapshot()
 	end
 
-	-- Execute queued paint strokes
 	if #pendingPaintStrokes > 0 then
 		for _, stroke in ipairs(pendingPaintStrokes) do
 			executePaintStroke(stroke[1], stroke[2], stroke[3])
@@ -1906,9 +1877,8 @@ function widget:DrawWorld()
 		end
 		pendingPaintStrokes = {}
 	end
-	-- tileset far cache / clipmap: throttled (FAR_FLUSH_S); the drag's tail lands
-	-- within one throttle period after release. (No drag-state upvalue here on
-	-- purpose: DrawWorld sits at the Lua 5.1 60-upvalue ceiling.)
+	-- Throttled tileset refresh (FAR_FLUSH_S); the drag's tail lands within one
+	-- period after release, so no drag-state upvalue is needed here.
 	if farInv.dirty then
 		farInv.flush(false)
 	end
@@ -1934,11 +1904,9 @@ function widget:DrawWorld()
 			return
 		end
 	end
-	-- CTRL SNEAK PEEK (tileset override channels): while Ctrl is held the
-	-- tileset shader renders the selected channel's material inside the brush
-	-- ring as if the stroke had landed. Channel R (auto) has nothing to force.
-	-- Sent every frame, mode 0 included, so releasing Ctrl retracts instantly;
-	-- inert with the tileset shader off (the uniform simply never renders).
+	-- CTRL SNEAK PEEK: while Ctrl is held the tileset shader draws the selected
+	-- channel's material inside the brush ring (channel R, auto, forces nothing).
+	-- Sent every frame, mode 0 included, so releasing Ctrl retracts at once.
 	do
 		---@type table?
 		local T = WG.TilesetTerrain
@@ -1966,13 +1934,11 @@ function widget:DrawWorld()
 	generateBrushOutline(worldX, worldZ, groundY)
 	glPolygonOffset(false)
 
-	-- Smart filter overlay: show valid/rejected terrain areas
 	if smartFilterEnabled then
 		drawSmartFilterOverlay(worldX, worldZ, activeRadius, activeShape, activeRotation)
 		drawAltitudeCapPrism(worldX, worldZ, activeRadius, activeShape, activeRotation)
 	end
 
-	-- Reset color
 	glColor(1, 1, 1, 1)
 	glLineWidth(1.0)
 end
