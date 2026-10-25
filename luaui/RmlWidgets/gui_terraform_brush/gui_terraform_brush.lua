@@ -176,6 +176,8 @@ local SOUND_COOLDOWN = 0.04 -- seconds between repeated sounds of the same type
 ---@field envSkyboxGridEl table?
 ---@field envCurrentSkybox string?
 ---@field envDefaultSkybox string?
+---@field envBoundTextures table<string, true> named textures the panel's own gl.Texture calls loaded
+---@field envAppliedSkyboxTex string? the name last handed to SetSkyBoxTexture
 ---@field skyPreviewShader integer|false|nil false = creation failed for good
 ---@field lightControlsEl table?
 ---@field lightActive boolean
@@ -427,7 +429,9 @@ widgetState = { -- forward-declared above playSound so mute check works
 	envSkyboxGridEl = nil, -- grid container element for GL scissor clipping
 	envCurrentSkybox = nil,
 	envDefaultSkybox = nil,
-	envLoadedTextures = {}, -- every library DDS path; Shutdown calls gl.DeleteTexture on each (nothing preloads them)
+	envLoadedTextures = {}, -- every library DDS path (filled by tf_environment); not deleted, the panel never loads most of them
+	envBoundTextures = {}, -- [name] = true for each name the thumbnails or a skybox apply bound; Shutdown frees these
+	envAppliedSkyboxTex = nil, -- live skybox's named texture: Shutdown keeps it, the engine sky still draws with it
 	skyPreviewShader = nil, -- GLSL cubemap-face preview shader (lazy-created in DrawScreenPost)
 	-- Light placer section elements
 	lightControlsEl = nil,
@@ -1356,6 +1360,7 @@ local function applySkyboxNow(boundTexName, rawPath)
 	local fogE = gl.GetAtmosphere("fogEnd")
 	local fR, fG, fB, fA = gl.GetAtmosphere("fogColor")
 	Spring.SetSkyBoxTexture(name)
+	widgetState.envAppliedSkyboxTex = name
 	if fogS and fogE then
 		Spring.SetAtmosphere({ fogStart = fogS, fogEnd = fogE, fogColor = { fR or 0.7, fG or 0.7, fB or 0.8, fA or 0 } })
 	end
@@ -19185,6 +19190,7 @@ local function drawSkyboxThumbnailPreviews()
 					local glY2 = vsy - y
 					-- gl.Texture returns true on success; cubemap DDS loads as TEXTURE_CUBE_MAP
 					if gl.Texture(0, t.path) then
+						widgetState.envBoundTextures[t.path] = true
 						gl.TexRect(x, glY1, x + w, glY2)
 						gl.Texture(0, false)
 					end
@@ -19451,6 +19457,7 @@ widgetState.drainDeferredApplies = function()
 				if gl.Texture(name) then
 					gl.Texture(false)
 					bound = name
+					widgetState.envBoundTextures[name] = true
 					break
 				end
 			end
@@ -22922,10 +22929,15 @@ function widget:Shutdown()
 		WG.LightPlacer.deactivate()
 	end
 
-	-- gl.DeleteTexture on every collected library DDS path (nothing preloads them; see envLoadedTextures)
-	for _, texPath in ipairs(widgetState.envLoadedTextures or {}) do
-		gl.DeleteTexture(texPath)
+	-- Free only the named textures this panel's gl.Texture calls loaded. Named textures are
+	-- engine-wide, so the live skybox's one stays: the sky keeps drawing with it after the
+	-- panel is gone.
+	for texName in pairs(widgetState.envBoundTextures or {}) do
+		if texName ~= widgetState.envAppliedSkyboxTex then
+			gl.DeleteTexture(texName)
+		end
 	end
+	widgetState.envBoundTextures = {}
 	widgetState.envLoadedTextures = {}
 
 	-- Restore sun lighting if shut down mid-fade
