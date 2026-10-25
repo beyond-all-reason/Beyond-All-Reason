@@ -139,14 +139,14 @@ local lp = {
 	placeTimer = 0,
 }
 
--- Cursor preview light (removed when deactivated or position changes enough)
+-- Cursor preview light (removed on deactivate)
 local previewLight = { id = nil, shape = nil }
--- Last-applied preview params (plain values; cursor quantized to whole elmos
--- to match the old "%.0f" string-hash rebuild cadence)
+-- Last-applied preview params; the cursor is quantized to whole elmos so
+-- sub-elmo jitter does not rebuild the light.
 local previewLast = { valid = false }
 
--- Pending preset: when set, MousePress places this entire preset at cursor
--- and the preview shows the composite of preset lights following the cursor.
+-- Armed preset: MousePress places the whole preset at the cursor, and the
+-- preview shows all its lights following the cursor.
 local pendingPreset = nil -- presetData (with .lights array) or nil
 local presetPreviewLights = {} -- array of { shape, id }
 local presetPreviewLast = { valid = false }
@@ -368,8 +368,8 @@ end
 -- Utility: shape containment test
 ----------------------------------------------------------------
 local function isInsideShape(dx, dz, radius, shape, rotDeg)
-	-- Shared point-in-shape test (see common/brush_shapes.lua).
-	-- Light placer only exposes circle/square; angle arg = rotDeg.
+	-- Shared point-in-shape test (common/brush_shapes.lua); the light placer only
+	-- offers circle and square.
 	return (BrushShapes.isInside(dx, dz, radius, shape, rotDeg))
 end
 
@@ -425,9 +425,9 @@ local function generateScatterPositions(cx, cz, radius, count, shape, rotDeg, di
 end
 
 ----------------------------------------------------------------
--- Add a single GL4 deferred light and track it. absY places it at that
--- height instead of elevation above the ground under it (the clone tool
--- pastes lights before the pasted terrain has reached the ground).
+-- Add one GL4 deferred light and track it. absY places it at that height
+-- instead of elevation above the ground (the clone tool pastes lights before
+-- the pasted terrain has reached the ground).
 ----------------------------------------------------------------
 local function addOneLight(px, pz, lightDef, absY)
 	local lightsAPI = WG.lightsgl4
@@ -439,7 +439,7 @@ local function addOneLight(px, pz, lightDef, absY)
 	if not py then
 		py = 0
 	end
-	-- Elevate above ground: prefer per-light elevation (e.g. from save) over live slider.
+	-- Per-light elevation (e.g. from a save) wins over the live slider.
 	local elevation = lightDef.elevation or lp.elevation
 	py = absY or (py + elevation)
 
@@ -659,7 +659,7 @@ local function doRedo()
 	redoStack[#redoStack] = nil
 
 	if entry.action == "add" then
-		-- Redo an add = re-place the lights that were removed by undo
+		-- Redo an add: place again the lights undo removed
 		local restored = {}
 		for _, rec in ipairs(entry.lights) do
 			local newRec = addOneLight(rec.pos[1], rec.pos[3], rec)
@@ -669,7 +669,7 @@ local function doRedo()
 		end
 		undoStack[#undoStack + 1] = { action = "add", lights = restored }
 	elseif entry.action == "remove" then
-		-- Redo a remove = re-remove the lights that were restored by undo
+		-- Redo a remove: remove again the lights undo restored
 		local removed = {}
 		for _, rec in ipairs(entry.lights) do
 			if placedLights[rec.instanceID] then
@@ -729,7 +729,7 @@ local function removeAtPosition(worldX, worldZ)
 	end
 end
 
--- Apply TerraformBrush grid-snap + symmetric fan-out to a placement call.
+-- Apply the TerraformBrush grid snap and symmetric fan-out to a placement call.
 local function placeSymmetric(fn, cx, cz)
 	local tb = WG.TerraformBrush
 	local rot = lp.rotation or 0
@@ -791,10 +791,9 @@ local function save(explicitPath)
 		filename = SAVE_DIR .. getMapName() .. "_lights_" .. timestamp .. ".lua"
 	end
 
-	-- placedLights is keyed by transient instanceID (pairs = hash order): build
-	-- each light's serialized block, then sort the blocks. Lexicographic order
-	-- over the full serialization is a total order, so repeated saves of the same
-	-- scene produce identical bytes (project files are diffed in git).
+	-- placedLights is keyed by transient instance id (hash order): serialize each
+	-- light, then sort the blocks so repeated saves of one scene produce identical
+	-- bytes (project files are diffed in git).
 	local blocks = {}
 	for _, l in ipairs(lightList) do
 		local b = { "\t\t{\n" }
@@ -1114,9 +1113,8 @@ local function updatePreviewLight(worldX, worldZ)
 		removePreviewLight()
 		return
 	end
-	-- Compare against the last-applied params directly instead of building a
-	-- format string every frame; cursor is quantized to whole elmos so
-	-- sub-elmo mouse jitter doesn't rebuild the light (same as the old hash).
+	-- Compare plain values instead of building a format string every frame; the
+	-- cursor is quantized to whole elmos so sub-elmo jitter does not rebuild.
 	local qx = floor(worldX + 0.5)
 	local qz = floor(worldZ + 0.5)
 	local pl = previewLast
@@ -1254,8 +1252,8 @@ end
 ----------------------------------------------------------------
 local function removePresetPreviewLights()
 	presetPreviewLast.valid = false
-	-- DrawWorld's inactive branch calls this every frame; without the guard it
-	-- allocated a fresh table per frame for every player with the widget loaded.
+	-- DrawWorld's inactive branch calls this every frame: skip the table
+	-- allocation when there is nothing to remove.
 	if #presetPreviewLights == 0 then
 		return
 	end
@@ -1278,8 +1276,7 @@ local function updatePresetPreviewLights(worldX, worldZ)
 		removePresetPreviewLights()
 		return
 	end
-	-- Plain value comparison (cursor quantized to whole elmos, matching the
-	-- old "%.0f" string-hash rebuild cadence)
+	-- Plain value comparison, cursor quantized to whole elmos
 	local qx = floor(worldX + 0.5)
 	local qz = floor(worldZ + 0.5)
 	local pp = presetPreviewLast
@@ -1487,10 +1484,10 @@ local function drawBrushCircle(worldX, worldZ)
 		-- Build two perpendicular vectors to direction
 		local px, py2, pz
 		if math.abs(dx) < 0.9 then
-			-- cross (1,0,0) × (dx,dy,dz) = (0,-dz,dy)
+			-- cross (1,0,0) x (dx,dy,dz) = (0,-dz,dy)
 			px, py2, pz = 0, -dz, dy
 		else
-			-- cross (0,1,0) × (dx,dy,dz) = (dz,0,-dx)
+			-- cross (0,1,0) x (dx,dy,dz) = (dz,0,-dx)
 			px, py2, pz = dz, 0, -dx
 		end
 		local pl = sqrt(px * px + py2 * py2 + pz * pz)
@@ -1595,7 +1592,6 @@ end
 -- Widget callins
 ----------------------------------------------------------------
 function widget:Initialize()
-	-- Ensure save directories exist
 	-- Save dirs are created at save time, not at load for every player.
 
 	WG.LightPlacer = {
@@ -1810,8 +1806,8 @@ function widget:MousePress(mx, my, button)
 	local worldX, _, worldZ = coords[1], coords[2], coords[3]
 
 	if button == 1 then
-		-- If a preset is armed, place the entire preset at cursor; keep armed
-		-- so the user can drop it multiple times. Right click or Esc clears.
+		-- An armed preset places whole at the cursor and stays armed for more
+		-- drops; right click or Esc clears it.
 		if pendingPreset then
 			placePreset(pendingPreset, worldX, worldZ)
 			lp.dragging = false
@@ -1827,7 +1823,7 @@ function widget:MousePress(mx, my, button)
 		lp.placeTimer = 0
 		return true
 	elseif button == 3 then
-		-- Right click clears armed preset if any, otherwise removes at position
+		-- Right click clears an armed preset, otherwise removes at the cursor
 		if pendingPreset then
 			clearPendingPreset()
 			return true
@@ -1860,7 +1856,7 @@ function widget:Update(dt)
 	end
 
 	lp.placeTimer = lp.placeTimer + dt
-	-- Cadence: higher = faster. 1000 = every frame, 1 = very slow
+	-- Cadence: higher is faster; one step every 100 / cadence seconds
 	local interval = 1.0 / max(lp.cadence / 100, 0.01)
 	if lp.placeTimer < interval then
 		return
@@ -1896,7 +1892,7 @@ function widget:DrawWorld()
 		worldX, worldZ = coords[1], coords[3]
 	end
 
-	-- Animated unmouse: slide brush toward the parked spot when cursor is over
+	-- Animated unmouse: slide the brush to the parked spot while the cursor is over
 	-- the terraform panel or the light library, and back when it leaves.
 	do
 		local tb = WG.TerraformBrush
@@ -1910,9 +1906,8 @@ function widget:DrawWorld()
 		local libBounds = tfUI and tfUI.getLightLibraryBounds and tfUI.getLightLibraryBounds()
 		local overLib = overBounds(libBounds)
 		if tb and tb.animateUnmouse then
-			-- When cursor is over the light library but not the main panel, the
-			-- shared animateUnmouse won't detect it. Treat "over library" as if
-			-- over panel by supplying a library-derived parked position.
+			-- The shared animateUnmouse only knows the main panel, so over the light
+			-- library supply a parked position derived from the library's bounds.
 			if overLib and not overBounds(tfUI and tfUI.getPanelBounds and tfUI.getPanelBounds()) then
 				local vsx, vsy = Spring.GetViewGeometry()
 				local cx = floor(vsx * 0.5)
@@ -1983,7 +1978,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		return true
 	end
 
-	-- Ctrl+Z / Ctrl+Shift+Z for undo/redo,  Ctrl+Y also redo
+	-- Ctrl+Z / Ctrl+Shift+Z for undo/redo, Ctrl+Y also redo
 	if mods.ctrl and (key == 0x7A or key == 0x5A) then -- z/Z
 		if mods.shift then
 			doRedo()
@@ -2000,7 +1995,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		return true
 	end
 
-	-- Space key = suppress (used for brightness via scroll)
+	-- Space is held for brightness scrolling: swallow the key
 	if key == KEYSYMS_SPACE then
 		return true
 	end
@@ -2077,7 +2072,7 @@ function widget:MouseWheel(up, value)
 		return true
 	end
 
-	-- Ctrl+Alt+Scroll = pitch (up=toward horiz/0°, down=toward down/-90°)
+	-- Ctrl+Alt+Scroll = pitch (up toward horizontal 0, down toward straight down -90)
 	if ctrl and alt then
 		local dir = up and 5 or -5
 		lp.pitch = max(-90, min(90, lp.pitch + dir))
