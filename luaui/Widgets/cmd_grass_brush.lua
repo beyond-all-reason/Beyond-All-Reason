@@ -854,9 +854,12 @@ local function applyBrush(worldX, worldZ)
 	if not positions or #positions == 0 then
 		positions = { { x = worldX, z = worldZ, rot = rotDeg } }
 	end
+	local baseRotation = brushRotation
 	for i = 1, #positions do
 		local p = positions[i]
 		local px, pz = p.x, p.z
+		-- each symmetry copy (radial or mirrored) stamps at its own turn
+		brushRotation = baseRotation + ((p.rot or rotDeg) - rotDeg)
 		if subMode == "erase" then
 			applyEraseBrush(px, pz)
 		elseif subMode == "fill" then
@@ -868,6 +871,7 @@ local function applyBrush(worldX, worldZ)
 			applyPaintBrush(px, pz, direction)
 		end
 	end
+	brushRotation = baseRotation
 end
 
 -- ============================================================

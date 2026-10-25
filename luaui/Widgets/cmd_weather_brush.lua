@@ -798,7 +798,9 @@ end
 -- ===========================================================================
 -- Placement Actions
 -- ===========================================================================
-local function doScatterPlace(cx, cz)
+---@param rotation number? the area's turn in degrees, wb.rotation when nil (a symmetry copy passes its own)
+local function doScatterPlace(cx, cz, rotation)
+	rotation = rotation or wb.rotation
 	if #wb.selectedCegs == 0 then
 		return
 	end
@@ -810,7 +812,7 @@ local function doScatterPlace(cx, cz)
 		wb.radius,
 		wb.spawnCount,
 		wb.shape,
-		wb.rotation,
+		rotation,
 		wb.lengthScale,
 		wb.altitude
 	)
@@ -824,7 +826,7 @@ local function doScatterPlace(cx, cz)
 			wb.radius,
 			wb.spawnCount,
 			wb.shape,
-			wb.rotation,
+			rotation,
 			wb.persistenceSeconds,
 			wb.cegLifetimeS
 		)
@@ -846,8 +848,8 @@ local function doPointPlace(cx, cz)
 	end
 end
 
-local function doRemove(cx, cz)
-	removePersistentSpawnersInArea(cx, cz, wb.radius, wb.shape, wb.rotation, wb.lengthScale)
+local function doRemove(cx, cz, rotation)
+	removePersistentSpawnersInArea(cx, cz, wb.radius, wb.shape, rotation or wb.rotation, wb.lengthScale)
 end
 
 -- Apply the TerraformBrush grid snap and symmetric fan-out to a placement call.
@@ -866,7 +868,8 @@ local function placeSymmetric(fn, cx, cz)
 			local positions = tb.getSymmetricPositions(cx, cz, rot)
 			if positions and #positions > 0 then
 				for _, p in ipairs(positions) do
-					fn(p.x, p.z)
+					-- each copy turns with its symmetry copy (radial or mirrored), on top of the brush rotation
+					fn(p.x, p.z, wb.rotation + ((p.rot or rot) - rot))
 				end
 				return
 			end

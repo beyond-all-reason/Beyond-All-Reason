@@ -373,7 +373,9 @@ local function pushUndoBatch(ids)
 	dp.redoCount = 0
 end
 
-local function placeScatter(cx, cz)
+---@param rotation number? the stamp's turn in degrees, dp.rotation when nil (a symmetry copy passes its own)
+local function placeScatter(cx, cz, rotation)
+	rotation = rotation or dp.rotation
 	if #dp.selectedDecals == 0 then
 		return
 	end
@@ -387,12 +389,12 @@ local function placeScatter(cx, cz)
 		local rx = (random() * 2 - 1) * r
 		local rz = (random() * 2 - 1) * r
 		if isInsideShape(rx, rz, r, dp.shape, 0) then
-			local wx, wz = BrushShapes.rotate(rx, rz, dp.rotation)
+			local wx, wz = BrushShapes.rotate(rx, rz, rotation)
 			wx, wz = cx + wx, cz + wz
 			local tex = pickRandomTexture()
 			if tex then
 				local sizeBase = dp.sizeMin + random() * (dp.sizeMax - dp.sizeMin)
-				local rotDeg = dp.rotation + (random() * 2 - 1) * (dp.rotRandom * 1.8)
+				local rotDeg = rotation + (random() * 2 - 1) * (dp.rotRandom * 1.8)
 				local rotRad = rotDeg * pi / 180
 				local id = applyDecal(tex, wx, wz, sizeBase, sizeBase, rotRad)
 				if id then
@@ -404,7 +406,8 @@ local function placeScatter(cx, cz)
 	pushUndoBatch(placed)
 end
 
-local function placePoint(cx, cz)
+---@param rotation number? the decal's turn in degrees, dp.rotation when nil (a symmetry copy passes its own)
+local function placePoint(cx, cz, rotation)
 	if #dp.selectedDecals == 0 then
 		return
 	end
@@ -413,7 +416,7 @@ local function placePoint(cx, cz)
 		return
 	end
 	local sizeBase = dp.sizeMin + random() * (dp.sizeMax - dp.sizeMin)
-	local rotDeg = dp.rotation + (random() * 2 - 1) * (dp.rotRandom * 1.8)
+	local rotDeg = (rotation or dp.rotation) + (random() * 2 - 1) * (dp.rotRandom * 1.8)
 	local id = applyDecal(tex, cx, cz, sizeBase, sizeBase, rotDeg * pi / 180)
 	if id then
 		pushUndoBatch({ id })
@@ -441,7 +444,7 @@ local function placeRemove(cx, cz)
 end
 
 -- Apply the TerraformBrush grid snap and symmetric fan-out to a placement call.
--- `fn(x, z)` is one of placeScatter / placePoint / placeRemove.
+-- `fn(x, z, rotation)` is one of placeScatter / placePoint / placeRemove.
 local function placeSymmetric(fn, cx, cz)
 	---@type table?
 	local tb = WG.TerraformBrush
@@ -458,7 +461,8 @@ local function placeSymmetric(fn, cx, cz)
 			local positions = tb.getSymmetricPositions(cx, cz, rot)
 			if positions and #positions > 0 then
 				for _, p in ipairs(positions) do
-					fn(p.x, p.z)
+					-- each copy turns with its symmetry copy (radial or mirrored), on top of the tool's own rotation
+					fn(p.x, p.z, dp.rotation + ((p.rot or rot) - rot))
 				end
 				return
 			end
