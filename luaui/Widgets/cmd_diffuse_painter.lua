@@ -1650,6 +1650,7 @@ local function allocateSquare(s)
 	if not compositeTex then
 		glDeleteTexture(seedTex)
 		Echo("[Diffuse Painter] failed to create composite tex for " .. s.sx .. "," .. s.sy)
+		s.allocFailed = true
 		return false
 	end
 
