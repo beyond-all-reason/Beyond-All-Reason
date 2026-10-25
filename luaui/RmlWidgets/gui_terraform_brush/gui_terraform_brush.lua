@@ -21409,10 +21409,6 @@ function widget:Update()
 					end
 				end
 
-				local ringWidthRowEl = getCachedEl(doc, "ring-width-row")
-				if ringWidthRowEl then
-					-- Cached; visibility comes from dm.tfRingVisible
-				end
 				if widgetState.dmHandle then
 					local v = (state.shape == "ring")
 					if widgetState.dmHandle.tfRingVisible ~= v then
@@ -21436,10 +21432,6 @@ function widget:Update()
 					if widgetState.dmHandle.tfInRestore ~= v then
 						widgetState.dmHandle.tfInRestore = v
 					end
-				end
-				local restoreStrengthRow = getCachedEl(doc, "restore-strength-row")
-				if restoreStrengthRow then
-					-- Visibility comes from dm.tfInRestore
 				end
 				local sliderRestoreStrength = getCachedEl(doc, "slider-restore-strength")
 				if sliderRestoreStrength and ds ~= "restoreStrength" then
@@ -21497,10 +21489,6 @@ function widget:Update()
 					dm.tfGridOverlay = state.gridOverlay == true
 				end
 
-				local snapSizeRow = getCachedEl(doc, "grid-snap-size-row")
-				if snapSizeRow then
-					-- Visibility comes from dm.tfGridSnap
-				end
 				if widgetState.dmHandle then
 					local v = state.gridSnap and true or false
 					if widgetState.dmHandle.tfGridSnap ~= v then
@@ -21531,10 +21519,6 @@ function widget:Update()
 				end
 
 				-- Protractor state sync
-				local angleStepRow = getCachedEl(doc, "angle-snap-step-row")
-				if angleStepRow then
-					-- Visibility comes from dm.tfAngleSnap
-				end
 				if widgetState.dmHandle then
 					local v = state.angleSnap and true or false
 					if widgetState.dmHandle.tfAngleSnap ~= v then
@@ -21636,10 +21620,6 @@ function widget:Update()
 							measureImg:SetClass("tf-chip-2pulse", false)
 						end
 					end
-				end
-				local measureToolRow = getCachedEl(doc, "measure-toolbar-row")
-				if measureToolRow then
-					-- Visibility comes from dm.tfMeasureActive
 				end
 				if widgetState.dmHandle then
 					local v = state.measureActive and true or false
