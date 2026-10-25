@@ -613,17 +613,19 @@ local function addOneLight(px, pz, lightDef, absY)
 
 	local instanceID = spawnLight(lightsAPI, lightDef, px, py, pz)
 	if instanceID then
+		-- A field the definition leaves out is recorded as the value the renderer
+		-- used for it, so the save always has a number to write.
 		local record = {
 			instanceID = instanceID,
 			type = lightDef.type,
 			pos = { px, py, pz },
-			radius = lightDef.radius,
+			radius = lightDef.radius or 100,
 			color = { lightDef.color[1], lightDef.color[2], lightDef.color[3] },
 			brightness = lightDef.brightness,
-			modelfactor = lightDef.modelfactor,
-			specular = lightDef.specular,
-			scattering = lightDef.scattering,
-			lensflare = lightDef.lensflare,
+			modelfactor = lightDef.modelfactor or 1,
+			specular = lightDef.specular or 1,
+			scattering = lightDef.scattering or 1,
+			lensflare = lightDef.lensflare or 1,
 			pitch = lightDef.pitch,
 			yaw = lightDef.yaw,
 			roll = lightDef.roll,
