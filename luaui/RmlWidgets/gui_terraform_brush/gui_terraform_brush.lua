@@ -4995,13 +4995,23 @@ widgetState.projectWriteRunner = function()
 			absolute = root .. "/" .. runner
 		end
 	end)
-	if absolute then
+	-- Lua cannot set the executable bit, so on Linux and macOS the clipboard
+	-- gets a terminal command that sets it and starts the helper. Rewrites
+	-- later truncate the same file, which keeps the bit.
+	local hintKey = absolute and "helperReadyPath" or "helperReady"
+	if absolute and not windows then
+		local quoted = "'" .. absolute:gsub("'", "'\\''") .. "'"
+		Spring.SetClipboard("chmod +x " .. quoted .. " && " .. quoted)
+		hintKey = "helperReadyTerminal"
+	elseif absolute then
 		Spring.SetClipboard(absolute)
+	elseif not windows then
+		hintKey = "helperReadyShell"
 	end
 	playSound("save")
 	if d then
 		widgetState.projectHelperHintSticky = false
-		d.projectHelperHint = widgetState.text(absolute and "helperReadyPath" or "helperReady", {
+		d.projectHelperHint = widgetState.text(hintKey, {
 			path = absolute or runner,
 		})
 	end
