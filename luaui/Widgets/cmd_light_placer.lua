@@ -134,7 +134,7 @@ local lp = {
 	radius = DEFAULT_RADIUS,
 	rotation = 0,
 	lightCount = 5,
-	cadence = 50,
+	cadence = 1, -- 1-1000 logarithmic (higher = faster); 1 = one stamp every 2 s
 	distribution = "random", -- "random", "regular", "clustered"
 
 	-- Light parameters (current)
@@ -1606,6 +1606,9 @@ function widget:Initialize()
 		setLightCount = function(n)
 			lp.lightCount = max(1, min(500, n))
 		end,
+		setCadence = function(v)
+			lp.cadence = max(1, min(1000, floor(tonumber(v) or 1)))
+		end,
 		setDistribution = function(d)
 			lp.distribution = d
 		end,
@@ -1814,8 +1817,9 @@ function widget:Update(dt)
 	end
 
 	lp.placeTimer = lp.placeTimer + dt
-	-- Cadence: higher is faster; one step every 100 / cadence seconds
-	local interval = 1.0 / max(lp.cadence / 100, 0.01)
+	-- Cadence: higher is faster; one step every 2 / cadence seconds, the same
+	-- interval FEATURES, UNITS, WEATHER and DECALS use.
+	local interval = max(0.03, 2.0 / lp.cadence)
 	if lp.placeTimer < interval then
 		return
 	end

@@ -6214,6 +6214,7 @@ local initialModel = {
 	lpLightRadiusStr = "300",
 	lpElevationStr = "20",
 	lpCountStr = "5",
+	lpCadenceStr = "1",
 	lpBrushRadiusStr = "200",
 	lpPlacedCountStr = "0",
 	-- clone tool label strings
@@ -11970,6 +11971,29 @@ local initialModel = {
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setLightCount(s.lightCount + 1)
 	end,
+	-- Rate: the same log slider and 20% steps as FEATURES and UNITS.
+	onLpCadenceChange = function(_event)
+		if uiState.updatingFromCode or not WG.LightPlacer then
+			return
+		end
+		WG.LightPlacer.setCadence(sliderToCadence(_elemSliderVal("slider-lp-cadence", 0)))
+	end,
+	onLpCadenceDown = function(_event)
+		if not WG.LightPlacer then
+			return
+		end
+		local s = WG.LightPlacer.getState()
+		local step = math.max(1, math.floor(s.cadence * 0.2))
+		WG.LightPlacer.setCadence(s.cadence - step)
+	end,
+	onLpCadenceUp = function(_event)
+		if not WG.LightPlacer then
+			return
+		end
+		local s = WG.LightPlacer.getState()
+		local step = math.max(1, math.floor(s.cadence * 0.2))
+		WG.LightPlacer.setCadence(s.cadence + step)
+	end,
 	onLpBrushRadiusChange = function(_event)
 		if uiState.updatingFromCode or not WG.LightPlacer then
 			return
@@ -16315,6 +16339,7 @@ local guideHints = {
 	["slider-lp-theta"] = "Cone half-angle spread in radians. Smaller = tighter spotlight, larger = wider floodlight.",
 	["slider-lp-beam-length"] = "Length of the beam from start to end point in world units.",
 	["slider-lp-count"] = "Number of lights placed per scatter operation.",
+	["slider-lp-cadence"] = "How often a held SCATTER or REMOVE drag repeats. 1 is one stamp every 2 seconds, higher is faster.",
 	["slider-lp-brush-radius"] = "Radius of the scatter brush area in world units. Lights are distributed within this zone.",
 	["btn-lp-library"] = "Open the Light Library to browse built-in presets and your saved light arrangements.",
 	["btn-lp-undo"] = "Undo the last light placement or removal action.",

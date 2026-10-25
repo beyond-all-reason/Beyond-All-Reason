@@ -5849,6 +5849,24 @@
 				</div>
 			</div>
 
+			<!-- Rate: how often a held SCATTER or REMOVE drag repeats (same log scale as FEATURES) -->
+			<div data-if="lpMode == 'scatter' || lpMode == 'remove'">
+				<div class="flex flex-row items-center mb-1">
+					<div class="text-lg text-light">RATE: <span class="text-xl font-bold tf-slider-val">{{lpCadenceStr}}</span></div>
+					<div class="text-sm text-keybind" style="margin-left: auto;">drag speed</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="btn-lp-cadence-down" class="tf-sm-btn" data-event-mousedown="onLpCadenceDown()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="slider-lp-cadence" class="tf-slider" min="0" max="1000" step="1" value="0" data-event-change="onLpCadenceChange()" />
+					<div id="btn-lp-cadence-up" class="tf-sm-btn" data-event-mousedown="onLpCadenceUp()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+					<input type="text" id="slider-lp-cadence-numbox" class="tf-slider-numbox" value="0" />
+				</div>
+			</div>
+
 		</div><!-- /section-lp-controls -->
 		</div><!-- /frame-lp-controls -->
 

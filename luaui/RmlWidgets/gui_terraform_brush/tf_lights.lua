@@ -90,6 +90,7 @@ function M.attach(doc, ctx)
 		"lp-theta",
 		"lp-beam-length",
 		"lp-count",
+		"lp-cadence",
 		"lp-brush-radius",
 		"lp-history",
 	}) do
@@ -462,6 +463,10 @@ function M.sync(doc, ctx, lpState, setSummary)
 		if dm.lpCountStr ~= v then
 			dm.lpCountStr = v
 		end
+		v = tostring(lpState.cadence or 1)
+		if dm.lpCadenceStr ~= v then
+			dm.lpCadenceStr = v
+		end
 		v = tostring(math.floor(lpState.radius))
 		if dm.lpBrushRadiusStr ~= v then
 			dm.lpBrushRadiusStr = v
@@ -488,6 +493,8 @@ function M.sync(doc, ctx, lpState, setSummary)
 		)
 		syncAndFlash(getCachedEl(doc, "slider-lp-elevation"), "lp-elevation", tostring(math.floor(lpState.elevation)))
 		syncAndFlash(getCachedEl(doc, "slider-lp-count"), "lp-count", tostring(lpState.lightCount))
+		local cadencePos = tostring(ctx.cadenceToSlider(lpState.cadence or 1))
+		syncAndFlash(getCachedEl(doc, "slider-lp-cadence"), "lp-cadence", cadencePos)
 		syncAndFlash(
 			getCachedEl(doc, "slider-lp-color-r"),
 			"lp-color-r",
@@ -527,6 +534,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 		setNum("slider-lp-light-radius-numbox", tostring(math.floor(lpState.lightRadius)))
 		setNum("slider-lp-elevation-numbox", tostring(math.floor(lpState.elevation)))
 		setNum("slider-lp-count-numbox", tostring(lpState.lightCount))
+		setNum("slider-lp-cadence-numbox", cadencePos)
 		setNum("slider-lp-color-r-numbox", tostring(lpState.color[1]))
 		setNum("slider-lp-color-g-numbox", tostring(lpState.color[2]))
 		setNum("slider-lp-color-b-numbox", tostring(lpState.color[3]))
@@ -619,13 +627,18 @@ function M.sync(doc, ctx, lpState, setSummary)
 			"slider-lp-color-b",
 			"slider-lp-color-b-numbox",
 		}, remove)
-		-- Count/cadence: scatter only
+		-- Count: scatter only
 		ctx.setDisabledIds(doc, {
 			"slider-lp-count",
 			"slider-lp-count-numbox",
+		}, not scatter)
+		-- Rate: paces the held SCATTER and REMOVE drags
+		ctx.setDisabledIds(doc, {
 			"slider-lp-cadence",
 			"slider-lp-cadence-numbox",
-		}, not scatter)
+			"btn-lp-cadence-down",
+			"btn-lp-cadence-up",
+		}, not (scatter or remove))
 		-- Brush radius (pick/scatter radius): irrelevant in point mode
 		ctx.setDisabledIds(doc, {
 			"slider-lp-brush-radius",
