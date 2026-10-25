@@ -2134,9 +2134,11 @@ function widget:MousePress(mx, my, button)
 		elseif button == 3 then
 			-- RMB on a polygon vertex or spline control deletes it (3 must remain). Checked first
 			-- so pruning a vertex never drops the whole box.
+			local hitBox = nil -- box whose corner was clicked but cannot lose it (rect, or 3 left)
 			do
 				local dbi, dvi = findNearestBoxVertex(wx, wz)
 				if dbi and dvi then
+					hitBox = dbi
 					local box = startboxes[dbi]
 					local handles = box and getEditHandles(box)
 					if handles and #handles > 3 then
@@ -2149,7 +2151,8 @@ function widget:MousePress(mx, my, button)
 					end
 				end
 			end
-			-- Otherwise: finish the polygon, cancel a rect or free-draw, or remove the last box.
+			-- Otherwise: finish the polygon, cancel a rect or free-draw, remove the box whose
+			-- corner was clicked, or remove the last box.
 			if startboxMode == "polygon" and drawingBox and #currentBoxVerts >= 3 then
 				finishStartbox()
 			elseif startboxMode == "polygon" and drawingBox then
@@ -2161,6 +2164,18 @@ function widget:MousePress(mx, my, button)
 			elseif freeDrawActive then
 				freeDrawActive = false
 				freeDrawPts = {}
+			elseif hitBox and hitBox < #startboxes then
+				boxUndo.push("remove", hitBox, startboxes[hitBox])
+				freeBoxFillList(startboxes[hitBox])
+				table.remove(startboxes, hitBox)
+				renumberBoxAllyTeams()
+				-- The strength knob selection points into the list: follow the shift.
+				if strengthEdit.selBox == hitBox then
+					strengthEdit.selBox = nil
+					strengthEdit.selVert = nil
+				elseif strengthEdit.selBox and strengthEdit.selBox > hitBox then
+					strengthEdit.selBox = strengthEdit.selBox - 1
+				end
 			else
 				removeLastStartbox()
 			end
