@@ -212,8 +212,9 @@ local hoverPolyEdge = nil
 
 -- Undo history shared by both submodes; each entry carries the `mode` that made it so
 -- Ctrl+Z in one submode never rewinds the other.
--- Position entry: { mode, count, prevNextAllyTeam, prevNextTeamSlot }: drop the last
--- `count` positions and restore the rotation counters.
+-- Placement entry: { mode, placed, prevNextAllyTeam, prevNextTeamSlot }: remove exactly the
+-- positions in `placed` and restore the rotation counters. Drag entry: { op = "move", pos,
+-- x, z, y }. Right-click removal entry: { op = "remove", pos, idx }.
 local undoHistory = {}
 -- Startbox entries snapshot just the box they touch, so no operation needs an inverse.
 -- The functions are assigned further down, after retessellateSpline is in scope.
@@ -565,6 +566,8 @@ local function removeNearestPosition(wx, wz)
 		end
 	end
 	if bestIdx then
+		-- Undoable: the entry keeps the position itself and puts it back at the same index.
+		undoHistory[#undoHistory + 1] = { mode = subMode, op = "remove", pos = positions[bestIdx], idx = bestIdx }
 		removePosition(bestIdx)
 		return true
 	end
@@ -589,6 +592,49 @@ local function clearAllPositions()
 	nextAllyTeam = 1
 	nextTeamSlot = 1
 	undoHistory = {}
+end
+
+-- Placement undo entries hold the positions they placed, not a count, so an earlier removal
+-- or move can never make them take back the wrong ones.
+local function recordPlacement(prevCount, prevNext, prevNextSlot)
+	local placed = {}
+	for i = prevCount + 1, #positions do
+		placed[#placed + 1] = positions[i]
+	end
+	if #placed > 0 then
+		undoHistory[#undoHistory + 1] = {
+			mode = subMode,
+			placed = placed,
+			prevNextAllyTeam = prevNext,
+			prevNextTeamSlot = prevNextSlot,
+		}
+	end
+end
+
+-- Takes back a placement entry (already off the stack): removes exactly the positions it
+-- placed and restores the rotation. One a right-click removed since is skipped, and that
+-- removal's entry is dropped so it cannot bring the position back later.
+local function undoPlacement(entry)
+	for _, pos in ipairs(entry.placed or {}) do
+		local found = false
+		for i = #positions, 1, -1 do
+			if positions[i] == pos then
+				table.remove(positions, i)
+				found = true
+				break
+			end
+		end
+		if not found then
+			for k = #undoHistory, 1, -1 do
+				local e = undoHistory[k]
+				if e.op == "remove" and e.pos == pos then
+					table.remove(undoHistory, k)
+				end
+			end
+		end
+	end
+	nextAllyTeam = entry.prevNextAllyTeam or 1
+	nextTeamSlot = entry.prevNextTeamSlot or 1
 end
 
 -- Shape placement spreads evenly over every allyTeam x teamSlot pair, so a 4-ally, 2-team
@@ -1963,38 +2009,24 @@ function widget:MousePress(mx, my, button)
 				elseif addPosition(wx, wz, nextAllyTeam, nextTeamSlot) then
 					advanceNextPlayer()
 				end
-				local added = #positions - prevCount
-				if added > 0 then
-					undoHistory[#undoHistory + 1] = {
-						mode = subMode,
-						count = added,
-						prevNextAllyTeam = prevNext,
-						prevNextTeamSlot = prevNextSlot,
-					}
-				end
+				recordPlacement(prevCount, prevNext, prevNextSlot)
 			end
 			return true
 		elseif button == 3 then
 			-- RMB undoes the last placement. Take the newest placement entry, not the newest
-			-- entry: startbox entries share the stack and have no count, and drag entries
-			-- ("move") are for Ctrl+Z only.
+			-- entry: every other entry carries an op (startbox edits, drags, right-click
+			-- removals) and is for Ctrl+Z only.
 			local at
 			for i = #undoHistory, 1, -1 do
-				if (undoHistory[i].mode or "express") ~= "startbox" and undoHistory[i].op ~= "move" then
+				if (undoHistory[i].mode or "express") ~= "startbox" and not undoHistory[i].op then
 					at = i
 					break
 				end
 			end
 			local entry = at and undoHistory[at] or nil
 			if entry and at then
-				for _ = 1, (entry.count or 0) do
-					if #positions > 0 then
-						positions[#positions] = nil
-					end
-				end
-				nextAllyTeam = entry.prevNextAllyTeam or 1
-				nextTeamSlot = entry.prevNextTeamSlot or 1
 				table.remove(undoHistory, at)
+				undoPlacement(entry)
 			end
 			if #positions == 0 then
 				nextAllyTeam = 1
@@ -2027,15 +2059,7 @@ function widget:MousePress(mx, my, button)
 			else
 				placeShapePositions(sx, sz)
 			end
-			local added = #positions - prevCount
-			if added > 0 then
-				undoHistory[#undoHistory + 1] = {
-					mode = subMode,
-					count = added,
-					prevNextAllyTeam = prevNext,
-					prevNextTeamSlot = prevNextSlot,
-				}
-			end
+			recordPlacement(prevCount, prevNext, prevNextSlot)
 			return true
 		elseif button == 3 then
 			removeNearestPosition(wx, wz)
@@ -2686,15 +2710,12 @@ function widget:KeyPress(key, mods, isRepeat)
 		elseif entry.op == "move" then
 			-- A drag puts the position back where the drag started. No redo, like placements.
 			entry.pos.x, entry.pos.z, entry.pos.y = entry.x, entry.z, entry.y
+		elseif entry.op == "remove" then
+			-- A right-click removal puts the same position back at its index.
+			table.insert(positions, math_min(entry.idx or 1, #positions + 1), entry.pos)
 		else
-			-- Positions rewind by count and restore the rotation counters. They get no redo.
-			for _ = 1, (entry.count or 0) do
-				if #positions > 0 then
-					positions[#positions] = nil
-				end
-			end
-			nextAllyTeam = entry.prevNextAllyTeam or 1
-			nextTeamSlot = entry.prevNextTeamSlot or 1
+			-- Placements take back what they placed and restore the rotation. No redo.
+			undoPlacement(entry)
 		end
 
 		return true
