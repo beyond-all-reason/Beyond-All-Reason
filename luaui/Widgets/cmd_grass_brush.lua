@@ -57,6 +57,7 @@ local KEYSYMS_SPACE = 0x20
 local KEYSYMS_ESCAPE = 0x1B
 
 -- The engine's active command, to notice a switch to another tool.
+---@type integer?
 local lastActiveCmd = nil
 
 -- ============================================================
@@ -93,21 +94,37 @@ local subMode = "paint" -- "paint", "fill", "erase"
 local targetDensity = DEFAULT_DENSITY
 local brushRadius = DEFAULT_RADIUS
 local brushCurve = DEFAULT_CURVE
+---@type number
 local brushRotation = 0
 local brushLengthScale = DEFAULT_LENGTH_SCALE
+---@type BrushShape|"ring"|"fill"
 local brushShape = "circle"
 local painting = false
+---@type number
 local paintButton = 0 -- 1 = LMB (add), 3 = RMB (remove)
+---@type number
 local lastPaintTime = 0
 local grassAvailable = false
+---@type number
 local edgeFade = 1 -- cursor alpha multiplier: 1 inside the map, fades to 0 past the edge
 
 -- ============================================================
 -- Undo / Redo History
 -- ============================================================
 local MAX_HISTORY = 50
+
+---One grass patch a stroke touched; after is filled when the stroke ends.
+---@class GrassPatchEdit
+---@field x number
+---@field z number
+---@field before number
+---@field after number?
+
+---@type GrassPatchEdit[][]
 local undoStack = {} -- array of patch arrays; each patch = {x, z, before, after}
+---@type GrassPatchEdit[][]
 local redoStack = {}
+---@type table<number, GrassPatchEdit>?
 local strokeSnap = nil -- dict[x*100000+z] = {x, z, before}, in-progress stroke
 
 local function strokeBegin()
@@ -230,12 +247,15 @@ local smartFilters = {
 -- Texture color filter state
 local texFilterEnabled = false
 -- texFilterColor: [1..3] include RGB, [4] exclude enabled (1 or nil), [5..7] exclude RGB
+---@type table<integer, number|true|nil>
 local texFilterColor = { 0.25, 0.45, 0.15, nil, 0.65, 0.35, 0.10 } -- include=green, exclude=brown
 local texFilterThreshold = 0.35 -- color distance threshold (0..1)
 local texFilterPadding = 0 -- padding in elmos from excluded areas
 local pipetteMode = false -- true while waiting for user to click terrain (include)
+---@type {wx: number, wz: number}?
 local pipettePending = nil -- { wx, wz } queued in MousePress, sampled in DrawScreen
 local pipetteExcludeMode = false -- true while waiting to click terrain (exclude)
+---@type {wx: number, wz: number}?
 local pipetteExcludePending = nil -- { wx, wz } queued for exclude sample
 
 -- ============================================================
@@ -302,6 +322,33 @@ local dcR, dcG, dcB = {}, {}, {}
 local dcValid = false
 
 -- Cache metadata
+---@class GrassDiffuseCacheInfo
+---@field cx number
+---@field cz number
+---@field halfExtent number
+---@field gridW number
+---@field gridH number
+---@field stepX number
+---@field stepZ number
+---@field fbo string?
+---@field gridTex string?
+---@field fboW number
+---@field fboH number
+---@field wx1 number
+---@field wz1 number
+---@field wx2 number
+---@field wz2 number
+---@field pendingRead boolean
+---@field pendingGridSX table?
+---@field pendingGridSY table?
+---@field pendingMinSX number
+---@field pendingMinSY number
+---@field pendingBboxW integer
+---@field pendingBboxH integer
+---@field pendingScaleX number
+---@field pendingScaleY number
+---@field pendingGridW number
+---@field pendingGridH number
 local dcInfo = {
 	cx = 0,
 	cz = 0, -- world center when cache was built
@@ -488,6 +535,7 @@ local function flushDiffuseRead()
 	end
 	local scaleX = dcInfo.pendingScaleX
 	local scaleY = dcInfo.pendingScaleY
+	---@type any
 	local pixels
 	gl.RenderToTexture(dcInfo.gridTex, function()
 		pixels = gl.ReadPixels(0, 0, bboxW, bboxH)
@@ -587,6 +635,7 @@ local function sampleDiffuseAtPoint(wx, wz)
 		gl.Texture(false)
 	end)
 	-- Pass 2: read
+	---@type (number|table)?, number?, number?
 	local r, g, b
 	gl.RenderToTexture(dcInfo.fbo, function()
 		r, g, b = gl.ReadPixels(0, 0, 1, 1)
@@ -821,6 +870,7 @@ end
 
 local function applyBrush(worldX, worldZ)
 	local tb = WG.TerraformBrush
+	---@type number
 	local rotDeg = 0
 	if tb and tb.getState then
 		local st = tb.getState()
@@ -890,6 +940,7 @@ end
 -- Per-draw-frame mouse trace shared between DrawWorld and DrawScreen (both
 -- run inside the same draw pass, so the raw trace result is identical).
 local frameTraceDF = -1
+---@type number?, number?
 local frameTraceX, frameTraceZ = nil, nil
 
 local function drawShapeOutline(worldX, worldZ, radius, shape, angleDeg, lengthScale)
@@ -1310,6 +1361,7 @@ function widget:MouseRelease(mx, my, button)
 	end
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
 	if not active then
 		return false
@@ -1333,6 +1385,7 @@ function widget:MouseWheel(up, value)
 
 	-- Alt: rotation, shared with the terraform brush (its angle snap step when snap is on)
 	if alt then
+		---@type number
 		local step = ROTATION_STEP
 		local tb = WG.TerraformBrush
 		local tbs = tb and tb.getState and tb.getState() or nil
