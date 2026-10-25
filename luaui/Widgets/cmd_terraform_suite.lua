@@ -123,10 +123,8 @@ function widget:Initialize()
 	if order and order > 0 then
 		suiteEnabled = true
 		enableOptionalWidgets()
-		-- The suite came back enabled from a persisted order list, so enableSuite()
-		-- will never run this session. Widgets added to SUITE_WIDGETS since that
-		-- list was saved are not in it yet — enable the stragglers so newly shipped
-		-- suite widgets appear without a fresh game start.
+		-- enableSuite() will not run this session, and a saved order list can predate
+		-- widgets added to SUITE_WIDGETS: enable any that are missing.
 		for i = 1, #SUITE_WIDGETS do
 			if (widgetHandler.orderList[SUITE_WIDGETS[i]] or 0) <= 0 then
 				widgetHandler:EnableWidget(SUITE_WIDGETS[i])
@@ -153,7 +151,7 @@ function widget:Initialize()
 			enableSuite()
 			-- Re-dispatch so the real handler receives the original command with its
 			-- arguments. Not right away: widgets enabled from inside an action are only
-			-- inserted on a later frame, and a command sent now reached no handler.
+			-- inserted on a later frame, and a command sent now would reach no handler.
 			pendingCommand = cmd .. ((optLine and optLine ~= "") and (" " .. optLine) or "")
 			pendingFrames = 2
 			return true
@@ -201,15 +199,12 @@ function widget:Shutdown()
 	if not next(release) then
 		return
 	end
-	-- SaveConfigData writes orderList[name] = position for every widget still
-	-- in the handler's list, and at Shutdown every widget still is: a plain
-	-- save turned the zeros back into "enabled", so the suite stayed on in
-	-- every later game. Saves also keep coming after this callin (an
-	-- EnableWidget queued during the shutdown pass runs once it ends and saves
-	-- again), so from here on every save leaves the released widgets out of
-	-- the list. Their own config data was collected by the handler's save just
-	-- before the shutdown pass, so nothing of theirs is lost. LuaUI is going
-	-- down; a reload builds a fresh handler without this override.
+	-- SaveConfigData writes orderList[name] = position for every widget still in
+	-- the handler's list, and at Shutdown all of them are, so a plain save turns
+	-- the zeros back into "enabled". Saves also follow this callin (an EnableWidget
+	-- queued during the shutdown pass saves again), so every save from here on
+	-- leaves the released widgets out. Their config data was already collected
+	-- before the shutdown pass; a reload builds a fresh handler without this override.
 	local handlerSave = widgetHandler.SaveConfigData
 	local function saveReleased(handler)
 		for name in pairs(release) do
