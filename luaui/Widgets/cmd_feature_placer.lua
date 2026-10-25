@@ -1961,46 +1961,11 @@ local function isPointValid(px, pz, sf)
 	return true
 end
 
--- Local-space containment for the smart filter overlay only.
+-- Local-space containment for the smart filter overlay: the same test placement
+-- runs on its unrotated layout (insideLocal in common/feature_scatter.lua), so the
+-- green/red grid covers exactly the area features can land in.
 local function isInsideBrush(lx, lz, radius, shape)
-	if shape == "circle" then
-		return (lx * lx + lz * lz) <= radius * radius
-	elseif shape == "square" then
-		return math.abs(lx) <= radius and math.abs(lz) <= radius
-	elseif shape == "hexagon" then
-		local ax, az = math.abs(lx), math.abs(lz)
-		local apothem = radius * cos(pi / 6)
-		if az > apothem then
-			return false
-		end
-		if ax > radius then
-			return false
-		end
-		return ax * cos(pi / 6) + az * sin(pi / 6) <= apothem
-	elseif shape == "octagon" then
-		local ax, az = math.abs(lx), math.abs(lz)
-		local cut = radius * sin(pi / 8)
-		local side = radius * cos(pi / 8)
-		if ax > side or az > side then
-			return false
-		end
-		return (ax + az) <= (side + cut)
-	elseif shape == "triangle" then
-		local dist = sqrt(lx * lx + lz * lz)
-		if dist < 0.001 then
-			return true
-		end
-		local angle = math.atan2(lz, lx)
-		if angle < 0 then
-			angle = angle + 2 * pi
-		end
-		local sectorAngle = 2 * pi / 3
-		local angleInSector = (angle % sectorAngle) - sectorAngle / 2
-		local apothem = radius * cos(pi / 3)
-		local edgeDist = apothem / cos(angleInSector)
-		return dist <= edgeDist
-	end
-	return true
+	return (BrushShapes.isInside(lx, lz, radius, shape, 0))
 end
 
 -- Draw colored terrain-following quads showing valid (green) vs rejected (red) areas
