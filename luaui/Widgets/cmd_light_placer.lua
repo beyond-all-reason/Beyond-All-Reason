@@ -473,6 +473,126 @@ local function generateScatterPositions(cx, cz, radius, count, shape, rotDeg, di
 end
 
 ----------------------------------------------------------------
+-- Spawn one GL4 deferred light for a definition at a world position and
+-- return its instance id. Placed lights, the cursor preview and the preset
+-- ghosts all spawn here.
+----------------------------------------------------------------
+local function spawnLight(api, def, px, py, pz)
+	local br = def.brightness
+	local r, g, b = def.color[1] * br, def.color[2] * br, def.color[3] * br
+	local ltype = def.type
+	if ltype == "point" then
+		return api.AddPointLight(
+			nil,
+			nil,
+			nil,
+			nil,
+			px,
+			py,
+			pz,
+			def.radius,
+			r,
+			g,
+			b,
+			1.0,
+			0,
+			0,
+			0,
+			0,
+			def.modelfactor,
+			def.specular,
+			def.scattering,
+			def.lensflare,
+			nil,
+			0,
+			1,
+			0
+		)
+	elseif ltype == "cone" then
+		local dx, dy, dz = eulerToDirection(def.pitch or -90, def.yaw or 0)
+		return api.AddConeLight(
+			nil,
+			nil,
+			nil,
+			nil,
+			px,
+			py,
+			pz,
+			def.radius,
+			r,
+			g,
+			b,
+			1.0,
+			dx,
+			dy,
+			dz,
+			def.theta or 0.5,
+			0,
+			def.modelfactor,
+			def.specular,
+			def.scattering,
+			def.lensflare,
+			nil,
+			0,
+			1,
+			0
+		)
+	elseif ltype == "beam" then
+		local ex, ey, ez = beamEndpoint(px, py, pz, def.pitch or 0, def.yaw or 0, def.beamLength or 300)
+		return api.AddBeamLight(
+			nil,
+			nil,
+			nil,
+			nil,
+			px,
+			py,
+			pz,
+			def.radius,
+			r,
+			g,
+			b,
+			1.0,
+			ex,
+			ey,
+			ez,
+			def.radius,
+			0,
+			def.modelfactor,
+			def.specular,
+			def.scattering,
+			def.lensflare,
+			nil,
+			0,
+			1,
+			0
+		)
+	end
+	return nil
+end
+
+-- A copy of a light definition with the fields the spawn reads filled in.
+-- Built-in presets and every file the tool writes carry them all; a hand-written
+-- preset may leave some out.
+local function withLightDefaults(l)
+	return {
+		type = l.type or "point",
+		radius = l.radius or 200,
+		color = l.color or { 1, 1, 1 },
+		brightness = l.brightness or 1,
+		modelfactor = l.modelfactor or 1,
+		specular = l.specular or 1,
+		scattering = l.scattering or 1,
+		lensflare = l.lensflare or 0,
+		pitch = l.pitch,
+		yaw = l.yaw,
+		roll = l.roll,
+		theta = l.theta,
+		beamLength = l.beamLength,
+		elevation = l.elevation,
+	}
+end
+
+----------------------------------------------------------------
 -- Add one GL4 deferred light and track it. absY places it at that height
 -- instead of elevation above the ground (the clone tool pastes lights before
 -- the pasted terrain has reached the ground).
@@ -491,98 +611,7 @@ local function addOneLight(px, pz, lightDef, absY)
 	local elevation = lightDef.elevation or lp.elevation
 	py = absY or (py + elevation)
 
-	local r = lightDef.color[1] * lightDef.brightness
-	local g = lightDef.color[2] * lightDef.brightness
-	local b = lightDef.color[3] * lightDef.brightness
-
-	local instanceID
-	if lightDef.type == "point" then
-		instanceID = lightsAPI.AddPointLight(
-			nil,
-			nil,
-			nil,
-			nil,
-			px,
-			py,
-			pz,
-			lightDef.radius,
-			r,
-			g,
-			b,
-			1.0,
-			0,
-			0,
-			0,
-			0,
-			lightDef.modelfactor,
-			lightDef.specular,
-			lightDef.scattering,
-			lightDef.lensflare,
-			nil,
-			0,
-			1,
-			0
-		)
-	elseif lightDef.type == "cone" then
-		local dx, dy, dz = eulerToDirection(lightDef.pitch or -90, lightDef.yaw or 0)
-		instanceID = lightsAPI.AddConeLight(
-			nil,
-			nil,
-			nil,
-			nil,
-			px,
-			py,
-			pz,
-			lightDef.radius,
-			r,
-			g,
-			b,
-			1.0,
-			dx,
-			dy,
-			dz,
-			lightDef.theta or 0.5,
-			0,
-			lightDef.modelfactor,
-			lightDef.specular,
-			lightDef.scattering,
-			lightDef.lensflare,
-			nil,
-			0,
-			1,
-			0
-		)
-	elseif lightDef.type == "beam" then
-		local ex, ey, ez = beamEndpoint(px, py, pz, lightDef.pitch or 0, lightDef.yaw or 0, lightDef.beamLength or 300)
-		instanceID = lightsAPI.AddBeamLight(
-			nil,
-			nil,
-			nil,
-			nil,
-			px,
-			py,
-			pz,
-			lightDef.radius,
-			r,
-			g,
-			b,
-			1.0,
-			ex,
-			ey,
-			ez,
-			lightDef.radius,
-			0,
-			lightDef.modelfactor,
-			lightDef.specular,
-			lightDef.scattering,
-			lightDef.lensflare,
-			nil,
-			0,
-			1,
-			0
-		)
-	end
-
+	local instanceID = spawnLight(lightsAPI, lightDef, px, py, pz)
 	if instanceID then
 		local record = {
 			instanceID = instanceID,
@@ -1186,102 +1215,10 @@ local function updatePreviewLight(worldX, worldZ)
 	end
 	removePreviewLight()
 	local py = (GetGroundHeight(worldX, worldZ) or 0) + lp.elevation
-	local r = lp.color[1] * lp.brightness
-	local g = lp.color[2] * lp.brightness
-	local b = lp.color[3] * lp.brightness
-	---@type integer?
-	local id
-	if lp.lightType == "point" then
-		id = api.AddPointLight(
-			nil,
-			nil,
-			nil,
-			nil,
-			worldX,
-			py,
-			worldZ,
-			lp.lightRadius,
-			r,
-			g,
-			b,
-			1.0,
-			0,
-			0,
-			0,
-			0,
-			lp.modelfactor,
-			lp.specular,
-			lp.scattering,
-			lp.lensflare,
-			nil,
-			0,
-			1,
-			0
-		)
-		previewLight.shape = "point"
-	elseif lp.lightType == "cone" then
-		local dx, dy, dz = eulerToDirection(lp.pitch, lp.yaw)
-		id = api.AddConeLight(
-			nil,
-			nil,
-			nil,
-			nil,
-			worldX,
-			py,
-			worldZ,
-			lp.lightRadius,
-			r,
-			g,
-			b,
-			1.0,
-			dx,
-			dy,
-			dz,
-			lp.theta,
-			0,
-			lp.modelfactor,
-			lp.specular,
-			lp.scattering,
-			lp.lensflare,
-			nil,
-			0,
-			1,
-			0
-		)
-		previewLight.shape = "cone"
-	elseif lp.lightType == "beam" then
-		local ex, ey, ez = beamEndpoint(worldX, py, worldZ, lp.pitch, lp.yaw, lp.beamLength)
-		id = api.AddBeamLight(
-			nil,
-			nil,
-			nil,
-			nil,
-			worldX,
-			py,
-			worldZ,
-			lp.lightRadius,
-			r,
-			g,
-			b,
-			1.0,
-			ex,
-			ey,
-			ez,
-			lp.lightRadius,
-			0,
-			lp.modelfactor,
-			lp.specular,
-			lp.scattering,
-			lp.lensflare,
-			nil,
-			0,
-			1,
-			0
-		)
-		previewLight.shape = "beam"
-	end
+	local id = spawnLight(api, buildLightDef(), worldX, py, worldZ)
 	if id then
 		previewLight.id = id
+		previewLight.shape = lp.lightType
 		local pl2 = previewLast
 		pl2.valid = true
 		pl2.x, pl2.z = qx, qz
@@ -1345,101 +1282,10 @@ local function updatePresetPreviewLights(worldX, worldZ)
 		local pz = worldZ + (l.offsetZ or 0)
 		-- Same elevation rule as addOneLight, so the preview sits where the lights land
 		local py = (GetGroundHeight(px, pz) or 0) + (l.elevation or lp.elevation)
-		local color = l.color or { 1, 1, 1 }
-		local br = l.brightness or 1
-		local r, g, b = color[1] * br, color[2] * br, color[3] * br
-		local radius = l.radius or 200
-		---@type integer?
-		local id
-		local ltype = l.type or "point"
-		if ltype == "point" then
-			id = api.AddPointLight(
-				nil,
-				nil,
-				nil,
-				nil,
-				px,
-				py,
-				pz,
-				radius,
-				r,
-				g,
-				b,
-				1.0,
-				0,
-				0,
-				0,
-				0,
-				l.modelfactor or 1,
-				l.specular or 1,
-				l.scattering or 1,
-				l.lensflare or 0,
-				nil,
-				0,
-				1,
-				0
-			)
-		elseif ltype == "cone" then
-			local dx, dy, dz = eulerToDirection(l.pitch or -90, l.yaw or 0)
-			id = api.AddConeLight(
-				nil,
-				nil,
-				nil,
-				nil,
-				px,
-				py,
-				pz,
-				radius,
-				r,
-				g,
-				b,
-				1.0,
-				dx,
-				dy,
-				dz,
-				l.theta or 0.5,
-				0,
-				l.modelfactor or 1,
-				l.specular or 1,
-				l.scattering or 1,
-				l.lensflare or 0,
-				nil,
-				0,
-				1,
-				0
-			)
-		elseif ltype == "beam" then
-			local ex, ey, ez = beamEndpoint(px, py, pz, l.pitch or 0, l.yaw or 0, l.beamLength or 300)
-			id = api.AddBeamLight(
-				nil,
-				nil,
-				nil,
-				nil,
-				px,
-				py,
-				pz,
-				radius,
-				r,
-				g,
-				b,
-				1.0,
-				ex,
-				ey,
-				ez,
-				radius,
-				0,
-				l.modelfactor or 1,
-				l.specular or 1,
-				l.scattering or 1,
-				l.lensflare or 0,
-				nil,
-				0,
-				1,
-				0
-			)
-		end
+		local def = withLightDefaults(l)
+		local id = spawnLight(api, def, px, py, pz)
 		if id then
-			presetPreviewLights[#presetPreviewLights + 1] = { shape = ltype, id = id }
+			presetPreviewLights[#presetPreviewLights + 1] = { shape = def.type, id = id }
 		end
 	end
 	presetPreviewLast.valid = true
