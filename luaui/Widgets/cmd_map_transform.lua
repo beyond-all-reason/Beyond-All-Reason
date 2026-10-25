@@ -12,50 +12,31 @@ end
 
 -- Horizontal map manipulation for the Terraformer (SCENE > Dimensions).
 --
--- Map size and orientation are fixed at load time: the engine builds the
--- heightmap, the metal map, the texture squares and the minimap from the
--- archive when the map is loaded and nothing in Lua can resize them. So the
--- only honest way to turn or resize an authored map is to write the authoring
--- out, transform it, and boot a fresh canvas that reads it back in — which is
--- exactly what the map project format already does for save and load. This
--- widget is the transform in the middle:
---
+-- The engine fixes map size and orientation at load (heightmap, metal map,
+-- texture squares, minimap), so a turn or resize goes through the project format:
 --   1. save the live session into a staging project (_transform/source)
---   2. rewrite every section of it onto the new canvas (_transform/staged)
---   3. hand the staged project to Map Project, which restarts the engine into
---      a blank map of the new size and replays it
---
--- The user's own project is never touched. After the restart the session holds
--- the transformed map with its original project still as the Save target, so
--- FILE > Save commits the transform and closing without saving discards it.
+--   2. rewrite every section onto the new canvas (_transform/staged)
+--   3. hand the staged project to Map Project, which restarts into a blank map of
+--      the new size and replays it
+-- The user's project is never touched: it stays the Save target, so FILE > Save
+-- commits the transform and closing without saving discards it.
 --
 -- Section by section:
---   heightmap   NOT rewritten here. The importer resamples it onto the new grid
---               anyway, so the transform rides along in the pointer file and is
---               applied while the rows stream (see cmd_terraform_brush.lua).
---               Rewriting the PNG would mean a Lua decode + re-encode of up to
---               4M 16-bit samples for nothing.
---   masks       splat / surface / surface_v4 / diffuse squares + channels: a GL
---               blit of the source quad into the destination image, so a turn
---               is a corner permutation and a resize is one bilinear pass.
---   grass       the distribution TGA, permuted in Lua (the loader demands an
---               exact mapSize/patchResolution grid, so it has to be resized).
+--   heightmap   not rewritten: the importer resamples it anyway, so the transform
+--               rides in the pointer file and is applied while rows stream.
+--   masks       splat / surface / surface_v4 / diffuse squares: a GL blit, so a
+--               turn is a corner permutation and a resize one bilinear pass.
+--   grass       distribution TGA rebuilt in Lua (the loader demands an exact
+--               mapSize/patchResolution grid).
 --   tables      metal, features, units, decals, lights, labels, start positions,
---               start boxes, weather: positions, headings and angles through
---               the shared math, anything off the new canvas dropped.
---   environment sun azimuth turns with the map, so the authored light keeps
---               falling on the terrain the way it was authored.
---   tileset     knobs copied verbatim (they are scales and looks, which mean
---               the same on a turned map) plus the WORLD PATTERN FRAME, which
---               is composed so the shader's automatic placement turns too.
+--               boxes, weather: through the shared math, off-canvas records dropped.
+--   environment sun azimuth turns with the map.
+--   tileset     knobs copied, plus the world pattern frame composed.
 --   the rest    DNTS assets, decal captures: copied verbatim.
 --
--- EXPAND is the same machine with TWO placements of the one source instead of
--- one: the map keeps its scale on the side it grew from, and the new half is
--- either left empty or filled with a copy (plain, mirrored across the seam,
--- flipped along it, or both). Every layer is simply replayed once per
--- placement, so a doubling duplicates the features, the metal, the paint and
--- the start positions exactly the way it duplicates the terrain.
+-- EXPAND uses two placements of the one source: the map keeps its scale on the
+-- side it grew from and the new half is empty or a copy. Every layer is replayed
+-- once per placement.
 
 local Spring = Spring
 local VFS = VFS
@@ -173,11 +154,10 @@ end
 ----------------------------------------------------------------
 -- Generic Lua table serialization
 --
--- Every section file is a plain `return <table>`, so the transform can read one
--- in, walk it and write it back without knowing the format by heart. The
--- staging copy is deleted after the load and the user's next FILE > Save goes
--- through each tool's own writer, so only parseability matters here — not the
--- byte-for-byte determinism the real project files keep for git.
+-- Every section file is a plain `return <table>`, so it can be walked without
+-- knowing its format. The staging copy is thrown away after the load and the next
+-- FILE > Save uses each tool's own writer, so only parseability matters here, not
+-- the byte-stable output the real project files keep for git.
 ----------------------------------------------------------------
 
 local function fmtNumber(v)
@@ -520,11 +500,10 @@ end
 ----------------------------------------------------------------
 -- Image transform (GL)
 --
--- One quad: the SOURCE image's own corners, placed where the transform puts
--- them on the destination. A quarter turn is then a corner permutation, a
--- resize is one bilinear pass, a crop is clipped by the viewport, and an
--- extended canvas keeps the cleared background (for a paint mask "nothing" is
--- the right answer — the heightmap, where it is not, clamps instead).
+-- One quad: the source image's corners placed where the transform puts them. A
+-- quarter turn is a corner permutation, a resize one bilinear pass, a crop is
+-- clipped by the viewport, and an extended canvas keeps the cleared background
+-- (right for a paint mask; the heightmap clamps instead).
 ----------------------------------------------------------------
 
 local function drawSourceQuad(T, texName, srcRect, dstRect)
@@ -554,9 +533,9 @@ local function drawSourceQuad(T, texName, srcRect, dstRect)
 end
 
 -- Blit a list of source images into one destination image and save it.
--- pieces: { {path, srcRect, T}, ... } — each piece carries the placement that
--- puts it on the destination, so one image can hold both halves of an
--- expansion. dstRect is the destination image's own elmo rect.
+-- pieces: { {path, srcRect, T}, ... }: each piece carries its own placement, so
+-- one image can hold both halves of an expansion. dstRect is the destination
+-- image's own elmo rect.
 local function renderImage(pieces, dstRect, dstW, dstH, outPath)
 	local fbo = glCreateTexture(dstW, dstH, {
 		border = false,
@@ -593,11 +572,9 @@ end
 
 -- A full-map mask is a grid over the map, in one of two shapes: a texel grid
 -- (extent/step, the splat distribution) or a VERTEX grid (extent/step + 1, the
--- tileset variant mask, which is per heightmap vertex). Scaling the pixel count
--- proportionally gets the second one wrong by a texel - a 1025-tall mask on a
--- map that doubled came out 2050 where the new map's own grid is 2049, and the
--- painter then rescaled the whole mask by half a texel on load. Recover the
--- step from the source instead, and lay the destination out on the same step.
+-- tileset variant mask, per heightmap vertex). Scaling the pixel count gets the
+-- vertex grid wrong by one (1025 doubled is 2050, the new grid is 2049), so
+-- recover the step from the source and lay the destination out on it.
 ---@return number
 local function maskAxis(px, srcExtent, dstExtent)
 	if px > 1 and srcExtent > 0 then
@@ -759,11 +736,9 @@ local function stepPrepare()
 		fail("the staged copy records no map size")
 		return false
 	end
-	-- One placement per copy of the map on the new canvas: a plain transform
-	-- has one, an expansion with a duplicated half has two. job.T is the first
-	-- one, kept as its own value rather than read back out of the list: an
-	-- indexed read types as possibly-nil and every use of it downstream would
-	-- have to be guarded against a case that cannot happen.
+	-- One placement per copy of the map: a plain transform has one, an expansion
+	-- with a copied half two. job.T keeps the first as its own value because an
+	-- indexed read types as possibly-nil at every use.
 	local first = MapTransform.new(job.specs[1], srcW, srcH, job.dstW, job.dstH)
 	job.placements = { first }
 	for i = 2, #job.specs do
@@ -819,12 +794,10 @@ local function stepPrepare()
 		end
 	end
 
-	-- Everything else rides across untouched. The list is built from the
-	-- manifest rather than hardcoded, so a section added to the project format
-	-- later survives a transform (unturned, but present) instead of vanishing
-	-- from the staged copy; the named extras are the siblings no section points
-	-- at (the heightmap's range sidecar, the SURFACE slot assignment, the grass
-	-- settings beside its distribution).
+	-- Everything else is copied untouched. The list comes from the manifest so a
+	-- section unknown here survives (unturned, but present); the named extras are
+	-- siblings no section points at (heightmap range sidecar, SURFACE slots, grass
+	-- settings).
 	job.copies = {}
 	local handled = { ["grass_dist.tga"] = true }
 	for _, name in ipairs(job.tables) do
@@ -1071,15 +1044,10 @@ local function stepEnvironment()
 	return true
 end
 
--- Tileset knobs ride across untouched - a texture scale or a slope threshold
--- means the same thing on a turned map - with one exception. Everything the
--- shader places WITHOUT the artist (the stagger mask lerps, the fbm fields, the
--- anti-tile warp, the deposit wind) is addressed in WORLD XZ, so a quarter turn
--- slides all of it across terrain that did turn, which is what "the texture is
--- messed up in many areas" looked like on CM02. The WORLD PATTERN FRAME carries
--- the turn into the shader instead: composed here, applied by patternXZ in
--- dev_tileset_terrain.lua, so the map comes out of a turn looking like the map
--- that went in. See MapTransform:composeFrame.
+-- Tileset knobs mean the same on a turned map and are copied as they are. The
+-- shader's automatic patterns are addressed in world XZ and would slide across
+-- the turned terrain, so the world pattern frame (MapTransform:composeFrame,
+-- applied by patternXZ in dev_tileset_terrain.lua) carries the turn instead.
 local function stepTileset()
 	local srcPath = job.srcDir .. "tileset.lua"
 	if not fileExists(srcPath) then
@@ -1154,14 +1122,11 @@ local function stepOpen()
 		fail("this build's Map Project widget cannot open a staged project")
 		return false
 	end
-	-- The capture has done its job; the restart only reads the staged copy. It
-	-- is left on disk rather than scanned away here: Map Project sweeps both on
-	-- the next start that is not a project load.
-	-- The heightmap is the one layer not rewritten on disk: the importer
-	-- replays it through these placements while it streams. fill_height is
-	-- what ground outside every placement becomes — the canvas base for an
-	-- expansion with an empty half; absent means "continue the old border",
-	-- which is what a nudged edge wants.
+	-- The capture stays on disk: Map Project sweeps both folders on the next
+	-- start that is not a project load.
+	-- The importer replays the heightmap through these placements while it
+	-- streams. fill_height is the ground outside every placement (the canvas base
+	-- for an empty half); absent means "continue the old border", for a nudged edge.
 	local list = {}
 	for i, spec in ipairs(job.specs) do
 		local c = MapTransform.canonical(spec)
