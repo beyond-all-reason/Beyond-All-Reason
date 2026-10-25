@@ -23,11 +23,10 @@ if not gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- Visual scale lives in the per-object uniform buffer the CUS vertex shaders
-	-- read (userDefined[3].z, buffer index 14; 0 = unscaled). The synced side
-	-- keeps the authoritative value in the public "visualScale" feature rules
-	-- param and pings this side to upload it. Brush placement also plays a short
-	-- grow-in: the uniform is animated from a sliver up to the final scale.
+	-- Visual scale lives in the per-object uniform the CUS vertex shaders read
+	-- (userDefined[3].z, buffer index 14; 0 = unscaled). The synced half keeps the
+	-- value in the public "visualScale" rules param and pings this half to upload
+	-- it. Brush placement also animates a short grow-in up to the final scale.
 	local SCALE_UNIFORM_INDEX = 14
 	local GROW_SECONDS = 0.35
 	local SetFeatureBufferUniforms = gl.SetFeatureBufferUniforms
@@ -59,9 +58,8 @@ if not gadgetHandler:IsSyncedCode() then
 		feature_save_end = forwardToLuaUI("terraform_feature_save_end"),
 		fpFeatureScale = function(_, featureID, s, grow)
 			-- Mouse picking (hover, click, reclaim targeting) tests the selection
-			-- volume, a separate engine volume the synced half cannot reach: it
-			-- scaled the collision volume, which only weapons and projectiles hit.
-			-- One message per created feature, carrying its final scale.
+			-- volume, which only unsynced code can set; the synced half scales the
+			-- collision volume, which only weapons and projectiles hit.
 			if s ~= 1 and Spring.SetFeatureSelectionVolumeData then
 				local sx, sy, sz, ox, oy, oz, vtype, ttype, axis = Spring.GetFeatureSelectionVolumeData(featureID)
 				if sx then
@@ -149,10 +147,8 @@ end
 ----------------------------------------------------------------
 -- Constants & Headers
 ----------------------------------------------------------------
--- The widget generates brush layouts now (common/feature_scatter.lua) and ships
--- the resulting concrete placements, so what it previewed is exactly what gets
--- created. $feature_scatter$ and $feature_point$, which asked this gadget to
--- roll its own positions, are gone.
+-- The widget generates brush layouts (common/feature_scatter.lua) and sends
+-- concrete placements, so what it previewed is exactly what gets created.
 local PLACELIST_HEADER = "$feature_place_list$"
 local TRANSFORM_HEADER = "$feature_transform$"
 local REMOVEIDS_HEADER = "$feature_remove_ids$"
@@ -209,8 +205,7 @@ local SetFeatureRadiusAndHeight = Spring.SetFeatureRadiusAndHeight
 local SetFeatureMidAndAimPos = Spring.SetFeatureMidAndAimPos
 
 -- Same containment module the widget draws its brush outline from, so removal
--- matches the shape the user sees. The copy that used to live here was
--- apothem-based and disagreed with the outline on hexagons and octagons.
+-- matches the shape the user sees.
 local BrushShapes = require("common/brush_shapes")
 local isInsideShape = BrushShapes.isInside
 
@@ -221,26 +216,20 @@ local undoStack = {}
 local redoStack = {}
 local gaiaTeamID
 
--- Visual scale applied per feature, keyed by live featureID. Mirrored into the
--- public "visualScale" feature rules param (widgets read it back, the unsynced
--- half re-uploads it after a reload); this table stays the authority for
--- capture/save. Entries exist only for features that were actually scaled.
+-- Visual scale per live featureID, only for scaled features. Mirrored into the
+-- public "visualScale" rules param (widgets read it, the unsynced half
+-- re-uploads it after a reload); this table is what capture and save use.
 local featureScales = {}
 
 ----------------------------------------------------------------
 -- Per-feature scaling
 ----------------------------------------------------------------
--- The engine cannot scale a feature's model: Spring.SetFeaturePieceMatrix looks
--- like the API for it, but LocalModelPiece::SetPieceSpaceMatrix only validates
--- the matrix and throws the geometry away, and piece scale is reachable only from
--- unit animation scripts, which features do not have.
---
--- So the size is drawn, not simulated: the CUS vertex shaders multiply the model
--- by a per-object uniform (see the unsynced half at the top of this file), in
--- every pass including shadows. Interaction is scaled here to match -- collision
--- volume, selection/reclaim radius+height (which also drives draw culling), and
--- the mid/aim positions. Footprint blocking stays def-side, which is fine for the
--- 1x1 feature defs this tool mostly places.
+-- Engine trap: Spring.SetFeaturePieceMatrix does not scale the model (the engine
+-- validates the matrix and discards it), and piece scale exists only in unit
+-- scripts. So the size is drawn by the CUS shaders (unsynced half above), and
+-- here the collision volume, radius/height (also draw culling) and mid/aim
+-- positions are scaled to match. Footprint blocking stays def-side, fine for the
+-- 1x1 defs this tool mostly places.
 local SCALE_EPSILON = 0.001
 local SCALE_MIN = 0.05
 local SCALE_MAX = 10
@@ -313,13 +302,12 @@ local WOBBLE_AMPLITUDE = 8 -- degrees peak tilt
 local WOBBLE_FREQ = 0.6 -- radians per frame
 local WOBBLE_RAMP = 3 -- frames to ramp in
 
--- GameFrame is registered only while wobble animations run; otherwise every
--- match paid an empty pairs() walk every sim frame.
+-- GameFrame is registered only while wobbles run, so a normal match does not pay
+-- an empty pairs() walk every sim frame.
 local wobbleActive = false
 
--- Captures the feature's full resting orientation, not just its yaw. The wobble
--- used to snap pitch and roll to zero when it finished, which silently flattened
--- anything placed or loaded with a tilt.
+-- Captures the full resting orientation, not just yaw, so a tilted feature gets
+-- its tilt back when the wobble ends.
 local function addWobble(featureID)
 	if featureID then
 		local pitch, yaw, roll = GetFeatureRotation(featureID)
@@ -356,23 +344,14 @@ end
 ----------------------------------------------------------------
 -- Feature placement
 ----------------------------------------------------------------
--- Layout generation moved to common/feature_scatter.lua on the widget side, so
--- the brush preview and the features that actually appear are the same array
--- rather than two implementations of the same algorithm. This gadget now only
--- realises a list it is handed.
+-- This gadget only realises placement lists; layouts come from the widget.
 
--- Features above the ground are still in the physics update queue right after
--- creation and would fall. Zeroing the movement masks (leaving moveCtrl itself
--- disabled) makes every Move a no-op, so the feature settles out of the queue at
--- the height it was given. Deliberately not unlocked again if it later returns
--- to the ground: this is authored scenery, and staying put is what the author
--- asked for.
---
--- A SUNK feature (below the ground: the brush's HEIGHT OFFSET) needs more: the
--- engine's non-moveCtrl update lifts anything buried back onto the ground
--- (CFeature::UpdatePosition, "the ground moved and buried us"), masks or not.
--- moveCtrl ENABLED with zero velocity and acceleration is raw movement, never
--- clamped, so it stays where it was put (and in the update queue, at no cost).
+-- A lifted feature would fall: it is in the physics queue right after creation.
+-- Zero movement masks (moveCtrl off) make every Move a no-op, so it stays at its
+-- height. Never unlocked: authored scenery should stay put.
+-- A sunk feature (HEIGHT OFFSET below ground) needs moveCtrl ON with zero
+-- velocity: without moveCtrl the engine lifts buried features back to the ground
+-- (CFeature::UpdatePosition) whatever the masks say.
 local function lockFeatureInPlace(featureID, sunk)
 	if SetFeatureMoveCtrl then
 		if sunk then
@@ -397,9 +376,8 @@ local function applyTransform(featureID, t)
 		return false
 	end
 
-	-- A transform supersedes any placement wobble still running on this feature.
-	-- Left in the queue, the wobble would keep writing its own rotation and then
-	-- restore the pre-transform orientation when it finished.
+	-- Cancel any running wobble: it would restore the pre-transform orientation
+	-- when it finished.
 	wobbleQueue[featureID] = nil
 
 	local groundY = GetGroundHeight(t.x, t.z)
@@ -417,8 +395,8 @@ end
 --   defName x z heading scale               (5)
 --   defName x z heading pitch roll y        (7)
 --   defName x z heading pitch roll y scale  (8)
--- Disambiguated by token count; each optional tail is omitted whenever it holds
--- the default, so an untouched map's wire traffic stays byte-identical.
+-- Told apart by token count. Each optional tail is omitted when it holds the
+-- default, so an untouched map's wire traffic and saves stay byte-identical.
 local function parsePlacement(entry)
 	local parts = {}
 	for word in entry:gmatch("%S+") do
@@ -468,16 +446,15 @@ local function createFromPlacement(p, grow)
 		return nil
 	end
 
-	-- lifted OR sunk (the brush's HEIGHT OFFSET can push it into the ground): held where it was put
+	-- Lifted or sunk (HEIGHT OFFSET can push it into the ground): hold it there.
 	local groundY = GetGroundHeight(p.x, p.z)
 	if abs(p.y - groundY) > LIFT_EPSILON then
 		lockFeatureInPlace(id, p.y < groundY)
 		SetFeaturePosition(id, p.x, p.y, p.z)
 	end
 
-	-- CreateFeature only takes a heading, so any tilt has to be applied after --
-	-- and before addWobble, which snapshots the resting orientation it must
-	-- return to.
+	-- CreateFeature only takes a heading, so tilt is applied here, before
+	-- addWobble snapshots the resting orientation it returns to.
 	if p.pitch ~= 0 or p.roll ~= 0 then
 		local _, yaw = GetFeatureRotation(id)
 		SetFeatureRotation(id, p.pitch, yaw or 0, p.roll)
@@ -494,16 +471,11 @@ end
 ----------------------------------------------------------------
 -- Undo strokes
 ----------------------------------------------------------------
--- One user action is one undo step, even though it can arrive as several
--- messages -- a 500-feature stamp is 13 batches, and a gizmo drag over a big
--- selection several more. Messages carry a stroke id; consecutive messages
--- sharing one append to the same entry. Same idea as the terraform brush
--- merging a paint stroke.
---
--- Only one stroke is ever open, because a place and a transform cannot belong to
--- the same user action. The entry is pushed lazily on the first real change, so
--- a message that turns out to be a no-op neither leaves an empty undo step
--- behind nor clears the redo stack.
+-- One user action is one undo step, even when it arrives as several messages
+-- (a 500-feature stamp is 13 batches). Consecutive messages with the same stroke
+-- id append to one entry. Only one stroke is open at a time. The entry is pushed
+-- on the first real change, so a no-op message neither leaves an empty step nor
+-- clears the redo stack.
 local stroke = { id = nil, kind = nil, entry = nil, index = nil, pushed = false }
 
 local function closeStroke()
@@ -575,17 +547,11 @@ end
 ----------------------------------------------------------------
 -- Feature removal
 ----------------------------------------------------------------
--- Is this feature's orientation just the engine's own resting alignment, or did
--- something actually tilt it?
---
--- This distinction matters because non-upright feature defs are ground-aligned
--- by UpdateDirVectors, so a rock on any real slope reports a non-zero pitch and
--- roll it was never given. Testing `pitch ~= 0` would therefore mark most
--- features on most maps as transformed and write the optional tail for all of
--- them, breaking the promise that an unedited map serialises byte-for-byte.
---
--- Compared as up-vectors rather than euler angles: no gimbal lock, and it is the
--- same quantity UpdateDirVectors actually sets.
+-- True when the orientation is just the engine's resting alignment. Non-upright
+-- defs are ground-aligned by UpdateDirVectors, so features on slopes report pitch
+-- and roll nobody gave them; testing `pitch ~= 0` would write the tilt tail for
+-- most features of an unedited map. Compared as up-vectors (what UpdateDirVectors
+-- sets), which also avoids gimbal lock.
 local UP_MATCH_EPSILON = 0.02
 
 local function isRestingOrientation(featureID, def, x, z)
@@ -737,13 +703,10 @@ end
 ----------------------------------------------------------------
 -- Undo / Redo
 ----------------------------------------------------------------
--- Recreating a feature gives it a NEW id, and it is not only the entry being
--- replayed that stores that id: a "transform" entry deeper in the stack is keyed
--- entirely by live feature ids. Leave those pointing at the destroyed id and
--- undoing a gizmo drag silently does nothing (ValidFeatureID fails), or worse,
--- once the engine's id pool recycles the number, moves an unrelated feature.
---
--- So every recreate publishes an old -> new mapping across both stacks.
+-- Recreating a feature gives it a new id, and other entries (transforms above
+-- all) are keyed by live ids. Stale ids make undo do nothing, or move an
+-- unrelated feature once the id is recycled, so every recreate remaps old -> new
+-- across both stacks.
 local function remapFeatureIDs(mapping)
 	local function patch(stack)
 		for i = 1, #stack do
@@ -850,11 +813,9 @@ local function exportAllFeatures()
 				.. floor(snapshot.z)
 				.. " "
 				.. snapshot.heading
-			-- Only carry the tilt/lift tail when there is one, so maps that were
-			-- never touched by the gizmo serialise exactly as they did before.
-			-- "Tilted" means tilted away from the engine's own resting alignment,
-			-- not simply non-zero pitch: ground-aligned features on a slope have
-			-- plenty of that without anyone having touched them.
+			-- Tilt/lift tail only when tilted away from the resting alignment (see
+			-- isRestingOrientation) or lifted, so untouched maps serialise
+			-- byte-identically.
 			local tilted = not snapshot.resting
 				or abs(snapshot.y - GetGroundHeight(snapshot.x, snapshot.z)) > LIFT_EPSILON
 			if tilted then
