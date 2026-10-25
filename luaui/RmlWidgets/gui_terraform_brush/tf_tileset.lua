@@ -9,6 +9,7 @@ local M = {}
 
 -- RmlUi listener closures can run outside the widget env, where global WG is
 -- nil; capture it as an upvalue.
+---@type table<string, any>
 local WG = WG
 
 -- { knob key, numbox format }. Each key pairs with a ts-slider-<key> row in the
@@ -406,6 +407,7 @@ local TUNING_FRAMES = {
 -- BYAR.lua entry. Needs shader build 21+ (addUserPreset); older builds keep
 -- presets in their widget config.
 local PRESET_DIR = "Terraform Brush/TilesetPresets/"
+---@type table<string, string|nil>
 local presetFile = {} -- preset name -> its file
 
 local function presetPath(name)
@@ -621,6 +623,7 @@ local function rebuildS4Palette(doc, ctx, list, current)
 	end
 	grid.inner_rml = ""
 	widgetState.ts4PaletteEls = {}
+	---@type table?
 	local row
 	for i = 1, #list do
 		local v = list[i]
@@ -672,6 +675,7 @@ local function rebuildBiomePalette(doc, ctx, rows, activeKey)
 	end
 	grid.inner_rml = ""
 	widgetState.tsBiomeTileEls = {}
+	---@type table?
 	local row
 	for i = 1, #rows do
 		local b = rows[i]
@@ -1258,6 +1262,7 @@ function M.sync(doc, ctx, setSummary)
 					true,
 				},
 			}
+			---@type table?
 			local m = modes[mname]
 			if m then
 				local e1 = doc:GetElementById("ts-label-platHeight")

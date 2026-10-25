@@ -16,6 +16,7 @@ function widget:GetInfo()
 	}
 end
 
+---@type table<string, any>
 local WG = WG
 local Spring = Spring
 
@@ -81,6 +82,7 @@ end
 -- sibling reads) registers its document after LoadDocument() and unregisters on
 -- Shutdown(). Readers call getElementRect(docName, elementId) for live layout
 -- instead of mirroring positions through WG.
+---@type table<string, table|nil>
 local registeredDocuments = {}
 
 -- === Scrollable panel bodies ===
@@ -364,6 +366,17 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 	local snapDocName = (opts and opts.snapDocName) or "terraform_brush"
 	local snapElementId = (opts and opts.snapElementId) or "tf-root"
 
+	---@class TerraformerDragState
+	---@field active boolean
+	---@field rootEl table?
+	---@field offsetX number
+	---@field offsetY number
+	---@field ew number
+	---@field eh number
+	---@field vsx number
+	---@field vsy number
+	---@field lastX number
+	---@field lastY number
 	local ds = {
 		active = false,
 		rootEl = nil,

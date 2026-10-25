@@ -1905,6 +1905,7 @@ function M.attach(doc, ctx)
 		}
 
 		local wtypeButtons = { "default", "ocean", "lava", "acid", "swamp", "ice" }
+		---@type table<string, table|nil>
 		local wtypeBtnEls = {}
 		for _, name in ipairs(wtypeButtons) do
 			wtypeBtnEls[name] = doc:GetElementById("btn-wtype-" .. name)
