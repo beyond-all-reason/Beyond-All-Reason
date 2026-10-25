@@ -81,6 +81,12 @@ local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local getTypesWithParameterName = schemaUtils.GetTypesWithParameterName
 local isDifficultiesTable = GG["MissionAPI"].Modules.Difficulty.IsDifficultiesTable
 local knownDifficulties = parameterTypeEnums[Types.Difficulty]
+local variables = GG["MissionAPI"].Modules.Variables
+local isVariableReference = variables.IsVariableReference
+local hasVariableReference = variables.HasVariableReference
+local callOnVariableKeys = variables.CallOnVariableKeys
+local hasUnsetVariable = variables.HasUnsetVariable
+local resolveValue = variables.ResolveValue
 
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
@@ -837,6 +843,25 @@ local function validateDifficultiesTable(value, parameterType, actionOrTrigger, 
 	return result
 end
 
+--- Checks each key, then the value against variables the startscript sets. When any is unset,
+--- the value is not checked, and validateVariableKeys warns about the key instead.
+local function validateReferencedValue(value, parameterType, actionOrTrigger, actionOrTriggerID, parameterName)
+	local results = {}
+	callOnVariableKeys(value, function(key)
+		if type(key) ~= "string" then
+			results[#results + 1] = { message = "Variable key must be a string, got " .. type(key) }
+		end
+	end)
+	if #results > 0 then
+		return results
+	end
+
+	if hasUnsetVariable(value) then
+		return results
+	end
+	return validators[parameterType](resolveValue(value), actionOrTrigger, actionOrTriggerID, parameterName) or {}
+end
+
 local function validate(
 	schemaParameters,
 	actionOrTriggerType,
@@ -900,6 +925,14 @@ local function validate(
 				local validationResults
 				if isDifficultiesTable(value) then
 					validationResults = validateDifficultiesTable(
+						value,
+						parameter.type,
+						actionOrTrigger,
+						actionOrTriggerID,
+						parameter.name
+					)
+				elseif hasVariableReference(value) then
+					validationResults = validateReferencedValue(
 						value,
 						parameter.type,
 						actionOrTrigger,
@@ -985,10 +1018,12 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 	end
 end
 
-local function validateSchemaField(value, fieldType, recordKind, recordIDText, fieldName)
+local function validateSchemaField(value, fieldType, recordKind, recordIDText, fieldName, allowsVariables)
 	local results ---@type table[]
 	if isDifficultiesTable(value) then
 		results = validateDifficultiesTable(value, fieldType, recordKind, recordIDText, fieldName)
+	elseif allowsVariables and hasVariableReference(value) then
+		results = validateReferencedValue(value, fieldType, recordKind, recordIDText, fieldName)
 	else
 		results = validators[fieldType](value) or {}
 	end
@@ -1016,8 +1051,14 @@ local function validateObjectiveSchemaFields(objective, objectiveIDText)
 					.. objectiveIDText
 					.. ", Field: trigger"
 			)
+		elseif fieldName == "trigger" and isVariableReference(value) then
+			logError(
+				"Objective 'trigger' field does not support variables. Objective: "
+					.. objectiveIDText
+					.. ", Field: trigger"
+			)
 		elseif fieldName ~= "nextStage" and value ~= nil then
-			validateSchemaField(value, fieldType, "Objective", objectiveIDText, fieldName)
+			validateSchemaField(value, fieldType, "Objective", objectiveIDText, fieldName, fieldName ~= "trigger")
 		end
 	end
 end
@@ -1286,6 +1327,17 @@ local function validateObjectiveNextStageReferences(objectives)
 							.. (result.parameterNameSuffix or "")
 					)
 				end
+			elseif hasVariableReference(objective.nextStage) then
+				local results = validateReferencedValue(
+					objective.nextStage,
+					Types.StageID,
+					"Objective",
+					objectiveIDText,
+					"nextStage"
+				)
+				for _, result in ipairs(results) do
+					logError(result.message .. ". Objective: " .. objectiveIDText .. ", Field: nextStage")
+				end
 			elseif type(objective.nextStage) ~= "string" then
 				logError(
 					"Unexpected parameter type, expected string, got "
@@ -1500,6 +1552,9 @@ end
 --- A difficulties-table parameter names every difficulty's value, so reference checks
 --- consider all of them; a plain value is returned as a single-element list.
 local function possibleValues(value)
+	if hasVariableReference(value) then
+		value = resolveValue(value)
+	end
 	if not isDifficultiesTable(value) then
 		return { value }
 	end
@@ -1886,6 +1941,49 @@ local function validateCountdownIDReferences(actionTypes, objectives, triggers, 
 	end
 end
 
+-- Until a mission action writes variables, only the startscript sets them.
+local function validateVariableKeys(objectives, triggers, actions)
+	local referencedKeys = {}
+	local function collectKeys(value, label)
+		callOnVariableKeys(value, function(key)
+			if type(key) == "string" then
+				local labels = table.ensureTable(referencedKeys, key)
+				labels[#labels + 1] = label
+			end
+		end)
+	end
+
+	for triggerID, trigger in pairs(triggers) do
+		for parameterName, value in pairs(trigger.parameters or {}) do
+			collectKeys(value, "trigger " .. triggerID .. " (" .. parameterName .. ")")
+		end
+	end
+	for actionID, action in pairs(actions) do
+		for parameterName, value in pairs(action.parameters or {}) do
+			collectKeys(value, "action " .. actionID .. " (" .. parameterName .. ")")
+		end
+	end
+	for objectiveID, objective in pairs(objectives or {}) do
+		for fieldName, value in pairs(objective) do
+			if fieldName ~= "trigger" then
+				collectKeys(value, "objective " .. objectiveID .. " (" .. fieldName .. ")")
+			end
+		end
+	end
+
+	local variableValues = GG["MissionAPI"].Variables
+	for key, labels in pairs(referencedKeys) do
+		if variableValues[key] == nil then
+			logWarn(
+				"Variable '"
+					.. key
+					.. "' has no value at the start of the mission. Referenced in: "
+					.. table.concat(labels, ", ")
+			)
+		end
+	end
+end
+
 local function validateAttributeActions(actions)
 	local unitAttributeActions = getTypesWithParameterType(actionsSchemaParameters, Types.UnitAttribute)
 	local weaponAttributeActions = getTypesWithParameterType(actionsSchemaParameters, Types.WeaponAttribute)
@@ -2089,6 +2187,7 @@ local function validateReferences()
 	validateLineNameReferences(actionTypes, actions)
 	validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
 	validateCutsceneReferences(objectives, triggers, actions, cutscenes)
+	validateVariableKeys(objectives, triggers, actions)
 	validateLoadouts(unitLoadout, featureLoadout)
 	validateAttributeActions(actions)
 	validateChangeTeamActions(actionTypes, actions)
