@@ -1039,15 +1039,13 @@ function widget:Update(dt)
 	if not dp.active then
 		return
 	end
-	updateTimer = updateTimer + dt
-	if updateTimer < UPDATE_INTERVAL then
-		return
-	end
-	updateTimer = 0
+	-- Held button: repeat at the cadence, timed on the real frame time with the remainder
+	-- carried (like FEATURES and UNITS), so the rate is not rounded to 1/30 s ticks.
 	if dp.dragging and dp.dragAction == "place" then
-		dp.placeTimer = dp.placeTimer + UPDATE_INTERVAL
-		if dp.placeTimer >= getCadenceInterval() then
-			dp.placeTimer = 0
+		dp.placeTimer = dp.placeTimer + dt
+		local interval = getCadenceInterval()
+		if dp.placeTimer >= interval then
+			dp.placeTimer = min(dp.placeTimer - interval, interval)
 			local wx, wz = getWorldMousePosition()
 			if wx then
 				if dp.mode == "scatter" then
@@ -1058,6 +1056,11 @@ function widget:Update(dt)
 			end
 		end
 	elseif dp.dragging and dp.dragAction == "remove" then
+		updateTimer = updateTimer + dt
+		if updateTimer < UPDATE_INTERVAL then
+			return
+		end
+		updateTimer = 0
 		local wx, wz = getWorldMousePosition()
 		if wx then
 			placeSymmetric(placeRemove, wx, wz)
