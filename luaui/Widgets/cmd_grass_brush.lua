@@ -18,7 +18,6 @@ end
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
-local GetGroundNormal = Spring.GetGroundNormal
 local WorldToScreenCoords = Spring.WorldToScreenCoords
 local GetModKeyState = Spring.GetModKeyState
 local GetKeyState = Spring.GetKeyState
@@ -32,10 +31,8 @@ local glLineWidth = gl.LineWidth
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 local glText = gl.Text
-local glDepthTest = gl.DepthTest
 local glBlending = gl.Blending
 local GL_LINES = GL.LINES
-local GL_TRIANGLES = GL.TRIANGLES
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
@@ -43,10 +40,7 @@ local floor = math.floor
 local ceil = math.ceil
 local max = math.max
 local min = math.min
-local cos = math.cos
-local sin = math.sin
 local abs = math.abs
-local pi = math.pi
 local sqrt = math.sqrt
 local format = string.format
 
@@ -266,40 +260,6 @@ local pipetteExcludePending = nil -- { wx, wz } queued for exclude sample
 -- isInsideShape(dx, dz, radius, shape, angleDeg, lengthScale) -> inside, normDist
 local isInsideShape = BrushShapes.isInside
 local computeFalloff = BrushShapes.computeFalloff
-
--- ============================================================
--- Smart Filter
--- ============================================================
-
-local function isPointValid(px, pz, sf)
-	local h = GetGroundHeight(px, pz)
-	if sf.avoidWater and h < 0 then
-		return false
-	end
-	if sf.avoidCliffs or sf.preferSlopes then
-		local _, ny = GetGroundNormal(px, pz)
-		ny = ny or 1.0
-		if sf.avoidCliffs then
-			local nyMin = cos(sf.slopeMax * pi / 180)
-			if ny < nyMin then
-				return false
-			end
-		end
-		if sf.preferSlopes then
-			local nyMax = cos(sf.slopeMin * pi / 180)
-			if ny > nyMax then
-				return false
-			end
-		end
-	end
-	if sf.altMinEnable and h < sf.altMin then
-		return false
-	end
-	if sf.altMaxEnable and h > sf.altMax then
-		return false
-	end
-	return true
-end
 
 -- ============================================================
 -- Texture color filter: diffuse sampling from $map_gbuffer_difftex
@@ -730,7 +690,7 @@ end
 
 local function shouldApplyAt(wx, wz, patchRes, grassApi, config)
 	if smartEnabled then
-		if not isPointValid(wx, wz, smartFilters) then
+		if not WorldTool.smart.passes(wx, wz, smartFilters) then
 			return false
 		end
 	end
@@ -947,46 +907,29 @@ local function drawSmartFilterOverlay(cx, cz)
 	if not smartEnabled and not texFilterEnabled then
 		return
 	end
-	local step = FILTER_GRID_STEP
-	local halfStep = step * 0.3
 	local grassApi = WG.grassgl4
 	if not grassApi or not grassApi.getConfig then
 		return
 	end
 	local config = grassApi.getConfig()
-	local patchRes = config.patchResolution
-
-	local rad = brushRotation * pi / 180
-	local cosR, sinR = cos(rad), sin(rad)
-
 	-- getDiffuseColorAt is a plain table lookup (no GL calls), so shouldApplyAt
 	-- can run inside glBeginEnd without a precomputed cell table.
-	glDepthTest(true)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	glBeginEnd(GL_TRIANGLES, function()
-		for lx = -brushRadius, brushRadius, step do
-			for lz = -brushRadius * brushLengthScale, brushRadius * brushLengthScale, step do
-				local inside = isInsideShape(lx, lz, brushRadius, brushShape, 0, brushLengthScale)
-				if inside then
-					local wx = cx + lx * cosR - lz * sinR
-					local wz = cz + lx * sinR + lz * cosR
-					if shouldApplyAt(wx, wz, patchRes, grassApi, config) then
-						glColor(0.2, 0.85, 0.3, 0.08 * edgeFade)
-					else
-						glColor(0.9, 0.15, 0.15, 0.14 * edgeFade)
-					end
-					local y = GetGroundHeight(wx, wz) + 1
-					glVertex(wx - halfStep, y, wz - halfStep)
-					glVertex(wx + halfStep, y, wz - halfStep)
-					glVertex(wx + halfStep, y, wz + halfStep)
-					glVertex(wx - halfStep, y, wz + halfStep)
-					glVertex(wx + halfStep, y, wz + halfStep)
-					glVertex(wx - halfStep, y, wz - halfStep)
-				end
-			end
-		end
-	end)
-	glDepthTest(false)
+	WorldTool.drawFilterOverlay(
+		cx,
+		cz,
+		brushRadius,
+		brushShape,
+		brushRotation,
+		brushLengthScale,
+		edgeFade,
+		FILTER_GRID_STEP,
+		1,
+		shouldApplyAt,
+		config.patchResolution,
+		grassApi,
+		config
+	)
 end
 
 local function drawCursorInfo(worldX, worldZ)

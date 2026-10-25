@@ -16,7 +16,6 @@ end
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
-local GetGroundNormal = Spring.GetGroundNormal
 local Echo = Spring.Echo
 local SetMapShadingTexture = Spring.SetMapShadingTexture
 
@@ -54,6 +53,8 @@ local sin = math.sin
 local abs = math.abs
 local pi = math.pi
 local sqrt = math.sqrt
+
+local WorldTool = require("luaui/Include/tf_world_tool")
 
 -- Constants
 local SPLAT_TEX_NAME = "$ssmf_splat_distr"
@@ -362,41 +363,7 @@ local function isPointValid(px, pz)
 	if not smartFilterEnabled then
 		return true
 	end
-	local sf = smartFilter
-
-	local groundHeight = GetGroundHeight(px, pz)
-
-	-- Avoid water
-	if sf.avoidWater and groundHeight < 0 then
-		return false
-	end
-
-	-- Slope checks
-	local nx, ny, _ = GetGroundNormal(px, pz)
-	if nx then
-		if sf.avoidCliffs then
-			local cosMax = cos(sf.slopeMax * pi / 180)
-			if ny < cosMax then
-				return false
-			end
-		end
-		if sf.preferSlopes then
-			local cosMin = cos(sf.slopeMin * pi / 180)
-			if ny > cosMin then
-				return false
-			end
-		end
-	end
-
-	-- Altitude checks
-	if sf.altMinEnable and groundHeight < sf.altMin then
-		return false
-	end
-	if sf.altMaxEnable and groundHeight > sf.altMax then
-		return false
-	end
-
-	return true
+	return WorldTool.smart.passes(px, pz, smartFilter)
 end
 
 -- ============ SHADER CODE ============

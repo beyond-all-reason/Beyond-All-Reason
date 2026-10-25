@@ -11,10 +11,13 @@
 --     filters, which need the brush centre. Cheap enough to run per frame.
 --
 -- Containment uses common/brush_shapes.lua, the module the brush outline is drawn
--- from, so features land inside the shape the user sees.
+-- from, so features land inside the shape the user sees. The terrain filters are
+-- common/smart_filter.lua, the test every brush tool's overlay draws.
 
 local BrushShapes = require("common/brush_shapes")
+local SmartFilter = require("common/smart_filter")
 local isInside = BrushShapes.isInside
+local passesSmartFilter = SmartFilter.passes
 
 local max = math.max
 local min = math.min
@@ -534,16 +537,8 @@ local function resolve(layout, centerX, centerZ, params, extraRotDeg)
 
 	local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
 	local GetGroundHeight = Spring.GetGroundHeight
-	local GetGroundNormal = Spring.GetGroundNormal
 
 	local smart = params.smartEnabled and params.smartFilters or nil
-	local nyCliffMin, nySlopeMax, altMin, altMax
-	if smart then
-		nyCliffMin = smart.avoidCliffs and cos((smart.slopeMax or 45) * pi / 180) or nil
-		nySlopeMax = smart.preferSlopes and cos((smart.slopeMin or 10) * pi / 180) or nil
-		altMin = smart.altMinEnable and smart.altMin or nil
-		altMax = smart.altMaxEnable and smart.altMax or nil
-	end
 
 	for i = 1, #layout do
 		local entry = layout[i]
@@ -555,30 +550,7 @@ local function resolve(layout, centerX, centerZ, params, extraRotDeg)
 		local z = max(0, min(mapZ, centerZ + dz))
 		local y = GetGroundHeight(x, z)
 
-		local valid = true
-		if smart then
-			if smart.avoidWater and y < 0 then
-				valid = false
-			end
-			if valid and (nyCliffMin or nySlopeMax) then
-				local _, ny = GetGroundNormal(x, z)
-				ny = ny or 1.0
-				if nyCliffMin and ny < nyCliffMin then
-					valid = false
-				end
-				if valid and nySlopeMax and ny > nySlopeMax then
-					valid = false
-				end
-			end
-			if valid and altMin and y < altMin then
-				valid = false
-			end
-			if valid and altMax and y > altMax then
-				valid = false
-			end
-		end
-
-		if valid then
+		if not smart or passesSmartFilter(x, z, smart, y) then
 			placements[#placements + 1] = {
 				defName = entry.defName,
 				x = x,

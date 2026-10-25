@@ -19,7 +19,6 @@ local GetModKeyState = Spring.GetModKeyState
 local GetKeyState = Spring.GetKeyState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
-local GetGroundNormal = Spring.GetGroundNormal
 -- Every message this widget sends changes the feature set, so it is also
 -- where the project learns it has unsaved changes (a project load's own
 -- messages are ignored by markDirty while the load runs).
@@ -43,8 +42,6 @@ local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
 local glCallList = gl.CallList
 local glPolygonOffset = gl.PolygonOffset
-local GL_TRIANGLES = GL.TRIANGLES
-local GL_LINES = GL.LINES
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_LINE_STRIP = GL.LINE_STRIP
 
@@ -1961,181 +1958,6 @@ local function handleHistoryUpdate(undoCount, redoCount)
 end
 
 ----------------------------------------------------------------
--- Smart filter visualization helpers
-----------------------------------------------------------------
-local GRID_STEP = 24 -- elmos between sample points
-
-local function isPointValid(px, pz, sf)
-	local h = GetGroundHeight(px, pz)
-	if sf.avoidWater and h < 0 then
-		return false
-	end
-	if sf.avoidCliffs or sf.preferSlopes then
-		local _, ny = GetGroundNormal(px, pz)
-		ny = ny or 1.0
-		if sf.avoidCliffs then
-			local nyMin = cos(sf.slopeMax * pi / 180)
-			if ny < nyMin then
-				return false
-			end
-		end
-		if sf.preferSlopes then
-			local nyMax = cos(sf.slopeMin * pi / 180)
-			if ny > nyMax then
-				return false
-			end
-		end
-	end
-	if sf.altMinEnable and h < sf.altMin then
-		return false
-	end
-	if sf.altMaxEnable and h > sf.altMax then
-		return false
-	end
-	return true
-end
-
--- Local-space containment for the smart filter overlay: the same test placement
--- runs on its unrotated layout (insideLocal in common/feature_scatter.lua), so the
--- green/red grid covers exactly the area features can land in.
-local function isInsideBrush(lx, lz, radius, shape)
-	return (BrushShapes.isInside(lx, lz, radius, shape, 0))
-end
-
--- Draw colored terrain-following quads showing valid (green) vs rejected (red) areas
-local function drawSmartFilterOverlay(cx, cz, radius, shape, angleDeg, sf)
-	local step = GRID_STEP
-	local halfStep = step * 0.3
-	local rad = angleDeg * pi / 180
-	local cosR, sinR = cos(rad), sin(rad)
-
-	glDepthTest(true)
-	glBeginEnd(GL_TRIANGLES, function()
-		for lx = -radius, radius, step do
-			for lz = -radius, radius, step do
-				if isInsideBrush(lx, lz, radius, shape) then
-					local wx = cx + lx * cosR - lz * sinR
-					local wz = cz + lx * sinR + lz * cosR
-					local valid = isPointValid(wx, wz, sf)
-
-					if valid then
-						glColor(0.2, 0.85, 0.3, 0.08 * edgeFade)
-					else
-						glColor(0.9, 0.15, 0.15, 0.14 * edgeFade)
-					end
-
-					local x0 = wx - halfStep
-					local x1 = wx + halfStep
-					local z0 = wz - halfStep
-					local z1 = wz + halfStep
-					local y00 = GetGroundHeight(x0, z0) + 3
-					local y10 = GetGroundHeight(x1, z0) + 3
-					local y01 = GetGroundHeight(x0, z1) + 3
-					local y11 = GetGroundHeight(x1, z1) + 3
-
-					glVertex(x0, y00, z0)
-					glVertex(x1, y10, z0)
-					glVertex(x1, y11, z1)
-
-					glVertex(x0, y00, z0)
-					glVertex(x1, y11, z1)
-					glVertex(x0, y01, z1)
-				end
-			end
-		end
-	end)
-	glDepthTest(false)
-end
-
--- Shape corners for the altitude cap prism.
-local function getShapeCorners(shape, radius, angleDeg)
-	local corners = {}
-	local rad = angleDeg * pi / 180
-	if shape == "circle" then
-		for i = 0, 15 do
-			local a = i * (2 * pi / 16) + rad
-			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
-		end
-	elseif shape == "square" then
-		local pts = { { -radius, -radius }, { radius, -radius }, { radius, radius }, { -radius, radius } }
-		for _, p in ipairs(pts) do
-			local rx = p[1] * cos(rad) - p[2] * sin(rad)
-			local rz = p[1] * sin(rad) + p[2] * cos(rad)
-			corners[#corners + 1] = { rx, rz }
-		end
-	elseif shape == "hexagon" then
-		for i = 0, 5 do
-			local a = i * (2 * pi / 6) + rad
-			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
-		end
-	elseif shape == "octagon" then
-		for i = 0, 7 do
-			local a = i * (2 * pi / 8) + rad
-			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
-		end
-	elseif shape == "triangle" then
-		-- Same vertices as the outline (WorldTool.drawPolygon with 3 sides).
-		for i = 0, 2 do
-			local a = i * (2 * pi / 3) + rad
-			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
-		end
-	end
-	return corners
-end
-
--- Draw altitude cap prism (orange for max, cyan for min, white struts)
-local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg, sf)
-	if not sf.altMinEnable and not sf.altMaxEnable then
-		return
-	end
-
-	local corners = getShapeCorners(shape, radius, angleDeg)
-	if #corners == 0 then
-		return
-	end
-
-	local botY = sf.altMinEnable and sf.altMin or nil
-	local topY = sf.altMaxEnable and sf.altMax or nil
-
-	glDepthTest(true)
-	glLineWidth(1.5)
-
-	if topY then
-		glColor(1.0, 0.6, 0.1, 0.55 * edgeFade)
-		glBeginEnd(GL_LINE_LOOP, function()
-			for i = 1, #corners do
-				glVertex(cx + corners[i][1], topY, cz + corners[i][2])
-			end
-		end)
-	end
-
-	if botY then
-		glColor(0.1, 0.6, 1.0, 0.55 * edgeFade)
-		glBeginEnd(GL_LINE_LOOP, function()
-			for i = 1, #corners do
-				glVertex(cx + corners[i][1], botY, cz + corners[i][2])
-			end
-		end)
-	end
-
-	local stride = max(1, floor(#corners / 8))
-	local strutBot = botY or (topY and topY - 100) or 0
-	local strutTop = topY or (botY and botY + 100) or 0
-	glColor(1, 1, 1, 0.2 * edgeFade)
-	glBeginEnd(GL_LINES, function()
-		for i = 1, #corners, stride do
-			local wx = cx + corners[i][1]
-			local wz = cz + corners[i][2]
-			glVertex(wx, strutBot, wz)
-			glVertex(wx, strutTop, wz)
-		end
-	end)
-
-	glLineWidth(1)
-	glDepthTest(false)
-end
-
-----------------------------------------------------------------
 -- Keybinds
 ----------------------------------------------------------------
 function widget:KeyPress(key, mods, isRepeat)
@@ -2584,8 +2406,21 @@ function widget:DrawWorld()
 
 		-- Smart filter overlay: show valid/rejected terrain areas
 		if fp.smartEnabled then
-			drawSmartFilterOverlay(worldX, worldZ, fp.radius, fp.shape, fp.rotation, fp.smartFilters)
-			drawAltitudeCapPrism(worldX, worldZ, fp.radius, fp.shape, fp.rotation, fp.smartFilters)
+			local sf = fp.smartFilters
+			WorldTool.drawFilterOverlay(
+				worldX,
+				worldZ,
+				fp.radius,
+				fp.shape,
+				fp.rotation,
+				1,
+				edgeFade,
+				24,
+				nil,
+				WorldTool.smart.passes,
+				sf
+			)
+			WorldTool.drawAltitudePrism(worldX, worldZ, fp.radius, fp.shape, fp.rotation, sf, edgeFade)
 		end
 	end
 

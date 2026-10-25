@@ -558,28 +558,7 @@ local function passesFilters(x, z)
 	if not up.smartEnabled then
 		return true
 	end
-	local sf = up.smartFilters
-	local h = Spring.GetGroundHeight(x, z)
-	if sf.avoidWater and h < 0 then
-		return false
-	end
-	if sf.avoidCliffs or sf.preferSlopes then
-		local _, ny = Spring.GetGroundNormal(x, z)
-		ny = ny or 1.0
-		if sf.avoidCliffs and ny < cos(sf.slopeMax * pi / 180) then
-			return false
-		end
-		if sf.preferSlopes and ny > cos(sf.slopeMin * pi / 180) then
-			return false
-		end
-	end
-	if sf.altMinEnable and h < sf.altMin then
-		return false
-	end
-	if sf.altMaxEnable and h > sf.altMax then
-		return false
-	end
-	return true
+	return WorldTool.smart.passes(x, z, up.smartFilters)
 end
 
 --- Spots whose footprint overlaps an earlier one are dropped (a spatial hash, so a big
@@ -2741,41 +2720,6 @@ local function drawFootprint(x, z, w, h)
 	end)
 end
 
---- Green where the smart filters let a unit stand, red where they refuse.
-local function drawSmartFilterOverlay(cx, cz)
-	local radius = up.radius
-	local rad = up.rotation * pi / 180
-	local cosR, sinR = cos(rad), sin(rad)
-	local half = SMART_GRID_STEP * 0.3
-	local fade = up.edgeFade
-	local GetGroundHeight = Spring.GetGroundHeight
-	gl.DepthTest(true)
-	gl.BeginEnd(GL.TRIANGLES, function()
-		for lx = -radius, radius, SMART_GRID_STEP do
-			for lz = -radius, radius, SMART_GRID_STEP do
-				if BrushShapes.isInside(lx, lz, radius, up.shape, 0) then
-					local wx, wz = cx + lx * cosR - lz * sinR, cz + lx * sinR + lz * cosR
-					if passesFilters(wx, wz) then
-						gl.Color(0.2, 0.85, 0.3, 0.08 * fade)
-					else
-						gl.Color(0.9, 0.15, 0.15, 0.14 * fade)
-					end
-					local x0, x1, z0, z1 = wx - half, wx + half, wz - half, wz + half
-					local y00, y10 = GetGroundHeight(x0, z0) + 3, GetGroundHeight(x1, z0) + 3
-					local y01, y11 = GetGroundHeight(x0, z1) + 3, GetGroundHeight(x1, z1) + 3
-					gl.Vertex(x0, y00, z0)
-					gl.Vertex(x1, y10, z0)
-					gl.Vertex(x1, y11, z1)
-					gl.Vertex(x0, y00, z0)
-					gl.Vertex(x1, y11, z1)
-					gl.Vertex(x0, y01, z1)
-				end
-			end
-		end
-	end)
-	gl.DepthTest(false)
-end
-
 --- Rings under the selected units, sized by footprint.
 local function drawSelection()
 	gl.LineWidth(2)
@@ -2988,7 +2932,19 @@ function widget:DrawWorld()
 		end
 	end
 	if up.smartEnabled and up.mode == "scatter" and not removing then
-		drawSmartFilterOverlay(x, z)
+		-- green where the smart filters let a unit stand, red where they refuse
+		WorldTool.drawFilterOverlay(
+			x,
+			z,
+			up.radius,
+			up.shape,
+			up.rotation,
+			1,
+			up.edgeFade,
+			SMART_GRID_STEP,
+			nil,
+			passesFilters
+		)
 	end
 	gl.Color(1, 1, 1, 1)
 	gl.LineWidth(1)
