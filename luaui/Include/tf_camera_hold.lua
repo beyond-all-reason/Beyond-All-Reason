@@ -18,12 +18,15 @@ local MOVED_DIR = 0.002 -- view direction change (dot product) that counts as th
 
 local held = false ---@type boolean
 local stroking = false ---@type boolean
+---@type [number, number, number]
 local eye = { 0, 0, 0 }
+---@type [number, number, number]
 local look = { 0, 0, -1 }
 
 -- The surface the engine seats the focus on depends on engine version and setting, so it is not modelled:
 -- the camera state's focus height (py) minus the raw ground there gives an offset added to the ground.
 -- Exact for terrain tracking; for the smooth mesh a local estimate the next frame refines.
+---@type number
 local surfaceOffset = 0
 
 local function surfaceHeight(x, z)
@@ -36,7 +39,9 @@ local function rayToSurface(maxT)
 		local x, z = eye[1] + look[1] * t, eye[3] + look[3] * t
 		return eye[2] + look[2] * t - surfaceHeight(x, z)
 	end
+	---@type number, number?, number
 	local lo, hi, step = 0, nil, 64
+	---@type number
 	local t = step
 	while t <= maxT do
 		if above(t) <= 0 then
@@ -79,8 +84,8 @@ end
 
 ---@param active boolean a terraform stroke is changing the ground this frame
 function M.update(active)
-	---@type table
 	local state = Spring.GetCameraState()
+	---@cast state CameraState?
 	if not (state and state.name == "spring") then
 		M.release()
 		return
