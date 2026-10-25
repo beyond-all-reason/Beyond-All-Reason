@@ -249,6 +249,7 @@ local MODEL_FRAG = [[
 	}
 ]]
 
+---@type integer|false|nil, integer|false|nil, integer|false|nil
 local reprojShader, spriteShader, modelShader
 local uRe, uSp, uMdl = {}, {}, {}
 
@@ -308,6 +309,7 @@ end
 -- Small helpers
 --------------------------------------------------------------------------------
 
+---@type integer?
 local maxTexSize
 ---@return integer
 local function getMaxTexSize()
@@ -373,6 +375,52 @@ end
 -- Capture job state
 --------------------------------------------------------------------------------
 
+---@class TerraformCaptureJob
+---@field phase string
+---@field dir string
+---@field detail number
+---@field outW integer
+---@field outH integer
+---@field tilesX integer
+---@field tilesZ integer
+---@field sprites table
+---@field spriteList table[]
+---@field spriteIndex integer
+---@field settle integer
+---@field tileIndex integer
+---@field fitTries integer
+---@field tiles table[]?
+---@field maxRowH number?
+---@field sceneChanged boolean?
+---@field savedCam table?
+---@field hiddenUnits integer[]?
+---@field hiddenFeatures integer[]?
+---@field savedFog number[]?
+---@field savedWater integer?
+---@field savedShadows integer?
+---@field bloomDisabled boolean?
+---@field savedSampleRate number?
+---@field guiHidden boolean?
+---@field unitsRequested boolean?
+---@field units table[]?
+---@field unitsDone boolean?
+---@field unitsError string?
+---@field mapProjectEnableTried boolean?
+---@field collectTicks integer?
+---@field features table[]?
+---@field mosaic any render target
+---@field strip any render target, strip mode only
+---@field stripMode boolean?
+---@field stripH number?
+---@field screenTex any
+---@field terrainFiles table?
+---@field minH number?
+---@field maxH number?
+---@field probeIndex integer?
+---@field probeBest table?
+
+--- `|any`: nil while idle, but the phases only run while it exists.
+---@type TerraformCaptureJob|any
 local job = nil -- nil when idle
 local status =
 	{ active = false, phase = "", step = 0, total = 0, message = "", lastPath = "", lastSummary = "", error = "" }
@@ -380,6 +428,7 @@ local status =
 -- The camera state that actually points straight down is resolved empirically
 -- once per session: the tilt field and its sign differ between camera
 -- controllers, and guessing wrong would silently produce oblique tiles.
+---@type table?
 local downCam = nil
 
 local function setStatus(phase, stepN, totalN, msg)
@@ -643,6 +692,7 @@ local function tileFits(j, t)
 	if #m ~= 16 then
 		return false, 2
 	end
+	---@type number
 	local worst = 0
 	for _, x in ipairs({ t.wx0, t.wx1 }) do
 		for _, z in ipairs({ t.wz0, t.wz1 }) do
@@ -1158,7 +1208,9 @@ local function phaseCollect(j)
 		for i = 1, #ids do
 			local fid = ids[i]
 			local defID = Spring.GetFeatureDefID(fid)
+			---@type table?
 			local def = defID and FeatureDefs[defID]
+			---@type number?, number?, number?
 			local x, _, z = Spring.GetFeaturePosition(fid)
 			if def and x then
 				j.features[#j.features + 1] = {
@@ -1414,6 +1466,7 @@ local function phaseSave(j)
 	for i = 1, #(j.units or {}) do
 		local u = j.units[i]
 		local defID = UnitDefNames[u.name] and UnitDefNames[u.name].id
+		---@type table?
 		local def = defID and UnitDefs[defID]
 		if def then
 			u.defID = defID
@@ -1576,8 +1629,10 @@ local function phaseSvg(j)
 		local labels = WG.MapLabels.getLabels() or {}
 		if #labels > 0 then
 			local out = { svgHeader(j.outW, j.outH, "Comments"), ' <g id="Comments">\n' }
+			---@type number
 			local r = max(6, 14 * scale)
 			for i = 1, #labels do
+				---@type table
 				local L = labels[i]
 				local cx, cy = L.x * scale, L.z * scale
 				out[#out + 1] = format(
