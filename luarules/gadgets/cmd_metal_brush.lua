@@ -273,24 +273,22 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 		return dx * dx + dz * dz <= spotRadSq and isInsideShape(dx, dz, radius, shape, angleDeg)
 	end
 	local squareCount = 0
-	local inExtractorCount = 0
 	for mz = mzMin, mzMax do
 		local wz = mz * METAL_SQ + halfSq
 		for mx = mxMin, mxMax do
 			local wx = mx * METAL_SQ + halfSq
 			if inSpot(wx, wz) then
 				squareCount = squareCount + 1
-				inExtractorCount = inExtractorCount + 1
 			end
 		end
 	end
 
-	if squareCount == 0 or inExtractorCount == 0 then
+	if squareCount == 0 then
 		return
 	end
 
 	local want = metalTarget * 1000
-	local perSquare = want / inExtractorCount
+	local perSquare = want / squareCount
 
 	local written = {}
 	local got = 0
