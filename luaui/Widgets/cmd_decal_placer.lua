@@ -18,14 +18,10 @@ local GetMouseState = Spring.GetMouseState
 local GetModKeyState = Spring.GetModKeyState
 local GetKeyState = Spring.GetKeyState
 local TraceScreenRay = Spring.TraceScreenRay
-local GetGroundHeight = Spring.GetGroundHeight
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
-local glBeginEnd = gl.BeginEnd
-local glVertex = gl.Vertex
 local glDepthTest = gl.DepthTest
-local GL_LINE_LOOP = GL.LINE_LOOP
 
 local CreateGroundDecal = Spring.CreateGroundDecal
 local DestroyGroundDecal = Spring.DestroyGroundDecal
@@ -46,12 +42,11 @@ local GetGroundDecalTextures = Spring.GetGroundDecalTextures
 local floor = math.floor
 local max = math.max
 local min = math.min
-local cos = math.cos
-local sin = math.sin
 local pi = math.pi
 local random = math.random
 
 local BrushShapes = require("common/brush_shapes")
+local WorldTool = require("luaui/Include/tf_world_tool")
 
 ----------------------------------------------------------------
 -- Constants
@@ -304,13 +299,6 @@ end
 ----------------------------------------------------------------
 -- Shape containment (mirrors feature placer)
 ----------------------------------------------------------------
-local function rotatePoint(px, pz, angleDeg)
-	local rad = angleDeg * pi / 180
-	local ca = cos(rad)
-	local sa = sin(rad)
-	return px * ca - pz * sa, px * sa + pz * ca
-end
-
 local function isInsideShape(dx, dz, radius, shape, angleDeg)
 	-- Shared point-in-shape test (see common/brush_shapes.lua).
 	return (BrushShapes.isInside(dx, dz, radius, shape, angleDeg))
@@ -401,7 +389,7 @@ local function placeScatter(cx, cz)
 		local rx = (random() * 2 - 1) * r
 		local rz = (random() * 2 - 1) * r
 		if isInsideShape(rx, rz, r, dp.shape, 0) then
-			local wx, wz = rotatePoint(rx, rz, dp.rotation)
+			local wx, wz = BrushShapes.rotate(rx, rz, dp.rotation)
 			wx, wz = cx + wx, cz + wz
 			local tex = pickRandomTexture()
 			if tex then
@@ -822,18 +810,6 @@ end
 ----------------------------------------------------------------
 -- Drawing brush outline
 ----------------------------------------------------------------
--- The brush is always a circle: nothing sets another shape.
-local function drawCircleOutline(cx, cz, radius)
-	glBeginEnd(GL_LINE_LOOP, function()
-		for i = 0, 47 do
-			local a = i * (2 * pi / 48)
-			local x = cx + radius * cos(a)
-			local z = cz + radius * sin(a)
-			glVertex(x, GetGroundHeight(x, z) + 4, z)
-		end
-	end)
-end
-
 local function drawCurrentBrush()
 	local cx, cz = getWorldMousePosition()
 	do
@@ -864,7 +840,8 @@ local function drawCurrentBrush()
 	else
 		glColor(0.3, 0.85, 1.0, 0.85)
 	end
-	drawCircleOutline(cx, cz, dp.radius)
+	-- The brush is always a circle: nothing sets another shape.
+	WorldTool.drawPolygon(cx, cz, dp.radius, 0, 48, 1, 4, 1)
 	glLineWidth(1)
 	glColor(1, 1, 1, 1)
 	glDepthTest(false)

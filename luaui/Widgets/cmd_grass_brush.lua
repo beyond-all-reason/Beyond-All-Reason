@@ -34,7 +34,6 @@ local glVertex = gl.Vertex
 local glText = gl.Text
 local glDepthTest = gl.DepthTest
 local glBlending = gl.Blending
-local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_LINES = GL.LINES
 local GL_TRIANGLES = GL.TRIANGLES
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -52,6 +51,7 @@ local sqrt = math.sqrt
 local format = string.format
 
 local BrushShapes = require("common/brush_shapes")
+local WorldTool = require("luaui/Include/tf_world_tool")
 
 local KEYSYMS_SPACE = 0x20
 local KEYSYMS_ESCAPE = 0x1B
@@ -943,61 +943,6 @@ local frameTraceDF = -1
 ---@type number?, number?
 local frameTraceX, frameTraceZ = nil, nil
 
-local function drawShapeOutline(worldX, worldZ, radius, shape, angleDeg, lengthScale)
-	lengthScale = lengthScale or 1.0
-	if shape == "circle" then
-		local angleRad = (angleDeg or 0) * pi / 180
-		local cosA, sinA = cos(angleRad), sin(angleRad)
-		glBeginEnd(GL_LINE_LOOP, function()
-			for i = 0, CIRCLE_SEGMENTS - 1 do
-				local angle = (i / CIRCLE_SEGMENTS) * 2 * pi
-				local lx = radius * cos(angle)
-				local lz = radius * lengthScale * sin(angle)
-				local x = worldX + lx * cosA - lz * sinA
-				local z = worldZ + lx * sinA + lz * cosA
-				glVertex(x, GetGroundHeight(x, z) + 2, z)
-			end
-		end)
-	else
-		local angleRad = (angleDeg or 0) * pi / 180
-		local c, s = cos(angleRad), sin(angleRad)
-		if shape == "square" then
-			-- corners at (+-r, +-r*lengthScale) to match the inside test
-			local corners = { { 1, 1 }, { -1, 1 }, { -1, -1 }, { 1, -1 } }
-			glBeginEnd(GL_LINE_LOOP, function()
-				for i = 1, 4 do
-					local lx = radius * corners[i][1]
-					local lz = radius * lengthScale * corners[i][2]
-					local dx = lx * c - lz * s
-					local dz = lx * s + lz * c
-					local x, z = worldX + dx, worldZ + dz
-					glVertex(x, GetGroundHeight(x, z) + 2, z)
-				end
-			end)
-			return
-		end
-		local sides = 4
-		if shape == "hexagon" then
-			sides = 6
-		elseif shape == "octagon" then
-			sides = 8
-		elseif shape == "triangle" then
-			sides = 3
-		end
-		glBeginEnd(GL_LINE_LOOP, function()
-			for i = 0, sides - 1 do
-				local a = (i / sides) * 2 * pi
-				local lx = radius * cos(a)
-				local lz = radius * lengthScale * sin(a)
-				local dx = lx * c - lz * s
-				local dz = lx * s + lz * c
-				local x, z = worldX + dx, worldZ + dz
-				glVertex(x, GetGroundHeight(x, z) + 2, z)
-			end
-		end)
-	end
-end
-
 local function drawSmartFilterOverlay(cx, cz)
 	if not smartEnabled and not texFilterEnabled then
 		return
@@ -1570,7 +1515,7 @@ function widget:DrawWorld()
 			brushRotation = st.rotationDeg or brushRotation
 		end
 	end
-	drawShapeOutline(worldX, worldZ, brushRadius, brushShape, brushRotation, brushLengthScale)
+	WorldTool.drawShape(brushShape, worldX, worldZ, brushRadius, brushRotation, brushLengthScale, 2, 1, CIRCLE_SEGMENTS)
 
 	-- Center cross
 	local groundY = GetGroundHeight(worldX, worldZ)

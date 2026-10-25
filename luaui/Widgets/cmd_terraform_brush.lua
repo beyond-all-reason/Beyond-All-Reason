@@ -727,6 +727,7 @@ local djMode = false
 ---@field cmapN number?
 ---@field cmapCache table?
 ---@field EDGE_SEGMENTS number
+---@field WorldTool table luaui/Include/tf_world_tool.lua
 ---@field MEASURE_KM_SCALE number
 ---@field MEASURE_SNAP_PX number
 ---@field shapeCornerCache table<string, number[][]?>
@@ -5548,12 +5549,9 @@ function widget:Update(dt)
 	end
 end
 
-local function rotatePoint(px, pz, angleDeg)
-	local rad = angleDeg * pi / 180
-	local cosA = cos(rad)
-	local sinA = sin(rad)
-	return px * cosA - pz * sinA, px * sinA + pz * cosA
-end
+-- The outline helpers every brush tool shares (luaui/Include/tf_world_tool.lua).
+extraState.WorldTool = require("luaui/Include/tf_world_tool")
+local rotatePoint = extraState.WorldTool.rotate
 
 -- Returns the base RGB for the active mode
 local function getModeRGB()
@@ -5597,64 +5595,11 @@ local function getModeRGBBright()
 	end
 end
 
-extraState.EDGE_SEGMENTS = 16 -- subdivisions per edge for terrain-following outlines
+extraState.EDGE_SEGMENTS = extraState.WorldTool.EDGE_SEGMENTS -- subdivisions per edge for terrain-following outlines
 
-function extraState.drawRotatedSquare(cx, cz, radius, angleDeg, lengthScale)
-	lengthScale = lengthScale or 1.0
-	local corners = {
-		{ -radius, -radius * lengthScale },
-		{ radius, -radius * lengthScale },
-		{ radius, radius * lengthScale },
-		{ -radius, radius * lengthScale },
-	}
-
-	glPolygonOffset(-2, -2)
-	glBeginEnd(GL.LINE_LOOP, function()
-		for i = 1, 4 do
-			local next = (i % 4) + 1
-			local x0, z0 = corners[i][1], corners[i][2]
-			local x1, z1 = corners[next][1], corners[next][2]
-			for s = 0, extraState.EDGE_SEGMENTS - 1 do
-				local t = s / extraState.EDGE_SEGMENTS
-				local lx = x0 + (x1 - x0) * t
-				local lz = z0 + (z1 - z0) * t
-				local rx, rz = rotatePoint(lx, lz, angleDeg)
-				local wx, wz = cx + rx, cz + rz
-				local wy = GetGroundHeight(wx, wz)
-				glVertex(wx, wy, wz)
-			end
-		end
-	end)
-	glPolygonOffset(false)
-end
-
-function extraState.drawRegularPolygon(cx, cz, radius, angleDeg, numSides, lengthScale)
-	lengthScale = lengthScale or 1.0
-	local angleStep = 2 * pi / numSides
-	local subdiv = numSides <= 8 and extraState.EDGE_SEGMENTS or 1
-	glPolygonOffset(-2, -2)
-	glBeginEnd(GL.LINE_LOOP, function()
-		for i = 0, numSides - 1 do
-			local a0 = i * angleStep
-			local a1 = (i + 1) * angleStep
-			local x0 = cos(a0) * radius
-			local z0 = sin(a0) * radius * lengthScale
-			local x1 = cos(a1) * radius
-			local z1 = sin(a1) * radius * lengthScale
-			for s = 0, subdiv - 1 do
-				local t = s / subdiv
-				local lx = x0 + (x1 - x0) * t
-				local lz = z0 + (z1 - z0) * t
-				local rx, rz = rotatePoint(lx, lz, angleDeg)
-				local wx = cx + rx
-				local wz = cz + rz
-				local wy = GetGroundHeight(wx, wz)
-				glVertex(wx, wy, wz)
-			end
-		end
-	end)
-	glPolygonOffset(false)
-end
+-- Terrain-hugging outlines: (cx, cz, radius, angleDeg, lengthScale) and (cx, cz, radius, angleDeg, numSides, lengthScale).
+extraState.drawRotatedSquare = extraState.WorldTool.drawSquare
+extraState.drawRegularPolygon = extraState.WorldTool.drawPolygon
 
 function extraState.drawRing(cx, cz, radius, angleDeg, lengthScale)
 	lengthScale = lengthScale or 1.0

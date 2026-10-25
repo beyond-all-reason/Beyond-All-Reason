@@ -40,6 +40,7 @@ local Cycle = VFS.Include("luaui/Include/unit_placer/cycle.lua")
 local Layout = VFS.Include("luaui/Include/unit_placer/layout.lua")
 local BrushShapes = require("common/brush_shapes")
 local Scatter = require("common/feature_scatter")
+local WorldTool = require("luaui/Include/tf_world_tool")
 
 local MSG = {
 	place = "$unit_place$",
@@ -2717,44 +2718,6 @@ end
 ----------------------------------------------------------------
 -- Drawing
 ----------------------------------------------------------------
-local function rotatePoint(px, pz, angleDeg)
-	local rad = angleDeg * pi / 180
-	return px * cos(rad) - pz * sin(rad), px * sin(rad) + pz * cos(rad)
-end
-
-local function drawRegularPolygon(cx, cz, radius, angleDeg, sides)
-	local step = 2 * pi / sides
-	local offset = angleDeg * pi / 180
-	gl.BeginEnd(GL.LINE_LOOP, function()
-		for i = 0, sides - 1 do
-			local a = i * step + offset
-			local x, z = cx + radius * cos(a), cz + radius * sin(a)
-			gl.Vertex(x, Spring.GetGroundHeight(x, z) + 4, z)
-		end
-	end)
-end
-
-local function drawRotatedSquare(cx, cz, radius, angleDeg)
-	local corners = { { -radius, -radius }, { radius, -radius }, { radius, radius }, { -radius, radius } }
-	gl.BeginEnd(GL.LINE_LOOP, function()
-		for _, c in ipairs(corners) do
-			local rx, rz = rotatePoint(c[1], c[2], angleDeg)
-			local x, z = cx + rx, cz + rz
-			gl.Vertex(x, Spring.GetGroundHeight(x, z) + 4, z)
-		end
-	end)
-end
-
-local SHAPE_SIDES = { circle = CIRCLE_SEGMENTS, hexagon = 6, octagon = 8, triangle = 3 }
-
-local function drawShape(cx, cz, angleDeg)
-	if up.shape == "square" then
-		drawRotatedSquare(cx, cz, up.radius, angleDeg)
-	else
-		drawRegularPolygon(cx, cz, up.radius, angleDeg, SHAPE_SIDES[up.shape] or CIRCLE_SEGMENTS)
-	end
-end
-
 local function drawCrosshair(x, z)
 	local y = Spring.GetGroundHeight(x, z) + 4
 	local s = 12
@@ -2820,7 +2783,7 @@ local function drawSelection()
 	for _, unitID in ipairs(sel.ids) do
 		local info = unitInfo(unitID)
 		if info then
-			drawRegularPolygon(info.x, info.z, max(info.xsize or 2, info.zsize or 2) * 8 * 0.75 + 4, 0, 20)
+			WorldTool.drawPolygon(info.x, info.z, max(info.xsize or 2, info.zsize or 2) * 8 * 0.75 + 4, 0, 20, 1, 4, 1)
 		end
 	end
 	gl.LineWidth(1)
@@ -2876,7 +2839,7 @@ local function drawRemovalTargets(x, z)
 		if info then
 			local w, h = Layout.footprint(info.xsize, info.zsize, info.facing or 0)
 			drawFootprint(info.x, info.z, w + 4, h + 4)
-			drawRegularPolygon(info.x, info.z, max(w, h) * 0.5, 45, 4)
+			WorldTool.drawPolygon(info.x, info.z, max(w, h) * 0.5, 45, 4, 1, 4, 1)
 		end
 	end
 	gl.LineWidth(1)
@@ -3021,7 +2984,7 @@ function widget:DrawWorld()
 		if up.mode == "point" and not removing then
 			drawCrosshair(p.x, p.z)
 		else
-			drawShape(p.x, p.z, p.rot or up.rotation)
+			WorldTool.drawShape(up.shape, p.x, p.z, up.radius, p.rot or up.rotation, 1, 4, 1, CIRCLE_SEGMENTS)
 		end
 	end
 	if up.smartEnabled and up.mode == "scatter" and not removing then

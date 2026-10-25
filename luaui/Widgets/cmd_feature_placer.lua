@@ -80,6 +80,7 @@ local PREVIEW_GHOST_CAP = 300
 local BrushShapes = require("common/brush_shapes")
 local Gizmo = require("luaui/Include/gizmo3d_gl4")
 local Scatter = require("common/feature_scatter")
+local WorldTool = require("luaui/Include/tf_world_tool")
 
 local abs = math.abs
 local asin = math.asin
@@ -1960,46 +1961,6 @@ local function handleHistoryUpdate(undoCount, redoCount)
 end
 
 ----------------------------------------------------------------
--- Drawing helpers
-----------------------------------------------------------------
-local function rotatePoint(px, pz, angleDeg)
-	local rad = angleDeg * pi / 180
-	return px * cos(rad) - pz * sin(rad), px * sin(rad) + pz * cos(rad)
-end
-
-local function drawRegularPolygon(cx, cz, radius, angleDeg, numSides)
-	local angleStep = 2 * pi / numSides
-	local offsetRad = angleDeg * pi / 180
-	glBeginEnd(GL.LINE_LOOP, function()
-		for i = 0, numSides - 1 do
-			local a = i * angleStep + offsetRad
-			local x = cx + radius * cos(a)
-			local z = cz + radius * sin(a)
-			local y = GetGroundHeight(x, z) + 4
-			glVertex(x, y, z)
-		end
-	end)
-end
-
-local function drawRotatedSquare(cx, cz, radius, angleDeg)
-	---@type table<integer, table>
-	local corners = {
-		{ -radius, -radius },
-		{ radius, -radius },
-		{ radius, radius },
-		{ -radius, radius },
-	}
-	glBeginEnd(GL.LINE_LOOP, function()
-		for i = 1, 4 do
-			local rx, rz = rotatePoint(corners[i][1], corners[i][2], angleDeg)
-			local wx, wz = cx + rx, cz + rz
-			local wy = GetGroundHeight(wx, wz)
-			glVertex(wx, wy + 4, wz)
-		end
-	end)
-end
-
-----------------------------------------------------------------
 -- Smart filter visualization helpers
 ----------------------------------------------------------------
 local GRID_STEP = 24 -- elmos between sample points
@@ -2113,7 +2074,7 @@ local function getShapeCorners(shape, radius, angleDeg)
 			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
 		end
 	elseif shape == "triangle" then
-		-- Same vertices as the outline (drawRegularPolygon with 3 sides).
+		-- Same vertices as the outline (WorldTool.drawPolygon with 3 sides).
 		for i = 0, 2 do
 			local a = i * (2 * pi / 3) + rad
 			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
@@ -2533,7 +2494,7 @@ local function drawSelectionMarkers()
 			local defID = GetFeatureDefID(featureID)
 			local def = defID and FeatureDefs[defID]
 			local r = (def and def.radius or 16) * 1.1
-			drawRegularPolygon(x, z, r, 0, 20)
+			WorldTool.drawPolygon(x, z, r, 0, 20, 1, 4, 1)
 		end
 	end
 
@@ -2619,17 +2580,7 @@ function widget:DrawWorld()
 			glVertex(worldX, cy, worldZ + s)
 		end)
 	else
-		if fp.shape == "circle" then
-			drawRegularPolygon(worldX, worldZ, fp.radius, fp.rotation, CIRCLE_SEGMENTS)
-		elseif fp.shape == "square" then
-			drawRotatedSquare(worldX, worldZ, fp.radius, fp.rotation)
-		elseif fp.shape == "hexagon" then
-			drawRegularPolygon(worldX, worldZ, fp.radius, fp.rotation, 6)
-		elseif fp.shape == "octagon" then
-			drawRegularPolygon(worldX, worldZ, fp.radius, fp.rotation, 8)
-		elseif fp.shape == "triangle" then
-			drawRegularPolygon(worldX, worldZ, fp.radius, fp.rotation, 3)
-		end
+		WorldTool.drawShape(fp.shape, worldX, worldZ, fp.radius, fp.rotation, 1, 4, 1, CIRCLE_SEGMENTS)
 
 		-- Smart filter overlay: show valid/rejected terrain areas
 		if fp.smartEnabled then
@@ -2661,17 +2612,7 @@ function widget:DrawWorld()
 					glVertex(p.x, cy, p.z + s)
 				end)
 			else
-				if fp.shape == "circle" then
-					drawRegularPolygon(p.x, p.z, fp.radius, p.rot, CIRCLE_SEGMENTS)
-				elseif fp.shape == "square" then
-					drawRotatedSquare(p.x, p.z, fp.radius, p.rot)
-				elseif fp.shape == "hexagon" then
-					drawRegularPolygon(p.x, p.z, fp.radius, p.rot, 6)
-				elseif fp.shape == "octagon" then
-					drawRegularPolygon(p.x, p.z, fp.radius, p.rot, 8)
-				elseif fp.shape == "triangle" then
-					drawRegularPolygon(p.x, p.z, fp.radius, p.rot, 3)
-				end
+				WorldTool.drawShape(fp.shape, p.x, p.z, fp.radius, p.rot, 1, 4, 1, CIRCLE_SEGMENTS)
 			end
 		end
 	end
