@@ -127,13 +127,39 @@ for _, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local function spawnFeature(featureDefName, position, facing, featureName)
-	local heading = BAR.Utilities.FacingToHeading(facing or 0)
+-- A point closer than this is on the feature itself, as in RotateUnits.
+local MIN_DIRECTION_DISTANCE = 0.001
+
+local function compassAngleToHeading(angle)
+	-- TODO: refactor to call CompassAngleToHeading when it is merged
+	return math.floor((angle % 360 - 180) / 360 * -65535)
+end
+
+local function getFeatureHeading(feature)
+	local direction = feature.direction
+	if direction == nil then
+		return BAR.Utilities.FacingToHeading(feature.facing)
+	end
+	if direction.angle then
+		return compassAngleToHeading(direction.angle)
+	end
+
+	local dx, dz = direction.x - feature.x, direction.z - feature.z
+	if math.abs(dx) < MIN_DIRECTION_DISTANCE and math.abs(dz) < MIN_DIRECTION_DISTANCE then
+		return BAR.Utilities.FacingToHeading("s")
+	end
+	-- Not Spring.GetHeadingFromVector: RecoilEngine #3240 swaps east and west for dz just above zero.
+	-- Compass angles run clockwise from north, which is -z.
+	return compassAngleToHeading(math.deg(math.atan2(dx, -dz)))
+end
+
+local function spawnFeature(featureDefName, position, heading, featureName)
 	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
 	local unitDefName = corpseToUnitDefName[featureDefName]
 
 	if featureID and unitDefName then
-		Spring.SetFeatureResurrect(featureID, unitDefName, facing)
+		-- Resurrection only takes one of the four facings.
+		Spring.SetFeatureResurrect(featureID, unitDefName, BAR.Utilities.HeadingToFacing(heading))
 	end
 	tracking.TrackFeature(featureName, featureID)
 end
@@ -141,7 +167,7 @@ end
 local function spawnFeatureLoadout(featureLoadout)
 	for _, feature in ipairs(featureLoadout or {}) do
 		feature.y = Spring.GetGroundHeight(feature.x, feature.z)
-		spawnFeature(feature.featureDefName, feature, feature.facing, feature.featureName)
+		spawnFeature(feature.featureDefName, feature, getFeatureHeading(feature), feature.featureName)
 	end
 end
 

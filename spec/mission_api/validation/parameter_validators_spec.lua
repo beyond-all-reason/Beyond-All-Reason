@@ -1024,5 +1024,33 @@ describe("mission_api.validation.parameter_validators", function()
 
 			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: featureLoadout[1].x")
 		end)
+
+		it("passes for an entry with a direction", function()
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", x = 0, z = 0, direction = { angle = 45 } },
+			})
+
+			V.assertNoMessageContaining(result, "featureLoadout")
+		end)
+
+		it("validates the direction as a Direction", function()
+			local result = validateFeatureLoadout({ { featureDefName = "rockdef", x = 0, z = 0, direction = 45 } })
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected table, got number. Action: a, Parameter: featureLoadout[1].direction"
+			)
+		end)
+
+		it("rejects an entry with both a facing and a direction", function()
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", x = 0, z = 0, facing = "n", direction = { angle = 45 } },
+			})
+
+			V.assertMessage(
+				result,
+				"Invalid feature entry, can have facing or direction, not both. Action: a, Parameter: featureLoadout[1]"
+			)
+		end)
 	end)
 end)

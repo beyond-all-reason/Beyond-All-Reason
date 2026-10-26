@@ -805,10 +805,17 @@ local function registerLoadoutValidators(parameterValidators, context)
 	local featureEntryFields = {
 		{ name = "featureDefName", type = Types.FeatureDefName, required = true },
 		{ name = "facing", type = Types.Facing },
+		{ name = "direction", type = Types.Direction },
 		{ name = "featureName", type = Types.String },
 	}
 
-	local function getEntryValidator(fields)
+	local function validateFeatureEntry(entry, results)
+		if entry.facing ~= nil and entry.direction ~= nil then
+			results[#results + 1] = { message = "Invalid feature entry, can have facing or direction, not both" }
+		end
+	end
+
+	local function getEntryValidator(fields, validateEntry)
 		return function(entry)
 			local entryTypeResult = validateTableType(entry)
 			if entryTypeResult then
@@ -830,12 +837,17 @@ local function registerLoadoutValidators(parameterValidators, context)
 				end
 			end
 
+			if validateEntry then
+				validateEntry(entry, results)
+			end
+
 			return results
 		end
 	end
 
 	parameterValidators[Types.UnitLoadout] = getListValidator(getEntryValidator(unitEntryFields))
-	parameterValidators[Types.FeatureLoadout] = getListValidator(getEntryValidator(featureEntryFields))
+	parameterValidators[Types.FeatureLoadout] =
+		getListValidator(getEntryValidator(featureEntryFields, validateFeatureEntry))
 end
 
 --------------------------------------------------------------------------------
