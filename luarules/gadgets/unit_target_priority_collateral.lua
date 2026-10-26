@@ -262,7 +262,7 @@ local function addWeaponCollateral(unitDef)
 		if radius >= searchRadiusMin and damage >= searchDamageMin then
 			local searchRadius = weaponSearchRadius[weaponDefID]
 			if not searchRadius then
-				Script.SetWatchAllowTarget(weaponDefID, true)
+				gadgetHandler:RegisterWeaponTarget(weaponDefID)
 				weaponSearchRadius[weaponDefID] = radius
 			else
 				-- Games that use weaponDefs as shared components likely need to add handling here.
@@ -310,17 +310,13 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		priority = 0.0
 	end
 
-	local searchRadius = weaponSearchRadius[weaponDefID]
-	if not searchRadius then
-		return true, priority
-	end
-
 	local allyTeam = unitAllyTeam[unitID]
 	if not allyTeam then
 		return true, priority
 	end
 
 	local cache, cacheLast = targetCache[allyTeam], targetCacheLast[allyTeam]
+	local searchRadius = weaponSearchRadius[weaponDefID]
 
 	-- Avoid collaterals of a similar scale to our own explosion radius.
 	local avoidRadius = cache[targetID] or cacheLast[targetID] ---@as number?
