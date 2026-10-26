@@ -16,7 +16,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          sparse-checkout: recoil-lua-library
+          sparse-checkout: |
+            recoil-lua-library
+            modules
           submodules: 'true'
           # https://stackoverflow.com/a/77212392/317135
           fetch-depth: 0
@@ -24,10 +26,13 @@ jobs:
       - name: Pull latest submodule
         run: |
           git submodule update --remote --merge recoil-lua-library
+          # The game archive leaves the submodule out (springignore.txt), so module_env.lua reads a copy
+          names=recoil-lua-library/handles/generated/names.lua
+          if [ -f "$names" ]; then cp "$names" modules/engine_handles.lua; fi
       - name: Push updated submodule
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          file_pattern: recoil-lua-library
+          file_pattern: recoil-lua-library modules/engine_handles.lua
           commit_author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
           commit_message: |
             Update Lua libary submodule

@@ -1,43 +1,26 @@
-local Derive = require("tools/engine_handles/derive")
-local EngineHandles = require("modules/engine_handles")
+-- modules/engine_handles.lua is recoil-lua-library/handles/generated/names.lua, copied in because the game archive
+-- leaves the submodule out (springignore.txt). The nightly submodule update copies it again; this fails when a
+-- submodule bump left the copy behind.
+local LIBRARY = "recoil-lua-library/handles/generated/names.lua"
+local COPY = "modules/engine_handles.lua"
 
--- modules/engine_handles.lua is generated from the engine's library per handle under types/recoil/generated/ by
--- tools/engine_handles/generate.lua. This fails when the types moved on without it.
-describe("the generated engine handle sets", function()
-	it("match the library per handle under types/recoil/generated/", function()
-		local syncedOnly, unsyncedOnly = Derive.Sides()
-		local syncedGlobals, unsyncedGlobals = Derive.Globals()
-		if syncedOnly == nil or unsyncedOnly == nil or syncedGlobals == nil or unsyncedGlobals == nil then
-			pending("types/recoil/ is not checked out here", function() end)
+local function text(path)
+	local f = io.open(path, "r")
+	if f == nil then
+		return nil
+	end
+	local s = f:read("*a")
+	f:close()
+	return (s:gsub("\r\n", "\n")) -- the checkout is CRLF
+end
+
+describe("modules/engine_handles.lua", function()
+	it("is the library's names per handle", function()
+		local library = text(LIBRARY)
+		if library == nil then
+			pending(LIBRARY .. " is not checked out here", function() end)
 			return
 		end
-		local rerun = "rerun: luajit tools/engine_handles/generate.lua"
-		assert.are.same(Derive.Sorted(syncedOnly), EngineHandles.syncedOnly, rerun)
-		assert.are.same(Derive.Sorted(unsyncedOnly), EngineHandles.unsyncedOnly, rerun)
-		assert.are.same(Derive.Sorted(syncedGlobals), EngineHandles.syncedOnlyGlobals, rerun)
-		assert.are.same(Derive.Sorted(unsyncedGlobals), EngineHandles.unsyncedOnlyGlobals, rerun)
-	end)
-
-	it("and the vendored library declares the type per handle", function()
-		local function text(file)
-			local f = assert(io.open("types/recoil/" .. file, "r"))
-			local s = f:read("*a")
-			f:close()
-			return (s:gsub("\r\n", "\n")) -- the checkout is CRLF, the shape below is written LF
-		end
-		local spring = text("Spring.lua")
-		local shared, synced, unsynced =
-			text("generated/shared.lua"), text("generated/synced.lua"), text("generated/unsynced.lua")
-		assert.truthy(spring:find("\n---@class Recoil : Recoil.Synced, Recoil.Unsynced\n", 1, true), "the union")
-		assert.truthy(spring:find("\n---@type Recoil\nSpring = {}", 1, true), "Spring is the union")
-		assert.truthy(shared:find("\n---@class Recoil.Shared\nlocal Spring = {}\n", 1, true), "the shared view")
-		assert.truthy(
-			synced:find("\n---@class Recoil.Synced : Recoil.Shared\nlocal Spring = {}\n", 1, true),
-			"the synced view extends shared"
-		)
-		assert.truthy(
-			unsynced:find("\n---@class Recoil.Unsynced : Recoil.Shared\nlocal Spring = {}\n", 1, true),
-			"the unsynced view extends shared"
-		)
+		assert.are.equal(library, text(COPY), "rerun: cp " .. LIBRARY .. " " .. COPY)
 	end)
 end)
