@@ -61,7 +61,7 @@ local spSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
 local spGetCOBScriptID = Spring.GetCOBScriptID
 local spCallCOBScript = Spring.CallCOBScript
 local unitScript = Spring.UnitScript or {}
-local spCallLuaScript = unitScript.CallAsUnit
+local spCallLuaScript = unitScript.CallAsUnitNoReturn
 
 local gameSpeed = Game.gameSpeed ---@as integer
 local armorTypeMin, armorTypeMax = 0, #Game.armorTypes
