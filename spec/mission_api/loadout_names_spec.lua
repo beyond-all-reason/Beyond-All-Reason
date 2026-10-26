@@ -98,7 +98,6 @@ describe("mission_api.loadout orders targeting names", function()
 		assert.are.same({ "shift" }, converted[2][3])
 	end)
 
-
 	it("leaves the mission's own order unchanged when it takes over replacing the queue", function()
 		local move = { env.CMD.MOVE, { 1, 0, 2 }, { "shift" } }
 
