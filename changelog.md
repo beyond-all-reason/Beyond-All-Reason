@@ -49,6 +49,7 @@
   - Sweepfire heatrays have a smoother motion and do not slip off their targets on slopes.
   - Drones spread out better, guard moving carriers better (unused in vanilla), and land and launch smoothly.
   - T1 Drones no longer crash on death.  Drones will be weaker against AA because the AA won't overkill them and will swap targets faster.  
+  - Better Martyr and Phoenix aiming. Martyr used to require a skill shot with manual attack timing. It is more reliable.
 - [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
@@ -57,7 +58,6 @@
   - User widgets can no longer be hidden and cannot pass themselves off as game widgets. Protected against widgets changing their own permissions or loading via injection.
   - Twitcher can leave behind wrecks and debris again.
   - Autotargeting for dozens of weapons (and most Raptors units) now reads the weapon's position and direction correctly.
-  - Martyr and Phoenix aiming is improved. These units used to require babysitting and manual attack timing to be reliable.
   - Advanced Fusion health was increased by 5% last month by mistake, reverted.
   - Cortex / Legion advanced UW mexes had an unintended 50% damage reduction, removed.
   - Defenses that open and close cannot fire during their open or close animations.
