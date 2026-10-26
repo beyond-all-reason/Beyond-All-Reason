@@ -65,6 +65,9 @@ local CIRCLE_SNAP = false ---@type boolean
 -- circle mode: up to this many allied circles get exact edges and a stipple; beyond, their edges come from a distance
 -- field one texel per radar cell (slightly polygonal up close) and their outline is solid
 local MAX_ALLIED_CIRCLES = 64
+-- The coverage fades out with the camera distance (FADE_START, FADE_END below), except while a jammer is placed or
+-- selected. Players outside the LOS view (L) keep it unfaded, like the radar, sonar and LOS range lines.
+local NO_FADE_WITHOUT_LOS_VIEW = true
 
 -- The sheet is projected through the map g-buffer depth; units and features are left out via the model g-buffer
 -- depth. BAR turns both on (luaintro/springconfig.lua).
@@ -105,6 +108,8 @@ local shaderConfig = {
 	OUTLINE_THIN_END = 8000, -- elmos from the camera where it has thinned to OUTLINE_THIN_SCALE
 	OUTLINE_THIN_SCALE = 0.6, -- outline width at OUTLINE_THIN_END and further, relative to its full width
 	OUTLINE_MIN_WIDTH = 1.0, -- screen pixels (not scaled with the resolution) the thinning stops at
+	FADE_START = 4000, -- elmos from the camera where the coverage starts fading out
+	FADE_END = 8000, -- elmos from the camera where it is gone
 	OFFMAP_OUTLINE_FADE = 50, -- elmos past the map's edge over which the outline fades out (there is no fill there)
 	OUTLINE_DASHES = OUTLINE_DASHES,
 	MINIMAP_ALPHA = 0.33, -- opacity of the coverage fill on the minimap, SHEET_COLOR / ALLIED_COLOR
@@ -134,6 +139,7 @@ local mathCeil = math.ceil
 local mathMin = math.min
 local mathMax = math.max
 local mathExp = math.exp
+local mathAbs = math.abs
 local mathHuge = math.huge
 local osClock = os.clock
 
@@ -158,6 +164,7 @@ local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetMapDrawMode = Spring.GetMapDrawMode
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
@@ -269,6 +276,7 @@ local sets = {} ---@type table<number, table|false> -- radius in cells -> textur
 local jammerUnits = {} ---@type table<UnitID, table> -- units with a radar jammer and their jammerDefs entry, filtered to the local ally team when collected
 local selectedJammerUnitID = false ---@type UnitID|false
 local gaiaTeamID = Spring.GetGaiaTeamID()
+local spectating = false
 local fullview = false -- spectating with full view: every allyteam's jammers count as allied
 
 -- live values of the JammerPreview* configint settings
@@ -366,6 +374,13 @@ local minimapInactive = 0.0
 -- the last draw frame DrawWorld drew coverage, for WG.jammerPreview.isCoverageShown()
 local coverageShownFrame = -10
 
+-- the camera distance fade of the coverage
+local distanceFade = {
+	strength = 1.0, -- 1: it fades out with the camera distance, 0: it doesn't, eased in between
+	frame = -10, -- last draw frame it was eased
+	time = 0,
+}
+
 local passVsPath = "LuaUI/Shaders/sensor_ranges_radar_preview_pass.vert.glsl"
 
 local discShaderCache = {
@@ -414,6 +429,7 @@ local sheetShaderCache = {
 		alliedCircleCount = 0,
 		emitterXZ = { 0, 0 },
 		alliedParams = { 0, 0 },
+		fadeStrength = 1,
 		passRect = { -1, -1, 1, 1 },
 	},
 	shaderConfig = shaderConfig,
@@ -598,8 +614,8 @@ local function trackUnit(unitID, unitDefID)
 end
 
 local function scanAlliedUnits()
-	local _, fullView = spGetSpectatingState()
-	fullview = fullView
+	local spec, fullView = spGetSpectatingState()
+	spectating, fullview = spec, fullView
 	jammerUnits = {}
 	local teams = fullview and spGetTeamList() or spGetTeamList(spGetMyAllyTeamID())
 	for _, teamID in ipairs(teams or {}) do
@@ -1303,6 +1319,38 @@ end
 -- radar cells past the map's edge the circle mode's outline can reach while it fades out (OFFMAP_OUTLINE_FADE)
 local OFFMAP_MARGIN_CELLS = mathCeil(shaderConfig.OFFMAP_OUTLINE_FADE / RADAR_CELL) + 1
 
+-- The camera distance fade's strength this frame: none while a jammer is previewed, as placing or selecting one needs
+-- its coverage at any zoom, nor for a player outside the LOS view (NO_FADE_WITHOUT_LOS_VIEW). Eased, so the coverage
+-- doesn't pop in or out when that changes.
+local function updateDistanceFade(previewing, now, drawFrame)
+	local target = 1
+	if previewing or (NO_FADE_WITHOUT_LOS_VIEW and not spectating and spGetMapDrawMode() ~= "los") then
+		target = 0
+	end
+	local fade = distanceFade
+	if drawFrame - fade.frame > 1 then
+		fade.strength = target -- (re)appearing: nothing to ease from
+	else
+		local step = 1 - mathExp(-mathMin(now - fade.time, 0.1) * SMOOTH_RATE)
+		fade.strength = fade.strength + (target - fade.strength) * step
+		if mathAbs(target - fade.strength) < 0.001 then
+			fade.strength = target
+		end
+	end
+	fade.frame, fade.time = drawFrame, now
+	return fade.strength
+end
+
+-- true when the camera is so far above the ground that the fade hides all of the coverage
+local function fadedOut(strength)
+	if strength < 1 then
+		return false
+	end
+	local _, camY = spGetCameraPosition()
+	local _, initMaxHeight, _, maxHeight = spGetGroundExtremes()
+	return camY - mathMax(maxHeight or initMaxHeight or 0, 0) >= shaderConfig.FADE_END
+end
+
 -- The sheet of a coverage layer, with the previewed disc (`set`) over it: one pass over their screen area that
 -- projects it onto the terrain
 local function drawSheet(layer, set, showLayer, now)
@@ -1373,6 +1421,7 @@ local function drawSheet(layer, set, showLayer, now)
 	-- the layer's coverage fades in with the preview, unless it is always shown
 	local layerOpacity = settings.alwaysShow and 1 or mathMin((now - preview.spawnStart) * 4, 1)
 	sheetShader:SetUniform("alliedParams", showLayer and 1 or 0, layerOpacity)
+	sheetShader:SetUniform("fadeStrength", distanceFade.strength)
 	sheetShader:SetUniform("stippleOffset", (now * OUTLINE_DASH_SPEED / RADAR_CELL) % 1)
 	sheetShader:SetUniform("passRect", left, bottom, right, top)
 	passVAO:DrawArrays(GL.TRIANGLES)
@@ -1415,11 +1464,14 @@ function widget:DrawWorld()
 	end
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
-	coverageShownFrame = drawFrame
-	if showEnemy then
-		drawSheet(enemy, nil, true, now)
+	-- zoomed out too far for any of it to show: the minimap still draws it
+	if not fadedOut(updateDistanceFade(radius ~= nil, now, drawFrame)) then
+		coverageShownFrame = drawFrame
+		if showEnemy then
+			drawSheet(enemy, nil, true, now)
+		end
+		drawSheet(allied, set, showAllied, now)
 	end
-	drawSheet(allied, set, showAllied, now)
 	minimapFrame, minimapSet, minimapInactive = drawFrame, set, preview.inactive
 	minimapAllied, minimapEnemy = showAllied, showEnemy
 end

@@ -86,7 +86,7 @@ local function readKeysets(declared, alwaysModifier)
 	return shapeKeysets(declared, alwaysModifier), nil
 end
 
-local function readAction(entry, dir, seen)
+local function readAction(entry, keyPrefix, dir, seen)
 	if type(entry) ~= "table" then
 		return nil, "is not an object"
 	end
@@ -109,6 +109,8 @@ local function readAction(entry, dir, seen)
 
 	return {
 		action = action,
+		label = relativeTo(keyPrefix, entry.label),
+		description = relativeTo(keyPrefix, entry.description),
 		alwaysModifier = modifier,
 		icon = relativeTo(dir, entry.icon),
 		keysets = keysets,
@@ -133,10 +135,11 @@ function M.parse(widget)
 		return actions, warnings
 	end
 
+	local keyPrefix = "widgets." .. widget.id .. "."
 	local seen = {}
 	for i, entry in ipairs(declared) do
 		local at = string.format("%s: keybindings[%d]", where, i)
-		local read, problem, keysetProblem = readAction(entry, widget.dir, seen)
+		local read, problem, keysetProblem = readAction(entry, keyPrefix, widget.dir, seen)
 
 		if read then
 			actions[#actions + 1] = read
@@ -163,6 +166,7 @@ function M.manifests()
 		for _, warning in ipairs(warnings) do
 			Spring.Echo("[keybinds] " .. warning)
 		end
+		BAR.I18N.loadWidgetLocalizations(widgets, VFS.RAW)
 		shared = { widgets = widgets, changes = 0 }
 		WG.widgetManifests = shared
 	end
@@ -201,15 +205,19 @@ function M.groups(widgets)
 			for _, a in ipairs(actionsOf(widget)) do
 				if not claimed[a.action] then
 					claimed[a.action] = true
-					items[#items + 1] = { action = a.action, alwaysModifier = a.alwaysModifier, icon = a.icon }
+					items[#items + 1] = {
+						action = a.action,
+						label = a.label,
+						description = a.description,
+						alwaysModifier = a.alwaysModifier,
+						icon = a.icon,
+					}
 				end
 			end
 
 			if #items > 0 then
 				groups[#groups + 1] = {
-					category = "widgets." .. widget.id,
-					title = isNonEmptyString(widget.manifest.display_name) and widget.manifest.display_name
-						or widget.id,
+					category = "widgets." .. widget.id .. ".displayName",
 					section = "widgets",
 					items = items,
 				}

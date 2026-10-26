@@ -190,6 +190,18 @@ local function selectModoptionConfigForPlayers(modoptionData, allyTeamCount, pla
 	return nil
 end
 
+--@param modoptionData ModOptionData
+--@param allyTeamCount number
+--@param playersPerTeam number
+--@return WidgetStartPositions?
+local function loadStartPositionsFromData(modoptionData, allyTeamCount, playersPerTeam)
+	local selectedConfig = selectModoptionConfigForPlayers(modoptionData, allyTeamCount, playersPerTeam)
+	if selectedConfig == nil then
+		return nil
+	end
+	return processModoptionTeamConfig(modoptionData.positions, selectedConfig)
+end
+
 local function loadStartPositions()
 	local modoptionDataRaw = Spring.GetModOptions().mapmetadata_startpos
 
@@ -203,16 +215,7 @@ local function loadStartPositions()
 	local parsed = Json.decode(decompressed)
 
 	local allyTeamCount, playersPerTeam = getTeamSizes()
-	local selectedConfig = selectModoptionConfigForPlayers(parsed, allyTeamCount, playersPerTeam)
-
-	if selectedConfig == nil then
-		Spring.Log(widget:GetInfo().name, LOG.WARNING, "Could not find matching start positions")
-		return
-	end
-
-	local positions = processModoptionTeamConfig(parsed.positions, selectedConfig)
-
-	return positions
+	return loadStartPositionsFromData(parsed, allyTeamCount, playersPerTeam)
 end
 
 -- widget code
@@ -848,3 +851,11 @@ function widget:DrawScreen()
 	drawTooltip()
 	drawTutorial()
 end
+
+-- exposed to support map-editor encode -> suggestion decode round-trip testing
+return {
+	loadFromData = loadStartPositionsFromData,
+	getStartPositions = function()
+		return startPositions
+	end,
+}

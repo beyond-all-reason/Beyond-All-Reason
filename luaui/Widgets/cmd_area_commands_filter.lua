@@ -2,7 +2,12 @@ local widget = widget ---@type RulesUnsyncedCallins
 
 -- When performing an area command for one of the `allowedCommands` below:
 -- - If enemy unit is targeted then targetAllegiance=ENEMY_UNITS otherwise targetAllegiance=targetTeamId
--- - If Ctrl is pressed and hovering over a unit, targets all units in the area. For wrecks, it targets all wrecks with the same tech level
+-- - If Ctrl is pressed and hovering over a unit, targets all units in the area.
+--   For wrecks, it targets all wrecks with the same tech level.
+--   Ctrl has special-case interactions with area commands:
+--   - Attack + Ctrl removes matching queued attacks instead of adding any.
+--   - Attack + Ctrl + Meta filters as usual (queue front; split targets with Shift).
+--   - Set Target + Ctrl also issues "sticky" orders that are kept after Stop.
 -- - If Alt is pressed and hovering over a unit, targets all units that share the same unitDefId in the area.
 -- - If Meta is pressed, orders are put in front of the order queue.
 -- - If Meta and Shift are pressed, splits orders between selected units. Orders are placed at the end of the queue
@@ -49,6 +54,10 @@ local FEATURE = "feature"
 local UNIT = "unit"
 
 local commandLimit = 2000
+
+local SplitTargets = require("modules/split_targets")
+local splitRoundRobin = SplitTargets.RoundRobin
+local splitRivers = SplitTargets.Rivers
 
 local myAllyTeamID
 
@@ -306,60 +315,67 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 	end)
 end
 
+-- Keep Set Target orders sticky after Stop.
+local commandInheritsCtrl = {
+	[GameCMD.UNIT_SET_TARGET] = true,
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = true,
+}
+
+-- Keep Ctrl removal consistent for drags starting on ground or units; Meta retains queue insertion/splitting.
+local function leaveToEngine(cmdId, options)
+	return cmdId == CMD.ATTACK and options.ctrl and not options.meta
+end
+
+-- The engine only reads these, so one table per modifier set is shared by all orders.
+local OPTS_NONE = {}
+local OPTS_SHIFT = { "shift" }
+local OPTS_CTRL = { "ctrl" }
+local OPTS_CTRL_SHIFT = { "ctrl", "shift" }
+
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCommands)
 	maxCommands = maxCommands or commandLimit
-	local firstTarget = true
 	local selectedUnitsLen = #selectedUnits
+	local keepCtrl = options.ctrl and commandInheritsCtrl[cmdId]
+
+	-- Every order after the first is queued; the first one only when Shift is held.
+	local queuedOpts = keepCtrl and OPTS_CTRL_SHIFT or OPTS_SHIFT
+	local firstOpts = options.shift and queuedOpts or (keepCtrl and OPTS_CTRL or OPTS_NONE)
+	local insertFront = options.meta and not options.shift
+	local insertedOptions = keepCtrl and CMD.OPT_CTRL or 0
+
 	for i, targetId in ipairs(filteredTargets) do
-		local cmdOpts = {}
-		if not firstTarget or options.shift then
-			tableInsert(cmdOpts, "shift")
-		end
-		if options.meta and not options.shift then
-			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, { 0, cmdId, 0, targetId }, CMD.OPT_ALT)
+		if insertFront then
+			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, { 0, cmdId, insertedOptions, targetId }, CMD.OPT_ALT)
 		else
-			spGiveOrderToUnitArray(selectedUnits, cmdId, { targetId }, cmdOpts)
+			spGiveOrderToUnitArray(selectedUnits, cmdId, { targetId }, i == 1 and firstOpts or queuedOpts)
 		end
-		firstTarget = false
 		if i * selectedUnitsLen > maxCommands then
 			return
 		end
 	end
 end
 
-local function splitTargets(selectedUnits, filteredTargets)
-	local unitTargetsMap = {}
-	for unitIdx, selectedUnitId in ipairs(selectedUnits) do
-		unitTargetsMap[selectedUnitId] = {}
-		for targetIdx, targetUnitId in ipairs(filteredTargets) do
-			if
-				targetIdx % #filteredTargets == unitIdx % #filteredTargets
-				or unitIdx % #selectedUnits == targetIdx % #selectedUnits
-			then
-				tableInsert(unitTargetsMap[selectedUnitId], targetUnitId)
-			end
-		end
-	end
-	return unitTargetsMap
+local function sortClosestToGroup(units, targets)
+	sortTargetsByDistance(units, targets, true)
 end
 
 --- Each unit gets a chunk of the queue
-local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
+local function splitOrders(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	local selectedUnitsLen = #selectedUnits
 	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
 
-	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
+	local split = splitStrategy or splitRivers
+	local unitTargetsMap =
+		split(selectedUnits, filteredTargets, spGetUnitPosition, sortClosestToGroup, selectedUnitsLen)
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
-		local selectedUnitTable = { selectedUnitId }
-		sortTargetsByDistance(selectedUnitTable, targets, true)
-		giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
+		giveOrders(cmdId, { selectedUnitId }, targets, options, maxAllowedTargetsPerUnit)
 	end
 end
 
 --- All units share the same order queue. Queue can be distributed with shift+meta
-local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
+local function defaultHandler(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	if options.shift and options.meta then
-		splitOrders(cmdId, selectedUnits, filteredTargets, options)
+		splitOrders(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	else
 		-- when meta is held it puts orders at the front of the queue so it reverses their order.
 		-- sorting has to be reversed to fix that
@@ -392,8 +408,9 @@ end
 ---@field handle function
 ---@field allowedTargetTypes table
 ---@field targetAllegiance number AllUnits = -1, MyUnits = -2, AllyUnits = -3, EnemyUnits = -4
+---@field splitStrategy function? Pins the split strategy instead of choosing it by selection size.
 
-local function commandConfig(targetTypes, targetAllegiance, handler)
+local function commandConfig(targetTypes, targetAllegiance, handler, splitStrategy)
 	local allowedTargetTypes = {}
 	for _, targetType in ipairs(targetTypes) do
 		allowedTargetTypes[targetType] = true
@@ -402,6 +419,7 @@ local function commandConfig(targetTypes, targetAllegiance, handler)
 	config.handle = handler or defaultHandler
 	config.allowedTargetTypes = allowedTargetTypes
 	config.targetAllegiance = targetAllegiance
+	config.splitStrategy = splitStrategy
 	return config
 end
 
@@ -409,8 +427,9 @@ end
 local allowedCommands = {
 	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS),
+	-- Set Target does not move the unit, so its split has no distance to shorten:
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, nil, splitRoundRobin),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, nil, splitRoundRobin),
 	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS),
@@ -514,6 +533,9 @@ function widget:CommandNotify(cmdId, params, options)
 	if #params ~= 4 then
 		return false
 	end
+	if leaveToEngine(cmdId, options) then
+		return false
+	end
 
 	local currentCommand = allowedCommands[cmdId]
 	if not currentCommand then
@@ -550,7 +572,7 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	currentCommand.handle(cmdId, selectedUnits, filteredTargets, options)
+	currentCommand.handle(cmdId, selectedUnits, filteredTargets, options, currentCommand.splitStrategy)
 	return true
 end
 
