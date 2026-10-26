@@ -136,6 +136,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1850,
 				customparams = {
+					speceffect = "retarget",
 					stockpilelimit = 5,
 				},
 				damage = {
