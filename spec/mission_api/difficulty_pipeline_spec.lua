@@ -3,7 +3,7 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 local env = MissionSpecEnv.new()
 
 -- The full loadMission sequence from api_missions.lua, with difficulty-wrapped parameters:
--- loaders (resolve-on-read), validation (wrappers intact), then in-place resolution.
+-- validation of the raw mission (wrappers intact), loaders, then in-place resolution.
 
 GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
@@ -80,6 +80,12 @@ describe("mission_api difficulty pipeline", function()
 			ObjectiveStages = {},
 		}
 
+		local result = validation.ValidateMission(mission)
+		validation.LogResult(result)
+		if not result.ok then
+			return GG["MissionAPI"], result
+		end
+
 		local rawTriggers = mission.Triggers or {}
 		local rawActions = mission.Actions or {}
 		GG["MissionAPI"].CurrentStageID = mission.InitialStage
@@ -90,20 +96,12 @@ describe("mission_api difficulty pipeline", function()
 		GG["MissionAPI"].Actions = actionsController.ProcessRawActions(rawActions)
 		GG["MissionAPI"].Cutscenes = mission.Cutscenes or {}
 
-		validation.ValidateStages(GG["MissionAPI"].Stages)
-		validation.ValidateObjectives(GG["MissionAPI"].Objectives)
-		validation.ValidateCutscenes(GG["MissionAPI"].Cutscenes)
-		validation.ValidateInitialStage(mission.InitialStage)
-		validation.ValidateTriggers(GG["MissionAPI"].Triggers, rawActions)
-		validation.ValidateActions(GG["MissionAPI"].Actions)
-		validation.ValidateReferences()
-
 		difficulty.ResolveTriggers(GG["MissionAPI"].Triggers)
 		difficulty.ResolveActions(GG["MissionAPI"].Actions)
 		difficulty.ResolveObjectives(GG["MissionAPI"].Objectives)
 		difficulty.ResolveCutscenes(GG["MissionAPI"].Cutscenes)
 
-		return GG["MissionAPI"]
+		return GG["MissionAPI"], result
 	end
 
 	local function wrappedMission()
@@ -230,7 +228,7 @@ describe("mission_api difficulty pipeline", function()
 	end)
 
 	it("aborts on an invalid difficulty value even when the played difficulty is valid", function()
-		loadMission({
+		local _, result = loadMission({
 			Triggers = {
 				wave = {
 					type = triggerTypes.TimeElapsed,
@@ -245,6 +243,6 @@ describe("mission_api difficulty pipeline", function()
 				},
 			},
 		}, EASY)
-		assert.is_true(GG["MissionAPI"].HasValidationErrors)
+		assert.is_false(result.ok)
 	end)
 end)

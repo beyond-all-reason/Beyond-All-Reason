@@ -59,8 +59,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 1800, z = 1600, team = 0, unitName = 'bot' },
-				{ unitDefName = 'armlab', x = 2000, z = 1800, team = 0, unitName = 'lab' },
+				{ unitDefName = 'armck', x = 1800, z = 1600, team = 0 },
+				{ unitDefName = 'armlab', x = 2000, z = 1800, team = 0 },
 			},
 		},
 	},
