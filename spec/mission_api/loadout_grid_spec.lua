@@ -11,7 +11,10 @@ local unitDefNames = {
 	wall = { id = 4, xsize = 6, zsize = 4, isImmobile = true },
 }
 
-local created, snapped
+---@type table<integer, table>
+local created
+---@type table<integer, table>
+local snapped
 
 local env = MissionSpecEnv.new({
 	Game = { squareSize = 8, footprintScale = 2 },
@@ -30,7 +33,7 @@ local env = MissionSpecEnv.new({
 			snapped[#snapped + 1] = { unitDefID = unitDefID, x = x, z = z, facing = facing }
 			return x + SNAP_OFFSET, y, z + SNAP_OFFSET
 		end,
-		CreateUnit = function(unitDefName, x, y, z, facing, team)
+		CreateUnit = function(unitDefName, x, _, z, facing, team)
 			created[#created + 1] = { unitDefName = unitDefName, x = x, z = z, facing = facing, team = team }
 			return #created
 		end,
