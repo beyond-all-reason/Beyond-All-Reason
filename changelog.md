@@ -1,10 +1,18 @@
 # October
 - [Zombies]
+  - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
+  - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
+  - Wraith respawns no longer have a 1/3rd chance to drop a queued zombie spawn. Each wave drops its lowest-value third instead.
+  - Wraith health 500 -> 100
+- [Commands]
+  - Shift+Space area commands give your units a faster path to travel. Large areas can take 20%–70% less travel time.
+  - Area commands (with and without Shift+Space) no longer drop targets past the 2,000 command limit. Your unit selection gets split into groups that take their own targets, with no targets dropped.
+- [Zombies]
   - Added a limited time Spidergeddon mode
   - Difficulty levels have been replaced with modes you can mix and match:
     - Basic: the dead come back to life once
     - Draugr: all dead always create a corpse
-    - Wraith: destroyed corpses leave apparitions that respawn 2/3rds of the dead with a 3x zombie resurrection time delay
+    - Wraith: destroyed corpses leave Wraiths that respawn 2/3rds of the dead with a 3x zombie resurrection time delay
     - Hydra: spawn 2-6 zombies from each corpse
     - Akumu: all of the above
     - Spidergeddon: Akumu, but zombies are converted into an equivalent value of spider-like units
@@ -52,6 +60,7 @@
 - [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
+  - Over-large area attacks no longer send only 30 units to Attack and the rest to Fight. They split your selection into squads that Attack all the targets in one "lane" through the full area. Bomber behavior especially was non-functional with large area attacks; this is fixed.
   - Turtle and other mixed ground/air units no longer stop outside their ground-weapon range when attacking ground or ghost buildings.
   - Temporary preventative measures against cheats. We have no evidence for common cheats but have locked down user widgets while we upgrade the engine. Hang tight.
   - Twitcher can leave behind wrecks and debris again.
@@ -61,7 +70,6 @@
   - Cortex / Legion advanced UW mexes had an unintended 50% damage reduction, removed.
   - Defenses that open and close cannot fire during their open or close animations.
   - Lens flares of searchlights, headlights and other unit lights no longer flicker.
-  
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.

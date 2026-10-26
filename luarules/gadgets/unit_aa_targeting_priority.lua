@@ -105,12 +105,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	for weaponDefID in pairs(isAntiAirWeapon) do
-		-- Watch this weapon so AllowWeaponTarget gets called:
-		Script.SetWatchAllowTarget(weaponDefID, true)
+		gadgetHandler:RegisterWeaponTarget(weaponDefID)
 	end
 
+	-- AllowWeaponTarget is only called for the registered weapons (vtol-targeting),
+	-- so the attacker always has AA priority — no need to check hasPriorityAir or call
+	-- spGetUnitDefID on the attacker.
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-		if defPriority and isAntiAirWeapon[attackerWeaponDefID] then
+		if defPriority then
 			local mult = airPriorityMultiplier[spGetUnitDefID(targetID)]
 			if mult then
 				defPriority = defPriority * mult

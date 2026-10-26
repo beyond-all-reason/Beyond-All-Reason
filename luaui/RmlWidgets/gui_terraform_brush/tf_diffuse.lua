@@ -19,7 +19,6 @@ function M.attach(doc, ctx)
 	local widgetState = ctx.widgetState
 	local trackSliderDrag = ctx.trackSliderDrag
 
-	widgetState.dfpControlsEl = doc:GetElementById("tf-diff-controls")
 	widgetState.dfpLayerListEl = doc:GetElementById("dfp-layer-list")
 	widgetState.dfpLastLayerSig = nil
 
