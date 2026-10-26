@@ -2,6 +2,7 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local GAIA_TEAM_ID = 2
 
+---@type table<integer, table>
 local created
 
 local env = MissionSpecEnv.new({
@@ -11,7 +12,7 @@ local env = MissionSpecEnv.new({
 		GetGroundHeight = function()
 			return 0
 		end,
-		CreateUnit = function(unitDefName, x, y, z, facing, team)
+		CreateUnit = function(unitDefName, _, _, _, _, team)
 			created[#created + 1] = { unitDefName = unitDefName, team = team }
 			return #created
 		end,
