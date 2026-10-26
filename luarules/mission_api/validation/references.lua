@@ -1,6 +1,6 @@
 ---
 --- Checks references: objective events, actions, unit, feature, marker and line names,
---- countdown IDs and cutscene IDs.
+--- countdown IDs, cutscene IDs and variables.
 --- Malformed entries are skipped, as sections.lua already reports them. A value that differs
 --- by difficulty refers to each of its difficulties' values, see context.PossibleValues.
 ---
@@ -449,6 +449,54 @@ local function validateCutsceneIDReferences(context, report)
 end
 
 --------------------------------------------------------------------------------
+-- Variable references
+--------------------------------------------------------------------------------
+
+--- Only the startscript sets variables before the mission starts. A value that reads an unset
+--- variable can't be checked, and is missing until an action writes the variable, which may
+--- well be intended. So it warns rather than errors.
+local function validateVariableReferences(context, report)
+	local referencedKeys = {}
+
+	local function recordKeys(values, source, skippedField)
+		for name, value in pairs(type(values) == "table" and values or {}) do
+			if name ~= skippedField then
+				context.CallOnVariableKeys(value, function(key)
+					if type(key) == "string" then
+						recordSource(referencedKeys, key, source .. " (" .. tostring(name) .. ")")
+					end
+				end)
+			end
+		end
+	end
+
+	for triggerID, trigger in pairs(context.Triggers) do
+		recordKeys(parametersOf(trigger), "trigger " .. triggerID)
+	end
+	for actionID, action in pairs(context.Actions) do
+		recordKeys(parametersOf(action), "action " .. actionID)
+	end
+	for objectiveID, objective in pairs(context.Objectives) do
+		if type(objective) == "table" then
+			recordKeys(objective, "objective " .. objectiveID, "trigger")
+			recordKeys(parametersOf(objective.trigger), "objective " .. objectiveID .. " trigger")
+		end
+	end
+
+	for key, sources in pairs(referencedKeys) do
+		if context.Variables[key] == nil then
+			report.Warn(
+				SECTION,
+				"Variable",
+				key,
+				"Variable has no value at the start of the mission",
+				"Referenced in: " .. describeSources(sources)
+			)
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
 
 local function validate(context, report)
 	local actionTypes = context.ActionTypes
@@ -490,6 +538,7 @@ local function validate(context, report)
 
 	validateCountdownIDReferences(context, report)
 	validateCutsceneIDReferences(context, report)
+	validateVariableReferences(context, report)
 end
 
 return {

@@ -389,6 +389,7 @@ _G.GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
 _G.GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 _G.GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 _G.GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
+_G.GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variables.lua")
 _G.GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
 
 local actionDefinitions = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
@@ -401,8 +402,9 @@ for _, difficulty in pairs(parameterTypes.Enums.Difficulty) do
 	lowestDifficulty = math.min(lowestDifficulty, difficulty)
 end
 _G.GG["MissionAPI"].Difficulty = lowestDifficulty
--- As for a mission started with no options in its startscript.
+-- As for a mission started with no options or variables in its startscript.
 _G.GG["MissionAPI"].Options = {}
+_G.GG["MissionAPI"].Variables = {}
 
 -- Team names come from the startscript, which a standalone run does not have.
 if teamNames then

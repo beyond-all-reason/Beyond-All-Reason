@@ -46,10 +46,13 @@ local function validateTypedFields(reporter, id, validateValue, fieldTypes, valu
 	end
 end
 
---- Returns two value validators, each returning a list of results: one for values that must
---- be given as is, and one that also accepts { difficulties = { <difficultyName> = <value> } },
---- which difficulty.lua resolves once the difficulty is known. Every difficulty's value is
---- validated, including those under an invalid difficulty name.
+--- Returns three value validators, each returning a list of results:
+--- - one for values that must be given as is,
+--- - one that also accepts { difficulties = { <difficultyName> = <value> } }, which difficulty.lua
+---   resolves once the difficulty is known. Every difficulty's value is validated, including
+---   those under an invalid difficulty name.
+--- - one that also accepts { variable = <key> } anywhere in the value, or in a difficulty's value,
+---   which variables.lua resolves after difficulties.
 local function createValueValidators(context, parameterValidators)
 	local knownDifficulties = context.Enums[context.Types.Difficulty]
 	local validateTableType = parameterValidators[context.Types.Table]
@@ -58,7 +61,26 @@ local function createValueValidators(context, parameterValidators)
 		return parameterValidators[valueType](value) or {}
 	end
 
-	local function validateDifficulties(valueType, value)
+	--- The value is checked as the variables are at the start of the mission. While any is
+	--- unset it can't be checked, and references.lua warns about that variable instead.
+	local function validateValueWithVariables(valueType, value)
+		if not context.HasVariableReference(value) then
+			return validateValue(valueType, value)
+		end
+
+		local results = {}
+		context.CallOnVariableKeys(value, function(key)
+			if type(key) ~= "string" then
+				results[#results + 1] = { message = "Variable key must be a string, got " .. type(key) }
+			end
+		end)
+		if #results > 0 or context.HasUnsetVariable(value) then
+			return results
+		end
+		return validateValue(valueType, context.ResolveValue(value))
+	end
+
+	local function validateDifficulties(validateDifficultyValue, valueType, value)
 		local results = {}
 		for key in pairs(value) do
 			if key ~= "difficulties" then
@@ -87,7 +109,7 @@ local function createValueValidators(context, parameterValidators)
 					{ message = "Invalid difficulty: " .. tostring(difficultyName), parameterNameSuffix = suffix }
 			end
 			-- A nested difficulties table is rejected by the value's own validator.
-			for _, result in ipairs(validateValue(valueType, difficultyValue)) do
+			for _, result in ipairs(validateDifficultyValue(valueType, difficultyValue)) do
 				results[#results + 1] = {
 					message = result.message,
 					parameterNameSuffix = suffix .. (result.parameterNameSuffix or ""),
@@ -100,12 +122,19 @@ local function createValueValidators(context, parameterValidators)
 
 	local function validateValueWithDifficulties(valueType, value)
 		if context.IsDifficultiesTable(value) then
-			return validateDifficulties(valueType, value)
+			return validateDifficulties(validateValue, valueType, value)
 		end
 		return validateValue(valueType, value)
 	end
 
-	return validateValue, validateValueWithDifficulties
+	local function validateValueWithDifficultiesAndVariables(valueType, value)
+		if context.IsDifficultiesTable(value) then
+			return validateDifficulties(validateValueWithVariables, valueType, value)
+		end
+		return validateValueWithVariables(valueType, value)
+	end
+
+	return validateValue, validateValueWithDifficulties, validateValueWithDifficultiesAndVariables
 end
 
 local function createEntryValidator(context, validateValue)
@@ -126,8 +155,8 @@ end
 -- Schema driven parameter validation, shared by triggers, actions and objective triggers
 --------------------------------------------------------------------------------
 
---- Every parameter may differ by difficulty.
-local function createSchemaValidator(context, parameterValidators, validateValueWithDifficulties)
+--- Every parameter may differ by difficulty, and read its value from variables.
+local function createSchemaValidator(context, parameterValidators, validateParameterValue)
 	local validateTableType = parameterValidators[context.Types.Table]
 
 	--- @param name string what the entity is called in messages. An objective's inline
@@ -171,7 +200,7 @@ local function createSchemaValidator(context, parameterValidators, validateValue
 					reporter.Error(id, name .. " missing required parameter", "Parameter: " .. parameter.name)
 				end
 			else
-				for _, result in ipairs(validateValueWithDifficulties(parameter.type, value)) do
+				for _, result in ipairs(validateParameterValue(parameter.type, value)) do
 					local details = "Parameter: " .. parameter.name .. (result.parameterNameSuffix or "")
 					local reportResult = result.isWarning and reporter.Warn or reporter.Error
 					reportResult(id, result.message, details)
@@ -265,7 +294,7 @@ local function validateObjectiveInlineTrigger(
 	objectiveID
 )
 	local trigger = objective.trigger
-	if type(trigger) ~= "table" or context.IsDifficultiesTable(trigger) then
+	if type(trigger) ~= "table" or context.IsDifficultiesTable(trigger) or context.IsVariableReference(trigger) then
 		return
 	end
 
@@ -298,16 +327,20 @@ local function validateObjectiveInlineTrigger(
 	validateStockpileTrigger(context, objectiveReport, objectiveID, trigger)
 end
 
-local function validateObjectivesSection(context, report, validateValueWithDifficulties, validateEntry, validateSchema)
+local function validateObjectivesSection(context, report, validateFieldValue, validateEntry, validateSchema)
 	local objectiveReport = reporterFor(report, SECTIONS.Objectives, "Objective")
 	local statisticsTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.Quantity)
 
-	-- The inline trigger is registered before the difficulty is resolved, so it can't vary.
+	-- The inline trigger is registered before the difficulty and variables are resolved,
+	-- so it can't vary. Its parameters can, as any trigger's.
 	local function validateField(fieldType, value, fieldName)
 		if fieldName == "trigger" and context.IsDifficultiesTable(value) then
 			return { { message = "Objective 'trigger' field does not support difficulties" } }
 		end
-		return validateValueWithDifficulties(fieldType, value)
+		if fieldName == "trigger" and context.IsVariableReference(value) then
+			return { { message = "Objective 'trigger' field does not support variables" } }
+		end
+		return validateFieldValue(fieldType, value)
 	end
 
 	for objectiveID, objective in pairs(context.Objectives) do
@@ -578,13 +611,15 @@ end
 --------------------------------------------------------------------------------
 
 local function validate(context, report, parameterValidators)
-	local validateValue, validateValueWithDifficulties = createValueValidators(context, parameterValidators)
+	local validateValue, validateValueWithDifficulties, validateValueWithDifficultiesAndVariables =
+		createValueValidators(context, parameterValidators)
 	local validateEntry = createEntryValidator(context, validateValue)
-	local validateSchema = createSchemaValidator(context, parameterValidators, validateValueWithDifficulties)
+	local validateSchema =
+		createSchemaValidator(context, parameterValidators, validateValueWithDifficultiesAndVariables)
 
 	-- Same order here as in the report:
 	validateStagesSection(context, report, validateValue, validateEntry)
-	validateObjectivesSection(context, report, validateValueWithDifficulties, validateEntry, validateSchema)
+	validateObjectivesSection(context, report, validateValueWithDifficultiesAndVariables, validateEntry, validateSchema)
 	validateTriggersSection(context, report, parameterValidators, validateValue, validateEntry, validateSchema)
 	validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	validateCutscenesSection(context, report, validateValueWithDifficulties, validateEntry)

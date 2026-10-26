@@ -33,6 +33,7 @@ local function createValidationContext(mission, report)
 	local missionAPI = GG["MissionAPI"]
 	local parameterTypes = missionAPI.Modules.ParameterTypes
 	local difficulty = missionAPI.Modules.Difficulty
+	local variables = missionAPI.Modules.Variables
 	local triggerDefinitions = missionAPI.TriggerDefinitions
 	local actionDefinitions = missionAPI.ActionDefinitions
 
@@ -49,6 +50,7 @@ local function createValidationContext(mission, report)
 
 		-- Game setup:
 		Teams = missionAPI.Teams or {},
+		Variables = missionAPI.Variables or {},
 
 		-- Parameter types:
 		Types = parameterTypes.Types,
@@ -57,7 +59,20 @@ local function createValidationContext(mission, report)
 
 		-- Difficulties, since any parameter may hold one value per difficulty:
 		IsDifficultiesTable = difficulty.IsDifficultiesTable,
-		PossibleValues = difficulty.PossibleValues,
+		-- Variables are resolved first, to the values the startscript sets.
+		PossibleValues = function(value)
+			if variables.HasVariableReference(value) then
+				value = variables.ResolveValue(value)
+			end
+			return difficulty.PossibleValues(value)
+		end,
+
+		-- Variables, since most parameters may read their value from one:
+		IsVariableReference = variables.IsVariableReference,
+		HasVariableReference = variables.HasVariableReference,
+		CallOnVariableKeys = variables.CallOnVariableKeys,
+		HasUnsetVariable = variables.HasUnsetVariable,
+		ResolveValue = variables.ResolveValue,
 
 		-- Trigger definitions:
 		TriggerTypes = triggerDefinitions.Types,

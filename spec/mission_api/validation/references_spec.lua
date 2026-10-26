@@ -565,4 +565,26 @@ describe("mission_api.validation.references", function()
 			V.assertNoMessageContaining(result, "must name an Event trigger")
 		end)
 	end)
+	describe("variables", function()
+		it("warns about a variable with no value at the start of the mission", function()
+			V.missionAPI().Variables = { waveSize = 3 }
+			local result = V.validate(V.mission()
+				:WithTrigger("t", {
+					type = V.triggerTypes.TimeElapsed,
+					parameters = { seconds = { variable = "delay" } },
+					actions = { "a" },
+				})
+				:WithAction("a", {
+					type = V.actionTypes.SendMessage,
+					parameters = { messageKey = "ok" },
+				})
+				:WithObjective("o", { textKey = "ok", amount = { variable = "delay" } }))
+
+			assert.are.same({
+				"Variable has no value at the start of the mission. Variable: delay, "
+					.. "Referenced in: objective o (amount), trigger t (seconds)",
+			}, result.warnings)
+			assert.is_true(result.ok)
+		end)
+	end)
 end)

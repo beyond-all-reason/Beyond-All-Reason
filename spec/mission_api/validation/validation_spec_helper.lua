@@ -49,6 +49,7 @@ local helper = {
 function helper.mockEngineGlobals()
 	env.CMD, env.GameCMD = originalCMD, originalGameCMD
 	missionAPI.Teams = nil
+	missionAPI.Variables = {}
 	env.Spring.GetTeamAllyTeamID = function()
 		return true
 	end

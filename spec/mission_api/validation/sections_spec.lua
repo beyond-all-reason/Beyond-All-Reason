@@ -1099,4 +1099,61 @@ describe("mission_api.validation.sections", function()
 			V.assertMessage(result, "Unit attribute 'stealth' takes a boolean, got number. Action: a, Parameter: value")
 		end)
 	end)
+	describe("variable references", function()
+		before_each(function()
+			V.missionAPI().Variables = { waveSize = 3, wrongType = "three", stage = "s1" }
+		end)
+
+		local function waitFor(quantity)
+			return V.validateTrigger(V.trigger(V.triggerTypes.TimeElapsed, { seconds = quantity }))
+		end
+
+		it("checks a parameter against the variable's value at the start of the mission", function()
+			V.assertValid(waitFor({ variable = "waveSize" }))
+			V.assertMessage(
+				waitFor({ variable = "wrongType" }),
+				"Unexpected parameter type, expected number, got string. Trigger: t, Parameter: seconds"
+			)
+		end)
+
+		it("does not check a parameter while its variable is unset", function()
+			V.assertNoMessageContaining(waitFor({ variable = "unset" }), "Parameter: seconds")
+		end)
+
+		it("reports a variable key that is not a string", function()
+			V.assertMessage(
+				waitFor({ variable = 1 }),
+				"Variable key must be a string, got number. Trigger: t, Parameter: seconds"
+			)
+		end)
+
+		it("checks variables in every difficulty's value", function()
+			V.assertMessage(
+				waitFor({ difficulties = { Easy = 1, Hard = { variable = "wrongType" } } }),
+				"Unexpected parameter type, expected number, got string. Trigger: t, Parameter: seconds.difficulties.Hard"
+			)
+		end)
+
+		it("checks an objective field against the variable's value", function()
+			V.assertValid(
+				V.validate(
+					V.mission()
+						:WithStage("s1", { objectives = { "o" } })
+						:WithInitialStage("s1")
+						:WithObjective("o", { textKey = "ok", nextStage = { variable = "stage" } })
+				)
+			)
+			V.assertMessage(
+				V.validate(V.mission():WithObjective("o", { textKey = "ok", amount = { variable = "wrongType" } })),
+				"Unexpected parameter type, expected number, got string. Objective: o, Field: amount"
+			)
+		end)
+
+		it("reports an objective trigger that is a variable", function()
+			V.assertMessage(
+				V.validate(V.mission():WithObjective("o", { textKey = "ok", trigger = { variable = "waveSize" } })),
+				"Objective 'trigger' field does not support variables. Objective: o, Field: trigger"
+			)
+		end)
+	end)
 end)

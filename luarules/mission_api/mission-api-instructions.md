@@ -22,7 +22,8 @@ Nothing here works outside this sequence, so keep it in mind when something read
 2. `actions_loader.LoadActionDefinitions()` then `triggers_loader.LoadTriggerDefinitions()` scan their directories
    and populate `GG['MissionAPI'].ActionDefinitions` / `.TriggerDefinitions`.
 3. `loadMission(gameSetup)` includes the mission named by the startscript, validates the raw mission with
-   `validation.lua`, runs the four `*_loader` normalisers, resolves difficulties, then runs `parameter_processing.lua`.
+   `validation.lua`, runs the four `*_loader` normalisers, resolves difficulties, then variable references (`variables.lua`), then runs
+   `parameter_processing.lua`.
 4. `api_missions_triggers.lua` (layer 1) `Initialize()` binds the definitions and unsubscribes from hot call-ins the
    loaded mission does not need.
 
