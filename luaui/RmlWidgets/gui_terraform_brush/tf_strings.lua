@@ -247,6 +247,7 @@ local STRINGS = {
 	dismiss = "Dismiss",
 	sign_in = "Git is not signed in to GitHub, and Team Sync cannot open the sign-in window. Sign in once as the CampaignMaps README explains, then Refresh.",
 	no_access = "You don't have access to the team repository. Ask the campaign lead for access, then Refresh.",
+	ssh_key = "GitHub did not accept your SSH key. Load it with ssh-add (Team Sync cannot ask for a passphrase) and check it belongs to your GitHub account, or sign in with gh auth login instead, then restart Team Sync.",
 	no_network = "No connection to GitHub. Check your network, then Refresh.",
 	already_running = "Another Team Sync is already running for this data folder. Close it first.",
 	shaderOffline = "Shader updates need Team Sync",
