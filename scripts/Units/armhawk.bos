@@ -97,3 +97,8 @@ Killed(severity, corpsetype)
 		explode fan type BITMAPONLY| NOHEATCLOUD;
 	return corpsetype;
 }
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}

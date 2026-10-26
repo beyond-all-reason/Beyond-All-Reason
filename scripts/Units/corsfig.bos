@@ -88,3 +88,13 @@ Killed(severity, corpsetype)
 		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}

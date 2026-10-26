@@ -187,3 +187,8 @@ Killed(severity, corpsetype)
 		explode rightGun type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}

@@ -166,3 +166,8 @@ Killed(severity, corpsetype)
 
 	return corpsetype;
 }
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}

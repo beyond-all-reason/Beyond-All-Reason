@@ -152,3 +152,13 @@ Killed(severity, corpsetype)
 		explode wingl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}

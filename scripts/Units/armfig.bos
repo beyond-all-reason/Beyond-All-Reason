@@ -108,3 +108,8 @@ Killed(severity, corpsetype)
 		explode flare2 type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
