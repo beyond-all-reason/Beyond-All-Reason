@@ -956,6 +956,36 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("MoveCommand", function()
+		before_each(function()
+			V.env.CMD = { MOVE = 10, PATROL = 15, FIGHT = 16, ATTACK = 20, [20] = "ATTACK" }
+		end)
+
+		after_each(function()
+			V.env.CMD = {}
+		end)
+
+		local function validateMoveCommand(command)
+			return V.validateAction({
+				type = V.actionTypes.IssueFormationOrders,
+				parameters = { unitName = "squad", command = command, position = { x = 0, z = 0 } },
+			})
+		end
+
+		it("accepts MOVE, FIGHT and PATROL", function()
+			for _, command in ipairs({ V.env.CMD.MOVE, V.env.CMD.FIGHT, V.env.CMD.PATROL }) do
+				V.assertNoMessageContaining(validateMoveCommand(command), "command")
+			end
+		end)
+
+		it("rejects any other command", function()
+			V.assertMessage(
+				validateMoveCommand(V.env.CMD.ATTACK),
+				"Invalid move command: ATTACK, must be CMD.MOVE, CMD.FIGHT or CMD.PATROL. Action: a, Parameter: command"
+			)
+		end)
+	end)
+
 	--- Validates the unitLoadout parameter of the action under test.
 	local function validateUnitLoadout(unitLoadout)
 		return V.validateAction({ type = V.actionTypes.SpawnUnits, parameters = { unitLoadout = unitLoadout } })
