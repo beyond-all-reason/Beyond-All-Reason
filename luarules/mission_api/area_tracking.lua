@@ -11,6 +11,7 @@
 --- When a tracker is stopped mid-callback, it stops hearing enter and leave events.
 ---
 
+local table_keys = table.keys
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGetTeamUnits = Spring.GetTeamUnits
@@ -41,14 +42,6 @@ local function getAreaKey(area, teamID)
 		return "rectangle:" .. area.x1 .. ":" .. area.z1 .. ":" .. area.x2 .. ":" .. area.z2 .. ":" .. teamKey
 	end
 	return "circle:" .. area.x .. ":" .. area.z .. ":" .. area.radius .. ":" .. teamKey
-end
-
-local function unitIDList(unitIDSet)
-	local unitIDs = {}
-	for unitID in pairs(unitIDSet) do
-		unitIDs[#unitIDs + 1] = unitID
-	end
-	return unitIDs
 end
 
 ---@param area table? a rectangle { x1, z1, x2, z2 }, circle { x, z, radius }, or `nil` for the whole map
@@ -139,7 +132,7 @@ local function trackUnitsInArea(area, teamID, onUnitsEntered, onUnitsLeft)
 	if isNewArea then
 		updateTrackedArea(trackedArea)
 	elseif next(trackedArea.unitIDs) ~= nil then
-		onUnitsEntered(unitIDList(trackedArea.unitIDs), trackingID)
+		onUnitsEntered(table_keys(trackedArea.unitIDs), trackingID)
 	end
 	return trackingID
 end
@@ -158,7 +151,7 @@ local function stopTrackingUnits(trackingID)
 	end
 
 	if next(tracker.unitIDs) ~= nil then
-		tracker.onUnitsLeft(unitIDList(tracker.unitIDs), trackingID)
+		tracker.onUnitsLeft(table_keys(tracker.unitIDs), trackingID)
 	end
 end
 
