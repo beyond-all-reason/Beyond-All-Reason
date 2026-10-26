@@ -60,6 +60,7 @@ local types = {
 	-- Number-or-String Validators:
 	Command = "Command",
 	WeaponNumber = "WeaponNumber",
+	Team = "Team",
 
 	-- Number-or-String-or-Boolean Validators:
 	AttributeValue = "AttributeValue",

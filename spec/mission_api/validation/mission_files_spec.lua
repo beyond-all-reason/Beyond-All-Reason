@@ -117,8 +117,9 @@ describe("mission_api mission files", function()
 		V.env.Spring.GetAllyTeamList = function()
 			return { 0, 1 }
 		end
-		-- The named teams of tools/StartScripts/startscript_mission_api_test_quicksilver.txt, neither run by an AI.
-		V.missionAPI().Teams = { player = 0, enemy = 1, [0] = "player", [1] = "enemy" }
+		-- The named teams of tools/StartScripts/startscript_mission_api_test_quicksilver.txt, neither run by an AI,
+		-- and Gaia's team after them.
+		V.missionAPI().Teams = { player = 0, enemy = 1, gaia = 4, [0] = "player", [1] = "enemy", [4] = "gaia" }
 		V.env.Spring.GetTeamInfo = function(teamID)
 			return teamID, 0, false, false
 		end
