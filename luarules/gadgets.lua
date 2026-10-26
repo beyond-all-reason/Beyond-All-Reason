@@ -2090,6 +2090,9 @@ function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum
 	if targetID == -1 and attackerWeaponNum == -1 then
 		-- The `defPriority` return value here is actually the autotarget search radius,
 		-- and applies to the unit's targeting search for its command AI, not weapons.
+		-- Note: this cannot ever fire without watching WeaponDefID 0 via Script.SetWatchAllowTarget,
+		-- which would then enable this callin for ALL weapons
+		-- This piece of code is therefor a no-op under current circumstances
 		for _, g in ipairs(self.UnitAutoTargetRangeList) do
 			defPriority = g:UnitAutoTargetRange(attackerID, defPriority)
 		end
