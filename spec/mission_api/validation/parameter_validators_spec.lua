@@ -969,6 +969,42 @@ describe("mission_api.validation.parameter_validators", function()
 		})
 	end
 
+	describe("MoveState and FireState", function()
+		it("accepts every move and fire state by name", function()
+			local unitLoadout = {}
+			for _, moveState in ipairs({ "HoldPosition", "Maneuver", "Roam" }) do
+				unitLoadout[#unitLoadout + 1] =
+					{ unitDefName = "armwar", team = 0, x = 0, z = 0, moveState = moveState }
+			end
+			for _, fireState in ipairs({ "HoldFire", "ReturnFire", "FireAtWill", "FireAtNeutral" }) do
+				unitLoadout[#unitLoadout + 1] =
+					{ unitDefName = "armwar", team = 0, x = 0, z = 0, fireState = fireState }
+			end
+
+			V.assertValid(validateUnitLoadout(unitLoadout))
+		end)
+
+		it("rejects an unknown state", function()
+			local result = validateUnitLoadout({
+				{ unitDefName = "armwar", team = 0, x = 0, z = 0, moveState = "Hold", fireState = "holdFire" },
+			})
+
+			V.assertMessage(result, "Invalid moveState: Hold. Action: a, Parameter: unitLoadout[1].moveState")
+			V.assertMessage(result, "Invalid fireState: holdFire. Action: a, Parameter: unitLoadout[1].fireState")
+		end)
+
+		it("rejects a state given as the engine's number", function()
+			local result = validateUnitLoadout({
+				{ unitDefName = "armwar", team = 0, x = 0, z = 0, moveState = 0 },
+			})
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected string, got number. Action: a, Parameter: unitLoadout[1].moveState"
+			)
+		end)
+	end)
+
 	describe("UnitLoadout", function()
 		it("passes for a well-formed entry", function()
 			local result = validateUnitLoadout({ { unitDefName = "armwar", team = 0, x = 0, z = 0 } })

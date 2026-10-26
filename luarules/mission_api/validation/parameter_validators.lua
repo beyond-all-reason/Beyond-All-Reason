@@ -196,6 +196,13 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.TriggerIDs] = getListValidator(parameterValidators[Types.TriggerID])
 	parameterValidators[Types.ObjectiveIDs] = getListValidator(parameterValidators[Types.ObjectiveID])
 
+	parameterValidators[Types.MoveState] = getLookupValidator(validateString, "moveState", function(moveState)
+		return enums[Types.MoveState][moveState]
+	end)
+	parameterValidators[Types.FireState] = getLookupValidator(validateString, "fireState", function(fireState)
+		return enums[Types.FireState][fireState]
+	end)
+
 	parameterValidators[Types.Difficulty] = getLookupValidator(validateString, "difficulty", function(difficulty)
 		return enums[Types.Difficulty][difficulty]
 	end)
@@ -799,6 +806,8 @@ local function registerLoadoutValidators(parameterValidators, context)
 		{ name = "quantity", type = Types.Number },
 		{ name = "spacing", type = Types.Number },
 		{ name = "neutral", type = Types.Boolean },
+		{ name = "moveState", type = Types.MoveState },
+		{ name = "fireState", type = Types.FireState },
 		{ name = "orders", type = Types.Orders },
 	}
 

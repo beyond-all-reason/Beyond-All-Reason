@@ -37,13 +37,21 @@ end
 local function commandIDs()
 	return {
 		MOVE = 10,
+		ATTACK = 20,
+		GUARD = 25,
 		REPAIR = 40,
+		LOAD_UNITS = 75,
+		RECLAIM = 90,
+		RESURRECT = 125,
+		CAPTURE = 130,
 		OPT_META = 4,
 		OPT_INTERNAL = 8,
 		OPT_RIGHT = 16,
 		OPT_SHIFT = 32,
 		OPT_CTRL = 64,
 		OPT_ALT = 128,
+		FIRE_STATE = 45,
+		MOVE_STATE = 50,
 	}
 end
 

@@ -41,6 +41,8 @@ local types = {
 	Difficulty = "Difficulty",
 	UnitAttribute = "UnitAttribute",
 	WeaponAttribute = "WeaponAttribute",
+	MoveState = "MoveState",
+	FireState = "FireState",
 
 	-- Number Validators:
 	Number = "Number",
@@ -99,6 +101,20 @@ local enums = {
 		Objective = 3,
 		Notification = 4,
 		Dialogue = 5,
+	},
+
+	-- The numbers CMD.MOVE_STATE and CMD.FIRE_STATE take.
+	[types.MoveState] = {
+		HoldPosition = 0,
+		Maneuver = 1,
+		Roam = 2,
+	},
+
+	[types.FireState] = {
+		HoldFire = 0,
+		ReturnFire = 1,
+		FireAtWill = 2,
+		FireAtNeutral = 3,
 	},
 
 	[types.WeaponNumber] = attributeDefinitions.EXPLOSIONS,
