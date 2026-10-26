@@ -3,7 +3,7 @@ local ModuleHandler = require("modules/module_handler")
 local handleOf = ModuleEnv.HandleOf
 local EngineHandles = require("common/recoil/names")
 
----@return table<string, true> syncedOnly, table<string, true> unsyncedOnly
+---@return table<string, boolean> syncedOnly, table<string, boolean> unsyncedOnly
 local function engineSides()
 	local function set(list)
 		local names = {}
@@ -132,7 +132,7 @@ describe("the environment a module file runs in", function()
 	end)
 
 	describe("Spring, by handle", function()
-		it("a file that runs in any handle may call neither handle's own functions", function()
+		it("a shared file may call neither handle's own functions", function()
 			local returned = fileNamed(
 				"fixture/api.lua",
 				[[
@@ -143,13 +143,13 @@ describe("the environment a module file runs in", function()
 			assert.are.equal(7, returned.frame())
 			assert.error_matches(
 				returned.mouse,
-				"modules/fixture/api.lua calls Spring.GetMouseState, which the engine offers in the unsynced handle only; this file runs in any handle",
+				"modules/fixture/api.lua calls Spring.GetMouseState, which the engine offers in the unsynced handle only; this file runs in either handle",
 				1,
 				true
 			)
 			assert.error_matches(
 				returned.order,
-				"modules/fixture/api.lua calls Spring.CreateUnit, which the engine offers in the synced handle only; this file runs in any handle",
+				"modules/fixture/api.lua calls Spring.CreateUnit, which the engine offers in the synced handle only; this file runs in either handle",
 				1,
 				true
 			)
@@ -399,9 +399,9 @@ describe("the environment a module file runs in", function()
 
 	describe("the handle a module file runs in", function()
 		it("is read off the path", function()
-			assert.is_nil(handleOf("modules/regions/api.lua"))
-			assert.is_nil(handleOf("modules/regions/policies/check.lua"))
-			assert.is_nil(handleOf("modules/transfer/unit/shared.lua"))
+			assert.are.equal("shared", handleOf("modules/regions/api.lua"))
+			assert.are.equal("shared", handleOf("modules/regions/policies/check.lua"))
+			assert.are.equal("shared", handleOf("modules/transfer/unit/shared.lua"))
 			assert.are.equal("synced", handleOf("modules/transport/api_synced.lua"))
 			assert.are.equal("synced", handleOf("modules/transfer/unit/synced.lua"))
 			assert.are.equal("both", handleOf("modules/transfer/gadgets/cmd_take.lua"))
@@ -425,10 +425,10 @@ describe("the environment a module file runs in", function()
 				assert.is_true(#files > 0)
 			end)
 
-			it("code that runs in any handle requires nothing bound to one", function()
+			it("shared code requires nothing bound to one", function()
 				local crossings = {}
 				for _, file in ipairs(files) do
-					if file.handle == nil then
+					if file.handle == "shared" then
 						for _, required in ipairs(requiredModules(file.text)) do
 							if handleOf(required) ~= nil then
 								crossings[#crossings + 1] = file.path .. " requires " .. required
@@ -454,11 +454,11 @@ describe("the environment a module file runs in", function()
 				assert.are.same({}, crossings)
 			end)
 
-			it("code that runs in any handle calls nothing the engine offers in one only", function()
+			it("shared code calls nothing the engine offers in one only", function()
 				local syncedOnly, unsyncedOnly = engineSides()
 				local calls = {}
 				for _, file in ipairs(files) do
-					if file.handle == nil then
+					if file.handle == "shared" then
 						for name in file.text:gmatch("Spring%.([%w_]+)") do
 							if syncedOnly[name] or unsyncedOnly[name] then
 								calls[#calls + 1] = file.path .. " calls Spring." .. name

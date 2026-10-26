@@ -2,5 +2,5 @@
 -- holds. The checker refuses either handle's own functions in that file; so does the proxy at run time
 -- (modules/module_env.lua).
 local ModuleEnv = require("modules/module_env")
-local Spring = ModuleEnv.Handle(nil) --[[@as Recoil.Shared]]
+local Spring = ModuleEnv.Handle("shared") --[[@as Recoil.Shared]]
 return Spring
