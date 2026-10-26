@@ -12,6 +12,22 @@ local function isDifficultiesTable(value)
 	return type(value) == "table" and value.difficulties ~= nil
 end
 
+--- Every value a parameter can take, across all difficulties. Validation checks them all,
+--- since the difficulty is only known once the mission runs.
+local function possibleValues(value)
+	if not isDifficultiesTable(value) then
+		return { value }
+	end
+
+	local values = {}
+	if type(value.difficulties) == "table" then
+		for _, difficultyValue in pairs(value.difficulties) do
+			values[#values + 1] = difficultyValue
+		end
+	end
+	return values
+end
+
 --- Only called on validated missions, so every name in value.difficulties is a difficulty.
 local function resolve(value)
 	local currentDifficulty = GG["MissionAPI"].Difficulty
@@ -76,8 +92,8 @@ local function resolveCutscenes(cutscenes)
 end
 
 --- Resolve objective fields, inline trigger parameters, and managed objective metadata in
---- place. objectives_loader ran before validation, when amount was not resolvable yet, so
---- the maxRepeats it derives from amount is filled in here for synthesized triggers.
+--- place. objectives_loader ran before the difficulty was resolved, so the maxRepeats it
+--- derives from amount is filled in here for synthesized triggers.
 local function resolveObjectives(objectives)
 	for objectiveID, objective in pairs(objectives) do
 		if isDifficultiesTable(objective.amount) then
@@ -128,6 +144,7 @@ end
 return {
 	FromName = fromName,
 	IsDifficultiesTable = isDifficultiesTable,
+	PossibleValues = possibleValues,
 	ResolveTriggers = resolveTriggers,
 	ResolveActions = resolveActions,
 	ResolveObjectives = resolveObjectives,
