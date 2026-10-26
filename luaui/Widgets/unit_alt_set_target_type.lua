@@ -203,7 +203,7 @@ local nextCmdOpts = { "shift" }
 for i = 1, TARGET_BY_TYPE_COUNT_MAX do
 	commandsToGivePool[i] = { CMD_SET_TARGET, -1, nextCmdOpts }
 end
-local commandsToGiveCache = table.new(TARGET_BY_TYPE_COUNT_MAX + 1, 0)
+local commandsToGiveCache = table.new(TARGET_BY_TYPE_COUNT_MAX + 1, 0) ---@type CreateCommand[]
 local commandsToGiveCount = 0
 local sentTargets = {}
 
@@ -227,7 +227,7 @@ local function targetUnitsInRangeWithDef(unitID, targetUnitDefIDTable)
 		for index = 1, commandsToGiveCount do
 			commandsToGive[index] = nil
 		end
-		commandsToGive[1] = { CMD_SET_TARGET, candidateUnits[1] }
+		commandsToGive[1] = { CMD_SET_TARGET, candidateUnits[1] } ---@as CreateCommand
 		local candidateCount = #candidateUnits
 		for index = 2, candidateCount do
 			if candidateUnits[index] == unitTargetID then
@@ -250,7 +250,7 @@ local function targetUnitsInRangeWithDef(unitID, targetUnitDefIDTable)
 		end
 		local changed = sent[commandsToGiveCount + 1] ~= nil
 		for index = 1, commandsToGiveCount do
-			local targetID = commandsToGive[index][2]
+			local targetID = (commandsToGive[index] --[[@as CreateCommand]])[2]
 			if sent[index] ~= targetID then
 				sent[index] = targetID
 				changed = true
