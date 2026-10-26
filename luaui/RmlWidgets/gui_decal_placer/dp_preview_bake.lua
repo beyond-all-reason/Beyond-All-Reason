@@ -298,10 +298,6 @@ function M.enqueueAll(categories, getFallbackPath)
 		end
 	end
 	bakesEnqueued = true
-
-	if #bakeQueue > 0 then
-		Spring.Echo(string.format("[Decal Placer] queued %d decal previews to bake", #bakeQueue))
-	end
 	return #bakeQueue
 end
 
@@ -324,12 +320,6 @@ function M.drainQueue()
 		end
 		processed = processed + 1
 	end
-end
-
--- Number of bakes still pending. Useful if the widget wants to gate its
--- re-sync on full drain (avoid syncing partway through bake batches).
-function M.queueLen()
-	return #bakeQueue
 end
 
 -- True once the queue is empty AND at least one bake completed since the

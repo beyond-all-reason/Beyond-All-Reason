@@ -21,6 +21,9 @@ Pipeline (diffuse-only MVP):
      texels write transparent. Radial feather alpha at edge.
   3. SaveImage writes PNG to LuaUI/Cache/decal_captures/<name>.png in the
      spring write dir; echo absolute path.
+  4. autoInstall copies the PNG into the .sdd's bitmaps/decals/ and appends
+     it to gamedata/resources.lua `graphics.decals`; a restart rebuilds the
+     decal atlas. Outside a writable .sdd it says so and the copy is manual.
 
 Limitations (will iterate):
   - Captures only what's on-screen RIGHT NOW. Fly your camera so the area
@@ -28,10 +31,8 @@ Limitations (will iterate):
   - Diffuse only. Normal/specular channels later.
   - Alpha is currently a radial feather only — no smart color isolation
     yet (next iteration).
-  - No engine atlas auto-registration. After capture the user must:
-      a) move PNG into bitmaps/decals/
-      b) append filename to gamedata/resources.lua `graphics.decals`
-      c) restart the game so the atlas rebuilds.
+  - The engine builds the decal atlas at startup, so a new capture shows
+    up in the decal library only after a restart.
 ]]
 
 local OUT_SIZE = 512
@@ -279,76 +280,6 @@ local function actionCapture(_, _, params)
 		cz = cz,
 		radius = radius,
 	}
-	Spring.Echo(string.format("[DecalCapture] queued '%s' at (%d, %d) r=%d", name, cx, cz, radius))
-	return true
-end
-
---------------------------------------------------------------------------------
--- Widget callins
---------------------------------------------------------------------------------
-local function actionDump()
-	local names, files = Spring.GetGroundDecalTextures(true, true)
-	names = names or {}
-	files = files or {}
-	Spring.Echo(string.format("[DecalCapture] atlas textures: %d", #names))
-	for i, n in ipairs(names) do
-		Spring.Echo(string.format("  [%d] %s -> %s", i, tostring(n), tostring(files[i])))
-	end
-	return true
-end
-
-local function actionDumpRes()
-	-- Show what the VFS actually serves for resources.lua and graphics.decals
-	local path = "gamedata/resources.lua"
-	local raw = VFS.LoadFile(path, VFS.MOD)
-	if not raw then
-		raw = VFS.LoadFile(path, VFS.ZIP)
-	end
-	if not raw then
-		raw = VFS.LoadFile(path)
-	end
-	if raw then
-		Spring.Echo(string.format("[DecalCapture] VFS resources.lua bytes=%d", #raw))
-		-- Echo a slice around 'decals = {' so we can see what entries the VFS sees.
-		local s, e = raw:find("decals%s*=%s*{")
-		if s then
-			local snippet = raw:sub(s, math.min(e + 400, #raw))
-			Spring.Echo("[DecalCapture] VFS resources.lua decals block:")
-			for line in snippet:gmatch("[^\r\n]+") do
-				Spring.Echo("  " .. line)
-			end
-		else
-			Spring.Echo("[DecalCapture] could not find 'decals = {' in VFS resources.lua")
-		end
-	else
-		Spring.Echo("[DecalCapture] VFS.LoadFile returned nil for resources.lua")
-	end
-
-	local ok, tbl = pcall(VFS.Include, path, nil, VFS.MOD)
-	if not ok or type(tbl) ~= "table" then
-		ok, tbl = pcall(VFS.Include, path)
-	end
-	if ok and type(tbl) == "table" and type(tbl.graphics) == "table" and type(tbl.graphics.decals) == "table" then
-		local d = tbl.graphics.decals
-		Spring.Echo(string.format("[DecalCapture] VFS.Include graphics.decals length=%d", #d))
-		for i = 1, #d do
-			Spring.Echo(string.format("  [%d] %s", i, tostring(d[i])))
-		end
-	else
-		Spring.Echo("[DecalCapture] VFS.Include failed or no graphics.decals table")
-	end
-
-	-- Probe direct file presence in the VFS for both files we expect.
-	for _, f in ipairs({
-		"bitmaps/decals/atg_metal_spot.png",
-		"bitmaps/decals/mexatg.png",
-	}) do
-		local exists = VFS.FileExists(f)
-		local existsMod = VFS.FileExists(f, VFS.MOD)
-		Spring.Echo(
-			string.format("[DecalCapture] VFS.FileExists %s any=%s mod=%s", f, tostring(exists), tostring(existsMod))
-		)
-	end
 	return true
 end
 
@@ -421,7 +352,6 @@ local function autoInstall(name, capturedRel)
 	end
 	fo:write(data)
 	fo:close()
-	Spring.Echo("[DecalCapture] copied -> " .. dstAbs)
 
 	local resWriteRel = sddName ~= "" and ("games/" .. sddName .. "/gamedata/resources.lua") or nil
 	local rfi = (resWriteRel and io.open(resWriteRel, "rb")) or io.open(resAbs, "rb")
@@ -483,14 +413,10 @@ end
 function widget:Initialize()
 	-- Cache dir is created at capture time, not at load.
 	widgetHandler:AddAction("decalcapture", actionCapture, nil, "t")
-	widgetHandler:AddAction("decalsdump", actionDump, nil, "t")
-	widgetHandler:AddAction("decaldumpres", actionDumpRes, nil, "t")
 end
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("decalcapture")
-	widgetHandler:RemoveAction("decalsdump")
-	widgetHandler:RemoveAction("decaldumpres")
 	if captureShader then
 		gl.DeleteShader(captureShader)
 		captureShader = nil

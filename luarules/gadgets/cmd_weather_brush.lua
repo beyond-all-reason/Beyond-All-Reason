@@ -32,8 +32,8 @@ local tonumber = tonumber
 ----------------------------------------------------------------
 -- Message handler
 ----------------------------------------------------------------
--- Message format: "$weather_ceg$cegName x z"
--- Multiple spawns can be batched: "$weather_ceg$cegName x z|cegName x z|..."
+-- Message format: "$weather_ceg$cegName x z [yOff]", yOff = height above ground (default 0)
+-- Multiple spawns can be batched: "$weather_ceg$cegName x z yOff|cegName x z yOff|..."
 
 function gadget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, HEADER_LEN) ~= SPAWN_HEADER then

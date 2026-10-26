@@ -97,7 +97,6 @@ local MAX_UNITS = 32
 
 ---@type table
 local job = nil -- nil while idle; every step runs only while it exists
-local lastResult = nil
 
 local function echoT(msg)
 	Echo("[Map Transform] " .. msg)
@@ -696,7 +695,6 @@ end
 
 local function fail(reason)
 	echoT("TRANSFORM FAILED: " .. reason)
-	lastResult = { done = true, ok = false, reason = reason }
 	job = nil
 end
 
@@ -723,7 +721,6 @@ local function stepSave()
 		end
 		c.started = true
 		c.receipt = receipt
-		echoT("capturing the current map...")
 		return false
 	end
 	if not (c.receipt and c.receipt.done) then
@@ -773,7 +770,6 @@ local function stepPrepare()
 		job.placements[i] = MapTransform.new(job.specs[i], srcW, srcH, job.dstW, job.dstH)
 	end
 	job.T = first
-	job.report = { dropped = 0, kept = 0 }
 
 	-- Work lists live on the job, not the cursor: the pump clears the cursor
 	-- between steps, and these are built once for the steps that follow.
@@ -900,8 +896,6 @@ local function stepTables()
 		return false
 	end
 	local dropped = tonumber(droppedOrErr) or 0
-	job.report.kept = job.report.kept + kept
-	job.report.dropped = job.report.dropped + dropped
 	if dropped > 0 then
 		echoT(string.format("%s: %d kept, %d outside the new canvas and dropped", name, kept, dropped))
 	end
@@ -1187,13 +1181,11 @@ local function stepOpen()
 			src_z = job.T.srcH / ELMOS_PER_UNIT,
 			fill_height = job.fillHeight,
 		},
-		originSlug = job.originSlug,
 	})
 	if not ok then
 		fail(tostring(err or "the staged project could not be opened"))
 		return false
 	end
-	lastResult = { done = true, ok = true }
 	job = nil
 	return true
 end
@@ -1257,7 +1249,6 @@ local function startJob(specs, unitsX, unitsZ, label, fillHeight)
 		step = 1,
 		cursor = {},
 	}
-	lastResult = nil
 	echoT(label .. "; the session restarts when the new canvas is ready")
 	return true
 end
@@ -1350,9 +1341,6 @@ function widget:Initialize()
 		end,
 		isBusy = function()
 			return job ~= nil
-		end,
-		lastResult = function()
-			return lastResult
 		end,
 		-- The panel draws its preview from the same math the transform runs on.
 		math = MapTransform,
