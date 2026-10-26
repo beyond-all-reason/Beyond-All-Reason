@@ -3,7 +3,10 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 local HEADING_EAST = 16384
 local HEADING_NORTH = 32767
 
-local createdFeatures, resurrectFacings
+---@type table<integer, table>
+local createdFeatures
+---@type table<integer, string>
+local resurrectFacings
 
 local env = MissionSpecEnv.new({
 	Game = { squareSize = 8, footprintScale = 2 },
@@ -17,11 +20,11 @@ local env = MissionSpecEnv.new({
 		GetFacingFromHeading = function(heading)
 			return math.floor((heading + HEADING_EAST / 2) % (4 * HEADING_EAST) / HEADING_EAST)
 		end,
-		CreateFeature = function(featureDefName, x, y, z, heading)
+		CreateFeature = function(featureDefName, _, _, _, heading)
 			createdFeatures[#createdFeatures + 1] = { featureDefName = featureDefName, heading = heading }
 			return #createdFeatures
 		end,
-		SetFeatureResurrect = function(featureID, unitDefName, facing)
+		SetFeatureResurrect = function(featureID, _, facing)
 			resurrectFacings[featureID] = facing
 		end,
 	},
