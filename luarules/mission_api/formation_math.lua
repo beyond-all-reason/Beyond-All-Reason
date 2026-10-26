@@ -1,10 +1,13 @@
 ---
---- Where each unit of a group goes in a formation move, on plain { x = number, z = number } tables.
+--- Where each unit of a group goes in a formation move, and how fast, on plain { x = number, z = number } tables.
 --- Headings are radians as Spring.GetUnitHeading(unitID, true) returns them: 0 faces +z, pi / 2 faces +x.
 ---
 
 -- The Hungarian method is O(n^3). Above this many units, a greedy match is used instead.
 local EXACT_MATCHING_LIMIT = 40
+
+-- So a unit stuck on the longest way slows the others, but never to a stop.
+local MIN_SPEED_SHARE = 0.3
 
 local function distanceSquared(a, b)
 	return math.distance2dSquared(a.x, a.z, b.x, b.z)
@@ -170,6 +173,23 @@ local function aroundPoint(starts, destination, turn)
 	return assigned(starts, spots)
 end
 
+--- Each unit's speed so the group arrives together, at the slowest unit's top speed.
+--- @param ways number[] each unit's distance left
+--- @param slowest number the slowest unit's top speed
+--- @return number[] speeds
+local function arrivalSpeeds(ways, slowest)
+	local longest = 0
+	for _, way in ipairs(ways) do
+		longest = math.max(longest, way)
+	end
+	local speeds = {}
+	for i, way in ipairs(ways) do
+		local share = longest > 0 and way / longest or 1
+		speeds[i] = slowest * math.max(MIN_SPEED_SHARE, share)
+	end
+	return speeds
+end
+
 --- The mean of headings, or nil when they cancel out.
 local function meanHeading(headings)
 	local sx, sz = 0.0, 0.0
@@ -188,4 +208,5 @@ return {
 	MeanHeading = meanHeading,
 	AlongLine = alongLine,
 	AroundPoint = aroundPoint,
+	ArrivalSpeeds = arrivalSpeeds,
 }

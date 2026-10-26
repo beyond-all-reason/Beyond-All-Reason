@@ -176,8 +176,8 @@ breaking change to both the function and every mission using it.
   holds the translated log oldest-first in `WG.MissionAPI.BattleLog`. The `Spring.Echo` in `AddMessage` is a
   placeholder until a widget displays the log.
 - `GG['MissionAPIActionHelper']` (`api_missions_action_helpers.lua`, synced) — for behaviour an action cannot do in
-  one call, currently per-second resource drip. Put anything needing its own `GameFrame` accumulator here rather
-  than growing the action file.
+  one call, currently per-second resource drip and formation speed matching. Put anything needing its own
+  `GameFrame` accumulator here rather than growing the action file.
 - Unit and feature identity is by **name**, not ID: go through `Modules.Tracking`, never index the tracking tables
   directly.
 

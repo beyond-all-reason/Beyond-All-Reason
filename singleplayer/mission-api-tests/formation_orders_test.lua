@@ -36,10 +36,18 @@ local triggers = {
 		actions = { 'fightAlongLine', 'messageLineUp' },
 	},
 
-	queueTwoMoves = {
+	patrol = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 113,
+		},
+		actions = { 'patrolWest', 'messagePatrol' },
+	},
+
+	queueTwoMoves = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 163,
 		},
 		actions = { 'moveNorth', 'queueMoveEastFacingNorth', 'messageQueue' },
 	},
@@ -63,13 +71,14 @@ local actions = {
 		parameters = {
 			unitName = 'squad',
 			position = { x = 2400, z = 1150 },
+			matchSpeed = true,
 		},
 	},
 
 	messageKeepShape = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Moving east: the squad keeps its shape.",
+			messageKey = "Moving east with matchSpeed: same shape, fast and slow bots arrive together.",
 		},
 	},
 
@@ -85,7 +94,7 @@ local actions = {
 	messageTurnShape = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Moving south with direction 180: the shape turns to face south.",
+			messageKey = "Moving south with direction 180: the shape turns to face south, the Pawns get there first.",
 		},
 	},
 
@@ -95,13 +104,31 @@ local actions = {
 			unitName = 'squad',
 			command = CMD.FIGHT,
 			positions = { { x = 1400, z = 3000 }, { x = 2000, z = 3200 }, { x = 2600, z = 3000 } },
+			matchSpeed = true,
 		},
 	},
 
 	messageLineUp = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Fight along a bent line: spread evenly, each bot matched to a spot.",
+			messageKey = "Fight along a bent line with matchSpeed: spread evenly, arriving together.",
+		},
+	},
+
+	patrolWest = {
+		type = actionTypes.IssueFormationOrders,
+		parameters = {
+			unitName = 'squad',
+			command = CMD.PATROL,
+			position = { x = 1000, z = 3000 },
+			matchSpeed = true,
+		},
+	},
+
+	messagePatrol = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Patrol west with matchSpeed: together to the patrol point, then each at its own speed.",
 		},
 	},
 

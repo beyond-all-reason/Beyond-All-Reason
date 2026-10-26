@@ -14,6 +14,8 @@ describe("mission_api.actions.issue_formation_orders", function()
 	local units
 	---@type table<integer, table>
 	local given
+	---@type table<integer, table>
+	local matched
 
 	-- units: unitID -> { x, z, heading (radians), queue, def, dead, beingBuilt, transporter }
 	local function setUnits(newUnits)
@@ -26,7 +28,7 @@ describe("mission_api.actions.issue_formation_orders", function()
 	end
 
 	before_each(function()
-		given = {}
+		given, matched = {}, {}
 		_G.CMD = { MOVE = 10, PATROL = 15, FIGHT = 16, REPAIR = 40, RECLAIM = 90, CAPTURE = 130 } ---@diagnostic disable-line: global-in-non-module
 		_G.Game = { mapSizeX = MAP_SIZE, mapSizeZ = MAP_SIZE, squareSize = 8 } ---@diagnostic disable-line: global-in-non-module
 		_G.UnitDefs = { [1] = { canMove = true }, [2] = { canMove = false } } ---@diagnostic disable-line: global-in-non-module
@@ -53,6 +55,9 @@ describe("mission_api.actions.issue_formation_orders", function()
 			GetUnitCommands = function(unitID)
 				return units[unitID].queue or {}
 			end,
+			GetUnitCommandCount = function(unitID)
+				return #(units[unitID].queue or {})
+			end,
 
 			GetGroundHeight = function()
 				return 0
@@ -66,6 +71,11 @@ describe("mission_api.actions.issue_formation_orders", function()
 					options = options,
 					fenced = GG["MissionAPI"].issuingOrders,
 				}
+			end,
+		}
+		GG["MissionAPIActionHelper"] = {
+			matchFormationSpeed = function(unitIDs, targets, command)
+				matched[#matched + 1] = { unitIDs = unitIDs, targets = targets, command = command }
 			end,
 		}
 	end)
@@ -85,7 +95,8 @@ describe("mission_api.actions.issue_formation_orders", function()
 			parameters.position,
 			parameters.positions,
 			parameters.direction,
-			parameters.queue
+			parameters.queue,
+			parameters.matchSpeed
 		)
 	end
 
@@ -102,6 +113,7 @@ describe("mission_api.actions.issue_formation_orders", function()
 			positions = "Positions",
 			direction = "Direction",
 			queue = "Boolean",
+			matchSpeed = "Boolean",
 			requiresOneOf = { "position", "positions" },
 		}, summarizeSchema(action))
 	end)
@@ -111,7 +123,7 @@ describe("mission_api.actions.issue_formation_orders", function()
 		for i, parameter in ipairs(action.parameters) do
 			names[i] = parameter.name
 		end
-		assert.are.same({ "unitName", "command", "position", "positions", "direction", "queue" }, names)
+		assert.are.same({ "unitName", "command", "position", "positions", "direction", "queue", "matchSpeed" }, names)
 	end)
 
 	it("is a no-op for an untracked unit name", function()
@@ -217,6 +229,16 @@ describe("mission_api.actions.issue_formation_orders", function()
 			assert.are.equal(2050, orders[2].x)
 		end)
 
+		it("does not pace a unit with orders already queued", function()
+			setUnits({
+				[1] = { x = 0, z = 0, queue = queued(500, 500) },
+				[2] = { x = 100, z = 0 },
+				[3] = { x = 200, z = 0 },
+			})
+			issue({ position = { x = 2000, z = 2000 }, queue = true, matchSpeed = true })
+			assert.are.same({ 2, 3 }, matched[1].unitIDs)
+		end)
+
 		it("starts from where the unit stands when nothing queued has a position", function()
 			setUnits({
 				[1] = { x = 500, z = 500, queue = { { id = CMD.REPAIR, params = { 77 } } } },
@@ -226,6 +248,29 @@ describe("mission_api.actions.issue_formation_orders", function()
 			local orders = ordersByUnit()
 			assert.are.equal(1950, orders[1].x)
 			assert.are.equal(2050, orders[2].x)
+		end)
+	end)
+
+	describe("matchSpeed", function()
+		it("hands the units, their targets and the command to the helper", function()
+			setUnits({ [1] = { x = 100, z = 100 }, [2] = { x = 200, z = 100 } })
+			issue({ command = CMD.PATROL, position = { x = 1000, z = 1000 }, matchSpeed = true })
+			assert.are.equal(1, #matched)
+			assert.are.same({ 1, 2 }, matched[1].unitIDs)
+			assert.are.same({ { x = 950, z = 1000 }, { x = 1050, z = 1000 } }, matched[1].targets)
+			assert.are.equal(CMD.PATROL, matched[1].command)
+		end)
+
+		it("hands the targets kept on the map", function()
+			setUnits({ [1] = { x = 0, z = 0 }, [2] = { x = 400, z = 0 } })
+			issue({ position = { x = MAP_SIZE - 10, z = 10 }, matchSpeed = true })
+			assert.are.equal(MAP_SIZE - Game.squareSize, matched[1].targets[2].x)
+		end)
+
+		it("does not match speeds unless asked", function()
+			setUnits({ [1] = { x = 100, z = 100 }, [2] = { x = 200, z = 100 } })
+			issue({ position = { x = 1000, z = 1000 } })
+			assert.are.equal(0, #matched)
 		end)
 	end)
 

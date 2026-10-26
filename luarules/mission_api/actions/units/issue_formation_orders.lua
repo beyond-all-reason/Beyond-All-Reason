@@ -89,7 +89,7 @@ local function getTurn(units, starts, queue, direction, destination)
 	return 0
 end
 
-local function issueFormationOrders(unitName, command, position, positions, direction, queue)
+local function issueFormationOrders(unitName, command, position, positions, direction, queue, matchSpeed)
 	local units = table.filterArray(matchingUnits(unitName), function(unitID)
 		return Spring.GetUnitIsDead(unitID) == false
 			and UnitDefs[Spring.GetUnitDefID(unitID)].canMove
@@ -102,9 +102,11 @@ local function issueFormationOrders(unitName, command, position, positions, dire
 	-- The matching breaks ties by order, so the result must not depend on how the names table was filled.
 	table.sort(units)
 
-	local starts = {}
+	-- With queue, skip units that already have orders: the cap would slow those too.
+	local starts, paced = {}, {}
 	for i, unitID in ipairs(units) do
 		starts[i] = getStart(unitID, queue)
+		paced[i] = matchSpeed and (not queue or Spring.GetUnitCommandCount(unitID) == 0)
 	end
 
 	---@type table<integer, table>
@@ -119,13 +121,22 @@ local function issueFormationOrders(unitName, command, position, positions, dire
 	command = command or CMD.MOVE
 	local options = queue and { "shift" } or {}
 
+	local pacedUnits, pacedTargets = {}, {}
 	-- Fence around mission-issued orders for UnitOrdered triggers using ignoreMissionActions.
 	GG['MissionAPI'].issuingOrders = true
 	for i, unitID in ipairs(units) do
 		local x, z = clampToMap(targets[i].x, targets[i].z)
 		Spring.GiveOrderToUnit(unitID, command, { x, Spring.GetGroundHeight(x, z), z }, options)
+		if paced[i] then
+			pacedUnits[#pacedUnits + 1] = unitID
+			pacedTargets[#pacedTargets + 1] = { x = x, z = z }
+		end
 	end
 	GG['MissionAPI'].issuingOrders = nil
+
+	if matchSpeed then
+		GG['MissionAPIActionHelper'].matchFormationSpeed(pacedUnits, pacedTargets, command)
+	end
 end
 
 return {
@@ -143,6 +154,8 @@ return {
 			{ name = 'direction', required = false, type = ParameterTypes.Direction },
 			-- Add the move to the end of each unit's queue, as the 'shift' option does.
 			{ name = 'queue', required = false, type = ParameterTypes.Boolean },
+			-- Slow the ground units down so they all arrive together.
+			{ name = 'matchSpeed', required = false, type = ParameterTypes.Boolean },
 			requiresOneOf = { 'position', 'positions' },
 		},
 		actionFunction = issueFormationOrders,
