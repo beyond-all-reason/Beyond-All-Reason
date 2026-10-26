@@ -56,7 +56,7 @@ AimWeapon1(heading, pitch)
 	turn turretmisr to y-axis heading speed <360.0>;
 	wait-for-turn turretmisl around x-axis;
 	wait-for-turn turretmisl around y-axis;
-	return (1);
+	return (get ACTIVATION);
 }
 
 FireWeapon1()
