@@ -8,7 +8,7 @@
 --- A `nil` area represents the whole map. -- TODO: Make "off-map" a meaningful concept to ignore units?
 ---
 --- A callback may start or stop trackers, including its own.
---- When a tracker is stopped mid-delivery, it stops hearing enter and leave events.
+--- When a tracker is stopped mid-callback, it stops hearing enter and leave events.
 ---
 
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
@@ -63,8 +63,8 @@ local function getUnitsInArea(area, teamID)
 	return spGetUnitsInCylinder(area.x, area.z, area.radius, teamID)
 end
 
--- A callback may add or remove trackers. Each update skips any trackers that have been stopped.
--- The snapshot this builds is replaced before deliveries, so a new tracker gets that delivery.
+-- A callback may add or remove trackers, and always skips any trackers that have been stopped.
+-- The snapshot this builds is replaced before invocations, so any added callbacks also get it.
 local function updateTrackedArea(trackedArea)
 	local unitIDs = getUnitsInArea(trackedArea.area, trackedArea.teamID)
 	local insideNow = {}
