@@ -162,7 +162,7 @@ describe("mission_api.triggers.unit_undetected", function()
 
 		it("filters on sensorAllianceName", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ unitDefName = "armpw", sensorAllyTeamID = SENSOR_ALLY }), freshTriggerID()
+			local t, triggerID = trigger({ unitDefName = "armpw", sensorAllianceID = SENSOR_ALLY }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			-- Seen and then lost by an allyTeam this trigger does not watch.

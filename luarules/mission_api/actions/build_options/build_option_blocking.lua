@@ -19,7 +19,7 @@ return {
 		parameters = {
 			{ name = 'builtDefName', required = true, type = ParameterTypes.UnitDefName },
 			{ name = 'builderDefName', required = false, type = ParameterTypes.UnitDefName },
-			{ name = 'teamName', required = true, type = ParameterTypes.TeamName, internal = 'teamID' },
+			{ name = 'teamName', required = true, type = ParameterTypes.TeamName },
 		},
 		actionFunction = disableBuildOption,
 	},
@@ -28,7 +28,7 @@ return {
 		parameters = {
 			{ name = 'builtDefName', required = true, type = ParameterTypes.UnitDefName },
 			{ name = 'builderDefName', required = false, type = ParameterTypes.UnitDefName },
-			{ name = 'teamName', required = true, type = ParameterTypes.TeamName, internal = 'teamID' },
+			{ name = 'teamName', required = true, type = ParameterTypes.TeamName },
 		},
 		actionFunction = enableBuildOption,
 	},

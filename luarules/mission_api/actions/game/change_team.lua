@@ -11,8 +11,8 @@ return {
 	{
 		type = "ChangeTeam",
 		parameters = {
-			{ name = "oldTeamName", required = true, type = ParameterTypes.TeamName, internal = "oldTeamID" },
-			{ name = "newTeamName", required = true, type = ParameterTypes.TeamName, internal = "newTeamID" },
+			{ name = "oldTeamName", required = true, type = ParameterTypes.TeamName },
+			{ name = "newTeamName", required = true, type = ParameterTypes.TeamName },
 		},
 		actionFunction = changeTeam,
 	},

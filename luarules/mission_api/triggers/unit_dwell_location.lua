@@ -9,7 +9,7 @@ return {
 		{ name = 'duration',    required = true,  type = ParameterTypes.Number },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName, internal = 'teamID' },
+		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {

@@ -5,7 +5,7 @@ return {
 	parameters = {
 		{ name = 'featureName',    required = false, type = ParameterTypes.FeatureName },
 		{ name = 'featureDefName', required = false, type = ParameterTypes.FeatureDefName },
-		{ name = 'allianceName',   required = false, type = ParameterTypes.AllianceName, internal = 'allyTeamID' },
+		{ name = 'allianceName',   required = false, type = ParameterTypes.AllianceName },
 		{ name = 'area',           required = false, type = ParameterTypes.Area },
 		requiresOneOf = { 'featureName', 'featureDefName', 'allianceName', 'area' },
 	},
@@ -22,7 +22,7 @@ return {
 			if trigger.parameters.featureDefName and trigger.parameters.featureDefName ~= FeatureDefs[featureDefID].name then
 				return
 			end
-			if trigger.parameters.allyTeamID and attackerAllyTeamID ~= trigger.parameters.allyTeamID then
+			if trigger.parameters.allianceID and attackerAllyTeamID ~= trigger.parameters.allianceID then
 				return
 			end
 			if trigger.parameters.area and not context.IsFeatureInArea(featureID, trigger.parameters.area) then

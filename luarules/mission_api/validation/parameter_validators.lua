@@ -10,6 +10,7 @@ VFS.Include("common/wav.lua")
 
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
+local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -773,26 +774,6 @@ end
 local function registerLoadoutValidators(parameterValidators, context)
 	local Types = context.Types
 
-	--- Named fields of a loadout entry, in the order they are reported. The position of an
-	--- entry is not among them, since its x, y and z sit directly on the entry.
-	local unitEntryFields = {
-		{ name = "unitDefName", type = Types.UnitDefName, required = true },
-		{ name = "teamName", type = Types.TeamName, required = true },
-		{ name = "facing", type = Types.Facing },
-		{ name = "unitName", type = Types.String },
-		{ name = "construction", type = Types.Boolean },
-		{ name = "quantity", type = Types.Number },
-		{ name = "spacing", type = Types.Number },
-		{ name = "neutral", type = Types.Boolean },
-		{ name = "orders", type = Types.Orders },
-	}
-
-	local featureEntryFields = {
-		{ name = "featureDefName", type = Types.FeatureDefName, required = true },
-		{ name = "facing", type = Types.Facing },
-		{ name = "featureName", type = Types.String },
-	}
-
 	local function getEntryValidator(fields)
 		return function(entry)
 			local entryTypeResult = validateTableType(entry)
@@ -819,8 +800,8 @@ local function registerLoadoutValidators(parameterValidators, context)
 		end
 	end
 
-	parameterValidators[Types.UnitLoadout] = getListValidator(getEntryValidator(unitEntryFields))
-	parameterValidators[Types.FeatureLoadout] = getListValidator(getEntryValidator(featureEntryFields))
+	parameterValidators[Types.UnitLoadout] = getListValidator(getEntryValidator(loadoutSchema.UnitEntryFields))
+	parameterValidators[Types.FeatureLoadout] = getListValidator(getEntryValidator(loadoutSchema.FeatureEntryFields))
 end
 
 --------------------------------------------------------------------------------

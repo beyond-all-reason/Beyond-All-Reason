@@ -5,7 +5,7 @@ return {
 	parameters = {
 		{ name = 'featureName',    required = false, type = ParameterTypes.FeatureName },
 		{ name = 'featureDefName', required = false, type = ParameterTypes.FeatureDefName },
-		{ name = 'teamName',       required = false, type = ParameterTypes.TeamName, internal = 'teamID' },
+		{ name = 'teamName',       required = false, type = ParameterTypes.TeamName },
 		{ name = 'area',           required = false, type = ParameterTypes.Area },
 		requiresOneOf = { 'featureName', 'featureDefName', 'teamName', 'area' },
 	},

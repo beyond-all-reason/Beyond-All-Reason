@@ -8,7 +8,7 @@ return {
 	parameters = {
 		{ name = 'transportName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'transportDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',         required = false, type = ParameterTypes.TeamName, internal = 'teamID' },
+		{ name = 'teamName',         required = false, type = ParameterTypes.TeamName },
 		{ name = 'passengerName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'passengerDefName', required = false, type = ParameterTypes.UnitDefName },
 		requiresOneOf = { 'transportName', 'transportDefName' },

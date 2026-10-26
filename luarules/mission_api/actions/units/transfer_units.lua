@@ -25,7 +25,7 @@ return {
 		type = 'TransferUnits',
 		parameters = {
 			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-			{ name = 'newTeamName', required = true, type = ParameterTypes.TeamName, internal = 'newTeamID' },
+			{ name = 'newTeamName', required = true, type = ParameterTypes.TeamName },
 			{ name = 'captured', required = false, type = ParameterTypes.Boolean },
 		},
 		actionFunction = transferUnits,

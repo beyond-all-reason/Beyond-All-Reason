@@ -43,7 +43,7 @@ end
 return {
 	type = 'ResourceIncome',
 	parameters = {
-		{ name = 'teamName', required = true,  type = ParameterTypes.TeamName, internal = 'teamID' },
+		{ name = 'teamName', required = true,  type = ParameterTypes.TeamName },
 		{ name = 'metal',  required = false, type = ParameterTypes.Number },
 		{ name = 'energy', required = false, type = ParameterTypes.Number },
 		-- Filter income by sources: 'extractor' (metal only), 'reclaim' (features + units), 'ally' (shared), 'production' (everything else)

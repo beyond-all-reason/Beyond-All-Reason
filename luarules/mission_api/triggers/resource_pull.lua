@@ -6,7 +6,7 @@ local RESOURCE_PULL_INDEX = 3
 return {
 	type = 'ResourcePull',
 	parameters = {
-		{ name = 'teamName', required = true,  type = ParameterTypes.TeamName, internal = 'teamID' },
+		{ name = 'teamName', required = true,  type = ParameterTypes.TeamName },
 		{ name = 'metal',  required = false, type = ParameterTypes.Number },
 		{ name = 'energy', required = false, type = ParameterTypes.Number },
 		requiresOneOf = { 'metal', 'energy' },

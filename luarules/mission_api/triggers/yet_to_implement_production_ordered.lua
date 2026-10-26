@@ -14,7 +14,7 @@ return {
 		{ name = 'buildDefName',         required = true,  type = ParameterTypes.UnitDefName },
 		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',             required = false, type = ParameterTypes.TeamName, internal = 'teamID' },
+		{ name = 'teamName',             required = false, type = ParameterTypes.TeamName },
 		{ name = 'ignoreMissionActions', required = false, type = ParameterTypes.Boolean },
 	},
 	callins = {

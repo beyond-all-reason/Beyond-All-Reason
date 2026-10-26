@@ -50,7 +50,7 @@ return {
 		type = 'NameUnits',
 		parameters = {
 			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-			{ name = 'teamName', required = false, type = ParameterTypes.TeamName, internal = 'teamID' },
+			{ name = 'teamName', required = false, type = ParameterTypes.TeamName },
 			{ name = 'unitDefName', required = false, type = ParameterTypes.String },
 			{ name = 'area', required = false, type = ParameterTypes.Area },
 			requiresOneOf = { 'teamName', 'unitDefName', 'area' },

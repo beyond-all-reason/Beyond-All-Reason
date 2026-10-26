@@ -14,7 +14,7 @@ return {
 		type = "EnableUnitDef",
 		parameters = {
 			{ name = "unitDefName", required = true, type = ParameterTypes.UnitDefName },
-			{ name = "teamName", required = true, type = ParameterTypes.TeamName, internal = "teamID" },
+			{ name = "teamName", required = true, type = ParameterTypes.TeamName },
 		},
 		actionFunction = enableUnitDef,
 	},
@@ -22,7 +22,7 @@ return {
 		type = "DisableUnitDef",
 		parameters = {
 			{ name = "unitDefName", required = true, type = ParameterTypes.UnitDefName },
-			{ name = "teamName", required = true, type = ParameterTypes.TeamName, internal = "teamID" },
+			{ name = "teamName", required = true, type = ParameterTypes.TeamName },
 		},
 		actionFunction = disableUnitDef,
 	},

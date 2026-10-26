@@ -27,7 +27,7 @@ return {
 	    type = 'ReclaimUnits',
 	    parameters = {
 	    	{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-	    	{ name = 'reclaimerTeamName', required = false, type = ParameterTypes.TeamName, internal = 'reclaimerTeamID' },
+	    	{ name = 'reclaimerTeamName', required = false, type = ParameterTypes.TeamName },
 	    },
 	    actionFunction = reclaimUnits,
     },

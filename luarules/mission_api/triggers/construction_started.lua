@@ -29,7 +29,7 @@ return {
 	type = 'ConstructionStarted',
 	parameters = {
 		{ name = 'unitDefName',    required = true,  type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',       required = false, type = ParameterTypes.TeamName, internal = 'teamID' },
+		{ name = 'teamName',       required = false, type = ParameterTypes.TeamName },
 		{ name = 'builderName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'builderDefName', required = false, type = ParameterTypes.UnitDefName },
 	},

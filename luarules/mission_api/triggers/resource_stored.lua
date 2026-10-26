@@ -6,7 +6,7 @@ local CURRENT_RESOURCE_LEVEL_INDEX = 1
 return {
 	type = 'ResourceStored',
 	parameters = {
-		{ name = 'teamName', required = true,  type = ParameterTypes.TeamName, internal = 'teamID' },
+		{ name = 'teamName', required = true,  type = ParameterTypes.TeamName },
 		{ name = 'metal',  required = false, type = ParameterTypes.Number },
 		{ name = 'energy', required = false, type = ParameterTypes.Number },
 		requiresOneOf = { 'metal', 'energy' },
