@@ -17,7 +17,12 @@ end
 local objectivesController, stagesController, triggersController, actionsController
 
 -- Used in GameFrame.
-local missionValidationFailure
+local missionLoadFailure
+
+local function failMission(reason)
+	GG["MissionAPI"] = nil -- stops gadget api_missions_triggers from loading
+	missionLoadFailure = "[Mission API] Mission not loaded: " .. reason .. " (see infolog)"
+end
 
 -- Runs on the raw mission data
 local function validateMission(mission)
@@ -33,12 +38,7 @@ local function loadMission(gameSetup)
 	local validationResult = validateMission(mission)
 
 	if not validationResult.ok then
-		GG["MissionAPI"] = nil -- stops gadget api_missions_triggers from loading
-		missionValidationFailure = "[Mission API] Mission not loaded: "
-			.. #validationResult.errors
-			.. " validation errors in "
-			.. gameSetup.entryPoint
-			.. " (see infolog)"
+		failMission(#validationResult.errors .. " validation errors in " .. gameSetup.entryPoint)
 		return
 	end
 
@@ -78,13 +78,7 @@ local function loadMission(gameSetup)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
 end
 
-function gadget:Initialize()
-	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua")
-	if not gameSetup then
-		gadgetHandler:RemoveGadget()
-		return
-	end
-
+local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"] = {}
 	GG["MissionAPI"].Options = gameSetup.options
 	GG["MissionAPI"].Variables = gameSetup.variables
@@ -134,12 +128,37 @@ function gadget:Initialize()
 	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
 	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
+end
 
-	loadMission(gameSetup)
+-- Synced Lua has no debug library outside dev mode.
+local function withTraceback(err)
+	if debug then
+		return debug.traceback(tostring(err), 2)
+	end
+	return tostring(err)
+end
+
+function gadget:Initialize()
+	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua")
+	if not gameSetup then
+		gadgetHandler:RemoveGadget()
+		return
+	end
+
+	-- gadgets.lua calls Initialize unprotected: an error here would stop every later gadget from loading.
+	local loaded, loadError = xpcall(function()
+		setUpMissionAPI(gameSetup)
+		loadMission(gameSetup)
+	end, withTraceback)
+
+	if not loaded then
+		Spring.Log("api_missions.lua", LOG.ERROR, "[Mission API] " .. loadError)
+		failMission("error in " .. gameSetup.entryPoint .. ": " .. loadError:match("^[^\n]*"))
+	end
 end
 
 function gadget:GamePreload()
-	if missionValidationFailure then
+	if missionLoadFailure then
 		return
 	end
 
@@ -151,10 +170,10 @@ function gadget:GamePreload()
 end
 
 function gadget:GameFrame(frameNumber)
-	-- Invalid mission ends the game
-	if missionValidationFailure then
-		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionValidationFailure after this
-		Spring.Echo(missionValidationFailure)
+	-- A mission that failed to load ends the game
+	if missionLoadFailure then
+		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionLoadFailure after this
+		Spring.Echo(missionLoadFailure)
 		gadgetHandler:RemoveGadget()
 		return
 	end
@@ -163,7 +182,7 @@ function gadget:GameFrame(frameNumber)
 end
 
 function gadget:GameOver()
-	if missionValidationFailure then
+	if missionLoadFailure then
 		return
 	end
 
