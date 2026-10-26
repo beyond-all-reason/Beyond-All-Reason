@@ -1,13 +1,13 @@
 -- The environment a module file runs in: a fresh table that hands out the engine's globals and the language while
 -- the file loads, and the language alone after. Spring is a proxy for the file's handle (HandleOf) that refuses the
--- other handle's functions, read off recoil-lua-library/handles/generated/names.lua. Any file takes the same proxy, typed, with
--- `local Spring = require("common/recoil/synced")` (ModuleEnv.Handle).
+-- other handle's functions, read off common/recoil/names.lua (generated from the pinned recoil-lua-library). Any file
+-- takes the same proxy, typed, with `local Spring = require("common/recoil/synced")` (ModuleEnv.Handle).
 -- One instance per Lua state, on BAR: init.lua's shim and the loader share the env-to-root table below.
 if BAR ~= nil and BAR.ModuleEnv ~= nil then
 	return BAR.ModuleEnv
 end
 
-local EngineHandles = require("recoil-lua-library/handles/generated/names")
+local EngineHandles = require("common/recoil/names")
 
 ---@class ModuleEnv
 local ModuleEnv = {}
@@ -17,78 +17,50 @@ end
 
 ---@alias LuaHandle "synced"|"unsynced"|"both" both: a gadget, with a half for each
 
--- The language, offered for the life of the file.
-local LANGUAGE = {}
-for _, name in ipairs({
-	"assert",
-	"error",
-	"pcall",
-	"xpcall",
-	"select",
-	"type",
-	"tostring",
-	"tonumber",
-	"pairs",
-	"ipairs",
-	"next",
-	"unpack",
-	"rawget",
-	"rawset",
-	"rawequal",
-	"setmetatable",
-	"getmetatable",
-	"collectgarbage",
-	"print",
-	"require",
-	"_VERSION",
-	"string",
-	"table",
-	"math",
-	"coroutine",
-	"bit",
-	"debug",
-}) do
-	LANGUAGE[name] = true
+---@param ... string[]
+---@return table<string, true>
+local function set(...)
+	local names = {}
+	for _, list in ipairs({ ... }) do
+		for _, name in ipairs(list) do
+			names[name] = true
+		end
+	end
+	return names
 end
 
--- The engine and the game, offered while the file loads. Spring is in here by way of its proxy.
-local ENGINE = {}
-for _, name in ipairs({
-	"Spring",
-	"VFS",
-	"Script",
-	"Game",
-	"GG",
-	"WG",
-	"SYNCED",
-	"UnitDefs",
-	"UnitDefNames",
-	"WeaponDefs",
-	"WeaponDefNames",
-	"FeatureDefs",
-	"FeatureDefNames",
-	"CMD",
-	"CMDTYPE",
-	"COB",
-	"gl",
-	"GL",
-	"Engine",
-	"Platform",
-	"Json",
-	"i18n",
-	"tracy",
-	"RmlUi",
-	"BAR",
-	"LOG",
-	"SendToUnsynced",
-	"loadstring",
-	"os",
-	"io",
-	"include",
-}) do
-	ENGINE[name] = true
+-- The game's own globals, beside the engine's: offered while a file loads, and `require` for its life.
+local GAME = { "GG", "WG", "BAR", "Json", "i18n", "include", "UnitDefNames", "WeaponDefNames", "FeatureDefNames" }
+local GAME_LANGUAGE = { "require" }
+
+-- What a file is offered, by the handle it runs in ("any": what both handles have): the language for the life of
+-- the file, the engine and the game while it loads, and Spring's members through the proxy.
+local LANGUAGE = {
+	synced = set(EngineHandles.sharedLanguage, EngineHandles.syncedOnlyLanguage, GAME_LANGUAGE),
+	unsynced = set(EngineHandles.sharedLanguage, EngineHandles.unsyncedOnlyLanguage, GAME_LANGUAGE),
+	any = set(EngineHandles.sharedLanguage, GAME_LANGUAGE),
+}
+local ENGINE = {
+	synced = set(EngineHandles.sharedGlobals, EngineHandles.syncedOnlyGlobals, GAME),
+	unsynced = set(EngineHandles.sharedGlobals, EngineHandles.unsyncedOnlyGlobals, GAME),
+	any = set(EngineHandles.sharedGlobals, GAME),
+}
+local SPRING = {
+	synced = set(EngineHandles.shared, EngineHandles.syncedOnly),
+	unsynced = set(EngineHandles.shared, EngineHandles.unsyncedOnly),
+	any = set(EngineHandles.shared),
+}
+
+---@param handle LuaHandle|nil
+---@return "synced"|"unsynced"|"any"
+local function sideOf(handle)
+	if handle == "synced" or handle == "unsynced" then
+		return handle
+	end
+	return "any"
 end
 
+-- Which handle alone has a Spring member, for the error that names it.
 ---@type table<string, "synced"|"unsynced">
 local ONLY_ON = {}
 for _, name in ipairs(EngineHandles.syncedOnly) do
@@ -164,10 +136,14 @@ end
 ---@param root table the handle's environment; Recoil.Shared is read off it on every call, so a harness may swap it
 ---@return table proxy
 local function springProxy(path, handle, root)
+	local offered = SPRING[sideOf(handle)]
 	return setmetatable({}, {
 		__index = function(_, name)
-			local only = ONLY_ON[name]
-			if only ~= nil and only ~= handle then
+			if not offered[name] then
+				local only = ONLY_ON[name]
+				if only == nil then
+					error(string.format("%s calls Spring.%s, which the engine does not offer", path, name), 2)
+				end
 				error(
 					string.format(
 						"%s calls Spring.%s, which the engine offers in the %s handle only; %s",
@@ -243,13 +219,14 @@ end
 function ModuleEnv.Include(path, outer, mode, injected)
 	local root = roots[outer] or outer
 	local handle = ModuleEnv.HandleOf(path)
+	local language, engine = LANGUAGE[sideOf(handle)], ENGINE[sideOf(handle)]
 	local env = {}
 	for name, value in pairs(injected or {}) do
 		env[name] = value
 	end
 	-- The language is copied in up front (synced Lua has no rawset to cache it on the way), so its names are plain
 	-- hits for the life of the file and the metatable below only sees the rest.
-	for name in pairs(LANGUAGE) do
+	for name in pairs(language) do
 		if env[name] == nil then
 			env[name] = root[name]
 		end
@@ -257,14 +234,14 @@ function ModuleEnv.Include(path, outer, mode, injected)
 	local proxy = nil
 	local meta = {}
 	meta.__index = function(_, name)
-		if LANGUAGE[name] then
+		if language[name] then
 			return root[name]
 		end
 		if name == "Spring" then
 			proxy = proxy or springProxy(path, handle, root)
 			return proxy
 		end
-		if ENGINE[name] then
+		if engine[name] then
 			return root[name]
 		end
 		error(string.format("%s reads global '%s', which module files are not offered", path, name), 2)
@@ -278,10 +255,10 @@ function ModuleEnv.Include(path, outer, mode, injected)
 	local vfs = root.VFS or VFS
 	local returned = vfs.Include(path, env, mode)
 	meta.__index = function(_, name)
-		if LANGUAGE[name] then
+		if language[name] then
 			return root[name]
 		end
-		if ENGINE[name] then
+		if engine[name] then
 			error(
 				string.format(
 					"%s reads %s after load; import it at the top of the file: local %s = %s",

@@ -1,7 +1,7 @@
 local ModuleEnv = require("modules/module_env")
 local ModuleHandler = require("modules/module_handler")
 local handleOf = ModuleEnv.HandleOf
-local EngineHandles = require("recoil-lua-library/handles/generated/names")
+local EngineHandles = require("common/recoil/names")
 
 ---@return table<string, true> syncedOnly, table<string, true> unsyncedOnly
 local function engineSides()
@@ -150,6 +150,22 @@ describe("the environment a module file runs in", function()
 			assert.error_matches(
 				returned.order,
 				"modules/fixture/api.lua calls Spring.CreateUnit, which the engine offers in the synced handle only; this file runs in any handle",
+				1,
+				true
+			)
+		end)
+
+		it("a member the engine does not offer is an error naming it", function()
+			local returned = fileNamed(
+				"fixture/api_synced.lua",
+				[[
+				local Spring = Spring
+				return { call = function() return Spring.GetSomethingNobodyDefined() end }
+			]]
+			)(outer)
+			assert.error_matches(
+				returned.call,
+				"modules/fixture/api_synced.lua calls Spring.GetSomethingNobodyDefined, which the engine does not offer",
 				1,
 				true
 			)
@@ -440,10 +456,6 @@ describe("the environment a module file runs in", function()
 
 			it("code that runs in any handle calls nothing the engine offers in one only", function()
 				local syncedOnly, unsyncedOnly = engineSides()
-				if syncedOnly == nil or unsyncedOnly == nil then
-					pending("the recoil-lua-library listings are not checked out here", function() end)
-					return
-				end
 				local calls = {}
 				for _, file in ipairs(files) do
 					if file.handle == nil then
@@ -459,10 +471,6 @@ describe("the environment a module file runs in", function()
 
 			it("code bound to a handle calls nothing the engine offers only in the other", function()
 				local syncedOnly, unsyncedOnly = engineSides()
-				if syncedOnly == nil or unsyncedOnly == nil then
-					pending("the recoil-lua-library listings are not checked out here", function() end)
-					return
-				end
 				local calls = {}
 				for _, file in ipairs(files) do
 					local forbidden = file.handle == "synced" and unsyncedOnly
