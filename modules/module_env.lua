@@ -1,22 +1,8 @@
--- The environment a module file runs in.
---
--- A file under a module directory does not run in the environment of whoever required it. It runs in a fresh table
--- of its own. While the file loads, that table hands out the engine's globals (Spring, VFS, GG, UnitDefs, ...) and
--- the language's (pairs, string, table, error, ...). Once the file has returned, only the language is left: whatever
--- the file's functions need from the engine, the file imported at the top, `local Spring = Spring`. A read of
--- anything else, before or after load, is an error naming the file and the global. So is a write to a global.
---
--- Spring arrives as a proxy for the handle the file is declared for (HandleOf, the rule module_handler.lua states
--- above LAYOUT): api_synced.lua may not call what the engine offers to the unsynced handle only, api_unsynced.lua the
--- reverse, and a file that runs in any handle neither. The sets are the library's names per handle,
--- recoil-lua-library/handles/generated/names.lua.
---
--- Files run through here: everything `require`d from under a module directory (init.lua's shim), and the files the
--- loader includes itself (manifests, policies, modes, modoptions, mode verbs). Gadgets, widgets and unit scripts are
--- loaded by their handlers and are not module files in this sense. The framework files at modules/ root are not
--- run through here yet.
--- One instance per Lua state: VFS.Include runs a file afresh on every include, and the table of module envs to their
--- handle env below has to be the same table for init.lua's shim and for the loader, so it lives on BAR.
+-- The environment a module file runs in: a fresh table that hands out the engine's globals and the language while
+-- the file loads, and the language alone after. Spring is a proxy for the file's handle (HandleOf) that refuses the
+-- other handle's functions, read off recoil-lua-library/handles/generated/names.lua. Any file takes the same proxy, typed, with
+-- `local Spring = require("common/recoil/synced")` (ModuleEnv.Handle).
+-- One instance per Lua state, on BAR: init.lua's shim and the loader share the env-to-root table below.
 if BAR ~= nil and BAR.ModuleEnv ~= nil then
 	return BAR.ModuleEnv
 end
@@ -199,6 +185,53 @@ local function springProxy(path, handle, root)
 			error(string.format("%s writes Spring.%s", path, name), 2)
 		end,
 	})
+end
+
+-- Whether the engine in this Lua state registers what one handle has alone: any of that handle's own names is set.
+---@param spring table|nil
+---@param handle "synced"|"unsynced"
+---@return boolean
+local function offers(spring, handle)
+	if spring == nil then
+		return false
+	end
+	for _, name in ipairs(handle == "synced" and EngineHandles.syncedOnly or EngineHandles.unsyncedOnly) do
+		if spring[name] ~= nil then
+			return true
+		end
+	end
+	return false
+end
+
+-- Handle proxies by the environment Spring is read off, one per handle per Lua state.
+---@type table<table, table<string, table>>
+local handleProxies = setmetatable({}, { __mode = "k" })
+
+-- The engine as one handle sees it, for a file of any kind: what common/recoil/{shared,synced,unsynced}.lua return,
+-- so `local Spring = require("common/recoil/synced")` is the handle at check time (the file's return is cast) and at
+-- run time (this proxy, the one a module file's Spring is). Requiring a handle's view in the other handle's state
+-- is an error, not a Spring that comes up empty.
+---@param handle "synced"|"unsynced"|nil nil for what both handles have
+---@param root table|nil the environment Spring is read off; the state's globals when absent
+---@return table Spring
+function ModuleEnv.Handle(handle, root)
+	root = root or _G
+	local key = handle or "shared"
+	local proxies = handleProxies[root]
+	if proxies == nil then
+		proxies = {}
+		handleProxies[root] = proxies
+	end
+	if proxies[key] == nil then
+		if handle ~= nil then
+			local other = handle == "synced" and "unsynced" or "synced"
+			if not offers(root.Spring, handle) and offers(root.Spring, other) then
+				error(string.format("common/recoil/%s required in the %s handle", handle, other), 2)
+			end
+		end
+		proxies[key] = springProxy(string.format('a file holding require("common/recoil/%s")', key), handle, root)
+	end
+	return proxies[key]
 end
 
 -- Runs a module file in an environment of its own and returns what it returned.
