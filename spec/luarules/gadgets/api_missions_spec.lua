@@ -112,10 +112,12 @@ local function loadGadget(options, world)
 end
 
 describe("api_missions load guard", function()
+	---@type table
 	local world
 
 	local function start(options)
 		world = { logged = {}, echoed = {} }
+		---@type table
 		local gadget, env = loadGadget(options or {}, world)
 		gadget:Initialize()
 		gadget:GamePreload()

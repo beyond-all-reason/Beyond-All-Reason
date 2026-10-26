@@ -132,10 +132,7 @@ end
 
 -- Synced Lua has no debug library outside dev mode.
 local function withTraceback(err)
-	if debug then
-		return debug.traceback(tostring(err), 2)
-	end
-	return tostring(err)
+	return debug and debug.traceback(tostring(err), 2) or tostring(err)
 end
 
 function gadget:Initialize()
@@ -152,8 +149,9 @@ function gadget:Initialize()
 	end, withTraceback)
 
 	if not loaded then
-		Spring.Log("api_missions.lua", LOG.ERROR, "[Mission API] " .. loadError)
-		failMission("error in " .. gameSetup.entryPoint .. ": " .. loadError:match("^[^\n]*"))
+		local message = tostring(loadError)
+		Spring.Log("api_missions.lua", LOG.ERROR, "[Mission API] " .. message)
+		failMission("error in " .. gameSetup.entryPoint .. ": " .. message:match("^[^\n]*"))
 	end
 end
 
