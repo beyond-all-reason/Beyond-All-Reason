@@ -1,4 +1,5 @@
 # October
+- [Anti-air] With engine support, mobile AA can prioritize aircraft independently of automatic movement targets. Enabled for static AA and AA weapons on mixed-role units as well.
 - [Zombies]
   - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
   - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
