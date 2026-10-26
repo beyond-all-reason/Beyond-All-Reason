@@ -95,7 +95,7 @@ describe("mission_api.detection_levels", function()
 		end)
 	end)
 
-	describe("without a sensorAllyTeam", function()
+	describe("without a sensorAllianceName", function()
 		-- allyTeams are 0:reference, 1:enemy, 2:gaia
 		it("ignores Gaia, which sees plenty and means nothing by it", function()
 			losStatusByAllyTeam[2] = INLOS
@@ -291,11 +291,11 @@ describe("mission_api.detection_levels", function()
 		end)
 
 		-- Resolving per allyTeam, rather than per trigger, is what shares these two.
-		it("shares a named sensorAllyTeam with the triggers that name none", function()
+		it("shares a named sensorAllianceName with the triggers that name none", function()
 			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
 
 			DetectionLevels.BeginUpdate()
-			onDetected(newTrigger({ sensorAllyTeam = 0 }), "named", context, { [100] = true })
+			onDetected(newTrigger({ sensorAllyTeamID = 0 }), "named", context, { [100] = true })
 			onDetected(newTrigger(), "unnamed", context, { [100] = true })
 
 			assert.are.equal(2, losStateReads)

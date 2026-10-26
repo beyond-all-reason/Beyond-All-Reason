@@ -187,10 +187,10 @@ local triggers = {
 		actions = { 'actionMissingType' },
 	},
 
-	triggerWithInvalidAllyTeamID = {
+	triggerWithInvalidAllianceName = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			sensorAllyTeam = 777,
+			sensorAllianceName = 777,
 		},
 		actions = { 'actionMissingType' },
 	},
@@ -285,17 +285,17 @@ local actions = {
 		},
 	},
 
-	actionWithInvalidAllyTeamID = {
+	actionWithInvalidAllianceName = {
 		type = actionTypes.Defeat,
 		parameters = {
-			allyTeamIDs = { 777 },
+			allianceNames = { 777 },
 		},
 	},
 
-	actionWithNoAllyTeamIDs = {
+	actionWithNoAllianceNames = {
 		type = actionTypes.Defeat,
 		parameters = {
-			allyTeamIDs = { },
+			allianceNames = { },
 		},
 	},
 

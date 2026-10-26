@@ -10,6 +10,7 @@ local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local triggersSchemaParameters = GG["MissionAPI"].TriggerDefinitions.Parameters
 local teams = GG["MissionAPI"].Teams
+local alliances = GG["MissionAPI"].Alliances
 
 ----------------------------------------------------------------
 --- Parameter processors:
@@ -58,6 +59,18 @@ local function processTeamName(teamName)
 	return teams[teamName]
 end
 
+local function processAllianceName(allianceName)
+	return alliances[allianceName]
+end
+
+local function processAllianceNames(allianceNames)
+	local allyTeamIDs = {}
+	for index, allianceName in ipairs(allianceNames) do
+		allyTeamIDs[index] = processAllianceName(allianceName)
+	end
+	return allyTeamIDs
+end
+
 local function processUnitLoadout(unitLoadout)
 	for _, unit in ipairs(unitLoadout) do
 		unit.teamID = processTeamName(unit.teamName)
@@ -84,6 +97,8 @@ local processors = {
 	[ParameterTypes.Command] = processCommand,
 	[ParameterTypes.SoundFile] = processSoundFile,
 	[ParameterTypes.TeamName] = processTeamName,
+	[ParameterTypes.AllianceName] = processAllianceName,
+	[ParameterTypes.AllianceNames] = processAllianceNames,
 	[ParameterTypes.UnitLoadout] = processUnitLoadout,
 }
 for enumSetType in pairs(enumSets) do

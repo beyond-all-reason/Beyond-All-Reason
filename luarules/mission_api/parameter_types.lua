@@ -8,7 +8,7 @@ local types = {
 	Table = "Table",
 	Position = "Position",
 	Positions = "Positions",
-	AllyTeamIDs = "AllyTeamIDs",
+	AllianceNames = "AllianceNames",
 	TriggerIDs = "TriggerIDs",
 	StageIDs = "StageIDs",
 	ObjectiveIDs = "ObjectiveIDs",
@@ -35,6 +35,7 @@ local types = {
 	FeatureDefName = "FeatureDefName",
 	WeaponDefName = "WeaponDefName",
 	TeamName = "TeamName",
+	AllianceName = "AllianceName",
 	Facing = "Facing",
 	SoundFile = "SoundFile",
 	VideoFile = "VideoFile",
@@ -47,7 +48,6 @@ local types = {
 	Quantity = "Quantity",
 	PositiveInteger = "PositiveInteger",
 	Fraction = "Fraction",
-	AllyTeamID = "AllyTeamID",
 	MessageType = "MessageType",
 
 	-- Boolean Validators:

@@ -190,6 +190,11 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.TeamName] = getLookupValidator(validateString, "teamName", function(teamName)
 		return context.Teams[teamName]
 	end)
+	parameterValidators[Types.AllianceName] = getLookupValidator(validateString, "allianceName", function(allianceName)
+		return context.Alliances[allianceName]
+	end)
+	parameterValidators[Types.AllianceNames] =
+		getListValidator(parameterValidators[Types.AllianceName], "allianceNames table is empty")
 
 	--- List validators, checking each element with its own type's validator:
 	parameterValidators[Types.StageIDs] = getListValidator(parameterValidators[Types.StageID])
@@ -487,22 +492,6 @@ local function registerSpatialValidators(parameterValidators, context)
 		local angleResult = validateField(direction.angle, "angle", "number")
 		return angleResult and { angleResult } or nil
 	end
-end
-
---------------------------------------------------------------------------------
--- Team validators: AllyTeamID and AllyTeamIDs
---------------------------------------------------------------------------------
-
-local function registerTeamValidators(parameterValidators, context)
-	local Types = context.Types
-	local validateNumber = parameterValidators[Types.Number]
-
-	parameterValidators[Types.AllyTeamID] = getLookupValidator(validateNumber, "allyTeamID", function(allyTeamID)
-		return table.contains(Spring.GetAllyTeamList(), allyTeamID)
-	end)
-
-	parameterValidators[Types.AllyTeamIDs] =
-		getListValidator(parameterValidators[Types.AllyTeamID], "allyTeamIDs table is empty")
 end
 
 --------------------------------------------------------------------------------
@@ -842,7 +831,6 @@ local function createParameterValidators(context)
 	-- Registered in dependency order: later groups build on the earlier types.
 	registerValueValidators(parameterValidators, context)
 	registerSpatialValidators(parameterValidators, context)
-	registerTeamValidators(parameterValidators, context)
 	registerOrderValidators(parameterValidators, context)
 	registerLoadoutValidators(parameterValidators, context)
 

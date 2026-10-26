@@ -15,7 +15,7 @@ return {
 	{
 		type = 'Defeat',
 		parameters = {
-			{ name = 'allyTeamIDs', required = true, type = ParameterTypes.AllyTeamIDs },
+			{ name = 'allianceNames', required = true, type = ParameterTypes.AllianceNames, internal = 'allyTeamIDs' },
 		},
 		actionFunction = defeat,
 	}

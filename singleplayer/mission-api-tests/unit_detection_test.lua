@@ -4,12 +4,12 @@ local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 --- Covers UnitDetected and UnitUndetected across every sensor level and filter.
 ---
 --- Detection levels escalate: unseen -> seismic -> radar -> vision, and a unit sits at
---- exactly one of them per allyTeam. A trigger without sensorTypes watches all of them,
+--- exactly one of them per alliance. A trigger without sensorTypes watches all of them,
 --- so it reports first contact and total loss. A trigger with sensorTypes watches a
 --- subset, so a unit that *improves* from radar to vision leaves a radar-only trigger
 --- and reads as undetected there. Both behaviours are exercised below.
 ---
---- Player sensors (allyTeam 0), placed ~2900 apart so no target sits in two at once:
+--- Player sensors (alliance 'players'), placed ~2900 apart so no target sits in two at once:
 ---   armsd  at (1800, 1800)  seismic 2000, sight 240, no radar
 ---   armrad at (4700, 2000)  radar 2100, sight  680
 --- A fusion plant backs each side: armsd draws upkeep, and the spy needs energy to
@@ -68,7 +68,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'radarTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 		},
 		actions = { 'messageAnyDetected' },
 	},
@@ -77,7 +77,7 @@ local triggers = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'radarTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 		},
 		actions = { 'messageAnyUndetected' },
 	},
@@ -89,7 +89,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'radarTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 			sensorTypes = { 'radar' },
 		},
 		actions = { 'messageRadarDetected' },
@@ -101,7 +101,7 @@ local triggers = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'radarTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 			sensorTypes = { 'radar' },
 		},
 		actions = { 'messageRadarUndetected' },
@@ -114,7 +114,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'visionTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 			sensorTypes = { 'vision' },
 		},
 		actions = { 'messageVisionDetected' },
@@ -126,7 +126,7 @@ local triggers = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'visionTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 			sensorTypes = { 'vision' },
 		},
 		actions = { 'messageVisionUndetected' },
@@ -142,7 +142,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'spy',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 			sensorTypes = { 'seismic' },
 		},
 		actions = { 'messageSeismicDetected' },
@@ -152,7 +152,7 @@ local triggers = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'spy',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 			sensorTypes = { 'seismic' },
 		},
 		actions = { 'messageSeismicUndetected' },
@@ -168,7 +168,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'visionTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 			sensorTypes = { 'radar', 'vision' },
 		},
 		actions = { 'messageRadarOrVisionDetected' },
@@ -178,7 +178,7 @@ local triggers = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'visionTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 			sensorTypes = { 'radar', 'vision' },
 		},
 		actions = { 'messageRadarOrVisionUndetected' },
@@ -192,7 +192,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'visionTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 			sensorTypes = { 'seismic', 'vision' },
 		},
 		actions = { 'messageSeismicOrVisionDetected' },
@@ -202,7 +202,7 @@ local triggers = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'visionTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 			sensorTypes = { 'seismic', 'vision' },
 		},
 		actions = { 'messageSeismicOrVisionUndetected' },
@@ -220,7 +220,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'visionTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 		},
 		actions = { 'messageAnyLevelDetected' },
 	},
@@ -229,7 +229,7 @@ local triggers = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'visionTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 		},
 		actions = { 'messageAnyLevelUndetected' },
 	},
@@ -242,7 +242,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'deathTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 		},
 		actions = { 'messageDeathDetected' },
 	},
@@ -255,7 +255,7 @@ local triggers = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'deathTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 		},
 		actions = { 'messageDeathUndetected' },
 	},
@@ -263,8 +263,8 @@ local triggers = {
 	----------------------------------------------------------------
 	--- Filters ----------------------------------------------------
 
-	-- No sensorAllyTeam: any allyTeam other than the unit's own may detect it. The owner is
-	-- skipped, because an allyTeam always has vision of its own units. For an enemy target
+	-- No sensorAllianceName: any alliance other than the unit's own may detect it. The owner is
+	-- skipped, because an alliance always has vision of its own units. For an enemy target
 	-- that leaves the player's sensors, so these should agree with the anyDetected pair.
 	unscopedDetected = {
 		type = triggerTypes.UnitDetected,
@@ -287,7 +287,7 @@ local triggers = {
 		parameters = {
 			unitName = 'radarTarget',
 			owningTeamName = 'enemy',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 		},
 		actions = { 'messageOwningTeamMatches' },
 	},
@@ -298,7 +298,7 @@ local triggers = {
 		parameters = {
 			unitName = 'radarTarget',
 			owningTeamName = 'enemy',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 		},
 		actions = { 'messageOwningTeamUndetected' },
 	},
@@ -309,7 +309,7 @@ local triggers = {
 		parameters = {
 			unitName = 'radarTarget',
 			owningTeamName = 'player',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 		},
 		actions = { 'messageOwningTeamExcludes' },
 	},
@@ -320,7 +320,7 @@ local triggers = {
 		parameters = {
 			unitName = 'radarTarget',
 			unitDefName = 'corfast',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 		},
 		actions = { 'messageBothNameFilters' },
 	},
@@ -331,7 +331,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitDefName = 'corfast',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 		},
 		actions = { 'messageUnitDefNameOnly' },
 	},
@@ -341,7 +341,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitDefName = 'armpw',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 		},
 		actions = { 'messageUnitDefNameExcludes' },
 	},
@@ -353,7 +353,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'radarTarget',
-			sensorAllyTeam = 0,
+			sensorAllianceName = 'players',
 			sensorTypes = { 'seismic' },
 		},
 		actions = { 'messageWrongSensorExcludes' },
@@ -532,12 +532,12 @@ local actions = {
 
 	messageUnscopedDetected = {
 		type = actionTypes.SendMessage,
-		parameters = { messageKey = "Detected without a sensorAllyTeam: seen by a non-owning allyTeam." },
+		parameters = { messageKey = "Detected without a sensorAllianceName: seen by a non-owning alliance." },
 	},
 
 	messageUnscopedUndetected = {
 		type = actionTypes.SendMessage,
-		parameters = { messageKey = "Undetected without a sensorAllyTeam." },
+		parameters = { messageKey = "Undetected without a sensorAllianceName." },
 	},
 
 	messageOwningTeamMatches = {

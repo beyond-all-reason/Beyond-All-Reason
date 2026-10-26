@@ -159,7 +159,7 @@ end
 local function newDetectionUpdate(fireOnDetection, matchesUnit)
 	return function(trigger, triggerID, context, dirtyUnits)
 		local parameters = trigger.parameters
-		local sensorAllyTeam = parameters.sensorAllyTeam
+		local sensorAllyTeam = parameters.sensorAllyTeamID
 		local latched = table.ensureTable(latches, triggerID)
 
 		local levelMask = trigger.levelMask

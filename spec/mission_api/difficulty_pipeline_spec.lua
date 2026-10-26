@@ -72,8 +72,9 @@ describe("mission_api difficulty pipeline", function()
 	local function loadMission(mission, currentDifficulty)
 		GG["MissionAPI"] = {
 			Difficulty = currentDifficulty,
-			-- The named teams of tools/StartScripts/startscript_mission_api_test_quicksilver.txt.
+			-- The named teams and alliances of tools/StartScripts/startscript_mission_api_test_quicksilver.txt.
 			Teams = { player = 0, enemy = 1, [0] = "player", [1] = "enemy" },
+			Alliances = { players = 0, enemies = 1, [0] = "players", [1] = "enemies" },
 			Modules = GG["MissionAPI"].Modules,
 			ActionDefinitions = actionDefinitions,
 			TriggerDefinitions = triggerDefinitions,

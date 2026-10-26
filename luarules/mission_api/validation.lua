@@ -50,6 +50,7 @@ local function createValidationContext(mission, report)
 
 		-- Game setup:
 		Teams = missionAPI.Teams or {},
+		Alliances = missionAPI.Alliances or {},
 		Variables = missionAPI.Variables or {},
 
 		-- Parameter types:

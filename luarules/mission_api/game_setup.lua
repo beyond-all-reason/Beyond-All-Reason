@@ -72,7 +72,7 @@ end
 ---@field variables table
 ---@field persistentVariables table<string, true> the keys of the variables that came from the save
 ---@field teams table<integer|string, string|integer> team ID to name, and name to team ID
----@field allyTeams table<integer|string, string|integer> allyteam ID to name, and name to allyteam ID
+---@field alliances table<integer|string, string|integer> allyteam ID to name, and name to allyteam ID
 ---@field dummyTeams table<integer, integer> allyteam ID to its dummy team ID
 
 local missionOptions = readMissionOptions()
@@ -91,6 +91,6 @@ return {
 	variables = variables,
 	persistentVariables = toKeySet(variables),
 	teams = toReversibleMap(teamNames),
-	allyTeams = toReversibleMap(allyTeamNames),
+	alliances = toReversibleMap(allyTeamNames),
 	dummyTeams = dummyTeams,
 }

@@ -36,7 +36,7 @@ local actions = {
 	victory = {
 		type = actionTypes.Victory,
 		parameters = {
-			allyTeamIDs = { 0 },
+			allianceNames = { 'players' },
 		},
 	},
 }
