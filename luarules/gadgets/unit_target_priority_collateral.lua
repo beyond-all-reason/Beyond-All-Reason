@@ -35,7 +35,6 @@ local spamPowerMax = 50.0
 local spamRatioMin = 0.2
 local allowBadSpamTarget = false ---@type boolean
 
-local unknownPower = spamPowerMax * 2.0 -- TODO: We incorrectly add power for crashing/dead, decoration, critter units.
 local unknownRadius = 20.0
 local unknownSpeed = 54
 
@@ -44,28 +43,27 @@ local searchDamageMin = 100.0
 local effectTarget = 0.20
 
 -- Each update clears half of the unit targeting cache.
-local updateInterval = math.round(Game.gameSpeed * 0.5)
+local updateInterval = math.round(Game.gameSpeed * 0.5, 0)
 
 -- Lua env globals -------------------------------------------------------------
 
 local math_clamp = math.clamp
-
 local CallAsTeam = CallAsTeam
-
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
+local getDamagePerBurst = require("common/weapons").GetDamagePerBurst
 
 -- Initialization --------------------------------------------------------------
 
 -- The positive indices go to radii to avoid. Negative go to radii to prefer.
 -- An avoided radius contains allied units. A preferred one is a clean shot.
-local targetCache, targetCachePrevious = {}, {}
+local targetCache, targetCacheLast = {}, {} ---@type table<AllyTeamID, table>, table<AllyTeamID, table>
 do
 	local allyTeamList = Spring.GetAllyTeamList()
 	for _, allyTeam in pairs(allyTeamList) do
 		targetCache[allyTeam] = {}
-		targetCachePrevious[allyTeam] = targetCache[allyTeam]
+		targetCacheLast[allyTeam] = targetCache[allyTeam]
 	end
 end
 
@@ -81,24 +79,15 @@ do
 	end
 end
 
--- TODO: Fallback is from when this code would use CallAsTeam to check unitDef properties. Should remove.
-local unitDefPower = setmetatable(table.new(#UnitDefs, 0), {
-	__index = function()
-		return unknownPower
-	end,
-})
-local unitDefRadius = setmetatable(table.new(#UnitDefs, 0), {
-	__index = function()
-		return unknownRadius
-	end,
-})
+local unitDefValue = table.new(#UnitDefs, 0)
+local unitDefRadius = table.new(#UnitDefs, 0)
 local unitDefRadiusAverage = 0.0 -- TODO: median or something
 local unitDefIsSpam = {}
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	unitDefPower[unitDefID] = unitDef.metalCost + unitDef.energyCost / 70
+	unitDefValue[unitDefID] = unitDef.metalCost + unitDef.energyCost / 70 + unitDef.buildTime / 1000
 	unitDefRadiusAverage = unitDefRadiusAverage + unitDef.radius
-	unitDefIsSpam[unitDefID] = unitDefPower[unitDefID] <= spamPowerMax
+	unitDefIsSpam[unitDefID] = unitDefValue[unitDefID] <= spamPowerMax
 end
 unitDefRadiusAverage = unitDefRadiusAverage / #UnitDefs
 
@@ -108,32 +97,15 @@ end
 
 local unitTeam = {} ---@type integer[]
 local unitAllyTeam = {} ---@type integer[]
-local unitPower = setmetatable({}, {
-	__index = function(self, unitID)
-		return unknownPower
-	end,
-})
-local unitRadius = setmetatable({}, {
-	__index = function(self, unitID)
-		return unknownRadius
-	end,
-})
+local unitPower = {}
+local unitRadius = {}
 local unitIsSpam = {}
-
 local readAs = { read = -1 }
 
-local function getWeaponDamage(weaponDef)
-	local damage = weaponDef.damages[0] -- TODO: other armor type targets
-	local salvo = weaponDef.salvoSize * weaponDef.projectiles
-	local burstTime = weaponDef.salvoSize * weaponDef.salvoDelay
-	if burstTime > 1 then
-		salvo = salvo / burstTime
-	end
-	return damage * salvo
-end
-
 local function ignoreWeaponDef(weaponDef)
-	return weaponDef.customParams.bogus == "1" or weaponDef.manualFire or getWeaponDamage(weaponDef) <= 10
+	return weaponDef.customParams.bogus == "1"
+		or weaponDef.manualFire
+		or getDamagePerBurst(weaponDef, weaponDef.damages[0]) <= 50
 end
 
 local function getWeaponTargetingParent(weapons, weaponNum)
@@ -216,6 +188,7 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 			end
 		end
 
+		local damageMin, damageMax = getDamagePerBurst(weaponDef, weaponDef.damages[0])
 		local aoe = weaponDef.damageAreaOfEffect
 
 		-- expMod = (expRadius + 0.001f - expDist) / (expRadius + 0.001f - expDist * expEdgeEffect)
@@ -232,7 +205,7 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 
 		-- Spatial search is via midpoint so add unit radius:
 		radius = aoe + scatter + miss + unitDefRadiusAverage
-		damage = getWeaponDamage(weaponDef) * (isBaseWeapon and 1 or projectiles)
+		damage = (damageMin + damageMax) * 0.5 * (isBaseWeapon and 1 or projectiles)
 
 		if weaponDef.customParams.cluster_def then
 			local clusterDef = WeaponDefNames[weaponDef.customParams.cluster_def] ---@as table?
@@ -240,16 +213,21 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 				radius = radius + math.max(clusterDef.range - aoe, 0) + clusterDef.damageAreaOfEffect * 0.5
 				damage = damage
 					+ clusterDef.damages[0]
-						* tonumber(weaponDef.customParams.cluster_number) ---@as number
+						* (tonumber(weaponDef.customParams.cluster_number) or 0.0)
 						* projectiles
-						/ 2
+						* 0.5
 			end
 		elseif weaponDef.customParams.spark_range then
-			radius = math.max(radius, tonumber(weaponDef.customParams.spark_range) --[[@as number]], 0)
+			radius = math.max(radius, (tonumber(weaponDef.customParams.spark_range) or 0.0), 0.0)
 			damage = damage * (1 + (tonumber(weaponDef.customParams.spark_forkdamage or 0.0) or 0.0))
 		elseif weaponDef.customParams.area_onhit_range then
-			radius = radius + math.max(tonumber(weaponDef.customParams.area_onhit_range) --[[@as number]] - aoe, 0)
-			damage = damage + (tonumber(weaponDef.customParams.area_onhit_damage or 0) or 0) * projectiles
+			radius = radius + math.max((tonumber(weaponDef.customParams.area_onhit_range) or 0.0) - aoe, 0.0)
+			damage = damage + (tonumber(weaponDef.customParams.area_onhit_damage) or 0.0) * projectiles
+		end
+
+		if weaponDef.paralyzer then
+			radius = radius * 0.5
+			damage = damage * 0.5
 		end
 	end
 
@@ -300,18 +278,18 @@ local function getUnitCollateral(unitID, allyTeam, radius, targetID)
 	local friendPower, enemyPower = 0.0, 0.0
 
 	local _, _, _, tx, ty, tz = spGetUnitPosition(targetID, true)
-	---@cast tx number
-	---@cast ty number
-	---@cast tz number
-	local units = spGetUnitsInSphere(tx, ty, tz, radius + unitRadius[targetID])
+	---@cast tx -nil
+	---@cast ty -nil
+	---@cast tz -nil
+	local units = spGetUnitsInSphere(tx, ty, tz, radius + (unitRadius[targetID] or unknownRadius))
 
 	for _, foundID in next, units do
 		if foundID == unitID then
 			--
 		elseif unitAllyTeam[foundID] == allyTeam then
-			friendPower = friendPower + unitPower[foundID]
+			friendPower = friendPower + (unitPower[foundID] or 0.0)
 		else
-			enemyPower = enemyPower + unitPower[foundID]
+			enemyPower = enemyPower + (unitPower[foundID] or 0.0)
 		end
 	end
 
@@ -320,6 +298,8 @@ end
 
 -- Engine callins --------------------------------------------------------------
 
+---@return boolean allow
+---@return number? priority
 function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, priority)
 	if not priority then
 		if allowBadSpamTarget then
@@ -340,23 +320,25 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		return true, priority
 	end
 
-	local cache, cachePrevious = targetCache[allyTeam], targetCachePrevious[allyTeam]
+	local cache, cacheLast = targetCache[allyTeam], targetCacheLast[allyTeam]
 
 	-- Avoid collaterals of a similar scale to our own explosion radius.
-	local avoidRadius = cache[targetID] or cachePrevious[targetID] ---@as number?
+	local avoidRadius = cache[targetID] or cacheLast[targetID] ---@as number?
 	if avoidRadius and avoidRadius == math_clamp(avoidRadius, searchRadius * 0.5, searchRadius + 10) then
 		return allowBadSpamTarget or not unitIsSpam[targetID], priority * PRIORITY_ANTI_COLLATERAL
 	end
 
 	-- Prefer targets that are clean hits or bombarded by larger weapons.
-	local preferRadius = cache[-targetID] or cachePrevious[-targetID]
+	local preferRadius = cache[-targetID] or cacheLast[-targetID]
 	if preferRadius and preferRadius >= searchRadius - 10 then
 		return true, priority -- No priority bonus. Focus on bad targets.
 	end
 
 	-- This search was not cached yet to within our search radius +/- 10.
 	readAs.read = unitTeam[unitID]
-	local friendPower, enemyPower = CallAsTeam(readAs, getUnitCollateral, unitID, allyTeam, searchRadius, targetID) ---@type number, number
+	local friendPower, enemyPower = CallAsTeam(readAs, getUnitCollateral, unitID, allyTeam, searchRadius, targetID)
+	---@cast friendPower number
+	---@cast enemyPower number
 
 	local allowed = true
 
@@ -392,7 +374,7 @@ function gadget:GameFramePost(frame)
 		-- Evicts half the allyTeam targeting cache per update:
 		for _, allyTeam in next, updateAllyTeams[frameIndex] do
 			local cache = targetCache[allyTeam]
-			targetCachePrevious[allyTeam] = cache
+			targetCacheLast[allyTeam] = cache
 			if next(cache) ~= nil then
 				targetCache[allyTeam] = {}
 			end
@@ -403,7 +385,7 @@ end
 local function callinCacheUnitStats(self, unitID, unitDefID, unitTeamID)
 	unitTeam[unitID] = unitTeamID
 	unitAllyTeam[unitID] = spGetUnitAllyTeam(unitID)
-	unitPower[unitID] = unitDefPower[unitDefID]
+	unitPower[unitID] = unitDefValue[unitDefID]
 	unitIsSpam[unitID] = unitDefIsSpam[unitDefID]
 	unitRadius[unitID] = unitDefRadius[unitDefID]
 end
