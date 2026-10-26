@@ -1,4 +1,5 @@
 # October
+- [Lava] will now damage unit wrecks, rocks, and other metal containing features.
 - [Zombies]
   - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
   - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
