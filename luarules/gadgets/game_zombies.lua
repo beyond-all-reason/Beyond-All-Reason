@@ -1616,6 +1616,10 @@ local function isAuthorized(playerID)
 	if devHelpers and (devHelpers[accountID] or (playerName and devHelpers[playerName])) then
 		return true
 	end
+	local director = _G.permissions.director
+	if director and (director[accountID] or (playerName and director[playerName])) then
+		return true
+	end
 	return false
 end
 
