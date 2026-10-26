@@ -1,6 +1,7 @@
 GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
 GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variables.lua")
 
 local actions = VFS.Include("luarules/mission_api/actions/misc/write_variable.lua")
 local action = actions[1]
