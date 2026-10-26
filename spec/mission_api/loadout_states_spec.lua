@@ -1,5 +1,6 @@
 local MissionSpecEnv = require("mission_api.spec_helper")
 
+---@type table<integer, table>
 local given
 
 local env = MissionSpecEnv.new({
