@@ -68,6 +68,13 @@ local types = {
 
 }
 
+-- Authored mission types may be processed into a different type internally.
+local internalTypes = {
+	[types.TeamName] = "TeamID",
+	[types.AllianceName] = "AllyTeamID",
+	[types.AllianceNames] = "AllyTeamIDs",
+}
+
 -- Difficulties are read by the client, so must be available in JSON
 local difficultiesJSON = VFS.LoadFile("luarules/mission_api/difficulties.json")
 local difficulties = Json.decode(difficultiesJSON)
@@ -118,6 +125,7 @@ end
 
 return {
 	Types = types,
+	InternalTypes = internalTypes,
 	Enums = enums,
 	EnumSets = enumSets,
 }

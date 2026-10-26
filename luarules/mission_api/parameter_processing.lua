@@ -9,6 +9,7 @@ local enumSets = GG["MissionAPI"].Modules.ParameterTypes.EnumSets
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local triggersSchemaParameters = GG["MissionAPI"].TriggerDefinitions.Parameters
+local unitEntryFields = VFS.Include("luarules/mission_api/loadout_schema.lua").UnitEntryFields
 local teams = GG["MissionAPI"].Teams
 local alliances = GG["MissionAPI"].Alliances
 
@@ -66,14 +67,24 @@ end
 local function processAllianceNames(allianceNames)
 	local allyTeamIDs = {}
 	for index, allianceName in ipairs(allianceNames) do
-		allyTeamIDs[index] = processAllianceName(allianceName)
+		local allyTeamID = processAllianceName(allianceName)
+		if allyTeamID == nil then
+			return nil
+		end
+		allyTeamIDs[index] = allyTeamID
 	end
 	return allyTeamIDs
 end
 
+local processParameter
+
 local function processUnitLoadout(unitLoadout)
 	for _, unit in ipairs(unitLoadout) do
-		unit.teamID = processTeamName(unit.teamName)
+		for _, field in ipairs(unitEntryFields) do
+			if field.internal then
+				processParameter(unit, field)
+			end
+		end
 	end
 end
 
@@ -122,10 +133,23 @@ local function processValue(parameterType, value)
 end
 
 --- A parameter with an internal field keeps the author's value, and its processed value goes there.
-local function processParameter(parameters, parameter)
+function processParameter(parameters, parameter)
 	local value = parameters[parameter.name]
 	if parameter.internal then
-		parameters[parameter.internal] = value ~= nil and processors[parameter.type](value) or nil
+		local processed = value ~= nil and processors[parameter.type](value) or nil
+		if value ~= nil and processed == nil then
+			Spring.Log(
+				"parameter_processing.lua",
+				LOG.ERROR,
+				"[Mission API] Unknown "
+					.. parameter.type
+					.. " "
+					.. Json.encode(value)
+					.. " for parameter "
+					.. parameter.name
+			)
+		end
+		parameters[parameter.internal] = processed
 	elseif value ~= nil then
 		parameters[parameter.name] = processValue(parameter.type, value)
 	end

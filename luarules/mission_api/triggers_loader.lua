@@ -1,3 +1,5 @@
+local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
+
 local TRIGGERS_DIR = "luarules/mission_api/triggers/"
 local TRIGGER_FILES_PATTERN = "*.lua"
 
@@ -17,6 +19,7 @@ local function loadTriggerDefinitions()
 
 		types[triggerType] = typeID
 		parameters[typeID] = triggerDefinition.parameters or {}
+		schemaUtils.SetInternalFields(triggerType, parameters[typeID])
 
 		for callinName, handler in pairs(triggerDefinition.callins or {}) do
 			callins[callinName] = callins[callinName] or {}

@@ -1,3 +1,5 @@
+local internalTypes = VFS.Include("luarules/mission_api/parameter_types.lua").InternalTypes
+
 local function getTypesWithParameterType(schemaParameters, parameterType)
 	local typesWithParameter = {}
 
@@ -47,6 +49,22 @@ local function getTypesWithParameterName(schemaParameters, parameterName)
 	return typesWithParameter
 end
 
+local function setInternalFields(objectType, parameters)
+	for _, parameter in ipairs(parameters) do
+		if internalTypes[parameter.type] then
+			local internal, replaced = parameter.name:gsub("Name(s?)$", "ID%1")
+			if replaced == 0 then
+				Spring.Log(
+					"schema_utils.lua",
+					LOG.ERROR,
+					"[Mission API] " .. objectType .. " parameter " .. parameter.name .. " must end in Name"
+				)
+			end
+			parameter.internal = internal
+		end
+	end
+end
+
 local function collateObjectSchemas(definitions)
 	local schemas = {}
 	for objectType, typeID in pairs(definitions.Types) do
@@ -83,5 +101,6 @@ return {
 	GetTypesWithParameterType = getTypesWithParameterType,
 	GetParameterNamesWithType = getParameterNamesWithType,
 	GetTypesWithParameterName = getTypesWithParameterName,
+	SetInternalFields = setInternalFields,
 	CollateSchemas = collateSchemas,
 }
