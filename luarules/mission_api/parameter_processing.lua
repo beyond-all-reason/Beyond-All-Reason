@@ -35,10 +35,8 @@ local function processOrders(orders)
 		local commandIndex = order[1] == CMD.INSERT and 3 or 1
 		local commandID = order[commandIndex]
 		if type(commandID) == "string" then
-			local unitDef = UnitDefNames[commandID]
-			if unitDef then
-				order[commandIndex] = -unitDef.id
-			end
+			-- A build order names the unit to build, which the engine takes as a negative ID.
+			order[commandIndex] = -UnitDefNames[commandID].id
 		end
 	end
 end
@@ -56,10 +54,7 @@ local function processCommand(command)
 end
 
 local function processSoundFile(soundfile)
-	local wavData = ReadWAV(soundfile)
-	if wavData then
-		GG["MissionAPI"].soundFiles[soundfile] = wavData.Length
-	end
+	GG["MissionAPI"].soundFiles[soundfile] = ReadWAV(soundfile).Length
 end
 
 local function processEnumSet(values)
@@ -86,18 +81,26 @@ end
 --- Public processing functions:
 ----------------------------------------------------------------
 
+local function processValue(parameterType, value)
+	local processor = processors[parameterType]
+	if processor == nil then
+		return value
+	end
+	local result = processor(value)
+	if result ~= nil then
+		return result
+	end
+	return value
+end
+
 local function processParameters(actionsOrTriggers, schemaParameters)
 	for _, actionOrTrigger in pairs(actionsOrTriggers) do
 		local parameters = actionOrTrigger.parameters or {}
 		local schema = schemaParameters[actionOrTrigger.type] or {}
 		for _, parameter in ipairs(schema) do
 			local value = parameters[parameter.name]
-			local processor = processors[parameter.type]
-			if value ~= nil and processor then
-				local result = processor(value)
-				if result ~= nil then
-					parameters[parameter.name] = result
-				end
+			if value ~= nil then
+				parameters[parameter.name] = processValue(parameter.type, value)
 			end
 		end
 	end
@@ -112,6 +115,7 @@ local function processTriggerParameters(triggers)
 end
 
 return {
+	ProcessValue = processValue,
 	ProcessActionParameters = processActionParameters,
 	ProcessTriggerParameters = processTriggerParameters,
 }

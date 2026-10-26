@@ -11,7 +11,6 @@ local function loadEffectDefinitions()
 		local effectDefinition = VFS.Include(filePath)
 		local effectType = effectDefinition.type
 		if effects[effectType] then
-			GG["MissionAPI"].HasValidationErrors = true
 			Spring.Log(
 				"effects_loader.lua",
 				LOG.ERROR,
