@@ -490,16 +490,12 @@ local function registerSpatialValidators(parameterValidators, context)
 end
 
 --------------------------------------------------------------------------------
--- Team validators: TeamID, AllyTeamID and AllyTeamIDs
+-- Team validators: AllyTeamID and AllyTeamIDs
 --------------------------------------------------------------------------------
 
 local function registerTeamValidators(parameterValidators, context)
 	local Types = context.Types
 	local validateNumber = parameterValidators[Types.Number]
-
-	parameterValidators[Types.TeamID] = getLookupValidator(validateNumber, "teamID", function(teamID)
-		return Spring.GetTeamAllyTeamID(teamID)
-	end)
 
 	parameterValidators[Types.AllyTeamID] = getLookupValidator(validateNumber, "allyTeamID", function(allyTeamID)
 		return table.contains(Spring.GetAllyTeamList(), allyTeamID)
@@ -792,7 +788,7 @@ local function registerLoadoutValidators(parameterValidators, context)
 	--- entry is not among them, since its x, y and z sit directly on the entry.
 	local unitEntryFields = {
 		{ name = "unitDefName", type = Types.UnitDefName, required = true },
-		{ name = "team", type = Types.TeamID, required = true },
+		{ name = "teamName", type = Types.TeamName, required = true },
 		{ name = "facing", type = Types.Facing },
 		{ name = "unitName", type = Types.String },
 		{ name = "construction", type = Types.Boolean },

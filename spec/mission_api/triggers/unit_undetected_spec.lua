@@ -122,7 +122,7 @@ describe("mission_api.triggers.unit_undetected", function()
 			end
 			assert.is_true(names.unitName)
 			assert.is_true(names.unitDefName)
-			assert.is_true(names.owningTeamID)
+			assert.is_true(names.owningTeamName)
 			assert.is_true(names.sensorAllyTeam)
 			assert.is_true(names.sensorTypes)
 			assert.are.same({ "unitName", "unitDefName" }, unitUndetected.parameters.requiresOneOf)
@@ -150,7 +150,7 @@ describe("mission_api.triggers.unit_undetected", function()
 			assert.are.equal(0, fired())
 		end)
 
-		it("filters on owningTeamID", function()
+		it("filters on owningTeamName", function()
 			local context, fired = newContext()
 			env.Spring.GetUnitTeam = function(_unitID)
 				return 5

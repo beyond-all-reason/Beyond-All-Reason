@@ -72,10 +72,17 @@ local function loadMission(gameSetup)
 		GG["MissionAPI"].Triggers,
 		GG["MissionAPI"].Actions,
 		GG["MissionAPI"].Objectives,
-		parameterProcessing.ProcessValue
+		parameterProcessing.ProcessParameter
 	)
 	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
+	parameterProcessing.ProcessManagedObjectiveParameters(GG["MissionAPI"].ManagedObjectives)
+	if GG["MissionAPI"].UnitLoadout then
+		parameterProcessing.ProcessValue(
+			GG["MissionAPI"].Modules.ParameterTypes.Types.UnitLoadout,
+			GG["MissionAPI"].UnitLoadout
+		)
+	end
 end
 
 function gadget:Initialize()

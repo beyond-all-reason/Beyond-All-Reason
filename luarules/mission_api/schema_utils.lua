@@ -54,6 +54,8 @@ local function collateObjectSchemas(definitions)
 		local rows = {}
 		for index, parameter in ipairs(parameters) do
 			rows[index] = table.copy(parameter)
+			-- Internal fields are not written by mission authors.
+			rows[index].internal = nil
 		end
 		schemas[objectType] = {
 			parameters = rows,

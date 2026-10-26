@@ -91,7 +91,7 @@ describe("mission_api.validation.parameter_validators", function()
 	describe("Quantity", function()
 		it("rejects a negative number", function()
 			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitsOwned, {
-				teamID = 0,
+				teamName = "player",
 				quantity = -1,
 				unitDefName = "armwar",
 			}))
@@ -103,7 +103,7 @@ describe("mission_api.validation.parameter_validators", function()
 	describe("Fraction", function()
 		local function validateProgress(progress)
 			return V.validateTrigger(V.trigger(V.triggerTypes.ConstructionProgress, {
-				teamID = 0,
+				teamName = "player",
 				unitDefName = "armwar",
 				progress = progress,
 			}))
@@ -216,7 +216,7 @@ describe("mission_api.validation.parameter_validators", function()
 		it("rejects the wrong type", function()
 			local result = V.validateAction({
 				type = V.actionTypes.SpawnUnits,
-				parameters = { unitLoadout = { { unitDefName = 123, team = 0, x = 0, z = 0 } } },
+				parameters = { unitLoadout = { { unitDefName = 123, teamName = "player", x = 0, z = 0 } } },
 			})
 
 			V.assertMessage(
@@ -228,7 +228,7 @@ describe("mission_api.validation.parameter_validators", function()
 		it("rejects a unit def that does not exist", function()
 			local result = V.validateAction({
 				type = V.actionTypes.SpawnUnits,
-				parameters = { unitLoadout = { { unitDefName = "noSuch", team = 0, x = 0, z = 0 } } },
+				parameters = { unitLoadout = { { unitDefName = "noSuch", teamName = "player", x = 0, z = 0 } } },
 			})
 
 			V.assertMessage(result, "Invalid unitDefName: noSuch. Action: a, Parameter: unitLoadout[1].unitDefName")
@@ -359,7 +359,9 @@ describe("mission_api.validation.parameter_validators", function()
 		it("rejects a type that is neither string nor number", function()
 			local result = V.validateAction({
 				type = V.actionTypes.SpawnUnits,
-				parameters = { unitLoadout = { { unitDefName = "armwar", team = 0, x = 0, z = 0, facing = {} } } },
+				parameters = {
+					unitLoadout = { { unitDefName = "armwar", teamName = "player", x = 0, z = 0, facing = {} } },
+				},
 			})
 
 			V.assertMessage(
@@ -372,7 +374,7 @@ describe("mission_api.validation.parameter_validators", function()
 			local result = V.validateAction({
 				type = V.actionTypes.SpawnUnits,
 				parameters = {
-					unitLoadout = { { unitDefName = "armwar", team = 0, x = 0, z = 0, facing = "diagonal" } },
+					unitLoadout = { { unitDefName = "armwar", teamName = "player", x = 0, z = 0, facing = "diagonal" } },
 				},
 			})
 
@@ -638,7 +640,7 @@ describe("mission_api.validation.parameter_validators", function()
 			V.assertNoMessageContaining(
 				V.validateAction({
 					type = V.actionTypes.ChangeTeam,
-					parameters = { oldTeam = "rebels", newTeam = "rebels" },
+					parameters = { oldTeamName = "rebels", newTeamName = "rebels" },
 				}),
 				"Parameter:"
 			)
@@ -646,8 +648,11 @@ describe("mission_api.validation.parameter_validators", function()
 
 		it("rejects the wrong type", function()
 			V.assertMessage(
-				V.validateAction({ type = V.actionTypes.ChangeTeam, parameters = { oldTeam = 0, newTeam = "rebels" } }),
-				"Unexpected parameter type, expected string, got number. Action: a, Parameter: oldTeam"
+				V.validateAction({
+					type = V.actionTypes.ChangeTeam,
+					parameters = { oldTeamName = 0, newTeamName = "rebels" },
+				}),
+				"Unexpected parameter type, expected string, got number. Action: a, Parameter: oldTeamName"
 			)
 		end)
 
@@ -655,9 +660,9 @@ describe("mission_api.validation.parameter_validators", function()
 			V.assertMessage(
 				V.validateAction({
 					type = V.actionTypes.ChangeTeam,
-					parameters = { oldTeam = "rebels", newTeam = "nobody" },
+					parameters = { oldTeamName = "rebels", newTeamName = "nobody" },
 				}),
-				"Invalid teamName: nobody. Action: a, Parameter: newTeam"
+				"Invalid teamName: nobody. Action: a, Parameter: newTeamName"
 			)
 		end)
 	end)
@@ -692,27 +697,6 @@ describe("mission_api.validation.parameter_validators", function()
 				validateValue({ [true] = 1 }),
 				"Unexpected table key type, expected number or string, got boolean. Action: a, Parameter: value.true"
 			)
-		end)
-	end)
-
-	describe("TeamID", function()
-		it("rejects the wrong type", function()
-			local result = V.validateAction({ type = V.actionTypes.AddResources, parameters = { teamID = "bad" } })
-
-			V.assertMessage(
-				result,
-				"Unexpected parameter type, expected number, got string. Action: a, Parameter: teamID"
-			)
-		end)
-
-		it("rejects a team that does not exist", function()
-			V.env.Spring.GetTeamAllyTeamID = function()
-				return nil
-			end
-
-			local result = V.validateAction({ type = V.actionTypes.AddResources, parameters = { teamID = 99 } })
-
-			V.assertMessage(result, "Invalid teamID: 99. Action: a, Parameter: teamID")
 		end)
 	end)
 
@@ -971,7 +955,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("UnitLoadout", function()
 		it("passes for a well-formed entry", function()
-			local result = validateUnitLoadout({ { unitDefName = "armwar", team = 0, x = 0, z = 0 } })
+			local result = validateUnitLoadout({ { unitDefName = "armwar", teamName = "player", x = 0, z = 0 } })
 
 			V.assertNoMessageContaining(result, "unitLoadout entry")
 		end)
@@ -986,21 +970,21 @@ describe("mission_api.validation.parameter_validators", function()
 		it("reports a missing required field", function()
 			local result = validateUnitLoadout({ { unitDefName = "armwar", x = 0, z = 0 } })
 
-			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: unitLoadout[1].team")
+			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: unitLoadout[1].teamName")
 		end)
 
 		it("reports a missing position coordinate", function()
-			local result = validateUnitLoadout({ { unitDefName = "armwar", team = 0, x = 0 } })
+			local result = validateUnitLoadout({ { unitDefName = "armwar", teamName = "player", x = 0 } })
 
 			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: unitLoadout[1].z")
 		end)
 
 		it("reports a field of the wrong type", function()
-			local result = validateUnitLoadout({ { unitDefName = "armwar", team = "notANumber", x = 0, z = 0 } })
+			local result = validateUnitLoadout({ { unitDefName = "armwar", teamName = 0, x = 0, z = 0 } })
 
 			V.assertMessage(
 				result,
-				"Unexpected parameter type, expected number, got string. Action: a, Parameter: unitLoadout[1].team"
+				"Unexpected parameter type, expected string, got number. Action: a, Parameter: unitLoadout[1].teamName"
 			)
 		end)
 	end)

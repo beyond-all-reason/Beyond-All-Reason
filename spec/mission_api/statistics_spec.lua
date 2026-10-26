@@ -122,7 +122,7 @@ describe("mission_api.statistics", function()
 		assert.are.equal(2, #activated)
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		triggers.filterTeam = makeTrigger(TRIGGER_TYPE, { teamID = 5, quantity = 1 })
 
 		-- Wrong team: no match.

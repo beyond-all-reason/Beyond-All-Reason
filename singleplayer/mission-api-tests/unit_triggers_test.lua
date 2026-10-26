@@ -19,7 +19,7 @@ local triggers = {
 		},
 		parameters = {
 			unitName = 'bots',
-			teamID = 0,
+			teamName = 'player',
 			unitDefName = 'armpw',
 			duration = 60,
 			area = { x1 = 2000, z1 = 2300, x2 = 2200, z2 = 2500 },
@@ -36,7 +36,7 @@ local triggers = {
 		},
 		parameters = {
 			unitName = 'bots',
-			teamID = 0,
+			teamName = 'player',
 			unitDefName = 'armpw',
 			duration = 60,
 			area = { x1 = 2000, z1 = 2300, x2 = 2200, z2 = 2500 },
@@ -72,7 +72,7 @@ local triggers = {
 		type = triggerTypes.UnitEnteredLocation,
 		parameters = {
 			unitName = 'bots',
-			teamID = 0,
+			teamName = 'player',
 			unitDefName = 'armpw',
 			area = { x1 = 1700, z1 = 2300, x2 = 1900, z2 = 2600 },
 		},
@@ -83,7 +83,7 @@ local triggers = {
 		type = triggerTypes.UnitLeftLocation,
 		parameters = {
 			unitName = 'bots',
-			teamID = 0,
+			teamName = 'player',
 			unitDefName = 'armpw',
 			area = { x1 = 1700, z1 = 2300, x2 = 1900, z2 = 2600 },
 		},
@@ -103,7 +103,7 @@ local triggers = {
 		type = triggerTypes.ConstructionStarted,
 		parameters = {
 			unitDefName = 'armsolar',
-			teamID = 0,
+			teamName = 'player',
 		},
 		actions = { 'messageConstructionStartedSolar' },
 	},
@@ -112,7 +112,7 @@ local triggers = {
 		type = triggerTypes.ConstructionProgress,
 		parameters = {
 			unitDefName = 'armsolar',
-			teamID = 0,
+			teamName = 'player',
 			progress = 0.5,
 		},
 		actions = { 'messageConstructionHalfwaySolar' },
@@ -122,7 +122,7 @@ local triggers = {
 		type = triggerTypes.ConstructionFinished,
 		parameters = {
 			unitDefName = 'armsolar',
-			teamID = 0,
+			teamName = 'player',
 		},
 		actions = { 'messageConstructionFinishedSolar' },
 	},
@@ -131,7 +131,7 @@ local triggers = {
 		type = triggerTypes.ConstructionStarted,
 		parameters = {
 			unitDefName = 'armsolar',
-			teamID = 0,
+			teamName = 'player',
 			builderName = 'decoys',
 		},
 		actions = { 'messageConstructionStartedByDecoy' },
@@ -142,7 +142,7 @@ local triggers = {
 		type = triggerTypes.ConstructionFinished,
 		parameters = {
 			unitDefName = 'armsolar',
-			teamID = 0,
+			teamName = 'player',
 		},
 		actions = { 'messageConstructionFinishedByDecoy' },
 	},
@@ -167,7 +167,7 @@ local triggers = {
 		type = triggerTypes.ConstructionCanceled,
 		parameters = {
 			unitDefName = 'armsolar',
-			teamID = 0,
+			teamName = 'player',
 		},
 		actions = { 'messageConstructionCanceledSolar' },
 	},
@@ -192,7 +192,7 @@ local triggers = {
 		type = triggerTypes.ConstructionStarted,
 		parameters = {
 			unitDefName = 'armsolar',
-			teamID = 0,
+			teamName = 'player',
 			builderName = 'assister',
 		},
 		actions = { 'messageConstructionStartedByAssister' },
@@ -219,7 +219,7 @@ local triggers = {
 		type = triggerTypes.UnitReclaimed,
 		parameters = {
 			unitDefName = 'armrad',
-			teamID = 0,
+			teamName = 'player',
 		},
 		actions = { 'messageUnitReclaimedRadar' },
 	},
@@ -257,7 +257,7 @@ local triggers = {
 		},
 		parameters = {
 			unitDefName = 'armpw',
-			teamID = 0,
+			teamName = 'player',
 		},
 		actions = { 'messageProductionStartedPawn' },
 	},
@@ -266,7 +266,7 @@ local triggers = {
 		type = triggerTypes.ProductionStarted,
 		parameters = {
 			unitDefName = 'armck',
-			teamID = 0,
+			teamName = 'player',
 			factoryName = 'botlab',
 		},
 		actions = { 'messageProductionStartedByBotLab' },
@@ -276,7 +276,7 @@ local triggers = {
 		type = triggerTypes.ProductionStarted,
 		parameters = {
 			unitDefName = 'armfav',
-			teamID = 0,
+			teamName = 'player',
 			factoryDefName = 'armvp',
 		},
 		actions = { 'messageProductionStartedByVehiclePlant' },
@@ -286,7 +286,7 @@ local triggers = {
 		type = triggerTypes.UnitResurrected,
 		parameters = {
 			unitDefName = 'armllt',
-			teamID = 0,
+			teamName = 'player',
 		},
 		actions = { 'messageRessed' },
 	},
@@ -299,7 +299,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1800, z = 2200, team = 1, unitName = 'bots' },
+				{ unitDefName = 'armllt', x = 1800, z = 2200, teamName = 'enemy', unitName = 'bots' },
 			},
 		},
 	},
@@ -308,7 +308,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 1800, z = 1600, team = 0, unitName = 'bots', quantity = 4 },
+				{ unitDefName = 'armpw', x = 1800, z = 1600, teamName = 'player', unitName = 'bots', quantity = 4 },
 			},
 		},
 	},
@@ -377,7 +377,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armdecom', x = 1900, z = 2600, team = 0, unitName = 'decoys' },
+				{ unitDefName = 'armdecom', x = 1900, z = 2600, teamName = 'player', unitName = 'decoys' },
 			},
 		},
 	},
@@ -386,7 +386,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 1600, z = 2800, team = 1 },
+				{ unitDefName = 'armwin', x = 1600, z = 2800, teamName = 'enemy' },
 			},
 		},
 	},
@@ -463,7 +463,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 2400, z = 2400, team = 0, unitName = 'canceler' },
+				{ unitDefName = 'armck', x = 2400, z = 2400, teamName = 'player', unitName = 'canceler' },
 			},
 		},
 	},
@@ -482,7 +482,7 @@ local actions = {
 		type = actionTypes.NameUnits,
 		parameters = {
 			unitName = 'doomedSolar',
-			teamID = 0,
+			teamName = 'player',
 			unitDefName = 'armsolar',
 			area = { x = 2400, z = 2480, radius = 100 },
 		},
@@ -499,7 +499,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 2520, z = 2480, team = 0, unitName = 'placer' },
+				{ unitDefName = 'armck', x = 2520, z = 2480, teamName = 'player', unitName = 'placer' },
 			},
 		},
 	},
@@ -519,7 +519,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 2680, z = 2480, team = 0, unitName = 'assister' },
+				{ unitDefName = 'armck', x = 2680, z = 2480, teamName = 'player', unitName = 'assister' },
 			},
 		},
 	},
@@ -559,7 +559,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrad', x = 2400, z = 3000, team = 0, unitName = 'doomedRadar' },
+				{ unitDefName = 'armrad', x = 2400, z = 3000, teamName = 'player', unitName = 'doomedRadar' },
 			},
 		},
 	},
@@ -568,7 +568,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 2560, z = 3000, team = 0, unitName = 'reclaimer' },
+				{ unitDefName = 'armck', x = 2560, z = 3000, teamName = 'player', unitName = 'reclaimer' },
 			},
 		},
 	},
@@ -609,8 +609,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armlab', x = 2400, z = 3000, team = 0, unitName = 'botlab' },
-				{ unitDefName = 'armvp', x = 2750, z = 3000, team = 0, unitName = 'vehicleplant' },
+				{ unitDefName = 'armlab', x = 2400, z = 3000, teamName = 'player', unitName = 'botlab' },
+				{ unitDefName = 'armvp', x = 2750, z = 3000, teamName = 'player', unitName = 'vehicleplant' },
 			},
 		},
 	},
@@ -642,7 +642,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrectr', x = 1900, z = 2600, team = 0, unitName = 'res', quantity = 4 },
+				{ unitDefName = 'armrectr', x = 1900, z = 2600, teamName = 'player', unitName = 'res', quantity = 4 },
 			},
 		},
 	},

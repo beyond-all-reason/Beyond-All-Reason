@@ -46,7 +46,7 @@ local triggers = {
 		type = triggerTypes.UnitAttacked,
 		parameters = {
 			unitDefName = 'armstump',
-			teamID = 0,
+			teamName = 'player',
 		},
 		settings = {
 			repeating = true,
@@ -60,7 +60,7 @@ local triggers = {
 		type = triggerTypes.UnitAttacked,
 		parameters = {
 			unitDefName = 'armstump',
-			teamID = 1,
+			teamName = 'enemy',
 		},
 		actions = { 'messageWrongTeam' },
 	},
@@ -73,7 +73,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armstump', x = 2400, z = 2400, team = 0, unitName = 'target' },
+				{ unitDefName = 'armstump', x = 2400, z = 2400, teamName = 'player', unitName = 'target' },
 			},
 		},
 	},
@@ -82,7 +82,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 2440, z = 2400, team = 0, unitName = 'ally' },
+				{ unitDefName = 'armpw', x = 2440, z = 2400, teamName = 'player', unitName = 'ally' },
 			},
 		},
 	},
@@ -91,7 +91,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corak', x = 3300, z = 2400, team = 1, unitName = 'enemy' },
+				{ unitDefName = 'corak', x = 3300, z = 2400, teamName = 'enemy', unitName = 'enemy' },
 			},
 		},
 	},

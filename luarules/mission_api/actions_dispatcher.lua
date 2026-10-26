@@ -11,7 +11,7 @@ local function unpackActionParameters(actionId, i)
 	i = i or 1
 
 	if i <= #schema then
-		local parameterValue = actions[actionId].parameters[schema[i].name]
+		local parameterValue = actions[actionId].parameters[schema[i].internal or schema[i].name]
 		return parameterValue, unpackActionParameters(actionId, i + 1)
 	end
 end

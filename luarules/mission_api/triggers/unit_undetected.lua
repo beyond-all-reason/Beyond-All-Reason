@@ -31,7 +31,7 @@ return {
 	parameters = {
 		{ name = 'unitName',       required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName',    required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'owningTeamID',   required = false, type = ParameterTypes.TeamID },
+		{ name = 'owningTeamName', required = false, type = ParameterTypes.TeamName, internal = 'owningTeamID' },
 		{ name = 'sensorAllyTeam', required = false, type = ParameterTypes.AllyTeamID },
 		{ name = 'sensorTypes',    required = false, type = ParameterTypes.SensorTypes },
 		requiresOneOf = { 'unitName', 'unitDefName' },

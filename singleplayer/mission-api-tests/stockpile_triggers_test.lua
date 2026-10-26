@@ -94,7 +94,7 @@ local actions = {
 	fundSilo = {
 		type = actionTypes.AddResourcesPerSecond,
 		parameters = {
-			teamID = 0,
+			teamName = 'player',
 			metal = 10,
 			energy = 1100,
 		},
@@ -104,7 +104,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsilo', x = SILO[1], z = SILO[3], team = 0, unitName = 'silo' },
+				{ unitDefName = 'armsilo', x = SILO[1], z = SILO[3], teamName = 'player', unitName = 'silo' },
 			},
 		},
 	},
@@ -169,7 +169,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armamd', x = CITADEL[1], z = CITADEL[3], team = 1, unitName = 'citadel' },
+				{ unitDefName = 'armamd', x = CITADEL[1], z = CITADEL[3], teamName = 'enemy', unitName = 'citadel' },
 			},
 		},
 	},

@@ -52,7 +52,7 @@ describe("mission_api.triggers.construction_canceled", function()
 		end
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.are.same({ "unitName", "unitDefName" }, constructionCanceled.parameters.requiresOneOf)
 	end)
 
@@ -62,7 +62,7 @@ describe("mission_api.triggers.construction_canceled", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
 		destroyed(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 9)
 		assert.are.equal(0, fired())

@@ -286,7 +286,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'radarTarget',
-			owningTeamID = 1,
+			owningTeamName = 'enemy',
 			sensorAllyTeam = 0,
 		},
 		actions = { 'messageOwningTeamMatches' },
@@ -297,7 +297,7 @@ local triggers = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'radarTarget',
-			owningTeamID = 1,
+			owningTeamName = 'enemy',
 			sensorAllyTeam = 0,
 		},
 		actions = { 'messageOwningTeamUndetected' },
@@ -308,7 +308,7 @@ local triggers = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'radarTarget',
-			owningTeamID = 0,
+			owningTeamName = 'player',
 			sensorAllyTeam = 0,
 		},
 		actions = { 'messageOwningTeamExcludes' },
@@ -369,8 +369,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsd', x = 1800, z = 1800, team = 0 },
-				{ unitDefName = 'armrad', x = 4700, z = 2000, team = 0 },
+				{ unitDefName = 'armsd', x = 1800, z = 1800, teamName = 'player' },
+				{ unitDefName = 'armrad', x = 4700, z = 2000, teamName = 'player' },
 			},
 		},
 	},
@@ -379,8 +379,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 1800, z = 1600, team = 0 },
-				{ unitDefName = 'armfus', x = 3900, z = 6000, team = 1 },
+				{ unitDefName = 'armfus', x = 1800, z = 1600, teamName = 'player' },
+				{ unitDefName = 'armfus', x = 3900, z = 6000, teamName = 'enemy' },
 			},
 		},
 	},
@@ -389,12 +389,12 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armspy', x = 1800, z = 4600, team = 1, unitName = 'spy' },
-				{ unitDefName = 'corfast', x = 4500, z = 4900, team = 1, unitName = 'radarTarget' },
-				{ unitDefName = 'corfast', x = 4900, z = 4900, team = 1, unitName = 'visionTarget' },
+				{ unitDefName = 'armspy', x = 1800, z = 4600, teamName = 'enemy', unitName = 'spy' },
+				{ unitDefName = 'corfast', x = 4500, z = 4900, teamName = 'enemy', unitName = 'radarTarget' },
+				{ unitDefName = 'corfast', x = 4900, z = 4900, teamName = 'enemy', unitName = 'visionTarget' },
 				-- 1600 from armrad: inside radar 2100, outside sight 680, and 3400 from
 				-- armsd so it is out of seismic. Detected where it stands, then destroyed.
-				{ unitDefName = 'corak', x = 4700, z = 3600, team = 1, unitName = 'deathTarget' },
+				{ unitDefName = 'corak', x = 4700, z = 3600, teamName = 'enemy', unitName = 'deathTarget' },
 			},
 		},
 	},
@@ -542,17 +542,17 @@ local actions = {
 
 	messageOwningTeamMatches = {
 		type = actionTypes.SendMessage,
-		parameters = { messageKey = "owningTeamID matched the target's team." },
+		parameters = { messageKey = "owningTeamName matched the target's team." },
 	},
 
 	messageOwningTeamUndetected = {
 		type = actionTypes.SendMessage,
-		parameters = { messageKey = "Undetected with an owningTeamID filter." },
+		parameters = { messageKey = "Undetected with an owningTeamName filter." },
 	},
 
 	messageOwningTeamExcludes = {
 		type = actionTypes.SendMessage,
-		parameters = { messageKey = "BUG: owningTeamID filter let through a unit of another team." },
+		parameters = { messageKey = "BUG: owningTeamName filter let through a unit of another team." },
 	},
 
 	messageBothNameFilters = {

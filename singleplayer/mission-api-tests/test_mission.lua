@@ -102,7 +102,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corck', x = 1800, z = 1600, facing = 'n', team = 0, unitName = 'con-bots', quantity = 9, spacing = 32 },
+				{ unitDefName = 'corck', x = 1800, z = 1600, facing = 'n', teamName = 'player', unitName = 'con-bots', quantity = 9, spacing = 32 },
 			},
 		},
 	},
@@ -111,7 +111,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 1900, z = 2200, facing = 'e', team = 0, quantity = 18 },
+				{ unitDefName = 'armfus', x = 1900, z = 2200, facing = 'e', teamName = 'player', quantity = 18 },
 			},
 		},
 	},
@@ -120,7 +120,7 @@ local actions = {
 		type = actionTypes.NameUnits,
 		parameters = {
 			unitName = 'fusions',
-			teamID = 0,
+			teamName = 'player',
 			unitDefName = 'armfus',
 			area = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
 		},
@@ -186,7 +186,7 @@ local actions = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			unitName = 'con-bots',
-			newTeam = 1,
+			newTeamName = 'enemy',
 		},
 	},
 
@@ -201,7 +201,7 @@ local actions = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			unitName = 'con-bots',
-			newTeam = 0,
+			newTeamName = 'player',
 		},
 	},
 

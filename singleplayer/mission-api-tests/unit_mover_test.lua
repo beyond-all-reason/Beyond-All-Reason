@@ -117,7 +117,7 @@ local actions = {
 					unitDefName = 'armstump',
 					x = 2300,
 					z = 1900,
-					team = 0,
+					teamName = 'player',
 					unitName = 'tanks',
 					quantity = 1
 				},

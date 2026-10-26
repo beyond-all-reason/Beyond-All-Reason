@@ -51,7 +51,7 @@ describe("mission_api.triggers.unit_resurrected", function()
 			names[parameter.name] = true
 		end
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.featureName)
 		assert.are.same({ "featureName", "unitDefName" }, unitResurrected.parameters.requiresOneOf)
 	end)
@@ -77,7 +77,7 @@ describe("mission_api.triggers.unit_resurrected", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
 		created(trigger({ unitDefName = "armpw", teamID = 5 }), context, 1, 0, 10)
 		assert.are.equal(0, fired())

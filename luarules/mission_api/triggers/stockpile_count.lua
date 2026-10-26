@@ -6,7 +6,7 @@ return {
 		{ name = 'count',       required = true,  type = ParameterTypes.PositiveInteger },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
+		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName, internal = 'teamID' },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {

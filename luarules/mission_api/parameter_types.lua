@@ -47,7 +47,6 @@ local types = {
 	Quantity = "Quantity",
 	PositiveInteger = "PositiveInteger",
 	Fraction = "Fraction",
-	TeamID = "TeamID",
 	AllyTeamID = "AllyTeamID",
 	MessageType = "MessageType",
 

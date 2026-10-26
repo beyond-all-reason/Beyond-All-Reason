@@ -48,11 +48,9 @@ local helper = {
 --- Engine globals the validators read. Set per test, since other specs reset them.
 function helper.mockEngineGlobals()
 	env.CMD, env.GameCMD = originalCMD, originalGameCMD
-	missionAPI.Teams = nil
+	-- The named team of a single player start script.
+	missionAPI.Teams = { player = 0, [0] = "player" }
 	missionAPI.Variables = {}
-	env.Spring.GetTeamAllyTeamID = function()
-		return true
-	end
 	env.Spring.GetAllyTeamList = function()
 		return { 0 }
 	end

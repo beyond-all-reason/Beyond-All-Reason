@@ -9,6 +9,7 @@ local enumSets = GG["MissionAPI"].Modules.ParameterTypes.EnumSets
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local triggersSchemaParameters = GG["MissionAPI"].TriggerDefinitions.Parameters
+local teams = GG["MissionAPI"].Teams
 
 ----------------------------------------------------------------
 --- Parameter processors:
@@ -53,6 +54,16 @@ local function processCommand(command)
 	end
 end
 
+local function processTeamName(teamName)
+	return teams[teamName]
+end
+
+local function processUnitLoadout(unitLoadout)
+	for _, unit in ipairs(unitLoadout) do
+		unit.teamID = processTeamName(unit.teamName)
+	end
+end
+
 local function processSoundFile(soundfile)
 	GG["MissionAPI"].soundFiles[soundfile] = ReadWAV(soundfile).Length
 end
@@ -72,6 +83,8 @@ local processors = {
 	[ParameterTypes.Orders] = processOrders,
 	[ParameterTypes.Command] = processCommand,
 	[ParameterTypes.SoundFile] = processSoundFile,
+	[ParameterTypes.TeamName] = processTeamName,
+	[ParameterTypes.UnitLoadout] = processUnitLoadout,
 }
 for enumSetType in pairs(enumSets) do
 	processors[enumSetType] = processEnumSet
@@ -93,16 +106,25 @@ local function processValue(parameterType, value)
 	return value
 end
 
+--- A parameter with an internal field keeps the author's value, and its processed value goes there.
+local function processParameter(parameters, parameter)
+	local value = parameters[parameter.name]
+	if parameter.internal then
+		parameters[parameter.internal] = value ~= nil and processors[parameter.type](value) or nil
+	elseif value ~= nil then
+		parameters[parameter.name] = processValue(parameter.type, value)
+	end
+end
+
+local function processSchemaParameters(parameters, schema)
+	for _, parameter in ipairs(schema or {}) do
+		processParameter(parameters, parameter)
+	end
+end
+
 local function processParameters(actionsOrTriggers, schemaParameters)
 	for _, actionOrTrigger in pairs(actionsOrTriggers) do
-		local parameters = actionOrTrigger.parameters or {}
-		local schema = schemaParameters[actionOrTrigger.type] or {}
-		for _, parameter in ipairs(schema) do
-			local value = parameters[parameter.name]
-			if value ~= nil then
-				parameters[parameter.name] = processValue(parameter.type, value)
-			end
-		end
+		processSchemaParameters(actionOrTrigger.parameters or {}, schemaParameters[actionOrTrigger.type])
 	end
 end
 
@@ -114,8 +136,18 @@ local function processTriggerParameters(triggers)
 	processParameters(triggers, triggersSchemaParameters)
 end
 
+local function processManagedObjectiveParameters(managedObjectives)
+	for triggerType, objectives in pairs(managedObjectives) do
+		for _, objective in ipairs(objectives) do
+			processSchemaParameters(objective.parameters, triggersSchemaParameters[triggerType])
+		end
+	end
+end
+
 return {
 	ProcessValue = processValue,
+	ProcessParameter = processParameter,
 	ProcessActionParameters = processActionParameters,
 	ProcessTriggerParameters = processTriggerParameters,
+	ProcessManagedObjectiveParameters = processManagedObjectiveParameters,
 }

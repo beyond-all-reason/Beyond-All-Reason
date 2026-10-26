@@ -95,8 +95,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck',   x = 1900, z = 1700, facing = 'e', team = 0, unitName = 'reinforcement-con' },
-				{ unitDefName = 'armflea', x = 1900, z = 1820, facing = 'e', team = 0,
+				{ unitDefName = 'armck',   x = 1900, z = 1700, facing = 'e', teamName = 'player', unitName = 'reinforcement-con' },
+				{ unitDefName = 'armflea', x = 1900, z = 1820, facing = 'e', teamName = 'player',
 				  orders = {
 				    { CMD.MOVE, { 2100, 0, 2220 }, {} },
 				  },
@@ -162,16 +162,16 @@ local actions = {
 
 local unitLoadout    = {
 	-- Player team (team 0).
-	{ unitDefName = 'armck', x = 1780, z = 1850, facing = 'e', team = 0, unitName = 'player-con' },
-	{ unitDefName = 'corck', x = 1780, z = 1800, facing = 'e', team = 0,
+	{ unitDefName = 'armck', x = 1780, z = 1850, facing = 'e', teamName = 'player', unitName = 'player-con' },
+	{ unitDefName = 'corck', x = 1780, z = 1800, facing = 'e', teamName = 'player',
 	  orders = {
 	    { CMD.PATROL, { 1780, 0, 1950 }, {} },
 	  },
 	},
 
 	-- Enemy team (team 1)
-	{ unitDefName = 'corsolar', x = 1700, z = 2150, facing = 'w', team = 1 },
-	{ unitDefName = 'corsolar', x = 1800, z = 2150, facing = 's', team = 1 },
+	{ unitDefName = 'corsolar', x = 1700, z = 2150, facing = 'w', teamName = 'enemy' },
+	{ unitDefName = 'corsolar', x = 1800, z = 2150, facing = 's', teamName = 'enemy' },
 }
 
 local featureLoadout = {

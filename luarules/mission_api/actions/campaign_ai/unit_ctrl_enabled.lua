@@ -36,7 +36,7 @@ return {
 		type = "EnableUnitsControl",
 		parameters = {
 			{ name = "unitName", required = true, type = ParameterTypes.UnitName },
-			{ name = "teamID", required = true, type = ParameterTypes.TeamID },
+			{ name = "teamName", required = true, type = ParameterTypes.TeamName, internal = "teamID" },
 		},
 		actionFunction = enableUnitsControl,
 	},
@@ -44,7 +44,7 @@ return {
 		type = "DisableUnitsControl",
 		parameters = {
 			{ name = "unitName", required = true, type = ParameterTypes.UnitName },
-			{ name = "teamID", required = true, type = ParameterTypes.TeamID },
+			{ name = "teamName", required = true, type = ParameterTypes.TeamName, internal = "teamID" },
 		},
 		actionFunction = disableUnitsControl,
 	},

@@ -73,7 +73,7 @@ describe("mission_api.triggers.unit_attacked", function()
 		end
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.are.same({ "unitName", "unitDefName" }, unitAttacked.parameters.requiresOneOf)
 	end)
 
@@ -130,7 +130,7 @@ describe("mission_api.triggers.unit_attacked", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID, which is the attacked unit's team", function()
+	it("filters by teamName, which is the attacked unit's team", function()
 		local context, fired = newContext()
 		damaged(trigger({ unitDefName = "armpw", teamID = 1 }), context, {
 			unitDefID = 1,

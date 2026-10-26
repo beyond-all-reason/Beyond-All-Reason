@@ -4,7 +4,7 @@ local matchingUnits = GG['MissionAPI'].Modules.UnitQuery.MatchingUnits
 local markerParameters = {
 	{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 	{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-	{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
+	{ name = 'teamName',    required = false, type = ParameterTypes.TeamName, internal = 'teamID' },
 	{ name = 'markerType',  required = false, type = ParameterTypes.String },
 	requiresOneOf = { 'unitName', 'unitDefName' },
 }

@@ -7,8 +7,8 @@
 --- so trigger and action code receive plain values. Objective fields populate only at init.
 ---
 
-local referencingParameters = {} ---@type table<string, { parameters:table, name:string, type:string, raw:any }?>
-local processParameterValue ---@type (fun(parameterType:string, value:any):any)?
+local referencingParameters = {} ---@type table<string, { parameters:table, parameter:table, raw:any }?>
+local processParameter ---@type (fun(parameters:table, parameter:table))?
 
 local function isVariableReference(value)
 	return type(value) == "table" and value.variable ~= nil
@@ -77,8 +77,7 @@ local function registerParameters(parameters, schema, registered)
 		if hasVariableReference(value) then
 			local reference = {
 				parameters = parameters,
-				name = parameter.name,
-				type = parameter.type,
+				parameter = parameter,
 				raw = value,
 			}
 			callOnVariableKeys(value, function(key)
@@ -125,9 +124,9 @@ local function resolveObjectiveFields(objectives, triggers)
 end
 
 --- Resolves every reference in validated triggers, actions, and objectives, after difficulties.
---- processValue(parameterType, value) is rerun on each write within parameter_processing.
-local function resolveReferences(triggers, actions, objectives, processValue)
-	processParameterValue = processValue
+--- processParameterOnWrite(parameters, parameter) is rerun on each write within parameter_processing.
+local function resolveReferences(triggers, actions, objectives, processParameterOnWrite)
+	processParameter = processParameterOnWrite
 
 	local registered = {}
 	local triggerSchema = GG["MissionAPI"].TriggerDefinitions.Parameters
@@ -160,11 +159,10 @@ local function setVariable(key, value)
 	GG["MissionAPI"].Variables[key] = value
 
 	for _, reference in ipairs(referencingParameters[key] or {}) do
-		local resolved = resolveValue(reference.raw)
-		if resolved ~= nil and processParameterValue then
-			resolved = processParameterValue(reference.type, resolved)
+		reference.parameters[reference.parameter.name] = resolveValue(reference.raw)
+		if processParameter then
+			processParameter(reference.parameters, reference.parameter)
 		end
-		reference.parameters[reference.name] = resolved
 	end
 end
 
