@@ -14,7 +14,7 @@ while not tweaked do
 	if tweakUnits == nil or tweakDefs == nil then
 		break -- we reached numTweakSlots
 	end
-	tweaked  = tweakDefs ~= "" or tweakUnits ~= ""
+	tweaked = tweakDefs ~= "" or tweakUnits ~= ""
 	i = i + 1
 end
 if not tweaked then
