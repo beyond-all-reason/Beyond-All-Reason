@@ -4,8 +4,11 @@
 --- Parameters and fields in mission scripts can receive values like { variable = <key> }.
 --- References resolve in-place after difficulties do and before any other parameter changes.
 --- Action and trigger paramters then re-resolve whenever their variables are written into,
---- so trigger and action code receive plain values. Objective fields populate only at init.
+--- so trigger and action code receive plain values. Objective fields and condition thresholds
+--- (count, atLeast, atMost) populate only at init.
 ---
+
+local objectivesLoader = VFS.Include("luarules/mission_api/objectives_loader.lua")
 
 local referencingParameters = {} ---@type table<string, { parameters:table, name:string, type:string, raw:any }?>
 local processParameterValue ---@type (fun(parameterType:string, value:any):any)?
@@ -92,33 +95,25 @@ local function registerParameters(parameters, schema, registered)
 	end
 end
 
---- Objective fields resolve once. objectives_loader ran before validation, when amount was not
---- resolvable yet, so the maxRepeats it derives from amount is filled in here for synthesized triggers.
+--- Objective fields and condition thresholds resolve once, when the mission starts.
+--- objectives_loader built each objective's condition record before variables were
+--- known, so the resolved amount is copied onto it here as its threshold.
 local function resolveObjectiveFields(objectives, triggers)
 	for objectiveID, objective in pairs(objectives) do
-		local amountIsReference = hasVariableReference(objective.amount)
 		for fieldName, value in pairs(objective) do
 			if fieldName ~= "trigger" and hasVariableReference(value) then
 				objective[fieldName] = resolveValue(value)
 			end
 		end
-
-		if amountIsReference and type(objective.amount) == "number" then
-			local triggerID = GG["MissionAPI"].ObjectiveTriggers[objectiveID]
-			local trigger = triggerID and triggers[triggerID]
-			if trigger then
-				trigger.settings.maxRepeats = objective.amount > 1 and (objective.amount - 1) or nil
-			end
-		end
+		objectivesLoader.ApplyThresholds(objectiveID, objective, triggers)
 	end
+end
 
-	for _, managedObjectives in pairs(GG["MissionAPI"].ManagedObjectives) do
-		for _, metadata in ipairs(managedObjectives) do
-			if hasVariableReference(metadata.amount) then
-				metadata.amount = resolveValue(metadata.amount)
-			end
-			if hasVariableReference(metadata.nextStage) then
-				metadata.nextStage = resolveValue(metadata.nextStage)
+local function resolveTriggerThresholds(triggers)
+	for _, trigger in pairs(triggers) do
+		for _, fieldName in ipairs(objectivesLoader.ThresholdFields) do
+			if hasVariableReference(trigger[fieldName]) then
+				trigger[fieldName] = resolveValue(trigger[fieldName])
 			end
 		end
 	end
@@ -130,7 +125,7 @@ local function resolveReferences(triggers, actions, objectives, processValue)
 	processParameterValue = processValue
 
 	local registered = {}
-	local triggerSchema = GG["MissionAPI"].TriggerDefinitions.Parameters
+	local triggerSchema = GG["MissionAPI"].ConditionDefinitions.Parameters
 	for _, trigger in pairs(triggers) do
 		registerParameters(trigger.parameters, triggerSchema[trigger.type], registered)
 	end
@@ -145,6 +140,7 @@ local function resolveReferences(triggers, actions, objectives, processValue)
 		end
 	end
 
+	resolveTriggerThresholds(triggers)
 	resolveObjectiveFields(objectives, triggers)
 end
 

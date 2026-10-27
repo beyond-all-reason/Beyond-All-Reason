@@ -305,14 +305,97 @@ describe("mission_api.validation.sections", function()
 			V.assertMessage(result, "Objective trigger missing required parameter. Objective: o, Parameter: seconds")
 		end)
 
-		-- Objective triggers take their quantity from the objective's own amount.
-		it("warns when a statistics trigger specifies quantity", function()
+		it("reports a threshold on the inline trigger, which the objective's amount sets", function()
 			local result = validateObjectiveTrigger({
 				type = V.triggerTypes.UnitsOwned,
-				parameters = { teamID = 0, quantity = 5, unitDefName = "armwar" },
+				parameters = { teamID = 0 },
+				atLeast = 5,
 			})
 
-			V.assertMessage(result, "Objective trigger 'quantity' is not supported and will be ignored. Objective: o")
+			V.assertMessage(
+				result,
+				"Objective trigger must not have a 'atLeast' field; use the objective's amount. Objective: o"
+			)
+		end)
+
+		it("reports an unknown parameter", function()
+			local result = validateObjectiveTrigger({
+				type = V.triggerTypes.UnitsOwned,
+				parameters = { teamID = 0, quantity = 5 },
+			})
+
+			V.assertMessage(result, "Unknown parameter. Objective: o, Parameter: quantity")
+		end)
+
+		it("accepts a metric trigger, whose amount becomes the level to reach", function()
+			V.assertValid(validateObjective({
+				textKey = "ok",
+				amount = 3,
+				trigger = { type = V.triggerTypes.UnitsOwned, parameters = { teamID = 0 } },
+			}))
+		end)
+	end)
+
+	describe("objective fields, unknown", function()
+		it("reports an unknown field", function()
+			local result = validateObjective({ textKey = "ok", amountt = 3 })
+
+			V.assertMessage(result, "Unknown field. Objective: o, Field: amountt")
+		end)
+	end)
+
+	describe("trigger thresholds", function()
+		local function validateTrigger(trigger)
+			trigger.actions = { "a" }
+			return V.validate(V.mission():WithTrigger("t", trigger):WithAction("a", {
+				type = V.actionTypes.SendMessage,
+				parameters = { messageKey = "ok" },
+			}))
+		end
+
+		it("passes for an event trigger with a count", function()
+			V.assertValid(validateTrigger({
+				type = V.triggerTypes.TotalUnitsKilled,
+				parameters = { teamID = 0 },
+				count = 3,
+			}))
+		end)
+
+		it("passes for a metric trigger with a bound", function()
+			V.assertValid(validateTrigger({
+				type = V.triggerTypes.UnitsOwned,
+				parameters = { teamID = 0 },
+				atMost = 0,
+			}))
+		end)
+
+		it("rejects count on a metric trigger", function()
+			local result = validateTrigger({ type = V.triggerTypes.UnitsOwned, parameters = { teamID = 0 }, count = 3 })
+
+			V.assertMessage(result, "Metric conditions are thresholded with atLeast/atMost, not count. Trigger: t")
+		end)
+
+		it("rejects atLeast on an event trigger", function()
+			local result = validateTrigger({
+				type = V.triggerTypes.TimeElapsed,
+				parameters = { seconds = 1 },
+				atLeast = 3,
+			})
+
+			V.assertMessage(result, "Event conditions are thresholded with count, not atLeast/atMost. Trigger: t")
+		end)
+
+		it("requires a bound on a metric trigger", function()
+			local result = validateTrigger({ type = V.triggerTypes.UnitsOwned, parameters = { teamID = 0 } })
+
+			V.assertMessage(result, "Metric conditions require atLeast and/or atMost. Trigger: t")
+		end)
+
+		it("reports an unknown field", function()
+			local result =
+				validateTrigger({ type = V.triggerTypes.TimeElapsed, parameters = { seconds = 1 }, amount = 3 })
+
+			V.assertMessage(result, "Unknown field. Trigger: t, Field: amount")
 		end)
 	end)
 
@@ -615,16 +698,11 @@ describe("mission_api.validation.sections", function()
 			)
 		end)
 
-		it("reports maxRepeats without repeating", function()
-			local result = validateSettings({ maxRepeats = 3 })
+		-- maxRepeats was removed; a mission still using it should fail loudly rather than repeat forever.
+		it("reports an unknown setting", function()
+			local result = validateSettings({ repeating = true, maxRepeats = 3 })
 
-			V.assertMessage(result, "Trigger has maxRepeats setting but is not set to repeating. Trigger: t")
-		end)
-
-		it("reports a negative maxRepeats", function()
-			local result = validateSettings({ repeating = true, maxRepeats = -1 })
-
-			V.assertMessage(result, "Quantity must be >= 0, got -1. Trigger: t, Setting: maxRepeats")
+			V.assertMessage(result, "Unknown setting. Trigger: t, Setting: maxRepeats")
 		end)
 
 		describe("prerequisites", function()

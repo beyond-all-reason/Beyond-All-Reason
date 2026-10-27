@@ -2,7 +2,8 @@
 --- Stages and objectives test mission.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local metricTypes = GG['MissionAPI'].ConditionDefinitions.MetricTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local initialStage = 'gate'
@@ -21,25 +22,25 @@ local objectives = {
 	-- Stage gate: quick and slow share a nextStage
 	quick = {
 		textKey = 'gate_quick',
-		trigger = { type = triggerTypes.TimeElapsed, parameters = { seconds = 2 } },
+		trigger = { type = eventTypes.TimeElapsed, parameters = { seconds = 2 } },
 		nextStage = 'observer',
 		onActivated = 'quickActivated',
 	},
 	slow = {
 		textKey = 'gate_slow',
-		trigger = { type = triggerTypes.TimeElapsed, parameters = { seconds = 5 } },
+		trigger = { type = eventTypes.TimeElapsed, parameters = { seconds = 5 } },
 		nextStage = 'observer',
 	},
 	bonus = {
 		textKey = 'gate_bonus',
-		trigger = { type = triggerTypes.TimeElapsed, parameters = { seconds = 3 } },
+		trigger = { type = eventTypes.TimeElapsed, parameters = { seconds = 3 } },
 	},
 
 	-- Stage observer: route's nextStage is the decoy, but its onCompleted trigger
 	-- changes to failure first, so the gate stands down.
 	route = {
 		textKey = 'observer_route',
-		trigger = { type = triggerTypes.TimeElapsed, parameters = { seconds = 7 } },
+		trigger = { type = eventTypes.TimeElapsed, parameters = { seconds = 7 } },
 		nextStage = 'decoy',
 		onCompleted = 'routeCompleted',
 	},
@@ -60,7 +61,7 @@ local objectives = {
 	},
 	partner = {
 		textKey = 'cancel_partner',
-		trigger = { type = triggerTypes.TimeElapsed, parameters = { seconds = 12 } },
+		trigger = { type = eventTypes.TimeElapsed, parameters = { seconds = 12 } },
 		nextStage = 'activation',
 	},
 
@@ -76,7 +77,7 @@ local objectives = {
 		textKey = 'activation_count',
 		amount = 3,
 		hidden = true,
-		trigger = { type = triggerTypes.UnitsOwned, parameters = { unitName = 'probe', teamID = 0 } },
+		trigger = { type = metricTypes.UnitsOwned, parameters = { unitName = 'probe', teamID = 0 } },
 		onActivated = 'countActivated',
 		onProgress = 'countProgressed',
 		onCompleted = 'countCompleted',
@@ -93,41 +94,41 @@ local triggers = {
 
 	-- Stage gate.
 	quickActivated = {
-		type = triggerTypes.Event,
+		type = eventTypes.Event,
 		actions = { 'reportQuickActivated' },
 	},
 
 	-- Stage observer: route completes at 7 s.
 	routeCompleted = {
-		type = triggerTypes.Event,
+		type = eventTypes.Event,
 		actions = { 'changeToFailure' },
 	},
 
 	-- Stage failure.
 	failDoomed = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = { stages = { 'failure' } },
 		parameters = { seconds = 9 },
 		actions = { 'failDoomed' },
 	},
 	doomedFailed = {
-		type = triggerTypes.Event,
+		type = eventTypes.Event,
 		actions = { 'reportDoomedFailed' },
 	},
 
 	-- Stage cancel: partner completes at 12 s.
 	cancelFlaky = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = { stages = { 'cancel' } },
 		parameters = { seconds = 11 },
 		actions = { 'cancelFlaky' },
 	},
 	flakyCanceled = {
-		type = triggerTypes.Event,
+		type = eventTypes.Event,
 		actions = { 'reportFlakyCanceled' },
 	},
 	completeFlaky = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = { stages = { 'cancel' } },
 		parameters = { seconds = 14 },
 		actions = { 'completeFlaky' },
@@ -135,73 +136,73 @@ local triggers = {
 
 	-- Stage activation.
 	probeLingering = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = { stages = { 'activation' } },
 		parameters = { seconds = 15 },
 		actions = { 'probeLingering' },
 	},
 	spawnFirstProbe = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = { stages = { 'activation' } },
 		parameters = { seconds = 16 },
 		actions = { 'spawnOneProbe' },
 	},
 	probeBeforeActivation = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = { stages = { 'activation' } },
 		parameters = { seconds = 17 },
 		actions = { 'probeCount', 'activateFuture' },
 	},
 	activateCount = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = { stages = { 'activation' } },
 		parameters = { seconds = 18 },
 		actions = { 'activateCount', 'showCount' },
 	},
 	countActivated = {
-		type = triggerTypes.Event,
+		type = eventTypes.Event,
 		actions = { 'reportCountActivated' },
 	},
 	spawnSecondProbe = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = { stages = { 'activation' } },
 		parameters = { seconds = 19 },
 		actions = { 'spawnOneProbe' },
 	},
 	countProgressed = {
-		type = triggerTypes.Event,
+		type = eventTypes.Event,
 		actions = { 'reportCountProgressed' },
 	},
 	spawnThirdProbe = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = { stages = { 'activation' } },
 		parameters = { seconds = 20 },
 		actions = { 'spawnOneProbe' },
 	},
 	countCompleted = {
-		type = triggerTypes.Event,
+		type = eventTypes.Event,
 		actions = { 'changeToFinal' },
 	},
 	lingeringCanceled = {
-		type = triggerTypes.Event,
+		type = eventTypes.Event,
 		actions = { 'reportLingeringCanceled' },
 	},
 
 	-- Stage final.
 	probeAfterEntry = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = { stages = { 'final' } },
 		parameters = { seconds = 21 },
 		actions = { 'probeFuture', 'probeLingering' },
 	},
 	completeFuture = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = { stages = { 'final' } },
 		parameters = { seconds = 22 },
 		actions = { 'completeFuture' },
 	},
 	futureCompleted = {
-		type = triggerTypes.Event,
+		type = eventTypes.Event,
 		actions = { 'reportComplete', 'victory' },
 	},
 }
