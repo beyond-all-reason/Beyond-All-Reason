@@ -1425,7 +1425,6 @@ local function restoreReloadState()
 	if not savedState then
 		return false
 	end
-	spring.SetGameRulesParam(RELOAD_STATE_RULES_PARAM, nil)
 	local serpent = require("common/luaUtilities/serpent")
 	local loaded, reloadState = serpent.load(savedState)
 	if not loaded or type(reloadState) ~= "table" or reloadState.gameFrame ~= gameFrame then
@@ -1447,6 +1446,8 @@ local function restoreReloadState()
 	flyingUnits = reloadState.flyingUnits
 	zombieOrderBuckets = reloadState.zombieOrderBuckets
 	zombieStuckBuckets = reloadState.zombieStuckBuckets
+
+	spring.SetGameRulesParam(RELOAD_STATE_RULES_PARAM, nil)
 	return true
 end
 
