@@ -856,7 +856,6 @@ end
 local function selectBlueprintByName(name)
 	local index = getBlueprintIndexByName(name)
 	if not index then
-		FeedbackForUser("[Blueprint] no blueprint named '" .. tostring(name) .. "'")
 		return false
 	end
 
