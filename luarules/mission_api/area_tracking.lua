@@ -82,13 +82,9 @@ local function updateTrackedArea(trackedArea)
 		return
 	end
 
-	local areaTrackers = trackedArea.trackers
-	local trackingIDs = {} ---@type integer[]
-	for trackingID in pairs(areaTrackers) do
-		trackingIDs[#trackingIDs + 1] = trackingID
-	end
-	for i = 1, #trackingIDs do
-		local trackingID = trackingIDs[i]
+	local trackingIDs = table.keys(trackedArea.trackers)
+
+	for _, trackingID in ipairs (trackingIDs) do
 		local tracker = areaTrackers[trackingID]
 		if tracker then
 			if #left > 0 then
