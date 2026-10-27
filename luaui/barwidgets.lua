@@ -2311,6 +2311,7 @@ function widgetHandler:RemoveWidgetRaw(widget)
 	end
 	ArrayRemove(self.widgets, widget)
 	forgetWidgetRegistrations(self, widget)
+	retireProxy(widget)
 	for _, listname in ipairs(callInLists) do
 		ArrayRemove(self[listname .. "List"], widget)
 	end
