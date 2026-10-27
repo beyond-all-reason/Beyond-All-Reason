@@ -91,7 +91,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	cachedUnitDefs[unitDefID] = {
 		radius = unitDef.radius,
 		canReclaim = canReclaim,
-		isObject = (unitDef.modCategories.object or unitDef.customParams.objectify) and true or false,
+		repairable = unitDef.repairable,
 	}
 	if unitDef.radius > maxUnitRadius then
 		maxUnitRadius = unitDef.radius
@@ -452,7 +452,7 @@ function widget:GameFrame(frame)
 				local candidateDefID = spGetUnitDefID(candidateID)
 				if
 					candidateID ~= builderID
-					and not cachedUnitDefs[candidateDefID].isObject
+					and cachedUnitDefs[candidateDefID].repairable
 					and not reclaimBlacklist[candidateID]
 					and not spGetUnitIsBeingBuilt(candidateID)
 				then
