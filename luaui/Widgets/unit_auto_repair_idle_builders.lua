@@ -87,7 +87,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 	end
 
-	cachedUnitDefs[unitDefID] = { radius = unitDef.radius, canReclaim = canReclaim }
+	cachedUnitDefs[unitDefID] = {
+		radius = unitDef.radius,
+		canReclaim = canReclaim,
+		isObject = (unitDef.modCategories.object or unitDef.customParams.objectify) and true or false,
+	}
 	if unitDef.radius > maxUnitRadius then
 		maxUnitRadius = unitDef.radius
 	end
@@ -436,8 +440,10 @@ function widget:GameFrame(frame)
 			local bestDistSq = math.huge
 
 			for _, candidateID in ipairs(nearbyUnits) do
+				local candidateDefID = spGetUnitDefID(candidateID)
 				if
 					candidateID ~= builderID
+					and not cachedUnitDefs[candidateDefID].isObject
 					and not reclaimBlacklist[candidateID]
 					and not spGetUnitIsBeingBuilt(candidateID)
 				then
@@ -446,7 +452,6 @@ function widget:GameFrame(frame)
 						local tx, _, tz = spGetUnitPosition(candidateID)
 						local dx, dz = tx - homePos.homeX, tz - homePos.homeZ
 						local distSq = dx * dx + dz * dz
-						local candidateDefID = spGetUnitDefID(candidateID)
 						local effectiveLeash = leash + cachedUnitDefs[candidateDefID].radius
 						if
 							distSq < bestDistSq
