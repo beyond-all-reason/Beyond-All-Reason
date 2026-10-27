@@ -76,8 +76,8 @@ return {
 - Handlers get `(trigger, triggerID, context, ...call-in args)`. `dispatchTriggerCallin` in
   `api_missions_triggers.lua` runs your handler once per trigger of your type; it does not filter for you.
 - **Never fire actions yourself.** Call `context.ActivateTrigger(trigger)`; it enforces `active`, `prerequisites`,
-  `stages`, `repeating`/`maxRepeats`, `count`, and `difficulties`, and returns `false` when the trigger was not
-  eligible.
+  `stages`, `repeating`, `count`, and `difficulties`, and returns `false` when the trigger was not eligible. There
+  is no repeat cap: a repeating trigger fires every time, so stop it with prerequisites, stages or an action.
 - `context` is the only sanctioned way to reach shared bookkeeping (`DoesUnitHaveName`, `GetUnitsInArea`,
   `PreviousUnitsInAreas`, `ConstructionState`, `IsBuildFrameOwner`, …). Extend `triggerContext` rather than reaching
   into gadget locals or duplicating state per trigger.

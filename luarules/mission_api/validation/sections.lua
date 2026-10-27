@@ -449,10 +449,6 @@ local function validateTriggerSettings(triggerReport, validateValue, validateTab
 	-- The TriggerIDs and StageIDs types also check that all prerequisite triggers and stages exists.
 	validateNoUnknownKeys(triggerReport, triggerID, settings, triggerSettingTypes, "Setting")
 	validateTypedFields(triggerReport, triggerID, validateValue, triggerSettingTypes, settings, "Setting")
-
-	if settings.maxRepeats and not settings.repeating then
-		triggerReport.Error(triggerID, "Trigger has maxRepeats setting but is not set to repeating")
-	end
 end
 
 local ALLOWED_TRIGGER_KEYS = {

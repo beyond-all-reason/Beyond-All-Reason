@@ -50,7 +50,6 @@ local triggers = {
 		},
 		settings = {
 			repeating = true,
-			maxRepeats = 3,
 		},
 		actions = { 'messageTankHit' },
 	},

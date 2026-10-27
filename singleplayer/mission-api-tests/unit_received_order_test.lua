@@ -16,7 +16,6 @@ local triggers = {
 		type = eventTypes.UnitOrdered,
 		settings = {
 			repeating = true,
-			maxRepeats = 77,
 		},
 		parameters = {
 			command = CMD.ANY,
@@ -30,7 +29,6 @@ local triggers = {
 		type = eventTypes.UnitOrdered,
 		settings = {
 			repeating = true,
-			maxRepeats = 77,
 		},
 		parameters = {
 			command = CMD.MOVE,
@@ -52,7 +50,6 @@ local triggers = {
 		type = eventTypes.UnitOrdered,
 		settings = {
 			repeating = true,
-			maxRepeats = 77,
 		},
 		parameters = {
 			command = CMD.BUILD,
@@ -66,7 +63,6 @@ local triggers = {
 		type = eventTypes.UnitOrdered,
 		settings = {
 			repeating = true,
-			maxRepeats = 77,
 		},
 		parameters = {
 			command = 'armsolar',
@@ -88,7 +84,6 @@ local triggers = {
 		type = eventTypes.RallyOrdered,
 		settings = {
 			repeating = true,
-			maxRepeats = 77,
 		},
 		parameters = {
 			command = CMD.MOVE,
@@ -102,7 +97,6 @@ local triggers = {
 		type = eventTypes.UnitOrdered,
 		settings = {
 			repeating = true,
-			maxRepeats = 77,
 		},
 		parameters = {
 			command = CMD.ANY,

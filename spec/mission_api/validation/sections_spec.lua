@@ -698,16 +698,11 @@ describe("mission_api.validation.sections", function()
 			)
 		end)
 
-		it("reports maxRepeats without repeating", function()
-			local result = validateSettings({ maxRepeats = 3 })
+		-- maxRepeats was removed; a mission still using it should fail loudly rather than repeat forever.
+		it("reports an unknown setting", function()
+			local result = validateSettings({ repeating = true, maxRepeats = 3 })
 
-			V.assertMessage(result, "Trigger has maxRepeats setting but is not set to repeating. Trigger: t")
-		end)
-
-		it("reports a negative maxRepeats", function()
-			local result = validateSettings({ repeating = true, maxRepeats = -1 })
-
-			V.assertMessage(result, "Quantity must be >= 0, got -1. Trigger: t, Setting: maxRepeats")
+			V.assertMessage(result, "Unknown setting. Trigger: t, Setting: maxRepeats")
 		end)
 
 		describe("prerequisites", function()

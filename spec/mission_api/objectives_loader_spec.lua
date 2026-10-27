@@ -98,7 +98,6 @@ describe("mission_api.objectives_loader", function()
 
 			assert.is_false(settings.active)
 			assert.is_nil(settings.repeating)
-			assert.is_nil(settings.maxRepeats)
 		end)
 
 		it("completes and reports progress through the objectives module instead of running actions", function()

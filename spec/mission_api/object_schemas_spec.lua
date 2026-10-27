@@ -63,7 +63,6 @@ describe("mission_api object schemas", function()
 		assert.are.same({
 			prerequisites = Types.TriggerIDs,
 			repeating = Types.Boolean,
-			maxRepeats = Types.Quantity,
 			difficulties = Types.Difficulties,
 			coop = Types.Boolean,
 			active = Types.Boolean,

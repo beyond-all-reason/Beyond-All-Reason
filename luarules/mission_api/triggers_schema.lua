@@ -9,7 +9,6 @@ local Types = VFS.Include("luarules/mission_api/parameter_types.lua").Types
 local settings = {
 	prerequisites = Types.TriggerIDs,
 	repeating = Types.Boolean,
-	maxRepeats = Types.Quantity,
 	difficulties = Types.Difficulties,
 	coop = Types.Boolean,
 	active = Types.Boolean,

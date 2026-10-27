@@ -87,9 +87,6 @@ local function isTriggerValid(trigger)
 	if trigger.triggered and not settings.repeating then
 		return false
 	end
-	if settings.repeating and settings.maxRepeats ~= nil and trigger.repeatCount > settings.maxRepeats then
-		return false
-	end
 	if
 		settings.difficulties ~= nil
 		and next(settings.difficulties)
