@@ -17,11 +17,13 @@ end
 local objectivesController, stagesController, triggersController, actionsController
 
 -- Used in GameFrame.
-local missionLoadFailure
+local missionLoaded = true
+local missionLoadError
 
 local function failMission(reason)
 	GG["MissionAPI"] = nil
-	missionLoadFailure = "[Mission API] Mission not loaded: " .. reason .. " (see infolog)"
+	missionLoaded = false
+	missionLoadError = "[Mission API] Mission not loaded: " .. reason .. " (see infolog)"
 end
 
 -- Runs on the raw mission data
@@ -156,7 +158,7 @@ function gadget:Initialize()
 end
 
 function gadget:GamePreload()
-	if missionLoadFailure then
+	if not missionLoaded then
 		return
 	end
 
@@ -168,10 +170,9 @@ function gadget:GamePreload()
 end
 
 function gadget:GameFrame(frameNumber)
-	-- A mission that failed to load ends the game
-	if missionLoadFailure then
-		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionLoadFailure after this
-		Spring.Echo(missionLoadFailure)
+	if not missionLoaded then
+		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionLoadError after this
+		Spring.Echo(missionLoadError)
 		gadgetHandler:RemoveGadget()
 		return
 	end
@@ -180,7 +181,7 @@ function gadget:GameFrame(frameNumber)
 end
 
 function gadget:GameOver()
-	if missionLoadFailure then
+	if not missionLoaded then
 		return
 	end
 
