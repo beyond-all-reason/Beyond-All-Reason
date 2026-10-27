@@ -52,7 +52,8 @@ describe("mission_api.validation.references", function()
 		V.assertValid(V.validate(V.mission()
 			:WithTrigger("t", {
 				type = V.triggerTypes.TotalUnitsKilled,
-				parameters = { teamID = 0, quantity = 1, unitName = "bot" },
+				parameters = { teamID = 0, unitName = "bot" },
+				count = 1,
 				actions = { "spawn", "create", "delete", "add", "remove" },
 			})
 			:WithAction("spawn", spawnUnits("bot"))
@@ -81,15 +82,18 @@ describe("mission_api.validation.references", function()
 			:WithFeatureLoadout({ { featureDefName = "rockdef", x = 0, z = 0, featureName = "loadoutRock" } })))
 	end)
 
-	it("treats inline objective triggers as name references", function()
+	it("treats objective conditions as name references", function()
 		V.assertValid(V.validate(V.mission()
 			:WithObjective("watchBot", {
 				textKey = "watch bot",
-				trigger = { type = V.triggerTypes.UnitsOwned, parameters = { teamID = 0, unitName = "bot" } },
+				type = V.triggerTypes.UnitsOwned,
+				parameters = { teamID = 0, unitName = "bot" },
+				atLeast = 1,
 			})
 			:WithObjective("watchRock", {
 				textKey = "watch rock",
-				trigger = { type = V.triggerTypes.FeatureDestroyed, parameters = { featureName = "rock" } },
+				type = V.triggerTypes.FeatureDestroyed,
+				parameters = { featureName = "rock" },
 			})
 			:WithTrigger("t", {
 				type = V.triggerTypes.TimeElapsed,
@@ -335,7 +339,8 @@ describe("mission_api.validation.references", function()
 					V.mission()
 						:WithObjective("surviveBomb", {
 							textKey = "survive",
-							trigger = { type = V.triggerTypes.CountdownFinished, parameters = { countdownID = "bomb" } },
+							type = V.triggerTypes.CountdownFinished,
+							parameters = { countdownID = "bomb" },
 						})
 						:WithTrigger("start", {
 							type = V.triggerTypes.TimeElapsed,
@@ -424,16 +429,17 @@ describe("mission_api.validation.references", function()
 			)
 		end)
 
-		it("warns about a countdown an inline objective trigger refers to, but no action adds", function()
+		it("warns about a countdown an objective condition refers to, but no action adds", function()
 			local result = V.validate(V.mission():WithObjective("surviveGhost", {
 				textKey = "survive",
-				trigger = { type = V.triggerTypes.CountdownFinished, parameters = { countdownID = "ghost" } },
+				type = V.triggerTypes.CountdownFinished,
+				parameters = { countdownID = "ghost" },
 			}))
 
 			V.assertMessage(
 				result,
 				"Countdown is referenced, but never created. Countdown: ghost, "
-					.. "Referenced in: objective surviveGhost (trigger)"
+					.. "Referenced in: objective surviveGhost (condition)"
 			)
 		end)
 	end)
@@ -578,11 +584,11 @@ describe("mission_api.validation.references", function()
 					type = V.actionTypes.SendMessage,
 					parameters = { messageKey = "ok" },
 				})
-				:WithObjective("o", { textKey = "ok", amount = { variable = "delay" } }))
+				:WithObjective("o", { textKey = "ok", count = { variable = "delay" } }))
 
 			assert.are.same({
 				"Variable has no value at the start of the mission. Variable: delay, "
-					.. "Referenced in: objective o (amount), trigger t (seconds)",
+					.. "Referenced in: objective o (count), trigger t (seconds)",
 			}, result.warnings)
 			assert.is_true(result.ok)
 		end)

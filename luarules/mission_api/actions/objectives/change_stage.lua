@@ -1,7 +1,7 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function changeStage(stageID)
-	GG['MissionAPI'].Modules.Objectives.ChangeStage(stageID)
+	GG['MissionAPI'].Modules.Stages.ChangeStage(stageID)
 end
 
 return {

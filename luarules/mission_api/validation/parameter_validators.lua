@@ -231,6 +231,17 @@ local function registerValueValidators(parameterValidators, context)
 		end
 	end
 
+	parameterValidators[Types.Resource] = function(resource)
+		local typeResult = validateString(resource)
+		if typeResult then
+			return typeResult
+		end
+
+		if not enums[Types.Resource][resource] then
+			return { { message = "Invalid resource: " .. resource .. ". Must be one of 'metal', 'energy'" } }
+		end
+	end
+
 	parameterValidators[Types.SoundFile] = function(soundfile)
 		local luaTypeResult = validateString(soundfile)
 		if luaTypeResult then

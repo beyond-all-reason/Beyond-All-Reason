@@ -21,8 +21,8 @@ local modules = MissionSpecEnv.registerModules(env)
 local definitions = {
 	ParameterTypes = modules.ParameterTypes,
 	ActionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua").LoadActionDefinitions(),
-	TriggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
-		.LoadTriggerDefinitions(),
+	ConditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+		.LoadConditionDefinitions(),
 }
 GG["MissionAPI"] = previousMissionAPI
 
@@ -31,7 +31,7 @@ GG["MissionAPI"] = previousMissionAPI
 local missionAPI = {
 	Modules = modules,
 	ActionDefinitions = definitions.ActionDefinitions,
-	TriggerDefinitions = definitions.TriggerDefinitions,
+	ConditionDefinitions = definitions.ConditionDefinitions,
 }
 
 local validation = MissionSpecEnv.include(env, "luarules/mission_api/validation.lua")
@@ -41,7 +41,7 @@ local helper = {
 	env = env,
 	validation = validation,
 	definitions = definitions,
-	triggerTypes = definitions.TriggerDefinitions.Types,
+	triggerTypes = definitions.ConditionDefinitions.Types,
 	actionTypes = definitions.ActionDefinitions.Types,
 }
 

@@ -4,7 +4,7 @@
 -- (Story): Story entries win where authored, everything else resolves to its lowest specified
 -- value, and the Medium/Hard-gated trigger never fires.
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local stages = {
@@ -14,26 +14,32 @@ local stages = {
 local objectives = {
 	surviveWaves = {
 		textKey = 'survive',
-		amount = {
+		-- No condition type: the surviveTick trigger steps it, and count sets how many steps complete it.
+		count = {
 			difficulties = { Easy = 2, Medium = 3, Hard = 4 },
-		},
-		trigger = {
-			type = triggerTypes.TimeElapsed,
-			parameters = {
-				seconds = {
-					difficulties = { Easy = 30, Hard = 20 },
-				},
-				interval = {
-					difficulties = { Easy = 30, Hard = 20 },
-				},
-			},
 		},
 	},
 }
 
 local triggers = {
+	surviveTick = {
+		type = eventTypes.TimeElapsed,
+		settings = {
+			repeating = true,
+		},
+		parameters = {
+			seconds = {
+				difficulties = { Easy = 30, Hard = 20 },
+			},
+			interval = {
+				difficulties = { Easy = 30, Hard = 20 },
+			},
+		},
+		actions = { 'surviveTick' },
+	},
+
 	announceDifficulty = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -41,7 +47,7 @@ local triggers = {
 	},
 
 	spawnWave = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = {
 				difficulties = { Easy = 15, Hard = 8 },
@@ -51,7 +57,7 @@ local triggers = {
 	},
 
 	hardOnly = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = {
 			difficulties = { 'Medium', 'Hard' },
 		},
@@ -62,7 +68,7 @@ local triggers = {
 	},
 
 	clearWave = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = {
 				difficulties = { Easy = 25, Hard = 14 },
@@ -73,6 +79,13 @@ local triggers = {
 }
 
 local actions = {
+	surviveTick = {
+		type = actionTypes.UpdateObjective,
+		parameters = {
+			objectiveID = 'surviveWaves',
+		},
+	},
+
 	announceDifficulty = {
 		type = actionTypes.SendMessage,
 		parameters = {

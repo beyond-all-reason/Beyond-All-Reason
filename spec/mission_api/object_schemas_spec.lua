@@ -38,8 +38,6 @@ describe("mission_api object schemas", function()
 	it("describes an objective's fields", function()
 		assert.are.same({
 			textKey = Types.String,
-			trigger = Types.Table,
-			amount = Types.Quantity,
 			nextStage = Types.StageID,
 			coop = Types.Boolean,
 			hidden = Types.Boolean,
@@ -63,7 +61,6 @@ describe("mission_api object schemas", function()
 		assert.are.same({
 			prerequisites = Types.TriggerIDs,
 			repeating = Types.Boolean,
-			maxRepeats = Types.Quantity,
 			difficulties = Types.Difficulties,
 			coop = Types.Boolean,
 			active = Types.Boolean,
@@ -71,7 +68,7 @@ describe("mission_api object schemas", function()
 		}, triggersSchema.Settings)
 	end)
 
-	-- The defaults triggers_loader applies must be settings the schema declares, or a raw
+	-- The defaults conditions_loader applies must be settings the schema declares, or a raw
 	-- mission and a loaded one would disagree about a trigger's shape.
 	it("declares every setting the trigger loader defaults", function()
 		local defaulted = { "prerequisites", "repeating", "coop", "active", "stages" }
