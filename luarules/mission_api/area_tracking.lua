@@ -5,7 +5,6 @@
 --- Provides: onUnitsEntered(unitIDs, trackingID) and onUnitsLeft(unitIDs, trackingID).
 --- When a tracker is started, it calls onUnitsEntered on all units within the area.
 --- When a tracker is stopped, it calls onUnitsLeft on all units it had been tracking.
---- A `nil` area represents the whole map. -- TODO: Make "off-map" a meaningful concept to ignore units?
 ---
 --- A callback may start or stop trackers, including its own.
 --- When a tracker is stopped mid-callback, it stops hearing enter and leave events.
@@ -14,8 +13,6 @@
 local table_keys = table.keys
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGetTeamUnits = Spring.GetTeamUnits
-local spGetAllUnits = Spring.GetAllUnits
 
 ---@class AreaTracker
 ---@field trackedArea TrackedArea
@@ -25,7 +22,7 @@ local spGetAllUnits = Spring.GetAllUnits
 
 ---@class TrackedArea
 ---@field key string
----@field area table? a rectangle { x1, z1, x2, z2 }, circle { x, z, radius }, or `nil` for the whole map
+---@field area table a rectangle { x1, z1, x2, z2 } or circle { x, z, radius }
 ---@field teamID integer?
 ---@field unitIDs table<integer, true> the units inside at the last update
 ---@field trackers table<integer, AreaTracker?>
@@ -36,21 +33,17 @@ local trackerCount = 0
 
 local function getAreaKey(area, teamID)
 	local teamKey = teamID or "all"
-	if area == nil then
-		return "map:" .. teamKey
-	elseif area.x1 then
+	if area.x1 then
 		return "rectangle:" .. area.x1 .. ":" .. area.z1 .. ":" .. area.x2 .. ":" .. area.z2 .. ":" .. teamKey
 	end
 	return "circle:" .. area.x .. ":" .. area.z .. ":" .. area.radius .. ":" .. teamKey
 end
 
----@param area table? a rectangle { x1, z1, x2, z2 }, circle { x, z, radius }, or `nil` for the whole map
+---@param area table a rectangle { x1, z1, x2, z2 } or circle { x, z, radius }
 ---@param teamID integer? to track only one team's units
 ---@return integer[] unitIDs
 local function getUnitsInArea(area, teamID)
-	if area == nil then
-		return teamID and spGetTeamUnits(teamID) or spGetAllUnits()
-	elseif area.x1 then
+	if area.x1 then
 		return spGetUnitsInRectangle(area.x1, area.z1, area.x2, area.z2, teamID)
 	end
 	return spGetUnitsInCylinder(area.x, area.z, area.radius, teamID)
@@ -82,9 +75,10 @@ local function updateTrackedArea(trackedArea)
 		return
 	end
 
-	local trackingIDs = table.keys(trackedArea.trackers)
+	local areaTrackers = trackedArea.trackers
+	local trackingIDs = table_keys(areaTrackers)
 
-	for _, trackingID in ipairs (trackingIDs) do
+	for _, trackingID in ipairs(trackingIDs) do
 		local tracker = areaTrackers[trackingID]
 		if tracker then
 			if #left > 0 then
@@ -98,7 +92,7 @@ local function updateTrackedArea(trackedArea)
 	end
 end
 
----@param area table? a rectangle { x1, z1, x2, z2 }, circle { x, z, radius }, or `nil` for the whole map
+---@param area table a rectangle { x1, z1, x2, z2 } or circle { x, z, radius }
 ---@param teamID integer? only this team's units
 ---@param onUnitsEntered fun(unitIDs: integer[], trackingID: integer)
 ---@param onUnitsLeft fun(unitIDs: integer[], trackingID: integer)
@@ -152,7 +146,7 @@ local function stopTrackingUnits(trackingID)
 end
 
 local function updateTrackedAreas()
-	local keys = table.keys(trackedAreas)
+	local keys = table_keys(trackedAreas)
 
 	for _, key in ipairs(keys) do
 		local trackedArea = trackedAreas[key]
