@@ -48,8 +48,8 @@ local function loadMission(gameSetup)
 	local rawTriggers = mission.Triggers or {}
 	local rawActions = mission.Actions or {}
 
-	GG["MissionAPI"].CurrentStageID = initialStage
 	GG["MissionAPI"].Stages = stagesController.ProcessRawStages(stages)
+	GG["MissionAPI"].Modules.Stages.SetInitialStage(initialStage)
 	GG["MissionAPI"].Objectives =
 		objectivesController.ProcessRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
 	GG["MissionAPI"].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
@@ -114,6 +114,7 @@ function gadget:Initialize()
 	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
 	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
 	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
+	GG["MissionAPI"].Modules.Stages = VFS.Include("luarules/mission_api/stages.lua")
 	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
 	GG["MissionAPI"].Modules.Countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
 	GG["MissionAPI"].Modules.BattleLog = VFS.Include("luarules/mission_api/battle_log.lua")
@@ -146,7 +147,7 @@ function gadget:GamePreload()
 	loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
 	loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
 
-	GG["MissionAPI"].Modules.Objectives.ActivateStage(GG["MissionAPI"].CurrentStageID)
+	GG["MissionAPI"].Modules.Stages.ActivateStage(GG["MissionAPI"].CurrentStageID)
 end
 
 function gadget:GameFrame(frameNumber)

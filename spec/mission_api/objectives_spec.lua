@@ -12,6 +12,7 @@ local conditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/c
 local T = conditionDefinitions.Types
 
 local Objectives = MissionSpecEnv.include(env, "luarules/mission_api/objectives.lua")
+local Stages = MissionSpecEnv.include(env, "luarules/mission_api/stages.lua")
 
 describe("mission_api.objectives", function()
 	---@type table
@@ -19,7 +20,12 @@ describe("mission_api.objectives", function()
 
 	-- A mission to build up with the mock's With* methods.
 	local function mission()
-		return Builders.MissionApi.new():WithConditionDefinitions(conditionDefinitions)
+		-- The real Stages and Objectives call into each other, so both replace the mock's stubs.
+		return Builders.MissionApi
+			.new()
+			:WithConditionDefinitions(conditionDefinitions)
+			:WithModule("Stages", Stages)
+			:WithModule("Objectives", Objectives)
 	end
 
 	local function install(builder)
@@ -41,7 +47,7 @@ describe("mission_api.objectives", function()
 					:WithCurrentStage("s1")
 			)
 
-			Objectives.ChangeStage("s2")
+			Stages.ChangeStage("s2")
 
 			assert.are.equal("s2", missionApi.CurrentStageID)
 			assert.is_true(missionApi.Objectives.listed.active)
@@ -60,7 +66,7 @@ describe("mission_api.objectives", function()
 					:WithCurrentStage("s1")
 			)
 
-			Objectives.ChangeStage("s2")
+			Stages.ChangeStage("s2")
 
 			assert.is_false(missionApi.Objectives.unfinished.active)
 			assert.is_false(missionApi.Triggers.__objective_unfinished.settings.active)
@@ -80,7 +86,7 @@ describe("mission_api.objectives", function()
 					:WithCurrentStage("s1")
 			)
 
-			Objectives.ChangeStage("s2")
+			Stages.ChangeStage("s2")
 
 			assert.is_true(missionApi.Objectives.unfinished.canceled)
 			assert.is_nil(missionApi.Objectives.finished.canceled)
@@ -103,7 +109,7 @@ describe("mission_api.objectives", function()
 					:WithCurrentStage("s1")
 			)
 
-			Objectives.ChangeStage("s2")
+			Stages.ChangeStage("s2")
 
 			assert.is_true(missionApi.Objectives.carried.active)
 			assert.is_true(missionApi.Triggers.__objective_carried.settings.active)
@@ -119,7 +125,7 @@ describe("mission_api.objectives", function()
 					:WithCurrentStage("s1")
 			)
 
-			Objectives.ChangeStage("nowhere")
+			Stages.ChangeStage("nowhere")
 
 			assert.are.equal("s1", missionApi.CurrentStageID)
 			assert.is_true(missionApi.Objectives.obj1.active)
@@ -137,7 +143,7 @@ describe("mission_api.objectives", function()
 					:WithObjective("c", { active = false, completed = false })
 			)
 
-			Objectives.ActivateStage("s1")
+			Stages.ActivateStage("s1")
 
 			assert.are.equal("s1", missionApi.CurrentStageID)
 			assert.is_true(missionApi.Objectives.a.active)
@@ -155,7 +161,7 @@ describe("mission_api.objectives", function()
 					:WithTrigger("beganB", { type = T.Event })
 			)
 
-			Objectives.ActivateStage("s1")
+			Stages.ActivateStage("s1")
 
 			assert.are.equal(2, #missionApi.calls.activateTrigger)
 			assert.are.equal("s1", missionApi.calls.activateTrigger[1].stageID)
@@ -165,7 +171,7 @@ describe("mission_api.objectives", function()
 		it("does nothing for a stage that does not exist", function()
 			install(mission():WithObjective("a", { active = false, completed = false }))
 
-			Objectives.ActivateStage("nowhere")
+			Stages.ActivateStage("nowhere")
 
 			assert.is_nil(missionApi.CurrentStageID)
 			assert.is_false(missionApi.Objectives.a.active)
@@ -595,7 +601,7 @@ describe("mission_api.objectives", function()
 					:WithCurrentStage("s1")
 			)
 			missionApi.ActivateTrigger = function()
-				Objectives.ChangeStage("s9")
+				Stages.ChangeStage("s9")
 			end
 
 			Objectives.FailObjective("obj1")
@@ -704,7 +710,7 @@ describe("mission_api.objectives", function()
 			)
 			-- The trigger's actions, as the gadget would run them:
 			missionApi.ActivateTrigger = function()
-				Objectives.ChangeStage("s9")
+				Stages.ChangeStage("s9")
 			end
 
 			Objectives.CompleteObjective("obj1")
@@ -722,7 +728,7 @@ describe("mission_api.objectives", function()
 					:WithCurrentStage("s1")
 			)
 			missionApi.ActivateTrigger = function()
-				Objectives.ChangeStage("s1")
+				Stages.ChangeStage("s1")
 			end
 
 			Objectives.CompleteObjective("obj1")

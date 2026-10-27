@@ -1,12 +1,17 @@
+local stagesLoader = VFS.Include("luarules/mission_api/stages_loader.lua")
+
 --[[
 	objectiveID = {
 		textKey = "complete_objective",
-		amount = 3,
-		trigger = {
-			type = conditionTypes.ConstructionFinished,
-			parameters = { unitDefName = 'corak', teamID = 0 },
-		},
+
+		-- The condition, written exactly as on a trigger. Leave it out for an objective
+		-- that only actions complete (CompleteObjective, UpdateObjective):
+		type = conditionTypes.ConstructionFinished,
+		parameters = { unitDefName = 'corak', teamID = 0 },
+		count = 3,                        -- events; metrics use atLeast / atMost
+
 		nextStage = 'secondStage',
+		onCompleted = 'reinforcementsTrigger', -- an Event trigger; see objectives_schema.lua for the others
 		coop = true,
 	},
 ]]
@@ -24,8 +29,11 @@ local THRESHOLD_FIELDS = { "count", "atLeast", "atMost" }
 --- objective switches its record on and off as it is activated and canceled.
 local function buildConditionRecord(objectiveID, objective, objectiveStages)
 	return {
-		type = objective.trigger.type,
-		parameters = objective.trigger.parameters or {},
+		type = objective.type,
+		parameters = objective.parameters or {},
+		count = objective.count,
+		atLeast = objective.atLeast,
+		atMost = objective.atMost,
 		settings = {
 			stages = objectiveStages,
 			active = false,
@@ -39,60 +47,50 @@ local function buildConditionRecord(objectiveID, objective, objectiveStages)
 	}
 end
 
---- An objective's `amount` is how many events it counts, or for a metric such as
---- UnitsOwned, the level it must reach. A missing amount completes on the first event.
-local function thresholdsOf(objective)
-	local amount = objective.amount
-	local trigger = objective.trigger
-	local conditionDefinitions = GG["MissionAPI"].ConditionDefinitions
-	local kind = type(trigger) == "table" and conditionDefinitions and conditionDefinitions.Kinds[trigger.type]
-	if kind == "metric" then
-		return { atLeast = amount or 1 }
+--- The value an objective counts towards, used for UI progress. Metrics approach
+--- whichever bound they declare; events count occurrences towards `count`, which
+--- defaults to 1 because a bare event completes on its first occurrence.
+local function targetOf(objective)
+	if objective.atLeast ~= nil then
+		return objective.atLeast
 	end
-	return { count = amount }
+	if objective.atMost ~= nil then
+		return objective.atMost
+	end
+	return objective.count or 1
 end
 
---- Copies an objective's threshold onto its condition record. The amount can depend on
+--- Copies an objective's threshold onto its condition record. Thresholds can depend on
 --- the difficulty or a variable, which are only resolved after the records were built.
 local function applyThresholds(objectiveID, objective, triggers)
-	objective.target = objective.amount or 1
+	objective.target = targetOf(objective)
 
 	local triggerID = GG["MissionAPI"].ObjectiveTriggers[objectiveID]
 	local trigger = triggerID and triggers[triggerID]
 	if not trigger then
 		return
 	end
-	local thresholds = thresholdsOf(objective)
 	for _, field in ipairs(THRESHOLD_FIELDS) do
-		trigger[field] = thresholds[field]
+		trigger[field] = objective[field]
 	end
 end
 
 local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
 	local objectives = rawObjectives or {}
-
-	-- Build objective-to-stages mapping from stages structure
-	local objectiveToStages = GG["MissionAPI"].ObjectiveStages
-	for stageID, stageData in pairs(stages) do
-		for _, objectiveID in ipairs(stageData.objectives) do
-			table.insert(table.ensureTable(objectiveToStages, objectiveID), stageID)
-		end
-	end
+	local stagesByObjective = stagesLoader.IndexStagesByObjective(stages)
+	local objectiveStages = GG["MissionAPI"].ObjectiveStages
 
 	for objectiveID, objective in pairs(objectives) do
+		objectiveStages[objectiveID] = stagesByObjective[objectiveID]
+
 		objective.active = false
 		objective.completed = false
 		objective.progress = 0
-		objective.target = objective.amount or 1
+		objective.target = targetOf(objective)
 
-		-- An objective without a trigger is completed by actions instead (CompleteObjective, UpdateObjective).
-		if type(objective.trigger) == "table" then
+		if objective.type ~= nil then
 			local triggerID = OBJECTIVE_CONDITION_PREFIX .. objectiveID
-			local record = buildConditionRecord(objectiveID, objective, objectiveToStages[objectiveID] or {})
-			for field, value in pairs(thresholdsOf(objective)) do
-				record[field] = value
-			end
-			rawTriggers[triggerID] = record
+			rawTriggers[triggerID] = buildConditionRecord(objectiveID, objective, stagesByObjective[objectiveID] or {})
 			GG["MissionAPI"].ObjectiveTriggers[objectiveID] = triggerID
 		end
 	end

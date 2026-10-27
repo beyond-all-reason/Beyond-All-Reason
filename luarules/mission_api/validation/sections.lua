@@ -210,7 +210,7 @@ local function createEntryValidator(context, validateValue)
 end
 
 --------------------------------------------------------------------------------
--- Schema driven parameter validation, shared by triggers, actions and objective triggers
+-- Schema driven parameter validation, shared by triggers, actions and objective conditions
 --------------------------------------------------------------------------------
 
 --- Every parameter may differ by difficulty, and read its value from variables.
@@ -218,7 +218,7 @@ local function createSchemaValidator(context, parameterValidators, validateParam
 	local validateTableType = parameterValidators[context.Types.Table]
 
 	--- @param name string what the entity is called in messages. An objective's inline
-	---        trigger is reported against the objective, but named 'Objective trigger'.
+	---        condition is reported against the objective, but named 'Objective condition'.
 	--- @param schemaParameters table parameter schemas indexed by entity type
 	return function(reporter, id, name, schemaParameters, entityType, parameters)
 		if not entityType then
@@ -308,7 +308,7 @@ local function validateStagesSection(context, report, validateValue, validateEnt
 end
 
 --------------------------------------------------------------------------------
--- Stockpile triggers, as triggers and as objective triggers
+-- Stockpile conditions, on triggers and on objectives
 --------------------------------------------------------------------------------
 
 --- A unit def known only by name, as in the standalone validator, has no weapons to check.
@@ -343,55 +343,49 @@ local function validateStockpileTrigger(context, reporter, id, trigger)
 end
 
 --------------------------------------------------------------------------------
--- Objectives: fields and inline triggers
+-- Objectives: fields and inline conditions
 --------------------------------------------------------------------------------
 
---- The objective's `amount` is its threshold, so the inline trigger carries none of its own.
-local function validateObjectiveInlineTrigger(context, objectiveReport, validateSchema, objective, objectiveID)
-	local trigger = objective.trigger
-	if type(trigger) ~= "table" or context.IsDifficultiesTable(trigger) or context.IsVariableReference(trigger) then
-		return
-	end
-
-	if trigger.settings ~= nil then
-		objectiveReport.Error(objectiveID, "Objective trigger must not have a 'settings' field")
-	end
-	if trigger.actions ~= nil then
-		objectiveReport.Error(objectiveID, "Objective trigger must not have an 'actions' field")
-	end
-	for _, fieldName in ipairs(THRESHOLD_FIELDS) do
-		if trigger[fieldName] ~= nil then
-			objectiveReport.Error(
-				objectiveID,
-				"Objective trigger must not have a '" .. fieldName .. "' field; use the objective's amount"
-			)
+--- Objectives declare their condition inline, in the same flat shape as a trigger:
+--- `type`, `parameters` and a threshold. An objective without a `type` is completed by
+--- actions alone; `count` then sets how many UpdateObjective steps complete it.
+local function validateObjectiveCondition(
+	context,
+	objectiveReport,
+	validateSchema,
+	validateValue,
+	objective,
+	objectiveID
+)
+	if objective.type == nil then
+		if objective.parameters ~= nil then
+			objectiveReport.Error(objectiveID, "Objective has parameters but no condition type")
 		end
+		if objective.atLeast ~= nil or objective.atMost ~= nil then
+			objectiveReport.Error(objectiveID, "Objective has atLeast/atMost but no condition type")
+		end
+		validateConditionThreshold(context, objectiveReport, objectiveID, objective, validateValue)
+		return
 	end
 
 	validateSchema(
 		objectiveReport,
 		objectiveID,
-		"Objective trigger",
+		"Objective condition",
 		context.TriggerParameters,
-		trigger.type,
-		trigger.parameters
+		objective.type,
+		objective.parameters
 	)
-	validateStockpileTrigger(context, objectiveReport, objectiveID, trigger)
+	validateConditionThreshold(context, objectiveReport, objectiveID, objective, validateValue)
+	validateStockpileTrigger(context, objectiveReport, objectiveID, objective)
 end
 
 local function validateObjectivesSection(context, report, validateFieldValue, validateEntry, validateSchema)
 	local objectiveReport = reporterFor(report, SECTIONS.Objectives, "Objective")
 
-	-- The inline trigger is registered before the difficulty and variables are resolved,
-	-- so it can't vary. Its parameters can, as any trigger's.
-	local function validateField(fieldType, value, fieldName)
-		if fieldName == "trigger" and context.IsDifficultiesTable(value) then
-			return { { message = "Objective 'trigger' field does not support difficulties" } }
-		end
-		if fieldName == "trigger" and context.IsVariableReference(value) then
-			return { { message = "Objective 'trigger' field does not support variables" } }
-		end
-		return validateFieldValue(fieldType, value)
+	local allowedKeys = table.copy(objectiveFieldTypes)
+	for _, fieldName in ipairs({ "type", "parameters", "count", "atLeast", "atMost" }) do
+		allowedKeys[fieldName] = true
 	end
 
 	for objectiveID, objective in pairs(context.Objectives) do
@@ -402,9 +396,32 @@ local function validateObjectivesSection(context, report, validateFieldValue, va
 				objectiveReport.Error(objectiveID, "Objective has empty textKey")
 			end
 
-			validateNoUnknownKeys(objectiveReport, objectiveID, objective, objectiveFieldTypes, "Field")
-			validateTypedFields(objectiveReport, objectiveID, validateField, objectiveFieldTypes, objective, "Field")
-			validateObjectiveInlineTrigger(context, objectiveReport, validateSchema, objective, objectiveID)
+			validateNoUnknownKeys(objectiveReport, objectiveID, objective, allowedKeys, "Field")
+			validateTypedFields(
+				objectiveReport,
+				objectiveID,
+				validateFieldValue,
+				objectiveFieldTypes,
+				objective,
+				"Field"
+			)
+			-- The condition record is registered before the difficulty and variables are resolved,
+			-- so its type can't vary. Its parameters and threshold can, as any trigger's.
+			if type(objective.type) == "table" then
+				objectiveReport.Error(
+					objectiveID,
+					"Objective condition type does not support difficulties or variables"
+				)
+			else
+				validateObjectiveCondition(
+					context,
+					objectiveReport,
+					validateSchema,
+					validateFieldValue,
+					objective,
+					objectiveID
+				)
+			end
 		end
 	end
 end

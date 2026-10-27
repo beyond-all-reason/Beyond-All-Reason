@@ -1,15 +1,18 @@
 ---
---- Shared helpers for objective progress/completion and stage advancement.
+--- Objective lifecycle for the Mission API: activation, progress, completion, failure,
+--- cancellation, and visibility.
 ---
---- An objective with a trigger is watched by its condition record (see
+--- An objective with a condition is watched by its condition record (see
 --- objectives_loader); this module only decides what activation, progress and
---- completion mean. Objectives without a trigger are driven by actions alone.
+--- completion mean. Objectives without a condition are driven by actions alone.
 ---
 --- Completion is latched: a completed objective never becomes incomplete again,
 --- even if the metric it watched moves back out of range.
 ---
 
-local stageChanges = 0
+local function getStages()
+	return GG["MissionAPI"].Modules.Stages
+end
 
 local function activateEventTrigger(triggerID)
 	if not triggerID then
@@ -64,7 +67,7 @@ local function activateObjective(objectiveID)
 	end
 
 	local stages = GG["MissionAPI"].ObjectiveStages[objectiveID]
-	if stages and not table.contains(stages, GG["MissionAPI"].CurrentStageID) then
+	if stages and not table.contains(stages, getStages().GetCurrentStageID()) then
 		return
 	end
 
@@ -108,72 +111,6 @@ local function showObjective(objectiveID)
 	echoObjectiveUpdate(objectiveID, objective)
 end
 
-local function activateStage(stageID, carriedOver)
-	local stage = GG["MissionAPI"].Stages[stageID]
-	if not stage then
-		return
-	end
-
-	GG["MissionAPI"].CurrentStageID = stageID
-	Spring.Echo("Stage set to: " .. stageID)
-
-	for _, objectiveID in ipairs(stage.objectives) do
-		if not (carriedOver and carriedOver[objectiveID]) then
-			activateObjective(objectiveID)
-		end
-	end
-end
-
---- Leaving a stage cancels what it lists and did not finish.
-local function exitStage(stageID, carriedOver)
-	local stage = GG["MissionAPI"].Stages[stageID]
-	if not stage then
-		return
-	end
-
-	for _, objectiveID in ipairs(stage.objectives) do
-		if carriedOver and carriedOver[objectiveID] then
-			-- continue
-		elseif GG["MissionAPI"].Objectives[objectiveID].completed then
-			setObjectiveActive(objectiveID, false)
-		else
-			cancelObjective(objectiveID)
-		end
-	end
-end
-
-local function getCarriedObjectives(nextStage)
-	local carriedOver = {}
-	local currentStage = GG["MissionAPI"].Stages[GG["MissionAPI"].CurrentStageID]
-	if not currentStage then
-		return carriedOver
-	end
-
-	local listed = {}
-	for _, objectiveID in ipairs(currentStage.objectives) do
-		listed[objectiveID] = true
-	end
-	for _, objectiveID in ipairs(nextStage.objectives) do
-		if listed[objectiveID] then
-			carriedOver[objectiveID] = true
-		end
-	end
-	return carriedOver
-end
-
-local function changeStage(stageID)
-	local stage = GG["MissionAPI"].Stages[stageID]
-	if not stage then
-		return
-	end
-
-	local carriedOver = getCarriedObjectives(stage)
-
-	stageChanges = stageChanges + 1
-	exitStage(GG["MissionAPI"].CurrentStageID, carriedOver)
-	activateStage(stageID, carriedOver)
-end
-
 --- Advance to nextStage if the objective is completed and every other objective
 --- in the current stage with the same nextStage is also complete.
 local function tryAdvanceStage(objective)
@@ -186,8 +123,8 @@ local function tryAdvanceStage(objective)
 		return
 	end
 
-	local currentStageID = GG["MissionAPI"].CurrentStageID
-	local currentStage = GG["MissionAPI"].Stages[currentStageID]
+	local stages = getStages()
+	local currentStage = stages.GetStage(stages.GetCurrentStageID())
 	if not currentStage then
 		return
 	end
@@ -199,15 +136,17 @@ local function tryAdvanceStage(objective)
 		end
 	end
 
-	changeStage(nextStage)
+	stages.ChangeStage(nextStage)
 end
 
 --- Run the stage's exit routes for an objective that has completed or failed.
---- This runs in a fixed order: the objective's event trigger, then nextStage.
+--- This runs in a fixed order: the objective's event trigger, then nextStage,
+--- unless the event trigger already changed the stage itself.
 local function runExitRoutes(objective, eventTriggerID)
-	local stageChangesBefore = stageChanges
+	local stages = getStages()
+	local changesBefore = stages.GetChangeCount()
 	activateEventTrigger(eventTriggerID)
-	if stageChanges == stageChangesBefore then
+	if stages.GetChangeCount() == changesBefore then
 		tryAdvanceStage(objective)
 	end
 end
@@ -239,8 +178,8 @@ local function completeObjective(objectiveID)
 end
 
 --- Progress that did not complete the objective. Events report how many
---- occurrences have been tallied towards their amount; metrics report the value last
---- sampled against the level they must reach. Metrics are sampled often,
+--- occurrences have been tallied towards `count`; metrics report the value last
+--- sampled against the bound they are compared with. Metrics are sampled often,
 --- so only a changed value counts as progress.
 local function reportProgress(objectiveID, progress)
 	local objective = GG["MissionAPI"].Objectives[objectiveID]
@@ -253,7 +192,7 @@ local function reportProgress(objectiveID, progress)
 	echoObjectiveUpdate(objectiveID, objective)
 end
 
---- One step of progress towards the amount, for objectives that actions drive.
+--- One step of progress towards `count`, for objectives that actions drive.
 local function updateObjective(objectiveID)
 	local objective = GG["MissionAPI"].Objectives[objectiveID]
 	if objective.completed or not objective.active then
@@ -269,9 +208,7 @@ local function updateObjective(objectiveID)
 end
 
 return {
-	ActivateStage = activateStage,
-	ChangeStage = changeStage,
-	TryAdvanceStage = tryAdvanceStage,
+	SetObjectiveActive = setObjectiveActive,
 	ActivateObjective = activateObjective,
 	CancelObjective = cancelObjective,
 	UpdateObjective = updateObjective,
@@ -280,5 +217,6 @@ return {
 	FailObjective = failObjective,
 	HideObjective = hideObjective,
 	ShowObjective = showObjective,
+	TryAdvanceStage = tryAdvanceStage,
 	EchoObjectiveUpdate = echoObjectiveUpdate,
 }

@@ -47,53 +47,40 @@ describe("mission_api.objectives_loader", function()
 	describe("condition records", function()
 		it("contributes a record per objective and remembers its trigger ID", function()
 			local _, rawTriggers = load({
-				alpha = { textKey = "a", trigger = { type = types.TimeElapsed, parameters = { gameFrame = 3 } } },
+				alpha = { textKey = "a", type = types.TimeElapsed, parameters = { gameFrame = 3 } },
 			})
 
 			assert.is_not_nil(rawTriggers.__objective_alpha)
 			assert.are.equal("__objective_alpha", GG["MissionAPI"].ObjectiveTriggers.alpha)
 		end)
 
-		it("copies the trigger onto the record, with the amount as an event's count", function()
+		it("copies the condition and its threshold onto the record", function()
 			local _, rawTriggers = load({
-				alpha = {
-					textKey = "a",
-					amount = 3,
-					trigger = { type = types.UnitKilled, parameters = { teamID = 0 } },
-				},
+				alpha = { textKey = "a", type = types.UnitKilled, parameters = { teamID = 0 }, count = 3 },
 			})
 			local record = rawTriggers.__objective_alpha
 
 			assert.are.equal(types.UnitKilled, record.type)
 			assert.are.same({ teamID = 0 }, record.parameters)
 			assert.are.equal(3, record.count)
-			assert.is_nil(record.atLeast)
 		end)
 
-		it("uses the amount as the level a metric must reach", function()
+		it("carries metric bounds onto the record", function()
 			local _, rawTriggers = load({
-				alpha = { textKey = "a", amount = 4, trigger = { type = types.UnitsOwned, parameters = {} } },
+				alpha = { textKey = "a", type = types.UnitsOwned, parameters = {}, atMost = 0 },
 			})
-			local record = rawTriggers.__objective_alpha
 
-			assert.are.equal(4, record.atLeast)
-			assert.is_nil(record.count)
-		end)
-
-		it("completes a metric without an amount once it reaches one", function()
-			local _, rawTriggers = load({ alpha = { textKey = "a", trigger = { type = types.UnitsOwned } } })
-
-			assert.are.equal(1, rawTriggers.__objective_alpha.atLeast)
+			assert.are.equal(0, rawTriggers.__objective_alpha.atMost)
 		end)
 
 		it("defaults parameters to an empty table", function()
-			local _, rawTriggers = load({ alpha = { textKey = "a", trigger = { type = types.TimeElapsed } } })
+			local _, rawTriggers = load({ alpha = { textKey = "a", type = types.TimeElapsed } })
 
 			assert.are.same({}, rawTriggers.__objective_alpha.parameters)
 		end)
 
 		it("starts inactive and is never repeating, so completion stays latched", function()
-			local _, rawTriggers = load({ alpha = { textKey = "a", trigger = { type = types.TimeElapsed } } })
+			local _, rawTriggers = load({ alpha = { textKey = "a", type = types.TimeElapsed } })
 			local settings = rawTriggers.__objective_alpha.settings
 
 			assert.is_false(settings.active)
@@ -101,7 +88,7 @@ describe("mission_api.objectives_loader", function()
 		end)
 
 		it("completes and reports progress through the objectives module instead of running actions", function()
-			local _, rawTriggers = load({ alpha = { textKey = "a", trigger = { type = types.TimeElapsed } } })
+			local _, rawTriggers = load({ alpha = { textKey = "a", type = types.TimeElapsed } })
 			local record = rawTriggers.__objective_alpha
 
 			record.onActivate()
@@ -114,7 +101,7 @@ describe("mission_api.objectives_loader", function()
 
 		it("restricts the record to the stages its objective appears in", function()
 			local _, rawTriggers = load(
-				{ alpha = { textKey = "a", trigger = { type = types.TimeElapsed } } },
+				{ alpha = { textKey = "a", type = types.TimeElapsed } },
 				{ first = { objectives = { "alpha" } }, second = { objectives = { "alpha" } } }
 			)
 			local stages = rawTriggers.__objective_alpha.settings.stages
@@ -124,7 +111,7 @@ describe("mission_api.objectives_loader", function()
 			assert.are.same(stages, GG["MissionAPI"].ObjectiveStages.alpha)
 		end)
 
-		it("builds nothing for an objective without a trigger", function()
+		it("builds nothing for an objective without a condition type", function()
 			local _, rawTriggers = load({ alpha = { textKey = "a" } })
 
 			assert.is_nil(rawTriggers.__objective_alpha)
@@ -134,7 +121,7 @@ describe("mission_api.objectives_loader", function()
 
 	describe("runtime state", function()
 		it("starts every objective inactive, incomplete and without progress", function()
-			local result = load({ alpha = { textKey = "a", amount = 4, trigger = { type = types.UnitKilled } } })
+			local result = load({ alpha = { textKey = "a", type = types.UnitKilled, count = 4 } })
 
 			assert.is_false(result.alpha.active)
 			assert.is_false(result.alpha.completed)
@@ -142,12 +129,19 @@ describe("mission_api.objectives_loader", function()
 			assert.are.equal(4, result.alpha.target)
 		end)
 
-		it("targets a single occurrence for an objective without an amount", function()
-			-- Otherwise completing it would report a nil target.
+		it("targets the metric bound when there is no count", function()
 			local result = load({
-				event = { textKey = "a", trigger = { type = types.UnitKilled } },
-				manual = { textKey = "b" },
+				a = { textKey = "a", type = types.UnitsOwned, atLeast = 9 },
+				b = { textKey = "b", type = types.UnitsOwned, atMost = 0 },
 			})
+
+			assert.are.equal(9, result.a.target)
+			assert.are.equal(0, result.b.target)
+		end)
+
+		it("targets a single occurrence for an event or action-driven objective without a count", function()
+			-- Otherwise completing it would report a nil target.
+			local result = load({ event = { textKey = "a", type = types.UnitKilled }, manual = { textKey = "b" } })
 
 			assert.are.equal(1, result.event.target)
 			assert.are.equal(1, result.manual.target)
@@ -155,11 +149,9 @@ describe("mission_api.objectives_loader", function()
 	end)
 
 	describe("ApplyThresholds", function()
-		it("copies a resolved amount onto the record and recomputes the target", function()
-			local objectives, rawTriggers = load({
-				alpha = { textKey = "a", amount = 2, trigger = { type = types.UnitKilled } },
-			})
-			objectives.alpha.amount = 5
+		it("copies resolved thresholds onto the record and recomputes the target", function()
+			local objectives, rawTriggers = load({ alpha = { textKey = "a", type = types.UnitKilled, count = 2 } })
+			objectives.alpha.count = 5
 
 			objectivesLoader.ApplyThresholds("alpha", objectives.alpha, rawTriggers)
 
@@ -168,8 +160,8 @@ describe("mission_api.objectives_loader", function()
 		end)
 
 		it("only recomputes the target for an objective without a record", function()
-			local objectives, rawTriggers = load({ manual = { textKey = "a", amount = 2 } })
-			objectives.manual.amount = 3
+			local objectives, rawTriggers = load({ manual = { textKey = "a", count = 2 } })
+			objectives.manual.count = 3
 
 			objectivesLoader.ApplyThresholds("manual", objectives.manual, rawTriggers)
 

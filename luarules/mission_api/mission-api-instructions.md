@@ -148,24 +148,29 @@ breaking change to both the function and every mission using it.
   `seconds = { difficulties = { Medium = 60, Hard = 30 } }`. Resolution picks the exact difficulty, else the
   highest specified one below it, else the lowest specified one. Detection is by a non-nil `difficulties` key, not
   by Lua type, so table parameters (`Area`, `Orders`, …) work the same way. Structural fields (`type`, `settings`,
-  `actions`, an objective's `trigger`) and fields nested inside loadout entries or orders do not support it —
+  `actions`) and fields nested inside loadout entries or orders do not support it —
   author the whole parameter per difficulty instead.
 - Difficulties tables survive validation so that every difficulty's value is validated, including values under
   invalid difficulty names; `loadMission` resolves everything in place (`Modules.Difficulty`) after the loaders and
   before `parameter_processing`. Code running **before** that must not consume parameter values —
   `objectives_loader` builds each objective's condition record before thresholds are known, and the resolve pass
-  copies the resolved `amount` onto it as a threshold (`objectives_loader.ApplyThresholds`). Thresholds are fixed
-  once the mission starts.
+  copies the resolved threshold onto it (`objectives_loader.ApplyThresholds`). Thresholds are fixed once the
+  mission starts.
 - `settings.difficulties` (the per-trigger on/off gate) is an array of difficulty names with **no** inheritance
   between difficulties; empty or omitted enables the trigger on every difficulty. After validation the names are
   converted to difficulty values for the runtime check in `api_missions_triggers.lua`.
 
 ## Objectives and stages
 
-- `objectives_loader` turns an objective's `trigger` (`type` and `parameters`, no threshold of its own) into a
-  condition record `__objective_<objectiveID>` that completes the objective instead of running actions, so
-  objectives reuse every condition handler. The objective's `amount` becomes the threshold: `count` for an event
-  condition, `atLeast` for a metric one. `objective.target` holds the value the UI counts towards.
+- An objective carries its condition inline, written as on a trigger: `type`, `parameters`, and a threshold
+  (`count`, `atLeast` or `atMost`). `objectives_loader` turns it into a condition record `__objective_<objectiveID>`
+  that completes the objective instead of running actions, so objectives reuse every condition handler. Leave out
+  `type` for an objective that only actions complete or step (`CompleteObjective`, `UpdateObjective`); `count` is
+  then the number of steps. `objective.target` holds the threshold the UI counts towards.
+- An objective's lifecycle hooks (`onActivated`, `onProgress`, `onCompleted`, `onFailed`, `onCanceled`, `onHidden`,
+  `onShown`) name Event triggers to fire; `nextStage` moves to that stage on completion.
+- Stage logic lives in `stages.lua` (`ChangeStage`, `ActivateStage`, …) and objective state in `objectives.lua`.
+  The two call each other through `GG['MissionAPI'].Modules`.
 - Those `__` prefixes are reserved; mission scripts must not define IDs that collide.
 - Stage membership comes from `Stages[stageID].objectives`, and is copied onto the objective's condition record
   as `settings.stages`. `stages_loader` is otherwise a pass-through.

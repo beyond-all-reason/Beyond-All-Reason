@@ -114,28 +114,25 @@ describe("mission_api difficulty pipeline", function()
 			Objectives = {
 				surviveTimer = {
 					textKey = "survive",
-					amount = { difficulties = { Easy = 2, Hard = 4 } },
-					trigger = {
-						type = eventTypes.TimeElapsed,
-						parameters = { seconds = { difficulties = { Easy = 90, Hard = 45 } } },
+					type = eventTypes.TotalUnitsBuilt,
+					parameters = {
+						teamID = 0,
+						unitDefName = { difficulties = { Easy = "armwar", Hard = "armpw" } },
 					},
+					count = { difficulties = { Easy = 2, Hard = 4 } },
 				},
 				killBots = {
 					textKey = "kill",
-					amount = { difficulties = { Easy = 3, Hard = 6 } },
+					type = eventTypes.TotalUnitsKilled,
+					parameters = { teamID = 0, unitName = "bot" },
+					count = { difficulties = { Easy = 3, Hard = 6 } },
 					nextStage = { difficulties = { Easy = "s1", Hard = "s2" } },
-					trigger = {
-						type = eventTypes.TotalUnitsKilled,
-						parameters = { teamID = 0, unitName = "bot" },
-					},
 				},
 				holdBots = {
 					textKey = "hold",
-					amount = { difficulties = { Easy = 1, Hard = 2 } },
-					trigger = {
-						type = metricTypes.UnitsOwned,
-						parameters = { teamID = 0, unitName = "bot" },
-					},
+					type = metricTypes.UnitsOwned,
+					parameters = { teamID = 0, unitName = "bot" },
+					atLeast = { difficulties = { Easy = 1, Hard = 2 } },
 				},
 			},
 			Triggers = {
@@ -193,23 +190,20 @@ describe("mission_api difficulty pipeline", function()
 		assert.are.equal(2, #missionApi.Actions.spawnBots.parameters.unitLoadout)
 	end)
 
-	it("resolves objective fields and copies the amount onto the condition records", function()
+	it("resolves objective fields and copies thresholds onto the condition records", function()
 		local missionApi = loadMission(wrappedMission(), HARD)
 
-		assert.are.equal(4, missionApi.Objectives.surviveTimer.amount)
 		assert.are.equal(4, missionApi.Objectives.surviveTimer.target)
 		assert.are.equal(6, missionApi.Objectives.killBots.target)
 		assert.are.equal("s2", missionApi.Objectives.killBots.nextStage)
 		assert.are.equal(2, missionApi.Objectives.holdBots.target)
 
-		---@type { count: number, settings: { repeating: boolean }, parameters: { seconds: number } }
+		---@type { count: number, parameters: { unitDefName: string } }
 		local surviveRecord = missionApi.Triggers.__objective_surviveTimer
 		assert.are.equal(4, surviveRecord.count)
-		assert.is_falsy(surviveRecord.settings.repeating)
-		assert.are.equal(45, surviveRecord.parameters.seconds)
+		assert.are.equal("armpw", surviveRecord.parameters.unitDefName)
 		assert.are.equal(6, missionApi.Triggers.__objective_killBots.count)
 		assert.are.equal(2, missionApi.Triggers.__objective_holdBots.atLeast)
-		assert.is_nil(missionApi.Triggers.__objective_holdBots.count)
 	end)
 
 	it("resolves the same mission differently on another difficulty", function()
@@ -229,7 +223,7 @@ describe("mission_api difficulty pipeline", function()
 
 		assert.are.same({}, logged)
 		assert.are.equal(8, missionApi.Triggers.spawnWave.parameters.seconds)
-		assert.are.equal(4, missionApi.Objectives.surviveWaves.amount)
+		assert.are.equal(4, missionApi.Objectives.surviveWaves.target)
 		assert.are.same({ MEDIUM, HARD }, missionApi.Triggers.hardOnly.settings.difficulties)
 	end)
 
