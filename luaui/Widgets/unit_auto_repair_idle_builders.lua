@@ -351,10 +351,9 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	-- Remove all selected builders from tracking on manual commands
 	for _, unitID in ipairs(selectedUnits) do
 		local active = activeRepairs[unitID] ---@as table?
-		if active and cmdOpts.meta and not cmdOpts.shift then
-			local currentID, _, cmdTag = spGetUnitCurrentCommand(unitID)
-			local idleID = active.returning and CMD_MOVE or CMD_REPAIR
-			if currentID == idleID then
+		if active and active.returning then
+			local currentID, cmdOptions, cmdTag = spGetUnitCurrentCommand(unitID)
+			if currentID == CMD_MOVE and math.bit_and(cmdOptions, CMD_OPT_INTERNAL) ~= 0 then
 				spGiveOrderToUnit(unitID, CMD_REMOVE, cmdTag)
 			end
 		end
@@ -405,7 +404,8 @@ function widget:GameFrame(frame)
 		if not isUnitAlive(builderID) then
 			activeRepairs[builderID] = nil
 		elseif info.returning then
-			if spGetUnitCurrentCommand(builderID, 1) ~= CMD_MOVE then
+			local currentID, cmdOptions = spGetUnitCurrentCommand(builderID)
+			if currentID ~= CMD_MOVE or math.bit_and(cmdOptions, CMD_OPT_INTERNAL) == 0 then
 				activeRepairs[builderID] = nil
 			end
 		elseif not isUnitAlive(info.targetID) or reclaimBlacklist[info.targetID] or wantsCloak then
