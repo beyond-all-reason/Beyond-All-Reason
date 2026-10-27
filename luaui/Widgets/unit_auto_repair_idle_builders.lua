@@ -40,6 +40,7 @@ local CMD_REPAIR = CMD.REPAIR
 local CMD_MOVE = CMD.MOVE
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_STOCKPILE = CMD.STOCKPILE
+local CMD_REMOVE = CMD.REMOVE
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 local ALLY_UNITS = Spring.ALLY_UNITS
 
@@ -349,7 +350,15 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 	-- Remove all selected builders from tracking on manual commands
 	for _, unitID in ipairs(selectedUnits) do
-		if idleBuilders[unitID] or activeRepairs[unitID] then
+		local active = activeRepairs[unitID] ---@as table?
+		if active and cmdOpts.meta and not cmdOpts.shift then
+			local currentID, _, cmdTag = spGetUnitCurrentCommand(unitID)
+			local idleID = active.returning and CMD_MOVE or CMD_REPAIR
+			if currentID == idleID then
+				spGiveOrderToUnit(unitID, CMD_REMOVE, cmdTag)
+			end
+		end
+		if idleBuilders[unitID] or active then
 			removeBuilder(unitID)
 		end
 	end
