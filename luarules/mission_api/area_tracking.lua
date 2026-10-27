@@ -152,12 +152,10 @@ local function stopTrackingUnits(trackingID)
 end
 
 local function updateTrackedAreas()
-	local keys = {} ---@type string[]
-	for key in pairs(trackedAreas) do
-		keys[#keys + 1] = key
-	end
-	for i = 1, #keys do
-		local trackedArea = trackedAreas[keys[i]]
+	local keys = table.keys(trackedAreas)
+
+	for _, key in ipairs(keys) do
+		local trackedArea = trackedAreas[key]
 		if trackedArea then
 			updateTrackedArea(trackedArea)
 		end
