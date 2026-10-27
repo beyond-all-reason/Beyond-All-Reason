@@ -154,6 +154,8 @@ local IDLEMODE_FLY = 0
 
 local ZOMBIE_EXPIRING_BUILDING_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't want random zombie immobile trash taking up unit cap forever.
 local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
+local ZOMBIE_OUTDATED_FACTORY_LIFETIME = Game.gameSpeed * 60 * 5
+local ZOMBIE_PERMANENT_FACTORY_TECH_LEVEL = 3
 
 local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
 local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
@@ -384,6 +386,7 @@ do
 			size = unitDef.xsize,
 			isMobile = unitDef.speed > 0,
 			isCommander = customParams.iscommander and true or false,
+			techLevel = tonumber(customParams.techlevel) or 1,
 			isPoolMember = isPoolMember,
 			forceRespawn = isPoolMember,
 			neverRespawn = unitRequiresSpecificPlacement(unitDef),
@@ -500,7 +503,8 @@ local function setZombieFactoryBuildpower(unitID, useZombieBuildpower, unitDefID
 	local unitDef = resolvedUnitDefID and unitDefs[resolvedUnitDefID]
 	if useZombieBuildpower and unitDef and unitDef.isFactory then
 		spring.SetUnitBuildSpeed(unitID, unitDef.buildSpeed * zombieModeSettings.factoryBuildpowerTechMultiplier ^ (currentTechLevel or 1))
-		zombieFactories[unitID] = factoryData or { unitDefID = resolvedUnitDefID, baseBuildSpeed = unitDef.buildSpeed }
+		zombieFactories[unitID] = factoryData
+			or { unitDefID = resolvedUnitDefID, baseBuildSpeed = unitDef.buildSpeed, zombieFrame = gameFrame }
 		return
 	end
 	if factoryData and spring.ValidUnitID(unitID) then
@@ -928,6 +932,22 @@ local function expireDueBuildings(frame)
 		local unitID = expiringBuildings[buildingIndex]
 		local unitDefID = spring.ValidUnitID(unitID) and spring.GetUnitDefID(unitID)
 		if unitDefID and isZombie(unitID) and zombieUnitDefs[unitDefID].isExpiringBuilding then
+			suppressedDeaths[unitID] = true
+			spring.DestroyUnit(unitID, true, true)
+		end
+	end
+end
+
+local function expireOutdatedFactories(frame)
+	for unitID, factoryData in pairs(zombieFactories) do
+		local techLevel = zombieUnitDefs[factoryData.unitDefID].techLevel
+		if
+			techLevel < ZOMBIE_PERMANENT_FACTORY_TECH_LEVEL
+			and techLevel < (currentTechLevel or 1)
+			and frame >= factoryData.zombieFrame + ZOMBIE_OUTDATED_FACTORY_LIFETIME
+			and spring.ValidUnitID(unitID)
+			and isZombie(unitID)
+		then
 			suppressedDeaths[unitID] = true
 			spring.DestroyUnit(unitID, true, true)
 		end
@@ -1396,6 +1416,7 @@ function gadget:GameFrame(frame)
 
 	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
 		updateTooLong(frame)
+		expireOutdatedFactories(frame)
 		if currentModeFeatures.wraithRespawns then
 			updateWraiths()
 		end
