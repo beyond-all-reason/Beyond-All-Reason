@@ -34,12 +34,14 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetGameFrame = Spring.GetGameFrame
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetCmdDescIndex = Spring.GetCmdDescIndex
+local spGetActiveCmdDesc = Spring.GetActiveCmdDesc
 
 local CMD_REPAIR = CMD.REPAIR
 local CMD_MOVE = CMD.MOVE
 local CMD_RECLAIM = CMD.RECLAIM
-local CMD_MOVE_STATE = CMD.MOVE_STATE
-local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
+local CMD_STOCKPILE = CMD.STOCKPILE
+local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 local ALLY_UNITS = Spring.ALLY_UNITS
 
 local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
@@ -328,8 +330,13 @@ end
 -- Command interception
 ----------------------------------------------------------------
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	-- State changes (e.g. movestate) should not disrupt tracking
-	if cmdID == CMD_MOVE_STATE or cmdID == CMD_WANT_CLOAK then
+	local descIndex = spGetCmdDescIndex(cmdID)
+	local desc = descIndex and spGetActiveCmdDesc(descIndex)
+	if desc and (desc.type == CMDTYPE_ICON_MODE or desc.queueing == false) then
+		return
+	end
+	-- Stockpile is a unique case. Its description does not identify it as a state.
+	if cmdID == CMD_STOCKPILE then
 		return
 	end
 
