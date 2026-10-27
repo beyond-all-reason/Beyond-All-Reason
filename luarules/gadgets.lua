@@ -322,6 +322,7 @@ local callInLists = {
 	"ScriptEndBurst",
 
 	-- LuaRules CallIns (note: the *PreDamaged calls belong here too)
+	"AttackCommandMovement",
 	"CommandFallback",
 	"AllowCommand",
 	"AllowStartPosition",
@@ -1714,6 +1715,22 @@ function gadgetHandler:RecvSkirmishAIMessage(aiTeam, dataStr)
 		end
 	end
 end
+
+function gadgetHandler:AttackCommandMovement(unitID, cmdTag, cmdID, cmdOptions, targetID, x, y, z, temporary)
+	local targetDead = targetID and Spring.GetUnitIsDead(targetID)
+	for _, g in ipairs(self.AttackCommandMovementList) do
+		if g:AttackCommandMovement(unitID, cmdTag, cmdID, cmdOptions, targetID, x, y, z, temporary) == true then
+			return true
+		end
+		local currentID, _, currentTag = Spring.GetUnitCurrentCommand(unitID)
+		if Spring.GetUnitIsDead(unitID) ~= false or currentID ~= cmdID or currentTag ~= cmdTag
+			or (targetID and Spring.GetUnitIsDead(targetID) ~= targetDead) then
+			return true
+		end
+	end
+	return false
+end
+
 
 function gadgetHandler:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 	for _, g in ipairs(self.CommandFallbackList) do
