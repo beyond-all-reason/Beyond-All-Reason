@@ -7,10 +7,6 @@ local tracking = GG["MissionAPI"].Modules.Tracking
 local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
 local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
 
-local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes
-local moveStates = parameterTypes.Enums[parameterTypes.Types.MoveState]
-local fireStates = parameterTypes.Enums[parameterTypes.Types.FireState]
-
 --- Units
 
 local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpacing)
@@ -115,10 +111,10 @@ local function spawnUnitLoadout(unitLoadout)
 			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 			GG["MissionAPI"].issuingOrders = true
 			if unit.moveState then
-				Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { moveStates[unit.moveState] }, 0)
+				Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { unit.moveState }, 0)
 			end
 			if unit.fireState then
-				Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { fireStates[unit.fireState] }, 0)
+				Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { unit.fireState }, 0)
 			end
 			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
 			GG["MissionAPI"].issuingOrders = nil

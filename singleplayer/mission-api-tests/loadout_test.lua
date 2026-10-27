@@ -162,7 +162,7 @@ local actions = {
 
 local unitLoadout    = {
 	-- Enemy team (team 1): stands next to the player's con without moving or firing.
-	{ unitDefName = 'corak', x = 1650, z = 1850, facing = 'e', team = 1, moveState = 'HoldPosition', fireState = 'HoldFire' },
+	{ unitDefName = 'corak', x = 1650, z = 1850, facing = 'e', team = 1, moveState = CMD.MOVESTATE_HOLDPOS, fireState = CMD.FIRESTATE_HOLDFIRE },
 
 	-- Player team (team 0).
 	{ unitDefName = 'armck', x = 1780, z = 1850, facing = 'e', team = 0, unitName = 'player-con' },

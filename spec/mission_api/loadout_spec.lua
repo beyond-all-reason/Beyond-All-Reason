@@ -5,6 +5,20 @@ local given
 
 local env = MissionSpecEnv.new({
 	Game = { squareSize = 8, footprintScale = 2 },
+	-- loadout.lua keys tables by these at load; the states are the engine's numbers.
+	CMD = {
+		ATTACK = 20,
+		GUARD = 25,
+		LOAD_UNITS = 75,
+		RECLAIM = 90,
+		RESURRECT = 125,
+		CAPTURE = 130,
+		FIRE_STATE = 45,
+		MOVE_STATE = 50,
+		MOVESTATE_HOLDPOS = 0,
+		FIRESTATE_HOLDFIRE = 0,
+		FIRESTATE_FIREATNEUTRAL = 3,
+	},
 	UnitDefNames = { bot = { id = 1, xsize = 4, zsize = 4 } },
 	Spring = {
 		GetGroundHeight = function()
@@ -54,8 +68,8 @@ describe("mission_api.loadout move and fire states", function()
 				x = 0,
 				z = 0,
 				team = 0,
-				moveState = "HoldPosition",
-				fireState = "FireAtNeutral",
+				moveState = env.CMD.MOVESTATE_HOLDPOS,
+				fireState = env.CMD.FIRESTATE_FIREATNEUTRAL,
 				orders = { move },
 			},
 		})
@@ -80,7 +94,9 @@ describe("mission_api.loadout move and fire states", function()
 	end)
 
 	it("gives no state the entry leaves out", function()
-		loadout.SpawnUnitLoadout({ { unitDefName = "bot", x = 0, z = 0, team = 0, fireState = "HoldFire" } })
+		loadout.SpawnUnitLoadout({
+			{ unitDefName = "bot", x = 0, z = 0, team = 0, fireState = env.CMD.FIRESTATE_HOLDFIRE },
+		})
 
 		assert.are.equal(2, #given)
 		assert.are.equal(env.CMD.FIRE_STATE, given[1].commandID)

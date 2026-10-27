@@ -196,13 +196,6 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.TriggerIDs] = getListValidator(parameterValidators[Types.TriggerID])
 	parameterValidators[Types.ObjectiveIDs] = getListValidator(parameterValidators[Types.ObjectiveID])
 
-	parameterValidators[Types.MoveState] = getLookupValidator(validateString, "moveState", function(moveState)
-		return enums[Types.MoveState][moveState]
-	end)
-	parameterValidators[Types.FireState] = getLookupValidator(validateString, "fireState", function(fireState)
-		return enums[Types.FireState][fireState]
-	end)
-
 	parameterValidators[Types.Difficulty] = getLookupValidator(validateString, "difficulty", function(difficulty)
 		return enums[Types.Difficulty][difficulty]
 	end)
@@ -504,6 +497,17 @@ local function registerTeamValidators(parameterValidators, context)
 	local Types = context.Types
 	local validateNumber = parameterValidators[Types.Number]
 
+	parameterValidators[Types.MoveState] = getLookupValidator(validateNumber, "moveState", function(moveState)
+		return moveState == CMD.MOVESTATE_HOLDPOS
+			or moveState == CMD.MOVESTATE_MANEUVER
+			or moveState == CMD.MOVESTATE_ROAM
+	end)
+	parameterValidators[Types.FireState] = getLookupValidator(validateNumber, "fireState", function(fireState)
+		return fireState == CMD.FIRESTATE_HOLDFIRE
+			or fireState == CMD.FIRESTATE_RETURNFIRE
+			or fireState == CMD.FIRESTATE_FIREATWILL
+			or fireState == CMD.FIRESTATE_FIREATNEUTRAL
+	end)
 	parameterValidators[Types.TeamID] = getLookupValidator(validateNumber, "teamID", function(teamID)
 		return Spring.GetTeamAllyTeamID(teamID)
 	end)

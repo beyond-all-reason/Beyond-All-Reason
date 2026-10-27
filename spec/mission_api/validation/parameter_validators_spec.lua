@@ -970,13 +970,20 @@ describe("mission_api.validation.parameter_validators", function()
 	end
 
 	describe("MoveState and FireState", function()
-		it("accepts every move and fire state by name", function()
+		before_each(function()
+			local CMD = V.env.CMD
+			CMD.MOVESTATE_HOLDPOS, CMD.MOVESTATE_MANEUVER, CMD.MOVESTATE_ROAM = 0, 1, 2
+			CMD.FIRESTATE_HOLDFIRE, CMD.FIRESTATE_RETURNFIRE, CMD.FIRESTATE_FIREATWILL, CMD.FIRESTATE_FIREATNEUTRAL =
+				0, 1, 2, 3
+		end)
+
+		it("accepts every move and fire state", function()
 			local unitLoadout = {}
-			for _, moveState in ipairs({ "HoldPosition", "Maneuver", "Roam" }) do
+			for moveState = 0, 2 do
 				unitLoadout[#unitLoadout + 1] =
 					{ unitDefName = "armwar", team = 0, x = 0, z = 0, moveState = moveState }
 			end
-			for _, fireState in ipairs({ "HoldFire", "ReturnFire", "FireAtWill", "FireAtNeutral" }) do
+			for fireState = 0, 3 do
 				unitLoadout[#unitLoadout + 1] =
 					{ unitDefName = "armwar", team = 0, x = 0, z = 0, fireState = fireState }
 			end
@@ -984,23 +991,23 @@ describe("mission_api.validation.parameter_validators", function()
 			V.assertValid(validateUnitLoadout(unitLoadout))
 		end)
 
-		it("rejects an unknown state", function()
+		it("rejects a state out of range", function()
 			local result = validateUnitLoadout({
-				{ unitDefName = "armwar", team = 0, x = 0, z = 0, moveState = "Hold", fireState = "holdFire" },
+				{ unitDefName = "armwar", team = 0, x = 0, z = 0, moveState = 3, fireState = -1 },
 			})
 
-			V.assertMessage(result, "Invalid moveState: Hold. Action: a, Parameter: unitLoadout[1].moveState")
-			V.assertMessage(result, "Invalid fireState: holdFire. Action: a, Parameter: unitLoadout[1].fireState")
+			V.assertMessage(result, "Invalid moveState: 3. Action: a, Parameter: unitLoadout[1].moveState")
+			V.assertMessage(result, "Invalid fireState: -1. Action: a, Parameter: unitLoadout[1].fireState")
 		end)
 
-		it("rejects a state given as the engine's number", function()
+		it("rejects a state given as a name", function()
 			local result = validateUnitLoadout({
-				{ unitDefName = "armwar", team = 0, x = 0, z = 0, moveState = 0 },
+				{ unitDefName = "armwar", team = 0, x = 0, z = 0, moveState = "HoldPosition" },
 			})
 
 			V.assertMessage(
 				result,
-				"Unexpected parameter type, expected string, got number. Action: a, Parameter: unitLoadout[1].moveState"
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: unitLoadout[1].moveState"
 			)
 		end)
 	end)
