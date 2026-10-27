@@ -5,7 +5,7 @@ local function writeVariable(key, value, persistent)
 	if type(value) == 'table' then
 		value = table.copy(value)
 	end
-	GG['MissionAPI'].Variables[key] = value
+	GG['MissionAPI'].Modules.Variables.Set(key, value)
 	if persistent then
 		GG['MissionAPI'].PersistentVariables[key] = true
 	end
