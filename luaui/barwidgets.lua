@@ -1197,6 +1197,7 @@ end
 
 -- Not a handler method. `fromZip` grants full System to anything with handler access.
 local newWidget ---@type function
+local releaseRefusedWidget ---@type function
 
 -- User widgets can read its own environment and an env it builds. Everything else returns its own env.
 -- Weak values too: a widget's own entry points at itself, and Lua 5.1 keeps a weak key alive
@@ -1225,6 +1226,8 @@ end
 local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
 -- What each user widget's proxy hands out as customCommands, kept here so the widget cannot swap it.
 local userCustomCommands = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
+-- Weak values. The proxy's closures hold references to the widget. In 5.1, this prevents collection.
+local widgetProxies = setmetatable({}, { __mode = "kv" }) ---@type table<table, table>
 
 local function findPrivilegedCommand(list)
 	if type(list) ~= "table" then
@@ -1296,6 +1299,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		end
 		setfenv(chunk, widget)
 		local success, err = runWidgetChunk(chunk, widget, fromZip, basename)
+		releaseRefusedWidget(self, widget)
 		if not success then
 			return loadFailed(basename, err)
 		end
@@ -1317,9 +1321,11 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	setfenv(chunk, widget)
 	local success, err = runWidgetChunk(chunk, widget, fromZip, basename)
 	if not success then
+		releaseRefusedWidget(self, widget)
 		return loadFailed(basename, err)
 	end
 	if err == false then
+		releaseRefusedWidget(self, widget)
 		return nil -- widget asked for a silent death
 	end
 
@@ -1332,6 +1338,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	if zipOnly[name] and not fromZip then
 		spEcho("Ignoring user copy: " .. filename .. "  (the game provides " .. name .. ")")
+		releaseRefusedWidget(self, widget)
 		return nil
 	end
 
@@ -1346,17 +1353,20 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	err = self:ValidateWidget(widget)
 	if err then
+		releaseRefusedWidget(self, widget)
 		return loadFailed(basename, err)
 	end
 
 	if widget.GetInfo == nil then
 		-- Do not keep widgets known but unregistered (active, no order entry)
+		releaseRefusedWidget(self, widget)
 		return loadFailed(basename, "no GetInfo() call")
 	end
 
 	local knownInfo = self.knownWidgets[name]
 	if knownInfo and not reload then
 		if knownInfo.active then
+			releaseRefusedWidget(self, widget)
 			return loadFailed(basename, "duplicate name")
 		end
 	else
@@ -1408,6 +1418,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	else
 		self.orderList[name] = 0
 		self.knownWidgets[name].active = false
+		releaseRefusedWidget(self, widget)
 		return nil
 	end
 
@@ -1540,6 +1551,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
+	widgetProxies[widget] = wh
 	widget.canControlUnits = canControlUnits
 	local includeMode = fromZip and vfsZip or vfsRawFirst
 	widget.include = function(f)
@@ -2155,8 +2167,12 @@ function widgetHandler:InsertWidgetRaw(widget)
 		spEcho("Blocked loading: a widget that was not loaded from a file")
 		return
 	end
-	if self:FindWidget(widget.whInfo.name) then
+	local running = self:FindWidget(widget.whInfo.name)
+	if running then
 		spEcho("Blocked loading: " .. widget.whInfo.name .. "  (already running)")
+		if running ~= widget then
+			releaseRefusedWidget(self, widget)
+		end
 		return
 	end
 	if not platformCheck(widget.whInfo.depends) then
@@ -2166,6 +2182,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 		end
 		spEcho("Missing capabilities:  " .. name .. ". Disabling.")
 		self:RecordError(widget.whInfo.basename, nil, "missing capabilities", true)
+		releaseRefusedWidget(self, widget)
 		return
 	end
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
@@ -2183,6 +2200,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 				true
 			)
 		end
+		releaseRefusedWidget(self, widget)
 		return
 	end
 
@@ -2229,6 +2247,49 @@ local function forgetWidgetRegistrations(handler, widget)
 	handler.actionHandler:RemoveWidgetActions(widget)
 end
 
+local retiredProxyNames = setmetatable({}, { __mode = "k" }) ---@type table<table, string|false>
+local RetiredProxyMeta = {
+	__index = function(proxy, key)
+		local name = retiredProxyNames[proxy]
+		if name then
+			retiredProxyNames[proxy] = false
+			spLog(
+				"barwidgets.lua",
+				LOG.WARNING,
+				name .. " is not running, so widgetHandler." .. tostring(key) .. " does nothing"
+			)
+		end
+		return unavailableFunction
+	end,
+}
+
+-- Keeps the widget from being reinserted through some cleverness.
+-- Empties the proxy so closures that survive cleanup cannot use it.
+local function retireProxy(widget)
+	loadedWidgets[widget] = nil
+	local wh = widgetProxies[widget]
+	if not wh then
+		return
+	end
+	local info = rawget(widget, "whInfo")
+	local name = tostring(info and info.name or "A widget")
+	local actions = rawget(wh, "actionHandler")
+	for key in pairs(wh) do
+		wh[key] = nil
+	end
+	if actions then
+		for key in pairs(actions) do
+			actions[key] = nil
+		end
+		setmetatable(actions, RetiredProxyMeta)
+		retiredProxyNames[actions] = name
+		rawset(wh, "actionHandler", actions)
+	end
+	setmetatable(wh, RetiredProxyMeta)
+	retiredProxyNames[wh] = name
+	rawset(widget, "widgetHandler", wh) -- takes back the real handler if LoadWidget granted it
+end
+
 function widgetHandler:RemoveWidgetRaw(widget)
 	if widget == nil or widget.whInfo == nil then
 		return
@@ -2255,6 +2316,23 @@ function widgetHandler:RemoveWidgetRaw(widget)
 	end
 	self:UpdateCallIns()
 	self.widgetsRevision = self.widgetsRevision + 1
+end
+
+releaseRefusedWidget = function(handler, widget)
+	-- Its queued calls would otherwise add it to call-in lists nobody can see or clear.
+	for i = #reorderQueue, 1, -1 do
+		for _, arg in pairs(reorderQueue[i]) do
+			if arg == widget then
+				table.remove(reorderQueue, i)
+				break
+			end
+		end
+	end
+	forgetWidgetRegistrations(handler, widget)
+	if memoryGuard then
+		memoryGuard.release(widget)
+	end
+	retireProxy(widget)
 end
 
 --------------------------------------------------------------------------------
