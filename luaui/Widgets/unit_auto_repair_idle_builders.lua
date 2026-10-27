@@ -17,7 +17,6 @@ end
 ----------------------------------------------------------------
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetTeamUnits = Spring.GetTeamUnits
-local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitVelocity = Spring.GetUnitVelocity
@@ -116,6 +115,9 @@ local reclaimBlacklist = {}
 -- [reclaimerID] = targetID
 local activeReclaimers = {}
 
+-- [reclaimerID] = true
+local seenReclaimers = {}
+
 ----------------------------------------------------------------
 -- Helpers
 ----------------------------------------------------------------
@@ -192,6 +194,7 @@ local function onReclaimerStopped(reclaimerID)
 	end
 
 	activeReclaimers[reclaimerID] = nil
+	seenReclaimers[reclaimerID] = nil
 	if not hasActiveReclaimers(targetID) then
 		reclaimBlacklist[targetID] = spGetGameFrame() + RECLAIM_BLACKLIST_DURATION
 	end
@@ -211,12 +214,7 @@ local function findAllyReclaimerOf(targetID)
 	local nearby = spGetUnitsInCylinder(tx, tz, maxReclaimRange, ALLY_UNITS)
 	for i = 1, #nearby do
 		local uID = nearby[i]
-		if
-			uID ~= targetID
-			and spGetUnitTeam(uID) ~= myTeam -- our own reclaims are tracked via CommandNotify
-			and cachedUnitDefs[spGetUnitDefID(uID)].canReclaim
-			and isReclaimingUnit(uID, targetID)
-		then
+		if uID ~= targetID and cachedUnitDefs[spGetUnitDefID(uID)].canReclaim and isReclaimingUnit(uID, targetID) then
 			return uID
 		end
 	end
@@ -257,6 +255,7 @@ function widget:Shutdown()
 	activeRepairs = {}
 	reclaimBlacklist = {}
 	activeReclaimers = {}
+	seenReclaimers = {}
 end
 
 function widget:PlayerChanged()
@@ -274,6 +273,7 @@ function widget:PlayerChanged()
 		activeRepairs[unitID] = nil
 	end
 	activeReclaimers = {}
+	seenReclaimers = {}
 	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if isMobileBuilder[unitDefID] and spGetUnitCommandCount(unitID) == 0 then
@@ -381,12 +381,10 @@ function widget:GameFrame(frame)
 		end
 	end
 
-	-- Check if any allies aren't reclaiming their unit anymore.
-	for reclaimerID, targetID in pairs(activeReclaimers) do
-		if
-			spGetUnitTeam(reclaimerID) ~= myTeam
-			and (not isUnitAlive(reclaimerID) or not isReclaimingUnit(reclaimerID, targetID))
-		then
+	-- Check if any seen reclaimers aren't reclaiming their unit anymore.
+	-- Ordered reclaimers may be moving to the target, so wait for UnitIdle.
+	for reclaimerID in pairs(seenReclaimers) do
+		if not isUnitAlive(reclaimerID) or not isReclaimingUnit(reclaimerID, activeReclaimers[reclaimerID]) then
 			onReclaimerStopped(reclaimerID)
 		end
 	end
@@ -476,11 +474,12 @@ function widget:GameFrame(frame)
 			end
 
 			if bestTarget then
+				-- CommandNotify misses allied orders and our own area, patrol, and fight orders.
+				-- When assigning a repair target, do a spot check for any friendly units missed.
 				local allyReclaimerID = findAllyReclaimerOf(bestTarget)
-				-- We don't have CommandNotify for allies, so we do a spot check when assigning
-				-- a repair target.
 				if allyReclaimerID then
 					activeReclaimers[allyReclaimerID] = bestTarget
+					seenReclaimers[allyReclaimerID] = true
 					reclaimBlacklist[bestTarget] = math.huge
 				else
 					spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget, CMD_OPT_INTERNAL)
