@@ -1,58 +1,44 @@
-require("spec_helper")
+local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and
 -- Spring.GetUnitIsBeingBuilt / UnitDefs / Spring.GetUnitDefID inside its handler.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+Builders.MissionApi.new():Install()
 
 -- Builder ids double as their own defIDs below, so UnitDefs is keyed by both. Maybe too confusing.
-_G.UnitDefs =
-	{ [1] = { name = "armsolar" }, [2] = { name = "armwin" }, [10] = { name = "armck" }, [11] = { name = "corck" } }
+local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+	[1] = { name = "armsolar" },
+	[2] = { name = "armwin" },
+	[10] = { name = "armck" },
+	[11] = { name = "corck" },
+})
+_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
-local constructionStarted = VFS.Include("luarules/mission_api/conditions/construction_started.lua")
+local constructionStarted = MissionSpecEnv.include(env, "luarules/mission_api/conditions/construction_started.lua")
 local onUnitCreated = constructionStarted.callins.UnitCreated
 local onBuildAssisted = constructionStarted.callins.BuildAssisted -- Custom callin from the trigger gadget.
 
 describe("mission_api.conditions.construction_started", function()
 	before_each(function()
-		Spring.GetUnitIsBeingBuilt = function()
+		env.Spring.GetUnitIsBeingBuilt = function()
 			return true
 		end
-		Spring.GetUnitDefID = function(unitID)
+		env.Spring.GetUnitDefID = function(unitID)
 			return unitID
 		end
 	end)
 
 	local function trigger(parameters)
-		return { parameters = parameters or {}, settings = {} }
+		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
-	-- Build claims outlive one context. Ordinarily they live across the mission/until completed.
+	-- The gadget's build claims live across the mission; each built context carries its own,
+	-- and its ActivateTrigger reports the success that claiming depends on.
 	local function newContext()
-		local fired = 0
-		local claims = {}
-		local context = {
-			-- Unusual for most triggers: We need the trigger return value.
-			-- Actually, I wonder if this is a gap in our testing. We'll know soon.
-			ActivateTrigger = function()
-				fired = fired + 1
-				return true
-			end,
-			DoesUnitHaveName = function()
-				return true
-			end,
-			HasConstructionStarted = function(buildeeID, triggerID)
-				return claims[buildeeID] and claims[buildeeID][triggerID]
-			end,
-			ClaimConstructionStart = function(buildeeID, triggerID)
-				claims[buildeeID] = claims[buildeeID] or {}
-				claims[buildeeID][triggerID] = true
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"
@@ -115,7 +101,7 @@ describe("mission_api.conditions.construction_started", function()
 	end)
 
 	it("does not fire for a unit that is not being built", function()
-		Spring.GetUnitIsBeingBuilt = function()
+		env.Spring.GetUnitIsBeingBuilt = function()
 			return false
 		end
 		local context, fired = newContext()

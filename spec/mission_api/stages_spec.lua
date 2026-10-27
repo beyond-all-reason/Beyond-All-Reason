@@ -1,14 +1,27 @@
-require("spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
+local env = MissionSpecEnv.new()
 
-local stages = VFS.Include("luarules/mission_api/stages.lua")
-local stagesLoader = VFS.Include("luarules/mission_api/stages_loader.lua")
+local stages = MissionSpecEnv.include(env, "luarules/mission_api/stages.lua")
+local stagesLoader = MissionSpecEnv.include(env, "luarules/mission_api/stages_loader.lua")
+
+-- Changing stage hands the objectives it enters and leaves to the objectives
+-- module; what happens to them there is covered by objectives_spec.
+local function objectivesModuleStub()
+	return {
+		ActivateObjective = function() end,
+		CancelObjective = function() end,
+		SetObjectiveActive = function() end,
+	}
+end
 
 describe("mission_api.stages", function()
 
 	before_each(function()
+		GG["MissionAPI"] = {
+			Modules = { Objectives = objectivesModuleStub() },
+			Objectives = { a = {}, b = {}, c = {} },
+		}
 		GG["MissionAPI"].Stages = {
 			first = { objectives = { "a", "b" } },
 			second = { objectives = { "c" } },
@@ -69,8 +82,9 @@ describe("mission_api.stages_loader", function()
 			assert.are.same(raw, stagesLoader.ProcessRawStages(raw))
 		end)
 
+		-- api_missions defaults a missing Stages section to {} before calling this.
 		it("returns an empty table when there are no stages", function()
-			assert.are.same({}, stagesLoader.ProcessRawStages(nil))
+			assert.are.same({}, stagesLoader.ProcessRawStages({}))
 		end)
 	end)
 

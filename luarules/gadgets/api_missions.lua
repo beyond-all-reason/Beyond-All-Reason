@@ -16,8 +16,32 @@ end
 
 local objectivesController, stagesController, triggersController, actionsController
 
-local function loadMission(scriptPath)
-	local mission = VFS.Include("singleplayer/" .. scriptPath)
+-- Used in GameFrame.
+local missionValidationFailure
+
+-- Runs on the raw mission data
+local function validateMission(mission)
+	local validation = VFS.Include("luarules/mission_api/validation.lua")
+	local result = validation.ValidateMission(mission)
+	validation.LogResult(result)
+
+	return result
+end
+
+local function loadMission(gameSetup)
+	local mission = VFS.Include(gameSetup.entryPoint)
+	local validationResult = validateMission(mission)
+
+	if not validationResult.ok then
+		GG["MissionAPI"] = nil -- stops gadget api_missions_triggers from loading
+		missionValidationFailure = "[Mission API] Mission not loaded: "
+			.. #validationResult.errors
+			.. " validation errors in "
+			.. gameSetup.entryPoint
+			.. " (see infolog)"
+		return
+	end
+
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
 	local rawObjectives = mission.Objectives or {}
@@ -32,65 +56,71 @@ local function loadMission(scriptPath)
 	GG["MissionAPI"].Actions = actionsController.ProcessRawActions(rawActions)
 	GG["MissionAPI"].UnitLoadout = mission.UnitLoadout
 	GG["MissionAPI"].FeatureLoadout = mission.FeatureLoadout
+	GG["MissionAPI"].Cutscenes = mission.Cutscenes or {}
 
-	local validation = VFS.Include("luarules/mission_api/validation.lua")
-	validation.ValidateStages(GG["MissionAPI"].Stages)
-	validation.ValidateObjectives(GG["MissionAPI"].Objectives, rawActions)
-	validation.ValidateInitialStage(initialStage)
-	validation.ValidateTriggers(GG["MissionAPI"].Triggers, rawActions)
-	validation.ValidateActions(GG["MissionAPI"].Actions)
-	validation.ValidateReferences()
-
-	if GG["MissionAPI"].HasValidationErrors then
-		GG["MissionAPI"] = nil -- stops gadget api_missions_triggers from loading
-		gadgetHandler:RemoveGadget()
-		return false
-	end
+	-- Difficulties tables stay unresolved through validation so every difficulty's value is checked.
+	local difficultyController = GG["MissionAPI"].Modules.Difficulty
+	GG["MissionAPI"].Difficulty = difficultyController.FromName(gameSetup.difficulty)
+	difficultyController.ResolveTriggers(GG["MissionAPI"].Triggers)
+	difficultyController.ResolveActions(GG["MissionAPI"].Actions)
+	difficultyController.ResolveObjectives(GG["MissionAPI"].Objectives)
+	difficultyController.ResolveCutscenes(GG["MissionAPI"].Cutscenes)
 
 	-- TODO: refactor loaders after merging loadouts
 	local parameterProcessing = VFS.Include("luarules/mission_api/parameter_processing.lua")
+	GG["MissionAPI"].Modules.Variables.ResolveReferences(
+		GG["MissionAPI"].Triggers,
+		GG["MissionAPI"].Actions,
+		GG["MissionAPI"].Objectives,
+		parameterProcessing.ProcessValue
+	)
 	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
-
-	return true
 end
 
 function gadget:Initialize()
-	--local scriptPath = 'mission-api-tests/validation_test.lua'
-	--local scriptPath = 'mission-api-tests/test_mission.lua'
-	--local scriptPath = 'mission-api-tests/markers_test.lua'
-	--local scriptPath = 'mission-api-tests/sound_test.lua'
-	--local scriptPath = 'mission-api-tests/issue_orders_test.lua'
-	--local scriptPath = 'mission-api-tests/unit_triggers_test.lua'
-	--local scriptPath = 'mission-api-tests/feature_triggers_test.lua'
-	--local scriptPath = 'mission-api-tests/statistics_triggers_test.lua'
-	--local scriptPath = 'mission-api-tests/resource_test.lua'
-	--local scriptPath = 'mission-api-tests/loadout_test.lua'
-	local scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
-	--local scriptPath = 'mission-api-tests/unit_mover_test.lua'
-	--local scriptPath = "mission-api-tests/unit_detection_test.lua"
-
-	if not scriptPath then
+	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua")
+	if not gameSetup then
 		gadgetHandler:RemoveGadget()
 		return
 	end
 
 	GG["MissionAPI"] = {}
-	GG["MissionAPI"].Difficulty = 0
+	GG["MissionAPI"].Options = gameSetup.options
+	GG["MissionAPI"].Variables = gameSetup.variables
+	GG["MissionAPI"].PersistentVariables = gameSetup.persistentVariables
+	GG["MissionAPI"].Teams = gameSetup.teams
+	GG["MissionAPI"].AllyTeams = gameSetup.allyTeams
+	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
 	GG["MissionAPI"].trackedUnitIDs = {}
 	GG["MissionAPI"].trackedUnitNames = {}
 	GG["MissionAPI"].trackedFeatureIDs = {}
 	GG["MissionAPI"].trackedFeatureNames = {}
 	GG["MissionAPI"].markerNames = {}
+	GG["MissionAPI"].lineNames = {}
+	GG["MissionAPI"].unitMarkers = {}
 	GG["MissionAPI"].soundFiles = {}
 	GG["MissionAPI"].soundQueue = {}
+	GG["MissionAPI"].ObjectiveTriggers = {}
+	GG["MissionAPI"].ObjectiveStages = {}
+	GG["MissionAPI"].Countdowns = {}
+	GG["MissionAPI"].BattleLogRaw = {}
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
+	GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variables.lua")
+	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
+	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
 	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
 	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
 	GG["MissionAPI"].Modules.Stages = VFS.Include("luarules/mission_api/stages.lua")
 	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
+	GG["MissionAPI"].Modules.Countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
+	GG["MissionAPI"].Modules.BattleLog = VFS.Include("luarules/mission_api/battle_log.lua")
+	GG["MissionAPI"].Modules.Cutscenes = VFS.Include("luarules/mission_api/cutscenes.lua")
+	GG["MissionAPI"].Modules.MapLines = VFS.Include("luarules/mission_api/map_lines.lua")
+	GG["MissionAPI"].Modules.UnitMarkers = VFS.Include("luarules/mission_api/unit_markers.lua")
 	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 	GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 
@@ -103,28 +133,41 @@ function gadget:Initialize()
 	triggersController = VFS.Include("luarules/mission_api/conditions_loader.lua")
 	GG["MissionAPI"].ConditionDefinitions = triggersController.LoadConditionDefinitions()
 
-	-- Bails out when the mission failed validation, having already removed this
-	-- gadget and cleared GG['MissionAPI'].
-	if not loadMission(scriptPath) then
-		return
-	end
+	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
 
-	-- needs actions from the mission:
-	GG["MissionAPI"].Modules.ActionsDispatcher = VFS.Include("luarules/mission_api/actions_dispatcher.lua")
+	loadMission(gameSetup)
 end
 
 function gadget:GamePreload()
+	if missionValidationFailure then
+		return
+	end
+
 	local loadoutModule = GG["MissionAPI"].Modules.Loadout
 	loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
 	loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
 
-	if GG["MissionAPI"].CurrentStageID then
-		GG["MissionAPI"].Modules.Stages.Announce(GG["MissionAPI"].CurrentStageID)
-	end
+	GG["MissionAPI"].Modules.Stages.ActivateStage(GG["MissionAPI"].CurrentStageID)
 end
 
 function gadget:GameFrame(frameNumber)
+	-- Invalid mission ends the game
+	if missionValidationFailure then
+		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionValidationFailure after this
+		Spring.Echo(missionValidationFailure)
+		gadgetHandler:RemoveGadget()
+		return
+	end
+
 	GG["MissionAPI"].Modules.Sounds.ProcessSoundQueue(frameNumber)
+end
+
+function gadget:GameOver()
+	if missionValidationFailure then
+		return
+	end
+
+	SendToUnsynced("MissionPersistentVariables", GG["MissionAPI"].Modules.PersistentVariables.Encode())
 end
 
 function gadget:Shutdown()

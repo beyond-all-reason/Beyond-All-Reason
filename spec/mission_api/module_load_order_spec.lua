@@ -1,4 +1,4 @@
-require("spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
 --- Several mission_api modules capture GG['MissionAPI'] state into upvalues when
 --- they load, which constrains the order api_missions may include them in.
@@ -16,12 +16,13 @@ local MODULE_PATHS = {
 	actionsDispatcher = "luarules/mission_api/actions_dispatcher.lua",
 }
 
--- The spec_helper's VFS.Include swallows load errors (it pcalls and returns an
--- empty table), which would hide exactly the failures this spec looks for. Run
--- the chunk directly so a missing dependency propagates.
+-- Rebuilt per test, with the engine globals loadout reads while loading.
+local env
+
+-- Every include runs the file again, so each test sees a module capture the GG
+-- state that test set up, and a load error reaches the assertion.
 local function loadFresh(path)
-	local chunk = assert(loadfile(path), "could not load " .. path)
-	return chunk()
+	return MissionSpecEnv.include(env, path)
 end
 
 --- The shared state api_missions sets up before including any module.
@@ -41,27 +42,17 @@ end
 
 describe("mission_api module load order", function()
 
-	-- These engine globals are shared across the whole busted run, so they are
-	-- restored afterwards; leaving them replaced changes what later specs see.
-	local savedGetGaiaTeamID, savedUnitDefs, savedFeatureDefs
-
 	before_each(function()
+		env = MissionSpecEnv.new({
+			Spring = {
+				GetGaiaTeamID = function()
+					return 99
+				end,
+			},
+			UnitDefs = {},
+			FeatureDefs = {},
+		})
 		GG["MissionAPI"] = baseState()
-		-- Engine globals loadout reads while loading.
-		savedGetGaiaTeamID = Spring.GetGaiaTeamID
-		savedUnitDefs = _G.UnitDefs
-		savedFeatureDefs = _G.FeatureDefs
-		Spring.GetGaiaTeamID = function()
-			return 99
-		end
-		_G.UnitDefs = {}
-		_G.FeatureDefs = {}
-	end)
-
-	after_each(function()
-		Spring.GetGaiaTeamID = savedGetGaiaTeamID
-		_G.UnitDefs = savedUnitDefs
-		_G.FeatureDefs = savedFeatureDefs
 	end)
 
 	it("loads the gadget's Initialize sequence without error", function()

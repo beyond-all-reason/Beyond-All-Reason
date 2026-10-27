@@ -1,25 +1,30 @@
-require("spec_helper")
-require("mission_api.spec_helper")
+local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger reads ParameterTypes and DetectionLevels at load time, and detection_levels
 -- reads SeismicContacts and the allyTeam layout at its own load. Inside the handler it
 -- reads UnitDefs and Spring's unit and LOS state.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-GG["MissionAPI"].Modules.SeismicContacts = GG["MissionAPI"].Modules.SeismicContacts
-	or {
-		IsContact = function()
-			return false
-		end,
-	}
+-- Nothing here is a seismic contact; the tests drive detection through LOS state.
+local seismicContacts = {
+	IsContact = function()
+		return false
+	end,
+}
+Builders.MissionApi.new():WithModule("SeismicContacts", seismicContacts):Install()
 
-_G.UnitDefs = { [1] = { name = "armpw" }, [2] = { name = "corfast" } }
+local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+	[1] = { name = "armpw" },
+	[2] = { name = "corfast" },
+})
+_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
-GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
-local DetectionLevels = GG["MissionAPI"].Modules.DetectionLevels
+-- detection_levels reads the modules installed above at its own load, so it joins them after.
+local DetectionLevels = MissionSpecEnv.include(env, "luarules/mission_api/detection_levels.lua")
+GG["MissionAPI"].Modules.DetectionLevels = DetectionLevels
 
-local unitDetected = VFS.Include("luarules/mission_api/conditions/unit_detected.lua")
+local unitDetected = MissionSpecEnv.include(env, "luarules/mission_api/conditions/unit_detected.lua")
 local onDetectionUpdate = unitDetected.callins.DetectionUpdate -- an artificial callin
 local onDestroyed = unitDetected.callins.UnitDestroyed
 
@@ -39,22 +44,22 @@ describe("mission_api.conditions.unit_detected", function()
 	before_each(function()
 		losStatus = {}
 
-		Spring.GetUnitLosState = function(unitID, allyTeamID, _raw)
+		env.Spring.GetUnitLosState = function(unitID, allyTeamID, _raw)
 			return losStatus[unitID] and losStatus[unitID][allyTeamID] or 0
 		end
-		Spring.GetUnitIsDead = function(_unitID)
+		env.Spring.GetUnitIsDead = function(_unitID)
 			return false
 		end
-		Spring.GetUnitDefID = function(_unitID)
+		env.Spring.GetUnitDefID = function(_unitID)
 			return 1
 		end -- 'armpw', read back on an edge
-		Spring.GetUnitTeam = function(_unitID)
+		env.Spring.GetUnitTeam = function(_unitID)
 			return 3
 		end
 		-- These tests set LOS explicitly per allyTeam. The default owner is an allyTeam that
 		-- never senses, so ownership does not mask those setups; tests about the owner's own
 		-- vision override this.
-		Spring.GetUnitAllyTeam = function(_unitID)
+		env.Spring.GetUnitAllyTeam = function(_unitID)
 			return GAIA_ALLY
 		end
 	end)
@@ -70,22 +75,12 @@ describe("mission_api.conditions.unit_detected", function()
 	end
 
 	local function trigger(parameters, settings)
-		return { parameters = parameters or {}, settings = settings or {} }
+		return Builders.Trigger.new():WithParameters(parameters):WithSettings(settings):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			DoesUnitHaveName = function()
-				return true
-			end,
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	---Runs one detection sweep over the given units, which is what the gadget raises per frame.
@@ -154,7 +149,7 @@ describe("mission_api.conditions.unit_detected", function()
 
 		it("filters on owningTeamID", function()
 			local context, fired = newContext()
-			Spring.GetUnitTeam = function(_unitID)
+			env.Spring.GetUnitTeam = function(_unitID)
 				return 5
 			end
 			local unitID = freshUnitID()
@@ -207,7 +202,7 @@ describe("mission_api.conditions.unit_detected", function()
 		it("ignores the owning allyTeam's own vision, absent a sensorAllyTeam", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
-			Spring.GetUnitAllyTeam = function(_unitID)
+			env.Spring.GetUnitAllyTeam = function(_unitID)
 				return OTHER_ALLY
 			end
 			seeUnit(unitID, OTHER_ALLY)
@@ -218,7 +213,7 @@ describe("mission_api.conditions.unit_detected", function()
 		it("still reports a radar contact the owner cannot mask, absent a sensorAllyTeam", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
-			Spring.GetUnitAllyTeam = function(_unitID)
+			env.Spring.GetUnitAllyTeam = function(_unitID)
 				return OTHER_ALLY
 			end
 			losStatus[unitID] = { [OTHER_ALLY] = INLOS, [SENSOR_ALLY] = INRADAR }
@@ -244,7 +239,7 @@ describe("mission_api.conditions.unit_detected", function()
 
 		it("ignores a unit that was dead when its level changed", function()
 			local context, fired = newContext()
-			Spring.GetUnitIsDead = function(_unitID)
+			env.Spring.GetUnitIsDead = function(_unitID)
 				return true
 			end
 			local unitID = freshUnitID()
@@ -322,7 +317,7 @@ describe("mission_api.conditions.unit_detected", function()
 		it("adds one only for the unit that passes its filters", function()
 			local context, fired = newContext()
 			local matching, other = freshUnitID(), freshUnitID()
-			Spring.GetUnitDefID = function(unitID)
+			env.Spring.GetUnitDefID = function(unitID)
 				return unitID == matching and 1 or 2
 			end
 			seeUnit(matching)

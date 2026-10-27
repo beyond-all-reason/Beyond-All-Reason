@@ -1,215 +1,312 @@
 ---
---- Annotated reference for the condition format, and a runnable test mission.
----
---- Concepts:
----   trigger    - type + parameters + settings + actions. Standalone automation.
----   objective  - type + parameters + textKey + onComplete. A goal for the player.
----   stage      - decides which objective IDs are currently active
----   action     - a thing the mission does
----   onComplete - what happens when an objective completes: stage change, actions
----
---- Condition types come in two disjoint families. Which family a type belongs to
---- is a property of the type itself, not of how you use it:
----
----   eventTypes.*   something happened. Tallied upwards.
----   metricTypes.*  a value right now. Can go up or down.
----
---- The family decides how you write the threshold, and it is the same whether a
---- trigger or an objective is doing the watching:
----
----                 event                    metric
----   trigger       count = 3                atLeast = 5  /  atMost = 0
----   objective     count = 3                atLeast = 5  /  atMost = 0
----
---- `count` defaults to 1. `atLeast` and `atMost` may be combined to give a range.
----
---- Compared to the current format:
----   `amount`   is gone. It meant "repeat the trigger N times" for event types
----              but "the statistic must reach N" for metric types.
----   `quantity` is gone from condition schemas. A metric type only says *what*
----              it measures; the threshold says *when this usage cares*, so it
----              belongs to the trigger/objective. (The `quantity` in a
----              unitLoadout is unrelated and keeps its name.)
----   Neither had a direction, so "reach zero" had to be smuggled in as the magic
----              value 0. `atMost = 0` says it outright.
+--- Stages and objectives test mission.
 ---
 
-local conditions = GG['MissionAPI'].ConditionDefinitions
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local metricTypes = GG['MissionAPI'].ConditionDefinitions.MetricTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
--- Two filtered views over one canonical condition registry, so there is a single
--- source of truth internally. Picking from the right one tells you which
--- threshold to write.
-local eventTypes = conditions.EventTypes
-local metricTypes = conditions.MetricTypes
-
-local initialStage = 'firstStage'
-
--- Stages decide which objective IDs are currently visible/active.
+local initialStage = 'gate'
 local stages = {
-	firstStage = {
-		objectives = { 'wait3secs' }
-	},
-	secondStage = {
-		objectives = { 'buildBots' }
-	},
-	thirdStage = {
-		objectives = { 'buildBots', 'destroyBots' }
-	}
+	gate       = { objectives = { 'quick', 'slow', 'bonus' } },
+	observer   = { objectives = { 'route' } },
+	decoy      = { objectives = {} },
+	failure    = { objectives = { 'doomed' } },
+	cancel     = { objectives = { 'flaky', 'partner' } },
+	activation = { objectives = { 'lingering' } },
+	final      = { objectives = { 'future' } },
 }
 
 local objectives = {
 
-	wait3secs = {
-		textKey = "wait_3_seconds",
-
-		-- Event type, no count: completes on the first occurrence.
+	-- Stage gate: quick and slow share a nextStage
+	quick = {
+		textKey = 'gate_quick',
 		type = eventTypes.TimeElapsed,
-		parameters = {
-			seconds = 3,
-		},
-
-		-- Completion effects belong to the objective, not to a hidden generated action.
-		onComplete = {
-			nextStage = 'secondStage',
-		},
+		parameters = { seconds = 2 },
+		nextStage = 'observer',
+		onActivated = 'quickActivated',
+	},
+	slow = {
+		textKey = 'gate_slow',
+		type = eventTypes.TimeElapsed,
+		parameters = { seconds = 5 },
+		nextStage = 'observer',
+	},
+	bonus = {
+		textKey = 'gate_bonus',
+		type = eventTypes.TimeElapsed,
+		parameters = { seconds = 3 },
 	},
 
-	buildBots = {
-		textKey = "build_6_bots",
-
-		-- Event type with a count: completes on the sixth matching occurrence, which
-		-- is the last bot spawnBots produces.
-		type = eventTypes.UnitExists,
-		parameters = {
-			unitDefName = 'corak',
-			teamID = 0,
-		},
-		count = 6,
-
-		-- onComplete carries both the stage transition and any actions to run.
-		-- In the current format this needed a separate trigger + ChangeStage action.
-		onComplete = {
-			nextStage = 'thirdStage',
-			actions = { 'spawnBotDestroyer' },
-		},
+	-- Stage observer: route's nextStage is the decoy, but its onCompleted trigger
+	-- changes to failure first, so the gate stands down.
+	route = {
+		textKey = 'observer_route',
+		type = eventTypes.TimeElapsed,
+		parameters = { seconds = 7 },
+		nextStage = 'decoy',
+		onCompleted = 'routeCompleted',
 	},
 
-	destroyBots = {
-		textKey = "destroy_all_bots",
+	-- Stage failure: failed by action, and the failure counts for the gate.
+	doomed = {
+		textKey = 'failure_doomed',
+		nextStage = 'cancel',
+		onFailed = 'doomedFailed',
+	},
 
-		-- Metric type: watches a value that can move in both directions, so the
-		-- threshold needs a direction. Replaces `amount = 0`.
+	-- Stage cancel: partner completes on its own; flaky is canceled, which holds
+	-- the gate, then completed by action, which clears the cancel and advances.
+	flaky = {
+		textKey = 'cancel_flaky',
+		nextStage = 'activation',
+		onCanceled = 'flakyCanceled',
+	},
+	partner = {
+		textKey = 'cancel_partner',
+		type = eventTypes.TimeElapsed,
+		parameters = { seconds = 12 },
+		nextStage = 'activation',
+	},
+
+	-- Stage activation: listed here, so entry activates it and exit cancels it.
+	lingering = {
+		textKey = 'activation_lingering',
+		onCanceled = 'lingeringCanceled',
+	},
+
+	-- Listed in no stage and hidden: it counts spawned probes while inactive and
+	-- evaluates only once activated. Its onCompleted trigger moves on.
+	count = {
+		textKey = 'activation_count',
+		hidden = true,
 		type = metricTypes.UnitsOwned,
-		parameters = {
-			unitName = 'bots',
-			teamID = 0,
-		},
-		atMost = 0,
+		parameters = { unitName = 'probe', teamID = 0 },
+		atLeast = 3,
+		onActivated = 'countActivated',
+		onProgress = 'countProgressed',
+		onCompleted = 'countCompleted',
+	},
+
+	-- Listed only in the final stage: activating it from another stage is denied.
+	future = {
+		textKey = 'final_future',
+		onCompleted = 'futureCompleted',
 	},
 }
 
--- Triggers are standalone automation: when the condition holds, run the actions.
--- They are not involved in objective completion — the old `changeStage3` trigger
--- is gone, since `buildBots.onComplete` now covers it.
 local triggers = {
 
-	spawnBots = {
+	-- Stage gate.
+	quickActivated = {
+		type = eventTypes.Event,
+		actions = { 'reportQuickActivated' },
+	},
+
+	-- Stage observer: route completes at 7 s.
+	routeCompleted = {
+		type = eventTypes.Event,
+		actions = { 'changeToFailure' },
+	},
+
+	-- Stage failure.
+	failDoomed = {
 		type = eventTypes.TimeElapsed,
-		parameters = {
-			seconds = 0,
-			interval = 2,
-		},
-		settings = {
-			repeating = true,
-			-- secondStage only: the turrets arrive with thirdStage and kill far faster
-			-- than one bot per two seconds, so spawning past that point would have bots
-			-- appearing after destroyBots had already reported them all destroyed.
-			stages = { 'secondStage' },
-			maxRepeats = 5,
-		},
-		actions = { 'spawnBot' },
+		settings = { stages = { 'failure' } },
+		parameters = { seconds = 9 },
+		actions = { 'failDoomed' },
+	},
+	doomedFailed = {
+		type = eventTypes.Event,
+		actions = { 'reportDoomedFailed' },
 	},
 
-	-- A metric type used by a trigger rather than an objective. Compare with the
-	-- `destroyBots` objective above: same type, parameters and threshold. Both
-	-- fire on the same edge; the objective completes and this announces it.
-	botsWipedOut = {
-		type = metricTypes.UnitsOwned,
-		parameters = {
-			teamID = 0,
-			unitName = 'bots',
-		},
-		atMost = 0,
-		settings = {
-			stages = { 'thirdStage' },
-		},
-		actions = { 'messageBotsWipedOut' },
+	-- Stage cancel: partner completes at 12 s.
+	cancelFlaky = {
+		type = eventTypes.TimeElapsed,
+		settings = { stages = { 'cancel' } },
+		parameters = { seconds = 11 },
+		actions = { 'cancelFlaky' },
+	},
+	flakyCanceled = {
+		type = eventTypes.Event,
+		actions = { 'reportFlakyCanceled' },
+	},
+	completeFlaky = {
+		type = eventTypes.TimeElapsed,
+		settings = { stages = { 'cancel' } },
+		parameters = { seconds = 14 },
+		actions = { 'completeFlaky' },
 	},
 
-	-- Triggers take `count` too, so "on the 4th one" no longer needs to be
-	-- expressed as a repeat stride.
-	fourthBotBuilt = {
-		type = eventTypes.UnitExists,
-		parameters = {
-			unitDefName = 'corak',
-			teamID = 0,
-		},
-		count = 4,
-		actions = { 'messageFourthBot' },
+	-- Stage activation.
+	probeLingering = {
+		type = eventTypes.TimeElapsed,
+		settings = { stages = { 'activation' } },
+		parameters = { seconds = 15 },
+		actions = { 'probeLingering' },
+	},
+	spawnFirstProbe = {
+		type = eventTypes.TimeElapsed,
+		settings = { stages = { 'activation' } },
+		parameters = { seconds = 16 },
+		actions = { 'spawnOneProbe' },
+	},
+	probeBeforeActivation = {
+		type = eventTypes.TimeElapsed,
+		settings = { stages = { 'activation' } },
+		parameters = { seconds = 17 },
+		actions = { 'probeCount', 'activateFuture' },
+	},
+	activateCount = {
+		type = eventTypes.TimeElapsed,
+		settings = { stages = { 'activation' } },
+		parameters = { seconds = 18 },
+		actions = { 'activateCount', 'showCount' },
+	},
+	countActivated = {
+		type = eventTypes.Event,
+		actions = { 'reportCountActivated' },
+	},
+	spawnSecondProbe = {
+		type = eventTypes.TimeElapsed,
+		settings = { stages = { 'activation' } },
+		parameters = { seconds = 19 },
+		actions = { 'spawnOneProbe' },
+	},
+	countProgressed = {
+		type = eventTypes.Event,
+		actions = { 'reportCountProgressed' },
+	},
+	spawnThirdProbe = {
+		type = eventTypes.TimeElapsed,
+		settings = { stages = { 'activation' } },
+		parameters = { seconds = 20 },
+		actions = { 'spawnOneProbe' },
+	},
+	countCompleted = {
+		type = eventTypes.Event,
+		actions = { 'changeToFinal' },
+	},
+	lingeringCanceled = {
+		type = eventTypes.Event,
+		actions = { 'reportLingeringCanceled' },
+	},
+
+	-- Stage final.
+	probeAfterEntry = {
+		type = eventTypes.TimeElapsed,
+		settings = { stages = { 'final' } },
+		parameters = { seconds = 21 },
+		actions = { 'probeFuture', 'probeLingering' },
+	},
+	completeFuture = {
+		type = eventTypes.TimeElapsed,
+		settings = { stages = { 'final' } },
+		parameters = { seconds = 22 },
+		actions = { 'completeFuture' },
+	},
+	futureCompleted = {
+		type = eventTypes.Event,
+		actions = { 'reportComplete', 'victory' },
 	},
 }
 
 local actions = {
 
-	spawnBot = {
+	changeToFailure = {
+		type = actionTypes.ChangeStage,
+		parameters = { stageID = 'failure' },
+	},
+	changeToFinal = {
+		type = actionTypes.ChangeStage,
+		parameters = { stageID = 'final' },
+	},
+
+	failDoomed = {
+		type = actionTypes.FailObjective,
+		parameters = { objectiveID = 'doomed' },
+	},
+	cancelFlaky = {
+		type = actionTypes.CancelObjective,
+		parameters = { objectiveID = 'flaky' },
+	},
+	completeFlaky = {
+		type = actionTypes.CompleteObjective,
+		parameters = { objectiveID = 'flaky' },
+	},
+	completeFuture = {
+		type = actionTypes.CompleteObjective,
+		parameters = { objectiveID = 'future' },
+	},
+	activateCount = {
+		type = actionTypes.ActivateObjective,
+		parameters = { objectiveID = 'count' },
+	},
+	showCount = {
+		type = actionTypes.ShowObjective,
+		parameters = { objectiveID = 'count' },
+	},
+	activateFuture = {
+		type = actionTypes.ActivateObjective,
+		parameters = { objectiveID = 'future' },
+	},
+
+	-- Probes: they print the objective and change nothing it does not already have.
+	probeLingering = {
+		type = actionTypes.ShowObjective,
+		parameters = { objectiveID = 'lingering' },
+	},
+	probeFuture = {
+		type = actionTypes.ShowObjective,
+		parameters = { objectiveID = 'future' },
+	},
+	probeCount = {
+		type = actionTypes.HideObjective,
+		parameters = { objectiveID = 'count' },
+	},
+
+	spawnOneProbe = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corak',x = 1800,z = 1800,team = 0,unitName = 'bots',
-					-- Hold position and hold fire: the bots are targets, not combatants,
-					-- so the turrets always win and the mission always completes.
-					orders = {
-						{ CMD.MOVE_STATE, 0, {} },
-						{ CMD.FIRE_STATE, 0, {} },
-					},
-				},
+				{ unitDefName = 'corak', x = 1800, z = 1800, team = 0, unitName = 'probe', quantity = 1 },
 			},
 		},
 	},
 
-	spawnBotDestroyer = {
-		type = actionTypes.SpawnUnits,
-		parameters = {
-			unitLoadout = {
-				-- Explicit positions rather than quantity + spacing: the grid is laid out
-				-- around the centre, which pulled a turret to 208 elmos, inside corak's
-				-- 215 range. At z = 2150 every turret is 350+ away but still inside
-				-- armllt's 430, so they shoot and are not shot at.
-				{ unitDefName = 'armllt', x = 1700, z = 2150, team = 1 },
-				{ unitDefName = 'armllt', x = 1800, z = 2150, team = 1 },
-				{ unitDefName = 'armllt', x = 1900, z = 2150, team = 1 },
-				-- armllt costs 20 energy per shot and team 1 produces none, so the
-				-- turrets stop firing without this.
-				{ unitDefName = 'armfus', x = 1800, z = 2450, team = 1 },
-			},
-		},
-	},
-
-	-- The two triggers below exist to demonstrate their condition shapes, so they
-	-- only announce themselves rather than spawning more turrets.
-	messageBotsWipedOut = {
+	reportQuickActivated = {
 		type = actionTypes.SendMessage,
-		parameters = {
-			message = "All bots destroyed.",
-		},
+		parameters = { messageKey = 'MissionTest: quick activated' },
 	},
-
-	messageFourthBot = {
+	reportDoomedFailed = {
 		type = actionTypes.SendMessage,
-		parameters = {
-			message = "A fourth bot has appeared.",
-		},
+		parameters = { messageKey = 'MissionTest: doomed failed' },
+	},
+	reportFlakyCanceled = {
+		type = actionTypes.SendMessage,
+		parameters = { messageKey = 'MissionTest: flaky canceled' },
+	},
+	reportLingeringCanceled = {
+		type = actionTypes.SendMessage,
+		parameters = { messageKey = 'MissionTest: lingering canceled on exit' },
+	},
+	reportCountActivated = {
+		type = actionTypes.SendMessage,
+		parameters = { messageKey = 'MissionTest: count activated' },
+	},
+	reportCountProgressed = {
+		type = actionTypes.SendMessage,
+		parameters = { messageKey = 'MissionTest: count progressed' },
+	},
+	reportComplete = {
+		type = actionTypes.SendMessage,
+		parameters = { messageKey = 'MissionTest: complete' },
+	},
+	victory = {
+		type = actionTypes.Victory,
+		parameters = { allyTeamIDs = { 0 } },
 	},
 }
 

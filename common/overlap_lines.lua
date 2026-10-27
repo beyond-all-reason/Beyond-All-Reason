@@ -135,10 +135,6 @@ local function findLineIntersection(p1, p2, p3, p4)
 	return nil
 end
 
-local function getSide(p, lineP1, lineP2)
-	return (lineP2.x - lineP1.x) * (p.z - lineP1.z) - (lineP2.z - lineP1.z) * (p.x - lineP1.x)
-end
-
 local function getSideXZ(px, pz, lineP1, lineP2)
 	return (lineP2.x - lineP1.x) * (pz - lineP1.z) - (lineP2.z - lineP1.z) * (px - lineP1.x)
 end

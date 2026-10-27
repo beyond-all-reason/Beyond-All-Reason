@@ -27,6 +27,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance = InstanceVBOTable.popElementInstance
 
 local highlightunitShader, unitShapeShader
+---@type InstanceVBOTable?
 local highlightUnitVBOTable
 local uniqueID = 0
 
@@ -300,7 +301,7 @@ local function StopHighlightUnitGL4(uniqueID, noUpload)
 	end
 	if highlightUnitVBOTable.instanceIDtoIndex[uniqueID] then
 		popElementInstance(highlightUnitVBOTable, uniqueID, noUpload)
-		unitID = uniqueIDtoUnitID[uniqueID]
+		local unitID = uniqueIDtoUnitID[uniqueID]
 		uniqueIDtoUnitID[uniqueID] = nil
 		if unitIDtoUniqueID[unitID][uniqueID] then
 			unitIDtoUniqueID[unitID][uniqueID] = nil
@@ -356,11 +357,12 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) -- extV
 	--end
 end
 
-function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
+function widget:VisibleUnitRemoved(unitID)
 	if unitIDtoUniqueID[unitID] then
 		for uniqueID, _ in pairs(unitIDtoUniqueID[unitID]) do
 			StopHighlightUnitGL4(uniqueID)
 		end
+		unitIDtoUniqueID[unitID] = nil
 	end
 end
 

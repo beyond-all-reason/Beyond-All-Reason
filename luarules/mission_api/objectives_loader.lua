@@ -4,28 +4,29 @@ local stagesLoader = VFS.Include("luarules/mission_api/stages_loader.lua")
 	objectiveID = {
 		textKey = "complete_objective",
 
-		-- The condition, written exactly as on a trigger:
-		type = eventTypes.ConstructionFinished,
+		-- The condition, written exactly as on a trigger. Leave it out for an objective
+		-- that only actions complete (CompleteObjective, UpdateObjective):
+		type = conditionTypes.ConstructionFinished,
 		parameters = { unitDefName = 'corak', teamID = 0 },
 		count = 3,                        -- events; metrics use atLeast / atMost
 
-		onComplete = {
-			nextStage = 'secondStage',
-			actions = { 'spawnReinforcements' },
-		},
+		nextStage = 'secondStage',
+		onCompleted = 'reinforcementsTrigger', -- an Event trigger; see objectives_schema.lua for the others
 		coop = true,
 	},
 ]]
 
 local OBJECTIVE_CONDITION_PREFIX = "__objective_"
+local THRESHOLD_FIELDS = { "count", "atLeast", "atMost" }
 
 --- Each objective contributes a condition record to the same space the triggers
---- gadget dispatches over, so objectives reuse all 27 condition handlers rather
+--- gadget dispatches over, so objectives reuse every condition handler rather
 --- than duplicating their matching logic.
 ---
 --- The record carries `onActivate` instead of `actions`: activation completes
 --- the objective rather than invoking mission actions. Records are never
---- repeating, which is what makes completion latched.
+--- repeating, which is what makes completion latched. They start inactive; the
+--- objective switches its record on and off as it is activated and canceled.
 local function buildConditionRecord(objectiveID, objective, objectiveStages)
 	return {
 		type = objective.type,
@@ -35,9 +36,10 @@ local function buildConditionRecord(objectiveID, objective, objectiveStages)
 		atMost = objective.atMost,
 		settings = {
 			stages = objectiveStages,
+			active = false,
 		},
 		onActivate = function()
-			GG["MissionAPI"].Modules.Objectives.Complete(objectiveID)
+			GG["MissionAPI"].Modules.Objectives.CompleteObjective(objectiveID)
 		end,
 		onProgress = function(progress)
 			GG["MissionAPI"].Modules.Objectives.ReportProgress(objectiveID, progress)
@@ -58,18 +60,38 @@ local function targetOf(objective)
 	return objective.count or 1
 end
 
+--- Copies an objective's threshold onto its condition record. Thresholds can depend on
+--- the difficulty or a variable, which are only resolved after the records were built.
+local function applyThresholds(objectiveID, objective, triggers)
+	objective.target = targetOf(objective)
+
+	local triggerID = GG["MissionAPI"].ObjectiveTriggers[objectiveID]
+	local trigger = triggerID and triggers[triggerID]
+	if not trigger then
+		return
+	end
+	for _, field in ipairs(THRESHOLD_FIELDS) do
+		trigger[field] = objective[field]
+	end
+end
+
 local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
 	local objectives = rawObjectives or {}
 	local stagesByObjective = stagesLoader.IndexStagesByObjective(stages)
+	local objectiveStages = GG["MissionAPI"].ObjectiveStages
 
 	for objectiveID, objective in pairs(objectives) do
-		if type(objectiveID) == "string" and type(objective) == "table" and objective.type ~= nil then
-			objective.completed = false
-			objective.progress = 0
-			objective.target = targetOf(objective)
+		objectiveStages[objectiveID] = stagesByObjective[objectiveID]
 
-			rawTriggers[OBJECTIVE_CONDITION_PREFIX .. objectiveID] =
-				buildConditionRecord(objectiveID, objective, stagesByObjective[objectiveID] or {})
+		objective.active = false
+		objective.completed = false
+		objective.progress = 0
+		objective.target = targetOf(objective)
+
+		if objective.type ~= nil then
+			local triggerID = OBJECTIVE_CONDITION_PREFIX .. objectiveID
+			rawTriggers[triggerID] = buildConditionRecord(objectiveID, objective, stagesByObjective[objectiveID] or {})
+			GG["MissionAPI"].ObjectiveTriggers[objectiveID] = triggerID
 		end
 	end
 
@@ -78,5 +100,7 @@ end
 
 return {
 	ProcessRawObjectives = processRawObjectives,
+	ApplyThresholds = applyThresholds,
 	ObjectiveConditionPrefix = OBJECTIVE_CONDITION_PREFIX,
+	ThresholdFields = THRESHOLD_FIELDS,
 }

@@ -16,17 +16,6 @@ end
 local spEcho = Spring.Echo
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGroundHeight = Spring.GetGroundHeight
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
-
-local glSaveImage = gl.SaveImage
-local glCreateTexture = gl.CreateTexture
-local glDeleteTexture = gl.DeleteTexture
-local glRenderToTexture = gl.RenderToTexture
-local glTexRect = gl.TexRect
-local glColor = gl.Color
-local glBlending = gl.Blending
-local glTexture = gl.Texture
 
 local floor = math.floor
 local ceil = math.ceil

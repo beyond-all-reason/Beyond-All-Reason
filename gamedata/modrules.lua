@@ -58,7 +58,7 @@ local modrules = {
 		los = {
 			losMipLevel = 3, -- Controls the resolution of the LOS calculations. A higher value means lower resolution but increased performance. An increase by one level means half the resolution of the LOS map in both x and y direction. Must be between 0 and 6 inclusive.
 			airMipLevel = 4, -- Controls the resolution of the LOS vs. aircraft calculations. A higher value means lower resolution but increased performance. An increase by one level means half the resolution of the air-LOS map in both x and y direction. Must be between 0 and 30 inclusive. [1] - jK describe for you what the value means.
-			radarMipLevel = 3, -- Controls the resolution of the radar. See description of airMipLevel for details.
+			radarMipLevel = 2, -- Controls the resolution of the radar. See description of airMipLevel for details.
 		},
 	},
 

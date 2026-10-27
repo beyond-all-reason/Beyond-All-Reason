@@ -42,6 +42,7 @@ return {
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
+			isnanoturret = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBuildings/LandUtil",

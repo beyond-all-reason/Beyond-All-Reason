@@ -3,8 +3,6 @@
 -- License: GNU GPL V2
 -------------------------------------------------
 
-local DrawPrimitiveAtUnit = {}
-
 local shaderConfig = {
 	TRANSPARENCY = 0.2, -- transparency of the stuff drawn
 	HEIGHTOFFSET = 1, -- Additional height added to everything
@@ -13,7 +11,7 @@ local shaderConfig = {
 	GROWTHRATE = 4, -- How fast it grows to full size
 	BREATHERATE = 30.0, -- how fast it periodicly grows
 	BREATHESIZE = 0.05, -- how much it periodicly grows
-	TEAMCOLORIZATION = 1.0, -- not used yet
+	TEAMCOLORIZATION = 1.0, -- default of the teamcolorization frag uniform, unused by the default shading
 	CLIPTOLERANCE = 1.1, -- At 1.0 it won't draw at units just outside of view (may pop in), 1.1 is a good safe amount
 	USETEXTURE = 1, -- 1 if you want to use textures (atlasses too!) , 0 if not
 	BILLBOARD = 0, -- 1 if you want camera facing billboards, 0 is flat on ground
@@ -35,6 +33,7 @@ local shaderConfig = {
 }
 
 ---- GL4 Backend Stuff----
+---@type InstanceVBOTable?
 local DrawPrimitiveAtUnitVBO = nil
 local DrawPrimitiveAtUnitShader = nil
 
@@ -76,38 +75,43 @@ local fallbackShaderSourceCache = {
 	shaderConfig = shaderConfig,
 }
 
-local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
-	local uniformInt = shaderConfig.USETEXTURE and { DrawPrimitiveAtUnitTexture = 0 } or {}
+-- sharedShader: a shader returned by an earlier call, to get another VBO it can draw without compiling again
+local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname, sharedShader)
+	if sharedShader then
+		DrawPrimitiveAtUnitShader = sharedShader
+	else
+		local uniformInt = shaderConfig.USETEXTURE and { DrawPrimitiveAtUnitTexture = 0 } or {}
 
-	shaderSourceCache.shaderName = DPATname .. "Shader GL4"
-	shaderSourceCache.shaderConfig = shaderConfig
-	shaderSourceCache.uniformInt = uniformInt
+		shaderSourceCache.shaderName = DPATname .. "Shader GL4"
+		shaderSourceCache.shaderConfig = shaderConfig
+		shaderSourceCache.uniformInt = uniformInt
 
-	fallbackShaderSourceCache.shaderName = DPATname .. "Shader GL4 (NoGS)"
-	fallbackShaderSourceCache.shaderConfig = shaderConfig
-	fallbackShaderSourceCache.uniformInt = uniformInt
+		fallbackShaderSourceCache.shaderName = DPATname .. "Shader GL4 (NoGS)"
+		fallbackShaderSourceCache.shaderConfig = shaderConfig
+		fallbackShaderSourceCache.uniformInt = uniformInt
 
-	local useGeometryShaderForThisShader = useGeometryShader
-	local compiledShader
-	if useGeometryShader then
-		compiledShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
-		if compiledShader then
-			useGeometryShaderForThisShader = true
-		else
-			useGeometryShaderForThisShader = false
+		-- CheckShaderUpdates skips sources it compiled before, but every call has its own shaderConfig
+		local compiledShader
+		if useGeometryShader then
+			shaderSourceCache.forceupdate = true
+			compiledShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
+			if compiledShader then
+				compiledShader.dpatUsesGeometryShader = true
+			end
+		end
+		if not compiledShader then
+			fallbackShaderSourceCache.forceupdate = true
 			compiledShader = LuaShader.CheckShaderUpdates(fallbackShaderSourceCache)
 		end
-	else
-		useGeometryShaderForThisShader = false
-		compiledShader = LuaShader.CheckShaderUpdates(fallbackShaderSourceCache)
-	end
 
-	DrawPrimitiveAtUnitShader = compiledShader or DrawPrimitiveAtUnitShader
+		DrawPrimitiveAtUnitShader = compiledShader or DrawPrimitiveAtUnitShader
+	end
 
 	if not DrawPrimitiveAtUnitShader then
 		Spring.Echo("Failed to compile shader for ", DPATname)
 		return nil
 	end
+	local useGeometryShaderForThisShader = DrawPrimitiveAtUnitShader.dpatUsesGeometryShader == true
 
 	-- In the geometry shader path each instance is a single vertex (a point), so
 	-- the instance attributes live at locations 0..5. In the fallback path we draw
@@ -151,7 +155,7 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 	if useGeometryShaderForThisShader then
 		local DrawPrimitiveAtUnitVAO = gl.GetVAO()
 		DrawPrimitiveAtUnitVAO:AttachVertexBuffer(DrawPrimitiveAtUnitVBO.instanceVBO)
-		DrawPrimitiveAtUnitVBO.VAO = DrawPrimitiveAtUnitVAO
+		DrawPrimitiveAtUnitVBO.VAO = InstanceVBOTable.fillVAOSlots(DrawPrimitiveAtUnitVAO)
 	else
 		-- Build a template triangle-fan mesh whose perimeter slots are expanded
 		-- per primitive inside the fallback vertex shader. numSlots must cover the
@@ -192,22 +196,46 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 		DrawPrimitiveAtUnitVBO.nogsTemplateVBO = templateVBO
 		DrawPrimitiveAtUnitVBO.nogsIndexVBO = indexVBO
 
+		-- The instance table doubles its buffer as soon as it fills up, and rebuilds its VAO from
+		-- the vertex and index buffers it finds on itself. Without these it would rebuild the VAO
+		-- of the geometry shader path instead, which draws this template mesh as bare points.
+		DrawPrimitiveAtUnitVBO.vertexVBO = templateVBO
+		DrawPrimitiveAtUnitVBO.indexVBO = indexVBO
+
 		-- Wrap the real VAO so existing consumers can keep calling
 		-- VBO.VAO:DrawArrays(GL.POINTS, usedElements); under the hood we draw the
-		-- template mesh instanced once per element.
-		local indexCount = #indexData
-		DrawPrimitiveAtUnitVBO.VAO = {
+		-- template mesh instanced once per element. That rebuild on resize puts a plain VAO in the
+		-- field, so the wrapper is kept behind the field rather than in it, and takes over whatever
+		-- lands there.
+		local vaoWrapper = {
 			realVAO = realVAO,
-			indexCount = indexCount,
+			indexCount = #indexData,
 			DrawArrays = function(self, _primitiveType, instanceCount)
 				if instanceCount and instanceCount > 0 then
 					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
 				end
 			end,
+			DrawElements = function(self, primitiveType, count, indexOffset, instanceCount, baseVertex)
+				self.realVAO:DrawElements(primitiveType, count, indexOffset, instanceCount, baseVertex)
+			end,
 			Delete = function(self)
 				self.realVAO:Delete()
 			end,
 		}
+		setmetatable(DrawPrimitiveAtUnitVBO, {
+			__index = function(_, key)
+				if key == "VAO" then
+					return vaoWrapper
+				end
+			end,
+			__newindex = function(instanceTable, key, value)
+				if key == "VAO" then
+					vaoWrapper.realVAO = value
+				else
+					rawset(instanceTable, key, value)
+				end
+			end,
+		})
 	end
 	return DrawPrimitiveAtUnitVBO, DrawPrimitiveAtUnitShader
 end

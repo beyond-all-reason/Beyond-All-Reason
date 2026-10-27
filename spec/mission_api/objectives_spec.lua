@@ -1,266 +1,878 @@
-require("spec_helper")
+local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
+local env = MissionSpecEnv.new()
 
-local objectives = VFS.Include("luarules/mission_api/objectives.lua")
-local objectivesLoader = VFS.Include("luarules/mission_api/objectives_loader.lua")
+-- The real trigger definitions, so event triggers carry the real Event type.
+-- (Trigger files read GG['MissionAPI'].Modules at include time.)
+Builders.MissionApi.new():Install()
+MissionSpecEnv.registerModules(env)
+local conditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+	.LoadConditionDefinitions()
+local T = conditionDefinitions.Types
+
+local Objectives = MissionSpecEnv.include(env, "luarules/mission_api/objectives.lua")
+local Stages = MissionSpecEnv.include(env, "luarules/mission_api/stages.lua")
 
 describe("mission_api.objectives", function()
+	---@type table
+	local missionApi
 
-	local stageChanges, invokedActions
-
-	before_each(function()
-		stageChanges = {}
-		invokedActions = {}
-
-		GG["MissionAPI"].Stages = {
-			first = { objectives = { "alpha", "beta" } },
-		}
-		GG["MissionAPI"].CurrentStageID = "first"
-		GG["MissionAPI"].Objectives = {}
-
-		GG["MissionAPI"].Modules.Stages = {
-			GetCurrentStageID = function()
-				return GG["MissionAPI"].CurrentStageID
-			end,
-			GetStage = function(stageID)
-				return GG["MissionAPI"].Stages[stageID]
-			end,
-			ChangeStage = function(stageID)
-				stageChanges[#stageChanges + 1] = stageID
-			end,
-		}
-		GG["MissionAPI"].Modules.ActionsDispatcher = {
-			Invoke = function(actionID)
-				invokedActions[#invokedActions + 1] = actionID
-			end,
-		}
-	end)
-
-	local function objective(fields)
-		fields.completed = fields.completed or false
-		fields.progress = fields.progress or 0
-		return fields
+	-- A mission to build up with the mock's With* methods.
+	local function mission()
+		-- The real Stages and Objectives call into each other, so both replace the mock's stubs.
+		return Builders.MissionApi
+			.new()
+			:WithConditionDefinitions(conditionDefinitions)
+			:WithModule("Stages", Stages)
+			:WithModule("Objectives", Objectives)
 	end
 
-	describe("Complete", function()
-		it("marks the objective completed", function()
-			GG["MissionAPI"].Objectives.alpha = objective({ textKey = "a", target = 1 })
+	local function install(builder)
+		missionApi = builder:Install()
+	end
 
-			objectives.Complete("alpha")
+	before_each(function()
+		install(mission())
+	end)
 
-			assert.is_true(GG["MissionAPI"].Objectives.alpha.completed)
+	describe("ChangeStage", function()
+		it("makes the stage current and activates the objectives it lists", function()
+			install(
+				mission()
+					:WithStage("s1")
+					:WithStage("s2", { objectives = { "listed" } })
+					:WithObjective("listed", { active = false, completed = false })
+					:WithObjective("unlisted", { active = false, completed = false })
+					:WithCurrentStage("s1")
+			)
+
+			Stages.ChangeStage("s2")
+
+			assert.are.equal("s2", missionApi.CurrentStageID)
+			assert.is_true(missionApi.Objectives.listed.active)
+			assert.is_false(missionApi.Objectives.unlisted.active)
 		end)
 
-		it("sets progress to the target", function()
-			GG["MissionAPI"].Objectives.alpha = objective({ textKey = "a", target = 3 })
+		it("takes every objective the left stage lists out of play, triggers included, and no other", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "unfinished", "finished" } })
+					:WithStage("s2")
+					:WithObjective("unfinished", { active = true, completed = false })
+					:WithObjective("finished", { active = true, completed = true })
+					:WithObjective("free", { active = true, completed = false })
+					:WithObjectiveTrigger("unfinished", { settings = { active = true } })
+					:WithCurrentStage("s1")
+			)
 
-			objectives.Complete("alpha")
+			Stages.ChangeStage("s2")
 
-			assert.are.equal(3, GG["MissionAPI"].Objectives.alpha.progress)
+			assert.is_false(missionApi.Objectives.unfinished.active)
+			assert.is_false(missionApi.Triggers.__objective_unfinished.settings.active)
+			assert.is_false(missionApi.Objectives.finished.active)
+			assert.is_true(missionApi.Objectives.free.active)
 		end)
 
-		it("runs onComplete actions", function()
-			GG["MissionAPI"].Objectives.alpha = objective({
-				textKey = "a",
-				target = 1,
-				onComplete = { actions = { "spawnStuff", "playSound" } },
-			})
+		it("cancels the unfinished objectives the left stage lists, and not the finished ones", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "unfinished", "finished" } })
+					:WithStage("s2")
+					:WithObjective("unfinished", { active = true, completed = false, onCanceled = "gone" })
+					:WithObjective("finished", { active = true, completed = true, onCanceled = "kept" })
+					:WithTrigger("gone", { type = T.Event })
+					:WithTrigger("kept", { type = T.Event })
+					:WithCurrentStage("s1")
+			)
 
-			objectives.Complete("alpha")
+			Stages.ChangeStage("s2")
 
-			assert.are.same({ "spawnStuff", "playSound" }, invokedActions)
+			assert.is_true(missionApi.Objectives.unfinished.canceled)
+			assert.is_nil(missionApi.Objectives.finished.canceled)
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.gone, missionApi.calls.activateTrigger[1].trigger)
 		end)
 
-		it("is idempotent: a completed objective never completes twice", function()
-			GG["MissionAPI"].Objectives.alpha = objective({
-				textKey = "a",
-				target = 1,
-				onComplete = { actions = { "once" } },
-			})
+		it("carries an objective listed by both stages over untouched", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "carried" } })
+					:WithStage("s2", { objectives = { "carried" } })
+					:WithObjective(
+						"carried",
+						{ active = true, completed = false, onActivated = "on", onCanceled = "off" }
+					)
+					:WithObjectiveTrigger("carried", { settings = { active = true } })
+					:WithTrigger("on", { type = T.Event })
+					:WithTrigger("off", { type = T.Event })
+					:WithCurrentStage("s1")
+			)
 
-			objectives.Complete("alpha")
-			objectives.Complete("alpha")
+			Stages.ChangeStage("s2")
 
-			assert.are.same({ "once" }, invokedActions)
+			assert.is_true(missionApi.Objectives.carried.active)
+			assert.is_true(missionApi.Triggers.__objective_carried.settings.active)
+			assert.is_nil(missionApi.Objectives.carried.canceled)
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
 		end)
 
-		it("ignores an unknown objective", function()
-			assert.has_no.errors(function()
-				objectives.Complete("nope")
-			end)
+		it("does nothing for a stage that does not exist", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithObjective("obj1", { active = true, completed = false })
+					:WithCurrentStage("s1")
+			)
+
+			Stages.ChangeStage("nowhere")
+
+			assert.are.equal("s1", missionApi.CurrentStageID)
+			assert.is_true(missionApi.Objectives.obj1.active)
+			assert.is_nil(missionApi.Objectives.obj1.canceled)
 		end)
 	end)
 
-	describe("stage advancement", function()
-		it("advances when every objective sharing the nextStage is complete", function()
-			GG["MissionAPI"].Objectives.alpha =
-				objective({ textKey = "a", target = 1, onComplete = { nextStage = "second" } })
-			GG["MissionAPI"].Objectives.beta =
-				objective({ textKey = "b", target = 1, onComplete = { nextStage = "second" } })
+	describe("ActivateStage", function()
+		it("makes the stage current and activates every objective it lists", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "a", "b" } })
+					:WithObjective("a", { active = false, completed = false })
+					:WithObjective("b", { active = false, completed = false })
+					:WithObjective("c", { active = false, completed = false })
+			)
 
-			objectives.Complete("alpha")
-			assert.are.same({}, stageChanges)
+			Stages.ActivateStage("s1")
 
-			objectives.Complete("beta")
-			assert.are.same({ "second" }, stageChanges)
+			assert.are.equal("s1", missionApi.CurrentStageID)
+			assert.is_true(missionApi.Objectives.a.active)
+			assert.is_true(missionApi.Objectives.b.active)
+			assert.is_false(missionApi.Objectives.c.active)
 		end)
 
-		it("does not advance when the objective has no nextStage", function()
-			GG["MissionAPI"].Objectives.alpha = objective({ textKey = "a", target = 1 })
-			GG["MissionAPI"].Objectives.beta = objective({ textKey = "b", target = 1 })
+		it("activates the trigger each listed objective names in onActivated, once the stage is current", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "a", "b" } })
+					:WithObjective("a", { active = false, completed = false, onActivated = "beganA" })
+					:WithObjective("b", { active = false, completed = false, onActivated = "beganB" })
+					:WithTrigger("beganA", { type = T.Event })
+					:WithTrigger("beganB", { type = T.Event })
+			)
 
-			objectives.Complete("alpha")
-			objectives.Complete("beta")
+			Stages.ActivateStage("s1")
 
-			assert.are.same({}, stageChanges)
+			assert.are.equal(2, #missionApi.calls.activateTrigger)
+			assert.are.equal("s1", missionApi.calls.activateTrigger[1].stageID)
+			assert.are.equal("s1", missionApi.calls.activateTrigger[2].stageID)
 		end)
 
-		it("ignores objectives heading to a different nextStage", function()
-			GG["MissionAPI"].Objectives.alpha =
-				objective({ textKey = "a", target = 1, onComplete = { nextStage = "second" } })
-			GG["MissionAPI"].Objectives.beta =
-				objective({ textKey = "b", target = 1, onComplete = { nextStage = "third" } })
+		it("does nothing for a stage that does not exist", function()
+			install(mission():WithObjective("a", { active = false, completed = false }))
 
-			objectives.Complete("alpha")
+			Stages.ActivateStage("nowhere")
 
-			assert.are.same({ "second" }, stageChanges)
+			assert.is_nil(missionApi.CurrentStageID)
+			assert.is_false(missionApi.Objectives.a.active)
+		end)
+	end)
+
+	describe("ActivateObjective", function()
+		it("flips the objective on and enables its synthesized trigger", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = false, completed = false })
+					:WithObjectiveTrigger("obj1", { settings = { active = false } })
+			)
+
+			Objectives.ActivateObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.active)
+			assert.is_true(missionApi.Triggers.__objective_obj1.settings.active)
+		end)
+
+		it("flips on an objective that has no synthesized trigger", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false }))
+
+			Objectives.ActivateObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.active)
+		end)
+
+		it("activates the trigger the objective names in onActivated", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = false, completed = false, onActivated = "began" })
+					:WithTrigger("began", { type = T.Event })
+			)
+
+			Objectives.ActivateObjective("obj1")
+
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.began, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("clears the canceled mark", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false, canceled = true }))
+
+			Objectives.ActivateObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.active)
+			assert.is_false(missionApi.Objectives.obj1.canceled)
+		end)
+
+		it("is a no-op on an active objective", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = false, onActivated = "began" })
+					:WithTrigger("began", { type = T.Event })
+			)
+
+			Objectives.ActivateObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.active)
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("is a no-op on a completed objective", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = false, completed = true, onActivated = "began" })
+					:WithObjectiveTrigger("obj1", { settings = { active = false } })
+					:WithTrigger("began", { type = T.Event })
+			)
+
+			Objectives.ActivateObjective("obj1")
+
+			assert.is_false(missionApi.Objectives.obj1.active)
+			assert.is_false(missionApi.Triggers.__objective_obj1.settings.active)
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("is denied for a listed objective while none of its stages is current", function()
+			install(
+				mission()
+					:WithStage("s1")
+					:WithStage("s2", { objectives = { "obj1" } })
+					:WithObjective("obj1", { active = false, completed = false, onActivated = "began" })
+					:WithObjectiveTrigger("obj1", { settings = { active = false } })
+					:WithTrigger("began", { type = T.Event })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.ActivateObjective("obj1")
+
+			assert.is_false(missionApi.Objectives.obj1.active)
+			assert.is_false(missionApi.Triggers.__objective_obj1.settings.active)
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("is allowed for a listed objective while one of its stages is current", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2", { objectives = { "obj1" } })
+					:WithObjective("obj1", { active = false, completed = false })
+					:WithCurrentStage("s2")
+			)
+
+			Objectives.ActivateObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.active)
+		end)
+
+		it("is allowed from any stage for an objective listed in no stage", function()
+			install(
+				mission()
+					:WithStage("s1")
+					:WithObjective("obj1", { active = false, completed = false })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.ActivateObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.active)
+		end)
+	end)
+
+	describe("CancelObjective", function()
+		it("marks the objective canceled and takes it out of play, unfinished", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = false })
+					:WithObjectiveTrigger("obj1", { settings = { active = true } })
+			)
+
+			Objectives.CancelObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.canceled)
+			assert.is_false(missionApi.Objectives.obj1.active)
+			assert.is_false(missionApi.Triggers.__objective_obj1.settings.active)
+			assert.is_false(missionApi.Objectives.obj1.completed)
+		end)
+
+		it("activates the trigger the objective names in onCanceled", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = false, onCanceled = "gone" })
+					:WithTrigger("gone", { type = T.Event })
+			)
+
+			Objectives.CancelObjective("obj1")
+
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.gone, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("is a no-op on a completed objective", function()
+			install(mission():WithObjective("obj1", { active = false, completed = true }))
+
+			Objectives.CancelObjective("obj1")
+
+			assert.is_nil(missionApi.Objectives.obj1.canceled)
+		end)
+
+		it("is a no-op on a canceled objective", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = false, completed = false, canceled = true, onCanceled = "gone" })
+					:WithTrigger("gone", { type = T.Event })
+			)
+
+			Objectives.CancelObjective("obj1")
+
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("leaves the gate unsatisfied until the objective is activated and completed", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1", "obj2" } })
+					:WithStage("s2")
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2" })
+					:WithObjective("obj2", { active = true, completed = true, nextStage = "s2" })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.CancelObjective("obj1")
+			assert.are.equal("s1", missionApi.CurrentStageID)
+
+			Objectives.ActivateObjective("obj1")
+			assert.is_false(missionApi.Objectives.obj1.canceled)
+
+			Objectives.CompleteObjective("obj1")
+			assert.are.equal("s2", missionApi.CurrentStageID)
+		end)
+	end)
+
+	describe("TryAdvanceStage", function()
+		it("does nothing for an objective that is not completed", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2")
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2" })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.TryAdvanceStage(missionApi.Objectives.obj1)
+
+			assert.are.equal("s1", missionApi.CurrentStageID)
+		end)
+
+		it("does nothing for an objective without a nextStage", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithObjective("obj1", { active = true, completed = true })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.TryAdvanceStage(missionApi.Objectives.obj1)
+
+			assert.are.equal("s1", missionApi.CurrentStageID)
+		end)
+
+		it("does nothing when the current stage does not exist", function()
+			install(
+				mission()
+					:WithStage("s2")
+					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2" })
+					:WithCurrentStage("nowhere")
+			)
+
+			Objectives.TryAdvanceStage(missionApi.Objectives.obj1)
+
+			assert.are.equal("nowhere", missionApi.CurrentStageID)
+		end)
+
+		it("advances when the objective is the only one in the stage with its nextStage", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2")
+					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2" })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.TryAdvanceStage(missionApi.Objectives.obj1)
+
+			assert.are.equal("s2", missionApi.CurrentStageID)
+		end)
+
+		it("waits for every objective in the stage sharing the nextStage", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1", "obj2" } })
+					:WithStage("s2")
+					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2" })
+					:WithObjective("obj2", { active = true, completed = false, nextStage = "s2" })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.TryAdvanceStage(missionApi.Objectives.obj1)
+			assert.are.equal("s1", missionApi.CurrentStageID)
+
+			missionApi.Objectives.obj2.completed = true
+			Objectives.TryAdvanceStage(missionApi.Objectives.obj2)
+			assert.are.equal("s2", missionApi.CurrentStageID)
+		end)
+
+		it("ignores objectives in the stage with a different nextStage", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1", "obj2" } })
+					:WithStage("s2")
+					:WithStage("s3")
+					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2" })
+					:WithObjective("obj2", { active = true, completed = false, nextStage = "s3" })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.TryAdvanceStage(missionApi.Objectives.obj1)
+
+			assert.are.equal("s2", missionApi.CurrentStageID)
 		end)
 	end)
 
 	describe("ReportProgress", function()
-		it("records progress", function()
-			GG["MissionAPI"].Objectives.alpha = objective({ textKey = "a", target = 5 })
+		it("records the progress and activates the trigger named by onProgress", function()
+			install(
+				mission()
+					:WithObjective(
+						"obj1",
+						{ active = true, completed = false, progress = 0, target = 5, onProgress = "stepped" }
+					)
+					:WithTrigger("stepped", { type = T.Event })
+			)
 
-			objectives.ReportProgress("alpha", 2)
+			Objectives.ReportProgress("obj1", 2)
 
-			assert.are.equal(2, GG["MissionAPI"].Objectives.alpha.progress)
+			assert.are.equal(2, missionApi.Objectives.obj1.progress)
+			assert.is_false(missionApi.Objectives.obj1.completed)
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.stepped, missionApi.calls.activateTrigger[1].trigger)
 		end)
 
-		it("does not report progress for a completed objective", function()
-			GG["MissionAPI"].Objectives.alpha = objective({ textKey = "a", target = 5 })
-			objectives.Complete("alpha")
+		it("ignores a value that has not changed", function()
+			install(
+				mission()
+					:WithObjective(
+						"obj1",
+						{ active = true, completed = false, progress = 2, target = 5, onProgress = "stepped" }
+					)
+					:WithTrigger("stepped", { type = T.Event })
+			)
 
-			objectives.ReportProgress("alpha", 2)
+			Objectives.ReportProgress("obj1", 2)
 
-			assert.are.equal(5, GG["MissionAPI"].Objectives.alpha.progress)
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("is a no-op on a completed objective", function()
+			install(mission():WithObjective("obj1", { active = true, completed = true, progress = 5, target = 5 }))
+
+			Objectives.ReportProgress("obj1", 2)
+
+			assert.are.equal(5, missionApi.Objectives.obj1.progress)
 		end)
 	end)
 
-	describe("Update", function()
-		it("completes when told to", function()
-			GG["MissionAPI"].Objectives.alpha = objective({ textKey = "a", target = 1 })
+	describe("FailObjective", function()
+		it("completes the objective and marks it failed", function()
+			install(mission():WithObjective("obj1", { active = true, completed = false }))
 
-			objectives.Update("alpha", true, nil)
+			Objectives.FailObjective("obj1")
 
-			assert.is_true(GG["MissionAPI"].Objectives.alpha.completed)
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_true(missionApi.Objectives.obj1.failed)
 		end)
 
-		it("changes the textKey without completing", function()
-			GG["MissionAPI"].Objectives.alpha = objective({ textKey = "a", target = 1 })
+		it("fails a canceled objective and clears the mark", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false, canceled = true }))
 
-			objectives.Update("alpha", false, "newText")
+			Objectives.FailObjective("obj1")
 
-			assert.are.equal("newText", GG["MissionAPI"].Objectives.alpha.textKey)
-			assert.is_false(GG["MissionAPI"].Objectives.alpha.completed)
+			assert.is_true(missionApi.Objectives.obj1.failed)
+			assert.is_false(missionApi.Objectives.obj1.canceled)
 		end)
 
-		it("does nothing to an already completed objective", function()
-			GG["MissionAPI"].Objectives.alpha = objective({ textKey = "a", target = 1 })
-			objectives.Complete("alpha")
+		it("is a no-op on a completed objective", function()
+			install(mission():WithObjective("obj1", { active = true, completed = true }))
 
-			objectives.Update("alpha", false, "newText")
+			Objectives.FailObjective("obj1")
 
-			assert.are.equal("a", GG["MissionAPI"].Objectives.alpha.textKey)
+			assert.is_nil(missionApi.Objectives.obj1.failed)
+		end)
+
+		it("does not mark a success as failed", function()
+			install(mission():WithObjective("obj1", { active = true, completed = false }))
+			Objectives.CompleteObjective("obj1")
+			Objectives.FailObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_nil(missionApi.Objectives.obj1.failed)
+		end)
+
+		it("activates the trigger the objective names in onFailed", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = false, onFailed = "failed" })
+					:WithTrigger("failed", { type = T.Event })
+			)
+
+			Objectives.FailObjective("obj1")
+
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.failed, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("leaves the trigger named in onCompleted alone", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = false, onCompleted = "done" })
+					:WithTrigger("done", { type = T.Event })
+			)
+
+			Objectives.FailObjective("obj1")
+
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("activates the trigger while the objective's stage is still current", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2")
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2", onFailed = "failed" })
+					:WithTrigger("failed", { type = T.Event })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.FailObjective("obj1")
+
+			assert.are.equal("s1", missionApi.calls.activateTrigger[1].stageID)
+			assert.are.equal("s2", missionApi.CurrentStageID)
+		end)
+
+		it("advances the stage through the gate, so a failure cannot softlock it", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2")
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2" })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.FailObjective("obj1")
+
+			assert.are.equal("s2", missionApi.CurrentStageID)
+		end)
+
+		it("lets a stage change from the trigger stand instead of running the gate", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2")
+					:WithStage("s9")
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2", onFailed = "failed" })
+					:WithTrigger("failed", { type = T.Event })
+					:WithCurrentStage("s1")
+			)
+			missionApi.ActivateTrigger = function()
+				Stages.ChangeStage("s9")
+			end
+
+			Objectives.FailObjective("obj1")
+
+			assert.are.equal("s9", missionApi.CurrentStageID)
 		end)
 	end)
-end)
 
-describe("mission_api.objectives_loader", function()
+	describe("CompleteObjective", function()
+		it("completes the objective", function()
+			install(mission():WithObjective("obj1", { active = true, completed = false }))
 
-	local function load(rawObjectives, stages)
-		local rawTriggers = {}
-		local result = objectivesLoader.ProcessRawObjectives(rawObjectives, rawTriggers, {}, stages or {})
-		return result, rawTriggers
-	end
+			Objectives.CompleteObjective("obj1")
 
-	it("contributes a condition record per objective", function()
-		local _, rawTriggers = load({
-			alpha = { textKey = "a", type = 1, parameters = { seconds = 3 } },
-		})
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_nil(missionApi.Objectives.obj1.failed)
+		end)
 
-		assert.is_not_nil(rawTriggers["__objective_alpha"])
+		it("completes a canceled objective and clears the mark", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false, canceled = true }))
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_false(missionApi.Objectives.obj1.canceled)
+		end)
+
+		it("is a no-op on a completed objective", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = true, onCompleted = "done" })
+					:WithTrigger("done", { type = T.Event })
+			)
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("activates the trigger the objective names in onCompleted", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = false, onCompleted = "done" })
+					:WithTrigger("done", { type = T.Event })
+					:WithTrigger("other", { type = T.Event })
+			)
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.done, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("activates nothing when the objective names no trigger", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = false })
+					:WithTrigger("done", { type = T.Event })
+			)
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("activates the trigger while the objective's stage is still current", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2")
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2", onCompleted = "done" })
+					:WithTrigger("done", { type = T.Event })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.are.equal("s1", missionApi.calls.activateTrigger[1].stageID)
+			assert.are.equal("s2", missionApi.CurrentStageID)
+		end)
+
+		it("advances the stage through the gate when the trigger does not change it", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2")
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2", onCompleted = "done" })
+					:WithTrigger("done", { type = T.Event })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.are.equal("s2", missionApi.CurrentStageID)
+		end)
+
+		it("lets a stage change from the trigger stand instead of running the gate", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2")
+					:WithStage("s9")
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2", onCompleted = "done" })
+					:WithTrigger("done", { type = T.Event })
+					:WithCurrentStage("s1")
+			)
+			-- The trigger's actions, as the gadget would run them:
+			missionApi.ActivateTrigger = function()
+				Stages.ChangeStage("s9")
+			end
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.are.equal("s9", missionApi.CurrentStageID)
+		end)
+
+		it("counts a change back into the same stage as a change", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2")
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2", onCompleted = "done" })
+					:WithTrigger("done", { type = T.Event })
+					:WithCurrentStage("s1")
+			)
+			missionApi.ActivateTrigger = function()
+				Stages.ChangeStage("s1")
+			end
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.are.equal("s1", missionApi.CurrentStageID)
+		end)
+
+		it("counts a stage change from a nested completion as a change", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1", "obj2" } })
+					:WithStage("s2")
+					:WithStage("s3")
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2", onCompleted = "done" })
+					:WithObjective("obj2", { active = true, completed = false, nextStage = "s3" })
+					:WithTrigger("done", { type = T.Event })
+					:WithCurrentStage("s1")
+			)
+			-- obj1's trigger completes obj2, whose own gate moves the stage:
+			missionApi.ActivateTrigger = function()
+				Objectives.CompleteObjective("obj2")
+			end
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.are.equal("s3", missionApi.CurrentStageID)
+		end)
+	end)
+	describe("UpdateObjective", function()
+		it("adds one to the progress and activates the trigger named by onProgress", function()
+			install(
+				mission()
+					:WithObjective(
+						"obj1",
+						{ active = true, completed = false, progress = 2, target = 5, onProgress = "stepped" }
+					)
+					:WithTrigger("stepped", { type = T.Event })
+			)
+
+			Objectives.UpdateObjective("obj1")
+
+			assert.are.equal(3, missionApi.Objectives.obj1.progress)
+			assert.is_false(missionApi.Objectives.obj1.completed)
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.stepped, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("completes the objective when the progress reaches the target, without onProgress", function()
+			local objective = { active = true, completed = false, progress = 4, target = 5 }
+			objective.onProgress = "stepped"
+			objective.onCompleted = "done"
+			install(
+				mission()
+					:WithObjective("obj1", objective)
+					:WithTrigger("stepped", { type = T.Event })
+					:WithTrigger("done", { type = T.Event })
+			)
+
+			Objectives.UpdateObjective("obj1")
+
+			assert.are.equal(5, missionApi.Objectives.obj1.progress)
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.done, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("completes the objective on the first update when the target is one", function()
+			install(mission():WithObjective("obj1", { active = true, completed = false, target = 1 }))
+
+			Objectives.UpdateObjective("obj1")
+
+			assert.are.equal(1, missionApi.Objectives.obj1.progress)
+			assert.is_true(missionApi.Objectives.obj1.completed)
+		end)
+
+		it("is a no-op on a completed objective", function()
+			install(mission():WithObjective("obj1", { active = true, completed = true, progress = 0 }))
+
+			Objectives.UpdateObjective("obj1")
+
+			assert.are.equal(0, missionApi.Objectives.obj1.progress)
+		end)
+
+		it("is a no-op on an inactive objective", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false, progress = 0, target = 2 }))
+
+			Objectives.UpdateObjective("obj1")
+
+			assert.are.equal(0, missionApi.Objectives.obj1.progress)
+		end)
 	end)
 
-	it("copies the condition and its threshold onto the record", function()
-		local _, rawTriggers = load({
-			alpha = { textKey = "a", type = 7, parameters = { teamID = 0 }, count = 3 },
-		})
-		local record = rawTriggers["__objective_alpha"]
+	describe("HideObjective and ShowObjective", function()
+		it("flip hidden and nothing else", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false }))
 
-		assert.are.equal(7, record.type)
-		assert.are.same({ teamID = 0 }, record.parameters)
-		assert.are.equal(3, record.count)
-	end)
+			Objectives.HideObjective("obj1")
+			assert.is_true(missionApi.Objectives.obj1.hidden)
+			assert.is_false(missionApi.Objectives.obj1.active)
 
-	it("carries metric bounds onto the record", function()
-		local _, rawTriggers = load({
-			alpha = { textKey = "a", type = 7, parameters = {}, atMost = 0 },
-		})
+			Objectives.ShowObjective("obj1")
+			assert.is_false(missionApi.Objectives.obj1.hidden)
+			assert.is_false(missionApi.Objectives.obj1.active)
+		end)
 
-		assert.are.equal(0, rawTriggers["__objective_alpha"].atMost)
-	end)
+		it("activates onHidden when a shown objective is hidden", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = false, completed = false, hidden = false, onHidden = "vanished" })
+					:WithTrigger("vanished", { type = T.Event })
+			)
 
-	it("gives the record onActivate instead of actions", function()
-		local _, rawTriggers = load({
-			alpha = { textKey = "a", type = 1, parameters = {} },
-		})
-		local record = rawTriggers["__objective_alpha"]
+			Objectives.HideObjective("obj1")
 
-		assert.is_function(record.onActivate)
-		assert.is_nil(record.actions)
-	end)
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.vanished, missionApi.calls.activateTrigger[1].trigger)
+		end)
 
-	it("restricts the record to the stages its objective appears in", function()
-		local _, rawTriggers = load(
-			{ alpha = { textKey = "a", type = 1, parameters = {} } },
-			{ first = { objectives = { "alpha" } }, second = { objectives = { "alpha" } } }
-		)
-		local stages = rawTriggers["__objective_alpha"].settings.stages
-		table.sort(stages)
+		it("activates onShown when a hidden objective is shown", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = false, completed = false, hidden = true, onShown = "revealed" })
+					:WithTrigger("revealed", { type = T.Event })
+			)
 
-		assert.are.same({ "first", "second" }, stages)
-	end)
+			Objectives.ShowObjective("obj1")
 
-	it("initialises runtime bookkeeping on the objective", function()
-		local result = load({
-			alpha = { textKey = "a", type = 1, parameters = {}, count = 4 },
-		})
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.revealed, missionApi.calls.activateTrigger[1].trigger)
+		end)
 
-		assert.is_false(result.alpha.completed)
-		assert.are.equal(0, result.alpha.progress)
-		assert.are.equal(4, result.alpha.target)
-	end)
+		it("fires nothing when hiding a hidden objective, showing a shown one", function()
+			install(
+				mission()
+					:WithObjective("hiddenOne", { hidden = true, onHidden = "vanished" })
+					:WithObjective("shownOne", { hidden = false, onShown = "revealed" })
+					:WithTrigger("vanished", { type = T.Event })
+					:WithTrigger("revealed", { type = T.Event })
+			)
 
-	it("targets the metric bound when there is no count", function()
-		local byAtLeast = load({ a = { textKey = "a", type = 1, parameters = {}, atLeast = 9 } })
-		local byAtMost = load({ b = { textKey = "b", type = 1, parameters = {}, atMost = 0 } })
+			Objectives.HideObjective("hiddenOne")
+			Objectives.ShowObjective("shownOne")
 
-		assert.are.equal(9, byAtLeast.a.target)
-		assert.are.equal(0, byAtMost.b.target)
-	end)
-
-	it("targets a single occurrence for an event with no count", function()
-		-- Otherwise completing it would report a nil target and nil progress.
-		local result = load({ once = { textKey = "a", type = 1, parameters = {} } })
-
-		assert.are.equal(1, result.once.target)
-	end)
-
-	it("skips entries that declare no condition type", function()
-		local _, rawTriggers = load({ alpha = { textKey = "a" } })
-
-		assert.is_nil(rawTriggers["__objective_alpha"])
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
 	end)
 end)

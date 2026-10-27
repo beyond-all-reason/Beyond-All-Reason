@@ -3,7 +3,7 @@
 --- assert a whole schema in a single `assert.are.same`. A trailing '!' marks a
 --- required parameter.
 ---
----     --> { type = 'AddMarker', position = 'Position!', label = 'String' }
+---     --> { type = 'AddMapMarker', markerName = 'String!', position = 'Position!' }
 ---
 return function(definition)
 	local summary = { type = definition.type }

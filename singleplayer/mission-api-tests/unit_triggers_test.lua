@@ -15,7 +15,6 @@ local triggers = {
 		type = eventTypes.UnitDwellLocation,
 		settings = {
 			repeating = true,
-			maxRepeats = 77,
 		},
 		parameters = {
 			unitName = 'bots',
@@ -31,7 +30,6 @@ local triggers = {
 		type = eventTypes.UnitDwellLocation,
 		settings = {
 			repeating = true,
-			maxRepeats = 77,
 			prerequisites = { 'unitRessed' },
 		},
 		parameters = {
@@ -198,6 +196,90 @@ local triggers = {
 		actions = { 'messageConstructionStartedByAssister' },
 	},
 
+	spawnReclaimDemo = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 50,
+		},
+		actions = { 'spawnDoomedRadar', 'spawnReclaimer' },
+	},
+
+	-- Split off the spawn, since an order does not take on the frame its target unit is spawned.
+	orderReclaimDemo = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 52,
+		},
+		actions = { 'orderReclaimerReclaim' },
+	},
+
+	unitReclaimedRadar = {
+		type = eventTypes.UnitReclaimed,
+		parameters = {
+			unitDefName = 'armrad',
+			teamID = 0,
+		},
+		actions = { 'messageUnitReclaimedRadar' },
+	},
+
+	unitReclaimedByName = {
+		type = eventTypes.UnitReclaimed,
+		parameters = {
+			unitName = 'doomedRadar',
+		},
+		actions = { 'messageUnitReclaimedByName' },
+	},
+
+	unitReclaimedByMission = {
+		type = eventTypes.UnitReclaimed,
+		parameters = {
+			unitName = 'doomedSolar',
+			ignoreMissionActions = false,
+		},
+		actions = { 'messageUnitReclaimedByMission' },
+	},
+
+	spawnProductionDemo = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 45,
+		},
+		actions = { 'spawnFactories', 'orderBotLabBuilds', 'orderVehiclePlantBuilds' },
+	},
+
+	-- Fires once per buildee, so twice over the bot lab's two pawns.
+	productionStartedPawn = {
+		type = eventTypes.ProductionStarted,
+		settings = {
+			repeating = true,
+		},
+		parameters = {
+			unitDefName = 'armpw',
+			teamID = 0,
+		},
+		actions = { 'messageProductionStartedPawn' },
+	},
+
+	productionStartedByBotLab = {
+		type = eventTypes.ProductionStarted,
+		parameters = {
+			unitDefName = 'armck',
+			teamID = 0,
+			factoryName = 'botlab',
+		},
+		actions = { 'messageProductionStartedByBotLab' },
+	},
+
+	productionStartedByVehiclePlant = {
+		type = eventTypes.ProductionStarted,
+		parameters = {
+			unitDefName = 'armfav',
+			teamID = 0,
+			factoryDefName = 'armvp',
+		},
+		actions = { 'messageProductionStartedByVehiclePlant' },
+	},
+
 	unitRessed = {
 		type = eventTypes.UnitResurrected,
 		parameters = {
@@ -243,49 +325,49 @@ local actions = {
 	messageBotDwells = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot is dwelling!",
+			messageKey = "Bot is dwelling!",
 		},
 	},
 
 	messageBotDwellsAfterRes = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot is dwelling AFTER turret was res'd!",
+			messageKey = "Bot is dwelling AFTER turret was res'd!",
 		},
 	},
 
 	messageBotExists = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot now exists!",
+			messageKey = "Bot now exists!",
 		},
 	},
 
 	messageBotDied = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot has been destroyed!",
+			messageKey = "Bot has been destroyed!",
 		},
 	},
 
 	messageBotNotExists = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot ceased to exist!",
+			messageKey = "Bot ceased to exist!",
 		},
 	},
 
 	messageBotEnteredLocation = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot entered location!",
+			messageKey = "Bot entered location!",
 		},
 	},
 
 	messageBotLeftLocation = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot left location!",
+			messageKey = "Bot left location!",
 		},
 	},
 
@@ -322,56 +404,56 @@ local actions = {
 	messageCaptured = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Unit captured!",
+			messageKey = "Unit captured!",
 		},
 	},
 
 	messageConstructionStartedSolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Construction of solar started!",
+			messageKey = "Construction of solar started!",
 		},
 	},
 
 	messageConstructionHalfwaySolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Construction of solar halfway done!",
+			messageKey = "Construction of solar halfway done!",
 		},
 	},
 
 	messageConstructionFinishedSolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Construction of solar finished!",
+			messageKey = "Construction of solar finished!",
 		},
 	},
 
 	messageConstructionStartedByDecoy = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Solar construction started by the decoy commander!",
+			messageKey = "Solar construction started by the decoy commander!",
 		},
 	},
 
 	messageConstructionFinishedByDecoy = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Some unit, maybe even the decoy commander, finished a solar!",
+			messageKey = "Some unit, maybe even the decoy commander, finished a solar!",
 		},
 	},
 
 	messageConstructionCanceledSolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The canceler's solar was reclaimed mid-build (canceled)!",
+			messageKey = "The canceler's solar was reclaimed mid-build (canceled)!",
 		},
 	},
 
 	messageConstructionStartedByAssister = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The assister joined the placer's solar as a build-assist!",
+			messageKey = "The assister joined the placer's solar as a build-assist!",
 		},
 	},
 
@@ -450,6 +532,110 @@ local actions = {
 		},
 	},
 
+	messageUnitReclaimedRadar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "A radar was reclaimed by a builder!",
+		},
+	},
+
+	messageUnitReclaimedByName = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "The doomed radar, by name, was reclaimed!",
+		},
+	},
+
+	messageUnitReclaimedByMission = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "The doomed solar was reclaimed by the mission itself!",
+		},
+	},
+
+	spawnDoomedRadar = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armrad', x = 2400, z = 3000, team = 0, unitName = 'doomedRadar' },
+			},
+		},
+	},
+
+	spawnReclaimer = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armck', x = 2560, z = 3000, team = 0, unitName = 'reclaimer' },
+			},
+		},
+	},
+
+	-- An ordered reclaim, not the ReclaimUnits action: that one destroys by Lua and is not a reclaim.
+	orderReclaimerReclaim = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'reclaimer',
+			orders = {
+				{ CMD.RECLAIM, { unitName = 'doomedRadar' } },
+			}
+		},
+	},
+
+	messageProductionStartedPawn = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "A pawn went onto a build pad (production started)!",
+		},
+	},
+
+	messageProductionStartedByBotLab = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "The named bot lab started a construction bot!",
+		},
+	},
+
+	messageProductionStartedByVehiclePlant = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "A vehicle plant, whichever one, started a fast assault vehicle!",
+		},
+	},
+
+	spawnFactories = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armlab', x = 2400, z = 3000, team = 0, unitName = 'botlab' },
+				{ unitDefName = 'armvp', x = 2750, z = 3000, team = 0, unitName = 'vehicleplant' },
+			},
+		},
+	},
+
+	-- Factory build orders carry no position, so their parameters are empty.
+	orderBotLabBuilds = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'botlab',
+			orders = {
+				{ 'armpw', {} },
+				{ 'armck', {}, { 'shift' } },
+				{ 'armpw', {}, { 'shift' } },
+			},
+		},
+	},
+
+	orderVehiclePlantBuilds = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'vehicleplant',
+			orders = {
+				{ 'armfav', {} },
+			},
+		},
+	},
+
 	spawnResBots = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
@@ -472,7 +658,7 @@ local actions = {
 	messageRessed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Turret resurrected!",
+			messageKey = "Turret resurrected!",
 		},
 	},
 

@@ -28,7 +28,7 @@ local types = {
 local version = 1.5 -- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false -- configdata will set this true if it's a newer version
 
-local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyLayouts = require("luaui/configs/keyboard_layouts")
 
 local languageCodes = { "en", "fr", "ru", "es" }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
@@ -75,6 +75,8 @@ elseif Platform.glHaveAMD then
 		isPotatoGpu = true
 		gpuMem = 0 -- AMD integrated can report incorrect gpuMemorySize, so set to 0 to avoid false positives for low VRAM
 	end
+elseif string.find(glRendererLower, "apple m") then
+	-- Apple Silicon via zink reports vendor Mesa: "zink Vulkan 1.3(Apple M3 Max (MESA_KOSMICKRISP))"
 else
 	-- Unknown/Mesa vendor without specific detection — assume low-end
 	isPotatoGpu = true
@@ -85,7 +87,6 @@ local devUI = BAR.Utilities.ShowDevUI()
 
 local advSettings = false
 local initialized = false
-local pauseGameWhenSingleplayer = true
 
 local cameraTransitionTime = 0.18
 local cameraPanTransitionTime = 0.03
@@ -125,13 +126,11 @@ local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 7
 
-local pauseGameWhenSingleplayerExecuted = false
-
 local backwardTex = ":l:LuaUI/Images/backward.dds"
 local forwardTex = ":l:LuaUI/Images/forward.dds"
 
-local screenHeightOrg = 520
-local screenWidthOrg = 1050
+local screenHeightOrg = 550
+local screenWidthOrg = 1100
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
@@ -144,7 +143,6 @@ local changesRequireRestart = false
 local useNetworkSmoothing = false
 
 local show = false
-local prevShow = show
 local manualChange = true
 
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -173,9 +171,6 @@ local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiButt
 
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local isReplay = Spring.IsReplay()
-
-local skipUnpauseOnHide = false
-local skipUnpauseOnLobbyHide = false
 
 local desiredWaterValue = 4
 local waterDetected = false
@@ -403,14 +398,15 @@ function widget:ViewResize()
 end
 
 local function detectWater()
-	local _, _, mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
+	local _, _, mapMinHeight, _ = Spring.GetGroundExtremes()
 	if mapMinHeight <= -2 then
 		waterDetected = true
 		Spring.SendCommands("water " .. desiredWaterValue)
 	end
 end
 
-local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
+local Search = require("luaui/Include/search")
+local utf8 = require("common/luaUtilities/utf8")
 --local textInputDlist, consoleCmdDlist, textCursorRect
 local updateTextInputDlist = true
 local showTextInput = true
@@ -551,7 +547,8 @@ function updateInputDlist()
 				activationArea[2] + chatlogHeightDiff - distance - inputHeight,
 				x2,
 				activationArea[2] + chatlogHeightDiff - distance,
-				"optionsinput"
+				"optionsinput",
+				widget
 			)
 		end
 
@@ -1094,7 +1091,6 @@ function DrawWindow()
 
 	-- draw options
 	local yPos
-	local prevGroup = ""
 	for oid, option in pairs(options) do
 		if showOption(option) then
 			if currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup then
@@ -1479,7 +1475,7 @@ function widget:Update(dt)
 
 	if sceduleOptionApply then
 		if sceduleOptionApply[1] <= now then
-			applyOptionValue(sceduleOptionApply[2], nil, true, true)
+			applyOptionValueByID(sceduleOptionApply[2], nil, true, true)
 			sceduleOptionApply = nil
 		end
 	end
@@ -1590,7 +1586,7 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if show then
 		--on window
-		local mx, my, ml = Spring.GetMouseState()
+		local mx, my, _ = Spring.GetMouseState()
 		if math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
 			return true
 		elseif titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
@@ -1611,6 +1607,10 @@ end
 
 function widget:RecvLuaMsg(msg, playerID)
 	-- restart-with-state: receive serialised unit state from the gadget and write it to disk
+	-- Every player's widgets receive these, and the gadget only sends them in single player.
+	if msg:sub(1, 4) == "rws:" and (not isSinglePlayer or playerID ~= Spring.GetMyPlayerID()) then
+		return true -- Fake and maybe malicious
+	end
 	if msg == "rws:begin" then
 		rwsBuffer = {}
 		return true
@@ -1650,85 +1650,13 @@ function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == "LobbyOverlayActive" then
 		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 		updateGrabinput()
-		if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and not skipUnpauseOnHide then
-			local _, _, isClientPaused, _ = Spring.GetGameState()
-			if chobbyInterface and isClientPaused then
-				skipUnpauseOnLobbyHide = true
-			end
-			if not skipUnpauseOnLobbyHide then
-				Spring.SendCommands("pause " .. (chobbyInterface and "1" or "0"))
-				pauseGameWhenSingleplayerExecuted = chobbyInterface
-			end
-			if not chobbyInterface then
-				Spring.SetConfigInt(
-					"VSync",
-					Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1)
-				)
-			end
+		if (isSinglePlayer or isReplay) and not chobbyInterface then
+			Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
 		end
 	end
-end
-
-local showToggledOff = false
-local function checkPause()
-	-- pause/unpause when the options/quitscreen interface shows
-	_, _, isClientPaused, _ = Spring.GetGameState()
-	if not isClientPaused then
-		skipUnpauseOnHide = false
-		skipUnpauseOnLobbyHide = false
-	end
-	showToggledOff = false
-	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevShow ~= show then
-		if show and isClientPaused then
-			skipUnpauseOnHide = true
-		end
-		if not skipUnpauseOnHide then
-			Spring.SendCommands("pause " .. (show and "1" or "0")) -- cause several widgets are still using old colors
-			showToggledOff = not show
-			pauseGameWhenSingleplayerExecuted = show
-		end
-	end
-end
-
-local quitscreen = false
-local prevQuitscreen = false
-local pauseCheckTimer = 0
-local lastPauseCheckClock = os_clock()
-local canPauseGame = (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer
-local isClientPaused = false
-local function checkQuitscreen()
-	if not canPauseGame then
-		return
-	end
-	quitscreen = (WG.topbar and WG.topbar.showingQuit() or false)
-	if prevQuitscreen ~= quitscreen then
-		if quitscreen and isClientPaused and not showToggledOff then
-			skipUnpauseOnHide = true
-		end
-		if not skipUnpauseOnHide then
-			Spring.SendCommands("pause " .. (quitscreen and "1" or "0")) -- cause several widgets are still using old colors
-			pauseGameWhenSingleplayerExecuted = quitscreen
-		end
-	end
-	prevQuitscreen = quitscreen
 end
 
 function widget:DrawScreen()
-	-- pause/quit checks only needed for singleplayer/replay
-	if canPauseGame then
-		if prevShow ~= show then
-			checkPause()
-		end
-		-- throttle quitscreen polling to ~4x/sec
-		local clockNow = os_clock()
-		pauseCheckTimer = pauseCheckTimer + (clockNow - lastPauseCheckClock)
-		lastPauseCheckClock = clockNow
-		if pauseCheckTimer > 0.25 then
-			pauseCheckTimer = 0
-			checkQuitscreen()
-		end
-	end
-
 	-- doing it here so other widgets having higher layer number value are also loaded
 	if not initialized then
 		init()
@@ -1830,13 +1758,13 @@ function widget:DrawScreen()
 							guishaderedTabs = false
 						end
 					end)
-					WG.guishader.InsertDlist(backgroundGuishader, "options")
+					-- 'self' rather than 'widget': this function sits at the Lua 5.1 upvalue cap
+					WG.guishader.InsertDlist(backgroundGuishader, "options", nil, self)
 				end
 			end
 			showOnceMore = false
 
 			-- mouseover (highlight and tooltip)
-			local description = ""
 			if
 				not (devMode or devUI)
 				and titleRect ~= nil
@@ -2229,14 +2157,16 @@ function widget:DrawScreen()
 						optionButtons[showSelectOptions][2],
 						optionButtons[showSelectOptions][3],
 						optionButtons[showSelectOptions][4],
-						"options_select"
+						"options_select",
+						self
 					)
 					WG.guishader.InsertScreenRect(
 						optionButtons[showSelectOptions][1],
 						yPos - oHeight - oPadding,
 						optionButtons[showSelectOptions][1] + maxWidth,
 						optionButtons[showSelectOptions][2],
-						"options_select_options"
+						"options_select_options",
+						self
 					)
 					WG.guishader.insertRenderDlist(selectOptionsList)
 				else
@@ -2275,8 +2205,6 @@ function widget:DrawScreen()
 			loadAllWidgetData()
 		end
 	end
-
-	prevShow = show
 end
 
 function saveOptionValue(widgetName, widgetApiName, widgetApiFunction, configVar, configValue, widgetApiFunctionParam)
@@ -2488,6 +2416,12 @@ function mouseEvent(mx, my, button, release)
 	end
 
 	if show then
+		-- A press on a top bar button is the top bar's to handle: it closes the open windows
+		-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
+		if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(mx, my) then
+			return false
+		end
+
 		local windowClick = (math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]))
 		local titleClick = (titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
 		local chatinputClick = (
@@ -2765,8 +2699,40 @@ function checkRequireRestart()
 	end
 end
 
+local function optionsFiltered()
+	return options ~= unfilteredOptions and inputText ~= "" and inputMode == ""
+end
+
+-- For lookups from outside the window, which the search filter must not limit.
+local function getUnfilteredOption(id)
+	for _, option in ipairs(unfilteredOptions) do
+		if option.id == id then
+			return option
+		end
+	end
+end
+
+-- Option callbacks look up other options by id, which fails for the ones the search filter
+-- hides, so this applies against the full list and filters again afterwards.
+function applyOptionValueByID(id, newValue, skipRedrawWindow, force)
+	local filtered = optionsFiltered()
+	if filtered then
+		options = unfilteredOptions
+		rebuildOptionIdIndex()
+	end
+	applyOptionValue(getOptionByID(id), newValue, filtered or skipRedrawWindow, force)
+	if filtered then
+		applyFilter()
+	end
+end
+
 function applyOptionValue(i, newValue, skipRedrawWindow, force)
 	if options[i] == nil then
+		return
+	end
+
+	if optionsFiltered() then
+		applyOptionValueByID(options[i].id, newValue, skipRedrawWindow, force)
 		return
 	end
 
@@ -2794,8 +2760,6 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 			end
 		else
 			if widgetHandler.orderList[options[i].widget] > 0 then
-				widgetHandler:ToggleWidget(options[i].widget)
-			else
 				widgetHandler:DisableWidget(options[i].widget)
 			end
 		end
@@ -2828,85 +2792,6 @@ function loadAllWidgetData()
 	end
 end
 
--- Fuzzy subsequence match: characters of query appear in order within target.
--- Returns a score > 0 on match, or 0 on no match.
--- Bonuses: consecutive chars, word boundary matches, start-of-string match.
--- Penalties: large gaps between matched characters.
-local function fuzzyScore(query, target)
-	local qi = 1
-	local qlen = #query
-	local tlen = #target
-	if qlen == 0 then
-		return 0
-	end
-	if qlen > tlen then
-		return 0
-	end
-
-	local score = 0
-	local consecutive = 0
-	local prevMatched = false
-	local firstMatchPos = nil
-	local lastMatchPos = 0
-
-	for ti = 1, tlen do
-		if qi > qlen then
-			break
-		end
-		local tc = string.byte(target, ti)
-		local qc = string.byte(query, qi)
-		if tc == qc then
-			if not firstMatchPos then
-				firstMatchPos = ti
-			end
-			qi = qi + 1
-			-- Gap penalty: penalize distance from previous match
-			if lastMatchPos > 0 then
-				local gap = ti - lastMatchPos - 1
-				if gap > 0 then
-					score = score - gap * 0.5
-				end
-			end
-			lastMatchPos = ti
-			-- Consecutive character bonus
-			if prevMatched then
-				consecutive = consecutive + 1
-				score = score + 3 + consecutive
-			else
-				consecutive = 0
-				score = score + 1
-			end
-			-- Word boundary bonus: char after space, underscore, or start of string
-			if ti == 1 then
-				score = score + 5
-			else
-				local prev = string.byte(target, ti - 1)
-				if prev == 32 or prev == 95 or prev == 45 then -- space, underscore, dash
-					score = score + 4
-				end
-			end
-			prevMatched = true
-		else
-			prevMatched = false
-			consecutive = 0
-		end
-	end
-
-	if qi <= qlen then
-		return 0 -- not all query chars matched
-	end
-
-	-- Bonus for matching near the start
-	if firstMatchPos then
-		score = score + math.max(0, 6 - firstMatchPos)
-	end
-
-	-- Normalize: prefer shorter targets (tighter matches)
-	score = score + math.max(0, 3 - (tlen - qlen) * 0.1)
-
-	return score
-end
-
 -- Efficiently filters options without rebuilding the entire options table.
 -- Priority: exact substring > multi-word AND > fuzzy subsequence.
 -- Within each tier, results are further ranked by match quality.
@@ -2914,14 +2799,9 @@ end
 -- and the group label above it are also included for context.
 function applyFilter()
 	if inputText and inputText ~= "" and inputMode == "" then
-		local lowerInput = string.lower(inputText)
-
-		-- Split input into words
-		local queryWords = {}
-		for word in lowerInput:gmatch("%S+") do
-			queryWords[#queryWords + 1] = word
-		end
-		if #queryWords == 0 then
+		local query = Search.query(inputText)
+		-- Nothing but whitespace is not something anyone is searching for.
+		if query.empty then
 			options = unfilteredOptions
 			rebuildOptionIdIndex()
 			if windowList then
@@ -2930,9 +2810,6 @@ function applyFilter()
 			windowList = gl.CreateList(DrawWindow)
 			return
 		end
-
-		-- Strip spaces for fuzzy matching (single continuous query)
-		local queryNoSpaces = lowerInput:gsub("%s+", "")
 
 		-- Sub-option prefixes after processing: basic uses widgetOptionColor,
 		-- dev uses devMainOptionColor..devOptionColor, advanced uses advMainOptionColor..advOptionColor
@@ -2974,6 +2851,9 @@ function applyFilter()
 		end
 
 		local matched = {}
+		-- Filled once and rewritten per option rather than allocated for each of them: a
+		-- keystroke walks every setting there is.
+		local primary, secondary = { "", "" }, { "", "" }
 
 		for i, option in ipairs(unfilteredOptions) do
 			if option.name and option.name ~= "" and option.type and option.type ~= "label" then
@@ -2988,56 +2868,11 @@ function applyFilter()
 				local lowerDesc = option.description and option.description ~= "" and string.lower(option.description)
 					or ""
 
-				local score = 0
-
-				-- Tier 1: Exact substring match in name or id (score 300+)
-				local exactPos = string.find(lowerName, lowerInput, nil, true)
-				if exactPos then
-					score = 300 + math.max(0, 50 - exactPos) + math.max(0, 20 - #lowerName)
-				else
-					local idPos = string.find(lowerId, lowerInput, nil, true)
-					if idPos then
-						score = 300 + math.max(0, 50 - idPos) + math.max(0, 20 - #lowerId)
-					end
-				end
-
-				-- Tier 2: Multi-word AND matching (score 100-299)
-				if score == 0 and #queryWords > 1 then
-					local allWordsMatch = true
-					local nameMatches = 0
-					local posSum = 0
-					for _, word in ipairs(queryWords) do
-						local inName = string.find(lowerName, word, nil, true)
-						local inDesc = string.find(lowerDesc, word, nil, true)
-						local inId = string.find(lowerId, word, nil, true)
-						if not inName and not inDesc and not inId then
-							allWordsMatch = false
-							break
-						end
-						if inName then
-							nameMatches = nameMatches + 1
-							posSum = posSum + inName
-						end
-					end
-					if allWordsMatch then
-						local base = (nameMatches == #queryWords) and 200 or 100
-						score = base + math.max(0, 50 - posSum / #queryWords)
-					end
-				end
-
-				-- Tier 3: Fuzzy subsequence matching on name or id (score 1-99)
-				-- Requires at least 3 characters to avoid too many false positives
-				if score == 0 and #queryNoSpaces >= 3 then
-					local nameScore = fuzzyScore(queryNoSpaces, lowerName)
-					local idScore = fuzzyScore(queryNoSpaces, lowerId)
-					local bestScore = math.max(nameScore, idScore)
-					-- Require a minimum quality: score must be at least 2 per query char
-					local minThreshold = #queryNoSpaces * 2
-					if bestScore >= minThreshold then
-						score = math.min(99, bestScore)
-					end
-				end
-
+				-- Named by what it is called and by its id; found, but not on their own, by its
+				-- description and again its id.
+				primary[1], primary[2] = lowerName, lowerId
+				secondary[1], secondary[2] = lowerDesc, lowerId
+				local score = Search.score(query, primary, secondary)
 				if score > 0 then
 					matched[#matched + 1] = { option = option, score = score, index = i }
 				end
@@ -3069,6 +2904,7 @@ function applyFilter()
 			end
 
 			if not shown[option] then
+				shown[option] = true
 				result[#result + 1] = option
 			end
 		end
@@ -3086,6 +2922,121 @@ function applyFilter()
 		gl.DeleteList(windowList)
 	end
 	windowList = gl.CreateList(DrawWindow)
+end
+
+-------------------------------------------------------------------------------
+-- Squad selection presets
+--
+-- The Squad Selection widget supports several playstyles, and each one wants a different set of its switches. Rather than show every switch to everyone, the panel offers a playstyle preset: picking one writes the settings that preset owns and hides their rows. Custom owns nothing and shows the full list.
+
+squadPreset = {
+	-- The playstyle definitions, shared with the widget.
+	definitions = VFS.Include("luaui/Include/squad_selection_presets.lua"),
+
+	-- Rows for settings a preset owns; hidden unless the preset is Custom.
+	ownedOptions = {
+		"squad_cyclingToNextSquad",
+		"squad_leftClickAlternativeSelection",
+		"squad_squadCreateMethod",
+		"squad_rightClickMoveControlsReserves",
+		"squad_mergeIntoReserves",
+	},
+
+	allOptions = {
+		"squad_cyclingToNextSquad",
+		"squad_leftClickSelectsSquad",
+		"squad_leftClickAlternativeSelection",
+		"squad_squadCreateMethod",
+		"squad_rightClickMovesSquad",
+		"squad_rightClickMoveControlsReserves",
+		"squad_mergeIntoReserves",
+		"squad_mruSize",
+		"squad_excludeConstructors",
+		"squad_excludeResurrectionUnits",
+		"squad_excludeCombatEngineers",
+		"label_squad_hulls",
+		"label_squad_hulls_spacer",
+		"squad_hullDisplayMode",
+		"squad_convexHullPadding",
+		"squad_convexHullArcResolution",
+		"squad_convexHullFillOpacity",
+		"squad_convexHullBorderOpacity",
+		"squad_convexHullBorderThickness",
+		"squad_convexHullColorMode",
+		"squad_convexHullCustomColorR",
+		"squad_convexHullCustomColorG",
+		"squad_convexHullCustomColorB",
+	},
+
+	-- Rows that only make sense while the hull widget itself is running.
+	hullOptions = {
+		"squad_convexHullPadding",
+		"squad_convexHullArcResolution",
+		"squad_convexHullFillOpacity",
+		"squad_convexHullBorderOpacity",
+		"squad_convexHullBorderThickness",
+		"squad_convexHullColorMode",
+		"squad_convexHullCustomColorR",
+		"squad_convexHullCustomColorG",
+		"squad_convexHullCustomColorB",
+	},
+}
+-- Index-aligned with the squad_preset select's option labels. 'off' is not a preset but the widget being disabled, so it leads the shared list.
+squadPreset.names = { "off" }
+for _, name in ipairs(squadPreset.definitions.names) do
+	squadPreset.names[#squadPreset.names + 1] = name
+end
+squadPreset.index = table.invert(squadPreset.names)
+
+-- The widget is unloaded while the preset is Off
+function squadPreset.get()
+	if not GetWidgetToggleValue("Squad Selection") then
+		return "off"
+	end
+	if WG["squadselection"] ~= nil and WG["squadselection"].getPreset ~= nil then
+		return WG["squadselection"].getPreset()
+	end
+	local data = widgetHandler.configData["Squad Selection"]
+	return (data and data.preset) or "custom"
+end
+
+function squadPreset.apply(name)
+	if name == "off" then
+		if GetWidgetToggleValue("Squad Selection Hull") then
+			widgetHandler:DisableWidget("Squad Selection Hull")
+		end
+		if GetWidgetToggleValue("Squad Selection") then
+			widgetHandler:DisableWidget("Squad Selection")
+		end
+		scheduleInit = true
+		return
+	end
+
+	-- The two widgets are a pair: the hull widget only draws state the main one owns, so a preset enables and disables both.
+	if not GetWidgetToggleValue("Squad Selection") then
+		widgetHandler:EnableWidget("Squad Selection")
+	end
+	if not GetWidgetToggleValue("Squad Selection Hull") then
+		widgetHandler:EnableWidget("Squad Selection Hull")
+	end
+
+	for key, value in pairs(squadPreset.definitions.values[name] or {}) do
+		saveOptionValue(
+			"Squad Selection",
+			"squadselection",
+			"set" .. key:sub(1, 1):upper() .. key:sub(2),
+			{ key },
+			value
+		)
+	end
+	saveOptionValue("Squad Selection", nil, nil, { "preset" }, name)
+
+	local api = WG["squadselection"]
+	if api ~= nil and api.applyPreset ~= nil then
+		api.applyPreset(name)
+	end
+
+	scheduleInit = true
 end
 
 function init()
@@ -3216,7 +3167,6 @@ function init()
 	local currentDisplay = 1
 	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
 	local displayNames = {}
-	local hasMultiDisplayOption = false
 	for index, display in ipairs(displays) do
 		if display.width > 0 then
 			displayNames[index] = index
@@ -3239,7 +3189,6 @@ function init()
 			end
 		elseif devMode or devUI then -- advSettings
 			displayNames[index] = display.name
-			hasMultiDisplayOption = true
 		end
 	end
 	local selectedDisplay = currentDisplay
@@ -3373,7 +3322,7 @@ function init()
 	end
 
 	local oldValues = {}
-	for _, option in ipairs(options) do
+	for _, option in ipairs(unfilteredOptions) do
 		oldValues[option.id] = option.value
 	end
 
@@ -4222,18 +4171,18 @@ function init()
 		},
 
 		{
-			id = "territorial_domination_height_opacity",
+			id = "dominion_height_opacity",
 			group = "gfx",
 			category = types.advanced,
-			name = BAR.I18N("ui.settings.option.territorial_domination_height_opacity"),
+			name = BAR.I18N("ui.settings.option.dominion_height_opacity"),
 			type = "slider",
 			min = 0.5,
 			max = 2.0,
 			step = 0.05,
-			value = Spring.GetConfigFloat("territorial_domination_height_opacity", 1.0),
-			description = BAR.I18N("ui.settings.option.territorial_domination_height_opacity_descr"),
+			value = Spring.GetConfigFloat("dominion_height_opacity", 1.0),
+			description = BAR.I18N("ui.settings.option.dominion_height_opacity_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigFloat("territorial_domination_height_opacity", value)
+				Spring.SetConfigFloat("dominion_height_opacity", value)
 			end,
 		},
 
@@ -5162,70 +5111,6 @@ function init()
 		},
 
 		{
-			id = "keybindings",
-			group = "control",
-			category = types.basic,
-			name = BAR.I18N("ui.settings.option.keybindings"),
-			type = "select",
-			options = keyLayouts.keybindingLayouts,
-			value = 1,
-			description = BAR.I18N("ui.settings.option.keybindings_descr"),
-			onload = function()
-				local keyFile = Spring.GetConfigString("KeybindingFile")
-				local value = 1
-
-				if (not keyFile) or (keyFile == "") or (not VFS.FileExists(keyFile)) then
-					keyFile = keyLayouts.keybindingLayoutFiles[1]
-				end
-
-				for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
-					if v == keyFile then
-						value = i
-						break
-					end
-				end
-
-				options[getOptionByID("keybindings")].value = value
-			end,
-			onchange = function(_, value)
-				local keyFile = keyLayouts.keybindingLayoutFiles[value]
-
-				if not keyFile or keyFile == "" then
-					return
-				end
-
-				local isCustom = keyLayouts.keybindingPresets.Custom == keyFile
-
-				if isCustom and not VFS.FileExists(keyFile) then
-					Spring.SendCommands("keysave " .. keyFile)
-					Spring.Echo("Preset Custom selected, file saved at: " .. keyFile)
-				end
-
-				Spring.SetConfigString("KeybindingFile", keyFile)
-				if isCustom then
-					Spring.Echo("To test your custom bindings after changes type in chat: /keyreload")
-				end
-				-- enable grid menu for grid keybinds
-				local preset = options[getOptionByID("keybindings")].options[value]
-				Spring.Echo(preset)
-				if string.find(string.lower(preset), "grid", nil, true) then
-					widgetHandler:DisableWidget("Build menu")
-					widgetHandler:EnableWidget("Grid menu")
-				elseif preset == "Custom" then
-				-- do stuff with custom preset
-				else
-					widgetHandler:DisableWidget("Grid menu")
-					widgetHandler:EnableWidget("Build menu")
-				end
-
-				if WG.bar_hotkeys and WG.bar_hotkeys.reloadBindings then
-					WG.bar_hotkeys.reloadBindings()
-				end
-				scheduleInit = true
-			end,
-		},
-
-		{
 			id = "gridmenu",
 			group = "control",
 			category = types.basic,
@@ -5459,7 +5344,6 @@ function init()
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.screenedgemove"),
 			type = "bool",
-			restart = true,
 			value = tonumber(Spring.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1,
 			description = BAR.I18N("ui.settings.option.screenedgemove_descr"),
 			onchange = function(i, value)
@@ -5934,7 +5818,7 @@ function init()
 					Spring.SetConfigFloat("ui_scale", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("uiscale") }
+					sceduleOptionApply = { os.clock() + 1.5, "uiscale" }
 				end
 			end,
 		},
@@ -5959,7 +5843,7 @@ function init()
 					Spring.SetConfigFloat("ui_opacity", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("guiopacity") }
+					sceduleOptionApply = { os.clock() + 1.5, "guiopacity" }
 				end
 			end,
 		},
@@ -5980,7 +5864,7 @@ function init()
 					Spring.SetConfigFloat("ui_tilescale", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("guitilescale") }
+					sceduleOptionApply = { os.clock() + 1.5, "guitilescale" }
 				end
 			end,
 		},
@@ -6001,7 +5885,7 @@ function init()
 					Spring.SetConfigFloat("ui_tileopacity", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("guitileopacity") }
+					sceduleOptionApply = { os.clock() + 1.5, "guitileopacity" }
 				end
 			end,
 		},
@@ -6223,6 +6107,30 @@ function init()
 				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
 					if WG["pip" .. n] and WG["pip" .. n].setMapDrawingDuration then
 						WG["pip" .. n].setMapDrawingDuration(value)
+					end
+				end
+			end,
+		},
+		{
+			id = "pip_history",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "      " .. BAR.I18N("ui.settings.option.pip_history"),
+			type = "bool",
+			value = true,
+			description = BAR.I18N("ui.settings.option.pip_history_descr"),
+			onload = function(i)
+				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
+					if WG["pip" .. n] and WG["pip" .. n].getHistoryEnabled then
+						options[getOptionByID("pip_history")].value = WG["pip" .. n].getHistoryEnabled()
+						break
+					end
+				end
+			end,
+			onchange = function(i, value)
+				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
+					if WG["pip" .. n] and WG["pip" .. n].setHistoryEnabled then
+						WG["pip" .. n].setHistoryEnabled(value)
 					end
 				end
 			end,
@@ -7011,12 +6919,12 @@ function init()
 				"ui.settings.option.topbar_hidebuttons"
 			),
 			type = "bool",
-			value = (WG.topbar ~= nil and WG.topbar.getAutoHideButtons() or 0),
+			value = (WG.topbar ~= nil and WG.topbar.getAutoHideButtons ~= nil and WG.topbar.getAutoHideButtons()) or false,
 			onload = function(i)
-				loadWidgetData("Top Bar", "topbar_hidebuttons", { "autoHideButtons" })
+				loadWidgetData("Top Bar Buttons", "topbar_hidebuttons", { "autoHideButtons" })
 			end,
 			onchange = function(i, value)
-				saveOptionValue("Top Bar", "topbar", "setAutoHideButtons", { "autoHideButtons" }, value)
+				saveOptionValue("Top Bar Buttons", "topbar", "setAutoHideButtons", { "autoHideButtons" }, value)
 			end,
 		},
 
@@ -7088,6 +6996,21 @@ function init()
 			description = BAR.I18N("ui.settings.option.widgetselector_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("widgetselector", (value and 1 or 0))
+			end,
+		},
+
+		{
+			id = "windows_hideinterface",
+			group = "ui",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.windows_hideinterface"),
+			type = "bool",
+			value = Spring.GetConfigInt("WindowsHideInterface", 0) == 1,
+			description = BAR.I18N("ui.settings.option.windows_hideinterface_descr"),
+			onchange = function(i, value)
+				Spring.SetConfigInt("WindowsHideInterface", (value and 1 or 0))
+				-- pushed through as well so it takes effect now instead of at the next poll
+				widgetHandler:SetWindowsHideInterface(value)
 			end,
 		},
 
@@ -7338,6 +7261,17 @@ function init()
 			end,
 		},
 
+		-- Jammed units highlight
+		{
+			id = "jammedunits",
+			group = "ui",
+			category = types.advanced,
+			widget = "Jammed Units Highlight",
+			name = BAR.I18N("ui.settings.option.jammedunits"),
+			type = "bool",
+			value = GetWidgetToggleValue("Jammed Units Highlight"),
+			description = BAR.I18N("ui.settings.option.jammedunits_descr"),
+		},
 		{
 			id = "ghosticons_brightness",
 			group = "ui",
@@ -8056,16 +7990,7 @@ function init()
 				loadWidgetData("Building Grid GL4", "buildinggridopacity", { "opacity" })
 			end,
 			onchange = function(i, value)
-				if
-					widgetHandler.orderList["Building Grid GL4"]
-					and widgetHandler.orderList["Building Grid GL4"] >= 0.5
-				then
-					widgetHandler:DisableWidget("Building Grid GL4")
-					saveOptionValue("Building Grid GL4", "buildinggrid", "setOpacity", { "opacity" }, value)
-					widgetHandler:EnableWidget("Building Grid GL4")
-				else
-					saveOptionValue("Building Grid GL4", "buildinggrid", "setOpacity", { "opacity" }, value)
-				end
+				saveOptionValue("Building Grid GL4", "buildinggrid", "setOpacity", { "opacity" }, value)
 			end,
 		},
 		{
@@ -8086,6 +8011,20 @@ function init()
 			category = types.basic,
 		},
 		{ id = "label_ui_ranges_spacer", group = "ui", category = types.basic },
+
+		-- read by the radar and jammer preview widgets
+		{
+			id = "sensorpreviewcircles",
+			group = "ui",
+			category = types.dev,
+			name = BAR.I18N("ui.settings.option.sensorpreviewcircles"),
+			type = "bool",
+			value = Spring.GetConfigInt("SensorPreviewCircles", 1) ~= 0,
+			description = BAR.I18N("ui.settings.option.sensorpreviewcircles_descr"),
+			onchange = function(_, value)
+				Spring.SetConfigInt("SensorPreviewCircles", value and 1 or 0)
+			end,
+		},
 
 		-- Radar range rings:
 		{
@@ -8874,6 +8813,346 @@ function init()
 			end,
 		},
 
+		-- SQUAD HULLS (widget: "Squad Selection", WG['squadselection']).
+		{
+			id = "label_squad_hulls",
+			group = "ui",
+			name = BAR.I18N("ui.settings.option.squadSelection_header_hulls"),
+			category = types.basic,
+		},
+		{ id = "label_squad_hulls_spacer", group = "ui", category = types.basic },
+		{
+			id = "squad_hullDisplayMode",
+			group = "ui",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode"),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt1"),
+				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt2"),
+				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt3"),
+			},
+			-- Derive the index from WG now (at init), so the cached draw list shows the
+			-- right option immediately. onload re-derives the same value on panel open.
+			value = (WG["squadselection"] == nil and 1)
+				or (WG["squadselection"].getVisualizationMode() ~= "convexHull" and 1)
+				or (WG["squadselection"].getShowReserveSquads() and 2)
+				or 3,
+			description = BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_descr"),
+			onload = function(i)
+				local v = 1
+				if WG["squadselection"] ~= nil then
+					if WG["squadselection"].getVisualizationMode() ~= "convexHull" then
+						v = 1
+					elseif WG["squadselection"].getShowReserveSquads() then
+						v = 2
+					else
+						v = 3
+					end
+				end
+				options[i].value = v
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setVisualizationMode",
+					{ "visualizationMode" },
+					value == 1 and "none" or "convexHull"
+				)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setShowReserveSquads",
+					{ "showReserveSquads" },
+					value == 2
+				)
+				if widgetHandler:IsWidgetKnown("Squad Selection Hull") then
+					if value == 1 then
+						widgetHandler:DisableWidget("Squad Selection Hull")
+					else
+						widgetHandler:EnableWidget("Squad Selection Hull")
+					end
+				end
+				scheduleInit = true
+			end,
+		},
+
+		{
+			id = "squad_convexHullPadding",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelectionHull_Padding"),
+			type = "slider",
+			min = 0,
+			max = 200,
+			step = 5,
+			value = (
+				WG["squadselectionhull"] ~= nil
+				and WG["squadselectionhull"].getConvexHullPadding ~= nil
+				and WG["squadselectionhull"].getConvexHullPadding()
+			) or 60,
+			description = BAR.I18N("ui.settings.option.squadSelectionHull_Padding_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection Hull", "squad_convexHullPadding", { "convexHullPadding" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection Hull",
+					"squadselectionhull",
+					"setConvexHullPadding",
+					{ "convexHullPadding" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullArcResolution",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelectionHull_ArcResolution"),
+			type = "slider",
+			min = 0.05,
+			max = 1.0,
+			step = 0.05,
+			value = (
+				WG["squadselectionhull"] ~= nil
+				and WG["squadselectionhull"].getConvexHullArcResolution ~= nil
+				and WG["squadselectionhull"].getConvexHullArcResolution()
+			) or 0.4,
+			description = BAR.I18N("ui.settings.option.squadSelectionHull_ArcResolution_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection Hull", "squad_convexHullArcResolution", { "convexHullArcResolution" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection Hull",
+					"squadselectionhull",
+					"setConvexHullArcResolution",
+					{ "convexHullArcResolution" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullFillOpacity",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelectionHull_FillOpacity"),
+			type = "slider",
+			min = 0,
+			max = 1,
+			step = 0.05,
+			value = (
+				WG["squadselectionhull"] ~= nil
+				and WG["squadselectionhull"].getConvexHullFillOpacity ~= nil
+				and WG["squadselectionhull"].getConvexHullFillOpacity()
+			) or 0.25,
+			description = BAR.I18N("ui.settings.option.squadSelectionHull_FillOpacity_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection Hull", "squad_convexHullFillOpacity", { "convexHullFillOpacity" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection Hull",
+					"squadselectionhull",
+					"setConvexHullFillOpacity",
+					{ "convexHullFillOpacity" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullBorderOpacity",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelectionHull_BorderOpacity"),
+			type = "slider",
+			min = 0,
+			max = 1,
+			step = 0.05,
+			value = (
+				WG["squadselectionhull"] ~= nil
+				and WG["squadselectionhull"].getConvexHullBorderOpacity ~= nil
+				and WG["squadselectionhull"].getConvexHullBorderOpacity()
+			) or 0.3,
+			onload = function(i)
+				loadWidgetData("Squad Selection Hull", "squad_convexHullBorderOpacity", { "convexHullBorderOpacity" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection Hull",
+					"squadselectionhull",
+					"setConvexHullBorderOpacity",
+					{ "convexHullBorderOpacity" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullBorderThickness",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelectionHull_BorderThickness"),
+			type = "slider",
+			min = 0.5,
+			max = 5,
+			step = 0.5,
+			value = (
+				WG["squadselectionhull"] ~= nil
+				and WG["squadselectionhull"].getConvexHullBorderThickness ~= nil
+				and WG["squadselectionhull"].getConvexHullBorderThickness()
+			) or 2,
+			onload = function(i)
+				loadWidgetData(
+					"Squad Selection Hull",
+					"squad_convexHullBorderThickness",
+					{ "convexHullBorderThickness" }
+				)
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection Hull",
+					"squadselectionhull",
+					"setConvexHullBorderThickness",
+					{ "convexHullBorderThickness" },
+					value
+				)
+			end,
+		},
+		{
+			id = "squad_convexHullColorMode",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelection_squadColorMode"),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt1"),
+				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt2"),
+				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt3"),
+			},
+			value = (WG["squadselection"] == nil and 1)
+				or (WG["squadselection"].getSquadColorMode() == "custom" and 2)
+				or (WG["squadselection"].getSquadColorMode() == "squad" and 3)
+				or 1,
+			description = BAR.I18N("ui.settings.option.squadSelection_squadColorMode_descr"),
+			onload = function(i)
+				local raw = (
+					WG["squadselection"] ~= nil
+					and WG["squadselection"].getSquadColorMode ~= nil
+					and WG["squadselection"].getSquadColorMode()
+				) or "player"
+				local modes = { "player", "custom", "squad" }
+				for idx, v in ipairs(modes) do
+					if v == raw then
+						options[i].value = idx
+						break
+					end
+				end
+			end,
+			onchange = function(_, value)
+				local modes = { "player", "custom", "squad" }
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setSquadColorMode",
+					{ "squadColorMode" },
+					modes[value] or "player"
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullCustomColorR",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelection_squadCustomColorR"),
+			type = "slider",
+			min = 0,
+			max = 1,
+			step = 0.05,
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getSquadCustomColorR ~= nil
+				and WG["squadselection"].getSquadCustomColorR()
+			) or 0,
+			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorR_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_convexHullCustomColorR", { "squadCustomColorR" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setSquadCustomColorR",
+					{ "squadCustomColorR" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullCustomColorG",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelection_squadCustomColorG"),
+			type = "slider",
+			min = 0,
+			max = 1,
+			step = 0.05,
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getSquadCustomColorG ~= nil
+				and WG["squadselection"].getSquadCustomColorG()
+			) or 0.3,
+			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorG_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_convexHullCustomColorG", { "squadCustomColorG" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setSquadCustomColorG",
+					{ "squadCustomColorG" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullCustomColorB",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelection_squadCustomColorB"),
+			type = "slider",
+			min = 0,
+			max = 1,
+			step = 0.05,
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getSquadCustomColorB ~= nil
+				and WG["squadselection"].getSquadCustomColorB()
+			) or 0.7,
+			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorB_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_convexHullCustomColorB", { "squadCustomColorB" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setSquadCustomColorB",
+					{ "squadCustomColorB" },
+					value
+				)
+			end,
+		},
+
 		{
 			id = "label_ui_developer",
 			group = "ui",
@@ -8946,19 +9225,12 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.singleplayerpause"),
 			type = "bool",
-			value = pauseGameWhenSingleplayer,
+			value = Spring.GetConfigInt("WindowsPauseGame", 1) == 1,
 			description = BAR.I18N("ui.settings.option.singleplayerpause_descr"),
 			onchange = function(i, value)
-				pauseGameWhenSingleplayer = value
-				if (isSinglePlayer or isReplay) and show then
-					if pauseGameWhenSingleplayer then
-						Spring.SendCommands("pause " .. (pauseGameWhenSingleplayer and "1" or "0"))
-						pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayer
-					elseif pauseGameWhenSingleplayerExecuted then
-						Spring.SendCommands("pause 0")
-						pauseGameWhenSingleplayerExecuted = false
-					end
-				end
+				Spring.SetConfigInt("WindowsPauseGame", (value and 1 or 0))
+				-- pushed through as well so it takes effect now instead of at the next poll
+				widgetHandler:SetWindowsPauseGame(value)
 			end,
 		},
 
@@ -9382,6 +9654,21 @@ function init()
 				saveOptionValue("Auto Group", "autogroup", "setPersist", { "persist" }, value)
 			end,
 		},
+		{
+			id = "quickstartsuggestions",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.quickstartsuggestions"),
+			type = "bool",
+			value = Spring.GetConfigInt("QuickStartSuggestions", 1) == 1,
+			description = BAR.I18N("ui.settings.option.quickstartsuggestions_descr"),
+			onchange = function(i, value)
+				Spring.SetConfigInt("QuickStartSuggestions", value and 1 or 0)
+				if WG.quickStart and WG.quickStart.setAutoGenerateSuggestions then
+					WG.quickStart.setAutoGenerateSuggestions(value)
+				end
+			end,
+		},
 
 		{
 			id = "label_ui_cloak",
@@ -9399,6 +9686,385 @@ function init()
 			name = BAR.I18N("ui.settings.option.autocloak"),
 			type = "bool",
 			value = GetWidgetToggleValue("Auto Cloak Units"),
+		},
+
+		-- SQUAD SELECTION (widget: "Squad Selection", WG['squadselection'])
+		{
+			id = "label_squad",
+			group = "game",
+			name = BAR.I18N("ui.settings.option.squadSelection_header"),
+			category = types.basic,
+		},
+		{ id = "label_squad_spacer", group = "game", category = types.basic },
+
+		-- Playstyle preset. Off disables the widgets entirely (the default), every other value enables them and writes the settings it owns.
+		{
+			id = "squad_preset",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.squadSelection_preset"),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.squadSelection_preset_opt1"),
+				BAR.I18N("ui.settings.option.squadSelection_preset_opt2"),
+				BAR.I18N("ui.settings.option.squadSelection_preset_opt3"),
+				BAR.I18N("ui.settings.option.squadSelection_preset_opt4"),
+				BAR.I18N("ui.settings.option.squadSelection_preset_opt5"),
+			},
+			value = squadPreset.index[squadPreset.get()] or 1,
+			description = BAR.I18N("ui.settings.option.squadSelection_preset_descr"),
+			onload = function(i)
+				options[i].value = squadPreset.index[squadPreset.get()] or 1
+			end,
+			onchange = function(_, value)
+				-- Toggles widgets, so it schedules the rebuild for next frame rather than rebuilding here. See squadPreset.apply().
+				squadPreset.apply(squadPreset.names[value] or "off")
+			end,
+		},
+
+		{
+			id = "squad_cyclingToNextSquad",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.squadSelection_cyclingToNextSquad"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getCyclingToNextSquad ~= nil
+				and WG["squadselection"].getCyclingToNextSquad()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_cyclingToNextSquad_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_cyclingToNextSquad", { "cyclingToNextSquad" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setCyclingToNextSquad",
+					{ "cyclingToNextSquad" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_leftClickSelectsSquad",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.squadSelection_leftClickSelectsSquad"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getLeftClickSelectsSquad ~= nil
+				and WG["squadselection"].getLeftClickSelectsSquad()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_leftClickSelectsSquad_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_leftClickSelectsSquad", { "leftClickSelectsSquad" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setLeftClickSelectsSquad",
+					{ "leftClickSelectsSquad" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_leftClickAlternativeSelection",
+			group = "game",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N(
+				"ui.settings.option.squadSelection_leftClickAlternativeSelection"
+			),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getLeftClickAlternativeSelection ~= nil
+				and WG["squadselection"].getLeftClickAlternativeSelection()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_leftClickAlternativeSelection_descr"),
+			onload = function(i)
+				loadWidgetData(
+					"Squad Selection",
+					"squad_leftClickAlternativeSelection",
+					{ "leftClickAlternativeSelection" }
+				)
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setLeftClickAlternativeSelection",
+					{ "leftClickAlternativeSelection" },
+					value
+				)
+			end,
+		},
+
+		-- Synthetic select owning the three mutually-exclusive rightClick* booleans.
+		{
+			id = "squad_squadCreateMethod",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod"),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt1"),
+				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt2"),
+				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt3"),
+				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt4"),
+			},
+			value = (WG["squadselection"] == nil and 1)
+				or (WG["squadselection"].getRightClickSquadCreate() and 2)
+				or (WG["squadselection"].getCtrlRightClickCreatesSquad() and 3)
+				or (WG["squadselection"].getCtrlRightClickDragCreatesSquad() and 4)
+				or 1,
+			description = BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_descr"),
+			onload = function(i)
+				local v = 1
+				if WG["squadselection"] ~= nil then
+					if WG["squadselection"].getRightClickSquadCreate() then
+						v = 2
+					elseif WG["squadselection"].getCtrlRightClickCreatesSquad() then
+						v = 3
+					elseif WG["squadselection"].getCtrlRightClickDragCreatesSquad() then
+						v = 4
+					end
+				end
+				options[i].value = v
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setRightClickSquadCreate",
+					{ "rightClickSquadCreate" },
+					value == 2
+				)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setCtrlRightClickCreatesSquad",
+					{ "ctrlRightClickCreatesSquad" },
+					value == 3
+				)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setCtrlRightClickDragCreatesSquad",
+					{ "ctrlRightClickDragCreatesSquad" },
+					value == 4
+				)
+			end,
+		},
+
+		{
+			id = "squad_rightClickMovesSquad",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.squadSelection_rightClickMovesSquad"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getRightClickMovesSquad ~= nil
+				and WG["squadselection"].getRightClickMovesSquad()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_rightClickMovesSquad_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_rightClickMovesSquad", { "rightClickMovesSquad" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setRightClickMovesSquad",
+					{ "rightClickMovesSquad" },
+					value
+				)
+			end,
+		},
+
+		-- Synthetic select owning the rightClickMoveControlsReserves boolean.
+		{
+			id = "squad_rightClickMoveControlsReserves",
+			group = "game",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N(
+				"ui.settings.option.squadSelection_rightClickMoveControlsReserves"
+			),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt1"),
+				BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt2"),
+			},
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getRightClickMoveControlsReserves ~= nil
+				and WG["squadselection"].getRightClickMoveControlsReserves()
+				and 2
+			) or 1,
+			description = BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_descr"),
+			onload = function(i)
+				local v = 1
+				if
+					WG["squadselection"] ~= nil
+					and WG["squadselection"].getRightClickMoveControlsReserves ~= nil
+					and WG["squadselection"].getRightClickMoveControlsReserves()
+				then
+					v = 2
+				end
+				options[i].value = v
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setRightClickMoveControlsReserves",
+					{ "rightClickMoveControlsReserves" },
+					value == 2
+				)
+			end,
+		},
+
+		{
+			id = "squad_mergeIntoReserves",
+			group = "game",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.squadSelection_mergeIntoReserves"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getMergeIntoReserves ~= nil
+				and WG["squadselection"].getMergeIntoReserves()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_mergeIntoReserves_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_mergeIntoReserves", { "mergeIntoReserves" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setMergeIntoReserves",
+					{ "mergeIntoReserves" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_mruSize",
+			group = "game",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.squadSelection_mruSize"),
+			type = "slider",
+			min = 1,
+			max = 9,
+			step = 1,
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getMruSize ~= nil
+				and WG["squadselection"].getMruSize()
+			) or 3,
+			description = BAR.I18N("ui.settings.option.squadSelection_mruSize_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_mruSize", { "mruSize" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue("Squad Selection", "squadselection", "setMruSize", { "mruSize" }, value)
+			end,
+		},
+
+		{
+			id = "squad_excludeConstructors",
+			group = "game",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.squadSelection_excludeConstructors"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getExcludeConstructors ~= nil
+				and WG["squadselection"].getExcludeConstructors()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_excludeConstructors_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_excludeConstructors", { "excludeConstructors" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setExcludeConstructors",
+					{ "excludeConstructors" },
+					value
+				)
+				if WG["squadselection"] ~= nil and WG["squadselection"].rebuildTracking ~= nil then
+					WG["squadselection"].rebuildTracking()
+				end
+			end,
+		},
+
+		{
+			id = "squad_excludeResurrectionUnits",
+			group = "game",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.squadSelection_excludeResurrectionUnits"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getExcludeResurrectionUnits ~= nil
+				and WG["squadselection"].getExcludeResurrectionUnits()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_excludeResurrectionUnits_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_excludeResurrectionUnits", { "excludeResurrectionUnits" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setExcludeResurrectionUnits",
+					{ "excludeResurrectionUnits" },
+					value
+				)
+				if WG["squadselection"] ~= nil and WG["squadselection"].rebuildTracking ~= nil then
+					WG["squadselection"].rebuildTracking()
+				end
+			end,
+		},
+
+		{
+			id = "squad_excludeCombatEngineers",
+			group = "game",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.squadSelection_excludeCombatEngineers"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getExcludeCombatEngineers ~= nil
+				and WG["squadselection"].getExcludeCombatEngineers()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_excludeCombatEngineers_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_excludeCombatEngineers", { "excludeCombatEngineers" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setExcludeCombatEngineers",
+					{ "excludeCombatEngineers" },
+					value
+				)
+				if WG["squadselection"] ~= nil and WG["squadselection"].rebuildTracking ~= nil then
+					WG["squadselection"].rebuildTracking()
+				end
+			end,
 		},
 
 		-- ACCESSIBILITY
@@ -9427,7 +10093,7 @@ function init()
 					Spring.SetConfigInt("anonymousColorR", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("anonymous_r") }
+					sceduleOptionApply = { os.clock() + 1.5, "anonymous_r" }
 				end
 			end,
 		},
@@ -9448,7 +10114,7 @@ function init()
 					Spring.SetConfigInt("anonymousColorG", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("anonymous_g") }
+					sceduleOptionApply = { os.clock() + 1.5, "anonymous_g" }
 				end
 			end,
 		},
@@ -9469,7 +10135,7 @@ function init()
 					Spring.SetConfigInt("anonymousColorB", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("anonymous_b") }
+					sceduleOptionApply = { os.clock() + 1.5, "anonymous_b" }
 				end
 			end,
 		},
@@ -10247,7 +10913,7 @@ function init()
 				options[getOptionByID("fog_b")].value = defaultMapFog.fogColor[3]
 				options[getOptionByID("fog_color_reset")].value = false
 				Spring.SetAtmosphere({ fogColor = defaultMapFog.fogColor })
-				Spring.Echo("resetted map fog color defaults")
+				Spring.Echo("reset map fog color defaults")
 			end,
 		},
 
@@ -10310,7 +10976,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b, a = gl.GetMapRendering("splatTexMults")
+				local r, _, _, _ = gl.GetMapRendering("splatTexMults")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10330,7 +10996,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b, a = gl.GetMapRendering("splatTexMults")
+				local _, g, _, _ = gl.GetMapRendering("splatTexMults")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10350,7 +11016,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b, a = gl.GetMapRendering("splatTexMults")
+				local _, _, b, _ = gl.GetMapRendering("splatTexMults")
 				options[i].value = b
 			end,
 			onchange = function(i, value)
@@ -10374,7 +11040,7 @@ function init()
 				options[i].value = a
 			end,
 			onchange = function(i, value)
-				local r, g, b, a = gl.GetMapRendering("splatTexMults")
+				local r, g, b, _ = gl.GetMapRendering("splatTexMults")
 				Spring.SetMapRenderingParams({ splatTexMults = { r, g, b, value } })
 			end,
 		},
@@ -10391,7 +11057,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b, a = gl.GetMapRendering("splatTexScales")
+				local r, _, _, _ = gl.GetMapRendering("splatTexScales")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10411,7 +11077,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b, a = gl.GetMapRendering("splatTexScales")
+				local _, g, _, _ = gl.GetMapRendering("splatTexScales")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10431,7 +11097,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b, a = gl.GetMapRendering("splatTexScales")
+				local _, _, b, _ = gl.GetMapRendering("splatTexScales")
 				options[i].value = b
 			end,
 			onchange = function(i, value)
@@ -10455,7 +11121,7 @@ function init()
 				options[i].value = a
 			end,
 			onchange = function(i, value)
-				local r, g, b, a = gl.GetMapRendering("splatTexScales")
+				local r, g, b, _ = gl.GetMapRendering("splatTexScales")
 				Spring.SetMapRenderingParams({ splatTexScales = { r, g, b, value } })
 			end,
 		},
@@ -10516,7 +11182,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("ambient")
+				local r, _, _ = gl.GetSun("ambient")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10537,7 +11203,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("ambient")
+				local _, g, _ = gl.GetSun("ambient")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10562,7 +11228,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetSun("ambient")
+				local r, g, _ = gl.GetSun("ambient")
 				Spring.SetSunLighting({ groundAmbientColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10582,7 +11248,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("diffuse")
+				local r, _, _ = gl.GetSun("diffuse")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10603,7 +11269,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("diffuse")
+				local _, g, _ = gl.GetSun("diffuse")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10628,7 +11294,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetSun("diffuse")
+				local r, g, _ = gl.GetSun("diffuse")
 				Spring.SetSunLighting({ groundDiffuseColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10648,7 +11314,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("specular")
+				local r, _, _ = gl.GetSun("specular")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10669,7 +11335,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("specular")
+				local _, g, _ = gl.GetSun("specular")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10694,7 +11360,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetSun("specular")
+				local r, g, _ = gl.GetSun("specular")
 				Spring.SetSunLighting({ groundSpecularColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10714,7 +11380,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("ambient", "unit")
+				local r, _, _ = gl.GetSun("ambient", "unit")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10735,7 +11401,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("ambient", "unit")
+				local _, g, _ = gl.GetSun("ambient", "unit")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10760,7 +11426,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetSun("ambient", "unit")
+				local r, g, _ = gl.GetSun("ambient", "unit")
 				Spring.SetSunLighting({ unitAmbientColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10780,7 +11446,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("diffuse", "unit")
+				local r, _, _ = gl.GetSun("diffuse", "unit")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10801,7 +11467,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("diffuse", "unit")
+				local _, g, _ = gl.GetSun("diffuse", "unit")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10826,7 +11492,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetSun("diffuse", "unit")
+				local r, g, _ = gl.GetSun("diffuse", "unit")
 				Spring.SetSunLighting({ unitDiffuseColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10846,7 +11512,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("specular", "unit")
+				local r, _, _ = gl.GetSun("specular", "unit")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10867,7 +11533,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("specular", "unit")
+				local _, g, _ = gl.GetSun("specular", "unit")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10892,7 +11558,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetSun("specular", "unit")
+				local r, g, _ = gl.GetSun("specular", "unit")
 				Spring.SetSunLighting({ unitSpecularColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10910,7 +11576,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetAtmosphere("sunColor")
+				local r, _, _ = gl.GetAtmosphere("sunColor")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10931,7 +11597,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetAtmosphere("sunColor")
+				local _, g, _ = gl.GetAtmosphere("sunColor")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10956,7 +11622,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetAtmosphere("sunColor")
+				local r, g, _ = gl.GetAtmosphere("sunColor")
 				Spring.SetAtmosphere({ sunColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10976,7 +11642,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetAtmosphere("skyColor")
+				local r, _, _ = gl.GetAtmosphere("skyColor")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10997,7 +11663,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetAtmosphere("skyColor")
+				local _, g, _ = gl.GetAtmosphere("skyColor")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -11022,7 +11688,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetAtmosphere("skyColor")
+				local r, g, _ = gl.GetAtmosphere("skyColor")
 				Spring.SetAtmosphere({ skyColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -11041,7 +11707,7 @@ function init()
 				options[getOptionByID("sunlighting_reset")].value = false
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting(defaultSunLighting)
-				Spring.Echo("resetted ground/unit coloring")
+				Spring.Echo("reset ground/unit coloring")
 				init()
 			end,
 		},
@@ -11081,7 +11747,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+				local x, _, _, _ = gl.GetAtmosphere("skyAxisAngle")
 				options[i].value = x
 			end,
 			onchange = function(i, value)
@@ -11102,7 +11768,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+				local _, y, _, _ = gl.GetAtmosphere("skyAxisAngle")
 				options[i].value = y
 			end,
 			onchange = function(i, value)
@@ -11123,7 +11789,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+				local _, _, z, _ = gl.GetAtmosphere("skyAxisAngle")
 				options[i].value = z
 			end,
 			onchange = function(i, value)
@@ -11145,7 +11811,7 @@ function init()
 			onchange = function(i, value)
 				options[getOptionByID("skyaxisangle_reset")].value = false
 				Spring.SetAtmosphere({ skyAxisAngle = defaultSkyAxisAngle })
-				Spring.Echo("resetted skyAxisAngle atmosphere")
+				Spring.Echo("reset skyAxisAngle atmosphere")
 				init()
 			end,
 		},
@@ -11767,6 +12433,33 @@ function init()
 		options[getOptionByID("gridmenu_shiftkeymodifier")] = nil
 	end
 
+	local function removeOptions(ids)
+		for _, id in ipairs(ids) do
+			local i = getOptionByID(id)
+			if i then
+				options[i] = nil
+			end
+		end
+	end
+
+	-- Squad selection: the playstyle preset decides how much of the section is drawn. Off leaves just the preset select, Custom shows everything, and any other preset hides the rows it owns because it writes them itself.
+	if not widgetHandler.knownWidgets["Squad Selection"] then
+		removeOptions(squadPreset.allOptions)
+		removeOptions({ "squad_preset", "label_squad", "label_squad_spacer" })
+	else
+		local activePreset = squadPreset.get()
+		if activePreset == "off" then
+			removeOptions(squadPreset.allOptions)
+		else
+			if activePreset ~= "custom" then
+				removeOptions(squadPreset.ownedOptions)
+			end
+			if not GetWidgetToggleValue("Squad Selection Hull") then
+				removeOptions(squadPreset.hullOptions)
+			end
+		end
+	end
+
 	if
 		spectatorHUDConfigOptions[options[getOptionByID("spectator_hud_config")].value]
 		~= BAR.I18N("ui.settings.option.spectator_hud_config_custom")
@@ -11838,13 +12531,13 @@ function init()
 		options[getOptionByID("font")].optionsFont = fontsFull
 		local fname = Spring.GetConfigString("bar_font", "Poppins-Regular.otf"):lower()
 		options[getOptionByID("font")].value =
-			getSelectKey(getOptionByID("font"), string.sub(fname, 1, string.len(fname) - 4))
+			getSelectKey(options[getOptionByID("font")], string.sub(fname, 1, string.len(fname) - 4))
 
 		options[getOptionByID("font2")].options = fonts
 		options[getOptionByID("font2")].optionsFont = fontsFull
 		local fname = Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"):lower()
 		options[getOptionByID("font2")].value =
-			getSelectKey(getOptionByID("font2"), string.sub(fname, 1, string.len(fname) - 4))
+			getSelectKey(options[getOptionByID("font2")], string.sub(fname, 1, string.len(fname) - 4))
 	end
 
 	-- check if cus is disabled by auto disable cus widget (in case options widget has been reloaded)
@@ -12252,7 +12945,6 @@ function init()
 	else
 		local cursorsets = {}
 		local cursor = 1
-		local cursoroption
 		cursorsets = WG.cursors.getcursorsets()
 		local cursorname = WG.cursors.getcursor()
 		for i, c in pairs(cursorsets) do
@@ -12357,7 +13049,7 @@ function init()
 			local desc = data.desc or ""
 			if desc ~= "" and WG.tooltip then
 				local maxWidth = WG.tooltip.getFontsize() * 90
-				local textLines, numLines = font:WrapText(desc, maxWidth)
+				local textLines, _ = font:WrapText(desc, maxWidth)
 				desc = string.gsub(textLines, "[\n]", "\n")
 			end
 			if data.author and data.author ~= "" then
@@ -12437,11 +13129,6 @@ function init()
 	-- Cache the unfiltered options for efficient filtering
 	unfilteredOptions = options
 
-	-- Apply current filter if any
-	if inputText and inputText ~= "" and inputMode == "" then
-		applyFilter()
-	end
-
 	-- count num options in each group (always use unfilteredOptions so counts
 	-- are correct even when a search filter is active)
 	local groups = {}
@@ -12470,10 +13157,8 @@ function init()
 		end
 	end
 
-	if windowList then
-		gl.DeleteList(windowList)
-	end
-	windowList = gl.CreateList(DrawWindow)
+	-- Filter last, the checks above need every option. Also rebuilds the window.
+	applyFilter()
 end
 
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
@@ -12517,14 +13202,14 @@ local function optionCmd(_, _, params)
 		return
 	end
 
-	local optionID = getOptionByID(params[1])
-	if not optionID then
+	local option = getUnfilteredOption(params[1])
+	if not option then
 		return
 	end
 
 	if not params[2] then
-		if options[optionID].type == "bool" then
-			applyOptionValue(optionID, not options[optionID].value)
+		if option.type == "bool" then
+			applyOptionValueByID(option.id, not option.value)
 		else
 			show = true
 			if showTextInput then
@@ -12533,12 +13218,12 @@ local function optionCmd(_, _, params)
 			end
 		end
 	else
-		if options[optionID].type == "select" then
-			local selectKey = getSelectKey(optionID, params[2])
+		if option.type == "select" then
+			local selectKey = getSelectKey(option, params[2])
 			if selectKey then
-				applyOptionValue(optionID, selectKey)
+				applyOptionValueByID(option.id, selectKey)
 			end
-		elseif options[optionID].type == "bool" then
+		elseif option.type == "bool" then
 			local value
 			if params[2] == "0" then
 				value = false
@@ -12547,9 +13232,9 @@ local function optionCmd(_, _, params)
 			else
 				value = true
 			end
-			applyOptionValue(optionID, value)
+			applyOptionValueByID(option.id, value)
 		else
-			applyOptionValue(optionID, tonumber(params[2]))
+			applyOptionValueByID(option.id, tonumber(params[2]))
 		end
 	end
 end
@@ -12641,8 +13326,6 @@ function widget:Initialize()
 	updateGrabinput()
 	widget:ViewResize()
 
-	prevShow = show
-
 	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
 	--	Spring.SendCommands("set CamFrameTimeCorrection 1")
 	--	Spring.SendCommands("set SmoothTimeOffset 2")
@@ -12733,6 +13416,12 @@ function widget:Initialize()
 
 	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5))) -- spring won't remember what you set with '/minimap iconssize #'
 
+	-- lets the handler hide the rest of the interface while the window is open
+	-- (this widget holds the real widgetHandler, so it passes itself)
+	widgetHandler:RegisterModalWindow(widget, function()
+		return show == true
+	end)
+
 	WG.options = {}
 	WG.options.toggle = function(state)
 		local newShow = state
@@ -12754,7 +13443,7 @@ function widget:Initialize()
 	end
 	WG.options.getOptionsList = function()
 		local optionList = {}
-		for i, option in pairs(options) do
+		for i, option in pairs(unfilteredOptions) do
 			optionList[#optionList + 1] = option.id
 		end
 		return optionList
@@ -12762,9 +13451,10 @@ function widget:Initialize()
 	WG.options.isvisible = function()
 		return show
 	end
-	WG.options.getOptionValue = function(option)
-		if getOptionByID(option) then
-			return options[getOptionByID(option)].value
+	WG.options.getOptionValue = function(id)
+		local option = getUnfilteredOption(id)
+		if option then
+			return option.value
 		end
 	end
 	WG.options.getCameraSmoothness = function()
@@ -12781,6 +13471,8 @@ function widget:Initialize()
 	WG.options.addOptions = function(newOptions)
 		for _, option in ipairs(newOptions) do
 			option.group = "custom"
+			-- FIXME: Applying an option with a widget enables or disables that widget. Remove from user widgets.
+			option.widget = nil
 			customOptions[#customOptions + 1] = option
 		end
 
@@ -12804,13 +13496,17 @@ function widget:Initialize()
 	WG.options.removeOption = function(name)
 		return WG.options.removeOptions({ name })
 	end
-	WG.options.applyOptionValue = function(option, value)
-		local optionID = getOptionByID(option)
-		if not optionID then
-			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' not found")
+	WG.options.applyOptionValue = function(id, value)
+		local option = getUnfilteredOption(id)
+		if not option then
+			Spring.Echo("Options widget: applyOptionValue: option '" .. id .. "' not found")
 			return
 		end
-		applyOptionValue(optionID, tonumber(value))
+		if option.widget then
+			Spring.Echo("Options widget: applyOptionValue: option '" .. id .. "' denied by sandboxing")
+			return
+		end
+		applyOptionValueByID(id, tonumber(value))
 	end
 
 	widgetHandler.actionHandler:AddAction(self, "options", optionsCmd, nil, "t")
@@ -12871,8 +13567,8 @@ function widget:Shutdown()
 	widgetHandler.actionHandler:RemoveAction(self, "grapher")
 end
 
-function getSelectKey(i, value)
-	for k, v in pairs(options[i].options) do
+function getSelectKey(option, value)
+	for k, v in pairs(option.options) do
 		if v == value then
 			return k
 		end
@@ -12887,8 +13583,6 @@ function widget:GetConfigData()
 		cameraPanTransitionTime = cameraPanTransitionTime,
 		useNetworkSmoothing = useNetworkSmoothing,
 		desiredWaterValue = desiredWaterValue, -- configint water can't be used since we will set water 0 when no water is present
-		pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayerExecuted,
-		pauseGameWhenSingleplayer = pauseGameWhenSingleplayer,
 
 		-- options widget settings
 		firsttimesetupDone = firstlaunchsetupDone,
@@ -12956,12 +13650,6 @@ function widget:SetConfigData(data)
 			end
 		end
 	end
-	if data.pauseGameWhenSingleplayerExecuted ~= nil and Spring.GetGameFrame() > 0 then
-		pauseGameWhenSingleplayerExecuted = data.pauseGameWhenSingleplayerExecuted
-	end
-	if data.pauseGameWhenSingleplayer ~= nil then
-		pauseGameWhenSingleplayer = data.pauseGameWhenSingleplayer
-	end
 	if data.advSettings ~= nil then
 		advSettings = data.advSettings
 	end
@@ -12990,6 +13678,10 @@ function widget:SetConfigData(data)
 	end
 	if data.customOptions then
 		--customOptions = data.customOptions
+	end
+	-- this setting moved to the springsetting WindowsPauseGame; carry a switched off one over
+	if data.pauseGameWhenSingleplayer == false then
+		Spring.SetConfigInt("WindowsPauseGame", 0)
 	end
 end
 

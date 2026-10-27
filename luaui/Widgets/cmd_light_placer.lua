@@ -20,15 +20,11 @@ local GetKeyState = Spring.GetKeyState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local GetGroundNormal = Spring.GetGroundNormal
-local GetGameFrame = Spring.GetGameFrame
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glTranslate = gl.Translate
 local glDepthTest = gl.DepthTest
 local GL_LINES = GL.LINES
 local GL_LINE_LOOP = GL.LINE_LOOP
@@ -49,7 +45,6 @@ local BRIGHTNESS_STEP = 0.1
 local LIGHT_RADIUS_STEP = 10
 local ELEVATION_STEP = 5
 local KEYSYMS_SPACE = 0x20
-local UPDATE_INTERVAL = 1 / 30
 
 local floor = math.floor
 local max = math.max
@@ -59,9 +54,8 @@ local sin = math.sin
 local pi = math.pi
 local sqrt = math.sqrt
 local rad = math.rad
-local atan2 = math.atan2
 
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
 
 ----------------------------------------------------------------
 -- Light type defaults
@@ -162,8 +156,6 @@ local lp = {
 	-- For gizmo support (Phase 4)
 	selectedLight = nil,
 }
-
-local updateTimer = 0
 
 -- Cursor preview light (removed when deactivated or position changes enough)
 local previewLight = { id = nil, shape = nil }
@@ -366,7 +358,6 @@ local BUILTIN_PRESETS = {
 -- Placed lights tracking
 ----------------------------------------------------------------
 local placedLights = {} -- { [instanceID] = lightDef }
-local nextLightID = 1
 local undoStack = {} -- { { action="add"|"remove", lights={...} }, ... }
 local redoStack = {}
 local MAX_UNDO = 100
@@ -668,6 +659,12 @@ local function pushUndo(action, lights)
 	end
 	undoStack[#undoStack + 1] = { action = action, lights = lights }
 	redoStack = {}
+	-- Every light edit passes here: the project has unsaved changes.
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("lights")
+	end
 end
 
 local function doUndo()
@@ -852,7 +849,7 @@ local function save(explicitPath)
 	local blocks = {}
 	for _, l in ipairs(lightList) do
 		local b = { "\t\t{\n" }
-		b[#b + 1] = string.format('\t\t\ttype = "%s",\n', l.type)
+		b[#b + 1] = string.format("\t\t\ttype = %q,\n", l.type)
 		b[#b + 1] = string.format("\t\t\tpos = { %.1f, %.1f, %.1f },\n", l.pos[1], l.pos[2], l.pos[3])
 		b[#b + 1] = string.format("\t\t\tradius = %.1f,\n", l.radius)
 		b[#b + 1] = string.format("\t\t\tcolor = { %.3f, %.3f, %.3f },\n", l.color[1], l.color[2], l.color[3])
@@ -884,8 +881,12 @@ local function save(explicitPath)
 	end
 	table.sort(blocks)
 
-	local lines =
-		{ "return {\n", "\tversion = 1,\n", '\tmapName = "' .. (Game.mapName or "unknown") .. '",\n', "\tlights = {\n" }
+	local lines = {
+		"return {\n",
+		"\tversion = 1,\n",
+		string.format("\tmapName = %q,\n", Game.mapName or "unknown"),
+		"\tlights = {\n",
+	}
 	for _, b in ipairs(blocks) do
 		lines[#lines + 1] = b
 	end
@@ -942,6 +943,7 @@ local function load(filename)
 		Echo("[LightPlacer] Error loading " .. filename .. ": " .. tostring(err))
 		return false
 	end
+	setfenv(chunk, {})
 	local data = chunk()
 	if not data or not data.lights then
 		Echo("[LightPlacer] Invalid light file format: " .. filename)
@@ -1027,10 +1029,10 @@ local function saveUserPreset(presetName)
 		lights = lightList,
 	}
 
-	local lines = { "return {\n", "\tversion = 1,\n", '\tname = "' .. presetName .. '",\n', "\tlights = {\n" }
+	local lines = { "return {\n", "\tversion = 1,\n", string.format("\tname = %q,\n", presetName), "\tlights = {\n" }
 	for _, l in ipairs(lightList) do
 		lines[#lines + 1] = "\t\t{\n"
-		lines[#lines + 1] = string.format('\t\t\ttype = "%s",\n', l.type)
+		lines[#lines + 1] = string.format("\t\t\ttype = %q,\n", l.type)
 		lines[#lines + 1] = string.format("\t\t\toffsetX = %.1f,\n", l.offsetX)
 		lines[#lines + 1] = string.format("\t\t\toffsetZ = %.1f,\n", l.offsetZ)
 		lines[#lines + 1] = string.format("\t\t\tradius = %.1f,\n", l.radius)
@@ -1114,6 +1116,7 @@ local function loadPresetFile(filename)
 		Echo("[LightPlacer] Error loading preset: " .. tostring(err))
 		return nil
 	end
+	setfenv(chunk, {})
 	return chunk()
 end
 

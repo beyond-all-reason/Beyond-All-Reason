@@ -16,6 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 local nanoturretunitIDs = {}
 
 local loadoutcomplete = false
@@ -40,9 +42,6 @@ local function rot_to_facing(rotation)
 	return 2
 end
 
-local startMetal = 1000
-local startEnergy = 1000
-local teamList = {}
 local additionalStorage = {}
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
@@ -60,9 +59,10 @@ function gadget:GamePreload()
 		-- so that loaded savegames dont re-place
 		if Spring.GetModOptions().scenariooptions then
 			Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
-			local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-			scenariooptions = Json.decode(scenariooptions)
-			if scenariooptions and scenariooptions.unitloadout then
+			local scenariooptions = decodeModoption(Spring.GetModOptions().scenariooptions)
+			if not scenariooptions then
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Could not decode scenariooptions")
+			elseif scenariooptions.unitloadout then
 				Spring.Echo("Scenario: Creating unit loadout")
 				local unitloadout = scenariooptions.unitloadout
 				if unitloadout then
@@ -93,7 +93,7 @@ function gadget:GamePreload()
 										+ (UnitDefNames[unit.name].energyStorage or 0)
 								end
 							end
-							if string.find(unit.name, "nanotc") then
+							if UnitDefNames[unit.name].customParams.isnanoturret then
 								nanoturretunitIDs[unitID] = true
 							end
 							if unit.neutral == true or unit.neutral == "true" then
@@ -153,17 +153,4 @@ function gadget:GameFrame(n)
 		end
 		gadgetHandler:RemoveGadget()
 	end
-	--[[ periodic checking isn't very good
-	if n %17 == 7 then
-		local teamList = Spring.GetTeamList()
-		for i = 1, #teamList do
-			local teamID = teamList[i]
-			local m, mstore = Spring.GetTeamResources(teamID, "metal")
-			local e, estore = Spring.GetTeamResources(teamID, "energy")
-			if mstore < 500 then Spring.SetTeamResource(teamID, 'ms', 500) end
-			if estore < 500 then Spring.SetTeamResource(teamID, 'es', 500) end
-		end
-	end
-	]]
-	--
 end

@@ -26,7 +26,7 @@ piece
 	wake,
     airjetFlare;
 
-static-var  gun_1, isAiming, restore_delay, timeLeft, isfiring, oldhead, aimAdj, timer, targetswap, inwater, oldsteerheading, fireTime, lastfired, gameframe, moving;
+static-var  gun_1, isAiming, restore_delay, timeLeft, isfiring, oldhead, aimAdj, timer, targetswap, inwater, oldsteerheading, fireTime, lastfired, gameframe, moving, oldpitch;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -262,6 +262,7 @@ RestoreWeapon2()
 ////////////////////// HEATRAY
 AimWeapon1(heading, pitch)
 {
+	var pitchSpeed, deltaHeading;
     signal SIGNAL_AIM1;
     set-signal-mask SIGNAL_AIM1;
     if (timeLeft == 0)
@@ -274,8 +275,17 @@ AimWeapon1(heading, pitch)
 		targetswap = 1;
 	}
 	gameframe = get(GAME_FRAME);
+	// Turn the pitch and heading together
+	pitchSpeed = <100>;
+	deltaHeading = get ABS(oldhead - heading);
+	if ((deltaHeading > <1>) AND (deltaHeading <= 5000))
+	{
+		pitchSpeed = <100> * (get ABS(oldpitch - pitch)) / deltaHeading;
+		if (pitchSpeed > <100>) pitchSpeed = <100>;
+		if (pitchSpeed < <5>) pitchSpeed = <5>;
+	}
 	turn turret to y-axis heading - aimAdj speed <100>;
-	turn turret_body to x-axis <0.000000> - pitch speed <100>;
+	turn turret_body to x-axis <0.000000> - pitch speed pitchSpeed;
 	if (((get ABS(oldhead - heading)) > 65536) OR(((get ABS(oldhead - heading)) > 5000) AND ((get ABS(oldhead - heading)) < 64236)))
 	{
 		oldhead = 1000000;
@@ -283,6 +293,7 @@ AimWeapon1(heading, pitch)
 		wait-for-turn turret_body around x-axis;
 	}
 	oldhead = heading;
+	oldpitch = pitch;
 	isfiring = 1;
     return (1);
 }

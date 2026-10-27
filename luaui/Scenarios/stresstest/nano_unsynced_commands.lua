@@ -1,4 +1,4 @@
-VFS.Include("luaui/Scenarios/stresstest/nano_commands.lua")
+require("luaui/Scenarios/stresstest/nano_commands")
 
 function test()
 	local t0 = os.clock()

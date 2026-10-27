@@ -31,6 +31,7 @@ return {
 			buildinggrounddecalsizey = 7.5,
 			buildinggrounddecaltype = "decals/corint_aoplane.dds",
 			canareaattack = 1,
+			islrpc = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
@@ -124,7 +125,7 @@ return {
 				soundstart = "lrpcshot",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 1150,
+				weaponvelocity = 950,
 				damage = {
 					default = 2000,
 					shields = 1000,

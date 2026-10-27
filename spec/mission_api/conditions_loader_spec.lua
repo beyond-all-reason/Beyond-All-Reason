@@ -1,25 +1,22 @@
-require("spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-local RegisterMissionApiModules = require("mission_api.spec_helper")
+local env = MissionSpecEnv.new()
 
-local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-local triggersLoader = VFS.Include("luarules/mission_api/conditions_loader.lua")
+local parameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
+local triggersLoader = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
 
 -- Load the real trigger definitions once for the integration section below.
 -- (Real trigger files read GG['MissionAPI'].Modules.ParameterTypes at include time.)
 GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
-RegisterMissionApiModules()
+MissionSpecEnv.registerModules(env)
 local realDefinitions = triggersLoader.LoadConditionDefinitions()
 local realTriggerFiles = VFS.DirList("luarules/mission_api/conditions/", "*.lua")
-GG["MissionAPI"] = nil
 
-describe("mission_api.triggers_loader", function()
-	local ParameterTypes = parameterTypes.Types
-
+describe("mission_api.conditions_loader", function()
 	before_each(function()
-		-- loadConditionDefinitions reads the parameter-type table from GG at call time.
+		-- Real trigger definition files read the parameter types from GG at include time.
 		GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
-		RegisterMissionApiModules()
+		MissionSpecEnv.registerModules(env)
 	end)
 
 	-- ── LoadConditionDefinitions (isolated, mocked trigger files) ───────────────
@@ -28,32 +25,35 @@ describe("mission_api.triggers_loader", function()
 		-- Runs the loader against a controlled, ordered list of fake trigger
 		-- definitions by stubbing the VFS calls it makes, then restores them.
 		local function loadWith(fakeFiles)
-			local origDirList, origInclude = VFS.DirList, VFS.Include
+			local origDirList, origInclude = env.VFS.DirList, env.VFS.Include
 			local paths, defsByPath = {}, {}
 			for i, file in ipairs(fakeFiles) do
 				paths[i] = file.path
 				defsByPath[file.path] = file.def
 			end
 
-			VFS.DirList = function()
+			env.VFS.DirList = function()
 				return paths
 			end
-			VFS.Include = function(path)
-				return defsByPath[path]
+			env.VFS.Include = function(path, ...)
+				if defsByPath[path] then
+					return defsByPath[path]
+				end
+				return origInclude(path, ...)
 			end
 
 			local ok, result = pcall(triggersLoader.LoadConditionDefinitions)
 
-			VFS.DirList, VFS.Include = origDirList, origInclude
+			env.VFS.DirList, env.VFS.Include = origDirList, origInclude
 			assert(ok, result)
 			return result
 		end
 
 		it("assigns sequential type IDs in directory-list order", function()
 			local definitions = loadWith({
-				{ path = "a.lua", def = { type = "Alpha" } },
-				{ path = "b.lua", def = { type = "Beta" } },
-				{ path = "c.lua", def = { type = "Gamma" } },
+				{ path = "a.lua", def = { type = "Alpha", kind = "event" } },
+				{ path = "b.lua", def = { type = "Beta", kind = "event" } },
+				{ path = "c.lua", def = { type = "Gamma", kind = "event" } },
 			})
 
 			assert.are.same({ Alpha = 1, Beta = 2, Gamma = 3 }, definitions.Types)
@@ -62,8 +62,8 @@ describe("mission_api.triggers_loader", function()
 		it("keeps a definition's parameters and defaults missing ones to an empty table", function()
 			local alphaParameters = { { name = "a" } }
 			local definitions = loadWith({
-				{ path = "a.lua", def = { type = "Alpha", parameters = alphaParameters } },
-				{ path = "b.lua", def = { type = "Beta" } }, -- no parameters field
+				{ path = "a.lua", def = { type = "Alpha", kind = "event", parameters = alphaParameters } },
+				{ path = "b.lua", def = { type = "Beta", kind = "event" } }, -- no parameters field
 			})
 
 			-- Kept as-is (same reference, not copied):
@@ -78,12 +78,12 @@ describe("mission_api.triggers_loader", function()
 			local betaUnitDestroyed = function() end
 
 			local definitions = loadWith({
-				{ path = "a.lua", def = { type = "Alpha", callins = { GameFrame = alphaGameFrame } } },
+				{ path = "a.lua", def = { type = "Alpha", kind = "event", callins = { GameFrame = alphaGameFrame } } },
 				{
 					path = "b.lua",
-					def = { type = "Beta", callins = { GameFrame = betaGameFrame, UnitDestroyed = betaUnitDestroyed } },
+					def = { type = "Beta", kind = "event", callins = { GameFrame = betaGameFrame, UnitDestroyed = betaUnitDestroyed } },
 				},
-				{ path = "c.lua", def = { type = "Gamma" } }, -- statistics-like: no callins
+				{ path = "c.lua", def = { type = "Gamma", kind = "event" } }, -- statistics-like: no callins
 			})
 
 			-- One callin shared by two types, keyed by type ID:
@@ -99,16 +99,16 @@ describe("mission_api.triggers_loader", function()
 		end)
 
 		it("returns the shared settings schema", function()
-			local definitions = loadWith({ { path = "a.lua", def = { type = "Alpha" } } })
+			local definitions = loadWith({ { path = "a.lua", def = { type = "Alpha", kind = "event" } } })
+			local ParameterTypes = parameterTypes.Types
 
 			assert.are.same({
-				prerequisites = ParameterTypes.Table,
+				prerequisites = ParameterTypes.TriggerIDs,
 				repeating = ParameterTypes.Boolean,
-				maxRepeats = ParameterTypes.Number,
-				difficulties = ParameterTypes.Table,
+				difficulties = ParameterTypes.Difficulties,
 				coop = ParameterTypes.Boolean,
 				active = ParameterTypes.Boolean,
-				stages = ParameterTypes.Table,
+				stages = ParameterTypes.StageIDs,
 			}, definitions.Settings)
 		end)
 
@@ -161,7 +161,6 @@ describe("mission_api.triggers_loader", function()
 			assert.are.same({}, definitions.Types)
 			assert.are.same({}, definitions.Parameters)
 			assert.are.same({}, definitions.Callins)
-			assert.is_table(definitions.Settings)
 		end)
 	end)
 
@@ -193,8 +192,11 @@ describe("mission_api.triggers_loader", function()
 			-- Event-driven triggers:
 			assert.is_function(C.MetaUnitAdded[T.UnitExists])
 			assert.is_function(C.MetaUnitRemoved[T.UnitNotExists])
+			assert.is_function(C.UnitDamaged[T.UnitAttacked])
 			assert.is_function(C.UnitDestroyed[T.UnitKilled])
+			assert.is_function(C.UnitDestroyed[T.UnitReclaimed])
 			assert.is_function(C.UnitTaken[T.UnitCaptured])
+			assert.is_function(C.UnitGiven[T.UnitReceived])
 			assert.is_function(C.UnitCreated[T.UnitResurrected])
 			assert.is_function(C.UnitCreated[T.ConstructionStarted])
 			assert.is_function(C.BuildAssisted[T.ConstructionStarted])
@@ -204,18 +206,26 @@ describe("mission_api.triggers_loader", function()
 			assert.is_function(C.UnitBuildStepPost[T.ConstructionProgress])
 			assert.is_function(C.MetaUnitRemoved[T.ConstructionProgress])
 			assert.is_function(C.MetaUnitRemoved[T.ConstructionCanceled])
+			assert.is_function(C.UnitCreated[T.ProductionStarted])
 			assert.is_function(C.UnitDestroyed[T.ProductionCanceled])
 			assert.is_function(C.UnitTaken[T.ProductionCanceled])
+			assert.is_function(C.UnitIdlePost[T.UnitIdled])
+			assert.is_function(C.UnitIdlePost[T.UnitUnidled])
+			assert.is_function(C.UnitLoaded[T.UnitLoaded])
+			assert.is_function(C.UnitUnloaded[T.UnitUnloaded])
 			assert.is_function(C.TeamDied[T.TeamDestroyed])
 			assert.is_function(C.FeatureCreated[T.FeatureCreated])
 			assert.is_function(C.FeatureDestroyed[T.FeatureReclaimed])
 			assert.is_function(C.FeatureDestroyed[T.FeatureDestroyed])
+			assert.is_function(C.UnitLoaded[T.TransportLoaded])
+			assert.is_function(C.UnitUnloaded[T.TransportUnloaded])
 		end)
 
-		it("registers no callins for statistics and mission-control triggers", function()
+		it("registers no callins for statistics, mission-control, and event triggers", function()
 			local T = realDefinitions.Types
 			local C = realDefinitions.Callins
 
+			assert.is_number(T.Event)
 			for callinName, handlers in pairs(C) do
 				assert.is_nil(handlers[T.TotalUnitsLost], callinName)
 				assert.is_nil(handlers[T.TotalUnitsBuilt], callinName)
@@ -224,6 +234,7 @@ describe("mission_api.triggers_loader", function()
 				assert.is_nil(handlers[T.UnitsOwned], callinName)
 				assert.is_nil(handlers[T.Victory], callinName)
 				assert.is_nil(handlers[T.Defeat], callinName)
+				assert.is_nil(handlers[T.Event], callinName)
 			end
 		end)
 	end)
@@ -242,19 +253,17 @@ describe("mission_api.triggers_loader", function()
 			assert.is_false(settings.coop)
 			assert.is_true(settings.active)
 			assert.are.same({}, settings.stages)
-			assert.is_nil(settings.maxRepeats)
 			assert.is_nil(settings.difficulties)
 		end)
 
 		it("preserves settings that are already specified", function()
-			local difficulties = { hard = true }
+			local difficulties = { "Hard" }
 			local triggers = triggersLoader.ProcessRawTriggers({
 				t = {
 					type = "Alpha",
 					settings = {
 						prerequisites = { "p1" },
 						repeating = true,
-						maxRepeats = 3,
 						difficulties = difficulties,
 						coop = true,
 						stages = { "stage1" },
@@ -265,8 +274,7 @@ describe("mission_api.triggers_loader", function()
 			local settings = triggers.t.settings
 			assert.are.same({ "p1" }, settings.prerequisites)
 			assert.is_true(settings.repeating)
-			assert.are.equal(3, settings.maxRepeats)
-			assert.are.same({ hard = true }, settings.difficulties)
+			assert.are.same({ "Hard" }, settings.difficulties)
 			assert.is_true(settings.coop)
 			assert.are.same({ "stage1" }, settings.stages)
 		end)

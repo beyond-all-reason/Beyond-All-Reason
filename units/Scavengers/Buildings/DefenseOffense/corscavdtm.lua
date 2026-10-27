@@ -139,6 +139,7 @@ return {
 				customparams = {
 					projectile_destruction_method = "descend",
 					overrange_distance = 575,
+					soundstart_volume_multiplier = 0.7,
 				},
 			},
 		},

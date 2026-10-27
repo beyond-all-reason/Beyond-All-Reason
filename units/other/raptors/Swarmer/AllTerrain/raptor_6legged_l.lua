@@ -55,6 +55,7 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "Kremenchuk, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",

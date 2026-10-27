@@ -36,6 +36,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Firestorm",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 2,
 			subfolder = "Scavengers/Bots",
 		},
 		featuredefs = {

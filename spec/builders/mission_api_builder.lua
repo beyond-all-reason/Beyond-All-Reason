@@ -2,26 +2,42 @@
 -- Install() must be called on the result.
 
 local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
+local UNIT_QUERY_PATH = "luarules/mission_api/unit_query.lua"
+local DIFFICULTIES_PATH = "luarules/mission_api/difficulties.json"
 
+local LOWEST_DIFFICULTY = table.reduce(Json.decode(VFS.LoadFile(DIFFICULTIES_PATH)), function(lowest, difficulty)
+	return math.min(lowest, difficulty) -- defaults to lowest
+end, math.huge)
+
+--- Only a name for readers: .emmyrc.json keeps spec/builders out of the
+--- workspace, so emmylua cannot resolve this class from a spec. A spec that
+--- wants its mock typed spells out the slice it reads, e.g.
+--- ---@type { Countdowns: table<string, MissionCountdown> }
 ---@class MissionApiMock
 ---@field Difficulty number
+---@field Teams table<integer|string, string|integer>
 ---@field trackedUnitIDs table<string, table<number, boolean>>
 ---@field trackedUnitNames table<number, table<string, boolean>>
 ---@field trackedFeatureIDs table<string, table<number, boolean>>
 ---@field trackedFeatureNames table<number, table<string, boolean>>
 ---@field markerNames table
+---@field lineNames table<string, table[]>
 ---@field soundFiles table<string, number>
 ---@field soundQueue table
+---@field Countdowns table<string, MissionCountdown>
 ---@field Objectives table
 ---@field Stages table
 ---@field Triggers table
 ---@field Actions table
 ---@field CurrentStageID string?
+---@field ObjectiveTriggers table
+---@field ObjectiveStages table
 ---@field UnitLoadout table
 ---@field FeatureLoadout table
 ---@field ActionDefinitions table
 ---@field ConditionDefinitions table
 ---@field Modules table
+---@field ActivateTrigger fun(trigger: table): boolean
 ---@field calls MissionApiMockCalls
 ---@field clearCalls fun()
 
@@ -33,13 +49,21 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field playSound table
 ---@field enqueueSound table
 ---@field processSoundQueue table
+---@field activateStage table
 ---@field changeStage table
 ---@field announceStage table
 ---@field tryAdvanceStage table
----@field completeObjective table
+---@field activateObjective table
+---@field cancelObjective table
 ---@field updateObjective table
+---@field completeObjective table
+---@field failObjective table
+---@field hideObjective table
+---@field showObjective table
 ---@field reportProgress table
+---@field setObjectiveActive table
 ---@field echoObjectiveUpdate table
+---@field activateTrigger table
 
 ---@class MissionApiBuilder
 local MB = {}
@@ -58,15 +82,40 @@ local function isNilOrEmpty(tbl)
 	return tbl == nil or next(tbl) == nil
 end
 
+---Refill an installed table rather than replace it, down through its nested tables, so that a
+---module which captured one at load keeps reading this install's data.
+---@generic T
+---@param previous T?
+---@param contents T
+---@return T
+local function refill(previous, contents)
+	if previous == contents or type(previous) ~= "table" or type(contents) ~= "table" then
+		return contents
+	end
+
+	for key, value in pairs(contents) do
+		previous[key] = refill(previous[key], value)
+	end
+	for key in pairs(previous) do
+		if contents[key] == nil then
+			previous[key] = nil
+		end
+	end
+	return previous
+end
+
 ---@return MissionApiBuilder
 function MB.new()
 	return setmetatable({
-		difficulty = 0,
+		difficulty = LOWEST_DIFFICULTY,
+		teams = {}, -- team ID to name, and name to team ID
 		trackedUnits = {}, -- array of { name, id }
 		trackedFeatures = {}, -- array of { name, id }
 		markerNames = {},
+		lineNames = {},
 		soundFiles = {},
 		soundQueue = {},
+		countdowns = {},
 		objectives = {},
 		stages = {},
 		triggers = {},
@@ -75,13 +124,13 @@ function MB.new()
 		featureLoadout = {},
 		actionDefinitions = {},
 		conditionDefinitions = {},
+		objectiveTriggers = {},
 		currentStageID = nil,
 		moduleOverrides = {},
 		realParameterTypes = true,
 	}, MB)
 end
 
----@param self MissionApiBuilder
 ---@param difficulty number
 ---@return MissionApiBuilder
 function MB:WithDifficulty(difficulty)
@@ -89,8 +138,17 @@ function MB:WithDifficulty(difficulty)
 	return self
 end
 
+---Name a team, both ways round as game_setup.lua does.
+---@param name string
+---@param teamID number
+---@return MissionApiBuilder
+function MB:WithTeam(name, teamID)
+	self.teams[name] = teamID
+	self.teams[teamID] = name
+	return self
+end
+
 ---Seed a tracked unit; bidirectional maps are built for you.
----@param self MissionApiBuilder
 ---@param name string
 ---@param unitID number
 ---@return MissionApiBuilder
@@ -99,7 +157,6 @@ function MB:WithTrackedUnit(name, unitID)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param name string
 ---@param featureID number
 ---@return MissionApiBuilder
@@ -108,7 +165,6 @@ function MB:WithTrackedFeature(name, featureID)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param name string
 ---@param position table
 ---@return MissionApiBuilder
@@ -117,7 +173,14 @@ function MB:WithMarker(name, position)
 	return self
 end
 
----@param self MissionApiBuilder
+---@param name string
+---@param starts table[] start position of each drawn segment
+---@return MissionApiBuilder
+function MB:WithLine(name, starts)
+	self.lineNames[name] = starts
+	return self
+end
+
 ---@param objectiveID string
 ---@param objective table
 ---@return MissionApiBuilder
@@ -126,7 +189,6 @@ function MB:WithObjective(objectiveID, objective)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param stageID string
 ---@param stage table
 ---@return MissionApiBuilder
@@ -135,7 +197,6 @@ function MB:WithStage(stageID, stage)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param stageID string
 ---@return MissionApiBuilder
 function MB:WithCurrentStage(stageID)
@@ -143,7 +204,6 @@ function MB:WithCurrentStage(stageID)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param triggerID string
 ---@param trigger table
 ---@return MissionApiBuilder
@@ -152,7 +212,17 @@ function MB:WithTrigger(triggerID, trigger)
 	return self
 end
 
----@param self MissionApiBuilder
+---Seed an objective's synthesized trigger, named and related as objectives_loader.lua does.
+---@param objectiveID string
+---@param trigger table?
+---@return MissionApiBuilder
+function MB:WithObjectiveTrigger(objectiveID, trigger)
+	local triggerID = "__objective_" .. objectiveID
+	self.triggers[triggerID] = trigger or { settings = { active = false } }
+	self.objectiveTriggers[objectiveID] = triggerID
+	return self
+end
+
 ---@param actionID string
 ---@param action table
 ---@return MissionApiBuilder
@@ -161,7 +231,16 @@ function MB:WithAction(actionID, action)
 	return self
 end
 
----@param self MissionApiBuilder
+---Seed a countdown, shaped as countdowns.lua AddCountdown() creates them.
+---@param countdownID string
+---@param countdown MissionCountdown?
+---@return MissionApiBuilder
+function MB:WithCountdown(countdownID, countdown)
+	self.countdowns[countdownID] = countdown
+		or { id = countdownID, timeRemaining = 0, paused = false, displayed = true }
+	return self
+end
+
 ---@param soundfile string
 ---@param duration number
 ---@return MissionApiBuilder
@@ -170,7 +249,6 @@ function MB:WithSoundFile(soundfile, duration)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param loadout table
 ---@return MissionApiBuilder
 function MB:WithUnitLoadout(loadout)
@@ -178,7 +256,6 @@ function MB:WithUnitLoadout(loadout)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param loadout table
 ---@return MissionApiBuilder
 function MB:WithFeatureLoadout(loadout)
@@ -186,7 +263,6 @@ function MB:WithFeatureLoadout(loadout)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param definitions table
 ---@return MissionApiBuilder
 function MB:WithActionDefinitions(definitions)
@@ -194,7 +270,6 @@ function MB:WithActionDefinitions(definitions)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param definitions table
 ---@return MissionApiBuilder
 function MB:WithConditionDefinitions(definitions)
@@ -203,7 +278,6 @@ function MB:WithConditionDefinitions(definitions)
 end
 
 ---Replace a whole module, or merge individual functions into it.
----@param self MissionApiBuilder
 ---@param moduleName string e.g. 'Loadout', 'Sounds', 'Objectives', 'Tracking'
 ---@param moduleTable table
 ---@return MissionApiBuilder
@@ -216,22 +290,24 @@ function MB:WithModule(moduleName, moduleTable)
 end
 
 ---Leave Modules.ParameterTypes unset instead of loading the real module.
----@param self MissionApiBuilder
 ---@return MissionApiBuilder
 function MB:WithoutParameterTypes()
 	self.realParameterTypes = false
 	return self
 end
 
----@param self MissionApiBuilder
+---@param installed MissionApiMock? The table Install() writes into, whose tracking tables the
+---stubs then share with any module already holding them.
 ---@return MissionApiMock
-function MB:Build()
-	local instance = self
+function MB:Build(installed)
+	-- Stage stubs read and write the table the modules will see: the installed one, or the mock itself.
+	local stateTable = installed
+	installed = installed or {}
 
-	local trackedUnitIDs = {}
-	local trackedUnitNames = {}
-	local trackedFeatureIDs = {}
-	local trackedFeatureNames = {}
+	local trackedUnitIDs = refill(installed.trackedUnitIDs, {})
+	local trackedUnitNames = refill(installed.trackedUnitNames, {})
+	local trackedFeatureIDs = refill(installed.trackedFeatureIDs, {})
+	local trackedFeatureNames = refill(installed.trackedFeatureNames, {})
 
 	-- Mirrors luarules/mission_api/tracking.lua
 	local function trackEntity(name, ID, trackedIDs, trackedNames)
@@ -270,11 +346,20 @@ function MB:Build()
 		trackedIDs[name] = nil
 	end
 
-	for _, entry in ipairs(instance.trackedUnits) do
+	for _, entry in ipairs(self.trackedUnits) do
 		trackEntity(entry.name, entry.id, trackedUnitIDs, trackedUnitNames)
 	end
-	for _, entry in ipairs(instance.trackedFeatures) do
+	for _, entry in ipairs(self.trackedFeatures) do
 		trackEntity(entry.name, entry.id, trackedFeatureIDs, trackedFeatureNames)
+	end
+
+	-- Mirrors objectives_loader.lua so stages list their objectives.
+	local objectiveStages = {}
+	for stageID, stage in pairs(self.stages) do
+		for _, objectiveID in ipairs(stage.objectives or {}) do
+			local sequence = ensureTable(objectiveStages, objectiveID)
+			sequence[#sequence + 1] = stageID
+		end
 	end
 
 	local spawnUnitCalls = {}
@@ -283,13 +368,21 @@ function MB:Build()
 	local playSoundCalls = {}
 	local enqueueSoundCalls = {}
 	local processSoundQueueCalls = {}
+	local activateStageCalls = {}
 	local changeStageCalls = {}
 	local announceStageCalls = {}
 	local tryAdvanceCalls = {}
-	local completeCalls = {}
-	local updateCalls = {}
+	local activateObjectiveCalls = {}
 	local reportProgressCalls = {}
+	local setObjectiveActiveCalls = {}
+	local cancelObjectiveCalls = {}
+	local updateObjectiveCalls = {}
+	local completeObjectiveCalls = {}
+	local failObjectiveCalls = {}
+	local hideObjectiveCalls = {}
+	local showObjectiveCalls = {}
 	local echoCalls = {}
+	local activateTriggerCalls = {}
 
 	local tracking = {
 		TrackUnit = function(name, unitID)
@@ -356,52 +449,67 @@ function MB:Build()
 		end,
 	}
 
-	-- Stage state is kept per-mock rather than on the global table, so a mock
-	-- built with Build() behaves the same as one installed with Install().
-	local currentStageID = instance.currentStageID
-
+	-- Mirrors stages.lua, keeping CurrentStageID up to date so a spec can read where a change left it.
 	local stages = {
 		Announce = function(stageID)
 			announceStageCalls[#announceStageCalls + 1] = { stageID = stageID }
 		end,
 		GetCurrentStageID = function()
-			return currentStageID
+			return stateTable.CurrentStageID
+		end,
+		GetChangeCount = function()
+			return #changeStageCalls
+		end,
+		SetInitialStage = function(stageID)
+			stateTable.CurrentStageID = stageID
+		end,
+		GetStage = function(stageID)
+			return stateTable.Stages[stageID]
+		end,
+		GetObjectiveIDs = function(stageID)
+			local stage = stateTable.Stages[stageID or stateTable.CurrentStageID]
+			return stage and stage.objectives or {}
+		end,
+		ActivateStage = function(stageID)
+			activateStageCalls[#activateStageCalls + 1] = { stageID = stageID }
+			stateTable.CurrentStageID = stageID
 		end,
 		ChangeStage = function(stageID)
 			changeStageCalls[#changeStageCalls + 1] = { stageID = stageID }
-			currentStageID = stageID
-		end,
-		SetInitialStage = function(stageID)
-			currentStageID = stageID
-		end,
-		GetStage = function(stageID)
-			return instance.stages[stageID]
-		end,
-		GetObjectiveIDs = function(stageID)
-			local stage = instance.stages[stageID]
-			return stage and stage.objectives or {}
+			stateTable.CurrentStageID = stageID
 		end,
 	}
 
 	local objectives = {
+		SetObjectiveActive = function(objectiveID, active)
+			setObjectiveActiveCalls[#setObjectiveActiveCalls + 1] = { objectiveID = objectiveID, active = active }
+		end,
 		TryAdvanceStage = function(objective)
 			tryAdvanceCalls[#tryAdvanceCalls + 1] = { objective = objective }
 		end,
-		Complete = function(objectiveID)
-			completeCalls[#completeCalls + 1] = { objectiveID = objectiveID }
+		ActivateObjective = function(objectiveID)
+			activateObjectiveCalls[#activateObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
-		Update = function(objectiveID, completed, textKey)
-			updateCalls[#updateCalls + 1] = {
-				objectiveID = objectiveID,
-				completed = completed,
-				textKey = textKey,
-			}
+		CancelObjective = function(objectiveID)
+			cancelObjectiveCalls[#cancelObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		UpdateObjective = function(objectiveID)
+			updateObjectiveCalls[#updateObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
 		ReportProgress = function(objectiveID, progress)
-			reportProgressCalls[#reportProgressCalls + 1] = {
-				objectiveID = objectiveID,
-				progress = progress,
-			}
+			reportProgressCalls[#reportProgressCalls + 1] = { objectiveID = objectiveID, progress = progress }
+		end,
+		CompleteObjective = function(objectiveID)
+			completeObjectiveCalls[#completeObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		FailObjective = function(objectiveID)
+			failObjectiveCalls[#failObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		HideObjective = function(objectiveID)
+			hideObjectiveCalls[#hideObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		ShowObjective = function(objectiveID)
+			showObjectiveCalls[#showObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
 		EchoObjectiveUpdate = function(objectiveID, objective)
 			echoCalls[#echoCalls + 1] = { objectiveID = objectiveID, objective = objective }
@@ -416,11 +524,11 @@ function MB:Build()
 		Objectives = objectives,
 	}
 
-	if instance.realParameterTypes then
+	if self.realParameterTypes then
 		modules.ParameterTypes = VFS.Include(PARAMETER_TYPES_PATH)
 	end
 
-	for moduleName, override in pairs(instance.moduleOverrides) do
+	for moduleName, override in pairs(self.moduleOverrides) do
 		local target = ensureTable(modules, moduleName)
 		for key, value in pairs(override) do
 			target[key] = value
@@ -429,25 +537,34 @@ function MB:Build()
 
 	---@type MissionApiMock
 	local mock = {
-		Difficulty = instance.difficulty,
+		Difficulty = self.difficulty,
+		Teams = self.teams,
 		trackedUnitIDs = trackedUnitIDs,
 		trackedUnitNames = trackedUnitNames,
 		trackedFeatureIDs = trackedFeatureIDs,
 		trackedFeatureNames = trackedFeatureNames,
-		markerNames = instance.markerNames,
-		soundFiles = instance.soundFiles,
-		soundQueue = instance.soundQueue,
-		Objectives = instance.objectives,
-		Stages = instance.stages,
-		Triggers = instance.triggers,
-		Actions = instance.actions,
-		CurrentStageID = instance.currentStageID,
-		UnitLoadout = instance.unitLoadout,
-		FeatureLoadout = instance.featureLoadout,
-		ActionDefinitions = instance.actionDefinitions,
-		ConditionDefinitions = instance.conditionDefinitions,
+		markerNames = self.markerNames,
+		lineNames = self.lineNames,
+		soundFiles = self.soundFiles,
+		soundQueue = self.soundQueue,
+		Countdowns = self.countdowns,
+		Objectives = self.objectives,
+		Stages = self.stages,
+		Triggers = self.triggers,
+		Actions = self.actions,
+		CurrentStageID = self.currentStageID,
+		UnitLoadout = self.unitLoadout,
+		FeatureLoadout = self.featureLoadout,
+		ObjectiveTriggers = self.objectiveTriggers,
+		ObjectiveStages = objectiveStages,
+		ActionDefinitions = self.actionDefinitions,
+		ConditionDefinitions = self.conditionDefinitions,
 		Modules = modules,
-
+		ActivateTrigger = function(trigger)
+			activateTriggerCalls[#activateTriggerCalls + 1] =
+				{ trigger = trigger, stageID = GG["MissionAPI"].CurrentStageID }
+			return true
+		end,
 		--- Recorded module calls, keyed by the stub they came from:
 		--- `calls.playSound` records `Modules.Sounds.PlaySound`.
 		calls = {
@@ -457,40 +574,56 @@ function MB:Build()
 			playSound = playSoundCalls,
 			enqueueSound = enqueueSoundCalls,
 			processSoundQueue = processSoundQueueCalls,
+			activateStage = activateStageCalls,
 			changeStage = changeStageCalls,
 			announceStage = announceStageCalls,
 			tryAdvanceStage = tryAdvanceCalls,
-			completeObjective = completeCalls,
-			updateObjective = updateCalls,
+			activateObjective = activateObjectiveCalls,
+			cancelObjective = cancelObjectiveCalls,
+			updateObjective = updateObjectiveCalls,
+			completeObjective = completeObjectiveCalls,
+			failObjective = failObjectiveCalls,
+			hideObjective = hideObjectiveCalls,
+			showObjective = showObjectiveCalls,
 			reportProgress = reportProgressCalls,
+			setObjectiveActive = setObjectiveActiveCalls,
 			echoObjectiveUpdate = echoCalls,
+			activateTrigger = activateTriggerCalls,
 		},
+		clearCalls = function()
+			local tracked = {
+				spawnUnitCalls,
+				spawnFeatureCalls,
+				convertOrdersCalls,
+				playSoundCalls,
+				enqueueSoundCalls,
+				processSoundQueueCalls,
+				activateStageCalls,
+				changeStageCalls,
+				announceStageCalls,
+				tryAdvanceCalls,
+				activateObjectiveCalls,
+				reportProgressCalls,
+				setObjectiveActiveCalls,
+				updateObjectiveCalls,
+				cancelObjectiveCalls,
+				completeObjectiveCalls,
+				failObjectiveCalls,
+				hideObjectiveCalls,
+				showObjectiveCalls,
+				echoCalls,
+				activateTriggerCalls,
+			}
+			for i = 1, #tracked do
+				local list = tracked[i]
+				for j = #list, 1, -1 do
+					list[j] = nil
+				end
+			end
+		end,
 	}
 
-	mock.clearCalls = function()
-		local tracked = {
-			spawnUnitCalls,
-			spawnFeatureCalls,
-			convertOrdersCalls,
-			playSoundCalls,
-			enqueueSoundCalls,
-			processSoundQueueCalls,
-			changeStageCalls,
-			announceStageCalls,
-			tryAdvanceCalls,
-			completeCalls,
-			updateCalls,
-			reportProgressCalls,
-			echoCalls,
-		}
-		for i = 1, #tracked do
-			local list = tracked[i]
-			for j = #list, 1, -1 do
-				list[j] = nil
-			end
-		end
-	end
-
+	stateTable = stateTable or mock
 	return mock
 end
 
@@ -498,29 +631,39 @@ end
 ---valid even if another spec replaces GG['MissionAPI'] with its own table.
 local installedTable = nil
 
----Build the mock and install it as GG['MissionAPI'].
----@param self MissionApiBuilder
----@return MissionApiMock
-function MB:Install()
-	local mock = self:Build()
+---The real modules, included once per env and kept, as the gadget includes them once.
+local unitQueryModules = {}
 
+---Build the mock and install it as GG['MissionAPI'].
+---@param env table? A SpecEnv to load the real modules into, so they read its globals.
+---@return MissionApiMock
+function MB:Install(env)
 	_G.GG = _G.GG or {}
 
 	local target = installedTable
 	if type(target) ~= "table" then
 		target = {}
 		installedTable = target
-	else
-		for key in pairs(target) do
-			target[key] = nil
-		end
 	end
 
-	for key, value in pairs(mock) do
-		target[key] = value
-	end
+	local mock = self:Build(target)
+
+	local recorded = mock.calls
+	mock.calls = nil
+
+	refill(target, mock)
+	target.calls = recorded
 
 	_G.GG["MissionAPI"] = target
+
+	-- The mission_api modules read GG at load, so the real ones are included once the mock stands,
+	-- and kept, since what they captured is refilled by every install after this one.
+	if not self.moduleOverrides.UnitQuery then
+		local scope = env or _G
+		unitQueryModules[scope] = unitQueryModules[scope] or scope.VFS.Include(UNIT_QUERY_PATH)
+		target.Modules.UnitQuery = unitQueryModules[scope]
+	end
+
 	return target
 end
 

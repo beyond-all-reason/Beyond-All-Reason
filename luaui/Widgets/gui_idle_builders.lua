@@ -89,7 +89,9 @@ local unitList = {}
 local idleList = {}
 local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
 
-local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
+local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, ordermenuPosY
+---@type ScreenRect?
+local backgroundRect
 local guishaderWasActive = false
 
 local unitHumanName = {}
@@ -533,7 +535,7 @@ end
 
 local function checkUnitGroupsPos(isViewresize)
 	if WG.unitgroups then
-		local px, py, sx, sy = WG.unitgroups.getPosition()
+		local _, py, sx, _ = WG.unitgroups.getPosition()
 		local oldPosX, oldPosY = posX, posY
 		posY = py / vsy
 		posX = (sx + widgetSpaceMargin) / vsx
@@ -564,8 +566,12 @@ local function checkUnitGroupsPos(isViewresize)
 			end
 		end
 		if not isViewresize then
+			-- follows the order/build menu every frame, but only a layout change needs the list rebuilt right away
+			local oldPosX, oldPosY, oldIconSize, oldVsx, oldVsy = posX, posY, iconSize, vsx, vsy
 			widget:ViewResize()
-			doUpdate = true
+			if posX ~= oldPosX or posY ~= oldPosY or iconSize ~= oldIconSize or vsx ~= oldVsx or vsy ~= oldVsy then
+				doUpdate = true
+			end
 		end
 	end
 end
@@ -656,6 +662,11 @@ function widget:Initialize()
 	widget:ViewResize()
 	widget:PlayerChanged()
 	WG.idlebuilders = {}
+	---Screen rectangle of the idle builders panel, as four values rather than a `ScreenRect`.
+	---@return number left
+	---@return number bottom
+	---@return number right
+	---@return number top
 	WG.idlebuilders.getPosition = function()
 		return posX,
 			posY,

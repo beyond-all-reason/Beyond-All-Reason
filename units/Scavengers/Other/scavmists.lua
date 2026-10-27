@@ -57,7 +57,7 @@ local lvlParams = {
 
 		--unitspawning
 		landunitspawns = "armmeatball armassimilator armpwt4 armraz corthermite corakt4 corkarg cordemon armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok",
-		landturretspawns = "armflak armminivulc corhllllt corflak legbombard legflak corminibuzz armlwall cormwall legrwall armlwall cormwall legrwall armlwall cormwall legrwall",
+		landturretspawns = "armflak armminivulc corhllllt corflak legbombard legflak corobligator armlwall cormwall legrwall armlwall cormwall legrwall armlwall cormwall legrwall",
 		waterspawns = "armlun armlun armlship armlship armlship armbats armserp armcrus armcrus corshark corbats corfship corfship corfship corfship corssub corcrus corcrus corsok corsok ",
 		unitspawnrange = 300,
 		turretspawnrange = 400,
@@ -117,6 +117,8 @@ for lvl, stats in pairs(lvlParams) do
 		workertime = stats.workertime,
 		unitname = stats.unitname,
 		customparams = {
+			juno_deny = true,
+			juno_kill = true,
 			model_author = "SethDGamre",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.001,

@@ -1,8 +1,10 @@
-require("spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+GG["MissionAPI"].Modules.ParameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
 
 -- Mock tracking; action only calls tracking.TrackUnit at runtime.
 local trackedUnitIDs = {}
@@ -18,48 +20,28 @@ GG["MissionAPI"].Modules.Tracking = {
 	end,
 }
 
--- Mock Spring unit query functions. These are shared across the whole busted
--- run, so the originals are kept and restored in after_each; leaving them
--- replaced changes what later spec files see (an empty allyTeam list, say).
-local SPRING_QUERIES = {
-	"GetTeamUnits",
-	"GetTeamUnitsByDefs",
-	"GetAllyTeamList",
-	"GetTeamList",
-	"GetUnitsInRectangle",
-	"GetUnitsInCylinder",
-}
-
-local savedSpringQueries = {}
-local savedUnitDefNames
-
-local function installEmptyQueries()
-	_G.UnitDefNames = {}
-	for _, name in ipairs(SPRING_QUERIES) do
-		Spring[name] = function()
-			return {}
-		end
-	end
+-- Mock Spring unit query functions
+_G.UnitDefNames = {}
+env.Spring.GetTeamUnits = function(teamID)
+	return {}
+end
+env.Spring.GetTeamUnitsByDefs = function(teamID, defID)
+	return {}
+end
+env.Spring.GetAllyTeamList = function()
+	return {}
+end
+env.Spring.GetTeamList = function(allyTeamID)
+	return {}
+end
+env.Spring.GetUnitsInRectangle = function(...)
+	return {}
+end
+env.Spring.GetUnitsInCylinder = function(...)
+	return {}
 end
 
-local function saveEngineGlobals()
-	savedUnitDefNames = _G.UnitDefNames
-	for _, name in ipairs(SPRING_QUERIES) do
-		savedSpringQueries[name] = Spring[name]
-	end
-end
-
-local function restoreEngineGlobals()
-	_G.UnitDefNames = savedUnitDefNames
-	for _, name in ipairs(SPRING_QUERIES) do
-		Spring[name] = savedSpringQueries[name]
-	end
-end
-
-saveEngineGlobals()
-installEmptyQueries()
-
-local actions = VFS.Include("luarules/mission_api/actions/units/name_units.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/units/name_units.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -76,11 +58,25 @@ describe("mission_api.actions.name_units", function()
 
 	before_each(function()
 		clearTracking()
-		installEmptyQueries()
-	end)
-
-	after_each(function()
-		restoreEngineGlobals()
+		_G.UnitDefNames = {}
+		env.Spring.GetTeamUnits = function()
+			return {}
+		end
+		env.Spring.GetTeamUnitsByDefs = function()
+			return {}
+		end
+		env.Spring.GetAllyTeamList = function()
+			return {}
+		end
+		env.Spring.GetTeamList = function()
+			return {}
+		end
+		env.Spring.GetUnitsInRectangle = function()
+			return {}
+		end
+		env.Spring.GetUnitsInCylinder = function()
+			return {}
+		end
 	end)
 
 	it("declares its type and parameters", function()
@@ -96,7 +92,7 @@ describe("mission_api.actions.name_units", function()
 
 	describe("actionFunction - teamID only", function()
 		it("tracks all units returned by GetTeamUnits", function()
-			Spring.GetTeamUnits = function(teamID)
+			env.Spring.GetTeamUnits = function(teamID)
 				return { 10, 11, 12 }
 			end
 			action.actionFunction("bots", 1, nil, nil)
@@ -107,7 +103,7 @@ describe("mission_api.actions.name_units", function()
 		end)
 
 		it("tracks nothing when the team has no units", function()
-			Spring.GetTeamUnits = function()
+			env.Spring.GetTeamUnits = function()
 				return {}
 			end
 			action.actionFunction("empty", 1, nil, nil)
@@ -118,13 +114,13 @@ describe("mission_api.actions.name_units", function()
 	describe("actionFunction - unitDefName filter", function()
 		it("tracks units matching the unitDefName from all teams when teamID is nil", function()
 			_G.UnitDefNames = { mybot = { id = 7 } }
-			Spring.GetAllyTeamList = function()
+			env.Spring.GetAllyTeamList = function()
 				return { 0 }
 			end
-			Spring.GetTeamList = function()
+			env.Spring.GetTeamList = function()
 				return { 1 }
 			end
-			Spring.GetTeamUnitsByDefs = function(teamID, defID)
+			env.Spring.GetTeamUnitsByDefs = function(teamID, defID)
 				if defID == 7 then
 					return { 50, 51 }
 				end
@@ -137,7 +133,7 @@ describe("mission_api.actions.name_units", function()
 
 		it("tracks units by def within a specific team when teamID is also provided", function()
 			_G.UnitDefNames = { tank = { id = 3 } }
-			Spring.GetTeamUnitsByDefs = function(teamID, defID)
+			env.Spring.GetTeamUnitsByDefs = function(teamID, defID)
 				return { 100 }
 			end
 			action.actionFunction("tanks", 2, "tank", nil)
@@ -153,7 +149,7 @@ describe("mission_api.actions.name_units", function()
 
 	describe("actionFunction - area filter (rectangle)", function()
 		it("tracks units returned by GetUnitsInRectangle", function()
-			Spring.GetUnitsInRectangle = function(x1, z1, x2, z2, teamID)
+			env.Spring.GetUnitsInRectangle = function(x1, z1, x2, z2, teamID)
 				return { 200, 201 }
 			end
 			local area = { x1 = 0, z1 = 0, x2 = 10, z2 = 10 }
@@ -165,7 +161,7 @@ describe("mission_api.actions.name_units", function()
 
 	describe("actionFunction - area filter (circle)", function()
 		it("tracks units returned by GetUnitsInCylinder", function()
-			Spring.GetUnitsInCylinder = function(x, z, radius, teamID)
+			env.Spring.GetUnitsInCylinder = function(x, z, radius, teamID)
 				return { 300 }
 			end
 			local area = { x = 5, z = 5, radius = 100 }

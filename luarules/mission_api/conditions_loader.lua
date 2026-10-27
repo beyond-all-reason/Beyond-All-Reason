@@ -10,7 +10,6 @@ local KINDS = { event = true, metric = true }
 -- Statistics conditions (TotalUnits*, UnitsOwned) declare no callins; their
 -- evaluation is centralised in api_missions_triggers.lua (shared bookkeeping).
 local function loadConditionDefinitions()
-	local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 
 	local triggerFiles = VFS.DirList(CONDITIONS_DIR, CONDITION_FILES_PATTERN)
 
@@ -28,7 +27,7 @@ local function loadConditionDefinitions()
 
 		if not KINDS[kind] then
 			Spring.Log(
-				"triggers_loader",
+				"conditions_loader",
 				LOG.ERROR,
 				"[Mission API] Condition '"
 					.. tostring(triggerType)
@@ -57,15 +56,7 @@ local function loadConditionDefinitions()
 	end
 
 	-- Shared trigger settings schema (global, not per-trigger).
-	local settings = {
-		prerequisites = ParameterTypes.Table,
-		repeating = ParameterTypes.Boolean,
-		maxRepeats = ParameterTypes.Number,
-		difficulties = ParameterTypes.Table,
-		coop = ParameterTypes.Boolean,
-		active = ParameterTypes.Boolean,
-		stages = ParameterTypes.Table,
-	}
+	local settings = VFS.Include("luarules/mission_api/triggers_schema.lua").Settings
 
 	return {
 		Types = types,
@@ -85,7 +76,6 @@ local function processRawTriggers(rawTriggers)
 		local settings = rawTrigger.settings or {}
 		settings.prerequisites = settings.prerequisites or {}
 		settings.repeating = settings.repeating or false
-		settings.maxRepeats = settings.maxRepeats or nil
 		settings.difficulties = settings.difficulties or nil
 		settings.coop = settings.coop or false
 		settings.active = settings.active == nil and true or settings.active

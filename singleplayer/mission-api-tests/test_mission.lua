@@ -3,15 +3,27 @@ local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
+	-- Three waves, nine seconds apart. Separate triggers, as a repeating one never stops on its own.
 	spawnCons1 = {
 		type = eventTypes.TimeElapsed,
-		settings = {
-			repeating = true,
-			maxRepeats = 3,
-		},
 		parameters = {
 			seconds = 0,
-			interval = 9,
+		},
+		actions = { 'spawnCons1' },
+	},
+
+	spawnCons1Second = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 9,
+		},
+		actions = { 'spawnCons1' },
+	},
+
+	spawnCons1Third = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 18,
 		},
 		actions = { 'spawnCons1' },
 	},
@@ -136,7 +148,7 @@ local actions = {
 	messageConsKilled = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's kill those bots.",
+			messageKey = "Let's kill those bots.",
 		},
 	},
 
@@ -150,7 +162,7 @@ local actions = {
 	messageSelfDestructCons1 = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "They blow themselves up!",
+			messageKey = "They blow themselves up!",
 		},
 	},
 
@@ -164,7 +176,7 @@ local actions = {
 	messageConsReclaimed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "These just vanish...",
+			messageKey = "These just vanish...",
 		},
 	},
 
@@ -178,7 +190,7 @@ local actions = {
 	messageEnergyGrid1Reclaimed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Did we pick the right fusions to remove?",
+			messageKey = "Did we pick the right fusions to remove?",
 		},
 	},
 
@@ -193,7 +205,7 @@ local actions = {
 	messageTransferCons1 = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "We give these away.",
+			messageKey = "We give these away.",
 		},
 	},
 
@@ -208,7 +220,7 @@ local actions = {
 	messageTransferCons2 = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "And we take them back.",
+			messageKey = "And we take them back.",
 		},
 	},
 
@@ -222,7 +234,7 @@ local actions = {
 	messageConsNotKilled = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's unname the bots so we don't kill them.",
+			messageKey = "Let's unname the bots so we don't kill them.",
 		},
 	},
 

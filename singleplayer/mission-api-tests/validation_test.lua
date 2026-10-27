@@ -2,7 +2,7 @@
 --- Start the mission and look for validation errors in the log.
 ---
 
-local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local metricTypes = GG['MissionAPI'].ConditionDefinitions.MetricTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
@@ -11,11 +11,13 @@ local stages = {
 		objectives = {
 			'objectiveWithEmptyText',
 			'objectiveWithInvalidSchemaTypes',
-			'objectiveWithTriggerHavingSettings',
-			'objectiveWithInvalidTriggerType',
-			'objectiveWithMissingTriggerType',
+			'objectiveWithUnknownField',
+			'objectiveWithInvalidType',
+			'objectiveWithMissingType',
 			'objectiveWithInvalidNextStage',
-			'objectiveWithTriggerHavingActions',
+			'objectiveWithWrongThresholdForKind',
+			'objectiveWithMissingMetricBound',
+			'objectiveWithDifficultiesType',
 		}
 	},
 	-- error: objectives entries must be strings
@@ -34,6 +36,7 @@ local objectives = {
 		textKey = "schema_type_check",
 		type = eventTypes.TimeElapsed,
 		parameters = { seconds = 100000000 },
+		count = 'notANumber',    -- error: count must be a positive integer
 		coop = 'notABoolean',    -- error: coop must be a boolean
 	},
 
@@ -51,16 +54,14 @@ local objectives = {
 
 	objectiveWithMissingType = {
 		textKey = "missing_type",
-		parameters = { seconds = 100000000 },  -- error: missing type
+		parameters = { seconds = 100000000 },  -- error: parameters without a type
 	},
 
 	objectiveWithInvalidNextStage = {
 		textKey = "invalid_next_stage",
 		type = eventTypes.TimeElapsed,
 		parameters = { seconds = 100000000 },
-		onComplete = {
-			nextStage = 'nonExistentStage',  -- error: nonExistentStage is not defined in Stages
-		},
+		nextStage = 'nonExistentStage',  -- error: nonExistentStage is not defined in Stages
 	},
 
 	objectiveWithWrongThresholdForKind = {
@@ -77,13 +78,9 @@ local objectives = {
 		-- error: metric conditions require atLeast and/or atMost
 	},
 
-	objectiveWithInvalidOnCompleteAction = {
-		textKey = "invalid_oncomplete_action",
-		type = eventTypes.TimeElapsed,
-		parameters = { seconds = 100000000 },
-		onComplete = {
-			actions = { 'noSuchAction' },  -- error: action does not exist
-		},
+	objectiveWithDifficultiesType = {
+		textKey = "type_must_not_have_difficulties",
+		type = { difficulties = { Easy = eventTypes.TimeElapsed } },  -- error: type does not support difficulties
 	},
 }
 
@@ -95,6 +92,25 @@ local triggers = {
 
 	triggerWithInvalidTypeAndNoActions = {
 		type = 'invalidType',
+	},
+
+	-- Valid: settings are optional in raw missions, the loader applies the defaults.
+	triggerWithoutSettings = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 100000000,
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	-- error: settings must be a table
+	triggerWithNonTableSettings = {
+		type = eventTypes.TimeElapsed,
+		settings = 'notATable',
+		parameters = {
+			seconds = 100000000,
+		},
+		actions = { 'actionMissingType' },
 	},
 
 	triggerWithInvalidActionID = {
@@ -110,10 +126,50 @@ local triggers = {
 		settings = {
 			prerequisites = { 'invalidTriggerID' },
 			repeating = 0,
-			maxRepeats = true,
 			difficulties = 0,
 			coop = 0,
 			active = 0,
+			stages = { 123 },   -- error: stage list entries must be stageID strings
+		},
+		parameters = {
+			seconds = 100000000,
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithInvalidDifficultiesValues = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = {
+				difficulties = {
+					Easy = 'notANumber',      -- error: seconds must be a number
+					invalidDifficulty = 30,   -- error: not a known difficulty (its value is still validated)
+				},
+			},
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithExtraKeyBesideDifficulties = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = { difficulties = { Easy = 30 }, extraKey = 60 },  -- error: no keys other than 'difficulties' allowed
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithEmptyDifficulties = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = { difficulties = {} },  -- error: difficulties table is empty
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithInvalidDifficultyInGate = {
+		type = eventTypes.TimeElapsed,
+		settings = {
+			difficulties = { 'invalidDifficulty' },  -- error: not a known difficulty
 		},
 		parameters = {
 			seconds = 100000000,
@@ -122,9 +178,9 @@ local triggers = {
 	},
 
 	triggerWithInvalidAllyTeamID = {
-		type = eventTypes.UnitSpotted,
+		type = eventTypes.UnitDetected,
 		parameters = {
-			spottingAllyTeamID = 777,
+			sensorAllyTeam = 777,
 		},
 		actions = { 'actionMissingType' },
 	},
@@ -156,6 +212,40 @@ local triggers = {
 			sources = { 'invalidSource1', false, 123 },
 		},
 		atLeast = 10,
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithFractionOutOfRange = {
+		type = eventTypes.ConstructionProgress,
+		parameters = {
+			teamID = 0,
+			unitDefName = 'armcom',
+			progress = 5.0, -- error: a fraction must be between 0 and 1
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithInvalidFractionType = {
+		type = eventTypes.ConstructionProgress,
+		parameters = {
+			teamID = 0,
+			unitDefName = 'armcom',
+			progress = 'notANumber',
+		},
+		actions = { 'actionMissingType' },
+	},
+	triggerWithInvertedBounds = {
+		type = metricTypes.UnitsOwned,
+		parameters = { teamID = 0, unitName = 'someUnits' },
+		atLeast = 5,
+		atMost = 2,   -- error: atLeast must not exceed atMost
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithUnknownKey = {
+		type = eventTypes.TimeElapsed,
+		parameters = { seconds = 100000000 },
+		amount = 3,   -- error: unknown field
 		actions = { 'actionMissingType' },
 	},
 }
@@ -220,6 +310,14 @@ local actions = {
 		parameters = {
 			unitName = 'unknownUnitName',
 			newTeam = 777,
+		},
+	},
+
+	actionWithInvalidTeamNames = {
+		type = actionTypes.ChangeTeam,
+		parameters = {
+			oldTeam = 0,                  -- error: team names are strings
+			newTeam = 'invalidTeamName',  -- error: no team has this name
 		},
 	},
 
@@ -342,24 +440,17 @@ local actions = {
 	actionWithJustOneInvalidPosition = {
 		type = actionTypes.DrawLines,
 		parameters = {
+			lineName = 'invalidLine',
 			positions = {
 				{ x = 1800, invalidField = 2100 }
 			},
 		},
 	},
 
-	actionWithUnusedMarkerName = {
-		type = actionTypes.AddMarker,
-		parameters = {
-			position = { x = 1900, z = 2200 },
-			name = 'unusedMarkerName',
-		},
-	},
-
 	actionWithInvalidMarkerName = {
-		type = actionTypes.EraseMarker,
+		type = actionTypes.RemoveMapMarker,
 		parameters = {
-			name = 'unknownMarkerName',
+			markerName = 'unknownMarkerName',
 		},
 	},
 
@@ -469,6 +560,38 @@ local actions = {
 		type = actionTypes.DestroyUnits,
 		parameters = {
 			unitName = 'loadoutCom',
+		},
+	},
+
+	actionWithInvalidDirectionAngle = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'validName',
+			direction = { angle = 'north' }, -- error: an angle must be a number
+		},
+	},
+
+	actionWithAmbiguousDirection = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'validName',
+			direction = { angle = 90, x = 1, z = 1 }, -- error: an angle and a vector are mutually exclusive
+		},
+	},
+
+	actionWithEmptyDirection = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'validName',
+			direction = {}, -- error: neither an angle nor a vector
+		},
+	},
+
+	actionWithInvalidDirectionVector = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'validName',
+			direction = { x = 'notANumber', z = 1 },
 		},
 	},
 }

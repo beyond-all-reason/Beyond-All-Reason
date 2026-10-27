@@ -1,13 +1,13 @@
-local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 	addMarkers = {
 		type = eventTypes.TimeElapsed,
 		parameters = {
-			seconds = 2,
+			seconds = 3,
 		},
-		actions = { 'addMarkerWithLabel', 'addMarkerWithoutLabel' },
+		actions = { 'addMarkerToRemove', 'addMarkerToKeep', 'messageAddMarkers' },
 	},
 
 	drawLines = {
@@ -15,46 +15,64 @@ local triggers = {
 		parameters = {
 			seconds = 6,
 		},
-		actions = { 'drawLines', 'messageDrawLines' },
+		actions = { 'drawLines', 'drawTriangle', 'messageDrawLines' },
 	},
 
-	eraseMarker = {
-		type = eventTypes.TimeElapsed,
-		parameters = {
-			seconds = 9,
-		},
-		actions = { 'eraseMarker', 'messageEraseMarker' },
-	},
-
-	clearAll = {
+	removeMarker = {
 		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 12,
 		},
-		actions = { 'clearAll', 'messageClearAll' },
+		actions = { 'removeMarker', 'messageRemoveMarker' },
+	},
+
+	removeLine = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 15,
+		},
+		actions = { 'removeBox', 'messageRemoveLine' },
+	},
+
+	removeAll = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 18,
+		},
+		actions = { 'removeAll', 'removeAllLines', 'messageRemoveAll' },
 	},
 }
 
 local actions = {
-	addMarkerWithLabel = {
-		type = actionTypes.AddMarker,
+	addMarkerToRemove = {
+		type = actionTypes.AddMapMarker,
 		parameters = {
+			markerName = 'markerToRemove',
 			position = { x = 1900, z = 2200 },
+			markerType = 'mapmark',
 			label = 'This marker will be erased soon.',
-			name = 'markerWithLabel',
 		},
 	},
 
-	addMarkerWithoutLabel = {
-		type = actionTypes.AddMarker,
+	addMarkerToKeep = {
+		type = actionTypes.AddMapMarker,
 		parameters = {
+			markerName = 'markerToKeep',
 			position = { x = 1500, z = 2200 },
+		},
+	},
+
+	messageAddMarkers = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = 'Two markers: a labelled one to remove by name, a bare one to leave until the end.',
 		},
 	},
 
 	drawLines = {
 		type = actionTypes.DrawLines,
 		parameters = {
+			lineName = 'box',
 			positions = {
 				{ x = 1600, z = 2100 },
 				{ x = 1600, z = 2300 },
@@ -65,35 +83,66 @@ local actions = {
 		},
 	},
 
+	drawTriangle = {
+		type = actionTypes.DrawLines,
+		parameters = {
+			lineName = 'triangle',
+			positions = {
+				{ x = 2300, z = 2100 },
+				{ x = 2500, z = 2100 },
+				{ x = 2400, z = 2300 },
+				{ x = 2300, z = 2100 },
+			},
+		},
+	},
+
 	messageDrawLines = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's draw a box.",
+			messageKey = "Let's draw a box and a triangle.",
 		},
 	},
 
-	eraseMarker = {
-		type = actionTypes.EraseMarker,
+	removeMarker = {
+		type = actionTypes.RemoveMapMarker,
 		parameters = {
-			name = 'markerWithLabel',
+			markerName = 'markerToRemove',
 		},
 	},
 
-	messageEraseMarker = {
+	messageRemoveMarker = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's erase a marker.",
+			messageKey = "Let's remove one marker by name.",
 		},
 	},
 
-	clearAll = {
-		type = actionTypes.ClearAllMarkers,
-	},
-
-	messageClearAll = {
+	messageRemoveLine = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's clear all markers.",
+			messageKey = "Let's remove the box by name, leaving the triangle.",
+		},
+	},
+
+	removeBox = {
+		type = actionTypes.RemoveLine,
+		parameters = {
+			lineName = 'box',
+		},
+	},
+
+	removeAll = {
+		type = actionTypes.RemoveAllMapMarkers,
+	},
+
+	removeAllLines = {
+		type = actionTypes.RemoveAllLines,
+	},
+
+	messageRemoveAll = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Let's remove every marker and line, including the triangle.",
 		},
 	},
 }

@@ -1,6 +1,8 @@
 -- got tired of it, needs types:
 ---@diagnostic disable: undefined-field, redundant-parameter
 
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
 local MODULE_PATH = "luarules/callins/synthetic_callins.lua"
 
 local BASES = { "UnitBuildStep", "FeatureBuildStep" }
@@ -58,16 +60,31 @@ for _, base in ipairs(BASES) do
 			function gh:UpdateCallIn(name) end
 			function gh:GameFramePost(frameNum) end
 
-			local env = setmetatable({
+			-- The synced setup includes unit_idle_states, which reads CMD at its own
+			-- load, so the include has to land in here. It is specced on its own in
+			-- unit_idle_states_spec; these views only need it to load without error.
+			local env = SpecEnv.new({
 				gadgetHandler = gh,
-				Script = { GetSynced = function() return true end },
+				Script = {
+					GetSynced = function()
+						return true
+					end,
+				},
+				Spring = {
+					IsDevLuaEnabled = function()
+						return false
+					end,
+				},
+				CMD = { MOVE = 10, REPAIR = 40, OPT_INTERNAL = 8 },
 				tracy = { ZoneBeginN = function() end, ZoneEnd = function() end },
-				table = setmetatable({ new = function() return {} end }, { __index = table }),
-			}, { __index = _G })
+				table = {
+					new = function()
+						return {}
+					end,
+				},
+			})
 
-			local chunk = assert(loadfile(MODULE_PATH))
-			setfenv(chunk, env)
-			synthetic = chunk()
+			synthetic = SpecEnv.include(env, MODULE_PATH)
 			synthetic.install(gh)
 
 			hook = gh.GG["Accumulate" .. base]
@@ -242,7 +259,11 @@ for _, base in ipairs(BASES) do
 			end)
 
 			it("leaves no marks behind a throwing subscriber", function()
-				local thrower = { [base .. "Post"] = function() error("boom") end }
+				local thrower = {
+					[base .. "Post"] = function()
+						error("boom")
+					end,
+				}
 				subscribe(thrower, "Post")
 				mark(101, 0.1)
 				postSeen, totalSeen = {}, {}

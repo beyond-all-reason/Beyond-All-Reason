@@ -7,7 +7,7 @@
 ]]
 
 local function processRawStages(rawStages)
-	return rawStages or {}
+	return rawStages
 end
 
 --- Inverts the stage -> objectives mapping, so a condition can be restricted to

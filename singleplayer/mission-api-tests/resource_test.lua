@@ -149,7 +149,7 @@ local triggers = {
 	waveMetalAndEnergyPerSecond2 = {
 		type = eventTypes.TimeElapsed,
 		parameters = {
-			seconds = 54,
+			seconds = 53,
 		},
 		actions = { 'addMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecond'},
 	},
@@ -511,98 +511,98 @@ local actions = {
 	messageWaveMex = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Spawning Arm Metal Extractor (armmex).",
+			messageKey = "[Resource Test] Spawning Arm Metal Extractor (armmex).",
 		},
 	},
 
 	messageWaveFusion = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Spawning Arm Fusion Reactor (armfus).",
+			messageKey = "[Resource Test] Spawning Arm Fusion Reactor (armfus).",
 		},
 	},
 
 	messageWaveMetalMaker = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Spawning Arm Advanced Metal Maker (armmmkr).",
+			messageKey = "[Resource Test] Spawning Arm Advanced Metal Maker (armmmkr).",
 		},
 	},
 
 	messageWaveNuke = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Spawning Core Silo (corsilo).",
+			messageKey = "[Resource Test] Spawning Core Silo (corsilo).",
 		},
 	},
 
 	messageWaveReclaim = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Spawning Arm LLT wreck and reclaimer.",
+			messageKey = "[Resource Test] Spawning Arm LLT wreck and reclaimer.",
 		},
 	},
 
 	messageWaveUnitReclaim = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Spawning Arm LLT unit and reclaimer.",
+			messageKey = "[Resource Test] Spawning Arm LLT unit and reclaimer.",
 		},
 	},
 
 	messageWaveMetalAndEnergy = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Adding 500 metal and 1000 energy.",
+			messageKey = "[Resource Test] Adding 500 metal and 1000 energy.",
 		},
 	},
 
 	messageWaveMetalOnly = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Adding 250 metal.",
+			messageKey = "[Resource Test] Adding 250 metal.",
 		},
 	},
 
 	messageWaveEnergyOnly = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Adding 500 energy.",
+			messageKey = "[Resource Test] Adding 500 energy.",
 		},
 	},
 
 	messageWaveMetalAndEnergyRemove = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Removing 500 metal and 1000 energy.",
+			messageKey = "[Resource Test] Removing 500 metal and 1000 energy.",
 		},
 	},
 
 	messageWaveMetalOnlyRemove = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Removing 250 metal.",
+			messageKey = "[Resource Test] Removing 250 metal.",
 		},
 	},
 
 	messageWaveEnergyOnlyRemove = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Removing 500 energy.",
+			messageKey = "[Resource Test] Removing 500 energy.",
 		},
 	},
 
 	messageWaveMetalAndEnergyPerSecond = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Adding 50 metal and 2000 energy per second.",
+			messageKey = "[Resource Test] Adding 50 metal and 2000 energy per second.",
 		},
 	},
 
 	messageWaveMetalAndEnergyPerSecondRemove = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Removing 75 metal and 2500 energy per second.",
+			messageKey = "[Resource Test] Removing 75 metal and 2500 energy per second.",
 		},
 	},
 
@@ -611,28 +611,28 @@ local actions = {
 	messageMetalStored = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] has >= 1500 metal stored.",
+			messageKey = "[Resource Test] has >= 1500 metal stored.",
 		},
 	},
 
 	messageEnergyStored = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] has >= 3000 energy stored.",
+			messageKey = "[Resource Test] has >= 3000 energy stored.",
 		},
 	},
 
 	messageMetalForBoth = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] has >= 1800 metal (half of the combined check).",
+			messageKey = "[Resource Test] has >= 1800 metal (half of the combined check).",
 		},
 	},
 
 	messageBothStored = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] has >= 1800 metal AND >= 3500 energy stored.",
+			messageKey = "[Resource Test] has >= 1800 metal AND >= 3500 energy stored.",
 		},
 	},
 
@@ -641,14 +641,14 @@ local actions = {
 	messageMetalIncome = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] metal income >= 5 m/s.",
+			messageKey = "[Resource Test] metal income >= 5 m/s.",
 		},
 	},
 
 	messageEnergyIncome = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] energy income >= 500 e/s.",
+			messageKey = "[Resource Test] energy income >= 500 e/s.",
 		},
 	},
 
@@ -657,42 +657,42 @@ local actions = {
 	messageExtractorMetalIncome = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] extractor metal income >= 1 m/s.",
+			messageKey = "[Resource Test] extractor metal income >= 1 m/s.",
 		},
 	},
 
 	messageProductionEnergyIncome = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] production energy income >= 200 e/s.",
+			messageKey = "[Resource Test] production energy income >= 200 e/s.",
 		},
 	},
 
 	messageProductionMetalIncome = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] production metal income >= 0.5 m/s.",
+			messageKey = "[Resource Test] production metal income >= 0.5 m/s.",
 		},
 	},
 
 	messageMultipleSourcesMetalIncome = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] extractor+production metal income >= 2 m/s.",
+			messageKey = "[Resource Test] extractor+production metal income >= 2 m/s.",
 		},
 	},
 
 	messageFeatureReclaimMetalIncome = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] feature reclaim metal income >= 0.1 m/s.",
+			messageKey = "[Resource Test] feature reclaim metal income >= 0.1 m/s.",
 		},
 	},
 
 	messageUnitReclaimMetalIncome = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] unit reclaim metal income >= 70 m/s.",
+			messageKey = "[Resource Test] unit reclaim metal income >= 70 m/s.",
 		},
 	},
 
@@ -701,14 +701,14 @@ local actions = {
 	messageMetalPull = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] metal pull >= 1 m/s.",
+			messageKey = "[Resource Test] metal pull >= 1 m/s.",
 		},
 	},
 
 	messageEnergyPull = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] energy pull >= 100 e/s.",
+			messageKey = "[Resource Test] energy pull >= 100 e/s.",
 		},
 	},
 }

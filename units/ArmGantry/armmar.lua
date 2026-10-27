@@ -36,6 +36,7 @@ return {
 			maxrange = "350",
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 3,
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",

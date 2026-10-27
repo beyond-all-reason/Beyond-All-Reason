@@ -43,6 +43,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local radarStencilShader = nil
 local radarCircleShader = nil
+---@type InstanceVBOTable?
 local circleInstanceVBO = nil
 
 local radarStencilTexture
@@ -82,8 +83,19 @@ local function goodbye(reason)
 	return false
 end
 
+local builtVsx, builtVsy = -1, -1 -- view size the stencil shaders (VSX/VSY defines) and texture were made for
+
+local function finalizeShader(shader)
+	if shader then
+		shader:Finalize()
+	end
+end
+
 local function CreateStencilShaderAndTexture()
 	vsx, vsy = spGetViewGeometry()
+	if vsx == builtVsx and vsy == builtVsy then
+		return -- e.g. the handler's first ViewResize after load, at the size Initialize built for
+	end
 	circleShaderSourceCache.shaderConfig.VSX = vsx
 	circleShaderSourceCache.shaderConfig.VSY = vsy
 	circleShaderSourceCache.forceupdate = true
@@ -91,6 +103,7 @@ local function CreateStencilShaderAndTexture()
 	stencilShaderSourceCache.shaderConfig.VSY = vsy
 	stencilShaderSourceCache.forceupdate = true
 
+	local oldStencilShader, oldCircleShader = radarStencilShader, radarCircleShader
 	radarStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache, 0)
 
 	if not radarStencilShader then
@@ -100,6 +113,8 @@ local function CreateStencilShaderAndTexture()
 	if not radarCircleShader then
 		return goodbye("Failed to compile radarrange shader GL4 ")
 	end
+	finalizeShader(oldStencilShader)
+	finalizeShader(oldCircleShader)
 
 	local GL_R8 = 0x8229
 	vsx, vsy = spGetViewGeometry()
@@ -116,6 +131,7 @@ local function CreateStencilShaderAndTexture()
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 	})
+	builtVsx, builtVsy = vsx, vsy
 end
 local function initgl4()
 	-- Due to the view size being part of the shader config, we need to initialize the shaders after the view size is known.
@@ -130,8 +146,11 @@ local function initgl4()
 	circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 128, "radarrangeVBO", 2)
 	circleInstanceVBO.numVertices = numVertices
 	circleInstanceVBO.vertexVBO = circleVBO
-	circleInstanceVBO.VAO =
-		InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
+	circleInstanceVBO.VAO = InstanceVBOTable.fillVAOSlots(
+		InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO),
+		false,
+		true
+	)
 
 	CreateStencilShaderAndTexture()
 end
@@ -254,6 +273,8 @@ function widget:Shutdown()
 	if radarStencilTexture then
 		gl.DeleteTexture(radarStencilTexture)
 	end
+	finalizeShader(radarStencilShader)
+	finalizeShader(radarCircleShader)
 	WG.radarrange = nil
 end
 

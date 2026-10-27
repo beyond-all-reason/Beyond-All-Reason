@@ -46,7 +46,6 @@ return {
 			"legmstor",
 			"legestor",
 			"legmex",
-			"legmext15",
 			"legeconv",
 			"leglab",
 			"legvp",
@@ -89,7 +88,7 @@ return {
 			unitgroup = "builder",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorVehicles",
+			subfolder = "Legion/Constructors",
 		},
 		featuredefs = {
 			dead = {

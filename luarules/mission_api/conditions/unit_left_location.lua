@@ -14,15 +14,33 @@ return {
 	},
 	callins = {
 		GameFrame = function(trigger, triggerID, context)
-			local previousUnitsInAreas = context.PreviousUnitsInAreas
 			local unitsInArea = context.GetUnitsInArea(trigger)
+			local previousUnitsInAreasAll = context.PreviousUnitsInAreas
 
-			local unitsLeftArea = table.filterArray(previousUnitsInAreas[triggerID] or {}, function(unitID)
-				return not table.contains(unitsInArea, unitID)
-					and (not trigger.parameters.unitName or context.DoesUnitHaveName(unitID, trigger.parameters.unitName))
-					and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName)
+			local previousUnitsInAreas = previousUnitsInAreasAll[triggerID]
+			previousUnitsInAreasAll[triggerID] = unitsInArea
+
+			if previousUnitsInAreas == nil or next(previousUnitsInAreas) == nil then
+				return
+			end
+
+			local unitName = trigger.parameters.unitName
+			local unitDefName = trigger.parameters.unitDefName
+			local unitsLeftArea = table.filterArray(previousUnitsInAreas, function(unitID)
+				if table.contains(unitsInArea, unitID) then
+					return false
+				end
+				if unitName and not context.DoesUnitHaveName(unitID, unitName) then
+					return false
+				end
+				if unitDefName then
+					local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
+					if unitDef == nil or unitDef.name ~= unitDefName then
+						return false
+					end
+				end
+				return Spring.GetUnitIsDead(unitID) == false
 			end)
-			previousUnitsInAreas[triggerID] = unitsInArea
 
 			for _, unitID in ipairs(unitsLeftArea) do
 				context.ActivateTrigger(trigger)

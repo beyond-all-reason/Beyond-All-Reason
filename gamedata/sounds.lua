@@ -100,6 +100,7 @@ local soundData = {
 
 	-- WEAPON SOUNDS
 	weapons = {
+		preload = true,
 		gain = {
 			default = 1.2 * 0.3,
 			custom = {
@@ -143,11 +144,17 @@ local soundData = {
 			},
 		},
 		dopplerscale = 1.0,
-		rolloff = 1.4,
+		rolloff = {
+			default = 1.4,
+			custom = {
+				["^rockhvy1$"] = 0.8, -- vertical missile launchers
+			},
+		},
 	},
 
 	-- WEAPON SOUNDS MULTI (more concurrent)
 	["weapons-mult"] = {
+		preload = true,
 		gain = 1.2 * 0.3,
 		pitchmod = {
 			default = 0.17,
@@ -189,6 +196,7 @@ local soundData = {
 
 	-- BOMB SOUNDS / More maxconcurrent
 	bombs = {
+		preload = true,
 		gain = 1.2 * 0.3,
 		pitchmod = 0.27,
 		gainmod = 0.2 * 0.3,

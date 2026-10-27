@@ -36,7 +36,7 @@ local function initializeStartPositionTable()
 			allyTeamHasStartbox = false
 		end
 		AllyTeamStartboxes[testAllyTeamID + 1] =
-			{ -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
+			{ -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 every time
 				allyTeamHasStartbox = allyTeamHasStartbox,
 				xMin = xMin,
 				zMin = zMin,
@@ -294,7 +294,7 @@ local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStart
 		return not returnTrueWhenNoStartbox
 	end
 
-	if posx >= startbox.xMin and posz >= startbox.zMin and posx <= startbox.xMax and posz <= startbox.zMax then -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
+	if posx >= startbox.xMin and posz >= startbox.zMin and posx <= startbox.xMax and posz <= startbox.zMax then -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 every time
 		return not returnTrueWhenNoStartbox
 	else
 		return returnTrueWhenNoStartbox
@@ -413,8 +413,7 @@ local function SurfaceCheck(posx, posy, posz, posradius, sea) -- if true then po
 	return true -- nothing failed, so it's good.
 end
 
-local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true then position is within Scavengers spawn area.
-	local posradius = posradius or 1000
+local function ScavengerSpawnAreaCheck(posx, posy, posz, _posradius) -- if true then position is within Scavengers spawn area.
 	if scavengerAllyTeamID then
 		local scavTechPercentage = Spring.GetGameRulesParam("scavStatsTechPercentage")
 		if scavTechPercentage then
@@ -466,8 +465,7 @@ local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true t
 	end
 end
 
-local function LavaCheck(posx, posy, posz, posradius) -- Returns false if area is in lava
-	local posradius = posradius or 1000
+local function LavaCheck(posx, posy, posz, _posradius) -- Returns false if area is in lava
 	local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
 	if lavaLevel and posy <= lavaLevel then
 		return false

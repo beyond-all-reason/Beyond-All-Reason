@@ -94,9 +94,8 @@ return {
 			[35] = "legbal",
 			[36] = "leggat",
 			[37] = "armnanotc",
-			[38] = "legmext15",
-			[39] = "armadvsol",
-			[40] = "armgeo",
+			[38] = "armadvsol",
+			[39] = "armgeo",
 		},
 		customparams = {
 			unitgroup = "builder",
@@ -104,7 +103,9 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "",
+			reaimtime = 5,
+			subfolder = "Legion/Other/Commanders",
+			tombstone = "legstone",
 			paratrooper = true,
 		},
 		featuredefs = {
@@ -120,7 +121,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 2000,
-				object = "Units/armcom_dead.s3o",
+				object = "Units/legcom_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {

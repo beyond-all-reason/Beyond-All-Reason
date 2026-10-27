@@ -1,6 +1,6 @@
-require("spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-local RegisterMissionApiModules = require("mission_api.spec_helper")
+local env = MissionSpecEnv.new()
 
 --- Loads the real mission test files and checks each condition uses the
 --- threshold belonging to its type family. This catches a mission picking a type
@@ -31,7 +31,7 @@ end
 -- Condition descriptors read GG['MissionAPI'].Modules at load time. Registering
 -- through the shared helper keeps this in step as descriptors take on new
 -- module dependencies (detection levels, seismic contacts, and so on).
-RegisterMissionApiModules()
+MissionSpecEnv.registerModules(env)
 
 --- The real condition descriptors, keyed by type name, so mission parameters can
 --- be checked against the schemas they will actually be validated against
@@ -39,7 +39,7 @@ RegisterMissionApiModules()
 --- ConditionDefinitions.
 local declaredParameters = {}
 for _, filePath in ipairs(VFS.DirList("luarules/mission_api/conditions/", "*.lua")) do
-	local descriptor = VFS.Include(filePath)
+	local descriptor = MissionSpecEnv.include(env, filePath)
 	local declared = {}
 	for _, parameter in ipairs(descriptor.parameters or {}) do
 		declared[parameter.name] = true
@@ -47,20 +47,24 @@ for _, filePath in ipairs(VFS.DirList("luarules/mission_api/conditions/", "*.lua
 	declaredParameters[descriptor.type] = declared
 end
 
-GG["MissionAPI"].ConditionDefinitions = {
+local objectiveFields = MissionSpecEnv.include(env, "luarules/mission_api/objectives_schema.lua").Settings
+
+env.GG["MissionAPI"].ConditionDefinitions = {
 	Types = identityTable(),
 	EventTypes = identityTable(),
 	MetricTypes = identityTable(),
 }
-GG["MissionAPI"].ActionDefinitions = { Types = identityTable() }
-_G.CMD = identityTable()
-_G.GameCMD = identityTable()
+env.GG["MissionAPI"].ActionDefinitions = { Types = identityTable() }
+-- Missions may read their Options while loading; none are set here.
+env.GG["MissionAPI"].Options = {}
+env.CMD = identityTable()
+env.GameCMD = identityTable()
 
 local missions = {}
 for _, filePath in ipairs(VFS.DirList("singleplayer/mission-api-tests/", "*.lua")) do
 	local missionName = filePath:match("([^/]+)%.lua$")
 	if not INTENTIONALLY_INVALID[missionName] then
-		missions[missionName] = VFS.Include(filePath)
+		missions[missionName] = MissionSpecEnv.include(env, filePath)
 	end
 end
 
@@ -236,16 +240,22 @@ describe("mission test files", function()
 		assert.are.same({}, problems)
 	end)
 
-	it("puts objective completion effects under onComplete", function()
+	it("keeps objectives to their schema fields and an inline condition", function()
+		-- nextStage and the on* hooks sit directly on the objective, next to its own
+		-- condition, so a nested `trigger` table or a misspelt hook is a leftover.
+		local allowed = { type = true, parameters = true, count = true, atLeast = true, atMost = true }
+		for field in pairs(objectiveFields) do
+			allowed[field] = true
+		end
+
 		local problems = {}
 		for missionName, mission in pairs(missions) do
 			for id, objective in pairs(mission.Objectives or {}) do
 				if type(objective) == "table" then
-					if objective.nextStage ~= nil then
-						problems[#problems + 1] = missionName .. " " .. id .. ": bare nextStage"
-					end
-					if objective.trigger ~= nil then
-						problems[#problems + 1] = missionName .. " " .. id .. ": nested trigger"
+					for field in pairs(objective) do
+						if not allowed[field] then
+							problems[#problems + 1] = missionName .. " " .. id .. ": " .. tostring(field)
+						end
 					end
 				end
 			end

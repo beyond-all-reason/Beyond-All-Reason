@@ -1892,6 +1892,10 @@ local icontypes = {
 		bitmap = "icons/corbuzz.png",
 		size = 1.88999987,
 	},
+	corobligator = {
+		bitmap = "icons/corobligator.png",
+		size = 1.89999997,
+	},
 	cormist = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995,
@@ -2994,11 +2998,11 @@ local icontypes = {
 	},
 	legshot = {
 		bitmap = "icons/bot_t2_impulse2x.png",
-		size = 1.60000002,
+		size = 1.35,
 	},
 	babylegshot = {
 		bitmap = "icons/kbot_t2_shotgun.png",
-		size = 1.60000002,
+		size = 1.0,
 	},
 	legsnapper = {
 		bitmap = "icons/corroach_0.9.png",

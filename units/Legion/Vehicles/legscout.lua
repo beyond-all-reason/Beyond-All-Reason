@@ -8,7 +8,7 @@ return {
 		buildtime = 900,
 		canmove = true,
 		category = "GROUNDSCOUT",
-		collisionvolumeoffsets = "0 -4 0",
+		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "13 17 17",
 		collisionvolumetype = "CylX",
 		corpse = "DEAD",
@@ -40,11 +40,13 @@ return {
 			unitgroup = "weapon",
 			basename = "body",
 			firingceg = "barrelshot-small",
+			juno_deny = true,
+			juno_kill = true,
 			kickback = "0",
 			lumamult = "1.3",
 			model_author = "Flaka",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion",
+			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {
 			dead = {

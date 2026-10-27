@@ -1,13 +1,11 @@
-require("spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-local RegisterMissionApiModules = require("mission_api.spec_helper")
+local env = MissionSpecEnv.new()
 
 -- Condition descriptors read GG['MissionAPI'].Modules at load time. Registering
 -- through the shared helper keeps this in step as descriptors take on new
 -- module dependencies (detection levels, seismic contacts, and so on).
-RegisterMissionApiModules()
-
-local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
+local ParameterTypes = MissionSpecEnv.registerModules(env).ParameterTypes.Types
 
 local CONDITIONS_DIR = "luarules/mission_api/conditions/"
 
@@ -15,7 +13,7 @@ local CONDITIONS_DIR = "luarules/mission_api/conditions/"
 -- when a descriptor file is wrong even if the loader would paper over it.
 local descriptors = {}
 for _, filePath in ipairs(VFS.DirList(CONDITIONS_DIR, "*.lua")) do
-	local descriptor = VFS.Include(filePath)
+	local descriptor = MissionSpecEnv.include(env, filePath)
 	descriptors[descriptor.type] = { descriptor = descriptor, fileName = filePath:match("([^/]+)$") }
 end
 

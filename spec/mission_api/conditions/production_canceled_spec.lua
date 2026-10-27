@@ -1,48 +1,37 @@
-require("spec_helper")
+local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here),
 -- Game.envDamageTypes from the harness, and Spring / UnitDefs inside its handlers.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+Builders.MissionApi.new():Install()
 
-_G.UnitDefs = { [1] = { name = "armsolar" }, [2] = { name = "armwin" } }
+local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+	[1] = { name = "armsolar" },
+	[2] = { name = "armwin" },
+})
+_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
-local productionCanceled = VFS.Include("luarules/mission_api/conditions/production_canceled.lua")
+local productionCanceled = MissionSpecEnv.include(env, "luarules/mission_api/conditions/production_canceled.lua")
 local onUnitDestroyed = productionCanceled.callins.UnitDestroyed
 local onUnitTaken = productionCanceled.callins.UnitTaken
 
 describe("mission_api.conditions.production_canceled", function()
 	before_each(function()
 		-- Default: the unit was still under construction (a nanoframe).
-		Spring.GetUnitIsBeingBuilt = function()
+		env.Spring.GetUnitIsBeingBuilt = function()
 			return true
 		end
 	end)
 
 	local function trigger(parameters)
-		return { parameters = parameters or {}, settings = {} }
+		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-			DoesUnitHaveName = function()
-				return true
-			end,
-			IsBuildFrameOwner = function()
-				return true
-			end,
-			InFactory = function()
-				return true
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():WithInFactory(true):Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"
@@ -110,7 +99,7 @@ describe("mission_api.conditions.production_canceled", function()
 	end)
 
 	it("does not fire for a finished unit that is taken", function()
-		Spring.GetUnitIsBeingBuilt = function()
+		env.Spring.GetUnitIsBeingBuilt = function()
 			return false
 		end
 		local context, fired = newContext()

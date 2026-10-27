@@ -15,14 +15,14 @@ end
 if gadgetHandler:IsSyncedCode() then
 	local isNano = {}
 	for unitDefID, defs in pairs(UnitDefs) do
-		if string.find(defs.name, "nanotc") then
+		if defs.customParams.isnanoturret then
 			isNano[unitDefID] = true
 		end
 	end
 
 	function gadget:UnitCreated(uid, udid)
 		if isNano[udid] then
-			Spring.SetUnitPosErrorParams(udid, 0, 0, 0, 0, 0, 0, math.huge)
+			Spring.SetUnitPosErrorParams(uid, 0, 0, 0, 0, 0, 0, math.huge)
 		end
 	end
 end

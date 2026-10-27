@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
 
 describe("MissionApiBuilder", function()
@@ -8,7 +6,7 @@ describe("MissionApiBuilder", function()
 		it("creates the canonical GG['MissionAPI'] shape", function()
 			local api = Builders.MissionApi.new():Build()
 
-			assert.are.equal(0, api.Difficulty)
+			assert.are.equal(1, api.Difficulty)
 			assert.are.same({}, api.trackedUnitIDs)
 			assert.are.same({}, api.trackedUnitNames)
 			assert.are.same({}, api.trackedFeatureIDs)
@@ -44,7 +42,7 @@ describe("MissionApiBuilder", function()
 			assert.is_function(api.Modules.Loadout.SpawnUnitLoadout)
 			assert.is_function(api.Modules.Sounds.PlaySound)
 			assert.is_function(api.Modules.Stages.ChangeStage)
-			assert.is_function(api.Modules.Objectives.Update)
+			assert.is_function(api.Modules.Objectives.UpdateObjective)
 		end)
 
 		it("gives each built mock its own state", function()
@@ -215,8 +213,8 @@ describe("MissionApiBuilder", function()
 
 			api.Modules.Stages.ChangeStage("stage2")
 			api.Modules.Objectives.TryAdvanceStage(objective)
-			api.Modules.Objectives.Complete("obj1")
-			api.Modules.Objectives.Update("obj1", true, "ui.done")
+			api.Modules.Objectives.CompleteObjective("obj1")
+			api.Modules.Objectives.UpdateObjective("obj1")
 			api.Modules.Objectives.ReportProgress("obj1", 2)
 			api.Modules.Objectives.EchoObjectiveUpdate("obj1", objective)
 
@@ -224,11 +222,7 @@ describe("MissionApiBuilder", function()
 			assert.are.same(objective, api.calls.tryAdvanceStage[1].objective)
 
 			assert.are.equal("obj1", api.calls.completeObjective[1].objectiveID)
-
-			local update = api.calls.updateObjective[1]
-			assert.are.equal("obj1", update.objectiveID)
-			assert.is_true(update.completed)
-			assert.are.equal("ui.done", update.textKey)
+			assert.are.equal("obj1", api.calls.updateObjective[1].objectiveID)
 
 			local progress = api.calls.reportProgress[1]
 			assert.are.equal("obj1", progress.objectiveID)
@@ -249,8 +243,8 @@ describe("MissionApiBuilder", function()
 			api.Modules.Stages.ChangeStage("s")
 			api.Modules.Stages.Announce("s")
 			api.Modules.Objectives.TryAdvanceStage({})
-			api.Modules.Objectives.Complete("o")
-			api.Modules.Objectives.Update("o")
+			api.Modules.Objectives.CompleteObjective("o")
+			api.Modules.Objectives.UpdateObjective("o")
 			api.Modules.Objectives.ReportProgress("o", 1)
 			api.Modules.Objectives.EchoObjectiveUpdate("o", {})
 
@@ -336,6 +330,39 @@ describe("MissionApiBuilder", function()
 			Builders.MissionApi.new():Install()
 
 			assert.are.equal(0, #api.calls.changeStage)
+		end)
+
+		it("refills the tables a module captured instead of replacing them", function()
+			-- The mission_api modules hold GG's tables as upvalues at load, so an install has to
+			-- put the new mission inside the tables they already have.
+			local first = Builders.MissionApi.new():WithTrackedUnit("bots", 1):Install()
+			local trackedUnitIDs = first.trackedUnitIDs
+			local tracking = first.Modules.Tracking
+
+			local second = Builders.MissionApi.new():WithTrackedUnit("scouts", 2):Install()
+
+			assert.are.equal(trackedUnitIDs, second.trackedUnitIDs)
+			assert.are.equal(tracking, second.Modules.Tracking)
+			assert.is_nil(trackedUnitIDs["bots"])
+			assert.is_true(trackedUnitIDs["scouts"][2])
+		end)
+
+		it("leaves the module stubs writing where a captured table reads", function()
+			local trackedUnitIDs = Builders.MissionApi.new():Install().trackedUnitIDs
+			local api = Builders.MissionApi.new():Install()
+
+			api.Modules.Tracking.TrackUnit("bots", 3)
+
+			assert.is_true(trackedUnitIDs["bots"][3])
+		end)
+
+		it("includes the real modules once the mock stands, and keeps them", function()
+			local first = Builders.MissionApi.new():Install()
+			local unitQuery = first.Modules.UnitQuery
+			local second = Builders.MissionApi.new():Install()
+
+			assert.is_function(unitQuery.MatchingUnits)
+			assert.are.equal(unitQuery, second.Modules.UnitQuery)
 		end)
 
 		it("bootstraps GG['MissionAPI'] when the module is included", function()

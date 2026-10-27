@@ -1,16 +1,16 @@
-require("spec_helper")
-
 ---
---- Covers the trigger gadget's metric evaluation, which nothing else reaches:
---- `evaluateMetric` is a file local, so the only handle on it is the dependency
---- table the gadget injects into the statistics module. Stubbing that module out
---- captures the real function and lets it be called directly.
+--- Covers the trigger gadget's metric evaluation. `evaluateMetric` is a file
+--- local, handed out through the dependency table the gadget injects into the
+--- statistics module. Stubbing that module out captures the real function and
+--- lets it be called directly.
 ---
 --- The behaviour under test is that a metric reports progress only when it is
 --- actually eligible to fire. An objective outside the current stage still has
 --- its running value tracked, so it fires the moment the stage arrives, but it
 --- must not report progress to the player before then.
 ---
+
+local MissionSpecEnv = require("mission_api.spec_helper")
 
 local STATISTICS_PATH = "luarules/mission_api/statistics.lua"
 
@@ -29,7 +29,6 @@ local function installMissionApi(currentStageID)
 			Kinds = {},
 		},
 		Modules = {
-			ActionsDispatcher = { Invoke = function() end },
 			SeismicContacts = { UpdateInterval = 30 },
 			DetectionLevels = {},
 			Tracking = {
@@ -47,39 +46,33 @@ local function installMissionApi(currentStageID)
 end
 
 local function loadGadget()
-	local realInclude = VFS.Include
-
-	-- Hand back a statistics stub whose Init keeps the injected evaluateMetric.
-	VFS.Include = function(path, ...)
-		if path == STATISTICS_PATH then
-			return {
+	local env = MissionSpecEnv.new({
+		gadget = {},
+		gadgetHandler = {
+			IsSyncedCode = function()
+				return true
+			end,
+			RemoveGadget = function() end,
+			RemoveCallIn = function() end,
+			UpdateCallIn = function() end,
+		},
+		includes = {
+			-- The real dispatcher needs loaded action definitions, and no action fires here.
+			["luarules/mission_api/actions_dispatcher.lua"] = { Invoke = function() end },
+			-- Hand back a statistics stub whose Init keeps the injected evaluateMetric.
+			[STATISTICS_PATH] = {
 				Init = function(dependencies)
 					evaluateMetric = dependencies.evaluateMetric
 				end,
 				Increment = function() end,
 				Decrement = function() end,
-			}
-		end
-		return realInclude(path, ...)
-	end
+			},
+		},
+	})
 
-	_G.gadget = {}
-	_G.gadgetHandler = {
-		IsSyncedCode = function()
-			return true
-		end,
-		RemoveGadget = function() end,
-		RemoveCallIn = function() end,
-		UpdateCallIn = function() end,
-	}
-
-	-- The gadget defines itself onto the global `gadget` as a side effect, so it
-	-- has to run rather than come from the include cache.
-	local chunk = assert(loadfile("luarules/gadgets/api_missions_triggers.lua"))
-	chunk()
-	_G.gadget:Initialize()
-
-	VFS.Include = realInclude
+	-- The gadget defines itself onto the env's `gadget` as a side effect.
+	MissionSpecEnv.include(env, "luarules/gadgets/api_missions_triggers.lua")
+	env.gadget:Initialize()
 end
 
 --- A metric condition record shaped the way objectives_loader builds them.

@@ -30,12 +30,12 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.495,
 		turnrate = 120,
-		upright = true,
 		customparams = {
 			unitgroup = "weapon",
 			model_author = "Protar, Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorBots/T2",
+			reaimtime = 1,
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 		},
 		featuredefs = {

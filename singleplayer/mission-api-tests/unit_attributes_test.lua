@@ -1,0 +1,125 @@
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+
+local triggers = {
+	spawnUnits = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 2,
+		},
+		actions = { 'spawnTank', 'spawnBots', 'messageSpawnUnits' },
+	},
+
+	setSpeed = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 6,
+		},
+		actions = { 'setTankSpeed', 'moveTank', 'messageSetSpeed' },
+	},
+
+	setStealth = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 12,
+		},
+		actions = { 'setTankStealth', 'messageSetStealth' },
+	},
+
+	clearStealth = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 16,
+		},
+		actions = { 'clearTankStealth', 'messageClearStealth' },
+	},
+}
+
+local actions = {
+	spawnTank = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armstump', x = 2300, z = 1900, team = 0, unitName = 'tank' },
+			},
+		},
+	},
+
+	spawnBots = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armpw', x = 1800, z = 1600, team = 0, quantity = 3 },
+			},
+		},
+	},
+
+	messageSpawnUnits = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = 'A tank and three pawns. Select the tank to note its speed.',
+		},
+	},
+
+	setTankSpeed = {
+		type = actionTypes.SetUnitAttribute,
+		parameters = {
+			unitName = 'tank',
+			attribute = 'speed',
+			value = 240,
+		},
+	},
+
+	moveTank = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'tank',
+			orders = {
+				{ CMD.MOVE, { 3000, 0, 2600 } },
+			},
+		},
+	},
+
+	messageSetSpeed = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = 'The tank, by name, now has a speed of 240. The move order just given makes it take effect.',
+		},
+	},
+
+	setTankStealth = {
+		type = actionTypes.SetUnitAttribute,
+		parameters = {
+			unitName = 'tank',
+			attribute = 'stealth',
+			value = true,
+		},
+	},
+
+	messageSetStealth = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = 'The tank, by name, is now stealthy: enemy radar no longer shows it.',
+		},
+	},
+
+	clearTankStealth = {
+		type = actionTypes.ClearUnitAttribute,
+		parameters = {
+			unitName = 'tank',
+			attribute = 'stealth',
+		},
+	},
+
+	messageClearStealth = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = 'The stealth set was cleared. Enemy radar shows the tank again.',
+		},
+	},
+}
+
+return {
+	Triggers = triggers,
+	Actions = actions,
+}

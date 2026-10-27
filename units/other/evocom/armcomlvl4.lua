@@ -120,6 +120,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			tombstone = "armstone",
 			evolution_health_transfer = "percentage",
 			evolution_target = "armcomlvl5",
 			evolution_condition = "timer",
@@ -260,6 +261,7 @@ return {
 					projectile_destruction_method = "descend",
 					stockpilelimit = 3,
 					weapons_group = 1,
+					soundstart_volume_multiplier = 0.7,
 				},
 				damage = {
 					default = 800,

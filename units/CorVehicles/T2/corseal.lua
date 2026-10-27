@@ -4,7 +4,7 @@ return {
 		buildpic = "CORSEAL.DDS",
 		buildtime = 16000,
 		canmove = true,
-		collisionvolumeoffsets = "0 -7 0",
+		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "31 31 31",
 		collisionvolumetype = "BOX",
 		corpse = "DEAD",

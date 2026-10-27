@@ -15,8 +15,14 @@ end
 
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
+local allyTeamOfTeam = {}
 local function GetAllyTeamID(teamID)
-	return select(6, Spring.GetTeamInfo(teamID, false))
+	local allyTeamID = allyTeamOfTeam[teamID]
+	if not allyTeamID then
+		allyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
+		allyTeamOfTeam[teamID] = allyTeamID
+	end
+	return allyTeamID
 end
 
 local function PlayersInAllyTeamID(allyTeamID)
@@ -60,8 +66,8 @@ if gadgetHandler:IsSyncedCode() then
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		-- not critter/raptor/object
 		if
-			not string.find(unitDef.name, "critter")
-			and not string.find(unitDef.name, "raptor")
+			not unitDef.customParams.iscritter
+			and not unitDef.customParams.israptor
 			and (not unitDef.modCategories or not unitDef.modCategories.object)
 		then
 			if unitDef.extractsMetal >= 0.004 then
@@ -153,21 +159,15 @@ else
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		-- not critter/raptor/object
 		if
-			not string.find(unitDef.name, "critter")
-			and not string.find(unitDef.name, "raptor")
+			not unitDef.customParams.iscritter
+			and not unitDef.customParams.israptor
 			and (not unitDef.modCategories or not unitDef.modCategories.object)
 		then
 			isBuilding[unitDefID] = unitDef.isBuilding or unitDef.isFactory
 			if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 				isCommander[unitDefID] = true
 			end
-			if
-				string.find(unitDef.name, "corint")
-				or string.find(unitDef.name, "armbrtha")
-				or string.find(unitDef.name, "corbuzz")
-				or string.find(unitDef.name, "armvulc")
-				or string.find(unitDef.name, "legstarfall")
-			then
+			if unitDef.customParams.islrpc then
 				isLrpc[unitDefID] = true
 			end
 			if unitDef.isBuilding and unitDef.radarDistance > 1900 then
@@ -228,6 +228,16 @@ else
 	end
 
 	local commanderLastDamaged = {}
+	local lastQueuedFrame = {}
+
+	-- the widget ignores repeats of an event within a frame
+	local function queueOncePerFrame(event)
+		local frame = Spring.GetGameFrame()
+		if lastQueuedFrame[event] ~= frame then
+			lastQueuedFrame[event] = frame
+			GG.notifications.queueNotification(event, "playerID", tostring(myPlayerID))
+		end
+	end
 
 	function gadget:UnitDamaged(
 		unitID,
@@ -251,7 +261,7 @@ else
 			and attackerTeam
 			and GetAllyTeamID(attackerTeam) ~= myAllyTeamID
 		then
-			GG.notifications.queueNotification("LrpcTargetUnits", "playerID", tostring(myPlayerID))
+			queueOncePerFrame("LrpcTargetUnits")
 		end
 		if isCommander[unitDefID] then
 			commanderLastDamaged[unitID] = Spring.GetGameFrame()
@@ -266,23 +276,21 @@ else
 				local health, maxhealth = Spring.GetUnitHealth(unitID)
 				local healthPercent = health / maxhealth
 				if healthPercent < 0.2 then
-					GG.notifications.queueNotification("ComHeavyDamage", "playerID", tostring(myPlayerID))
+					queueOncePerFrame("ComHeavyDamage")
 				else
-					GG.notifications.queueNotification("CommanderUnderAttack", "playerID", tostring(myPlayerID))
+					queueOncePerFrame("CommanderUnderAttack")
 				end
 			elseif isFactory[unitDefID] then
-				GG.notifications.queueNotification("FactoryUnderAttack", "playerID", tostring(myPlayerID))
+				queueOncePerFrame("FactoryUnderAttack")
 			elseif isBuilding[unitDefID] == true and not isMex[unitDefID] and isEconomy[unitDefID] then
-				GG.notifications.queueNotification("EconomyUnderAttack", "playerID", tostring(myPlayerID))
+				queueOncePerFrame("EconomyUnderAttack")
 			elseif isBuilding[unitDefID] == true and not isMex[unitDefID] and isDefenseTurret[unitDefID] then
-				GG.notifications.queueNotification("DefenseUnderAttack", "playerID", tostring(myPlayerID))
+				queueOncePerFrame("DefenseUnderAttack")
 			else
-				GG.notifications.queueNotification("UnitsUnderAttack", "playerID", tostring(myPlayerID))
+				queueOncePerFrame("UnitsUnderAttack")
 			end
 		end
 	end
-
-	function gadget:GameFrame(frame) end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		--local unitInView = Spring.IsUnitInView(unitID)
