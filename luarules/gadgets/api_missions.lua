@@ -20,7 +20,7 @@ local objectivesController, stagesController, triggersController, actionsControl
 local missionLoadFailure
 
 local function failMission(reason)
-	GG["MissionAPI"] = nil -- stops gadget api_missions_triggers from loading
+	GG["MissionAPI"] = nil
 	missionLoadFailure = "[Mission API] Mission not loaded: " .. reason .. " (see infolog)"
 end
 
