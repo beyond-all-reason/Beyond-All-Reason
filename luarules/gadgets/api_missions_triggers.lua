@@ -223,8 +223,8 @@ function gadget:Initialize()
 		return
 	end
 
-	triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
-	callins = GG["MissionAPI"].TriggerDefinitions.Callins
+	triggerTypes = GG["MissionAPI"].ConditionDefinitions.Types
+	callins = GG["MissionAPI"].ConditionDefinitions.Callins
 	triggers = GG["MissionAPI"].Triggers
 	trackedUnitNames = GG["MissionAPI"].trackedUnitNames
 

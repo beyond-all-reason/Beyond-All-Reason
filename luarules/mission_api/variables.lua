@@ -130,7 +130,7 @@ local function resolveReferences(triggers, actions, objectives, processValue)
 	processParameterValue = processValue
 
 	local registered = {}
-	local triggerSchema = GG["MissionAPI"].TriggerDefinitions.Parameters
+	local triggerSchema = GG["MissionAPI"].ConditionDefinitions.Parameters
 	for _, trigger in pairs(triggers) do
 		registerParameters(trigger.parameters, triggerSchema[trigger.type], registered)
 	end

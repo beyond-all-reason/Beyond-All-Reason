@@ -6,7 +6,7 @@
 --- Giving team 'enemy' an AI in the start script must log a validation warning for 'changeToPlayer'.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {

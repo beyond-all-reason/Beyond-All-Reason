@@ -2,7 +2,7 @@
 --- Test mission demonstrating Options, which a mission reads while it loads.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes  = GG['MissionAPI'].ActionDefinitions.Types
 local options      = GG['MissionAPI'].Options
 

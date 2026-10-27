@@ -388,7 +388,7 @@ local function validateTriggerActions(context, triggerReport, trigger, triggerID
 	end
 end
 
---- Settings are optional in raw missions; triggers_loader.lua applies the defaults later.
+--- Settings are optional in raw missions; conditions_loader.lua applies the defaults later.
 local function validateTriggerSettings(triggerReport, validateValue, validateTableType, trigger, triggerID)
 	local settings = trigger.settings
 	if settings == nil then
