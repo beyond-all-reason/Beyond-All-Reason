@@ -37,6 +37,9 @@ end
 local function addCountdownFrames(countdownID, frames)
 	local gameSpeed = Game.gameSpeed
 	local frame = Spring.GetGameFrame()
+	-- At GameStart GetGameFrame reads 0 before frame 0 has run, and a tick is never on the frame a
+	-- countdown was added, so 0 frames would end a whole second late: count at least one.
+	frames = math.max(1, frames)
 	GG["MissionAPI"].Countdowns[countdownID] = {
 		id = countdownID,
 		timeRemaining = math.ceil(frames / gameSpeed),

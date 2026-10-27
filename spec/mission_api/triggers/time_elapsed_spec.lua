@@ -74,13 +74,8 @@ describe("mission_api.triggers.time_elapsed", function()
 		assert.are.same({ 45 }, firedFrames(trigger({ seconds = 1.5 }), 90))
 	end)
 
-	it("fires at the target then every interval when repeating", function()
-		-- seconds = 1 -> frame 30; interval = 2 -> every 60 frames.
-		assert.are.same({ 30, 90, 150 }, firedFrames(trigger({ seconds = 1, interval = 2 }, { repeating = true }), 200))
-	end)
-
-	it("fires only once when repeating without an interval", function()
-		assert.are.same({ 30 }, firedFrames(trigger({ seconds = 1 }, { repeating = true }), 200))
+	it("fires only once, interval or not", function()
+		assert.are.same({ 30 }, firedFrames(trigger({ seconds = 1, interval = 2 }, { repeating = true }), 200))
 	end)
 
 	it("counts from the frame the mission started on", function()

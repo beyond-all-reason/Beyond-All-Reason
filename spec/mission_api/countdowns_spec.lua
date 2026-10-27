@@ -68,6 +68,12 @@ describe("mission_api.countdowns", function()
 			end
 		end)
 
+		it("ends on the next frame for 0 frames", function()
+			currentFrame = 0
+			countdowns.AddCountdownFrames("now", 0)
+			assert.are.equal(1, framesUntilEnded("now", 60))
+		end)
+
 		it("does not tick on the frame it was added", function()
 			currentFrame = 30
 			countdowns.AddCountdownFrames("added", 60)

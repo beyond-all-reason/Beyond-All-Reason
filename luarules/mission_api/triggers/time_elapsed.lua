@@ -6,8 +6,7 @@ local function secondsToFrames(seconds)
 	return math.floor(seconds * Game.gameSpeed + 0.5)
 end
 
--- Each TimeElapsed trigger runs on a hidden countdown, so it can be changed like any countdown.
-local function countdownIDOf(triggerID)
+local function getCountdownID(triggerID)
 	return '__timeElapsed_' .. triggerID
 end
 
@@ -19,23 +18,13 @@ return {
 	},
 	callins = {
 		GameStart = function(trigger, triggerID, _context)
-			-- GameFrame isn't called on frame 0:
-			local frames = math.max(1, secondsToFrames(trigger.parameters.seconds))
-			countdowns.AddCountdownFrames(countdownIDOf(triggerID), frames)
+			countdowns.AddCountdownFrames(getCountdownID(triggerID), secondsToFrames(trigger.parameters.seconds))
 		end,
 		CountdownEnded = function(trigger, triggerID, context, countdownID)
-			if countdownID ~= countdownIDOf(triggerID) then
+			if countdownID ~= getCountdownID(triggerID) then
 				return
 			end
 			context.ActivateTrigger(trigger)
-
-			local interval = trigger.parameters.interval
-			if trigger.settings.repeating and interval then
-				local intervalFrames = secondsToFrames(interval)
-				if intervalFrames > 0 then
-					countdowns.AddCountdownFrames(countdownID, intervalFrames)
-				end
-			end
 		end,
 	},
 }
