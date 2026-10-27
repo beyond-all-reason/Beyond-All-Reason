@@ -50,6 +50,7 @@ return {
 			[5] = "cordrag",
 			[6] = "coreyes",
 			[7] = "corjamt",
+			[8] = "corfmine3",
 		},
 		customparams = {
 			fall_damage_multiplier = 0,
