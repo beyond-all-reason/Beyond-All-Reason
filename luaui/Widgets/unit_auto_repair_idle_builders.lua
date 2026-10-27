@@ -258,14 +258,18 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged()
+	local previousTeam = myTeam
 	myTeam = spGetMyTeamID()
 	if maybeRemoveSelf() then
+		return
+	end
+	if myTeam == previousTeam then
 		return
 	end
 
 	idleBuilders = {}
 	for unitID in pairs(activeRepairs) do
-		activeRepairs[unitID] = nil -- do not replace table just for some spec joining etc
+		activeRepairs[unitID] = nil
 	end
 	activeReclaimers = {}
 	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
