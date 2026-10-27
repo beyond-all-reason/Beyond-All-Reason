@@ -72,7 +72,7 @@ local function loadMission(gameSetup)
 		GG["MissionAPI"].Triggers,
 		GG["MissionAPI"].Actions,
 		GG["MissionAPI"].Objectives,
-		parameterProcessing.ProcessParameter
+		parameterProcessing.ProcessValue
 	)
 	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
@@ -83,6 +83,7 @@ local function loadMission(gameSetup)
 			GG["MissionAPI"].UnitLoadout
 		)
 	end
+	parameterProcessing.RenameInternalFields()
 end
 
 function gadget:Initialize()

@@ -8,7 +8,7 @@
 ---
 
 local referencingParameters = {} ---@type table<string, { parameters:table, parameter:table, raw:any }?>
-local processParameter ---@type (fun(parameters:table, parameter:table))?
+local processParameterValue ---@type (fun(parameterType:string, value:any):any)?
 
 local function isVariableReference(value)
 	return type(value) == "table" and value.variable ~= nil
@@ -124,9 +124,9 @@ local function resolveObjectiveFields(objectives, triggers)
 end
 
 --- Resolves every reference in validated triggers, actions, and objectives, after difficulties.
---- processParameterOnWrite(parameters, parameter) is rerun on each write within parameter_processing.
-local function resolveReferences(triggers, actions, objectives, processParameterOnWrite)
-	processParameter = processParameterOnWrite
+--- processValue(parameterType, value) is rerun on each write within parameter_processing.
+local function resolveReferences(triggers, actions, objectives, processValue)
+	processParameterValue = processValue
 
 	local registered = {}
 	local triggerSchema = GG["MissionAPI"].TriggerDefinitions.Parameters
@@ -159,10 +159,11 @@ local function setVariable(key, value)
 	GG["MissionAPI"].Variables[key] = value
 
 	for _, reference in ipairs(referencingParameters[key] or {}) do
-		reference.parameters[reference.parameter.name] = resolveValue(reference.raw)
-		if processParameter then
-			processParameter(reference.parameters, reference.parameter)
+		local resolved = resolveValue(reference.raw)
+		if resolved ~= nil and processParameterValue then
+			resolved = processParameterValue(reference.parameter.type, resolved)
 		end
+		reference.parameters[reference.parameter.name] = resolved
 	end
 end
 

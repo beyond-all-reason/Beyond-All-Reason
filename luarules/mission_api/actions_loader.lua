@@ -1,5 +1,3 @@
-local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
-
 local ACTIONS_DIR = "luarules/mission_api/actions/"
 local ACTION_FILES_PATTERN = "*.lua"
 
@@ -21,7 +19,6 @@ local function loadActionDefinitions()
 
 				types[actionType] = typesCount
 				parameters[typesCount] = actionDefinition.parameters or {}
-				schemaUtils.SetInternalFields(actionType, parameters[typesCount])
 				actionFunctions[typesCount] = actionDefinition.actionFunction
 			end
 		end

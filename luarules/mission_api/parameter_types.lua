@@ -75,6 +75,17 @@ local internalTypes = {
 	[types.AllianceNames] = "AllyTeamIDs",
 }
 
+local internalFields = {
+	teamName = "teamID",
+	oldTeamName = "oldTeamID",
+	newTeamName = "newTeamID",
+	owningTeamName = "owningTeamID",
+	reclaimerTeamName = "reclaimerTeamID",
+	allianceName = "allianceID",
+	allianceNames = "allianceIDs",
+	sensorAllianceName = "sensorAllianceID",
+}
+
 -- Difficulties are read by the client, so must be available in JSON
 local difficultiesJSON = VFS.LoadFile("luarules/mission_api/difficulties.json")
 local difficulties = Json.decode(difficultiesJSON)
@@ -126,6 +137,7 @@ end
 return {
 	Types = types,
 	InternalTypes = internalTypes,
+	InternalFields = internalFields,
 	Enums = enums,
 	EnumSets = enumSets,
 }

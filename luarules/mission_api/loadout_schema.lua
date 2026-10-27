@@ -3,7 +3,6 @@
 ---
 
 local Types = VFS.Include("luarules/mission_api/parameter_types.lua").Types
-local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 
 local unitEntryFields = {
 	{ name = "unitDefName", type = Types.UnitDefName, required = true },
@@ -16,7 +15,6 @@ local unitEntryFields = {
 	{ name = "neutral", type = Types.Boolean },
 	{ name = "orders", type = Types.Orders },
 }
-schemaUtils.SetInternalFields("UnitLoadout", unitEntryFields)
 
 local featureEntryFields = {
 	{ name = "featureDefName", type = Types.FeatureDefName, required = true },

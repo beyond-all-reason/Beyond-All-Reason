@@ -5,6 +5,8 @@
 VFS.Include("common/wav.lua")
 
 local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
+local internalTypes = GG["MissionAPI"].Modules.ParameterTypes.InternalTypes
+local internalFields = GG["MissionAPI"].Modules.ParameterTypes.InternalFields
 local enumSets = GG["MissionAPI"].Modules.ParameterTypes.EnumSets
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
@@ -76,12 +78,12 @@ local function processAllianceNames(allianceNames)
 	return allyTeamIDs
 end
 
-local processParameter
+local processParameter ---@type function
 
 local function processUnitLoadout(unitLoadout)
 	for _, unit in ipairs(unitLoadout) do
 		for _, field in ipairs(unitEntryFields) do
-			if field.internal then
+			if internalTypes[field.type] then
 				processParameter(unit, field)
 			end
 		end
@@ -126,30 +128,28 @@ local function processValue(parameterType, value)
 		return value
 	end
 	local result = processor(value)
+	if internalTypes[parameterType] then
+		if result == nil then
+			Spring.Log(
+				"parameter_processing.lua",
+				LOG.ERROR,
+				"[Mission API] Unknown " .. parameterType .. " " .. Json.encode(value)
+			)
+		end
+		return result
+	end
 	if result ~= nil then
 		return result
 	end
 	return value
 end
 
---- A parameter with an internal field keeps the author's value, and its processed value goes there.
+--- A parameter with an internal type is replaced with its internal field.
 function processParameter(parameters, parameter)
 	local value = parameters[parameter.name]
-	if parameter.internal then
-		local processed = value ~= nil and processors[parameter.type](value) or nil
-		if value ~= nil and processed == nil then
-			Spring.Log(
-				"parameter_processing.lua",
-				LOG.ERROR,
-				"[Mission API] Unknown "
-					.. parameter.type
-					.. " "
-					.. Json.encode(value)
-					.. " for parameter "
-					.. parameter.name
-			)
-		end
-		parameters[parameter.internal] = processed
+	if internalTypes[parameter.type] then
+		parameters[internalFields[parameter.name]] = value ~= nil and processValue(parameter.type, value) or nil
+		parameters[parameter.name] = nil
 	elseif value ~= nil then
 		parameters[parameter.name] = processValue(parameter.type, value)
 	end
@@ -183,10 +183,23 @@ local function processManagedObjectiveParameters(managedObjectives)
 	end
 end
 
+local function renameInternalFields()
+	for _, schemaParameters in ipairs({ actionsSchemaParameters, triggersSchemaParameters }) do
+		for _, parameters in pairs(schemaParameters) do
+			for _, parameter in ipairs(parameters) do
+				if internalTypes[parameter.type] then
+					parameter.name = internalFields[parameter.name]
+				end
+			end
+		end
+	end
+end
+
 return {
 	ProcessValue = processValue,
 	ProcessParameter = processParameter,
 	ProcessActionParameters = processActionParameters,
 	ProcessTriggerParameters = processTriggerParameters,
 	ProcessManagedObjectiveParameters = processManagedObjectiveParameters,
+	RenameInternalFields = renameInternalFields,
 }
