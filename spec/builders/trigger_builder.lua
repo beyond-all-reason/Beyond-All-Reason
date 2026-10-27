@@ -2,7 +2,7 @@
 -- Builds a loaded trigger: the table api_missions_triggers.lua holds in
 -- GG['MissionAPI'].Triggers and hands to a trigger's call-in handlers.
 --
--- A mission author writes only `parameters` and `settings`; triggers_loader's
+-- A mission author writes only `parameters` and `settings`; conditions_loader's
 -- ProcessRawTriggers then fills in the settings defaults and the run-time
 -- bookkeeping fields. Build() reproduces that normalised shape, so a spec fixture
 -- carries the same fields a handler meets in game rather than the sparser table a
@@ -13,6 +13,8 @@
 ---@field settings table
 ---@field triggered boolean
 ---@field repeatCount number
+---@field occurrences number
+---@field metricSatisfied boolean
 
 ---@class TriggerBuilder
 ---@field parameters table
@@ -55,14 +57,14 @@ function TB:WithSettings(settings)
 	return self
 end
 
----The raw, mission-authored table, before triggers_loader normalises it.
+---The raw, mission-authored table, before conditions_loader normalises it.
 ---@param self TriggerBuilder
 ---@return table
 function TB:BuildRaw()
 	return { parameters = copy(self.parameters), settings = copy(self.settings) }
 end
 
----Mirrors triggers_loader.lua:processRawTriggers.
+---Mirrors conditions_loader.lua:processRawTriggers.
 ---Each Build() hands out its own tables, so one builder can seed several triggers
 ---without them sharing state a handler might latch onto.
 ---@param self TriggerBuilder
@@ -80,6 +82,8 @@ function TB:Build()
 		settings = settings,
 		triggered = false,
 		repeatCount = 0,
+		occurrences = 0,
+		metricSatisfied = false,
 	}
 end
 

@@ -20,7 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local actionsDispatcher
-local triggerTypes, triggers, callins, triggerContext
+local triggerTypes, triggers, triggersByType, callins, triggerContext
 local trackedUnitNames
 local statistics
 local countdowns
@@ -54,11 +54,16 @@ local capturedUnits = {}
 --- Utility Functions:
 ----------------------------------------------------------------
 
+-- Iterates only the triggers of the given type, using the load-time index so
+-- that per-frame call-ins do not scan every trigger in the mission.
 local function processTriggersOfType(triggerType, func)
-	for triggerID, trigger in pairs(triggers) do
-		if trigger.type == triggerType then
-			func(trigger, triggerID)
-		end
+	local ofType = triggersByType[triggerType]
+	if not ofType then
+		return
+	end
+	for i = 1, #ofType do
+		local entry = ofType[i]
+		func(entry.trigger, entry.id)
 	end
 end
 
@@ -106,14 +111,69 @@ local function activateTrigger(trigger)
 		return false
 	end
 
+	-- Event conditions tally occurrences and fire once per `count` of them, so
+	-- `count = 4` fires on the 4th, then the 8th when repeating. `count` is nil
+	-- or 1 for the common "every occurrence" case.
+	local count = trigger.count
+	if count and count > 1 then
+		trigger.occurrences = (trigger.occurrences or 0) + 1
+		if trigger.occurrences < (trigger.repeatCount + 1) * count then
+			if trigger.onProgress then
+				trigger.onProgress(trigger.occurrences)
+			end
+			return false
+		end
+	end
+
 	trigger.triggered = true
 	trigger.repeatCount = trigger.repeatCount + 1
 
-	for _, actionID in ipairs(trigger.actions) do
-		actionsDispatcher.Invoke(actionID)
+	-- Objective conditions carry onActivate instead of actions: activation
+	-- completes the objective rather than invoking mission actions.
+	if trigger.onActivate then
+		trigger.onActivate(trigger)
+	else
+		for _, actionID in ipairs(trigger.actions) do
+			actionsDispatcher.Invoke(actionID)
+		end
 	end
 
 	return true
+end
+
+-- Metric conditions compare a sampled value against `atLeast`/`atMost`. They are
+-- edge triggered: firing once when the value enters the satisfied range, and
+-- re-arming only once it leaves again, so a condition that stays true does not
+-- fire every sample.
+--
+-- The edge is only consumed once the condition actually fires. A trigger that is
+-- satisfied but currently blocked -- by an unmet prerequisite, the wrong stage or
+-- difficulty -- keeps its edge and fires as soon as it becomes valid. Otherwise
+-- "energy >= 3500 once metal >= 1800" would silently never fire when energy
+-- happened to arrive first.
+local function evaluateMetric(trigger, value)
+	trigger.lastValue = value
+
+	local satisfied = (trigger.atLeast == nil or value >= trigger.atLeast)
+		and (trigger.atMost == nil or value <= trigger.atMost)
+
+	if not satisfied then
+		trigger.metricSatisfied = false
+		if trigger.onProgress and isTriggerValid(trigger) then
+			trigger.onProgress(value)
+		end
+		return false
+	end
+
+	if trigger.metricSatisfied then
+		return false
+	end
+
+	local fired = activateTrigger(trigger)
+	if fired then
+		trigger.metricSatisfied = true
+	end
+	return fired
 end
 
 local function getUnitsInArea(trigger)
@@ -223,9 +283,10 @@ function gadget:Initialize()
 		return
 	end
 
-	triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
-	callins = GG["MissionAPI"].TriggerDefinitions.Callins
+	triggerTypes = GG["MissionAPI"].ConditionDefinitions.Types
+	callins = GG["MissionAPI"].ConditionDefinitions.Callins
 	triggers = GG["MissionAPI"].Triggers
+	triggersByType = VFS.Include("luarules/mission_api/conditions_loader.lua").IndexTriggersByType(triggers)
 	trackedUnitNames = GG["MissionAPI"].trackedUnitNames
 
 	actionsDispatcher = VFS.Include("luarules/mission_api/actions_dispatcher.lua")
@@ -236,11 +297,16 @@ function gadget:Initialize()
 	countdowns = GG["MissionAPI"].Modules.Countdowns
 
 	statistics = VFS.Include("luarules/mission_api/statistics.lua")
-	statistics.Init({ processTriggersOfType = processTriggersOfType, activateTrigger = activateTrigger })
+	statistics.Init({
+		processTriggersOfType = processTriggersOfType,
+		activateTrigger = activateTrigger,
+		evaluateMetric = evaluateMetric,
+		conditionKinds = GG["MissionAPI"].ConditionDefinitions.Kinds,
+	})
 
 	-- TODO: Resolve flat globals vs imports vs the DI pattern (above).
 	GG["MissionAPI"].ActivateTrigger = activateTrigger
-
+	GG["MissionAPI"].EvaluateMetric = evaluateMetric
 	local tracking = GG["MissionAPI"].Modules.Tracking
 	doesUnitHaveName = tracking.DoesUnitHaveName
 	untrackUnitID = tracking.UntrackUnitID
@@ -249,6 +315,7 @@ function gadget:Initialize()
 
 	triggerContext = {
 		ActivateTrigger = activateTrigger,
+		EvaluateMetric = evaluateMetric,
 		DoesUnitHaveName = doesUnitHaveName,
 		DoesFeatureHaveName = doesFeatureHaveName,
 		IsBuildFrameOwner = isBuildFrameOwner,

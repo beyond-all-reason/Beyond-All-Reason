@@ -2,27 +2,35 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
--- Trigger and action definition files read the Mission API modules from GG at include time.
 MissionSpecEnv.registerModules(env)
-local actionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
-local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
-	.LoadTriggerDefinitions()
+local conditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+	.LoadConditionDefinitions()
 GG["MissionAPI"] = nil
 
 local objectivesLoader = MissionSpecEnv.include(env, "luarules/mission_api/objectives_loader.lua")
-local triggerTypes = triggerDefinitions.Types
-local actionTypes = actionDefinitions.Types
+local types = conditionDefinitions.Types
 
---- Triggers and actions synthesized here are not validated by the Mission API validation,
---- which only sees the raw mission data, so they are covered by this spec instead.
+--- Condition records built here are not seen by the Mission API validation, which
+--- only reads the raw mission data, so they are covered by this spec instead.
 describe("mission_api.objectives_loader", function()
+	local completed, reported
+
 	before_each(function()
+		completed, reported = {}, {}
 		GG["MissionAPI"] = {
-			ActionDefinitions = actionDefinitions,
-			TriggerDefinitions = triggerDefinitions,
-			ManagedObjectives = {},
+			ConditionDefinitions = conditionDefinitions,
 			ObjectiveTriggers = {},
 			ObjectiveStages = {},
+			Modules = {
+				Objectives = {
+					CompleteObjective = function(objectiveID)
+						completed[#completed + 1] = objectiveID
+					end,
+					ReportProgress = function(objectiveID, progress)
+						reported[#reported + 1] = { objectiveID, progress }
+					end,
+				},
+			},
 		}
 	end)
 
@@ -30,144 +38,143 @@ describe("mission_api.objectives_loader", function()
 		GG["MissionAPI"] = nil
 	end)
 
-	describe("synthesized triggers and actions", function()
-		it("creates a trigger and an UpdateObjective action for an objective with a trigger", function()
-			local rawTriggers, rawActions = {}, {}
-			objectivesLoader.ProcessRawObjectives({
-				killBot = {
-					textKey = "kill the bot",
-					trigger = {
-						type = triggerTypes.UnitKilled,
-						parameters = { unitName = "bot" },
-					},
+	local function load(rawObjectives, stages)
+		local rawTriggers = {}
+		local result = objectivesLoader.ProcessRawObjectives(rawObjectives, rawTriggers, {}, stages or {})
+		return result, rawTriggers
+	end
+
+	describe("condition records", function()
+		it("contributes a record per objective and remembers its trigger ID", function()
+			local _, rawTriggers = load({
+				alpha = { textKey = "a", trigger = { type = types.TimeElapsed, parameters = { gameFrame = 3 } } },
+			})
+
+			assert.is_not_nil(rawTriggers.__objective_alpha)
+			assert.are.equal("__objective_alpha", GG["MissionAPI"].ObjectiveTriggers.alpha)
+		end)
+
+		it("copies the trigger onto the record, with the amount as an event's count", function()
+			local _, rawTriggers = load({
+				alpha = {
+					textKey = "a",
+					amount = 3,
+					trigger = { type = types.UnitKilled, parameters = { teamID = 0 } },
 				},
-			}, rawTriggers, rawActions, {})
+			})
+			local record = rawTriggers.__objective_alpha
 
-			local trigger = rawTriggers["__objective_killBot"]
-			assert.is_table(trigger)
-			assert.are.equal(triggerTypes.UnitKilled, trigger.type)
-			assert.are.same({ unitName = "bot" }, trigger.parameters)
-			assert.are.same({ "__updateObjective_killBot" }, trigger.actions)
-
-			local action = rawActions["__updateObjective_killBot"]
-			assert.is_table(action)
-			assert.are.equal(actionTypes.UpdateObjective, action.type)
-			assert.are.same({ objectiveID = "killBot" }, action.parameters)
+			assert.are.equal(types.UnitKilled, record.type)
+			assert.are.same({ teamID = 0 }, record.parameters)
+			assert.are.equal(3, record.count)
+			assert.is_nil(record.atLeast)
 		end)
 
-		it("defaults parameters to an empty table when the trigger has none", function()
-			local rawTriggers = {}
-			objectivesLoader.ProcessRawObjectives({
-				obj = { textKey = "ok", trigger = { type = triggerTypes.UnitKilled } },
-			}, rawTriggers, {}, {})
+		it("uses the amount as the level a metric must reach", function()
+			local _, rawTriggers = load({
+				alpha = { textKey = "a", amount = 4, trigger = { type = types.UnitsOwned, parameters = {} } },
+			})
+			local record = rawTriggers.__objective_alpha
 
-			assert.are.same({}, rawTriggers["__objective_obj"].parameters)
+			assert.are.equal(4, record.atLeast)
+			assert.is_nil(record.count)
 		end)
 
-		it("marks the trigger as non-repeating when the objective has no amount", function()
-			local rawTriggers = {}
-			objectivesLoader.ProcessRawObjectives({
-				obj = { textKey = "ok", trigger = { type = triggerTypes.UnitKilled, parameters = {} } },
-			}, rawTriggers, {}, {})
+		it("completes a metric without an amount once it reaches one", function()
+			local _, rawTriggers = load({ alpha = { textKey = "a", trigger = { type = types.UnitsOwned } } })
 
-			local settings = rawTriggers["__objective_obj"].settings
-			assert.is_false(settings.repeating)
+			assert.are.equal(1, rawTriggers.__objective_alpha.atLeast)
+		end)
+
+		it("defaults parameters to an empty table", function()
+			local _, rawTriggers = load({ alpha = { textKey = "a", trigger = { type = types.TimeElapsed } } })
+
+			assert.are.same({}, rawTriggers.__objective_alpha.parameters)
+		end)
+
+		it("starts inactive and is never repeating, so completion stays latched", function()
+			local _, rawTriggers = load({ alpha = { textKey = "a", trigger = { type = types.TimeElapsed } } })
+			local settings = rawTriggers.__objective_alpha.settings
+
+			assert.is_false(settings.active)
+			assert.is_nil(settings.repeating)
 			assert.is_nil(settings.maxRepeats)
 		end)
 
-		it("repeats amount - 1 times for an objective with an amount above one", function()
-			local rawTriggers = {}
-			objectivesLoader.ProcessRawObjectives({
-				obj = { textKey = "ok", amount = 3, trigger = { type = triggerTypes.UnitKilled, parameters = {} } },
-			}, rawTriggers, {}, {})
+		it("completes and reports progress through the objectives module instead of running actions", function()
+			local _, rawTriggers = load({ alpha = { textKey = "a", trigger = { type = types.TimeElapsed } } })
+			local record = rawTriggers.__objective_alpha
 
-			local settings = rawTriggers["__objective_obj"].settings
-			assert.is_true(settings.repeating)
-			assert.are.equal(2, settings.maxRepeats)
+			record.onActivate()
+			record.onProgress(2)
+
+			assert.is_nil(record.actions)
+			assert.are.same({ "alpha" }, completed)
+			assert.are.same({ { "alpha", 2 } }, reported)
 		end)
 
-		it("repeats without a maxRepeats limit for an amount of one", function()
-			local rawTriggers = {}
-			objectivesLoader.ProcessRawObjectives({
-				obj = { textKey = "ok", amount = 1, trigger = { type = triggerTypes.UnitKilled, parameters = {} } },
-			}, rawTriggers, {}, {})
-
-			local settings = rawTriggers["__objective_obj"].settings
-			assert.is_true(settings.repeating)
-			assert.is_nil(settings.maxRepeats)
-		end)
-
-		it("restricts the trigger to the stages the objective belongs to", function()
-			local rawTriggers = {}
-			objectivesLoader.ProcessRawObjectives(
-				{
-					obj = { textKey = "ok", trigger = { type = triggerTypes.UnitKilled, parameters = {} } },
-				},
-				rawTriggers,
-				{},
-				{
-					stageA = { objectives = { "obj" } },
-					stageB = { objectives = { "obj" } },
-				}
+		it("restricts the record to the stages its objective appears in", function()
+			local _, rawTriggers = load(
+				{ alpha = { textKey = "a", trigger = { type = types.TimeElapsed } } },
+				{ first = { objectives = { "alpha" } }, second = { objectives = { "alpha" } } }
 			)
-
-			local stages = rawTriggers["__objective_obj"].settings.stages
+			local stages = rawTriggers.__objective_alpha.settings.stages
 			table.sort(stages)
-			assert.are.same({ "stageA", "stageB" }, stages)
+
+			assert.are.same({ "first", "second" }, stages)
+			assert.are.same(stages, GG["MissionAPI"].ObjectiveStages.alpha)
 		end)
 
-		it("synthesizes nothing for objectives without a trigger", function()
-			local rawTriggers, rawActions = {}, {}
-			objectivesLoader.ProcessRawObjectives({
-				obj = { textKey = "ok" },
-			}, rawTriggers, rawActions, {})
+		it("builds nothing for an objective without a trigger", function()
+			local _, rawTriggers = load({ alpha = { textKey = "a" } })
 
-			assert.are.same({}, rawTriggers)
-			assert.are.same({}, rawActions)
-		end)
-
-		it("returns the objectives it was given", function()
-			local objectives = { obj = { textKey = "ok" } }
-			assert.are.equal(objectives, objectivesLoader.ProcessRawObjectives(objectives, {}, {}, {}))
+			assert.is_nil(rawTriggers.__objective_alpha)
+			assert.is_nil(GG["MissionAPI"].ObjectiveTriggers.alpha)
 		end)
 	end)
 
-	describe("managed objectives", function()
-		it("registers statistics objectives instead of synthesizing a trigger and action", function()
-			local rawTriggers, rawActions = {}, {}
-			objectivesLoader.ProcessRawObjectives({
-				ownBots = {
-					textKey = "own bots",
-					amount = 5,
-					nextStage = "stageB",
-					trigger = {
-						type = triggerTypes.UnitsOwned,
-						parameters = { teamID = 0, unitName = "bot" },
-					},
-				},
-			}, rawTriggers, rawActions, { stageA = { objectives = { "ownBots" } } })
+	describe("runtime state", function()
+		it("starts every objective inactive, incomplete and without progress", function()
+			local result = load({ alpha = { textKey = "a", amount = 4, trigger = { type = types.UnitKilled } } })
 
-			assert.are.same({}, rawTriggers)
-			assert.are.same({}, rawActions)
-
-			local managed = GG["MissionAPI"].ManagedObjectives[triggerTypes.UnitsOwned]
-			assert.are.equal(1, #managed)
-			assert.are.same({
-				objectiveID = "ownBots",
-				amount = 5,
-				nextStage = "stageB",
-				stages = { "stageA" },
-				parameters = { teamID = 0, unitName = "bot" },
-			}, managed[1])
+			assert.is_false(result.alpha.active)
+			assert.is_false(result.alpha.completed)
+			assert.are.equal(0, result.alpha.progress)
+			assert.are.equal(4, result.alpha.target)
 		end)
 
-		it("groups several managed objectives under their trigger type", function()
-			objectivesLoader.ProcessRawObjectives({
-				a = { textKey = "a", trigger = { type = triggerTypes.UnitsOwned, parameters = { teamID = 0 } } },
-				b = { textKey = "b", trigger = { type = triggerTypes.UnitsOwned, parameters = { teamID = 1 } } },
-			}, {}, {}, {})
+		it("targets a single occurrence for an objective without an amount", function()
+			-- Otherwise completing it would report a nil target.
+			local result = load({
+				event = { textKey = "a", trigger = { type = types.UnitKilled } },
+				manual = { textKey = "b" },
+			})
 
-			assert.are.equal(2, #GG["MissionAPI"].ManagedObjectives[triggerTypes.UnitsOwned])
+			assert.are.equal(1, result.event.target)
+			assert.are.equal(1, result.manual.target)
+		end)
+	end)
+
+	describe("ApplyThresholds", function()
+		it("copies a resolved amount onto the record and recomputes the target", function()
+			local objectives, rawTriggers = load({
+				alpha = { textKey = "a", amount = 2, trigger = { type = types.UnitKilled } },
+			})
+			objectives.alpha.amount = 5
+
+			objectivesLoader.ApplyThresholds("alpha", objectives.alpha, rawTriggers)
+
+			assert.are.equal(5, rawTriggers.__objective_alpha.count)
+			assert.are.equal(5, objectives.alpha.target)
+		end)
+
+		it("only recomputes the target for an objective without a record", function()
+			local objectives, rawTriggers = load({ manual = { textKey = "a", amount = 2 } })
+			objectives.manual.amount = 3
+
+			objectivesLoader.ApplyThresholds("manual", objectives.manual, rawTriggers)
+
+			assert.are.equal(3, objectives.manual.target)
 		end)
 	end)
 end)

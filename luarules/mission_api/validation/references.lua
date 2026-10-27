@@ -472,6 +472,12 @@ local function validateVariableReferences(context, report)
 
 	for triggerID, trigger in pairs(context.Triggers) do
 		recordKeys(parametersOf(trigger), "trigger " .. triggerID)
+		if type(trigger) == "table" then
+			recordKeys(
+				{ count = trigger.count, atLeast = trigger.atLeast, atMost = trigger.atMost },
+				"trigger " .. triggerID
+			)
+		end
 	end
 	for actionID, action in pairs(context.Actions) do
 		recordKeys(parametersOf(action), "action " .. actionID)

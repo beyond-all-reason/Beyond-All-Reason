@@ -2,13 +2,13 @@
 --- Feature triggers test mission.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnFeatures = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -16,7 +16,7 @@ local triggers = {
 	},
 
 	orderReclaimerReclaimAndRes = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -25,7 +25,7 @@ local triggers = {
 	},
 
 	destroyRocks = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -33,7 +33,7 @@ local triggers = {
 	},
 
 	rockCreated = {
-		type = triggerTypes.FeatureCreated,
+		type = eventTypes.FeatureCreated,
 		parameters = {
 			featureDefName = 'rocks30_def_01',
 			area = { x1 = 1600, z1 = 1500, x2 = 2200, z2 = 2100 },
@@ -42,7 +42,7 @@ local triggers = {
 	},
 
 	rockReclaimed = {
-		type = triggerTypes.FeatureReclaimed,
+		type = eventTypes.FeatureReclaimed,
 		parameters = {
 			featureName = 'theRocks',
 			teamID = 0,
@@ -51,7 +51,7 @@ local triggers = {
 	},
 
 	rockDestroyed = {
-		type = triggerTypes.FeatureDestroyed,
+		type = eventTypes.FeatureDestroyed,
 		parameters = {
 			featureName = 'theRocks',
 		},
@@ -59,7 +59,7 @@ local triggers = {
 	},
 
 	unitRessed = {
-		type = triggerTypes.UnitResurrected,
+		type = eventTypes.UnitResurrected,
 		parameters = {
 			featureName  = 'wreck-to-resurrect',
 			teamID = 0,
@@ -68,7 +68,7 @@ local triggers = {
 	},
 
 	wreckDestroyed = {
-		type = triggerTypes.FeatureDestroyed,
+		type = eventTypes.FeatureDestroyed,
 		parameters = {
 			featureName = 'wreck-to-destroy',
 		},
@@ -76,7 +76,7 @@ local triggers = {
 	},
 
 	wreckDestroyedInZone = {
-		type = triggerTypes.FeatureDestroyed,
+		type = eventTypes.FeatureDestroyed,
 		parameters = {
 			featureDefName = 'armllt_dead',
 			area = { x = 2000, z = 2100, radius = 200 },

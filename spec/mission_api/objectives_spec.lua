@@ -7,9 +7,9 @@ local env = MissionSpecEnv.new()
 -- (Trigger files read GG['MissionAPI'].Modules at include time.)
 Builders.MissionApi.new():Install()
 MissionSpecEnv.registerModules(env)
-local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
-	.LoadTriggerDefinitions()
-local T = triggerDefinitions.Types
+local conditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+	.LoadConditionDefinitions()
+local T = conditionDefinitions.Types
 
 local Objectives = MissionSpecEnv.include(env, "luarules/mission_api/objectives.lua")
 
@@ -19,7 +19,7 @@ describe("mission_api.objectives", function()
 
 	-- A mission to build up with the mock's With* methods.
 	local function mission()
-		return Builders.MissionApi.new():WithTriggerDefinitions(triggerDefinitions)
+		return Builders.MissionApi.new():WithConditionDefinitions(conditionDefinitions)
 	end
 
 	local function install(builder)
@@ -450,222 +450,46 @@ describe("mission_api.objectives", function()
 		end)
 	end)
 
-	-- Called by statistics.lua as (objectiveID, eventTeamID, eventUnitDefName,
-	-- eventUnitNames, direction, metadata); the metadata is what objectives_loader
-	-- records for a managed objective: the trigger's parameters, the stages that
-	-- list the objective, and the amount to reach.
-	describe("UpdateObjectiveProgress", function()
-		it("counts an event for an inactive objective without evaluating completion", function()
-			install(mission():WithObjective("obj1", { active = false, completed = false }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-
-			assert.are.equal(1, metadata._count)
-			assert.is_nil(missionApi.Objectives.obj1.progress)
-			assert.is_false(missionApi.Objectives.obj1.completed)
-		end)
-
-		it("ignores an event for another team", function()
-			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 1, "armwar", nil, 1, metadata)
-
-			assert.is_nil(metadata._count)
-			assert.is_nil(missionApi.Objectives.obj1.progress)
-		end)
-
-		it("ignores an event for another unitDefName", function()
-			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0, unitDefName = "corak" }, stages = {}, amount = 1 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-
-			assert.is_nil(metadata._count)
-		end)
-
-		it("ignores an event without the unitName it watches", function()
-			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0, unitName = "bots" }, stages = {}, amount = 1 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", {}, 1, metadata)
-			assert.is_nil(metadata._count)
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", { bots = true }, 1, metadata)
-			assert.are.equal(1, metadata._count)
-		end)
-
-		it("counts an event outside the objective's stages without evaluating completion", function()
-			install(
-				mission()
-					:WithStage("objStage", { objectives = { "obj1" } })
-					:WithStage("otherStage")
-					:WithObjective("obj1", { active = true, completed = false })
-					:WithCurrentStage("otherStage")
-			)
-			local metadata = { parameters = { teamID = 0 }, stages = { "objStage" }, amount = 1 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-
-			assert.are.equal(1, metadata._count)
-			assert.is_nil(missionApi.Objectives.obj1.progress)
-			assert.is_false(missionApi.Objectives.obj1.completed)
-		end)
-
-		it("evaluates completion in one of the objective's stages", function()
-			install(
-				mission()
-					:WithStage("objStage", { objectives = { "obj1" } })
-					:WithObjective("obj1", { active = true, completed = false })
-					:WithCurrentStage("objStage")
-			)
-			local metadata = { parameters = { teamID = 0 }, stages = { "objStage" }, amount = 1 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-
-			assert.are.equal(1, missionApi.Objectives.obj1.progress)
-			assert.is_true(missionApi.Objectives.obj1.completed)
-		end)
-
-		it("evaluates completion in any stage when the objective is listed in none", function()
-			install(
-				mission()
-					:WithStage("s1")
-					:WithObjective("obj1", { active = true, completed = false })
-					:WithCurrentStage("s1")
-			)
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-
-			assert.is_true(missionApi.Objectives.obj1.completed)
-		end)
-
-		it("completes on the first event when there is no amount", function()
-			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = nil }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-
-			assert.is_true(missionApi.Objectives.obj1.completed)
-		end)
-
-		it("completes when the count reaches the amount", function()
-			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 2 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-			assert.is_false(missionApi.Objectives.obj1.completed)
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-			assert.is_true(missionApi.Objectives.obj1.completed)
-		end)
-
-		it("completes an amount = 0 objective when the count returns to zero", function()
-			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 0 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-			assert.is_false(missionApi.Objectives.obj1.completed)
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, -1, metadata)
-			assert.is_true(missionApi.Objectives.obj1.completed)
-		end)
-
-		it("freezes the objective's progress once completed", function()
-			install(mission():WithObjective("obj1", { active = true, completed = true, progress = 3 }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 3, _count = 3 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, -1, metadata)
-
-			assert.are.equal(3, missionApi.Objectives.obj1.progress)
-		end)
-
-		it("advances the stage through the gate on completion", function()
-			install(
-				mission()
-					:WithStage("s1", { objectives = { "obj1" } })
-					:WithStage("s2")
-					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2" })
-					:WithCurrentStage("s1")
-			)
-			local metadata = { parameters = { teamID = 0 }, stages = { "s1" }, amount = 1 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-
-			assert.are.equal("s2", missionApi.CurrentStageID)
-		end)
-
-		it("activates the trigger named by onCompleted on completion", function()
-			install(
-				mission()
-					:WithObjective("obj1", { active = true, completed = false, onCompleted = "done" })
-					:WithTrigger("done", { type = T.Event })
-			)
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-
-			assert.are.equal(1, #missionApi.calls.activateTrigger)
-			assert.are.equal(missionApi.Triggers.done, missionApi.calls.activateTrigger[1].trigger)
-		end)
-
-		it("activates nothing before completion", function()
-			install(
-				mission()
-					:WithObjective("obj1", { active = true, completed = false, onCompleted = "done" })
-					:WithTrigger("done", { type = T.Event })
-			)
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 2 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-
-			assert.are.equal(0, #missionApi.calls.activateTrigger)
-		end)
-		it("activates the trigger named by onProgress on progress that does not complete", function()
-			install(
-				mission()
-					:WithObjective("obj1", { active = true, completed = false, onProgress = "stepped" })
-					:WithTrigger("stepped", { type = T.Event })
-			)
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 2 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-
-			assert.are.equal(1, #missionApi.calls.activateTrigger)
-			assert.are.equal(missionApi.Triggers.stepped, missionApi.calls.activateTrigger[1].trigger)
-		end)
-
-		it("does not activate the onProgress trigger while counting inactive", function()
-			install(
-				mission()
-					:WithObjective("obj1", { active = false, completed = false, onProgress = "stepped" })
-					:WithTrigger("stepped", { type = T.Event })
-			)
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 2 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
-
-			assert.are.equal(0, #missionApi.calls.activateTrigger)
-		end)
-
-		it("activates the onCompleted trigger and not onProgress on the completing event", function()
+	describe("ReportProgress", function()
+		it("records the progress and activates the trigger named by onProgress", function()
 			install(
 				mission()
 					:WithObjective(
 						"obj1",
-						{ active = true, completed = false, onProgress = "stepped", onCompleted = "done" }
+						{ active = true, completed = false, progress = 0, target = 5, onProgress = "stepped" }
 					)
 					:WithTrigger("stepped", { type = T.Event })
-					:WithTrigger("done", { type = T.Event })
 			)
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
 
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
+			Objectives.ReportProgress("obj1", 2)
 
+			assert.are.equal(2, missionApi.Objectives.obj1.progress)
+			assert.is_false(missionApi.Objectives.obj1.completed)
 			assert.are.equal(1, #missionApi.calls.activateTrigger)
-			assert.are.equal(missionApi.Triggers.done, missionApi.calls.activateTrigger[1].trigger)
+			assert.are.equal(missionApi.Triggers.stepped, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("ignores a value that has not changed", function()
+			install(
+				mission()
+					:WithObjective(
+						"obj1",
+						{ active = true, completed = false, progress = 2, target = 5, onProgress = "stepped" }
+					)
+					:WithTrigger("stepped", { type = T.Event })
+			)
+
+			Objectives.ReportProgress("obj1", 2)
+
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("is a no-op on a completed objective", function()
+			install(mission():WithObjective("obj1", { active = true, completed = true, progress = 5, target = 5 }))
+
+			Objectives.ReportProgress("obj1", 2)
+
+			assert.are.equal(5, missionApi.Objectives.obj1.progress)
 		end)
 	end)
 
@@ -698,9 +522,8 @@ describe("mission_api.objectives", function()
 
 		it("does not mark a success as failed", function()
 			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
-
-			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
+			Objectives.CompleteObjective("obj1")
+			Objectives.FailObjective("obj1")
 
 			assert.is_true(missionApi.Objectives.obj1.completed)
 			assert.is_nil(missionApi.Objectives.obj1.failed)
@@ -934,7 +757,7 @@ describe("mission_api.objectives", function()
 				mission()
 					:WithObjective(
 						"obj1",
-						{ active = true, completed = false, progress = 2, amount = 5, onProgress = "stepped" }
+						{ active = true, completed = false, progress = 2, target = 5, onProgress = "stepped" }
 					)
 					:WithTrigger("stepped", { type = T.Event })
 			)
@@ -947,8 +770,8 @@ describe("mission_api.objectives", function()
 			assert.are.equal(missionApi.Triggers.stepped, missionApi.calls.activateTrigger[1].trigger)
 		end)
 
-		it("completes the objective when the progress reaches the amount, without onProgress", function()
-			local objective = { active = true, completed = false, progress = 4, amount = 5 }
+		it("completes the objective when the progress reaches the target, without onProgress", function()
+			local objective = { active = true, completed = false, progress = 4, target = 5 }
 			objective.onProgress = "stepped"
 			objective.onCompleted = "done"
 			install(
@@ -966,8 +789,8 @@ describe("mission_api.objectives", function()
 			assert.are.equal(missionApi.Triggers.done, missionApi.calls.activateTrigger[1].trigger)
 		end)
 
-		it("completes the objective on the first update when there is no amount", function()
-			install(mission():WithObjective("obj1", { active = true, completed = false }))
+		it("completes the objective on the first update when the target is one", function()
+			install(mission():WithObjective("obj1", { active = true, completed = false, target = 1 }))
 
 			Objectives.UpdateObjective("obj1")
 
@@ -984,7 +807,7 @@ describe("mission_api.objectives", function()
 		end)
 
 		it("is a no-op on an inactive objective", function()
-			install(mission():WithObjective("obj1", { active = false, completed = false, progress = 0, amount = 2 }))
+			install(mission():WithObjective("obj1", { active = false, completed = false, progress = 0, target = 2 }))
 
 			Objectives.UpdateObjective("obj1")
 

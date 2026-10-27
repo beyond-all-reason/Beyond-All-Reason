@@ -2,7 +2,7 @@ local Builders = VFS.Include("spec/builders/index.lua")
 
 -- The loader is the authority on what a trigger looks like once a mission is running,
 -- so the builder is checked against it rather than against a copy of its defaults.
-local triggersLoader = VFS.Include("luarules/mission_api/triggers_loader.lua")
+local conditionsLoader = VFS.Include("luarules/mission_api/conditions_loader.lua")
 
 describe("TriggerBuilder", function()
 	it("builds the trigger shape the call-in handlers receive", function()
@@ -18,13 +18,15 @@ describe("TriggerBuilder", function()
 		}, trigger.settings)
 		assert.is_false(trigger.triggered)
 		assert.are.equal(0, trigger.repeatCount)
+		assert.are.equal(0, trigger.occurrences)
+		assert.is_false(trigger.metricSatisfied)
 	end)
 
-	it("normalises exactly as triggers_loader does, so fixtures cannot drift from it", function()
+	it("normalises exactly as conditions_loader does, so fixtures cannot drift from it", function()
 		local builder = Builders.Trigger.new():WithParameters({ unitDefName = "armpw" })
-		builder:WithSettings({ maxRepeats = 2 })
+		builder:WithSettings({ prerequisites = { "earlier" } })
 
-		local loaded = triggersLoader.ProcessRawTriggers({ t = builder:BuildRaw() })
+		local loaded = conditionsLoader.ProcessRawTriggers({ t = builder:BuildRaw() })
 
 		assert.are.same(loaded.t, builder:Build())
 	end)
@@ -32,20 +34,20 @@ describe("TriggerBuilder", function()
 	it("normalises a repeating, inactive trigger as the loader does", function()
 		local builder = Builders.Trigger.new():WithSettings({ repeating = true, active = false })
 
-		local loaded = triggersLoader.ProcessRawTriggers({ t = builder:BuildRaw() })
+		local loaded = conditionsLoader.ProcessRawTriggers({ t = builder:BuildRaw() })
 
 		assert.are.same(loaded.t, builder:Build())
 	end)
 
 	it("collects parameters and settings", function()
 		local builder = Builders.Trigger.new():WithParameters({ unitDefName = "armpw" })
-		builder:WithParameters({ teamID = 0 }):WithSettings({ repeating = true, maxRepeats = 2 })
+		builder:WithParameters({ teamID = 0 }):WithSettings({ repeating = true, coop = true })
 
 		local trigger = builder:Build()
 
 		assert.are.same({ unitDefName = "armpw", teamID = 0 }, trigger.parameters)
 		assert.is_true(trigger.settings.repeating)
-		assert.are.equal(2, trigger.settings.maxRepeats)
+		assert.is_true(trigger.settings.coop)
 	end)
 
 	it("ignores a nil parameter table, for specs that build a bare trigger", function()

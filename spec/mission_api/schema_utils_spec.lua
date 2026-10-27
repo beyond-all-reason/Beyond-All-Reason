@@ -9,8 +9,8 @@ GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
 GG["MissionAPI"].Modules.ParameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
 MissionSpecEnv.registerModules(env)
 
-local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
-	.LoadTriggerDefinitions()
+local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+	.LoadConditionDefinitions()
 local parameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
 local schemaUtils = MissionSpecEnv.include(env, "luarules/mission_api/schema_utils.lua")
 
@@ -18,26 +18,36 @@ local triggerTypes = triggerDefinitions.Types
 
 describe("mission_api.schema_utils", function()
 	describe("GetTypesWithParameterType", function()
-		it("returns all trigger types that have a Quantity parameter", function()
+		-- UnitName is used for the reference tracking in validation.lua, which is
+		-- what this helper exists for now that condition kinds are declared
+		-- explicitly rather than inferred from a Quantity parameter.
+		it("returns all trigger types that have a UnitName parameter", function()
 			local result =
-				schemaUtils.GetTypesWithParameterType(triggerDefinitions.Parameters, parameterTypes.Types.Quantity)
+				schemaUtils.GetTypesWithParameterType(triggerDefinitions.Parameters, parameterTypes.Types.UnitName)
 			assert.is_true(result[triggerTypes.UnitsOwned])
-			assert.is_true(result[triggerTypes.TotalUnitsBuilt])
-			assert.is_true(result[triggerTypes.TotalUnitsLost])
 			assert.is_true(result[triggerTypes.TotalUnitsKilled])
-			assert.is_true(result[triggerTypes.TotalUnitsCaptured])
+			assert.is_true(result[triggerTypes.UnitNotExists])
 		end)
 
-		it("does not include trigger types that lack a Quantity parameter", function()
+		it("does not include trigger types that lack a UnitName parameter", function()
 			local result =
-				schemaUtils.GetTypesWithParameterType(triggerDefinitions.Parameters, parameterTypes.Types.Quantity)
+				schemaUtils.GetTypesWithParameterType(triggerDefinitions.Parameters, parameterTypes.Types.UnitName)
 			assert.is_nil(result[triggerTypes.TimeElapsed])
-			assert.is_nil(result[triggerTypes.UnitKilled])
+			assert.is_nil(result[triggerTypes.ResourceStored])
 		end)
 
 		it("returns an empty table when no types have the given parameter type", function()
 			local result = schemaUtils.GetTypesWithParameterType(triggerDefinitions.Parameters, "NonExistentType")
 			assert.are.same({}, result)
+		end)
+
+		it("finds the Resource parameter on exactly the resource metrics", function()
+			local result =
+				schemaUtils.GetTypesWithParameterType(triggerDefinitions.Parameters, parameterTypes.Types.Resource)
+			assert.is_true(result[triggerTypes.ResourceStored])
+			assert.is_true(result[triggerTypes.ResourceIncome])
+			assert.is_true(result[triggerTypes.ResourcePull])
+			assert.is_nil(result[triggerTypes.UnitsOwned])
 		end)
 	end)
 
