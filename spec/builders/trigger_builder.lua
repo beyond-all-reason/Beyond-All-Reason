@@ -13,6 +13,8 @@
 ---@field settings table
 ---@field triggered boolean
 ---@field repeatCount number
+---@field occurrences number
+---@field metricSatisfied boolean
 
 ---@class TriggerBuilder
 ---@field parameters table
@@ -80,6 +82,8 @@ function TB:Build()
 		settings = settings,
 		triggered = false,
 		repeatCount = 0,
+		occurrences = 0,
+		metricSatisfied = false,
 	}
 end
 

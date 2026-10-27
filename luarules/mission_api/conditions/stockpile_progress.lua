@@ -28,6 +28,7 @@ end
 
 return {
 	type = 'StockpileProgress',
+	kind = 'event',
 	parameters = {
 		{ name = 'progress',    required = true,  type = ParameterTypes.Fraction },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },

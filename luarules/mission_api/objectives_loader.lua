@@ -1,27 +1,75 @@
-local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
-
 --[[
 	objectiveID = {
 		textKey = "complete_objective",
 		amount = 3,
 		trigger = {
-			type = triggerTypes.TimeElapsed,
-			parameters = {
-				seconds = 3,
-			},
+			type = conditionTypes.ConstructionFinished,
+			parameters = { unitDefName = 'corak', teamID = 0 },
 		},
 		nextStage = 'secondStage',
 		coop = true,
 	},
 ]]
 
+local OBJECTIVE_CONDITION_PREFIX = "__objective_"
+local THRESHOLD_FIELDS = { "count", "atLeast", "atMost" }
+
+--- Each objective contributes a condition record to the same space the triggers
+--- gadget dispatches over, so objectives reuse every condition handler rather
+--- than duplicating their matching logic.
+---
+--- The record carries `onActivate` instead of `actions`: activation completes
+--- the objective rather than invoking mission actions. Records are never
+--- repeating, which is what makes completion latched. They start inactive; the
+--- objective switches its record on and off as it is activated and canceled.
+local function buildConditionRecord(objectiveID, objective, objectiveStages)
+	return {
+		type = objective.trigger.type,
+		parameters = objective.trigger.parameters or {},
+		settings = {
+			stages = objectiveStages,
+			active = false,
+		},
+		onActivate = function()
+			GG["MissionAPI"].Modules.Objectives.CompleteObjective(objectiveID)
+		end,
+		onProgress = function(progress)
+			GG["MissionAPI"].Modules.Objectives.ReportProgress(objectiveID, progress)
+		end,
+	}
+end
+
+--- An objective's `amount` is how many events it counts, or for a metric such as
+--- UnitsOwned, the level it must reach. A missing amount completes on the first event.
+local function thresholdsOf(objective)
+	local amount = objective.amount
+	local trigger = objective.trigger
+	local conditionDefinitions = GG["MissionAPI"].ConditionDefinitions
+	local kind = type(trigger) == "table" and conditionDefinitions and conditionDefinitions.Kinds[trigger.type]
+	if kind == "metric" then
+		return { atLeast = amount or 1 }
+	end
+	return { count = amount }
+end
+
+--- Copies an objective's threshold onto its condition record. The amount can depend on
+--- the difficulty or a variable, which are only resolved after the records were built.
+local function applyThresholds(objectiveID, objective, triggers)
+	objective.target = objective.amount or 1
+
+	local triggerID = GG["MissionAPI"].ObjectiveTriggers[objectiveID]
+	local trigger = triggerID and triggers[triggerID]
+	if not trigger then
+		return
+	end
+	local thresholds = thresholdsOf(objective)
+	for _, field in ipairs(THRESHOLD_FIELDS) do
+		trigger[field] = thresholds[field]
+	end
+end
+
 local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
-	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
-	local triggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(
-		GG["MissionAPI"].ConditionDefinitions.Parameters,
-		parameterTypes.Types.Quantity
-	)
+	local objectives = rawObjectives or {}
 
 	-- Build objective-to-stages mapping from stages structure
 	local objectiveToStages = GG["MissionAPI"].ObjectiveStages
@@ -31,61 +79,30 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 		end
 	end
 
-	for objectiveID, objective in pairs(rawObjectives) do
+	for objectiveID, objective in pairs(objectives) do
 		objective.active = false
+		objective.completed = false
+		objective.progress = 0
+		objective.target = objective.amount or 1
 
-		-- An objective without a trigger is completed by an UpdateObjective action instead.
+		-- An objective without a trigger is completed by actions instead (CompleteObjective, UpdateObjective).
 		if type(objective.trigger) == "table" then
-			local objectiveStages = objectiveToStages[objectiveID] or {}
-			local amount = objective.amount
-			local triggerType = objective.trigger.type
-			local triggerParameters = objective.trigger.parameters or {}
-
-			if triggerTypesWithQuantity[triggerType] then
-				-- Managed objective: register metadata for lookaside lookup; no trigger or action synthesis.
-				table.ensureTable(GG["MissionAPI"].ManagedObjectives, triggerType)
-				table.insert(GG["MissionAPI"].ManagedObjectives[triggerType], {
-					objectiveID = objectiveID,
-					amount = amount,
-					nextStage = objective.nextStage,
-					stages = objectiveStages,
-					parameters = triggerParameters,
-				})
-			else
-				-- Non-managed objective: synthesize trigger + action as usual.
-				local isRepeating = amount ~= nil
-				-- An amount differing by difficulty is resolved later, which fills in maxRepeats then.
-				local maxRepeats = type(amount) == "number" and amount > 1 and (amount - 1) or nil
-				local triggerID = "__objective_" .. objectiveID
-				local actionID = "__updateObjective_" .. objectiveID
-
-				rawTriggers[triggerID] = {
-					type = triggerType,
-					parameters = triggerParameters,
-					settings = {
-						stages = objectiveStages,
-						repeating = isRepeating,
-						maxRepeats = maxRepeats,
-						active = false,
-					},
-					actions = { actionID },
-				}
-
-				rawActions[actionID] = {
-					type = actionTypes.UpdateObjective,
-					parameters = {
-						objectiveID = objectiveID,
-					},
-				}
-
-				GG["MissionAPI"].ObjectiveTriggers[objectiveID] = triggerID
+			local triggerID = OBJECTIVE_CONDITION_PREFIX .. objectiveID
+			local record = buildConditionRecord(objectiveID, objective, objectiveToStages[objectiveID] or {})
+			for field, value in pairs(thresholdsOf(objective)) do
+				record[field] = value
 			end
+			rawTriggers[triggerID] = record
+			GG["MissionAPI"].ObjectiveTriggers[objectiveID] = triggerID
 		end
 	end
 
-	return rawObjectives
+	return objectives
 end
 
 return {
 	ProcessRawObjectives = processRawObjectives,
+	ApplyThresholds = applyThresholds,
+	ObjectiveConditionPrefix = OBJECTIVE_CONDITION_PREFIX,
+	ThresholdFields = THRESHOLD_FIELDS,
 }

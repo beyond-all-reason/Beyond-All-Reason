@@ -1,6 +1,13 @@
 ---
 --- Shared helpers for objective progress/completion and stage advancement.
 ---
+--- An objective with a trigger is watched by its condition record (see
+--- objectives_loader); this module only decides what activation, progress and
+--- completion mean. Objectives without a trigger are driven by actions alone.
+---
+--- Completion is latched: a completed objective never becomes incomplete again,
+--- even if the metric it watched moves back out of range.
+---
 
 local stageChanges = 0
 
@@ -20,8 +27,8 @@ local function echoObjectiveUpdate(objectiveID, objective)
 			.. (objective.textKey or "")
 			.. " | progress: "
 			.. tostring(objective.progress)
-			.. " | amount: "
-			.. tostring(objective.amount)
+			.. " | target: "
+			.. tostring(objective.target)
 			.. " | active: "
 			.. tostring(objective.active)
 			.. " | completed: "
@@ -36,8 +43,17 @@ local function setObjectiveActive(objectiveID, active)
 	GG["MissionAPI"].Objectives[objectiveID].active = active
 
 	local triggerID = GG["MissionAPI"].ObjectiveTriggers[objectiveID]
-	if triggerID then
-		GG["MissionAPI"].Triggers[triggerID].settings.active = active
+	if not triggerID then
+		return
+	end
+
+	local trigger = GG["MissionAPI"].Triggers[triggerID]
+	trigger.settings.active = active
+
+	-- A metric only reports when its value changes. One that was already in range
+	-- while the objective was inactive would otherwise wait for the next change.
+	if active and trigger.lastValue ~= nil then
+		GG["MissionAPI"].EvaluateMetric(trigger, trigger.lastValue)
 	end
 end
 
@@ -217,84 +233,38 @@ local function completeObjective(objectiveID)
 
 	objective.canceled = false
 	objective.completed = true
+	objective.progress = objective.target
 	runExitRoutes(objective, objective.onCompleted)
 	echoObjectiveUpdate(objectiveID, objective)
 end
 
---- Progress that did not complete the objective.
-local function onObjectiveProgress(objectiveID, objective)
+--- Progress that did not complete the objective. Events report how many
+--- occurrences have been tallied towards their amount; metrics report the value last
+--- sampled against the level they must reach. Metrics are sampled often,
+--- so only a changed value counts as progress.
+local function reportProgress(objectiveID, progress)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	if objective.completed or objective.progress == progress then
+		return
+	end
+
+	objective.progress = progress
 	activateEventTrigger(objective.onProgress)
 	echoObjectiveUpdate(objectiveID, objective)
 end
 
---- One step of progress, for objectives without a managed count.
+--- One step of progress towards the amount, for objectives that actions drive.
 local function updateObjective(objectiveID)
 	local objective = GG["MissionAPI"].Objectives[objectiveID]
 	if objective.completed or not objective.active then
 		return
 	end
 
-	objective.progress = (objective.progress or 0) + 1
-	if objective.amount == nil or objective.progress >= objective.amount then
+	local progress = (objective.progress or 0) + 1
+	if progress >= objective.target then
 		completeObjective(objectiveID)
 	else
-		onObjectiveProgress(objectiveID, objective)
-	end
-end
-
---- Update objective progress for a managed (statistics-based) objective.
---- Called when the trigger's event fires with updated counts.
-local function updateObjectiveProgress(
-	objectiveID,
-	eventTeamID,
-	eventUnitDefName,
-	eventUnitNames,
-	direction,
-	managedObjMetadata
-)
-	if eventTeamID ~= managedObjMetadata.parameters.teamID then
-		return
-	end
-	if managedObjMetadata.parameters.unitDefName and eventUnitDefName ~= managedObjMetadata.parameters.unitDefName then
-		return
-	end
-	if
-		managedObjMetadata.parameters.unitName and not (eventUnitNames or {})[managedObjMetadata.parameters.unitName]
-	then
-		return
-	end
-
-	-- Track count regardless of stage:
-	managedObjMetadata._count = (managedObjMetadata._count or 0) + direction
-
-	if
-		next(managedObjMetadata.stages)
-		and not table.contains(managedObjMetadata.stages, GG["MissionAPI"].CurrentStageID)
-	then
-		return
-	end
-
-	local objective = GG["MissionAPI"].Objectives[objectiveID]
-	if objective.completed or not objective.active then
-		return
-	end
-
-	objective.progress = managedObjMetadata._count
-
-	local isComplete
-	local amount = managedObjMetadata.amount
-	if amount == nil then
-		isComplete = true
-	elseif amount == 0 then
-		isComplete = managedObjMetadata._count == 0
-	else
-		isComplete = managedObjMetadata._count >= amount
-	end
-
-	if isComplete then
-		completeObjective(objectiveID)
-	else
-		onObjectiveProgress(objectiveID, objective)
+		reportProgress(objectiveID, progress)
 	end
 end
 
@@ -305,7 +275,7 @@ return {
 	ActivateObjective = activateObjective,
 	CancelObjective = cancelObjective,
 	UpdateObjective = updateObjective,
-	UpdateObjectiveProgress = updateObjectiveProgress,
+	ReportProgress = reportProgress,
 	CompleteObjective = completeObjective,
 	FailObjective = failObjective,
 	HideObjective = hideObjective,

@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- An enemy attacks a named tank, which fires the trigger on the first hit and again on each hit
@@ -9,7 +9,7 @@ local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 local triggers = {
 
 	spawnScene = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -18,7 +18,7 @@ local triggers = {
 
 	-- Split off the spawn, since an order does not take on the frame its target unit is spawned.
 	allySelfDestructs = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
 		},
@@ -26,7 +26,7 @@ local triggers = {
 	},
 
 	enemyAttacks = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 6,
 		},
@@ -35,7 +35,7 @@ local triggers = {
 
 	-- Never fires before the enemy attacks: the self-destruct is allied, environmental damage.
 	targetAttacked = {
-		type = triggerTypes.UnitAttacked,
+		type = eventTypes.UnitAttacked,
 		parameters = {
 			unitName = 'target',
 		},
@@ -43,7 +43,7 @@ local triggers = {
 	},
 
 	tankAttackedRepeatedly = {
-		type = triggerTypes.UnitAttacked,
+		type = eventTypes.UnitAttacked,
 		parameters = {
 			unitDefName = 'armstump',
 			teamID = 0,
@@ -57,7 +57,7 @@ local triggers = {
 
 	-- Never fires: the tank belongs to team 0.
 	wrongTeamAttacked = {
-		type = triggerTypes.UnitAttacked,
+		type = eventTypes.UnitAttacked,
 		parameters = {
 			unitDefName = 'armstump',
 			teamID = 1,

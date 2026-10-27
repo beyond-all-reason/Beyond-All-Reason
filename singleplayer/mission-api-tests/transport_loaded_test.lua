@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- A transport loads and unloads a pawn. A construction vehicle with an attached turret is spawned
@@ -9,7 +9,7 @@ local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 local triggers = {
 
 	spawnScene = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -18,7 +18,7 @@ local triggers = {
 
 	-- Split off the spawn, since an order does not take on the frame its target unit is spawned.
 	orderTransport = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
 		},
@@ -26,7 +26,7 @@ local triggers = {
 	},
 
 	dropshipLoaded = {
-		type = triggerTypes.TransportLoaded,
+		type = eventTypes.TransportLoaded,
 		parameters = {
 			transportName = 'dropship',
 		},
@@ -34,7 +34,7 @@ local triggers = {
 	},
 
 	atlasLoadedPawn = {
-		type = triggerTypes.TransportLoaded,
+		type = eventTypes.TransportLoaded,
 		parameters = {
 			transportDefName = 'armatlas',
 			teamID = 0,
@@ -44,17 +44,17 @@ local triggers = {
 	},
 
 	dropshipUnloaded = {
-		type = triggerTypes.TransportUnloaded,
+		type = eventTypes.TransportUnloaded,
 		parameters = {
 			transportName = 'dropship',
-			unitName = 'passenger',
+			passengerName = 'passenger',
 		},
 		actions = { 'messageDropshipUnloaded' },
 	},
 
 	-- The construction vehicle is not a transport, so it counts only by its definition name.
 	constructorAttachedTurret = {
-		type = triggerTypes.TransportLoaded,
+		type = eventTypes.TransportLoaded,
 		parameters = {
 			transportDefName = 'corvac',
 			passengerDefName = 'corvacct',
@@ -64,7 +64,7 @@ local triggers = {
 
 	-- Never fires: a unit name alone does not make the construction vehicle a transport.
 	constructorByNameOnly = {
-		type = triggerTypes.TransportLoaded,
+		type = eventTypes.TransportLoaded,
 		parameters = {
 			transportName = 'constructor',
 		},

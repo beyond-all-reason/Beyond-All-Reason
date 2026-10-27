@@ -29,7 +29,7 @@ describe("mission_api.conditions.resource_income", function()
 
 	local function newContext()
 		local context = Builders.TriggerContext.new():Build()
-		return context, context.timesFired
+		return context, context.sampledValues
 	end
 
 	local triggerID = "t"
@@ -52,49 +52,33 @@ describe("mission_api.conditions.resource_income", function()
 		return Builders.UnitDefs.new():WithUnitDef(1, { extractsMetal = 1 }):GetUnitDefsByID()
 	end
 
-	it("declares its type and parameters", function()
+	it("declares its type, kind and parameters", function()
 		assert.are.equal("ResourceIncome", resourceIncome.type)
-		local names = {}
+		assert.are.equal("metric", resourceIncome.kind)
+		local required = {}
 		for _, parameter in ipairs(resourceIncome.parameters) do
-			names[parameter.name] = true
+			required[parameter.name] = parameter.required
 		end
-		assert.is_true(names.teamID)
-		assert.is_true(names.metal)
-		assert.is_true(names.energy)
-		assert.is_true(names.sources)
-		assert.are.same({ "metal", "energy" }, resourceIncome.parameters.requiresOneOf)
+		assert.are.same({ teamID = true, resource = true, sources = false }, required)
 	end)
 
-	it("only evaluates once per second", function()
-		local context, fired = newContext()
+	it("only samples once per second", function()
+		local context, sampled = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, 1)
-		assert.are.equal(0, fired())
+		onGameFrame(trigger({ teamID = 0, resource = "metal" }), triggerID, context, 1)
+		assert.are.same({}, sampled())
 	end)
 
-	it("fires when unfiltered income meets the metal threshold", function()
-		local context, fired = newContext()
+	it("samples the engine's total income for the named resource when no sources are given", function()
+		local context, sampled = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
-		assert.are.equal(1, fired())
-	end)
-
-	it("does not fire when unfiltered income is below the metal threshold", function()
-		local context, fired = newContext()
-		env.Spring.GetTeamResources = resources(1)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
-		assert.are.equal(0, fired())
-	end)
-
-	it("does not fire when unfiltered income is below the energy threshold", function()
-		local context, fired = newContext()
-		env.Spring.GetTeamResources = resources(1)
-		onGameFrame(trigger({ teamID = 0, energy = 5 }), triggerID, context, Game.gameSpeed)
-		assert.are.equal(0, fired())
+		onGameFrame(trigger({ teamID = 0, resource = "metal" }), triggerID, context, Game.gameSpeed)
+		onGameFrame(trigger({ teamID = 0, resource = "energy" }), triggerID, context, Game.gameSpeed)
+		assert.are.same({ 10, 10 }, sampled())
 	end)
 
 	it("filters by source: production only, excluding extractor income", function()
-		local context, fired = newContext()
+		local context, sampled = newContext()
 		-- Total income 10; extractor income should be subtracted from production.
 		env.Spring.GetUnitDefID = function()
 			return 1
@@ -108,17 +92,17 @@ describe("mission_api.conditions.resource_income", function()
 		end
 		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
-			trigger({ teamID = 0, metal = 1, sources = { production = true } }),
+			trigger({ teamID = 0, resource = "metal", sources = { production = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
 		)
-		-- production income = 10 (total) - 10 (extractor) - 0 (reclaim) = 0, below threshold 1.
-		assert.are.equal(0, fired())
+		-- production income = 10 (total) - 10 (extractor) - 0 (reclaim) = 0
+		assert.are.same({ 0 }, sampled())
 	end)
 
 	it("filters by source: extractor income alone", function()
-		local context, fired = newContext()
+		local context, sampled = newContext()
 		_G.UnitDefs = extractorUnitDefs()
 		env.Spring.GetTeamUnits = function()
 			return { 1 }
@@ -128,45 +112,44 @@ describe("mission_api.conditions.resource_income", function()
 		end
 		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
-			trigger({ teamID = 0, metal = 5, sources = { extractor = true } }),
+			trigger({ teamID = 0, resource = "metal", sources = { extractor = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
 		)
-		assert.are.equal(1, fired())
+		assert.are.same({ 10 }, sampled())
 	end)
 
 	it("filters by source: transfer income from GetTeamResources' received index", function()
-		local context, fired = newContext()
+		local context, sampled = newContext()
 		env.Spring.GetTeamResources = resources(10, 20)
 		onGameFrame(
-			trigger({ teamID = 0, metal = 15, sources = { transfer = true } }),
+			trigger({ teamID = 0, resource = "metal", sources = { transfer = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
 		)
-		assert.are.equal(1, fired())
+		assert.are.same({ 20 }, sampled())
 	end)
 
 	it("filters by source: reclaim income from the context snapshot", function()
-		local context, fired = newContext()
+		local context, sampled = newContext()
 		context.GetReclaimIncomeSnapshot = function()
 			return { metal = 7 }
 		end
 		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
-			trigger({ teamID = 0, metal = 5, sources = { reclaim = true } }),
+			trigger({ teamID = 0, resource = "metal", sources = { reclaim = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
 		)
-		assert.are.equal(1, fired())
+		assert.are.same({ 7 }, sampled())
 	end)
 
-	it("does not evaluate energy through extractor sources", function()
-		-- Extractor income is metal-only per the trigger; requesting extractor-sourced
-		-- energy income should never exceed a positive threshold.
-		local context, fired = newContext()
+	it("samples no energy through extractor sources", function()
+		-- Extractor income is metal-only, so extractor-sourced energy income is always zero.
+		local context, sampled = newContext()
 		_G.UnitDefs = extractorUnitDefs()
 		env.Spring.GetTeamUnits = function()
 			return { 1 }
@@ -176,11 +159,11 @@ describe("mission_api.conditions.resource_income", function()
 		end
 		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
-			trigger({ teamID = 0, energy = 1, sources = { extractor = true } }),
+			trigger({ teamID = 0, resource = "energy", sources = { extractor = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
 		)
-		assert.are.equal(0, fired())
+		assert.are.same({ 0 }, sampled())
 	end)
 end)

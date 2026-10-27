@@ -35,8 +35,11 @@ describe("mission_api.conditions_loader", function()
 			env.VFS.DirList = function()
 				return paths
 			end
-			env.VFS.Include = function(path)
-				return defsByPath[path]
+			env.VFS.Include = function(path, ...)
+				if defsByPath[path] then
+					return defsByPath[path]
+				end
+				return origInclude(path, ...)
 			end
 
 			local ok, result = pcall(triggersLoader.LoadConditionDefinitions)
@@ -48,9 +51,9 @@ describe("mission_api.conditions_loader", function()
 
 		it("assigns sequential type IDs in directory-list order", function()
 			local definitions = loadWith({
-				{ path = "a.lua", def = { type = "Alpha" } },
-				{ path = "b.lua", def = { type = "Beta" } },
-				{ path = "c.lua", def = { type = "Gamma" } },
+				{ path = "a.lua", def = { type = "Alpha", kind = "event" } },
+				{ path = "b.lua", def = { type = "Beta", kind = "event" } },
+				{ path = "c.lua", def = { type = "Gamma", kind = "event" } },
 			})
 
 			assert.are.same({ Alpha = 1, Beta = 2, Gamma = 3 }, definitions.Types)
@@ -59,8 +62,8 @@ describe("mission_api.conditions_loader", function()
 		it("keeps a definition's parameters and defaults missing ones to an empty table", function()
 			local alphaParameters = { { name = "a" } }
 			local definitions = loadWith({
-				{ path = "a.lua", def = { type = "Alpha", parameters = alphaParameters } },
-				{ path = "b.lua", def = { type = "Beta" } }, -- no parameters field
+				{ path = "a.lua", def = { type = "Alpha", kind = "event", parameters = alphaParameters } },
+				{ path = "b.lua", def = { type = "Beta", kind = "event" } }, -- no parameters field
 			})
 
 			-- Kept as-is (same reference, not copied):
@@ -75,12 +78,16 @@ describe("mission_api.conditions_loader", function()
 			local betaUnitDestroyed = function() end
 
 			local definitions = loadWith({
-				{ path = "a.lua", def = { type = "Alpha", callins = { GameFrame = alphaGameFrame } } },
+				{ path = "a.lua", def = { type = "Alpha", kind = "event", callins = { GameFrame = alphaGameFrame } } },
 				{
 					path = "b.lua",
-					def = { type = "Beta", callins = { GameFrame = betaGameFrame, UnitDestroyed = betaUnitDestroyed } },
+					def = {
+						type = "Beta",
+						kind = "event",
+						callins = { GameFrame = betaGameFrame, UnitDestroyed = betaUnitDestroyed },
+					},
 				},
-				{ path = "c.lua", def = { type = "Gamma" } }, -- statistics-like: no callins
+				{ path = "c.lua", def = { type = "Gamma", kind = "event" } }, -- statistics-like: no callins
 			})
 
 			-- One callin shared by two types, keyed by type ID:
@@ -95,14 +102,62 @@ describe("mission_api.conditions_loader", function()
 			end
 		end)
 
-		it("returns only Types, Parameters, and Callins", function()
-			local definitions = loadWith({ { path = "a.lua", def = { type = "Alpha" } } })
+		it("returns the shared settings schema", function()
+			local definitions = loadWith({ { path = "a.lua", def = { type = "Alpha", kind = "event" } } })
+			local ParameterTypes = parameterTypes.Types
+
+			assert.are.same({
+				prerequisites = ParameterTypes.TriggerIDs,
+				repeating = ParameterTypes.Boolean,
+				maxRepeats = ParameterTypes.Quantity,
+				difficulties = ParameterTypes.Difficulties,
+				coop = ParameterTypes.Boolean,
+				active = ParameterTypes.Boolean,
+				stages = ParameterTypes.StageIDs,
+			}, definitions.Settings)
+		end)
+
+		it("returns only Types, EventTypes, MetricTypes, Kinds, Settings, Parameters, and Callins", function()
+			local definitions = loadWith({ { path = "a.lua", def = { type = "Alpha", kind = "event" } } })
 
 			local keys = {}
 			for key in pairs(definitions) do
 				keys[key] = true
 			end
-			assert.are.same({ Types = true, Parameters = true, Callins = true }, keys)
+			assert.are.same({
+				Types = true,
+				EventTypes = true,
+				MetricTypes = true,
+				Kinds = true,
+				Settings = true,
+				Parameters = true,
+				Callins = true,
+			}, keys)
+		end)
+
+		it("splits types into disjoint event and metric views", function()
+			local definitions = loadWith({
+				{ path = "a.lua", def = { type = "Alpha", kind = "event" } },
+				{ path = "b.lua", def = { type = "Beta", kind = "metric" } },
+			})
+
+			assert.is_not_nil(definitions.EventTypes.Alpha)
+			assert.is_nil(definitions.EventTypes.Beta)
+			assert.is_not_nil(definitions.MetricTypes.Beta)
+			assert.is_nil(definitions.MetricTypes.Alpha)
+			-- both views index into the same canonical registry
+			assert.are.equal(definitions.Types.Alpha, definitions.EventTypes.Alpha)
+			assert.are.equal(definitions.Types.Beta, definitions.MetricTypes.Beta)
+		end)
+
+		it("records the kind per type ID", function()
+			local definitions = loadWith({
+				{ path = "a.lua", def = { type = "Alpha", kind = "event" } },
+				{ path = "b.lua", def = { type = "Beta", kind = "metric" } },
+			})
+
+			assert.are.equal("event", definitions.Kinds[definitions.Types.Alpha])
+			assert.are.equal("metric", definitions.Kinds[definitions.Types.Beta])
 		end)
 
 		it("handles an empty triggers directory", function()
@@ -203,7 +258,6 @@ describe("mission_api.conditions_loader", function()
 			assert.is_false(settings.coop)
 			assert.is_true(settings.active)
 			assert.are.same({}, settings.stages)
-			assert.is_nil(settings.maxRepeats)
 			assert.is_nil(settings.difficulties)
 		end)
 
@@ -215,7 +269,6 @@ describe("mission_api.conditions_loader", function()
 					settings = {
 						prerequisites = { "p1" },
 						repeating = true,
-						maxRepeats = 3,
 						difficulties = difficulties,
 						coop = true,
 						stages = { "stage1" },
@@ -226,7 +279,6 @@ describe("mission_api.conditions_loader", function()
 			local settings = triggers.t.settings
 			assert.are.same({ "p1" }, settings.prerequisites)
 			assert.is_true(settings.repeating)
-			assert.are.equal(3, settings.maxRepeats)
 			assert.are.same({ "Hard" }, settings.difficulties)
 			assert.is_true(settings.coop)
 			assert.are.same({ "stage1" }, settings.stages)

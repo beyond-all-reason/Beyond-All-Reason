@@ -5,11 +5,10 @@ local RESOURCE_PULL_INDEX = 3
 
 return {
 	type = 'ResourcePull',
+	kind = 'metric',
 	parameters = {
-		{ name = 'teamID', required = true,  type = ParameterTypes.TeamID },
-		{ name = 'metal',  required = false, type = ParameterTypes.Number },
-		{ name = 'energy', required = false, type = ParameterTypes.Number },
-		requiresOneOf = { 'metal', 'energy' },
+		{ name = 'teamID',   required = true, type = ParameterTypes.TeamID },
+		{ name = 'resource', required = true, type = ParameterTypes.Resource },
 	},
 	callins = {
 		GameFrame = function(trigger, triggerID, context, frameNumber)
@@ -17,13 +16,9 @@ return {
 			if frameNumber % Game.gameSpeed ~= 0 then
 				return
 			end
-			if trigger.parameters.metal and select(RESOURCE_PULL_INDEX, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
-				return
-			end
-			if trigger.parameters.energy and select(RESOURCE_PULL_INDEX, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
-				return
-			end
-			context.ActivateTrigger(trigger)
+			local pull = select(RESOURCE_PULL_INDEX,
+				Spring.GetTeamResources(trigger.parameters.teamID, trigger.parameters.resource))
+			context.EvaluateMetric(trigger, pull or 0)
 		end,
 	},
 }

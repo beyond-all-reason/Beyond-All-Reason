@@ -2,6 +2,7 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 return {
 	type = 'FeatureCreated',
+	kind = 'event',
 	parameters = {
 		{ name = 'featureDefName', required = false, type = ParameterTypes.FeatureDefName },
 		{ name = 'area',           required = false, type = ParameterTypes.Area },

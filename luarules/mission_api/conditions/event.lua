@@ -2,5 +2,6 @@
 -- Declares no callins and no parameters, so nothing else can fire it.
 return {
 	type = 'Event',
+	kind = 'event',
 	parameters = {},
 }

@@ -7,6 +7,7 @@ end
 
 return {
 	type = 'TimeElapsed',
+	kind = 'event',
 	parameters = {
 		{ name = 'seconds',  required = true,  type = ParameterTypes.Number },
 		{ name = 'interval', required = false, type = ParameterTypes.Number },

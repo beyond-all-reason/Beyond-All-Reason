@@ -101,7 +101,6 @@ function gadget:Initialize()
 	GG["MissionAPI"].unitMarkers = {}
 	GG["MissionAPI"].soundFiles = {}
 	GG["MissionAPI"].soundQueue = {}
-	GG["MissionAPI"].ManagedObjectives = {}
 	GG["MissionAPI"].ObjectiveTriggers = {}
 	GG["MissionAPI"].ObjectiveStages = {}
 	GG["MissionAPI"].Countdowns = {}

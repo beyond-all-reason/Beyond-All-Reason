@@ -6,8 +6,9 @@ Builders.MissionApi.new():Install()
 local totalUnitsBuilt = VFS.Include("luarules/mission_api/conditions/total_units_built.lua")
 
 describe("mission_api.conditions.total_units_built", function()
-	it("declares its type and parameters, and no callins", function()
+	it("declares its type, kind and parameters, and no callins", function()
 		assert.are.equal("TotalUnitsBuilt", totalUnitsBuilt.type)
+		assert.are.equal("event", totalUnitsBuilt.kind)
 
 		local names, required = {}, {}
 		for _, parameter in ipairs(totalUnitsBuilt.parameters) do
@@ -17,9 +18,8 @@ describe("mission_api.conditions.total_units_built", function()
 			end
 		end
 		assert.is_true(names.teamID)
-		assert.is_true(names.quantity)
 		assert.is_true(names.unitDefName)
-		assert.are.same({ teamID = true, quantity = true }, required)
+		assert.are.same({ teamID = true }, required)
 		assert.is_nil(totalUnitsBuilt.callins)
 	end)
 end)

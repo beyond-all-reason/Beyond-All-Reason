@@ -16,62 +16,40 @@ describe("mission_api.conditions.resource_pull", function()
 
 	local function newContext()
 		local context = Builders.TriggerContext.new():Build()
-		return context, context.timesFired
+		return context, context.sampledValues
 	end
 
 	local triggerID = "t"
 
 	-- Pull comes from a built team, so the tuple GetTeamResources returns keeps the
 	-- engine's field order.
-	local function resources(pull)
-		local team = Builders.Team.new():WithID(0):WithMetalPull(pull):WithEnergyPull(pull)
+	local function resources(metal, energy)
+		local team = Builders.Team.new():WithID(0):WithMetalPull(metal):WithEnergyPull(energy or metal)
 		return Builders.Spring.new():WithTeam(team):Build().GetTeamResources
 	end
 
-	it("declares its type and parameters", function()
+	it("declares its type, kind and parameters", function()
 		assert.are.equal("ResourcePull", resourcePull.type)
-		local names = {}
+		assert.are.equal("metric", resourcePull.kind)
+		local required = {}
 		for _, parameter in ipairs(resourcePull.parameters) do
-			names[parameter.name] = true
+			required[parameter.name] = parameter.required
 		end
-		assert.is_true(names.teamID)
-		assert.is_true(names.metal)
-		assert.is_true(names.energy)
-		assert.are.same({ "metal", "energy" }, resourcePull.parameters.requiresOneOf)
+		assert.are.same({ teamID = true, resource = true }, required)
 	end)
 
-	it("only evaluates once per second", function()
-		local context, fired = newContext()
+	it("only samples once per second", function()
+		local context, sampled = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, 1)
-		assert.are.equal(0, fired())
+		onGameFrame(trigger({ teamID = 0, resource = "metal" }), triggerID, context, 1)
+		assert.are.same({}, sampled())
 	end)
 
-	it("fires when metal pull meets the threshold", function()
-		local context, fired = newContext()
-		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
-		assert.are.equal(1, fired())
-	end)
-
-	it("does not fire when metal pull is below the threshold", function()
-		local context, fired = newContext()
-		env.Spring.GetTeamResources = resources(1)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
-		assert.are.equal(0, fired())
-	end)
-
-	it("fires when energy pull meets the threshold", function()
-		local context, fired = newContext()
-		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, energy = 5 }), triggerID, context, Game.gameSpeed)
-		assert.are.equal(1, fired())
-	end)
-
-	it("requires both thresholds to be met when both are set", function()
-		local context, fired = newContext()
-		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5, energy = 20 }), triggerID, context, Game.gameSpeed)
-		assert.are.equal(0, fired())
+	it("samples the pull of the named resource", function()
+		local context, sampled = newContext()
+		env.Spring.GetTeamResources = resources(10, 25)
+		onGameFrame(trigger({ teamID = 0, resource = "metal" }), triggerID, context, Game.gameSpeed)
+		onGameFrame(trigger({ teamID = 0, resource = "energy" }), triggerID, context, Game.gameSpeed)
+		assert.are.same({ 10, 25 }, sampled())
 	end)
 end)

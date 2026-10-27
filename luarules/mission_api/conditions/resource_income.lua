@@ -42,14 +42,13 @@ end
 
 return {
 	type = 'ResourceIncome',
+	kind = 'metric',
 	parameters = {
-		{ name = 'teamID', required = true,  type = ParameterTypes.TeamID },
-		{ name = 'metal',  required = false, type = ParameterTypes.Number },
-		{ name = 'energy', required = false, type = ParameterTypes.Number },
-		-- Filter income by sources: 'extractor' (metal only), 'reclaim' (features + units), 'ally' (shared), 'production' (everything else)
+		{ name = 'teamID',   required = true, type = ParameterTypes.TeamID },
+		{ name = 'resource', required = true, type = ParameterTypes.Resource },
+		-- Filter income by sources: 'extractor' (metal only), 'reclaim' (features + units), 'transfer' (shared), 'production' (everything else)
 		-- Example: sources = { 'extractor', 'production' }
 		{ name = 'sources', required = false, type = ParameterTypes.ResourceIncomeSources },
-		requiresOneOf = { 'metal', 'energy' },
 	},
 	callins = {
 		GameFrame = function(trigger, triggerID, context, frameNumber)
@@ -58,28 +57,18 @@ return {
 				return
 			end
 
+			local resource = trigger.parameters.resource
 			local sources = trigger.parameters.sources
+			local income
 
 			if sources == nil then
 				-- Unfiltered: use the engine's total income (index 4).
-				if trigger.parameters.metal and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
-					return
-				end
-				if trigger.parameters.energy and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
-					return
-				end
-				context.ActivateTrigger(trigger)
-				return
+				income = select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(trigger.parameters.teamID, resource)) or 0
+			else
+				income = getTeamResourceIncomeForSources(trigger.parameters.teamID, resource, sources, context)
 			end
 
-			-- Source-filtered income check.
-			if trigger.parameters.metal and getTeamResourceIncomeForSources(trigger.parameters.teamID, "metal", sources, context) < trigger.parameters.metal then
-				return
-			end
-			if trigger.parameters.energy and getTeamResourceIncomeForSources(trigger.parameters.teamID, "energy", sources, context) < trigger.parameters.energy then
-				return
-			end
-			context.ActivateTrigger(trigger)
+			context.EvaluateMetric(trigger, income)
 		end,
 	},
 }
