@@ -1548,7 +1548,7 @@ function widget:DrawScreen()
 			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:CreateBackgroundTexture")
 			ordermenuBgTex = gl.CreateTexture(math_floor(width * vsx), math_floor(height * vsy), {
 				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
+				format = GL.RGBA,
 				fbo = true,
 			})
 			if ordermenuBgTex then
@@ -1571,7 +1571,7 @@ function widget:DrawScreen()
 				math_floor(height * vsy) * (vsy < 1400 and 2 or 1),
 				{ --*(vsy<1400 and 2 or 1)
 					target = GL.TEXTURE_2D,
-					format = GL.ALPHA,
+					format = GL.RGBA,
 					fbo = true,
 				}
 			)

@@ -2358,7 +2358,7 @@ function widget:DrawScreen()
 		end
 		uiBgTex = gl.CreateTexture(mathFloor(topbarArea[3] - topbarArea[1]), mathFloor(topbarArea[4] - topbarArea[2]), {
 			target = GL.TEXTURE_2D,
-			format = GL.ALPHA,
+			format = GL.RGBA,
 			fbo = true,
 		})
 		if uiTex then
@@ -2369,7 +2369,7 @@ function widget:DrawScreen()
 			mathFloor(topbarArea[4] - topbarArea[2]),
 			{ --*(vsy<1400 and 2 or 1)
 				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
+				format = GL.RGBA,
 				fbo = true,
 			}
 		)
