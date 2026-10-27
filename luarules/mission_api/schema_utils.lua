@@ -68,8 +68,8 @@ local function collateSchemas()
 	local missionAPI = GG["MissionAPI"]
 	local parameterTypes = missionAPI.Modules.ParameterTypes
 	return {
-		triggers = collateObjectSchemas(missionAPI.TriggerDefinitions),
-		triggerSettings = table.copy(missionAPI.TriggerDefinitions.Settings),
+		triggers = collateObjectSchemas(missionAPI.ConditionDefinitions),
+		triggerSettings = table.copy(missionAPI.ConditionDefinitions.Settings),
 		actions = collateObjectSchemas(missionAPI.ActionDefinitions),
 		objectiveSettings = table.copy(VFS.Include("luarules/mission_api/objectives_schema.lua").Settings),
 		parameterTypes = table.copy(parameterTypes.Types),

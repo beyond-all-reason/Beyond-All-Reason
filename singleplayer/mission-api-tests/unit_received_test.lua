@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- The mission gives the player a wind generator, which UnitReceived sees only when asked to see
@@ -9,7 +9,7 @@ local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 local triggers = {
 
 	spawnScene = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -18,7 +18,7 @@ local triggers = {
 
 	-- Split off the spawn, since an order does not take on the frame its target unit is spawned.
 	giveAndCapture = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
 		},
@@ -26,7 +26,7 @@ local triggers = {
 	},
 
 	giftReceived = {
-		type = triggerTypes.UnitReceived,
+		type = eventTypes.UnitReceived,
 		parameters = {
 			unitName = 'gift',
 			oldTeamID = 1,
@@ -38,7 +38,7 @@ local triggers = {
 
 	-- Never fires: mission transfers are ignored unless asked for.
 	giftReceivedByDefault = {
-		type = triggerTypes.UnitReceived,
+		type = eventTypes.UnitReceived,
 		parameters = {
 			unitName = 'gift',
 		},
@@ -47,7 +47,7 @@ local triggers = {
 
 	-- Never fires: a mission gift is not a capture, however it passes the sharing rules.
 	giftCaptured = {
-		type = triggerTypes.UnitCaptured,
+		type = eventTypes.UnitCaptured,
 		parameters = {
 			unitName = 'gift',
 			ignoreMissionActions = false,
@@ -56,7 +56,7 @@ local triggers = {
 	},
 
 	spoilsCaptured = {
-		type = triggerTypes.UnitCaptured,
+		type = eventTypes.UnitCaptured,
 		parameters = {
 			unitName = 'spoils',
 			ignoreMissionActions = false,
@@ -66,7 +66,7 @@ local triggers = {
 
 	-- Never fires: a mission capture is not a gift.
 	spoilsReceived = {
-		type = triggerTypes.UnitReceived,
+		type = eventTypes.UnitReceived,
 		parameters = {
 			unitName = 'spoils',
 			ignoreMissionActions = false,
@@ -75,7 +75,7 @@ local triggers = {
 	},
 
 	prizeCaptured = {
-		type = triggerTypes.UnitCaptured,
+		type = eventTypes.UnitCaptured,
 		parameters = {
 			unitName = 'prize',
 		},
@@ -84,7 +84,7 @@ local triggers = {
 
 	-- Never fires: captures belong to UnitCaptured.
 	prizeReceived = {
-		type = triggerTypes.UnitReceived,
+		type = eventTypes.UnitReceived,
 		parameters = {
 			unitName = 'prize',
 		},
@@ -93,7 +93,7 @@ local triggers = {
 
 	-- Fires for a wind generator shared by a player, which nothing in this mission does on its own.
 	windShared = {
-		type = triggerTypes.UnitReceived,
+		type = eventTypes.UnitReceived,
 		parameters = {
 			unitDefName = 'armwin',
 			newTeamID = 0,

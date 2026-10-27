@@ -22,7 +22,7 @@ describe("mission_api.validation.parameter_validators", function()
 			})
 
 		local missing = {}
-		for _, definitions in ipairs({ V.definitions.ActionDefinitions, V.definitions.TriggerDefinitions }) do
+		for _, definitions in ipairs({ V.definitions.ActionDefinitions, V.definitions.ConditionDefinitions }) do
 			for entityType, parameters in pairs(definitions.Parameters) do
 				for _, parameter in ipairs(parameters) do
 					if parameterValidators[parameter.type] == nil then
@@ -90,13 +90,12 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("Quantity", function()
 		it("rejects a negative number", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitsOwned, {
-				teamID = 0,
-				quantity = -1,
-				unitDefName = "armwar",
-			}))
+			local result = V.validateAction({
+				type = V.actionTypes.AddCountdown,
+				parameters = { countdownID = "c", seconds = -1 },
+			})
 
-			V.assertMessage(result, "Quantity must be >= 0, got -1. Trigger: t, Parameter: quantity")
+			V.assertMessage(result, "Quantity must be >= 0, got -1. Action: a, Parameter: seconds")
 		end)
 	end)
 
