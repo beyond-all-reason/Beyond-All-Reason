@@ -1,0 +1,1274 @@
+if not RmlUi then
+	return
+end
+
+local widget = widget ---@type Widget
+
+-- Captured at chunk scope: RmlUi dispatches keydown/focus listeners through its own Lua plugin,
+-- where bare globals read nil (memory: rmlui-key-identifier-and-listener-env, trap 2).
+local WG, Spring, RmlUi = WG, Spring, RmlUi
+
+function widget:GetInfo()
+	return {
+		name = "Unit Library UI",
+		desc = "Shared unit library for the mission editor and the terraform brush: pick a unit type to place",
+		author = "PtaQ",
+		date = "2026",
+		license = "GNU GPL, v2 or later",
+		layer = 1000003,
+		enabled = false, -- the terraform suite turns it on; it must never load in a normal game
+	}
+end
+
+-- The UNIT LIBRARY (refactor plan, Phase U2 and U7): one window and one data model, opened by
+-- whichever editor wants a unit type -- the mission editor's ROSTER, the terraform brush's
+-- UNITS tab -- rather than the same markup copied into both panels. It PICKS; the caller
+-- arms its own placer (luaui/Include/unit_placer) with the pick.
+--
+--     WG.UnitLibrary.open({ title = "MISSION EDITOR", onPick = function(unitDefName) ... end })
+--
+-- FINDING a unit fast is the whole job (PtaQ: "the roster is very big"): five filter rows that
+-- combine (faction, tier, type, role, domain; AND across rows, OR within one), each chip
+-- showing how many it would leave; a search that matches names AND tags as you type ("t2
+-- arty cor"); the keyboard (focus on open, arrows, Enter picks, Escape closes); and the
+-- filters remembered per editor. Classification is pure and specced (unit_catalogue.lua).
+--
+-- How it is built follows the RmlUi practices: every control is a fixed callback that records
+-- state and raises a flag; arrays are assigned once per change from widget:Update, never
+-- inside the event; at most PAGE tiles are bound.
+
+local RML_PATH = "luaui/RmlWidgets/gui_unit_library/gui_unit_library.rml"
+local MODEL_NAME = "unit_library_model"
+local DOC_KEY = "unit_library"
+local RECENT_KEY = "UnitLibraryRecent"
+local FILTER_KEY = "UnitLibraryFilter_"
+local CYCLE_KEY = "UnitLibraryCycle"
+local FOLD_KEY = "UnitLibraryFolded"
+local SORT_KEY = "UnitLibrarySort"
+--- The collapsible sections (PtaQ's N5), each remembered folded or open.
+local SECTIONS = { "filters", "blueprints", "recent", "units" }
+
+local Catalogue = VFS.Include("luaui/RmlWidgets/gui_unit_library/unit_catalogue.lua")
+local Blueprints = VFS.Include("luaui/RmlWidgets/gui_unit_library/blueprints.lua")
+local Cycle = VFS.Include("luaui/Include/unit_placer/cycle.lua")
+
+--- Where blueprints live: one file each, per user, so a blueprint is shared by copying its
+--- file (U9; a project-folder location is a later decision).
+local BLUEPRINT_DIR = "LuaUI/Config/UnitBlueprints/"
+
+--- Tiles bound at once. A filter narrows faster than anyone scrolls 700 pictures.
+local PAGE = 120
+--- One row of the grid (PtaQ: RECENT shows a single row).
+local RECENT_LIMIT = 4
+--- Blueprint tiles bound at once.
+local BLUEPRINT_PAGE = 24
+--- Tiles per row in the grid, for the arrow keys (the grid is sized to fit this many).
+local COLUMNS = 4
+
+--- The GRID KEYS (PtaQ, 2026-09-29): the first three rows of the grid, row by row, on the
+--- three letter rows of the keyboard, the way the game's build grid menu does it. By POSITION
+--- (SDL scancodes), so the same three rows of keys work on any layout. A row takes as many
+--- keys as the grid has columns: four columns use Q W E R, and T G B join if it grows to five.
+local GRID_KEYS = {
+	{
+		{ sc = 20, label = "Q" },
+		{ sc = 26, label = "W" },
+		{ sc = 8, label = "E" },
+		{ sc = 21, label = "R" },
+		{ sc = 23, label = "T" },
+	},
+	{
+		{ sc = 4, label = "A" },
+		{ sc = 22, label = "S" },
+		{ sc = 7, label = "D" },
+		{ sc = 9, label = "F" },
+		{ sc = 10, label = "G" },
+	},
+	{
+		{ sc = 29, label = "Z" },
+		{ sc = 27, label = "X" },
+		{ sc = 6, label = "C" },
+		{ sc = 25, label = "V" },
+		{ sc = 5, label = "B" },
+	},
+}
+--- scancode -> tile index (1-based, in grid order), and tile index -> its key's label.
+local GRID_KEY_TILE, GRID_KEY_LABEL = {}, {}
+for row, keys in ipairs(GRID_KEYS) do
+	for col = 1, math.min(#keys, COLUMNS) do
+		local index = (row - 1) * COLUMNS + col
+		GRID_KEY_TILE[keys[col].sc] = index
+		GRID_KEY_LABEL[index] = keys[col].label
+	end
+end
+--- The other keys the library answers while it holds the keyboard, by scancode, as the RmlUi
+--- key names onKey takes: Enter picks the highlight, Escape closes, arrows move.
+local NAV_KEYS = {
+	[40] = "RETURN",
+	[88] = "NUMPADENTER",
+	[41] = "ESCAPE",
+	[79] = "RIGHT",
+	[80] = "LEFT",
+	[81] = "DOWN",
+	[82] = "UP",
+}
+
+local CHIP_LABELS = {
+	faction = { arm = "ARMADA", cor = "CORTEX", leg = "LEGION", other = "OTHER" },
+	tier = { [1] = "T1", [2] = "T2", [3] = "T3", [4] = "T4" },
+	type = {
+		bot = "BOT",
+		veh = "VEH",
+		hover = "HOVER",
+		ship = "SHIP",
+		air = "AIR",
+		seaplane = "SEAPLANE",
+		turret = "TURRET",
+		eco = "ECO",
+		util = "UTIL",
+		factory = "FACTORY",
+	},
+	role = { builder = "BUILDER", scout = "SCOUT", raider = "RAIDER", skirmish = "SKIRMISH", arty = "ARTY", aa = "AA" },
+	domain = { land = "LAND", sea = "SEA", air = "AIR" },
+}
+--- An icon before a chip's text (PtaQ, 2026-09-27). The factions wear the feature placer's own
+--- faction icons; a type, role or domain wears the strategic icon of a stock unit of that kind
+--- (gamedata/icontypes.lua, keyed by unit name), so the chip looks like what it finds.
+local FACTION_ICONS = {
+	arm = "/luaui/images/terraform_brush/cat_armada_wrecks.png",
+	cor = "/luaui/images/terraform_brush/cat_cortex_wrecks.png",
+	leg = "/luaui/images/terraform_brush/cat_legion_wrecks.png",
+	other = "/luaui/images/terraform_brush/cat_other.png",
+}
+local ICON_UNITS = {
+	type = {
+		bot = "armpw",
+		veh = "armflash",
+		hover = "armsh",
+		ship = "armpt",
+		air = "armfig",
+		seaplane = "armsfig",
+		turret = "armllt",
+		eco = "armsolar",
+		util = "armrad",
+		factory = "armlab",
+	},
+	role = {
+		builder = "armck",
+		scout = "armflea",
+		raider = "armflash",
+		skirmish = "armrock",
+		arty = "armham",
+		aa = "armjeth",
+	},
+	domain = { land = "armstump", sea = "armpt", air = "armfig" },
+}
+
+--- The TYPE row is shown as two short rows, units that move and buildings, so each fits on
+--- one line and the eye finds "a bot" or "a turret" without reading ten chips. One filter row
+--- underneath: a chip in either is a value of `type`.
+local MOBILE_TYPES = { bot = true, veh = true, hover = true, ship = true, air = true, seaplane = true }
+
+--- What a row's label says on hover (the filter rows' explanations live here, not in the rows).
+local ROW_NOTES = {
+	faction = "Faction. Click a chip for that one alone, Shift+click to add another. Click FACTION to clear the row.",
+	tier = "Tech level. Click TIER to clear the row.",
+	mobile = "Units that move, by how they move. Click the label to clear the type row.",
+	building = "Buildings, by what they are for. Click the label to clear the type row.",
+	role = "Roles are inferred from stats, against the other units of the same tier and domain. Click ROLE to clear the row.",
+	domain = "Where a unit works: land, sea or air. Click DOMAIN to clear the row.",
+}
+
+local CHIP_VALUES = {
+	faction = Catalogue.FACTIONS,
+	tier = Catalogue.TIERS,
+	type = Catalogue.TYPES,
+	role = Catalogue.ROLES,
+	domain = Catalogue.DOMAINS,
+}
+
+-- Every field starts empty and is filled at run time, so the table is typed open: a field
+-- declared `nil` here would otherwise be typed nil for good.
+---@type table<string, any>
+local state = {
+	context = nil,
+	model = nil,
+	document = nil,
+	root = nil,
+	drag = nil,
+	entries = nil, -- the catalogue, built on first open
+	byName = {},
+	owner = nil, -- { title, onPick }
+	filter = { search = "", faction = {}, tier = {}, type = {}, role = {}, domain = {} },
+	dirty = true, -- the tiles need recomputing
+	wantShown = false, -- what open/close asked for; applied in Update
+	shown = false,
+	wantFocus = false,
+	-- HOLDING THE KEYS: while true (the default) the grid keys and Enter / Escape / arrows are
+	-- the library's whenever it is open and its search field is not taking text. The button by
+	-- the close button (the terraform brush's pause / play) lets go of them, for the game.
+	keysHeld = true,
+	searchFocused = false,
+	recent = {},
+	lastTiles = {}, -- the names bound last, for the harness and the keyboard
+	focusIndex = 1,
+	keyIds = nil,
+	keyWired = false,
+	blueprints = nil, -- { { name, file, units }, ... } read from BLUEPRINT_DIR on first open
+	-- The PICK SET (PtaQ's N2): a plain click picks one, Ctrl+click adds or removes one, and
+	-- Shift+click adds every tile from the last one clicked (the asset library's gestures).
+	-- The owner cycles through it, one type per drop, in order or at random.
+	picks = {},
+	pickAnchor = nil, -- the tile clicked last: where a Shift+click range starts
+	matchNames = {}, -- every tile the filters leave, in the order shown (the range runs over it)
+	cycleMode = Cycle.ORDER,
+	folded = {}, -- section name -> true while folded
+	sort = { key = "name", desc = false }, -- the SORT chips; remembered
+	iconTypes = nil, -- gamedata/icontypes.lua, loaded with the catalogue
+}
+
+--------------------------------------------------------------------------------
+-- Remembering filters, per editor
+--------------------------------------------------------------------------------
+local function serialiseFilter(filter)
+	local parts = {}
+	for _, row in ipairs(Catalogue.ROWS) do
+		local values = {}
+		for value in pairs(filter[row] or {}) do
+			values[#values + 1] = tostring(value)
+		end
+		table.sort(values)
+		parts[#parts + 1] = row .. "=" .. table.concat(values, ",")
+	end
+	return table.concat(parts, ";")
+end
+
+local function parseFilter(text)
+	---@type table<string, any>
+	local filter = { search = "", faction = {}, tier = {}, type = {}, role = {}, domain = {} }
+	for row, values in tostring(text or ""):gmatch("(%a+)=([^;]*)") do
+		if filter[row] then
+			for value in values:gmatch("[^,]+") do
+				filter[row][row == "tier" and (tonumber(value) or value) or value] = true
+			end
+		end
+	end
+	return filter
+end
+
+local function saveFilter()
+	local title = state.owner and state.owner.title
+	if title then
+		Spring.SetConfigString(FILTER_KEY .. title:gsub("%W", "_"), serialiseFilter(state.filter))
+	end
+end
+
+local function loadSort()
+	local key, dir = tostring(Spring.GetConfigString(SORT_KEY, "") or ""):match("^(%a+):(%a+)$")
+	if key and Catalogue.sortKnown(key) then
+		return { key = key, desc = dir == "desc" }
+	end
+	return { key = "name", desc = false }
+end
+
+--- Folded sections. RECENT and BLUEPRINTS start folded (PtaQ); once anything is saved, what was saved wins,
+--- and "none" says "saved with everything open".
+local function loadFolded()
+	local saved = Spring.GetConfigString(FOLD_KEY, "") or ""
+	if saved == "" then
+		return { recent = true, blueprints = true }
+	end
+	local folded = {}
+	for name in saved:gmatch("[^,]+") do
+		if name ~= "none" then
+			folded[name] = true
+		end
+	end
+	return folded
+end
+
+local function saveFolded()
+	local names = {}
+	for _, name in ipairs(SECTIONS) do
+		if state.folded[name] then
+			names[#names + 1] = name
+		end
+	end
+	Spring.SetConfigString(FOLD_KEY, #names > 0 and table.concat(names, ",") or "none")
+end
+
+--- The model's `folded` table: every section present, so no binding reads a nil.
+local function foldModel()
+	local out = {}
+	for _, name in ipairs(SECTIONS) do
+		out[name] = state.folded[name] == true
+	end
+	return out
+end
+
+local function loadRecent()
+	local raw = Spring.GetConfigString(RECENT_KEY, "") or ""
+	local out = {}
+	for name in raw:gmatch("[^,]+") do
+		out[#out + 1] = name
+	end
+	return out
+end
+
+--------------------------------------------------------------------------------
+-- Blueprints (U9)
+--------------------------------------------------------------------------------
+local function loadBlueprints()
+	state.blueprints = {}
+	Spring.CreateDir(BLUEPRINT_DIR)
+	for _, path in ipairs(VFS.DirList(BLUEPRINT_DIR, "*.lua", VFS.RAW) or {}) do
+		local text = VFS.LoadFile(path, VFS.RAW)
+		local blueprint, why = Blueprints.parse(text)
+		if blueprint then
+			blueprint.file = path
+			state.blueprints[#state.blueprints + 1] = blueprint
+		else
+			Spring.Echo("[unit library] skipped " .. tostring(path) .. ": " .. tostring(why))
+		end
+	end
+	table.sort(state.blueprints, function(a, b)
+		return a.name:lower() < b.name:lower()
+	end)
+end
+
+local function blueprintByName(name)
+	for _, blueprint in ipairs(state.blueprints or {}) do
+		if blueprint.name == name then
+			return blueprint
+		end
+	end
+	return nil
+end
+
+--- Save a group as a blueprint under a name (replacing one of the same name).
+---@return boolean ok, string|nil pathOrWhy
+local function saveBlueprint(name, units)
+	if type(units) ~= "table" or #units == 0 then
+		return false, "nothing to save"
+	end
+	name = tostring(name or ""):gsub("^%s+", ""):gsub("%s+$", "")
+	if name == "" then
+		return false, "a blueprint needs a name"
+	end
+	Spring.CreateDir(BLUEPRINT_DIR)
+	local path = BLUEPRINT_DIR .. Blueprints.fileName(name)
+	local handle, problem = io.open(path, "w")
+	if not handle then
+		return false, "cannot write " .. path .. ": " .. tostring(problem)
+	end
+	handle:write(Blueprints.serialise({ name = name, units = units }))
+	handle:close()
+	loadBlueprints()
+	state.dirty = true
+	return true, path
+end
+
+local function deleteBlueprint(name)
+	local blueprint = blueprintByName(name)
+	if not blueprint then
+		return false
+	end
+	local ok = os.remove(blueprint.file)
+	loadBlueprints()
+	state.dirty = true
+	return ok ~= nil
+end
+
+local function pickBlueprint(name)
+	if not state.blueprints then
+		loadBlueprints()
+	end
+	local blueprint = blueprintByName(tostring(name))
+	local owner = state.owner
+	if not (blueprint and owner and owner.onPickBlueprint) then
+		return false
+	end
+	local ok, problem = pcall(owner.onPickBlueprint, blueprint)
+	if not ok then
+		Spring.Echo("[unit library] the blueprint handler failed: " .. tostring(problem))
+	end
+	return ok
+end
+
+--------------------------------------------------------------------------------
+-- The render pass
+--------------------------------------------------------------------------------
+local function describe(entry)
+	local roles = {}
+	for _, role in ipairs(Catalogue.ROLES) do
+		if entry.roles[role] then
+			roles[#roles + 1] = role
+		end
+	end
+	local domains = {}
+	for _, domain in ipairs(Catalogue.DOMAINS) do
+		if entry.domains[domain] then
+			domains[#domains + 1] = domain
+		end
+	end
+	return string.format(
+		"%s (%s) \194\183 T%d %s %s \194\183 %s%s",
+		entry.human,
+		entry.name,
+		entry.tier,
+		entry.faction:upper(),
+		entry.type,
+		table.concat(domains, "+"),
+		#roles > 0 and (" \194\183 " .. table.concat(roles, ", ")) or ""
+	)
+end
+
+--- A tile that is not there. Every tile array keeps a FIXED length, padded with these: a
+--- shorter array makes RmlUi evaluate the bindings of the rows it is about to drop, and each
+--- one logs "Could not get value from data variable 'tiles[N].name'" (hundreds per keystroke
+--- in PtaQ's log). Padded, no binding ever points past the end.
+local BLANK_IMG = "/icons/inverted/blank.png"
+local function blankTile()
+	return {
+		name = "",
+		human = "",
+		img = BLANK_IMG,
+		faction = "",
+		index = 0,
+		count = "",
+		blank = true,
+		picked = false,
+		order = "",
+	}
+end
+
+local function padded(list, length)
+	for index = #list + 1, length do
+		list[index] = blankTile()
+	end
+	return list
+end
+
+--- Where a name sits in the pick set (nil if it is not in it).
+local function pickOrder(name)
+	for index, picked in ipairs(state.picks) do
+		if picked == name then
+			return index
+		end
+	end
+	return nil
+end
+
+local setKeysHeld -- defined with the grid keys, below
+
+local function tileOf(entry, index)
+	local order = pickOrder(entry.name)
+	return {
+		name = entry.name,
+		human = entry.human,
+		img = entry.img,
+		faction = entry.faction,
+		index = index,
+		count = "",
+		blank = false,
+		picked = order ~= nil,
+		-- The grid key that picks it, on the first three rows while the library holds keys.
+		hotkey = (state.keysHeld and index > 0 and GRID_KEY_LABEL[index]) or "",
+		-- The badge only means something with more than one picked.
+		order = (order and #state.picks > 1) and tostring(order) or "",
+	}
+end
+
+local function ensureCatalogue()
+	if state.entries then
+		return
+	end
+	local icontypes = VFS.Include("gamedata/icontypes.lua")
+	state.iconTypes = icontypes
+	state.entries = Catalogue.build(UnitDefs, VFS.FileExists, icontypes, WeaponDefs)
+	state.byName = {}
+	for _, entry in ipairs(state.entries) do
+		state.byName[entry.name] = entry
+	end
+end
+
+--- The picture a chip wears, or "" for none.
+local function chipIcon(row, value)
+	if row == "faction" then
+		return FACTION_ICONS[value] or ""
+	end
+	local unitName = ICON_UNITS[row] and ICON_UNITS[row][value]
+	local icon = unitName and state.iconTypes and state.iconTypes[unitName]
+	if icon and icon.bitmap and UnitDefNames and UnitDefNames[unitName] then
+		return "/" .. icon.bitmap
+	end
+	return ""
+end
+
+--- The SORT chips: every key, the active one saying which way round it is.
+local function sortChips()
+	-- The direction as an ARROW on the active chip (PtaQ: arrows, not HI / LO): down for
+	-- biggest-first (and Z to A), up for smallest-first (and A to Z).
+	local chips = {}
+	for _, sort in ipairs(Catalogue.SORTS) do
+		local active = state.sort.key == sort.key
+		chips[#chips + 1] = {
+			key = sort.key,
+			label = sort.label,
+			active = active,
+			down = active and state.sort.desc == true,
+			up = active and state.sort.desc ~= true,
+		}
+	end
+	return chips
+end
+
+--- The tiles, the chips with their counts, the recent row. Render pass only.
+local function refresh()
+	local m = state.model
+	if not m then
+		return
+	end
+	ensureCatalogue()
+	state.filter.search = m.search or ""
+	local matches = Catalogue.sort(Catalogue.filter(state.entries, state.filter), state.sort.key, state.sort.desc)
+	m.sortChips = sortChips()
+	local tiles, names = {}, {}
+	for index = 1, math.min(#matches, PAGE) do
+		tiles[index] = tileOf(matches[index], index)
+		names[index] = matches[index].name
+	end
+	m.tiles = padded(tiles, PAGE)
+	state.lastTiles = names
+	local matchNames = {}
+	for index, entry in ipairs(matches) do
+		matchNames[index] = entry.name
+	end
+	state.matchNames = matchNames
+	state.focusIndex = math.max(1, math.min(state.focusIndex, #names))
+	m.focusIndex = state.focusIndex
+	m.countText = (#matches > PAGE) and string.format("%d of %d shown: refine the search", PAGE, #matches)
+		or string.format("%d unit type(s)", #matches)
+	m.none = #matches == 0
+
+	local counts = Catalogue.counts(state.entries, state.filter)
+	local anyActive = (m.search or "") ~= ""
+	local rowActive = {}
+	for _, row in ipairs(Catalogue.ROWS) do
+		local chips = {}
+		for _, value in ipairs(CHIP_VALUES[row]) do
+			local count = counts[row][value] or 0
+			local active = state.filter[row][value] == true
+			anyActive = anyActive or active
+			chips[#chips + 1] = {
+				row = row,
+				value = tostring(value),
+				label = CHIP_LABELS[row][value] or tostring(value),
+				icon = chipIcon(row, value) ~= "" and chipIcon(row, value) or BLANK_IMG,
+				hasIcon = chipIcon(row, value) ~= "",
+				count = count,
+				active = active,
+				zero = count == 0 and not active,
+			}
+			rowActive[row] = rowActive[row] or active
+		end
+		if row == "type" then
+			local mobile, building = {}, {}
+			for _, chipEntry in ipairs(chips) do
+				local list = MOBILE_TYPES[chipEntry.value] and mobile or building
+				list[#list + 1] = chipEntry
+			end
+			m.mobileChips = mobile
+			m.buildingChips = building
+		else
+			m[row .. "Chips"] = chips
+		end
+	end
+	m.anyActive = anyActive
+	for _, row in ipairs(Catalogue.ROWS) do
+		m.rowActive[row] = rowActive[row] == true
+	end
+
+	-- Blueprints, matched by name against the search; offered only to an editor that takes them.
+	if not state.blueprints then
+		loadBlueprints()
+	end
+	local words = {}
+	for word in tostring(m.search or ""):lower():gmatch("%S+") do
+		words[#words + 1] = word
+	end
+	local blueprintTiles = {}
+	for _, blueprint in ipairs(state.blueprints) do
+		if #blueprintTiles >= BLUEPRINT_PAGE then
+			break
+		end
+		local hay, ok = blueprint.name:lower(), true
+		for _, word in ipairs(words) do
+			ok = ok and hay:find(word, 1, true) ~= nil
+		end
+		if ok then
+			local first = state.byName[blueprint.units[1].unitDefName]
+			blueprintTiles[#blueprintTiles + 1] = {
+				name = blueprint.name,
+				human = blueprint.name,
+				count = "x" .. #blueprint.units,
+				img = first and first.img or BLANK_IMG,
+				blank = false,
+			}
+		end
+	end
+	local anyBlueprint = #blueprintTiles > 0
+	m.blueprints = padded(blueprintTiles, BLUEPRINT_PAGE)
+	m.blueprintsShown = anyBlueprint and state.owner ~= nil and state.owner.onPickBlueprint ~= nil
+
+	local recent = {}
+	for _, name in ipairs(state.recent) do
+		if state.byName[name] then
+			recent[#recent + 1] = tileOf(state.byName[name], 0)
+		end
+	end
+	local anyRecent = #recent > 0
+	m.recent = padded(recent, RECENT_LIMIT)
+	m.recentShown = anyRecent and not anyActive
+
+	m.pickCount = #state.picks
+	m.pickSetShown = #state.picks > 1
+	m.cycleMode = state.cycleMode
+end
+
+--------------------------------------------------------------------------------
+-- Picking
+--------------------------------------------------------------------------------
+--- Tell the owner what is picked now: the first name (what a one-type owner arms with) and
+--- the whole set with how to cycle it, `{ names = { ... }, mode = "abc" | "random" }`.
+local function notifyOwner()
+	local owner = state.owner
+	if not (owner and owner.onPick and state.picks[1]) then
+		return
+	end
+	local names = {}
+	for index, name in ipairs(state.picks) do
+		names[index] = name
+	end
+	local ok, problem = pcall(owner.onPick, names[1], { names = names, mode = state.cycleMode })
+	if not ok then
+		Spring.Echo("[unit library] the pick handler failed: " .. tostring(problem))
+	end
+end
+
+--- A tile clicked, with the asset library's gestures. `gesture`: "plain" (that one alone),
+--- "toggle" (Ctrl: add it to the pick set or take it back out) or "range" (Shift: every tile
+--- from the one clicked last to this one, in the filtered order; a toggle when there is no
+--- such tile). A boolean still works for older callers: true = toggle.
+local function pick(name, gesture)
+	name = tostring(name or "")
+	ensureCatalogue()
+	if not state.byName[name] then
+		return false
+	end
+	if gesture == true then
+		gesture = "toggle"
+	elseif gesture ~= "toggle" and gesture ~= "range" then
+		gesture = "plain"
+	end
+	local ranged = gesture == "range" and Cycle.addRange(state.picks, state.matchNames, state.pickAnchor, name)
+	if ranged then
+		state.picks = ranged
+	else
+		state.picks = Cycle.toggle(state.picks, name, gesture ~= "plain")
+		state.pickAnchor = name
+	end
+	state.model.picked = state.picks[1] or ""
+	if pickOrder(name) then
+		state.recent = Catalogue.remember(state.recent, name, RECENT_LIMIT)
+		Spring.SetConfigString(RECENT_KEY, table.concat(state.recent, ","))
+	end
+	state.dirty = true
+	notifyOwner()
+	return true
+end
+
+--- The CYCLE chips: A B C or RANDOM. Remembered; the owner hears the set again.
+local function setCycle(mode)
+	state.cycleMode = Cycle.mode(mode)
+	Spring.SetConfigString(CYCLE_KEY, state.cycleMode)
+	state.dirty = true
+	if #state.picks > 1 then
+		notifyOwner()
+	end
+end
+
+--- A SORT chip: pick that key (in the direction it starts in), or flip the one already on.
+local function setSort(key)
+	key = tostring(key)
+	if not Catalogue.sortKnown(key) then
+		return false
+	end
+	if state.sort.key == key then
+		state.sort.desc = not state.sort.desc
+	else
+		state.sort = { key = key, desc = Catalogue.sortDefaultDesc(key) }
+	end
+	Spring.SetConfigString(SORT_KEY, state.sort.key .. ":" .. (state.sort.desc and "desc" or "asc"))
+	state.focusIndex = 1
+	state.dirty = true
+	return true
+end
+
+--- Put the pick down (the owner let go of it: a right click on the map, CANCEL).
+local function clearPicks()
+	state.picks = {}
+	if state.model then
+		state.model.picked = ""
+	end
+	state.dirty = true
+end
+
+local function fold(name)
+	name = tostring(name)
+	state.folded[name] = (not state.folded[name]) or nil
+	if state.model then
+		state.model.folded[name] = state.folded[name] == true
+	end
+	saveFolded()
+end
+
+--- A chip pressed. Plain: that value alone (again: clear the row). Shift: add or remove it.
+local function chip(row, value, additive)
+	if not state.filter[row] then
+		return
+	end
+	if row == "tier" then
+		value = tonumber(value) or value
+	end
+	state.filter[row] = Catalogue.toggle(state.filter[row], value, additive)
+	state.focusIndex = 1
+	state.dirty = true
+	saveFilter()
+end
+
+local function clearAll()
+	for _, row in ipairs(Catalogue.ROWS) do
+		state.filter[row] = {}
+	end
+	state.model.search = ""
+	state.filter.search = ""
+	state.focusIndex = 1
+	state.dirty = true
+	saveFilter()
+end
+
+--------------------------------------------------------------------------------
+-- The keyboard, on the search field (RmlUi eats these keys before widget:KeyPress)
+--------------------------------------------------------------------------------
+---@return table
+local function keyIds()
+	if state.keyIds then
+		return state.keyIds
+	end
+	local ok, ids = pcall(function()
+		return RmlUi.key_identifier()
+	end)
+	if not (ok and type(ids) == "table") then
+		ok, ids = pcall(function()
+			return RmlUi.key_identifier
+		end)
+	end
+	if ok and type(ids) == "table" then
+		state.keyIds = ids
+	else
+		Spring.Echo("[unit library] RmlUi.key_identifier did not resolve; Enter and arrows will not work")
+		state.keyIds = {}
+	end
+	return state.keyIds
+end
+
+--- Arrows move the highlight, Enter picks it, Escape closes. Returns whether it was ours.
+local function onKey(key)
+	local ids = keyIds()
+	local count = #state.lastTiles
+	if key == ids.RETURN or key == ids.NUMPADENTER then
+		local name = state.lastTiles[state.focusIndex]
+		if name then
+			pick(name)
+		end
+		return true
+	elseif key == ids.ESCAPE then
+		state.wantShown = false
+		return true
+	elseif count > 0 and (key == ids.RIGHT or key == ids.LEFT or key == ids.DOWN or key == ids.UP) then
+		local step = (key == ids.RIGHT and 1) or (key == ids.LEFT and -1) or (key == ids.DOWN and COLUMNS) or -COLUMNS
+		state.focusIndex = math.max(1, math.min(count, state.focusIndex + step))
+		state.model.focusIndex = state.focusIndex
+		return true
+	end
+	return false
+end
+
+local function wireKeys()
+	if state.keyWired or not state.document then
+		return
+	end
+	local search = state.document:GetElementById("ul-search")
+	if not search then
+		return
+	end
+	state.keyWired = true
+	search:AddEventListener("keydown", function(event)
+		local key = event and event.parameters and event.parameters.key_identifier
+		if key and onKey(key) then
+			event:StopPropagation()
+		end
+	end, false)
+end
+
+--- Hold the keyboard for the grid, or give it back to the game (and the placer's own keys).
+--- Letting go also takes the caret out of the search field, so nothing in the library is
+--- taking keys at all.
+setKeysHeld = function(held)
+	state.keysHeld = held == true
+	if state.model then
+		state.model.keysHeld = state.keysHeld
+	end
+	if state.root then
+		state.root:SetClass("ul-released", not state.keysHeld)
+	end
+	if not state.keysHeld and state.document then
+		local search = state.document:GetElementById("ul-search")
+		if search and state.searchFocused then
+			search:Blur()
+		end
+		state.searchFocused = false
+		Spring.SDLStopTextInput()
+	end
+	state.dirty = true
+end
+
+--- A key the game sent (widget:KeyPress): the grid keys and the navigation keys, while the
+--- library is open, holds the keyboard, and no text field of it has the caret. Ctrl, Alt and
+--- Meta leave the key to the game; Shift adds to the pick set, as Shift+click does.
+local function gridKeyPress(mods, scanCode)
+	-- Any other editor text field with the caret (a node's field, the panel's forms, the brush)
+	-- types; the grid keys stand down.
+	if not (state.shown and state.keysHeld) or state.searchFocused or WG.TerraformBrushInputFocused then
+		return false
+	end
+	mods = mods or {}
+	if mods.ctrl or mods.alt or mods.meta then
+		return false
+	end
+	local sc = tonumber(scanCode)
+	local index = sc and GRID_KEY_TILE[sc]
+	if index then
+		local name = state.lastTiles[index]
+		if name then
+			pick(name, mods.shift == true)
+		end
+		-- Claimed even over an empty slot: a grid key must not fall through to the game.
+		return true
+	end
+	local nav = sc and NAV_KEYS[sc]
+	if nav then
+		return onKey(keyIds()[nav])
+	end
+	return false
+end
+
+--------------------------------------------------------------------------------
+-- The model: fixed callbacks, registered once at OpenDataModel. State only.
+--------------------------------------------------------------------------------
+local initialModel = {
+	title = "UNIT LIBRARY",
+	search = "",
+	picked = "",
+	tiles = {},
+	recent = {},
+	recentShown = false,
+	none = false,
+	countText = "",
+	hoverText = "",
+	focusIndex = 1,
+	anyActive = false,
+	blueprints = {},
+	blueprintsShown = false,
+	pickCount = 0,
+	pickSetShown = false,
+	cycleMode = Cycle.ORDER,
+	folded = {},
+	setCycle = function(_, mode)
+		setCycle(mode)
+	end,
+	sortChips = {},
+	setSort = function(_, key)
+		setSort(key)
+	end,
+	fold = function(_, name)
+		fold(name)
+	end,
+	pickBlueprint = function(_, name)
+		pickBlueprint(name)
+	end,
+	deleteBlueprint = function(event, name)
+		pcall(function()
+			event:StopPropagation()
+		end)
+		deleteBlueprint(tostring(name))
+	end,
+	factionChips = {},
+	tierChips = {},
+	mobileChips = {},
+	buildingChips = {},
+	roleChips = {},
+	domainChips = {},
+	rowActive = { faction = false, tier = false, type = false, role = false, domain = false },
+	-- A row's label clears that row.
+	clearRow = function(_, row)
+		row = tostring(row)
+		if state.filter[row] then
+			state.filter[row] = {}
+			state.focusIndex = 1
+			state.dirty = true
+			saveFilter()
+		end
+	end,
+	rowNote = function(_, key)
+		state.model.hoverText = ROW_NOTES[tostring(key)] or ""
+	end,
+	pick = function(event, name)
+		local shift, ctrl = false, false
+		pcall(function()
+			shift = event.parameters.shift_key == 1 or event.parameters.shift_key == true
+			ctrl = event.parameters.ctrl_key == 1 or event.parameters.ctrl_key == true
+		end)
+		pick(name, shift and "range" or (ctrl and "toggle" or "plain"))
+	end,
+	chip = function(event, row, value)
+		local additive = false
+		pcall(function()
+			additive = event.parameters.shift_key == 1 or event.parameters.shift_key == true
+		end)
+		chip(row, value, additive)
+	end,
+	clearAll = function()
+		clearAll()
+	end,
+	hover = function(_, name)
+		local entry = state.byName[tostring(name)]
+		state.model.hoverText = entry and describe(entry) or ""
+	end,
+	searchChanged = function()
+		state.focusIndex = 1
+		state.dirty = true
+	end,
+	searchClear = function()
+		state.model.search = ""
+		state.focusIndex = 1
+		state.dirty = true
+	end,
+	searchFocus = function()
+		state.searchFocused = true
+		Spring.SDLStartTextInput()
+	end,
+	searchBlur = function()
+		state.searchFocused = false
+		Spring.SDLStopTextInput()
+	end,
+	keysHeld = true,
+	toggleKeys = function()
+		setKeysHeld(not state.keysHeld)
+	end,
+	keysNote = function()
+		state.model.hoverText = state.keysHeld
+				and "The library holds the keys: Q W E R, A S D F, Z X C V pick from the first three rows. Click to give the keys back to the game."
+			or "The keys are the game's. Click to take them back for the library's grid."
+	end,
+	close = function()
+		state.wantShown = false
+	end,
+}
+
+--------------------------------------------------------------------------------
+-- The API the editors use
+--------------------------------------------------------------------------------
+local function open(options)
+	options = options or {}
+	local previous = state.owner and state.owner.title
+	state.owner = { title = options.title, onPick = options.onPick, onPickBlueprint = options.onPickBlueprint }
+	if options.title ~= previous then
+		-- A pick belongs to the editor that made it.
+		clearPicks()
+		-- Each editor finds the library as it left it.
+		local saved = options.title
+			and Spring.GetConfigString(FILTER_KEY .. tostring(options.title):gsub("%W", "_"), "")
+		state.filter = parseFilter(saved)
+		if state.model then
+			state.model.search = ""
+		end
+	end
+	if state.model then
+		state.model.title = options.title and ("UNITS \194\183 " .. tostring(options.title)) or "UNIT LIBRARY"
+	end
+	state.wantShown = true
+	state.wantFocus = true
+	state.focusIndex = 1
+	state.dirty = true
+	return state.document ~= nil
+end
+
+local function close()
+	state.wantShown = false
+end
+
+function widget:Initialize()
+	state.context = RmlUi.GetContext("shared")
+	if not state.context then
+		return false
+	end
+	state.folded = loadFolded()
+	state.sort = loadSort()
+	state.cycleMode = Cycle.mode(Spring.GetConfigString(CYCLE_KEY, Cycle.ORDER))
+	initialModel.folded = foldModel()
+	initialModel.cycleMode = state.cycleMode
+	state.model = state.context:OpenDataModel(MODEL_NAME, initialModel, self)
+	if not state.model then
+		return false
+	end
+	state.document = state.context:LoadDocument(RML_PATH, self)
+	if not state.document then
+		widget:Shutdown()
+		return false
+	end
+	state.document:ReloadStyleSheet()
+	state.document:Hide()
+	state.root = state.document:GetElementById("ul-root")
+	if WG.TerraformerShared and WG.TerraformerShared.registerDocument then
+		WG.TerraformerShared.registerDocument(DOC_KEY, state.document)
+	end
+	if WG.TerraformerShared and WG.TerraformerShared.attachDraggable and state.root then
+		state.drag = WG.TerraformerShared.attachDraggable(state.document, "ul-handle", state.root, {})
+	end
+	state.recent = loadRecent()
+	wireKeys()
+
+	WG.UnitLibrary = {
+		open = open,
+		close = close,
+		isOpen = function()
+			return state.wantShown
+		end,
+		--- Who opened it last, by title.
+		owner = function()
+			return state.owner and state.owner.title or nil
+		end,
+		--- Blueprints (U9): save a group under a name, list them, pick one (as a click would),
+		--- delete one.
+		saveBlueprint = saveBlueprint,
+		deleteBlueprint = deleteBlueprint,
+		pickBlueprint = pickBlueprint,
+		blueprints = function()
+			if not state.blueprints then
+				loadBlueprints()
+			end
+			local out = {}
+			for index, blueprint in ipairs(state.blueprints) do
+				out[index] = blueprint.name
+			end
+			return out
+		end,
+		--- Is a screen point (RmlUi coordinates) inside the library window?
+		contains = function(x, y)
+			local root = state.root
+			if not (state.shown and root and root.offset_width > 0) then
+				return false
+			end
+			return x >= root.absolute_left
+				and x <= root.absolute_left + root.offset_width
+				and y >= root.absolute_top
+				and y <= root.absolute_top + root.offset_height
+		end,
+		--- Pick as a click on the tile would (additive = Shift held). For the harness and for
+		--- keyboard shortcuts.
+		pick = pick,
+		--- The SORT chips: a key as a click would (again flips it), and what is on now.
+		setSort = setSort,
+		sort = function()
+			return { key = state.sort.key, desc = state.sort.desc }
+		end,
+		--- A chip's icon, for checks.
+		chipIcon = function(row, value)
+			ensureCatalogue()
+			return chipIcon(row, value)
+		end,
+		--- The pick set, in order.
+		picks = function()
+			return state.picks
+		end,
+		--- The CYCLE chips: "abc" or "random".
+		setCycle = setCycle,
+		cycleMode = function()
+			return state.cycleMode
+		end,
+		--- The owner let go of its pick: the tiles stop showing it.
+		clearPicks = clearPicks,
+		--- Fold or open a section ("filters", "blueprints", "recent", "units") as its title
+		--- row would, and read whether one is folded.
+		fold = fold,
+		folded = function(name)
+			return state.folded[tostring(name)] == true
+		end,
+		--- Set the search, and whole filter rows (a list of values each), as the controls would.
+		--- A row left out is left alone; `clear = true` clears every row first.
+		setFilter = function(filter)
+			filter = filter or {}
+			if filter.clear then
+				for _, row in ipairs(Catalogue.ROWS) do
+					state.filter[row] = {}
+				end
+				state.model.search = ""
+			end
+			if filter.search ~= nil then
+				state.model.search = filter.search
+			end
+			for _, row in ipairs(Catalogue.ROWS) do
+				if type(filter[row]) == "table" then
+					local set = {}
+					for _, value in ipairs(filter[row]) do
+						set[value] = true
+					end
+					state.filter[row] = set
+				end
+			end
+			state.focusIndex = 1
+			state.dirty = true
+		end,
+		--- A chip press, as a click (additive = Shift held).
+		chip = chip,
+		--- The GRID KEYS: press one by scancode as widget:KeyPress would (mods like the
+		--- callin's: { shift, ctrl, alt, meta }); returns whether the library took it.
+		gridKey = function(scanCode, mods)
+			return gridKeyPress(mods, scanCode)
+		end,
+		--- Whether a grid key would be the library's right now, without picking anything. Other
+		--- editor widgets that see keys before the library (the terraform brush's tool and
+		--- shape hotkeys share W, F, C, ...) stand down for these.
+		claimsKey = function(scanCode, mods)
+			if not (state.shown and state.keysHeld) or state.searchFocused or WG.TerraformBrushInputFocused then
+				return false
+			end
+			mods = mods or {}
+			if mods.ctrl or mods.alt or mods.meta then
+				return false
+			end
+			return GRID_KEY_TILE[tonumber(scanCode) or -1] ~= nil
+		end,
+		--- Hold the keys for the grid (true) or give them back to the game (false), as the
+		--- pause / play button does; and read which.
+		setKeysHeld = setKeysHeld,
+		keysHeld = function()
+			return state.keysHeld
+		end,
+		--- A tile's grid key label ("" for none), by its place in the grid.
+		gridKeyLabel = function(index)
+			return (state.keysHeld and GRID_KEY_LABEL[index]) or ""
+		end,
+		--- A key on the search field (an RmlUi key identifier), as the keyboard would send it.
+		key = function(name)
+			return onKey(keyIds()[name])
+		end,
+		focusIndex = function()
+			return state.focusIndex
+		end,
+		--- The unit names the tiles show now, in order.
+		visible = function()
+			return state.lastTiles
+		end,
+		--- How many unit types the library knows.
+		size = function()
+			ensureCatalogue()
+			return #state.entries
+		end,
+		--- A unit's classification (type, tier, faction, domains, roles, stats), for checks.
+		classify = function(name)
+			ensureCatalogue()
+			return state.byName[tostring(name)]
+		end,
+		--- Milliseconds one filter + chip-count pass takes over the whole catalogue (the work
+		--- a keystroke costs), averaged over `n` runs.
+		benchFilter = function(n)
+			ensureCatalogue()
+			n = n or 20
+			local filter =
+				{ search = "t2", faction = { cor = true }, tier = {}, type = { bot = true }, role = {}, domain = {} }
+			local started = Spring.GetTimer()
+			for _ = 1, n do
+				Catalogue.filter(state.entries, filter)
+				Catalogue.counts(state.entries, filter)
+			end
+			return Spring.DiffTimers(Spring.GetTimer(), started) * 1000 / n
+		end,
+		--- Every entry, for checks and for tuning Catalogue.ROLE_RULES against real data.
+		entries = function()
+			ensureCatalogue()
+			return state.entries
+		end,
+	}
+end
+
+function widget:Update()
+	if state.drag then
+		state.drag.tick()
+	end
+	if state.wantShown ~= state.shown and state.document then
+		state.shown = state.wantShown
+		if state.shown then
+			-- Shown WITHOUT taking the focus: a graph node's unit-name field opens the library
+			-- beside it and keeps its caret (typing still works there), and the grid keys do not
+			-- need the focus either. Plain Show if the flags are not bound.
+			local flags = RmlUi.RmlModalFlag and RmlUi.RmlFocusFlag
+			if
+				not (
+					flags
+					and pcall(function()
+						state.document:Show(RmlUi.RmlModalFlag.None, RmlUi.RmlFocusFlag.None)
+					end)
+				)
+			then
+				state.document:Show()
+			end
+			if WG.TerraformerShared and WG.TerraformerShared.bringToFront then
+				WG.TerraformerShared.bringToFront(DOC_KEY)
+			end
+		else
+			state.document:Hide()
+			Spring.SDLStopTextInput()
+		end
+	end
+	if state.shown and state.dirty then
+		state.dirty = false
+		refresh()
+	end
+	-- The search is NOT focused on open any more (PtaQ, 2026-09-29): the grid keys are the
+	-- library's from the moment it opens, and a focused search would take Q as text. A click
+	-- in the field types; leaving it hands the keys back to the grid.
+	state.wantFocus = false
+end
+
+function widget:KeyPress(_key, mods, _isRepeat, _label, _unicode, scanCode)
+	return gridKeyPress(mods, scanCode)
+end
+
+function widget:Shutdown()
+	Spring.SDLStopTextInput()
+	WG.UnitLibrary = nil
+	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then
+		WG.TerraformerShared.unregisterDocument(DOC_KEY)
+	end
+	if state.context and state.model then
+		state.context:RemoveDataModel(MODEL_NAME)
+		state.model = nil
+	end
+	if state.document then
+		state.document:Close()
+		state.document = nil
+	end
+end

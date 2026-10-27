@@ -351,7 +351,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
 
 		local minY = elevation - areaRange
 		if minY < waterPlaneLevel then
-			minY = minY * (1 - dy * 0.5) -- avoid damage to submerged targets
+			minY = waterPlaneLevel + (minY - waterPlaneLevel) * (1 - dy * 0.5) -- avoid damage to submerged targets
 		end
 
 		-- Shields and area damages express slightly different types of containment of units,
@@ -637,7 +637,10 @@ function gadget:Initialize()
 	end
 
 	for weaponDefID in pairs(timedDamageWeapons) do
-		Script.SetWatchExplosion(weaponDefID, true)
+		gadgetHandler:RegisterExplosion(weaponDefID)
+		if lavaWater then
+			gadgetHandler:RegisterProjectile(weaponDefID)
+		end
 	end
 
 	unitDamageImmunity = {}
@@ -709,9 +712,7 @@ function gadget:Initialize()
 end
 
 function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
-	if timedDamageWeapons[weaponDefID] then
-		addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
-	end
+	addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
 end
 
 function gadget:GameFrame(frame)
@@ -780,7 +781,7 @@ if lavaWater then
 
 		local minY = elevation - areaRange
 		if minY < lavaLevel then
-			minY = minY * (1 - dy * 0.5)
+			minY = lavaLevel + (minY - lavaLevel) * (1 - dy * 0.5)
 		end
 
 		area.y = elevation
@@ -820,9 +821,7 @@ if lavaWater then
 	end
 
 	function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
-		if timedDamageWeapons[weaponDefID] then
-			projectiles[projectileID] = true
-		end
+		projectiles[projectileID] = true
 	end
 
 	function gadget:ProjectileDestroyed(projectileID, ownerID, weaponDefID)

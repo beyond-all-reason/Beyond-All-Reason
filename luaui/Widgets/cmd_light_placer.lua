@@ -19,7 +19,6 @@ local GetModKeyState = Spring.GetModKeyState
 local GetKeyState = Spring.GetKeyState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
-local GetGroundNormal = Spring.GetGroundNormal
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
@@ -135,26 +134,9 @@ local lp = {
 	-- Elevation offset above ground
 	elevation = 20,
 
-	-- Smart filter
-	smartEnabled = false,
-	smartFilters = {
-		avoidWater = true,
-		avoidCliffs = true,
-		slopeMax = 45,
-		preferSlopes = false,
-		slopeMin = 10,
-		altMinEnable = false,
-		altMin = 0,
-		altMaxEnable = false,
-		altMax = 200,
-	},
-
 	dragging = false,
 	dragAction = nil,
 	placeTimer = 0,
-
-	-- For gizmo support (Phase 4)
-	selectedLight = nil,
 }
 
 -- Cursor preview light (removed when deactivated or position changes enough)
@@ -392,33 +374,6 @@ local function isInsideShape(dx, dz, radius, shape, rotDeg)
 end
 
 ----------------------------------------------------------------
--- Utility: smart filter check
-----------------------------------------------------------------
-local function isPointValid(px, pz, sf)
-	local h = GetGroundHeight(px, pz)
-	if sf.avoidWater and h < 0 then
-		return false
-	end
-	local _, ny = GetGroundNormal(px, pz)
-	if ny then
-		local slopeAngle = math.acos(min(ny, 1.0)) * 180 / pi
-		if sf.avoidCliffs and slopeAngle > sf.slopeMax then
-			return false
-		end
-		if sf.preferSlopes and slopeAngle < sf.slopeMin then
-			return false
-		end
-	end
-	if sf.altMinEnable and h < sf.altMin then
-		return false
-	end
-	if sf.altMaxEnable and h > sf.altMax then
-		return false
-	end
-	return true
-end
-
-----------------------------------------------------------------
 -- Utility: generate scatter positions
 ----------------------------------------------------------------
 local function generateScatterPositions(cx, cz, radius, count, shape, rotDeg, distribution)
@@ -470,9 +425,11 @@ local function generateScatterPositions(cx, cz, radius, count, shape, rotDeg, di
 end
 
 ----------------------------------------------------------------
--- Add a single GL4 deferred light and track it
+-- Add a single GL4 deferred light and track it. absY places it at that
+-- height instead of elevation above the ground under it (the clone tool
+-- pastes lights before the pasted terrain has reached the ground).
 ----------------------------------------------------------------
-local function addOneLight(px, pz, lightDef)
+local function addOneLight(px, pz, lightDef, absY)
 	local lightsAPI = WG.lightsgl4
 	if not lightsAPI then
 		return nil
@@ -484,7 +441,7 @@ local function addOneLight(px, pz, lightDef)
 	end
 	-- Elevate above ground: prefer per-light elevation (e.g. from save) over live slider.
 	local elevation = lightDef.elevation or lp.elevation
-	py = py + elevation
+	py = absY or (py + elevation)
 
 	local r = lightDef.color[1] * lightDef.brightness
 	local g = lightDef.color[2] * lightDef.brightness
@@ -596,7 +553,6 @@ local function addOneLight(px, pz, lightDef)
 			theta = lightDef.theta,
 			beamLength = lightDef.beamLength,
 			elevation = elevation,
-			animation = nil, -- reserved for Phase 3
 		}
 		placedLights[instanceID] = record
 		return record
@@ -733,9 +689,6 @@ local function placeAtPosition(worldX, worldZ)
 	local added = {}
 
 	if lp.mode == "point" then
-		if lp.smartEnabled and not isPointValid(worldX, worldZ, lp.smartFilters) then
-			return
-		end
 		local rec = addOneLight(worldX, worldZ, lightDef)
 		if rec then
 			added[#added + 1] = rec
@@ -744,12 +697,9 @@ local function placeAtPosition(worldX, worldZ)
 		local positions =
 			generateScatterPositions(worldX, worldZ, lp.radius, lp.lightCount, lp.shape, lp.rotation, lp.distribution)
 		for _, pos in ipairs(positions) do
-			local px, pz = pos[1], pos[2]
-			if not lp.smartEnabled or isPointValid(px, pz, lp.smartFilters) then
-				local rec = addOneLight(px, pz, lightDef)
-				if rec then
-					added[#added + 1] = rec
-				end
+			local rec = addOneLight(pos[1], pos[2], lightDef)
+			if rec then
+				added[#added + 1] = rec
 			end
 		end
 	end
@@ -764,7 +714,7 @@ end
 ----------------------------------------------------------------
 local function removeAtPosition(worldX, worldZ)
 	local removed = {}
-	for instanceID, rec in pairs(placedLights) do
+	for _, rec in pairs(placedLights) do
 		local dx = rec.pos[1] - worldX
 		local dz = rec.pos[3] - worldZ
 		if isInsideShape(dx, dz, lp.radius, lp.shape, lp.rotation) then
@@ -831,7 +781,6 @@ local function save(explicitPath)
 			theta = rec.theta,
 			beamLength = rec.beamLength,
 			elevation = rec.elevation,
-			animation = rec.animation,
 		}
 	end
 
@@ -849,7 +798,7 @@ local function save(explicitPath)
 	local blocks = {}
 	for _, l in ipairs(lightList) do
 		local b = { "\t\t{\n" }
-		b[#b + 1] = string.format('\t\t\ttype = "%s",\n', l.type)
+		b[#b + 1] = string.format("\t\t\ttype = %q,\n", l.type)
 		b[#b + 1] = string.format("\t\t\tpos = { %.1f, %.1f, %.1f },\n", l.pos[1], l.pos[2], l.pos[3])
 		b[#b + 1] = string.format("\t\t\tradius = %.1f,\n", l.radius)
 		b[#b + 1] = string.format("\t\t\tcolor = { %.3f, %.3f, %.3f },\n", l.color[1], l.color[2], l.color[3])
@@ -881,8 +830,12 @@ local function save(explicitPath)
 	end
 	table.sort(blocks)
 
-	local lines =
-		{ "return {\n", "\tversion = 1,\n", '\tmapName = "' .. (Game.mapName or "unknown") .. '",\n', "\tlights = {\n" }
+	local lines = {
+		"return {\n",
+		"\tversion = 1,\n",
+		string.format("\tmapName = %q,\n", Game.mapName or "unknown"),
+		"\tlights = {\n",
+	}
 	for _, b in ipairs(blocks) do
 		lines[#lines + 1] = b
 	end
@@ -903,7 +856,7 @@ end
 
 local function clearAllLights()
 	local removed = {}
-	for instanceID, rec in pairs(placedLights) do
+	for _, rec in pairs(placedLights) do
 		removed[#removed + 1] = rec
 	end
 	for _, rec in ipairs(removed) do
@@ -939,6 +892,7 @@ local function load(filename)
 		Echo("[LightPlacer] Error loading " .. filename .. ": " .. tostring(err))
 		return false
 	end
+	setfenv(chunk, {})
 	local data = chunk()
 	if not data or not data.lights then
 		Echo("[LightPlacer] Invalid light file format: " .. filename)
@@ -1018,16 +972,10 @@ local function saveUserPreset(presetName)
 		}
 	end
 
-	local data = {
-		version = 1,
-		name = presetName,
-		lights = lightList,
-	}
-
-	local lines = { "return {\n", "\tversion = 1,\n", '\tname = "' .. presetName .. '",\n', "\tlights = {\n" }
+	local lines = { "return {\n", "\tversion = 1,\n", string.format("\tname = %q,\n", presetName), "\tlights = {\n" }
 	for _, l in ipairs(lightList) do
 		lines[#lines + 1] = "\t\t{\n"
-		lines[#lines + 1] = string.format('\t\t\ttype = "%s",\n', l.type)
+		lines[#lines + 1] = string.format("\t\t\ttype = %q,\n", l.type)
 		lines[#lines + 1] = string.format("\t\t\toffsetX = %.1f,\n", l.offsetX)
 		lines[#lines + 1] = string.format("\t\t\toffsetZ = %.1f,\n", l.offsetZ)
 		lines[#lines + 1] = string.format("\t\t\tradius = %.1f,\n", l.radius)
@@ -1091,13 +1039,9 @@ local function placePreset(presetData, worldX, worldZ)
 	end
 	local added = {}
 	for _, l in ipairs(presetData.lights) do
-		local px = worldX + (l.offsetX or 0)
-		local pz = worldZ + (l.offsetZ or 0)
-		if not lp.smartEnabled or isPointValid(px, pz, lp.smartFilters) then
-			local rec = addOneLight(px, pz, l)
-			if rec then
-				added[#added + 1] = rec
-			end
+		local rec = addOneLight(worldX + (l.offsetX or 0), worldZ + (l.offsetZ or 0), l)
+		if rec then
+			added[#added + 1] = rec
 		end
 	end
 	if #added > 0 then
@@ -1111,6 +1055,7 @@ local function loadPresetFile(filename)
 		Echo("[LightPlacer] Error loading preset: " .. tostring(err))
 		return nil
 	end
+	setfenv(chunk, {})
 	return chunk()
 end
 
@@ -1338,14 +1283,22 @@ local function updatePresetPreviewLights(worldX, worldZ)
 	local qx = floor(worldX + 0.5)
 	local qz = floor(worldZ + 0.5)
 	local pp = presetPreviewLast
-	if pp.valid and pp.x == qx and pp.z == qz and pp.count == #pendingPreset.lights and #presetPreviewLights > 0 then
+	if
+		pp.valid
+		and pp.x == qx
+		and pp.z == qz
+		and pp.count == #pendingPreset.lights
+		and pp.elevation == lp.elevation
+		and #presetPreviewLights > 0
+	then
 		return
 	end
 	removePresetPreviewLights()
 	for _, l in ipairs(pendingPreset.lights) do
 		local px = worldX + (l.offsetX or 0)
 		local pz = worldZ + (l.offsetZ or 0)
-		local py = (GetGroundHeight(px, pz) or 0) + (l.elevation or 0)
+		-- Same elevation rule as addOneLight, so the preview sits where the lights land
+		local py = (GetGroundHeight(px, pz) or 0) + (l.elevation or lp.elevation)
 		local color = l.color or { 1, 1, 1 }
 		local br = l.brightness or 1
 		local r, g, b = color[1] * br, color[2] * br, color[3] * br
@@ -1445,6 +1398,7 @@ local function updatePresetPreviewLights(worldX, worldZ)
 	presetPreviewLast.valid = true
 	presetPreviewLast.x, presetPreviewLast.z = qx, qz
 	presetPreviewLast.count = #pendingPreset.lights
+	presetPreviewLast.elevation = lp.elevation
 end
 
 local function setPendingPreset(preset)
@@ -1669,18 +1623,11 @@ function widget:Initialize()
 				theta = lp.theta,
 				beamLength = lp.beamLength,
 				elevation = lp.elevation,
-				smartEnabled = lp.smartEnabled,
-				smartFilters = lp.smartFilters,
 				undoCount = #undoStack,
 				redoCount = #redoStack,
-				lightCount_placed = 0,
-				selectedLight = lp.selectedLight,
 			}
 		end,
 
-		activate = function()
-			lp.active = true
-		end,
 		deactivate = function()
 			lp.active = false
 			lp.mode = nil
@@ -1702,17 +1649,8 @@ function widget:Initialize()
 		setRadius = function(r)
 			lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, r))
 		end,
-		setRotation = function(d)
-			lp.rotation = d % 360
-		end,
-		rotate = function(step)
-			lp.rotation = (lp.rotation + step) % 360
-		end,
 		setLightCount = function(n)
 			lp.lightCount = max(1, min(500, n))
-		end,
-		setCadence = function(v)
-			lp.cadence = max(1, min(1000, v))
 		end,
 		setDistribution = function(d)
 			lp.distribution = d
@@ -1727,27 +1665,12 @@ function widget:Initialize()
 		setBrightness = function(v)
 			lp.brightness = max(0.01, min(50, v))
 		end,
-		setModelfactor = function(v)
-			lp.modelfactor = max(0, min(5, v))
-		end,
-		setSpecular = function(v)
-			lp.specular = max(0, min(5, v))
-		end,
-		setScattering = function(v)
-			lp.scattering = max(0, min(5, v))
-		end,
-		setLensflare = function(v)
-			lp.lensflare = max(0, min(5, v))
-		end,
 
 		setPitch = function(v)
 			lp.pitch = max(-90, min(90, v))
 		end,
 		setYaw = function(v)
 			lp.yaw = v % 360
-		end,
-		setRoll = function(v)
-			lp.roll = v % 360
 		end,
 		setTheta = function(v)
 			lp.theta = max(0.05, min(1.5, v))
@@ -1757,13 +1680,6 @@ function widget:Initialize()
 		end,
 		setElevation = function(v)
 			lp.elevation = max(0, min(2000, v))
-		end,
-
-		setSmartEnabled = function(b)
-			lp.smartEnabled = b
-		end,
-		setSmartFilter = function(k, v)
-			lp.smartFilters[k] = v
 		end,
 
 		undo = doUndo,
@@ -1783,9 +1699,6 @@ function widget:Initialize()
 
 		setPendingPreset = setPendingPreset,
 		clearPendingPreset = clearPendingPreset,
-		getPendingPreset = function()
-			return pendingPreset
-		end,
 
 		getPlacedCount = function()
 			local n = 0
@@ -1793,6 +1706,37 @@ function widget:Initialize()
 				n = n + 1
 			end
 			return n
+		end,
+
+		-- Copies of every placed light record (pos, elevation, colour and the
+		-- rest of its definition), for the clone tool.
+		getPlacedLights = function()
+			local out = {}
+			for _, rec in pairs(placedLights) do
+				local copy = {}
+				for k, v in pairs(rec) do
+					copy[k] = v
+				end
+				copy.pos = { rec.pos[1], rec.pos[2], rec.pos[3] }
+				copy.color = { rec.color[1], rec.color[2], rec.color[3] }
+				out[#out + 1] = copy
+			end
+			return out
+		end,
+		-- Places a list of { x, z, y, def } (def = a light record, y = absolute
+		-- height or nil for def.elevation above the ground) as one undo step.
+		addLights = function(list)
+			local added = {}
+			for _, item in ipairs(list or {}) do
+				local rec = addOneLight(item.x, item.z, item.def, item.y)
+				if rec then
+					added[#added + 1] = rec
+				end
+			end
+			if #added > 0 then
+				pushUndo("add", added)
+			end
+			return #added
 		end,
 	}
 end
@@ -2074,11 +2018,9 @@ function widget:KeyPress(key, mods, isRepeat)
 			if lp.mode == "point" then
 				local step = increase and LIGHT_RADIUS_STEP or -LIGHT_RADIUS_STEP
 				lp.lightRadius = max(10, min(5000, lp.lightRadius + step))
-				Echo("[Light Placer] Light radius: " .. lp.lightRadius)
 			else
 				local step = increase and RADIUS_STEP or -RADIUS_STEP
 				lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, lp.radius + step))
-				Echo("[Light Placer] Brush radius: " .. lp.radius)
 			end
 			return true
 		elseif mods.alt then
@@ -2087,12 +2029,10 @@ function widget:KeyPress(key, mods, isRepeat)
 			else
 				lp.rotation = (lp.rotation - ROTATION_STEP) % 360
 			end
-			Echo("[Light Placer] Rotation: " .. lp.rotation .. "°")
 			return true
 		elseif mods.shift then
 			local step = increase and ELEVATION_STEP or -ELEVATION_STEP
 			lp.elevation = max(0, min(2000, lp.elevation + step))
-			Echo("[Light Placer] Elevation: " .. lp.elevation)
 			return true
 		elseif spaceHeld then
 			if increase then
@@ -2100,7 +2040,6 @@ function widget:KeyPress(key, mods, isRepeat)
 			else
 				lp.brightness = max(0.01, lp.brightness - BRIGHTNESS_STEP)
 			end
-			Echo("[Light Placer] Brightness: " .. string.format("%.2f", lp.brightness))
 			return true
 		end
 	end
@@ -2129,15 +2068,12 @@ function widget:MouseWheel(up, value)
 
 	if rHeld then
 		lp.color[1] = max(0, min(1, lp.color[1] + delta))
-		Echo("[Light Placer] Red: " .. string.format("%.2f", lp.color[1]))
 		return true
 	elseif gHeld then
 		lp.color[2] = max(0, min(1, lp.color[2] + delta))
-		Echo("[Light Placer] Green: " .. string.format("%.2f", lp.color[2]))
 		return true
 	elseif bHeld then
 		lp.color[3] = max(0, min(1, lp.color[3] + delta))
-		Echo("[Light Placer] Blue: " .. string.format("%.2f", lp.color[3]))
 		return true
 	end
 
@@ -2145,7 +2081,6 @@ function widget:MouseWheel(up, value)
 	if ctrl and alt then
 		local dir = up and 5 or -5
 		lp.pitch = max(-90, min(90, lp.pitch + dir))
-		Echo("[Light Placer] Pitch: " .. lp.pitch .. "°")
 		return true
 	end
 
@@ -2153,7 +2088,6 @@ function widget:MouseWheel(up, value)
 	if alt and not ctrl then
 		local dir = up and 10 or -10
 		lp.yaw = ((lp.yaw + dir) % 360 + 360) % 360
-		Echo("[Light Placer] Yaw: " .. lp.yaw .. "°")
 		return true
 	end
 
@@ -2161,7 +2095,6 @@ function widget:MouseWheel(up, value)
 	if shift and not ctrl then
 		local step = up and ELEVATION_STEP or -ELEVATION_STEP
 		lp.elevation = max(0, min(2000, lp.elevation + step))
-		Echo("[Light Placer] Elevation: " .. lp.elevation)
 		return true
 	end
 
@@ -2173,7 +2106,6 @@ function widget:MouseWheel(up, value)
 		else
 			lp.brightness = max(0.01, lp.brightness - BRIGHTNESS_STEP)
 		end
-		Echo("[Light Placer] Brightness: " .. string.format("%.2f", lp.brightness))
 		return true
 	end
 
@@ -2182,11 +2114,9 @@ function widget:MouseWheel(up, value)
 		if lp.mode == "point" then
 			local step = up and LIGHT_RADIUS_STEP or -LIGHT_RADIUS_STEP
 			lp.lightRadius = max(10, min(5000, lp.lightRadius + step))
-			Echo("[Light Placer] Light radius: " .. lp.lightRadius)
 		else
 			local step = up and RADIUS_STEP or -RADIUS_STEP
 			lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, lp.radius + step))
-			Echo("[Light Placer] Brush radius: " .. lp.radius)
 		end
 		return true
 	end

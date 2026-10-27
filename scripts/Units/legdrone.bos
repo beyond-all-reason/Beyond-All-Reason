@@ -3,7 +3,7 @@
 
 piece  base, lwing, rwing, bwing, lblades, rblades, bblades, lflare, rflare;
 
-static-var gun;
+static-var gun, docked;
 
 #define SIG_AIM				2
 
@@ -78,7 +78,7 @@ AimFromPrimary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-	return (1);
+	return (!docked);
 }
 
 FirePrimary()
@@ -141,17 +141,18 @@ Killed(severity, corpsetype)
 
 Docked(customparam, dockpiece, carrierarg1, carrierarg2, carrierarg3)
 {
+	docked = 1;
 	if(customparam == 1)
 	{
 		turn base to y-axis carrierarg1 now;
 		spin base around y-axis speed <10> accelerate <1>;
 		return 1;
-		
 	}
 }
 
 Undocked(customparam, dockpiece)
-{	
+{
+	docked = 0;
 	stop-spin base around y-axis;
 	turn base to y-axis <0> speed <600>;
 	return 1;

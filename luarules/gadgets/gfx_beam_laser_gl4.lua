@@ -1074,6 +1074,13 @@ local function ensureFloatDefines(config)
 end
 
 local function initGL4()
+	-- load the textures now, the first draw's lazy load stalled that frame by ~15 ms
+	gl.DeleteList(gl.CreateList(function()
+		glTexture(0, beamTexture)
+		glTexture(0, flareTexture)
+		glTexture(0, false)
+	end))
+
 	-- Sanitize all shader config tables to prevent integer #define values
 	ensureFloatDefines(shaderConfig)
 	ensureFloatDefines(glowShaderConfig)

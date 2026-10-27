@@ -26,6 +26,7 @@ Each icon switches the panel into a different tool. All tools share the same bru
 | **Splat Painter** | Paint per-channel splat textures into the SSMF splat distribution map. |
 | **Decal Placer** | Stamp ground decals (cracks, scorches, custom PNGs). |
 | **Clone Tool** | Region copy/paste across all map layers (terrain, metal, features, grass, splats, decals, lights). |
+| **Units** | Place real units from the unit library: click or drag formations, pick several to cycle through, undo a whole placement. See [Units](#units). |
 | **Environment** | Skybox, fog, sun, water, atmosphere, scene presets — see below. |
 
 Tools that are not currently active hide their sub-panel; click the icon to expand.
@@ -41,6 +42,37 @@ Click the **Environment** icon in the tool row (rightmost group). The env panel 
 
 To return to terrain editing, click any other tool icon (e.g. the mountain) — the env panel collapses automatically.
 
+### Map Transform (SCENE → Dimensions)
+
+**MAP TRANSFORM** at the top of the Dimensions window turns, flips, resizes and duplicates the whole map with everything on it: terrain, splat and SURFACE paint, diffuse art, metal, features, units, decals, lights, comments, start positions, start boxes, grass and weather.
+
+The section has two modes, sharing one preview and one APPLY.
+
+**TURN & SIZE** moves the map you have:
+
+- **Rotate left / rotate right** step the map a quarter turn at a time, and the target size follows the turn (a 12×16 map rotated once wants a 16×12 canvas).
+- **FLIP ↔ / FLIP ↕** mirror the map the way you see it on screen, whatever rotation is already set.
+- **width / depth** set the new canvas in map units (512 elmos each, even numbers, 4–32).
+- **STRETCH** scales the map onto the new canvas: the composition is kept, the scale changes. **KEEP SCALE** holds one elmo to one elmo and places the map by the 3×3 **anchor**, which is how you crop a map or add a strip of new ground. Anything outside the new canvas is dropped, and ground that reaches past the old map continues its border height.
+- The preview says the rest: the outlined box is the new canvas, the filled box is where the current map lands in it, and the dot marks the corner that is the map's north-west today. The line under it names what the transform costs, e.g. `Rotate 90°, 12x12 units at true scale, kept centred, cuts 11% of the map`.
+- **APPLY** asks for a second click, then saves the session, rewrites every layer and restarts the engine onto the new canvas. Map size and orientation are fixed when a map is loaded, so the restart is not optional.
+
+**EXPAND** doubles the canvas along one axis instead:
+
+- **← W / E → / ↑ N / S ↓** pick the side the map grows into. The map keeps its ground and its scale and stays on the opposite side.
+- **EMPTY** leaves the new half a flat canvas at the height a New Map starts at, ready to sculpt.
+- **COPY** fills it with the map itself: **PLAIN** repeats it, **MIRROR** reflects it across the seam (the one that makes a symmetric map, and the only one whose terrain meets exactly at the join), **FLIP** reflects it along the seam, **BOTH** turns it half way round. Everything on the map is duplicated with the ground: features, metal, paint, decals, lights, start positions: and the copies of the start positions and boxes are renumbered onto fresh ally teams so a doubled map has somewhere for the extra players to stand.
+- Doubling again grows the map the same way, so a small hand-made piece can be grown into a large symmetric map in two or three steps. 32 units is the blank map generator's ceiling, and APPLY reads TOO BIG when a doubling would pass it.
+- The preview draws the copy in its own colour with its own corner dot, so which way it was turned over is visible before anything runs.
+
+The **width** and **depth** steppers are in map units (512 elmos each); the line under them states the same canvas in elmos. APPLY greys out when there is nothing to apply.
+
+The transform does **not** write to your project: the session comes back transformed with the same project still as the Save target, so `FILE > Save` commits it and quitting without saving throws it away. The sun turns with the map, so the light keeps falling on the terrain the way it was authored. The skybox itself does not turn with it, so a rotated map can want its sky re-picked.
+
+The tileset's automatic placement turns with the map as well. Where nothing was painted, the shader picks the material from height, slope and a set of patterns anchored to the world: the stagger mask behind the cliff and foothill blends, the noise fields behind the intermediate scatter and the large-scale tone drift, and the wind the automatic deposit blows from. A transform records how the map was turned and the shader reads those patterns through that record, so a turned map comes back looking like the map that went in rather than with its paint right and everything between it re-rolled. It is kept in the project's `tileset.lua` and composes across transforms, so turning a map back the way it came restores the original exactly. A map that was never transformed carries no record and renders as it always did.
+
+Tilted features keep their lean, and mirrored features keep their silhouette rather than their handedness (a model cannot be mirrored without a mirrored mesh). A transform with no rotation, no flip and the current size is refused: the APPLY button reads NO CHANGE.
+
 ### Key Shortcuts (cheat sheet)
 
 | Key | Action |
@@ -54,6 +86,7 @@ To return to terrain editing, click any other tool icon (e.g. the mountain) — 
 | `Ctrl+R+Scroll` | Ring inner-ratio |
 | `Shift+drag` | Axis-lock + grid snap |
 | `RMB drag` | Temporary Lower (restores previous mode on release) |
+| `MMB` twice on a slider | Lock it to the mouse wheel; several can be locked at once. Twice again on it releases it, `ESC` releases all. The line under the status strip lists what is locked |
 | `Ctrl+Z` / `Ctrl+Shift+Z` | Undo / Redo |
 
 Full table in [Interaction → Keyboard](#interaction).
@@ -63,6 +96,7 @@ Full table in [Interaction → Keyboard](#interaction).
 - **Full map projects / team library**: **File > Save / Save As** saves a project; **File > Open Project** is one browser over this disk and the campaign team's private library, with a Sync column, a Team Sync line at the top and a start card for the companion. The team workflow is documented for the team in the library repository itself.
 - **Autosave**: on by default (Settings > General). Every 10 minutes while the open project has unsaved changes, a snapshot lands under `MapProjects/_autosave/<project>-YYYYMMDDHHMM`; snapshots list under the Autosaves chip in **File > Open Project** and are swept after 3 days (the newest per project after 10). Opening one makes its project the Save target again.
 - **Quitting with unsaved changes** asks first (Save, then continue / Don't save / Cancel) on the top bar's Quit and on New Map. The window's own close button cannot be caught; autosave covers that.
+- **New Map** sets the canvas size and its **MEX RADIUS** (default 90 elmos), written into the generated mapinfo with a metal cap of 2 per square and saved with the project. Needs an engine with the blank map metal options (beyond-all-reason/RecoilEngine#3506); older engines keep the mapinfo defaults (radius 500, cap 0.02).
 - **Terrain heightmap**: `/terraformexport` writes a PNG + metadata to your writeable data dir; `/terraformimport <file>` reloads it.
 - **Features / grass / splats / decals**: each tool has its own Save/Load/Clear row in its sub-panel.
 - **Environment**: Save/Load preset buttons in the env panel.
@@ -201,7 +235,11 @@ Sent as `instant` field (`0`/`1`) in the `$terraform_brush$` message (field 15).
 | RMB drag | Temporarily switch to Lower, restore previous mode on release |
 | Shift+drag | Axis-lock (X or Z, determined after 25 screen-pixel threshold, zoom-independent) + grid snap |
 
+While a stroke runs the camera holds still: the view does not ride the ground it changes. The hold lasts until you pan, zoom, rotate or switch camera; terrain raised into the camera still lifts it.
+
 ### Keyboard
+While an editor tool is in use, the game's own hotkeys (unit orders, build keys, selection, groups) are held back so they cannot fight the editor's; the camera, chat (Enter), Esc, F1-F12 and screenshots still work. The **pause** button on the panel hands every key back to the game.
+
 | Key | Action |
 |-----|--------|
 | `C` `S` `T` `H` `O` | Select shape (Circle / Square / Triangle / Hexagon / Octagon) |
@@ -234,45 +272,48 @@ The panel exposes a **Tools row** of icon buttons. Each tool has its own sub-pan
 
 Distribution mode (random/regular/clustered) · Size/rotation/count/cadence sliders · Scale variation · Undo/redo · Save/load/clear
 
+**Picking features.** A click on a tile in the asset library picks that feature alone. `Ctrl+click` adds a feature to the pick or takes it out, and `Shift+click` adds every tile from the last one clicked to this one, in the list as it is filtered. Placement draws from all picked features.
+
 **Files:** `luaui/Widgets/cmd_feature_placer.lua` · `luaui/RmlWidgets/gui_feature_placer/`
+
+**Randomize alignment and tilt.** The last two CONTROLS rows. RANDOMIZE ALIGNMENT turns each placed feature's heading by up to ± that share of a full turn. RANDOMIZE TILT (0-45°) leans each feature up to that many degrees in a random direction; most stay close to upright and a few lean hard (`rollTilt` in `common/feature_scatter.lua`). The lean is rolled with the layout, so the ghost preview shows it, and it travels as the feature's pitch and roll, so undo, redo, saves and map projects keep it.
 
 #### Scale Variation
 
-Scale Min / Scale Max sliders (0.1-3.0x) roll a per-feature scale at placement
-time. The roll is realised by snapping to the nearest **pre-baked model
-variant** of the chosen def and placing that variant instead: a def opts in by
-shipping sibling defs tagged `customParams.scale_base` (the def they vary) and
-`scale_factor` (their size), with the model, collision cylinder, wood value and
-mass all baked at that size. Variant defs are hidden from the asset library --
-the placer reaches them only through snapping.
+Scale Min / Scale Max sliders (0.1-5.0x) roll a per-feature scale at placement
+time, any size in between. The engine cannot scale a feature's model
+(`Spring.SetFeaturePieceMatrix` discards its matrix, and only unit scripts can
+scale pieces), so the size is drawn rather than simulated: the feature placer
+gadget writes the scale into the feature's per-object uniform
+(`userDefined[3].z`, buffer index 14) and the CUS vertex shader multiplies the
+model by it, in every pass, shadows included. The gadget also scales the
+collision volume, the selection radius and height, and the mid/aim points, and
+keeps the scale in the public feature rules param `visualScale`. Brush
+placements grow in over a third of a second.
 
-**No variant sets ship yet**, so the sliders are currently inert: a def with no
-variants ignores the roll and places at its normal size, and the ghost preview
-shows exactly that. The fir tree variants that drove this feature are shelved on
-the `feature-densification` branch along with the tree clump work, together
-with the offline script that bakes them.
+A def can still ship **pre-baked model variants** (sibling defs tagged
+`customParams.scale_base` and `scale_factor`); the roll then snaps to the
+nearest variant and places that def instead. No variant sets ship at the moment.
+
+Limits: the footprint keeps the def's size, and the engine culls a feature by
+its unscaled model radius, so a feature scaled far above 1 can pop out early at
+the screen edge.
 
 - Rolls are bottom-heavy (many small, few large), matching a natural stand.
 - With **Clustered** distribution, scale correlates with distance to the cluster
   nucleus: big features in the core, small ones at the fringe, and the minimum
   spacing scales per pair so small features pack tighter.
 - Point mode rolls a scale per placement too.
-- Variants are ordinary defs, so save/load, undo/redo, gizmo, and map projects
-  need no special handling.
+- The scale rides the placement wire format and save files, so save/load,
+  undo/redo and map projects keep it.
 
-Why baked variants rather than scaling at runtime: the engine has no
-feature-scale API. `Spring.Set{Unit,Feature}PieceMatrix` looks like one, but
-`LocalModelPiece::SetPieceSpaceMatrix` is only
-`return blockScriptAnims = mat.IsRotOrRotTranMatrix();` -- it validates the
-matrix, sets a flag, and **discards the geometry entirely** (no member stores
-it; a piece's transform comes solely from `CalcPieceSpaceTransform(pos, rot,
-scale)`, and `SetPosition`/`SetRotation`/`SetScaling` are reachable only from
-unit animation scripts). Features therefore cannot be scaled -- or have their
-pieces posed at all -- from Lua. The gadget still understands a per-entry scale
-token on the wire (4/5/7/8-token forms) and applies collision/radius/mid-aim
-scaling, but only when the engine reports the matrix accepted, so on current
-engines that path is a clean no-op and it lights up automatically if a real API
-ever lands.
+Why the shader rather than the engine: the engine has no feature-scale API.
+`Spring.Set{Unit,Feature}PieceMatrix` looks like one, but
+`LocalModelPiece::SetPieceSpaceMatrix` only validates the matrix and discards
+the geometry, and piece scaling is reachable only from unit animation scripts.
+So the size is drawn (the CUS per-object uniform) and the interaction is scaled
+by the gadget (collision, radius and height, mid/aim). The scale rides the wire
+as the 5th token (no tilt) or the 8th (with tilt).
 
 #### WYSIWYG Preview
 
@@ -311,7 +352,7 @@ excluded: an empty library is the normal way to use the erase brush.
 | Ctrl + A | Select everything on screen |
 | Delete / Backspace | Remove the selection |
 | Esc | Clear the selection; a second press leaves the tool |
-| RMB | Unchanged — erase brush, in every mode |
+| RMB | Drops the library pick (back to selecting); features come off only through Delete or REMOVE mode |
 
 The gizmo has three translate arrows, three rotation rings and a centre handle
 that slides the selection over the terrain. Multi-selections transform rigidly
@@ -325,7 +366,8 @@ update queue, so a lifted feature stays lifted. Features created above the groun
 *are* queued and would fall, so the gadget zeroes their movement masks
 (`SetFeatureMoveCtrl` with `enabled = false`) to hold them in place.
 
-**Scale is not available.** The engine exposes no feature-scale setter.
+**The gizmo does not scale.** A feature keeps the scale it was placed with; the
+gizmo moves and turns it, and its ghosts draw at that scale.
 
 While dragging, the real features are hidden client-side
 (`Spring.SetFeatureNoDraw`) and ghosts follow the cursor, so nothing goes over
@@ -342,9 +384,10 @@ entry.
 #### Clustered Distribution
 Simulates real-world ecological spacing patterns:
 
-- **Cluster nuclei**: 2–6 anchor points are randomly seeded inside the brush (count scales with √featureCount).
-- **Cluster attraction**: ~75 % of features spawn near a randomly chosen nucleus via a Gaussian offset (σ ≈ radius / numClusters × 1.2).
-- **Free scatter**: remaining ~25 % are placed uniformly at random inside the brush for a natural sparse background.
+- **Cluster nuclei** (CLUMPS): anchor points seeded inside the brush. 0 = AUTO, 2–6 scaling with √featureCount; or set 1–24.
+- **Cluster attraction** (CLUMP SIZE): features spawn near a nucleus via a Gaussian offset, σ ≈ radius / clumps × 1.2 × CLUMP SIZE (0.2–3).
+- **Free scatter** (STRAGGLERS, default 25 %): this share is placed uniformly at random inside the brush for a sparse background.
+- **CLUMP VARIETY** (0–100 %): how unlike each other the clumps are. Each clump rolls its share of the features (a few dense, most sparse), its own spread, and an age that shifts its sizes (young clumps of saplings next to old groves of large trees). At 0 every clump is alike, exactly the old behaviour.
 - **Minimum separation**: each candidate position is rejected if it is closer than `featureDef.radius × 1.4` to an already-placed feature. This lets mixed selections self-regulate — large-radius objects (trees) space apart for "sunlight competition"; small-radius objects (bushes) cluster tightly. A safety clamp prevents deadlock when the count is high relative to the brush size.
 
 #### Smart Filter
@@ -389,13 +432,17 @@ Brush-based grass density painting over the GL4 grass system.
 
 ### Weather Brush
 
-Places CEG-based weather effects (particles, ambient sounds) with persistence/cadence/frequency controls. Similar panel layout to Feature Placer.
+Places CEG-based weather effects (particles, ambient sounds) with persistence and cadence controls. Similar panel layout to Feature Placer.
 
 ### Clone Tool
 
 Region-based copy & paste across all map data layers. Select an area, capture its contents, and stamp it elsewhere with rotation, mirroring, and height offset.
 
-**Files:** `luaui/Widgets/cmd_clone_tool.lua` · `luarules/gadgets/cmd_clone_tool.lua`
+**Files:** `luaui/Widgets/cmd_clone_tool.lua` · `luarules/gadgets/cmd_clone_tool.lua` · `luaui/Include/clone_preview_gl4.lua`
+
+**Paste preview.** Once a region is copied, the paste shows as a lit, textured copy of the terrain at the cursor, following rotation, mirroring, height offset, symmetry and grid snap, with buried parts drawn through the ground. PASTE > PREVIEW OPACITY sets how solid it looks (0 leaves the outline only). On tileset maps the ghost wears the biome colour without the slope rock the shader adds per pixel.
+
+**Paste mode.** PASTE MODE under INCLUDE LAYERS picks how the copy meets the ground. REPLACE lays it down as it is. RAISE ONLY keeps the higher of the copy and the ground (a heightmap max blend), so only what stands above the ground arrives; LOWER ONLY keeps the lower (a min blend). A copied hill and valley pasted on flat ground leave just the hill or just the valley. The other layers follow the terrain: features, metal, grass, decals, lights and weather spawners paste only where it does, standing features are cleared only there, and splats and surface paint blend in through a mask of the same cells (`luaui/Include/clone_paste_mask.lua`). Everything is judged against the ground as it is before the paste, with one elmo of slack. A masked paste always writes every 8-elmo vertex at full precision, whatever TERRAIN QUALITY says. The preview shows only what will paste: the ghost drops what is cut (keeping the box outline), LOWER ONLY draws the sunken part solidly through the ground, and feature and metal markers show only for what lands. Without copied terrain the mode has nothing to judge by and the paste replaces.
 
 #### Layer Toggles
 
@@ -406,12 +453,17 @@ Each layer can be independently enabled/disabled. Only enabled layers are captur
 | **Terrain** | `Spring.GetGroundHeight(x,z)` grid loop | `SetHeightMapFunc` batch via gadget | ✅ Full |
 | **Metal** | `Spring.GetMetalAmount(x,z)` per square | `Spring.SetMetalAmount` via gadget | ✅ Full |
 | **Features** | `GetFeaturesInRectangle` → defID, pos, heading | `CreateFeature` / `DestroyFeature` via gadget | ✅ Full |
-| **Splats** | FBO blit of `$ssmf_splat_distr` sub-rect | Shader paste into splat FBO → `SetMapShadingTexture` | ✅ Full |
+| **Splats** | FBO blit of `$ssmf_splat_distr` sub-rect | Quad paste into splat FBO → `SetMapShadingTexture` | ✅ Full |
+| **Surface** | `WG.SurfacePainter.region.copy()` of the tileset variant mask(s) | `region.paste()` onto the four destination corners | ✅ Full (needs the surface painter installed) |
 | **Grass** | `WG['grassgl4'].getDensityAt(x,z)` per patch | `setDensityAt(x,z,val)` per patch | ✅ Full |
 | **Decals** | `Spring.GetAllGroundDecals()` + per-decal queries | `Spring.CreateGroundDecal()` with transforms | ✅ Implemented (toggle disabled) |
-| **Weather** | Widget Lua table (weather brush state) | Re-emit via weather brush message | ⬜ Stub (awaiting `WG.WeatherBrush` API) |
-| **Lights** | `WG.LightPlacer` API state | `Spring.AddMapLight` with rotation/offset | ✅ Implemented (toggle disabled) |
+| **Weather** | `WG.WeatherBrush.getPersistentSpawners()` (spawners centred in the box) | `addSpawnerRaw()` per spawner, shape angle turned with the paste | ✅ Full (no undo: the weather brush keeps none) |
+| **Lights** | `WG.LightPlacer.getPlacedLights()` (height above ground kept) | `WG.LightPlacer.addLights()`, aim turned and mirrored, one undo step in LIGHTS | ✅ Full |
 | **Terrain Texture (PBR)** | *Deferred* | *Deferred* | ⬜ Deferred |
+
+**Surface** is the tileset shader's variant paint: the material a patch of ground wears under the new terrain shader. It travels with Splats so a cloned piece of map keeps the look it was painted with, not just its height. The painter owns the masks (there are two once variant 4 is in use), so the clone tool asks it to cut the patch out and lay it down again; the paste snapshots for undo on the painter's own stack, so Ctrl+Z in the SURFACE tool takes it back. The mask belongs to a write-dir widget, so the layer quietly carries nothing on an install without it.
+
+Texture layers are pasted as a **quad**, not a rectangle: the four destination corners come from the same `transformPoint` every other layer uses, so a rotated or mirrored paste turns the paint with the terrain, and the patch lands centred on the cursor. (Before this, the splat patch pasted axis-aligned from the cursor, i.e. unrotated and half a box off.)
 
 #### Workflow States
 
@@ -507,6 +559,33 @@ transform(lx, lz):
   height values += heightOffset
   feature headings += rotation
 ```
+
+### Units
+
+**UNITS** on the tool row places real units on the map: to lay out a base, a battle or a scene to light and screenshot. It needs `/cheat`, like the rest of the editor.
+
+Pressing it opens the **unit library** window, and the panel shows the tool's own controls: LIBRARY (reopens the window), TEAM (the team placed units join; `T` does the same), UNDO and REDO.
+
+**Placing.** Pick a unit in the library, then on the map:
+
+- **Click** places one; **drag** lays out several in the current shape. `Tab` cycles the shape (SINGLE, LINE, GRID, BOX) and `R` turns the units a quarter (`Shift+R` back).
+- The preview and the layout are the game's own blueprint tool: footprints are outlined, red where the ground refuses, and a drag lays units out exactly as a build drag would.
+- The tool **stays armed** after a placement, so one drag follows another. A **right click** lets go.
+- `Ctrl+Z` / `Ctrl+Y` undo and redo a whole placement at a time.
+
+**Picking several.** The same gestures as the asset library: `Ctrl+click` adds a tile to the set or takes it out, and `Shift+click` adds every tile from the last one clicked to this one, in the list as it is filtered and sorted. With the grid keys, `Shift` plus a key adds or removes that tile. The tiles show their order. Each placement then uses the next unit of the set, in order (A B C) or at random, as the CYCLE chips say.
+
+**The library.** One window, shared with the mission editor.
+
+| Part | What it does |
+|------|--------------|
+| Search | Names and tags as you type, e.g. `t2 arty cor`. Arrows move the highlight, `Enter` picks it, `Esc` closes. |
+| FILTERS | A row per filter, labelled at the left: FACTION, TIER, MOBILE and BUILDING (the unit types, split into units and buildings), ROLE and DOMAIN. A click keeps that value alone (again clears the row), `Shift+click` adds or removes it, and a click on a row's label clears the row (the label lights while its row filters). Every chip shows how many units it would leave. Roles are inferred from stats against the other units of the same tier. |
+| SORT | NAME, POWER (metal + energy / 60), TYPE, SIZE (footprint), TIER, SPEED, RANGE, HEALTH. Click the active one again to reverse it; the arrow shows the direction. |
+| RECENT | The last units picked, one row; folded until opened. |
+| BLUEPRINTS | Saved groups of units (`LuaUI/Config/UnitBlueprints/`), below the units and folded until opened. Picking one arms the whole group; `x` deletes the file. |
+
+Units show four to a row, picture and name. Each section folds with its title row. The library remembers its filters, sort and folds between sessions.
 
 ---
 
@@ -697,6 +776,16 @@ Two free levers regardless of the toggle: pausing the game while sculpting spare
 
 Always on, no toggle needed: the gadget commits a tick's dabs in one heightmap write and one undo entry (see Undo / Redo System), the falloff-stamp cache is rotation-invariant for circles and rings and budgeted by cells, and the ground mesh refresh is armed by the engine's heightmap-update event rather than per brush tick.
 
+### Multi-Screen Editing
+
+The suite works under the engine's dual-screen mode: set `DualScreenMode = 1` in springsettings and open a borderless window spanning two monitors, and the engine gives the world view one whole display while the other becomes a free screen for UI. `DualScreenMiniMapOnLeft` picks which side is which. The editor's panels then:
+
+- scale for the free screen (its height), not for the world view, so a 1440p tool screen beside a 4K world reads the same as a single-screen session;
+- keep their single-screen widths (the px/vw rules are replaced by dp pins while dual is active), so rows and tool grids hold their proportions;
+- drag freely between the two screens, and on engines with the per-document dp override a panel dropped on the world screen takes that screen's scale, back and forth.
+
+On mixed-DPI desks (for example a 150%-scaled 4K beside a 100% 1440p) the engine must declare per-monitor DPI awareness (RecoilEngine PR #3400); without it Windows bitmap-stretches the spanned window on the secondary monitor regardless of anything the UI does.
+
 ### Presets
 
 Built-in presets (non-deletable) and unlimited user presets. Stored in `LuaUI/Config/TerraformPresets/*.lua`.
@@ -729,457 +818,6 @@ Rotation sliders wrap at 0°/360°. Used on: height cap sliders, metal brush sli
 ### Unmouse (Brush Auto-Reposition)
 
 When the mouse cursor moves over the terraform UI panel while the brush is active, the drawn brush silently slides to the opposite side of the screen to prevent accidental edits behind the panel. On mouse exit it snaps back. The brush tries three candidate positions in order: screen center → left quarter → right quarter, picking the first that clears the panel by at least one brush radius.
-
----
-
-## Protocol & Data
-
-### Message Protocol
-
-All terrain edits go through `SendLuaRulesMsg()` to the server-side gadget.
-
-| Message | Format |
-|---------|--------|
-| `$terraform_brush$` | `dir x z radius shape rot curve capMin capMax intensity lengthScale clay dust opacity instant flattenHeight [ringInnerRatio]` |
-| `$terraform_stroke$` | `dir radius shape curve capMin capMax intensity lengthScale clay dust opacity instant flattenHeight ringInnerRatio nDabs x1 z1 rot1 [x2 z2 rot2 ...]` — one per tick per symmetry copy, every dab of the tick; applied as one batch (one heightmap commit, one undo entry) |
-| `$terraform_ramp$` | `startX startZ startY endX endZ endY radius clay dust` |
-| `$terraform_ramp_spline$` | `radius pointCount [x1 z1 x2 z2 ...] clay dust` |
-| `$terraform_restore$` | `x z radius shape rot curve intensity lengthScale` |
-| `$terraform_noise$` | `x z radius shape rot curve intensity lengthScale noiseType scale octaves persistence lacunarity seed` |
-| `$terraform_import$` | `columnX height1 height2 ...` |
-| `$terraform_undo$` | (no args) |
-| `$terraform_redo$` | (no args) |
-| `$terraform_merge_end$` | (no args) — sent by the widget after every brush tick; closes the tick's undo entry |
-| `$terraform_stroke_end$` | (no args) — sent on mouse release; advances the stroke id (`$terraform_undo_stroke$` pops all entries of the latest id) and drops the pre-stroke heights the clay plane measures against |
-
-**Feature placer messages** (`luarules/gadgets/cmd_feature_placer.lua`). Every
-mutating branch is gated on `Spring.IsCheatingEnabled()`.
-
-| Message | Format |
-|---------|--------|
-| `$feature_place_list$` | `strokeId` then `name x z heading [pitch roll y] [scale]` per entry, joined by `\|`, 40 per message. Token count disambiguates: 4 plain, 5 scale, 7 tilt, 8 tilt+scale |
-| `$feature_transform$` | `strokeId` then `fid x y z pitch yaw roll` per entry, joined by `\|` |
-| `$feature_remove_ids$` | `fid` per entry, joined by `\|` |
-| `$feature_remove$` | `x z radius shape rot` |
-| `$feature_load$` | Same format as `$feature_place_list$`; one stroke id for the whole file, skips the placement wobble |
-| `$feature_save$` | (no args) — gadget replies over `SendToUnsynced` |
-| `$feature_undo$` / `$feature_redo$` / `$feature_clearall$` | (no args) |
-
-The optional `pitch roll y` tail is only sent for features the gizmo tilted or
-lifted, and the optional `scale` token only for features whose scale roll came
-out different from 1. `strokeId` collapses one user action into one undo entry even when it is
-split across several messages -- a 500-feature stamp is 13 batches, a gizmo drag
-over a large selection several more -- the same way the terraform brush merges a
-paint stroke. Only one stroke is open at a time, and the entry is pushed lazily
-on the first real change, so a no-op message neither leaves an empty undo step
-behind nor clears the redo stack.
-
-`$feature_scatter$` and `$feature_point$` are **gone**. They asked the gadget to
-roll its own positions, which is exactly what made a truthful placement preview
-impossible; the widget generates layouts now and sends the result.
-
-**Saved feature format** (`features.lua`, FeaturePlacer `setcfg`):
-
-```lua
-{ name = "treetype1", x = 1234.0, z = 5678.0, rot = 32768 }
-{ name = "rock01", x = 900.0, z = 200.0, rot = 0, pitch = 0.2100, roll = -0.0800, y = 412.5 }
-```
-
-`pitch`/`roll`/`y` are written only when the feature is genuinely transformed, so
-a map that was never gizmo-edited serialises byte-for-byte as it did before.
-Files without them load exactly as they always did.
-
-"Transformed" is **not** "pitch is non-zero". Non-upright feature defs are
-ground-aligned by the engine, so a rock on any real slope carries a pitch and
-roll nobody gave it. The test compares the feature's up-vector against its
-expected resting up -- `(0,1,0)` for an upright def, the ground normal otherwise
--- which is the quantity `UpdateDirVectors` actually sets, and is free of gimbal
-lock. Lift stays a plain 0.5-elmo threshold.
-
-The data is collected **synced**, in the gadget. `Spring.GetFeatureRotation`
-called from LuaUI reads `transMatrix[0]`, which `FeatureDrawerData` only
-refreshes for features drawn that frame, so an unsynced walk reports zero
-rotation for everything off screen and the saved bytes would depend on where the
-camera was pointing. `WG.FeaturePlacer.requestFeatureData(callback)` wraps the
-round-trip; the Map Project save uses it, falling back to a transform-free
-unsynced walk when `/cheat` is off -- in which case nothing can have been
-gizmo-transformed anyway.
-
-**`$terraform_brush$` field reference:**
-
-| # | Field | Type | Notes |
-|---|-------|------|-------|
-| 1 | `dir` | int | +1 raise, −1 lower, 0 level/smooth/restore |
-| 2–3 | `x z` | float | World position |
-| 4 | `radius` | float | 8–2000 |
-| 5 | `shape` | string | circle / square / triangle / hexagon / octagon / ring |
-| 6 | `rot` | float | Degrees |
-| 7 | `curve` | float | 0.1–5.0 |
-| 8–9 | `capMin capMax` | float or empty | Height cap bounds |
-| 10 | `intensity` | float | 0.1–100 |
-| 11 | `lengthScale` | float | 0.2–5.0 |
-| 12 | `clay` | 0/1/2 | Clay mode (`2` = with per-tick build-up) |
-| 13 | `dust` | 0/1 | Dust/DJ mode |
-| 14 | `opacity` | float | 0.01–1.0 |
-| 15 | `instant` | 0/1 | Stamp mode |
-| 16 | `flattenHeight` | float or `nil` | Level/smooth target height; `nil` = sample live |
-| 17 | `ringInnerRatio` | float (optional) | 0.05–0.95; only sent when changed |
-
-### Heightmap Export/Import
-
-#### Export
-1. Reads `GetGroundHeight()` for every grid cell
-2. Normalizes to 0–1 grayscale
-3. Renders quads into an FBO, calls `gl.SaveImage()` **inside** the RenderToTexture callback (required — separate binding reads blank)
-4. Writes companion `.txt` with min/max altitude range
-
-#### Import
-1. Loads PNG as texture → renders to FBO → reads pixels
-2. Reads metadata for min/max range
-3. Converts grayscale → height: `minH + grey × heightRange`
-4. Sends 32 columns/frame via `$terraform_import$` messages (throttled to avoid network flood)
-
----
-
-## Internals
-
-### Rendering
-
-#### Draw Cache
-GL display list cached and only rebuilt when any parameter changes. Validated via `isDrawCacheValid()` comparing a snapshot of all active params.
-
-#### Brush Visuals
-Each frame draws in two passes:
-
-**Animated glow (outside cache):** Two overlapping outlines — a wide (9px) outer halo and a narrower (4px) inner ring — both in the mode colour and alpha-pulsed at ~1.3 Hz via `GetDrawFrame()`. This fires every frame before the cached pass so the pulse animates even when the brush is stationary.
-
-**Static cached pass** (rebuilt only when params change):
-| Element | Description |
-|---------|-------------|
-| **Footprint fill** | Terrain-following semi-transparent polygon (α 0.07) tinted in the mode colour; uses `GetGroundHeight` per vertex for correct hill-hugging |
-| **Outline** | 1.5 px line in mode colour (α 0.78) |
-| **Prism / height-cap** | Wireframe prism when caps are set — orange top plane, cyan bottom plane, white vertical struts |
-| **Falloff arc** | Closed 3D arc showing the falloff profile; drawn in each mode's *bright* accent colour |
-| **Curtain drops** | Sparse vertical lines dropping from arc vertices to the base plane; reinforces the volume of effect at a glance |
-| **Center post** | Vertical ruler shaft from ground to max effect height; peak cross-tick + mid-height minor tick give a quick scale reference |
-
-#### Falloff Visualization
-Each shape type computes per-vertex height using its distance metric raised to `curvePower`. The arc + curtain combo shows both the profile shape and where the effect drops to zero. Color-coded by mode: green (raise), red (lower), cyan (level), yellow (ramp), purple (restore), orange (noise).
-
-#### Mode Color Palette
-| Mode | Outline | Falloff / post |
-|------|---------|----------------|
-| Raise | `0.2 0.8 0.2` (green) | `0.45 1.0 0.45` (bright green) |
-| Lower | `0.8 0.2 0.2` (red) | `1.0 0.45 0.45` (bright red) |
-| Level | `0.3 0.5 0.9` (blue) | `0.5 0.78 1.0` (bright blue) |
-| Restore | `0.7 0.3 0.9` (purple) | `0.88 0.58 1.0` (bright purple) |
-| Noise | `0.96 0.62 0.04` (amber) | `1.0 0.82 0.3` (bright gold) |
-| Ramp | `0.9 0.7 0.2` (yellow) | `1.0 0.88 0.4` (bright yellow) |
-
-#### Tessellation Dirty Tracking
-After each terraform op, `tessellationDirtyFrames` is set to 10. Counter decrements per frame, ensuring the engine re-tessellates the terrain mesh over the affected area.
-
-### Undo / Redo System
-
-History is maintained as a **server-side stack** in the gadget. All terrain modifications snapshot the previous state before applying.
-
-#### Stroke Entries (One Per Tick)
-
-Each brush tick sends one `$terraform_stroke$` message per symmetry copy carrying every dab of that tick. The gadget applies the dabs in order against a working copy of the cells they touch (read from the engine once, on first touch) and commits **once per message**: one `SetHeightMapFunc` (so one engine terrain recalculation) and **one undo entry** built straight from the pre-tick heights of the cells it wrote. Dab k still sees dab k-1's writes, so the result is what sequential commits produced, at a fraction of the engine work.
-
-Entries of one drag share a stroke id: `$terraform_merge_end$` closes the tick, `$terraform_stroke_end$` (mouse release) advances the id, and `$terraform_undo_stroke$` pops every entry with the latest id in one step. Cross-tick merging is deliberately not done (it produced striped leftovers on undo).
-
-Ramp and spline operations always produce a new independent entry.
-
-#### Storage Format
-
-Snapshots are stored as a **bbox grid**: a mask and a height grid over the entry's bounding box (`minX`, `minZ`, `w`, `h`, `ss`). Cells still at their map-original height store a mask bit only (`2`) and no height; edited cells store `1` plus the pre-edit height. Brush ticks build the grid directly from their working copy; the ramp, noise, erode and fill ops convert a flat `{x, z, h, ...}` buffer, which itself replaced per-vertex sub-tables that used to spike GC.
-
-#### Vertex Budget (Anti-OOM)
-
-| Constant | Value | Meaning |
-|----------|-------|---------|
-| `MAX_UNDO` | 10000 | Maximum entries in undo or redo stack |
-| `MAX_SNAPSHOT_VERTICES` | 8 000 000 | ~192 MB — total vertex budget across all stacked snapshots |
-
-When `totalVertexCount` exceeds the budget, the **oldest** undo entries are evicted until under budget. If still over, the oldest redo entries are also evicted. This prevents OOM crashes with very large-radius restore/noise operations on wide maps.
-
----
-
-## Known Constraints
-
-- `Spring.Echo()` inside `SetHeightMapFunc` silently crashes — no debug logging in height callbacks
-- OpenGL calls only valid in Draw call-ins, not action handlers
-- `gl.CreateShader` returns `0` on failure (truthy in Lua) — must check `== 0`
-- `gl.SaveImage` must be inside the same `RenderToTexture` binding where content was drawn
-- A "clone window" system (drag toolbar buttons to spawn floating panel copies) was prototyped and removed — fundamental limitations in RmlUI's `Clone()` API (no event listener copying) and bidirectional sync complexity made it unmaintainable. The write-up lives in the branch history (doc/TerraformBrush_CloneWindows.md before it was pruned for merge).
-
----
-
-## Roadmap
-
-Development is organized into **release milestones**.
-
-> **MoSCoW**: M = Must have, S = Should have, C = Could have, W = Won't (this cycle).
-> **Complexity**: 1 (trivial) – 10 (hardest item on the list).
-
-### Pending Backlog
-
-| # | Item | MoSCoW | Complexity | Notes |
-|---|------|--------|:----------:|-------|
-| 1 | **Full WYSIWYG preview** | S | 8 | Show actual resulting terrain deformation in real-time under the brush cursor before committing. Requires a scratch heightmap buffer + shader-based preview mesh. |
-| 6 | **Ramp width taper** | C | 4 | Allow radius to vary along the ramp path for natural road-like shapes. |
-| 9 | **Per-axis radius sliders** | C | 3 | Replace single radius + lengthScale with independent X/Z radius controls. |
-| 14 | **Light animations** | S | 6 | Timed/looped animations: pulsing, flickering, color cycling. `animation` field already reserved. Presets for torch flicker, alarm strobe, slow breathe. |
-| 15 | **Light gizmo tool** | S | 6 | Select placed lights (click/box-drag), manipulate with 3D gizmo: translate, rotate direction, adjust radius, delete. `selectedLight` state already stubbed. |
-| 17 | **Drawing pad / tablet support** | C | 4 | Map pen pressure to brush intensity/radius, pen tilt to rotation. Requires detecting tablet input events and exposing pressure-curve settings in UI. |
-| 18 | **Direct map-file workflow** | S | 9 | Work directly with a map file (`.sd7`/`.smf`), saving and loading all changes and configurations into it. Explore whether full map compilation/decompilation is possible within the tool or engine. |
-| 19 | **Brush color sampling** (Smart Filter) | C | 5 | Sample the terrain/splat color under the brush as a smart-filter criterion. Extends the Smart Filter panel with a color-pick eyedropper and adjustable hue/value tolerance. |
-| 22 | **Brush alpha masks** | C | 6 | *Post-1.0.* Texture-based brush shapes: load grayscale PNG/TGA masks to drive per-pixel intensity falloff. Mask library with thumbnails; rotation + scale + flip; intensity remap curve. Applies to terraform, grass, splat, and decal brushes. |
-
-### QoL / Future Instruments
-
-| Instrument | Notes |
-|---|---|
-| **Contour lines** | Elevation isolines at configurable intervals drawn world-space (like topo maps). |
-| **Slope/gradient overlay** | Color terrain by steepness: flat=green, moderate=yellow, cliff=red. |
-| **Aspect map** | Color terrain by face direction (N/S/E/W) — useful for ramp orientation and drainage. |
-| **Water depth overlay** | Below-zero terrain colored by depth gradient (shallow=turquoise, deep=dark blue). |
-| **Normal/curvature map** | Highlight ridges vs. valleys via surface curvature coloring. |
-| **Passability grid** | Show engine mobility-map per unit class as a color-coded per-cell overlay. |
-| **LoS shadow map** | Given an observer height, shade terrain outside line-of-sight — design dead ground intentionally. |
-| **Metal density heatmap** | Overlay the raw metal distribution map for metal-map terraform. |
-| **Running distance HUD** | Display current drag distance in elmos as you paint a ramp stroke. |
-| **Terrain cross-section profile** | Draw a line → pop up a miniature elevation graph showing height vs. distance along the transect. |
-| **Height dropper** | Click to lock exact ground height at a point as the Level brush target (explicit eyedropper). |
-| **Exact coordinate entry** | Number-field to teleport the brush center to a typed X/Z/(H) world position. |
-| **Guide lines** | Drag out persistent reference lines (H/V or arbitrary angle) that snap the brush to their intersections. |
-| **Stakeout pins** | Alt+click to place named height-target pins; brush can optionally snap to pin height. |
-| **Radial range rings** | Concentric circles at configurable intervals centered on a fixed point or the brush. |
-| **Optimal path planner** | Given start/end and max-grade constraint, compute and preview a minimum-cut ramp path. |
-| **Lazy mouse** | Configurable cursor-lag / path smoothing for clean hand-painted ramps without jitter. |
-| **Height isolines snap** | Snaps Level mode's target height to the nearest N-elmo contour. Pairs with contour overlay. |
-
-### Release Plan
-
-#### Pre-release — Stabilization
-
-- Full QA pass: verify every feature, button, and mode still works; fix regressions
-- Review config outputs and texture files; determine how (and if) remaining items should wire into maps for a clean workflow and integration path
-
-#### Release 1.0 — "We have a map editor at home"
-
-Ship a stable, usable tool so mappers can start using it instead of Springboard abandonware. Goal: replace the need for an external editor for day-to-day terrain work.
-
-- All existing features stable and documented
-- Gather mapper feedback, address most glaring issues and low-hanging-fruit requests
-- Start chipping away at remaining backlog items (game, infra, possibly some engine work) — large effort but can progress async
-
-#### Release 2.0 — "MOAR FEATUR!"
-
-Major feature expansion. Key themes: **preview**, **manipulation**, **integration**.
-
-- **Full WYSIWYG support** — see resulting terrain/feature placement before committing (backlog #1, #2)
-- **Gizmo controls** — select any placed object (feature, grass patch, light, decal) and adjust with a 3D gizmo: translate, rotate, scale, delete (backlog #3, #15)
-- **Light animations** — keyframes, pulsing, flickering, color cycling presets (backlog #14)
-- **Direct map-file workflow** — all configs and textures save/load in the map file itself (backlog #18)
-- **Dev tool integrations** — interop with other BAR dev tools and, most importantly, the mission API
-- **UI polish** — sleek icons for all buttons and panels, general visual cleanup
-- …and 100 other things that will come along the way
-
-#### Release 3.0 — "Look at me, I'm the map editor now"
-
-When the engine provides a **triplanar shader** for nice cliffs without World Machine assistance, this release pursues full replacement of external map-editing tools.
-
-- **Texture painting** — brush-based terrain texture application with blend modes
-- **Erosion simulation** — procedural hydraulic/thermal erosion passes on the heightmap
-- **Advanced terrain sculpting** — all the fancy stuff that makes external tools unnecessary
-- More fancy stuff TBD as the engine capabilities solidify
-
-#### Release 4.0 — "Brooo this is like a 4D map editor, man"
-
-Temporal dimension: **record and playback** brush strokes for dynamic, time-varying maps.
-
-- **Stroke recording** — capture any brush tool's strokes (terraform, CEGs, features, skybox, and anything else configurable in real-time in Recoil — which is *almost everything*) into a config file
-- **Playback engine** — replay recorded strokes with adjustable playback speed
-- **Mission API integration** — trigger map-change playback sequences from the mission API for dynamic in-game scenarios (terrain shifts mid-mission, evolving battlefields, scripted environmental events)
-
-### Completed Features
-
-<details>
-<summary>Backlog items already shipped — click to expand</summary>
-
-| # | Item | Notes |
-|---|------|-------|
-| 2 | **Feature placement preview** | WYSIWYG ghosts: the exact features about to be placed, at their exact positions and orientations, drawn as instanced translucent models under the cursor. Remove mode tints what the brush would destroy. See [Feature Placer → WYSIWYG Preview](#wysiwyg-preview). |
-| 3 | **Feature gizmo tool** | Click / shift-click / box-drag to select placed features; 3D gizmo with X/Y/Z translate arrows, pitch/yaw/roll rings and a free-move centre handle. Groups transform rigidly about their centroid; per-feature visual scale is rolled at placement time (see [Feature Placer → Scale Variation](#scale-variation)). See [Feature Placer → Selection & Gizmo](#selection--gizmo). |
-| 4 | **Symmetry tool** | Full implementation. Mirror X/Y modes with axis angle rotation; N-way radial mode (2–16 copies); draggable origin gizmo; Flipped mode (mirror + invert heights); one-shot Mirror Terrain button. See [Instruments → Symmetry / Mirror Tool](#symmetry--mirror-tool). |
-| 5 | **Velocity-sensitive intensity** | Toggle in Overlays section; scales brush strength by mouse drag speed. See [Velocity-Sensitive Intensity](#velocity-sensitive-intensity). |
-| 7 | **Partial restore slider** | Slider in restore mode; 0–100% blend target sent to gadget. See [Restore](#restore). |
-| 8 | **Triangle shape** | Keybind T, widget + gadget + RML button. See [Shapes](#shapes). |
-| 10 | **Height cap filled preview** | TRIANGLE_FAN fill at low alpha behind LINE_LOOP outlines for caps. See [Height Caps](#height-caps). |
-| 11 | **Import progress bar** | `getState()` exposes progress; RML bar + label update per frame. |
-| 12 | **UI panel keyboard shortcut** | `terraformpanel` action toggles panel visibility. |
-| 13 | **Grass editor** | Brush-based grass painting (LMB/RMB), density slider, shape/size/rotation/curve controls, smart filters (water/cliff/altitude), color-based filtering, TGA export. Widget: `cmd_grass_brush.lua`, API extension in `map_grass_gl4.lua`. Pipette feature deferred (FBO axis-mapping issues). |
-| 16 | **Copy & paste → Clone Tool** | Full region clone tool with terrain, metal, features, splats, grass, decals, and lights layers. Rotation, mirroring, height offset. Weather layer stubbed (awaiting `WG.WeatherBrush` API). See [Clone Tool](#clone-tool). |
-| 20 | **Protractor** | Angle-snap instrument with configurable degree grid, spoke overlay, auto/manual modes. See [Instruments → Protractor](#protractor). |
-| 21 | **Measure tool** | World-space ruler with chainable polylines, Bezier handle curves, Ruler/Sticky/Distort sub-modes, symmetry integration. See [Instruments → Measure Tool](#measure-tool). |
-
-</details>
-
----
-
-## Technical Notes — Terrain Color Sampling
-
-> Written: 2026-04-16
-> Relevant to: Grass Brush color filter, Splat Painter terrain preview swatch
-
-### The Problem: `$minimap` gives wrong colors
-
-The naive approach — sampling terrain color from `$minimap` via world-space UV — produces colors that **do not match what the player sees**. The minimap is rendered by a separate, simplified shading pipeline (no deferred lighting, no PBR, different gamma and texture blending). Even with perfect UV math the RGB values are fundamentally different from the viewport.
-
-### Failed Approaches (history)
-
-All of these were tried before the working solution was found:
-
-| # | Approach | Why it failed |
-|---|----------|---------------|
-| 1 | **NxN FBO batch render of `$minimap` region + batch ReadPixels** | Distortion increasing from the center of the viewport. The world-space UV to minimap TexRect region mapping is unreliable — pixel positions shift depending on viewport angle/zoom. |
-| 2 | **Per-cell `RenderToTexture` calls inside a single outer `RenderToTexture`** | Mirror/axis flip artefacts persisted. Nested FBO binds do not work reliably in the Spring GL layer. |
-| 3 | **Per-cell `RenderToTexture` calls, each in its own top-level call** | Still produced mirrored/wrong colors. Root cause was `$minimap` itself, not the mapping. |
-| 4 | **`gl.RenderToTexture` + `gl.ReadPixels` in the same callback** | ReadPixels is unreliable when called inside the same RenderToTexture callback as the render. GPU has not flushed yet. Results were garbage or zero. |
-| 5 | **All FBO operations in `DrawWorld`** | GL context is wrong. Deferred G-buffer textures are only valid during the screen-space pass (`DrawScreen`). Calls silently failed or sampled stale data. |
-| 6 | **Viewport-sized FBO (full screen bbox, no size cap)** | Worked for small brushes but caused **LuaUI OOM crash** for large brushes. `gl.ReadPixels` for an 800x800 px bbox returns 640,000 Lua table entries per frame. LuaUI heap (1.5 GB) exhausted in seconds. Error: `gl.RenderToTexture: error(4) = not enough memory`. |
-| 7 | **Deferred ReadPixels (frame N+1) without the OOM fix** | Eliminated the `SwapBuffers` 81ms stall, but the heap exhaustion crash persisted because the FBO was still screen-sized. |
-
-**Other ideas investigated but not pursued:**
-
-- `Spring.GetGroundDiffuseColor(x,z)` — no such function exists in Recoil.
-- `gl.SaveImage` to dump `$minimap` to disk once, load as regular texture — would still give wrong colors (it is the wrong texture).
-- Render `$minimap` to a large FBO once at widget init — same wrong-color problem, plus not live.
-- `gl.ReadPixels` on `$minimap` directly without FBO — not supported by the engine API.
-
-### The Solution: `$map_gbuffer_difftex`
-
-`$map_gbuffer_difftex` is the **terrain G-buffer diffuse texture** — the actual output of the terrain deferred renderer, in **screen space**. Its UV goes from `(0,0)` at the bottom-left of the viewport to `(1,1)` at the top-right.
-
-To sample the color at a world position:
-
-```lua
-local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
-local sx, sy = Spring.WorldToScreenCoords(wx, Spring.GetGroundHeight(wx, wz), wz)
-local u = (sx - vpx) / vsx   -- clamp to [0,1]
-local v = (sy - vpy) / vsy
--- then TexRect into a small FBO using u,v
-```
-
-For the **mouse cursor** (e.g. splat painter terrain swatch), the mouse is already at a screen position — no WorldToScreenCoords needed:
-
-```lua
-local mx, my = Spring.GetMouseState()
-local vsx, vsy = Spring.GetViewGeometry()
-local u = mx / vsx
-local v = my / vsy
-```
-
-### Batch Cache (Grass Brush — `buildDiffuseCache`)
-
-For the grass brush, we need terrain color at every cell of a 48x48 world grid, once per frame. Individual per-cell FBO calls would be catastrophically slow. Strategy:
-
-1. **Project all grid cells** to screen via `WorldToScreenCoords` — compute screen bounding box (minSX, maxSX, minSY, maxSY).
-2. **Render the bbox** from `$map_gbuffer_difftex` into a single **capped FBO** (max 96x96) using one `gl.TexRect` call. The FBO is smaller than the screen bbox — scaled down, but 48x48 grid resolution is more than enough for grass placement decisions.
-3. **Deferred ReadPixels**: render on frame N, call `gl.ReadPixels` on frame N+1. This eliminates the synchronous GPU-to-CPU stall that caused ~81ms `SwapBuffers` spikes.
-4. **Per-cell lookup**: convert each cell's screen offset to FBO pixel coords using `scaleX = capW / bboxW`.
-
-### FBO Size Cap — OOM Fix
-
-`gl.ReadPixels(0, 0, W, H)` returns a nested Lua table: `W x H` entries, each `{r,g,b,a}`. For a large brush on a 1440p display the raw bbox can exceed 1000x1000 pixels — 1 million+ Lua table allocations per frame — LuaUI Lua heap (1.5 GB limit) exhausted in seconds — crash.
-
-**Fix:** cap the FBO at `DIFFUSE_GRID_MAX * 2 = 96` pixels on each side. Max ReadPixels allocation: 9,216 pixels = completely safe.
-
-### Two-Pass Rule
-
-`gl.ReadPixels` inside a `gl.RenderToTexture` callback is unreliable when called in the same pass as rendering. Always split into two separate `gl.RenderToTexture` calls:
-
-```lua
--- Pass 1: render
-gl.RenderToTexture(fbo, function()
-    gl.Texture("$map_gbuffer_difftex")
-    gl.TexRect(-1, -1, 1, 1, u0, v0, u1, v1)
-    gl.Texture(false)
-end)
--- Pass 2: read (separate call)
-local pixels
-gl.RenderToTexture(fbo, function()
-    pixels = gl.ReadPixels(0, 0, w, h)
-end)
-```
-
-### GL Context Rule
-
-All FBO operations (`gl.RenderToTexture`, `gl.ReadPixels`, `gl.CreateTexture`) must run inside `widget:DrawScreen()`, never `DrawWorld()`. The deferred G-buffer textures (`$map_gbuffer_difftex`) are only valid during the screen-space render pass.
-
-### RmlUI Icon Rendering Rule
-
-BAR's RmlUI path is picky about PNG icon pixels. Semi-transparent white source art can render as flat white, pick up fringe artifacts, or even show boxy backgrounds if transparent pixels carry color.
-
-**Safe icon export recipe for Terraform Brush toolbar/panel icons:**
-
-- Visible pixels: avoid pure white RGB. Use a neutral gray instead, while preserving the intended alpha shape.
-- Fully transparent pixels: force them to true transparent black: `RGBA(0,0,0,0)`.
-- If edges still look ragged, use alpha-weighted grayscale for visible pixels rather than a constant white fill.
-- Prefer fixing the PNG pixel data directly. Do **not** rely on RCSS `image-color` to rescue bad source art; it can introduce mismatched brightness and extra artifacts.
-
-**Practical rule of thumb used here:**
-
-- For each visible pixel, keep or slightly tune alpha as needed for crispness.
-- Set RGB to a gray value that tracks alpha, instead of leaving it at `255,255,255`.
-- For any pixel with `alpha == 0`, zero all channels.
-
-This rule fixed repeated issues with Terraform Brush shape, paint, distribution, light, ramp, and environment icons.
-
----
-
-## Future Work — Metal Spot As Decal (Post-1.0)
-
-Groundwork has been laid for a "metal spot as decal" pipeline that lets mappers
-capture an in-engine top-down render of a metal patch (or any small area of
-terrain) and reuse it as a custom ground decal via the standard
-`gamedata/resources.lua` `graphics.decals` registration path.
-
-Pieces already in place on the `realtime-terraformer` branch:
-
-- `luaui/Widgets/cmd_decal_capture.lua` — `/decalcapture <name> [radius]`
-  console command. Runs a fullscreen-quad fragment shader on `DrawScreen` that,
-  per output texel, reconstructs world XZ from the cursor-centered capture
-  rect, samples `$heightmap` for Y, projects through the current view-projection
-  matrix, and reads `$map_gbuffer_difftex`. Off-screen / behind-camera texels
-  go transparent; a radial feather is applied at the edge. Output is a 512×512
-  PNG written to `LuaUI/Cache/decal_captures/<name>.png`.
-- `luaui/Widgets/cmd_decal_placer.lua` — custom decals registered in
-  `gamedata/resources.lua` are picked up automatically by the existing decal
-  list (engine assigns them `maindecal_<i>`), and Point mode now defaults to
-  `decalCount = 1` / `cadence = 1` so single-shot placement works without
-  knob fiddling.
-- `luaui/RmlWidgets/gui_decal_placer/gui_decal_placer.lua` — the picker
-  honors `entry.displayName` for filter/label so user-friendly names show up
-  alongside the engine's `maindecal_<i>` keys.
-
-Known limitations / explicitly **deferred to post-1.0**:
-
-- Capture only includes what is currently on-screen — the user must frame the
-  area before invoking the command.
-- Diffuse channel only. Normal/specular capture not yet wired.
-- Alpha is a flat radial feather; no smart color isolation (e.g. "only metal-
-  spot pixels") yet.
-- No automatic atlas registration. After capture the user must manually:
-  1. Move the PNG into `bitmaps/decals/`.
-  2. Append the filename to `gamedata/resources.lua` `graphics.decals`.
-  3. Restart the game so the engine atlas rebuilds.
-
-The intent post-1.0 is to wire this into the Terraform Brush's decal-aware
-flow so that metal spots placed through the brush can carry a custom
-captured decal instead of relying solely on the shipped atlas tiles.
 
 ---
 

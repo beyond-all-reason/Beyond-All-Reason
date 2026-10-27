@@ -16,6 +16,10 @@ end
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
+local spIsUnitVisible = Spring.IsUnitVisible
+local glColor = gl.Color
+local glCallList = gl.CallList
+local osClock = os.clock
 
 ---------------------------------------------------------------------------------------------------
 --  Declarations
@@ -25,7 +29,11 @@ local vignetteTexture = ":n:" .. LUAUI_DIRNAME .. "Images/vignette.dds"
 
 local duration = 1.55
 local maxOpacity = 0.55
-local opacity = 0
+local minOpacity = 0.01
+local fadeSpeed = maxOpacity / duration -- opacity lost per second
+
+local hurtTime = 0 -- os.clock() of the last hit on an unseen commander
+local drawing = false -- DrawScreen is only registered while the vignette is visible
 
 local myTeamID = spGetMyTeamID()
 local dList
@@ -39,7 +47,7 @@ end
 
 --------------------------------------------------------------------------------
 
-function createList()
+local function createList()
 	local vsx, vsy = gl.GetViewSizes()
 	dList = gl.CreateList(function()
 		gl.Texture(vignetteTexture)
@@ -48,8 +56,21 @@ function createList()
 	end)
 end
 
+local function setDrawing(active)
+	if active == drawing then
+		return
+	end
+	drawing = active
+	if active then
+		widgetHandler:UpdateCallIn("DrawScreen")
+	else
+		widgetHandler:RemoveCallIn("DrawScreen")
+	end
+end
+
 function widget:Initialize()
 	createList()
+	widgetHandler:RemoveCallIn("DrawScreen")
 	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
@@ -63,12 +84,13 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if damage > 3 and unitTeam == myTeamID and comUnitDefIDs[unitDefID] and not Spring.IsUnitVisible(unitID) then
+	if comUnitDefIDs[unitDefID] and unitTeam == myTeamID and damage > 3 and not spIsUnitVisible(unitID) then
 		if spGetSpectatingState() then
 			widgetHandler:RemoveWidget()
 			return
 		end
-		opacity = maxOpacity
+		hurtTime = osClock()
+		setDrawing(true)
 	end
 end
 
@@ -79,16 +101,14 @@ function widget:ViewResize(newX, newY)
 	createList()
 end
 
-function widget:Update(dt)
-	if opacity > 0 then
-		opacity = opacity - (maxOpacity * (dt / duration))
-	end
-end
-
 function widget:DrawScreen()
-	if opacity > 0.01 then
-		gl.Color(1, 0, 0, opacity)
-		gl.CallList(dList)
+	local opacity = maxOpacity - (osClock() - hurtTime) * fadeSpeed
+	if opacity > minOpacity then
+		glColor(1, 0, 0, opacity)
+		glCallList(dList)
+		glColor(1, 1, 1, 1)
+	else
+		setDrawing(false)
 	end
 end
 

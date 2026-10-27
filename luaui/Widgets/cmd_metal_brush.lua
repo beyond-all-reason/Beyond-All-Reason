@@ -77,6 +77,13 @@ local SAVE_DIR = "Terraform Brush/MetalMaps/"
 local CACHE_REBUILD_THROTTLE = 0.25
 local CACHE_REBUILD_DELAY = 0.12 -- wait for gadget RecvLuaMsg to apply SetMetalAmount
 local cacheRebuildHoldUntil = 0 -- os.clock() threshold; don't rebuild before this
+-- Declared here so the paint and stamp senders below mark these, not globals
+local spotsCacheDirty = true
+local clusterCacheDirty = true
+local overlayListDirty = true
+local clusterVisDirty = true
+local lastCacheBuildClock = 0
+local balanceAxisSumsDirty = true
 
 -- State
 local active = false
@@ -248,12 +255,16 @@ local function drawShapeOutline(worldX, worldZ, radius, shape, angleDeg)
 			sides = 6
 		elseif shape == "octagon" then
 			sides = 8
+		elseif shape == "triangle" then
+			sides = 3
 		end
 		-- square/hexagon isInsideShape uses inradius (center-to-edge = radius);
 		-- offset vertices by half-step and scale to circumradius so outline matches painted area.
 		-- octagon isInsideShape uses circumradius, so no correction needed.
-		local angleOffset = (shape ~= "octagon") and (pi / sides) or 0
-		local outlineRadius = (shape ~= "octagon") and (radius / cos(pi / sides)) or radius
+		-- triangle comes from common/brush_shapes: circumradius, vertex on +x.
+		local inradiusShape = shape ~= "octagon" and shape ~= "triangle"
+		local angleOffset = inradiusShape and (pi / sides) or 0
+		local outlineRadius = inradiusShape and (radius / cos(pi / sides)) or radius
 		local angleRad = (angleDeg or 0) * pi / 180
 		local c, s = cos(angleRad), sin(angleRad)
 		glBeginEnd(GL_LINE_LOOP, function()
@@ -444,6 +455,7 @@ local function loadMetalMap()
 		return
 	end
 
+	setfenv(chunk, {})
 	local ok, data = pcall(chunk)
 	if not ok or type(data) ~= "table" or not data.spots then
 		Echo("[Metal Brush] ERROR: Invalid metal map file: " .. filename)
@@ -509,15 +521,10 @@ local LASSO_DRAG_THRESHOLD_PX = 6
 local LASSO_FREEDRAW_MIN_SPACING_SQ = 24 * 24 -- world elmos^2 between appended points
 
 local spotsCache = nil
-local spotsCacheDirty = true
 local clusterCache = nil
 local clusterCacheRadius = -1
-local clusterCacheDirty = true
 local overlayList = nil
-local overlayListDirty = true
 local clusterVisList = nil
-local clusterVisDirty = true
-local lastCacheBuildClock = 0
 
 local function invalidateMetalCaches()
 	spotsCacheDirty = true
@@ -1048,7 +1055,6 @@ local balanceAxisOriginZ = nil
 local balanceAxisPlacingOrigin = false -- next LMB sets origin
 local balanceAxisSumA = 0 -- positive side (normal direction)
 local balanceAxisSumB = 0 -- negative side
-local balanceAxisSumsDirty = true
 local balanceAxisHovering = false
 local balanceAxisDragging = false
 local BALANCE_AXIS_HOVER_DIST = 48 -- world elmos perpendicular hover threshold
@@ -1292,13 +1298,9 @@ local function activate(mode)
 	if not mapOverlay then
 		setMapOverlay(true)
 	end
-	Echo("[Metal Brush] Activated: " .. subMode:upper() .. " | Metal Value: " .. metalValue)
 end
 
 local function deactivate()
-	if active then
-		Echo("[Metal Brush] Deactivated")
-	end
 	active = false
 	painting = false
 	paintButton = 0
@@ -1607,7 +1609,6 @@ function widget:MouseWheel(up, value)
 		else
 			metalValue = max(MIN_METAL_VALUE, metalValue - step)
 		end
-		Echo("[Metal Brush] Metal value: " .. format("%.2f", metalValue))
 		return true
 	end
 
@@ -1660,7 +1661,15 @@ function widget:MouseWheel(up, value)
 	return false
 end
 
+-- set by RecvLuaMsg, run here: reloading widgets inside a callin would change the list being dispatched
+local refreshSpotWidgets
+local spotWidgetsPending = false
+
 function widget:Update(dt)
+	if spotWidgetsPending then
+		spotWidgetsPending = false
+		refreshSpotWidgets()
+	end
 	-- Balance axis hover check (when not dragging, not placing)
 	if active and balanceAxisActive and not balanceAxisDragging and not balanceAxisPlacingOrigin then
 		local wx, wz = getWorldPos()
@@ -1807,6 +1816,16 @@ function widget:DrawWorld()
 		local op = outlinePositions[oi]
 		drawShapeOutline(op.x, op.z, ss.radius, ss.shape, op.rot or ss.rotationDeg)
 	end
+	-- A stamp only lays metal within a centred mex's reach (the gadget's applyStamp): show that
+	-- circle when the brush is wider, so the outline does not promise metal that never lands
+	local spotRad = math.max(EXTRACTOR_RADIUS - METAL_SQ, METAL_SQ)
+	if subMode == "stamp" and ss.radius > spotRad then
+		glColor(1, 1, 1, 0.6 * edgeFade)
+		for oi = 1, #outlinePositions do
+			local op = outlinePositions[oi]
+			drawShapeOutline(op.x, op.z, spotRad, "circle", 0)
+		end
+	end
 
 	-- Draw center cross
 	local groundY = GetGroundHeight(worldX, worldZ)
@@ -1851,11 +1870,42 @@ function widget:DrawScreen()
 	drawCursorInfo(worldX, worldZ)
 end
 
+-- The gadget rescanned the resource spots after the metal stopped changing ("mb_spots_refreshed"): rescan
+-- LuaUI's copy too (refilled in place, so Area Mex and Extractor Snap follow on their own), then reload
+-- the widgets that build their state from the spot list once at start, or drop out on a map with too
+-- few spots. Only the ones switched on in the widget list: the saved config says which.
+local SPOT_WIDGETS = { "Metalspots", "Quick Build (mex/geo)" }
+refreshSpotWidgets = function()
+	local finder = WG.resource_spot_finder
+	if not (finder and finder.Refresh) then
+		return
+	end
+	local spots = finder.Refresh()
+	local order = {}
+	local chunk = loadfile("LuaUI/Config/" .. Game.gameShortName .. ".lua")
+	if chunk then
+		setfenv(chunk, {})
+		local ok, cfg = pcall(chunk)
+		if ok and type(cfg) == "table" and type(cfg.order) == "table" then
+			order = cfg.order
+		end
+	end
+	for _, name in ipairs(SPOT_WIDGETS) do
+		if (order[name] or 1) > 0 then
+			Spring.SendCommands("luaui disablewidget " .. name)
+			Spring.SendCommands("luaui enablewidget " .. name)
+		end
+	end
+	Spring.Echo("[Metal Brush] mex widgets updated: " .. (type(spots) == "table" and #spots or "metal map") .. " spots")
+end
+
 -- Gadget signals "mb_metal_updated" after every SetMetalAmount batch so we
 -- know the values are committed and can cancel the blind timer hold, letting
 -- the overlay cache rebuild on the very next DrawWorld call.
 function widget:RecvLuaMsg(msg, playerID)
-	if msg == "mb_metal_updated" then
+	if msg == "mb_spots_refreshed" then
+		spotWidgetsPending = true
+	elseif msg == "mb_metal_updated" then
 		spotsCacheDirty = true
 		clusterCacheDirty = true
 		overlayListDirty = true

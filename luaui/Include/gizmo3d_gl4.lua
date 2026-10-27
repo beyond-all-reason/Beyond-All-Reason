@@ -6,8 +6,7 @@
 -- caller decides what those deltas mean.
 --
 -- Written for the feature placer, but deliberately free of any feature-specific
--- knowledge so the light placer (which already stubs `selectedLight` for this)
--- and the decal placer can use it unchanged.
+-- knowledge so the light and decal placers can use it unchanged.
 --
 -- Two design notes worth knowing before editing:
 --

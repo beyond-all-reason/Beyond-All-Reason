@@ -157,6 +157,25 @@ local function rollScale(rng, smin, smax)
 end
 
 ----------------------------------------------------------------
+-- Tilt variation
+----------------------------------------------------------------
+-- A lean of up to maxDeg in a random direction, as the pitch and roll (radians)
+-- SetFeatureRotation takes. Squaring the draw keeps most features near upright
+-- with a few leaning hard, the way a real stand looks. The direction is split
+-- over pitch and roll the same way the placer gadget's landing wobble does.
+-- Returns 0, 0 without touching the rng when maxDeg is 0, so untilted layouts
+-- roll exactly as before.
+local function rollTilt(rng, maxDeg)
+	if not maxDeg or maxDeg <= 0 then
+		return 0, 0
+	end
+	local t = rng:next()
+	local lean = maxDeg * t * t * pi / 180
+	local dir = rng:next() * 2 * pi
+	return lean * cos(dir), lean * sin(dir)
+end
+
+----------------------------------------------------------------
 -- Distribution: random
 ----------------------------------------------------------------
 local function generateRandom(radius, shape, lengthScale, count, rng)
@@ -250,17 +269,49 @@ end
 -- pair-separation test uses the two candidates' scales, so small features pack
 -- tighter than large ones. Both are what makes a scatter read as a grown stand
 -- rather than dice rolls.
-local function generateClustered(radius, shape, lengthScale, count, defNames, rng, scaleMin, scaleMax)
+--
+-- `spacingOverride` replaces the def-derived separation for callers whose names
+-- are not features (the unit placer scatters units, sized by footprint).
+--
+-- `clump` (optional) shapes the stand; every field defaults to the original
+-- fixed behaviour, so callers that pass nothing get exactly what they used to:
+--   count    number of clumps, 0 = auto (sqrt of the feature count, 2..6)
+--   size     clump spread multiplier (1 = radius / clumps * 1.2)
+--   loose    fraction of features scattered between the clumps (0.25)
+--   variety  0..1, how unlike each other the clumps are: per clump a share of
+--            the features (dense vs sparse), a spread, and an age that shifts
+--            its size range (a young clump of saplings next to an old grove)
+local function generateClustered(
+	radius,
+	shape,
+	lengthScale,
+	count,
+	defNames,
+	rng,
+	scaleMin,
+	scaleMax,
+	spacingOverride,
+	clump
+)
 	scaleMin = scaleMin or 1
 	scaleMax = scaleMax or 1
+	clump = clump or {}
+	local clumpCount = floor(tonumber(clump.count) or 0)
+	local clumpSize = max(0.05, tonumber(clump.size) or 1)
+	local looseFrac = max(0, min(1, tonumber(clump.loose) or 0.25))
+	local variety = max(0, min(1, tonumber(clump.variety) or 0))
 	local minSpacing = 4
-	for i = 1, #defNames do
-		local def = FeatureDefNames[defNames[i]]
-		if def and def.radius and def.radius > minSpacing then
-			minSpacing = def.radius
+	if spacingOverride then
+		minSpacing = spacingOverride
+	else
+		for i = 1, #defNames do
+			local def = FeatureDefNames[defNames[i]]
+			if def and def.radius and def.radius > minSpacing then
+				minSpacing = def.radius
+			end
 		end
+		minSpacing = minSpacing * 1.4
 	end
-	minSpacing = minSpacing * 1.4
 
 	-- Guarantee the Poisson-disk capacity can actually fit `count`, or the
 	-- rejection loop burns its whole budget and returns short.
@@ -270,7 +321,18 @@ local function generateClustered(radius, shape, lengthScale, count, defNames, rn
 	end
 	minSpacing = max(4, minSpacing)
 
-	local numClusters = max(2, min(6, floor(sqrt(count) * 0.7 + 0.5)))
+	local numClusters = clumpCount
+	if numClusters <= 0 then
+		numClusters = max(2, min(6, floor(sqrt(count) * 0.7 + 0.5)))
+	end
+	---@class ScatterClump
+	---@field [1] number centre x
+	---@field [2] number centre z
+	---@field weight number? share of the features (variety on only)
+	---@field spread number? sigma multiplier (variety on only)
+	---@field age number? 0 young (small) .. 1 old (large) (variety on only)
+
+	---@type ScatterClump[]
 	local clusterCenters = {}
 	local nattempts = 0
 	while #clusterCenters < numClusters and nattempts < numClusters * 20 do
@@ -285,8 +347,23 @@ local function generateClustered(radius, shape, lengthScale, count, defNames, rn
 		clusterCenters[1] = { 0, 0 }
 	end
 
-	local sigma = radius / max(1, #clusterCenters) * 1.2
-	local RANDOM_FRAC = 0.25
+	local sigma = radius / max(1, #clusterCenters) * 1.2 * clumpSize
+
+	-- Per-clump character. Rolled only when variety is on, so a zero-variety
+	-- layout draws the same random sequence it always did.
+	local totalWeight = #clusterCenters
+	if variety > 0 then
+		totalWeight = 0
+		for _, cc in ipairs(clusterCenters) do
+			-- Squared roll: most clumps sparse, a few dense, like real stands.
+			local w = rng:next()
+			local weight = 1 + variety * (0.1 + 3 * w * w - 1)
+			cc.weight = weight
+			cc.spread = 1 + variety * (0.4 + rng:next() * 1.4 - 1)
+			cc.age = rng:next()
+			totalWeight = totalWeight + weight
+		end
+	end
 
 	local hasScale = scaleMax > scaleMin
 	local scaleRange = scaleMax - scaleMin
@@ -300,19 +377,33 @@ local function generateClustered(radius, shape, lengthScale, count, defNames, rn
 		local px, pz, ps
 		local valid = false
 
-		if rng:next() < RANDOM_FRAC then
+		if rng:next() < looseFrac then
 			local rx = (rng:next() * 2 - 1) * radius
 			local rz = (rng:next() * 2 - 1) * radius * lengthScale
 			if insideLocal(rx, rz, radius, shape, lengthScale) then
 				px, pz = rx, rz
-				ps = hasScale and rollScale(rng, scaleMin, scaleMax) or 1
+				ps = hasScale and rollScale(rng, scaleMin, scaleMax) or scaleMin
 				valid = true
 			end
 		else
 			-- Box-Muller for a normally-distributed offset from a nucleus.
-			local cc = clusterCenters[rng:int(1, #clusterCenters)]
+			-- (never empty: a single centre is added above when none fit)
+			local cc = clusterCenters[#clusterCenters] --[[@as ScatterClump]]
+			if variety > 0 then
+				local pick = rng:next() * totalWeight
+				for _, c in ipairs(clusterCenters) do
+					cc = c
+					pick = pick - (c.weight or 1)
+					if pick <= 0 then
+						break
+					end
+				end
+			else
+				cc = clusterCenters[rng:int(1, #clusterCenters)] --[[@as ScatterClump]]
+			end
+			local ccSigma = sigma * (cc.spread or 1)
 			local u1 = max(1e-7, rng:next())
-			local mag = sigma * sqrt(-2 * log(u1))
+			local mag = ccSigma * sqrt(-2 * log(u1))
 			local ang = rng:next() * TAU
 			px, pz = cc[1] + mag * cos(ang), cc[2] + mag * sin(ang)
 			valid = insideLocal(px, pz, radius, shape, lengthScale)
@@ -320,12 +411,17 @@ local function generateClustered(radius, shape, lengthScale, count, defNames, rn
 				if hasScale then
 					-- Core of the clump = big, fringe = small, plus jitter so the
 					-- gradient does not read as concentric rings.
-					local closeness = 1 - min(1, mag / (sigma * 1.5))
+					local closeness = 1.0 - min(1.0, mag / (ccSigma * 1.5))
 					local t = closeness + (rng:next() - 0.5) * 0.4
+					if cc.age then
+						-- An old clump leans large, a young one small.
+						t = t + (cc.age - 0.5) * variety * 1.2
+					end
 					t = max(0, min(1, t))
 					ps = scaleMin + scaleRange * t
 				else
-					ps = 1
+					-- fixed scale (min == max): every feature the same size
+					ps = scaleMin
 				end
 			end
 		end
@@ -334,7 +430,9 @@ local function generateClustered(radius, shape, lengthScale, count, defNames, rn
 			local tooClose = false
 			for i = 1, #positions do
 				local ddx, ddz = px - positions[i][1], pz - positions[i][2]
-				local need = hasScale and minSpacing * 0.5 * (ps + positions[i][3]) or minSpacing
+				-- Pair spacing follows the two features' scales, fixed or rolled; unscaled
+				-- layouts have ps = 1 and keep the def-derived spacing.
+				local need = minSpacing * 0.5 * (ps + positions[i][3])
 				if ddx * ddx + ddz * ddz < need * need then
 					tooClose = true
 					break
@@ -353,9 +451,9 @@ end
 -- Public: layout generation
 ----------------------------------------------------------------
 ---Build a brush-relative layout. Deterministic for a given (seed, params).
----@param params table shape, radius, rotation, count, distribution, rotRandom, defNames, lengthScale, scaleMin, scaleMax
+---@param params table shape, radius, rotation, count, distribution, rotRandom, tiltRandom (max lean, degrees), defNames, lengthScale, scaleMin, scaleMax, minSpacing (clustered: replaces the FeatureDefNames radius), clumps, clumpSize, clumpLoose, clumpVariety (clustered, see generateClustered)
 ---@param seed number
----@return table layout array of { dx, dz, defName, heading, scale }
+---@return table layout array of { dx, dz, defName, heading, scale, pitch, roll }
 local function generateLocal(params, seed)
 	local defNames = params.defNames or {}
 	if #defNames == 0 then
@@ -381,7 +479,23 @@ local function generateLocal(params, seed)
 	if distribution == "regular" then
 		positions = generateRegular(radius, shape, lengthScale, count, rng)
 	elseif distribution == "clustered" then
-		positions = generateClustered(radius, shape, lengthScale, count, defNames, rng, scaleMin, scaleMax)
+		positions = generateClustered(
+			radius,
+			shape,
+			lengthScale,
+			count,
+			defNames,
+			rng,
+			scaleMin,
+			scaleMax,
+			tonumber(params.minSpacing),
+			{
+				count = params.clumps,
+				size = params.clumpSize,
+				loose = params.clumpLoose,
+				variety = params.clumpVariety,
+			}
+		)
 	else
 		positions = generateRandom(radius, shape, lengthScale, count, rng)
 	end
@@ -392,6 +506,7 @@ local function generateLocal(params, seed)
 	local angleDeg = params.rotation or 0
 	local baseHeading = floor((angleDeg / 360) * 65536) % 65536
 	local spread = floor((params.rotRandom or 100) / 100 * 32768)
+	local tiltMax = params.tiltRandom or 0
 	local numDefs = #defNames
 
 	local layout = {}
@@ -403,13 +518,15 @@ local function generateLocal(params, seed)
 		if hasScale then
 			s = positions[i][3] or rollScale(rng, scaleMin, scaleMax)
 		end
-		layout[#layout + 1] = {
+		local entry = {
 			dx = wx,
 			dz = wz,
 			defName = defNames[rng:int(1, numDefs)],
 			heading = (baseHeading + rng:int(-spread, spread)) % 65536,
 			scale = s,
 		}
+		entry.pitch, entry.roll = rollTilt(rng, tiltMax)
+		layout[#layout + 1] = entry
 	end
 
 	return layout
@@ -496,8 +613,8 @@ local function resolve(layout, centerX, centerZ, params, extraRotDeg)
 				y = y,
 				z = z,
 				heading = (entry.heading + headingOffset) % 65536,
-				pitch = 0,
-				roll = 0,
+				pitch = entry.pitch or 0,
+				roll = entry.roll or 0,
 				scale = entry.scale,
 			}
 		end
@@ -512,4 +629,5 @@ return {
 	resolve = resolve,
 	rotatePoint = rotatePoint,
 	rollScale = rollScale,
+	rollTilt = rollTilt,
 }

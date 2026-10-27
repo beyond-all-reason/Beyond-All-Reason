@@ -28,7 +28,7 @@ local TILE_COLUMNS = 3
 local TILE_GAP_DP = 2
 
 local widgetState = {
-	rmlContext = nil,
+	rmlContext = nil --[[@as table?]],
 	document = nil,
 	dmHandle = nil,
 	rootElement = nil,
@@ -51,7 +51,6 @@ local lastSearchFilter = ""
 local selectedCategories = { all = true }
 local categoryButtons = {} -- { [catKey] = element }
 local featureElements = {} -- { [defName] = element }
-local thumbDivs = {} -- { [defName] = div element }
 local manuallyHidden = false
 local lastActive = false
 local userDragged = false -- once user drags, stop auto-positioning
@@ -366,7 +365,6 @@ local function startThumbGeneration()
 	end
 
 	thumbGenerating = true
-	Spring.Echo("[Feature Placer UI] Generating " .. thumbTotal .. " thumbnails...")
 end
 
 local function processThumbQueue()
@@ -404,12 +402,7 @@ local function processThumbQueue()
 	if thumbQueueIdx > #thumbQueue then
 		thumbGenerating = false
 		needsListRefresh = true
-		Spring.Echo("[Feature Placer UI] Thumbnails complete (" .. thumbDone .. "/" .. thumbTotal .. ")")
 	end
-end
-
-local function invalidateThumbCache()
-	-- no-op; kept for call-site compatibility
 end
 
 ----------------------------------------------------------------
@@ -436,6 +429,21 @@ local function updateSelectedCount()
 			el.inner_rml = s
 		end
 	end
+	-- The tiles follow the placer's picks, whatever changed them: a right-click on the map
+	-- drops them (the mouse goes back to selecting), and a library still showing them lit
+	-- read as "stuck in selection mode" (Moose, 2026-10-20). Only on a change.
+	if WG.FeaturePlacer then
+		local state = WG.FeaturePlacer.getState()
+		local defs = state and state.selectedDefs or {}
+		local sig = table.concat(defs, ",")
+		if widgetState.lastPickSig ~= sig then
+			widgetState.lastPickSig = sig
+			local ss = state and state.selectedSet or {}
+			for name, tile in pairs(featureElements) do
+				tile:SetClass("selected", ss[name] or false)
+			end
+		end
+	end
 end
 
 ----------------------------------------------------------------
@@ -445,8 +453,6 @@ end
 ----------------------------------------------------------------
 local virtualItems = {} -- flat array of { name=..., id=..., category=... }
 local virtualTileW = 32 -- computed tile width (dp)
-local virtualTileH = 32 -- computed tile height (includes name bar)
-local virtualRowH = 0 -- tile height + gap in px (computed after first layout)
 local virtualScrollTop = -1 -- last known scroll_top
 local virtualTopSpacer = nil -- spacer div for items above viewport
 local virtualBotSpacer = nil -- spacer div for items below viewport
@@ -505,6 +511,10 @@ local FEATURE_DISPLAY_NAMES = {
 	geovent = "geovent",
 }
 
+local function escapeRml(s)
+	return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+end
+
 local function createTileElement(doc, entry, tileW, selectedSet)
 	local name = entry.name
 	local itemEl = doc:CreateElement("div")
@@ -518,7 +528,6 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 	thumbEl:SetClass("fp-feature-thumb", true)
 	thumbEl:SetClass("fp-thumb-" .. (entry.category or "other"), true)
 	itemEl:AppendChild(thumbEl)
-	thumbDivs[name] = thumbEl
 
 	local imgEl = doc:CreateElement("img")
 	imgEl:SetAttribute("style", "display: none;")
@@ -532,20 +541,44 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 
 	local nameEl = doc:CreateElement("div")
 	nameEl:SetClass("fp-feature-name", true)
-	nameEl.inner_rml = FEATURE_DISPLAY_NAMES[name] or name
+	nameEl.inner_rml = escapeRml(FEATURE_DISPLAY_NAMES[name] or name)
 	itemEl:AppendChild(nameEl)
 
 	itemEl:AddEventListener("click", function(event)
 		if not WG.FeaturePlacer then
 			return
 		end
-		local _, _, _, shift = Spring.GetModKeyState()
-		if shift then
-			WG.FeaturePlacer.toggleFeature(name)
-		else
-			WG.FeaturePlacer.selectFeature(name)
+		-- Click picks one, Ctrl+click adds or removes one, Shift+click adds every
+		-- tile from the last clicked one to this one (in the list as filtered).
+		local _, ctrl, _, shift = Spring.GetModKeyState()
+		local fp = WG.FeaturePlacer
+		local from, to
+		if shift and widgetState.pickAnchor then
+			for i, item in ipairs(virtualItems) do
+				if item.name == widgetState.pickAnchor then
+					from = i
+				end
+				if item.name == name then
+					to = i
+				end
+			end
 		end
-		local st = WG.FeaturePlacer.getState()
+		if from and to then
+			local selected = fp.getState().selectedSet
+			for i = math.min(from, to), math.max(from, to) do
+				local n = virtualItems[i].name
+				if not selected[n] then
+					fp.toggleFeature(n)
+				end
+			end
+		elseif ctrl or shift then
+			fp.toggleFeature(name)
+			widgetState.pickAnchor = name
+		else
+			fp.selectFeature(name)
+			widgetState.pickAnchor = name
+		end
+		local st = fp.getState()
 		local ss = st and st.selectedSet or {}
 		for n, el in pairs(featureElements) do
 			el:SetClass("selected", ss[n] or false)
@@ -563,9 +596,7 @@ local function renderVirtualWindow(listEl, doc, startIdx, endIdx, selectedSet)
 	-- Remove old content
 	listEl.inner_rml = ""
 	featureElements = {}
-	thumbDivs = {}
 	thumbImgEls = {}
-	invalidateThumbCache()
 
 	local tileW = virtualTileW
 	local totalItems = #virtualItems
@@ -669,9 +700,7 @@ local function rebuildFeatureList(filter)
 
 	listEl.inner_rml = ""
 	featureElements = {}
-	thumbDivs = {}
 	thumbImgEls = {}
-	invalidateThumbCache()
 	virtualItems = {}
 	virtualVisStart = 0
 	virtualVisEnd = 0
@@ -820,6 +849,7 @@ local function attachEventListeners()
 		"trees",
 		"foliage",
 		"crystals",
+		"osemo",
 		"christmas",
 		"raptor",
 		"armada_wrecks",
@@ -827,8 +857,17 @@ local function attachEventListeners()
 		"legion_wrecks",
 		"other",
 	}
+	-- Categories whose features ship in a separate asset pack: the button only shows once the pack is installed
+	local OPTIONAL_PACKS = { osemo = true }
+	local featureCats = WG.FeaturePlacer
+		and WG.FeaturePlacer.getFeatureCategories
+		and WG.FeaturePlacer.getFeatureCategories()
 	for _, key in ipairs(catKeys) do
 		local btn = doc:GetElementById("btn-cat-" .. key)
+		if btn and OPTIONAL_PACKS[key] then
+			local installed = featureCats ~= nil and featureCats[key] ~= nil and #featureCats[key] > 0
+			btn:SetClass("hidden", not installed)
+		end
 		if btn then
 			categoryButtons[key] = btn
 			btn:AddEventListener("click", function(event)

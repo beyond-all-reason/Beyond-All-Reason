@@ -19,9 +19,6 @@ local Echo = Spring.Echo
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
-local GetMapSize = Spring.GetMapSize or function()
-	return Game.mapSizeX, Game.mapSizeZ
-end
 local WorldToScreenCoords = Spring.WorldToScreenCoords
 local GetDrawFrame = Spring.GetDrawFrame
 
@@ -88,6 +85,12 @@ local SAVE_DIR = "Terraform Brush/StartPositions/"
 local STARTBOX_SAVE_DIR = "Terraform Brush/Startboxes/"
 local VERTEX_PICK_DIST_SQ = 60 * 60 -- world distance^2 to pick a startbox vertex
 
+-- Role-labelling config and state for start-position-suggestions export.
+local roleConfig = {
+	options = { "front", "air", "tech", "sea", "front/air", "front/tech", "front/sea", "air/tech" },
+	saveDir = "Terraform Brush/StartPositions/Suggestions/",
+}
+
 -- Team colors matching game_autocolors.lua FFA palette (0-1 float RGBA); extended past 16 for 256-player support
 local TEAM_COLORS = {
 	{ 0.000, 0.302, 1.000, 1.0 }, --  1: Blue       #004DFF
@@ -128,7 +131,7 @@ local TEAM_COLORS = {
 -- State
 -- ============================================================
 local active = false
-local subMode = "express" -- "express" | "shape" | "startbox"
+local subMode = "express" -- "express" | "shape" | "startbox" | "roles"
 local positions = {} -- { {x=, z=, allyTeam=, teamSlot=, playerIdx=}, ... }
 local nextAllyTeam = 1 -- next allyteam in rotation
 local nextTeamSlot = 1 -- next player slot within that allyteam
@@ -307,10 +310,6 @@ local function generatePolygonPositions(cx, cz, radius, sides, count, rotation)
 	local level = 1
 	while #allPoints < count do
 		local prevPoints = {}
-		-- Collect edge endpoints at current subdivision level
-		-- At level 1: midpoints between vertices
-		-- At level 2: midpoints of those segments, etc.
-		local segCount = sides * (2 ^ (level - 1))
 		for i = 1, #allPoints do
 			local j = (i % #allPoints) + 1
 			local mx = (allPoints[i].x + allPoints[j].x) * 0.5
@@ -414,7 +413,7 @@ local function getCommanderMaxSlope()
 		if cp.commander or cp.is_commander then
 			return true
 		end
-		-- Fallback heuristic: name contains "com" AND costs metal (filters out turrets)
+		-- Fallback: the unit name says commander (commander, armcom, corcom, legcom)
 		local n = ud.name and ud.name:lower()
 		return n and (n:find("commander") or n:find("^armcom") or n:find("^corcom") or n:find("^legcom")) and true
 			or false
@@ -436,9 +435,7 @@ local function getCommanderMaxSlope()
 	return _cachedCommanderMaxSlope
 end
 
--- Returns (slopeVal, maxSlope). slopeVal is the ground slope at (x,z) in 1-cos space
--- (same domain as movedef.maxSlope). maxSlope is the commander-tolerable limit. If
--- `slopeVal > maxSlope` the point is commander-un-spawnable.
+-- Ground slope at (x, z) in 1-cos space, the same domain as movedef.maxSlope.
 local function getGroundSlopeAt(x, z)
 	-- Spring.GetGroundNormal returns nx, ny, nz, slope where slope = 1 - ny (normalized).
 	local _, _, _, slope = Spring.GetGroundNormal(x, z, false)
@@ -446,11 +443,7 @@ local function getGroundSlopeAt(x, z)
 end
 
 local function isPlaceableForCommander(x, z)
-	local maxS = getCommanderMaxSlope()
-	if not maxS then
-		return true
-	end
-	return getGroundSlopeAt(x, z) <= maxS
+	return getGroundSlopeAt(x, z) <= getCommanderMaxSlope()
 end
 
 local function addPosition(x, z, allyTeam, teamSlot)
@@ -485,7 +478,7 @@ local function addPosition(x, z, allyTeam, teamSlot)
 	return true
 end
 
--- Advance (nextAllyTeam, nextTeamSlot) per placement mode; returns the pair AFTER advancing.
+-- Advance nextAllyTeam and nextTeamSlot to the next player per placement mode.
 local function advanceNextPlayer()
 	local ally = nextAllyTeam
 	local slot = nextTeamSlot
@@ -508,6 +501,51 @@ local function advanceNextPlayer()
 	end
 	nextAllyTeam = ally
 	nextTeamSlot = slot
+end
+
+-- Pure role-cycling helper. Separated from the position mutation so the
+-- transition logic is easier to reason about and test
+local RoleCycle = {}
+
+function RoleCycle.nextRole(currentRole, direction, roleOptions)
+	direction = direction or 1
+	local n = #roleOptions
+	if n == 0 then
+		return nil
+	end
+	local currentRoleIdx
+	for i, r in ipairs(roleOptions) do
+		if r == currentRole then
+			currentRoleIdx = i
+			break
+		end
+	end
+	if not currentRoleIdx then
+		-- No role assigned yet: forward starts at first, backward at last.
+		return direction > 0 and roleOptions[1] or roleOptions[n]
+	end
+	if direction > 0 then
+		if currentRoleIdx < n then
+			return roleOptions[currentRoleIdx + 1]
+		end
+		-- Forward past the last role clears it so designers can panic-click back to blank.
+		return nil
+	else
+		if currentRoleIdx > 1 then
+			return roleOptions[currentRoleIdx - 1]
+		end
+		-- Backward past the first role clears it so cycling in either direction can blank the role.
+		return nil
+	end
+end
+
+function roleConfig.cyclePositionRole(idx, direction, roleOptions)
+	local pos = positions[idx]
+	if not pos then
+		return nil
+	end
+	pos.role = RoleCycle.nextRole(pos.role, direction, roleOptions or roleConfig.options)
+	return pos.role
 end
 
 local function removePosition(idx)
@@ -709,11 +747,8 @@ local function fitControlPoints(pts, targetCount)
 	return out
 end
 
--- Closed centripetal Catmull-Rom tessellation. Writes into `out` (reused when provided) and
--- truncates to the required length. Returning a fresh table each mousemove during drag was
--- the dominant source of GC pressure -> LuaRAM warnings on large freedraw splines.
--- The game tessellates startbox anchors through this same module, so a preview built with
--- it matches what the match will enforce vertex for vertex.
+-- Spline startboxes tessellate through the module the game uses for startbox anchors, so the
+-- preview matches what the match will enforce vertex for vertex.
 strengthEdit.spline = require("common/lib_spline")
 
 -- Refresh tessellated vertices for a spline-kind startbox after its controls have changed.
@@ -1025,42 +1060,89 @@ function boxExport.arrangement()
 	return out
 end
 
+local function encodeBSetValue(data)
+	if not data then
+		return nil, "no data"
+	end
+	if not Json then
+		return nil, "Json unavailable; cannot encode bSet."
+	end
+	local ok, raw = pcall(Json.encode, data)
+	if not ok or not raw then
+		return nil, "Failed to encode bSet JSON."
+	end
+	local packed = VFS.ZlibCompress(raw)
+	if not packed then
+		return nil, "Failed to compress bSet payload."
+	end
+	local b64 = VFS.Include("common/luaUtilities/base64.lua")
+	return (b64.Encode(packed):gsub("=+$", ""))
+end
+
 function boxExport.encode()
 	local arrangement = boxExport.arrangement()
 	if #arrangement == 0 then
 		return nil
 	end
 
-	-- Json is a LuaUI global (luaui/system.lua). Including the module directly fails in this
-	-- sandbox: it opens with `local base = _G`, and _G is not exposed here.
-	if not Json then
-		Echo("[StartPos Tool] Json unavailable; cannot encode.")
+	local value, err = encodeBSetValue({ startboxes = arrangement })
+	if not value then
 		return nil
 	end
-	boxExport.b64 = boxExport.b64 or require("common/luaUtilities/base64")
-	local ok, raw = pcall(Json.encode, { startboxes = arrangement })
-	if not ok or not raw then
-		return nil
-	end
-	local packed = VFS.ZlibCompress(raw)
-	if not packed then
-		return nil
-	end
-
-	return (boxExport.b64.Encode(packed):gsub("=+$", "")), #arrangement
+	return value, #arrangement
 end
 
--- The value is only useful pasted into lobby chat, and the server truncates that, so the
--- length is reported alongside it rather than left for the user to discover.
+-- The value is pasted into lobby chat and can be long, so the echo reports its length
+-- rather than printing it; the clipboard carries the command.
 local function copyStartboxOverride()
 	local value, boxes = boxExport.encode()
-	if not value then
-		Echo("[StartPos Tool] No startboxes to copy.")
+	local mapSuggestions, _ = roleConfig.buildSuggestionsData()
+	local mapSuggestionsEncoded = mapSuggestions and encodeBSetValue(mapSuggestions)
+
+	if not value and not mapSuggestionsEncoded then
+		Echo("[StartPos Tool] No startboxes or suggestions to copy.")
 		return false
 	end
 
-	Spring.SetClipboard("!bSet mapmetadata_startbox_override " .. value)
-	Echo(string.format("[StartPos Tool] Copied !bSet for %d startbox(es), %d chars of value.", boxes, #value))
+	local clipboard = ""
+	local msg = ""
+
+	if value then
+		clipboard = "!bset mapmetadata_startbox_override " .. value
+		msg = string.format("[StartPos Tool] Copied !bSet for %d startbox(es), %d chars of value.", boxes, #value)
+	end
+
+	if mapSuggestionsEncoded then
+		if clipboard ~= "" then
+			clipboard = clipboard .. "\n"
+			msg = msg .. " +"
+		end
+		clipboard = clipboard .. "!bset mapmetadata_startpos " .. mapSuggestionsEncoded
+		msg = msg .. string.format(" suggestions %d chars.", #mapSuggestionsEncoded)
+	end
+
+	Spring.SetClipboard(clipboard)
+	Echo(msg)
+
+	return true
+end
+
+local function exportSuggestions(name)
+	local data, err = roleConfig.buildSuggestionsData()
+	if not data then
+		Echo("[StartPos Tool] No positions to export: " .. (err or "unknown"))
+		return false
+	end
+
+	roleConfig.saveSuggestions(name)
+	roleConfig.saveSuggestionsBSet(name)
+
+	local value, err2 = encodeBSetValue(data)
+	if value then
+		Echo(string.format("[StartPos Tool] Exported suggestions (bSet %d chars, JSON written).", #value))
+	else
+		Echo("[StartPos Tool] Exported suggestions (JSON written, bSet encode failed: " .. (err2 or "unknown") .. ").")
+	end
 
 	return true
 end
@@ -1436,12 +1518,13 @@ local function saveStartPositions(name, explicitPath)
 	lines[#lines + 1] = "local startPositions = {"
 	for i, pos in ipairs(positions) do
 		lines[#lines + 1] = string.format(
-			"  [%d] = { x = %d, z = %d, allyTeam = %d, teamSlot = %d },",
+			"  [%d] = { x = %d, z = %d, allyTeam = %d, teamSlot = %d%s },",
 			i,
 			math_floor(pos.x),
 			math_floor(pos.z),
 			pos.allyTeam,
-			pos.teamSlot or 1
+			pos.teamSlot or 1,
+			pos.role and (", role = " .. string.format("%q", pos.role)) or ""
 		)
 	end
 	lines[#lines + 1] = "}"
@@ -1464,14 +1547,15 @@ end
 local function loadStartPositions(name, explicitPath)
 	local filename = explicitPath or (SAVE_DIR .. (name or getMapName()) .. ".lua")
 	local ok, data = pcall(function()
-		return VFS.Include(filename, nil, VFS.RAW_FIRST)
+		return VFS.Include(filename, {}, VFS.RAW_FIRST)
 	end)
 	if ok and data then
-		clearAllPositions() -- also clears undoHistory
+		clearAllPositions() -- also clears undoHistory, so a load is a clean slate
 		for i, pos in ipairs(data) do
-			addPosition(pos.x, pos.z, pos.allyTeam or i, pos.teamSlot or 1)
+			if addPosition(pos.x, pos.z, pos.allyTeam or i, pos.teamSlot or 1) and pos.role then
+				positions[#positions].role = pos.role
+			end
 		end
-		undoHistory = {} -- load is a clean slate
 		Echo("[StartPos Tool] Loaded start positions from: " .. filename)
 		return true
 	else
@@ -1480,16 +1564,132 @@ local function loadStartPositions(name, explicitPath)
 	end
 end
 
-local function listSavedConfigs()
-	local files = VFS.DirList(SAVE_DIR, "*.lua", VFS.RAW_FIRST)
-	local names = {}
-	for _, f in ipairs(files or {}) do
-		local name = f:match("([^/\\]+)%.lua$")
-		if name then
-			names[#names + 1] = name
+function roleConfig.buildSuggestionsData()
+	if #positions == 0 then
+		return nil, "no positions"
+	end
+
+	local pointIdForIdx = {}
+	for i = 1, #positions do
+		pointIdForIdx[i] = "P" .. i
+	end
+
+	local allyTeamSet = {}
+	for _, pos in ipairs(positions) do
+		allyTeamSet[pos.allyTeam] = true
+	end
+
+	local allyTeamIds = {}
+	for at in pairs(allyTeamSet) do
+		allyTeamIds[#allyTeamIds + 1] = at
+	end
+	table.sort(allyTeamIds)
+
+	local byAlly = {}
+	for _, at in ipairs(allyTeamIds) do
+		byAlly[at] = {}
+	end
+	for idx, pos in ipairs(positions) do
+		table.insert(byAlly[pos.allyTeam], { idx = idx, pos = pos })
+	end
+	for _, at in ipairs(allyTeamIds) do
+		table.sort(byAlly[at], function(a, b)
+			return a.pos.teamSlot < b.pos.teamSlot
+		end)
+	end
+
+	local jsonPositions = {}
+	for i, pos in ipairs(positions) do
+		jsonPositions[pointIdForIdx[i]] = {
+			x = math_floor(pos.x),
+			y = math_floor(pos.z),
+		}
+	end
+
+	local sides = {}
+	local playersPerTeam = 0
+	for _, at in ipairs(allyTeamIds) do
+		local starts = {}
+		for _, entry in ipairs(byAlly[at]) do
+			local pos = entry.pos
+			local startEntry = { spawnPoint = pointIdForIdx[entry.idx] }
+			if pos.role and pos.role ~= "" then
+				startEntry.role = pos.role
+			end
+			starts[#starts + 1] = startEntry
+		end
+		sides[#sides + 1] = { starts = starts }
+		if #starts > playersPerTeam then
+			playersPerTeam = #starts
 		end
 	end
-	return names
+
+	return {
+		positions = jsonPositions,
+		team = {
+			{
+				teamCount = #allyTeamIds,
+				playersPerTeam = math_max(1, playersPerTeam),
+				sides = sides,
+			},
+		},
+	}
+end
+
+function roleConfig.saveSuggestions(name, explicitPath)
+	local data, err = roleConfig.buildSuggestionsData()
+	if not data then
+		Echo("[StartPos Tool] Cannot export suggestions: " .. (err or "unknown error"))
+		return false
+	end
+	if not Json then
+		Echo("[StartPos Tool] Json unavailable; cannot encode suggestions.")
+		return false
+	end
+	local ok, encoded = pcall(Json.encode, data)
+	if not ok or not encoded then
+		Echo("[StartPos Tool] Failed to encode suggestions JSON.")
+		return false
+	end
+	Spring.CreateDir(roleConfig.saveDir)
+	local filename = explicitPath or (roleConfig.saveDir .. (name or getMapName()) .. "_rowy.json")
+	local file = io.open(filename, "w")
+	if file then
+		file:write(encoded)
+		file:close()
+		Echo("[StartPos Tool] Saved start position suggestions to: " .. filename)
+		return true
+	end
+	Echo("[StartPos Tool] ERROR: Could not write to: " .. filename)
+	return false
+end
+
+--- Encodes a suggestions data table as the bSet payload value.
+--- @param data table the output of roleConfig.buildSuggestionsData()
+--- @return string|nil value the base64 encoded value, or nil on failure
+--- @return string|nil err error message if encoding failed
+function roleConfig.saveSuggestionsBSet(name, explicitPath)
+	local data, err = roleConfig.buildSuggestionsData()
+	if not data then
+		Echo("[StartPos Tool] Cannot export bSet: " .. (err or "unknown error"))
+		return false
+	end
+	local value, err2 = encodeBSetValue(data)
+	if not value then
+		Echo("[StartPos Tool] Cannot export bSet: " .. (err2 or "unknown error"))
+		return false
+	end
+	Spring.CreateDir(roleConfig.saveDir)
+	local filename = explicitPath or (roleConfig.saveDir .. (name or getMapName()) .. "_bSet.txt")
+	local file = io.open(filename, "w")
+	if file then
+		file:write("!bset mapmetadata_startpos " .. value)
+		file:close()
+		Echo("[StartPos Tool] Saved bSet command to: " .. filename)
+		return true
+	end
+	Echo("[StartPos Tool] ERROR: Could not write bSet to: " .. filename)
+	return false
 end
 
 local function saveStartboxes(name, explicitPath)
@@ -1544,7 +1744,7 @@ end
 local function loadStartboxes(name, explicitPath)
 	local filename = explicitPath or (STARTBOX_SAVE_DIR .. (name or getMapName()) .. ".lua")
 	local ok, data = pcall(function()
-		return VFS.Include(filename, nil, VFS.RAW_FIRST)
+		return VFS.Include(filename, {}, VFS.RAW_FIRST)
 	end)
 	if ok and data then
 		clearAllStartboxes()
@@ -1579,207 +1779,9 @@ local function loadStartboxes(name, explicitPath)
 	end
 end
 
-local function listSavedStartboxConfigs()
-	local files = VFS.DirList(STARTBOX_SAVE_DIR, "*.lua", VFS.RAW_FIRST)
-	local names = {}
-	for _, f in ipairs(files or {}) do
-		local name = f:match("([^/\\]+)%.lua$")
-		if name then
-			names[#names + 1] = name
-		end
-	end
-	return names
-end
-
--- ============================================================
--- Start Script Generation
--- ============================================================
-
-local STARTSCRIPT_SAVE_DIR = "Terraform Brush/StartScripts/"
-
---- Generate a Spring engine start script (script.txt) from the current
---- polygon startboxes. Each polygon is converted to an axis-aligned
---- bounding rectangle normalised to 0-1 map coordinates.
----@param opts table|nil  Optional overrides:
----   mapname        (string)   default: current map
----   playerName     (string)   default: "Player"
----   aiShortName    (string)   AI type for non-player teams, default "NullAI"
----   aiVersion      (string)   default "0.1"
----   startpostype   (number)   0=fixed,1=random,2=choose  default 2
----   modoptions     (table)    key-value pairs for [modoptions] section
----@return string  The full script text
-local function generateStartScript(opts)
-	opts = opts or {}
-	local mapName = opts.mapname or getMapName()
-	local playerName = opts.playerName or "Player"
-	local aiShort = opts.aiShortName or "NullAI"
-	local aiVersion = opts.aiVersion or "0.1"
-	local sposType = opts.startpostype or 2
-	local modopts = opts.modoptions or {}
-
-	local mapSizeX = Game.mapSizeX
-	local mapSizeZ = Game.mapSizeZ
-
-	local boxes = startboxes
-	if #boxes == 0 then
-		Echo("[StartPos Tool] No startboxes to export.")
-		return nil
-	end
-
-	-- Collect unique allyTeam ids and sort them
-	local allyTeamSet = {}
-	for _, box in ipairs(boxes) do
-		allyTeamSet[box.allyTeam] = true
-	end
-	local allyTeamIds = {}
-	for at in pairs(allyTeamSet) do
-		allyTeamIds[#allyTeamIds + 1] = at
-	end
-	table.sort(allyTeamIds)
-
-	-- Build ally-team index mapping (allyTeam value -> 0-based script index)
-	local atToIdx = {}
-	for i, at in ipairs(allyTeamIds) do
-		atToIdx[at] = i - 1
-	end
-
-	local numTeams = #allyTeamIds
-
-	local lines = {}
-	local function L(s)
-		lines[#lines + 1] = s
-	end
-
-	L("[Game]")
-	L("{")
-
-	-- Ally teams with bounding-rect start boxes
-	for _, at in ipairs(allyTeamIds) do
-		local idx = atToIdx[at]
-		-- Find the box(es) for this allyTeam and compute combined AABB
-		local minX, minZ = mapSizeX, mapSizeZ
-		local maxX, maxZ = 0, 0
-		for _, box in ipairs(boxes) do
-			if box.allyTeam == at then
-				for _, v in ipairs(box.vertices) do
-					if v.x < minX then
-						minX = v.x
-					end
-					if v.x > maxX then
-						maxX = v.x
-					end
-					if v.z < minZ then
-						minZ = v.z
-					end
-					if v.z > maxZ then
-						maxZ = v.z
-					end
-				end
-			end
-		end
-		-- Normalise to 0-1
-		local left = minX / mapSizeX
-		local right = maxX / mapSizeX
-		local top = minZ / mapSizeZ
-		local bottom = maxZ / mapSizeZ
-
-		L(string.format("\t[allyTeam%d]", idx))
-		L("\t{")
-		L(string.format("\t\tstartrectleft = %.8f;", left))
-		L(string.format("\t\tstartrectright = %.8f;", right))
-		L(string.format("\t\tstartrecttop = %.8f;", top))
-		L(string.format("\t\tstartrectbottom = %.8f;", bottom))
-		L("\t\tnumallies = 0;")
-		L("\t}")
-		L("")
-	end
-
-	-- Teams: one team per allyTeam, alternating sides
-	local sides = { "Armada", "Cortex" }
-	for i, at in ipairs(allyTeamIds) do
-		local idx = i - 1
-		L(string.format("\t[team%d]", idx))
-		L("\t{")
-		L(string.format("\t\tSide = %s;", sides[((i - 1) % 2) + 1]))
-		L("\t\tHandicap = 0;")
-		L("\t\tRgbColor = 0.99609375 0.546875 0;")
-		L(string.format("\t\tAllyTeam = %d;", atToIdx[at]))
-		L("\t\tTeamLeader = 0;")
-		L("\t}")
-		L("")
-	end
-
-	-- Player 0 (human, spectator if > 2 teams else team 0)
-	L("\t[player0]")
-	L("\t{")
-	L("\t\tIsFromDemo = 0;")
-	L(string.format("\t\tName = %s;", playerName))
-	L("\t\tTeam = 0;")
-	L("\t\trank = 0;")
-	L("\t}")
-	L("")
-
-	-- AI players for remaining teams (team 1 .. N-1)
-	for i = 2, numTeams do
-		local aiIdx = i - 2 -- ai0, ai1, ...
-		local teamIdx = i - 1
-		L(string.format("\t[ai%d]", aiIdx))
-		L("\t{")
-		L("\t\tHost = 0;")
-		L("\t\tIsFromDemo = 0;")
-		L(string.format("\t\tName = %s(%d);", aiShort, aiIdx + 1))
-		L(string.format("\t\tShortName = %s;", aiShort))
-		L(string.format("\t\tTeam = %d;", teamIdx))
-		L(string.format("\t\tVersion = %s;", aiVersion))
-		L("\t}")
-		L("")
-	end
-
-	-- Mod options
-	L("\t[modoptions]")
-	L("\t{")
-	for k, v in pairs(modopts) do
-		L(string.format("\t\t%s = %s;", tostring(k), tostring(v)))
-	end
-	L("\t}")
-	L("")
-
-	-- Global game keys
-	L("\thostip = 127.0.0.1;")
-	L("\thostport = 0;")
-	L("\tishost = 1;")
-	L("\tGameStartDelay = 5;")
-	L("\tnumplayers = 1;")
-	L(string.format("\tnumusers = %d;", 1 + (numTeams - 1))) -- 1 player + N-1 AIs
-	L(string.format("\tstartpostype = %d;", sposType))
-	L(string.format("\tmapname = %s;", mapName))
-	L(string.format("\tmyplayername = %s;", playerName))
-	L("\tgametype = Beyond All Reason $VERSION;")
-	L("\tnohelperais = 0;")
-	L("}")
-
-	return table.concat(lines, "\n")
-end
-
-local function saveStartScript(name, opts)
-	local script = generateStartScript(opts)
-	if not script then
-		return false
-	end
-
-	Spring.CreateDir(STARTSCRIPT_SAVE_DIR)
-	local filename = STARTSCRIPT_SAVE_DIR .. (name or getMapName()) .. ".txt"
-
-	local file = io.open(filename, "w")
-	if file then
-		file:write(script)
-		file:close()
-		Echo("[StartPos Tool] Saved start script to: " .. filename)
-		return true
-	else
-		Echo("[StartPos Tool] ERROR: Could not write to: " .. filename)
-		return false
-	end
+local function saveAll(name)
+	saveStartPositions(name)
+	saveStartboxes(name)
 end
 
 -- ============================================================
@@ -1789,13 +1791,9 @@ end
 local function activate(mode)
 	active = true
 	subMode = mode or "express"
-	Echo("[StartPos Tool] Activated: " .. subMode:upper())
 end
 
 local function deactivate()
-	if active then
-		Echo("[StartPos Tool] Deactivated")
-	end
 	active = false
 	dragging = false
 	dragIdx = nil
@@ -1803,7 +1801,7 @@ local function deactivate()
 end
 
 local function setSubMode(mode)
-	if mode == "express" or mode == "shape" or mode == "startbox" then
+	if mode == "express" or mode == "shape" or mode == "startbox" or mode == "roles" then
 		subMode = mode
 	end
 end
@@ -1837,12 +1835,6 @@ local function setNumTeamsPerAlly(n)
 	numTeamsPerAlly = math_max(1, math_min(MAX_TEAMS_PER_ALLY, n))
 	if nextTeamSlot > numTeamsPerAlly then
 		nextTeamSlot = 1
-	end
-end
-
-local function setPlacementMode(m)
-	if m == "roundrobin" or m == "sequential" then
-		placementMode = m
 	end
 end
 
@@ -1916,23 +1908,14 @@ local function getState()
 		positions = positions,
 		numAllyTeams = allyCount,
 		numTeamsPerAlly = numTeamsPerAlly,
-		nextAllyTeam = nextAllyTeam,
-		nextTeamSlot = nextTeamSlot,
 		placementMode = placementMode,
 		totalPlayers = allyCount * numTeamsPerAlly,
-		maxAllyTeams = MAX_ALLYTEAMS,
-		maxTeamsPerAlly = MAX_TEAMS_PER_ALLY,
-		maxPositions = MAX_POSITIONS,
 		shapeType = shapeType,
 		shapeRadius = shapeRadius,
 		shapeRotation = shapeRotation,
 		shapeCount = shapeCount,
 		startboxes = startboxes,
 		startboxMode = startboxMode,
-		drawingBox = drawingBox,
-		currentBoxVerts = currentBoxVerts,
-		boxRectActive = boxRectActive,
-		freeDrawActive = freeDrawActive,
 	}
 end
 
@@ -2207,6 +2190,20 @@ function widget:MousePress(mx, my, button)
 				freeDrawPts = {}
 			else
 				removeLastStartbox()
+			end
+			return true
+		end
+	elseif subMode == "roles" then
+		if button == 1 then
+			local nearIdx = findNearestPosition(wx, wz)
+			if nearIdx then
+				roleConfig.cyclePositionRole(nearIdx)
+			end
+			return true
+		elseif button == 3 then
+			local nearIdx = findNearestPosition(wx, wz)
+			if nearIdx then
+				roleConfig.cyclePositionRole(nearIdx, -1)
 			end
 			return true
 		end
@@ -2883,7 +2880,7 @@ end
 
 -- Vertical beam-of-light going up from the start position.
 -- Drawn as stacked world-space line segments with decreasing alpha.
-local function drawBeam(px, pz, r, g, b, alphaBase, pulseT)
+local function drawBeam(px, pz, r, g, b, alphaBase)
 	local gy = GetGroundHeight(px, pz) or 0
 	local steps = 6
 	local beamHeight = 280 -- fixed, no pulsing
@@ -2989,13 +2986,12 @@ local function drawStartPosMarker(px, pz, color, alpha, iconPath, hovered, phase
 
 	-- 3) Slow rotating arc-ring (single slow layer, 3 arcs)
 	local rot = phase * 0.25 -- gentle slow spin
-	glLineWidth(hovered and 2.8 or 2.0)
 	drawArcSegments(px, pz, MARKER_RADIUS, r, g, b, (hovered and 0.85 or 0.65) * a, rot, 3, 0.66, 10)
 
 	-- 4) (removed counter-rotating inner arcs for calmer look)
 
 	-- 5) Faint vertical beam (subtle, non-pulsing)
-	drawBeam(px, pz, r, g, b, (hovered and 0.30 or 0.18) * a, 0.5)
+	drawBeam(px, pz, r, g, b, (hovered and 0.30 or 0.18) * a)
 
 	-- 6) Commander billboard icon (static size diff on hover, no scale pulse)
 	drawCommanderBillboard(px, pz, r, g, b, (hovered and 1.0 or 0.90) * a, iconPath, hovered)
@@ -3011,7 +3007,6 @@ local function drawPreviewMarker(px, pz, color, alpha, iconPath, phase)
 	local a = alpha or 1.0
 	local r, g, b = color[1], color[2], color[3]
 	drawSoftDisc(px, pz, MARKER_RADIUS * 0.85, r, g, b, 0.08 * a, 16)
-	glColor(r, g, b, 0.55 * a)
 	glLineWidth(1.8)
 	local rot = phase * 0.4
 	drawArcSegments(px, pz, MARKER_RADIUS, r, g, b, 0.55 * a, rot, 3, 0.66, 8)
@@ -3051,7 +3046,7 @@ function widget:Update()
 
 	local wx, wz = getWorldMousePosition()
 	if wx then
-		if subMode == "express" then
+		if subMode == "express" or subMode == "roles" then
 			local bestIdx, bestDist = nil, DRAGGABLE_DIST_SQ
 			for i, pos in ipairs(positions) do
 				local d = distSq(wx, wz, pos.x, pos.z)
@@ -3513,31 +3508,6 @@ function widget:DrawWorld()
 	glLineWidth(1.0)
 end
 
--- Team name lookup for labels
-local TEAM_NAMES = {
-	"Blue",
-	"Red",
-	"Green",
-	"Yellow",
-	"Fuchsia",
-	"Cyan",
-	"Orange",
-	"Pink",
-	"DkGreen",
-	"Brown",
-	"LtBlue",
-	"DkRed",
-	"Mint",
-	"Amber",
-	"Lavender",
-	"Teal",
-}
-
-local function getTeamName(at)
-	local idx = ((at - 1) % #TEAM_NAMES) + 1
-	return TEAM_NAMES[idx]
-end
-
 -- Compute screen-space radius of a world-space circle at (wx, wz) with given worldRadius.
 -- Returns screenCenterX, screenCenterY, screenRadiusPx, visible(bool)
 local function getScreenMarker(wx, wz, worldRadius)
@@ -3579,7 +3549,7 @@ local glGetTextWidth = gl.GetTextWidth
 
 -- Draw a sleek screen-space badge: colored left-bar + "Team N" label.
 -- Uses filled quads via glBeginEnd + glText. "2026" aesthetic: minimal, high-contrast, CHUNKY.
-local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, fontSize, hovered)
+local function drawScreenBadge(cx, cy, color, allyTeamNum, fontSize, hovered, role)
 	local padX, padY = 14, 10
 	local barW = 5
 	local gap = 10
@@ -3591,9 +3561,14 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 		return w * sz
 	end
 	local bigSize = fontSize
+	local roleSize = math.floor(fontSize * 0.65)
+	local roleH = role and (roleSize * 1.18 + 4) or 0
 	local textW = measure(label, bigSize)
+	if role then
+		textW = math_max(textW, measure(role, roleSize))
+	end
 	local w = barW + gap + textW + padX * 2
-	local h = bigSize * 1.18 + padY * 2
+	local h = bigSize * 1.18 + roleH + padY * 2
 	local bx = cx - w * 0.5
 	local by = cy
 
@@ -3649,7 +3624,7 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 
 	-- "Team N" label (shadow + color-bright)
 	local textX = bx + padX + barW + gap
-	local textY = by + padY
+	local textY = by + padY + roleH -- screen y grows downward: "Team N" stays at top, role row sits below
 	glColor(0, 0, 0, 0.90)
 	glText(label, textX + 2, textY + 2, bigSize, "o")
 	glColor(
@@ -3659,6 +3634,15 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 		1.0
 	)
 	glText(label, textX, textY, bigSize, "o")
+
+	if role then
+		-- Role sub-label inside the card, below "Team N" (shadow + color-bright)
+		glColor(0, 0, 0, 0.90)
+		glText(role, textX + 2, by + padY + 2, roleSize, "o")
+		glColor(color[1], color[2], color[3], 0.95)
+		glText(role, textX, by + padY, roleSize, "o")
+	end
+	return h
 end
 
 function widget:DrawScreenEffects()
@@ -3675,7 +3659,7 @@ function widget:DrawScreenEffects()
 			local badgeY = sy + sr + LABEL_PAD
 			local fontSize = 32 -- 2026 chunky
 			local hovered = (hoverPosIdx == i) or (dragIdx == i)
-			drawScreenBadge(sx, badgeY, color, pos.allyTeam, getTeamName(pIdx), pIdx, fontSize, hovered)
+			drawScreenBadge(sx, badgeY, color, pos.allyTeam, fontSize, hovered, pos.role)
 		end
 	end
 
@@ -3714,16 +3698,7 @@ function widget:DrawScreenEffects()
 			end
 			if bestVis then
 				local color = getColorForAllyTeam(box.allyTeam)
-				drawScreenBadge(
-					bestSx,
-					bestSy + 28,
-					color,
-					box.allyTeam,
-					getTeamName(box.allyTeam) .. " BOX",
-					box.allyTeam,
-					26,
-					false
-				)
+				drawScreenBadge(bestSx, bestSy + 28, color, box.allyTeam, 26, false)
 			end
 		end
 	end
@@ -3787,7 +3762,6 @@ function widget:Initialize()
 		setShapeCount = setShapeCount,
 		setNumAllyTeams = setNumAllyTeams,
 		setNumTeamsPerAlly = setNumTeamsPerAlly,
-		setPlacementMode = setPlacementMode,
 		togglePlacementMode = togglePlacementMode,
 		setStartboxMode = setStartboxMode,
 		clearAllPositions = clearAllPositions,
@@ -3795,17 +3769,18 @@ function widget:Initialize()
 		placeRandomPositions = placeRandomPositions,
 		saveStartPositions = saveStartPositions,
 		loadStartPositions = loadStartPositions,
-		listSavedConfigs = listSavedConfigs,
 		saveStartboxes = saveStartboxes,
 		copyStartboxOverride = copyStartboxOverride,
+		exportSuggestions = exportSuggestions,
 		loadStartboxes = loadStartboxes,
-		listSavedStartboxConfigs = listSavedStartboxConfigs,
+		saveAll = saveAll,
 		clearAllStartboxes = clearAllStartboxes,
-		setVertexStrength = strengthEdit.setVertex,
-		setBoxStrength = strengthEdit.setBox,
+		cyclePositionRole = roleConfig.cyclePositionRole,
+		buildSuggestionsData = roleConfig.buildSuggestionsData,
+		encodeBSetValue = encodeBSetValue,
+		addStartboxVertex = addStartboxVertex,
 		finishStartbox = finishStartbox,
-		generateStartScript = generateStartScript,
-		saveStartScript = saveStartScript,
+		encodeStartboxes = boxExport.encode,
 	}
 end
 

@@ -55,6 +55,8 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 #define UNITUNIFORMS uni[instData.y]
 #define UNITID (uni[instData.y].composite >> 16)
 #define TREADOFFSET uni[instData.y].speed.w
+// Jammed units highlight (gui_jammed_units.lua): how long the tint fades in and out, in seconds
+#define JAMMED_FADE_SECONDS 0.3
 
 %%GLOBAL_NAMESPACE%%
 
@@ -147,7 +149,7 @@ out Data {
 	//vec3 worldBitangent;
 	vec3 worldNormal_VS;
 
-	vec4 uvCoords;
+	vec4 uvCoords; // .z contains unitID, .w the jammed highlight 0-1
 	flat vec4 teamCol; // .a contains selectedness
 
 	// main light vector(s)
@@ -582,13 +584,25 @@ void main(void)
 	vec3 modelSpaceBitangent;
 	GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal, safeT, modelSpaceTangent, safeB, modelSpaceBitangent);
 
+	// Per-object uniform scale about the model origin, userDefined[3].z (buffer index 14). The
+	// engine cannot scale a feature's model (SetFeaturePieceMatrix discards the matrix), so the
+	// feature placer writes the scale here; 0, the default, means unscaled. Applied in model
+	// space, after the piece transform, so multi-piece models keep their proportions, and in
+	// every pass (this source is the shadow and reflection shader too). modelPos itself stays
+	// unscaled: the bounds terms below normalise it by the model's own height.
+	float objectScale = UNITUNIFORMS.userDefined[3].z;
+	vec4 scaledModelPos = modelPos;
+	if (objectScale > 0.0) {
+		scaledModelPos.xyz *= objectScale;
+	}
+
 	#if USEQUATERNIONS == 1
 		Transform modelToWorldTX = Lerp(
 			transforms[instData.x + 0u],
 			transforms[instData.x + 1u],
 			timeInfo.w
 		);
-		vec4 worldPos = ApplyTransform(modelToWorldTX, modelPos);
+		vec4 worldPos = ApplyTransform(modelToWorldTX, scaledModelPos);
 
 		// Rotate normals with quaternions (this is incorrect, as modelvertexnormal is purely in modelspace, whereas T and B are in piece space!)
 		worldTangent_VS   = RotateByQuaternion(modelToWorldTX.quat, modelSpaceTangent);
@@ -599,7 +613,7 @@ void main(void)
 		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
 		// Then it places it in the world
 		mat4 worldMatrix = mat[instData.x];
-		vec4 worldPos = worldMatrix * modelPos;
+		vec4 worldPos = worldMatrix * scaledModelPos;
 
 		// Calculate Normals:
 		// tangent --> world space transformation (for vectors)
@@ -617,10 +631,19 @@ void main(void)
 
 	//gl_TexCoord[0] = gl_MultiTexCoord0;
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
-	teamCol = teamColor[teamIndex];
+	// 255 = no team (map features), a palette slot the engine never writes: it holds garbage
+	teamCol = (teamIndex == 255u) ? vec4(0.0) : teamColor[teamIndex];
 
 	// Pack selectedness into teamCol.a
 	teamCol.a = UNITUNIFORMS.userDefined[1].z;
+
+	#if (RENDERING_MODE != 2)
+		// Jammed units highlight: userDefined[1].w (#7) holds the draw time (timeInfo.y) at which the unit entered allied
+		// jammer coverage (positive) or left it (negative), 0 = never. Faded to 0-1 in uvCoords.w for the fragment shader.
+		float jammedSince = UNITUNIFORMS.userDefined[1].w;
+		float jammedFade = clamp((timeInfo.y - abs(jammedSince)) * (1.0 / JAMMED_FADE_SECONDS), 0.0, 1.0);
+		uvCoords.w = (jammedSince > 0.0) ? jammedFade : ((jammedSince < 0.0) ? (1.0 - jammedFade) : 0.0);
+	#endif
 
 	#if (RENDERING_MODE != 2) //non-shadow pass
 

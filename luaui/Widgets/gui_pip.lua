@@ -253,6 +253,7 @@ config = {
 	smoothCameraMarginCheap = 0.15, -- Oversized texture margin for cheap layers (ground, water, LOS) — larger since rendering is cheap
 	pipFloorUpdateRate = 10, -- Minimum update rate for PIP content when performance is poor (will be smoothly applied based on measured frame times)
 	pipMinUpdateRate = 30, -- Minimum update rate for PIP content when zoomed out
+	minimapModeMinUpdateRate = 15, -- Same for the minimap replacement, as the engine minimap refreshed small minimaps
 	pipMaxUpdateRate = 60, -- Maximum update rate for PIP content when zoomed in
 	pipZoomThresholdMin = 0.15,
 	pipZoomThresholdMax = 0.4,
@@ -565,6 +566,7 @@ end
 
 -- Consolidated misc state
 local miscState = {
+	inMiniMapZoneNames = setmetatable({}, { __mode = "k" }), -- per-widget tracy zone names of the DrawInMiniMap overlays
 	startX = nil,
 	startZ = nil,
 	backupTracking = nil,
@@ -1704,7 +1706,7 @@ local cmdQueueCache = {
 -- Segment deduplication for command-queue rendering: avoids drawing the same
 -- waypoint→waypoint segment multiple times when many units share overlapping
 -- build queues. Uses a generation counter so the table never needs clearing.
-local cmdSegDedup = {} -- [combinedKey] = generation
+local cmdSegDedup = {} -- [startCell][endCell] = generation
 local cmdSegDedupGen = 0
 
 -- Reused scratch vars/callbacks for hot BeginEnd paths (avoids per-iteration closure allocs)
@@ -9137,11 +9139,13 @@ end
 function widget:Initialize()
 	RebuildAllUnitsCache()
 
-	-- Avoid lazy texture loads stalling the first button-strip draw on hover.
+	-- Avoid lazy texture loads stalling the first button-strip draw on hover, and the first projectile
+	-- draw (the atlas load took ~15 ms).
 	drawData.buttonTexturePreloadList = gl.CreateList(function()
 		for i = 1, #buttons do
 			glFunc.Texture(buttons[i].texture)
 		end
+		glFunc.Texture(gl4Prim.quadAtlasTexture)
 		glFunc.Texture(false)
 	end)
 
@@ -11547,9 +11551,17 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 
 		-- Periodically prune stale dedup entries (~every 5 seconds)
 		if segGen % 50 == 0 then
-			for k, gen in pairs(segDedup) do
-				if gen < segGen - 2 then
-					segDedup[k] = nil
+			for startKey, ends in pairs(segDedup) do
+				local live = false
+				for endKey, gen in pairs(ends) do
+					if gen < segGen - 2 then
+						ends[endKey] = nil
+					else
+						live = true
+					end
+				end
+				if not live then
+					segDedup[startKey] = nil
 				end
 			end
 		end
@@ -11590,17 +11602,17 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 						for j = 2, cached.n do
 							local wp = cached[j]
 							local cmdX, cmdZ = wp[1], wp[2]
-							-- Dedup key: quantize coords to 8-unit grid (sub-icon precision)
-							-- and pack start+end into 4 values within 53-bit safe range.
-							-- 30000/8 = 3750, so each coord fits in 12 bits.
-							-- key = sx*2^36 + sz*2^24 + ex*2^12 + ez  (max ~48 bits, safe)
-							local sx = mFloor(prevWX * 0.125)
-							local sz = mFloor(prevWZ * 0.125)
-							local ex = mFloor(cmdX * 0.125)
-							local ez = mFloor(cmdZ * 0.125)
-							local dedupKey = sx * 68719476736 + sz * 16777216 + ex * 4096 + ez
-							if segDedup[dedupKey] ~= segGen then
-								segDedup[dedupKey] = segGen
+							-- Dedup keys: start and end cell on an 8-unit grid (sub-icon precision), x * 4096 + z,
+							-- exact below 2^24 (Lua numbers are float32: one packed key kept only the start)
+							local startKey = mFloor(prevWX * 0.125) * 4096 + mFloor(prevWZ * 0.125)
+							local endKey = mFloor(cmdX * 0.125) * 4096 + mFloor(cmdZ * 0.125)
+							local ends = segDedup[startKey]
+							if not ends then
+								ends = {}
+								segDedup[startKey] = ends
+							end
+							if ends[endKey] ~= segGen then
+								ends[endKey] = segGen
 								local cmdID = wp[3]
 								local color = cmdColors[cmdID] or cmdColors.unknown
 								local r, g, b = color[1], color[2], color[3]
@@ -20436,12 +20448,13 @@ end
 -- Helper function to calculate dynamic update rate
 local function CalculateDynamicUpdateRate()
 	-- Base rate from zoom level
-	local dynamicUpdateRate = config.pipMinUpdateRate
+	local minUpdateRate = isMinimapMode and config.minimapModeMinUpdateRate or config.pipMinUpdateRate ---@type number
+	local dynamicUpdateRate = minUpdateRate
 	if cameraState.zoom >= config.pipZoomThresholdMax then
 		dynamicUpdateRate = config.pipMaxUpdateRate
 	elseif cameraState.zoom > config.pipZoomThresholdMin then
-		dynamicUpdateRate = config.pipMinUpdateRate
-			+ (config.pipMaxUpdateRate - config.pipMinUpdateRate)
+		dynamicUpdateRate = minUpdateRate
+			+ (config.pipMaxUpdateRate - minUpdateRate)
 				* ((cameraState.zoom - config.pipZoomThresholdMin) / (config.pipZoomThresholdMax - config.pipZoomThresholdMin))
 	end
 
@@ -22268,7 +22281,11 @@ function widget:DrawScreen()
 	-- or engine commands resetting the minimize/slave state between frames.
 	if isMinimapMode and not miscState.engineMinimapActive then
 		gl.SlaveMiniMap(true)
-		Spring.SendCommands("minimap minimize 1")
+		-- the command is a no-op while minimized but costs a command parse every frame
+		local _, _, _, _, engineMinimapMinimized = Spring.GetMiniMapGeometry()
+		if not engineMinimapMinimized then
+			Spring.SendCommands("minimap minimize 1")
+		end
 	end
 
 	-- In minimap mode, honour MinimapMinimize to hide the PIP minimap
@@ -23102,8 +23119,15 @@ function widget:DrawScreen()
 				local overlayViewportX = render.dim.l - visPixelLeft * minimapWidth / visiblePixelWidth
 				local overlayViewportY = render.dim.b - visPixelBottom * minimapHeight / visiblePixelHeight
 
+				local zoneNames = miscState.inMiniMapZoneNames
 				for _, w in ipairs(widgetHandler.DrawInMiniMapList) do
 					if w ~= widget then -- Don't recursively call ourselves
+						local zoneName = zoneNames[w] ---@type string?
+						if not zoneName then
+							zoneName = "W:PIP:InMiniMap:" .. (w.whInfo and w.whInfo.name or "?")
+							zoneNames[w] = zoneName
+						end
+						tracy.ZoneBeginN(zoneName)
 						-- Save current matrices
 						gl.MatrixMode(GL.PROJECTION)
 						glFunc.PushMatrix()
@@ -23135,6 +23159,7 @@ function widget:DrawScreen()
 						gl.MatrixMode(GL.PROJECTION)
 						glFunc.PopMatrix()
 						gl.MatrixMode(GL.MODELVIEW)
+						tracy.ZoneEnd()
 					end
 				end
 
@@ -25233,7 +25258,11 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	end
 
 	-- Only show commands for the ally team we're "viewing as"
-	local _, _, _, _, _, unitAllyTeam = spFunc.GetTeamInfo(unitTeam, false)
+	local unitAllyTeam = teamAllyTeamCache[unitTeam]
+	if not unitAllyTeam then
+		unitAllyTeam = spFunc.GetTeamAllyTeamID(unitTeam)
+		teamAllyTeamCache[unitTeam] = unitAllyTeam
+	end
 	if cameraState.mySpecState then
 		-- Spectator: determine which ally team is relevant
 		local viewAllyTeam = nil -- nil = show all (fullview spectator, no tracking)
@@ -25326,15 +25355,17 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		startX, startZ = ux, uz
 	end
 
-	-- Don't add if start and target are at same spot
-	if math.abs(startX - targetX) < 1 and math.abs(startZ - targetZ) < 1 then
-		-- Still update last target for further chaining
+	-- Update last target for this unit (for chaining subsequent commands)
+	if lastTarget then
+		lastTarget.x, lastTarget.z, lastTarget.time = targetX, targetZ, wallClockTime
+	else
 		commandFX.lastTarget[unitID] = { x = targetX, z = targetZ, time = wallClockTime }
-		return
 	end
 
-	-- Update last target for this unit (for chaining subsequent commands)
-	commandFX.lastTarget[unitID] = { x = targetX, z = targetZ, time = wallClockTime }
+	-- Don't add if start and target are at same spot
+	if math.abs(startX - targetX) < 1 and math.abs(startZ - targetZ) < 1 then
+		return
+	end
 
 	-- Add to FX list (cap at max entries)
 	if commandFX.count < commandFX.MAX then
@@ -25561,10 +25592,19 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 end
 
 function widget:DefaultCommand()
-	if uiState.inMinMode then
+	if uiState.inMinMode or miscState.apiInteractionLocked or Spring.IsGUIHidden() then
 		return
 	end
-	local mx, my = spFunc.GetMouseState()
+	if isMinimapMode and miscState.minimapMinimized then
+		return
+	end
+	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then
+		return
+	end
+	local mx, my, _, _, _, _, cameraPanMode = spFunc.GetMouseState()
+	if cameraPanMode then
+		return
+	end
 	if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 		local wx, wz = PipToWorldCoords(mx, my)
 		local uID = GetUnitAtPoint(wx, wz)

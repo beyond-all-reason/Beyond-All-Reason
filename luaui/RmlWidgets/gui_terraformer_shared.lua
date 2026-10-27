@@ -21,6 +21,14 @@ local Spring = Spring
 
 local function calculateDpRatio()
 	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
+	-- Dual-screen: panels live on the free screen; scale off it, height-keyed, same as
+	-- rml_context_manager, or the two disagree about what a dp is.
+	if Spring.GetDualViewGeometry then
+		local dualW, dualH = Spring.GetDualViewGeometry()
+		if type(dualW) == "number" and dualW > 0 then
+			viewSizeX, viewSizeY = math.max(dualW, math.floor(dualH * 1920 / 1080)), dualH
+		end
+	end
 	local userScale = Spring.GetConfigFloat("ui_scale", 1)
 	local baseWidth = 1920
 	local baseHeight = 1080
@@ -31,11 +39,41 @@ end
 
 local currentDpRatio = calculateDpRatio()
 
+--- Multi-screen: a panel dropped on the WORLD screen takes that screen's scale; dropped
+--- back on the free screen it inherits the context's ratio, which is keyed to the free
+--- screen. Per-document, so the panels left behind keep their own size. Needs the
+--- engine's per-document dp override (recoil_dpi build); on a stock engine the property
+--- does not exist and this quietly does nothing.
+local function applyScreenScale(rootEl)
+	if not rootEl then
+		return
+	end
+	local vsx, vsy, viewPosX = Spring.GetViewGeometry()
+	local winW = Spring.GetWindowGeometry()
+	if not winW or not vsx or winW <= vsx then
+		return -- one screen, one scale
+	end
+	local doc = rootEl.owner_document
+	if not doc then
+		return
+	end
+	local centerX = (rootEl.absolute_left or 0) + (rootEl.offset_width or 0) * 0.5
+	local onWorld = centerX >= (viewPosX or 0) and centerX < (viewPosX or 0) + vsx
+	local userScale = Spring.GetConfigFloat("ui_scale", 1)
+	local worldDp = math.floor((vsy / 1080) * userScale * 100) / 100
+	pcall(function()
+		doc.dp_ratio_override = onWorld and worldDp or 0
+	end)
+end
+
 WG.TerraformerShared = WG.TerraformerShared or {}
 
+-- Exported for panels that still carry their own drag code (the brush's main windows),
+-- so a drop on the other screen rescales there too.
+WG.TerraformerShared.applyScreenScale = applyScreenScale
+
 -- Shared accessor so widgets don't reimplement calculateDpRatio().
--- Returns the current scale factor (resolution_factor * ui_scale), matching
--- whatever the shared RmlUi context is currently using.
+---@return number dpRatio Current scale factor `resolution_factor * ui_scale`, matching the shared RmlUi context.
 WG.TerraformerShared.getDpRatio = function()
 	return currentDpRatio
 end
@@ -141,6 +179,10 @@ WG.TerraformerShared.setWheelHeld = function(held)
 	end
 end
 
+---Registers a document so sibling widgets can read its live layout.
+---Call after `LoadDocument()`; pair with `unregisterDocument` on Shutdown.
+---@param name string?
+---@param document RmlUi.Document?
 WG.TerraformerShared.registerDocument = function(name, document)
 	if name and document then
 		registeredDocuments[name] = document
@@ -149,6 +191,8 @@ WG.TerraformerShared.registerDocument = function(name, document)
 	end
 end
 
+---Removes a document from the cross-widget registry.
+---@param name string?
 WG.TerraformerShared.unregisterDocument = function(name)
 	if name then
 		registeredDocuments[name] = nil
@@ -156,10 +200,134 @@ WG.TerraformerShared.unregisterDocument = function(name)
 	end
 end
 
-WG.TerraformerShared.getDocument = function(name)
-	return registeredDocuments[name]
+--------------------------------------------------------------------------------
+-- Where the suite's windows are
+--------------------------------------------------------------------------------
+
+--- A tool that draws in the WORLD needs to know when the pointer is over one of the suite's
+--- windows, and it needs to know about ALL of them rather than only its own.
+---
+--- The terraform brush parked its ground cursor whenever the pointer entered the brush
+--- panel and knew about nothing else, so moving the pointer onto the mission editor left the
+--- cursor tracking it and drawing away underneath the window.
+---
+--- A provider returns one rect, or an array of them, or nil while its windows are closed.
+--- Rects are in SPRING screen coordinates -- y = 0 at the bottom -- because that is what the
+--- tools' `Spring.GetMouseState` gives them. RmlUi counts y downwards, so a provider has to
+--- flip: `topY = vsy - offset_top`.
+local boundsProviders = {}
+
+---@param name string?
+---@param provider fun(): TerraformBrushPanelBounds|TerraformBrushPanelBounds[]|nil
+WG.TerraformerShared.registerBounds = function(name, provider)
+	if name and type(provider) == "function" then
+		boundsProviders[name] = provider
+	end
 end
 
+---@param name string?
+WG.TerraformerShared.unregisterBounds = function(name)
+	if name then
+		boundsProviders[name] = nil
+	end
+end
+
+--- Every suite window currently on screen, flattened.
+---
+--- The x conversion: `Spring.GetMouseState` is VIEW-relative -- the engine subtracts the
+--- view's x offset, which is zero until dual-screen mode parks the world on one half of
+--- the window. Providers report RmlUi window-space x, so the offset comes off here, once,
+--- for every tool, and the rects really are in the space the tools' mouse lives in.
+---@return TerraformBrushPanelBounds[] rects
+WG.TerraformerShared.getPanelRects = function()
+	local _, _, viewPosX = Spring.GetViewGeometry()
+	viewPosX = viewPosX or 0
+	local rects = {}
+	local function take(rect)
+		rects[#rects + 1] = {
+			left = rect.left - viewPosX,
+			right = rect.right - viewPosX,
+			topY = rect.topY,
+			bottomY = rect.bottomY,
+		}
+	end
+	for _, provider in pairs(boundsProviders) do
+		-- pcall: a provider reads elements that may have gone with a closed document, and one
+		-- broken panel must not blind every tool to all the others.
+		local ok, result = pcall(provider)
+		if ok and type(result) == "table" then
+			if result.left then
+				take(result)
+			else
+				for _, rect in ipairs(result) do
+					if type(rect) == "table" and rect.left then
+						take(rect)
+					end
+				end
+			end
+		end
+	end
+	return rects
+end
+
+--- The suite window under this screen point, or nil.
+---@param mx number?
+---@param my number?
+---@return TerraformBrushPanelBounds? rect
+WG.TerraformerShared.getPanelRectAt = function(mx, my)
+	if not (mx and my) then
+		return nil
+	end
+	for _, rect in ipairs(WG.TerraformerShared.getPanelRects()) do
+		if mx >= rect.left and mx <= rect.right and my >= rect.bottomY and my <= rect.topY then
+			return rect
+		end
+	end
+	return nil
+end
+
+--- Bring a registered panel to the front of the shared context.
+---
+--- Each widget owns a separate RmlUi document, and RCSS z-index only orders elements inside
+--- one document, so it cannot decide whether the brush or the mission editor is on top.
+--- PullToFront is the only thing that can.
+---@param name string
+WG.TerraformerShared.bringToFront = function(name)
+	local doc = registeredDocuments[name]
+	if doc and doc.PullToFront then
+		pcall(function()
+			doc:PullToFront()
+		end)
+	end
+end
+
+--- Raise a panel whenever the user presses anywhere inside it, so the windows end up in the
+--- order they were last touched, which is what every other windowing system does.
+---
+--- Deliberately does not stop the event: the press still reaches whatever was clicked.
+---@param name string
+---@param rootEl RmlUi.Element?
+WG.TerraformerShared.raiseOnPress = function(name, rootEl)
+	if not rootEl or not rootEl.AddEventListener then
+		return
+	end
+	rootEl:AddEventListener("mousedown", function()
+		WG.TerraformerShared.bringToFront(name)
+	end, false)
+end
+
+---A registered element's live layout, in pixel space.
+---@class TerraformerElementRect
+---@field left number
+---@field top number
+---@field width number
+---@field height number
+
+---Reads live pixel-space layout off an element of a registered document.
+---@param docName string
+---@param elementId string?
+---@return TerraformerElementRect? rect `nil` when the document or element is missing,
+---or the element has no width yet.
 WG.TerraformerShared.getElementRect = function(docName, elementId)
 	local doc = registeredDocuments[docName]
 	if not doc then
@@ -182,15 +350,26 @@ WG.TerraformerShared.getElementRect = function(docName, elementId)
 	}
 end
 
+---Options accepted by `attachDraggable`.
+---@class TerraformerDraggableOpts
+---@field snapThreshold number? Pixel snap distance for edges and panel snap. Defaults to `30`.
+---@field onDragStart fun()? Called on mousedown, e.g. to record that the user moved the panel.
+---@field snapDocName string? Registered document to snap against. Defaults to `"terraform_brush"`.
+---@field snapElementId string? Element within that document. Defaults to `"tf-root"`.
+
+---The value returned by `attachDraggable`.
+---@class TerraformerDraggable
+---@field tick fun() Call every frame from `widget:Update()` while the widget is alive.
+
 -- Shared drag-and-drop helper for floating panels.
 -- Sets up mousedown on handleId + mouseup on doc, returns a handle with tick().
 -- Call handle.tick() every frame from widget:Update() while the widget is alive.
---
--- opts fields (all optional):
---   snapThreshold (number, default 30) — pixel snap distance for edges + panel snap
---   onDragStart   (function)           — called on mousedown (e.g. set userDragged)
---   snapDocName   (string, default "terraform_brush") — registered document to snap to
---   snapElementId (string, default "tf-root")         — element within that document
+---Makes a floating panel draggable by a handle element, with edge and panel snapping.
+---@param doc RmlUi.Document?
+---@param handleId string Id of the element used as the drag handle.
+---@param rootEl RmlUi.Element? The panel being moved.
+---@param opts TerraformerDraggableOpts?
+---@return TerraformerDraggable handle A no-op handle when `doc`, `rootEl` or the handle element is missing.
 WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 	if not doc or not rootEl then
 		return { tick = function() end }
@@ -225,13 +404,18 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 		end
 		local mx, my = Spring.GetMouseState()
 		local vsx, vsy = Spring.GetViewGeometry()
+		-- Windows are clamped to the WINDOW, not the world view: in dual-screen mode the
+		-- window is two monitors wide, the view is one of them, and the whole point is
+		-- dragging a panel onto the other. One screen, same number. The y flip below
+		-- stays on the view height, which the horizontal split leaves equal.
+		local winX = Spring.GetWindowGeometry()
 		ds.active = true
 		ds.rootEl = rootEl
 		ds.offsetX = mx - rootEl.offset_left
 		ds.offsetY = (vsx > 0 and vsy > 0) and ((vsy - my) - rootEl.offset_top) or 0
 		ds.ew = rootEl.offset_width
 		ds.eh = rootEl.offset_height
-		ds.vsx = vsx
+		ds.vsx = (winX and winX > vsx) and winX or vsx
 		ds.vsy = vsy
 		ds.lastX = -1
 		ds.lastY = -1
@@ -243,6 +427,7 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 
 	doc:AddEventListener("mouseup", function()
 		if ds.active then
+			local moved = ds.rootEl
 			ds.active = false
 			ds.rootEl = nil
 			-- The window moved, so the room left below it changed. Guarded:
@@ -250,6 +435,7 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 			if WG.TerraformerShared and WG.TerraformerShared.refreshPanelBodies then
 				WG.TerraformerShared.refreshPanelBodies()
 			end
+			applyScreenScale(moved)
 		end
 	end, false)
 
@@ -356,7 +542,6 @@ function widget:Shutdown()
 		WG.TerraformerShared.getDpRatio = nil
 		WG.TerraformerShared.registerDocument = nil
 		WG.TerraformerShared.unregisterDocument = nil
-		WG.TerraformerShared.getDocument = nil
 		WG.TerraformerShared.getElementRect = nil
 		WG.TerraformerShared.attachDraggable = nil
 		WG.TerraformerShared.refreshPanelBodies = nil

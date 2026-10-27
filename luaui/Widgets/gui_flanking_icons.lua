@@ -18,6 +18,8 @@ local spGetSpectatingState = Spring.GetSpectatingState
 -- Configurable Parts:
 local texture = "luaui/images/flank_icon.tga"
 local fadespeed = 0.005
+-- the shader fades an icon out (alpha = 1 - age * fadespeed); past this age it is invisible and gets dropped
+local fadeFrames = math.ceil(1 / fadespeed)
 
 ---- GL4 Backend Stuff----
 
@@ -25,6 +27,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
+local uploadAllElements = InstanceVBOTable.uploadAllElements
 
 ---@type InstanceVBOTable?
 local flankingVBO = nil
@@ -45,6 +48,9 @@ local spGetUnitRadius = Spring.GetUnitRadius
 local spGetUnitFlanking = Spring.GetUnitFlanking
 local spGetGameFrame = Spring.GetGameFrame
 local spIsUnitAllied = Spring.IsUnitAllied
+
+local flankedUnits = {} -- [unitID] = true for the visible units that show an icon when hit
+local lastHitFrame = {} -- [unitID] = frame of the last hit, for every unit with an icon
 
 local instanceCache = {
 	0,
@@ -67,10 +73,24 @@ local instanceCache = {
 	0,
 } -- these are just padding zeros, that will get filled in
 
-local function AddPrimitiveAtUnit(unitID, gameframe, noupload) -- since the icon fades, gameframe specifies last update
-	--if Spring.ValidUnitID(unitID) ~= true or  Spring.GetUnitIsDead(unitID) == true then return end
-	gameframe = gameframe or spGetGameFrame()
+-- DrawWorldPreUnit and GameFrame only run while there are icons
+local callInsActive = true
 
+local function updateCallIns()
+	local active = flankingVBO.usedElements > 0
+	if active ~= callInsActive then
+		callInsActive = active
+		if active then
+			widgetHandler:UpdateCallIn("DrawWorldPreUnit")
+			widgetHandler:UpdateCallIn("GameFrame")
+		else
+			widgetHandler:RemoveCallIn("DrawWorldPreUnit")
+			widgetHandler:RemoveCallIn("GameFrame")
+		end
+	end
+end
+
+local function AddPrimitiveAtUnit(unitID, gameframe) -- since the icon fades, gameframe specifies last update
 	local radius = spGetUnitRadius(unitID) * 3 or 64
 	local _, _, _, _, dirX, _, dirZ, _ = spGetUnitFlanking(unitID)
 
@@ -89,60 +109,87 @@ local function AddPrimitiveAtUnit(unitID, gameframe, noupload) -- since the icon
 		instanceCache, -- used the cached instance
 		unitID, -- this is the key inside the VBO TAble, should be unique per unit
 		true, -- update existing element
-		noupload, -- noupload, dont use unless you know what you are doing
+		true, -- noupload: hits come in bursts, the draw uploads once
 		unitID
 	) -- last one should be UNITID!
+	lastHitFrame[unitID] = gameframe
+end
+
+local function removeIcon(unitID, noUpload)
+	popElementInstance(flankingVBO, unitID, noUpload)
+	lastHitFrame[unitID] = nil
 end
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	-- because we allow updating, we are going to set these every time damage is taken (thus changing flank angle)
-	if flankingVBO.instanceIDtoIndex[unitID] then
-		AddPrimitiveAtUnit(unitID)
+	if flankedUnits[unitID] then
+		AddPrimitiveAtUnit(unitID, spGetGameFrame())
+		updateCallIns()
 	end
 end
 
+-- only registered while there are icons
+function widget:GameFrame(n)
+	if n % 30 == 0 then
+		for unitID, hitFrame in pairs(lastHitFrame) do
+			if n - hitFrame > fadeFrames then
+				removeIcon(unitID, true)
+			end
+		end
+		updateCallIns()
+	end
+end
+
+-- only registered while there are icons
 function widget:DrawWorldPreUnit()
 	if Spring.IsGUIHidden() then
 		return
+	end
+	if flankingVBO.dirty then
+		uploadAllElements(flankingVBO)
 	end
 	if flankingVBO.usedElements > 0 then
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		glTexture(0, texture)
 		flankingShader:Activate()
 		flankingShader:SetUniform("iconDistance", disticon)
-		flankingShader:SetUniform("addRadius", 0)
+		-- addRadius stays at its default of 0
 		flankingVBO.VAO:DrawArrays(GL.POINTS, flankingVBO.usedElements)
 		flankingShader:Deactivate()
 		glTexture(0, false)
 	end
 end
 
-function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if not spec and fullview then
 		if not spIsUnitAllied(unitID) then
 			return
 		end
 	end
 	if udefHasFlankingIcon[unitDefID] then
-		AddPrimitiveAtUnit(unitID, -300, noupload)
+		flankedUnits[unitID] = true
 	end
 end
 
 function widget:VisibleUnitRemoved(unitID)
+	flankedUnits[unitID] = nil
 	if flankingVBO.instanceIDtoIndex[unitID] then
-		popElementInstance(flankingVBO, unitID)
+		removeIcon(unitID)
+		updateCallIns()
 	end
 end
 
 local function init()
 	InstanceVBOTable.clearInstanceTable(flankingVBO)
+	flankedUnits = {}
+	lastHitFrame = {}
 	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
 		local visibleUnits = WG.unittrackerapi.visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
-			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), true)
+			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
 		end
 	end
-	InstanceVBOTable.uploadAllElements(flankingVBO)
+	updateCallIns()
 end
 
 function widget:Initialize()
@@ -176,7 +223,6 @@ function widget:PlayerChanged()
 	spec, fullview = spGetSpectatingState()
 	allyTeamID = Spring.GetLocalAllyTeamID()
 	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
-		InstanceVBOTable.clearInstanceTable(flankingVBO)
 		init()
 	end
 end

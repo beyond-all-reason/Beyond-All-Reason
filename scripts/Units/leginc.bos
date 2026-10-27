@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece body, aimy1, turret, aimx1, sleeve, flare, ringinner, ringouter, blfoot, blhinge, bltoes, bltoes, brfoot, brhinge, brtoes, flfoot, flhinge, fltoes, frfoot, frhinge, frtoes;
+piece body, aimy1, turret, aimx1, sleeve, flare, ringinner, ringouter, blfoot, blhinge, bltoes, brfoot, brhinge, brtoes, flfoot, flhinge, fltoes, frfoot, frhinge, frtoes;
 
 static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, oldhead, isfiring, targetswap, timer;
 
@@ -535,6 +535,7 @@ StopMoving()
 	isMoving = FALSE;
 	signal SIGNAL_MOVE;
 	call-script StopWalking();
+	animSpeed = 6; // what UnitSpeed sets at rest; it only runs while moving
 }
 Stop()
 {
@@ -589,7 +590,6 @@ Create()
 	
 	start-script SweepFire();
 	start-script StopMoving();
-	start-script UnitSpeed();
 }
 
 

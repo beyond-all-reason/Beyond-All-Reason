@@ -122,8 +122,8 @@ local resolvedCatalog
 local chipGroups = {}
 local catalogAny, catalogAnyPrefixes, catalogShiftPair = {}, {}, {}
 local L = {}
--- Headers, notes, links, the way in to a custom binding and the bindable rows themselves,
--- which share no shape beyond the type naming which they are.
+-- Headers, notes, links and the bindable rows themselves, which share no shape beyond the type
+-- naming which they are.
 ---@type table[]
 local rows = {}
 -- Bumped by rebuildRows, so the baked panel knows the list behind it changed.
@@ -256,6 +256,12 @@ local sheenTop = { 1, 1, 1, 0.05 }
 -- Fills and captions the list is painted with, in one table for the same reason as
 -- metrics above.
 local look = {
+	conflictIndent = "    ",
+	-- In the order the column and the rows list them; the leftovers under Other close the first.
+	sections = {
+		{ key = "game", inAll = true, withOther = true },
+		{ key = "widgets", heading = "widgets", inAll = false },
+	},
 	chipFill = { 0, 0, 0, 0.35 },
 	chipFillHover = { 0, 0, 0, 0.45 },
 	-- A chip that answered a search by key, warmed in the gold its key is printed in, so it stands
@@ -393,8 +399,18 @@ local headerButtons = {
 		tip = "editTooltip",
 		tipLocked = "editLockedTooltip",
 	},
-	{ id = "export", tooltipId = "keybind_export", tip = "exportTooltip" },
-	{ id = "import", tooltipId = "keybind_import", tip = "importTooltip" },
+	{
+		id = "export",
+		icon = "LuaUI/Images/keybinds/export.png",
+		tooltipId = "keybind_export",
+		tip = "exportTooltip",
+	},
+	{
+		id = "import",
+		icon = "LuaUI/Images/keybinds/import.png",
+		tooltipId = "keybind_import",
+		tip = "importTooltip",
+	},
 	{ id = "keyboard", tooltipId = "keybind_keyboard", tip = "keyboardTooltip", toggle = true, gap = 2 },
 }
 
@@ -414,9 +430,13 @@ local state = {
 	footerH = 0,
 	layoutPending = false,
 	tooltipsRegistered = false,
+	scanKeys = {},
+	clashing = {},
 	hidden = {},
 	labels = {},
 	changedKey = {},
+	sources = {},
+	widgetActions = require("luaui/Include/keybind_widget_actions"),
 	changedCount = -1,
 	refit = false,
 	undo = {},
@@ -426,6 +446,8 @@ local state = {
 	page = "list",
 	keyboard = require("luaui/Include/keybind_keyboard").new(),
 	keyboardGen = -1,
+	selectCommand = require("luaui/Include/keybind_select"),
+	selectionBuilder = require("luaui/Include/keybind_select_builder").new(),
 }
 
 -- A copy of the staged keymap, for putting back. Binds and keysets are copied rather than
@@ -617,7 +639,9 @@ local function buildResolvedCatalog()
 	labelPlacesArg = {}
 	resolvedCatalog = {}
 	catalogAny, catalogAnyPrefixes, catalogShiftPair = {}, {}, {}
-	state.hidden, state.labels = {}, {}
+	state.hidden, state.labels, state.sources = {}, {}, {}
+	local widgets, manifestChanges = state.widgetActions.manifests()
+	state.manifestsVersion = manifestChanges
 
 	-- Asked for with an empty default, so a missing key is silent and reads as none.
 	local function describe(item)
@@ -648,17 +672,31 @@ local function buildResolvedCatalog()
 		return nil
 	end
 
+	local allGroups = {}
 	for _, group in ipairs(catalog) do
+		allGroups[#allGroups + 1] = group
+	end
+	for _, group in ipairs(state.widgetActions.groups(widgets)) do
+		allGroups[#allGroups + 1] = group
+	end
+	-- A widget that is off would otherwise leave its actions under Other as raw ids.
+	local hidden = state.widgetActions.hiddenActions(widgets)
+	if #hidden > 0 then
+		allGroups[#allGroups + 1] = { hidden = hidden }
+	end
+
+	for _, group in ipairs(allGroups) do
 		if group.hidden then
 			resolvedCatalog[#resolvedCatalog + 1] = { hidden = group.hidden, title = "", titleLower = "", items = {} }
 			for _, h in ipairs(group.hidden) do
 				state.hidden[h] = true
 			end
 		else
-			local title = BAR.I18N(group.category)
+			local title = group.title or BAR.I18N(group.category)
 			local g = {
 				category = group.category,
 				layout = group.layout,
+				section = group.section,
 				title = title,
 				titleLower = title:lower(),
 				items = {},
@@ -668,10 +706,12 @@ local function buildResolvedCatalog()
 					if item.alwaysModifier == "any" then
 						catalogAnyPrefixes[#catalogAnyPrefixes + 1] = item.prefix
 					end
+					g.selection = g.selection or item.selection == true
 					g.items[#g.items + 1] = {
 						prefix = item.prefix,
 						label = item.label,
 						unit = item.unit,
+						selection = item.selection,
 						members = item.members,
 						membersFrom = item.membersFrom,
 						description = describe(item),
@@ -685,25 +725,26 @@ local function buildResolvedCatalog()
 							catalogShiftPair[item.action] = true
 						end
 					end
-					local label = BAR.I18N(item.label)
+					local label = item.label and BAR.I18N(item.label) or item.action
 					local stem = item.action and look.cursors[item.action:match("^%S+")]
 					local cursor = stem and look.cursorTextures[stem] or nil
+					-- The picture a key shows for the action: the catalog's own where it names
+					-- one, else the cursor an order is already known by.
+					local icon = (item.icon and VFS.FileExists(item.icon) and item.icon) or cursor
 					g.items[#g.items + 1] = {
 						action = item.action,
 						actionLower = item.action and item.action:lower(),
 						label = label,
 						labelLower = label:lower(),
-						cursor = cursor,
-						-- The picture a key shows for the action: the catalog's own where it names
-						-- one, else the cursor an order is already known by.
-						icon = (item.icon and VFS.FileExists(item.icon) and item.icon) or cursor,
+						icon = icon,
 						description = describe(item),
 					}
 					if item.action then
 						state.labels[item.action] = label
+						state.sources[item.action] = title
 					end
 					-- One picture in a group gives every row in it the column, so the names line up.
-					g.hasCursors = g.hasCursors or cursor ~= nil
+					g.hasCursors = g.hasCursors or icon ~= nil
 				end
 			end
 			if g.layout == "grid" then
@@ -737,8 +778,14 @@ local function buildResolvedCatalog()
 	end
 
 	L.other = BAR.I18N("categories.other")
+	L.widgets = BAR.I18N("ui.keybinds.editor.widgets")
 	L.addBind = BAR.I18N("ui.keybinds.editor.addBind")
 	L.addBindTitle = BAR.I18N("ui.keybinds.editor.addBindTitle")
+	L.editBindTitle = BAR.I18N("ui.keybinds.editor.editBindTitle")
+	L.addSelection = BAR.I18N("ui.keybinds.select.addLink")
+	L.selectionAdd = BAR.I18N("ui.keybinds.select.titleAdd")
+	L.selectionEdit = BAR.I18N("ui.keybinds.select.titleEdit")
+	L.selectionChooseKey = BAR.I18N("ui.keybinds.select.chooseKey")
 	L.otherLower = L.other:lower()
 	L.title = BAR.I18N("ui.keybinds.title")
 	L.titleText = colorText .. L.title
@@ -751,21 +798,27 @@ local function buildResolvedCatalog()
 	categories = { { label = L.allCategories } }
 	otherCategoryKey = generatedOtherKey
 	local seen = {}
-	for _, g in ipairs(resolvedCatalog) do
-		-- Keyed like the row filter below, not by title: two categories that translate to
-		-- the same words are still separate, and one has to not vanish from the column.
-		if not g.hidden and not seen[g.category] then
-			seen[g.category] = true
-			categories[#categories + 1] = { label = g.title, key = g.category }
-			-- A catalog category of the same name takes the leftovers, matching the row
-			-- order below, rather than a second column entry appearing beside it.
-			if g.title == L.other then
-				otherCategoryKey = g.category
+	for _, section in ipairs(look.sections) do
+		local first = #categories + 1
+		for _, g in ipairs(resolvedCatalog) do
+			-- Keyed like the row filter below, not by title: two categories that translate to
+			-- the same words are still separate, and one has to not vanish from the column.
+			if not g.hidden and not seen[g.category] and state.sectionOf(g) == section then
+				seen[g.category] = true
+				categories[#categories + 1] = { label = g.title, key = g.category }
+				-- A catalog category of the same name takes the leftovers, matching the row
+				-- order below, rather than a second column entry appearing beside it.
+				if section.withOther and g.title == L.other then
+					otherCategoryKey = g.category
+				end
 			end
 		end
-	end
-	if otherCategoryKey == generatedOtherKey then
-		categories[#categories + 1] = { label = L.other, key = otherCategoryKey }
+		if section.withOther and otherCategoryKey == generatedOtherKey then
+			categories[#categories + 1] = { label = L.other, key = otherCategoryKey }
+		end
+		if section.heading and #categories >= first then
+			table.insert(categories, first, { label = L[section.heading], header = true })
+		end
 	end
 	-- Every keyreload comes through here, so without this the entry went missing until a preset
 	-- switch happened to move the count.
@@ -809,6 +862,8 @@ local function buildResolvedCatalog()
 	L.importTitle = BAR.I18N("ui.keybinds.editor.importTitle")
 	L.importEmpty = BAR.I18N("ui.keybinds.editor.importEmpty")
 	L.importNone = BAR.I18N("ui.keybinds.editor.importNone")
+	L.importAsNew = BAR.I18N("ui.keybinds.editor.importAsNew")
+	L.importAdd = BAR.I18N("ui.keybinds.editor.importAdd")
 	L.ok = BAR.I18N("ui.keybinds.editor.ok")
 	L.editTitle = BAR.I18N("ui.keybinds.editor.editTitle")
 	L.delete = BAR.I18N("ui.keybinds.editor.delete")
@@ -867,45 +922,184 @@ local function rowChange(action)
 	return nil
 end
 
--- Flagged when the engine tries it first, and when the game ships the two on one key - by
--- design, so no clash of the player making. Hidden actions are left out: sharing a key with
--- a listed one is how the catalog says they belong together.
+-- SDL's key for the OS layout, which a press is matched by; KeyboardLayout only relabels keys.
+function state.scanToKey(scan)
+	local key = state.scanKeys[scan]
+	if key == nil then
+		key = Spring.GetKeyFromScanSymbol and Spring.GetKeyFromScanSymbol("sc_" .. scan) or ""
+		state.scanKeys[scan] = key
+	end
+
+	return key
+end
+
+-- Flagged when the game ships the two on one key - by design, so no clash of the player
+-- making. Hidden actions are left out: sharing a key with a listed one is how the catalog says
+-- they belong together.
 local function conflictsOf(action, raws)
-	local byKeyset = working.byKeyset
-	if not byKeyset then
+	local index = working.collisions
+	if not index then
 		return nil
 	end
 
 	local out, seen
 	for _, raw in ipairs(raws) do
 		-- Any holder at all: for a key being captured this action is not among them yet.
-		local list = byKeyset[keybindModel.canonicalKeyset(raw)]
-		if list then
-			local mine
-			for i = 1, #list do
-				if list[i] == action then
-					mine = i
-					break
-				end
-			end
-			for i = 1, #list do
-				local other = list[i]
-				if other ~= action and not state.hidden[other] and not (seen and seen[other]) then
-					seen = seen or {}
-					seen[other] = true
-					out = out or {}
-					local pair = (action < other) and (action .. "\n" .. other) or (other .. "\n" .. action)
-					out[#out + 1] = {
-						action = other,
-						before = mine ~= nil and i < mine,
-						shipped = state.shippedPairs ~= nil and state.shippedPairs[pair] == true,
-					}
-				end
+		for _, other in ipairs(keybindModel.collidersOf(index, action, raw)) do
+			local name = other.action
+			if not state.hidden[name] and not (seen and seen[name]) then
+				seen = seen or {}
+				seen[name] = true
+				out = out or {}
+				local pair = (action < name) and (action .. "\n" .. name) or (name .. "\n" .. action)
+				out[#out + 1] = {
+					action = name,
+					shipped = state.shippedPairs ~= nil and state.shippedPairs[pair] == true,
+				}
 			end
 		end
 	end
 
 	return out
+end
+
+-- A prefix entry's declared members, then bound actions under the prefix that nothing earlier claimed.
+function state.prefixActions(item, claimed)
+	-- Read here rather than with the rest of the catalog, so a profile made a moment ago gets its
+	-- row without waiting for a refresh.
+	local members = item.members
+	if item.membersFrom == "profiles" then
+		-- Switching to the one already on can only do nothing. One already bound is still found from
+		-- the keymap below, which is what leaves a stale self-binding somewhere to remove it.
+		local active = profiles.activeName()
+		members = {}
+		for _, builtin in ipairs(profiles.builtins) do
+			if builtin.name ~= active then
+				members[#members + 1] = builtin.name
+			end
+		end
+		for _, own in ipairs(profiles.list()) do
+			if own ~= active then
+				members[#members + 1] = own
+			end
+		end
+	end
+
+	-- A declared member is a row whether or not it is bound. Families the catalog cannot
+	-- enumerate (buildunit_ is per unit) list none and are discovered from what is bound.
+	local matched = {}
+	for _, member in ipairs(members or {}) do
+		local action = item.prefix .. member
+		if not claimed[action] then
+			claimed[action] = true
+			matched[#matched + 1] = action
+		end
+	end
+
+	local found = {}
+	for action in pairs(working.byAction) do
+		if not claimed[action] and action:sub(1, #item.prefix) == item.prefix then
+			claimed[action] = true
+			found[#found + 1] = action
+		end
+	end
+	table.sort(found)
+	for i = 1, #found do
+		matched[#matched + 1] = found[i]
+	end
+
+	return matched
+end
+
+function state.sectionOf(group)
+	for _, section in ipairs(look.sections) do
+		if section.key == (group.section or "game") then
+			return section
+		end
+	end
+
+	return look.sections[1]
+end
+
+-- Per category, the actions whose chips redden, claimed the way the rows claim them.
+function state.countClashes()
+	state.clashing = {}
+	local function clashes(action)
+		local raws = {}
+		for i, k in ipairs(working.byAction[action] or look.noRaws) do
+			raws[i] = k.raw
+		end
+		for _, o in ipairs(conflictsOf(action, raws) or look.noRaws) do
+			if not o.shipped then
+				state.clashing[action] = true
+
+				return true
+			end
+		end
+
+		return false
+	end
+
+	local counts, claimed = {}, {}
+	for _, group in ipairs(resolvedCatalog) do
+		if group.hidden then
+			for _, h in ipairs(group.hidden) do
+				claimed[h] = true
+			end
+		end
+	end
+	for _, group in ipairs(resolvedCatalog) do
+		if not group.hidden then
+			local n = counts[group.category] or 0
+			for _, item in ipairs(group.items) do
+				if item.prefix and item.prefix ~= "" then
+					for _, action in ipairs(state.prefixActions(item, claimed)) do
+						if clashes(action) then
+							n = n + 1
+						end
+					end
+				elseif item.action and not claimed[item.action] then
+					claimed[item.action] = true
+					if clashes(item.action) then
+						n = n + 1
+					end
+				end
+			end
+			counts[group.category] = n
+		end
+	end
+	local other = counts[otherCategoryKey] or 0
+	for action in pairs(working.byAction) do
+		if not claimed[action] and clashes(action) then
+			other = other + 1
+		end
+	end
+	counts[otherCategoryKey] = other
+
+	local total, counted = 0, {}
+	for _, group in ipairs(resolvedCatalog) do
+		if not group.hidden and state.sectionOf(group).inAll then
+			counted[group.category] = true
+			total = total + (counts[group.category] or 0)
+		end
+	end
+	if not counted[otherCategoryKey] then
+		total = total + (counts[otherCategoryKey] or 0)
+	end
+	for _, c in ipairs(categories) do
+		local n
+		if c.header or c.key == state.changedKey then
+			n = nil
+		elseif c.key == nil then
+			n = total
+		else
+			n = counts[c.key] or 0
+		end
+		if (c.count or 0) ~= (n or 0) then
+			c.count = n
+			state.refit = true
+		end
+	end
 end
 
 -- Rebuilds the display list from the catalog and the staged binds, honouring both the
@@ -934,34 +1128,16 @@ local function rebuildRows()
 			end
 		end
 	end
+	-- Rebuilt with the rows, which every edit rebuilds; ahead of the grid, whose entries count too.
+	working.collisions = keybindModel.collisionIndex(working.binds, state.scanToKey)
+	state.countClashes()
+
 	if gridGroup then
 		clampScroll()
 
 		return
 	end
 	local query = Search.query(searchBox and searchBox:getText())
-
-	-- Rebuilt with the rows, which every edit rebuilds.
-	local byKeyset = {}
-	for _, b in ipairs(working.binds) do
-		local c = keybindModel.canonicalKeyset(b.keyset)
-		local list = byKeyset[c]
-		if not list then
-			list = {}
-			byKeyset[c] = list
-		end
-		local listed = false
-		for i = 1, #list do
-			if list[i] == b.action then
-				listed = true
-				break
-			end
-		end
-		if not listed then
-			list[#list + 1] = b.action
-		end
-	end
-	working.byKeyset = byKeyset
 
 	-- The column's Changed entry keeps only rows that differ from the base preset. How many
 	-- there are is counted whatever is shown, since its label says so.
@@ -1022,7 +1198,8 @@ local function rebuildRows()
 	-- own, and only there. Gathered as they are met, so they keep the catalog's order.
 	local keyRows = {}
 	local catalogActions = {}
-	local otherHeaderRow, otherGroupEnd
+	local sectionRows = {}
+	local otherGroupEnd
 
 	-- Claim hidden actions up front so they never surface, as a row or under Other.
 	-- Exact ids only (not prefixes), so a future action can't be hidden by coincidence.
@@ -1037,7 +1214,10 @@ local function rebuildRows()
 	for _, group in ipairs(resolvedCatalog) do
 		-- Non-selected groups are still walked: they have to claim their actions or the
 		-- leftovers below would sweep them all into Other.
-		local inCategory = not selectedCategory or changedOnly or group.category == selectedCategory
+		-- A search still reaches the sections All leaves out, so a clash with one can be found.
+		local inCategory = group.category == selectedCategory
+			or changedOnly
+			or (not selectedCategory and (state.sectionOf(group).inAll or not query.empty))
 		-- A group whose own title matches keeps every row under it, so searching for a
 		-- category's name shows the category rather than emptying it.
 		local categoryMatch = Search.claims(query, group.titleLower)
@@ -1046,50 +1226,7 @@ local function rebuildRows()
 		for _, item in ipairs(group.items) do
 			-- An empty prefix would claim every bound action, so treat it as no prefix.
 			if item.prefix and item.prefix ~= "" then
-				-- Read here rather than with the rest of the catalog, so a profile made a moment ago gets its
-				-- row without waiting for a refresh.
-				local members = item.members
-				if item.membersFrom == "profiles" then
-					-- Switching to the one already on can only do nothing. One already bound is still found from
-					-- the keymap below, which is what leaves a stale self-binding somewhere to remove it.
-					local active = profiles.activeName()
-					members = {}
-					for _, builtin in ipairs(profiles.builtins) do
-						if builtin.name ~= active then
-							members[#members + 1] = builtin.name
-						end
-					end
-					for _, own in ipairs(profiles.list()) do
-						if own ~= active then
-							members[#members + 1] = own
-						end
-					end
-				end
-
-				-- A declared member is a row whether or not it is bound. Families the catalog cannot
-				-- enumerate (buildunit_ is per unit) list none and are discovered from what is bound.
-				local matched = {}
-				for _, member in ipairs(members or {}) do
-					local action = item.prefix .. member
-					-- Skipped when an explicit entry already covers it, or a family whose
-					-- members are also listed individually renders each of them twice.
-					if not catalogActions[action] then
-						catalogActions[action] = true
-						matched[#matched + 1] = action
-					end
-				end
-
-				local found = {}
-				for action in pairs(working.byAction) do
-					if not catalogActions[action] and action:sub(1, #item.prefix) == item.prefix then
-						catalogActions[action] = true
-						found[#found + 1] = action
-					end
-				end
-				table.sort(found)
-				for i = 1, #found do
-					matched[#matched + 1] = found[i]
-				end
+				local matched = state.prefixActions(item, catalogActions)
 				for i = 1, #matched do
 					local action = matched[i]
 					local arg = action:sub(#item.prefix + 1)
@@ -1109,7 +1246,13 @@ local function rebuildRows()
 					end
 					local row, col = arg:match("^%s*(%S+)%s+(%S+)")
 					local label = item.label and prefixRowLabel(item.label, arg, row, col) or action
+					local command = item.selection and state.selectCommand.parse(action)
+					if command then
+						label = state.selectCommand.describe(command)
+					end
+					local buildable = command and state.selectCommand.editable(command)
 					state.labels[action] = label
+					state.sources[action] = group.title
 					local change = rowChange(action)
 					if change then
 						changedCount = changedCount + 1
@@ -1128,6 +1271,8 @@ local function rebuildRows()
 							type = "editable",
 							action = action,
 							label = label,
+							editSelection = buildable or nil,
+							custom = item.selection and not buildable or nil,
 							description = item.description,
 							change = change,
 							queryAny = byKey == "any",
@@ -1165,7 +1310,7 @@ local function rebuildRows()
 						type = "editable",
 						action = item.action,
 						label = item.label,
-						cursor = item.cursor,
+						cursor = item.icon,
 						cursorColumn = group.hasCursors,
 						description = item.description,
 						change = change,
@@ -1188,19 +1333,26 @@ local function rebuildRows()
 		end
 
 		if inCategory and #groupRows > 0 then
-			rows[#rows + 1] = { type = "header", text = group.title }
-			if group.title == L.other then
-				otherHeaderRow = rows[#rows]
+			local section = state.sectionOf(group)
+			local into = rows
+			if not section.withOther then
+				sectionRows[section] = sectionRows[section] or {}
+				into = sectionRows[section]
 			end
+			into[#into + 1] = {
+				type = "header",
+				text = group.title,
+				add = group.selection and not changedOnly and query.empty and L.addSelection or nil,
+			}
 			if group.layout == "grid" then
 				-- Still driven by the rows a search matched, so hunting for one of them surfaces the way in.
-				rows[#rows + 1] = { type = "link", label = L.edit, category = group.category }
+				into[#into + 1] = { type = "link", label = L.edit, category = group.category }
 			else
 				for i = 1, #groupRows do
-					rows[#rows + 1] = groupRows[i]
+					into[#into + 1] = groupRows[i]
 				end
 			end
-			if group.title == L.other then
+			if section.withOther and group.title == L.other then
 				otherGroupEnd = #rows
 			end
 		end
@@ -1231,41 +1383,39 @@ local function rebuildRows()
 			type = "editable",
 			action = action,
 			label = action,
+			custom = true,
 			change = rowChange(action),
 			queryAny = boundToQuery(action) == "any",
 		}
 	end
 
-	-- Not while searching or reading the changed list: neither is a list anything would be added
-	-- to.
-	local offerAdd = inOther and not changedOnly and query.empty
-	if (offerAdd or #others > 0) and inOther then
+	if #others > 0 and inOther then
 		table.sort(others)
 
 		-- A catalog category can be titled the same as this generated one; when it is,
 		-- the leftovers join it after its own items instead of repeating the header.
 		local tail = {}
-		local header = otherHeaderRow
 		if otherGroupEnd then
 			for i = otherGroupEnd + 1, #rows do
 				tail[#tail + 1] = rows[i]
 				rows[i] = nil
 			end
 		else
-			header = { type = "header", text = L.other }
-			rows[#rows + 1] = header
-		end
-		-- The way in rides on the heading rather than taking a row of its own, which read as
-		-- one more binding among the ones it is there to add to.
-		if offerAdd and header then
-			header.add = L.addBind
+			rows[#rows + 1] = { type = "header", text = L.other }
 		end
 
 		for _, action in ipairs(others) do
-			rows[#rows + 1] = { type = "editable", action = action, label = action, change = rowChange(action) }
+			rows[#rows + 1] =
+				{ type = "editable", action = action, label = action, custom = true, change = rowChange(action) }
 		end
 		for i = 1, #tail do
 			rows[#rows + 1] = tail[i]
+		end
+	end
+
+	for _, section in ipairs(look.sections) do
+		for _, row in ipairs(sectionRows[section] or look.noRaws) do
+			rows[#rows + 1] = row
 		end
 	end
 
@@ -1520,30 +1670,12 @@ function state.refreshBase()
 	if not state.shippedPairs then
 		local shipped = {}
 		for _, b in ipairs(profiles.builtins) do
-			local byKeyset = {}
-			for _, bind in ipairs(b.binds or {}) do
-				local c = keybindModel.canonicalKeyset(bind.keyset)
-				local list = byKeyset[c]
-				if not list then
-					list = {}
-					byKeyset[c] = list
-				end
-				local listed = false
-				for i = 1, #list do
-					if list[i] == bind.action then
-						listed = true
-					end
-				end
-				if not listed then
-					list[#list + 1] = bind.action
-				end
-			end
-			for _, list in pairs(byKeyset) do
-				for i = 1, #list do
-					for j = i + 1, #list do
-						local a, o = list[i], list[j]
-						shipped[(a < o) and (a .. "\n" .. o) or (o .. "\n" .. a)] = true
-					end
+			local binds = b.binds or {}
+			local index = keybindModel.collisionIndex(binds, state.scanToKey)
+			for _, bind in ipairs(binds) do
+				for _, other in ipairs(keybindModel.collidersOf(index, bind.action, bind.keyset)) do
+					local a, o = bind.action, other.action
+					shipped[(a < o) and (a .. "\n" .. o) or (o .. "\n" .. a)] = true
 				end
 			end
 		end
@@ -1552,10 +1684,11 @@ function state.refreshBase()
 
 	local base = profiles.baseOf(profiles.activeName())
 	local wanted = base and base.name or nil
-	if (state.base and state.base.name) ~= wanted then
+	local _, manifestChanges = state.widgetActions.manifests()
+	if (state.base and state.base.name) ~= wanted or (state.base and state.base.manifests ~= manifestChanges) then
 		if base then
 			local byAction = {}
-			for _, b in ipairs(base.binds or {}) do
+			for _, b in ipairs(profiles.effectiveBinds(base)) do
 				local entry = byAction[b.action]
 				if not entry then
 					entry = { set = {}, n = 0, raws = {} }
@@ -1568,7 +1701,7 @@ function state.refreshBase()
 					entry.raws[#entry.raws + 1] = b.keyset
 				end
 			end
-			state.base = { name = wanted, byAction = byAction }
+			state.base = { name = wanted, byAction = byAction, manifests = manifestChanges }
 		else
 			state.base = nil
 		end
@@ -1658,6 +1791,39 @@ local function discardStaged()
 	rebuildRows()
 end
 
+-- Order counts: two actions on one keyset are tried in bind order.
+function state.isStaged(binds)
+	if #binds ~= #working.binds then
+		return false
+	end
+
+	for i, b in ipairs(binds) do
+		local w = working.binds[i]
+		if b.keyset ~= w.keyset or b.action ~= w.action then
+			return false
+		end
+	end
+
+	return true
+end
+
+-- The list arrives in engine order already, so it replaces the staged one outright.
+function state.stageBinds(binds)
+	-- Emptied entries stay: the rows the catalog does not name come from them.
+	local byAction = {}
+	for action in pairs(working.byAction) do
+		byAction[action] = {}
+	end
+	for _, b in ipairs(binds) do
+		local ks = byAction[b.action] or {}
+		byAction[b.action] = ks
+		ks[#ks + 1] = { raw = b.keyset, display = keybindModel.displayKeyset(b.keyset, working.layout) }
+	end
+
+	working.binds, working.byAction = binds, byAction
+	markStaged()
+end
+
 ----------------------------------------------------------------
 -- Dialogs
 ----------------------------------------------------------------
@@ -1715,6 +1881,9 @@ end
 local function dialogName()
 	if not dialog or dialog.message then
 		return "", false
+	end
+	if dialog.nameless then
+		return "", dialog.blocked == true
 	end
 
 	local name = nameBox:getText():gsub("^%s+", ""):gsub("%s+$", "")
@@ -1902,7 +2071,8 @@ local function startDuplicate()
 end
 
 -- Export copies the preset on screen, staged edits included, to the clipboard as the text the
--- engine loads; Import reads such text back as a new preset of the player's own.
+-- engine loads; Import reads such text back, as a new preset of the player's own or as edits to
+-- the one on screen.
 local function startClipboard(exporting)
 	if exporting then
 		local name = profiles.activeName()
@@ -1920,41 +2090,102 @@ local function startClipboard(exporting)
 
 	local clip = Spring.GetClipboard()
 	if type(clip) ~= "string" or clip:match("^%s*$") then
-		openDialog({ title = L.import, message = L.importEmpty, info = true, acceptLabel = L.ok, accept = function() end })
+		openDialog({
+			title = L.import,
+			message = L.importEmpty,
+			info = true,
+			acceptLabel = L.ok,
+			accept = function() end,
+		})
 
 		return
 	end
 
 	-- With nothing readable the dialog still opens, so the player can see why, but cannot be
-	-- accepted.
-	local lines, count, errors = profiles.classifyBindFile(clip)
+	-- accepted. An unbind alone still edits a preset; a new one needs a bind.
+	local lines, count, errors, directives = profiles.classifyBindFile(clip)
 	local binds, fakeMeta, stamped = profiles.parseBindFile(clip)
-	local summary = binds and (colorText .. BAR.I18N("ui.keybinds.editor.importSummary", { n = count }))
-		or (colorDanger .. L.importNone)
-	if errors > 0 then
-		summary = summary .. colorDim .. ", " .. colorHeader .. BAR.I18N("ui.keybinds.editor.importErrors", { n = errors })
-	end
-	local function open()
-		openDialog({
-			title = L.importTitle,
-			initial = profiles.uniqueName(stamped or L.newProfile),
-			preview = { lines = lines, summary = summary, scroll = 0 },
-			blocked = binds == nil,
-			acceptLabel = L.import,
-			accept = function(newName)
-				-- Named like a copy is, then made live: importing is switching to it.
-				selectProfile(profiles.create(newName, binds, fakeMeta), profiles.activeName())
-			end,
-		})
+	local from = profiles.activeName()
+	-- A default takes no edits, so loose lines can only go on a copy of it.
+	local whole = profiles.isWholeProfile(clip)
+	local own = activeIsOwn()
+	local d = {
+		title = L.importTitle,
+		initial = profiles.uniqueName(stamped or L.newProfile),
+		preview = { lines = lines, scroll = 0, summary = "" },
+		choice = { label = L.importAsNew, on = whole or not own, locked = not own },
+		hint = BAR.I18N("ui.keybinds.editor.importAddHint", { name = from }),
+		nameless = false,
+		blocked = false,
+		acceptLabel = L.import,
+	}
+
+	local function summarize(readable)
+		local summary = readable and (colorText .. BAR.I18N("ui.keybinds.editor.importSummary", { n = count }))
+			or (colorDanger .. L.importNone)
+		if errors > 0 then
+			summary = summary
+				.. colorDim
+				.. ", "
+				.. colorHeader
+				.. BAR.I18N("ui.keybinds.editor.importErrors", { n = errors })
+		end
+
+		return summary
 	end
 
-	-- Importing replaces what is on screen, so staged edits are asked about first - but not
-	-- over a preview that cannot be accepted anyway.
-	if binds then
-		guardDirty(open)
-	else
-		open()
+	function d.choice.set(on)
+		local readable = count + directives > 0
+		if on and whole then
+			readable = binds ~= nil
+		end
+
+		d.choice.on = on
+		d.nameless = not on
+		d.blocked = not readable
+		d.acceptLabel = on and L.import or L.importAdd
+		d.preview.summary = summarize(readable)
+		if on then
+			nameBox:focus()
+		else
+			nameBox:blur()
+		end
 	end
+
+	function d.accept(newName)
+		if d.choice.on and whole then
+			-- Named like a copy is, then made live: importing is switching to it.
+			guardDirty(function()
+				selectProfile(profiles.create(newName, binds, fakeMeta), from)
+			end)
+
+			return
+		end
+
+		local merged = profiles.applyBindText(stagedBinds(), clip)
+		if state.isStaged(merged) then
+			openDialog({
+				title = L.importTitle,
+				message = BAR.I18N("ui.keybinds.editor.importNothing", { name = from }),
+				info = true,
+				acceptLabel = L.ok,
+				accept = function() end,
+			})
+
+			return
+		end
+
+		if d.choice.on then
+			-- Staged edits come along in the copy, so there is nothing to ask about.
+			local base = profiles.baseOf(from)
+			selectProfile(profiles.create(newName, merged, activeFakeMeta(), base and base.name), from)
+		else
+			state.stageBinds(merged)
+		end
+	end
+
+	openDialog(d)
+	d.choice.set(d.choice.on)
 end
 
 -- Renaming and deleting share one dialog: the name field commits a rename, the
@@ -2092,10 +2323,11 @@ local function layoutHeader()
 	state.layoutPending = false
 
 	local gap = floor(8 * scale)
+	local buttonGap = floor(4 * scale)
 	local rowTop = area.y2 - floor(4 * scale)
 	local rowBottom = area.y2 - state.headerH + floor(4 * scale)
 	-- Room for the longest shipped name beside its Default tag.
-	local presetW = floor(280 * scale)
+	local presetW = floor(240 * scale)
 	local btnFs = floor((rowTop - rowBottom) * 0.5)
 	local bfs = floor(rowHeight * 0.55)
 
@@ -2115,7 +2347,7 @@ local function layoutHeader()
 			end
 		end
 		b.rect = { bx2 - w, rowBottom, bx2, rowTop }
-		bx2 = floor(bx2 - w - gap * (b.gap or 1))
+		bx2 = floor(bx2 - w - buttonGap * (b.gap or 1))
 	end
 	local pickerX1 = bx2 - presetW
 	metrics.presetLabelX = pickerX1 - gap - labelWidth(L.preset or "", btnFs, 0)
@@ -2210,7 +2442,28 @@ local function dialogGeometry()
 		box = { bx1 + pad, field[4] + floor(14 * scale), bx2 - pad, by2 - floor(66 * scale) }
 	end
 
-	return bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box
+	local choice
+	if dialog and dialog.choice then
+		local fh = field[4] - field[2]
+		local sh = floor(fh * 0.7)
+		local sy1 = field[2] + floor((fh - sh) * 0.5)
+		local sx2 = field[1] + floor(sh * 1.8)
+		local labelX = sx2 + floor(8 * scale)
+		local labelW = font and floor(font:GetTextWidth(dialog.choice.label) * floor(rowHeight * 0.5)) or 0
+		choice = {
+			switch = { field[1], sy1, sx2, sy1 + sh },
+			hit = { field[1], field[2], labelX + labelW, field[4] },
+			labelX = labelX,
+			label = dialog.choice.label,
+			on = dialog.choice.on,
+			locked = dialog.choice.locked == true,
+			fieldless = dialog.nameless == true,
+			hint = dialog.nameless and dialog.hint or nil,
+		}
+		field[1] = labelX + labelW + pad
+	end
+
+	return bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box, choice
 end
 
 -- Capture-modal geometry, derived in one place so draw and mousePress agree.
@@ -2236,19 +2489,46 @@ local function fitCategories()
 		return
 	end
 
-	local labelW = sidebarW - metrics.sidePad * 2
+	local labelW = (state.columnW or sidebarW) - metrics.sidePad * 2
 	-- Fitted at the size they are actually drawn at, so a label is not shortened for a
 	-- size the column never uses.
 	for _, c in ipairs(categories) do
-		local fitted = text.fit(font, c.label, labelW, metrics.catFs)
+		local count = c.count and c.count > 0 and tostring(c.count) or nil
+		local reserve = count and (floor(font:GetTextWidth(count) * metrics.catFs) + metrics.sidePad) or 0
+		local fitted = text.fit(font, c.label, labelW - reserve, metrics.catFs)
 		c.textSel = colorAction .. fitted
 		c.textDim = colorDim .. fitted
+		c.textHeader = colorHeader .. fitted
+		c.textCount = count and (colorDanger .. count) or nil
 	end
 end
 
 ----------------------------------------------------------------
 -- Panel lifecycle
 ----------------------------------------------------------------
+
+function state.dropVanishedCategory()
+	if selectedCategory == nil or selectedCategory == state.changedKey then
+		return
+	end
+
+	for _, c in ipairs(categories) do
+		if c.key == selectedCategory then
+			return
+		end
+	end
+
+	selectedCategory = nil
+	scroll = 0
+end
+
+-- The staged keymap is the player's edits, so only the catalog is rebuilt.
+function state.reloadCatalog()
+	buildResolvedCatalog()
+	fitCategories()
+	state.dropVanishedCategory()
+	rebuildRows()
+end
 
 -- Picks up the font and the FlowUI entry points, which do not exist at include time.
 function view.init()
@@ -2266,11 +2546,15 @@ end
 -- Re-reads the engine and rebuilds everything shown from it.
 function view.refresh()
 	ensureControls()
+	-- The hotkeys widget writes the profile store from a copy of its own.
+	profiles.invalidate()
+	state.scanKeys, state.shippedPairs = {}, nil
 	seedWorkingFromEngine()
 	resolvedCatalog = nil
 	-- Ahead of the picker, which labels its "new profile" entry from L.
 	buildResolvedCatalog()
 	fitCategories()
+	state.dropVanishedCategory()
 	refreshPicker()
 	layoutHeader()
 	rebuildRows()
@@ -2343,6 +2627,17 @@ function view.setArea(x1, y1, x2, y2, s, wx1, wy1, wx2, wy2)
 		scale,
 		metrics.titleFs
 	)
+	state.selectionBuilder:setArea(
+		area.x1,
+		area.y1,
+		area.x2,
+		area.y2,
+		scale,
+		metrics.winX1,
+		metrics.winY1,
+		metrics.winX2,
+		metrics.winY2
+	)
 	state.applyListTop()
 	state.layoutCompare()
 
@@ -2363,6 +2658,7 @@ function view.blur()
 	end
 	state.tooltipsRegistered = false
 	state.tipKey = nil
+	state.selectionBuilder:close()
 	if state.panelList then
 		gl.DeleteList(state.panelList)
 		state.panelList = nil
@@ -2400,6 +2696,10 @@ end
 -- with staged edits and the close should not happen yet.
 function view.confirmClose(proceed)
 	return guardDirty(proceed)
+end
+
+function view.hasStagedEdits()
+	return dirty
 end
 
 -- The host widget, handed over so guishader can drop this panel's blur rects with it when
@@ -3017,8 +3317,6 @@ local function rowLayout(row)
 	if row.type == "header" then
 		lay.text = colorHeader .. row.text
 		if row.add then
-			-- Against the right edge, measured so the click lands on the words and not on the
-			-- whole band, which is a heading and does nothing.
 			lay.addW = floor(font:GetTextWidth(row.add) * metrics.headerFs)
 			lay.addX = listRight - metrics.rowPad - lay.addW
 			lay.addText = colorAction .. row.add
@@ -3041,7 +3339,9 @@ local function rowLayout(row)
 		lay.icon = row.cursor
 		lay.iconX = listX1 + metrics.rowPad
 		local labelW = metrics.keyAreaX1 - lay.textX - metrics.rowPad
-		lay.text = colorAction .. text.fit(font, row.label, labelW, metrics.rowFs)
+		local fitted = text.fit(font, row.label, labelW, metrics.rowFs)
+		lay.text = colorAction .. fitted
+		lay.textHover = (row.editSelection or row.custom) and colorHeader .. fitted or nil
 
 		-- The key the base preset had, when the row's differs: a hollow chip after the row's
 		-- own, which the chips make room for. Paired halves read as one key, as the chips do.
@@ -3177,10 +3477,26 @@ end
 ----------------------------------------------------------------
 
 -- The category column starts below where the keybind rows do, so the title is not crowded.
-local function sidebarTop()
+function state.sidebarCardTop()
 	-- Off the band's fixed top, not the rows' own: the Changed section lowers the rows for its
 	-- comparison picker, and the column beside them must not move with it.
 	return (metrics.listTopBase or listTop) - metrics.sidebarDrop
+end
+
+function state.addBindRect()
+	local top = state.sidebarCardTop()
+
+	return area.x1 + metrics.catInset, top - metrics.catRowHeight, area.x1 + sidebarW - metrics.catInset, top
+end
+
+local function sidebarTop()
+	return state.sidebarCardTop() - metrics.catRowHeight - metrics.catInset * 2
+end
+
+-- The column has no footer of its own below it - that band only runs under the list - so
+-- entries use the card's whole height rather than stopping level with the list's footer.
+function state.sidebarBottom()
+	return area.y1 + metrics.catInset
 end
 
 -- `i` is the entry place in `categories`, not on screen: the two differ by however far the
@@ -3190,8 +3506,12 @@ local function categoryRect(i)
 	-- The right edge gives way to the bar when there is one, or an entry hover plate disappears
 	-- beneath it rather than stopping beside it.
 	local right = area.x1 + sidebarW
-	if #categories > math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight)) then
+	if #categories > math.max(1, floor((sidebarTop() - state.sidebarBottom()) / metrics.catRowHeight)) then
 		right = right - metrics.catInset - metrics.catBarW - metrics.catInset
+	end
+	if right - area.x1 ~= state.columnW then
+		state.columnW = right - area.x1
+		state.refit = true
 	end
 
 	return area.x1, top - metrics.catRowHeight, right, top
@@ -3200,7 +3520,7 @@ end
 -- Answers how far it can be scrolled at all, so nought means everything fits; passing 0
 -- just clamps.
 local function catScrolled(delta)
-	local page = math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight))
+	local page = math.max(1, floor((sidebarTop() - state.sidebarBottom()) / metrics.catRowHeight))
 	local most = math.max(0, #categories - page)
 	local n = hover.cat + delta
 	hover.cat = (n < 0 and 0) or (n > most and most) or n
@@ -3212,7 +3532,7 @@ end
 -- one point never lands in two entries.
 local function sidebarIndexAt(x, y)
 	local top = sidebarTop()
-	if x < area.x1 or x > area.x1 + sidebarW or y > top or y <= listBottom() then
+	if x < area.x1 or x > area.x1 + sidebarW or y > top or y <= state.sidebarBottom() then
 		return nil
 	end
 
@@ -3222,7 +3542,7 @@ local function sidebarIndexAt(x, y)
 	end
 
 	local _, y1 = categoryRect(i)
-	if y1 < listBottom() then
+	if y1 < state.sidebarBottom() then
 		return nil
 	end
 
@@ -3315,13 +3635,13 @@ end
 -- The category column: its own card under the title, then one entry per category, with
 -- hoverIdx the entry under the cursor.
 local function drawSidebar(hoverIdx)
-	-- Derived from the first category rather than measured from the panel top, so the card
-	-- keeps its lip above the entries wherever the column starts.
+	-- Derived from the column's top rather than measured from the panel top, so the card keeps
+	-- its lip above what it holds wherever the column starts.
 	RectRound(
 		area.x1,
 		area.y1,
 		area.x1 + sidebarW,
-		sidebarTop() + metrics.cardLip,
+		state.sidebarCardTop() + metrics.cardLip,
 		metrics.csPanel,
 		1,
 		1,
@@ -3332,16 +3652,27 @@ local function drawSidebar(hoverIdx)
 	)
 	queueText(L.titleText, area.x1 + metrics.sidePad, area.y2 - metrics.titleY, metrics.titleFs, "ov")
 
+	local ax1, ay1, ax2, ay2 = state.addBindRect()
+	drawButtonFace({ ax1, ay1, ax2, ay2 }, hover.btn == "addBind" and confirmFillHover or confirmFill)
+	queueText(
+		colorText .. L.addBind,
+		floor((ax1 + ax2) * 0.5),
+		floor((ay1 + ay2) * 0.5),
+		floor(rowHeight * 0.55),
+		"cov"
+	)
+
 	-- A bar of its own, and a slim one: the column is narrow and this only shows up when
 	-- there are more categories than the card has room for.
 	if catScrolled(0) > 0 then
 		local bx2 = area.x1 + sidebarW - metrics.catInset
 		Scroller(
 			bx2 - metrics.catBarW,
-			-- Over the entries rather than the whole card: a bar running past the last row reads as dead
-			-- space, and its thumb then says more fits than does.
+			-- Over the entries rather than the whole card: a bar running past the last row reads
+			-- as dead space, and its thumb then says more fits than does.
 			sidebarTop()
-				- math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight)) * metrics.catRowHeight,
+				- math.max(1, floor((sidebarTop() - state.sidebarBottom()) / metrics.catRowHeight))
+					* metrics.catRowHeight,
 			bx2,
 			sidebarTop(),
 			#categories * metrics.catRowHeight,
@@ -3356,38 +3687,66 @@ local function drawSidebar(hoverIdx)
 		fitCategories()
 	end
 
-	local lb = listBottom()
-	for i = hover.cat + 1, #categories do
-		local c = categories[i]
+	local lb = state.sidebarBottom()
+	for i, c in ipairs(categories) do
 		local x1, y1, x2, y2 = categoryRect(i)
-		if y1 >= lb then
-			local selected = selectedCategory == c.key
-			if selected then
-				local sx1, sx2 = x1 + metrics.catInset, x2 - metrics.catInset
-				RectRound(sx1, y1, sx2, y2, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
-			elseif i == hoverIdx then
-				Highlight(
+		if i > hover.cat and y1 >= lb then
+			local ty = floor((y1 + y2) * 0.5)
+			if c.header then
+				RectRound(
 					x1 + metrics.catInset,
 					y1,
 					x2 - metrics.catInset,
-					y2,
-					metrics.csSmall,
-					look.rowHoverOpacity,
-					look.white
+					y1 + metrics.underlineH,
+					0,
+					0,
+					0,
+					0,
+					0,
+					look.headerLine,
+					look.headerLineFade
 				)
+				queueText(c.textHeader or c.label, x1 + metrics.sidePad, ty, metrics.catFs, "ov")
+			else
+				local selected = selectedCategory == c.key
+				if selected then
+					local sx1, sx2 = x1 + metrics.catInset, x2 - metrics.catInset
+					RectRound(sx1, y1, sx2, y2, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
+				elseif i == hoverIdx then
+					Highlight(
+						x1 + metrics.catInset,
+						y1,
+						x2 - metrics.catInset,
+						y2,
+						metrics.csSmall,
+						look.rowHoverOpacity,
+						look.white
+					)
+				end
+				queueText(
+					(selected and c.textSel or c.textDim) or c.label,
+					x1 + metrics.sidePad,
+					ty,
+					metrics.catFs,
+					"ov"
+				)
+				if c.textCount then
+					queueText(c.textCount, x2 - metrics.sidePad, ty, metrics.catFs, "rov")
+				end
 			end
-			local ty = floor((y1 + y2) * 0.5)
-			queueText((selected and c.textSel or c.textDim) or c.label, x1 + metrics.sidePad, ty, metrics.catFs, "ov")
 		end
 	end
 end
 
 -- Label left, key right, sized like a category button. Used for every pill in this view.
-local function drawGridPill(x1, y1, x2, y2, label, key, fs, pad, hovered, dim)
+local function drawGridPill(x1, y1, x2, y2, label, key, fs, pad, hovered, dim, clash)
 	-- The cells above carry a unit tile frame, so these need the raised button face to not read
 	-- as more of the same.
 	local pair = look.gradients[pillFill]
 	UiButton(x1, y1, x2, y2, 1, 1, 1, 1, 1, 1, 1, 1, nil, pair[1], pair[2])
+	if clash then
+		RectRound(x1, y1, x2, y2, metrics.csButton, 1, 1, 1, 1, look.chipFillConflict, look.chipFillConflict)
+	end
 	if hovered and not dim then
 		Highlight(x1, y1, x2, y2, metrics.csButton, hoverOpacity, look.white)
 	end
@@ -3499,6 +3858,10 @@ local function drawGridMenu(zone, zoneA, zoneB)
 				-- Only the first grid carries the build keys; the second is the category view,
 				-- whose cells hold the same bindings and would just repeat them.
 				if pass == 1 then
+					if state.clashing[gridKeyActions[row][col]] then
+						local red = look.chipFillConflict
+						RectRound(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, frameCs, 1, 1, 1, 1, red, red)
+					end
 					-- Under the frame, so the hover lifts the tile without softening its edge.
 					if zone == "cell" and zoneA == row and zoneB == col then
 						Highlight(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, frameCs, look.rowHoverOpacity, look.white)
@@ -3530,7 +3893,9 @@ local function drawGridMenu(zone, zoneA, zoneB)
 			gridKeyText(gridCategoryActions[c]),
 			stripFs,
 			pad,
-			zone == "category" and zoneA == c
+			zone == "category" and zoneA == c,
+			false,
+			state.clashing[gridCategoryActions[c]]
 		)
 	end
 
@@ -3558,7 +3923,9 @@ local function drawGridMenu(zone, zoneA, zoneB)
 		gridKeyText("gridmenu_next_page"),
 		stripFs,
 		pad,
-		zone == "next"
+		zone == "next",
+		false,
+		state.clashing.gridmenu_next_page
 	)
 
 	local ccx1, ccx2 = gridCycleRect(x1, strip)
@@ -3571,7 +3938,9 @@ local function drawGridMenu(zone, zoneA, zoneB)
 		gridKeyText("gridmenu_cycle_builder"),
 		stripFs,
 		pad,
-		zone == "cycle"
+		zone == "cycle",
+		false,
+		state.clashing.gridmenu_cycle_builder
 	)
 end
 
@@ -3604,8 +3973,7 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 	if row.type == "header" then
 		drawHeaderBand(top, bottom, lay.text)
 		if lay.addText then
-			local over = zone == "addbind"
-			queueText(over and lay.addTextHover or lay.addText, lay.addX, cyc, metrics.headerFs, "ov")
+			queueText(zone == "add" and lay.addTextHover or lay.addText, lay.addX, cyc, metrics.headerFs, "ov")
 		end
 
 		return
@@ -3640,7 +4008,7 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 		glTexture(false)
 		glColor(1, 1, 1, 1)
 	end
-	queueText(lay.text, lay.textX, cyc, fs, "ov")
+	queueText(zone == "label" and lay.textHover or lay.text, lay.textX, cyc, fs, "ov")
 
 	local c1, c2 = bottom + metrics.chipInset, top - metrics.chipInset
 	local mets = lay.mets
@@ -3667,7 +4035,18 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 	-- The base preset's key, as a hollow chip: a border with the row's own dark inside it.
 	if lay.ghostW then
 		local gx, over = lay.ghostX, zone == "revert"
-		RectRound(gx, c1, gx + lay.ghostW, c2, metrics.csSmall, 1, 1, 1, 1, over and look.ghostBorderHover or look.ghostBorder)
+		RectRound(
+			gx,
+			c1,
+			gx + lay.ghostW,
+			c2,
+			metrics.csSmall,
+			1,
+			1,
+			1,
+			1,
+			over and look.ghostBorderHover or look.ghostBorder
+		)
 		RectRound(gx + 1, c1 + 1, gx + lay.ghostW - 1, c2 - 1, metrics.csSmall, 1, 1, 1, 1, look.ghostInner)
 		queueText(over and lay.ghostTextHover or lay.ghostText, gx + metrics.rowPad, cyc, lay.ghostFs, "ov")
 	end
@@ -3931,7 +4310,7 @@ function state.drawPreview(pv, x1, y1, x2, y2, mx, my)
 end
 
 local function drawProfileDialog(mx, my)
-	local bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box = dialogGeometry()
+	local bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box, choice = dialogGeometry()
 	local cs = metrics.csButton
 	local cx = floor((bx1 + bx2) * 0.5)
 	local tfs = floor(rowHeight * 0.6)
@@ -3981,6 +4360,17 @@ local function drawProfileDialog(mx, my)
 	-- Its own geometry and text, ahead of the dialog's own batch of text.
 	if box then
 		state.drawPreview(dialog.preview, box[1], box[2], box[3], box[4], mx, my)
+	end
+	if choice then
+		local sw, hit = choice.switch, choice.hit
+		WG.FlowUI.Draw.Toggle(
+			sw[1],
+			sw[2],
+			sw[3],
+			sw[4],
+			choice.on and 1 or 0,
+			not choice.locked and isInRect(mx, my, hit[1], hit[2], hit[3], hit[4])
+		)
 	end
 
 	font:Begin()
@@ -4041,7 +4431,18 @@ local function drawProfileDialog(mx, my)
 		sfs,
 		"cov"
 	)
+	local fieldCy = floor((field[2] + field[4]) * 0.5)
+	if choice then
+		font:Print((choice.locked and colorDim or colorText) .. choice.label, choice.labelX, fieldCy, sfs, "ov")
+		if choice.hint then
+			font:Print(colorDim .. text.fit(font, choice.hint, field[3] - field[1], sfs), field[1], fieldCy, sfs, "ov")
+		end
+	end
 	font:End()
+
+	if choice and choice.fieldless then
+		return
+	end
 
 	if not dialog.message then
 		nameBox:setRect(field[1], field[2], field[3], field[4], sfs)
@@ -4151,11 +4552,11 @@ local function panelSignature(mx, my)
 				local c1, c2 = bottom + metrics.chipInset, top - metrics.chipInset
 				local zone, idx = rowZone(rowLayout(row), mx, my, c1, c2)
 				h.zone, h.idx = zone or "", idx or 0
-			elseif row.type == "header" and row.add then
-				local lay = rowLayout(row)
-				if mx >= lay.addX - metrics.rowPad then
-					h.zone = "addbind"
+				if not zone and (row.editSelection or row.custom) and mx < metrics.keyAreaX1 then
+					h.zone = "label"
 				end
+			elseif row.type == "header" and row.add and mx >= rowLayout(row).addX - metrics.rowPad then
+				h.zone = "add"
 			end
 		end
 	end
@@ -4167,6 +4568,9 @@ local function panelSignature(mx, my)
 				h.btn = b.id
 			end
 		end
+	end
+	if not keyboardPage and isInRect(mx, my, state.addBindRect()) then
+		h.btn = "addBind"
 	end
 
 	-- What the buttons read their enabled state from, alongside the hover and the list.
@@ -4378,7 +4782,7 @@ end
 -- what it was told this frame.
 function state.showTooltips(mx, my)
 	local tip = WG["tooltip"]
-	if not tip or dialog or capturing then
+	if not tip or dialog or capturing or state.selectionBuilder:isOpen() then
 		return
 	end
 
@@ -4443,7 +4847,7 @@ function state.showTooltips(mx, my)
 				lines = {}
 				-- Leading with the row, which describes something the click does not do, buries the one line
 				-- that belongs to what is under the cursor.
-				if hover.zone == "revert" and row.change and state.base then
+				if hover.zone == "revert" and row.change then
 					title = nil
 					lines[1] = colorText .. BAR.I18N("ui.keybinds.editor.revertTooltip", { keys = lay.ghostKeysFull })
 				else
@@ -4452,18 +4856,16 @@ function state.showTooltips(mx, my)
 					end
 					local m = hover.idx > 0 and lay.mets[hover.idx]
 					if m and m.others then
-						local names = {}
-						for i, o in ipairs(m.others) do
-							local name = state.labels[o.action] or o.action
-							names[i] = o.before and BAR.I18N("ui.keybinds.editor.conflictFirst", { action = name })
-								or name
-						end
 						-- A warning when the sharing is the player's; a note when the game ships it so.
-						lines[#lines + 1] = (m.clash and colorDanger or colorDim)
-							.. BAR.I18N(
-								"ui.keybinds.editor.conflict",
-								{ keys = m.group.display, actions = table.concat(names, ", ") }
-							)
+						local tone = m.clash and colorDanger or colorDim
+						lines[#lines + 1] = tone .. BAR.I18N("ui.keybinds.editor.conflict", { keys = m.group.display })
+						for _, o in ipairs(m.others) do
+							lines[#lines + 1] = tone
+								.. look.conflictIndent
+								.. (state.sources[o.action] or L.other)
+								.. ": "
+								.. (state.labels[o.action] or o.action)
+						end
 						lines[#lines + 1] = colorDim .. (m.clash and L.conflictOrder or L.conflictShipped)
 					end
 					if row.change and state.base then
@@ -4522,6 +4924,12 @@ function shade.update()
 		shade.rect("dialog")
 	end
 
+	if state.selectionBuilder:isOpen() then
+		shade.rect("selection", state.selectionBuilder:rect())
+	else
+		shade.rect("selection")
+	end
+
 	-- The list the picker drops, which stands clear of the control and over the rows.
 	local opts = presetDropdown and presetDropdown:isOpen() and presetDropdown.optRects
 	if opts and opts[1] then
@@ -4544,6 +4952,9 @@ function view.draw()
 	end
 	if not working then
 		view.refresh()
+	end
+	if select(2, state.widgetActions.manifests()) ~= state.manifestsVersion then
+		state.reloadCatalog()
 	end
 	if state.layoutPending then
 		layoutHeader()
@@ -4568,7 +4979,13 @@ function view.draw()
 	-- Prevent the hover over preset options and modals from also being detected by the
 	-- regular rows, sidebar and buttons sitting underneath them.
 	local mx, my = rawMx, rawMy
-	if dialog or capturing or presetDropdown:isOpen() or state.compareDropdown:isOpen() then
+	if
+		dialog
+		or capturing
+		or presetDropdown:isOpen()
+		or state.compareDropdown:isOpen()
+		or state.selectionBuilder:isOpen()
+	then
 		mx, my = -1, -1
 	end
 
@@ -4637,6 +5054,14 @@ function view.draw()
 		shade.drop("dialog")
 	end
 
+	if state.selectionBuilder:isOpen() then
+		shade.float("selection", function()
+			state.selectionBuilder:draw(rawMx, rawMy)
+		end)
+	else
+		shade.drop("selection")
+	end
+
 	-- After they have laid themselves out, so the blur behind one is the right size on
 	-- the frame it appears rather than the one after.
 	shade.update()
@@ -4669,6 +5094,11 @@ end
 -- Scrolls the list; a modal swallows the wheel instead, the import preview scrolling its
 -- own lines with it.
 function view.mouseWheel(up, value)
+	if state.selectionBuilder:isOpen() then
+		state.selectionBuilder:mouseWheel(up)
+
+		return
+	end
 	if dialog then
 		local pv = dialog.preview
 		if pv then
@@ -4690,7 +5120,7 @@ function view.mouseWheel(up, value)
 	local mx, my = spGetMouseState()
 	-- Over the column it scrolls the column, over anything else the list. A wheel that
 	-- moved the list while the cursor was on the categories would read as broken.
-	if mx <= area.x1 + sidebarW and my > listBottom() and my <= sidebarTop() then
+	if mx <= area.x1 + sidebarW and my > state.sidebarBottom() and my <= sidebarTop() then
 		catScrolled(up and -1 or 1)
 	elseif my >= listBottom() and my <= listTop then
 		-- Ctrl moves three notches at once, Shift a whole page - the rows the band holds from where
@@ -4729,13 +5159,18 @@ end
 -- Returns true when the click landed in the column, selected or not, so it never falls
 -- through to the list behind it.
 local function sidebarPress(x, y)
-	if x < area.x1 or x > area.x1 + sidebarW or y < listBottom() or y > sidebarTop() then
+	if isInRect(x, y, state.addBindRect()) then
+		state.addBind()
+
+		return true
+	end
+	if x < area.x1 or x > area.x1 + sidebarW or y < state.sidebarBottom() or y > sidebarTop() then
 		return false
 	end
 
 	local i = sidebarIndexAt(x, y)
 	local c = i and categories[i]
-	if c and selectedCategory ~= c.key then
+	if c and not c.header and selectedCategory ~= c.key then
 		selectedCategory = c.key
 		scroll = 0
 		rebuildRows()
@@ -4744,17 +5179,41 @@ local function sidebarPress(x, y)
 	return true
 end
 
+function state.renameAction(from, to)
+	working.binds = keybindModel.renameAction(working.binds, from, to)
+
+	local keys = {}
+	for _, b in ipairs(working.binds) do
+		if b.action == to then
+			keys[#keys + 1] = { raw = b.keyset, display = keybindModel.displayKeyset(b.keyset, working.layout) }
+		end
+	end
+	working.byAction[from] = nil
+	working.byAction[to] = keys
+
+	markStaged()
+end
+
 -- Only the command is asked for; the key comes from the same capture every row uses, and the
--- action lands under Other, where the list puts whatever it does not recognise.
-function state.addBind()
+-- action lands under Other, where the list puts whatever it does not recognise. Given one of
+-- those, it edits that command instead.
+function state.addBind(editing)
 	openDialog({
-		title = L.addBindTitle,
+		title = editing and L.editBindTitle or L.addBindTitle,
+		initial = editing,
 		freeText = true,
-		-- The field neither scrolls nor clips. The longest the game itself binds is
-		-- "select AllMap+_InPrevSel+_ClearSelection_SelectAll+" at fifty-one characters.
 		wide = true,
-		maxChars = 96,
+		maxChars = 255,
 		accept = function(typed)
+			if typed:match("^/?bind%s+%S+%s+%S") then
+				local merged = profiles.applyBindText(stagedBinds(), typed)
+				if not state.isStaged(merged) then
+					state.stageBinds(merged)
+				end
+
+				return
+			end
+
 			-- The engine lower-cases the command as it parses the bind line, so a capitalised one would
 			-- read back as something else. Its arguments keep their case.
 			local command, rest = typed:match("^(%S+)(.*)$")
@@ -4763,7 +5222,27 @@ function state.addBind()
 			end
 
 			local action = command:lower() .. rest
-			startCapture(action, action)
+			if not editing then
+				startCapture(action, action)
+			elseif action ~= editing then
+				state.renameAction(editing, action)
+			end
+		end,
+	})
+end
+
+function state.openSelectionBuilder(action)
+	local Select = state.selectCommand
+	state.selectionBuilder:show(action and Select.parse(action), {
+		title = action and L.selectionEdit or L.selectionAdd,
+		acceptLabel = action and L.save or L.selectionChooseKey,
+		cancelLabel = L.cancel,
+		onAccept = function(newAction, command)
+			if not action then
+				startCapture(newAction, Select.describe(command))
+			elseif not Select.sameSelection(newAction, action) then
+				state.renameAction(action, newAction)
+			end
 		end,
 	})
 end
@@ -4797,7 +5276,7 @@ function view.mousePress(x, y, button)
 
 	if dialog then
 		if button == 1 then
-			local bx1, by1, bx2, by2, ok, cancel, field, discard, _, _, box = dialogGeometry()
+			local bx1, by1, bx2, by2, ok, cancel, _, discard, _, _, box, choice = dialogGeometry()
 			if isInRect(x, y, ok[1], ok[2], ok[3], ok[4]) then
 				acceptDialog()
 			elseif dialog.middle and isInRect(x, y, discard[1], discard[2], discard[3], discard[4]) then
@@ -4834,9 +5313,21 @@ function view.mousePress(x, y, button)
 						end
 					end
 				end
-			elseif not dialog.message then
+			elseif choice and isInRect(x, y, choice.hit[1], choice.hit[2], choice.hit[3], choice.hit[4]) then
+				if not choice.locked then
+					dialog.choice.set(not dialog.choice.on)
+				end
+			elseif not dialog.message and not dialog.nameless then
 				nameBox:mousePress(x, y)
 			end
+		end
+
+		return true
+	end
+
+	if state.selectionBuilder:isOpen() then
+		if button == 1 then
+			state.selectionBuilder:mousePress(x, y)
 		end
 
 		return true
@@ -4982,9 +5473,13 @@ function view.mousePress(x, y, button)
 			local kind, raw = hitTestRow(row, x)
 			if kind then
 				handleZone(kind, row.action, row.label, raw)
+			elseif row.editSelection and x < metrics.keyAreaX1 then
+				state.openSelectionBuilder(row.action)
+			elseif row.custom and x < metrics.keyAreaX1 then
+				state.addBind(row.action)
 			end
 		elseif row and row.type == "header" and row.add and x >= rowLayout(row).addX - metrics.rowPad then
-			state.addBind()
+			state.openSelectionBuilder()
 		elseif row and row.type == "link" then
 			selectedCategory = row.category
 			scroll = 0
@@ -4998,7 +5493,10 @@ end
 
 function view.textInput(char)
 	if dialog then
-		return not dialog.message and nameBox:textInput(char)
+		return not dialog.message and not dialog.nameless and nameBox:textInput(char)
+	end
+	if state.selectionBuilder:isOpen() then
+		return state.selectionBuilder:textInput(char)
 	end
 	if searchBox and searchBox:isFocused() then
 		return searchBox:textInput(char)
@@ -5014,12 +5512,16 @@ function view.keyPress(key, scanCode)
 			cancelDialog()
 		elseif key == KEYSYMS.RETURN then
 			acceptDialog()
-		elseif not dialog.message then
+		elseif not dialog.message and not dialog.nameless then
 			-- Focus is dropped by the editbox on Escape/Return, which are handled above.
 			nameBox:keyPress(key)
 		end
 
 		return true
+	end
+
+	if state.selectionBuilder:isOpen() then
+		return state.selectionBuilder:keyPress(key)
 	end
 
 	if capturing then

@@ -1264,6 +1264,21 @@ local function multiQueue(uDefID, quantity, cap, opts)
 	return quantity
 end
 
+--- unitDefID currently shown in the grid cell at (row, col), or nil.
+--- Rows and columns are the 3x4 grid the keybinds address, even when docked to the bottom.
+---@param row integer|string 1..3
+---@param col integer|string 1..4
+---@return integer?
+local function getUnitDefIDByRowCol(row, col)
+	row = tonumber(row)
+	col = tonumber(col)
+	if (not row or row < 1 or row > 3) or (not col or col < 1 or col > 4) then
+		return nil
+	end
+	local cell = cellRects[(row - 1) * 4 + col]
+	return cell and cell.opts and cell.opts.uDefID or nil
+end
+
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
 		return
@@ -1272,11 +1287,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local row = args and tonumber(args[1])
 	local col = args and tonumber(args[2])
 
-	if (not row or row < 1 or row > 3) or (not col or col < 1 or col > 4) then
-		return
-	end
-
-	local uDefID = cellRects[(row - 1) * 4 + col].opts.uDefID -- cellRects iterate row then column
+	local uDefID = getUnitDefIDByRowCol(row, col)
 	if not uDefID or units.isRestricted(uDefID, activeBuilder) then
 		return
 	end
@@ -1410,6 +1421,9 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
+	widgetHandler:RegisterUnitCommand(widget, CMD.BUILD)
+	widgetHandler:RegisterUnitCommand(widget, CMD.INSERT)
+	widgetHandler:RegisterUnitCommand(widget, GameCMD.STOP_PRODUCTION)
 	refreshUnitDefs()
 	units.loadBlocked()
 
@@ -1470,6 +1484,12 @@ function widget:Initialize()
 
 	WG.gridmenu.getActiveBuilder = function()
 		return activeBuilder
+	end
+	WG.gridmenu.getUnitDefIDByRowCol = getUnitDefIDByRowCol
+	WG.gridmenu.changeQueueCount = function(factoryID, unitDefID, change)
+		if builderIsFactory and activeBuilderID == factoryID and type(change) == "number" then
+			updateQueueNr(unitDefID, change)
+		end
 	end
 	WG.gridmenu.getAlwaysReturn = function()
 		return alwaysReturn

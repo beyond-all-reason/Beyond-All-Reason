@@ -189,6 +189,29 @@
 			"removeOne": "Remove closest unit from its group",
 			"preset": "Load auto-group preset %{n}"
 		},
+		"squads": {
+			"select": "Select nearest squad",
+			"append": "Add nearest unselected squad",
+			"selectFiltered": "Select one unit type from nearest squad",
+			"appendFiltered": "Add squad units of the selected types",
+			"selectHalfAppend": "Add half of nearest squad",
+			"selectHalf": "Select half of nearest squad",
+			"selectHalfFilteredAppend": "Add half of squad units of the selected types",
+			"selectHalfFiltered": "Select half of squad units of the selected types",
+			"selectOne": "Select closest squad unit",
+			"appendOne": "Add closest unselected squad unit",
+			"selectOneFiltered": "Select closest squad unit of the selected types",
+			"appendOneFiltered": "Add closest unselected squad unit of the selected types",
+			"create": "Create squad from selected units",
+			"lock": "Lock/unlock selected units, or select nearest locked squad",
+			"appendLocked": "Add nearest locked squad",
+			"limitFlip": "Invert selection within a squad",
+			"expand": "Expand selection to whole squads",
+			"cycleRecent": "Cycle through recently used squads",
+			"cycleIdle": "Cycle through idle squads",
+			"group": "Select nearest squad in control group %{n}",
+			"groupAppend": "Add nearest unselected squad in control group %{n}"
+		},
 		"buildHotkeys": {
 			"unit": "Build %{n}",
 			"split": "Split build orders between builders"
@@ -297,6 +320,7 @@
 		"queues": "Order modifiers",
 		"unitStates": "Unit states",
 		"controlGroups": "Control groups",
+		"squads": "Squads",
 		"buildHotkeys": "Build",
 		"gridMenu": "Grid menu",
 		"blueprints": "Blueprints",

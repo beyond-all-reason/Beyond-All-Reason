@@ -140,8 +140,7 @@ body {
 	position: absolute;
 	left: 78vw;
 	top: 25vh;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 	z-index: 900;
 	padding-left: 5dp;
 	padding-right: 5dp;
@@ -153,8 +152,7 @@ body {
 	position: absolute;
 	left: 62vw;
 	top: 25vh;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 	z-index: 900;
 }
 
@@ -164,8 +162,7 @@ body {
 	position: absolute;
 	left: 55vw;
 	top: 15vh;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 	z-index: 900;
 }
 
@@ -192,8 +189,7 @@ body {
 	pointer-events: auto;
 	position: absolute;
 	z-index: 900;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 }
 
 /* Ensure sliders can shrink inside the constrained flex rows */
@@ -207,8 +203,7 @@ body {
 	position: absolute;
 	left: 62vw;
 	top: 12vh;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 	z-index: 910;
 }
 
@@ -460,11 +455,6 @@ body {
 	background-color: #2b2113;
 }
 
-.tf-lp-dist-btn.active {
-	border-color: #fdc04c;
-	background-color: #2b2113;
-}
-
 .lp-color-preview {
 	width: 100%;
 	height: 12dp;
@@ -494,33 +484,6 @@ body {
 	border-color: #8a8aa0bb;
 	decorator: vertical-gradient(#5c5c6c #383848);
 	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
-}
-
-/* === Light Distribution Buttons === */
-.tf-lp-dist-btn {
-	flex: 1;
-	height: 28dp;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background-color: #32323c;
-	border-radius: 6dp;
-	border: 1dp #50505a50;
-	cursor: pointer;
-	transition: background-color 0.15s;
-	decorator: vertical-gradient(#484856 #242430);
-	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
-}
-
-.tf-lp-dist-btn:hover {
-	background-color: #484858;
-	border-color: #8a8aa0bb;
-	decorator: vertical-gradient(#5c5c6c #383848);
-	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
-}
-
-.tf-lp-dist-btn .tf-btn-text {
-	font-size: 0.9rem;
 }
 
 /* === Light Action Buttons === */
@@ -699,26 +662,6 @@ body {
 	background-color: #2b2113;
 }
 
-/* Metal icon - big square M */
-.tf-metal-icon {
-	width: 22dp;
-	height: 22dp;
-	border: 2dp #fdc04c99;
-	border-radius: 3dp;
-	background-color: #2b2113;
-	color: #fdc04c;
-	font-size: 16dp;
-	font-weight: bold;
-	text-align: center;
-	line-height: 22dp;
-}
-
-.tf-btn-metal.active .tf-metal-icon {
-	border-color: #ffd47a;
-	color: #ffd47a;
-	background-color: #3b2d17;
-}
-
 /* Metal mode */
 .tf-btn-metal.active {
 	border-color: #fdc04c;
@@ -765,17 +708,13 @@ body {
 	background-color: #2b2113;
 }
 
-.tf-btn-erode.active {
-	border-color: #fdc04c;
-	background-color: #2b2113;
-}
-
 .tf-noise-type-btn.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;
 }
 
-.tf-btn-features.active {
+.tf-btn-features.active,
+.tf-btn-units.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;
 }
@@ -845,6 +784,11 @@ body {
 	background-color: #2b2113;
 }
 
+.tf-sp-btn-roles.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
 /* Startbox placement sub-picker (Box / Polygon / Free) */
 .tf-sp-btn-sbx-box.active,
 .tf-sp-btn-sbx-polygon.active,
@@ -859,76 +803,12 @@ body {
 	background-color: #2b2113;
 }
 
-.tf-cl-toggle {
-	height: 30dp;
-	background-color: #2c2c36;
-	border-color: #3e3e4a50;
-}
-
-.tf-cl-toggle.active {
-	border-color: #40e0c0;
-	background-color: #0d2c24;
-	box-shadow: 0dp 0dp 5dp 0dp #40e0c025;
-}
-
 /* Clone tool — layer chip grid (legacy, retained for compatibility) */
 .tf-cl-layer-grid {
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
 	gap: 4dp;
-}
-.tf-cl-chip {
-	flex: 1 0 22%;
-	padding: 6dp 6dp;
-	border-radius: 5dp;
-	background-color: #2a2a34;
-	border: 1dp #3e3e4a50;
-	cursor: pointer;
-	transition: background-color 0.1s, border-color 0.1s;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	decorator: vertical-gradient(#3a3a46 #1e1e28);
-	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
-}
-.tf-cl-chip:hover {
-	background-color: #3a3a46;
-	border-color: #5a5a6a;
-	decorator: vertical-gradient(#4a4a58 #2a2a36);
-	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff20;
-}
-.tf-cl-chip.active {
-	background-color: #0d2c24;
-	border-color: #40e0c080;
-}
-.tf-cl-chip.active:hover {
-	background-color: #133a30;
-	border-color: #40e0c0;
-}
-.tf-cl-chip-label {
-	font-size: 0.85rem;
-	color: #6b7280;
-}
-.tf-cl-chip.active .tf-cl-chip-label {
-	color: #d1d5db;
-}
-
-/* Clone tool — hints */
-.tf-cl-hints {
-	background-color: #12121a;
-	border-radius: 4dp;
-	padding: 5dp 8dp;
-	border: 1dp #ffffff0a;
-}
-.tf-cl-hint {
-	font-size: 0.72rem;
-	color: #6b728080;
-	margin-bottom: 1dp;
-}
-.tf-cl-status {
-	font-size: 0.9rem;
-	color: #d1d5db;
 }
 
 /* === Shape Buttons === */
@@ -950,11 +830,6 @@ body {
 
 .tf-shape-btn.hidden {
 	display: none;
-}
-
-#section-mb-shape .tf-shape-btn {
-	width: auto;
-	flex: 1;
 }
 
 .tf-shape-btn:hover {
@@ -1090,21 +965,6 @@ body {
 	color: #fca5a5;
 }
 
-/* === Undo Button (in shape row) === */
-.tf-undo-btn {
-	background-color: #2b2113;
-	border-color: #fdc04c70;
-	decorator: vertical-gradient(#3b2d17 #1e1509);
-	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
-}
-
-.tf-undo-btn:hover {
-	background-color: #3b2d17;
-	border-color: #ffd47a;
-	decorator: vertical-gradient(#4c3a1e #2b2113);
-	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
-}
-
 /* === History Row (Undo / Slider / Redo) === */
 .tf-history-btn {
 	width: 24dp;
@@ -1128,33 +988,6 @@ body {
 	decorator: vertical-gradient(#4c3a1e #2b2113);
 	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28, 0dp 0dp 4dp 0dp #fdc04c30;
 }
-
-/* === Undo Mode Toggle Buttons === */
-.tf-undo-mode-btn {
-	padding: 2dp 8dp;
-	font-size: 0.9rem;
-	color: #d8dce4;
-	background-color: #26262e;
-	border: 1dp #40404a60;
-	border-radius: 5dp;
-	transition: background-color 0.15s;
-	decorator: vertical-gradient(#343440 #1a1a22);
-	box-shadow: 0dp 1dp 3dp 0dp #00000048, inset 0dp 1dp 0dp 0dp #ffffff14;
-}
-
-.tf-undo-mode-btn:hover {
-	background-color: #3e3e4c;
-	border-color: #7878909a;
-	decorator: vertical-gradient(#4c4c5c #2c2c38);
-	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff22;
-}
-
-.tf-undo-mode-btn.active {
-	background-color: #2b2113;
-	border-color: #fdc04ccc;
-	color: #e5e7eb;
-}
-
 
 .tf-slider-history slidertrack {
 	background-color: #13131c;
@@ -1267,11 +1100,6 @@ body {
 	transition: background-color 0.1s, border-color 0.1s;
 }
 
-.tf-icon-xs {
-	width: 12dp;
-	height: 12dp;
-}
-
 .tf-transport-btn:hover {
 	background-color: #343440;
 	border-color: #55556080;
@@ -1362,7 +1190,7 @@ body {
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
-	gap: 6dp;
+	gap: 4dp;
 }
 
 /* Pause + close, parked top-right as window chrome */
@@ -1381,7 +1209,7 @@ body {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	gap: 7dp;
+	gap: 5dp;
 	white-space: nowrap;
 	overflow: hidden;
 }
@@ -1396,7 +1224,9 @@ body {
 	box-shadow: 0dp 0dp 7dp 0dp #fdc04c70, inset 0dp 1dp 0dp 0dp #ffffff80;
 }
 
+/* The wordmark spans never shrink: a short row clips the version at the end instead of compressing the glyphs. */
 .tf-title-main {
+	flex-shrink: 0;
 	font-size: 15dp;
 	font-weight: bold;
 	letter-spacing: 1.5dp;
@@ -1404,18 +1234,20 @@ body {
 }
 
 .tf-title-accent {
+	flex-shrink: 0;
 	font-size: 15dp;
 	font-weight: bold;
-	letter-spacing: 2dp;
+	letter-spacing: 1.5dp;
 	color: #fdc04c;
 }
 
 /* Version badge: reads as metadata next to the title, not part of the name. */
 .tf-title-version {
+	flex-shrink: 0;
 	font-size: 11dp;
 	font-weight: bold;
 	letter-spacing: 0.5dp;
-	margin-left: 4dp;
+	margin-left: 1dp;
 	color: #8a8f9a;
 }
 
@@ -1435,15 +1267,6 @@ body {
 /* Flexible gap that pushes the icon cluster to the right edge of the rail */
 .tf-rail-spacer {
 	flex: 1;
-}
-
-/* Hairline divider between rail groups */
-.tf-rail-sep {
-	width: 1dp;
-	height: 16dp;
-	flex-shrink: 0;
-	background-color: #ffffff14;
-	margin: 0dp 2dp;
 }
 
 /* === Header Buttons (shared base) — flat until interacted with === */
@@ -1618,6 +1441,9 @@ body {
 /* === Guide Floating Tooltip === */
 .tf-guide-floating-tip {
 	position: absolute;
+	/* placed at the origin; the cursor follow is a transform (see updateFloatingTip) */
+	left: 0dp;
+	top: 0dp;
 	z-index: 1100;
 	width: 166dp;
 	background-color: #0c1a16;
@@ -1717,30 +1543,6 @@ body {
 	100% { opacity: 0.6; }
 }
 
-.tf-tooltip {
-	position: absolute;
-	bottom: 100%;
-	left: 50%;
-	z-index: 1000;
-	background-color: #1a1a1add;
-	border: 1dp #787878aa;
-	border-radius: 4dp;
-	padding: 4dp 8dp;
-	font-size: 0.9rem;
-	color: #d1d5db;
-	pointer-events: none;
-	animation: pulse-opacity 2s infinite;
-}
-
-/* === Disabled Load Button === */
-.tf-load-btn-disabled {
-	background-color: #2a2a2a;
-	border-color: #4a4a4a80;
-	cursor: default;
-	opacity: 0.5;
-	pointer-events: none;
-}
-
 /* === Grass tool disabled on maps with no grass data === */
 .tf-btn-grass.disabled {
 	background-color: #252528;
@@ -1762,18 +1564,11 @@ body {
 	cursor: default;
 }
 
-/* UNITS placeholder: permanently grayed until the unit placer panel lands.
-   Hit-testing stays alive so hovering can explain itself in the readout. */
-.tf-btn-units {
-	background-color: #252528;
-	border-color: #33333540;
-	cursor: default;
-	opacity: 0.4;
-}
-.tf-btn-units:hover {
-	background-color: #2a2a2e;
-	border-color: #33333560;
-	opacity: 0.55;
+/* UNITS: the shared unit placer (a live tool now, styled like its neighbours). */
+.tf-units-note {
+	font-size: 1.05rem;
+	color: #9ca3af;
+	margin: 2dp 0dp 5dp 0dp;
 }
 
 /* Pulsating summary text (used for "No grass data for this map") */
@@ -1917,22 +1712,6 @@ body {
 	font-size: 1.4rem;
 }
 
-.tf-dim-input {
-	flex: 1;
-	height: 28dp;
-	padding: 2dp 6dp;
-	line-height: 20dp;
-	font-size: 1.0rem;
-	color: #d8dce4;
-	background-color: #161620;
-	border: 1dp #40404a60;
-	border-radius: 6dp;
-}
-
-.tf-dim-input:focus {
-	border-color: #6a6a80cc;
-}
-
 /* Dimensions window: the height-range mode switch. Text-only and short, so the
    54dp icon body of .tf-mode-btn is dropped down to a single centred line. */
 .tf-dim-mode-btn {
@@ -1957,6 +1736,104 @@ body {
 .tf-dim-desc {
 	font-size: 1.0rem;
 	color: #b9bfca;
+}
+
+/* ---- MAP TRANSFORM (Dimensions window) ---- */
+/* Orientation row: four equal buttons, shorter than a tool button. */
+.tf-xform-btn {
+	height: 34dp;
+	justify-content: center;
+	gap: 0dp;
+	padding-bottom: 0dp;
+}
+.tf-xform-btn .tf-btn-text {
+	font-size: 1.0rem;
+}
+.tf-xform-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+.tf-xform-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+/* Footprint preview. Outlined box = the new canvas, filled box = where the
+   current map lands in it, dot = the corner that is north-west today, which is
+   what makes a turn or a flip readable at a glance. All three are positioned
+   from Lua (envRefreshXformPreview). */
+.tf-xform-preview {
+	width: 118dp;
+	height: 118dp;
+	position: relative;
+	background-color: #1b1b20;
+	border: 1dp #50505a80;
+	border-radius: 4dp;
+}
+.tf-xform-prev-dst {
+	position: absolute;
+	border: 1dp #8d94a4;
+	background-color: #ffffff08;
+}
+.tf-xform-prev-src {
+	position: absolute;
+	background-color: #fdc04c30;
+	border: 1dp #fdc04c;
+}
+.tf-xform-prev-mark {
+	position: absolute;
+	width: 9dp;
+	height: 9dp;
+	border-radius: 5dp;
+	background-color: #fdc04c;
+}
+
+/* The duplicated half of an expansion, so the copy reads as a second thing
+   rather than as part of the original. */
+.tf-xform-prev-copy {
+	background-color: #6fb3ff30;
+	border-color: #6fb3ff;
+}
+.tf-xform-prev-mark-copy {
+	background-color: #6fb3ff;
+}
+
+/* Map size readout between its two steppers. */
+.tf-xform-num {
+	width: 30dp;
+	text-align: center;
+	font-size: 1.1rem;
+	font-weight: bold;
+	color: #e5e7eb;
+}
+
+/* Trailing unit word, and the elmo figure beside the current size. */
+.tf-xform-unit {
+	margin-left: 6dp;
+	font-size: 1.0rem;
+	color: #8d94a4;
+}
+
+/* 3x3 anchor pad: which part of the new canvas the old map is pinned to. */
+.tf-xform-anchor-row {
+	display: flex;
+	flex-direction: row;
+	gap: 2dp;
+}
+.tf-xform-anchor-cell {
+	width: 17dp;
+	height: 17dp;
+	background-color: #393942;
+	border: 1dp #50505a50;
+	border-radius: 3dp;
+	cursor: pointer;
+}
+.tf-xform-anchor-cell:hover {
+	background-color: #4c4c58;
+}
+.tf-xform-anchor-cell.active {
+	background-color: #fdc04c;
+	border-color: #ffd47a;
 }
 
 .tf-preset-btn {
@@ -2003,11 +1880,6 @@ body {
 .tf-preset-toggle.open {
 	background-color: #40404c;
 	border-color: #7878909a;
-}
-
-.tf-dropdown-arrow {
-	font-size: 0.75rem;
-	color: #9ca3af;
 }
 
 .tf-preset-dropdown {
@@ -2278,45 +2150,20 @@ body {
 	margin-top: 6dp;
 }
 
-/* Mode tabs and the connection badge share one row: the tab pair switches a
-   destination, it is not the subject of the window, so it takes only the
-   width it needs and the badge trails on the right. */
-.tf-project-topbar {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	flex-shrink: 0;
-	gap: 8dp;
-	margin-bottom: 6dp;
-}
-
-.tf-project-window .tf-project-tabs {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	flex: 0 0 250dp;
-	gap: 6dp;
-	margin: 0;
-}
-
-.tf-project-window .tf-project-toolbar,
-.tf-project-window .tf-project-actions,
-/* Stepper row: quiet label, prominent value, small arrows. The arrows used
-   to be 28dp squares next to 1rem text, which read as the loudest thing in
-   the tray despite being the least important. */
-.tf-project-window .tf-project-destination {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	gap: 6dp;
-	margin-bottom: 6dp;
-}
-
 .tf-project-window .tf-project-toolbar {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	margin-bottom: 6dp;
 	flex-shrink: 0;
 }
 
 .tf-project-window .tf-project-actions {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
 	margin-bottom: 0;
 }
 
@@ -2345,10 +2192,6 @@ body {
 	min-height: 32dp;
 }
 
-.tf-project-window .tf-project-tab {
-	flex: 1;
-}
-
 .tf-project-window .tf-project-downloadall {
 	flex: 0 0 auto;
 	height: 32dp;
@@ -2363,26 +2206,6 @@ body {
 	height: 32dp;
 	padding: 0;
 	justify-content: center;
-}
-
-/* Whether the helper is up decides whether half this window works, so it is
-   set at the browser's own size rather than as fine print. */
-.tf-project-window .tf-project-connection {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: flex-end;
-	flex: 1;
-	flex-wrap: wrap;
-	gap: 6dp;
-	padding: 0;
-	margin: 0;
-	font-size: 1rem;
-}
-
-.tf-project-window .tf-project-connection-state {
-	font-weight: bold;
-	white-space: nowrap;
 }
 
 /* Offered only while the helper is down, so it reads as the way out of that
@@ -2401,19 +2224,6 @@ body {
 	border-color: #fdc04c;
 	background-color: #3b2d17;
 	color: #ffffff;
-}
-
-.tf-project-window .tf-project-repository {
-	flex: 0 1 auto;
-	text-align: right;
-	word-break: break-all;
-}
-
-.tf-project-window .tf-project-branch {
-	padding: 1dp 6dp;
-	border-radius: 4dp;
-	max-width: 130dp;
-	word-break: break-all;
 }
 
 /* The search wrapper stretches across the Open toolbar row, but in the Save
@@ -2462,12 +2272,12 @@ body {
 
 /* Header cells are blocks: this RmlUi build draws no bare text inside a
    flex container, which is why NAME and SYNC used to come out blank. */
-.tf-proj-colhead .tf-proj-c-name,
-.tf-proj-colhead .tf-proj-c-sync {
+.tf-proj-colhead .tf-proj-c-name {
 	display: block;
 }
 
 .tf-proj-colhead .tf-proj-c-sync {
+	display: block;
 	text-align: right;
 }
 
@@ -2774,17 +2584,6 @@ body {
 	margin-bottom: 6dp;
 }
 
-/* The destination, immediately before the name box and quieter than it: it is
-   context for what is being typed, and the box is the part that is being
-   edited. It can be a nested path, so it is allowed to shrink. */
-.tf-project-window .tf-project-namefolder {
-	flex: 0 1 auto;
-	min-width: 0;
-	white-space: nowrap;
-	overflow: hidden;
-	text-align: right;
-}
-
 /* The switch belongs beside the thing it switches, not at the far edge of the
    window: a label stretched across the row reads as two unrelated controls. */
 .tf-project-optrow-label {
@@ -2800,14 +2599,10 @@ body {
 	border-radius: 0;
 }
 
-.tf-project-window .tf-proj-folder-icon {
-	margin-left: 6dp;
-	margin-right: 6dp;
-}
-
 /* Stage icon sits between the expand glyph and the name, matched to the
    name's cap height rather than the row, so it reads as a label not a button. */
 .tf-project-window .tf-proj-folder-icon {
+	margin-left: 6dp;
 	width: 14dp;
 	height: 14dp;
 	flex-shrink: 0;
@@ -2999,6 +2794,16 @@ body {
 	min-width: 74dp;
 }
 
+/* TILESET warning line over a slider (Intermediate scatter past 1.0): the SHADER UPDATE pending colours. */
+.tf-ts-warn {
+	background-color: #4a3a12;
+	border: 1dp #fdc04c;
+	border-radius: 4dp;
+	color: #ffdd99;
+	padding: 3dp 5dp;
+	margin-bottom: 3dp;
+}
+
 /* SHADER UPDATE row (TILESET window). The pending state is the only thing in
    the panel that asks for attention, so it gets the warning colour and a
    brighter border rather than the usual flat mode-button look. */
@@ -3107,12 +2912,6 @@ body {
 .tf-proj-dot.synced {
 	border-color: #2f7d4f;
 	background-color: #46c27a;
-}
-
-/* Here, but not the same version. */
-.tf-proj-dot.diverged {
-	border-color: #8a6520;
-	background-color: #fdc04c;
 }
 
 /* Not on this disk, and it was not in the library last time either. */
@@ -3361,34 +3160,6 @@ body {
 	overflow: hidden;
 }
 
-/* === Absolute Height Cap Toggle === */
-.tf-abs-toggle {
-	width: 20dp;
-	height: 20dp;
-	min-width: 20dp;
-	max-width: 20dp;
-	min-height: 20dp;
-	max-height: 20dp;
-	padding: 0;
-	display: block;
-	border: 2dp #78787899;
-	background-color: #1d1d1dc8;
-	border-radius: 4dp;
-	cursor: pointer;
-	transition: background-color 0.15s;
-}
-
-.tf-abs-toggle:hover {
-	background-color: #2a2a2adc;
-	border-color: #9a9a9a99;
-}
-
-.tf-abs-toggle.active {
-	border-color: #40e0c0cc;
-	background-color: #0d2c24dc;
-	color: #40e0c0;
-}
-
 /* === Action Buttons (Save/Load) === */
 /* === Water Type Preset Buttons === */
 .tf-wtype-btn {
@@ -3599,6 +3370,7 @@ body {
 }
 
 /* === Feature Placer Sub-mode Buttons === */
+#section-un-mode .tf-mode-btn,
 #section-fp-mode .tf-mode-btn,
 #section-dc-mode .tf-mode-btn,
 #section-wb-mode .tf-mode-btn,
@@ -3615,6 +3387,7 @@ body {
 	padding-bottom: 0dp;
 }
 
+#section-un-mode .tf-icon-md,
 #section-fp-mode .tf-icon-md,
 #section-dc-mode .tf-icon-md,
 #section-wb-mode .tf-icon-md,
@@ -3630,6 +3403,7 @@ body {
 	margin-top: 0dp;
 }
 
+#section-un-mode .tf-btn-text,
 #section-fp-mode .tf-btn-text,
 #section-dc-mode .tf-btn-text,
 #section-wb-mode .tf-btn-text,
@@ -3755,29 +3529,33 @@ body {
 	background-color: #3a1616;
 }
 
-/* === Weather Persistence slider === */
-.tf-slider-persist sliderbar {
-	width: 16dp;
-	height: 16dp;
-	background-color: #b0b4be;
-	border-radius: 8dp;
-	border: 2dp #ffffff38;
-	margin-top: 3dp;
-	box-shadow: 0dp 1dp 3dp 0dp #00000050;
-}
-
-.tf-slider-persist sliderbar:hover {
-	background-color: #dce0e8;
-	box-shadow: 0dp 0dp 6dp 2dp #ffffff38;
-}
-
 /* === Tools Buttons (shorter, 4 per row) === */
 #tf-tools-rows .tf-mode-btn,
 #tf-tools-rows2 .tf-mode-btn {
 	height: 44dp;
 }
 
+/* Six tiles to a row in a 290dp panel leaves about 41dp for a label, and at
+   0.9rem the longest of them, FEATURES, did not fit at every scale: the layout
+   audit caught it clipping by 2px at 2560x1440, where the rounding goes against
+   it, while 1080p and 4K fitted by luck.
+   Tracking rather than font size, deliberately. rem is 10dp here, so 0.9rem is
+   already 9dp and renders barely over the audit's 9px floor; taking the size
+   down to fit would put every tool label under it and trade one finding for
+   twelve. Tightening the tracking shortens the word without touching the
+   glyphs: -0.5dp over eight characters is 4dp, comfortably more than the 2px
+   that was over, and the rest of this file already tracks text by a few
+   tenths of a dp.
+   Scoped to the tool rows: .tf-btn-text is on 133 labels panel-wide, including
+   wide buttons with room to spare, and the TERRAIN tiles are a different size
+   (54dp against these 44dp), so nothing above is made inconsistent. */
+#tf-tools-rows .tf-btn-text,
+#tf-tools-rows2 .tf-btn-text {
+	letter-spacing: -0.5dp;
+}
+
 /* === Sub-mode Buttons (smaller than main mode) === */
+#tf-units-controls .tf-mode-btn,
 #tf-feature-submodes .tf-mode-btn,
 #tf-weather-submodes .tf-mode-btn,
 #tf-startpos-submodes .tf-mode-btn,
@@ -3883,17 +3661,13 @@ body {
 	border-color: #ffd47a;
 }
 
-.tf-btn-erode.active:hover {
-	background-color: #3b2d17;
-	border-color: #ffd47a;
-}
-
 .tf-noise-type-btn.active:hover {
 	background-color: #3b2d17;
 	border-color: #ffd47a;
 }
 
-.tf-btn-features.active:hover {
+.tf-btn-features.active:hover,
+.tf-btn-units.active:hover {
 	background-color: #3b2d17;
 	border-color: #ffd47a;
 }
@@ -3942,16 +3716,6 @@ body {
 .tf-wb-btn-remove.active:hover {
 	background-color: #55201f;
 	border-color: #f87171;
-}
-
-.tf-undo-mode-btn.active:hover {
-	background-color: #3b2d17;
-	border-color: #ffd47a;
-}
-
-.tf-abs-toggle.active:hover {
-	background-color: #133a30dc;
-	border-color: #7cecd6cc;
 }
 
 .tf-btn-splat.active:hover {
@@ -4043,7 +3807,7 @@ body {
 	color: #40e0c0;
 }
 
-/* === Slider Wheel-Lock (double-click to lock) === */
+/* === Slider Wheel-Lock (double middle click to lock) === */
 /* Locked — teal tint fill + teal outline (toggle-state accent) */
 .slider-locked sliderbar {
 	background-color: #1a4438;
@@ -4063,6 +3827,34 @@ body {
 .slider-locked.slider-pulse sliderbar:hover {
 	background-color: #215446;
 	border-color: #40e0c088;
+}
+/* The same look on every slider family: two classes outrank the colour-channel thumbs
+   (.tf-slider.lp-slider-channel-r sliderbar and friends), which used to hide the lock. */
+.tf-slider.slider-locked sliderbar {
+	background-color: #1a4438;
+	border: 2dp #40e0c0bb;
+	box-shadow: none;
+}
+.tf-slider.slider-locked.slider-pulse sliderbar {
+	border: 2dp #40e0c040;
+}
+
+/* Wheel lock status line under the status strip: what is locked and how to let go */
+.tf-wheellock-status {
+	padding: 3dp 6dp;
+	border-radius: 4dp;
+	border: 1dp #40e0c0aa;
+	background-color: #1a4438;
+	color: #d8f5ee;
+	font-size: 1.05rem;
+}
+.tf-wl-tag {
+	color: #40e0c0;
+	font-weight: bold;
+	letter-spacing: 1dp;
+}
+.tf-wl-hint {
+	color: #9fd9cb;
 }
 
 /* Keybind-scroll flash — brief teal highlight that fades back via base transition */
@@ -4124,9 +3916,9 @@ body {
  * boundaries that could cause uneven spacing across tool modes. */
 #tf-startpos-submodes, #tf-startpos-controls, #tf-clone-controls,
 #tf-shape-row, #tf-metal-submodes, #tf-metal-controls,
-#tf-grass-submodes, #tf-grass-controls, #tf-feature-submodes,
+#tf-grass-submodes, #tf-grass-controls, #tf-feature-submodes, #tf-units-controls,
 #tf-ramp-type-row, #tf-smooth-submodes, #tf-dc-submodes,
-#tf-weather-submodes, #tf-terraform-controls, #tf-feature-controls,
+#tf-weather-submodes, #tf-terraform-controls, #tf-feature-controls, #tf-unit-controls,
 #tf-weather-controls, #tf-splat-controls, #tf-decal-controls,
 #tf-environment-controls, #tf-light-controls {
 	margin-top: 14dp;
@@ -4140,12 +3932,14 @@ body {
 #tf-metal-controls > .tf-section-frame:first-child,
 #tf-grass-submodes > .tf-section-frame:first-child,
 #tf-grass-controls > .tf-section-frame:first-child,
+#tf-units-controls > .tf-section-frame:first-child,
 #tf-feature-submodes > .tf-section-frame:first-child,
 #tf-ramp-type-row > .tf-section-frame:first-child,
 #tf-smooth-submodes > .tf-section-frame:first-child,
 #tf-dc-submodes > .tf-section-frame:first-child,
 #tf-weather-submodes > .tf-section-frame:first-child,
 #tf-terraform-controls > .tf-section-frame:first-child,
+#tf-unit-controls > .tf-section-frame:first-child,
 #tf-feature-controls > .tf-section-frame:first-child,
 #tf-weather-controls > .tf-section-frame:first-child,
 #tf-splat-controls > .tf-section-frame:first-child,
@@ -4161,13 +3955,6 @@ body {
  * Lock it to 4dp so the SHAPE→DISPLAY gap is consistent with all other section gaps. */
 #frame-shape {
 	margin-bottom: 4dp;
-}
-
-/* === Stronger Section Divider (use between major groups) === */
-.tf-section-divider {
-	height: 1dp;
-	background-color: #34343e;
-	margin: 6dp 0;
 }
 
 /* === Overlay Chip Row === */
@@ -4232,14 +4019,17 @@ body {
 #section-sliders .tf-overlay-chip.active .tf-overlay-chip-label {
 	color: #9fd2c4;
 }
+#section-un-controls .tf-overlay-chip.active,
 #section-fp-controls .tf-overlay-chip.active {
 	background-color: #12261f;
 	border-color: #40e0c050;
 }
+#section-un-controls .tf-overlay-chip.active:hover,
 #section-fp-controls .tf-overlay-chip.active:hover {
 	background-color: #17302a;
 	border-color: #40e0c080;
 }
+#section-un-controls .tf-overlay-chip.active .tf-overlay-chip-label,
 #section-fp-controls .tf-overlay-chip.active .tf-overlay-chip-label {
 	color: #9fd2c4;
 }
@@ -4432,10 +4222,6 @@ body {
 	background-color: #24242c;
 }
 
-.tf-lp-dist-btn:active {
-	background-color: #24242c;
-}
-
 .tf-preset-btn:active {
 	background-color: #24242c;
 }
@@ -4450,12 +4236,6 @@ body {
 	z-index: 920;
 	width: 320dp;
 	min-height: 200dp;
-}
-
-.tf-settings-glyph {
-	font-size: 1.15rem;
-	color: #b0b4be;
-	pointer-events: none;
 }
 
 .tf-settings-btn.active {
@@ -4812,10 +4592,6 @@ margin-top: 3dp;
 	font-size: 0.75rem;
 	color: #d9c28a;
 	margin-bottom: 4dp;
-}
-.lp-orient-hint {
-	color: #d9c28a;
-	font-size: 0.75rem;
 }
 
 /* Grayed-out unavailable controls (e.g. scatter/distribution for cone/beam lights) */
@@ -5196,8 +4972,7 @@ margin-top: 3dp;
 	pointer-events: auto;
 	position: absolute;
 	z-index: 920;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 }
 
 /* The size/tiles/time line. This is the control that stops a capture being a

@@ -105,12 +105,6 @@ local edgeFade = 1 -- cursor alpha factor when hovering past the map edge (Terra
 local EXPORT_FORMATS = { "png", "tga", "bmp" }
 local exportFormatIndex = 1
 
--- Geo decal state
-local geoDecalMode = false
-local GEO_DECAL_TEX_PATH = "unittextures/decals/armageo_aoplane.dds"
-local GEO_DECAL_SIZE = 176 -- 11 footprint * 16 elmos
-local placedGeoDecals = {} -- array of {x=, z=, rot=, size=}
-
 -- Smart filter state
 local smartFilterEnabled = false
 local smartFilter = {
@@ -170,6 +164,7 @@ local uLocBrushShape = nil
 local uLocBrushRotation = nil
 local uLocFractalAmount = nil
 local uLocFractalFreq = nil
+local uLocSf = {} -- smart filter uniform locations, filled by createShaders
 
 -- Copy shader (blit existing texture into FBO)
 local copyShader = nil
@@ -634,16 +629,16 @@ local function createShaders()
 	uLocFractalAmount = glGetUniformLocation(paintShader, "fractalAmount")
 	uLocFractalFreq = glGetUniformLocation(paintShader, "fractalFreq")
 	-- Smart filter uniform locations
-	uLocSfEnabled = glGetUniformLocation(paintShader, "sfEnabled")
-	uLocSfAvoidWater = glGetUniformLocation(paintShader, "sfAvoidWater")
-	uLocSfAvoidCliffs = glGetUniformLocation(paintShader, "sfAvoidCliffs")
-	uLocSfSlopeMax = glGetUniformLocation(paintShader, "sfSlopeMax")
-	uLocSfPreferSlopes = glGetUniformLocation(paintShader, "sfPreferSlopes")
-	uLocSfSlopeMin = glGetUniformLocation(paintShader, "sfSlopeMin")
-	uLocSfAltMinEnable = glGetUniformLocation(paintShader, "sfAltMinEnable")
-	uLocSfAltMin = glGetUniformLocation(paintShader, "sfAltMin")
-	uLocSfAltMaxEnable = glGetUniformLocation(paintShader, "sfAltMaxEnable")
-	uLocSfAltMax = glGetUniformLocation(paintShader, "sfAltMax")
+	uLocSf.enabled = glGetUniformLocation(paintShader, "sfEnabled")
+	uLocSf.avoidWater = glGetUniformLocation(paintShader, "sfAvoidWater")
+	uLocSf.avoidCliffs = glGetUniformLocation(paintShader, "sfAvoidCliffs")
+	uLocSf.slopeMax = glGetUniformLocation(paintShader, "sfSlopeMax")
+	uLocSf.preferSlopes = glGetUniformLocation(paintShader, "sfPreferSlopes")
+	uLocSf.slopeMin = glGetUniformLocation(paintShader, "sfSlopeMin")
+	uLocSf.altMinEnable = glGetUniformLocation(paintShader, "sfAltMinEnable")
+	uLocSf.altMin = glGetUniformLocation(paintShader, "sfAltMin")
+	uLocSf.altMaxEnable = glGetUniformLocation(paintShader, "sfAltMaxEnable")
+	uLocSf.altMax = glGetUniformLocation(paintShader, "sfAltMax")
 	smartFilter._uInf.altOn = glGetUniformLocation(paintShader, "infAltOn")
 	smartFilter._uInf.alt = glGetUniformLocation(paintShader, "infAlt")
 	smartFilter._uInf.slopeOn = glGetUniformLocation(paintShader, "infSlopeOn")
@@ -695,9 +690,32 @@ end
 
 local noSplatWarned = false
 
+-- A canvas started without a DNTS set (no pack installed, a runner or launcher
+-- canvas, or a map project saved from one) has no $ssmf_splat_distr at all.
+-- The tileset shader only needs the distribution as its override mask, not the
+-- DNTS normals, so the painter can supply its own there; SetMapShadingTexture
+-- binds a Lua texture whether or not the engine made one.
+local function canSynthesizeDistribution()
+	local tt = WG.TilesetTerrain
+	if tt and tt.isActive and tt.isActive() then
+		return true
+	end
+	if (Game.mapName or ""):find("^Editor Flat %d+x%d+") then
+		return true
+	end
+	local mapOpts = Spring.GetMapOptions()
+	return type(mapOpts) == "table" and (tonumber(mapOpts.blank_map_x) or 0) > 0
+end
+
 local function initSplatTexture()
 	-- Get dimensions of existing splat distribution texture
 	local texInfo = gl.TextureInfo(SPLAT_TEX_NAME)
+	local synthesize = false
+	if (not texInfo or texInfo.xsize <= 0 or texInfo.ysize <= 0) and canSynthesizeDistribution() then
+		synthesize = true
+		texInfo = { xsize = 1, ysize = 1 }
+		Echo("[Splat Painter] This map has no splat distribution; creating one (every pixel starts on channel 1).")
+	end
 	if not texInfo or texInfo.xsize <= 0 or texInfo.ysize <= 0 then
 		-- Blank/generated maps carry no SSMF splat distribution. Warn once, calmly.
 		if not noSplatWarned then
@@ -720,18 +738,7 @@ local function initSplatTexture()
 	if sourceW <= 1 or sourceH <= 1 then
 		splatTexWidth = max(64, floor((Game.mapSizeX or 0) / 8))
 		splatTexHeight = max(64, floor((Game.mapSizeZ or 0) / 8))
-		Echo(
-			string.format(
-				"[Splat Painter] Detected tiny splat distribution (%dx%d); promoting to editable %dx%d.",
-				sourceW,
-				sourceH,
-				splatTexWidth,
-				splatTexHeight
-			)
-		)
 	end
-
-	Echo("[Splat Painter] Splat texture size: " .. splatTexWidth .. "x" .. splatTexHeight)
 
 	-- Create FBO texture at matching size
 	fboTex = glCreateTexture(splatTexWidth, splatTexHeight, {
@@ -751,6 +758,11 @@ local function initSplatTexture()
 
 	-- Copy existing splat distribution into our FBO
 	glRenderToTexture(fboTex, function()
+		if synthesize then
+			-- the engine's own fallback distribution is (255,0,0,0)
+			gl.Clear(GL.COLOR_BUFFER_BIT, 1, 0, 0, 0)
+			return
+		end
 		glBlending(false)
 
 		glUseShader(copyShader)
@@ -886,16 +898,16 @@ local function executePaintStroke(worldX, worldZ, rotDeg)
 
 		-- Smart filter uniforms
 		local sf = smartFilter
-		glUniformInt(uLocSfEnabled, smartFilterEnabled and 1 or 0)
-		glUniformInt(uLocSfAvoidWater, sf.avoidWater and 1 or 0)
-		glUniformInt(uLocSfAvoidCliffs, sf.avoidCliffs and 1 or 0)
-		glUniform(uLocSfSlopeMax, sf.slopeMax)
-		glUniformInt(uLocSfPreferSlopes, sf.preferSlopes and 1 or 0)
-		glUniform(uLocSfSlopeMin, sf.slopeMin)
-		glUniformInt(uLocSfAltMinEnable, sf.altMinEnable and 1 or 0)
-		glUniform(uLocSfAltMin, sf.altMin)
-		glUniformInt(uLocSfAltMaxEnable, sf.altMaxEnable and 1 or 0)
-		glUniform(uLocSfAltMax, sf.altMax)
+		glUniformInt(uLocSf.enabled, smartFilterEnabled and 1 or 0)
+		glUniformInt(uLocSf.avoidWater, sf.avoidWater and 1 or 0)
+		glUniformInt(uLocSf.avoidCliffs, sf.avoidCliffs and 1 or 0)
+		glUniform(uLocSf.slopeMax, sf.slopeMax)
+		glUniformInt(uLocSf.preferSlopes, sf.preferSlopes and 1 or 0)
+		glUniform(uLocSf.slopeMin, sf.slopeMin)
+		glUniformInt(uLocSf.altMinEnable, sf.altMinEnable and 1 or 0)
+		glUniform(uLocSf.altMin, sf.altMin)
+		glUniformInt(uLocSf.altMaxEnable, sf.altMaxEnable and 1 or 0)
+		glUniform(uLocSf.altMax, sf.altMax)
 		-- INFLUENCE profile of the channel being painted
 		local inf = sf.influence[activeChannel] or sf.influenceDefault
 		local u = sf._uInf
@@ -1053,36 +1065,6 @@ local function requestLoadSplats(path)
 	return true
 end
 
--- ============ GEO DECAL PLACEMENT ============
-
-local function placeGeoDecal(worldX, worldZ)
-	local halfSize = GEO_DECAL_SIZE * 0.5
-	placedGeoDecals[#placedGeoDecals + 1] = {
-		x = worldX,
-		z = worldZ,
-		rot = activeRotation * pi / 180,
-		size = halfSize,
-	}
-	Echo(
-		"[Splat Painter] Placed geo decal #"
-			.. #placedGeoDecals
-			.. " at ("
-			.. floor(worldX)
-			.. ", "
-			.. floor(worldZ)
-			.. ")"
-	)
-end
-
-local function undoGeoDecal()
-	if #placedGeoDecals == 0 then
-		Echo("[Splat Painter] No geo decals to undo")
-		return
-	end
-	placedGeoDecals[#placedGeoDecals] = nil
-	Echo("[Splat Painter] Undid geo decal, " .. #placedGeoDecals .. " remaining")
-end
-
 -- ============ UNDO/REDO ============
 
 -- Must be called from a Draw call-in (uses GL)
@@ -1131,23 +1113,6 @@ local function splatRedo()
 	pendingRedoCount = pendingRedoCount + 1
 end
 
-local function clearGeoDecals()
-	for i = #placedGeoDecals, 1, -1 do
-		placedGeoDecals[i] = nil
-	end
-	Echo("[Splat Painter] Cleared all geo decals")
-end
-
-local function setGeoDecalMode(enabled)
-	geoDecalMode = enabled
-	invalidateDrawCache()
-end
-
-local function setGeoDecalSize(size)
-	GEO_DECAL_SIZE = max(16, min(512, size))
-	invalidateDrawCache()
-end
-
 -- ============ STATE / API ============
 
 local function getState()
@@ -1171,9 +1136,6 @@ local function getState()
 		influence = smartFilter.influence[activeChannel] or smartFilter.influenceDefault,
 		splatTexWidth = splatTexWidth,
 		splatTexHeight = splatTexHeight,
-		geoDecalMode = geoDecalMode,
-		geoDecalSize = GEO_DECAL_SIZE,
-		geoDecalCount = #placedGeoDecals,
 		undoCount = #undoStack,
 		redoCount = #redoStack,
 		showSplatOverlay = showSplatOverlay,
@@ -1208,10 +1170,6 @@ local function activateSplat()
 	if not fboTex then
 		pendingInit = true
 	end
-
-	Echo(
-		"[Splat Painter] Activated | Channel: " .. activeChannel .. " | Hold left-click to paint, right-click to erase"
-	)
 end
 
 local function deactivateSplat()
@@ -1278,21 +1236,8 @@ local function setFractal(amount, freq)
 	invalidateDrawCache()
 end
 
-local function setEraseMode(enabled)
-	eraseMode = enabled
-end
-
 local function cycleExportFormat()
 	exportFormatIndex = (exportFormatIndex % #EXPORT_FORMATS) + 1
-end
-
-local function setExportFormat(fmt)
-	for i, v in ipairs(EXPORT_FORMATS) do
-		if v == fmt then
-			exportFormatIndex = i
-			return
-		end
-	end
 end
 
 local function setSmartEnabled(enabled)
@@ -1353,7 +1298,6 @@ function widget:Initialize()
 		getFractal = function()
 			return activeFractalAmount, activeFractalFreq
 		end,
-		setEraseMode = setEraseMode,
 		setSmartEnabled = setSmartEnabled,
 		setSmartFilter = setSmartFilter,
 		setInfluence = setInfluence,
@@ -1364,6 +1308,11 @@ function widget:Initialize()
 		hasSplatState = function()
 			return fboTex ~= nil
 		end,
+		-- true when painting can start: the map has a distribution, or the painter can make one
+		canPaintDistribution = function()
+			local info = gl.TextureInfo(SPLAT_TEX_NAME)
+			return fboTex ~= nil or (info ~= nil and (info.xsize or 0) > 0) or canSynthesizeDistribution()
+		end,
 		loadSplats = requestLoadSplats,
 		isLoadPending = function()
 			return pendingLoadPath ~= nil
@@ -1372,14 +1321,8 @@ function widget:Initialize()
 			return lastLoadResult
 		end,
 		cycleExportFormat = cycleExportFormat,
-		setExportFormat = setExportFormat,
-		setGeoDecalMode = setGeoDecalMode,
 		setSplatOverlay = setSplatOverlay,
 		setTilesetPreviewEnabled = setTilesetPreviewEnabled,
-		setGeoDecalSize = setGeoDecalSize,
-		placeGeoDecal = placeGeoDecal,
-		undoGeoDecal = undoGeoDecal,
-		clearGeoDecals = clearGeoDecals,
 		undo = splatUndo,
 		redo = splatRedo,
 	}
@@ -1428,21 +1371,6 @@ function widget:MousePress(mx, my, button)
 				return false
 			end
 		end
-	end
-
-	-- Geo decal mode: left-click places, right-click undoes
-	if geoDecalMode then
-		if button == 1 then
-			local worldX, worldZ = getWorldMousePosition()
-			if worldX then
-				placeGeoDecal(worldX, worldZ)
-			end
-			return true
-		elseif button == 3 then
-			undoGeoDecal()
-			return true
-		end
-		return false
 	end
 
 	if button == 1 then
@@ -1530,7 +1458,7 @@ function widget:MouseWheel(up, value)
 		return false
 	end
 
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, _, shift = Spring.GetModKeyState()
 	local spaceHeld = Spring.GetKeyState(0x020) -- spacebar
 
 	if spaceHeld then
@@ -1887,54 +1815,6 @@ function widget:DrawWorld()
 		glDepthTest(true)
 	end
 
-	-- Draw placed geo decals as textured ground quads (always, even when not active)
-	if #placedGeoDecals > 0 then
-		glDepthTest(true)
-		glPolygonOffset(1, 1)
-		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		glTexture(GEO_DECAL_TEX_PATH)
-		glColor(0.5, 0.5, 0.5, 0.7)
-		for _, d in ipairs(placedGeoDecals) do
-			local s = d.size
-			local cr, sr = cos(d.rot), sin(d.rot)
-			local dy = 1
-			local dx1 = -s * cr - -s * sr
-			local dz1 = -s * sr + -s * cr
-			local dx2 = s * cr - -s * sr
-			local dz2 = s * sr + -s * cr
-			local dx3 = s * cr - s * sr
-			local dz3 = s * sr + s * cr
-			local dx4 = -s * cr - s * sr
-			local dz4 = -s * sr + s * cr
-			local wx1, wz1 = d.x + dx1, d.z + dz1
-			local wx2, wz2 = d.x + dx2, d.z + dz2
-			local wx3, wz3 = d.x + dx3, d.z + dz3
-			local wx4, wz4 = d.x + dx4, d.z + dz4
-			local y1 = GetGroundHeight(wx1, wz1) + dy
-			local y2 = GetGroundHeight(wx2, wz2) + dy
-			local y3 = GetGroundHeight(wx3, wz3) + dy
-			local y4 = GetGroundHeight(wx4, wz4) + dy
-			glBeginEnd(GL_TRIANGLES, function()
-				glTexCoord(0, 0)
-				glVertex(wx1, y1, wz1)
-				glTexCoord(1, 0)
-				glVertex(wx2, y2, wz2)
-				glTexCoord(1, 1)
-				glVertex(wx3, y3, wz3)
-				glTexCoord(0, 0)
-				glVertex(wx1, y1, wz1)
-				glTexCoord(1, 1)
-				glVertex(wx3, y3, wz3)
-				glTexCoord(0, 1)
-				glVertex(wx4, y4, wz4)
-			end)
-		end
-		glTexture(false)
-		glColor(1, 1, 1, 1)
-		glPolygonOffset(false)
-		glDepthTest(false)
-	end
-
 	-- Deferred save: before the active guard, so a project save requested while
 	-- the tool is deactivated (fboTex still alive) still executes.
 	if pendingSave and fboTex then
@@ -2064,7 +1944,7 @@ function widget:DrawWorld()
 		local T = WG.TilesetTerrain
 		if T and T.setSurfacePreview then
 			local mode = 0
-			if tilesetPreviewOn and not geoDecalMode and activeChannel >= 2 then
+			if tilesetPreviewOn and activeChannel >= 2 then
 				local _, pkCtrl = Spring.GetModKeyState()
 				if pkCtrl then
 					mode = 7 + activeChannel -- G/B/A -> intermediate/cliff/slot4
@@ -2083,29 +1963,11 @@ function widget:DrawWorld()
 	local groundY = GetGroundHeight(worldX, worldZ)
 
 	glPolygonOffset(1, 1)
-	if geoDecalMode then
-		-- Draw geo decal preview: magenta circle at decal size
-		local halfSize = GEO_DECAL_SIZE * 0.5
-		glColor(0.9, 0.3, 0.9, 0.8 * edgeFade)
-		glLineWidth(2.0)
-		glDrawGroundCircle(worldX, groundY, worldZ, halfSize, CIRCLE_SEGMENTS)
-		-- Inner crosshair
-		local crossSize = min(halfSize * 0.15, 16)
-		glColor(0.9, 0.3, 0.9, 0.5 * edgeFade)
-		glLineWidth(1.0)
-		glBeginEnd(GL.LINES, function()
-			glVertex(worldX - crossSize, groundY + 3, worldZ)
-			glVertex(worldX + crossSize, groundY + 3, worldZ)
-			glVertex(worldX, groundY + 3, worldZ - crossSize)
-			glVertex(worldX, groundY + 3, worldZ + crossSize)
-		end)
-	else
-		generateBrushOutline(worldX, worldZ, groundY)
-	end
+	generateBrushOutline(worldX, worldZ, groundY)
 	glPolygonOffset(false)
 
 	-- Smart filter overlay: show valid/rejected terrain areas
-	if smartFilterEnabled and not geoDecalMode then
+	if smartFilterEnabled then
 		drawSmartFilterOverlay(worldX, worldZ, activeRadius, activeShape, activeRotation)
 		drawAltitudeCapPrism(worldX, worldZ, activeRadius, activeShape, activeRotation)
 	end
@@ -2113,28 +1975,4 @@ function widget:DrawWorld()
 	-- Reset color
 	glColor(1, 1, 1, 1)
 	glLineWidth(1.0)
-end
-
-function widget:IsAbove(mx, my)
-	return false
-end
-
-function widget:GetTooltip(mx, my)
-	if not active then
-		return nil
-	end
-	if geoDecalMode then
-		return "Splat Painter | GEO DECAL | Size: "
-			.. GEO_DECAL_SIZE
-			.. " | Placed: "
-			.. #placedGeoDecals
-			.. " | LMB=place, RMB=undo"
-	end
-	local channelNames = { "Red (Tex 1)", "Green (Tex 2)", "Blue (Tex 3)", "Alpha (Tex 4)" }
-	return "Splat Painter | Channel: "
-		.. (channelNames[activeChannel] or "?")
-		.. " | Strength: "
-		.. string.format("%.2f", activeStrength)
-		.. " | Size: "
-		.. activeRadius
 end

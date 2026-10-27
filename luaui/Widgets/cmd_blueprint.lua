@@ -891,6 +891,12 @@ local function handleFacingAction(_, _, args)
 	end
 end
 
+---@param direction "inc"|"dec"
+---@return boolean? rotated
+local function rotateBlueprint(direction)
+	return handleFacingAction(nil, nil, { direction })
+end
+
 local function handleSpacingAction(_, _, args)
 	local bp = getSelectedBlueprint()
 	if not blueprintPlacementActive or not bp then
@@ -1233,6 +1239,9 @@ function widget:Initialize()
 
 	WG.cmd_blueprint = {
 		reloadBindings = reloadBindings,
+		selectNextBlueprint = handleBlueprintNextAction,
+		selectPrevBlueprint = handleBlueprintPrevAction,
+		rotateBlueprint = rotateBlueprint,
 	}
 	WG.cmd_blueprint.nextBlueprintUnitID = nextBlueprintUnitID
 

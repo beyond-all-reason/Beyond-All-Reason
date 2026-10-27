@@ -288,6 +288,9 @@ local function updateFeatureFadeDistances()
 end
 updateFeatureFadeDistances()
 
+-- nil outside the map editor
+local editorFeatures = VFS.Include("luarules/gadgets/include/cus_gl4_editor_features.lua")
+
 do --save a ton of locals
 	local OPTION_SHADOWMAPPING = 1
 	local OPTION_NORMALMAPPING = 2
@@ -409,6 +412,9 @@ do --save a ton of locals
 			brightnessFactor = 1.3,
 		},
 	} -- maps uniformbins to a table of uniform names/values
+	if editorFeatures then
+		editorFeatures.addBins(uniformBins, defaultBitShaderOptions)
+	end
 end
 
 local overrideDrawFlags = {
@@ -1054,6 +1060,14 @@ local brdfLUT = "modelmaterials_gl4/brdf_0.png"
 
 local existingfilecache = {} -- this speeds up the VFS calls
 
+-- A missing file binds no texture, so that batch samples whatever normal map the previous one left bound
+local function NormalTexExists(normaltex)
+	if existingfilecache[normaltex] == nil and VFS.FileExists(normaltex) then
+		existingfilecache[normaltex] = normaltex
+	end
+	return existingfilecache[normaltex] ~= nil
+end
+
 local function GetNormal(unitDef, featureDef)
 	local FileExists = VFS.FileExists
 
@@ -1069,11 +1083,8 @@ local function GetNormal(unitDef, featureDef)
 			existingfilecache[tex2] = string.format("%%%i:1", unitDef.id)
 		end
 
-		if unitDef.customParams and unitDef.customParams.normaltex then
-			local normaltex = unitDef.customParams.normaltex
-			if existingfilecache[normaltex] == nil and FileExists(normaltex) then
-				existingfilecache[normaltex] = normaltex
-			end
+		local normaltex = unitDef.customParams and unitDef.customParams.normaltex
+		if normaltex and NormalTexExists(normaltex) then
 			return normaltex
 		end
 	end
@@ -1090,37 +1101,34 @@ local function GetNormal(unitDef, featureDef)
 			existingfilecache[tex2] = string.format("%%%i:1", -1 * featureDef.id)
 		end
 
-		if featureDef.customParams and featureDef.customParams.normaltex then
-			local normaltex = featureDef.customParams.normaltex
-			if existingfilecache[normaltex] == nil and FileExists(normaltex) then
-				existingfilecache[normaltex] = normaltex
-			end
+		local normaltex = featureDef.customParams and featureDef.customParams.normaltex
+		if normaltex and NormalTexExists(normaltex) then
 			return normaltex
-		else
-			if featureDef.model.textures.tex1 == "Arm_wreck_color.dds" then
-				return unittextures .. "Arm_wreck_color_normal.dds"
-			end
+		end
 
-			if featureDef.model.textures.tex1 == "cor_color_wreck.dds" then
-				return unittextures .. "cor_color_wreck_normal.dds"
-			end
+		if featureDef.model.textures.tex1 == "Arm_wreck_color.dds" then
+			return unittextures .. "Arm_wreck_color_normal.dds"
+		end
 
-			if featureDef.model.textures.tex1 == "leg_wreck_color.dds" then
-				return unittextures .. "leg_wreck_normal.dds"
-			end
-			-- try to search for an appropriate normal
-			normalMap = tex1:gsub("%.", "_normals.")
-			-- Spring.Echo(normalMap)
-			if existingfilecache[normalMap] or FileExists(normalMap) then
-				existingfilecache[normalMap] = true
-				return normalMap
-			end
-			normalMap = tex1:gsub("%.", "_normal.")
-			-- Spring.Echo(normalMap)
-			if existingfilecache[normalMap] or FileExists(normalMap) then
-				existingfilecache[normalMap] = true
-				return normalMap
-			end
+		if featureDef.model.textures.tex1 == "cor_color_wreck.dds" then
+			return unittextures .. "cor_color_wreck_normal.dds"
+		end
+
+		if featureDef.model.textures.tex1 == "leg_wreck_color.dds" then
+			return unittextures .. "leg_wreck_normal.dds"
+		end
+		-- try to search for an appropriate normal
+		normalMap = tex1:gsub("%.", "_normals.")
+		-- Spring.Echo(normalMap)
+		if existingfilecache[normalMap] or FileExists(normalMap) then
+			existingfilecache[normalMap] = true
+			return normalMap
+		end
+		normalMap = tex1:gsub("%.", "_normal.")
+		-- Spring.Echo(normalMap)
+		if existingfilecache[normalMap] or FileExists(normalMap) then
+			existingfilecache[normalMap] = true
+			return normalMap
 		end
 	end
 	return blankNormalMap
@@ -1174,6 +1182,11 @@ local function initBinsAndTextures()
 				objectDefToUniformBin[-1 * featureDefID] = "featurepbr"
 			end
 			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
+			local editorBin = editorFeatures and editorFeatures.featureBin(featureDef)
+			if editorBin then
+				objectDefToUniformBin[-1 * featureDefID] = editorBin
+				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
+			end
 
 			local texKeyFast = GenFastTextureKey(-1 * featureDefID, featureDef, normalTex, textureTable)
 			if textureKeytoSet[texKeyFast] == nil then
@@ -1348,19 +1361,45 @@ local function PrepareResourcePreload()
 	-- wreck model of every unitDef; those models and their textures load with their object
 	-- instead. '$' engine textures are always resident.
 	tracy.ZoneBeginN("G:CUS:PrepareResourcePreload:CollectFileTextures")
-	for _, textureSet in pairs(textureKeytoSet) do
-		for bindPosition = 0, 10 do
-			local texture = textureSet[bindPosition]
-			if
-				texture
-				and type(texture) == "string"
-				and not seenTextures[texture]
-				and texture:sub(1, 1) ~= "%"
-				and texture:sub(1, 1) ~= "$"
-			then
-				textureCount = textureCount + 1
-				preloadTextures[textureCount] = texture
-				seenTextures[texture] = true
+	-- Skip sets only used by defs that cannot appear: a few Legion units live outside units/Legion and load in
+	-- every game (their normal maps are ~90 MB uncompressed), raptor eggs only drop in raptor games
+	local legionInGame = UnitDefNames.legcom ~= nil
+	local raptorsInGame = false
+	for _, unitDef in pairs(UnitDefs) do
+		if unitDef.name:sub(1, 7) == "raptor_" then
+			raptorsInGame = true
+			break
+		end
+	end
+	local texKeysInGame = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local texKey = fastObjectDefIDtoTextureKey[unitDefID]
+		if texKey and (legionInGame or unitDef.name:sub(1, 3) ~= "leg") then
+			texKeysInGame[texKey] = true
+		end
+	end
+	for featureDefID, featureDef in pairs(FeatureDefs) do
+		local texKey = fastObjectDefIDtoTextureKey[-featureDefID]
+		local name = featureDef.name
+		if texKey and (legionInGame or name:sub(1, 3) ~= "leg") and (raptorsInGame or name:sub(1, 6) ~= "raptor") then
+			texKeysInGame[texKey] = true
+		end
+	end
+	for texKey, textureSet in pairs(textureKeytoSet) do
+		if texKeysInGame[texKey] then
+			for bindPosition = 0, 10 do
+				local texture = textureSet[bindPosition]
+				if
+					texture
+					and type(texture) == "string"
+					and not seenTextures[texture]
+					and texture:sub(1, 1) ~= "%"
+					and texture:sub(1, 1) ~= "$"
+				then
+					textureCount = textureCount + 1
+					preloadTextures[textureCount] = texture
+					seenTextures[texture] = true
+				end
 			end
 		end
 	end
@@ -1867,8 +1906,9 @@ local function AssignObjectToBin(objectID, objectDefID, flag, shader, textures, 
 		end
 
 		-- the rebuild may have dropped dead objects, keep the uniform bin count in sync
-		uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] = (uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] or 0)
-			+ (newObjectsCount - numobjects)
+		uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] = (
+			uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] or 0
+		) + (newObjectsCount - numobjects)
 
 		numobjects = newObjectsCount
 		unitDrawBinsFlagShaderUniformsTexKey.objectsArray = newObjectsArray
@@ -1883,7 +1923,9 @@ local function AssignObjectToBin(objectID, objectDefID, flag, shader, textures, 
 	unitDrawBinsFlagShaderUniformsTexKey.numobjects = numobjects
 	unitDrawBinsFlagShaderUniformsTexKey.objectsArray[numobjects] = objectID
 	unitDrawBinsFlagShaderUniformsTexKey.objectsIndex[objectID] = numobjects
-	uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] = (uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] or 0) + 1
+	uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] = (
+		uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] or 0
+	) + 1
 	if unitDrawBinsFlagShaderUniformsTexKey.pendingStart == nil then
 		unitDrawBinsFlagShaderUniformsTexKey.pendingStart = numobjects
 		numPendingBins = numPendingBins + 1
@@ -1957,8 +1999,16 @@ local function AddObject(objectID, drawFlag, reason)
 		local uniformBinID = GetUniformBinID(objectDefID, "AddObject")
 		for k = 1, numBinKeys do
 			--objectID, objectDefID, flag, shader, textures, texKey, uniformBinID, calledfrom
-			assignedToCUS = AssignObjectToBin(objectID, objectDefID, binKeys[k], shader, nil, texKey, uniformBinID, "addobject")
-				or assignedToCUS
+			assignedToCUS = AssignObjectToBin(
+				objectID,
+				objectDefID,
+				binKeys[k],
+				shader,
+				nil,
+				texKey,
+				uniformBinID,
+				"addobject"
+			) or assignedToCUS
 		end
 	end
 	if not assignedToCUS then
@@ -2156,7 +2206,16 @@ local function UpdateObject(objectID, drawFlag, reason)
 						end
 					end
 					if objectAlive then
-						AssignObjectToBin(objectID, objectDefID, flag, shader, nil, texKey, uniformBinID, "UpdateObject")
+						AssignObjectToBin(
+							objectID,
+							objectDefID,
+							flag,
+							shader,
+							nil,
+							texKey,
+							uniformBinID,
+							"UpdateObject"
+						)
 					end
 					--if flag == 1 then
 					--	AssignObjectToBin(objectID, objectDefID, 0, nil, nil, texKey, uniformBinID) --deferred
@@ -2321,7 +2380,7 @@ local shaderactivations = 0
 
 -- Per-batch tracy zones (BindTextures/VAOSubmit) cost real time at dozens of batches per pass;
 -- keep them off unless actively profiling at batch granularity.
-local detailedTracy = true
+local detailedTracy = false
 
 -- Mirror of the texture units bound during the current draw pass: {bindPosition : texture}.
 -- Lets consecutive batches skip re-binding shared textures (e.g. common normal maps/atlases),
@@ -2457,7 +2516,10 @@ local function ExecuteDrawPass(drawPass)
 									tracy.ZoneBeginN("G:CUS:ExecuteDrawPass:BindTextures")
 								end
 								for bindPosition, tex in pairs(texAndObj.textures) do
-									if (wantedTextureUnits == nil or wantedTextureUnits[bindPosition]) and lastBoundTextures[bindPosition] ~= tex then
+									if
+										(wantedTextureUnits == nil or wantedTextureUnits[bindPosition])
+										and lastBoundTextures[bindPosition] ~= tex
+									then
 										gl.Texture(bindPosition, tex)
 										lastBoundTextures[bindPosition] = tex
 									end
@@ -2601,11 +2663,16 @@ local function DisableCUSGL4(optName, _, _, playerID)
 	gadget:Shutdown()
 end
 
+local xmasChecked = false
 function gadget:GameFrame(n)
-	if not itsXmas and SYNCED.itsXmas then
-		itsXmas = true
-		initiated = false
-		ReloadCUSGL4(nil, nil, nil, Spring.GetLocalPlayerID())
+	-- unit_xmas sets it while synced gadgets load, so reading it once is enough (SYNCED reads cross Lua states)
+	if not xmasChecked then
+		xmasChecked = true
+		if not itsXmas and SYNCED.itsXmas then
+			itsXmas = true
+			initiated = false
+			ReloadCUSGL4(nil, nil, nil, Spring.GetLocalPlayerID())
+		end
 	end
 	for unitID, buildProgress in pairs(buildProgresses) do
 		local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
@@ -3199,7 +3266,8 @@ function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 		return
 	end
 	tracy.ZoneBeginN("G:CUS:DrawOpaqueUnitsLua")
-	if not preloadedResources then
+	-- in pregame DrawGenesis spreads the warm-up over frames; finish it at once only when units can be drawn
+	if not preloadedResources and Spring.GetGameFrame() > 0 then
 		tracy.ZoneBeginN("G:CUS:DrawOpaqueUnitsLua:FallbackPreload")
 		PreloadRemainingResources()
 		tracy.ZoneEnd()
@@ -3207,7 +3275,10 @@ function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	tracy.ZoneBeginN("G:CUS:DrawOpaqueUnitsLua:ResolveDrawPass")
 	local drawPass = drawPassBitsToNumber(true, deferredPass, drawReflection, drawRefraction)
 	tracy.ZoneEnd()
-	local batches, units = ExecuteDrawPass(drawPass)
+	-- the refraction pass (BumpWaterRefraction = 2) has no bins
+	if unitDrawBins[drawPass] then
+		ExecuteDrawPass(drawPass)
+	end
 	tracy.ZoneEnd()
 end
 
@@ -3224,7 +3295,7 @@ if autoReload.enabled then
 	function gadget:DrawScreen()
 		--Spring.Echo("DrawScreen Called")
 		local yoffset = 0
-		for drawflag, drawpass in pairs(shaders) do 
+		for drawflag, drawpass in pairs(shaders) do
 			for binname, shader in pairs(drawpass) do
 				--Spring.Echo("DrawScreen:", drawflag, binname, "has drawprintf", shader.DrawPrintf ~= nil)
 				if shader.DrawPrintf then

@@ -15,7 +15,7 @@ function M.attach(doc, ctx)
 	local WG = ctx.WG
 	local playSound = ctx.playSound
 	local trackSliderDrag = ctx.trackSliderDrag
-	-- skyDynamic and quatFromAxisAngle are passed through ctx (file-level in gui_terraform_brush.lua).
+	-- skyDynamic is passed through ctx (file-level in gui_terraform_brush.lua).
 	local skyDynamic = ctx.skyDynamic
 	-- All data-event-click/mousedown handlers (onEnvXxx) are defined in initialModel
 	-- in gui_terraform_brush.lua. Recoil forbids adding or replacing function
@@ -222,9 +222,8 @@ function M.attach(doc, ctx)
 	widgetState.grassCfgRootEl = doc:GetElementById("tf-grasscfg-root")
 
 	-- Helper: wire a slider that maps integer range to float values
-	local function envSlider(sliderId, labelId, toFloat, fromFloat, onChange)
+	local function envSlider(sliderId, toFloat, fromFloat, onChange)
 		local sl = doc:GetElementById(sliderId)
-		local lb = doc:GetElementById(labelId)
 		if not sl then
 			return
 		end
@@ -235,29 +234,19 @@ function M.attach(doc, ctx)
 			end
 			local raw = tonumber(sl:GetAttribute("value")) or 0
 			local val = toFloat(raw)
-			if lb then
-				lb.inner_rml = string.format("%.2f", val)
-			end
 			onChange(val)
 			event:StopPropagation()
 		end, false)
 		-- Set initial value
 		local initVal = fromFloat()
 		sl:SetAttribute("value", tostring(math.floor(initVal + 0.5)))
-		if lb then
-			lb.inner_rml = string.format("%.2f", toFloat(math.floor(initVal + 0.5)))
-		end
 	end
 
-	-- Helper: set slider + label from code
-	local function envSetSlider(sliderId, labelId, intVal, displayVal)
+	-- Helper: set a slider from code
+	local function envSetSlider(sliderId, intVal)
 		local sl = doc:GetElementById(sliderId)
-		local lb = doc:GetElementById(labelId)
 		if sl then
 			sl:SetAttribute("value", tostring(intVal))
-		end
-		if lb then
-			lb.inner_rml = displayVal
 		end
 	end
 
@@ -305,24 +294,9 @@ function M.attach(doc, ctx)
 					local hb = tonumber(hex:sub(5, 6), 16) / 255
 					swatch:AddEventListener("click", function(event)
 						cfg.setColor({ hr, hg, hb })
-						envSetSlider(
-							"slider-env-" .. cfg.sliderPrefix .. "-r",
-							"lbl-env-" .. cfg.sliderPrefix .. "-r",
-							math.floor(hr * 1000 + 0.5),
-							string.format("%.2f", hr)
-						)
-						envSetSlider(
-							"slider-env-" .. cfg.sliderPrefix .. "-g",
-							"lbl-env-" .. cfg.sliderPrefix .. "-g",
-							math.floor(hg * 1000 + 0.5),
-							string.format("%.2f", hg)
-						)
-						envSetSlider(
-							"slider-env-" .. cfg.sliderPrefix .. "-b",
-							"lbl-env-" .. cfg.sliderPrefix .. "-b",
-							math.floor(hb * 1000 + 0.5),
-							string.format("%.2f", hb)
-						)
+						envSetSlider("slider-env-" .. cfg.sliderPrefix .. "-r", math.floor(hr * 1000 + 0.5))
+						envSetSlider("slider-env-" .. cfg.sliderPrefix .. "-g", math.floor(hg * 1000 + 0.5))
+						envSetSlider("slider-env-" .. cfg.sliderPrefix .. "-b", math.floor(hb * 1000 + 0.5))
 						refreshPreview()
 						event:StopPropagation()
 					end, false)
@@ -531,9 +505,12 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-fp-undo", "img-toggle-fp-undo", "section-fp-undo", false)
 	envSectionToggle("btn-toggle-fp-dist", "img-toggle-fp-dist", "section-fp-dist", true)
 	envSectionToggle("btn-toggle-fp-save", "img-toggle-fp-save", "section-fp-save", false)
+	envSectionToggle("btn-toggle-un-mode", "img-toggle-un-mode", "section-un-mode", true)
+	envSectionToggle("btn-toggle-un-undo", "img-toggle-un-undo", "section-un-undo", false)
+	envSectionToggle("btn-toggle-un-dist", "img-toggle-un-dist", "section-un-dist", true)
+	envSectionToggle("btn-toggle-un-save", "img-toggle-un-save", "section-un-save", false)
 	envSectionToggle("btn-toggle-ramp-type", "img-toggle-ramp-type", "section-ramp-type", true)
 	envSectionToggle("btn-toggle-wb-mode", "img-toggle-wb-mode", "section-wb-mode", true)
-	envSectionToggle("btn-toggle-wb-dist", "img-toggle-wb-dist", "section-wb-dist", true)
 	envSectionToggle("btn-toggle-cl-undo", "img-toggle-cl-undo", "section-cl-undo", false)
 	envSectionToggle("btn-toggle-tf-undo", "img-toggle-tf-undo", "section-tf-undo", false)
 	envSectionToggle("btn-toggle-spl-channel", "img-toggle-spl-channel", "section-spl-channel", true)
@@ -543,7 +520,6 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-dfp-undo", "img-toggle-dfp-undo", "section-dfp-undo", false)
 	envSectionToggle("btn-toggle-dfp-actions", "img-toggle-dfp-actions", "section-dfp-actions", false)
 	envSectionToggle("btn-toggle-dc-saveload", "img-toggle-dc-saveload", "section-dc-saveload", false)
-	envSectionToggle("btn-toggle-dc-dist", "img-toggle-dc-dist", "section-dc-dist", true)
 	envSectionToggle("btn-toggle-dc-mode", "img-toggle-dc-mode", "section-dc-mode", true)
 	envSectionToggle("btn-toggle-dc-undo", "img-toggle-dc-undo", "section-dc-undo", false)
 
@@ -560,6 +536,10 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-fp-instruments", "img-toggle-fp-instruments", "section-fp-instruments", false)
 	envSectionToggle("btn-toggle-fp-controls", "img-toggle-fp-controls", "section-fp-controls", true)
 	envSectionToggle("btn-toggle-fp-smart", "img-toggle-fp-smart", "section-fp-smart", false)
+	envSectionToggle("btn-toggle-un-overlays", "img-toggle-un-overlays", "section-un-overlays", false)
+	envSectionToggle("btn-toggle-un-instruments", "img-toggle-un-instruments", "section-un-instruments", false)
+	envSectionToggle("btn-toggle-un-controls", "img-toggle-un-controls", "section-un-controls", true)
+	envSectionToggle("btn-toggle-un-smart", "img-toggle-un-smart", "section-un-smart", false)
 	envSectionToggle("btn-toggle-gb-smart", "img-toggle-gb-smart", "section-gb-smart", false)
 	envSectionToggle("btn-toggle-sp-overlays", "img-toggle-sp-overlays", "section-sp-overlays", false)
 	do
@@ -686,6 +666,9 @@ function M.attach(doc, ctx)
 		local function getFP()
 			return WG.FeaturePlacer
 		end
+		local function getUN()
+			return WG.UnitPlacerTool
+		end
 		local function getSP()
 			return WG.SplatPainter
 		end
@@ -710,6 +693,27 @@ function M.attach(doc, ctx)
 		)
 		-- Slope double-toggle sub-chips (inside slope content): mutually exclusive — activating one disables the other.
 		wireMutexChipPair("fp-slope-mode-avoid", "avoidCliffs", "fp-slope-mode-prefer", "preferSlopes", getFP)
+
+		-- Unit placer chips: the same three filters as the feature placer
+		wireFilterToggleChip("un-filter-chip-avoid-water", "avoidWater", getUN)
+		-- Slope chip (units): activating defaults avoidCliffs on (so filtering starts immediately).
+		-- Sub-chips inside fp-smart-slope-content let user switch to prefer-slopes mode.
+		wireVisibilityChip(
+			"un-filter-chip-slope",
+			"un-smart-slope-content",
+			getUN,
+			{ "avoidCliffs", "preferSlopes" },
+			"avoidCliffs"
+		)
+		wireVisibilityChip(
+			"un-filter-chip-altitude",
+			"un-smart-altitude-content",
+			getUN,
+			{ "altMinEnable", "altMaxEnable" },
+			"altMinEnable"
+		)
+		-- Slope double-toggle sub-chips (inside slope content): mutually exclusive — activating one disables the other.
+		wireMutexChipPair("un-slope-mode-avoid", "avoidCliffs", "un-slope-mode-prefer", "preferSlopes", getUN)
 
 		-- Splat painter chips (mirror FP structure: avoid-water chip + slope/altitude sections with defaults + mutex slope-mode sub-chips)
 		wireFilterToggleChip("sp-filter-chip-avoid-water", "avoidWater", getSP)
@@ -736,8 +740,6 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-wb-instruments", "img-toggle-wb-instruments", "section-wb-instruments", false)
 	envSectionToggle("btn-toggle-wb-controls", "img-toggle-wb-controls", "section-wb-controls", true)
 	envSectionToggle("btn-toggle-sp-undo", "img-toggle-sp-undo", "section-sp-undo", false)
-	envSectionToggle("btn-toggle-sp-instruments", "img-toggle-sp-instruments", "section-sp-instruments", false)
-	envSectionToggle("btn-toggle-sp-controls", "img-toggle-sp-controls", "section-sp-controls", true)
 	envSectionToggle("btn-toggle-dc-overlays", "img-toggle-dc-overlays", "section-dc-overlays", false)
 	envSectionToggle("btn-toggle-dc-instruments", "img-toggle-dc-instruments", "section-dc-instruments", false)
 	envSectionToggle("btn-toggle-dc-controls", "img-toggle-dc-controls", "section-dc-controls", true)
@@ -761,11 +763,6 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-st-save", "img-toggle-st-save", "section-st-save", false)
 	envSectionToggle("btn-toggle-env-buttons", "img-toggle-env-buttons", "section-env-buttons", true)
 	envSectionToggle("btn-toggle-env-save", "img-toggle-env-save", "section-env-save", false)
-	envSectionToggle("btn-toggle-lt-type", "img-toggle-lt-type", "section-lt-type", true)
-	envSectionToggle("btn-toggle-lt-placement", "img-toggle-lt-placement", "section-lt-placement", true)
-	envSectionToggle("btn-toggle-lt-dist", "img-toggle-lt-dist", "section-lt-dist", true)
-	envSectionToggle("btn-toggle-lp-color", "img-toggle-lp-color", "section-lp-color", true)
-	envSectionToggle("btn-toggle-lp-undo", "img-toggle-lp-undo", "section-lp-undo", false)
 	envSectionToggle("btn-toggle-noise-type", "img-toggle-noise-type", "section-noise-type", true)
 
 	-- Parameter chip toggles — toggle individual slider row visibility
@@ -799,6 +796,14 @@ function M.attach(doc, ctx)
 	widgetState.chipToggle("fp-param-chip-alignment", "fp-param-alignment-row", true)
 	widgetState.chipToggle("fp-param-chip-count", "fp-param-count-row", true)
 	widgetState.chipToggle("fp-param-chip-rate", "fp-param-rate-row", true)
+	widgetState.chipToggle("fp-param-chip-tilt", "fp-param-tilt-row", true)
+
+	-- Unit placer control pill toggles
+	widgetState.chipToggle("un-param-chip-size", "un-param-size-row", true)
+	widgetState.chipToggle("un-param-chip-rotation", "un-param-rotation-row", true)
+	widgetState.chipToggle("un-param-chip-alignment", "un-param-alignment-row", true)
+	widgetState.chipToggle("un-param-chip-count", "un-param-count-row", true)
+	widgetState.chipToggle("un-param-chip-rate", "un-param-rate-row", true)
 
 	-- Collapsible toggle with warning chip: shown when collapsed but any listed chip is active.
 	-- Uses table field to avoid the 200-local chunk limit.
@@ -970,6 +975,11 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-ts-metal", "img-toggle-ts-metal", "section-ts-metal", false)
 	envSectionToggle("btn-toggle-ts-scale", "img-toggle-ts-scale", "section-ts-scale", true)
 	envSectionToggle("btn-toggle-ts-normals", "img-toggle-ts-normals", "section-ts-normals", false)
+	envSectionToggle("btn-toggle-ts-rocknorm", "img-toggle-ts-rocknorm", "section-ts-rocknorm", false)
+	envSectionToggle("btn-toggle-ts-rockcol", "img-toggle-ts-rockcol", "section-ts-rockcol", false)
+	envSectionToggle("btn-toggle-ts-sortn", "img-toggle-ts-sortn", "section-ts-sortn", false)
+	envSectionToggle("btn-toggle-ts-sorta", "img-toggle-ts-sorta", "section-ts-sorta", false)
+	envSectionToggle("btn-toggle-ts-topscol", "img-toggle-ts-topscol", "section-ts-topscol", false)
 	envSectionToggle("btn-toggle-ts-cliffs", "img-toggle-ts-cliffs", "section-ts-cliffs", false)
 	envSectionToggle("btn-toggle-ts-place", "img-toggle-ts-place", "section-ts-place", false)
 	envSectionToggle("btn-toggle-ts-slot4", "img-toggle-ts-slot4", "section-ts-slot4", false)
@@ -981,6 +991,17 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-ts-oldmap", "img-toggle-ts-oldmap", "section-ts-oldmap", false)
 	envSectionToggle("btn-toggle-ts-biome", "img-toggle-ts-biome", "section-ts-biome", false)
 	envSectionToggle("btn-toggle-ts-htint", "img-toggle-ts-htint", "section-ts-htint", false)
+	-- WORLDSPACE TINT sub-sections, each collapsed until opened (the section is long)
+	envSectionToggle("btn-toggle-ts-hsub-wet", "img-toggle-ts-hsub-wet", "section-ts-hsub-wet", false)
+	envSectionToggle("btn-toggle-ts-hsub-axis", "img-toggle-ts-hsub-axis", "section-ts-hsub-axis", false)
+	envSectionToggle("btn-toggle-ts-hsub-grade", "img-toggle-ts-hsub-grade", "section-ts-hsub-grade", false)
+	envSectionToggle("btn-toggle-ts-hsub-strata", "img-toggle-ts-hsub-strata", "section-ts-hsub-strata", false)
+	envSectionToggle("btn-toggle-ts-hsub-stops", "img-toggle-ts-hsub-stops", "section-ts-hsub-stops", false)
+	envSectionToggle("btn-toggle-ts-hsub-colour", "img-toggle-ts-hsub-colour", "section-ts-hsub-colour", false)
+	envSectionToggle("btn-toggle-ts-hsub-ramp", "img-toggle-ts-hsub-ramp", "section-ts-hsub-ramp", false)
+	envSectionToggle("btn-toggle-ts-hsub-sat", "img-toggle-ts-hsub-sat", "section-ts-hsub-sat", false)
+	envSectionToggle("btn-toggle-ts-hsub-tide", "img-toggle-ts-hsub-tide", "section-ts-hsub-tide", false)
+	envSectionToggle("btn-toggle-ts-hsub-snow", "img-toggle-ts-hsub-snow", "section-ts-hsub-snow", false)
 	envSectionToggle("btn-toggle-ts-tints", "img-toggle-ts-tints", "section-ts-tints", false)
 	envSectionToggle("btn-toggle-ts-debug", "img-toggle-ts-debug", "section-ts-debug", false)
 	envSectionToggle("btn-toggle-ts-presets", "img-toggle-ts-presets", "section-ts-presets", false)
@@ -1145,11 +1166,8 @@ function M.attach(doc, ctx)
 	-- ---- Sun & Shadows sliders ----
 	-- Cache DOM elements for live feedback from dynamic rotation
 	skyDynamic.sunSliderX = doc:GetElementById("slider-env-sun-x")
-	skyDynamic.sunLabelX = doc:GetElementById("lbl-env-sun-x")
 	skyDynamic.sunSliderY = doc:GetElementById("slider-env-sun-y")
-	skyDynamic.sunLabelY = doc:GetElementById("lbl-env-sun-y")
 	skyDynamic.sunSliderZ = doc:GetElementById("slider-env-sun-z")
-	skyDynamic.sunLabelZ = doc:GetElementById("lbl-env-sun-z")
 
 	-- Every direction write goes through this: keeps the applied intensity (the
 	-- engine defaults a missing 4th argument to 1.0), re-asserts the shadow
@@ -1168,7 +1186,7 @@ function M.attach(doc, ctx)
 			widgetState.refreshEnvSunSliders()
 		end
 	end
-	envSlider("slider-env-sun-y", "lbl-env-sun-y", function(v)
+	envSlider("slider-env-sun-y", function(v)
 		return v / 10000
 	end, function()
 		return (select(2, gl.GetSun("pos"))) * 10000
@@ -1176,7 +1194,7 @@ function M.attach(doc, ctx)
 		local sx, _, sz = gl.GetSun("pos")
 		widgetState.envSetSunDir(sx, val, sz, "azel")
 	end)
-	envSlider("slider-env-sun-x", "lbl-env-sun-x", function(v)
+	envSlider("slider-env-sun-x", function(v)
 		return v / 10000
 	end, function()
 		return (select(1, gl.GetSun("pos"))) * 10000
@@ -1184,7 +1202,7 @@ function M.attach(doc, ctx)
 		local _, sy, sz = gl.GetSun("pos")
 		widgetState.envSetSunDir(val, sy, sz, "azel")
 	end)
-	envSlider("slider-env-sun-z", "lbl-env-sun-z", function(v)
+	envSlider("slider-env-sun-z", function(v)
 		return v / 10000
 	end, function()
 		return (select(3, gl.GetSun("pos"))) * 10000
@@ -1195,7 +1213,7 @@ function M.attach(doc, ctx)
 	-- AZIMUTH / ELEVATION: the artist-facing pair (tenths of a degree on the
 	-- track). Elevation stays above the horizon; the XYZ rows keep the exact
 	-- vector for people who think in it.
-	envSlider("slider-env-sun-az", "lbl-env-sun-az", function(v)
+	envSlider("slider-env-sun-az", function(v)
 		return v / 10
 	end, function()
 		local az = widgetState.azElFromSunDir(gl.GetSun("pos"))
@@ -1205,7 +1223,7 @@ function M.attach(doc, ctx)
 		local x, y, z = widgetState.sunDirFromAzEl(val, el)
 		widgetState.envSetSunDir(x, y, z, "xyz")
 	end)
-	envSlider("slider-env-sun-el", "lbl-env-sun-el", function(v)
+	envSlider("slider-env-sun-el", function(v)
 		return v / 10
 	end, function()
 		local _, el = widgetState.azElFromSunDir(gl.GetSun("pos"))
@@ -1215,14 +1233,14 @@ function M.attach(doc, ctx)
 		local x, y, z = widgetState.sunDirFromAzEl(az, val)
 		widgetState.envSetSunDir(x, y, z, "xyz")
 	end)
-	envSlider("slider-env-gshadow", "lbl-env-gshadow", function(v)
+	envSlider("slider-env-gshadow", function(v)
 		return v / 1000
 	end, function()
 		return gl.GetSun("shadowDensity", "ground") * 1000
 	end, function(val)
 		Spring.SetSunLighting({ groundShadowDensity = val })
 	end)
-	envSlider("slider-env-ushadow", "lbl-env-ushadow", function(v)
+	envSlider("slider-env-ushadow", function(v)
 		return v / 1000
 	end, function()
 		return gl.GetSun("shadowDensity", "unit") * 1000
@@ -1233,7 +1251,7 @@ function M.attach(doc, ctx)
 	-- (onEnvResetSun now in initialModel in gui_terraform_brush.lua)
 
 	-- Sun intensity slider
-	envSlider("slider-env-sun-intensity", "lbl-env-sun-intensity", function(v)
+	envSlider("slider-env-sun-intensity", function(v)
 		return v / 1000
 	end, function()
 		return (widgetState.envSunIntensity or 1.0) * 1000
@@ -1248,14 +1266,14 @@ function M.attach(doc, ctx)
 	widgetState.envSunIntensity = widgetState.envSunIntensity or 1.0
 
 	-- ---- Fog & Atmosphere sliders ----
-	envSlider("slider-env-fog-start", "lbl-env-fog-start", function(v)
+	envSlider("slider-env-fog-start", function(v)
 		return v / 100
 	end, function()
 		return gl.GetAtmosphere("fogStart") * 100
 	end, function(val)
 		Spring.SetAtmosphere({ fogStart = val })
 	end)
-	envSlider("slider-env-fog-end", "lbl-env-fog-end", function(v)
+	envSlider("slider-env-fog-end", function(v)
 		return v / 100
 	end, function()
 		return gl.GetAtmosphere("fogEnd") * 100
@@ -1267,7 +1285,7 @@ function M.attach(doc, ctx)
 
 	-- Fog color
 	local function fogColorSlider(suffix, idx)
-		envSlider("slider-env-fog-" .. suffix, "lbl-env-fog-" .. suffix, function(v)
+		envSlider("slider-env-fog-" .. suffix, function(v)
 			return v / 1000
 		end, function()
 			local c = { gl.GetAtmosphere("fogColor") }
@@ -1287,7 +1305,7 @@ function M.attach(doc, ctx)
 
 	-- Sun color sliders
 	local function sunColorSlider(suffix, idx)
-		envSlider("slider-env-suncol-" .. suffix, "lbl-env-suncol-" .. suffix, function(v)
+		envSlider("slider-env-suncol-" .. suffix, function(v)
 			return v / 1000
 		end, function()
 			local c = { gl.GetAtmosphere("sunColor") }
@@ -1304,7 +1322,7 @@ function M.attach(doc, ctx)
 
 	-- Sky color sliders
 	local function skyColorSlider(suffix, idx)
-		envSlider("slider-env-skycol-" .. suffix, "lbl-env-skycol-" .. suffix, function(v)
+		envSlider("slider-env-skycol-" .. suffix, function(v)
 			return v / 1000
 		end, function()
 			local c = { gl.GetAtmosphere("skyColor") }
@@ -1321,7 +1339,7 @@ function M.attach(doc, ctx)
 
 	-- Cloud color sliders
 	local function cloudColorSlider(suffix, idx)
-		envSlider("slider-env-cloudcol-" .. suffix, "lbl-env-cloudcol-" .. suffix, function(v)
+		envSlider("slider-env-cloudcol-" .. suffix, function(v)
 			return v / 1000
 		end, function()
 			local c = { gl.GetAtmosphere("cloudColor") }
@@ -1403,7 +1421,10 @@ function M.attach(doc, ctx)
 	-- Snow auto-reduce checkbox
 	do
 		local snowApi = WG.snow
-		local autoReduce = snowApi and snowApi.getAutoReduce and snowApi.getAutoReduce() or true
+		local autoReduce = true
+		if snowApi and snowApi.getAutoReduce and snowApi.getAutoReduce() ~= nil then
+			autoReduce = snowApi.getAutoReduce()
+		end
 		envCheckbox("btn-env-snow-autoreduce", autoReduce, function(val)
 			if WG.snow then
 				WG.snow.setAutoReduce(val)
@@ -1412,7 +1433,7 @@ function M.attach(doc, ctx)
 	end
 
 	-- Snow density slider (multiplier 0.1 - 5.0)
-	envSlider("slider-env-snow-density", "lbl-env-snow-density", function(v)
+	envSlider("slider-env-snow-density", function(v)
 		return v / 100
 	end, function()
 		local snowApi = WG.snow
@@ -1424,7 +1445,7 @@ function M.attach(doc, ctx)
 	end)
 
 	-- Snow speed slider (multiplier 0.1 - 3.0)
-	envSlider("slider-env-snow-speed", "lbl-env-snow-speed", function(v)
+	envSlider("slider-env-snow-speed", function(v)
 		return v / 100
 	end, function()
 		local snowApi = WG.snow
@@ -1436,7 +1457,7 @@ function M.attach(doc, ctx)
 	end)
 
 	-- Snow size slider (multiplier 0.1 - 3.0)
-	envSlider("slider-env-snow-size", "lbl-env-snow-size", function(v)
+	envSlider("slider-env-snow-size", function(v)
 		return v / 100
 	end, function()
 		local snowApi = WG.snow
@@ -1448,7 +1469,7 @@ function M.attach(doc, ctx)
 	end)
 
 	-- Snow wind slider (0.0 - 20.0)
-	envSlider("slider-env-snow-wind", "lbl-env-snow-wind", function(v)
+	envSlider("slider-env-snow-wind", function(v)
 		return v / 10
 	end, function()
 		local snowApi = WG.snow
@@ -1460,7 +1481,7 @@ function M.attach(doc, ctx)
 	end)
 
 	-- Snow opacity slider (0.0 - 1.0)
-	envSlider("slider-env-snow-opacity", "lbl-env-snow-opacity", function(v)
+	envSlider("slider-env-snow-opacity", function(v)
 		return v / 100
 	end, function()
 		local snowApi = WG.snow
@@ -1473,7 +1494,7 @@ function M.attach(doc, ctx)
 
 	-- Snow color sliders
 	local function snowColorSlider(suffix, idx)
-		envSlider("slider-env-snowcol-" .. suffix, "lbl-env-snowcol-" .. suffix, function(v)
+		envSlider("slider-env-snowcol-" .. suffix, function(v)
 			return v / 1000
 		end, function()
 			local snowApi = WG.snow
@@ -1522,7 +1543,7 @@ function M.attach(doc, ctx)
 	-- ---- Lighting sliders ----
 	local function lightingSlider(prefix, sunKind, sunScope, lightingKey)
 		for i, suffix in ipairs({ "r", "g", "b" }) do
-			envSlider("slider-env-" .. prefix .. "-" .. suffix, "lbl-env-" .. prefix .. "-" .. suffix, function(v)
+			envSlider("slider-env-" .. prefix .. "-" .. suffix, function(v)
 				return v / 1000
 			end, function()
 				local r, g, b = gl.GetSun(sunKind, sunScope)
@@ -1579,7 +1600,7 @@ function M.attach(doc, ctx)
 	-- Splat tex multipliers
 	for ch = 0, 3 do
 		local chIdx = ch + 1
-		envSlider("slider-env-splatmult-" .. ch, "lbl-env-splatmult-" .. ch, function(v)
+		envSlider("slider-env-splatmult-" .. ch, function(v)
 			return v / 1000
 		end, function()
 			local r, g, b, a = gl.GetMapRendering("splatTexMults")
@@ -1596,7 +1617,7 @@ function M.attach(doc, ctx)
 	-- Splat tex scales
 	for ch = 0, 3 do
 		local chIdx = ch + 1
-		envSlider("slider-env-splatscale-" .. ch, "lbl-env-splatscale-" .. ch, function(v)
+		envSlider("slider-env-splatscale-" .. ch, function(v)
 			return v / 10000
 		end, function()
 			local r, g, b, a = gl.GetMapRendering("splatTexScales")
@@ -1608,18 +1629,6 @@ function M.attach(doc, ctx)
 			c[chIdx] = val
 			Spring.SetMapRenderingParams({ splatTexScales = c })
 		end)
-		-- Override label format to 3 decimal places
-		local lb = doc:GetElementById("lbl-env-splatscale-" .. ch)
-		local sl = doc:GetElementById("slider-env-splatscale-" .. ch)
-		if sl and lb then
-			sl:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then
-					return
-				end
-				local raw = tonumber(sl:GetAttribute("value")) or 0
-				lb.inner_rml = string.format("%.4f", raw / 10000)
-			end, false)
-		end
 	end
 
 	-- ---- Grass config popup controls ----
@@ -1744,7 +1753,7 @@ function M.attach(doc, ctx)
 	grassCfgPull()
 
 	-- ---- Skybox rotation sliders ----
-	envSlider("slider-env-skyangle", "lbl-env-skyangle", function(v)
+	envSlider("slider-env-skyangle", function(v)
 		return v / 100
 	end, function()
 		local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
@@ -1754,7 +1763,7 @@ function M.attach(doc, ctx)
 		Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, val } })
 	end)
 	local function skyAxisSlider(axis, idx)
-		envSlider("slider-env-skyaxis-" .. axis, "lbl-env-skyaxis-" .. axis, function(v)
+		envSlider("slider-env-skyaxis-" .. axis, function(v)
 			return v / 100
 		end, function()
 			local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
@@ -1775,7 +1784,7 @@ function M.attach(doc, ctx)
 
 	-- ---- Dynamic skybox rotation controls ----
 	local function skyDynSlider(axis, field)
-		envSlider("slider-env-skydyn-" .. axis, "lbl-env-skydyn-" .. axis, function(v)
+		envSlider("slider-env-skydyn-" .. axis, function(v)
 			return v / 100
 		end, function()
 			return skyDynamic[field] * 100
@@ -1809,33 +1818,33 @@ function M.attach(doc, ctx)
 
 	-- Water sliders
 	local waterSliders = {
-		{ "repeatx", "repeatx", 1, "repeatX", "repeatX", 1 },
-		{ "repeaty", "repeaty", 1, "repeatY", "repeatY", 1 },
-		{ "alpha", "alpha", 1000, "surfaceAlpha", "surfaceAlpha", 1000 },
-		{ "ambient", "ambient", 1000, "ambientFactor", "ambientFactor", 1000 },
-		{ "diffuse", "diffuse", 1000, "diffuseFactor", "diffuseFactor", 1000 },
-		{ "specular", "specular", 1000, "specularFactor", "specularFactor", 1000 },
-		{ "specpow", "specpow", 10, "specularPower", "specularPower", 10 },
-		{ "fresnelmin", "fresnelmin", 100, "fresnelMin", "fresnelMin", 100 },
-		{ "fresnelmax", "fresnelmax", 100, "fresnelMax", "fresnelMax", 100 },
-		{ "fresnelpow", "fresnelpow", 10, "fresnelPower", "fresnelPower", 10 },
-		{ "pfreq", "pfreq", 1, "perlinStartFreq", "perlinStartFreq", 1 },
-		{ "placun", "placun", 100, "perlinLacunarity", "perlinLacunarity", 100 },
-		{ "pamp", "pamp", 100, "perlinAmplitude", "perlinAmplitude", 100 },
-		{ "numtiles", "numtiles", 1, "numTiles", "numTiles", 1 },
-		{ "blurbase", "blurbase", 100, "blurBase", "blurBase", 100 },
-		{ "blurexp", "blurexp", 100, "blurExponent", "blurExponent", 100 },
-		{ "refldist", "refldist", 100, "reflectionDistortion", "reflectionDistortion", 100 },
-		{ "waveoff", "waveoff", 100, "waveOffsetFactor", "waveOffsetFactor", 100 },
-		{ "wavelen", "wavelen", 100, "waveLength", "waveLength", 100 },
-		{ "foamdist", "foamdist", 100, "waveFoamDistortion", "waveFoamDistortion", 100 },
-		{ "foamint", "foamint", 100, "waveFoamIntensity", "waveFoamIntensity", 100 },
-		{ "caustres", "caustres", 1, "causticsResolution", "causticsResolution", 1 },
-		{ "cauststr", "cauststr", 100, "causticsStrength", "causticsStrength", 100 },
+		{ "repeatx", 1, "repeatX", "repeatX", 1 },
+		{ "repeaty", 1, "repeatY", "repeatY", 1 },
+		{ "alpha", 1000, "surfaceAlpha", "surfaceAlpha", 1000 },
+		{ "ambient", 1000, "ambientFactor", "ambientFactor", 1000 },
+		{ "diffuse", 1000, "diffuseFactor", "diffuseFactor", 1000 },
+		{ "specular", 1000, "specularFactor", "specularFactor", 1000 },
+		{ "specpow", 10, "specularPower", "specularPower", 10 },
+		{ "fresnelmin", 100, "fresnelMin", "fresnelMin", 100 },
+		{ "fresnelmax", 100, "fresnelMax", "fresnelMax", 100 },
+		{ "fresnelpow", 10, "fresnelPower", "fresnelPower", 10 },
+		{ "pfreq", 1, "perlinStartFreq", "perlinStartFreq", 1 },
+		{ "placun", 100, "perlinLacunarity", "perlinLacunarity", 100 },
+		{ "pamp", 100, "perlinAmplitude", "perlinAmplitude", 100 },
+		{ "numtiles", 1, "numTiles", "numTiles", 1 },
+		{ "blurbase", 100, "blurBase", "blurBase", 100 },
+		{ "blurexp", 100, "blurExponent", "blurExponent", 100 },
+		{ "refldist", 100, "reflectionDistortion", "reflectionDistortion", 100 },
+		{ "waveoff", 100, "waveOffsetFactor", "waveOffsetFactor", 100 },
+		{ "wavelen", 100, "waveLength", "waveLength", 100 },
+		{ "foamdist", 100, "waveFoamDistortion", "waveFoamDistortion", 100 },
+		{ "foamint", 100, "waveFoamIntensity", "waveFoamIntensity", 100 },
+		{ "caustres", 1, "causticsResolution", "causticsResolution", 1 },
+		{ "cauststr", 100, "causticsStrength", "causticsStrength", 100 },
 	}
 	for _, ws in ipairs(waterSliders) do
-		local slSuffix, lblSuffix, divisor, getParam, setParam, getScale = ws[1], ws[2], ws[3], ws[4], ws[5], ws[6]
-		envSlider("slider-env-w-" .. slSuffix, "lbl-env-w-" .. lblSuffix, function(v)
+		local slSuffix, divisor, getParam, setParam, getScale = ws[1], ws[2], ws[3], ws[4], ws[5]
+		envSlider("slider-env-w-" .. slSuffix, function(v)
 			return v / divisor
 		end, function()
 			return (gl.GetWaterRendering(getParam) or 0) * getScale
@@ -1858,23 +1867,17 @@ function M.attach(doc, ctx)
 		}
 		for _, wc in ipairs(waterColorParams) do
 			for i, suffix in ipairs({ "r", "g", "b" }) do
-				envSlider(
-					"slider-env-wc-" .. wc.prefix .. "-" .. suffix,
-					"lbl-env-wc-" .. wc.prefix .. "-" .. suffix,
-					function(v)
-						return v / 1000
-					end,
-					function()
-						local c = { gl.GetWaterRendering(wc.param) }
-						return (c[i] or 0) * 1000
-					end,
-					function(val)
-						local c = { gl.GetWaterRendering(wc.param) }
-						c[i] = val
-						Spring.SetWaterParams({ [wc.param] = c })
-						Spring.SendCommands("water 4")
-					end
-				)
+				envSlider("slider-env-wc-" .. wc.prefix .. "-" .. suffix, function(v)
+					return v / 1000
+				end, function()
+					local c = { gl.GetWaterRendering(wc.param) }
+					return (c[i] or 0) * 1000
+				end, function(val)
+					local c = { gl.GetWaterRendering(wc.param) }
+					c[i] = val
+					Spring.SetWaterParams({ [wc.param] = c })
+					Spring.SendCommands("water 4")
+				end)
 			end
 			wireColorGroup({
 				paletteId = wc.paletteId,
@@ -1968,12 +1971,7 @@ function M.attach(doc, ctx)
 				local prefix, param = entry[1], entry[2]
 				local c = { gl.GetWaterRendering(param) }
 				for i, s in ipairs({ "r", "g", "b" }) do
-					envSetSlider(
-						"slider-env-wc-" .. prefix .. "-" .. s,
-						"lbl-env-wc-" .. prefix .. "-" .. s,
-						math.floor((c[i] or 0) * 1000 + 0.5),
-						string.format("%.2f", c[i] or 0)
-					)
+					envSetSlider("slider-env-wc-" .. prefix .. "-" .. s, math.floor((c[i] or 0) * 1000 + 0.5))
 				end
 				updatePreview(doc:GetElementById("env-wc-preview-" .. prefix), c[1], c[2], c[3])
 			end
@@ -2036,7 +2034,7 @@ function M.attach(doc, ctx)
 		end
 
 		-- Lava / acid shader overlay sliders
-		envSlider("slider-env-lava-amp", "lbl-env-lava-amp", function(v)
+		envSlider("slider-env-lava-amp", function(v)
 			return v
 		end, function()
 			return 2
@@ -2046,7 +2044,7 @@ function M.attach(doc, ctx)
 				ov.setTideAmplitude(val)
 			end
 		end)
-		envSlider("slider-env-lava-period", "lbl-env-lava-period", function(v)
+		envSlider("slider-env-lava-period", function(v)
 			return v
 		end, function()
 			return 200
@@ -2056,7 +2054,7 @@ function M.attach(doc, ctx)
 				ov.setTidePeriod(val)
 			end
 		end)
-		envSlider("slider-env-lava-fogheight", "lbl-env-lava-fogheight", function(v)
+		envSlider("slider-env-lava-fogheight", function(v)
 			return v
 		end, function()
 			return 20
@@ -2070,17 +2068,8 @@ function M.attach(doc, ctx)
 
 	-- ---- Dimensions panel controls ----
 	do
-		-- Populate map size labels (driven by {{envMapXStr}}/{{envMapZStr}} in RML)
-		if widgetState.dmHandle then
-			local vx = tostring(Game.mapSizeX)
-			if widgetState.dmHandle.envMapXStr ~= vx then
-				widgetState.dmHandle.envMapXStr = vx
-			end
-			local vz = tostring(Game.mapSizeZ)
-			if widgetState.dmHandle.envMapZStr ~= vz then
-				widgetState.dmHandle.envMapZStr = vz
-			end
-		end
+		-- (the map size readout moved into MAP TRANSFORM, which states it in the
+		-- unit its own controls use; envRefreshXform writes those strings)
 
 		-- Height extreme labels (driven by {{envInitMinStr}}/etc. in RML)
 		local function refreshDimExtremes()
@@ -2301,6 +2290,309 @@ function M.attach(doc, ctx)
 		-- colorSliders loop for the same reason as the HEIGHT RANGE pair.
 		widgetState.envWireDimStepper("waterlevel")
 		widgetState.envWireDimStepper("wl")
+
+		-- ---- MAP TRANSFORM section ----
+		-- One function owns every reactive part of it: the canonical spec, the
+		-- labels, and the three boxes in the footprint preview. The handlers in
+		-- gui_terraform_brush.lua only move state and call this, so there is a
+		-- single place where a spec turns into what the user sees.
+		-- On widgetState, not locals: M.attach is near the Lua 5.1 200-local cap.
+		widgetState.envResetXform = function()
+			widgetState.xformMode = "transform"
+			widgetState.xformDir = "right"
+			widgetState.xformFill = "copy"
+			widgetState.xformCopy = "mirror"
+			widgetState.xformRot = 0
+			widgetState.xformMirrorX = false
+			widgetState.xformMirrorZ = false
+			widgetState.xformFit = "stretch"
+			widgetState.xformAnchorX = 0
+			widgetState.xformAnchorZ = 0
+			widgetState.xformW = math.floor(Game.mapSizeX / 512)
+			widgetState.xformH = math.floor(Game.mapSizeZ / 512)
+			widgetState.xformArmedUntil = nil
+			if widgetState.envRefreshXform then
+				widgetState.envRefreshXform()
+			end
+		end
+
+		-- Where each side of the map sits after the transform, in words.
+		widgetState.envXformAnchorWords = function(ax, az)
+			local vertical = (az < 0) and "top" or ((az > 0) and "bottom" or "")
+			local horizontal = (ax < 0) and "left" or ((ax > 0) and "right" or "")
+			if vertical == "" and horizontal == "" then
+				return "kept centred"
+			elseif vertical == "" then
+				return "pinned " .. horizontal
+			elseif horizontal == "" then
+				return "pinned " .. vertical
+			end
+			return "pinned " .. vertical .. " " .. horizontal
+		end
+
+		widgetState.envRefreshXform = function()
+			local dm = widgetState.dmHandle
+			if not dm then
+				return
+			end
+			---@type table?
+			local mt = WG.MapTransform
+			if not (mt and mt.math) then
+				if dm.envXformSummaryStr ~= "The map transform widget is not loaded." then
+					dm.envXformSummaryStr = "The map transform widget is not loaded."
+					dm.envXformApplyStr = "UNAVAILABLE"
+				end
+				return
+			end
+			local math_lib = mt.math
+			local srcW, srcH = Game.mapSizeX, Game.mapSizeZ
+			local expanding = (widgetState.xformMode == "expand")
+			local spec = math_lib.canonical({
+				rot = widgetState.xformRot or 0,
+				mirrorX = widgetState.xformMirrorX,
+				mirrorZ = widgetState.xformMirrorZ,
+				fit = widgetState.xformFit or "stretch",
+				anchorX = widgetState.xformAnchorX or 0,
+				anchorZ = widgetState.xformAnchorZ or 0,
+			})
+			-- canonical() folds a double mirror into a half turn; write it back so
+			-- the buttons and the transform agree on what is set.
+			widgetState.xformRot = spec.rot
+			widgetState.xformMirrorX = spec.mirrorX
+			widgetState.xformMirrorZ = spec.mirrorZ
+
+			-- Both modes end as a list of placements on a destination canvas,
+			-- which is all the preview and the summary below need to know.
+			-- Seeded with the plain-transform case rather than declared bare: a
+			-- local with no value types nil for good, and every later read of
+			-- dstW/dstH then reads as possibly-nil however many branches assign it.
+			local setW = widgetState.xformW or math.floor(srcW / 512)
+			local setH = widgetState.xformH or math.floor(srcH / 512)
+			local plan, dstW, dstH = { spec }, setW * 512, setH * 512
+			local copyMode = nil
+			if expanding then
+				if widgetState.xformFill ~= "empty" then
+					copyMode = widgetState.xformCopy or "mirror"
+				end
+				-- Through their own locals and back with `or`: expandPlan reaches the
+				-- panel as an `any` call (math_lib hangs off a `table?`), so a direct
+				-- multi-return assignment re-widens dstW/dstH to possibly-nil.
+				local xPlan, xW, xH = math_lib.expandPlan(widgetState.xformDir or "right", copyMode, srcW, srcH)
+				plan = xPlan or plan
+				dstW = xW or dstW
+				dstH = xH or dstH
+			end
+			local unitsW, unitsH = math.floor(dstW / 512), math.floor(dstH / 512)
+			local placements = {}
+			for i, p in ipairs(plan) do
+				placements[i] = math_lib.new(p, srcW, srcH, dstW, dstH)
+			end
+			-- The first placement is built as its own value rather than read back
+			-- with placements[1]: an indexed read types as possibly-nil, and every
+			-- use of it below would have to be guarded against a case that cannot
+			-- happen. Same reasoning as job.T in cmd_map_transform, and the list
+			-- above is left exactly as it was so ITS reads keep their own typing.
+			local T = math_lib.new(plan[1] or spec, srcW, srcH, dstW, dstH)
+
+			local function setStr(key, value)
+				if dm[key] ~= value then
+					dm[key] = value
+				end
+			end
+			setStr("envXformWStr", tostring(unitsW))
+			setStr("envXformHStr", tostring(unitsH))
+			setStr("envXformFit", spec.fit)
+			setStr("envXformAnchor", string.format("%d,%d", spec.anchorX, spec.anchorZ))
+			setStr("envXformMode", expanding and "expand" or "transform")
+			setStr("envXformDir", widgetState.xformDir or "right")
+			setStr("envXformFill", widgetState.xformFill or "copy")
+			setStr("envXformCopy", widgetState.xformCopy or "mirror")
+			-- One derived flag rather than a two-term test in the RML: the data
+			-- expression parser would need an escaped `&&` in the attribute.
+			setStr("envXformAnchorRow", (not expanding) and spec.fit == "keep")
+			-- The steppers already say "units", so the line under them carries the
+			-- figure they do not: what the canvas measures in elmos.
+			setStr("envXformSizeStr", string.format("%d x %d elmos", dstW, dstH))
+			setStr("envXformCurrentStr", string.format("%d x %d units", math.floor(srcW / 512), math.floor(srcH / 512)))
+			setStr("envXformCurrentElmoStr", string.format("%d x %d elmos", srcW, srcH))
+			setStr("envXformAnchorStr", widgetState.envXformAnchorWords(spec.anchorX, spec.anchorZ))
+			-- A screen-space flip is a mirror in X on an upright map and a mirror
+			-- in Z on a quarter-turned one; light the button the user pressed.
+			-- Not an `and/or` ternary: both sides are booleans, so a false left
+			-- hand would fall through to the wrong mirror.
+			local flipH, flipV = spec.mirrorX, spec.mirrorZ
+			if spec.rot == 90 or spec.rot == 270 then
+				flipH, flipV = spec.mirrorZ, spec.mirrorX
+			end
+			setStr("envXformFlipH", flipH)
+			setStr("envXformFlipV", flipV)
+
+			-- Where the current map lands on the new canvas, in destination elmos.
+			local x0, z0 = T:srcToDst(0, 0)
+			local x1, z1 = T:srcToDst(srcW, srcH)
+			local minX, maxX = math.min(x0, x1), math.max(x0, x1)
+			local minZ, maxZ = math.min(z0, z1), math.max(z0, z1)
+
+			-- Summary. What is lost and what is gained is the part a preview
+			-- cannot say precisely, so it is spelled out.
+			local parts = {}
+			if expanding then
+				local words = math_lib.describeExpand(widgetState.xformDir or "right", copyMode)
+				parts[#parts + 1] = words:sub(1, 1):upper() .. words:sub(2)
+				if copyMode then
+					parts[#parts + 1] = "everything on it is duplicated with the ground"
+				end
+			elseif T:isIdentity() then
+				parts[#parts + 1] = "This is the map you already have."
+			else
+				local orient = math_lib.describe(spec)
+				local sized = (dstW ~= srcW or dstH ~= srcH)
+				if orient ~= "no rotation" then
+					parts[#parts + 1] = orient:sub(1, 1):upper() .. orient:sub(2)
+				end
+				if sized then
+					if spec.fit == "keep" then
+						parts[#parts + 1] = string.format(
+							"%dx%d units at true scale, %s",
+							unitsW,
+							unitsH,
+							widgetState.envXformAnchorWords(spec.anchorX, spec.anchorZ)
+						)
+					else
+						parts[#parts + 1] = string.format("stretched onto %dx%d units", unitsW, unitsH)
+					end
+				end
+				local overlapW = math.max(0, math.min(maxX, dstW) - math.max(minX, 0))
+				local overlapH = math.max(0, math.min(maxZ, dstH) - math.max(minZ, 0))
+				local srcArea = (maxX - minX) * (maxZ - minZ)
+				local overlap = overlapW * overlapH
+				if srcArea > 0 and overlap < srcArea * 0.999 then
+					parts[#parts + 1] =
+						string.format("cuts %d%% of the map", math.floor((1 - overlap / srcArea) * 100 + 0.5))
+				end
+				if dstW * dstH > 0 and overlap < dstW * dstH * 0.999 then
+					parts[#parts + 1] =
+						string.format("adds %d%% new ground", math.floor((1 - overlap / (dstW * dstH)) * 100 + 0.5))
+				end
+			end
+			setStr(
+				"envXformSummaryStr",
+				table.concat(parts, ", ") .. ((not expanding and T:isIdentity()) and "" or ".")
+			)
+
+			-- Button label doubles as the state: idle, armed, or running.
+			local label = "APPLY"
+			-- Nothing to apply = the button greys out (data-class-disabled picks up
+			-- the shared .disabled rule, which also stops the click).
+			local idle = false
+			local step, total, name = mt.progress()
+			if step then
+				label = string.format("WORKING %d/%d %s", step, total, tostring(name):upper())
+			elseif unitsW > 32 or unitsH > 32 then
+				-- the blank map generator's ceiling; doubling walks into it fast
+				label = "TOO BIG"
+				idle = true
+			elseif not expanding and T:isIdentity() then
+				label = "NO CHANGE"
+				idle = true
+			elseif widgetState.xformArmedUntil then
+				if os.clock() > widgetState.xformArmedUntil then
+					widgetState.xformArmedUntil = nil
+				else
+					label = "CONFIRM - RESTARTS"
+				end
+			end
+			setStr("envXformApplyStr", label)
+			setStr("envXformIdle", idle)
+
+			-- Preview. Both footprints are drawn in one shared frame so a crop
+			-- and an extension read the same way: the union of the new canvas and
+			-- the placed map, scaled to fit the box.
+			local pad, avail = 4, 110
+			local ux0, uz0 = math.min(0, minX), math.min(0, minZ)
+			local ux1, uz1 = math.max(dstW, maxX), math.max(dstH, maxZ)
+			for i = 2, #placements do
+				local bx0, bz0 = placements[i]:srcToDst(0, 0)
+				local bx1, bz1 = placements[i]:srcToDst(srcW, srcH)
+				ux0 = math.min(ux0, bx0, bx1)
+				uz0 = math.min(uz0, bz0, bz1)
+				ux1 = math.max(ux1, bx0, bx1)
+				uz1 = math.max(uz1, bz0, bz1)
+			end
+			local span = math.max(ux1 - ux0, uz1 - uz0)
+			if span <= 0 then
+				return
+			end
+			local scale = avail / span
+			local offX = pad + (avail - (ux1 - ux0) * scale) * 0.5
+			local offZ = pad + (avail - (uz1 - uz0) * scale) * 0.5
+			local function place(id, px0, pz0, px1, pz1)
+				local el = doc:GetElementById(id)
+				if not el then
+					return
+				end
+				el:SetAttribute(
+					"style",
+					string.format(
+						"left: %.1fdp; top: %.1fdp; width: %.1fdp; height: %.1fdp;",
+						offX + (px0 - ux0) * scale,
+						offZ + (pz0 - uz0) * scale,
+						math.max(2, (px1 - px0) * scale),
+						math.max(2, (pz1 - pz0) * scale)
+					)
+				)
+			end
+			local function hide(id)
+				local el = doc:GetElementById(id)
+				if el then
+					el:SetAttribute("style", "width: 0dp; height: 0dp;")
+				end
+			end
+			place("tf-xform-prev-dst", 0, 0, dstW, dstH)
+			place("tf-xform-prev-src", minX, minZ, maxX, maxZ)
+			-- The duplicated half, in its own colour, with its own corner dot:
+			-- together they say which way the copy was turned over.
+			if placements[2] then
+				local cx0, cz0 = placements[2]:srcToDst(0, 0)
+				local cx1, cz1 = placements[2]:srcToDst(srcW, srcH)
+				place(
+					"tf-xform-prev-src2",
+					math.min(cx0, cx1),
+					math.min(cz0, cz1),
+					math.max(cx0, cx1),
+					math.max(cz0, cz1)
+				)
+				local el = doc:GetElementById("tf-xform-prev-mark2")
+				if el then
+					el:SetAttribute(
+						"style",
+						string.format(
+							"left: %.1fdp; top: %.1fdp;",
+							offX + (cx0 - ux0) * scale - 4.5,
+							offZ + (cz0 - uz0) * scale - 4.5
+						)
+					)
+				end
+			else
+				hide("tf-xform-prev-src2")
+				hide("tf-xform-prev-mark2")
+			end
+			-- The dot marks where the map's present north-west corner ends up, so
+			-- a turn and a flip are told apart at a glance.
+			local markEl = doc:GetElementById("tf-xform-prev-mark")
+			if markEl then
+				local mx, mz = T:srcToDst(0, 0)
+				markEl:SetAttribute(
+					"style",
+					string.format(
+						"left: %.1fdp; top: %.1fdp;",
+						offX + (mx - ux0) * scale - 4.5,
+						offZ + (mz - uz0) * scale - 4.5
+					)
+				)
+			end
+		end
+		widgetState.envResetXform()
 	end
 
 	-- (onEnvSave / onEnvLoad now in initialModel in gui_terraform_brush.lua)
