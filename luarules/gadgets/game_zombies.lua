@@ -155,7 +155,6 @@ local IDLEMODE_FLY = 0
 local ZOMBIE_EXPIRING_BUILDING_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't want random zombie immobile trash taking up unit cap forever.
 local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
 local ZOMBIE_EXPIRING_FACTORY_LIFETIME = Game.gameSpeed * 60 * 5
-local ZOMBIE_PERMANENT_FACTORY_TECH_LEVEL = 3
 
 local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
 local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
@@ -392,8 +391,7 @@ do
 			isExpiringBuilding = unitDef.speed <= 0
 				and not unitDef.isFactory
 				and rezPower <= ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT,
-			isExpiringFactory = unitDef.isFactory
-				and (tonumber(customParams.techlevel) or 1) < ZOMBIE_PERMANENT_FACTORY_TECH_LEVEL,
+			isExpiringFactory = unitDef.isFactory,
 			excludedFromWraithSpawn = isExcludedFromWraithSpawn(unitDef),
 			scavVariantUnitDefID = getScavVariantUnitDefID(unitDef, unitDefID),
 			spawnExplosionCeg = getSpawnExplosionCeg(unitDef),

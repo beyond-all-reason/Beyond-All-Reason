@@ -233,7 +233,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			local optionDef = UnitDefs[optionDefID]
 			local isConstructor = optionDef and optionDef.isBuilder and optionDef.speed > 0
 			local isResurrector = optionDef and optionDef.canResurrect
-			if unitDefWeaponRanges[optionDefID] or isConstructor or isResurrector then
+			local isExcluded = optionDef and optionDef.customParams.zombie_factory_exclude
+			if not isExcluded and (unitDefWeaponRanges[optionDefID] or isConstructor or isResurrector) then
 				wantedOptions[#wantedOptions + 1] = optionDefID
 			end
 		end
