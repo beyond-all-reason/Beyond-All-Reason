@@ -931,10 +931,12 @@ local function expireDueBuildings(frame)
 	for buildingIndex = 1, #expiringBuildings do
 		local unitID = expiringBuildings[buildingIndex]
 		local unitDefID = spring.ValidUnitID(unitID) and spring.GetUnitDefID(unitID)
-		local defData = unitDefID and zombieUnitDefs[unitDefID]
-		if defData and isZombie(unitID) and (defData.isExpiringBuilding or defData.isExpiringFactory) then
-			suppressedDeaths[unitID] = true
-			spring.DestroyUnit(unitID, true, true)
+		if unitDefID and isZombie(unitID) then
+			local defData = zombieUnitDefs[unitDefID]
+			if defData.isExpiringBuilding or defData.isExpiringFactory then
+				suppressedDeaths[unitID] = true
+				spring.DestroyUnit(unitID, true, true)
+			end
 		end
 	end
 end
