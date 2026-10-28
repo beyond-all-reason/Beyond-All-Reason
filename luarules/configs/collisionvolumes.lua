@@ -237,7 +237,7 @@ dynamicPieceCollisionVolume.cordoomt3 = {
 		[1] = { 112, 180, 112, 0, 5, 0, 1, 1 },
 	},
 	off = {
-		[0] = { 96, 80, 96, 0, 10, 0, 2, 1 },
+		[0] = { 76, 154, 76, 0, 77, 0, 2, 1 },
 	},
 }
 dynamicPieceCollisionVolume.leganavybattleship = {
