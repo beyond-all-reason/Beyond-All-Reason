@@ -75,8 +75,39 @@ function M.sync(doc, ctx, mbState, setSummary)
 
 		if dm then
 			local v = string.format("%.1f", mbState.metalValue)
+			-- A stamp this size cannot hold the value on this map: show the most it gets.
+			local reach = mbState.stampReach
+			if mbState.subMode == "stamp" and reach and mbState.stampCapped then
+				v = v .. string.format(reach < 0.1 and "  (max %.3f)" or "  (max %.2f)", reach)
+			end
 			if dm.mbValueStr ~= v then
 				dm.mbValueStr = v
+			end
+		end
+
+		-- maxMetal below 0.1 (a New Map canvas on the current engine): a note says why
+		-- stamps stay small. Hidden on real maps.
+		do
+			local note = getCachedEl(doc, "mb-cap-note")
+			local cap = mbState.squareCap
+			local tiny = cap and cap < (mbState.tinySquareCap or 25.5)
+			if note then
+				note:SetClass("hidden", not tiny)
+				-- Rewritten only when the cap or the element (a panel reload) changes.
+				if tiny and (widgetState.mbCapNoteCap ~= cap or widgetState.mbCapNoteEl ~= note) then
+					widgetState.mbCapNoteCap, widgetState.mbCapNoteEl = cap, note
+					local function trim(v, decimals)
+						local s = string.format("%." .. decimals .. "f", v):gsub("0+$", ""):gsub("%.$", "")
+						return s
+					end
+					local text = string.format(
+						"This map caps metal at %s per square (maxMetal: one metal square holds at most %s), so a stamp's spot holds at most its squares x %s / 1000. New Map canvases on the current engine use the engine defaults until its update. A larger brush gives a bigger spot.",
+						trim(cap / 255, 3),
+						trim(cap, 2),
+						trim(cap, 2)
+					)
+					note.inner_rml = text
+				end
 			end
 		end
 

@@ -28,6 +28,8 @@ local UNDO_HEADER = "$metal_undo$"
 local UNDO_HEADER_LEN = #UNDO_HEADER
 local REDO_HEADER = "$metal_redo$"
 local REDO_HEADER_LEN = #REDO_HEADER
+local CAP_HEADER = "$metal_cap$"
+local CAP_HEADER_LEN = #CAP_HEADER
 
 local CHEAT_SIG = "$c$"
 local CHEAT_SIG_LEN = #CHEAT_SIG
@@ -92,15 +94,22 @@ end
 
 -- Metal per byte step of a metal square (maxMetal / 255; Lua cannot read maxMetal).
 -- Measured once by overfilling square 0,0, which clamps to 255 steps, then restored.
+-- The per-square cap (step * 255) goes to a game rules param for the METAL readout:
+-- LuaUI cannot write metal, so it cannot measure it.
 ---@type number?
 local metalStepCache = nil
 local function metalMapStep()
 	if not metalStepCache then
 		local old = spGetMetalAmount(0, 0)
-		spSetMetalAmount(0, 0, 1e9)
+		-- 1e5, not more: 1e9 on a New Map canvas (maxMetal 0.02) stores 0, not the top
+		-- step, which read as no cap at all.
+		spSetMetalAmount(0, 0, 1e5)
 		local top = spGetMetalAmount(0, 0)
 		spSetMetalAmount(0, 0, old)
 		metalStepCache = (top and top > 0) and (top / 255) or 1
+		if top and top > 0 then
+			Spring.SetGameRulesParam("mb_square_cap", top)
+		end
 	end
 	return metalStepCache
 end
@@ -324,7 +333,9 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 			local sq = written[i]
 			---@cast sq -nil
 			local before = spGetMetalAmount(sq[1], sq[2])
-			spSetMetalAmount(sq[1], sq[2], before + dir * step)
+			-- Aim at the middle of the next step: the engine truncates, and exactly one
+			-- step up can land a hair short and stay on the same one.
+			spSetMetalAmount(sq[1], sq[2], before + (dir + 0.5) * step)
 			if spGetMetalAmount(sq[1], sq[2]) ~= before then
 				left = left - 1
 			end
@@ -484,6 +495,14 @@ function gadget:RecvLuaMsg(msg, playerID)
 		applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg, direction)
 		recalcNearbyExtractors(centerX, centerZ, radius)
 		metalChanged()
+		return
+	end
+
+	-- CAP: $metal_cap$[$c$] asks for the per-square cap (sent while the METAL tool is open).
+	if msg:sub(1, CAP_HEADER_LEN) == CAP_HEADER then
+		if isAllowed(msg:sub(CAP_HEADER_LEN + 1, CAP_HEADER_LEN + CHEAT_SIG_LEN) == CHEAT_SIG) then
+			metalMapStep()
+		end
 		return
 	end
 

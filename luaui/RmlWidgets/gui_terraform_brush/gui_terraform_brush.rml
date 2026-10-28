@@ -1634,6 +1634,8 @@
 				<div id="btn-metal-value-up" class="tf-sm-btn" data-event-mousedown="onMbValueUp()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 				<input type="text" id="slider-metal-value-numbox" class="tf-slider-numbox" value="0" />
 			</div>
+			<!-- Shown by tf_metal.lua only when the map's maxMetal is tiny (New Map canvases) -->
+			<div id="mb-cap-note" class="text-base text-light hidden" style="opacity: 0.8; margin-bottom: 4dp;"></div>
 
 
 			<!-- Metal Size -->
