@@ -1,4 +1,11 @@
-if not BAR.Utilities.IsDevMode() then
+-- a replay re-runs the recorded scan requests, and reloading synced gadgets mid-replay breaks it
+if not BAR.Utilities.IsDevMode() or Game.demoPlayName then
+	return
+end
+
+-- GetConfigInt is unsynced only; the synced half scans when any player's unsynced half asks, so it stays
+-- in every client's gadget list and the config only stops this client from asking
+if not gadgetHandler:IsSyncedCode() and Spring.GetConfigInt("GadgetAutoReloader", 1) == 0 then
 	return
 end
 
