@@ -577,7 +577,7 @@ local function setReloadTime(unitID, times, previous)
 	-- Units can have animation states tied to reload state and reload time.
 	for weaponNum in ipairs(getWeaponBaselines(unitDefID)) do
 		local reloadTime = toFrameTime(times[weaponNum])
-		local before
+		local before ---@type number?
 		if previous then
 			before = toFrameTime(previous[weaponNum])
 		else
@@ -671,7 +671,7 @@ end
 ---
 ---A `false` return means the write was blocked or declined, and the attribute stays marked.
 ---Marked attributes are retried on a later frame, so (eg) MoveCtrl can release a unit properly.
----@alias UnitAttributeApply fun(unitID: UnitID, value: any): boolean?
+---@alias UnitAttributeApply fun(unitID: UnitID, value: any, previous: any?): boolean?
 
 ---@type table<string, UnitAttributeApply>
 local applyUnitAttribute = {
