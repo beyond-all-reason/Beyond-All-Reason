@@ -5,7 +5,7 @@
 
 piece  base, thrust, firepoint, bomb, basefirepoint;
 
-static-var  statechg_DesiredState, statechg_StateChanging, detonating;
+static-var  statechg_DesiredState, statechg_StateChanging, detonating, releaseGravity, releasePitchTolerance, releaseHeadingTolerance, lastY, climb;
 
 #define SIG_AIM				2
 
@@ -55,10 +55,30 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
+TrackClimb()
+{
+	// AimWeapon1 needs the vertical speed. COB cannot read it directly.
+	lastY = get UNIT_Y;
+	while(TRUE)
+	{
+		sleep 1;
+		climb = (get UNIT_Y) - lastY;
+		lastY = lastY + climb;
+	}
+}
+
 Create()
 {
 	hide thrust;
 	call-script InitState();
+	start-script TrackClimb();
+}
+
+SetReleaseWindowWeapon1(gravity, pitchTolerance, headingTolerance)
+{
+	releaseGravity = gravity;
+	releasePitchTolerance = pitchTolerance;
+	releaseHeadingTolerance = headingTolerance;
 }
 
 Activate()
@@ -73,9 +93,50 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-AimWeapon1()
+// The weapon uses a generous range and tolerance that we then restrict to believable trajectories.
+// Use the bomber's velocity to get the bomb's drop time: T = (vy + sqrt(vy^2 + 2 g h)) / g frames.
+// Then, remove the bomber's pitch to get the angle below horizon of that drop: atan(h / (vh T)).
+AimWeapon1(heading, pitch)
 {
-	return (FALSE);
+	var targetID, height, vy, vh, gravity, frames, reach, rise, nose;
+
+	targetID = get TARGET_ID(1);
+	if(targetID > 0)
+	{
+		height = (get UNIT_Y) - (get UNIT_Y(targetID));
+	}
+	else
+	{
+		height = (get UNIT_Y) - (get GROUND_HEIGHT(get UNIT_XZ)); // rough guess for ground targets
+	}
+	if(height < 0)
+	{
+		height = 0;
+	}
+
+	// Distances are in 1/1024 elmo to keep the products within COB's integer range.
+	// Lengths enter COB as 1/65536 elmo. We work in 1/1024, so we divide by 64 here.
+	height = height / 64;
+	vy = climb / 64;
+	vh = (get CURRENT_SPEED) / 64;
+	vh = get SQRT(get MAX(vh * vh - vy * vy, 1));
+	gravity = releaseGravity / 64;
+	frames = (vy + (get SQRT(vy * vy + 2 * gravity * height))) * 1024 / gravity;
+	reach = vh * frames / 1024;
+
+	// 10496 (in 1/256) is 41 elmos, the distance between the base and thrust pieces.
+	rise = ((get PIECE_Y(base)) - (get PIECE_Y(thrust))) / 256;
+	nose = get ATAN(rise, get SQRT(get MAX(10496 * 10496 - rise * rise, 0)));
+
+	if(releasePitchTolerance < (get ABS((get ATAN(height, reach)) + pitch + nose)))
+	{
+		return (FALSE);
+	}
+	if(releaseHeadingTolerance < (get ABS(heading)))
+	{
+		return (FALSE);
+	}
+	return (TRUE);
 }
 
 AimWeapon2()
@@ -91,23 +152,22 @@ AimWeapon3()
 	return (FALSE);
 }
 
-FireWeapon1()
+BlockShot1(targetID, block, userTarget)
 {
-	sleep 500;
+	block = TRUE;
 	emit-sfx 1024 + 1 from base;
 	detonating = TRUE; // Killed reads this rather than inferring the cause of death from severity
-	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 fires
-	return (0);
+	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 triggers
 }
 
 QueryWeapon1(piecenum)
 {
-	piecenum = thrust;
+	piecenum = firepoint;
 }
 
 AimFromWeapon1(piecenum)
 {
-	piecenum = base;
+	piecenum = firepoint;
 }
 
 FireWeapon2()

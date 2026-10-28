@@ -37,7 +37,7 @@ return {
 		wingangle = 0.06222,
 		wingdrag = 0.18,
 		customparams = {
-			areaattack_unlimited = true,
+			istorpedobomber = true,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air/T2 Air",

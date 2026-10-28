@@ -3793,7 +3793,7 @@ local icontypes = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996,
 	},
-	scavapparition = {
+	scavwraith = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995,
 	},
