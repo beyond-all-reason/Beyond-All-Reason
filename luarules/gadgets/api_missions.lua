@@ -136,6 +136,8 @@ function gadget:Initialize()
 	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
 	GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
+	local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes
+	parameterTypes.Enums[parameterTypes.Types.EffectType] = GG["MissionAPI"].EffectDefinitions.Types
 
 	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
 

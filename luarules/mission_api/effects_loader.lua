@@ -1,8 +1,6 @@
 local EFFECTS_DIR = "luarules/mission_api/effects/"
 local EFFECT_FILES_PATTERN = "*.lua"
 
-local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes
-
 local function loadEffectDefinitions()
 	local effects = {}
 	local effectTypes = {}
@@ -21,11 +19,9 @@ local function loadEffectDefinitions()
 		effectTypes[effectType] = true
 	end
 
-	-- Populates the type enum for validation and the mission editor.
-	parameterTypes.Enums[parameterTypes.Types.EffectID] = effectTypes
-
 	return {
 		Effects = effects,
+		Types = effectTypes,
 	}
 end
 
