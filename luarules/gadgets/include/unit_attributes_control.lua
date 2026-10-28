@@ -1619,7 +1619,11 @@ local function applyOnPreDamaged(damage, weaponDefID, attackerID)
 	end
 end
 
--- Shutdown --------------------------------------------------------------------
+-- Lifecycle -------------------------------------------------------------------
+
+local function initialize()
+	spCallLuaScript = unitScript.CallAsUnitNoReturn
+end
 
 local function clearAll()
 	for unitID, attributes in pairs(appliedValues) do
@@ -1679,6 +1683,7 @@ return {
 	SetWeaponDefParent = setWeaponDefParent,
 	ApplyOnPreDamaged = applyOnPreDamaged,
 
+	Initialize = initialize,
 	ApplyOnCreated = applyOnCreated,
 	ApplyOnDestroyed = applyOnDestroyed,
 	ApplyOnGiven = applyOnGiven,
