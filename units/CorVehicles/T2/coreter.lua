@@ -30,7 +30,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 330,
-		speed = 41.4,
+		speed = 41,
 		trackoffset = 3,
 		trackstrength = 6,
 		tracktype = "corwidetracks",
@@ -40,6 +40,7 @@ return {
 		turninplacespeedlimit = 0.95832,
 		turnrate = 619.29999,
 		customparams = {
+			deactivate_time = 8,
 			juno_kill = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

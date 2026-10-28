@@ -21,17 +21,23 @@ local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
 local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
 local spIsCheatingEnabled = Spring.IsCheatingEnabled
+local spGetAllFeatures = Spring.GetAllFeatures
 local spGetFeaturesInRectangle = Spring.GetFeaturesInRectangle
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureHeading = Spring.GetFeatureHeading
+local spGetFeatureRotation = Spring.GetFeatureRotation
+local spGetGroundNormal = Spring.GetGroundNormal
 local spEcho = Spring.Echo
+local spGetGameFrame = Spring.GetGameFrame
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glDepthTest = gl.DepthTest
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
+local glTexCoord = gl.TexCoord
+local spGetLuaMemUsage = Spring.GetLuaMemUsage
 local glPolygonOffset = gl.PolygonOffset
 local glBlending = gl.Blending
 local glTexture = gl.Texture
@@ -39,10 +45,11 @@ local glTexRect = gl.TexRect
 local glCreateTexture = gl.CreateTexture
 local glDeleteTexture = gl.DeleteTexture
 local glRenderToTexture = gl.RenderToTexture
-local glReadPixels = gl.ReadPixels
 
 local GL_LINE_LOOP = GL.LINE_LOOP
+local GL_LINES = GL.LINES
 local GL_QUADS = GL.QUADS
+local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
@@ -55,6 +62,7 @@ local sin = math.sin
 local rad = math.rad
 local abs = math.abs
 local huge = math.huge
+local pi = math.pi
 
 local Game = Game
 local mapSizeX = Game.mapSizeX
@@ -74,6 +82,7 @@ local MSG_TBEGIN = "$clone_tbegin$"
 local MSG_TGRID = "$clone_tgrid$"
 local MSG_TEND = "$clone_tend$"
 
+local TERRAIN_CHUNK_SIZE = 400 -- vertices per message (legacy triplet format)
 local GRID_HEIGHTS_PER_CHUNK = 3000 -- heights per grid message (~15KB)
 
 -- ---------------------------------------------------------------------------
@@ -102,6 +111,10 @@ local layers = {
 	metal = true,
 	features = true,
 	splats = true,
+	-- The tileset shader's variant paint (the SURFACE tool). Its mask belongs to
+	-- the surface painter, which is a write-dir widget, so the layer quietly
+	-- carries nothing when that widget is not installed.
+	surface = true,
 	grass = true,
 	decals = false,
 	weather = false,
@@ -109,22 +122,30 @@ local layers = {
 }
 
 -- Clone buffer
+---@type table?
 local cloneBuffer = nil
 
 -- Paste state
 local pasteRotation = 0
 local pasteHeightOffset = 0
+local PASTE_HEIGHT_LIMIT = 500 -- the panel slider's range; Shift+wheel stops here too
 local pasteMirrorX = false
 local pasteMirrorZ = false
+-- Paste mode: "replace", "raise" (RAISE ONLY, a max blend) or "lower" (LOWER ONLY,
+-- a min blend). See the include for what each keeps and how the layers follow.
+local PasteMask = VFS.Include("luaui/Include/clone_paste_mask.lua")
+local pasteBlend = "replace"
 
--- Paste-preview terrain sample cache: drawPastePreview otherwise re-samples
--- GetGroundHeight (plus transformPoint) for every preview cell every frame.
--- Rebuilt only when the paste transform changes or the terrain is modified
--- (invalidated via UnsyncedHeightMapUpdate). pasteHeightOffset is applied at
--- draw time, so offset changes don't invalidate the cache.
-local ppCells = {} -- flat array: wx, wz, groundH, gridH (4 per cell)
-local ppCellCount = 0
-local ppKey = { valid = false }
+-- Paste ghost: the copied terrain drawn where the click would paste it. The mesh
+-- and its textures live on the GPU (see the include), so a frame costs a few
+-- uniforms and three instanced draws however large the box.
+local ClonePreview = VFS.Include("luaui/Include/clone_preview_gl4.lua")
+local previewOpacity = 0.7 -- 0 hides the ghost and falls back to the flat outline
+local pendingPreviewCapture = nil -- GL needs a draw callin, like the splat capture
+local previewInst = {} -- reused per frame: x, z, rotRad, mirror bits per pasted copy
+local previewOpts = { offset = 0, opacity = 0.7 }
+---@type { n: integer, x: number, z: number, pinX: number?, pinZ: number? }
+local previewLast = { n = 0, x = 0, z = 0 }
 
 -- Terrain quality: "full" (float, step=8), "balanced" (int, step=8), "fast" (int, step=24, gadget fill)
 local terrainQuality = "full"
@@ -134,13 +155,35 @@ local historyUndoCount = 0
 local historyRedoCount = 0
 
 -- Coroutine for async operations
+local activeCoroutine = nil
 local coroutineProgress = 0
 local coroutineLabel = ""
 
 -- Splat FBO
+---@type string?
 local splatCaptureFBO = nil
+local splatCaptureW = 0
+local splatCaptureH = 0
 local SPLAT_TEX_NAME = "$ssmf_splat_distr"
+
+-- gl.TextureInfo answers for a texture the map does not have (a canvas with no
+-- DNTS set bound) with a TABLE whose sizes are zero, so `if info then` never
+-- fires and the paste went on to ask for a 0x0 texture. gl.CreateTexture throws
+-- on that, the error escaped DrawWorld and the handler REMOVED the clone tool -
+-- every paste on such a map killed the widget.
+local function splatTexSize()
+	local info = gl.TextureInfo(SPLAT_TEX_NAME)
+	local w = (info and info.xsize) or 0
+	local h = (info and info.ysize) or 0
+	if w > 0 and h > 0 then
+		return w, h
+	end
+	return nil
+end
 local pendingSplatCapture = nil -- deferred GL capture (GL calls need Draw context)
+local splatPasteFBO = nil -- the texture the engine is currently showing (see the paste)
+local pendingSurfaceCapture = nil -- same, for the tileset variant mask
+local pendingSurfacePaste = nil
 local pendingSplatPaste = nil -- deferred GL paste (GL calls need Draw context)
 
 -- ---------------------------------------------------------------------------
@@ -188,13 +231,87 @@ local function transformPoint(lx, lz, sizeX, sizeZ, rot, mirX, mirZ, targetX, ta
 	return rx + targetX, rz + targetZ
 end
 
+-- LuaUI runs ONE Lua heap (1.6 GB) shared by every widget, and a copy or a
+-- paste is among the larger single allocations an editor session makes. Both
+-- report where the heap stands and what the operation added, so an OOM report
+-- names a culprit instead of leaving it to guesswork. Learned the hard way on
+-- 2026-09-22: LuaUI died mid-paste, and a full heap cannot even load the code
+-- to fix itself - `/luaui reload` failed with OOM inside LoadCode, so the
+-- session was unrecoverable and the fix looked like it had not worked.
+-- TWO numbers, because on 2026-09-22 they disagreed and only one of them kills
+-- you: collectgarbage("count") is what the Lua GC tracks (barwidgets.lua runs an
+-- emergency collect over 1.2 GB of it - that watchdog never fired), while
+-- Spring.GetLuaMemUsage reports what the engine's allocator handed this Lua
+-- state, which is the number in the OOM message. The crash came with the first
+-- well under its limit and the second at the ceiling, so anything that shows
+-- only the GC view can miss the growth entirely.
+local function heapMB()
+	local gcMB = collectgarbage("count") / 1024
+	local allocMB = nil
+	if spGetLuaMemUsage then
+		local kb = spGetLuaMemUsage()
+		allocMB = kb and (kb / 1024) or nil
+	end
+	return gcMB, allocMB
+end
+
+local function heapNote(beforeGC, beforeAlloc)
+	local gcMB, allocMB = heapMB()
+	local note = string.format(" | lua %.0f MB", gcMB)
+	if beforeGC then
+		note = note .. string.format(" (%+.0f)", gcMB - beforeGC)
+	end
+	if allocMB then
+		note = note .. string.format(", alloc %.0f MB", allocMB)
+		if beforeAlloc then
+			note = note .. string.format(" (%+.0f)", allocMB - beforeAlloc)
+		end
+	end
+	return note
+end
+
+-- The four destination corners of a pasted box in normalized map coordinates,
+-- in the captured patch's own corner order ((0,0) (1,0) (1,1) (0,1)). Rotation
+-- and mirroring already live in transformPoint, so the corner ORDER carries
+-- them and a texture layer needs no separate rotation code: the same quad
+-- serves the splat blit and the surface painter.
+local function pasteQuadUV(sizeX, sizeZ, rot, mirX, mirZ, targetX, targetZ)
+	local quad = {}
+	local corners = { 0, 0, sizeX, 0, sizeX, sizeZ, 0, sizeZ }
+	for i = 1, 8, 2 do
+		local wx, wz = transformPoint(corners[i], corners[i + 1], sizeX, sizeZ, rot, mirX, mirZ, targetX, targetZ)
+		quad[#quad + 1] = wx / mapSizeX
+		quad[#quad + 1] = wz / mapSizeZ
+	end
+	return quad
+end
+
+-- The surface painter owns its mask textures, so a captured region is freed
+-- through it. Every place that drops the clone buffer goes through here.
+local function discardBuffer()
+	pendingPreviewCapture = nil
+	if cloneBuffer and cloneBuffer.preview then
+		ClonePreview.free(cloneBuffer.preview)
+		cloneBuffer.preview = nil
+	end
+	if cloneBuffer and cloneBuffer.surface then
+		---@type table?
+		local sp = WG.SurfacePainter
+		if sp and sp.region then
+			sp.region.free(cloneBuffer.surface)
+		end
+		cloneBuffer.surface = nil
+	end
+	cloneBuffer = nil
+end
+
 -- ---------------------------------------------------------------------------
 -- Activate / Deactivate API
 -- ---------------------------------------------------------------------------
 local function activate()
 	active = true
 	state = "idle"
-	cloneBuffer = nil
+	discardBuffer()
 	pasteRotation = 0
 	pasteHeightOffset = 0
 	pasteMirrorX = false
@@ -204,6 +321,7 @@ end
 local function deactivate()
 	active = false
 	state = "idle"
+	activeCoroutine = nil
 	coroutineProgress = 0
 	boxDrag.active = false
 end
@@ -224,7 +342,13 @@ local function getState()
 		undoCount = historyUndoCount,
 		redoCount = historyRedoCount,
 		terrainQuality = terrainQuality,
+		previewOpacity = previewOpacity,
+		pasteBlend = pasteBlend,
 	}
+end
+
+local function setPreviewOpacity(v)
+	previewOpacity = max(0, min(1, tonumber(v) or 0.7))
 end
 
 local function setLayer(name, enabled)
@@ -244,7 +368,7 @@ local function setRotation(deg)
 end
 
 local function setHeightOffset(val)
-	pasteHeightOffset = val
+	pasteHeightOffset = max(-PASTE_HEIGHT_LIMIT, min(PASTE_HEIGHT_LIMIT, val))
 end
 
 local function setMirrorX(val)
@@ -259,7 +383,16 @@ end
 -- COPY: capture data from selection box
 -- ---------------------------------------------------------------------------
 local function doCopy()
+	discardBuffer() -- the previous capture's mask region belongs to the painter
+	local heapGC, heapAlloc = heapMB()
 	local box = normalizeBox(selBox)
+	-- Copy on the heightmap's vertex grid: every sample below is then a real vertex
+	-- instead of a blend of four, and the ghost's GPU snapshot matches it exactly.
+	box.x1 = floor(box.x1 / squareSize + 0.5) * squareSize
+	box.z1 = floor(box.z1 / squareSize + 0.5) * squareSize
+	box.x2 = floor(box.x2 / squareSize + 0.5) * squareSize
+	box.z2 = floor(box.z2 / squareSize + 0.5) * squareSize
+	selBox = { x1 = box.x1, z1 = box.z1, x2 = box.x2, z2 = box.z2 }
 	local sizeX = box.x2 - box.x1
 	local sizeZ = box.z2 - box.z1
 	if sizeX < squareSize or sizeZ < squareSize then
@@ -310,6 +443,7 @@ local function doCopy()
 			cols = cols,
 			rows = rows,
 		}
+		pendingPreviewCapture = { x1 = box.x1, z1 = box.z1, cols = cols, rows = rows }
 	end
 
 	-- Metal
@@ -366,24 +500,34 @@ local function doCopy()
 	end
 
 	-- Splats: defer GL capture to next DrawWorld (GL calls not allowed in KeyPress)
+	local boxU0 = box.x1 / mapSizeX
+	local boxV0 = box.z1 / mapSizeZ
+	local boxU1 = box.x2 / mapSizeX
+	local boxV1 = box.z2 / mapSizeZ
+
 	if layers.splats then
-		local texInfo = gl.TextureInfo(SPLAT_TEX_NAME)
-		if texInfo then
-			local tw, th = texInfo.xsize, texInfo.ysize
-			local u0 = box.x1 / mapSizeX
-			local v0 = box.z1 / mapSizeZ
-			local u1 = box.x2 / mapSizeX
-			local v1 = box.z2 / mapSizeZ
-			local pw = max(1, floor((u1 - u0) * tw))
-			local ph = max(1, floor((v1 - v0) * th))
+		local tw, th = splatTexSize()
+		if tw then
+			local pw = max(1, floor((boxU1 - boxU0) * tw))
+			local ph = max(1, floor((boxV1 - boxV0) * th))
 			pendingSplatCapture = {
-				u0 = u0,
-				v0 = v0,
-				u1 = u1,
-				v1 = v1,
+				u0 = boxU0,
+				v0 = boxV0,
+				u1 = boxU1,
+				v1 = boxV1,
 				pw = pw,
 				ph = ph,
 			}
+		end
+	end
+
+	-- Tileset variant paint: the painter cuts the patch out of its own masks
+	-- (there are two once variant 4 is in use) inside the next draw frame.
+	if layers.surface then
+		---@type table?
+		local sp = WG.SurfacePainter
+		if sp and sp.region and sp.hasMaskState and sp.hasMaskState() then
+			pendingSurfaceCapture = { u0 = boxU0, v0 = boxV0, u1 = boxU1, v1 = boxV1 }
 		end
 	end
 
@@ -440,48 +584,49 @@ local function doCopy()
 		buf.decals = decalData
 	end
 
-	-- Weather (read from weather brush widget state)
+	-- Weather: the weather brush's persistent spawners whose centre is in the box
 	if layers.weather then
 		local weatherApi = WG.WeatherBrush
-		if weatherApi and weatherApi.getState then
-			local ws = weatherApi.getState()
-			-- Weather stores active placements; capture those in our box
-			buf.weather = {} -- Will be populated if weather brush exposes placed instances
+		if weatherApi and weatherApi.getPersistentSpawners then
+			local now = spGetGameFrame()
+			local weatherData = {}
+			for _, s in ipairs(weatherApi.getPersistentSpawners()) do
+				if s.x >= box.x1 and s.x <= box.x2 and s.z >= box.z1 and s.z <= box.z2 then
+					s.lx, s.lz = s.x - box.x1, s.z - box.z1
+					-- remaining lifetime in seconds, -1 = permanent (addSpawnerRaw's persistence)
+					s.persistence = s.expireFrame and max(1, (s.expireFrame - now) / Game.gameSpeed) or -1
+					weatherData[#weatherData + 1] = s
+				end
+			end
+			buf.weather = weatherData
 		end
 	end
 
-	-- Lights (read from light placer widget state)
+	-- Lights: the light placer's placed lights in the box, kept with their
+	-- height above the ground so they land as high above the pasted ground
 	if layers.lights then
 		local lightApi = WG.LightPlacer
-		if lightApi and lightApi.getState then
-			local ls = lightApi.getState()
-			if ls and ls.placedLights then
-				local lightData = {}
-				for _, light in ipairs(ls.placedLights) do
-					if
-						light.x
-						and light.x >= box.x1
-						and light.x <= box.x2
-						and light.z
-						and light.z >= box.z1
-						and light.z <= box.z2
-					then
-						lightData[#lightData + 1] = {
-							lx = light.x - box.x1,
-							ly = light.y or 0,
-							lz = light.z - box.z1,
-							params = light.params,
-						}
-					end
+		if lightApi and lightApi.getPlacedLights then
+			local lightData = {}
+			for _, rec in ipairs(lightApi.getPlacedLights()) do
+				local x, y, z = rec.pos[1], rec.pos[2], rec.pos[3]
+				if x >= box.x1 and x <= box.x2 and z >= box.z1 and z <= box.z2 then
+					local elevation = rec.elevation or 0
+					lightData[#lightData + 1] = {
+						lx = x - box.x1,
+						lz = z - box.z1,
+						groundY = y - elevation,
+						def = rec,
+					}
 				end
-				buf.lights = lightData
 			end
+			buf.lights = lightData
 		end
 	end
 
 	cloneBuffer = buf
 	state = "copied"
-	spEcho("[Clone Tool] Region copied")
+	spEcho("[Clone Tool] Region copied" .. heapNote(heapGC, heapAlloc))
 end
 
 local function doUndo()
@@ -516,7 +661,29 @@ local function applyPaste(targetX, targetZ)
 		return
 	end
 	local buf = cloneBuffer
+	local heapGC, heapAlloc = heapMB()
 	local rotRad = rad(pasteRotation)
+
+	-- RAISE ONLY / LOWER ONLY: the terrain decides, every other layer pastes only
+	-- where it does. All of it is judged against the ground as it is now, before
+	-- the gadget applies the new heights. Without copied terrain there is nothing
+	-- to judge by, and the paste replaces as before.
+	local blend = buf.terrain and pasteBlend or "replace"
+	local masked = blend ~= "replace"
+	local function keepAt(lx, lz, wx, wz)
+		if not masked then
+			return true
+		end
+		local d = PasteMask.heightAt(buf.terrain, lx, lz) + pasteHeightOffset - spGetGroundHeight(wx, wz)
+		return PasteMask.keep(blend, d)
+	end
+	-- the texture layers blend through the same cells, as a mask texture
+	local pasteMask = nil
+	if masked and (buf.splats or buf.surface) then
+		pasteMask = PasteMask.grid(buf.terrain, pasteHeightOffset, blend, function(lx, lz)
+			return transformPoint(lx, lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+		end)
+	end
 
 	-- Helper to build grid-based terrain messages with quality control
 	local function applyTerrain()
@@ -532,7 +699,10 @@ local function applyPaste(targetX, targetZ)
 		-- Quality determines paste step and height formatting
 		local pasteStep = squareSize
 		local formatHeight
-		if terrainQuality == "full" then
+		-- A masked paste writes every vertex at full precision: the gadget's fill
+		-- between Fast's 24-elmo vertices, or Balanced's rounding, could otherwise
+		-- dip a RAISE ONLY paste below the ground it must not lower (and the reverse).
+		if terrainQuality == "full" or masked then
 			formatHeight = function(h)
 				return string.format("%.2f", h)
 			end
@@ -644,6 +814,11 @@ local function applyPaste(targetX, targetZ)
 					local h11 = t.grid[r1 + 1][c1 + 1]
 					h = h00 * (1 - fc) * (1 - fr) + h10 * fc * (1 - fr) + h01 * (1 - fc) * fr + h11 * fc * fr
 					h = h + pasteHeightOffset
+					if blend == "raise" then
+						h = max(h, spGetGroundHeight(wx, wz))
+					elseif blend == "lower" then
+						h = min(h, spGetGroundHeight(wx, wz))
+					end
 				else
 					-- Outside source: keep current ground height
 					h = spGetGroundHeight(wx, wz)
@@ -686,9 +861,11 @@ local function applyPaste(targetX, targetZ)
 			local wx, wz =
 				transformPoint(m.lx, m.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 			wx, wz = clampToMap(wx, wz)
-			local mx = floor(wx / metalSquareSize)
-			local mz = floor(wz / metalSquareSize)
-			entries[#entries + 1] = tostring(mx) .. " " .. tostring(mz) .. " " .. tostring(m.val)
+			if keepAt(m.lx, m.lz, wx, wz) then
+				local mx = floor(wx / metalSquareSize)
+				local mz = floor(wz / metalSquareSize)
+				entries[#entries + 1] = tostring(mx) .. " " .. tostring(mz) .. " " .. tostring(m.val)
+			end
 		end
 		if #entries > 0 then
 			-- Chunk
@@ -708,13 +885,10 @@ local function applyPaste(targetX, targetZ)
 	-- Features
 	local function applyFeatures()
 		if not buf.features then
-			spEcho("[Clone Tool] Features: skipped (layer was off during copy)")
 			return
 		end
 		local featureCount = #buf.features
-		spEcho("[Clone Tool] Features: pasting " .. featureCount .. " feature(s)")
 		if featureCount == 0 then
-			spEcho("[Clone Tool] Features: buffer empty, skipping clear+create")
 			return
 		end
 		-- Clear target area first
@@ -744,76 +918,131 @@ local function applyPaste(targetX, targetZ)
 		local clearZ2 = max(cz1, cz2, cz3, cz4)
 		clearX1, clearZ1 = clampToMap(clearX1, clearZ1)
 		clearX2, clearZ2 = clampToMap(clearX2, clearZ2)
-		sendMsg(
-			MSG_FEATURES_CLEAR
-				.. floor(clearX1)
-				.. " "
-				.. floor(clearZ1)
-				.. " "
-				.. floor(clearX2)
-				.. " "
-				.. floor(clearZ2)
-		)
-
-		-- Send features in chunks of 50
-		local offset = 0
-		while offset < #buf.features do
-			local chunkSize = min(50, #buf.features - offset)
-			local parts = { tostring(chunkSize) }
-			for i = 1, chunkSize do
-				local f = buf.features[offset + i]
-				local wx, wz = transformPoint(
-					f.lx,
-					f.lz,
-					buf.sizeX,
-					buf.sizeZ,
-					rotRad,
-					pasteMirrorX,
-					pasteMirrorZ,
-					targetX,
-					targetZ
-				)
-				wx, wz = clampToMap(wx, wz)
-				local wy = spGetGroundHeight(wx, wz)
-				local newHeading = f.heading
-				if pasteRotation ~= 0 then
-					-- heading is 0-65535 range, add rotation
-					newHeading = (newHeading + floor(pasteRotation / 360 * 65536)) % 65536
+		if not masked then
+			sendMsg(
+				MSG_FEATURES_CLEAR
+					.. floor(clearX1)
+					.. " "
+					.. floor(clearZ1)
+					.. " "
+					.. floor(clearX2)
+					.. " "
+					.. floor(clearZ2)
+			)
+		else
+			-- A masked paste clears only the features standing where the terrain
+			-- pastes: each one is mapped back into the box and judged like the rest.
+			local sX, sZ = buf.sizeX, buf.sizeZ
+			local cosR, sinR = cos(rotRad), sin(rotRad)
+			for _, fid in ipairs(spGetFeaturesInRectangle(clearX1, clearZ1, clearX2, clearZ2) or {}) do
+				local fx, _, fz = spGetFeaturePosition(fid)
+				if fx and fz then
+					local dx, dz = fx - targetX, fz - targetZ
+					local lx = dx * cosR + dz * sinR + sX * 0.5
+					local lz = -dx * sinR + dz * cosR + sZ * 0.5
+					if pasteMirrorX then
+						lx = sX - lx
+					end
+					if pasteMirrorZ then
+						lz = sZ - lz
+					end
+					if lx >= 0 and lx <= sX and lz >= 0 and lz <= sZ and keepAt(lx, lz, fx, fz) then
+						sendMsg(
+							MSG_FEATURES_CLEAR
+								.. floor(fx) - 1
+								.. " "
+								.. floor(fz) - 1
+								.. " "
+								.. floor(fx) + 2
+								.. " "
+								.. floor(fz) + 2
+						)
+					end
 				end
-				if pasteMirrorX then
-					newHeading = (65536 - newHeading) % 65536
-				end
-				if pasteMirrorZ then
-					newHeading = (32768 - newHeading) % 65536
-				end
-				parts[#parts + 1] = f.defName
-				parts[#parts + 1] = tostring(floor(wx))
-				parts[#parts + 1] = tostring(floor(wy))
-				parts[#parts + 1] = tostring(floor(wz))
-				parts[#parts + 1] = tostring(newHeading)
 			end
-			sendMsg(MSG_FEATURES .. table.concat(parts, " "))
-			offset = offset + chunkSize
 		end
+
+		-- The copied features that land, then sent in chunks of 50
+		---@type { f: table, wx: number, wz: number }[]
+		local landing = {}
+		for _, f in ipairs(buf.features) do
+			local wx, wz =
+				transformPoint(f.lx, f.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+			wx, wz = clampToMap(wx, wz)
+			if keepAt(f.lx, f.lz, wx, wz) then
+				landing[#landing + 1] = { f = f, wx = wx, wz = wz }
+			end
+		end
+		local parts, inChunk = {}, 0
+		local function flush()
+			if inChunk > 0 then
+				sendMsg(MSG_FEATURES .. inChunk .. " " .. table.concat(parts, " "))
+				parts, inChunk = {}, 0
+			end
+		end
+		for _, e in ipairs(landing) do
+			local f, wx, wz = e.f, e.wx, e.wz
+			local wy = spGetGroundHeight(wx, wz)
+			local newHeading = f.heading
+			if pasteRotation ~= 0 then
+				-- heading is 0-65535 range, add rotation
+				newHeading = (newHeading + floor(pasteRotation / 360 * 65536)) % 65536
+			end
+			if pasteMirrorX then
+				newHeading = (65536 - newHeading) % 65536
+			end
+			if pasteMirrorZ then
+				newHeading = (32768 - newHeading) % 65536
+			end
+			parts[#parts + 1] = f.defName
+			parts[#parts + 1] = tostring(floor(wx))
+			parts[#parts + 1] = tostring(floor(wy))
+			parts[#parts + 1] = tostring(floor(wz))
+			parts[#parts + 1] = tostring(newHeading)
+			inChunk = inChunk + 1
+			if inChunk >= 50 then
+				flush()
+			end
+		end
+		flush()
 	end
 
 	-- Splats: defer GL operations to next DrawWorld
 	local function applySplats()
-		if not buf.splats or not buf.splats.pixels then
+		if not buf.splats or not buf.splats.fboHandle then
 			return
 		end
-		local splatTexInfo = gl.TextureInfo(SPLAT_TEX_NAME)
-		if not splatTexInfo then
+		local tw, th = splatTexSize()
+		if not tw then
 			return
 		end
 		pendingSplatPaste = {
-			tw = splatTexInfo.xsize,
-			th = splatTexInfo.ysize,
+			tw = tw,
+			th = th,
 			fboHandle = buf.splats.fboHandle,
-			sizeX = buf.sizeX,
-			sizeZ = buf.sizeZ,
-			targetX = targetX,
-			targetZ = targetZ,
+			-- The quad, not a rectangle: the paste target is the box CENTRE and
+			-- may be turned or mirrored, which an axis-aligned blit from the
+			-- corner could represent neither of.
+			quad = pasteQuadUV(buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ),
+			mask = pasteMask,
+		}
+	end
+
+	-- Tileset variant paint, through the painter (it snapshots for undo and
+	-- refreshes the tileset's far-field cache itself).
+	local function applySurface()
+		if not buf.surface then
+			return
+		end
+		---@type table?
+		local sp = WG.SurfacePainter
+		if not (sp and sp.region) then
+			return
+		end
+		pendingSurfacePaste = {
+			region = buf.surface,
+			quad = pasteQuadUV(buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ),
+			mask = pasteMask,
 		}
 	end
 
@@ -839,7 +1068,9 @@ local function applyPaste(targetX, targetZ)
 			local wx, wz =
 				transformPoint(g.lx, g.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 			wx, wz = clampToMap(wx, wz)
-			grassApi.setDensityAt(wx, wz, g.density)
+			if keepAt(g.lx, g.lz, wx, wz) then
+				grassApi.setDensityAt(wx, wz, g.density)
+			end
 		end
 		-- Flush spawn animations and disable the external-brush flag so the
 		-- grassgl4 widget returns to its normal dormant state.
@@ -863,7 +1094,7 @@ local function applyPaste(targetX, targetZ)
 			local newRot = (d.rotation or 0) + rotRad
 			-- CreateGroundDecal takes no arguments and returns a bare decal id;
 			-- all properties go through the setters (same flow as cmd_decal_placer).
-			local id = Spring.CreateGroundDecal()
+			local id = keepAt(d.lx, d.lz, wx, wz) and Spring.CreateGroundDecal()
 			if id then
 				if d.tex then
 					Spring.SetGroundDecalTexture(id, d.tex, true)
@@ -880,23 +1111,73 @@ local function applyPaste(targetX, targetZ)
 		end
 	end
 
-	-- Lights
+	-- A yaw (degrees, 0 = +z, 90 = +x) turned and mirrored like the paste
+	local function pasteYaw(yawDeg)
+		local dx, dz = sin(rad(yawDeg or 0)), cos(rad(yawDeg or 0))
+		if pasteMirrorX then
+			dx = -dx
+		end
+		if pasteMirrorZ then
+			dz = -dz
+		end
+		local c, s = cos(rotRad), sin(rotRad)
+		return math.deg(math.atan2(dx * c - dz * s, dx * s + dz * c))
+	end
+
+	-- Lights: through the light placer, one undo step there. When the terrain
+	-- is pasted too the ground under a light is the copied ground plus the
+	-- height offset; the gadget has not applied it yet, so the height is given.
 	local function applyLights()
-		if not buf.lights then
+		local lightApi = WG.LightPlacer
+		if not (buf.lights and lightApi and lightApi.addLights) then
 			return
 		end
+		local list = {}
 		for _, l in ipairs(buf.lights) do
 			local wx, wz =
 				transformPoint(l.lx, l.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 			wx, wz = clampToMap(wx, wz)
-			local wy = l.ly + pasteHeightOffset
-			if l.params then
-				local p = {}
-				for k, v in pairs(l.params) do
-					p[k] = v
-				end
-				p.position = { wx, wy, wz }
-				Spring.AddMapLight(p)
+			local def = {}
+			for k, v in pairs(l.def) do
+				def[k] = v
+			end
+			def.yaw = pasteYaw(l.def.yaw)
+			local y = buf.terrain and (l.groundY + pasteHeightOffset + (l.def.elevation or 0)) or nil
+			if keepAt(l.lx, l.lz, wx, wz) then
+				list[#list + 1] = { x = wx, z = wz, y = y, def = def }
+			end
+		end
+		lightApi.addLights(list)
+	end
+
+	-- Weather: persistent spawners through the weather brush. Their shape
+	-- angle turns with the paste (a direction (cos, sin) in the x, z plane).
+	local function applyWeather()
+		local weatherApi = WG.WeatherBrush
+		if not (buf.weather and weatherApi and weatherApi.addSpawnerRaw) then
+			return
+		end
+		for _, s in ipairs(buf.weather) do
+			local wx, wz =
+				transformPoint(s.lx, s.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+			wx, wz = clampToMap(wx, wz)
+			local a = rad(s.angleDeg or 0)
+			local ax, az = cos(a), sin(a)
+			if pasteMirrorX then
+				ax = -ax
+			end
+			if pasteMirrorZ then
+				az = -az
+			end
+			local c, sn = cos(rotRad), sin(rotRad)
+			local entry = {}
+			for k, v in pairs(s) do
+				entry[k] = v
+			end
+			entry.x, entry.z = wx, wz
+			entry.angleDeg = math.deg(math.atan2(ax * sn + az * c, ax * c - az * sn))
+			if keepAt(s.lx, s.lz, wx, wz) then
+				weatherApi.addSpawnerRaw(entry)
 			end
 		end
 	end
@@ -904,14 +1185,15 @@ local function applyPaste(targetX, targetZ)
 	-- Execute in order
 	applyTerrain()
 	applySplats()
+	applySurface()
 	applyMetal()
 	applyGrass()
 	applyFeatures()
 	applyDecals()
 	applyLights()
-	-- Weather: would need to place CEGs at positions; deferred for now
+	applyWeather()
 
-	spEcho("[Clone Tool] Paste applied")
+	spEcho("[Clone Tool] Paste applied" .. heapNote(heapGC, heapAlloc))
 end
 
 -- ---------------------------------------------------------------------------
@@ -922,7 +1204,7 @@ local function cancelOperation()
 		state = "copied"
 	elseif state == "copied" or state == "box_drawn" then
 		state = "idle"
-		cloneBuffer = nil
+		discardBuffer()
 	end
 end
 
@@ -965,9 +1247,10 @@ local function drawGroundRect(box, r, g, b, a, fillA)
 		glColor(r, g, b, fillA)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		local gridStep = 64
-		for z = z1, z2 - gridStep, gridStep do
-			-- stylua: ignore start
-			glBeginEnd(GL_QUADS, function()
+		-- one BeginEnd for every row: a closure per row per frame is heap churn
+		-- stylua: ignore start
+		glBeginEnd(GL_QUADS, function()
+			for z = z1, z2 - gridStep, gridStep do
 				for x = x1, x2 - gridStep, gridStep do
 					local nx = min(x + gridStep, x2)
 					local nz = min(z + gridStep, z2)
@@ -976,9 +1259,9 @@ local function drawGroundRect(box, r, g, b, a, fillA)
 					glVertex(nx, spGetGroundHeight(nx, nz) + y_offset, nz)
 					glVertex(x,  spGetGroundHeight(x,  nz) + y_offset, nz)
 				end
-			end)
-			-- stylua: ignore end
-		end
+			end
+		end)
+		-- stylua: ignore end
 	end
 	glColor(1, 1, 1, 1)
 end
@@ -1018,17 +1301,17 @@ local function drawFeatureMarkers(box)
 	end
 	glColor(0.2, 1.0, 0.3, 0.8)
 	local markerSize = 8
-	for _, fid in ipairs(feats) do
-		local fx, fy, fz = spGetFeaturePosition(fid)
-		if fx then
-			glBeginEnd(GL_QUADS, function()
+	glBeginEnd(GL_QUADS, function()
+		for _, fid in ipairs(feats) do
+			local fx, fy, fz = spGetFeaturePosition(fid)
+			if fx and fz then
 				glVertex(fx - markerSize, fy + 4, fz - markerSize)
 				glVertex(fx + markerSize, fy + 4, fz - markerSize)
 				glVertex(fx + markerSize, fy + 4, fz + markerSize)
 				glVertex(fx - markerSize, fy + 4, fz + markerSize)
-			end)
+			end
 		end
-	end
+	end)
 	glColor(1, 1, 1, 1)
 end
 
@@ -1044,49 +1327,74 @@ local function drawMetalMarkers(box)
 	local endMZ = min(mSizeZ - 1, ceil(box.z2 / metalSquareSize))
 	glColor(0.8, 0.6, 0.1, 0.7)
 	local ms = 6
-	for mz = startMZ, endMZ do
-		for mx = startMX, endMX do
-			local val = spGetMetalAmount(mx, mz)
-			if val and val > 0 then
-				local wx = mx * metalSquareSize
-				local wz = mz * metalSquareSize
-				local wy = spGetGroundHeight(wx, wz) + 4
-				glBeginEnd(GL_QUADS, function()
+	glBeginEnd(GL_QUADS, function()
+		for mz = startMZ, endMZ do
+			for mx = startMX, endMX do
+				local val = spGetMetalAmount(mx, mz)
+				if val and val > 0 then
+					local wx = mx * metalSquareSize
+					local wz = mz * metalSquareSize
+					local wy = spGetGroundHeight(wx, wz) + 4
 					glVertex(wx - ms, wy, wz - ms)
 					glVertex(wx + ms, wy, wz - ms)
 					glVertex(wx + ms, wy, wz + ms)
 					glVertex(wx - ms, wy, wz + ms)
-				end)
+				end
 			end
 		end
-	end
+	end)
 	glColor(1, 1, 1, 1)
 end
 
--- Draw paste preview ghost
-local function drawPastePreview(targetX, targetZ)
-	if not cloneBuffer then
-		return
+-- Where a click at (wx, wz) pastes: grid snap, then one target per symmetric copy.
+-- The click and the preview both go through here so the ghost sits exactly where
+-- the paste lands. Each copy keeps its own turn (rot) and, when a mirror axis made
+-- it, mirror = true; copyTransform turns that into the copy's paste transform.
+local function resolvePasteTargets(wx, wz)
+	local tb = WG.TerraformBrush
+	local px, pz = wx, wz
+	if tb and tb.snapWorld then
+		px, pz = tb.snapWorld(wx, wz, pasteRotation)
 	end
-	local buf = cloneBuffer
-	local rotRad = rad(pasteRotation)
+	if tb and tb.getSymmetricPositions then
+		local positions = tb.getSymmetricPositions(px, pz, pasteRotation)
+		if positions and #positions > 0 then
+			return positions
+		end
+	end
+	return { { x = px, z = pz } }
+end
 
-	-- Outline corners of paste region (transformPoint returns two values)
-	local c1x, c1z = transformPoint(0, 0, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-	local c2x, c2z =
-		transformPoint(buf.sizeX, 0, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-	local c3x, c3z =
-		transformPoint(buf.sizeX, buf.sizeZ, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-	local c4x, c4z =
-		transformPoint(0, buf.sizeZ, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+-- The paste transform of one symmetric copy: its own turn in degrees, and the
+-- mirror flags. A reflection across any axis is the same as flipping Z and turning
+-- by the copy's rot, so a mirrored copy flips the Z mirror.
+local function copyTransform(p)
+	local mirZ = pasteMirrorZ
+	if p.mirror then
+		mirZ = not mirZ
+	end
+	return p.rot or pasteRotation, pasteMirrorX, mirZ
+end
 
+-- Height of the pasted terrain at a box-local point: the same bilinear lookup the
+-- paste does, so markers sit on the ghost rather than on the current ground.
+local function pastedHeightAt(t, lx, lz)
+	return PasteMask.heightAt(t, lx, lz) + pasteHeightOffset
+end
+
+-- Footprint outline at the current ground, for a clipboard without terrain (or the
+-- ghost switched off): four corners, so it cuts through hills, which is fine there.
+local function drawFlatFootprint(buf, rotRad, mirX, mirZ, targetX, targetZ)
+	local sX, sZ = buf.sizeX, buf.sizeZ
+	local c1x, c1z = transformPoint(0, 0, sX, sZ, rotRad, mirX, mirZ, targetX, targetZ)
+	local c2x, c2z = transformPoint(sX, 0, sX, sZ, rotRad, mirX, mirZ, targetX, targetZ)
+	local c3x, c3z = transformPoint(sX, sZ, sX, sZ, rotRad, mirX, mirZ, targetX, targetZ)
+	local c4x, c4z = transformPoint(0, sZ, sX, sZ, rotRad, mirX, mirZ, targetX, targetZ)
 	local yoff = 4
 	local c1y = spGetGroundHeight(c1x, c1z) + yoff
 	local c2y = spGetGroundHeight(c2x, c2z) + yoff
 	local c3y = spGetGroundHeight(c3x, c3z) + yoff
 	local c4y = spGetGroundHeight(c4x, c4z) + yoff
-
-	-- Dashed outline in cyan
 	glColor(0.0, 0.9, 1.0, 0.85)
 	glLineWidth(2.5)
 	glBeginEnd(GL_LINE_LOOP, function()
@@ -1095,8 +1403,6 @@ local function drawPastePreview(targetX, targetZ)
 		glVertex(c3x, c3y, c3z)
 		glVertex(c4x, c4y, c4z)
 	end)
-
-	-- Semi-transparent fill
 	glColor(0.0, 0.6, 0.8, 0.12)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	glBeginEnd(GL_QUADS, function()
@@ -1105,112 +1411,72 @@ local function drawPastePreview(targetX, targetZ)
 		glVertex(c3x, c3y, c3z)
 		glVertex(c4x, c4y, c4z)
 	end)
+end
 
-	-- Feature ghost markers
-	if buf.features and layers.features then
-		glColor(0.2, 1.0, 0.3, 0.5)
-		local ms = 10
-		for _, f in ipairs(buf.features) do
-			local wx, wz =
-				transformPoint(f.lx, f.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-			local wy = spGetGroundHeight(wx, wz) + yoff
-			glBeginEnd(GL_QUADS, function()
+-- Small squares for the features and metal the paste carries, on the pasted surface
+local function drawPasteMarkers(buf, rotRad, mirX, mirZ, targetX, targetZ)
+	local t = buf.terrain
+	local blend = t and pasteBlend or "replace"
+	local function markers(list, ms)
+		for _, e in ipairs(list) do
+			local wx, wz = transformPoint(e.lx, e.lz, buf.sizeX, buf.sizeZ, rotRad, mirX, mirZ, targetX, targetZ)
+			local groundY = spGetGroundHeight(wx, wz)
+			local wy = t and pastedHeightAt(t, e.lx, e.lz) or groundY
+			-- RAISE ONLY / LOWER ONLY: only what the paste will actually lay down
+			if blend == "replace" or PasteMask.keep(blend, wy - groundY) then
+				wy = wy + 4
 				glVertex(wx - ms, wy, wz - ms)
 				glVertex(wx + ms, wy, wz - ms)
 				glVertex(wx + ms, wy, wz + ms)
 				glVertex(wx - ms, wy, wz + ms)
-			end)
-		end
-	end
-
-	-- Metal ghost markers
-	if buf.metal and layers.metal then
-		glColor(0.8, 0.6, 0.1, 0.5)
-		local ms = 6
-		for _, m in ipairs(buf.metal) do
-			local wx, wz =
-				transformPoint(m.lx, m.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-			local wy = spGetGroundHeight(wx, wz) + yoff
-			glBeginEnd(GL_QUADS, function()
-				glVertex(wx - ms, wy, wz - ms)
-				glVertex(wx + ms, wy, wz - ms)
-				glVertex(wx + ms, wy, wz + ms)
-				glVertex(wx - ms, wy, wz + ms)
-			end)
-		end
-	end
-
-	-- Terrain height preview (sample grid)
-	if buf.terrain and layers.terrain then
-		local t = buf.terrain
-		glColor(0.4, 0.7, 1.0, 0.25)
-		local previewStep = max(1, floor(t.cols / 50)) -- limit density for perf
-		-- Rebuild the sampled cell cache only when the paste transform or the
-		-- terrain changed; otherwise replay the cached samples.
-		if
-			not (
-				ppKey.valid
-				and ppKey.x == targetX
-				and ppKey.z == targetZ
-				and ppKey.rot == pasteRotation
-				and ppKey.mirX == pasteMirrorX
-				and ppKey.mirZ == pasteMirrorZ
-				and ppKey.buf == buf
-			)
-		then
-			local n = 0
-			for r = 0, t.rows - 1, previewStep do
-				for c = 0, t.cols - 1, previewStep do
-					local lx = c * t.stepX
-					local lz = r * t.stepZ
-					local wx, wz = transformPoint(
-						lx,
-						lz,
-						buf.sizeX,
-						buf.sizeZ,
-						rotRad,
-						pasteMirrorX,
-						pasteMirrorZ,
-						targetX,
-						targetZ
-					)
-					ppCells[n + 1] = wx
-					ppCells[n + 2] = wz
-					ppCells[n + 3] = spGetGroundHeight(wx, wz)
-					ppCells[n + 4] = t.grid[r + 1][c + 1]
-					n = n + 4
-				end
 			end
-			ppCellCount = n
-			ppKey.valid = true
-			ppKey.x, ppKey.z = targetX, targetZ
-			ppKey.rot = pasteRotation
-			ppKey.mirX, ppKey.mirZ = pasteMirrorX, pasteMirrorZ
-			ppKey.buf = buf
-		end
-		local ms = max(4, t.stepX * previewStep * 0.4)
-		for n = 0, ppCellCount - 4, 4 do
-			local wx = ppCells[n + 1]
-			local wz = ppCells[n + 2]
-			local currentH = ppCells[n + 3]
-			local delta = (ppCells[n + 4] + pasteHeightOffset) - currentH
-			-- Color by delta: blue=lower, green=same, red=raise
-			if delta > 5 then
-				glColor(0.9, 0.3, 0.1, 0.35)
-			elseif delta < -5 then
-				glColor(0.1, 0.3, 0.9, 0.35)
-			else
-				glColor(0.3, 0.8, 0.3, 0.2)
-			end
-			glBeginEnd(GL_QUADS, function()
-				glVertex(wx - ms, currentH + yoff, wz - ms)
-				glVertex(wx + ms, currentH + yoff, wz - ms)
-				glVertex(wx + ms, currentH + yoff, wz + ms)
-				glVertex(wx - ms, currentH + yoff, wz + ms)
-			end)
 		end
 	end
+	if buf.features and layers.features and #buf.features > 0 then
+		glColor(0.2, 1.0, 0.3, 0.6)
+		glBeginEnd(GL_QUADS, markers, buf.features, 10)
+	end
+	if buf.metal and layers.metal and #buf.metal > 0 then
+		glColor(0.8, 0.6, 0.1, 0.6)
+		glBeginEnd(GL_QUADS, markers, buf.metal, 6)
+	end
+end
 
+-- Draw the paste preview: the ghost terrain (or a flat outline) at every target
+local function drawPastePreview(cursorX, cursorZ)
+	if not cloneBuffer then
+		return
+	end
+	local buf = cloneBuffer
+	local targets = resolvePasteTargets(cursorX, cursorZ)
+	local n = min(#targets, ClonePreview.MAX_INSTANCES)
+	for i = 1, n do
+		local k = (i - 1) * 4
+		local rot, mirX, mirZ = copyTransform(targets[i])
+		previewInst[k + 1] = targets[i].x
+		previewInst[k + 2] = targets[i].z
+		previewInst[k + 3] = rad(rot)
+		previewInst[k + 4] = (mirX and 1 or 0) + (mirZ and 2 or 0)
+	end
+	previewLast.n, previewLast.x, previewLast.z = n, targets[1].x, targets[1].z
+
+	local ghost = buf.terrain and buf.preview
+	if ghost and previewOpacity > 0 then
+		previewOpts.offset = pasteHeightOffset
+		previewOpts.opacity = previewOpacity
+		previewOpts.blend = PasteMask.MODES[pasteBlend] or 0
+		ClonePreview.draw(ghost, previewInst, n, previewOpts)
+		glDepthTest(true)
+	else
+		for i = 1, n do
+			local rot, mirX, mirZ = copyTransform(targets[i])
+			drawFlatFootprint(buf, rad(rot), mirX, mirZ, targets[i].x, targets[i].z)
+		end
+	end
+	for i = 1, n do
+		local rot, mirX, mirZ = copyTransform(targets[i])
+		drawPasteMarkers(buf, rad(rot), mirX, mirZ, targets[i].x, targets[i].z)
+	end
 	glColor(1, 1, 1, 1)
 end
 
@@ -1289,10 +1555,14 @@ function widget:DrawWorld()
 				glTexRect(-1, -1, 1, 1, sc.u0, sc.v0, sc.u1, sc.v1)
 				glTexture(0, false)
 			end)
-			local pixelData = {}
-			glRenderToTexture(splatCaptureFBO, function()
-				pixelData = glReadPixels(0, 0, sc.pw, sc.ph)
-			end)
+			splatCaptureW = sc.pw
+			splatCaptureH = sc.ph
+			-- NO gl.ReadPixels here. It used to pull the whole patch back into a
+			-- nested Lua table purely so the paste could test that the capture
+			-- had happened - and that table is one small table per texel: a few
+			-- copies of a mid-sized box filled LuaUI's 1.6 GB Lua heap and the
+			-- engine killed the whole interface with an OOM inside DrawWorld
+			-- (2026-09-22). The paste only ever needed the texture handle.
 			cloneBuffer.splats = {
 				fboHandle = splatCaptureFBO,
 				pixelW = sc.pw,
@@ -1301,8 +1571,51 @@ function widget:DrawWorld()
 				v0 = sc.v0,
 				u1 = sc.u1,
 				v1 = sc.v1,
-				pixels = pixelData,
 			}
+		end
+	end
+
+	-- Snapshot the copied heights and ground colour for the paste ghost
+	if pendingPreviewCapture and cloneBuffer then
+		local pc = pendingPreviewCapture
+		pendingPreviewCapture = nil
+		ClonePreview.free(cloneBuffer.preview)
+		cloneBuffer.preview = ClonePreview.capture(pc.x1, pc.z1, pc.cols, pc.rows)
+	end
+
+	-- Cut the variant-mask patch out through the painter (it owns the masks)
+	if pendingSurfaceCapture and cloneBuffer then
+		local sc = pendingSurfaceCapture
+		pendingSurfaceCapture = nil
+		---@type table?
+		local painter = WG.SurfacePainter
+		if painter and painter.region then
+			if cloneBuffer.surface then
+				painter.region.free(cloneBuffer.surface)
+			end
+			cloneBuffer.surface = painter.region.copy(sc.u0, sc.v0, sc.u1, sc.v1)
+		end
+	end
+
+	-- Lay it down again at the paste target
+	if pendingSurfacePaste then
+		local ps = pendingSurfacePaste
+		pendingSurfacePaste = nil
+		---@type table?
+		local painter = WG.SurfacePainter
+		if painter and painter.region then
+			if not ps.mask then
+				painter.region.paste(ps.region, ps.quad)
+			elseif ps.mask.kept > 0 then
+				-- RAISE ONLY / LOWER ONLY: the copied paint only where the terrain
+				-- pastes, the destination's own everywhere else in the quad
+				local blended = PasteMask.blendSurface(painter, ps.region, ps.quad, ps.mask)
+				if blended then
+					painter.region.paste(blended, ps.quad)
+					PasteMask.freeRegion(blended)
+				end
+				PasteMask.deleteTexture(ps.mask)
+			end
 		end
 	end
 
@@ -1323,27 +1636,60 @@ function widget:DrawWorld()
 				glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
 				glTexture(0, false)
 			end)
-			if sp.fboHandle then
-				local tu0 = sp.targetX / mapSizeX
-				local tv0 = sp.targetZ / mapSizeZ
-				local tu1 = (sp.targetX + sp.sizeX) / mapSizeX
-				local tv1 = (sp.targetZ + sp.sizeZ) / mapSizeZ
+			-- RAISE ONLY / LOWER ONLY: through the mask; nothing kept, nothing drawn
+			local maskDone = false
+			if sp.mask then
+				maskDone = sp.mask.kept == 0
+				if not maskDone and sp.fboHandle and sp.quad and PasteMask.texture(sp.mask) then
+					-- (the mask texture is built first: render targets do not nest)
+					glRenderToTexture(fullFBO, function()
+						maskDone = PasteMask.drawSplatQuad(sp.fboHandle, SPLAT_TEX_NAME, sp.mask, sp.quad, sp.tw, sp.th)
+					end)
+				end
+				PasteMask.deleteTexture(sp.mask)
+			end
+			if not maskDone and sp.fboHandle and sp.quad then
+				-- Four corners, so the patch lands turned and mirrored the way
+				-- every other layer of the paste does, and centred on the
+				-- cursor rather than half a box down and to the right.
+				local q = sp.quad
 				glRenderToTexture(fullFBO, function()
 					glTexture(0, sp.fboHandle)
-					local ndcX0 = tu0 * 2 - 1
-					local ndcY0 = tv0 * 2 - 1
-					local ndcX1 = tu1 * 2 - 1
-					local ndcY1 = tv1 * 2 - 1
-					glTexRect(ndcX0, ndcY0, ndcX1, ndcY1, 0, 0, 1, 1)
+					glBeginEnd(GL_QUADS, function()
+						glTexCoord(0, 0)
+						glVertex(q[1] * 2 - 1, q[2] * 2 - 1)
+						glTexCoord(1, 0)
+						glVertex(q[3] * 2 - 1, q[4] * 2 - 1)
+						glTexCoord(1, 1)
+						glVertex(q[5] * 2 - 1, q[6] * 2 - 1)
+						glTexCoord(0, 1)
+						glVertex(q[7] * 2 - 1, q[8] * 2 - 1)
+					end)
 					glTexture(0, false)
 				end)
 			end
-			Spring.SetMapShadingTexture("$ssmf_splat_distr", fullFBO)
+			Spring.SetMapShadingTexture(SPLAT_TEX_NAME, fullFBO)
+			-- SetMapShadingTexture stores the GL id itself, so the texture the
+			-- PREVIOUS paste handed over stops being referenced the moment this
+			-- one is bound. Free it then, and never before: every paste used to
+			-- leave a full-map RGBA8 behind (16 MB on a 32x32 map).
+			if splatPasteFBO and splatPasteFBO ~= fullFBO then
+				glDeleteTexture(splatPasteFBO)
+			end
+			splatPasteFBO = fullFBO
 			-- the tileset's far cache / clipmap bake the splat channels: tell it
 			-- the pasted rect changed (elmos) or the paste vanishes at zoom-out
 			local T = WG.TilesetTerrain
-			if T and T.refreshSurface then
-				T.refreshSurface(sp.targetX, sp.targetZ, sp.targetX + sp.sizeX, sp.targetZ + sp.sizeZ)
+			if T and T.refreshSurface and sp.quad then
+				local q = sp.quad
+				local minU, maxU, minV, maxV = q[1], q[1], q[2], q[2]
+				for i = 3, 7, 2 do
+					minU = math.min(minU, q[i])
+					maxU = math.max(maxU, q[i])
+					minV = math.min(minV, q[i + 1])
+					maxV = math.max(maxV, q[i + 1])
+				end
+				T.refreshSurface(minU * mapSizeX, minV * mapSizeZ, maxU * mapSizeX, maxV * mapSizeZ)
 			end
 		end
 	end
@@ -1366,10 +1712,13 @@ function widget:DrawWorld()
 		drawFeatureMarkers(box)
 		drawMetalMarkers(box)
 	elseif state == "paste_preview" then
-		-- Keep showing source box dimmed
-		drawGroundRect(box, 0.5, 0.5, 0.5, 0.3, 0.02)
+		-- Keep showing the source box, dimmed, outline only
+		drawGroundRect(box, 0.5, 0.5, 0.5, 0.3, nil)
 
 		local wx, wz = getWorldMousePosition()
+		if previewLast.pinX then
+			wx, wz = previewLast.pinX, previewLast.pinZ
+		end
 		if wx then
 			drawPastePreview(wx, wz)
 		end
@@ -1426,27 +1775,19 @@ function widget:MousePress(mx, my, button)
 			selBox.z1 = wz
 			selBox.x2 = wx
 			selBox.z2 = wz
-			cloneBuffer = nil
+			discardBuffer()
 			return true
 		elseif state == "paste_preview" then
 			-- Apply paste at cursor position (with snap + symmetric fan-out)
-			local tb = WG.TerraformBrush
-			local stb = tb and tb.getState and tb.getState() or nil
-			local px, pz = wx, wz
-			if stb and stb.gridSnap and tb.snapWorld then
-				px, pz = tb.snapWorld(wx, wz, pasteRotation)
-			end
-			if stb and stb.symmetryActive and tb.getSymmetricPositions then
-				local positions2 = tb.getSymmetricPositions(px, pz, pasteRotation)
-				if positions2 and #positions2 > 0 then
-					for _, p in ipairs(positions2) do
-						applyPaste(p.x, p.z)
-					end
-				else
-					applyPaste(px, pz)
+			-- applyPaste reads the global transform: set each copy's own, then put it back
+			local rot0, mirX0, mirZ0 = pasteRotation, pasteMirrorX, pasteMirrorZ
+			for _, p in ipairs(resolvePasteTargets(wx, wz)) do
+				pasteRotation, pasteMirrorX, pasteMirrorZ = copyTransform(p)
+				local ok, err = pcall(applyPaste, p.x, p.z)
+				pasteRotation, pasteMirrorX, pasteMirrorZ = rot0, mirX0, mirZ0
+				if not ok then
+					error(err, 0)
 				end
-			else
-				applyPaste(px, pz)
 			end
 			-- Stay in paste_preview for re-pasting
 			return true
@@ -1520,7 +1861,7 @@ function widget:MouseMove(mx, my, dmx, dmy, button)
 
 		-- Invalidate buffer on resize
 		if h ~= "center" and cloneBuffer then
-			cloneBuffer = nil
+			discardBuffer()
 			state = "box_drawn"
 		end
 
@@ -1625,6 +1966,7 @@ function widget:MouseWheel(up, value)
 
 	if altHeld then
 		-- Rotate (snap to TB protractor step when angleSnap on)
+		---@type number
 		local step = 15
 		local tb = WG.TerraformBrush
 		local tbs = tb and tb.getState and tb.getState() or nil
@@ -1639,11 +1981,7 @@ function widget:MouseWheel(up, value)
 	if shiftHeld then
 		-- Height offset
 		local step = 10
-		if up then
-			pasteHeightOffset = pasteHeightOffset + step
-		else
-			pasteHeightOffset = pasteHeightOffset - step
-		end
+		setHeightOffset(pasteHeightOffset + (up and step or -step))
 		return true
 	end
 
@@ -1652,11 +1990,6 @@ end
 
 function widget:IsAbove(x, y)
 	return false
-end
-
--- Terrain changed (paste applied, terraform, etc.) → preview samples are stale
-function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
-	ppKey.valid = false
 end
 
 -- ---------------------------------------------------------------------------
@@ -1679,7 +2012,51 @@ function widget:Initialize()
 		cancelOperation = cancelOperation,
 		undo = doUndo,
 		redo = doRedo,
+		setPreviewOpacity = setPreviewOpacity,
+		-- "replace", "raise" (RAISE ONLY) or "lower" (LOWER ONLY)
+		setPasteBlend = function(mode)
+			if PasteMask.MODES[mode] then
+				pasteBlend = mode
+			end
+		end,
+		-- Test hooks: a box without mouse input, and what the ghost holds
+		setSelection = function(x1, z1, x2, z2)
+			selBox = normalizeBox({ x1 = x1, z1 = z1, x2 = x2, z2 = z2 })
+			state = "box_drawn"
+		end,
+		-- ghost draw options for tuning: xray, maxCells, brightness, tint, rim
+		setPreviewOption = function(key, value)
+			if key ~= "offset" and key ~= "opacity" then
+				previewOpts[key] = value
+			end
+		end,
+		-- pins the preview to a world point instead of the cursor (nil releases it)
+		setPreviewCursor = function(x, z)
+			previewLast.pinX, previewLast.pinZ = x, z
+		end,
+		previewStats = function()
+			local buf = cloneBuffer
+			local s = buf and ClonePreview.stats(buf.preview) or {}
+			s.pending = pendingPreviewCapture ~= nil
+			s.heightTex = buf and buf.preview and buf.preview.heightTex or nil
+			s.colorTex = buf and buf.preview and buf.preview.colorTex or nil
+			s.targets, s.targetX, s.targetZ = previewLast.n, previewLast.x, previewLast.z
+			s.metal = buf and buf.metal and #buf.metal or 0
+			s.features = buf and buf.features and #buf.features or 0
+			local t = buf and buf.terrain
+			if t then
+				-- a few Lua grid samples (0-based col, row, height) to compare with the texture
+				s.samples = {}
+				for _, f in ipairs({ { 0, 0 }, { 1, 1 }, { 0.5, 0.5 }, { 0.25, 0.75 } }) do
+					local c, r = floor(f[1] * (t.cols - 1)), floor(f[2] * (t.rows - 1))
+					s.samples[#s.samples + 1] = { c, r, t.grid[r + 1][c + 1] }
+				end
+			end
+			return s
+		end,
 	}
+
+	ClonePreview.init()
 
 	widgetHandler:RegisterGlobal("CloneToolStackUpdate", function(undoCount, redoCount)
 		historyUndoCount = undoCount or 0
@@ -1690,8 +2067,21 @@ end
 function widget:Shutdown()
 	WG.CloneTool = nil
 	widgetHandler:DeregisterGlobal("CloneToolStackUpdate")
+	discardBuffer()
 	if splatCaptureFBO then
 		glDeleteTexture(splatCaptureFBO)
 		splatCaptureFBO = nil
+	end
+	ClonePreview.shutdown()
+	PasteMask.shutdown()
+end
+
+function widget:GetConfigData()
+	return { previewOpacity = previewOpacity }
+end
+
+function widget:SetConfigData(data)
+	if type(data) == "table" and type(data.previewOpacity) == "number" then
+		setPreviewOpacity(data.previewOpacity)
 	end
 end

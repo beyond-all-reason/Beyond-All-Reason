@@ -19,7 +19,7 @@ end
 local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 
-VFS.Include("luarules/configs/onoffdescs.lua")
+require("luarules/configs/onoffdescs")
 onoffNames = {}
 
 for unitDefID = 1, #UnitDefs do

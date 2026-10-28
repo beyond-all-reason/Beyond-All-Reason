@@ -251,7 +251,7 @@ else
 	local revealed = false
 
 	local function colourNames(teamID)
-		local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+		local nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamID)
 		return ColorString(nameColourR, nameColourG, nameColourB)
 	end
 

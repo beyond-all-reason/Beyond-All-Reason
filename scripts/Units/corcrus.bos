@@ -3,7 +3,8 @@
 
 piece  base, wake, bow, chrgflare, turret, sleeve, barrel1, barrel2,
        foreturret, foreflare, aftturret, aftflare, flare1,
-       flare2 ;
+       flare2 ,
+       basefirepoint;
 
 static-var  restore_delay, gun_2, gun_1, aimDir1, aimDir2;
 
@@ -153,7 +154,7 @@ AimFromWeapon3(pieceIndex)
 
 QueryWeapon3(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = basefirepoint;
 }
 
 AimWeapon1(heading, pitch)

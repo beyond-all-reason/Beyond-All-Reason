@@ -38,7 +38,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "CorBuildings/LandDefenceOffence",
+			subfolder = "Legion/Defenses",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -134,9 +134,9 @@ return {
 				texture3 = "null",
 				tolerance = 7000,
 				tracks = true,
-				turnrate = 10000,
-				weaponacceleration = 150,
-				weapontimer = 2.5,
+				turnrate = 12000,
+				weaponacceleration = 180,
+				weapontimer = 4,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 6000,
 				customparams = {

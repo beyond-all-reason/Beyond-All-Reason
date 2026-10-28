@@ -38,7 +38,6 @@ local isScenario = _modOpts ~= nil and _modOpts.scenariooptions ~= nil
 local chobbyLoaded = false
 local gameStarted = (Spring.GetGameFrame() > 0)
 local gameIsOver = false
-local graphsWindowVisible = false
 
 -- Configuration. The geometry values mirror the Top Bar's, so the strip lines up with
 -- the bar whether or not that widget is running.
@@ -222,9 +221,6 @@ local function updateButtons()
 			addButton("info", BAR.I18N("ui.topbar.button.info"), tostring(changedCount))
 		end
 	end
-	if gameIsOver then
-		addButton("graphs", BAR.I18N("ui.topbar.button.graphs"))
-	end
 	if WG.scavengerinfo then
 		addButton("scavengers", BAR.I18N("ui.topbar.button.scavengers"))
 	end
@@ -340,12 +336,12 @@ end
 local function updateLayout()
 	widgetScale = (vsy / height) * 0.0425 * ui_scale
 	xPos = mathFloor(vsx * cfg.relXpos)
-	topbarArea = { mathFloor(xPos + (cfg.borderPadding * widgetScale)), mathFloor(vsy - (height * widgetScale)), vsx, vsy }
+	topbarArea =
+		{ mathFloor(xPos + (cfg.borderPadding * widgetScale)), mathFloor(vsy - (height * widgetScale)), vsx, vsy }
 
 	-- Small elements (wind, tidal, coms, buttons) are top-aligned to a fraction of the
 	-- bar height when skew is on.
-	local smallVPad = cfg.useSkew
-			and mathFloor((topbarArea[4] - topbarArea[2]) * (1 - cfg.smallElementHeightFraction))
+	local smallVPad = cfg.useSkew and mathFloor((topbarArea[4] - topbarArea[2]) * (1 - cfg.smallElementHeightFraction))
 		or 0
 	local width = mathFloor((topbarArea[3] - topbarArea[1]) / 4)
 	buttonsArea = { topbarArea[3] - width, topbarArea[2] + smallVPad, topbarArea[3], topbarArea[4] }
@@ -739,12 +735,6 @@ local function hideWindows()
 		WG.guishader.setScreenBlur(false)
 	end
 
-	if gameIsOver then -- Graphs window can only be open after game end
-		-- Closing Graphs window if open, no way to tell if it was open or not
-		Spring.SendCommands("endgraph 0")
-		graphsWindowVisible = false
-	end
-
 	return closedWindow, stillOpen
 end
 
@@ -828,13 +818,6 @@ local function applyButtonAction(button)
 		toggleWindow("teamstats")
 	elseif button == "info" then
 		toggleWindow("gameinfo")
-	elseif button == "graphs" then
-		isvisible = graphsWindowVisible
-		hideWindows()
-		if gameIsOver and not isvisible then
-			Spring.SendCommands("endgraph 2")
-			graphsWindowVisible = true
-		end
 	end
 end
 function widget:DrawScreen()
@@ -1135,7 +1118,8 @@ local function provideTopBarFallbacks()
 		return
 	end
 	provide("GetPosition", function()
-		return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale, buttonsArea[2] }
+		local buttonsBottom = showButtons and buttonsArea[2] or buttonsArea[4]
+		return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale, buttonsBottom }
 	end)
 	provide("GetFreeArea", function()
 		-- no resource bars to make room for, so everything left of the strip is free
@@ -1299,14 +1283,15 @@ function widget:Initialize()
 		return buttonAt(x, y)
 	end
 
-	-- The strip's rect, for widgets that place themselves under or beside it (ecostats,
-	-- the spectator HUD). Reports the geometry whether or not the buttons are currently
-	-- drawn; ask getShowButtons() for that.
+	-- The strip's rect, for widgets that place themselves under it (ecostats, the
+	-- spectator HUD). While auto-hidden it has no height, bottom at the screen top, so
+	-- those widgets move up into the space it gave up.
 	WG.topbar.GetButtonsPosition = function()
 		if not buttonsArea[1] then
 			return nil
 		end
-		return { buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], widgetScale }
+		local bottom = showButtons and buttonsArea[2] or buttonsArea[4]
+		return { buttonsArea[1], bottom, buttonsArea[3], buttonsArea[4], widgetScale }
 	end
 
 	WG.topbar.setAutoHideButtons = function(value)

@@ -15,7 +15,10 @@ end
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 
-local profiles = VFS.Include("luaui/Include/keybind_profiles.lua")
+local WidgetActions = require("luaui/Include/keybind_widget_actions")
+local profiles = require("luaui/Include/keybind_profiles")
+
+local manifestsVersion, defaultsSignature
 
 local function reloadWidgetsBindings()
 	local reloadableWidgets = { "buildmenu", "ordermenu", "keybinds", "cmd_blueprint" }
@@ -27,8 +30,7 @@ local function reloadWidgetsBindings()
 	end
 end
 
--- Nothing to load, so write the active profile out and point the config at it. This
--- is also the upgrade path once the shipped preset files stop being installed.
+-- Also the upgrade path once the shipped preset files stop being installed.
 local function fallbackToProfile(missing)
 	spEcho("BAR Hotkeys: Did not find keybindings file " .. missing .. ". Writing the active profile")
 
@@ -41,8 +43,11 @@ local function fallbackToProfile(missing)
 end
 
 local function reloadBindings()
-	-- Still read from config rather than the store: on the launch a player is
-	-- migrated this is what they were on, and the store snapshots the live keymap.
+	-- The editor holds a store of its own, so the selection this one last read may be stale.
+	profiles.invalidate()
+
+	-- Still read from config rather than the store: on the launch a player is migrated this is
+	-- what they were on.
 	local file = Spring.GetConfigString("KeybindingFile", profiles.activeFile)
 
 	if not VFS.FileExists(file) then
@@ -51,7 +56,14 @@ local function reloadBindings()
 
 	if file then
 		Spring.SendCommands("keyreload " .. file)
-		spEcho("BAR Hotkeys: Loaded hotkeys from " .. file)
+		-- A KeybindingFile the player pointed elsewhere is named on its own rather than credited to
+		-- whatever the store has selected.
+		local name = file == profiles.activeFile and profiles.activeName()
+		if name then
+			spEcho("BAR Hotkeys: Loaded profile '" .. name .. "' from " .. file)
+		else
+			spEcho("BAR Hotkeys: Loaded hotkeys from " .. file)
+		end
 	else
 		spEcho("BAR Hotkeys: No hotkey file found")
 	end
@@ -59,9 +71,7 @@ local function reloadBindings()
 	reloadWidgetsBindings()
 end
 
--- Anyone who was editing uikeys.txt by hand keeps what they wrote: it becomes a profile of
--- theirs before the editor gets a chance to write over it. Materializing hands the file back
--- to us, so the next launch finds one that matches and leaves it alone.
+-- A hand-edited uikeys.txt becomes a profile of theirs before the editor writes over it.
 local function adoptEditedKeymap()
 	local name = profiles.adoptEditedKeymap()
 	if not name then
@@ -76,9 +86,47 @@ local function adoptEditedKeymap()
 	end
 end
 
+local function widgetDefaultsSignature()
+	local parts = {}
+	for i, default in ipairs(WidgetActions.defaults((WidgetActions.manifests()))) do
+		parts[i] = default.action .. "=" .. table.concat(default.keysets, ",")
+	end
+
+	return table.concat(parts, ";")
+end
+
+-- Held while the editor has edits staged: a reload would reseed it over them, and saving applies the defaults.
+function widget:Update()
+	local _, version = WidgetActions.manifests()
+	if version == manifestsVersion then
+		return
+	end
+	if WG.keybinds and WG.keybinds.hasStagedEdits and WG.keybinds.hasStagedEdits() then
+		return
+	end
+	manifestsVersion = version
+
+	local signature = widgetDefaultsSignature()
+	if signature == defaultsSignature then
+		return
+	end
+	defaultsSignature = signature
+
+	if Spring.GetConfigString("KeybindingFile", profiles.activeFile) ~= profiles.activeFile then
+		return
+	end
+	-- The editor writes the store from a copy of its own.
+	profiles.invalidate()
+	if profiles.materialize(profiles.activeName()) then
+		reloadBindings()
+	end
+end
+
 function widget:Initialize()
 	adoptEditedKeymap()
 	reloadBindings()
+	manifestsVersion = select(2, WidgetActions.manifests())
+	defaultsSignature = widgetDefaultsSignature()
 
 	WG.bar_hotkeys = {}
 	WG.bar_hotkeys.reloadBindings = reloadBindings

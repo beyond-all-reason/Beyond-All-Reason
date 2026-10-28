@@ -36,8 +36,18 @@ end
 -- ---------------------------------------------------------------------------
 local CHEAT_SIG = "$c$"
 local CHEAT_SIG_LEN = #CHEAT_SIG
-local CLONE_TERRAIN_HEADER = "$clone_terrain$"
-local CLONE_TERRAIN_HEADER_LEN = #CLONE_TERRAIN_HEADER
+-- Spring.IsReplay is a LuaUnsyncedRead call and is nil here, so the old
+-- "certified and Spring.IsReplay()" fallback raised a Lua error on any certified
+-- packet that arrived with live cheat off. Demos replay the /cheat chat command,
+-- so cheat state is reproduced during playback anyway; what the certification is
+-- really for is map-editor sessions, where /cheat is a toggle that competing
+-- widgets can flip off mid-stream. The mapeditor modoption is synced from the
+-- start script and cannot be forged by a client.
+local MAP_EDITOR_SESSION = false
+do
+	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
+	MAP_EDITOR_SESSION = mapEditorOpt == true or mapEditorOpt == 1 or mapEditorOpt == "1"
+end
 local CLONE_METAL_HEADER = "$clone_metal$"
 local CLONE_METAL_HEADER_LEN = #CLONE_METAL_HEADER
 local CLONE_FEATURES_HEADER = "$clone_features$"
@@ -74,7 +84,6 @@ local tonumber = tonumber
 -- ---------------------------------------------------------------------------
 local undoStack = {}
 local redoStack = {}
-local totalVertexCount = 0
 local MAX_UNDO = 100
 
 -- ---------------------------------------------------------------------------
@@ -136,18 +145,11 @@ local function captureCurrentHeights(flatData, vertexCount)
 end
 
 local function pushUndo(beforeSnapshot)
-	for i = 1, #redoStack do
-		local rs = redoStack[i]
-		totalVertexCount = totalVertexCount - (rs.vertexCount or 0)
-	end
 	redoStack = {}
 
 	undoStack[#undoStack + 1] = beforeSnapshot
-	totalVertexCount = totalVertexCount + (beforeSnapshot.vertexCount or 0)
 
 	if #undoStack > MAX_UNDO then
-		local old = undoStack[1]
-		totalVertexCount = totalVertexCount - (old.vertexCount or 0)
 		table.remove(undoStack, 1)
 	end
 
@@ -158,10 +160,10 @@ end
 -- Auth check
 -- ---------------------------------------------------------------------------
 local function isAllowed(certified)
-	-- $c$ is self-asserted by the sender: trust it only during replay (where
-	-- live cheat is always false). Outside replay require live cheat, else any
-	-- modified client could forge the prefix to clone terrain in a no-cheat game.
-	return Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())
+	-- $c$ is self-asserted by the sender: trust it only in a map-editor session.
+	-- Elsewhere require live cheat, else any modified client could forge the
+	-- prefix to clone terrain in a no-cheat game.
+	return Spring.IsCheatingEnabled() or (certified and MAP_EDITOR_SESSION)
 end
 
 -- ---------------------------------------------------------------------------
@@ -182,40 +184,10 @@ local function parseParts(payload)
 end
 
 -- ---------------------------------------------------------------------------
--- Handle terrain clone: "$clone_terrain$count x z h x z h ..."
--- ---------------------------------------------------------------------------
-local function handleCloneTerrain(payload)
-	local parts, count = parseParts(payload)
-	local vertexCount = tonumber(parts[1]) or 0
-	if vertexCount == 0 then
-		return
-	end
-
-	-- Build flat buffer
-	local flatData = {}
-	for i = 1, vertexCount do
-		local base = (i - 1) * 3
-		local pi = 1 + (i - 1) * 3 + 1 -- skip first element (count)
-		flatData[base + 1] = tonumber(parts[pi]) or 0
-		flatData[base + 2] = tonumber(parts[pi + 1]) or 0
-		flatData[base + 3] = tonumber(parts[pi + 2]) or 0
-	end
-
-	-- Capture before for undo
-	local beforeSnapshot = captureCurrentHeights(flatData, vertexCount)
-
-	-- Apply
-	applyHeightChangesFlat(flatData, vertexCount)
-
-	-- Push undo
-	pushUndo(beforeSnapshot)
-end
-
--- ---------------------------------------------------------------------------
 -- Handle metal clone: "$clone_metal$count mx mz val mx mz val ..."
 -- ---------------------------------------------------------------------------
 local function handleCloneMetal(payload)
-	local parts, count = parseParts(payload)
+	local parts, _ = parseParts(payload)
 	local entryCount = tonumber(parts[1]) or 0
 	if entryCount == 0 then
 		return
@@ -254,14 +226,12 @@ end
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local function handleCloneFeatures(payload)
-	local parts, count = parseParts(payload)
+	local parts, _ = parseParts(payload)
 	local entryCount = tonumber(parts[1]) or 0
-	spEcho("[Clone Gadget] Features recv: " .. entryCount)
 	if entryCount == 0 then
 		return
 	end
 
-	local created = 0
 	for i = 1, entryCount do
 		local pi = 1 + (i - 1) * 5 + 1
 		local defName = parts[pi]
@@ -271,12 +241,10 @@ local function handleCloneFeatures(payload)
 		local heading = tonumber(parts[pi + 4]) or 0
 		if defName and FeatureDefNames[defName] then
 			spCreateFeature(defName, x, y, z, heading, gaiaTeamID)
-			created = created + 1
 		else
 			spEcho("[Clone Gadget] Feature defName not found: '" .. tostring(defName) .. "'")
 		end
 	end
-	spEcho("[Clone Gadget] Features created: " .. created .. "/" .. entryCount)
 end
 
 -- ---------------------------------------------------------------------------
@@ -336,7 +304,7 @@ local function handleTerrainGrid(payload)
 	if not pendingPaste then
 		return
 	end
-	local parts, cnt = parseParts(payload)
+	local parts, _ = parseParts(payload)
 	local rowStart = tonumber(parts[1]) or 0
 	local rowCount = tonumber(parts[2]) or 0
 	local cols = pendingPaste.srcCols
@@ -452,7 +420,6 @@ local function handleUndo()
 	local snapshot = undoStack[#undoStack]
 	undoStack[#undoStack] = nil
 	local vc = snapshot.vertexCount or 0
-	totalVertexCount = totalVertexCount - vc
 
 	-- Capture current for redo
 	local redoSnapshot = captureCurrentHeights(snapshot, vc)
@@ -461,7 +428,6 @@ local function handleUndo()
 	applyHeightChangesFlat(snapshot, vc)
 
 	redoStack[#redoStack + 1] = redoSnapshot
-	totalVertexCount = totalVertexCount + vc
 	SendToUnsynced("CloneToolStacks", #undoStack, #redoStack)
 end
 
@@ -473,13 +439,11 @@ local function handleRedo()
 	local snapshot = redoStack[#redoStack]
 	redoStack[#redoStack] = nil
 	local vc = snapshot.vertexCount or 0
-	totalVertexCount = totalVertexCount - vc
 
 	local undoSnapshot = captureCurrentHeights(snapshot, vc)
 	applyHeightChangesFlat(snapshot, vc)
 
 	undoStack[#undoStack + 1] = undoSnapshot
-	totalVertexCount = totalVertexCount + vc
 	SendToUnsynced("CloneToolStacks", #undoStack, #redoStack)
 end
 
@@ -490,15 +454,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 	local certified = msg:sub(1, CHEAT_SIG_LEN) == CHEAT_SIG
 	if certified then
 		msg = msg:sub(CHEAT_SIG_LEN + 1)
-	end
-
-	-- Terrain
-	if msg:sub(1, CLONE_TERRAIN_HEADER_LEN) == CLONE_TERRAIN_HEADER then
-		if not isAllowed(certified) then
-			return true
-		end
-		handleCloneTerrain(msg:sub(CLONE_TERRAIN_HEADER_LEN + 1))
-		return true
 	end
 
 	-- Metal

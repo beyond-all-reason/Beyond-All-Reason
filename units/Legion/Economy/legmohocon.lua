@@ -45,6 +45,7 @@ return { --costs should be same as legmohoconct and legmohoconin
 			metal_extractor = 4,
 			model_author = "Tharsis and Protar",
 			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Economy",
 			removestop = true,
 			removewait = true,
 			scav_swap_override_created = "null", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)

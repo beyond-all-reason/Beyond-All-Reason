@@ -9,7 +9,8 @@ piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvi
 		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, railturretl, railsleevel, railflarel, sleeve, barrelr, flare, 
 		barrel1l, barrel2l, barrel3l, barrel4l, railturretr, railsleever, railflarer, barrel1r, barrel2r, barrel3r, barrel4r, Ref_Point,
 		turretmis, misbox, misflare, vortex1, vortex2, vortex3, ltoesflare, rtoesflare, flare1, flare2, flare3, flare4, flare5, flare6,
-		laserflarelight, sensorflare1, sensorflare2, sensorflare3, eaterbeamflare, tlbase, tlturret, tlflare, plunger;
+		laserflarelight, sensorflare1, sensorflare2, sensorflare3, eaterbeamflare, tlbase, tlturret, tlflare, plunger,
+		tlturretfirepoint;
 
 static-var isAiming, isBuilding, isAimingEaterBeam, eaterBeamIncrement, buildHeading, buildPitch,
 			leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead, torsoPriority, currentHealth,
@@ -919,7 +920,7 @@ Shot1(zero)
 
 QueryWeapon2(piecenum) //uw weapon
 {
-	piecenum = tlturret;
+	piecenum = tlturretfirepoint;
 	//torsoPriority = 6;
 	return (0);
 }

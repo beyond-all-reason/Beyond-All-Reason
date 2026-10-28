@@ -16,8 +16,10 @@ end
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
 
----@type number # in seconds
-local doubleClickTime = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
+---@return number # in seconds, read each time as it can change in game
+local function getDoubleClickTime()
+	return Spring.GetConfigInt("DoubleClickTime", 200) / 1000
+end
 ---@type integer # in pixels, as the Manhattan norm
 local doubleClickDist = 12
 ---@type table<CMD, true>
@@ -111,7 +113,7 @@ local function getSingleClickDuration()
 		if selectClickTime <= 0 or not inDoubleClickDistance(mx, my) then
 			-- Start of a new single- or double-click.
 			cx, cy = mx, my
-			return doubleClickTime
+			return getDoubleClickTime()
 		else
 			-- Double-click consumes the single-click.
 			cx, cy = nil, nil
@@ -152,7 +154,7 @@ function widget:MousePress(x, y, button)
 		local _, commandID = sp_GetActiveCommand()
 		if not commandID then
 			restoreSelectionVolume(selectedUnitID)
-			selectClickTime = doubleClickTime
+			selectClickTime = getDoubleClickTime()
 		end
 	end
 	return false

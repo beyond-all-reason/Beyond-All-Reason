@@ -336,7 +336,7 @@ local function initUnitList()
 		legrhapsis = { weapons = { "air" } }, --T1.5 AA
 		legflak = { weapons = { "air" } }, --T2 AA FLAK
 		leglraa = { weapons = { "air" } }, --T2 LR-AA
-		legperdition = { weapons = { "cannon" } }, --T2 LR-AA
+		legperdition = { weapons = { "ground" } }, --T2 napalm missile launcher
 		legapopupdef = { weapons = { "ground" } }, --popup riot/minigun turret
 		leganavaltorpturret = { weapons = { "ground" } }, --torpedo launcher
 		leganavalaaturret = { weapons = { "air" } }, --Fulmen
@@ -353,7 +353,7 @@ local function initUnitList()
 		legavantinuke = { weapons = { "nuke" } },
 		armantiship = { weapons = { "nuke" } },
 		corantiship = { weapons = { "nuke" } },
-		leganavyantinukecarrier = { weapons = { "nuke" } }, -- NOTE: drone weapon shown in attack ranges
+		leganavyantinukecarrier = { weapons = { [2] = "nuke" } }, -- weapon 1 is the drone controller
 
 		-- SCAVENGERS
 		scavbeacon_t1_scav = { weapons = { "ground" } },
@@ -496,6 +496,12 @@ local largeCircleSegments = 1024
 local smallCircleVBO = nil
 local smallCircleSegments = 128
 
+-- Heightmap fetches per ring vertex while fitting rings to the terrain (shader HEIGHTMAP_SAMPLE_STEPS):
+-- cannon rings do a binary search of this many steps, so the radius is exact to range / 2^steps; sphere rings
+-- iterate half as many times. The original 16 steps were precise to centimetres, far below the 8 elmo heightmap
+-- grid, and the search runs for every vertex of every pass. Raise back to 16 to compare.
+local rangeHeightmapSampleSteps = 8
+
 local allyenemypairs = { "ally", "enemy" }
 local defenseRangeClasses = {}
 for allyenemy, ringclasses in pairs(buttonConfig) do
@@ -533,11 +539,10 @@ local shaderSourceCache = {
 		DEBUG = autoReload and 1 or 0,
 		MOUSEOVERALPHAMULTIPLIER = 5.0,
 		MASKPASS = 0,
+		HEIGHTMAP_SAMPLE_STEPS = rangeHeightmapSampleSteps,
 	},
 	uniformInt = {
 		heightmapTex = 0,
-		losTex = 1,
-		mapNormalTex = 2,
 		maskTex = 3,
 	},
 	uniformFloat = {
@@ -563,7 +568,7 @@ local shaderSourceCache = {
 -- the overlap; the outer rings read that mask instead of the stencil buffer. The 8-bit red
 -- channel holds one bit per class (the stencilMask values of colorConfig), with one mask per
 -- ally/enemy group. The stencil path remains as the fallback.
-local RangeCoverageMask = VFS.Include("luaui/Include/range_coverage_mask_gl4.lua")
+local RangeCoverageMask = require("luaui/Include/range_coverage_mask_gl4")
 local maskShader = nil
 local maskFBO, maskTex -- the shared targets, fetched each draw
 local maskAcquired = false
@@ -577,11 +582,10 @@ local maskShaderSourceCache = {
 		DEBUG = 0,
 		MOUSEOVERALPHAMULTIPLIER = 5.0,
 		MASKPASS = 1,
+		HEIGHTMAP_SAMPLE_STEPS = rangeHeightmapSampleSteps,
 	},
 	uniformInt = {
 		heightmapTex = 0,
-		losTex = 1,
-		mapNormalTex = 2,
 	},
 	uniformFloat = {
 		lineAlphaUniform = 1,
@@ -636,7 +640,7 @@ local function initGL4()
 			defenseRangeVAOs[defRangeClass].vertexVBO,
 			defenseRangeVAOs[defRangeClass].instanceVBO
 		)
-		defenseRangeVAOs[defRangeClass].VAO = newVAO
+		defenseRangeVAOs[defRangeClass].VAO = InstanceVBOTable.fillVAOSlots(newVAO, false, true)
 	end
 	return makeShaders()
 end
@@ -653,17 +657,16 @@ function widget:Initialize()
 	WG.defrange = {}
 	for _, ae in ipairs({ "ally", "enemy" }) do
 		local Ae = string.upper(string.sub(ae, 1, 1)) .. string.sub(ae, 2)
-		for _, wt in ipairs({ "ground", "air", "nuke" }) do
-			local Wt = string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2)
+		for _, wt in ipairs({ "ground", "air", "nuke", "lrpc" }) do
+			local Wt = wt == "lrpc" and "LRPC" or (string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2))
 			WG.defrange["get" .. Ae .. Wt] = function()
 				return buttonConfig[ae][wt]
 			end
 			WG.defrange["set" .. Ae .. Wt] = function(value)
+				buttonConfig[ae][wt] = value
+				-- cannons count as ground defenses, as they do for /defrange
 				if wt == "ground" then
-					buttonConfig[ae].ground = value
-					buttonConfig[ae].lrpc = value
-				else
-					buttonConfig[ae][wt] = value
+					buttonConfig[ae].cannon = value
 				end
 				spEcho(string.format("Defense Range GL4 Setting %s%s to %s", Ae, Wt, value and "on" or "off"))
 				if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
@@ -693,6 +696,10 @@ function widget:Shutdown()
 		maskShader:Finalize()
 		maskShader = nil
 	end
+	if type(defenseRangeShader) == "table" then
+		defenseRangeShader:Finalize()
+		defenseRangeShader = nil
+	end
 end
 
 local floor = math.floor
@@ -718,7 +725,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 
 	--local weapons = unitWeapons[unitDefID]
 	local alliedUnit = (Spring.GetUnitAllyTeam(unitID) == myAllyTeam)
-	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
+	local x, _, z, _, _, _, _, _, _ = spGetUnitPosition(unitID, true, true)
 
 	--for weaponNum = 1, #weapons do
 	local addedrings = 0
@@ -733,8 +740,8 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 			local weaponID = i
 			local ringParams = unitDefRings[unitDefID].rings[i]
 			if ringParams then
-				local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
-				local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
+				local _, y, _, mpx, mpy, mpz, _, _, _ = spGetUnitPosition(unitID, true, true)
+				local _, wpy, _, _, _, _ = Spring.GetUnitWeaponVectors(unitID, weaponID)
 				--spEcho("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
 
 				-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
@@ -888,7 +895,7 @@ function widget:PlayerChanged(playerID)
 	--spEcho("GetMyTeamID", GetMyTeamID)
 	]]
 	--
-	local nowspec, nowfullview = spGetSpectatingState()
+	local nowspec, _ = spGetSpectatingState()
 	local nowmyAllyTeam = Spring.GetLocalAllyTeamID()
 	-- When we start, check if there are >2 allyteams
 	local reinit = false
@@ -1014,7 +1021,7 @@ function widget:Update(dt)
 		local rings = unitDefRings[buildUnitDefID]
 		if rings then
 			-- find out which VBO to remove from:
-			for i, weaponType in ipairs(rings.weapons) do
+			for i, weaponType in pairs(rings.weapons) do
 				buildDrawOverride[weaponType] = false
 				for j, allyenemy in ipairs(allyenemypairs) do -- remove from all
 					local vaokey = allyenemy .. weaponType
@@ -1036,7 +1043,7 @@ function widget:Update(dt)
 			-- Ergo we should rather gate addition on buttonConfig in visibleUnitCreated
 			-- instead of during the draw pass
 
-			local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState()
+			local mx, my, _, _, _, _ = Spring.GetMouseState()
 			local _, coords = Spring.TraceScreenRay(mx, my, true)
 			--spEcho(cmdID, "Attempting to draw rings at")
 			--spEcho(mx, my, coords[1], coords[2], coords[3])

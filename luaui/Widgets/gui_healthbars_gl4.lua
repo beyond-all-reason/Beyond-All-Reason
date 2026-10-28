@@ -17,11 +17,11 @@ local mathMin = math.min
 
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGameFrame = Spring.GetGameFrame
 local spEcho = Spring.Echo
-local spGetUnitTeam = Spring.GetUnitTeam
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spIsPosInLos = Spring.IsPosInLos
@@ -211,6 +211,7 @@ local bitIntegerNumber = 16
 local bitGetProgress = 32
 local bitFlashBar = 64
 local bitColorCorrect = 128
+local bitAmmo = 256
 
 -- unit uniform index map:
 -- 0: building
@@ -261,6 +262,14 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		hidethreshold = 1.99,
 		uniformindex = 2, -- if its >20, then its health/maxhealth
 		uvoffset = 0.4375, -- the X offset of the icon for this bar
+	},
+	ammo = {
+		mincolor = { 0.1, 0.1, 0.1, 1.0 },
+		maxcolor = { 0.1, 0.1, 0.1, 1.0 },
+		bartype = bitShowGlyph + bitUseOverlay + bitAmmo,
+		hidethreshold = 0.99,
+		uniformindex = 2,
+		uvoffset = 0.4375,
 	},
 	emp_damage = {
 		mincolor = { 0.4, 0.4, 0.8, 1.0 },
@@ -355,6 +364,16 @@ for barname, bt in pairs(barTypeMap) do
 	bt.cache = cache
 end
 
+-- A unit's bar is keyed unitID * 16 + the bar's index here, so adding or removing one builds no string
+local unitBarNames = {}
+local unitBarIndex = {}
+for barname in pairs(barTypeMap) do
+	if not barname:find("^feature") then
+		unitBarNames[#unitBarNames + 1] = barname
+		unitBarIndex[barname] = #unitBarNames
+	end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -368,6 +387,7 @@ local unitDefIgnore = {} -- commanders!
 local unitDefhasShield = {} -- value is shield max power
 local unitDefReactiveArmor = {} -- value is armor health
 local unitDefCanStockpile = {} -- 0/1?
+local unitDefAmmoLimit = {} -- small fast stockpiles are really "ammo"
 local unitDefHeights = {} -- maps unitDefs to height
 local unitDefHideDamage = {}
 local unitDefPrimaryWeapon = {} -- the index for reloadable weapon on unitdef weapons
@@ -379,6 +399,7 @@ local unitReactiveArmorWatch = {}
 local unitEmpDamagedWatch = {}
 local unitParalyzedWatch = {}
 local unitStockPileWatch = {}
+local unitAmmoLimit = {}
 local unitReloadWatch = {}
 
 local featureDefHeights = {} -- maps FeatureDefs to height
@@ -431,8 +452,9 @@ local debugmode = false
 local barHeight = 0.9
 local shaderConfig = { -- these are our shader defines
 	HEIGHTOFFSET = 3, -- Additional height added to everything
-	CLIPTOLERANCE = 1.1, -- At 1.0 it won't draw at units just outside of view (may pop in), 1.1 is a good safe amount
-	MAXVERTICES = 64, -- The max number of vertices we can emit, make sure this is consistent with what you are trying to draw (tris 3, quads 4, corneredrect 8, circle 64
+	-- The most vertices one bar emits: three 8-vertex strips plus up to four 4-vertex glyphs (icon, two
+	-- digits, percent/seconds sign). The geometry shader's output buffer is sized by this, so keep it tight.
+	MAXVERTICES = 40,
 	CLIPTOLERANCE = 1.2,
 	BARWIDTH = 2.56,
 	BARHEIGHT = barHeight,
@@ -531,6 +553,15 @@ for udefID, unitDef in pairs(UnitDefs) do
 	) + mathMin(0.6, unitDef.health / 22000)
 	if unitDef.canStockpile then
 		unitDefCanStockpile[udefID] = unitDef.canStockpile
+		for i = 1, #weapons do
+			local WeaponDef = WeaponDefs[weapons[i].weaponDef]
+			if WeaponDef and WeaponDef.stockpile and WeaponDef.stockpileTime < 30 * Game.gameSpeed then
+				local ammunition = math.ceil(tonumber(WeaponDef.customParams.stockpilelimit) or 99)
+				if ammunition < 10 then
+					unitDefAmmoLimit[udefID] = ammunition
+				end
+			end
+		end
 	end
 	if reloadTime and reloadTime > minReloadTime then
 		if debugmode then
@@ -599,9 +630,13 @@ local function initializeInstanceVBOTable(myName, usesFeatures)
 	if useGeometryShader then
 		local newVAO = gl.GetVAO()
 		newVAO:AttachVertexBuffer(newVBOTable.instanceVBO)
-		newVBOTable.VAO = newVAO
+		newVBOTable.VAO = InstanceVBOTable.fillVAOSlots(newVAO)
 	else
-		newVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(unitQuadVBO, newVBOTable.instanceVBO)
+		newVBOTable.VAO = InstanceVBOTable.fillVAOSlots(
+			InstanceVBOTable.makeVAOandAttach(unitQuadVBO, newVBOTable.instanceVBO),
+			false,
+			true
+		)
 		-- so the resize can find the quad when it rebuilds the VAO
 		newVBOTable.vertexVBO = unitQuadVBO
 	end
@@ -655,6 +690,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local deferUploads = false -- set while rebuilding all bars, which are then uploaded in one go
+
 local function addBarForUnit(unitID, unitDefID, barname, reason)
 	--Spring.Debug.TraceFullEcho()
 	if debugmode then
@@ -673,7 +710,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	local bt = barTypeMap[barname]
 	--if cnt == 1 then bt = barTypeMap.building end
 	--if cnt == 2 then bt = barTypeMap.reload end
-	local instanceID = unitID .. "_" .. barname
+	local instanceID = unitID * 16 + unitBarIndex[barname]
 	--spEcho(instanceID, barname, unitBars[unitID])
 	if healthBarVBO.instanceIDtoIndex[instanceID] then
 		if debugmode then
@@ -682,7 +719,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 		return
 	end -- we already have this bar !
 
-	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then -- dead or invalid
+	if spGetUnitIsDead(unitID) ~= false then -- dead, or nil for invalid
 		if debugmode then
 			BAR.Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitDefID, barname)
 		end
@@ -708,6 +745,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 
 	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit * effectiveScale -- height
 	healthBarTableCache[2] = effectiveScale
+	healthBarTableCache[3] = unitDefAmmoLimit[unitDefID] or 0
 	healthBarTableCache[6] = unitBars[unitID] - 1 -- bar index (how manyeth per unit)
 
 	return pushElementInstance(
@@ -715,7 +753,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 		healthBarTableCache,
 		instanceID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
-		nil, -- noupload, dont use unless you know what you want to batch push/pop
+		deferUploads, -- noupload, dont use unless you know what you want to batch push/pop
 		unitID
 	) -- last one should be featureID!
 	-- we are returning here, to sign successful adds
@@ -745,7 +783,7 @@ local function updateReloadBar(unitID, unitDefID, reason)
 end
 
 local function removeBarFromUnit(unitID, barname, reason) -- this will bite me in the ass later, im sure, yes it did, we need to just update them :P
-	local instanceKey = unitID .. "_" .. barname
+	local instanceKey = unitID * 16 + unitBarIndex[barname]
 	if healthBarVBO.instanceIDtoIndex[instanceKey] then
 		if debugmode then
 			BAR.Debug.TraceEcho(reason)
@@ -756,7 +794,7 @@ local function removeBarFromUnit(unitID, barname, reason) -- this will bite me i
 end
 
 local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason) -- TODO, actually, we need to check for all of these for stuff entering LOS
-	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then
+	if unitDefID == nil or spGetUnitIsDead(unitID) ~= false then -- dead, or nil for invalid
 		if debugmode then
 			spEcho("Tried to add a bar to a dead or invalid unit", unitID, "at", spGetUnitPosition(unitID), reason)
 		end
@@ -767,7 +805,10 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 
 	-- This is optionally passed, and it only important in one edge case:
 	-- If a unit is captured and thus immediately become outside of LOS, then the getunitallyteam is still the old ally team according to getUnitAllyTEam, and not the new allyteam.
-	unitAllyTeam = unitAllyTeam or Spring.GetUnitAllyTeam(unitID)
+	-- Only read below for units that hide damage or stockpile, and never in fullview
+	if unitAllyTeam == nil and not fullview and (unitDefHideDamage[unitDefID] or unitDefCanStockpile[unitDefID]) then
+		unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	end
 	local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
 	if
 		(fullview or (unitAllyTeam == myAllyTeamID) or (unitDefHideDamage[unitDefID] == nil))
@@ -808,8 +849,10 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 		end
 
 		if unitDefCanStockpile[unitDefID] and ((unitAllyTeam == myAllyTeamID) or fullview) then
-			unitStockPileWatch[unitID] = 0.0
-			addBarForUnit(unitID, unitDefID, "stockpile", reason)
+			unitStockPileWatch[unitID] = -1
+			local ammoLimit = unitDefAmmoLimit[unitDefID] -- Make sure an empty gauge is uploaded too.
+			unitAmmoLimit[unitID] = ammoLimit
+			addBarForUnit(unitID, unitDefID, ammoLimit and "ammo" or "stockpile", reason)
 		end
 		if capture > 0 then
 			addBarForUnit(unitID, unitDefID, "capture", reason)
@@ -842,8 +885,10 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 end
 
 local function removeBarsFromUnit(unitID, reason)
-	for barname, v in pairs(barTypeMap) do
-		removeBarFromUnit(unitID, barname, reason)
+	if unitBars[unitID] then -- bars can only exist for units addBarForUnit has counted
+		for i = 1, #unitBarNames do
+			removeBarFromUnit(unitID, unitBarNames[i], reason)
+		end
 	end
 	unitShieldWatch[unitID] = nil
 	unitReactiveArmorWatch[unitID] = nil
@@ -851,6 +896,7 @@ local function removeBarsFromUnit(unitID, reason)
 	unitEmpDamagedWatch[unitID] = nil
 	unitParalyzedWatch[unitID] = nil
 	unitStockPileWatch[unitID] = nil
+	unitAmmoLimit[unitID] = nil
 	unitReloadWatch[unitID] = nil
 	unitBars[unitID] = nil
 end
@@ -879,32 +925,14 @@ local function addBarToFeature(featureID, barname)
 	end
 	featureBars[featureID] = featureBars[featureID] + 1
 
+	local featureBarTableCache = bt.cache
+	featureBarTableCache[1] = featureDefHeights[featureDefID] + additionalheightaboveunit -- height
+	featureBarTableCache[2] = 1.0 * barScale -- size mult
+	featureBarTableCache[6] = featureBars[featureID] - 1 -- bar index (how manyeth per unit)
+
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
-		{
-			featureDefHeights[featureDefID] + additionalheightaboveunit, -- height
-			1.0 * barScale, -- size mult
-			0, -- timer end
-			bt.uvoffset, -- unused float
-
-			bt.bartype, -- bartype int
-			featureBars[featureID] - 1, -- bar index (how manyeth per unit)
-			bt.uniformindex, -- ssbo location offset (> 20 for health)
-			0, -- unused int
-
-			bt.mincolor[1],
-			bt.mincolor[2],
-			bt.mincolor[3],
-			bt.mincolor[4],
-			bt.maxcolor[1],
-			bt.maxcolor[2],
-			bt.maxcolor[3],
-			bt.maxcolor[4],
-			0,
-			0,
-			0,
-			0,
-		}, -- these are just padding zeros for instData, that will get filled in
+		featureBarTableCache,
 		featureID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		nil, -- noupload, dont use unless you know what you want to batch push/pop
@@ -949,21 +977,24 @@ local function init()
 	unitStockPileWatch = {}
 	unitReloadWatch = {}
 	unitBars = {}
+	deferUploads = true
 	for i, unitID in ipairs(Spring.GetAllUnits()) do -- gets radar blips too!
 		-- probably shouldn't be adding non-visible units
 
 		if fullview then
-			addBarsForUnit(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil, "initfullview")
+			addBarsForUnit(unitID, spGetUnitDefID(unitID), nil, nil, "initfullview")
 		else
 			local losstate = Spring.GetUnitLosState(unitID, myAllyTeamID)
 			if losstate.los then
-				addBarsForUnit(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil, "initlos")
+				addBarsForUnit(unitID, spGetUnitDefID(unitID), nil, nil, "initlos")
 				--spEcho(unitID, "IS in los")
 			else
 				--spEcho(unitID, "is not in los for ", myAllyTeamID)
 			end
 		end
 	end
+	deferUploads = false
+	InstanceVBOTable.uploadAllElements(healthBarVBO)
 end
 
 local function initfeaturebars()
@@ -1119,6 +1150,10 @@ end
 function widget:Shutdown()
 	widgetHandler:RemoveAction("debughealthbars", "t")
 	spEcho("Healthbars GL4 unloaded hooks")
+	if type(healthBarShader) == "table" then
+		healthBarShader:Finalize()
+		healthBarShader = nil
+	end
 end
 
 function widget:FeatureReclaimStartedHealthbars(featureID, step)
@@ -1168,10 +1203,12 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	myAllyTeamID = Spring.GetLocalAllyTeamID()
 
 	InstanceVBOTable.clearInstanceTable(healthBarVBO) -- clear all instances
+	deferUploads = true
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		addBarsForUnit(unitID, unitDefID, spGetUnitTeam(unitID), nil, "VisibleUnitsChanged") -- TODO: add them with noUpload = true
+		addBarsForUnit(unitID, unitDefID, nil, nil, "VisibleUnitsChanged")
 	end
-	--uploadAllElements(healthBarVBO) -- upload them all
+	deferUploads = false
+	InstanceVBOTable.uploadAllElements(healthBarVBO) -- upload them all
 end
 
 function widget:PlayerChanged(playerID)
@@ -1262,7 +1299,7 @@ function widget:GameFrame(n)
 	-- check EMP'd units
 	if (n + 1) % 3 == 0 then
 		for unitID, oldempvalue in pairs(unitEmpDamagedWatch) do
-			local health, maxHealth, newparalyzeDamage, capture, build = spGetUnitHealth(unitID)
+			local _, maxHealth, newparalyzeDamage, _, _ = spGetUnitHealth(unitID)
 			if newparalyzeDamage and oldempvalue ~= newparalyzeDamage then
 				if newparalyzeDamage == 0 then
 					unitEmpDamagedWatch[unitID] = nil
@@ -1280,7 +1317,7 @@ function widget:GameFrame(n)
 	if (n + 2) % 3 == 0 then
 		for unitID, paralyzetime in pairs(unitParalyzedWatch) do
 			if Spring.GetUnitIsStunned(unitID) then
-				local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
+				local _, maxHealth, paralyzeDamage, _, _ = spGetUnitHealth(unitID)
 				--uniformcache[1] = math.floor((paralyzeDamage - maxHealth)) / (maxHealth * empDecline))
 				if paralyzeDamage then
 					-- this returns something like 1.20 which somehow turns into seconds somewhere unsearchable, currently wrong display
@@ -1318,19 +1355,20 @@ function widget:GameFrame(n)
 
 	-- check stockpile progress
 	if (n % 5) == 2 then
-		for unitID, stockpilebuild in pairs(unitStockPileWatch) do
-			local numStockpiled, numStockpileQued, stockpileBuild = Spring.GetUnitStockpile(unitID)
-			if stockpileBuild and stockpileBuild ~= stockpilebuild then
-				-- we somehow need to forward 3 vars, all 3 of the above. packed into a float, this is nasty
-				--spEcho("Stockpiling", numStockpiled, numStockpileQued, stockpileBuild)
-				if numStockpiled == nil then
-					BAR.Debug.TraceFullEcho(nil, nil, nil, "nostockpile", unitID, spGetUnitPosition(unitID))
+		for unitID, stockpileValue in pairs(unitStockPileWatch) do
+			local numStockpiled, numStockpileQueued, stockpileBuild = Spring.GetUnitStockpile(unitID)
+			if numStockpiled then
+				local value
+				if unitAmmoLimit[unitID] then
+					value = numStockpiled / unitAmmoLimit[unitID]
+				else
+					value = numStockpiled + (numStockpileQueued > 0 and stockpileBuild or 0)
 				end
-
-				uniformcache[1] = numStockpiled + stockpileBuild -- less hacky
-				--uniformcache[1] =  128*numStockpileQued + numStockpiled + stockpileBuild -- the worlds nastiest hack
-				unitStockPileWatch[unitID] = stockpileBuild
-				gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
+				if value ~= stockpileValue then
+					uniformcache[1] = value
+					unitStockPileWatch[unitID] = value
+					gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
+				end
 			end
 		end
 	end

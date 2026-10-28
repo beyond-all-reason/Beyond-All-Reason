@@ -51,7 +51,7 @@ local pi = math.pi
 local sqrt = math.sqrt
 local format = string.format
 
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
 
 local KEYSYMS_SPACE = 0x20
 local KEYSYMS_ESCAPE = 0x1B
@@ -1074,13 +1074,9 @@ local function activate(mode)
 	if grassApi and grassApi.setExternalBrush then
 		grassApi.setExternalBrush(true)
 	end
-	Echo("[Grass Brush] Activated: " .. subMode:upper())
 end
 
 local function deactivate()
-	if active then
-		Echo("[Grass Brush] Deactivated")
-	end
 	active = false
 	painting = false
 	paintButton = 0
@@ -1154,12 +1150,6 @@ end
 
 local function setLengthScale(v)
 	brushLengthScale = max(MIN_LENGTH_SCALE, min(MAX_LENGTH_SCALE, v))
-end
-
-local function setShape(shape)
-	if shape == "circle" or shape == "square" or shape == "hexagon" or shape == "octagon" or shape == "triangle" then
-		brushShape = shape
-	end
 end
 
 local function setSmartEnabled(val)
@@ -1247,17 +1237,13 @@ function widget:Initialize()
 		setDensity = setDensity,
 		setRadius = setRadius,
 		setCurve = setCurve,
-		setRotation = setRotation,
 		setLengthScale = setLengthScale,
-		setShape = setShape,
 		setSmartEnabled = setSmartEnabled,
 		setSmartFilter = setSmartFilter,
 		setTexFilterEnabled = setTexFilterEnabled,
 		setTexFilterThreshold = setTexFilterThreshold,
 		setTexFilterPadding = setTexFilterPadding,
-		setTexFilterColor = setTexFilterColor,
 		setTexExcludeEnabled = setTexExcludeEnabled,
-		setTexExcludeColor = setTexExcludeColor,
 		setPipetteMode = setPipetteMode,
 		setPipetteExcludeMode = setPipetteExcludeMode,
 		undo = grassUndo,
@@ -1286,11 +1272,6 @@ function widget:Shutdown()
 	end
 	dcValid = false
 	WG.GrassBrush = nil
-end
-
--- Never claim mouse-above so camera MMB panning is not blocked
-function widget:IsAbove(x, y)
-	return false
 end
 
 function widget:MousePress(mx, my, button)

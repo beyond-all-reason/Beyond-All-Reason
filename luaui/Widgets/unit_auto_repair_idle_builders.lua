@@ -17,9 +17,9 @@ end
 ----------------------------------------------------------------
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetTeamUnits = Spring.GetTeamUnits
-local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitStates = Spring.GetUnitStates
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
@@ -33,12 +33,15 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetGameFrame = Spring.GetGameFrame
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetCmdDescIndex = Spring.GetCmdDescIndex
+local spGetActiveCmdDesc = Spring.GetActiveCmdDesc
 
 local CMD_REPAIR = CMD.REPAIR
 local CMD_MOVE = CMD.MOVE
 local CMD_RECLAIM = CMD.RECLAIM
-local CMD_MOVE_STATE = CMD.MOVE_STATE
-local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
+local CMD_STOCKPILE = CMD.STOCKPILE
+local CMD_REMOVE = CMD.REMOVE
+local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 local ALLY_UNITS = Spring.ALLY_UNITS
 
 local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
@@ -49,8 +52,8 @@ local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
 local LEASH_EXTRA = {
 	[-1] = 0, -- Structure
 	[0] = 0, -- hold position
-	[1] = 100, -- maneuver
-	[2] = 200, -- roam
+	[1] = 110, -- maneuver
+	[2] = 210, -- roam
 }
 local DEFAULT_LEASH_EXTRA = 100
 local POLL_INTERVAL = Game.gameSpeed
@@ -86,7 +89,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 	end
 
-	cachedUnitDefs[unitDefID] = { radius = unitDef.radius, canReclaim = canReclaim }
+	cachedUnitDefs[unitDefID] = {
+		radius = unitDef.radius,
+		canReclaim = canReclaim,
+		repairable = unitDef.repairable,
+	}
 	if unitDef.radius > maxUnitRadius then
 		maxUnitRadius = unitDef.radius
 	end
@@ -100,7 +107,7 @@ local myTeam = spGetMyTeamID()
 -- [unitID] = { homeX, homeY, homeZ }
 local idleBuilders = {}
 
--- [builderID] = { targetID, homeX, homeY, homeZ }
+-- [builderID] = { targetID, homeX, homeY, homeZ, returning }
 local activeRepairs = table.ensureTable(WG, "InIdleWorkerTask")
 
 -- [unitID] = expiryFrame
@@ -108,6 +115,9 @@ local reclaimBlacklist = {}
 
 -- [reclaimerID] = targetID
 local activeReclaimers = {}
+
+-- [reclaimerID] = true
+local seenReclaimers = {}
 
 ----------------------------------------------------------------
 -- Helpers
@@ -123,9 +133,32 @@ local function getLeashRadius(unitID)
 	return buildDist + (LEASH_EXTRA[states.movestate] or DEFAULT_LEASH_EXTRA)
 end
 
+local function willExitLeash(unitID, homeX, homeZ, leash)
+	local tx, _, tz = spGetUnitPosition(unitID)
+	if not tx then
+		return true
+	end
+
+	local leashSq = leash * leash
+	local dx, dz = tx - homeX, tz - homeZ
+	if dx * dx + dz * dz > leashSq then
+		return true
+	end
+
+	local vx, _, vz = spGetUnitVelocity(unitID)
+	if vx then
+		local px, pz = dx + vx * POLL_INTERVAL, dz + vz * POLL_INTERVAL
+		if px * px + pz * pz > leashSq then
+			return true
+		end
+	end
+
+	return false
+end
+
 local function sendHome(builderID, info)
 	spGiveOrderToUnit(builderID, CMD_MOVE, { info.homeX, info.homeY, info.homeZ }, CMD_OPT_INTERNAL)
-	activeRepairs[builderID] = nil
+	info.returning = true
 end
 
 local function removeBuilder(unitID)
@@ -135,7 +168,7 @@ end
 
 local function removeTarget(unitID)
 	for builderID, info in pairs(activeRepairs) do
-		if info.targetID == unitID then
+		if info.targetID == unitID and not info.returning then
 			if isUnitAlive(builderID) then
 				sendHome(builderID, info)
 			else
@@ -162,6 +195,7 @@ local function onReclaimerStopped(reclaimerID)
 	end
 
 	activeReclaimers[reclaimerID] = nil
+	seenReclaimers[reclaimerID] = nil
 	if not hasActiveReclaimers(targetID) then
 		reclaimBlacklist[targetID] = spGetGameFrame() + RECLAIM_BLACKLIST_DURATION
 	end
@@ -181,12 +215,7 @@ local function findAllyReclaimerOf(targetID)
 	local nearby = spGetUnitsInCylinder(tx, tz, maxReclaimRange, ALLY_UNITS)
 	for i = 1, #nearby do
 		local uID = nearby[i]
-		if
-			uID ~= targetID
-			and spGetUnitTeam(uID) ~= myTeam -- our own reclaims are tracked via CommandNotify
-			and cachedUnitDefs[spGetUnitDefID(uID)].canReclaim
-			and isReclaimingUnit(uID, targetID)
-		then
+		if uID ~= targetID and cachedUnitDefs[spGetUnitDefID(uID)].canReclaim and isReclaimingUnit(uID, targetID) then
 			return uID
 		end
 	end
@@ -227,17 +256,25 @@ function widget:Shutdown()
 	activeRepairs = {}
 	reclaimBlacklist = {}
 	activeReclaimers = {}
+	seenReclaimers = {}
 end
 
 function widget:PlayerChanged()
+	local previousTeam = myTeam
 	myTeam = spGetMyTeamID()
 	if maybeRemoveSelf() then
 		return
 	end
+	if myTeam == previousTeam then
+		return
+	end
 
 	idleBuilders = {}
-	activeRepairs = {}
+	for unitID in pairs(activeRepairs) do
+		activeRepairs[unitID] = nil
+	end
 	activeReclaimers = {}
+	seenReclaimers = {}
 	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if isMobileBuilder[unitDefID] and spGetUnitCommandCount(unitID) == 0 then
@@ -294,8 +331,13 @@ end
 -- Command interception
 ----------------------------------------------------------------
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	-- State changes (e.g. movestate) should not disrupt tracking
-	if cmdID == CMD_MOVE_STATE or cmdID == CMD_WANT_CLOAK then
+	local descIndex = spGetCmdDescIndex(cmdID)
+	local desc = descIndex and spGetActiveCmdDesc(descIndex)
+	if desc and (desc.type == CMDTYPE_ICON_MODE or desc.queueing == false) then
+		return
+	end
+	-- Stockpile is a unique case. Its description does not identify it as a state.
+	if cmdID == CMD_STOCKPILE then
 		return
 	end
 
@@ -308,7 +350,14 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 	-- Remove all selected builders from tracking on manual commands
 	for _, unitID in ipairs(selectedUnits) do
-		if idleBuilders[unitID] or activeRepairs[unitID] then
+		local active = activeRepairs[unitID] ---@as table?
+		if active and active.returning then
+			local currentID, cmdOptions, cmdTag = spGetUnitCurrentCommand(unitID)
+			if currentID == CMD_MOVE and math.bit_and(cmdOptions, CMD_OPT_INTERNAL) ~= 0 then
+				spGiveOrderToUnit(unitID, CMD_REMOVE, cmdTag)
+			end
+		end
+		if idleBuilders[unitID] or active then
 			removeBuilder(unitID)
 		end
 	end
@@ -340,12 +389,10 @@ function widget:GameFrame(frame)
 		end
 	end
 
-	-- Check if any allies aren't reclaiming their unit anymore.
-	for reclaimerID, targetID in pairs(activeReclaimers) do
-		if
-			spGetUnitTeam(reclaimerID) ~= myTeam
-			and (not isUnitAlive(reclaimerID) or not isReclaimingUnit(reclaimerID, targetID))
-		then
+	-- Check if any seen reclaimers aren't reclaiming their unit anymore.
+	-- Ordered reclaimers may be moving to the target, so wait for UnitIdle.
+	for reclaimerID in pairs(seenReclaimers) do
+		if not isUnitAlive(reclaimerID) or not isReclaimingUnit(reclaimerID, activeReclaimers[reclaimerID]) then
 			onReclaimerStopped(reclaimerID)
 		end
 	end
@@ -356,6 +403,11 @@ function widget:GameFrame(frame)
 		local wantsCloak = (cloakState and cloakState == 1)
 		if not isUnitAlive(builderID) then
 			activeRepairs[builderID] = nil
+		elseif info.returning then
+			local currentID, cmdOptions = spGetUnitCurrentCommand(builderID)
+			if currentID ~= CMD_MOVE or math.bit_and(cmdOptions, CMD_OPT_INTERNAL) == 0 then
+				activeRepairs[builderID] = nil
+			end
 		elseif not isUnitAlive(info.targetID) or reclaimBlacklist[info.targetID] or wantsCloak then
 			sendHome(builderID, info)
 		else
@@ -366,12 +418,9 @@ function widget:GameFrame(frame)
 			else
 				local unitDefID = spGetUnitDefID(info.targetID)
 				local unitDef = cachedUnitDefs[unitDefID]
-				-- Check if target has left leash radius
-				local tx, _, tz = spGetUnitPosition(info.targetID)
-				local dx, dz = tx - info.homeX, tz - info.homeZ
-				local distSq = dx * dx + dz * dz
+				-- Check if target will leave leash radius before the next poll
 				local leash = getLeashRadius(builderID) + unitDef.radius
-				if distSq > leash * leash then
+				if willExitLeash(info.targetID, info.homeX, info.homeZ, leash) then
 					sendHome(builderID, info)
 				else
 					-- Check builder is still repairing (not overridden by player)
@@ -409,8 +458,10 @@ function widget:GameFrame(frame)
 			local bestDistSq = math.huge
 
 			for _, candidateID in ipairs(nearbyUnits) do
+				local candidateDefID = spGetUnitDefID(candidateID)
 				if
 					candidateID ~= builderID
+					and cachedUnitDefs[candidateDefID].repairable
 					and not reclaimBlacklist[candidateID]
 					and not spGetUnitIsBeingBuilt(candidateID)
 				then
@@ -419,9 +470,11 @@ function widget:GameFrame(frame)
 						local tx, _, tz = spGetUnitPosition(candidateID)
 						local dx, dz = tx - homePos.homeX, tz - homePos.homeZ
 						local distSq = dx * dx + dz * dz
-						local candidateDefID = spGetUnitDefID(candidateID)
 						local effectiveLeash = leash + cachedUnitDefs[candidateDefID].radius
-						if distSq <= effectiveLeash * effectiveLeash and distSq < bestDistSq then
+						if
+							distSq < bestDistSq
+							and not willExitLeash(candidateID, homePos.homeX, homePos.homeZ, effectiveLeash)
+						then
 							bestDistSq = distSq
 							bestTarget = candidateID
 						end
@@ -430,11 +483,12 @@ function widget:GameFrame(frame)
 			end
 
 			if bestTarget then
+				-- CommandNotify misses allied orders and our own area, patrol, and fight orders.
+				-- When assigning a repair target, do a spot check for any friendly units missed.
 				local allyReclaimerID = findAllyReclaimerOf(bestTarget)
-				-- We don't have CommandNotify for allies, so we do a spot check when assigning
-				-- a repair target.
 				if allyReclaimerID then
 					activeReclaimers[allyReclaimerID] = bestTarget
+					seenReclaimers[allyReclaimerID] = true
 					reclaimBlacklist[bestTarget] = math.huge
 				else
 					spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget, CMD_OPT_INTERNAL)

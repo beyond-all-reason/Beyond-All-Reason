@@ -132,7 +132,7 @@ local sounds = {
 	facing = "LuaUI/Sounds/buildbar_hover.wav",
 }
 
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 local currentLayout
 local actionHotkeys
 
@@ -719,7 +719,7 @@ local drawCursorText = setmetatable({}, {
 
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
+	actionHotkeys = require("luaui/Include/action_hotkeys")
 	drawCursorText.invalidate()
 end
 
@@ -891,6 +891,12 @@ local function handleFacingAction(_, _, args)
 	end
 end
 
+---@param direction "inc"|"dec"
+---@return boolean? rotated
+local function rotateBlueprint(direction)
+	return handleFacingAction(nil, nil, { direction })
+end
+
 local function handleSpacingAction(_, _, args)
 	local bp = getSelectedBlueprint()
 	if not blueprintPlacementActive or not bp then
@@ -965,7 +971,7 @@ function widget:MouseWheel(up, value)
 		return
 	end
 
-	local alt, ctrl, meta, shift = unpack(state.modKeys or {})
+	local alt, _, _, _ = unpack(state.modKeys or {})
 
 	if not alt then
 		return
@@ -1233,6 +1239,9 @@ function widget:Initialize()
 
 	WG.cmd_blueprint = {
 		reloadBindings = reloadBindings,
+		selectNextBlueprint = handleBlueprintNextAction,
+		selectPrevBlueprint = handleBlueprintPrevAction,
+		rotateBlueprint = rotateBlueprint,
 	}
 	WG.cmd_blueprint.nextBlueprintUnitID = nextBlueprintUnitID
 
