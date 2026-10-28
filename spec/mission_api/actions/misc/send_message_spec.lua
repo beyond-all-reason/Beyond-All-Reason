@@ -25,6 +25,7 @@ describe("mission_api.actions.send_message", function()
 			type = "SendMessage",
 			messageKey = "String!",
 			messageData = "Table",
+			messageType = "MessageType",
 		}, summarizeSchema(action))
 	end)
 
@@ -34,6 +35,14 @@ describe("mission_api.actions.send_message", function()
 
 			assert.are.same({
 				{ messageType = MessageTypes.Message, messageKey = "mission.intro", messageData = { name = "Cmdr" } },
+			}, GG["MissionAPI"].BattleLogRaw)
+		end)
+
+		it("logs the message with its type", function()
+			action.actionFunction("mission.reinforcements", nil, MessageTypes.Notification)
+
+			assert.are.same({
+				{ messageType = MessageTypes.Notification, messageKey = "mission.reinforcements" },
 			}, GG["MissionAPI"].BattleLogRaw)
 		end)
 	end)

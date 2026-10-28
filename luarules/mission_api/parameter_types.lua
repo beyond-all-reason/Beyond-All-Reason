@@ -63,6 +63,7 @@ local types = {
 	AiState = "AiState",
 	SquadTask = "SquadTask",
 	VariableKey = "VariableKey",
+	MessageType = "MessageType",
 
 	-- Number Validators:
 	Number = "Number",
@@ -72,7 +73,6 @@ local types = {
 	TimeOfDay = "TimeOfDay",
 	CompassAngle = "CompassAngle",
 	Elevation = "Elevation",
-	MessageType = "MessageType",
 	Integer = "Integer",
 
 	-- Boolean Validators:
