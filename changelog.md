@@ -1,5 +1,7 @@
 # October
 - [Zombies]
+  - Zombie factories expire 5 minutes after rising, leaving no wreck.
+  - Added the zombie_factory_exclude customparam. Units carrying it are never built by zombie factories.
   - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
   - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
   - Wraith respawns no longer have a 1/3rd chance to drop a queued zombie spawn. Each wave drops its lowest-value third instead.

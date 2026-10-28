@@ -341,6 +341,14 @@ do
 		return false
 	end
 
+	local function getExpiryLifetimeFrames(unitDef, rezPower)
+		if unitDef.isFactory then
+			return ZOMBIE_EXPIRING_FACTORY_LIFETIME
+		elseif unitDef.speed <= 0 and rezPower <= ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT then
+			return ZOMBIE_EXPIRING_BUILDING_LIFETIME
+		end
+	end
+
 	local function getScavVariantUnitDefID(unitDef, unitDefID)
 		if string.find(unitDef.name, "_scav") then
 			return unitDefID
@@ -388,10 +396,7 @@ do
 			isPoolMember = isPoolMember,
 			forceRespawn = isPoolMember,
 			neverRespawn = unitRequiresSpecificPlacement(unitDef),
-			isExpiringBuilding = unitDef.speed <= 0
-				and not unitDef.isFactory
-				and rezPower <= ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT,
-			isExpiringFactory = unitDef.isFactory,
+			expiryLifetimeFrames = getExpiryLifetimeFrames(unitDef, rezPower),
 			excludedFromWraithSpawn = isExcludedFromWraithSpawn(unitDef),
 			scavVariantUnitDefID = getScavVariantUnitDefID(unitDef, unitDefID),
 			spawnExplosionCeg = getSpawnExplosionCeg(unitDef),
@@ -618,10 +623,9 @@ local function registerZombie(unitID, unitDefID, transferToScavs)
 	elseif GG.ZombieAI then
 		GG.ZombieAI.InitializeZombie(unitID, unitDefID)
 	end
-	if zombieUnitDefs[unitDefID].isExpiringBuilding then
-		addToFrameList(expiringBuildingFrames, gameFrame + ZOMBIE_EXPIRING_BUILDING_LIFETIME, unitID)
-	elseif zombieUnitDefs[unitDefID].isExpiringFactory then
-		addToFrameList(expiringBuildingFrames, gameFrame + ZOMBIE_EXPIRING_FACTORY_LIFETIME, unitID)
+	local expiryLifetimeFrames = zombieUnitDefs[unitDefID].expiryLifetimeFrames
+	if expiryLifetimeFrames then
+		addToFrameList(expiringBuildingFrames, gameFrame + expiryLifetimeFrames, unitID)
 	end
 end
 
@@ -931,12 +935,9 @@ local function expireDueBuildings(frame)
 	for buildingIndex = 1, #expiringBuildings do
 		local unitID = expiringBuildings[buildingIndex]
 		local unitDefID = spring.ValidUnitID(unitID) and spring.GetUnitDefID(unitID)
-		if unitDefID and isZombie(unitID) then
-			local defData = zombieUnitDefs[unitDefID]
-			if defData.isExpiringBuilding or defData.isExpiringFactory then
-				suppressedDeaths[unitID] = true
-				spring.DestroyUnit(unitID, true, true)
-			end
+		if unitDefID and isZombie(unitID) and zombieUnitDefs[unitDefID].expiryLifetimeFrames then
+			suppressedDeaths[unitID] = true
+			spring.DestroyUnit(unitID, true, true)
 		end
 	end
 end
