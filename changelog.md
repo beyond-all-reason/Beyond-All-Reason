@@ -1,6 +1,6 @@
 # October
 - [Zombies]
-  - Zombie rez speed follows tech for the whole game, the slowdown at minute 45 is gone.
+  - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
   - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
   - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
   - Wraith respawns no longer have a 1/3rd chance to drop a queued zombie spawn. Each wave drops its lowest-value third instead.
