@@ -56,6 +56,11 @@ local leftclicked = false
 local RectRound, UiElement, elementCorner, elementPadding, elementMargin
 local dlistGuishader, dlistMinimap, oldMinimapGeometry
 
+-- another widget's frame around the minimap (WG.minimap.setExternalFrame): it places the map and
+-- draws the background and blur; outerHeight is how far down from the screen's top the frame reaches
+---@type { l: number, b: number, r: number, t: number, outerHeight: number }?
+local externalFrame = nil
+
 local dualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
 
 -- Icon density scaling: reduce icon size when many units are on the map
@@ -116,10 +121,27 @@ function widget:ViewResize()
 	usedHeight = mathFloor(maxHeight * vsy)
 
 	backgroundRect = { 0, vsy - usedHeight - elementPadding, usedWidth + elementPadding, vsy }
+	if externalFrame then
+		local f = externalFrame
+		usedWidth, usedHeight = mathFloor(f.r - f.l), mathFloor(f.t - f.b)
+		backgroundRect = { f.l, f.b, f.r, f.t }
+		WG.FlowUI.guishaderDeleteDlist("minimap")
+		dlistGuishader = nil
+	end
 
 	if not dualscreenMode then
-		Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
-		checkGuishader(true)
+		Spring.SendCommands(
+			string.format(
+				"minimap geometry %i %i %i %i",
+				backgroundRect[1],
+				vsy - backgroundRect[4],
+				usedWidth,
+				usedHeight
+			)
+		)
+		if not externalFrame then
+			checkGuishader(true)
+		end
 	end
 	dlistMinimap = gl.DeleteList(dlistMinimap)
 	if uiBgTex then
@@ -141,7 +163,23 @@ function widget:Initialize()
 
 	WG.minimap = {}
 	WG.minimap.getHeight = function()
+		if externalFrame then
+			return externalFrame.outerHeight
+		end
 		return usedHeight + elementPadding
+	end
+	-- l, b, r, t: the map's screen rect; outerHeight: the frame's reach down from the screen's top
+	-- (what getHeight reports). No arguments: back to its own place and background. resizing (the
+	-- frame's size being dragged) changes nothing here: the engine minimap follows at once.
+	WG.minimap.setExternalFrame = function(l, b, r, t, outerHeight, resizing)
+		if l then
+			externalFrame = { l = l, b = b, r = r, t = t, outerHeight = outerHeight or (vsy - b) }
+		elseif not externalFrame then
+			return
+		else
+			externalFrame = nil
+		end
+		widget:ViewResize(vsx, vsy)
 	end
 	WG.minimap.getMaxHeight = function()
 		return mathFloor(maxAllowedHeight * vsy), maxAllowedHeight
@@ -222,8 +260,12 @@ function widget:Update(dt)
 		return
 	end
 
-	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
-	checkGuishader()
+	Spring.SendCommands(
+		string.format("minimap geometry %i %i %i %i", backgroundRect[1], vsy - backgroundRect[4], usedWidth, usedHeight)
+	)
+	if not externalFrame then
+		checkGuishader()
+	end
 
 	-- Icon density scaling: reduce icon size when many units are on the map
 	local allUnits = Spring.GetAllUnits()
@@ -320,6 +362,7 @@ function widget:DrawScreen()
 		end
 		if
 			not uiBgTex
+			and not externalFrame
 			and backgroundRect[3] - backgroundRect[1] >= 1
 			and backgroundRect[4] - backgroundRect[2] >= 1
 		then
@@ -342,7 +385,7 @@ function widget:DrawScreen()
 				true
 			)
 		end
-		if uiBgTex then
+		if uiBgTex and not externalFrame then
 			-- background element
 			gl.R2tHelper.BlendTexRect(
 				uiBgTex,

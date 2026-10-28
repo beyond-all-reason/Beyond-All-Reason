@@ -449,6 +449,7 @@ local pipR2T = {
 	contentMaskLastHeight = 0,
 	contentMaskLastL = 0,
 	contentMaskLastB = 0,
+	contentMaskLastFramed = false, -- inside another widget's frame: a plain rect
 	-- LOS texture state
 	losTex = nil,
 	losNeedsUpdate = true,
@@ -595,6 +596,11 @@ local miscState = {
 	minimapMinimized = false, -- Whether the minimap is hidden via MinimapMinimize config (minimap mode only)
 	minimapMinimizeAnimating = false, -- Whether a minimap minimize animation is in progress
 	engineMinimapActive = false, -- Whether engine minimap fallback is currently rendering (tracks transitions)
+	-- minimap mode inside another widget's frame (WG.minimap.setExternalFrame): the screen rect it gives
+	-- and how far down the frame reaches; the frame draws the background, blur and buttons
+	---@type { active: boolean, l: number, b: number, r: number, t: number, outerHeight: number }
+	externalFrame = { active = false, l = 0, b = 0, r = 0, t = 0, outerHeight = 0 },
+	frameButtons = {}, -- WG.minimap.getFrameButtons' list (reused)
 	baseMinimapIconScale = nil, -- Saved MinimapIconScale before engine fallback density scaling modifies it
 	crashingUnits = {}, -- Units that are crashing (no icon should be drawn)
 	gameOverZoomingOut = false, -- True while GameOver zoom-out animation is in progress
@@ -5502,7 +5508,14 @@ local function RecoverInvalidAnimationState()
 end
 
 function UpdateGuishaderBlur()
-	if WG.guishader then
+	if WG.guishader and miscState.externalFrame.active then
+		-- the frame blurs behind itself
+		if WG.guishader.RemoveDlist then
+			WG.guishader.RemoveDlist("pip" .. pipNumber)
+		elseif WG.guishader.RemoveRect then
+			WG.guishader.RemoveRect("pip" .. pipNumber)
+		end
+	elseif WG.guishader then
 		-- Determine the correct bounds based on mode
 		local blurL, blurB, blurR, blurT
 		if isMinimapMode and miscState.minimapMinimized then
@@ -8712,6 +8725,9 @@ local function RegisterMinimapWGAPI()
 		if miscState.minimapMinimized then
 			return 0
 		end
+		if miscState.externalFrame.active then
+			return miscState.externalFrame.outerHeight
+		end
 		local padding = WG.FlowUI and WG.FlowUI.elementPadding or 5
 		return (render.dim.t - render.dim.b) + miscState.hist.StripH() + padding
 	end
@@ -8794,6 +8810,105 @@ local function RegisterMinimapWGAPI()
 		if miscState.engineMinimapActive then
 			miscState.baseMinimapIconScale = value
 		end
+	end
+
+	-- Inside another widget's frame (gui_minimap_flowui2): l, b, r, t the screen rect of the map and
+	-- the timeline strip under it, outerHeight how far down from the screen's top the frame reaches
+	-- (what getHeight reports). The frame draws the background, blur and buttons. No arguments: back
+	-- to its own frame. resizing: the frame's size is being dragged, so only the rect and the zoom
+	-- follow and the map's picture is redrawn when a call without it ends the drag (as when its own
+	-- corner is dragged).
+	WG.minimap.setExternalFrame = function(l, b, r, t, outerHeight, resizing)
+		local ext = miscState.externalFrame
+		if not l and not ext.active then
+			return
+		end
+		ext.active = l ~= nil
+		if l then
+			ext.l, ext.b, ext.r, ext.t = l, b, r, t
+			ext.outerHeight = outerHeight or (render.vsy - b)
+		end
+		if resizing and l then
+			uiState.areResizing = true
+			local oldWidth = render.dim.r - render.dim.l
+			local w = math.floor(r - l)
+			local h = math.floor(t - b - miscState.hist.StripH())
+			render.dim.l, render.dim.r = math.floor(l), math.floor(l) + w
+			render.dim.b, render.dim.t = math.floor(t) - h, math.floor(t)
+			-- the same world area stays in view: the zoom scales with the width, never below the fit
+			local rotDeg = math.abs((render.minimapRotation or 0) * 180 / math.pi) % 180
+			local sideways = rotDeg > 45 and rotDeg < 135
+			local fitX = (sideways and h or w) / mapInfo.mapSizeX
+			local fitZ = (sideways and w or h) / mapInfo.mapSizeZ
+			minimapModeMinZoom = math.min(fitX, fitZ)
+			if oldWidth > 0 and w ~= oldWidth then
+				cameraState.zoom = cameraState.zoom * w / oldWidth
+				cameraState.targetZoom = cameraState.targetZoom * w / oldWidth
+			end
+			if cameraState.zoom < minimapModeMinZoom then
+				cameraState.zoom, cameraState.targetZoom = minimapModeMinZoom, minimapModeMinZoom
+			end
+			local pipWidth, pipHeight = GetEffectivePipDimensions()
+			local visibleW, visibleH = pipWidth / cameraState.zoom, pipHeight / cameraState.zoom
+			cameraState.wcx = ClampCameraAxis(cameraState.wcx, visibleW, mapInfo.mapSizeX, config.mapEdgeMargin)
+			cameraState.wcz = ClampCameraAxis(cameraState.wcz, visibleH, mapInfo.mapSizeZ, config.mapEdgeMargin)
+			cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz
+			RecalculateWorldCoordinates()
+			RecalculateGroundTextureCoordinates()
+			return
+		end
+		uiState.areResizing = false
+		widget:ViewResize(render.vsx, render.vsy)
+		pipR2T.frameNeedsUpdate = true
+		UpdateGuishaderBlur()
+	end
+	-- the timeline strip's height under the map (0 while hidden): the frame's rect includes it
+	WG.minimap.getStripHeight = function()
+		return miscState.hist.StripH()
+	end
+	WG.minimap.isMinimized = function()
+		return miscState.minimapMinimized
+	end
+	-- the buttons it shows on hover, for a frame to draw: { command, texture, active, tooltip }
+	-- (a reused list, rebuilt with its own list of them, at most 4 times a second)
+	WG.minimap.getFrameButtons = function()
+		local list, n = miscState.frameButtons, 0
+		for _, btn in ipairs(pools.visibleButtons) do
+			local c = btn.command
+			local active = (c == "pip_track" and interactionState.areTracking)
+				or (c == "pip_trackplayer" and interactionState.trackingPlayerID)
+				or (c == "pip_view" and state.losViewEnabled)
+				or (c == "pip_activity" and miscState.activityFocusEnabled)
+				or (c == "pip_tv" and miscState.tvEnabled)
+				or (c == "pip_history" and miscState.hist.shown)
+			local key = active and btn.tooltipActiveKey or btn.tooltipKey
+			local tooltip = key and BAR.I18N(key) or ""
+			if c == "pip_help" and config.leftButtonPansCamera then
+				tooltip = tooltip .. BAR.I18N("ui.pip.help_leftclick")
+			end
+			local shortcut = btn.actionName and c ~= "pip_track" and getActionHotkey(btn.actionName)
+			if shortcut and shortcut ~= "" then
+				tooltip = tooltip .. "\n" .. shortcut
+			end
+			n = n + 1
+			local entry = list[n] or {}
+			list[n] = entry
+			entry.command, entry.texture, entry.active, entry.tooltip =
+				c, btn.texture, active and true or false, tooltip
+		end
+		for i = n + 1, #list do
+			list[i] = nil
+		end
+		return list
+	end
+	WG.minimap.pressFrameButton = function(command)
+		for _, btn in ipairs(buttons) do
+			if btn.command == command and btn.OnPress then
+				btn.OnPress()
+				return true
+			end
+		end
+		return false
 	end
 end
 
@@ -9964,6 +10079,9 @@ function widget:Initialize()
 			if miscState.minimapMinimized then
 				return 0
 			end
+			if miscState.externalFrame.active then
+				return miscState.externalFrame.outerHeight
+			end
 			local padding = WG.FlowUI and WG.FlowUI.elementPadding or 5
 			return (render.dim.t - render.dim.b) + padding
 		end
@@ -10052,11 +10170,19 @@ function widget:ViewResize()
 			usedHeight = math.floor(usedWidth / mapRatio)
 		end
 
-		-- Position at top-left corner touching the screen edges (no padding offset)
-		render.dim.l = 0
-		render.dim.r = usedWidth
-		render.dim.b = render.vsy - usedHeight
-		render.dim.t = render.vsy
+		local ext = miscState.externalFrame
+		if ext.active then
+			-- another widget's frame places it: the map fills its rect above the timeline strip
+			usedWidth, usedHeight = math.floor(ext.r - ext.l), math.floor(ext.t - ext.b - stripH)
+			render.dim.l, render.dim.r = math.floor(ext.l), math.floor(ext.l) + usedWidth
+			render.dim.b, render.dim.t = math.floor(ext.t) - usedHeight, math.floor(ext.t)
+		else
+			-- Position at top-left corner touching the screen edges (no padding offset)
+			render.dim.l = 0
+			render.dim.r = usedWidth
+			render.dim.b = render.vsy - usedHeight
+			render.dim.t = render.vsy
+		end
 
 		-- Keep savedDimensions in sync so maximize always expands to the correct
 		-- aspect ratio for the current map (not stale dims from a previous game).
@@ -20423,6 +20549,10 @@ local function UpdateR2TFrame(pipWidth, pipHeight)
 		tracy.ZoneEnd()
 	end
 
+	if miscState.externalFrame.active then
+		tracy.ZoneEnd()
+		return -- the frame around it draws the background
+	end
 	if pipR2T.frameBackgroundTex then
 		-- Blit the cached UiElement background (includes padding)
 		gl.R2tHelper.BlendTexRect(
@@ -21641,6 +21771,8 @@ end
 
 -- Helper function to draw tracking indicators
 local function DrawTrackingIndicators()
+	-- inside another widget's frame the map's corners are square
+	local round = miscState.externalFrame.active and 0 or 1
 	if interactionState.areTracking and #interactionState.areTracking > 0 then
 		local lineWidth = math.ceil(2 * (render.vsx / 1920))
 		local outlineColor = pools.trackingOutlineColor
@@ -21652,10 +21784,10 @@ local function DrawTrackingIndicators()
 			render.dim.t,
 			render.elementCorner * 0.5,
 			lineWidth,
-			1,
-			1,
-			1,
-			1,
+			round,
+			round,
+			round,
+			round,
 			outlineColor,
 			outlineColor
 		)
@@ -21676,10 +21808,10 @@ local function DrawTrackingIndicators()
 				render.dim.t,
 				render.elementCorner * 0.5,
 				lineWidth,
-				1,
-				1,
-				1,
-				1,
+				round,
+				round,
+				round,
+				round,
 				teamColor,
 				teamColor
 			)
@@ -21938,7 +22070,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 	end
 	tracy.ZoneEnd()
 
-	if #visibleButtons > 0 then
+	-- inside another widget's frame the frame draws them (WG.minimap.getFrameButtons)
+	if #visibleButtons > 0 and not miscState.externalFrame.active then
 		-- Draw base buttons when showing on hover
 		if config.showButtonsOnHoverOnly and interactionState.isMouseOverPip then
 			tracy.ZoneBeginN("W:PIP:UI:DrawButtonBase")
@@ -22853,6 +22986,7 @@ function widget:DrawScreen()
 			or math.floor(render.dim.l) ~= pipR2T.contentMaskLastL
 			or math.floor(render.dim.b) ~= pipR2T.contentMaskLastB
 			or maskStripH ~= pipR2T.contentMaskLastStripH
+			or miscState.externalFrame.active ~= pipR2T.contentMaskLastFramed
 		)
 		if maskNeedsUpdate then
 			if pipR2T.contentMaskDlist then
@@ -22868,10 +23002,12 @@ function widget:DrawScreen()
 				-- the timeline strip below takes the bottom corner cuts
 				local atBottom = render.dim.b <= edgeTolerance or maskStripH > 0
 				local atTop = render.dim.t >= render.vsy - edgeTolerance
-				local tl = (atLeft or atTop) and 0 or 1
-				local tr = (atRight or atTop) and 0 or 1
-				local br = (atRight or atBottom) and 0 or 1
-				local bl = (atLeft or atBottom) and 0 or 1
+				-- inside another widget's frame the map is a plain rect: the frame gives the look
+				local framed = miscState.externalFrame.active
+				local tl = (framed or atLeft or atTop) and 0 or 1
+				local tr = (framed or atRight or atTop) and 0 or 1
+				local br = (framed or atRight or atBottom) and 0 or 1
+				local bl = (framed or atLeft or atBottom) and 0 or 1
 				render.RectRound(
 					render.dim.l,
 					render.dim.b,
@@ -22898,6 +23034,7 @@ function widget:DrawScreen()
 			pipR2T.contentMaskLastL = math.floor(render.dim.l)
 			pipR2T.contentMaskLastB = math.floor(render.dim.b)
 			pipR2T.contentMaskLastStripH = maskStripH
+			pipR2T.contentMaskLastFramed = miscState.externalFrame.active
 		end
 
 		-- Validate the R2T textures are still usable (may have been invalidated by engine
@@ -26493,8 +26630,8 @@ function widget:MousePress(mx, my, mButton)
 				return true
 			end
 
-			-- Button row
-			if my <= render.dim.b + render.usedButtonSize then
+			-- Button row (inside another widget's frame the frame has them)
+			if my <= render.dim.b + render.usedButtonSize and not miscState.externalFrame.active then
 				-- Calculate visible buttons
 				local selectedUnits = Spring.GetSelectedUnits()
 				local hasSelection = #selectedUnits > 0

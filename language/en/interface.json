@@ -54,6 +54,8 @@
 				"overflowing": "Overflowing",
 				"wastingMetal": "Wasting metal",
 				"wastingEnergy": "Wasting energy",
+				"metalStall": "Metal stall imminent",
+				"energyStall": "Energy stall imminent",
 				"shareMetalTooltipTitle": "Metal Share Slider",
 				"shareMetalTooltip": "Share excess metal above this point with your team",
 				"shareEnergyTooltipTitle": "Energy Share Slider",
@@ -63,7 +65,13 @@
 				"expenseTooltip": "%{resource} spending (per second)",
 				"storageTooltip": "%{resource} storage",
 				"conversionTooltipTitle": "Energy Conversion Slider",
-				"conversionTooltip": "Excess energy above this point\nwill power your Energy Converters"
+				"conversionTooltip": "Excess energy above this point\nwill power your Energy Converters",
+				"converterUsageTooltipTitle": "Energy Converter Usage",
+				"converterUsageTooltip": "How much of your Energy Converters' capacity is in use.\nThey run on the energy above the conversion marker on the energy bar.",
+				"convertedMetalTooltipTitle": "Converted Metal",
+				"convertedMetalTooltip": "Metal your Energy Converters make (per second)",
+				"convertedEnergyTooltipTitle": "Converter Energy Use",
+				"convertedEnergyTooltip": "Energy your Energy Converters use (per second)"
 			},
 			"converter_usage": {
 				"defaultTooltipTitle": "Energy converter usage",
@@ -150,6 +158,16 @@
 			"playerViewTooltip": "Only view what the player can see",
 			"playerCamera": "Player Camera",
 			"playerCameraTooltip": "Follow player camera perspective and apply selections"
+		},
+		"minimap": {
+			"resizeTitle": "Minimap Size",
+			"resizeTooltip": "Drag to resize the minimap",
+			"windTooltip": "Wind speed on this map ranges from %{minWindValue} to %{maxWindValue}\nAverage wind speed is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
+			"lavaTitle": "Lava",
+			"lavaRiseIn": "The lava rises in %{time}",
+			"lavaSinkIn": "The lava sinks in %{time}",
+			"lavaRising": "The lava is rising, for another %{time}",
+			"lavaSinking": "The lava is sinking, for another %{time}"
 		},
 		"pip": {
 			"tooltip": "Toggle Picture-in-Picture",
