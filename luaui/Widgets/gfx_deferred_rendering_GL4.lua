@@ -270,6 +270,7 @@ end
 local enableProjectileLightFlares = false -- set to true to show lens flare textures on projectile lights
 
 local unitDefLights
+local cloakLightUnitDefs = {}
 local featureDefLights
 local unitEventLights -- Table of lights per unitDefID
 local muzzleFlashLights -- one light per weaponDefID
@@ -647,7 +648,8 @@ end
 ---Takes a light definition table, and tries to check whether its already been initialized, if not, it inits it in-place
 ---@param lightTable table
 ---@param unitID UnitID
-local function InitializeLight(lightTable, unitID)
+---@param knownUnitDefID UnitDefID?
+local function InitializeLight(lightTable, unitID, knownUnitDefID)
 	if not lightTable.initComplete then -- late init
 		-- do the table to flattable conversion, if it doesn't exist yet
 		if not lightTable.lightParamTable then -- perform correct init
@@ -664,27 +666,36 @@ local function InitializeLight(lightTable, unitID)
 			lightparams[lightParamKeyOrder.radius] = lightparams[lightParamKeyOrder.radius]
 			lightparams[lightParamKeyOrder.a] = lightparams[lightParamKeyOrder.a]
 			lightparams[lightParamKeyOrder.lifetime] = mathFloor(lightparams[lightParamKeyOrder.lifetime])
+			if lightTable.showWhenCloaked then
+				lightparams[lightParamKeyOrder.selfshadowing] = -1
+			end
 			lightTable.lightParamTable = lightparams
 			lightTable.lightConfig = nil -- never used again after initialization
 		end
 
-		if unitID then
-			local unitDefID = spGetUnitDefID(unitID)
-			if unitDefID and not unitDefPeiceMapCache[unitDefID] then
-				unitDefPeiceMapCache[unitDefID] = spGetUnitPieceMap(unitID)
+		if unitID or knownUnitDefID then
+			local unitDefID = knownUnitDefID or spGetUnitDefID(unitID)
+			if unitDefID and unitDefPeiceMapCache[unitDefID] == nil then
+				local pieceMap = unitID and spGetUnitPieceMap(unitID) or nil
+				if not pieceMap then
+					local model = UnitDefs[unitDefID].model
+					local modelPath = model and (model.path or model.name)
+					if modelPath and modelPath ~= "" then
+						pieceMap = Spring.GetModelPieceMap(modelPath)
+					end
+				end
+				unitDefPeiceMapCache[unitDefID] = pieceMap or false
 			end
-			local pieceMap = unitDefPeiceMapCache[unitDefID]
+			local pieceMap = unitDefID and unitDefPeiceMapCache[unitDefID]
 
-			if pieceMap == nil or unitDefID == nil then
-				return false
-				--Spring.Debug.TraceFullEcho(nil,nil,nil,"InitializeLight, pieceMap == nil")
-			end
-
-			if pieceMap[lightTable.pieceName] then -- if its not a real piece, it will default to the model worldpos!
+			if not pieceMap then
+				if not lightTable.showWhenCloaked then
+					return false
+				end
+			elseif pieceMap[lightTable.pieceName] then -- if its not a real piece, it will default to the model worldpos!
 				lightTable.pieceIndex = pieceMap[lightTable.pieceName]
 				lightTable.lightParamTable[pieceIndexPos] = lightTable.pieceIndex
 			end
-			--spEcho(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
 		end
 
 		lightTable.initComplete = true
@@ -1366,7 +1377,7 @@ end
 -- uploaded afterwards: a range per light VBO instead of two uploads per light
 local batchUsed, batchBuffer, batchDirty = {}, {}, {}
 
-local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
+local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason, onlyCloaked)
 	if unitDefLights[unitDefID] then
 		if spGetUnitIsBeingBuilt(unitID) then
 			return
@@ -1374,7 +1385,7 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 		local unitDefLight = unitDefLights[unitDefID]
 		if unitDefLight.initComplete ~= true then -- late init
 			for lightname, lightParams in pairs(unitDefLight) do
-				if not InitializeLight(lightParams, unitID) then
+				if lightname ~= "initComplete" and not InitializeLight(lightParams, unitID, unitDefID) then
 					return
 				end
 			end
@@ -1389,7 +1400,7 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 		end
 		local unitIDString = tostring(unitID)
 		for lightname, lightParams in pairs(unitDefLight) do
-			if lightname ~= "initComplete" then
+			if lightname ~= "initComplete" and (not onlyCloaked or lightParams.showWhenCloaked) then
 				local targetVBO = unitLightVBOMap[lightParams.lightType]
 				---@cast targetVBO -?
 
@@ -1598,6 +1609,14 @@ local function LoadLightConfig()
 	if success then
 		--spEcho("Loaded GL4 light config")
 		unitDefLights = result.unitDefLights
+		for unitDefID, lights in pairs(unitDefLights) do
+			for lightName, light in pairs(lights) do
+				if lightName ~= "initComplete" and type(light) == "table" and light.showWhenCloaked then
+					cloakLightUnitDefs[unitDefID] = true
+					break
+				end
+			end
+		end
 		unitEventLights = result.unitEventLights
 		featureDefLights = result.featureDefLights
 		--projectileDefLights = result.projectileDefLights
@@ -1781,12 +1800,32 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	uploadAllElements(unitPointLightVBO) -- upload them all
 	uploadAllElements(unitBeamLightVBO) -- upload them all
 	uploadAllElements(unitConeLightVBO) -- upload them all
+	if GG.CloakUnitLights then
+		GG.CloakUnitLights.Resync()
+	end
 end
 
-function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this unit
+local function AddDeferredCloakLight(unitID, unitDefID)
+	if not cloakLightUnitDefs[unitDefID] then
+		return
+	end
+	if spGetUnitIsDead(unitID) == true then
+		return
+	end
+	AddStaticLightsForUnit(unitID, unitDefID, false, "Cloaked", true)
+end
+
+local function RemoveDeferredCloakLight(unitID)
+	RemoveUnitAttachedLights(unitID)
+end
+
+function widget:VisibleUnitRemoved(unitID, unitDefID, _, reason) -- remove all the lights for this unit
 	--if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
 	RemoveUnitAttachedLights(unitID)
 	visibleUnits[unitID] = nil
+	if reason == "UnitLeftLos" and cloakLightUnitDefs[unitDefID] then
+		AddDeferredCloakLight(unitID, unitDefID)
+	end
 end
 
 function widget:Shutdown()
@@ -1797,6 +1836,8 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("AddBeamLight")
 	widgetHandler:DeregisterGlobal("AddConeLight")
 	widgetHandler:DeregisterGlobal("AddLight")
+	widgetHandler:DeregisterGlobal("AddDeferredCloakLight")
+	widgetHandler:DeregisterGlobal("RemoveDeferredCloakLight")
 	widgetHandler:DeregisterGlobal("RemoveLight")
 	widgetHandler:DeregisterGlobal("GetLightVBO")
 
@@ -2740,6 +2781,11 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal("AddBeamLight", WG.lightsgl4.AddBeamLight)
 	widgetHandler:RegisterGlobal("AddConeLight", WG.lightsgl4.AddConeLight)
 	widgetHandler:RegisterGlobal("AddLight", WG.lightsgl4.AddLight)
+	widgetHandler:RegisterGlobal("AddDeferredCloakLight", AddDeferredCloakLight)
+	widgetHandler:RegisterGlobal("RemoveDeferredCloakLight", RemoveDeferredCloakLight)
+	if GG.CloakUnitLights then
+		GG.CloakUnitLights.Resync()
+	end
 	widgetHandler:RegisterGlobal("RemoveLight", WG.lightsgl4.RemoveLight)
 	widgetHandler:RegisterGlobal("GetLightVBO", WG.lightsgl4.GetLightVBO)
 

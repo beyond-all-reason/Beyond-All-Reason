@@ -46,7 +46,7 @@ local NOGO_ZONE_RADIUS = 600
 local NOGO_ZONE_RADIUS_SQUARED = NOGO_ZONE_RADIUS ^ 2
 local ENEMY_ATTACK_DISTANCE = 1000
 local ENEMY_ATTACK_DISTANCE_SQUARED = ENEMY_ATTACK_DISTANCE ^ 2
-local WRAITH_ENEMY_RADIUS = 300
+local WRAITH_ENEMY_RADIUS = 250
 local WRAITH_ENEMY_RADIUS_SQUARED = WRAITH_ENEMY_RADIUS * WRAITH_ENEMY_RADIUS
 local ORDER_DISTANCE = 1600
 local OBJECTIVE_REACHED_DISTANCE = 200
@@ -1314,7 +1314,12 @@ local function getWraithData(unitID, unitDefID)
 	return wraithData
 end
 
-local function commandWraith(unitID, unitDefID, wraithX, wraithY, wraithZ)
+local function issueDirectObjectiveMove(unitID, unitDefID, objective)
+	local targetY = spGetGroundHeight(objective.x, objective.z)
+	spGiveOrderToUnit(unitID, getMovementCommand(unitDefID), { objective.x, targetY, objective.z }, 0)
+end
+
+local function commandWraith(unitID, unitDefID, wraithX, wraithY, wraithZ, attackerX, attackerZ)
 	local wraithData = getWraithData(unitID, unitDefID)
 	local nearestEnemyID =
 		spGetClosestEnemyUnit(wraithX, wraithY, wraithZ, ENEMY_ATTACK_DISTANCE, gaiaAllyTeamID, false)
@@ -1325,6 +1330,15 @@ local function commandWraith(unitID, unitDefID, wraithX, wraithY, wraithZ)
 		if enemyX then
 			enemyWithinRadius = distance2dSquared(wraithX, wraithZ, enemyX, enemyZ) <= WRAITH_ENEMY_RADIUS_SQUARED
 		end
+	end
+	if attackerX and attackerZ then
+		setEnemyDirectionObjective(unitID, wraithData, attackerX, attackerZ, ENEMY_DIRECTION_AWAY)
+		local objective = wraithData.objective
+		if objective then
+			issueDirectObjectiveMove(unitID, unitDefID, objective)
+			wraithData.nextOrderFrame = gameFrame + WRAITH_ORDER_COOLDOWN
+		end
+		return enemyWithinRadius
 	end
 	if gameFrame < wraithData.nextOrderFrame then -- delay issuing new orders so it has a chance to escape from the midst of the enemy
 		return enemyWithinRadius
