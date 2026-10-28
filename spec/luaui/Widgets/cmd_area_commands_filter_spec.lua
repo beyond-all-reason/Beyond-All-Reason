@@ -11,10 +11,10 @@ describe("Area Command Filter drag origin", function()
 		orders, held = {}, true
 		traceType, traceID, activeCommand = "unit", 101, 20
 		widget = {}
-		local defs = { [101] = 1, [102] = 1, [103] = 2 }
+		local defs = { [1] = 3, [101] = 1, [102] = 1, [103] = 2 }
 		env = setmetatable({
 			widget = widget,
-			UnitDefs = {},
+			UnitDefs = { [3] = { canAttack = true, maxWeaponRange = 100 } },
 			Game = { maxUnits = 32000 },
 			CMD = { ATTACK = 20, CAPTURE = 21, GUARD = 25, REPAIR = 40, RECLAIM = 90, LOAD_UNITS = 75, RESURRECT = 125 },
 			GameCMD = { UNIT_SET_TARGET = 34923, UNIT_SET_TARGET_NO_GROUND = 34924 },
