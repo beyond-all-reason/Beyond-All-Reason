@@ -11,19 +11,19 @@ end
 
 local function clearAppliedEffect(effectName, appliedEffect)
 	GG["MissionAPI"].effectNames[effectName] = nil
-	GG["MissionAPI"].EffectDefinitions.Effects[appliedEffect.effectID].Remove(appliedEffect.instanceID)
+	GG["MissionAPI"].EffectDefinitions.Effects[appliedEffect.effectType].Remove(appliedEffect.instanceID)
 end
 
-local function applyEffect(effectID, effectName, area, duration, strength)
+local function applyEffect(effectType, effectName, area, duration, strength)
 	local effectNames = GG["MissionAPI"].effectNames
 	local previous = effectNames[effectName]
 	if previous then
 		clearAppliedEffect(effectName, previous)
 	end
 
-	local effect = GG["MissionAPI"].EffectDefinitions.Effects[effectID]
+	local effect = GG["MissionAPI"].EffectDefinitions.Effects[effectType]
 	effectNames[effectName] = {
-		effectID = effectID,
+		effectType = effectType,
 		instanceID = effect.Create(area, strength),
 		endFrame = duration and Spring.GetGameFrame() + secondsToFrames(duration) or nil,
 	}
