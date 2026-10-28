@@ -1,7 +1,10 @@
-local function loadLimiter()
-	local selected, orders = {}, {}
+local function loadLimiter(targetCount)
+	local selected, orders, targets = {}, {}, {}
 	for id = 1, 40 do
 		selected[id] = id
+	end
+	for id = 1, targetCount do
+		targets[id] = 100 + id
 	end
 	local env = setmetatable({
 		gadget = {},
@@ -10,6 +13,11 @@ local function loadLimiter()
 				return false
 			end,
 		},
+		BAR = { Utilities = {
+			GetObjectCentroid = function()
+				return 0, 0
+			end,
+		} },
 		CMD = { ATTACK = 20, FIGHT = 16, STOP = 0, OPT_SHIFT = 32 },
 		UnitDefs = { { customParams = {}, weapons = {} } },
 		WeaponDefs = {},
@@ -17,22 +25,46 @@ local function loadLimiter()
 			return fn()
 		end,
 		Spring = {
+			ENEMY_UNITS = -4,
 			GetSelectedUnits = function()
 				return selected
 			end,
 			GetUnitDefID = function()
 				return 1
 			end,
+			GetUnitNeutral = function()
+				return false
+			end,
+			GetUnitCommands = function()
+				return {}
+			end,
+			GetUnitPosition = function(id)
+				return id, 0, id
+			end,
+			GetUnitsInCylinder = function()
+				return targets
+			end,
 			GetLocalTeamID = function()
 				return 0
 			end,
-			SelectUnitArray = function(units)
-				selected = units
-			end,
-			GiveOrder = function(id, params, options)
-				orders[#orders + 1] = { id = id, params = params, options = options, count = #selected }
+			GiveOrderArrayToUnit = function(unitID, commands)
+				orders[#orders + 1] = { unitID = unitID, commands = commands }
 			end,
 		},
+		require = function(name)
+			if name == "modules/split_targets" then
+				return {
+					Rivers = function(units, unitTargets)
+						local assignments = {}
+						for _, unitID in ipairs(units) do
+							assignments[unitID] = unitTargets
+						end
+						return assignments, { units }
+					end,
+				}
+			end
+			return require(name)
+		end,
 	}, { __index = _G })
 	local chunk = assert(loadfile("luarules/gadgets/unit_areaattack_limiter.lua"))
 	setfenv(chunk, env)
@@ -42,24 +74,20 @@ end
 
 describe("raw area attack limiter", function()
 	for _, params in ipairs({ { 10, 20, 30, 100 }, { 0, 0, 0, 20, 40, 60 } }) do
-		it("limits a " .. #params .. "-parameter raw Attack", function()
-			local gadget, orders = loadLimiter()
+		it("splits a large " .. #params .. "-parameter raw Attack", function()
+			local gadget, orders = loadLimiter(60)
 			assert.is_true(gadget:GetInfo().enabled)
 			assert.is_true(gadget:CommandNotify(20, params, { shift = true }))
-			assert.are.equal(2, #orders)
-			assert.are.equal(20, orders[1].id)
-			assert.are.equal(30, orders[1].count)
-			assert.same(params, orders[1].params)
-			assert.are.equal(16, orders[2].id)
-			assert.are.equal(10, orders[2].count)
-			assert.same({ 10, 20, 30 }, orders[2].params)
+			assert.are.equal(40, #orders)
+			assert.are.equal(1, orders[1].unitID)
+			assert.same({ 20, { 101 }, 32 }, orders[1].commands[1])
 		end)
 	end
 
-	it("leaves compact lists and engine-native Area Attack alone", function()
-		local gadget, orders = loadLimiter()
-		gadget:CommandNotify(GameCMD.ATTACK_TARGETS, { 1, 2, 3, 4 }, {})
-		gadget:CommandNotify(21, { 10, 20, 30, 100 }, {})
+	it("leaves smaller area Attacks and other command IDs alone", function()
+		local gadget, orders = loadLimiter(2)
+		assert.is_false(gadget:CommandNotify(20, { 10, 20, 30, 100 }, {}))
+		assert.is_nil(gadget:CommandNotify(21, { 10, 20, 30, 100 }, {}))
 		assert.same({}, orders)
 	end)
 end)

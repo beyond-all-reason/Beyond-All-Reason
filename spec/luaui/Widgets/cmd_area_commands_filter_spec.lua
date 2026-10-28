@@ -121,10 +121,10 @@ describe("Area Command Filter drag origin", function()
 		assert.same({}, orders)
 	end)
 
-	it("preserves Ctrl's all-types behavior", function()
+	it("leaves Ctrl removal to the engine", function()
 		widget:MousePress(10, 20, 1)
-		assert.is_true(notify({ ctrl = true }))
-		assert.same({ 101, 102, 103 }, orders)
+		assert.is_false(notify({ ctrl = true }))
+		assert.same({}, orders)
 	end)
 
 	it("supports Set Target and right-button drags", function()

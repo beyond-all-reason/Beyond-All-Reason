@@ -66,8 +66,9 @@ end
 
 local commandLimit = 2000
 
-local SplitTargets = require("modules/split_targets")
-local splitRivers = SplitTargets.Rivers
+local function splitRivers(...)
+	return require("modules/split_targets").Rivers(...)
+end
 local sendTargetList = VFS.Include("common/luaUtilities/target_list_orders.lua")
 local splitTargets = VFS.Include("common/luaUtilities/split_area_targets.lua")
 
