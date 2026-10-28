@@ -85,7 +85,7 @@ function gadget:GameFramePost(frame)
 		if spGetProjectileTimeToLive(projectileID) > 0 then
 			local anchorX, anchorY, anchorZ = spGetUnitWeaponVectors(rail.ownerID, rail.weaponNum)
 			local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
-			if anchorX and positionX then
+			if anchorX and positionX and positionY and positionZ then
 				local travel = (positionX - anchorX) * rail.directionX
 					+ (positionY - anchorY) * rail.directionY
 					+ (positionZ - anchorZ) * rail.directionZ
