@@ -125,6 +125,7 @@ local REZ_SPEED_UPDATE_INTERVAL = Game.gameSpeed * 60
 local gameFrame = 0
 local tooLong = false
 local adjustedRezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[1]
+local factoryBuildpowerMultiplier = 1
 local currentTechLevel = nil
 
 local PICK_LOWEST = true
@@ -501,7 +502,7 @@ local function setZombieFactoryBuildpower(unitID, useZombieBuildpower, unitDefID
 	local resolvedUnitDefID = unitDefID or (factoryData and factoryData.unitDefID)
 	local unitDef = resolvedUnitDefID and unitDefs[resolvedUnitDefID]
 	if useZombieBuildpower and unitDef and unitDef.isFactory then
-		spring.SetUnitBuildSpeed(unitID, unitDef.buildSpeed * zombieModeSettings.factoryBuildpowerTechMultiplier ^ (currentTechLevel or 1))
+		spring.SetUnitBuildSpeed(unitID, unitDef.buildSpeed * factoryBuildpowerMultiplier)
 		zombieFactories[unitID] = factoryData or { unitDefID = resolvedUnitDefID, baseBuildSpeed = unitDef.buildSpeed }
 		return
 	end
@@ -519,15 +520,13 @@ local function updateRezSpeed()
 	end
 	local rezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[techLevel] or TECH_TO_REZ_POWER_SPEEDS[1]
 	adjustedRezPowerSpeed = rezPowerSpeed * zombieModeSettings.rezPowerSpeedMultiplier
+	factoryBuildpowerMultiplier = zombieModeSettings.factoryBuildpowerTechMultiplier ^ techLevel
 	currentTechLevel = techLevel
 	rebuildZombieCorpseSpawnDelays()
 	setZombieFactoryBuildpower()
 	spring.SetGameRulesParam(RULES_PARAM.TECH_LEVEL, techLevel)
 	spring.SetGameRulesParam(RULES_PARAM.REZ_POWER_SPEED, adjustedRezPowerSpeed)
-	spring.SetGameRulesParam(
-		RULES_PARAM.FACTORY_BUILDPOWER_MULTIPLIER,
-		zombieModeSettings.factoryBuildpowerTechMultiplier ^ techLevel
-	)
+	spring.SetGameRulesParam(RULES_PARAM.FACTORY_BUILDPOWER_MULTIPLIER, factoryBuildpowerMultiplier)
 end
 
 local function updateTooLong(frame)
