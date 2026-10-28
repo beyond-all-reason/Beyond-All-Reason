@@ -1,9 +1,12 @@
 -- this file gets included in alldefs_post.lua
 local function convertToPurple(value)
-	value = string.gsub(value, "-red", "-purple")
-	value = string.gsub(value, "-green", "-purple")
-	value = string.gsub(value, "-blue", "-purple")
-	value = string.gsub(value, "-yellow", "-purple")
+	if type(value) ~= "string" then
+		return value
+	end
+	value = value:gsub("-red", "-purple")
+	value = value:gsub("-green", "-purple")
+	value = value:gsub("-blue", "-purple")
+	value = value:gsub("-yellow", "-purple")
 	return value
 end
 
@@ -77,6 +80,9 @@ local function scavWeaponDefPost(name, wDef)
 			for _, spawnName in pairs(spawnNames) do
 				wDef.customparams.spawns_name = wDef.customparams.spawns_name .. spawnName .. "_scav" .. " "
 			end
+		end
+		if wDef.customparams.spawns_debris and (not string.find(wDef.customparams.spawns_debris, "_scav")) then
+			wDef.customparams.spawns_debris = wDef.customparams.spawns_debris .. "_scav"
 		end
 	end
 	return wDef

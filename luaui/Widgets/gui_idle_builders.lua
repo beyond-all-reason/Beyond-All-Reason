@@ -535,7 +535,7 @@ end
 
 local function checkUnitGroupsPos(isViewresize)
 	if WG.unitgroups then
-		local px, py, sx, sy = WG.unitgroups.getPosition()
+		local _, py, sx, _ = WG.unitgroups.getPosition()
 		local oldPosX, oldPosY = posX, posY
 		posY = py / vsy
 		posX = (sx + widgetSpaceMargin) / vsx
@@ -566,8 +566,12 @@ local function checkUnitGroupsPos(isViewresize)
 			end
 		end
 		if not isViewresize then
+			-- follows the order/build menu every frame, but only a layout change needs the list rebuilt right away
+			local oldPosX, oldPosY, oldIconSize, oldVsx, oldVsy = posX, posY, iconSize, vsx, vsy
 			widget:ViewResize()
-			doUpdate = true
+			if posX ~= oldPosX or posY ~= oldPosY or iconSize ~= oldIconSize or vsx ~= oldVsx or vsy ~= oldVsy then
+				doUpdate = true
+			end
 		end
 	end
 end

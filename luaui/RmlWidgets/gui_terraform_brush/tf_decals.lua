@@ -2,14 +2,7 @@
 local M = {}
 
 function M.attach(doc, ctx)
-	if ctx.attachTBMirrorControls then
-		ctx.attachTBMirrorControls(doc, "dc")
-	end
-	local widgetState = ctx.widgetState
 	local trackSliderDrag = ctx.trackSliderDrag
-
-	widgetState.dcControlsEl = doc:GetElementById("tf-decal-controls")
-	widgetState.dcSubmodesEl = doc:GetElementById("tf-dc-submodes")
 
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 	-- Slider change events are wired declaratively via data-event-change= in RML.
@@ -115,16 +108,11 @@ function M.sync(doc, ctx, setSummary)
 		setNum("dc-slider-sizemax-numbox", sizeMaxV)
 		setNum("dc-slider-alpha-numbox", alphaV)
 		-- Mode row active highlight (data-class-active="dcLibMode == 'X'" in RML)
-		-- and distribution row (data-class-active="dcDistribution == 'X'")
 		local dm = widgetState.dmHandle
 		if dm then
 			local m = dpState.mode or ""
 			if dm.dcLibMode ~= m then
 				dm.dcLibMode = m
-			end
-			local d = dpState.distribution or "random"
-			if dm.dcDistribution ~= d then
-				dm.dcDistribution = d
 			end
 		end
 		-- Align toggle icon
@@ -141,7 +129,8 @@ function M.sync(doc, ctx, setSummary)
 		local slDcHist = doc and getCachedEl(doc, "slider-dc-history")
 		local nbDcHist = doc and getCachedEl(doc, "slider-dc-history-numbox")
 		if slDcHist and uiState.draggingSlider ~= "dc-history" then
-			local dcMax = math.max(dcUndoCnt, 1)
+			---@type number
+			local dcMax = math.max(dcUndoCnt + (dpState.redoCount or 0), 1)
 			slDcHist:SetAttribute("max", tostring(dcMax))
 			slDcHist:SetAttribute("value", tostring(dcUndoCnt))
 		end
@@ -165,15 +154,12 @@ function M.sync(doc, ctx, setSummary)
 				"btn-dc-rotrand-down",
 				"btn-dc-rotrand-up",
 			}, remove)
-			-- Count + distribution: scatter only (point places exactly 1 per tick)
+			-- Count: scatter only (point places exactly 1 per tick)
 			ctx.setDisabledIds(doc, {
 				"dc-slider-count",
 				"dc-slider-count-numbox",
 				"btn-dc-count-down",
 				"btn-dc-count-up",
-				"btn-dc-dist-random",
-				"btn-dc-dist-regular",
-				"btn-dc-dist-clustered",
 			}, not scatter)
 			-- Cadence: applies in BOTH scatter and point drag (widget:Update spam).
 			-- Only irrelevant in remove (which places every frame while dragging).

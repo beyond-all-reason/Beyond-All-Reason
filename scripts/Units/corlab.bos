@@ -4,7 +4,7 @@
 
 piece  pad,base,door1,door2,crane1,crane2,turret1,turret2,nano1,nano2,cagelight,cagelight_emit;
 
-static-var  spray;
+static-var  spray, hasOpened;
 
 // Signal definitions
 #define SIGNAL_BUILD 2
@@ -18,6 +18,7 @@ Create()
 	hide pad;
 	hide cagelight_emit;
 	spray = 0;
+	hasOpened = 0;
 }
 
 #define BASEPIECE base
@@ -35,13 +36,17 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	move door1 to x-axis [-17.0] speed [17];
-	move door2 to x-axis [17.0] speed [17];
-	wait-for-move door2 along x-axis;
-	
-	move crane1 to x-axis [21.0] speed [42];
-	move crane2 to x-axis [21.0] speed [42];
-	wait-for-move crane1 along x-axis;
+	if( !hasOpened )
+	{
+		move door1 to x-axis [-17.0] speed [17];
+		move door2 to x-axis [17.0] speed [17];
+		wait-for-move door2 along x-axis;
+		
+		move crane1 to x-axis [21.0] speed [42];
+		move crane2 to x-axis [21.0] speed [42];
+		wait-for-move crane1 along x-axis;
+		hasOpened = 1;
+	}
 	FACTORY_OPEN_BUILD;
 }
 
@@ -49,16 +54,6 @@ Deactivate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	sleep 5000;
-	
-	move crane1 to x-axis [0] speed [42];
-	move crane2 to x-axis [0] speed [42];
-	wait-for-move crane1 along x-axis;
-	
-	move door1 to x-axis [0.0] speed [17];
-	move door2 to x-axis [0.0] speed [17];
-	wait-for-move door2 along x-axis;
-	
 	FACTORY_CLOSE_BUILD;
 }
 

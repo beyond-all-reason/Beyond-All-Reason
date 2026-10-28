@@ -1680,6 +1680,10 @@ local icontypes = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991,
 	},
+	corhltfus = {
+		bitmap = "icons/fusion.png",
+		size = 1.46999991,
+	},
 	corgant = {
 		bitmap = "icons/factory_gantry.png",
 		size = 2.51999998,
@@ -1891,6 +1895,10 @@ local icontypes = {
 	corminibuzz = {
 		bitmap = "icons/corbuzz.png",
 		size = 1.88999987,
+	},
+	corobligator = {
+		bitmap = "icons/corobligator.png",
+		size = 1.89999997,
 	},
 	cormist = {
 		bitmap = "icons/vehicle_t1_missile.png",
@@ -2994,11 +3002,11 @@ local icontypes = {
 	},
 	legshot = {
 		bitmap = "icons/bot_t2_impulse2x.png",
-		size = 1.60000002,
+		size = 1.35,
 	},
 	babylegshot = {
 		bitmap = "icons/kbot_t2_shotgun.png",
-		size = 1.60000002,
+		size = 1.0,
 	},
 	legsnapper = {
 		bitmap = "icons/corroach_0.9.png",
@@ -3784,6 +3792,10 @@ local icontypes = {
 	scavengerdroppodfriendly = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996,
+	},
+	scavwraith = {
+		bitmap = "icons/blank.png",
+		size = 1.04999995,
 	},
 	scavmist = {
 		bitmap = "icons/blank.png",

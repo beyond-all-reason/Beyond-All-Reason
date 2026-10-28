@@ -704,6 +704,7 @@ function widget:GetConfigData()
 		addLights = addLights,
 		lightRadiusMult = lightRadiusMult,
 		lightStrengthMult = lightStrengthMult,
+		lightSelfShadowing = lightSelfShadowing,
 		showCursorDot = showCursorDot,
 		showSpectatorName = showSpectatorName,
 		showPlayerName = showPlayerName,
@@ -727,5 +728,8 @@ function widget:SetConfigData(data)
 		if data.showCursorDot ~= nil then
 			showCursorDot = data.showCursorDot
 		end
+	end
+	if data.lightSelfShadowing ~= nil then
+		lightSelfShadowing = data.lightSelfShadowing
 	end
 end

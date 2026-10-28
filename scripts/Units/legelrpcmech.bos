@@ -59,7 +59,11 @@ coolingCellPivotB,
 coolingCellPivotC,
 coolingCellA,
 coolingCellB,
-coolingCellC;
+coolingCellC,
+leftbottombarrelfirepoint,
+lefttopbarrelfirepoint,
+rightbottombarrelfirepoint,
+righttopbarrelfirepoint;
 
 static-var  isMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult, trajectoryMode, whichBarrel;
 
@@ -1089,16 +1093,16 @@ AimFromWeapon1(pieceIndex)
 QueryWeapon1(pieceIndex)
 {
     if (whichBarrel == 0){
-        pieceIndex = rightTopBarrel;
+        pieceIndex = righttopbarrelfirepoint;
     }
     if (whichBarrel == 1){
-        pieceIndex = leftTopBarrel;
+        pieceIndex = lefttopbarrelfirepoint;
     }
     if (whichBarrel == 2){
-        pieceIndex = leftBottomBarrel;
+        pieceIndex = leftbottombarrelfirepoint;
     }
     if (whichBarrel == 3){
-        pieceIndex = rightBottomBarrel;
+        pieceIndex = rightbottombarrelfirepoint;
     }
 }
 
@@ -1166,19 +1170,19 @@ FireWeapon1()
 
 Shot1(heading, pitch) {
     if (whichBarrel == 0){
-        emit-sfx 1024 + 0 from rightTopBarrel;
+        emit-sfx 1024 + 0 from righttopbarrelfirepoint;
         whichBarrel = 1;
     }
     if (whichBarrel == 1){
-        emit-sfx 1024 + 0 from leftTopBarrel;
+        emit-sfx 1024 + 0 from lefttopbarrelfirepoint;
         whichBarrel = 2;
     }
     if (whichBarrel == 2){
-        emit-sfx 1024 + 0 from leftBottomBarrel;
+        emit-sfx 1024 + 0 from leftbottombarrelfirepoint;
         whichBarrel = 3;
     }
     if (whichBarrel == 3){
-        emit-sfx 1024 + 0 from rightBottomBarrel;
+        emit-sfx 1024 + 0 from rightbottombarrelfirepoint;
         whichBarrel = 0;
     }
     if (whichBarrel >= 4) whichBarrel = 0;

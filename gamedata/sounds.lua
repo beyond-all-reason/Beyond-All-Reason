@@ -56,13 +56,13 @@ local soundData = {
 	},
 
 	uw = {
-		gain = 1.2 * 0.3,
+		gain = 0.35 * 0.3,
 		pitchmod = 0.17,
 		gainmod = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 8,
 		--priority = 1,
-		rolloff = 0.1,
+		rolloff = 0.08,
 	},
 
 	--[[
@@ -144,7 +144,12 @@ local soundData = {
 			},
 		},
 		dopplerscale = 1.0,
-		rolloff = 1.4,
+		rolloff = {
+			default = 1.4,
+			custom = {
+				["^rockhvy1$"] = 0.8, -- vertical missile launchers
+			},
+		},
 	},
 
 	-- WEAPON SOUNDS MULTI (more concurrent)

@@ -47,28 +47,27 @@ local holidays = BAR.Utilities.Gametype.GetCurrentHolidays()
 local isAprilFools = holidays.aprilfools
 local isHalloween = holidays.halloween
 local isXmas = holidays.xmas
-local holidayModels = VFS.Include("unitbasedefs/holiday_models.lua")
+local holidayModels = require("unitbasedefs/holiday_models")
 
-local evocomTweaks = VFS.Include("unitbasedefs/evocom.lua").Tweaks
-local extraUnitsTweaks = VFS.Include("unitbasedefs/experimental_extra_units.lua").Tweaks
-local processRaptorsUnit = VFS.Include("unitbasedefs/raptor_unitdefs_post.lua").Tweaks
-local scavUnitsForPlayers = VFS.Include("unitbasedefs/scavenger_units_for_players.lua").Tweaks
-local junoReworkTweaks = VFS.Include("unitbasedefs/juno_rework.lua").Tweaks
-local navalBalanceTweaks = VFS.Include("unitbasedefs/naval_balance_tweaks.lua").Tweaks
-local skyshiftUnitTweaks = VFS.Include("unitbasedefs/skyshiftunits_post.lua").skyshiftUnitTweaks
-local proposed_unit_reworksTweaks =
-	VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua").proposed_unit_reworksTweaks
-local techsplitTweaks = VFS.Include("unitbasedefs/techsplit_defs.lua").techsplitTweaks
-local techsplit_balanceTweaks = VFS.Include("unitbasedefs/techsplit_balance_defs.lua").techsplit_balanceTweaks
+local evocomTweaks = require("unitbasedefs/evocom").Tweaks
+local extraUnitsTweaks = require("unitbasedefs/experimental_extra_units").Tweaks
+local processRaptorsUnit = require("unitbasedefs/raptor_unitdefs_post").Tweaks
+local scavUnitsForPlayers = require("unitbasedefs/scavenger_units_for_players").Tweaks
+local junoReworkTweaks = require("unitbasedefs/juno_rework").Tweaks
+local navalBalanceTweaks = require("unitbasedefs/naval_balance_tweaks").Tweaks
+local skyshiftUnitTweaks = require("unitbasedefs/skyshiftunits_post").skyshiftUnitTweaks
+local proposed_unit_reworksTweaks = require("unitbasedefs/proposed_unit_reworks_defs").proposed_unit_reworksTweaks
+local techsplitTweaks = require("unitbasedefs/techsplit_defs").techsplitTweaks
+local techsplit_balanceTweaks = require("unitbasedefs/techsplit_balance_defs").techsplit_balanceTweaks
 
-local airRework = VFS.Include("unitbasedefs/air_rework_defs.lua")
+local airRework = require("unitbasedefs/air_rework_defs")
 local airReworkUnitTweaks = airRework.UnitTweaks
 local airReworkWeaponTweaks = airRework.WeaponTweaks
-local empRework = VFS.Include("unitbasedefs/emp_rework.lua")
+local empRework = require("unitbasedefs/emp_rework")
 local empReworkUnitTweaks = empRework.UnitTweaks
 local empReworkWeaponTweaks = empRework.WeaponTweaks
 
-local scavWeaponDefPost = VFS.Include("gamedata/scavengers/weapondef_post.lua").scavWeaponDefPost
+local scavWeaponDefPost = require("gamedata/scavengers/weapondef_post").scavWeaponDefPost
 
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
@@ -225,6 +224,30 @@ local function unitDef_Post(name, uDef)
 	local buildoptions = uDef.buildoptions
 	local weapondefs = uDef.weapondefs
 	local weapons = uDef.weapons
+
+	local ZOMBIE_WRAITH_RESPAWN_POOL_UNITS = {
+		legsrail = true,
+		corkarg = true,
+		cortermite = true,
+		armsptk = true,
+		armspid = true,
+		corkarganetht4 = true,
+		corthermite = true,
+		armvang = true,
+		armsptkt4 = true,
+		legpede = true,
+		corsktl = true,
+		armflea = true,
+		leganavybattleship = true,
+		legkark = true,
+	}
+	if modOptions.zombies == "spidergeddon" and ZOMBIE_WRAITH_RESPAWN_POOL_UNITS[basename] then
+		customparams.zombie_wraith_respawn_pool = true
+		customparams.zombie_wraith_respawn_delay_multiplier = 3
+		customparams.zombie_wraith_respawn_chance = 1
+		customparams.zombie_rez_power_speed_multiplier = 1.2
+		customparams.zombie_wraith_spawn_max_units_per_spawn_multiplier = 1.8
+	end
 
 	if not uDef.icontype then
 		uDef.icontype = name
@@ -1067,6 +1090,12 @@ local function weaponDef_Post(name, wDef)
 			end
 		end
 
+		if wDef.weapontype == "BeamLaser" and wDef.impactonly == 1 then
+			wDef.impactonly = nil
+			wDef.areaofeffect = 11
+			wDef.edgeeffectiveness = 1
+		end
+
 		-- Remove water splashes on lava maps
 		if modOptions.map_waterislava and wDef.weapontype == "TorpedoLauncher" then
 			wDef.explosiongenerator = "custom:blank"
@@ -1085,7 +1114,7 @@ local function weaponDef_Post(name, wDef)
 
 		--[[Skyshift: Air rework
 		if modoptions.skyshift == true then
-			skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
+			skyshiftUnits = require("unitbasedefs/skyshiftunits_post")
 			wDef = skyshiftUnits.skyshiftWeaponTweaks(name, wDef)
 		end]]
 

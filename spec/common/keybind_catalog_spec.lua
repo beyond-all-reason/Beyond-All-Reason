@@ -7,8 +7,8 @@
 -- Reads the JSON directly rather than through the Lua adapters, because the adapters
 -- use VFS.LoadFile, which the test harness does not mock.
 
-local Json = VFS.Include("common/luaUtilities/json.lua")
-local JsonSchema = VFS.Include("spec/common/json_schema.lua")
+local Json = require("common/luaUtilities/json")
+local JsonSchema = require("spec/common/json_schema")
 
 local function loadJson(path)
 	local f = assert(io.open(path, "r"), "cannot open " .. path)

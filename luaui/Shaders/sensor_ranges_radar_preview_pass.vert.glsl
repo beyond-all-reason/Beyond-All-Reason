@@ -16,4 +16,9 @@ uniform vec4 passRect = vec4(-1.0, -1.0, 1.0, 1.0); // clip-space rectangle the 
 
 void main() {
 	gl_Position = vec4(mix(passRect.xy, passRect.zw, pos.xy * 0.5 + 0.5), 0.0, 1.0);
+	// Offscreen passes and the projected sheet do not use the engine's fixed-function clip planes.
+	gl_ClipDistance[0] = 1.0;
+	gl_ClipDistance[1] = 1.0;
+	gl_ClipDistance[2] = 1.0;
+	gl_ClipDistance[3] = 1.0;
 }

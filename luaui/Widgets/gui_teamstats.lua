@@ -13,7 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-local text = VFS.Include("luaui/Include/keybind_text.lua")
+local text = require("luaui/Include/keybind_text")
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -64,11 +64,6 @@ local UPDATE_FRAMES = 30
 local playSounds = true
 local buttonclick = "LuaUI/Sounds/buildbar_waypoint.wav"
 
--- The Graphs entry in the column is where a history page will go. Off until there is one
--- to open, so players are not offered something that does nothing.
----@type boolean
-local showPlannedPages = false
-
 local screenHeightOrg = 610
 local screenWidthOrg = 1100
 local screenHeight = screenHeightOrg
@@ -111,31 +106,107 @@ local font
 local COLUMNS = {
 	name = { group = "", stat = "player", short = "player", fmt = "name" },
 	damageDealt = { group = "damage", stat = "damageDealt", short = "damageDealt", fmt = "si", rate = true },
-	damageReceived = { group = "damage", stat = "damageReceived", short = "shortReceived", fmt = "si", rate = true },
-	damageEfficiency = { group = "damage", stat = "damageEfficiency", short = "shortEfficiency", fmt = "percent" },
+	damageReceived = {
+		group = "damage",
+		stat = "damageReceived",
+		short = "shortReceived",
+		fmt = "si",
+		rate = true,
+		low = true,
+	},
+	-- `clamp` bounds what the chart plots of a ratio: over nothing it is infinite, and a
+	-- few thousand percent early on would put every other line on the floor.
+	damageEfficiency = {
+		group = "damage",
+		stat = "damageEfficiency",
+		short = "shortEfficiency",
+		fmt = "percent",
+		clamp = { 0, 1000 },
+	},
 	unitsProduced = { group = "units", stat = "unitsProduced", short = "shortBuilt", fmt = "si", rate = true },
 	unitsKilled = { group = "units", stat = "unitsKilled", short = "unitsKilled", fmt = "si", rate = true },
-	unitsDied = { group = "units", stat = "unitsDied", short = "unitsDied", fmt = "si", rate = true },
-	killEfficiency = { group = "units", stat = "killEfficiency", short = "shortEfficiency", fmt = "percent" },
+	unitsDied = { group = "units", stat = "unitsDied", short = "unitsDied", fmt = "si", rate = true, low = true },
+	killEfficiency = {
+		group = "units",
+		stat = "killEfficiency",
+		short = "shortEfficiency",
+		fmt = "percent",
+		clamp = { 0, 1000 },
+	},
 	unitsCaptured = { group = "units", stat = "unitsCaptured", short = "unitsCaptured", fmt = "si", rate = true },
-	unitsStolen = { group = "units", stat = "unitsStolen", short = "unitsStolen", fmt = "si", rate = true },
+	unitsStolen = { group = "units", stat = "unitsStolen", short = "unitsStolen", fmt = "si", rate = true, low = true },
 	unitsReceived = { group = "units", stat = "unitsReceived", short = "unitsReceived", fmt = "si", rate = true },
 	unitsSent = { group = "units", stat = "unitsSent", short = "unitsSent", fmt = "si", rate = true },
 	unitsActive = { group = "units", stat = "unitsActive", short = "unitsActive", fmt = "si" },
+	-- What the metal spent bought in damage: army worth rather than army size.
+	damagePerMetal = {
+		group = "damage",
+		stat = "damagePerMetal",
+		short = "shortDamagePerMetal",
+		fmt = "plain",
+		-- A few damage for every metal: whole numbers would round most of the column to the
+		-- same figure, so it keeps a decimal.
+		decimal = true,
+	},
 	metalProduced = { group = "metal", stat = "resourceProduced", short = "shortProduced", fmt = "si", rate = true },
+	-- What the team's builders took from wrecks, rocks and trees: part of what it produced,
+	-- which only the team stats gadget tells apart.
+	metalReclaimed = {
+		group = "metal",
+		stat = "resourceReclaimed",
+		short = "shortReclaimed",
+		fmt = "si",
+		rate = true,
+		gadget = true,
+	},
 	metalUsed = { group = "metal", stat = "resourceUsed", short = "resourceUsed", fmt = "si", rate = true },
-	metalExcess = { group = "metal", stat = "resourceExcess", short = "resourceExcess", fmt = "si", rate = true },
+	metalExcess = {
+		group = "metal",
+		stat = "resourceExcess",
+		short = "resourceExcess",
+		fmt = "si",
+		rate = true,
+		low = true,
+	},
 	metalSent = { group = "metal", stat = "resourceSent", short = "resourceSent", fmt = "si", rate = true },
 	metalReceived = { group = "metal", stat = "resourceReceived", short = "shortReceived", fmt = "si", rate = true },
 	metalStored = { group = "metal", stat = "resourceStored", short = "resourceStored", fmt = "si" },
 	energyProduced = { group = "energy", stat = "resourceProduced", short = "shortProduced", fmt = "si", rate = true },
+	energyReclaimed = {
+		group = "energy",
+		stat = "resourceReclaimed",
+		short = "shortReclaimed",
+		fmt = "si",
+		rate = true,
+		gadget = true,
+	},
 	energyUsed = { group = "energy", stat = "resourceUsed", short = "resourceUsed", fmt = "si", rate = true },
-	energyExcess = { group = "energy", stat = "resourceExcess", short = "resourceExcess", fmt = "si", rate = true },
+	energyExcess = {
+		group = "energy",
+		stat = "resourceExcess",
+		short = "resourceExcess",
+		fmt = "si",
+		rate = true,
+		low = true,
+	},
 	energySent = { group = "energy", stat = "resourceSent", short = "resourceSent", fmt = "si", rate = true },
 	energyReceived = { group = "energy", stat = "resourceReceived", short = "shortReceived", fmt = "si", rate = true },
 	energyStored = { group = "energy", stat = "resourceStored", short = "resourceStored", fmt = "si" },
-	aggressionLevel = { group = "activity", stat = "aggression", short = "shortAggression", fmt = "plain" },
-	actionsPerMinute = { group = "activity", stat = "actionsPerMinute", short = "shortActionsPerMinute", fmt = "plain" },
+	aggressionLevel = {
+		group = "activity",
+		stat = "aggression",
+		short = "shortAggression",
+		fmt = "plain",
+		clamp = { -30, 30 },
+	},
+	-- Live from the APM broadcast; only the team stats gadget keeps a history of it.
+	actionsPerMinute = {
+		group = "activity",
+		stat = "actionsPerMinute",
+		short = "shortActionsPerMinute",
+		fmt = "plain",
+		liveOnly = true,
+	},
 	-- What is happening right now, read fresh at every refresh: the economy from the engine
 	-- and the rest from the team stats gadget. None of these is a running total, so the
 	-- per-minute switch leaves them be. `of` names the two amounts a percentage is made of,
@@ -173,9 +244,57 @@ local COLUMNS = {
 		fmt = "percent",
 		of = { "buildPowerActive", "buildPower" },
 	},
+	-- A running total in build power minutes: the building a team could have done and did not.
+	buildPowerIdle = {
+		group = "industry",
+		stat = "buildPowerIdle",
+		short = "shortBuildPowerIdle",
+		fmt = "si",
+		gadget = true,
+		low = true,
+	},
+	-- The constructors with no orders and the factories with nothing queued, as the gadget's
+	-- scan last found them, out of how many the team has (`of`): commanders and nano turrets
+	-- are no constructors here.
+	idleCons = {
+		group = "idle",
+		stat = "idleCons",
+		short = "shortIdleCons",
+		fmt = "si",
+		gadget = true,
+		low = true,
+		of = { "idleCons", "cons" },
+		step = true,
+	},
+	idleLabs = {
+		group = "idle",
+		stat = "idleLabs",
+		short = "shortIdleLabs",
+		fmt = "si",
+		gadget = true,
+		low = true,
+		of = { "idleLabs", "labs" },
+		step = true,
+	},
 	-- The total sits with the unit counts, so a view showing it alone captions it "Units".
 	unitValue = { group = "units", stat = "unitValue", short = "shortValue", fmt = "si", count = "unitCount" },
+	-- In a ranked game, what the ranking orders the ally teams by - their units' worth, the
+	-- ones under construction as far as they are built, and what is in their storage - the
+	-- ally team's own (`ally`); shown once more than one ally team's may be seen (`ranked`):
+	-- to a spectator, and to everyone after the game. Beside the units' value, under its
+	-- caption: a caption of its own over one narrow column would not fit.
+	allyScore = {
+		group = "units",
+		stat = "allyScore",
+		short = "shortAllyScore",
+		fmt = "si",
+		gadget = true,
+		ally = true,
+		ranked = true,
+	},
 	valueArmy = { group = "value", stat = "valueArmy", short = "shortArmy", fmt = "si", count = "countArmy" },
+	-- How much of what a team has on the field is fighting rather than building it.
+	armyShare = { group = "value", stat = "armyShare", short = "shortArmyShare", fmt = "percent" },
 	valueAir = { group = "value", stat = "valueAir", short = "shortAir", fmt = "si", count = "countAir" },
 	valueSea = { group = "value", stat = "valueSea", short = "shortSea", fmt = "si", count = "countSea" },
 	valueDefense = {
@@ -229,10 +348,102 @@ local COLUMNS = {
 		short = "shortEfficiency",
 		fmt = "percent",
 		even = true,
+		clamp = { 0, 1000 },
 	},
 	teamKillValue = { group = "traded", stat = "teamKillValue", short = "shortTeamKill", fmt = "si", rate = true },
-	comKills = { group = "commanders", stat = "comKills", short = "unitsKilled", fmt = "si", rate = true },
-	comLost = { group = "commanders", stat = "comLost", short = "unitsDied", fmt = "si", rate = true },
+	-- `step`: a count, charted as steps from one sample to the next rather than a slope.
+	comKills = { group = "commanders", stat = "comKills", short = "unitsKilled", fmt = "si", rate = true, step = true },
+	-- The map as each side holds it: the spots under its extractors and geothermal plants
+	-- (none on a map without them, and then the columns are left out; `held` counts them),
+	-- what its extractors draw from theirs, how much of the map it sees and has on radar, and
+	-- how far toward the enemy its army stands. The last three are the ally team's own,
+	-- alike for each of its teams (`ally`): a band shows them once.
+	metalSpots = {
+		group = "map",
+		stat = "metalSpots",
+		short = "shortMetalSpots",
+		fmt = "si",
+		gadget = true,
+		spots = "metal",
+		held = true,
+		step = true,
+	},
+	-- What the spots held are worth: more on a rich spot, four times as much under an
+	-- extractor of the second tech level.
+	incomeMex = {
+		group = "map",
+		stat = "incomeMex",
+		short = "shortIncomeMex",
+		fmt = "si",
+		gadget = true,
+		spots = "metal",
+	},
+	geoSpots = {
+		group = "map",
+		stat = "geoSpots",
+		short = "shortGeoSpots",
+		fmt = "si",
+		gadget = true,
+		spots = "geo",
+		held = true,
+		step = true,
+	},
+	visionCoverage = {
+		group = "map",
+		stat = "visionCoverage",
+		short = "shortVision",
+		fmt = "percent",
+		gadget = true,
+		ally = true,
+	},
+	radarCoverage = {
+		group = "map",
+		stat = "radarCoverage",
+		short = "shortRadar",
+		fmt = "percent",
+		gadget = true,
+		ally = true,
+	},
+	-- The share of the map the side's radar jammers hide its units in.
+	jammerCoverage = {
+		group = "map",
+		stat = "jammerCoverage",
+		short = "shortJammer",
+		fmt = "percent",
+		gadget = true,
+		ally = true,
+	},
+	frontLine = {
+		group = "map",
+		stat = "frontLine",
+		short = "shortFrontLine",
+		fmt = "percent",
+		gadget = true,
+		ally = true,
+	},
+	comLost = { group = "commanders", stat = "comLost", short = "unitsDied", fmt = "si", rate = true, step = true },
+	-- The map's own hazards: the damage lava did to a team's units, and what it lost to lava,
+	-- deep water or the void. Only on a map that has them (`hazard`).
+	lavaDamage = {
+		group = "map",
+		stat = "lavaDamage",
+		short = "shortLavaDamage",
+		fmt = "si",
+		rate = true,
+		low = true,
+		gadget = true,
+		hazard = "lava",
+	},
+	lostWater = {
+		group = "map",
+		stat = "lostWater",
+		short = "shortLostWater",
+		fmt = "si",
+		rate = true,
+		low = true,
+		gadget = true,
+		hazard = "any",
+	},
 }
 for key, column in pairs(COLUMNS) do
 	column.key = key
@@ -262,27 +473,40 @@ for _, column in pairs(COLUMNS) do
 		column.gadget = true
 	end
 end
+-- The columns whose tooltip speaks of this moment: what comes in per second, how full the
+-- storage is, how many stand idle. A chart of one of them shows the whole game instead, so
+-- it says so in words of its own (ui.teamStats.graphDesc).
+for _, key in ipairs({
+	"metalIncome",
+	"metalExpense",
+	"metalLevel",
+	"metalStored",
+	"energyIncome",
+	"energyExpense",
+	"energyLevel",
+	"energyStored",
+	"unitsActive",
+	"conversion",
+	"buildPowerUse",
+	"idleCons",
+	"idleLabs",
+	"visionCoverage",
+	"radarCoverage",
+	"jammerCoverage",
+	"frontLine",
+	"allyScore",
+}) do
+	COLUMNS[key].overTime = true
+end
 
--- The column's views: which columns each shows, in order. The first is the overview the
--- panel opens on; the others each take one side of the game and have room for all of it.
+-- The categories of graphs: the stats each charts, in order, each taking one side of the
+-- game - and the sections the tables' Columns... card lists every column under. The built-in
+-- categories never change. The player's own come before them - the Graphs page's custom
+-- module keeps them at the front of this list - and the overview that ships with the game is
+-- one of those. A stat is in one built-in category only: the overview and the player's own
+-- are where stats from several sides meet.
+---@type table[]
 local GROUPS = {
-	{
-		key = "all",
-		columns = {
-			"damageDealt",
-			"damageReceived",
-			"damageEfficiency",
-			"unitsProduced",
-			"unitsKilled",
-			"unitsDied",
-			"metalProduced",
-			"metalExcess",
-			"energyProduced",
-			"energyExcess",
-			"aggressionLevel",
-			"actionsPerMinute",
-		},
-	},
 	{
 		key = "live",
 		columns = {
@@ -295,20 +519,20 @@ local GROUPS = {
 			"conversion",
 			"buildPower",
 			"buildPowerUse",
-			"unitValue",
-			"unitsActive",
 		},
 	},
 	{
 		key = "economy",
 		columns = {
 			"metalProduced",
+			"metalReclaimed",
 			"metalUsed",
 			"metalExcess",
 			"metalSent",
 			"metalReceived",
 			"metalStored",
 			"energyProduced",
+			"energyReclaimed",
 			"energyUsed",
 			"energyExcess",
 			"energySent",
@@ -328,6 +552,7 @@ local GROUPS = {
 			"killedValue",
 			"lostValue",
 			"valueEfficiency",
+			"damagePerMetal",
 			"teamKillValue",
 			"comKills",
 			"comLost",
@@ -337,9 +562,6 @@ local GROUPS = {
 		key = "units",
 		columns = {
 			"unitsProduced",
-			"unitsKilled",
-			"unitsDied",
-			"killEfficiency",
 			"unitsCaptured",
 			"unitsStolen",
 			"unitsReceived",
@@ -351,7 +573,9 @@ local GROUPS = {
 		key = "composition",
 		columns = {
 			"unitValue",
+			"allyScore",
 			"valueArmy",
+			"armyShare",
 			"valueAir",
 			"valueSea",
 			"valueDefense",
@@ -363,14 +587,27 @@ local GROUPS = {
 		},
 	},
 	{
+		key = "map",
+		columns = {
+			"metalSpots",
+			"incomeMex",
+			"geoSpots",
+			"visionCoverage",
+			"radarCoverage",
+			"jammerCoverage",
+			"frontLine",
+			"lavaDamage",
+			"lostWater",
+		},
+	},
+	{
 		key = "activity",
 		columns = {
 			"actionsPerMinute",
 			"aggressionLevel",
-			"damageDealt",
-			"unitsProduced",
-			"metalProduced",
-			"energyProduced",
+			"buildPowerIdle",
+			"idleCons",
+			"idleLabs",
 		},
 	},
 }
@@ -382,6 +619,7 @@ end
 -- The engine's own counters, which an ally team's total is the sum of. Everything else a
 -- row shows is derived from these, for a team and for its ally team alike.
 local SUMMED = {
+	"buildPowerIdle",
 	"metalUsed",
 	"metalProduced",
 	"metalExcess",
@@ -414,8 +652,17 @@ local SUMMED = {
 	"energyStorage",
 	"convCapacity",
 	"convUse",
+	-- A side's spots are its teams' together, and what its extractors draw.
+	"metalSpots",
+	"metalSpotsUpgraded",
+	"geoSpots",
+	"incomeMex",
 	"buildPower",
 	"buildPowerActive",
+	"cons",
+	"idleCons",
+	"labs",
+	"idleLabs",
 	"unitCount",
 	"unitValue",
 	"killedValue",
@@ -425,6 +672,10 @@ local SUMMED = {
 	"teamKillValue",
 	"comKills",
 	"comLost",
+	"metalReclaimed",
+	"energyReclaimed",
+	"lavaDamage",
+	"lostWater",
 }
 -- The composition buckets the gadget counts, each with a count and a value.
 for _, bucket in ipairs({ "Army", "Air", "Sea", "Defense", "Strategic", "Factories", "Builders", "Economy", "Utility" }) do
@@ -432,18 +683,46 @@ for _, bucket in ipairs({ "Army", "Air", "Sea", "Defense", "Strategic", "Factori
 	SUMMED[#SUMMED + 1] = "value" .. bucket
 end
 
--- The header switches, right to left as they are laid out. `groupByTeam` only means
--- something with ally teams to group by, so it is left out of a free-for-all.
+-- The settings, top to bottom as the column shows them. Grouping only means something
+-- where a side has more than one player, so a 1v1 or a free-for-all of players on their own
+-- goes without it.
 ---@type table[]
 local switches = {
-	{ key = "groupByTeam" },
-	-- Only offered while there are bands to take a share of.
-	{ key = "shareOfTeam" },
-	{ key = "perMinute" },
-	{ key = "bars" },
+	-- The page's alone: how many charts it shows at once - a value a press changes rather
+	-- than a switch, so it is drawn with what it is set to.
+	{ key = "perPage", page = true, value = true },
+	-- Over the rows below while a custom category's graph is open: they are its own then,
+	-- and greyed out on that category's page of charts, where each graph keeps its own.
+	{ key = "thisGraph", page = true, heading = true },
+	-- Both views: players under their team or on their own - the page keeps a grouping of
+	-- its own - and every amount as the part of the total it makes up, enemies included.
+	-- The grouping is not in the column but at the right end of the strip along the top,
+	-- beside the teams the Graphs page picks and over the table's rows (`top`).
+	{ key = "groupByTeam", perGraph = true, top = true },
+	{ key = "shareOfTotal", perGraph = true },
+	-- The page's alone again, below what the charts are made of: whether the selected
+	-- teams' milestones go on them, and which kinds - a value, like Graphs per page.
+	{ key = "milestones", page = true, perGraph = true },
+	{ key = "milestoneKinds", page = true, value = true, perGraph = true },
+	-- The table's alone: every number as the difference from your own, a bar behind it,
+	-- or the line its history draws. The last two are both painted behind the number, so
+	-- one turns the other off.
+	{ key = "vsMe", table = true },
+	{ key = "trend", table = true },
+	{ key = "bars", table = true },
 }
+-- The ally teams whose players are folded away under their band, by ally id.
+---@type table<integer, boolean>
+local collapsed = {}
 ---@type table<string, boolean>
-local filters = { groupByTeam = true, shareOfTeam = false, perMinute = false, bars = false }
+local filters = {
+	groupByTeam = true,
+	shareOfTotal = false,
+	bars = false,
+	trend = false,
+	vsMe = false,
+	milestones = true,
+}
 
 -- Excess is waste once it passes a share of what was produced; these say what to compare
 -- each excess column with.
@@ -466,6 +745,7 @@ local CARD_LINES = {
 	{ "value", { "valueArmy", "valueAir", "valueSea", "valueDefense", "valueStrategic" } },
 	{ "", { "valueFactories", "valueBuilders", "valueEconomy", "valueUtility" } },
 	{ "activity", { "aggressionLevel", "actionsPerMinute" } },
+	{ "idle", { "idleCons", "idleLabs" } },
 }
 
 ----------------------------------------------------------------
@@ -476,6 +756,11 @@ local area = { x1 = 0, y1 = 0, x2 = 0, y2 = 0 }
 -- Sizes derived from the scale, in one table rather than a local each, the way the other
 -- panels hold their own.
 local metrics = {
+	-- The numbers are set in the monospaced face, so a column of them lines up figure
+	-- under figure however wide each one is, and the player names in the face the rest of
+	-- the interface names players in; everything else is the interface's own.
+	numFont = nil,
+	nameFont = nil,
 	rowHeight = 24,
 	rowFs = 13,
 	-- An ally team's band stands taller than the rows under it and is set larger, so it
@@ -490,8 +775,12 @@ local metrics = {
 	statFs = 12,
 	catRowHeight = 29,
 	catFs = 13,
-	-- The rule in the column between the views and the pages.
+	-- The rule in the column between the player's categories and the built-in ones, and the
+	-- caption over the tables and over the graphs.
 	dividerH = 14,
+	sectionH = 26,
+	-- The air between the column's cards: the tables', the graphs' and the settings'.
+	islandGap = 7,
 	rowPad = 6,
 	-- Room a number keeps from the right edge of its cell; the sort marker sits in it.
 	cellPad = 7,
@@ -501,15 +790,25 @@ local metrics = {
 	-- rows above and below so each reads as its own.
 	accentW = 3,
 	accentPad = 3,
-	-- The bar behind a number, inside its row by this much top and bottom.
+	-- The bar behind a number, inside its row by this much top and bottom; the trend line
+	-- that can take its place is drawn this thick.
 	barInset = 4,
+	trendW = 1,
+	-- The mark under the number of a column a row leads: this far above the row's bottom
+	-- edge, and this thick.
+	leadDrop = 3,
+	leadH = 2,
 	-- The line along the bottom of a group caption and of an ally team's band.
 	underlineH = 2,
 	-- Everything that sits against the panel's right edge - the switches and the
 	-- scrollbar - is held off it by this much.
 	edgeInset = 4,
-	-- The band the title and the switches share, and the gap below.
+	-- The band the title sits in, and the gap below it.
 	headerH = 34,
+	-- The top of the settings' card at the foot of the column, and where the groups above it
+	-- stop: inside the graphs' card, which ends the air above the settings'.
+	settingsCardTop = 0,
+	settingsTop = 0,
 	headerGap = 4,
 	-- Clearance between the table header and the first row.
 	tableGap = 4,
@@ -523,12 +822,19 @@ local metrics = {
 	-- How far the column starts below the table beside it, to leave the title room.
 	sidebarDrop = 8,
 	sidebarW = 190,
+	-- The slim scrollbar beside the graphs' entries when they do not all fit.
+	sideBarW = 6,
+	-- Between the column and the Graphs page's stat list, two cards side by side.
+	pageGap = 8,
 	barW = 14,
 	-- Rows the wheel moves per notch.
 	wheelRows = 3,
 	-- The name column: never narrower than this, and otherwise this share of the table.
 	nameMinW = 150,
 	nameShare = 0.2,
+	-- A number's column at its widest, twice what a view of twelve gives each: a view of a
+	-- few keeps its numbers near the names, and the table ends with its last column.
+	colMaxW = 150,
 	-- The sort marker beside the caption of the sorted column.
 	triW = 5,
 	triH = 4,
@@ -538,9 +844,12 @@ local metrics = {
 	-- Corner radii, taken from FlowUI's so the panel rounds like the rest of the UI.
 	csSmall = 2,
 	csPanel = 4,
-	-- Filled in by the layout.
+	-- Filled in by the layout. `barTop` and `barH` are the strip along the top beside the
+	-- sidebar: the Graphs page's legend bar, or the table's with its Columns... button.
 	nameIndent = 0,
 	bandTop = 0,
+	barTop = 0,
+	barH = 0,
 	groupTop = 0,
 	groupBottom = 0,
 	statTop = 0,
@@ -550,11 +859,24 @@ local look = {
 	-- The column sits on its own darker card, so it reads apart from the table.
 	sidebarFill = { 0, 0, 0, 0.24 },
 	sidebarFillTop = { 0, 0, 0, 0.16 },
+	-- A card laid over the charts, which has to read over whatever is under it: opaque, or
+	-- the lines and captions behind it ghost through.
+	cardFill = { 0.05, 0.05, 0.05, 1 },
+	cardFillTop = { 0.1, 0.1, 0.1, 1 },
 	selectedFill = { 1, 1, 1, 0.13 },
 	white = { 1, 1, 1 },
 	-- Rows, entries and captions hover with the same FlowUI highlight the settings list
 	-- uses, at the strength it gives a plain row.
 	rowHoverOpacity = 0.14,
+	-- A chart in the overview under the cursor: fainter than a row, over a larger area.
+	chartHoverOpacity = 0.09,
+	-- A block of the Graphs page's legend bar under the cursor: small, so lit more than a
+	-- row, and over a lit block too.
+	barHoverOpacity = 0.24,
+	-- A graph dragged in a category of the player's own: its place shaded, and the line
+	-- where it would land in the hue of the captions.
+	dragShade = { 0, 0, 0, 0.45 },
+	dropLine = { 1, 0.78, 0.51, 0.9 },
 	-- Underline under a group caption and an ally team's band: a thin bar fading up out
 	-- of the bottom edge, in the hue of the caption above it.
 	headerLine = { 1, 0.78, 0.51, 0.4 },
@@ -564,9 +886,17 @@ local look = {
 	rule = { 1, 1, 1, 0.08 },
 	-- The bar behind a number, scaled to the column's largest.
 	barFill = { 1, 1, 1, 0.07 },
+	-- A band's trend line, where the band stands for several players and so for no colour
+	-- of its own.
+	trendBand = { 1, 0.86, 0.66, 0.4 },
+	-- The mark under the number of a column a row leads.
+	leadMark = { 1, 0.78, 0.51, 0.55 },
+	-- Laid over a switch whose row is dimmed, so its state reads but its colour does not
+	-- call for a press.
+	mutedFill = { 0.09, 0.09, 0.09, 0.62 },
 	-- Every second team row under a band takes this, so the eye keeps its line across a
 	-- dozen columns. Faint: it is a guide, not a highlight.
-	stripeFill = { 1, 1, 1, 0.035 },
+	stripeFill = { 1, 1, 1, 0.022 },
 	-- The sort marker.
 	sortMark = { 0.92, 0.73, 0.27, 0.9 },
 	-- The font is shared with every other widget, and whichever of them set its outline
@@ -576,13 +906,18 @@ local look = {
 	-- The sorted column, tinted down its length in the hue of its caption, so the eye
 	-- follows the values the table is ordered by.
 	sortedFill = { 1, 0.78, 0.51, 0.04 },
+	-- The line framing the sorted column, caption to last row, in the same hue.
+	sortedLine = { 1, 0.78, 0.51, 0.28 },
+	-- The sorted column's numbers, a shade warmer than the rest.
+	sortedText = "\255\240\226\205",
+	-- A number that is nothing, or not known: quieter, so what there is stands out.
+	zeroText = "\255\150\150\150",
 	-- Excess above this share of what was produced reads as waste.
 	wasteShare = 0.1,
 }
 local colorTitle = "\255\235\235\235"
 local colorHeader = "\255\255\200\130"
 local colorKey = "\255\235\185\070"
-local colorName = "\255\235\235\235"
 local colorValue = "\255\215\212\208"
 -- An ally team's totals in its band: lighter than a player's numbers, since they sit on
 -- the band's own sheen, and not the warm of the caption beside them.
@@ -608,10 +943,16 @@ local panelList, windowList, backgroundGuishader, panelSig
 ---@type number, number, number, number, number
 local listTop, listBottom, listX1, listRight, barX1 = 0, 0, 0, 0, 0
 
--- The column's entries: the views, then a rule, then the pages.
+-- The column's entries: the tables under a caption, then the categories of graphs under
+-- theirs. `selectedGroup` is the key of the one picked, a table's or a category's.
 ---@type table[]
 local entries = {}
-local selectedGroup = "all"
+-- The graphs' entries scroll by whole entries when their card cannot hold them all: `first` is
+-- the first of them (nil without the Graphs caption), `scroll` how many are out of sight above,
+-- `max` how many can be, `bar` whether they give way to a scrollbar.
+---@type table<string, any>
+local sidebar = { first = nil, scroll = 0, max = 0, bar = false }
+local selectedGroup = "overview"
 -- The columns the table shows right now, each with the x range it takes, and the group
 -- captions spanning them.
 ---@type table[]
@@ -620,7 +961,8 @@ local columns = {}
 local spans = {}
 
 -- What the panel shows: every ally team with its teams and their totals, and the rows the
--- table makes of them under the current sort and grouping.
+-- table makes of them under the current sort and grouping. The list also carries the
+-- viewer's own team and ally team (`me`, `myAlly`), which the comparison switch reads.
 ---@type table[]
 local allies = {}
 ---@type table[]
@@ -630,8 +972,10 @@ local rowsGen = 0
 -- Bumped by the layout. A cached row layout carries the value it was built against and
 -- is measured again when it moves, without every row being walked at resize.
 local layoutGen = 0
----@type table<string, number>
-local rowMetrics = { gen = -1, rows = -1, totalH = 0 }
+-- `facts`: the rebuild of the rows each column's bar scale and leaders were worked out for;
+-- `stale`: the rows wait for the table to be shown again.
+---@type { gen: number, rows: number, totalH: number, facts: table<string, integer>, stale: boolean }
+local rowMetrics = { gen = -1, rows = -1, totalH = 0, facts = {}, stale = false }
 -- The largest value each column shows, for the bars.
 ---@type table<string, number?>
 local colMax = {}
@@ -645,9 +989,9 @@ local sortKey = "damageDealt"
 ---@type boolean
 local sortAscending = false
 -- What the cursor is over, in the terms the baked panel is painted with. Refilled in
--- place each frame rather than allocated.
+-- place each frame rather than allocated. `cols` is the table's Columns... button.
 ---@type table<string, integer>
-local hover = { sb = 0, row = 0, col = 0, hcol = 0, tog = 0, bar = 0 }
+local hover = { sb = 0, row = 0, col = 0, hcol = 0, tog = 0, bar = 0, cols = 0 }
 
 local teamAPM = {}
 -- What the team stats gadget last handed over: the live values of every team the
@@ -656,20 +1000,114 @@ local teamAPM = {}
 -- calls it every second; after `stale` frames without, the values count as gone rather
 -- than old, and the table falls back to what the engine tells allies on its own.
 -- `postGame` asks for one more read after game over, so the other side's live values
--- show once they may. `on` is whether the gadget is taken to be there: yes until the
+-- show once they may. `direct` is set while the panel holds the receiver global itself,
+-- with no API widget to hold it for everyone. `on` is whether the gadget is taken to be there: yes until the
 -- panel has been open (`opened`) for `stale` frames without a hand-over, or the
--- hand-overs stop; while it is not, the gadget's columns, views and the history page
--- are left out of the panel rather than shown empty.
+-- hand-overs stop; while it is not, the gadget's columns and the categories of graphs
+-- are left out of the panel rather than shown empty. `wanted` is the category the player
+-- picked while that leaves it out, gone back to when it is shown again. `overFrame` is the
+-- frame the game ended on, where the charts stop.
 ---@type table<string, any>
 local handover = { all = nil, frame = nil, opened = nil, stale = UPDATE_FRAMES * 3, postGame = false, on = true }
+-- Each team's name, label and colours as last read, made again only when they change; and the
+-- rules param its AI's name is in.
+---@type table<integer, table>
+handover.idents = {}
+---@type table<integer, string>
+handover.aiKeys = {}
+-- How many spots of a kind the map has: the spot finder's count (none of metal on a metal
+-- map), or else the gadget's.
+handover.spotCount = function(kind)
+	local finder = WG.resource_spot_finder
+	if finder then
+		local list = (kind == "metal" and not finder.isMetalMap and finder.metalSpotsList)
+			or (kind == "geo" and finder.geoSpotsList)
+		return type(list) == "table" and #list or 0
+	end
+	local info = WG.teamStats and WG.teamStats.getInfo()
+	return info and info[kind .. "Spots"] or 0
+end
+-- Whether the ally teams are ranked as far as the viewer may see: more than one ally team's
+-- place known - a spectator's view, or anyone's once the game is over; never a player's own
+-- side alone.
+handover.rankedIn = function(all)
+	local seen, count = {}, 0
+	for _, live in pairs(all or {}) do
+		local place = live.allyRank
+		if place and place > 0 and not seen[place] then
+			seen[place] = true
+			count = count + 1
+		end
+	end
+	return count > 1
+end
+-- The map's hazards: lava, and void water that takes away what ends up below the ground line.
+handover.lavaMap = BAR.Lava ~= nil and BAR.Lava.isLavaMap == true
+do
+	local ok, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+	handover.voidMap = ok and type(mapinfo) == "table" and mapinfo.voidwater == true
+end
+-- Whether a column can be shown: the gadget's while it is there, a count of the map's spots
+-- on a map that has some, the ranking's in a ranked game, a hazard's on a map that has it.
+handover.shows = function(column)
+	return (handover.on or not column.gadget)
+		and (not column.spots or handover.spotCount(column.spots) > 0)
+		and (not column.ranked or handover.ranked == true)
+		and (not column.hazard or handover.lavaMap or (column.hazard == "any" and handover.voidMap))
+end
 -- The last name seen for each team, for a player who has since left.
 local teamControllers = {}
+-- Every team's player, read and kept from the moment the widget loads rather than from the
+-- first time the panel is opened: a player who resigns or is knocked out starts spectating,
+-- and the engine leaves their team without a leader (-1) to ask for a name, so a panel
+-- opened after that had nothing to show but "(dead)". Read again whenever a player changes -
+-- a substitute takes a team over, a name is set - and kept through a LuaUI reload in the
+-- config, under the game they were read in.
+handover.rememberNames = function()
+	local named = WG.playernames and WG.playernames.getPlayername
+	local function nameOf(playerID)
+		local name = spGetPlayerInfo(playerID, false)
+		return (named and named(playerID)) or name
+	end
+	for _, teamID in ipairs(spGetTeamList()) do
+		local _, leader = spGetTeamInfo(teamID, false)
+		local name
+		if leader and leader >= 0 then
+			name = nameOf(leader)
+		end
+		if not name then
+			-- No leader left: the one player who still carries the team - their own, dead or
+			-- given away. Only when they are the only one, so a watcher the lobby put on the
+			-- team is not taken for the player who had it.
+			local found, count = nil, 0
+			for _, playerID in ipairs(Spring.GetPlayerList() or {}) do
+				local playerName, _, _, playerTeam = spGetPlayerInfo(playerID, false)
+				if playerName and playerTeam == teamID then
+					found, count = playerID, count + 1
+				end
+			end
+			if count == 1 then
+				name = nameOf(found)
+			end
+		end
+		if name and name ~= "" then
+			teamControllers[teamID] = name
+		elseif teamControllers[teamID] == nil then
+			-- Nothing to be had: said so, rather than looked for again every second.
+			teamControllers[teamID] = false
+		end
+	end
+end
 -- The frame each team died on, so a rate is over the time the team was in the game.
 local deathFrame = {}
 ---@type boolean
 local gameover = false
 
-local isFFA = BAR.Utilities.Gametype.IsFFA()
+-- No side with more than one player - a 1v1, or a free-for-all of players on their own -
+-- so there is nothing to group by team and no team to take a share of.
+local soloTeams = not BAR.Utilities.Gametype.IsTeams()
+-- Nor is there when the players are one side against nothing but raptors or scavengers.
+local ungrouped = soloTeams or (BAR.Utilities.Gametype.IsPvE() and BAR.Utilities.GetAllyTeamCount() <= 1)
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {
 	Spring.GetConfigInt("anonymousColorR", 255) / 255,
@@ -678,6 +1116,11 @@ local anonymousTeamColor = {
 }
 local isSpec = spGetSpectatingState()
 local localTeamID = spGetLocalTeamID()
+-- The team the viewer plays, or played before they were knocked out or resigned: "you" and
+-- "me" on the panel. Never the team a spectator watches, so one who never played has none.
+-- Kept in the config under the game, as the names are, for a reload after it.
+---@type integer?
+handover.played = not isSpec and localTeamID or nil
 
 -- Text is queued while the panel is baked and printed in one Begin/End at the end.
 local pending = {}
@@ -685,6 +1128,16 @@ local pendingCount = 0
 
 ---@type function
 local rebuildRows
+-- The Graphs page (luaui/Include/teamstats_graphs.lua) and the tables with the columns the
+-- player keeps in them (luaui/Include/teamstats_tables.lua), made at the end of the file once
+-- everything they read from is declared.
+---@type table<string, any>
+local graphs
+---@type table<string, any>
+local tables
+-- The tables and categories the player made, kept in a file of their own as well, out of reach
+-- of the config an older version of this widget writes in a replay.
+local store = require("luaui/Include/teamstats_store").new("LuaUI/Config/teamstats.json")
 
 ----------------------------------------------------------------
 -- Numbers
@@ -694,8 +1147,11 @@ local rebuildRows
 -- or a ratio with nothing under it.
 local NAN = 0 / 0
 
+-- A number to show: not missing, not the NaN an unknown value is carried as. Anything else
+-- counts as unknown, so a caller that hands over what an `and` left behind cannot go on to
+-- compare it with a number.
 local function known(v)
-	return v ~= nil and v == v
+	return type(v) == "number" and v == v
 end
 
 -- The percentages a row derives from two amounts, in one table: the file is near Lua's
@@ -722,6 +1178,84 @@ ratio.level = function(a, b)
 	return a / b * 100
 end
 
+-- Every team's together of a key, which a share of the total is a share of: added up the
+-- first time a share of it is asked for after the teams were read. A team whose number is
+-- unknown is left out of it rather than making everyone's share unknown: it shows none
+-- itself, and the rest are shares of what is known.
+ratio.grand = function(key)
+	---@diagnostic disable-next-line: undefined-field
+	local grand = allies.grand
+	if not grand then
+		grand = {}
+		---@diagnostic disable-next-line: inject-field
+		allies.grand = grand
+	end
+	local sum = grand[key]
+	if sum == nil then
+		sum = 0
+		for i = 1, #allies do
+			local teams = allies[i].teams
+			for j = 1, #teams do
+				local v = teams[j].stats[key]
+				if type(v) == "number" and v == v then
+					sum = sum + v
+				end
+			end
+		end
+		grand[key] = sum
+	end
+	return sum
+end
+
+-- The keys an ally team's total adds up its teams' counters for, and the columns whose value
+-- is the ally team's own, alike for each of its teams.
+ratio.summed = {}
+for i = 1, #SUMMED do
+	ratio.summed[SUMMED[i]] = true
+end
+ratio.allyKeys = {}
+for key, column in pairs(COLUMNS) do
+	if column.ally then
+		ratio.allyKeys[#ratio.allyKeys + 1] = key
+	end
+end
+
+-- An ally team's total of a counter, added up the first time it is read, and its ratios made
+-- from them (by `derive`) the first time one of those is: only what the rows on show read -
+-- nothing while the Graphs page is on - rather than every counter every second. A member's
+-- unknown makes the total unknown.
+ratio.totalsOf = function(ally, derive)
+	local derived = false
+	return {
+		__index = function(total, key)
+			if not ratio.summed[key] then
+				-- Once, before anything else not added up is looked for: derive reads the sums
+				-- through here, and what it looks for and does not make stays nothing.
+				if not derived then
+					derived = true
+					derive(total)
+					return rawget(total, key)
+				end
+				return nil
+			end
+			local teams = ally.teams
+			local sum = nil
+			for j = 1, #teams do
+				local v = teams[j].stats[key]
+				if v == nil then
+					sum = NAN
+					break
+				end
+				sum = (sum or 0) + v
+			end
+			if sum ~= nil then
+				rawset(total, key, sum)
+			end
+			return sum
+		end,
+	}
+end
+
 -- Traded above or below even; something destroyed for nothing lost is infinitely good.
 ratio.efficiency = function(killed, lost)
 	if not known(killed) or not known(lost) then
@@ -735,38 +1269,78 @@ end
 
 -- Ratios and levels, from the counters they are made of. Run for a team and for an ally
 -- team's total alike, so a band's efficiency is the efficiency of its sums.
+-- What each value derive() makes is made of, for the charts: they add up only these over
+-- a unit's teams rather than every counter. The engine's ratios read the whole set of its
+-- counters derive() works from, the live ones their two amounts.
+ratio.engine = {
+	"metalProduced",
+	"metalReceived",
+	"metalUsed",
+	"energyProduced",
+	"energyReceived",
+	"damageDealt",
+	"damageReceived",
+	"unitsProduced",
+	"unitsReceived",
+	"unitsCaptured",
+	"unitsDied",
+	"unitsSent",
+	"unitsOutCaptured",
+	"unitsKilled",
+}
+ratio.inputs = {
+	unitsStolen = ratio.engine,
+	unitsActive = ratio.engine,
+	damageEfficiency = ratio.engine,
+	damagePerMetal = ratio.engine,
+	killEfficiency = ratio.engine,
+	aggressionLevel = ratio.engine,
+	metalStored = { "metalCurrent" },
+	energyStored = { "energyCurrent" },
+	metalLevel = { "metalCurrent", "metalStorage" },
+	energyLevel = { "energyCurrent", "energyStorage" },
+	conversion = { "convUse", "convCapacity" },
+	buildPowerUse = { "buildPowerActive", "buildPower" },
+	valueEfficiency = { "killedValue", "lostValue" },
+	armyShare = { "valueArmy", "unitValue" },
+}
+
 local function derive(s)
-	s.metalStored = s.metalProduced + s.metalReceived - (s.metalUsed + s.metalSent + s.metalExcess)
-	s.energyStored = s.energyProduced + s.energyReceived - (s.energyUsed + s.energySent + s.energyExcess)
-	s.unitsStolen = s.unitsOutCaptured
-	s.unitsActive = s.unitsProduced
-		+ s.unitsReceived
-		+ s.unitsCaptured
-		- (s.unitsDied + s.unitsSent + s.unitsOutCaptured)
-	if s.damageReceived ~= 0 then
-		s.damageEfficiency = (s.damageDealt / s.damageReceived) * 100
-	else
-		s.damageEfficiency = mathHuge
-	end
-	if s.unitsDied ~= 0 then
-		s.killEfficiency = (s.unitsKilled / s.unitsDied) * 100
-	else
-		s.killEfficiency = mathHuge
-	end
-	-- Energy counts at a sixtieth of metal, the game's usual exchange.
-	local resources = s.metalProduced + s.metalReceived + (s.energyProduced + s.energyReceived) / 60
-	if resources ~= 0 and s.damageDealt ~= 0 then
-		s.aggressionLevel = mathFloor(10 * mathLog10(s.damageDealt / resources) + 0.5)
-	else
-		s.aggressionLevel = -mathHuge
+	-- The engine's counters come as a set or not at all: a graph sample taken from the
+	-- gadget alone has none of them.
+	if s.metalProduced ~= nil then
+		s.unitsStolen = s.unitsOutCaptured
+		s.unitsActive = s.unitsProduced
+			+ s.unitsReceived
+			+ s.unitsCaptured
+			- (s.unitsDied + s.unitsSent + s.unitsOutCaptured)
+		-- A ratio of nothing to nothing is no number at all, not a boundless one: a team
+		-- that has neither dealt nor taken a blow has no efficiency yet, and a chart that
+		-- read one would run along its ceiling from the first second of the game. Trading
+		-- something for nothing lost is boundless, and stays so.
+		s.damageEfficiency = ratio.efficiency(s.damageDealt, s.damageReceived)
+		s.killEfficiency = ratio.efficiency(s.unitsKilled, s.unitsDied)
+		s.damagePerMetal = s.metalUsed ~= 0 and s.damageDealt / s.metalUsed or NAN
+		-- Energy counts at a sixtieth of metal, the game's usual exchange.
+		local resources = s.metalProduced + s.metalReceived + (s.energyProduced + s.energyReceived) / 60
+		if resources ~= 0 and s.damageDealt ~= 0 then
+			s.aggressionLevel = mathFloor(10 * mathLog10(s.damageDealt / resources) + 0.5)
+		else
+			s.aggressionLevel = NAN
+		end
 	end
 	-- The live ratios, from amounts that can be unknown: a team the viewer may not see
-	-- has none, and its ally team's sums are unknown with it.
+	-- has none, and its ally team's sums are unknown with it. What is in storage is read,
+	-- not counted up from the counters: those leave out what a team started with, which
+	-- the game sets rather than produces, and would put a spent start below zero.
+	s.metalStored = known(s.metalCurrent) and s.metalCurrent or NAN
+	s.energyStored = known(s.energyCurrent) and s.energyCurrent or NAN
 	s.metalLevel = ratio.level(s.metalCurrent, s.metalStorage)
 	s.energyLevel = ratio.level(s.energyCurrent, s.energyStorage)
 	s.conversion = ratio.share(s.convUse, s.convCapacity)
 	s.buildPowerUse = ratio.share(s.buildPowerActive, s.buildPower)
 	s.valueEfficiency = ratio.efficiency(s.killedValue, s.lostValue)
+	s.armyShare = ratio.share(s.valueArmy, s.unitValue)
 end
 
 local function isFinite(v)
@@ -794,7 +1368,18 @@ local function formatNumber(v)
 end
 
 -- `share` prints an amount as the percentage the share switch turned it into.
-local function formatCell(column, v, share)
+local function formatCell(column, v, share, mine)
+	if mine ~= nil then
+		if not isFinite(v) or not isFinite(mine) then
+			return "-", nil
+		end
+		local d = v - mine
+		if mathAbs(d) < (column.decimal and 0.05 or 0.5) then
+			return "=", colorDim
+		end
+		local better = column.low and d < 0 or (not column.low and d > 0)
+		return (d > 0 and "+" or "-") .. formatCell(column, mathAbs(d), share), better and colorGood or colorBad
+	end
 	if column.fmt == "percent" or share then
 		if not isFinite(v) then
 			return "-"
@@ -803,6 +1388,9 @@ local function formatCell(column, v, share)
 	elseif column.fmt == "plain" then
 		if not isFinite(v) then
 			return "-"
+		end
+		if column.decimal then
+			return stringFormat("%.1f", v)
 		end
 		return stringFormat("%d", mathFloor(v + 0.5))
 	end
@@ -846,6 +1434,19 @@ local function cellDetail(column, stats)
 		if known(a) and known(b) then
 			return BAR.I18N("ui.teamStats.ofTotal", { value = formatWhole(a), total = formatWhole(b) })
 		end
+	elseif column.held then
+		-- Held out of how many the map has, and how many of the metal ones under an upgrade.
+		local n, total = stats[column.key], handover.spotCount(column.spots)
+		if known(n) and total > 0 then
+			local upgraded = column.spots == "metal" and stats.metalSpotsUpgraded or nil
+			if known(upgraded) and upgraded > 0 then
+				return BAR.I18N(
+					"ui.teamStats.ofTotalUpgraded",
+					{ value = formatWhole(n), total = formatWhole(total), upgraded = formatWhole(upgraded) }
+				)
+			end
+			return BAR.I18N("ui.teamStats.ofTotal", { value = formatWhole(n), total = formatWhole(total) })
+		end
 	end
 	return nil
 end
@@ -854,49 +1455,52 @@ local function gameTime(frames)
 	return stringFormat("%d:%02d", mathFloor(frames / 1800), mathFloor(frames / 30) % 60)
 end
 
--- Whether the table has ally teams to show: the grouping switch, in a game with sides.
+-- Whether there are ally teams to group: a game with teams, and more than one side listed.
+-- A player sees only their own until the game is over, and grouped that is a single line.
+local function canGroup()
+	return not ungrouped and #allies > 1
+end
+
+-- Whether the table has ally teams to show: the grouping switch, when they can be grouped.
 local function grouped()
-	return filters.groupByTeam and not isFFA
+	return filters.groupByTeam and canGroup()
 end
 
--- Whether amounts are shown as each player's share of their ally team's.
+-- Whether amounts are shown as the share of the total of every team listed.
 local function shareMode()
-	return filters.shareOfTeam and grouped()
+	return filters.shareOfTotal
 end
 
--- A team's counter, or the rate it makes over the team's time in the game when the
--- switch asks for one.
+-- A team's counter, or NaN when it is not known.
 local function baseValue(column, team)
 	local v = team.stats[column.key]
 	if v == nil then
 		return NAN
 	end
-	if filters.perMinute and column.rate then
-		return v / team.minutes
+	return v
+end
+
+-- What an ally team's band shows: its total, or under the share switch the part of every
+-- team's total together it makes up. Ratios and levels have no share.
+local function bandValue(column, ally)
+	local v = ally.total[column.key]
+	if v ~= nil and shareMode() and column.fmt == "si" then
+		local total = ratio.grand(column.key)
+		if total ~= 0 then
+			return v / total * 100
+		end
+		return 0
 	end
 	return v
 end
 
--- What an ally team's band shows: the total, or the sum of its teams' rates, since each
--- was in the game for its own time.
-local function bandValue(column, ally)
-	if filters.perMinute and column.rate then
-		local sum = 0
-		for i = 1, #ally.teams do
-			sum = sum + baseValue(column, ally.teams[i])
-		end
-		return sum
-	end
-	return ally.total[column.key]
-end
-
--- What a team's cell shows: the counter or rate, or under the share switch the share of
--- what its band shows, so the two agree whatever the other switches say. Ratios and
--- levels have no share.
+-- What a team's cell shows: the counter, or under the share switch the part of every
+-- team's total together it made - so a band's share is its players' added up, and an enemy
+-- is compared like an ally. Ratios and levels have no share.
 local function cellValue(column, team)
 	local v = baseValue(column, team)
-	if filters.shareOfTeam and column.fmt == "si" and team.ally and grouped() then
-		local total = bandValue(column, team.ally)
+	if shareMode() and column.fmt == "si" then
+		local total = ratio.grand(column.key)
 		if total ~= 0 then
 			return v / total * 100
 		end
@@ -934,18 +1538,19 @@ local function readTeam(teamID, allyID, frame, live)
 	if not s then
 		return nil
 	end
-	-- The engine's entry, with everything else the row shows added to it.
+	-- The engine's entry, with everything else the row shows added to it: the gadget's values
+	-- read through it rather than copied in - a hundred and more a team, every second - and
+	-- none of them named like one of the engine's.
 	---@cast s table
-	s.actionsPerMinute = teamAPM[teamID] or 0
 	local milestones
 	if live then
-		for key, v in pairs(live) do
-			if key ~= "milestones" and key ~= "dead" then
-				s[key] = v
-			end
+		setmetatable(s, { __index = live })
+		if live.actionsPerMinute == nil then
+			s.actionsPerMinute = teamAPM[teamID] or 0
 		end
 		milestones = live.milestones
 	else
+		s.actionsPerMinute = teamAPM[teamID] or 0
 		-- Without the gadget the engine still tells allies their economy, and the
 		-- conversion gadget its use of the converters.
 		local current, storage, _, income, expense = Spring.GetTeamResources(teamID, "metal")
@@ -959,33 +1564,76 @@ local function readTeam(teamID, allyID, frame, live)
 	end
 	derive(s)
 
-	local _, leader, isDead = spGetTeamInfo(teamID, false)
+	local _, leader, isDead, isAI = spGetTeamInfo(teamID, false)
 	local name, isActive = spGetPlayerInfo(leader, false)
 	if WG.playernames and WG.playernames.getPlayername then
 		name = WG.playernames.getPlayername(leader) or name
 	end
-	local aiName = spGetGameRulesParam("ainame_" .. teamID)
+	local aiKey = handover.aiKeys[teamID]
+	if not aiKey then
+		aiKey = "ainame_" .. teamID
+		handover.aiKeys[teamID] = aiKey
+	end
+	local aiName = spGetGameRulesParam(aiKey)
 	if aiName then
 		name = tostring(aiName)
 	end
 	if name then
 		teamControllers[teamID] = name
 	else
-		name = teamControllers[teamID] or ""
+		-- Nobody to ask any more: the name this team was last read under, else one last look
+		-- for whoever carries it; a team nothing is known about is said to be unknown rather
+		-- than left as a bare "(dead)".
+		if teamControllers[teamID] == nil then
+			handover.rememberNames()
+		end
+		name = teamControllers[teamID] or L.unknownPlayer
+	end
+	-- An AI says so after its name, the way the player list writes it. The name kept for a
+	-- team nobody answers for any more is the bare one, so this is never said twice.
+	if isAI then
+		name = BAR.I18N("ui.playersList.aiName", { name = name })
 	end
 	local gone = not isActive
-	local label = name
-	if isDead == true then
-		label = BAR.I18N("ui.teamStats.dead", { player = name })
-	elseif gone then
-		label = BAR.I18N("ui.teamStats.gone", { player = name })
-	end
 
 	local r, g, b
 	if not isSpec and anonymousMode ~= "disabled" and teamID ~= localTeamID then
 		r, g, b = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	else
 		r, g, b = spGetTeamColor(teamID)
+		r, g, b = r or 1, g or 1, b or 1
+	end
+
+	-- The label, the name to sort by and the colours only change with the player, their state
+	-- or the colour: made again when one of them did, else kept from the last read.
+	local id = handover.idents[teamID]
+	if not id or id.name ~= name or id.dead ~= isDead or id.gone ~= gone or id.r ~= r or id.g ~= g or id.b ~= b then
+		local label = name
+		if isDead == true then
+			label = BAR.I18N("ui.teamStats.dead", { player = name })
+		elseif gone then
+			label = BAR.I18N("ui.teamStats.gone", { player = name })
+		end
+		id = {
+			name = name,
+			dead = isDead,
+			gone = gone,
+			r = r,
+			g = g,
+			b = b,
+			label = label,
+			sortName = stringLower(name),
+			-- The name in the team's colour, lifted towards white so a dark team still reads
+			-- on the dark panel.
+			nameColor = string.char(
+				255,
+				mathFloor((r * 0.65 + 0.35) * 255),
+				mathFloor((g * 0.65 + 0.35) * 255),
+				mathFloor((b * 0.65 + 0.35) * 255)
+			),
+			accent = { r, g, b, isDead and 0.35 or 0.9 },
+		}
+		handover.idents[teamID] = id
 	end
 
 	-- A rate is over the time the team was in the game, and never over less than a
@@ -995,15 +1643,18 @@ local function readTeam(teamID, allyID, frame, live)
 		id = teamID,
 		allyID = allyID,
 		stats = s,
+		-- The columns this team leads, filled in when the rows are built.
+		leads = {},
 		name = name,
-		sortName = stringLower(name),
-		label = label,
-		accent = { r, g, b, isDead and 0.35 or 0.9 },
+		sortName = id.sortName,
+		label = id.label,
+		nameColor = id.nameColor,
+		accent = id.accent,
 		dead = isDead,
 		gone = gone,
-		isLocal = not isSpec and teamID == localTeamID,
+		-- The viewer's own: the team they play or played, never one they only watch.
+		isLocal = teamID == handover.played,
 		aliveFrames = alive,
-		minutes = mathMax(alive, 1800) / 1800,
 		milestones = milestones,
 	}
 end
@@ -1019,38 +1670,58 @@ local function refreshStats()
 		live = nil
 	end
 	allies = {}
+	-- The teams read and as what: a player is shown the other side only at game over.
+	local read = {}
 	for _, allyID in ipairs(spGetAllyTeamList()) do
-		local ally = { id = allyID, teams = {}, total = {} }
+		---@cast allyID integer
+		local ally = { id = allyID, teams = {}, total = {}, leads = {} }
 		local teamList = spGetTeamList(allyID)
 		---@cast teamList -?
 		for _, teamID in ipairs(teamList) do
 			if teamID ~= gaia then
 				local team = readTeam(teamID, allyID, frame, live and live[teamID])
 				if team then
+					read[#read + 1] = teamID .. (team.dead and "d" or "") .. (team.gone and "g" or "") .. team.name
 					team.ally = ally
 					ally.teams[#ally.teams + 1] = team
-					for i = 1, #SUMMED do
-						local key = SUMMED[i]
-						local v = team.stats[key]
-						local total = ally.total[key]
-						-- A member's unknown makes the total unknown, and keeps it so.
-						if v == nil then
-							ally.total[key] = NAN
-						elseif total == nil then
-							ally.total[key] = v
-						else
-							ally.total[key] = total + v
-						end
+					if team.isLocal then
+						---@diagnostic disable-next-line: inject-field
+						allies.me, allies.myAlly = team, ally
 					end
 				end
 			end
 		end
 		if #ally.teams > 0 then
-			derive(ally.total)
+			-- What the ally team holds as one - its sight, its radar, its army's standing - is
+			-- alike for each of its teams: the band shows it once, off the first that knows it.
+			for i = 1, #ratio.allyKeys do
+				local key = ratio.allyKeys[i]
+				local v = NAN
+				for j = #ally.teams, 1, -1 do
+					local own = ally.teams[j].stats[key]
+					if known(own) then
+						v = own
+					end
+				end
+				ally.total[key] = v
+			end
+			-- The rest added up, and the ratios made, as they are read.
+			setmetatable(ally.total, ratio.totalsOf(ally, derive))
 			allies[#allies + 1] = ally
 		end
 	end
-	rebuildRows()
+	-- The page is made again when they change: refilling its charts keeps the teams it had.
+	local key = table.concat(read, "|")
+	if graphs and key ~= handover.teamsRead then
+		graphs.invalidate()
+	end
+	handover.teamsRead = key
+	-- The rows are the table's: while the Graphs page is on, they wait for the table.
+	if graphs and graphs.open then
+		rowMetrics.stale = true
+	else
+		rebuildRows()
+	end
 end
 
 ----------------------------------------------------------------
@@ -1115,11 +1786,17 @@ rebuildRows = function()
 	if grouped() then
 		for i = 1, #allies do
 			local ally = allies[i]
-			rows[#rows + 1] = { type = "band", ally = ally }
-			for j = 1, #ally.teams do
-				-- Striped by place under the band, so the pattern starts afresh with each
-				-- ally team rather than running on across its band.
-				rows[#rows + 1] = { type = "team", team = ally.teams[j], stripe = j % 2 == 0 }
+			-- An ally team of one is its one team: the band says the name and the numbers
+			-- once. A band of more folds its teams away when clicked.
+			local solo = #ally.teams == 1 and ally.teams[1] or nil
+			rows[#rows + 1] =
+				{ type = "band", ally = ally, team = solo, folded = not solo and collapsed[ally.id] or nil }
+			if not solo and not collapsed[ally.id] then
+				for j = 1, #ally.teams do
+					-- Striped by place under the band, so the pattern starts afresh with each
+					-- ally team rather than running on across its band.
+					rows[#rows + 1] = { type = "team", team = ally.teams[j], stripe = j % 2 == 0, trendKey = false }
+				end
 			end
 		end
 	else
@@ -1132,26 +1809,38 @@ rebuildRows = function()
 		end
 		tableSort(teams, compareTeams)
 		for i = 1, #teams do
-			rows[#rows + 1] = { type = "team", team = teams[i], stripe = i % 2 == 0 }
+			rows[#rows + 1] = { type = "team", team = teams[i], stripe = i % 2 == 0, trendKey = false }
 		end
 	end
 
-	-- The bars are scaled to the largest a column shows among the teams, whatever view
-	-- is open, so switching views does not walk the rows again.
-	colMax = {}
-	for key, col in pairs(COLUMNS) do
-		if col.fmt ~= "name" and col.fmt ~= "plain" then
-			local top = 0
-			for i = 1, #allies do
-				local ally = allies[i]
-				for j = 1, #ally.teams do
-					local v = cellValue(col, ally.teams[j])
-					if isFinite(v) and v > top then
-						top = v
-					end
+	-- The rows the trend lines are drawn for, each with the teams it stands for: the page
+	-- keeps the histories and hands back one line per cell.
+	if filters.trend then
+		local list = {}
+		for i = 1, #rows do
+			local row = rows[i]
+			local members = {}
+			if row.team then
+				members[1] = row.team.id
+				row.trendKey = "t" .. row.team.id
+			else
+				for j = 1, #row.ally.teams do
+					members[j] = row.ally.teams[j].id
 				end
+				row.trendKey = "a" .. row.ally.id
 			end
-			colMax[key] = top
+			list[#list + 1] = { key = row.trendKey, members = members }
+		end
+		graphs.setTrendRows(list)
+	end
+
+	-- The bars' scale and who leads each column: worked out for the columns drawn, as they
+	-- are drawn (drawRows), rather than for every column of every view.
+	colMax = {}
+	for i = 1, #allies do
+		allies[i].leads = {}
+		for j = 1, #allies[i].teams do
+			allies[i].teams[j].leads = {}
 		end
 	end
 end
@@ -1264,8 +1953,18 @@ end
 -- The scrollbar
 ----------------------------------------------------------------
 
+-- The bar serves whichever of the two is open: the table's rows, or the grid of charts on
+-- the Graphs page, which runs up to the top of the charts. Its band and its thumb come out
+-- of the same call, so the page's top is worked out once.
 local function scrollerThumb()
-	return UiScrollerAt(barX1, listBottom, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, scrollOffset())
+	local total, offset = rowMetrics.totalH, scrollOffset()
+	local top = listTop
+	if graphs and graphs.open then
+		total, offset = graphs.scrollExtent()
+		top = graphs.rects and graphs.rects.chart[4] or listTop
+	end
+	local a, b, c, d = UiScrollerAt(barX1, listBottom, area.x2 - metrics.edgeInset, top, total, offset)
+	return a, b, c, d, top, total, offset
 end
 
 -- Scrolls so the thumb's top sits where the cursor has dragged it. The offset taken at the
@@ -1282,6 +1981,14 @@ local function scrollFromY(y)
 		f = 0
 	elseif f > 1 then
 		f = 1
+	end
+	if graphs and graphs.open then
+		-- The grid scrolls by whole rows, so the bar asks for the row it landed on.
+		local total = graphs.scrollExtent()
+		local c = graphs.rects and graphs.rects.chart
+		-- The page's own generation is part of the bake signature, so the picture follows.
+		graphs.setScrollPixels(f * mathMax(0, total - (c and c[4] - c[2] or 0)))
+		return
 	end
 	setScroll(mathFloor(f * maxScroll() + 0.5))
 end
@@ -1314,28 +2021,95 @@ local function sidebarTop()
 	return metrics.bandTop - metrics.sidebarDrop
 end
 
+-- A section after the first starts a card of its own: the card before it ends a lip below its
+-- last entry, then the air between the two, then this one's lip.
+-- A graphs' entry scrolled out of sight takes no room: its rect is empty, at the top of theirs.
 local function entryRect(i)
-	local top = sidebarTop()
-	for j = 1, i - 1 do
+	---@type number, number
+	local top, h = sidebarTop(), 0
+	local first = sidebar.first or mathHuge
+	for j = 1, i do
 		local e = entries[j]
 		---@cast e -?
-		top = top - (e.divider and metrics.dividerH or metrics.catRowHeight)
+		top = top - h
+		if e.section and j > 1 then
+			top = top - metrics.cardLip * 2 - metrics.islandGap
+		end
+		if j >= first and j < first + sidebar.scroll then
+			h = 0
+		else
+			h = e.divider and metrics.dividerH or (e.section and metrics.sectionH or metrics.catRowHeight)
+		end
 	end
-	local h = entries[i].divider and metrics.dividerH or metrics.catRowHeight
+	-- Beside the bar the entries give way to it, as the widget selector's categories do.
+	local right = area.x1 + metrics.sidebarW
+	if sidebar.bar and i >= first then
+		right = right - metrics.catInset - metrics.sideBarW - metrics.catInset
+	end
 
-	return area.x1, top - h, area.x1 + metrics.sidebarW, top
+	return area.x1, top - h, right, top
 end
 
--- The entry under x,y, or nil. The rule between the views and the pages is not one.
+-- The graphs' entries: where they start, how far they can scroll, and the scroll kept inside
+-- that. Walked from the end, as the table's rows are, so it does not depend on the scroll now.
+function sidebar.fit()
+	sidebar.first = nil
+	for i = 1, #entries do
+		if entries[i].section and entries[i].key == "newCategory" then
+			sidebar.first = i + 1
+		end
+	end
+	local first = sidebar.first
+	sidebar.max = 0
+	if first and entries[first] then
+		local _, captionBottom = entryRect(first - 1)
+		local room = captionBottom - metrics.settingsTop
+		local used, i = 0, #entries
+		while i >= first do
+			local e = entries[i]
+			---@cast e -?
+			local h = e.divider and metrics.dividerH or metrics.catRowHeight
+			if used + h > room then
+				break
+			end
+			used = used + h
+			i = i - 1
+		end
+		sidebar.max = i - first + 1
+	end
+	sidebar.scroll = mathMax(0, mathMin(sidebar.scroll, sidebar.max))
+	sidebar.bar = sidebar.max > 0
+end
+
+-- Scrolls the graphs' entries just far enough that entry i shows whole.
+function sidebar.reveal(i)
+	local first = sidebar.first
+	if not first or i < first then
+		return
+	end
+	if i < first + sidebar.scroll then
+		sidebar.scroll = i - first
+	end
+	local _, bottom = entryRect(i)
+	while sidebar.scroll < sidebar.max and bottom < metrics.settingsTop do
+		sidebar.scroll = sidebar.scroll + 1
+		_, bottom = entryRect(i)
+	end
+end
+
+-- The entry under x,y, or nil. A rule or a section's caption is not one.
 local function sidebarIndexAt(x, y)
 	if x < area.x1 or x > area.x1 + metrics.sidebarW then
 		return nil
 	end
 	for i = 1, #entries do
 		local _, y1, _, y2 = entryRect(i)
+		if y1 < metrics.settingsTop then
+			return nil
+		end
 		if y <= y2 and y > y1 then
-			if entries[i].divider then
-				return nil
+			if entries[i].divider or entries[i].section then
+				return entries[i].add and tables.addAt(x, y, entryRect(i)) and i or nil
 			end
 			return i
 		end
@@ -1347,7 +2121,7 @@ end
 local function switchAt(x, y)
 	for i = 1, #switches do
 		local hit = switches[i].hit
-		if hit and math_isInRect(x, y, hit[1], hit[2], hit[3], hit[4]) then
+		if hit and not switches[i].heading and math_isInRect(x, y, hit[1], hit[2], hit[3], hit[4]) then
 			return i
 		end
 	end
@@ -1364,25 +2138,32 @@ local function headerColumnAt(x, y)
 	return columnAt(x)
 end
 
--- The columns the open view shows, each given its x range: the name column takes its
+-- The columns of the table last picked, each given its x range: the name column takes its
 -- share and the numeric ones split the rest evenly, with the leftover pixels going to the
--- name so the last column ends exactly at the table's right edge.
+-- name, up to a width a number's column never passes. The table's right edge is where its
+-- last column ends.
 local function layoutColumns()
-	local group = groupByKey[selectedGroup] or GROUPS[1]
 	columns = { COLUMNS.name }
-	for i = 1, #group.columns do
-		local c = COLUMNS[group.columns[i]]
-		if handover.on or not c.gadget then
+	for _, key in ipairs(tables.columnsOf(tables.current)) do
+		local c = COLUMNS[key]
+		if c and handover.shows(c) then
 			columns[#columns + 1] = c
 		end
 	end
 
-	local tableW = listRight - listX1
+	-- The room is the channel up to the scrollbar's; the table itself ends with its last
+	-- column, which a view of few columns leaves short of it.
+	local tableW = barX1 - metrics.listGap - listX1
 	local n = #columns - 1
 	---@type number
 	local nameW = mathMax(metrics.nameMinW, mathFloor(tableW * metrics.nameShare))
-	local colW = mathFloor((tableW - nameW) / n)
-	nameW = tableW - colW * n
+	---@type number
+	local colW = metrics.colMaxW
+	if n > 0 and mathFloor((tableW - nameW) / n) < colW then
+		colW = mathFloor((tableW - nameW) / n)
+		nameW = tableW - colW * n
+	end
+	listRight = listX1 + nameW + colW * n
 
 	local x = listX1
 	for i = 1, #columns do
@@ -1408,18 +2189,14 @@ local function layoutColumns()
 		local c = columns[i]
 		if span and span.group == c.group then
 			span.x2 = c.x2
-			span.rate = span.rate or c.rate
 		else
-			span = { group = c.group, x1 = c.x1, x2 = c.x2, rate = c.rate }
+			span = { group = c.group, x1 = c.x1, x2 = c.x2 }
 			spans[#spans + 1] = span
 		end
 	end
 	for i = 1, #spans do
 		local s = spans[i]
 		local label = L.caption[s.group] or s.group
-		if filters.perMinute and s.rate then
-			label = label .. L.perMinuteSuffix
-		end
 		s.label = text.fit(font, label, s.x2 - s.x1 - metrics.cellPad * 2, metrics.groupFs)
 	end
 
@@ -1448,6 +2225,8 @@ local function setLayout()
 	metrics.catRowHeight = mathFloor(29 * s)
 	metrics.catFs = mathFloor(metrics.catRowHeight * 0.55 * 0.85)
 	metrics.dividerH = mathFloor(14 * s)
+	metrics.sectionH = mathFloor(26 * s)
+	metrics.islandGap = mathFloor(7 * s)
 	metrics.rowPad = mathFloor(6 * s)
 	metrics.cellPad = mathFloor(7 * s)
 	metrics.sidePad = mathFloor(12 * s)
@@ -1455,6 +2234,9 @@ local function setLayout()
 	metrics.accentW = mathMax(2, mathFloor(3 * s))
 	metrics.accentPad = mathMax(1, mathFloor(3 * s))
 	metrics.barInset = mathMax(2, mathFloor(4 * s))
+	metrics.trendW = mathMax(1, mathFloor(1.5 * s))
+	metrics.leadDrop = mathMax(2, mathFloor(3 * s))
+	metrics.leadH = mathMax(1, mathFloor(2 * s))
 	metrics.underlineH = mathMax(1, mathFloor(2 * s))
 	metrics.edgeInset = mathFloor(4 * s)
 	metrics.headerH = mathFloor(34 * s)
@@ -1466,8 +2248,14 @@ local function setLayout()
 	metrics.titleFs = mathFloor(metrics.rowHeight * 0.85)
 	metrics.sidebarDrop = mathFloor(8 * s)
 	metrics.sidebarW = mathFloor(190 * s)
+	metrics.sideBarW = mathMax(3, mathFloor(6 * s))
+	metrics.pageGap = mathFloor(8 * s)
 	metrics.barW = mathFloor(14 * s)
 	metrics.nameMinW = mathFloor(150 * s)
+	metrics.colMaxW = mathFloor(150 * s)
+	-- The narrowest a number's column gets: a table holds no more columns than that leaves room
+	-- for.
+	metrics.colMinW = mathFloor(44 * s)
 	-- Narrower than the cell padding it sits in.
 	metrics.triW = mathMax(4, mathFloor(5 * s))
 	metrics.triH = mathMax(3, mathFloor(4 * s))
@@ -1477,9 +2265,15 @@ local function setLayout()
 	metrics.nameIndent = metrics.accentW + metrics.rowPad * 2
 
 	listX1 = area.x1 + metrics.sidebarW + metrics.listGap
+	-- The sidebar's card starts below the panel's title; the table and the page beside it
+	-- have no title of their own to clear, so they start at the panel's own edge, with the
+	-- strip along the top: the page's legend bar, or the table's Columns... button.
 	metrics.bandTop = area.y2 - metrics.headerH - metrics.headerGap
-	-- The table header: group captions, then the stat captions, then a gap to the rows.
-	metrics.groupTop = metrics.bandTop
+	metrics.barTop = area.y2 - metrics.headerGap * 2
+	metrics.barH = metrics.rowHeight + mathFloor(8 * s)
+	-- The table header under the strip, as the page's charts are: group captions, then the
+	-- stat captions, then a gap to the rows.
+	metrics.groupTop = metrics.barTop - metrics.barH - mathFloor(4 * s)
 	metrics.groupBottom = metrics.groupTop - metrics.groupRowHeight
 	metrics.statTop = metrics.groupBottom
 	metrics.statBottom = metrics.statTop - metrics.statRowHeight
@@ -1490,35 +2284,111 @@ local function setLayout()
 	-- it, so the bar sits in a channel rather than hugging them.
 	barX1 = area.x2 - metrics.edgeInset - metrics.barW
 	listRight = barX1 - metrics.listGap
-
-	-- The header band: the switches, right to left from the panel's edge. A switch this
-	-- small is a poor click target on its own, so its caption is part of it and the hover
-	-- covers both.
-	local rowTop = area.y2 - mathFloor(4 * s)
-	local rowBottom = area.y2 - metrics.headerH + mathFloor(4 * s)
-	local togW = mathFloor(38 * s)
-	local togH = mathFloor((rowTop - rowBottom) * 0.62)
-	local togY = mathFloor((rowTop + rowBottom) * 0.5)
 	metrics.toggleFs = mathFloor(metrics.rowFs * 1.05)
-	-- Outlined text spreads past the box it is measured in, so the caption side gets back
-	-- the room its outline took.
-	metrics.captionBleed = mathFloor(metrics.toggleFs * 0.2 + 0.5)
+	local togW = mathFloor(38 * s)
+	local onGraphs = graphs and graphs.open
+	local customGroup = groupByKey[selectedGroup] and groupByKey[selectedGroup].custom
+	-- A custom category's page of charts: every graph on it keeps its own settings.
+	local customCharts = onGraphs and customGroup and not graphs.openGraph()
+
+	-- Group by team at the right end of the strip along the top in both views, captioned like
+	-- Remove unselected beside it: next to the teams the page picks, over the table's rows.
+	-- Without a side of more than one player, or another side to be seen, there is nothing
+	-- to group.
 	---@type number
-	local x2 = area.x2 - metrics.edgeInset
+	local barX2 = area.x2 - metrics.edgeInset
+	local groupable = canGroup()
+	for i = 1, #switches do
+		local sw = switches[i]
+		if sw.top and groupable then
+			local togH = mathFloor(metrics.rowHeight * 0.52)
+			local cy = metrics.barTop - mathFloor(metrics.barH * 0.5)
+			local labelW = mathFloor(font:GetTextWidth(sw.label or "") * metrics.catFs)
+			sw.draw = { barX2 - togW, cy - mathFloor(togH * 0.5), barX2, cy - mathFloor(togH * 0.5) + togH }
+			sw.hit = { sw.draw[1] - metrics.rowPad - labelW, metrics.barTop - metrics.barH, barX2, metrics.barTop }
+			-- Never greyed: on a custom category's page of charts it sets every graph of it.
+			sw.disabled = nil
+			barX2 = sw.hit[1] - metrics.sidePad * 2
+		elseif sw.top then
+			sw.draw, sw.hit, sw.disabled = nil, nil, nil
+		end
+	end
+	-- The Graphs page takes the table's room, header rows and scrollbar included. Its
+	-- stat list is a card like the column's, so it sits closer and spans the same height.
+	if graphs then
+		graphs.setFont(font, metrics.rowFs, metrics.nameFont)
+		graphs.setLayout(
+			area.x1 + metrics.sidebarW + metrics.pageGap,
+			listBottom,
+			listRight,
+			metrics.barTop,
+			s,
+			area.y1,
+			sidebarTop() + metrics.cardLip,
+			-- The legend bar runs over the scrollbar's column, which only starts below it,
+			-- up to the grouping switch.
+			barX2
+		)
+	end
+	tables.layout(listX1, metrics.barTop - metrics.barH, metrics.barTop, s)
+
+	-- The settings: a row each under the sidebar's groups, the caption on the left and the
+	-- toggle on the right, laid out from the bottom of the column upwards so the block
+	-- stays put however many groups there are. A switch the open view cannot use keeps its
+	-- row and is dimmed, so nothing ever moves when one is pressed.
+	local togH = mathFloor(metrics.catRowHeight * 0.52)
+	---@diagnostic disable-next-line: undefined-field
+	local canCompare = allies.me ~= nil
+	local y = listBottom + metrics.edgeInset
+	-- Bottom-up, leaving out the one laid out along the top.
 	for i = #switches, 1, -1 do
 		local sw = switches[i]
-		if (sw.key == "groupByTeam" and isFFA) or (sw.key == "shareOfTeam" and not grouped()) then
-			sw.draw, sw.hit = nil, nil
-		else
-			local labelW = mathFloor(font:GetTextWidth(sw.label) * metrics.toggleFs)
-			sw.draw = { x2 - togW, togY - mathFloor(togH * 0.5), x2, togY - mathFloor(togH * 0.5) + togH }
+		-- Which view a switch belongs to.
+		local mine = not ((sw.table and onGraphs) or (sw.page and not onGraphs))
+		-- The caption over a custom graph's own rows, only while one is open.
+		if sw.heading and not (onGraphs and graphs.openGraph()) then
+			mine = false
+		end
+		if mine and not sw.top then
+			local cy = y + mathFloor(metrics.catRowHeight * 0.5)
 			sw.hit = {
-				sw.draw[1] - metrics.rowPad * 2 - labelW - metrics.captionBleed,
-				rowBottom,
-				x2 + metrics.rowPad,
-				rowTop,
+				area.x1 + metrics.catInset,
+				y,
+				area.x1 + metrics.sidebarW - metrics.catInset,
+				y + metrics.catRowHeight,
 			}
-			x2 = sw.hit[1] - metrics.switchGap
+			sw.draw = {
+				sw.hit[3] - metrics.sidePad - togW,
+				cy - mathFloor(togH * 0.5),
+				sw.hit[3] - metrics.sidePad,
+				cy - mathFloor(togH * 0.5) + togH,
+			}
+			-- Nothing to say: the switch stays where it is and greys out.
+			sw.disabled = (
+				sw.key == "milestones"
+				and graphs
+				and (not graphs.overTime() or graphs.milestonesOwn() or not graphs.marksApply())
+			)
+				or (sw.key == "milestoneKinds" and graphs and not graphs.kindsApply())
+				or (sw.key == "vsMe" and not canCompare)
+				or (sw.key == "shareOfTotal" and onGraphs and not graphs.shareApplies())
+				or (sw.perGraph and customCharts)
+				or nil
+			y = y + metrics.catRowHeight
+		elseif not sw.top then
+			sw.draw, sw.hit, sw.disabled = nil, nil, nil
+		end
+	end
+	-- The block's own card, with the lip above its top row it has below its bottom one; the
+	-- groups stop inside the graphs' card, which ends the air above it.
+	metrics.settingsCardTop = y + metrics.edgeInset * 2
+	metrics.settingsTop = metrics.settingsCardTop + metrics.islandGap + metrics.cardLip
+	sidebar.fit()
+	if graphs then
+		for i = 1, #switches do
+			if switches[i].key == "milestoneKinds" then
+				graphs.setKindsAnchor(switches[i].hit)
+			end
 		end
 	end
 
@@ -1529,14 +2399,37 @@ end
 -- Drawing
 ----------------------------------------------------------------
 
-local function queueText(str, x, y, size, opts)
-	local at = pendingCount * 5
+-- `face` says which of the three the string is set in: the interface's own, the numbers'
+-- or the names'.
+local function queueText(str, x, y, size, opts, face)
+	local at = pendingCount * 6
 	pending[at + 1] = str
 	pending[at + 2] = x
 	pending[at + 3] = y
 	pending[at + 4] = size
 	pending[at + 5] = opts
+	pending[at + 6] = face or false
 	pendingCount = pendingCount + 1
+end
+
+-- One batch a face: it draws what was queued for it, in the order it was queued in. The
+-- three never overlap on the screen, so the order between them does not matter.
+local function flushBatch(face, key)
+	local began = false
+	for i = 0, pendingCount - 1 do
+		local at = i * 6
+		if pending[at + 6] == key then
+			if not began then
+				began = true
+				face:Begin()
+				face:SetOutlineColor(look.outline)
+			end
+			face:Print(pending[at + 1], pending[at + 2], pending[at + 3], pending[at + 4], pending[at + 5])
+		end
+	end
+	if began then
+		face:End()
+	end
 end
 
 local function flushText()
@@ -1544,37 +2437,60 @@ local function flushText()
 		return
 	end
 
-	font:Begin()
-	font:SetOutlineColor(look.outline)
-	for i = 0, pendingCount - 1 do
-		local at = i * 5
-		font:Print(pending[at + 1], pending[at + 2], pending[at + 3], pending[at + 4], pending[at + 5])
-	end
-	font:End()
+	flushBatch(font, false)
+	flushBatch(metrics.numFont or font, "number")
+	flushBatch(metrics.nameFont or font, "name")
 
 	pendingCount = 0
 end
 
 -- The sort marker: a small triangle pointing the way the column is sorted.
----@type number, number, number, number, boolean
-local triX, triY, triW, triH, triUp = 0, 0, 0, 0, false
+---@type { x: number, y: number, w: number, h: number, up: boolean, right: boolean }
+local tri = { x = 0, y = 0, w = 0, h = 0, up = false, right = false }
 local function triangleVertices()
-	if triUp then
-		glVertex(triX, triY)
-		glVertex(triX + triW, triY)
-		glVertex(triX + triW * 0.5, triY + triH)
+	local x, y, w, h = tri.x, tri.y, tri.w, tri.h
+	if tri.right then
+		glVertex(x, y)
+		glVertex(x, y + h)
+		glVertex(x + w, y + h * 0.5)
+	elseif tri.up then
+		glVertex(x, y)
+		glVertex(x + w, y)
+		glVertex(x + w * 0.5, y + h)
 	else
-		glVertex(triX, triY + triH)
-		glVertex(triX + triW, triY + triH)
-		glVertex(triX + triW * 0.5, triY)
+		glVertex(x, y + h)
+		glVertex(x + w, y + h)
+		glVertex(x + w * 0.5, y)
 	end
 end
 
-local function drawSortMark(x, cy)
-	triX, triY, triW, triH, triUp = x, cy - mathFloor(metrics.triH * 0.5), metrics.triW, metrics.triH, sortAscending
+local function drawTriMark(x, cy, up, right)
+	tri.x, tri.y, tri.w, tri.h, tri.up, tri.right =
+		x, cy - mathFloor(metrics.triH * 0.5), metrics.triW, metrics.triH, up, right
 	glColor(look.sortMark)
 	glBeginEnd(GL_TRIANGLES, triangleVertices)
 	glColor(1, 1, 1, 1)
+end
+
+-- The mark under the number of a column its row leads: a short bar the width of the
+-- number, in the warm hue the panel uses for what stands out.
+local function drawLeadMark(column, cell, bottom)
+	local w = mathFloor((metrics.numFont or font):GetTextWidth(cell) * metrics.rowFs)
+	if w < 4 then
+		return
+	end
+	RectRound(
+		column.x2 - metrics.cellPad - w,
+		bottom + metrics.leadDrop,
+		column.x2 - metrics.cellPad,
+		bottom + metrics.leadDrop + metrics.leadH,
+		0,
+		0,
+		0,
+		0,
+		0,
+		look.leadMark
+	)
 end
 
 -- What a row shows, fitted to the columns. Cached on the row and redone when the
@@ -1594,40 +2510,61 @@ local function fitRow(row)
 		local team = row.team
 		local share = shareMode()
 		local room = nameColumn.x2 - nameColumn.x1 - metrics.nameIndent - metrics.cellPad
-		row.fitName = text.fit(font, team.label, room, metrics.rowFs)
+		row.fitName = text.fit(metrics.nameFont or font, team.label, room, metrics.rowFs)
+		---@type table?
+		---@diagnostic disable-next-line: undefined-field
+		local me = (filters.vsMe and not team.isLocal) and allies.me or nil
 		for i = 2, #columns do
 			local c = columns[i]
 			local v = cellValue(c, team)
 			row.vals[i] = v
-			row.cells[i] = formatCell(c, v, share and c.fmt == "si")
-			row.tones[i] = tone(c, team.stats, v)
+			if me then
+				row.cells[i], row.tones[i] = formatCell(c, v, share and c.fmt == "si", cellValue(c, me))
+			else
+				row.cells[i] = formatCell(c, v, share and c.fmt == "si")
+				row.tones[i] = tone(c, team.stats, v)
+			end
 		end
 	else
 		local ally = row.ally
-		local caption = BAR.I18N("ui.teamStats.team", { number = ally.id + 1 })
-		local members = #ally.teams == 1 and L.memberOne or BAR.I18N("ui.teamStats.members", { count = #ally.teams })
+		-- A side of one player is that player: the band says their name rather than the
+		-- side's number, which would say nothing the colour does not. A side of more is
+		-- named after itself, with how many players it holds beside it.
+		local caption = row.team and row.team.label or BAR.I18N("ui.teamStats.team", { number = ally.id + 1 })
+		local members = not row.team and BAR.I18N("ui.teamStats.members", { count = #ally.teams }) or nil
 		local room = nameColumn.x2 - nameColumn.x1 - metrics.rowPad * 2
-		row.caption = text.fit(font, caption, room, metrics.bandFs)
-		row.captionW = mathFloor(font:GetTextWidth(row.caption) * metrics.bandFs)
+		local face = row.team and (metrics.nameFont or font) or font
+		row.caption = text.fit(face, caption, room, metrics.bandFs)
+		row.captionW = mathFloor(face:GetTextWidth(row.caption) * metrics.bandFs)
 		-- The count goes after the caption when it fits beside it, and is dropped when
 		-- not: cut short it would say nothing.
-		local left = room - row.captionW - metrics.rowPad * 2
-		if font:GetTextWidth(members) * metrics.rowFs <= left then
+		local left = room - row.captionW - metrics.rowPad * 2 - metrics.triW * 2
+		if members and font:GetTextWidth(members) * metrics.rowFs <= left then
 			row.members = members
+			row.membersW = mathFloor(font:GetTextWidth(members) * metrics.rowFs) + metrics.rowPad
 		else
 			row.members = nil
+			row.membersW = 0
 		end
+		---@type table?
+		---@diagnostic disable-next-line: undefined-field
+		local mine = (filters.vsMe and allies.myAlly ~= ally) and allies.myAlly or nil
+		local share = shareMode()
 		for i = 2, #columns do
 			local c = columns[i]
 			local v = bandValue(c, ally)
 			row.vals[i] = v
-			row.cells[i] = formatCell(c, v)
-			row.tones[i] = tone(c, ally.total, v)
+			if mine then
+				row.cells[i], row.tones[i] = formatCell(c, v, share and c.fmt == "si", bandValue(c, mine))
+			else
+				row.cells[i] = formatCell(c, v, share and c.fmt == "si")
+				row.tones[i] = tone(c, ally.total, v)
+			end
 		end
 	end
 end
 
-local function drawBand(row, top, bottom)
+local function drawBand(row, top, bottom, hovered)
 	RectRound(
 		listX1,
 		bottom,
@@ -1641,6 +2578,34 @@ local function drawBand(row, top, bottom)
 		look.sheenTop,
 		look.sheenTop
 	)
+	local nameColumn = columns[1]
+	---@cast nameColumn -?
+	if hovered and not row.team then
+		-- The caption is the fold button.
+		Highlight(
+			listX1,
+			bottom,
+			nameColumn.x2,
+			top - metrics.csSmall,
+			metrics.csSmall,
+			look.rowHoverOpacity,
+			look.white
+		)
+	end
+	if row.team then
+		RectRound(
+			listX1,
+			bottom + metrics.accentPad,
+			listX1 + metrics.accentW,
+			top - metrics.csSmall - metrics.accentPad,
+			0,
+			0,
+			0,
+			0,
+			0,
+			row.team.accent
+		)
+	end
 	RectRound(
 		listX1,
 		bottom,
@@ -1655,25 +2620,39 @@ local function drawBand(row, top, bottom)
 		look.headerLineFade
 	)
 	local by = text.baseline(font, bottom, top, metrics.bandFs)
-	queueText(colorHeader .. row.caption, listX1 + metrics.rowPad, by, metrics.bandFs, "o")
+	local captionX = listX1 + (row.team and metrics.nameIndent or metrics.rowPad)
+	queueText(colorHeader .. row.caption, captionX, by, metrics.bandFs, "o", row.team and "name" or nil)
 	if row.members then
+		local team = row.team
+		local color = colorDim
+		if team then
+			color = (team.dead or team.gone) and colorDim or team.nameColor
+		end
 		queueText(
-			colorDim .. row.members,
-			listX1 + metrics.rowPad * 3 + row.captionW,
+			color .. row.members,
+			captionX + metrics.rowPad * 2 + row.captionW,
 			text.baseline(font, bottom, top, metrics.rowFs),
 			metrics.rowFs,
 			"o"
 		)
 	end
+	if not row.team then
+		-- Down while the band's players are shown, right once they are folded away.
+		drawTriMark(
+			captionX + metrics.rowPad * 2 + row.captionW + (row.membersW or 0),
+			mathFloor((bottom + top - metrics.csSmall) * 0.5),
+			false,
+			row.folded == true
+		)
+	end
 	local vy = text.baseline(font, bottom, top, metrics.rowFs)
 	for i = 2, #columns do
-		queueText(
-			(row.tones[i] or colorTotal) .. row.cells[i],
-			columns[i].x2 - metrics.cellPad,
-			vy,
-			metrics.rowFs,
-			"or"
-		)
+		local v = row.vals[i]
+		local valueColor = row.tones[i] or ((v == 0 or not isFinite(v)) and look.zeroText or colorTotal)
+		queueText(valueColor .. row.cells[i], columns[i].x2 - metrics.cellPad, vy, metrics.rowFs, "or", "number")
+		if row.ally.leads[columns[i].key] then
+			drawLeadMark(columns[i], row.cells[i], bottom)
+		end
 	end
 end
 
@@ -1731,10 +2710,32 @@ local function drawTeamRow(row, top, bottom, hovered)
 
 	local by = text.baseline(font, bottom, top, metrics.rowFs)
 	local quiet = team.dead or team.gone
-	queueText((quiet and colorDim or colorName) .. row.fitName, listX1 + metrics.nameIndent, by, metrics.rowFs, "o")
+	queueText(
+		(quiet and colorDim or team.nameColor) .. row.fitName,
+		listX1 + metrics.nameIndent,
+		by,
+		metrics.rowFs,
+		"o",
+		"name"
+	)
 	for i = 2, #columns do
-		local valueColor = quiet and colorDim or (row.tones[i] or colorValue)
-		queueText(valueColor .. row.cells[i], columns[i].x2 - metrics.cellPad, by, metrics.rowFs, "or")
+		local v = row.vals[i]
+		local valueColor
+		if quiet then
+			valueColor = colorDim
+		elseif row.tones[i] then
+			valueColor = row.tones[i]
+		elseif v == 0 or not isFinite(v) then
+			valueColor = look.zeroText
+		elseif columns[i].key == sortKey then
+			valueColor = look.sortedText
+		else
+			valueColor = colorValue
+		end
+		queueText(valueColor .. row.cells[i], columns[i].x2 - metrics.cellPad, by, metrics.rowFs, "or", "number")
+		if team.leads[columns[i].key] then
+			drawLeadMark(columns[i], row.cells[i], bottom)
+		end
 	end
 end
 
@@ -1742,6 +2743,52 @@ end
 -- by nothing.
 local function drawRows()
 	local base = scrollOffset()
+
+	-- The bars are scaled to the largest a column shows among the teams, and each column
+	-- marks who leads it - the largest, or the smallest where less is better - among the
+	-- players and among the ally teams: once a rebuild of the rows, for the columns on show.
+	local facts = rowMetrics.facts
+	for c = 2, #columns do
+		local col = columns[c]
+		local key = col.key
+		if facts[key] ~= rowsGen then
+			facts[key] = rowsGen
+			local top = 0
+			---@type table?, number?, table?, number?
+			local bestTeam, bestValue, bestAlly, bestTotal = nil, nil, nil, nil
+			for i = 1, #allies do
+				local ally = allies[i]
+				ally.leads[key] = nil
+				for j = 1, #ally.teams do
+					local team = ally.teams[j]
+					team.leads[key] = nil
+					local v = cellValue(col, team)
+					if isFinite(v) then
+						if v > top then
+							top = v
+						end
+						if bestValue == nil or (col.low and v < bestValue) or (not col.low and v > bestValue) then
+							bestTeam, bestValue = team, v
+						end
+					end
+				end
+				local total = bandValue(col, ally)
+				if isFinite(total) then
+					if bestTotal == nil or (col.low and total < bestTotal) or (not col.low and total > bestTotal) then
+						bestAlly, bestTotal = ally, total
+					end
+				end
+			end
+			colMax[key] = col.fmt ~= "plain" and top or nil
+			-- Nobody leads a column everyone is at zero in.
+			if bestTeam and bestValue ~= 0 then
+				bestTeam.leads[key] = true
+			end
+			if bestAlly and bestTotal ~= 0 and #allies > 1 then
+				bestAlly.leads[key] = true
+			end
+		end
+	end
 
 	-- The sorted column's tint, from the first row to the last one drawn, under them all.
 	---@type table?
@@ -1752,6 +2799,10 @@ local function drawRows()
 		end
 	end
 	if sortedColumn then
+		-- From the top of the first row drawn - a band's plate starts a corner lower - to
+		-- the bottom of the last.
+		local first = rows[scroll + 1]
+		local top = listTop - ((first and first.type == "band") and metrics.csSmall or 0)
 		local bottom = listTop
 		for i = scroll + 1, #rows do
 			local rowBottom = listTop - (rows[i].off - base) - rowHeightOf(rows[i])
@@ -1760,8 +2811,19 @@ local function drawRows()
 			end
 			bottom = rowBottom
 		end
-		if bottom < listTop then
-			RectRound(sortedColumn.x1, bottom, sortedColumn.x2, listTop, metrics.csSmall, 0, 0, 1, 1, look.sortedFill)
+		if bottom < top then
+			RectRound(sortedColumn.x1, bottom, sortedColumn.x2, top, metrics.csSmall, 0, 0, 1, 1, look.sortedFill)
+			-- And a frame around it, from the first row to the last one drawn, so the column
+			-- the table is ordered by is found at a glance. The caption stays outside: its
+			-- sort marker says enough, and a frame up there would run into the group line.
+			-- Plain whole-pixel rects, so all four sides are the same thickness.
+			local x1, x2 = sortedColumn.x1, sortedColumn.x2
+			glColor(look.sortedLine)
+			gl.Rect(x1, bottom, x1 + 1, top)
+			gl.Rect(x2 - 1, bottom, x2, top)
+			gl.Rect(x1, top - 1, x2, top)
+			gl.Rect(x1, bottom, x2, bottom + 1)
+			glColor(1, 1, 1, 1)
 		end
 	end
 
@@ -1777,7 +2839,7 @@ local function drawRows()
 		end
 		fitRow(row)
 		if row.type == "band" then
-			drawBand(row, top, bottom)
+			drawBand(row, top, bottom, hover.row == i)
 		else
 			drawTeamRow(row, top, bottom, hover.row == i)
 		end
@@ -1829,13 +2891,13 @@ local function drawTableHeader()
 		if i == 1 then
 			queueText(color .. c.fitStat, c.x1 + metrics.nameIndent, sy, metrics.statFs, "o")
 			if sorted then
-				drawSortMark(c.x1 + metrics.nameIndent + c.statW + metrics.rowPad, cy)
+				drawTriMark(c.x1 + metrics.nameIndent + c.statW + metrics.rowPad, cy, sortAscending, false)
 			end
 		else
 			queueText(color .. c.fitStat, c.x2 - metrics.cellPad, sy, metrics.statFs, "or")
 			-- In the padding after the caption, over the right edge the numbers line up on.
 			if sorted then
-				drawSortMark(c.x2 - metrics.cellPad + 1, cy)
+				drawTriMark(c.x2 - metrics.cellPad + 1, cy, sortAscending, false)
 			end
 		end
 	end
@@ -1844,32 +2906,56 @@ local function drawTableHeader()
 	RectRound(listX1, metrics.statBottom, listRight, metrics.statBottom + 1, 0, 0, 0, 0, 0, look.rule)
 end
 
--- The column: its own card under the title, then the views, a rule, and the pages.
+-- The column under the title: the tables, the categories of graphs and the settings each on a
+-- card of their own with air between them, the way the widget selector keeps its sets apart
+-- from its categories. The graphs' card runs down to the settings'.
 local function drawSidebar()
-	RectRound(
-		area.x1,
-		area.y1,
-		area.x1 + metrics.sidebarW,
-		sidebarTop() + metrics.cardLip,
-		metrics.csPanel,
-		1,
-		1,
-		1,
-		1,
-		look.sidebarFill,
-		look.sidebarFillTop
-	)
+	local function card(bottom, top)
+		RectRound(
+			area.x1,
+			bottom,
+			area.x1 + metrics.sidebarW,
+			top,
+			metrics.csPanel,
+			1,
+			1,
+			1,
+			1,
+			look.sidebarFill,
+			look.sidebarFillTop
+		)
+	end
+	---@type number
+	local cardTop = sidebarTop() + metrics.cardLip
+	for i = 2, #entries do
+		if entries[i].section then
+			local _, bottom = entryRect(i - 1)
+			local _, _, _, top = entryRect(i)
+			card(bottom - metrics.cardLip, cardTop)
+			cardTop = top + metrics.cardLip
+		end
+	end
+	card(metrics.settingsCardTop + metrics.islandGap, cardTop)
+	card(area.y1, metrics.settingsCardTop)
 	queueText(L.titleText, area.x1 + metrics.sidePad, area.y2 - metrics.titleY, metrics.titleFs, "ov")
 
 	for i = 1, #entries do
 		local e = entries[i]
 		local x1, y1, x2, y2 = entryRect(i)
-		if y1 < listBottom then
+		if y1 < metrics.settingsTop then
 			break
 		end
-		if e.divider then
+		if y1 == y2 then
+			-- Scrolled out of sight.
+		elseif e.divider then
 			local y = mathFloor((y1 + y2) * 0.5)
 			RectRound(x1 + metrics.sidePad, y, x2 - metrics.sidePad, y + 1, 0, 0, 0, 0, 0, look.rule)
+		elseif e.section then
+			-- Faded like the caption over a graph's own settings, at the head of its card.
+			queueText(colorFaded .. e.label, x1 + metrics.sidePad, mathFloor((y1 + y2) * 0.5), metrics.toggleFs, "ov")
+			if e.add then
+				tables.drawAdd(i == hover.sb, x1, y1, x2, y2)
+			end
 		else
 			local selected = e.key == selectedGroup
 			if selected then
@@ -1897,29 +2983,108 @@ local function drawSidebar()
 				)
 			end
 			local color = e.disabled and colorFaded or (selected and colorSelected or colorDim)
-			queueText(color .. e.label, x1 + metrics.sidePad, mathFloor((y1 + y2) * 0.5), metrics.catFs, "ov")
+			if not (graphs.naming and graphs.naming.key == e.key) then
+				queueText(color .. e.label, x1 + metrics.sidePad, mathFloor((y1 + y2) * 0.5), metrics.catFs, "ov")
+			end
 		end
+	end
+
+	-- A slim bar beside the graphs' entries while they do not all fit, as the widget selector's
+	-- categories have: from under their caption down to where they stop.
+	if sidebar.bar then
+		local first = sidebar.first
+		local _, top = entryRect(first - 1)
+		local total, offset = 0, 0
+		for i = first, #entries do
+			local h = entries[i].divider and metrics.dividerH or metrics.catRowHeight
+			total = total + h
+			if i < first + sidebar.scroll then
+				offset = offset + h
+			end
+		end
+		local x2 = area.x1 + metrics.sidebarW - metrics.catInset
+		UiScroller(x2 - metrics.sideBarW, metrics.settingsTop, x2, top, total, offset)
 	end
 end
 
 -- The switches and their captions. The plate goes behind the switch and the switch
 -- lights itself: painting over it would only dull it.
-local function drawHeader()
+-- The settings block on its card under the groups: a row per switch with its caption on
+-- the left and its toggle on the right. A row the open view cannot use is dimmed and does
+-- not answer the cursor. The one along the top has its caption before its toggle, as
+-- Remove unselected beside it has, and no row to light.
+local function drawSettings()
 	for i = 1, #switches do
 		local sw = switches[i]
-		if sw.draw then
-			local hovered = hover.tog == i
-			if hovered then
-				Highlight(sw.hit[1], sw.hit[2], sw.hit[3], sw.hit[4], metrics.csSmall, look.rowHoverOpacity, look.white)
-			end
-			UiToggle(sw.draw[1], sw.draw[2], sw.draw[3], sw.draw[4], filters[sw.key], hovered)
+		if sw.draw and sw.heading then
 			queueText(
-				(filters[sw.key] and colorSelected or colorDim) .. sw.label,
-				sw.draw[1] - metrics.rowPad,
+				colorFaded .. sw.label,
+				sw.hit[1] + metrics.sidePad,
 				mathFloor((sw.hit[2] + sw.hit[4]) * 0.5),
 				metrics.toggleFs,
-				"rov"
+				"ov"
 			)
+		elseif sw.draw then
+			local hovered = hover.tog == i and not sw.disabled
+			if not sw.top then
+				if hovered then
+					Highlight(
+						sw.hit[1],
+						sw.hit[2],
+						sw.hit[3],
+						sw.hit[4],
+						metrics.csSmall,
+						look.rowHoverOpacity,
+						look.white
+					)
+				end
+			end
+			-- The grouping switch shows the grouping of whichever of the two views is open.
+			local on = filters[sw.key]
+			local graph = graphs.open and sw.perGraph and graphs.openGraph()
+			if graph then
+				-- The open custom graph's own.
+				on = (sw.key == "groupByTeam" and graph.grouped)
+					or (sw.key == "shareOfTotal" and graph.share)
+					or (sw.key == "milestones" and graph.milestones)
+			elseif sw.key == "groupByTeam" and graphs.open then
+				on = graphs.grouped
+			end
+			local cy = mathFloor((sw.hit[2] + sw.hit[4]) * 0.5)
+			local caption = (sw.disabled and colorFaded or (on and colorSelected or colorDim)) .. sw.label
+			if sw.top then
+				queueText(caption, sw.draw[1] - metrics.rowPad, cy, metrics.catFs, "rov")
+			else
+				queueText(caption, sw.hit[1] + metrics.sidePad, cy, metrics.toggleFs, "ov")
+			end
+			if sw.value then
+				queueText(
+					(sw.disabled and colorFaded or colorSelected) .. tostring(graphs.settingValue(sw.key)),
+					sw.hit[3] - metrics.sidePad,
+					cy,
+					metrics.toggleFs,
+					"rov"
+				)
+			else
+				UiToggle(sw.draw[1], sw.draw[2], sw.draw[3], sw.draw[4], on, hovered)
+				if sw.disabled then
+					-- FlowUI rounds a switch by a tenth of its height and draws an edge
+					-- around it; the mute covers both.
+					local edge = mathMax(1, mathFloor((sw.draw[4] - sw.draw[2]) * 0.1))
+					RectRound(
+						sw.draw[1] - edge,
+						sw.draw[2] - edge,
+						sw.draw[3] + edge,
+						sw.draw[4] + edge,
+						edge * 2,
+						1,
+						1,
+						1,
+						1,
+						look.mutedFill
+					)
+				end
+			end
 		end
 	end
 end
@@ -1928,9 +3093,30 @@ end
 -- Baked and replayed until the cursor, the list or the screen moves.
 local function drawPanel()
 	drawSidebar()
-	drawHeader()
+	drawSettings()
+	if graphs.open then
+		graphs.drawPanel()
+		local top, total, offset = select(5, scrollerThumb())
+		if total > 0 then
+			UiScroller(barX1, listBottom, area.x2 - metrics.edgeInset, top, total, offset, hover.bar == 1, dragging)
+		end
+		flushText()
+		glColor(1, 1, 1, 1)
+		return
+	end
+	tables.drawButton(hover.cols == 1)
 	drawTableHeader()
 	drawRows()
+	-- A table with no stats in it yet says how to give it some.
+	if #columns == 1 then
+		queueText(
+			colorDim .. L.tableEmpty,
+			mathFloor((listX1 + barX1) * 0.5),
+			mathFloor((listTop + listBottom) * 0.5),
+			metrics.catFs,
+			"ocv"
+		)
+	end
 
 	if rowMetrics.totalH > 0 then
 		UiScroller(
@@ -1976,6 +3162,8 @@ local function dropLists()
 		panelList = nil
 		panelSig = nil
 	end
+	graphs.dropTrendList()
+	graphs.dropGridTexture()
 	if windowList then
 		glDeleteList(windowList)
 		windowList = nil
@@ -2003,16 +3191,7 @@ local function panelSignature(mx, my)
 	hover.hcol = 0
 	hover.tog = switchAt(mx, my) or 0
 	hover.bar = 0
-
-	if hover.tog == 0 and mx >= listX1 and mx < listRight then
-		hover.hcol = headerColumnAt(mx, my) or 0
-		if hover.hcol == 0 then
-			hover.row = rowAt(my) or 0
-			if hover.row > 0 then
-				hover.col = columnAt(mx) or 0
-			end
-		end
-	elseif mx >= barX1 and mx <= area.x2 then
+	if mx >= barX1 and mx <= area.x2 then
 		-- The thumb itself, not the track: it is the part that can be taken hold of, so it
 		-- is the part that lights up.
 		local top, height = scrollerThumb()
@@ -2021,7 +3200,29 @@ local function panelSignature(mx, my)
 		end
 	end
 
+	local extra = ""
+	hover.cols = 0
+	if graphs.open then
+		extra = "|g" .. graphs.hoverAt(mx, my)
+	elseif tables.buttonAt(mx, my) then
+		hover.cols = 1
+	elseif hover.tog == 0 and mx >= listX1 and mx < listRight then
+		hover.hcol = headerColumnAt(mx, my) or 0
+		if hover.hcol == 0 then
+			hover.row = rowAt(my) or 0
+			if hover.row > 0 then
+				hover.col = columnAt(mx) or 0
+			end
+		end
+	end
+	-- The Columns... button is lit while its card is open.
+	if tables.cardOpen() then
+		extra = extra .. "|c"
+	end
+
 	return hover.sb
+		.. "|"
+		.. hover.cols
 		.. "|"
 		.. hover.row
 		.. "|"
@@ -2033,11 +3234,14 @@ local function panelSignature(mx, my)
 		.. "|"
 		.. scroll
 		.. "|"
+		.. sidebar.scroll
+		.. "|"
 		.. rowsGen
 		.. "|"
 		.. layoutGen
 		.. "|"
 		.. (dragging and 1 or 0)
+		.. extra
 end
 
 ----------------------------------------------------------------
@@ -2068,7 +3272,7 @@ local function nameCard(team)
 		local parts = {}
 		for j = 1, #spec[2] do
 			local column = COLUMNS[spec[2][j]]
-			if handover.on or not column.gadget then
+			if handover.shows(column) then
 				local v = cellValue(column, team)
 				parts[#parts + 1] = colorDim
 					.. L.full[column.key]
@@ -2084,20 +3288,38 @@ local function nameCard(team)
 	end
 
 	-- The milestones, when the gadget has any: the game time, what it was and the unit
-	-- that made it so, a few to a line.
+	-- that made it so, a few to a line. The ones that tell the game's story - the economy's
+	-- smaller steps are left to their charts, and strikes that cost less than a quarter of
+	-- what they hit - and one that came again (a commander lost, a nuke) at its first time,
+	-- with how often.
 	local marks = team.milestones
 	if marks and #marks > 0 then
-		local parts = {}
+		local shown, times = {}, {}
 		for i = 1, #marks do
 			local m = marks[i]
-			local label = L.milestone[m.key] or m.key
+			local strike = m.key == "ecoStrike" or m.key == "armyLoss" or m.key == "raid"
+			if L.milestone[m.key] and not (strike and (m.share or 0) < 0.25) then
+				if times[m.key] then
+					times[m.key] = times[m.key] + 1
+				else
+					times[m.key] = 1
+					shown[#shown + 1] = m
+				end
+			end
+		end
+		local parts = {}
+		for i, m in ipairs(shown) do
+			local label = L.milestone[m.key]
 			local ud = m.unitDefID and UnitDefs[m.unitDefID] or nil
 			---@cast ud table?
 			if ud then
 				label = label .. " (" .. (ud.translatedHumanName or ud.name) .. ")"
 			end
+			if times[m.key] > 1 then
+				label = label .. colorDim .. " \195\151" .. times[m.key]
+			end
 			parts[#parts + 1] = colorDim .. gameTime(m.frame) .. " " .. colorTitle .. label
-			if #parts == 3 or i == #marks then
+			if #parts == 3 or i == #shown then
 				local caption = i <= 3 and (colorHeader .. L.milestones .. ": ") or "      "
 				lines[#lines + 1] = caption .. table.concat(parts, colorDim .. "  \194\183  ")
 				parts = {}
@@ -2115,33 +3337,76 @@ local function nameCard(team)
 	return team.card
 end
 
--- The column's entries: every view with something to show, then a rule and the history
--- page. A view of the gadget's columns alone, and the page the gadget's history would
--- fill, are left out while the gadget is not there. A view that went away hands over to
--- the overview.
+-- The column's entries: the tables under their caption, then under theirs the categories of
+-- graphs with something to show; each caption's + makes a new one. The graphs are made of
+-- the gadget's history, so while the gadget is not there they are left out, and so is a
+-- category of its columns alone. A pick that went away hands over to the overview - or to a
+-- table, without the graphs or when it was a table - and is gone back to once it is shown
+-- again: it is still the player's pick. The view follows the pick.
 local function rebuildEntries()
+	local wasTable = tables.byKey[selectedGroup] ~= nil
+	for _, e in ipairs(entries) do
+		wasTable = wasTable or (e.table and e.key == selectedGroup)
+	end
 	entries = {}
-	local selectedStays = false
-	for _, group in ipairs(GROUPS) do
-		local shown = handover.on
-		if not shown then
-			for i = 1, #group.columns do
-				if not COLUMNS[group.columns[i]].gadget then
-					shown = true
+	local want = handover.wanted or selectedGroup
+	local wantShown, selectedStays = false, false
+	local function add(entry)
+		entries[#entries + 1] = entry
+		wantShown = wantShown or entry.key == want
+		selectedStays = selectedStays or entry.key == selectedGroup
+	end
+	-- Each caption carries the + that makes a new one of its kind.
+	entries[#entries + 1] = { section = true, key = "newTable", label = L.section.tables, add = true }
+	for _, t in ipairs(tables.list) do
+		add({ key = t.key, label = tables.label(t), table = true })
+	end
+	if handover.on then
+		entries[#entries + 1] = { section = true, key = "newCategory", label = L.section.graphs, add = true }
+		local afterCustom = false
+		for _, group in ipairs(GROUPS) do
+			if group.custom then
+				add({ key = group.key, label = group.label, custom = true })
+				afterCustom = true
+			else
+				-- A rule between the player's categories and the built-in ones.
+				if afterCustom then
+					entries[#entries + 1] = { divider = true }
+					afterCustom = false
+				end
+				local shown = false
+				for i = 1, #group.columns do
+					if handover.shows(COLUMNS[group.columns[i]]) then
+						shown = true
+					end
+				end
+				if shown then
+					add({ key = group.key, label = L.group[group.key] })
 				end
 			end
 		end
-		if shown then
-			entries[#entries + 1] = { key = group.key, label = L.group[group.key] }
-			selectedStays = selectedStays or group.key == selectedGroup
+	end
+	sidebar.fit()
+	if wantShown then
+		selectedGroup, handover.wanted = want, nil
+	elseif not selectedStays then
+		-- Hidden, not gone: kept as the pick, and saved as it. A deleted one is not kept.
+		if not handover.wanted and groupByKey[selectedGroup] then
+			handover.wanted = selectedGroup
+		end
+		selectedGroup = (handover.on and not wasTable) and "overview" or tables.current
+	end
+	local open = tables.byKey[selectedGroup] == nil
+	if open ~= graphs.open then
+		graphs.open = open
+		if open then
+			graphs.invalidate()
 		end
 	end
-	if not selectedStays then
-		selectedGroup = GROUPS[1].key
-	end
-	if showPlannedPages and handover.on then
-		entries[#entries + 1] = { divider = true }
-		entries[#entries + 1] = { key = "graphs", label = L.group.graphs, disabled = true }
+	-- A table is sorted the way it was left.
+	if not open then
+		tables.current = selectedGroup
+		sortKey, sortAscending = tables.sortOf(selectedGroup)
 	end
 end
 
@@ -2149,30 +3414,73 @@ local function loadLabels()
 	L.title = BAR.I18N("ui.teamStats.title")
 	L.titleText = colorTitle .. L.title
 	L.notYet = BAR.I18N("ui.teamStats.notYet")
-	L.perMinuteSuffix = BAR.I18N("ui.teamStats.perMinuteSuffix")
-	L.perMinuteNote = BAR.I18N("ui.teamStats.perMinuteNote")
-	L.memberOne = BAR.I18N("ui.teamStats.memberOne")
-	-- The milestone kinds the gadget records.
+	L.unknownPlayer = BAR.I18N("ui.teamStats.unknownPlayer")
+	L.foldHint = BAR.I18N("ui.teamStats.foldHint")
+	-- The milestone kinds a player's card lists: the ones that tell the game's story.
 	L.milestones = BAR.I18N("ui.teamStats.milestones")
 	L.milestone = {}
-	for _, key in ipairs({ "factory", "tech2", "tech3", "nuke", "antinuke", "lrpc", "commanderLost", "teamDied" }) do
+	L.milestoneOrder = {
+		"tech2",
+		"tech3",
+		"moho",
+		"fusion",
+		"afus",
+		"air",
+		"naval",
+		"nuke",
+		"antinuke",
+		"lrpc",
+		"firstKill",
+		"firstLoss",
+		"commanderKill",
+		"commanderLost",
+		"nukeLaunched",
+		"nuked",
+		"ecoStrike",
+		"armyLoss",
+		"raid",
+		"teamDied",
+	}
+	for _, key in ipairs(L.milestoneOrder) do
 		L.milestone[key] = BAR.I18N("ui.teamStats.milestone." .. key)
 	end
 
 	L.group = {}
 	for _, group in ipairs(GROUPS) do
-		L.group[group.key] = BAR.I18N("ui.teamStats.group." .. group.key)
+		if not group.custom then
+			L.group[group.key] = BAR.I18N("ui.teamStats.group." .. group.key)
+		end
 	end
-	L.group.graphs = BAR.I18N("ui.teamStats.group.graphs")
+	-- The overview's name is the language's until the player renames it.
+	graphs.custom.apply()
 
+	L.perGraphOpen = BAR.I18N("ui.teamStats.custom.perGraphOpen")
+	L.categoryHint = BAR.I18N("ui.teamStats.custom.categoryHint")
+	L.overviewHint = BAR.I18N("ui.teamStats.custom.overviewHint")
+	L.perGraphGrid = BAR.I18N("ui.teamStats.custom.perGraphGrid")
+	L.groupAll = BAR.I18N("ui.teamStats.custom.groupAll")
+	L.section = {
+		tables = BAR.I18N("ui.teamStats.section.tables"),
+		graphs = BAR.I18N("ui.teamStats.section.graphs"),
+	}
+	L.newTable = BAR.I18N("ui.teamStats.tables.newTable")
+	L.newTableDesc = BAR.I18N("ui.teamStats.tables.newTableDesc")
+	L.newCategory = BAR.I18N("ui.teamStats.custom.newCategory")
+	L.newCategoryDesc = BAR.I18N("ui.teamStats.custom.newCategoryDesc")
+	L.tableEmpty = BAR.I18N("ui.teamStats.tables.empty")
+	L.columnsDesc = BAR.I18N("ui.teamStats.tables.columnsDesc")
+	L.captionHint = BAR.I18N("ui.teamStats.tables.captionHint")
 	L.switch, L.switchDesc = {}, {}
 	for _, sw in ipairs(switches) do
 		L.switch[sw.key] = BAR.I18N("ui.teamStats.switch." .. sw.key)
-		L.switchDesc[sw.key] = BAR.I18N("ui.teamStats.switch." .. sw.key .. "Desc")
+		-- A caption row is never hovered for a tooltip, so it has nothing to explain.
+		if not sw.heading then
+			L.switchDesc[sw.key] = BAR.I18N("ui.teamStats.switch." .. sw.key .. "Desc")
+		end
 		sw.label = L.switch[sw.key]
 	end
 
-	L.caption, L.stat, L.full, L.desc = {}, {}, {}, {}
+	L.caption, L.stat, L.full, L.desc, L.graphDesc = {}, {}, {}, {}, {}
 	for key, column in pairs(COLUMNS) do
 		if column.group ~= "" and not L.caption[column.group] then
 			L.caption[column.group] = BAR.I18N("ui.teamStats." .. column.group)
@@ -2181,6 +3489,10 @@ local function loadLabels()
 		L.full[key] = BAR.I18N("ui.teamStats." .. column.stat)
 		if key ~= "name" then
 			L.desc[key] = BAR.I18N("ui.teamStats.desc." .. key)
+		end
+		-- What the same stat means on a chart, where it runs over the whole game.
+		if column.overTime then
+			L.graphDesc[key] = BAR.I18N("ui.teamStats.graphDesc." .. key)
 		end
 	end
 
@@ -2191,10 +3503,16 @@ end
 -- change what the panel is made of between two frames.
 local function syncGadgetState(frame)
 	local on
-	if handover.frame then
-		on = frame - handover.frame <= handover.stale
+	if WG.teamStats then
+		-- The API widget listens for every widget, so it knows first.
+		on = WG.teamStats.isAvailable()
 	else
-		on = handover.opened == nil or frame - handover.opened <= handover.stale
+		-- Opening the panel gives the gadget that long again, as the API widget does.
+		local last = handover.frame
+		if handover.opened and (not last or handover.opened > last) then
+			last = handover.opened
+		end
+		on = last == nil or frame - last <= handover.stale
 	end
 	if on == handover.on then
 		return
@@ -2205,10 +3523,41 @@ local function syncGadgetState(frame)
 	dropLists()
 end
 
--- Reads the numbers, after settling whether the gadget is still there to read from.
+-- Reads the numbers, after settling whether the gadget is still there to read from. That
+-- is only known while the panel listens: closed, it is handed nothing, and a read then - at
+-- game over, or on a language change - would take its views and the page away for nothing.
 local function refresh()
-	syncGadgetState(spGetGameFrame())
+	if show then
+		syncGadgetState(spGetGameFrame())
+	end
 	refreshStats()
+	-- Whether the viewer has a team of their own is only known once the teams are read,
+	-- which is after the first layout: the comparison switch lights up when it is. Only a
+	-- switch laid out out of step is laid out again: a layout rebuilds every chart.
+	---@diagnostic disable-next-line: undefined-field
+	local canCompare = allies.me ~= nil
+	-- Grouping is offered once another side is to be seen: as a spectator, or at game over.
+	local groupable = canGroup()
+	local stale, regrouped = false, false
+	for i = 1, #switches do
+		local sw = switches[i]
+		if sw.key == "vsMe" and sw.hit and (sw.disabled == true) == canCompare then
+			stale = true
+		elseif sw.key == "groupByTeam" and (sw.hit ~= nil) ~= groupable then
+			stale, regrouped = true, true
+		end
+	end
+	if stale then
+		setLayout()
+	end
+	-- As the switch's own press does: the rows follow the layout grouping decides.
+	if regrouped and not graphs.open then
+		rebuildRows()
+	end
+	-- The page's histories are the table's trend lines too.
+	if graphs.open or filters.trend then
+		graphs.refresh()
+	end
 end
 
 function widget:ViewResize()
@@ -2221,6 +3570,8 @@ function widget:ViewResize()
 	screenY = mathFloor((vsy * 0.5) + (screenHeight / 2))
 
 	font = WG.fonts.getFont()
+	metrics.numFont = WG.fonts.getFont(3)
+	metrics.nameFont = WG.fonts.getFont(2)
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
@@ -2254,8 +3605,23 @@ function widget:DrawScreen()
 			dragging = false
 		end
 	end
+	-- A graph pressed in a category of the player's own, or a table's caption, turns into a
+	-- drag as it travels.
+	graphs.dragUpdate(mx, my, lmb)
+	tables.dragUpdate(mx, my, lmb)
+	-- An open card has the cursor to itself, and so has a graph or a column being dragged:
+	-- nothing under them lights up.
+	local hx, hy = mx, my
+	if not show or graphs.menuOpen() or graphs.dragMoving() or tables.cardOpen() or tables.dragMoving() then
+		hx, hy = -1, -1
+	end
 
-	local sig = panelSignature(show and mx or -1, show and my or -1)
+	-- The rows the table waited for while the Graphs page was on.
+	if rowMetrics.stale and not graphs.open then
+		rowMetrics.stale = false
+		rebuildRows()
+	end
+	local sig = panelSignature(hx, hy)
 	if sig ~= panelSig then
 		if panelList then
 			glDeleteList(panelList)
@@ -2270,6 +3636,37 @@ function widget:DrawScreen()
 	---@cast panelList -?
 	glCallList(windowList)
 	glCallList(panelList)
+	-- The table's trend lines, from a list of their own: the panel is baked again whenever
+	-- the cursor moves onto another row, and would draw every line again with it.
+	if show and filters.trend and not graphs.open then
+		graphs.drawTrendList(rowsGen, scroll, layoutGen)
+	end
+	if show and graphs.open then
+		-- The chart keeps its own list and draws its hover overlay straight, so the
+		-- cursor moving over it never rebakes the panel.
+		graphs.drawChart(hx, hy)
+		graphs.drawDrag(mx, my)
+	elseif show then
+		tables.drawDrag(mx, my)
+	end
+	-- A category being named: its field over its sidebar entry.
+	if show and graphs.naming then
+		for i = 1, #entries do
+			if entries[i].key == graphs.naming.key then
+				local x1, y1, x2, y2 = entryRect(i)
+				if y2 > y1 and y1 >= metrics.settingsTop then
+					graphs.drawNaming(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2)
+				end
+			end
+		end
+	end
+	-- The card of a table's columns, and a card of actions, over everything.
+	if show then
+		tables.drawCard(mx, my)
+	end
+	if show and graphs.menuOpen() then
+		graphs.drawMenu(mx, my)
+	end
 
 	if WG.guishader and backgroundGuishader == nil then
 		backgroundGuishader = glCreateList(function()
@@ -2282,31 +3679,55 @@ function widget:DrawScreen()
 	if show and math_isInRect(mx, my, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 		spSetMouseCursor("cursornormal")
 
-		if WG.tooltip then
+		if WG.tooltip and not graphs.menuOpen() and not graphs.dragMoving() and not tables.dragMoving() then
 			local title, tip
 			local entry = hover.sb > 0 and entries[hover.sb] or nil
-			if hover.hcol > 1 then
+			if tables.cardOpen() then
+				-- The card has the cursor to itself.
+				title, tip = tables.cardTip(mx, my)
+			elseif graphs.open and hover.sb == 0 and hover.tog == 0 then
+				title, tip = graphs.tooltip()
+			elseif hover.cols == 1 then
+				title = tables.buttonLabel
+				tip = L.columnsDesc
+			elseif hover.hcol > 1 then
 				local column = columns[hover.hcol]
 				---@cast column -?
 				title = columnTitle(column)
-				tip = L.desc[column.key]
-				if filters.perMinute and column.rate then
-					tip = tip .. "\n" .. colorDim .. L.perMinuteNote
-				end
+				tip = (L.desc[column.key] or "") .. "\n" .. colorDim .. L.captionHint
 			elseif hover.tog > 0 then
 				local sw = switches[hover.tog]
 				---@cast sw -?
 				title = sw.label
 				tip = L.switchDesc[sw.key]
+				-- In a custom category these rows are each graph's own.
+				if sw.perGraph and graphs.open and groupByKey[selectedGroup] and groupByKey[selectedGroup].custom then
+					local note = graphs.openGraph() and L.perGraphOpen or (sw.top and L.groupAll or L.perGraphGrid)
+					tip = (tip or "") .. "\n" .. colorDim .. note
+				end
 			elseif entry and entry.disabled then
 				title = entry.label
 				tip = L.notYet
+			elseif entry and entry.custom then
+				title = entry.label
+				-- The one that ships is reset rather than deleted.
+				tip = entry.key == "overview" and L.overviewHint or L.categoryHint
+			elseif entry and entry.table then
+				title = entry.label
+				tip = tables.describe(tables.byKey[entry.key])
+			elseif entry and entry.add then
+				local isTable = entry.key == "newTable"
+				title = isTable and L.newTable or L.newCategory
+				tip = isTable and L.newTableDesc or L.newCategoryDesc
 			elseif hover.row > 0 and hover.col == 1 then
 				-- Everything about the player, on the name: the columns the open view hides too.
 				local row = rows[scroll + hover.row]
-				if row and row.type == "team" then
-					title = row.team.label
+				if row and row.team then
+					title = (row.team.nameColor or "") .. row.team.label
 					tip = nameCard(row.team)
+				elseif row then
+					title = row.caption
+					tip = L.foldHint
 				end
 			elseif hover.row > 0 and hover.col > 1 then
 				-- The cell's whole number: a cell rounds to three figures. A share says what it
@@ -2319,10 +3740,15 @@ function widget:DrawScreen()
 					title = row.type == "team" and row.team.name or row.caption
 					local v = row.vals[hover.col]
 					local exact = formatExact(column, v)
-					if row.type == "team" and shareMode() and column.fmt == "si" and isFinite(v) then
-						exact = BAR.I18N("ui.teamStats.ofTeam", {
+					if shareMode() and column.fmt == "si" and isFinite(v) then
+						local total = ratio.grand(column.key)
+						exact = BAR.I18N("ui.teamStats.partOfTotal", {
 							share = stringFormat("%.1f%%", v),
-							value = formatExact(column, baseValue(column, row.team)),
+							value = formatExact(
+								column,
+								row.type == "team" and baseValue(column, row.team) or row.ally.total[column.key]
+							),
+							total = formatExact(column, total),
 						})
 					end
 					local detail = cellDetail(column, row.type == "team" and row.team.stats or row.ally.total)
@@ -2344,16 +3770,63 @@ end
 -- so a reopen shows the last ones until the next hand-over rather than nothing.
 local function receiveLive(all, frame)
 	handover.all, handover.frame = all, frame
+	-- The ranking comes and goes with what may be seen: a spectator's, everyone's after the
+	-- game. The views, the columns and the charts follow.
+	local ranked = handover.rankedIn(all)
+	if ranked ~= (handover.ranked == true) then
+		handover.ranked = ranked
+		if show then
+			rebuildEntries()
+			setLayout()
+			dropLists()
+		end
+	end
 	if show and (not gameover or handover.postGame) then
 		handover.postGame = false
 		refresh()
 	end
 end
 
+-- The gadget's hand-over reaches the panel through the team stats API widget when it is
+-- there, so other widgets share it, and straight from the gadget when it is not.
+local function listen(on)
+	local hub = WG.teamStats
+	if on then
+		if hub then
+			if not hub.isSubscribed("teamstats") then
+				hub.subscribe("teamstats", {
+					live = receiveLive,
+					history = graphs.receiveHistory,
+					units = graphs.receiveUnits,
+					reset = graphs.gadgetRestarted,
+				})
+			end
+		elseif not handover.direct then
+			-- The receiver is the API widget's when it is there: only one the panel
+			-- registered itself is the panel's to take down.
+			handover.direct = widgetHandler:RegisterGlobal("TeamStatsLive", receiveLive)
+		end
+	else
+		if hub then
+			hub.unsubscribe("teamstats")
+		end
+		if handover.direct then
+			widgetHandler:DeregisterGlobal("TeamStatsLive")
+			handover.direct = false
+		end
+	end
+end
+
 local function closePanel()
 	show = false
 	dragging = false
-	widgetHandler:DeregisterGlobal("TeamStatsLive")
+	listen(false)
+	-- A name being typed is kept; a card and a drag are put away.
+	graphs.stopNaming(true)
+	graphs.closeMenu()
+	graphs.drag = nil
+	tables.closeCard()
+	tables.drag = nil
 	if WG.tooltip then
 		WG.tooltip.RemoveTooltip("teamstats")
 	end
@@ -2369,23 +3842,84 @@ local function setShown(state)
 		WG.topbar.hideWindows()
 	end
 	show = true
-	-- Registered while open only, so the gadget hands nothing over to a closed panel.
-	widgetHandler:RegisterGlobal("TeamStatsLive", receiveLive)
+	-- Listening while open only, so the gadget hands nothing over to a closed panel.
+	listen(true)
 	handover.opened = spGetGameFrame()
 	-- The numbers freeze at game over; a panel first opened after it still needs one read.
+	-- The charts ask for what they do not have yet whenever the panel opens: after game
+	-- over nothing else would, and an answer the panel was closed for is lost.
+	graphs.askAgain()
 	if not gameover or #allies == 0 then
 		refresh()
+	elseif graphs.open or filters.trend then
+		graphs.refresh()
+	end
+	for i = 1, #entries do
+		if entries[i].key == selectedGroup then
+			sidebar.reveal(i)
+		end
 	end
 end
 
-local function selectEntry(i)
-	local e = entries[i] or {}
-	if e.disabled or e.key == selectedGroup then
+-- Picks a table or a category of graphs by its key: the view follows the pick, and a table
+-- comes sorted the way it was left. `quiet` when what asked for it made its own sound.
+local function selectEntry(key, quiet)
+	---@type table?, integer
+	local e, at = nil, 0
+	for i = 1, #entries do
+		if entries[i].key == key then
+			e, at = entries[i], i
+		end
+	end
+	-- The + on the Graphs caption: an empty category of the player's own, picked and named on
+	-- the spot.
+	if e and e.add and key == "newCategory" then
+		local category = graphs.custom.create()
+		rebuildEntries()
+		selectEntry(category.key, quiet)
+		graphs.startNaming(category.key)
+		graphs.invalidate()
+		dropLists()
 		return
 	end
-	selectedGroup = e.key
-	layoutColumns()
-	if playSounds then
+	-- The + on the Tables caption: an empty table of the player's own, picked, named on the
+	-- spot, and its Columns... card open to fill it.
+	if e and e.add then
+		local t = tables.create()
+		rebuildEntries()
+		selectEntry(t.key, quiet)
+		graphs.startNaming(t.key, tables.label(t), function(name)
+			tables.rename(t.key, name)
+		end)
+		tables.openCard(t.key)
+		return
+	end
+	if not e or e.disabled or key == selectedGroup then
+		return
+	end
+	-- A pick of their own replaces the one waiting for the gadget to come back.
+	handover.wanted = nil
+	selectedGroup = key
+	sidebar.reveal(at)
+	tables.closeCard()
+	if e.table then
+		tables.current = key
+		sortKey, sortAscending = tables.sortOf(key)
+		rebuildRows()
+	end
+	local open = not e.table
+	if open ~= graphs.open then
+		graphs.open = open
+		setLayout()
+		dropLists()
+		if open then
+			graphs.refresh()
+			graphs.invalidate()
+		end
+	else
+		setLayout()
+	end
+	if playSounds and not quiet then
 		spPlaySoundFile(buttonclick, 0.6, "ui")
 	end
 end
@@ -2398,31 +3932,102 @@ local function sortBy(column)
 		-- Names read best from A, numbers from the largest.
 		sortAscending = column.key == "name"
 	end
+	tables.setSort(tables.current, sortKey, sortAscending)
 	rebuildRows()
 	if playSounds then
 		spPlaySoundFile(buttonclick, 0.6, "ui")
 	end
 end
 
-local function toggleSwitch(i)
+local function toggleSwitch(i, back)
 	local sw = switches[i] or {}
+	if sw.disabled then
+		return
+	end
 	local key = tostring(sw.key)
-	filters[key] = not filters[key]
-	-- Grouping decides whether the share switch is offered, so the header is laid out
-	-- again. The others only change what the columns say: a rate changes every value and
-	-- so the order, and the captions say when they are rates.
-	if key == "groupByTeam" then
+	if sw.value then
+		-- A setting with a value rather than a state: the left button steps it on, the
+		-- right one back.
+		graphs.settingPress(key, back)
+		setLayout()
+	elseif sw.perGraph and graphs.open and graphs.openGraph() then
+		-- A custom category's graph keeps its own: the switch sets it for that graph alone.
+		local graph = graphs.openGraph()
+		---@cast graph -?
+		local field = key == "groupByTeam" and "grouped" or (key == "shareOfTotal" and "share" or "milestones")
+		graph[field] = not graph[field]
+		graphs.invalidate()
+		setLayout()
+	elseif key == "groupByTeam" and graphs.open then
+		-- The page groups its own way: the table keeps the grouping it was left with. On a
+		-- custom category's page of charts every graph of it goes along, so the charts group
+		-- the way the bar picks.
+		local state = not graphs.grouped
+		graphs.setGrouped(state)
+		local group = groupByKey[selectedGroup]
+		for _, graph in ipairs(group and group.custom and group.graphs or {}) do
+			graph.grouped = state
+		end
+		graphs.invalidate()
+		-- Grouping decides whether the share switch is offered here too.
 		setLayout()
 	else
-		layoutColumns()
+		filters[key] = not filters[key]
+		-- Bars and trends both sit behind the numbers: one of them at a time.
+		if filters[key] and (key == "bars" or key == "trend") then
+			filters[key == "bars" and "trend" or "bars"] = false
+		end
+		if key == "trend" and filters.trend then
+			graphs.refresh()
+		end
+		-- Grouping decides whether the share switch is offered, so the header is laid
+		-- out again. The others only change what the columns say: a rate changes every
+		-- value and so the order, and the captions say when they are rates.
+		if key == "groupByTeam" then
+			setLayout()
+		else
+			layoutColumns()
+		end
+		rebuildRows()
+		-- The chart is made of what the switches say too.
+		graphs.invalidate()
 	end
-	rebuildRows()
 	if playSounds then
 		spPlaySoundFile(buttonclick, 0.6, "ui")
 	end
 end
 
 function widget:KeyPress(key)
+	-- A name being typed takes every key: Enter keeps it, Escape keeps the old one.
+	if show and graphs.naming then
+		return graphs.namingKey(key)
+	end
+	if show and key == 27 and graphs.menuOpen() then
+		graphs.closeMenu()
+		dropLists()
+		return true
+	end
+	if show and key == 27 and tables.cardOpen() then
+		tables.closeCard()
+		return true
+	end
+	-- With one chart open, the arrow keys go through the category's charts; the settings
+	-- follow the chart.
+	if show and graphs.open and not graphs.menuOpen() and not graphs.kindsOpen then
+		local stat = graphs.stat
+		if graphs.keyPress(key) then
+			if graphs.stat ~= stat then
+				setLayout()
+			end
+			return true
+		end
+	end
+	if show and key == 27 and graphs.open and graphs.kindsOpen then
+		-- ESC closes what is open on the panel before it closes the panel.
+		graphs.closeKinds()
+		dropLists()
+		return true
+	end
 	if show and key == 27 then
 		-- ESC
 		showOnceMore = true
@@ -2445,24 +4050,40 @@ function widget:MouseWheel(up, _value)
 		return false
 	end
 
-	-- The chat history's modifiers: Ctrl moves three notches' worth at once, Shift a whole
-	-- page - the rows the band holds from where the list is now, since a band is taller.
-	local _, ctrl, _, shift = spGetModKeyState()
-	local step = ctrl and metrics.wheelRows * 3 or metrics.wheelRows
-	if shift then
-		ensureRowMetrics()
-		local band, used = listTop - listBottom, 0
-		step = 0
-		for i = scroll + 1, #rows do
-			used = used + rowHeightOf(rows[i])
-			if used > band then
-				break
-			end
-			step = step + 1
-		end
-		step = mathMax(1, step)
+	-- Over the graphs' entries while they do not all fit, the wheel scrolls them - not while
+	-- one is being named, which would scroll its field away.
+	local onEntries = false
+	if sidebar.bar and not graphs.naming and x <= area.x1 + metrics.sidebarW and y > metrics.settingsTop then
+		local _, top = entryRect(sidebar.first - 1)
+		onEntries = y <= top
 	end
-	setScroll(scroll + (up and -step or step))
+
+	if onEntries then
+		sidebar.scroll = mathMax(0, mathMin(sidebar.max, sidebar.scroll + (up and -1 or 1)))
+	elseif graphs.open then
+		-- The Graphs page scrolls its grid of charts, or the rows of an open chart that has more
+		-- than fit; the wheel is the panel's either way.
+		graphs.wheel(up)
+	else
+		-- The chat history's modifiers: Ctrl moves three notches' worth at once, Shift a whole
+		-- page - the rows the band holds from where the list is now, since a band is taller.
+		local _, ctrl, _, shift = spGetModKeyState()
+		local step = ctrl and metrics.wheelRows * 3 or metrics.wheelRows
+		if shift then
+			ensureRowMetrics()
+			local band, used = listTop - listBottom, 0
+			step = 0
+			for i = scroll + 1, #rows do
+				used = used + rowHeightOf(rows[i])
+				if used > band then
+					break
+				end
+				step = step + 1
+			end
+			step = mathMax(1, step)
+		end
+		setScroll(scroll + (up and -step or step))
+	end
 
 	return true
 end
@@ -2478,26 +4099,141 @@ local function mouseEvent(x, y, button, release)
 		return false
 	end
 
+	-- A graph pressed in a category of the player's own, let go wherever: opened, or moved
+	-- to where it was dragged.
+	if release and graphs.dragging() then
+		local stat, applies = graphs.stat, graphs.shareApplies()
+		graphs.mouseRelease(x, y)
+		if graphs.stat ~= stat or graphs.shareApplies() ~= applies then
+			setLayout()
+		end
+		return true
+	end
+	-- A table's caption let go: a click sorts by its column, a drag has moved it.
+	if release and tables.drag then
+		local what, key = tables.release(x, tables.current)
+		if what == "click" and COLUMNS[key] then
+			sortBy(COLUMNS[key])
+		end
+		return true
+	end
+
 	-- A press on a top bar button is the top bar's to handle: it closes the open windows
 	-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
 	if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(x, y) then
 		return false
 	end
 
+	-- A card of actions takes every press while it is open, wherever it lands, and so does the
+	-- card of a table's columns.
+	if not release and graphs.menuOpen() then
+		graphs.menuPress(x, y, button)
+		dropLists()
+		return true
+	end
+	if not release and tables.cardOpen() then
+		tables.cardPress(x, y, button)
+		return true
+	end
+	-- Naming a category: a press in the field moves the caret, one anywhere else keeps the
+	-- name typed so far and goes on to whatever it was on.
+	if not release and graphs.naming then
+		local r = graphs.naming.box.rect
+		if math_isInRect(x, y, r[1], r[2], r[3], r[4]) then
+			graphs.naming.box:mousePress(x, y)
+			return true
+		end
+		graphs.stopNaming(true)
+	end
+
 	if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
-		if not release and button == 1 then
+		if not release and graphs.open and graphs.kindsOpen then
+			graphs.mousePress(x, y, button)
+			dropLists()
+			return true
+		end
+		if not release and button == 3 then
 			local sw = switchAt(x, y)
 			local i = sidebarIndexAt(x, y)
-			local col = x >= listX1 and x < listRight and headerColumnAt(x, y)
+			local entry = i and entries[i]
+			if sw then
+				-- A setting with a value steps back on the right button.
+				toggleSwitch(sw, true)
+			elseif entry and entry.custom then
+				-- One of the player's categories: renamed, moved or deleted from its card.
+				local x1, y1, x2, y2 = entryRect(i)
+				graphs.openCategoryMenu(entry.key, { x1, y1, x2, y2 })
+				dropLists()
+			elseif entry and entry.table then
+				-- A table: its columns put back as they shipped, from its card.
+				local x1, y1, x2, y2 = entryRect(i)
+				tables.openEntryMenu(entry.key, { x1, y1, x2, y2 })
+				dropLists()
+			elseif graphs.open then
+				-- The Graphs page's legend takes the right button too: it hides a team, which
+				-- can leave one on the charts and the share with nothing to share out.
+				local applies = graphs.shareApplies()
+				graphs.mousePress(x, y, 3)
+				if graphs.shareApplies() ~= applies then
+					setLayout()
+				end
+			else
+				-- A caption: its column moved a place or taken out, from its card.
+				local col = x >= listX1 and x < listRight and headerColumnAt(x, y)
+				local column = col and col > 1 and columns[col]
+				if column then
+					tables.openColumnMenu(
+						tables.current,
+						column,
+						{ column.x1, metrics.statBottom, column.x2, metrics.statTop }
+					)
+					dropLists()
+				end
+			end
+		elseif not release and button == 1 then
+			local sw = switchAt(x, y)
+			local i = sidebarIndexAt(x, y)
+			local col = not graphs.open and x >= listX1 and x < listRight and headerColumnAt(x, y)
+			local fold = nil
+			if not graphs.open and x >= listX1 and x < listRight then
+				local r = rowAt(y)
+				local row = r and rows[scroll + r]
+				if row and row.type == "band" and not row.team and columnAt(x) == 1 then
+					fold = row.ally.id
+				end
+			end
 			if sw then
 				toggleSwitch(sw)
 			elseif i then
-				selectEntry(i)
-			elseif col then
-				sortBy(columns[col])
-			elseif math_isInRect(x, y, barX1, listBottom, area.x2, listTop) then
+				local e = entries[i]
+				---@cast e -?
+				selectEntry(e.key)
+			elseif not graphs.open and tables.buttonAt(x, y) then
+				tables.openCard(tables.current)
+			-- The bar owns its column in both views, so it is asked before the table's rows
+			-- and before the page's charts.
+			elseif math_isInRect(x, y, barX1, listBottom, area.x2, select(5, scrollerThumb()) or listTop) then
 				-- The strip between the bar and the panel edge stays grabbable too.
 				grabScroller(y)
+			elseif graphs.open then
+				local stat, applies = graphs.stat, graphs.shareApplies()
+				graphs.mousePress(x, y, 1)
+				-- Another stat, or a pick that leaves one team on the charts, changes what the
+				-- settings offer: they are laid out again.
+				if graphs.stat ~= stat or graphs.shareApplies() ~= applies then
+					setLayout()
+				end
+			elseif fold then
+				collapsed[fold] = not collapsed[fold] or nil
+				rebuildRows()
+				if playSounds then
+					spPlaySoundFile(buttonclick, 0.6, "ui")
+				end
+			elseif col then
+				-- Sorted by once let go, moved if dragged; the names only ever sort.
+				local column = columns[col]
+				---@cast column -?
+				tables.press(column.key, x, y, col == 1)
 			end
 		end
 
@@ -2516,26 +4252,44 @@ function widget:MousePress(x, y, button)
 	return mouseEvent(x, y, button, false)
 end
 
+function widget:TextInput(utf8char)
+	if show and graphs.naming then
+		return graphs.namingText(utf8char)
+	end
+	return false
+end
+
 function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
 function widget:GameFrame(n)
-	if gameover or not show or n % UPDATE_FRAMES ~= 0 then
+	if not show or n % UPDATE_FRAMES ~= 0 then
+		return
+	end
+	-- The numbers stay as the game left them, but a gadget gone since takes its columns along.
+	if gameover then
+		syncGadgetState(n)
 		return
 	end
 	-- The gadget's hand-over read the numbers this second already.
 	if handover.frame and n - handover.frame < UPDATE_FRAMES then
 		return
 	end
+	-- A reloaded API widget forgets its subscribers; this puts the panel back on its list.
+	listen(true)
 	refresh()
 end
 
 -- The numbers stop at game over: what happens in the minutes after is not the game.
 function widget:GameOver()
+	-- The gadget takes its last sample and opens every team's numbers: asked for again, as
+	-- nothing refreshes the charts on its own after this.
+	graphs.askAgain()
 	refresh()
 	gameover = true
 	handover.postGame = true
+	handover.overFrame = spGetGameFrame()
 end
 
 function widget:TeamDied(teamID)
@@ -2546,17 +4300,45 @@ function widget:ApmEvent(teamID, apm)
 	teamAPM[teamID] = apm
 end
 
--- Who the viewer is decides which row is theirs and which colours they may see.
+-- Who the viewer is decides which row is theirs and which colours they may see. A spectator
+-- switching the team they watch lands here too, and keeps the team they played, if any.
 function widget:PlayerChanged()
 	isSpec = spGetSpectatingState()
 	localTeamID = spGetLocalTeamID()
+	if not isSpec then
+		handover.played = localTeamID
+	end
+	-- A player resigning or being knocked out leaves their team without a leader: their name
+	-- is still to be had at this moment, and kept for the rows.
+	handover.rememberNames()
 	if show and not gameover then
 		refresh()
+	elseif gameover then
+		-- The numbers stay as the game left them; only whose team is the viewer's moves.
+		---@diagnostic disable-next-line: inject-field
+		allies.me, allies.myAlly = nil, nil
+		for _, ally in ipairs(allies) do
+			for _, team in ipairs(ally.teams) do
+				team.isLocal = team.id == handover.played
+				if team.isLocal then
+					---@diagnostic disable-next-line: inject-field
+					allies.me, allies.myAlly = team, ally
+				end
+			end
+		end
+		rebuildRows()
 	end
+	-- The page's You button is the viewer's own team.
+	graphs.invalidate()
 end
 
 function widget:Initialize()
+	-- No config to hand over (a first game, or a reset config): the file still has the player's.
+	if not store.loaded() then
+		widget:SetConfigData({})
+	end
 	loadLabels()
+	handover.rememberNames()
 	widget:ViewResize()
 
 	widgetHandler:AddAction("teamstats", function()
@@ -2587,29 +4369,66 @@ function widget:Initialize()
 	WG.teamstats.isvisible = function()
 		return show
 	end
+	-- The graphs, for a key or another widget: opens the panel on the category of graphs last
+	-- shown when needed - or, turned off, on the table last shown.
+	WG.teamstats.showGraphs = function(state)
+		if state == nil then
+			state = not graphs.open
+		end
+		if state and not show then
+			setShown(true)
+		end
+		if state ~= graphs.open then
+			selectEntry(state and (groupByKey[graphs.group or ""] and graphs.group or "overview") or tables.current)
+		end
+	end
 end
 
 function widget:Shutdown()
 	dropLists()
 	deleteGuishader()
-	widgetHandler:DeregisterGlobal("TeamStatsLive")
+	graphs.destroy()
+	listen(false)
 	if WG.tooltip then
 		WG.tooltip.RemoveTooltip("teamstats")
 	end
 	WG.teamstats = nil
 end
 
--- The sort, the view and the switches are kept between games: someone who reads the
--- table one way wants it that way every time they open it.
+-- The tables, the pick and the switches are kept between games: someone who reads the
+-- panel one way wants it that way every time they open it.
 function widget:GetConfigData()
-	return {
-		sortKey = sortKey,
-		sortAscending = sortAscending,
-		group = selectedGroup,
+	-- The names of this game's teams, for a reload mid-game: a team whose player has gone
+	-- cannot be named again from the engine. Copied, not the table the rows are read from.
+	local names = {}
+	for teamID, name in pairs(teamControllers) do
+		if type(name) == "string" then
+			names[teamID] = name
+		end
+	end
+	local data = {
+		gameID = Game.gameID or spGetGameRulesParam("GameID"),
+		names = names,
+		-- The team the viewer played, for a reload after they were out: the engine no longer
+		-- says so once they spectate.
+		played = handover.played,
+		-- Each table's columns and sort.
+		tables = tables.getConfig(),
+		-- The player's pick, even while the gadget's absence has it hidden.
+		group = handover.wanted or selectedGroup,
 		groupByTeam = filters.groupByTeam,
-		perMinute = filters.perMinute,
+		shareOfTotal = filters.shareOfTotal,
 		bars = filters.bars,
+		trend = filters.trend,
+		vsMe = filters.vsMe,
+		milestones = filters.milestones,
 	}
+	-- And the page's own: what it shows, how, and which kinds of milestone it leaves off.
+	for key, value in pairs(graphs.getConfig()) do
+		data[key] = value
+	end
+	store.write(data.tables, data.customCategories)
+	return data
 end
 
 -- Runs before Initialize, so the first layout already honours it.
@@ -2617,18 +4436,31 @@ function widget:SetConfigData(data)
 	if type(data) ~= "table" then
 		return
 	end
-	-- The old panel saved the sort under another name, with the name column as "frame".
+	data = store.merge(data)
+	-- The names read in this same game, from before a reload, and the team the viewer played.
+	if data.gameID and data.gameID == (Game.gameID or spGetGameRulesParam("GameID")) then
+		for teamID, name in pairs(type(data.names) == "table" and data.names or {}) do
+			if type(name) == "string" and name ~= "" then
+				teamControllers[tonumber(teamID) or teamID] = name
+			end
+		end
+		if isSpec and handover.played == nil and type(data.played) == "number" then
+			handover.played = data.played
+		end
+	end
+	tables.setConfig(data.tables)
+	-- Before the tables, the panel kept one sort - the old one under another name, with the
+	-- name column as "frame": the summary takes it.
 	local key = data.sortKey or data.sortVar
 	if key == "frame" then
 		key = "name"
 	end
-	if key and COLUMNS[key] then
-		sortKey = key
+	if not data.tables and key and COLUMNS[key] then
+		tables.setSort(tables.current, key, data.sortAscending == true)
 	end
-	if data.sortAscending ~= nil then
-		sortAscending = data.sortAscending == true
-	end
-	if data.group and groupByKey[data.group] then
+	-- The page's settings first: they hold the custom categories the open group may be.
+	graphs.setConfig(data)
+	if data.group and (groupByKey[data.group] or tables.byKey[data.group]) then
 		selectedGroup = data.group
 	end
 	for filterKey in pairs(filters) do
@@ -2640,9 +4472,238 @@ end
 
 function widget:LanguageChanged()
 	loadLabels()
+	handover.idents = {}
 	widget:ViewResize()
 	-- Names with a dead or gone suffix are read in the language of the read.
 	if #allies > 0 and not gameover then
 		refresh()
 	end
 end
+
+-- The Graphs page, handed everything of the panel's it reads. Made here, at the end, so
+-- every function above is in reach of it; the callins run later than this.
+graphs = require("luaui/Include/teamstats_graphs").new({
+	COLUMNS = COLUMNS,
+	GROUPS = GROUPS,
+	groupByKey = groupByKey,
+	L = L,
+	columnTitle = columnTitle,
+	derive = derive,
+	derivedInputs = ratio.inputs,
+	columnShown = handover.shows,
+	-- The history behind every number on screen, for the page's trend list: in the team's
+	-- own colour, a band's in its team's when it is one team's, else in the header's hue;
+	-- beside the number, in what it leaves of its cell, so neither is read through the other.
+	trendRows = function()
+		local base = scrollOffset()
+		for i = scroll + 1, #rows do
+			local row = rows[i]
+			---@cast row -?
+			local top = listTop - (row.off - base)
+			local bottom = top - rowHeightOf(row)
+			if bottom < listBottom then
+				break
+			end
+			fitRow(row)
+			if row.trendKey then
+				local team = row.team
+				local color, lineTop
+				if row.type == "band" then
+					local accent = team and team.accent
+					color = accent and { accent[1], accent[2], accent[3], 0.65 } or look.trendBand
+					lineTop = top - metrics.csSmall - metrics.barInset
+				else
+					---@cast team -?
+					color = { team.accent[1], team.accent[2], team.accent[3], (team.dead or team.gone) and 0.4 or 0.75 }
+					lineTop = top - metrics.barInset
+				end
+				for c = 2, #columns do
+					local column = columns[c]
+					---@cast column -?
+					local right = column.x2
+						- metrics.cellPad
+						- mathFloor((metrics.numFont or font):GetTextWidth(row.cells[c]) * metrics.rowFs)
+					graphs.trendCell(
+						row.trendKey,
+						column.key,
+						column.rate == true,
+						column.x1 + metrics.cellPad,
+						bottom + metrics.barInset,
+						right - metrics.rowPad,
+						lineTop,
+						color,
+						metrics.trendW
+					)
+				end
+			end
+		end
+	end,
+	look = look,
+	metrics = metrics,
+	colors = {
+		title = colorTitle,
+		dim = colorDim,
+		faded = colorFaded,
+		selected = colorSelected,
+		value = colorValue,
+		bad = colorBad,
+	},
+	-- The categories changed: the sidebar, the columns and the stat list follow.
+	categoriesChanged = function()
+		rebuildEntries()
+		setLayout()
+		graphs.invalidate()
+		dropLists()
+	end,
+	-- A category picked by the page's cards: a new one pasted, or the overview for a deleted one.
+	selectGroup = function(key)
+		selectEntry(key, true)
+	end,
+	-- Typed text reaches a widget only while SDL is asked for it.
+	textInput = function(on)
+		if on and Spring.SDLStartTextInput then
+			Spring.SDLStartTextInput()
+		elseif not on and Spring.SDLStopTextInput then
+			Spring.SDLStopTextInput()
+		end
+	end,
+	-- The FlowUI draw calls are fetched at ViewResize, so they are read when called; the
+	-- plain rect is for whole-pixel lines and squares.
+	draw = {
+		RectRound = function(...)
+			return RectRound(...)
+		end,
+		Highlight = function(...)
+			return Highlight(...)
+		end,
+		Color = glColor,
+		Rect = gl.Rect,
+		-- Looked up when drawn: FlowUI is there by then.
+		RectRoundOutline = function(...)
+			return WG.FlowUI.Draw.RectRoundOutline(...)
+		end,
+		Toggle = function(...)
+			return UiToggle(...)
+		end,
+	},
+	queueText = queueText,
+	text = text,
+	font = function()
+		return font
+	end,
+	-- The face the interface names players in, for what the page calls a team or a player.
+	nameFont = function()
+		return metrics.nameFont or font
+	end,
+	filters = filters,
+	soloTeams = soloTeams,
+	canGroup = canGroup,
+	selectedGroup = function()
+		return selectedGroup
+	end,
+	allies = function()
+		return allies
+	end,
+	live = function()
+		return handover.all
+	end,
+	gadgetOn = function()
+		return handover.on
+	end,
+	frame = spGetGameFrame,
+	history = spGetTeamStatsHistory,
+	-- Only while the panel is on the hub's list: a history asked for then comes back to it.
+	hub = function()
+		local hub = WG.teamStats
+		return hub and hub.isSubscribed("teamstats") and hub or nil
+	end,
+	overFrame = function()
+		return handover.overFrame
+	end,
+	-- Whether the ally teams' places in a ranking may be seen, more than one of them.
+	ranked = function()
+		return handover.ranked == true
+	end,
+	i18n = BAR.I18N,
+	playSound = function()
+		if playSounds then
+			spPlaySoundFile(buttonclick, 0.6, "ui")
+		end
+	end,
+})
+
+-- The tables and the columns the player keeps in them; their right-click cards are the
+-- page's cards of actions.
+tables = require("luaui/Include/teamstats_tables").new({
+	COLUMNS = COLUMNS,
+	GROUPS = GROUPS,
+	L = L,
+	columnShown = handover.shows,
+	columnTitle = columnTitle,
+	i18n = BAR.I18N,
+	look = look,
+	metrics = metrics,
+	colors = {
+		title = colorTitle,
+		header = colorHeader,
+		dim = colorDim,
+		faded = colorFaded,
+		selected = colorSelected,
+	},
+	draw = {
+		RectRound = function(...)
+			return RectRound(...)
+		end,
+		Highlight = function(...)
+			return Highlight(...)
+		end,
+		Color = glColor,
+	},
+	font = function()
+		return font
+	end,
+	queueText = queueText,
+	columns = function()
+		return columns
+	end,
+	-- As many columns as keep their width above the narrowest a number's column gets, beside
+	-- the names at the share of the table they take.
+	capacity = function()
+		local tableW = barX1 - metrics.listGap - listX1
+		local nameW = mathMax(metrics.nameMinW, mathFloor(tableW * metrics.nameShare))
+		return mathMax(1, mathFloor((tableW - nameW) / metrics.colMinW))
+	end,
+	-- A dragged column is shaded from its caption down to the last row.
+	dragBounds = function()
+		return metrics.statTop, mathMax(listBottom, listTop - rowMetrics.totalH + scrollOffset())
+	end,
+	openMenu = function(...)
+		return graphs.openMenu(...)
+	end,
+	-- A table's columns changed: laid out again, and sorted again when the sorted one went.
+	changed = function()
+		sortKey, sortAscending = tables.sortOf(tables.current)
+		layoutColumns()
+		rebuildRows()
+	end,
+	-- Tables made, renamed, moved or deleted: the sidebar follows, and the table shown with it.
+	listChanged = function()
+		rebuildEntries()
+		setLayout()
+		rebuildRows()
+		dropLists()
+	end,
+	startNaming = function(key)
+		local t = tables.byKey[key]
+		if t then
+			graphs.startNaming(key, tables.label(t), function(name)
+				tables.rename(key, name)
+			end)
+		end
+	end,
+	playSound = function()
+		if playSounds then
+			spPlaySoundFile(buttonclick, 0.6, "ui")
+		end
+	end,
+})

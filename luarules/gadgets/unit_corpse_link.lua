@@ -24,6 +24,15 @@ local UPDATE_INTERVAL = Game.gameSpeed
 local corpseRegistryByDefID = {}
 local distance3dSquared = math.distance3dSquared
 
+local sourceUnitDefIDByFeatureDefID = {}
+for featureDefID, featureDef in pairs(FeatureDefs) do
+	local fromUnitName = featureDef.customParams and featureDef.customParams.fromunit
+	local fromUnitDef = fromUnitName and UnitDefNames[fromUnitName]
+	if fromUnitDef then
+		sourceUnitDefIDByFeatureDefID[featureDefID] = fromUnitDef.id
+	end
+end
+
 local function GetFeatureResurrectDefID(featureID)
 	local resurrectUnitName = Spring.GetFeatureResurrect(featureID)
 	if not resurrectUnitName then
@@ -45,9 +54,10 @@ end
 local function GetCorpsePriorUnitID(featureID)
 	-- Technically features can rez into something else than they died as,
 	-- or even be rezzable without ever dying, but let's assume they don't
-	local resurrectUnitDefID = GetFeatureResurrectDefID(featureID)
+	local sourceUnitDefID = GetFeatureResurrectDefID(featureID)
+		or sourceUnitDefIDByFeatureDefID[Spring.GetFeatureDefID(featureID)]
 
-	local unitDefLink = corpseRegistryByDefID[resurrectUnitDefID]
+	local unitDefLink = corpseRegistryByDefID[sourceUnitDefID]
 	if not unitDefLink then
 		return
 	end

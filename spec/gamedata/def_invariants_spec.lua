@@ -1,3 +1,5 @@
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
 local Builders = VFS.Include("spec/builders/index.lua")
 
 describe("UnitDefs invariants", function()
@@ -440,10 +442,7 @@ describe("UnitDefs invariants", function()
 	it("only aims damage at armour classes armordefs defines", function()
 		-- armordefs walks DEFS.unitDefs for the customparams.armordef escape hatch, so it needs
 		-- the def set in place before it will load at all.
-		local previousDefs = _G.DEFS
-		_G.DEFS = { unitDefs = defs }
-		local armorDefs = VFS.Include("gamedata/armordefs.lua")
-		_G.DEFS = previousDefs
+		local armorDefs = SpecEnv.include(SpecEnv.new({ DEFS = { unitDefs = defs } }), "gamedata/armordefs.lua")
 
 		-- The VFS mock hands back an empty table when an include fails, which would quietly turn
 		-- this into "every damage key is wrong", so check the file actually produced classes.
@@ -476,11 +475,10 @@ describe("UnitDefs invariants", function()
 
 	it("names a movedef that movedefs.lua emits", function()
 		-- movedefs.lua reads Game.speedModClasses at load; the spec globals do not define it.
-		_G.Game = _G.Game or {}
-		local previous = Game.speedModClasses
-		Game.speedModClasses = previous or { Tank = 0, KBot = 1, Hover = 2, Ship = 3 }
-		local moveDefs = VFS.Include("gamedata/movedefs.lua")
-		Game.speedModClasses = previous
+		local moveDefs = SpecEnv.include(
+			SpecEnv.new({ Game = { speedModClasses = { Tank = 0, KBot = 1, Hover = 2, Ship = 3 } } }),
+			"gamedata/movedefs.lua"
+		)
 
 		assert.is_true(#(moveDefs or {}) > 0)
 
@@ -767,7 +765,7 @@ describe("UnitDefs invariants", function()
 	end)
 
 	it("points i18nfromunit at a real translation key", function()
-		local json = VFS.Include("common/luaUtilities/json.lua")
+		local json = require("common/luaUtilities/json")
 		local path = "language/en/units.json"
 		local handle = assert(io.open(path, "r"), "could not open " .. path .. ", specs run from the repo root")
 		local contents = handle:read("*a")
@@ -789,7 +787,7 @@ describe("UnitDefs invariants", function()
 	-- so this only covers what a player can actually build, following i18nhelpers through
 	-- i18nfromunit the way the interface does.
 	it("names every unit a commander can reach through its build tree", function()
-		local json = VFS.Include("common/luaUtilities/json.lua")
+		local json = require("common/luaUtilities/json")
 		local path = "language/en/units.json"
 		local handle = assert(io.open(path, "r"), "could not open " .. path .. ", specs run from the repo root")
 		local contents = handle:read("*a")

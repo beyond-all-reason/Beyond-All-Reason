@@ -25,7 +25,7 @@ local halloweenModels = {
 	armcom = { model = "units/event/halloween/armcom.s3o" },
 	armdecom = { model = "units/event/halloween/armcom.s3o" },
 	corcom = { model = "units/event/halloween/corcom.s3o", hats = 2 },
-	cordecom = { model = "units/event/halloween/corcom.s3o" },
+	cordecom = { model = "units/event/halloween/corcom.s3o", hats = 2 },
 	legcom = { model = "units/event/halloween/legcom.s3o" },
 	legdecom = { model = "units/event/halloween/legcom.s3o" },
 	correap = { model = "units/event/halloween/correap.s3o" },

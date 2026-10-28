@@ -20,9 +20,17 @@ local GetKeyState = Spring.GetKeyState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local GetGroundNormal = Spring.GetGroundNormal
-local GetGameFrame = Spring.GetGameFrame
-local SendLuaRulesMsg = Spring.SendLuaRulesMsg
-local GetAllFeatures = Spring.GetAllFeatures
+-- Every message this widget sends changes the feature set, so it is also
+-- where the project learns it has unsaved changes (a project load's own
+-- messages are ignored by markDirty while the load runs).
+local SendLuaRulesMsg = function(msg)
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("features")
+	end
+	return Spring.SendLuaRulesMsg(msg)
+end
 local GetFeaturePosition = Spring.GetFeaturePosition
 local GetFeatureDefID = Spring.GetFeatureDefID
 
@@ -30,9 +38,6 @@ local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glTranslate = gl.Translate
 local glDepthTest = gl.DepthTest
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
@@ -73,9 +78,9 @@ local PREVIEW_GHOST_CAP = 300
 
 -- Same generators the gadget used to run, moved widget-side so the preview can
 -- see them. See the header of that file for why.
-local Scatter = VFS.Include("common/feature_scatter.lua")
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
-local Gizmo = VFS.Include("luaui/Include/gizmo3d_gl4.lua")
+local BrushShapes = require("common/brush_shapes")
+local Gizmo = require("luaui/Include/gizmo3d_gl4")
+local Scatter = require("common/feature_scatter")
 
 local abs = math.abs
 local asin = math.asin
@@ -90,10 +95,8 @@ local ROTATION_STEP = 3
 -- Bounds of the per-feature scale sliders. Wide on purpose: making trees read
 -- small against the units is the whole point, so well below 1 matters most.
 local SCALE_LIMIT_MIN = 0.1
-local SCALE_LIMIT_MAX = 3.0
+local SCALE_LIMIT_MAX = 5.0
 local KEYSYMS_SPACE = 0x20
-local UPDATE_INTERVAL = 1 / 30
-local GRID_SNAP_SIZE = 48 -- matches build grid widget spacing (3 * 16 elmos)
 local gridSnapSize = 48 -- mutable; user-adjustable via setGridSnapSize
 
 local floor = math.floor
@@ -114,13 +117,23 @@ local fp = {
 	radius = DEFAULT_RADIUS,
 	rotation = 0,
 	rotRandom = 0, -- 0 = all same heading, 100 = fully random
+	tiltRandom = 0, -- largest lean in degrees (0..45), random direction per feature
 	featureCount = 1,
 	cadence = 10, -- 1-1000 logarithmic (higher = faster)
 	distribution = "random", -- "random", "regular", or "clustered"
 	-- Per-feature visual scale range. 1/1 means untouched: entries then carry no
 	-- scale at all, keeping wire traffic and save files byte-identical.
 	scaleMin = 1.0,
+	-- elmos above (+) or below (-) the ground the next placements land at: Alt+Shift+Scroll or the
+	-- HEIGHT OFFSET slider. Rides each placement's own y, so undo, saves and projects keep it.
+	heightOffset = 0,
 	scaleMax = 1.0,
+	-- Clustered distribution shape, see generateClustered in common/feature_scatter.lua.
+	-- Defaults reproduce the original fixed stand.
+	clumps = 0, -- 0 = auto
+	clumpSize = 1.0,
+	clumpLoose = 25, -- percent of features scattered between clumps
+	clumpVariety = 0, -- percent
 	smartEnabled = false, -- terrain-aware filtering applied on top of distribution
 	smartFilters = {
 		avoidWater = false, -- reject underwater positions (height < 0)
@@ -136,9 +149,6 @@ local fp = {
 	selectedDefs = {}, -- { defName1, defName2, ... }
 	selectedSet = {}, -- { [defName] = true } for quick lookup
 	dragging = false,
-	dragAction = nil, -- "place" or "remove"
-	lockedWorldX = nil,
-	lockedWorldZ = nil,
 	placeTimer = 0,
 	undoCount = 0,
 	redoCount = 0,
@@ -157,7 +167,6 @@ local gridDirty = false
 ----------------------------------------------------------------
 -- Feature definition cache for asset library
 ----------------------------------------------------------------
-local featureDefList = {} -- sorted { {name=..., id=...}, ... }
 local featureDefListBuilt = false
 local featureCategories = {} -- { categoryName = { {name=..., id=...}, ... } }
 
@@ -167,6 +176,7 @@ local CATEGORY_ORDER = {
 	"trees",
 	"foliage",
 	"crystals",
+	"osemo",
 	"christmas",
 	"raptor",
 	"armada_wrecks",
@@ -175,26 +185,17 @@ local CATEGORY_ORDER = {
 	"other",
 }
 
-local CATEGORY_LABELS = {
-	geo = "Geo",
-	rocks = "Rocks",
-	trees = "Trees",
-	foliage = "Foliage",
-	crystals = "Crystals",
-	christmas = "Christmas",
-	raptor = "Raptor",
-	armada_wrecks = "Armada Wrecks",
-	cortex_wrecks = "Cortex Wrecks",
-	legion_wrecks = "Legion Wrecks",
-	other = "Other",
-}
-
 local function classifyFeature(name, def)
 	-- Geothermal vents get their own category: real maps ship a def named
 	-- plain "geovent" (often model-less) next to the game's editor_geovent,
 	-- and both buried in Other made it easy to place the wrong one.
 	if def and def.geoThermal then
 		return "geo"
+	end
+
+	-- Blockout models (off-map backdrop layers) are set in SCENE > BLOCKOUT, not placed
+	if def and def.customParams and def.customParams.blockout then
+		return nil
 	end
 
 	-- Exclude debris and heaps entirely
@@ -213,6 +214,11 @@ local function classifyFeature(name, def)
 	-- Raptor items
 	if name:find("^raptor_egg") then
 		return "raptor"
+	end
+
+	-- Osemo planet kit (clusters, small trees, background rings)
+	if name:find("^osemo_") then
+		return "osemo"
 	end
 
 	-- Crystals
@@ -303,7 +309,6 @@ local function buildFeatureDefList()
 		return
 	end
 	featureDefListBuilt = true
-	featureDefList = {}
 	featureCategories = {}
 	variantSets = {}
 	for _, cat in ipairs(CATEGORY_ORDER) do
@@ -332,7 +337,6 @@ local function buildFeatureDefList()
 					id = id,
 					category = cat,
 				}
-				featureDefList[#featureDefList + 1] = entry
 				if not featureCategories[cat] then
 					featureCategories[cat] = {}
 				end
@@ -346,9 +350,6 @@ local function buildFeatureDefList()
 			return a.factor < b.factor
 		end)
 	end
-	table.sort(featureDefList, function(a, b)
-		return a.name < b.name
-	end)
 	for _, cat in ipairs(CATEGORY_ORDER) do
 		if featureCategories[cat] then
 			table.sort(featureCategories[cat], function(a, b)
@@ -563,8 +564,14 @@ local function layoutParams()
 		count = fp.featureCount,
 		distribution = fp.distribution,
 		rotRandom = fp.rotRandom,
+		tiltRandom = fp.tiltRandom,
 		scaleMin = fp.scaleMin,
 		scaleMax = fp.scaleMax,
+		heightOffset = fp.heightOffset,
+		clumps = fp.clumps,
+		clumpSize = fp.clumpSize,
+		clumpLoose = fp.clumpLoose / 100,
+		clumpVariety = fp.clumpVariety / 100,
 		defNames = fp.selectedDefs,
 		smartEnabled = fp.smartEnabled,
 		smartFilters = fp.smartFilters,
@@ -581,25 +588,30 @@ local function layoutKey(params)
 		params.count,
 		params.distribution,
 		params.rotRandom,
+		params.tiltRandom,
 		params.scaleMin,
 		params.scaleMax,
+		params.clumps,
+		params.clumpSize,
+		params.clumpLoose,
+		params.clumpVariety,
 		table.concat(params.defNames, ","),
 	}, "\0")
 end
 
--- Swap each rolled scale for the nearest baked variant def. The scale field is
--- cleared afterwards: the size is baked into the variant's model, so ghosts
--- draw it unscaled and the wire carries a plain entry -- def swap IS the scale.
--- Defs without variants drop the roll entirely, which keeps the preview honest
--- about the engine's limits.
+-- Defs with baked size variants swap the rolled scale for the nearest variant
+-- def and clear the scale field: the size is baked into the variant's model, so
+-- ghosts draw it unscaled and the wire carries a plain entry. Every other def
+-- keeps its scale, which the gadget hands to the CUS shaders as a per-feature
+-- uniform (continuous sizes, no baked models needed).
 local function applyScaleVariants(layout)
 	for i = 1, #layout do
 		local entry = layout[i]
 		local scale = entry.scale
 		if scale then
-			entry.scale = nil
 			local set = variantSets[entry.defName]
 			if set then
+				entry.scale = nil
 				local best = set[1]
 				local bestDiff = abs(set[1].factor - scale)
 				for j = 2, #set do
@@ -633,15 +645,15 @@ local function ensureLayout(params)
 		if params.scaleMin ~= 1 or params.scaleMax ~= 1 then
 			scale = Scatter.rollScale(rng, params.scaleMin, params.scaleMax)
 		end
-		preview.layout = applyScaleVariants({
-			{
-				dx = 0,
-				dz = 0,
-				defName = params.defNames[rng:int(1, #params.defNames)],
-				heading = (baseHeading + rng:int(-spread, spread)) % 65536,
-				scale = scale,
-			},
-		})
+		local entry = {
+			dx = 0,
+			dz = 0,
+			defName = params.defNames[rng:int(1, #params.defNames)],
+			heading = (baseHeading + rng:int(-spread, spread)) % 65536,
+			scale = scale,
+		}
+		entry.pitch, entry.roll = Scatter.rollTilt(rng, params.tiltRandom)
+		preview.layout = applyScaleVariants({ entry })
 	else
 		preview.layout = applyScaleVariants(Scatter.generateLocal(params, preview.seed))
 	end
@@ -691,7 +703,13 @@ local function resolvePlacements(worldX, worldZ)
 		local copyRot = (p.rot or fp.rotation) - fp.rotation
 		local resolved = Scatter.resolve(layoutInsideMap(layout, p.x, p.z, copyRot), p.x, p.z, params, copyRot)
 		for j = 1, #resolved do
-			placements[#placements + 1] = resolved[j]
+			local r = resolved[j]
+			-- resolve hands back fresh entries at ground height: the offset lifts or sinks them,
+			-- preview and placement alike
+			if fp.heightOffset ~= 0 then
+				r.y = r.y + fp.heightOffset
+			end
+			placements[#placements + 1] = r
 		end
 	end
 	return placements
@@ -714,34 +732,12 @@ local function headingToYaw(heading)
 	return -(heading or 0) * HEADING_TO_RAD
 end
 
--- The uniform scale the gadget baked into a live feature's root piece matrix,
--- read back as the length of the first basis vector. 1 for anything never
--- scaled. Needed so removal highlights and gizmo ghosts drawn over an already
--- scaled feature match it instead of reverting to model size.
+-- The visual scale the gadget gave a live feature (its public "visualScale"
+-- rules param, drawn by the CUS shaders). 1 for anything never scaled. Needed so
+-- removal highlights and gizmo ghosts drawn over an already scaled feature match
+-- it instead of reverting to model size.
 local function getFeatureVisualScale(featureID)
-	if not (Spring.GetFeaturePieceMatrix and Spring.GetFeatureRootPiece) then
-		return 1
-	end
-	-- Model-less features (editor_geocrack and friends): the engine never
-	-- instantiates a LocalModel for them, and the piece callouts deref the empty
-	-- piece list -- an access violation, not a Lua error (the same crash the
-	-- gadget dodges by not walking map features at load). No model also means
-	-- nothing could have been scaled, so 1 is the true answer.
-	local defID = GetFeatureDefID(featureID)
-	local def = defID and FeatureDefs[defID]
-	if not def or (def.modelname or "") == "" then
-		return 1
-	end
-	local root = Spring.GetFeatureRootPiece(featureID) or 1
-	local m11, m12, m13 = Spring.GetFeaturePieceMatrix(featureID, root)
-	if not m11 then
-		return 1
-	end
-	local s = sqrt(m11 * m11 + m12 * m12 + m13 * m13)
-	if s < 0.01 then
-		return 1
-	end
-	return s
+	return Spring.GetFeatureRulesParam(featureID, "visualScale") or 1
 end
 
 local function clearGhosts()
@@ -1469,32 +1465,10 @@ end
 ----------------------------------------------------------------
 -- Activation / Mode management
 ----------------------------------------------------------------
-local function activate(mode)
-	-- Deactivate terraform brush when feature placer activates
-	if WG.TerraformBrush then
-		WG.TerraformBrush.deactivate()
-	end
-	-- Deactivate weather brush when feature placer activates
-	if WG.WeatherBrush then
-		WG.WeatherBrush.deactivate()
-	end
-	fp.active = true
-	fp.mode = mode
-	buildFeatureDefList()
-	local labels = { scatter = "SCATTER", point = "POINT", remove = "REMOVE" }
-	Echo("[Feature Placer] Mode: " .. (labels[mode] or mode) .. " | LMB to place/remove, /featureplaceroff to stop")
-	return true
-end
-
 local function deactivate()
-	if fp.active then
-		Echo("[Feature Placer] Deactivated")
-	end
 	fp.active = false
 	fp.mode = nil
 	fp.dragging = false
-	fp.lockedWorldX = nil
-	fp.lockedWorldZ = nil
 	hideBuildGrid()
 	clearGhosts()
 	clearSelection()
@@ -1591,6 +1565,35 @@ local function setSmartEnabled(val)
 	fp.smartEnabled = val and true or false
 end
 
+-- Clump controls for the clustered distribution. One table, not four locals:
+-- this chunk sits at Lua 5.1's 200-local limit.
+local clumpSetters = {
+	setClumps = function(v)
+		v = tonumber(v)
+		if v then
+			fp.clumps = max(0, min(24, floor(v + 0.5)))
+		end
+	end,
+	setClumpSize = function(v)
+		v = tonumber(v)
+		if v then
+			fp.clumpSize = max(0.2, min(3, v))
+		end
+	end,
+	setClumpLoose = function(v)
+		v = tonumber(v)
+		if v then
+			fp.clumpLoose = max(0, min(100, floor(v + 0.5)))
+		end
+	end,
+	setClumpVariety = function(v)
+		v = tonumber(v)
+		if v then
+			fp.clumpVariety = max(0, min(100, floor(v + 0.5)))
+		end
+	end,
+}
+
 local function setSmartFilter(key, val)
 	if fp.smartFilters[key] ~= nil then
 		fp.smartFilters[key] = val
@@ -1638,7 +1641,6 @@ end
 -- Save / Load feature map
 ----------------------------------------------------------------
 local saveBuffer = {}
-local saveExpectedCount = 0
 
 -- One-shot feature-list read for other widgets. The Map Project save used to
 -- walk Spring.GetAllFeatures() itself, but Spring.GetFeatureRotation called from
@@ -1707,9 +1709,8 @@ local function requestFeatureData(callback)
 	return true
 end
 
-local function handleSaveBegin(count)
+local function handleSaveBegin()
 	saveBuffer = {}
-	saveExpectedCount = count or 0
 end
 
 local function handleSaveData(dataStr)
@@ -1832,7 +1833,7 @@ local function featureLoad(filename)
 		return
 	end
 
-	local fn, err = loadstring(content)
+	local fn, err = loadstring(content, nil, {})
 	if not fn then
 		Echo("[Feature Placer] Parse error: " .. tostring(err))
 		return
@@ -1904,11 +1905,17 @@ local function getState()
 		radius = fp.radius,
 		rotation = fp.rotation,
 		rotRandom = fp.rotRandom,
+		tiltRandom = fp.tiltRandom,
 		featureCount = fp.featureCount,
 		cadence = fp.cadence,
 		distribution = fp.distribution,
 		scaleMin = fp.scaleMin,
 		scaleMax = fp.scaleMax,
+		heightOffset = fp.heightOffset,
+		clumps = fp.clumps,
+		clumpSize = fp.clumpSize,
+		clumpLoose = fp.clumpLoose,
+		clumpVariety = fp.clumpVariety,
 		smartEnabled = fp.smartEnabled,
 		smartFilters = fp.smartFilters,
 		selectedDefs = fp.selectedDefs,
@@ -1926,11 +1933,6 @@ local function getState()
 	}
 end
 
-local function getFeatureDefList()
-	buildFeatureDefList()
-	return featureDefList
-end
-
 local function getFeatureCategories()
 	buildFeatureDefList()
 	return featureCategories
@@ -1938,10 +1940,6 @@ end
 
 local function getCategoryOrder()
 	return CATEGORY_ORDER
-end
-
-local function getCategoryLabels()
-	return CATEGORY_LABELS
 end
 
 ----------------------------------------------------------------
@@ -2215,8 +2213,8 @@ function widget:KeyPress(key, mods, isRepeat)
 		return true
 	end
 
-	-- Delete / Backspace removes the gizmo selection. The right mouse button
-	-- keeps its brush-erase meaning in every mode, as it does in the other tools.
+	-- Delete / Backspace removes the gizmo selection: the only way, besides the REMOVE
+	-- mode's brush, that features come off the map.
 	if (key == 0x7F or key == 0x08) and #gz.selection > 0 then
 		deleteSelection()
 		return true
@@ -2245,10 +2243,6 @@ end
 ----------------------------------------------------------------
 -- Mouse
 ----------------------------------------------------------------
-function widget:IsAbove(x, y)
-	return false
-end
-
 function widget:MousePress(mx, my, button)
 	if not fp.active or not fp.mode then
 		return false
@@ -2313,9 +2307,6 @@ function widget:MousePress(mx, my, button)
 		end
 
 		fp.dragging = true
-		fp.dragAction = "place"
-		fp.lockedWorldX = worldX
-		fp.lockedWorldZ = worldZ
 		fp.placeTimer = 0
 
 		-- Perform initial placement
@@ -2328,23 +2319,12 @@ function widget:MousePress(mx, my, button)
 		return true
 	end
 
-	-- Right-click removes features regardless of current mode
-	if button == 3 then
-		local worldX, worldZ = getWorldMousePosition()
-		if not worldX then
-			return false
-		end
-		if gridSnap then
-			worldX, worldZ = snapToGrid(worldX, worldZ)
-		end
-
-		fp.dragging = true
-		fp.dragAction = "remove"
-		fp.lockedWorldX = worldX
-		fp.lockedWorldZ = worldZ
-		fp.placeTimer = 0
-
-		sendRemoveMessage(worldX, worldZ)
+	-- Right-click lets go of what the asset library has picked, so the mouse is empty and
+	-- selects again (the UNITS tool does the same). It never removes: that is Delete on a
+	-- selection, or the REMOVE mode's brush. Decided on the RELEASE, and only for a click:
+	-- a right drag (camera, habit) must not empty the mouse behind the artist's back.
+	if button == 3 and fp.mode ~= "remove" and #fp.selectedDefs > 0 then
+		fp.rightPress = { mx, my }
 		return true
 	end
 
@@ -2381,11 +2361,17 @@ function widget:MouseRelease(mx, my, button)
 		return true
 	end
 
+	if button == 3 and fp.rightPress then
+		local px, py = fp.rightPress[1], fp.rightPress[2]
+		fp.rightPress = nil
+		if abs(mx - px) < BOX_MIN_PX and abs(my - py) < BOX_MIN_PX then
+			clearSelectedFeatures()
+		end
+		return true
+	end
+
 	if (button == 1 or button == 3) and fp.dragging then
 		fp.dragging = false
-		fp.dragAction = nil
-		fp.lockedWorldX = nil
-		fp.lockedWorldZ = nil
 		return true
 	end
 	return false
@@ -2398,6 +2384,18 @@ function widget:MouseWheel(up, value)
 
 	local alt, ctrl, _, shift = GetModKeyState()
 
+	if alt and shift then
+		-- Alt+Shift+Scroll = RANDOMIZE TILT, 3 degrees a notch
+		fp.tiltRandom = max(0, min(45, (fp.tiltRandom or 0) + (up and 3 or -3)))
+		return true
+	end
+
+	if ctrl and alt then
+		-- Ctrl+Alt+Scroll = feature count
+		setFeatureCount(fp.featureCount + (up and 1 or -1))
+		return true
+	end
+
 	if alt then
 		-- Alt+Scroll = rotate brush (snap to TB protractor step when angleSnap on)
 		local step = ROTATION_STEP
@@ -2408,15 +2406,29 @@ function widget:MouseWheel(up, value)
 		end
 		local dir = up and 1 or -1
 		fp.rotation = ((fp.rotation + dir * step) % 360 + 360) % 360
-		Echo("[Feature Placer] Rotation: " .. fp.rotation .. "°")
+		return true
+	end
+
+	if shift and ctrl then
+		-- Ctrl+Shift+Scroll = HEIGHT OFFSET of the next placements, 4 elmos a notch
+		fp.heightOffset = max(-500, min(500, fp.heightOffset + (up and 4 or -4)))
 		return true
 	end
 
 	if shift then
-		-- Shift+Scroll = feature count
-		local step = up and 1 or -1
-		setFeatureCount(fp.featureCount + step)
-		Echo("[Feature Placer] Count: " .. fp.featureCount)
+		-- Shift+Scroll = one fixed scale for everything placed, superseding the
+		-- SCALE MIN / MAX range: both bounds collapse onto it, so the sliders show
+		-- what is in effect and the ghost preview grows and shrinks live. Steps
+		-- are multiplicative (10 % a notch) and snap onto 1x when passing it.
+		local cur = (fp.scaleMin + fp.scaleMax) * 0.5
+		---@type number
+		local v = up and cur * 1.1 or cur / 1.1
+		if (cur < 1 and v > 1) or (cur > 1 and v < 1) or abs(v - 1) < 0.03 then
+			v = 1
+		end
+		v = clampScale(v) or v
+		fp.scaleMin = v
+		fp.scaleMax = v
 		return true
 	end
 
@@ -2436,7 +2448,6 @@ function widget:MouseWheel(up, value)
 			end
 			setCadence(newC)
 		end
-		Echo("[Feature Placer] Cadence: " .. fp.cadence)
 		return true
 	end
 
@@ -2444,7 +2455,6 @@ function widget:MouseWheel(up, value)
 		-- Ctrl+Scroll = resize
 		local step = up and RADIUS_STEP or -RADIUS_STEP
 		setRadius(fp.radius + step)
-		Echo("[Feature Placer] Radius: " .. fp.radius)
 		return true
 	end
 
@@ -2501,13 +2511,9 @@ function widget:Update(dt)
 		return
 	end
 
-	local mx, my, leftPressed, _, rightPressed = GetMouseState()
-	local buttonHeld = (fp.dragAction == "remove" and rightPressed) or (fp.dragAction == "place" and leftPressed)
-	if not buttonHeld then
+	local _, _, leftPressed = GetMouseState()
+	if not leftPressed then
 		fp.dragging = false
-		fp.dragAction = nil
-		fp.lockedWorldX = nil
-		fp.lockedWorldZ = nil
 		return
 	end
 
@@ -2527,10 +2533,7 @@ function widget:Update(dt)
 		worldX, worldZ = snapToGrid(worldX, worldZ)
 	end
 
-	fp.lockedWorldX = worldX
-	fp.lockedWorldZ = worldZ
-
-	if fp.dragAction == "remove" or fp.mode == "remove" then
+	if fp.mode == "remove" then
 		sendRemoveMessage(worldX, worldZ)
 	else
 		placeAt(worldX, worldZ)
@@ -2617,17 +2620,14 @@ function widget:DrawWorld()
 	-- WYSIWYG: the exact features about to be placed, at their exact positions
 	-- and orientations. Remove mode has nothing to place, so it tints what the
 	-- brush would destroy instead.
-	if fp.mode == "remove" or (fp.dragging and fp.dragAction == "remove") then
+	if fp.mode == "remove" then
 		syncGhosts(collectRemovalTargets(worldX, worldZ))
 	else
 		syncGhosts(resolvePlacements(worldX, worldZ))
 	end
 
-	-- Color by mode (red when right-dragging to remove)
-	local _, _, _, _, rightPressed = GetMouseState()
-	if fp.dragging and fp.dragAction == "remove" then
-		glColor(0.9, 0.2, 0.2, 0.7 * edgeFade)
-	elseif fp.mode == "scatter" then
+	-- Color by mode
+	if fp.mode == "scatter" then
 		glColor(0.2, 0.8, 0.4, 0.7 * edgeFade)
 	elseif fp.mode == "point" then
 		glColor(0.4, 0.7, 1.0, 0.7 * edgeFade)
@@ -2637,7 +2637,7 @@ function widget:DrawWorld()
 
 	glLineWidth(2)
 
-	if fp.mode == "point" and not (fp.dragging and fp.dragAction == "remove") then
+	if fp.mode == "point" then
 		-- Draw small crosshair for point mode
 		local cy = GetGroundHeight(worldX, worldZ) + 4
 		local s = 12
@@ -2673,9 +2673,7 @@ function widget:DrawWorld()
 	if #positions > 1 then
 		for i = 2, #positions do
 			local p = positions[i]
-			if fp.dragging and fp.dragAction == "remove" then
-				glColor(0.9, 0.2, 0.2, 0.3 * edgeFade)
-			elseif fp.mode == "scatter" then
+			if fp.mode == "scatter" then
 				glColor(0.2, 0.8, 0.4, 0.3 * edgeFade)
 			elseif fp.mode == "point" then
 				glColor(0.4, 0.7, 1.0, 0.3 * edgeFade)
@@ -2683,7 +2681,7 @@ function widget:DrawWorld()
 				glColor(0.9, 0.2, 0.2, 0.3 * edgeFade)
 			end
 
-			if fp.mode == "point" and not (fp.dragging and fp.dragAction == "remove") then
+			if fp.mode == "point" then
 				local cy = GetGroundHeight(p.x, p.z) + 4
 				local s = 12
 				glBeginEnd(GL.LINES, function()
@@ -2754,23 +2752,6 @@ end
 -- Initialize / Shutdown
 ----------------------------------------------------------------
 function widget:Initialize()
-	widgetHandler:AddAction("featureplacer", function(_, _, args)
-		if args and args[1] then
-			return activate(args[1])
-		end
-		return activate("point")
-	end, nil, "t")
-	widgetHandler:AddAction("featureplacerscatter", function()
-		return activate("scatter")
-	end, nil, "t")
-	widgetHandler:AddAction("featureplacerpoint", function()
-		return activate("point")
-	end, nil, "t")
-	widgetHandler:AddAction("featureplacerremove", function()
-		return activate("remove")
-	end, nil, "t")
-	widgetHandler:AddAction("featureplaceroff", deactivate, nil, "t")
-
 	buildFeatureDefList()
 
 	if not Gizmo.init() then
@@ -2781,21 +2762,30 @@ function widget:Initialize()
 	-- Expose API
 	WG.FeaturePlacer = {
 		getState = getState,
-		getFeatureDefList = getFeatureDefList,
 		getFeatureCategories = getFeatureCategories,
 		getCategoryOrder = getCategoryOrder,
-		getCategoryLabels = getCategoryLabels,
 		setMode = setMode,
 		setShape = setShape,
 		setRadius = setRadius,
 		setRotation = setRotation,
 		rotate = rotate,
 		setRotRandom = setRotRandom,
+		-- Inline rather than a file local: this widget sits near Lua's 200-local ceiling.
+		setHeightOffset = function(v)
+			fp.heightOffset = max(-500, min(500, floor((tonumber(v) or 0) + 0.5)))
+		end,
+		setTiltRandom = function(v)
+			fp.tiltRandom = max(0, min(45, floor(v + 0.5)))
+		end,
 		setFeatureCount = setFeatureCount,
 		setCadence = setCadence,
 		setDistribution = setDistribution,
 		setScaleMin = setScaleMin,
 		setScaleMax = setScaleMax,
+		setClumps = clumpSetters.setClumps,
+		setClumpSize = clumpSetters.setClumpSize,
+		setClumpLoose = clumpSetters.setClumpLoose,
+		setClumpVariety = clumpSetters.setClumpVariety,
 		setSmartEnabled = setSmartEnabled,
 		setSmartFilter = setSmartFilter,
 		selectFeature = selectFeature,
@@ -2849,9 +2839,4 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("terraform_feature_save_begin")
 	widgetHandler:DeregisterGlobal("terraform_feature_save_data")
 	widgetHandler:DeregisterGlobal("terraform_feature_save_end")
-	widgetHandler:RemoveAction("featureplacer")
-	widgetHandler:RemoveAction("featureplacerscatter")
-	widgetHandler:RemoveAction("featureplacerpoint")
-	widgetHandler:RemoveAction("featureplacerremove")
-	widgetHandler:RemoveAction("featureplaceroff")
 end

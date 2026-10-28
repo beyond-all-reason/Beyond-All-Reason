@@ -482,7 +482,7 @@ function addon.DrawLoadScreen()
 
 	-- background
 	local scale = 1
-	local ssx, ssy, spx, spy = Spring.GetScreenGeometry()
+	local ssx, _, _, _ = Spring.GetScreenGeometry()
 	if ssx / vsx < 1 then -- adjust when window is larger than the screen resolution
 		--scale = ssx / vsx
 		--xDiv = xDiv * scale	-- this doesn't work
@@ -501,7 +501,7 @@ function addon.DrawLoadScreen()
 	-- tip
 	local tipTextSize = height * 0.7
 	local tipTextLineHeight = tipTextSize * 1.17
-	local wrappedTipText, numLines = font2:WrapText(randomTip, vsx * 1.35)
+	local wrappedTipText, _ = font2:WrapText(randomTip, vsx * 1.35)
 	local tipLines = lines(wrappedTipText)
 	local tipPosYtop = posY
 		+ (height / vsy)

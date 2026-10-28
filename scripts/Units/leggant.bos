@@ -19,7 +19,7 @@ smoke11,
 smoke12;
 
 
-static-var  spray, Stunned;
+static-var  spray, Stunned, hasOpened;
 
 SmokeItUp()
 {	while (TRUE) {
@@ -79,99 +79,65 @@ MoveCells()
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	move reactor_li to x-axis [-3] speed [6];
-	move reactor_ri to x-axis [3] speed [6];
-	wait-for-move reactor_li along x-axis;
-	move reactor_lo to x-axis [-1] speed [6];
-	move reactor_ro to x-axis [1] speed [6];
+	if( !hasOpened )
+	{
+		move reactor_li to x-axis [-3] speed [6];
+		move reactor_ri to x-axis [3] speed [6];
+		wait-for-move reactor_li along x-axis;
+		move reactor_lo to x-axis [-1] speed [6];
+		move reactor_ro to x-axis [1] speed [6];
 
-	turn head to x-axis <10> speed <20>;
-	turn headtop to x-axis <-15> speed <15>;
-	turn headbot to x-axis <30> speed <30>;
+		turn head to x-axis <10> speed <20>;
+		turn headtop to x-axis <-15> speed <15>;
+		turn headbot to x-axis <30> speed <30>;
 
-	turn rodfront to x-axis <10> speed <15>;
+		turn rodfront to x-axis <10> speed <15>;
 
-	move casefrontlow to y-axis [-11] speed [11];
-	move casefrontlow to z-axis [7] speed [7];
-
-
-	move casefront to z-axis [5] speed [5];
-	wait-for-move casefront along z-axis;
-	move casefront to y-axis [-10] speed [5];
-	move casefront to z-axis [29] speed [14.5];
-	turn nanofront to x-axis <50> speed <27>;
-	
+		move casefrontlow to y-axis [-11] speed [11];
+		move casefrontlow to z-axis [7] speed [7];
 
 
-	move casefrontmid to z-axis [3] speed [12];
-	turn casefrontmid to x-axis <60> speed <30>;	
+		move casefront to z-axis [5] speed [5];
+		wait-for-move casefront along z-axis;
+		move casefront to y-axis [-10] speed [5];
+		move casefront to z-axis [29] speed [14.5];
+		turn nanofront to x-axis <50> speed <27>;
 
-	move caseback to y-axis [-14] speed [28];
-	move caseback to z-axis [-8] speed [16];
-	move casefrontin to y-axis [-30] speed [45];
-	move casefrontin to z-axis [16] speed [24];
-	move casebacknano to y-axis [18] speed [18];
-	move casebacknano to z-axis [7] speed [7];
 
-	wait-for-move casebacknano along y-axis;
 
-	move beamleft to x-axis [4.8] speed [10];
-	move beamright to x-axis [-4.8] speed [10];
-	turn beamleft to x-axis <-60> speed <70>;
-	turn beamright to x-axis <-60> speed <70>;
-	turn coverleft to x-axis <120> speed <140>;
-	turn coverright to x-axis <120> speed <140>;
-	
+		move casefrontmid to z-axis [3] speed [12];
+		turn casefrontmid to x-axis <60> speed <30>;	
+
+		move caseback to y-axis [-14] speed [28];
+		move caseback to z-axis [-8] speed [16];
+		move casefrontin to y-axis [-30] speed [45];
+		move casefrontin to z-axis [16] speed [24];
+		move casebacknano to y-axis [18] speed [18];
+		move casebacknano to z-axis [7] speed [7];
+
+		wait-for-move casebacknano along y-axis;
+
+		move beamleft to x-axis [4.8] speed [10];
+		move beamright to x-axis [-4.8] speed [10];
+		turn beamleft to x-axis <-60> speed <70>;
+		turn beamright to x-axis <-60> speed <70>;
+		turn coverleft to x-axis <120> speed <140>;
+		turn coverright to x-axis <120> speed <140>;
+		hasOpened = 1;
+	}
 	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	sleep 5000;
-	
-	turn beamleft to x-axis <0> speed <70>;
-	turn beamright to x-axis <0> speed <70>;
-	turn coverleft to x-axis <0> speed <140>;
-	turn coverright to x-axis <0> speed <140>;
-	wait-for-turn beamleft around x-axis;
-	move beamleft to x-axis [0] speed [10];
-	move beamright to x-axis [0] speed [10];
-	wait-for-move beamleft along x-axis;
-	move caseback to y-axis [0] speed [16];
-	move caseback to z-axis [0.4] speed [14];
-	move casebacknano to y-axis [0] speed [16];
-	move casebacknano to z-axis [0] speed [16];
-	move coverleft to x-axis [0] speed [10];
-	move coverright to x-axis [0] speed [10];
 
-	move casefrontin to y-axis [0] speed [30];
-	move casefrontin to z-axis [0] speed [16];
-
-
-	turn casefrontmid to x-axis <0> speed <40>;	
-
-	move casefrontlow to y-axis [0] speed [22];
-	move casefrontlow to z-axis [0] speed [14];	
-
-	move casefront to y-axis [0] speed [12];
-	move casefront to z-axis [0] speed [22];
-	turn rodfront to x-axis <0> speed <30>;
-	turn nanofront to x-axis <0> speed <30>;
-
-	turn headtop to x-axis <0> speed <15>;
-	turn headbot to x-axis <0> speed <30>;
-	turn head to x-axis <0> speed <20>;
-
-	move reactor_li to x-axis [4] speed [10];
-	move reactor_lo to x-axis [5] speed [12];
-	move reactor_ri to x-axis [-4] speed [4];
-	move reactor_ro to x-axis [-5] speed [6];
-	
 	FACTORY_CLOSE_BUILD;
 }
 
@@ -203,6 +169,7 @@ Create()
 	spray = 0;
 	
 	SLEEP_UNTIL_UNITFINISHED;
+	hasOpened = 0;
 }
 
 #define BASEPIECE base

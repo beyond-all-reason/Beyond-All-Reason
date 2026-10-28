@@ -38,6 +38,8 @@ if gadgetHandler:IsSyncedCode() then
 	local mathBitAnd = math.bit_and
 	local tableContains = table.contains
 
+	local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 	----------------------------------------------------------------
 	-- Config
 	----------------------------------------------------------------
@@ -237,7 +239,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Start Point Guesser
 	----------------------------------------------------------------
-	VFS.Include("common/lib_startpoint_guesser.lua")
+	require("common/lib_startpoint_guesser")
 
 	----------------------------------------------------------------
 	-- FFA start points (provided by `game_ffa_start_setup`)
@@ -475,11 +477,10 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 
-		if select(4, spGetTeamInfo(teamID)) then -- isAiTeam
-			return false
+		local _, _, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID)
+		if not isAiTeam then
+			_, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
 		end
-
-		local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
 		if not teamID or not allyTeamID then
 			return false
 		end --fail
@@ -586,7 +587,10 @@ if gadgetHandler:IsSyncedCode() then
 		scenarioSpawnsUnits = false
 
 		if Spring.GetModOptions().scenariooptions then
-			local scenariooptions = Json.decode(string.base64Decode(Spring.GetModOptions().scenariooptions))
+			local scenariooptions = decodeModoption(Spring.GetModOptions().scenariooptions)
+			if not scenariooptions then
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Could not decode scenariooptions")
+			end
 			if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then
 				Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
 				scenarioSpawnsUnits = true

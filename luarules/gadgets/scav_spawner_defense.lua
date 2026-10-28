@@ -20,9 +20,9 @@ else
 end
 Spring.SetLogSectionFilterLevel("Dynamic Difficulty", LOG.INFO)
 
-local config = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
-local EnemyLib = VFS.Include("LuaRules/Gadgets/Include/SpawnerEnemyLib.lua")
-local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+local EnemyLib = require("luarules/gadgets/include/SpawnerEnemyLib")
+local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
+local config = require("luarules/configs/scav_spawn_defs")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ if gadgetHandler:IsSyncedCode() then
 	local ipairs = ipairs
 	local pairs = pairs
 	local modOptions = Spring.GetModOptions()
-	local SetListUtilities = VFS.Include("common/SetList.lua")
+	local SetListUtilities = require("common/SetList")
 
 	local MAPSIZEX = Game.mapSizeX
 	local MAPSIZEZ = Game.mapSizeZ
@@ -454,7 +454,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- Spawn Dynamics
 	--
 
-	local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+	local positionCheckLibrary = require("luarules/Utilities/damgam_lib/position_checks")
 	local ScavStartboxXMin, ScavStartboxZMin, ScavStartboxXMax, ScavStartboxZMax =
 		EnemyLib.GetAdjustedStartBox(scavAllyTeamID, config.burrowSize * 1.5)
 

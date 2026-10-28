@@ -1,27 +1,24 @@
 -- Store for user keybind profiles, persisted to LuaUI/Config/keybind_profiles.json.
 --
--- Profiles are whole snapshots, never deltas: keyreload clears the keymap before it loads,
--- so a profile always defines every binding it wants. The emitter writes them in the one
--- shape the engine round-trips.
---
--- Migration is the exception: a player's own file has to be read as written, so the reader
--- below understands the subset of the bind-file grammar that changes what ends up bound -
--- bind, the three unbinds, keyload, keysym and fakemeta. Everything after migration goes
--- through Spring.GetKeyBindings instead.
+-- Profiles are whole snapshots, never deltas: keyreload clears the keymap before it loads.
+-- Migration is the exception, and reads the subset of the bind-file grammar that changes what
+-- ends up bound. Everything after it goes through Spring.GetKeyBindings.
 
-local Json = Json or VFS.Include("common/luaUtilities/json.lua")
-local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
+local Json = Json or require("common/luaUtilities/json")
+local WidgetActions = require("luaui/Include/keybind_widget_actions")
+local keybindConfig = require("luaui/Include/keybind_config")
+local keybindModel = require("luaui/Include/keybind_model")
 
 local PROFILES_PATH = "LuaUI/Config/keybind_profiles.json"
 local DEFAULTS_PATH = "common/configs/keybind_defaults.json"
 local RETIRED_INCLUDES_PATH = "common/configs/keybind_retired_includes.json"
 local ACTIVE_FILE = "uikeys.txt"
-local BACKUP_FILE = "uikeys.txt.bak"
+local BACKUP_SUFFIX = ".bak"
 local STORE_VERSION = 2
+-- A profile name is an id inside the keymaps too, so a rename or delete has to follow it there.
+local SWITCH_COMMAND = "keybindprofile"
 
--- The shipped profiles a player can select but not edit; editing forks a copy. They
--- carry binds rather than a file path so every surface reads one shape, and applying
--- one takes the same path as applying a player's own profile.
+-- Shipped profiles carry binds rather than a file path, so every surface reads one shape.
 local builtins = {}
 local emitPriority = {}
 do
@@ -36,8 +33,7 @@ do
 	end
 end
 
--- Only for upgrades: the preset a player was on is recorded as a bind-file path. Maps
--- each of those paths to the profile that now covers it.
+-- Only for upgrades: the preset a player was on is recorded as a bind-file path.
 local presetFiles = {
 	["luaui/configs/hotkeys/grid_keys.txt"] = "Grid",
 	["luaui/configs/hotkeys/grid_keys_60pct.txt"] = "Grid (60% Keyboard)",
@@ -48,9 +44,10 @@ local presetFiles = {
 ---@type table
 local store
 
--- Set while reading a store written before profiles named a meta key, so the launch that
--- upgrades one can still recognise the files that version wrote.
+-- Set while reading a store written before profiles named a meta key.
 local storePredatesMeta = false
+-- Set when another surface may have written the store since this one read it.
+local stale = false
 
 -- Shape a fresh store file takes.
 local function emptyStore()
@@ -69,6 +66,38 @@ local function indexOf(name)
 end
 
 local M = { builtins = builtins, activeFile = ACTIVE_FILE }
+
+-- The action a key is bound to in order to switch to this profile.
+function M.switchAction(name)
+	return SWITCH_COMMAND .. " " .. name
+end
+
+-- Hands back the list and whether anything moved, so a caller can leave an untouched profile be.
+function M.retargetSwitchBinds(binds, oldName, newName)
+	local from = M.switchAction(oldName)
+	local out, moved = {}, false
+	for _, bind in ipairs(binds or {}) do
+		if bind.action ~= from then
+			out[#out + 1] = bind
+		else
+			moved = true
+			if newName then
+				out[#out + 1] = { keyset = bind.keyset, action = M.switchAction(newName) }
+			end
+		end
+	end
+
+	return out, moved
+end
+
+local function retargetStore(oldName, newName)
+	for _, p in ipairs(store.profiles) do
+		local binds, moved = M.retargetSwitchBinds(p.binds, oldName, newName)
+		if moved then
+			p.binds = binds
+		end
+	end
+end
 
 -- The shipped profile of that name, nil when the player owns it instead.
 function M.isBuiltin(name)
@@ -93,10 +122,7 @@ local function priorityRank(action)
 	return #emitPriority + 1
 end
 
--- Two actions on one key are tried in the order they were bound, so file order is what
--- settles which one wins. Sorting by declared priority keeps that decision with the
--- action instead of with whoever edited last. Equal ranks hold their existing order, so
--- only the listed actions move.
+-- Two actions on one key are tried in bind order, so file order settles which one wins.
 local function byPriority(binds)
 	local ordered = {}
 	for i = 1, #binds do
@@ -119,9 +145,84 @@ local function byPriority(binds)
 	return out
 end
 
--- Stamped into every file we write so migration can tell our own output from a file the
--- player wrote, and recover which profile was live when the store holding it is gone.
--- The engine drops everything from "//" to end of line, so it costs nothing on load.
+-- The engine's CKeySet::fit: a key named Any+ matches one bound with any modifiers held, or
+-- none, so it has to be treated as a wildcard rather than compared for an exact string match.
+local function keyElementFits(a, b)
+	if a == b then
+		return true
+	end
+
+	local keyA, keyB = a:match("[sk]c:.*$"), b:match("[sk]c:.*$")
+
+	return keyA == keyB and (a:find("^any%+", 1) ~= nil or b:find("^any%+", 1) ~= nil)
+end
+
+-- Whether `short` is what the engine's CKeyChain::fit would see as the trailing taps of
+-- `long`: a press of `long` also satisfies `short`, the instant `short` is itself complete.
+local function chainFitsAsTail(short, long)
+	if #short >= #long then
+		return false
+	end
+
+	local offset = #long - #short
+	for i = 1, #short do
+		if not keyElementFits(short[i], long[offset + i]) then
+			return false
+		end
+	end
+
+	return true
+end
+
+local function chainTaps(keyset)
+	return keybindModel.splitChain(keybindModel.canonicalKeyset(keyset))
+end
+
+-- Moves every bind whose keyset chain is a strict suffix of another's to just after it,
+-- preserving byPriority's order otherwise. The dependency graph is sparse (most binds share no
+-- key at all), so a few hundred binds cost this pass nothing worth measuring.
+local function byChainSpecificity(ordered)
+	local n = #ordered
+	local taps = {}
+	for i = 1, n do
+		taps[i] = chainTaps(ordered[i].keyset)
+	end
+
+	local mustFollow = {}
+	for i = 1, n do
+		for j = 1, n do
+			if i ~= j and chainFitsAsTail(taps[i], taps[j]) then
+				mustFollow[i] = mustFollow[i] or {}
+				mustFollow[i][j] = true
+			end
+		end
+	end
+
+	local placed, out = {}, {}
+	while #out < n do
+		for i = 1, n do
+			if not placed[i] then
+				local ready = true
+				for j in pairs(mustFollow[i] or {}) do
+					if not placed[j] then
+						ready = false
+						break
+					end
+				end
+
+				if ready then
+					placed[i] = true
+					out[#out + 1] = ordered[i]
+					break
+				end
+			end
+		end
+	end
+
+	return out
+end
+
+-- The engine drops everything from "//", so this costs nothing on load.
 local GENERATED_PREFIX = "// keybind editor profile: "
 local GENERATED_PATTERN = "^" .. (GENERATED_PREFIX:gsub("(%W)", "%%%1")) .. "([^\r\n]*)"
 
@@ -135,14 +236,11 @@ local function generatedName(text)
 	return (name ~= nil and name ~= "") and name or nil
 end
 
--- Loading a keymap leaves the meta key alone, so a bind file naming none runs under whatever
--- the engine set at startup. Every shipped keymap relied on that before profiles carried one.
+-- Loading a keymap leaves the meta key alone, so a file naming none runs under the engine own.
 local ENGINE_FAKE_META = "space"
 
--- A meta key the engine will actually take, nil for anything else. It keeps the key it already
--- had when it cannot parse one, so emitting a name it does not know leaves the live keymap
--- disagreeing with the profile that named it. "none", which clears the key, is the one non-key
--- it accepts, and it takes that ahead of any parsing. Scancodes it refuses outright.
+-- A meta key the engine will take, nil for anything else. It accepts "none", which clears the
+-- key, and refuses scancodes outright.
 local function validFakeMeta(value)
 	if type(value) ~= "string" or value == "" or value:find("%s") then
 		return nil
@@ -155,25 +253,108 @@ local function validFakeMeta(value)
 	return nil
 end
 
--- What a profile's meta key comes to. Naming nothing asks for the engine's, the same as a bind
--- file that names none does; "none" is how a profile asks for no meta key at all.
+-- Naming nothing asks for the engine key; "none" asks for no meta key at all.
 local function resolveFakeMeta(value)
 	return validFakeMeta(value) or ENGINE_FAKE_META
 end
 
--- Shipped profiles never go through the store, so this is the only place their meta key is
--- checked before the editor reads it back and hands it to a fork.
+-- Shipped profiles never reach the store, so this is the only place their meta key is checked.
 for _, b in ipairs(builtins) do
 	b.fakeMeta = resolveFakeMeta(b.fakeMeta)
+end
+
+-- The engine lowercases an action's command word, so a file naming it in any other case
+-- still targets the same action.
+local function commandOf(action)
+	return (action:match("^%S+") or ""):lower()
+end
+
+local function actionKey(action)
+	local command, args = action:match("^(%S+)(.*)$")
+
+	return command and (command:lower() .. args) or action
+end
+
+-- Applied even where the key is taken; the editor shows the clash.
+local function widgetDefaults()
+	return WidgetActions.defaults((WidgetActions.manifests()))
+end
+
+local function seededSet(profile)
+	local set = {}
+	for _, action in ipairs(profile.seeded or {}) do
+		set[action] = true
+	end
+
+	return set
+end
+
+local function missingDefaults(binds, skip)
+	local bound = {}
+	for _, b in ipairs(binds) do
+		if type(b) == "table" and type(b.action) == "string" then
+			bound[actionKey(b.action)] = true
+		end
+	end
+
+	local missing = {}
+	for _, default in ipairs(widgetDefaults()) do
+		if not bound[default.action] and not skip[default.action] then
+			for _, keyset in ipairs(default.keysets) do
+				missing[#missing + 1] = { keyset = keyset, action = default.action }
+			end
+		end
+	end
+
+	return missing
+end
+
+local function withWidgetDefaults(binds, skip)
+	local out = {}
+	for i, b in ipairs(binds) do
+		out[i] = b
+	end
+	for _, b in ipairs(missingDefaults(binds, skip)) do
+		out[#out + 1] = b
+	end
+
+	return out
+end
+
+-- What a profile binds once written out, the loaded widgets' defaults it takes included.
+function M.effectiveBinds(profile)
+	return withWidgetDefaults(profile.binds or {}, M.isBuiltin(profile.name) and {} or seededSet(profile))
+end
+
+-- Once per action, so a default the player removes stays removed.
+local function seedWidgetDefaults(profile)
+	local seeded = seededSet(profile)
+	for _, b in ipairs(missingDefaults(profile.binds, seeded)) do
+		profile.binds[#profile.binds + 1] = b
+	end
+
+	for _, default in ipairs(widgetDefaults()) do
+		if not seeded[default.action] then
+			profile.seeded = profile.seeded or {}
+			profile.seeded[#profile.seeded + 1] = default.action
+		end
+	end
+end
+
+local function allDefaultActions()
+	local names = {}
+	for i, default in ipairs(widgetDefaults()) do
+		names[i] = default.action
+	end
+
+	return names
 end
 
 -- A whole keymap: keyreload clears the bindings before it loads, but not the meta key.
 local function toBindFile(profile)
 	local out = { GENERATED_PREFIX .. tostring(profile.name) }
 	out[#out + 1] = "fakemeta " .. resolveFakeMeta(profile.fakeMeta)
-	-- The store is writable by the player and by other surfaces, so a malformed entry is
-	-- reachable here. Dropping one costs a keybind; letting it through takes the whole
-	-- hotkey loader down with it.
+	-- The store is writable by the player and by other surfaces, so a malformed entry reaches here.
 	local binds, dropped = {}, 0
 	for _, b in ipairs(profile.binds or {}) do
 		if
@@ -194,7 +375,12 @@ local function toBindFile(profile)
 		)
 	end
 
-	for _, b in ipairs(byPriority(binds)) do
+	-- A shipped profile is read-only, so the widget defaults it lacks ride along on the way out.
+	if M.isBuiltin(profile.name) then
+		binds = withWidgetDefaults(binds, {})
+	end
+
+	for _, b in ipairs(byChainSpecificity(byPriority(binds))) do
 		out[#out + 1] = "bind " .. b.keyset .. " " .. b.action
 	end
 
@@ -220,12 +406,31 @@ local function retiredBinds(path)
 	return retiredIncludes[path]
 end
 
+-- The engine cannot parse a comma chain as an unbind target, so a directive naming one hits
+-- nothing.
+local function unbindTarget(keyset)
+	if keyset:find(",", 1, true) then
+		return nil
+	end
+
+	return keybindModel.canonicalKeyset(keyset)
+end
+
+-- A chain is stored under its last tap, which is the keyset an unbind has to name.
+local function chainEnd(keyset)
+	local taps = keybindModel.splitChain(keyset)
+
+	return keybindModel.canonicalKeyset(taps[#taps] or keyset)
+end
+
 -- The engine has no Lua getter for the fakemeta key, so migration is the only
 -- chance to carry a non-default one over from the file the player already had.
 -- Reads the bind lines back out of a keybind file. Needed for the player's own
 -- uikeys.txt at migration time: the live keymap is whichever preset they had selected,
 -- so it cannot stand in for what their own file holds.
-local function readBindFile(text, depth)
+-- With a seed the text runs on top of it, the way the engine runs lines on a live keymap: it
+-- refuses a bind it already holds.
+local function readBindFile(text, depth, seed)
 	if not text then
 		return nil
 	end
@@ -233,11 +438,27 @@ local function readBindFile(text, depth)
 	depth = depth or 1
 	local breaks = "[^" .. string.char(13, 10) .. "]+"
 	local binds = {}
+	-- Keyed "action\1canon", so a seeded preset's own duplicates are a lookup instead of a scan:
+	-- a large paste merged against an existing preset is otherwise quadratic in the bind count.
+	local seen = {}
+	for i, b in ipairs(seed or {}) do
+		binds[i] = { keyset = b.keyset, action = b.action }
+		seen[b.action .. "\1" .. keybindModel.canonicalKeyset(b.keyset)] = true
+	end
 
-	-- A file may name a key the engine has none for (capslock is commented out engine-side),
-	-- and every keyset after that point uses the name. Resolved here rather than carried, so
-	-- what we write out is only ever bind lines the engine already parses. The engine refuses
-	-- to redefine a name, so one definition per name is the whole of it.
+	local function holds(keyset, action)
+		return seen[action .. "\1" .. keybindModel.canonicalKeyset(keyset)] == true
+	end
+
+	local function add(keyset, action)
+		if not (seed and holds(keyset, action)) then
+			binds[#binds + 1] = { keyset = keyset, action = action }
+			seen[action .. "\1" .. keybindModel.canonicalKeyset(keyset)] = true
+		end
+	end
+
+	-- A file may name a key the engine has none for, and every keyset after that point uses the
+	-- name. The engine refuses to redefine one, so there is a single definition per name.
 	local keySyms = {}
 	local function resolveKeySyms(keyset)
 		if not next(keySyms) then
@@ -254,42 +475,46 @@ local function readBindFile(text, depth)
 		return table.concat(out, ",")
 	end
 
-	-- Applied to what has been collected so far rather than issued as commands, so an unbind
-	-- means "drop what this file has bound up to here". Matched on the command word, never
-	-- its args: "unbindaction factory_preset" takes every "factory_preset load N" with it.
+	-- Applied to what the file has bound so far rather than issued as commands. Matched on the
+	-- command word, never its args. Dropped from `seen` too, or a later line rebinding the same
+	-- keyset and action would be read as already held.
 	local function drop(match)
 		for i = #binds, 1, -1 do
-			if match(binds[i]) then
+			local b = binds[i]
+			if match(b) then
+				seen[b.action .. "\1" .. keybindModel.canonicalKeyset(b.keyset)] = nil
 				table.remove(binds, i)
 			end
 		end
 	end
 
 	for line in text:gmatch(breaks) do
-		-- Everything from "//" is a comment to the engine, so it is gone before anything reads
-		-- the line as a directive.
+		-- Everything from "//" is a comment to the engine.
 		line = line:gsub("//.*", ""):gsub("%s+$", "")
 		local keyset, action = line:match("^%s*bind%s+(%S+)%s+(.-)%s*$")
 		if keyset and action ~= "" then
-			binds[#binds + 1] = { keyset = resolveKeySyms(keyset), action = action }
+			add(resolveKeySyms(keyset), action)
 		elseif line:match("^%s*unbindall%s*$") then
-			binds = {}
+			binds, seen = {}, {}
 		elseif line:match("^%s*unbindaction%s+%S") then
-			local command = line:match("^%s*unbindaction%s+(%S+)")
+			local command = line:match("^%s*unbindaction%s+(%S+)"):lower()
 			drop(function(b)
-				return b.action:match("^%S+") == command
+				return commandOf(b.action) == command
 			end)
 		elseif line:match("^%s*unbindkeyset%s+%S") then
-			local target = line:match("^%s*unbindkeyset%s+(%S+)"):lower()
-			drop(function(b)
-				return b.keyset:lower() == target
-			end)
+			local target = unbindTarget(line:match("^%s*unbindkeyset%s+(%S+)"))
+			if target then
+				drop(function(b)
+					return chainEnd(b.keyset) == target
+				end)
+			end
 		elseif line:match("^%s*unbind%s+%S") then
 			local target, command = line:match("^%s*unbind%s+(%S+)%s+(%S+)")
+			target = target and unbindTarget(target)
 			if target then
-				target = target:lower()
+				command = command:lower()
 				drop(function(b)
-					return b.keyset:lower() == target and b.action:match("^%S+") == command
+					return chainEnd(b.keyset) == target and commandOf(b.action) == command
 				end)
 			end
 		elseif line:match("^%s*keysym%s+%S+%s+%S") then
@@ -298,22 +523,20 @@ local function readBindFile(text, depth)
 				keySyms[name:lower()] = code
 			end
 		else
-			-- A player's file can pull in others the same way the shipped presets did, and
-			-- those bindings are just as much theirs. Depth-capped rather than cycle-tracked.
+			-- Depth-capped rather than cycle-tracked.
 			local included = line:match("^%s*keyload%s+(%S+)")
 			if included and depth < 8 then
 				local text = VFS.LoadFile(included)
 				if text then
 					for _, b in ipairs(readBindFile(text, depth + 1) or {}) do
-						binds[#binds + 1] = b
+						add(b.keyset, b.action)
 					end
 				else
-					-- These stopped being files, so a keyload naming one has nothing to read:
-					-- what they bound lives in the data that replaced them.
+					-- These stopped being files, so a keyload naming one has nothing to read.
 					local retired = retiredBinds(included)
 					if retired then
 						for _, b in ipairs(retired) do
-							binds[#binds + 1] = { keyset = b.keyset, action = b.action }
+							add(b.keyset, b.action)
 						end
 					else
 						Spring.Echo(
@@ -334,10 +557,8 @@ local function readFakeMeta(text)
 	if not text then
 		return nil
 	end
-	-- Horizontal whitespace only: %s would match the line break and swallow the
-	-- next line as the value when fakemeta is present but unset.
-	-- Leading newline so the directive is still found on the first line, which is where
-	-- toBindFile puts it.
+	-- Horizontal whitespace only: %s would match the line break and swallow the next line as the
+	-- value. Leading newline so the directive is still found on line one.
 	local value = ("\n" .. text):match("\n[ \t]*fakemeta[ \t]*([^\n]*)")
 	if not value then
 		return nil
@@ -352,9 +573,8 @@ local function fakeMetaOf(text)
 	return resolveFakeMeta(readFakeMeta(text))
 end
 
--- What a bind file binds, as one comparable string, and the meta key it leaves set. Both
--- sides of a comparison go through the reader, so comments, line endings and any later change
--- to how we emit cannot read as an edit the player made.
+-- Both sides of a comparison go through the reader, so comments, line endings and any later
+-- change to how we emit cannot read as an edit the player made.
 local function keymapOf(text)
 	local binds = readBindFile(text)
 	if not binds then
@@ -369,18 +589,33 @@ local function keymapOf(text)
 	return table.concat(parts, "\n"), fakeMetaOf(text)
 end
 
--- The profile already holding this keymap, nil when none does. The one migration just made of
--- the player's own file counts, which is what keeps the launch they arrive on from forking a
--- second copy of what it has only now imported.
+-- Taken over the bindings rather than the bytes, so changing how we emit does not make every
+-- player file read as edited. djb2 with the length alongside it.
+local function stampOf(text)
+	local binds, meta = keymapOf(text)
+	if not binds then
+		return nil
+	end
+
+	local subject = binds .. "\n" .. tostring(meta)
+	local h = 5381
+	for i = 1, #subject do
+		h = (h * 33 + subject:byte(i)) % 4294967296
+	end
+
+	return #subject .. ":" .. string.format("%08x", h)
+end
+
+-- The one migration just made of the player own file counts, which keeps the launch they
+-- arrive on from forking a second copy.
 local function matchesKnownProfile(text)
 	local theirBinds, theirMeta = keymapOf(text)
 	if not theirBinds then
 		return nil
 	end
 
-	-- Before profiles named a meta key every file we wrote said "fakemeta none", so on the
-	-- launch that upgrades a store one differing only there is still ours rather than an edit.
-	-- A player who named some other key still forks.
+	-- Before profiles named a meta key every file we wrote said "fakemeta none", so one differing
+	-- only there is still ours.
 	local function holds(profile)
 		local ourBinds, ourMeta = keymapOf(toBindFile(profile))
 		if ourBinds ~= theirBinds then
@@ -390,9 +625,7 @@ local function matchesKnownProfile(text)
 		return ourMeta == theirMeta or (storePredatesMeta and theirMeta == "none")
 	end
 
-	-- Nearly always our own output for the profile it names, and this runs on every game
-	-- load, so try that one before reading out every profile there is. Keeps the usual path
-	-- off the full scan however many the player has accumulated.
+	-- Runs on every game load, so try the profile the file names before scanning them all.
 	local claimed = generatedName(text)
 	local i = claimed and indexOf(claimed)
 	local stamped = (i and store.profiles[i]) or (claimed and M.isBuiltin(claimed))
@@ -414,19 +647,26 @@ local function matchesKnownProfile(text)
 	return nil
 end
 
--- A name no existing profile holds, for copies.
-function M.uniqueName(base)
-	M.load()
-	if not indexOf(base) and not M.isBuiltin(base) then
+local function freeName(base, taken)
+	if not taken(base) then
 		return base
 	end
 
 	local n = 2
-	while indexOf(base .. " " .. n) or M.isBuiltin(base .. " " .. n) do
+	while taken(base .. " " .. n) do
 		n = n + 1
 	end
 
 	return base .. " " .. n
+end
+
+-- A name no existing profile holds, for copies.
+function M.uniqueName(base)
+	M.load()
+
+	return freeName(base, function(name)
+		return indexOf(name) or M.isBuiltin(name)
+	end)
 end
 
 -- The next free "<name> (n)". A name already carrying one counts up from it, anything else
@@ -465,52 +705,64 @@ function M.save()
 	return true
 end
 
--- Players upgrading from the old preset picker keep what they had, so dropping the
--- preset list does not silently reset anyone.
--- The player's file as it was before any of this touched it. Written once and never again,
--- including on a later migration, so the copy is always the original rather than our own
--- output. Nothing reads it back: it exists for a human with a broken keymap.
-local function backupActiveFile()
-	local existing = io.open(BACKUP_FILE, "r")
-	if existing then
-		existing:close()
-
-		return
-	end
-
-	local text = VFS.LoadFile(ACTIVE_FILE)
-	if not text then
-		return
-	end
-
-	local file = io.open(BACKUP_FILE, "w")
+-- VFS.FileExists searches the game archives too, and a copy can only go in the write dir.
+local function fileExists(path)
+	local file = io.open(path, "r")
 	if not file then
-		Spring.Echo(
-			"[keybind_profiles] Error: could not write "
-				.. BACKUP_FILE
-				.. "; continuing without a copy of the original keymap"
-		)
+		return false
+	end
 
-		return
+	file:close()
+
+	return true
+end
+
+-- The first copy is the keymap the player had before any of this existed.
+local function backupFile(path, text)
+	text = text or VFS.LoadFile(path)
+	if not text then
+		return nil
+	end
+
+	local target = path .. BACKUP_SUFFIX
+	local n, last = 1, nil
+	while fileExists(target) do
+		last = target
+		n = n + 1
+		target = path .. BACKUP_SUFFIX .. "." .. n
+	end
+
+	-- A caller failing the same way every time asks for the same copy every time.
+	if last and VFS.LoadFile(last) == text then
+		return last
+	end
+
+	local file = io.open(target, "w")
+	if not file then
+		Spring.Echo("[keybind_profiles] Error: could not write " .. target .. "; continuing without a copy of " .. path)
+
+		return nil
 	end
 
 	file:write(text)
 	file:close()
-	Spring.Echo("[keybind_profiles] kept the original " .. ACTIVE_FILE .. " as " .. BACKUP_FILE)
+	Spring.Echo("[keybind_profiles] kept a copy of " .. path .. " as " .. target)
+
+	return target
 end
 
+-- Players upgrading from the old preset picker keep what they had, so dropping the
+-- preset list does not silently reset anyone.
 local function migrate()
-	backupActiveFile()
+	backupFile(ACTIVE_FILE)
 	store = emptyStore()
 
-	-- Every preset still ships, so a player on one only needs it selected; there is nothing
-	-- of theirs to carry across.
+	-- Every preset still ships, so a player on one only needs it selected.
 	local configured = Spring.GetConfigString("KeybindingFile", "")
 	local preset = presetFiles[configured]
 
-	-- Whichever file actually held their bindings: the one they pointed the engine at when
-	-- that is not a preset we still ship, otherwise the uikeys.txt a preset leaves unloaded.
-	-- The player's own file is a profile in its own right, whatever else they had going on.
+	-- Whichever file actually held their bindings: the one they pointed the engine at when that is
+	-- not a preset we still ship, otherwise uikeys.txt.
 	local ownPath = (not preset and configured ~= "") and configured or ACTIVE_FILE
 	local ownText = VFS.LoadFile(ownPath)
 	local written = generatedName(ownText)
@@ -529,10 +781,14 @@ local function migrate()
 		end
 	end
 
-	M.save()
+	if not M.save() then
+		Spring.Echo(
+			"[keybind_profiles] Error: could not write " .. PROFILES_PATH .. "; this will migrate again next launch"
+		)
+	end
 
-	-- A keyload naming a retired preset resolves to that profile's bindings here and to
-	-- nothing engine-side, so hand it the store rather than the file the store came from.
+	-- A keyload naming a retired preset resolves here and to nothing engine-side, so hand it the
+	-- store rather than the file the store came from.
 	local active = M.getActive()
 	local file = active and M.materialize(active)
 	if file then
@@ -540,14 +796,27 @@ local function migrate()
 	end
 end
 
+-- Each VFS.Include of this module gets a store of its own, so a surface that made no change
+-- has no way of knowing another one did.
+function M.invalidate()
+	stale = true
+end
+
 -- Reads the store once, migrating an older layout on the way in.
 function M.load()
-	if store then
+	if store and not stale then
 		return store
 	end
+	stale = false
 
 	local content = VFS.LoadFile(PROFILES_PATH)
 	if not content then
+		-- Migration is for a player who never had a store, not one whose file went missing mid-session:
+		-- re-running it would snapshot the live keymap as a new profile on every reload.
+		if store then
+			return store
+		end
+
 		migrate()
 		return store
 	end
@@ -556,6 +825,7 @@ function M.load()
 	local ok, decoded = pcall(Json.decode, content)
 	if not ok or type(decoded) ~= "table" or type(decoded.profiles) ~= "table" then
 		Spring.Echo("[keybind_profiles] could not decode " .. PROFILES_PATH .. "; starting empty")
+		backupFile(PROFILES_PATH, content)
 		store = emptyStore()
 		return store
 	end
@@ -564,11 +834,37 @@ function M.load()
 	storePredatesMeta = (tonumber(store.version) or 1) < 2
 	store.version = STORE_VERSION
 	-- A hand-edited file can repeat a name; keep the first so lookups stay unambiguous.
-	local seen, kept, inferred = {}, {}, false
+	local seen, kept, changed = {}, {}, false
 	for _, p in ipairs(store.profiles) do
 		if type(p) == "table" and type(p.name) == "string" and not seen[p.name] then
-			seen[p.name] = true
 			p.binds = type(p.binds) == "table" and p.binds or {}
+			if type(p.seeded) ~= "table" then
+				p.seeded = nil
+			end
+			-- A shipped profile is not the store to define.
+			if M.isBuiltin(p.name) then
+				local taken = p.name
+				local renamed = freeName(taken, function(name)
+					return seen[name] or M.isBuiltin(name)
+				end)
+				Spring.Echo(
+					"[keybind_profiles] "
+						.. PROFILES_PATH
+						.. " names a profile "
+						.. taken
+						.. ", which ships with the game; kept as "
+						.. renamed
+				)
+				p.binds = M.retargetSwitchBinds(p.binds, taken, renamed)
+				p.name = renamed
+				-- Otherwise the name goes back to what ships and the player lands on stock bindings.
+				if store.active == taken then
+					store.active = renamed
+				end
+				seen[taken] = true
+				changed = true
+			end
+			seen[p.name] = true
 			-- Said here rather than on the way out, where the emitter runs once per profile per
 			-- comparison and would repeat it all session.
 			if p.fakeMeta and not validFakeMeta(p.fakeMeta) then
@@ -582,19 +878,17 @@ function M.load()
 				)
 			end
 			p.fakeMeta = resolveFakeMeta(p.fakeMeta)
-			-- Which shipped profile it was forked from. Only a name that still ships means
-			-- anything: a retired one would have the editor comparing against nothing, so a
-			-- profile without a usable one is given the closest shipped profile instead, and
-			-- that is written back so every surface reads the same origin from then on.
+			-- Only a name that still ships means anything, so a profile without a usable one is given the
+			-- closest and that is written back.
 			if not M.baseIsUsable(p.basedOn, store.profiles) then
 				p.basedOn = M.inferBase(p)
-				inferred = inferred or p.basedOn ~= nil
+				changed = changed or p.basedOn ~= nil
 			end
 			kept[#kept + 1] = p
 		end
 	end
 	store.profiles = kept
-	if inferred or storePredatesMeta then
+	if changed or storePredatesMeta then
 		M.save()
 	end
 
@@ -645,9 +939,29 @@ function M.setActive(name)
 	return M.save()
 end
 
--- A keymap the player edited themselves, kept as a profile instead of overwritten the next
--- time one is applied. Whichever file the engine is pointed at, since a hand-set
--- KeybindingFile is the same player doing the same thing somewhere else.
+-- A default missing from a keymap we wrote was taken out by hand; one we did not write held none.
+local function offeredIn(text)
+	local written = store.written
+	if not written or generatedName(text) ~= written.name then
+		return nil
+	end
+
+	local source = M.get(written.name)
+	local offered, seen = {}, {}
+	for _, list in ipairs({ written.offered or {}, source and source.seeded or {} }) do
+		for _, action in ipairs(list) do
+			if not seen[action] then
+				seen[action] = true
+				offered[#offered + 1] = action
+			end
+		end
+	end
+
+	return #offered > 0 and offered or nil
+end
+
+-- Whichever file the engine is pointed at: a hand-set KeybindingFile is the same player doing
+-- the same thing somewhere else.
 function M.adoptEditedKeymap()
 	M.load()
 
@@ -657,14 +971,21 @@ function M.adoptEditedKeymap()
 		return nil
 	end
 
+	-- Ours, and untouched since we wrote it, so the store is the authority on what should load.
+	if store.written and store.written.stamp == stampOf(text) then
+		local name = M.activeName()
+		if name then
+			M.materialize(name)
+		end
+
+		return nil
+	end
+
+	-- Matching the whole keymap is the older, weaker test - it cannot tell a profile that changed
+	-- from a file that did - but it still says this is nobody edit.
 	local matched = matchesKnownProfile(text)
 	if matched then
-		-- A keymap still matching its profile is never rewritten, so the "fakemeta none" the
-		-- previous version wrote into every file would outlive the upgrade that gave the
-		-- profiles a meta key. Left until here so a file the player did edit is adopted first.
-		if storePredatesMeta then
-			M.materialize(matched)
-		end
+		M.materialize(matched)
 
 		return nil
 	end
@@ -676,7 +997,8 @@ function M.adoptEditedKeymap()
 
 	local previous = store.active
 	local name = nextCopyName(M.activeName() or "Custom")
-	store.profiles[#store.profiles + 1] = { name = name, binds = binds, fakeMeta = fakeMetaOf(text) }
+	store.profiles[#store.profiles + 1] =
+		{ name = name, binds = binds, fakeMeta = fakeMetaOf(text), seeded = offeredIn(text) }
 	store.active = name
 	if not M.save() then
 		table.remove(store.profiles)
@@ -695,55 +1017,54 @@ function M.adoptEditedKeymap()
 	return name
 end
 
--- The shipped profile a player's profile is closest to: the one it differs from on the
--- fewest actions, comparing each action's keysets as written. For a profile with no recorded
--- origin - imported, or made before origins were recorded - this stands in for one: a fork
--- of Grid differs from Grid on a handful of actions and from Legacy on a hundred, so the
--- closest is the right answer, and even a layout written from scratch is best measured
--- against whatever it most resembles.
-function M.inferBase(profile)
-	local ownSets = {}
-	for _, b in ipairs(profile.binds or {}) do
-		local set = ownSets[b.action]
+local function keysetsByAction(binds)
+	local out = {}
+	for _, b in ipairs(binds or {}) do
+		local key = actionKey(b.action)
+		local set = out[key]
 		if not set then
 			set = {}
-			ownSets[b.action] = set
+			out[key] = set
 		end
-		set[b.keyset:lower()] = true
+		set[keybindModel.canonicalKeyset(b.keyset)] = true
 	end
+
+	return out
+end
+
+local function sameKeysets(ours, theirs)
+	if not theirs then
+		return false
+	end
+
+	for keyset in pairs(ours) do
+		if not theirs[keyset] then
+			return false
+		end
+	end
+	for keyset in pairs(theirs) do
+		if not ours[keyset] then
+			return false
+		end
+	end
+
+	return true
+end
+
+-- The shipped profile a player's profile is closest to, standing in for an origin it never
+-- recorded: a fork of Grid differs from Grid on a handful of actions and from Legacy on a
+-- hundred.
+function M.inferBase(profile)
+	local ownSets = keysetsByAction(profile.binds)
 
 	local best, bestDiff
 	for _, builtin in ipairs(builtins) do
-		local theirSets = {}
-		for _, b in ipairs(builtin.binds or {}) do
-			local set = theirSets[b.action]
-			if not set then
-				set = {}
-				theirSets[b.action] = set
-			end
-			set[b.keyset:lower()] = true
-		end
+		local theirSets = keysetsByAction(builtin.binds)
 
 		local diff = 0
 		for action, set in pairs(ownSets) do
-			local theirs = theirSets[action]
-			if not theirs then
+			if not sameKeysets(set, theirSets[action]) then
 				diff = diff + 1
-			else
-				for keyset in pairs(set) do
-					if not theirs[keyset] then
-						diff = diff + 1
-						break
-					end
-				end
-				if diff == 0 or theirs then
-					for keyset in pairs(theirs) do
-						if not set[keyset] then
-							diff = diff + 1
-							break
-						end
-					end
-				end
 			end
 		end
 		for action in pairs(theirSets) do
@@ -760,12 +1081,10 @@ function M.inferBase(profile)
 	return best and best.name or nil
 end
 
--- The one value of `basedOn` that is not a profile's name: the player chose to compare the
--- profile with nothing, which loading must not turn back into a guess.
+-- The one value of `basedOn` that is not a profile name: the player chose to compare with none.
 local NO_BASE = "none"
 
--- Whether a profile's `basedOn` still says something: no comparison, a shipped profile, or
--- one of the player's own in the list given (the store's, so a later entry counts too).
+-- A later entry in the list given counts, so a profile may name one declared after it.
 function M.baseIsUsable(basedOn, profiles)
 	if type(basedOn) ~= "string" then
 		return false
@@ -782,10 +1101,7 @@ function M.baseIsUsable(basedOn, profiles)
 	return false
 end
 
--- The profile a profile is compared with: itself for a shipped one, the recorded fork or
--- the player's later choice for their own - a shipped profile or another of theirs. What an
--- editor compares against to say which keys the player changed. Nil when the player chose
--- none, or the profile it named is gone.
+-- What an editor compares against to say which keys the player changed.
 function M.baseOf(name)
 	local builtin = M.isBuiltin(name)
 	if builtin then
@@ -800,8 +1116,7 @@ function M.baseOf(name)
 	return M.isBuiltin(own.basedOn) or M.get(own.basedOn) or nil
 end
 
--- Records what one of the player's profiles is compared with: a shipped profile, another of
--- their own, or nothing at all (nil). False when either name is unknown.
+-- False when either name is unknown.
 function M.setBase(name, baseName)
 	M.load()
 	local i = indexOf(name)
@@ -816,15 +1131,16 @@ function M.setBase(name, baseName)
 	return M.save()
 end
 
--- Adds a profile of the player's own, without selecting it: whether it becomes the live one
--- depends on the keymap reaching disk, which only the caller finds out. Selecting it up front
--- would leave the picker naming a profile the engine never loaded when that write fails.
--- `basedOn` names the profile it was forked from; without one, the closest shipped profile
--- stands in.
+-- Without selecting it: whether it becomes the live one depends on the keymap reaching disk.
 function M.create(name, binds, fakeMeta, basedOn)
 	M.load()
 	name = M.uniqueName(name)
 	local profile = { name = name, binds = binds, fakeMeta = resolveFakeMeta(fakeMeta) }
+	-- Made from a keymap that already holds what the player kept of the defaults.
+	local seeded = allDefaultActions()
+	if #seeded > 0 then
+		profile.seeded = seeded
+	end
 	profile.basedOn = (basedOn and (M.isBuiltin(basedOn) or indexOf(basedOn))) and basedOn or M.inferBase(profile)
 	store.profiles[#store.profiles + 1] = profile
 	if not M.save() then
@@ -859,6 +1175,7 @@ function M.rename(oldName, newName)
 			p.basedOn = newName
 		end
 	end
+	retargetStore(oldName, newName)
 	if not M.save() then
 		Spring.Echo(
 			"[keybind_profiles] Error: could not write "
@@ -891,6 +1208,7 @@ function M.delete(name)
 			p.basedOn = M.inferBase(p)
 		end
 	end
+	retargetStore(name, nil)
 
 	return M.save()
 end
@@ -901,19 +1219,23 @@ function M.exportText(profile)
 	return toBindFile(profile)
 end
 
--- Every line of bind-file text with what the reader makes of it, for showing a player what
--- an import will take before it does: "bind" for a binding, "directive" for anything else
--- the reader acts on, "comment" for a comment or a blank line, "error" for a line it cannot
--- read and will drop. Follows readBindFile line for line, and counts the binds and the
--- errors with it.
+-- Console commands are shared with the slash they are typed with, which a bind file does not take.
+local function unslash(text)
+	return (text:gsub("[^\r\n]+", function(line)
+		return (line:gsub("^(%s*)/(%a)", "%1%2", 1))
+	end))
+end
+
+-- Every line of bind-file text with what the reader makes of it, for showing a player what an
+-- import will take before it does.
 function M.classifyBindFile(text)
-	local lines, binds, errors = {}, 0, 0
+	local lines, binds, errors, directives = {}, 0, 0, 0
 	if type(text) ~= "string" then
-		return lines, binds, errors
+		return lines, binds, errors, directives
 	end
 
 	for raw in (text:gsub("\r\n", "\n"):gsub("\r", "\n") .. "\n"):gmatch("([^\n]*)\n") do
-		local line = raw:gsub("//.*", ""):gsub("%s+$", "")
+		local line = unslash(raw):gsub("//.*", ""):gsub("%s+$", "")
 		local kind
 		if line:match("^%s*$") then
 			kind = "comment"
@@ -930,6 +1252,7 @@ function M.classifyBindFile(text)
 			or line:match("^%s*fakemeta")
 		then
 			kind = "directive"
+			directives = directives + 1
 		else
 			kind = "error"
 			errors = errors + 1
@@ -942,7 +1265,7 @@ function M.classifyBindFile(text)
 		lines[#lines] = nil
 	end
 
-	return lines, binds, errors
+	return lines, binds, errors, directives
 end
 
 -- The reverse: bind-file text, however it was produced, as binds plus the fakemeta key and
@@ -952,6 +1275,7 @@ function M.parseBindFile(text)
 		return nil
 	end
 
+	text = unslash(text)
 	local binds = readBindFile(text)
 	if not binds or #binds == 0 then
 		return nil
@@ -960,11 +1284,44 @@ function M.parseBindFile(text)
 	return binds, fakeMetaOf(text), generatedName(text)
 end
 
+-- Run against a keymap rather than read as one; the list handed in is left as it was.
+function M.applyBindText(binds, text)
+	if type(text) ~= "string" then
+		return nil
+	end
+
+	return readBindFile(unslash(text), nil, binds or {})
+end
+
+-- Our export is stamped with its name, and text starting from unbindall means to be a whole keymap.
+function M.isWholeProfile(text)
+	if type(text) ~= "string" then
+		return false
+	end
+	if generatedName(text) then
+		return true
+	end
+
+	for line in unslash(text):gmatch("[^\r\n]+") do
+		if line:gsub("//.*", ""):match("^%s*unbindall%s*$") then
+			return true
+		end
+	end
+
+	return false
+end
+
 -- Write a profile out where the engine can keyreload it, and return that path.
 function M.materialize(name)
-	local profile = M.get(name) or M.isBuiltin(name)
+	M.load()
+
+	local profile = M.isBuiltin(name) or M.get(name)
 	if not profile then
 		return nil
+	end
+
+	if not M.isBuiltin(name) then
+		seedWidgetDefaults(profile)
 	end
 
 	local file = io.open(ACTIVE_FILE, "w")
@@ -973,8 +1330,15 @@ function M.materialize(name)
 		return nil
 	end
 
-	file:write(toBindFile(profile))
+	local text = toBindFile(profile)
+	file:write(text)
 	file:close()
+
+	-- What the keymap held the last time it was ours. A file still holding this has not been
+	-- edited since, so the profile behind it can be rewritten over the top; one that does not
+	-- is the player's own work and is kept.
+	store.written = { name = name, stamp = stampOf(text), offered = allDefaultActions() }
+	M.save()
 
 	return ACTIVE_FILE
 end

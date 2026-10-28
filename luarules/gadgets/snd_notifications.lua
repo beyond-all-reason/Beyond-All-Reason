@@ -15,8 +15,14 @@ end
 
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
+local allyTeamOfTeam = {}
 local function GetAllyTeamID(teamID)
-	return select(6, Spring.GetTeamInfo(teamID, false))
+	local allyTeamID = allyTeamOfTeam[teamID]
+	if not allyTeamID then
+		allyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
+		allyTeamOfTeam[teamID] = allyTeamID
+	end
+	return allyTeamID
 end
 
 local function PlayersInAllyTeamID(allyTeamID)
@@ -78,7 +84,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		for k, v in pairs(nukeWeapons) do
-			Script.SetWatchProjectile(k, true)
+			gadgetHandler:RegisterProjectile(k)
+		end
+		if not next(nukeWeapons) then
+			gadgetHandler:RemoveCallIn("ProjectileCreated")
 		end
 	end
 
@@ -100,25 +109,23 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- NUKE LAUNCH
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		if nukeWeapons[Spring.GetProjectileDefID(proID)] then
-			local ownerTeamID = Spring.GetUnitTeam(proOwnerID)
-			if not ownerTeamID then
-				return
-			end
-			local ownerAllyTeamID = GetAllyTeamID(ownerTeamID)
+		local ownerTeamID = Spring.GetUnitTeam(proOwnerID)
+		if not ownerTeamID then
+			return
+		end
+		local ownerAllyTeamID = GetAllyTeamID(ownerTeamID)
 
-			local players = AllButAllyTeamID(ownerAllyTeamID)
-			for ct, player in pairs(players) do
-				if tostring(player) then
-					GG.notifications.queueNotification("NukeLaunched", "playerID", tostring(player))
-				end
+		local players = AllButAllyTeamID(ownerAllyTeamID)
+		for ct, player in pairs(players) do
+			if tostring(player) then
+				GG.notifications.queueNotification("NukeLaunched", "playerID", tostring(player))
 			end
+		end
 
-			local players = AlliedPlayersExceptTeamID(ownerAllyTeamID, ownerTeamID)
-			for ct, player in pairs(players) do
-				if tostring(player) then
-					GG.notifications.queueNotification("AlliedNukeLaunched", "playerID", tostring(player))
-				end
+		local players = AlliedPlayersExceptTeamID(ownerAllyTeamID, ownerTeamID)
+		for ct, player in pairs(players) do
+			if tostring(player) then
+				GG.notifications.queueNotification("AlliedNukeLaunched", "playerID", tostring(player))
 			end
 		end
 	end
@@ -222,6 +229,16 @@ else
 	end
 
 	local commanderLastDamaged = {}
+	local lastQueuedFrame = {}
+
+	-- the widget ignores repeats of an event within a frame
+	local function queueOncePerFrame(event)
+		local frame = Spring.GetGameFrame()
+		if lastQueuedFrame[event] ~= frame then
+			lastQueuedFrame[event] = frame
+			GG.notifications.queueNotification(event, "playerID", tostring(myPlayerID))
+		end
+	end
 
 	function gadget:UnitDamaged(
 		unitID,
@@ -245,7 +262,7 @@ else
 			and attackerTeam
 			and GetAllyTeamID(attackerTeam) ~= myAllyTeamID
 		then
-			GG.notifications.queueNotification("LrpcTargetUnits", "playerID", tostring(myPlayerID))
+			queueOncePerFrame("LrpcTargetUnits")
 		end
 		if isCommander[unitDefID] then
 			commanderLastDamaged[unitID] = Spring.GetGameFrame()
@@ -260,23 +277,21 @@ else
 				local health, maxhealth = Spring.GetUnitHealth(unitID)
 				local healthPercent = health / maxhealth
 				if healthPercent < 0.2 then
-					GG.notifications.queueNotification("ComHeavyDamage", "playerID", tostring(myPlayerID))
+					queueOncePerFrame("ComHeavyDamage")
 				else
-					GG.notifications.queueNotification("CommanderUnderAttack", "playerID", tostring(myPlayerID))
+					queueOncePerFrame("CommanderUnderAttack")
 				end
 			elseif isFactory[unitDefID] then
-				GG.notifications.queueNotification("FactoryUnderAttack", "playerID", tostring(myPlayerID))
+				queueOncePerFrame("FactoryUnderAttack")
 			elseif isBuilding[unitDefID] == true and not isMex[unitDefID] and isEconomy[unitDefID] then
-				GG.notifications.queueNotification("EconomyUnderAttack", "playerID", tostring(myPlayerID))
+				queueOncePerFrame("EconomyUnderAttack")
 			elseif isBuilding[unitDefID] == true and not isMex[unitDefID] and isDefenseTurret[unitDefID] then
-				GG.notifications.queueNotification("DefenseUnderAttack", "playerID", tostring(myPlayerID))
+				queueOncePerFrame("DefenseUnderAttack")
 			else
-				GG.notifications.queueNotification("UnitsUnderAttack", "playerID", tostring(myPlayerID))
+				queueOncePerFrame("UnitsUnderAttack")
 			end
 		end
 	end
-
-	function gadget:GameFrame(frame) end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		--local unitInView = Spring.IsUnitInView(unitID)

@@ -21,8 +21,9 @@ for _, ud in pairs(UnitDefs) do
 	ud.canParalyze = false
 	ud.canStockpile = false
 	ud.canAttackWater = false
-	ud.wDefs = table.new(#ud.weapons, 0)
-	for i, wt in ipairs(ud.weapons) do
+	local weapons = ud.weapons -- the engine builds a new table on every read
+	ud.wDefs = table.new(#weapons, 0)
+	for i, wt in ipairs(weapons) do
 		local wd = WeaponDefs[wt.weaponDef]
 		ud.wDefs[i] = wd
 		if wd then
@@ -77,5 +78,5 @@ end
 
 -- Run I18N initialization here in case any widgets try to look up unit names/descriptions outside of callins
 -- as that will happen before the gui_language widget gets a chance to run.
-local i18nDefs = VFS.Include("luaui/i18nhelpers.lua")
+local i18nDefs = require("luaui/i18nhelpers")
 i18nDefs.RefreshDefs()

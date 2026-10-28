@@ -53,13 +53,15 @@ end
 
 math_random = math.random -- not a local cause the includes below use it
 
-local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local blueprintController = VFS.Include("luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller.lua")
-local scavConfig = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
+local blueprintController = require("luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller")
+local positionCheckLibrary = require("luarules/Utilities/damgam_lib/position_checks")
+local scavConfig = require("luarules/configs/scav_spawn_defs")
 
 -- spawnAmountBudget scales ruin amounts with map area.
 local spawnAmountBudget = (math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3
 local blueprintTicksTotal = math.floor((spawnAmountBudget + 5) / math.ceil(5 / ruinDensityMultiplier))
+
+local lavaLevel = BAR.Lava.isLavaMap and BAR.Lava.level or -math.huge
 
 local unitHalfFootprint = {}
 local maxUnitHalfFootprint = 0
@@ -236,6 +238,36 @@ local function randomlyMirrorBlueprint(mirrored, direction, unitFacing)
 	end
 end
 
+-- Maps with a LuaGaia feature placer create their geovents after LuaRules has loaded, so the
+-- resource spot finder's geo list is empty for them. Collect the geovents ourselves in GamePreload.
+---@type { x: number, y: number, z: number }[]
+local geoSpots = {}
+local function findGeoSpots()
+	local geoFeatureDefs = {}
+	for defID, def in pairs(FeatureDefs) do
+		if def.geoThermal then
+			geoFeatureDefs[defID] = true
+		end
+	end
+	local spots = {}
+	local seen = {}
+	local features = Spring.GetAllFeatures()
+	for i = 1, #features do
+		if geoFeatureDefs[Spring.GetFeatureDefID(features[i])] then
+			local x, y, z = Spring.GetFeaturePosition(features[i])
+			if x and y and z then
+				-- some maps place each vent twice (SMF and LuaGaia featureplacer, e.g. Delta Siege Dry)
+				local key = math.floor(x / 16) * 65536 + math.floor(z / 16)
+				if not seen[key] then
+					seen[key] = true
+					spots[#spots + 1] = { x = x, y = y, z = z }
+				end
+			end
+		end
+	end
+	return spots
+end
+
 function getNearestBlocker(x, z)
 	local lowestDist = math.huge
 	local metalSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
@@ -251,17 +283,11 @@ function getNearestBlocker(x, z)
 			end
 		end
 	end
-	local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
-	if geoSpots then
-		for i = 1, #geoSpots do
-			local spot = geoSpots[i]
-			if spot then
-				local dx, dz = x - spot.x, z - spot.z
-				local dist = dx * dx + dz * dz
-				if dist < lowestDist then
-					lowestDist = dist
-				end
-			end
+	for _, spot in ipairs(geoSpots) do
+		local dx, dz = x - spot.x, z - spot.z
+		local dist = dx * dx + dz * dz
+		if dist < lowestDist then
+			lowestDist = dist
 		end
 	end
 	--Spring.Echo(lowestDist, math.sqrt(lowestDist))
@@ -306,12 +332,12 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 
 			local name = UnitDefs[building.unitDefID].name
 			local nonscavname = string.gsub(name, "_scav", "")
+			local bx = posx + (xOffset * flipX * mirrorX)
+			local bz = posz + (zOffset * flipZ * mirrorZ)
+			local posy = Spring.GetGroundHeight(bx, bz)
 			local r = math.random(1, 100)
-			if r < 40 and UnitDefNames[nonscavname] then
+			if r < 40 and posy > lavaLevel and UnitDefNames[nonscavname] then
 				local facing = (building.direction + rotation + mirrorRotation) % 4
-				local bx = posx + (xOffset * flipX * mirrorX)
-				local bz = posz + (zOffset * flipZ * mirrorZ)
-				local posy = Spring.GetGroundHeight(bx, bz)
 				local unit = createSnappedUnit(UnitDefNames[nonscavname].id, bx, posy, bz, facing, GaiaTeamID)
 				if unit then
 					local radarRange = UnitDefs[building.unitDefID].radarDistance
@@ -365,7 +391,8 @@ local function SpawnMexes(mexSpots)
 			end
 
 			local radius = 32
-			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+			local canBuildHere = posy > lavaLevel
+				and positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
 				posy,
 				posz,
@@ -403,10 +430,9 @@ local function SpawnMexes(mexSpots)
 end
 
 local SpawnedGeos = {}
-local function SpawnGeos(geoSpots)
-	for i = 1, #geoSpots do
+local function SpawnGeos()
+	for i, spot in ipairs(geoSpots) do
 		if math_random() <= ruinMexGeoChance then
-			local spot = geoSpots[i]
 			local posx = math.ceil(spot.x / 16) * 16
 			local posz = math.ceil(spot.z / 16) * 16
 			local posy = Spring.GetGroundHeight(posx, posz)
@@ -423,7 +449,8 @@ local function SpawnGeos(geoSpots)
 			posx, posy, posz = Spring.Pos2BuildPos(defID, posx, posy, posz, facing)
 
 			local radius = 32
-			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+			local canBuildHere = posy > lavaLevel
+				and positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
 				posy,
 				posz,
@@ -476,7 +503,8 @@ local function SpawnMexGeoRandomStructures()
 					end
 
 					local radius = 128
-					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+					local canBuildHere = posy2 > lavaLevel
+						and positionCheckLibrary.VisibilityCheckEnemy(
 						posx2,
 						posy2,
 						posz2,
@@ -519,11 +547,9 @@ local function SpawnMexGeoRandomStructures()
 		end
 	end
 
-	local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
-	if geoSpots and #geoSpots >= 1 then
-		for i = 1, #geoSpots do
+	if #geoSpots >= 1 then
+		for i, spot in ipairs(geoSpots) do
 			if SpawnedGeos[i] then
-				local spot = geoSpots[i]
 				for j = 1, SpawnedGeos[i] do
 					local posx2 = math.ceil((spot.x + math.random(-1024, 1024)) / 16) * 16
 					local posz2 = math.ceil((spot.z + math.random(-1024, 1024)) / 16) * 16
@@ -536,7 +562,8 @@ local function SpawnMexGeoRandomStructures()
 					end
 
 					local radius = 128
-					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+					local canBuildHere = posy2 > lavaLevel
+						and positionCheckLibrary.VisibilityCheckEnemy(
 						posx2,
 						posy2,
 						posz2,
@@ -594,7 +621,8 @@ local function SpawnRandomStructures()
 			end
 
 			local radius = 128
-			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+			local canBuildHere = posy > lavaLevel
+				and positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
 				posy,
 				posz,
@@ -720,9 +748,9 @@ function gadget:GamePreload()
 	end
 
 	-- spawn order affects placement success rates near resource spots
-	local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
-	if geoSpots and #geoSpots >= 1 then
-		SpawnGeos(geoSpots)
+	geoSpots = findGeoSpots()
+	if #geoSpots >= 1 then
+		SpawnGeos()
 	end
 
 	local firstHalfTicks = math.floor(blueprintTicksTotal * 0.5)
