@@ -37,6 +37,10 @@ local function withGameSetup(setup)
 	env.Spring.GetAllyTeamInfo = function(allyTeamID)
 		return setup.allyTeams[allyTeamID].keys
 	end
+	-- The engine adds Gaia's team after the start script's teams.
+	env.Spring.GetGaiaTeamID = function()
+		return #sortedIDs(setup.teams)
+	end
 end
 
 describe("mission_api.game_setup", function()
@@ -49,6 +53,7 @@ describe("mission_api.game_setup", function()
 			GetTeamInfo = env.Spring.GetTeamInfo,
 			GetAllyTeamList = env.Spring.GetAllyTeamList,
 			GetAllyTeamInfo = env.Spring.GetAllyTeamInfo,
+			GetGaiaTeamID = env.Spring.GetGaiaTeamID,
 			Log = env.Spring.Log,
 		}
 		logged = {}
@@ -131,9 +136,11 @@ describe("mission_api.game_setup", function()
 				[0] = "player",
 				[1] = "ally1",
 				[2] = "mainEnemy",
+				[4] = "gaia",
 				player = 0,
 				ally1 = 1,
 				mainEnemy = 2,
+				gaia = 4,
 			}, gameSetup.teams)
 			assert.are.same({ [0] = "goodies", [1] = "enemies", goodies = 0, enemies = 1 }, gameSetup.allyTeams)
 		end)
@@ -156,7 +163,31 @@ describe("mission_api.game_setup", function()
 			local gameSetup = readGameSetup()
 
 			assert.are.same({ [0] = 1, [1] = 3 }, gameSetup.dummyTeams)
-			assert.are.same({ [0] = "player", [2] = "mainEnemy", player = 0, mainEnemy = 2 }, gameSetup.teams)
+			assert.are.same(
+				{ [0] = "player", [2] = "mainEnemy", [4] = "gaia", player = 0, mainEnemy = 2, gaia = 4 },
+				gameSetup.teams
+			)
+		end)
+
+		it("logs an error for a team named 'gaia' and keeps the name for Gaia's team", function()
+			withGameSetup({
+				modOptions = { missionoptions = encodeMissionOptions([[{"entryPoint":"mission.lua"}]]) },
+				teams = {
+					[0] = { allyTeam = 0, keys = { name = "player" } },
+					[1] = { allyTeam = 1, keys = { name = "gaia" } },
+				},
+				allyTeams = { [0] = { keys = { name = "goodies" } }, [1] = { keys = {} } },
+			})
+
+			local gameSetup = readGameSetup()
+
+			assert.are.same({ [0] = "player", [2] = "gaia", player = 0, gaia = 2 }, gameSetup.teams)
+			assert.are.same({
+				{
+					level = LOG.ERROR,
+					message = "[Mission API] Team 1 is named 'gaia', the name reserved for Gaia's team",
+				},
+			}, logged)
 		end)
 
 		it("returns nil without logging when there is no missionoptions", function()

@@ -662,6 +662,40 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("Team", function()
+		local function validateTeam(team)
+			return V.validateAction({
+				type = V.actionTypes.SpawnUnits,
+				parameters = { unitLoadout = { { unitDefName = "armwar", team = team, x = 0, z = 0 } } },
+			})
+		end
+
+		before_each(function()
+			V.missionAPI().Teams = { rebels = 0, [0] = "rebels", gaia = 1, [1] = "gaia" }
+		end)
+
+		it("accepts a team ID", function()
+			V.assertValid(validateTeam(0))
+		end)
+
+		it("accepts a team name, Gaia's included", function()
+			V.assertValid(validateTeam("rebels"))
+			V.assertValid(validateTeam("gaia"))
+		end)
+
+		it("rejects an unknown team name", function()
+			V.assertMessage(validateTeam("Gaia"), "Invalid teamName: Gaia. Action: a, Parameter: unitLoadout[1].team")
+		end)
+
+		it("rejects a team ID that does not exist", function()
+			V.env.Spring.GetTeamAllyTeamID = function()
+				return nil
+			end
+
+			V.assertMessage(validateTeam(99), "Invalid teamID: 99. Action: a, Parameter: unitLoadout[1].team")
+		end)
+	end)
+
 	describe("VariableValue", function()
 		local function validateValue(value)
 			return V.validateAction({ type = V.actionTypes.WriteVariable, parameters = { key = "k", value = value } })
@@ -996,11 +1030,11 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("reports a field of the wrong type", function()
-			local result = validateUnitLoadout({ { unitDefName = "armwar", team = "notANumber", x = 0, z = 0 } })
+			local result = validateUnitLoadout({ { unitDefName = "armwar", team = true, x = 0, z = 0 } })
 
 			V.assertMessage(
 				result,
-				"Unexpected parameter type, expected number, got string. Action: a, Parameter: unitLoadout[1].team"
+				"Unexpected parameter type, expected number or string, got boolean. Action: a, Parameter: unitLoadout[1].team"
 			)
 		end)
 	end)

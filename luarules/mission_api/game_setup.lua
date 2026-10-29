@@ -26,6 +26,9 @@ local function readMissionOptions()
 	return missionOptions
 end
 
+-- Gaia's team ID is the team count, which changes when the client adds a team, so missions use this name.
+local GAIA_TEAM_NAME = "gaia"
+
 local function readTeams()
 	local teamNames, dummyTeams = {}, {}
 	for _, teamID in ipairs(Spring.GetTeamList()) do
@@ -33,11 +36,22 @@ local function readTeams()
 		if customKeys ~= nil then
 			if isDummyTeam(customKeys) then
 				dummyTeams[allyTeamID] = teamID
+			elseif customKeys.name == GAIA_TEAM_NAME then
+				Spring.Log(
+					"game_setup.lua",
+					LOG.ERROR,
+					"[Mission API] Team "
+						.. teamID
+						.. " is named '"
+						.. GAIA_TEAM_NAME
+						.. "', the name reserved for Gaia's team"
+				)
 			elseif customKeys.name ~= nil then
 				teamNames[teamID] = customKeys.name
 			end
 		end
 	end
+	teamNames[Spring.GetGaiaTeamID()] = GAIA_TEAM_NAME
 	return teamNames, dummyTeams
 end
 
@@ -71,7 +85,7 @@ end
 ---@field options table
 ---@field variables table
 ---@field persistentVariables table<string, true> the keys of the variables that came from the save
----@field teams table<integer|string, string|integer> team ID to name, and name to team ID
+---@field teams table<integer|string, string|integer> team ID to name, and name to team ID, Gaia's team as "gaia"
 ---@field allyTeams table<integer|string, string|integer> allyteam ID to name, and name to allyteam ID
 ---@field dummyTeams table<integer, integer> allyteam ID to its dummy team ID
 

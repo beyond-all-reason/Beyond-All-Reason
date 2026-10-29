@@ -490,7 +490,7 @@ local function registerSpatialValidators(parameterValidators, context)
 end
 
 --------------------------------------------------------------------------------
--- Team validators: TeamID, AllyTeamID and AllyTeamIDs
+-- Team validators: TeamID, Team, AllyTeamID and AllyTeamIDs
 --------------------------------------------------------------------------------
 
 local function registerTeamValidators(parameterValidators, context)
@@ -500,6 +500,16 @@ local function registerTeamValidators(parameterValidators, context)
 	parameterValidators[Types.TeamID] = getLookupValidator(validateNumber, "teamID", function(teamID)
 		return Spring.GetTeamAllyTeamID(teamID)
 	end)
+
+	parameterValidators[Types.Team] = function(team)
+		if type(team) == "string" then
+			return parameterValidators[Types.TeamName](team)
+		end
+		if type(team) ~= "number" then
+			return { { message = "Unexpected parameter type, expected number or string, got " .. type(team) } }
+		end
+		return parameterValidators[Types.TeamID](team)
+	end
 
 	parameterValidators[Types.AllyTeamID] = getLookupValidator(validateNumber, "allyTeamID", function(allyTeamID)
 		return table.contains(Spring.GetAllyTeamList(), allyTeamID)
@@ -792,7 +802,7 @@ local function registerLoadoutValidators(parameterValidators, context)
 	--- entry is not among them, since its x, y and z sit directly on the entry.
 	local unitEntryFields = {
 		{ name = "unitDefName", type = Types.UnitDefName, required = true },
-		{ name = "team", type = Types.TeamID, required = true },
+		{ name = "team", type = Types.Team, required = true },
 		{ name = "facing", type = Types.Facing },
 		{ name = "unitName", type = Types.String },
 		{ name = "construction", type = Types.Boolean },
