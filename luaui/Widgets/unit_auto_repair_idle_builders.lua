@@ -307,11 +307,10 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	for unitID in pairs(WG.InIdleWorkerTask) do
-		WG.InIdleWorkerTask[unitID] = nil
+	for unitID in pairs(activeRepairs) do
+		activeRepairs[unitID] = nil
 	end
 	idleBuilders = {}
-	activeRepairs = {}
 	reclaimBlacklist = {}
 	activeReclaimers = {}
 	seenReclaimers = {}
@@ -466,6 +465,16 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	if cmdID == CMD_REMOVE or (cmdID == CMD_INSERT and isAutomatic(cmdParams[3] or 0)) then
 		return
 	end
+	local reclaimTargetID = activeReclaimers[unitID] ---@as ObjectID?
+	if
+		reclaimTargetID
+		and not cmdOpts.shift
+		and cmdID ~= CMD_INSERT
+		and not (cmdID == CMD_RECLAIM and cmdParams[1] == reclaimTargetID)
+		and not isStateCommand(unitID, cmdID)
+	then
+		onReclaimerStopped(unitID)
+	end
 	if (idleBuilders[unitID] or activeRepairs[unitID]) and not isStateCommand(unitID, cmdID) then
 		releaseBuilder(unitID)
 	end
@@ -486,10 +495,16 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_RECLAIM and cmdParams and cmdParams[1] then
 		local targetID = cmdParams[1]
 		if targetID > 0 and #cmdParams == 1 and spValidUnitID(targetID) then
+			local hasReclaimer = false
 			for _, unitID in ipairs(selectedUnits) do
-				activeReclaimers[unitID] = targetID
+				if cachedUnitDefs[spGetUnitDefID(unitID)].canReclaim then
+					activeReclaimers[unitID] = targetID
+					hasReclaimer = true
+				end
 			end
-			reclaimBlacklist[targetID] = math.huge
+			if hasReclaimer then
+				reclaimBlacklist[targetID] = math.huge
+			end
 		end
 	end
 end
