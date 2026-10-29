@@ -4,6 +4,7 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 
 describe("mission_api.actions.pause", function()
 
+	---@type table
 	local calls
 
 	before_each(function()

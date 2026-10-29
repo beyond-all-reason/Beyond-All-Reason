@@ -32,6 +32,7 @@ describe("mission_api.objectives_loader", function()
 
 	describe("synthesized triggers and actions", function()
 		it("creates a trigger and an UpdateObjective action for an objective with a trigger", function()
+			---@type table<string, table>, table<string, table>
 			local rawTriggers, rawActions = {}, {}
 			objectivesLoader.ProcessRawObjectives({
 				killBot = {
@@ -56,6 +57,7 @@ describe("mission_api.objectives_loader", function()
 		end)
 
 		it("defaults parameters to an empty table when the trigger has none", function()
+			---@type table<string, table>
 			local rawTriggers = {}
 			objectivesLoader.ProcessRawObjectives({
 				obj = { textKey = "ok", trigger = { type = triggerTypes.UnitKilled } },
@@ -65,6 +67,7 @@ describe("mission_api.objectives_loader", function()
 		end)
 
 		it("marks the trigger as non-repeating when the objective has no amount", function()
+			---@type table<string, table>
 			local rawTriggers = {}
 			objectivesLoader.ProcessRawObjectives({
 				obj = { textKey = "ok", trigger = { type = triggerTypes.UnitKilled, parameters = {} } },
@@ -76,6 +79,7 @@ describe("mission_api.objectives_loader", function()
 		end)
 
 		it("repeats amount - 1 times for an objective with an amount above one", function()
+			---@type table<string, table>
 			local rawTriggers = {}
 			objectivesLoader.ProcessRawObjectives({
 				obj = { textKey = "ok", amount = 3, trigger = { type = triggerTypes.UnitKilled, parameters = {} } },
@@ -87,6 +91,7 @@ describe("mission_api.objectives_loader", function()
 		end)
 
 		it("repeats without a maxRepeats limit for an amount of one", function()
+			---@type table<string, table>
 			local rawTriggers = {}
 			objectivesLoader.ProcessRawObjectives({
 				obj = { textKey = "ok", amount = 1, trigger = { type = triggerTypes.UnitKilled, parameters = {} } },
@@ -98,6 +103,7 @@ describe("mission_api.objectives_loader", function()
 		end)
 
 		it("restricts the trigger to the stages the objective belongs to", function()
+			---@type table<string, table>
 			local rawTriggers = {}
 			objectivesLoader.ProcessRawObjectives(
 				{
@@ -117,6 +123,7 @@ describe("mission_api.objectives_loader", function()
 		end)
 
 		it("synthesizes nothing for objectives without a trigger", function()
+			---@type table<string, table>, table<string, table>
 			local rawTriggers, rawActions = {}, {}
 			objectivesLoader.ProcessRawObjectives({
 				obj = { textKey = "ok" },
@@ -134,6 +141,7 @@ describe("mission_api.objectives_loader", function()
 
 	describe("managed objectives", function()
 		it("registers statistics objectives instead of synthesizing a trigger and action", function()
+			---@type table<string, table>, table<string, table>
 			local rawTriggers, rawActions = {}, {}
 			objectivesLoader.ProcessRawObjectives({
 				ownBots = {

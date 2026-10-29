@@ -86,6 +86,7 @@ local function getMissionFileNames()
 	local handle = io.popen("ls " .. missionDirectory)
 	local fileNames = {}
 	for fileName in handle:lines() do
+		---@cast fileName string
 		if fileName:match("%.lua$") then
 			fileNames[#fileNames + 1] = fileName
 		end

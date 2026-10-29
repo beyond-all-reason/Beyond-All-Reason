@@ -23,6 +23,7 @@ end
 
 describe("mission_api.actions.reclaim_units", function()
 
+	---@type table, table
 	local destroyCalls, addResourceCalls
 
 	before_each(function()

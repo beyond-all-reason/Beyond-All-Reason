@@ -41,6 +41,7 @@ local SENSOR_ALLY, OTHER_ALLY, GAIA_ALLY = 0, 1, 2
 describe("mission_api.triggers.unit_undetected", function()
 	-- The latch lives in detection_levels, keyed by triggerID, and the spec harness caches
 	-- includes, so IDs run forward across the whole file rather than restarting per test.
+	---@type table<integer, table<integer, integer>>
 	local losStatus
 	local nextTriggerID, nextUnitID = 0, 2000
 

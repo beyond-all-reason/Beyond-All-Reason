@@ -118,15 +118,15 @@ function MissionSpecEnv.registerModules(env)
 	GG["MissionAPI"] = GG["MissionAPI"] or {}
 	local modules = GG["MissionAPI"].Modules or {}
 	GG["MissionAPI"].Modules = modules
-	local function include(path)
+	local function includeModule(path)
 		return SpecEnv.include(env, path)
 	end
-	modules.ParameterTypes = modules.ParameterTypes or include("luarules/mission_api/parameter_types.lua")
-	modules.Difficulty = modules.Difficulty or include("luarules/mission_api/difficulty.lua")
-	modules.Variables = modules.Variables or include("luarules/mission_api/variables.lua")
-	modules.UnitQuery = modules.UnitQuery or include("luarules/mission_api/unit_query.lua")
-	modules.SeismicContacts = modules.SeismicContacts or include("luarules/mission_api/seismic_contacts.lua")
-	modules.DetectionLevels = modules.DetectionLevels or include("luarules/mission_api/detection_levels.lua")
+	modules.ParameterTypes = modules.ParameterTypes or includeModule("luarules/mission_api/parameter_types.lua")
+	modules.Difficulty = modules.Difficulty or includeModule("luarules/mission_api/difficulty.lua")
+	modules.Variables = modules.Variables or includeModule("luarules/mission_api/variables.lua")
+	modules.UnitQuery = modules.UnitQuery or includeModule("luarules/mission_api/unit_query.lua")
+	modules.SeismicContacts = modules.SeismicContacts or includeModule("luarules/mission_api/seismic_contacts.lua")
+	modules.DetectionLevels = modules.DetectionLevels or includeModule("luarules/mission_api/detection_levels.lua")
 	return modules
 end
 

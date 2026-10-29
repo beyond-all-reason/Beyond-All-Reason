@@ -40,6 +40,7 @@ local function withGameSetup(setup)
 end
 
 describe("mission_api.game_setup", function()
+	---@type table, table
 	local saved, logged
 
 	before_each(function()

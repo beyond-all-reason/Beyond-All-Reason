@@ -28,7 +28,7 @@ describe("mission_api.triggers.transport_unloaded", function()
 			ActivateTrigger = function()
 				fired = fired + 1
 			end,
-			DoesUnitHaveName = function()
+			DoesUnitHaveName = function(_unitID)
 				return true
 			end,
 		}

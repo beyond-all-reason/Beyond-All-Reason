@@ -19,7 +19,7 @@ local env = MissionSpecEnv.new()
 local previousMissionAPI = GG["MissionAPI"]
 local modules = MissionSpecEnv.registerModules(env)
 local definitions = {
-	ParameterTypes = modules.ParameterTypes,
+	ParameterTypes = modules.ParameterTypes --[[@as table<string, any>]],
 	ActionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua").LoadActionDefinitions(),
 	TriggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
 		.LoadTriggerDefinitions(),
@@ -61,7 +61,6 @@ function helper.mockEngineGlobals()
 	env.WeaponDefNames = {}
 end
 
---- @return MissionBuilder
 function helper.mission()
 	return MissionBuilder.new()
 end

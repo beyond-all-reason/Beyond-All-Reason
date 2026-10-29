@@ -21,7 +21,9 @@ local INLOS, INRADAR, PREVLOS, CONTRADAR = 1, 2, 4, 8
 local UNSEEN, SEISMIC, RADAR, IDENTIFIED, VISION = 1, 2, 4, 8, 16
 
 describe("mission_api.detection_levels", function()
+	---@type table
 	local DetectionLevels
+	---@type table<integer, integer>
 	local losStatusByAllyTeam
 	local triggerID = "detected"
 
@@ -141,6 +143,7 @@ describe("mission_api.detection_levels", function()
 	describe("the latch", function()
 		local FIRES_ON_DETECTED, FIRES_ON_UNDETECTED = true, false
 
+		---@type table
 		local context
 		local trigger
 
@@ -241,6 +244,7 @@ describe("mission_api.detection_levels", function()
 	describe("the sweep cache", function()
 		local FIRES_ON_DETECTED, FIRES_ON_UNDETECTED = true, false
 
+		---@type table
 		local context
 		local losStateReads
 

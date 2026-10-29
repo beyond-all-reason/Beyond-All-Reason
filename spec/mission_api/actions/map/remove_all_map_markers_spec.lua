@@ -13,6 +13,7 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 
 describe("mission_api.actions.remove_all_map_markers", function()
 
+	---@type table, table, table
 	local missionApi, eraseCalls, sendCommandsCalls
 
 	before_each(function()

@@ -21,6 +21,7 @@ local onUnitBuildStep = constructionProgress.callins.UnitBuildStepPost
 local onMetaUnitRemoved = constructionProgress.callins.MetaUnitRemoved
 
 describe("mission_api.triggers.construction_progress", function()
+	---@type table<integer, table>
 	local world -- The trigger tracks units so that decay and reclaim do not rearm them.
 
 	before_each(function()

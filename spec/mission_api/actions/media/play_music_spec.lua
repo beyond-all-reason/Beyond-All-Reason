@@ -28,7 +28,7 @@ describe("mission_api.actions.play_music", function()
 				end,
 			}
 
-			assert.has_no.errors(function()
+			assert.has_no.error(function()
 				action.actionFunction("music/track.ogg")
 			end)
 

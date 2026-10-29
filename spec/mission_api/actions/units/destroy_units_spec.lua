@@ -21,6 +21,7 @@ end
 
 describe("mission_api.actions.destroy_units", function()
 
+	---@type table
 	local destroyCalls
 
 	before_each(function()

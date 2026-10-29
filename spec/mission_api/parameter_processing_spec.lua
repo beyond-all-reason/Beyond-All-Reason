@@ -113,7 +113,7 @@ describe("mission_api.parameter_processing", function()
 				parameters = { soundfile = "sounds/beep.wav" },
 			})
 
-			assert.are.equal(1.5, GG["MissionAPI"].soundFiles["sounds/beep.wav"])
+			assert.are.equal(1.5, (GG["MissionAPI"] --[[@as table<string, any>]]).soundFiles["sounds/beep.wav"])
 		end)
 	end)
 
@@ -138,7 +138,7 @@ describe("mission_api.parameter_processing", function()
 	end)
 
 	it("processes an action without parameters", function()
-		assert.has_no.errors(function()
+		assert.has_no.error(function()
 			processAction({ type = actionTypes.Victory })
 		end)
 	end)

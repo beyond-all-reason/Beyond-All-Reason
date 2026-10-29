@@ -8,6 +8,7 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 
 describe("mission_api.actions.change_stage", function()
 
+	---@type table
 	local changeStageCalls
 
 	before_each(function()

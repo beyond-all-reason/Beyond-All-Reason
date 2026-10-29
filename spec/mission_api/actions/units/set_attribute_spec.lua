@@ -3,6 +3,7 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
+---@type table, table
 local queried, queryResult
 local unitQuerySpy = {
 	MatchingUnits = function(unitName, unitDefName, teamID)
