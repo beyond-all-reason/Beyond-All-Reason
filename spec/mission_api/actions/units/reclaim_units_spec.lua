@@ -7,7 +7,7 @@ local env = MissionSpecEnv.new()
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 MissionApiBuilder.new():Install()
 
-_G.UnitDefs = {}
+env.UnitDefs = {}
 
 local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/units/reclaim_units.lua")
 local action = actions[1]
@@ -36,7 +36,7 @@ describe("mission_api.actions.reclaim_units", function()
 		env.Spring.GetUnitDefID = function(unitID)
 			return 7
 		end
-		_G.UnitDefs = { [7] = { metalCost = 150, energyCost = 900 } }
+		env.UnitDefs = { [7] = { metalCost = 150, energyCost = 900 } }
 		destroyCalls = env.Spring.calls.destroyUnit
 		addResourceCalls = env.Spring.calls.addTeamResource
 	end)

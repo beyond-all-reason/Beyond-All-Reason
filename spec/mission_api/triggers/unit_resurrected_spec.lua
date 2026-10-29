@@ -15,11 +15,9 @@ local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armpw" },
 	[2] = { name = "corfast" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
-_G.Engine = _G.Engine or {}
-_G.Engine.FeatureSupport = _G.Engine.FeatureSupport or {}
-_G.Engine.FeatureSupport.noOffsetForFeatureID = true
+env.Engine = { FeatureSupport = { noOffsetForFeatureID = true } }
 
 local unitResurrected = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_resurrected.lua")
 local onUnitCreated = unitResurrected.callins.UnitCreated
@@ -102,7 +100,7 @@ describe("mission_api.triggers.unit_resurrected", function()
 	end)
 
 	it("offsets the featureID by Game.maxUnits on engines without native support", function()
-		Engine.FeatureSupport.noOffsetForFeatureID = false
+		env.Engine.FeatureSupport.noOffsetForFeatureID = false
 		local seenFeatureID
 		env.Spring.GetUnitWorkerTask = function()
 			return CMD.RESURRECT, env.Game.maxUnits + 42

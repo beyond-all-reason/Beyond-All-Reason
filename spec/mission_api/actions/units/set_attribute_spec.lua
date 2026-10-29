@@ -43,7 +43,7 @@ end
 describe("mission_api.actions.set_attribute", function()
 	before_each(function()
 		calls, queried, queryResult = {}, {}, {}
-		_G.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } } ---@diagnostic disable-line: global-in-non-module
+		env.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } }
 	end)
 
 	describe("SetUnitDefAttribute", function()

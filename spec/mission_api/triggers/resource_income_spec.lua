@@ -103,7 +103,7 @@ describe("mission_api.triggers.resource_income", function()
 		env.Spring.GetUnitDefID = function()
 			return 1
 		end
-		_G.UnitDefs = extractorUnitDefs()
+		env.UnitDefs = extractorUnitDefs()
 		env.Spring.GetTeamUnits = function()
 			return { 1 }
 		end
@@ -123,7 +123,7 @@ describe("mission_api.triggers.resource_income", function()
 
 	it("filters by source: extractor income alone", function()
 		local context, fired = newContext()
-		_G.UnitDefs = extractorUnitDefs()
+		env.UnitDefs = extractorUnitDefs()
 		env.Spring.GetTeamUnits = function()
 			return { 1 }
 		end
@@ -171,7 +171,7 @@ describe("mission_api.triggers.resource_income", function()
 		-- Extractor income is metal-only per the trigger; requesting extractor-sourced
 		-- energy income should never exceed a positive threshold.
 		local context, fired = newContext()
-		_G.UnitDefs = extractorUnitDefs()
+		env.UnitDefs = extractorUnitDefs()
 		env.Spring.GetTeamUnits = function()
 			return { 1 }
 		end

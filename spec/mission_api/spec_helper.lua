@@ -4,10 +4,6 @@
 
 local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 
--- A spec that needs defs installs its own before loading.
-_G.UnitDefs = _G.UnitDefs or {}
-_G.WeaponDefs = _G.WeaponDefs or {}
-
 -- math.bit_and is one of Recoil's MathExtra additions, not standard Lua, so it needs a
 -- stand-in here. Engine-side it takes a varargs list and folds it over 24-bit integers.
 local function bitAnd(...)
@@ -78,6 +74,9 @@ function MissionSpecEnv.new(overrides)
 		math = { bit_and = bitAnd },
 		CMD = commandIDs(),
 		Spring = teamLayout(),
+		-- A spec that needs defs sets its own on the env.
+		UnitDefs = {},
+		WeaponDefs = {},
 	}
 
 	for name, value in pairs(overrides or {}) do

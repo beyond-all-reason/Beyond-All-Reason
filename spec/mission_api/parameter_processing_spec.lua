@@ -40,9 +40,9 @@ describe("mission_api.parameter_processing", function()
 			return GROUND_HEIGHT
 		end
 
-		originalUnitDefNames = _G.UnitDefNames
+		originalUnitDefNames = env.UnitDefNames
 		originalReadWAV = env.ReadWAV
-		_G.UnitDefNames = { armwar = { id = 7 } }
+		env.UnitDefNames = { armwar = { id = 7 } }
 		env.ReadWAV = function()
 			return { Length = 1.5 }
 		end
@@ -50,7 +50,7 @@ describe("mission_api.parameter_processing", function()
 
 	after_each(function()
 		GG["MissionAPI"] = nil
-		_G.UnitDefNames = originalUnitDefNames
+		env.UnitDefNames = originalUnitDefNames
 		env.ReadWAV = originalReadWAV
 	end)
 

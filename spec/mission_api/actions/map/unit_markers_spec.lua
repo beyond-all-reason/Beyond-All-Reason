@@ -38,7 +38,7 @@ describe("mission_api.actions.unit_markers", function()
 			:WithTrackedUnit("squad", 11)
 			:Install(env)
 		env.Spring = SpringSyncedBuilder.new():Build()
-		_G.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } } ---@diagnostic disable-line: global-in-non-module
+		env.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } }
 		env.Spring.GetTeamUnitsByDefs = function(teamID, unitDefID)
 			if teamID == 0 and unitDefID == 7 then
 				return { 11 }

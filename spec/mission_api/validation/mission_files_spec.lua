@@ -18,9 +18,9 @@ local function mockDefNames()
 			return { id = 1 }
 		end,
 	})
-	_G.UnitDefNames = anyDefName
-	_G.FeatureDefNames = anyDefName
-	_G.WeaponDefNames = anyDefName
+	V.env.UnitDefNames = anyDefName
+	V.env.FeatureDefNames = anyDefName
+	V.env.WeaponDefNames = anyDefName
 end
 
 --- The engine CMD table maps both ways: name -> id and id -> name.

@@ -56,9 +56,9 @@ function helper.mockEngineGlobals()
 	env.Spring.GetAllyTeamList = function()
 		return { 0 }
 	end
-	_G.UnitDefNames = { armwar = { id = 1 } }
-	_G.FeatureDefNames = { rockdef = { id = 1 } }
-	_G.WeaponDefNames = {}
+	env.UnitDefNames = { armwar = { id = 1 } }
+	env.FeatureDefNames = { rockdef = { id = 1 } }
+	env.WeaponDefNames = {}
 end
 
 --- @return MissionBuilder

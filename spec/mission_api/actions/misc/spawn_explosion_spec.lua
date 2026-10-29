@@ -7,7 +7,7 @@ GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
 GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 
-_G.WeaponDefNames = {}
+env.WeaponDefNames = {}
 
 local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/misc/spawn_explosion.lua")
 local action = actions[1]
@@ -17,7 +17,7 @@ describe("mission_api.actions.spawn_explosion", function()
 
 	before_each(function()
 		env.Spring = SpringSyncedBuilder.new():Build()
-		_G.WeaponDefNames = {
+		env.WeaponDefNames = {
 			bomb = {
 				id = 42,
 				damages = { [0] = 500 },
