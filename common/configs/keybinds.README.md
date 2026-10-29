@@ -218,10 +218,12 @@ three namespaces above and none of that.
 
 ## Widget-declared actions
 
-A widget from the widget hub can declare bindable actions, their labels and their default keys
-in its `manifest.json`, in the format the hub's manifest schema sets. Each loaded widget gets an
-editor category of its own. A shipped profile adds the defaults it lacks every time it is
-written; a player's profile takes each one once and records it under `seeded`, so one the
+A widget in a folder of its own, shipped with the game or from the widget hub, can declare
+bindable actions, their labels and their default keys in its `manifest.json`, in the format the
+hub's manifest schema sets. Labels resolve under `widgets.<id>.` from the widget's
+`localizations.json`. Each loaded widget gets an editor category of its own under Widgets, and
+its actions are hidden while it is off. A shipped profile adds the defaults it lacks every time
+it is written; a player's profile takes each one once and records it under `seeded`, so one the
 player removes stays removed.
 
 `defaultKeysets` is the one list every profile gets, and most actions need nothing else. An

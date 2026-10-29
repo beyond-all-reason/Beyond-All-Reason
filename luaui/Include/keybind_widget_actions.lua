@@ -2,7 +2,9 @@
 
 local WidgetManifests = require("modules/widgets/manifests", nil, VFS.ZIP)
 
-local USER_WIDGET_FOLDERS = { "LuaUI/Widgets/", "LuaUI/RmlWidgets/" }
+local WIDGET_FOLDERS = { "LuaUI/Widgets/", "LuaUI/RmlWidgets/" }
+-- Game first, so a player's widget can't claim a shipped id.
+local VFS_MODES = { VFS.ZIP, VFS.RAW }
 
 local M = {}
 
@@ -266,7 +268,7 @@ function M.manifests()
 
 	local shared = WG.widgetManifests
 	if not shared then
-		local widgets, warnings = WidgetManifests.Discover(USER_WIDGET_FOLDERS, VFS.RAW)
+		local widgets, warnings = WidgetManifests.Discover(WIDGET_FOLDERS, VFS_MODES)
 		for _, warning in ipairs(warnings) do
 			Spring.Echo("[keybinds] " .. warning)
 		end
