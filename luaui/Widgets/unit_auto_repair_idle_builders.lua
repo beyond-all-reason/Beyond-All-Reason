@@ -29,6 +29,7 @@ local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local spValidUnitID = Spring.ValidUnitID
 local spGetGameFrame = Spring.GetGameFrame
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -60,6 +61,7 @@ local LEASH_EXTRA = {
 local DEFAULT_LEASH_EXTRA = 100
 local POLL_INTERVAL = Game.gameSpeed
 local RECLAIM_BLACKLIST_DURATION = 60 * Game.gameSpeed
+local PENDING_TIMEOUT = 2.5 * Game.gameSpeed
 
 ----------------------------------------------------------------
 -- Static lookup (built once from UnitDefs)
@@ -204,8 +206,6 @@ local function sendHome(builderID, info)
 	if repairTag then
 		spGiveOrderToUnit(builderID, CMD_REMOVE, repairTag)
 	end
-	spGiveOrderToUnit(builderID, CMD_MOVE, { info.homeX, info.homeY, info.homeZ }, CMD_OPT_INTERNAL + CMD_OPT_SHIFT)
-	pendingHomes[builderID] = { x = info.homeX, z = info.homeZ }
 	info.returning = true
 end
 
@@ -359,7 +359,7 @@ function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	end
 
 	onReclaimerStopped(unitID)
-	if pendingHomes[unitID] or not isMobileBuilder[unitDefID] then
+	if not isMobileBuilder[unitDefID] then
 		return
 	end
 
@@ -424,7 +424,7 @@ end
 
 local function releaseBuilder(unitID)
 	local active = activeRepairs[unitID] ---@as table?
-	if active and active.returning then
+	if active then
 		removeQueuedHome(unitID, active.homeX, active.homeZ)
 	end
 	if idleBuilders[unitID] or active then
@@ -449,9 +449,8 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	if cmdOpts.internal then
 		if cmdID == CMD_REPAIR and cmdParams[1] == pendingRepairs[unitID] then
 			pendingRepairs[unitID] = nil
-			if spGetUnitCommandCount(unitID) > 0 then
+			if not activeRepairs[unitID] then
 				removeRepairs[unitID] = cmdParams[1]
-				removeBuilder(unitID)
 			end
 		elseif cmdID == CMD_MOVE and pendingHomes[unitID] then
 			local home = pendingHomes[unitID]
@@ -532,12 +531,26 @@ function widget:GameFrame(frame)
 		local wantsCloak = (cloakState and cloakState == 1)
 		if not isUnitAlive(builderID) then
 			activeRepairs[builderID] = nil
+		elseif pendingRepairs[builderID] then
+			if frame - info.orderFrame >= PENDING_TIMEOUT then
+				-- Command probably refused in gadget:AllowCommand
+				pendingRepairs[builderID] = nil
+				pendingHomes[builderID] = nil
+				activeRepairs[builderID] = nil
+				if spGetUnitCommandCount(builderID) == 0 then
+					idleBuilders[builderID] = { homeX = info.homeX, homeY = info.homeY, homeZ = info.homeZ }
+				end
+			end
 		elseif info.returning then
-			if not pendingHomes[builderID] and not getHomeTag(builderID, info) then
+			if not getHomeTag(builderID, info) then
 				activeRepairs[builderID] = nil
 			end
 		elseif not getRepairTag(builderID, info.targetID) then
-			activeRepairs[builderID] = nil
+			if getHomeTag(builderID, info) then
+				info.returning = true
+			else
+				activeRepairs[builderID] = nil
+			end
 		elseif not isUnitAlive(info.targetID) or reclaimBlacklist[info.targetID] or wantsCloak then
 			sendHome(builderID, info)
 		else
@@ -615,14 +628,19 @@ function widget:GameFrame(frame)
 					seenReclaimers[allyReclaimerID] = true
 					reclaimBlacklist[bestTarget] = math.huge
 				else
-					spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget, CMD_OPT_INTERNAL + CMD_OPT_SHIFT)
+					spGiveOrderArrayToUnit(builderID, {
+						{ CMD_REPAIR, bestTarget, CMD_OPT_INTERNAL + CMD_OPT_SHIFT },
+						{ CMD_MOVE, { homePos.homeX, homePos.homeY, homePos.homeZ }, CMD_OPT_INTERNAL + CMD_OPT_SHIFT },
+					})
 					pendingRepairs[builderID] = bestTarget
+					pendingHomes[builderID] = { x = homePos.homeX, z = homePos.homeZ }
 
 					activeRepairs[builderID] = {
 						targetID = bestTarget,
 						homeX = homePos.homeX,
 						homeY = homePos.homeY,
 						homeZ = homePos.homeZ,
+						orderFrame = frame,
 					}
 					idleBuilders[builderID] = nil
 				end
