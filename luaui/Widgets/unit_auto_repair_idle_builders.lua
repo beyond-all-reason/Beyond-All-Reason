@@ -111,7 +111,7 @@ local myTeam = spGetMyTeamID()
 -- [unitID] = { homeX, homeY, homeZ }
 local idleBuilders = {}
 
--- [builderID] = { targetID, homeX, homeY, homeZ, returning }
+-- [builderID] = { targetID, homeX, homeY, homeZ, orderFrame, returning }
 local activeRepairs = table.ensureTable(WG, "InIdleWorkerTask")
 
 -- [unitID] = expiryFrame
@@ -129,14 +129,19 @@ local pendingRepairs = {}
 -- [builderID] = targetID
 local removeRepairs = {}
 
--- [builderID] = { x, z }
+-- [builderID] = { homeX, homeY, homeZ }
 local pendingHomes = {}
 
--- [builderID] = { x, z }
+-- [builderID] = { homeX, homeY, homeZ }
 local removeHomes = {}
 
 -- [cmdID] = boolean
 local stateCommands = {}
+
+local repairOrders = {
+	{ CMD_REPAIR, 0, CMD_OPT_INTERNAL + CMD_OPT_SHIFT },
+	{ CMD_MOVE, { 0, 0, 0 }, CMD_OPT_INTERNAL + CMD_OPT_SHIFT },
+}
 
 ----------------------------------------------------------------
 -- Helpers
@@ -201,8 +206,8 @@ local function getHomeTag(builderID, info)
 	end
 end
 
-local function sendHome(builderID, info)
-	local repairTag = getRepairTag(builderID, info.targetID)
+local function sendHome(builderID, info, repairTag)
+	repairTag = repairTag or getRepairTag(builderID, info.targetID)
 	if repairTag then
 		spGiveOrderToUnit(builderID, CMD_REMOVE, repairTag)
 	end
@@ -453,7 +458,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 			end
 		elseif cmdID == CMD_MOVE and pendingHomes[unitID] then
 			local home = pendingHomes[unitID]
-			if cmdParams[1] == home.x and cmdParams[3] == home.z then
+			if cmdParams[1] == home.homeX and cmdParams[3] == home.homeZ then
 				pendingHomes[unitID] = nil
 				if not activeRepairs[unitID] then
 					removeHomes[unitID] = home
@@ -518,7 +523,7 @@ function widget:GameFrame(frame)
 		removeRepairs[builderID] = nil
 	end
 	for builderID, home in pairs(removeHomes) do
-		removeQueuedHome(builderID, home.x, home.z)
+		removeQueuedHome(builderID, home.homeX, home.homeZ)
 		removeHomes[builderID] = nil
 	end
 
@@ -542,8 +547,6 @@ function widget:GameFrame(frame)
 
 	-- Monitor active repairs
 	for builderID, info in pairs(activeRepairs) do
-		local cloakState = spGetUnitRulesParam(builderID, "wantcloak")
-		local wantsCloak = (cloakState and cloakState == 1)
 		if not isUnitAlive(builderID) then
 			activeRepairs[builderID] = nil
 		elseif pendingRepairs[builderID] then
@@ -560,26 +563,31 @@ function widget:GameFrame(frame)
 			if not getHomeTag(builderID, info) then
 				activeRepairs[builderID] = nil
 			end
-		elseif not getRepairTag(builderID, info.targetID) then
-			if getHomeTag(builderID, info) then
-				info.returning = true
-			else
-				activeRepairs[builderID] = nil
-			end
-		elseif not isUnitAlive(info.targetID) or reclaimBlacklist[info.targetID] or wantsCloak then
-			sendHome(builderID, info)
 		else
-			local health, maxHealth = spGetUnitHealth(info.targetID)
-			if health and maxHealth and health >= maxHealth then
-				-- Repair complete
-				sendHome(builderID, info)
+			local repairTag = getRepairTag(builderID, info.targetID)
+			if not repairTag then
+				if getHomeTag(builderID, info) then
+					info.returning = true
+				else
+					activeRepairs[builderID] = nil
+				end
+			elseif
+				not isUnitAlive(info.targetID)
+				or reclaimBlacklist[info.targetID]
+				or spGetUnitRulesParam(builderID, "wantcloak") == 1
+			then
+				sendHome(builderID, info, repairTag)
 			else
-				local unitDefID = spGetUnitDefID(info.targetID)
-				local unitDef = cachedUnitDefs[unitDefID]
-				-- Check if target will leave leash radius before the next poll
-				local leash = getLeashRadius(builderID) + unitDef.radius
-				if willExitLeash(info.targetID, info.homeX, info.homeZ, leash) then
-					sendHome(builderID, info)
+				local health, maxHealth = spGetUnitHealth(info.targetID)
+				if health and maxHealth and health >= maxHealth then
+					sendHome(builderID, info, repairTag) -- Repair complete
+				else
+					local unitDefID = spGetUnitDefID(info.targetID)
+					local unitDef = cachedUnitDefs[unitDefID]
+					local leash = getLeashRadius(builderID) + unitDef.radius
+					if willExitLeash(info.targetID, info.homeX, info.homeZ, leash) then
+						sendHome(builderID, info, repairTag)
+					end
 				end
 			end
 		end
@@ -643,20 +651,16 @@ function widget:GameFrame(frame)
 					seenReclaimers[allyReclaimerID] = true
 					reclaimBlacklist[bestTarget] = math.huge
 				else
-					spGiveOrderArrayToUnit(builderID, {
-						{ CMD_REPAIR, bestTarget, CMD_OPT_INTERNAL + CMD_OPT_SHIFT },
-						{ CMD_MOVE, { homePos.homeX, homePos.homeY, homePos.homeZ }, CMD_OPT_INTERNAL + CMD_OPT_SHIFT },
-					})
-					pendingRepairs[builderID] = bestTarget
-					pendingHomes[builderID] = { x = homePos.homeX, z = homePos.homeZ }
+					local homeParams = repairOrders[2][2]
+					repairOrders[1][2] = bestTarget
+					homeParams[1], homeParams[2], homeParams[3] = homePos.homeX, homePos.homeY, homePos.homeZ
+					spGiveOrderArrayToUnit(builderID, repairOrders)
 
-					activeRepairs[builderID] = {
-						targetID = bestTarget,
-						homeX = homePos.homeX,
-						homeY = homePos.homeY,
-						homeZ = homePos.homeZ,
-						orderFrame = frame,
-					}
+					homePos.targetID = bestTarget
+					homePos.orderFrame = frame
+					pendingRepairs[builderID] = bestTarget
+					pendingHomes[builderID] = homePos
+					activeRepairs[builderID] = homePos
 					idleBuilders[builderID] = nil
 				end
 			end
