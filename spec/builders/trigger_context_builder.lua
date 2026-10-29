@@ -66,8 +66,9 @@ function TCB:Build()
 	local instance = self
 
 	local activateCalls = {}
-	-- A copy of `constructionStarts` in api_missions_triggers.lua, one claim per buildee.
-	-- The gadget keeps it local, so we cannot grab the real one; keep both of them in step.
+	-- A copy of `constructionStarts` and its claim and check functions in api_missions_triggers.lua:
+	-- one claim per buildee and trigger. The gadget keeps them local, so we cannot grab the real ones;
+	-- keep both of them in step.
 	local constructionStarts = {}
 
 	---@type TriggerContextMock
