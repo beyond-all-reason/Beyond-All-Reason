@@ -309,7 +309,7 @@ describe("mission_api.validation.sections", function()
 		it("warns when a statistics trigger specifies quantity", function()
 			local result = validateObjectiveTrigger({
 				type = V.triggerTypes.UnitsOwned,
-				parameters = { teamID = 0, quantity = 5, unitDefName = "armwar" },
+				parameters = { teamName = "player", quantity = 5, unitDefName = "armwar" },
 			})
 
 			V.assertMessage(result, "Objective trigger 'quantity' is not supported and will be ignored. Objective: o")
@@ -504,7 +504,7 @@ describe("mission_api.validation.sections", function()
 		it("warns that the AI of the old team stays", function()
 			local result = V.validate(V.mission():WithAction("defect", {
 				type = V.actionTypes.ChangeTeam,
-				parameters = { oldTeam = "loyalists", newTeam = "rebels" },
+				parameters = { oldTeamName = "loyalists", newTeamName = "rebels" },
 			}))
 
 			V.assertMessage(result, "ChangeTeam moves players only, the AI of team 'loyalists' stays. Action: defect")
@@ -516,8 +516,8 @@ describe("mission_api.validation.sections", function()
 				V.validate(V.mission():WithAction("defect", {
 					type = V.actionTypes.ChangeTeam,
 					parameters = {
-						oldTeam = { difficulties = { Easy = "rebels", Hard = "loyalists" } },
-						newTeam = "rebels",
+						oldTeamName = { difficulties = { Easy = "rebels", Hard = "loyalists" } },
+						newTeamName = "rebels",
 					},
 				})),
 				"ChangeTeam moves players only, the AI of team 'loyalists' stays. Action: defect"
@@ -528,7 +528,7 @@ describe("mission_api.validation.sections", function()
 			V.assertNoMessageContaining(
 				V.validate(V.mission():WithAction("defect", {
 					type = V.actionTypes.ChangeTeam,
-					parameters = { oldTeam = "rebels", newTeam = "loyalists" },
+					parameters = { oldTeamName = "rebels", newTeamName = "loyalists" },
 				})),
 				"ChangeTeam"
 			)
@@ -727,7 +727,7 @@ describe("mission_api.validation.sections", function()
 	it("validates loadout entries", function()
 		local result = V.validate(
 			V.mission()
-				:WithUnitLoadout({ { unitDefName = "noSuch", x = 0, z = 0, team = 0 } })
+				:WithUnitLoadout({ { unitDefName = "noSuch", x = 0, z = 0, teamName = "player" } })
 				:WithFeatureLoadout({ { featureDefName = "rockdef", z = 0 } })
 		)
 

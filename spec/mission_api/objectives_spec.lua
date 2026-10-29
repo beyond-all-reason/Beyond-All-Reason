@@ -457,7 +457,7 @@ describe("mission_api.objectives", function()
 	describe("UpdateObjectiveProgress", function()
 		it("counts an event for an inactive objective without evaluating completion", function()
 			install(mission():WithObjective("obj1", { active = false, completed = false }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = 1 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 
@@ -468,7 +468,7 @@ describe("mission_api.objectives", function()
 
 		it("ignores an event for another team", function()
 			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = 1 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 1, "armwar", nil, 1, metadata)
 
@@ -478,7 +478,7 @@ describe("mission_api.objectives", function()
 
 		it("ignores an event for another unitDefName", function()
 			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0, unitDefName = "corak" }, stages = {}, amount = 1 }
+			local metadata = { parameters = { teamName = 0, unitDefName = "corak" }, stages = {}, amount = 1 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 
@@ -487,7 +487,7 @@ describe("mission_api.objectives", function()
 
 		it("ignores an event without the unitName it watches", function()
 			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0, unitName = "bots" }, stages = {}, amount = 1 }
+			local metadata = { parameters = { teamName = 0, unitName = "bots" }, stages = {}, amount = 1 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", {}, 1, metadata)
 			assert.is_nil(metadata._count)
@@ -504,7 +504,7 @@ describe("mission_api.objectives", function()
 					:WithObjective("obj1", { active = true, completed = false })
 					:WithCurrentStage("otherStage")
 			)
-			local metadata = { parameters = { teamID = 0 }, stages = { "objStage" }, amount = 1 }
+			local metadata = { parameters = { teamName = 0 }, stages = { "objStage" }, amount = 1 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 
@@ -520,7 +520,7 @@ describe("mission_api.objectives", function()
 					:WithObjective("obj1", { active = true, completed = false })
 					:WithCurrentStage("objStage")
 			)
-			local metadata = { parameters = { teamID = 0 }, stages = { "objStage" }, amount = 1 }
+			local metadata = { parameters = { teamName = 0 }, stages = { "objStage" }, amount = 1 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 
@@ -535,7 +535,7 @@ describe("mission_api.objectives", function()
 					:WithObjective("obj1", { active = true, completed = false })
 					:WithCurrentStage("s1")
 			)
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = 1 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 
@@ -544,7 +544,7 @@ describe("mission_api.objectives", function()
 
 		it("completes on the first event when there is no amount", function()
 			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = nil }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = nil }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 
@@ -553,7 +553,7 @@ describe("mission_api.objectives", function()
 
 		it("completes when the count reaches the amount", function()
 			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 2 }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = 2 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 			assert.is_false(missionApi.Objectives.obj1.completed)
@@ -564,7 +564,7 @@ describe("mission_api.objectives", function()
 
 		it("completes an amount = 0 objective when the count returns to zero", function()
 			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 0 }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = 0 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 			assert.is_false(missionApi.Objectives.obj1.completed)
@@ -575,7 +575,7 @@ describe("mission_api.objectives", function()
 
 		it("freezes the objective's progress once completed", function()
 			install(mission():WithObjective("obj1", { active = true, completed = true, progress = 3 }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 3, _count = 3 }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = 3, _count = 3 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, -1, metadata)
 
@@ -590,7 +590,7 @@ describe("mission_api.objectives", function()
 					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2" })
 					:WithCurrentStage("s1")
 			)
-			local metadata = { parameters = { teamID = 0 }, stages = { "s1" }, amount = 1 }
+			local metadata = { parameters = { teamName = 0 }, stages = { "s1" }, amount = 1 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 
@@ -603,7 +603,7 @@ describe("mission_api.objectives", function()
 					:WithObjective("obj1", { active = true, completed = false, onCompleted = "done" })
 					:WithTrigger("done", { type = T.Event })
 			)
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = 1 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 
@@ -617,7 +617,7 @@ describe("mission_api.objectives", function()
 					:WithObjective("obj1", { active = true, completed = false, onCompleted = "done" })
 					:WithTrigger("done", { type = T.Event })
 			)
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 2 }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = 2 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 
@@ -629,7 +629,7 @@ describe("mission_api.objectives", function()
 					:WithObjective("obj1", { active = true, completed = false, onProgress = "stepped" })
 					:WithTrigger("stepped", { type = T.Event })
 			)
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 2 }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = 2 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 
@@ -643,7 +643,7 @@ describe("mission_api.objectives", function()
 					:WithObjective("obj1", { active = false, completed = false, onProgress = "stepped" })
 					:WithTrigger("stepped", { type = T.Event })
 			)
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 2 }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = 2 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 
@@ -660,7 +660,7 @@ describe("mission_api.objectives", function()
 					:WithTrigger("stepped", { type = T.Event })
 					:WithTrigger("done", { type = T.Event })
 			)
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = 1 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 
@@ -698,7 +698,7 @@ describe("mission_api.objectives", function()
 
 		it("does not mark a success as failed", function()
 			install(mission():WithObjective("obj1", { active = true, completed = false }))
-			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
+			local metadata = { parameters = { teamName = 0 }, stages = {}, amount = 1 }
 
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 

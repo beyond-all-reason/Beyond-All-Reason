@@ -29,8 +29,8 @@ local triggers = {
 		type = triggerTypes.UnitReceived,
 		parameters = {
 			unitName = 'gift',
-			oldTeamID = 1,
-			newTeamID = 0,
+			oldTeamName = 'enemy',
+			newTeamName = 'player',
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageGiftReceived' },
@@ -96,7 +96,7 @@ local triggers = {
 		type = triggerTypes.UnitReceived,
 		parameters = {
 			unitDefName = 'armwin',
-			newTeamID = 0,
+			newTeamName = 'player',
 		},
 		actions = { 'messageWindShared' },
 	},
@@ -109,7 +109,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 2400, z = 2400, team = 1, unitName = 'gift' },
+				{ unitDefName = 'armwin', x = 2400, z = 2400, teamName = 'enemy', unitName = 'gift' },
 			},
 		},
 	},
@@ -118,7 +118,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 2600, z = 2400, team = 1, unitName = 'spoils' },
+				{ unitDefName = 'armwin', x = 2600, z = 2400, teamName = 'enemy', unitName = 'spoils' },
 			},
 		},
 	},
@@ -127,7 +127,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 1600, z = 2800, team = 1, unitName = 'prize' },
+				{ unitDefName = 'armwin', x = 1600, z = 2800, teamName = 'enemy', unitName = 'prize' },
 			},
 		},
 	},
@@ -136,7 +136,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armdecom', x = 1750, z = 2800, team = 0, unitName = 'decoy', orders = { { CMD.FIRE_STATE, CMD.FIRESTATE_HOLDFIRE } } },
+				{ unitDefName = 'armdecom', x = 1750, z = 2800, teamName = 'player', unitName = 'decoy', orders = { { CMD.FIRE_STATE, CMD.FIRESTATE_HOLDFIRE } } },
 			},
 		},
 	},
@@ -145,7 +145,7 @@ local actions = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			unitName = 'gift',
-			newTeam = 0,
+			newTeamName = 'player',
 		},
 	},
 
@@ -153,7 +153,7 @@ local actions = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			unitName = 'spoils',
-			newTeam = 0,
+			newTeamName = 'player',
 			captured = true,
 		},
 	},

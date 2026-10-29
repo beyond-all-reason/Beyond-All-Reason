@@ -36,19 +36,19 @@ local actions = {
 	victory = {
 		type = actionTypes.Victory,
 		parameters = {
-			allyTeamIDs = { 0 },
+			allianceNames = { 'players' },
 		},
 	},
 }
 
 local unitLoadout = {
-	{ unitDefName = 'armck', x = 1780, z = 1850, facing = 'e', team = 0 },
+	{ unitDefName = 'armck', x = 1780, z = 1850, facing = 'e', teamName = 'player' },
 }
 
 if options.reinforcements then
-	table.insert(unitLoadout, { unitDefName = 'armpw', x = 1850, z = 1800, facing = 'e', team = 0 })
-	table.insert(unitLoadout, { unitDefName = 'armpw', x = 1850, z = 1850, facing = 'e', team = 0 })
-	table.insert(unitLoadout, { unitDefName = 'armpw', x = 1850, z = 1900, facing = 'e', team = 0 })
+	table.insert(unitLoadout, { unitDefName = 'armpw', x = 1850, z = 1800, facing = 'e', teamName = 'player' })
+	table.insert(unitLoadout, { unitDefName = 'armpw', x = 1850, z = 1850, facing = 'e', teamName = 'player' })
+	table.insert(unitLoadout, { unitDefName = 'armpw', x = 1850, z = 1900, facing = 'e', teamName = 'player' })
 end
 
 return {

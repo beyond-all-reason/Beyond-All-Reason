@@ -43,8 +43,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 1800, z = 1600, team = 0 },
-				{ unitDefName = 'corck', x = 2000, z = 1600, team = 1, unitName = 'enemyConstructor' },
+				{ unitDefName = 'armck', x = 1800, z = 1600, teamName = 'player' },
+				{ unitDefName = 'corck', x = 2000, z = 1600, teamName = 'enemy', unitName = 'enemyConstructor' },
 			},
 		},
 	},
@@ -52,16 +52,16 @@ local actions = {
 	changeToEnemy = {
 		type = actionTypes.ChangeTeam,
 		parameters = {
-			oldTeam = 'player',
-			newTeam = 'enemy',
+			oldTeamName = 'player',
+			newTeamName = 'enemy',
 		},
 	},
 
 	changeToPlayer = {
 		type = actionTypes.ChangeTeam,
 		parameters = {
-			oldTeam = 'enemy',
-			newTeam = 'player',
+			oldTeamName = 'enemy',
+			newTeamName = 'player',
 		},
 	},
 

@@ -36,10 +36,10 @@ describe("mission_api.triggers.feature_destroyed", function()
 		end
 		assert.is_true(names.featureName)
 		assert.is_true(names.featureDefName)
-		assert.is_true(names.allyTeamID)
+		assert.is_true(names.allianceName)
 		assert.is_true(names.area)
 		assert.are.same(
-			{ "featureName", "featureDefName", "allyTeamID", "area" },
+			{ "featureName", "featureDefName", "allianceName", "area" },
 			featureDestroyed.parameters.requiresOneOf
 		)
 	end)
@@ -65,9 +65,9 @@ describe("mission_api.triggers.feature_destroyed", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by allyTeamID", function()
+	it("filters by allianceName", function()
 		local context, fired = newContext()
-		destroyed(trigger({ featureDefName = "treetype1", allyTeamID = 1 }), context, 1, 0, nil, nil)
+		destroyed(trigger({ featureDefName = "treetype1", allianceName = 1 }), context, 1, 0, nil, nil)
 		assert.are.equal(0, fired())
 	end)
 

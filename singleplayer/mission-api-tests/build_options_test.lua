@@ -59,8 +59,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 1800, z = 1600, team = 0 },
-				{ unitDefName = 'armlab', x = 2000, z = 1800, team = 0 },
+				{ unitDefName = 'armck', x = 1800, z = 1600, teamName = 'player' },
+				{ unitDefName = 'armlab', x = 2000, z = 1800, teamName = 'player' },
 			},
 		},
 	},
@@ -77,7 +77,7 @@ local actions = {
 		type = actionTypes.DisableBuildOption,
 		parameters = {
 			builtDefName ='armsolar',
-			teamID = 0,
+			teamName = 'player',
 		},
 	},
 
@@ -85,7 +85,7 @@ local actions = {
 		type = actionTypes.EnableBuildOption,
 		parameters = {
 			builtDefName ='armsolar',
-			teamID = 0,
+			teamName = 'player',
 		},
 	},
 
@@ -102,7 +102,7 @@ local actions = {
 		parameters = {
 			builtDefName ='armwin',
 			builderDefName ='armck',
-			teamID = 0,
+			teamName = 'player',
 		},
 	},
 
@@ -111,7 +111,7 @@ local actions = {
 		parameters = {
 			builtDefName ='armwin',
 			builderDefName ='armck',
-			teamID = 0,
+			teamName = 'player',
 		},
 	},
 

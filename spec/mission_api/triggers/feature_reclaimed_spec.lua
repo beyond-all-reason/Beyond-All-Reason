@@ -36,10 +36,10 @@ describe("mission_api.triggers.feature_reclaimed", function()
 		end
 		assert.is_true(names.featureName)
 		assert.is_true(names.featureDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.area)
 		assert.are.same(
-			{ "featureName", "featureDefName", "teamID", "area" },
+			{ "featureName", "featureDefName", "teamName", "area" },
 			featureReclaimed.parameters.requiresOneOf
 		)
 	end)
@@ -71,9 +71,9 @@ describe("mission_api.triggers.feature_reclaimed", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
-		destroyed(trigger({ featureDefName = "treetype1", teamID = 5 }), context, 1, nil, 2, 0)
+		destroyed(trigger({ featureDefName = "treetype1", teamName = 5 }), context, 1, nil, 2, 0)
 		assert.are.equal(0, fired())
 	end)
 
@@ -88,7 +88,7 @@ describe("mission_api.triggers.feature_reclaimed", function()
 
 	it("fires when the feature is fully reclaimed", function()
 		local context, fired = newContext()
-		destroyed(trigger({ featureDefName = "treetype1", teamID = 2 }), context, 1, nil, 2, 0)
+		destroyed(trigger({ featureDefName = "treetype1", teamName = 2 }), context, 1, nil, 2, 0)
 		assert.are.equal(1, fired())
 	end)
 end)

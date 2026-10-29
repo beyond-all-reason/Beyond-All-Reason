@@ -41,7 +41,7 @@ describe("mission_api.actions.reclaim_units", function()
 		assert.are.same({
 			type = "ReclaimUnits",
 			unitName = "UnitName!",
-			reclaimerTeam = "TeamID",
+			reclaimerTeamName = "TeamName",
 		}, summarizeSchema(action))
 	end)
 
@@ -131,7 +131,7 @@ describe("mission_api.actions.reclaim_units", function()
 		-- assigned inside the loop, so the first unit's owner is reused for the
 		-- rest instead of each unit crediting its own team. Asserting only that
 		-- the teams match keeps this independent of pairs() ordering.
-		it("credits every unit to one team when reclaimerTeam is omitted", function()
+		it("credits every unit to one team when reclaimerTeamName is omitted", function()
 			seedUnits("mixed", 1, 2)
 			Spring.GetUnitTeam = function(unitID)
 				return unitID

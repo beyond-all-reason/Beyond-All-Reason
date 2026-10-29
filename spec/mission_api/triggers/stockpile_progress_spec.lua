@@ -75,7 +75,7 @@ describe("mission_api.triggers.stockpile_progress", function()
 		for _, parameter in ipairs(stockpileProgress.parameters) do
 			required[parameter.name] = parameter.required
 		end
-		assert.are.same({ progress = true, unitName = false, unitDefName = false, teamID = false }, required)
+		assert.are.same({ progress = true, unitName = false, unitDefName = false, teamName = false }, required)
 	end)
 
 	it("fires when the progress crosses the threshold", function()

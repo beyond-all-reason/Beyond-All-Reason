@@ -109,7 +109,7 @@ describe("mission_api.game_setup", function()
 			assert.are.same({}, gameSetup.persistentVariables)
 		end)
 
-		it("maps team and allyteam names to IDs and back, skipping sections without a name", function()
+		it("maps team and alliance names to IDs and back, skipping sections without a name", function()
 			withGameSetup({
 				modOptions = { missionoptions = encodeMissionOptions([[{"entryPoint":"mission.lua"}]]) },
 				teams = {
@@ -135,7 +135,7 @@ describe("mission_api.game_setup", function()
 				ally1 = 1,
 				mainEnemy = 2,
 			}, gameSetup.teams)
-			assert.are.same({ [0] = "goodies", [1] = "enemies", goodies = 0, enemies = 1 }, gameSetup.allyTeams)
+			assert.are.same({ [0] = "goodies", [1] = "enemies", goodies = 0, enemies = 1 }, gameSetup.alliances)
 		end)
 
 		it("records each allyteam's dummy team and leaves it out of the names", function()

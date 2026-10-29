@@ -42,14 +42,14 @@ describe("mission_api.triggers.unit_reclaimed", function()
 		end
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.ignoreMissionActions)
 		assert.are.same({ "unitName", "unitDefName" }, unitReclaimed.parameters.requiresOneOf)
 	end)
 
 	it("fires when a unit is reclaimed", function()
 		local context, fired = newContext()
-		destroyed(trigger({ unitDefName = "armrad", teamID = 0 }), context, 1, 0)
+		destroyed(trigger({ unitDefName = "armrad", teamName = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -59,9 +59,9 @@ describe("mission_api.triggers.unit_reclaimed", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID, which is the reclaimee's team and not the reclaimer's", function()
+	it("filters by teamName, which is the reclaimee's team and not the reclaimer's", function()
 		local context, fired = newContext()
-		destroyed(trigger({ unitDefName = "armrad", teamID = 9 }), context, 1, 0)
+		destroyed(trigger({ unitDefName = "armrad", teamName = 9 }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
