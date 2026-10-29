@@ -67,12 +67,17 @@ end
 
 local function processAllianceNames(allianceNames)
 	local allyTeamIDs = {}
-	for index, allianceName in ipairs(allianceNames) do
+	for _, allianceName in ipairs(allianceNames) do
 		local allyTeamID = processAllianceName(allianceName)
 		if allyTeamID == nil then
-			return nil
+			Spring.Log(
+				"parameter_processing.lua",
+				LOG.ERROR,
+				"[Mission API] Unknown " .. ParameterTypes.AllianceName .. " " .. tostring(allianceName)
+			)
+		else
+			allyTeamIDs[#allyTeamIDs + 1] = allyTeamID
 		end
-		allyTeamIDs[index] = allyTeamID
 	end
 	return allyTeamIDs
 end
@@ -132,7 +137,7 @@ local function processValue(parameterType, value)
 			Spring.Log(
 				"parameter_processing.lua",
 				LOG.ERROR,
-				"[Mission API] Unknown " .. parameterType .. " " .. Json.encode(value)
+				"[Mission API] Unknown " .. parameterType .. " " .. tostring(value)
 			)
 		end
 		return result
