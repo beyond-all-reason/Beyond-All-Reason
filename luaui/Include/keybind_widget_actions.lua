@@ -59,12 +59,12 @@ local function shapeKeysets(keysets, alwaysModifier)
 	return shaped
 end
 
-local function readKeysets(declared, alwaysModifier)
+local function readKeysets(declared, alwaysModifier, field)
 	if declared == nil then
 		return nil, nil
 	end
 	if type(declared) ~= "table" then
-		return nil, "defaultKeysets is not a list"
+		return nil, field .. " is not a list"
 	end
 	if #declared == 0 then
 		return nil, nil
@@ -72,7 +72,7 @@ local function readKeysets(declared, alwaysModifier)
 
 	for _, keyset in ipairs(declared) do
 		if not isKeyset(keyset) then
-			return nil, "defaultKeysets holds something other than a keyset"
+			return nil, field .. " holds something other than a keyset"
 		end
 	end
 	if alwaysModifier == "shift" and #declared > 1 then
@@ -86,27 +86,38 @@ local function readKeysets(declared, alwaysModifier)
 	return shapeKeysets(declared, alwaysModifier), nil
 end
 
-local function readProfileKeysets(declared, alwaysModifier)
+local function readProfileKeysets(declared, alwaysModifier, dropped)
 	if declared == nil then
-		return nil, nil
+		return nil
 	end
 	if type(declared) ~= "table" then
-		return nil, "profileKeysets is not an object"
+		dropped[#dropped + 1] = "profileKeysets is not an object; every profile's default dropped"
+
+		return nil
 	end
+
+	local profiles = {}
+	for profile in pairs(declared) do
+		if not isNonEmptyString(profile) then
+			dropped[#dropped + 1] = "profileKeysets is not an object; every profile's default dropped"
+
+			return nil
+		end
+		profiles[#profiles + 1] = profile
+	end
+	table.sort(profiles)
 
 	local byProfile = {}
-	for profile, keysets in pairs(declared) do
-		if not isNonEmptyString(profile) then
-			return nil, "profileKeysets is not an object"
-		end
-		local shaped, problem = readKeysets(keysets, alwaysModifier)
+	for _, profile in ipairs(profiles) do
+		local shaped, problem = readKeysets(declared[profile], alwaysModifier, "profileKeysets." .. profile)
 		if problem then
-			return nil, "profileKeysets." .. profile .. ": " .. problem
+			dropped[#dropped + 1] = problem .. "; that profile's default dropped"
+		else
+			byProfile[profile] = shaped
 		end
-		byProfile[profile] = shaped
 	end
 
-	return next(byProfile) and byProfile or nil, nil
+	return next(byProfile) and byProfile or nil
 end
 
 local function keysetsFor(a, layout)
@@ -145,8 +156,12 @@ local function readAction(entry, keyPrefix, dir, seen)
 	end
 	seen[action] = true
 
-	local keysets, keysetProblem = readKeysets(entry.defaultKeysets, modifier)
-	local profileKeysets, profileProblem = readProfileKeysets(entry.profileKeysets, modifier)
+	local dropped = {}
+	local keysets, keysetProblem = readKeysets(entry.defaultKeysets, modifier, "defaultKeysets")
+	if keysetProblem then
+		dropped[#dropped + 1] = keysetProblem .. "; default dropped"
+	end
+	local profileKeysets = readProfileKeysets(entry.profileKeysets, modifier, dropped)
 
 	return {
 		action = action,
@@ -158,7 +173,7 @@ local function readAction(entry, keyPrefix, dir, seen)
 		profileKeysets = profileKeysets,
 	},
 		nil,
-		keysetProblem or profileProblem
+		dropped
 end
 
 function M.parse(widget)
@@ -181,15 +196,15 @@ function M.parse(widget)
 	local seen = {}
 	for i, entry in ipairs(declared) do
 		local at = string.format("%s: keybindings[%d]", where, i)
-		local read, problem, keysetProblem = readAction(entry, keyPrefix, widget.dir, seen)
+		local read, problem, dropped = readAction(entry, keyPrefix, widget.dir, seen)
 
 		if read then
 			actions[#actions + 1] = read
 		else
 			warnings[#warnings + 1] = at .. " " .. (problem or "") .. "; skipped"
 		end
-		if keysetProblem then
-			warnings[#warnings + 1] = at .. ": " .. keysetProblem .. "; default dropped"
+		for _, drop in ipairs(dropped or {}) do
+			warnings[#warnings + 1] = at .. ": " .. drop
 		end
 	end
 

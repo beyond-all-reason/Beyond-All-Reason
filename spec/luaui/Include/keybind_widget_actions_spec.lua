@@ -101,7 +101,7 @@ describe("reading a widget's declared actions", function()
 		assert.are.same({ 1, 2, 3, 4 }, entriesNamed(warnings))
 	end)
 
-	it("reads per-profile defaults shaped like the shared ones, dropping them whole if one cannot be made", function()
+	it("reads per-profile defaults shaped like the shared ones, dropping only a profile whose list cannot be made", function()
 		local actions, warnings = WidgetActions.parse(widgetEntry("gui_example", {
 			{
 				action = "pair",
@@ -110,15 +110,22 @@ describe("reading a widget's declared actions", function()
 				defaultKeysets = { "tab" },
 				profileKeysets = { Small = { "sc_q" }, Empty = {} },
 			},
-			{ action = "bad", label = "a.bad", defaultKeysets = { "x" }, profileKeysets = { Small = { "not a keyset" } } },
+			{
+				action = "bad",
+				label = "a.bad",
+				defaultKeysets = { "x" },
+				profileKeysets = { Small = { "not a keyset" }, Other = { "sc_w" } },
+			},
 			{ action = "odd", label = "a.odd", profileKeysets = { "x" } },
 		}))
 
 		assert.are.same({ Small = { "sc_q", "Shift+sc_q" } }, actions[1].profileKeysets)
 		assert.are.same({ "x" }, actions[2].keysets)
-		assert.is_nil(actions[2].profileKeysets)
+		assert.are.same({ Other = { "sc_w" } }, actions[2].profileKeysets)
 		assert.is_nil(actions[3].profileKeysets)
 		assert.are.same({ 2, 3 }, entriesNamed(warnings))
+		local wanted = "profileKeysets.Small holds something other than a keyset; that profile's default dropped"
+		assert.truthy(warnings[1]:find(wanted, 1, true), warnings[1])
 	end)
 end)
 

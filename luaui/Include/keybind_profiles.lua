@@ -275,12 +275,15 @@ local function actionKey(action)
 	return command and (command:lower() .. args) or action
 end
 
--- The shipped profile one descends from, which picks the defaults a widget made for that layout.
+-- Pinned in `layout`, since the editor can repoint `basedOn`.
 local function layoutOf(profile)
 	local seen = {}
 	while profile and not seen[profile] do
 		if M.isBuiltin(profile.name) then
 			return profile.name
+		end
+		if type(profile.layout) == "string" and M.isBuiltin(profile.layout) then
+			return profile.layout
 		end
 		seen[profile] = true
 		local base = profile.basedOn
@@ -350,6 +353,7 @@ end
 -- Once per action, so a default the player removes stays removed.
 local function seedWidgetDefaults(profile)
 	local layout = layoutOf(profile)
+	profile.layout = layout
 	local seeded = seededSet(profile)
 	for _, b in ipairs(missingDefaults(profile.binds, seeded, layout)) do
 		profile.binds[#profile.binds + 1] = b
@@ -1159,8 +1163,9 @@ function M.create(name, binds, fakeMeta, basedOn)
 	name = M.uniqueName(name)
 	local profile = { name = name, binds = binds, fakeMeta = resolveFakeMeta(fakeMeta) }
 	profile.basedOn = (basedOn and (M.isBuiltin(basedOn) or indexOf(basedOn))) and basedOn or M.inferBase(profile)
+	profile.layout = layoutOf(profile)
 	-- Made from a keymap that already holds what the player kept of the defaults.
-	local seeded = allDefaultActions(layoutOf(profile))
+	local seeded = allDefaultActions(profile.layout)
 	if #seeded > 0 then
 		profile.seeded = seeded
 	end

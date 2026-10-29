@@ -274,6 +274,34 @@ describe("widget defaults made for one layout", function()
 		}, storedProfile(writes, "Mine").binds)
 		assert.are.same({ "layout_toggle", "layout_only" }, storedProfile(writes, "Mine").seeded)
 	end)
+
+	it("stay with the layout a profile was made from when the player compares it with another", function()
+		local manifests = {
+			{
+				id = "gui_layout",
+				dir = "LuaUI/Widgets/gui_layout/",
+				loaded = true,
+				manifest = {
+					id = "gui_layout",
+					keybindings = {
+						{ action = "layout_load", label = "actions.load", profileKeysets = { Grid = { "sc_f16" } } },
+					},
+				},
+			},
+		}
+		local writes = {}
+		local store = Json.encode({ version = 2, active = "Mine", profiles = { { name = "Mine", basedOn = SMALL, binds = {} } } })
+		run({ [STORE] = store, [KEYMAP] = false }, writes, function(profiles)
+			profiles.materialize("Mine")
+			profiles.setBase("Mine", "Grid")
+			profiles.materialize("Mine")
+
+			return {}
+		end, manifests)
+
+		assert.is_false(holds(bindLines(writes[KEYMAP]), "bind sc_f16 layout_load"))
+		assert.are.same({}, storedProfile(writes, "Mine").binds)
+	end)
 end)
 
 describe("widget defaults on a keymap edited by hand", function()
