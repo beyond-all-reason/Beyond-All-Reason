@@ -35,12 +35,14 @@ describe("mission_api.actions.play_camera_sequence", function()
 			restoreSlot = "String",
 			restoreDuration = "Quantity",
 			restoreEasing = "CameraEasing",
+			releaseDuration = "Quantity",
+			releaseEasing = "CameraEasing",
 		}, summarizeSchema(action))
 	end)
 
 	it("sends the built keyframes with the ending", function()
 		local keyframes = { { position = { x = 0, y = 0, z = 0 } } }
-		action.actionFunction(keyframes, "restore", "intro", 2, "linear")
+		action.actionFunction(keyframes, "restore", "intro", 2, "linear", 0.5, "inOutSine")
 
 		assert.are.same({
 			{
@@ -51,6 +53,8 @@ describe("mission_api.actions.play_camera_sequence", function()
 					restoreSlot = "intro",
 					restoreDuration = 2,
 					restoreEasing = "linear",
+					releaseDuration = 0.5,
+					releaseEasing = "inOutSine",
 				},
 			},
 		}, sent)

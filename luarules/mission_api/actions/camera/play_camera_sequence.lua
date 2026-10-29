@@ -1,13 +1,15 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 -- Moves the camera through keyframes, see camera_keyframe_schema.lua.
-local function playCameraSequence(keyframes, onEnd, restoreSlot, restoreDuration, restoreEasing)
+local function playCameraSequence(keyframes, onEnd, restoreSlot, restoreDuration, restoreEasing, releaseDuration, releaseEasing)
 	SendToUnsynced('MissionCameraPlay', {
 		keyframes = GG['MissionAPI'].Modules.Camera.BuildKeyframes(keyframes),
 		onEnd = onEnd,
 		restoreSlot = restoreSlot,
 		restoreDuration = restoreDuration,
 		restoreEasing = restoreEasing,
+		releaseDuration = releaseDuration,
+		releaseEasing = releaseEasing,
 	})
 end
 
@@ -20,6 +22,8 @@ return {
 			{ name = 'restoreSlot',     required = false, type = ParameterTypes.String },            -- SaveCamera slot for onEnd = 'restore'
 			{ name = 'restoreDuration', required = false, type = ParameterTypes.Quantity },          -- seconds
 			{ name = 'restoreEasing',   required = false, type = ParameterTypes.CameraEasing },
+			{ name = 'releaseDuration', required = false, type = ParameterTypes.Quantity },          -- seconds to ease roll and fov back for onEnd = 'release'
+			{ name = 'releaseEasing',   required = false, type = ParameterTypes.CameraEasing },
 		},
 		actionFunction = playCameraSequence,
 	}

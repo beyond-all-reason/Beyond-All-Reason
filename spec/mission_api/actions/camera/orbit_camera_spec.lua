@@ -36,16 +36,39 @@ describe("mission_api.actions.orbit_camera", function()
 			pitch = "Number",
 			startYaw = "Number",
 			degrees = "Number",
+			fov = "Number",
 			duration = "Quantity",
 			transitionDuration = "Quantity",
 			easing = "CameraEasing",
 			onEnd = "CameraSequenceEnd",
+			restoreSlot = "String",
+			restoreDuration = "Quantity",
+			restoreEasing = "CameraEasing",
+			releaseDuration = "Quantity",
+			releaseEasing = "CameraEasing",
 			requiresOneOf = { "unitName", "position" },
 		}, summarizeSchema(action))
 	end)
 
-	it("sends the target and the orbit settings", function()
-		action.actionFunction("hero", nil, 400, 35, 90, -180, 6, 2, "inOutSine", "release")
+	it("sends the target, the orbit settings and the ending", function()
+		action.actionFunction(
+			"hero",
+			nil,
+			400,
+			35,
+			90,
+			-180,
+			50,
+			6,
+			2,
+			"inOutSine",
+			"release",
+			"intro",
+			2,
+			"linear",
+			0.5,
+			"inOutCubic"
+		)
 
 		assert.are.same({
 			{
@@ -56,10 +79,16 @@ describe("mission_api.actions.orbit_camera", function()
 					pitch = 35,
 					startYaw = 90,
 					degrees = -180,
+					fov = 50,
 					duration = 6,
 					transitionDuration = 2,
 					easing = "inOutSine",
 					onEnd = "release",
+					restoreSlot = "intro",
+					restoreDuration = 2,
+					restoreEasing = "linear",
+					releaseDuration = 0.5,
+					releaseEasing = "inOutCubic",
 				},
 			},
 		}, sent)
