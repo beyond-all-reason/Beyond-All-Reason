@@ -1,14 +1,18 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local actions = VFS.Include("luarules/mission_api/actions/units/destroy_units.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/units/destroy_units.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 local function seedUnits(name, ...)
-	local builder = Builders.MissionApi.new()
+	local builder = MissionApiBuilder.new()
 	for _, unitID in ipairs({ ... }) do
 		builder:WithTrackedUnit(name, unitID)
 	end
@@ -20,9 +24,9 @@ describe("mission_api.actions.destroy_units", function()
 	local destroyCalls
 
 	before_each(function()
-		Builders.MissionApi.new():Install()
-		_G.Spring = Builders.Spring.new():Build()
-		destroyCalls = Spring.calls.destroyUnit
+		MissionApiBuilder.new():Install()
+		env.Spring = SpringSyncedBuilder.new():Build()
+		destroyCalls = env.Spring.calls.destroyUnit
 	end)
 
 	it("declares its type and parameters", function()
@@ -60,7 +64,7 @@ describe("mission_api.actions.destroy_units", function()
 
 		it("skips dead units", function()
 			seedUnits("dead", 5)
-			Spring.GetUnitIsDead = function(unitID)
+			env.Spring.GetUnitIsDead = function(unitID)
 				return true
 			end
 
@@ -70,7 +74,7 @@ describe("mission_api.actions.destroy_units", function()
 		end)
 
 		it("only affects units tracked under the given name", function()
-			Builders.MissionApi.new():WithTrackedUnit("tanks", 1):WithTrackedUnit("bots", 2):Install()
+			MissionApiBuilder.new():WithTrackedUnit("tanks", 1):WithTrackedUnit("bots", 2):Install()
 
 			action.actionFunction("tanks")
 

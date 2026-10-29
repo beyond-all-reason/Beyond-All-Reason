@@ -1,22 +1,24 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time,
 -- and Game.gameSpeed (30, from the root spec_helper) inside its GameFrame handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local timeElapsed = VFS.Include("luarules/mission_api/triggers/time_elapsed.lua")
 local onGameFrame = timeElapsed.callins.GameFrame
 
 describe("mission_api.triggers.time_elapsed", function()
 	local function trigger(parameters, settings)
-		return Builders.Trigger.new():WithParameters(parameters):WithSettings(settings):Build()
+		return TriggerBuilder.new():WithParameters(parameters):WithSettings(settings):Build()
 	end
 
 	-- Runs the GameFrame handler for frames 1..maxFrame and returns the list of
 	-- frames on which context.ActivateTrigger was invoked.
 	local function firedFrames(triggerTable, maxFrame)
 		local fired = {}
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		for frame = 1, maxFrame do
 			-- Re-pointed each frame, so the recorded value is the frame that fired.
 			context.ActivateTrigger = function()

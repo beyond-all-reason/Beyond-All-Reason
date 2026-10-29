@@ -1,4 +1,6 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
@@ -10,7 +12,7 @@ local seismicContactsModule = {
 		return seismicContacts[allyTeamID] ~= nil and seismicContacts[allyTeamID][unitID] == true
 	end,
 }
-Builders.MissionApi.new():WithModule("SeismicContacts", seismicContactsModule):Install()
+MissionApiBuilder.new():WithModule("SeismicContacts", seismicContactsModule):Install()
 
 -- LosMask bits, as the engine reports them through Spring.GetUnitLosState(_, _, true).
 local INLOS, INRADAR, PREVLOS, CONTRADAR = 1, 2, 4, 8
@@ -144,8 +146,8 @@ describe("mission_api.detection_levels", function()
 
 		before_each(function()
 			-- Fresh per test: the compiled level mask caches onto the trigger it belongs to.
-			trigger = Builders.Trigger.new():Build()
-			context = Builders.TriggerContext.new():Build()
+			trigger = TriggerBuilder.new():Build()
+			context = TriggerContextBuilder.new():Build()
 			env.Spring.GetUnitIsDead = function()
 				return false
 			end
@@ -243,7 +245,7 @@ describe("mission_api.detection_levels", function()
 		local losStateReads
 
 		before_each(function()
-			context = Builders.TriggerContext.new():Build()
+			context = TriggerContextBuilder.new():Build()
 			env.Spring.GetUnitIsDead = function()
 				return false
 			end
@@ -264,7 +266,7 @@ describe("mission_api.detection_levels", function()
 		end
 
 		local function newTrigger(parameters)
-			return Builders.Trigger.new():WithParameters(parameters):Build()
+			return TriggerBuilder.new():WithParameters(parameters):Build()
 		end
 
 		-- The layout is two playing allyTeams, so an unseen unit costs one read of each.

@@ -1,4 +1,5 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 -- unit_query captures these at its load.
@@ -14,7 +15,7 @@ local env = MissionSpecEnv.new({
 })
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes and .UnitQuery at load time.
-Builders.MissionApi.new():Install(env)
+MissionApiBuilder.new():Install(env)
 
 local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/map/unit_markers.lua")
 local addAction, removeAction = actions[1], actions[2]
@@ -25,8 +26,7 @@ describe("mission_api.actions.unit_markers", function()
 
 	before_each(function()
 		added, removed = {}, {}
-		missionApi = Builders.MissionApi
-			.new()
+		missionApi = MissionApiBuilder.new()
 			:WithModule("UnitMarkers", {
 				AddUnitMarker = function(unitID, markerType)
 					added[#added + 1] = { unitID = unitID, markerType = markerType }
@@ -37,8 +37,8 @@ describe("mission_api.actions.unit_markers", function()
 			})
 			:WithTrackedUnit("squad", 11)
 			:Install(env)
-		env.Spring = Builders.Spring.new():Build()
-		_G.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } } ---@diagnostic disable-line: global-in-non-module
+		env.Spring = SpringSyncedBuilder.new():Build()
+		env.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } }
 		env.Spring.GetTeamUnitsByDefs = function(teamID, unitDefID)
 			if teamID == 0 and unitDefID == 7 then
 				return { 11 }

@@ -1,9 +1,12 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and UnitDefs inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-_G.UnitDefs = {
+env.UnitDefs = {
 	[1] = { name = "armpw", isTransport = false },
 	[2] = { name = "armck", isTransport = false },
 	[10] = { name = "armatlas", isTransport = true },
@@ -11,7 +14,7 @@ _G.UnitDefs = {
 	[20] = { name = "armdronecarryland", isTransport = false },
 }
 
-local unitUnloaded = VFS.Include("luarules/mission_api/triggers/unit_unloaded.lua")
+local unitUnloaded = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_unloaded.lua")
 local onUnitUnloaded = unitUnloaded.callins.UnitUnloaded
 
 describe("mission_api.triggers.unit_unloaded", function()

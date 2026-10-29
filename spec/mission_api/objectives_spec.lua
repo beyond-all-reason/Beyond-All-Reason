@@ -1,11 +1,11 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
 -- The real trigger definitions, so event triggers carry the real Event type.
 -- (Trigger files read GG['MissionAPI'].Modules at include time.)
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 MissionSpecEnv.registerModules(env)
 local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
 	.LoadTriggerDefinitions()
@@ -19,7 +19,7 @@ describe("mission_api.objectives", function()
 
 	-- A mission to build up with the mock's With* methods.
 	local function mission()
-		return Builders.MissionApi.new():WithTriggerDefinitions(triggerDefinitions)
+		return MissionApiBuilder.new():WithTriggerDefinitions(triggerDefinitions)
 	end
 
 	local function install(builder)

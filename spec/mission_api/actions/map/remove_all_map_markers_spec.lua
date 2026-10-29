@@ -1,9 +1,13 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local actions = VFS.Include("luarules/mission_api/actions/map/remove_all_map_markers.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/map/remove_all_map_markers.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -12,14 +16,13 @@ describe("mission_api.actions.remove_all_map_markers", function()
 	local missionApi, eraseCalls, sendCommandsCalls
 
 	before_each(function()
-		missionApi = Builders.MissionApi
-			.new()
+		missionApi = MissionApiBuilder.new()
 			:WithMarker("a", { x = 1, y = 0, z = 1 })
 			:WithMarker("b", { x = 2, y = 0, z = 2 })
 			:Install()
-		_G.Spring = Builders.Spring.new():Build()
-		eraseCalls = Spring.calls.markerErasePosition
-		sendCommandsCalls = Spring.calls.sendCommands
+		env.Spring = SpringSyncedBuilder.new():Build()
+		eraseCalls = env.Spring.calls.markerErasePosition
+		sendCommandsCalls = env.Spring.calls.sendCommands
 	end)
 
 	it("declares its type and parameters", function()
@@ -43,7 +46,7 @@ describe("mission_api.actions.remove_all_map_markers", function()
 		end)
 
 		it("erases nothing when it holds no markers", function()
-			missionApi = Builders.MissionApi.new():Install()
+			missionApi = MissionApiBuilder.new():Install()
 			action.actionFunction()
 			assert.are.equal(0, #eraseCalls)
 		end)

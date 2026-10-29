@@ -1,10 +1,13 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local NUKE = 10
 local GUN = 11
 
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armsilo", weapons = { { weaponDef = NUKE } } },
 	[2] = { name = "corsilo", weapons = { { weaponDef = NUKE } } },
 	[3] = { name = "armwar", weapons = { { weaponDef = GUN } } },
@@ -18,18 +21,18 @@ local env = MissionSpecEnv.new({
 	},
 })
 
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local stockpileCount = MissionSpecEnv.include(env, "luarules/mission_api/triggers/stockpile_count.lua")
 local onStockpileChanged = stockpileCount.callins.StockpileChanged
 
 describe("mission_api.triggers.stockpile_count", function()
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 

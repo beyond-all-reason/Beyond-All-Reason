@@ -4,7 +4,7 @@
 
 local V = require("mission_api.validation.validation_spec_helper")
 
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 local missionDirectory = "singleplayer/mission-api-tests/"
 
@@ -18,9 +18,9 @@ local function mockDefNames()
 			return { id = 1 }
 		end,
 	})
-	_G.UnitDefNames = anyDefName
-	_G.FeatureDefNames = anyDefName
-	_G.WeaponDefNames = anyDefName
+	V.env.UnitDefNames = anyDefName
+	V.env.FeatureDefNames = anyDefName
+	V.env.WeaponDefNames = anyDefName
 end
 
 --- The engine CMD table maps both ways: name -> id and id -> name.
@@ -96,8 +96,7 @@ end
 
 local function validateMissionFile(fileName)
 	-- Mission files read the definitions from GG when they are included.
-	Builders.MissionApi
-		.new()
+	MissionApiBuilder.new()
 		:WithActionDefinitions(V.definitions.ActionDefinitions)
 		:WithTriggerDefinitions(V.definitions.TriggerDefinitions)
 		:Install()

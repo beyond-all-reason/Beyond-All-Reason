@@ -1,13 +1,17 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local actions = VFS.Include("luarules/mission_api/actions/build_options/build_option_blocking.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/build_options/build_option_blocking.lua")
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 local unitDefNames =
-	Builders.UnitDefs.new():WithUnitDefs({ [42] = { name = "armsolar" }, [7] = { name = "armck" } }):GetUnitDefNames()
+	UnitDefsBuilder.new():WithUnitDefs({ [42] = { name = "armsolar" }, [7] = { name = "armck" } }):GetUnitDefNames()
 
 local function findAction(actionType)
 	for _, action in ipairs(actions) do
@@ -28,7 +32,7 @@ describe("mission_api.actions.build_option_blocking", function()
 
 	before_each(function()
 		calls = { add = {}, remove = {} }
-		_G.UnitDefNames = unitDefNames ---@diagnostic disable-line: global-in-non-module
+		env.UnitDefNames = unitDefNames
 		GG["BuildBlocking"] = {
 			AddBlockedUnit = function(unitDefID, teamID, reasonKey, builderUnitDefID)
 				calls.add[#calls.add + 1] = {

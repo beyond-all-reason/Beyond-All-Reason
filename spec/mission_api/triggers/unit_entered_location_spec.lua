@@ -1,21 +1,23 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local unitEnteredLocation = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_entered_location.lua")
 local onUnitsEnteredArea = unitEnteredLocation.callins.UnitsEnteredArea
 
 describe("mission_api.triggers.unit_entered_location", function()
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
