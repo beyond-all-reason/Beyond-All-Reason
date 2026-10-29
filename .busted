@@ -1,7 +1,25 @@
 -- Discover spec roots generically: the repo spec/ tree plus any module that
 -- ships its own spec/ dir (modules are self-contained; no per-module entries).
+-- SPEC_SKIP lists spec/ dirs to ignore, split on `, `, e.g. SPEC_SKIP=mission_api.
 local function specRoots()
-  local roots = { "spec/" }
+  local skip = {}
+  for name in (os.getenv("SPEC_SKIP") or ""):gmatch("[^,%s]+") do
+    skip[name] = true
+  end
+
+  local roots = {}
+  if next(skip) == nil then
+    roots[1] = "spec/"
+  else
+    local dirs = io.popen('find spec -mindepth 1 -maxdepth 1 -type d | sort')
+    for dir in dirs:lines() do
+      if not skip[dir:match("[^/]+$")] then
+        roots[#roots + 1] = dir .. "/"
+      end
+    end
+    dirs:close()
+  end
+
   local find = io.popen('find modules -mindepth 2 -maxdepth 2 -type d -name spec 2>/dev/null')
   if find then
     for dir in find:lines() do
