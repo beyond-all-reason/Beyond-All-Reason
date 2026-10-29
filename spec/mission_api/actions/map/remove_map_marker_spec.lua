@@ -1,7 +1,8 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/map/remove_map_marker.lua")
 local action = actions[1]
@@ -11,8 +12,8 @@ describe("mission_api.actions.remove_map_marker", function()
 	local missionApi, eraseCalls
 
 	before_each(function()
-		missionApi = Builders.MissionApi.new():Install()
-		_G.Spring = Builders.Spring.new():Build()
+		missionApi = MissionApiBuilder.new():Install()
+		_G.Spring = SpringSyncedBuilder.new():Build()
 		eraseCalls = Spring.calls.markerErasePosition
 	end)
 

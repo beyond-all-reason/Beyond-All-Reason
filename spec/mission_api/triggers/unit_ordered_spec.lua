@@ -1,13 +1,16 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local CMD = { INSERT = 34, MOVE = 10, RECLAIM = 90, ANY = "a", BUILD = "b" }
 local env = MissionSpecEnv.new({ CMD = CMD })
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armpw" },
 	[2] = { name = "corfast" },
 })
@@ -18,11 +21,11 @@ local onUnitCommand = unitOrdered.callins.UnitCommand
 
 describe("mission_api.triggers.unit_ordered", function()
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 

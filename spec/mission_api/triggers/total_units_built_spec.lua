@@ -1,7 +1,7 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, which the builder installs.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local totalUnitsBuilt = VFS.Include("luarules/mission_api/triggers/total_units_built.lua")
 

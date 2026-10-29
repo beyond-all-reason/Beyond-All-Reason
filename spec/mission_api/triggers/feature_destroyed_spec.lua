@@ -1,9 +1,12 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local FeatureDefsBuilder = VFS.Include("spec/builders/feature_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and FeatureDefs inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local featureDefs = Builders.FeatureDefs.new():WithFeatureDefs({
+local featureDefs = FeatureDefsBuilder.new():WithFeatureDefs({
 	[1] = { name = "treetype1" },
 	[2] = { name = "rock1" },
 })
@@ -14,11 +17,11 @@ local onFeatureDestroyed = featureDestroyed.callins.FeatureDestroyed
 
 describe("mission_api.triggers.feature_destroyed", function()
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 

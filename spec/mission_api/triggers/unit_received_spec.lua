@@ -1,8 +1,8 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and UnitDefs and
 -- the TransferUnits fence inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 _G.UnitDefs = { [1] = { name = "armwin" }, [2] = { name = "armsolar" } }
 

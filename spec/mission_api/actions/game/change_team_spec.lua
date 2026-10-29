@@ -1,6 +1,7 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/game/change_team.lua")
 local action = actions[1]
@@ -11,8 +12,8 @@ describe("mission_api.actions.change_team", function()
 	local playersByTeam
 
 	before_each(function()
-		Builders.MissionApi.new():WithTeam("rebels", 0):WithTeam("loyalists", 1):Install()
-		_G.Spring = Builders.Spring.new():Build()
+		MissionApiBuilder.new():WithTeam("rebels", 0):WithTeam("loyalists", 1):Install()
+		_G.Spring = SpringSyncedBuilder.new():Build()
 		playersByTeam = { [0] = {}, [1] = {} }
 		Spring.GetPlayerList = function(teamID)
 			return playersByTeam[teamID]

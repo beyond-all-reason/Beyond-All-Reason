@@ -1,10 +1,10 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 describe("MissionApiBuilder", function()
 
 	describe("Build", function()
 		it("creates the canonical GG['MissionAPI'] shape", function()
-			local api = Builders.MissionApi.new():Build()
+			local api = MissionApiBuilder.new():Build()
 
 			assert.are.equal(1, api.Difficulty)
 			assert.are.same({}, api.trackedUnitIDs)
@@ -24,20 +24,20 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("loads the real ParameterTypes module by default", function()
-			local api = Builders.MissionApi.new():Build()
+			local api = MissionApiBuilder.new():Build()
 
 			assert.is_table(api.Modules.ParameterTypes)
 			assert.is_table(api.Modules.ParameterTypes.Types)
 		end)
 
 		it("omits ParameterTypes when disabled", function()
-			local api = Builders.MissionApi.new():WithoutParameterTypes():Build()
+			local api = MissionApiBuilder.new():WithoutParameterTypes():Build()
 
 			assert.is_nil(api.Modules.ParameterTypes)
 		end)
 
 		it("exposes all module stubs", function()
-			local api = Builders.MissionApi.new():Build()
+			local api = MissionApiBuilder.new():Build()
 
 			assert.is_function(api.Modules.Tracking.TrackUnit)
 			assert.is_function(api.Modules.Loadout.SpawnUnitLoadout)
@@ -46,8 +46,8 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("gives each built mock its own state", function()
-			local apiA = Builders.MissionApi.new():Build()
-			local apiB = Builders.MissionApi.new():Build()
+			local apiA = MissionApiBuilder.new():Build()
+			local apiB = MissionApiBuilder.new():Build()
 
 			apiA.Modules.Tracking.TrackUnit("bots", 1)
 
@@ -58,8 +58,7 @@ describe("MissionApiBuilder", function()
 
 	describe("mission data", function()
 		it("seeds objectives, stages, triggers and actions", function()
-			local api = Builders.MissionApi
-				.new()
+			local api = MissionApiBuilder.new()
 				:WithObjective("obj1", { textKey = "kill", amount = 3 })
 				:WithStage("stage1", { objectives = { "obj1" } })
 				:WithCurrentStage("stage1")
@@ -78,8 +77,7 @@ describe("MissionApiBuilder", function()
 
 		it("seeds markers, sound files and loadouts", function()
 			local position = { x = 1, y = 2, z = 3 }
-			local api = Builders.MissionApi
-				.new()
+			local api = MissionApiBuilder.new()
 				:WithMarker("base", position)
 				:WithSoundFile("intro.wav", 120)
 				:WithUnitLoadout({ { unitDefName = "armcom" } })
@@ -95,8 +93,7 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("seeds action and trigger definitions", function()
-			local api = Builders.MissionApi
-				.new()
+			local api = MissionApiBuilder.new()
 				:WithActionDefinitions({ Victory = {} })
 				:WithTriggerDefinitions({ TimeElapsed = {} })
 				:Build()
@@ -108,7 +105,7 @@ describe("MissionApiBuilder", function()
 
 	describe("Modules.Tracking", function()
 		it("seeds tracked units bidirectionally", function()
-			local api = Builders.MissionApi.new():WithTrackedUnit("bots", 101):WithTrackedUnit("bots", 102):Build()
+			local api = MissionApiBuilder.new():WithTrackedUnit("bots", 101):WithTrackedUnit("bots", 102):Build()
 
 			assert.is_true(api.trackedUnitIDs.bots[101])
 			assert.is_true(api.trackedUnitIDs.bots[102])
@@ -118,7 +115,7 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("seeds tracked features bidirectionally", function()
-			local api = Builders.MissionApi.new():WithTrackedFeature("wreck", 7):Build()
+			local api = MissionApiBuilder.new():WithTrackedFeature("wreck", 7):Build()
 
 			assert.is_true(api.trackedFeatureIDs.wreck[7])
 			assert.is_true(api.trackedFeatureNames[7].wreck)
@@ -127,7 +124,7 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("reports untracked names and ids", function()
-			local api = Builders.MissionApi.new():Build()
+			local api = MissionApiBuilder.new():Build()
 
 			assert.is_true(api.Modules.Tracking.IsUnitNameUntracked("ghost"))
 			assert.is_true(api.Modules.Tracking.IsUnitIDUntracked(999))
@@ -136,7 +133,7 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("tracks units at runtime", function()
-			local api = Builders.MissionApi.new():Build()
+			local api = MissionApiBuilder.new():Build()
 
 			api.Modules.Tracking.TrackUnit("scout", 5)
 
@@ -145,7 +142,7 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("untracks a unit id and cleans up empty name entries", function()
-			local api = Builders.MissionApi.new():WithTrackedUnit("solo", 1):Build()
+			local api = MissionApiBuilder.new():WithTrackedUnit("solo", 1):Build()
 
 			api.Modules.Tracking.UntrackUnitID(1)
 
@@ -154,7 +151,7 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("untracks a unit name and cleans up empty id entries", function()
-			local api = Builders.MissionApi.new():WithTrackedUnit("pair", 1):WithTrackedUnit("pair", 2):Build()
+			local api = MissionApiBuilder.new():WithTrackedUnit("pair", 1):WithTrackedUnit("pair", 2):Build()
 
 			api.Modules.Tracking.UntrackUnitName("pair")
 
@@ -164,7 +161,7 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("keeps other names when untracking an id with multiple names", function()
-			local api = Builders.MissionApi.new():WithTrackedUnit("alpha", 1):WithTrackedUnit("beta", 1):Build()
+			local api = MissionApiBuilder.new():WithTrackedUnit("alpha", 1):WithTrackedUnit("beta", 1):Build()
 
 			api.Modules.Tracking.UntrackUnitName("alpha")
 
@@ -176,7 +173,7 @@ describe("MissionApiBuilder", function()
 
 	describe("module call tracking", function()
 		it("records Loadout calls and passes orders through unchanged", function()
-			local api = Builders.MissionApi.new():Build()
+			local api = MissionApiBuilder.new():Build()
 			local orders = { { 10, {}, {} } }
 
 			local result = api.Modules.Loadout.ConvertOrdersTargetingNames(orders)
@@ -192,7 +189,7 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("records Sounds calls", function()
-			local api = Builders.MissionApi.new():Build()
+			local api = MissionApiBuilder.new():Build()
 			local position = { x = 1, y = 2, z = 3 }
 
 			api.Modules.Sounds.PlaySound("a.wav", 0.5, position)
@@ -210,7 +207,7 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("records Objectives calls", function()
-			local api = Builders.MissionApi.new():Build()
+			local api = MissionApiBuilder.new():Build()
 			local objective = { textKey = "kill" }
 
 			api.Modules.Objectives.ChangeStage("stage2")
@@ -233,7 +230,7 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("clears every tracked call list via clearCalls", function()
-			local api = Builders.MissionApi.new():Build()
+			local api = MissionApiBuilder.new():Build()
 
 			api.Modules.Loadout.ConvertOrdersTargetingNames({})
 			api.Modules.Loadout.SpawnUnitLoadout({})
@@ -263,8 +260,7 @@ describe("MissionApiBuilder", function()
 
 	describe("WithModule", function()
 		it("overrides individual module functions", function()
-			local api = Builders.MissionApi
-				.new()
+			local api = MissionApiBuilder.new()
 				:WithModule("Loadout", {
 					ConvertOrdersTargetingNames = function()
 						return { "converted" }
@@ -278,8 +274,7 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("adds entirely new modules", function()
-			local api = Builders.MissionApi
-				.new()
+			local api = MissionApiBuilder.new()
 				:WithModule("Custom", {
 					DoThing = function()
 						return 42
@@ -293,15 +288,15 @@ describe("MissionApiBuilder", function()
 
 	describe("Install", function()
 		it("assigns the mock to GG['MissionAPI'] and returns it", function()
-			local api = Builders.MissionApi.new():WithDifficulty(3):Install()
+			local api = MissionApiBuilder.new():WithDifficulty(3):Install()
 
 			assert.are.equal(api, GG["MissionAPI"])
 			assert.are.equal(3, GG["MissionAPI"].Difficulty)
 		end)
 
 		it("keeps the GG['MissionAPI'] table identity stable across installs", function()
-			local first = Builders.MissionApi.new():Install()
-			local second = Builders.MissionApi.new():WithDifficulty(5):Install()
+			local first = MissionApiBuilder.new():Install()
+			local second = MissionApiBuilder.new():WithDifficulty(5):Install()
 
 			assert.are.equal(first, second)
 			assert.are.equal(first, GG["MissionAPI"])
@@ -309,8 +304,8 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("clears state left over from a previous install", function()
-			Builders.MissionApi.new():WithTrackedUnit("bots", 1):WithCurrentStage("s1"):Install()
-			local api = Builders.MissionApi.new():Install()
+			MissionApiBuilder.new():WithTrackedUnit("bots", 1):WithCurrentStage("s1"):Install()
+			local api = MissionApiBuilder.new():Install()
 
 			assert.are.same({}, api.trackedUnitIDs)
 			assert.is_nil(api.CurrentStageID)
@@ -318,11 +313,11 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("resets recorded calls on reinstall", function()
-			local api = Builders.MissionApi.new():Install()
+			local api = MissionApiBuilder.new():Install()
 			api.Modules.Objectives.ChangeStage("s1")
 			assert.are.equal(1, #api.calls.changeStage)
 
-			Builders.MissionApi.new():Install()
+			MissionApiBuilder.new():Install()
 
 			assert.are.equal(0, #api.calls.changeStage)
 		end)
@@ -330,11 +325,11 @@ describe("MissionApiBuilder", function()
 		it("refills the tables a module captured instead of replacing them", function()
 			-- The mission_api modules hold GG's tables as upvalues at load, so an install has to
 			-- put the new mission inside the tables they already have.
-			local first = Builders.MissionApi.new():WithTrackedUnit("bots", 1):Install()
+			local first = MissionApiBuilder.new():WithTrackedUnit("bots", 1):Install()
 			local trackedUnitIDs = first.trackedUnitIDs
 			local tracking = first.Modules.Tracking
 
-			local second = Builders.MissionApi.new():WithTrackedUnit("scouts", 2):Install()
+			local second = MissionApiBuilder.new():WithTrackedUnit("scouts", 2):Install()
 
 			assert.are.equal(trackedUnitIDs, second.trackedUnitIDs)
 			assert.are.equal(tracking, second.Modules.Tracking)
@@ -343,8 +338,8 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("leaves the module stubs writing where a captured table reads", function()
-			local trackedUnitIDs = Builders.MissionApi.new():Install().trackedUnitIDs
-			local api = Builders.MissionApi.new():Install()
+			local trackedUnitIDs = MissionApiBuilder.new():Install().trackedUnitIDs
+			local api = MissionApiBuilder.new():Install()
 
 			api.Modules.Tracking.TrackUnit("bots", 3)
 
@@ -352,9 +347,9 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("includes the real modules once the mock stands, and keeps them", function()
-			local first = Builders.MissionApi.new():Install()
+			local first = MissionApiBuilder.new():Install()
 			local unitQuery = first.Modules.UnitQuery
-			local second = Builders.MissionApi.new():Install()
+			local second = MissionApiBuilder.new():Install()
 
 			assert.is_function(unitQuery.MatchingUnits)
 			assert.are.equal(unitQuery, second.Modules.UnitQuery)
@@ -368,12 +363,12 @@ describe("MissionApiBuilder", function()
 		end)
 
 		it("reclaims GG['MissionAPI'] if another spec replaced the table", function()
-			local owned = Builders.MissionApi.new():Install()
+			local owned = MissionApiBuilder.new():Install()
 
 			-- Simulate a spec that assigns its own table wholesale.
 			GG["MissionAPI"] = { Modules = {} }
 
-			local reinstalled = Builders.MissionApi.new():WithDifficulty(4):Install()
+			local reinstalled = MissionApiBuilder.new():WithDifficulty(4):Install()
 
 			assert.are.equal(owned, reinstalled)
 			assert.are.equal(owned, GG["MissionAPI"])

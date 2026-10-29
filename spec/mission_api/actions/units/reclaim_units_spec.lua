@@ -1,7 +1,8 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 _G.UnitDefs = {}
 
@@ -10,7 +11,7 @@ local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 local function seedUnits(name, ...)
-	local builder = Builders.MissionApi.new()
+	local builder = MissionApiBuilder.new()
 	for _, unitID in ipairs({ ... }) do
 		builder:WithTrackedUnit(name, unitID)
 	end
@@ -22,8 +23,8 @@ describe("mission_api.actions.reclaim_units", function()
 	local destroyCalls, addResourceCalls
 
 	before_each(function()
-		Builders.MissionApi.new():Install()
-		_G.Spring = Builders.Spring.new():Build()
+		MissionApiBuilder.new():Install()
+		_G.Spring = SpringSyncedBuilder.new():Build()
 		-- These units are tracked by the Mission API, not registered as team
 		-- units on the mock, so the team/def lookups have to be pinned here.
 		Spring.GetUnitTeam = function(unitID)
@@ -119,7 +120,7 @@ describe("mission_api.actions.reclaim_units", function()
 		end)
 
 		it("only affects units tracked under the given name", function()
-			Builders.MissionApi.new():WithTrackedUnit("miners", 1):WithTrackedUnit("tanks", 2):Install()
+			MissionApiBuilder.new():WithTrackedUnit("miners", 1):WithTrackedUnit("tanks", 2):Install()
 
 			action.actionFunction("miners", 0)
 

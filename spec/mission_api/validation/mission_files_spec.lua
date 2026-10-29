@@ -4,7 +4,7 @@
 
 local V = require("mission_api.validation.validation_spec_helper")
 
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 local missionDirectory = "singleplayer/mission-api-tests/"
 
@@ -96,8 +96,7 @@ end
 
 local function validateMissionFile(fileName)
 	-- Mission files read the definitions from GG when they are included.
-	Builders.MissionApi
-		.new()
+	MissionApiBuilder.new()
 		:WithActionDefinitions(V.definitions.ActionDefinitions)
 		:WithTriggerDefinitions(V.definitions.TriggerDefinitions)
 		:Install()

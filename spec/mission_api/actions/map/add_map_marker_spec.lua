@@ -1,6 +1,7 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/map/add_map_marker.lua")
 local action = actions[1]
@@ -11,8 +12,8 @@ local missionApi = GG["MissionAPI"]
 describe("mission_api.actions.add_map_marker", function()
 
 	before_each(function()
-		Builders.MissionApi.new():Install()
-		_G.Spring = Builders.Spring.new():Build()
+		MissionApiBuilder.new():Install()
+		_G.Spring = SpringSyncedBuilder.new():Build()
 	end)
 
 	it("declares its type and parameters", function()

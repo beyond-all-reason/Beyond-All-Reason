@@ -1,4 +1,4 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
 
 GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
@@ -11,7 +11,7 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 describe("mission_api.actions.add_resources", function()
 
 	before_each(function()
-		_G.Spring = Builders.Spring.new():Build()
+		_G.Spring = SpringSyncedBuilder.new():Build()
 	end)
 
 	it("declares its type and parameters", function()

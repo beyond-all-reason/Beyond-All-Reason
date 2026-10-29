@@ -1,6 +1,6 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/objectives/update_objective.lua")
 local action = actions[1]
@@ -10,7 +10,7 @@ describe("mission_api.actions.update_objective", function()
 	local missionApi
 
 	before_each(function()
-		missionApi = Builders.MissionApi.new():WithObjective("obj1", { active = true, completed = false }):Install()
+		missionApi = MissionApiBuilder.new():WithObjective("obj1", { active = true, completed = false }):Install()
 	end)
 
 	it("declares its type and parameters", function()

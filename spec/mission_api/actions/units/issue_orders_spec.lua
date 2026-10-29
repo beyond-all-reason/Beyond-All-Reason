@@ -1,6 +1,7 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/units/issue_orders.lua")
 local action = actions[1]
@@ -9,7 +10,7 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 local missionApi = GG["MissionAPI"]
 
 local function seedUnits(name, ...)
-	local builder = Builders.MissionApi.new()
+	local builder = MissionApiBuilder.new()
 	for _, unitID in ipairs({ ... }) do
 		builder:WithTrackedUnit(name, unitID)
 	end
@@ -19,8 +20,8 @@ end
 describe("mission_api.actions.issue_orders", function()
 
 	before_each(function()
-		Builders.MissionApi.new():Install()
-		_G.Spring = Builders.Spring.new():Build()
+		MissionApiBuilder.new():Install()
+		_G.Spring = SpringSyncedBuilder.new():Build()
 	end)
 
 	it("declares its type and parameters", function()
@@ -47,8 +48,7 @@ describe("mission_api.actions.issue_orders", function()
 
 		it("passes the result of ConvertOrdersTargetingNames as the orders", function()
 			local convertedOrders = { { 999, {}, {} } }
-			Builders.MissionApi
-				.new()
+			MissionApiBuilder.new()
 				:WithTrackedUnit("scout", 5)
 				:WithModule("Loadout", {
 					ConvertOrdersTargetingNames = function()

@@ -8,7 +8,7 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 -- busted only exposes luassert as a global inside spec files, not in required modules.
 local assert = require("luassert")
 
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionBuilder = VFS.Include("spec/builders/mission_builder.lua")
 
 -- The definition files read the Mission API modules from GG when they are included, in a
 -- specific load order, mirroring the eager module loading in api_missions.lua. GG is put
@@ -63,7 +63,7 @@ end
 
 --- @return MissionBuilder
 function helper.mission()
-	return Builders.Mission.new()
+	return MissionBuilder.new()
 end
 
 --- Runs `call` with `installed` as GG["MissionAPI"], putting back whatever was there.

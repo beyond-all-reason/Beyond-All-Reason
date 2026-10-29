@@ -1,6 +1,7 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local unitMarkers = VFS.Include("luarules/mission_api/unit_markers.lua")
 
@@ -16,9 +17,9 @@ describe("mission_api.unit_markers", function()
 	end
 
 	before_each(function()
-		missionApi = Builders.MissionApi.new():Install()
+		missionApi = MissionApiBuilder.new():Install()
 		missionApi.unitMarkers = {}
-		_G.Spring = Builders.Spring.new():Build() ---@diagnostic disable-line: global-in-non-module
+		_G.Spring = SpringSyncedBuilder.new():Build() ---@diagnostic disable-line: global-in-non-module
 		sentMessages = {}
 		_G.SendToUnsynced = function(action, unitID, markerTypes) ---@diagnostic disable-line: global-in-non-module
 			sentMessages[#sentMessages + 1] = { action = action, unitID = unitID, markerTypes = markerTypes }

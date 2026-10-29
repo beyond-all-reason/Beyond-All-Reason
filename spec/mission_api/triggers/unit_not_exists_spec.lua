@@ -1,9 +1,12 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and UnitDefs inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armpw" },
 	[2] = { name = "corfast" },
 })
@@ -14,11 +17,11 @@ local onMetaUnitRemoved = unitNotExists.callins.MetaUnitRemoved
 
 describe("mission_api.triggers.unit_not_exists", function()
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 

@@ -1,7 +1,7 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/map/remove_all_lines.lua")
 local action = actions[1]
@@ -13,8 +13,7 @@ describe("mission_api.actions.remove_all_lines", function()
 
 	before_each(function()
 		calls = {}
-		Builders.MissionApi
-			.new()
+		MissionApiBuilder.new()
 			:WithModule("MapLines", {
 				RemoveAllLines = function(...)
 					calls[#calls + 1] = { ... }

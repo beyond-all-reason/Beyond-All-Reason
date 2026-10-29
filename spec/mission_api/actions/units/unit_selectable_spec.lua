@@ -1,14 +1,15 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/units/unit_selectable.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 local function seedUnits(name, ...)
-	local builder = Builders.MissionApi.new()
+	local builder = MissionApiBuilder.new()
 	for _, unitID in ipairs({ ... }) do
 		builder:WithTrackedUnit(name, unitID)
 	end
@@ -27,8 +28,8 @@ end
 describe("mission_api.actions.unit_selectable", function()
 
 	before_each(function()
-		Builders.MissionApi.new():Install()
-		_G.Spring = Builders.Spring.new():Build()
+		MissionApiBuilder.new():Install()
+		_G.Spring = SpringSyncedBuilder.new():Build()
 	end)
 
 	it("declares its type and parameters", function()
@@ -74,7 +75,7 @@ describe("mission_api.actions.unit_selectable", function()
 		end)
 
 		it("only affects units tracked under the given name", function()
-			Builders.MissionApi.new():WithTrackedUnit("bots", 101):WithTrackedUnit("tanks", 202):Install()
+			MissionApiBuilder.new():WithTrackedUnit("bots", 101):WithTrackedUnit("tanks", 202):Install()
 
 			action.actionFunction("bots", false)
 

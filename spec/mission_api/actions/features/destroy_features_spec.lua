@@ -1,7 +1,8 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/features/destroy_features.lua")
 local action = actions[1]
@@ -9,8 +10,8 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 
 ---Track the given `name -> featureID` pairs, and mark those IDs valid.
 local function seedFeatures(name, ...)
-	local missionApi = Builders.MissionApi.new()
-	local spring = Builders.Spring.new()
+	local missionApi = MissionApiBuilder.new()
+	local spring = SpringSyncedBuilder.new()
 	for _, featureID in ipairs({ ... }) do
 		missionApi:WithTrackedFeature(name, featureID)
 		spring:WithValidFeature(featureID)
@@ -25,8 +26,8 @@ describe("mission_api.actions.destroy_features", function()
 	local destroyFeatureCalls
 
 	before_each(function()
-		Builders.MissionApi.new():Install()
-		_G.Spring = Builders.Spring.new():Build()
+		MissionApiBuilder.new():Install()
+		_G.Spring = SpringSyncedBuilder.new():Build()
 		destroyFeatureCalls = Spring.calls.destroyFeature
 	end)
 
@@ -51,8 +52,8 @@ describe("mission_api.actions.destroy_features", function()
 
 		it("skips invalid feature IDs", function()
 			-- tracked, but never marked valid
-			Builders.MissionApi.new():WithTrackedFeature("rock", 10):Install()
-			_G.Spring = Builders.Spring.new():Build()
+			MissionApiBuilder.new():WithTrackedFeature("rock", 10):Install()
+			_G.Spring = SpringSyncedBuilder.new():Build()
 
 			action.actionFunction("rock")
 
@@ -60,8 +61,8 @@ describe("mission_api.actions.destroy_features", function()
 		end)
 
 		it("only destroys features matching the given name", function()
-			Builders.MissionApi.new():WithTrackedFeature("rock", 10):WithTrackedFeature("tree", 20):Install()
-			_G.Spring = Builders.Spring.new():WithValidFeature(10):WithValidFeature(20):Build()
+			MissionApiBuilder.new():WithTrackedFeature("rock", 10):WithTrackedFeature("tree", 20):Install()
+			_G.Spring = SpringSyncedBuilder.new():WithValidFeature(10):WithValidFeature(20):Build()
 
 			action.actionFunction("rock")
 

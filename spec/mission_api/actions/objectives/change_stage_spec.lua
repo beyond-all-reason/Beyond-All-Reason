@@ -1,6 +1,6 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/objectives/change_stage.lua")
 local action = actions[1]
@@ -11,7 +11,7 @@ describe("mission_api.actions.change_stage", function()
 	local changeStageCalls
 
 	before_each(function()
-		local missionApi = Builders.MissionApi.new():Install()
+		local missionApi = MissionApiBuilder.new():Install()
 		changeStageCalls = missionApi.calls.changeStage
 	end)
 

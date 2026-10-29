@@ -1,4 +1,4 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
@@ -11,7 +11,7 @@ local unitQuerySpy = {
 	end,
 }
 
-Builders.MissionApi.new():WithModule("UnitQuery", unitQuerySpy):Install()
+MissionApiBuilder.new():WithModule("UnitQuery", unitQuerySpy):Install()
 
 local calls = {}
 local function record(name)

@@ -1,13 +1,14 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 describe("mission_api.map_lines", function()
 	local missionApi, addCalls, eraseCalls, mapLines ---@type table, table, table, table
 
 	before_each(function()
-		missionApi = Builders.MissionApi.new():Install()
-		_G.Spring = Builders.Spring.new():Build() ---@diagnostic disable-line: global-in-non-module
+		missionApi = MissionApiBuilder.new():Install()
+		_G.Spring = SpringSyncedBuilder.new():Build() ---@diagnostic disable-line: global-in-non-module
 		addCalls = Spring.calls.markerAddLine
 		eraseCalls = Spring.calls.markerErasePosition
 		mapLines = VFS.Include("luarules/mission_api/map_lines.lua")

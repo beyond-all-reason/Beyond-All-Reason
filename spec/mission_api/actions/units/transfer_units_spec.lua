@@ -1,13 +1,14 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/units/transfer_units.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 local function seedUnits(name, ...)
-	local builder = Builders.MissionApi.new()
+	local builder = MissionApiBuilder.new()
 	for _, unitID in ipairs({ ... }) do
 		builder:WithTrackedUnit(name, unitID)
 	end
@@ -17,8 +18,8 @@ end
 describe("mission_api.actions.transfer_units", function()
 
 	before_each(function()
-		Builders.MissionApi.new():Install()
-		_G.Spring = Builders.Spring.new():Build()
+		MissionApiBuilder.new():Install()
+		_G.Spring = SpringSyncedBuilder.new():Build()
 		-- No teams are registered on the mock, so pin ally teams explicitly.
 		Spring.GetUnitAllyTeam = function(id)
 			return 0

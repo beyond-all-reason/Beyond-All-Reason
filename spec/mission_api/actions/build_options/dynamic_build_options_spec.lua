@@ -1,13 +1,14 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/build_options/dynamic_build_options.lua")
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 local unitDefNames =
-	Builders.UnitDefs.new():WithUnitDefs({ [42] = { name = "armsolar" }, [7] = { name = "armck" } }):GetUnitDefNames()
+	UnitDefsBuilder.new():WithUnitDefs({ [42] = { name = "armsolar" }, [7] = { name = "armck" } }):GetUnitDefNames()
 
 local function findAction(actionType)
 	for _, action in ipairs(actions) do
