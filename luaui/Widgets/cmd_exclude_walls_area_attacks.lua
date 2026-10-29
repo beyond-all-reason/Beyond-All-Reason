@@ -22,9 +22,11 @@ local excludedUnitsDefID = {}
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
 
--- Keep in sync with unit_areaattack_limiter.lua
-local COMMAND_LIMIT = 2000
+local splitTargets = VFS.Include("common/luaUtilities/split_area_targets.lua")
+
+local sendAttackOrders = VFS.Include("common/luaUtilities/native_attack_orders.lua")
 for id, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.objectify then
 		excludedUnitsDefID[id] = true
@@ -61,30 +63,45 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_UNIT_SET_TARGET and cmdOpts.ctrl then
 		reissueOpts = reissueOpts + CMD.OPT_CTRL
 	end
-
 	local cmdX, _, cmdZ, cmdRadius = unpack(cmdParams)
 	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, Spring.ENEMY_UNITS)
 
 	local newCmds = {}
+	local targetIDs = {}
 	local somethingWasExcluded = false
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
 
-		if not excludedUnitsDefID[unitDefID] then
-			addNewCommand(newCmds, unitID, cmdOpts, cmdID, reissueOpts)
-		elseif not spGetUnitNeutral(unitID) then
-			addNewCommand(newCmds, unitID, cmdOpts, cmdID, reissueOpts)
+		if not excludedUnitsDefID[unitDefID] or not spGetUnitNeutral(unitID) then
+			if cmdID == CMD_ATTACK then
+				targetIDs[#targetIDs + 1] = unitID
+			else
+				addNewCommand(newCmds, unitID, cmdOpts, cmdID, reissueOpts)
+			end
 		else
 			somethingWasExcluded = true
 		end
 	end
-	if #newCmds > 0 and somethingWasExcluded then
-		-- The command limiter excludes walls already so we can skip sending new commands.
-		local targetCount = cmdOpts.shift and #newCmds or (#newCmds - 1) -- ignore the leading STOP
-		if cmdID == CMD_ATTACK and #selected * targetCount > COMMAND_LIMIT then
-			return false
+	if #targetIDs > 0 and somethingWasExcluded then
+		if cmdOpts.shift and cmdOpts.meta then
+			local assignments = splitTargets(selected, targetIDs)
+			for _, unitID in ipairs(selected) do
+				local targets = assignments[unitID]
+				local x, _, z = Spring.GetUnitPosition(unitID)
+				table.sort(targets, function(a, b)
+					local ax, _, az = Spring.GetUnitPosition(a)
+					local bx, _, bz = Spring.GetUnitPosition(b)
+					return (ax - x) ^ 2 + (az - z) ^ 2 < (bx - x) ^ 2 + (bz - z) ^ 2
+				end)
+				sendAttackOrders({ unitID }, targets, cmdOpts, spGiveOrderArrayToUnitArray)
+			end
+		else
+			sendAttackOrders(selected, targetIDs, cmdOpts, spGiveOrderArrayToUnitArray)
 		end
+		return true
+	end
+	if #newCmds > 0 and somethingWasExcluded then
 		Spring.GiveOrderArrayToUnitArray(selected, newCmds)
 		return true
 	end

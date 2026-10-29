@@ -106,9 +106,9 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
-	-- Only intercept area-form CMD_ATTACK commands (4 params: x, y, z, radius).
+	-- Limit raw circular and rectangular Attack orders; compact target lists bypass this gate.
 	-- Engine-native CMD_AREA_ATTACK remains compact and is intentionally not limited.
-	if cmdID ~= CMD_ATTACK or #cmdParams ~= 4 or cmdParams[4] <= 0 then
+	if cmdID ~= CMD_ATTACK or (#cmdParams ~= 4 and #cmdParams ~= 6) or (#cmdParams == 4 and cmdParams[4] <= 0) then
 		return
 	end
 
