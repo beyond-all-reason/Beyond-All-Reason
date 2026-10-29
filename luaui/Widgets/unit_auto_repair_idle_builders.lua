@@ -175,12 +175,24 @@ local function isAutomatic(options)
 end
 
 local function getRepairTag(builderID, targetID)
-	local cmdID, cmdOptions, cmdTag, cmdTargetID = spGetUnitCurrentCommand(builderID)
-	if cmdID == CMD_MOVE and isAutomatic(cmdOptions) then -- buggeroff
-		cmdID, cmdOptions, cmdTag, cmdTargetID = spGetUnitCurrentCommand(builderID, 2)
+	for index = 1, spGetUnitCommandCount(builderID) or 0 do
+		local cmdID, cmdOptions, cmdTag, cmdTargetID = spGetUnitCurrentCommand(builderID, index)
+		if cmdID == CMD_REPAIR and cmdTargetID == targetID and isAutomatic(cmdOptions) then
+			return cmdTag
+		elseif cmdID ~= CMD_MOVE or not isAutomatic(cmdOptions) then -- buggeroff
+			return
+		end
 	end
-	if cmdID == CMD_REPAIR and cmdTargetID == targetID and isAutomatic(cmdOptions) then
-		return cmdTag
+end
+
+local function getHomeTag(builderID, info)
+	for index = 1, spGetUnitCommandCount(builderID) or 0 do
+		local cmdID, cmdOptions, cmdTag, x, _, z = spGetUnitCurrentCommand(builderID, index)
+		if cmdID ~= CMD_MOVE or not isAutomatic(cmdOptions) then -- buggeroff
+			return
+		elseif x == info.homeX and z == info.homeZ then
+			return cmdTag
+		end
 	end
 end
 
@@ -506,12 +518,8 @@ function widget:GameFrame(frame)
 		if not isUnitAlive(builderID) then
 			activeRepairs[builderID] = nil
 		elseif info.returning then
-			if not pendingHomes[builderID] then
-				-- TODO: This could use a better check.
-				local currentID, cmdOptions = spGetUnitCurrentCommand(builderID)
-				if currentID ~= CMD_MOVE or math.bit_and(cmdOptions, CMD_OPT_INTERNAL) == 0 then
-					activeRepairs[builderID] = nil
-				end
+			if not pendingHomes[builderID] and not getHomeTag(builderID, info) then
+				activeRepairs[builderID] = nil
 			end
 		elseif not getRepairTag(builderID, info.targetID) then
 			activeRepairs[builderID] = nil
