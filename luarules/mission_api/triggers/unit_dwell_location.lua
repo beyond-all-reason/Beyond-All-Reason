@@ -13,38 +13,40 @@ return {
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
-		GameFrame = function(trigger, triggerID, context)
-			local dwellingUnitsInAreas = context.DwellingUnitsInAreas
-			local unitsInArea = context.GetUnitsInArea(trigger)
-
-			for _, unitID in pairs(unitsInArea) do
-				-- If unit already dwelling in area, increase dwelling time:
-				if dwellingUnitsInAreas[triggerID] and dwellingUnitsInAreas[triggerID][unitID] ~= nil and dwellingUnitsInAreas[triggerID][unitID] >= 0 then
-					dwellingUnitsInAreas[triggerID][unitID] = dwellingUnitsInAreas[triggerID][unitID] + 1
-
-					-- Check duration, and if unit still has required name:
-					if dwellingUnitsInAreas[triggerID][unitID] >= trigger.parameters.duration and
-						(not trigger.parameters.unitName or context.DoesUnitHaveName(unitID, trigger.parameters.unitName)) then
-						local wasInvoked = context.ActivateTrigger(trigger)
-						if wasInvoked then
-							dwellingUnitsInAreas[triggerID][unitID] = -1 -- Prevent multiple activations for the same unit
-						end
-					end
-
-				-- If unit just entered area (and hasn't already triggered), start counting:
-				elseif (dwellingUnitsInAreas[triggerID] == nil or dwellingUnitsInAreas[triggerID][unitID] == nil)
-					and (not trigger.parameters.unitName or context.DoesUnitHaveName(unitID, trigger.parameters.unitName))
-					and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName) then
-					table.ensureTable(dwellingUnitsInAreas, triggerID)
-					dwellingUnitsInAreas[triggerID][unitID] = 0
-				end
+		-- Dwell time starts the frame after entering, so a duration of 0 fires on the first frame.
+		GameFrame = function(trigger, triggerID, context, frameNumber)
+			local dwellingUnits = context.DwellingUnitsInAreas[triggerID]
+			if not dwellingUnits then
+				return
 			end
 
-			-- Remove units that left area:
-			for unitID, _ in pairs(dwellingUnitsInAreas[triggerID] or {}) do
-				if not table.contains(unitsInArea, unitID) then
-					dwellingUnitsInAreas[triggerID][unitID] = nil
+			local parameters = trigger.parameters
+			for unitID, enteredFrame in pairs(dwellingUnits) do
+				if enteredFrame >= 0 and frameNumber > enteredFrame and frameNumber - enteredFrame >= parameters.duration
+					and (not parameters.unitName or context.DoesUnitHaveName(unitID, parameters.unitName)) then
+					if context.ActivateTrigger(trigger) then
+						dwellingUnits[unitID] = -1 -- Prevent multiple activations for the same unit.
+					end
 				end
+			end
+		end,
+		UnitsEnteredArea = function(trigger, triggerID, context, unitIDs)
+			local parameters = trigger.parameters
+			local dwellingUnits = table.ensureTable(context.DwellingUnitsInAreas, triggerID)
+			local frameNumber = Spring.GetGameFrame()
+			for i = 1, #unitIDs do
+				local unitID = unitIDs[i]
+				if context.DoesUnitMatch(unitID, parameters.unitName, parameters.unitDefName) then
+					dwellingUnits[unitID] = frameNumber
+				end
+			end
+		end,
+		UnitsLeftArea = function(trigger, triggerID, context, unitIDs)
+			local dwellingUnits = context.DwellingUnitsInAreas[triggerID]
+			if not dwellingUnits then return end
+
+			for i = 1, #unitIDs do
+				dwellingUnits[unitIDs[i]] = nil
 			end
 		end,
 	},
