@@ -1,10 +1,13 @@
 local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 MissionApiBuilder.new():Install()
 
-local actions = VFS.Include("luarules/mission_api/actions/map/remove_map_marker.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/map/remove_map_marker.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -13,8 +16,8 @@ describe("mission_api.actions.remove_map_marker", function()
 
 	before_each(function()
 		missionApi = MissionApiBuilder.new():Install()
-		_G.Spring = SpringSyncedBuilder.new():Build()
-		eraseCalls = Spring.calls.markerErasePosition
+		env.Spring = SpringSyncedBuilder.new():Build()
+		eraseCalls = env.Spring.calls.markerErasePosition
 	end)
 
 	it("declares its type and parameters", function()

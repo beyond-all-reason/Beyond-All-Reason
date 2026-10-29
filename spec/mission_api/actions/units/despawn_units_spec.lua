@@ -1,10 +1,13 @@
 local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 MissionApiBuilder.new():Install()
 
-local actions = VFS.Include("luarules/mission_api/actions/units/despawn_units.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/units/despawn_units.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -22,9 +25,9 @@ describe("mission_api.actions.despawn_units", function()
 
 	before_each(function()
 		MissionApiBuilder.new():Install()
-		_G.Spring = SpringSyncedBuilder.new():Build()
-		destroyCalls = Spring.calls.destroyUnit
-		addResourceCalls = Spring.calls.addTeamResource
+		env.Spring = SpringSyncedBuilder.new():Build()
+		destroyCalls = env.Spring.calls.destroyUnit
+		addResourceCalls = env.Spring.calls.addTeamResource
 	end)
 
 	it("declares its type and parameters", function()
@@ -70,7 +73,7 @@ describe("mission_api.actions.despawn_units", function()
 
 		it("skips dead units", function()
 			seedUnits("dead", 5)
-			Spring.GetUnitIsDead = function(unitID)
+			env.Spring.GetUnitIsDead = function(unitID)
 				return true
 			end
 

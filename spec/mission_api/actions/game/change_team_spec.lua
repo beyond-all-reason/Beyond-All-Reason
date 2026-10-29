@@ -1,9 +1,12 @@
 local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 MissionApiBuilder.new():Install()
 
-local actions = VFS.Include("luarules/mission_api/actions/game/change_team.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/game/change_team.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -13,9 +16,9 @@ describe("mission_api.actions.change_team", function()
 
 	before_each(function()
 		MissionApiBuilder.new():WithTeam("rebels", 0):WithTeam("loyalists", 1):Install()
-		_G.Spring = SpringSyncedBuilder.new():Build()
+		env.Spring = SpringSyncedBuilder.new():Build()
 		playersByTeam = { [0] = {}, [1] = {} }
-		Spring.GetPlayerList = function(teamID)
+		env.Spring.GetPlayerList = function(teamID)
 			return playersByTeam[teamID]
 		end
 	end)
@@ -32,7 +35,7 @@ describe("mission_api.actions.change_team", function()
 		it("assigns the old team's player to the new team", function()
 			playersByTeam[0] = { 3 }
 			action.actionFunction("rebels", "loyalists")
-			assert.are.same({ { playerID = 3, teamID = 1 } }, Spring.calls.assignPlayerToTeam)
+			assert.are.same({ { playerID = 3, teamID = 1 } }, env.Spring.calls.assignPlayerToTeam)
 		end)
 
 		it("assigns every player on the old team", function()
@@ -42,12 +45,12 @@ describe("mission_api.actions.change_team", function()
 			assert.are.same({
 				{ playerID = 3, teamID = 1 },
 				{ playerID = 4, teamID = 1 },
-			}, Spring.calls.assignPlayerToTeam)
+			}, env.Spring.calls.assignPlayerToTeam)
 		end)
 
 		it("is a no-op when the old team has no players", function()
 			action.actionFunction("rebels", "loyalists")
-			assert.are.equal(0, #Spring.calls.assignPlayerToTeam)
+			assert.are.equal(0, #env.Spring.calls.assignPlayerToTeam)
 		end)
 	end)
 end)

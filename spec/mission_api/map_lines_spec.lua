@@ -1,5 +1,8 @@
 local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 MissionApiBuilder.new():Install()
 
@@ -8,10 +11,10 @@ describe("mission_api.map_lines", function()
 
 	before_each(function()
 		missionApi = MissionApiBuilder.new():Install()
-		_G.Spring = SpringSyncedBuilder.new():Build() ---@diagnostic disable-line: global-in-non-module
-		addCalls = Spring.calls.markerAddLine
-		eraseCalls = Spring.calls.markerErasePosition
-		mapLines = VFS.Include("luarules/mission_api/map_lines.lua")
+		env.Spring = SpringSyncedBuilder.new():Build()
+		addCalls = env.Spring.calls.markerAddLine
+		eraseCalls = env.Spring.calls.markerErasePosition
+		mapLines = MissionSpecEnv.include(env, "luarules/mission_api/map_lines.lua")
 	end)
 
 	describe("DrawLine", function()

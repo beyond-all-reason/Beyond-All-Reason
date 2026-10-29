@@ -1,10 +1,13 @@
 local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 MissionApiBuilder.new():Install()
 
-local actions = VFS.Include("luarules/mission_api/actions/features/destroy_features.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/features/destroy_features.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -17,8 +20,8 @@ local function seedFeatures(name, ...)
 		spring:WithValidFeature(featureID)
 	end
 	missionApi:Install()
-	_G.Spring = spring:Build()
-	return Spring.calls.destroyFeature
+	env.Spring = spring:Build()
+	return env.Spring.calls.destroyFeature
 end
 
 describe("mission_api.actions.destroy_features", function()
@@ -27,8 +30,8 @@ describe("mission_api.actions.destroy_features", function()
 
 	before_each(function()
 		MissionApiBuilder.new():Install()
-		_G.Spring = SpringSyncedBuilder.new():Build()
-		destroyFeatureCalls = Spring.calls.destroyFeature
+		env.Spring = SpringSyncedBuilder.new():Build()
+		destroyFeatureCalls = env.Spring.calls.destroyFeature
 	end)
 
 	it("declares its type and parameters", function()
@@ -53,21 +56,21 @@ describe("mission_api.actions.destroy_features", function()
 		it("skips invalid feature IDs", function()
 			-- tracked, but never marked valid
 			MissionApiBuilder.new():WithTrackedFeature("rock", 10):Install()
-			_G.Spring = SpringSyncedBuilder.new():Build()
+			env.Spring = SpringSyncedBuilder.new():Build()
 
 			action.actionFunction("rock")
 
-			assert.are.equal(0, #Spring.calls.destroyFeature)
+			assert.are.equal(0, #env.Spring.calls.destroyFeature)
 		end)
 
 		it("only destroys features matching the given name", function()
 			MissionApiBuilder.new():WithTrackedFeature("rock", 10):WithTrackedFeature("tree", 20):Install()
-			_G.Spring = SpringSyncedBuilder.new():WithValidFeature(10):WithValidFeature(20):Build()
+			env.Spring = SpringSyncedBuilder.new():WithValidFeature(10):WithValidFeature(20):Build()
 
 			action.actionFunction("rock")
 
-			assert.are.equal(1, #Spring.calls.destroyFeature)
-			assert.are.equal(10, Spring.calls.destroyFeature[1])
+			assert.are.equal(1, #env.Spring.calls.destroyFeature)
+			assert.are.equal(10, env.Spring.calls.destroyFeature[1])
 		end)
 	end)
 

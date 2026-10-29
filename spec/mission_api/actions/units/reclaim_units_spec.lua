@@ -1,12 +1,15 @@
 local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 MissionApiBuilder.new():Install()
 
 _G.UnitDefs = {}
 
-local actions = VFS.Include("luarules/mission_api/actions/units/reclaim_units.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/units/reclaim_units.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -24,18 +27,18 @@ describe("mission_api.actions.reclaim_units", function()
 
 	before_each(function()
 		MissionApiBuilder.new():Install()
-		_G.Spring = SpringSyncedBuilder.new():Build()
+		env.Spring = SpringSyncedBuilder.new():Build()
 		-- These units are tracked by the Mission API, not registered as team
 		-- units on the mock, so the team/def lookups have to be pinned here.
-		Spring.GetUnitTeam = function(unitID)
+		env.Spring.GetUnitTeam = function(unitID)
 			return 0
 		end
-		Spring.GetUnitDefID = function(unitID)
+		env.Spring.GetUnitDefID = function(unitID)
 			return 7
 		end
 		_G.UnitDefs = { [7] = { metalCost = 150, energyCost = 900 } }
-		destroyCalls = Spring.calls.destroyUnit
-		addResourceCalls = Spring.calls.addTeamResource
+		destroyCalls = env.Spring.calls.destroyUnit
+		addResourceCalls = env.Spring.calls.addTeamResource
 	end)
 
 	it("declares its type and parameters", function()
@@ -77,7 +80,7 @@ describe("mission_api.actions.reclaim_units", function()
 
 		it("falls back to the unit's own team when no reclaimerTeam is given", function()
 			seedUnits("mine", 20)
-			Spring.GetUnitTeam = function(unitID)
+			env.Spring.GetUnitTeam = function(unitID)
 				return 3
 			end
 
@@ -109,7 +112,7 @@ describe("mission_api.actions.reclaim_units", function()
 
 		it("skips dead units", function()
 			seedUnits("dead", 5)
-			Spring.GetUnitIsDead = function(unitID)
+			env.Spring.GetUnitIsDead = function(unitID)
 				return true
 			end
 
@@ -134,7 +137,7 @@ describe("mission_api.actions.reclaim_units", function()
 		-- the teams match keeps this independent of pairs() ordering.
 		it("credits every unit to one team when reclaimerTeam is omitted", function()
 			seedUnits("mixed", 1, 2)
-			Spring.GetUnitTeam = function(unitID)
+			env.Spring.GetUnitTeam = function(unitID)
 				return unitID
 			end
 
