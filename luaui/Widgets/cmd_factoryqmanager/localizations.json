@@ -1,0 +1,10 @@
+{
+	"en": {
+		"actions": {
+			"loadPreset": "Load factory preset %{n}",
+			"savePreset": "Save factory preset %{n}",
+			"showPresets": "Show factory presets",
+			"togglePresets": "Toggle factory presets"
+		}
+	}
+}

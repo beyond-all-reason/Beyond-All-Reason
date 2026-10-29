@@ -1,6 +1,67 @@
 {
 	"version": 1,
 	"priority": [],
+	"movedToWidgets": [
+		"factory_preset load 0",
+		"factory_preset load 1",
+		"factory_preset load 2",
+		"factory_preset load 3",
+		"factory_preset load 4",
+		"factory_preset load 5",
+		"factory_preset load 6",
+		"factory_preset load 7",
+		"factory_preset load 8",
+		"factory_preset load 9",
+		"factory_preset save 0",
+		"factory_preset save 1",
+		"factory_preset save 2",
+		"factory_preset save 3",
+		"factory_preset save 4",
+		"factory_preset save 5",
+		"factory_preset save 6",
+		"factory_preset save 7",
+		"factory_preset save 8",
+		"factory_preset save 9",
+		"factory_preset_toggle",
+		"squad_cycle_idle",
+		"squad_cycle_recent",
+		"squad_expand",
+		"squad_limit_flip",
+		"squad_lock",
+		"squad_select",
+		"squad_select append locked",
+		"squad_select append_domain",
+		"squad_select_filtered append distance_850",
+		"squad_select_filtered retarget",
+		"squad_select_group 0",
+		"squad_select_group 1",
+		"squad_select_group 2",
+		"squad_select_group 3",
+		"squad_select_group 4",
+		"squad_select_group 5",
+		"squad_select_group 6",
+		"squad_select_group 7",
+		"squad_select_group 8",
+		"squad_select_group 9",
+		"squad_select_group append_domain 0",
+		"squad_select_group append_domain 1",
+		"squad_select_group append_domain 2",
+		"squad_select_group append_domain 3",
+		"squad_select_group append_domain 4",
+		"squad_select_group append_domain 5",
+		"squad_select_group append_domain 6",
+		"squad_select_group append_domain 7",
+		"squad_select_group append_domain 8",
+		"squad_select_group append_domain 9",
+		"squad_select_portion 0",
+		"squad_select_portion 0 append_domain",
+		"squad_select_portion 0.5",
+		"squad_select_portion 0.5 append_domain",
+		"squad_select_portion_filtered 0",
+		"squad_select_portion_filtered 0 append",
+		"squad_select_portion_filtered 0.5",
+		"squad_select_portion_filtered 0.5 append_domain"
+	],
 	"profiles": [
 		{
 			"id": "grid",
@@ -693,90 +754,6 @@
 					"action": "group selecttoggle 9"
 				},
 				{
-					"keyset": "meta+alt+0",
-					"action": "factory_preset save 0"
-				},
-				{
-					"keyset": "meta+alt+1",
-					"action": "factory_preset save 1"
-				},
-				{
-					"keyset": "meta+alt+2",
-					"action": "factory_preset save 2"
-				},
-				{
-					"keyset": "meta+alt+3",
-					"action": "factory_preset save 3"
-				},
-				{
-					"keyset": "meta+alt+4",
-					"action": "factory_preset save 4"
-				},
-				{
-					"keyset": "meta+alt+5",
-					"action": "factory_preset save 5"
-				},
-				{
-					"keyset": "meta+alt+6",
-					"action": "factory_preset save 6"
-				},
-				{
-					"keyset": "meta+alt+7",
-					"action": "factory_preset save 7"
-				},
-				{
-					"keyset": "meta+alt+8",
-					"action": "factory_preset save 8"
-				},
-				{
-					"keyset": "meta+alt+9",
-					"action": "factory_preset save 9"
-				},
-				{
-					"keyset": "meta+0",
-					"action": "factory_preset load 0"
-				},
-				{
-					"keyset": "meta+1",
-					"action": "factory_preset load 1"
-				},
-				{
-					"keyset": "meta+2",
-					"action": "factory_preset load 2"
-				},
-				{
-					"keyset": "meta+3",
-					"action": "factory_preset load 3"
-				},
-				{
-					"keyset": "meta+4",
-					"action": "factory_preset load 4"
-				},
-				{
-					"keyset": "meta+5",
-					"action": "factory_preset load 5"
-				},
-				{
-					"keyset": "meta+6",
-					"action": "factory_preset load 6"
-				},
-				{
-					"keyset": "meta+7",
-					"action": "factory_preset load 7"
-				},
-				{
-					"keyset": "meta+8",
-					"action": "factory_preset load 8"
-				},
-				{
-					"keyset": "meta+9",
-					"action": "factory_preset load 9"
-				},
-				{
-					"keyset": "any+sc_space",
-					"action": "factory_preset_show"
-				},
-				{
 					"keyset": "Alt+sc_=",
 					"action": "increasespeed"
 				},
@@ -1339,158 +1316,6 @@
 				{
 					"keyset": "Alt+sc_g",
 					"action": "factoryqueuemode"
-				},
-				{
-					"keyset": "Shift+sc_0x064",
-					"action": "squad_select append_domain"
-				},
-				{
-					"keyset": "sc_0x064",
-					"action": "squad_select"
-				},
-				{
-					"keyset": "Alt+Shift+sc_0x064",
-					"action": "squad_select_filtered append distance_850"
-				},
-				{
-					"keyset": "Alt+sc_0x064",
-					"action": "squad_select_filtered retarget"
-				},
-				{
-					"keyset": "Ctrl+Shift+sc_0x064",
-					"action": "squad_select_portion 0.5 append_domain"
-				},
-				{
-					"keyset": "Ctrl+sc_0x064",
-					"action": "squad_select_portion 0.5"
-				},
-				{
-					"keyset": "Ctrl+Alt+Shift+sc_0x064",
-					"action": "squad_select_portion_filtered 0.5 append_domain"
-				},
-				{
-					"keyset": "Ctrl+Alt+sc_0x064",
-					"action": "squad_select_portion_filtered 0.5"
-				},
-				{
-					"keyset": "Shift+sc_mouse5",
-					"action": "squad_select_portion 0 append_domain"
-				},
-				{
-					"keyset": "sc_mouse5",
-					"action": "squad_select_portion 0"
-				},
-				{
-					"keyset": "Alt+Shift+sc_mouse5",
-					"action": "squad_select_portion_filtered 0 append"
-				},
-				{
-					"keyset": "Alt+sc_mouse5",
-					"action": "squad_select_portion_filtered 0"
-				},
-				{
-					"keyset": "Meta+sc_a",
-					"action": "squad_limit_flip"
-				},
-				{
-					"keyset": "Meta+Shift+sc_a",
-					"action": "squad_expand"
-				},
-				{
-					"keyset": "Meta+sc_s",
-					"action": "squad_cycle_recent"
-				},
-				{
-					"keyset": "Meta+sc_d",
-					"action": "squad_cycle_idle"
-				},
-				{
-					"keyset": "Meta+sc_v",
-					"action": "squad_lock"
-				},
-				{
-					"keyset": "Meta+Shift+sc_v",
-					"action": "squad_select append locked"
-				},
-				{
-					"keyset": "Shift+meta+0",
-					"action": "squad_select_group append_domain 0"
-				},
-				{
-					"keyset": "Shift+meta+1",
-					"action": "squad_select_group append_domain 1"
-				},
-				{
-					"keyset": "Shift+meta+2",
-					"action": "squad_select_group append_domain 2"
-				},
-				{
-					"keyset": "Shift+meta+3",
-					"action": "squad_select_group append_domain 3"
-				},
-				{
-					"keyset": "Shift+meta+4",
-					"action": "squad_select_group append_domain 4"
-				},
-				{
-					"keyset": "Shift+meta+5",
-					"action": "squad_select_group append_domain 5"
-				},
-				{
-					"keyset": "Shift+meta+6",
-					"action": "squad_select_group append_domain 6"
-				},
-				{
-					"keyset": "Shift+meta+7",
-					"action": "squad_select_group append_domain 7"
-				},
-				{
-					"keyset": "Shift+meta+8",
-					"action": "squad_select_group append_domain 8"
-				},
-				{
-					"keyset": "Shift+meta+9",
-					"action": "squad_select_group append_domain 9"
-				},
-				{
-					"keyset": "meta+0",
-					"action": "squad_select_group 0"
-				},
-				{
-					"keyset": "meta+1",
-					"action": "squad_select_group 1"
-				},
-				{
-					"keyset": "meta+2",
-					"action": "squad_select_group 2"
-				},
-				{
-					"keyset": "meta+3",
-					"action": "squad_select_group 3"
-				},
-				{
-					"keyset": "meta+4",
-					"action": "squad_select_group 4"
-				},
-				{
-					"keyset": "meta+5",
-					"action": "squad_select_group 5"
-				},
-				{
-					"keyset": "meta+6",
-					"action": "squad_select_group 6"
-				},
-				{
-					"keyset": "meta+7",
-					"action": "squad_select_group 7"
-				},
-				{
-					"keyset": "meta+8",
-					"action": "squad_select_group 8"
-				},
-				{
-					"keyset": "meta+9",
-					"action": "squad_select_group 9"
 				}
 			]
 		},
@@ -2577,78 +2402,6 @@
 					"action": "showelevation"
 				},
 				{
-					"keyset": "Shift+sc_0x064",
-					"action": "squad_select append_domain"
-				},
-				{
-					"keyset": "sc_0x064",
-					"action": "squad_select"
-				},
-				{
-					"keyset": "Alt+Shift+sc_0x064",
-					"action": "squad_select_filtered append distance_850"
-				},
-				{
-					"keyset": "Alt+sc_0x064",
-					"action": "squad_select_filtered retarget"
-				},
-				{
-					"keyset": "Ctrl+Shift+sc_0x064",
-					"action": "squad_select_portion 0.5 append_domain"
-				},
-				{
-					"keyset": "Ctrl+sc_0x064",
-					"action": "squad_select_portion 0.5"
-				},
-				{
-					"keyset": "Ctrl+Alt+Shift+sc_0x064",
-					"action": "squad_select_portion_filtered 0.5 append_domain"
-				},
-				{
-					"keyset": "Ctrl+Alt+sc_0x064",
-					"action": "squad_select_portion_filtered 0.5"
-				},
-				{
-					"keyset": "Shift+sc_mouse5",
-					"action": "squad_select_portion 0 append_domain"
-				},
-				{
-					"keyset": "sc_mouse5",
-					"action": "squad_select_portion 0"
-				},
-				{
-					"keyset": "Alt+Shift+sc_mouse5",
-					"action": "squad_select_portion_filtered 0 append"
-				},
-				{
-					"keyset": "Alt+sc_mouse5",
-					"action": "squad_select_portion_filtered 0"
-				},
-				{
-					"keyset": "Meta+sc_a",
-					"action": "squad_limit_flip"
-				},
-				{
-					"keyset": "Meta+Shift+sc_a",
-					"action": "squad_expand"
-				},
-				{
-					"keyset": "Meta+sc_s",
-					"action": "squad_cycle_recent"
-				},
-				{
-					"keyset": "Meta+sc_d",
-					"action": "squad_cycle_idle"
-				},
-				{
-					"keyset": "Meta+sc_v",
-					"action": "squad_lock"
-				},
-				{
-					"keyset": "Meta+Shift+sc_v",
-					"action": "squad_select append locked"
-				},
-				{
 					"keyset": "f10",
 					"action": "options"
 				},
@@ -3411,90 +3164,6 @@
 				{
 					"keyset": "Ctrl+Alt+9",
 					"action": "group selecttoggle 9"
-				},
-				{
-					"keyset": "meta+alt+0",
-					"action": "factory_preset save 0"
-				},
-				{
-					"keyset": "meta+alt+1",
-					"action": "factory_preset save 1"
-				},
-				{
-					"keyset": "meta+alt+2",
-					"action": "factory_preset save 2"
-				},
-				{
-					"keyset": "meta+alt+3",
-					"action": "factory_preset save 3"
-				},
-				{
-					"keyset": "meta+alt+4",
-					"action": "factory_preset save 4"
-				},
-				{
-					"keyset": "meta+alt+5",
-					"action": "factory_preset save 5"
-				},
-				{
-					"keyset": "meta+alt+6",
-					"action": "factory_preset save 6"
-				},
-				{
-					"keyset": "meta+alt+7",
-					"action": "factory_preset save 7"
-				},
-				{
-					"keyset": "meta+alt+8",
-					"action": "factory_preset save 8"
-				},
-				{
-					"keyset": "meta+alt+9",
-					"action": "factory_preset save 9"
-				},
-				{
-					"keyset": "meta+0",
-					"action": "factory_preset load 0"
-				},
-				{
-					"keyset": "meta+1",
-					"action": "factory_preset load 1"
-				},
-				{
-					"keyset": "meta+2",
-					"action": "factory_preset load 2"
-				},
-				{
-					"keyset": "meta+3",
-					"action": "factory_preset load 3"
-				},
-				{
-					"keyset": "meta+4",
-					"action": "factory_preset load 4"
-				},
-				{
-					"keyset": "meta+5",
-					"action": "factory_preset load 5"
-				},
-				{
-					"keyset": "meta+6",
-					"action": "factory_preset load 6"
-				},
-				{
-					"keyset": "meta+7",
-					"action": "factory_preset load 7"
-				},
-				{
-					"keyset": "meta+8",
-					"action": "factory_preset load 8"
-				},
-				{
-					"keyset": "meta+9",
-					"action": "factory_preset load 9"
-				},
-				{
-					"keyset": "any+sc_space",
-					"action": "factory_preset_show"
 				},
 				{
 					"keyset": "Shift+backspace",
@@ -4607,158 +4276,6 @@
 				{
 					"keyset": "sc_comma",
 					"action": "cycleselected prev"
-				},
-				{
-					"keyset": "Shift+sc_0x064",
-					"action": "squad_select append_domain"
-				},
-				{
-					"keyset": "sc_0x064",
-					"action": "squad_select"
-				},
-				{
-					"keyset": "Alt+Shift+sc_0x064",
-					"action": "squad_select_filtered append distance_850"
-				},
-				{
-					"keyset": "Alt+sc_0x064",
-					"action": "squad_select_filtered retarget"
-				},
-				{
-					"keyset": "Ctrl+Shift+sc_0x064",
-					"action": "squad_select_portion 0.5 append_domain"
-				},
-				{
-					"keyset": "Ctrl+sc_0x064",
-					"action": "squad_select_portion 0.5"
-				},
-				{
-					"keyset": "Ctrl+Alt+Shift+sc_0x064",
-					"action": "squad_select_portion_filtered 0.5 append_domain"
-				},
-				{
-					"keyset": "Ctrl+Alt+sc_0x064",
-					"action": "squad_select_portion_filtered 0.5"
-				},
-				{
-					"keyset": "Shift+sc_mouse5",
-					"action": "squad_select_portion 0 append_domain"
-				},
-				{
-					"keyset": "sc_mouse5",
-					"action": "squad_select_portion 0"
-				},
-				{
-					"keyset": "Alt+Shift+sc_mouse5",
-					"action": "squad_select_portion_filtered 0 append"
-				},
-				{
-					"keyset": "Alt+sc_mouse5",
-					"action": "squad_select_portion_filtered 0"
-				},
-				{
-					"keyset": "Meta+sc_a",
-					"action": "squad_limit_flip"
-				},
-				{
-					"keyset": "Meta+Shift+sc_a",
-					"action": "squad_expand"
-				},
-				{
-					"keyset": "Meta+sc_s",
-					"action": "squad_cycle_recent"
-				},
-				{
-					"keyset": "Meta+sc_d",
-					"action": "squad_cycle_idle"
-				},
-				{
-					"keyset": "Meta+sc_v",
-					"action": "squad_lock"
-				},
-				{
-					"keyset": "Meta+Shift+sc_v",
-					"action": "squad_select append locked"
-				},
-				{
-					"keyset": "Shift+meta+0",
-					"action": "squad_select_group append_domain 0"
-				},
-				{
-					"keyset": "Shift+meta+1",
-					"action": "squad_select_group append_domain 1"
-				},
-				{
-					"keyset": "Shift+meta+2",
-					"action": "squad_select_group append_domain 2"
-				},
-				{
-					"keyset": "Shift+meta+3",
-					"action": "squad_select_group append_domain 3"
-				},
-				{
-					"keyset": "Shift+meta+4",
-					"action": "squad_select_group append_domain 4"
-				},
-				{
-					"keyset": "Shift+meta+5",
-					"action": "squad_select_group append_domain 5"
-				},
-				{
-					"keyset": "Shift+meta+6",
-					"action": "squad_select_group append_domain 6"
-				},
-				{
-					"keyset": "Shift+meta+7",
-					"action": "squad_select_group append_domain 7"
-				},
-				{
-					"keyset": "Shift+meta+8",
-					"action": "squad_select_group append_domain 8"
-				},
-				{
-					"keyset": "Shift+meta+9",
-					"action": "squad_select_group append_domain 9"
-				},
-				{
-					"keyset": "meta+0",
-					"action": "squad_select_group 0"
-				},
-				{
-					"keyset": "meta+1",
-					"action": "squad_select_group 1"
-				},
-				{
-					"keyset": "meta+2",
-					"action": "squad_select_group 2"
-				},
-				{
-					"keyset": "meta+3",
-					"action": "squad_select_group 3"
-				},
-				{
-					"keyset": "meta+4",
-					"action": "squad_select_group 4"
-				},
-				{
-					"keyset": "meta+5",
-					"action": "squad_select_group 5"
-				},
-				{
-					"keyset": "meta+6",
-					"action": "squad_select_group 6"
-				},
-				{
-					"keyset": "meta+7",
-					"action": "squad_select_group 7"
-				},
-				{
-					"keyset": "meta+8",
-					"action": "squad_select_group 8"
-				},
-				{
-					"keyset": "meta+9",
-					"action": "squad_select_group 9"
 				}
 			]
 		},
@@ -6439,78 +5956,6 @@
 				{
 					"keyset": "Alt+sc_]",
 					"action": "blueprint_next"
-				},
-				{
-					"keyset": "Shift+sc_0x064",
-					"action": "squad_select append_domain"
-				},
-				{
-					"keyset": "sc_0x064",
-					"action": "squad_select"
-				},
-				{
-					"keyset": "Alt+Shift+sc_0x064",
-					"action": "squad_select_filtered append distance_850"
-				},
-				{
-					"keyset": "Alt+sc_0x064",
-					"action": "squad_select_filtered retarget"
-				},
-				{
-					"keyset": "Ctrl+Shift+sc_0x064",
-					"action": "squad_select_portion 0.5 append_domain"
-				},
-				{
-					"keyset": "Ctrl+sc_0x064",
-					"action": "squad_select_portion 0.5"
-				},
-				{
-					"keyset": "Ctrl+Alt+Shift+sc_0x064",
-					"action": "squad_select_portion_filtered 0.5 append_domain"
-				},
-				{
-					"keyset": "Ctrl+Alt+sc_0x064",
-					"action": "squad_select_portion_filtered 0.5"
-				},
-				{
-					"keyset": "Shift+sc_mouse5",
-					"action": "squad_select_portion 0 append_domain"
-				},
-				{
-					"keyset": "sc_mouse5",
-					"action": "squad_select_portion 0"
-				},
-				{
-					"keyset": "Alt+Shift+sc_mouse5",
-					"action": "squad_select_portion_filtered 0 append"
-				},
-				{
-					"keyset": "Alt+sc_mouse5",
-					"action": "squad_select_portion_filtered 0"
-				},
-				{
-					"keyset": "Meta+sc_a",
-					"action": "squad_limit_flip"
-				},
-				{
-					"keyset": "Meta+Shift+sc_a",
-					"action": "squad_expand"
-				},
-				{
-					"keyset": "Meta+sc_s",
-					"action": "squad_cycle_recent"
-				},
-				{
-					"keyset": "Meta+sc_d",
-					"action": "squad_cycle_idle"
-				},
-				{
-					"keyset": "Meta+sc_v",
-					"action": "squad_lock"
-				},
-				{
-					"keyset": "Meta+Shift+sc_v",
-					"action": "squad_select append locked"
 				},
 				{
 					"keyset": "f11",

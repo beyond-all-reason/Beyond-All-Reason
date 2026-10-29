@@ -14,19 +14,23 @@ local DEFAULTS_PATH = "common/configs/keybind_defaults.json"
 local RETIRED_INCLUDES_PATH = "common/configs/keybind_retired_includes.json"
 local ACTIVE_FILE = "uikeys.txt"
 local BACKUP_SUFFIX = ".bak"
-local STORE_VERSION = 2
+local STORE_VERSION = 3
 -- A profile name is an id inside the keymaps too, so a rename or delete has to follow it there.
 local SWITCH_COMMAND = "keybindprofile"
 
 -- Shipped profiles carry binds rather than a file path, so every surface reads one shape.
 local builtins = {}
 local emitPriority = {}
+local movedToWidgets = {}
 do
 	local decoded = keybindConfig.load(DEFAULTS_PATH)
 	if decoded and type(decoded.profiles) == "table" then
 		builtins = decoded.profiles
 		if type(decoded.priority) == "table" then
 			emitPriority = decoded.priority
+		end
+		if type(decoded.movedToWidgets) == "table" then
+			movedToWidgets = decoded.movedToWidgets
 		end
 	else
 		Spring.Echo("[keybind_profiles] Error: " .. DEFAULTS_PATH .. " has no profiles; none shipped")
@@ -320,6 +324,17 @@ local function seededSet(profile)
 	end
 
 	return set
+end
+
+-- Older stores already hold these or had them removed.
+local function seedMovedActions(profile)
+	local seeded = seededSet(profile)
+	for _, action in ipairs(movedToWidgets) do
+		if not seeded[action] then
+			profile.seeded = profile.seeded or {}
+			profile.seeded[#profile.seeded + 1] = action
+		end
+	end
 end
 
 local function missingDefaults(binds, skip, layout)
@@ -812,6 +827,7 @@ local function migrate()
 		if own and #own > 0 then
 			local name = written or "Custom"
 			store.profiles[1] = { name = name, binds = own, fakeMeta = fakeMetaOf(ownText) }
+			seedMovedActions(store.profiles[1])
 			store.active = preset or name
 		else
 			store.active = preset
@@ -868,7 +884,9 @@ function M.load()
 	end
 
 	store = decoded
-	storePredatesMeta = (tonumber(store.version) or 1) < 2
+	local storeVersion = tonumber(store.version) or 1
+	storePredatesMeta = storeVersion < 2
+	local storePredatesMoves = storeVersion < 3
 	store.version = STORE_VERSION
 	-- A hand-edited file can repeat a name; keep the first so lookups stay unambiguous.
 	local seen, kept, changed = {}, {}, false
@@ -877,6 +895,9 @@ function M.load()
 			p.binds = type(p.binds) == "table" and p.binds or {}
 			if type(p.seeded) ~= "table" then
 				p.seeded = nil
+			end
+			if storePredatesMoves then
+				seedMovedActions(p)
 			end
 			-- A shipped profile is not the store to define.
 			if M.isBuiltin(p.name) then
@@ -925,7 +946,7 @@ function M.load()
 		end
 	end
 	store.profiles = kept
-	if changed or storePredatesMeta then
+	if changed or storePredatesMoves then
 		M.save()
 	end
 

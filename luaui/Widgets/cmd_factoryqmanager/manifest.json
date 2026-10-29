@@ -1,0 +1,25 @@
+{
+	"id": "cmd_factoryqmanager",
+	"display_name": "FactoryQ Manager",
+	"keybindings": [
+		{
+			"action": "factory_preset load",
+			"members": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+			"label": "actions.loadPreset",
+			"profileKeysets": { "grid": ["meta+%{n}"], "legacy": ["meta+%{n}"] }
+		},
+		{
+			"action": "factory_preset save",
+			"members": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+			"label": "actions.savePreset",
+			"profileKeysets": { "grid": ["meta+alt+%{n}"], "legacy": ["meta+alt+%{n}"] }
+		},
+		{ "action": "factory_preset_show", "label": "actions.showPresets", "alwaysModifier": "any" },
+		{
+			"action": "factory_preset_toggle",
+			"label": "actions.togglePresets",
+			"alwaysModifier": "any",
+			"profileKeysets": { "grid": ["any+sc_space"], "legacy": ["any+sc_space"] }
+		}
+	]
+}

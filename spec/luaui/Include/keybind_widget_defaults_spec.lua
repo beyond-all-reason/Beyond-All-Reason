@@ -124,7 +124,7 @@ local function storedProfile(writes, name)
 end
 
 local function ownStore(profile)
-	return Json.encode({ version = 2, active = profile.name, profiles = { profile } })
+	return Json.encode({ version = 3, active = profile.name, profiles = { profile } })
 end
 
 local function materialized(storeText, name, manifests)
@@ -257,7 +257,7 @@ describe("widget defaults made for one layout", function()
 	it("follow a player's profile back to the shipped one it was made from", function()
 		local writes = materialized(
 			Json.encode({
-				version = 2,
+				version = 3,
 				active = "Mine",
 				profiles = {
 					{ name = "Base", basedOn = SMALL, binds = {} },
@@ -326,5 +326,42 @@ describe("widget defaults on a keymap edited by hand", function()
 		end)
 
 		assert.is_true(holds(bindLines(writes[KEYMAP]), "bind sc_f13 example_toggle"))
+	end)
+end)
+
+describe("widget defaults for actions the shipped profiles used to bind", function()
+	local SQUADS = {
+		{
+			id = "unit_squad_selection",
+			dir = "LuaUI/Widgets/unit_squad_selection/",
+			loaded = true,
+			manifest = {
+				id = "unit_squad_selection",
+				keybindings = {
+					{ action = "squad_lock", label = "actions.lock", defaultKeysets = { "Meta+sc_v" } },
+				},
+			},
+		},
+	}
+
+	local function mineIn(version)
+		return Json.encode({
+			version = version,
+			active = "Mine",
+			profiles = { { name = "Mine", basedOn = "Grid", binds = { { keyset = "esc", action = "quitmessage" } } } },
+		})
+	end
+
+	it("stay out of a profile from before the move that had them taken out", function()
+		local writes = materialized(mineIn(2), "Mine", SQUADS)
+
+		assert.is_false(holds(bindLines(writes[KEYMAP]), "bind Meta+sc_v squad_lock"))
+		assert.are.same({ { keyset = "esc", action = "quitmessage" } }, storedProfile(writes, "Mine").binds)
+	end)
+
+	it("still reach a profile made after the move", function()
+		local writes = materialized(mineIn(3), "Mine", SQUADS)
+
+		assert.is_true(holds(bindLines(writes[KEYMAP]), "bind Meta+sc_v squad_lock"))
 	end)
 end)

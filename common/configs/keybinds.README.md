@@ -226,6 +226,10 @@ its actions are hidden while it is off. A shipped profile adds the defaults it l
 it is written; a player's profile takes each one once and records it under `seeded`, so one the
 player removes stays removed.
 
+An action whose defaults move out of `keybind_defaults.json` into a manifest is listed in that
+file's `movedToWidgets`, so a player's profile saved before the move does not get back one the
+player had removed.
+
 `defaultKeysets` is the one list every profile gets, and most actions need nothing else. An
 action that wants different keys on one layout can add `profileKeysets`, which goes beyond the
 hub schema:
