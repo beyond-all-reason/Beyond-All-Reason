@@ -237,7 +237,7 @@ hub schema:
 }
 ```
 
-Each key is a shipped profile's name. That profile, and every player profile based on it, gets
+Each key is a shipped profile's name. That profile, and every player profile made from it, gets
 the `defaultKeysets` and then its own list on top, repeats kept. A profile with no entry gets
 only the `defaultKeysets`.
 
