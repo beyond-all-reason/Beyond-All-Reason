@@ -241,6 +241,19 @@ Each key is a shipped profile's `id` from `keybind_defaults.json`, in any case. 
 and every player profile made from it, gets the `defaultKeysets` and then its own list on top,
 repeats kept. A profile with no entry gets only the `defaultKeysets`.
 
+A numbered family, like `factory_preset load 0` to `9`, is one entry with `members`, another
+field beyond the hub schema. Each member is appended to `action` as a bind command of its own,
+and `%{n}` in the label and in every keyset is that member:
+
+```json
+{
+	"action": "factory_preset load",
+	"members": ["0", "1", "2"],
+	"label": "actions.loadPreset",
+	"profileKeysets": { "grid": ["meta+%{n}"] }
+}
+```
+
 ## Not covered yet
 
 - Command descriptions for every action. A catalog item may carry `description`, an i18n

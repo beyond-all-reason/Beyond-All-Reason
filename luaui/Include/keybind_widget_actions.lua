@@ -124,21 +124,52 @@ local function readProfileKeysets(declared, alwaysModifier, dropped)
 	return next(byProfile) and byProfile or nil
 end
 
-local function keysetsFor(a, layout)
-	local own = layout and a.profileKeysets and a.profileKeysets[layout:lower()]
-	if not own then
-		return a.keysets
+local function readMembers(declared)
+	if declared == nil then
+		return nil, nil
+	end
+	if type(declared) ~= "table" or #declared == 0 then
+		return nil, "members is not a list"
 	end
 
+	for _, member in ipairs(declared) do
+		if not isKeyset(member) then
+			return nil, "members holds something other than a single word"
+		end
+	end
+
+	return declared, nil
+end
+
+local function commandsOf(a)
+	if not a.members then
+		return { { action = a.action } }
+	end
+
+	local commands = {}
+	for i, member in ipairs(a.members) do
+		commands[i] = { action = a.action .. " " .. member, member = member }
+	end
+
+	return commands
+end
+
+local function keysetsFor(a, layout, member)
 	local keysets = {}
 	for _, keyset in ipairs(a.keysets or {}) do
 		keysets[#keysets + 1] = keyset
 	end
-	for _, keyset in ipairs(own) do
+	local own = layout and a.profileKeysets and a.profileKeysets[layout:lower()]
+	for _, keyset in ipairs(own or {}) do
 		keysets[#keysets + 1] = keyset
 	end
+	if member then
+		for i, keyset in ipairs(keysets) do
+			keysets[i] = keyset:gsub("%%{n}", (member:gsub("%%", "%%%%")))
+		end
+	end
 
-	return keysets
+	return #keysets > 0 and keysets or nil
 end
 
 local function readAction(entry, keyPrefix, dir, seen)
@@ -154,11 +185,22 @@ local function readAction(entry, keyPrefix, dir, seen)
 		return nil, 'alwaysModifier must be "any" or "shift"'
 	end
 
-	local action = lowerCommand(named)
-	if seen[action] then
-		return nil, "repeats " .. action
+	local members, membersProblem = readMembers(entry.members)
+	if membersProblem then
+		return nil, membersProblem
 	end
-	seen[action] = true
+
+	local action = lowerCommand(named)
+	local own = {}
+	for _, command in ipairs(commandsOf({ action = action, members = members })) do
+		if seen[command.action] or own[command.action] then
+			return nil, "repeats " .. command.action
+		end
+		own[command.action] = true
+	end
+	for command in pairs(own) do
+		seen[command] = true
+	end
 
 	local dropped = {}
 	local keysets, keysetProblem = readKeysets(entry.defaultKeysets, modifier, "defaultKeysets")
@@ -173,6 +215,7 @@ local function readAction(entry, keyPrefix, dir, seen)
 		description = relativeTo(keyPrefix, entry.description),
 		alwaysModifier = modifier,
 		icon = relativeTo(dir, entry.icon),
+		members = members,
 		keysets = keysets,
 		profileKeysets = profileKeysets,
 	},
@@ -264,15 +307,28 @@ function M.groups(widgets)
 		if widget.loaded then
 			local items = {}
 			for _, a in ipairs(actionsOf(widget)) do
-				if not claimed[a.action] then
-					claimed[a.action] = true
-					items[#items + 1] = {
-						action = a.action,
+				local members = {}
+				for _, command in ipairs(commandsOf(a)) do
+					if not claimed[command.action] then
+						claimed[command.action] = true
+						members[#members + 1] = command.member or command.action
+					end
+				end
+
+				if #members > 0 then
+					local item = {
 						label = a.label,
 						description = a.description,
 						alwaysModifier = a.alwaysModifier,
 						icon = a.icon,
 					}
+					if a.members then
+						item.prefix = a.action .. " "
+						item.members = members
+					else
+						item.action = a.action
+					end
+					items[#items + 1] = item
 				end
 			end
 
@@ -294,7 +350,9 @@ function M.hiddenActions(widgets)
 	for _, widget in ipairs(widgets or {}) do
 		if widget.loaded then
 			for _, a in ipairs(actionsOf(widget)) do
-				shown[a.action] = true
+				for _, command in ipairs(commandsOf(a)) do
+					shown[command.action] = true
+				end
 			end
 		end
 	end
@@ -303,9 +361,11 @@ function M.hiddenActions(widgets)
 	for _, widget in ipairs(widgets or {}) do
 		if not widget.loaded then
 			for _, a in ipairs(actionsOf(widget)) do
-				if not shown[a.action] then
-					shown[a.action] = true
-					hidden[#hidden + 1] = a.action
+				for _, command in ipairs(commandsOf(a)) do
+					if not shown[command.action] then
+						shown[command.action] = true
+						hidden[#hidden + 1] = command.action
+					end
 				end
 			end
 		end
@@ -322,11 +382,13 @@ function M.defaults(widgets, layout)
 	for _, widget in ipairs(widgets or {}) do
 		if widget.loaded then
 			for _, a in ipairs(actionsOf(widget)) do
-				if not claimed[a.action] then
-					claimed[a.action] = true
-					local keysets = keysetsFor(a, layout)
-					if keysets then
-						defaults[#defaults + 1] = { action = a.action, keysets = keysets }
+				for _, command in ipairs(commandsOf(a)) do
+					if not claimed[command.action] then
+						claimed[command.action] = true
+						local keysets = keysetsFor(a, layout, command.member)
+						if keysets then
+							defaults[#defaults + 1] = { action = command.action, keysets = keysets }
+						end
 					end
 				end
 			end
