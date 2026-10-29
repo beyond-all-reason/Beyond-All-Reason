@@ -1198,6 +1198,11 @@ end
 -- Not a handler method. `fromZip` grants full System to anything with handler access.
 local newWidget ---@type function
 local releaseRefusedWidget ---@type function
+local forgetModalWidget ---@type function
+local forgetHidingWidget ---@type function
+local forgetPausingWidget ---@type function
+local pauseOwners = {} ---@type table<string, table>
+local interfaceHiddenOwners = {} ---@type table<string, table>
 
 -- User widgets can read its own environment and an env it builds. Everything else returns its own env.
 -- Weak values too: a widget's own entry points at itself, and Lua 5.1 keeps a weak key alive
@@ -1778,7 +1783,11 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		return self:SetWindowsPauseGame(enabled)
 	end
 	wh.HideInterface = function(_, reason, keep)
-		return self:HideInterface(reason, keep, widget)
+		local hidden = self:HideInterface(reason, keep)
+		if hidden then
+			interfaceHiddenOwners[reason] = widget
+		end
+		return hidden
 	end
 	wh.ShowInterface = function(_, reason)
 		return self:ShowInterface(reason)
@@ -1788,7 +1797,11 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	end
 	-- see widgetHandler:Pause
 	wh.Pause = function(_, source)
-		return self:Pause(source, widget)
+		local paused = self:Pause(source)
+		if paused then
+			pauseOwners[source] = widget
+		end
+		return paused
 	end
 	wh.Unpause = function(_, source)
 		return self:Unpause(source)
@@ -2240,9 +2253,9 @@ local function forgetWidgetRegistrations(handler, widget)
 	if handler.textOwner == widget then
 		handler.textOwner = nil
 	end
-	handler:ForgetModalWidget(widget)
-	handler:ForgetHidingWidget(widget)
-	handler:ForgetPausingWidget(widget)
+	forgetModalWidget(widget)
+	forgetHidingWidget(handler, widget)
+	forgetPausingWidget(handler, widget)
 	handler:RemoveWidgetGlobals(widget)
 	handler.actionHandler:RemoveWidgetActions(widget)
 end
@@ -2733,7 +2746,6 @@ local RULESPARAM_GADGET_PAUSE_PUBLISH = "gamePausePublished"
 local MESSAGE_GADGET_UNPAUSE = "GamePauseUnpause:"
 local MESSAGE_WIDGETS_UNPAUSED = "GamePauseWidgetsUnpaused:"
 local pauseSources = {}
-local pauseOwners = {}
 local widgetPaused = false
 -- pausing while a modal window is open, see UpdatePause
 local modalPauseEnabled = true
@@ -2744,7 +2756,6 @@ local modalPauseAllowed = false -- only in singleplayer and replays
 -- switch each other off, and each names the widgets it wants kept. Unlike the window
 -- case this ignores the springsetting: a caller that asks for it means it.
 local interfaceHiddenReasons = {} -- reason -> set of widget names to keep
-local interfaceHiddenOwners = {}
 local interfaceHidden = false
 local interfaceAllowedNames = {} -- union of the names every active reason keeps
 -- what a caller gets when it names nothing: the menu buttons, so there is always a
@@ -2782,8 +2793,8 @@ function widgetHandler:DeregisterModalWindow(widget)
 	ModalAllowWidget(widget, modalExempt[widget] == true)
 end
 
--- Called from InsertWidgetRaw/RemoveWidgetRaw, which are defined above this block and
--- so reach the state through the handler rather than as upvalues.
+-- Called from InsertWidgetRaw, which is defined above this block and so reaches the
+-- state through the handler rather than as upvalues.
 function widgetHandler:ApplyModalExempt(widget)
 	if widget.whInfo and widget.whInfo.modalExempt then
 		modalExempt[widget] = true
@@ -2791,7 +2802,7 @@ function widgetHandler:ApplyModalExempt(widget)
 	end
 end
 
-function widgetHandler:ForgetModalWidget(widget)
+forgetModalWidget = function(widget)
 	modalWindows[widget] = nil
 	modalExempt[widget] = nil
 	ModalAllowWidget(widget, false)
@@ -2820,8 +2831,7 @@ end
 ---@param reason string caller-chosen key; pass the same one to ShowInterface
 ---@param keep string[]? widget names to keep drawing and clickable.
 ---Defaults to the menu buttons; pass {} to keep nothing at all.
----@param owner table? the widget that asked; the reason is released when that widget goes
-function widgetHandler:HideInterface(reason, keep, owner)
+function widgetHandler:HideInterface(reason, keep)
 	if type(reason) ~= "string" then
 		spLog("barwidgets.lua", LOG.ERROR, "HideInterface: expected a reason name")
 		return false
@@ -2831,7 +2841,7 @@ function widgetHandler:HideInterface(reason, keep, owner)
 		names[name] = true
 	end
 	interfaceHiddenReasons[reason] = names
-	interfaceHiddenOwners[reason] = owner
+	interfaceHiddenOwners[reason] = nil
 	rebuildInterfaceAllowed()
 	return true
 end
@@ -2848,10 +2858,10 @@ function widgetHandler:ShowInterface(reason)
 	return true
 end
 
-function widgetHandler:ForgetHidingWidget(widget)
+forgetHidingWidget = function(handler, widget)
 	for reason, owner in pairs(interfaceHiddenOwners) do
 		if owner == widget then
-			self:ShowInterface(reason)
+			handler:ShowInterface(reason)
 		end
 	end
 end
@@ -2960,8 +2970,7 @@ end
 
 ---Pause and resume the game using basic claims and releases on claims.
 ---@param source string key set by caller; pass the same key to Unpause
----@param owner table? the widget env making the request
-function widgetHandler:Pause(source, owner)
+function widgetHandler:Pause(source)
 	if type(source) ~= "string" then
 		Spring.Log("barwidgets.lua", LOG.ERROR, "Pause: expected a source name")
 		return false
@@ -2976,7 +2985,7 @@ function widgetHandler:Pause(source, owner)
 		end
 	end
 	pauseSources[source] = true
-	pauseOwners[source] = owner
+	pauseOwners[source] = nil
 	return true
 end
 
@@ -3007,10 +3016,10 @@ function widgetHandler:Unpause(source)
 	return false
 end
 
-function widgetHandler:ForgetPausingWidget(widget)
+forgetPausingWidget = function(handler, widget)
 	for source, owner in pairs(pauseOwners) do
 		if owner == widget then
-			self:Unpause(source)
+			handler:Unpause(source)
 		end
 	end
 end
