@@ -50,6 +50,7 @@ local types = {
 	TeamID = "TeamID",
 	AllyTeamID = "AllyTeamID",
 	MessageType = "MessageType",
+	MoveCommand = "MoveCommand",
 
 	-- Boolean Validators:
 	Boolean = "Boolean",

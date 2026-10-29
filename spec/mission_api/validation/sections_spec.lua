@@ -535,6 +535,36 @@ describe("mission_api.validation.sections", function()
 		end)
 	end)
 
+	describe("IssueFormationOrders actions", function()
+		local function validateFormation(parameters)
+			parameters.unitName = "squad"
+			return V.validateAction({ type = V.actionTypes.IssueFormationOrders, parameters = parameters })
+		end
+
+		local position = { x = 100, z = 100 }
+		local positions = { { x = 0, z = 0 }, { x = 200, z = 0 } }
+
+		it("passes a position with a direction", function()
+			local result = validateFormation({ position = position, direction = { angle = 90 } })
+			V.assertNoMessageContaining(result, "position")
+			V.assertNoMessageContaining(result, "direction")
+		end)
+
+		it("reports both a position and positions", function()
+			V.assertMessage(
+				validateFormation({ position = position, positions = positions }),
+				"IssueFormationOrders takes position or positions, not both. Action: a"
+			)
+		end)
+
+		it("reports a direction with positions", function()
+			V.assertMessage(
+				validateFormation({ positions = positions, direction = { angle = 90 } }),
+				"Parameter 'direction' needs position, not positions. Action: a, Parameter: direction"
+			)
+		end)
+	end)
+
 	describe("stockpile triggers", function()
 		local originalWeaponDefs
 
