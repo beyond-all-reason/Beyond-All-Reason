@@ -195,9 +195,10 @@ Specs mirror the source tree under `spec/mission_api/` and are the primary way t
 - `require("mission_api.spec_helper")` returns `MissionSpecEnv`. `new(overrides)` builds a `SpecEnv` holding the
   ambient globals the modules read at load time (`math.bit_and`, team layout, `CMD`/`GameCMD`), `include(env, path)`
   loads the code under test into it, and `registerModules(env)` loads `Modules.ParameterTypes` and the other shared
-  modules. The shared globals are sealed, so per-test stubs go on `env.Spring` and the like. Extend it instead of
-  re-stubbing per file.
-- `Builders.MissionApi.new():...:Install()` (from `spec/builders/index.lua`) builds `GG['MissionAPI']` fluently
+  modules. The shared globals are sealed, so per-test stubs and defs go on the env (`env.Spring`, `env.UnitDefs`, and
+  the like), never on `_G`. Extend it instead of re-stubbing per file.
+- `MissionApiBuilder.new():...:Install()` (from `spec/builders/mission_api_builder.lua`; include each builder by
+  path, never through `spec/builders/index.lua`) builds `GG['MissionAPI']` fluently
   (`WithTrackedUnit`, `WithTrigger`, `WithCurrentStage`, `WithModule`, …) and records module calls under
   `mock.calls`. Re-`Install()` in `before_each`; state is global and leaks between tests otherwise.
 - `require("mission_api.schema_spec_helper")` flattens a definition to `{ type = ..., param = "Type!" }` so the
