@@ -12,6 +12,7 @@ end
 
 local BroadcastUnitDefsEnabled
 local BroadcastUnitsCtrlEnabled
+local BroadcastSetAiState
 
 if not gadgetHandler:IsSyncedCode() then
 	local aiMsg = VFS.Include("luarules/utilities/campaign_ai_msg.lua")
@@ -19,6 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("SetUnitDefsEnabled", BroadcastUnitDefsEnabled)
 		gadgetHandler:AddSyncAction("SetUnitsCtrlEnabled", BroadcastUnitsCtrlEnabled)
+		gadgetHandler:AddSyncAction("SetAiState", BroadcastSetAiState)
 	end
 
 	BroadcastUnitDefsEnabled = function(_, unitDefIDs, isEnabled, teamID)
@@ -34,6 +36,20 @@ if not gadgetHandler:IsSyncedCode() then
 			.new()
 			:cmdArray(isEnabled and aiMsg.Topic.ENABLE_UNITS_CONTROL or aiMsg.Topic.DISABLE_UNITS_CONTROL, unitIDs)
 			:toString()
+		Spring.SendSkirmishAIMessage(teamID, msg)
+	end
+
+	BroadcastSetAiState = function(_, state, teamID)
+		local msg = aiMsg.MsgBuilder.new()
+		if state == 'passive' then
+			msg = msg:cmdValue(aiMsg.Topic.SET_AI_STATE, aiMsg.AiState.PASSIVE):toString()
+		elseif state == 'defensive' then
+			msg = msg:cmdValue(aiMsg.Topic.SET_AI_STATE, aiMsg.AiState.DEFENSIVE):toString()
+		elseif state == 'normal' then
+			msg = msg:cmdValue(aiMsg.Topic.SET_AI_STATE, aiMsg.AiState.NORMAL):toString()
+		elseif state == 'aggressive' then
+			msg = msg:cmdValue(aiMsg.Topic.SET_AI_STATE, aiMsg.AiState.AGGRESSIVE):toString()
+		end
 		Spring.SendSkirmishAIMessage(teamID, msg)
 	end
 end
@@ -55,5 +71,13 @@ GG.CampaignAI.SetUnitsCtrlEnabled = function(unitIDs, isEnabled, teamID)
 		SendToUnsynced("SetUnitsCtrlEnabled", unitIDs, isEnabled, teamID)
 	else
 		BroadcastUnitsCtrlEnabled("SetUnitsCtrlEnabled", unitIDs, isEnabled, teamID)
+	end
+end
+
+GG.CampaignAI.SetAiState = function(state, teamID)
+	if gadgetHandler:IsSyncedCode() then
+		SendToUnsynced("SetAiState", state, teamID)
+	else
+		BroadcastUnitsCtrlEnabled("SetAiState", state, teamID)
 	end
 end
