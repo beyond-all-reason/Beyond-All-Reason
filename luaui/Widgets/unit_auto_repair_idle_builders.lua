@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "Flameink",
 		date = "2026-03-23",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = -2, -- before widgets that consume area commands, buggeroff
 		enabled = true,
 	}
 end
@@ -33,18 +33,20 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetGameFrame = Spring.GetGameFrame
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGetCmdDescIndex = Spring.GetCmdDescIndex
-local spGetActiveCmdDesc = Spring.GetActiveCmdDesc
+local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 
 local CMD_REPAIR = CMD.REPAIR
 local CMD_MOVE = CMD.MOVE
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_STOCKPILE = CMD.STOCKPILE
 local CMD_REMOVE = CMD.REMOVE
+local CMD_INSERT = CMD.INSERT
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 local ALLY_UNITS = Spring.ALLY_UNITS
 
 local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
+local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 
 ----------------------------------------------------------------
 -- Constants
@@ -119,6 +121,18 @@ local activeReclaimers = {}
 -- [reclaimerID] = true
 local seenReclaimers = {}
 
+-- [builderID] = targetID
+local pendingRepairs = {}
+
+-- [builderID] = targetID
+local removeRepairs = {}
+
+-- [builderID] = { x, z }
+local pendingHomes = {}
+
+-- [builderID] = { x, z }
+local removeHomes = {}
+
 ----------------------------------------------------------------
 -- Helpers
 ----------------------------------------------------------------
@@ -156,9 +170,38 @@ local function willExitLeash(unitID, homeX, homeZ, leash)
 	return false
 end
 
+local function isAutomatic(options)
+	return math.bit_and(options, CMD_OPT_INTERNAL) ~= 0
+end
+
+local function getRepairTag(builderID, targetID)
+	local cmdID, cmdOptions, cmdTag, cmdTargetID = spGetUnitCurrentCommand(builderID)
+	if cmdID == CMD_MOVE and isAutomatic(cmdOptions) then -- buggeroff
+		cmdID, cmdOptions, cmdTag, cmdTargetID = spGetUnitCurrentCommand(builderID, 2)
+	end
+	if cmdID == CMD_REPAIR and cmdTargetID == targetID and isAutomatic(cmdOptions) then
+		return cmdTag
+	end
+end
+
 local function sendHome(builderID, info)
-	spGiveOrderToUnit(builderID, CMD_MOVE, { info.homeX, info.homeY, info.homeZ }, CMD_OPT_INTERNAL)
+	local repairTag = getRepairTag(builderID, info.targetID)
+	if repairTag then
+		spGiveOrderToUnit(builderID, CMD_REMOVE, repairTag)
+	end
+	spGiveOrderToUnit(builderID, CMD_MOVE, { info.homeX, info.homeY, info.homeZ }, CMD_OPT_INTERNAL + CMD_OPT_SHIFT)
+	pendingHomes[builderID] = { x = info.homeX, z = info.homeZ }
 	info.returning = true
+end
+
+local function removeQueuedHome(builderID, homeX, homeZ)
+	for index = spGetUnitCommandCount(builderID) or 0, 1, -1 do
+		local cmdID, cmdOptions, cmdTag, x, _, z = spGetUnitCurrentCommand(builderID, index)
+		if cmdID == CMD_MOVE and x == homeX and z == homeZ and isAutomatic(cmdOptions) then
+			spGiveOrderToUnit(builderID, CMD_REMOVE, cmdTag)
+			return
+		end
+	end
 end
 
 local function removeBuilder(unitID)
@@ -257,6 +300,10 @@ function widget:Shutdown()
 	reclaimBlacklist = {}
 	activeReclaimers = {}
 	seenReclaimers = {}
+	pendingRepairs = {}
+	removeRepairs = {}
+	pendingHomes = {}
+	removeHomes = {}
 end
 
 function widget:PlayerChanged()
@@ -275,6 +322,10 @@ function widget:PlayerChanged()
 	end
 	activeReclaimers = {}
 	seenReclaimers = {}
+	pendingRepairs = {}
+	removeRepairs = {}
+	pendingHomes = {}
+	removeHomes = {}
 	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if isMobileBuilder[unitDefID] and spGetUnitCommandCount(unitID) == 0 then
@@ -293,7 +344,7 @@ function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	end
 
 	onReclaimerStopped(unitID)
-	if not isMobileBuilder[unitDefID] then
+	if pendingHomes[unitID] or not isMobileBuilder[unitDefID] then
 		return
 	end
 
@@ -318,6 +369,10 @@ function widget:MetaUnitRemoved(unitID)
 	removeTarget(unitID)
 	onReclaimerStopped(unitID)
 	reclaimBlacklist[unitID] = nil
+	pendingRepairs[unitID] = nil
+	removeRepairs[unitID] = nil
+	pendingHomes[unitID] = nil
+	removeHomes[unitID] = nil
 end
 
 function widget:UnitDestroyed(unitID)
@@ -325,51 +380,89 @@ function widget:UnitDestroyed(unitID)
 	removeTarget(unitID)
 	onReclaimerStopped(unitID)
 	reclaimBlacklist[unitID] = nil
+	pendingRepairs[unitID] = nil
+	removeRepairs[unitID] = nil
+	pendingHomes[unitID] = nil
+	removeHomes[unitID] = nil
 end
 
 ----------------------------------------------------------------
 -- Command interception
 ----------------------------------------------------------------
-function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	local descIndex = spGetCmdDescIndex(cmdID)
-	local desc = descIndex and spGetActiveCmdDesc(descIndex)
-	if desc and (desc.type == CMDTYPE_ICON_MODE or desc.queueing == false) then
-		return
-	end
-	-- Stockpile is a unique case. Its description does not identify it as a state.
+local function isStateCommand(unitID, cmdID)
 	if cmdID == CMD_STOCKPILE then
+		return true
+	end
+	local index = spFindUnitCmdDesc(unitID, cmdID)
+	local desc = index and spGetUnitCmdDescs(unitID, index, index)[1]
+	return desc ~= nil and (desc.type == CMDTYPE_ICON_MODE or desc.queueing == false)
+end
+
+local function releaseBuilder(unitID)
+	local active = activeRepairs[unitID] ---@as table?
+	if active and active.returning then
+		removeQueuedHome(unitID, active.homeX, active.homeZ)
+	end
+	if idleBuilders[unitID] or active then
+		removeBuilder(unitID)
+	end
+end
+
+local function removeQueuedRepair(builderID, targetID)
+	for index = spGetUnitCommandCount(builderID) or 0, 1, -1 do
+		local cmdID, cmdOptions, cmdTag, cmdTargetID = spGetUnitCurrentCommand(builderID, index)
+		if cmdID == CMD_REPAIR and cmdTargetID == targetID and isAutomatic(cmdOptions) then
+			spGiveOrderToUnit(builderID, CMD_REMOVE, cmdTag)
+			return
+		end
+	end
+end
+
+function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts)
+	if unitTeam ~= myTeam then
 		return
 	end
-
-	local selectedUnits = spGetSelectedUnits()
-
-	-- Stop tracking reclaimers that received a new command
-	for _, unitID in ipairs(selectedUnits) do
-		onReclaimerStopped(unitID)
-	end
-
-	-- Remove all selected builders from tracking on manual commands
-	for _, unitID in ipairs(selectedUnits) do
-		local active = activeRepairs[unitID] ---@as table?
-		if active and active.returning then
-			local currentID, cmdOptions, cmdTag = spGetUnitCurrentCommand(unitID)
-			if currentID == CMD_MOVE and math.bit_and(cmdOptions, CMD_OPT_INTERNAL) ~= 0 then
-				spGiveOrderToUnit(unitID, CMD_REMOVE, cmdTag)
+	if cmdOpts.internal then
+		if cmdID == CMD_REPAIR and cmdParams[1] == pendingRepairs[unitID] then
+			pendingRepairs[unitID] = nil
+			if spGetUnitCommandCount(unitID) > 0 then
+				removeRepairs[unitID] = cmdParams[1]
+				removeBuilder(unitID)
+			end
+		elseif cmdID == CMD_MOVE and pendingHomes[unitID] then
+			local home = pendingHomes[unitID]
+			if cmdParams[1] == home.x and cmdParams[3] == home.z then
+				pendingHomes[unitID] = nil
+				if not activeRepairs[unitID] then
+					removeHomes[unitID] = home
+				end
 			end
 		end
-		if idleBuilders[unitID] or active then
-			removeBuilder(unitID)
+		return
+	end
+	if cmdID == CMD_REMOVE or (cmdID == CMD_INSERT and isAutomatic(cmdParams[3] or 0)) then
+		return
+	end
+	if (idleBuilders[unitID] or activeRepairs[unitID]) and not isStateCommand(unitID, cmdID) then
+		releaseBuilder(unitID)
+	end
+end
+
+function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
+	local selectedUnits = spGetSelectedUnits()
+	for _, unitID in ipairs(selectedUnits) do
+		if not isStateCommand(unitID, cmdID) then
+			onReclaimerStopped(unitID)
+			releaseBuilder(unitID)
 		end
 	end
 
-	-- Detect reclaim commands targeting a specific unit
 	if cmdID == CMD_RECLAIM and cmdParams and cmdParams[1] then
 		local targetID = cmdParams[1]
 		if targetID > 0 and #cmdParams == 1 and spValidUnitID(targetID) then
 			for _, unitID in ipairs(selectedUnits) do
 				activeReclaimers[unitID] = targetID
 			end
-
 			reclaimBlacklist[targetID] = math.huge
 		end
 	end
@@ -379,10 +472,19 @@ end
 -- Core loop
 ----------------------------------------------------------------
 function widget:GameFrame(frame)
+	for builderID, targetID in pairs(removeRepairs) do
+		removeQueuedRepair(builderID, targetID)
+		removeRepairs[builderID] = nil
+	end
+	for builderID, home in pairs(removeHomes) do
+		removeQueuedHome(builderID, home.x, home.z)
+		removeHomes[builderID] = nil
+	end
+
 	if frame % POLL_INTERVAL ~= 0 then
 		return
 	end
-	-- Clean expired reclaim blacklist entries
+
 	for unitID, expiryFrame in pairs(reclaimBlacklist) do
 		if frame >= expiryFrame then
 			reclaimBlacklist[unitID] = nil
@@ -404,10 +506,15 @@ function widget:GameFrame(frame)
 		if not isUnitAlive(builderID) then
 			activeRepairs[builderID] = nil
 		elseif info.returning then
-			local currentID, cmdOptions = spGetUnitCurrentCommand(builderID)
-			if currentID ~= CMD_MOVE or math.bit_and(cmdOptions, CMD_OPT_INTERNAL) == 0 then
-				activeRepairs[builderID] = nil
+			if not pendingHomes[builderID] then
+				-- TODO: This could use a better check.
+				local currentID, cmdOptions = spGetUnitCurrentCommand(builderID)
+				if currentID ~= CMD_MOVE or math.bit_and(cmdOptions, CMD_OPT_INTERNAL) == 0 then
+					activeRepairs[builderID] = nil
+				end
 			end
+		elseif not getRepairTag(builderID, info.targetID) then
+			activeRepairs[builderID] = nil
 		elseif not isUnitAlive(info.targetID) or reclaimBlacklist[info.targetID] or wantsCloak then
 			sendHome(builderID, info)
 		else
@@ -422,12 +529,6 @@ function widget:GameFrame(frame)
 				local leash = getLeashRadius(builderID) + unitDef.radius
 				if willExitLeash(info.targetID, info.homeX, info.homeZ, leash) then
 					sendHome(builderID, info)
-				else
-					-- Check builder is still repairing (not overridden by player)
-					local cmdID = spGetUnitCurrentCommand(builderID, 1)
-					if cmdID ~= CMD_REPAIR then
-						activeRepairs[builderID] = nil
-					end
 				end
 			end
 		end
@@ -491,7 +592,8 @@ function widget:GameFrame(frame)
 					seenReclaimers[allyReclaimerID] = true
 					reclaimBlacklist[bestTarget] = math.huge
 				else
-					spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget, CMD_OPT_INTERNAL)
+					spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget, CMD_OPT_INTERNAL + CMD_OPT_SHIFT)
+					pendingRepairs[builderID] = bestTarget
 
 					activeRepairs[builderID] = {
 						targetID = bestTarget,
