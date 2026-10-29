@@ -224,6 +224,23 @@ editor category of its own. A shipped profile adds the defaults it lacks every t
 written; a player's profile takes each one once and records it under `seeded`, so one the
 player removes stays removed.
 
+`defaultKeysets` is the one list every profile gets, and most actions need nothing else. An
+action that wants different keys on one layout can add `profileKeysets`, which goes beyond the
+hub schema:
+
+```json
+{
+	"action": "example_load",
+	"label": "actions.load",
+	"defaultKeysets": ["sc_f5"],
+	"profileKeysets": { "Grid": ["meta+1"], "Legacy": ["meta+1"] }
+}
+```
+
+Each key is a shipped profile's name. That profile, and every player profile based on it, gets
+the `defaultKeysets` and then its own list on top, repeats kept. A profile with no entry gets
+only the `defaultKeysets`.
+
 ## Not covered yet
 
 - Command descriptions for every action. A catalog item may carry `description`, an i18n

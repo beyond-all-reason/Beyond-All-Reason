@@ -88,7 +88,7 @@ end
 
 local function widgetDefaultsSignature()
 	local parts = {}
-	for i, default in ipairs(WidgetActions.defaults((WidgetActions.manifests()))) do
+	for i, default in ipairs(profiles.widgetDefaultsOf(profiles.activeName())) do
 		parts[i] = default.action .. "=" .. table.concat(default.keysets, ",")
 	end
 

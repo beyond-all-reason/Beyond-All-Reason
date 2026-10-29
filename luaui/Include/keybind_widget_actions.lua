@@ -86,6 +86,46 @@ local function readKeysets(declared, alwaysModifier)
 	return shapeKeysets(declared, alwaysModifier), nil
 end
 
+local function readProfileKeysets(declared, alwaysModifier)
+	if declared == nil then
+		return nil, nil
+	end
+	if type(declared) ~= "table" then
+		return nil, "profileKeysets is not an object"
+	end
+
+	local byProfile = {}
+	for profile, keysets in pairs(declared) do
+		if not isNonEmptyString(profile) then
+			return nil, "profileKeysets is not an object"
+		end
+		local shaped, problem = readKeysets(keysets, alwaysModifier)
+		if problem then
+			return nil, "profileKeysets." .. profile .. ": " .. problem
+		end
+		byProfile[profile] = shaped
+	end
+
+	return next(byProfile) and byProfile or nil, nil
+end
+
+local function keysetsFor(a, layout)
+	local own = layout and a.profileKeysets and a.profileKeysets[layout]
+	if not own then
+		return a.keysets
+	end
+
+	local keysets = {}
+	for _, keyset in ipairs(a.keysets or {}) do
+		keysets[#keysets + 1] = keyset
+	end
+	for _, keyset in ipairs(own) do
+		keysets[#keysets + 1] = keyset
+	end
+
+	return keysets
+end
+
 local function readAction(entry, keyPrefix, dir, seen)
 	if type(entry) ~= "table" then
 		return nil, "is not an object"
@@ -106,6 +146,7 @@ local function readAction(entry, keyPrefix, dir, seen)
 	seen[action] = true
 
 	local keysets, keysetProblem = readKeysets(entry.defaultKeysets, modifier)
+	local profileKeysets, profileProblem = readProfileKeysets(entry.profileKeysets, modifier)
 
 	return {
 		action = action,
@@ -114,9 +155,10 @@ local function readAction(entry, keyPrefix, dir, seen)
 		alwaysModifier = modifier,
 		icon = relativeTo(dir, entry.icon),
 		keysets = keysets,
+		profileKeysets = profileKeysets,
 	},
 		nil,
-		keysetProblem
+		keysetProblem or profileProblem
 end
 
 function M.parse(widget)
@@ -253,8 +295,8 @@ function M.hiddenActions(widgets)
 	return hidden
 end
 
--- An action two widgets declare belongs to the first.
-function M.defaults(widgets)
+-- An action two widgets declare belongs to the first. `layout` is a shipped profile's id.
+function M.defaults(widgets, layout)
 	local defaults = {}
 	local claimed = {}
 
@@ -263,8 +305,9 @@ function M.defaults(widgets)
 			for _, a in ipairs(actionsOf(widget)) do
 				if not claimed[a.action] then
 					claimed[a.action] = true
-					if a.keysets then
-						defaults[#defaults + 1] = { action = a.action, keysets = a.keysets }
+					local keysets = keysetsFor(a, layout)
+					if keysets then
+						defaults[#defaults + 1] = { action = a.action, keysets = keysets }
 					end
 				end
 			end
