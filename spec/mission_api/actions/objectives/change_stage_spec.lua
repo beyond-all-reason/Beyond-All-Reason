@@ -23,7 +23,7 @@ describe("mission_api.actions.change_stage", function()
 	end)
 
 	describe("actionFunction", function()
-		it("calls Objectives.ChangeStage with the given stageID", function()
+		it("calls Stages.ChangeStage with the given stageID", function()
 			action.actionFunction("stage2")
 			assert.are.equal(1, #changeStageCalls)
 			assert.are.equal("stage2", changeStageCalls[1].stageID)
