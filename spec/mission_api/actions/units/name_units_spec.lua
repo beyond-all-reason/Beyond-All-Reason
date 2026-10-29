@@ -34,12 +34,15 @@ end
 env.Spring.GetTeamList = function(allyTeamID)
 	return {}
 end
+-- The area queries go through area_tracking.lua, which binds Spring's query functions when it loads.
+local unitsInRectangle, unitsInCylinder = {}, {}
 env.Spring.GetUnitsInRectangle = function(...)
-	return {}
+	return unitsInRectangle
 end
 env.Spring.GetUnitsInCylinder = function(...)
-	return {}
+	return unitsInCylinder
 end
+GG["MissionAPI"].Modules.AreaTracking = MissionSpecEnv.include(env, "luarules/mission_api/area_tracking.lua")
 
 local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/units/name_units.lua")
 local action = actions[1]
@@ -71,12 +74,8 @@ describe("mission_api.actions.name_units", function()
 		env.Spring.GetTeamList = function()
 			return {}
 		end
-		env.Spring.GetUnitsInRectangle = function()
-			return {}
-		end
-		env.Spring.GetUnitsInCylinder = function()
-			return {}
-		end
+		unitsInRectangle = {}
+		unitsInCylinder = {}
 	end)
 
 	it("declares its type and parameters", function()
@@ -149,9 +148,7 @@ describe("mission_api.actions.name_units", function()
 
 	describe("actionFunction - area filter (rectangle)", function()
 		it("tracks units returned by GetUnitsInRectangle", function()
-			env.Spring.GetUnitsInRectangle = function(x1, z1, x2, z2, teamID)
-				return { 200, 201 }
-			end
+			unitsInRectangle = { 200, 201 }
 			local area = { x1 = 0, z1 = 0, x2 = 10, z2 = 10 }
 			action.actionFunction("zone", nil, nil, area)
 			assert.is_true(trackedUnitIDs["zone"][200] == true)
@@ -161,9 +158,7 @@ describe("mission_api.actions.name_units", function()
 
 	describe("actionFunction - area filter (circle)", function()
 		it("tracks units returned by GetUnitsInCylinder", function()
-			env.Spring.GetUnitsInCylinder = function(x, z, radius, teamID)
-				return { 300 }
-			end
+			unitsInCylinder = { 300 }
 			local area = { x = 5, z = 5, radius = 100 }
 			action.actionFunction("circle", nil, nil, area)
 			assert.is_true(trackedUnitIDs["circle"][300] == true)

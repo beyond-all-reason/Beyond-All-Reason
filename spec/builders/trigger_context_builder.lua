@@ -10,15 +10,14 @@
 ---@class TriggerContextMock
 ---@field ActivateTrigger fun(trigger: table): boolean
 ---@field DoesUnitHaveName fun(unitID: number, name: string): boolean
+---@field DoesUnitMatch fun(unitID: number, unitName: string?, unitDefName: string?): boolean
 ---@field DoesFeatureHaveName fun(featureID: number, name: string): boolean
 ---@field IsBuildFrameOwner fun(unbuiltID: number, builderName: string?, builderDefName: string?): boolean
 ---@field InFactory fun(buildeeID: number): boolean
 ---@field ClaimConstructionStart fun(buildeeID: number, triggerID: string)
 ---@field HasConstructionStarted fun(buildeeID: number, triggerID: string): boolean
 ---@field WasUnderConstruction table<number, boolean>
----@field GetUnitsInArea fun(trigger: table): number[]
 ---@field IsFeatureInArea fun(featureID: number, area: table): boolean
----@field PreviousUnitsInAreas table
 ---@field ConstructionState table
 ---@field StockpileState table
 ---@field DwellingUnitsInAreas table
@@ -49,7 +48,6 @@ end
 function TCB.new()
 	return setmetatable({
 		inFactory = false,
-		unitsInArea = {},
 	}, TCB)
 end
 
@@ -59,15 +57,6 @@ end
 ---@return TriggerContextBuilder
 function TCB:WithInFactory(value)
 	self.inFactory = value
-	return self
-end
-
----The units a location trigger finds inside its area on each sweep.
----@param self TriggerContextBuilder
----@param unitIDs number[]|fun(trigger: table): number[]
----@return TriggerContextBuilder
-function TCB:WithUnitsInArea(unitIDs)
-	self.unitsInArea = unitIDs
 	return self
 end
 
@@ -87,6 +76,7 @@ function TCB:Build()
 			return true
 		end,
 		DoesUnitHaveName = asFunction(true),
+		DoesUnitMatch = asFunction(true),
 		DoesFeatureHaveName = asFunction(true),
 		IsBuildFrameOwner = asFunction(true),
 		InFactory = asFunction(instance.inFactory),
@@ -105,9 +95,7 @@ function TCB:Build()
 				return true
 			end,
 		}),
-		GetUnitsInArea = asFunction(instance.unitsInArea),
 		IsFeatureInArea = asFunction(true),
-		PreviousUnitsInAreas = {},
 		ConstructionState = {},
 		StockpileState = {},
 		DwellingUnitsInAreas = {},
