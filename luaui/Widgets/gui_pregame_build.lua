@@ -37,6 +37,7 @@ local spawnWarpInFrame = Game.spawnWarpInFrame
 
 local buildQueue = {}
 local selBuildQueueDefID
+local getQuickMexBuild
 local facingMap = { south = 0, east = 1, north = 2, west = 3 }
 
 local buildModeState = {
@@ -371,6 +372,10 @@ function widget:Initialize()
 	WG["pregame-build"] = {}
 	WG["pregame-build"].getPreGameDefID = function()
 		return selBuildQueueDefID
+	end
+	WG["pregame-build"].getQuickMexBuild = function()
+		local mx, my = spGetMouseState()
+		return getQuickMexBuild(mx, my)
 	end
 	WG["pregame-build"].setPreGamestartDefID = function(value)
 		local inBuildOptions = {}
@@ -960,7 +965,7 @@ function widget:Update(dt)
 	end
 end
 
-local function getQuickMexBuild(mx, my)
+getQuickMexBuild = function(mx, my)
 	if not preGamestartPlayer or spGetGameFrame() > 0 or selBuildQueueDefID or Spring.IsGUIHidden() then
 		return
 	end
@@ -976,7 +981,12 @@ local function getQuickMexBuild(mx, my)
 		return
 	end
 	local spot = finder.GetClosestMexSpot(pos[1], pos[3])
-	if not spot or (spot.x - pos[1]) ^ 2 + (spot.z - pos[3]) ^ 2 >= builder.QUICK_MEX_RADIUS_SQUARED then
+	if not spot then
+		return
+	end
+	local radius = math.sqrt(finder.GetMexPlacementRadiusSquared(spot)) + 16
+	local radiusSquared = math.max(builder.QUICK_MEX_RADIUS_SQUARED, radius * radius)
+	if (spot.x - pos[1]) ^ 2 + (spot.z - pos[3]) ^ 2 > radiusSquared then
 		return
 	end
 	if builder.SpotHasExtractorQueued(spot) then
@@ -994,7 +1004,7 @@ local function getQuickMexBuild(mx, my)
 	for _, defID in ipairs(startDef.buildOptions) do
 		local def = UnitDefs[defID]
 		if def.extractsMetal and def.extractsMetal > bestExtraction then
-			local candidate = builder.PreviewExtractorCommand({ spot.x, spot.y, spot.z }, defID, spot)
+			local candidate = builder.PreviewExtractorCommand(pos, defID, spot)
 			if candidate and spTestBuildOrder(defID, candidate[2], candidate[3], candidate[4], candidate[5]) ~= 0 then
 				buildData = candidate
 				bestExtraction = def.extractsMetal

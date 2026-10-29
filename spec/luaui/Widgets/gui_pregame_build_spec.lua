@@ -115,16 +115,19 @@ local function fixture()
 		env.WG.resource_spot_finder.GetClosestMexSpot = function()
 			return self.spot
 		end
+		env.WG.resource_spot_finder.GetMexPlacementRadiusSquared = function()
+			return self.radiusSquared or 0
+		end
 		env.WG.resource_spot_builder = {
 			QUICK_MEX_RADIUS_SQUARED = 2000,
 			SpotHasExtractorQueued = function()
 				return self.occupied
 			end,
-			PreviewExtractorCommand = function(_, def, spot)
+			PreviewExtractorCommand = function(params, def, spot)
 				if self.noPlacement or self.unbuildable == def then
 					return
 				end
-				return { def, spot.x, spot.y, spot.z, 0 }
+				return { def, params[1], params[2], params[3], 0 }
 			end,
 		}
 		env.UnitDefs[4] = { buildOptions = { 5 }, xsize = 2, zsize = 2 }
@@ -314,6 +317,25 @@ describe("pregame right-click mex", function()
 		f.unbuildable = 3
 		f.widget:MousePress(0, 0, 3)
 		assert(f.api.getBuildQueue()[3][1] == 5)
+	end)
+	it("previews and queues the same cursor-positioned mex", function()
+		local f = fixture()
+		f:quickMex()
+		f.position = { 216, 0, 0 }
+		local preview = f.api.getQuickMexBuild()
+		assert(preview and preview[2] == 216)
+		f.widget:MousePress(0, 0, 3)
+		assert(f.api.getBuildQueue()[3][2] == preview[2])
+	end)
+	it("reaches large placement areas and includes their activation boundary", function()
+		local f = fixture()
+		f:quickMex()
+		f.radiusSquared = 6400 -- 80 radius plus 16 build units of padding
+		f.api.setBuildQueue({})
+		f.position = { 296, 0, 0 }
+		assert(f.api.getQuickMexBuild())
+		f.position = { 297, 0, 0 }
+		assert(not f.api.getQuickMexBuild())
 	end)
 	it("does not quick-build after game start or without a start unit", function()
 		local f = fixture()
