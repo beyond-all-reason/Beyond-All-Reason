@@ -119,13 +119,13 @@ local TECH_TO_REZ_POWER_SPEEDS = { -- calibrated manually, spitballed numbers th
 	[4.5] = 130,
 }
 local TOO_LONG_GAME_FRAMES = Game.gameSpeed * 60 * 45
-local TOO_LONG_REZ_POWER_SPEED = 20
 local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed -- How often (in frames) everything else is checked
 local REZ_SPEED_UPDATE_INTERVAL = Game.gameSpeed * 60
 
 local gameFrame = 0
 local tooLong = false
 local adjustedRezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[1]
+local factoryBuildpowerMultiplier = 1
 local currentTechLevel = nil
 
 local PICK_LOWEST = true
@@ -181,6 +181,9 @@ local DEATH_NAMES_BLOCKING_WRAITHS = {
 	Water = not WATER_FEEDS_WRAITHS,
 }
 local RULES_PARAM = {
+	TECH_LEVEL = "zombie_tech_level",
+	REZ_POWER_SPEED = "zombie_rez_power_speed",
+	FACTORY_BUILDPOWER_MULTIPLIER = "zombie_factory_buildpower_multiplier",
 	REZ_FRAME = "zombie_rez_frame",
 	WAS_ZOMBIE = "wasZombie",
 	WRAITH_READY_FRAME = "zombie_wraith_ready_frame",
@@ -499,7 +502,7 @@ local function setZombieFactoryBuildpower(unitID, useZombieBuildpower, unitDefID
 	local resolvedUnitDefID = unitDefID or (factoryData and factoryData.unitDefID)
 	local unitDef = resolvedUnitDefID and unitDefs[resolvedUnitDefID]
 	if useZombieBuildpower and unitDef and unitDef.isFactory then
-		spring.SetUnitBuildSpeed(unitID, unitDef.buildSpeed * zombieModeSettings.factoryBuildpowerTechMultiplier ^ (currentTechLevel or 1))
+		spring.SetUnitBuildSpeed(unitID, unitDef.buildSpeed * factoryBuildpowerMultiplier)
 		zombieFactories[unitID] = factoryData or { unitDefID = resolvedUnitDefID, baseBuildSpeed = unitDef.buildSpeed }
 		return
 	end
@@ -515,15 +518,15 @@ local function updateRezSpeed()
 		local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
 		techLevel = GG.PowerLib.TechGuesstimate(highestPowerData.power)
 	end
-	if tooLong then
-		adjustedRezPowerSpeed = TOO_LONG_REZ_POWER_SPEED
-	else
-		local rezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[techLevel] or TECH_TO_REZ_POWER_SPEEDS[1]
-		adjustedRezPowerSpeed = rezPowerSpeed * zombieModeSettings.rezPowerSpeedMultiplier
-	end
+	local rezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[techLevel] or TECH_TO_REZ_POWER_SPEEDS[1]
+	adjustedRezPowerSpeed = rezPowerSpeed * zombieModeSettings.rezPowerSpeedMultiplier
+	factoryBuildpowerMultiplier = zombieModeSettings.factoryBuildpowerTechMultiplier ^ techLevel
 	currentTechLevel = techLevel
 	rebuildZombieCorpseSpawnDelays()
 	setZombieFactoryBuildpower()
+	spring.SetGameRulesParam(RULES_PARAM.TECH_LEVEL, techLevel)
+	spring.SetGameRulesParam(RULES_PARAM.REZ_POWER_SPEED, adjustedRezPowerSpeed)
+	spring.SetGameRulesParam(RULES_PARAM.FACTORY_BUILDPOWER_MULTIPLIER, factoryBuildpowerMultiplier)
 end
 
 local function updateTooLong(frame)
@@ -532,7 +535,6 @@ local function updateTooLong(frame)
 	end
 	tooLong = true
 	GG.Zombies.tooLong = true
-	updateRezSpeed()
 	if GG.ZombieAI and GG.ZombieAI.EnablePermanentAggro then
 		GG.ZombieAI.EnablePermanentAggro()
 	end
