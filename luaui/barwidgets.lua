@@ -2287,8 +2287,12 @@ local function retireProxy(widget)
 	local info = rawget(widget, "whInfo")
 	local name = tostring(info and info.name or "A widget")
 	local actions = rawget(wh, "actionHandler")
+	local customCommands = rawget(wh, "customCommands")
 	for key in pairs(wh) do
 		wh[key] = nil
+	end
+	if customCommands then
+		rawset(wh, "customCommands", {})
 	end
 	if actions then
 		for key in pairs(actions) do
