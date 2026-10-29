@@ -792,6 +792,20 @@ describe("mission_api.validation.sections", function()
 
 			V.assertNoMessageContaining(result, "is missing required parameter")
 		end)
+
+		it("reports a SetMapLighting action without any lighting value", function()
+			local result =
+				V.validateAction({ type = V.actionTypes.SetMapLighting, parameters = { transitionDuration = 2 } })
+			local names = V.definitions.ActionDefinitions.Parameters[V.actionTypes.SetMapLighting].requiresOneOf
+
+			assert.are.equal(12, #names)
+			V.assertMessage(
+				result,
+				'Action is missing required parameter, at least one of {"'
+					.. table.concat(names, '","')
+					.. '"} is required. Action: a'
+			)
+		end)
 	end)
 
 	it("reports a DrawLines action without the lineName RemoveLine erases it by", function()

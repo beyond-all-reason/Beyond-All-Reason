@@ -136,6 +136,31 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("TimeOfDay", function()
+		local function validateHour(hour)
+			return V.validateAction({ type = V.actionTypes.SetMapTimeOfDay, parameters = { hour = hour } })
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateHour("noon"),
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: hour"
+			)
+		end)
+
+		it("rejects an hour outside 0 to 24", function()
+			V.assertMessage(
+				validateHour(25),
+				"TimeOfDay must be an hour from 0 to 24, got 25. Action: a, Parameter: hour"
+			)
+		end)
+
+		it("accepts midnight as 0 and as 24", function()
+			V.assertNoMessageContaining(validateHour(0), "Parameter: hour")
+			V.assertNoMessageContaining(validateHour(24), "Parameter: hour")
+		end)
+	end)
+
 	describe("PositiveInteger", function()
 		local function validateTimeRemaining(timeRemaining)
 			return V.validateTrigger(
@@ -428,6 +453,39 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("SkyboxFile", function()
+		local function validateTexture(texture)
+			return V.validateAction({ type = V.actionTypes.SetMapSkybox, parameters = { texture = texture } })
+		end
+
+		it("rejects a file that is not a .dds", function()
+			V.assertMessage(
+				validateTexture("maps/sky.png"),
+				"Invalid skyboxFile: maps/sky.png. Expected a .dds cubemap. Action: a, Parameter: texture"
+			)
+		end)
+
+		it("rejects a file that does not exist", function()
+			V.assertMessage(
+				validateTexture("maps/missing.dds"),
+				"Invalid skyboxFile: maps/missing.dds. File does not exist. Action: a, Parameter: texture"
+			)
+		end)
+
+		it("accepts an existing .dds file", function()
+			local originalFileExists = V.env.VFS.FileExists
+			V.env.VFS.FileExists = function(path)
+				return path == "maps/Sky.DDS"
+			end
+
+			local result = validateTexture("maps/Sky.DDS")
+
+			V.env.VFS.FileExists = originalFileExists
+
+			V.assertNoMessageContaining(result, "Parameter: texture")
+		end)
+	end)
+
 	--- Validates the area parameter of the trigger under test.
 	local function validateArea(area)
 		return V.validateTrigger(V.trigger(V.triggerTypes.UnitEnteredLocation, { area = area, unitName = "x" }))
@@ -621,6 +679,40 @@ describe("mission_api.validation.parameter_validators", function()
 
 		it("accepts a vector", function()
 			V.assertNoMessageContaining(validateDirection({ x = 1, z = 1 }), "direction")
+		end)
+	end)
+
+	describe("Color", function()
+		local function validateLighting(parameters)
+			return V.validateAction({ type = V.actionTypes.SetMapLighting, parameters = parameters })
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateLighting({ tint = "red" }),
+				"Unexpected parameter type, expected table, got string. Action: a, Parameter: tint"
+			)
+		end)
+
+		it("rejects a missing channel", function()
+			V.assertMessage(
+				validateLighting({ tint = { r = 1, g = 1 } }),
+				"Missing required parameter. Action: a, Parameter: tint.b"
+			)
+		end)
+
+		it("rejects a negative channel", function()
+			V.assertMessage(
+				validateLighting({ tint = { r = -1, g = 1, b = 1 } }),
+				"Color channel must be >= 0, got -1. Action: a, Parameter: tint.r"
+			)
+		end)
+
+		it("accepts channels above 1", function()
+			V.assertNoMessageContaining(
+				validateLighting({ groundDiffuseColor = { r = 1.2, g = 1, b = 0 } }),
+				"groundDiffuseColor"
+			)
 		end)
 	end)
 

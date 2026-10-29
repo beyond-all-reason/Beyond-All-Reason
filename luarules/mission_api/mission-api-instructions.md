@@ -106,6 +106,9 @@ return {
 the schema array order *is* the `actionFunction` signature: reordering, inserting, or renaming a parameter is a
 breaking change to both the function and every mission using it.
 
+An action that calls a game gadget's `GG` API (`GG.GamePause`, `GG.MapLighting`, …) looks it up inside
+`actionFunction`, not at file scope: specs load every action file through `actions_loader` without those gadgets.
+
 ## Parameters, validation, processing
 
 - Declare types from `parameter_types.lua`; add a new type there only when no existing one fits, and register a
@@ -113,7 +116,8 @@ breaking change to both the function and every mission using it.
   `{ message = ... }`, with optional `isWarning = true` and `parameterNameSuffix` for nested fields). An unvalidated
   type silently accepts anything.
 - `parameter_processing.lua` rewrites values after validation (ground height for `Position`, unit-def names to
-  negative build command IDs for `Orders`/`Command`, `.wav` length caching for `SoundFile`, enum lists to sets). If
+  negative build command IDs for `Orders`/`Command`, `.wav` length caching for `SoundFile`, enum lists to sets,
+  `Color` `{ r, g, b }` fields to the engine's `{ r, g, b }` array). If
   your type needs normalisation, register a processor there — the action/trigger sees the processed value, and specs
   that call `actionFunction` directly do not, so pass processed-shaped data in tests.
 - Any validation error makes `api_missions.lua` drop `GG['MissionAPI']`, which in turn makes
@@ -175,6 +179,12 @@ breaking change to both the function and every mission using it.
   params on that call and at start (so also after a `/luaui reload`), rebuilds the text on `LanguageChanged`, and
   holds the translated log oldest-first in `WG.MissionAPI.BattleLog`. The `Spring.Echo` in `AddMessage` is a
   placeholder until a widget displays the log.
+- `GG.MapLighting` (`luarules/gadgets/api_map_lighting.lua`) — lighting, time of day and skybox for the
+  `actions/environment/` actions. Its synced side only forwards: the engine's lighting can only be read unsynced, so
+  the unsynced side reads the map's lighting at the first change and blends on game time. Nothing is persisted, so
+  a `/luarules reload` loses it. Water keeps its noon look, a cubemap sky does not darken at night, and on a map
+  with a procedural sky the first skybox stays for good. Maps with a `map_atmosphere` config stop changing the sun
+  while it is in use.
 - `GG['MissionAPIActionHelper']` (`api_missions_action_helpers.lua`, synced) — for behaviour an action cannot do in
   one call, currently per-second resource drip. Put anything needing its own `GameFrame` accumulator here rather
   than growing the action file.
