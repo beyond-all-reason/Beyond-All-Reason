@@ -12,18 +12,18 @@ return {
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
-		GameFrame = function(trigger, triggerID, context)
-			local previousUnitsInAreas = context.PreviousUnitsInAreas
-			local unitsInArea = context.GetUnitsInArea(trigger)
+		-- Every unit is checked before any activation, since an action may change what the next one matches.
+		UnitsLeftArea = function(trigger, triggerID, context, unitIDs)
+			local parameters = trigger.parameters
+			local matchCount = 0
+			for i = 1, #unitIDs do
+				local unitID = unitIDs[i]
+				if context.DoesUnitMatch(unitID, parameters.unitName, parameters.unitDefName) and Spring.GetUnitIsDead(unitID) == false then
+					matchCount = matchCount + 1
+				end
+			end
 
-			local unitsLeftArea = table.filterArray(previousUnitsInAreas[triggerID] or {}, function(unitID)
-				return not table.contains(unitsInArea, unitID)
-					and (not trigger.parameters.unitName or context.DoesUnitHaveName(unitID, trigger.parameters.unitName))
-					and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName)
-			end)
-			previousUnitsInAreas[triggerID] = unitsInArea
-
-			for _, unitID in ipairs(unitsLeftArea) do
+			for _ = 1, matchCount do
 				context.ActivateTrigger(trigger)
 			end
 		end,

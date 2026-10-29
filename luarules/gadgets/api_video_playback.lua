@@ -11,7 +11,9 @@ function gadget:GetInfo()
 	}
 end
 
--- provides GG.VideoPlayback.Play(videoFile, onFinished, skippable)
+-- provides:
+--   GG.VideoPlayback.Play(videoFile, onFinished, skippable)
+--   GG.VideoPlayback.Stop()
 -- onFinished runs once per Play: when the video ends, when another Play starts, or when the game unpauses.
 -- LuaUI: register VideoPlayback(playbackID, videoFile, skippable); send "VideoPlaybackFinished:<playbackID>" when done.
 -- LuaUI: register VideoPlaybackStop(playbackID): The video is over (for any reason), so stop showing it.
@@ -54,10 +56,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	GG.VideoPlayback = {
-		Play = play,
-	}
-
 	local function finishPlayback(playbackID)
 		if playbackID ~= playbackCount or onPlaybackFinished == nil then
 			return false
@@ -68,6 +66,15 @@ if gadgetHandler:IsSyncedCode() then
 		onFinished()
 		return true
 	end
+
+	local function stop()
+		finishPlayback(playbackCount)
+	end
+
+	GG.VideoPlayback = {
+		Play = play,
+		Stop = stop,
+	}
 
 	local function isSpectator(playerID)
 		return select(3, Spring.GetPlayerInfo(playerID, false)) == true

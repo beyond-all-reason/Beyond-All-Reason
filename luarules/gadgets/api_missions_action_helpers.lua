@@ -10,8 +10,36 @@ function gadget:GetInfo()
 	}
 end
 
+local SYNC_ACTION_SKIPPABLE = "MissionCutsceneSkippable"
+local MESSAGE_SKIP_CUTSCENE = "MissionSkipCutscene"
+
 if not gadgetHandler:IsSyncedCode() then
-	return false
+	local KEY_ESCAPE = Spring.GetKeyCode("esc")
+
+	local cutsceneSkippable = false
+
+	local function setCutsceneSkippable(_, skippable)
+		cutsceneSkippable = skippable
+	end
+
+	function gadget:KeyPress(key, mods, isRepeat)
+		if cutsceneSkippable and key == KEY_ESCAPE and not Spring.GetSpectatingState() then
+			if not isRepeat then
+				Spring.SendLuaRulesMsg(MESSAGE_SKIP_CUTSCENE)
+			end
+			return true
+		end
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction(SYNC_ACTION_SKIPPABLE, setCutsceneSkippable)
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction(SYNC_ACTION_SKIPPABLE)
+	end
+
+	return -- end unsynced
 end
 
 local spAddTeamResource = Spring.AddTeamResource
@@ -64,5 +92,15 @@ function gadget:GameFrame(frame)
 				spUseTeamResource(teamID, "energy", -amount * 0.5)
 			end
 		end
+	end
+end
+
+function gadget:RecvLuaMsg(message, playerID)
+	if message == MESSAGE_SKIP_CUTSCENE then
+		local isSpectator = select(3, Spring.GetPlayerInfo(playerID, false))
+		if not isSpectator and GG["MissionAPI"] then
+			GG["MissionAPI"].Modules.Cutscenes.SkipCutscene()
+		end
+		return true
 	end
 end

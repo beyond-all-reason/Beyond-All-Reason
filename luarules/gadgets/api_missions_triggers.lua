@@ -28,14 +28,15 @@ local countdowns
 local needsBuildPlacements
 local needsBuildOwnerMap
 local needsBuildStartSet
+local needsStockpiles ---@type boolean
 
 local SEISMIC_INTERVAL_FRAMES
 local seismicContacts
 local detectionLevels
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
-local previousUnitsInAreas = {}
 local constructionState = {}
+local stockpileState = {}
 local dwellingUnitsInAreas = {}
 local teamReclaimIncome = {}
 local teamReclaimIncomeSnapshot = {}
@@ -112,20 +113,6 @@ local function activateTrigger(trigger)
 	end
 
 	return true
-end
-
-local function getUnitsInArea(trigger)
-	local area = trigger.parameters.area
-	local teamID = trigger.parameters.teamID
-	local unitsInArea = {}
-
-	if area.x1 and area.z1 and area.x2 and area.z2 then
-		unitsInArea = Spring.GetUnitsInRectangle(area.x1, area.z1, area.x2, area.z2, teamID)
-	elseif area.x and area.z and area.radius then
-		unitsInArea = Spring.GetUnitsInCylinder(area.x, area.z, area.radius, teamID)
-	end
-
-	return unitsInArea
 end
 
 local function isFeatureInArea(featureID, area)
@@ -211,6 +198,27 @@ local function markDetectionDirty(unitID)
 end
 local inactiveSeismicContacts = {}
 
+-- Location triggers are dispatched through area tracking instead of by polling with GameFrame.
+-- Each has its own tracker. Callbacks then act on the units that crossed a tracking boundary.
+local triggersByTrackingID = {} ---@type table<integer, { trigger: table, triggerID: string }>
+local unitsEnteredAreaHandlers, unitsLeftAreaHandlers ---@type table<string, function?>, table<string, function?>
+
+local function onUnitsEnteredArea(unitIDs, trackingID)
+	local tracked = triggersByTrackingID[trackingID]
+	local handler = unitsEnteredAreaHandlers[tracked.trigger.type]
+	if handler then
+		handler(tracked.trigger, tracked.triggerID, triggerContext, unitIDs)
+	end
+end
+
+local function onUnitsLeftArea(unitIDs, trackingID)
+	local tracked = triggersByTrackingID[trackingID]
+	local handler = unitsLeftAreaHandlers[tracked.trigger.type]
+	if handler then
+		handler(tracked.trigger, tracked.triggerID, triggerContext, unitIDs)
+	end
+end
+
 ----------------------------------------------------------------
 --- Call-ins:
 ----------------------------------------------------------------
@@ -248,21 +256,33 @@ function gadget:Initialize()
 	triggerContext = {
 		ActivateTrigger = activateTrigger,
 		DoesUnitHaveName = doesUnitHaveName,
+		DoesUnitMatch = GG["MissionAPI"].Modules.UnitQuery.DoesUnitMatch,
 		DoesFeatureHaveName = doesFeatureHaveName,
 		IsBuildFrameOwner = isBuildFrameOwner,
 		InFactory = inFactory,
 		ClaimConstructionStart = claimConstructionStart,
 		HasConstructionStarted = hasConstructionStarted,
 		WasUnderConstruction = underConstruction,
-		GetUnitsInArea = getUnitsInArea,
 		IsFeatureInArea = isFeatureInArea,
-		PreviousUnitsInAreas = previousUnitsInAreas,
 		ConstructionState = constructionState,
+		StockpileState = stockpileState,
 		DwellingUnitsInAreas = dwellingUnitsInAreas,
 		GetReclaimIncomeSnapshot = function(teamID)
 			return teamReclaimIncomeSnapshot[teamID]
 		end,
 	}
+
+	unitsEnteredAreaHandlers = callins.UnitsEnteredArea or {}
+	unitsLeftAreaHandlers = callins.UnitsLeftArea or {}
+	local areaTracking = GG["MissionAPI"].Modules.AreaTracking
+	for triggerID, trigger in pairs(triggers) do
+		if unitsEnteredAreaHandlers[trigger.type] or unitsLeftAreaHandlers[trigger.type] then
+			local parameters = trigger.parameters
+			local trackingID =
+				areaTracking.TrackUnitsInArea(parameters.area, parameters.teamID, onUnitsEnteredArea, onUnitsLeftArea)
+			triggersByTrackingID[trackingID] = { trigger = trigger, triggerID = triggerID }
+		end
+	end
 
 	-- AllowFeatureBuildStep / AllowUnitBuildStep fire on every builder's build or
 	-- reclaim step (among the hottest call-ins in the game), so only stay subscribed
@@ -318,6 +338,10 @@ function gadget:Initialize()
 	end) then
 		gadgetHandler:RemoveCallIn("UnitDamaged")
 	end
+
+	needsStockpiles = table.any(triggers, function(trigger)
+		return trigger.type == triggerTypes.StockpileCount or trigger.type == triggerTypes.StockpileProgress
+	end)
 end
 
 function gadget:GameStart()
@@ -557,6 +581,12 @@ end
 
 function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
+end
+
+function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
+	if needsStockpiles then
+		dispatchTriggerCallin("StockpileChanged", unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
+	end
 end
 
 function gadget:TeamDied(teamID)

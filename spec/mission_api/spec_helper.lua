@@ -4,6 +4,10 @@
 
 local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 
+-- A spec that needs defs installs its own before loading.
+_G.UnitDefs = _G.UnitDefs or {}
+_G.WeaponDefs = _G.WeaponDefs or {}
+
 -- math.bit_and is one of Recoil's MathExtra additions, not standard Lua, so it needs a
 -- stand-in here. Engine-side it takes a varargs list and folds it over 24-bit integers.
 local function bitAnd(...)
@@ -120,6 +124,7 @@ function MissionSpecEnv.registerModules(env)
 	end
 	modules.ParameterTypes = modules.ParameterTypes or include("luarules/mission_api/parameter_types.lua")
 	modules.Difficulty = modules.Difficulty or include("luarules/mission_api/difficulty.lua")
+	modules.Variables = modules.Variables or include("luarules/mission_api/variables.lua")
 	modules.UnitQuery = modules.UnitQuery or include("luarules/mission_api/unit_query.lua")
 	modules.SeismicContacts = modules.SeismicContacts or include("luarules/mission_api/seismic_contacts.lua")
 	modules.DetectionLevels = modules.DetectionLevels or include("luarules/mission_api/detection_levels.lua")

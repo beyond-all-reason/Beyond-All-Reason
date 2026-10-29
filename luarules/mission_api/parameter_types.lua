@@ -9,6 +9,10 @@ local types = {
 	Position = "Position",
 	Positions = "Positions",
 	AllyTeamIDs = "AllyTeamIDs",
+	TriggerIDs = "TriggerIDs",
+	StageIDs = "StageIDs",
+	ObjectiveIDs = "ObjectiveIDs",
+	Difficulties = "Difficulties",
 	Orders = "Orders",
 	Area = "Area",
 	Direction = "Direction",
@@ -31,6 +35,7 @@ local types = {
 	UnitDefName = "UnitDefName",
 	FeatureDefName = "FeatureDefName",
 	WeaponDefName = "WeaponDefName",
+	TeamName = "TeamName",
 	Facing = "Facing",
 	SoundFile = "SoundFile",
 	VideoFile = "VideoFile",
@@ -61,6 +66,9 @@ local types = {
 
 	-- Number-or-String-or-Boolean Validators:
 	AttributeValue = "AttributeValue",
+
+	-- Number-or-String-or-Boolean-or-Table Validators:
+	VariableValue = "VariableValue",
 
 }
 

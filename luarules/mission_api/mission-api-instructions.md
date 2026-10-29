@@ -21,13 +21,15 @@ Nothing here works outside this sequence, so keep it in mind when something read
    at load time.
 2. `actions_loader.LoadActionDefinitions()` then `triggers_loader.LoadTriggerDefinitions()` scan their directories
    and populate `GG['MissionAPI'].ActionDefinitions` / `.TriggerDefinitions`.
-3. `loadMission(scriptPath)` includes the mission from `singleplayer/`, runs the four `*_loader` normalisers, then
-   `validation.lua`, then `parameter_processing.lua`.
+3. `loadMission(gameSetup)` includes the mission named by the startscript, validates the raw mission with
+   `validation.lua`, runs the four `*_loader` normalisers, resolves difficulties, then variable references (`variables.lua`), then runs
+   `parameter_processing.lua`.
 4. `api_missions_triggers.lua` (layer 1) `Initialize()` binds the definitions and unsubscribes from hot call-ins the
    loaded mission does not need.
 
 Module and definition files run at include time and read `GG['MissionAPI']` directly. Never add a load-time read of
-something registered later in that sequence; move it into a function or into `Initialize()`.
+something registered later in that sequence; move it into a function or into `Initialize()`. `validation.lua` reads
+the definitions per call rather than at include time, so that including it does not pin it to one load order.
 
 ## Type IDs are directory-order integers
 
@@ -68,8 +70,8 @@ return {
   `api_missions_triggers.lua` runs your handler once per trigger of your type; it does not filter for you.
 - **Never fire actions yourself.** Call `context.ActivateTrigger(trigger)`; it enforces `active`, `prerequisites`,
   `stages`, `repeating`/`maxRepeats`, and `difficulties`, and returns `false` when the trigger was not eligible.
-- `context` is the only sanctioned way to reach shared bookkeeping (`DoesUnitHaveName`, `GetUnitsInArea`,
-  `PreviousUnitsInAreas`, `ConstructionState`, `IsBuildFrameOwner`, …). Extend `triggerContext` rather than reaching
+- `context` is the only sanctioned way to reach shared bookkeeping (`DoesUnitHaveName`, `DwellingUnitsInAreas`,
+  `ConstructionState`, `IsBuildFrameOwner`, …). Extend `triggerContext` rather than reaching
   into gadget locals or duplicating state per trigger.
 - The call-in key must be one `api_missions_triggers.lua` already forwards — an engine call-in or a synthetic
   dispatch (e.g. `DetectionUpdate`, `CountdownTick`, `CountdownEnded`). If it is not forwarded yet, add the gadget
@@ -110,20 +112,26 @@ An action that calls a game gadget's `GG` API (`GG.GamePause`, `GG.MapLighting`,
 ## Parameters, validation, processing
 
 - Declare types from `parameter_types.lua`; add a new type there only when no existing one fits, and register a
-  validator for it in `validation.lua` (a curried function returning `nil` or a list of `{ message = ... }`, with
-  optional `severity = "warning"` and `parameterNameSuffix` for nested fields). An unvalidated type silently accepts
-  anything.
+  validator for it in `validation/parameter_validators.lua` (a function returning `nil` or a list of
+  `{ message = ... }`, with optional `isWarning = true` and `parameterNameSuffix` for nested fields). An unvalidated
+  type silently accepts anything.
 - `parameter_processing.lua` rewrites values after validation (ground height for `Position`, unit-def names to
   negative build command IDs for `Orders`/`Command`, `.wav` length caching for `SoundFile`, enum lists to sets,
   `Color` `{ r, g, b }` fields to the engine's `{ r, g, b }` array). If
   your type needs normalisation, register a processor there — the action/trigger sees the processed value, and specs
   that call `actionFunction` directly do not, so pass processed-shaped data in tests.
-- `logError` sets `HasValidationErrors`, which makes `api_missions.lua` drop `GG['MissionAPI']` and remove itself,
-  which in turn makes `api_missions_triggers.lua` remove itself. Validation failure aborts the whole mission —
-  reserve `logError` for genuinely unrunnable missions and use `logWarn` otherwise.
-- `ValidateReferences` cross-checks unit/feature/marker names between the actions that create them and the actions
-  and triggers that consume them, via hard-coded type sets near the bottom of `validation.lua`. A new action that
-  names or references units, features, or markers must be added to those sets.
+- Any validation error makes `api_missions.lua` drop `GG['MissionAPI']`, which in turn makes
+  `api_missions_triggers.lua` remove itself, and ends the game once it starts. Validation failure aborts the whole
+  mission — reserve errors for genuinely unrunnable missions and report warnings otherwise.
+- `validation/references.lua` cross-checks unit/feature/marker/line names, countdown IDs and cutscene IDs between
+  where they are created or defined and the actions and triggers that consume them. The consuming types are read from
+  the schemas, so an action or trigger declaring a `UnitName`, `FeatureName`, `CountdownID` or `CutsceneID` parameter
+  is picked up without being listed.
+- The shape of the objects a mission declares itself, rather than of a trigger or action, lives in a schema file
+  next to the loaders: `stages_schema.lua` (stage fields), `objectives_schema.lua` (objective fields),
+  `triggers_schema.lua` (the settings every trigger shares), `countdowns_schema.lua` and `cutscenes_schema.lua`. They are plain data, so
+  tools and the mission editor can read them; `validation/sections.lua` validates against them. Keep them in step
+  with the loaders.
 
 ## Difficulty
 
@@ -137,9 +145,9 @@ An action that calls a game gadget's `GG` API (`GG.GamePause`, `GG.MapLighting`,
   by Lua type, so table parameters (`Area`, `Orders`, …) work the same way. Structural fields (`type`, `settings`,
   `actions`, an objective's `trigger`) and fields nested inside loadout entries or orders do not support it —
   author the whole parameter per difficulty instead.
-- Difficulties tables survive until after validation so that every difficulty's value is validated, including
-  values under invalid difficulty names; `loadMission` then resolves everything in place (`Modules.Difficulty`)
-  before `parameter_processing`. Code running **before** validation must not consume parameter values —
+- Difficulties tables survive validation so that every difficulty's value is validated, including values under
+  invalid difficulty names; `loadMission` resolves everything in place (`Modules.Difficulty`) after the loaders and
+  before `parameter_processing`. Code running **before** that must not consume parameter values —
   `objectives_loader` leaves a difficulty-dependent `amount` alone, and the resolve pass fills in the `maxRepeats`
   derived from it.
 - `settings.difficulties` (the per-trigger on/off gate) is an array of difficulty names with **no** inheritance

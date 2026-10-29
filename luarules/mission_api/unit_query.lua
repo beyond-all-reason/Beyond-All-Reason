@@ -68,6 +68,24 @@ local function matchingUnits(unitName, unitDefName, teamID)
 	return matched
 end
 
+---@param unitID UnitID
+---@param unitName string?
+---@param unitDefName string?
+---@return boolean
+local function doesUnitMatch(unitID, unitName, unitDefName)
+	if unitName and not tracking.DoesUnitHaveName(unitID, unitName) then
+		return false
+	end
+	if unitDefName then
+		local unitDef = UnitDefNames[unitDefName]
+		if not unitDef or spGetUnitDefID(unitID) ~= unitDef.id then
+			return false
+		end
+	end
+	return true
+end
+
 return {
 	MatchingUnits = matchingUnits,
+	DoesUnitMatch = doesUnitMatch,
 }
