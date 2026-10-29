@@ -133,6 +133,9 @@ local pendingHomes = {}
 -- [builderID] = { x, z }
 local removeHomes = {}
 
+-- [cmdID] = boolean
+local stateCommands = {}
+
 ----------------------------------------------------------------
 -- Helpers
 ----------------------------------------------------------------
@@ -405,9 +408,18 @@ local function isStateCommand(unitID, cmdID)
 	if cmdID == CMD_STOCKPILE then
 		return true
 	end
-	local index = spFindUnitCmdDesc(unitID, cmdID)
-	local desc = index and spGetUnitCmdDescs(unitID, index, index)[1]
-	return desc ~= nil and (desc.type == CMDTYPE_ICON_MODE or desc.queueing == false)
+	local state = stateCommands[cmdID]
+	if state == nil then
+		local index = spFindUnitCmdDesc(unitID, cmdID)
+		if not index then
+			stateCommands[cmdID] = false
+			return false
+		end
+		local desc = spGetUnitCmdDescs(unitID, index, index)[1]
+		state = desc.type == CMDTYPE_ICON_MODE or desc.queueing == false
+		stateCommands[cmdID] = state
+	end
+	return state
 end
 
 local function releaseBuilder(unitID)
@@ -463,7 +475,10 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	local selectedUnits = spGetSelectedUnits()
 	for _, unitID in ipairs(selectedUnits) do
-		if not isStateCommand(unitID, cmdID) then
+		if
+			(idleBuilders[unitID] or activeRepairs[unitID] or activeReclaimers[unitID])
+			and not isStateCommand(unitID, cmdID)
+		then
 			onReclaimerStopped(unitID)
 			releaseBuilder(unitID)
 		end
