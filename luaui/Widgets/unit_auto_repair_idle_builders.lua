@@ -416,7 +416,6 @@ local function isStateCommand(unitID, cmdID)
 	if state == nil then
 		local index = spFindUnitCmdDesc(unitID, cmdID)
 		if not index then
-			stateCommands[cmdID] = false
 			return false
 		end
 		local desc = spGetUnitCmdDescs(unitID, index, index)[1]
