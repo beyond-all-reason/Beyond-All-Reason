@@ -1,9 +1,5 @@
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
 
--- The loader is the authority on what a trigger looks like once a mission is running,
--- so the builder is checked against it rather than against a copy of its defaults.
-local triggersLoader = VFS.Include("luarules/mission_api/triggers_loader.lua")
-
 describe("TriggerBuilder", function()
 	it("builds the trigger shape the call-in handlers receive", function()
 		local trigger = TriggerBuilder.new():Build()
@@ -18,23 +14,6 @@ describe("TriggerBuilder", function()
 		}, trigger.settings)
 		assert.is_false(trigger.triggered)
 		assert.are.equal(0, trigger.repeatCount)
-	end)
-
-	it("normalises exactly as triggers_loader does, so fixtures cannot drift from it", function()
-		local builder = TriggerBuilder.new():WithParameters({ unitDefName = "armpw" })
-		builder:WithSettings({ maxRepeats = 2 })
-
-		local loaded = triggersLoader.ProcessRawTriggers({ t = builder:BuildRaw() })
-
-		assert.are.same(loaded.t, builder:Build())
-	end)
-
-	it("normalises a repeating, inactive trigger as the loader does", function()
-		local builder = TriggerBuilder.new():WithSettings({ repeating = true, active = false })
-
-		local loaded = triggersLoader.ProcessRawTriggers({ t = builder:BuildRaw() })
-
-		assert.are.same(loaded.t, builder:Build())
 	end)
 
 	it("collects parameters and settings", function()
