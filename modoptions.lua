@@ -73,7 +73,7 @@ local options = {
 	{
 		key = "variablespeed",
 		name = "Variable Game Speed",
-		desc = "Allow players to change game speed during the match. When disabled, speed stays at 1x. Variable speed games are unranked.",
+		desc = "Allow players to change game speed during the match. When disabled, speed stays at 1x.",
 		type = "bool",
 		section = "options_main",
 		def = false,

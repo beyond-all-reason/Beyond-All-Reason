@@ -3324,7 +3324,7 @@
 		},
 		"variablespeed": {
 			"name": "Variable Game Speed",
-			"desc": "Allow players to change game speed during the match. When disabled, speed stays at 1x. Variable speed games are unranked."
+			"desc": "Allow players to change game speed during the match. When disabled, speed stays at 1x."
 		},
 		"allowuserwidgets": {
 			"name": "Allow Custom Widgets",
