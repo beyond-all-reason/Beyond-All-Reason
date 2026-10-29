@@ -1,5 +1,5 @@
 local function unlockPlayerInput()
-	SendToUnsynced('MissionUnlockPlayerInput')
+	Spring.SetGameRulesParam('playerInputLock', 0)
 end
 
 return {

@@ -10,12 +10,13 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 
 describe("mission_api.actions.lock_player_input", function()
 	---@type table[]
-	local sent
+	local params
 
 	before_each(function()
-		sent = {}
-		_G.SendToUnsynced = function(...) ---@diagnostic disable-line: global-in-non-module
-			sent[#sent + 1] = { ... }
+		params = {}
+		_G.Spring = Builders.Spring.new():Build()
+		Spring.SetGameRulesParam = function(...)
+			params[#params + 1] = { ... }
 		end
 	end)
 
@@ -24,9 +25,9 @@ describe("mission_api.actions.lock_player_input", function()
 		assert.are.same({ type = "UnlockPlayerInput" }, summarizeSchema(unlockAction))
 	end)
 
-	it("locks and unlocks every player", function()
+	it("sets and clears the playerInputLock game rules param", function()
 		lockAction.actionFunction()
 		unlockAction.actionFunction()
-		assert.are.same({ { "MissionLockPlayerInput" }, { "MissionUnlockPlayerInput" } }, sent)
+		assert.are.same({ { "playerInputLock", 1 }, { "playerInputLock", 0 } }, params)
 	end)
 end)
