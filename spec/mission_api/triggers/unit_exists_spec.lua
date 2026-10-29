@@ -2,6 +2,9 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
 local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and UnitDefs inside its handler.
 MissionApiBuilder.new():Install()
@@ -10,9 +13,9 @@ local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armpw" },
 	[2] = { name = "corfast" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
-local unitExists = VFS.Include("luarules/mission_api/triggers/unit_exists.lua")
+local unitExists = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_exists.lua")
 local onMetaUnitAdded = unitExists.callins.MetaUnitAdded
 
 describe("mission_api.triggers.unit_exists", function()

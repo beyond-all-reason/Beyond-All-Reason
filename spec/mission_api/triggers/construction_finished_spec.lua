@@ -2,6 +2,9 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
 local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here)
 -- and UnitDefs inside its handler. The gadget filters spawned units via WasUnderConstruction.
@@ -11,9 +14,9 @@ local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armsolar" },
 	[2] = { name = "armwin" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
-local constructionFinished = VFS.Include("luarules/mission_api/triggers/construction_finished.lua")
+local constructionFinished = MissionSpecEnv.include(env, "luarules/mission_api/triggers/construction_finished.lua")
 local onUnitFinished = constructionFinished.callins.UnitFinished
 
 describe("mission_api.triggers.construction_finished", function()

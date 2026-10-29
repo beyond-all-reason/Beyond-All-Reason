@@ -18,7 +18,7 @@ local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[11] = { name = "armvp", isFactory = true },
 	[20] = { name = "armck" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local productionStarted = MissionSpecEnv.include(env, "luarules/mission_api/triggers/production_started.lua")
 local onUnitCreated = productionStarted.callins.UnitCreated

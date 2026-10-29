@@ -14,7 +14,7 @@ local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armlab", isFactory = true },
 	[2] = { name = "corfast" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local rallyOrdered = MissionSpecEnv.include(env, "luarules/mission_api/triggers/rally_ordered.lua")
 local onUnitCommand = rallyOrdered.callins.UnitCommand

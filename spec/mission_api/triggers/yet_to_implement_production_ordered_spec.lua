@@ -16,7 +16,7 @@ local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[10] = { name = "armpw" },
 	[11] = { name = "corfast" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local productionOrdered =
 	MissionSpecEnv.include(env, "luarules/mission_api/triggers/yet_to_implement_production_ordered.lua")

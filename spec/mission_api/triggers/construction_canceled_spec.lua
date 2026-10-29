@@ -15,7 +15,7 @@ local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armsolar" },
 	[2] = { name = "armwin" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local constructionCanceled = MissionSpecEnv.include(env, "luarules/mission_api/triggers/construction_canceled.lua")
 local onMetaUnitRemoved = constructionCanceled.callins.MetaUnitRemoved

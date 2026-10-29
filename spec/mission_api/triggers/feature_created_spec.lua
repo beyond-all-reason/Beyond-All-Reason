@@ -2,6 +2,9 @@ local FeatureDefsBuilder = VFS.Include("spec/builders/feature_defs_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
 local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and FeatureDefs inside its handler.
 MissionApiBuilder.new():Install()
@@ -10,9 +13,9 @@ local featureDefs = FeatureDefsBuilder.new():WithFeatureDefs({
 	[1] = { name = "treetype1" },
 	[2] = { name = "rock1" },
 })
-_G.FeatureDefs = featureDefs:GetFeatureDefsByID()
+env.FeatureDefs = featureDefs:GetFeatureDefsByID()
 
-local featureCreated = VFS.Include("luarules/mission_api/triggers/feature_created.lua")
+local featureCreated = MissionSpecEnv.include(env, "luarules/mission_api/triggers/feature_created.lua")
 local onFeatureCreated = featureCreated.callins.FeatureCreated
 
 describe("mission_api.triggers.feature_created", function()

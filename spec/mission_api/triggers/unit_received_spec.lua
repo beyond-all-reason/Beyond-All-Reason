@@ -1,12 +1,15 @@
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and UnitDefs and
 -- the TransferUnits fence inside its handler.
 MissionApiBuilder.new():Install()
 
-_G.UnitDefs = { [1] = { name = "armwin" }, [2] = { name = "armsolar" } }
+env.UnitDefs = { [1] = { name = "armwin" }, [2] = { name = "armsolar" } }
 
-local unitReceived = VFS.Include("luarules/mission_api/triggers/unit_received.lua")
+local unitReceived = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_received.lua")
 local onUnitGiven = unitReceived.callins.UnitGiven
 
 describe("mission_api.triggers.unit_received", function()

@@ -21,7 +21,7 @@ local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armpw" },
 	[2] = { name = "corfast" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 -- detection_levels reads the modules installed above at its own load, so it joins them after.
 local DetectionLevels = MissionSpecEnv.include(env, "luarules/mission_api/detection_levels.lua")

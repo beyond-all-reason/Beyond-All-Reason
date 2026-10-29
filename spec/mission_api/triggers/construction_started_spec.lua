@@ -17,7 +17,7 @@ local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[10] = { name = "armck" },
 	[11] = { name = "corck" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local constructionStarted = MissionSpecEnv.include(env, "luarules/mission_api/triggers/construction_started.lua")
 local onUnitCreated = constructionStarted.callins.UnitCreated

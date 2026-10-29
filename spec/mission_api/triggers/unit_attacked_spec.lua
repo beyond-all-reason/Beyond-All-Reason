@@ -14,7 +14,7 @@ local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armpw" },
 	[2] = { name = "corak" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local unitAttacked = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_attacked.lua")
 local onUnitDamaged = unitAttacked.callins.UnitDamaged

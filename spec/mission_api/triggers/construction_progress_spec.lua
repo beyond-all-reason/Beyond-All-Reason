@@ -14,7 +14,7 @@ local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armsolar" },
 	[2] = { name = "armwar" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local constructionProgress = MissionSpecEnv.include(env, "luarules/mission_api/triggers/construction_progress.lua")
 local onUnitBuildStep = constructionProgress.callins.UnitBuildStepPost
