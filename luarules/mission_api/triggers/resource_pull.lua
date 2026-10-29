@@ -17,10 +17,10 @@ return {
 			if frameNumber % Game.gameSpeed ~= 0 then
 				return
 			end
-			if trigger.parameters.metal and select(RESOURCE_PULL_INDEX, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
+			if trigger.parameters.metal and select(RESOURCE_PULL_INDEX, Spring.GetTeamResources(trigger.parameters.teamName, "metal")) < trigger.parameters.metal then
 				return
 			end
-			if trigger.parameters.energy and select(RESOURCE_PULL_INDEX, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
+			if trigger.parameters.energy and select(RESOURCE_PULL_INDEX, Spring.GetTeamResources(trigger.parameters.teamName, "energy")) < trigger.parameters.energy then
 				return
 			end
 			context.ActivateTrigger(trigger)

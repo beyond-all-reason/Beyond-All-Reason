@@ -11,7 +11,7 @@ return {
 			if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+			if trigger.parameters.teamName and unitTeam ~= trigger.parameters.teamName then
 				return
 			end
 			context.ActivateTrigger(trigger)

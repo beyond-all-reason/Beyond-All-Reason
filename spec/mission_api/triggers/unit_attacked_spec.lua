@@ -79,7 +79,7 @@ describe("mission_api.triggers.unit_attacked", function()
 
 	it("fires when an enemy weapon hits a matching unit", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "armpw", teamID = 0 }), context, {
+		damaged(trigger({ unitDefName = "armpw", teamName = 0 }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -132,7 +132,7 @@ describe("mission_api.triggers.unit_attacked", function()
 
 	it("filters by teamName, which is the attacked unit's team", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "armpw", teamID = 1 }), context, {
+		damaged(trigger({ unitDefName = "armpw", teamName = 1 }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,

@@ -22,7 +22,7 @@ return {
 			if trigger.parameters.featureDefName and trigger.parameters.featureDefName ~= FeatureDefs[featureDefID].name then
 				return
 			end
-			if trigger.parameters.allianceID and attackerAllyTeamID ~= trigger.parameters.allianceID then
+			if trigger.parameters.allianceName and attackerAllyTeamID ~= trigger.parameters.allianceName then
 				return
 			end
 			if trigger.parameters.area and not context.IsFeatureInArea(featureID, trigger.parameters.area) then

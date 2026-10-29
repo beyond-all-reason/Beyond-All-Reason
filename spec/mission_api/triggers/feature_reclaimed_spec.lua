@@ -73,7 +73,7 @@ describe("mission_api.triggers.feature_reclaimed", function()
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		destroyed(trigger({ featureDefName = "treetype1", teamID = 5 }), context, 1, nil, 2, 0)
+		destroyed(trigger({ featureDefName = "treetype1", teamName = 5 }), context, 1, nil, 2, 0)
 		assert.are.equal(0, fired())
 	end)
 
@@ -88,7 +88,7 @@ describe("mission_api.triggers.feature_reclaimed", function()
 
 	it("fires when the feature is fully reclaimed", function()
 		local context, fired = newContext()
-		destroyed(trigger({ featureDefName = "treetype1", teamID = 2 }), context, 1, nil, 2, 0)
+		destroyed(trigger({ featureDefName = "treetype1", teamName = 2 }), context, 1, nil, 2, 0)
 		assert.are.equal(1, fired())
 	end)
 end)

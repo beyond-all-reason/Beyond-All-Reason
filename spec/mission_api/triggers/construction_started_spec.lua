@@ -79,7 +79,7 @@ describe("mission_api.triggers.construction_started", function()
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 9, 10)
+		created(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 9, 10)
 		assert.are.equal(0, fired())
 	end)
 
@@ -111,7 +111,7 @@ describe("mission_api.triggers.construction_started", function()
 
 	it("fires for a matching construction", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 0, 10)
+		created(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 
@@ -123,7 +123,7 @@ describe("mission_api.triggers.construction_started", function()
 
 	it("fires for a matching build-assist", function()
 		local context, fired = newContext()
-		assisted(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 0, 10)
+		assisted(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 

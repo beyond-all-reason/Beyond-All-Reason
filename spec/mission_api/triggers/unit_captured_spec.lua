@@ -76,19 +76,19 @@ describe("mission_api.triggers.unit_captured", function()
 
 	it("filters by oldTeamName", function()
 		local context, fired = newContext()
-		taken(trigger({ unitDefName = "armpw", oldTeamID = 5 }), context, 1)
+		taken(trigger({ unitDefName = "armpw", oldTeamName = 5 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by newTeamName", function()
 		local context, fired = newContext()
-		taken(trigger({ unitDefName = "armpw", newTeamID = 5 }), context, 1)
+		taken(trigger({ unitDefName = "armpw", newTeamName = 5 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching capture", function()
 		local context, fired = newContext()
-		taken(trigger({ unitDefName = "armpw", oldTeamID = 0, newTeamID = 1 }), context, 1)
+		taken(trigger({ unitDefName = "armpw", oldTeamName = 0, newTeamName = 1 }), context, 1)
 		assert.are.equal(1, fired())
 	end)
 

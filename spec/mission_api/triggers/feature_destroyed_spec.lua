@@ -67,7 +67,7 @@ describe("mission_api.triggers.feature_destroyed", function()
 
 	it("filters by allianceName", function()
 		local context, fired = newContext()
-		destroyed(trigger({ featureDefName = "treetype1", allianceID = 1 }), context, 1, 0, nil, nil)
+		destroyed(trigger({ featureDefName = "treetype1", allianceName = 1 }), context, 1, 0, nil, nil)
 		assert.are.equal(0, fired())
 	end)
 

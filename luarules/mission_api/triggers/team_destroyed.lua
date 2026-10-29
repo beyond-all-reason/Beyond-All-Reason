@@ -7,7 +7,7 @@ return {
 	},
 	callins = {
 		TeamDied = function(trigger, triggerID, context, teamID)
-			if teamID == trigger.parameters.teamID then
+			if teamID == trigger.parameters.teamName then
 				context.ActivateTrigger(trigger)
 			end
 		end,

@@ -83,7 +83,6 @@ local function loadMission(gameSetup)
 			GG["MissionAPI"].UnitLoadout
 		)
 	end
-	parameterProcessing.RenameInternalFields()
 end
 
 function gadget:Initialize()

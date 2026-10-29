@@ -11,7 +11,7 @@ local function matchesUnit(trigger, context, unitID, unitDefID, unitTeam)
 	if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return false
 	end
-	if parameters.teamID and parameters.teamID ~= unitTeam then
+	if parameters.teamName and parameters.teamName ~= unitTeam then
 		return false
 	end
 	if not context.IsBuildFrameOwner(unitID, parameters.factoryName, parameters.factoryDefName) then

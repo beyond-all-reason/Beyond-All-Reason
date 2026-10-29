@@ -129,7 +129,7 @@ describe("mission_api.triggers.rally_ordered", function()
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		order(trigger({ command = CMD.MOVE, unitDefName = "armlab", teamID = 9 }), context, CMD.MOVE, { 0, 0, 0 })
+		order(trigger({ command = CMD.MOVE, unitDefName = "armlab", teamName = 9 }), context, CMD.MOVE, { 0, 0, 0 })
 		assert.are.equal(0, fired())
 	end)
 

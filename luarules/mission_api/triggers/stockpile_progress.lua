@@ -55,7 +55,7 @@ return {
 
 				if crossings > 0
 					and (not parameters.unitName or context.DoesUnitHaveName(unitID, parameters.unitName))
-					and (not parameters.teamID or parameters.teamID == Spring.GetUnitTeam(unitID))
+					and (not parameters.teamName or parameters.teamName == Spring.GetUnitTeam(unitID))
 				then
 					for _ = 1, crossings do
 						context.ActivateTrigger(trigger)

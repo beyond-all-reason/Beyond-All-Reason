@@ -26,7 +26,7 @@ return {
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if parameters.teamID and parameters.teamID ~= unitTeam then
+			if parameters.teamName and parameters.teamName ~= unitTeam then
 				return
 			end
 			if parameters.transportName and not context.DoesUnitHaveName(transportID, parameters.transportName) then

@@ -119,7 +119,7 @@ describe("mission_api.triggers.yet_to_implement_production_ordered", function()
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		order(trigger({ buildDefName = "armpw", teamID = 9 }), context, -10)
+		order(trigger({ buildDefName = "armpw", teamName = 9 }), context, -10)
 		assert.are.equal(0, fired())
 	end)
 

@@ -57,7 +57,7 @@ describe("mission_api.triggers.unit_loaded", function()
 
 	it("fires when a unit is loaded into a transport", function()
 		local context, fired = newContext()
-		loaded(trigger({ passengerDefName = "armpw", teamID = 0 }), context, 1, 0)
+		loaded(trigger({ passengerDefName = "armpw", teamName = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -69,7 +69,7 @@ describe("mission_api.triggers.unit_loaded", function()
 
 	it("filters by teamName, which is the passenger's team", function()
 		local context, fired = newContext()
-		loaded(trigger({ passengerDefName = "armpw", teamID = 9 }), context, 1, 0)
+		loaded(trigger({ passengerDefName = "armpw", teamName = 9 }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 

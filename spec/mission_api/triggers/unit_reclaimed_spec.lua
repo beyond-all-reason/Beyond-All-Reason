@@ -49,7 +49,7 @@ describe("mission_api.triggers.unit_reclaimed", function()
 
 	it("fires when a unit is reclaimed", function()
 		local context, fired = newContext()
-		destroyed(trigger({ unitDefName = "armrad", teamID = 0 }), context, 1, 0)
+		destroyed(trigger({ unitDefName = "armrad", teamName = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -61,7 +61,7 @@ describe("mission_api.triggers.unit_reclaimed", function()
 
 	it("filters by teamName, which is the reclaimee's team and not the reclaimer's", function()
 		local context, fired = newContext()
-		destroyed(trigger({ unitDefName = "armrad", teamID = 9 }), context, 1, 0)
+		destroyed(trigger({ unitDefName = "armrad", teamName = 9 }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 

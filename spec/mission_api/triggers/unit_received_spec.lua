@@ -66,7 +66,7 @@ describe("mission_api.triggers.unit_received", function()
 
 	it("fires when a unit is shared to a team", function()
 		local context, fired = newContext()
-		given(trigger({ unitDefName = "armwin", oldTeamID = 1, newTeamID = 0 }), context, 1)
+		given(trigger({ unitDefName = "armwin", oldTeamName = 1, newTeamName = 0 }), context, 1)
 		assert.are.equal(1, fired())
 	end)
 
@@ -87,13 +87,13 @@ describe("mission_api.triggers.unit_received", function()
 
 	it("filters by oldTeamName, which is the giving team", function()
 		local context, fired = newContext()
-		given(trigger({ unitDefName = "armwin", oldTeamID = 9 }), context, 1)
+		given(trigger({ unitDefName = "armwin", oldTeamName = 9 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by newTeamName, which is the receiving team", function()
 		local context, fired = newContext()
-		given(trigger({ unitDefName = "armwin", newTeamID = 9 }), context, 1)
+		given(trigger({ unitDefName = "armwin", newTeamName = 9 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 

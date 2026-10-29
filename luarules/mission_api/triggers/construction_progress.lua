@@ -28,7 +28,7 @@ return {
 			end
 
 			local parameters = trigger.parameters
-			if parameters.teamID and parameters.teamID ~= Spring.GetUnitTeam(unitID) then
+			if parameters.teamName and parameters.teamName ~= Spring.GetUnitTeam(unitID) then
 				return
 			end
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[Spring.GetUnitDefID(unitID)].name then

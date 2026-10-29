@@ -7,7 +7,7 @@
 --- so trigger and action code receive plain values. Objective fields populate only at init.
 ---
 
-local referencingParameters = {} ---@type table<string, { parameters:table, parameter:table, raw:any }?>
+local referencingParameters = {} ---@type table<string, { parameters:table, name:string, type:string, raw:any }?>
 local processParameterValue ---@type (fun(parameterType:string, value:any):any)?
 
 local function isVariableReference(value)
@@ -77,7 +77,8 @@ local function registerParameters(parameters, schema, registered)
 		if hasVariableReference(value) then
 			local reference = {
 				parameters = parameters,
-				parameter = parameter,
+				name = parameter.name,
+				type = parameter.type,
 				raw = value,
 			}
 			callOnVariableKeys(value, function(key)
@@ -161,9 +162,9 @@ local function setVariable(key, value)
 	for _, reference in ipairs(referencingParameters[key] or {}) do
 		local resolved = resolveValue(reference.raw)
 		if resolved ~= nil and processParameterValue then
-			resolved = processParameterValue(reference.parameter.type, resolved)
+			resolved = processParameterValue(reference.type, resolved)
 		end
-		reference.parameters[reference.parameter.name] = resolved
+		reference.parameters[reference.name] = resolved
 	end
 end
 

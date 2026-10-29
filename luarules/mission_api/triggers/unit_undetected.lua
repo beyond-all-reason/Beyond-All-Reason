@@ -20,7 +20,7 @@ local function matchesUnit(parameters, context, unitID, unitDefID)
 	if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return false
 	end
-	if parameters.owningTeamID and parameters.owningTeamID ~= Spring.GetUnitTeam(unitID) then
+	if parameters.owningTeamName and parameters.owningTeamName ~= Spring.GetUnitTeam(unitID) then
 		return false
 	end
 	return true

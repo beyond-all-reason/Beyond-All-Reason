@@ -118,7 +118,7 @@ end
 
 local function getUnitsInArea(trigger)
 	local area = trigger.parameters.area
-	local teamID = trigger.parameters.teamID
+	local teamID = trigger.parameters.teamName
 	local unitsInArea = {}
 
 	if area.x1 and area.z1 and area.x2 and area.z2 then

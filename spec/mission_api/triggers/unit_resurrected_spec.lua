@@ -79,7 +79,7 @@ describe("mission_api.triggers.unit_resurrected", function()
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armpw", teamID = 5 }), context, 1, 0, 10)
+		created(trigger({ unitDefName = "armpw", teamName = 5 }), context, 1, 0, 10)
 		assert.are.equal(0, fired())
 	end)
 
@@ -94,7 +94,7 @@ describe("mission_api.triggers.unit_resurrected", function()
 
 	it("fires for a matching resurrection", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armpw", teamID = 0 }), context, 1, 0, 10)
+		created(trigger({ unitDefName = "armpw", teamName = 0 }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 

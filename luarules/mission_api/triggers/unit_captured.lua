@@ -37,10 +37,10 @@ return {
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if parameters.oldTeamID and parameters.oldTeamID ~= oldTeam then
+			if parameters.oldTeamName and parameters.oldTeamName ~= oldTeam then
 				return
 			end
-			if parameters.newTeamID and parameters.newTeamID ~= newTeam then
+			if parameters.newTeamName and parameters.newTeamName ~= newTeam then
 				return
 			end
 			context.ActivateTrigger(trigger)

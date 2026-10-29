@@ -15,7 +15,7 @@ return {
 			if oldCount >= parameters.count or newCount < parameters.count then
 				return
 			end
-			if parameters.teamID and parameters.teamID ~= unitTeam then
+			if parameters.teamName and parameters.teamName ~= unitTeam then
 				return
 			end
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then

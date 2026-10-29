@@ -58,13 +58,13 @@ describe("mission_api.triggers.construction_finished", function()
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 9)
+		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 9)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching completed unit", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 0)
+		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -77,13 +77,13 @@ describe("mission_api.triggers.construction_finished", function()
 
 	it("does not fire when finished on a team allied with teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 2) -- team 2 allied with 0
+		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 2) -- team 2 allied with 0
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire when finished on a team hostile to teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 3)
+		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 3)
 		assert.are.equal(0, fired())
 	end)
 end)

@@ -295,7 +295,7 @@ describe("mission_api.detection_levels", function()
 			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
 
 			DetectionLevels.BeginUpdate()
-			onDetected(newTrigger({ sensorAllianceID = 0 }), "named", context, { [100] = true })
+			onDetected(newTrigger({ sensorAllianceName = 0 }), "named", context, { [100] = true })
 			onDetected(newTrigger(), "unnamed", context, { [100] = true })
 
 			assert.are.equal(2, losStateReads)

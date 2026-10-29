@@ -62,10 +62,10 @@ return {
 
 			if sources == nil then
 				-- Unfiltered: use the engine's total income (index 4).
-				if trigger.parameters.metal and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
+				if trigger.parameters.metal and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(trigger.parameters.teamName, "metal")) < trigger.parameters.metal then
 					return
 				end
-				if trigger.parameters.energy and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
+				if trigger.parameters.energy and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(trigger.parameters.teamName, "energy")) < trigger.parameters.energy then
 					return
 				end
 				context.ActivateTrigger(trigger)
@@ -73,10 +73,10 @@ return {
 			end
 
 			-- Source-filtered income check.
-			if trigger.parameters.metal and getTeamResourceIncomeForSources(trigger.parameters.teamID, "metal", sources, context) < trigger.parameters.metal then
+			if trigger.parameters.metal and getTeamResourceIncomeForSources(trigger.parameters.teamName, "metal", sources, context) < trigger.parameters.metal then
 				return
 			end
-			if trigger.parameters.energy and getTeamResourceIncomeForSources(trigger.parameters.teamID, "energy", sources, context) < trigger.parameters.energy then
+			if trigger.parameters.energy and getTeamResourceIncomeForSources(trigger.parameters.teamName, "energy", sources, context) < trigger.parameters.energy then
 				return
 			end
 			context.ActivateTrigger(trigger)

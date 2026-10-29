@@ -6,7 +6,6 @@ VFS.Include("common/wav.lua")
 
 local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 local internalTypes = GG["MissionAPI"].Modules.ParameterTypes.InternalTypes
-local internalFields = GG["MissionAPI"].Modules.ParameterTypes.InternalFields
 local enumSets = GG["MissionAPI"].Modules.ParameterTypes.EnumSets
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
@@ -144,13 +143,9 @@ local function processValue(parameterType, value)
 	return value
 end
 
---- A parameter with an internal type is replaced with its internal field.
 function processParameter(parameters, parameter)
 	local value = parameters[parameter.name]
-	if internalTypes[parameter.type] then
-		parameters[internalFields[parameter.name]] = value ~= nil and processValue(parameter.type, value) or nil
-		parameters[parameter.name] = nil
-	elseif value ~= nil then
+	if value ~= nil then
 		parameters[parameter.name] = processValue(parameter.type, value)
 	end
 end
@@ -183,23 +178,10 @@ local function processManagedObjectiveParameters(managedObjectives)
 	end
 end
 
-local function renameInternalFields()
-	for _, schemaParameters in ipairs({ actionsSchemaParameters, triggersSchemaParameters }) do
-		for _, parameters in pairs(schemaParameters) do
-			for _, parameter in ipairs(parameters) do
-				if internalTypes[parameter.type] then
-					parameter.name = internalFields[parameter.name]
-				end
-			end
-		end
-	end
-end
-
 return {
 	ProcessValue = processValue,
 	ProcessParameter = processParameter,
 	ProcessActionParameters = processActionParameters,
 	ProcessTriggerParameters = processTriggerParameters,
 	ProcessManagedObjectiveParameters = processManagedObjectiveParameters,
-	RenameInternalFields = renameInternalFields,
 }
