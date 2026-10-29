@@ -148,9 +148,9 @@ end
 -- Map marker and line name references
 --------------------------------------------------------------------------------
 
---- Only actions use marker and line names. Only the removing side is checked: a marker or
---- line left standing for the rest of the mission is ordinary, so one that is never removed
---- does not warn.
+--- Only actions use marker, line, and effect names. Only the removing side is checked: a
+--- marker, line, or effect left in place for the rest of the mission is ordinary, so one that
+--- is never removed does not warn.
 local function validateDrawnNameReferences(context, report, label, nameKey, addingActionType, removingActionType)
 	local addedNames = {}
 	local referencedNames = {}
@@ -513,6 +513,14 @@ local function validate(context, report)
 		actionTypes.RemoveMapMarker
 	)
 	validateDrawnNameReferences(context, report, "Line name", "lineName", actionTypes.DrawLines, actionTypes.RemoveLine)
+	validateDrawnNameReferences(
+		context,
+		report,
+		"Effect name",
+		"effectName",
+		actionTypes.ApplyStatusEffect,
+		actionTypes.ClearStatusEffect
+	)
 
 	validateNameReferences(context, report, {
 		label = "Unit name",

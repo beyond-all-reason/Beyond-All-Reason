@@ -294,6 +294,10 @@ local function registerValueValidators(parameterValidators, context)
 		end
 	end
 
+	parameterValidators[Types.EffectType] = getLookupValidator(validateString, "effectType", function(effectType)
+		return enums[Types.EffectType][effectType]
+	end)
+
 	parameterValidators[Types.WeaponNumber] = function(weapon)
 		if enums[Types.WeaponNumber][weapon] then
 			return
