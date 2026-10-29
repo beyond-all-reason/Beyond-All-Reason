@@ -40,14 +40,6 @@ end
 ]]
 
 local SYNCACTION = "MapLighting"
-local COLOR_FACTORS = {
-	groundAmbientColor = "ambient",
-	groundDiffuseColor = "diffuse",
-	groundSpecularColor = "specular",
-	unitAmbientColor = "ambient",
-	unitDiffuseColor = "diffuse",
-	unitSpecularColor = "specular",
-}
 
 local function clamp(value, low, high)
 	return math.min(math.max(value, low), high)
@@ -117,6 +109,32 @@ else
 	local SUN_SWING = 75 -- degrees of azimuth from noon to the flip
 	local TWILIGHT_ELEVATION = 6 -- degrees
 	local NIGHT_LIGHT_ELEVATION = 40 -- degrees, the dim light from the other side of the sky
+	local NOON = DAY_KEYS[#DAY_KEYS]
+
+	-- The values a change can set, each declared once: how to read it from the engine, how to write it back, and
+	-- which time of day light level scales it.
+	---@type table<string, { light: "ambient"|"diffuse"|"specular", surface: "ground"|"unit" }>
+	local SUN_COLORS = {
+		groundAmbientColor = { light = "ambient", surface = "ground" },
+		groundDiffuseColor = { light = "diffuse", surface = "ground" },
+		groundSpecularColor = { light = "specular", surface = "ground" },
+		unitAmbientColor = { light = "ambient", surface = "unit" },
+		unitDiffuseColor = { light = "diffuse", surface = "unit" },
+		unitSpecularColor = { light = "specular", surface = "unit" },
+	}
+	---@type table<string, { engineKey: string, surface: "ground"|"unit" }>
+	local SHADOW_DENSITIES = {
+		groundShadowDensity = { engineKey = "groundShadowDensity", surface = "ground" },
+		unitShadowDensity = { engineKey = "modelShadowDensity", surface = "unit" },
+	}
+	-- the map's sky colours, which follow the light but are not values a change sets
+	---@type table<"skyColor"|"cloudColor"|"fogColor"|"sunColor", "sky"|"diffuse">
+	local SKY_COLORS = {
+		skyColor = "sky",
+		cloudColor = "sky",
+		fogColor = "sky",
+		sunColor = "diffuse",
+	}
 
 	-- shared with map_nightmode.lua, so it is read from GG each time
 	GG.NightFactor = GG.NightFactor or { red = 1, green = 1, blue = 1, shadow = 1, altitude = 1 }
@@ -202,10 +220,11 @@ else
 			tint = { 1, 1, 1 },
 			sunAzimuth = base.sunAzimuth,
 			sunElevation = base.sunElevation,
-			groundShadowDensity = base.groundShadowDensity,
-			unitShadowDensity = base.unitShadowDensity,
 		}
-		for key in pairs(COLOR_FACTORS) do
+		for key in pairs(SUN_COLORS) do
+			params[key] = base[key]
+		end
+		for key in pairs(SHADOW_DENSITIES) do
 			params[key] = base[key]
 		end
 		return params
@@ -255,23 +274,20 @@ else
 		x, y, z = x / length, y / length, z / length
 		local azimuth, elevation = anglesFromDirection(x, y, z)
 		base = {
-			groundAmbientColor = { glGetSun("ambient", "ground") },
-			groundDiffuseColor = { glGetSun("diffuse", "ground") },
-			groundSpecularColor = { glGetSun("specular", "ground") },
-			unitAmbientColor = { glGetSun("ambient", "unit") },
-			unitDiffuseColor = { glGetSun("diffuse", "unit") },
-			unitSpecularColor = { glGetSun("specular", "unit") },
-			groundShadowDensity = glGetSun("shadowDensity", "ground"),
-			unitShadowDensity = glGetSun("shadowDensity", "unit"),
 			sunDirection = { x, y, z },
 			sunAzimuth = azimuth,
 			sunElevation = elevation,
-			skyColor = { glGetAtmosphere("skyColor") },
-			sunColor = { glGetAtmosphere("sunColor") },
-			cloudColor = { glGetAtmosphere("cloudColor") },
-			fogColor = { glGetAtmosphere("fogColor") },
 			skyAxisAngle = { glGetAtmosphere("skyAxisAngle") },
 		}
+		for key, color in pairs(SUN_COLORS) do
+			base[key] = { glGetSun(color.light, color.surface) }
+		end
+		for key, density in pairs(SHADOW_DENSITIES) do
+			base[key] = glGetSun("shadowDensity", density.surface)
+		end
+		for key in pairs(SKY_COLORS) do
+			base[key] = { glGetAtmosphere(key) }
+		end
 		active = true
 		lighting.from, lighting.to, lighting.frames = baseParams(), baseParams(), 0
 		clock.fromHour, clock.toHour, clock.frames, clock.dayFrames = 12, 12, 0, 0
@@ -309,60 +325,54 @@ else
 		end
 	end
 
+	-- A colour scaled per channel by the multiplier and a light level; kept is the part that does not follow
+	local function scaleColor(color, multiplier, level, kept)
+		local scaled = {}
+		for i = 1, 3 do
+			scaled[i] = color[i] * mix(multiplier[i] * level, 1, kept)
+		end
+		scaled[4] = color[4] -- the fog's alpha stays, the other colours have none
+		return scaled
+	end
+
+	-- The engine's sun lighting and atmosphere for the values, the time of day light levels and the colour multiplier
+	local function lightingFor(params, levels, multiplier)
+		local sunLighting = {} ---@type table
+		for key, color in pairs(SUN_COLORS) do
+			local kept = color.surface == "unit" and UNIT_LIGHT_KEPT or 0
+			sunLighting[key] = scaleColor(params[key], multiplier, levels[color.light], kept)
+		end
+		for key, density in pairs(SHADOW_DENSITIES) do
+			sunLighting[density.engineKey] = params[key] * levels.shadow
+		end
+		local atmosphere = {} ---@type table
+		for key, light in pairs(SKY_COLORS) do
+			atmosphere[key] = scaleColor(base[key], multiplier, levels[light], 0)
+		end
+		return sunLighting, atmosphere
+	end
+
+	-- ground ambient + diffuse in one channel, which the night factor follows
+	local function groundLight(values, i)
+		return values.groundAmbientColor[i] + values.groundDiffuseColor[i]
+	end
+
 	local function apply(t, force)
 		local params = lightingAt(t)
 		local hour = hourAt(t)
-		local factors = timeOfDayFactors(hour)
 		local brightness, tint = params.brightness, params.tint
-		---@type table<integer, number>
 		local multiplier = { brightness * tint[1], brightness * tint[2], brightness * tint[3] }
-		local groundLight = { 0, 0, 0 } ---@type table<integer, number> ambient + diffuse, for the night factor
-		local baseGroundLight = { 0, 0, 0 } ---@type table<integer, number>
-
-		---@type table
-		local sunLighting = {
-			groundShadowDensity = params.groundShadowDensity * factors.shadow,
-			modelShadowDensity = params.unitShadowDensity * factors.shadow,
-		}
-		for key, factorKey in pairs(COLOR_FACTORS) do
-			local color, factor = params[key], factors[factorKey]
-			local isUnit = key:sub(1, 4) == "unit"
-			local isGroundLight = key == "groundAmbientColor" or key == "groundDiffuseColor"
-			local result = {}
-			for i = 1, 3 do
-				local f = multiplier[i] * factor
-				result[i] = color[i] * (isUnit and mix(f, 1, UNIT_LIGHT_KEPT) or f)
-				if isGroundLight then
-					groundLight[i] = groundLight[i] + result[i]
-					baseGroundLight[i] = baseGroundLight[i] + base[key][i]
-				end
-			end
-			sunLighting[key] = result
-		end
-
-		---@type table
-		local atmosphere = {
-			skyColor = {},
-			sunColor = {},
-			cloudColor = {},
-			fogColor = { 0, 0, 0, base.fogColor[4] },
-			skyAxisAngle = skybox.rotation and { 0, 1, 0, rad(skybox.rotation) } or base.skyAxisAngle,
-		}
-		for i = 1, 3 do
-			atmosphere.skyColor[i] = base.skyColor[i] * multiplier[i] * factors.sky
-			atmosphere.cloudColor[i] = base.cloudColor[i] * multiplier[i] * factors.sky
-			atmosphere.fogColor[i] = base.fogColor[i] * multiplier[i] * factors.sky
-			atmosphere.sunColor[i] = base.sunColor[i] * multiplier[i] * factors.diffuse
-		end
+		local sunLighting, atmosphere = lightingFor(params, timeOfDayFactors(hour), multiplier)
+		atmosphere.skyAxisAngle = skybox.rotation and { 0, 1, 0, rad(skybox.rotation) } or base.skyAxisAngle
 
 		local azimuth, elevation = sunPath(hour, params.sunAzimuth, params.sunElevation)
 		local x, y, z = directionFromAngles(azimuth, elevation)
 
 		-- SunChanged listeners such as cus_gl4.lua read GG.NightFactor, so it goes first
 		setNightFactor(
-			ratio(groundLight[1], baseGroundLight[1]),
-			ratio(groundLight[2], baseGroundLight[2]),
-			ratio(groundLight[3], baseGroundLight[3]),
+			ratio(groundLight(sunLighting, 1), groundLight(base, 1)),
+			ratio(groundLight(sunLighting, 2), groundLight(base, 2)),
+			ratio(groundLight(sunLighting, 3), groundLight(base, 3)),
 			ratio(sunLighting.groundShadowDensity, base.groundShadowDensity),
 			ratio(y, base.sunDirection[2])
 		)
@@ -382,22 +392,10 @@ else
 
 	local function restoreBase()
 		setNightFactor(1, 1, 1, 1, 1)
-		spSetAtmosphere({
-			skyColor = base.skyColor,
-			sunColor = base.sunColor,
-			cloudColor = base.cloudColor,
-			fogColor = base.fogColor,
-			skyAxisAngle = base.skyAxisAngle,
-		})
+		local sunLighting, atmosphere = lightingFor(baseParams(), NOON, { 1, 1, 1 })
+		atmosphere.skyAxisAngle = base.skyAxisAngle
+		spSetAtmosphere(atmosphere)
 		spSetSunDirection(base.sunDirection[1], base.sunDirection[2], base.sunDirection[3])
-		---@type table
-		local sunLighting = {
-			groundShadowDensity = base.groundShadowDensity,
-			modelShadowDensity = base.unitShadowDensity,
-		}
-		for key in pairs(COLOR_FACTORS) do
-			sunLighting[key] = base[key]
-		end
 		spSetSunLighting(sunLighting)
 		lastFrame, lastDirection, lastSunLighting = nil, nil, nil
 		active, resetting, settled = false, false, false
