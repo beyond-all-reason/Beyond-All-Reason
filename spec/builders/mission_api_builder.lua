@@ -1,7 +1,10 @@
 -- Mocks GG['MissionAPI'] using the shape from api_missions.lua:Initialize().
 -- Install() must be called on the result.
 
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
 local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
+local TRACKING_PATH = "luarules/mission_api/tracking.lua"
 local UNIT_QUERY_PATH = "luarules/mission_api/unit_query.lua"
 local DIFFICULTIES_PATH = "luarules/mission_api/difficulties.json"
 
@@ -75,10 +78,6 @@ local function ensureTable(tbl, key)
 		tbl[key] = value
 	end
 	return value
-end
-
-local function isNilOrEmpty(tbl)
-	return tbl == nil or next(tbl) == nil
 end
 
 ---Refill an installed table rather than replace it, down through its nested tables, so that a
@@ -315,51 +314,29 @@ function MB:Build(installed)
 	local trackedFeatureIDs = refill(installed.trackedFeatureIDs, {})
 	local trackedFeatureNames = refill(installed.trackedFeatureNames, {})
 
-	-- Mirrors luarules/mission_api/tracking.lua
-	local function trackEntity(name, ID, trackedIDs, trackedNames)
-		if not name or not ID then
-			return
-		end
-		ensureTable(trackedIDs, name)
-		ensureTable(trackedNames, ID)
-		trackedIDs[name][ID] = true
-		trackedNames[ID][name] = true
-	end
-
-	local function untrackID(ID, trackedIDs, trackedNames)
-		if isNilOrEmpty(trackedNames[ID]) then
-			return
-		end
-		for name in pairs(trackedNames[ID]) do
-			trackedIDs[name][ID] = nil
-			if next(trackedIDs[name]) == nil then
-				trackedIDs[name] = nil
-			end
-		end
-		trackedNames[ID] = nil
-	end
-
-	local function untrackName(name, trackedIDs, trackedNames)
-		if isNilOrEmpty(trackedIDs[name]) then
-			return
-		end
-		for ID in pairs(trackedIDs[name]) do
-			trackedNames[ID][name] = nil
-			if next(trackedNames[ID]) == nil then
-				trackedNames[ID] = nil
-			end
-		end
-		trackedIDs[name] = nil
-	end
-
+	-- tracking.lua binds these four tables when it loads, so each build loads its own onto them.
+	local tracking = SpecEnv.include(
+		SpecEnv.new({
+			GG = {
+				MissionAPI = {
+					trackedUnitIDs = trackedUnitIDs,
+					trackedUnitNames = trackedUnitNames,
+					trackedFeatureIDs = trackedFeatureIDs,
+					trackedFeatureNames = trackedFeatureNames,
+				},
+			},
+		}),
+		TRACKING_PATH
+	)
 	for _, entry in ipairs(self.trackedUnits) do
-		trackEntity(entry.name, entry.id, trackedUnitIDs, trackedUnitNames)
+		tracking.TrackUnit(entry.name, entry.id)
 	end
 	for _, entry in ipairs(self.trackedFeatures) do
-		trackEntity(entry.name, entry.id, trackedFeatureIDs, trackedFeatureNames)
+		tracking.TrackFeature(entry.name, entry.id)
 	end
 
-	-- Mirrors objectives_loader.lua so stages list their objectives.
+	-- A copy of the objective-to-stages mapping in objectives_loader.lua, so stages list their objectives.
+	-- processRawObjectives builds it inline, so we cannot call the real one; keep both of them in step.
 	local objectiveStages = {}
 	for stageID, stage in pairs(self.stages) do
 		for _, objectiveID in ipairs(stage.objectives or {}) do
@@ -387,45 +364,6 @@ function MB:Build(installed)
 	local showObjectiveCalls = {}
 	local echoCalls = {}
 	local activateTriggerCalls = {}
-
-	local tracking = {
-		TrackUnit = function(name, unitID)
-			trackEntity(name, unitID, trackedUnitIDs, trackedUnitNames)
-		end,
-		IsUnitIDUntracked = function(unitID)
-			return isNilOrEmpty(trackedUnitNames[unitID])
-		end,
-		IsUnitNameUntracked = function(name)
-			return isNilOrEmpty(trackedUnitIDs[name])
-		end,
-		DoesUnitHaveName = function(unitID, name)
-			return (trackedUnitIDs[name] or {})[unitID] == true
-		end,
-		UntrackUnitID = function(unitID)
-			untrackID(unitID, trackedUnitIDs, trackedUnitNames)
-		end,
-		UntrackUnitName = function(name)
-			untrackName(name, trackedUnitIDs, trackedUnitNames)
-		end,
-		TrackFeature = function(name, featureID)
-			trackEntity(name, featureID, trackedFeatureIDs, trackedFeatureNames)
-		end,
-		IsFeatureIDUntracked = function(featureID)
-			return isNilOrEmpty(trackedFeatureNames[featureID])
-		end,
-		IsFeatureNameUntracked = function(name)
-			return isNilOrEmpty(trackedFeatureIDs[name])
-		end,
-		DoesFeatureHaveName = function(featureID, name)
-			return (trackedFeatureIDs[name] or {})[featureID] == true
-		end,
-		UntrackFeatureID = function(featureID)
-			untrackID(featureID, trackedFeatureIDs, trackedFeatureNames)
-		end,
-		UntrackFeatureName = function(name)
-			untrackName(name, trackedFeatureIDs, trackedFeatureNames)
-		end,
-	}
 
 	local loadout = {
 		-- Identity by default, matching the no-op conversion case.
