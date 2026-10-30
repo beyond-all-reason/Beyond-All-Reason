@@ -281,20 +281,6 @@ local function validateStockpileTrigger(context, reporter, id, trigger)
 	end
 end
 
-local function validateAllNamedUnitsTrigger(context, reporter, id, trigger)
-	if trigger.type ~= context.TriggerTypes.UnitEnteredLocation then
-		return
-	end
-	local parameters = trigger.parameters
-	if type(parameters) ~= "table" or parameters.unitName ~= nil then
-		return
-	end
-
-	if table.contains(context.PossibleValues(parameters.allNamedUnits), true) then
-		reporter.Error(id, "Parameter 'allNamedUnits' requires a unitName", "Parameter: allNamedUnits")
-	end
-end
-
 --------------------------------------------------------------------------------
 -- Objectives: fields and inline triggers
 --------------------------------------------------------------------------------
@@ -339,7 +325,6 @@ local function validateObjectiveInlineTrigger(
 		parameters
 	)
 	validateStockpileTrigger(context, objectiveReport, objectiveID, trigger)
-	validateAllNamedUnitsTrigger(context, objectiveReport, objectiveID, trigger)
 end
 
 local function validateObjectivesSection(context, report, validateFieldValue, validateEntry, validateSchema)
@@ -448,7 +433,6 @@ local function validateTriggersSection(
 				trigger.parameters
 			)
 			validateStockpileTrigger(context, triggerReport, triggerID, trigger)
-			validateAllNamedUnitsTrigger(context, triggerReport, triggerID, trigger)
 		end
 	end
 end

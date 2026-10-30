@@ -591,50 +591,6 @@ describe("mission_api.validation.sections", function()
 		end)
 	end)
 
-	describe("allNamedUnits", function()
-		local area = { x = 0, z = 0, radius = 100 }
-
-		it("passes with a unitName", function()
-			V.assertNoMessageContaining(
-				V.validateTrigger(V.trigger(V.triggerTypes.UnitEnteredLocation, {
-					area = area,
-					unitName = "squad",
-					allNamedUnits = true,
-				})),
-				"allNamedUnits"
-			)
-		end)
-
-		it("reports allNamedUnits without a unitName", function()
-			V.assertMessage(
-				V.validateTrigger(V.trigger(V.triggerTypes.UnitEnteredLocation, {
-					area = area,
-					unitDefName = "armwar",
-					allNamedUnits = true,
-				})),
-				"Parameter 'allNamedUnits' requires a unitName. Trigger: t, Parameter: allNamedUnits"
-			)
-		end)
-
-		it("passes allNamedUnits = false without a unitName", function()
-			V.assertValid(V.validateTrigger(V.trigger(V.triggerTypes.UnitEnteredLocation, {
-				area = area,
-				unitDefName = "armwar",
-				allNamedUnits = false,
-			})))
-		end)
-
-		it("checks an objective's trigger", function()
-			V.assertMessage(
-				validateObjectiveTrigger({
-					type = V.triggerTypes.UnitEnteredLocation,
-					parameters = { area = area, unitDefName = "armwar", allNamedUnits = true },
-				}),
-				"Parameter 'allNamedUnits' requires a unitName. Objective: o, Parameter: allNamedUnits"
-			)
-		end)
-	end)
-
 	describe("settings", function()
 		-- The loaders apply the setting defaults, and they run after validation.
 		it("passes for a trigger without a settings table", function()

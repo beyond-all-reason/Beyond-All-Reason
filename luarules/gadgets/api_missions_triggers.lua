@@ -38,7 +38,7 @@ local detectionLevels
 local constructionState = {}
 local stockpileState = {}
 local dwellingUnitsInAreas = {}
-local allNamedUnitsInAreas = {}
+local gatherings = {}
 local teamReclaimIncome = {}
 local teamReclaimIncomeSnapshot = {}
 local reclaimedFeatures = {}
@@ -268,7 +268,7 @@ function gadget:Initialize()
 		ConstructionState = constructionState,
 		StockpileState = stockpileState,
 		DwellingUnitsInAreas = dwellingUnitsInAreas,
-		AllNamedUnitsInAreas = allNamedUnitsInAreas,
+		Gatherings = gatherings,
 		GetReclaimIncomeSnapshot = function(teamID)
 			return teamReclaimIncomeSnapshot[teamID]
 		end,

@@ -88,11 +88,11 @@ local triggers = {
 	},
 
 	-- Fires once, when the straggler gets there, not for each pawn.
-	squadEnteredLocation = {
-		type = triggerTypes.UnitEnteredLocation,
+	squadGathered = {
+		type = triggerTypes.UnitsGatheredInLocation,
 		parameters = {
 			unitName = 'squad',
-			allNamedUnits = true,
+			teamID = 0,
 			area = { x = 1200, z = 2000, radius = 200 },
 		},
 		actions = { 'messageSquadEnteredLocation' },
