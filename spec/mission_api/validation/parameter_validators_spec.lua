@@ -969,6 +969,45 @@ describe("mission_api.validation.parameter_validators", function()
 		})
 	end
 
+	describe("MoveState and FireState", function()
+		-- The file-wide before_each swaps in a CMD table without the states; take back the spec helper's.
+		before_each(V.mockEngineGlobals)
+
+		it("accepts every move and fire state", function()
+			local unitLoadout = {}
+			for moveState = 0, 2 do
+				unitLoadout[#unitLoadout + 1] =
+					{ unitDefName = "armwar", team = 0, x = 0, z = 0, moveState = moveState }
+			end
+			for fireState = 0, 3 do
+				unitLoadout[#unitLoadout + 1] =
+					{ unitDefName = "armwar", team = 0, x = 0, z = 0, fireState = fireState }
+			end
+
+			V.assertValid(validateUnitLoadout(unitLoadout))
+		end)
+
+		it("rejects a state out of range", function()
+			local result = validateUnitLoadout({
+				{ unitDefName = "armwar", team = 0, x = 0, z = 0, moveState = 3, fireState = -1 },
+			})
+
+			V.assertMessage(result, "Invalid moveState: 3. Action: a, Parameter: unitLoadout[1].moveState")
+			V.assertMessage(result, "Invalid fireState: -1. Action: a, Parameter: unitLoadout[1].fireState")
+		end)
+
+		it("rejects a state given as a name", function()
+			local result = validateUnitLoadout({
+				{ unitDefName = "armwar", team = 0, x = 0, z = 0, moveState = "HoldPosition" },
+			})
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: unitLoadout[1].moveState"
+			)
+		end)
+	end)
+
 	describe("UnitLoadout", function()
 		it("passes for a well-formed entry", function()
 			local result = validateUnitLoadout({ { unitDefName = "armwar", team = 0, x = 0, z = 0 } })

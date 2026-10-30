@@ -110,6 +110,12 @@ local function spawnUnitLoadout(unitLoadout)
 			local unitID = spawnUnit(unit, pos)
 			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 			GG["MissionAPI"].issuingOrders = true
+			if unit.moveState then
+				Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { unit.moveState }, 0)
+			end
+			if unit.fireState then
+				Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { unit.fireState }, 0)
+			end
 			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
 			GG["MissionAPI"].issuingOrders = nil
 		end

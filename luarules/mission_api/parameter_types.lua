@@ -44,6 +44,8 @@ local types = {
 
 	-- Number Validators:
 	Number = "Number",
+	MoveState = "MoveState",
+	FireState = "FireState",
 	Quantity = "Quantity",
 	PositiveInteger = "PositiveInteger",
 	Fraction = "Fraction",
