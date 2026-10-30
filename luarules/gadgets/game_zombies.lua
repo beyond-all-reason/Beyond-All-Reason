@@ -195,7 +195,7 @@ local STAGES = {
 			topUnit = "legbunk_scav",
 			rezWindow = { { 0, 50, 135 }, { 23, 32, 82 }, { 100, 14, 28 } },
 			spawnCounts = { { 0, 2, 6 }, { 62, 4, 14 }, { 100, 2, 10 } },
-			veterancy = { { 0, 0 }, { 23, 0 }, { 57, 0.5 }, { 62, 1 } },
+			veterancy = { { 0, 0 }, { 23, 0 }, { 57, 0.5 }, { 77, 1 } },
 		},
 		{
 			name = "massive",
