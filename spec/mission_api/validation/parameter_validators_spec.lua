@@ -810,11 +810,17 @@ describe("mission_api.validation.parameter_validators", function()
 			"ONOFF",
 			"FIRE_STATE",
 			"MOVE_STATE",
+			"WAIT",
+			"TIMEWAIT",
+			"DEATHWAIT",
+			"SQUADWAIT",
+			"GATHERWAIT",
+			"REPEAT",
 		}) do
 			V.env.CMD[name] = i
 			V.env.CMD[i] = name
 		end
-		V.env.GameCMD = { AREA_ATTACK_GROUND = 21, [21] = "AREA_ATTACK_GROUND" }
+		V.env.GameCMD = { AREA_ATTACK_GROUND = 100, [100] = "AREA_ATTACK_GROUND" }
 	end)
 
 	after_each(function()
@@ -883,18 +889,90 @@ describe("mission_api.validation.parameter_validators", function()
 		V.assertMessage(result, "Unknown command ID: 99999. Action: a, Parameter: orders[3][1]")
 	end)
 
-	-- Commands that take no parameters are known, they just have nothing to validate.
-	it("accepts a command that takes no parameters", function()
-		V.assertNoMessage(
-			validateOrders({ { V.env.CMD.STOP } }),
-			"No validator implemented for orders with command ID: " .. V.env.CMD.STOP
-		)
-	end)
-
 	it("rejects an unknown command ID", function()
 		V.assertMessage(
 			validateOrders({ { 99999, { 0, 0, 0 } } }),
 			"Unknown command ID: 99999. Action: a, Parameter: orders[1][1]"
+		)
+	end)
+
+	it("accepts commands that take no parameters, given none or an empty table", function()
+		local result = validateOrders({
+			{ V.env.CMD.STOP },
+			{ V.env.CMD.SELFD, {} },
+			{ V.env.CMD.WAIT, nil, { "shift" } },
+		})
+
+		V.assertNoMessageContaining(result, "Parameter: orders")
+	end)
+
+	it("rejects parameters for a command that takes none", function()
+		V.assertMessage(
+			validateOrders({ { V.env.CMD.STOP, { 1, 2 } } }),
+			"Command takes no parameters. Action: a, Parameter: orders[1][2]"
+		)
+	end)
+
+	it("rejects the wait commands that only work for a player's selected units", function()
+		local result = validateOrders({
+			{ V.env.CMD.TIMEWAIT, { 5 } },
+			{ V.env.CMD.DEATHWAIT },
+			{ V.env.CMD.SQUADWAIT, { 2 } },
+			{ V.env.CMD.GATHERWAIT },
+		})
+
+		for index, commandName in ipairs({ "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
+			local message = "Command "
+				.. commandName
+				.. " is dropped when a mission gives it, it only works for a player's selected units."
+				.. " Action: a, Parameter: orders["
+				.. index
+				.. "][1]"
+			assert.is_true(table.contains(result.errors, message), "expected error: " .. message)
+		end
+	end)
+
+	for _, commandName in ipairs({ "CLOAK", "ONOFF", "REPEAT" }) do
+		it("accepts " .. commandName .. " 0 or 1, bare or in a table", function()
+			local commandID = V.env.CMD[commandName]
+
+			V.assertNoMessageContaining(
+				validateOrders({
+					{ commandID, 0 },
+					{ commandID, 1 },
+					{ commandID, { 0 } },
+					{ commandID, { 1 } },
+				}),
+				"Parameter: orders"
+			)
+		end)
+
+		it("rejects " .. commandName .. " without a parameter, or with one other than 0 or 1", function()
+			local commandID = V.env.CMD[commandName]
+			local result = validateOrders({
+				{ commandID },
+				{ commandID, {} },
+				{ commandID, 2 },
+				{ commandID, { 2 } },
+				{ commandID, { 1, 1 } },
+				{ commandID, "1" },
+			})
+
+			for index = 1, 6 do
+				V.assertMessage(
+					result,
+					"Parameter must be 0 (off) or 1 (on), as a number or {0} / {1}. Action: a, Parameter: orders["
+						.. index
+						.. "][2]"
+				)
+			end
+		end)
+	end
+
+	it("rejects AREA_ATTACK without a radius", function()
+		V.assertMessage(
+			validateOrders({ { V.env.CMD.AREA_ATTACK, { 0, 0, 0 } } }),
+			"Parameter must be an array of 4 numbers {x, y, z, radius}. Action: a, Parameter: orders[1][2]"
 		)
 	end)
 
