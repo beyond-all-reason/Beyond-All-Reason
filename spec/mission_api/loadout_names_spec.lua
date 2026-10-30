@@ -62,29 +62,31 @@ describe("mission_api.loadout orders targeting names", function()
 		assert.are.same({ move }, converted)
 	end)
 
-	it("lets the next order replace the queue when a skipped order would have", function()
+	it("gives the next order as written when the skipped order would have replaced the queue", function()
+		local move = { env.CMD.MOVE, { 1, 0, 2 }, { "shift" } }
+
 		local converted = loadout.ConvertOrdersTargetingNames({
 			{ env.CMD.ATTACK, { unitName = "squad" }, {} },
-			{ env.CMD.MOVE, { 1, 0, 2 }, { "shift", "alt" } },
-			{ env.CMD.MOVE, { 3, 0, 4 }, { "shift" } },
+			move,
 		})
 
-		assert.are.same({
-			{ env.CMD.MOVE, { 1, 0, 2 }, { "alt" } },
-			{ env.CMD.MOVE, { 3, 0, 4 }, { "shift" } },
-		}, converted)
+		assert.are.same({ move }, converted)
 	end)
 
-	it("passes the replacing on past further skipped orders", function()
+	it("leaves a skipped order out the same way in the middle and at the end", function()
 		tracking.TrackUnit("target", 5)
 
 		local converted = loadout.ConvertOrdersTargetingNames({
+			{ env.CMD.MOVE, { 1, 0, 2 }, {} },
 			{ env.CMD.ATTACK, { unitName = "squad" }, {} },
-			{ env.CMD.ATTACK, { unitName = "wreckers" }, { "shift" } },
 			{ env.CMD.ATTACK, { unitName = "target" }, { "shift" } },
+			{ env.CMD.ATTACK, { unitName = "wreckers" }, {} },
 		})
 
-		assert.are.same({ { env.CMD.ATTACK, 5, {} } }, converted)
+		assert.are.same({
+			{ env.CMD.MOVE, { 1, 0, 2 }, {} },
+			{ env.CMD.ATTACK, 5, { "shift" } },
+		}, converted)
 	end)
 
 	it("queues the order on every unit of the name after the first", function()
@@ -96,14 +98,6 @@ describe("mission_api.loadout orders targeting names", function()
 		assert.are.equal(2, #converted)
 		assert.are.same({}, converted[1][3])
 		assert.are.same({ "shift" }, converted[2][3])
-	end)
-
-	it("leaves the mission's own order unchanged when it takes over replacing the queue", function()
-		local move = { env.CMD.MOVE, { 1, 0, 2 }, { "shift" } }
-
-		loadout.ConvertOrdersTargetingNames({ { env.CMD.ATTACK, { unitName = "squad" }, {} }, move })
-
-		assert.are.same({ env.CMD.MOVE, { 1, 0, 2 }, { "shift" } }, move)
 	end)
 
 	it("does not queue the first order when the same orders run again", function()

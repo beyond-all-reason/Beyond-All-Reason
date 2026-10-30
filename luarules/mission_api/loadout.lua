@@ -47,13 +47,6 @@ local function spawnUnit(unit, pos)
 	return unitID
 end
 
-local function withoutShift(order)
-	local options = table.filterArray(order[3] or {}, function(option)
-		return option ~= "shift"
-	end)
-	return { order[1], order[2], options }
-end
-
 local function convertOrdersTargetingNames(orders)
 	local commandsAcceptingName = {
 		[CMD.GUARD] = true,
@@ -65,18 +58,16 @@ local function convertOrdersTargetingNames(orders)
 		[CMD.RESURRECT] = true,
 	}
 
-	-- Replace name param with unitIDs or featureIDs, duplicating order for each unitID
+	-- Replace name param with unitIDs or featureIDs, duplicating order for each unitID.
+	-- A name with nothing behind it gives no order, and the orders around it stay as written.
 	local newOrders = {}
-	-- Set when an order that would have replaced the unit's queue was skipped, so the next order replaces it.
-	local replacePending = false
 	for _, order in ipairs(orders or {}) do
 		local commandID = order[1]
 		local params = order[2] or {}
 		local options = order[3] or {}
-		local firstIndex = #newOrders + 1
 
 		if commandsAcceptingName[commandID] and type(params) == "table" and (params.unitName or params.featureName) then
-			local thingIDs = {}
+			local thingIDs
 			local offset = 0
 			if params.featureName then
 				thingIDs = trackedFeatureIDs[params.featureName]
@@ -87,24 +78,15 @@ local function convertOrdersTargetingNames(orders)
 				thingIDs = trackedUnitIDs[params.unitName]
 			end
 
-			if thingIDs then
-				local queuedOptions = table.copy(options)
-				queuedOptions[#queuedOptions + 1] = "shift"
-				local targetOptions = options
-				for thingID in pairs(thingIDs) do
-					newOrders[#newOrders + 1] = { commandID, thingID + offset, targetOptions }
-					targetOptions = queuedOptions
-				end
-			else
-				replacePending = replacePending or not table.contains(options, "shift")
+			local queuedOptions = table.copy(options)
+			queuedOptions[#queuedOptions + 1] = "shift"
+			local targetOptions = options
+			for thingID in pairs(thingIDs or {}) do
+				newOrders[#newOrders + 1] = { commandID, thingID + offset, targetOptions }
+				targetOptions = queuedOptions
 			end
 		else
 			newOrders[#newOrders + 1] = order
-		end
-
-		if replacePending and newOrders[firstIndex] then
-			newOrders[firstIndex] = withoutShift(newOrders[firstIndex])
-			replacePending = false
 		end
 	end
 
