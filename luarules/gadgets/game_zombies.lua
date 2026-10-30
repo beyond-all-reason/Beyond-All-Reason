@@ -180,6 +180,7 @@ local DEATH_NAMES_BLOCKING_WRAITHS = {
 	Water = not WATER_FEEDS_WRAITHS,
 }
 local RULES_PARAM = {
+	ENABLED = "zombies_enabled",
 	TECH_LEVEL = "zombie_tech_level",
 	REZ_POWER_SPEED = "zombie_rez_power_speed",
 	FACTORY_BUILDPOWER_MULTIPLIER = "zombie_factory_buildpower_multiplier",
@@ -1898,6 +1899,7 @@ end
 
 function gadget:Initialize()
 	gameFrame = spring.GetGameFrame()
+	spring.SetGameRulesParam(RULES_PARAM.ENABLED, true)
 
 	if not restoreReloadState() then
 		applyZombieModeSettings(resolveZombieMode(modOptions.zombies))
@@ -1964,6 +1966,7 @@ function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction(chatAction.name)
 	end
 	saveReloadState()
+	spring.SetGameRulesParam(RULES_PARAM.ENABLED, nil)
 end
 
 function gadget:GameStart()

@@ -20,7 +20,14 @@ end
 -- their own ally team's units and on wrecks their ally team has seen at least once, whatever their
 -- current vision.
 
+local RULESPARAM_ENABLED = "zombies_enabled"
+
 if gadgetHandler:IsSyncedCode() then
+	local zombiesPossible = Spring.GetModOptions().zombies ~= "disabled" or (GG.Zombies and GG.Zombies.IdleMode == true)
+	if not zombiesPossible then
+		return false
+	end
+
 	local SendToUnsynced = SendToUnsynced
 
 	function gadget:Initialize()
@@ -43,6 +50,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	return
+end
+
+if not Spring.GetGameRulesParam(RULESPARAM_ENABLED) then
+	return false
 end
 
 local hasShaders = gl.CreateShader ~= nil
