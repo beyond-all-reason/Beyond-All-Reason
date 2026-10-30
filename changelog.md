@@ -1,6 +1,6 @@
 # October
 - [Zombies]
-  - Hydra pressure now grows with game time. Rez windows shrink, spawn counts rise, and zombies rise with bonus veterancy, reaching full strength around minute 65 to 70.
+  - Hydra now runs in three stages over the game clock, paper, mid and massive. Each tier has its own rez window, spawn counts and veterancy curve, the clock waits at tech gates for the strongest player, and the lobby can set the stage length (default 70 minutes) with the zombie_stages_length customparam.
   - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
   - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
   - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
