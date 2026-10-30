@@ -3135,7 +3135,14 @@ local function appendChain(el)
 		c.elems[1] = el
 	elseif c.lastPress and spDiffTimers(now, c.lastPress) * 1000 <= c.timeout then
 		-- Mirrors the engine's key chain, which folds a modifier into a key pressed while it is held.
-		if last.modifier and not el.modifier and last.held == el.held then
+		-- Modifiers held together fold too, so the order they went down in does not matter.
+		local fold = false
+		if last.modifier and el.modifier then
+			fold = c.pressed[last.scan] == true
+		elseif last.modifier then
+			fold = last.held == el.held
+		end
+		if fold then
 			c.elems[#c.elems] = el
 		else
 			c.elems[#c.elems + 1] = el
@@ -3172,7 +3179,12 @@ local function pressElem(key, scanCode)
 	end
 	local fakeMeta = capturing and key == capturing.fakeMetaCode
 
-	return { sym = sym, mods = modifier and "" or modPrefix(), modifier = (modifier or fakeMeta) and true }
+	return {
+		sym = sym,
+		mods = modifier and "" or modPrefix(),
+		modifier = (modifier or fakeMeta) and true,
+		scan = scanCode,
+	}
 end
 
 -- Any+ replaces the held modifiers, so toggling the checkbox re-derives each element.
