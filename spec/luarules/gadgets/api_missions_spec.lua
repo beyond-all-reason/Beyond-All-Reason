@@ -70,6 +70,7 @@ local function loadGadget(options, world)
 		end,
 		["luarules/mission_api/objectives.lua"] = { ActivateStage = noop },
 		["luarules/mission_api/sounds.lua"] = { ProcessSoundQueue = noop },
+		["luarules/mission_api/area_tracking.lua"] = { UpdateTrackedAreas = noop },
 	}
 
 	local env = setmetatable({
