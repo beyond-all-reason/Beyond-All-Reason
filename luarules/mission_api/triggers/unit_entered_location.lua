@@ -30,29 +30,37 @@ return {
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
+		-- allNamedUnits asks who is inside now, not who just entered, so it reads the area every frame.
 		GameFrame = function(trigger, triggerID, context)
-			local previousUnitsInAreas = context.PreviousUnitsInAreas
-			local unitsInArea = context.GetUnitsInArea(trigger)
-
-			if trigger.parameters.allNamedUnits then
-				local allNamedUnitsInAreas = context.AllNamedUnitsInAreas
-				if not areAllNamedUnitsInside(trigger.parameters, unitsInArea) then
-					allNamedUnitsInAreas[triggerID] = nil
-				elseif not allNamedUnitsInAreas[triggerID] then
-					-- Latch only on a fire, so a trigger that becomes active later still fires.
-					allNamedUnitsInAreas[triggerID] = context.ActivateTrigger(trigger)
-				end
+			local parameters = trigger.parameters
+			if not parameters.allNamedUnits then
 				return
 			end
 
-			local unitsEnteredArea = table.filterArray(unitsInArea, function(unitID)
-				return not table.contains(previousUnitsInAreas[triggerID] or {}, unitID)
-					and (not trigger.parameters.unitName or context.DoesUnitHaveName(unitID, trigger.parameters.unitName))
-					and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName)
-			end)
-			previousUnitsInAreas[triggerID] = unitsInArea
+			local unitsInArea = GG['MissionAPI'].Modules.AreaTracking.GetUnitsInArea(parameters.area, parameters.teamID)
+			local allNamedUnitsInAreas = context.AllNamedUnitsInAreas
+			if not areAllNamedUnitsInside(parameters, unitsInArea) then
+				allNamedUnitsInAreas[triggerID] = nil
+			elseif not allNamedUnitsInAreas[triggerID] then
+				-- Latch only on a fire, so a trigger that becomes active later still fires.
+				allNamedUnitsInAreas[triggerID] = context.ActivateTrigger(trigger)
+			end
+		end,
+		-- Every unit is checked before any activation, since an action may change what the next one matches.
+		UnitsEnteredArea = function(trigger, triggerID, context, unitIDs)
+			local parameters = trigger.parameters
+			if parameters.allNamedUnits then
+				return
+			end
 
-			for _, unitID in ipairs(unitsEnteredArea) do
+			local matchCount = 0
+			for i = 1, #unitIDs do
+				if context.DoesUnitMatch(unitIDs[i], parameters.unitName, parameters.unitDefName) then
+					matchCount = matchCount + 1
+				end
+			end
+
+			for _ = 1, matchCount do
 				context.ActivateTrigger(trigger)
 			end
 		end,
