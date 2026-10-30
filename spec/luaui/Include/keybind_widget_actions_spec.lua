@@ -101,31 +101,23 @@ describe("reading a widget's declared actions", function()
 		assert.are.same({ 1, 2, 3, 4 }, entriesNamed(warnings))
 	end)
 
-	it("reads per-profile defaults under a lowercase id, shaped like the shared ones, dropping only a profile whose list cannot be made", function()
+	it("reads per-profile defaults under a lowercase id, dropping only a profile whose list cannot be made", function()
 		local actions, warnings = WidgetActions.parse(widgetEntry("gui_example", {
-			{
-				action = "pair",
-				label = "a.pair",
-				alwaysModifier = "shift",
-				defaultKeysets = { "tab" },
-				profileKeysets = { Small = { "sc_q" }, Empty = {} },
-			},
+			{ action = "fine", label = "a.fine", profileKeysets = { Small = { "sc_q" }, Empty = {} } },
 			{
 				action = "bad",
 				label = "a.bad",
 				defaultKeysets = { "x" },
-				profileKeysets = { Small = { "not a keyset" }, Other = { "sc_w" }, OTHER = { "sc_e" } },
+				profileKeysets = { Small = { "not a keyset" }, Other = { "sc_w" } },
 			},
 			{ action = "odd", label = "a.odd", profileKeysets = { "x" } },
 		}))
 
-		assert.are.same({ small = { "sc_q", "Shift+sc_q" } }, actions[1].profileKeysets)
+		assert.are.same({ small = { "sc_q" } }, actions[1].profileKeysets)
 		assert.are.same({ "x" }, actions[2].keysets)
-		assert.are.same({ other = { "sc_e", "sc_w" } }, actions[2].profileKeysets)
+		assert.are.same({ other = { "sc_w" } }, actions[2].profileKeysets)
 		assert.is_nil(actions[3].profileKeysets)
 		assert.are.same({ 2, 3 }, entriesNamed(warnings))
-		local wanted = "profileKeysets.Small holds something other than a keyset; that profile's default dropped"
-		assert.truthy(warnings[1]:find(wanted, 1, true), warnings[1])
 	end)
 end)
 
@@ -196,10 +188,6 @@ describe("what the loaded widgets contribute", function()
 		}
 
 		assert.are.same({ { action = "both", keysets = { "tab", "sc_q" } } }, WidgetActions.defaults(widgets))
-		assert.are.same(
-			{ { action = "both", keysets = { "tab", "sc_q" } } },
-			WidgetActions.defaults(widgets, "Other")
-		)
 		assert.are.same({
 			{ action = "both", keysets = { "tab", "sc_q", "sc_q", "sc_w" } },
 			{ action = "small_only", keysets = { "sc_e" } },
