@@ -939,7 +939,7 @@ local function expireDueBuildings(frame)
 		local unitDefID = spring.ValidUnitID(unitID) and spring.GetUnitDefID(unitID)
 		if unitDefID and isZombie(unitID) and zombieUnitDefs[unitDefID].expiryLifetimeFrames then
 			suppressedDeaths[unitID] = true
-			spring.DestroyUnit(unitID, true, not UnitDefs[unitDefID].isFactory)
+			spring.DestroyUnit(unitID, true, false)
 		end
 	end
 end
