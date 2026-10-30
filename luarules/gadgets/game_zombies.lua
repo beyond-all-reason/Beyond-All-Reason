@@ -181,7 +181,7 @@ local STAGES = {
 			name = "paper",
 			topPower = 400,
 			rezWindow = { { 0, 45, 120 }, { 100, 8, 18 } },
-			spawnCounts = { { 0, 2, 6 }, { 45, 5, 20 }, { 100, 2, 6 } },
+			spawnCounts = { { 0, 2, 6 }, { 23, 2, 6 }, { 45, 5, 20 }, { 70, 2, 6 } },
 			veterancy = { { 0, 0 }, { 29, 0.15 }, { 45, 1 } },
 		},
 		{
