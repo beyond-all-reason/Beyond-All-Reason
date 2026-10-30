@@ -1,3 +1,4 @@
+local Builders = VFS.Include("spec/builders/index.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 -- Pos2BuildPos stand-in offset, so a spec can tell its result was used.
@@ -42,14 +43,7 @@ local env = MissionSpecEnv.new({
 })
 env.BAR = { Utilities = MissionSpecEnv.include(env, "common/springUtilities/facingFunctions.lua") }
 
-GG["MissionAPI"] = {
-	trackedUnitIDs = {},
-	trackedUnitNames = {},
-	trackedFeatureIDs = {},
-	trackedFeatureNames = {},
-}
-local modules = MissionSpecEnv.registerModules(env)
-modules.Tracking = MissionSpecEnv.include(env, "luarules/mission_api/tracking.lua")
+Builders.MissionApi.new():Install(env)
 
 local loadout = MissionSpecEnv.include(env, "luarules/mission_api/loadout.lua")
 
