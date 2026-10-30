@@ -167,7 +167,7 @@ local MINUTE_FRAMES = Game.gameSpeed * 60
 -- Hydra tiers by unit power, anchors are { percent of zombie_stages_length, values... }, straight lines between
 local STAGES = {
 	deadlinePercent = 85, -- from here the clock ignores the gates and reaches the end on time
-	gates = { { percent = 23, techLevel = 2 }, { percent = 62, techLevel = 3 } }, -- held below the tech level
+	gates = { { percent = 23, techLevel = 2 }, { percent = 46, techLevel = 3 } }, -- held below the tech level
 	peakExperience = 0.8,
 	difficulties = {
 		relaxed = { rezTime = 1.5, spawnCount = 0.6, veterancy = 0.5 },
@@ -194,9 +194,9 @@ local STAGES = {
 		{
 			name = "massive",
 			topPower = 40000,
-			rezWindow = { { 0, 60, 200 }, { 62, 43, 123 }, { 100, 25, 45 } },
-			spawnCounts = { { 0, 2, 6 }, { 62, 2, 6 }, { 100, 5, 20 } },
-			veterancy = { { 0, 0 }, { 62, 0 }, { 86, 1 } },
+			rezWindow = { { 0, 60, 200 }, { 46, 43, 123 }, { 100, 25, 45 } },
+			spawnCounts = { { 0, 2, 6 }, { 46, 2, 6 }, { 100, 5, 20 } },
+			veterancy = { { 0, 0 }, { 46, 0 }, { 86, 1 } },
 		},
 	},
 }
