@@ -355,7 +355,7 @@ function widget:DrawScreen()
 	if not factionpickerBgTex then
 		factionpickerBgTex = gl.CreateTexture(mathFloor(width * vsx), mathFloor(height * vsy), {
 			target = GL.TEXTURE_2D,
-			format = GL.ALPHA,
+			format = GL.RGBA,
 			fbo = true,
 		})
 		if factionpickerBgTex then
@@ -377,7 +377,7 @@ function widget:DrawScreen()
 			mathFloor(height * vsy) * (vsy < 1400 and 2 or 1),
 			{
 				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
+				format = GL.RGBA,
 				fbo = true,
 			}
 		)

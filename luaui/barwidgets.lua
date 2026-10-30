@@ -1036,16 +1036,38 @@ function widgetHandler:Initialize()
 		end
 	end)
 
+	-- A widget that takes the place of others (GetInfo `replaces`: a name or a list) keeps them from
+	-- loading while it is on: they are switched off, and told which widget took their place so it
+	-- can hand it back. Switching one off once it has started would still run its Initialize and
+	-- Shutdown, which can undo what the new one set up.
+	local replacedBy = {} ---@type table<string, string>
+	for _, w in ipairs(unsortedWidgets) do
+		local replaces = w.whInfo.replaces
+		for _, name in ipairs(type(replaces) == "table" and replaces or { replaces }) do
+			if name ~= w.whInfo.name then
+				replacedBy[name] = w.whInfo.name
+			end
+		end
+	end
+
 	-- Every call-in once up front: a full pass after each insert was ~35k engine calls per load.
 	self:UpdateCallIns()
 	insertingStartupWidgets = true
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
-		local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
-		spEcho(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
-		Yield()
-		widgetHandler:InsertWidgetRaw(w)
+		local by = replacedBy[name]
+		if by then
+			local ki = self.knownWidgets[name]
+			ki.active, ki.replacedBy = false, by
+			self.orderList[name] = 0
+			spEcho(string.format("Not loading widget %-18s  <%s>  (replaced by %s)", name, basename, by))
+		else
+			local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
+			spEcho(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
+			Yield()
+			widgetHandler:InsertWidgetRaw(w)
+		end
 	end
 	insertingStartupWidgets = false
 	-- Kept, the list would hold every startup widget in memory after it is switched off.
@@ -1848,6 +1870,7 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.enabled = info.enabled or false
 		wi.hidden = info.hidden or false
 		wi.modalExempt = info.modalExempt or false
+		wi.replaces = info.replaces
 		wi.unsafe = info.unsafe or false
 		wi.depends = info.depends
 		wi.control = info.control or false
@@ -2352,6 +2375,7 @@ function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 		spEcho("EnableWidget(), could not find widget: " .. tostring(name))
 		return false
 	end
+	ki.replacedBy = nil
 	if not ki.active then
 		spEcho("Loading:  " .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
 		local order = widgetHandler.orderList[name]
@@ -2377,6 +2401,7 @@ function widgetHandler:DisableWidgetRaw(name)
 	if ki.hidden then
 		return false -- hidden widgets back other widgets; disabling one breaks them with no way back
 	end
+	ki.replacedBy = nil
 	if ki.active then
 		local w = self:FindWidget(name)
 		if not w then
@@ -2669,7 +2694,21 @@ local DEFAULT_INTERFACE_ALLOW = { "Top Bar Buttons" }
 -- when nothing is hiding anything.
 local function allowedWidget(widget)
 	if interfaceHidden then
-		return interfaceAllowedNames[widget.whInfo.name] == true
+		local info = widget.whInfo
+		if interfaceAllowedNames[info.name] then
+			return true
+		end
+		-- a widget taking another's place (GetInfo replaces) is kept where that one would be
+		local replaces = info.replaces
+		if type(replaces) == "table" then
+			for i = 1, #replaces do
+				if interfaceAllowedNames[replaces[i]] then
+					return true
+				end
+			end
+			return false
+		end
+		return replaces ~= nil and interfaceAllowedNames[replaces] == true
 	end
 	return (not modalActive) or (modalAllowed[widget] == true)
 end

@@ -2108,6 +2108,14 @@ function widget:Update(dt)
 	if uiSec > 1 then
 		uiSec = 0
 
+		-- the top bar can change its bottom after the chat placed itself under it (a top bar laid
+		-- out later, or one taking over from another): follow it
+		local area = WG.topbar and WG.topbar.GetPosition and WG.topbar.GetPosition()
+		local moved = area and (not topbarArea or area[1] ~= topbarArea[1] or area[2] ~= topbarArea[2])
+		if moved and widget.ViewResize then
+			widget:ViewResize(vsx, vsy)
+		end
+
 		-- restore pregame reconnection messages
 		--if prevOrgLines and Spring.GetGameRulesParam("GameID") then
 		--	if prevGameID == Spring.GetGameRulesParam("GameID") then
