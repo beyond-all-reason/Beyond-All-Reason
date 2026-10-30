@@ -7,7 +7,7 @@
 --- the greyed-out options must also refuse build orders given by hotkey.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {

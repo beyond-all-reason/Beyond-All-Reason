@@ -36,7 +36,7 @@ end, math.huge)
 ---@field UnitLoadout table
 ---@field FeatureLoadout table
 ---@field ActionDefinitions table
----@field TriggerDefinitions table
+---@field ConditionDefinitions table
 ---@field Modules table
 ---@field ActivateTrigger fun(trigger: table): boolean
 ---@field calls MissionApiMockCalls
@@ -280,7 +280,7 @@ end
 
 ---@param definitions table
 ---@return MissionApiBuilder
-function MB:WithTriggerDefinitions(definitions)
+function MB:WithConditionDefinitions(definitions)
 	self.triggerDefinitions = definitions or {}
 	return self
 end
@@ -548,7 +548,7 @@ function MB:Build(installed)
 		ObjectiveTriggers = self.objectiveTriggers,
 		ObjectiveStages = objectiveStages,
 		ActionDefinitions = self.actionDefinitions,
-		TriggerDefinitions = self.triggerDefinitions,
+		ConditionDefinitions = self.triggerDefinitions,
 		Modules = modules,
 		ActivateTrigger = function(trigger)
 			activateTriggerCalls[#activateTriggerCalls + 1] =

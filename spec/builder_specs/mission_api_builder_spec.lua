@@ -98,11 +98,11 @@ describe("MissionApiBuilder", function()
 			local api = Builders.MissionApi
 				.new()
 				:WithActionDefinitions({ Victory = {} })
-				:WithTriggerDefinitions({ TimeElapsed = {} })
+				:WithConditionDefinitions({ TimeElapsed = {} })
 				:Build()
 
 			assert.is_table(api.ActionDefinitions.Victory)
-			assert.is_table(api.TriggerDefinitions.TimeElapsed)
+			assert.is_table(api.ConditionDefinitions.TimeElapsed)
 		end)
 	end)
 

@@ -8,7 +8,7 @@ local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 local enumSets = GG["MissionAPI"].Modules.ParameterTypes.EnumSets
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
-local triggersSchemaParameters = GG["MissionAPI"].TriggerDefinitions.Parameters
+local triggersSchemaParameters = GG["MissionAPI"].ConditionDefinitions.Parameters
 
 ----------------------------------------------------------------
 --- Parameter processors:

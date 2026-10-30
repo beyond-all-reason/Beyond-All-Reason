@@ -2,7 +2,7 @@ local Builders = VFS.Include("spec/builders/index.lua")
 
 -- The loader is the authority on what a trigger looks like once a mission is running,
 -- so the builder is checked against it rather than against a copy of its defaults.
-local triggersLoader = VFS.Include("luarules/mission_api/triggers_loader.lua")
+local triggersLoader = VFS.Include("luarules/mission_api/conditions_loader.lua")
 
 describe("TriggerBuilder", function()
 	it("builds the trigger shape the call-in handlers receive", function()
@@ -20,7 +20,7 @@ describe("TriggerBuilder", function()
 		assert.are.equal(0, trigger.repeatCount)
 	end)
 
-	it("normalises exactly as triggers_loader does, so fixtures cannot drift from it", function()
+	it("normalises exactly as conditions_loader does, so fixtures cannot drift from it", function()
 		local builder = Builders.Trigger.new():WithParameters({ unitDefName = "armpw" })
 		builder:WithSettings({ maxRepeats = 2 })
 

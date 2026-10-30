@@ -4,7 +4,7 @@
 -- (Story): Story entries win where authored, everything else resolves to its lowest specified
 -- value, and the Medium/Hard-gated trigger never fires.
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local stages = {

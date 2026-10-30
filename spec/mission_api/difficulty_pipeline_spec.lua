@@ -11,8 +11,8 @@ GG["MissionAPI"].Modules.ParameterTypes = MissionSpecEnv.include(env, "luarules/
 MissionSpecEnv.registerModules(env)
 GG["MissionAPI"].ActionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua")
 	.LoadActionDefinitions()
-GG["MissionAPI"].TriggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
-	.LoadTriggerDefinitions()
+GG["MissionAPI"].ConditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+	.LoadConditionDefinitions()
 
 local function withCommandIDs(names, firstID)
 	local commands = {}
@@ -40,12 +40,12 @@ local originalLog = env.Spring.Log
 
 local stagesController = MissionSpecEnv.include(env, "luarules/mission_api/stages_loader.lua")
 local objectivesController = MissionSpecEnv.include(env, "luarules/mission_api/objectives_loader.lua")
-local triggersController = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
+local triggersController = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
 local actionsController = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua")
 local difficulty = GG["MissionAPI"].Modules.Difficulty
 
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
-local triggerDefinitions = GG["MissionAPI"].TriggerDefinitions
+local triggerDefinitions = GG["MissionAPI"].ConditionDefinitions
 local triggerTypes = triggerDefinitions.Types
 local actionTypes = actionDefinitions.Types
 
@@ -74,7 +74,7 @@ describe("mission_api difficulty pipeline", function()
 			Difficulty = currentDifficulty,
 			Modules = GG["MissionAPI"].Modules,
 			ActionDefinitions = actionDefinitions,
-			TriggerDefinitions = triggerDefinitions,
+			ConditionDefinitions = triggerDefinitions,
 			ManagedObjectives = {},
 			ObjectiveTriggers = {},
 			ObjectiveStages = {},
