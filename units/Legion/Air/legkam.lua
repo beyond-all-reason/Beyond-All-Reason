@@ -76,7 +76,7 @@ return {
 		},
 		weapondefs = {
 			trigger = {
-				areaofeffect = 16,
+				areaofeffect = 4,
 				avoidfeature = false,
 				burstrate = 0.1,
 				collidefriendly = 0,
