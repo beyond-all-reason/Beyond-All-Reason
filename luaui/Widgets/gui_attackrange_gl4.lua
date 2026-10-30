@@ -827,6 +827,7 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 	--for weaponNum = 1, #weapons do
 	local addedRings = 0
 	local weaponTypes = unitDefRings[unitDefID].weapons
+	local isPregameBuilder = Spring.GetUnitRulesParam(unitID, "pregame_proxy") == 1
 	for j, weaponType in pairs(weaponTypes) do
 		local drawIt = true
 		-- we need to check if the unit has on/off weapon states, and only add the one active
@@ -867,6 +868,9 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 			ringParams[1] = newRange[j]
 		else
 			ringParams = unitDefRings[unitDefID].rings[j]
+		end
+		if isPregameBuilder and weaponType ~= 2 then
+			drawIt = false
 		end
 		if drawIt and ringParams[1] > 0 then
 			local weaponID = j

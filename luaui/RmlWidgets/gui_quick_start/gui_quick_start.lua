@@ -47,7 +47,7 @@ local wgGridMenu
 ---@type any
 local wgTopbar
 ---@type any
-local wgPregameBuild
+local wgPregameQueue
 ---@type any
 local wgPregameUI
 ---@type any
@@ -157,9 +157,6 @@ local function updateSpawnPositions(spawnPositions)
 
 	externalSpawnPositionsChanged = true
 
-	if WG["pregame-build"] and WG["pregame-build"].forceRefresh then
-		WG["pregame-build"].forceRefresh()
-	end
 end
 
 local function getCachedGameRules()
@@ -638,7 +635,7 @@ local function populatePreloadedBuildQueue(commanderPositionChanged)
 	end
 
 	local myTeamID = spGetMyTeamID()
-	if not myTeamID or not wgPregameBuild or not wgPregameBuild.setBuildQueue then
+	if not myTeamID or not wgPregameQueue or not wgPregameQueue.setBuildQueue then
 		return false
 	end
 
@@ -662,13 +659,10 @@ local function populatePreloadedBuildQueue(commanderPositionChanged)
 		return false
 	end
 
-	local currentBuildQueue = wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
+	local currentBuildQueue = wgPregameQueue.getBuildQueue and wgPregameQueue.getBuildQueue() or {}
 	local playerBuildQueue = getPlayerBuildQueue(currentBuildQueue)
 	local buildQueue = createPreloadedBuildQueue(startDefID, commanderX, commanderZ, playerBuildQueue)
-	wgPregameBuild.setBuildQueue(buildQueue)
-	if wgPregameBuild.forceRefresh then
-		wgPregameBuild.forceRefresh()
-	end
+	wgPregameQueue.setBuildQueue(buildQueue)
 	lastPreloadedCommanderX = commanderX
 	lastPreloadedCommanderZ = commanderZ
 	return true
@@ -884,7 +878,7 @@ end
 local function updateAllCostOverrides(force)
 	local myTeamID = spGetMyTeamID()
 	local gameRules = getCachedGameRules()
-	local buildQueue = wgPregameBuild and wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
+	local buildQueue = wgPregameQueue and wgPregameQueue.getBuildQueue and wgPregameQueue.getBuildQueue() or {}
 
 	local factoryAlreadyPlaced = false
 	local commanderX, commanderZ = getCommanderPosition(myTeamID)
@@ -931,7 +925,7 @@ local function updateDataModel(forceUpdate)
 		return
 	end
 
-	local buildQueue = wgPregameBuild and wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
+	local buildQueue = wgPregameQueue and wgPregameQueue.getBuildQueue and wgPregameQueue.getBuildQueue() or {}
 	local currentQueueLength = #buildQueue
 	local currentTime = os.clock()
 
@@ -1104,7 +1098,7 @@ local function setAutoGenerateSuggestions(enabled)
 	Spring.SetConfigInt(AUTO_GENERATE_SUGGESTIONS_CONFIG, autoGenerateSuggestions and 1 or 0)
 	lastPreloadedCommanderX = nil
 	lastPreloadedCommanderZ = nil
-	if not wgPregameBuild or not wgPregameBuild.setBuildQueue then
+	if not wgPregameQueue or not wgPregameQueue.setBuildQueue then
 		return
 	end
 	if autoGenerateSuggestions then
@@ -1116,11 +1110,8 @@ local function setAutoGenerateSuggestions(enabled)
 		end
 		return
 	end
-	local currentBuildQueue = wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
-	wgPregameBuild.setBuildQueue(getPlayerBuildQueue(currentBuildQueue))
-	if wgPregameBuild.forceRefresh then
-		wgPregameBuild.forceRefresh()
-	end
+	local currentBuildQueue = wgPregameQueue.getBuildQueue and wgPregameQueue.getBuildQueue() or {}
+	wgPregameQueue.setBuildQueue(getPlayerBuildQueue(currentBuildQueue))
 	updateDataModel(true)
 end
 
@@ -1152,13 +1143,14 @@ function widget:Initialize()
 	wgBuildMenu = WG.buildmenu
 	wgGridMenu = WG.gridmenu
 	wgTopbar = WG.topbar
-	wgPregameBuild = WG["pregame-build"]
+	wgPregameQueue = WG.pregameQueue
 	wgPregameUI = WG.pregameui
 	wgPregameUIDraft = WG.pregameui_draft
-	wgGetBuildQueueFunc = wgPregameBuild and wgPregameBuild.getBuildQueue
-	wgGetBuildPositionsFunc = wgPregameBuild and wgPregameBuild.getBuildPositions
+	wgGetBuildQueueFunc = wgPregameQueue and wgPregameQueue.getBuildQueue
+	wgGetBuildPositionsFunc = wgPregameQueue and wgPregameQueue.getBuildPositions
 	wgGetPregameUnitSelectedFunc = function()
-		return WG["pregame-unit-selected"] or -1
+		local _, cmd = Spring.GetActiveCommand()
+		return cmd and cmd < 0 and -cmd or -1
 	end
 
 	updateUIElementText(document, "qs-budget-header", spI18N("ui.quickStart.preGameResources"))

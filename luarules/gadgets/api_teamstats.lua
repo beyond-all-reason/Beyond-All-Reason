@@ -992,6 +992,9 @@ end
 ----------------------------------------------------------------
 
 local function addUnit(unitID, unitDefID, teamID)
+	if Spring.GetUnitRulesParam(unitID, "pregame_proxy") == 1 then
+		return
+	end
 	local t = teams[teamID]
 	if not t or finished[unitID] then
 		return
@@ -1696,11 +1699,26 @@ local function unitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	unitCreated(unitID, unitDefID, unitTeam)
+-- CreateUnit emits these events before the caller can mark a temporary proxy.
+-- Resolve pregame events after that call has returned, without counting previews as builds.
+local pendingPregameUnits = {}
+local function deferPregameUnit(unitID, unitDefID, unitTeam, isFinished)
+	if Game.allowPreGameCommands and spGetGameFrame() <= 0 then
+		pendingPregameUnits[unitID] = { unitDefID, unitTeam, isFinished }
+		return true
+	end
 end
 
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	if not deferPregameUnit(unitID, unitDefID, unitTeam, false) then
+		unitCreated(unitID, unitDefID, unitTeam)
+	end
+end
+
+local function unitFinished(unitID, unitDefID, unitTeam)
+	if Spring.GetUnitRulesParam(unitID, "pregame_proxy") == 1 then
+		return
+	end
 	addUnit(unitID, unitDefID, unitTeam)
 	local t = teams[unitTeam]
 	if t then
@@ -1723,7 +1741,31 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	if not deferPregameUnit(unitID, unitDefID, unitTeam, true) then
+		unitFinished(unitID, unitDefID, unitTeam)
+	end
+end
+
+local function flushPregameUnit(unitID, event)
+	pendingPregameUnits[unitID] = nil
+	if event[3] then
+		unitFinished(unitID, event[1], event[2])
+	else
+		unitCreated(unitID, event[1], event[2])
+	end
+end
+
+local function flushPregameUnits()
+	for unitID, event in pairs(pendingPregameUnits) do
+		flushPregameUnit(unitID, event)
+	end
+end
+
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if pendingPregameUnits[unitID] then
+		flushPregameUnit(unitID, pendingPregameUnits[unitID])
+	end
 	if finished[unitID] then
 		removeUnit(unitID)
 		addUnit(unitID, unitDefID, newTeam)
@@ -1806,6 +1848,14 @@ function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCoun
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	if pendingPregameUnits[unitID] then
+		flushPregameUnit(unitID, pendingPregameUnits[unitID])
+	end
+	if Spring.GetUnitRulesParam(unitID, "pregame_proxy") == 1 then
+		removeUnit(unitID)
+		lastHitBy[unitID], lastHitDef[unitID] = nil, nil
+		return
+	end
 	-- A plane that was shot down and has crashed is its shooter's kill.
 	local hitBy = lastHitBy[unitID]
 	if hitBy then
@@ -2451,6 +2501,7 @@ local function restore(data)
 end
 
 function gadget:GameFrame(frame)
+	flushPregameUnits()
 	if frame > 0 then
 		scanStep(frame)
 		readBuilders()
@@ -2479,6 +2530,7 @@ local still = { frame = -1, since = nil, servedAt = nil, heard = false }
 
 ---@diagnostic disable-next-line: undefined-field
 function gadget:Update()
+	flushPregameUnits()
 	local now = spGetTimer()
 	local frame = spGetGameFrame()
 	local heard = Script.LuaUI("TeamStatsLive") == true

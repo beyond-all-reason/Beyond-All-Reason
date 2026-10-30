@@ -41,8 +41,6 @@ local selectedUnits = spGetSelectedUnits()
 
 local Game_extractorRadius = Game.extractorRadius
 
-local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
-
 ------------------------------------------------------------
 -- unit tables
 ------------------------------------------------------------
@@ -141,13 +139,12 @@ end
 local function spotHasExtractorQueued(spot, builders)
 	builders = builders or selectedUnits
 
-	-- annoying pregame stuff
 	local function checkQueue(queue)
 		for j = 1, #queue do
 			local command = queue[j]
-			local id = command.id and -command.id or command[1]
-			local x = command.params and command.params[1] or command[2]
-			local z = command.params and command.params[3] or command[4]
+			local id = -command.id
+			local x = command.params[1]
+			local z = command.params[3]
 			if mexBuildings[id] or geoBuildings[id] then
 				local dist = math.distance2dSquared(spot.x, spot.z, x, z)
 				-- Save a sqrt by multiplying by 4
@@ -161,16 +158,11 @@ local function spotHasExtractorQueued(spot, builders)
 		return false
 	end
 
-	if isPregame then
-		local queue = WG["pregame-build"].getBuildQueue()
-		return checkQueue(queue)
-	else
-		for i = 1, #builders do
-			-- GetUnitCommands returns nil if enemy unit is selected (with godmode on)
-			local hasOrder = checkQueue(Spring.GetUnitCommands(builders[i], 100) or {})
-			if hasOrder then
-				return true
-			end
+	for i = 1, #builders do
+		-- GetUnitCommands returns nil if enemy unit is selected (with godmode on)
+		local hasOrder = checkQueue(Spring.GetUnitCommands(builders[i], 100) or {})
+		if hasOrder then
+			return true
 		end
 	end
 	return false
@@ -510,10 +502,6 @@ function widget:UnitGiven(unitID, unitDefID, newTeam)
 	if not mexConstructors[unitID] or geoConstructors[unitID] then
 		widget:UnitCreated(unitID, unitDefID, newTeam)
 	end
-end
-
-function widget:GameStart()
-	isPregame = false
 end
 
 function widget:Initialize()
