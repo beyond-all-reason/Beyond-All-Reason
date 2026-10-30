@@ -37,7 +37,9 @@ end
 --   zombie_maximum_respawn_delay (seconds, default 120)
 --     the window that power-based revival times are clamped to.
 --   zombie_wraith_respawn_chance (0 to 1, default 0.66)
---     the chance a feeding death creates a wraith. A failed roll leaves nothing behind.
+--     the chance one of these destructions creates a wraith: a unit that leaves no wreck,
+--     a corpse that leaves no heap, or a heap. Reclaim and resurrection do not count.
+--     A failed roll leaves nothing behind.
 --   zombie_wraith_power_multiplier (default 1)
 --     multiplies a unit's power when a wraith respawn spends it on substitutes. Units that rise as
 --     themselves are unchanged. Revived corpses and captures do not use this multiplier.
@@ -192,6 +194,9 @@ local wraithPoolUnitDefIDs = {}
 local wraiths = {} ---@type table<UnitID, table?>
 local pendingWraithFeeds = {}
 local pendingWraithSpawns = {}
+local wreckWraithFeeds = {}
+local featuresCreatedThisFrame = {}
+local heapFeatureDefIDs = {}
 local zombieFactories = {} ---@type table<UnitID, table?>
 local expiringBuildingFrames = {}
 local zombieUnitDefs = {}
@@ -214,6 +219,14 @@ local zombieUnitIDs = {}
 
 for deathName, damageTypeID in pairs(Game.envDamageTypes) do
 	DEATHS_BLOCKING_WRAITHS[damageTypeID] = DEATH_NAMES_BLOCKING_WRAITHS[deathName]
+end
+
+for featureDefID, featureDef in pairs(FeatureDefs) do
+	local customParams = featureDef.customParams
+	local category = customParams and customParams.category
+	if category == "heaps" or string.sub(featureDef.name, -5) == "_heap" then
+		heapFeatureDefIDs[featureDefID] = true
+	end
 end
 
 local EFFECT = {
@@ -748,6 +761,7 @@ local function spawnZombiesFromFeature(featureID, unitDefID, wasZombie)
 	local facing = spring.GetFacingFromHeading(spring.GetFeatureHeading(featureID) or 0)
 	corpsesData[featureID] = nil
 	warningCorpses[featureID] = nil
+	wreckWraithFeeds[featureID] = nil
 	spring.DestroyFeature(featureID)
 	spawnZombies(unitDefID, featureX, featureY, featureZ, facing, wasZombie, inheritedXp)
 	return true
@@ -852,6 +866,21 @@ local function feedWraithQueue(unitDefID, spawnX, spawnZ, wasZombie, attackerID,
 		unitDefID = unitDefID,
 		x = spawnX,
 		z = spawnZ,
+		wasZombie = wasZombie,
+		attackerID = attackerID,
+		attackerX = attackerX,
+		attackerZ = attackerZ,
+	}
+end
+
+local function rememberWreckWraithFeed(featureID, unitDefID, x, z, wasZombie, attackerID, attackerX, attackerZ)
+	if not featureID or not unitDefID or x == nil then
+		return
+	end
+	wreckWraithFeeds[featureID] = {
+		unitDefID = unitDefID,
+		x = x,
+		z = z,
 		wasZombie = wasZombie,
 		attackerID = attackerID,
 		attackerX = attackerX,
@@ -967,6 +996,7 @@ local function queueWraithCorpse(featureID, payloadUnitDefID)
 	}
 	corpsesData[featureID] = featureData
 	armCorpseSpawn(featureID, featureData, gameFrame + spawnDelayFrames)
+	rememberWreckWraithFeed(featureID, payloadUnitDefID, featureX, featureZ, true, nil, nil, nil)
 	return true
 end
 
@@ -1229,6 +1259,7 @@ local function queueCorpseForSpawning(featureID, override, wasZombie)
 	}
 	corpsesData[featureID] = featureData
 	armCorpseSpawn(featureID, featureData, spawnFrame)
+	rememberWreckWraithFeed(featureID, corpseDefData.unitDefID, featureX, featureZ, wasZombie, nil, nil, nil)
 end
 
 local function registerDeathFeature(featureID, featureDefID, deathData)
@@ -1251,8 +1282,9 @@ local function registerDeathFeature(featureID, featureDefID, deathData)
 		return
 	end
 	local featureX, _, featureZ = spring.GetFeaturePosition(featureID)
-	if featureX then
-		feedWraithQueue(
+	if featureX ~= nil then
+		rememberWreckWraithFeed(
+			featureID,
 			deathData.unitDefID,
 			featureX,
 			featureZ,
@@ -1319,6 +1351,7 @@ local function processDueCorpse(featureID)
 	local featureX, _, featureZ = spring.GetFeaturePosition(featureID)
 	if not featureX then
 		corpsesData[featureID] = nil
+		wreckWraithFeeds[featureID] = nil
 		return
 	end
 	if corpseData.tamperedFrame ~= UNTAMPERED_FRAME then
@@ -1373,6 +1406,7 @@ local function spawnCorpseWarnings(frame)
 			local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
 			if not featureX then --doesn't exist anymore
 				corpsesData[featureID] = nil
+				wreckWraithFeeds[featureID] = nil
 				warningCorpses[featureID] = nil
 			elseif featureData.tamperedFrame == UNTAMPERED_FRAME then
 				spawnWarningEffects(featureID, featureX, featureY, featureZ)
@@ -1383,6 +1417,7 @@ end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
+	featuresCreatedThisFrame = {}
 
 	processWreckSwaps()
 	if frame % VANISHED_DEATH_CHECK_INTERVAL == 0 then
@@ -1409,6 +1444,7 @@ function gadget:GameFrame(frame)
 		topUpGaiaResources()
 		spawnCorpseWarnings(frame)
 	end
+	featuresCreatedThisFrame = {}
 end
 
 local function isFeatureInLava(featureID)
@@ -1420,6 +1456,7 @@ local function isFeatureInLava(featureID)
 end
 
 function gadget:FeatureCreated(featureID, _, sourceID)
+	featuresCreatedThisFrame[#featuresCreatedThisFrame + 1] = featureID
 	if creatingWraithCorpse then
 		return
 	end
@@ -1436,6 +1473,21 @@ function gadget:FeatureCreated(featureID, _, sourceID)
 			and featureDefID == zombieUnitDefs[deathData.unitDefID].corpseDefID
 			and (deathData.isDrowned or isFeatureInLava(featureID))
 		then
+			if deathData.feedsWraith then
+				local featureX, _, featureZ = spring.GetFeaturePosition(featureID)
+				if featureX ~= nil then
+					rememberWreckWraithFeed(
+						featureID,
+						deathData.unitDefID,
+						featureX,
+						featureZ,
+						deathData.wasZombie,
+						deathData.attackerID,
+						deathData.attackerX,
+						deathData.attackerZ
+					)
+				end
+			end
 			pendingWreckSwaps[#pendingWreckSwaps + 1] = featureID
 			return
 		end
@@ -1450,6 +1502,70 @@ local function wasCorpseReclaimedOrResurrected(featureID)
 	end
 	local _, _, resurrectProgress = spring.GetFeatureHealth(featureID)
 	return resurrectProgress ~= nil and resurrectProgress >= 1
+end
+
+local function findSuccessorFeatureID(featureID, featureX, featureY, featureZ)
+	local successorFeatureID
+	for createdIndex = 1, #featuresCreatedThisFrame do
+		local createdFeatureID = featuresCreatedThisFrame[createdIndex]
+		if createdFeatureID ~= featureID then
+			local createdX, createdY, createdZ = spring.GetFeaturePosition(createdFeatureID)
+			if createdX == featureX and createdY == featureY and createdZ == featureZ then
+				successorFeatureID = createdFeatureID
+			end
+		end
+	end
+	return successorFeatureID
+end
+
+local function releaseWreckWraithFeed(featureID)
+	local wreckFeed = wreckWraithFeeds[featureID]
+	wreckWraithFeeds[featureID] = nil
+	if not wreckFeed or wasCorpseReclaimedOrResurrected(featureID) then
+		return
+	end
+	local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
+	local corpseData = corpsesData[featureID]
+	if corpseData then
+		if corpseData.attackerX then
+			wreckFeed.attackerID = corpseData.attackerID
+			wreckFeed.attackerX = corpseData.attackerX
+			wreckFeed.attackerZ = corpseData.attackerZ
+		end
+		wreckFeed.wasZombie = corpseData.wasZombie
+		if featureX == nil and corpseData.x ~= nil then
+			featureX = corpseData.x
+			featureZ = corpseData.z
+		end
+	end
+	if featureX ~= nil then
+		wreckFeed.x = featureX
+		wreckFeed.z = featureZ
+	end
+	local featureDefID = spring.GetFeatureDefID(featureID)
+	local isHeap = featureDefID ~= nil and heapFeatureDefIDs[featureDefID] == true
+	local successorFeatureID
+	if featureX ~= nil and featureY ~= nil and not isHeap then
+		successorFeatureID = findSuccessorFeatureID(featureID, featureX, featureY, featureZ)
+	end
+	if successorFeatureID then
+		local successorX, _, successorZ = spring.GetFeaturePosition(successorFeatureID)
+		if successorX ~= nil then
+			wreckFeed.x = successorX
+			wreckFeed.z = successorZ
+		end
+		wreckWraithFeeds[successorFeatureID] = wreckFeed
+		return
+	end
+	feedWraithQueue(
+		wreckFeed.unitDefID,
+		wreckFeed.x,
+		wreckFeed.z,
+		wreckFeed.wasZombie,
+		wreckFeed.attackerID,
+		wreckFeed.attackerX,
+		wreckFeed.attackerZ
+	)
 end
 
 function gadget:FeatureDamaged(featureID, _, _, _, _, _, attackerID)
@@ -1467,21 +1583,7 @@ function gadget:FeatureDamaged(featureID, _, _, _, _, _, attackerID)
 end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
-	local corpseData = corpsesData[featureID]
-	if corpseData and not wasCorpseReclaimedOrResurrected(featureID) then
-		local corpseDefData = zombieCorpseDefs[corpseData.featureDefID]
-		if corpseDefData then
-			feedWraithQueue(
-				corpseDefData.unitDefID,
-				corpseData.x,
-				corpseData.z,
-				corpseData.wasZombie,
-				corpseData.attackerID,
-				corpseData.attackerX,
-				corpseData.attackerZ
-			)
-		end
-	end
+	releaseWreckWraithFeed(featureID)
 	clearCorpseRezRulesParam(featureID)
 	corpsesData[featureID] = nil
 	warningCorpses[featureID] = nil
@@ -1620,6 +1722,8 @@ local function clearWraithState()
 	end
 	pendingWraithFeeds = {}
 	pendingWraithSpawns = {}
+	wreckWraithFeeds = {}
+	featuresCreatedThisFrame = {}
 end
 
 ---Drops every queued corpse spawn without affecting zombies already raised.
