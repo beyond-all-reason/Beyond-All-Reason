@@ -191,12 +191,33 @@ end
 ---@field loadoutActionType string					  SpawnUnits or CreateFeatures
 ---@field creatingActionTypes table<string, boolean>  the action types that can create the name. Any other
 ---												      action naming it is referencing it instead.
+---@field alsoNamedKey string|nil					  the entry key holding further names, "alsoNamed" for units
+
+--- The names a loadout entry gives, each with the part of the entry holding it.
+local function entryNames(nameKind, entry)
+	local names = {}
+	if type(entry) ~= "table" then
+		return names
+	end
+	if type(entry[nameKind.nameKey]) == "string" then
+		names[#names + 1] = { name = entry[nameKind.nameKey], suffix = "" }
+	end
+	local alsoNamed = nameKind.alsoNamedKey and entry[nameKind.alsoNamedKey]
+	if type(alsoNamed) == "table" then
+		for _, name in pairs(alsoNamed) do
+			if type(name) == "string" then
+				names[#names + 1] = { name = name, suffix = "." .. nameKind.alsoNamedKey }
+			end
+		end
+	end
+	return names
+end
 
 --- A top level loadout entry creates every name it gives.
 local function collectLoadoutNames(nameKind, createdNames)
 	for index, entry in ipairs(nameKind.loadout) do
-		if type(entry) == "table" and type(entry[nameKind.nameKey]) == "string" then
-			recordSource(createdNames, entry[nameKind.nameKey], nameKind.loadoutLabel .. "[" .. index .. "]")
+		for _, given in ipairs(entryNames(nameKind, entry)) do
+			recordSource(createdNames, given.name, nameKind.loadoutLabel .. "[" .. index .. "]" .. given.suffix)
 		end
 	end
 end
@@ -206,11 +227,12 @@ local function collectInlineLoadoutNames(context, nameKind, actionID, parameters
 	for _, entries in ipairs(context.PossibleValues(parameters[nameKind.loadoutParameter])) do
 		if type(entries) == "table" then
 			for index, entry in ipairs(entries) do
-				if type(entry) == "table" and type(entry[nameKind.nameKey]) == "string" then
+				local entryLabel = nameKind.loadoutParameter .. "[" .. index .. "]"
+				for _, given in ipairs(entryNames(nameKind, entry)) do
 					recordSource(
 						createdNames,
-						entry[nameKind.nameKey],
-						"action " .. actionID .. " (" .. nameKind.loadoutParameter .. "[" .. index .. "])"
+						given.name,
+						"action " .. actionID .. " (" .. entryLabel .. given.suffix .. ")"
 					)
 				end
 			end
@@ -523,6 +545,7 @@ local function validate(context, report)
 		loadoutParameter = "unitLoadout",
 		loadoutActionType = actionTypes.SpawnUnits,
 		creatingActionTypes = { [actionTypes.SpawnUnits] = true, [actionTypes.NameUnits] = true },
+		alsoNamedKey = "alsoNamed",
 	})
 
 	validateNameReferences(context, report, {

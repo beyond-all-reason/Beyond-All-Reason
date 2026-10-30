@@ -205,6 +205,17 @@ local triggers = {
 		},
 		actions = { 'messageUnitsOwnedByNameAndDef' },
 	},
+
+	-- friendlyLead is friendlyBot's alsoNamed, counted at spawn, so this fires when friendlyBot dies.
+	unitsOwnedByAlsoNamedNone = {
+		type = triggerTypes.UnitsOwned,
+		parameters = {
+			teamID = 0,
+			unitName = 'friendlyLead',
+			quantity = 0,
+		},
+		actions = { 'messageUnitsOwnedByAlsoNamedNone' },
+	},
 }
 
 local actions = {
@@ -215,7 +226,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwar', x = 1800, z = 1800, team = 0, unitName = 'friendlyBot' },
+				{ unitDefName = 'armwar', x = 1800, z = 1800, team = 0, unitName = 'friendlyBot', alsoNamed = { 'friendlyLead' } },
 			},
 		},
 	},
@@ -422,6 +433,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "[Statistics Test] UnitsOwned fired for unitName friendlyBot + unitDefName armwar.",
+		},
+	},
+
+	messageUnitsOwnedByAlsoNamedNone = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "[Statistics Test] UnitsOwned 0 fired for alsoNamed friendlyLead: friendlyBot is gone.",
 		},
 	},
 }

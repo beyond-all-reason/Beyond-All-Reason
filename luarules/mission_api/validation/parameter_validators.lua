@@ -195,6 +195,7 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.StageIDs] = getListValidator(parameterValidators[Types.StageID])
 	parameterValidators[Types.TriggerIDs] = getListValidator(parameterValidators[Types.TriggerID])
 	parameterValidators[Types.ObjectiveIDs] = getListValidator(parameterValidators[Types.ObjectiveID])
+	parameterValidators[Types.UnitNames] = getListValidator(parameterValidators[Types.UnitName])
 
 	parameterValidators[Types.Difficulty] = getLookupValidator(validateString, "difficulty", function(difficulty)
 		return enums[Types.Difficulty][difficulty]
@@ -795,6 +796,7 @@ local function registerLoadoutValidators(parameterValidators, context)
 		{ name = "team", type = Types.TeamID, required = true },
 		{ name = "facing", type = Types.Facing },
 		{ name = "unitName", type = Types.String },
+		{ name = "alsoNamed", type = Types.UnitNames },
 		{ name = "construction", type = Types.Boolean },
 		{ name = "quantity", type = Types.Number },
 		{ name = "spacing", type = Types.Number },
