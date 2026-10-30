@@ -1618,6 +1618,10 @@ local function isAuthorized(playerID)
 	if devHelpers and (devHelpers[accountID] or (playerName and devHelpers[playerName])) then
 		return true
 	end
+	local director = _G.permissions.director
+	if director and (director[accountID] or (playerName and director[playerName])) then
+		return true
+	end
 	return false
 end
 
@@ -1853,31 +1857,114 @@ local ZOMBIE_CHAT_ACTIONS = {
 	},
 }
 
+local RELOAD_STATE_RULES_PARAM = "zombie_reload_state"
+
+local function saveReloadState()
+	local serpent = require("common/luaUtilities/serpent")
+	spring.SetGameRulesParam(
+		RELOAD_STATE_RULES_PARAM,
+		serpent.dump({
+			gameFrame = gameFrame,
+			zombieMode = currentZombieMode,
+			autoSpawningEnabled = autoSpawningEnabled,
+			tooLong = tooLong,
+			adjustedRezPowerSpeed = adjustedRezPowerSpeed,
+			currentTechLevel = currentTechLevel,
+			excessPower = excessPower,
+			wraiths = wraiths,
+			wraithCount = wraithCount,
+			wraithRespawnFrames = wraithRespawnFrames,
+			wraithSpawnBuffer = wraithSpawnBuffer,
+			pendingWraithWaveSpawns = pendingWraithWaveSpawns,
+			pendingWraithFeeds = pendingWraithFeeds,
+			pendingWraithSpawns = pendingWraithSpawns,
+			zombieFactories = zombieFactories,
+			expiringBuildingFrames = expiringBuildingFrames,
+			corpsesData = corpsesData,
+			corpseCheckFrames = corpseCheckFrames,
+			corpseWarningFrames = corpseWarningFrames,
+			warningCorpses = warningCorpses,
+			zombieRezChecks = zombieRezChecks,
+			pendingDeaths = pendingDeaths,
+			pendingWreckSwaps = pendingWreckSwaps,
+			pendingZombieCaptures = pendingZombieCaptures,
+			unitTamperFrames = unitTamperFrames,
+			zombiesBeingBuilt = zombiesBeingBuilt,
+			zombieUnitIDs = zombieUnitIDs,
+		})
+	)
+end
+
+local function restoreReloadState()
+	local savedState = spring.GetGameRulesParam(RELOAD_STATE_RULES_PARAM)
+	if not savedState then
+		return false
+	end
+	local serpent = require("common/luaUtilities/serpent")
+	local loaded, reloadState = serpent.load(savedState)
+	if not loaded or type(reloadState) ~= "table" or reloadState.gameFrame ~= gameFrame then
+		return false
+	end
+
+	applyZombieModeSettings(resolveZombieMode(reloadState.zombieMode))
+	autoSpawningEnabled = reloadState.autoSpawningEnabled
+	tooLong = reloadState.tooLong
+	adjustedRezPowerSpeed = reloadState.adjustedRezPowerSpeed
+	currentTechLevel = reloadState.currentTechLevel
+	excessPower = reloadState.excessPower
+	wraiths = reloadState.wraiths
+	wraithCount = reloadState.wraithCount
+	wraithRespawnFrames = reloadState.wraithRespawnFrames
+	wraithSpawnBuffer = reloadState.wraithSpawnBuffer
+	pendingWraithWaveSpawns = reloadState.pendingWraithWaveSpawns
+	pendingWraithFeeds = reloadState.pendingWraithFeeds
+	pendingWraithSpawns = reloadState.pendingWraithSpawns
+	zombieFactories = reloadState.zombieFactories
+	expiringBuildingFrames = reloadState.expiringBuildingFrames
+	corpsesData = reloadState.corpsesData
+	corpseCheckFrames = reloadState.corpseCheckFrames
+	corpseWarningFrames = reloadState.corpseWarningFrames
+	warningCorpses = reloadState.warningCorpses
+	zombieRezChecks = reloadState.zombieRezChecks
+	pendingDeaths = reloadState.pendingDeaths
+	pendingWreckSwaps = reloadState.pendingWreckSwaps
+	pendingZombieCaptures = reloadState.pendingZombieCaptures
+	unitTamperFrames = reloadState.unitTamperFrames
+	zombiesBeingBuilt = reloadState.zombiesBeingBuilt
+	zombieUnitIDs = reloadState.zombieUnitIDs
+	rebuildZombieCorpseSpawnDelays()
+
+	spring.SetGameRulesParam(RELOAD_STATE_RULES_PARAM, nil)
+	return true
+end
+
 function gadget:Initialize()
 	gameFrame = spring.GetGameFrame()
 
-	applyZombieModeSettings(resolveZombieMode(modOptions.zombies))
-	updateRezSpeed()
+	if not restoreReloadState() then
+		applyZombieModeSettings(resolveZombieMode(modOptions.zombies))
+		updateRezSpeed()
 
-	autoSpawningEnabled = modOptionEnabled and not isIdleMode
+		autoSpawningEnabled = modOptionEnabled and not isIdleMode
 
-	local units = spring.GetAllUnits()
-	for _, unitID in ipairs(units) do
-		local unitDefID = currentModeFeatures.wraithRespawns and spring.GetUnitDefID(unitID)
-		local isExistingWraith = wraithUnitDefID
-			and unitDefID == wraithUnitDefID
-			and spring.GetUnitTeam(unitID) == gaiaTeamID
-		if isExistingWraith then
-			registerExistingWraith(unitID)
-		elseif spring.GetUnitRulesParam(unitID, "zombie") == 1 then
-			setZombie(unitID)
+		local units = spring.GetAllUnits()
+		for _, unitID in ipairs(units) do
+			local unitDefID = currentModeFeatures.wraithRespawns and spring.GetUnitDefID(unitID)
+			local isExistingWraith = wraithUnitDefID
+				and unitDefID == wraithUnitDefID
+				and spring.GetUnitTeam(unitID) == gaiaTeamID
+			if isExistingWraith then
+				registerExistingWraith(unitID)
+			elseif spring.GetUnitRulesParam(unitID, "zombie") == 1 then
+				setZombie(unitID)
+			end
 		end
-	end
 
-	if not isIdleMode then
-		local features = spring.GetAllFeatures()
-		for _, featureID in ipairs(features) do
-			gadget:FeatureCreated(featureID)
+		if not isIdleMode then
+			local features = spring.GetAllFeatures()
+			for _, featureID in ipairs(features) do
+				gadget:FeatureCreated(featureID)
+			end
 		end
 	end
 
@@ -1918,6 +2005,7 @@ function gadget:Shutdown()
 	for _, chatAction in ipairs(ZOMBIE_CHAT_ACTIONS) do
 		gadgetHandler:RemoveChatAction(chatAction.name)
 	end
+	saveReloadState()
 end
 
 function gadget:GameStart()
