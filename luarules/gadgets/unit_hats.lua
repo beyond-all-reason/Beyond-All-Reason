@@ -689,7 +689,7 @@ function gadget:GameFrame(gf)
 		for unitID, _ in pairs(unitsWearingHats) do
 			for _, hatID in pairs(unitsWearingHats[unitID]) do
 				local health, maxHealth = spGetUnitHealth(unitID)
-				local hatHealth, hatMaxHealth = spGetUnitHealth(tonumber(hatID))
+				local hatHealth, hatMaxHealth = spGetUnitHealth(hatID)
 				if health and maxHealth and hatMaxHealth then
 					Spring.SetUnitHealth(hatID, (health / maxHealth) * hatMaxHealth)
 				else
