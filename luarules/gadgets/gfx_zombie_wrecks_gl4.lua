@@ -45,9 +45,7 @@ if gadgetHandler:IsSyncedCode() then
 	return
 end
 
-if not gl.CreateShader then
-	return false
-end
+local hasShaders = gl.CreateShader ~= nil
 
 --------------------------------------------------------------------------------
 -- Configuration
@@ -85,6 +83,12 @@ local THUNDER_SILENT_CAMERA_DISTANCE = 3000
 local UPDATE_INTERVAL_FRAMES = 3
 local SETTLED_SPEED_SQUARED = 0.01
 
+local BILLBOARD_SMOKE_SPRITE_COUNT = 3
+local BILLBOARD_CULL_RADIUS = 200
+local BILLBOARD_LIGHTNING_MULTIPLIER = 1.25
+local BILLBOARD_BOLT_FRAMES = 10
+local BILLBOARD_BOLT_HEIGHT = 220
+
 --------------------------------------------------------------------------------
 -- Locals
 --------------------------------------------------------------------------------
@@ -98,6 +102,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetLocalAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spIsPosInLos = Spring.IsPosInLos
+local spIsSphereInView = Spring.IsSphereInView
 local spValidFeatureID = Spring.ValidFeatureID
 
 local LuaShader = gl.LuaShader
@@ -114,6 +119,10 @@ local wrecks = {}
 local shader
 ---@type InstanceVBOTable?
 local spriteVBO
+local billboardBolts = {}
+
+local updateWreckSprites, removeWreckSprite, drawWrecks, spawnFlash, spawnStrike
+local flashesPerWreck, strikesPerWreck = FLASH_COUNT, STRIKE_COUNT
 
 --------------------------------------------------------------------------------
 -- Shaders
@@ -287,7 +296,15 @@ local function isWreckShown(wreck)
 	return fullView or wreck.allyTeamID == localAllyTeamID or wreck.seen
 end
 
-local function updateWreckSprites(featureID, wreck)
+local function ignoreWreckSprite() end
+
+local function removeWreckSpriteInstance(featureID)
+	if spriteVBO.instanceIDtoIndex[featureID] then
+		popElementInstance(spriteVBO, featureID)
+	end
+end
+
+local function updateWreckSpriteInstance(featureID, wreck)
 	if wreck.settleFrame and isWreckShown(wreck) then
 		pushElementInstance(spriteVBO, {
 			wreck.x,
@@ -303,8 +320,8 @@ local function updateWreckSprites(featureID, wreck)
 			0,
 			0,
 		}, featureID, true)
-	elseif spriteVBO.instanceIDtoIndex[featureID] then
-		popElementInstance(spriteVBO, featureID)
+	else
+		removeWreckSpriteInstance(featureID)
 	end
 end
 
@@ -315,10 +332,25 @@ local function flashEasing(progress)
 	return 0.5 * (quadratic + exponential)
 end
 
-local function flashWreck(wreck)
-	if GG.SpawnEnvironmentalLightning then
-		GG.SpawnEnvironmentalLightning("scavradiation", wreck.x, wreck.y, wreck.z, FLASH_LIGHTNING_SIZE)
-	end
+local function addBillboardBolt(wreck, height)
+	billboardBolts[#billboardBolts + 1] =
+		{ wreck.x, wreck.y, wreck.z, spGetGameFrame(), height, math.random() * 6.2832 }
+end
+
+local function spawnLightningFlash(wreck)
+	GG.SpawnEnvironmentalLightning("scavradiation", wreck.x, wreck.y, wreck.z, FLASH_LIGHTNING_SIZE)
+end
+
+local function spawnBillboardFlash(wreck)
+	addBillboardBolt(wreck, BILLBOARD_BOLT_HEIGHT * FLASH_LIGHTNING_SIZE)
+end
+
+local function spawnLightningStrike(wreck)
+	GG.SpawnEnvironmentalLightning("zombiestrike", wreck.x, wreck.y, wreck.z)
+end
+
+local function spawnBillboardStrike(wreck)
+	addBillboardBolt(wreck, BILLBOARD_BOLT_HEIGHT)
 end
 
 local function thunderVolumeScale(wreck)
@@ -333,9 +365,7 @@ local function thunderVolumeScale(wreck)
 end
 
 local function strikeWreck(wreck, playsThunder)
-	if GG.SpawnEnvironmentalLightning then
-		GG.SpawnEnvironmentalLightning("zombiestrike", wreck.x, wreck.y, wreck.z)
-	end
+	spawnStrike(wreck)
 	local volumeScale = thunderVolumeScale(wreck)
 	if playsThunder and math.random() < volumeScale then
 		local sound = THUNDER_SOUNDS[math.random(#THUNDER_SOUNDS)]
@@ -344,10 +374,6 @@ local function strikeWreck(wreck, playsThunder)
 end
 
 local function armWreck(_, featureID, armFrame, riseFrame)
-	if not spriteVBO and not initGL4() then
-		gadgetHandler:RemoveGadget()
-		return
-	end
 	local wreck = wrecks[featureID]
 	if not wreck then
 		local x, y, z = spGetFeaturePosition(featureID)
@@ -377,9 +403,7 @@ end
 
 local function disarmWreck(_, featureID)
 	wrecks[featureID] = nil
-	if spriteVBO and spriteVBO.instanceIDtoIndex[featureID] then
-		popElementInstance(spriteVBO, featureID)
-	end
+	removeWreckSprite(featureID)
 end
 
 local function updateWreck(featureID, wreck, frame)
@@ -408,19 +432,19 @@ local function updateWreck(featureID, wreck, frame)
 		updateWreckSprites(featureID, wreck)
 	end
 
-	if wreck.settleFrame and wreck.flashCount < FLASH_COUNT then
+	if wreck.settleFrame and wreck.flashCount < flashesPerWreck then
 		local progress = (frame - wreck.armFrame) / math.max(wreck.riseFrame - wreck.armFrame, 1)
 		local easedProgress = flashEasing(math.min(progress, 1))
 		local flashed = false
-		while wreck.flashCount < FLASH_COUNT and easedProgress >= (wreck.flashCount + 1) / (FLASH_COUNT + 1) do
+		while wreck.flashCount < flashesPerWreck and easedProgress >= (wreck.flashCount + 1) / (flashesPerWreck + 1) do
 			wreck.flashCount = wreck.flashCount + 1
 			flashed = true
 		end
 		if flashed and isWreckShown(wreck) then
-			flashWreck(wreck)
+			spawnFlash(wreck)
 		end
 	end
-	if wreck.settleFrame and wreck.strikeCount < STRIKE_COUNT then
+	if wreck.settleFrame and wreck.strikeCount < strikesPerWreck then
 		local nextStrikeFrame = wreck.riseFrame
 			- SMOKE_FINISH_FRAMES_BEFORE_RISE
 			+ wreck.strikeCount * STRIKE_INTERVAL_FRAMES
@@ -465,8 +489,108 @@ function gadget:PlayerChanged()
 	refreshAllSprites()
 end
 
-function gadget:DrawWorld()
-	if not spriteVBO or spriteVBO.usedElements == 0 or Spring.IsGUIHidden() then
+local function smokeCountFraction(wreck, frame)
+	if frame < wreck.holdUntilFrame then
+		return 0
+	end
+	local finishFrame = wreck.riseFrame - SMOKE_FINISH_FRAMES_BEFORE_RISE
+	local progress = math.min(1, math.max(0, (frame - wreck.armFrame) / math.max(finishFrame - wreck.armFrame, 1)))
+	local smokeTimerProgress =
+		math.min(1, math.max(0, (progress - SMOKE_SILENT_START_FRACTION) / (1 - SMOKE_SILENT_START_FRACTION)))
+	local smoothed = smokeTimerProgress * smokeTimerProgress * (3 - 2 * smokeTimerProgress)
+	return smokeTimerProgress + (smoothed - smokeTimerProgress) * SMOKE_COUNT_S_CURVE_BLEND
+end
+
+local function hashRandom(a, b)
+	local value = math.sin(a * 12.9898 + b * 78.233) * 43758.5453
+	return value - math.floor(value)
+end
+
+local function drawBillboardSmoke(wreck, frame)
+	local wreckRadius = math.max(wreck.radius, 12)
+	local wreckScale = math.min(2.2, math.max(0.6, wreckRadius / 20))
+	local finishFrame = wreck.riseFrame - SMOKE_FINISH_FRAMES_BEFORE_RISE
+	local particleCount = BILLBOARD_SMOKE_SPRITE_COUNT * smokeCountFraction(wreck, frame)
+	for spriteIndex = 0, BILLBOARD_SMOKE_SPRITE_COUNT - 1 do
+		local phaseRandom = hashRandom(wreck.seed, spriteIndex)
+		local loopPosition = (frame - wreck.armFrame) / SMOKE_LIFE_FRAMES + phaseRandom
+		local loopIndex = math.floor(loopPosition)
+		local loopAge = loopPosition - loopIndex
+		local loopEndsBeforeFinish = frame - loopAge * SMOKE_LIFE_FRAMES <= finishFrame - SMOKE_LIFE_FRAMES
+		if spriteIndex < particleCount and frame >= wreck.armFrame and loopEndsBeforeFinish then
+			local angle = hashRandom(wreck.seed + loopIndex * 7.919, spriteIndex + 11) * 6.2832
+			local distanceRandom = hashRandom(wreck.seed + loopIndex * 3.571, spriteIndex + 53)
+			local heightRandom = hashRandom(wreck.seed + loopIndex * 5.113, spriteIndex + 91)
+			local drawnInFraction = loopAge ^ 1.4
+			local startDistance = (wreckRadius + 30 * distanceRandom) * wreckScale
+			local endDistance = wreckRadius * 0.35 * heightRandom
+			local distance = startDistance + (endDistance - startDistance) * drawnInFraction
+			local startHeight = (45 + 45 * heightRandom) * wreckScale
+			local endHeight = 3 + wreckRadius * 0.4 * distanceRandom
+			local height = startHeight + (endHeight - startHeight) * drawnInFraction
+			local size = (34 + (5 - 34) * drawnInFraction) * wreckScale
+			local alpha = (0.08 + (0.7 - 0.08) * drawnInFraction) * math.min(1, loopAge / 0.1)
+			gl.Color(SMOKE_COLOR[1], SMOKE_COLOR[2], SMOKE_COLOR[3], alpha)
+			gl.PushMatrix()
+			gl.Translate(wreck.x + math.cos(angle) * distance, wreck.y + height, wreck.z + math.sin(angle) * distance)
+			gl.Billboard()
+			gl.TexRect(-size, -size, size, size)
+			gl.PopMatrix()
+		end
+	end
+end
+
+local function drawBillboardBolt(bolt, frame)
+	local x, y, z, startFrame, height, seed = bolt[1], bolt[2], bolt[3], bolt[4], bolt[5], bolt[6]
+	local life = (frame - startFrame) / BILLBOARD_BOLT_FRAMES
+	gl.Color(0.82, 0.7, 1, 1 - life)
+	gl.LineWidth(3)
+	gl.BeginEnd(GL.LINE_STRIP, function()
+		gl.Vertex(x, y, z)
+		for step = 1, 6 do
+			local jitter = 12 * (hashRandom(seed, step) - 0.5)
+			gl.Vertex(
+				x + jitter + math.cos(seed) * step * 2,
+				y + height * step / 6,
+				z - jitter + math.sin(seed) * step * 2
+			)
+		end
+	end)
+	gl.LineWidth(1)
+end
+
+local function drawBillboards()
+	local frame = spGetGameFrame()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.DepthTest(GL.LEQUAL)
+	gl.DepthMask(false)
+	gl.Texture(0, SMOKE_TEXTURE)
+	for _, wreck in pairs(wrecks) do
+		if
+			wreck.settleFrame
+			and isWreckShown(wreck)
+			and spIsSphereInView(wreck.x, wreck.y, wreck.z, BILLBOARD_CULL_RADIUS)
+		then
+			drawBillboardSmoke(wreck, frame)
+		end
+	end
+	gl.Texture(0, false)
+	for index = #billboardBolts, 1, -1 do
+		local bolt = billboardBolts[index]
+		if frame - bolt[4] >= BILLBOARD_BOLT_FRAMES then
+			billboardBolts[index] = billboardBolts[#billboardBolts]
+			billboardBolts[#billboardBolts] = nil
+		else
+			drawBillboardBolt(bolt, frame)
+		end
+	end
+	gl.Color(1, 1, 1, 1)
+	gl.DepthMask(true)
+	gl.DepthTest(false)
+end
+
+local function drawWreckSpriteInstances()
+	if spriteVBO.usedElements == 0 then
 		return
 	end
 	gl.Texture(0, SMOKE_TEXTURE)
@@ -481,7 +605,37 @@ function gadget:DrawWorld()
 	gl.Texture(0, false)
 end
 
+function gadget:DrawWorld()
+	if Spring.IsGUIHidden() then
+		return
+	end
+	drawWrecks()
+end
+
 function gadget:Initialize()
+	if hasShaders then
+		if not initGL4() then
+			gadgetHandler:RemoveGadget()
+			return
+		end
+		updateWreckSprites = updateWreckSpriteInstance
+		removeWreckSprite = removeWreckSpriteInstance
+		drawWrecks = drawWreckSpriteInstances
+	else
+		updateWreckSprites = ignoreWreckSprite
+		removeWreckSprite = ignoreWreckSprite
+		drawWrecks = drawBillboards
+		flashesPerWreck = math.ceil(FLASH_COUNT * BILLBOARD_LIGHTNING_MULTIPLIER)
+		strikesPerWreck = math.ceil(STRIKE_COUNT * BILLBOARD_LIGHTNING_MULTIPLIER)
+	end
+	if GG.SpawnEnvironmentalLightning then
+		spawnFlash = spawnLightningFlash
+		spawnStrike = spawnLightningStrike
+	else
+		spawnFlash = spawnBillboardFlash
+		spawnStrike = spawnBillboardStrike
+	end
+
 	gadgetHandler:AddSyncAction("zombieWreckArm", armWreck)
 	gadgetHandler:AddSyncAction("zombieWreckDisarm", disarmWreck)
 	local _, isFullView = spGetSpectatingState()
