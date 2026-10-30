@@ -350,7 +350,7 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
-	-- legsrail armscab armsptk cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere leginfestor
+	-- legsrail armscab armsptk armscorp cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere leginfestor
 	TBOT3 = {
 		crushstrength = CRUSH.SMALL - 3,
 		footprint = 3,
