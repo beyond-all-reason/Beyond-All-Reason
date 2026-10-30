@@ -19,15 +19,13 @@ describe("TriggerContextBuilder", function()
 		it("exposes the shared state tables the handlers write into", function()
 			local context = Builders.TriggerContext.new():Build()
 
-			assert.are.same({}, context.PreviousUnitsInAreas)
 			assert.are.same({}, context.ConstructionState)
 			assert.are.same({}, context.DwellingUnitsInAreas)
 		end)
 
-		it("reports no units in an area and no reclaim income", function()
+		it("reports no reclaim income", function()
 			local context = Builders.TriggerContext.new():Build()
 
-			assert.are.same({}, context.GetUnitsInArea({}))
 			assert.is_nil(context.GetReclaimIncomeSnapshot(0))
 		end)
 	end)
@@ -73,12 +71,6 @@ describe("TriggerContextBuilder", function()
 
 			assert.is_true(context.InFactory(100))
 			assert.is_false(context.InFactory(101))
-		end)
-
-		it("returns the units seeded in the area", function()
-			local context = Builders.TriggerContext.new():WithUnitsInArea({ 100, 101 }):Build()
-
-			assert.are.same({ 100, 101 }, context.GetUnitsInArea({}))
 		end)
 	end)
 

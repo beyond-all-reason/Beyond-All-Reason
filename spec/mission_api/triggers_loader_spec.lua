@@ -135,12 +135,16 @@ describe("mission_api.triggers_loader", function()
 			assert.is_function(C.CountdownEnded[T.TimeElapsed])
 			assert.is_nil(C.GameFrame[T.TimeElapsed])
 
-			-- GameFrame drives location/resource triggers:
+			-- GameFrame drives resource triggers:
 			assert.is_function(C.GameFrame[T.ResourceStored])
 			assert.is_function(C.GameFrame[T.ResourceIncome])
 			assert.is_function(C.GameFrame[T.ResourcePull])
-			assert.is_function(C.GameFrame[T.UnitEnteredLocation])
-			assert.is_function(C.GameFrame[T.UnitLeftLocation])
+
+			-- Area tracking for location triggers:
+			assert.is_function(C.UnitsEnteredArea[T.UnitEnteredLocation])
+			assert.is_function(C.UnitsLeftArea[T.UnitLeftLocation])
+			assert.is_function(C.UnitsEnteredArea[T.UnitDwellLocation])
+			assert.is_function(C.UnitsLeftArea[T.UnitDwellLocation])
 			assert.is_function(C.GameFrame[T.UnitDwellLocation])
 
 			-- Event-driven triggers:
