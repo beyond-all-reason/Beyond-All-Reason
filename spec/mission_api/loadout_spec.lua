@@ -1,7 +1,7 @@
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local HEADING_EAST = 16384
-local HEADING_NORTH = 32767
+local HEADING_NORTH = -32768
 
 ---@type table<integer, table>
 local createdFeatures
@@ -70,8 +70,16 @@ describe("mission_api.loadout feature direction", function()
 
 	it("turns a feature to a compass angle", function()
 		assert.are.equal(0, spawnedHeading({ direction = { angle = 180 } }))
-		assertNear(HEADING_EAST, spawnedHeading({ direction = { angle = 90 } }))
-		assertNear(HEADING_EAST / 2, spawnedHeading({ direction = { angle = 135 } }))
+		assert.are.equal(HEADING_EAST, spawnedHeading({ direction = { angle = 90 } }))
+		assert.are.equal(HEADING_EAST / 2, spawnedHeading({ direction = { angle = 135 } }))
+		assert.are.equal(-HEADING_EAST, spawnedHeading({ direction = { angle = 270 } }))
+	end)
+
+	it("keeps due north inside the engine's heading range", function()
+		assert.are.equal(HEADING_NORTH, spawnedHeading({ direction = { angle = 0 } }))
+		assert.are.equal(HEADING_NORTH, spawnedHeading({ direction = { angle = 360 } }))
+
+		assert.are.equal("n", resurrectFacings[1])
 	end)
 
 	it("turns a feature towards a point", function()

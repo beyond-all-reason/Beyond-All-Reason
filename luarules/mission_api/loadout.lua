@@ -132,7 +132,12 @@ local MIN_DIRECTION_DISTANCE = 0.001
 
 local function compassAngleToHeading(angle)
 	-- TODO: refactor to call CompassAngleToHeading when it is merged
-	return math.floor((angle % 360 - 180) / 360 * -65535)
+	local heading = math.floor((angle % 360 - 180) / 360 * -65536)
+	-- Due north comes out as 32768, one past the engine's short heading; -32768 is the same direction.
+	if heading == 32768 then
+		return -32768
+	end
+	return heading
 end
 
 local function directionToHeading(feature, direction)
@@ -144,7 +149,7 @@ local function directionToHeading(feature, direction)
 	if math.abs(dx) < MIN_DIRECTION_DISTANCE and math.abs(dz) < MIN_DIRECTION_DISTANCE then
 		return BAR.Utilities.FacingToHeading(0)
 	end
-	-- Not Spring.GetHeadingFromVector: RecoilEngine #3240 swaps east and west for dz just above zero.
+	-- Not Spring.GetHeadingFromVector: before RecoilEngine #3240 it swaps east and west for dz just above zero.
 	-- Compass angles run clockwise from north, which is -z.
 	return compassAngleToHeading(math.deg(math.atan2(dx, -dz)))
 end
