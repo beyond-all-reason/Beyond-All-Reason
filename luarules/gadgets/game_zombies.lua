@@ -195,7 +195,7 @@ local STAGES = {
 			name = "massive",
 			topPower = 40000,
 			rezWindow = { { 0, 60, 200 }, { 62, 43, 123 }, { 100, 25, 45 } },
-			spawnCounts = { { 0, 2, 6 }, { 100, 5, 20 } },
+			spawnCounts = { { 0, 2, 6 }, { 62, 2, 6 }, { 100, 5, 20 } },
 			veterancy = { { 0, 0 }, { 62, 0 }, { 86, 1 } },
 		},
 	},
