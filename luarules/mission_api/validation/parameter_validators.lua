@@ -339,6 +339,20 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.VariableValue] = validateVariableValue
 
 	--- Number validators:
+	local validateNumber = parameterValidators[Types.Number]
+
+	parameterValidators[Types.MoveState] = getLookupValidator(validateNumber, "moveState", function(moveState)
+		return moveState == CMD.MOVESTATE_HOLDPOS
+			or moveState == CMD.MOVESTATE_MANEUVER
+			or moveState == CMD.MOVESTATE_ROAM
+	end)
+	parameterValidators[Types.FireState] = getLookupValidator(validateNumber, "fireState", function(fireState)
+		return fireState == CMD.FIRESTATE_HOLDFIRE
+			or fireState == CMD.FIRESTATE_RETURNFIRE
+			or fireState == CMD.FIRESTATE_FIREATWILL
+			or fireState == CMD.FIRESTATE_FIREATNEUTRAL
+	end)
+
 	parameterValidators[Types.Quantity] = function(quantity)
 		local luaTypeResult = parameterValidators[Types.Number](quantity)
 		if luaTypeResult then
@@ -497,17 +511,6 @@ local function registerTeamValidators(parameterValidators, context)
 	local Types = context.Types
 	local validateNumber = parameterValidators[Types.Number]
 
-	parameterValidators[Types.MoveState] = getLookupValidator(validateNumber, "moveState", function(moveState)
-		return moveState == CMD.MOVESTATE_HOLDPOS
-			or moveState == CMD.MOVESTATE_MANEUVER
-			or moveState == CMD.MOVESTATE_ROAM
-	end)
-	parameterValidators[Types.FireState] = getLookupValidator(validateNumber, "fireState", function(fireState)
-		return fireState == CMD.FIRESTATE_HOLDFIRE
-			or fireState == CMD.FIRESTATE_RETURNFIRE
-			or fireState == CMD.FIRESTATE_FIREATWILL
-			or fireState == CMD.FIRESTATE_FIREATNEUTRAL
-	end)
 	parameterValidators[Types.TeamID] = getLookupValidator(validateNumber, "teamID", function(teamID)
 		return Spring.GetTeamAllyTeamID(teamID)
 	end)
