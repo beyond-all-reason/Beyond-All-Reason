@@ -79,6 +79,25 @@ local triggers = {
 		actions = { 'messageBotEnteredLocation', 'spawnCapturable', 'spawnDecoy' },
 	},
 
+	squadSetOff = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 3,
+		},
+		actions = { 'spawnSquad', 'moveSquad' },
+	},
+
+	-- Fires once, when the straggler gets there, not for each pawn.
+	squadGathered = {
+		type = triggerTypes.UnitsGatheredInLocation,
+		parameters = {
+			unitName = 'squad',
+			teamID = 0,
+			area = { x = 1200, z = 2000, radius = 200 },
+		},
+		actions = { 'messageSquadEnteredLocation' },
+	},
+
 	botLeftLocation = {
 		type = triggerTypes.UnitLeftLocation,
 		parameters = {
@@ -363,6 +382,33 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "Bot entered location!",
+		},
+	},
+
+	spawnSquad = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armpw', x = 1200, z = 1600, team = 0, unitName = 'squad', quantity = 3 },
+				{ unitDefName = 'armpw', x = 1200, z = 1000, team = 0, unitName = 'squad' },
+			},
+		},
+	},
+
+	moveSquad = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'squad',
+			orders = {
+				{ CMD.MOVE, { 1200, 0, 2000 } },
+			},
+		},
+	},
+
+	messageSquadEnteredLocation = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "The whole squad entered location!",
 		},
 	},
 
