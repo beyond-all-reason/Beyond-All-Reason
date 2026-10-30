@@ -155,9 +155,10 @@ void main() {
 	if (spriteIndex < SMOKE_SPRITE_COUNT) {
 		float wreckRadius = max(wreck_position.w, 12.0);
 		float phaseRandom = fract(sin(seed * 12.9898 + spriteIndex * 78.233) * 43758.5453);
-		float angleRandom = fract(sin(seed * 39.3468 + spriteIndex * 11.135) * 24634.6345);
-		float distanceRandom = fract(sin(seed * 73.1562 + spriteIndex * 52.931) * 12345.6789);
-		float heightRandom = fract(sin(seed * 5.4321 + spriteIndex * 91.717) * 65432.1234);
+		float loopIndex = floor((frame - armFrame) / SMOKE_LIFE_FRAMES + phaseRandom);
+		float angleRandom = fract(sin(seed * 39.3468 + spriteIndex * 11.135 + loopIndex * 7.919) * 24634.6345);
+		float distanceRandom = fract(sin(seed * 73.1562 + spriteIndex * 52.931 + loopIndex * 3.571) * 12345.6789);
+		float heightRandom = fract(sin(seed * 5.4321 + spriteIndex * 91.717 + loopIndex * 5.113) * 65432.1234);
 		float smokeTimerProgress = clamp((progress - SMOKE_SILENT_START_FRACTION) / (1.0 - SMOKE_SILENT_START_FRACTION), 0.0, 1.0);
 		float smokeCountFraction = mix(smokeTimerProgress, smoothstep(0.0, 1.0, smokeTimerProgress), SMOKE_COUNT_S_CURVE_BLEND);
 		float smokeParticleCount = frame < hold_until_frame.x ? 0.0 : SMOKE_SPRITE_COUNT * smokeCountFraction;
