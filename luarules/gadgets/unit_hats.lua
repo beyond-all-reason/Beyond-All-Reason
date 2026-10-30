@@ -16,7 +16,7 @@ function gadget:GetInfo()
 	}
 end
 
-local DEBUG = false
+local DEBUG = true
 
 function gadget:GameID(gameID)
 	-- make sure gameID is a string because i'm not actually sure
@@ -686,13 +686,15 @@ function gadget:GameFrame(gf)
 
 	-- periodically update hat health	(damage gets applied instantly at gadget:UnitDamaged anyway)
 	if gf % 61 == 1 and next(unitsWearingHats) ~= nil then
-		for unitID, hatUnitID in pairs(unitsWearingHats) do
-			local health, maxHealth = spGetUnitHealth(unitID)
-			local hatHealth, hatMaxHealth = spGetUnitHealth(hatUnitID)
-			if health and maxHealth and hatMaxHealth then
-				Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
-			else
-				unitsWearingHats[unitID] = nil
+		for unitID, _ in pairs(unitsWearingHats) do
+			for _, hatID in pairs(unitsWearingHats[unitID]) do
+				local health, maxHealth = spGetUnitHealth(unitID)
+				local hatHealth, hatMaxHealth = spGetUnitHealth(tonumber(hatID))
+				if health and maxHealth and hatMaxHealth then
+					Spring.SetUnitHealth(hatID, (health / maxHealth) * hatMaxHealth)
+				else
+					unitsWearingHats[unitID] = nil
+				end
 			end
 		end
 		UpdateGameFrameCallIn()
@@ -718,6 +720,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		Spring.SetUnitBlocking(unitID, false, false, false, false) -- non blocking while dying
 		Spring.SetUnitNoMinimap(unitID, true)
 	end
+
+	if unitDefCanWearHats[unitDefID] then
+		unitsWearingHats[unitID] = {}
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
@@ -728,49 +734,52 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		Hats[unitID] = nil
 	end
 	if unitsWearingHats[unitID] ~= nil then
-		local hatID = unitsWearingHats[unitID]
-		if DEBUG then
-			Spring.Echo(
-				"A hat wearing unit was destroyed, freeing hat",
-				unitID,
-				unitDefID,
-				teamID,
-				attackerID,
-				attackerDefID,
-				attackerTeamID
-			)
-		end
-		unitsWearingHats[unitID] = nil
-		if spGetUnitRulesParam(unitID, "remove_decorations") == 1 then
-			Spring.DestroyUnit(hatID)
-		else
-			Spring.UnitDetachFromAir(hatID)
-			Spring.UnitDetach(hatID)
-			Hats[hatID] = -1
-			Spring.SetUnitNoSelect(hatID, false)
-			SendToUnsynced("setUnitNoGroup", hatID, false)
-			Spring.TransferUnit(hatID, spGetGaiaTeamID()) -- ( number unitID,  number newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
-			local px, py, pz = Spring.GetUnitPosition(unitID)
-			if px and pz then
-				Spring.SetUnitPosition(hatID, px + 32, pz + 32)
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			if DEBUG then
+				Spring.Echo(
+					"A hat wearing unit was destroyed, freeing hat",
+					unitID,
+					unitDefID,
+					teamID,
+					attackerID,
+					attackerDefID,
+					attackerTeamID
+				)
+			end
+			if spGetUnitRulesParam(unitID, "remove_decorations") == 1 then
+				Spring.DestroyUnit(hatID)
+			else
+				Spring.UnitDetachFromAir(hatID)
+				Spring.UnitDetach(hatID)
+				Hats[hatID] = -1
+				Spring.SetUnitNoSelect(hatID, false)
+				SendToUnsynced("setUnitNoGroup", hatID, false)
+				Spring.TransferUnit(hatID, spGetGaiaTeamID()) -- ( number unitID,  number newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
+				local px, py, pz = Spring.GetUnitPosition(unitID)
+				if px and pz then
+					Spring.SetUnitPosition(hatID, px + 32, pz + 32)
+				end
 			end
 		end
 		UpdateGameFrameCallIn()
+		unitsWearingHats[unitID] = nil
 	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
-		if DEBUG then
-			Spring.Echo(
-				"A hat wearing unit was given, destroying hat",
-				unitID,
-				unitDefID,
-				unitTeam,
-				unitsWearingHats[unitID]
-			)
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			if DEBUG then
+				Spring.Echo(
+					"A hat wearing unit was given, destroying hat",
+					unitID,
+					unitDefID,
+					unitTeam,
+					hatID
+				)
+			end
+			Spring.DestroyUnit(hatID)
 		end
-		Spring.DestroyUnit(unitsWearingHats[unitID])
 		unitsWearingHats[unitID] = nil
 	end
 	if Hats[unitID] then
@@ -820,7 +829,8 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 					SendToUnsynced("setUnitNoGroup", hatID, true)
 					--Spring.MoveCtrl.Disable(unitID)
 					--Spring.SetUnitLoadingTransport(unitID, nearunitID)
-					unitsWearingHats[nearunitID] = hatID
+
+					unitsWearingHats[nearunitID][hatID] = hatID
 					Hats[hatID] = nearunitID
 					UpdateGameFrameCallIn()
 					return
@@ -838,9 +848,11 @@ end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if unitsWearingHats[unitID] then
 		local health, maxHealth = spGetUnitHealth(unitID)
-		local hatHealth, hatMaxHealth = spGetUnitHealth(unitsWearingHats[unitID])
-		if hatHealth and health and maxHealth and hatMaxHealth then
-			Spring.SetUnitHealth(unitsWearingHats[unitID], (health / maxHealth) * hatMaxHealth)
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			local hatHealth, hatMaxHealth = spGetUnitHealth(hatID)
+			if hatHealth and health and maxHealth and hatMaxHealth then
+				Spring.SetUnitHealth(hatID, (health / maxHealth) * hatMaxHealth)
+			end
 		end
 	end
 end
@@ -848,12 +860,19 @@ end
 -- also cloak hat
 function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
-		Spring.SetUnitCloak(unitsWearingHats[unitID], 1)
+		Spring.Echo(unitsWearingHats[unitID])
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			Spring.Echo(hatID)
+			Spring.SetUnitCloak(hatID, 1)
+		end
 	end
 end
 
 function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
-		Spring.SetUnitCloak(unitsWearingHats[unitID], 0)
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			Spring.Echo(hatID)
+			Spring.SetUnitCloak(hatID, 0)
+		end
 	end
 end
