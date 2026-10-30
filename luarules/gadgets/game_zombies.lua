@@ -135,6 +135,7 @@ local tooLong = false
 local adjustedRezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[1]
 local factoryBuildpowerMultiplier = 1
 local currentTechLevel = nil
+local STAGE_CLOCK = { RUNNING = 0, HELD = 1, ACCELERATING = 2, DONE = 3 }
 local stageMinutes = 0
 local stageClockState = STAGE_CLOCK.RUNNING
 local stageClockLastMinutes = 0
@@ -206,7 +207,6 @@ local STAGES = {
 		},
 	},
 }
-local STAGE_CLOCK = { RUNNING = 0, HELD = 1, ACCELERATING = 2, DONE = 3 }
 
 local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
 local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
