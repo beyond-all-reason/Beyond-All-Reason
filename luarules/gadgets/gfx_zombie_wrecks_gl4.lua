@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Zombie Wrecks GL4",
-		desc = "Draws the purple puff, warning flashes, and descending specter on wrecks that will rise as zombies",
+		desc = "Draws the special effects around zombie wrecks, and plays sounds",
 		author = "efrec",
 		date = "October 2026",
 		license = "GNU GPL, v2 or later",
@@ -15,8 +15,8 @@ end
 local RULESPARAM_ENABLED = "zombies_enabled"
 
 if gadgetHandler:IsSyncedCode() then
-	local zombiesPossible = Spring.GetModOptions().zombies ~= "disabled" or (GG.Zombies and GG.Zombies.IdleMode == true)
-	if not zombiesPossible then
+	local maybeZombies = Spring.GetModOptions().zombies ~= "disabled" or (GG.Zombies and GG.Zombies.IdleMode == true)
+	if not maybeZombies then
 		return false
 	end
 
@@ -54,6 +54,8 @@ local hasShaders = gl.CreateShader ~= nil
 -- Configuration
 --------------------------------------------------------------------------------
 
+local gameSpeed = Game.gameSpeed
+
 local SMOKE_TEXTURE = "bitmaps/atmos/smoke_puff.tga"
 local SMOKE_COLOR = { 0.6, 0.36, 0.76 }
 
@@ -63,16 +65,16 @@ local SMOKE_LINGER_FRAMES = 9
 local SMOKE_START_DISTANCE_SCALE = 0.67
 local SMOKE_COUNT_S_CURVE_BLEND = 0.35
 local SMOKE_SILENT_START_FRACTION = 0.125
-local FRAMES_PER_SECOND = Game.gameSpeed
-local SMOKE_HOLD_FRAMES_AFTER_PUSHBACK = FRAMES_PER_SECOND
+local SMOKE_HOLD_FRAMES_AFTER_PUSHBACK = gameSpeed
 local PUFF_SPRITE_COUNT = 6
-local PUFF_FRAMES = FRAMES_PER_SECOND * 2
+local PUFF_FRAMES = gameSpeed * 2
 
 local FLASH_COUNT = 10
 local FLASH_LIGHTNING_SIZE = 0.5
+local FLASH_LIGHTNING_INTENSITY = 0.75
 local LIGHTNING_SMALL_WRECK_SCALE = 0.7
 local LIGHTNING_FULL_SIZE_WRECK_RADIUS = 40
-local SMOKE_FINISH_FRAMES_BEFORE_RISE = FRAMES_PER_SECOND * 2
+local SMOKE_FINISH_FRAMES_BEFORE_RISE = gameSpeed * 2
 local STRIKE_COUNT = 3
 local STRIKE_INTERVAL_FRAMES = 12
 ---@type string[]
@@ -121,8 +123,7 @@ local popElementInstance = InstanceVBOTable.popElementInstance
 local localAllyTeamID = spGetLocalAllyTeamID()
 local fullView = false
 
----@type table<FeatureID, table?>
-local wrecks = {}
+local wrecks = {} ---@type table<FeatureID, table?>
 
 local shader ---@type LuaShader?
 local spriteVBO ---@type InstanceVBOTable?
@@ -312,14 +313,14 @@ end
 local function ignoreWreckSprite() end
 
 local function removeWreckSpriteInstance(featureID)
-	---@cast spriteVBO -?
+	---@cast spriteVBO -nil
 	if spriteVBO.instanceIDtoIndex[featureID] then
 		popElementInstance(spriteVBO, featureID)
 	end
 end
 
 local function updateWreckSpriteInstance(featureID, wreck)
-	---@cast spriteVBO -?
+	---@cast spriteVBO -nil
 	if wreck.settleFrame and isWreckShown(wreck) then
 		pushElementInstance(spriteVBO, {
 			wreck.x,
@@ -364,7 +365,8 @@ local function spawnLightningFlash(wreck)
 		wreck.x,
 		wreck.y,
 		wreck.z,
-		FLASH_LIGHTNING_SIZE * wreck.lightningScale
+		FLASH_LIGHTNING_SIZE * wreck.lightningScale,
+		FLASH_LIGHTNING_INTENSITY * wreck.lightningScale
 	)
 end
 
@@ -373,7 +375,14 @@ local function spawnBillboardFlash(wreck)
 end
 
 local function spawnLightningStrike(wreck)
-	GG.SpawnEnvironmentalLightning("zombiestrike", wreck.x, wreck.y, wreck.z, wreck.lightningScale)
+	GG.SpawnEnvironmentalLightning(
+		"zombiestrike",
+		wreck.x,
+		wreck.y,
+		wreck.z,
+		FLASH_LIGHTNING_SIZE * wreck.lightningScale,
+		FLASH_LIGHTNING_INTENSITY * wreck.lightningScale
+	)
 end
 
 local function spawnBillboardStrike(wreck)
@@ -445,8 +454,8 @@ local function updateWreck(featureID, wreck, frame)
 	local changed = false
 	if not wreck.settleFrame then
 		local velocityX, velocityY, velocityZ = spGetFeatureVelocity(featureID)
-		---@cast velocityY -?
-		---@cast velocityZ -?
+		---@cast velocityY -nil
+		---@cast velocityZ -nil
 		if
 			not velocityX
 			or velocityX * velocityX + velocityY * velocityY + velocityZ * velocityZ < SETTLED_SPEED_SQUARED
@@ -624,8 +633,8 @@ local function drawBillboards()
 end
 
 local function drawWreckSpriteInstances()
-	---@cast spriteVBO -?
-	---@cast shader -?
+	---@cast spriteVBO -nil
+	---@cast shader -nil
 	if spriteVBO.usedElements == 0 then
 		return
 	end
@@ -678,7 +687,6 @@ function gadget:Initialize()
 	local _, isFullView = spGetSpectatingState()
 	fullView = isFullView
 
-	-- After a reload, the rise frame is all that survives, so the specter restarts from now.
 	local frame = spGetGameFrame()
 	for _, featureID in ipairs(Spring.GetAllFeatures()) do
 		local riseFrame = spGetFeatureRulesParam(featureID, "zombie_rez_frame")
