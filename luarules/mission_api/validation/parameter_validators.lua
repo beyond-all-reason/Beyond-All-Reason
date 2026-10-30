@@ -374,7 +374,7 @@ local function registerValueValidators(parameterValidators, context)
 end
 
 --------------------------------------------------------------------------------
--- Spatial validators: Position, Positions, Area and Direction
+-- Spatial validators: Position, Positions, Area, Direction and FacingOrDirection
 --------------------------------------------------------------------------------
 
 -- Height is optional, so a position without y is only checked for x and z.
@@ -486,6 +486,18 @@ local function registerSpatialValidators(parameterValidators, context)
 
 		local angleResult = validateField(direction.angle, "angle", "number")
 		return angleResult and { angleResult } or nil
+	end
+
+	--- One of the four facings, or a direction for any angle.
+	parameterValidators[Types.FacingOrDirection] = function(value)
+		local valueType = type(value)
+		if valueType == "table" then
+			return parameterValidators[Types.Direction](value)
+		end
+		if valueType ~= "string" and valueType ~= "number" then
+			return { { message = "Unexpected parameter type, expected string, number or table, got " .. valueType } }
+		end
+		return parameterValidators[Types.Facing](value)
 	end
 end
 
@@ -804,18 +816,11 @@ local function registerLoadoutValidators(parameterValidators, context)
 
 	local featureEntryFields = {
 		{ name = "featureDefName", type = Types.FeatureDefName, required = true },
-		{ name = "facing", type = Types.Facing },
-		{ name = "direction", type = Types.Direction },
+		{ name = "facing", type = Types.FacingOrDirection },
 		{ name = "featureName", type = Types.String },
 	}
 
-	local function validateFeatureEntry(entry, results)
-		if entry.facing ~= nil and entry.direction ~= nil then
-			results[#results + 1] = { message = "Invalid feature entry, can have facing or direction, not both" }
-		end
-	end
-
-	local function getEntryValidator(fields, validateEntry)
+	local function getEntryValidator(fields)
 		return function(entry)
 			local entryTypeResult = validateTableType(entry)
 			if entryTypeResult then
@@ -837,17 +842,12 @@ local function registerLoadoutValidators(parameterValidators, context)
 				end
 			end
 
-			if validateEntry then
-				validateEntry(entry, results)
-			end
-
 			return results
 		end
 	end
 
 	parameterValidators[Types.UnitLoadout] = getListValidator(getEntryValidator(unitEntryFields))
-	parameterValidators[Types.FeatureLoadout] =
-		getListValidator(getEntryValidator(featureEntryFields, validateFeatureEntry))
+	parameterValidators[Types.FeatureLoadout] = getListValidator(getEntryValidator(featureEntryFields))
 end
 
 --------------------------------------------------------------------------------

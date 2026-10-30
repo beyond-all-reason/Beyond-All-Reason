@@ -168,8 +168,8 @@ local function spawnFeatureLoadout(featureLoadout)
 	for _, feature in ipairs(featureLoadout or {}) do
 		feature.y = Spring.GetGroundHeight(feature.x, feature.z)
 		local heading, facing
-		if feature.direction then
-			heading = directionToHeading(feature, feature.direction)
+		if type(feature.facing) == "table" then
+			heading = directionToHeading(feature, feature.facing)
 			facing = BAR.Utilities.HeadingToFacing(heading) -- resurrection only takes one of the four facings
 		else
 			facing = feature.facing or 0

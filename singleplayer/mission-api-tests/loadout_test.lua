@@ -64,7 +64,7 @@ local actions = {
 			messageKey = 'Loadout test: pre-spawned units and features are live. ' ..
 			          'Player con has an initial patrol order from loadout. ' ..
 			          'The wreck (featureName="the-wreck") will be destroyed. ' ..
-			          'The wreck east of it faces east-northeast (direction angle 60).',
+			          'The wreck east of it faces east-northeast (facing angle 60).',
 		},
 	},
 
@@ -111,7 +111,7 @@ local actions = {
 		parameters = {
 			featureLoadout = {
 				{ featureDefName = 'corak_dead', x = 1800, z = 1750, facing = 's', featureName = 'reinforcement-wreck' },
-				{ featureDefName = 'corak_dead', x = 2000, z = 1700, direction = { x = 1900, z = 1700 } },
+				{ featureDefName = 'corak_dead', x = 2000, z = 1700, facing = { x = 1900, z = 1700 } },
 			},
 		},
 	},
@@ -120,7 +120,7 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = 'Reinforcements spawned via SpawnUnits + CreateFeatures. Con tracked as "reinforcement-con", wreck as "reinforcement-wreck". ' ..
-			          'The wreck east of the con faces it (direction to a point).',
+			          'The wreck east of the con faces it (facing a point).',
 		},
 	},
 
@@ -179,7 +179,7 @@ local unitLoadout    = {
 
 local featureLoadout = {
 	{ featureDefName = 'corak_dead',  x = 1900, z = 1800, facing = 's', featureName = 'the-wreck' },
-	{ featureDefName = 'corak_dead',  x = 2000, z = 1800, direction = { angle = 60 } },
+	{ featureDefName = 'corak_dead',  x = 2000, z = 1800, facing = { angle = 60 } },
 	{ featureDefName = 'armfus_dead', x = 1900, z = 2000, facing = 'e' },
 }
 
