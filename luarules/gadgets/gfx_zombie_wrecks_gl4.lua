@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Zombie Wrecks GL4",
@@ -61,17 +63,19 @@ local SMOKE_LINGER_FRAMES = 9
 local SMOKE_START_DISTANCE_SCALE = 0.67
 local SMOKE_COUNT_S_CURVE_BLEND = 0.35
 local SMOKE_SILENT_START_FRACTION = 0.125
-local SMOKE_HOLD_FRAMES_AFTER_PUSHBACK = Game.gameSpeed
+local FRAMES_PER_SECOND = Game.gameSpeed
+local SMOKE_HOLD_FRAMES_AFTER_PUSHBACK = FRAMES_PER_SECOND
 local PUFF_SPRITE_COUNT = 6
-local PUFF_FRAMES = Game.gameSpeed * 2
+local PUFF_FRAMES = FRAMES_PER_SECOND * 2
 
 local FLASH_COUNT = 10
 local FLASH_LIGHTNING_SIZE = 0.5
 local LIGHTNING_SMALL_WRECK_SCALE = 0.7
 local LIGHTNING_FULL_SIZE_WRECK_RADIUS = 40
-local SMOKE_FINISH_FRAMES_BEFORE_RISE = Game.gameSpeed * 2
+local SMOKE_FINISH_FRAMES_BEFORE_RISE = FRAMES_PER_SECOND * 2
 local STRIKE_COUNT = 3
 local STRIKE_INTERVAL_FRAMES = 12
+---@type string[]
 local THUNDER_SOUNDS = {
 	"sounds/atmos/thunder1.wav",
 	"sounds/atmos/thunder2.wav",
@@ -120,12 +124,15 @@ local fullView = false
 ---@type table<FeatureID, table?>
 local wrecks = {}
 
-local shader
----@type InstanceVBOTable?
-local spriteVBO
-local billboardBolts = {}
+local shader ---@type LuaShader?
+local spriteVBO ---@type InstanceVBOTable?
+local billboardBolts = {} ---@type table[]
 
-local updateWreckSprites, removeWreckSprite, drawWrecks, spawnFlash, spawnStrike
+local updateWreckSprites ---@type fun(featureID: FeatureID, wreck: table)
+local removeWreckSprite ---@type fun(featureID: FeatureID)
+local drawWrecks ---@type fun()
+local spawnFlash ---@type fun(wreck: table)
+local spawnStrike ---@type fun(wreck: table)
 local flashesPerWreck, strikesPerWreck = FLASH_COUNT, STRIKE_COUNT
 
 --------------------------------------------------------------------------------
@@ -244,8 +251,8 @@ local function makeSpriteCornerVBO()
 			vertexData[#vertexData + 1] = spriteIndex
 		end
 	end
-	local vertexCount = #vertexData / 3
-	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
+	local vertexCount = #corners * (SMOKE_SPRITE_COUNT + PUFF_SPRITE_COUNT)
+	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true) --[[@as VBO]]
 	vbo:Define(vertexCount, { { id = 0, name = "corner_index", size = 3 } })
 	vbo:Upload(vertexData)
 	return vbo, vertexCount
@@ -253,18 +260,22 @@ end
 
 local function initGL4()
 	local cornerVBO, vertexCount = makeSpriteCornerVBO()
-	spriteVBO = InstanceVBOTable.makeInstanceVBOTable({
+	local instanceTable = InstanceVBOTable.makeInstanceVBOTable({
 		{ id = 1, name = "wreck_position", size = 4 },
 		{ id = 2, name = "frames", size = 4 },
 		{ id = 3, name = "hold_until_frame", size = 4 },
 	}, 64, "gfx_zombie_wrecks_gl4")
-	spriteVBO.vertexVBO = cornerVBO
-	spriteVBO.numVertices = vertexCount
-	spriteVBO.VAO = InstanceVBOTable.fillVAOSlots(
-		InstanceVBOTable.makeVAOandAttach(spriteVBO.vertexVBO, spriteVBO.instanceVBO),
+	if not instanceTable then
+		return false
+	end
+	instanceTable.vertexVBO = cornerVBO
+	instanceTable.numVertices = vertexCount
+	instanceTable.VAO = InstanceVBOTable.fillVAOSlots(
+		InstanceVBOTable.makeVAOandAttach(instanceTable.vertexVBO, instanceTable.instanceVBO),
 		false,
 		true
 	)
+	spriteVBO = instanceTable
 
 	local defines = table.concat({
 		"#define SMOKE_SPRITE_COUNT " .. string.format("%.1f", SMOKE_SPRITE_COUNT),
@@ -301,12 +312,14 @@ end
 local function ignoreWreckSprite() end
 
 local function removeWreckSpriteInstance(featureID)
+	---@cast spriteVBO -?
 	if spriteVBO.instanceIDtoIndex[featureID] then
 		popElementInstance(spriteVBO, featureID)
 	end
 end
 
 local function updateWreckSpriteInstance(featureID, wreck)
+	---@cast spriteVBO -?
 	if wreck.settleFrame and isWreckShown(wreck) then
 		pushElementInstance(spriteVBO, {
 			wreck.x,
@@ -382,8 +395,8 @@ local function strikeWreck(wreck, playsThunder)
 	spawnStrike(wreck)
 	local volumeScale = thunderVolumeScale(wreck)
 	if playsThunder and math.random() < volumeScale then
-		local sound = THUNDER_SOUNDS[math.random(#THUNDER_SOUNDS)]
-		Spring.PlaySoundFile(sound, THUNDER_VOLUME * volumeScale, wreck.x, wreck.y, wreck.z, "sfx")
+		local sound = THUNDER_SOUNDS[math.random(#THUNDER_SOUNDS)] --[[@as string]]
+		Spring.PlaySoundFile(sound, THUNDER_VOLUME * volumeScale, wreck.x, wreck.y, wreck.z, 0)
 	end
 end
 
@@ -432,6 +445,8 @@ local function updateWreck(featureID, wreck, frame)
 	local changed = false
 	if not wreck.settleFrame then
 		local velocityX, velocityY, velocityZ = spGetFeatureVelocity(featureID)
+		---@cast velocityY -?
+		---@cast velocityZ -?
 		if
 			not velocityX
 			or velocityX * velocityX + velocityY * velocityY + velocityZ * velocityZ < SETTLED_SPEED_SQUARED
@@ -511,7 +526,7 @@ local function smokeCountFraction(wreck, frame)
 		return 0
 	end
 	local finishFrame = wreck.riseFrame - SMOKE_FINISH_FRAMES_BEFORE_RISE
-	local progress = math.min(1, math.max(0, (frame - wreck.armFrame) / math.max(finishFrame - wreck.armFrame, 1)))
+	local progress = math.min(1.0, math.max(0.0, (frame - wreck.armFrame) / math.max(finishFrame - wreck.armFrame, 1)))
 	local smokeTimerProgress =
 		math.min(1, math.max(0, (progress - SMOKE_SILENT_START_FRACTION) / (1 - SMOKE_SILENT_START_FRACTION)))
 	local smoothed = smokeTimerProgress * smokeTimerProgress * (3 - 2 * smokeTimerProgress)
@@ -534,7 +549,7 @@ local function drawBillboardSmoke(wreck, frame)
 		local loopPosition = (frame - wreck.armFrame) / loopFrames + phaseRandom
 		local loopIndex = math.floor(loopPosition)
 		local loopFrame = (loopPosition - loopIndex) * loopFrames
-		local loopAge = math.min(loopFrame / SMOKE_LIFE_FRAMES, 1)
+		local loopAge = math.min(loopFrame / SMOKE_LIFE_FRAMES, 1.0)
 		local linger = math.max(loopFrame - SMOKE_LIFE_FRAMES, 0) / SMOKE_LINGER_FRAMES
 		local loopEndsBeforeFinish = frame - loopFrame <= finishFrame - loopFrames
 		if spriteIndex < particleCount and frame >= wreck.armFrame and loopEndsBeforeFinish then
@@ -609,6 +624,8 @@ local function drawBillboards()
 end
 
 local function drawWreckSpriteInstances()
+	---@cast spriteVBO -?
+	---@cast shader -?
 	if spriteVBO.usedElements == 0 then
 		return
 	end
@@ -617,7 +634,8 @@ local function drawWreckSpriteInstances()
 	gl.DepthTest(GL.LEQUAL)
 	gl.DepthMask(false)
 	shader:Activate()
-	spriteVBO.VAO:DrawArrays(GL.TRIANGLES, spriteVBO.numVertices, 0, spriteVBO.usedElements, 0)
+	local vao = spriteVBO.VAO --[[@as VAO]]
+	vao:DrawArrays(GL.TRIANGLES, spriteVBO.numVertices, 0, spriteVBO.usedElements, 0)
 	shader:Deactivate()
 	gl.DepthMask(true)
 	gl.DepthTest(false)
