@@ -76,8 +76,8 @@ return {
   `api_missions_triggers.lua` runs your handler once per trigger of your type; it does not filter for you.
 - **Never fire actions yourself.** Call `context.ActivateTrigger(trigger)`; it enforces `active`, `prerequisites`,
   `stages`, `repeating`/`maxRepeats`, and `difficulties`, and returns `false` when the trigger was not eligible.
-- `context` is the only sanctioned way to reach shared bookkeeping (`DoesUnitHaveName`, `GetUnitsInArea`,
-  `PreviousUnitsInAreas`, `ConstructionState`, `IsBuildFrameOwner`, …). Extend `triggerContext` rather than reaching
+- `context` is the only sanctioned way to reach shared bookkeeping (`DoesUnitHaveName`, `DwellingUnitsInAreas`,
+  `ConstructionState`, `IsBuildFrameOwner`, …). Extend `triggerContext` rather than reaching
   into gadget locals or duplicating state per trigger.
 - The call-in key must be one `api_missions_triggers.lua` already forwards — an engine call-in or a synthetic
   dispatch (e.g. `DetectionUpdate`, `CountdownTick`, `CountdownEnded`). If it is not forwarded yet, add the gadget

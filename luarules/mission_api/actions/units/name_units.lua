@@ -23,12 +23,7 @@ local function nameUnits(unitName, teamID, unitDefName, area)
 		end
 	end
 
-	local unitsInArea = {}
-	if area and area.x1 and area.z1 and area.x2 and area.z2 then
-		unitsInArea = Spring.GetUnitsInRectangle(area.x1, area.z1, area.x2, area.z2, teamID)
-	elseif area and area.x and area.z and area.radius then
-		unitsInArea = Spring.GetUnitsInCylinder(area.x, area.z, area.radius, teamID)
-	end
+	local unitsInArea = area and GG['MissionAPI'].Modules.AreaTracking.GetUnitsInArea(area, teamID) or {}
 
 	local unitsToName = {}
 	if hasFilterOtherThanTeamID then

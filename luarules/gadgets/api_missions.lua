@@ -125,6 +125,7 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].Modules.UnitMarkers = VFS.Include("luarules/mission_api/unit_markers.lua")
 	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 	GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
+	GG["MissionAPI"].Modules.AreaTracking = VFS.Include("luarules/mission_api/area_tracking.lua")
 
 	objectivesController = VFS.Include("luarules/mission_api/objectives_loader.lua")
 	stagesController = VFS.Include("luarules/mission_api/stages_loader.lua")
@@ -185,6 +186,7 @@ function gadget:GameFrame(frameNumber)
 	end
 
 	GG["MissionAPI"].Modules.Sounds.ProcessSoundQueue(frameNumber)
+	GG["MissionAPI"].Modules.AreaTracking.UpdateTrackedAreas()
 end
 
 function gadget:GameOver()
