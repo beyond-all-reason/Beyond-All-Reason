@@ -55,7 +55,6 @@ local hasShaders = gl.CreateShader ~= nil
 local SMOKE_TEXTURE = "bitmaps/atmos/smoke_puff.tga"
 local SMOKE_COLOR = { 0.6, 0.36, 0.76 }
 
-local SPECTER_STYLE = Spring.GetConfigString("ZombieSpecterStyle", "indrawn")
 local SMOKE_SPRITE_COUNT = 28
 local SMOKE_LIFE_FRAMES = 50
 local SMOKE_LINGER_FRAMES = 9
@@ -184,19 +183,11 @@ void main() {
 		if (spriteIndex < smokeParticleCount && frame >= armFrame && loopEndsBeforeFinish) {
 			float angle = angleRandom * 6.2832;
 			float wreckScale = clamp(wreckRadius / 20.0, 0.6, 2.2);
-			vec3 endPosition = vec3(cos(angle + 2.1) * wreckRadius * 0.35 * heightRandom, 3.0 + wreckRadius * 0.4 * distanceRandom, sin(angle + 2.1) * wreckRadius * 0.35 * heightRandom);
-			vec3 startPosition;
-			float drawnInFraction;
-			#if SPECTER_STYLE == 1
-				float startDistance = (wreckRadius + 30.0 * distanceRandom) * SMOKE_START_DISTANCE_SCALE;
-				startPosition = vec3(cos(angle) * startDistance, 45.0 + 45.0 * heightRandom, sin(angle) * startDistance) * wreckScale;
-				drawnInFraction = pow(loopAge, 1.4);
-			#else
-				float startDistance = (wreckRadius * 1.5 + 50.0 * distanceRandom) * SMOKE_START_DISTANCE_SCALE;
-				startPosition = vec3(cos(angle) * startDistance, 2.0, sin(angle) * startDistance) * wreckScale;
-				drawnInFraction = pow(loopAge, 1.2);
-				endPosition.y = 2.0 + wreckRadius * 0.3 * distanceRandom;
-			#endif
+			float endDistance = wreckRadius * 0.35 * heightRandom;
+			vec3 endPosition = vec3(cos(angle + 2.1) * endDistance, 3.0 + wreckRadius * 0.4 * distanceRandom, sin(angle + 2.1) * endDistance);
+			float startDistance = (wreckRadius + 30.0 * distanceRandom) * SMOKE_START_DISTANCE_SCALE;
+			vec3 startPosition = vec3(cos(angle) * startDistance, 45.0 + 45.0 * heightRandom, sin(angle) * startDistance) * wreckScale;
+			float drawnInFraction = pow(loopAge, 1.4);
 			vec3 wobble = vec3(sin(frame * 0.09 + phaseRandom * 6.0), 0.0, cos(frame * 0.07 + angleRandom * 6.0)) * 3.0 * (1.0 - loopAge);
 			center += mix(startPosition, endPosition, drawnInFraction) + wobble;
 			float possession = smoothstep(0.7, 1.0, progress);
@@ -283,7 +274,6 @@ local function initGL4()
 		"#define SMOKE_COUNT_S_CURVE_BLEND " .. string.format("%.2f", SMOKE_COUNT_S_CURVE_BLEND),
 		"#define SMOKE_SILENT_START_FRACTION " .. string.format("%.3f", SMOKE_SILENT_START_FRACTION),
 		"#define SMOKE_FINISH_FRAMES_BEFORE_RISE " .. string.format("%.1f", SMOKE_FINISH_FRAMES_BEFORE_RISE),
-		"#define SPECTER_STYLE " .. (SPECTER_STYLE == "seep" and "2" or "1"),
 		"#define PUFF_SPRITE_COUNT " .. string.format("%.1f", PUFF_SPRITE_COUNT),
 		"#define PUFF_FRAMES " .. string.format("%.1f", PUFF_FRAMES),
 		string.format("#define SMOKE_COLOR vec3(%.3f, %.3f, %.3f)", SMOKE_COLOR[1], SMOKE_COLOR[2], SMOKE_COLOR[3]),
