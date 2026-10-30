@@ -913,7 +913,7 @@ describe("mission_api.validation.parameter_validators", function()
 		)
 	end)
 
-	it("rejects the wait commands that only work from the UI", function()
+	it("rejects the wait commands that only work for a player's selected units", function()
 		local result = validateOrders({
 			{ V.env.CMD.TIMEWAIT, { 5 } },
 			{ V.env.CMD.DEATHWAIT },
@@ -924,43 +924,50 @@ describe("mission_api.validation.parameter_validators", function()
 		for index, commandName in ipairs({ "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
 			local message = "Command "
 				.. commandName
-				.. " is dropped when a mission gives it, it only works from the UI. Action: a, Parameter: orders["
+				.. " is dropped when a mission gives it, it only works for a player's selected units."
+				.. " Action: a, Parameter: orders["
 				.. index
 				.. "][1]"
 			assert.is_true(table.contains(result.errors, message), "expected error: " .. message)
 		end
 	end)
 
-	it("accepts REPEAT 0 or 1, bare or in a table", function()
-		V.assertNoMessageContaining(
-			validateOrders({
-				{ V.env.CMD.REPEAT, 0 },
-				{ V.env.CMD.REPEAT, 1 },
-				{ V.env.CMD.REPEAT, { 0 } },
-				{ V.env.CMD.REPEAT, { 1 } },
-			}),
-			"Parameter: orders"
-		)
-	end)
+	for _, commandName in ipairs({ "CLOAK", "ONOFF", "REPEAT" }) do
+		it("accepts " .. commandName .. " 0 or 1, bare or in a table", function()
+			local commandID = V.env.CMD[commandName]
 
-	it("rejects REPEAT without a parameter, or with one other than 0 or 1", function()
-		local result = validateOrders({
-			{ V.env.CMD.REPEAT },
-			{ V.env.CMD.REPEAT, {} },
-			{ V.env.CMD.REPEAT, 2 },
-			{ V.env.CMD.REPEAT, { 2 } },
-			{ V.env.CMD.REPEAT, { 1, 1 } },
-		})
-
-		for index = 1, 5 do
-			V.assertMessage(
-				result,
-				"Parameter must be 0 (off) or 1 (on), as a number or {0} / {1}. Action: a, Parameter: orders["
-					.. index
-					.. "][2]"
+			V.assertNoMessageContaining(
+				validateOrders({
+					{ commandID, 0 },
+					{ commandID, 1 },
+					{ commandID, { 0 } },
+					{ commandID, { 1 } },
+				}),
+				"Parameter: orders"
 			)
-		end
-	end)
+		end)
+
+		it("rejects " .. commandName .. " without a parameter, or with one other than 0 or 1", function()
+			local commandID = V.env.CMD[commandName]
+			local result = validateOrders({
+				{ commandID },
+				{ commandID, {} },
+				{ commandID, 2 },
+				{ commandID, { 2 } },
+				{ commandID, { 1, 1 } },
+				{ commandID, "1" },
+			})
+
+			for index = 1, 6 do
+				V.assertMessage(
+					result,
+					"Parameter must be 0 (off) or 1 (on), as a number or {0} / {1}. Action: a, Parameter: orders["
+						.. index
+						.. "][2]"
+				)
+			end
+		end)
+	end
 
 	it("rejects AREA_ATTACK without a radius", function()
 		V.assertMessage(

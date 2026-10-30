@@ -584,8 +584,7 @@ local function validateNoParams(params, results)
 	end
 end
 
--- The engine refuses REPEAT without a parameter or with a value other than 0 or 1.
-local function validateRepeatParam(params, results)
+local function validateOnOffParam(params, results)
 	local value = params
 	if type(params) == "table" and #params == 1 then
 		value = params[1]
@@ -595,12 +594,15 @@ local function validateRepeatParam(params, results)
 	end
 end
 
--- The UI turns the wait commands other than WAIT into WAIT orders. A unit given one directly drops it.
+-- The engine's selected units handler passes these to WaitCommandsAI on the player's client, which
+-- gives the selected units WAIT orders. A unit given one with GiveOrderToUnit drops it without waiting.
 local function getUIOnlyValidator(commandName)
 	return function(_, results)
 		addResult(
 			results,
-			"Command " .. commandName .. " is dropped when a mission gives it, it only works from the UI",
+			"Command "
+				.. commandName
+				.. " is dropped when a mission gives it, it only works for a player's selected units",
 			"[1]"
 		)
 	end
@@ -635,9 +637,12 @@ local validateBuildOrder =
 local validatorsByCommandName = {
 	-- No parameters:
 	STOP = validateNoParams,
-	-- SELFD and WAIT are toggles: a second one cancels the first.
-	SELFD = validateNoParams,
-	WAIT = validateNoParams,
+	SELFD = validateNoParams, -- a toggle: a second SELFD cancels the first
+	WAIT = validateNoParams, -- a toggle: a second WAIT cancels the first
+	-- 0 (off) or 1 (on):
+	CLOAK = validateOnOffParam,
+	ONOFF = validateOnOffParam,
+	REPEAT = validateOnOffParam,
 	-- UI only:
 	TIMEWAIT = getUIOnlyValidator("TIMEWAIT"),
 	DEATHWAIT = getUIOnlyValidator("DEATHWAIT"),
@@ -669,11 +674,8 @@ local validatorsByCommandName = {
 	-- 4 number parameters, or either unit or feature name:
 	RECLAIM = validate4orEitherName,
 	-- Single number parameter:
-	CLOAK = validateNumberParam,
-	ONOFF = validateNumberParam,
 	FIRE_STATE = validateNumberParam,
 	MOVE_STATE = validateNumberParam,
-	REPEAT = validateRepeatParam,
 }
 
 local function validateOrderOptions(options, results)
