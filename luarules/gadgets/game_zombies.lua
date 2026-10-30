@@ -179,21 +179,21 @@ local STAGES = {
 	tiers = {
 		{
 			name = "paper",
-			topPower = 360,
+			topPower = 400,
 			rezWindow = { { 0, 45, 120 }, { 100, 8, 18 } },
 			spawnCounts = { { 0, 2, 6 }, { 45, 5, 20 }, { 100, 2, 6 } },
 			veterancy = { { 0, 0 }, { 29, 0.15 }, { 45, 1 } },
 		},
 		{
 			name = "mid",
-			topPower = 2850,
+			topPower = 3000,
 			rezWindow = { { 0, 50, 135 }, { 23, 32, 82 }, { 100, 14, 28 } },
 			spawnCounts = { { 0, 2, 6 }, { 62, 4, 14 }, { 100, 2, 10 } },
 			veterancy = { { 0, 0 }, { 23, 0 }, { 57, 0.5 }, { 77, 1 } },
 		},
 		{
 			name = "massive",
-			topPower = 39250,
+			topPower = 40000,
 			rezWindow = { { 0, 60, 200 }, { 62, 43, 123 }, { 100, 25, 45 } },
 			spawnCounts = { { 0, 2, 6 }, { 100, 5, 20 } },
 			veterancy = { { 0, 0 }, { 62, 0 }, { 86, 1 } },
