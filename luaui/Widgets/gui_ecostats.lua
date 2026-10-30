@@ -796,7 +796,7 @@ local function makeTeamCompositionList()
 		end
 		uiBgTex = gl.CreateTexture(texWidth, texHeight, {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		if uiTex then
@@ -804,7 +804,7 @@ local function makeTeamCompositionList()
 		end
 		uiTex = gl.CreateTexture(texWidth, texHeight, {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 	end
