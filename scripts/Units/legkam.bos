@@ -144,6 +144,7 @@ AimWeapon1(heading, pitch)
 		height = dist * slope;
 	}
 
+	// Use the actual projectile trajectory for the tolerance checks.
 	vy = climb / 64;
 	vh = (get CURRENT_SPEED) / 64;
 	vh = get SQRT(get MAX(vh * vh - vy * vy, 1));
@@ -154,7 +155,6 @@ AimWeapon1(heading, pitch)
 		return (FALSE); // target is too high
 	}
 	reach = vh * (vy + (get SQRT(falling))) / gravity;
-
 	return (releasePitchTolerance >= (get ABS((get ATAN(height, reach)) + pitch + nose)));
 }
 
