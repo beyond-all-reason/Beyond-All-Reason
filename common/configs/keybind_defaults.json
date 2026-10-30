@@ -141,10 +141,6 @@
 					"action": "selectbox_mobile"
 				},
 				{
-					"keyset": "Any+ctrl",
-					"action": "selectloop_invert"
-				},
-				{
 					"keyset": "Any+space",
 					"action": "buildsplit"
 				},
@@ -1361,10 +1357,6 @@
 					"action": "selectbox_mobile"
 				},
 				{
-					"keyset": "Any+ctrl",
-					"action": "selectloop_invert"
-				},
-				{
 					"keyset": "Any+space",
 					"action": "buildsplit"
 				},
@@ -2575,10 +2567,6 @@
 				{
 					"keyset": "Any+alt",
 					"action": "selectbox_mobile"
-				},
-				{
-					"keyset": "Any+ctrl",
-					"action": "selectloop_invert"
 				},
 				{
 					"keyset": "Any+space",
@@ -4247,10 +4235,6 @@
 				{
 					"keyset": "Any+alt",
 					"action": "selectbox_mobile"
-				},
-				{
-					"keyset": "Any+ctrl",
-					"action": "selectloop_invert"
 				},
 				{
 					"keyset": "Any+space",

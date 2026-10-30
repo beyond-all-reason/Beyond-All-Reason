@@ -3,6 +3,7 @@
 	"display_name": "Loop Select",
 	"keybindings": [
 		{ "action": "selectloop", "label": "actions.activate", "alwaysModifier": "any", "defaultKeysets": ["space"] },
-		{ "action": "selectloop_add", "label": "actions.add", "alwaysModifier": "any", "defaultKeysets": ["shift"] }
+		{ "action": "selectloop_add", "label": "actions.add", "alwaysModifier": "any", "defaultKeysets": ["shift"] },
+		{ "action": "selectloop_deselect", "label": "actions.deselect", "alwaysModifier": "any", "defaultKeysets": ["ctrl"] }
 	]
 }
