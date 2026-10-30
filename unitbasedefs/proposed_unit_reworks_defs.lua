@@ -226,6 +226,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 	if name == "armmex" or name == "cormex" or name == "legmex" then
 		uDef.energycost = uDef.energycost + 100
+		uDef.buildtime = 2000
 	end
 
 	if
