@@ -16,7 +16,7 @@ function gadget:GetInfo()
 	}
 end
 
-local DEBUG = true
+local DEBUG = false
 
 function gadget:GameID(gameID)
 	-- make sure gameID is a string because i'm not actually sure
@@ -770,13 +770,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
 		for _, hatID in pairs(unitsWearingHats[unitID]) do
 			if DEBUG then
-				Spring.Echo(
-					"A hat wearing unit was given, destroying hat",
-					unitID,
-					unitDefID,
-					unitTeam,
-					hatID
-				)
+				Spring.Echo("A hat wearing unit was given, destroying hat", unitID, unitDefID, unitTeam, hatID)
 			end
 			Spring.DestroyUnit(hatID)
 		end
@@ -860,9 +854,13 @@ end
 -- also cloak hat
 function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
-		Spring.Echo(unitsWearingHats[unitID])
+		if DEBUG then
+			Spring.Echo(unitsWearingHats[unitID])
+		end
 		for _, hatID in pairs(unitsWearingHats[unitID]) do
-			Spring.Echo(hatID)
+			if DEBUG then
+				Spring.Echo(hatID)
+			end
 			Spring.SetUnitCloak(hatID, 1)
 		end
 	end
@@ -871,7 +869,9 @@ end
 function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
 		for _, hatID in pairs(unitsWearingHats[unitID]) do
-			Spring.Echo(hatID)
+			if DEBUG then
+				Spring.Echo(hatID)
+			end
 			Spring.SetUnitCloak(hatID, 0)
 		end
 	end
