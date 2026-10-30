@@ -278,7 +278,7 @@ describe("widget defaults made for one layout", function()
 
 	it("stay with the layout a profile was made from when the player compares it with another", function()
 		local writes = {}
-		local store = Json.encode({ version = 2, active = "Mine", profiles = { { name = "Mine", basedOn = SMALL, binds = {} } } })
+		local store = ownStore({ name = "Mine", basedOn = SMALL, binds = {} })
 		run({ [STORE] = store, [KEYMAP] = false }, writes, function(profiles)
 			profiles.materialize("Mine")
 			profiles.setBase("Mine", "Grid")
