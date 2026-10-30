@@ -62,7 +62,7 @@ local hasShaders = gl.CreateShader ~= nil
 -- Configuration
 --------------------------------------------------------------------------------
 
-local SMOKE_TEXTURE = "bitmaps/smoke/smoke00.tga"
+local SMOKE_TEXTURE = "bitmaps/atmos/smoke_puff.tga"
 local SMOKE_COLOR = { 0.55, 0.42, 0.62 }
 
 local SPECTER_STYLE = Spring.GetConfigString("ZombieSpecterStyle", "indrawn")
