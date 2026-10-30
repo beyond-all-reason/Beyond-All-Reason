@@ -1,4 +1,6 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -19,7 +21,7 @@ local env = MissionSpecEnv.new({
 })
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes and .UnitQuery at load.
-Builders.MissionApi.new():Install(env)
+MissionApiBuilder.new():Install(env)
 
 local unitsGathered = MissionSpecEnv.include(env, "luarules/mission_api/triggers/units_gathered_in_location.lua")
 local callins = unitsGathered.callins
@@ -41,11 +43,11 @@ describe("mission_api.triggers.units_gathered_in_location", function()
 	end)
 
 	local function squadTrigger()
-		return Builders.Trigger.new():WithParameters({ area = area, unitName = "squad", teamID = 0 }):Build()
+		return TriggerBuilder.new():WithParameters({ area = area, unitName = "squad", teamID = 0 }):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
