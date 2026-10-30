@@ -13,13 +13,19 @@ local BUILD_GRID_SIZE = Game.squareSize * Game.footprintScale
 
 local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpacing)
 	local positions = {}
-	local side = math.ceil(math.sqrt(quantity)) - 1
-	local left = centerX - math.floor(side * xSpacing / 2)
-	local top = centerZ - math.floor(side * zSpacing / 2)
+	if quantity <= 0 then
+		return positions
+	end
+
+	-- Rows of the nearest square, and only the columns the quantity fills, centered on the point.
+	local rows = math.ceil(math.sqrt(quantity))
+	local columns = math.ceil(quantity / rows)
+	local left = centerX - math.floor((columns - 1) * xSpacing / 2)
+	local top = centerZ - math.floor((rows - 1) * zSpacing / 2)
 	local count = 0
 
-	for x = left, left + side * xSpacing, xSpacing do
-		for z = top, top + side * zSpacing, zSpacing do
+	for x = left, left + (columns - 1) * xSpacing, xSpacing do
+		for z = top, top + (rows - 1) * zSpacing, zSpacing do
 			if count >= quantity then
 				return positions
 			end

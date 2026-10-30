@@ -93,6 +93,29 @@ describe("mission_api.loadout grid", function()
 		assert.are.same({ 984, 1016 }, zs)
 	end)
 
+	-- A bot steps 32 elmos, and a quantity short of a square fills fewer columns.
+	for _, case in ipairs({
+		{ quantity = 2, xs = { 1000 }, zs = { 984, 1016 } },
+		{ quantity = 3, xs = { 984, 1016 }, zs = { 984, 1016 } },
+		{ quantity = 5, xs = { 984, 1016 }, zs = { 968, 1000, 1032 } },
+		{ quantity = 8, xs = { 968, 1000, 1032 }, zs = { 968, 1000, 1032 } },
+	}) do
+		it(("centers the columns %d units fill on the point"):format(case.quantity), function()
+			spawn({ unitDefName = "bot", x = 1000, z = 1000, quantity = case.quantity })
+
+			local xs, zs = sortedPositions(created)
+			assert.are.equal(case.quantity, #created)
+			assert.are.same(case.xs, xs)
+			assert.are.same(case.zs, zs)
+		end)
+	end
+
+	it("spawns nothing for a quantity of 0", function()
+		spawn({ unitDefName = "bot", x = 1000, z = 1000, quantity = 0 })
+
+		assert.are.equal(0, #created)
+	end)
+
 	it("creates a building where Pos2BuildPos puts it", function()
 		spawn({ unitDefName = "lab", x = 2050, z = 2070 })
 
