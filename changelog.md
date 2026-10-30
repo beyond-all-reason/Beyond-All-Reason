@@ -1,6 +1,6 @@
 # October
 - [Zombies]
-  - Zombie factories expire 5 minutes after rising, leaving no wreck.
+  - Zombie factories self-destruct 5 minutes after rising.
   - Added the zombie_factory_exclude customparam. Units carrying it are never built by zombie factories.
   - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
   - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
