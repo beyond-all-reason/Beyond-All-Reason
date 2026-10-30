@@ -69,7 +69,7 @@ local function convertOrdersTargetingNames(orders)
 	local newOrders = {}
 	-- Set when an order that would have replaced the unit's queue was skipped, so the next order replaces it.
 	local replacePending = false
-	for _, order in pairs(orders or {}) do
+	for _, order in ipairs(orders or {}) do
 		local commandID = order[1]
 		local params = order[2] or {}
 		local options = order[3] or {}
