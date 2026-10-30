@@ -159,7 +159,10 @@ function gadget:Initialize()
 	end, withTraceback)
 
 	if not loaded then
-		local message = "Lua error while " .. loadStep .. ": " .. tostring(loadError)
+		-- The engine's include error names the file it was loading ("file=<path>"), so a failing module names itself.
+		local failedPath = tostring(loadError):match("file=(%S+)")
+		local step = failedPath and ("loading " .. failedPath) or loadStep
+		local message = "Lua error while " .. step .. ": " .. tostring(loadError)
 		Spring.Log("api_missions.lua", LOG.ERROR, "[Mission API] " .. message)
 		failMission(message:match("^[^\n]*"))
 	end

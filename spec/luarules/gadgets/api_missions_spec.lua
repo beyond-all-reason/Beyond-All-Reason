@@ -42,7 +42,12 @@ local function loadGadget(options, world)
 			end,
 		},
 		["luarules/mission_api/actions_loader.lua"] = { LoadActionDefinitions = noop, ProcessRawActions = noop },
-		["luarules/mission_api/triggers_loader.lua"] = { LoadTriggerDefinitions = noop, ProcessRawTriggers = noop },
+		["luarules/mission_api/triggers_loader.lua"] = {
+			LoadTriggerDefinitions = function()
+				crashes("definitions")
+			end,
+			ProcessRawTriggers = noop,
+		},
 		["luarules/mission_api/schema_utils.lua"] = { CollateSchemas = noop },
 		["luarules/mission_api/difficulty.lua"] = {
 			FromName = noop,
@@ -182,12 +187,15 @@ describe("api_missions load guard", function()
 		assertEndedWith(env, "loading " .. ENTRY_POINT, '[string "' .. ENTRY_POINT .. '"]:1:')
 	end)
 
-	it("names the Mission API module that fails to load, not the mission", function()
+	it("names the Mission API module that fails to load by its path, not the mission", function()
 		local env = start({ crash = "module" })
 
-		assertEndedWith(env, "loading the Mission API", "file=luarules/mission_api/loadout.lua")
-		assert.is_truthy(world.echoed[1]:find("boom in module", 1, true))
+		assertEndedWith(env, "loading luarules/mission_api/loadout.lua", "boom in module")
 		assert.is_nil(world.echoed[1]:find(ENTRY_POINT, 1, true))
+	end)
+
+	it("names the step when the Mission API raises outside an include", function()
+		assertEndedWith(start({ crash = "definitions" }), "loading the Mission API", "boom in definitions")
 	end)
 
 	it("reports a bug in the validation code as a Lua error, not as validation errors", function()

@@ -29,7 +29,8 @@ Nothing here works outside this sequence, so keep it in mind when something read
 
 Steps 1 to 3 run under `xpcall`: `gadgets.lua` calls `Initialize()` unprotected, and an error escaping it kills the
 whole LuaRules handle. A Lua error in them fails the mission the way a validation error does (below), and the message
-names the step that raised: loading the Mission API, loading the mission file, validating it or processing it. The
+names where it came from: the file that failed to load (the mission file or a Mission API module, by the path in the
+engine's include error), or else the step: loading the Mission API, validating the mission or processing it. The
 dev-mode traceback stops at `VFS.Include`, which runs each file in its own `pcall`; for an error raised while a file
 loads, syntax errors included, the message itself carries the file and line.
 
