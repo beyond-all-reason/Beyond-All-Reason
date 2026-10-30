@@ -233,9 +233,9 @@ describe("widget defaults made for one layout", function()
 						action = "layout_toggle",
 						label = "actions.toggle",
 						defaultKeysets = { "sc_f13" },
-						profileKeysets = { [SMALL] = { "sc_f14" } },
+						profileKeysets = { grid60 = { "sc_f14" } },
 					},
-					{ action = "layout_only", label = "actions.only", profileKeysets = { [SMALL] = { "sc_f15" } } },
+					{ action = "layout_only", label = "actions.only", profileKeysets = { grid60 = { "sc_f15" } } },
 				},
 			},
 		},
@@ -284,7 +284,7 @@ describe("widget defaults made for one layout", function()
 				manifest = {
 					id = "gui_layout",
 					keybindings = {
-						{ action = "layout_load", label = "actions.load", profileKeysets = { Grid = { "sc_f16" } } },
+						{ action = "layout_load", label = "actions.load", profileKeysets = { grid = { "sc_f16" } } },
 					},
 				},
 			},

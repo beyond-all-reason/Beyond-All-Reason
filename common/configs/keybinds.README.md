@@ -233,13 +233,13 @@ hub schema:
 	"action": "example_load",
 	"label": "actions.load",
 	"defaultKeysets": ["sc_f5"],
-	"profileKeysets": { "Grid": ["meta+1"], "Legacy": ["meta+1"] }
+	"profileKeysets": { "grid": ["meta+1"], "legacy": ["meta+1"] }
 }
 ```
 
-Each key is a shipped profile's name. That profile, and every player profile made from it, gets
-the `defaultKeysets` and then its own list on top, repeats kept. A profile with no entry gets
-only the `defaultKeysets`.
+Each key is a shipped profile's `id` from `keybind_defaults.json`, in any case. That profile,
+and every player profile made from it, gets the `defaultKeysets` and then its own list on top,
+repeats kept. A profile with no entry gets only the `defaultKeysets`.
 
 ## Not covered yet
 

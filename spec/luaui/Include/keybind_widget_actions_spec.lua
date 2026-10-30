@@ -101,7 +101,7 @@ describe("reading a widget's declared actions", function()
 		assert.are.same({ 1, 2, 3, 4 }, entriesNamed(warnings))
 	end)
 
-	it("reads per-profile defaults shaped like the shared ones, dropping only a profile whose list cannot be made", function()
+	it("reads per-profile defaults under a lowercase id, shaped like the shared ones, dropping only a profile whose list cannot be made", function()
 		local actions, warnings = WidgetActions.parse(widgetEntry("gui_example", {
 			{
 				action = "pair",
@@ -114,14 +114,14 @@ describe("reading a widget's declared actions", function()
 				action = "bad",
 				label = "a.bad",
 				defaultKeysets = { "x" },
-				profileKeysets = { Small = { "not a keyset" }, Other = { "sc_w" } },
+				profileKeysets = { Small = { "not a keyset" }, Other = { "sc_w" }, OTHER = { "sc_e" } },
 			},
 			{ action = "odd", label = "a.odd", profileKeysets = { "x" } },
 		}))
 
-		assert.are.same({ Small = { "sc_q", "Shift+sc_q" } }, actions[1].profileKeysets)
+		assert.are.same({ small = { "sc_q", "Shift+sc_q" } }, actions[1].profileKeysets)
 		assert.are.same({ "x" }, actions[2].keysets)
-		assert.are.same({ Other = { "sc_w" } }, actions[2].profileKeysets)
+		assert.are.same({ other = { "sc_e", "sc_w" } }, actions[2].profileKeysets)
 		assert.is_nil(actions[3].profileKeysets)
 		assert.are.same({ 2, 3 }, entriesNamed(warnings))
 		local wanted = "profileKeysets.Small holds something other than a keyset; that profile's default dropped"
@@ -203,7 +203,7 @@ describe("what the loaded widgets contribute", function()
 		assert.are.same({
 			{ action = "both", keysets = { "tab", "sc_q", "sc_q", "sc_w" } },
 			{ action = "small_only", keysets = { "sc_e" } },
-		}, WidgetActions.defaults(widgets, "Small"))
+		}, WidgetActions.defaults(widgets, "small"))
 	end)
 
 	it("keeps the actions of widgets that are off out of sight, less any a loaded one declares", function()

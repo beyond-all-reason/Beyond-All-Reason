@@ -110,10 +110,14 @@ local function readProfileKeysets(declared, alwaysModifier, dropped)
 	local byProfile = {}
 	for _, profile in ipairs(profiles) do
 		local shaped, problem = readKeysets(declared[profile], alwaysModifier, "profileKeysets." .. profile)
+		local id = profile:lower()
 		if problem then
 			dropped[#dropped + 1] = problem .. "; that profile's default dropped"
-		else
-			byProfile[profile] = shaped
+		elseif shaped then
+			byProfile[id] = byProfile[id] or {}
+			for _, keyset in ipairs(shaped) do
+				table.insert(byProfile[id], keyset)
+			end
 		end
 	end
 
@@ -121,7 +125,7 @@ local function readProfileKeysets(declared, alwaysModifier, dropped)
 end
 
 local function keysetsFor(a, layout)
-	local own = layout and a.profileKeysets and a.profileKeysets[layout]
+	local own = layout and a.profileKeysets and a.profileKeysets[layout:lower()]
 	if not own then
 		return a.keysets
 	end

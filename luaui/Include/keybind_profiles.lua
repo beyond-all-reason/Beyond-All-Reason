@@ -275,14 +275,25 @@ local function actionKey(action)
 	return command and (command:lower() .. args) or action
 end
 
+local function isLayout(id)
+	for _, b in ipairs(builtins) do
+		if type(b.id) == "string" and b.id == id then
+			return true
+		end
+	end
+
+	return false
+end
+
 -- Pinned in `layout`, since the editor can repoint `basedOn`.
 local function layoutOf(profile)
 	local seen = {}
 	while profile and not seen[profile] do
-		if M.isBuiltin(profile.name) then
-			return profile.name
+		local builtin = M.isBuiltin(profile.name)
+		if builtin then
+			return builtin.id
 		end
-		if type(profile.layout) == "string" and M.isBuiltin(profile.layout) then
+		if isLayout(profile.layout) then
 			return profile.layout
 		end
 		seen[profile] = true
@@ -403,7 +414,7 @@ local function toBindFile(profile)
 
 	-- A shipped profile is read-only, so the widget defaults it lacks ride along on the way out.
 	if M.isBuiltin(profile.name) then
-		binds = withWidgetDefaults(binds, {}, profile.name)
+		binds = withWidgetDefaults(binds, {}, layoutOf(profile))
 	end
 
 	for _, b in ipairs(byChainSpecificity(byPriority(binds))) do
