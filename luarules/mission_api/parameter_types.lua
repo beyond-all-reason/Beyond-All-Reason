@@ -12,6 +12,7 @@ local types = {
 	TriggerIDs = "TriggerIDs",
 	StageIDs = "StageIDs",
 	ObjectiveIDs = "ObjectiveIDs",
+	UnitNames = "UnitNames",
 	Difficulties = "Difficulties",
 	Orders = "Orders",
 	Area = "Area",

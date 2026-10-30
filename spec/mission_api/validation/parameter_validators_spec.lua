@@ -1003,6 +1003,49 @@ describe("mission_api.validation.parameter_validators", function()
 				"Unexpected parameter type, expected number, got string. Action: a, Parameter: unitLoadout[1].team"
 			)
 		end)
+
+		describe("alsoNamed", function()
+			local function withAlsoNamed(alsoNamed)
+				return validateUnitLoadout({
+					{ unitDefName = "armwar", team = 0, x = 0, z = 0, unitName = "squad", alsoNamed = alsoNamed },
+				})
+			end
+
+			-- Not assertValid: the names are never referenced, which warns.
+			it("accepts a list of names", function()
+				local result = withAlsoNamed({ "Lab1", "Hq" })
+
+				V.assertNoMessageContaining(result, "Parameter: unitLoadout[1].alsoNamed")
+			end)
+
+			it("rejects a name that is not a list", function()
+				local result = withAlsoNamed("Lab1")
+
+				V.assertMessage(
+					result,
+					"Unexpected parameter type, expected table, got string. Action: a, Parameter: unitLoadout[1].alsoNamed"
+				)
+				assert.is_false(result.ok)
+			end)
+
+			it("rejects a name that is not a string", function()
+				V.assertMessage(
+					withAlsoNamed({ 3 }),
+					"Unexpected parameter type, expected string, got number. Action: a, Parameter: unitLoadout[1].alsoNamed[1]"
+				)
+			end)
+
+			it("validates alsoNamed in the mission's own UnitLoadout too", function()
+				local result = V.validate({
+					UnitLoadout = { { unitDefName = "armwar", x = 0, z = 0, team = 0, alsoNamed = { 5 } } },
+				})
+
+				V.assertMessage(
+					result,
+					"Unexpected parameter type, expected string, got number. Loadout: UnitLoadout[1].alsoNamed[1]"
+				)
+			end)
+		end)
 	end)
 
 	describe("FeatureLoadout", function()

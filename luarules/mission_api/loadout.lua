@@ -32,10 +32,12 @@ end
 local function spawnUnit(unit, pos)
 	-- Make unitName available to MetaUnitAdded call-in which gets triggered by Spring.CreateUnit
 	GG["MissionAPI"].nameOfUnitBeingSpawned = unit.unitName
+	GG["MissionAPI"].alsoNamedOfUnitBeingSpawned = unit.alsoNamed
 	GG["MissionAPI"].spawnedUnitIsBeingBuilt = unit.construction
 	local unitID =
 		Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or "s", unit.team, unit.construction)
 	GG["MissionAPI"].nameOfUnitBeingSpawned = nil
+	GG["MissionAPI"].alsoNamedOfUnitBeingSpawned = nil
 	GG["MissionAPI"].spawnedUnitIsBeingBuilt = nil
 
 	if unitID and unit.neutral then
@@ -43,6 +45,11 @@ local function spawnUnit(unit, pos)
 	end
 
 	tracking.TrackUnit(unit.unitName, unitID)
+	if unit.alsoNamed then
+		for _, name in pairs(unit.alsoNamed) do
+			tracking.TrackUnit(name, unitID)
+		end
+	end
 
 	return unitID
 end

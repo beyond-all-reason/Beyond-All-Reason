@@ -201,6 +201,76 @@ describe("mission_api.validation.references", function()
 		)
 	end)
 
+	-- A unit loadout entry's alsoNamed gives its units further names beside unitName.
+	describe("alsoNamed names", function()
+		local function spawnAlsoNamed(alsoNamed)
+			return {
+				type = V.actionTypes.SpawnUnits,
+				parameters = {
+					unitLoadout = { { unitDefName = "armwar", x = 0, z = 0, team = 0, alsoNamed = alsoNamed } },
+				},
+			}
+		end
+
+		local function despawnUnits(unitName)
+			return { type = V.actionTypes.DespawnUnits, parameters = { unitName = unitName } }
+		end
+
+		--- A trigger firing the given actions, so they count as referenced.
+		local function firing(actions)
+			return { type = V.triggerTypes.TimeElapsed, parameters = { seconds = 1 }, actions = actions }
+		end
+
+		it("counts a mission loadout entry's alsoNamed as created names", function()
+			V.assertValid(V.validate({
+				Triggers = { t = firing({ "despawnSquad", "despawnLab" }) },
+				Actions = { despawnSquad = despawnUnits("squad"), despawnLab = despawnUnits("Lab1") },
+				UnitLoadout = {
+					{ unitDefName = "armwar", x = 0, z = 0, team = 0, unitName = "squad", alsoNamed = { "Lab1" } },
+				},
+			}))
+		end)
+
+		it("counts alsoNamed in an action's loadout as created names", function()
+			V.assertValid(V.validate({
+				Triggers = { t = firing({ "spawn", "despawnLab" }) },
+				Actions = { spawn = spawnAlsoNamed({ "Lab1" }), despawnLab = despawnUnits("Lab1") },
+			}))
+		end)
+
+		it("names alsoNamed as where an unused name is created", function()
+			local result = V.validate({
+				Actions = { spawnUnused = spawnAlsoNamed({ "waveLab" }) },
+				UnitLoadout = { { unitDefName = "armwar", x = 0, z = 0, team = 0, alsoNamed = { "Lab1" } } },
+			})
+
+			V.assertMessage(
+				result,
+				"Unit name is created, but never referenced. Unit name: Lab1, Created in: UnitLoadout[1].alsoNamed"
+			)
+			V.assertMessage(
+				result,
+				"Unit name is created, but never referenced. Unit name: waveLab, "
+					.. "Created in: action spawnUnused (unitLoadout[1].alsoNamed)"
+			)
+		end)
+
+		it("names each entry giving the same name, whichever field gives it", function()
+			local result = V.validate({
+				UnitLoadout = {
+					{ unitDefName = "armwar", x = 0, z = 0, team = 0, unitName = "Lab1" },
+					{ unitDefName = "armwar", x = 0, z = 0, team = 0, unitName = "squad", alsoNamed = { "Lab1" } },
+				},
+			})
+
+			V.assertMessage(
+				result,
+				"Unit name is created, but never referenced. Unit name: Lab1, "
+					.. "Created in: UnitLoadout[1], UnitLoadout[2].alsoNamed"
+			)
+		end)
+	end)
+
 	describe("map marker names", function()
 		-- A marker left standing for the rest of the mission is ordinary, so only the
 		-- removing side is checked.
