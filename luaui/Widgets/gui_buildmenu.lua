@@ -46,8 +46,6 @@ SYMKEYS = table_invert(KEYSYMS)
 
 local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 
-local comBuildOptions
-local boundUnits = {}
 local stickToBottom = false
 
 local alwaysShow = false
@@ -94,7 +92,7 @@ local bgpadding, activeAreaMargin
 local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2
 local doUpdate, ordermenuHeight, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
-local activeCmd, selBuildQueueDefID
+local activeCmd
 local prevHoveredCellID, hoverDlist
 local buildmenuTexHasContent = false
 local buildmenuRenderedCells = 0
@@ -134,8 +132,6 @@ local units = require("luaui/configs/unit_buildmenu_config")
 local isSpec = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
 
-local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
-
 local disableInput = disableInputWhenSpec and isSpec
 ---@type ScreenRect
 local backgroundRect = { 0, 0, 0, 0 }
@@ -158,7 +154,6 @@ local cmdsCount = 0
 local currentPage = 1
 local pages = 1
 local paginatorRects = {}
-local preGamestartPlayer = spGetGameFrame() == 0 and not isSpec
 
 local unitDefToCellMap = {}
 local cellQuotas = {}
@@ -168,7 +163,6 @@ local cmdUnitdefsTemp = {}
 local selBuilderDefsTemp1 = {}
 local selBuilderDefsTemp2 = {}
 local currentSelBuilderDefs = selBuilderDefsTemp1 -- Track which temp table is current
-local buildCycleTemp = {}
 local emptyParams = {}
 local buildmenuUnitpicWarm = { warmed = {}, queued = {}, queuedSet = {}, count = 0 }
 local buildmenuUnitpicWarmPerFrame = 2
@@ -262,9 +256,6 @@ end
 
 ---Greyed out when blocked for the team, or for every selected builder type that offers it.
 local function isUnitRestricted(uDefID)
-	if preGamestartPlayer then
-		return units.isRestricted(uDefID, startDefID)
-	end
 	if units.unitRestricted[uDefID] then
 		return true
 	end
@@ -520,55 +511,34 @@ local function RefreshCommands()
 	cmdsCount = 0
 	clearTable(cellRects)
 
-	if preGamestartPlayer then
-		if startDefID then
-			-- Clear and reuse temp table instead of creating new one
-			clearTable(cmdUnitdefsTemp)
-			for i, udefid in ipairs(unitBuildOptions[startDefID]) do
-				cmdUnitdefsTemp[udefid] = i
-			end
-			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefsTemp[uDefID] and not units.unitHidden[uDefID] then
-					cmdsCount = cmdsCount + 1
-					-- mimic output of spGetActiveCmdDescs
-					cmds[cmdsCount] = {
-						id = -uDefID,
-						name = unitName[uDefID],
-						params = emptyParams,
-					}
+	local activeCmdDescs = getCachedActiveCmdDescs()
+	if smartOrderUnits then
+		-- Clear and reuse temp table instead of creating new one
+		clearTable(cmdUnitdefsTemp)
+		for index, cmd in ipairs(activeCmdDescs) do
+			if type(cmd) == "table" then
+				if not cmd.disabled and string_sub(cmd.action, 1, 10) == "buildunit_" then
+					cmdUnitdefsTemp[-cmd.id] = index
 				end
 			end
 		end
+		for k, uDefID in ipairs(units.unitOrder) do
+			if cmdUnitdefsTemp[uDefID] and not units.unitHidden[uDefID] then
+				cmdsCount = cmdsCount + 1
+				cmds[cmdsCount] = activeCmdDescs[cmdUnitdefsTemp[uDefID]]
+			end
+		end
 	else
-		local activeCmdDescs = getCachedActiveCmdDescs()
-		if smartOrderUnits then
-			-- Clear and reuse temp table instead of creating new one
-			clearTable(cmdUnitdefsTemp)
-			for index, cmd in ipairs(activeCmdDescs) do
-				if type(cmd) == "table" then
-					if not cmd.disabled and string_sub(cmd.action, 1, 10) == "buildunit_" then
-						cmdUnitdefsTemp[-cmd.id] = index
-					end
-				end
-			end
-			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefsTemp[uDefID] and not units.unitHidden[uDefID] then
+		for index, cmd in ipairs(activeCmdDescs) do
+			if type(cmd) == "table" then
+				local uDefID = -cmd.id
+				if
+					not cmd.disabled
+					and string_sub(cmd.action, 1, 10) == "buildunit_"
+					and not units.unitHidden[uDefID]
+				then
 					cmdsCount = cmdsCount + 1
-					cmds[cmdsCount] = activeCmdDescs[cmdUnitdefsTemp[uDefID]]
-				end
-			end
-		else
-			for index, cmd in ipairs(activeCmdDescs) do
-				if type(cmd) == "table" then
-					local uDefID = -cmd.id
-					if
-						not cmd.disabled
-						and string_sub(cmd.action, 1, 10) == "buildunit_"
-						and not units.unitHidden[uDefID]
-					then
-						cmdsCount = cmdsCount + 1
-						cmds[cmdsCount] = cmd
-					end
+					cmds[cmdsCount] = cmd
 				end
 			end
 		end
@@ -577,7 +547,7 @@ local function RefreshCommands()
 
 	--[[ MODIFICATION START ]]
 	-- Failsafe check with reset logic
-	if (not preGamestartPlayer) and cmdsCount == 0 and selectedBuilderCount > 0 then
+	if cmdsCount == 0 and selectedBuilderCount > 0 then
 		forceRefreshNextFrame = true
 		refreshRetryCounter = 10 -- Set a retry limit
 	else
@@ -821,7 +791,7 @@ function widget:Update(dt)
 	--[[ MODIFICATION END ]]
 
 	local prevBuildmenuShows = buildmenuShows
-	if not preGamestartPlayer and selectedBuilderCount == 0 and not alwaysShow then
+	if selectedBuilderCount == 0 and not alwaysShow then
 		buildmenuShows = false
 	else
 		buildmenuShows = true
@@ -1549,14 +1519,7 @@ function widget:DrawScreen()
 	-- refresh buildmenu if active cmd changed
 	local prevActiveCmd = activeCmd
 
-	if spGetGameFrame() == 0 and WG["pregame-build"] then
-		activeCmd = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
-		if activeCmd then
-			activeCmd = unitName[activeCmd]
-		end
-	else
-		activeCmd = select(4, spGetActiveCommand())
-	end
+	activeCmd = select(4, spGetActiveCommand())
 	if activeCmd ~= prevActiveCmd then
 		doUpdate = true
 	end
@@ -1602,7 +1565,7 @@ function widget:DrawScreen()
 		hovering = true
 	end
 
-	if preGamestartPlayer or selectedBuilderCount ~= 0 then
+	if selectedBuilderCount ~= 0 then
 		tracy.ZoneBeginN("W:BuildMenu:DrawScreen:Content")
 		-- pre process + 'highlight' under the icons
 		local hoveredCellID
@@ -1878,23 +1841,6 @@ function widget:DrawScreen()
 	tracy.ZoneEnd()
 end
 
-function widget:DrawWorld()
-	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
-	if spGetGameFrame() > 0 then
-		widgetHandler:RemoveWidgetCallIn("DrawWorld", self)
-		return
-	end
-
-	if not preGamestartPlayer then
-		return
-	end
-
-	if startDefID ~= Spring.GetTeamRulesParam(myTeamID, "startUnit") then
-		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
-		doUpdate = true
-	end
-end
-
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag)
 	if units.isFactory[unitDefID] and cmdID < 0 then
 		-- filter away non build cmd's
@@ -1928,20 +1874,6 @@ function widget:SelectionChanged(sel)
 	--[[ MODIFICATION END ]]
 end
 
-local function unbindBuildUnits()
-	for _, buildOption in ipairs(boundUnits) do
-		widgetHandler.actionHandler:RemoveAction(self, "buildunit_" .. buildOption, "p") ---@diagnostic disable-line: undefined-global
-	end
-
-	boundUnits = {}
-end
-
-function widget:GameStart()
-	preGamestartPlayer = false
-
-	unbindBuildUnits()
-end
-
 function widget:GameFrame(n)
 	if n % 15 ~= 0 or selectedFactoryCount == 0 then
 		return
@@ -1958,13 +1890,6 @@ function widget:GameFrame(n)
 	if finishedCount ~= prevAnyFactoryUnfinished then
 		prevAnyFactoryUnfinished = finishedCount
 		refreshBuildmenu = true
-	end
-end
-
-local function setPreGamestartDefID(uDefID)
-	selBuildQueueDefID = uDefID
-	if WG["pregame-build"] then
-		WG["pregame-build"].setPreGamestartDefID(uDefID)
 	end
 end
 
@@ -2020,7 +1945,7 @@ function widget:MousePress(x, y, button)
 		buildmenuShows
 		and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4])
 	then
-		if selectedBuilderCount > 0 or (preGamestartPlayer and startDefID) then
+		if selectedBuilderCount > 0 then
 			if
 				paginatorRects[1]
 				and math_isInRect(
@@ -2074,9 +1999,7 @@ function widget:MousePress(x, y, button)
 							if setQuotas and not alt then
 								changeQuotas(-uDefID, 1)
 							else
-								if preGamestartPlayer then
-									setPreGamestartDefID(-uDefID)
-								elseif spGetCmdDescIndex(uDefID) then
+								if spGetCmdDescIndex(uDefID) then
 									local isRepeatMex = unitMetal_extractor[-uDefID] and unitName[-uDefID] == activeCmd
 									local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
 									if isRepeatMex then
@@ -2099,9 +2022,7 @@ function widget:MousePress(x, y, button)
 								if queueCount > 0 and playSounds then
 									Spring.PlaySoundFile(sound_queue_rem, 0.75, "ui")
 								end
-								if preGamestartPlayer then
-									setPreGamestartDefID(-cmds[cellRectID].id)
-								elseif spGetCmdDescIndex(cmds[cellRectID].id) then
+								if spGetCmdDescIndex(cmds[cellRectID].id) then
 									Spring.SetActiveCommand(
 										spGetCmdDescIndex(cmds[cellRectID].id),
 										3,
@@ -2142,140 +2063,6 @@ function widget:MousePress(x, y, button)
 	end
 end
 
--- Used for hotkeys at pregamestart
-local function buildUnitHandler(_, _, _, data)
-	-- sanity check
-	if not preGamestartPlayer then
-		return
-	end
-	if isUnitRestricted(data.unitDefID) then
-		return
-	end
-
-	if
-		not unitName[startDefID]
-		or not comBuildOptions[unitName[startDefID]]
-		or not comBuildOptions[unitName[startDefID]][data.unitDefID]
-	then
-		return
-	end
-
-	-- If no current active selection we can return early
-	if not selBuildQueueDefID then
-		setPreGamestartDefID(data.unitDefID)
-		return true
-	end
-
-	-- Find the buildcycle for current key and iterate on it
-	local pressedKey, pressedScan
-	for k, v in pairs(Spring.GetPressedKeys()) do
-		if v and tonumber(k) then
-			local key = Spring.GetKeySymbol(tonumber(k))
-			if key and #key == 1 then
-				pressedKey = key
-				break
-			end
-		end
-	end
-
-	-- check if engine supports GetPressedScans first, adjust when/if https://github.com/beyond-all-reason/spring/pull/388 is deployed
-	local pressedScans = Spring.GetPressedScans and Spring.GetPressedScans() or {}
-	for k, v in pairs(pressedScans) do
-		if v and tonumber(k) then
-			local scan = Spring.GetScanSymbol(tonumber(k))
-			if scan and #scan == 4 then -- quick hack to avoid modifiers
-				pressedScan = scan
-				break
-			end
-		end
-	end
-
-	-- didn't find a suitable binding to cycle from
-	if not (pressedKey or pressedScan) then
-		return
-	end
-
-	-- Clear and reuse temp table instead of creating new one
-	clearTable(buildCycleTemp)
-	local buildCycleCount = 0
-	for _, keybind in ipairs(Spring.GetKeyBindings(pressedKey, pressedScan)) do
-		if string_sub(keybind.command, 1, 10) == "buildunit_" then
-			local uDefName = string_sub(keybind.command, 11)
-			local uDef = UnitDefNames[uDefName]
-			if uDef then -- prevents crashing when trying to access unloaded units (legion)
-				if comBuildOptions[unitName[startDefID]][uDef.id] and not isUnitRestricted(uDef.id) then
-					buildCycleCount = buildCycleCount + 1
-					buildCycleTemp[buildCycleCount] = uDef.id
-				end
-			end
-		end
-	end
-
-	if buildCycleCount == 0 then
-		return
-	end
-
-	local buildCycleIndex
-	for i = 1, buildCycleCount do
-		if buildCycleTemp[i] == selBuildQueueDefID then
-			buildCycleIndex = i
-			break
-		end
-	end
-
-	if not buildCycleIndex then
-		setPreGamestartDefID(data.unitDefID)
-		return true
-	end
-
-	buildCycleIndex = buildCycleIndex + 1
-	if buildCycleIndex > buildCycleCount then
-		buildCycleIndex = 1
-	end
-
-	setPreGamestartDefID(buildCycleTemp[buildCycleIndex])
-
-	return true
-end
-
-local function bindBuildUnits(widget)
-	if not preGamestartPlayer then
-		return
-	end
-
-	unbindBuildUnits()
-
-	comBuildOptions = {}
-	local validStartUnits = string.split(
-		spGetTeamRulesParam(myTeamID, "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"),
-		"|"
-	)
-	for _, unitDefIDString in ipairs(validStartUnits) do
-		local unitDefID = tonumber(unitDefIDString)
-		local unitDef = unitDefID and UnitDefs[unitDefID]
-		if unitDef then
-			comBuildOptions[unitDef.name] = {}
-		end
-	end
-
-	for comDefName, buildOptions in pairs(comBuildOptions) do
-		for _, buildOption in ipairs(UnitDefNames[comDefName].buildOptions) do
-			if not units.unitRestricted[buildOption] then
-				local unitDefName = unitName[buildOption]
-				buildOptions[buildOption] = true
-				table.insert(boundUnits, unitDefName)
-				widgetHandler.actionHandler:AddAction(
-					widget,
-					"buildunit_" .. unitDefName,
-					buildUnitHandler,
-					{ unitDefID = buildOption },
-					"p"
-				)
-			end
-		end
-	end
-end
-
 function widget:Initialize()
 	widgetHandler:RegisterUnitCommand(widget, CMD.BUILD)
 	widgetHandler:RegisterUnitCommand(widget, CMD_STOP_PRODUCTION)
@@ -2288,20 +2075,7 @@ function widget:Initialize()
 		widgetHandler:DisableWidgetRaw("Grid menu")
 	end
 
-	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
-	if preGamestartPlayer then
-		local missionOptions = require("luaui/Include/mission_options")
-		preGamestartPlayer = not missionOptions.IsStartUnitSpawnDisabled()
-	end
-
 	-- Get our starting unit
-	if preGamestartPlayer then
-		bindBuildUnits(self)
-		if not startDefID or startDefID ~= spGetTeamRulesParam(myTeamID, "startUnit") then
-			startDefID = spGetTeamRulesParam(myTeamID, "startUnit")
-			doUpdate = true
-		end
-	end
 
 	widget:ViewResize()
 	widget:SelectionChanged(spGetSelectedUnits())

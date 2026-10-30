@@ -28,8 +28,6 @@ local tableInsert = table.insert
 local spGetGameFrame = Spring.GetGameFrame
 local isSpec = nil
 
-local isPregame = spGetGameFrame() == 0 and not isSpec
-
 local uDefNames = UnitDefNames
 
 local GetActiveCommand = Spring.GetActiveCommand
@@ -136,36 +134,10 @@ function widget:PlayerChanged(playerID)
 	maybeRemoveSelf()
 end
 
-local function setPreGamestartDefID(uDefID)
-	if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
-		WG["pregame-build"].setPreGamestartDefID(uDefID)
-	end
-end
-
--- returns true if the given unitDefID can be built by the pregame start unit
-local function canSelectPreGameDef(uDefID)
-	local myTeamID = Spring.GetLocalTeamID()
-	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
-	if not startDefID or not UnitDefs[startDefID] or not UnitDefs[startDefID].buildOptions then
-		return false
-	end
-	for _, opt in ipairs(UnitDefs[startDefID].buildOptions) do
-		if opt == uDefID then
-			return true
-		end
-	end
-	return false
-end
-
 -- returns the unitDefID of the selected building, or false if there is no selected building
 local function isBuilding()
 	local _, cmdID
-	if isPregame and WG["pregame-build"] and WG["pregame-build"].getPreGameDefID then
-		cmdID = WG["pregame-build"].getPreGameDefID()
-		cmdID = cmdID and -cmdID or 0 --invert to get the correct negative value
-	else
-		_, cmdID = GetActiveCommand()
-	end
+	_, cmdID = GetActiveCommand()
 
 	if cmdID and cmdID < 0 then
 		return -cmdID
@@ -246,32 +218,14 @@ function widget:DrawWorld()
 	-- Water level is always 0, but there's minor inaccuracy in the chain, so fuzz it a bit
 	if pos[2] < 0.01 then
 		if isGround then
-			if isPregame then
-				-- Only change the pregame selection if the start unit can build the alternative
-				if canSelectPreGameDef(alt) then
-					setPreGamestartDefID(alt)
-				end
-			else
-				SetActiveCommand("buildunit_" .. name)
-			end
+			SetActiveCommand("buildunit_" .. name)
 		end
 	else
 		if not isGround then
-			if isPregame then
-				-- Only change the pregame selection if the start unit can build the alternative
-				if canSelectPreGameDef(alt) then
-					setPreGamestartDefID(alt)
-				end
-			else
-				SetActiveCommand("buildunit_" .. unitName[alt])
-			end
+			SetActiveCommand("buildunit_" .. unitName[alt])
 		end
 	end
 	lastUpdateTime = currentTime()
-end
-
-function widget:GameStart()
-	isPregame = false
 end
 
 local function addUnitDefPair(firstUnitName, lastUnitName)

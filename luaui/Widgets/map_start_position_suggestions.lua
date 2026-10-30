@@ -645,10 +645,11 @@ local function drawTooltip()
 		return
 	end
 
-	if WG["pregame-build"] then
-		if #(WG["pregame-build"].getBuildQueue()) > 0 or WG["pregame-build"].getPreGameDefID() then
-			return
-		end
+	if select(2, Spring.GetActiveCommand()) then
+		return
+	end
+	for _, unitID in ipairs(Spring.GetSelectedUnits()) do
+		if (Spring.GetUnitCommandCount(unitID) or 0) > 0 then return end
 	end
 
 	local x, y = spGetMouseState()

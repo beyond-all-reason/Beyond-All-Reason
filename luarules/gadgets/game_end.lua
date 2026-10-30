@@ -551,7 +551,7 @@ else -- Unsynced
 		end
 		local myTeamID = Spring.GetLocalAllyTeamID()
 		local cur_max = Spring.GetTeamStatsHistory(myTeamID)
-		local stats = Spring.GetTeamStatsHistory(myTeamID, cur_max, cur_max)
+		local stats = VFS.Include("common/pregame_stats.lua")(myTeamID, cur_max, cur_max)
 		stats = stats[1]
 		stats.cheated = cheated
 		stats.winners = winners
