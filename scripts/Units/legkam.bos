@@ -94,49 +94,68 @@ Deactivate()
 }
 
 // The weapon uses a generous range and tolerance that we then restrict to believable trajectories.
-// Use the bomber's velocity to get the bomb's drop time: T = (vy + sqrt(vy^2 + 2 g h)) / g frames.
-// Then, remove the bomber's pitch to get the angle below horizon of that drop: atan(h / (vh T)).
+// A bomb dropped from height h falls for T = (vy + sqrt(vy^2 + 2 g h)) / g frames and moves vh T ahead.
+// Heights are in 1/1024 elmo to keep products within COB's integer range. Lengths enter COB as 1/65536.
 AimWeapon1(heading, pitch)
 {
-	var targetID, height, vy, vh, gravity, frames, reach, rise, nose;
-
-	targetID = get TARGET_ID(1);
-	if(targetID > 0)
+	if(releaseHeadingTolerance < (get ABS(heading)))
 	{
-		height = (get UNIT_Y) - (get UNIT_Y(targetID));
-	}
-	else
-	{
-		height = (get UNIT_Y) - (get GROUND_HEIGHT(get UNIT_XZ)); // rough guess for ground targets
-	}
-	if(height < 0)
-	{
-		height = 0;
+		return (FALSE);
 	}
 
-	// Distances are in 1/1024 elmo to keep the products within COB's integer range.
-	// Lengths enter COB as 1/65536 elmo. We work in 1/1024, so we divide by 64 here.
-	height = height / 64;
-	vy = climb / 64;
-	vh = (get CURRENT_SPEED) / 64;
-	vh = get SQRT(get MAX(vh * vh - vy * vy, 1));
-	gravity = releaseGravity / 64;
-	frames = (vy + (get SQRT(vy * vy + 2 * gravity * height))) * 1024 / gravity;
-	reach = vh * frames / 1024;
+	var targetID, rise, nose, height, slope, dx, dz, xz, y0, dist, step, vy, vh, gravity, falling, reach;
 
 	// 10496 (in 1/256) is 41 elmos, the distance between the base and thrust pieces.
 	rise = ((get PIECE_Y(base)) - (get PIECE_Y(thrust))) / 256;
 	nose = get ATAN(rise, get SQRT(get MAX(10496 * 10496 - rise * rise, 0)));
 
-	if(releasePitchTolerance < (get ABS((get ATAN(height, reach)) + pitch + nose)))
+	targetID = get TARGET_ID(1);
+	if(targetID > 0)
 	{
-		return (FALSE);
+		height = get MAX((get UNIT_Y) - (get UNIT_Y(targetID)), 0) / 64;
 	}
-	if(releaseHeadingTolerance < (get ABS(heading)))
+	else
 	{
-		return (FALSE);
+		// Trace the aim ray from the firepoint to the ground target position.
+		// Step size is constant while above terrain and converges once below.
+		slope = get KTAN(0 - pitch - nose);
+		dx = get KSIN((get HEADING(0)) + heading);
+		dz = get KCOS((get HEADING(0)) + heading);
+		xz = get PIECE_XZ(firepoint);
+		y0 = (get PIECE_Y(firepoint)) / 64;
+		dist = 0;
+		step = 32;
+		while((step >= 4) && (dist < 512))
+		{
+			if((y0 - (dist + step) * slope) > ((get GROUND_HEIGHT(xz + (dist + step) * dx / 1024 * 65536 + (dist + step) * dz / 1024)) / 64))
+			{
+				dist = dist + step;
+			}
+			else
+			{
+				step = step / 2;
+			}
+		}
+		if(dist >= 512)
+		{
+			return (FALSE); // target is too low
+		}
+		dist = dist + 2;
+		height = dist * slope;
 	}
-	return (TRUE);
+
+	vy = climb / 64;
+	vh = (get CURRENT_SPEED) / 64;
+	vh = get SQRT(get MAX(vh * vh - vy * vy, 1));
+	gravity = releaseGravity / 64;
+	falling = vy * vy + 2 * gravity * height;
+	if(falling < 0)
+	{
+		return (FALSE); // target is too high
+	}
+	reach = vh * (vy + (get SQRT(falling))) / gravity;
+
+	return (releasePitchTolerance >= (get ABS((get ATAN(height, reach)) + pitch + nose)));
 }
 
 AimWeapon2()
