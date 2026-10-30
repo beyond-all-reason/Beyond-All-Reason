@@ -55,6 +55,8 @@ end
 --     wraiths and the wraith respawn queue, in every mode.
 --   zombie_enable_hydra (1 enables, 0 disables)
 --     multiple spawns per corpse, in every mode.
+--   zombie_enable_time_ramp (1 enables, 0 disables)
+--     the Hydra time ramp, in every mode. See TIME_RAMP.
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -96,7 +98,7 @@ local zombieModeSettings = {
 local ZOMBIE_MODE_FEATURES = {
 	basic = {},
 	wraith = { wraithRespawns = true },
-	hydra = { multipleSpawns = true },
+	hydra = { multipleSpawns = true, timeRamp = true },
 	akumu = { wraithRespawns = true, multipleSpawns = true },
 	spidergeddon = { wraithRespawns = true, multipleSpawns = true },
 }
@@ -127,6 +129,12 @@ local tooLong = false
 local adjustedRezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[1]
 local factoryBuildpowerMultiplier = 1
 local currentTechLevel = nil
+local rampProgress = 0
+local rampExperience = 0
+local rampedRespawnDelayMinimum = zombieModeSettings.respawnDelayMinimum
+local rampedRespawnDelayMaximum = zombieModeSettings.respawnDelayMaximum
+local rampedSpawnCountMinimum = zombieModeSettings.spawnCountMinimum
+local rampedSpawnCountMaximum = zombieModeSettings.spawnCountMaximum
 
 local PICK_LOWEST = true
 local PICK_HIGHEST = false
@@ -154,6 +162,16 @@ local IDLEMODE_FLY = 0
 
 local ZOMBIE_EXPIRING_BUILDING_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't want random zombie immobile trash taking up unit cap forever.
 local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
+
+local TIME_RAMP = { -- pressure grows with game time: each curve runs 0 to 1, slowly until its knee minute, faster after
+	pressure = { kneeMinute = 30, rateBeforeKnee = 0.01, rateAfterKnee = 0.02 },
+	veterancy = { kneeMinute = 60, rateBeforeKnee = 0.01, rateAfterKnee = 0.04 },
+	peakRespawnDelayMinimum = 25,
+	peakRespawnDelayMaximum = 45,
+	peakSpawnCountMinimum = 5,
+	peakSpawnCountMaximum = 20,
+	peakExperience = 0.8,
+}
 
 local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
 local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
@@ -184,6 +202,12 @@ local RULES_PARAM = {
 	TECH_LEVEL = "zombie_tech_level",
 	REZ_POWER_SPEED = "zombie_rez_power_speed",
 	FACTORY_BUILDPOWER_MULTIPLIER = "zombie_factory_buildpower_multiplier",
+	TIME_RAMP = "zombie_time_ramp",
+	VETERANCY_RAMP = "zombie_veterancy_ramp",
+	RESPAWN_DELAY_MINIMUM = "zombie_respawn_delay_minimum",
+	RESPAWN_DELAY_MAXIMUM = "zombie_respawn_delay_maximum",
+	SPAWN_COUNT_MINIMUM = "zombie_spawn_count_minimum",
+	SPAWN_COUNT_MAXIMUM = "zombie_spawn_count_maximum",
 	REZ_FRAME = "zombie_rez_frame",
 	WAS_ZOMBIE = "wasZombie",
 	WRAITH_READY_FRAME = "zombie_wraith_ready_frame",
@@ -378,6 +402,7 @@ do
 		setSetting(customParams, "zombie_maximum_respawn_delay", "respawnDelayMaximum")
 		setSetting(customParams, "zombie_enable_wraith", "wraithRespawns", true)
 		setSetting(customParams, "zombie_enable_hydra", "multipleSpawns", true)
+		setSetting(customParams, "zombie_enable_time_ramp", "timeRamp", true)
 
 		local rezPower = math.max(1, unitDef.power or 1)
 		local isPoolMember = customParams.zombie_wraith_respawn_pool and true or false
@@ -469,11 +494,8 @@ local function addToFrameList(frameLists, frame, id)
 end
 
 local function calculateSpawnDelayFrames(unitPower)
-	local spawnSeconds = clamp(
-		floor(unitPower / adjustedRezPowerSpeed),
-		zombieModeSettings.respawnDelayMinimum,
-		zombieModeSettings.respawnDelayMaximum
-	)
+	local spawnSeconds =
+		clamp(floor(unitPower / adjustedRezPowerSpeed), rampedRespawnDelayMinimum, rampedRespawnDelayMaximum)
 	return floor(spawnSeconds * Game.gameSpeed)
 end
 
@@ -510,6 +532,36 @@ local function setZombieFactoryBuildpower(unitID, useZombieBuildpower, unitDefID
 		spring.SetUnitBuildSpeed(unitID, factoryData.baseBuildSpeed)
 	end
 	zombieFactories[unitID] = nil
+end
+
+local function kneeCurve(minutes, curve)
+	local progress = math.min(minutes, curve.kneeMinute) * curve.rateBeforeKnee
+		+ math.max(0, minutes - curve.kneeMinute) * curve.rateAfterKnee
+	return clamp(progress, 0, 1)
+end
+
+local function updateTimeRamp(frame)
+	local minutes = currentModeFeatures.timeRamp and frame / (Game.gameSpeed * 60) or 0
+	rampProgress = kneeCurve(minutes, TIME_RAMP.pressure)
+	local veterancy = kneeCurve(minutes, TIME_RAMP.veterancy)
+	-- the engine scales XP bonuses by xp / (xp + 1), so the curve is applied to that value and converted back
+	local limitedExperience = veterancy * TIME_RAMP.peakExperience / (TIME_RAMP.peakExperience + 1)
+	rampExperience = limitedExperience / (1 - limitedExperience)
+	local settings = zombieModeSettings
+	rampedRespawnDelayMinimum =
+		math.round(math.mix(settings.respawnDelayMinimum, TIME_RAMP.peakRespawnDelayMinimum, rampProgress))
+	rampedRespawnDelayMaximum =
+		math.round(math.mix(settings.respawnDelayMaximum, TIME_RAMP.peakRespawnDelayMaximum, rampProgress))
+	rampedSpawnCountMinimum =
+		math.round(math.mix(settings.spawnCountMinimum, TIME_RAMP.peakSpawnCountMinimum, rampProgress))
+	rampedSpawnCountMaximum =
+		math.round(math.mix(settings.spawnCountMaximum, TIME_RAMP.peakSpawnCountMaximum, rampProgress))
+	spring.SetGameRulesParam(RULES_PARAM.TIME_RAMP, rampProgress)
+	spring.SetGameRulesParam(RULES_PARAM.VETERANCY_RAMP, veterancy)
+	spring.SetGameRulesParam(RULES_PARAM.RESPAWN_DELAY_MINIMUM, rampedRespawnDelayMinimum)
+	spring.SetGameRulesParam(RULES_PARAM.RESPAWN_DELAY_MAXIMUM, rampedRespawnDelayMaximum)
+	spring.SetGameRulesParam(RULES_PARAM.SPAWN_COUNT_MINIMUM, rampedSpawnCountMinimum)
+	spring.SetGameRulesParam(RULES_PARAM.SPAWN_COUNT_MAXIMUM, rampedSpawnCountMaximum)
 end
 
 local function updateRezSpeed()
@@ -601,12 +653,12 @@ local function calculateSpawnCount(unitDefID)
 	local keep, rollCount = PICK_LOWEST, 1
 	if currentTechLevel <= 1 then
 		keep, rollCount = PICK_LOWEST, 3
-	elseif rezTimeSeconds == zombieModeSettings.respawnDelayMinimum then
+	elseif rezTimeSeconds == rampedRespawnDelayMinimum then
 		keep, rollCount = PICK_HIGHEST, 2
-	elseif rezTimeSeconds == zombieModeSettings.respawnDelayMaximum then
+	elseif rezTimeSeconds == rampedRespawnDelayMaximum then
 		keep, rollCount = PICK_LOWEST, 3
 	end
-	return rollFor(keep, rollCount, zombieModeSettings.spawnCountMinimum, zombieModeSettings.spawnCountMaximum)
+	return rollFor(keep, rollCount, rampedSpawnCountMinimum, rampedSpawnCountMaximum)
 end
 
 local function registerZombie(unitID, unitDefID, transferToScavs)
@@ -658,7 +710,7 @@ local function spawnZombieUnits(
 		local unitID = spring.CreateUnit(unitDefToCreate, randomX, adjustedY, randomZ, facing, gaiaTeamID)
 		if unitID then
 			spring.SpawnCEG(unitDefData.spawnExplosionCeg, randomX, adjustedY, randomZ, 0, 0, 0)
-			local spawnExperience = inheritedXp or 0
+			local spawnExperience = math.max(inheritedXp or 0, rampExperience)
 			if spawnExperience > 0 then
 				spring.SetUnitExperience(unitID, spawnExperience)
 			end
@@ -1390,6 +1442,7 @@ function gadget:GameFrame(frame)
 	end
 
 	if frame % REZ_SPEED_UPDATE_INTERVAL == 0 then
+		updateTimeRamp(frame)
 		updateRezSpeed()
 	end
 
@@ -1676,6 +1729,7 @@ end
 local function applyZombieModeSettings(mode)
 	currentZombieMode = mode
 	currentModeFeatures = ZOMBIE_MODE_FEATURES[mode]
+	updateTimeRamp(gameFrame)
 	if not currentModeFeatures.wraithRespawns then
 		clearWraithState()
 	end
