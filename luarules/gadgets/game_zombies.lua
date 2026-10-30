@@ -184,14 +184,14 @@ local STAGES = {
 		{
 			name = "mid",
 			topUnit = "legbunk_scav",
-			rezWindow = { { 0, 45, 120 }, { 65, 14, 28 } },
+			rezWindow = { { 0, 50, 135 }, { 30, 32, 82 }, { 65, 14, 28 } },
 			spawnCounts = { { 0, 2, 6 }, { 55, 4, 14 } },
 			veterancy = { { 0, 0 }, { 40, 0.4 }, { 55, 1 } },
 		},
 		{
 			name = "massive",
 			topUnit = "armbanth",
-			rezWindow = { { 0, 45, 120 }, { 65, 25, 45 } },
+			rezWindow = { { 0, 60, 200 }, { 50, 43, 123 }, { 65, 25, 45 } },
 			spawnCounts = { { 0, 2, 6 }, { 70, 5, 20 } },
 			veterancy = { { 0, 0 }, { 60, 0.6 }, { 70, 1 } },
 		},
