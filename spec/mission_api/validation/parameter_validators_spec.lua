@@ -970,12 +970,8 @@ describe("mission_api.validation.parameter_validators", function()
 	end
 
 	describe("MoveState and FireState", function()
-		before_each(function()
-			local CMD = V.env.CMD
-			CMD.MOVESTATE_HOLDPOS, CMD.MOVESTATE_MANEUVER, CMD.MOVESTATE_ROAM = 0, 1, 2
-			CMD.FIRESTATE_HOLDFIRE, CMD.FIRESTATE_RETURNFIRE, CMD.FIRESTATE_FIREATWILL, CMD.FIRESTATE_FIREATNEUTRAL =
-				0, 1, 2, 3
-		end)
+		-- The file-wide before_each swaps in a CMD table without the states; take back the spec helper's.
+		before_each(V.mockEngineGlobals)
 
 		it("accepts every move and fire state", function()
 			local unitLoadout = {}
