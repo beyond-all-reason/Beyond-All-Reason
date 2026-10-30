@@ -257,11 +257,11 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 	if name == "corfav" then
 		uDef.speed = 145
-		uDef.health = 110
+		uDef.health = 100
 		uDef.weapondefs.cor_laser.reloadtime = 1.2
 	end
 	if name == "armfav" then
-		uDef.health = 120
+		uDef.health = 110
 		uDef.speed = 155
 		uDef.weapondefs.arm_laser.range = 170
 	end
