@@ -5,8 +5,9 @@ local ENTRY_POINT = "singleplayer/test_mission.lua"
 
 local function noop() end
 
--- Runs the gadget file against stand-ins for its includes. options.crash names the include
--- whose processing raises, and options.refuse makes validation fail.
+-- Runs the gadget file against stand-ins for its includes. options.crash names the code that raises,
+-- options.refuse makes validation fail, options.missionSource replaces the mission file with Lua source,
+-- and options.noDebug hides the debug library, as synced Lua does outside dev mode.
 local function loadGadget(options, world)
 	local function crashes(name)
 		if options.crash == name then
@@ -16,12 +17,13 @@ local function loadGadget(options, world)
 
 	local includes = {
 		["luarules/mission_api/game_setup.lua"] = { entryPoint = ENTRY_POINT, difficulty = "Normal" },
-		[ENTRY_POINT] = function()
+		[ENTRY_POINT] = options.missionSource or function()
 			crashes("mission")
 			return { InitialStage = "s1", Stages = { s1 = {} } }
 		end,
 		["luarules/mission_api/validation.lua"] = {
 			ValidateMission = function()
+				crashes("validation")
 				if options.refuse then
 					return { ok = false, errors = { "an error" } }
 				end
@@ -93,16 +95,34 @@ local function loadGadget(options, world)
 				world.echoed[#world.echoed + 1] = text
 			end,
 		},
-		VFS = {
-			Include = function(path)
-				local include = includes[path]
-				if type(include) == "function" then
-					return include()
-				end
-				return include or {}
-			end,
-		},
 	}, { __index = _G })
+
+	if options.noDebug then
+		env.debug = false
+	end
+
+	-- Like the engine's VFS.Include: the file runs in its own pcall, and an error comes back as a new message
+	-- naming the file, without the stack inside it. Paths not listed stand in as empty modules.
+	env.VFS = {
+		Include = function(path)
+			local include = includes[path]
+			if type(include) == "string" then
+				local chunk, syntaxError = loadstring(include, path)
+				if not chunk then
+					error(("[LuaVFS::Include(synced=true)][loadbuf] file=%s error=3 (%s)"):format(path, syntaxError), 0)
+				end
+				include = setfenv(chunk, env)
+			end
+			if type(include) ~= "function" then
+				return include or {}
+			end
+			local ok, result = pcall(include)
+			if not ok then
+				error(("[LuaVFS::Include(synced=true)][pcall] file=%s error=2 (%s)"):format(path, tostring(result)), 0)
+			end
+			return result
+		end,
+	}
 
 	local chunk = assert(loadfile(GADGET_PATH))
 	setfenv(chunk, env)
@@ -125,18 +145,18 @@ describe("api_missions load guard", function()
 		return env
 	end
 
-	local function assertEndedWith(env, errorText)
+	-- The error is logged in full and echoed as one line that names the step it came from.
+	local function assertEndedWith(env, step, errorText)
+		local reason = "Lua error while " .. step .. ": "
 		assert.is_nil(env.GG.MissionAPI)
 		assert.are.equal(1, #world.logged)
-		assert.is_truthy(world.logged[1].text:find("[Mission API] ", 1, true))
+		assert.are.equal(1, world.logged[1].text:find("[Mission API] " .. reason, 1, true))
 		assert.is_truthy(world.logged[1].text:find(errorText, 1, true))
 		assert.is_nil(world.spawned)
 		assert.is_true(world.gameOver)
 		assert.is_true(world.removed)
 		assert.are.equal(1, #world.echoed)
-		assert.is_truthy(
-			world.echoed[1]:find("[Mission API] Mission not loaded: error in " .. ENTRY_POINT .. ": ", 1, true)
-		)
+		assert.are.equal(1, world.echoed[1]:find("[Mission API] Mission not loaded: " .. reason, 1, true))
 		assert.is_truthy(world.echoed[1]:find(errorText, 1, true))
 		assert.is_nil(world.echoed[1]:find("\n", 1, true))
 	end
@@ -151,24 +171,50 @@ describe("api_missions load guard", function()
 		assert.is_nil(world.removed)
 	end)
 
-	it("ends a mission whose file raises, instead of raising itself", function()
-		assertEndedWith(start({ crash = "mission" }), "boom in mission")
+	it("blames the mission file when it raises while loading", function()
+		assertEndedWith(start({ crash = "mission" }), "loading " .. ENTRY_POINT, "boom in mission")
 	end)
 
-	it("ends a mission whose processing failed after validation passed", function()
-		assertEndedWith(start({ crash = "parameters" }), "boom in parameters")
+	it("blames the mission file for a syntax error, with its line", function()
+		local env = start({ missionSource = "return {" })
+
+		assertEndedWith(env, "loading " .. ENTRY_POINT, '[string "' .. ENTRY_POINT .. '"]:1:')
 	end)
 
-	it("ends a mission when a Mission API module fails to load", function()
-		assertEndedWith(start({ crash = "module" }), "boom in module")
+	it("names the Mission API module that fails to load, not the mission", function()
+		local env = start({ crash = "module" })
+
+		assertEndedWith(env, "loading the Mission API", "file=luarules/mission_api/loadout.lua")
+		assert.is_truthy(world.echoed[1]:find("boom in module", 1, true))
+		assert.is_nil(world.echoed[1]:find(ENTRY_POINT, 1, true))
 	end)
 
-	it("leaves a refused mission to the validation message", function()
+	it("reports a bug in the validation code as a Lua error, not as validation errors", function()
+		local env = start({ crash = "validation" })
+
+		assertEndedWith(env, "validating " .. ENTRY_POINT, "boom in validation")
+		assert.is_nil(world.echoed[1]:find("validation errors", 1, true))
+	end)
+
+	it("blames processing the mission when it fails after validation passed", function()
+		assertEndedWith(start({ crash = "parameters" }), "processing " .. ENTRY_POINT, "boom in parameters")
+	end)
+
+	it("logs a traceback only when synced Lua has the debug library", function()
+		start({ crash = "parameters" })
+		assert.is_truthy(world.logged[1].text:find("stack traceback", 1, true))
+
+		start({ crash = "parameters", noDebug = true })
+		assert.is_nil(world.logged[1].text:find("stack traceback", 1, true))
+	end)
+
+	it("leaves a refused mission to the validation message, echoed once", function()
 		local env = start({ refuse = true })
 
 		assert.is_nil(env.GG.MissionAPI)
 		assert.are.equal(0, #world.logged)
 		assert.is_true(world.gameOver)
+		assert.are.equal(1, #world.echoed)
 		assert.are.equal(
 			"[Mission API] Mission not loaded: 1 validation errors in " .. ENTRY_POINT .. " (see infolog)",
 			world.echoed[1]

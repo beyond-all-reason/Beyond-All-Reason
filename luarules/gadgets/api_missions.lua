@@ -16,9 +16,11 @@ end
 
 local objectivesController, stagesController, triggersController, actionsController
 
--- Used in GameFrame.
 local missionLoaded = true
 local missionLoadError
+
+-- What Initialize is doing, named in the message when a Lua error stops it.
+local loadStep = "loading the Mission API"
 
 local function failMission(reason)
 	GG["MissionAPI"] = nil
@@ -36,13 +38,17 @@ local function validateMission(mission)
 end
 
 local function loadMission(gameSetup)
+	loadStep = "loading " .. gameSetup.entryPoint
 	local mission = VFS.Include(gameSetup.entryPoint)
+	loadStep = "validating " .. gameSetup.entryPoint
 	local validationResult = validateMission(mission)
 
 	if not validationResult.ok then
 		failMission(#validationResult.errors .. " validation errors in " .. gameSetup.entryPoint)
 		return
 	end
+
+	loadStep = "processing " .. gameSetup.entryPoint
 
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
@@ -132,7 +138,8 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
 end
 
--- Synced Lua has no debug library outside dev mode.
+-- Synced Lua has no debug library outside dev mode. VFS.Include runs each file in its own pcall, so for an error
+-- raised while a file loads the stack ends at the include; the message still names the file and line.
 local function withTraceback(err)
 	return debug and debug.traceback(tostring(err), 2) or tostring(err)
 end
@@ -144,16 +151,16 @@ function gadget:Initialize()
 		return
 	end
 
-	-- gadgets.lua calls Initialize unprotected: an error here would stop every later gadget from loading.
+	-- gadgets.lua calls Initialize unprotected: an error escaping it kills the whole LuaRules handle.
 	local loaded, loadError = xpcall(function()
 		setUpMissionAPI(gameSetup)
 		loadMission(gameSetup)
 	end, withTraceback)
 
 	if not loaded then
-		local message = tostring(loadError)
+		local message = "Lua error while " .. loadStep .. ": " .. tostring(loadError)
 		Spring.Log("api_missions.lua", LOG.ERROR, "[Mission API] " .. message)
-		failMission("error in " .. gameSetup.entryPoint .. ": " .. message:match("^[^\n]*"))
+		failMission(message:match("^[^\n]*"))
 	end
 end
 

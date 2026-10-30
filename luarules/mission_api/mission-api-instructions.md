@@ -27,9 +27,11 @@ Nothing here works outside this sequence, so keep it in mind when something read
 4. `api_missions_triggers.lua` (layer 1) `Initialize()` binds the definitions and unsubscribes from hot call-ins the
    loaded mission does not need.
 
-Steps 1 to 3 run under `xpcall`, since `gadgets.lua` calls `Initialize()` unprotected. A Lua error in them is logged
-(with a traceback in dev mode) and fails the mission the way a validation error does (below), instead of stopping every LuaRules
-gadget after this one from loading.
+Steps 1 to 3 run under `xpcall`: `gadgets.lua` calls `Initialize()` unprotected, and an error escaping it kills the
+whole LuaRules handle. A Lua error in them fails the mission the way a validation error does (below), and the message
+names the step that raised: loading the Mission API, loading the mission file, validating it or processing it. The
+dev-mode traceback stops at `VFS.Include`, which runs each file in its own `pcall`; for an error raised while a file
+loads, syntax errors included, the message itself carries the file and line.
 
 Module and definition files run at include time and read `GG['MissionAPI']` directly. Never add a load-time read of
 something registered later in that sequence; move it into a function or into `Initialize()`. `validation.lua` reads
@@ -123,7 +125,8 @@ breaking change to both the function and every mission using it.
 - Any validation error makes `api_missions.lua` drop `GG['MissionAPI']`, which in turn makes
   `api_missions_triggers.lua` remove itself, and ends the game once it starts. Validation failure aborts the whole
   mission — reserve errors for genuinely unrunnable missions and report warnings otherwise. A Lua error while the
-  mission loads ends it the same way; treat it as a bug in the code that raised, not as a validation error.
+  mission loads, one in the validation code included, ends it the same way but is reported as a Lua error in the
+  step that raised, not as a validation error.
 - `validation/references.lua` cross-checks unit/feature/marker/line names, countdown IDs and cutscene IDs between
   where they are created or defined and the actions and triggers that consume them. The consuming types are read from
   the schemas, so an action or trigger declaring a `UnitName`, `FeatureName`, `CountdownID` or `CutsceneID` parameter
