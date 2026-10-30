@@ -1,3 +1,4 @@
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new({
@@ -5,40 +6,25 @@ local env = MissionSpecEnv.new({
 	Engine = { FeatureSupport = { noOffsetForFeatureID = true } },
 })
 
-GG["MissionAPI"] = {
-	trackedUnitIDs = {},
-	trackedUnitNames = {},
-	trackedFeatureIDs = {},
-	trackedFeatureNames = {},
-}
-local missionAPI = GG["MissionAPI"]
-local modules = MissionSpecEnv.registerModules(env)
-modules.Tracking = MissionSpecEnv.include(env, "luarules/mission_api/tracking.lua")
-
+-- loadout.lua keeps the tracking tables it finds at load, and every Install() refills those same tables.
+MissionApiBuilder.new():Install()
 local loadout = MissionSpecEnv.include(env, "luarules/mission_api/loadout.lua")
-local tracking = modules.Tracking
 
-local function clearTracked()
-	for _, tracked in ipairs({
-		missionAPI.trackedUnitIDs,
-		missionAPI.trackedUnitNames,
-		missionAPI.trackedFeatureIDs,
-		missionAPI.trackedFeatureNames,
-	}) do
-		for key in pairs(tracked) do
-			tracked[key] = nil
-		end
+local function trackUnits(name, ...)
+	local builder = MissionApiBuilder.new()
+	for _, unitID in ipairs({ ... }) do
+		builder:WithTrackedUnit(name, unitID)
 	end
+	return builder:Install()
 end
 
 describe("mission_api.loadout orders targeting names", function()
 	before_each(function()
-		clearTracked()
+		MissionApiBuilder.new():Install()
 	end)
 
 	it("gives no orders for a name no unit carries any more", function()
-		tracking.TrackUnit("squad", 5)
-		tracking.UntrackUnitID(5)
+		trackUnits("squad", 5).Modules.Tracking.UntrackUnitID(5)
 
 		local converted = loadout.ConvertOrdersTargetingNames({ { env.CMD.ATTACK, { unitName = "squad" }, {} } })
 
@@ -74,7 +60,7 @@ describe("mission_api.loadout orders targeting names", function()
 	end)
 
 	it("leaves a skipped order out the same way in the middle and at the end", function()
-		tracking.TrackUnit("target", 5)
+		trackUnits("target", 5)
 
 		local converted = loadout.ConvertOrdersTargetingNames({
 			{ env.CMD.MOVE, { 1, 0, 2 }, {} },
@@ -90,8 +76,7 @@ describe("mission_api.loadout orders targeting names", function()
 	end)
 
 	it("queues the order on every unit of the name after the first", function()
-		tracking.TrackUnit("pair", 5)
-		tracking.TrackUnit("pair", 6)
+		trackUnits("pair", 5, 6)
 
 		local converted = loadout.ConvertOrdersTargetingNames({ { env.CMD.ATTACK, { unitName = "pair" }, {} } })
 
@@ -101,7 +86,7 @@ describe("mission_api.loadout orders targeting names", function()
 	end)
 
 	it("does not queue the first order when the same orders run again", function()
-		tracking.TrackUnit("target", 5)
+		trackUnits("target", 5)
 		local orders = { { env.CMD.ATTACK, { unitName = "target" }, {} } }
 
 		loadout.ConvertOrdersTargetingNames(orders)
