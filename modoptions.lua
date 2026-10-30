@@ -1861,12 +1861,24 @@ local options = {
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "proposed_unit_reworks",
-		name = "Placeholder for BLT testing",
-		desc = "Placeholder for official balance testing mod option",
+		name = "November Balance Test",
+		desc = "Test patch changing the earlygame economy and unit balance, to achieve more stable and varied gameplay especially on open maps.",
 		type = "bool",
 		hidden = true,
 		section = "options_experimental",
 		def = false,
+	},
+
+	{
+		key = "proposed_unit_reworks_link",
+		name = "Changelog",
+		section = "options_experimental",
+		type = "link",
+		link = "https://gist.github.com/Mitvit/b719866ab57cee8522a41f0751186043",
+		width = 275,
+		column = 1.65,
+		linkheight = 325,
+		linkwidth = 350,
 	},
 
 	-- NOTE: update language/en/interface.json when you change name or desc

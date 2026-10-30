@@ -4163,8 +4163,8 @@
 			"desc": "Experimental options"
 		},
 		"proposed_unit_reworks": {
-			"name": "Placeholder for BLT testing",
-			"desc": "Placeholder for official balance testing mod option"
+			"name": "November Balance Test",
+			"desc": "Test patch changing the earlygame economy and unit balance, to achieve more stable and varied gameplay especially on open maps."
 		},
 		"experimentallegionfaction": {
 			"name": "Legion Faction",
