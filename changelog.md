@@ -1,6 +1,6 @@
 # October
 - [Zombies]
-  - Hydra now runs in three stages over a stage clock, paper, mid and massive zombies. Each tier has its own rez window, spawn counts and veterancy curve, the clock waits at two tech gates for the strongest player, and a lobby can set the stage length (default 70 minutes) and difficulty (relaxed to insane, default hard) with the zombie_stages_length and zombie_stages_difficulty customparams.
+  - Hydra now escalates in three stages over the game, paper, mid and massive zombies, and waits for the players' tech before each stage. Lobbies can set the length and difficulty.
   - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
   - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
   - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
