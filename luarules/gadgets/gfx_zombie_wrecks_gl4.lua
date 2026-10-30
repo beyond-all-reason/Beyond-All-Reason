@@ -10,16 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
--- Synced API, for game_zombies.lua:
---   GG.ZombieWreckEffects.Arm(featureID, armFrame, riseFrame)
---     starts or retimes the effects on a wreck that will rise at riseFrame
---   GG.ZombieWreckEffects.Disarm(featureID)
---     stops the effects on a wreck that rose, was cleared, or no longer exists
---
--- Each client decides for itself whether a wreck's effects are shown. A player sees them on wrecks of
--- their own ally team's units and on wrecks their ally team has seen at least once, whatever their
--- current vision.
-
 local RULESPARAM_ENABLED = "zombies_enabled"
 
 if gadgetHandler:IsSyncedCode() then
@@ -33,8 +23,8 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		GG.ZombieWreckEffects = {
 			---@param featureID FeatureID
-			---@param armFrame integer frame the current timer started
-			---@param riseFrame integer frame the wreck rises
+			---@param armFrame integer
+			---@param riseFrame integer
 			Arm = function(featureID, armFrame, riseFrame)
 				SendToUnsynced("zombieWreckArm", featureID, armFrame, riseFrame)
 			end,
@@ -63,11 +53,13 @@ local hasShaders = gl.CreateShader ~= nil
 --------------------------------------------------------------------------------
 
 local SMOKE_TEXTURE = "bitmaps/atmos/smoke_puff.tga"
-local SMOKE_COLOR = { 0.55, 0.42, 0.62 }
+local SMOKE_COLOR = { 0.6, 0.36, 0.76 }
 
 local SPECTER_STYLE = Spring.GetConfigString("ZombieSpecterStyle", "indrawn")
 local SMOKE_SPRITE_COUNT = 28
-local SMOKE_LIFE_FRAMES = 60
+local SMOKE_LIFE_FRAMES = 50
+local SMOKE_LINGER_FRAMES = 9
+local SMOKE_START_DISTANCE_SCALE = 0.67
 local SMOKE_COUNT_S_CURVE_BLEND = 0.35
 local SMOKE_SILENT_START_FRACTION = 0.125
 local SMOKE_HOLD_FRAMES_AFTER_PUSHBACK = Game.gameSpeed
@@ -76,6 +68,8 @@ local PUFF_FRAMES = Game.gameSpeed * 2
 
 local FLASH_COUNT = 10
 local FLASH_LIGHTNING_SIZE = 0.5
+local LIGHTNING_SMALL_WRECK_SCALE = 0.7
+local LIGHTNING_FULL_SIZE_WRECK_RADIUS = 40
 local SMOKE_FINISH_FRAMES_BEFORE_RISE = Game.gameSpeed * 2
 local STRIKE_COUNT = 3
 local STRIKE_INTERVAL_FRAMES = 12
@@ -175,15 +169,18 @@ void main() {
 	if (spriteIndex < SMOKE_SPRITE_COUNT) {
 		float wreckRadius = max(wreck_position.w, 12.0);
 		float phaseRandom = fract(sin(seed * 12.9898 + spriteIndex * 78.233) * 43758.5453);
-		float loopIndex = floor((frame - armFrame) / SMOKE_LIFE_FRAMES + phaseRandom);
+		float loopFrames = SMOKE_LIFE_FRAMES + SMOKE_LINGER_FRAMES;
+		float loopIndex = floor((frame - armFrame) / loopFrames + phaseRandom);
 		float angleRandom = fract(sin(seed * 39.3468 + spriteIndex * 11.135 + loopIndex * 7.919) * 24634.6345);
 		float distanceRandom = fract(sin(seed * 73.1562 + spriteIndex * 52.931 + loopIndex * 3.571) * 12345.6789);
 		float heightRandom = fract(sin(seed * 5.4321 + spriteIndex * 91.717 + loopIndex * 5.113) * 65432.1234);
 		float smokeTimerProgress = clamp((progress - SMOKE_SILENT_START_FRACTION) / (1.0 - SMOKE_SILENT_START_FRACTION), 0.0, 1.0);
 		float smokeCountFraction = mix(smokeTimerProgress, smoothstep(0.0, 1.0, smokeTimerProgress), SMOKE_COUNT_S_CURVE_BLEND);
 		float smokeParticleCount = frame < hold_until_frame.x ? 0.0 : SMOKE_SPRITE_COUNT * smokeCountFraction;
-		float loopAge = fract((frame - armFrame) / SMOKE_LIFE_FRAMES + phaseRandom);
-		bool loopEndsBeforeFinish = frame - loopAge * SMOKE_LIFE_FRAMES <= finishFrame - SMOKE_LIFE_FRAMES;
+		float loopFrame = fract((frame - armFrame) / loopFrames + phaseRandom) * loopFrames;
+		float loopAge = min(loopFrame / SMOKE_LIFE_FRAMES, 1.0);
+		float linger = max(loopFrame - SMOKE_LIFE_FRAMES, 0.0) / SMOKE_LINGER_FRAMES;
+		bool loopEndsBeforeFinish = frame - loopFrame <= finishFrame - loopFrames;
 		if (spriteIndex < smokeParticleCount && frame >= armFrame && loopEndsBeforeFinish) {
 			float angle = angleRandom * 6.2832;
 			float wreckScale = clamp(wreckRadius / 20.0, 0.6, 2.2);
@@ -191,10 +188,12 @@ void main() {
 			vec3 startPosition;
 			float drawnInFraction;
 			#if SPECTER_STYLE == 1
-				startPosition = vec3(cos(angle) * (wreckRadius + 30.0 * distanceRandom), 45.0 + 45.0 * heightRandom, sin(angle) * (wreckRadius + 30.0 * distanceRandom)) * wreckScale;
+				float startDistance = (wreckRadius + 30.0 * distanceRandom) * SMOKE_START_DISTANCE_SCALE;
+				startPosition = vec3(cos(angle) * startDistance, 45.0 + 45.0 * heightRandom, sin(angle) * startDistance) * wreckScale;
 				drawnInFraction = pow(loopAge, 1.4);
 			#else
-				startPosition = vec3(cos(angle) * (wreckRadius * 1.5 + 50.0 * distanceRandom), 2.0, sin(angle) * (wreckRadius * 1.5 + 50.0 * distanceRandom)) * wreckScale;
+				float startDistance = (wreckRadius * 1.5 + 50.0 * distanceRandom) * SMOKE_START_DISTANCE_SCALE;
+				startPosition = vec3(cos(angle) * startDistance, 2.0, sin(angle) * startDistance) * wreckScale;
 				drawnInFraction = pow(loopAge, 1.2);
 				endPosition.y = 2.0 + wreckRadius * 0.3 * distanceRandom;
 			#endif
@@ -202,7 +201,7 @@ void main() {
 			center += mix(startPosition, endPosition, drawnInFraction) + wobble;
 			float possession = smoothstep(0.7, 1.0, progress);
 			size = mix(34.0, 5.0 + 6.0 * possession, drawnInFraction) * wreckScale;
-			alpha = mix(0.08, 0.7 + 0.3 * possession, drawnInFraction) * smoothstep(0.0, 0.1, loopAge);
+			alpha = mix(0.08, 0.7 + 0.3 * possession, drawnInFraction) * smoothstep(0.0, 0.1, loopAge) * (1.0 - linger);
 		}
 	} else {
 		float puffAge = (frame - settleFrame) / PUFF_FRAMES;
@@ -279,6 +278,8 @@ local function initGL4()
 	local defines = table.concat({
 		"#define SMOKE_SPRITE_COUNT " .. string.format("%.1f", SMOKE_SPRITE_COUNT),
 		"#define SMOKE_LIFE_FRAMES " .. string.format("%.1f", SMOKE_LIFE_FRAMES),
+		"#define SMOKE_LINGER_FRAMES " .. string.format("%.1f", SMOKE_LINGER_FRAMES),
+		"#define SMOKE_START_DISTANCE_SCALE " .. string.format("%.2f", SMOKE_START_DISTANCE_SCALE),
 		"#define SMOKE_COUNT_S_CURVE_BLEND " .. string.format("%.2f", SMOKE_COUNT_S_CURVE_BLEND),
 		"#define SMOKE_SILENT_START_FRACTION " .. string.format("%.3f", SMOKE_SILENT_START_FRACTION),
 		"#define SMOKE_FINISH_FRAMES_BEFORE_RISE " .. string.format("%.1f", SMOKE_FINISH_FRAMES_BEFORE_RISE),
@@ -344,24 +345,36 @@ local function flashEasing(progress)
 end
 
 local function addBillboardBolt(wreck, height)
-	billboardBolts[#billboardBolts + 1] =
-		{ wreck.x, wreck.y, wreck.z, spGetGameFrame(), height, math.random() * 6.2832 }
+	billboardBolts[#billboardBolts + 1] = {
+		x = wreck.x,
+		y = wreck.y,
+		z = wreck.z,
+		startFrame = spGetGameFrame(),
+		height = height,
+		seed = math.random() * 6.2832,
+	}
 end
 
 local function spawnLightningFlash(wreck)
-	GG.SpawnEnvironmentalLightning("scavradiation", wreck.x, wreck.y, wreck.z, FLASH_LIGHTNING_SIZE)
+	GG.SpawnEnvironmentalLightning(
+		"scavradiation",
+		wreck.x,
+		wreck.y,
+		wreck.z,
+		FLASH_LIGHTNING_SIZE * wreck.lightningScale
+	)
 end
 
 local function spawnBillboardFlash(wreck)
-	addBillboardBolt(wreck, BILLBOARD_BOLT_HEIGHT * FLASH_LIGHTNING_SIZE)
+	addBillboardBolt(wreck, BILLBOARD_BOLT_HEIGHT * FLASH_LIGHTNING_SIZE * wreck.lightningScale)
 end
 
 local function spawnLightningStrike(wreck)
-	GG.SpawnEnvironmentalLightning("zombiestrike", wreck.x, wreck.y, wreck.z)
+	GG.SpawnEnvironmentalLightning("zombiestrike", wreck.x, wreck.y, wreck.z, wreck.lightningScale)
 end
 
 local function spawnBillboardStrike(wreck)
-	addBillboardBolt(wreck, BILLBOARD_BOLT_HEIGHT)
+	addBillboardBolt(wreck, BILLBOARD_BOLT_HEIGHT * wreck.lightningScale)
 end
 
 local function thunderVolumeScale(wreck)
@@ -391,8 +404,11 @@ local function armWreck(_, featureID, armFrame, riseFrame)
 		if not x then
 			return
 		end
+		local radius = Spring.GetFeatureRadius(featureID) or 0
 		wreck = {
-			radius = Spring.GetFeatureRadius(featureID) or 0,
+			radius = radius,
+			lightningScale = LIGHTNING_SMALL_WRECK_SCALE
+				+ (1 - LIGHTNING_SMALL_WRECK_SCALE) * math.min(1, radius / LIGHTNING_FULL_SIZE_WRECK_RADIUS),
 			x = x,
 			y = y,
 			z = z,
@@ -524,23 +540,26 @@ local function drawBillboardSmoke(wreck, frame)
 	local particleCount = BILLBOARD_SMOKE_SPRITE_COUNT * smokeCountFraction(wreck, frame)
 	for spriteIndex = 0, BILLBOARD_SMOKE_SPRITE_COUNT - 1 do
 		local phaseRandom = hashRandom(wreck.seed, spriteIndex)
-		local loopPosition = (frame - wreck.armFrame) / SMOKE_LIFE_FRAMES + phaseRandom
+		local loopFrames = SMOKE_LIFE_FRAMES + SMOKE_LINGER_FRAMES
+		local loopPosition = (frame - wreck.armFrame) / loopFrames + phaseRandom
 		local loopIndex = math.floor(loopPosition)
-		local loopAge = loopPosition - loopIndex
-		local loopEndsBeforeFinish = frame - loopAge * SMOKE_LIFE_FRAMES <= finishFrame - SMOKE_LIFE_FRAMES
+		local loopFrame = (loopPosition - loopIndex) * loopFrames
+		local loopAge = math.min(loopFrame / SMOKE_LIFE_FRAMES, 1)
+		local linger = math.max(loopFrame - SMOKE_LIFE_FRAMES, 0) / SMOKE_LINGER_FRAMES
+		local loopEndsBeforeFinish = frame - loopFrame <= finishFrame - loopFrames
 		if spriteIndex < particleCount and frame >= wreck.armFrame and loopEndsBeforeFinish then
 			local angle = hashRandom(wreck.seed + loopIndex * 7.919, spriteIndex + 11) * 6.2832
 			local distanceRandom = hashRandom(wreck.seed + loopIndex * 3.571, spriteIndex + 53)
 			local heightRandom = hashRandom(wreck.seed + loopIndex * 5.113, spriteIndex + 91)
 			local drawnInFraction = loopAge ^ 1.4
-			local startDistance = (wreckRadius + 30 * distanceRandom) * wreckScale
+			local startDistance = (wreckRadius + 30 * distanceRandom) * SMOKE_START_DISTANCE_SCALE * wreckScale
 			local endDistance = wreckRadius * 0.35 * heightRandom
 			local distance = startDistance + (endDistance - startDistance) * drawnInFraction
 			local startHeight = (45 + 45 * heightRandom) * wreckScale
 			local endHeight = 3 + wreckRadius * 0.4 * distanceRandom
 			local height = startHeight + (endHeight - startHeight) * drawnInFraction
 			local size = (34 + (5 - 34) * drawnInFraction) * wreckScale
-			local alpha = (0.08 + (0.7 - 0.08) * drawnInFraction) * math.min(1, loopAge / 0.1)
+			local alpha = (0.08 + (0.7 - 0.08) * drawnInFraction) * math.min(1, loopAge / 0.1) * (1 - linger)
 			gl.Color(SMOKE_COLOR[1], SMOKE_COLOR[2], SMOKE_COLOR[3], alpha)
 			gl.PushMatrix()
 			gl.Translate(wreck.x + math.cos(angle) * distance, wreck.y + height, wreck.z + math.sin(angle) * distance)
@@ -552,18 +571,17 @@ local function drawBillboardSmoke(wreck, frame)
 end
 
 local function drawBillboardBolt(bolt, frame)
-	local x, y, z, startFrame, height, seed = bolt[1], bolt[2], bolt[3], bolt[4], bolt[5], bolt[6]
-	local life = (frame - startFrame) / BILLBOARD_BOLT_FRAMES
-	gl.Color(0.82, 0.7, 1, 1 - life)
+	local boltAge = (frame - bolt.startFrame) / BILLBOARD_BOLT_FRAMES
+	gl.Color(0.82, 0.7, 1, 1 - boltAge)
 	gl.LineWidth(3)
 	gl.BeginEnd(GL.LINE_STRIP, function()
-		gl.Vertex(x, y, z)
+		gl.Vertex(bolt.x, bolt.y, bolt.z)
 		for step = 1, 6 do
-			local jitter = 12 * (hashRandom(seed, step) - 0.5)
+			local jitter = 12 * (hashRandom(bolt.seed, step) - 0.5)
 			gl.Vertex(
-				x + jitter + math.cos(seed) * step * 2,
-				y + height * step / 6,
-				z - jitter + math.sin(seed) * step * 2
+				bolt.x + jitter + math.cos(bolt.seed) * step * 2,
+				bolt.y + bolt.height * step / 6,
+				bolt.z - jitter + math.sin(bolt.seed) * step * 2
 			)
 		end
 	end)
@@ -588,7 +606,7 @@ local function drawBillboards()
 	gl.Texture(0, false)
 	for index = #billboardBolts, 1, -1 do
 		local bolt = billboardBolts[index]
-		if frame - bolt[4] >= BILLBOARD_BOLT_FRAMES then
+		if frame - bolt.startFrame >= BILLBOARD_BOLT_FRAMES then
 			billboardBolts[index] = billboardBolts[#billboardBolts]
 			billboardBolts[#billboardBolts] = nil
 		else

@@ -217,7 +217,6 @@ local lightningConfigs = {
 		-- lightLensflare   = 0.0,
 	},
 
-	-- A single vertical bolt from a zombie wreck into the sky, two seconds before it rises.
 	zombiestrike = {
 		r = 0.50,
 		g = 0.4,
@@ -1776,9 +1775,8 @@ function gadget:Initialize()
 	end
 	updateViewCache()
 	gadgetHandler:AddSyncAction("envLightningSpawn", handleSpawn)
-	---Spawns a configured lightning effect for this client only, skipping the line-of-sight check.
-	---Unsynced gadgets that decide visibility themselves call this instead of the synced API.
-	---@param configName string Key of the lightning config to spawn.
+	---Spawns a configured lightning effect for this client only, with no line-of-sight check.
+	---@param configName string
 	---@param x number
 	---@param y number
 	---@param z number
