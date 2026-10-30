@@ -1,3 +1,4 @@
+local Builders = VFS.Include("spec/builders/index.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 ---@type table<integer, table>
@@ -5,20 +6,6 @@ local given
 
 local env = MissionSpecEnv.new({
 	Game = { squareSize = 8, footprintScale = 2 },
-	-- loadout.lua keys tables by these at load; the states are the engine's numbers.
-	CMD = {
-		ATTACK = 20,
-		GUARD = 25,
-		LOAD_UNITS = 75,
-		RECLAIM = 90,
-		RESURRECT = 125,
-		CAPTURE = 130,
-		FIRE_STATE = 45,
-		MOVE_STATE = 50,
-		MOVESTATE_HOLDPOS = 0,
-		FIRESTATE_HOLDFIRE = 0,
-		FIRESTATE_FIREATNEUTRAL = 3,
-	},
 	UnitDefNames = { bot = { id = 1, xsize = 4, zsize = 4 } },
 	Spring = {
 		GetGroundHeight = function()
@@ -43,14 +30,7 @@ local env = MissionSpecEnv.new({
 })
 env.BAR = { Utilities = MissionSpecEnv.include(env, "common/springUtilities/facingFunctions.lua") }
 
-GG["MissionAPI"] = {
-	trackedUnitIDs = {},
-	trackedUnitNames = {},
-	trackedFeatureIDs = {},
-	trackedFeatureNames = {},
-}
-local modules = MissionSpecEnv.registerModules(env)
-modules.Tracking = MissionSpecEnv.include(env, "luarules/mission_api/tracking.lua")
+Builders.MissionApi.new():Install(env)
 
 local loadout = MissionSpecEnv.include(env, "luarules/mission_api/loadout.lua")
 
