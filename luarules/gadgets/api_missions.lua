@@ -139,10 +139,13 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
 end
 
--- Synced Lua has no debug library outside dev mode. VFS.Include runs each file in its own pcall, so for an error
--- raised while a file loads the stack ends at the include; the message still names the file and line.
+-- Outside dev mode synced Lua's debug table is empty, so there is no traceback. VFS.Include runs each file in its own
+-- pcall, so for an error raised while a file loads the stack ends at the include; the message still names the file.
 local function withTraceback(err)
-	return debug and debug.traceback(tostring(err), 2) or tostring(err)
+	if debug.traceback then
+		return debug.traceback(tostring(err), 2)
+	end
+	return tostring(err)
 end
 
 function gadget:Initialize()

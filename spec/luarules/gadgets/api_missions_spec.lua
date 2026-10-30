@@ -7,7 +7,7 @@ local function noop() end
 
 -- Runs the gadget file against stand-ins for its includes. options.crash names the code that raises,
 -- options.refuse makes validation fail, options.missionSource replaces the mission file with Lua source,
--- and options.noDebug hides the debug library, as synced Lua does outside dev mode.
+-- and options.noDebug empties the debug library, as synced Lua does outside dev mode.
 local function loadGadget(options, world)
 	local function crashes(name)
 		if options.crash == name then
@@ -104,7 +104,7 @@ local function loadGadget(options, world)
 	}, { __index = _G })
 
 	if options.noDebug then
-		env.debug = false
+		env.debug = {}
 	end
 
 	-- Like the engine's VFS.Include: the file runs in its own pcall, and an error comes back as a new message
@@ -209,11 +209,12 @@ describe("api_missions load guard", function()
 		assertEndedWith(start({ crash = "parameters" }), "processing " .. ENTRY_POINT, "boom in parameters")
 	end)
 
-	it("logs a traceback only when synced Lua has the debug library", function()
+	it("logs the error either way, and a traceback only in dev mode", function()
 		start({ crash = "parameters" })
 		assert.is_truthy(world.logged[1].text:find("stack traceback", 1, true))
 
-		start({ crash = "parameters", noDebug = true })
+		local env = start({ crash = "parameters", noDebug = true })
+		assertEndedWith(env, "processing " .. ENTRY_POINT, "boom in parameters")
 		assert.is_nil(world.logged[1].text:find("stack traceback", 1, true))
 	end)
 
