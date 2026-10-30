@@ -3,22 +3,18 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
--- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and UnitDefs / Spring.GetUnitDefID inside its handler.
+-- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load, and Spring inside its handlers.
 Builders.MissionApi.new():Install()
 
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
-	[1] = { name = "armpw" },
-	[2] = { name = "corfast" },
-})
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
-
 local unitDwellLocation = MissionSpecEnv.include(env, "luarules/mission_api/conditions/unit_dwell_location.lua")
+local onUnitsEnteredArea = unitDwellLocation.callins.UnitsEnteredArea
+local onUnitsLeftArea = unitDwellLocation.callins.UnitsLeftArea
 local onGameFrame = unitDwellLocation.callins.GameFrame
 
 describe("mission_api.conditions.unit_dwell_location", function()
 	before_each(function()
-		env.Spring.GetUnitDefID = function()
-			return 1
+		env.Spring.GetGameFrame = function()
+			return 10
 		end
 	end)
 
@@ -26,8 +22,8 @@ describe("mission_api.conditions.unit_dwell_location", function()
 		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
-	local function newContext(unitsInArea)
-		local context = Builders.TriggerContext.new():WithUnitsInArea(unitsInArea):Build()
+	local function newContext()
+		local context = Builders.TriggerContext.new():Build()
 		return context, context.timesFired
 	end
 
@@ -52,71 +48,85 @@ describe("mission_api.conditions.unit_dwell_location", function()
 
 	it("does not fire before the unit has dwelt for the full duration", function()
 		local t = trigger({ area = area, duration = 3, unitDefName = "armpw" })
-		local context, fired = newContext({ 100 })
-		onGameFrame(t, triggerID, context) -- enters and starts counting at 0
-		onGameFrame(t, triggerID, context) -- 1
+		local context, fired = newContext()
+		onUnitsEnteredArea(t, triggerID, context, { 100 }) -- enters on frame 10
+		onGameFrame(t, triggerID, context, 11)
+		onGameFrame(t, triggerID, context, 12)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires once the unit has dwelt for the full duration", function()
 		local t = trigger({ area = area, duration = 2, unitDefName = "armpw" })
-		local context, fired = newContext({ 100 })
-		onGameFrame(t, triggerID, context) -- enters, count = 0
-		onGameFrame(t, triggerID, context) -- count = 1
-		onGameFrame(t, triggerID, context) -- count = 2, meets duration
+		local context, fired = newContext()
+		onUnitsEnteredArea(t, triggerID, context, { 100 }) -- enters on frame 10
+		onGameFrame(t, triggerID, context, 11)
+		onGameFrame(t, triggerID, context, 12)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire again for the same dwell once activated", function()
 		local t = trigger({ area = area, duration = 1, unitDefName = "armpw" })
-		local context, fired = newContext({ 100 })
-		onGameFrame(t, triggerID, context)
-		onGameFrame(t, triggerID, context) -- fires here
-		onGameFrame(t, triggerID, context)
-		onGameFrame(t, triggerID, context)
+		local context, fired = newContext()
+		onUnitsEnteredArea(t, triggerID, context, { 100 })
+		onGameFrame(t, triggerID, context, 11) -- fires here
+		onGameFrame(t, triggerID, context, 12)
+		onGameFrame(t, triggerID, context, 13)
 		assert.are.equal(1, fired())
 	end)
 
-	it("resets the dwell count for a unit that leaves and re-enters", function()
+	it("restarts the dwell for a unit that leaves and re-enters", function()
 		local t = trigger({ area = area, duration = 2, unitDefName = "armpw" })
-		local context, fired = newContext({ 100 })
-		onGameFrame(t, triggerID, context)
-		context.GetUnitsInArea = function()
-			return {}
+		local context, fired = newContext()
+		onUnitsEnteredArea(t, triggerID, context, { 100 }) -- enters on frame 10
+		onGameFrame(t, triggerID, context, 11)
+		onUnitsLeftArea(t, triggerID, context, { 100 })
+		env.Spring.GetGameFrame = function()
+			return 12
 		end
-		onGameFrame(t, triggerID, context) -- unit left, entry removed
-		context.GetUnitsInArea = function()
-			return { 100 }
+		onUnitsEnteredArea(t, triggerID, context, { 100 }) -- re-enters on frame 12
+		onGameFrame(t, triggerID, context, 13)
+		assert.are.equal(0, fired())
+		onGameFrame(t, triggerID, context, 14)
+		assert.are.equal(1, fired())
+	end)
+
+	it("does not start a dwell for a unit the filters reject", function()
+		local t = trigger({ area = area, duration = 1, unitName = "scouts" })
+		local context, fired = newContext()
+		context.DoesUnitMatch = function()
+			return false
 		end
-		onGameFrame(t, triggerID, context) -- re-enters, count = 0
-		onGameFrame(t, triggerID, context) -- count = 1
+		onUnitsEnteredArea(t, triggerID, context, { 100 })
+		onGameFrame(t, triggerID, context, 11)
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by unitName at the point of entering the area", function()
+	it("does not fire for a unit that lost its name while dwelling", function()
 		local t = trigger({ area = area, duration = 1, unitName = "scouts" })
-		local context, fired = newContext({ 100 })
+		local context, fired = newContext()
+		onUnitsEnteredArea(t, triggerID, context, { 100 })
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		onGameFrame(t, triggerID, context)
-		onGameFrame(t, triggerID, context)
-		assert.are.equal(0, fired())
-	end)
-
-	it("filters by unitDefName at the point of entering the area", function()
-		local t = trigger({ area = area, duration = 1, unitDefName = "corfast" }) -- unitDefID 1 = armpw
-		local context, fired = newContext({ 100 })
-		onGameFrame(t, triggerID, context)
-		onGameFrame(t, triggerID, context)
+		onGameFrame(t, triggerID, context, 11)
 		assert.are.equal(0, fired())
 	end)
 
 	it("tracks multiple units independently", function()
 		local t = trigger({ area = area, duration = 1, unitDefName = "armpw" })
-		local context, fired = newContext({ 100, 101 })
-		onGameFrame(t, triggerID, context)
-		onGameFrame(t, triggerID, context)
+		local context, fired = newContext()
+		onUnitsEnteredArea(t, triggerID, context, { 100, 101 })
+		onGameFrame(t, triggerID, context, 11)
 		assert.are.equal(2, fired())
+	end)
+
+	it("fires a duration of 0 on the frame after entering", function()
+		local t = trigger({ area = area, duration = 0, unitDefName = "armpw" })
+		local context, fired = newContext()
+		onUnitsEnteredArea(t, triggerID, context, { 100 })
+		onGameFrame(t, triggerID, context, 10)
+		assert.are.equal(0, fired())
+		onGameFrame(t, triggerID, context, 11)
+		assert.are.equal(1, fired())
 	end)
 end)

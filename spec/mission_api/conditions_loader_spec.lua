@@ -130,13 +130,17 @@ describe("mission_api.conditions_loader", function()
 			local T = realDefinitions.Types
 			local C = realDefinitions.Callins
 
-			-- GameFrame drives time/location/resource triggers:
+			-- GameFrame drives time/resource triggers:
 			assert.is_function(C.GameFrame[T.TimeElapsed])
 			assert.is_function(C.GameFrame[T.ResourceStored])
 			assert.is_function(C.GameFrame[T.ResourceIncome])
 			assert.is_function(C.GameFrame[T.ResourcePull])
-			assert.is_function(C.GameFrame[T.UnitEnteredLocation])
-			assert.is_function(C.GameFrame[T.UnitLeftLocation])
+
+			-- Area tracking for location triggers:
+			assert.is_function(C.UnitsEnteredArea[T.UnitEnteredLocation])
+			assert.is_function(C.UnitsLeftArea[T.UnitLeftLocation])
+			assert.is_function(C.UnitsEnteredArea[T.UnitDwellLocation])
+			assert.is_function(C.UnitsLeftArea[T.UnitDwellLocation])
 			assert.is_function(C.GameFrame[T.UnitDwellLocation])
 
 			-- Event-driven triggers:

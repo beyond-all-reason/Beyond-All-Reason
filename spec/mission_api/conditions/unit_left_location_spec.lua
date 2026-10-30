@@ -3,23 +3,14 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
--- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load, and UnitDefs and Spring inside its handler.
+-- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load, and Spring inside its handler.
 Builders.MissionApi.new():Install()
 
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
-	[1] = { name = "armpw" },
-	[2] = { name = "corfast" },
-})
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
-
 local unitLeftLocation = MissionSpecEnv.include(env, "luarules/mission_api/conditions/unit_left_location.lua")
-local onGameFrame = unitLeftLocation.callins.GameFrame
+local onUnitsLeftArea = unitLeftLocation.callins.UnitsLeftArea
 
 describe("mission_api.conditions.unit_left_location", function()
 	before_each(function()
-		env.Spring.GetUnitDefID = function()
-			return 1
-		end
 		env.Spring.GetUnitIsDead = function()
 			return false
 		end
@@ -29,8 +20,8 @@ describe("mission_api.conditions.unit_left_location", function()
 		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
-	local function newContext(unitsInArea)
-		local context = Builders.TriggerContext.new():WithUnitsInArea(unitsInArea):Build()
+	local function newContext()
+		local context = Builders.TriggerContext.new():Build()
 		return context, context.timesFired
 	end
 
@@ -51,76 +42,33 @@ describe("mission_api.conditions.unit_left_location", function()
 		assert.are.same({ "unitName", "unitDefName" }, unitLeftLocation.parameters.requiresOneOf)
 	end)
 
-	it("does not fire while the unit stays in the area", function()
-		local context, fired = newContext({ 100 })
-		onGameFrame(trigger({ area = area, unitDefName = "armpw" }), triggerID, context)
-		assert.are.equal(0, fired())
-	end)
-
-	it("fires once when a tracked unit leaves the area", function()
-		local t = trigger({ area = area, unitDefName = "armpw" })
-		local context, fired = newContext({ 100 })
-		onGameFrame(t, triggerID, context) -- establishes the unit as present
-		context.GetUnitsInArea = function()
-			return {}
-		end
-		onGameFrame(t, triggerID, context)
+	it("fires for a unit that left the area", function()
+		local context, fired = newContext()
+		onUnitsLeftArea(trigger({ area = area, unitDefName = "armpw" }), triggerID, context, { 100 })
 		assert.are.equal(1, fired())
 	end)
 
-	it("does not fire again after the unit has left", function()
-		local t = trigger({ area = area, unitDefName = "armpw" })
-		local context, fired = newContext({ 100 })
-		onGameFrame(t, triggerID, context)
-		context.GetUnitsInArea = function()
-			return {}
-		end
-		onGameFrame(t, triggerID, context)
-		onGameFrame(t, triggerID, context)
-		assert.are.equal(1, fired())
-	end)
-
-	it("fires again if the unit re-enters and leaves again", function()
-		local t = trigger({ area = area, unitDefName = "armpw" })
-		local context, fired = newContext({ 100 })
-		onGameFrame(t, triggerID, context)
-		context.GetUnitsInArea = function()
-			return {}
-		end
-		onGameFrame(t, triggerID, context)
-		context.GetUnitsInArea = function()
-			return { 100 }
-		end
-		onGameFrame(t, triggerID, context)
-		context.GetUnitsInArea = function()
-			return {}
-		end
-		onGameFrame(t, triggerID, context)
+	it("fires once per unit leaving together", function()
+		local context, fired = newContext()
+		onUnitsLeftArea(trigger({ area = area, unitDefName = "armpw" }), triggerID, context, { 100, 101 })
 		assert.are.equal(2, fired())
 	end)
 
-	it("filters by unitName", function()
-		local t = trigger({ area = area, unitName = "scouts" })
-		local context, fired = newContext({ 100 })
-		context.DoesUnitHaveName = function()
-			return false
+	it("does not fire for a unit that was destroyed in the area", function()
+		env.Spring.GetUnitIsDead = function()
+			return nil
 		end
-		onGameFrame(t, triggerID, context)
-		context.GetUnitsInArea = function()
-			return {}
-		end
-		onGameFrame(t, triggerID, context)
+		local context, fired = newContext()
+		onUnitsLeftArea(trigger({ area = area, unitDefName = "armpw" }), triggerID, context, { 100 })
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by unitDefName", function()
-		local t = trigger({ area = area, unitDefName = "corfast" }) -- unitDefID 1 = armpw
-		local context, fired = newContext({ 100 })
-		onGameFrame(t, triggerID, context)
-		context.GetUnitsInArea = function()
-			return {}
+	it("does not fire for a unit the filters reject", function()
+		local context, fired = newContext()
+		context.DoesUnitMatch = function()
+			return false
 		end
-		onGameFrame(t, triggerID, context)
+		onUnitsLeftArea(trigger({ area = area, unitName = "scouts" }), triggerID, context, { 100 })
 		assert.are.equal(0, fired())
 	end)
 end)
