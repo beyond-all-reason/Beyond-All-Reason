@@ -1,3 +1,4 @@
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local HEADING_EAST = 16384
@@ -33,14 +34,7 @@ env.UnitDefs = { { name = "armwar", corpse = "armwar_dead" } }
 env.FeatureDefNames = { armwar_dead = { id = 1 } }
 env.BAR = { Utilities = MissionSpecEnv.include(env, "common/springUtilities/facingFunctions.lua") }
 
-GG["MissionAPI"] = {
-	trackedUnitIDs = {},
-	trackedUnitNames = {},
-	trackedFeatureIDs = {},
-	trackedFeatureNames = {},
-}
-local modules = MissionSpecEnv.registerModules(env)
-modules.Tracking = MissionSpecEnv.include(env, "luarules/mission_api/tracking.lua")
+MissionApiBuilder.new():Install(env)
 
 local loadout = MissionSpecEnv.include(env, "luarules/mission_api/loadout.lua")
 
