@@ -154,6 +154,7 @@ local IDLEMODE_FLY = 0
 
 local ZOMBIE_EXPIRING_BUILDING_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't want random zombie immobile trash taking up unit cap forever.
 local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
+local ZOMBIE_EXPIRING_FACTORY_LIFETIME = Game.gameSpeed * 60 * 5
 
 local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
 local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
@@ -343,6 +344,14 @@ do
 		return false
 	end
 
+	local function getExpiryLifetimeFrames(unitDef, rezPower)
+		if unitDef.isFactory then
+			return ZOMBIE_EXPIRING_FACTORY_LIFETIME
+		elseif unitDef.speed <= 0 and rezPower <= ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT then
+			return ZOMBIE_EXPIRING_BUILDING_LIFETIME
+		end
+	end
+
 	local function getScavVariantUnitDefID(unitDef, unitDefID)
 		if string.find(unitDef.name, "_scav") then
 			return unitDefID
@@ -390,9 +399,7 @@ do
 			isPoolMember = isPoolMember,
 			forceRespawn = isPoolMember,
 			neverRespawn = unitRequiresSpecificPlacement(unitDef),
-			isExpiringBuilding = unitDef.speed <= 0
-				and not unitDef.isFactory
-				and rezPower <= ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT,
+			expiryLifetimeFrames = getExpiryLifetimeFrames(unitDef, rezPower),
 			excludedFromWraithSpawn = isExcludedFromWraithSpawn(unitDef),
 			scavVariantUnitDefID = getScavVariantUnitDefID(unitDef, unitDefID),
 			spawnExplosionCeg = getSpawnExplosionCeg(unitDef),
@@ -618,8 +625,9 @@ local function registerZombie(unitID, unitDefID, transferToScavs)
 	elseif GG.ZombieAI then
 		GG.ZombieAI.InitializeZombie(unitID, unitDefID)
 	end
-	if zombieUnitDefs[unitDefID].isExpiringBuilding then
-		addToFrameList(expiringBuildingFrames, gameFrame + ZOMBIE_EXPIRING_BUILDING_LIFETIME, unitID)
+	local expiryLifetimeFrames = zombieUnitDefs[unitDefID].expiryLifetimeFrames
+	if expiryLifetimeFrames then
+		addToFrameList(expiringBuildingFrames, gameFrame + expiryLifetimeFrames, unitID)
 	end
 end
 
@@ -929,9 +937,9 @@ local function expireDueBuildings(frame)
 	for buildingIndex = 1, #expiringBuildings do
 		local unitID = expiringBuildings[buildingIndex]
 		local unitDefID = spring.ValidUnitID(unitID) and spring.GetUnitDefID(unitID)
-		if unitDefID and isZombie(unitID) and zombieUnitDefs[unitDefID].isExpiringBuilding then
+		if unitDefID and isZombie(unitID) and zombieUnitDefs[unitDefID].expiryLifetimeFrames then
 			suppressedDeaths[unitID] = true
-			spring.DestroyUnit(unitID, true, true)
+			spring.DestroyUnit(unitID, true, false)
 		end
 	end
 end
