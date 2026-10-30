@@ -1,0 +1,9 @@
+{
+	"id": "gui_pip",
+	"display_name": "Picture-in-Picture",
+	"keybindings": [
+		{ "action": "pip1_switch", "label": "actions.switch", "defaultKeysets": ["Meta+tab"] },
+		{ "action": "pip1_copy", "label": "actions.copy", "defaultKeysets": ["Meta+ctrl+tab"] },
+		{ "action": "pip1_track", "label": "actions.track", "defaultKeysets": ["Alt+sc_t"] }
+	]
+}

@@ -1,0 +1,8 @@
+{
+	"en": {
+		"actions": {
+			"increase": "Increase field of view",
+			"decrease": "Decrease field of view"
+		}
+	}
+}

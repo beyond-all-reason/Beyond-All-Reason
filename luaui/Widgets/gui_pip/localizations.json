@@ -1,0 +1,9 @@
+{
+	"en": {
+		"actions": {
+			"switch": "Swap camera with picture-in-picture",
+			"copy": "Copy camera to picture-in-picture",
+			"track": "Track selection in picture-in-picture"
+		}
+	}
+}

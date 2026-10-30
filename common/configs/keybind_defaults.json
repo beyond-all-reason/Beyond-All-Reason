@@ -23,6 +23,13 @@
 		"factory_preset save 8",
 		"factory_preset save 9",
 		"factory_preset_toggle",
+		"fov_dec 5",
+		"fov_inc 5",
+		"pip1_copy",
+		"pip1_switch",
+		"pip1_track",
+		"selectloop",
+		"selectloop_add",
 		"squad_cycle_idle",
 		"squad_cycle_recent",
 		"squad_expand",
@@ -134,16 +141,8 @@
 					"action": "selectbox_mobile"
 				},
 				{
-					"keyset": "Any+space",
-					"action": "selectloop"
-				},
-				{
 					"keyset": "Any+ctrl",
 					"action": "selectloop_invert"
-				},
-				{
-					"keyset": "Any+shift",
-					"action": "selectloop_add"
 				},
 				{
 					"keyset": "Any+space",
@@ -268,34 +267,6 @@
 				{
 					"keyset": "Any+ctrl",
 					"action": "movetilt"
-				},
-				{
-					"keyset": "ctrl+sc_o",
-					"action": "fov_dec 5"
-				},
-				{
-					"keyset": "ctrl+sc_p",
-					"action": "fov_inc 5"
-				},
-				{
-					"keyset": "sc_numpad1",
-					"action": "fov_dec 5"
-				},
-				{
-					"keyset": "sc_numpad7",
-					"action": "fov_inc 5"
-				},
-				{
-					"keyset": "Meta+ctrl+tab",
-					"action": "pip1_copy"
-				},
-				{
-					"keyset": "Meta+tab",
-					"action": "pip1_switch"
-				},
-				{
-					"keyset": "Alt+sc_t",
-					"action": "pip1_track"
 				},
 				{
 					"keyset": "Any+alt",
@@ -1390,16 +1361,8 @@
 					"action": "selectbox_mobile"
 				},
 				{
-					"keyset": "Any+space",
-					"action": "selectloop"
-				},
-				{
 					"keyset": "Any+ctrl",
 					"action": "selectloop_invert"
-				},
-				{
-					"keyset": "Any+shift",
-					"action": "selectloop_add"
 				},
 				{
 					"keyset": "Any+space",
@@ -1524,34 +1487,6 @@
 				{
 					"keyset": "Any+ctrl",
 					"action": "movetilt"
-				},
-				{
-					"keyset": "ctrl+sc_o",
-					"action": "fov_dec 5"
-				},
-				{
-					"keyset": "ctrl+sc_p",
-					"action": "fov_inc 5"
-				},
-				{
-					"keyset": "sc_numpad1",
-					"action": "fov_dec 5"
-				},
-				{
-					"keyset": "sc_numpad7",
-					"action": "fov_inc 5"
-				},
-				{
-					"keyset": "Meta+ctrl+tab",
-					"action": "pip1_copy"
-				},
-				{
-					"keyset": "Meta+tab",
-					"action": "pip1_switch"
-				},
-				{
-					"keyset": "Alt+sc_t",
-					"action": "pip1_track"
 				},
 				{
 					"keyset": "Any+alt",
@@ -2642,16 +2577,8 @@
 					"action": "selectbox_mobile"
 				},
 				{
-					"keyset": "Any+space",
-					"action": "selectloop"
-				},
-				{
 					"keyset": "Any+ctrl",
 					"action": "selectloop_invert"
-				},
-				{
-					"keyset": "Any+shift",
-					"action": "selectloop_add"
 				},
 				{
 					"keyset": "Any+space",
@@ -2776,34 +2703,6 @@
 				{
 					"keyset": "Any+ctrl",
 					"action": "movetilt"
-				},
-				{
-					"keyset": "ctrl+sc_o",
-					"action": "fov_dec 5"
-				},
-				{
-					"keyset": "ctrl+sc_p",
-					"action": "fov_inc 5"
-				},
-				{
-					"keyset": "sc_numpad1",
-					"action": "fov_dec 5"
-				},
-				{
-					"keyset": "sc_numpad7",
-					"action": "fov_inc 5"
-				},
-				{
-					"keyset": "Meta+ctrl+tab",
-					"action": "pip1_copy"
-				},
-				{
-					"keyset": "Meta+tab",
-					"action": "pip1_switch"
-				},
-				{
-					"keyset": "Alt+sc_t",
-					"action": "pip1_track"
 				},
 				{
 					"keyset": "Any+alt",
@@ -4350,16 +4249,8 @@
 					"action": "selectbox_mobile"
 				},
 				{
-					"keyset": "Any+space",
-					"action": "selectloop"
-				},
-				{
 					"keyset": "Any+ctrl",
 					"action": "selectloop_invert"
-				},
-				{
-					"keyset": "Any+shift",
-					"action": "selectloop_add"
 				},
 				{
 					"keyset": "Any+space",
@@ -4484,34 +4375,6 @@
 				{
 					"keyset": "Any+ctrl",
 					"action": "movetilt"
-				},
-				{
-					"keyset": "ctrl+sc_o",
-					"action": "fov_dec 5"
-				},
-				{
-					"keyset": "ctrl+sc_p",
-					"action": "fov_inc 5"
-				},
-				{
-					"keyset": "sc_numpad1",
-					"action": "fov_dec 5"
-				},
-				{
-					"keyset": "sc_numpad7",
-					"action": "fov_inc 5"
-				},
-				{
-					"keyset": "Meta+ctrl+tab",
-					"action": "pip1_copy"
-				},
-				{
-					"keyset": "Meta+tab",
-					"action": "pip1_switch"
-				},
-				{
-					"keyset": "Alt+sc_t",
-					"action": "pip1_track"
 				},
 				{
 					"keyset": "Any+alt",

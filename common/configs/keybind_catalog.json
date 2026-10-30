@@ -28,7 +28,6 @@
 			"quitmenu",
 			"quitmessage",
 			"reloadforce",
-			"selectloop_add",
 			"selectloop_invert",
 			"teamstatus_close",
 			"togglecammode",
@@ -792,18 +791,6 @@
 				"label": "actions.camera.cycleSelectedPrev"
 			},
 			{
-				"action": "pip1_switch",
-				"label": "actions.camera.pipSwitch"
-			},
-			{
-				"action": "pip1_copy",
-				"label": "actions.camera.pipCopy"
-			},
-			{
-				"action": "pip1_track",
-				"label": "actions.camera.pipTrack"
-			},
-			{
 				"action": "pip_replay",
 				"label": "actions.camera.pipReplay"
 			},
@@ -982,24 +969,6 @@
 				"label": "actions.keybindProfiles.activate",
 				"description": "actions.keybindProfiles.activateDescription",
 				"membersFrom": "profiles"
-			}
-		]
-	},
-	{
-		"category": "categories.other",
-		"items": [
-			{
-				"action": "selectloop",
-				"label": "actions.selection.loopActivate",
-				"alwaysModifier": "any"
-			},
-			{
-				"action": "fov_inc 5",
-				"label": "actions.camera.fovIncrease"
-			},
-			{
-				"action": "fov_dec 5",
-				"label": "actions.camera.fovDecrease"
 			}
 		]
 	}
