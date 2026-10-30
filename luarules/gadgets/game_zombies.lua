@@ -171,7 +171,7 @@ local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful
 local STAGES = {
 	defaultLength = 70,
 	deadlineFraction = 0.85, -- from here the clock ignores the gates and reaches the end on time
-	gates = { { minute = 30, techLevel = 2 }, { minute = 50, techLevel = 3 } }, -- the clock holds here until the strongest player reaches the tech level
+	gates = { { minute = 16, techLevel = 2 }, { minute = 44, techLevel = 3 } }, -- the clock holds here until the strongest player reaches the tech level
 	peakExperience = 0.8,
 	tiers = {
 		{
@@ -184,14 +184,14 @@ local STAGES = {
 		{
 			name = "mid",
 			topUnit = "legbunk_scav",
-			rezWindow = { { 0, 50, 135 }, { 30, 32, 82 }, { 65, 14, 28 } },
+			rezWindow = { { 0, 50, 135 }, { 16, 32, 82 }, { 65, 14, 28 } },
 			spawnCounts = { { 0, 2, 6 }, { 55, 4, 14 } },
 			veterancy = { { 0, 0 }, { 40, 0.4 }, { 55, 1 } },
 		},
 		{
 			name = "massive",
 			topUnit = "armbanth",
-			rezWindow = { { 0, 60, 200 }, { 50, 43, 123 }, { 65, 25, 45 } },
+			rezWindow = { { 0, 60, 200 }, { 44, 43, 123 }, { 65, 25, 45 } },
 			spawnCounts = { { 0, 2, 6 }, { 70, 5, 20 } },
 			veterancy = { { 0, 0 }, { 60, 0.6 }, { 70, 1 } },
 		},
