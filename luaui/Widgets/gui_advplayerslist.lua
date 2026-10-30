@@ -2176,7 +2176,7 @@ function CreateBackground()
 		if not mainListBgTex and width > 0 and height > 0 then
 			mainListBgTex = gl.CreateTexture(width, height, {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 			gl.R2tHelper.RenderToTexture(mainListBgTex, function()
@@ -2417,7 +2417,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 			if width > 0 and height > 0 then
 				mainListTex = gl.CreateTexture(width, height, { --*(vsy<1400 and 2 or 1)
 					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
+					format = GL.RGBA8,
 					fbo = true,
 				})
 			end
@@ -2445,7 +2445,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 			if width > 0 and height > 0 then
 				mainList2Tex = gl.CreateTexture(width, height, { --*(vsy<1400 and 2 or 1)
 					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
+					format = GL.RGBA8,
 					fbo = true,
 				})
 			end
@@ -2473,7 +2473,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 			if width > 0 and height > 0 then
 				mainList3Tex = gl.CreateTexture(width, height, {
 					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
+					format = GL.RGBA8,
 					fbo = true,
 				})
 			end

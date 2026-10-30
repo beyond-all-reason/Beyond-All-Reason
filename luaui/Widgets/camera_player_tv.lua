@@ -992,7 +992,7 @@ function widget:DrawScreen()
 					(mathFloor(top - bottom) + uiTexTopExtra),
 					{
 						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
+						format = GL.RGBA8,
 						fbo = true,
 					}
 				)

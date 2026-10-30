@@ -1265,17 +1265,17 @@ local function multiQueue(uDefID, quantity, cap, opts)
 end
 
 --- unitDefID currently shown in the grid cell at (row, col), or nil.
---- cellRects are indexed row-major: (row - 1) * columns + col
----@param row integer|string 1..rows
----@param col integer|string 1..columns
+--- Rows and columns are the 3x4 grid the keybinds address, even when docked to the bottom.
+---@param row integer|string 1..3
+---@param col integer|string 1..4
 ---@return integer?
 local function getUnitDefIDByRowCol(row, col)
 	row = tonumber(row)
 	col = tonumber(col)
-	if (not row or row < 1 or row > rows) or (not col or col < 1 or col > columns) then
+	if (not row or row < 1 or row > 3) or (not col or col < 1 or col > 4) then
 		return nil
 	end
-	local cell = cellRects[(row - 1) * columns + col]
+	local cell = cellRects[(row - 1) * 4 + col]
 	return cell and cell.opts and cell.opts.uDefID or nil
 end
 
@@ -3070,7 +3070,7 @@ function widget:DrawScreen()
 					math_floor(buildersRectYend - backgroundRect.y),
 					{
 						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
+						format = GL.RGBA8,
 						fbo = true,
 					}
 				)
@@ -3093,7 +3093,7 @@ function widget:DrawScreen()
 					math_floor(buildersRectYend - backgroundRect.y) * 2,
 					{ --*(vsy<1400 and 2 or 2)
 						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
+						format = GL.RGBA8,
 						fbo = true,
 					}
 				)

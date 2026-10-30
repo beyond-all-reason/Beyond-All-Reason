@@ -2815,7 +2815,7 @@ function widget:DrawScreen()
 		tracy.ZoneBeginN("W:Info:DrawScreen:CreateBackgroundTexture")
 		infoBgTex = gl.CreateTexture(math_floor(width * vsx), math_floor(height * vsy), {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		gl.R2tHelper.RenderToTexture(infoBgTex, function()
@@ -2829,7 +2829,7 @@ function widget:DrawScreen()
 		tracy.ZoneBeginN("W:Info:DrawScreen:CreateInfoTexture")
 		infoTex = gl.CreateTexture(math_floor(width * vsx) * 2, math_floor(height * vsy) * 2, {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		tracy.ZoneEnd()

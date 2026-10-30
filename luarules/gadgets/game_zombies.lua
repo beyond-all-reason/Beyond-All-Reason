@@ -119,13 +119,13 @@ local TECH_TO_REZ_POWER_SPEEDS = { -- calibrated manually, spitballed numbers th
 	[4.5] = 130,
 }
 local TOO_LONG_GAME_FRAMES = Game.gameSpeed * 60 * 45
-local TOO_LONG_REZ_POWER_SPEED = 20
 local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed -- How often (in frames) everything else is checked
 local REZ_SPEED_UPDATE_INTERVAL = Game.gameSpeed * 60
 
 local gameFrame = 0
 local tooLong = false
 local adjustedRezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[1]
+local factoryBuildpowerMultiplier = 1
 local currentTechLevel = nil
 
 local PICK_LOWEST = true
@@ -154,6 +154,7 @@ local IDLEMODE_FLY = 0
 
 local ZOMBIE_EXPIRING_BUILDING_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't want random zombie immobile trash taking up unit cap forever.
 local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
+local ZOMBIE_EXPIRING_FACTORY_LIFETIME = Game.gameSpeed * 60 * 5
 
 local UNTAMPERED_FRAME = -math.huge
 local RECENT_TAMPER_FRAMES = Game.gameSpeed
@@ -179,6 +180,9 @@ local DEATH_NAMES_BLOCKING_WRAITHS = {
 	Water = not WATER_FEEDS_WRAITHS,
 }
 local RULES_PARAM = {
+	TECH_LEVEL = "zombie_tech_level",
+	REZ_POWER_SPEED = "zombie_rez_power_speed",
+	FACTORY_BUILDPOWER_MULTIPLIER = "zombie_factory_buildpower_multiplier",
 	REZ_FRAME = "zombie_rez_frame",
 	WAS_ZOMBIE = "wasZombie",
 	WRAITH_READY_FRAME = "zombie_wraith_ready_frame",
@@ -330,6 +334,14 @@ do
 		return false
 	end
 
+	local function getExpiryLifetimeFrames(unitDef, rezPower)
+		if unitDef.isFactory then
+			return ZOMBIE_EXPIRING_FACTORY_LIFETIME
+		elseif unitDef.speed <= 0 and rezPower <= ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT then
+			return ZOMBIE_EXPIRING_BUILDING_LIFETIME
+		end
+	end
+
 	local function getScavVariantUnitDefID(unitDef, unitDefID)
 		if string.find(unitDef.name, "_scav") then
 			return unitDefID
@@ -377,9 +389,7 @@ do
 			isPoolMember = isPoolMember,
 			forceRespawn = isPoolMember,
 			neverRespawn = unitRequiresSpecificPlacement(unitDef),
-			isExpiringBuilding = unitDef.speed <= 0
-				and not unitDef.isFactory
-				and rezPower <= ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT,
+			expiryLifetimeFrames = getExpiryLifetimeFrames(unitDef, rezPower),
 			excludedFromWraithSpawn = isExcludedFromWraithSpawn(unitDef),
 			scavVariantUnitDefID = getScavVariantUnitDefID(unitDef, unitDefID),
 			spawnExplosionCeg = getSpawnExplosionCeg(unitDef),
@@ -489,7 +499,7 @@ local function setZombieFactoryBuildpower(unitID, useZombieBuildpower, unitDefID
 	local resolvedUnitDefID = unitDefID or (factoryData and factoryData.unitDefID)
 	local unitDef = resolvedUnitDefID and unitDefs[resolvedUnitDefID]
 	if useZombieBuildpower and unitDef and unitDef.isFactory then
-		spring.SetUnitBuildSpeed(unitID, unitDef.buildSpeed * zombieModeSettings.factoryBuildpowerTechMultiplier ^ (currentTechLevel or 1))
+		spring.SetUnitBuildSpeed(unitID, unitDef.buildSpeed * factoryBuildpowerMultiplier)
 		zombieFactories[unitID] = factoryData or { unitDefID = resolvedUnitDefID, baseBuildSpeed = unitDef.buildSpeed }
 		return
 	end
@@ -505,15 +515,15 @@ local function updateRezSpeed()
 		local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
 		techLevel = GG.PowerLib.TechGuesstimate(highestPowerData.power)
 	end
-	if tooLong then
-		adjustedRezPowerSpeed = TOO_LONG_REZ_POWER_SPEED
-	else
-		local rezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[techLevel] or TECH_TO_REZ_POWER_SPEEDS[1]
-		adjustedRezPowerSpeed = rezPowerSpeed * zombieModeSettings.rezPowerSpeedMultiplier
-	end
+	local rezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[techLevel] or TECH_TO_REZ_POWER_SPEEDS[1]
+	adjustedRezPowerSpeed = rezPowerSpeed * zombieModeSettings.rezPowerSpeedMultiplier
+	factoryBuildpowerMultiplier = zombieModeSettings.factoryBuildpowerTechMultiplier ^ techLevel
 	currentTechLevel = techLevel
 	rebuildZombieCorpseSpawnDelays()
 	setZombieFactoryBuildpower()
+	spring.SetGameRulesParam(RULES_PARAM.TECH_LEVEL, techLevel)
+	spring.SetGameRulesParam(RULES_PARAM.REZ_POWER_SPEED, adjustedRezPowerSpeed)
+	spring.SetGameRulesParam(RULES_PARAM.FACTORY_BUILDPOWER_MULTIPLIER, factoryBuildpowerMultiplier)
 end
 
 local function updateTooLong(frame)
@@ -522,7 +532,6 @@ local function updateTooLong(frame)
 	end
 	tooLong = true
 	GG.Zombies.tooLong = true
-	updateRezSpeed()
 	if GG.ZombieAI and GG.ZombieAI.EnablePermanentAggro then
 		GG.ZombieAI.EnablePermanentAggro()
 	end
@@ -606,8 +615,9 @@ local function registerZombie(unitID, unitDefID, transferToScavs)
 	elseif GG.ZombieAI then
 		GG.ZombieAI.InitializeZombie(unitID, unitDefID)
 	end
-	if zombieUnitDefs[unitDefID].isExpiringBuilding then
-		addToFrameList(expiringBuildingFrames, gameFrame + ZOMBIE_EXPIRING_BUILDING_LIFETIME, unitID)
+	local expiryLifetimeFrames = zombieUnitDefs[unitDefID].expiryLifetimeFrames
+	if expiryLifetimeFrames then
+		addToFrameList(expiringBuildingFrames, gameFrame + expiryLifetimeFrames, unitID)
 	end
 end
 
@@ -917,9 +927,9 @@ local function expireDueBuildings(frame)
 	for buildingIndex = 1, #expiringBuildings do
 		local unitID = expiringBuildings[buildingIndex]
 		local unitDefID = spring.ValidUnitID(unitID) and spring.GetUnitDefID(unitID)
-		if unitDefID and isZombie(unitID) and zombieUnitDefs[unitDefID].isExpiringBuilding then
+		if unitDefID and isZombie(unitID) and zombieUnitDefs[unitDefID].expiryLifetimeFrames then
 			suppressedDeaths[unitID] = true
-			spring.DestroyUnit(unitID, true, true)
+			spring.DestroyUnit(unitID, true, false)
 		end
 	end
 end
@@ -1565,6 +1575,10 @@ local function isAuthorized(playerID)
 	local accountID = BAR.Utilities.GetAccountID(playerID)
 	local devHelpers = _G.permissions.devhelpers
 	if devHelpers and (devHelpers[accountID] or (playerName and devHelpers[playerName])) then
+		return true
+	end
+	local director = _G.permissions.director
+	if director and (director[accountID] or (playerName and director[playerName])) then
 		return true
 	end
 	return false
