@@ -127,8 +127,34 @@ for _, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local function spawnFeature(featureDefName, position, facing, featureName)
-	local heading = BAR.Utilities.FacingToHeading(facing or 0)
+-- A point closer than this is on the feature itself, as in RotateUnits.
+local MIN_DIRECTION_DISTANCE = 0.001
+
+local function compassAngleToHeading(angle)
+	-- TODO: refactor to call CompassAngleToHeading when it is merged
+	local heading = math.floor((angle % 360 - 180) / 360 * -65536)
+	-- Due north comes out as 32768, one past the engine's short heading; -32768 is the same direction.
+	if heading == 32768 then
+		return -32768
+	end
+	return heading
+end
+
+local function directionToHeading(feature, direction)
+	if direction.angle then
+		return compassAngleToHeading(direction.angle)
+	end
+
+	local dx, dz = direction.x - feature.x, direction.z - feature.z
+	if math.abs(dx) < MIN_DIRECTION_DISTANCE and math.abs(dz) < MIN_DIRECTION_DISTANCE then
+		return BAR.Utilities.FacingToHeading(0)
+	end
+	-- Not Spring.GetHeadingFromVector: before RecoilEngine #3240 it swaps east and west for dz just above zero.
+	-- Compass angles run clockwise from north, which is -z.
+	return compassAngleToHeading(math.deg(math.atan2(dx, -dz)))
+end
+
+local function spawnFeature(featureDefName, position, heading, facing, featureName)
 	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
 	local unitDefName = corpseToUnitDefName[featureDefName]
 
@@ -141,7 +167,15 @@ end
 local function spawnFeatureLoadout(featureLoadout)
 	for _, feature in ipairs(featureLoadout or {}) do
 		feature.y = Spring.GetGroundHeight(feature.x, feature.z)
-		spawnFeature(feature.featureDefName, feature, feature.facing, feature.featureName)
+		local heading, facing
+		if type(feature.facing) == "table" then
+			heading = directionToHeading(feature, feature.facing)
+			facing = BAR.Utilities.HeadingToFacing(heading) -- resurrection only takes one of the four facings
+		else
+			facing = feature.facing or 0
+			heading = BAR.Utilities.FacingToHeading(facing)
+		end
+		spawnFeature(feature.featureDefName, feature, heading, facing, feature.featureName)
 	end
 end
 

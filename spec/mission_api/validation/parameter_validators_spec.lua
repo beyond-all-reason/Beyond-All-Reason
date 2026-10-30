@@ -1024,5 +1024,41 @@ describe("mission_api.validation.parameter_validators", function()
 
 			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: featureLoadout[1].x")
 		end)
+
+		it("passes for a facing that is a direction", function()
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", x = 0, z = 0, facing = { angle = 45 } },
+				{ featureDefName = "rockdef", x = 0, z = 0, facing = { x = 10, z = 0 } },
+			})
+
+			V.assertNoMessageContaining(result, "featureLoadout")
+		end)
+
+		it("validates a facing table as a Direction", function()
+			local result = validateFeatureLoadout({ { featureDefName = "rockdef", x = 0, z = 0, facing = {} } })
+
+			V.assertMessage(
+				result,
+				"Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }. Action: a, Parameter: featureLoadout[1].facing"
+			)
+		end)
+
+		it("validates any other facing as a Facing", function()
+			local result = validateFeatureLoadout({ { featureDefName = "rockdef", x = 0, z = 0, facing = "diagonal" } })
+
+			V.assertMessage(
+				result,
+				"Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'. Action: a, Parameter: featureLoadout[1].facing"
+			)
+		end)
+
+		it("rejects a facing that is neither a facing nor a direction", function()
+			local result = validateFeatureLoadout({ { featureDefName = "rockdef", x = 0, z = 0, facing = true } })
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected string, number or table, got boolean. Action: a, Parameter: featureLoadout[1].facing"
+			)
+		end)
 	end)
 end)
