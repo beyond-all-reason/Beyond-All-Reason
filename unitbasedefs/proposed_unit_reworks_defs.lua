@@ -281,6 +281,40 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.health = 800
 	end
 
+	if name == "armguard" or name == "corpun" then
+		uDef.weapondefs.plasma_high.mygravity = nil
+		uDef.weapondefs.plasma_high.weaponvelocity = 420
+		uDef.weapondefs.plasma_high.edgeeffectiveness = 0.15
+		uDef.weapondefs.plasma.edgeeffectiveness = 0.15
+		uDef.weapondefs.plasma.weaponvelocity = 420
+		uDef.weapondefs.plasma.reloadtime = math.ceil(10 * uDef.weapondefs.plasma.reloadtime) / 10
+		uDef.weapondefs.plasma_high.reloadtime = math.ceil(10 * uDef.weapondefs.plasma.reloadtime) / 10
+		uDef.metalcost = uDef.metalcost - 150
+		uDef.energycost = uDef.energycost - 500
+		uDef.buildtime = 20000
+	end
+	if name == "cortoast" then
+		uDef.weapondefs.cortoast_gun_high.mygravity = nil
+		uDef.weapondefs.cortoast_gun_high.edgeeffectiveness = 0.15
+		uDef.weapondefs.cortoast_gun.edgeeffectiveness = 0.15
+	end
+	if name == "armamb" then
+		uDef.weapondefs.armamb_gun_high.mygravity = nil
+		uDef.weapondefs.armamb_gun_high.edgeeffectiveness = 0.15
+		uDef.weapondefs.armamb_gun.edgeeffectiveness = 0.15
+	end
+
+	if name == "armmlv" or name == "cormlv" or name == "legmlv" then
+		uDef.canreclaim = true
+		uDef.metalcost = uDef.metalcost + 30
+		uDef.buildtime = 3500
+		uDef.health = math.ceil(uDef.health * 1.33 / 10) * 10
+	end
+	if name == "armmine3" or name == "legmine3" or name == "cormine3" then
+		uDef.energycost = 2500
+		uDef.buildtime = 500
+	end
+
 	return uDef
 
 end
