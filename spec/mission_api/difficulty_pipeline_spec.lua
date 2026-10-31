@@ -72,6 +72,9 @@ describe("mission_api difficulty pipeline", function()
 	local function loadMission(mission, currentDifficulty)
 		GG["MissionAPI"] = {
 			Difficulty = currentDifficulty,
+			-- The named teams and alliances of tools/StartScripts/startscript_mission_api_test_quicksilver.txt.
+			Teams = { player = 0, enemy = 1, [0] = "player", [1] = "enemy" },
+			Alliances = { players = 0, enemies = 1, [0] = "players", [1] = "enemies" },
 			Modules = GG["MissionAPI"].Modules,
 			ActionDefinitions = actionDefinitions,
 			TriggerDefinitions = triggerDefinitions,
@@ -126,7 +129,7 @@ describe("mission_api difficulty pipeline", function()
 					nextStage = { difficulties = { Easy = "s1", Hard = "s2" } },
 					trigger = {
 						type = triggerTypes.TotalUnitsKilled,
-						parameters = { teamID = 0, unitName = "bot" },
+						parameters = { teamName = "player", unitName = "bot" },
 					},
 				},
 			},
@@ -150,10 +153,12 @@ describe("mission_api difficulty pipeline", function()
 					parameters = {
 						unitLoadout = {
 							difficulties = {
-								Easy = { { unitDefName = "armwar", x = 0, z = 0, team = 0, unitName = "bot" } },
+								Easy = {
+									{ unitDefName = "armwar", x = 0, z = 0, teamName = "player", unitName = "bot" },
+								},
 								Hard = {
-									{ unitDefName = "armwar", x = 0, z = 0, team = 0, unitName = "bot" },
-									{ unitDefName = "armwar", x = 10, z = 0, team = 0, unitName = "bot" },
+									{ unitDefName = "armwar", x = 0, z = 0, teamName = "player", unitName = "bot" },
+									{ unitDefName = "armwar", x = 10, z = 0, teamName = "player", unitName = "bot" },
 								},
 							},
 						},

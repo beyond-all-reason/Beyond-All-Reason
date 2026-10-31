@@ -11,7 +11,7 @@ describe("mission_api.actions.change_team", function()
 	local playersByTeam
 
 	before_each(function()
-		Builders.MissionApi.new():WithTeam("rebels", 0):WithTeam("loyalists", 1):Install()
+		Builders.MissionApi.new():Install()
 		_G.Spring = Builders.Spring.new():Build()
 		playersByTeam = { [0] = {}, [1] = {} }
 		Spring.GetPlayerList = function(teamID)
@@ -22,22 +22,22 @@ describe("mission_api.actions.change_team", function()
 	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "ChangeTeam",
-			oldTeam = "TeamName!",
-			newTeam = "TeamName!",
+			oldTeamName = "TeamName!",
+			newTeamName = "TeamName!",
 		}, summarizeSchema(action))
 	end)
 
 	describe("actionFunction", function()
 		it("assigns the old team's player to the new team", function()
 			playersByTeam[0] = { 3 }
-			action.actionFunction("rebels", "loyalists")
+			action.actionFunction(0, 1)
 			assert.are.same({ { playerID = 3, teamID = 1 } }, Spring.calls.assignPlayerToTeam)
 		end)
 
 		it("assigns every player on the old team", function()
 			playersByTeam[0] = { 3, 4 }
 			playersByTeam[1] = { 5 }
-			action.actionFunction("rebels", "loyalists")
+			action.actionFunction(0, 1)
 			assert.are.same({
 				{ playerID = 3, teamID = 1 },
 				{ playerID = 4, teamID = 1 },
@@ -45,7 +45,7 @@ describe("mission_api.actions.change_team", function()
 		end)
 
 		it("is a no-op when the old team has no players", function()
-			action.actionFunction("rebels", "loyalists")
+			action.actionFunction(0, 1)
 			assert.are.equal(0, #Spring.calls.assignPlayerToTeam)
 		end)
 	end)

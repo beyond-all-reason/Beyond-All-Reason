@@ -119,6 +119,7 @@ describe("mission_api mission files", function()
 		end
 		-- The named teams of tools/StartScripts/startscript_mission_api_test_quicksilver.txt, neither run by an AI.
 		V.missionAPI().Teams = { player = 0, enemy = 1, [0] = "player", [1] = "enemy" }
+		V.missionAPI().Alliances = { players = 0, enemies = 1, [0] = "players", [1] = "enemies" }
 		V.env.Spring.GetTeamInfo = function(teamID)
 			return teamID, 0, false, false
 		end

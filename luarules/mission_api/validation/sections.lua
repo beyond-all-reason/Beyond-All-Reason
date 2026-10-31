@@ -528,13 +528,13 @@ local function createAttributeActionValidator(context, parameterValidators)
 	end
 end
 
--- Recoil cannot move an AI to another team, so ChangeTeam moves only the players of oldTeam.
+-- Recoil cannot move an AI to another team, so ChangeTeam moves only the players of oldTeamName.
 local function validateChangeTeamAction(context, actionReport, actionID, action)
 	if action.type ~= context.ActionTypes.ChangeTeam or type(action.parameters) ~= "table" then
 		return
 	end
 
-	for _, oldTeamName in ipairs(context.PossibleValues(action.parameters.oldTeam)) do
+	for _, oldTeamName in ipairs(context.PossibleValues(action.parameters.oldTeamName)) do
 		local oldTeamID = type(oldTeamName) == "string" and context.Teams[oldTeamName]
 		if oldTeamID then
 			local _, _, _, hasAI = Spring.GetTeamInfo(oldTeamID, false)

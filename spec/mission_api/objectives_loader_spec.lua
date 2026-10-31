@@ -142,7 +142,7 @@ describe("mission_api.objectives_loader", function()
 					nextStage = "stageB",
 					trigger = {
 						type = triggerTypes.UnitsOwned,
-						parameters = { teamID = 0, unitName = "bot" },
+						parameters = { teamName = "player", unitName = "bot" },
 					},
 				},
 			}, rawTriggers, rawActions, { stageA = { objectives = { "ownBots" } } })
@@ -157,14 +157,17 @@ describe("mission_api.objectives_loader", function()
 				amount = 5,
 				nextStage = "stageB",
 				stages = { "stageA" },
-				parameters = { teamID = 0, unitName = "bot" },
+				parameters = { teamName = "player", unitName = "bot" },
 			}, managed[1])
 		end)
 
 		it("groups several managed objectives under their trigger type", function()
 			objectivesLoader.ProcessRawObjectives({
-				a = { textKey = "a", trigger = { type = triggerTypes.UnitsOwned, parameters = { teamID = 0 } } },
-				b = { textKey = "b", trigger = { type = triggerTypes.UnitsOwned, parameters = { teamID = 1 } } },
+				a = {
+					textKey = "a",
+					trigger = { type = triggerTypes.UnitsOwned, parameters = { teamName = "player" } },
+				},
+				b = { textKey = "b", trigger = { type = triggerTypes.UnitsOwned, parameters = { teamName = "enemy" } } },
 			}, {}, {}, {})
 
 			assert.are.equal(2, #GG["MissionAPI"].ManagedObjectives[triggerTypes.UnitsOwned])

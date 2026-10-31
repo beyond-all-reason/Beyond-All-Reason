@@ -76,7 +76,7 @@ local objectives = {
 		textKey = 'activation_count',
 		amount = 3,
 		hidden = true,
-		trigger = { type = triggerTypes.UnitsOwned, parameters = { unitName = 'probe', teamID = 0 } },
+		trigger = { type = triggerTypes.UnitsOwned, parameters = { unitName = 'probe', teamName = 'player' } },
 		onActivated = 'countActivated',
 		onProgress = 'countProgressed',
 		onCompleted = 'countCompleted',
@@ -264,7 +264,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corak', x = 1800, z = 1800, team = 0, unitName = 'probe', quantity = 1 },
+				{ unitDefName = 'corak', x = 1800, z = 1800, teamName = 'player', unitName = 'probe', quantity = 1 },
 			},
 		},
 	},
@@ -299,7 +299,7 @@ local actions = {
 	},
 	victory = {
 		type = actionTypes.Victory,
-		parameters = { allyTeamIDs = { 0 } },
+		parameters = { allianceNames = { 'players' } },
 	},
 }
 

@@ -72,7 +72,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'cormando', x = 1800, z = 1900, team = 0, unitName = 'attackers', quantity = 2 },
+				{ unitDefName = 'cormando', x = 1800, z = 1900, teamName = 'player', unitName = 'attackers', quantity = 2 },
 			},
 		},
 	},
@@ -98,7 +98,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armeyes', x = 1800, z = 2400, team = 0 },
+				{ unitDefName = 'armeyes', x = 1800, z = 2400, teamName = 'player' },
 			},
 		},
 	},
@@ -107,7 +107,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armeyes', x = 1700, z = 2900, team = 0 },
+				{ unitDefName = 'armeyes', x = 1700, z = 2900, teamName = 'player' },
 			},
 		},
 	},
@@ -116,7 +116,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsolar', x = 1700, z = 2300, team = 1, unitName = 'targets' },
+				{ unitDefName = 'armsolar', x = 1700, z = 2300, teamName = 'enemy', unitName = 'targets' },
 			},
 		},
 	},
@@ -125,7 +125,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsolar', x = 1900, z = 2350, team = 1, unitName = 'targets' },
+				{ unitDefName = 'armsolar', x = 1900, z = 2350, teamName = 'enemy', unitName = 'targets' },
 			},
 		},
 	},
@@ -134,7 +134,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsolar', x = 2100, z = 2300, team = 1, unitName = 'targets' },
+				{ unitDefName = 'armsolar', x = 2100, z = 2300, teamName = 'enemy', unitName = 'targets' },
 			},
 		},
 	},
@@ -205,7 +205,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 1500, z = 2900, team = 1, quantity = 9, spacing = 16 },
+				{ unitDefName = 'armwin', x = 1500, z = 2900, teamName = 'enemy', quantity = 9, spacing = 16 },
 			},
 		},
 	},
@@ -214,7 +214,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 2000, z = 2500, team = 1, quantity = 2 },
+				{ unitDefName = 'armwin', x = 2000, z = 2500, teamName = 'enemy', quantity = 2 },
 			},
 		},
 	},
@@ -240,7 +240,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armart', x = 1700, z = 2500, team = 0, unitName = 'artillery', quantity = 2 },
+				{ unitDefName = 'armart', x = 1700, z = 2500, teamName = 'player', unitName = 'artillery', quantity = 2 },
 			},
 		},
 	},
@@ -266,7 +266,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 2300, z = 2500, team = 0, unitName = 'fusions', quantity = 3 },
+				{ unitDefName = 'armfus', x = 2300, z = 2500, teamName = 'player', unitName = 'fusions', quantity = 3 },
 			},
 		},
 	},

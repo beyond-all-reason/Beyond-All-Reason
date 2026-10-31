@@ -17,7 +17,7 @@ describe("mission_api.actions.defeat", function()
 	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "Defeat",
-			allyTeamIDs = "AllyTeamIDs!",
+			allianceNames = "AllianceNames!",
 		}, summarizeSchema(action))
 	end)
 

@@ -64,7 +64,7 @@ describe("mission_api.statistics", function()
 	-- run, so each test uses a unique triggerID to stay isolated.
 
 	it("fires when the count reaches quantity", function()
-		triggers.reach = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 2 })
+		triggers.reach = makeTrigger(TRIGGER_TYPE, { teamName = 0, quantity = 2 })
 
 		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
 		assert.are.equal(0, #activated)
@@ -74,7 +74,7 @@ describe("mission_api.statistics", function()
 	end)
 
 	it("re-fires at each quantity milestone (2*q, 3*q, ...)", function()
-		triggers.milestones = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 2 })
+		triggers.milestones = makeTrigger(TRIGGER_TYPE, { teamName = 0, quantity = 2 })
 
 		for _ = 1, 6 do
 			statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
@@ -85,7 +85,7 @@ describe("mission_api.statistics", function()
 	end)
 
 	it("does not fire before the next milestone", function()
-		triggers.partial = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 3 })
+		triggers.partial = makeTrigger(TRIGGER_TYPE, { teamName = 0, quantity = 3 })
 
 		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
 		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
@@ -93,7 +93,7 @@ describe("mission_api.statistics", function()
 	end)
 
 	it("counts decrements against the milestone", function()
-		triggers.net = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 2 })
+		triggers.net = makeTrigger(TRIGGER_TYPE, { teamName = 0, quantity = 2 })
 
 		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {}) -- count 1
 		statistics.Decrement(TRIGGER_TYPE, 0, "armwar", {}) -- count 0
@@ -105,7 +105,7 @@ describe("mission_api.statistics", function()
 	end)
 
 	it("with quantity 0, fires only when the count reaches 0", function()
-		triggers.zero = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 0 })
+		triggers.zero = makeTrigger(TRIGGER_TYPE, { teamName = 0, quantity = 0 })
 
 		-- Leaving 0 (count 0 -> 1) does not fire.
 		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
@@ -122,8 +122,8 @@ describe("mission_api.statistics", function()
 		assert.are.equal(2, #activated)
 	end)
 
-	it("filters by teamID", function()
-		triggers.filterTeam = makeTrigger(TRIGGER_TYPE, { teamID = 5, quantity = 1 })
+	it("filters by teamName", function()
+		triggers.filterTeam = makeTrigger(TRIGGER_TYPE, { teamName = 5, quantity = 1 })
 
 		-- Wrong team: no match.
 		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
@@ -135,7 +135,7 @@ describe("mission_api.statistics", function()
 	end)
 
 	it("filters by unitDefName", function()
-		triggers.filterDef = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 1, unitDefName = "armcom" })
+		triggers.filterDef = makeTrigger(TRIGGER_TYPE, { teamName = 0, quantity = 1, unitDefName = "armcom" })
 
 		-- Wrong unit def: no match.
 		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
@@ -147,7 +147,7 @@ describe("mission_api.statistics", function()
 	end)
 
 	it("filters by unitName", function()
-		triggers.filterNamed = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 1, unitName = "boss" })
+		triggers.filterNamed = makeTrigger(TRIGGER_TYPE, { teamName = 0, quantity = 1, unitName = "boss" })
 
 		-- Required unit name absent: no match.
 		statistics.Increment(TRIGGER_TYPE, 0, "armcom", {})

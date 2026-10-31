@@ -122,8 +122,8 @@ describe("mission_api.triggers.unit_undetected", function()
 			end
 			assert.is_true(names.unitName)
 			assert.is_true(names.unitDefName)
-			assert.is_true(names.owningTeamID)
-			assert.is_true(names.sensorAllyTeam)
+			assert.is_true(names.owningTeamName)
+			assert.is_true(names.sensorAllianceName)
 			assert.is_true(names.sensorTypes)
 			assert.are.same({ "unitName", "unitDefName" }, unitUndetected.parameters.requiresOneOf)
 		end)
@@ -150,19 +150,19 @@ describe("mission_api.triggers.unit_undetected", function()
 			assert.are.equal(0, fired())
 		end)
 
-		it("filters on owningTeamID", function()
+		it("filters on owningTeamName", function()
 			local context, fired = newContext()
 			env.Spring.GetUnitTeam = function(_unitID)
 				return 5
 			end
-			local t = trigger({ unitDefName = "armpw", owningTeamID = 3 })
+			local t = trigger({ unitDefName = "armpw", owningTeamName = 3 })
 			loseUnit(t, freshTriggerID(), context, freshUnitID())
 			assert.are.equal(0, fired())
 		end)
 
-		it("filters on sensorAllyTeam", function()
+		it("filters on sensorAllianceName", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ unitDefName = "armpw", sensorAllyTeam = SENSOR_ALLY }), freshTriggerID()
+			local t, triggerID = trigger({ unitDefName = "armpw", sensorAllianceName = SENSOR_ALLY }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			-- Seen and then lost by an allyTeam this trigger does not watch.

@@ -10,6 +10,7 @@ VFS.Include("common/wav.lua")
 
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
+local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -190,6 +191,11 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.TeamName] = getLookupValidator(validateString, "teamName", function(teamName)
 		return context.Teams[teamName]
 	end)
+	parameterValidators[Types.AllianceName] = getLookupValidator(validateString, "allianceName", function(allianceName)
+		return context.Alliances[allianceName]
+	end)
+	parameterValidators[Types.AllianceNames] =
+		getListValidator(parameterValidators[Types.AllianceName], "allianceNames table is empty")
 
 	--- List validators, checking each element with its own type's validator:
 	parameterValidators[Types.StageIDs] = getListValidator(parameterValidators[Types.StageID])
@@ -490,26 +496,6 @@ local function registerSpatialValidators(parameterValidators, context)
 end
 
 --------------------------------------------------------------------------------
--- Team validators: TeamID, AllyTeamID and AllyTeamIDs
---------------------------------------------------------------------------------
-
-local function registerTeamValidators(parameterValidators, context)
-	local Types = context.Types
-	local validateNumber = parameterValidators[Types.Number]
-
-	parameterValidators[Types.TeamID] = getLookupValidator(validateNumber, "teamID", function(teamID)
-		return Spring.GetTeamAllyTeamID(teamID)
-	end)
-
-	parameterValidators[Types.AllyTeamID] = getLookupValidator(validateNumber, "allyTeamID", function(allyTeamID)
-		return table.contains(Spring.GetAllyTeamList(), allyTeamID)
-	end)
-
-	parameterValidators[Types.AllyTeamIDs] =
-		getListValidator(parameterValidators[Types.AllyTeamID], "allyTeamIDs table is empty")
-end
-
---------------------------------------------------------------------------------
 -- Order validators: command IDs, their parameters, and their options
 --
 -- An order is { commandID, parameters, options }, so results are named after the position
@@ -788,26 +774,6 @@ end
 local function registerLoadoutValidators(parameterValidators, context)
 	local Types = context.Types
 
-	--- Named fields of a loadout entry, in the order they are reported. The position of an
-	--- entry is not among them, since its x, y and z sit directly on the entry.
-	local unitEntryFields = {
-		{ name = "unitDefName", type = Types.UnitDefName, required = true },
-		{ name = "team", type = Types.TeamID, required = true },
-		{ name = "facing", type = Types.Facing },
-		{ name = "unitName", type = Types.String },
-		{ name = "construction", type = Types.Boolean },
-		{ name = "quantity", type = Types.Number },
-		{ name = "spacing", type = Types.Number },
-		{ name = "neutral", type = Types.Boolean },
-		{ name = "orders", type = Types.Orders },
-	}
-
-	local featureEntryFields = {
-		{ name = "featureDefName", type = Types.FeatureDefName, required = true },
-		{ name = "facing", type = Types.Facing },
-		{ name = "featureName", type = Types.String },
-	}
-
 	local function getEntryValidator(fields)
 		return function(entry)
 			local entryTypeResult = validateTableType(entry)
@@ -834,8 +800,8 @@ local function registerLoadoutValidators(parameterValidators, context)
 		end
 	end
 
-	parameterValidators[Types.UnitLoadout] = getListValidator(getEntryValidator(unitEntryFields))
-	parameterValidators[Types.FeatureLoadout] = getListValidator(getEntryValidator(featureEntryFields))
+	parameterValidators[Types.UnitLoadout] = getListValidator(getEntryValidator(loadoutSchema.UnitEntryFields))
+	parameterValidators[Types.FeatureLoadout] = getListValidator(getEntryValidator(loadoutSchema.FeatureEntryFields))
 end
 
 --------------------------------------------------------------------------------
@@ -846,7 +812,6 @@ local function createParameterValidators(context)
 	-- Registered in dependency order: later groups build on the earlier types.
 	registerValueValidators(parameterValidators, context)
 	registerSpatialValidators(parameterValidators, context)
-	registerTeamValidators(parameterValidators, context)
 	registerOrderValidators(parameterValidators, context)
 	registerLoadoutValidators(parameterValidators, context)
 

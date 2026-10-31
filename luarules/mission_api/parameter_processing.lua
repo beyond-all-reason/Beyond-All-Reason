@@ -5,10 +5,14 @@
 VFS.Include("common/wav.lua")
 
 local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
+local internalTypes = GG["MissionAPI"].Modules.ParameterTypes.InternalTypes
 local enumSets = GG["MissionAPI"].Modules.ParameterTypes.EnumSets
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local triggersSchemaParameters = GG["MissionAPI"].TriggerDefinitions.Parameters
+local unitEntryFields = VFS.Include("luarules/mission_api/loadout_schema.lua").UnitEntryFields
+local teams = GG["MissionAPI"].Teams
+local alliances = GG["MissionAPI"].Alliances
 
 ----------------------------------------------------------------
 --- Parameter processors:
@@ -53,6 +57,43 @@ local function processCommand(command)
 	end
 end
 
+local function processTeamName(teamName)
+	return teams[teamName]
+end
+
+local function processAllianceName(allianceName)
+	return alliances[allianceName]
+end
+
+local function processAllianceNames(allianceNames)
+	local allyTeamIDs = {}
+	for _, allianceName in ipairs(allianceNames) do
+		local allyTeamID = processAllianceName(allianceName)
+		if allyTeamID == nil then
+			Spring.Log(
+				"parameter_processing.lua",
+				LOG.ERROR,
+				"[Mission API] Unknown " .. ParameterTypes.AllianceName .. " " .. tostring(allianceName)
+			)
+		else
+			allyTeamIDs[#allyTeamIDs + 1] = allyTeamID
+		end
+	end
+	return allyTeamIDs
+end
+
+local processParameter ---@type function
+
+local function processUnitLoadout(unitLoadout)
+	for _, unit in ipairs(unitLoadout) do
+		for _, field in ipairs(unitEntryFields) do
+			if internalTypes[field.type] then
+				processParameter(unit, field)
+			end
+		end
+	end
+end
+
 local function processSoundFile(soundfile)
 	GG["MissionAPI"].soundFiles[soundfile] = ReadWAV(soundfile).Length
 end
@@ -72,6 +113,10 @@ local processors = {
 	[ParameterTypes.Orders] = processOrders,
 	[ParameterTypes.Command] = processCommand,
 	[ParameterTypes.SoundFile] = processSoundFile,
+	[ParameterTypes.TeamName] = processTeamName,
+	[ParameterTypes.AllianceName] = processAllianceName,
+	[ParameterTypes.AllianceNames] = processAllianceNames,
+	[ParameterTypes.UnitLoadout] = processUnitLoadout,
 }
 for enumSetType in pairs(enumSets) do
 	processors[enumSetType] = processEnumSet
@@ -87,22 +132,38 @@ local function processValue(parameterType, value)
 		return value
 	end
 	local result = processor(value)
+	if internalTypes[parameterType] then
+		if result == nil then
+			Spring.Log(
+				"parameter_processing.lua",
+				LOG.ERROR,
+				"[Mission API] Unknown " .. parameterType .. " " .. tostring(value)
+			)
+		end
+		return result
+	end
 	if result ~= nil then
 		return result
 	end
 	return value
 end
 
+function processParameter(parameters, parameter)
+	local value = parameters[parameter.name]
+	if value ~= nil then
+		parameters[parameter.name] = processValue(parameter.type, value)
+	end
+end
+
+local function processSchemaParameters(parameters, schema)
+	for _, parameter in ipairs(schema or {}) do
+		processParameter(parameters, parameter)
+	end
+end
+
 local function processParameters(actionsOrTriggers, schemaParameters)
 	for _, actionOrTrigger in pairs(actionsOrTriggers) do
-		local parameters = actionOrTrigger.parameters or {}
-		local schema = schemaParameters[actionOrTrigger.type] or {}
-		for _, parameter in ipairs(schema) do
-			local value = parameters[parameter.name]
-			if value ~= nil then
-				parameters[parameter.name] = processValue(parameter.type, value)
-			end
-		end
+		processSchemaParameters(actionOrTrigger.parameters or {}, schemaParameters[actionOrTrigger.type])
 	end
 end
 
@@ -114,8 +175,18 @@ local function processTriggerParameters(triggers)
 	processParameters(triggers, triggersSchemaParameters)
 end
 
+local function processManagedObjectiveParameters(managedObjectives)
+	for triggerType, objectives in pairs(managedObjectives) do
+		for _, objective in ipairs(objectives) do
+			processSchemaParameters(objective.parameters, triggersSchemaParameters[triggerType])
+		end
+	end
+end
+
 return {
 	ProcessValue = processValue,
+	ProcessParameter = processParameter,
 	ProcessActionParameters = processActionParameters,
 	ProcessTriggerParameters = processTriggerParameters,
+	ProcessManagedObjectiveParameters = processManagedObjectiveParameters,
 }
