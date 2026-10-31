@@ -168,6 +168,15 @@ local unitLoadout    = {
 	    { CMD.PATROL, { 1780, 0, 1950 }, {} },
 	  },
 	},
+	-- A lab in a ring of dragon's teeth, each tooth 16 elmos clear of the lab, open to the south.
+	{ unitDefName = 'armlab',  x = 1520, z = 1600, facing = 's', team = 0 },
+	{ unitDefName = 'armdrag', x = 1440, z = 1520, team = 0 },
+	{ unitDefName = 'armdrag', x = 1520, z = 1520, team = 0 },
+	{ unitDefName = 'armdrag', x = 1600, z = 1520, team = 0 },
+	{ unitDefName = 'armdrag', x = 1440, z = 1600, team = 0 },
+	{ unitDefName = 'armdrag', x = 1600, z = 1600, team = 0 },
+	{ unitDefName = 'armdrag', x = 1440, z = 1680, team = 0 },
+	{ unitDefName = 'armdrag', x = 1600, z = 1680, team = 0 },
 
 	-- Enemy team (team 1)
 	{ unitDefName = 'corsolar', x = 1700, z = 2150, facing = 'w', teamName = 'enemy' },
