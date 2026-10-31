@@ -278,6 +278,7 @@ local callInLists = {
 	"UnitPreDamaged",
 	"UnitDamaged",
 	"UnitStunned",
+	"UnitFlightRegimeChanged",
 	"UnitTaken",
 	"UnitGiven",
 	"UnitEnteredRadar",
@@ -2173,6 +2174,15 @@ function gadgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	for i = #list, 1, -1 do
 		local g = list[i]
 		g:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	end
+	return
+end
+
+function gadgetHandler:UnitFlightRegimeChanged(unitID, unitDefID, unitTeam, regime)
+	local list = self.UnitFlightRegimeChangedList
+	for i = #list, 1, -1 do
+		local g = list[i]
+		g:UnitFlightRegimeChanged(unitID, unitDefID, unitTeam, regime)
 	end
 	return
 end
