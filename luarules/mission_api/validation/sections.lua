@@ -549,6 +549,20 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
+local function validateFormationOrdersAction(context, actionReport, actionID, action)
+	local parameters = action.parameters
+	if action.type ~= context.ActionTypes.IssueFormationOrders or type(parameters) ~= "table" then
+		return
+	end
+
+	if parameters.position ~= nil and parameters.positions ~= nil then
+		actionReport.Error(actionID, "IssueFormationOrders takes position or positions, not both")
+	end
+	if parameters.direction ~= nil and parameters.positions ~= nil then
+		actionReport.Error(actionID, "Parameter 'direction' needs position, not positions", "Parameter: direction")
+	end
+end
+
 local function validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
@@ -558,6 +572,7 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 			validateAttributeAction(actionReport, actionID, action)
 			validateChangeTeamAction(context, actionReport, actionID, action)
+			validateFormationOrdersAction(context, actionReport, actionID, action)
 		end
 	end
 end

@@ -704,6 +704,19 @@ local function registerOrderValidators(parameterValidators, context)
 		end
 	end
 
+	parameterValidators[Types.MoveCommand] = function(command)
+		if command ~= CMD.MOVE and command ~= CMD.FIGHT and command ~= CMD.PATROL then
+			local commandName = type(command) == "number" and CMD[command] or command
+			return {
+				{
+					message = "Invalid move command: "
+						.. tostring(commandName)
+						.. ", must be CMD.MOVE, CMD.FIGHT or CMD.PATROL",
+				},
+			}
+		end
+	end
+
 	-- Validators by command ID, skipping any command this engine version does not define.
 	local commandValidators = {}
 	for commandName, commandValidator in pairs(validatorsByCommandName) do
