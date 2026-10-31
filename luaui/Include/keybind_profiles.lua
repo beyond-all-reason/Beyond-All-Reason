@@ -275,9 +275,42 @@ local function actionKey(action)
 	return command and (command:lower() .. args) or action
 end
 
+local function isLayout(id)
+	for _, b in ipairs(builtins) do
+		if type(b.id) == "string" and b.id == id then
+			return true
+		end
+	end
+
+	return false
+end
+
+-- Pinned in `layout`, since the editor can repoint `basedOn`.
+local function layoutOf(profile)
+	local seen = {}
+	while profile and not seen[profile] do
+		local builtin = M.isBuiltin(profile.name)
+		if builtin then
+			return builtin.id
+		end
+		if isLayout(profile.layout) then
+			return profile.layout
+		end
+		seen[profile] = true
+		local base = profile.basedOn
+		profile = type(base) == "string" and (M.isBuiltin(base) or M.get(base)) or nil
+	end
+
+	return nil
+end
+
 -- Applied even where the key is taken; the editor shows the clash.
-local function widgetDefaults()
-	return WidgetActions.defaults((WidgetActions.manifests()))
+local function widgetDefaults(layout)
+	return WidgetActions.defaults((WidgetActions.manifests()), layout)
+end
+
+function M.widgetDefaultsOf(name)
+	return widgetDefaults(layoutOf(M.isBuiltin(name) or M.get(name)))
 end
 
 local function seededSet(profile)
@@ -289,7 +322,7 @@ local function seededSet(profile)
 	return set
 end
 
-local function missingDefaults(binds, skip)
+local function missingDefaults(binds, skip, layout)
 	local bound = {}
 	for _, b in ipairs(binds) do
 		if type(b) == "table" and type(b.action) == "string" then
@@ -298,7 +331,7 @@ local function missingDefaults(binds, skip)
 	end
 
 	local missing = {}
-	for _, default in ipairs(widgetDefaults()) do
+	for _, default in ipairs(widgetDefaults(layout)) do
 		if not bound[default.action] and not skip[default.action] then
 			for _, keyset in ipairs(default.keysets) do
 				missing[#missing + 1] = { keyset = keyset, action = default.action }
@@ -309,12 +342,12 @@ local function missingDefaults(binds, skip)
 	return missing
 end
 
-local function withWidgetDefaults(binds, skip)
+local function withWidgetDefaults(binds, skip, layout)
 	local out = {}
 	for i, b in ipairs(binds) do
 		out[i] = b
 	end
-	for _, b in ipairs(missingDefaults(binds, skip)) do
+	for _, b in ipairs(missingDefaults(binds, skip, layout)) do
 		out[#out + 1] = b
 	end
 
@@ -323,17 +356,21 @@ end
 
 -- What a profile binds once written out, the loaded widgets' defaults it takes included.
 function M.effectiveBinds(profile)
-	return withWidgetDefaults(profile.binds or {}, M.isBuiltin(profile.name) and {} or seededSet(profile))
+	local skip = M.isBuiltin(profile.name) and {} or seededSet(profile)
+
+	return withWidgetDefaults(profile.binds or {}, skip, layoutOf(profile))
 end
 
 -- Once per action, so a default the player removes stays removed.
 local function seedWidgetDefaults(profile)
+	local layout = layoutOf(profile)
+	profile.layout = layout
 	local seeded = seededSet(profile)
-	for _, b in ipairs(missingDefaults(profile.binds, seeded)) do
+	for _, b in ipairs(missingDefaults(profile.binds, seeded, layout)) do
 		profile.binds[#profile.binds + 1] = b
 	end
 
-	for _, default in ipairs(widgetDefaults()) do
+	for _, default in ipairs(widgetDefaults(layout)) do
 		if not seeded[default.action] then
 			profile.seeded = profile.seeded or {}
 			profile.seeded[#profile.seeded + 1] = default.action
@@ -341,9 +378,9 @@ local function seedWidgetDefaults(profile)
 	end
 end
 
-local function allDefaultActions()
+local function allDefaultActions(layout)
 	local names = {}
-	for i, default in ipairs(widgetDefaults()) do
+	for i, default in ipairs(widgetDefaults(layout)) do
 		names[i] = default.action
 	end
 
@@ -377,7 +414,7 @@ local function toBindFile(profile)
 
 	-- A shipped profile is read-only, so the widget defaults it lacks ride along on the way out.
 	if M.isBuiltin(profile.name) then
-		binds = withWidgetDefaults(binds, {})
+		binds = withWidgetDefaults(binds, {}, layoutOf(profile))
 	end
 
 	for _, b in ipairs(byChainSpecificity(byPriority(binds))) do
@@ -1136,12 +1173,13 @@ function M.create(name, binds, fakeMeta, basedOn)
 	M.load()
 	name = M.uniqueName(name)
 	local profile = { name = name, binds = binds, fakeMeta = resolveFakeMeta(fakeMeta) }
+	profile.basedOn = (basedOn and (M.isBuiltin(basedOn) or indexOf(basedOn))) and basedOn or M.inferBase(profile)
+	profile.layout = layoutOf(profile)
 	-- Made from a keymap that already holds what the player kept of the defaults.
-	local seeded = allDefaultActions()
+	local seeded = allDefaultActions(profile.layout)
 	if #seeded > 0 then
 		profile.seeded = seeded
 	end
-	profile.basedOn = (basedOn and (M.isBuiltin(basedOn) or indexOf(basedOn))) and basedOn or M.inferBase(profile)
 	store.profiles[#store.profiles + 1] = profile
 	if not M.save() then
 		Spring.Echo(
@@ -1337,7 +1375,7 @@ function M.materialize(name)
 	-- What the keymap held the last time it was ours. A file still holding this has not been
 	-- edited since, so the profile behind it can be rewritten over the top; one that does not
 	-- is the player's own work and is kept.
-	store.written = { name = name, stamp = stampOf(text), offered = allDefaultActions() }
+	store.written = { name = name, stamp = stampOf(text), offered = allDefaultActions(layoutOf(profile)) }
 	M.save()
 
 	return ACTIVE_FILE
