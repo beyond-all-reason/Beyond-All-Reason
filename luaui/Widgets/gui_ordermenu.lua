@@ -885,9 +885,7 @@ function widget:Update(dt)
 		end
 	end
 
-	if
-		(WG.guishader and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0))
-	then
+	if spGetGameFrame() == 0 or (WG.guishader and not displayListGuiShader) or (#commands == 0 and not alwaysShow) then
 		ordermenuShows = false
 	else
 		ordermenuShows = true
@@ -1408,6 +1406,13 @@ local function drawOrders()
 end
 
 function widget:DrawScreen()
+	-- The faction picker occupies this panel before GameStart.
+	if spGetGameFrame() == 0 then
+		if WG.guishader then
+			WG.guishader.RemoveDlist("ordermenu")
+		end
+		return
+	end
 	tracy.ZoneBeginN("W:OrderMenu:DrawScreen")
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	local x, y = Spring.GetMouseState()
@@ -1528,7 +1533,7 @@ function widget:DrawScreen()
 		tracy.ZoneEnd()
 	end
 
-	if #commands == 0 and (not alwaysShow or spGetGameFrame() == 0) then -- dont show pregame because factions interface is shown
+	if #commands == 0 and not alwaysShow then
 		tracy.ZoneBeginN("W:OrderMenu:DrawScreen:Hide")
 		if displayListGuiShader and WG.guishader then
 			WG.guishader.RemoveDlist("ordermenu")
@@ -1756,7 +1761,7 @@ function widget:DrawScreen()
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
+	if spGetGameFrame() == 0 or Spring.IsGUIHidden() then
 		return false
 	end
 	if
