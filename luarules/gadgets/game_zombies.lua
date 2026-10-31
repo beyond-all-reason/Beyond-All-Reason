@@ -161,10 +161,11 @@ local ZOMBIE_EXPIRING_BUILDING_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't w
 local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
 local MINUTE_FRAMES = Game.gameSpeed * 60
 
--- Hydra stages, one curve for every unit, anchors are { percent of zombie_stages_length, values... }, straight lines between
+-- Hydra stages, one curve for every unit. Anchors are { percent of zombie_stages_length, values... }, lines between
 local STAGES = {
 	catchUpSpeed = 3, -- clock speed after a gate opens, until it is level with the game clock
-	gates = { { percent = 23, techLevel = 2 }, { percent = 46, techLevel = 3 } }, -- held below the tech level, at most until the next gate's minute
+	-- the clock is held at a gate below its tech level, at most until the next gate's minute
+	gates = { { percent = 23, techLevel = 2 }, { percent = 46, techLevel = 3 } },
 	peakExperience = 0.8,
 	costPosition = { { 0, 0 }, { 400, 0.2 }, { 3000, 0.45 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
 	costDelayPercent = 39, -- how late the most expensive unit reads the count and veterancy curves
@@ -587,7 +588,7 @@ local function advanceStageClock(realMinutes)
 			local gateMinutes = gate.percent / 100 * length
 			local nextGate = STAGES.gates[gateIndex + 1]
 			local holdUntil = nextGate and nextGate.percent / 100 * length or math.huge
-			if currentTechLevel >= gate.techLevel or realMinutes >= holdUntil then
+			if (currentTechLevel or 0) >= gate.techLevel or realMinutes >= holdUntil then
 				stageGatesOpen[gateIndex] = true
 			elseif target > gateMinutes then
 				target = gateMinutes
@@ -2024,7 +2025,6 @@ function gadget:Initialize()
 	gameFrame = spring.GetGameFrame()
 	spring.SetGameRulesParam(RULES_PARAM.ENABLED, true)
 
-	updateStages(gameFrame)
 	if not restoreReloadState() then
 		resetStageClock()
 		applyZombieModeSettings(resolveZombieMode(modOptions.zombies))
