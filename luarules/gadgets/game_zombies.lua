@@ -509,7 +509,8 @@ end
 
 local function calculateSpawnDelayFrames(unitDefData)
 	if currentModeFeatures.escalation then
-		local spawnSeconds = floor(math.mix(escalationRezMinimum, escalationRezMaximum, unitDefData.escalationCostPosition))
+		local spawnSeconds =
+			floor(math.mix(escalationRezMinimum, escalationRezMaximum, unitDefData.escalationCostPosition))
 		return spawnSeconds * Game.gameSpeed
 	end
 	local spawnSeconds = clamp(
