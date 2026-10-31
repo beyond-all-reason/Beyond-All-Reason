@@ -378,10 +378,7 @@ function widget:Update(dt)
 				included[#included + 1] = uid
 			end
 		end
-
-		if #included ~= 0 then -- treat the filter as a preference
-			mouseSelection = included -- if no units match, just keep everything
-		end
+		mouseSelection = included
 	end
 
 	if mods.idle then
@@ -610,9 +607,7 @@ function widget:Initialize()
 					included[#included + 1] = uid
 				end
 			end
-			if #included ~= 0 then
-				mouseSelection = included
-			end
+			mouseSelection = included
 		end
 
 		-- Apply idle filter if active
