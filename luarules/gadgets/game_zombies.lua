@@ -59,8 +59,6 @@ end
 --     the Hydra stages, in every mode. See STAGES.
 --   zombie_stages_length (minutes, default 70)
 --     when the Hydra stages reach full strength. Every stage anchor is a percentage of it.
---   zombie_stages_difficulty (relaxed, normal, hard, veryhard, insane; default hard)
---     scales the stage rez times, spawn counts and veterancy. See STAGES.difficulties.
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -89,7 +87,6 @@ local zombieModeSettings = {
 	respawnDelayMinimum = 45,
 	respawnDelayMaximum = 120,
 	stagesLength = 70,
-	stagesDifficulty = "hard",
 	wraithFeedSuccessChance = 0.66,
 	wraithPowerMultiplier = 1,
 	wraithRespawnDelayMultiplier = 3,
@@ -166,17 +163,9 @@ local MINUTE_FRAMES = Game.gameSpeed * 60
 
 -- Hydra tiers by unit power, anchors are { percent of zombie_stages_length, values... }, straight lines between
 local STAGES = {
-	deadlinePercent = 85, -- from here the clock ignores the gates and reaches the end on time
 	catchUpSpeed = 3, -- clock speed after a gate opens, until it is level with the game clock
 	gates = { { percent = 23, techLevel = 2 }, { percent = 46, techLevel = 3 } }, -- held below the tech level
 	peakExperience = 0.8,
-	difficulties = {
-		relaxed = { rezTime = 1.5, spawnCount = 0.6, veterancy = 0.5 },
-		normal = { rezTime = 1.25, spawnCount = 0.8, veterancy = 0.75 },
-		hard = { rezTime = 1, spawnCount = 1, veterancy = 1 },
-		veryhard = { rezTime = 0.8, spawnCount = 1.25, veterancy = 1 },
-		insane = { rezTime = 0.65, spawnCount = 1.5, veterancy = 1 },
-	},
 	tiers = {
 		{
 			name = "paper",
@@ -201,13 +190,9 @@ local STAGES = {
 		},
 	},
 }
-local STAGE_CLOCK = { RUNNING = 0, HELD = 1, ACCELERATING = 2, DONE = 3 }
-local stageTierParams = {}
 local stageTierValues = {}
 local stageMinutes = 0
-local stageClockState = STAGE_CLOCK.RUNNING
 local stageClockLastMinutes = 0
-local stageDeadline = nil
 local stageGatesOpen = {}
 local ZOMBIE_EXPIRING_FACTORY_LIFETIME = Game.gameSpeed * 60 * 5
 
@@ -240,8 +225,6 @@ local RULES_PARAM = {
 	REZ_POWER_SPEED = "zombie_rez_power_speed",
 	FACTORY_BUILDPOWER_MULTIPLIER = "zombie_factory_buildpower_multiplier",
 	STAGE_MINUTE = "zombie_stage_minute",
-	STAGE_LENGTH = "zombie_stage_length",
-	STAGE_CLOCK = "zombie_stage_clock",
 	REZ_FRAME = "zombie_rez_frame",
 	WAS_ZOMBIE = "wasZombie",
 	WRAITH_READY_FRAME = "zombie_wraith_ready_frame",
@@ -420,15 +403,8 @@ do
 		return SPAWN_EXPLOSION_CEGS.tiny
 	end
 
-	for tierIndex, tier in ipairs(STAGES.tiers) do
+	for tierIndex = 1, #STAGES.tiers do
 		stageTierValues[tierIndex] = {}
-		stageTierParams[tierIndex] = {
-			rezMinimum = "zombie_" .. tier.name .. "_rez_minimum",
-			rezMaximum = "zombie_" .. tier.name .. "_rez_maximum",
-			spawnMinimum = "zombie_" .. tier.name .. "_spawn_minimum",
-			spawnMaximum = "zombie_" .. tier.name .. "_spawn_maximum",
-			veterancy = "zombie_" .. tier.name .. "_veterancy",
-		}
 	end
 
 	---@return integer tier, number position 0 at the bottom of the tier, 1 at its top power
@@ -461,9 +437,6 @@ do
 		setSetting(customParams, "zombie_enable_hydra", "multipleSpawns", true)
 		setSetting(customParams, "zombie_enable_stages", "stages", true)
 		setSetting(customParams, "zombie_stages_length", "stagesLength")
-		if STAGES.difficulties[customParams.zombie_stages_difficulty] then
-			zombieModeSettings.stagesDifficulty = customParams.zombie_stages_difficulty
-		end
 
 		local rezPower = math.max(1, unitDef.power or 1)
 		local stageTier, stageTierPosition = getStageTier(rezPower)
@@ -640,19 +613,9 @@ local function advanceStageClock(realMinutes)
 	local elapsed = realMinutes - stageClockLastMinutes
 	stageClockLastMinutes = realMinutes
 	if stageMinutes >= length then
-		stageClockState = STAGE_CLOCK.DONE
-		return
-	end
-	if realMinutes >= STAGES.deadlinePercent / 100 * length then
-		stageDeadline = stageDeadline
-			or { realMinutes = realMinutes, stageMinutes = math.min(stageMinutes + elapsed, length) }
-		local progress = (realMinutes - stageDeadline.realMinutes) / (length - stageDeadline.realMinutes)
-		stageMinutes = math.min(length, math.mix(stageDeadline.stageMinutes, length, progress))
-		stageClockState = STAGE_CLOCK.ACCELERATING
 		return
 	end
 	local target = math.min(realMinutes, stageMinutes + elapsed * STAGES.catchUpSpeed)
-	stageClockState = STAGE_CLOCK.RUNNING
 	for gateIndex, gate in ipairs(STAGES.gates) do
 		if not stageGatesOpen[gateIndex] then
 			local gateMinutes = gate.percent / 100 * length
@@ -660,7 +623,6 @@ local function advanceStageClock(realMinutes)
 				stageGatesOpen[gateIndex] = true
 			elseif target > gateMinutes then
 				target = gateMinutes
-				stageClockState = STAGE_CLOCK.HELD
 			end
 		end
 	end
@@ -670,7 +632,6 @@ end
 local function resetStageClock()
 	stageMinutes = math.min(gameFrame / MINUTE_FRAMES, zombieModeSettings.stagesLength)
 	stageClockLastMinutes = stageMinutes
-	stageDeadline = nil
 	stageGatesOpen = {}
 end
 
@@ -679,33 +640,23 @@ local function updateStages(frame)
 	if currentModeFeatures.stages then
 		advanceStageClock(realMinutes)
 	else
-		stageMinutes, stageClockState, stageClockLastMinutes = 0, STAGE_CLOCK.RUNNING, realMinutes
+		stageMinutes, stageClockLastMinutes = 0, realMinutes
 	end
-	local length = zombieModeSettings.stagesLength
-	local percent = stageMinutes / length * 100
-	local difficulty = STAGES.difficulties[zombieModeSettings.stagesDifficulty]
+	local percent = stageMinutes / zombieModeSettings.stagesLength * 100
 	for tierIndex, tier in ipairs(STAGES.tiers) do
 		local tierValues = stageTierValues[tierIndex]
-		local tierParams = stageTierParams[tierIndex]
 		local rezMinimum, rezMaximum = interpolateAnchors(tier.rezWindow, percent)
-		tierValues.rezMinimum = floor(rezMinimum * difficulty.rezTime)
-		tierValues.rezMaximum = floor(rezMaximum * difficulty.rezTime)
+		tierValues.rezMinimum = floor(rezMinimum)
+		tierValues.rezMaximum = floor(rezMaximum)
 		local spawnMinimum, spawnMaximum = interpolateAnchors(tier.spawnCounts, percent)
-		tierValues.spawnMinimum = math.max(1, math.round(spawnMinimum * difficulty.spawnCount))
-		tierValues.spawnMaximum = math.max(tierValues.spawnMinimum, math.round(spawnMaximum * difficulty.spawnCount))
-		local veterancy = math.min(1, interpolateAnchors(tier.veterancy, percent) * difficulty.veterancy)
+		tierValues.spawnMinimum = math.round(spawnMinimum)
+		tierValues.spawnMaximum = math.round(spawnMaximum)
+		local veterancy = interpolateAnchors(tier.veterancy, percent)
 		-- the engine scales XP bonuses by xp / (xp + 1), so veterancy is a fraction of that value, converted back to XP
 		local limitedExperience = veterancy * STAGES.peakExperience / (STAGES.peakExperience + 1)
 		tierValues.experience = limitedExperience / (1 - limitedExperience)
-		spring.SetGameRulesParam(tierParams.rezMinimum, tierValues.rezMinimum)
-		spring.SetGameRulesParam(tierParams.rezMaximum, tierValues.rezMaximum)
-		spring.SetGameRulesParam(tierParams.spawnMinimum, tierValues.spawnMinimum)
-		spring.SetGameRulesParam(tierParams.spawnMaximum, tierValues.spawnMaximum)
-		spring.SetGameRulesParam(tierParams.veterancy, veterancy)
 	end
 	spring.SetGameRulesParam(RULES_PARAM.STAGE_MINUTE, stageMinutes)
-	spring.SetGameRulesParam(RULES_PARAM.STAGE_LENGTH, length)
-	spring.SetGameRulesParam(RULES_PARAM.STAGE_CLOCK, stageClockState)
 end
 
 local function updateTooLong(frame)
@@ -2025,7 +1976,6 @@ local function saveReloadState()
 			currentTechLevel = currentTechLevel,
 			stageMinutes = stageMinutes,
 			stageClockLastMinutes = stageClockLastMinutes,
-			stageDeadline = stageDeadline,
 			stageGatesOpen = stageGatesOpen,
 			excessPower = excessPower,
 			wraiths = wraiths,
@@ -2068,7 +2018,6 @@ local function restoreReloadState()
 	currentTechLevel = reloadState.currentTechLevel
 	stageMinutes = reloadState.stageMinutes
 	stageClockLastMinutes = reloadState.stageClockLastMinutes
-	stageDeadline = reloadState.stageDeadline
 	stageGatesOpen = reloadState.stageGatesOpen
 	excessPower = reloadState.excessPower
 	wraiths = reloadState.wraiths
