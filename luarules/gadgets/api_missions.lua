@@ -14,10 +14,22 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+-- Included outside the guarded load, so a Lua error in any other Mission API file can still be reported.
+local validationReport = VFS.Include("luarules/mission_api/validation/report.lua")
+
 local objectivesController, stagesController, triggersController, actionsController
 
--- Used in GameFrame.
-local missionValidationFailure
+local missionLoaded = true
+local missionLoadError
+
+-- What Initialize is doing, named in the message when a Lua error stops it.
+local loadStep = "loading the Mission API"
+
+local function failMission(reason)
+	GG["MissionAPI"] = nil
+	missionLoaded = false
+	missionLoadError = "[Mission API] Mission not loaded: " .. reason .. " (see infolog)"
+end
 
 -- Runs on the raw mission data
 local function validateMission(mission)
@@ -29,18 +41,17 @@ local function validateMission(mission)
 end
 
 local function loadMission(gameSetup)
+	loadStep = "loading " .. gameSetup.entryPoint
 	local mission = VFS.Include(gameSetup.entryPoint)
+	loadStep = "validating " .. gameSetup.entryPoint
 	local validationResult = validateMission(mission)
 
 	if not validationResult.ok then
-		GG["MissionAPI"] = nil -- stops gadget api_missions_triggers from loading
-		missionValidationFailure = "[Mission API] Mission not loaded: "
-			.. #validationResult.errors
-			.. " validation errors in "
-			.. gameSetup.entryPoint
-			.. " (see infolog)"
+		failMission(#validationResult.errors .. " validation errors in " .. gameSetup.entryPoint)
 		return
 	end
+
+	loadStep = "processing " .. gameSetup.entryPoint
 
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
@@ -85,13 +96,7 @@ local function loadMission(gameSetup)
 	end
 end
 
-function gadget:Initialize()
-	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua")
-	if not gameSetup then
-		gadgetHandler:RemoveGadget()
-		return
-	end
-
+local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"] = {}
 	GG["MissionAPI"].Options = gameSetup.options
 	GG["MissionAPI"].Variables = gameSetup.variables
@@ -142,12 +147,44 @@ function gadget:Initialize()
 	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
 	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
+end
 
-	loadMission(gameSetup)
+-- Outside dev mode synced Lua's debug table is empty, so there is no traceback. VFS.Include runs each file in its own
+-- pcall, so for an error raised while a file loads the stack ends at the include; the message still names the file.
+local function withTraceback(err)
+	if debug.traceback then
+		return debug.traceback(tostring(err), 2)
+	end
+	return tostring(err)
+end
+
+function gadget:Initialize()
+	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua")
+	if not gameSetup then
+		gadgetHandler:RemoveGadget()
+		return
+	end
+
+	-- gadgets.lua calls Initialize unprotected: an error escaping it kills the whole LuaRules handle.
+	local loaded, loadError = xpcall(function()
+		setUpMissionAPI(gameSetup)
+		loadMission(gameSetup)
+	end, withTraceback)
+
+	if not loaded then
+		-- The engine's include error names the file it was loading ("file=<path>"), so a failing module names itself.
+		local failedPath = tostring(loadError):match("file=(%S+)")
+		local step = failedPath and ("loading " .. failedPath) or loadStep
+		local message = "Lua error while " .. step .. ": " .. tostring(loadError)
+		local report = validationReport.Create()
+		report.Error(validationReport.Sections.Loading, nil, nil, message)
+		validationReport.Log(report.GetResult())
+		failMission(message:match("^[^\n]*"))
+	end
 end
 
 function gadget:GamePreload()
-	if missionValidationFailure then
+	if not missionLoaded then
 		return
 	end
 
@@ -159,10 +196,9 @@ function gadget:GamePreload()
 end
 
 function gadget:GameFrame(frameNumber)
-	-- Invalid mission ends the game
-	if missionValidationFailure then
-		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionValidationFailure after this
-		Spring.Echo(missionValidationFailure)
+	if not missionLoaded then
+		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionLoadError after this
+		Spring.Echo(missionLoadError)
 		gadgetHandler:RemoveGadget()
 		return
 	end
@@ -172,7 +208,7 @@ function gadget:GameFrame(frameNumber)
 end
 
 function gadget:GameOver()
-	if missionValidationFailure then
+	if not missionLoaded then
 		return
 	end
 
