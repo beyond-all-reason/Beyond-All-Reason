@@ -27,11 +27,14 @@ Bind actions to a key of your choice in /Beyond-All-Reason/data/uikeys.txt
 stateprefs_record 		will save the preferred state for the selected unit/units for the selected command.
 stateprefs_clear 		will clears the preferred state for the selected unit/units for the selected command.
 stateprefs_clearunit 	will clears all saved states for the selected unit/units for all commands.
+stateprefs_apply 		will apply the saved states to the selected unit/units, e.g. units given to you, which keep their states.
+WG.stateprefs.apply(unitIDs) does the same for any units, e.g. from a widget that applies them to every unit given to you.
 
 e.g. 
 bind alt 	stateprefs_clear
 bind ctrl 	stateprefs_record
 bind sc_\ 	stateprefs_clearunit
+bind ctrl+sc_\ 	stateprefs_apply
 
 --]]
 ------------------------------------------------------------------------------
@@ -95,6 +98,7 @@ local isClearPressed = false
 local spawnInitialFrame = Game.spawnInitialFrame
 local spectatingState = select(1, Spring.GetSpectatingState())
 local priorUserFirestateFunction = nil
+local applyPrefsTo -- defined with applyPrefs below; WG.stateprefs.apply
 
 require("luaui/Include/user_firestate_commands")
 
@@ -234,9 +238,12 @@ function widget:Initialize()
 	widgetHandler:AddAction("stateprefs_clear", onClearPress, nil, "p")
 	widgetHandler:AddAction("stateprefs_clear", onClearRelease, nil, "r")
 	widgetHandler:AddAction("stateprefs_clearunit", doClearUnit, nil, "p")
+	widgetHandler:AddAction("stateprefs_apply", doApplyPrefs, nil, "p")
 
 	priorUserFirestateFunction = WG.firestate.userFirestateChanged
 	WG.firestate.userFirestateChanged = recordUserFirestateChanged
+
+	WG.stateprefs = { apply = applyPrefsTo }
 end
 
 function onRecordPress()
@@ -317,7 +324,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 end
 
-function widget:UnitFinished(unitID, unitDefID, unitTeam)
+local function applyPrefs(unitID, unitDefID, unitTeam)
 	local cmdOpts = GetCmdOpts(false, false, false, true, false)
 
 	local name = unitName[unitDefID]
@@ -338,12 +345,30 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
+function widget:UnitFinished(unitID, unitDefID, unitTeam)
+	applyPrefs(unitID, unitDefID, unitTeam)
+end
+
+-- a unit given to me keeps the states its owner set, so my prefs reach it only on request
+function applyPrefsTo(unitIDs)
+	for i = 1, #unitIDs do
+		local unitID = unitIDs[i]
+		if not Spring.GetUnitIsBeingBuilt(unitID) then
+			applyPrefs(unitID, spGetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		end
+	end
+end
+
+function doApplyPrefs()
+	applyPrefsTo(spGetSelectedUnits())
+end
+
 local function ApplyUnitStates()
 	local teamID = (not spectatingState) and Spring.GetLocalTeamID()
 	local units = (teamID and Spring.GetTeamUnits(teamID)) or Spring.GetAllUnits()
 	if units then
 		for i = 1, #units do
-			widget:UnitFinished(units[i], Spring.GetUnitDefID(units[i]), teamID or Spring.GetUnitTeam(units[i]))
+			applyPrefs(units[i], Spring.GetUnitDefID(units[i]), teamID or Spring.GetUnitTeam(units[i]))
 		end
 	end
 end
@@ -369,9 +394,11 @@ end
 
 function widget:Shutdown()
 	WG.firestate.userFirestateChanged = priorUserFirestateFunction
+	WG.stateprefs = nil
 	widgetHandler:RemoveAction("stateprefs_record")
 	widgetHandler:RemoveAction("stateprefs_clear")
 	widgetHandler:RemoveAction("stateprefs_clearunit")
+	widgetHandler:RemoveAction("stateprefs_apply")
 end
 
 --------------------------------------------------------------------------------
