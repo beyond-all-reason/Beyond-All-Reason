@@ -36,6 +36,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies (modeller), Protar (concept art)",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 2,
 			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			reactive_armor_health = 400,
