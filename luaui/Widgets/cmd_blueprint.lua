@@ -833,6 +833,37 @@ local function handleBlueprintPrevAction()
 	return true
 end
 
+--- Index of the first valid blueprint whose `.name` equals `name`, or nil.
+---@param name string
+---@return integer?
+local function getBlueprintIndexByName(name)
+	if type(name) ~= "string" or name == "" then
+		return nil
+	end
+	for i = 1, #blueprints do
+		local bp = blueprints[i]
+		if bp and bp.name == name and isValidBlueprint(bp) then
+			return i
+		end
+	end
+	return nil
+end
+
+--- Select a saved blueprint by its name (from blueprints.json). Unlike next/prev,
+--- this works even when placement is not active so callers can select then start placing.
+---@param name string
+---@return boolean selected
+local function selectBlueprintByName(name)
+	local index = getBlueprintIndexByName(name)
+	if not index then
+		return false
+	end
+
+	setSelectedBlueprintIndex(index)
+	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
+	return true
+end
+
 local function handleBlueprintCreateAction()
 	local unitIDs = selectedUnitsOrder
 
@@ -1241,6 +1272,7 @@ function widget:Initialize()
 		reloadBindings = reloadBindings,
 		selectNextBlueprint = handleBlueprintNextAction,
 		selectPrevBlueprint = handleBlueprintPrevAction,
+		selectBlueprintByName = selectBlueprintByName,
 		rotateBlueprint = rotateBlueprint,
 	}
 	WG.cmd_blueprint.nextBlueprintUnitID = nextBlueprintUnitID
