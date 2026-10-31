@@ -167,7 +167,19 @@
 			"lavaRiseIn": "The lava rises in %{time}",
 			"lavaSinkIn": "The lava sinks in %{time}",
 			"lavaRising": "The lava is rising, for another %{time}",
-			"lavaSinking": "The lava is sinking, for another %{time}"
+			"lavaSinking": "The lava is sinking, for another %{time}",
+			"windAverage": "Average speed",
+			"windMinimum": "Minimum speed",
+			"windMaximum": "Maximum speed",
+			"windLow": "Time below 6",
+			"windAdvice": "Solar Collectors are better when the average\nwind speed is below 5 (Armada) or 6 (Cortex)"
+		},
+		"tooltip": {
+			"low": "Low",
+			"medium": "Medium",
+			"high": "High",
+			"slow": "Slow",
+			"fast": "Fast"
 		},
 		"pip": {
 			"tooltip": "Toggle Picture-in-Picture",
@@ -986,7 +998,13 @@
 		},
 		"reclaimInfo": {
 			"metal": "Metal: %{metal}",
-			"energy": "Energy: %{energy}"
+			"energy": "Energy: %{energy}",
+			"area": "Reclaim area",
+			"features": {
+				"one": "%{count} feature",
+				"other": "%{count} features"
+			},
+			"notReclaimable": "Cannot be reclaimed"
 		},
 		"prospector": {
 			"metalExtraction": "Metal extraction: %{amount}"
@@ -1599,7 +1617,37 @@
 			"shieldcapacity": "Shield capacity",
 			"shieldrange": "Shield range",
 			"shieldrechargerate": "Recharge rate",
-			"shieldrechargecost": "Recharge cost"
+			"shieldrechargecost": "Recharge cost",
+			"cellHowto": "Click to select, right click to remove, middle click to view them (with Ctrl: all of this type)",
+			"tags": {
+				"buildpower": "Build power",
+				"dps": "Damage per second",
+				"emp": "Paralyze damage per second",
+				"range": "Weapon range",
+				"coverage": "Interception range",
+				"reload": "Reload time",
+				"shield": "Shield capacity",
+				"shieldRadius": "Shield radius",
+				"shieldRegen": "Shield recharge per second",
+				"radar": "Radar range",
+				"sonar": "Sonar range",
+				"jammer": "Radar jamming range",
+				"sonarJammer": "Sonar jamming range",
+				"speed": "Speed",
+				"sight": "Line of sight",
+				"metalStorage": "Metal storage",
+				"energyStorage": "Energy storage",
+				"stockpile": "Stockpiled",
+				"cloak": "Cloaking costs energy per second",
+				"progress": "Under construction",
+				"stealth": "Stealthy: radar does not show it",
+				"amphib": "Amphibious",
+				"allTerrain": "All-terrain",
+				"capture": "Can capture units",
+				"resurrect": "Can resurrect wrecks",
+				"paralyzer": "Paralyzes what it hits",
+				"unload": "Click to unload"
+			}
 		},
 		"spectator_hud": {
 			"metalIncome_title": "Metal Income",
