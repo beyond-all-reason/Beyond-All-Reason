@@ -166,10 +166,10 @@ local STAGES = {
 	catchUpSpeed = 3, -- clock speed after a gate opens, until it is level with the game clock
 	gates = { { percent = 23, techLevel = 2 }, { percent = 46, techLevel = 3 } }, -- held below the tech level, at most until the next gate's minute
 	peakExperience = 0.8,
-	costPower = { 400, 40000 }, -- cost position is 0 at the first power and 1 at the second, log scale between
+	costPosition = { { 0, 0 }, { 400, 0.2 }, { 3000, 0.45 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
 	costDelayPercent = 45, -- how late the most expensive unit reads the count and veterancy curves
 	costCountScale = { 0.57, 1 }, -- scales the rise above the quiet count window, cheapest to most expensive
-	rezWindow = { { 0, 45, 120 }, { 100, 8, 45 } }, -- cheapest to most expensive
+	rezWindow = { { 0, 45, 200 }, { 100, 8, 45 } }, -- cheapest to most expensive
 	spawnCounts = { { 0, 4, 6 }, { 23, 4, 6 }, { 45, 5, 20 }, { 70, 4, 6 } },
 	veterancy = { { 0, 0 }, { 29, 0.15 }, { 45, 1 } },
 }
@@ -178,6 +178,21 @@ local stageRezMinimum, stageRezMaximum = 0, 0
 local stageMinutes = 0
 local stageClockLastMinutes = 0
 local stageGatesOpen = {}
+
+local function interpolateAnchors(anchors, position)
+	local previous = anchors[1]
+	for anchorIndex = 2, #anchors do
+		local following = anchors[anchorIndex]
+		if position < following[1] then
+			local progress = clamp((position - previous[1]) / (following[1] - previous[1]), 0, 1)
+			return math.mix(previous[2], following[2], progress),
+				previous[3] and math.mix(previous[3], following[3], progress)
+		end
+		previous = following
+	end
+	return previous[2], previous[3]
+end
+
 local ZOMBIE_EXPIRING_FACTORY_LIFETIME = Game.gameSpeed * 60 * 5
 
 local UNTAMPERED_FRAME = -math.huge
@@ -387,11 +402,6 @@ do
 		return SPAWN_EXPLOSION_CEGS.tiny
 	end
 
-	local function getStageCostPosition(rezPower)
-		local lowPower, highPower = STAGES.costPower[1], STAGES.costPower[2]
-		return clamp(math.log(rezPower / lowPower) / math.log(highPower / lowPower), 0, 1)
-	end
-
 	local poolUnitDefIDsByBaseName = {}
 	for unitDefID = 1, #unitDefs do
 		local unitDef = unitDefs[unitDefID]
@@ -416,7 +426,7 @@ do
 		local unitDefData = {
 			unitDefID = unitDefID,
 			rezPower = rezPower,
-			stageCostPosition = getStageCostPosition(rezPower),
+			stageCostPosition = interpolateAnchors(STAGES.costPosition, rezPower),
 			size = unitDef.xsize,
 			isMobile = unitDef.speed > 0,
 			isCommander = customParams.iscommander and true or false,
@@ -562,20 +572,6 @@ local function updateRezSpeed()
 	spring.SetGameRulesParam(RULES_PARAM.TECH_LEVEL, techLevel)
 	spring.SetGameRulesParam(RULES_PARAM.REZ_POWER_SPEED, adjustedRezPowerSpeed)
 	spring.SetGameRulesParam(RULES_PARAM.FACTORY_BUILDPOWER_MULTIPLIER, factoryBuildpowerMultiplier)
-end
-
-local function interpolateAnchors(anchors, percent)
-	local previous = anchors[1]
-	for anchorIndex = 2, #anchors do
-		local following = anchors[anchorIndex]
-		if percent < following[1] then
-			local progress = clamp((percent - previous[1]) / (following[1] - previous[1]), 0, 1)
-			return math.mix(previous[2], following[2], progress),
-				previous[3] and math.mix(previous[3], following[3], progress)
-		end
-		previous = following
-	end
-	return previous[2], previous[3]
 end
 
 local function advanceStageClock(realMinutes)
