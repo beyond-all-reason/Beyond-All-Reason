@@ -233,7 +233,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			local optionDef = UnitDefs[optionDefID]
 			local isConstructor = optionDef and optionDef.isBuilder and optionDef.speed > 0
 			local isResurrector = optionDef and optionDef.canResurrect
-			if unitDefWeaponRanges[optionDefID] or isConstructor or isResurrector then
+			local isExcluded = optionDef and optionDef.customParams.zombie_factory_exclude
+			if not isExcluded and (unitDefWeaponRanges[optionDefID] or isConstructor or isResurrector) then
 				wantedOptions[#wantedOptions + 1] = optionDefID
 			end
 		end
@@ -1355,38 +1356,6 @@ local function commandWraith(unitID, unitDefID, wraithX, wraithY, wraithZ, attac
 	return enemyWithinRadius
 end
 
-function gadget:Initialize()
-	gameFrame = spring.GetGameFrame()
-	for _, unitID in ipairs(spring.GetAllUnits()) do
-		local unitTeam = spring.GetUnitTeam(unitID)
-		local allyTeamID = getTeamAllyTeamID(unitTeam)
-		addAllyTeamUnit(unitID, allyTeamID)
-		if unitTeam == gaiaTeamID and isZombie(unitID) then
-			initializeZombie(unitID, spGetUnitDefID(unitID))
-		end
-	end
-
-	if GG.Zombies and GG.Zombies.tooLong then
-		enablePermanentAggro()
-	end
-
-	GG.ZombieAI = {
-		InitializeZombie = initializeZombie,
-		PacifyZombies = pacifyZombies,
-		SuspendAutoOrders = suspendAutoOrders,
-		AggroTeamID = aggroTeamID,
-		AggroAllyID = aggroAllyID,
-		EnablePermanentAggro = enablePermanentAggro,
-		KillAllZombies = killAllZombies,
-		ClearAllOrders = clearAllOrders,
-		CommandWraith = commandWraith,
-	}
-end
-
-function gadget:Shutdown()
-	GG.ZombieAI = nil
-end
-
 function gadget:GameFrame(frame)
 	gameFrame = frame
 	if not isPacified and not IS_PVE_GAME and frame % Game.gameSpeed == 0 and hasGameEndExplosionStarted() then
@@ -1437,4 +1406,98 @@ end
 
 function gadget:UnitLeftAir(unitID)
 	flyingUnits[unitID] = nil
+end
+
+local RELOAD_STATE_RULES_PARAM = "zombie_ai_reload_state"
+
+local function saveReloadState()
+	local serpent = require("common/luaUtilities/serpent")
+	spring.SetGameRulesParam(
+		RELOAD_STATE_RULES_PARAM,
+		serpent.dump({
+			gameFrame = gameFrame,
+			ordersEnabled = ordersEnabled,
+			isPacified = isPacified,
+			autoOrdersSuspended = autoOrdersSuspended,
+			totalMobileZombiePower = totalMobileZombiePower,
+			aggroExpirationTimestamp = aggroExpirationTimestamp,
+			permanentlyAggro = permanentlyAggro,
+			zombieAggros = zombieAggros,
+			allyTeamUnits = allyTeamUnits,
+			unitAllyTeamIDs = unitAllyTeamIDs,
+			unitAllyTeamIndices = unitAllyTeamIndices,
+			zombieWatch = zombieWatch,
+			wraithWatch = wraithWatch,
+			flyingUnits = flyingUnits,
+			zombieOrderBuckets = zombieOrderBuckets,
+			zombieStuckBuckets = zombieStuckBuckets,
+		})
+	)
+end
+
+local function restoreReloadState()
+	local savedState = spring.GetGameRulesParam(RELOAD_STATE_RULES_PARAM)
+	if not savedState then
+		return false
+	end
+	local serpent = require("common/luaUtilities/serpent")
+	local loaded, reloadState = serpent.load(savedState)
+	if not loaded or type(reloadState) ~= "table" or reloadState.gameFrame ~= gameFrame then
+		return false
+	end
+
+	ordersEnabled = reloadState.ordersEnabled
+	isPacified = reloadState.isPacified
+	autoOrdersSuspended = reloadState.autoOrdersSuspended
+	totalMobileZombiePower = reloadState.totalMobileZombiePower
+	aggroExpirationTimestamp = reloadState.aggroExpirationTimestamp
+	permanentlyAggro = reloadState.permanentlyAggro
+	zombieAggros = reloadState.zombieAggros
+	allyTeamUnits = reloadState.allyTeamUnits
+	unitAllyTeamIDs = reloadState.unitAllyTeamIDs
+	unitAllyTeamIndices = reloadState.unitAllyTeamIndices
+	zombieWatch = reloadState.zombieWatch
+	wraithWatch = reloadState.wraithWatch
+	flyingUnits = reloadState.flyingUnits
+	zombieOrderBuckets = reloadState.zombieOrderBuckets
+	zombieStuckBuckets = reloadState.zombieStuckBuckets
+
+	spring.SetGameRulesParam(RELOAD_STATE_RULES_PARAM, nil)
+	return true
+end
+
+function gadget:Initialize()
+	gameFrame = spring.GetGameFrame()
+
+	if not restoreReloadState() then
+		for _, unitID in ipairs(spring.GetAllUnits()) do
+			local unitTeam = spring.GetUnitTeam(unitID)
+			local allyTeamID = getTeamAllyTeamID(unitTeam)
+			addAllyTeamUnit(unitID, allyTeamID)
+			if unitTeam == gaiaTeamID and isZombie(unitID) then
+				initializeZombie(unitID, spGetUnitDefID(unitID))
+			end
+		end
+
+		if GG.Zombies and GG.Zombies.tooLong then
+			enablePermanentAggro()
+		end
+	end
+
+	GG.ZombieAI = {
+		InitializeZombie = initializeZombie,
+		PacifyZombies = pacifyZombies,
+		SuspendAutoOrders = suspendAutoOrders,
+		AggroTeamID = aggroTeamID,
+		AggroAllyID = aggroAllyID,
+		EnablePermanentAggro = enablePermanentAggro,
+		KillAllZombies = killAllZombies,
+		ClearAllOrders = clearAllOrders,
+		CommandWraith = commandWraith,
+	}
+end
+
+function gadget:Shutdown()
+	GG.ZombieAI = nil
+	saveReloadState()
 end
