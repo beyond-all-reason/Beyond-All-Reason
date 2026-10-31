@@ -2067,28 +2067,35 @@ local function collectPregameBuildSquare()
 	local pregameBuild = WG["pregame-build"]
 	local getPreGameDefID = pregameBuild and pregameBuild.getPreGameDefID
 	local unitDefID = getPreGameDefID and getPreGameDefID()
+	local x, buildHeight, z, facing
 	if not unitDefID then
-		return
+		local quickMex = pregameBuild and pregameBuild.getQuickMexBuild and pregameBuild.getQuickMexBuild()
+		if not quickMex then
+			return
+		end
+		unitDefID, x, buildHeight, z, facing = quickMex[1], quickMex[2], quickMex[3], quickMex[4], quickMex[5]
 	end
 	local unitDef = UnitDefs[unitDefID]
 	if not unitDef then
 		return
 	end
 
-	local mouseX, mouseY = spGetMouseState()
-	local _, position = spTraceScreenRay(mouseX, mouseY, true, false, false, unitDef.modCategories.underwater)
-	if not position then
-		return
-	end
-	local positionX = position[1]
-	local positionY = position[2]
-	local positionZ = position[3]
-	if not positionX or not positionY or not positionZ then
-		return
-	end
+	if not x then
+		local mouseX, mouseY = spGetMouseState()
+		local _, position = spTraceScreenRay(mouseX, mouseY, true, false, false, unitDef.modCategories.underwater)
+		if not position then
+			return
+		end
+		local positionX = position[1]
+		local positionY = position[2]
+		local positionZ = position[3]
+		if not positionX or not positionY or not positionZ then
+			return
+		end
 
-	local facing = spGetBuildFacing()
-	local x, buildHeight, z = spPos2BuildPos(unitDefID, positionX, positionY, positionZ, facing)
+		facing = spGetBuildFacing()
+		x, buildHeight, z = spPos2BuildPos(unitDefID, positionX, positionY, positionZ, facing)
+	end
 	if not x or not buildHeight or not z then
 		return
 	end
