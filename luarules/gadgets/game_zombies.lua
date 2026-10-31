@@ -161,7 +161,7 @@ local ZOMBIE_EXPIRING_BUILDING_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't w
 local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
 local MINUTE_FRAMES = Game.gameSpeed * 60
 
--- Hydra escalation, one curve for every unit. Anchors are { percent of zombie_escalation_minutes, values... }, lines between
+-- Hydra escalation. Anchors are { percent of zombie_escalation_minutes, values... }, straight lines between
 local ESCALATION = {
 	catchUpSpeed = 3, -- clock speed after a gate opens, until it is level with the game clock
 	-- the clock is held at a gate below its tech level, at most until the next gate's minute
@@ -629,7 +629,8 @@ local function calculateEscalationSpawnCount(unitDefData)
 end
 
 local function calculateEscalationExperience(unitDefData)
-	local veterancy = interpolateAnchors(ESCALATION.veterancy, getEscalationCurvePercent(unitDefData.escalationCostPosition))
+	local veterancy =
+		interpolateAnchors(ESCALATION.veterancy, getEscalationCurvePercent(unitDefData.escalationCostPosition))
 	-- the engine scales XP bonuses by xp / (xp + 1), so veterancy is a fraction of that value, converted back to XP
 	local limitedExperience = veterancy * ESCALATION.peakExperience / (ESCALATION.peakExperience + 1)
 	return limitedExperience / (1 - limitedExperience)
@@ -769,7 +770,8 @@ local function spawnZombieUnits(
 		local unitID = spring.CreateUnit(unitDefToCreate, randomX, adjustedY, randomZ, facing, gaiaTeamID)
 		if unitID then
 			spring.SpawnCEG(unitDefData.spawnExplosionCeg, randomX, adjustedY, randomZ, 0, 0, 0)
-			local escalationExperience = currentModeFeatures.escalation and calculateEscalationExperience(unitDefData) or 0
+			local escalationExperience = currentModeFeatures.escalation and calculateEscalationExperience(unitDefData)
+				or 0
 			local spawnExperience = math.max(inheritedXp or 0, escalationExperience)
 			if spawnExperience > 0 then
 				spring.SetUnitExperience(unitID, spawnExperience)
