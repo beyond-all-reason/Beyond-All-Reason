@@ -12,6 +12,7 @@ end
 
 local BroadcastUnitDefsEnabled
 local BroadcastUnitsCtrlEnabled
+local BroadcastSetAiActive
 local BroadcastSetAiState
 
 if not gadgetHandler:IsSyncedCode() then
@@ -20,6 +21,7 @@ if not gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("SetUnitDefsEnabled", BroadcastUnitDefsEnabled)
 		gadgetHandler:AddSyncAction("SetUnitsCtrlEnabled", BroadcastUnitsCtrlEnabled)
+		gadgetHandler:AddSyncAction("SetAiActive", BroadcastSetAiActive)
 		gadgetHandler:AddSyncAction("SetAiState", BroadcastSetAiState)
 	end
 
@@ -39,17 +41,14 @@ if not gadgetHandler:IsSyncedCode() then
 		Spring.SendSkirmishAIMessage(teamID, msg)
 	end
 
+	BroadcastSetAiActive = function(_, isActive, teamID)
+		local msg = aiMsg.MsgBuilder.new():cmdValue(aiMsg.Topic.SET_AI_ACTIVE, isActive and 1 or 0):toString()
+		Spring.SendSkirmishAIMessage(teamID, msg)
+	end
+
 	BroadcastSetAiState = function(_, state, teamID)
-		local msg = aiMsg.MsgBuilder.new()
-		if state == 'passive' then
-			msg = msg:cmdValue(aiMsg.Topic.SET_AI_STATE, aiMsg.AiState.PASSIVE):toString()
-		elseif state == 'defensive' then
-			msg = msg:cmdValue(aiMsg.Topic.SET_AI_STATE, aiMsg.AiState.DEFENSIVE):toString()
-		elseif state == 'normal' then
-			msg = msg:cmdValue(aiMsg.Topic.SET_AI_STATE, aiMsg.AiState.NORMAL):toString()
-		elseif state == 'aggressive' then
-			msg = msg:cmdValue(aiMsg.Topic.SET_AI_STATE, aiMsg.AiState.AGGRESSIVE):toString()
-		end
+		-- state must correspond to an enum of aiMsg.AiState
+		local msg = aiMsg.MsgBuilder.new():cmdValue(aiMsg.Topic.SET_AI_STATE, state):toString()
 		Spring.SendSkirmishAIMessage(teamID, msg)
 	end
 end
@@ -74,10 +73,18 @@ GG.CampaignAI.SetUnitsCtrlEnabled = function(unitIDs, isEnabled, teamID)
 	end
 end
 
+GG.CampaignAI.SetAiActive = function(isActive, teamID)
+	if gadgetHandler:IsSyncedCode() then
+		SendToUnsynced("SetAiActive", isActive, teamID)
+	else
+		BroadcastSetAiActive("SetAiActive", isActive, teamID)
+	end
+end
+
 GG.CampaignAI.SetAiState = function(state, teamID)
 	if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("SetAiState", state, teamID)
 	else
-		BroadcastUnitsCtrlEnabled("SetAiState", state, teamID)
+		BroadcastSetAiState("SetAiState", state, teamID)
 	end
 end

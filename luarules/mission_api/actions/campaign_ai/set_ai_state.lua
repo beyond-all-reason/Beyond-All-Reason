@@ -8,7 +8,7 @@ return {
 	{
 		type = "SetAiState",
 		parameters = {
-			{ name = "state", required = true, type = ParameterTypes.String },
+			{ name = "state", required = true, type = ParameterTypes.AiState },
 			{ name = "teamID", required = true, type = ParameterTypes.TeamID },
 		},
 		actionFunction = setAiState,
