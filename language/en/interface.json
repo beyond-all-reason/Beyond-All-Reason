@@ -115,6 +115,8 @@
 			"aiName": "%{name} (AI)",
 			"aiPlaceMe": "Place me!",
 			"desynced": "desynced",
+			"take": "Take",
+			"skill": "Skill: %{skill}",
 			"chat": {
 				"needSupport": "I need unit support!",
 				"needMetal": "I need metal!",
@@ -240,7 +242,18 @@
 			"previousPage": "Previous page",
 			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
 			"nextBuilder": "Next Builder",
-			"areamex_tooltip": "Tip: Select this extractor twice to use area mex command"
+			"areamex_tooltip": "Tip: Select this extractor twice to use area mex command",
+			"all": "All",
+			"next": "Next",
+			"disabledShort": "Disabled",
+			"buildTab": "Build",
+			"blueprintsTab": "Blueprints",
+			"blueprint": "Blueprint %{index}",
+			"blueprintUnits": "%{count} buildings",
+			"noBlueprints": "No blueprints saved yet",
+			"noBuildableBlueprints": "None of the saved blueprints can be built by these builders",
+			"queueBuilding": "In production",
+			"queueControls": "Drag: reorder\nRight-click: remove one (SHIFT: all of them)\nRight-drag or mouse wheel: scroll"
 		},
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}"
@@ -2008,6 +2021,11 @@
 				"guitileopacity": "opacity",
 				"guishader": "blur",
 				"guishader_descr": "Blurs the world under every user interface element",
+				"supersample": "sharpness",
+				"supersample_descr": "Draws interface panels at twice the screen's pixels and scales them down: sharper unit pictures and icons, using more video memory.\nAuto does this on screens less than about 1600 pixels tall.",
+				"supersample_auto": "auto",
+				"supersample_off": "normal",
+				"supersample_2x": "sharp (2x)",
 				"guishaderintensity": "   intensity",
 				"font": "Font",
 				"font_descr": "Regular read friendly font used for text",
