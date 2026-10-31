@@ -12,6 +12,8 @@ end
 
 local BroadcastUnitDefsEnabled
 local BroadcastUnitsCtrlEnabled
+local BroadcastSetAiActive
+local BroadcastSetAiState
 
 if not gadgetHandler:IsSyncedCode() then
 	local aiMsg = VFS.Include("luarules/utilities/campaign_ai_msg.lua")
@@ -19,6 +21,8 @@ if not gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("SetUnitDefsEnabled", BroadcastUnitDefsEnabled)
 		gadgetHandler:AddSyncAction("SetUnitsCtrlEnabled", BroadcastUnitsCtrlEnabled)
+		gadgetHandler:AddSyncAction("SetAiActive", BroadcastSetAiActive)
+		gadgetHandler:AddSyncAction("SetAiState", BroadcastSetAiState)
 	end
 
 	BroadcastUnitDefsEnabled = function(_, unitDefIDs, isEnabled, teamID)
@@ -34,6 +38,17 @@ if not gadgetHandler:IsSyncedCode() then
 			.new()
 			:cmdArray(isEnabled and aiMsg.Topic.ENABLE_UNITS_CONTROL or aiMsg.Topic.DISABLE_UNITS_CONTROL, unitIDs)
 			:toString()
+		Spring.SendSkirmishAIMessage(teamID, msg)
+	end
+
+	BroadcastSetAiActive = function(_, isActive, teamID)
+		local msg = aiMsg.MsgBuilder.new():cmdValue(aiMsg.Topic.SET_AI_ACTIVE, isActive and 1 or 0):toString()
+		Spring.SendSkirmishAIMessage(teamID, msg)
+	end
+
+	BroadcastSetAiState = function(_, state, teamID)
+		-- state must correspond to an enum of aiMsg.AiState
+		local msg = aiMsg.MsgBuilder.new():cmdValue(aiMsg.Topic.SET_AI_STATE, state):toString()
 		Spring.SendSkirmishAIMessage(teamID, msg)
 	end
 end
@@ -55,5 +70,21 @@ GG.CampaignAI.SetUnitsCtrlEnabled = function(unitIDs, isEnabled, teamID)
 		SendToUnsynced("SetUnitsCtrlEnabled", unitIDs, isEnabled, teamID)
 	else
 		BroadcastUnitsCtrlEnabled("SetUnitsCtrlEnabled", unitIDs, isEnabled, teamID)
+	end
+end
+
+GG.CampaignAI.SetAiActive = function(isActive, teamID)
+	if gadgetHandler:IsSyncedCode() then
+		SendToUnsynced("SetAiActive", isActive, teamID)
+	else
+		BroadcastSetAiActive("SetAiActive", isActive, teamID)
+	end
+end
+
+GG.CampaignAI.SetAiState = function(state, teamID)
+	if gadgetHandler:IsSyncedCode() then
+		SendToUnsynced("SetAiState", state, teamID)
+	else
+		BroadcastSetAiState("SetAiState", state, teamID)
 	end
 end
