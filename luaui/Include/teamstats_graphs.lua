@@ -4629,7 +4629,7 @@ function M.new(ctx)
 		if not gridCurrent(minis, x, y, w, h) then
 			if not gridTex.tex or gridTex.w ~= w or gridTex.h ~= h then
 				page.dropGridTexture()
-				gridTex.tex = gl.CreateTexture(w, h, { target = GL.TEXTURE_2D, format = GL.RGBA, fbo = true })
+				gridTex.tex = gl.CreateTexture(w, h, { target = GL.TEXTURE_2D, format = GL.RGBA8, fbo = true })
 				if not gridTex.tex then
 					drawMinis(minis)
 					return
