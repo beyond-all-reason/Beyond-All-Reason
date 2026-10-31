@@ -64,6 +64,8 @@ end
 --
 -- What players see:
 --   One revived unit appears on the wreck. When several rise from the same wreck, they scatter around it.
+--   In every zombie mode, a heap becomes a corpse after twice the resurrection time. That corpse then
+--     rises on the normal timer, so heap, corpse, then zombie takes three times as long.
 --   Zombies on Gaia or the scavenger team resurrect wrecks, capture units, and finish construction as zombies.
 --   A capture turns the unit into a zombie only when zombies made the capture. Another builder capturing it
 --     cancels that, including a capture they started in the last second.
@@ -205,7 +207,6 @@ local RULES_PARAM = {
 	PUBLIC_ACCESS = { public = true },
 }
 local creatingForcedHeap = false
-local initializingExistingFeatures = false
 local pendingCreatedFeatureData = nil
 
 local wraithPoolUnitDefIDs = {}
@@ -1338,17 +1339,11 @@ local function corpseCanRespawn(featureID, corpseDefData)
 	return isScavFeature(featureID)
 end
 
-local function heapCanRespawn(featureID, heapDefData, override)
+local function heapCanRespawn(heapDefData)
 	if not heapDefData or heapDefData.neverRespawn or not heapDefData.heapSpawnDelayFrames then
 		return false
 	end
-	if override or not initializingExistingFeatures or heapDefData.forceRespawn then
-		return true
-	end
-	if spring.GetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME) ~= nil then
-		return true
-	end
-	return isScavFeature(featureID)
+	return true
 end
 
 local function queueFeatureForSpawning(
@@ -1436,7 +1431,7 @@ local function queueHeapForSpawning(featureID, override, wasZombie, attackerID, 
 
 	local featureDefID = spring.GetFeatureDefID(featureID)
 	local heapDefData = featureDefID and zombieHeapDefs[featureDefID]
-	if not heapDefData or not heapCanRespawn(featureID, heapDefData, override) then
+	if not heapCanRespawn(heapDefData) then
 		return
 	end
 
@@ -1980,12 +1975,6 @@ local function clearWraithState()
 	for wraithIndex = 1, #wraithIDs do
 		removeWraith(wraithIDs[wraithIndex])
 	end
-	for featureID, featureData in pairs(corpsesData) do
-		if featureData.isHeap then
-			clearCorpseRezRulesParam(featureID)
-			corpsesData[featureID] = nil
-		end
-	end
 	pendingWraithFeeds = {}
 	pendingWraithSpawns = {}
 	wreckWraithFeeds = {}
@@ -2358,12 +2347,10 @@ function gadget:Initialize()
 
 		if not isIdleMode then
 			local features = spring.GetAllFeatures()
-			initializingExistingFeatures = true
 			for _, featureID in ipairs(features) do
 				gadget:FeatureCreated(featureID)
 			end
 		end
-		initializingExistingFeatures = false
 	end
 
 	GG.Zombies = { IdleMode = isIdleMode, tooLong = tooLong }
