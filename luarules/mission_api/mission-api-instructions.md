@@ -126,8 +126,9 @@ breaking change to both the function and every mission using it.
 - Any validation error makes `api_missions.lua` drop `GG['MissionAPI']`, which in turn makes
   `api_missions_triggers.lua` remove itself, and ends the game once it starts. Validation failure aborts the whole
   mission — reserve errors for genuinely unrunnable missions and report warnings otherwise. A Lua error while the
-  mission loads, one in the validation code included, ends it the same way but is reported as a Lua error in the
-  step that raised, not as a validation error.
+  mission loads ends it the same way; it goes into a report under `Loading` and is logged by the same
+  `validation/report.lua` code, named by the step that raised. A crash inside the validators is caught by
+  `ValidateMission` itself and reported as a validation error ("Validation failed unexpectedly").
 - `validation/references.lua` cross-checks unit/feature/marker/line names, countdown IDs and cutscene IDs between
   where they are created or defined and the actions and triggers that consume them. The consuming types are read from
   the schemas, so an action or trigger declaring a `UnitName`, `FeatureName`, `CountdownID` or `CutsceneID` parameter

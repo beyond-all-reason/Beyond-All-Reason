@@ -14,6 +14,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+-- Included outside the guarded load, so a Lua error in any other Mission API file can still be reported.
+local validationReport = VFS.Include("luarules/mission_api/validation/report.lua")
+
 local objectivesController, stagesController, triggersController, actionsController
 
 local missionLoaded = true
@@ -166,7 +169,9 @@ function gadget:Initialize()
 		local failedPath = tostring(loadError):match("file=(%S+)")
 		local step = failedPath and ("loading " .. failedPath) or loadStep
 		local message = "Lua error while " .. step .. ": " .. tostring(loadError)
-		Spring.Log("api_missions.lua", LOG.ERROR, "[Mission API] " .. message)
+		local report = validationReport.Create()
+		report.Error(validationReport.Sections.Loading, nil, nil, message)
+		validationReport.Log(report.GetResult())
 		failMission(message:match("^[^\n]*"))
 	end
 end

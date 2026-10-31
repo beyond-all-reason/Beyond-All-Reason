@@ -1,7 +1,15 @@
 ---@diagnostic disable: undefined-field
 
 local GADGET_PATH = "luarules/gadgets/api_missions.lua"
+local REPORT_PATH = "luarules/mission_api/validation/report.lua"
 local ENTRY_POINT = "singleplayer/test_mission.lua"
+
+local function readFile(path)
+	local file = assert(io.open(path, "rb"))
+	local source = file:read("*a")
+	file:close()
+	return source
+end
 
 local function noop() end
 
@@ -16,6 +24,8 @@ local function loadGadget(options, world)
 	end
 
 	local includes = {
+		-- The real report, so the logged line is the one a game writes.
+		[REPORT_PATH] = readFile(REPORT_PATH),
 		["luarules/mission_api/game_setup.lua"] = { entryPoint = ENTRY_POINT, difficulty = "Normal" },
 		[ENTRY_POINT] = options.missionSource or function()
 			crashes("mission")
@@ -156,6 +166,7 @@ describe("api_missions load guard", function()
 		local reason = "Lua error while " .. step .. ": "
 		assert.is_nil(env.GG.MissionAPI)
 		assert.are.equal(1, #world.logged)
+		assert.are.equal("MissionAPI", world.logged[1].section)
 		assert.are.equal(1, world.logged[1].text:find("[Mission API] " .. reason, 1, true))
 		assert.is_truthy(world.logged[1].text:find(errorText, 1, true))
 		assert.is_nil(world.spawned)
@@ -198,7 +209,8 @@ describe("api_missions load guard", function()
 		assertEndedWith(start({ crash = "definitions" }), "loading the Mission API", "boom in definitions")
 	end)
 
-	it("reports a bug in the validation code as a Lua error, not as validation errors", function()
+	-- A crash inside the validators never gets here: ValidateMission catches it and reports a validation error.
+	it("names validating as the step when the validation entry point itself raises", function()
 		local env = start({ crash = "validation" })
 
 		assertEndedWith(env, "validating " .. ENTRY_POINT, "boom in validation")
