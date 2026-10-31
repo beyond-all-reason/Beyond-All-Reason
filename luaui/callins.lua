@@ -42,6 +42,7 @@ CallInsList = {
 	"AddConsoleLine",
 	"GroupChanged",
 	"WorldTooltip",
+	"GetBuildShape",
 
 	"GameLoadLua",
 	"GameStartPlaying",
