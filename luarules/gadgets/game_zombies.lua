@@ -161,36 +161,20 @@ local ZOMBIE_EXPIRING_BUILDING_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't w
 local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
 local MINUTE_FRAMES = Game.gameSpeed * 60
 
--- Hydra tiers by unit power, anchors are { percent of zombie_stages_length, values... }, straight lines between
+-- Hydra stages, one curve for every unit, anchors are { percent of zombie_stages_length, values... }, straight lines between
 local STAGES = {
 	catchUpSpeed = 3, -- clock speed after a gate opens, until it is level with the game clock
 	gates = { { percent = 23, techLevel = 2 }, { percent = 46, techLevel = 3 } }, -- held below the tech level, at most until the next gate's minute
 	peakExperience = 0.8,
-	tiers = {
-		{
-			name = "paper",
-			topPower = 400,
-			rezWindow = { { 0, 45, 120 }, { 100, 8, 18 } },
-			spawnCounts = { { 0, 2, 6 }, { 23, 2, 6 }, { 45, 5, 20 }, { 70, 2, 6 } },
-			veterancy = { { 0, 0 }, { 29, 0.15 }, { 45, 1 } },
-		},
-		{
-			name = "mid",
-			topPower = 3000,
-			rezWindow = { { 0, 50, 135 }, { 39, 32, 82 }, { 100, 14, 28 } },
-			spawnCounts = { { 0, 2, 6 }, { 23, 2, 6 }, { 62, 4, 14 }, { 100, 2, 10 } },
-			veterancy = { { 0, 0 }, { 23, 0 }, { 57, 0.5 }, { 77, 1 } },
-		},
-		{
-			name = "massive",
-			topPower = 40000,
-			rezWindow = { { 0, 60, 200 }, { 46, 43, 123 }, { 100, 25, 45 } },
-			spawnCounts = { { 0, 2, 6 }, { 46, 2, 6 }, { 100, 5, 20 } },
-			veterancy = { { 0, 0 }, { 46, 0 }, { 86, 1 } },
-		},
-	},
+	costPower = { 400, 40000 }, -- cost position is 0 at the first power and 1 at the second, log scale between
+	costDelayPercent = 45, -- how late the most expensive unit reads the count and veterancy curves
+	costCountScale = { 0.57, 1 }, -- scales the rise above the quiet count window, cheapest to most expensive
+	rezWindow = { { 0, 45, 120 }, { 100, 8, 45 } }, -- cheapest to most expensive
+	spawnCounts = { { 0, 4, 6 }, { 23, 4, 6 }, { 45, 5, 20 }, { 70, 4, 6 } },
+	veterancy = { { 0, 0 }, { 29, 0.15 }, { 45, 1 } },
 }
-local stageTierValues = {}
+local stagePercent = 0
+local stageRezMinimum, stageRezMaximum = 0, 0
 local stageMinutes = 0
 local stageClockLastMinutes = 0
 local stageGatesOpen = {}
@@ -403,20 +387,9 @@ do
 		return SPAWN_EXPLOSION_CEGS.tiny
 	end
 
-	for tierIndex = 1, #STAGES.tiers do
-		stageTierValues[tierIndex] = {}
-	end
-
-	---@return integer tier, number position 0 at the bottom of the tier, 1 at its top power
-	local function getStageTier(rezPower)
-		local bottomPower = 0
-		for tierIndex = 1, #STAGES.tiers do
-			local topPower = STAGES.tiers[tierIndex].topPower
-			if rezPower <= topPower or tierIndex == #STAGES.tiers then
-				return tierIndex, clamp((rezPower - bottomPower) / (topPower - bottomPower), 0, 1)
-			end
-			bottomPower = topPower
-		end
+	local function getStageCostPosition(rezPower)
+		local lowPower, highPower = STAGES.costPower[1], STAGES.costPower[2]
+		return clamp(math.log(rezPower / lowPower) / math.log(highPower / lowPower), 0, 1)
 	end
 
 	local poolUnitDefIDsByBaseName = {}
@@ -439,13 +412,11 @@ do
 		setSetting(customParams, "zombie_stages_length", "stagesLength")
 
 		local rezPower = math.max(1, unitDef.power or 1)
-		local stageTier, stageTierPosition = getStageTier(rezPower)
 		local isPoolMember = customParams.zombie_wraith_respawn_pool and true or false
 		local unitDefData = {
 			unitDefID = unitDefID,
 			rezPower = rezPower,
-			stageTier = stageTier,
-			stageTierPosition = stageTierPosition,
+			stageCostPosition = getStageCostPosition(rezPower),
 			size = unitDef.xsize,
 			isMobile = unitDef.speed > 0,
 			isCommander = customParams.iscommander and true or false,
@@ -531,8 +502,7 @@ end
 local function calculateSpawnDelayFrames(unitDefData)
 	local spawnSeconds
 	if currentModeFeatures.stages then
-		local tierValues = stageTierValues[unitDefData.stageTier]
-		spawnSeconds = floor(math.mix(tierValues.rezMinimum, tierValues.rezMaximum, unitDefData.stageTierPosition))
+		spawnSeconds = floor(math.mix(stageRezMinimum, stageRezMaximum, unitDefData.stageCostPosition))
 	else
 		spawnSeconds = clamp(
 			floor(unitDefData.rezPower / adjustedRezPowerSpeed),
@@ -644,21 +614,32 @@ local function updateStages(frame)
 	else
 		stageMinutes, stageClockLastMinutes = 0, realMinutes
 	end
-	local percent = stageMinutes / zombieModeSettings.stagesLength * 100
-	for tierIndex, tier in ipairs(STAGES.tiers) do
-		local tierValues = stageTierValues[tierIndex]
-		local rezMinimum, rezMaximum = interpolateAnchors(tier.rezWindow, percent)
-		tierValues.rezMinimum = floor(rezMinimum)
-		tierValues.rezMaximum = floor(rezMaximum)
-		local spawnMinimum, spawnMaximum = interpolateAnchors(tier.spawnCounts, percent)
-		tierValues.spawnMinimum = math.round(spawnMinimum)
-		tierValues.spawnMaximum = math.round(spawnMaximum)
-		local veterancy = interpolateAnchors(tier.veterancy, percent)
-		-- the engine scales XP bonuses by xp / (xp + 1), so veterancy is a fraction of that value, converted back to XP
-		local limitedExperience = veterancy * STAGES.peakExperience / (STAGES.peakExperience + 1)
-		tierValues.experience = limitedExperience / (1 - limitedExperience)
-	end
+	stagePercent = stageMinutes / zombieModeSettings.stagesLength * 100
+	stageRezMinimum, stageRezMaximum = interpolateAnchors(STAGES.rezWindow, stagePercent)
 	spring.SetGameRulesParam(RULES_PARAM.STAGE_MINUTE, stageMinutes)
+end
+
+-- expensive units read the curve later in the game
+local function readStageCurve(anchors, costPosition)
+	return interpolateAnchors(anchors, stagePercent - STAGES.costDelayPercent * costPosition)
+end
+
+local function calculateStageSpawnCount(unitDefData)
+	local costPosition = unitDefData.stageCostPosition
+	local quietMinimum, quietMaximum = STAGES.spawnCounts[1][2], STAGES.spawnCounts[1][3]
+	local spawnMinimum, spawnMaximum = readStageCurve(STAGES.spawnCounts, costPosition)
+	local scale = math.mix(STAGES.costCountScale[1], STAGES.costCountScale[2], costPosition)
+	return random(
+		math.round(quietMinimum + (spawnMinimum - quietMinimum) * scale),
+		math.round(quietMaximum + (spawnMaximum - quietMaximum) * scale)
+	)
+end
+
+local function calculateStageExperience(unitDefData)
+	local veterancy = readStageCurve(STAGES.veterancy, unitDefData.stageCostPosition)
+	-- the engine scales XP bonuses by xp / (xp + 1), so veterancy is a fraction of that value, converted back to XP
+	local limitedExperience = veterancy * STAGES.peakExperience / (STAGES.peakExperience + 1)
+	return limitedExperience / (1 - limitedExperience)
 end
 
 local function updateTooLong(frame)
@@ -731,8 +712,7 @@ local function calculateSpawnCount(unitDefID)
 
 	local unitDefData = zombieUnitDefs[unitDefID]
 	if currentModeFeatures.stages then
-		local tierValues = stageTierValues[unitDefData.stageTier]
-		return random(tierValues.spawnMinimum, tierValues.spawnMaximum)
+		return calculateStageSpawnCount(unitDefData)
 	end
 	local rezTimeSeconds = unitDefData.powerSpawnDelayFrames / Game.gameSpeed
 	local keep, rollCount = PICK_LOWEST, 1
@@ -796,8 +776,7 @@ local function spawnZombieUnits(
 		local unitID = spring.CreateUnit(unitDefToCreate, randomX, adjustedY, randomZ, facing, gaiaTeamID)
 		if unitID then
 			spring.SpawnCEG(unitDefData.spawnExplosionCeg, randomX, adjustedY, randomZ, 0, 0, 0)
-			local stageExperience = currentModeFeatures.stages and stageTierValues[unitDefData.stageTier].experience
-				or 0
+			local stageExperience = currentModeFeatures.stages and calculateStageExperience(unitDefData) or 0
 			local spawnExperience = math.max(inheritedXp or 0, stageExperience)
 			if spawnExperience > 0 then
 				spring.SetUnitExperience(unitID, spawnExperience)
