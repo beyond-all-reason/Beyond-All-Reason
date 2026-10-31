@@ -163,8 +163,7 @@ local MINUTE_FRAMES = Game.gameSpeed * 60
 
 -- Hydra escalation. Anchors are { percent of zombie_escalation_minutes, values... }, straight lines between
 local ESCALATION = {
-	catchUpSpeed = 3, -- clock speed after a gate opens, until it is level with the game clock
-	-- the clock is held at a gate below its tech level, at most until the next gate's minute
+	-- the escalation cannot pass a gate below its tech level, until the next gate's minute
 	gates = { { percent = 23, techLevel = 1.5 }, { percent = 46, techLevel = 2.5 } },
 	peakExperience = 0.8,
 	costPosition = { { 0, 0 }, { 400, 0.2 }, { 3000, 0.45 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
@@ -176,9 +175,7 @@ local ESCALATION = {
 }
 local escalationPercent = 0
 local escalationRezMinimum, escalationRezMaximum = 0, 0
-local escalationClock = 0
-local escalationClockLastMinutes = 0
-local escalationGatesOpen = {}
+local escalationMinute = 0
 
 local function interpolateAnchors(anchors, position)
 	local previous = anchors[1]
@@ -575,45 +572,25 @@ local function updateRezSpeed()
 	spring.SetGameRulesParam(RULES_PARAM.FACTORY_BUILDPOWER_MULTIPLIER, factoryBuildpowerMultiplier)
 end
 
-local function advanceEscalationClock(realMinutes)
+local function updateEscalation(frame)
 	local length = zombieModeSettings.escalationMinutes
-	local elapsed = realMinutes - escalationClockLastMinutes
-	escalationClockLastMinutes = realMinutes
-	if escalationClock >= length then
-		return
-	end
-	local target = math.min(realMinutes, escalationClock + elapsed * ESCALATION.catchUpSpeed)
-	for gateIndex, gate in ipairs(ESCALATION.gates) do
-		if not escalationGatesOpen[gateIndex] then
-			local gateMinutes = gate.percent / 100 * length
+	local realMinutes = frame / MINUTE_FRAMES
+	local minute = math.min(realMinutes, length)
+	if currentModeFeatures.escalation then
+		for gateIndex, gate in ipairs(ESCALATION.gates) do
 			local nextGate = ESCALATION.gates[gateIndex + 1]
-			local holdUntil = nextGate and nextGate.percent / 100 * length or math.huge
-			if (currentTechLevel or 0) >= gate.techLevel or realMinutes >= holdUntil then
-				escalationGatesOpen[gateIndex] = true
-			elseif target > gateMinutes then
-				target = gateMinutes
+			local capUntil = nextGate and nextGate.percent / 100 * length or math.huge
+			if (currentTechLevel or 0) < gate.techLevel and realMinutes < capUntil then
+				minute = math.min(minute, gate.percent / 100 * length)
 			end
 		end
-	end
-	escalationClock = math.min(target, length)
-end
-
-local function resetEscalationClock()
-	escalationClock = math.min(gameFrame / MINUTE_FRAMES, zombieModeSettings.escalationMinutes)
-	escalationClockLastMinutes = escalationClock
-	escalationGatesOpen = {}
-end
-
-local function updateEscalation(frame)
-	local realMinutes = frame / MINUTE_FRAMES
-	if currentModeFeatures.escalation then
-		advanceEscalationClock(realMinutes)
+		escalationMinute = math.max(escalationMinute, minute)
 	else
-		escalationClock, escalationClockLastMinutes = 0, realMinutes
+		escalationMinute = 0
 	end
-	escalationPercent = escalationClock / zombieModeSettings.escalationMinutes * 100
+	escalationPercent = escalationMinute / length * 100
 	escalationRezMinimum, escalationRezMaximum = interpolateAnchors(ESCALATION.rezWindow, escalationPercent)
-	spring.SetGameRulesParam(RULES_PARAM.ESCALATION_MINUTE, escalationClock)
+	spring.SetGameRulesParam(RULES_PARAM.ESCALATION_MINUTE, escalationMinute)
 end
 
 -- expensive units read the curves later in the game
@@ -1766,7 +1743,6 @@ local function setZombieMode(modeName)
 		return false
 	end
 	applyZombieModeSettings(modeName)
-	resetEscalationClock()
 	updateEscalation(gameFrame)
 	rebuildZombieCorpseSpawnDelays()
 	return true
@@ -1950,9 +1926,7 @@ local function saveReloadState()
 			tooLong = tooLong,
 			adjustedRezPowerSpeed = adjustedRezPowerSpeed,
 			currentTechLevel = currentTechLevel,
-			escalationClock = escalationClock,
-			escalationClockLastMinutes = escalationClockLastMinutes,
-			escalationGatesOpen = escalationGatesOpen,
+			escalationMinute = escalationMinute,
 			excessPower = excessPower,
 			wraiths = wraiths,
 			wraithCount = wraithCount,
@@ -1992,9 +1966,7 @@ local function restoreReloadState()
 	tooLong = reloadState.tooLong
 	adjustedRezPowerSpeed = reloadState.adjustedRezPowerSpeed
 	currentTechLevel = reloadState.currentTechLevel
-	escalationClock = reloadState.escalationClock
-	escalationClockLastMinutes = reloadState.escalationClockLastMinutes
-	escalationGatesOpen = reloadState.escalationGatesOpen
+	escalationMinute = reloadState.escalationMinute
 	excessPower = reloadState.excessPower
 	wraiths = reloadState.wraiths
 	wraithCount = reloadState.wraithCount
@@ -2028,7 +2000,6 @@ function gadget:Initialize()
 	spring.SetGameRulesParam(RULES_PARAM.ENABLED, true)
 
 	if not restoreReloadState() then
-		resetEscalationClock()
 		applyZombieModeSettings(resolveZombieMode(modOptions.zombies))
 		updateRezSpeed()
 
