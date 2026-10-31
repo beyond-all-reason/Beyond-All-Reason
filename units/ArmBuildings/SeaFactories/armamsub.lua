@@ -31,10 +31,11 @@ return {
 		buildoptions = {
 			[1] = "armbeaver",
 			[2] = "armpincer",
-			[3] = "armcroc",
-			[4] = "armjeth",
-			[5] = "armaak",
-			[6] = "armdecom",
+			[3] = "armamph",
+			[4] = "armcroc",
+			[5] = "armjeth",
+			[6] = "armaak",
+			[7] = "armdecom",
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
