@@ -214,6 +214,7 @@ local statusCheckTargetPhase = 0
 local orderedPreviewCaches = {}
 local pregameStatuses = {}
 local snapStatuses = {}
+local quickBuildStatuses = {}
 -- Queued build footprints of the selected units, hashed into map buckets so a preview only tests the footprints
 -- near it. Per-unit queues are re-read when their command count changes, a build command arrives, the selection
 -- changes or the periodic full refresh is due. Grouped in one table: the chunk is close to the 200 locals limit.
@@ -2313,9 +2314,32 @@ local function rebuildBatchBuffer()
 	end
 end
 
+-- Quick Build has no active engine build command, so collect its preview explicitly.
+local function collectQuickBuildSquare()
+	local quickBuild = WG.QuickBuildExtractor
+	local cmd = quickBuild and quickBuild.GetPreviewCommand()
+	if not cmd then
+		return
+	end
+	local _, activeCmdID = spGetActiveCommand()
+	if activeCmdID and (activeCmdID < 0 or activeCmdID == CMD.RECLAIM) then
+		return
+	end
+	local unitDefID, x, y, z, facing = cmd[1], cmd[2], cmd[3], cmd[4], cmd[5]
+	local footprint = getFootprintData(unitDefID, facing)
+	local unitDef = UnitDefs[unitDefID]
+	if not footprint or not unitDef then
+		return
+	end
+	local placementValid = spTestBuildOrder(unitDefID, x, y, z, facing) ~= 0
+	fillPredictedStatuses(quickBuildStatuses, unitDef, x, y, z, footprint, placementValid)
+	widget:DrawBuildSquare(unitDefID, x, z, facing, quickBuildStatuses)
+end
+
 function widget:DrawWorldPreUnit()
 	local drawFrame = beginBuildSquareDrawFrame(spGetDrawFrame())
 	collectPregameBuildSquare()
+	collectQuickBuildSquare()
 	if collectedPreviewCount == 0 or collectedDrawFrame < drawFrame - 1 or collectedDrawFrame > drawFrame then
 		batchInstanceCount = 0
 		minimapInstanceCount = 0
