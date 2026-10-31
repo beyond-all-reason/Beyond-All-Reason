@@ -48,7 +48,7 @@ function gadget:Initialize()
 	end
 
 	for weaponDefID in pairs(railLengths) do
-		Script.SetWatchProjectile(weaponDefID, true)
+		gadgetHandler:RegisterProjectile(weaponDefID)
 	end
 end
 
