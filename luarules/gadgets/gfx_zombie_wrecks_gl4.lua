@@ -92,6 +92,7 @@ local THUNDER_FULL_VOLUME_CAMERA_DISTANCE = 600
 local THUNDER_SILENT_CAMERA_DISTANCE = 3000
 local UPDATE_INTERVAL_FRAMES = 3
 local SETTLED_SPEED_SQUARED = 0.01
+local WRECK_INSTANCE_CAPACITY = 512
 
 local BILLBOARD_SMOKE_SPRITE_COUNT = 3
 local BILLBOARD_CULL_RADIUS = 200
@@ -265,7 +266,7 @@ local function initGL4()
 		{ id = 1, name = "wreck_position", size = 4 },
 		{ id = 2, name = "frames", size = 4 },
 		{ id = 3, name = "hold_until_frame", size = 4 },
-	}, 64, "gfx_zombie_wrecks_gl4")
+	}, WRECK_INSTANCE_CAPACITY, "gfx_zombie_wrecks_gl4")
 	if not instanceTable then
 		return false
 	end
