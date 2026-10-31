@@ -117,6 +117,14 @@ local SandboxedSystem = {}
 local SANDBOXED_ERROR_UNIT_CONTROL = "User 'unit control' widgets disallowed on this game"
 local SANDBOXED_ERROR_USER_WIDGETS = "User widgets cannot control other widgets or execute remote code"
 
+local realGetTeamResources = Spring.GetTeamResources
+Spring.GetTeamResources = function(teamID, resource)
+	local resourceFullString = string.sub(resource, 1,1) == "m" and "Metal" or "Energy"
+	local a,b,c,d,e,f,g,h = realGetTeamResources(teamID, resource)
+	local realPull = c + (Spring.GetTeamRulesParam(teamID, "hidden"..resourceFullString.."Pull") or 0)
+	return a,b,realPull,d,e,f,g,h
+end
+
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
 	allowuserwidgets = false
