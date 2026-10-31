@@ -10,17 +10,23 @@
 
 
 uniform sampler2D textAtlas;
+uniform vec4 regionBounds;
 
 in DataVS {
 	float circlealpha;
 	vec4 v_targetcolor;
 	vec4 v_uvcoords;
+	vec2 v_worldXZ;
 };
 
 out vec4 fragColor;
 
 void main(void)
 {
+	// Local spots close to the edge must not draw over a cubicle barrier.
+	if (regionBounds.z > regionBounds.x &&
+		(any(lessThan(v_worldXZ, regionBounds.xy)) ||
+		 any(greaterThanEqual(v_worldXZ, regionBounds.zw)))) discard;
 
 	fragColor = vec4(v_targetcolor.rgb,circlealpha); //debug!
 	if (v_uvcoords.x > -0.5){
