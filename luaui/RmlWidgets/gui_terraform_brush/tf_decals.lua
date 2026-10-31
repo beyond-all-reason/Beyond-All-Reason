@@ -1,11 +1,10 @@
--- tf_decals.lua: extracted tool module for gui_terraform_brush
+-- tf_decals.lua: decal tool wiring for the gui_terraform_brush panel
 local M = {}
 
 function M.attach(doc, ctx)
 	local trackSliderDrag = ctx.trackSliderDrag
 
-	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
-	-- Slider change events are wired declaratively via data-event-change= in RML.
+	-- Drag tracking only; slider change events are wired in the RML (data-event-change).
 	for _, sid in ipairs({
 		"radius",
 		"rotation",
@@ -26,9 +25,8 @@ function M.attach(doc, ctx)
 		trackSliderDrag(sliderDcHistory, "dc-history")
 	end
 
-	-- All data-event-click/change handlers (onDcXxx) are defined in initialModel
-	-- in gui_terraform_brush.lua — Recoil forbids adding or replacing function
-	-- keys in a DataModel after OpenDataModel.
+	-- The onDcXxx handlers live in initialModel (gui_terraform_brush.lua): Recoil
+	-- forbids adding function keys to a DataModel after OpenDataModel.
 end
 
 function M.sync(doc, ctx, setSummary)
@@ -39,7 +37,7 @@ function M.sync(doc, ctx, setSummary)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local syncAndFlash = ctx.syncAndFlash
-	-- btn-decals active state driven by data-class-active="activeTool == 'dc'" in RML.
+	-- btn-decals active state comes from data-class-active in the RML.
 
 	local dpState = WG.DecalPlacer and WG.DecalPlacer.getState()
 	if dpState then
@@ -62,9 +60,8 @@ function M.sync(doc, ctx, setSummary)
 
 		uiState.updatingFromCode = true
 
-		-- Sync brush/option labels, sliders, and numboxes.
-		-- syncAndFlash guards against writing while user is dragging a slider,
-		-- which prevents visual choppiness from the setter ↔ sync loop.
+		-- syncAndFlash skips a slider being dragged, so the setter and the sync do not
+		-- fight over its value.
 		local getCachedEl = ctx.getCachedEl
 		local function setLbl(id, txt)
 			ctx.setInnerRmlIfChanged(doc and getCachedEl(doc, id), id, tostring(txt))
@@ -124,7 +121,7 @@ function M.sync(doc, ctx, setSummary)
 					or "/luaui/images/terraform_brush/check_off.png"
 			)
 		end
-		-- DC undo history slider
+		-- Undo history slider
 		local dcUndoCnt = dpState.undoCount or 0
 		local slDcHist = doc and getCachedEl(doc, "slider-dc-history")
 		local nbDcHist = doc and getCachedEl(doc, "slider-dc-history-numbox")
@@ -138,7 +135,7 @@ function M.sync(doc, ctx, setSummary)
 			nbDcHist:SetAttribute("value", tostring(dcUndoCnt))
 		end
 
-		-- P3.2 Decals grayouts (per Phase 3 relevance matrix)
+		-- Grey out controls that do nothing in the current mode
 		if ctx.setDisabledIds then
 			local mode = dpState.mode or "scatter"
 			local remove = (mode == "remove")
@@ -161,8 +158,8 @@ function M.sync(doc, ctx, setSummary)
 				"btn-dc-count-down",
 				"btn-dc-count-up",
 			}, not scatter)
-			-- Cadence: applies in BOTH scatter and point drag (widget:Update spam).
-			-- Only irrelevant in remove (which places every frame while dragging).
+			-- Cadence paces both scatter and point drags. Remove ignores it: it runs on
+			-- every update tick while dragging.
 			ctx.setDisabledIds(doc, {
 				"dc-slider-cadence",
 				"dc-slider-cadence-numbox",

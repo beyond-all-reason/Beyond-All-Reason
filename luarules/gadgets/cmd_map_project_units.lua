@@ -59,6 +59,7 @@ local END_HEADER = "$mpunits_end$"
 
 local isSingleplayer = BAR.Utilities.Gametype.IsSinglePlayer()
 
+---@type table[]?
 local pending = nil -- entries accumulated between $mpunits_begin$ and $mpunits_end$
 local pendingBad = 0 -- entries dropped at parse time (unknown unit def)
 local ackCounter = 0 -- incremented per completed replace; mirrored to mpu_ack
@@ -85,7 +86,9 @@ local function exportAllUnits()
 	for i = 1, #ids do
 		local uid = ids[i]
 		local defID = Spring.GetUnitDefID(uid)
+		---@type table?
 		local def = defID and UnitDefs[defID]
+		---@type number?, number?, number?
 		local x, _, z = Spring.GetUnitPosition(uid)
 		if def and x then
 			-- a MISSION unit (Unit Placer, "mission_team" >= 0) keeps its mission team number as
@@ -116,8 +119,10 @@ local function replaceAllUnits()
 	local gaia = Spring.GetGaiaTeamID()
 	local spawned, failed, remapped = 0, pendingBad, 0
 	local max, min = math.max, math.min
+	---@cast pending table[]
 	for _, u in ipairs(pending) do
 		local team = u.team
+		---@type integer?, integer?, any
 		local tid, _, isDead = Spring.GetTeamInfo(team, false)
 		if u.mission then
 			-- mission units stand on their mission team when it exists, else Gaia; never "remapped"
@@ -167,6 +172,7 @@ local function replaceAllUnits()
 	)
 end
 
+---@return boolean?
 function gadget:RecvLuaMsg(msg)
 	if msg == EXPORT_HEADER then
 		-- Read-only, but it reveals every unit's position: refuse when it could

@@ -1,36 +1,22 @@
 --------------------------------------------------------------------------------
 -- Decal preview bake module
 --
--- Channel-encoded source bitmaps (mainscars: red filler + green mask;
--- tracks/footprints: red-on-dark) have no alpha and don't render usefully via
--- a raw <img>. We pre-bake them through a one-shot fragment shader into RGBA
--- PNGs in a writable cache dir, then the widget renders the cached PNG via
--- plain <img data-attr-src="...">.
+-- Channel-encoded decal bitmaps (mainscars: red filler + green mask; tracks and
+-- footprints: red on dark) have no alpha, so a raw <img> shows nothing useful.
+-- They are baked once through a small fragment shader into opaque PNGs in a
+-- writable cache dir; the widget then creates an <img> whose src is the PNG.
 --
--- Spring restricts gl.RenderToTexture to draw callbacks, so the widget can't
--- bake inline from syncDecals/Initialize. The flow is:
---   1. widget calls M.enqueueAll(categories, fallbackResolver) once after
---      first sync — module enumerates and queues every mask-encoded decal.
---   2. widget calls M.drainQueue(N) every frame from widget:DrawScreen — the
---      module bakes up to N decals per frame and writes their PNGs.
---   3. widget calls M.consumeResync() in widget:Update — true means at least
---      one bake completed since the last consume, and the queue is now
---      empty, so the widget should re-run its sync to pick up new srcPaths.
---   4. widget calls M.resolve(name, sourcePath, maskMode) per row in its
---      sync — returns the "/vfs/path" once the decal is baked (or
---      immediately for PNG/TGA sources that don't need baking), or nil.
+-- gl.RenderToTexture only works inside draw callbacks, so the flow is:
+--   1. M.enqueueAll(categories, getFallbackPath) once, on the first tile build.
+--   2. M.drainQueue() every frame from widget:DrawScreen (BAKES_PER_FRAME each).
+--   3. M.consumeResync() in widget:Update: true means bakes finished and the
+--      queue is empty, so the widget rebuilds its tiles.
+--   4. M.resolve(name, sourcePath, maskMode) per tile: the "/vfs/path" to show,
+--      or nil while the bake is pending.
 --
--- STARTUP OVERHEAD (deliberate trade-off): we do NOT trust on-disk cache
--- between sessions. Every widget startup re-bakes every mask-encoded decal.
--- ~60 bakes × 4 per frame ≈ 0.25s of startup work, spread across DrawScreen
--- ticks (no single-frame stutter). Tiles render blank for ~0.25s on first
--- open, then populate as bakes complete.
---
--- Why no cache? While the shader is being iterated, trusting cached PNGs
--- meant stale baked output survived shader edits — cost hours of debugging.
--- When the shader stabilises, switch to versioned cache filenames keyed off
--- a CACHE_VERSION constant; that's a 5-line change to invalidate cleanly
--- on shader edits and keep instant reloads otherwise.
+-- The disk cache is not trusted across sessions: every start re-bakes (about 60
+-- decals at 4 per frame, roughly 0.25s), so a shader edit never leaves stale
+-- PNGs. A CACHE_VERSION in the file names would allow reuse later.
 --------------------------------------------------------------------------------
 
 local M = {}
@@ -66,11 +52,8 @@ local function initPreviewShader()
 				gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;
 			}
 		]],
-		-- OPAQUE composite (matches the original GL renderer that visibly
-		-- worked pre-refactor): mix a "ground" color with a "decal tint" by
-		-- the channel-derived mask. The cached PNG is fully opaque so it
-		-- always renders something visible regardless of how the underlying
-		-- tile bg is styled.
+		-- Opaque composite: mix a "ground" color with a "decal tint" by the
+		-- channel-derived mask, so the PNG shows up on any tile background.
 		fragment = [[
 			#version 150 compatibility
 			uniform sampler2D tex0;
@@ -96,8 +79,8 @@ local function initPreviewShader()
 			}
 		]],
 		uniformInt = { tex0 = 0, maskMode = 1 },
-		-- groundColor matches .dp-thumb-footprints rgb(96, 72, 56) so the
-		-- baked previews blend visually with the category-tinted tile bg.
+		-- groundColor matches .dp-thumb-footprints rgb(96, 72, 56) so the bakes blend
+		-- with the category-tinted tile background.
 		uniformFloat = { groundColor = { 96 / 255, 72 / 255, 56 / 255 }, decalTint = { 0.12, 0.08, 0.06 } },
 	})
 	if not previewShader or previewShader == 0 then
@@ -113,14 +96,13 @@ end
 -- Path helpers
 --------------------------------------------------------------------------------
 local function bakedPreviewPath(decalName)
-	-- Sanitize for filesystem
 	local safe = decalName:gsub("[^%w_-]", "_")
 	return cacheDir .. safe .. ".png"
 end
 
 --------------------------------------------------------------------------------
--- Bake one decal. Must be called inside a draw callback (gl.RenderToTexture
--- restriction). Writes the cached PNG and returns true on success.
+-- Bake one decal. Draw callbacks only (gl.RenderToTexture). Writes the cached
+-- PNG and returns true on success.
 --------------------------------------------------------------------------------
 local function bakeDecalPreview(decalName, sourceTexPath, maskMode)
 	if not initPreviewShader() then
@@ -173,8 +155,7 @@ local function bakeDecalPreview(decalName, sourceTexPath, maskMode)
 			gl.UseShader(0)
 			gl.Texture(0, false)
 
-			-- Save inside the FBO callback — proven-required pattern from
-			-- cmd_terraform_brush.lua heightmap export.
+			-- gl.SaveImage must run inside the FBO callback to read this target.
 			gl.SaveImage(0, 0, PREVIEW_SIZE, PREVIEW_SIZE, cachePath, { yflip = false })
 			saved = true
 		end
@@ -195,39 +176,21 @@ end
 -- Public API
 --------------------------------------------------------------------------------
 
--- Set the cache directory (e.g. "Terraform Brush/DecalPreviews/"). Caller
--- should Spring.CreateDir() it themselves before calling.
+-- Set the cache directory (e.g. "Terraform Brush/DecalPreviews/"). The caller
+-- creates it with Spring.CreateDir first.
 function M.init(cachePathStr)
 	cacheDir = cachePathStr
 end
 
--- TODO: filename-pattern heuristic. Works for the known decal set but isn't
--- robust to new decals or non-conforming names. Two cleaner paths exist:
---
---   (A) Metadata path — WG.DecalPlacer (or the engine API it wraps) exposes
---       the encoding/maskMode per entry. We pass it through to M.resolve
---       and delete this function. Cheap; just needs a few lines added to
---       cmd_decal_placer.lua and the engine query.
---
---   (B) Standardization path — re-author / convert the channel-encoded BMP
---       atlases (mainscars, tracks, footprints) into RGBA PNG/TGA with
---       proper alpha. Then EVERY decal becomes maskMode 0 (alpha-as-mask),
---       no shader bake needed at all, this whole module collapses to ~30
---       lines of pure path resolution. This is the "real" fix and how
---       modern game asset pipelines do it; the legacy encodings are a
---       holdover from older Spring engine days.
---
--- (B) is more work (asset-pipeline change, ~60 source files, possibly
--- overriding via BAR.sdd VFS shadowing of engine-archive files), but it's
--- the end state worth aiming for. Until then, this heuristic + the bake
--- machinery is the engineering compromise.
---
+-- Guess the encoding from the file path. Works for the shipped decals but not
+-- for arbitrary names. Cleaner options: get the mask mode from the decal API, or
+-- convert the channel-encoded BMP atlases to RGBA PNG/TGA so no bake is needed.
 -- Returns:
---   -1  normal map — skip preview entirely
---    0  PNG/TGA — has alpha already, use source as-is, no bake needed
---    1  mainscar atlas BMP — green-channel-minus-red-filler mask
---    2  tracks / footprints BMP — inverse-red mask
---    3  generic BMP — luminance fallback
+--   -1  normal map: no preview
+--    0  PNG/TGA: has alpha, used as-is
+--    1  mainscar atlas BMP: green minus red filler mask
+--    2  tracks / footprints BMP: inverse red mask
+--    3  other BMP: luminance fallback
 function M.classifyMaskMode(sourcePath)
 	local lower = sourcePath:lower():gsub("\\", "/")
 	if lower:find("/normscar") or lower:find("_normal") or lower:find("/normals?/") then
@@ -244,10 +207,9 @@ function M.classifyMaskMode(sourcePath)
 	return 3
 end
 
--- Returns the VFS path (with leading slash) to use as <img src>, or nil if
--- no preview is available yet. For mask-encoded sources not yet baked,
--- returns nil — the upfront enqueueAll + DrawScreen drain handles them; the
--- widget will re-derive once the bake completes (signaled via consumeResync).
+-- The VFS path (leading slash) for the tile's <img src>, or nil if no preview
+-- exists yet. Mask-encoded sources return nil until their bake finishes
+-- (consumeResync tells the widget to ask again).
 function M.resolve(decalName, sourcePath, maskMode)
 	if previewResolveCache[decalName] ~= nil then
 		return previewResolveCache[decalName] or nil
@@ -264,14 +226,13 @@ function M.resolve(decalName, sourcePath, maskMode)
 		return result
 	end
 
-	-- Mask-encoded BMP. Will be baked from DrawScreen.
+	-- Mask-encoded BMP: baked from DrawScreen.
 	return nil
 end
 
--- One-shot enumeration: walk every category entry, queue every mask-encoded
--- source. Idempotent (only enumerates once per session). Pass categories as
--- returned by WG.DecalPlacer.getDecalCategories(), and a fallback resolver
--- (typically findPreviewPath) for entries with empty filename.
+-- Queue every mask-encoded source once per session. categories is what
+-- WG.DecalPlacer.getDecalCategories() returns; getFallbackPath resolves entries
+-- with an empty filename.
 function M.enqueueAll(categories, getFallbackPath)
 	if bakesEnqueued or not categories then
 		return 0
@@ -301,9 +262,8 @@ function M.enqueueAll(categories, getFallbackPath)
 	return #bakeQueue
 end
 
--- Drain up to BAKES_PER_FRAME bakes from the queue. MUST be called from a
--- draw callback (Spring restricts gl.RenderToTexture). Sets the internal
--- resync flag if any bakes succeeded; widget polls via consumeResync.
+-- Bake up to BAKES_PER_FRAME queued decals. Draw callbacks only
+-- (gl.RenderToTexture). Successful bakes set the resync flag.
 function M.drainQueue()
 	if #bakeQueue == 0 then
 		return
@@ -322,9 +282,8 @@ function M.drainQueue()
 	end
 end
 
--- True once the queue is empty AND at least one bake completed since the
--- last call. Atomic: clears the internal flag. Widget should re-run its
--- sync when this returns true.
+-- True once the queue is empty and at least one bake finished since the last
+-- call; clears the flag. The widget rebuilds its tiles on true.
 function M.consumeResync()
 	if resyncRequested and #bakeQueue == 0 then
 		resyncRequested = false

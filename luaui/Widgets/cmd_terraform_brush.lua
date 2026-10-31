@@ -24,7 +24,6 @@ local MSG = {
 	UNDO = "$terraform_undo$",
 	UNDO_STROKE = "$terraform_undo_stroke$",
 	REDO = "$terraform_redo$",
-	MERGE_END = "$terraform_merge_end$",
 	STROKE_END = "$terraform_stroke_end$",
 	NOISE = "$terraform_noise$",
 	ERODE = "$terraform_erode$",
@@ -35,12 +34,9 @@ local MSG = {
 local DEFAULT_RADIUS = 100
 local UPDATE_INTERVAL = 0.05
 
--- Prefix all terraform messages with $c$ when cheat is enabled. The gadget
--- honours that certification inside a map-editor session, where /cheat is a
--- toggle that can race OFF between a message being composed and it arriving.
--- Guard against double-prefix: NewMap import pre-attaches $c$ to its messages,
--- so skip wrapping if the message already starts with the signature.
--- NOTE: no new chunk-level local for the prefix string (file is at 200-local limit).
+-- Prefix terraform messages with $c$ while cheat is on. The gadget honours it
+-- inside a map-editor session, where /cheat can race OFF between sending and
+-- arrival. NewMap import pre-attaches $c$, so never prefix twice.
 local function SendLuaRulesMsg(msg)
 	if Spring.IsCheatingEnabled() and msg:sub(1, 3) ~= "$c$" then
 		Spring.SendLuaRulesMsg("$c$" .. msg)
@@ -102,11 +98,8 @@ local PRESETS_DIR = "Terraform Brush/Presets/"
 local KEYBINDS_DIR = "Terraform Brush/"
 local KEYBINDS_FILE = KEYBINDS_DIR .. "keybinds.lua"
 
--- ═══════════════════════════════════════════════════════════════════════
 -- CONFIGURABLE KEYBINDS
--- Each entry: { key = <keycode>, label = <display label>, desc = <description> }
--- key = integer keycode (SDL scancode), label = what badge shows
--- ═══════════════════════════════════════════════════════════════════════
+-- Each entry: { key = <SDL keycode>, label = <badge text>, desc = <description> }
 local DEFAULT_KEYBINDS = {
 	-- Terrain modes (no modifier required)
 	mode_level = { key = 108, label = "L", desc = "Smooth / Level / Smudge mode (cycles)" },
@@ -126,6 +119,7 @@ local DEFAULT_KEYBINDS = {
 	tool_metal = { key = 109, label = "M", desc = "Metal tool" },
 	tool_features = { key = 102, label = "F", desc = "Features tool" },
 	tool_splat = { key = 112, label = "P", desc = "Splat tool" },
+	tool_diffuse = { key = 100, label = "D", desc = "Diffuse tool" },
 	tool_decals = { key = 103, label = "G", desc = "Decals tool" },
 	tool_weather = { key = 119, label = "W", desc = "Weather tool" },
 	tool_environment = { key = 118, label = "V", desc = "Environment tool" },
@@ -422,9 +416,9 @@ local BUILTIN_PRESETS = {
 		noiseSeed = 0,
 	},
 	{
-		-- MrBob's sculpting setup from the campaign terrain tutorial: clay, the
-		-- lowest intensity and the sharpest falloff, square riding the stroke.
-		-- Many weak passes build the form; the sharp edge leaves the striations.
+		-- Sculpting setup from the campaign terrain tutorial: clay, the lowest
+		-- intensity and the sharpest falloff, square riding the stroke. Many weak
+		-- passes build the form; the sharp edge leaves the striations.
 		name = "Clay Sculpt",
 		mode = "raise",
 		shape = "square",
@@ -466,8 +460,8 @@ local BUILTIN_PRESETS = {
 		noiseSeed = 0,
 	},
 	{
-		-- MrBob's dune shaper (2026-10-20): a big, soft triangle riding the stroke,
-		-- so a drag lays down a dune ridge with a sharper crest.
+		-- Dune shaper: a big, soft triangle riding the stroke, so a drag lays down
+		-- a dune ridge with a sharper crest.
 		name = "DuneMaker",
 		mode = "raise",
 		shape = "triangle",
@@ -496,6 +490,7 @@ for _, p in ipairs(BUILTIN_PRESETS) do
 	builtinPresetNames[p.name] = true
 end
 
+---@type number?
 local activeDirection = nil
 local activeRadius = DEFAULT_RADIUS
 ---@type BrushShape|"ring"|"fill"
@@ -505,9 +500,12 @@ local activeRotation = 0
 local activeCurve = DEFAULT_CURVE
 local activeIntensity = DEFAULT_INTENSITY
 local activeLengthScale = DEFAULT_LENGTH_SCALE
+---@type TerraformMode?
 local activeMode = nil
 local updateTimer = 0
+---@type number?
 local heightCapMin = nil
+---@type number?
 local heightCapMax = nil
 local heightCapAbsolute = true
 local brushOpacity = 1.0
@@ -515,6 +513,244 @@ local gridOverlay = false
 local dustEffects = false
 local seismicEffects = false
 local djMode = false
+
+---A measure endpoint: chain index and point index within it.
+---@class TerraformMeasurePointRef
+---@field chain integer
+---@field pt integer
+
+---A measure segment: chain index and segment index, plus the projected point for a body hit.
+---@class TerraformMeasureSegRef
+---@field chain integer
+---@field seg integer
+---@field wx number?
+---@field wz number?
+
+---Smoothed spline-ramp points already applied during the current stroke.
+---@class TerraformSplineCommit
+---@field pts [number, number][]
+---@field rawIdx integer Raw path index the committed part reaches.
+
+---Undo, wait one tick, then reapply a ramp chain after its geometry was dragged.
+---@class TerraformRampReapply
+---@field chain table The measure-layer ramp chain.
+---@field phase string `"sync"`, `"apply"`, then `"baseline"`.
+
+---Sticky-mode replay: undo the recorded strokes, wait for the gadget, then reapply them.
+---@class TerraformReplayQueue
+---@field phase string `"undo"`, `"sync"`, then `"apply"`.
+---@field remaining number Undo entries still to pop.
+---@field idx number Next linked stroke to reapply.
+
+---Shift axis lock for a drag.
+---@class TerraformShiftState
+---@field axis "x"|"z"|nil
+---@field originX number?
+---@field originZ number?
+---@field wasHeld boolean
+
+-- Most widget state lives in this table, and many helpers are its fields: the
+-- main chunk is at Lua 5.1's 200-local limit, so new file-scope state goes here.
+---@class TerraformBrushExtraState
+---@field heightColormap boolean
+---@field curveOverlay boolean
+---@field velocityIntensity boolean
+---@field perfMode boolean
+---@field clayStack boolean
+---@field followStroke boolean
+---@field followAngle number?
+---@field followManualRot number?
+---@field strokePath table Flat x, z pairs.
+---@field strokePathN number
+---@field strokePathHead number
+---@field strokeDabs table Flat x, z, angleDeg triples.
+---@field strokeBuckets table? Per-symmetry-copy dab lists, reused.
+---@field gridSnap boolean
+---@field gridSnapSize number
+---@field lastDragScreenX number?
+---@field lastDragScreenY number?
+---@field dragVelocityFactor number
+---@field restoreStrength number
+---@field seismicTimer number
+---@field angleSnap boolean
+---@field angleSnapStep number
+---@field angleSnapAuto boolean
+---@field angleSnapManualSpoke number
+---@field angleSnapScrollAccum number
+---@field angleSnapScrollDir number
+---@field snapCommittedSpokeAngle number?
+---@field protractorCursorX number?
+---@field protractorCursorZ number?
+---@field protractorSpokeLen number
+---@field protractorStep number
+---@field protractorHighlight number
+---@field protractorDL integer?
+---@field protractorDLX number?
+---@field protractorDLZ number?
+---@field protractorDLRadius number?
+---@field protractorDLStep number?
+---@field protractorDLHighlight number?
+---@field protractorDLTerrain number?
+---@field protractorTipHeights table?
+---@field protractorTipX number?
+---@field protractorTipZ number?
+---@field protractorTipLen number?
+---@field protractorTipStep number?
+---@field protractorTipTerrain number?
+---@field measureActive boolean
+---@field measureDrawing boolean
+---@field measureDrawStartTimer integer?
+---@field measureLines table Committed chains: `{pts = {{x, z}, ...}, ...}`.
+---@field measureDragLine TerraformMeasurePointRef?
+---@field measurePressDragCandidate TerraformMeasurePointRef?
+---@field measurePressCandidateWorld table? `{x, z}`
+---@field measurePressScreenX number?
+---@field measurePressScreenY number?
+---@field measurePressSnapStart boolean?
+---@field measureActivePt table? `{x, z}` of the pending first click.
+---@field measureActiveChain integer?
+---@field measureCursorX number?
+---@field measureCursorZ number?
+---@field measureHoverNear TerraformMeasurePointRef?
+---@field measureRulerMode boolean
+---@field measureHandleDrag TerraformMeasureSegRef?
+---@field measureHoverHandle TerraformMeasureSegRef?
+---@field measureHoverMidSeg TerraformMeasureSegRef?
+---@field measureStickyMode boolean
+---@field measureDistortMode boolean
+---@field measureShowLength boolean
+---@field measureHeightCacheTerrain number?
+---@field linkedStrokes table[]
+---@field gadgetUndoCount number
+---@field stickyUndoBaseline number?
+---@field squareFaces number[][]
+---@field gridDL integer?
+---@field gridDirty boolean
+---@field gridLastBuildT integer? Timer of the last full-map grid rebuild.
+---@field terrainVersion number
+---@field heightmapExportRangeMode "auto"|"initial"|"custom"
+---@field heightmapExportCustomMin number
+---@field heightmapExportCustomMax number
+---@field heightSamplingMode TerraformHeightSamplingTarget?
+---@field colormapHoverContour number?
+---@field colormapHoverPeak boolean
+---@field colormapContourStep number?
+---@field colormapHMin number?
+---@field colormapHMax number?
+---@field colormapLastMesh table?
+---@field colormapLabels table?
+---@field colormapPeak table?
+---@field unmouseActive boolean
+---@field unmouseAnimT number
+---@field unmouseFromX number
+---@field unmouseFromZ number
+---@field unmouseToX number
+---@field unmouseToZ number
+---@field unmouseLastTime integer?
+---@field subToolUnmouse table<string, table>
+---@field symmetryActive boolean
+---@field symmetryOriginX number?
+---@field symmetryOriginZ number?
+---@field symmetryMirrorX boolean
+---@field symmetryMirrorY boolean
+---@field symmetryRadial boolean
+---@field symmetryRadialCount number
+---@field symmetryPlacingOrigin boolean
+---@field symmetryDraggingOrigin boolean
+---@field symmetryHoveringOrigin boolean
+---@field symmetryMirrorAngle number
+---@field symmetryFlipped boolean
+---@field symmetryLastWorldX number?
+---@field symmetryLastWorldZ number?
+---@field symmetryDragPrevX number?
+---@field symmetryDragPrevZ number?
+---@field splineCacheList integer?
+---@field splineCacheCount number
+---@field splineCacheRadius number
+---@field splineRampLastSendCount number
+---@field splineCommitted TerraformSplineCommit?
+---@field paramHudText string?
+---@field paramHudTimer number
+---@field rampAutoAttach boolean
+---@field rampStrokeUndoBaseline number?
+---@field rampReapplyQueue TerraformRampReapply?
+---@field replayQueue TerraformReplayQueue?
+---@field wiggleEnabled boolean
+---@field wiggleAmpIdx number
+---@field wiggleSpdIdx number
+---@field wigglePhase number
+---@field penPressureEnabled boolean
+---@field penPressure number
+---@field penPressureMapped number?
+---@field penTiltX number
+---@field penTiltY number
+---@field penInContact boolean
+---@field penOverUI boolean
+---@field penPressureFile string?
+---@field penPressureReadTimer number
+---@field penPressureReadInterval number
+---@field penPressureModulateIntensity boolean
+---@field penPressureModulateSize boolean
+---@field penPressureSensitivity number
+---@field penPressureCurve number
+---@field erodeReposeDeg number
+---@field erodePhase number
+---@field autorampAngleDeg number
+---@field autorampFalloff number
+---@field autorampEdgeNoise number
+---@field autorampErosion number
+---@field autorampTalus number
+---@field autorampStart "extend"|"subtract"|"average"
+---@field autorampPreview boolean
+---@field autorampLastX number?
+---@field autorampLastZ number?
+---@field arPrevKey string?
+---@field arPrevData table?
+---@field arPrevDirty boolean
+---@field arPrevList integer?
+---@field lastAppliedX number?
+---@field lastAppliedZ number?
+---@field interpIntensityScale number?
+---@field brushEdgeFade number?
+---@field brushFadeAlpha number?
+---@field brushPulseTimer integer?
+---@field stampWarmSig string?
+---@field undoHoldStart number?
+---@field waterLevelShift number?
+---@field waterPreviewLevel number?
+---@field paramGroup string
+---@field modeParamSnapshots table<string, table?>
+---@field MODE_PARAM_GROUPS table<string, string>
+---@field CMAP_GRID number
+---@field CMAP_STOPS table
+---@field cmapStops table?
+---@field cmapN number?
+---@field cmapCache table?
+---@field EDGE_SEGMENTS number
+---@field WorldTool table luaui/Include/tf_world_tool.lua
+---@field MEASURE_KM_SCALE number
+---@field MEASURE_SNAP_PX number
+---@field shapeCornerCache table<string, number[][]?>
+---@field shapeCornerCacheOrder table
+---@field falloffCurveCache table<string, table?>
+---@field falloffCurveCacheOrder table
+---@field isMapEditorSession boolean
+---@field _cheatSentAt number?
+---@field _penDiagTimer number?
+---@field _exportRangeAutoSeed table? `{min, max}` the last auto-seed wrote.
+---@field _exportReseedFrames number Draw frames until the export range re-seed; read as `or 0`.
+---@field _importFallbackMin number?
+---@field _importFallbackMax number?
+---@field _importGateWaits number?
+---@field _importNeedsShadowRefresh number Draw frames of post-import shadow refresh; read as `or 0`.
+---@field _importXform table?
+---@field _newmapCertify boolean?
+---@field _newmapDNTSApplied boolean?
+---@field _newmapDNTSTries number?
+---@field _newmapPending table?
+---@field _newmapPlaceFrame number?
+---@field _newmapStartFrame number?
+---@field _noiseSetters table<string, function>
 local extraState = {
 	heightColormap = false,
 	curveOverlay = false,
@@ -524,25 +760,23 @@ local extraState = {
 	-- strided while dragging. Persisted by the panel (ui_prefs.lua).
 	---@type boolean
 	perfMode = false,
-	-- Settings > Stroke > Clay build-up: legacy per-tick clay stacking (wire
-	-- clay flag "2"). Off = one layer per stroke over the surface it started
-	-- on, which is what stops the concentric rings.
+	-- Settings > Stroke > Clay build-up: per-tick clay stacking (wire clay flag
+	-- "2"). Off = one layer per stroke over the surface it started on, which
+	-- avoids concentric rings.
 	---@type boolean
 	clayStack = false,
-	-- FOLLOW STROKE: rotate the brush shape to the stroke tangent while dragging.
-	-- followAngle is the EMA-smoothed tangent in degrees (nil until the cursor has
-	-- travelled far enough to define one); followManualRot parks the user's manual
-	-- rotation for the duration of the drag (activeRotation is driven by the
-	-- tangent instead, so every preview follows without touching 20 draw sites).
+	-- FOLLOW STROKE: rotate the brush to the stroke tangent while dragging.
+	-- followAngle is the smoothed tangent in degrees (nil until the cursor has
+	-- moved far enough); followManualRot parks the manual rotation for the drag,
+	-- since activeRotation itself follows the tangent so every preview does too.
 	---@type boolean
 	followStroke = false,
 	---@type number?
 	followAngle = nil,
 	---@type number?
 	followManualRot = nil,
-	-- Stroke path buffer: every MouseMove during a sculpt drag appends a world
-	-- point here (flat x,z pairs). Update walks the polyline instead of a straight
-	-- chord to the current cursor, so fast scribbles keep their corners.
+	-- Stroke path: MouseMove appends world points (flat x,z pairs) during a drag,
+	-- and Update walks this polyline so fast scribbles keep their corners.
 	strokePath = {},
 	strokePathN = 0,
 	strokePathHead = 1,
@@ -557,7 +791,7 @@ local extraState = {
 	-- Protractor: snaps brush rotation to an angle grid
 	---@type boolean
 	angleSnap = false,
-	angleSnapStep = 15, -- degrees per step (1–90)
+	angleSnapStep = 15, -- degrees per step (1-90)
 	angleSnapAuto = true, -- true = auto-snap to nearest spoke each frame; false = manual spoke lock
 	angleSnapManualSpoke = 0, -- index 0..numSpokes-1 of the locked spoke in manual mode
 	angleSnapScrollAccum = 0, -- accumulated scroll ticks toward a spoke change
@@ -605,13 +839,13 @@ local extraState = {
 	heightmapExportCustomMin = 0,
 	heightmapExportCustomMax = 0,
 	-- Height sampling mode: pick a terrain height from the colormap to set as a height cap
-	heightSamplingMode = nil, -- nil, "max", or "min" – which cap to populate
+	heightSamplingMode = nil, -- nil, "max", or "min": which cap to populate
 	colormapHoverContour = nil, -- height of the topo contour line currently under cursor (or nil)
 	colormapHoverPeak = false, -- true when cursor is near the peak elevation label
 	colormapContourStep = nil, -- contour interval from the last colormap draw
 	colormapHMin = nil, -- minimum height from the last colormap draw
 	colormapHMax = nil, -- maximum height from the last colormap draw
-	colormapLastMesh = nil, -- {gx,gz,gy,ga,gridN} – vertex data from last colormap draw
+	colormapLastMesh = nil, -- {gx,gz,gy,ga,gridN}: vertex data from last colormap draw
 	-- Unmouse: park brush beside UI panel while mouse hovers over it
 	unmouseActive = false, -- true while mouse is over the terraform panel
 	unmouseAnimT = 0.0, -- 0 = following mouse, 1 = fully parked
@@ -628,9 +862,9 @@ local extraState = {
 	symmetryOriginX = nil, -- world X of symmetry center (nil = map center)
 	symmetryOriginZ = nil, -- world Z of symmetry center (nil = map center)
 	symmetryMirrorX = false, -- mirror across X axis (reflects Z coords)
-	symmetryMirrorY = false, -- mirror across Y axis (reflects X coords) — "Y" means map-view vertical
+	symmetryMirrorY = false, -- mirror across Y axis (reflects X coords); "Y" means map-view vertical
 	symmetryRadial = false, -- radial (N-way rotational) mode
-	symmetryRadialCount = 2, -- number of radial copies (2–16)
+	symmetryRadialCount = 2, -- number of radial copies (2-16)
 	symmetryPlacingOrigin = false, -- true when user is click-placing the origin
 	symmetryDraggingOrigin = false, -- true while LMB-dragging the origin gizmo
 	symmetryHoveringOrigin = false, -- true when mouse is near origin (for cursor)
@@ -647,14 +881,14 @@ local extraState = {
 	-- Progressive commitment: stores smoothed positions of settled early path segments
 	-- so their display and terrain stop changing as the stroke extends further away.
 	splineCommitted = nil, -- nil between strokes; {pts={{x,z},...}, rawIdx=N} during stroke
-	-- D5: cursor-anchored parameter feedback HUD
+	-- cursor-anchored parameter feedback HUD
 	paramHudText = nil, -- formatted label string, or nil when hidden
 	paramHudTimer = 0.0, -- seconds remaining (1.5 on trigger; fades in last 0.35s)
-	-- G4: automatically attach a measure chain when a ramp stroke completes
+	-- automatically attach a measure chain when a ramp stroke completes
 	rampAutoAttach = true,
-	-- G4: gadgetUndoCount captured at the start of the current ramp stroke (before any commits)
+	-- gadgetUndoCount captured at the start of the current ramp stroke (before any commits)
 	rampStrokeUndoBaseline = nil,
-	-- G4: queued undo+sync+reapply operation when a ramp chain endpoint/handle is moved
+	-- queued undo+sync+reapply operation when a ramp chain endpoint/handle is moved
 	rampReapplyQueue = nil,
 	-- Wiggle: sinusoidal brush offset applied while stroking
 	wiggleEnabled = false,
@@ -663,31 +897,29 @@ local extraState = {
 	wigglePhase = 0,
 	-- Pen pressure: tablet pressure modulates brush intensity when enabled
 	penPressureEnabled = false,
-	penPressure = 1.0, -- current pressure value (0.0–1.0), 1.0 = no modulation
+	penPressure = 1.0, -- current pressure value (0.0-1.0), 1.0 = no modulation
 	penTiltX = 0, -- pen tilt in X (-90..90 degrees)
 	penTiltY = 0, -- pen tilt in Y (-90..90 degrees)
 	penInContact = false, -- true when pen tip is touching the tablet
 	penOverUI = false, -- true when pen/cursor is over the UI panel (suppress brush modulation)
 	penPressureFile = nil, -- resolved at runtime via WRITEDIR
 	penPressureReadTimer = 0,
-	-- 20Hz file poll rate. Pen hardware reports at ~200Hz but the file is
-	-- written by pen_pressure_server.py at a lower rate, and human perception
-	-- of brush-modulation latency becomes noticeable only above ~80ms. 50ms
-	-- poll keeps feel smooth while cutting per-frame file I/O by 3x.
+	-- 20 Hz file poll: the helper writes the file slower than the pen reports,
+	-- and brush latency is only noticeable above about 80 ms.
 	penPressureReadInterval = 0.05,
 	penPressureModulateIntensity = true, -- pressure affects intensity
 	penPressureModulateSize = false, -- pressure affects brush size
-	penPressureSensitivity = 1.0, -- multiplier applied before curve (0.1–3.0)
+	penPressureSensitivity = 1.0, -- multiplier applied before curve (0.1-3.0)
 	penPressureCurve = 2, -- 1=linear, 2=quadratic, 3=cubic, 4=s-curve, 5=log
 	-- Erode: thermal (talus) erosion brush
-	erodeReposeDeg = 33, -- repose angle in degrees (10–60); slopes steeper than this shed material
+	erodeReposeDeg = 33, -- repose angle in degrees (10-60); slopes steeper than this shed material
 	erodePhase = 0, -- tick counter; rotates the gadget's strided cell subset on large brushes
 	-- Autoramp: one-click cliff restyler (RAMP TYPE "Auto")
-	autorampAngleDeg = 60, -- target face slope in degrees (10–85)
-	autorampFalloff = 0.5, -- 0–1: shoulder softness + blend band into untouched terrain
-	autorampEdgeNoise = 0.35, -- 0–1: wavy perturbation of the cliff line
-	autorampErosion = 0.35, -- 0–1: ridged gullies cut down the face
-	autorampTalus = 0.4, -- 0–1: scree buildup banked against the base
+	autorampAngleDeg = 60, -- target face slope in degrees (10-85)
+	autorampFalloff = 0.5, -- 0-1: shoulder softness + blend band into untouched terrain
+	autorampEdgeNoise = 0.35, -- 0-1: wavy perturbation of the cliff line
+	autorampErosion = 0.35, -- 0-1: ridged gullies cut down the face
+	autorampTalus = 0.4, -- 0-1: scree buildup banked against the base
 	autorampStart = "average", -- cliff anchor: "extend" | "subtract" | "average"
 	autorampPreview = true, -- WYSIWYG hover preview of the resulting terrain
 	arPrevKey = nil, -- param+position signature of the cached preview
@@ -696,12 +928,12 @@ local extraState = {
 	arPrevList = nil, -- GL display list of the preview mesh
 }
 
--- Pen pressure: read tablet pressure from shared file written by tools/pen_pressure_server.py
+-- Pen pressure: read tablet pressure from a file written by an external helper
+-- (pen_pressure_server.py, not shipped with the game).
 extraState.readPenPressure = function(dt)
 	if not extraState.penPressureEnabled then
 		return
 	end
-	-- Lazy-resolve absolute path on first call
 	if not extraState.penPressureFile then
 		local wd = (Spring.GetWriteDir and Spring.GetWriteDir()) or ""
 		extraState.penPressureFile = wd .. "cache/pen_pressure.txt"
@@ -749,7 +981,7 @@ extraState.readPenPressure = function(dt)
 			return
 		end
 	end
-	-- Apply sensitivity + curve mapping → penPressureMapped
+	-- Apply sensitivity + curve mapping -> penPressureMapped
 	local raw_p = extraState.penPressure
 	local sens = extraState.penPressureSensitivity or 1.0
 	local p_s = min(1.0, raw_p * sens)
@@ -771,16 +1003,15 @@ extraState.readPenPressure = function(dt)
 	extraState.penPressureMapped = max(0.0, min(1.0, mapped))
 end
 
--- D5: trigger cursor-anchored parameter feedback HUD (1.5s fade)
+-- Show the cursor-anchored parameter feedback HUD (1.5 s fade)
 extraState.setParamHud = function(text)
 	extraState.paramHudText = text
 	extraState.paramHudTimer = 1.5
 end
 
--- F5 / a map capture hide the whole interface, editor overlays included. FOCUS
--- MODE (the eye button in the panel header) hides the game HUD on purpose and
--- the editor must keep drawing through it, so it does not count as hidden here.
--- extraState field, not a chunk local: this chunk is at the 200-local ceiling.
+-- F5 and map capture hide the whole interface, editor overlays included. FOCUS
+-- MODE (the eye button in the panel header) hides only the game HUD, and the
+-- editor keeps drawing through it, so it does not count as hidden here.
 extraState.interfaceHiddenForEditor = function()
 	if not Spring.IsGUIHidden() then
 		return false
@@ -820,12 +1051,11 @@ extraState.getSymmetricPositions = function(wx, wz, rot)
 			positions[#positions + 1] = { x = rx, z = rz, rot = rrot }
 		end
 	else
-		-- Rotate offset into mirror-axis-aligned space, reflect, rotate back.
-		-- mirrorAngle rotates the entire axis system so X/Y mirrors are relative to it.
+		-- Rotate into mirror-axis space, reflect, rotate back: X/Y mirrors are
+		-- relative to the rotated axis system.
 		local ang = (extraState.symmetryMirrorAngle or 0) * pi / 180
 		local cosA = cos(ang)
 		local sinA = sin(ang)
-		-- Transform into axis-aligned space
 		local adx = dx * cosA + dz * sinA
 		local adz = -dx * sinA + dz * cosA
 		local mirrorX = extraState.symmetryMirrorX
@@ -868,9 +1098,11 @@ extraState.buildFullMapGrid = function()
 		glColor(1, 1, 0.6, 0.20)
 		glPolygonOffset(-2, -2)
 		-- Horizontal lines: walk Z rows, strip along X
+		---@type number
 		local z = 0
 		while z <= msz do
 			glBeginEnd(GL.LINE_STRIP, function()
+				---@type number
 				local x = 0
 				while x <= msx do
 					glVertex(x, GetGroundHeight(x, z) + BUMP, z)
@@ -883,9 +1115,11 @@ extraState.buildFullMapGrid = function()
 			z = z + gs
 		end
 		-- Vertical lines: walk X columns, strip along Z
+		---@type number
 		local x = 0
 		while x <= msx do
 			glBeginEnd(GL.LINE_STRIP, function()
+				---@type number
 				local zz = 0
 				while zz <= msz do
 					glVertex(x, GetGroundHeight(x, zz) + BUMP, zz)
@@ -904,25 +1138,13 @@ extraState.buildFullMapGrid = function()
 	extraState.gridDirty = false
 end
 
--- WYSIWYG preview for the Dimensions window's water level slider.
---
--- The operation moves the terrain, not the water plane (Lua has no water plane
--- setter), so what the user has to be shown is the resulting SHORELINE, drawn
--- in the terrain's current frame: a quad across the map at the height the water
--- will meet the land. Terrain standing above it occludes it, so the visible
--- edge of the quad is exactly the coastline the apply will produce.
---
--- The depth test is what makes that read as water rather than as an abstract
--- plane hanging in the sky: without it the quad is a flat sheet over the whole
--- screen with no hills poking through, which looks like the terrain's new
--- datum instead of a flooded landscape. Lua draw callins start with
--- GL_DEPTH_TEST OFF, which is why every draw helper in this file ends by
--- turning it on rather than starting that way, so it is enabled explicitly
--- here and left on to match that convention.
---
--- The map-edge outline is drawn without depth test, so the level stays
--- locatable when it sits below the terrain (or below the existing water)
--- everywhere, which is the case while draining a map.
+-- Preview for the Dimensions window's water level slider. The apply moves the
+-- terrain, not the water (Lua has no water plane setter), so the preview is a
+-- depth-tested quad at the height the water will meet the land: its visible
+-- edge is the coastline the apply will produce. Lua draw callins start with
+-- depth test off, so it is enabled here (and left on, like the other draw
+-- helpers). The map-edge outline skips the depth test so the level stays
+-- findable when it sits below all the terrain, as when draining a map.
 extraState.drawWaterLevelPreview = function()
 	local y = extraState.waterPreviewLevel
 	if not y then
@@ -954,22 +1176,33 @@ extraState.drawWaterLevelPreview = function()
 	gl.DepthTest(true)
 end
 
+---@type number?
 local lockedWorldX = nil
+---@type number?
 local lockedWorldZ = nil
+---@type number?
 local lockedGroundY = nil
+---@type number?
 local lastScreenX = nil
+---@type number?
 local lastScreenY = nil
+---@type number?
 local rampEndX = nil
+---@type number?
 local rampEndZ = nil
 local rampSplinePoints = {}
 local SPLINE_SAMPLE_DIST = 24
 local SPLINE_MAX_POINTS = 40
 local SPLINE_SEND_WINDOW = 14 -- raw points per intermediate gadget apply (caps bbox near cursor)
+---@type number?
 local dragOriginX = nil
+---@type number?
 local dragOriginZ = nil
+---@type TerraformShiftState
 local shiftState = { axis = nil, originX = nil, originZ = nil, wasHeld = false }
 local gridShowing = false
 local rightMouseHeld = false
+---@type TerraformMode?
 local savedModeBeforeRMB = nil
 local clayMode = false
 local stampApplied = false -- stamp mode: true after first apply at current position
@@ -986,13 +1219,9 @@ local noiseSeed = 0
 local historyUndoCount = 0
 local historyRedoCount = 0
 
--- Tessellation refresh: force the ground mesh to re-tessellate for a couple
--- of frames after a heightmap edit has LANDED. Armed from
--- widget:UnsyncedHeightMapUpdate, which the engine fires exactly when the
--- unsynced heightmap changes. It used to be armed for 10 frames per brush
--- tick from afterBrushTick, so a 20 Hz drag kept the whole visible mesh
--- re-tessellating every single frame, on big maps a frame-rate lever of its
--- own.
+-- Re-tessellate the ground mesh for a couple of frames after a heightmap edit
+-- has landed. Armed from widget:UnsyncedHeightMapUpdate, not per brush tick:
+-- re-tessellating the whole visible mesh every frame of a drag is expensive.
 local TESS_DIRTY_FRAMES = 2
 local tessellationDirtyFrames = 0
 
@@ -1015,91 +1244,27 @@ extraState._noteBulkTerrainChange = function()
 	extraState._exportReseedFrames = 90
 end
 
--- Terrain-change signal for draw-path caches: the engine fires this for ANY heightmap
--- modification (our brush ticks, undo/redo, imports, other gadgets), so caches that
--- bake GetGroundHeight samples key on extraState.terrainVersion and resample exactly
--- when the ground actually moved — never on a timer.
+-- The engine fires this for ANY heightmap change (brush, undo, imports, other
+-- gadgets), so caches of GetGroundHeight samples key on terrainVersion.
 function widget:UnsyncedHeightMapUpdate()
 	extraState.terrainVersion = extraState.terrainVersion + 1
 	markTessellationDirty()
 end
 
--- Per-tick MERGE_END: each tick creates one undo entry within the current stroke.
--- The gadget tags all entries with the same stroke ID until closeBrushStroke().
--- UNDO_STROKE pops all entries for the latest stroke atomically.
+-- The gadget makes one undo entry per tick and tags each with the current
+-- stroke ID until STROKE_END; UNDO_STROKE pops a whole stroke.
 
-local function afterBrushTick()
-	-- The mesh refresh is armed by UnsyncedHeightMapUpdate when the edit lands.
-	SendLuaRulesMsg(MSG.MERGE_END)
-end
-
--- Close the stroke: sends MERGE_END to flush partial entry, then STROKE_END
--- to advance the stroke ID in the gadget. Called on mouse release.
+-- Close the stroke on mouse release: STROKE_END advances the gadget's stroke ID.
 local function closeBrushStroke()
 	SendLuaRulesMsg(MSG.STROKE_END)
 end
 
--- Intersect the raw mouse ray with the horizontal plane y = planeY, without
--- requiring the ray to hit terrain (TraceScreenRay only reports hits inside
--- map bounds, so it goes blind the moment the cursor crosses a map edge).
--- Returns worldX, worldZ, or nil when the ray can't reach the plane (sky).
--- GetPixelDir wants raw window coordinates while GetMouseState reports
--- viewport bottom-origin ones, hence the conversion (TraceScreenRay does the
--- same conversion internally in LuaUnsyncedRead.cpp; GetPixelDir does not).
-extraState.mouseRayOnPlane = function(mx, my, planeY)
-	local _, viewSizeY, viewPosX = Spring.GetViewGeometry()
-	local dirX, dirY, dirZ = Spring.GetPixelDir(mx + (viewPosX or 0), viewSizeY - 1 - my)
-	if not dirX or abs(dirY) < 0.0001 then
-		return nil, nil
-	end
-	local camX, camY, camZ = GetCameraPosition()
-	local t = (planeY - camY) / dirY
-	if t <= 0 then
-		return nil, nil
-	end
-	return camX + dirX * t, camZ + dirZ * t
-end
-
--- Shared mouse→world resolver, extended past the map edge. When the ray
--- misses the terrain (TraceScreenRay only reports hits inside map bounds),
--- the ground plane is extended outward so the brush keeps following the
--- mouse. Strokes stay meaningful while the footprint still touches the map
--- (within one `radius` of the edge; apply paths clamp away off-map cells) --
--- needed to comfortably sculpt/paint right up against the border. Past that
--- the position is still returned but with a fade factor dropping to zero one
--- fade span later, so callers can dim their cursor with distance.
--- Returns wx, wz, fade (fade = 1 anywhere the footprint touches the map).
--- Also exported through WG.TerraformBrush for the sub-tool painters.
-extraState.worldMouseExtended = function(radius)
-	local mx, my = GetMouseState()
-	local _, pos = TraceScreenRay(mx, my, true)
-	if pos then
-		return pos[1], pos[3], 1
-	end
-	local wx, wz = extraState.mouseRayOnPlane(mx, my, 0)
-	if not wx then
-		return nil, nil, nil
-	end
-	-- Re-intersect at the height of the nearest in-map point so sloped/raised
-	-- borders land close to where the cursor visually points (GetGroundHeight
-	-- clamps out-of-map coords to the edge).
-	local edgeY = GetGroundHeight(wx, wz)
-	if edgeY and edgeY ~= 0 then
-		local ex, ez = extraState.mouseRayOnPlane(mx, my, edgeY)
-		if ex then
-			wx, wz = ex, ez
-		end
-	end
-	local dx = max(0, -wx, wx - Game.mapSizeX)
-	local dz = max(0, -wz, wz - Game.mapSizeZ)
-	local dist = (dx * dx + dz * dz) ^ 0.5
-	local band = radius or 0
-	local fadeSpan = max(band, 100)
-	if dist >= band + fadeSpan then
-		return nil, nil, nil
-	end
-	return wx, wz, 1 - max(0, dist - band) / fadeSpan
-end
+-- The helpers every brush tool shares (luaui/Include/tf_world_tool.lua): outlines, the
+-- smart filter overlay, and the mouse resolver extended past the map edge, which the
+-- sub-tool painters reach through WG.TerraformBrush.getWorldPositionExtended.
+extraState.WorldTool = require("luaui/Include/tf_world_tool")
+extraState.mouseRayOnPlane = extraState.WorldTool.mouseRayOnPlane
+extraState.worldMouseExtended = extraState.WorldTool.extendedCursor
 
 local function getWorldMousePosition()
 	local wx, wz, fade = extraState.worldMouseExtended(activeRadius)
@@ -1109,15 +1274,13 @@ local function getWorldMousePosition()
 	return wx, wz
 end
 
--- Project the mouse ray onto a fixed horizontal plane at planeY.
--- Returns worldX, worldZ on that plane, or falls back to terrain trace.
+-- Project the mouse ray onto the horizontal plane at planeY, falling back to the terrain trace.
 local function getWorldMousePositionOnPlane(planeY)
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
 	if not pos then
-		-- Cursor crossed the map edge mid-stroke: keep the drag alive by
-		-- intersecting the raw mouse ray with the locked plane, clamped into
-		-- the one-brush-radius overhang band so the stroke doesn't cut out.
+		-- Cursor crossed the map edge mid-stroke: keep the drag alive on the
+		-- locked plane, clamped into the one-radius overhang band.
 		local wx, wz = extraState.mouseRayOnPlane(mx, my, planeY)
 		if not wx then
 			return nil, nil
@@ -1143,6 +1306,7 @@ end
 local AXIS_LOCK_THRESHOLD = 25 -- screen pixels
 
 -- Find any land unit def for force-showing the build grid
+---@type integer?
 local gridForceShowDefID
 for id, def in pairs(UnitDefs) do
 	if not def.modCategories or not def.modCategories.underwater then
@@ -1178,7 +1342,7 @@ local function snapToGrid(x, z, angleDeg)
 	if not angleDeg or angleDeg == 0 then
 		return floor(x / gs + 0.5) * gs, floor(z / gs + 0.5) * gs
 	end
-	-- Rotate into aligned grid space, snap, rotate back so grid follows protractor axis
+	-- Rotate into grid space, snap, rotate back, so the grid follows the protractor axis
 	local rad = angleDeg * pi / 180
 	local cr = cos(rad)
 	local sr = sin(rad)
@@ -1189,7 +1353,7 @@ end
 extraState.snapToGrid = snapToGrid
 
 local function constrainToAxis(originX, originZ, rawX, rawZ)
-	-- Convert world-space displacement to screen-space pixels for zoom-independent threshold
+	-- Screen-space displacement, so the threshold does not depend on zoom
 	local originY = GetGroundHeight(originX, originZ)
 	local sx0, sy0 = Spring.WorldToScreenCoords(originX, originY, originZ)
 	local sx1, sy1 = Spring.WorldToScreenCoords(rawX, originY, rawZ)
@@ -1197,7 +1361,6 @@ local function constrainToAxis(originX, originZ, rawX, rawZ)
 	local screenDz = abs(sy1 - sy0)
 
 	if not shiftState.axis then
-		-- Initial axis determination using screen-space threshold
 		if screenDx > AXIS_LOCK_THRESHOLD or screenDz > AXIS_LOCK_THRESHOLD then
 			if screenDx >= screenDz then
 				shiftState.axis = "x"
@@ -1208,8 +1371,8 @@ local function constrainToAxis(originX, originZ, rawX, rawZ)
 			return originX, originZ
 		end
 	else
-		-- E2: Allow mid-drag axis switch when dominant direction clearly flips
-		-- Require 2× threshold in the new axis AND new axis must be 2× the current axis
+		-- Switch axis mid-drag only when the new axis passes 2x the threshold
+		-- and is 2x the current axis
 		local SWITCH_FACTOR = 2
 		if
 			shiftState.axis == "x"
@@ -1233,7 +1396,6 @@ local function constrainToAxis(originX, originZ, rawX, rawZ)
 	end
 end
 
--- Stamp mode: intensity maxed + at least one height cap → instant apply
 ---@return boolean stamp Whether the brush stamps to a fixed height in one stroke,
 ---which it does at full intensity with a height cap set.
 local function isStampMode()
@@ -1266,14 +1428,10 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 		absCapMax = (heightCapMax and lockedGroundY) and string.format("%.0f", lockedGroundY + heightCapMax) or "nil"
 	end
 	local instant = isStampMode() and "1" or "0"
-	-- Smooth mode has no single flatten target: the gadget computes a local
-	-- per-cell blur target instead. "smooth" rides the same wire slot as a
-	-- non-numeric sentinel (tonumber() on it is nil, same as the "no target"
-	-- case), so recordLinkedStroke/replay need no changes to carry it.
-	-- Smudge rides the slot the same way, with a stroke-start digit appended:
-	-- the gadget's carried height buffer must re-grab on a fresh drag, and only
-	-- the widget knows where strokes begin (lastAppliedX is nil until the first
-	-- dab of a drag has been sent).
+	-- Smooth mode has no single flatten target (the gadget blurs per cell), so
+	-- "smooth" rides the flatten slot as a non-numeric sentinel. Smudge does the
+	-- same with a stroke-start digit: only the widget knows where a drag begins
+	-- (lastAppliedX is nil until its first dab is sent), and the gadget re-grabs there.
 	local flattenStr = (activeMode == "smooth") and "smooth"
 		or (activeMode == "smudge") and ("smudge" .. (extraState.lastAppliedX == nil and "1" or "0"))
 		or (flattenHeight and string.format("%.0f", flattenHeight) or "nil")
@@ -1281,7 +1439,7 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 	if extraState.penPressureEnabled and extraState.penPressureModulateIntensity and not extraState.penOverUI then
 		local pm = extraState.penPressureMapped or extraState.penPressure or 0
 		local sens = extraState.penPressureSensitivity or 1.0
-		penPressureFactor = 1.0 + pm * sens -- base value is minimum, pressure adds up to sens× more
+		penPressureFactor = 1.0 + pm * sens -- base value is minimum, pressure adds up to sens x more
 	end
 	local effectiveIntensity = activeIntensity
 		* (extraState.velocityIntensity and extraState.dragVelocityFactor or 1)
@@ -1289,9 +1447,8 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 		* penPressureFactor
 	local positions = extraState.getSymmetricPositions(worldX, worldZ, rotation)
 	local isFlipped = extraState.symmetryFlipped
-	-- Hoist the per-tick-invariant message pieces out of the symmetry loops: only
-	-- dir / p.x / p.z / p.rot vary per copy. Concatenating the same substrings in
-	-- the same order keeps the wire bytes identical to the old per-copy build.
+	-- Message pieces that do not vary per symmetry copy; only dir, p.x, p.z and
+	-- p.rot do.
 	local curveStr = string.format("%.1f", curve)
 	local intenStr = string.format("%.1f", effectiveIntensity)
 	local lenStr = string.format("%.1f", activeLengthScale)
@@ -1348,8 +1505,7 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 		if not extraState.stickyUndoBaseline then
 			extraState.stickyUndoBaseline = extraState.gadgetUndoCount or 0
 		end
-		-- All symmetric copies sent first, then ONE afterBrushTick() so they all land
-		-- in the same undo entry.  Each Update tick = one undo entry; hold Ctrl+Z to undo continuously.
+		-- Send every symmetric copy; they share the tick's stroke ID.
 		for i = 1, #positions do
 			local p = positions[i]
 			local dir = direction
@@ -1358,7 +1514,6 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 			end
 			SendLuaRulesMsg(MSG.BRUSH .. dir .. " " .. floor(p.x) .. " " .. floor(p.z) .. msgMid .. p.rot .. msgTail)
 		end
-		afterBrushTick()
 		return
 	end
 	for i = 1, #positions do
@@ -1370,28 +1525,18 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 		end
 		SendLuaRulesMsg(MSG.BRUSH .. dir .. " " .. floor(p.x) .. " " .. floor(p.z) .. msgMid .. p.rot .. msgTail)
 	end
-	-- Caller calls afterBrushTick() ONCE after the full interpolated loop so all
-	-- steps + symmetric copies land in the same per-tick undo entry.
 end
 
 -- One STROKE message for the whole tick instead of one BRUSH message per dab.
--- The gadget reads every dab's centre height from the untouched heightmap
--- first, derives every clay plane from those pre-tick heights, then applies the
--- dabs in order at FULL intensity. Deposit is therefore per distance travelled
--- (what a sculpting app does) instead of the old per-tick intensity split by
--- the dab count, which made a fast stroke deposit almost nothing. Nothing
--- compounds either: every plane in the batch came from the same pre-tick
--- heights, so the rise a tick can produce is still bounded by
--- HEIGHT_STEP * intensity. Non-clay modes are unaffected -- they were already
--- per distance, and a batch applies them in exactly the order the separate
--- messages did.
+-- The gadget derives every clay plane from the pre-tick heights, then applies
+-- the dabs in order at full intensity: deposit is per distance travelled, and
+-- one tick still cannot rise more than HEIGHT_STEP * intensity.
 -- dabs is a flat {x, z, angleDeg, ...} list; nDabs is the dab count.
--- (Attached to extraState: main chunk is at the 200-local limit.)
 extraState.sendStrokeDabs = function(direction, dabs, nDabs, radius, shape, curve, flattenHeight)
 	if nDabs < 1 then
 		return
 	end
-	-- Pen pressure: modulate radius by tablet pressure (per tick, as before)
+	-- Pen pressure: modulate radius by tablet pressure (once per tick)
 	if extraState.penPressureEnabled and not extraState.penOverUI then
 		local pm = extraState.penPressureMapped or extraState.penPressure or 0
 		local sens = extraState.penPressureSensitivity or 1.0
@@ -1457,7 +1602,7 @@ extraState.sendStrokeDabs = function(direction, dabs, nDabs, radius, shape, curv
 	for i = 1, nDabs do
 		local b = (i - 1) * 3
 		local wx, wz = dabs[b + 1], dabs[b + 2]
-		-- Wiggle: sinusoidal offset, phase advanced per dab as it was per stamp
+		-- Wiggle: sinusoidal offset, phase advanced per dab
 		if extraState.wiggleEnabled then
 			extraState.wigglePhase = extraState.wigglePhase + extraState.wiggleSpdIdx * 3.0 * UPDATE_INTERVAL
 			local wamp = extraState.wiggleAmpIdx * 0.2 * radius
@@ -1491,7 +1636,6 @@ extraState.sendStrokeDabs = function(direction, dabs, nDabs, radius, shape, curv
 			bucket[i] = nil
 		end
 	end
-	-- Caller calls afterBrushTick() ONCE so the whole tick is one undo entry.
 end
 
 local function parseRadius(args)
@@ -1505,22 +1649,12 @@ local function parseRadius(args)
 	return DEFAULT_RADIUS
 end
 
--- Height edits are refused by the synced gadget without /cheat, and /cheat is a
--- toggle — users who flip it blindly can turn it OFF and then brush into silence.
--- Nudge it on whenever a terrain mode is engaged; the IsCheatingEnabled guard
--- means this can only ever enable, never disable. On a server that disallows
--- cheating the command is simply refused and the gadget's echo explains the rest.
--- (Attached to extraState: main chunk is at the 200-local limit.)
---
--- Single-flight: "cheat" is a TOGGLE and several widgets nudge it (this one,
--- the project loader, the RML match-end keep-alive, dev_autocheat). A send takes
--- a network round trip to land, so two widgets that both observe "off" in the
--- same moment queue two toggles and the second one turns cheat back OFF. Hold a
--- short window after any send so the observers coalesce into one toggle, and
--- publish the helper on WG so the other editor widgets share the same window.
--- Returns true only when a toggle was actually put on the wire, so callers that
--- count attempts (the project loader gives up after a few) do not burn a retry
--- on a call this window swallowed.
+-- The gadget refuses height edits without /cheat, so nudge it on whenever a
+-- terrain mode is engaged; the IsCheatingEnabled guard means this only ever
+-- enables. "cheat" is a TOGGLE that several widgets nudge, and a send takes a
+-- round trip, so two widgets seeing "off" at once would turn it back OFF: hold a
+-- short window after any send, shared through WG. Returns true only when a
+-- toggle was actually sent, so callers that count attempts do not lose a retry.
 extraState.ensureCheat = function()
 	if Spring.IsReplay() or Spring.IsCheatingEnabled() then
 		return false
@@ -1536,9 +1670,8 @@ end
 WG.TerraformEnsureCheat = extraState.ensureCheat
 
 -- Mirror of the synced gadget's auth gate (luarules/gadgets/cmd_terraform_brush.lua):
--- it accepts height edits on live /cheat, or on a "$c$"-certified message inside
--- a map-editor session. Messages pushed while the gate is shut are dropped
--- silently by the gadget, which used to cost whole columns of an import.
+-- live /cheat, or a "$c$"-certified message inside a map-editor session. The
+-- gadget drops messages sent while the gate is shut (with only a throttled echo).
 extraState.isMapEditorSession = (function()
 	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
 	return mapEditorOpt == true or mapEditorOpt == 1 or mapEditorOpt == "1"
@@ -1580,7 +1713,7 @@ local function activateTerraformRestore(_, _, args)
 	return activate(0, "restore", args)
 end
 
--- Forward declaration
+---@type fun()
 local invalidateDrawCache
 
 ---Disables the terrain brush and restores the default cursor.
@@ -1614,13 +1747,10 @@ local function deactivateTerraform()
 	return true
 end
 
--- Curve / intensity / clay live in one shared slot for every mode, but SMOOTH and
--- LEVEL need their own soft defaults (gentle curve, low intensity, clay on) to feel
--- right. Entering them used to overwrite the shared slot outright, so raise/lower
--- inherited the soft settings and stayed wrong until the next map load. Instead keep
--- one snapshot per mode group and swap it on every group change.
--- Attached to extraState rather than new chunk-level locals (main chunk is at the
--- 200-local limit).
+-- Curve, intensity and clay share one slot for every mode, but SMOOTH and LEVEL
+-- need their own soft defaults (gentle curve, low intensity, clay on). Keep one
+-- snapshot per mode group and swap it on every group change, so the soft
+-- settings never leak into raise/lower.
 extraState.MODE_PARAM_GROUPS = {
 	raise = "sculpt",
 	lower = "sculpt",
@@ -1738,9 +1868,8 @@ local function rotateBy(degrees)
 end
 
 -- Constrain a world position onto a protractor spoke from the drag origin.
--- Manual mode: always uses the pinned spoke, no detection, no hysteresis — 100% locked.
--- Auto mode: nearest-spoke with hysteresis (>65% step to switch).
--- Dot-product projection eliminates all perpendicular / terrain-jitter drift.
+-- Manual mode: always the pinned spoke. Auto mode: nearest spoke with hysteresis
+-- (over 65% of a step to switch). Projecting onto the spoke removes sideways jitter.
 local function snapDragToSpoke(wx, wz)
 	if not dragOriginX then
 		return wx, wz
@@ -1753,19 +1882,17 @@ local function snapDragToSpoke(wx, wz)
 	local step = extraState.angleSnapStep
 	local snappedDeg
 	if not extraState.angleSnapAuto then
-		-- Manual mode: unconditionally use the pinned spoke index
 		local numSpokes = floor(360 / step)
 		snappedDeg = (extraState.angleSnapManualSpoke % numSpokes) * step
 	else
-		-- Auto mode: nearest spoke with hysteresis.
-		-- Shift held  = fully lock to committed spoke, no switching (hold to pin axis mid-stroke).
-		-- Dead zone   = freeze when cursor is within 32wu of current dragOrigin (jitter guard).
-		-- Bidir fold  = treat committed as a 2-way axis so the "back" direction (≈180°) never
-		--               triggers a switch on its own.
-		-- Re-origin   = on a genuine spoke switch, move dragOriginX/Z to the projection of the
-		--               cursor onto the current spoke (the bend point), then recompute dx/dz so
-		--               the new segment projects from there.  This eliminates the sweep-through-
-		--               all-angles distortion that occurs when the old origin is reused.
+		-- Auto mode:
+		-- Shift held  = lock to the committed spoke (pin the axis mid-stroke).
+		-- Dead zone   = freeze within 32 elmos of dragOrigin (jitter guard).
+		-- Bidir fold  = the committed spoke is a 2-way axis, so going back (180 deg)
+		--               never switches on its own.
+		-- Re-origin   = on a spoke switch, move dragOrigin to the bend point (the
+		--               cursor projected onto the old spoke), so the new segment
+		--               does not sweep through every angle from the old origin.
 		local _, _, _, shiftHeld = GetModKeyState()
 		local angleDeg = atan2(dz, dx) * 180 / pi
 		if angleDeg < 0 then
@@ -1777,10 +1904,8 @@ local function snapDragToSpoke(wx, wz)
 			snappedDeg = (floor(angleDeg / step + 0.5) * step) % 360
 			extraState.snapCommittedSpokeAngle = snappedDeg
 		elseif shiftHeld or (dx * dx + dz * dz) < (32 * 32) then
-			-- Shift lock or near current origin: freeze to committed
 			snappedDeg = committed
 		else
-			-- Hysteresis: bidirectional axis fold
 			local diff = ((angleDeg - committed + 540) % 360) - 180
 			if diff > 90 then
 				diff = diff - 180
@@ -1790,15 +1915,14 @@ local function snapDragToSpoke(wx, wz)
 			if abs(diff) < step * 0.65 then
 				snappedDeg = committed
 			else
-				-- Spoke switch: re-origin — move dragOriginX/Z to the projection of the cursor
-				-- onto the current spoke (the bend point), recompute dx/dz from there.
+				-- Spoke switch: re-origin at the bend point.
 				local oldRad = committed * pi / 180
 				local oldSpkX = cos(oldRad)
 				local oldSpkZ = sin(oldRad)
 				local projD = dx * oldSpkX + dz * oldSpkZ
 				dragOriginX = dragOriginX + oldSpkX * projD
 				dragOriginZ = dragOriginZ + oldSpkZ * projD
-				-- Refresh dx/dz: now equals the perpendicular component (cursor offset from bend)
+				-- dx/dz is now the cursor's offset from the bend
 				dx = wx - dragOriginX
 				dz = wz - dragOriginZ
 				if dx * dx + dz * dz >= 4 then
@@ -1816,7 +1940,7 @@ local function snapDragToSpoke(wx, wz)
 	end
 	-- Update activeRotation so the DrawWorld protractor highlights the correct spoke
 	activeRotation = snappedDeg
-	-- Project cursor onto the spoke using dot product — eliminates all lateral drift
+	-- Project the cursor onto the spoke: no sideways drift
 	local snappedRad = snappedDeg * pi / 180
 	local spokeX = cos(snappedRad)
 	local spokeZ = sin(snappedRad)
@@ -1839,9 +1963,8 @@ extraState.pushStrokePoint = function(wx, wz)
 			return
 		end
 	end
-	-- Backlog guard: a sustained scribble can outrun the per-tick dab cap.
-	-- Rather than fall further and further behind the cursor, drop the oldest
-	-- unconsumed point once the backlog is deep enough to read as lag.
+	-- Backlog guard: a sustained scribble can outrun the per-tick dab cap, so
+	-- drop the oldest unconsumed point once the backlog would read as lag.
 	if n - extraState.strokePathHead >= 512 then
 		extraState.strokePathHead = extraState.strokePathHead + 1
 	end
@@ -1852,12 +1975,9 @@ extraState.pushStrokePoint = function(wx, wz)
 	extraState.strokePathN = n
 end
 
--- Stroke path buffer: record the cursor's real path while a sculpt drag runs.
--- widget:Update samples the mouse at 20 Hz, so a fast scribble used to reach the
--- gadget as a straight chord between two samples with its corners cut. MouseMove
--- fires at the engine's mouse rate, so the polyline recorded here is the one the
--- user actually drew; Update resamples it at the brush's own spacing.
--- (Attached to extraState: main chunk is at the 200-local limit.)
+-- Record the cursor's real path during a sculpt drag. Update runs at 20 Hz and
+-- would cut a fast scribble's corners; MouseMove fires at the mouse rate, and
+-- Update resamples this polyline at the brush's own spacing.
 extraState.appendStrokePoint = function()
 	local worldX, worldZ = getWorldMousePositionOnPlane(lockedGroundY)
 	if not worldX then
@@ -1892,9 +2012,8 @@ extraState.startStrokePath = function()
 	extraState.followManualRot = extraState.followStroke and activeRotation or nil
 end
 
--- Rotation for one dab of a stroke. With FOLLOW STROKE off this is just the
--- user's manual rotation; with it on the shape rides the path tangent, EMA
--- smoothed so mouse jitter does not spin a square on the spot.
+-- Rotation for one dab of a stroke: the manual rotation, or with FOLLOW STROKE
+-- the path tangent, smoothed so mouse jitter does not spin a square on the spot.
 ---@return number degrees
 extraState.followAngleFor = function(dx, dz)
 	if not extraState.followStroke or activeShape == "fill" then
@@ -1917,10 +2036,9 @@ extraState.followAngleFor = function(dx, dz)
 			return (floor(cur / st + 0.5) * st) % 360
 		end
 	end
-	-- Quantise to 2 degrees, the same step the gadget's falloff-stamp cache keys
-	-- the angle at (quantiseStampParams): finer than this only costs cache misses,
-	-- coarser than this visibly steps the shape around on a curve. Performance
-	-- mode steps 6 degrees: a third of the stamp builds on shaped brushes.
+	-- Quantise to 2 degrees, the gadget's stamp cache step (quantiseStampParams):
+	-- finer only costs cache misses, coarser visibly steps the shape on a curve.
+	-- Performance mode uses 6 degrees, a third of the stamp builds.
 	local q = extraState.perfMode and 6 or 2
 	return (floor(cur / q + 0.5) * q) % 360
 end
@@ -1979,13 +2097,14 @@ local function setHeightCapAbsolute(value)
 	heightCapAbsolute = value
 end
 
----Enables clay mode, which preserves volume by pushing displaced terrain outward.
+---Enables clay mode: the brush moves terrain toward a plane one step above (or
+---below) the surface it measures, and never past it.
 ---@param value boolean?
 local function setClayMode(value)
 	clayMode = value and true or false
 end
 
----@param value number? Opacity of the brush cursor ring, clamped to `0.01`-`1`.
+---@param value number? Brush opacity, a strength multiplier sent with every dab, clamped to `0.01`-`1`.
 ---Defaults to `1`.
 local function setBrushOpacity(value)
 	brushOpacity = math.max(0.01, math.min(1.0, tonumber(value) or 1.0))
@@ -2000,19 +2119,19 @@ local function setGridOverlay(value)
 	end
 end
 
----Enables the dust particles kicked up while terraforming.
+---Enables the dust particles kicked up while terraforming (only while DJ mode is on).
 ---@param value boolean?
 local function setDustEffects(value)
 	dustEffects = value and true or false
 end
 
----Enables the camera shake applied while terraforming.
+---Enables the impact sounds played while terraforming (only while DJ mode is on).
 ---@param value boolean?
 local function setSeismicEffects(value)
 	seismicEffects = value and true or false
 end
 
----Enables the beat-synced terraform mode.
+---DJ mode: the master switch for the dust and impact sound effects.
 ---@param value boolean?
 local function setDjMode(value)
 	djMode = value and true or false
@@ -2098,7 +2217,6 @@ local function sendNoiseMessage(worldX, worldZ, radius, shape, rotation, lengthS
 			.. (djMode and dustEffects and "1" or "0")
 		SendLuaRulesMsg(msg)
 	end
-	afterBrushTick()
 end
 
 -- Preset save/load system
@@ -2114,11 +2232,10 @@ local function loadPresetsFromDisk()
 		return
 	end
 	presetsLoaded = true
-	-- Load built-in presets first
 	for _, p in ipairs(BUILTIN_PRESETS) do
 		presets[p.name] = p
 	end
-	-- User-saved presets override built-ins with same name
+	-- User-saved presets override built-ins with the same name
 	local files = VFS.DirList(PRESETS_DIR, "*.lua", VFS.RAW)
 	if not files then
 		return
@@ -2257,7 +2374,7 @@ local function loadPreset(name)
 		Echo("[Terraform Brush] Preset not found: " .. tostring(name))
 		return
 	end
-	-- Validate and apply with tonumber guards to prevent crashes from corrupted data
+	-- tonumber guards and pcall: a corrupted preset file must not crash the widget
 	local ok, err = pcall(function()
 		-- Set mode FIRST so the mode group's curve/intensity/clayMode snapshot is swapped
 		-- in before the preset's own saved values overwrite it below.
@@ -2389,54 +2506,42 @@ local function getPreset(n)
 end
 
 -- Heightmap import state (forward-declared before getState so import progress is visible)
+---@type table?
 local importHeightRows = nil
 local importRowIndex = 0
 local IMPORT_ROWS_PER_FRAME = 32
 local pendingExport = false
 
--- 16-bit greyscale PNG codec (see file header for why gl.SaveImage can't do this).
--- Attached to extraState rather than a new chunk-level local (main chunk is at the
--- 200-local limit).
+-- 16-bit greyscale PNG codec (its header explains why gl.SaveImage cannot do this).
 extraState._heightmapPNG = require("luaui/Widgets/cmd_terraform_brush_png")
 
 -- Map transform math, shared with cmd_map_transform.lua: a project opened by a
--- map transform hands its turn/mirror/fit to the import below. Attached to
--- extraState for the same 200-local reason.
+-- map transform hands its turn/mirror/fit to the import below.
 extraState._mapTransform = VFS.Include("luaui/Include/map_transform.lua")
--- the camera stops riding the ground a stroke changes (see the module); on extraState for the same reason
+-- keeps the camera from riding the ground a stroke changes (see the module)
 extraState.camHold = VFS.Include("luaui/Include/tf_camera_hold.lua")
 
 -- Procedural map generator for the New Map feature (noise/symmetry/water shaping).
--- Pure module; attached to extraState (no new chunk-level local — 200-local limit).
 extraState._mapgen = require("luaui/Widgets/cmd_terraform_brush_mapgen")
 
--- Autoramp terrain math shared with the synced gadget: the hover preview and
--- the actual apply run the same pure seeded computation, so the preview IS the
--- result. (Attached to extraState — 200-local limit.)
+-- Autoramp terrain math shared with the synced gadget, so the hover preview is
+-- exactly the result.
 extraState._autorampProfile = require("common/autoramp_profile")
 
--- ============ New Map: post-reload procedural terrain apply ============
--- The New Map dialog writes a recipe file and reloads the engine onto a flat
--- blank map (the engine can only make flat maps). On the new session we read the
--- recipe, generate a full heightmap in Lua, and stamp it through the SAME import
--- streaming path the heightmap importer uses (undo-free, throttled). Water needs
--- no special handling: the engine renders the water plane at world height 0, so
--- the generator's sub-zero cells simply become sea/lakes. Start positions are
--- placed symmetrically AFTER the import settles so ground heights are final.
---
--- These helpers are stored on extraState so they can mutate the file-local
--- importHeightRows/importRowIndex as upvalues without adding chunk-level locals.
--- (Recipe path "Terraform Brush/pending_newmap.lua" is inlined below — the main
--- chunk is at the Lua 5.1 200-local limit, so no new file-scope local is added.)
+-- NEW MAP: post-reload procedural terrain apply
+-- The New Map dialog writes a recipe file and reloads onto a flat blank map
+-- (the engine can only make flat ones). The new session generates the heightmap
+-- in Lua and streams it through the heightmap import path (undo-free,
+-- throttled); sub-zero cells become water. Start positions are placed after the
+-- import settles, so ground heights are final.
 
 extraState._newmapApplyHeights = function(cols)
 	importHeightRows = cols
 	importRowIndex = 0
 end
 
--- Read (and one-shot consume) the recipe left by the dialog before the reload.
--- Use io.open for BOTH read and write (raw filesystem) so there is no chance of
--- VFS read-cache returning a stale (e.g. previously-blanked) copy across reloads.
+-- Read (and consume) the recipe left by the dialog before the reload. io.open
+-- for both read and write, so the VFS cache cannot return a stale copy.
 extraState._newmapConsumeRecipe = function()
 	local rf = io.open("Terraform Brush/pending_newmap.lua", "r")
 	if not rf then
@@ -2462,10 +2567,9 @@ extraState._newmapConsumeRecipe = function()
 	return nil
 end
 
--- Consumer-side DNTS fallback for InitBlank maps.
--- If engine blank-map generation ignores blank_map_splat* options, force-bind
--- splat textures from map options after reload. Retries for a short window
--- because map GL resources can appear a few frames after widget init.
+-- DNTS fallback for blank maps: if the engine ignores the blank_map_splat*
+-- options, bind the splat textures from map options after the reload. Retries
+-- briefly, because map GL resources can appear a few frames after widget init.
 extraState._newmapTryApplyDNTS = function()
 	if extraState._newmapDNTSApplied then
 		return
@@ -2568,12 +2672,10 @@ extraState._newmapDrive = function()
 		if not msx or msx <= 0 then
 			return
 		end
-		-- Let the freshly-reloaded session settle (map + the synced terraform
-		-- gadget must be ready to receive messages) before streaming. The import
-		-- carries the "$c$" certification prefix, which the gadget honours inside
-		-- a map-editor session (the mapeditor modoption the launcher sets), so it
-		-- survives /cheat resetting across the engine reload. We still nudge
-		-- /cheat on once so the rest of the editor is usable afterwards.
+		-- Let the reloaded session settle (the gadget must be ready) before
+		-- streaming. The import is "$c$"-certified, which the gadget honours in a
+		-- map-editor session even though /cheat resets across the reload; /cheat
+		-- is still nudged on once for the rest of the editor.
 		if not extraState._newmapStartFrame then
 			extraState._newmapStartFrame = GetDrawFrame() + 15
 			extraState.ensureCheat()
@@ -2602,10 +2704,8 @@ extraState._newmapDrive = function()
 		return
 	end
 
-	-- Phase 2: the stream finished (importHeightRows cleared by the importer).
-	-- Wait ~30 draw frames so the synced SetHeightMap edits and the unsynced
-	-- heightmap have fully propagated before we sample ground heights for spawns
-	-- (SetHeightMap lands asynchronously a few sim frames after the last column).
+	-- Phase 2: the stream finished (the importer cleared importHeightRows). Wait
+	-- about 30 draw frames for the heights to propagate before sampling spawns.
 	local info = extraState._newmapInfo
 	if info and not importHeightRows then
 		if not extraState._newmapPlaceFrame then
@@ -2616,8 +2716,8 @@ extraState._newmapDrive = function()
 			return
 		end
 
-		-- Symmetric start positions (each spawn its own allyteam). Capture each
-		-- result so a silent slope rejection can't quietly break spawn symmetry.
+		-- Symmetric start positions, one allyteam each. Count the results so a
+		-- silent slope rejection cannot quietly break the symmetry.
 		local placed, wanted = 0, #info.spawns
 		pcall(function()
 			local spt = WG.StartPosTool
@@ -2640,10 +2740,10 @@ extraState._newmapDrive = function()
 			)
 		end
 
-		-- Symmetric metal spots (already pixel-exact symmetric from the generator).
-		-- $metal_stamp$[$c$]<x> <z> <radius> <value> <shape> <angleDeg> <direction>;
-		-- $c$ certifies it (the metal gadget puts $c$ AFTER the header). The metal
-		-- gadget computes the per-square amount for the target value itself.
+		-- Metal spots (exactly symmetric from the generator):
+		-- $metal_stamp$[$c$]<x> <z> <radius> <value> <shape> <angleDeg> <direction>
+		-- The metal gadget expects $c$ AFTER the header and works out the
+		-- per-square amount for the target value itself.
 		local nMetal = 0
 		pcall(function()
 			for _, ms in ipairs(info.metal or {}) do
@@ -2673,13 +2773,13 @@ end
 ---@class TerraformBrushState : TerraformBrushBase
 ---@field active boolean
 ---@field mode TerraformMode? `nil` when the brush is off.
----@field direction integer? `1` raises, `-1` lowers; `nil` when the brush is off.
+---@field direction number? `1` raises, `-1` lowers; `nil` when the brush is off.
 ---@field dustEffects boolean
 ---@field seismicEffects boolean
 ---@field djMode boolean
 ---@field wiggleEnabled boolean
----@field wiggleAmpIdx integer
----@field wiggleSpdIdx integer
+---@field wiggleAmpIdx number
+---@field wiggleSpdIdx number
 ---@field heightColormap boolean
 ---@field heightSamplingMode TerraformHeightSamplingTarget? `nil` when not sampling.
 ---@field gridOverlay boolean
@@ -2732,7 +2832,7 @@ end
 ---@field symmetryMirrorX boolean
 ---@field symmetryMirrorY boolean
 ---@field symmetryRadial boolean
----@field symmetryRadialCount integer
+---@field symmetryRadialCount number
 ---@field symmetryPlacingOrigin boolean
 ---@field symmetryMirrorAngle number
 ---@field symmetryFlipped boolean
@@ -2858,7 +2958,8 @@ local function getState()
 	}
 end
 
--- Display list cache to avoid rebuilding geometry every frame
+-- Display list cache, so the brush geometry is not rebuilt every frame
+---@type integer?
 local drawCacheList = nil
 local drawCacheParams = {}
 
@@ -2932,11 +3033,8 @@ local function doExportHeightmap()
 	local w = Game.mapSizeX / squareSize + 1
 	local h = Game.mapSizeZ / squareSize + 1
 
-	-- Sample the full-precision float heights directly (row 0 = world z=0). We do NOT
-	-- round-trip through the framebuffer here: gl.SaveImage is 8-bit only, which would
-	-- quantise to 256 levels and terrace the terrain on re-import. Instead we write a
-	-- true 16-bit greyscale PNG from these floats (65536 levels), the standard heightmap
-	-- format pymapconv / World Machine read.
+	-- Sample the float heights directly (row 0 = world z=0) and write a 16-bit
+	-- greyscale PNG: gl.SaveImage is 8-bit only and would terrace the terrain.
 	local minH, maxH = math.huge, -math.huge
 	local heights = {}
 	local idx = 0
@@ -2975,15 +3073,14 @@ local function doExportHeightmap()
 
 	local heightRange = maxH - minH
 	if heightRange < 1 then
-		-- Keep maxH in sync with the clamped range so the sidecar/tEXt metadata
-		-- records the normalisation actually used. Recording the raw maxH made
-		-- import rescale near-flat maps by the true sub-1 range, compressing
-		-- every height toward minH.
+		-- Keep maxH in step with the clamped range so the sidecar/tEXt metadata
+		-- records the normalisation actually used; otherwise import compresses
+		-- near-flat maps toward minH.
 		heightRange = 1
 		maxH = minH + 1
 	end
 
-	-- Normalise to 16-bit greyscale: black (0) = min height, white (65535) = max height.
+	-- black (0) = min height, white (65535) = max height
 	local samples = {}
 	local clippedCount = 0
 	for i = 1, idx do
@@ -3008,14 +3105,12 @@ local function doExportHeightmap()
 
 	local HEIGHTMAPS_DIR = "Terraform Brush/Heightmaps/"
 	Spring.CreateDir(HEIGHTMAPS_DIR)
-	-- Timestamped filename so multiple saves accumulate and can be listed in the
-	-- load picker (older format was a single overwriting file).
+	-- Timestamped filename, so saves accumulate in the load picker.
 	local stamp = os.date("%Y-%m-%d_%H-%M-%S")
-	-- Generated canvases carry a per-restart uniquifier ("Editor Flat 12x12 s<time>"
-	-- or "<custom name> s<time>", see buildBlankMapStartScript). Strip it so a save
-	-- made on one canvas stays visible in the load picker on later canvases with
-	-- the same base name. Gated on blank-map mapoptions so a real map name that
-	-- happens to end in " s<digits>" is never truncated.
+	-- Generated canvases carry a per-restart " s<time>" suffix (see
+	-- buildBlankMapStartScript). Strip it so saves stay visible on later canvases
+	-- with the same base name; only on blank maps, so a real map name ending in
+	-- " s<digits>" is never truncated.
 	local mapName = Game.mapName or ""
 	local mo = Spring.GetMapOptions()
 	if type(mo) == "table" and ((tonumber(mo.blank_map_x) or 0) > 0 or (tonumber(mo.blank_map_y) or 0) > 0) then
@@ -3032,8 +3127,8 @@ local function doExportHeightmap()
 	pngFile:write(png)
 	pngFile:close()
 
-	-- Write metadata. "<minH> <maxH> grey16" — keep extra decimals so external
-	-- compile/import tools can reconstruct the same world-height range as closely as possible.
+	-- Sidecar "<minH> <maxH> grey16", with extra decimals so external tools
+	-- reconstruct the same height range.
 	local metaFile = io.open(baseName .. ".txt", "w")
 	if metaFile then
 		metaFile:write(string.format("%.6f %.6f grey16\n", minH, maxH))
@@ -3070,6 +3165,7 @@ local function doExportHeightmap()
 	)
 end
 
+---@type string?
 local pendingImportFile = nil
 
 local function importHeightmap(_, optLine, args)
@@ -3090,6 +3186,7 @@ end
 
 local function doImportHeightmapRead()
 	local filename = pendingImportFile
+	---@cast filename string
 	pendingImportFile = nil
 	local fallbackMin = extraState._importFallbackMin
 	local fallbackMax = extraState._importFallbackMax
@@ -3121,8 +3218,7 @@ local function doImportHeightmapRead()
 
 	local squareSize = Game.squareSize
 
-	-- Read metadata first (min/max height range + format token), so we can pick the
-	-- decode path before touching GL.
+	-- Read the sidecar first (height range + format token) to pick the decode path.
 	local metaBase = filename:gsub("%.png$", ".txt")
 	local minH, maxH, heightmapFormat
 	local metaFile = io.open(metaBase, "r")
@@ -3158,14 +3254,11 @@ local function doImportHeightmapRead()
 		heightRange = 1
 	end
 
-	-- High-precision path: decode the greyscale PNG ourselves in Lua so we keep the
-	-- full 16-bit depth. (gl.Texture round-trips at 8-bit -> 256 levels -> terracing.)
-	-- The decoded image is row-major with row 0 = world z=0, matching the exporter.
-	-- With no sidecar token this also runs as a probe: new-style exports embed
-	-- their height range in a tEXt chunk, so a lost .txt no longer silently
-	-- rescales the terrain through the 8-bit GL fallback. 8-bit decodes without a
-	-- token still route to GL below (legacy RG-packed files need its B==1 marker
-	-- reconstruction).
+	-- High-precision path: decode the greyscale PNG in Lua to keep all 16 bits
+	-- (gl.Texture reads 8-bit and terraces). Row 0 = world z=0, as exported.
+	-- Without a sidecar token this also runs as a probe, since exports embed the
+	-- range in a tEXt chunk. 8-bit files without a token still go to the GL path
+	-- below, which handles the RG-packed format's B==1 marker.
 	if heightmapFormat == "grey16" or heightmapFormat == "grey" or heightmapFormat == nil then
 		local f = io.open(filename, "rb")
 		if f then
@@ -3188,12 +3281,10 @@ local function doImportHeightmapRead()
 				local h = Game.mapSizeZ / squareSize + 1
 				local columns = {}
 				if importT then
-					-- Map transform replay. Each destination vertex is put back
-					-- through the placements to find where it sat on the old map
-					-- and sampled there. Ground no placement covers either takes
-					-- fill_height (an expansion's empty half is a flat canvas) or
-					-- clamps to the border, so a nudged edge continues the land
-					-- instead of dropping to the range floor.
+					-- Map transform replay: each destination vertex is mapped back
+					-- through the placements and sampled on the old map. Ground no
+					-- placement covers takes fill_height or clamps to the border, so a
+					-- nudged edge continues the land.
 					for px = 1, w do
 						local col = {}
 						local wx = (px - 1) * squareSize
@@ -3244,10 +3335,9 @@ local function doImportHeightmapRead()
 						columns[px] = col
 					end
 				elseif pw == w and ph == h then
-					-- Same-size import: direct copy. This is the exact inverse of the
-					-- exporter; the bilinear path's float32 index math can produce
-					-- ~1e-4 fractional weights even at identical sizes, bleeding a
-					-- little of each neighbour into every vertex on steep terrain.
+					-- Same-size import: direct copy, the exact inverse of the exporter.
+					-- The bilinear path's float32 index math leaves ~1e-4 weights even
+					-- at identical sizes, bleeding neighbours into steep terrain.
 					for px = 1, w do
 						local col = {}
 						for py = 1, h do
@@ -3289,9 +3379,8 @@ local function doImportHeightmapRead()
 			Echo("[Terraform Brush] PNG decode failed, falling back to 8-bit GL load")
 		end
 		if importT then
-			-- The GL path stretches corner to corner and knows nothing about a
-			-- transform, so the terrain would come out unturned while every
-			-- other layer moved. Say so rather than leave it to be discovered.
+			-- The GL path stretches corner to corner and ignores a transform, so
+			-- the terrain would come out unturned while every other layer moved.
 			Echo(
 				"[Terraform Brush] WARNING: this heightmap cannot be read at full depth, so the map transform "
 					.. "could not be applied to the terrain — the other layers still moved"
@@ -3299,12 +3388,11 @@ local function doImportHeightmapRead()
 		end
 	end
 
-	-- Legacy / fallback path (8-bit via GL): handles the older RG-packed exports and
-	-- any un-tagged greyscale files. Lower precision but preserves backward compatibility.
+	-- Fallback path (8-bit via GL): RG-packed exports and untagged greyscale
+	-- files. Lower precision, kept so older files still import.
 	local w = Game.mapSizeX / squareSize + 1
 	local h = Game.mapSizeZ / squareSize + 1
 
-	-- Load the PNG as a GL texture
 	local loaded = gl.Texture(0, filename)
 	if not loaded then
 		Echo("[Terraform Brush] Failed to load texture: " .. filename)
@@ -3326,7 +3414,7 @@ local function doImportHeightmapRead()
 		return
 	end
 
-	-- Render loaded texture to FBO and read pixels in same binding
+	-- Render the texture to an FBO and read the pixels in the same binding
 	local res
 	gl.RenderToTexture(fboTex, function()
 		gl.Blending(false)
@@ -3369,15 +3457,15 @@ local function doImportHeightmapRead()
 			local pixel = res[py][px]
 			local norm
 			if pixel[3] and pixel[3] > 0.95 and not (pixel[1] > 0.95 and pixel[2] > 0.95) then
-				-- Legacy 16-bit RG-packed format (R = hi byte, G = lo byte, B = 1.0 marker).
+				-- 16-bit RG-packed format (R = hi byte, G = lo byte, B = 1.0 marker).
 				local hi = floor(pixel[1] * 255 + 0.5)
 				local lo = floor(pixel[2] * 255 + 0.5)
 				norm = (hi * 256 + lo) / 65535
 			elseif pixel[3] and pixel[3] > 0.95 then
-				-- packed marker AND saturated R/G → max height
+				-- packed marker AND saturated R/G: max height
 				norm = 1
 			else
-				-- legacy un-tagged 8-bit greyscale export
+				-- untagged 8-bit greyscale export
 				norm = (pixel[1] + pixel[2] + pixel[3]) / 3
 			end
 			heights[py] = minH + norm * heightRange
@@ -3394,12 +3482,10 @@ local function doImportHeightmapSend()
 		return
 	end
 
-	-- Hold the stream while the synced gate is shut instead of feeding rows into
-	-- it. /cheat is a toggle that competing widgets can flip off mid-import, and
-	-- rows refused by the gadget are gone for good: the column index has already
-	-- advanced client-side, so the finished map is missing those strips with no
-	-- warning beyond the refusal echo. Give up rather than stall forever on a
-	-- server that refuses cheats outright.
+	-- Hold the stream while the synced gate is shut: /cheat can flip off
+	-- mid-import, and rows the gadget refuses are lost (the column index has
+	-- already advanced). Give up rather than stall forever on a server that
+	-- refuses cheats outright.
 	if not extraState.terraformGateOpen(extraState._newmapCertify) then
 		extraState.ensureCheat()
 		extraState._importGateWaits = (extraState._importGateWaits or 0) + 1
@@ -3446,19 +3532,14 @@ local function doImportHeightmapSend()
 		Echo("[Terraform Brush] Heightmap import complete!")
 		importHeightRows = nil
 		importRowIndex = 0
-		-- Synced SetHeightMap calls land asynchronously; the GPU mesh + shadow
-		-- pass don't refresh in regions the camera hasn't dirtied. Tell the
-		-- gadget to force a full-map dirty (AdjustHeightMap by 0), then run a
-		-- prolonged tessellation refresh covering normal + shadow passes so
-		-- the entire imported map redraws without requiring a local edit.
+		-- The mesh and shadow pass do not refresh where the camera has not
+		-- dirtied them, so IMPORT_END makes the gadget dirty the whole map.
 		SendLuaRulesMsg((extraState._newmapCertify and "$c$" or "") .. MSG.IMPORT_END)
 		tessellationDirtyFrames = 60
 		extraState._importNeedsShadowRefresh = 60
 		-- The tileset shader anchors gravel/plateau placement to the ground
-		-- extremes, which this import just replaced wholesale. Arm its
-		-- re-snapshot window (tracks for a few seconds, so the async synced
-		-- apply lands inside it) instead of leaving placement anchored to the
-		-- pre-import canvas.
+		-- extremes: arm its re-snapshot window, which lasts long enough for the
+		-- async synced apply to land inside it.
 		if WG.TilesetTerrain and WG.TilesetTerrain.refreshHeightRef then
 			WG.TilesetTerrain.refreshHeightRef()
 		end
@@ -3468,17 +3549,15 @@ local function doImportHeightmapSend()
 	end
 end
 
--- Heightmap import progress probe for the map project load orchestrator
--- (cmd_map_project.lua): (busy, columnsSent, columnsTotal). busy covers both the
--- queued file (not yet decoded) and an in-flight column stream. Attached to
--- extraState so it can read the file-locals as upvalues (200-local ceiling).
+-- Heightmap import progress for the map project loader (cmd_map_project.lua):
+-- (busy, columnsSent, columnsTotal). busy covers both a queued file (not yet
+-- decoded) and an in-flight column stream.
 extraState._importStatus = function()
 	local total = importHeightRows and #importHeightRows or 0
 	return (pendingImportFile ~= nil) or (importHeightRows ~= nil), importRowIndex or 0, total
 end
 
--- Pre-bundle noise setters into extraState to keep widget:Initialize under the 60-upvalue limit
--- without adding a new chunk-level local (which would breach the 200-local limit).
+-- Noise setters bundled in one table to keep widget:Initialize under the 60-upvalue limit.
 extraState._noiseSetters = {
 	setNoiseType = setNoiseType,
 	setNoiseScale = setNoiseScale,
@@ -3488,13 +3567,10 @@ extraState._noiseSetters = {
 	setNoiseSeed = setNoiseSeed,
 }
 
--- Exact terrain extremes by scanning heightmap vertices (the engine's
--- GetGroundExtremes "current" values only ever widen after edits, and its
--- "init" values on a generated blank canvas are the SMF header constants,
--- neither of which describes the terrain actually on screen). Full vertex
--- resolution up to ~2.5M samples, then halved so a 32x32 map stays a one-off
--- sub-second scan. Attached to extraState to avoid a chunk-level local
--- (200-local limit).
+-- Exact terrain extremes by scanning heightmap vertices: GetGroundExtremes
+-- "current" values only ever widen after edits, and its "init" values on a blank
+-- canvas are the SMF header constants. Full resolution up to ~2.5M samples, then
+-- halved so even a 32x32 map scans in under a second.
 extraState._scanTerrainExtremes = function()
 	local step = Game.squareSize or 8
 	local sizeX, sizeZ = Game.mapSizeX, Game.mapSizeZ
@@ -3523,15 +3599,12 @@ extraState._scanTerrainExtremes = function()
 	return mn, mx
 end
 
--- Seed the custom export range from the map's real terrain extremes when the
--- user never set it: pristine 0..1 default, degenerate max<=min, or still
--- exactly the values a previous auto-seed wrote (so post-import/post-load
--- re-seeds may correct them, but a hand-typed range is never touched).
--- `exact` runs the vertex scan above; otherwise the engine's current
--- extremes serve (free, but only valid before edits widen them). The old
--- code preferred the INIT extremes, which on a project canvas are the blank
--- map's header values (-75..696 regardless of terrain), so every project
--- export clipped anything above 696.
+-- Seed the custom export range from the real terrain extremes when the user
+-- never set it: the 0..1 default, a degenerate max<=min, or exactly what a
+-- previous auto-seed wrote. A hand-typed range is never touched. `exact` runs
+-- the vertex scan above; otherwise the engine's current extremes serve (only
+-- valid before edits widen them). Not the INIT extremes: on a project canvas
+-- they are the blank map's header values, not the terrain.
 extraState._seedExportCustomRange = function(exact)
 	local cmin = extraState.heightmapExportCustomMin
 	local cmax = extraState.heightmapExportCustomMax
@@ -3598,7 +3671,7 @@ function widget:Initialize()
 
 	WG.TerraformBrush = {
 		getImportStatus = extraState._importStatus,
-		---@return integer version Bumped on every heightmap update; the project widget's unsaved changes flag watches it.
+		---@return number version Bumped on every heightmap update; the project widget's unsaved changes flag watches it.
 		getTerrainVersion = function()
 			return extraState.terrainVersion
 		end,
@@ -3719,7 +3792,7 @@ function widget:Initialize()
 		setAngleSnap = function(value)
 			extraState.angleSnap = value and true or false
 		end,
-		---Derives the angle snap step from the map's symmetry instead of the manual spoke count.
+		---Snaps to the nearest spoke every frame; off locks the brush to one manually chosen spoke.
 		---@param value boolean?
 		setAngleSnapAuto = function(value)
 			extraState.angleSnapAuto = value and true or false
@@ -3783,17 +3856,17 @@ function widget:Initialize()
 			end
 			extraState.measureLines = kept
 		end,
-		-- G4: toggle automatic ramp-chain attachment
+		---Attaches a measure chain to every finished ramp stroke, so the ramp can be reshaped.
 		---@param value boolean?
 		setRampAutoAttach = function(value)
 			extraState.rampAutoAttach = value and true or false
 		end,
-		---Measures in a straight line rather than following the terrain.
+		---Ruler mode: brush strokes snap to the measure-line segments.
 		---@param value boolean?
 		setMeasureRulerMode = function(value)
 			extraState.measureRulerMode = value and true or false
 		end,
-		---Keeps measure lines attached to the point they were started from.
+		---Sticky mode: ruler-mode strokes are recorded and replayed when their measure line is reshaped.
 		---@param value boolean?
 		setMeasureStickyMode = function(value)
 			extraState.measureStickyMode = value and true or false
@@ -3802,7 +3875,7 @@ function widget:Initialize()
 				extraState.stickyUndoBaseline = nil
 			end
 		end,
-		---Lets measure chains be reshaped after they are drawn.
+		---Distort mode: dragging the symmetry origin re-mirrors measure lines instead of translating them.
 		---@param value boolean?
 		setMeasureDistortMode = function(value)
 			extraState.measureDistortMode = value and true or false
@@ -3838,7 +3911,7 @@ function widget:Initialize()
 				gbAltMin = true,
 				spAltMax = true,
 				spAltMin = true,
-				-- SURFACE panel: soft FILTERS (surface painter), INFLUENCE band per engine
+				-- SURFACE panel: soft FILTERS (surface painter) and INFLUENCE bands
 				sfAltMax = true,
 				sfAltMin = true,
 				sfInfAltMax = true,
@@ -3883,7 +3956,7 @@ function widget:Initialize()
 		setPerfMode = function(value)
 			extraState.perfMode = value and true or false
 		end,
-		---Stacks clay on every tick, the legacy behavior, instead of laying one layer per stroke over the surface it started on.
+		---Stacks clay on every tick instead of laying one layer per stroke over the surface it started on.
 		---@param value boolean?
 		setClayStack = function(value)
 			extraState.clayStack = value and true or false
@@ -3964,8 +4037,6 @@ function widget:Initialize()
 		setPenOverUI = function(value)
 			extraState.penOverUI = value and true or false
 		end,
-		-- Returns world X, Z to park a sub-tool brush when cursor is over the terraform UI panel.
-		-- Returns nil, nil when cursor is not over the panel (caller should use real mouse position).
 		---Where the brush should park while the cursor is over the terraform panel.
 		---@param radius number
 		---@param lengthScale number
@@ -3990,10 +4061,8 @@ function widget:Initialize()
 			return extraState.computeParkedTarget(bounds, radius, lengthScale)
 		end,
 
-		-- Animated sub-tool unmouse: slides the brush toward the parked spot
-		-- when the cursor enters the terraform panel, and back toward the real
-		-- cursor position when it leaves. Sub-tools call this every DrawWorld
-		-- frame with a unique toolKey and their real world position (or nil).
+		-- Slides a sub-tool brush to its parked spot when the cursor enters the
+		-- terraform panel, and back when it leaves. Call every DrawWorld frame.
 		---@param toolKey string Unique per sub-tool.
 		---@param realX number? The real cursor world position.
 		---@param realZ number?
@@ -4069,7 +4138,7 @@ function widget:Initialize()
 		setSymmetryMirrorAngle = function(value)
 			extraState.symmetryMirrorAngle = (tonumber(value) or 0) % 360
 		end,
-		---Swaps which side of the mirror axis is the source.
+		---Flipped mode: mirrored copies invert the direction, so a raise is mirrored as a lower.
 		---@param value boolean?
 		setSymmetryFlipped = function(value)
 			extraState.symmetryFlipped = value and true or false
@@ -4126,12 +4195,8 @@ function widget:Initialize()
 				return out
 			end
 			local mapName = Game.mapName or ""
-			-- Generated canvases get a fresh uniquified name every restart ("Editor
-			-- Flat 12x12 s<time>" or "<custom name> s<time>"), so an exact-name
-			-- filter can never surface saves from a previous canvas. Filter by the
-			-- stripped base name instead, gated on blank-map mapoptions so a real
-			-- map name ending in " s<digits>" is never truncated; real maps keep
-			-- exact matching (same name implies same dimensions).
+			-- Generated canvases get a fresh " s<time>" suffix every restart, so
+			-- filter them by the stripped base name; real maps keep exact matching.
 			local canonical = mapName
 			local mo = Spring.GetMapOptions()
 			if type(mo) == "table" and ((tonumber(mo.blank_map_x) or 0) > 0 or (tonumber(mo.blank_map_y) or 0) > 0) then
@@ -4141,9 +4206,9 @@ function widget:Initialize()
 			local escaped = mapPrefix:gsub("[%-%+%[%]%(%)%$%^%%%?%*%.]", "%%%1")
 			for _, path in ipairs(files) do
 				local base = path:match("([^/\\]+)%.png$") or path
-				-- Match "heightmap_export_<name>_<YYYY-MM-DD_HH-MM-SS>", the legacy
-				-- un-stamped "heightmap_export_<name>" form, and older generated-
-				-- canvas saves that still embed the " s<time>" uniquifier.
+				-- Match "heightmap_export_<name>_<YYYY-MM-DD_HH-MM-SS>", the
+				-- un-stamped "heightmap_export_<name>" form, and generated-canvas
+				-- saves that embed the " s<time>" suffix.
 				local stamp = base:match("^" .. escaped .. "_(.+)$") or base:match("^" .. escaped .. " s%d+_(.+)$")
 				local isThisMap = (base == mapPrefix)
 					or (stamp ~= nil)
@@ -4152,7 +4217,7 @@ function widget:Initialize()
 				local label
 				local sortKey = genericStamp or (isThisMap and "1" or "0_" .. base)
 				if genericStamp then
-					-- stamp format YYYY-MM-DD_HH-MM-SS → display as "YYYY-MM-DD HH:MM"
+					-- YYYY-MM-DD_HH-MM-SS, shown as "YYYY-MM-DD HH:MM"
 					local y, mo, d, h, mi = genericStamp:match("^(%d+)%-(%d+)%-(%d+)_(%d+)%-(%d+)")
 					if y then
 						label = string.format("%s-%s-%s %s:%s", y, mo, d, h, mi)
@@ -4223,11 +4288,9 @@ function widget:Initialize()
 				return false
 			end
 			Spring.SendCommands("luarules waterlevel " .. tostring(delta))
-			-- Track the running total so the panel's RESET can put the map back.
-			-- Nothing else can tell us: the water level command overwrites its own
-			-- stored value instead of accumulating, and it moves the ORIGINAL
-			-- heightmap along with the live one, so the map's load-time datum is
-			-- not recoverable from the engine afterwards.
+			-- Track the running total for the panel's RESET: the water level command
+			-- does not accumulate, and it moves the ORIGINAL heightmap too, so the
+			-- engine cannot tell us the load-time datum afterwards.
 			extraState.waterLevelShift = (extraState.waterLevelShift or 0) + delta
 			extraState.waterPreviewLevel = nil
 			extraState._noteBulkTerrainChange()
@@ -4381,7 +4444,6 @@ local function getSmoothedSpline()
 	return smoothSplinePoints(pts, 2)
 end
 
--- Stored on extraState to avoid consuming a chunk-level local slot (at 200-local limit).
 -- Returns a smoothed slice of only the last SPLINE_SEND_WINDOW raw points.
 extraState.getSmoothedSplineWindow = function()
 	local pts = rampSplinePoints
@@ -4398,8 +4460,8 @@ extraState.getSmoothedSplineWindow = function()
 	return smoothSplinePoints(slice, 2)
 end
 
--- Package and send a SPLINE_RAMP message. snapFull=true → gadget uses factor 1.0 (instant snap).
--- Respects symmetry: sends one SPLINE_RAMP per symmetric copy, transforming all points.
+-- Send one SPLINE_RAMP message per symmetric copy. snapFull=true makes the
+-- gadget blend fully (instant snap).
 extraState.sendSplinePts = function(pts, snapFull)
 	if #pts < 2 then
 		return
@@ -4437,7 +4499,6 @@ extraState.sendSplinePts = function(pts, snapFull)
 		parts[#parts + 1] = snapFull and "1" or "0"
 		SendLuaRulesMsg(table.concat(parts))
 	end
-	afterBrushTick()
 end
 
 -- Commit settled early raw points: smooth raw[prevRawIdx..windowStart], snap-apply them,
@@ -4490,8 +4551,8 @@ extraState.buildFinalSplinePts = function()
 	return result
 end
 
--- G4: Tessellate a ramp chain (applying bezier handles) into a flat array of world {x,z} points.
--- Used when re-applying so curved chains produce smooth ramp paths.
+-- Tessellate a ramp chain (with its bezier handles) into world {x,z} points,
+-- so re-applied curved chains produce smooth ramp paths.
 extraState.tessellateRampChain = function(chain)
 	local STEPS = 16
 	local pts = chain.pts
@@ -4517,8 +4578,8 @@ extraState.tessellateRampChain = function(chain)
 	return result
 end
 
--- G4: Re-apply the terrain operation stored in a ramp chain, using the chain's current
--- geometry.  Always sends as SPLINE_RAMP so curved (handle-modified) chains work correctly.
+-- Re-apply a ramp chain's terrain operation at its current geometry. Always a
+-- SPLINE_RAMP, so curved chains work.
 extraState.reapplyRampChain = function(chain)
 	if not chain or not chain.isRampChain then
 		return
@@ -4538,12 +4599,11 @@ extraState.reapplyRampChain = function(chain)
 	end
 	parts[#parts + 1] = " " .. clay .. " 0 1" -- clay, dustEffects=0, snapFull=1
 	SendLuaRulesMsg(table.concat(parts))
-	afterBrushTick()
 end
 
--- G4: Queue an undo+sync+reapply for a ramp chain after an endpoint/handle drag.
--- Sends one UNDO_STROKE to atomically undo the entire last ramp application, then re-applies
--- the chain at its new geometry. Results in exactly one undo entry per drag operation.
+-- After an endpoint or handle drag: one UNDO_STROKE pops the last ramp
+-- application, then the chain is re-applied at its new geometry, so each drag
+-- leaves exactly one undo entry.
 extraState.queueRampReapply = function(chain)
 	if not chain or not chain.isRampChain then
 		return
@@ -4556,21 +4616,19 @@ extraState.queueRampReapply = function(chain)
 	local baseline = chain.rampUndoBaseline or 0
 	local hasEntries = (extraState.gadgetUndoCount or 0) > baseline
 	if not hasEntries then
-		-- Nothing to undo (chain was never applied, or already clean) — just apply
+		-- Nothing to undo (never applied, or already clean): just apply
 		extraState.reapplyRampChain(chain)
 		closeBrushStroke()
 		chain.rampUndoBaseline = extraState.gadgetUndoCount
 		return
 	end
-	-- Send one UNDO_STROKE to atomically pop all entries for the last ramp stroke.
 	SendLuaRulesMsg(MSG.UNDO_STROKE)
 	extraState.rampReapplyQueue = { chain = chain, phase = "sync" }
 end
 
--- G4: Store a completed ramp path as a persistent chain in the measure layer.
--- Fits the dense path to as few bezier segments as possible (ideally 1) using
--- iterative quadratic-bezier splitting (Douglas-Peucker style).
--- pts = array of {x,z}; radius, clay copied from current brush state.
+-- Store a finished ramp path as a chain in the measure layer, fitted to as few
+-- quadratic bezier segments as possible by splitting at the worst point.
+-- pts = array of {x,z}; radius and clay come from the current brush state.
 extraState.attachRampChain = function(pts, radius, clay)
 	if not pts or #pts < 2 then
 		return
@@ -4618,9 +4676,8 @@ extraState.attachRampChain = function(pts, radius, clay)
 		end
 		return best, bestI
 	end
-	-- Iterative bezier fit: start with 1 segment, split at worst point until
-	-- max deviation < THRESHOLD or MAX_SEGS segments reached.
-	-- Loose tolerance (80 units) + max 2 segments keeps ramp chains at 1-2 bezier arcs.
+	-- Split at the worst point until the deviation is under THRESH_SQ or there
+	-- are MAX_SEGS segments: ramp chains stay at 1-2 arcs.
 	local MAX_SEGS = 2
 	local THRESH_SQ = 80 * 80 -- 80 world-unit deviation (loose: prefer fewer segments)
 	-- Each segment is {a=startIdx, b=endIdx} into original pts[]
@@ -4674,22 +4731,18 @@ extraState.attachRampChain = function(pts, radius, clay)
 		isRampChain = true,
 		rampRadius = radius,
 		rampClay = clay,
-		-- G4: undo-stack depth at the start of this ramp stroke; used to undo all its
-		-- entries before re-applying after a drag.  Captures state before first commit.
+		-- undo-stack depth before this ramp stroke's first commit; used to undo
+		-- all its entries before re-applying after a drag
 		rampUndoBaseline = extraState.rampStrokeUndoBaseline or extraState.gadgetUndoCount,
 	}
 	extraState.measureLines[#extraState.measureLines + 1] = chain
 end
 
--- ── Autoramp WYSIWYG preview ─────────────────────────────────────────────────
+-- AUTORAMP PREVIEW
 -- Recomputes the shared profile math (common/autoramp_profile.lua) on a coarse
--- grid under the cursor while AUTORAMP is armed, so the artist sees the exact
--- resulting terrain before clicking. Runs every frame — refresh latency beats
--- compute cost here (explicit call, 2026-08-23) — but the signature key (click
--- cell + every knob + terrainVersion) makes identical frames free, so it only
--- pays while the cursor or a knob actually moves. The draw side rebuilds its
--- display list only when the data changed.
--- (Attached to extraState: main chunk is at the 200-local limit.)
+-- grid under the cursor while AUTORAMP is armed, so the preview is the exact
+-- result. Runs every frame for low latency, but a signature key (click cell,
+-- every knob, terrainVersion) makes unchanged frames free.
 extraState.updateAutorampPreview = function()
 	local es = extraState
 	if activeMode ~= "autoramp" or not es.autorampPreview then
@@ -4742,7 +4795,7 @@ extraState.updateAutorampPreview = function()
 		return
 	end
 	es.arPrevKey = key
-	-- Same seed formula as the click in MousePress: preview IS the click result.
+	-- Same seed formula as sendAutorampAt, so the preview is the click result.
 	-- pcall: a compute error must degrade to "no preview", never kill the widget.
 	local ok, res = pcall(es._autorampProfile.compute, {
 		centerX = wx,
@@ -4764,14 +4817,11 @@ extraState.updateAutorampPreview = function()
 	es.arPrevDirty = true
 end
 
--- Draws the preview mesh: green where material is added (fill/talus), orange
--- where it is removed (cut), alpha scaled by how much the height changes.
--- Handles its own display-list lifecycle so it also cleans up after the data
--- is cleared (mode left, preview toggled off, cursor off-map).
 -- One autoramp application at a world position: builds the param tail from the
 -- live knobs and sends one message per symmetry copy (off-map copies dropped).
 -- Shared by the MousePress dab and the swipe re-fires in Update. Returns
 -- whether anything was sent.
+---@return boolean sent
 extraState.sendAutorampAt = function(worldX, worldZ)
 	local es = extraState
 	local paramTail = " "
@@ -4802,6 +4852,9 @@ extraState.sendAutorampAt = function(worldX, worldZ)
 	return sent
 end
 
+-- Draws the preview mesh: green where material is added (fill/talus), orange
+-- where it is removed (cut), alpha scaled by the height change. Owns its display
+-- list, so it also cleans up after the data is cleared.
 function extraState.drawAutorampPreview(suppressed)
 	local es = extraState
 	if es.arPrevDirty then
@@ -4871,10 +4924,9 @@ function extraState.drawAutorampPreview(suppressed)
 						end
 					end
 				end
-				-- Two passes: a faint ghost pass with depth testing off so CUT
-				-- regions (the new surface lies under the current ground, which
-				-- would occlude it) stay readable through the terrain, then a
-				-- full-strength depth-tested pass for everything actually in view.
+				-- Two passes: a faint ghost without depth test, so CUT regions
+				-- (under the current ground) stay readable, then a full-strength
+				-- depth-tested pass.
 				gl.DepthTest(false)
 				alphaScale = 0.4
 				glBeginEnd(GL.QUADS, meshQuads)
@@ -4897,14 +4949,13 @@ function widget:Update(dt)
 		local _, _, lmb, _, rmb = GetMouseState()
 		extraState.camHold.update(activeMode ~= nil and lockedWorldX ~= nil and (lmb or (rmb and rightMouseHeld)))
 	end
-	-- Pen pressure: poll tablet pressure from shared file
 	extraState.readPenPressure(dt)
-	-- D5: parameter HUD fade timer (runs regardless of activeMode)
+	-- parameter HUD fade timer (runs regardless of activeMode)
 	if extraState.paramHudTimer > 0 then
 		extraState.paramHudTimer = extraState.paramHudTimer - dt
 	end
-	-- Drain replay queue: undo phase sends lightweight messages (high batch),
-	-- sync phase waits 1 tick for gadget feedback, apply phase sends BRUSH (low batch)
+	-- Drain the sticky replay queue: the undo phase sends cheap messages (big
+	-- batch), sync waits one tick for gadget feedback, apply sends BRUSH (small batch).
 	if extraState.replayQueue then
 		local q = extraState.replayQueue
 		local limit = (q.phase == "undo") and 50 or (q.phase == "sync") and 1 or 6
@@ -4914,21 +4965,19 @@ function widget:Update(dt)
 			end
 		end
 	end
-	-- G4: Drain ramp re-apply queue.
-	-- Sequential same-area undos in correct (newest-first) order are safe to batch;
-	-- see /memories/repo/bar_stripy_terrain_bug.md.  Use up to 20/frame so the
-	-- undo+sync+reapply cycle finishes in ~3 frames rather than ~120 frames.
+	-- Drain the ramp re-apply queue. Same-area undos in newest-first order are
+	-- safe to batch, so up to 20 per frame finish the cycle in a few frames.
 	if extraState.rampReapplyQueue and not extraState.replayQueue then
 		local rq = extraState.rampReapplyQueue
 		if rq.phase == "sync" then
-			-- Wait one tick for gadget to process UNDO_STROKE and report updated stack depth
+			-- Wait one tick for the gadget to process UNDO_STROKE and report the stack depth
 			rq.phase = "apply"
 		elseif rq.phase == "apply" then
 			extraState.reapplyRampChain(rq.chain)
 			closeBrushStroke()
 			rq.phase = "baseline"
 		elseif rq.phase == "baseline" then
-			-- One tick after reapply+STROKE_END: gadget has pushed new entry, update baseline
+			-- One tick after reapply + STROKE_END the gadget has the new entry: update the baseline
 			rq.chain.rampUndoBaseline = extraState.gadgetUndoCount
 			extraState.rampReapplyQueue = nil
 		end
@@ -4938,9 +4987,7 @@ function widget:Update(dt)
 		return
 	end
 
-	-- Autoramp WYSIWYG: refresh the hover preview at frame rate, above the
-	-- 20 Hz brush gate — hover latency matters more than the compute cost, and
-	-- the signature key inside makes no-change frames free.
+	-- Autoramp preview refreshes at frame rate, above the 20 Hz brush gate.
 	extraState.updateAutorampPreview()
 
 	updateTimer = updateTimer + dt
@@ -4949,10 +4996,9 @@ function widget:Update(dt)
 	end
 	updateTimer = 0
 
-	-- Warm the gadget's falloff-stamp cache ahead of the first apply.
-	-- Skipped while FOLLOW STROKE is steering the angle: it changes every tick,
-	-- so warming would send a message per tick to precompute a stamp the very
-	-- next dab builds anyway.
+	-- Warm the gadget's falloff-stamp cache ahead of the first apply. Not while
+	-- FOLLOW STROKE steers the angle: it changes every tick, so the next dab
+	-- builds the stamp anyway.
 	if activeMode ~= "ramp" and not (extraState.followStroke and extraState.followAngle) then
 		local warmSig = activeShape
 			.. "|"
@@ -4984,16 +5030,16 @@ function widget:Update(dt)
 	local anyPressed = leftPressed or (rightPressed and rightMouseHeld)
 	if not anyPressed then
 		stampApplied = false
-		-- Final apply: snap the complete assembled path (committed + tail) in one go
+		-- Final apply: snap the whole assembled path (committed + tail) in one go
 		if activeMode == "ramp" and activeShape == "circle" and #rampSplinePoints >= 2 then
 			local finalPts = extraState.buildFinalSplinePts()
 			extraState.sendSplinePts(finalPts, true)
-			-- G4: auto-attach ramp chain to the measure layer
+			-- attach the ramp chain to the measure layer
 			if extraState.rampAutoAttach and dragOriginX then
 				extraState.attachRampChain(finalPts, activeRadius, clayMode)
 			end
 		elseif activeMode == "ramp" and activeShape ~= "circle" and rampEndX and dragOriginX then
-			-- G4: straight ramp — attach a 2-pt chain to the measure layer
+			-- straight ramp: attach a 2-point chain to the measure layer
 			if extraState.rampAutoAttach then
 				extraState.attachRampChain(
 					{ { dragOriginX, dragOriginZ }, { rampEndX, rampEndZ } },
@@ -5080,9 +5126,9 @@ function widget:Update(dt)
 
 			if #rampSplinePoints >= 2 and (#rampSplinePoints - extraState.splineRampLastSendCount) >= 5 then
 				extraState.splineRampLastSendCount = #rampSplinePoints
-				-- Commit settled early segments first (snap-apply, freeze display)
+				-- Commit settled early segments first (snap-apply, freeze display),
+				-- then apply the live window near the cursor (30% blend)
 				extraState.doSplineCommit()
-				-- Apply live window near cursor (blend 30%)
 				extraState.sendSplinePts(extraState.getSmoothedSplineWindow(), false)
 			end
 		else
@@ -5131,7 +5177,6 @@ function widget:Update(dt)
 						.. (djMode and dustEffects and "1" or "0")
 					SendLuaRulesMsg(msg)
 				end
-				afterBrushTick()
 			end
 		end
 	elseif activeMode == "restore" then
@@ -5176,7 +5221,6 @@ function widget:Update(dt)
 				.. string.format("%.2f", extraState.restoreStrength)
 			SendLuaRulesMsg(msg)
 		end
-		afterBrushTick()
 	elseif activeMode == "erode" then
 		if mx ~= lastScreenX or my ~= lastScreenY then
 			lastScreenX = mx
@@ -5196,9 +5240,8 @@ function widget:Update(dt)
 			end
 		end
 
-		-- Thermal erosion: the gadget relaxes at most its per-message cell budget;
-		-- the phase counter rotates the strided cell subset so large brushes
-		-- converge over successive ticks instead of spiking a single frame.
+		-- The gadget relaxes at most its per-message cell budget; the phase counter
+		-- rotates the strided subset so large brushes converge over several ticks.
 		local erodePositions = extraState.getSymmetricPositions(lockedWorldX, lockedWorldZ, activeRotation)
 		for ei = 1, #erodePositions do
 			local ep = erodePositions[ei]
@@ -5225,12 +5268,10 @@ function widget:Update(dt)
 			SendLuaRulesMsg(msg)
 		end
 		extraState.erodePhase = extraState.erodePhase + 1
-		afterBrushTick()
 	elseif activeMode == "autoramp" then
-		-- Swipe: re-fire the one-click region op along the drag path once the
-		-- cursor has moved a brush-radius fraction from the last application,
-		-- so successive cliff rebuilds knit together without hammering the
-		-- gadget every tick. A stationary hold fires nothing.
+		-- Swipe: re-fire the one-click op along the drag once the cursor has moved
+		-- a fraction of the radius, so cliff rebuilds knit together without
+		-- hammering the gadget. A stationary hold fires nothing.
 		if mx ~= lastScreenX or my ~= lastScreenY then
 			lastScreenX = mx
 			lastScreenY = my
@@ -5249,9 +5290,7 @@ function widget:Update(dt)
 				local adz = worldZ - lastZ
 				local spacing = max(16, activeRadius * 0.5)
 				if adx * adx + adz * adz >= spacing * spacing then
-					if es.sendAutorampAt(worldX, worldZ) then
-						afterBrushTick()
-					end
+					es.sendAutorampAt(worldX, worldZ)
 					es.autorampLastX = worldX
 					es.autorampLastZ = worldZ
 				end
@@ -5304,7 +5343,6 @@ function widget:Update(dt)
 			end
 		end
 
-		-- Velocity-sensitive intensity: scale brush strength by drag speed
 		if extraState.velocityIntensity then
 			if extraState.lastDragScreenX and mouseMoved then
 				local dx = mx - extraState.lastDragScreenX
@@ -5326,23 +5364,17 @@ function widget:Update(dt)
 			stampApplied = true
 		end
 
-		-- Level mode (direction=0) passes the flatten target height (first-click,
-		-- pinned). Smooth mode needs none: the gadget computes a local per-cell
-		-- blur target itself (see the "smooth" sentinel in sendTerraformMessage).
-		-- Smudge likewise: its target is the gadget's carried height buffer.
+		-- Level mode passes the flatten height pinned at the first click. Smooth
+		-- and smudge need none: the gadget works out their per-cell targets.
 		local fh = nil
 		if activeDirection == 0 and activeMode ~= "smooth" and activeMode ~= "smudge" then
 			fh = lockedGroundY
 		end
 
-		-- Stroke resampling: walk the path the cursor actually drew (recorded by
-		-- extraState.appendStrokePoint at mouse rate) and drop a dab every stepSize
-		-- along it. The old code bridged a straight chord from the last applied
-		-- point to the current 20 Hz sample, so a fast scribble lost its corners.
-		-- Stamp mode is discrete by design and stays one dab at the cursor.
-		-- Close the polyline on the current cursor before walking it. MouseMove may
-		-- not have fired since the last tick, and this also means the walk degrades
-		-- to exactly the old straight-chord bridge if it never fires at all.
+		-- Stroke resampling: walk the path the cursor drew (appendStrokePoint) and
+		-- drop a dab every stepSize along it. Stamp mode stays one dab at the
+		-- cursor. Close the polyline on the current cursor first, since MouseMove
+		-- may not have fired since the last tick.
 		if lockedWorldX and not isStampMode() then
 			extraState.pushStrokePoint(lockedWorldX, lockedWorldZ)
 		end
@@ -5353,12 +5385,9 @@ function widget:Update(dt)
 		local prevX, prevZ = extraState.lastAppliedX, extraState.lastAppliedZ
 		local endX, endZ = lockedWorldX, lockedWorldZ
 		if prevX and prevZ and not isStampMode() then
-			-- Denser overlap (~15% of radius) eliminates visible banding at
-			-- slow-to-mid drag speeds. Performance mode widens the spacing where
-			-- the falloff can take it: a soft curve (<= 1) sums smoothly at a
-			-- quarter radius, clay converges on one plane whatever the spacing,
-			-- hard curves keep the full density. It also caps the dabs a tick
-			-- may carry, so a saturated tick costs two thirds.
+			-- Dabs every ~15% of the radius avoid banding. Performance mode widens
+			-- the spacing where the falloff allows (soft curves sum smoothly at a
+			-- quarter radius, clay converges on one plane) and lowers the dab cap.
 			local spacing = 0.15
 			local dabCap = 48
 			if extraState.perfMode then
@@ -5410,23 +5439,22 @@ function widget:Update(dt)
 		end
 		if nDabs == 0 then
 			-- Nothing recorded to walk: stamp mode, the first dab of a drag, or a
-			-- stationary hold (which keeps depositing, as it always has).
+			-- stationary hold (which keeps depositing).
 			nDabs = 1
 			dabs[1] = endX
 			dabs[2] = endZ
 			lastAngle = (extraState.followStroke and extraState.followAngle) or activeRotation
 			dabs[3] = lastAngle
 		end
-		-- WYSIWYG: while FOLLOW drives the shape, drive activeRotation with it too
-		-- so the ring preview, ground fill and colormap all show the dab that will
-		-- land. The user's manual rotation is parked in followManualRot at drag
-		-- start and restored by the release cleanup.
+		-- While FOLLOW drives the shape, activeRotation follows too, so every
+		-- preview shows the dab that will land (the manual rotation is parked in
+		-- followManualRot until release).
 		if extraState.followStroke and extraState.followAngle then
 			activeRotation = lastAngle
 		end
 		if extraState.measureRulerMode and extraState.measureStickyMode then
-			-- Sticky replay snapshots strokes per dab: keep it on the per-dab
-			-- message (and therefore on the old clay intensity split).
+			-- Sticky recording snapshots strokes per dab, so it stays on the per-dab
+			-- message, with clay intensity split across the tick's dabs.
 			if clayMode and nDabs > 1 then
 				extraState.interpIntensityScale = 1 / nDabs
 			end
@@ -5447,16 +5475,13 @@ function widget:Update(dt)
 		else
 			extraState.sendStrokeDabs(activeDirection, dabs, nDabs, activeRadius, activeShape, activeCurve, fh)
 		end
-		-- Per-tick MERGE_END: each tick = one undo entry, all tagged with same stroke ID.
-		-- UNDO_STROKE pops entire stroke atomically. closeBrushStroke() on mouse release.
-		afterBrushTick()
 		-- endX/endZ, not lockedWorld: on a saturated tick the stroke has only
 		-- reached the lag point, and the next tick must continue from there.
 		extraState.lastAppliedX = endX
 		extraState.lastAppliedZ = endZ
 	end
 
-	-- Seismic sound feedback: play periodic impact sounds while actively sculpting
+	-- Seismic effect: periodic impact sounds while sculpting
 	if djMode and seismicEffects then
 		extraState.seismicTimer = extraState.seismicTimer - UPDATE_INTERVAL
 		if extraState.seismicTimer <= 0 then
@@ -5476,12 +5501,7 @@ function widget:Update(dt)
 	end
 end
 
-local function rotatePoint(px, pz, angleDeg)
-	local rad = angleDeg * pi / 180
-	local cosA = cos(rad)
-	local sinA = sin(rad)
-	return px * cosA - pz * sinA, px * sinA + pz * cosA
-end
+local rotatePoint = extraState.WorldTool.rotate
 
 -- Returns the base RGB for the active mode
 local function getModeRGB()
@@ -5525,64 +5545,11 @@ local function getModeRGBBright()
 	end
 end
 
-extraState.EDGE_SEGMENTS = 16 -- subdivisions per edge for terrain-following outlines
+extraState.EDGE_SEGMENTS = extraState.WorldTool.EDGE_SEGMENTS -- subdivisions per edge for terrain-following outlines
 
-function extraState.drawRotatedSquare(cx, cz, radius, angleDeg, lengthScale)
-	lengthScale = lengthScale or 1.0
-	local corners = {
-		{ -radius, -radius * lengthScale },
-		{ radius, -radius * lengthScale },
-		{ radius, radius * lengthScale },
-		{ -radius, radius * lengthScale },
-	}
-
-	glPolygonOffset(-2, -2)
-	glBeginEnd(GL.LINE_LOOP, function()
-		for i = 1, 4 do
-			local next = (i % 4) + 1
-			local x0, z0 = corners[i][1], corners[i][2]
-			local x1, z1 = corners[next][1], corners[next][2]
-			for s = 0, extraState.EDGE_SEGMENTS - 1 do
-				local t = s / extraState.EDGE_SEGMENTS
-				local lx = x0 + (x1 - x0) * t
-				local lz = z0 + (z1 - z0) * t
-				local rx, rz = rotatePoint(lx, lz, angleDeg)
-				local wx, wz = cx + rx, cz + rz
-				local wy = GetGroundHeight(wx, wz)
-				glVertex(wx, wy, wz)
-			end
-		end
-	end)
-	glPolygonOffset(false)
-end
-
-function extraState.drawRegularPolygon(cx, cz, radius, angleDeg, numSides, lengthScale)
-	lengthScale = lengthScale or 1.0
-	local angleStep = 2 * pi / numSides
-	local subdiv = numSides <= 8 and extraState.EDGE_SEGMENTS or 1
-	glPolygonOffset(-2, -2)
-	glBeginEnd(GL.LINE_LOOP, function()
-		for i = 0, numSides - 1 do
-			local a0 = i * angleStep
-			local a1 = (i + 1) * angleStep
-			local x0 = cos(a0) * radius
-			local z0 = sin(a0) * radius * lengthScale
-			local x1 = cos(a1) * radius
-			local z1 = sin(a1) * radius * lengthScale
-			for s = 0, subdiv - 1 do
-				local t = s / subdiv
-				local lx = x0 + (x1 - x0) * t
-				local lz = z0 + (z1 - z0) * t
-				local rx, rz = rotatePoint(lx, lz, angleDeg)
-				local wx = cx + rx
-				local wz = cz + rz
-				local wy = GetGroundHeight(wx, wz)
-				glVertex(wx, wy, wz)
-			end
-		end
-	end)
-	glPolygonOffset(false)
-end
+-- Terrain-hugging outlines: (cx, cz, radius, angleDeg, lengthScale) and (cx, cz, radius, angleDeg, numSides, lengthScale).
+extraState.drawRotatedSquare = extraState.WorldTool.drawSquare
+extraState.drawRegularPolygon = extraState.WorldTool.drawPolygon
 
 function extraState.drawRing(cx, cz, radius, angleDeg, lengthScale)
 	lengthScale = lengthScale or 1.0
@@ -5646,7 +5613,6 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 	if not extraState.symmetryActive then
 		return
 	end
-	-- Allow drawing when any terrain/placement tool is active
 	if not activeMode then
 		local mbSt = WG.MetalBrush and WG.MetalBrush.getState()
 		local gbSt = WG.GrassBrush and WG.GrassBrush.getState()
@@ -5725,8 +5691,7 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 		end)
 	end
 
-	-- Draw semi-transparent gradient quad strip along a mirror axis line
-	-- The gradient rises from the axis with decreasing alpha to show which side is source
+	-- Gradient strip along a mirror axis, fading away from the axis, to show which side is the source
 	local function drawAxisGradient(angleRad, r, g, b)
 		local GRAD_HEIGHT = 120 -- world units above terrain
 		local GRAD_SEGS = 30
@@ -5822,18 +5787,16 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 	glPolygonOffset(0, 0)
 end
 
--- Shape corner cache. Callers treat the returned array as read-only; we
--- memoise by (shape, radius, angleDeg, lengthScale) so per-frame outline,
--- prism, and ground-fill draws reuse the same geometry when brush params
--- are stable. Small bounded FIFO (8 entries) prevents unbounded growth
--- when parameters animate (scroll-drag, rotation slider).
+-- Shape corner cache, keyed by (shape, radius, angleDeg, lengthScale), so the
+-- per-frame outline, prism and ground-fill draws share geometry. Callers treat
+-- the arrays as read-only. A small FIFO (8 entries) bounds it while params animate.
 extraState.shapeCornerCache = {}
 extraState.shapeCornerCacheOrder = {}
 
 function extraState.getShapeCorners(shape, radius, angleDeg, lengthScale)
 	lengthScale = lengthScale or 1.0
-	-- Cache lookup. Key format is cheap concat; numeric params rounded to
-	-- avoid float churn (sub-0.1° / sub-0.01 length diffs are invisible).
+	-- Params rounded so invisible float differences (under 0.1 deg or 0.01
+	-- length) share a key.
 	local key = shape
 		.. "|"
 		.. radius
@@ -5899,8 +5862,7 @@ function extraState.getShapeCorners(shape, radius, angleDeg, lengthScale)
 		corners = {}
 	end
 
-	-- Cache store with bounded FIFO eviction (8 entries max). Callers treat
-	-- returned arrays as read-only; no defensive copy required.
+	-- Store with FIFO eviction (8 entries max).
 	extraState.shapeCornerCache[key] = corners
 	local order = extraState.shapeCornerCacheOrder
 	order[#order + 1] = key
@@ -5911,13 +5873,10 @@ function extraState.getShapeCorners(shape, radius, angleDeg, lengthScale)
 	return corners
 end
 
--- Draws a terrain-following semi-transparent fill for the brush footprint.
--- Vertices sample GetGroundHeight so the poly hugs hills/valleys.
--- When curvePower is provided, the fill is rendered with a falloff-based alpha
--- gradient: bright at the center (strong terrain effect) and fading to transparent
--- at the edges (weak effect). This visualises where the brush will raise/lower
--- fast vs. slow. r,g,b default to white if not supplied; maxAlpha caps center
--- opacity.
+-- Terrain-following semi-transparent fill for the brush footprint. With
+-- curvePower, alpha follows the falloff (bright centre, fading edges) to show
+-- where the brush works fast or slow. r,g,b default to white; maxAlpha caps the
+-- centre opacity.
 function extraState.drawShapeGroundFill(
 	cx,
 	cz,
@@ -5943,7 +5902,7 @@ function extraState.drawShapeGroundFill(
 	b = b or 1
 	maxAlpha = maxAlpha or 0.6
 
-	-- Adaptive tangential segment count (same tiers as before)
+	-- Adaptive tangential segment count
 	local segments
 	if radius < 80 then
 		segments = 16
@@ -6262,12 +6221,9 @@ function extraState.drawRingPrism(cx, cz, radius, angleDeg, groundY, capMin, cap
 	end
 end
 
--- Falloff-curve vertex cache. The XZ positions + per-vertex falloff factors
--- depend only on (shape, radius, curvePower, angleDeg, lengthScale). baseY +
--- effectHeight change every frame (cursor moves across terrain) but Y is a
--- trivial `baseY + falloff * effectHeight` computation. Caching the cos/sin/
--- pow results removes 64 trig + 64 pow ops per frame when brush params are
--- stable.
+-- Falloff-curve vertex cache: XZ positions and falloff factors depend only on
+-- (shape, radius, curvePower, angleDeg, lengthScale); Y is recomputed per frame
+-- as baseY + falloff * effectHeight.
 extraState.falloffCurveCache = {}
 extraState.falloffCurveCacheOrder = {}
 
@@ -6418,8 +6374,6 @@ function extraState.drawFalloffCurveRegularPoly(
 	end)
 end
 
--- squareFaces moved into extraState to stay within 200-local limit
-
 function extraState.drawFalloffCurvePoly(cx, cz, faces, radiusX, radiusZ, angleDeg, curvePower, baseY, effectHeight)
 	local segmentsPerFace = 12
 	local vx, vy, vz = {}, {}, {}
@@ -6488,10 +6442,9 @@ function extraState.drawRampPreview(startX, startZ, startY, endX, endZ, endY, wi
 	end)
 end
 
--- Bundle draw helpers into a single table to reduce upvalue count for DrawWorld
--- (LuaJIT limit: 60 upvalues per function)
--- Height colormap: topographic color ramp (8 stops, terrain elevation visualization)
--- Inspired by USGS/topographic map colors — dark water blues through greens to warm peaks.
+-- Draw helpers live on extraState so DrawWorld stays under Lua 5.1's limit of
+-- 60 upvalues per function.
+-- Height colormap: topographic colour ramp, water blues through greens to warm peaks.
 do
 	extraState.CMAP_STOPS = {
 		{ h = 0.00, r = 0.10, g = 0.20, b = 0.45 }, -- deep water
@@ -6539,10 +6492,9 @@ do
 		-- Compute height range within brush footprint (two-pass: sample then draw)
 		local spanX = radius
 		local spanZ = radius * lengthScale
-		-- Collect grid data: world positions and heights.
-		-- Grid vertices are world-snapped (see fracOff logic below), so the sampled
-		-- positions/heights only change when the snapped grid origin moves or the
-		-- terrain is modified — cache them in reused scratch arrays keyed on exactly that.
+		-- Grid vertices are world-snapped (see fracOff below), so positions and
+		-- heights only change when the snapped origin moves or the terrain changes:
+		-- cache them keyed on exactly that.
 		local cmc = extraState.cmapCache
 		if not cmc then
 			cmc = { gx = {}, gz = {}, gy = {}, ga = {} }
@@ -6615,9 +6567,8 @@ do
 			and cmc.gridN == gridN
 			and cmc.terrain == tv
 		then
-			-- Cache hit: skip (gridN+1)^2 GetGroundHeight calls. Only the per-vertex
-			-- shape alpha depends on the continuous cursor offset (and shape), so
-			-- recompute just that — it is pure math, no ground sampling.
+			-- Cache hit: no ground sampling. Only the per-vertex shape alpha depends
+			-- on the continuous cursor offset, so recompute just that.
 			hMin, hMax = cmc.hMin, cmc.hMax
 			peakX, peakZ = cmc.peakX, cmc.peakZ
 			for row = 0, gridN do
@@ -6748,14 +6699,13 @@ do
 						if ga[i00] > 0 or ga[i10] > 0 or ga[i01] > 0 or ga[i11] > 0 then
 							-- Check the 4 edges of this quad for contour crossings
 							local h00, h10, h01, h11 = gy[i00], gy[i10], gy[i01], gy[i11]
-							-- Edge helpers: interpolate position along edge where contourH crosses
-							-- Bottom edge (i00 → i10)
+							-- Bottom edge (i00 -> i10)
 							if (h00 - contourH) * (h10 - contourH) < 0 then
 								local f = (contourH - h00) / (h10 - h00)
 								local ax = gx[i00] + (gx[i10] - gx[i00]) * f
 								local az = gz[i00] + (gz[i10] - gz[i00]) * f
 								-- Find a matching edge
-								-- Right edge (i10 → i11)
+								-- Right edge (i10 -> i11)
 								if (h10 - contourH) * (h11 - contourH) < 0 then
 									local f2 = (contourH - h10) / (h11 - h10)
 									glVertex(ax, contourH + 3, az)
@@ -6765,7 +6715,7 @@ do
 										gz[i10] + (gz[i11] - gz[i10]) * f2
 									)
 								end
-								-- Top edge (i01 → i11)
+								-- Top edge (i01 -> i11)
 								if (h01 - contourH) * (h11 - contourH) < 0 then
 									local f2 = (contourH - h01) / (h11 - h01)
 									glVertex(ax, contourH + 3, az)
@@ -6775,7 +6725,7 @@ do
 										gz[i01] + (gz[i11] - gz[i01]) * f2
 									)
 								end
-								-- Left edge (i00 → i01)
+								-- Left edge (i00 -> i01)
 								if (h00 - contourH) * (h01 - contourH) < 0 then
 									local f2 = (contourH - h00) / (h01 - h00)
 									glVertex(ax, contourH + 3, az)
@@ -6786,7 +6736,7 @@ do
 									)
 								end
 							end
-							-- Left edge (i00 → i01) → Right edge (i10 → i11)
+							-- Left edge (i00 -> i01) -> Right edge (i10 -> i11)
 							if (h00 - contourH) * (h01 - contourH) < 0 and (h10 - contourH) * (h11 - contourH) < 0 then
 								local f1 = (contourH - h00) / (h01 - h00)
 								local f2 = (contourH - h10) / (h11 - h10)
@@ -6801,7 +6751,7 @@ do
 									gz[i10] + (gz[i11] - gz[i10]) * f2
 								)
 							end
-							-- Top edge (i01 → i11) → others handled above if bottom was already a crossing
+							-- Top edge (i01 -> i11) -> others handled above if bottom was already a crossing
 							if
 								(h01 - contourH) * (h11 - contourH) < 0
 								and not ((h00 - contourH) * (h10 - contourH) < 0)
@@ -6839,8 +6789,8 @@ do
 		end
 		extraState.colormapPeak = { peakX, hMax, peakZ, tostring(floor(hMax + 0.5)) }
 		extraState.collectColormapLabels(cx, cz, spanX, spanZ, cosA, sinA, hMin, hRange, contourStep, shape)
-		-- Persist mesh + contour params so the per-frame hover-highlight pass can use them
-		-- outside the display-list cache (Lua assignments are not recorded by glCreateList).
+		-- Persist mesh + contour params for the per-frame hover pass outside the
+		-- display list (glCreateList records GL calls, not Lua assignments).
 		extraState.colormapContourStep = contourStep
 		extraState.colormapHMin = hMin
 		extraState.colormapHMax = hMax
@@ -6944,9 +6894,8 @@ do
 	end
 end
 
--- Draw the single contour line at height `contourH` using the last-cached mesh,
--- with a bright highlight colour and wider stroke.  Called every frame outside
--- the display-list cache so hover state changes are reflected immediately.
+-- Draw the contour at height `contourH` from the cached mesh as a bright, wide
+-- highlight. Called every frame outside the display list so hover shows at once.
 extraState.drawContourHighlight = function(contourH)
 	local mesh = extraState.colormapLastMesh
 	if not mesh then
@@ -6966,7 +6915,7 @@ extraState.drawContourHighlight = function(contourH)
 				local i11 = i01 + 1
 				if ga2[i00] > 0 or ga2[i10] > 0 or ga2[i01] > 0 or ga2[i11] > 0 then
 					local h00, h10, h01, h11 = gy2[i00], gy2[i10], gy2[i01], gy2[i11]
-					-- Bottom edge (i00→i10)
+					-- Bottom edge (i00->i10)
 					if (h00 - contourH) * (h10 - contourH) < 0 then
 						local f = (contourH - h00) / (h10 - h00)
 						local bx = gx2[i00] + (gx2[i10] - gx2[i00]) * f
@@ -6999,7 +6948,7 @@ extraState.drawContourHighlight = function(contourH)
 							)
 						end
 					end
-					-- Left edge (i00→i01) → Right edge (i10→i11)
+					-- Left edge (i00->i01) -> Right edge (i10->i11)
 					if (h00 - contourH) * (h01 - contourH) < 0 and (h10 - contourH) * (h11 - contourH) < 0 then
 						local f1 = (contourH - h00) / (h01 - h00)
 						local f2 = (contourH - h10) / (h11 - h10)
@@ -7014,7 +6963,7 @@ extraState.drawContourHighlight = function(contourH)
 							gz2[i10] + (gz2[i11] - gz2[i10]) * f2
 						)
 					end
-					-- Top edge (i01→i11) only when bottom edge didn't already cover this quad
+					-- Top edge (i01->i11) only when bottom edge didn't already cover this quad
 					if (h01 - contourH) * (h11 - contourH) < 0 and not ((h00 - contourH) * (h10 - contourH) < 0) then
 						local f = (contourH - h01) / (h11 - h01)
 						local tx = gx2[i01] + (gx2[i11] - gx2[i01]) * f
@@ -7046,10 +6995,8 @@ extraState.drawContourHighlight = function(contourH)
 	gl.DepthTest(true)
 end
 
--- Called every frame from DrawWorld (outside the display-list cache) to detect
--- which topo contour/peak the cursor is over in height-sampling mode and draw the
--- highlight.  Defined as an extraState function so DrawWorld gains zero new
--- upvalues (only `extraState` is referenced, which is already a DrawWorld upvalue).
+-- Called every frame from DrawWorld (outside the display list): in
+-- height-sampling mode, find the contour or peak under the cursor and highlight it.
 extraState.doSamplingHover = function(groundY)
 	if not extraState.heightSamplingMode then
 		return
@@ -7114,7 +7061,6 @@ extraState.drawEx = {
 			end
 		end)
 
-		-- Compute normals per point
 		local normals = {}
 		for i = 1, #points do
 			local nx, nz = 0, 0
@@ -7182,9 +7128,7 @@ extraState.drawEx = {
 	end,
 }
 
--- ─────────────────────────────────────────────────────────────────────────────
 -- MEASURE TOOL: world-space line drawing (runs outside terraform mode)
--- ─────────────────────────────────────────────────────────────────────────────
 extraState.MEASURE_KM_SCALE = 192.0 -- elmos per km (display only)
 extraState.MEASURE_SNAP_PX = 22 -- screen-pixel radius for endpoint snap/drag
 
@@ -7201,7 +7145,7 @@ function extraState.drawMeasureWorld()
 
 	-- Colour palette
 	local LR, LG, LB = 0.10, 0.85, 1.00 -- line / ring teal (regular chains)
-	local RR, RG, RB = 1.00, 0.65, 0.10 -- ramp chain amber (G4)
+	local RR, RG, RB = 1.00, 0.65, 0.10 -- ramp chain amber
 	local HR, HG, HB = 1.00, 0.72, 0.10 -- control handle orange
 	local SEG_DASH = 24 -- dash period (elmos)
 
@@ -7296,7 +7240,7 @@ function extraState.drawMeasureWorld()
 		end
 	end
 
-	-- Spline handle diamond marker (orange ◇ with dark halo)
+	-- Spline handle diamond marker (orange, with dark halo)
 	local function drawHandle(hx, hz, isHover)
 		local hy = GetGroundHeight(hx, hz) + BUMP
 		local R = isHover and 11 or 8
@@ -7335,7 +7279,7 @@ function extraState.drawMeasureWorld()
 		end)
 	end
 
-	-- ⊕ affordance at segment body showing where a handle would be placed
+	-- Hint at the segment body showing where a handle would be placed
 	local function drawMidHint(wx, wz)
 		local wy = GetGroundHeight(wx, wz) + BUMP
 		local R = 9
@@ -7358,7 +7302,7 @@ function extraState.drawMeasureWorld()
 
 	glPolygonOffset(-2, -2)
 
-	-- ── Pass 1 (depth OFF): underground ghost ──────────────────────────────────
+	-- Pass 1 (depth OFF): underground ghost
 	gl.DepthTest(false)
 	glLineWidth(1.5)
 	for ci = 1, #ms do
@@ -7389,7 +7333,7 @@ function extraState.drawMeasureWorld()
 		end)
 	end
 
-	-- ── Pass 2 (depth ON): committed lines — dark border then bright core ──────
+	-- Pass 2 (depth ON): committed lines, dark border then bright core
 	gl.DepthTest(true)
 	glLineWidth(5)
 	for ci = 1, #ms do
@@ -7426,7 +7370,7 @@ function extraState.drawMeasureWorld()
 		end
 	end
 
-	-- ── Pass 2-sym: symmetry mirror copies (non-interactive ghosts) ────────────
+	-- Pass 2-sym: symmetry mirror copies (non-interactive ghosts)
 	if extraState.symmetryActive then
 		for ci = 1, #ms do
 			local chain = ms[ci]
@@ -7471,7 +7415,7 @@ function extraState.drawMeasureWorld()
 		end
 	end
 
-	-- ── Pass 2b: control handles + arms ────────────────────────────────────────
+	-- Pass 2b: control handles + arms
 	for ci = 1, #ms do
 		local chain = ms[ci]
 		if chain and chain.handles then
@@ -7487,12 +7431,12 @@ function extraState.drawMeasureWorld()
 		end
 	end
 
-	-- ── Pass 2c: segment-midpoint hover hint ───────────────────────────────────
+	-- Pass 2c: segment-midpoint hover hint
 	if hoverM then
 		drawMidHint(hoverM.wx, hoverM.wz)
 	end
 
-	-- ── Pass 3: live preview segment ───────────────────────────────────────────
+	-- Pass 3: live preview segment
 	if apr and cx then
 		local ax, az = apr[1], apr[2]
 		local bx, bz = cx, cz
@@ -7529,7 +7473,7 @@ function extraState.drawMeasureWorld()
 		drawEndpoint(bx, bz, true)
 	end
 
-	-- ── Pass 3-sym: mirror copies of live preview segment ─────────────────────
+	-- Pass 3-sym: mirror copies of live preview segment
 	if apr and cx and extraState.symmetryActive then
 		local asyms = extraState.getSymmetricPositions(apr[1], apr[2], 0)
 		local csyms = extraState.getSymmetricPositions(cx, cz, 0)
@@ -7574,8 +7518,8 @@ function extraState.measureShiftSnap(refX, refZ, wx, wz)
 	end
 end
 
--- ─── Spline (quadratic Bezier) helpers ────────────────────────────────────────
--- Evaluate quadratic Bezier at parameter t: A → handle H → B
+-- Spline (quadratic Bezier) helpers
+-- Evaluate quadratic Bezier at parameter t: A -> handle H -> B
 extraState.bezierEval = function(t, ax, az, hx, hz, bx, bz)
 	local mt = 1.0 - t
 	return mt * mt * ax + 2 * mt * t * hx + t * t * bx, mt * mt * az + 2 * mt * t * hz + t * t * bz
@@ -7619,6 +7563,7 @@ extraState.closestOnBezier = function(px, pz, ax, az, hx, hz, bx, bz)
 end
 
 -- Screen-space search for the nearest committed handle. Returns {chain=c,seg=s} or nil.
+---@return TerraformMeasureSegRef?
 extraState.measureFindNearHandle = function(sx, sy)
 	local ms = extraState.measureLines
 	local SNAP = extraState.MEASURE_SNAP_PX * 1.8
@@ -7645,6 +7590,7 @@ end
 
 -- Screen-space search for a segment body (no handle yet) close to cursor.
 -- Returns {chain=c, seg=s, wx=w, wz=z} projected onto the segment, or nil.
+---@return TerraformMeasureSegRef?
 extraState.measureFindNearSegMid = function(sx, sy)
 	local ms = extraState.measureLines
 	local SNPX = extraState.MEASURE_SNAP_PX * 2.5
@@ -7688,6 +7634,7 @@ end
 
 -- Returns the index of the nearest chain within snap distance of any segment (straight or Bezier).
 -- Used for RMB chain deletion.
+---@return integer? chainIndex
 extraState.measureFindNearChain = function(sx, sy)
 	local ms = extraState.measureLines
 	local SNPX = extraState.MEASURE_SNAP_PX * 2.5
@@ -7854,25 +7801,21 @@ extraState.recordLinkedStroke = function(
 	end
 end
 
--- Undo the last linked-stroke group, then re-apply all recorded strokes at their
--- new parametric positions (following spline geometry changes in sticky mode).
--- Both phases are frame-batched to avoid hitting the bandwidth limit.
--- Phase 1: undo N entries per frame.  Phase 2: apply N strokes per frame.
+-- Undo the last linked-stroke group, then re-apply every recorded stroke at its
+-- new parametric position (sticky mode follows spline reshaping). Both phases
+-- are batched across frames to stay under the network bandwidth limit.
 extraState.replayLinkedStrokes = function()
 	local strokes = extraState.linkedStrokes
 	if not strokes or #strokes == 0 then
 		return
 	end
-	-- Cancel any in-progress queue
 	extraState.replayQueue = nil
-	-- Compute actual undo count from gadget-reported stack depth.
-	-- This is always correct regardless of merges, auto-splits, or evictions.
+	-- Undo count from the gadget-reported stack depth, which stays right through evictions.
 	local baseline = extraState.stickyUndoBaseline or 0
 	local undoNeeded = (extraState.gadgetUndoCount or 0) - baseline
 	if undoNeeded < 0 then
 		undoNeeded = 0
 	end
-	-- Start undo phase (batched across frames)
 	extraState.replayQueue = {
 		phase = "undo",
 		remaining = undoNeeded,
@@ -7899,7 +7842,7 @@ extraState.replayQueueTick = function()
 	end
 
 	if q.phase == "sync" then
-		-- Snap baseline to actual post-undo depth (handles eviction/drift)
+		-- Snap the baseline to the real post-undo depth (handles eviction and drift)
 		extraState.stickyUndoBaseline = extraState.gadgetUndoCount or 0
 		q.phase = "apply"
 		return true
@@ -7931,7 +7874,7 @@ extraState.replayQueueTick = function()
 			end
 			wx = wx + s.perpX
 			wz = wz + s.perpZ
-			-- Per-position batching: each symmetric copy gets its own merge
+			-- One BRUSH message, and so one undo entry, per symmetric copy
 			local positions = extraState.getSymmetricPositions(wx, wz, s.rot)
 			local isFlipped = extraState.symmetryFlipped
 			for j = 1, #positions do
@@ -7972,7 +7915,6 @@ extraState.replayQueueTick = function()
 					.. " "
 					.. s.ringStr
 				SendLuaRulesMsg(msg)
-				afterBrushTick()
 			end
 		end
 	end
@@ -8034,15 +7976,14 @@ end
 
 -- Returns {chain=i, pt=j} for the endpoint nearest to (sx,sy) in screen space,
 -- or nil if none is within MEASURE_SNAP_PX pixels.
+---@return TerraformMeasurePointRef?
 function extraState.measureFindNearEndpoint(sx, sy)
 	local ms = extraState.measureLines
 	local best = nil
 	local bestD = extraState.MEASURE_SNAP_PX * extraState.MEASURE_SNAP_PX
-	-- Per-endpoint ground-height cache: endpoints rarely move and the terrain under
-	-- them rarely changes, so avoid one GetGroundHeight per point per frame. Keyed
-	-- by point-table identity, validated against the live coordinates (catches both
-	-- in-place edits and table replacement), and dropped wholesale whenever the
-	-- terrain changes. WorldToScreenCoords still runs every frame (camera moves).
+	-- Per-endpoint ground-height cache, keyed by point table, checked against the
+	-- live coordinates and dropped whenever the terrain changes. Only
+	-- WorldToScreenCoords runs every frame (the camera moves).
 	local tv = extraState.terrainVersion
 	local hc = extraState.measureHeightCache
 	if not hc or extraState.measureHeightCacheTerrain ~= tv then
@@ -8082,10 +8023,9 @@ function extraState.measureFindNearEndpoint(sx, sy)
 end
 
 -- Deferred jobs that need a draw call-in: New Map DNTS apply and procedural
--- drive (post-reload), heightmap export and import. DrawScreenPost, NOT
--- DrawScreen: the widget handler skips DrawScreen while the interface is hidden
--- and FOCUS MODE (the panel's eye button) hides it on purpose, so a job queued
--- there would sit until the HUD came back. DrawScreenPost runs every frame.
+-- drive, heightmap export and import. DrawScreenPost, NOT DrawScreen: the widget
+-- handler skips DrawScreen while the interface is hidden, which FOCUS MODE does
+-- on purpose. DrawScreenPost runs every frame.
 function widget:DrawScreenPost()
 	if not extraState._newmapDNTSApplied then
 		extraState._newmapTryApplyDNTS()
@@ -8214,15 +8154,13 @@ function widget:DrawScreen()
 		glColor(1, 1, 1, 1)
 	end
 
-	-- Measure tool distance labels drawn via DrawScreenEffects (works in F5 mode too)
+	-- Measure distance labels are drawn in DrawScreenEffects (shown in F5 mode too)
 end
 
--- ─── Unmouse: park brush beside the terraform UI panel ─────────────────────
--- Computes the parked world position when the mouse is over the UI panel.
--- Returns (newWorldX, newWorldZ), possibly unchanged when not hovering.
+-- UNMOUSE: park the brush beside the terraform panel while the mouse is over it
 
--- Helper: find a valid on-terrain world position to park the brush.
--- Tries screen centre first; if the panel covers it, tries left then right quarter.
+-- Find an on-terrain world position to park the brush: screen centre first,
+-- then the left and right quarters if the panel covers it.
 extraState.computeUnmouseTarget = function(bounds)
 	local vsx, vsy = Spring.GetViewGeometry()
 	local brushSpan = activeRadius * math.max(1.0, activeLengthScale) + 70
@@ -8233,7 +8171,6 @@ extraState.computeUnmouseTarget = function(bounds)
 		math.floor(vsx * 0.75), -- right quarter
 	}
 	for _, sx in ipairs(candidates) do
-		-- Skip if this candidate falls inside the panel
 		if not (sx >= bounds.left - brushSpan and sx <= bounds.right + brushSpan) then
 			local _, pos = TraceScreenRay(sx, midY, true)
 			if pos then
@@ -8241,13 +8178,12 @@ extraState.computeUnmouseTarget = function(bounds)
 			end
 		end
 	end
-	-- All preferred spots blocked — just use raw centre regardless
+	-- All preferred spots blocked: use the raw centre anyway
 	local _, pos = TraceScreenRay(math.floor(vsx * 0.5), midY, true)
 	return pos and pos[1] or nil, pos and pos[3] or nil
 end
 
--- Parameterized version of computeUnmouseTarget for sub-tools with their own
--- radius / length scale. Same candidate ladder (centre → quarter → opposite quarter).
+-- computeUnmouseTarget for sub-tools with their own radius and length scale.
 extraState.computeParkedTarget = function(bounds, radius, lengthScale)
 	local vsx, vsy = Spring.GetViewGeometry()
 	local brushSpan = (radius or 200) * math.max(1.0, lengthScale or 1.0) + 70
@@ -8269,21 +8205,18 @@ extraState.computeParkedTarget = function(bounds, radius, lengthScale)
 			end
 		end
 	end
-	-- Nothing clears it. Take the side with the most room rather than the screen
-	-- centre, which would park the brush under the very thing it is stepping out
-	-- from behind.
+	-- Nothing clears it: take the side with the most room, since the screen
+	-- centre would park the brush under the panel itself.
 	local middle = (bounds.left + bounds.right) * 0.5
 	local fallbackX = middle > vsx * 0.5 and math.floor(vsx * 0.02) or math.floor(vsx * 0.98)
 	local _, pos = TraceScreenRay(fallbackX, midY, true)
 	return pos and pos[1] or nil, pos and pos[3] or nil
 end
 
--- Drives the per-sub-tool unmouse slide animation. Mirrors applyUnmouse but
--- keeps state per toolKey so each tool animates independently.
--- realX/realZ: caller's current real ground position (or nil when ray missed).
--- Returns the animated (worldX, worldZ) to use for brush drawing, or the real
--- position when no animation is in progress. May return nil,nil if neither
--- a real position nor a parked target is available.
+-- Per-sub-tool unmouse slide: like applyUnmouse, with state per toolKey.
+-- realX/realZ: the caller's real ground position (nil when the ray missed).
+-- Returns the animated position, the real one when idle, or nil, nil when
+-- neither a real position nor a parked target exists.
 extraState.tickSubToolUnmouse = function(toolKey, realX, realZ, radius, lengthScale)
 	if not toolKey then
 		return realX, realZ
@@ -8339,7 +8272,7 @@ extraState.tickSubToolUnmouse = function(toolKey, realX, realZ, radius, lengthSc
 				end
 			end
 			if not fx then
-				-- No usable starting position — skip this frame, try again next tick
+				-- No usable starting position: try again next frame
 				return realX, realZ
 			end
 			st.fromX = fx
@@ -8439,8 +8372,7 @@ extraState.applyUnmouse = function(worldX, worldZ)
 		extraState.unmouseFromZ + (extraState.unmouseToZ - extraState.unmouseFromZ) * t
 end
 
--- Draws a gentle extra outline pulse when brush is parked beside the UI panel.
--- Called from DrawWorld (zero new locals added there).
+-- Draws a gentle extra outline pulse while the brush is parked beside the panel.
 extraState.doUnmouseDraw = function(worldX, worldZ, groundY)
 	local animT = extraState.unmouseAnimT
 	if animT <= 0.03 or activeMode == "ramp" then
@@ -8464,13 +8396,10 @@ extraState.doUnmouseDraw = function(worldX, worldZ, groundY)
 end
 
 extraState.doUnmouseScreenFx = function() end -- intentionally empty
--- ─────────────────────────────────────────────────────────────────────────────
 
--- ── Edge fade ────────────────────────────────────────────────────────────────
--- Past the paintable band (map + one brush radius) the brush keeps following
--- the mouse but fades with distance, hitting zero one fade span out; opacity
--- returns to full where the footprint touches the map again. brushFadeAlpha
--- (0..1) mirrors brushEdgeFade, which the position helpers compute per call.
+-- EDGE FADE
+-- Past the paintable band (map + one brush radius) the brush fades out over one
+-- fade span. brushFadeAlpha (0..1) mirrors brushEdgeFade from the position helpers.
 
 -- Animated glow outline, shared by the normal draw path and the fade path.
 -- alphaMul scales the whole glow (1 = full strength).
@@ -8482,8 +8411,8 @@ extraState.drawBrushGlow = function(worldX, worldZ, groundY, alphaMul)
 	elseif intFrac > 1 then
 		intFrac = 1
 	end
-	-- Pulse speed: slow (~0.45 Hz) at low intensity, a bit faster (~1.1 Hz) at high.
-	-- Use a continuous timer so phase stays smooth when intensity changes.
+	-- Pulse speed: about 0.45 Hz at low intensity, 1.1 Hz at high, on a
+	-- continuous timer so the phase stays smooth when intensity changes.
 	if not extraState.brushPulseTimer then
 		extraState.brushPulseTimer = Spring.GetTimer()
 	end
@@ -8514,11 +8443,9 @@ extraState.drawBrushGlow = function(worldX, worldZ, groundY, alphaMul)
 	glLineWidth(1)
 end
 
--- Lightweight faded brush at opacity `a`: footprint fill + outline + glow.
--- Used while the cursor is in the fade zone beyond the paintable band, because
--- the normal path's display list bakes its colors and can't be dimmed after
--- the fact. Heavy extras (height prisms, falloff curtains, colormap) are
--- skipped -- fill + ring + glow carry the look.
+-- Lightweight faded brush at opacity `a` (fill, outline, glow) for the fade zone
+-- beyond the paintable band: the normal path's display list bakes its colours
+-- and cannot be dimmed.
 extraState.drawBrushFaded = function(wx, wz, gy, a)
 	if not activeMode then
 		return
@@ -8628,9 +8555,8 @@ end
 -- always appear even when the full UI is hidden.
 function widget:DrawScreenEffects()
 	extraState.drawMeasureLabels()
-	-- Unmouse: amber arrow pointing from parked brush toward real cursor (over panel)
 	extraState.doUnmouseScreenFx()
-	-- D5: cursor-anchored parameter feedback HUD
+	-- cursor-anchored parameter feedback HUD
 	if extraState.paramHudText and extraState.paramHudTimer > 0 then
 		local fadeIn = min(1.0, (1.5 - extraState.paramHudTimer) / 0.15)
 		local fadeOut = min(1.0, extraState.paramHudTimer / 0.35)
@@ -8678,11 +8604,8 @@ extraState.drawProtractorOverlay = function(cx, cz, radius)
 	extraState.protractorStep = step
 	extraState.protractorHighlight = highlightAngle
 
-	-- Display-list cache: the spokes bake hundreds of per-vertex GetGroundHeight
-	-- samples, so rebuild only when center/radius/step/highlight changes or the
-	-- terrain itself changed (terrainVersion bumps on every UnsyncedHeightMapUpdate).
-	-- While the brush moves this misses every frame (same cost as immediate mode);
-	-- when stationary the spokes replay from the list for free.
+	-- Display-list cache: the spokes bake hundreds of GetGroundHeight samples, so
+	-- rebuild only when centre, radius, step, highlight or terrain change.
 	local tv = extraState.terrainVersion
 	if
 		not (
@@ -8774,21 +8697,17 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Full-map grid overlay: visible across the whole map regardless of brush active state.
-	-- Skipped with the interface hidden (F5, but not FOCUS MODE) or while a map
-	-- capture is walking the camera — the capture reprojects the rendered frame,
-	-- so the grid would be baked into the exported photo. Conditions are inlined
-	-- rather than hoisted into a helper: this chunk is at the Lua 5.1 200-local ceiling.
+	-- Full-map grid overlay, whether or not the brush is active. Skipped with the
+	-- interface hidden (F5, not FOCUS MODE) or during a map capture, which would
+	-- bake the grid into the exported image.
 	if
 		gridOverlay
 		and not extraState.interfaceHiddenForEditor()
 		and not (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy())
 	then
-		-- Debounce rebuilds: while actively terraforming, `gridDirty` flips true
-		-- every stroke tick. Rebuilding the full-map display list (thousands of
-		-- GetGroundHeight calls) every frame is wasted work — the visual is
-		-- indistinguishable at 5Hz vs every-frame. Rebuild at most every 0.2s,
-		-- OR immediately if the display list is missing.
+		-- `gridDirty` flips every stroke tick, and the full-map list costs
+		-- thousands of GetGroundHeight calls: rebuild at most every 0.2 s, or at
+		-- once when the list is missing.
 		if not extraState.gridDL then
 			extraState.buildFullMapGrid()
 		elseif extraState.gridDirty then
@@ -8802,8 +8721,7 @@ function widget:DrawWorld()
 		glCallList(extraState.gridDL)
 	end
 
-	-- Water level preview: same gating as the grid overlay (it is an editor
-	-- overlay, and a map capture would otherwise bake it into the photo).
+	-- Water level preview: same gating as the grid overlay.
 	if
 		extraState.waterPreviewLevel
 		and not extraState.interfaceHiddenForEditor()
@@ -8815,10 +8733,9 @@ function widget:DrawWorld()
 	if not activeMode then
 		invalidateDrawCache()
 		hideBuildGrid()
-		-- Measure tool runs independently of terraform mode
 		if extraState.measureActive then
 			local mx2, mz2 = getWorldMousePosition()
-			-- Hover detection: when drawing, check endpoints, handles, segment bodies
+			-- Hover detection while drawing: endpoints, handles, segment bodies
 			extraState.measureHoverNear = nil
 			extraState.measureHoverHandle = nil
 			extraState.measureHoverMidSeg = nil
@@ -8852,7 +8769,7 @@ function widget:DrawWorld()
 			extraState.measureCursorZ = extraState.measureHoverNear and nil or mz2
 			extraState.drawMeasureWorld()
 		end
-		-- Height colormap overlay: works when feature placer or other tools are active
+		-- Height colormap overlay, also while the feature placer or other tools are active
 		if extraState.heightColormap then
 			local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
 			-- The UNITS tool's brush has the same shape fields as the feature placer's
@@ -8983,7 +8900,7 @@ function widget:DrawWorld()
 				end
 			end
 		end
-		-- Protractor overlay: runs for feature placer / metal / grass / splat / decals / weather / lights / startpos / clone when angle snap is on
+		-- Protractor overlay for the other tools (features, metal, grass, splat, decals, ...) when angle snap is on
 		if extraState.angleSnap then
 			local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
 			local mbState = WG.MetalBrush and WG.MetalBrush.getState()
@@ -9030,7 +8947,7 @@ function widget:DrawWorld()
 		else
 			extraState.protractorCursorX = nil
 		end
-		-- Symmetry overlay: works when feature placer or other tools are active
+		-- Symmetry overlay, also while the feature placer or other tools are active
 		if extraState.symmetryActive then
 			local wx, wz = getWorldMousePosition()
 			if wx then
@@ -9065,9 +8982,7 @@ function widget:DrawWorld()
 				extraState.drawSymmetryOverlay(extraState.symmetryLastWorldX, extraState.symmetryLastWorldZ, gy)
 			end
 		end
-		-- Height sampling hover highlight: also runs when tool widgets (FP/grass/splat/etc.)
-		-- are active and activeMode is nil. Without this call the topo contour under the
-		-- cursor never gets highlighted in those modes.
+		-- Height sampling hover highlight, also for the tool widgets (activeMode is nil there).
 		if extraState.heightSamplingMode and extraState.heightColormap then
 			local wx, wz = getWorldMousePosition()
 			if wx then
@@ -9085,10 +9000,9 @@ function widget:DrawWorld()
 	else
 		worldX, worldZ = getWorldMousePosition()
 	end
-	-- Edge fade: the brush keeps following the mouse past the map edge; opacity
-	-- comes from how far past the paintable band the cursor is (computed by the
-	-- position helpers), reaching full again the moment the footprint touches
-	-- the map. worldX goes nil only once the fade has fully run out (or sky).
+	-- Edge fade: opacity comes from how far past the paintable band the cursor is
+	-- (the position helpers compute it). worldX is nil only once the fade has run
+	-- out, or over the sky.
 	extraState.brushFadeAlpha = worldX and (extraState.brushEdgeFade or 1) or 0
 
 	if not worldX then
@@ -9186,16 +9100,14 @@ function widget:DrawWorld()
 	end
 	shiftState.wasHeld = shiftHeld
 
-	-- When protractor is active during a stroke, it owns brush positioning (shift handled inside).
-	-- Only use constrainToAxis for shift when protractor is not active.
+	-- During a protractor stroke the protractor owns positioning (and Shift), so
+	-- the Shift axis lock only applies without it.
 	if shiftState.originX and shiftHeld and not (extraState.angleSnap and lockedWorldX) then
 		worldX, worldZ = constrainToAxis(shiftState.originX, shiftState.originZ, worldX, worldZ)
 	end
 
 	-- Snap logic: grid snap (pre-press) hands off to spoke snap (during drag) without fighting
 	if extraState.angleSnap and lockedWorldX and dragOriginX then
-		-- Mouse is pressed and angle-snap is active: spoke snapping owns brush positioning
-		-- (shift-lock handled internally by snapDragToSpoke)
 		worldX, worldZ = snapDragToSpoke(worldX, worldZ)
 		if extraState.gridSnap or gridOverlay then
 			showBuildGrid()
@@ -9219,8 +9131,8 @@ function widget:DrawWorld()
 
 	local groundY = GetGroundHeight(worldX, worldZ)
 
-	-- Pen pressure visual modulation: temporarily override activeRadius / activeIntensity
-	-- so all drawing code (cache, glow, outline) reflects pen state.
+	-- Pen pressure: temporarily override activeRadius / activeIntensity so every
+	-- draw (cache, glow, outline) shows the pen state.
 	local savedRadius, savedIntensity
 	if extraState.penPressureEnabled and extraState.penInContact and not extraState.penOverUI then
 		local pm = extraState.penPressureMapped or extraState.penPressure or 0
@@ -9244,13 +9156,9 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Suppress brush outline when placing/hovering/dragging symmetry origin, or
-	-- whenever the map labels tool owns the cursor (placing, dot hover/drag,
-	-- over its windows, or a comment is open)
-	-- ...or whenever the interface is hidden (F5, but not FOCUS MODE) or a map
-	-- capture is walking the camera. Both mean "no cursor furniture in the
-	-- world": the capture reprojects the rendered frame, so a ring drawn here is
-	-- baked into the exported photo (and the symmetry mirror bakes in a second one).
+	-- Hide the brush outline while placing or dragging the symmetry origin, while
+	-- the map labels tool owns the cursor, with the interface hidden (F5, not
+	-- FOCUS MODE), or during a map capture, which would bake it into the image.
 	local suppressBrush = extraState.symmetryPlacingOrigin
 		or extraState.symmetryDraggingOrigin
 		or extraState.symmetryHoveringOrigin
@@ -9258,24 +9166,20 @@ function widget:DrawWorld()
 		or (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy())
 		or (WG.MapLabels and WG.MapLabels.shouldSuppressBrush and WG.MapLabels.shouldSuppressBrush())
 
-	-- Animated glow outline — drawn every frame outside the display-list cache so
-	-- it can pulse. While the edge fade is still recovering, the fade path below
-	-- draws the glow instead (scaled by fade alpha), so skip it here.
+	-- Animated glow, drawn every frame outside the display list so it can pulse.
+	-- While the edge fade recovers, the fade path below draws it instead.
 	if activeMode and activeMode ~= "ramp" and not suppressBrush and extraState.brushFadeAlpha >= 1 then
 		extraState.drawBrushGlow(worldX, worldZ, groundY, 1)
 	end
 
-	-- Autoramp WYSIWYG: translucent fill/cut mesh of the resulting terrain.
-	-- Called for every active mode — it self-cleans its display list after the
-	-- preview data is cleared (mode left, toggle off, cursor off-map).
+	-- Autoramp preview mesh. Called in every mode so it can clean up its display list.
 	extraState.drawAutorampPreview(suppressBrush)
 
 	-- Unmouse amber glow + landing ring (only drawn while brush is parked beside UI)
 	extraState.doUnmouseDraw(worldX, worldZ, groundY)
 
-	-- Protractor spokes: angle grid radiating from brush center when angle snap is on.
-	-- Ramp mode: anchor spokes at the drag origin while dragging so they visibly radiate
-	-- from the ramp start point; before press, use the live cursor.
+	-- Protractor spokes from the brush centre; in ramp mode from the drag origin
+	-- while dragging, so they radiate from the ramp start.
 	if extraState.angleSnap then
 		local pcx, pcz = worldX, worldZ
 		if activeMode == "ramp" and dragOriginX then
@@ -9326,13 +9230,11 @@ function widget:DrawWorld()
 		return
 	end
 
-	-- ── Height sampling: hover detection + contour highlight (every frame, outside cache) ──
-	-- Delegated to extraState.doSamplingHover so DrawWorld gains no new upvalues.
+	-- Height sampling: hover detection + contour highlight (every frame, outside the cache)
 	extraState.doSamplingHover(groundY)
 
-	-- Spline ramp bypasses the main display-list cache: cursor circle is drawn fresh
-	-- each frame (trivially cheap), spline geometry uses a dedicated sub-cache that
-	-- only rebuilds when new path points are added or the brush radius changes.
+	-- Spline ramp bypasses the main display list: the cursor circle is drawn
+	-- fresh, and the spline has its own cache, rebuilt on new points or radius.
 	if activeMode == "ramp" and activeShape == "circle" then
 		glColor(0.9, 0.7, 0.2, 0.7 * extraState.brushFadeAlpha)
 		glLineWidth(3)
@@ -9385,9 +9287,8 @@ function widget:DrawWorld()
 		return
 	end
 
-	-- Edge fade-in: while opacity is still recovering, draw the lightweight
-	-- faded brush instead of the full-strength cached furniture (the display
-	-- list bakes its colors, so it can't be dimmed after the fact).
+	-- While the edge fade recovers, draw the lightweight faded brush instead of
+	-- the cached one (the display list bakes its colours).
 	if extraState.brushFadeAlpha < 1 then
 		extraState.drawBrushFaded(worldX, worldZ, groundY, extraState.brushFadeAlpha)
 		penRestoreDraw()
@@ -9444,23 +9345,20 @@ function widget:DrawWorld()
 		local intensityT = log(activeIntensity / MIN_INTENSITY) / log(MAX_INTENSITY / MIN_INTENSITY)
 		intensityT = max(0, min(1, intensityT))
 
-		-- Semi-transparent footprint fill -- falloff-shaded gradient:
-		-- center (strong terrain change) is bright, edges (slow change) fade to
-		-- transparent so the user can read the brush's effective strength profile
-		-- at a glance. Overall opacity still scales with intensity.
+		-- Footprint fill shaded by the falloff (bright centre, fading edges) so
+		-- the strength profile reads at a glance; opacity scales with intensity.
 		local fillAlpha = min(0.6, 0.08 + intensityT * 0.45)
 		if activeMode == "autoramp" then
-			-- Barely-there wash: the WYSIWYG preview mesh is the real feedback
-			-- here and a strong footprint fill would tint it. Intensity does not
-			-- feed autoramp, so the alpha is fixed rather than intensity-scaled.
+			-- Barely-there wash: the preview mesh is the real feedback, and
+			-- intensity does not feed autoramp.
 			fillAlpha = 0.05
 		end
-		-- Noise / restore / ramp apply uniformly inside the footprint, so we
-		-- skip the falloff gradient for those modes and keep the flat fill.
+		-- Only raise, lower and level get the falloff gradient; other modes keep
+		-- the flat fill.
 		local usesFalloff = (activeMode == "raise" or activeMode == "lower" or activeMode == "level")
 		if usesFalloff then
-			-- Slightly brighten the mode color for the hot core so the gradient reads
-			-- as "intensity" rather than a flat wash.
+			-- Slightly brighten the mode colour for the hot core so the gradient reads
+			-- as intensity rather than a flat wash.
 			local cr = mr * 0.55 + br * 0.45
 			local cg = mg * 0.55 + bg * 0.45
 			local cb = mb * 0.55 + bb * 0.45
@@ -9564,6 +9462,7 @@ function widget:DrawWorld()
 		local dir = activeDirection ~= 0 and activeDirection or 1
 		-- Scale falloff display height by intensity (20..180 elmos)
 		local baseDisplayHeight = 20 + intensityT * 160
+		---@type number
 		local effectHeight = baseDisplayHeight
 		if heightCapMax and dir > 0 then
 			effectHeight = heightCapMax
@@ -9666,7 +9565,6 @@ function widget:DrawWorld()
 end
 
 --- A key that means something to a terrain mode (mode, shape, clay toggle).
---- On extraState: the main chunk is at Lua 5.1's 200-local ceiling.
 extraState.isTerrainKey = function(key)
 	for action, kb in pairs(activeKeybinds) do
 		if kb.key == key and (action:find("^mode_") or action:find("^shape_") or action:find("^toggle_")) then
@@ -9677,7 +9575,7 @@ extraState.isTerrainKey = function(key)
 end
 
 function widget:KeyPress(key, mods, isRepeat, _label, _unicode, scanCode)
-	-- When game chat input is open, pass all keys through so chat works normally
+	-- Chat input open: pass every key through
 	if WG.chat and WG.chat.isInputActive() then
 		return false
 	end
@@ -9707,12 +9605,10 @@ function widget:KeyPress(key, mods, isRepeat, _label, _unicode, scanCode)
 		return true
 	end
 
-	-- Tool switching keys. Gated on the editor actually being in use: with no tool or
-	-- passthrough panel up, an enabled-but-dormant Terraformer must pass every key
-	-- through to the engine's own keybinds instead of clicking tool buttons from cold
-	-- (f/m/g/... were invisibly swallowed in normal games). In a terrain mode the
-	-- letters that are terrain keys there (modes, shapes, clay) keep that meaning:
-	-- S and T are the square and triangle shapes, not SURFACE and LAYERS.
+	-- Tool switching keys, only while the editor is in use: an enabled but dormant
+	-- Terraformer must pass every key through to the engine's keybinds. In a
+	-- terrain mode its own keys (modes, shapes, clay) win: S and T are the square
+	-- and triangle shapes, not SURFACE and LAYERS.
 	if
 		not mods.ctrl
 		and not mods.alt
@@ -9884,7 +9780,7 @@ function widget:KeyPress(key, mods, isRepeat, _label, _unicode, scanCode)
 			setMode("restore")
 			return true
 		elseif key == getKeybindKey("mode_level") then
-			-- Cycle the MODIFY submodes: SMOOTH → LEVEL → SMUDGE → SMOOTH
+			-- Cycle the MODIFY submodes: SMOOTH -> LEVEL -> SMUDGE -> SMOOTH
 			if activeMode == "smooth" then
 				setMode("level")
 			elseif activeMode == "level" then
@@ -9910,8 +9806,7 @@ function widget:KeyPress(key, mods, isRepeat, _label, _unicode, scanCode)
 end
 
 function widget:MousePress(mx, my, button)
-	-- ── Height sampler (works regardless of active mode — FP/Grass altitude filters
-	--    can sample ground/colormap height just like the main raise tool's cap.)
+	-- Height sampler, in any mode: other tools' altitude filters sample heights too.
 	if button == 1 and extraState.heightSamplingMode then
 		local sampledH = nil
 		if extraState.colormapHoverPeak and extraState.colormapPeak then
@@ -9930,8 +9825,7 @@ function widget:MousePress(mx, my, button)
 		if sampledH then
 			local rounded = floor(sampledH + 0.5)
 			-- SURFACE panel engines (soft + hard), aliased once: the analyzer counts
-			-- every WG mention in this file, and the main chunk has no room for a
-			-- file-level alias
+			-- every WG mention in this file
 			---@type table?
 			local sfp = WG.SurfacePainter
 			---@type table?
@@ -10042,7 +9936,7 @@ function widget:MousePress(mx, my, button)
 		end
 		return true
 	end
-	-- ── Symmetry origin (works regardless of terraform mode; also during metal/grass/FP) ──
+	-- Symmetry origin, in any mode (also during the metal, grass and feature tools)
 	if button == 1 and extraState.symmetryActive then
 		if extraState.symmetryPlacingOrigin then
 			local wx, wz = getWorldMousePosition()
@@ -10061,7 +9955,7 @@ function widget:MousePress(mx, my, button)
 			return true
 		end
 	end
-	-- ── Measure tool (works regardless of terraform mode) ──────────────────────
+	-- Measure tool, in any mode
 	if extraState.measureActive and extraState.measureDrawing then
 		if button == 1 then
 			local worldX, worldZ = getWorldMousePosition()
@@ -10179,7 +10073,7 @@ function widget:MousePress(mx, my, button)
 			return true
 		end
 	end
-	-- ── Terraform mode ─────────────────────────────────────────────────────────
+	-- Terraform mode
 	if not activeMode then
 		return false
 	end
@@ -10202,7 +10096,7 @@ function widget:MousePress(mx, my, button)
 			extraState.symmetryDragPrevZ = oz
 			return true
 		end
-		-- Fill brush: single-click flood fill — send message immediately, don't lock for drag
+		-- Fill brush: one click fills, no drag lock
 		if activeShape == "fill" then
 			local worldX, worldZ = getWorldMousePosition()
 			if worldX then
@@ -10215,17 +10109,13 @@ function widget:MousePress(mx, my, button)
 			end
 			return true
 		end
-		-- Autoramp: region op — restyle the cliff under the cursor. A click
-		-- fires once; holding LMB and swiping re-fires along the drag path,
-		-- spaced by brush radius (see the autoramp branch in Update). The
-		-- whole swipe is one undo stroke, closed by the shared release
-		-- cleanup at the top of Update — no immediate close here.
+		-- Autoramp restyles the cliff under the cursor. A click fires once; a
+		-- swipe re-fires along the drag (see the autoramp branch in Update). The
+		-- whole swipe is one undo stroke, closed by the release cleanup in Update.
 		if activeMode == "autoramp" then
 			local worldX, worldZ = getWorldMousePosition()
 			if worldX then
-				if extraState.sendAutorampAt(worldX, worldZ) then
-					afterBrushTick()
-				end
+				extraState.sendAutorampAt(worldX, worldZ)
 				-- Arm the swipe: the Update dispatch gates on lockedWorldX, and
 				-- the spacing check needs the last-applied anchor.
 				lockedWorldX = worldX
@@ -10259,7 +10149,7 @@ function widget:MousePress(mx, my, button)
 				dragOriginX = shiftState.originX
 				dragOriginZ = shiftState.originZ
 			end
-			-- G4: record undo baseline at ramp stroke start so we can undo the whole stroke later
+			-- undo baseline at ramp stroke start, so the whole stroke can be undone later
 			if activeMode == "ramp" then
 				extraState.rampStrokeUndoBaseline = extraState.gadgetUndoCount
 			end
@@ -10308,7 +10198,7 @@ function widget:MousePress(mx, my, button)
 end
 
 function widget:MouseRelease(mx, my, button)
-	-- ── Symmetry origin drag release ────────────────────────────────────────────
+	-- Symmetry origin drag release
 	if extraState.symmetryDraggingOrigin and button == 1 then
 		extraState.symmetryDraggingOrigin = false
 		extraState.symmetryDragPrevX = nil
@@ -10319,10 +10209,10 @@ function widget:MouseRelease(mx, my, button)
 		end
 		return true
 	end
-	-- ── Measure tool ───────────────────────────────────────────────────────────
+	-- Measure tool
 	if extraState.measureActive and extraState.measureDrawing and button == 1 then
 		if extraState.measureHandleDrag then
-			-- G4: capture chain ref before clearing, so we can re-apply ramp chains
+			-- capture the chain before clearing, so ramp chains can be re-applied
 			local hd = extraState.measureHandleDrag
 			local hdChain = hd and extraState.measureLines[hd.chain]
 			extraState.measureHandleDrag = nil
@@ -10330,14 +10220,14 @@ function widget:MouseRelease(mx, my, button)
 			if extraState.measureStickyMode and #extraState.linkedStrokes > 0 then
 				extraState.replayLinkedStrokes()
 			end
-			-- G4: re-apply ramp if the handle that was dragged belongs to a ramp chain
+			-- re-apply the ramp if the dragged handle belongs to a ramp chain
 			if hdChain and hdChain.isRampChain then
 				extraState.queueRampReapply(hdChain)
 			end
 			return true
 		end
 		if extraState.measureDragLine then
-			-- G4: capture chain ref before clearing
+			-- capture the chain before clearing
 			local dl = extraState.measureDragLine
 			local dlChain = dl and extraState.measureLines[dl.chain]
 			extraState.measureDragLine = nil
@@ -10345,14 +10235,14 @@ function widget:MouseRelease(mx, my, button)
 			if extraState.measureStickyMode and #extraState.linkedStrokes > 0 then
 				extraState.replayLinkedStrokes()
 			end
-			-- G4: re-apply ramp if the endpoint that was dragged belongs to a ramp chain
+			-- re-apply the ramp if the dragged endpoint belongs to a ramp chain
 			if dlChain and dlChain.isRampChain then
 				extraState.queueRampReapply(dlChain)
 			end
 			return true
 		end
 		if extraState.measurePressDragCandidate then
-			-- Was a click near endpoint (didn't become a drag) → start/extend from it
+			-- A click near an endpoint that did not become a drag: start or extend from it
 			local world = extraState.measurePressCandidateWorld
 			local near = extraState.measurePressDragCandidate
 			if world then
@@ -10393,7 +10283,7 @@ function widget:MouseRelease(mx, my, button)
 			return true
 		end
 	end
-	-- ── Terraform mode ─────────────────────────────────────────────────────────
+	-- Terraform mode
 	if button == 3 and rightMouseHeld then
 		rightMouseHeld = false
 		stampApplied = false
@@ -10413,10 +10303,8 @@ function widget:MouseRelease(mx, my, button)
 end
 
 function widget:MouseMove(mx, my, _dx, _dy, button)
-	-- Stroke path: while a sculpt drag runs, record every mouse move. Update
-	-- resamples the recorded polyline, so the dabs follow the path the user drew
-	-- rather than a chord between two 20 Hz samples. Ramp / restore / erode /
-	-- autoramp / noise own their sampling and are left alone.
+	-- Stroke path: record every mouse move of a sculpt drag for Update to
+	-- resample. Ramp, restore, erode, autoramp and noise do their own sampling.
 	if
 		activeMode
 		and lockedGroundY
@@ -10547,7 +10435,7 @@ function widget:MouseWheel(up, value)
 				else
 					setRingInnerRatio(ringInnerRatio - RING_WIDTH_STEP)
 				end
-				extraState.setParamHud("Ring: " .. floor((1 - ringInnerRatio) * 100 + 0.5) .. "%") -- D5
+				extraState.setParamHud("Ring: " .. floor((1 - ringInnerRatio) * 100 + 0.5) .. "%")
 				return true
 			elseif action == "scroll_protractor" then
 				if not extraState.angleSnap then
@@ -10572,7 +10460,7 @@ function widget:MouseWheel(up, value)
 					local curIdx = floor(activeRotation / step + 0.5) % numSpokes
 					extraState.angleSnapManualSpoke = (curIdx + dir + numSpokes) % numSpokes
 					activeRotation = (extraState.angleSnapManualSpoke * step) % 360
-					extraState.setParamHud("Spoke: " .. activeRotation .. "\194\176") -- D5
+					extraState.setParamHud("Spoke: " .. activeRotation .. "\194\176")
 				end
 				return true
 			elseif action == "scroll_length" then
@@ -10581,7 +10469,7 @@ function widget:MouseWheel(up, value)
 				else
 					setLengthScale(activeLengthScale - LENGTH_SCALE_STEP)
 				end
-				extraState.setParamHud("Length: " .. string.format("%.1f", activeLengthScale)) -- D5
+				extraState.setParamHud("Length: " .. string.format("%.1f", activeLengthScale))
 				return true
 			elseif action == "scroll_rotation" then
 				-- Block rotation change during an active brush stroke (angle-snap: one stroke = one angle)
@@ -10608,11 +10496,11 @@ function widget:MouseWheel(up, value)
 						local ns = floor(360 / step)
 						extraState.angleSnapManualSpoke = floor(activeRotation / step + 0.5) % ns
 						extraState.angleSnapAuto = false
-						extraState.setParamHud("Rot: " .. activeRotation .. "\194\176") -- D5
+						extraState.setParamHud("Rot: " .. activeRotation .. "\194\176")
 					end
 				else
 					rotateBy(up and step or -step)
-					extraState.setParamHud("Rot: " .. activeRotation .. "\194\176") -- D5
+					extraState.setParamHud("Rot: " .. activeRotation .. "\194\176")
 				end
 				return true
 			elseif action == "scroll_curve" then
@@ -10622,7 +10510,7 @@ function widget:MouseWheel(up, value)
 					activeCurve = max(MIN_CURVE, activeCurve - CURVE_STEP)
 				end
 				activeCurve = floor(activeCurve * 10 + 0.5) / 10
-				extraState.setParamHud("Curve: " .. string.format("%.1f", activeCurve)) -- D5
+				extraState.setParamHud("Curve: " .. string.format("%.1f", activeCurve))
 				return true
 			elseif action == "scroll_intensity" then
 				if up then
@@ -10638,7 +10526,7 @@ function widget:MouseWheel(up, value)
 					end
 					setIntensity(newI)
 				end
-				extraState.setParamHud("Intensity: " .. string.format("%.1f", activeIntensity)) -- D5
+				extraState.setParamHud("Intensity: " .. string.format("%.1f", activeIntensity))
 				return true
 			elseif action == "scroll_size" then
 				if up then
@@ -10646,7 +10534,7 @@ function widget:MouseWheel(up, value)
 				else
 					activeRadius = max(MIN_RADIUS, activeRadius - RADIUS_STEP)
 				end
-				extraState.setParamHud("Radius: " .. activeRadius) -- D5
+				extraState.setParamHud("Radius: " .. activeRadius)
 				return true
 			elseif action == "scroll_cap_max" then
 				local current = heightCapMax or 0

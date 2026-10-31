@@ -30,6 +30,10 @@ local max = math.max
 -- Small helpers
 -- ---------------------------------------------------------------------------
 
+---@param v number
+---@param lo number
+---@param hi number
+---@return number
 local function clamp(v, lo, hi)
 	if v < lo then
 		return lo
@@ -103,6 +107,7 @@ end
 -- (left/right), mirrorz (top/bottom), rot90 (4-fold; requires a square map).
 -- ---------------------------------------------------------------------------
 
+---@return fun(i: number, j: number): number, number
 local function makeCanonical(numX, numZ, sym)
 	if sym == "none" then
 		return function(i, j)
@@ -271,6 +276,7 @@ function M.generate(opts)
 		return s
 	end
 
+	---@type table<number, table>
 	local field = {}
 	local fmin, fmax = math.huge, -math.huge
 	for i = 1, numX do
@@ -344,6 +350,7 @@ function M.generate(opts)
 	local waterDepth = P.waterDepth
 
 	-- --- 4. Convert the field to world heights (columns array) --------------
+	---@type table<integer, table>
 	local columns = {}
 	local waterCells = 0
 	local hMin, hMax = math.huge, -math.huge
@@ -384,6 +391,7 @@ function M.generate(opts)
 	end
 
 	-- primary anchor (canonical-region spawn) by symmetry
+	---@type number, number
 	local ax, az
 	if sym == "mirrorz" then
 		ax, az = cellAt(0.5, 0.16)
@@ -405,6 +413,7 @@ function M.generate(opts)
 
 	-- Build the full spawn set. Symmetric modes fold the anchor through the
 	-- transform; "none" places a second independent spawn at the opposite side.
+	---@type table<integer, table>
 	local spawnCells = { { ax, az } }
 	if sym == "none" then
 		local bx, bz = numX + 1 - ax, numZ + 1 - az

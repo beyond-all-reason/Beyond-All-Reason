@@ -1,12 +1,12 @@
-/* The shared unit library (refactor plan, U2 + U7). Builds on the feature placer's fp- styles,
-   so the two libraries read as one family. Text sizes follow the editors' own scale (rem is
-   10dp here): nothing under 1.1rem, which is 9.6px in a 1080p window (the 9px floor). */
+/* The shared unit library. Builds on the feature placer's fp- styles, so the two libraries
+   read as one family. Text sizes follow the editors' own scale (rem is 10dp here): nothing
+   under 1.1rem, which is 9.6px in a 1080p window (the 9px floor). */
 
 .ul-root {
 	left: 30vw;
 	top: 8vh;
-	/* 480dp (PtaQ: 20% thinner than 600): four 100dp tiles a row (plus a 2dp border each side,
-	   4dp gaps, the scrollbar). The filter chips keep their size; a long row wraps instead. */
+	/* 480dp: four 100dp tiles a row (plus a 2dp border each side, 4dp gaps, the scrollbar).
+	   The filter chips keep their size; a long row wraps instead. */
 	width: 480dp;
 	z-index: 905;
 }
@@ -66,8 +66,7 @@
 .ul-chip {
 	flex: 0 0 auto;
 	min-width: 0dp;
-	/* A step up from 1.05rem / 4dp 6dp (PtaQ: "the filtering chips are a bit too small"),
-	   narrower sideways so a row of six fits one line beside its label. */
+	/* Narrow sideways so a row of six fits one line beside its label. */
 	padding: 6dp 5dp;
 	font-size: 1.2rem;
 	gap: 3dp;
@@ -106,10 +105,9 @@
    to), but quiet, so an empty choice is visible before the click. */
 .ul-chip.zero { opacity: 0.45; }
 
-/* Collapsible sections (PtaQ's N5), the terraform brush's frame: the title row floats on
-   the top border and masks it, so its background is the window's (bg-darkest, #1d1d1d). The
-   library does not load the brush's stylesheet, so the frame rules are repeated here, as the
-   mission editor repeats them. */
+/* Collapsible sections, the terraform brush's frame: the title row floats on the top border
+   and masks it, so its background is the window's (bg-darkest, #1d1d1d). The library does not
+   load the brush's stylesheet, so the frame rules are repeated here. */
 .tf-section-frame {
 	position: relative;
 	margin-top: 14dp;
@@ -196,7 +194,7 @@
 .ul-keys-btn.active img { image-color: #40e0c0; }
 .ul-root.ul-released { opacity: 0.85; }
 
-/* The pick set (PtaQ's N2): how many are picked and how a drop moves on through them. */
+/* The pick set: how many are picked and how a drop moves on through them. */
 .ul-pickset {
 	display: flex;
 	flex-direction: row;
@@ -228,7 +226,7 @@
 	border-radius: 9dp;
 }
 
-/* Five tiles a row: the arrow keys step by that. */
+/* Four tiles a row (COLUMNS in the Lua): the arrow keys step by that. */
 .ul-grid {
 	max-height: 400dp;
 	overflow-y: auto;
@@ -275,8 +273,8 @@
 	margin-bottom: 3dp;
 }
 
-/* A blueprint's unit count, top-right. (Unit tiles carry no tier label: the TECH LEVEL chips
-   say it, and the picture and the name are what should read -- PtaQ.) */
+/* A blueprint's unit count, top-right. Unit tiles carry no tier label: the TECH LEVEL chips
+   say it, and the picture and the name are what should read. */
 .ul-tier {
 	position: absolute;
 	right: 4dp;
@@ -299,14 +297,13 @@
 .ul-faction.ul-faction-cor { background-color: #e0453a; }
 .ul-faction.ul-faction-leg { background-color: #48c25c; }
 
-/* Bigger, and a long name wraps onto a second line instead of being cut (PtaQ). Two lines
-   at most: the box is two lines high and hides a third. */
+/* A long name wraps onto a second line instead of being cut. Two lines at most: the box is
+   two lines high and hides a third. */
 .ul-name {
 	width: 100%;
 	box-sizing: border-box;
 	padding: 1dp 2dp;
-	/* 1.4rem (1.25rem before; PtaQ, 2026-09-29: still a little small). Two lines of it are
-	   32dp, inside the ~38dp under the 76dp picture. */
+	/* Two lines of 1.4rem are 32dp, inside the ~38dp under the 76dp picture. */
 	font-size: 1.4rem;
 	line-height: 1.15em;
 	max-height: 2.3em;
@@ -336,7 +333,7 @@
 	margin-top: 4dp;
 }
 
-/* Blueprints (U9): a saved group, its first unit's picture and how many units it holds. */
+/* Blueprints: a saved group, its first unit's picture and how many units it holds. */
 .ul-blueprint { border-color: #7aa2f766; }
 .ul-blueprint-delete {
 	position: absolute;

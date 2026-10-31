@@ -1,4 +1,4 @@
--- tf_metal.lua — Metal Brush attach + sync (extracted from gui_terraform_brush.lua)
+-- tf_metal.lua: METAL tool controls of the terraform brush panel (attach + per-frame sync).
 local M = {}
 
 function M.attach(doc, ctx)
@@ -8,10 +8,9 @@ function M.attach(doc, ctx)
 	widgetState.mbSubmodesEl = doc:GetElementById("tf-metal-submodes")
 	widgetState.mbControlsEl = doc:GetElementById("tf-metal-controls")
 
-	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
-	-- All data-event-click/change handlers (onMbXxx) are defined in initialModel
-	-- in gui_terraform_brush.lua — Recoil forbids adding or replacing function
-	-- keys in a DataModel after OpenDataModel.
+	-- Drag state needs a listener per slider. The onMbXxx event handlers live in
+	-- initialModel in gui_terraform_brush.lua: Recoil forbids adding or replacing
+	-- function keys after OpenDataModel.
 	for _, entry in ipairs({
 		{ "mb-slider-cluster-radius", "mb-cluster-radius" },
 		{ "mb-slider-axis-angle", "mb-axis-angle" },
@@ -33,9 +32,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 	local WG = ctx.WG
 	local dm = widgetState.dmHandle
 
-	-- btn-metal active state driven by data-class-active="activeTool == 'mb'" in RML.
-
-	-- DISPLAY/INSTRUMENTS warn chips (shared TB state mirror)
+	-- DISPLAY / INSTRUMENTS warn chips mirror the shared terraform brush state.
 	if doc and ctx.syncWarnChip then
 		local tbs = (WG.TerraformBrush and WG.TerraformBrush.getState()) or {}
 		local dispActive = tbs.gridOverlay or tbs.heightColormap
@@ -44,7 +41,6 @@ function M.sync(doc, ctx, mbState, setSummary)
 		ctx.syncWarnChip(doc, "warn-chip-mb-instruments", "section-mb-instruments", instActive)
 	end
 
-	-- Metal sub-mode buttons (driven by dm.mbSubMode via data-class-active)
 	if dm then
 		local sm = mbState.subMode or "paint"
 		if dm.mbSubMode ~= sm then
@@ -52,15 +48,11 @@ function M.sync(doc, ctx, mbState, setSummary)
 		end
 	end
 
-	-- Instruments sub-row visibility flags (data-if driven) + chip active states (data-class-active)
+	-- Instrument flags drive the sub-row data-if and chip data-class-active bindings.
 	do
 		local s = WG.TerraformBrush and WG.TerraformBrush.getState and WG.TerraformBrush.getState()
 		if dm and s then
-			local function setDm(f, v)
-				if dm[f] ~= v then
-					dm[f] = v
-				end
-			end
+			local setDm = ctx.setDm
 			setDm("mbGridSnap", s.gridSnap and true or false)
 			setDm("mbAngleSnap", s.angleSnap and true or false)
 			setDm("mbMeasureActive", s.measureActive and true or false)
@@ -76,10 +68,8 @@ function M.sync(doc, ctx, mbState, setSummary)
 			setDm("mbMeasureStickyMode", s.measureStickyMode and true or false)
 			setDm("mbMeasureShowLength", s.measureShowLength and true or false)
 		end
-		-- data-class-active bindings in RML drive active state for all chips above.
 	end
 
-	-- Metal value slider & label sync
 	if doc then
 		uiState.updatingFromCode = true
 
@@ -91,12 +81,13 @@ function M.sync(doc, ctx, mbState, setSummary)
 		end
 
 		do
+			-- The value slider is logarithmic: 0..1000 maps to 0.01..50.
 			local mv = math.max(0.01, mbState.metalValue)
 			local sv = math.floor(1000 * math.log(mv / 0.01) / math.log(50.0 / 0.01) + 0.5)
 			syncAndFlash(getCachedEl(doc, "slider-metal-value"), "mb-value", tostring(sv))
 		end
 
-		-- Sync size, rotation, length, curve from shared terraform state
+		-- Size, rotation, length and curve are shared with the terraform brush.
 		local tfSt2 = WG.TerraformBrush and WG.TerraformBrush.getState()
 		if tfSt2 then
 			if dm then
@@ -135,7 +126,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 			end
 			syncAndFlash(getCachedEl(doc, "slider-mb-curve"), "mb-curve", tostring(math.floor(tfSt2.curve * 10 + 0.5)))
 		end
-		-- Symmetry count + angle slider sync (labels driven by dm.tbSymCountStr/tbSymAngleStr via syncTBMirrorControls)
+		-- Symmetry sliders only; their labels are set by syncTBMirrorControls.
 		local symSt = WG.TerraformBrush and WG.TerraformBrush.getState()
 		if symSt then
 			syncAndFlash(
@@ -153,7 +144,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 		uiState.updatingFromCode = false
 	end
 
-	-- Shape: use terraform brush shape (shared)
+	-- Shape is shared with the terraform brush.
 	local tfSt = WG.TerraformBrush and WG.TerraformBrush.getState()
 	if tfSt and dm then
 		local shp = tfSt.shape or "circle"
@@ -162,12 +153,12 @@ function M.sync(doc, ctx, mbState, setSummary)
 		end
 	end
 
-	-- P3.2 Metal grayouts (per Phase 3 relevance matrix)
+	-- Gray out controls that do nothing in the current submode and shape.
 	if doc and tfSt then
 		local sm = mbState.subMode or "stamp"
 		local circular = (tfSt.shape == "circle")
 		local nonStamp = (sm ~= "stamp")
-		-- Rotation: stamp mode AND non-circular shape
+		-- Rotation and length only apply to a non-circular stamp.
 		local rotOff = nonStamp or circular
 		ctx.setDisabledIds(doc, {
 			"slider-mb-rotation",
@@ -175,21 +166,20 @@ function M.sync(doc, ctx, mbState, setSummary)
 			"btn-mb-rot-ccw",
 			"btn-mb-rot-cw",
 		}, rotOff)
-		-- Length: stamp mode AND non-circular shape
 		ctx.setDisabledIds(doc, {
 			"slider-mb-length",
 			"slider-mb-length-numbox",
 			"btn-mb-length-down",
 			"btn-mb-length-up",
 		}, rotOff)
-		-- Curve/Fall-off: stamp mode only
+		-- Curve (fall-off) only applies to a stamp.
 		ctx.setDisabledIds(doc, {
 			"slider-mb-curve",
 			"slider-mb-curve-numbox",
 			"btn-mb-curve-down",
 			"btn-mb-curve-up",
 		}, nonStamp)
-		-- Metal Value stays live in remove submode: the erase rate scales with it
+		-- Metal Value stays live in every submode (remove scales its erase rate with it).
 		ctx.setDisabledIds(doc, {
 			"slider-metal-value",
 			"slider-metal-value-numbox",
@@ -215,22 +205,16 @@ function M.sync(doc, ctx, mbState, setSummary)
 		)
 	end
 
-	-- Metal map analysis chip/slider sync
+	-- Map analysis (inspector, cluster counter, lasso, balance axis).
 	if doc then
-		-- Chip active states driven by data-class-active bindings in RML.
 		local inspectorOpen = widgetState.mbInspectorOpen
 			or mbState.clusterCounter
 			or mbState.lassoActive
 			or mbState.lassoClosed
 			or mbState.balanceAxisActive
 		widgetState.mbInspectorOpen = inspectorOpen and true or false
-		-- Map analysis sub-row visibility + chip active states driven by data model
 		if dm then
-			local function setDm(f, v)
-				if dm[f] ~= v then
-					dm[f] = v
-				end
-			end
+			local setDm = ctx.setDm
 			setDm("mbInspectorOpen", inspectorOpen and true or false)
 			setDm("mbClusterOpen", mbState.clusterCounter and true or false)
 			setDm("mbLassoOpen", (mbState.lassoActive or mbState.lassoClosed) and true or false)
@@ -238,7 +222,6 @@ function M.sync(doc, ctx, mbState, setSummary)
 			setDm("mbMapOverlay", mbState.mapOverlay and true or false)
 			setDm("mbLassoActive", mbState.lassoActive and true or false)
 		end
-		-- Labels driven by {{mbClusterRadiusStr}}/{{mbAxisAngleStr}}/{{mbAxisAStr}}/{{mbAxisBStr}}/{{mbAxisBalanceStr}}/{{mbLassoTotalStr}} in RML.
 		if dm then
 			local v = tostring(mbState.clusterRadius or 256)
 			if dm.mbClusterRadiusStr ~= v then

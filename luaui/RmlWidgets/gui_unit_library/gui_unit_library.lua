@@ -5,7 +5,8 @@ end
 local widget = widget ---@type Widget
 
 -- Captured at chunk scope: RmlUi dispatches keydown/focus listeners through its own Lua plugin,
--- where bare globals read nil (memory: rmlui-key-identifier-and-listener-env, trap 2).
+-- where bare globals read nil.
+---@type table<string, any>
 local WG, Spring, RmlUi = WG, Spring, RmlUi
 
 function widget:GetInfo()
@@ -20,18 +21,18 @@ function widget:GetInfo()
 	}
 end
 
--- The UNIT LIBRARY (refactor plan, Phase U2 and U7): one window and one data model, opened by
--- whichever editor wants a unit type -- the mission editor's ROSTER, the terraform brush's
--- UNITS tab -- rather than the same markup copied into both panels. It PICKS; the caller
--- arms its own placer (luaui/Include/unit_placer) with the pick.
+-- The UNIT LIBRARY: one window and one data model, opened by whichever editor wants a unit
+-- type (the mission editor's ROSTER, the terraform brush's UNITS tab) rather than the same
+-- markup copied into both panels. It PICKS; the caller arms its own placer
+-- (luaui/Include/unit_placer) with the pick.
 --
 --     WG.UnitLibrary.open({ title = "MISSION EDITOR", onPick = function(unitDefName) ... end })
 --
--- FINDING a unit fast is the whole job (PtaQ: "the roster is very big"): five filter rows that
--- combine (faction, tier, type, role, domain; AND across rows, OR within one), each chip
--- showing how many it would leave; a search that matches names AND tags as you type ("t2
--- arty cor"); the keyboard (focus on open, arrows, Enter picks, Escape closes); and the
--- filters remembered per editor. Classification is pure and specced (unit_catalogue.lua).
+-- Finding a unit fast is the whole job: five filter rows that combine (faction, tier, type,
+-- role, domain; AND across rows, OR within one), each chip showing how many it would leave;
+-- a search that matches names AND tags as you type ("t2 arty cor"); the keyboard (grid keys,
+-- arrows, Enter picks, Escape closes); and the filters remembered per editor. Classification
+-- is pure and specced (unit_catalogue.lua).
 --
 -- How it is built follows the RmlUi practices: every control is a fixed callback that records
 -- state and raises a flag; arrays are assigned once per change from widget:Update, never
@@ -45,30 +46,30 @@ local FILTER_KEY = "UnitLibraryFilter_"
 local CYCLE_KEY = "UnitLibraryCycle"
 local FOLD_KEY = "UnitLibraryFolded"
 local SORT_KEY = "UnitLibrarySort"
---- The collapsible sections (PtaQ's N5), each remembered folded or open.
+--- The collapsible sections, each remembered folded or open.
 local SECTIONS = { "filters", "blueprints", "recent", "units" }
 
 local Catalogue = VFS.Include("luaui/RmlWidgets/gui_unit_library/unit_catalogue.lua")
 local Blueprints = VFS.Include("luaui/RmlWidgets/gui_unit_library/blueprints.lua")
 local Cycle = VFS.Include("luaui/Include/unit_placer/cycle.lua")
 
---- Where blueprints live: one file each, per user, so a blueprint is shared by copying its
---- file (U9; a project-folder location is a later decision).
+--- Where blueprints live: one file each, per user, so a blueprint is shared by copying its file.
 local BLUEPRINT_DIR = "LuaUI/Config/UnitBlueprints/"
 
 --- Tiles bound at once. A filter narrows faster than anyone scrolls 700 pictures.
 local PAGE = 120
---- One row of the grid (PtaQ: RECENT shows a single row).
+--- One row of the grid: RECENT shows a single row.
 local RECENT_LIMIT = 4
 --- Blueprint tiles bound at once.
 local BLUEPRINT_PAGE = 24
 --- Tiles per row in the grid, for the arrow keys (the grid is sized to fit this many).
 local COLUMNS = 4
 
---- The GRID KEYS (PtaQ, 2026-09-29): the first three rows of the grid, row by row, on the
+--- The GRID KEYS: the first three rows of the grid, row by row, on the
 --- three letter rows of the keyboard, the way the game's build grid menu does it. By POSITION
 --- (SDL scancodes), so the same three rows of keys work on any layout. A row takes as many
 --- keys as the grid has columns: four columns use Q W E R, and T G B join if it grows to five.
+---@type table<integer, table<integer, {sc: integer, label: string}>>
 local GRID_KEYS = {
 	{
 		{ sc = 20, label = "Q" },
@@ -93,6 +94,7 @@ local GRID_KEYS = {
 	},
 }
 --- scancode -> tile index (1-based, in grid order), and tile index -> its key's label.
+---@type table<number, integer>, table<integer, string>
 local GRID_KEY_TILE, GRID_KEY_LABEL = {}, {}
 for row, keys in ipairs(GRID_KEYS) do
 	for col = 1, math.min(#keys, COLUMNS) do
@@ -131,7 +133,7 @@ local CHIP_LABELS = {
 	role = { builder = "BUILDER", scout = "SCOUT", raider = "RAIDER", skirmish = "SKIRMISH", arty = "ARTY", aa = "AA" },
 	domain = { land = "LAND", sea = "SEA", air = "AIR" },
 }
---- An icon before a chip's text (PtaQ, 2026-09-27). The factions wear the feature placer's own
+--- An icon before a chip's text. The factions wear the feature placer's own
 --- faction icons; a type, role or domain wears the strategic icon of a stock unit of that kind
 --- (gamedata/icontypes.lua, keyed by unit name), so the chip looks like what it finds.
 local FACTION_ICONS = {
@@ -215,7 +217,7 @@ local state = {
 	keyIds = nil,
 	keyWired = false,
 	blueprints = nil, -- { { name, file, units }, ... } read from BLUEPRINT_DIR on first open
-	-- The PICK SET (PtaQ's N2): a plain click picks one, Ctrl+click adds or removes one, and
+	-- The PICK SET: a plain click picks one, Ctrl+click adds or removes one, and
 	-- Shift+click adds every tile from the last one clicked (the asset library's gestures).
 	-- The owner cycles through it, one type per drop, in order or at random.
 	picks = {},
@@ -271,7 +273,7 @@ local function loadSort()
 	return { key = "name", desc = false }
 end
 
---- Folded sections. RECENT and BLUEPRINTS start folded (PtaQ); once anything is saved, what was saved wins,
+--- Folded sections. RECENT and BLUEPRINTS start folded; once anything is saved, what was saved wins,
 --- and "none" says "saved with everything open".
 local function loadFolded()
 	local saved = Spring.GetConfigString(FOLD_KEY, "") or ""
@@ -316,7 +318,7 @@ local function loadRecent()
 end
 
 --------------------------------------------------------------------------------
--- Blueprints (U9)
+-- Blueprints
 --------------------------------------------------------------------------------
 local function loadBlueprints()
 	state.blueprints = {}
@@ -425,8 +427,7 @@ end
 
 --- A tile that is not there. Every tile array keeps a FIXED length, padded with these: a
 --- shorter array makes RmlUi evaluate the bindings of the rows it is about to drop, and each
---- one logs "Could not get value from data variable 'tiles[N].name'" (hundreds per keystroke
---- in PtaQ's log). Padded, no binding ever points past the end.
+--- one logs "Could not get value from data variable 'tiles[N].name'" (hundreds per keystroke).
 local BLANK_IMG = "/icons/inverted/blank.png"
 local function blankTile()
 	return {
@@ -507,7 +508,7 @@ end
 
 --- The SORT chips: every key, the active one saying which way round it is.
 local function sortChips()
-	-- The direction as an ARROW on the active chip (PtaQ: arrows, not HI / LO): down for
+	-- The direction as an ARROW on the active chip: down for
 	-- biggest-first (and Z to A), up for smallest-first (and A to Z).
 	local chips = {}
 	for _, sort in ipairs(Catalogue.SORTS) do
@@ -659,7 +660,7 @@ end
 --- A tile clicked, with the asset library's gestures. `gesture`: "plain" (that one alone),
 --- "toggle" (Ctrl: add it to the pick set or take it back out) or "range" (Shift: every tile
 --- from the one clicked last to this one, in the filtered order; a toggle when there is no
---- such tile). A boolean still works for older callers: true = toggle.
+--- such tile). A boolean `gesture` is accepted too: true = toggle.
 local function pick(name, gesture)
 	name = tostring(name or "")
 	ensureCatalogue()
@@ -1060,7 +1061,7 @@ function widget:Initialize()
 		owner = function()
 			return state.owner and state.owner.title or nil
 		end,
-		--- Blueprints (U9): save a group under a name, list them, pick one (as a click would),
+		--- Blueprints: save a group under a name, list them, pick one (as a click would),
 		--- delete one.
 		saveBlueprint = saveBlueprint,
 		deleteBlueprint = deleteBlueprint,
@@ -1247,9 +1248,9 @@ function widget:Update()
 		state.dirty = false
 		refresh()
 	end
-	-- The search is NOT focused on open any more (PtaQ, 2026-09-29): the grid keys are the
-	-- library's from the moment it opens, and a focused search would take Q as text. A click
-	-- in the field types; leaving it hands the keys back to the grid.
+	-- The search is not focused on open: the grid keys are the library's from the moment it
+	-- opens, and a focused search would take Q as text. A click in the field types; leaving
+	-- it hands the keys back to the grid.
 	state.wantFocus = false
 end
 

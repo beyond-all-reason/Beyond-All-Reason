@@ -4,6 +4,51 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## 1.19 - 2026-10-26
+
+### New
+
+- **The editor turns the tileset shader on by itself** (asked for by Moose). The tileset shader and its SURFACE painter install switched off, so they had to be enabled by hand in the widget selector before a project's TILESET and SURFACE sections would load ("SKIPPED tileset: tileset widget not loaded"). Starting the editor now turns both on when they are installed, and leaving it turns off only the ones it turned on.
+- **LIGHTS: RATE.** A held SCATTER or REMOVE drag repeated once every 2 seconds with no way to change it. LIGHTS now has the RATE row FEATURES and UNITS have (1 to 1000, higher is faster; minus and plus step 20%), shown in SCATTER and REMOVE. The default, 1, keeps the old pace.
+- **D opens DIFFUSE,** as its key badge always said. It is a keybind like the other tool keys, with its own row in Settings > Keybinds. While the tileset shader is on the DIFFUSE button is hidden, and D says so instead of opening it.
+
+### Improvements
+
+- **Team Sync starts from a terminal on Linux** (asked for by Moose). The game cannot mark the starter file as executable, so it would not run until it was marked by hand. On Linux the clipboard now holds a command that marks it executable and starts it: paste it into a terminal and leave that open. After that the file runs directly.
+- **The reference is a mapper's guide again.** `doc/TerraformBrush.md` is rewritten against the panel: getting started, sculpting, painting the ground, placing things, scene, instruments and overlays, capture and map labels, settings, multi-screen, and tables of keys, console commands, folders and file formats. SURFACE, LAYERS, METAL, STARTS, LIGHTS, DECALS, the TILESET window, HEIGHTMAP, New Map, Capture, Map Labels, Passability and Settings are covered for the first time, and the claims the old text got wrong are gone.
+
+### Fixes
+
+- **Rotated FEATURES and UNITS stamps land inside their outline.** At any rotation that is not a symmetry of the shape (a square or a triangle at 20 degrees, say) the stamp filled the mirror image of the drawn outline, and up to a quarter of it landed outside. The stamp, its symmetry copies and its ghosts now turn with the outline. Changed from 1.18: facings turn with the stamp, in SCATTER and in POINT, so a facing set by the CONTROLS rotation is mirrored. 0 and 180 degrees face as before and 90 and 270 swap; in FEATURES every other angle mirrors too (30 now faces where 330 did). Unit drags turned with R are unchanged.
+- **LAYERS paints the shape its outline shows.** The hexagon poked out east and west, the octagon painted a full square, and the triangle sat a third of the radius north of the centre, so most of its paint fell outside the drawn triangle. LAYERS now uses the shapes every other tool uses, for the paint, the outline, the smart filter overlay and the altitude prism. Changed from 1.18: the LAYERS triangle and hexagon outlines turn by 90 and 30 degrees (and the octagon by 22.5) to match the other tools. Circle and square are unchanged.
+- **Symmetry copies turn in DECALS, WEATHER, GRASS and LIGHTS.** Radial and mirrored copies were stamped at the brush's own rotation: directional decals all faced one way, a stretched weather ellipse pointed the same way in every copy, a turned GRASS square stayed unturned, and LIGHTS copies kept the original's scatter layout, cone and beam aim and remove area. Each copy now takes its own turn, and LIGHTS mirror copies are reflected.
+- **One undo takes back a symmetric LIGHTS click.** A radial 8 click took eight undos; the copies of one stamp are now one undo step, and one redo brings them all back.
+- **The WEATHER outline shows where the weather lands.** It turns with the brush rotation (it was always drawn unturned, so a stretched ellipse at an angle spawned somewhere else than shown), snaps to the grid with grid snap on, and follows the ground instead of floating or sinking on slopes. Every symmetry copy of a persistent drag now keeps its spawner; only the first one did.
+- **DECALS, CLONE, STARTS and WEATHER follow the cursor past the map edge,** like the other brush tools. DECALS and WEATHER reach one brush radius past the edge and their outline fades over that band, so a stamp can be centred near the edge. A CLONE paste preview reaches half its size past it. A CLONE selection corner, a start position and a startbox corner stop on the edge itself.
+- **Loading a saved FEATURES map is one undo step.** One undo took back only the last 40 features of the load.
+- **FEATURES smart filter overlay:** the green and red cells match the octagon brush (they were turned 22.5 degrees from where features can land), the altitude prism shows for the triangle brush, and the overlay hides in REMOVE, which ignores the filters. In FEATURES and UNITS the Active chip on a folded DISPLAY section lights for the placer grid in that section, not for the terrain grid.
+- **GRASS paints a turned shape out to its corners.** A square at 45 degrees lost all four.
+- **DECALS RATE is the real rate.** A held stamp repeated slower than set: RATE 50 gave about 12 stamps a second instead of 25.
+- **STARTS places and previews what it says.** With symmetry on, a refused copy (ground too steep for a commander, or the position cap) no longer skips a player in express mode or a team in shape mode. The preview shows which player each symmetric spot will get (round robin with more than one player per ally team used to show the wrong colours), shows every symmetric copy of a shape, and sits where the click lands with grid snap on. A polygon shape with more positions than sides keeps every corner (a square of 6 had lost its fourth), and RANDOM on a polygon keeps every position inside the shape and follows its rotation. Right-click on a startbox corner that cannot be deleted removes that box, not the newest one.
+- **STARTS undo covers every edit.** Dragging a start position, a right-click removal in shape mode, a RANDOM batch (one step) and deleting a startbox corner can now be undone. Undoing a placement takes back exactly the positions it placed; it used to take the last ones in the list, whichever placement they came from. The selected startbox anchor stays on its box through undo and redo. Start positions still have no redo.
+- **METAL CLEAR leaves extractors at their normal depth.** A cleared extractor kept a depth of 0 until a stroke landed near it, and could earn nothing even after metal came back under it.
+- **METAL no longer stops with an error on its first activation** with the cluster counter on.
+- **CLONE pastes metal that extractors and the mex tools see.** An extractor where metal was pasted earned nothing until a METAL stroke landed near it, and the spot list (extractor snapping, area mex, spot markers) missed the pasted spots.
+- **Closing the panel keeps the picked skybox.** The panel freed every skybox library texture when it closed, including the one the sky was drawing with.
+- **S, T and D only open tools the panel shows.** With the tileset shader off, S and T (and the TILESET window's PAINT SURFACES button) still opened the hidden SURFACE and LAYERS, which painted into nothing the map draws. They now refuse with a message pointing at DIFFUSE and SPLAT; with the shader on, D points at SURFACE and LAYERS.
+- **The HEIGHT CAP Absolute checkbox turns off on the first click** and shows its real state.
+- **A preset light lands the way its ghost shows it, and saves.** When a preset or light file left fields out, the ghost showed radius 200 and no lens flare while the placed light got radius 100 and full lens flare. A light with no type placed nothing, one with no colour stopped the click with an error, and one with no lensflare (or radius, modelfactor, specular, scattering) stopped the next light file, preset or project save with an error. Every placed light now takes the ghost's defaults and records every field. Built-in presets and the files the tool writes carry every field and are not affected.
+- **A map project saved with a UTF-8 BOM opens.** A `project.lua` or section file from a text editor that adds a byte order mark did not show in Open Project and could not be opened or saved over. A painter turned off during a save no longer stops it with an error: its section is skipped with a warning in the save report.
+- **Leaving the editor no longer leaves its widgets switched on.** At exit the suite saved the widget list while its own tools were still in it, so they were written back as enabled and loaded in later games. They are saved as off now.
+- **Sliders hold still while dragged:** FEATURES RANDOMIZE TILT and HEIGHT OFFSET (a click on the track now jumps and follows the mouse, as on the other sliders), and the symmetry count and mirror angle in FEATURES and UNITS.
+- Hint and message texts say what the tools do: the METAL save hint names `Terraform Brush/MetalMaps/`, the CLAY hint describes the flat layers clay lays, the SPLAT notice on a New Map says a DNTS splat set is needed (and shows only when splat painting is really unavailable, not on every generated canvas), and a NaN height warning names the heightmap import. A DIFFUSE square whose texture cannot be made logs once instead of on every stroke.
+
+### Code cleanup
+
+Comments across the suite are rewritten to say why, briefly, and every tool's state carries type annotations. Shared helpers replace each tool's own copy of the world cursor, the brush outlines, the smart filter test, its overlay and the altitude prism, light spawning and the panel's data model setter, and the brush no longer sends an empty message to the game every tick. The code is about 900 lines shorter.
+
+The TILESET SHADER UPDATE row matches 1.19 from tileset shader build 23 on.
+
 ## 1.18 - 2026-10-19
 
 ### New

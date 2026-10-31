@@ -17,9 +17,9 @@ end
 local Spring = Spring
 local Echo = Spring.Echo
 local GetMouseState = Spring.GetMouseState
-local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local WorldToScreenCoords = Spring.WorldToScreenCoords
+local WorldTool = require("luaui/Include/tf_world_tool")
 local GetDrawFrame = Spring.GetDrawFrame
 
 local gl = gl
@@ -50,14 +50,15 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
--- Commander icons cycled by allyteam index — adds visual variety & "2026" faction flavor
+-- Commander icons, cycled by player index (allyTeam when a position has no playerIdx).
+---@type string[]
 local COMMANDER_ICONS = {
 	"icons/armcom.png",
 	"icons/corcom.png",
 	"icons/legcom.png",
 }
 
-local DRAGGABLE_DIST_SQ = 120 * 120 -- world distance² inside which cursor becomes "move"
+local DRAGGABLE_DIST_SQ = 120 * 120 -- world distance^2 inside which the cursor becomes "move"
 
 local math_floor = math.floor
 local math_sqrt = math.sqrt
@@ -91,7 +92,9 @@ local roleConfig = {
 	saveDir = "Terraform Brush/StartPositions/Suggestions/",
 }
 
--- Team colors matching game_autocolors.lua FFA palette (0-1 float RGBA); extended past 16 for 256-player support
+-- Team colors: the game_autocolors.lua FFA palette (0-1 RGBA) plus 16 extras. Indices wrap,
+-- so 256 players reuse colors.
+---@type number[][]
 local TEAM_COLORS = {
 	{ 0.000, 0.302, 1.000, 1.0 }, --  1: Blue       #004DFF
 	{ 1.000, 0.063, 0.020, 1.0 }, --  2: Red        #FF1005
@@ -132,8 +135,11 @@ local TEAM_COLORS = {
 -- ============================================================
 local active = false
 local subMode = "express" -- "express" | "shape" | "startbox" | "roles"
+---@type table<integer, table>
 local positions = {} -- { {x=, z=, allyTeam=, teamSlot=, playerIdx=}, ... }
+---@type number
 local nextAllyTeam = 1 -- next allyteam in rotation
+---@type number
 local nextTeamSlot = 1 -- next player slot within that allyteam
 local numAllyTeams = 2 -- configurable count (ally teams)
 local numTeamsPerAlly = 1 -- configurable count (players per ally)
@@ -142,115 +148,130 @@ local placementMode = "roundrobin" -- "roundrobin" = A,B,C,A,B,C... | "sequentia
 -- Shape placement state
 local shapeType = "circle" -- "circle"|"square"|"hexagon"|"octagon"|"triangle"
 local shapeRadius = 2000
+---@type number
 local shapeRotation = 0 -- degrees
 local shapeCount = 4 -- number of positions to place with shape
 
 -- Startbox state
+---@type table<number, any>
 local startboxes = {} -- { {vertices={{x=,z=}, ...}, allyTeam=}, ... }
--- Forward declarations for cached-fill-list helpers defined further down in the drawing section.
--- Needed because removeLastStartbox / clearAllStartboxes / drag handlers reference them from
--- this upper part of the file.
--- Forward declarations (defined further down); typed so the calls that sit
--- above the definitions are not read as calls on nil.
+-- Forward declarations: the fill-list helpers live in the drawing section but box edits up
+-- here call them. Typed so the analyzer does not read those calls as calls on nil.
 ---@type fun(box: any): any
 local ensureBoxFillList
 ---@type fun(box: any)
 local invalidateBoxFill
 ---@type fun(box: any)
 local freeBoxFillList
--- Forward decl: world radius needed for a constant on-screen pixel size at (wx, wz).
--- Used by DrawWorld for handles/arrows so they keep size while zooming. Defined alongside
--- getScreenMarker further down in the rendering section.
+-- World radius that gives a constant on-screen pixel size at (wx, wz), so handles keep
+-- their size while zooming. Defined in the drawing section.
 ---@type fun(wx: number, wz: number, screenPx: number): number
 local worldRadiusForScreenPx
 local startboxMode = "polygon" -- "polygon" | "box" | "freedraw"
 local drawingBox = false
+---@type table<integer, any>
 local currentBoxVerts = {}
+---@type integer?
 local boxDragIdx = nil -- which vertex is being dragged
+---@type integer?
 local boxDragBoxIdx = nil -- which box
+---@type {bi: integer, edge: string}?
 local boxEdgeDrag = nil -- { bi = <box index>, edge = "L"/"R"/"T"/"B" } for box-kind edge drag
+---@type {bi: integer, edge: string}?
 local hoverBoxEdge = nil -- { bi, edge } for hover highlight of the edge currently under cursor
--- Anchor selected for curvature editing. Clicking a handle (press and release without
--- moving) selects it and raises a gizmo along its outward normal; dragging along that
--- gizmo sets the anchor strength between 0 and 1.
--- Curvature editing hangs off one table rather than a dozen file-level locals: the main
--- chunk of this widget sits on Lua's 200-local ceiling and each new one costs a slot.
--- selBox / selVert (the selected anchor: box index, vertex index) are assigned
--- below rather than listed here: a `= nil` in the constructor makes the
--- analyzer read them as never set.
+-- Curvature editing: clicking a handle without moving selects it and raises a gizmo along
+-- its outward normal; dragging along the gizmo sets the anchor strength (0 to 1).
+-- One table instead of file-level locals: the main chunk sits on Lua's 200-local ceiling.
+-- selBox / selVert (box index, vertex index) are left out of the constructor: a `= nil`
+-- there makes the analyzer read them as never set.
+---@class StartposStrengthEdit
+---@field dragging boolean
+---@field GIZMO_LEN number
+---@field scratch table
+---@field selBox number? selected box index
+---@field selVert number? selected anchor index in that box
+---@field hoverKnob boolean?
+---@field spline table common/lib_spline
 local strengthEdit = {
 	dragging = false,
 	GIZMO_LEN = 240, -- world units from anchor to the strength-1 end of the gizmo
 	scratch = {}, -- reused anchor ring, see buildRing
 }
--- Whole-box drag (mouse pressed inside a startbox body, not on a handle/edge). Records the
--- world-space cursor delta between frames and offsets every vertex (and spline control point
--- when applicable). Separate from vertex-drag so hover hit-tests stay simple.
+-- Whole-box drag (pressed inside a box body, not on a handle or edge): moves every vertex
+-- and spline control by the cursor delta between frames.
+---@type table?
 local boxBodyDrag = nil -- { bi = <box index>, lastX = <world x>, lastZ = <world z> }
--- Set true whenever a startbox vertex / edge / body drag is in progress. Used by
--- ensureBoxFillList to defer the expensive fill-list rebuild until MouseRelease.
+-- True during any startbox vertex, edge or body drag; ensureBoxFillList uses it to defer
+-- the costly fill rebuild until MouseRelease.
 local isDraggingBox = false
+---@type integer?
 local pendingFillRebuildIdx = nil -- box index whose fill needs rebuilding on drag end
 -- Box drag-rect (startboxMode == "box"): two corners, live-updated during drag
+---@type number?
 local boxRectStartX = nil
+---@type number?
 local boxRectStartZ = nil
+---@type number?
 local boxRectEndX = nil
+---@type number?
 local boxRectEndZ = nil
 local boxRectActive = false
 -- Free-draw state (startboxMode == "freedraw"): collect points with minimum spacing
+---@type table<integer, table>
 local freeDrawPts = {}
 local freeDrawActive = false
 local FREEDRAW_MIN_DIST_SQ = 40 * 40 -- minimum world distance between sample points
 
 -- Drag state
 local dragging = false
+---@type integer?
 local dragIdx = nil -- which position index is being dragged
+---@type number?
 local dragStartX = nil
+---@type number?
 local dragStartY = nil -- screen coords at mouse-down
+---@type table?
+local dragFrom = nil -- { pos, x, z, y } of the position at mouse-down, for the drag's undo entry
 
 -- Hover state (drives cursor + marker highlight)
+---@type integer?
 local hoverPosIdx = nil -- index of position currently hovered (express mode)
+---@type integer?
 local hoverBoxIdx = nil -- which startbox is being vertex-hovered
+---@type integer?
 local hoverVertIdx = nil
--- Polygon edge-midpoint hover: shows a "ghost" handle at the middle of a polygon edge
--- so the user can click/hold there to insert a new vertex (which immediately becomes a
--- live drag handle). { bi, edgeIdx, x, z } — edgeIdx is index of the edge's start vertex.
+-- Ghost handle at a polygon edge midpoint: click there to insert a vertex and drag it.
+-- { bi, edgeIdx, x, z }, edgeIdx is the index of the edge's start vertex.
+---@type table?
 local hoverPolyEdge = nil
 
--- Undo history: each entry = { count=N, prevNextAllyTeam=M }
--- Means: the last N entries in `positions` were added in one action;
--- restoring removes them and rewinds nextAllyTeam to M.
+-- Undo history shared by both submodes; each entry carries the `mode` that made it so
+-- Ctrl+Z in one submode never rewinds the other.
+-- Placement entry: { mode, placed, prevNextAllyTeam, prevNextTeamSlot }: remove exactly the
+-- positions in `placed` and restore the rotation counters. Drag entry: { op = "move", pos,
+-- x, z, y }. Right-click removal entry: { op = "remove", pos, idx }.
+---@type table<integer, table>
 local undoHistory = {}
--- Startbox undo/redo. Entries carry the submode that produced them because start positions
--- and startboxes coexist: Ctrl+Z in one must not reach into the other's work. Startbox
--- entries snapshot just the box they touch, which avoids needing an inverse for every
--- operation (a vertex drag has none once insert and delete exist too). Functions are
--- assigned further down, after retessellateSpline is in scope.
+-- Startbox entries snapshot just the box they touch, so no operation needs an inverse.
+-- The functions are assigned further down, after retessellateSpline is in scope.
+---@class StartposBoxUndo
+---@field redo table<integer, table>
+---@field pending table?
 local boxUndo = { redo = {} }
--- Override-modoption export. Libs are pulled in on first use rather than at include time:
--- this runs on a button press, and the widget is at Lua's file-local ceiling.
+-- Override-modoption export. Libs load on first use (a button press), not at include time.
 local boxExport = {}
 
 -- ============================================================
 -- Helper Functions
 -- ============================================================
 
-local function getWorldMousePosition()
-	local mx, my = GetMouseState()
-	local _, pos = TraceScreenRay(mx, my, true)
-	if pos then
-		return pos[1], pos[3]
-	end
-	return nil, nil
-end
-
 local function getColorForAllyTeam(at)
 	local idx = ((at - 1) % #TEAM_COLORS) + 1
 	return TEAM_COLORS[idx]
 end
 
--- Unique color per (allyTeam, teamSlot) pair — gives every player a distinct color
--- when multiple teams per allyteam are used. playerIdx = (allyTeam-1)*numTeamsPerAlly + teamSlot.
+-- One color per player, so teammates in the same allyteam stay distinct.
+-- playerIdx = (allyTeam-1)*numTeamsPerAlly + teamSlot.
 local function getColorForPlayer(playerIdx)
 	local idx = ((playerIdx - 1) % #TEAM_COLORS) + 1
 	return TEAM_COLORS[idx]
@@ -262,11 +283,24 @@ local function distSq(x1, z1, x2, z2)
 	return dx * dx + dz * dz
 end
 
+---@return number x
+---@return number z
 local function clampToMap(x, z)
 	local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
 	x = math_max(0, math_min(mapX, x))
 	z = math_max(0, math_min(mapZ, z))
 	return x, z
+end
+
+-- The world cursor follows the mouse past the map edge like the other brush tools,
+-- pinned to the edge: a start position or box corner off the map is invalid.
+---@return number?, number?
+local function getWorldMousePosition()
+	local wx, wz = WorldTool.cursor(0)
+	if wx then
+		return clampToMap(wx, wz)
+	end
+	return nil, nil
 end
 
 -- ============================================================
@@ -288,10 +322,11 @@ local function generateCirclePositions(cx, cz, radius, count, rotation)
 end
 
 local function generatePolygonPositions(cx, cz, radius, sides, count, rotation)
-	-- Place positions on vertices first, then midpoints if count > sides
+	-- Vertices first; if count > sides, subdivide edges at their midpoints until there are
+	-- enough points (at most 6 levels). The last level only splits as many edges as it needs,
+	-- spread evenly around the ring, so every vertex is always kept.
 	local pts = {}
 	local rotRad = rotation * math_pi / 180
-	-- Generate all vertices
 	local vertices = {}
 	for i = 1, sides do
 		local angle = rotRad + (i - 1) * (2 * math_pi / sides)
@@ -300,22 +335,31 @@ local function generatePolygonPositions(cx, cz, radius, sides, count, rotation)
 			z = cz + radius * math_sin(angle),
 		}
 	end
-	-- Fill positions: vertices first, then midpoints, then quarter-points, etc.
 	local allPoints = {}
-	-- Start with vertices
 	for i = 1, sides do
 		allPoints[#allPoints + 1] = vertices[i]
 	end
-	-- If we need more, add midpoints between each pair of vertices
+	-- Each pass interleaves midpoints into the ring (v1, m12, v2, m23, ...).
 	local level = 1
 	while #allPoints < count do
 		local prevPoints = {}
-		for i = 1, #allPoints do
-			local j = (i % #allPoints) + 1
-			local mx = (allPoints[i].x + allPoints[j].x) * 0.5
-			local mz = (allPoints[i].z + allPoints[j].z) * 0.5
+		local n = #allPoints
+		local need = count - n
+		local split = nil -- edges that get a midpoint on a partial level; nil = all of them
+		if need < n then
+			split = {}
+			for k = 0, need - 1 do
+				split[math_floor(k * n / need) + 1] = true
+			end
+		end
+		for i = 1, n do
 			prevPoints[#prevPoints + 1] = allPoints[i]
-			prevPoints[#prevPoints + 1] = { x = mx, z = mz }
+			if not split or split[i] then
+				local j = (i % n) + 1
+				local mx = (allPoints[i].x + allPoints[j].x) * 0.5
+				local mz = (allPoints[i].z + allPoints[j].z) * 0.5
+				prevPoints[#prevPoints + 1] = { x = mx, z = mz }
+			end
 		end
 		allPoints = prevPoints
 		level = level + 1
@@ -323,7 +367,8 @@ local function generatePolygonPositions(cx, cz, radius, sides, count, rotation)
 			break
 		end -- safety cap
 	end
-	-- Take up to count points
+	-- The first `count` points walking around the ring: all of them when count > sides, the
+	-- first `count` vertices otherwise.
 	for i = 1, math_min(count, #allPoints) do
 		local x, z = clampToMap(allPoints[i].x, allPoints[i].z)
 		pts[i] = { x = x, z = z }
@@ -359,7 +404,7 @@ local function generateRandomPositions(cx, cz)
 
 	for i = 1, shapeCount do
 		if sides == 0 then
-			-- Random within circle
+			-- Uniform inside the circle (sqrt keeps the density even).
 			local angle = math_random() * 2 * math_pi
 			local r = shapeRadius * math_sqrt(math_random())
 			local x = cx + r * math_cos(angle)
@@ -367,12 +412,17 @@ local function generateRandomPositions(cx, cz)
 			x, z = clampToMap(x, z)
 			pts[i] = { x = x, z = z }
 		else
-			-- Random within polygon bounds (simple: use bounding circle, reject outside polygon)
-			-- For simplicity, use full radius bounding circle and accept
-			local angle = math_random() * 2 * math_pi
-			local r = shapeRadius * math_sqrt(math_random())
-			local x = cx + r * math_cos(angle)
-			local z = cz + r * math_sin(angle)
+			-- Polygons: pick one of the equal centre-to-edge triangles, then a uniform point in
+			-- it, so every point lands inside the same rotated outline the shape mode draws.
+			local rotRad = shapeRotation * math_pi / 180
+			local step = 2 * math_pi / sides
+			local a1 = rotRad + math_floor(math_random() * sides) * step
+			local a2 = a1 + step
+			local s = math_sqrt(math_random())
+			local t = math_random()
+			local u, v = s * (1 - t), s * t
+			local x = cx + shapeRadius * (u * math_cos(a1) + v * math_cos(a2))
+			local z = cz + shapeRadius * (u * math_sin(a1) + v * math_sin(a2))
 			x, z = clampToMap(x, z)
 			pts[i] = { x = x, z = z }
 		end
@@ -384,17 +434,14 @@ end
 -- Core Operations
 -- ============================================================
 
--- Commander-slope tolerance (cached). Engine-transferable across Recoil games: we scan
--- UnitDefs for units flagged as commanders via common customParams conventions. If no
--- commander-tagged units exist, we fall back to the smallest maxSlope among any grounded
--- movedef (conservative: picks the most restrictive). Result is in the same normalized
--- "1 - cos(angle)" space that `Spring.GetGroundNormal` returns as its 4th value.
+-- Commander slope tolerance, cached: the modoption `startpos_max_slope` if set, else the
+-- smallest moveDef.maxSlope among commander units (customParams flags or name), else 0.5.
+-- Same "1 - cos(angle)" space as the 4th value of Spring.GetGroundNormal.
 local _cachedCommanderMaxSlope = nil
 local function getCommanderMaxSlope()
 	if _cachedCommanderMaxSlope ~= nil then
 		return _cachedCommanderMaxSlope or nil
 	end
-	-- Mod-option override (per-game tunable without code changes)
 	local modOpt = Spring.GetModOptions and Spring.GetModOptions()
 	if modOpt and tonumber(modOpt.startpos_max_slope) then
 		_cachedCommanderMaxSlope = tonumber(modOpt.startpos_max_slope)
@@ -406,7 +453,6 @@ local function getCommanderMaxSlope()
 		if not cp then
 			return false
 		end
-		-- BAR + most Recoil commander conventions
 		if cp.iscommander or cp.isCommander then
 			return true
 		end
@@ -429,15 +475,15 @@ local function getCommanderMaxSlope()
 			end
 		end
 	end
-	-- Conservative default when the game ships no movedef on its commander (e.g. airborne com).
-	-- 0.5 ~ 30° in the 1-cos space; generous enough to not reject reasonable slopes.
+	-- No grounded commander found (none tagged, or no moveDef): 0.5 is 60 degrees in 1-cos
+	-- space, loose enough not to reject reasonable ground.
 	_cachedCommanderMaxSlope = best or 0.5
 	return _cachedCommanderMaxSlope
 end
 
 -- Ground slope at (x, z) in 1-cos space, the same domain as movedef.maxSlope.
 local function getGroundSlopeAt(x, z)
-	-- Spring.GetGroundNormal returns nx, ny, nz, slope where slope = 1 - ny (normalized).
+	-- 4th return of GetGroundNormal is 1 - ny.
 	local _, _, _, slope = Spring.GetGroundNormal(x, z, false)
 	return slope or 0
 end
@@ -451,9 +497,7 @@ local function addPosition(x, z, allyTeam, teamSlot)
 		return false
 	end
 	x, z = clampToMap(x, z)
-	-- Reject commander-unspawnable spots (ground too steep for the commander's movedef).
-	-- Transferable across Recoil games via customParams.iscommander on UnitDefs; override
-	-- via modOption `startpos_max_slope`.
+	-- Reject ground too steep for the commander to spawn on.
 	if not isPlaceableForCommander(x, z) then
 		Echo(
 			"[StartPos Tool] Skipped: slope exceeds commander tolerance at ("
@@ -503,8 +547,7 @@ local function advanceNextPlayer()
 	nextTeamSlot = slot
 end
 
--- Pure role-cycling helper. Separated from the position mutation so the
--- transition logic is easier to reason about and test
+-- Pure role-cycling helper, kept apart from the position mutation so it can be tested alone.
 local RoleCycle = {}
 
 function RoleCycle.nextRole(currentRole, direction, roleOptions)
@@ -528,13 +571,12 @@ function RoleCycle.nextRole(currentRole, direction, roleOptions)
 		if currentRoleIdx < n then
 			return roleOptions[currentRoleIdx + 1]
 		end
-		-- Forward past the last role clears it so designers can panic-click back to blank.
+		-- Past either end clears the role, so cycling can always get back to blank.
 		return nil
 	else
 		if currentRoleIdx > 1 then
 			return roleOptions[currentRoleIdx - 1]
 		end
-		-- Backward past the first role clears it so cycling in either direction can blank the role.
 		return nil
 	end
 end
@@ -557,6 +599,7 @@ local function removePosition(idx)
 end
 
 local function removeNearestPosition(wx, wz)
+	---@type integer?
 	local bestIdx = nil
 	local bestDist = CLICK_DISTANCE_SQ
 	for i, pos in ipairs(positions) do
@@ -567,6 +610,8 @@ local function removeNearestPosition(wx, wz)
 		end
 	end
 	if bestIdx then
+		-- Undoable: the entry keeps the position itself and puts it back at the same index.
+		undoHistory[#undoHistory + 1] = { mode = subMode, op = "remove", pos = positions[bestIdx], idx = bestIdx }
 		removePosition(bestIdx)
 		return true
 	end
@@ -574,6 +619,7 @@ local function removeNearestPosition(wx, wz)
 end
 
 local function findNearestPosition(wx, wz)
+	---@type integer?
 	local bestIdx = nil
 	local bestDist = CLICK_DISTANCE_SQ
 	for i, pos in ipairs(positions) do
@@ -593,8 +639,52 @@ local function clearAllPositions()
 	undoHistory = {}
 end
 
--- Shape/random placement: always distribute evenly across all allyteam×teamSlot combinations
--- so a 4-ally × 2-team shape of 8 places yields one of each.
+-- Placement undo entries hold the positions they placed, not a count, so an earlier removal
+-- or move can never make them take back the wrong ones.
+local function recordPlacement(prevCount, prevNext, prevNextSlot)
+	local placed = {}
+	for i = prevCount + 1, #positions do
+		placed[#placed + 1] = positions[i]
+	end
+	if #placed > 0 then
+		undoHistory[#undoHistory + 1] = {
+			-- RANDOM through the WG API can run in any submode; "startbox" entries are box edits.
+			mode = subMode ~= "startbox" and subMode or "shape",
+			placed = placed,
+			prevNextAllyTeam = prevNext,
+			prevNextTeamSlot = prevNextSlot,
+		}
+	end
+end
+
+-- Takes back a placement entry (already off the stack): removes exactly the positions it
+-- placed and restores the rotation. One a right-click removed since is skipped, and that
+-- removal's entry is dropped so it cannot bring the position back later.
+local function undoPlacement(entry)
+	for _, pos in ipairs(entry.placed or {}) do
+		local found = false
+		for i = #positions, 1, -1 do
+			if positions[i] == pos then
+				table.remove(positions, i)
+				found = true
+				break
+			end
+		end
+		if not found then
+			for k = #undoHistory, 1, -1 do
+				local e = undoHistory[k]
+				if e.op == "remove" and e.pos == pos then
+					table.remove(undoHistory, k)
+				end
+			end
+		end
+	end
+	nextAllyTeam = entry.prevNextAllyTeam or 1
+	nextTeamSlot = entry.prevNextTeamSlot or 1
+end
+
+-- Shape placement spreads evenly over every allyTeam x teamSlot pair, so a 4-ally, 2-team
+-- shape of 8 places one of each.
 local function placeShapePositions(cx, cz)
 	local pts = generateShapePositions(cx, cz)
 	local numAlly = math_max(1, numAllyTeams)
@@ -613,8 +703,8 @@ local function placeShapePositions(cx, cz)
 	end
 end
 
--- Place all shape positions assigning every slot to the same allyTeam (used by symmetric copies).
--- teamSlot still cycles within that ally so players stay distinct.
+-- Whole shape on one allyTeam (one per symmetric copy); teamSlot still cycles so players
+-- stay distinct.
 local function placeShapePositionsForTeam(cx, cz, allyTeam)
 	local pts = generateShapePositions(cx, cz)
 	local numSlot = math_max(1, numTeamsPerAlly)
@@ -628,6 +718,8 @@ local function placeRandomPositions(cx, cz)
 	local pts = generateRandomPositions(cx, cz)
 	local numAlly = math_max(1, numAllyTeams)
 	local numSlot = math_max(1, numTeamsPerAlly)
+	-- One undo entry per press: Ctrl+Z takes back the whole batch.
+	local prevCount, prevNext, prevNextSlot = #positions, nextAllyTeam, nextTeamSlot
 	for i, pt in ipairs(pts) do
 		local zeroIdx = i - 1
 		local at, slot
@@ -640,6 +732,7 @@ local function placeRandomPositions(cx, cz)
 		end
 		addPosition(pt.x, pt.z, at, slot)
 	end
+	recordPlacement(prevCount, prevNext, prevNextSlot)
 end
 
 -- ============================================================
@@ -647,10 +740,8 @@ end
 -- ============================================================
 
 local function addStartboxVertex(x, z)
-	-- Honour the shared brush "instruments": when the grid-snap toggle is on,
-	-- snap polygon vertices to the same world grid the shape/express placement
-	-- paths use, so the Snap instrument actually affects startbox drawing.
-	---@type table?
+	-- The brush's grid snap applies to startbox vertices too.
+	---@type table<string, any>
 	local tb = WG.TerraformBrush
 	local stb = tb and tb.getState and tb.getState() or nil
 	if stb and stb.gridSnap and tb.snapWorld then
@@ -660,9 +751,8 @@ local function addStartboxVertex(x, z)
 	currentBoxVerts[#currentBoxVerts + 1] = { x = x, z = z }
 end
 
--- Ally team is the box's position in the list, never a running counter: that is what the
--- modoption format means by order (box 1 is allyTeam 0) and it makes a delete impossible to
--- desync. One box per team falls out of it.
+-- Ally team is the box's list position, never a counter: the modoption format means order
+-- (box 1 is allyTeam 0), and a delete cannot desync it. One box per team follows.
 local function renumberBoxAllyTeams()
 	for i = 1, #startboxes do
 		startboxes[i].allyTeam = i
@@ -682,7 +772,7 @@ local function finishStartbox()
 	drawingBox = false
 end
 
--- Reduce a dense polyline to ~targetCount control points preserving high-curvature vertices.
+-- Reduce a dense closed polyline to about targetCount control points, keeping the sharpest turns.
 local function fitControlPoints(pts, targetCount)
 	targetCount = targetCount or 8
 	local n = #pts
@@ -747,15 +837,12 @@ local function fitControlPoints(pts, targetCount)
 	return out
 end
 
--- Spline startboxes tessellate through the module the game uses for startbox anchors, so the
--- preview matches what the match will enforce vertex for vertex.
+-- The same module the game tessellates startbox anchors with, so the preview matches what
+-- the match enforces vertex for vertex.
 strengthEdit.spline = require("common/lib_spline")
 
--- Refresh tessellated vertices for a spline-kind startbox after its controls have changed.
--- Mutates box.vertices in place and only flags a *pending* fill rebuild — the actual fill
--- display list is regenerated on drag release (see isDraggingBox gate in ensureBoxFillList).
--- Anchor ring in the {x, z, strength} shape strengthEdit.spline wants. Reused across calls: a control
--- drag retessellates on every mousemove and this sits on that path.
+-- Anchor ring in the {x, z, strength} shape lib_spline wants. Reused across calls: a control
+-- drag retessellates on every mousemove.
 function strengthEdit.buildRing(handles)
 	local n = #handles
 	for i = 1, n do
@@ -774,6 +861,8 @@ function strengthEdit.buildRing(handles)
 	return strengthEdit.scratch
 end
 
+-- Rebuild a spline box's vertices from its controls, in place. Does not rebuild the fill:
+-- callers invalidate it.
 local function retessellateSpline(box)
 	if box.kind ~= "spline" or not box.controls then
 		return
@@ -794,7 +883,6 @@ local function retessellateSpline(box)
 		out[i] = nil
 	end
 	box.vertices = out
-	box._fillNeedsRebuild = true
 end
 
 -- A polygon keeps its vertices as its anchors until a corner is first curved; only then does
@@ -815,7 +903,7 @@ function strengthEdit.ensureCurvable(box)
 	return box.controls
 end
 
--- Strength 0 is stored as absent, which is what the schema and Rowy both write.
+-- Strength 0 is stored as absent, as the shared startbox schema writes it.
 function strengthEdit.applyOne(handle, s)
 	if s < 0 then
 		s = 0
@@ -853,6 +941,11 @@ end
 
 local function removeLastStartbox()
 	if #startboxes > 0 then
+		if strengthEdit.selBox == #startboxes then
+			-- The selection goes with its box, so the next box drawn does not inherit it.
+			strengthEdit.selBox = nil
+			strengthEdit.selVert = nil
+		end
 		boxUndo.push("remove", #startboxes, startboxes[#startboxes])
 		freeBoxFillList(startboxes[#startboxes])
 		table.remove(startboxes, #startboxes)
@@ -868,8 +961,8 @@ local function clearAllStartboxes()
 		freeBoxFillList(startboxes[i])
 	end
 	startboxes = {}
-	-- Entries indexed into the list we just emptied are not reversible, so drop them rather
-	-- than let Ctrl+Z act on stale positions. Clearing is not itself undoable.
+	-- Startbox entries index into the list just emptied, so drop them rather than let Ctrl+Z
+	-- act on stale indices. Clearing is not itself undoable.
 	for i = #undoHistory, 1, -1 do
 		if undoHistory[i].mode == "startbox" then
 			table.remove(undoHistory, i)
@@ -972,6 +1065,15 @@ function boxUndo.apply(entry)
 		if startboxes[entry.idx] then
 			freeBoxFillList(startboxes[entry.idx])
 			table.remove(startboxes, entry.idx)
+			-- The strength knob selection points into the list: clear it with its box, or
+			-- follow the shift.
+			if strengthEdit.selBox == entry.idx then
+				strengthEdit.selBox = nil
+				strengthEdit.selVert = nil
+				strengthEdit.dragging = false
+			elseif strengthEdit.selBox and strengthEdit.selBox > entry.idx then
+				strengthEdit.selBox = strengthEdit.selBox - 1
+			end
 		end
 	elseif entry.op == "remove" then
 		mirror.op = "add"
@@ -983,6 +1085,9 @@ function boxUndo.apply(entry)
 		end
 		mirror.idx = at
 		table.insert(startboxes, at, boxUndo.build(entry.box))
+		if strengthEdit.selBox and strengthEdit.selBox >= at then
+			strengthEdit.selBox = strengthEdit.selBox + 1
+		end
 	else
 		mirror.box = boxUndo.snap(startboxes[entry.idx])
 		if startboxes[entry.idx] then
@@ -1008,8 +1113,8 @@ function boxExport.toNorm(v, size)
 end
 
 -- Anchors, never the tessellated ring: the game re-tessellates from these through the same
--- lib_spline this tool previews with. Strength is snapped to 0.025 like Rowy does and
--- omitted at zero, which the schema reads as a sharp corner.
+-- lib_spline this tool previews with. Strength is snapped to 0.025 and omitted at zero,
+-- which the schema reads as a sharp corner.
 function boxExport.arrangement()
 	local sizeX, sizeZ = Game.mapSizeX, Game.mapSizeZ
 	local out = {}
@@ -1060,6 +1165,10 @@ function boxExport.arrangement()
 	return out
 end
 
+--- Encodes a table (startbox arrangement or suggestions) as a bSet value: JSON, zlib, base64.
+--- @param data table
+--- @return string|nil value the base64 encoded value, or nil on failure
+--- @return string|nil err error message if encoding failed
 local function encodeBSetValue(data)
 	if not data then
 		return nil, "no data"
@@ -1150,16 +1259,14 @@ end
 local function findNearestBoxVertex(wx, wz)
 	for bi, box in ipairs(startboxes) do
 		if box.kind == "box" then
-			-- Axis-aligned rectangles: corners ARE drag handles too (in addition to edges).
-			-- Dragging a corner moves both adjacent edges so the rect stays axis-aligned.
+			-- Rect corners are handles as well as its edges; the drag keeps the rect axis-aligned.
 			for vi, v in ipairs(box.vertices) do
 				if distSq(wx, wz, v.x, v.z) < VERTEX_PICK_DIST_SQ then
 					return bi, vi
 				end
 			end
 		elseif box.kind == "spline" and box.controls then
-			-- Spline-kind boxes expose their control points as drag handles (not the dense
-			-- tessellated vertices). Dragging a control moves the whole curve smoothly.
+			-- Splines are edited through their controls, not the dense tessellated vertices.
 			for vi, v in ipairs(box.controls) do
 				if distSq(wx, wz, v.x, v.z) < VERTEX_PICK_DIST_SQ then
 					return bi, vi
@@ -1176,8 +1283,8 @@ local function findNearestBoxVertex(wx, wz)
 	return nil, nil
 end
 
--- Point-in-polygon test (ray-cast / crossing-number) on the XZ plane. Works for both the
--- "box" (4 CCW corners) and spline-tessellated vertex lists.
+-- Crossing-number point-in-polygon test on the XZ plane, for any box kind's vertex list.
+---@return boolean
 local function pointInPolygon(wx, wz, verts)
 	local n = verts and #verts or 0
 	if n < 3 then
@@ -1195,9 +1302,7 @@ local function pointInPolygon(wx, wz, verts)
 	return inside
 end
 
--- Returns the topmost startbox whose polygon contains (wx,wz), or nil. Used for body-drag
--- (grab a box anywhere in its interior, not just on a handle). Iterates in reverse so the
--- most-recently-placed (visually on top) box wins.
+-- Topmost box containing (wx, wz), for body drag. Reverse order: the newest box draws on top.
 local function findBoxContaining(wx, wz)
 	for bi = #startboxes, 1, -1 do
 		local box = startboxes[bi]
@@ -1208,8 +1313,8 @@ local function findBoxContaining(wx, wz)
 	return nil
 end
 
--- For "box"-kind startboxes: find the nearest edge (T=top/B=bottom/L=left/R=right) to (wx,wz).
--- Returns bi, edgeName where edgeName is one of "T","B","L","R" (based on min/max bounds).
+-- Nearest edge of a "box"-kind rect to (wx, wz). Returns bi and "L", "R", "T" (min Z) or
+-- "B" (max Z).
 local function findNearestBoxEdge(wx, wz)
 	local EDGE_PICK_DIST = 55 -- world units from edge line
 	for bi, box in ipairs(startboxes) do
@@ -1229,7 +1334,7 @@ local function findNearestBoxEdge(wx, wz)
 					maxZ = v.z
 				end
 			end
-			-- Only consider an edge if cursor is within the perpendicular span of that edge.
+			-- Only near the rect: its bounds grown by the pick distance.
 			if
 				wx >= minX - EDGE_PICK_DIST
 				and wx <= maxX + EDGE_PICK_DIST
@@ -1240,9 +1345,10 @@ local function findNearestBoxEdge(wx, wz)
 				local dR = math.abs(wx - maxX) -- right  edge
 				local dT = math.abs(wz - minZ) -- top    edge (min Z)
 				local dB = math.abs(wz - maxZ) -- bottom edge
+				---@type number
 				local best = EDGE_PICK_DIST
+				---@type string?
 				local which = nil
-				-- Left/right edges only valid within Z span
 				if wz >= minZ - EDGE_PICK_DIST and wz <= maxZ + EDGE_PICK_DIST then
 					if dL < best then
 						best = dL
@@ -1253,7 +1359,6 @@ local function findNearestBoxEdge(wx, wz)
 						which = "R"
 					end
 				end
-				-- Top/bottom edges only valid within X span
 				if wx >= minX - EDGE_PICK_DIST and wx <= maxX + EDGE_PICK_DIST then
 					if dT < best then
 						best = dT
@@ -1273,15 +1378,12 @@ local function findNearestBoxEdge(wx, wz)
 	return nil, nil
 end
 
--- Polygon-kind boxes (kind == nil or "polygon") expose an edge-midpoint "ghost" handle for
--- inserting a new vertex. Returns box index, edge index (= start-vertex index), and the
--- midpoint world coords; nil if no edge mid is within VERTEX_PICK_DIST_SQ of the cursor.
 local function isPolygonKind(box)
 	return box.kind == nil or box.kind == "polygon"
 end
 
--- Returns the editable-handle list for a box (polygon: vertices; spline: controls). Nil for
--- "box"-kind axis-aligned rects (those use edge resize, not handle insertion).
+-- Editable handles of a box (polygon: vertices, spline: controls). Nil for "box"-kind rects,
+-- which resize by edge instead.
 local function getEditHandles(box)
 	if isPolygonKind(box) then
 		return box.vertices
@@ -1301,6 +1403,7 @@ function strengthEdit.axis(box, vi)
 		return nil
 	end
 
+	---@type number, number
 	local cx, cz = 0, 0
 	for i = 1, #handles do
 		cx = cx + handles[i].x
@@ -1328,10 +1431,8 @@ function strengthEdit.knob(box, vi)
 	return vx + ux * s, vz + uz * s, vx, vz, ux, uz
 end
 
--- Lifted out of DrawWorld: that function sits right on Lua's 60-upvalue ceiling, and the
--- gizmo's own references were enough to push it over.
--- The height the gizmo floats at. Shared with the hit test: if these ever computed it
--- separately, the knob would be pickable somewhere other than where it is drawn.
+-- The gizmo lives outside DrawWorld, which sits on Lua's 60-upvalue ceiling.
+-- Gizmo height, shared by drawing and the hit test so the knob is picked where it is drawn.
 function strengthEdit.gizmoY(box, vi)
 	local kx, kz, vx, vz, ux, uz = strengthEdit.knob(box, vi)
 	if not kx then
@@ -1344,8 +1445,8 @@ function strengthEdit.gizmoY(box, vi)
 	return math_max(gy, GetGroundHeight(kx, kz) or 0) + 48
 end
 
--- Picked in screen space because the knob floats: tracing the cursor to the ground would
--- test against its shadow, which is not where it appears at any shallow camera angle.
+-- Picked in screen space because the knob floats: a ground trace would hit the spot below
+-- it, which at shallow camera angles is far from where it appears.
 function strengthEdit.knobHit(box, vi, mx, my)
 	local kx, kz = strengthEdit.knob(box, vi)
 	local gy = kx and strengthEdit.gizmoY(box, vi)
@@ -1362,9 +1463,8 @@ function strengthEdit.knobHit(box, vi, mx, my)
 	return (dx * dx + dy * dy) <= 18 * 18
 end
 
--- Strength from where the cursor sits along the track as drawn. Projecting the ground
--- cursor onto the world axis instead would drift from the floating knob by the same offset
--- that made picking wrong.
+-- Strength from the cursor's place along the track as drawn on screen, for the same reason
+-- as knobHit: the ground cursor drifts from the floating knob.
 function strengthEdit.fromMouse(box, vi, mx, my)
 	local kx, kz, vx, vz, ux, uz = strengthEdit.knob(box, vi)
 	local gy = kx and strengthEdit.gizmoY(box, vi)
@@ -1399,8 +1499,8 @@ function strengthEdit.draw(box, bi)
 	end
 
 	local ex, ez = vx + ux * strengthEdit.GIZMO_LEN, vz + uz * strengthEdit.GIZMO_LEN
-	-- One height for the whole track, clear of the tallest ground beneath it, so the gizmo
-	-- reads as a straight ruler instead of draping over whatever slope it crosses.
+	-- One height for the whole track, clear of the ground under it, so it reads as a straight
+	-- ruler instead of draping over the slope.
 	local gy = strengthEdit.gizmoY(box, strengthEdit.selVert)
 	if not gy then
 		return
@@ -1422,7 +1522,7 @@ function strengthEdit.draw(box, bi)
 		glVertex(ex, gy, ez)
 	end)
 
-	-- Stem down to the anchor, so a track floating above uneven ground still reads as its.
+	-- Stem down to the anchor, so a track floating over uneven ground still reads as its own.
 	glColor(1, 1, 1, 0.35)
 	glLineWidth(1.5)
 	glBeginEnd(GL_LINES, function()
@@ -1467,11 +1567,18 @@ function strengthEdit.draw(box, bi)
 	glDrawGroundCircle(vx, GetGroundHeight(vx, vz) or 0, vz, worldRadiusForScreenPx(vx, vz, 26), 24)
 end
 
+-- Edge-midpoint ghost handle of a polygon or spline box, for inserting a new anchor.
+-- Returns box index, edge index (its start anchor) and the midpoint, or nil when no
+-- midpoint is within VERTEX_PICK_DIST_SQ.
 local function findNearestPolygonEdgeMid(wx, wz)
 	local bestD = VERTEX_PICK_DIST_SQ
+	---@type integer?
 	local bestBi = nil
+	---@type integer?
 	local bestEi = nil
+	---@type number?
 	local bestMx = nil
+	---@type number?
 	local bestMz = nil
 	for bi, box in ipairs(startboxes) do
 		local handles = getEditHandles(box)
@@ -1664,10 +1771,7 @@ function roleConfig.saveSuggestions(name, explicitPath)
 	return false
 end
 
---- Encodes a suggestions data table as the bSet payload value.
---- @param data table the output of roleConfig.buildSuggestionsData()
---- @return string|nil value the base64 encoded value, or nil on failure
---- @return string|nil err error message if encoding failed
+-- Writes the suggestions as a ready-to-paste `!bset mapmetadata_startpos` command.
 function roleConfig.saveSuggestionsBSet(name, explicitPath)
 	local data, err = roleConfig.buildSuggestionsData()
 	if not data then
@@ -1708,8 +1812,8 @@ local function saveStartboxes(name, explicitPath)
 		lines[#lines + 1] = string.format("  [%d] = {", i)
 		lines[#lines + 1] = string.format("    allyTeam = %d,", box.allyTeam)
 		lines[#lines + 1] = string.format("    kind = %q,", box.kind or "polygon")
-		-- Anchors, never the tessellated ring: the ring is derived and a curve cannot be
-		-- recovered from it. Strength is omitted when zero, matching the shared schema.
+		-- Anchors, never the tessellated ring: a curve cannot be recovered from the ring.
+		-- Strength is omitted when zero, matching the shared schema.
 		lines[#lines + 1] = "    anchors = {"
 		local anchors = getEditHandles(box) or box.vertices
 		for _, v in ipairs(anchors) do
@@ -1749,8 +1853,8 @@ local function loadStartboxes(name, explicitPath)
 	if ok and data then
 		clearAllStartboxes()
 		for i, box in ipairs(data) do
-			-- anchors is the current shape; vertices is what older saves hold, and those had no
-			-- curvature to lose, so loading them as plain polygons is faithful.
+			-- Older saves hold `vertices` instead of `anchors`; they had no curvature, so
+			-- loading them as plain polygons is faithful.
 			local anchors = box.anchors
 			if anchors and box.kind ~= "box" then
 				startboxes[i] = {
@@ -1846,7 +1950,7 @@ end
 local function setStartboxMode(m)
 	if m == "polygon" or m == "box" or m == "freedraw" then
 		startboxMode = m
-		-- Reset any in-progress drawing when switching modes
+		-- Drop any shape half drawn in the previous mode.
 		currentBoxVerts = {}
 		drawingBox = false
 		boxRectActive = false
@@ -1856,8 +1960,8 @@ local function setStartboxMode(m)
 	end
 end
 
--- Chaikin corner-cutting smoothing: each iteration doubles point count and rounds corners.
--- Closed polygon version. 2 iterations gives a pleasing smooth curve without blowing up point count.
+-- Chaikin corner cutting on a closed polygon: each iteration doubles the point count.
+-- The default of 2 is smooth enough without too many points.
 local function smoothClosedPolygon(pts, iterations)
 	local out = pts
 	for _ = 1, (iterations or 2) do
@@ -1869,7 +1973,6 @@ local function smoothClosedPolygon(pts, iterations)
 		for i = 1, n do
 			local p0 = out[i]
 			local p1 = out[(i % n) + 1]
-			-- Q = 0.75*p0 + 0.25*p1 ; R = 0.25*p0 + 0.75*p1
 			smoothed[#smoothed + 1] = { x = 0.75 * p0.x + 0.25 * p1.x, z = 0.75 * p0.z + 0.25 * p1.z }
 			smoothed[#smoothed + 1] = { x = 0.25 * p0.x + 0.75 * p1.x, z = 0.25 * p0.z + 0.75 * p1.z }
 		end
@@ -1878,7 +1981,7 @@ local function smoothClosedPolygon(pts, iterations)
 	return out
 end
 
--- Simplify: drop points that are too close to previous (post-smoothing decimation).
+-- Drop points closer than minDistSq to the last kept one (after smoothing).
 local function decimatePoints(pts, minDistSq)
 	if #pts < 3 then
 		return pts
@@ -1895,8 +1998,8 @@ local function decimatePoints(pts, minDistSq)
 end
 
 local function getState()
-	-- Startbox submode derives its ally-team count from the boxes drawn; the panel disables
-	-- the slider there and shows it as dynamic, so reporting the stale slider value would lie.
+	-- In startbox submode the ally-team count is the number of boxes; the panel shows it as
+	-- dynamic, so the slider value would be stale.
 	local allyCount = numAllyTeams
 	if subMode == "startbox" and #startboxes > 0 then
 		allyCount = #startboxes
@@ -1928,15 +2031,14 @@ function widget:MousePress(mx, my, button)
 		return false
 	end
 
-	-- Defer to measure tool when active
+	-- The measure tool and the symmetry origin drag get the mouse first.
 	do
-		---@type table?
+		---@type table<string, any>
 		local tb = WG.TerraformBrush
 		local stb = tb and tb.getState and tb.getState() or nil
 		if stb and stb.measureActive then
 			return false
 		end
-		-- Defer to symmetry origin drag so terraform can grab the drag
 		if stb and stb.symmetryActive then
 			if stb.symmetryPlacingOrigin or stb.symmetryHoveringOrigin or stb.symmetryDraggingOrigin then
 				return false
@@ -1951,18 +2053,21 @@ function widget:MousePress(mx, my, button)
 
 	if subMode == "express" then
 		if button == 1 then
-			-- LMB: Check if clicking near existing position (start drag)
+			-- LMB on a marker arms a drag; elsewhere it places.
 			local nearIdx = findNearestPosition(wx, wz)
 			if nearIdx then
 				dragIdx = nearIdx
 				dragStartX = mx
 				dragStartY = my
 				dragging = false
+				local p = positions[nearIdx]
+				dragFrom = { pos = p, x = p.x, z = p.z, y = p.y }
 				return true
 			end
-			-- Place new position; smart-assign teams across symmetric copies when symmetry is active
+			-- With symmetry on, each placed copy takes the next player in the rotation; a copy
+			-- refused (too steep, or the cap) passes its player on to the next copy.
 			do
-				---@type table?
+				---@type table<string, any>
 				local tb = WG.TerraformBrush
 				local stb = tb and tb.getState and tb.getState() or nil
 				local prevNext = nextAllyTeam
@@ -1971,46 +2076,32 @@ function widget:MousePress(mx, my, button)
 				if stb and stb.symmetryActive and tb.getSymmetricPositions then
 					local copies = tb.getSymmetricPositions(wx, wz, 0)
 					for _, p in ipairs(copies) do
-						addPosition(p.x, p.z, nextAllyTeam, nextTeamSlot)
-						advanceNextPlayer()
+						if addPosition(p.x, p.z, nextAllyTeam, nextTeamSlot) then
+							advanceNextPlayer()
+						end
 					end
 				elseif addPosition(wx, wz, nextAllyTeam, nextTeamSlot) then
 					advanceNextPlayer()
 				end
-				local added = #positions - prevCount
-				if added > 0 then
-					undoHistory[#undoHistory + 1] = {
-						mode = subMode,
-						count = added,
-						prevNextAllyTeam = prevNext,
-						prevNextTeamSlot = prevNextSlot,
-					}
-				end
+				recordPlacement(prevCount, prevNext, prevNextSlot)
 			end
 			return true
 		elseif button == 3 then
-			-- RMB: Undo last placement (remove most recently placed player/shape-batch).
-			-- The history is shared with the startbox editor and its entries carry no
-			-- count, so take the newest POSITION entry rather than the newest entry:
-			-- after drawing boxes the top of the stack is a box edit, and rewinding by
-			-- its missing count crashed the widget.
+			-- RMB undoes the last placement. Take the newest placement entry, not the newest
+			-- entry: every other entry carries an op (startbox edits, drags, right-click
+			-- removals) and is for Ctrl+Z only.
+			---@type integer?
 			local at
 			for i = #undoHistory, 1, -1 do
-				if (undoHistory[i].mode or "express") ~= "startbox" then
+				if (undoHistory[i].mode or "express") ~= "startbox" and not undoHistory[i].op then
 					at = i
 					break
 				end
 			end
 			local entry = at and undoHistory[at] or nil
 			if entry and at then
-				for _ = 1, (entry.count or 0) do
-					if #positions > 0 then
-						positions[#positions] = nil
-					end
-				end
-				nextAllyTeam = entry.prevNextAllyTeam or 1
-				nextTeamSlot = entry.prevNextTeamSlot or 1
 				table.remove(undoHistory, at)
+				undoPlacement(entry)
 			end
 			if #positions == 0 then
 				nextAllyTeam = 1
@@ -2020,8 +2111,7 @@ function widget:MousePress(mx, my, button)
 		end
 	elseif subMode == "shape" then
 		if button == 1 then
-			-- LMB: Place positions using current shape at click location
-			---@type table?
+			---@type table<string, any>
 			local tb = WG.TerraformBrush
 			local stb = tb and tb.getState and tb.getState() or nil
 			local sx, sz = wx, wz
@@ -2034,9 +2124,14 @@ function widget:MousePress(mx, my, button)
 			if stb and stb.symmetryActive and tb.getSymmetricPositions then
 				local copies = tb.getSymmetricPositions(sx, sz, shapeRotation)
 				if copies and #copies > 0 then
+					-- A copy refused entirely (all of it too steep, or the cap) passes its player
+					-- on to the next copy.
 					for _, p in ipairs(copies) do
+						local before = #positions
 						placeShapePositionsForTeam(p.x, p.z, nextAllyTeam)
-						advanceNextPlayer()
+						if #positions > before then
+							advanceNextPlayer()
+						end
 					end
 				else
 					placeShapePositions(sx, sz)
@@ -2044,25 +2139,16 @@ function widget:MousePress(mx, my, button)
 			else
 				placeShapePositions(sx, sz)
 			end
-			local added = #positions - prevCount
-			if added > 0 then
-				undoHistory[#undoHistory + 1] = {
-					mode = subMode,
-					count = added,
-					prevNextAllyTeam = prevNext,
-					prevNextTeamSlot = prevNextSlot,
-				}
-			end
+			recordPlacement(prevCount, prevNext, prevNextSlot)
 			return true
 		elseif button == 3 then
-			-- RMB: Remove nearest
 			removeNearestPosition(wx, wz)
 			return true
 		end
 	elseif subMode == "startbox" then
 		if button == 1 then
-			-- Strength gizmo of the selected anchor wins over vertex picking: it is deliberately
-			-- placed outside the box so it cannot collide with anything else worth grabbing.
+			-- The selected anchor's strength knob wins over vertex picking; it sits outside the
+			-- box, so it cannot hide anything else worth grabbing.
 			if strengthEdit.selBox and strengthEdit.selVert and startboxes[strengthEdit.selBox] then
 				if strengthEdit.knobHit(startboxes[strengthEdit.selBox], strengthEdit.selVert, mx, my) then
 					boxUndo.begin(strengthEdit.selBox)
@@ -2071,7 +2157,7 @@ function widget:MousePress(mx, my, button)
 				end
 			end
 
-			-- Check for vertex drag first (polygon/freedraw boxes — placed boxes are always editable)
+			-- Pick order: vertex or control, edge midpoint (insert), rect edge, box body, then draw.
 			local bi, vi = findNearestBoxVertex(wx, wz)
 			if bi and vi then
 				boxUndo.begin(bi)
@@ -2082,8 +2168,7 @@ function widget:MousePress(mx, my, button)
 				dragging = false
 				return true
 			end
-			-- Polygon edge-midpoint: clicking the ghost handle inserts a new vertex on that edge
-			-- and immediately starts dragging it, so the user can place it where they want.
+			-- The ghost handle inserts an anchor on that edge and starts dragging it at once.
 			local pbi, pei, pmx, pmz = findNearestPolygonEdgeMid(wx, wz)
 			if pbi and pei then
 				local box = startboxes[pbi]
@@ -2104,7 +2189,6 @@ function widget:MousePress(mx, my, button)
 					return true
 				end
 			end
-			-- Edge drag for axis-aligned "box"-kind startboxes (4 corners, no vertex handles).
 			local ebi, edge = findNearestBoxEdge(wx, wz)
 			if ebi and edge then
 				boxEdgeDrag = { bi = ebi, edge = edge }
@@ -2114,9 +2198,6 @@ function widget:MousePress(mx, my, button)
 				return true
 			end
 
-			-- Body drag: if the click is inside an existing startbox (and not on any handle/edge
-			-- per the checks above), start a whole-box translation so the user can reposition
-			-- the entire polygon by grabbing it mid-area.
 			local containBi = findBoxContaining(wx, wz)
 			if containBi then
 				boxBodyDrag = { bi = containBi, lastX = wx, lastZ = wz }
@@ -2127,9 +2208,9 @@ function widget:MousePress(mx, my, button)
 			end
 
 			if startboxMode == "box" then
-				-- Drag rectangle: press to start, release to finish (like copy tool's box)
+				-- Press starts the rectangle, release finishes it.
 				local sx, sz = wx, wz
-				---@type table?
+				---@type table<string, any>
 				local tb = WG.TerraformBrush
 				local stb = tb and tb.getState and tb.getState() or nil
 				if stb and stb.gridSnap and tb.snapWorld then
@@ -2143,13 +2224,13 @@ function widget:MousePress(mx, my, button)
 				dragStartX, dragStartY = mx, my
 				return true
 			elseif startboxMode == "freedraw" then
-				-- Start a free-hand path; points appended during MouseMove
+				-- MouseMove appends the points.
 				freeDrawActive = true
 				freeDrawPts = { { x = wx, z = wz } }
 				dragStartX, dragStartY = mx, my
 				return true
 			else
-				-- polygon mode: click-to-add vertex, RMB to finish
+				-- Polygon: each click adds a vertex, RMB finishes.
 				if not drawingBox then
 					drawingBox = true
 					currentBoxVerts = {}
@@ -2158,15 +2239,18 @@ function widget:MousePress(mx, my, button)
 				return true
 			end
 		elseif button == 3 then
-			-- RMB on an existing polygon vertex: delete it (must keep at least 3 verts).
-			-- Check this before the polygon-finish/cancel/remove-last branches so users can
-			-- prune vertices from a finished polygon without dropping the whole box.
+			-- RMB on a polygon vertex or spline control deletes it (3 must remain). Checked first
+			-- so pruning a vertex never drops the whole box.
+			---@type integer?
+			local hitBox = nil -- box whose corner was clicked but cannot lose it (rect, or 3 left)
 			do
 				local dbi, dvi = findNearestBoxVertex(wx, wz)
 				if dbi and dvi then
+					hitBox = dbi
 					local box = startboxes[dbi]
 					local handles = box and getEditHandles(box)
 					if handles and #handles > 3 then
+						boxUndo.push("edit", dbi, box)
 						table.remove(handles, dvi)
 						if box.kind == "spline" then
 							retessellateSpline(box)
@@ -2176,7 +2260,8 @@ function widget:MousePress(mx, my, button)
 					end
 				end
 			end
-			-- RMB: Finish current polygon OR cancel drag-rect / free-draw, else remove last placed box
+			-- Otherwise: finish the polygon, cancel a rect or free-draw, remove the box whose
+			-- corner was clicked, or remove the last box.
 			if startboxMode == "polygon" and drawingBox and #currentBoxVerts >= 3 then
 				finishStartbox()
 			elseif startboxMode == "polygon" and drawingBox then
@@ -2188,6 +2273,18 @@ function widget:MousePress(mx, my, button)
 			elseif freeDrawActive then
 				freeDrawActive = false
 				freeDrawPts = {}
+			elseif hitBox and hitBox < #startboxes then
+				boxUndo.push("remove", hitBox, startboxes[hitBox])
+				freeBoxFillList(startboxes[hitBox])
+				table.remove(startboxes, hitBox)
+				renumberBoxAllyTeams()
+				-- The strength knob selection points into the list: follow the shift.
+				if strengthEdit.selBox == hitBox then
+					strengthEdit.selBox = nil
+					strengthEdit.selVert = nil
+				elseif strengthEdit.selBox and strengthEdit.selBox > hitBox then
+					strengthEdit.selBox = strengthEdit.selBox - 1
+				end
 			else
 				removeLastStartbox()
 			end
@@ -2218,8 +2315,7 @@ function widget:MouseMove(mx, my, dx, dy, button)
 	end
 
 	if strengthEdit.dragging and strengthEdit.selBox and strengthEdit.selVert then
-		-- No ground trace here on purpose: the knob floats, so a cursor over sky is still a
-		-- legitimate drag position.
+		-- No ground trace: the knob floats, so a cursor over sky is still a valid drag.
 		local box = startboxes[strengthEdit.selBox]
 		if box then
 			local s = strengthEdit.fromMouse(box, strengthEdit.selVert, mx, my)
@@ -2245,7 +2341,7 @@ function widget:MouseMove(mx, my, dx, dy, button)
 			local wx, wz = getWorldMousePosition()
 			if wx and positions[dragIdx] then
 				local cx, cz = clampToMap(wx, wz)
-				-- Only move if the new spot is commander-spawnable; else keep position (silent).
+				-- Silently refuse ground too steep for the commander.
 				if isPlaceableForCommander(cx, cz) then
 					positions[dragIdx].x, positions[dragIdx].z = cx, cz
 					positions[dragIdx].y = GetGroundHeight(cx, cz) or 0
@@ -2273,13 +2369,11 @@ function widget:MouseMove(mx, my, dx, dy, button)
 						retessellateSpline(box)
 					end
 				elseif box.kind == "box" and #box.vertices == 4 then
-					-- Axis-aligned corner drag: move the dragged corner, then propagate its X/Z
-					-- to its two neighbours so all 4 corners stay rectilinear (CCW order:
-					-- 1=(minX,minZ), 2=(maxX,minZ), 3=(maxX,maxZ), 4=(minX,maxZ)).
+					-- Rect corner drag: the opposite corner stays fixed, a minimum size stops the
+					-- rect collapsing, and all 4 corners are rewritten in CCW order:
+					-- 1=(minX,minZ), 2=(maxX,minZ), 3=(maxX,maxZ), 4=(minX,maxZ).
 					local cx, cz = clampToMap(wx, wz)
 					local i = boxDragIdx
-					-- Determine the diagonally-opposite corner (kept fixed) and enforce a
-					-- minimum size so the rect can't collapse / invert during the drag.
 					local opp = ((i + 1) % 4) + 1 -- 1<->3, 2<->4
 					local ox, oz = box.vertices[opp].x, box.vertices[opp].z
 					local MIN_SIZE = 50
@@ -2312,7 +2406,7 @@ function widget:MouseMove(mx, my, dx, dy, button)
 		end
 	end
 
-	-- Startbox: whole-box body drag (translate every vertex + spline control by world delta).
+	-- Startbox body drag: move every vertex and spline control by the world delta.
 	if subMode == "startbox" and boxBodyDrag then
 		local moved = (mx - dragStartX) ^ 2 + (my - dragStartY) ^ 2
 		if moved > DRAG_THRESHOLD_SQ then
@@ -2326,9 +2420,8 @@ function widget:MouseMove(mx, my, dx, dy, button)
 			if box then
 				local dwx = wx - boxBodyDrag.lastX
 				local dwz = wz - boxBodyDrag.lastZ
-				-- Clamp the delta against the union bbox of vertices+controls so the whole shape
-				-- "docks" against the map edge instead of compressing (per-vertex clampToMap was
-				-- crushing corners that crossed the boundary). This keeps the box rigid at edges.
+				-- Clamp the delta against the bounds of vertices and controls together, so the
+				-- shape stops rigid at the map edge; clamping per vertex would squash it.
 				local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
 				local minX, maxX = math.huge, -math.huge
 				local minZ, maxZ = math.huge, -math.huge
@@ -2378,18 +2471,16 @@ function widget:MouseMove(mx, my, dx, dy, button)
 						dwz = mapZ - maxZ
 					end
 				end
-				-- Advance the drag origin only by the delta we actually applied so the box
-				-- "sticks" to the edge while the cursor keeps moving outward (Windows-dock feel).
+				-- Advance the origin only by the applied delta, so the box stays at the edge
+				-- while the cursor keeps moving outward.
 				boxBodyDrag.lastX = boxBodyDrag.lastX + dwx
 				boxBodyDrag.lastZ = boxBodyDrag.lastZ + dwz
-				-- Translate vertices
 				if box.vertices then
 					for _, v in ipairs(box.vertices) do
 						v.x = v.x + dwx
 						v.z = v.z + dwz
 					end
 				end
-				-- Translate spline control points in lockstep (preserves shape)
 				if box.controls then
 					for _, v in ipairs(box.controls) do
 						v.x = v.x + dwx
@@ -2402,7 +2493,7 @@ function widget:MouseMove(mx, my, dx, dy, button)
 		end
 	end
 
-	-- Startbox: edge drag for box-kind (axis-aligned rectangle resize)
+	-- Startbox rect edge drag (resize).
 	if subMode == "startbox" and boxEdgeDrag then
 		local moved = (mx - dragStartX) ^ 2 + (my - dragStartY) ^ 2
 		if moved > DRAG_THRESHOLD_SQ then
@@ -2414,7 +2505,6 @@ function widget:MouseMove(mx, my, dx, dy, button)
 			local wx, wz = getWorldMousePosition()
 			local box = wx and startboxes[boxEdgeDrag.bi]
 			if box and box.vertices and #box.vertices == 4 then
-				-- Recompute current bounds
 				local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
 				for _, v in ipairs(box.vertices) do
 					if v.x < minX then
@@ -2442,7 +2532,6 @@ function widget:MouseMove(mx, my, dx, dy, button)
 				elseif edge == "B" then
 					maxZ = math_max(wz, minZ + MIN_SIZE)
 				end
-				-- Rewrite the 4 corner vertices (CCW)
 				box.vertices[1].x, box.vertices[1].z = minX, minZ
 				box.vertices[2].x, box.vertices[2].z = maxX, minZ
 				box.vertices[3].x, box.vertices[3].z = maxX, maxZ
@@ -2453,11 +2542,11 @@ function widget:MouseMove(mx, my, dx, dy, button)
 		end
 	end
 
-	-- Startbox: drag-rect live update
+	-- Startbox rect being drawn.
 	if subMode == "startbox" and boxRectActive then
 		local wx, wz = getWorldMousePosition()
 		if wx then
-			---@type table?
+			---@type table<string, any>
 			local tb = WG.TerraformBrush
 			local stb = tb and tb.getState and tb.getState() or nil
 			if stb and stb.gridSnap and tb.snapWorld then
@@ -2469,7 +2558,7 @@ function widget:MouseMove(mx, my, dx, dy, button)
 		return true
 	end
 
-	-- Startbox: freedraw sample accumulation
+	-- Startbox free-draw: sample points at a minimum spacing.
 	if subMode == "startbox" and freeDrawActive then
 		local wx, wz = getWorldMousePosition()
 		if wx then
@@ -2495,6 +2584,20 @@ function widget:MouseRelease(mx, my, button)
 	end
 
 	if subMode == "express" and dragIdx then
+		-- A drag that moved the position is one undo step. The entry holds the position
+		-- itself, not its index, so it stays right whatever is removed later.
+		local p = positions[dragIdx]
+		if dragging and dragFrom and p and dragFrom.pos == p and (p.x ~= dragFrom.x or p.z ~= dragFrom.z) then
+			undoHistory[#undoHistory + 1] = {
+				mode = "express",
+				op = "move",
+				pos = p,
+				x = dragFrom.x,
+				z = dragFrom.z,
+				y = dragFrom.y,
+			}
+		end
+		dragFrom = nil
 		dragIdx = nil
 		dragging = false
 		return true
@@ -2506,10 +2609,8 @@ function widget:MouseRelease(mx, my, button)
 		return true
 	end
 
-	-- Consolidated release for all startbox drag kinds (vertex / edge / body). Trigger the
-	-- deferred fill-list rebuild here so the translucent fill catches up after the user
-	-- lets go. During the drag itself ensureBoxFillList returned the stale list to avoid
-	-- O(N^2) rebuilds per mousemove.
+	-- Release for every startbox drag (vertex, edge, body): run the fill rebuild that
+	-- ensureBoxFillList deferred during the drag.
 	if subMode == "startbox" and (boxDragIdx or boxEdgeDrag or boxBodyDrag) then
 		-- Press and release on a handle without moving is a selection, not a drag.
 		if boxDragIdx and boxDragBoxIdx and not dragging then
@@ -2530,13 +2631,13 @@ function widget:MouseRelease(mx, my, button)
 		return true
 	end
 
-	-- Startbox: finish drag-rect on release (4 corners, CCW order)
+	-- Startbox rect finished on release (4 corners, CCW).
 	if subMode == "startbox" and boxRectActive and button == 1 then
 		boxRectActive = false
 		if boxRectStartX and boxRectEndX then
 			local x1, x2 = math_min(boxRectStartX, boxRectEndX), math_max(boxRectStartX, boxRectEndX)
 			local z1, z2 = math_min(boxRectStartZ, boxRectEndZ), math_max(boxRectStartZ, boxRectEndZ)
-			-- Minimum size threshold to avoid zero-area accidental clicks
+			-- Minimum size, so a stray click makes no box.
 			if (x2 - x1) >= 50 and (z2 - z1) >= 50 then
 				currentBoxVerts = {
 					{ x = x1, z = z1 },
@@ -2546,7 +2647,7 @@ function widget:MouseRelease(mx, my, button)
 				}
 				drawingBox = true
 				finishStartbox()
-				-- Tag the just-added box as axis-aligned rectangle (edge-drag only, no vertex handles).
+				-- Mark it an axis-aligned rect: edge and corner drags only, never curved.
 				local added = startboxes[#startboxes]
 				if added then
 					added.kind = "box"
@@ -2557,16 +2658,15 @@ function widget:MouseRelease(mx, my, button)
 		return true
 	end
 
-	-- Startbox: finish freedraw on release — smooth via Chaikin, decimate, fit to spline
+	-- Startbox free-draw finished on release: smooth (Chaikin), decimate, fit a spline.
 	if subMode == "startbox" and freeDrawActive and button == 1 then
 		freeDrawActive = false
 		if #freeDrawPts >= 4 then
 			local smoothed = smoothClosedPolygon(freeDrawPts, 2)
 			smoothed = decimatePoints(smoothed, 50 * 50)
 			if #smoothed >= 3 then
-				-- Scale control-point count with drawn perimeter so longer curves get more
-				-- handles (finer control) and short loops stay simple. One handle per ~400u
-				-- of perimeter, clamped to [6, 24].
+				-- One control per ~400 units of perimeter, clamped to [6, 24].
+				---@type number
 				local perim = 0
 				for i = 1, #smoothed do
 					local a = smoothed[i]
@@ -2581,11 +2681,9 @@ function widget:MouseRelease(mx, my, button)
 				if targetCtrls > 24 then
 					targetCtrls = 24
 				end
-				-- Fit a minimal set of control points from the smoothed trace, then store as
-				-- a spline-kind box so the user can reshape via curve handles (not raw verts).
 				local controls = fitControlPoints(smoothed, targetCtrls)
-				-- A drawn outline is smooth by intent, so every fitted handle starts fully curved.
-				-- Sharpening individual corners afterwards is what the strength gizmo is for.
+				-- A drawn outline is smooth by intent, so every control starts fully curved;
+				-- the strength gizmo sharpens single corners.
 				for _, c in ipairs(controls) do
 					c.strength = 1
 				end
@@ -2595,7 +2693,6 @@ function widget:MouseRelease(mx, my, button)
 					kind = "spline",
 					allyTeam = #startboxes + 1,
 				}
-				-- Same path a control drag takes, so what is drawn matches what editing produces.
 				retessellateSpline(startboxes[#startboxes])
 				renumberBoxAllyTeams()
 				boxUndo.push("add", #startboxes, startboxes[#startboxes])
@@ -2608,6 +2705,7 @@ function widget:MouseRelease(mx, my, button)
 	return false
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
 	if not active then
 		return false
@@ -2617,9 +2715,9 @@ function widget:MouseWheel(up, value)
 
 	if subMode == "shape" or subMode == "express" then
 		if altHeld then
-			-- Alt+Scroll: rotate shape (snap to TB protractor step when angleSnap on)
+			-- Alt+Scroll rotates, in the brush's angle-snap step when that is on.
 			local step = 5
-			---@type table?
+			---@type table<string, any>
 			local tb = WG.TerraformBrush
 			local tbs = tb and tb.getState and tb.getState() or nil
 			if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
@@ -2629,7 +2727,7 @@ function widget:MouseWheel(up, value)
 			setRotation(shapeRotation + delta)
 			return true
 		elseif ctrlHeld then
-			-- Ctrl+Scroll: resize shape
+			-- Ctrl+Scroll resizes.
 			local delta = up and RADIUS_STEP or -RADIUS_STEP
 			setRadius(shapeRadius + delta)
 			return true
@@ -2643,7 +2741,6 @@ function widget:KeyPress(key, mods, isRepeat)
 	if not active then
 		return false
 	end
-	-- Ctrl+Z: undo last placement
 	-- Ctrl+A: give every anchor in the selected box the selected anchor's strength.
 	if key == 97 and mods.ctrl and strengthEdit.selBox and strengthEdit.selVert then -- 97 = 'a'
 		local box = startboxes[strengthEdit.selBox]
@@ -2655,19 +2752,32 @@ function widget:KeyPress(key, mods, isRepeat)
 		end
 	end
 
-	-- Ctrl+Z undoes, Ctrl+Shift+Z redoes: the editor's convention (the clone tool and the
-	-- terraform brush bind redo the same way). Only entries from the current submode are
-	-- eligible: positions and startboxes coexist, so undoing in one submode must not
-	-- silently rewind the other.
+	-- Ctrl+Z undoes, Ctrl+Shift+Z redoes, as elsewhere in the editor. Only entries from the
+	-- current submode are eligible, so one submode never rewinds the other.
 	if key == 122 and mods.ctrl then -- 122 = 'z'
 		local isUndo = not mods.shift
 		local fromStack = isUndo and undoHistory or boxUndo.redo
 		local toStack = isUndo and boxUndo.redo or undoHistory
+		---@type integer?
 		local at
 		for i = #fromStack, 1, -1 do
-			if (fromStack[i].mode or "express") == subMode then
-				at = i
-				break
+			local e = fromStack[i]
+			if (e.mode or "express") == subMode then
+				-- A drag entry whose position was taken back since is dropped, not spent.
+				local live = e.op ~= "move"
+				if not live then
+					for _, p in ipairs(positions) do
+						if p == e.pos then
+							live = true
+							break
+						end
+					end
+				end
+				if live then
+					at = i
+					break
+				end
+				table.remove(fromStack, i)
 			end
 		end
 		if not at then
@@ -2681,16 +2791,15 @@ function widget:KeyPress(key, mods, isRepeat)
 		end
 		if entry.mode == "startbox" then
 			table.insert(toStack, boxUndo.apply(entry))
+		elseif entry.op == "move" then
+			-- A drag puts the position back where the drag started. No redo, like placements.
+			entry.pos.x, entry.pos.z, entry.pos.y = entry.x, entry.z, entry.y
+		elseif entry.op == "remove" then
+			-- A right-click removal puts the same position back at its index.
+			table.insert(positions, math_min(entry.idx or 1, #positions + 1), entry.pos)
 		else
-			-- Positions rewind by count, the way they always have; the counter pair is
-			-- restored from the snapshot rather than guessed at.
-			for _ = 1, (entry.count or 0) do
-				if #positions > 0 then
-					positions[#positions] = nil
-				end
-			end
-			nextAllyTeam = entry.prevNextAllyTeam or 1
-			nextTeamSlot = entry.prevNextTeamSlot or 1
+			-- Placements take back what they placed and restore the rotation. No redo.
+			undoPlacement(entry)
 		end
 
 		return true
@@ -2702,11 +2811,9 @@ end
 -- Drawing
 -- ============================================================
 
--- Draw a polygon-fan disc (soft filled circle) on the ground using a vertical cylinder approximation.
--- We fake a ground-glow by stacking multiple DrawGroundCircle calls with decreasing alpha.
+-- Fake ground glow: 5 concentric ground circles, alpha fading outward.
 local function drawSoftDisc(px, pz, radius, r, g, b, coreAlpha, segments)
 	segments = segments or 28
-	-- 5 concentric filled rings — fake gradient glow
 	for i = 1, 5 do
 		local t = i / 5
 		local rr = radius * t
@@ -2716,16 +2823,15 @@ local function drawSoftDisc(px, pz, radius, r, g, b, coreAlpha, segments)
 	end
 end
 
--- Builds a ground-hugging fan-tessellated fill mesh for a polygon and compiles it into a
--- GL display list stored on the box itself. Called on first draw and whenever the box is
--- mutated (vertex drag, body drag, edge drag). Eliminates per-frame table allocation +
--- GetGroundHeight sampling that was triggering the 1.2GB LuaRAM emergency GC warning
--- when large freedraw/polygon boxes were dragged around.
+-- Ground-hugging fill mesh for a polygon (a subdivided fan around the centroid), compiled
+-- into a display list. Cached on the box so drawing does not sample ground heights and
+-- allocate every frame, which on large boxes can push Lua memory to its limit.
 local function buildPolygonFillList(verts, lift, cellSize)
 	local n = #verts
 	if n < 3 then
 		return nil
 	end
+	---@type number, number
 	local cx, cz = 0, 0
 	for i = 1, n do
 		cx = cx + verts[i].x
@@ -2734,9 +2840,8 @@ local function buildPolygonFillList(verts, lift, cellSize)
 	cx, cz = cx / n, cz / n
 	return glCreateList(function()
 		glBeginEnd(GL_TRIANGLES, function()
-			-- Flat scratch buffer reused across all triangles. row[ri] holds (ri+1) vertices,
-			-- each as 3 consecutive entries (px,py,pz). Index of vertex j (0..ri) on row ri is
-			-- (ri*(ri+1)/2 + j) * 3. One allocation per fan instead of ~50 per fan.
+			-- One flat scratch buffer for every fan. Row ri holds ri+1 vertices as (px, py, pz);
+			-- vertex j of row ri starts at (ri*(ri+1)/2 + j) * 3.
 			local rowBuf = {}
 			for i = 1, n do
 				local a1 = verts[i]
@@ -2793,7 +2898,7 @@ local function buildPolygonFillList(verts, lift, cellSize)
 	end)
 end
 
--- Ensures box has a current fill display list; rebuilds only when marked dirty.
+-- Returns the box's fill display list, rebuilding it only when marked dirty.
 local BOX_FILL_CELL = 20 -- world units per tessellation cell (lower = higher fidelity)
 local BOX_FILL_LIFT = 2
 local BOX_FILL_DRAG_INTERVAL = 4 -- during drag, rebuild list at most every Nth draw frame
@@ -2801,21 +2906,17 @@ ensureBoxFillList = function(box)
 	if box._fillList and not box._fillDirty then
 		return box._fillList
 	end
-	-- During drag, large polygon/spline shapes (>12 verts) defer the expensive triangulation
-	-- to MouseRelease — buildPolygonFillList does O(N^2) fan subdivision that can burn thousands
-	-- of allocs per frame on a freedraw spline. Small shapes (boxes — 4 verts — and simple polys)
-	-- rebuild every frame so the fill follows the drag in real time. We also coarsen the cell
-	-- size during drag so even mid-size polys stay responsive.
+	-- During a drag, shapes over 12 vertices keep the stale fill until MouseRelease (the fan
+	-- subdivision is O(N^2)). Smaller ones rebuild every few frames with a coarser cell, so
+	-- the fill still follows the drag.
 	local verts = box.vertices
 	local nv = verts and #verts or 0
 	if isDraggingBox and box._fillList then
 		if nv > 12 then
 			return box._fillList
 		end
-		-- Throttle rebuild rate during drag so the GL display list isn't recreated every frame
-		-- (each rebuild allocates ~N² entries in the row scratch buffer + one new GL list, which
-		-- previously triggered the 1.2GB LuaRAM emergency GC during edge drags). Visually this
-		-- is ~15Hz updates instead of ~60Hz — still reads as live without the alloc storm.
+		-- Throttled: each rebuild allocates a scratch buffer and a new display list. About
+		-- 15 Hz at 60 fps still reads as live.
 		local frame = GetDrawFrame and GetDrawFrame() or 0
 		if box._fillLastFrame and (frame - box._fillLastFrame) < BOX_FILL_DRAG_INTERVAL then
 			return box._fillList
@@ -2829,7 +2930,6 @@ ensureBoxFillList = function(box)
 	local cell = isDraggingBox and (BOX_FILL_CELL * 3) or BOX_FILL_CELL
 	box._fillList = buildPolygonFillList(verts, BOX_FILL_LIFT, cell)
 	box._fillDirty = isDraggingBox -- final crisp rebuild on release
-	box._fillNeedsRebuild = false
 	if not isDraggingBox then
 		box._fillLastFrame = nil
 	end
@@ -2850,9 +2950,8 @@ freeBoxFillList = function(box)
 	end
 end
 
--- Draw N evenly-spaced arcs (gaps between them) around a circle — animated rotating "landing ring".
--- Rendered as thick curved ribbons (triangle-strip bands between inner/outer radii) so they read
--- like chunky indicator segments rather than a thin stroke.
+-- arcCount evenly spaced arcs around a circle, drawn as thick ground ribbons (triangle
+-- strips between an inner and outer radius) so they read as chunky segments.
 local function drawArcSegments(px, pz, radius, r, g, b, alpha, rotationRad, arcCount, arcFrac, segmentsPerArc)
 	local slotStep = (2 * math_pi) / arcCount
 	local arcSpan = slotStep * arcFrac
@@ -2878,12 +2977,11 @@ local function drawArcSegments(px, pz, radius, r, g, b, alpha, rotationRad, arcC
 	end
 end
 
--- Vertical beam-of-light going up from the start position.
--- Drawn as stacked world-space line segments with decreasing alpha.
+-- Vertical beam above the start position: stacked line segments fading upward.
 local function drawBeam(px, pz, r, g, b, alphaBase)
 	local gy = GetGroundHeight(px, pz) or 0
 	local steps = 6
-	local beamHeight = 280 -- fixed, no pulsing
+	local beamHeight = 280
 	glLineWidth(1.8)
 	glBeginEnd(GL_LINES, function()
 		for i = 0, steps - 1 do
@@ -2899,13 +2997,12 @@ local function drawBeam(px, pz, r, g, b, alphaBase)
 	end)
 end
 
--- Billboarded commander icon above the marker (team-tinted).
--- Icon scales with camera distance so it stays readable when zoomed out
--- (clamped so it doesn't balloon when zoomed in close).
+-- Team-tinted commander icon billboarded above the marker. It scales with camera distance
+-- (clamped) so it stays readable zoomed out without ballooning up close.
 local spGetCameraPosition = Spring.GetCameraPosition
 local function drawCommanderBillboard(px, pz, r, g, b, alpha, iconPath, hovered)
 	local gy = (GetGroundHeight(px, pz) or 0)
-	-- Base size: 20% smaller than legacy. Further -10% per player-count tier (>16, >32, >64).
+	-- 0.8 base, then 10% smaller per player-count tier (>16, >32, >64) to limit overlap.
 	local playerScale = 0.8
 	local totalPlayers = (numAllyTeams or 2) * (numTeamsPerAlly or 1)
 	if totalPlayers > 16 then
@@ -2918,7 +3015,7 @@ local function drawCommanderBillboard(px, pz, r, g, b, alpha, iconPath, hovered)
 		playerScale = playerScale * 0.9
 	end
 	local baseSize = (hovered and 52 or 48) * playerScale
-	-- Distance-based scale: reference camera distance ~2000u → 1.0x
+	-- 1.0x at a camera distance of 2000 units.
 	local cx, cy, cz = spGetCameraPosition()
 	local dx, dy, dz = cx - px, cy - (gy + 110), cz - pz
 	local dist = math.sqrt(dx * dx + dy * dy + dz * dz)
@@ -2936,12 +3033,11 @@ local function drawCommanderBillboard(px, pz, r, g, b, alpha, iconPath, hovered)
 	glBillboard()
 	glTexture(iconPath)
 	glColor(r, g, b, alpha)
-	-- Soft outer glow quad (slightly larger, additive)
+	-- Larger additive glow quad behind the icon.
 	glBlending(GL_SRC_ALPHA, GL_ONE)
 	glColor(r, g, b, alpha * 0.35)
 	local gs = iconSize * 1.35
 	glTexRect(-gs, -gs, gs, gs)
-	-- Core icon (normal blending)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	glColor(r, g, b, alpha)
 	glTexRect(-iconSize, -iconSize, iconSize, iconSize)
@@ -2949,7 +3045,7 @@ local function drawCommanderBillboard(px, pz, r, g, b, alpha, iconPath, hovered)
 	glPopMatrix()
 end
 
--- Drop four diamond hint-dots at the cardinal points — shown only when a marker is draggable-hovered.
+-- Four small ground circles at the cardinal points: the drag hint on a hovered marker.
 local function drawDragHintDots(px, pz, radius, r, g, b, alpha)
 	local gy = (GetGroundHeight(px, pz) or 0) + 8
 	local d = radius * 1.18
@@ -2961,48 +3057,41 @@ local function drawDragHintDots(px, pz, radius, r, g, b, alpha)
 	end
 end
 
--- Main sleek marker: soft glow + subtle slow-rotating ring + inner ring + commander billboard.
--- Gentle, not flashy — minimal pulsing, slow rotation.
+-- Placed start position marker: glow, inner ring, slow rotating arcs, beam, commander icon.
+-- Kept calm on purpose: barely any pulse, slow rotation.
 local function drawStartPosMarker(px, pz, color, alpha, iconPath, hovered, phase)
 	local a = alpha or 1.0
 	local r, g, b = color[1], color[2], color[3]
 
-	-- 1) Soft ground glow (barely pulses)
+	-- Ground glow, barely pulsing.
 	local pulse = 0.5 + 0.5 * math_sin(phase * 0.5)
 	local glowMul = hovered and 1.6 or 1.0
 	drawSoftDisc(px, pz, MARKER_RADIUS * (0.96 + 0.04 * pulse), r, g, b, 0.09 * a * glowMul, 20)
 
-	-- 1b) On hover: steady bright outer ring — no pulsing, no wide halo
+	-- Steady outer ring on hover.
 	if hovered then
 		glColor(1, 1, 1, 0.55 * a)
 		glLineWidth(2.5)
 		glDrawGroundCircle(px, 0, pz, MARKER_RADIUS * 1.18, 40)
 	end
 
-	-- 2) Crisp inner hair-ring (static)
 	glColor(r, g, b, 0.35 * a)
 	glLineWidth(1.0)
 	glDrawGroundCircle(px, 0, pz, MARKER_RADIUS * 0.55, 28)
 
-	-- 3) Slow rotating arc-ring (single slow layer, 3 arcs)
-	local rot = phase * 0.25 -- gentle slow spin
+	local rot = phase * 0.25
 	drawArcSegments(px, pz, MARKER_RADIUS, r, g, b, (hovered and 0.85 or 0.65) * a, rot, 3, 0.66, 10)
 
-	-- 4) (removed counter-rotating inner arcs for calmer look)
-
-	-- 5) Faint vertical beam (subtle, non-pulsing)
 	drawBeam(px, pz, r, g, b, (hovered and 0.30 or 0.18) * a)
 
-	-- 6) Commander billboard icon (static size diff on hover, no scale pulse)
 	drawCommanderBillboard(px, pz, r, g, b, (hovered and 1.0 or 0.90) * a, iconPath, hovered)
 
-	-- 7) Hover hint dots (kept, drag affordance)
 	if hovered then
 		drawDragHintDots(px, pz, MARKER_RADIUS, r, g, b, 0.7 * a)
 	end
 end
 
--- Lightweight preview marker (used by shape mode) — skips beam and hint dots for speed & clarity.
+-- Lighter marker for previews: no beam, no hint dots, a smaller fixed-size icon.
 local function drawPreviewMarker(px, pz, color, alpha, iconPath, phase)
 	local a = alpha or 1.0
 	local r, g, b = color[1], color[2], color[3]
@@ -3010,7 +3099,6 @@ local function drawPreviewMarker(px, pz, color, alpha, iconPath, phase)
 	glLineWidth(1.8)
 	local rot = phase * 0.4
 	drawArcSegments(px, pz, MARKER_RADIUS, r, g, b, 0.55 * a, rot, 3, 0.66, 8)
-	-- Smaller billboard icon for previews
 	local gy = GetGroundHeight(px, pz) or 0
 	glPushMatrix()
 	glTranslate(px, gy + 90, pz)
@@ -3023,7 +3111,7 @@ local function drawPreviewMarker(px, pz, color, alpha, iconPath, phase)
 end
 
 function widget:Update()
-	-- Hover detection — drives cursor change + highlighted marker
+	-- Hover detection: drives the cursor and the highlighted marker or handle.
 	hoverPosIdx = nil
 	hoverBoxIdx = nil
 	hoverVertIdx = nil
@@ -3036,7 +3124,7 @@ function widget:Update()
 		end
 		return
 	end
-	-- Don't steal cursor while a drag is in progress (cursor already correct)
+	-- Mid-drag the cursor stays on "move".
 	if dragIdx or boxDragIdx or boxEdgeDrag then
 		if WG.StartPosTool then
 			WG.StartPosTool.hoveringDraggable = true
@@ -3057,8 +3145,7 @@ function widget:Update()
 			end
 			hoverPosIdx = bestIdx
 		elseif subMode == "startbox" then
-			-- Knob first, mirroring MousePress: it wins over vertex picking, so hover has to
-			-- agree or the highlight would point at something the click will not hit.
+			-- Knob first, as in MousePress, so the highlight shows what a click would grab.
 			local selBox = strengthEdit.selBox and startboxes[strengthEdit.selBox]
 			if selBox and strengthEdit.selVert then
 				local hmx, hmy = GetMouseState()
@@ -3102,11 +3189,11 @@ function widget:DrawWorld()
 	local phase = drawFrame * 0.04 -- ~2.4 rad/sec @ 60fps
 
 	local wx, wz = getWorldMousePosition()
-	-- Share this draw pass's mouse trace with DrawScreenEffects via the widget
-	-- table: DrawWorld is at LuaJIT's 60-upvalue limit, so no new module locals.
+	-- Share this pass's mouse trace with DrawScreenEffects through the widget table:
+	-- DrawWorld is at Lua 5.1's 60-upvalue limit, so no new file-level locals.
 	self.frameTraceX, self.frameTraceZ, self.frameTraceDF = wx, wz, drawFrame
 	do
-		---@type table?
+		---@type table<string, any>
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
 		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then
@@ -3115,7 +3202,6 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Draw placed start positions (sleek 2026 style)
 	for i, pos in ipairs(positions) do
 		local pIdx = pos.playerIdx or pos.allyTeam
 		local color = getColorForPlayer(pIdx)
@@ -3124,8 +3210,17 @@ function widget:DrawWorld()
 		drawStartPosMarker(pos.x, pos.z, color, 1.0, iconPath, hovered, phase + i * 0.6)
 	end
 
-	-- Shape mode: preview outline + preview markers
+	-- Shape mode: outline and preview markers at the cursor.
 	if subMode == "shape" and wx then
+		-- The click's centre: grid snap moves it, so the preview snaps the same way. Shadowed
+		-- locals keep the snap inside this block.
+		---@type table<string, any>
+		local tbs = WG.TerraformBrush
+		local stbs = tbs and tbs.getState and tbs.getState() or nil
+		local wx, wz = wx, wz
+		if stbs and stbs.gridSnap and tbs.snapWorld then
+			wx, wz = tbs.snapWorld(wx, wz, shapeRotation)
+		end
 		local previewPts = generateShapePositions(wx, wz)
 		glColor(1, 1, 1, 0.22)
 		glLineWidth(1.5)
@@ -3154,35 +3249,73 @@ function widget:DrawWorld()
 			end)
 		end
 
-		for i, pt in ipairs(previewPts) do
-			local zeroIdx = i - 1
+		local copies = stbs
+			and stbs.symmetryActive
+			and tbs.getSymmetricPositions
+			and tbs.getSymmetricPositions(wx, wz, shapeRotation)
+		if copies and #copies > 0 then
+			-- Symmetry: preview every copy the way the click places it. Each copy's whole shape
+			-- goes to the next ally team with slots cycling; a copy with no placeable spot passes
+			-- its player on (the same step as advanceNextPlayer).
 			local numSlot = math_max(1, numTeamsPerAlly)
 			local numAlly = math_max(1, numAllyTeams)
-			local at, slot
-			if placementMode == "sequential" then
-				at = math_floor(zeroIdx / numSlot) % numAlly + 1
-				slot = (zeroIdx % numSlot) + 1
-			else
-				at = (zeroIdx % numAlly) + 1
-				slot = math_floor(zeroIdx / numAlly) % numSlot + 1
+			local ally, aslot = nextAllyTeam, nextTeamSlot or 1
+			for k, cp in ipairs(copies) do
+				local pts = generateShapePositions(cp.x, cp.z)
+				local anyPlaced = false
+				for i, pt in ipairs(pts) do
+					local pIdx = (ally - 1) * numSlot + ((i - 1) % numSlot) + 1
+					local color = getColorForPlayer(pIdx)
+					local iconPath = COMMANDER_ICONS[((pIdx - 1) % #COMMANDER_ICONS) + 1]
+					drawPreviewMarker(pt.x, pt.z, color, 0.55, iconPath, phase + i * 0.4)
+					anyPlaced = anyPlaced or isPlaceableForCommander(pt.x, pt.z)
+				end
+				if anyPlaced then
+					if placementMode == "sequential" then
+						aslot = aslot + 1
+						if aslot > numSlot then
+							aslot = 1
+							ally = (ally % numAlly) + 1
+						end
+					else
+						ally = ally + 1
+						if ally > numAlly then
+							ally = 1
+							aslot = (aslot % numSlot) + 1
+						end
+					end
+				end
 			end
-			local pIdx = (at - 1) * numSlot + slot
-			local color = getColorForPlayer(pIdx)
-			local iconPath = COMMANDER_ICONS[((pIdx - 1) % #COMMANDER_ICONS) + 1]
-			drawPreviewMarker(pt.x, pt.z, color, 0.55, iconPath, phase + i * 0.4)
+		else
+			for i, pt in ipairs(previewPts) do
+				local zeroIdx = i - 1
+				local numSlot = math_max(1, numTeamsPerAlly)
+				local numAlly = math_max(1, numAllyTeams)
+				local at, slot
+				if placementMode == "sequential" then
+					at = math_floor(zeroIdx / numSlot) % numAlly + 1
+					slot = (zeroIdx % numSlot) + 1
+				else
+					at = (zeroIdx % numAlly) + 1
+					slot = math_floor(zeroIdx / numAlly) % numSlot + 1
+				end
+				local pIdx = (at - 1) * numSlot + slot
+				local color = getColorForPlayer(pIdx)
+				local iconPath = COMMANDER_ICONS[((pIdx - 1) % #COMMANDER_ICONS) + 1]
+				drawPreviewMarker(pt.x, pt.z, color, 0.55, iconPath, phase + i * 0.4)
+			end
 		end
 	end
 
-	-- Express mode: ghost-cursor preview of the next position (or all symmetric copies)
+	-- Express mode: ghost preview of the next position (and its symmetric copies).
 	if subMode == "express" and wx and not dragIdx and hoverPosIdx == nil then
-		---@type table?
+		---@type table<string, any>
 		local tb = WG.TerraformBrush
 		local stb = tb and tb.getState and tb.getState() or nil
 		local numSlot = math_max(1, numTeamsPerAlly)
 		local numAlly = math_max(1, numAllyTeams)
 		local baseIdx = (nextAllyTeam - 1) * numSlot + (nextTeamSlot or 1)
-		-- Desaturated gray tint when the cursor is over terrain the commander can't spawn on
-		-- (slope > unit moveDef.maxSlope). Makes the "click here" indicator read as disabled.
+		-- Gray over ground too steep for the commander, so the preview reads as disabled.
 		local function tintForPlace(x, z, col)
 			if isPlaceableForCommander(x, z) then
 				return col
@@ -3193,11 +3326,29 @@ function widget:DrawWorld()
 		end
 		if stb and stb.symmetryActive and tb.getSymmetricPositions then
 			local copies = tb.getSymmetricPositions(wx, wz, 0)
+			-- Walk the rotation the way the click will: each placeable copy takes the next player
+			-- (the same step as advanceNextPlayer), a refused one passes its player on.
+			local ally, slot = nextAllyTeam, nextTeamSlot or 1
 			for k, p in ipairs(copies) do
-				local pIdx = ((baseIdx - 1 + (k - 1)) % math_max(1, numAlly * numSlot)) + 1
+				local pIdx = (ally - 1) * numSlot + slot
 				local color = getColorForPlayer(pIdx)
 				local iconPath = COMMANDER_ICONS[((pIdx - 1) % #COMMANDER_ICONS) + 1]
 				drawPreviewMarker(p.x, p.z, tintForPlace(p.x, p.z, color), 0.5, iconPath, phase + k * 0.5)
+				if isPlaceableForCommander(p.x, p.z) then
+					if placementMode == "sequential" then
+						slot = slot + 1
+						if slot > numSlot then
+							slot = 1
+							ally = (ally % numAlly) + 1
+						end
+					else
+						ally = ally + 1
+						if ally > numAlly then
+							ally = 1
+							slot = (slot % numSlot) + 1
+						end
+					end
+				end
 			end
 		else
 			local color = getColorForPlayer(baseIdx)
@@ -3206,7 +3357,7 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Draw startboxes (flat translucent mono-color fill via cached tessellated display list)
+	-- Startboxes: translucent fill from the cached display list, outline, then handles.
 	for bi, box in ipairs(startboxes) do
 		local color = getColorForAllyTeam(box.allyTeam)
 		local verts = box.vertices
@@ -3234,8 +3385,8 @@ function widget:DrawWorld()
 				end
 			end)
 			if box.kind == "box" and #verts == 4 then
-				-- Draw edge resize handles as pairs of arrow tips (filled triangles) straddling
-				-- the edge and pointing in opposite directions along the edge's normal axis.
+				-- Edge resize handles: a pair of arrow tips straddling each edge, pointing out
+				-- and in along its normal.
 				local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
 				for _, v in ipairs(verts) do
 					if v.x < minX then
@@ -3252,7 +3403,7 @@ function widget:DrawWorld()
 					end
 				end
 				local midEdges = {
-					-- edge name -> midpoint + outward-normal axis (nx/nz) + tangent (tx/tz)
+					-- edge -> midpoint, outward normal (nx, nz), tangent (tx, tz)
 					L = { x = minX, z = (minZ + maxZ) * 0.5, nx = -1, nz = 0, tx = 0, tz = 1 },
 					R = { x = maxX, z = (minZ + maxZ) * 0.5, nx = 1, nz = 0, tx = 0, tz = 1 },
 					T = { x = (minX + maxX) * 0.5, z = minZ, nx = 0, nz = -1, tx = 1, tz = 0 },
@@ -3260,20 +3411,18 @@ function widget:DrawWorld()
 				}
 				for name, mp in pairs(midEdges) do
 					local isHover = (hoverBoxEdge and hoverBoxEdge.bi == bi and hoverBoxEdge.edge == name)
-					-- Constant-screen-px sizing so arrows stay readable at any zoom.
+					-- Constant pixel size at any zoom.
 					local sizePx = isHover and 22 or 16
 					local size = worldRadiusForScreenPx(mp.x, mp.z, sizePx)
 					local half = size * 0.55 -- half-base along the edge tangent
 					local gap = size * 0.35 -- clearance from the edge line so tips don't overlap
 					local rim = worldRadiusForScreenPx(mp.x, mp.z, 1.5) -- 1.5px dark rim halo
-					-- Two tips: one OUTSIDE the rect (apex pointing outward = +normal) and one
-					-- INSIDE (apex pointing inward = -normal). Together they read as an
-					-- up-and-down / left-and-right resize affordance across the edge.
+					-- signNormal 1 is the tip outside the rect, -1 the one inside. The base sits
+					-- `gap` off the edge, the apex `size` further out; `expand` grows it for the rim.
 					local function emitTip(signNormal, expand)
-						-- Base center is offset `gap` off the edge along signNormal; apex is
-						-- another `size` further along the same direction.
 						local sz = size + (expand or 0)
 						local hf = half + (expand or 0)
+						---@type number
 						local gp = math_max(0, gap - (expand or 0))
 						local bcx = mp.x + signNormal * gp * mp.nx
 						local bcz = mp.z + signNormal * gp * mp.nz
@@ -3290,20 +3439,18 @@ function widget:DrawWorld()
 						glVertex(b1x, b1y, b1z)
 						glVertex(b2x, b2y, b2z)
 					end
-					-- Dark crisp rim (slightly inflated triangle behind the colored fill).
+					-- Dark rim: a slightly larger triangle behind the colored fill.
 					glColor(0, 0, 0, isHover and 0.85 or 0.70)
 					glBeginEnd(GL_TRIANGLES, function()
 						emitTip(1, rim)
 						emitTip(-1, rim)
 					end)
-					-- Flat solid color fill (matches handle disk styling).
 					glColor(color[1], color[2], color[3], isHover and 1.0 or 0.92)
 					glBeginEnd(GL_TRIANGLES, function()
 						emitTip(1, 0)
 						emitTip(-1, 0)
 					end)
 					if isHover then
-						-- Bright outline around both tips to highlight the picked edge
 						glColor(1, 1, 1, 0.75)
 						glLineWidth(2.0)
 						local function outlineTip(signNormal)
@@ -3328,8 +3475,7 @@ function widget:DrawWorld()
 						outlineTip(-1)
 					end
 				end
-				-- Corner handles for box-kind: draggable to resize from a corner (rect stays
-				-- axis-aligned via the MouseMove drag handler).
+				-- Corner handles: resize from a corner, the rect stays axis-aligned.
 				for vi, v in ipairs(verts) do
 					local vy = GetGroundHeight(v.x, v.z) or 0
 					local isHoverVert = (hoverBoxIdx == bi and hoverVertIdx == vi)
@@ -3338,7 +3484,6 @@ function widget:DrawWorld()
 					local rim = worldRadiusForScreenPx(v.x, v.z, 1.5)
 					local cy = vy + 5
 					local segs = 22
-					-- Dark crisp outline (matches arrow rim aesthetic).
 					glBeginEnd(GL_TRIANGLE_FAN, function()
 						glColor(0, 0, 0, isHoverVert and 0.85 or 0.70)
 						glVertex(v.x, cy - 0.1, v.z)
@@ -3347,7 +3492,6 @@ function widget:DrawWorld()
 							glVertex(v.x + math_cos(a) * (vertR + rim), cy - 0.1, v.z + math_sin(a) * (vertR + rim))
 						end
 					end)
-					-- Flat solid color disk (same color/alpha as the arrows).
 					glBeginEnd(GL_TRIANGLE_FAN, function()
 						glColor(color[1], color[2], color[3], isHoverVert and 1.0 or 0.92)
 						glVertex(v.x, cy, v.z)
@@ -3395,9 +3539,7 @@ function widget:DrawWorld()
 					end
 				end
 				strengthEdit.draw(box, bi)
-				-- Polygon / spline edge-midpoint ghost handle: faint circle at the edge midpoint
-				-- under the cursor; clicking it inserts a new vertex / control point there and
-				-- starts a drag (spline retessellates on each move).
+				-- Ghost handle at the hovered edge midpoint (click inserts an anchor there).
 				if hoverPolyEdge and hoverPolyEdge.bi == bi then
 					local gmx, gmz = hoverPolyEdge.x, hoverPolyEdge.z
 					local gy = GetGroundHeight(gmx, gmz) or 0
@@ -3407,8 +3549,7 @@ function widget:DrawWorld()
 					glLineWidth(1.5)
 					glDrawGroundCircle(gmx, gy, gmz, 36, 18)
 				end
-				-- Spline: show the control polygon as a faint closed polyline so the user sees
-				-- the handle skeleton behind the smoothed curve.
+				-- Spline: faint control polygon behind the curve.
 				if box.kind == "spline" and box.controls and #box.controls >= 2 then
 					glColor(color[1], color[2], color[3], 0.35)
 					glLineWidth(1.0)
@@ -3423,7 +3564,7 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Draw current box being drawn
+	-- Polygon being drawn, with a rubber band to the cursor.
 	if drawingBox and #currentBoxVerts > 0 then
 		local color = getColorForAllyTeam(#startboxes + 1)
 		glColor(color[1], color[2], color[3], 0.6)
@@ -3454,7 +3595,7 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Draw drag-rect preview (startboxMode == "box")
+	-- Rect being drawn (startboxMode == "box").
 	if subMode == "startbox" and boxRectActive and boxRectStartX and boxRectEndX then
 		local color = getColorForAllyTeam(#startboxes + 1)
 		local x1, x2 = math_min(boxRectStartX, boxRectEndX), math_max(boxRectStartX, boxRectEndX)
@@ -3471,7 +3612,7 @@ function widget:DrawWorld()
 			y = GetGroundHeight(x1, z2) or 0
 			glVertex(x1, y + 6, z2)
 		end)
-		-- Light fill outline (second pass, fainter)
+		-- Second, fainter outline closer to the ground.
 		glColor(color[1], color[2], color[3], 0.18)
 		glLineWidth(1.0)
 		glBeginEnd(GL_LINE_LOOP, function()
@@ -3486,7 +3627,7 @@ function widget:DrawWorld()
 		end)
 	end
 
-	-- Draw freedraw in-progress path
+	-- Free-draw path in progress.
 	if subMode == "startbox" and freeDrawActive and #freeDrawPts >= 2 then
 		local color = getColorForAllyTeam(#startboxes + 1)
 		glColor(color[1], color[2], color[3], 0.85)
@@ -3497,7 +3638,7 @@ function widget:DrawWorld()
 				glVertex(p.x, gy + 5, p.z)
 			end
 		end)
-		-- Dot at start so the user sees where it will close
+		-- Mark the start, where the outline will close.
 		local first = freeDrawPts[1]
 		local gy = GetGroundHeight(first.x, first.z) or 0
 		glColor(1, 1, 1, 0.8)
@@ -3508,22 +3649,21 @@ function widget:DrawWorld()
 	glLineWidth(1.0)
 end
 
--- Compute screen-space radius of a world-space circle at (wx, wz) with given worldRadius.
--- Returns screenCenterX, screenCenterY, screenRadiusPx, visible(bool)
+-- Screen center and pixel radius of a world circle at (wx, wz).
+-- Returns sx, sy, radiusPx, true; nil when off screen.
 local function getScreenMarker(wx, wz, worldRadius)
 	local gy = GetGroundHeight(wx, wz) or 0
 	local cx, cy, cz = WorldToScreenCoords(wx, gy, wz)
 	if not cz or cz <= 0 or cz >= 1 then
 		return nil
 	end
-	-- Project an edge point to measure screen radius
 	local ex, ey = WorldToScreenCoords(wx + worldRadius, gy, wz)
 	local screenR = math_sqrt((ex - cx) * (ex - cx) + (ey - cy) * (ey - cy))
 	return cx, cy, screenR, true
 end
 
--- World radius needed at (wx, wz) so the resulting on-screen size is `screenPx` pixels.
--- Lets handles/arrows keep a constant pixel size at any zoom level.
+-- World radius at (wx, wz) that comes out `screenPx` pixels on screen. Falls back to
+-- screenPx itself when the point is off screen.
 worldRadiusForScreenPx = function(wx, wz, screenPx)
 	local gy = GetGroundHeight(wx, wz) or 0
 	local sx0, sy0, sz0 = WorldToScreenCoords(wx, gy, wz)
@@ -3542,20 +3682,20 @@ worldRadiusForScreenPx = function(wx, wz, screenPx)
 	return screenPx / pxPerWorld
 end
 
--- Minimum screen-space padding between marker top and text bottom
+-- Screen pixels between a marker's top and its badge.
 local LABEL_PAD = 18
 
 local glGetTextWidth = gl.GetTextWidth
 
--- Draw a sleek screen-space badge: colored left-bar + "Team N" label.
--- Uses filled quads via glBeginEnd + glText. "2026" aesthetic: minimal, high-contrast, CHUNKY.
+-- Screen-space badge: dark card, colored left bar, "Team N" label and an optional role row.
+-- (cx, cy) is the bottom center; returns the card height.
 local function drawScreenBadge(cx, cy, color, allyTeamNum, fontSize, hovered, role)
 	local padX, padY = 14, 10
 	local barW = 5
 	local gap = 10
 	local label = "Team " .. tostring(allyTeamNum)
 
-	-- Measure text widths in pixels (gl.GetTextWidth returns factor to multiply by fontSize)
+	-- gl.GetTextWidth returns a width per unit of font size.
 	local function measure(s, sz)
 		local w = glGetTextWidth and glGetTextWidth(s) or (#s * 0.55)
 		return w * sz
@@ -3573,7 +3713,7 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, fontSize, hovered, ro
 	local by = cy
 
 	-- stylua: ignore start
-	-- Card background (dark chamfered-corner rect — octagon fan)
+	-- Card background: a rect with chamfered corners (octagon fan).
 	local bgA = hovered and 0.85 or 0.68
 	glColor(0.04, 0.06, 0.09, bgA)
 	glBeginEnd(GL_TRIANGLE_FAN, function()
@@ -3587,7 +3727,7 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, fontSize, hovered, ro
 		glVertex(bx,         by + 4)
 	end)
 
-	-- Outer accent frame on hover (bright white thin ring)
+	-- White frame on hover.
 	if hovered then
 		glColor(1, 1, 1, 0.85)
 		glLineWidth(2.0)
@@ -3603,7 +3743,6 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, fontSize, hovered, ro
 		end)
 	end
 
-	-- Colored left accent bar
 	glColor(color[1], color[2], color[3], 1.0)
 	glBeginEnd(GL_TRIANGLE_FAN, function()
 		glVertex(bx + padX,          by + padY)
@@ -3612,7 +3751,7 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, fontSize, hovered, ro
 		glVertex(bx + padX,          by + h - padY)
 	end)
 
-	-- Soft color tint bg
+	-- Faint team-color tint behind the text.
 	glColor(color[1], color[2], color[3], hovered and 0.22 or 0.12)
 	glBeginEnd(GL_TRIANGLE_FAN, function()
 		glVertex(bx + padX + barW + 1, by + padY)
@@ -3622,9 +3761,9 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, fontSize, hovered, ro
 	end)
 	-- stylua: ignore end
 
-	-- "Team N" label (shadow + color-bright)
+	-- Labels: drop shadow, then a brightened team color.
 	local textX = bx + padX + barW + gap
-	local textY = by + padY + roleH -- screen y grows downward: "Team N" stays at top, role row sits below
+	local textY = by + padY + roleH -- screen y grows upward: "Team N" sits above the role row
 	glColor(0, 0, 0, 0.90)
 	glText(label, textX + 2, textY + 2, bigSize, "o")
 	glColor(
@@ -3636,7 +3775,6 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, fontSize, hovered, ro
 	glText(label, textX, textY, bigSize, "o")
 
 	if role then
-		-- Role sub-label inside the card, below "Team N" (shadow + color-bright)
 		glColor(0, 0, 0, 0.90)
 		glText(role, textX + 2, by + padY + 2, roleSize, "o")
 		glColor(color[1], color[2], color[3], 0.95)
@@ -3650,31 +3788,29 @@ function widget:DrawScreenEffects()
 		return
 	end
 
-	-- Screen-space sleek badges for placed positions
+	-- A badge above each placed position.
 	for i, pos in ipairs(positions) do
 		local sx, sy, sr, vis = getScreenMarker(pos.x, pos.z, MARKER_RADIUS)
 		if vis then
 			local pIdx = pos.playerIdx or pos.allyTeam
 			local color = getColorForPlayer(pIdx)
 			local badgeY = sy + sr + LABEL_PAD
-			local fontSize = 32 -- 2026 chunky
+			local fontSize = 32
 			local hovered = (hoverPosIdx == i) or (dragIdx == i)
 			drawScreenBadge(sx, badgeY, color, pos.allyTeam, fontSize, hovered, pos.role)
 		end
 	end
 
-	-- Startbox labels: centroid card
+	-- Startbox badges sit above the box's top vertex on screen, not on the centroid, where
+	-- they would cover the body-drag area. The centroid is the fallback.
 	for _, box in ipairs(startboxes) do
 		if #box.vertices >= 3 then
-			-- Place the badge above the box's TOP screen edge so it doesn't sit on top of
-			-- the body-drag affordance at the centroid. Find the smallest screen-y across
-			-- the projected vertices, pick its X for horizontal anchoring, then offset up.
 			local bestSx, bestSy, bestVis
 			for _, v in ipairs(box.vertices) do
 				local vy = GetGroundHeight(v.x, v.z) or 0
 				local sx, sy, sz = WorldToScreenCoords(v.x, vy, v.z)
 				if sz and sz > 0 and sz < 1 then
-					if (not bestSy) or sy > bestSy then -- screen y grows downward; max sy = top of screen
+					if (not bestSy) or sy > bestSy then -- screen y grows upward; max sy = top of screen
 						bestSy = sy
 						bestSx = sx
 						bestVis = true
@@ -3682,7 +3818,7 @@ function widget:DrawScreenEffects()
 				end
 			end
 			if not bestVis then
-				-- Fallback: centroid (e.g. all corners off-screen but center on-screen)
+				-- Every vertex off screen: try the centroid.
 				local ccx, ccz = 0.0, 0.0
 				for _, v in ipairs(box.vertices) do
 					ccx = ccx + v.x
@@ -3697,16 +3833,17 @@ function widget:DrawScreenEffects()
 				end
 			end
 			if bestVis then
+				---@cast bestSy number
 				local color = getColorForAllyTeam(box.allyTeam)
 				drawScreenBadge(bestSx, bestSy + 28, color, box.allyTeam, 26, false)
 			end
 		end
 	end
 
-	-- Shape preview small badges
+	-- Shape preview labels.
 	if subMode == "shape" then
-		-- Reuse DrawWorld's mouse trace from this draw pass when available
-		-- (read via self/Spring globals: this function is near the upvalue limit)
+		-- Reuse DrawWorld's mouse trace from this frame. Read through self and Spring: this
+		-- function is near the upvalue limit too.
 		local wx, wz
 		if self.frameTraceDF == (Spring.GetDrawFrame() or 0) then
 			wx, wz = self.frameTraceX, self.frameTraceZ
@@ -3750,6 +3887,7 @@ end
 -- ============================================================
 
 function widget:Initialize()
+	---@type table?
 	WG.StartPosTool = {
 		activate = activate,
 		deactivate = deactivate,

@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
--- The terraform brush's UNITS tool (refactor plan, U6) places REAL units: a map maker lays
+-- The terraform brush's UNITS tool places REAL units: a map maker lays
 -- out a base or a battle to look at, light and screenshot. The mission editor places records
 -- instead; both use the same library and placer on the LuaUI side.
 --
@@ -37,7 +37,8 @@ end
 --   unit_placer_history(undoCount, redoCount) after every change
 --   unit_placer_remap(oldID, newID) for every unit created again (undo, redo, transform), so
 --       the widget's selection follows it
--- Gated like the rest of the editor suite: cheats on, or the editor sandbox.
+-- Gated like the rest of the editor suite: cheats on, or the editor sandbox, and never
+-- inside a mission PLAY session.
 
 if not gadgetHandler:IsSyncedCode() then
 	-- Sync actions (a table lookup by name) rather than RecvFromSynced, which would see every
@@ -93,7 +94,7 @@ local undoStack = {} -- strokes, oldest first
 local redoStack = {} -- strokes taken back, newest last
 
 -- A mission editor PLAY session (or any Mission API mission) carries editor_sandbox=1
--- too, so that gate alone let editor tools into a running mission. They stay out of one.
+-- too; editor tools must stay out of a running mission.
 local function isPlaySession()
 	local modOptions = Spring.GetModOptions()
 	return tostring(modOptions.mission_editor_play or "") == "1" or modOptions.missionoptions ~= nil
@@ -110,7 +111,7 @@ local function sendHistory()
 	SendToUnsynced("UnitPlacerHistory", #undoStack, #redoStack)
 end
 
--- MISSION UNITS (Terraform Brush 1.18): the UNITS tool's MISSION mode places stand-ins for a
+-- MISSION UNITS: the UNITS tool's MISSION mode places stand-ins for a
 -- mission rather than units to play with: frozen in place (neutral, invulnerable, orders
 -- refused, MoveCtrl holds them), and carrying a mission TEAM NUMBER that need not exist in
 -- this session. They stand on that team when it exists (team colours for free), else on
@@ -148,7 +149,7 @@ local function thaw(unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 1 }, 0)
 end
 
--- the map project's units gadget restores saved mission units through the same freeze
+-- The map project's units gadget restores saved mission units through the same freeze.
 GG.UnitPlacer = { freeze = freeze, realTeamFor = realTeamFor }
 
 --- missionTeam nil = a live unit on `team`; a number = a mission unit (team is then derived)
