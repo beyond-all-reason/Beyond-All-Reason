@@ -335,6 +335,35 @@ WG.TerraformerShared.getElementRect = function(docName, elementId)
 	}
 end
 
+--- Is the button that started a gesture on `element` still held? RmlUi keeps `:active` on the
+--- pressed element until the button is let go, wherever that happens -- over another window,
+--- over the map, outside the game window. Spring.GetMouseState cannot say: the engine never
+--- records a press RmlUi consumed (CMouseHandler::MousePress returns before `pressed = true`),
+--- so its left button reads false for the whole gesture. nil when the state cannot be read.
+---
+--- The mousedown handlers SET `:active` themselves (markHeld): they stop the press propagating,
+--- and RmlUi then skips every default action, the one that sets `:active` included
+--- (EventDispatcher.cpp). The element is still in the context's active chain, so the release
+--- clears it as usual (Context::ResetActiveChain).
+local function stillHeld(element)
+	if not element then
+		return nil
+	end
+	local ok, active = pcall(function()
+		return element:IsPseudoClassSet("active")
+	end)
+	if not ok then
+		return nil
+	end
+	return active == true
+end
+
+local function markHeld(element)
+	pcall(function()
+		element:SetPseudoClass("active", true)
+	end)
+end
+
 ---Options accepted by `attachDraggable`.
 ---@class TerraformerDraggableOpts
 ---@field snapThreshold number? Pixel snap distance for edges and panel snap. Defaults to `30`.
@@ -414,10 +443,11 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 		if onDragStart then
 			onDragStart()
 		end
+		markHeld(handleEl)
 		event:StopPropagation()
 	end, false)
 
-	doc:AddEventListener("mouseup", function()
+	local function endDrag()
 		if ds.active then
 			local moved = ds.rootEl
 			ds.active = false
@@ -429,7 +459,9 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 			end
 			applyScreenScale(moved)
 		end
-	end, false)
+	end
+
+	doc:AddEventListener("mouseup", endDrag, false)
 
 	local T = snapThreshold
 	return {
@@ -438,6 +470,11 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 				return
 			end
 			local mx, my, _, _, _, offscreen = Spring.GetMouseState()
+			-- Released anywhere at all ends the drag; see stillHeld.
+			if stillHeld(handleEl) == false then
+				endDrag()
+				return
+			end
 			if offscreen then
 				return
 			end
