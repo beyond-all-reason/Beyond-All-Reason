@@ -211,24 +211,6 @@ local corpseWarningFrames = {}
 local warningCorpses = {}
 local rezzedCorpses = {}
 local zombieRezChecks = {}
-local aircraftCorpses = {
-	data = {},
-	checkFrames = {},
-	warningFrames = {},
-	warnings = {},
-	crashAttackers = {},
-	impacts = {},
-	heapByUnit = {},
-	unitByHeap = {},
-	reclaimedHeaps = {},
-	consumedHeaps = {},
-	heapMetal = 1,
-	idleModeLand = 1,
-	fireStateHoldFire = 0,
-	fireStateFireAtAll = 3,
-	moveStateHoldPosition = 0,
-	moveStateRoam = 2,
-}
 local pendingDeaths = {}
 local vanishedDeaths = {}
 local pendingWreckSwaps = {}
@@ -419,8 +401,6 @@ do
 			rezPower = rezPower,
 			size = unitDef.xsize,
 			isMobile = unitDef.speed > 0,
-			isAircraft = unitDef.canFly and true or false,
-			isFloater = unitDef.floatOnWater and true or false,
 			isCommander = customParams.iscommander and true or false,
 			isPoolMember = isPoolMember,
 			forceRespawn = isPoolMember,
@@ -464,19 +444,6 @@ do
 				unitDefData.heapDefID = heapFeatureDef.id
 				if canCorpseRespawn then
 					zombieHeapDefs[heapFeatureDef.id] = unitDefData
-				end
-			end
-		end
-		if unitDefData.isAircraft and not unitDefData.heapDefID and not unitDefData.neverRespawn then
-			local isExcludedAircraft = customParams.drone
-				or customParams.iscritter
-				or customParams.israptor
-				or string.find(unitDef.name, "assistdrone", 1, true)
-			if not isExcludedAircraft then
-				local aircraftHeapDef = FeatureDefNames[unitDef.name .. "_heap"]
-				if aircraftHeapDef then
-					unitDefData.heapDefID = aircraftHeapDef.id
-					zombieHeapDefs[aircraftHeapDef.id] = unitDefData
 				end
 			end
 		end
@@ -615,10 +582,8 @@ local function getRandomRadiusOffset(radius, scale)
 	return math.cos(angle) * distance, math.sin(angle) * distance
 end
 
-local function spawnWarningEffects(featureID, featureX, featureY, featureZ, radius)
-	if not radius then
-		radius = spring.GetFeatureRadius(featureID)
-	end
+local function spawnWarningEffects(featureID, featureX, featureY, featureZ)
+	local radius = spring.GetFeatureRadius(featureID)
 	local selectedEffect = WARNING_CEGS[random(#WARNING_CEGS)] or WARNING_CEGS[1]
 	if selectedEffect == EFFECT.RADIATION_LIGHTNING and GG.SpawnEnvironmentalLightning then
 		GG.SpawnEnvironmentalLightning("scavradiation", featureX, featureY, featureZ, LIGHTNING_SIZE_SCALE)
@@ -945,10 +910,7 @@ local function feedWraithQueue(unitDefID, spawnX, spawnZ, wasZombie, attackerID,
 		return
 	end
 	local unitDefData = zombieUnitDefs[unitDefID]
-	if not unitDefData.isMobile or unitDefData.neverRespawn or unitDefData.excludedFromWraithSpawn then
-		return
-	end
-	if not unitDefData.corpseDefID and not unitDefData.heapDefID then
+	if not unitDefData.isMobile or not unitDefData.corpseDefID or unitDefData.neverRespawn or unitDefData.excludedFromWraithSpawn then
 		return
 	end
 	pendingWraithFeeds[#pendingWraithFeeds + 1] = {
@@ -996,12 +958,8 @@ local function processWraithFeeds()
 			local payloadUnitDefID, payloadCount, isSubstitute =
 				resolveSpawnPlan(wraithFeed.unitDefID, wraithFeed.wasZombie, unitPower, 1)
 			local payloadUnitDefData = payloadUnitDefID and zombieUnitDefs[payloadUnitDefID]
-			local canDropPayload = payloadUnitDefData
-				and (
-					(payloadUnitDefData.corpseDefID and zombieCorpseDefs[payloadUnitDefData.corpseDefID])
-					or (payloadUnitDefData.heapDefID and zombieHeapDefs[payloadUnitDefData.heapDefID])
-				)
-			if payloadUnitDefID and payloadCount > 0 and canDropPayload then
+			local corpseDefID = payloadUnitDefData and payloadUnitDefData.corpseDefID
+			if payloadUnitDefID and payloadCount > 0 and corpseDefID and zombieCorpseDefs[corpseDefID] then
 				addToFrameList(pendingWraithSpawns, gameFrame + WRAITH.SPAWN_DELAY, {
 					x = wraithFeed.x,
 					z = wraithFeed.z,
@@ -1055,9 +1013,6 @@ local function canSpawnUnitAt(unitDefID, spawnX, spawnY, spawnZ, facing)
 	local unitDefData = zombieUnitDefs[unitDefID]
 	if not unitDefData then
 		return false
-	end
-	if unitDefData.isAircraft then
-		return spawnY >= 0 or unitDefData.isFloater
 	end
 	if unitDefData.isMobile then
 		return spring.TestMoveOrder(unitDefID, spawnX, spawnY, spawnZ) and true or false
@@ -1175,104 +1130,9 @@ local function replaceWithScavVariant(unitID, scavUnitDefID)
 	return newUnitID
 end
 
-function aircraftCorpses.unlinkDormantHeap(unitID, featureID)
-	if not featureID and unitID then
-		featureID = aircraftCorpses.heapByUnit[unitID]
-	end
-	if not unitID and featureID then
-		unitID = aircraftCorpses.unitByHeap[featureID]
-	end
-	if unitID then
-		aircraftCorpses.heapByUnit[unitID] = nil
-	end
-	if featureID then
-		aircraftCorpses.unitByHeap[featureID] = nil
-	end
-end
-
-function aircraftCorpses.consumeLinkedHeap(unitID)
-	local featureID = unitID and aircraftCorpses.heapByUnit[unitID]
-	if not featureID then
-		return
-	end
-	aircraftCorpses.unlinkDormantHeap(unitID, featureID)
-	aircraftCorpses.consumedHeaps[featureID] = true
-	if spring.ValidFeatureID(featureID) then
-		spring.DestroyFeature(featureID)
-	end
-end
-
-function aircraftCorpses.attachDormantHeap(unitID, featureID)
-	local heapMetal = aircraftCorpses.heapMetal
-	local _, maxMetal, _, _, _, reclaimTime = spring.GetFeatureResources(featureID)
-	local scaledReclaimTime = reclaimTime
-	if maxMetal and reclaimTime and maxMetal > heapMetal then
-		scaledReclaimTime = reclaimTime * heapMetal / maxMetal
-	end
-	if not scaledReclaimTime or scaledReclaimTime < 1 then
-		scaledReclaimTime = 1
-	end
-	spring.SetFeatureResources(featureID, heapMetal, 0, scaledReclaimTime, 1, heapMetal, 0)
-	aircraftCorpses.heapByUnit[unitID] = featureID
-	aircraftCorpses.unitByHeap[featureID] = unitID
-end
-
-function aircraftCorpses.destroyUnitForReclaimedHeap(featureID)
-	local unitID = aircraftCorpses.unitByHeap[featureID]
-	if not unitID then
-		return
-	end
-	aircraftCorpses.unlinkDormantHeap(unitID, featureID)
-	if spring.GetUnitIsDead(unitID) ~= false then
-		return
-	end
-	suppressedDeaths[unitID] = true
-	spring.DestroyUnit(unitID, false, true)
-end
-
-function aircraftCorpses.clearStaleReclaimedHeaps()
-	for featureID in pairs(aircraftCorpses.reclaimedHeaps) do
-		if spring.ValidFeatureID(featureID) then
-			aircraftCorpses.reclaimedHeaps[featureID] = nil
-		end
-	end
-end
-
-function aircraftCorpses.randomSignedTiltRadians()
-	local MINIMUM_TILT_DEGREES = 15
-	local MAXIMUM_TILT_DEGREES = 30
-	local DEGREES_TO_RADIANS = math.pi / 180
-	local tiltDegrees = MINIMUM_TILT_DEGREES + random() * (MAXIMUM_TILT_DEGREES - MINIMUM_TILT_DEGREES)
-	if random(0, 1) == 0 then
-		tiltDegrees = -tiltDegrees
-	end
-	return tiltDegrees * DEGREES_TO_RADIANS
-end
-
-function aircraftCorpses.tiltDormantAircraft(unitID)
-	local HEADING_TO_RADIANS = math.pi / 32768
-	local heading = spring.GetUnitHeading(unitID) or 0
-	local pitch = aircraftCorpses.randomSignedTiltRadians()
-	local yaw = -heading * HEADING_TO_RADIANS + aircraftCorpses.randomSignedTiltRadians()
-	spring.MoveCtrl.Enable(unitID)
-	spring.MoveCtrl.SetVelocity(unitID, 0, 0, 0)
-	spring.MoveCtrl.SetRotation(unitID, pitch, yaw, 0)
-end
-
-function aircraftCorpses.clearDormantAircraftTilt(unitID)
-	spring.MoveCtrl.Disable(unitID)
-end
-
 ---Turns a unit into a zombie, swapping it for its `_scav` variant where one exists.
 ---@param unitID UnitID
 local function setZombie(unitID)
-	if aircraftCorpses.data[unitID] then
-		aircraftCorpses.data[unitID] = nil
-		aircraftCorpses.warnings[unitID] = nil
-		aircraftCorpses.clearDormantAircraftRules(unitID)
-		aircraftCorpses.clearDormantAircraftTilt(unitID)
-		aircraftCorpses.consumeLinkedHeap(unitID)
-	end
 	local unitDefID = spring.GetUnitDefID(unitID)
 	if not unitDefID then
 		return
@@ -1292,9 +1152,6 @@ local function wasTamperedRecently(tamperedFrame)
 end
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
-	if part < 0 and aircraftCorpses.unitByHeap[featureID] then
-		aircraftCorpses.reclaimedHeaps[featureID] = true
-	end
 	if part > 0 and builderTeam == gaiaTeamID and zombieUnitIDs[builderID] then
 		local corpseDefData = zombieCorpseDefs[featureDefID]
 		if not corpseDefData then
@@ -1366,41 +1223,22 @@ local function isWraithFeedingDeath(unitID, unitDefID, weaponDefID)
 end
 
 local function recordPendingDeath(unitID, unitDefID, weaponDefID, attackerID)
-	local unitDefData = zombieUnitDefs[unitDefID]
-	if not unitDefData.corpseDefID and not unitDefData.heapDefID then
+	if not zombieUnitDefs[unitDefID].corpseDefID then
 		return
 	end
-	local unitX, unitY, unitZ = spring.GetUnitPosition(unitID)
+	local unitX, _, unitZ = spring.GetUnitPosition(unitID)
 	if not unitX then
 		return
 	end
-	local velocityX, velocityY, velocityZ
-	if unitDefData.isAircraft and unitDefData.heapDefID and not unitDefData.corpseDefID then
-		velocityX, velocityY, velocityZ = spring.GetUnitVelocity(unitID)
-	end
-	local resolvedAttackerID = attackerID
 	local attackerX, attackerZ = getLiveAttackerPosition(attackerID)
-	local crashAttacker = aircraftCorpses.crashAttackers[unitID]
-	if not attackerX and crashAttacker then
-		resolvedAttackerID = crashAttacker.attackerID
-		attackerX = crashAttacker.attackerX
-		attackerZ = crashAttacker.attackerZ
-	end
 	pendingDeaths[unitID] = {
 		unitDefID = unitDefID,
 		x = unitX,
-		y = unitY,
 		z = unitZ,
-		velocityX = velocityX,
-		velocityY = velocityY,
-		velocityZ = velocityZ,
-		deathFrame = gameFrame,
-		heading = spring.GetUnitHeading(unitID) or 0,
-		inheritedXp = spring.GetUnitExperience(unitID) or 0,
 		wasZombie = isZombie(unitID),
 		isDrowned = weaponDefID == WATER_DAMAGE_DEF_ID and not WATER_IS_LAVA,
 		feedsWraith = isWraithFeedingDeath(unitID, unitDefID, weaponDefID),
-		attackerID = resolvedAttackerID,
+		attackerID = attackerID,
 		attackerX = attackerX,
 		attackerZ = attackerZ,
 		timeoutFrame = gameFrame + PENDING_DEATH_TIMEOUT_FRAMES,
@@ -1531,169 +1369,9 @@ local function queueHeapForSpawning(featureID, override, wasZombie)
 	rememberWreckWraithFeed(featureID, heapDefData.unitDefID, featureX, featureZ, wasZombie, nil, nil, nil)
 end
 
-function aircraftCorpses.clearDormantAircraftRules(unitID)
-	spring.SetUnitRulesParam(unitID, RULES_PARAM.REZ_FRAME, nil, RULES_PARAM.PUBLIC_ACCESS)
-	spring.SetUnitRulesParam(unitID, RULES_PARAM.REZ_DELAY, nil, RULES_PARAM.PUBLIC_ACCESS)
-end
-
-function aircraftCorpses.setDormantAircraftHold(unitID)
-	spring.SetUnitNeutral(unitID, true)
-	spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { aircraftCorpses.fireStateHoldFire }, 0)
-	spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { aircraftCorpses.moveStateHoldPosition }, 0)
-	spring.GiveOrderToUnit(unitID, CMD.IDLEMODE, { aircraftCorpses.idleModeLand }, 0)
-end
-
-function aircraftCorpses.setDormantAircraftActive(unitID)
-	aircraftCorpses.clearDormantAircraftTilt(unitID)
-	spring.SetUnitNeutral(unitID, false)
-	spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { aircraftCorpses.fireStateFireAtAll }, 0)
-	spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { aircraftCorpses.moveStateRoam }, 0)
-	spring.GiveOrderToUnit(unitID, CMD.IDLEMODE, { IDLEMODE_FLY }, 0)
-end
-
-function aircraftCorpses.armDormantAircraftSpawn(unitID, aircraftData, spawnFrame)
-	spawnFrame = math.max(spawnFrame, gameFrame + 1)
-	aircraftData.spawnFrame = spawnFrame
-	spring.SetUnitRulesParam(unitID, RULES_PARAM.REZ_FRAME, spawnFrame, RULES_PARAM.PUBLIC_ACCESS)
-	spring.SetUnitRulesParam(unitID, RULES_PARAM.REZ_DELAY, aircraftData.spawnDelayFrames, RULES_PARAM.PUBLIC_ACCESS)
-	addToFrameList(aircraftCorpses.checkFrames, spawnFrame, unitID)
-	local warningFrame = spawnFrame - WARNING_TIME
-	if warningFrame <= gameFrame then
-		aircraftCorpses.warnings[unitID] = true
-	else
-		addToFrameList(aircraftCorpses.warningFrames, warningFrame, unitID)
-	end
-end
-
-function aircraftCorpses.queueDormantAircraft(unitID, unitDefID, wasZombie, attackerID, attackerX, attackerZ)
-	local unitDefData = zombieUnitDefs[unitDefID]
-	if not unitDefData then
-		return
-	end
-	if wasZombie then
-		spring.SetUnitRulesParam(unitID, RULES_PARAM.WAS_ZOMBIE, 1, RULES_PARAM.PUBLIC_ACCESS)
-	end
-	local unitX, _, unitZ = spring.GetUnitPosition(unitID)
-	local aircraftData = {
-		unitDefID = unitDefID,
-		spawnDelayFrames = unitDefData.spawnDelayFrames or 0,
-		creationFrame = gameFrame,
-		tamperedFrame = UNTAMPERED_FRAME,
-		wasZombie = wasZombie,
-		x = unitX,
-		z = unitZ,
-		attackerID = attackerID,
-		attackerX = attackerX,
-		attackerZ = attackerZ,
-	}
-	aircraftCorpses.data[unitID] = aircraftData
-	aircraftCorpses.armDormantAircraftSpawn(unitID, aircraftData, gameFrame + aircraftData.spawnDelayFrames)
-end
-
-function aircraftCorpses.destroySuppressedUnit(unitID)
-	suppressedDeaths[unitID] = true
-	spring.DestroyUnit(unitID, false, true)
-end
-
-function aircraftCorpses.wakeDormantAircraft(unitID)
-	local aircraftData = aircraftCorpses.data[unitID]
-	if not aircraftData then
-		return
-	end
-	aircraftCorpses.data[unitID] = nil
-	aircraftCorpses.warnings[unitID] = nil
-	aircraftCorpses.clearDormantAircraftRules(unitID)
-	if not spring.ValidUnitID(unitID) or spring.GetUnitIsDead(unitID) then
-		aircraftCorpses.consumeLinkedHeap(unitID)
-		return
-	end
-
-	local unitDefID = aircraftData.unitDefID
-	local unitDefData = zombieUnitDefs[unitDefID]
-	if not unitDefData then
-		aircraftCorpses.consumeLinkedHeap(unitID)
-		aircraftCorpses.destroySuppressedUnit(unitID)
-		return
-	end
-
-	local wasZombie = aircraftData.wasZombie
-	local spawnCount = 1
-	if not wasZombie and unitDefData.isMobile then
-		spawnCount = calculateSpawnCount(unitDefID)
-	end
-	local spawnUnitDefID, plannedCount, isSubstitute =
-		resolveSpawnPlan(unitDefID, wasZombie, getSubstitutionPower(unitDefID), spawnCount)
-	local unitX, unitY, unitZ = spring.GetUnitPosition(unitID)
-	local facing = spring.GetUnitBuildFacing(unitID) or 0
-	local inheritedXp = spring.GetUnitExperience(unitID) or 0
-	if not spawnUnitDefID or plannedCount < 1 or not unitX then
-		aircraftCorpses.consumeLinkedHeap(unitID)
-		aircraftCorpses.destroySuppressedUnit(unitID)
-		return
-	end
-	aircraftCorpses.consumeLinkedHeap(unitID)
-	if isSubstitute then
-		aircraftCorpses.destroySuppressedUnit(unitID)
-		local spawnedCount =
-			spawnZombieUnits(spawnUnitDefID, plannedCount, unitX, unitY, unitZ, facing, inheritedXp)
-		retryFailedSubstitutes(spawnUnitDefID, plannedCount - spawnedCount)
-		return
-	end
-
-	playSpawnSound(unitX, unitY, unitZ)
-	spring.SpawnCEG(unitDefData.spawnExplosionCeg, unitX, unitY, unitZ, 0, 0, 0)
-	aircraftCorpses.setDormantAircraftActive(unitID)
-	registerZombie(unitID, unitDefID, true)
-	if plannedCount > 1 then
-		spawnZombieUnits(spawnUnitDefID, plannedCount - 1, unitX, unitY, unitZ, facing, inheritedXp)
-	end
-end
-
-function aircraftCorpses.canDormantAircraftSpawnAt(unitDefData, spawnY)
-	if isPositionInLava(spawnY) then
-		return false
-	end
-	if spawnY < 0 and not unitDefData.isFloater then
-		return false
-	end
-	return true
-end
-
-function aircraftCorpses.spawnDormantAircraft(
-	heapDefData,
-	spawnX,
-	spawnY,
-	spawnZ,
-	heading,
-	inheritedXp,
-	wasZombie,
-	attackerID,
-	attackerX,
-	attackerZ
-)
-	local unitDefID = heapDefData.scavVariantUnitDefID
-	local facing = spring.GetFacingFromHeading(heading)
-	local unitID = spring.CreateUnit(unitDefID, spawnX, spawnY, spawnZ, facing, gaiaTeamID)
-	if not unitID then
-		feedWraithQueue(heapDefData.unitDefID, spawnX, spawnZ, wasZombie, attackerID, attackerX, attackerZ)
-		return false
-	end
-	if inheritedXp and inheritedXp > 0 then
-		spring.SetUnitExperience(unitID, inheritedXp)
-	end
-	aircraftCorpses.setDormantAircraftHold(unitID)
-	aircraftCorpses.tiltDormantAircraft(unitID)
-	aircraftCorpses.queueDormantAircraft(unitID, unitDefID, wasZombie, attackerID, attackerX, attackerZ)
-	return unitID
-end
-
 local function spawnCorpseFromHeap(featureID, heapDefData, heapData)
-	if not heapDefData then
-		return false
-	end
-	local isAircraftHeap = heapDefData.isAircraft and not heapDefData.corpseDefID
-	local corpseDefID = heapDefData.corpseDefID
-	if not isAircraftHeap and (not corpseDefID or not zombieCorpseDefs[corpseDefID]) then
+	local corpseDefID = heapDefData and heapDefData.corpseDefID
+	if not corpseDefID or not zombieCorpseDefs[corpseDefID] then
 		return false
 	end
 	local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
@@ -1713,38 +1391,6 @@ local function spawnCorpseFromHeap(featureID, heapDefData, heapData)
 	corpsesData[featureID] = nil
 	warningCorpses[featureID] = nil
 	wreckWraithFeeds[featureID] = nil
-	clearCorpseRezRulesParam(featureID)
-
-	if isAircraftHeap then
-		spawnHeapUpcycleEffects(featureX, featureY, featureZ, radius)
-		local spawnUnitDefData = zombieUnitDefs[heapDefData.scavVariantUnitDefID]
-		if not spawnUnitDefData or not aircraftCorpses.canDormantAircraftSpawnAt(spawnUnitDefData, featureY) then
-			spring.DestroyFeature(featureID)
-			feedWraithQueue(heapDefData.unitDefID, featureX, featureZ, wasZombie, attackerID, attackerX, attackerZ)
-			return true
-		end
-		local unitID = aircraftCorpses.spawnDormantAircraft(
-			heapDefData,
-			featureX,
-			featureY,
-			featureZ,
-			heading,
-			inheritedXp,
-			wasZombie,
-			attackerID,
-			attackerX,
-			attackerZ
-		)
-		if not unitID then
-			if spring.ValidFeatureID(featureID) then
-				spring.DestroyFeature(featureID)
-			end
-			return true
-		end
-		aircraftCorpses.attachDormantHeap(unitID, featureID)
-		return true
-	end
-
 	spring.DestroyFeature(featureID)
 	spawnHeapUpcycleEffects(featureX, featureY, featureZ, radius)
 
@@ -1822,186 +1468,6 @@ local function processWreckSwaps()
 	creatingForcedHeap = false
 end
 
-function aircraftCorpses.isAircraftHeapDeath(deathData)
-	local unitDefData = deathData and zombieUnitDefs[deathData.unitDefID]
-	return unitDefData
-		and unitDefData.isAircraft
-		and unitDefData.heapDefID
-		and not unitDefData.corpseDefID
-		and not unitDefData.neverRespawn
-end
-
-function aircraftCorpses.projectGroundImpact(posX, posY, posZ, velX, velY, velZ)
-	local gameSpeed = Game.gameSpeed
-	if gameSpeed < 1 then
-		gameSpeed = 30
-	end
-	local frameGravity = Game.gravity / (gameSpeed * gameSpeed)
-	local mapEdgeMargin = 16
-	local maxMapX = Game.mapSizeX - mapEdgeMargin
-	local maxMapZ = Game.mapSizeZ - mapEdgeMargin
-	local maxSteps = gameSpeed * 20
-	local posXCurrent = clamp(posX, mapEdgeMargin, maxMapX)
-	local posYCurrent = posY or 0
-	local posZCurrent = clamp(posZ, mapEdgeMargin, maxMapZ)
-	local velocityX = velX or 0
-	local velocityY = velY or 0
-	local velocityZ = velZ or 0
-	for step = 1, maxSteps do
-		if posXCurrent < mapEdgeMargin then
-			posXCurrent = mapEdgeMargin
-		elseif posXCurrent > maxMapX then
-			posXCurrent = maxMapX
-		end
-		if posZCurrent < mapEdgeMargin then
-			posZCurrent = mapEdgeMargin
-		elseif posZCurrent > maxMapZ then
-			posZCurrent = maxMapZ
-		end
-		local surfaceY = spring.GetGroundHeight(posXCurrent, posZCurrent)
-		if surfaceY < 0 then
-			surfaceY = 0
-		end
-		if posYCurrent <= surfaceY then
-			return posXCurrent, surfaceY, posZCurrent, step - 1
-		end
-		velocityY = velocityY - frameGravity
-		posXCurrent = posXCurrent + velocityX
-		posYCurrent = posYCurrent + velocityY
-		posZCurrent = posZCurrent + velocityZ
-	end
-	posXCurrent = clamp(posXCurrent, mapEdgeMargin, maxMapX)
-	posZCurrent = clamp(posZCurrent, mapEdgeMargin, maxMapZ)
-	local surfaceY = spring.GetGroundHeight(posXCurrent, posZCurrent)
-	if surfaceY < 0 then
-		surfaceY = 0
-	end
-	return posXCurrent, surfaceY, posZCurrent, maxSteps
-end
-
-function aircraftCorpses.createAircraftHeap(deathData, impactX, impactY, impactZ)
-	local unitDefData = zombieUnitDefs[deathData.unitDefID]
-	local terrainY = spring.GetGroundHeight(impactX, impactZ)
-	if isPositionInLava(terrainY) or not unitDefData then
-		feedWraithQueue(
-			deathData.unitDefID,
-			impactX,
-			impactZ,
-			deathData.wasZombie,
-			deathData.attackerID,
-			deathData.attackerX,
-			deathData.attackerZ
-		)
-		return true
-	end
-	local heading = deathData.heading or 0
-	pendingCreatedFeatureData = {
-		unitDefID = deathData.unitDefID,
-		facing = spring.GetFacingFromHeading(heading),
-		wasZombie = deathData.wasZombie,
-		inheritedXp = deathData.inheritedXp,
-		attackerID = deathData.attackerID,
-		attackerX = deathData.attackerX,
-		attackerZ = deathData.attackerZ,
-	}
-	local heapFeatureID = spring.CreateFeature(unitDefData.heapDefID, impactX, impactY, impactZ, heading, gaiaTeamID)
-	pendingCreatedFeatureData = nil
-	if not heapFeatureID then
-		feedWraithQueue(
-			deathData.unitDefID,
-			impactX,
-			impactZ,
-			deathData.wasZombie,
-			deathData.attackerID,
-			deathData.attackerX,
-			deathData.attackerZ
-		)
-	end
-	return true
-end
-
-function aircraftCorpses.resolveAircraftImpact(deathData)
-	local AIR_DEATH_HEIGHT = 64
-	local surfaceY = spring.GetGroundHeight(deathData.x, deathData.z)
-	if surfaceY < 0 then
-		surfaceY = 0
-	end
-	local heightAboveSurface = (deathData.y or surfaceY) - surfaceY
-	if heightAboveSurface <= AIR_DEATH_HEIGHT then
-		return deathData.x, surfaceY, deathData.z, 0
-	end
-	local impactX, impactY, impactZ, impactDelay = aircraftCorpses.projectGroundImpact(
-		deathData.x,
-		deathData.y,
-		deathData.z,
-		deathData.velocityX,
-		deathData.velocityY,
-		deathData.velocityZ
-	)
-	local elapsedFrames = gameFrame - (deathData.deathFrame or gameFrame)
-	if elapsedFrames < 0 then
-		elapsedFrames = 0
-	end
-	local remainingFrames = impactDelay - elapsedFrames
-	if remainingFrames < 0 then
-		remainingFrames = 0
-	end
-	return impactX, impactY, impactZ, remainingFrames
-end
-
-function aircraftCorpses.spawnAircraftHeapFromDeath(deathData)
-	if
-		not currentModeFeatures.wraithRespawns
-		or not deathData.feedsWraith
-		or not aircraftCorpses.isAircraftHeapDeath(deathData)
-	then
-		return false
-	end
-	local impactX, impactY, impactZ, remainingFrames = aircraftCorpses.resolveAircraftImpact(deathData)
-	if remainingFrames > 0 then
-		local impacts = aircraftCorpses.impacts
-		impacts[#impacts + 1] = {
-			unitDefID = deathData.unitDefID,
-			x = impactX,
-			y = impactY,
-			z = impactZ,
-			heading = deathData.heading,
-			inheritedXp = deathData.inheritedXp,
-			wasZombie = deathData.wasZombie,
-			attackerID = deathData.attackerID,
-			attackerX = deathData.attackerX,
-			attackerZ = deathData.attackerZ,
-			spawnFrame = gameFrame + remainingFrames,
-		}
-		return true
-	end
-	return aircraftCorpses.createAircraftHeap(deathData, impactX, impactY, impactZ)
-end
-
-function aircraftCorpses.spawnDueAircraftHeaps(frame)
-	local impacts = aircraftCorpses.impacts
-	local impactCount = #impacts
-	if impactCount == 0 then
-		return
-	end
-	if not currentModeFeatures.wraithRespawns then
-		aircraftCorpses.impacts = {}
-		return
-	end
-	local remainingImpacts = {}
-	local remainingCount = 0
-	for impactIndex = 1, impactCount do
-		local impact = impacts[impactIndex]
-		if impact.spawnFrame <= frame then
-			aircraftCorpses.createAircraftHeap(impact, impact.x, impact.y, impact.z)
-		else
-			remainingCount = remainingCount + 1
-			remainingImpacts[remainingCount] = impact
-		end
-	end
-	aircraftCorpses.impacts = remainingImpacts
-end
-
 local function resolveVanishedDeaths()
 	if next(pendingDeaths) == nil then
 		return
@@ -2019,7 +1485,7 @@ local function resolveVanishedDeaths()
 	for deathIndex = 1, vanishedCount do
 		local deathData = vanishedDeaths[deathIndex]
 		vanishedDeaths[deathIndex] = nil
-		if deathData.feedsWraith and not aircraftCorpses.spawnAircraftHeapFromDeath(deathData) then
+		if deathData.feedsWraith then
 			feedWraithQueue(
 				deathData.unitDefID,
 				deathData.x,
@@ -2094,88 +1560,6 @@ local function activateDueWarnings(frame)
 	end
 end
 
-function aircraftCorpses.noteDormantAircraftTamper(unitID)
-	local aircraftData = aircraftCorpses.data[unitID]
-	if not aircraftData or gameFrame - aircraftData.tamperedFrame < BUILD_STEP_CHECK_INTERVAL then
-		return
-	end
-	if aircraftData.tamperedFrame == UNTAMPERED_FRAME then
-		local remainingFrames = aircraftData.spawnFrame - gameFrame
-		if remainingFrames < aircraftData.spawnDelayFrames - TIMER_NEAR_MAX_THRESHOLD then
-			local unitX, unitY, unitZ = spring.GetUnitPosition(unitID)
-			if unitX then
-				spring.SpawnCEG(EFFECT.SPAWN_TRAIL, unitX, unitY + EFFECT.CORPSE_RESET_HEIGHT, unitZ, 0, 0, 0)
-			end
-		end
-	end
-	aircraftData.tamperedFrame = gameFrame
-end
-
-function aircraftCorpses.processDueDormantAircraft(unitID)
-	local aircraftData = aircraftCorpses.data[unitID]
-	if not aircraftData then
-		return
-	end
-	local unitX, _, unitZ = spring.GetUnitPosition(unitID)
-	if not unitX then
-		aircraftCorpses.data[unitID] = nil
-		aircraftCorpses.warnings[unitID] = nil
-		aircraftCorpses.clearDormantAircraftRules(unitID)
-		aircraftCorpses.consumeLinkedHeap(unitID)
-		return
-	end
-	if aircraftData.tamperedFrame ~= UNTAMPERED_FRAME then
-		local tamperedFrame = aircraftData.tamperedFrame
-		aircraftData.creationFrame = tamperedFrame
-		aircraftData.tamperedFrame = UNTAMPERED_FRAME
-		aircraftCorpses.armDormantAircraftSpawn(unitID, aircraftData, tamperedFrame + aircraftData.spawnDelayFrames)
-		local resetY = spring.GetGroundHeight(unitX, unitZ) + EFFECT.CORPSE_RESET_HEIGHT
-		spring.SpawnCEG(EFFECT.CORPSE_RESET, unitX, resetY, unitZ, 0, 0, 0)
-		return
-	end
-	aircraftCorpses.wakeDormantAircraft(unitID)
-end
-
-function aircraftCorpses.processDueDormantAircraftList(frame)
-	local aircraftToCheck = aircraftCorpses.checkFrames[frame]
-	if not aircraftToCheck then
-		return
-	end
-	for _, unitID in ipairs(aircraftToCheck) do
-		aircraftCorpses.processDueDormantAircraft(unitID)
-	end
-	aircraftCorpses.checkFrames[frame] = nil
-end
-
-function aircraftCorpses.activateDueDormantWarnings(frame)
-	local dueWarnings = aircraftCorpses.warningFrames[frame]
-	if not dueWarnings then
-		return
-	end
-	aircraftCorpses.warningFrames[frame] = nil
-	for warningIndex = 1, #dueWarnings do
-		aircraftCorpses.warnings[dueWarnings[warningIndex]] = true
-	end
-end
-
-function aircraftCorpses.spawnDormantAircraftWarnings(frame)
-	for unitID in pairs(aircraftCorpses.warnings) do
-		local aircraftData = aircraftCorpses.data[unitID]
-		if not aircraftData or aircraftData.spawnFrame - frame >= WARNING_TIME then
-			aircraftCorpses.warnings[unitID] = nil
-		else
-			local unitX, unitY, unitZ = spring.GetUnitPosition(unitID)
-			if not unitX then
-				aircraftCorpses.data[unitID] = nil
-				aircraftCorpses.warnings[unitID] = nil
-				aircraftCorpses.clearDormantAircraftRules(unitID)
-			elseif aircraftData.tamperedFrame == UNTAMPERED_FRAME then
-				spawnWarningEffects(nil, unitX, unitY, unitZ, spring.GetUnitRadius(unitID) or 0)
-			end
-		end
-	end
-end
-
 local function spawnCorpseWarnings(frame)
 	for featureID in pairs(warningCorpses) do
 		local featureData = corpsesData[featureID]
@@ -2199,11 +1583,9 @@ function gadget:GameFrame(frame)
 	featuresCreatedThisFrame = {}
 
 	processWreckSwaps()
-	aircraftCorpses.clearStaleReclaimedHeaps()
 	if frame % VANISHED_DEATH_CHECK_INTERVAL == 0 then
 		resolveVanishedDeaths()
 	end
-	aircraftCorpses.spawnDueAircraftHeaps(frame)
 	expireDueBuildings(frame)
 	if currentModeFeatures.wraithRespawns then
 		processWraithFeeds()
@@ -2215,9 +1597,7 @@ function gadget:GameFrame(frame)
 	end
 
 	activateDueWarnings(frame)
-	aircraftCorpses.activateDueDormantWarnings(frame)
 	processDueCorpses(frame)
-	aircraftCorpses.processDueDormantAircraftList(frame)
 
 	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
 		updateTooLong(frame)
@@ -2226,7 +1606,6 @@ function gadget:GameFrame(frame)
 		end
 		topUpGaiaResources()
 		spawnCorpseWarnings(frame)
-		aircraftCorpses.spawnDormantAircraftWarnings(frame)
 	end
 	featuresCreatedThisFrame = {}
 end
@@ -2304,16 +1683,6 @@ function gadget:FeatureCreated(featureID, _, sourceID)
 				end
 			end
 			pendingWreckSwaps[#pendingWreckSwaps + 1] = featureID
-			return
-		end
-		local unitDefData = zombieUnitDefs[deathData.unitDefID]
-		if
-			currentModeFeatures.wraithRespawns
-			and aircraftCorpses.isAircraftHeapDeath(deathData)
-			and featureDefID ~= unitDefData.heapDefID
-		then
-			aircraftCorpses.spawnAircraftHeapFromDeath(deathData)
-			spring.DestroyFeature(featureID)
 			return
 		end
 	end
@@ -2422,15 +1791,6 @@ function gadget:FeatureDamaged(featureID, _, _, _, _, _, attackerID)
 end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
-	local wasConsumed = aircraftCorpses.consumedHeaps[featureID]
-	aircraftCorpses.consumedHeaps[featureID] = nil
-	local wasReclaimed = aircraftCorpses.reclaimedHeaps[featureID]
-	aircraftCorpses.reclaimedHeaps[featureID] = nil
-	if not wasConsumed and wasReclaimed then
-		aircraftCorpses.destroyUnitForReclaimedHeap(featureID)
-	else
-		aircraftCorpses.unlinkDormantHeap(nil, featureID)
-	end
 	releaseWreckWraithFeed(featureID)
 	clearCorpseRezRulesParam(featureID)
 	corpsesData[featureID] = nil
@@ -2456,70 +1816,13 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
-function aircraftCorpses.releaseDormantAircraft(unitID, weaponDefID)
-	local aircraftData = aircraftCorpses.data[unitID]
-	if not aircraftData then
-		return
-	end
-	aircraftCorpses.data[unitID] = nil
-	aircraftCorpses.warnings[unitID] = nil
-	aircraftCorpses.clearDormantAircraftRules(unitID)
-	if weaponDefID and DEATHS_BLOCKING_WRAITHS[weaponDefID] then
-		return
-	end
-	local unitX, _, unitZ = spring.GetUnitPosition(unitID)
-	local feedX = unitX or aircraftData.x
-	local feedZ = unitZ or aircraftData.z
-	if not feedX then
-		return
-	end
-	feedWraithQueue(
-		aircraftData.unitDefID,
-		feedX,
-		feedZ,
-		aircraftData.wasZombie,
-		aircraftData.attackerID,
-		aircraftData.attackerX,
-		aircraftData.attackerZ
-	)
-end
-
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID)
-	if paralyzer then
-		return damage, 1
-	end
-	local unitDefData = zombieUnitDefs[unitDefID]
-	if not unitDefData or not unitDefData.isAircraft or not unitDefData.heapDefID or unitDefData.corpseDefID then
-		return damage, 1
-	end
-	if GG.Crashing and GG.Crashing[unitID] then
-		return damage, 1
-	end
-	local health = spring.GetUnitHealth(unitID)
-	if not health or damage < health then
-		return damage, 1
-	end
-	local attackerX, attackerZ = getLiveAttackerPosition(attackerID)
-	aircraftCorpses.crashAttackers[unitID] = {
-		attackerID = attackerID,
-		attackerX = attackerX,
-		attackerZ = attackerZ,
-	}
-	return damage, 1
-end
-
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	local wasWraith = wraiths[unitID] ~= nil
 	removeWraith(unitID)
-	aircraftCorpses.consumeLinkedHeap(unitID)
-	local wasDormant = aircraftCorpses.data[unitID] ~= nil
-	if wasDormant then
-		aircraftCorpses.releaseDormantAircraft(unitID, weaponDefID)
-	end
-	if not suppressedDeaths[unitID] and not wasWraith and not wasDormant and unitDefID ~= wraithUnitDefID then
+
+	if not suppressedDeaths[unitID] and not wasWraith and unitDefID ~= wraithUnitDefID then
 		recordPendingDeath(unitID, unitDefID, weaponDefID, attackerID)
 	end
-	aircraftCorpses.crashAttackers[unitID] = nil
 
 	suppressedDeaths[unitID] = nil
 	pendingZombieCaptures[unitID] = nil
@@ -2529,17 +1832,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	setZombieFactoryBuildpower(unitID, false)
 end
 
-function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
-	if aircraftCorpses.data[unitID] then
-		aircraftCorpses.noteDormantAircraftTamper(unitID)
-	end
-	return true
-end
-
 function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, part)
-	if aircraftCorpses.data[unitID] then
-		aircraftCorpses.noteDormantAircraftTamper(unitID)
-	end
 	if pendingZombieCaptures[unitID] then
 		return true
 	end
@@ -2557,36 +1850,10 @@ function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, 
 	return true
 end
 
-function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID)
-	local aircraftData = aircraftCorpses.data[unitID]
-	if not aircraftData then
-		return
-	end
-	local attackerX, attackerZ = getLiveAttackerPosition(attackerID)
-	if not attackerX then
-		return
-	end
-	aircraftData.attackerID = attackerID
-	aircraftData.attackerX = attackerX
-	aircraftData.attackerZ = attackerZ
-end
-
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	unitTamperFrames[unitID] = nil
 	if newTeam ~= gaiaTeamID then
 		setZombieFactoryBuildpower(unitID, false)
-	end
-	if aircraftCorpses.data[unitID] then
-		aircraftCorpses.data[unitID] = nil
-		aircraftCorpses.warnings[unitID] = nil
-		aircraftCorpses.clearDormantAircraftRules(unitID)
-		aircraftCorpses.consumeLinkedHeap(unitID)
-		if not pendingZombieCaptures[unitID] then
-			if newTeam ~= gaiaTeamID then
-				aircraftCorpses.setDormantAircraftActive(unitID)
-			end
-			return
-		end
 	end
 	if not pendingZombieCaptures[unitID] then
 		return
@@ -2658,24 +1925,6 @@ local function setAutoSpawning(enabled)
 	end
 end
 
-function aircraftCorpses.clearDormantAircraftState()
-	for unitID in pairs(aircraftCorpses.data) do
-		aircraftCorpses.clearDormantAircraftRules(unitID)
-		suppressedDeaths[unitID] = true
-		if spring.GetUnitIsDead(unitID) == false then
-			spring.DestroyUnit(unitID, false, true)
-		end
-	end
-	aircraftCorpses.data = {}
-	aircraftCorpses.checkFrames = {}
-	aircraftCorpses.warningFrames = {}
-	aircraftCorpses.warnings = {}
-	aircraftCorpses.heapByUnit = {}
-	aircraftCorpses.unitByHeap = {}
-	aircraftCorpses.reclaimedHeaps = {}
-	aircraftCorpses.consumedHeaps = {}
-end
-
 local function clearWraithState()
 	local wraithIDs = getWraithIDsSortedAscending()
 	for wraithIndex = 1, #wraithIDs do
@@ -2688,8 +1937,6 @@ local function clearWraithState()
 			warningCorpses[featureID] = nil
 		end
 	end
-	aircraftCorpses.clearDormantAircraftState()
-	aircraftCorpses.impacts = {}
 	pendingWraithFeeds = {}
 	pendingWraithSpawns = {}
 	wreckWraithFeeds = {}
@@ -2954,31 +2201,6 @@ local ZOMBIE_CHAT_ACTIONS = {
 	},
 }
 
-function aircraftCorpses.registerExistingDormantAircraft(unitID, unitDefID)
-	local spawnFrame = tonumber(spring.GetUnitRulesParam(unitID, RULES_PARAM.REZ_FRAME))
-	if not spawnFrame then
-		return
-	end
-	local spawnDelayFrames = tonumber(spring.GetUnitRulesParam(unitID, RULES_PARAM.REZ_DELAY)) or 0
-	local unitX, _, unitZ = spring.GetUnitPosition(unitID)
-	local aircraftData = {
-		unitDefID = unitDefID,
-		spawnDelayFrames = spawnDelayFrames,
-		creationFrame = gameFrame,
-		tamperedFrame = UNTAMPERED_FRAME,
-		wasZombie = spring.GetUnitRulesParam(unitID, RULES_PARAM.WAS_ZOMBIE) == 1,
-		x = unitX,
-		z = unitZ,
-	}
-	aircraftCorpses.data[unitID] = aircraftData
-	aircraftCorpses.setDormantAircraftHold(unitID)
-	aircraftCorpses.tiltDormantAircraft(unitID)
-	if spawnFrame <= gameFrame then
-		spawnFrame = gameFrame + 1
-	end
-	aircraftCorpses.armDormantAircraftSpawn(unitID, aircraftData, spawnFrame)
-end
-
 function gadget:Initialize()
 	gameFrame = spring.GetGameFrame()
 
@@ -2989,22 +2211,12 @@ function gadget:Initialize()
 
 	local units = spring.GetAllUnits()
 	for _, unitID in ipairs(units) do
-		local unitDefID = spring.GetUnitDefID(unitID)
-		local unitDefData = unitDefID and zombieUnitDefs[unitDefID]
+		local unitDefID = currentModeFeatures.wraithRespawns and spring.GetUnitDefID(unitID)
 		local isExistingWraith = wraithUnitDefID
 			and unitDefID == wraithUnitDefID
 			and spring.GetUnitTeam(unitID) == gaiaTeamID
 		if isExistingWraith then
 			registerExistingWraith(unitID)
-		elseif
-			currentModeFeatures.wraithRespawns
-			and unitDefData
-			and unitDefData.isAircraft
-			and spring.GetUnitTeam(unitID) == gaiaTeamID
-			and spring.GetUnitRulesParam(unitID, "zombie") ~= 1
-			and spring.GetUnitRulesParam(unitID, RULES_PARAM.REZ_FRAME)
-		then
-			aircraftCorpses.registerExistingDormantAircraft(unitID, unitDefID)
 		elseif spring.GetUnitRulesParam(unitID, "zombie") == 1 then
 			setZombie(unitID)
 		end

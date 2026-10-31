@@ -573,37 +573,6 @@ local function unitDef_Post(name, uDef)
 		uDef.radaremitheight = radarHeight
 	end
 
-	if uDef.canfly and not (uDef.featuredefs and uDef.featuredefs.heap) then
-		local isExcludedAircraft = customparams
-			and (
-				customparams.drone
-				or customparams.iscritter
-				or customparams.israptor
-				or string.find(name, "assistdrone", 1, true)
-			)
-			or string.find(uDef.category or "", "OBJECT", 1, true)
-		if not isExcludedAircraft then
-			local footprint = math.floor(math.max(uDef.footprintx or 1, uDef.footprintz or 1))
-			footprint = math.clamp(footprint, 1, 7)
-			local heapPrefix = "cor"
-			if string.sub(name, 1, 3) == "arm" then
-				heapPrefix = "arm"
-			end
-			if not uDef.featuredefs then
-				uDef.featuredefs = {}
-			end
-			uDef.featuredefs.heap = {
-				blocking = false,
-				category = "heaps",
-				footprintx = footprint,
-				footprintz = footprint,
-				object = "Units/" .. heapPrefix .. footprint .. "X" .. footprint .. "A.s3o",
-				reclaimable = true,
-				resurrectable = 0,
-			}
-		end
-	end
-
 	-- Wreck and heap standardization
 	if not customparams.iscommander and not customparams.iseffigy then
 		if uDef.featuredefs and uDef.health then
