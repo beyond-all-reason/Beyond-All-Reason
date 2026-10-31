@@ -1,7 +1,7 @@
 ---
 --- Build option actions test mission.
 ---
---- Disable/EnableBuildOption grey an option out (team-wide, or for one builder type).
+--- Disable/EnableBuildOption grey an option out (team-wide, or for one builder type); with hidden a team-wide block leaves the menu instead.
 --- Remove/AddBuildOption take an option out of, or put one into, a builder type's menu.
 --- Select the construction bot and the bot lab to watch the menus change every 5 seconds;
 --- the greyed-out options must also refuse build orders given by hotkey.
@@ -50,6 +50,22 @@ local triggers = {
 			seconds = 20,
 		},
 		actions = { 'addMexToBot', 'addFavToLab', 'messageAddOptions' },
+	},
+
+	hideSolar = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 25,
+		},
+		actions = { 'hideSolar', 'messageHideSolar' },
+	},
+
+	showSolar = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 30,
+		},
+		actions = { 'enableSolar', 'messageShowSolar' },
 	},
 }
 
@@ -167,6 +183,30 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "Metal extractor back on the construction bot; the bot lab can now build the Rover. New units of both types get the same options.",
+		},
+	},
+
+	-- Team-wide with hidden: gone from the menus instead of greyed out.
+	hideSolar = {
+		type = actionTypes.DisableBuildOption,
+		parameters = {
+			builtDefName = 'armsolar',
+			teamID = 0,
+			hidden = true,
+		},
+	},
+
+	messageHideSolar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Solar collector disabled and hidden: gone from every builder's menu.",
+		},
+	},
+
+	messageShowSolar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Solar collector enabled again: back in the menus.",
 		},
 	},
 }
