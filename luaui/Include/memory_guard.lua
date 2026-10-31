@@ -365,6 +365,7 @@ end
 ---@field tripReported boolean?
 ---@field off boolean?
 ---@field wgKeys table<any, boolean>?
+---@field wgValues table<any, any>?
 
 ---@class MemoryGuardCycle
 ---@field queue table[]
@@ -538,12 +539,27 @@ function MemoryGuard.new(deps)
 
 	function guard.claimWG(w, keys)
 		local s = users[w]
-		for k in pairs(WG) do
+		for k, v in pairs(WG) do
 			if not keys[k] then
 				s.wgKeys = s.wgKeys or {}
 				s.wgKeys[k] = true
+				s.wgValues = s.wgValues or setmetatable({}, { __mode = "v" })
+				s.wgValues[k] = v
 			end
 		end
+	end
+
+	function guard.release(w)
+		local s = users[w]
+		if not s then
+			return
+		end
+		for k in pairs(s.wgKeys or {}) do
+			if WG[k] == s.wgValues[k] then
+				WG[k] = nil
+			end
+		end
+		users[w] = nil
 	end
 
 	----------------------------------------------------------------------------
