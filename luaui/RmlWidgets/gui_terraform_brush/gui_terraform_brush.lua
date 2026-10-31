@@ -302,6 +302,7 @@ local SOUND_COOLDOWN = 0.04 -- seconds between repeated sounds of the same type
 ---@field ovBoxes any
 ---@field projectArrowKeys table<string, integer>?
 ---@field synDrag any
+---@field sliderPress { el: table, id: string }? the slider a left press is holding
 ---@field projectLocalBySlug table<string, any>?
 ---@field quitGuardSaving table? the receipt of a save started from the quit popup
 ---@field projectOpenAfterDownload string? slug to open once its download lands
@@ -364,6 +365,7 @@ local WINDOW_SNAP_THRESHOLD = 30
 ---@field lastX number
 ---@field lastY number
 ---@field snapRects table[]?
+---@field handleEl any the pressed handle, whose `:active` says the button is still down
 local windowDragState = {
 	active = false,
 	rootEl = nil,
@@ -5177,6 +5179,12 @@ widgetState.projectDragUpdate = function()
 	if not drag then
 		return
 	end
+	-- A release the document cannot hear (over the world or another widget) still clears
+	-- the row's `:active`. Dropped outside the dialog is a cancel, not a move.
+	if widgetState.stillHeld(drag.el) == false then
+		widgetState.projectDragEnd(false)
+		return
+	end
 	local mx, my, lmb = Spring.GetMouseState()
 	-- The engine's button state does not end this drag: RmlUi consumes the press on
 	-- the row, so GetMouseState's button can stay false for the whole gesture. The
@@ -5567,6 +5575,7 @@ widgetState.projectSaveRebuild = function()
 				widgetState.projectDragArm(slug, true)
 				if widgetState.projectDrag then
 					widgetState.projectDrag.el = row
+					widgetState.markHeld(row)
 					row:SetClass("dragging", true)
 				end
 			end, false)
@@ -10508,6 +10517,7 @@ local initialModel = {
 						widgetState.projectDragArm(rec.slug, false)
 						if widgetState.projectDrag then
 							widgetState.projectDrag.el = row
+							widgetState.markHeld(row)
 							row:SetClass("dragging", true)
 						end
 					end, false)
@@ -15868,15 +15878,69 @@ end
 -- RmlUi mouse button indices.
 local MOUSE_MIDDLE = 2
 
+--- Is the button that pressed `el` still down? RmlUi keeps `:active` on a left-pressed
+--- element until the button comes up anywhere, over the world or another widget included
+--- (Context::ResetActiveChain); this document's `mouseup` only hears a release over it.
+--- Spring.GetMouseState cannot say: it reads "up" for a press RmlUi took. nil when the
+--- state cannot be read.
+widgetState.stillHeld = function(el)
+	if not el then
+		return nil
+	end
+	local ok, active = pcall(function()
+		return el:IsPseudoClassSet("active")
+	end)
+	if not ok then
+		return nil
+	end
+	return active == true
+end
+
+--- Sets `:active` on a pressed element by hand: a press handler that stops propagation
+--- makes RmlUi skip the default action that would. The release still clears it.
+widgetState.markHeld = function(el)
+	pcall(function()
+		el:SetPseudoClass("active", true)
+	end)
+end
+
+--- Ends a slider press however the button came up: widget:Update polls `:active`, ESC
+--- calls it too. Stops the click-to-jump drag, lets the per-frame sync write the slider
+--- again, and hands the keyboard back: RmlUi's slider takes Left/Right while it has focus,
+--- and the engine only blurs on a click on the world, so a clicked slider kept the camera
+--- keys (Moose, 2026-10-30).
+widgetState.endSliderPress = function()
+	local sp = widgetState.sliderPress
+	widgetState.sliderPress = nil
+	local sd = widgetState.synDrag
+	if sd then
+		sd.apply = nil
+	end
+	if not sp then
+		return
+	end
+	widgetState.lastAttrValue[sp.el.id] = nil
+	if uiState.draggingSlider == sp.id then
+		uiState.draggingSlider = nil
+		uiState.draggingSliderEl = nil
+	end
+	pcall(function()
+		sp.el:Blur()
+	end)
+end
+
 local function trackSliderDrag(element, id)
 	element:AddEventListener("mousedown", function(event)
 		local ls = widgetState.lockedSliders
 
-		-- The wheel lock (a double middle click) is one document-wide listener for every
-		-- slider: widgetState.attachWheelLockGesture.
-		if event.parameters.button == MOUSE_MIDDLE then
+		-- Left button only. The wheel lock (a double middle click) is one document-wide
+		-- listener for every slider (widgetState.attachWheelLockGesture), and only a left
+		-- press is released through `:active`, which ends the drag wherever it lands.
+		if event.parameters.button ~= 0 then
 			return
 		end
+		widgetState.sliderPress = { el = element, id = id }
+		widgetState.markHeld(element)
 
 		-- Click-to-jump: clicking the track (not the thumb) jumps to the mouse and follows
 		-- it until mouseup (synthetic drag). Skipped when locked.
@@ -15899,16 +15963,17 @@ local function trackSliderDrag(element, id)
 					widgetState.lastAttrValue[element.id] = nil
 				end
 				applyMX(event.parameters.mouse_x)
-				-- Synthetic drag: follow the mouse until mouseup. One pair of document listeners for
-				-- the whole document (RemoveEventListener is unavailable, and a pair per click piles
-				-- up dead closures on every mouse move).
+				-- Synthetic drag: follow the mouse until the button comes up. One pair of document
+				-- listeners for the whole document (RemoveEventListener is unavailable, and a pair
+				-- per click piles up dead closures on every mouse move). The mouseup below only
+				-- hears a release over this document; widgetState.endSliderPress ends the rest.
 				local doc = widgetState.document
 				local sd = widgetState.synDrag
 				if not sd or sd.doc ~= doc then
 					sd = { doc = doc }
 					widgetState.synDrag = sd
 					doc:AddEventListener("mousemove", function(ev)
-						if sd.apply then
+						if sd.apply and widgetState.stillHeld(sd.el) ~= false then
 							sd.apply(ev.parameters.mouse_x)
 						end
 					end, false)
@@ -15923,7 +15988,7 @@ local function trackSliderDrag(element, id)
 						uiState.draggingSlider = nil
 					end, false)
 				end
-				sd.apply, sd.elId = applyMX, element.id
+				sd.apply, sd.elId, sd.el = applyMX, element.id, element
 			end
 		end
 
@@ -16780,7 +16845,7 @@ populateKeybindList = function(doc)
 		.. '<div class="tf-keybind-sep-line"></div></div>'
 	parts[#parts + 1] = '<div class="tf-keybind-row"><div class="tf-keybind-action">Lock a slider to the mouse wheel (again to release)</div>'
 		.. '<div class="tf-keybind-key-fixed">2x MMB</div></div>'
-	parts[#parts + 1] = '<div class="tf-keybind-row"><div class="tf-keybind-action">Clear locked sliders</div>'
+	parts[#parts + 1] = '<div class="tf-keybind-row"><div class="tf-keybind-action">Release wheel-locked sliders</div>'
 		.. '<div class="tf-keybind-key-fixed">ESC</div></div>'
 
 	listEl.inner_rml = table.concat(parts) or ""
@@ -18535,6 +18600,8 @@ local function attachEventListeners()
 					end
 				end
 				ds.snapRects = rects
+				ds.handleEl = handleEl
+				widgetState.markHeld(handleEl)
 				event:StopPropagation()
 			end, false)
 		end
@@ -18551,8 +18618,9 @@ local function attachEventListeners()
 			end
 		end, false)
 
-		-- End drag on any mouseup in the document
-		doc:AddEventListener("mouseup", function(event)
+		-- End drag on any mouseup in the document, or from widget:Update when the handle
+		-- lost `:active` to a release elsewhere
+		widgetState.endWindowDrag = function()
 			if ds.active then
 				local moved = ds.rootEl
 				widgetState.saveWindowPosition(ds.rootId, ds.rootEl, ds.vsx, ds.vsy)
@@ -18567,6 +18635,7 @@ local function attachEventListeners()
 				ds.rootEl = nil
 				ds.rootId = nil
 				ds.snapRects = nil
+				ds.handleEl = nil
 				-- The window moved, so the room left below it changed.
 				widgetState.refreshPanelBodies()
 				-- Dual-screen: a drop on the other screen takes that screen's scale.
@@ -18574,7 +18643,8 @@ local function attachEventListeners()
 					WG.TerraformerShared.applyScreenScale(moved)
 				end
 			end
-		end, false)
+		end
+		doc:AddEventListener("mouseup", widgetState.endWindowDrag, false)
 
 		makeWindowDraggable("tf-handle", widgetState.rootElement)
 		makeWindowDraggable("tf-skybox-library-handle", widgetState.skyboxLibraryRootEl)
@@ -20234,8 +20304,20 @@ function widget:Update()
 			end
 		end
 
-		-- Poll-based window drag (position only; mouseup ends the drag via the doc listener)
+		-- A slider press ends when its `:active` goes, wherever the button came up: a release
+		-- over the world or another widget never reaches this document's mouseup, and the
+		-- slider kept following the mouse over the panel (Moose, 2026-10-30).
+		local sp = widgetState.sliderPress
+		if sp and widgetState.stillHeld(sp.el) == false then
+			widgetState.endSliderPress()
+		end
+
+		-- Poll-based window drag (position only). The doc's mouseup ends it, and so does the
+		-- handle losing `:active` for a release the document never hears.
 		local ds = windowDragState
+		if ds.active and widgetState.stillHeld(ds.handleEl) == false then
+			widgetState.endWindowDrag()
+		end
 		if ds.active and ds.rootEl then
 			local mx, my = GetMouseState()
 			local vsx, vsy = ds.vsx, ds.vsy
@@ -22874,10 +22956,17 @@ function widget:KeyPress(key, mods, isRepeat)
 			end
 		end
 	end
-	-- ESC (key code 27) clears all locked sliders
+	-- ESC (key code 27) ends a slider drag still held and releases wheel-locked sliders
 	if key == 27 then
+		local held = widgetState.sliderPress ~= nil
+		if held then
+			widgetState.endSliderPress()
+		end
 		if next(widgetState.lockedSliders) then
 			widgetState.clearWheelLocks()
+			return true
+		end
+		if held then
 			return true
 		end
 	end
@@ -22937,6 +23026,7 @@ function widget:Shutdown()
 	widgetState.projectOpenRebuild = nil
 	uiState.draggingSlider = nil
 	uiState.draggingSliderEl = nil
+	widgetState.sliderPress = nil
 
 	if widgetState.rmlContext then
 		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)

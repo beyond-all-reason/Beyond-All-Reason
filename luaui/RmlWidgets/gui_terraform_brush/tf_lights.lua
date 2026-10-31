@@ -333,6 +333,7 @@ function M.attach(doc, ctx)
 			local p = event.parameters
 			if p and p.button == 0 then
 				globeDragging = true
+				widgetState.markHeld(globeEl)
 				applyGlobeDirection()
 			end
 			event:StopPropagation()
@@ -340,6 +341,12 @@ function M.attach(doc, ctx)
 	end
 	doc:AddEventListener("mousemove", function()
 		if globeDragging then
+			-- The mouseup below only hears a release over this document; one over the world
+			-- clears the globe's `:active` instead.
+			if widgetState.stillHeld(globeEl) == false then
+				globeDragging = false
+				return
+			end
 			applyGlobeDirection()
 		end
 	end, false)
