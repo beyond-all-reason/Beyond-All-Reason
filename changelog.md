@@ -73,6 +73,7 @@
   - Cortex / Legion advanced UW mexes had an unintended 50% damage reduction, removed.
   - Defenses that open and close cannot fire during their open or close animations.
   - Lens flares of searchlights, headlights and other unit lights no longer flicker.
+- [BARb AI] Floating defence choices follow the naval balance option; corrected the Legion torpedo turret reference.
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.

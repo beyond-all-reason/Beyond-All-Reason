@@ -1,0 +1,549 @@
+{
+  "porcupine": {
+    "unit": {
+      "armada": [
+        "armllt",
+        "armtl",
+        "armrl",
+        "armbeamer",
+        "armhlt",
+        "armclaw",
+        "armferret",
+        "armcir",
+        "armpb",
+        "armatl",
+        "armflak",
+        "armamb",
+        "armanni",
+        "armguard",
+        "armamd",
+        "armrad",
+        "armjamt",
+        "armestor",
+        "armmstor",
+        "armadvsol",
+        "armnanotc",
+        "armarad",
+        "armtarg",
+        "armuwadves",
+        "armemp",
+        "armveil",
+        "armckfus",
+        "armsolar",
+        "armgate",
+        "armnavaldefturret"
+      ],
+      "cortex": [
+        "corllt",
+        "cortl",
+        "corrl",
+        "corhllt",
+        "corhlt",
+        "cormaw",
+        "cormadsam",
+        "corerad",
+        "corvipe",
+        "coratl",
+        "corflak",
+        "cortoast",
+        "cordoom",
+        "corpun",
+        "corfmd",
+        "corrad",
+        "corjamt",
+        "corestor",
+        "cormstor",
+        "coradvsol",
+        "cornanotc",
+        "corarad",
+        "cortarg",
+        "coruwadves",
+        "cortron",
+        "corshroud",
+        "corfus",
+        "corsolar",
+        "corgate",
+        "cornavaldefturret"
+      ]
+    }
+  },
+  "behaviour": {
+    "armnavaldefturret": {
+      "limit": 3,
+      "role": [
+        "static"
+      ],
+      "since": 360
+    },
+    "cornavaldefturret": {
+      "limit": 3,
+      "role": [
+        "static"
+      ],
+      "since": 360
+    },
+    "armanavaldefturret": {
+      "role": [
+        "static"
+      ],
+      "threat": {
+        "air": 0.0,
+        "surf": 1.0,
+        "water": 1.0
+      }
+    },
+    "coranavaldefturret": {
+      "role": [
+        "static"
+      ],
+      "threat": {
+        "air": 0.0,
+        "surf": 1.0,
+        "vs": {
+          "anti_heavy": 0.5,
+          "anti_heavy_ass": 0.5,
+          "artillery": 0.3,
+          "raider": 0.4,
+          "scout": 0.4,
+          "super": 0.8
+        },
+        "water": 0.1
+      }
+    }
+  },
+  "build_chain": {
+    "factory": {
+      "armsy": {
+        "hub": [
+          [
+            {
+              "category": "defence",
+              "offset": {
+                "front": 150
+              },
+              "priority": "now",
+              "unit": "armnavaldefturret"
+            },
+            {
+              "category": "factory",
+              "offset": [
+                100,
+                100
+              ],
+              "unit": "armasy"
+            }
+          ]
+        ]
+      },
+      "corasy": {
+        "hub": [
+          [
+            {
+              "category": "defence",
+              "offset": {
+                "front": 150
+              },
+              "priority": "high",
+              "unit": "cornavaldefturret"
+            }
+          ],
+          [
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                -200,
+                50
+              ],
+              "priority": "normal",
+              "unit": "coruwfus"
+            },
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                -200,
+                50
+              ],
+              "priority": "normal",
+              "unit": "coratl"
+            },
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                -200,
+                50
+              ],
+              "priority": "normal",
+              "unit": "coranavaldefturret"
+            }
+          ]
+        ]
+      },
+      "corsy": {
+        "hub": [
+          [
+            {
+              "category": "defence",
+              "offset": {
+                "front": 150
+              },
+              "priority": "high",
+              "unit": "cornavaldefturret"
+            }
+          ],
+          [
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                -200,
+                50
+              ],
+              "priority": "normal",
+              "unit": "coruwfus"
+            },
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                -200,
+                50
+              ],
+              "priority": "normal",
+              "unit": "coruwfus"
+            }
+          ],
+          [
+            {
+              "category": "defence",
+              "offset": {
+                "back": 400
+              },
+              "priority": "normal",
+              "unit": "coruwmmm"
+            },
+            {
+              "category": "defence",
+              "offset": {
+                "back": 400
+              },
+              "priority": "low",
+              "unit": "coruwmmm"
+            },
+            {
+              "category": "defence",
+              "offset": {
+                "back": 400
+              },
+              "priority": "low",
+              "unit": "coruwmmm"
+            },
+            {
+              "category": "defence",
+              "offset": {
+                "back": 400
+              },
+              "priority": "low",
+              "unit": "coruwmmm"
+            }
+          ]
+        ]
+      }
+    },
+    "radar": {
+      "armfrad": {
+        "hub": [
+          [
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": {
+                "front": 100
+              },
+              "priority": "now",
+              "unit": "armsy"
+            }
+          ],
+          [
+            {
+              "category": "defence",
+              "offset": {
+                "front": 100
+              },
+              "priority": "now",
+              "unit": "cortl"
+            },
+            {
+              "category": "factory",
+              "offset": [
+                50,
+                50
+              ],
+              "priority": "high",
+              "unit": "corasy"
+            }
+          ],
+          [
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                100,
+                50
+              ],
+              "priority": "normal",
+              "unit": "armanavaldefturret"
+            }
+          ],
+          [
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                100,
+                50
+              ],
+              "priority": "normal",
+              "unit": "armatl"
+            }
+          ],
+          [
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                100,
+                50
+              ],
+              "priority": "normal",
+              "unit": "armfrt"
+            }
+          ],
+          [
+            {
+              "category": "defence",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                -100,
+                0
+              ],
+              "priority": "low",
+              "unit": "armbrtha"
+            }
+          ],
+          [
+            {
+              "category": "defence",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                -100,
+                0
+              ],
+              "priority": "low",
+              "unit": "armanni"
+            }
+          ],
+          [
+            {
+              "category": "defence",
+              "condition": {
+                "chance": 0.5
+              },
+              "offset": [
+                -100,
+                0
+              ],
+              "priority": "low",
+              "unit": "armamd"
+            },
+            {
+              "category": "defence",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                -100,
+                0
+              ],
+              "priority": "low",
+              "unit": "armjamt"
+            }
+          ]
+        ]
+      },
+      "corfrad": {
+        "hub": [
+          [
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": {
+                "front": 100
+              },
+              "priority": "now",
+              "unit": "corsy"
+            }
+          ],
+          [
+            {
+              "category": "defence",
+              "offset": {
+                "front": 100
+              },
+              "priority": "now",
+              "unit": "cornavaldefturret"
+            },
+            {
+              "category": "factory",
+              "offset": [
+                50,
+                50
+              ],
+              "priority": "high",
+              "unit": "corasy"
+            }
+          ],
+          [
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                100,
+                50
+              ],
+              "priority": "normal",
+              "unit": "corpun"
+            }
+          ],
+          [
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                100,
+                0
+              ],
+              "priority": "normal",
+              "unit": "cortoast"
+            }
+          ],
+          [
+            {
+              "category": "defence",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                -100,
+                100
+              ],
+              "priority": "low",
+              "unit": "corint"
+            }
+          ],
+          [
+            {
+              "category": "defence",
+              "condition": {
+                "chance": 0.5
+              },
+              "offset": [
+                -100,
+                100
+              ],
+              "priority": "low",
+              "unit": "corfmd"
+            },
+            {
+              "category": "defence",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                -100,
+                100
+              ],
+              "priority": "low",
+              "unit": "corjamt"
+            }
+          ],
+          [
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                100,
+                50
+              ],
+              "priority": "normal",
+              "unit": "coranavaldefturret"
+            }
+          ],
+          [
+            {
+              "category": "factory",
+              "condition": {
+                "chance": 1.0
+              },
+              "offset": [
+                100,
+                50
+              ],
+              "priority": "normal",
+              "unit": "coratl"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  "building": {
+    "class_land": {
+      "naval_balance_ac_hvy": {
+        "radius": 8,
+        "type": [
+          "circle",
+          "def_low"
+        ]
+      }
+    },
+    "instance": {
+      "naval_balance_ac_hvy": [
+        "armanavaldefturret",
+        "coranavaldefturret"
+      ]
+    }
+  }
+}
