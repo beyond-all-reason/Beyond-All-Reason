@@ -508,16 +508,15 @@ local function addToFrameList(frameLists, frame, id)
 end
 
 local function calculateSpawnDelayFrames(unitDefData)
-	local spawnSeconds
 	if currentModeFeatures.escalation then
-		spawnSeconds = floor(math.mix(escalationRezMinimum, escalationRezMaximum, unitDefData.escalationCostPosition))
-	else
-		spawnSeconds = clamp(
-			floor(unitDefData.rezPower / adjustedRezPowerSpeed),
-			zombieModeSettings.respawnDelayMinimum,
-			zombieModeSettings.respawnDelayMaximum
-		)
+		local spawnSeconds = floor(math.mix(escalationRezMinimum, escalationRezMaximum, unitDefData.escalationCostPosition))
+		return spawnSeconds * Game.gameSpeed
 	end
+	local spawnSeconds = clamp(
+		floor(unitDefData.rezPower / adjustedRezPowerSpeed),
+		zombieModeSettings.respawnDelayMinimum,
+		zombieModeSettings.respawnDelayMaximum
+	)
 	return floor(spawnSeconds * Game.gameSpeed)
 end
 
@@ -601,7 +600,7 @@ end
 local function calculateEscalationSpawnCount(unitDefData)
 	local percent = getEscalationCurvePercent(unitDefData.escalationCostPosition)
 	local spawnMinimum, spawnMaximum = interpolateAnchors(ESCALATION.spawnCounts, percent)
-	spawnMinimum, spawnMaximum = math.round(spawnMinimum), math.round(spawnMaximum)
+	spawnMinimum, spawnMaximum = math.round(spawnMinimum, 0), math.round(spawnMaximum, 0)
 	return spawnMinimum + floor((spawnMaximum - spawnMinimum + 1) * random() ^ ESCALATION.rollLean)
 end
 
