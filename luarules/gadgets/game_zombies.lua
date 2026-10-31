@@ -169,10 +169,17 @@ local STAGES = {
 	costPosition = { { 0, 0 }, { 400, 0.2 }, { 3000, 0.45 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
 	costDelayPercent = 45, -- how late the most expensive unit reads the count and veterancy curves
 	costCountScale = { 0.57, 1 }, -- scales the rise above the quiet count window, cheapest to most expensive
+	costHoldPeak = 0.45, -- from this cost position up, units keep their count peak instead of falling back
 	rezWindow = { { 0, 45, 200 }, { 100, 8, 45 } }, -- cheapest to most expensive
 	spawnCounts = { { 0, 4, 6 }, { 23, 4, 6 }, { 45, 5, 20 }, { 70, 4, 6 } },
 	veterancy = { { 0, 0 }, { 29, 0.15 }, { 45, 1 } },
 }
+local stageCountPeakPercent, stageCountPeakMaximum = 0, 0
+for _, anchor in ipairs(STAGES.spawnCounts) do
+	if anchor[3] > stageCountPeakMaximum then
+		stageCountPeakPercent, stageCountPeakMaximum = anchor[1], anchor[3]
+	end
+end
 local stagePercent = 0
 local stageRezMinimum, stageRezMaximum = 0, 0
 local stageMinutes = 0
@@ -615,15 +622,18 @@ local function updateStages(frame)
 	spring.SetGameRulesParam(RULES_PARAM.STAGE_MINUTE, stageMinutes)
 end
 
--- expensive units read the curve later in the game
-local function readStageCurve(anchors, costPosition)
-	return interpolateAnchors(anchors, stagePercent - STAGES.costDelayPercent * costPosition)
+-- expensive units read the curves later in the game
+local function getStageCurvePercent(costPosition)
+	return stagePercent - STAGES.costDelayPercent * costPosition
 end
 
 local function calculateStageSpawnCount(unitDefData)
 	local costPosition = unitDefData.stageCostPosition
 	local quietMinimum, quietMaximum = STAGES.spawnCounts[1][2], STAGES.spawnCounts[1][3]
-	local spawnMinimum, spawnMaximum = readStageCurve(STAGES.spawnCounts, costPosition)
+	local percent = getStageCurvePercent(costPosition)
+	local hold = clamp(costPosition / STAGES.costHoldPeak, 0, 1)
+	percent = math.mix(percent, math.min(percent, stageCountPeakPercent), hold)
+	local spawnMinimum, spawnMaximum = interpolateAnchors(STAGES.spawnCounts, percent)
 	local scale = math.mix(STAGES.costCountScale[1], STAGES.costCountScale[2], costPosition)
 	return random(
 		math.round(quietMinimum + (spawnMinimum - quietMinimum) * scale),
@@ -632,7 +642,7 @@ local function calculateStageSpawnCount(unitDefData)
 end
 
 local function calculateStageExperience(unitDefData)
-	local veterancy = readStageCurve(STAGES.veterancy, unitDefData.stageCostPosition)
+	local veterancy = interpolateAnchors(STAGES.veterancy, getStageCurvePercent(unitDefData.stageCostPosition))
 	-- the engine scales XP bonuses by xp / (xp + 1), so veterancy is a fraction of that value, converted back to XP
 	local limitedExperience = veterancy * STAGES.peakExperience / (STAGES.peakExperience + 1)
 	return limitedExperience / (1 - limitedExperience)
