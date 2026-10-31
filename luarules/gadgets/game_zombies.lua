@@ -56,9 +56,9 @@ end
 --   zombie_enable_hydra (1 enables, 0 disables)
 --     multiple spawns per corpse, in every mode.
 --   zombie_enable_escalation (1 enables, 0 disables)
---     the Hydra escalation, in every mode. See ESCALATION.
+--     the escalation of rez times, veterancy and Hydra spawn counts over the game. See ESCALATION.
 --   zombie_escalation_minutes (minutes, default 70)
---     when the Hydra escalation reaches full strength. Every anchor is a percentage of it.
+--     when the escalation reaches full strength. Every anchor is a percentage of it.
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -99,11 +99,11 @@ local zombieModeSettings = {
 ---@alias ZombieMode "basic"|"wraith"|"hydra"|"akumu"|"spidergeddon"
 
 local ZOMBIE_MODE_FEATURES = {
-	basic = {},
-	wraith = { wraithRespawns = true },
+	basic = { escalation = true },
+	wraith = { wraithRespawns = true, escalation = true },
 	hydra = { multipleSpawns = true, escalation = true },
-	akumu = { wraithRespawns = true, multipleSpawns = true },
-	spidergeddon = { wraithRespawns = true, multipleSpawns = true },
+	akumu = { wraithRespawns = true, multipleSpawns = true, escalation = true },
+	spidergeddon = { wraithRespawns = true, multipleSpawns = true, escalation = true },
 }
 local DEFAULT_ZOMBIE_MODE = "basic"
 
@@ -161,7 +161,7 @@ local ZOMBIE_EXPIRING_BUILDING_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't w
 local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
 local MINUTE_FRAMES = Game.gameSpeed * 60
 
--- Hydra escalation. Anchors are { percent of zombie_escalation_minutes, values... }, straight lines between
+-- Escalation over the game. Anchors are { percent of zombie_escalation_minutes, values... }, straight lines between
 local ESCALATION = {
 	-- the escalation cannot pass a gate below its tech level, until the next gate's minute
 	gates = { { percent = 23, techLevel = 1.5 }, { percent = 46, techLevel = 2.5 } },
