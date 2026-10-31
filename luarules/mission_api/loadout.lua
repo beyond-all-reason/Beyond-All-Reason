@@ -64,7 +64,6 @@ local function convertOrdersTargetingNames(orders)
 	for _, order in ipairs(orders or {}) do
 		local commandID = order[1]
 		local params = order[2] or {}
-		local options = order[3] or {}
 
 		if commandsAcceptingName[commandID] and type(params) == "table" and (params.unitName or params.featureName) then
 			local thingIDs
@@ -78,8 +77,12 @@ local function convertOrdersTargetingNames(orders)
 				thingIDs = trackedUnitIDs[params.unitName]
 			end
 
+			-- Copies, so the mission's own options table is never handed on or changed.
+			local options = table.copy(order[3] or {})
 			local queuedOptions = table.copy(options)
-			queuedOptions[#queuedOptions + 1] = "shift"
+			if not table.contains(queuedOptions, "shift") then
+				queuedOptions[#queuedOptions + 1] = "shift"
+			end
 			local targetOptions = options
 			for thingID in pairs(thingIDs or {}) do
 				newOrders[#newOrders + 1] = { commandID, thingID + offset, targetOptions }

@@ -85,6 +85,26 @@ describe("mission_api.loadout orders targeting names", function()
 		assert.are.same({ "shift" }, converted[2][3])
 	end)
 
+	it("queues an order already given with shift without adding a second one", function()
+		trackUnits("pair", 5, 6)
+
+		local converted =
+			loadout.ConvertOrdersTargetingNames({ { env.CMD.ATTACK, { unitName = "pair" }, { "shift" } } })
+
+		assert.are.same({ "shift" }, converted[1][3])
+		assert.are.same({ "shift" }, converted[2][3])
+	end)
+
+	it("hands on copies of the order's options, never the mission's own table", function()
+		trackUnits("target", 5)
+		local options = { "alt" }
+
+		local converted = loadout.ConvertOrdersTargetingNames({ { env.CMD.ATTACK, { unitName = "target" }, options } })
+
+		assert.are.same({ "alt" }, converted[1][3])
+		assert.are_not.equal(options, converted[1][3])
+	end)
+
 	it("does not queue the first order when the same orders run again", function()
 		trackUnits("target", 5)
 		local orders = { { env.CMD.ATTACK, { unitName = "target" }, {} } }
