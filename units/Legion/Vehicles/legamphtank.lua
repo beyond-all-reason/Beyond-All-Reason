@@ -8,8 +8,8 @@ return {
 		buildpic = "LEGAMPHTANK.DDS",
 		buildtime = 2610,
 		canmove = true,
-		collisionvolumeoffsets = "0 0 1",
-		collisionvolumescales = "31 13 31",
+		collisionvolumeoffsets = "0 -1 0.5",
+		collisionvolumescales = "27 16 40",
 		collisionvolumetype = "Box",
 		usepiececollisionvolumes = 1, --------use collisionvolumes.lua
 		corpse = "DEAD",

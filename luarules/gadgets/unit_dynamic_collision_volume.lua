@@ -183,6 +183,9 @@ function gadget:GameFrame(frame)
 				popup.armored = armored
 				local colvol = armored and popup.colvol.off or popup.colvol.on
 				popup.setVolume(unitID, colvol)
+				if colvol.bounding then
+					setUnitVolume(unitID, colvol.bounding)
+				end
 				if colvol.offsets then
 					setAimOffsets(unitID, unitHeight, colvol.offsets)
 				end
