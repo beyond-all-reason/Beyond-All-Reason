@@ -339,12 +339,12 @@ AimFromWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		pieceIndex = flare1;
+		pieceIndex = head;
 		return (0);
 	}
 	if( gun_1 == 1 )
 	{
-		pieceIndex = flare2;
+		pieceIndex = head;
 		return (0);
 	}
 }
