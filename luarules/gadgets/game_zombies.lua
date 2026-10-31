@@ -55,10 +55,10 @@ end
 --     wraiths and the wraith respawn queue, in every mode.
 --   zombie_enable_hydra (1 enables, 0 disables)
 --     multiple spawns per corpse, in every mode.
---   zombie_enable_stages (1 enables, 0 disables)
---     the Hydra stages, in every mode. See STAGES.
---   zombie_stages_length (minutes, default 70)
---     when the Hydra stages reach full strength. Every stage anchor is a percentage of it.
+--   zombie_enable_escalation (1 enables, 0 disables)
+--     the Hydra escalation, in every mode. See ESCALATION.
+--   zombie_escalation_minutes (minutes, default 70)
+--     when the Hydra escalation reaches full strength. Every anchor is a percentage of it.
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -86,7 +86,7 @@ local zombieModeSettings = {
 	spawnCountMaximum = 6,
 	respawnDelayMinimum = 45,
 	respawnDelayMaximum = 120,
-	stagesLength = 70,
+	escalationMinutes = 70,
 	wraithFeedSuccessChance = 0.66,
 	wraithPowerMultiplier = 1,
 	wraithRespawnDelayMultiplier = 3,
@@ -101,7 +101,7 @@ local zombieModeSettings = {
 local ZOMBIE_MODE_FEATURES = {
 	basic = {},
 	wraith = { wraithRespawns = true },
-	hydra = { multipleSpawns = true, stages = true },
+	hydra = { multipleSpawns = true, escalation = true },
 	akumu = { wraithRespawns = true, multipleSpawns = true },
 	spidergeddon = { wraithRespawns = true, multipleSpawns = true },
 }
@@ -161,8 +161,8 @@ local ZOMBIE_EXPIRING_BUILDING_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't w
 local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
 local MINUTE_FRAMES = Game.gameSpeed * 60
 
--- Hydra stages, one curve for every unit. Anchors are { percent of zombie_stages_length, values... }, lines between
-local STAGES = {
+-- Hydra escalation, one curve for every unit. Anchors are { percent of zombie_escalation_minutes, values... }, lines between
+local ESCALATION = {
 	catchUpSpeed = 3, -- clock speed after a gate opens, until it is level with the game clock
 	-- the clock is held at a gate below its tech level, at most until the next gate's minute
 	gates = { { percent = 23, techLevel = 1.5 }, { percent = 46, techLevel = 2.5 } },
@@ -174,11 +174,11 @@ local STAGES = {
 	spawnCounts = { { 0, 4, 9 }, { 23, 4, 9 }, { 37, 5, 24 } },
 	veterancy = { { 0, 0 }, { 23, 0.15 }, { 37, 1 } },
 }
-local stagePercent = 0
-local stageRezMinimum, stageRezMaximum = 0, 0
-local stageMinutes = 0
-local stageClockLastMinutes = 0
-local stageGatesOpen = {}
+local escalationPercent = 0
+local escalationRezMinimum, escalationRezMaximum = 0, 0
+local escalationClock = 0
+local escalationClockLastMinutes = 0
+local escalationGatesOpen = {}
 
 local function interpolateAnchors(anchors, position)
 	local previous = anchors[1]
@@ -224,7 +224,7 @@ local RULES_PARAM = {
 	TECH_LEVEL = "zombie_tech_level",
 	REZ_POWER_SPEED = "zombie_rez_power_speed",
 	FACTORY_BUILDPOWER_MULTIPLIER = "zombie_factory_buildpower_multiplier",
-	STAGE_MINUTE = "zombie_stage_minute",
+	ESCALATION_MINUTE = "zombie_escalation_minute",
 	REZ_FRAME = "zombie_rez_frame",
 	WAS_ZOMBIE = "wasZombie",
 	WRAITH_READY_FRAME = "zombie_wraith_ready_frame",
@@ -419,15 +419,15 @@ do
 		setSetting(customParams, "zombie_maximum_respawn_delay", "respawnDelayMaximum")
 		setSetting(customParams, "zombie_enable_wraith", "wraithRespawns", true)
 		setSetting(customParams, "zombie_enable_hydra", "multipleSpawns", true)
-		setSetting(customParams, "zombie_enable_stages", "stages", true)
-		setSetting(customParams, "zombie_stages_length", "stagesLength")
+		setSetting(customParams, "zombie_enable_escalation", "escalation", true)
+		setSetting(customParams, "zombie_escalation_minutes", "escalationMinutes")
 
 		local rezPower = math.max(1, unitDef.power or 1)
 		local isPoolMember = customParams.zombie_wraith_respawn_pool and true or false
 		local unitDefData = {
 			unitDefID = unitDefID,
 			rezPower = rezPower,
-			stageCostPosition = interpolateAnchors(STAGES.costPosition, rezPower),
+			escalationCostPosition = interpolateAnchors(ESCALATION.costPosition, rezPower),
 			size = unitDef.xsize,
 			isMobile = unitDef.speed > 0,
 			isCommander = customParams.iscommander and true or false,
@@ -512,8 +512,8 @@ end
 
 local function calculateSpawnDelayFrames(unitDefData)
 	local spawnSeconds
-	if currentModeFeatures.stages then
-		spawnSeconds = floor(math.mix(stageRezMinimum, stageRezMaximum, unitDefData.stageCostPosition))
+	if currentModeFeatures.escalation then
+		spawnSeconds = floor(math.mix(escalationRezMinimum, escalationRezMaximum, unitDefData.escalationCostPosition))
 	else
 		spawnSeconds = clamp(
 			floor(unitDefData.rezPower / adjustedRezPowerSpeed),
@@ -575,63 +575,63 @@ local function updateRezSpeed()
 	spring.SetGameRulesParam(RULES_PARAM.FACTORY_BUILDPOWER_MULTIPLIER, factoryBuildpowerMultiplier)
 end
 
-local function advanceStageClock(realMinutes)
-	local length = zombieModeSettings.stagesLength
-	local elapsed = realMinutes - stageClockLastMinutes
-	stageClockLastMinutes = realMinutes
-	if stageMinutes >= length then
+local function advanceEscalationClock(realMinutes)
+	local length = zombieModeSettings.escalationMinutes
+	local elapsed = realMinutes - escalationClockLastMinutes
+	escalationClockLastMinutes = realMinutes
+	if escalationClock >= length then
 		return
 	end
-	local target = math.min(realMinutes, stageMinutes + elapsed * STAGES.catchUpSpeed)
-	for gateIndex, gate in ipairs(STAGES.gates) do
-		if not stageGatesOpen[gateIndex] then
+	local target = math.min(realMinutes, escalationClock + elapsed * ESCALATION.catchUpSpeed)
+	for gateIndex, gate in ipairs(ESCALATION.gates) do
+		if not escalationGatesOpen[gateIndex] then
 			local gateMinutes = gate.percent / 100 * length
-			local nextGate = STAGES.gates[gateIndex + 1]
+			local nextGate = ESCALATION.gates[gateIndex + 1]
 			local holdUntil = nextGate and nextGate.percent / 100 * length or math.huge
 			if (currentTechLevel or 0) >= gate.techLevel or realMinutes >= holdUntil then
-				stageGatesOpen[gateIndex] = true
+				escalationGatesOpen[gateIndex] = true
 			elseif target > gateMinutes then
 				target = gateMinutes
 			end
 		end
 	end
-	stageMinutes = math.min(target, length)
+	escalationClock = math.min(target, length)
 end
 
-local function resetStageClock()
-	stageMinutes = math.min(gameFrame / MINUTE_FRAMES, zombieModeSettings.stagesLength)
-	stageClockLastMinutes = stageMinutes
-	stageGatesOpen = {}
+local function resetEscalationClock()
+	escalationClock = math.min(gameFrame / MINUTE_FRAMES, zombieModeSettings.escalationMinutes)
+	escalationClockLastMinutes = escalationClock
+	escalationGatesOpen = {}
 end
 
-local function updateStages(frame)
+local function updateEscalation(frame)
 	local realMinutes = frame / MINUTE_FRAMES
-	if currentModeFeatures.stages then
-		advanceStageClock(realMinutes)
+	if currentModeFeatures.escalation then
+		advanceEscalationClock(realMinutes)
 	else
-		stageMinutes, stageClockLastMinutes = 0, realMinutes
+		escalationClock, escalationClockLastMinutes = 0, realMinutes
 	end
-	stagePercent = stageMinutes / zombieModeSettings.stagesLength * 100
-	stageRezMinimum, stageRezMaximum = interpolateAnchors(STAGES.rezWindow, stagePercent)
-	spring.SetGameRulesParam(RULES_PARAM.STAGE_MINUTE, stageMinutes)
+	escalationPercent = escalationClock / zombieModeSettings.escalationMinutes * 100
+	escalationRezMinimum, escalationRezMaximum = interpolateAnchors(ESCALATION.rezWindow, escalationPercent)
+	spring.SetGameRulesParam(RULES_PARAM.ESCALATION_MINUTE, escalationClock)
 end
 
 -- expensive units read the curves later in the game
-local function getStageCurvePercent(costPosition)
-	return stagePercent - STAGES.costDelayPercent * costPosition
+local function getEscalationCurvePercent(costPosition)
+	return escalationPercent - ESCALATION.costDelayPercent * costPosition
 end
 
-local function calculateStageSpawnCount(unitDefData)
-	local percent = getStageCurvePercent(unitDefData.stageCostPosition)
-	local spawnMinimum, spawnMaximum = interpolateAnchors(STAGES.spawnCounts, percent)
+local function calculateEscalationSpawnCount(unitDefData)
+	local percent = getEscalationCurvePercent(unitDefData.escalationCostPosition)
+	local spawnMinimum, spawnMaximum = interpolateAnchors(ESCALATION.spawnCounts, percent)
 	spawnMinimum, spawnMaximum = math.round(spawnMinimum), math.round(spawnMaximum)
-	return spawnMinimum + floor((spawnMaximum - spawnMinimum + 1) * random() ^ STAGES.rollLean)
+	return spawnMinimum + floor((spawnMaximum - spawnMinimum + 1) * random() ^ ESCALATION.rollLean)
 end
 
-local function calculateStageExperience(unitDefData)
-	local veterancy = interpolateAnchors(STAGES.veterancy, getStageCurvePercent(unitDefData.stageCostPosition))
+local function calculateEscalationExperience(unitDefData)
+	local veterancy = interpolateAnchors(ESCALATION.veterancy, getEscalationCurvePercent(unitDefData.escalationCostPosition))
 	-- the engine scales XP bonuses by xp / (xp + 1), so veterancy is a fraction of that value, converted back to XP
-	local limitedExperience = veterancy * STAGES.peakExperience / (STAGES.peakExperience + 1)
+	local limitedExperience = veterancy * ESCALATION.peakExperience / (ESCALATION.peakExperience + 1)
 	return limitedExperience / (1 - limitedExperience)
 end
 
@@ -704,8 +704,8 @@ local function calculateSpawnCount(unitDefID)
 	end
 
 	local unitDefData = zombieUnitDefs[unitDefID]
-	if currentModeFeatures.stages then
-		return calculateStageSpawnCount(unitDefData)
+	if currentModeFeatures.escalation then
+		return calculateEscalationSpawnCount(unitDefData)
 	end
 	local rezTimeSeconds = unitDefData.powerSpawnDelayFrames / Game.gameSpeed
 	local keep, rollCount = PICK_LOWEST, 1
@@ -769,8 +769,8 @@ local function spawnZombieUnits(
 		local unitID = spring.CreateUnit(unitDefToCreate, randomX, adjustedY, randomZ, facing, gaiaTeamID)
 		if unitID then
 			spring.SpawnCEG(unitDefData.spawnExplosionCeg, randomX, adjustedY, randomZ, 0, 0, 0)
-			local stageExperience = currentModeFeatures.stages and calculateStageExperience(unitDefData) or 0
-			local spawnExperience = math.max(inheritedXp or 0, stageExperience)
+			local escalationExperience = currentModeFeatures.escalation and calculateEscalationExperience(unitDefData) or 0
+			local spawnExperience = math.max(inheritedXp or 0, escalationExperience)
 			if spawnExperience > 0 then
 				spring.SetUnitExperience(unitID, spawnExperience)
 			end
@@ -1465,7 +1465,7 @@ function gadget:GameFrame(frame)
 
 	if frame % REZ_SPEED_UPDATE_INTERVAL == 0 then
 		updateRezSpeed()
-		updateStages(frame)
+		updateEscalation(frame)
 		rebuildZombieCorpseSpawnDelays()
 	end
 
@@ -1764,8 +1764,8 @@ local function setZombieMode(modeName)
 		return false
 	end
 	applyZombieModeSettings(modeName)
-	resetStageClock()
-	updateStages(gameFrame)
+	resetEscalationClock()
+	updateEscalation(gameFrame)
 	rebuildZombieCorpseSpawnDelays()
 	return true
 end
@@ -1948,9 +1948,9 @@ local function saveReloadState()
 			tooLong = tooLong,
 			adjustedRezPowerSpeed = adjustedRezPowerSpeed,
 			currentTechLevel = currentTechLevel,
-			stageMinutes = stageMinutes,
-			stageClockLastMinutes = stageClockLastMinutes,
-			stageGatesOpen = stageGatesOpen,
+			escalationClock = escalationClock,
+			escalationClockLastMinutes = escalationClockLastMinutes,
+			escalationGatesOpen = escalationGatesOpen,
 			excessPower = excessPower,
 			wraiths = wraiths,
 			wraithCount = wraithCount,
@@ -1990,9 +1990,9 @@ local function restoreReloadState()
 	tooLong = reloadState.tooLong
 	adjustedRezPowerSpeed = reloadState.adjustedRezPowerSpeed
 	currentTechLevel = reloadState.currentTechLevel
-	stageMinutes = reloadState.stageMinutes
-	stageClockLastMinutes = reloadState.stageClockLastMinutes
-	stageGatesOpen = reloadState.stageGatesOpen
+	escalationClock = reloadState.escalationClock
+	escalationClockLastMinutes = reloadState.escalationClockLastMinutes
+	escalationGatesOpen = reloadState.escalationGatesOpen
 	excessPower = reloadState.excessPower
 	wraiths = reloadState.wraiths
 	wraithCount = reloadState.wraithCount
@@ -2026,7 +2026,7 @@ function gadget:Initialize()
 	spring.SetGameRulesParam(RULES_PARAM.ENABLED, true)
 
 	if not restoreReloadState() then
-		resetStageClock()
+		resetEscalationClock()
 		applyZombieModeSettings(resolveZombieMode(modOptions.zombies))
 		updateRezSpeed()
 
@@ -2052,7 +2052,7 @@ function gadget:Initialize()
 			end
 		end
 	end
-	updateStages(gameFrame)
+	updateEscalation(gameFrame)
 	rebuildZombieCorpseSpawnDelays()
 
 	GG.Zombies = { IdleMode = isIdleMode, tooLong = tooLong }
