@@ -60,10 +60,11 @@ describe("mission_api.actions.build_option_blocking", function()
 			builtDefName = "UnitDefName!",
 			builderDefName = "UnitDefName",
 			teamID = "TeamID!",
+			hidden = "Boolean",
 		}, summarizeSchema(disableAction))
 	end)
 
-	it("declares EnableBuildOption with the same parameters", function()
+	it("declares EnableBuildOption with the same parameters, without hidden", function()
 		assert.are.same({
 			type = "EnableBuildOption",
 			builtDefName = "UnitDefName!",
@@ -87,14 +88,33 @@ describe("mission_api.actions.build_option_blocking", function()
 			assert.are.equal(1, #calls.add)
 			assert.are.same({ unitDefID = 42, teamID = 1, reasonKey = "mission", builderUnitDefID = 7 }, calls.add[1])
 		end)
+
+		it("also blocks under the hidden reason when hidden, which takes the unit out of the build menu", function()
+			disableAction.actionFunction("armsolar", nil, 1, true)
+
+			assert.are.same({
+				{ unitDefID = 42, teamID = 1, reasonKey = "mission" },
+				{ unitDefID = 42, teamID = 1, reasonKey = "hidden" },
+			}, calls.add)
+		end)
+
+		it("ignores hidden for one builder unit type, as the build menu hides team-wide blocks only", function()
+			disableAction.actionFunction("armsolar", "armck", 1, true)
+
+			assert.are.same({
+				{ unitDefID = 42, teamID = 1, reasonKey = "mission", builderUnitDefID = 7 },
+			}, calls.add)
+		end)
 	end)
 
 	describe("EnableBuildOption", function()
-		it("lifts the mission block for every builder of the team", function()
+		it("lifts the mission and hidden blocks for every builder of the team", function()
 			enableAction.actionFunction("armsolar", nil, 1)
 
-			assert.are.equal(1, #calls.remove)
-			assert.are.same({ unitDefID = 42, teamID = 1, reasonKey = "mission" }, calls.remove[1])
+			assert.are.same({
+				{ unitDefID = 42, teamID = 1, reasonKey = "mission" },
+				{ unitDefID = 42, teamID = 1, reasonKey = "hidden" },
+			}, calls.remove)
 			assert.are.equal(0, #calls.add)
 		end)
 
@@ -113,6 +133,26 @@ describe("mission_api.actions.build_option_blocking", function()
 			enableAction.actionFunction("armsolar", nil, 0)
 
 			assert.are.same(calls.add[1], calls.remove[1])
+		end)
+
+		it("lifts both reasons after a hidden DisableBuildOption", function()
+			disableAction.actionFunction("armsolar", nil, 1, true)
+			enableAction.actionFunction("armsolar", nil, 1)
+
+			assert.are.same({
+				{ unitDefID = 42, teamID = 1, reasonKey = "mission" },
+				{ unitDefID = 42, teamID = 1, reasonKey = "hidden" },
+			}, calls.remove)
+		end)
+
+		it("keeps the team-wide hidden reason when lifting the block for one builder unit type", function()
+			disableAction.actionFunction("armsolar", nil, 1, true)
+			enableAction.actionFunction("armsolar", "armck", 1)
+
+			assert.are.same(
+				{ { unitDefID = 42, teamID = 1, reasonKey = "mission", builderUnitDefID = 7 } },
+				calls.remove
+			)
 		end)
 	end)
 
