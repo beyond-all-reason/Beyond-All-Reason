@@ -45,6 +45,7 @@
     - Negotiator: 6700 -> 9000 energycost, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Reloadtime 16 -> 15
     - Arbiter: 5800 -> 6500 energycost, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Damage 800 -> 850
     - Shiva: 1600m -> 1700 metalcost, Cannon: AoE 176 -> 160, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Damage 800 -> 850
+- [Interceptors] Now launch a few seconds before impact. Each antinuke can block 4 incoming nukes when loaded.
 - [Legion changes]
   - Helios 800 -> 1000 health, 160 -> 135 damage.
   - Alaris reloadtime 2.1 -> 1.2, damage 15 -> 10 (+16 % dps)
