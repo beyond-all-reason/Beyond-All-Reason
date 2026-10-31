@@ -43,6 +43,7 @@ if gadgetHandler:IsSyncedCode() then
 	local GAME_SPEED = Game.gameSpeed
 	local DEFAULT_MAX_THIS_UNIT = 32000
 	local PRIVATE = { private = true }
+	local PUBLIC_ACCESS = { public = true }
 
 	local evolutionMetaList = {}
 	local teamList = spGetTeamList()
@@ -494,6 +495,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		spSetUnitRulesParam(unitID, "unit_evolved", newUnitID, PRIVATE)
+		spSetUnitRulesParam(unitID, "unitTransitioning", 1, PUBLIC_ACCESS)
 
 		if GG.quick_start and GG.quick_start.transferCommanderData then
 			GG.quick_start.transferCommanderData(unitID, newUnitID)
