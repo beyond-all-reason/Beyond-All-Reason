@@ -1566,15 +1566,12 @@ function widget:DrawScreen()
 		end
 		if not ordermenuTex then
 			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:CreateOrdersTexture")
-			ordermenuTex = gl.CreateTexture(
-				math_floor(width * vsx) * (vsy < 1400 and 2 or 1),
-				math_floor(height * vsy) * (vsy < 1400 and 2 or 1),
-				{ --*(vsy<1400 and 2 or 1)
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA8,
-					fbo = true,
-				}
-			)
+			local ss = WG.FlowUI.supersample or 2
+			ordermenuTex = gl.CreateTexture(math_floor(width * vsx) * ss, math_floor(height * vsy) * ss, {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA8,
+				fbo = true,
+			})
 			tracy.ZoneEnd()
 		end
 		if ordermenuTex and doUpdate then

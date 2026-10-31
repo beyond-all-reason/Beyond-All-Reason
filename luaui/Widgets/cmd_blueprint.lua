@@ -1242,6 +1242,19 @@ function widget:Initialize()
 		selectNextBlueprint = handleBlueprintNextAction,
 		selectPrevBlueprint = handleBlueprintPrevAction,
 		rotateBlueprint = rotateBlueprint,
+		-- for menus listing the saved blueprints (read only)
+		getBlueprints = function()
+			return blueprints
+		end,
+		getSelectedBlueprintIndex = function()
+			return selectedBlueprintIndex
+		end,
+		-- the blueprint the next blueprint_place places
+		setSelectedBlueprintIndex = function(index)
+			if isValidBlueprint(blueprints[index]) then
+				setSelectedBlueprintIndex(index)
+			end
+		end,
 	}
 	WG.cmd_blueprint.nextBlueprintUnitID = nextBlueprintUnitID
 

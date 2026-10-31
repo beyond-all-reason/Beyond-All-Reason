@@ -38,6 +38,10 @@ WG.FlowUI.scale = Spring.GetConfigFloat("ui_scale", 1)
 WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.014)
 WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
 WG.FlowUI.tileSize = WG.FlowUI.tileScale
+-- ui_supersample (options: sharpness): 0 auto, 1 off, 2 always (the default). Widgets that render to
+-- texture make their content textures WG.FlowUI.supersample times the screen's pixels: pictures are
+-- drawn from their sharper mips and averaged down when shown
+WG.FlowUI.supersampleMode = Spring.GetConfigInt("ui_supersample", 2)
 
 -- Guishader display list lifecycle helpers
 
@@ -108,6 +112,10 @@ local function ViewResize(vsx, vsy)
 	WG.FlowUI.buttonPadding = mathFloor(0.002 * vsy * WG.FlowUI.scale)
 
 	WG.FlowUI.tileSize = WG.FlowUI.tileScale * 0.003 * vsy * WG.FlowUI.scale
+
+	-- auto: twice where a screen pixel is big (under 1.5 of them per 1080p pixel)
+	local mode = WG.FlowUI.supersampleMode
+	WG.FlowUI.supersample = (mode == 1 or mode == 2) and mode or ((vsy / 1080) * WG.FlowUI.scale < 1.5 and 2 or 1)
 end
 
 -- called at the bottom of this file

@@ -6327,6 +6327,26 @@ function init()
 		},
 
 		{
+			id = "supersample",
+			parent = "uiscale",
+			group = "ui",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.supersample"),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.supersample_auto"),
+				BAR.I18N("ui.settings.option.supersample_off"),
+				BAR.I18N("ui.settings.option.supersample_2x"),
+			},
+			value = (Spring.GetConfigInt("ui_supersample", 2) or 2) + 1,
+			description = BAR.I18N("ui.settings.option.supersample_descr"),
+			onchange = function(option, value)
+				Spring.SetConfigInt("ui_supersample", value - 1) -- 0 auto, 1 off, 2 always 2x (default)
+				Spring.SendCommands("luarules reloadluaui") -- the widgets size their textures by it at start
+			end,
+		},
+
+		{
 			id = "guishader",
 			parent = "uiscale",
 			group = "ui",
