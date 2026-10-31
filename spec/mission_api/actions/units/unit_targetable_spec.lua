@@ -7,7 +7,8 @@ local actions = VFS.Include("luarules/mission_api/actions/units/unit_targetable.
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
-local calls
+---@type { unitID: integer, untargetable: boolean }[]
+local calls = {}
 
 local function seedUnits(name, ...)
 	local builder = Builders.MissionApi.new()
@@ -77,8 +78,7 @@ describe("mission_api.actions.unit_targetable", function()
 
 			action.actionFunction("bots", false)
 
-			assert.are.equal(1, #calls)
-			assert.are.equal(101, calls[1].unitID)
+			assert.are.same({ [101] = true }, untargetableByUnit())
 		end)
 	end)
 end)
