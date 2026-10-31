@@ -167,19 +167,12 @@ local STAGES = {
 	gates = { { percent = 23, techLevel = 2 }, { percent = 46, techLevel = 3 } }, -- held below the tech level, at most until the next gate's minute
 	peakExperience = 0.8,
 	costPosition = { { 0, 0 }, { 400, 0.2 }, { 3000, 0.45 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
-	costDelayPercent = 45, -- how late the most expensive unit reads the count and veterancy curves
-	costHoldPeak = 0.45, -- from this cost position up, units keep their count peak instead of falling back
+	costDelayPercent = 39, -- how late the most expensive unit reads the count and veterancy curves
 	rollLean = 3, -- the count roll leans low, 1 is a flat roll, higher makes big counts rarer
 	rezWindow = { { 0, 60, 200 }, { 100, 8, 45 } }, -- cheapest to most expensive
-	spawnCounts = { { 0, 4, 9 }, { 23, 4, 9 }, { 45, 5, 24 }, { 70, 4, 9 } },
-	veterancy = { { 0, 0 }, { 29, 0.15 }, { 45, 1 } },
+	spawnCounts = { { 0, 4, 9 }, { 23, 4, 9 }, { 37, 5, 24 } },
+	veterancy = { { 0, 0 }, { 23, 0.15 }, { 37, 1 } },
 }
-local stageCountPeakPercent, stageCountPeakMaximum = 0, 0
-for _, anchor in ipairs(STAGES.spawnCounts) do
-	if anchor[3] > stageCountPeakMaximum then
-		stageCountPeakPercent, stageCountPeakMaximum = anchor[1], anchor[3]
-	end
-end
 local stagePercent = 0
 local stageRezMinimum, stageRezMaximum = 0, 0
 local stageMinutes = 0
@@ -628,10 +621,7 @@ local function getStageCurvePercent(costPosition)
 end
 
 local function calculateStageSpawnCount(unitDefData)
-	local costPosition = unitDefData.stageCostPosition
-	local percent = getStageCurvePercent(costPosition)
-	local hold = clamp(costPosition / STAGES.costHoldPeak, 0, 1)
-	percent = math.mix(percent, math.min(percent, stageCountPeakPercent), hold)
+	local percent = getStageCurvePercent(unitDefData.stageCostPosition)
 	local spawnMinimum, spawnMaximum = interpolateAnchors(STAGES.spawnCounts, percent)
 	spawnMinimum, spawnMaximum = math.round(spawnMinimum), math.round(spawnMaximum)
 	return spawnMinimum + floor((spawnMaximum - spawnMinimum + 1) * random() ^ STAGES.rollLean)
