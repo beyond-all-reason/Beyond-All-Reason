@@ -775,10 +775,40 @@ local function registerOrderValidators(parameterValidators, context)
 		local results = {}
 		validateCommandAndParams(order, results)
 		validateOrderOptions(order[3], results)
+
+		local params = order[2]
+		if type(params) == "table" and params.unitName ~= nil and params.featureName ~= nil then
+			addResult(results, "Give a unitName or a featureName, not both", "[2]")
+		end
 		return results
 	end
 
-	parameterValidators[Types.Orders] = getListValidator(validateOrder, "Orders table is empty")
+	local validateOrderList = getListValidator(validateOrder, "Orders table is empty")
+
+	-- Orders are given in sequence and stop at the first gap, so an order past one is never given.
+	parameterValidators[Types.Orders] = function(orders)
+		local results = validateOrderList(orders)
+		if type(orders) ~= "table" then
+			return results
+		end
+
+		local reachable = 0
+		while orders[reachable + 1] ~= nil do
+			reachable = reachable + 1
+		end
+		for key in pairs(orders) do
+			if not (type(key) == "number" and key >= 1 and key <= reachable and key % 1 == 0) then
+				results = results or {}
+				addResult(
+					results,
+					"Order is never given: orders stop at the first gap",
+					"[" .. tostring(key) .. "]",
+					true
+				)
+			end
+		end
+		return results
+	end
 end
 
 --------------------------------------------------------------------------------
