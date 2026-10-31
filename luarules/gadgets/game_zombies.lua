@@ -168,11 +168,10 @@ local STAGES = {
 	peakExperience = 0.8,
 	costPosition = { { 0, 0 }, { 400, 0.2 }, { 3000, 0.45 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
 	costDelayPercent = 45, -- how late the most expensive unit reads the count and veterancy curves
-	costCountScale = { 0.57, 1 }, -- scales the rise above the quiet count window, cheapest to most expensive
 	costHoldPeak = 0.45, -- from this cost position up, units keep their count peak instead of falling back
 	rollLean = 3, -- the count roll leans low, 1 is a flat roll, higher makes big counts rarer
 	rezWindow = { { 0, 60, 200 }, { 100, 8, 45 } }, -- cheapest to most expensive
-	spawnCounts = { { 0, 4, 9 }, { 23, 4, 9 }, { 45, 5, 36 }, { 70, 4, 9 } },
+	spawnCounts = { { 0, 4, 9 }, { 23, 4, 9 }, { 45, 5, 24 }, { 70, 4, 9 } },
 	veterancy = { { 0, 0 }, { 29, 0.15 }, { 45, 1 } },
 }
 local stageCountPeakPercent, stageCountPeakMaximum = 0, 0
@@ -630,14 +629,11 @@ end
 
 local function calculateStageSpawnCount(unitDefData)
 	local costPosition = unitDefData.stageCostPosition
-	local quietMinimum, quietMaximum = STAGES.spawnCounts[1][2], STAGES.spawnCounts[1][3]
 	local percent = getStageCurvePercent(costPosition)
 	local hold = clamp(costPosition / STAGES.costHoldPeak, 0, 1)
 	percent = math.mix(percent, math.min(percent, stageCountPeakPercent), hold)
 	local spawnMinimum, spawnMaximum = interpolateAnchors(STAGES.spawnCounts, percent)
-	local scale = math.mix(STAGES.costCountScale[1], STAGES.costCountScale[2], costPosition)
-	spawnMinimum = math.round(quietMinimum + (spawnMinimum - quietMinimum) * scale)
-	spawnMaximum = math.round(quietMaximum + (spawnMaximum - quietMaximum) * scale)
+	spawnMinimum, spawnMaximum = math.round(spawnMinimum), math.round(spawnMaximum)
 	return spawnMinimum + floor((spawnMaximum - spawnMinimum + 1) * random() ^ STAGES.rollLean)
 end
 
