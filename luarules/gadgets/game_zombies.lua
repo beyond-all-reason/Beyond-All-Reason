@@ -167,6 +167,7 @@ local MINUTE_FRAMES = Game.gameSpeed * 60
 -- Hydra tiers by unit power, anchors are { percent of zombie_stages_length, values... }, straight lines between
 local STAGES = {
 	deadlinePercent = 85, -- from here the clock ignores the gates and reaches the end on time
+	catchUpSpeed = 3, -- clock speed after a gate opens, until it is level with the game clock
 	gates = { { percent = 23, techLevel = 2 }, { percent = 46, techLevel = 3 } }, -- held below the tech level
 	peakExperience = 0.8,
 	difficulties = {
@@ -652,7 +653,7 @@ local function advanceStageClock(realMinutes)
 		stageClockState = STAGE_CLOCK.ACCELERATING
 		return
 	end
-	local target = stageMinutes + elapsed
+	local target = math.min(realMinutes, stageMinutes + elapsed * STAGES.catchUpSpeed)
 	stageClockState = STAGE_CLOCK.RUNNING
 	for gateIndex, gate in ipairs(STAGES.gates) do
 		if not stageGatesOpen[gateIndex] then
