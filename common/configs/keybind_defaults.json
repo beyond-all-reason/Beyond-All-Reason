@@ -773,7 +773,7 @@
 				},
 				{
 					"keyset": "any+sc_space",
-					"action": "factory_preset_toggle"
+					"action": "factory_preset_show"
 				},
 				{
 					"keyset": "Alt+sc_=",
@@ -3491,7 +3491,7 @@
 				},
 				{
 					"keyset": "any+sc_space",
-					"action": "factory_preset_toggle"
+					"action": "factory_preset_show"
 				},
 				{
 					"keyset": "Shift+backspace",
