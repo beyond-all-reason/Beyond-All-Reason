@@ -165,7 +165,7 @@ local MINUTE_FRAMES = Game.gameSpeed * 60
 local STAGES = {
 	catchUpSpeed = 3, -- clock speed after a gate opens, until it is level with the game clock
 	-- the clock is held at a gate below its tech level, at most until the next gate's minute
-	gates = { { percent = 23, techLevel = 2 }, { percent = 46, techLevel = 3 } },
+	gates = { { percent = 23, techLevel = 1.5 }, { percent = 46, techLevel = 2.5 } },
 	peakExperience = 0.8,
 	costPosition = { { 0, 0 }, { 400, 0.2 }, { 3000, 0.45 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
 	costDelayPercent = 39, -- how late the most expensive unit reads the count and veterancy curves
