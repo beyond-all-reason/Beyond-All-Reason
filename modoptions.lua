@@ -29,6 +29,18 @@
 --  bitmask:  int (1|2|4|8...etc), for when multiple options can hide an item
 
 local options = {
+	{
+		key = "portal_worlds",
+		name = "Portal worlds (experimental)",
+		desc = "Independent duels on a composed map, connected after commander loss",
+		type = "list",
+		def = "off",
+		section = "options_main",
+		items = {
+			{ key = "off", name = "Disabled", desc = "Ordinary BAR gameplay" },
+			{ key = "portals", name = "Enabled (WIP)", desc = "Requires a portal map and engine region APIs" },
+		},
+	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
