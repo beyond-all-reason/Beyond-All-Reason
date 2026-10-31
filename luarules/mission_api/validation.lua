@@ -109,17 +109,7 @@ local function validateMission(mission)
 	return result
 end
 
---- @param result table as returned by ValidateMission
-local function logResult(result)
-	for _, message in ipairs(result.errors) do
-		Spring.Log("MissionAPI", LOG.ERROR, "[Mission API] " .. message)
-	end
-	for _, message in ipairs(result.warnings) do
-		Spring.Log("MissionAPI", LOG.WARNING, "[Mission API] " .. message)
-	end
-end
-
 return {
 	ValidateMission = validateMission,
-	LogResult = logResult,
+	LogResult = validationReport.Log,
 }
