@@ -50,7 +50,7 @@ AimWeapon1(heading, pitch)
 	turn turret to y-axis heading speed <360.0>;
 	wait-for-turn turret around x-axis;
 	wait-for-turn turret around y-axis;
-	return (1);
+	return (get ACTIVATION);
 }
 
 FireWeapon1()
@@ -61,7 +61,7 @@ FireWeapon1()
 
 AimWeapon2(heading, pitch)
 {
-	return (1);
+	return (get ACTIVATION);
 }
 
 FireWeapon2()
