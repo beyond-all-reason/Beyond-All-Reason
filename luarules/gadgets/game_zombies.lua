@@ -170,7 +170,7 @@ local STAGES = {
 	costDelayPercent = 45, -- how late the most expensive unit reads the count and veterancy curves
 	costCountScale = { 0.57, 1 }, -- scales the rise above the quiet count window, cheapest to most expensive
 	costHoldPeak = 0.45, -- from this cost position up, units keep their count peak instead of falling back
-	rezWindow = { { 0, 69, 200 }, { 100, 8, 45 } }, -- cheapest to most expensive
+	rezWindow = { { 0, 60, 200 }, { 100, 8, 45 } }, -- cheapest to most expensive
 	spawnCounts = { { 0, 4, 6 }, { 23, 4, 6 }, { 45, 5, 20 }, { 70, 4, 6 } },
 	veterancy = { { 0, 0 }, { 29, 0.15 }, { 45, 1 } },
 }
