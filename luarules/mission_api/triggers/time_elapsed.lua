@@ -1,8 +1,13 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local countdowns = GG['MissionAPI'].Modules.Countdowns
 
 local function secondsToFrames(seconds)
 	-- Round to the nearest whole frame:
 	return math.floor(seconds * Game.gameSpeed + 0.5)
+end
+
+local function getCountdownID(triggerID)
+	return '__timeElapsed_' .. triggerID
 end
 
 return {
@@ -12,19 +17,14 @@ return {
 		{ name = 'interval', required = false, type = ParameterTypes.Number },
 	},
 	callins = {
-		GameFrame = function(trigger, triggerID, context, gameFrame)
-			local parameters = trigger.parameters
-			-- GameFrame isn't called on frame 0:
-			local targetFrame = math.max(1, secondsToFrames(parameters.seconds))
-
-			if gameFrame == targetFrame then
-				context.ActivateTrigger(trigger)
-			elseif trigger.settings.repeating and parameters.interval and gameFrame > targetFrame then
-				local intervalFrames = secondsToFrames(parameters.interval)
-				if intervalFrames > 0 and (gameFrame - targetFrame) % intervalFrames == 0 then
-					context.ActivateTrigger(trigger)
-				end
+		GameStart = function(trigger, triggerID, _context)
+			countdowns.AddCountdownFrames(getCountdownID(triggerID), secondsToFrames(trigger.parameters.seconds))
+		end,
+		CountdownEnded = function(trigger, triggerID, context, countdownID)
+			if countdownID ~= getCountdownID(triggerID) then
+				return
 			end
+			context.ActivateTrigger(trigger)
 		end,
 	},
 }
