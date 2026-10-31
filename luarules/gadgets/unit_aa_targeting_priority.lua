@@ -78,31 +78,46 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	local airPriorityMultiplier = {}
+	local airPriorityMultiplier = {} ---@type table<UnitDefID?, number?>
+	local isAntiAirWeapon = {}
+
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local weapons = unitDef.weapons
 		if unitDef.isAirUnit then
-			airPriorityMultiplier[unitDefID] = (unitDef.isTransport or unitDef.isBuilder) and PRIORITY_VTOLS
+			local priority = (unitDef.isTransport or unitDef.isBuilder) and PRIORITY_VTOLS
 				or table.any(weapons, isBomberWeapon) and PRIORITY_BOMBERS
 				or table.any(weapons, isFighterWeapon) and PRIORITY_FIGHTERS
 				or table.any(weapons, isNotFakeWeapon) and PRIORITY_VTOLS -- doubles as the PRIORITY_GUNSHIP
 				or PRIORITY_SCOUTS
+			if priority ~= 1 then
+				airPriorityMultiplier[unitDefID] = priority
+			end
 		end
 		for i = 1, #weapons do
 			if hasAntiAirPriority(unitDef, weapons[i]) then
-				gadgetHandler:RegisterWeaponTarget(weapons[i].weaponDef)
+				isAntiAirWeapon[weapons[i].weaponDef] = true
 			end
 		end
+	end
+
+	if not next(airPriorityMultiplier) or not next(isAntiAirWeapon) then
+		return
+	end
+
+	for weaponDefID in pairs(isAntiAirWeapon) do
+		gadgetHandler:RegisterWeaponTarget(weaponDefID)
 	end
 
 	-- AllowWeaponTarget is only called for the registered weapons (vtol-targeting),
 	-- so the attacker always has AA priority — no need to check hasPriorityAir or call
 	-- spGetUnitDefID on the attacker.
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-		local mult = airPriorityMultiplier[spGetUnitDefID(targetID)]
-		if mult then
-			return true, (defPriority or 1.0) * mult
+		if defPriority then
+			local mult = airPriorityMultiplier[spGetUnitDefID(targetID)]
+			if mult then
+				defPriority = defPriority * mult
+			end
 		end
-		return true
+		return true, defPriority
 	end
 end
