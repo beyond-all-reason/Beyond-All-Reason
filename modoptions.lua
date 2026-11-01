@@ -1811,11 +1811,6 @@ local options = {
 				name = "Akumu",
 				desc = "Basic, Wraith, and Hydra combined.",
 			},
-			{
-				key = "spidergeddon",
-				name = "Spidergeddon (LIMITED TIME)",
-				desc = "A modified Akumu mode, but zombies resurrect as Spiders.",
-			},
 		},
 	},
 
