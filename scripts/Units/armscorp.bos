@@ -354,7 +354,7 @@ UnitSpeed(){
 }
 StartMoving(reversing){
 	signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
+    set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
@@ -504,14 +504,28 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
+	
+	//closes doors
+	turn doorl to z-axis <0.0> speed <60.0>;
+	turn doorr to z-axis <0.0> speed <60.0>;
+
+	//lower turret to default position
+	turn weight to x-axis <0.0> speed <20.0>;
 }
 
 AimWeapon1(heading, pitch)
 {
+	//open doors
+	turn doorl to z-axis <90.0> speed <90.0>;
+	turn doorr to z-axis <-90.0> speed <90.0>;
+
+	//rise turret to aim
+	turn weight to x-axis <-20.0> speed <20.0>;
+	
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	turn turret1 to y-axis heading speed <150.0>;
-	turn turret1 to x-axis 0 - pitch speed <150.0>;
+	turn turret1 to x-axis 0 - pitch speed <20.0>;
 	wait-for-turn turret1 around y-axis;
 	wait-for-turn turret1 around x-axis;
 	// turn turret2 to y-axis heading speed <150.0>;
