@@ -96,7 +96,7 @@ return {
 			adv_rocket = {
 				areaofeffect = 100,
 				avoidfeature = false,
-				burst = 6,
+				burst = 10,
 				burstrate = 0.2,
 				castshadow = true,
 				cegtag = "missiletrailsmall",
@@ -113,7 +113,7 @@ return {
 				name = "Parabolic trajectory g2g multi-rocket launcher",
 				noselfdamage = true,
 				range = 1000,
-				reloadtime = 5,
+				reloadtime = 10,
 				smoketrail = false,
 				soundhit = "rockhit3",
 				soundhitwet = "splssml",
@@ -192,7 +192,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "ADV_ROCKET",
 				maindir = "0 0 1",
-				maxangledif = 90,
+				maxangledif = 15,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
