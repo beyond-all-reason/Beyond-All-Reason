@@ -22,6 +22,7 @@ end
 -- ring from being cut by the camera's far plane.
 
 local LuaShader = gl.LuaShader
+---@type table the widget depends on gl4, which provides it
 local InstanceVBOIdTable = gl.InstanceVBOIdTable
 -- Trees without the deferred featureDefID helpers fall back to the immediate element API.
 local pushDefElement = InstanceVBOIdTable and InstanceVBOIdTable.pushDefElement
@@ -33,6 +34,7 @@ local popDefElement = InstanceVBOIdTable and InstanceVBOIdTable.popDefElement
 		InstanceVBOIdTable.popElementInstance(iT, id)
 	end
 local flushDefElements = InstanceVBOIdTable and InstanceVBOIdTable.flushDefElements or function() end
+---@type function?
 local PreloadFeatureDefModel = Spring.PreloadFeatureDefModel
 local Echo = Spring.Echo
 
@@ -138,23 +140,33 @@ void main() {
 }
 ]]
 
+---@type LuaShader?
 local shader
 local vertexVBO, indexVBO
 -- Depth of the layers alone, for screen-space passes that only read the G-buffer depths (the
 -- height fog): the backdrop is in neither, so without this the fog treats it as open sky.
 local GL_DEPTH_COMPONENT24 = 0x81A6
 local GL_R8 = 0x8229
+---@type { tex: string?, color: string?, fbo: any, w: integer, h: integer, frame: integer }
 local depth = { tex = nil, color = nil, fbo = nil, w = 0, h = 0, frame = -1 }
 local tables = {} -- featureDefID -> instance table
+---@type table<integer, string|false>
 local normalTexOf = {} -- featureDefID -> normal map path or false
 
----@type { def: string?, yaw: number, scale: number }[]
+---@class BlockoutLayer
+---@field def string? feature def name, nil when the layer is empty
+---@field yaw number
+---@field scale number
+
+---@type BlockoutLayer[]
 local layers = {}
 for i = 1, LAYER_COUNT do
 	layers[i] = { def = nil, yaw = 0, scale = 1 }
 end
+---@type { name: string, label: string, defID: integer }[]?
 local catalog -- built on first use: { { name, label, defID }, ... }
 -- one record = worldposyaw (4) + params (4) + instData (4, filled by the VBO table)
+---@type number[]
 local instanceCache = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 local listeners = {}
 
@@ -171,6 +183,7 @@ local function buildCatalog()
 	end)
 end
 
+---@return table?
 local function getTable(defID)
 	local t = tables[defID]
 	if t ~= nil then
@@ -186,6 +199,7 @@ local function getTable(defID)
 		tables[defID] = false
 		return nil
 	end
+	---@cast def table
 	t = InstanceVBOIdTable.makeInstanceVBOTable(
 		VBO_LAYOUT,
 		4,
@@ -222,6 +236,8 @@ local function refresh()
 	local cx, cz = Game.mapSizeX * 0.5, Game.mapSizeZ * 0.5
 	for i = 1, LAYER_COUNT do
 		local l = layers[i]
+		---@cast l BlockoutLayer
+		---@type table?
 		local def = l.def and FeatureDefNames[l.def]
 		local t = def and getTable(def.id)
 		if t then
@@ -242,6 +258,7 @@ function Blockout.getCatalog()
 	if not catalog then
 		buildCatalog()
 	end
+	---@cast catalog { name: string, label: string, defID: integer }[]
 	return catalog
 end
 
@@ -285,6 +302,7 @@ function Blockout.getState()
 	local out = { layers = {} }
 	for i = 1, LAYER_COUNT do
 		local l = layers[i]
+		---@cast l BlockoutLayer
 		out.layers[i] = { def = l.def or "", yaw = l.yaw, scale = l.scale }
 	end
 	return out
@@ -296,6 +314,7 @@ function Blockout.setState(state)
 	for i = 1, LAYER_COUNT do
 		local s = src[i] or {}
 		local def = s.def
+		---@type table|false|nil
 		local fd = def and def ~= "" and FeatureDefNames[def]
 		layers[i] = {
 			def = (fd and fd.customParams and fd.customParams.blockout) and def or nil,
@@ -427,6 +446,7 @@ local function submitLayers()
 	for defID, t in pairs(tables) do
 		if t and t.usedElements > 0 then
 			local nt = normalTexOf[defID]
+			---@cast shader LuaShader
 			shader:SetUniformFloat("hasNormalTex", nt and 1 or 0)
 			if nt then
 				gl.Texture(2, nt)
@@ -456,6 +476,7 @@ function widget:DrawWorldPreUnit()
 	gl.DepthMask(true)
 	gl.DepthClamp(true)
 	gl.Culling(false)
+	---@cast shader LuaShader
 	shader:Activate()
 	submitLayers()
 	-- the same layers once more, into the depth target the fog reads

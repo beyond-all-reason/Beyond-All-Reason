@@ -1,14 +1,12 @@
--- tf_lights.lua: extracted tool module for gui_terraform_brush
+-- tf_lights.lua: light placer and light library wiring for the gui_terraform_brush panel
 local M = {}
 
--- Capture engine globals as module upvalues. RmlUi-dispatched event closures
--- (AddEventListener bodies) may execute outside the host widget's global env,
--- so referring to bare globals from inside a handler throws nil-index errors.
--- See memory: rmlui_addeventlistener_globals.md.
+-- RmlUi listener closures can run outside the widget env, where bare globals
+-- are nil: capture what they use as upvalues.
 local WG = WG
 local Spring = Spring
 
--- Color palette (shared by swatch click handler + guideHints population).
+-- Color palette, shared by the swatch click handlers and the guide hints.
 local PALETTE = {
 	-- Row 1: neutrals + warm-to-cool spectrum (18)
 	{ 1.0, 1.0, 1.0, "#FFFFFF", "White" },
@@ -77,12 +75,11 @@ function M.attach(doc, ctx)
 	local guideHints = ctx.guideHints
 	local GetMouseState = Spring.GetMouseState
 	local TraceScreenRay = Spring.TraceScreenRay
-	-- ============ Light Placer controls ============
+	-- Light Placer controls
 
 	widgetState.lightControlsEl = doc:GetElementById("tf-light-controls")
 
-	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
-	-- Slider change events are wired declaratively via onchange= in RML.
+	-- Drag tracking only; slider change events are wired in the RML (data-event-change).
 	for _, sid in ipairs({
 		"lp-color-r",
 		"lp-color-g",
@@ -93,6 +90,7 @@ function M.attach(doc, ctx)
 		"lp-theta",
 		"lp-beam-length",
 		"lp-count",
+		"lp-cadence",
 		"lp-brush-radius",
 		"lp-history",
 	}) do
@@ -111,13 +109,12 @@ function M.attach(doc, ctx)
 		end
 	end
 
-	-- Populate per-swatch guide hints (click handlers wired declaratively in RML).
+	-- Per-swatch guide hints (the click handlers are wired in the RML).
 	for idx, c in ipairs(PALETTE) do
 		guideHints["lp-swatch-" .. idx] = c[5] .. " " .. c[4]
 	end
 
-	-- ============ Light Library floating window ============
-	-- Dynamic preset lists remain imperative (Phase 3 defers data-for binding).
+	-- Light Library floating window. The preset lists are built here, not with data-for.
 	widgetState.lightLibraryRootEl = doc:GetElementById("tf-light-library-root")
 	local llBuiltinList = doc:GetElementById("ll-builtin-list")
 	local llUserList = doc:GetElementById("ll-user-list")
@@ -131,7 +128,7 @@ function M.attach(doc, ctx)
 		return ""
 	end
 
-	-- Helper: populate builtin presets list
+	-- Fill the builtin presets list
 	local function populateBuiltinPresets(filter)
 		if not llBuiltinList or not WG.LightPlacer then
 			return
@@ -171,7 +168,7 @@ function M.attach(doc, ctx)
 				.. "</div>"
 			llBuiltinList.inner_rml = llBuiltinList.inner_rml .. html
 		end
-		-- Bind click events after populating (dynamic per-item closures: legitimate imperative)
+		-- One click closure per row, bound after the list is filled
 		for _, entry in ipairs(shown) do
 			local i = entry.idx
 			local preset = entry.preset
@@ -206,7 +203,7 @@ function M.attach(doc, ctx)
 		end
 	end
 
-	-- Helper: populate user presets list
+	-- Fill the user presets list
 	local function populateUserPresets(filter)
 		if not llUserList or not WG.LightPlacer then
 			return
@@ -277,8 +274,7 @@ function M.attach(doc, ctx)
 		end
 	end
 
-	-- ============ Hemisphere orientation globe (pitch/yaw interactive) ============
-	-- Legitimate imperative: drag mousedown/move/up + SDL focus/blur on numboxes.
+	-- Hemisphere orientation globe: drag to set pitch/yaw, plus SDL focus/blur on the numboxes.
 	local globeEl = doc:GetElementById("lp-orient-globe")
 	local globeDragging = false
 	local orientPitchInput = doc:GetElementById("lp-orient-pitch-input")
@@ -354,7 +350,7 @@ function M.attach(doc, ctx)
 		end
 	end, false)
 
-	-- Pitch/Yaw direct-entry numboxes (SDL text input legitimately imperative)
+	-- Pitch/Yaw direct-entry numboxes
 	local function wireOrientNumbox(inputEl, setter, clampLo, clampHi)
 		if not inputEl then
 			return
@@ -392,9 +388,8 @@ function M.attach(doc, ctx)
 	wireOrientNumbox(orientPitchInput, "setPitch", -90, 90)
 	wireOrientNumbox(orientYawInput, "setYaw", 0, 360)
 
-	-- Store palette + populate helpers in widgetState for model-king handlers in initialModel.
-	-- Recoil forbids adding/replacing function keys after OpenDataModel (all onLp*/onLl*
-	-- handlers are defined there, not here).
+	-- Palette and list fillers go through widgetState for the onLp*/onLl* handlers in
+	-- initialModel: Recoil forbids adding function keys after OpenDataModel.
 	widgetState.lpPalette = PALETTE
 	widgetState.lpPopulateBuiltinPresets = populateBuiltinPresets
 	widgetState.lpPopulateUserPresets = populateUserPresets
@@ -408,10 +403,8 @@ function M.sync(doc, ctx, lpState, setSummary)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local syncAndFlash = ctx.syncAndFlash
-	-- btn-lights active state driven by data-class-active="activeTool == 'lp'" in RML.
-
-	-- Light type/mode/dist buttons driven by dm.lpLightType/lpMode/lpDistMode (data-class-active).
-	-- Sync shape button active state to LightPlacer's shape
+	-- btn-lights and the type/mode/distribution buttons get their active state from
+	-- data-class-active in the RML. Sync the shape button to LightPlacer's shape.
 	local getCachedEl = ctx.getCachedEl
 	local dm = widgetState.dmHandle
 	if dm then
@@ -447,12 +440,11 @@ function M.sync(doc, ctx, lpState, setSummary)
 			WG.LightPlacer.setMode("point")
 		end
 	end
-	-- data-class-lp-unavailable="lpDirectedLight" drives grayout in RML.
+	-- data-class-lp-unavailable="lpDirectedLight" drives the greyout in the RML.
 	if dm and dm.lpDirectedLight ~= directedLight then
 		dm.lpDirectedLight = directedLight
 	end
-	-- Update distribution buttons (data-class-active="lpDistMode == 'X'" drives active class)
-	-- Labels driven by {{lpBrightnessStr}}/{{lpLightRadiusStr}}/{{lpElevationStr}}/{{lpCountStr}}/{{lpBrushRadiusStr}} in RML.
+	-- Distribution buttons use data-class-active; labels are {{lp...Str}} bindings in the RML.
 	if widgetState.dmHandle then
 		local dm = widgetState.dmHandle
 		local v = string.format("%.1f", lpState.brightness)
@@ -471,15 +463,17 @@ function M.sync(doc, ctx, lpState, setSummary)
 		if dm.lpCountStr ~= v then
 			dm.lpCountStr = v
 		end
+		v = tostring(lpState.cadence or 1)
+		if dm.lpCadenceStr ~= v then
+			dm.lpCadenceStr = v
+		end
 		v = tostring(math.floor(lpState.radius))
 		if dm.lpBrushRadiusStr ~= v then
 			dm.lpBrushRadiusStr = v
 		end
 	end
-	-- Sync slider+numbox values for state that can mutate outside the UI
-	-- (Ctrl+Scroll = brush radius, Shift+Scroll = elevation, Space+Scroll =
-	-- brightness, Alt+Scroll = yaw, R/G/B+Scroll = color channels, etc.)
-	-- syncAndFlash is guarded against the user's active drag on that slider.
+	-- Re-sync values that change outside the UI (Ctrl/Shift/Space/Alt/R/G/B+Scroll).
+	-- syncAndFlash skips the slider being dragged.
 	if syncAndFlash then
 		uiState.updatingFromCode = true
 		syncAndFlash(
@@ -499,6 +493,8 @@ function M.sync(doc, ctx, lpState, setSummary)
 		)
 		syncAndFlash(getCachedEl(doc, "slider-lp-elevation"), "lp-elevation", tostring(math.floor(lpState.elevation)))
 		syncAndFlash(getCachedEl(doc, "slider-lp-count"), "lp-count", tostring(lpState.lightCount))
+		local cadencePos = tostring(ctx.cadenceToSlider(lpState.cadence or 1))
+		syncAndFlash(getCachedEl(doc, "slider-lp-cadence"), "lp-cadence", cadencePos)
 		syncAndFlash(
 			getCachedEl(doc, "slider-lp-color-r"),
 			"lp-color-r",
@@ -538,12 +534,13 @@ function M.sync(doc, ctx, lpState, setSummary)
 		setNum("slider-lp-light-radius-numbox", tostring(math.floor(lpState.lightRadius)))
 		setNum("slider-lp-elevation-numbox", tostring(math.floor(lpState.elevation)))
 		setNum("slider-lp-count-numbox", tostring(lpState.lightCount))
+		setNum("slider-lp-cadence-numbox", cadencePos)
 		setNum("slider-lp-color-r-numbox", tostring(lpState.color[1]))
 		setNum("slider-lp-color-g-numbox", tostring(lpState.color[2]))
 		setNum("slider-lp-color-b-numbox", tostring(lpState.color[3]))
 		uiState.updatingFromCode = false
 	end
-	-- Color preview (live background-color via SetAttribute, no label span in RML)
+	-- Color preview: background-color set directly
 	local colorPreview = doc and getCachedEl(doc, "lp-color-preview")
 	if colorPreview then
 		local cr = math.floor(lpState.color[1] * 255)
@@ -551,7 +548,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 		local cb = math.floor(lpState.color[3] * 255)
 		colorPreview:SetAttribute("style", string.format("background-color: #%02x%02x%02x;", cr, cg, cb))
 	end
-	-- Placed count driven by {{lpPlacedCountStr}} in RML.
+	-- Placed count is the {{lpPlacedCountStr}} binding in the RML.
 	if widgetState.dmHandle and WG.LightPlacer then
 		local v = tostring(WG.LightPlacer.getPlacedCount())
 		if widgetState.dmHandle.lpPlacedCountStr ~= v then
@@ -584,7 +581,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 			nx = nx / len
 			ny = ny / len
 		end
-		-- Globe R=41dp (100dp globe, 14dp indicator: center=50, half-ind=7, margin=2 → 50-7-2=41)
+		-- 100dp globe, 14dp indicator: radius 50 - 7 - 2 margin = 41, left edge at 50 - 7 = 43
 		local left = 43 + nx * 41
 		local top = 43 + ny * 41
 		globeInd:SetAttribute("style", string.format("left: %.1fdp; top: %.1fdp;", left, top))
@@ -612,7 +609,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 		tostring(lpState.elevation or 100)
 	)
 
-	-- P3.2 Lights grayouts (per Phase 3 relevance matrix)
+	-- Grey out controls that do nothing in the current mode
 	if doc and ctx.setDisabledIds then
 		local mode = lpState.mode or "point"
 		local remove = (mode == "remove")
@@ -630,13 +627,18 @@ function M.sync(doc, ctx, lpState, setSummary)
 			"slider-lp-color-b",
 			"slider-lp-color-b-numbox",
 		}, remove)
-		-- Count/cadence: scatter only
+		-- Count: scatter only
 		ctx.setDisabledIds(doc, {
 			"slider-lp-count",
 			"slider-lp-count-numbox",
+		}, not scatter)
+		-- Rate: paces the held SCATTER and REMOVE drags
+		ctx.setDisabledIds(doc, {
 			"slider-lp-cadence",
 			"slider-lp-cadence-numbox",
-		}, not scatter)
+			"btn-lp-cadence-down",
+			"btn-lp-cadence-up",
+		}, not (scatter or remove))
 		-- Brush radius (pick/scatter radius): irrelevant in point mode
 		ctx.setDisabledIds(doc, {
 			"slider-lp-brush-radius",

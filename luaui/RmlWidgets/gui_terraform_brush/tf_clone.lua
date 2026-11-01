@@ -1,4 +1,4 @@
--- tf_clone.lua: extracted tool module for gui_terraform_brush
+-- tf_clone.lua: clone tool wiring for the gui_terraform_brush panel
 local M = {}
 
 function M.attach(doc, ctx)
@@ -7,17 +7,15 @@ function M.attach(doc, ctx)
 
 	widgetState.cloneActive = false
 
-	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
-	-- Slider change events are wired declaratively via data-event-change= in RML.
+	-- Drag tracking only; slider change events are wired in the RML (data-event-change).
 	for _, sid in ipairs({ "cl-rotation", "cl-height", "cl-history", "cl-opacity" }) do
 		local sl = doc:GetElementById("slider-" .. sid)
 		if sl then
 			trackSliderDrag(sl, sid)
 		end
 	end
-	-- All data-event-click/change handlers (onClXxx) are defined in initialModel
-	-- in gui_terraform_brush.lua — Recoil forbids adding or replacing function
-	-- keys in a DataModel after OpenDataModel.
+	-- The onClXxx handlers live in initialModel (gui_terraform_brush.lua): Recoil
+	-- forbids adding function keys to a DataModel after OpenDataModel.
 end
 
 function M.sync(doc, ctx, clState, setSummary)
@@ -30,9 +28,9 @@ function M.sync(doc, ctx, clState, setSummary)
 	local syncAndFlash = ctx.syncAndFlash
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
-	-- ===== Clone Tool mode: highlight button, sync controls =====
+	-- Clone tool: status, sliders and toggle buttons
 	do
-		-- Update status label (dm.clStatusStr → {{clStatusStr}} in RML)
+		-- Status label ({{clStatusStr}} in the RML)
 		if clState and widgetState.dmHandle then
 			local statusText = "Select an area to clone"
 			if clState.state == "selecting" then
@@ -186,7 +184,7 @@ function M.sync(doc, ctx, clState, setSummary)
 		)
 	end
 
-	-- P3.2 Clone grayouts (per Phase 3 relevance matrix)
+	-- Grey out controls that do nothing in the current clone state
 	if doc and ctx.setDisabledIds and clState then
 		local cs = clState.state or "idle"
 		local hasBuf = clState.hasBuffer == true

@@ -1,15 +1,15 @@
--- Where a placement drag puts its units: the layout half of the shared unit placer (refactor
--- plan, Phase U1), used by the mission editor and the terraform brush alike.
+-- Where a placement drag puts its units: the layout half of the shared unit placer, used by
+-- the mission editor and the terraform brush alike.
 --
--- PURE. It knows nothing about missions, widgets or the engine: a unit type comes in as its
+-- Pure: it knows nothing about missions, widgets or the engine. A unit type comes in as its
 -- footprint (`xsize`, `zsize`, in footprint squares, as a UnitDef counts them) and positions
--- go out as numbers. What a consumer does with them -- write loadout records, spawn real units
--- -- is the consumer's business. Specs: spec/luaui/Include/unit_placer_layout_spec.lua.
+-- go out as numbers; the consumer decides whether to write loadout records or spawn units.
+-- Specs: spec/luaui/Include/unit_placer_layout_spec.lua.
 --
--- The rules are the engine's own (`CGuiHandler::GetBuildPositions`), the ones a player feels
--- every time they drag out a row of solars, as `luaui/Widgets/api_blueprint.lua` also ports
--- them. That widget keeps its versions file-local and works on blueprint objects, so this is a
--- plain-number port a placer can call and a spec can check; `api_blueprint` could adopt it.
+-- The rules are the engine's own (`CGuiHandler::GetBuildPositions`), as
+-- `luaui/Widgets/api_blueprint.lua` also ports them. That widget keeps its versions file-local
+-- and works on blueprint objects, so this is a plain-number port a placer can call and a spec
+-- can check.
 --
 --     local Layout = VFS.Include("luaui/Include/unit_placer/layout.lua")
 --     local spots = Layout.positions({ xsize = 2, zsize = 2, mode = "GRID" }, x1, z1, x2, z2)
@@ -27,10 +27,9 @@ for _, mode in ipairs(Layout.MODES) do
 	KNOWN_MODE[mode] = true
 end
 
---- A facing as the Y rotation a model is drawn with: + pi/2 a quarter, as the Blueprint API
---- draws it (api_blueprint.lua: `unit.facing * (mathPi / 2)`). DrawUnitShapeGL4's own comment
---- says pi/2 points west; a +90 degree turn about Y takes +z to +x, which is east, and the
---- game's blueprints are drawn this way. The old minus sign mirrored every E/W ghost.
+--- A facing as the Y rotation a model is drawn with: +pi/2 a quarter, as the Blueprint API
+--- draws it (`unit.facing * (mathPi / 2)`). DrawUnitShapeGL4's own comment says pi/2 points
+--- west, but a +90 degree turn about Y takes +z to +x (east); a minus sign mirrors E/W ghosts.
 function Layout.facingRotation(facing)
 	return ((tonumber(facing) or 0) % 4) * math.pi / 2
 end
@@ -187,11 +186,11 @@ function Layout.turnOffset(dx, dz, turns)
 	return dx, dz
 end
 
---- Where a GROUP lands (a paste or a blueprint, U8/U9): every unit at its offset from the
+--- Where a GROUP lands (a paste or a blueprint): every unit at its offset from the
 --- point, the whole group turned by quarter turns (offsets and facings together), each unit
 --- snapped to the build grid for its own turned footprint.
 ---
---- `units`: { { dx, dz, facing, xsize, zsize }, ... } -- offsets from the group's centre.
+--- `units`: { { dx, dz, facing, xsize, zsize }, ... }, offsets from the group's centre.
 ---@return table spots array of { x, z, facing, index } (index into `units`)
 function Layout.groupPositions(units, x, z, turns, snap, mapX, mapZ)
 	local spots = {}
@@ -236,7 +235,7 @@ function Layout.centreOffsets(units)
 	return out, cx, cz
 end
 
---- A formation for `count` units already placed (mission editor units S6): offsets from the
+--- A formation for `count` units already placed: offsets from the
 --- formation's centre, `cell` elmos apart. LINE stands abreast across the facing (a line
 --- facing south runs east to west), GRID is as square as the count allows with a short last
 --- rank centred, BOX spreads them evenly round a square ring (under four, a GRID). Nothing is

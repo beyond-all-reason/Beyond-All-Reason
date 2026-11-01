@@ -18,7 +18,7 @@
 					<span class="tf-title-accent">BRUSH</span>
 					<!-- Version tracks the tf-brush-improvements-N branch this shipped from:
 					     branch N is version 1.N. -->
-					<span class="tf-title-version">1.18</span>
+					<span class="tf-title-version">1.19</span>
 				</div>
 				<div class="tf-header-top-btns">
 					<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -211,7 +211,7 @@
 				<div class="tf-overlay-chip" data-event-mousedown="onTfUnitsLibrary()"><div class="tf-overlay-chip-label">Library</div></div>
 				<div class="tf-overlay-chip" data-event-mousedown="onTfUnitsTeam()"><div class="tf-overlay-chip-label">{{unitsTeam}}</div></div>
 			</div>
-			<!-- LIVE / MISSION (1.18): normal units, or frozen stand-ins on a mission team number
+			<!-- LIVE / MISSION: normal units, or frozen stand-ins on a mission team number
 			     that a map project saves for the mission editor -->
 			<div class="flex flex-row items-center gap-1 mb-1">
 				<div id="btn-un-kind-live" class="tf-overlay-chip" data-class-active="unitsKind == 'live'" data-event-mousedown="onTfUnitsKind('live')"><div class="tf-overlay-chip-label">Live units</div></div>
@@ -251,8 +251,8 @@
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 			</div>
 		</div>
-		</div><!-- /section-fp-overlays -->
-		</div><!-- /frame-fp-overlays -->
+		</div><!-- /section-un-overlays -->
+		</div><!-- /frame-un-overlays -->
 
 
 		<!-- Unit Placer: INSTRUMENTS -->
@@ -362,8 +362,8 @@
 				</div>
 			</div>
 		</div>
-		</div><!-- /section-fp-instruments -->
-		</div><!-- /frame-fp-instruments -->
+		</div><!-- /section-un-instruments -->
+		</div><!-- /frame-un-instruments -->
 
 
 		<!-- Unit Placer: FILTERS -->
@@ -439,7 +439,7 @@
 			</div>
 			<input type="text" id="un-slider-slope-min-numbox" class="tf-slider-numbox" value="0" />
 		</div>
-		</div><!-- /fp-smart-slope-content -->
+		</div><!-- /un-smart-slope-content -->
 
 		<!-- Altitude controls (toggled by Altitude chip) -->
 		<div id="un-smart-altitude-content" class="hidden">
@@ -486,10 +486,10 @@
 			</div>
 			<input type="text" id="un-slider-alt-max-numbox" class="tf-slider-numbox" value="0" />
 		</div>
-		</div><!-- /fp-smart-altitude-content -->
+		</div><!-- /un-smart-altitude-content -->
 
-		</div><!-- /section-fp-smart -->
-		</div><!-- /frame-fp-smart -->
+		</div><!-- /section-un-smart -->
+		</div><!-- /frame-un-smart -->
 		</div>
 
 		<!-- UNITS selection. Only on an empty mouse: with nothing picked in the unit library,
@@ -2330,8 +2330,7 @@
 		<!-- Feature selection / gizmo. Only meaningful on an "empty mouse": with
 		     nothing picked in the asset library, clicking the map selects placed
 		     features instead of placing new ones. fpShowSelection is computed in
-		     Lua rather than as a compound data expression, matching fpSymHasAxis
-		     and friends. -->
+		     Lua rather than as a compound data expression, like fpSymHasAxis. -->
 		<div data-if="fpShowSelection">
 			<div class="tf-section-frame" id="frame-fp-selection">
 				<!-- Not a collapse toggle, unlike every other title row, so it must not
@@ -2547,7 +2546,7 @@
 		<!-- ============ TERRAFORM-ONLY CONTROLS ============ -->
 		<div id="tf-terraform-controls" data-if="activeTool == ''">
 
-		<!-- Display-options collapse header (was OVERLAYS) -->
+		<!-- Display-options collapse header -->
 		<div class="tf-section-frame tf-collapsed" id="frame-overlays">
 			<div id="btn-toggle-overlays" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -3690,7 +3689,7 @@
 
 		</div><!-- /tf-feature-controls -->
 
-		<!-- ============ UNITS CONTROLS (cloned from the FEATURES block above) ============ -->
+		<!-- ============ UNITS CONTROLS (mirrors the FEATURES block above) ============ -->
 		<div id="tf-unit-controls" data-if="activeTool == 'un'">
 
 		<div class="tf-section-frame" id="frame-un-dist">
@@ -3763,7 +3762,7 @@
 			</div>
 			<input type="text" id="un-slider-size-numbox" class="tf-slider-numbox" value="0" />
 		</div>
-		</div><!-- /fp-param-size-row -->
+		</div><!-- /un-param-size-row -->
 
 		<div id="un-param-rotation-row">
 		<div class="flex flex-row items-center mb-1">
@@ -3786,7 +3785,7 @@
 			</div>
 			<input type="text" id="un-slider-rotation-numbox" class="tf-slider-numbox" value="0" />
 		</div>
-		</div><!-- /fp-param-rotation-row -->
+		</div><!-- /un-param-rotation-row -->
 
 		<div id="un-param-alignment-row">
 		<div class="flex flex-row items-center mb-1">
@@ -3808,7 +3807,7 @@
 			</div>
 			<input type="text" id="un-slider-rot-random-numbox" class="tf-slider-numbox" value="0" />
 		</div>
-		</div><!-- /fp-param-alignment-row -->
+		</div><!-- /un-param-alignment-row -->
 
 
 		<div id="un-param-count-row">
@@ -3831,7 +3830,7 @@
 			</div>
 			<input type="text" id="un-slider-count-numbox" class="tf-slider-numbox" value="0" />
 		</div>
-		</div><!-- /fp-param-count-row -->
+		</div><!-- /un-param-count-row -->
 
 		<div id="un-param-rate-row">
 		<div class="flex flex-row items-center mb-1">
@@ -3854,10 +3853,10 @@
 			</div>
 			<input type="text" id="un-slider-cadence-numbox" class="tf-slider-numbox" value="0" />
 		</div>
-		</div><!-- /fp-param-rate-row -->
+		</div><!-- /un-param-rate-row -->
 
-		</div><!-- /section-fp-controls -->
-		</div><!-- /frame-fp-controls -->
+		</div><!-- /section-un-controls -->
+		</div><!-- /frame-un-controls -->
 
 
 		<div class="tf-section-frame tf-collapsed" id="frame-un-undo">
@@ -3876,8 +3875,8 @@
 			</div>
 			<input type="text" id="slider-un-history-numbox" class="tf-slider-numbox" value="0" />
 		</div>
-		</div><!-- /section-fp-undo -->
-		</div><!-- /frame-fp-undo -->
+		</div><!-- /section-un-undo -->
+		</div><!-- /frame-un-undo -->
 
 
 		<div class="tf-section-frame tf-collapsed" id="frame-un-save">
@@ -3900,8 +3899,8 @@
 		<div id="un-save-load-list" class="tf-save-load-list tf-hm-browser" data-if="unSaveLoadOpen">
 			<!-- Populated dynamically with saved unit maps -->
 		</div>
-		</div><!-- /section-fp-save -->
-		</div><!-- /frame-fp-save -->
+		</div><!-- /section-un-save -->
+		</div><!-- /frame-un-save -->
 
 
 		</div><!-- /tf-unit-controls -->
@@ -4219,8 +4218,8 @@
 		<!-- ============ SPLAT PAINTER CONTROLS ============ -->
 		<div id="tf-splat-controls" data-if="activeTool == 'sp'">
 		<div class="tf-section-frame mb-1" data-if="newMapEngineSplatNotice">
-			<div class="text-sm text-keybind">New Map splat painting is waiting on queued Recoil engine changes already in flight. Existing maps still support the Splat Painter.</div>
-			<div class="text-xs text-light mt-1" data-if="newMapSplatNeedsDnts">No DNTS pack was found in Terraform Brush/textures/dnts/, so this tool stays disabled on blank maps for now.</div>
+			<div class="text-sm text-keybind">Splat painting on a New Map needs a DNTS splat set, picked under SPLAT SET when the map is created. Existing maps still support the Splat Painter.</div>
+			<div class="text-xs text-light mt-1" data-if="newMapSplatNeedsDnts">No DNTS pack was found in Terraform Brush/textures/dnts/, so this tool stays disabled on blank maps.</div>
 		</div>
 
 		<div class="tf-section-frame" id="frame-spl-channel">
@@ -5850,6 +5849,24 @@
 				</div>
 			</div>
 
+			<!-- Rate: how often a held SCATTER or REMOVE drag repeats (same log scale as FEATURES) -->
+			<div data-if="lpMode == 'scatter' || lpMode == 'remove'">
+				<div class="flex flex-row items-center mb-1">
+					<div class="text-lg text-light">RATE: <span class="text-xl font-bold tf-slider-val">{{lpCadenceStr}}</span></div>
+					<div class="text-sm text-keybind" style="margin-left: auto;">drag speed</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="btn-lp-cadence-down" class="tf-sm-btn" data-event-mousedown="onLpCadenceDown()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="slider-lp-cadence" class="tf-slider" min="0" max="1000" step="1" value="0" data-event-change="onLpCadenceChange()" />
+					<div id="btn-lp-cadence-up" class="tf-sm-btn" data-event-mousedown="onLpCadenceUp()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+					<input type="text" id="slider-lp-cadence-numbox" class="tf-slider-numbox" value="0" />
+				</div>
+			</div>
+
 		</div><!-- /section-lp-controls -->
 		</div><!-- /frame-lp-controls -->
 
@@ -5861,7 +5878,7 @@
 				<div class="tf-collapsible-title">COLOR</div>
 			</div>
 		<div id="section-lp-color">
-			<!-- MS Paint style color palette (18 columns Ă— 3 rows) -->
+			<!-- MS Paint style color palette (18 columns x 3 rows) -->
 			<div id="lp-color-palette" class="lp-color-palette mb-1">
 				<!-- Row 1: core + warm spectrum -->
 				<div id="lp-swatch-1" class="lp-palette-swatch" data-event-mousedown="onLpSwatch(1)" style="background-color: #ffffff;"></div>
@@ -6012,14 +6029,11 @@
 		</div><!-- /tf-light-controls -->
 
 
-			<!-- SURFACE (tileset variant paint) tool: paints the soft-top variant
-			     mask of the Tileset Terrain shader. Hard surfaces (cliff +
-			     intermediary) are the LAYERS tool's business, not this one's.
-			     Both tools share this panel: SURFACE shows the surfMode == 'soft'
-			     sections, LAYERS (splat-override channels of the tileset shader,
-			     R=auto G=intermediate B=cliff A=plateau via the Splat Painter engine)
-			     shows the 'hard' ones. The old SOFT|HARD switcher is gone — the
-			     two tool buttons in the TOOLS grid pick the mode directly. -->
+			<!-- SURFACE and LAYERS share this panel. SURFACE (surfMode == 'soft') paints
+			     the soft-top variant mask of the Tileset Terrain shader. LAYERS ('hard')
+			     paints its splat-override channels (R=auto G=intermediate B=cliff
+			     A=plateau) through the Splat Painter engine. The two tool buttons in
+			     the TOOLS grid pick the mode. -->
 			<div id="tf-surface-controls" data-if="activeTool == 'surf'">
 
 				<div class="tf-section-frame" id="frame-surf-mode">
@@ -6187,8 +6201,8 @@
 				</div><!-- /section-sf-instruments -->
 				</div><!-- /frame-sf-instruments -->
 
-				<!-- HARD SURFACES: splat-override paint (engine = cmd_splat_painter,
-				     reused headless — the legacy SPLAT panel stays untouched). -->
+				<!-- HARD SURFACES: splat-override paint (engine: cmd_splat_painter, run
+				     headless; the SPLAT panel is separate). -->
 				<div class="tf-section-frame" id="frame-surf-hard" data-if="surfMode == 'hard'">
 					<div id="btn-toggle-surf-hard" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-surf-hard" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -6220,7 +6234,7 @@
 							</div>
 						</div>
 						<div class="text-base text-light mb-1" style="opacity: 0.7;">AUTO paints the override away — the shader's slope-driven placement returns. INTERMEDIATE / CLIFF / PLATEAU force that material where painted.</div>
-						<!-- Smart filters moved to the canonical FILTERS section below -->
+						<!-- Smart filters: see the shared FILTERS section below -->
 						<!-- Undo / redo + save (Splat Painter history and export) -->
 						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">UNDO &amp; SAVE</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -6261,18 +6275,17 @@
 								<div class="tf-overlay-chip-label">{{surfNowMode}}</div>
 							</div>
 							<!-- FLIP acts on the SELECTED slot (BASE included): one always-present
-							     button instead of a per-tile one, which left PICK / FLIP / X too
-							     cramped to hit. -->
+							     button instead of a per-tile one keeps PICK and X big enough
+							     to hit. -->
 							<div id="surf-flip-sel" class="tf-overlay-chip" style="margin-left: 4dp;">
 								<div class="tf-overlay-chip-label">FLIP</div>
 							</div>
 						</div>
 						<!-- SLOT RAIL. One tile per slot, thumbnail first: the texture is what
-						     the artist picks by, so it gets the space. ONE CLICK, ONE ACTION —
+						     the artist picks by, so it gets the space. One click, one action:
 						     the tile arms that slot for painting, PICK opens the library for it
-						     and X clears it. (Selecting used to open the library too, which
-						     meant the whole catalog appeared every time you switched brush.)
-						     Slots 1-3 paint into the first mask, 4-7 into the second one. -->
+						     and X clears it. Slots 1-3 paint into the first mask, 4-7 into the
+						     second one. -->
 						<div class="flex flex-row gap-1 mb-1">
 							<div id="surf-slot-base" class="surf-slot-chip" data-class-active="surfSelSlot == 0" data-event-mousedown="onSurfSelectBase()">
 								<div id="surf-slot-base-thumb" class="surf-slot-thumb"></div>
@@ -6350,7 +6363,7 @@
 							<!-- Hover preview: the grid tiles are thumbnails, this is the one
 							     place big enough to judge a material by. Hovering a tile drives
 							     it; with nothing hovered it shows what the slot already holds.
-							     The picker has no scroll box of its own - it sizes to its
+							     The picker has no scroll box of its own: it sizes to its
 							     content and rides the panel body's scroll. -->
 							<div class="surf-preview-row">
 								<div id="surf-picker-preview" class="surf-preview-thumb"></div>
@@ -6441,9 +6454,8 @@
 					</div>
 				</div><!-- /frame-surf-brush -->
 
-				<!-- SF: FILTERS (canonical section; soft = dev_surface_painter's
-				     stamp-shader filters, hard = the Splat Painter engine set that
-				     used to sit inline in the HARD SURFACES frame) -->
+				<!-- SF: FILTERS (shared section; soft = dev_surface_painter's
+				     stamp-shader filters, hard = the Splat Painter engine set) -->
 				<div class="tf-section-frame tf-collapsed" id="frame-sf-smart">
 					<div id="btn-toggle-sf-smart" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-sf-smart" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -6811,7 +6823,7 @@
 					</div>
 				</div>
 				<div class="text-base text-light mb-1" style="opacity: 0.7;">Shader off hands the ground back to the engine, so old maps keep their own textures.</div>
-				<!-- LAYER SORT A/B (MrBob's 3-band sort, 2026-10-20): a viewer setting, never saved into a
+				<!-- LAYER SORT A/B (the 3-band sort): a viewer setting, never saved into a
 				     biome, preset or project. Flips the look and the slider set together (tf_tileset.sync). -->
 				<div id="ts-sort-row" class="flex flex-row gap-1 mb-1 hidden">
 					<div id="btn-ts-sort-old" class="tf-mode-btn tf-ts-row-btn"><div class="tf-btn-text">OLD SORT</div></div>
@@ -7703,7 +7715,7 @@
 					</div>
 				</div><!-- /frame-ts-biome -->
 
-				<!-- WORLDSPACE TINT (WIP), internally HEIGHT TINT (tileset shader 0.27): world-height tinting as a system.
+				<!-- WORLDSPACE TINT (WIP), internally HEIGHT TINT: world-height tinting as a system.
 				     One shared tint axis (AXIS) feeds the three-stop GRADE, the STRATA beds
 				     (the canyon), the RAMP image, SATURATION, TIDE rings and the SNOW line.
 				     Colour chips (grade stops, beds, snow) select what the one shared
@@ -8373,7 +8385,7 @@
 			<input type="text" id="slider-env-skyaxis-z-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-skyrot -->
-		</div><!-- /frame-skyrot -->
+		</div><!-- /env-frame-skyrot -->
 
 		<div class="tf-section-frame" id="env-frame-skydyn">
 			<div id="btn-env-toggle-skydyn" class="tf-section-title-row" style="cursor: pointer;">
@@ -8415,7 +8427,7 @@
 			</div>
 		</div>
 		</div><!-- /env-section-skydyn -->
-		</div><!-- /frame-skydyn -->
+		</div><!-- /env-frame-skydyn -->
 		</div><!-- /tf-panel-body -->
 	</div>
 
@@ -8470,7 +8482,7 @@
 			<input type="text" id="slider-env-sun-z-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-sundir -->
-		</div><!-- /frame-sundir -->
+		</div><!-- /env-frame-sundir -->
 		<div class="tf-section-frame" id="env-frame-sunint">
 			<div id="btn-env-toggle-sunint" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-sunint" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -8485,7 +8497,7 @@
 			<input type="text" id="slider-env-sun-intensity-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-sunint -->
-		</div><!-- /frame-sunint -->
+		</div><!-- /env-frame-sunint -->
 		<div class="tf-section-frame" id="env-frame-sunpre">
 			<div id="btn-env-toggle-sunpre" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-sunpre" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -8510,7 +8522,7 @@
 		<div class="text-sm text-keybind mb-1">Sun-only presets are times of day (direction, intensity, sun colours, shadows). Map moods and your saved files also carry fog colour, sky, water and skybox; SUN ONLY takes just their sun. Save writes the whole live environment to Terraform Brush/Environments/.</div>
 		<div class="text-sm text-light mb-1" data-if="envPresetHint != ''">{{envPresetHint}}</div>
 		</div><!-- /env-section-sunpre -->
-		</div><!-- /frame-sunpre -->
+		</div><!-- /env-frame-sunpre -->
 		<div class="tf-section-frame" id="env-frame-shadow">
 			<div id="btn-env-toggle-shadow" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-shadow" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -8532,7 +8544,7 @@
 			<input type="text" id="slider-env-ushadow-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-shadow -->
-		</div><!-- /frame-shadow -->
+		</div><!-- /env-frame-shadow -->
 		<div class="tf-section-frame" id="env-frame-suncol">
 			<div id="btn-env-toggle-suncol" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-suncol" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -8583,7 +8595,7 @@
 		</div>
 		<div id="env-suncol-preview" class="lp-color-preview mb-1"></div>
 		</div><!-- /env-section-suncol -->
-		</div><!-- /frame-suncol -->
+		</div><!-- /env-frame-suncol -->
 		</div><!-- /tf-panel-body -->
 	</div>
 
@@ -8616,7 +8628,7 @@
 			<input type="text" id="slider-env-fog-end-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-fogdist -->
-		</div><!-- /frame-fogdist -->
+		</div><!-- /env-frame-fogdist -->
 		<div class="tf-section-frame" id="env-frame-fogcol">
 			<div id="btn-env-toggle-fogcol" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-fogcol" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -8674,7 +8686,7 @@
 		</div>
 		<div id="env-fog-preview" class="lp-color-preview mb-1"></div>
 		</div><!-- /env-section-fogcol -->
-		</div><!-- /frame-fogcol -->
+		</div><!-- /env-frame-fogcol -->
 		<div class="tf-section-frame" id="env-frame-skycol">
 			<div id="btn-env-toggle-skycol" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-skycol" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -8725,7 +8737,7 @@
 		</div>
 		<div id="env-skycol-preview" class="lp-color-preview mb-1"></div>
 		</div><!-- /env-section-skycol -->
-		</div><!-- /frame-skycol -->
+		</div><!-- /env-frame-skycol -->
 		<div class="tf-section-frame" id="env-frame-cloudcol">
 			<div id="btn-env-toggle-cloudcol" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-cloudcol" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -8776,7 +8788,7 @@
 		</div>
 		<div id="env-cloudcol-preview" class="lp-color-preview mb-1"></div>
 		</div><!-- /env-section-cloudcol -->
-		</div><!-- /frame-cloudcol -->
+		</div><!-- /env-frame-cloudcol -->
 		<div class="tf-section-frame" id="env-frame-snow">
 			<div id="btn-env-toggle-snow" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-snow" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -8870,7 +8882,7 @@
 		</div>
 		<div id="env-snowcol-preview" class="lp-color-preview mb-1"></div>
 		</div><!-- /env-section-snow -->
-		</div><!-- /frame-snow -->
+		</div><!-- /env-frame-snow -->
 		</div><!-- /tf-panel-body -->
 	</div>
 
@@ -8912,7 +8924,7 @@
 			<input type="text" id="slider-env-gambient-b-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-gambient -->
-		</div><!-- /frame-gambient -->
+		</div><!-- /env-frame-gambient -->
 		<div class="tf-section-frame" id="env-frame-gdiffuse">
 			<div id="btn-env-toggle-gdiffuse" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-gdiffuse" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -8941,7 +8953,7 @@
 			<input type="text" id="slider-env-gdiffuse-b-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-gdiffuse -->
-		</div><!-- /frame-gdiffuse -->
+		</div><!-- /env-frame-gdiffuse -->
 		<div class="tf-section-frame" id="env-frame-gspecular">
 			<div id="btn-env-toggle-gspecular" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-gspecular" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -8970,7 +8982,7 @@
 			<input type="text" id="slider-env-gspecular-b-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-gspecular -->
-		</div><!-- /frame-gspecular -->
+		</div><!-- /env-frame-gspecular -->
 		</div><!-- /tf-panel-body -->
 	</div>
 
@@ -9012,7 +9024,7 @@
 			<input type="text" id="slider-env-uambient-b-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-uambient -->
-		</div><!-- /frame-uambient -->
+		</div><!-- /env-frame-uambient -->
 		<div class="tf-section-frame" id="env-frame-udiffuse">
 			<div id="btn-env-toggle-udiffuse" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-udiffuse" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -9041,7 +9053,7 @@
 			<input type="text" id="slider-env-udiffuse-b-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-udiffuse -->
-		</div><!-- /frame-udiffuse -->
+		</div><!-- /env-frame-udiffuse -->
 		<div class="tf-section-frame" id="env-frame-uspecular">
 			<div id="btn-env-toggle-uspecular" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-uspecular" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -9070,7 +9082,7 @@
 			<input type="text" id="slider-env-uspecular-b-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-uspecular -->
-		</div><!-- /frame-uspecular -->
+		</div><!-- /env-frame-uspecular -->
 		</div><!-- /tf-panel-body -->
 	</div>
 
@@ -9100,7 +9112,7 @@
 			<div class="text-sm text-light">drawGround</div>
 		</div>
 		</div><!-- /env-section-rendertoggle -->
-		</div><!-- /frame-rendertoggle -->
+		</div><!-- /env-frame-rendertoggle -->
 		<div class="tf-section-frame" id="env-frame-deferred">
 			<div id="btn-env-toggle-deferred" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-deferred" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -9116,7 +9128,7 @@
 			<div class="text-sm text-light">drawModelsDeferred</div>
 		</div>
 		</div><!-- /env-section-deferred -->
-		</div><!-- /frame-deferred -->
+		</div><!-- /env-frame-deferred -->
 		<div class="tf-section-frame" id="env-frame-mapparams">
 			<div id="btn-env-toggle-mapparams" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-mapparams" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -9136,7 +9148,7 @@
 			<div class="text-sm text-light">voidGround</div>
 		</div>
 		</div><!-- /env-section-mapparams -->
-		</div><!-- /frame-mapparams -->
+		</div><!-- /env-frame-mapparams -->
 		</div><!-- /tf-panel-body -->
 	</div>
 
@@ -9305,7 +9317,7 @@
 			<div class="text-sm text-light">forceRendering</div>
 		</div>
 		</div><!-- /env-section-wtoggle -->
-		</div><!-- /frame-wtoggle -->
+		</div><!-- /env-frame-wtoggle -->
 		<div class="tf-section-frame" id="env-frame-wcolors">
 			<div id="btn-env-toggle-wcolors" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-wcolors" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -9539,7 +9551,7 @@
 		<div id="env-wc-preview-specularcolor" class="lp-color-preview mb-1"></div>
 		</div><!-- /env-section-wc-specularcolor -->
 		</div><!-- /env-section-wcolors -->
-		</div><!-- /frame-wcolors -->
+		</div><!-- /env-frame-wcolors -->
 		<div class="tf-section-frame" id="env-frame-surface">
 			<div id="btn-env-toggle-surface" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-surface" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -9568,7 +9580,7 @@
 			<input type="text" id="slider-env-w-alpha-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-surface -->
-		</div><!-- /frame-surface -->
+		</div><!-- /env-frame-surface -->
 		<div class="tf-section-frame" id="env-frame-material">
 			<div id="btn-env-toggle-material" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-material" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -9604,7 +9616,7 @@
 			<input type="text" id="slider-env-w-specpow-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-material -->
-		</div><!-- /frame-material -->
+		</div><!-- /env-frame-material -->
 		<div class="tf-section-frame" id="env-frame-fresnel">
 			<div id="btn-env-toggle-fresnel" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-fresnel" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -9633,7 +9645,7 @@
 			<input type="text" id="slider-env-w-fresnelpow-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-fresnel -->
-		</div><!-- /frame-fresnel -->
+		</div><!-- /env-frame-fresnel -->
 		<div class="tf-section-frame" id="env-frame-perlin">
 			<div id="btn-env-toggle-perlin" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-perlin" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -9669,7 +9681,7 @@
 			<input type="text" id="slider-env-w-numtiles-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-perlin -->
-		</div><!-- /frame-perlin -->
+		</div><!-- /env-frame-perlin -->
 		<div class="tf-section-frame" id="env-frame-blur">
 			<div id="btn-env-toggle-blur" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-blur" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -9740,7 +9752,7 @@
 			<input type="text" id="slider-env-w-cauststr-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		</div><!-- /env-section-blur -->
-		</div><!-- /frame-blur -->
+		</div><!-- /env-frame-blur -->
 		</div><!-- /env-water-std-sections -->
 		<div id="env-lava-sections" class="hidden">
 		<div class="text-sm text-keybind mb-1">Lava / acid shader controls</div>
@@ -9844,10 +9856,10 @@
 					<div id="tf-xform-prev-mark2" class="tf-xform-prev-mark tf-xform-prev-mark-copy"></div>
 				</div>
 				<div class="flex flex-col gap-1" style="flex: 1;" data-if="envXformMode == 'transform'">
-					<!-- Flat row: label, minus, value, plus, unit. A wrapper div
-					     around the three stepper parts did NOT lay out as a row
-					     here (they stacked), so they stay direct children of the
-					     flex row like every other stepper in this panel. -->
+					<!-- Flat row: label, minus, value, plus, unit. A wrapper div around
+					     the three stepper parts stacks them instead of laying out a
+					     row, so they stay direct children of the flex row like every
+					     other stepper in this panel. -->
 					<div class="flex flex-row gap-1 items-center">
 						<div class="text-sm text-keybind" style="width: 46dp;">width</div>
 						<div id="btn-xform-w-down" class="tf-sm-btn" data-event-click="onXformSize('x-')"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
@@ -10395,7 +10407,7 @@
 				</div>
 				<div class="tf-dj-toggle-pill">{{seismicEffectsStr}}</div>
 			</div>
-			</div><!-- end dj-sub-settings -->
+			</div><!-- /dj-sub-settings -->
 		</div>
 
 		<!-- Stroke tab content -->
@@ -10537,12 +10549,10 @@
 	</div>
 
 	<!-- ============ SAVE PROJECT WINDOW (floating, opened from FILE menu) ============
-	     Shaped like a desktop "Save As" over ONE tree: this disk and the team
-	     library share their paths, so the browser lists both, the team's stages
-	     among the folders. Clicking a folder aims the save at it; a team stage
-	     also offers to upload afterwards, as a switch rather than a tab. The
-	     NAME field and the action sit in a pinned footer so the control that
-	     commits the save can never scroll out of reach. -->
+	     A desktop "Save As" over ONE tree: this disk and the team library share
+	     their paths, so the team's stages appear among the folders. A team stage
+	     also offers to upload afterwards. NAME and the action sit in a pinned
+	     footer so the control that commits the save never scrolls out of reach. -->
 	<div id="tf-project-root" class="tf-newmap-window tf-project-window tf-project-save-window widget-shadow rounded-md bg-darkest p-2-5 text-light" style="left: 34vw; top: 11vh;" data-if="projectSaveOpen">
 		<div class="flex flex-row justify-between items-center gap-1 mb-2">
 			<div id="tf-project-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">{{libraryLabel_saveTitle}}</div>
@@ -10550,7 +10560,7 @@
 		</div>
 		<div class="tf-panel-body">
 			<!-- The same Team Sync line as Projects: whether the team rows and
-			     stages below are today's library. Start… goes to the Projects
+			     stages below are today's library. Start... goes to the Projects
 			     window, where the start card is. -->
 			<div class="tf-project-strip bg-darker" data-if="libraryEnabled" data-class-on="libraryStripDot == 'on'" data-class-off="libraryStripDot == 'off' || libraryStripDot == 'unset'">
 				<div class="tf-strip-dot" data-class-on="libraryStripDot == 'on'" data-class-busy="libraryStripDot == 'busy' || libraryStripDot == 'starting'" data-class-off="libraryStripDot == 'off' || libraryStripDot == 'unset'"></div>
@@ -10702,13 +10712,12 @@
 	</div>
 
 	<!-- ============ PROJECTS WINDOW (floating, opened from FILE menu) ============
-	     One browser over this disk and the team library together: a project is
-	     listed once, with a SYNC column saying where it is. The Team Sync strip
-	     at the top is the one place the companion's state is shown, and the
-	     start card under it is the way out of "not running". The details pane
-	     carries the TEAM block, which holds every transfer for the selected
-	     project; the footer keeps DELETE (far left) apart from OPEN (far right).
-	     Double click a row to open it. -->
+	     One browser over this disk and the team library: a project is listed once,
+	     with a SYNC column saying where it is. The Team Sync strip on top shows the
+	     companion's state; the start card under it is the way out of "not running".
+	     The TEAM block in the details pane holds every transfer for the selected
+	     project. DELETE (far left) stays apart from OPEN (far right). Double click
+	     a row to open it. -->
 	<div id="tf-project-open-root" class="tf-newmap-window tf-project-window tf-project-open-window widget-shadow rounded-md bg-darkest p-2-5 text-light" style="left: 16vw; top: 10vh;" data-if="projectOpenOpen">
 		<div class="flex flex-row justify-between items-center gap-1 mb-2">
 			<div id="tf-project-open-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">{{libraryLabel_title}}</div>
@@ -11033,7 +11042,7 @@
 			</div>
 		</div>
 		<!-- Result bar: same inset panel language as the clone tool's status
-		     readout, but wrapping — the output path has to stay readable. -->
+		     readout, but wrapping: the output path has to stay readable. -->
 		<div class="tf-capture-result mt-1" data-if="captureResultOk">
 			<div class="tf-capture-result-head">SAVED <span class="tf-capture-result-meta">{{captureResultHead}}</span></div>
 			<div class="tf-capture-result-path">{{captureResult}}</div>
@@ -11126,9 +11135,9 @@
 		</div>
 		<div class="text-sm text-keybind mb-2">Needs an engine with the blank map metal options; saved with the project either way.</div>
 
-		<!-- ===== Procedural terrain / water / resources / layout (gated by toggle) ===== -->
+		<!-- Procedural terrain / water / resources / layout (gated by the toggle) -->
 		<div data-if="newMapGen">
-		<!-- ===== Procedural terrain ===== -->
+		<!-- Procedural terrain -->
 		<div class="tf-newmap-section">TERRAIN</div>
 
 		<div class="text-base text-light">HILLINESS: <span class="font-bold text-keybind">{{newMapHilStr}}</span></div>
@@ -11143,7 +11152,7 @@
 		<div class="text-base text-light">JAGGEDNESS: <span class="font-bold text-keybind">{{newMapJagStr}}</span></div>
 		<input type="range" id="slider-newmap-jag" class="tf-slider mb-1" min="0" max="100" step="1" value="45" data-event-change="onNewMapSlider('jaggedness')" />
 
-		<!-- ===== Water ===== -->
+		<!-- Water -->
 		<div class="tf-newmap-section">WATER (sea level at height 0)</div>
 
 		<div class="text-base text-light">WATER COVERAGE: <span class="font-bold text-keybind">{{newMapWaterStr}}</span></div>
@@ -11152,13 +11161,13 @@
 		<div class="text-base text-light">COASTLINE / ISLAND: <span class="font-bold text-keybind">{{newMapCoastStr}}</span></div>
 		<input type="range" id="slider-newmap-coast" class="tf-slider mb-1" min="0" max="100" step="1" value="0" data-event-change="onNewMapSlider('islandness')" />
 
-		<!-- ===== Resources ===== -->
+		<!-- Resources -->
 		<div class="tf-newmap-section">RESOURCES</div>
 
 		<div class="text-base text-light">METAL DENSITY: <span class="font-bold text-keybind">{{newMapMetalStr}}</span></div>
 		<input type="range" id="slider-newmap-metal" class="tf-slider mb-1" min="0" max="100" step="1" value="50" data-event-change="onNewMapSlider('metalDensity')" />
 
-		<!-- ===== Symmetry + Seed ===== -->
+		<!-- Symmetry + Seed -->
 		<div class="tf-newmap-section">LAYOUT</div>
 
 		<div class="flex flex-row gap-1 items-center mb-1">

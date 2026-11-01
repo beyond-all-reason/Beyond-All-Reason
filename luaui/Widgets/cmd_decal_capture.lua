@@ -11,28 +11,25 @@ function widget:GetInfo()
 end
 
 --[[
-Pipeline (diffuse-only MVP):
-  1. User runs `/decalcapture <name> [radius]` (radius in elmos, default 256).
-     Capture is centered on cursor world position.
-  2. On next DrawScreen we run a fullscreen-quad fragment shader that, for
-     each output texel, computes its world (x,z), samples $heightmap to get
-     y, projects through the current view-projection matrix into screen UV,
-     and reads $map_gbuffer_difftex at that UV. Off-screen / behind-camera
-     texels write transparent. Radial feather alpha at edge.
-  3. SaveImage writes PNG to LuaUI/Cache/decal_captures/<name>.png in the
-     spring write dir; echo absolute path.
+Pipeline (diffuse only):
+  1. `/decalcapture <name> [radius]` (elmos, default 256), centred on the
+     cursor's world position.
+  2. On the next DrawScreen a fullscreen fragment shader maps each output
+     texel to world (x,z), samples $heightmap for y, projects through the
+     current view-projection into screen UV and reads $map_gbuffer_difftex.
+     Off-screen or behind-camera texels are transparent; the edge gets a
+     radial feather.
+  3. SaveImage writes LuaUI/Cache/decal_captures/<name>.png in the write dir.
   4. autoInstall copies the PNG into the .sdd's bitmaps/decals/ and appends
-     it to gamedata/resources.lua `graphics.decals`; a restart rebuilds the
-     decal atlas. Outside a writable .sdd it says so and the copy is manual.
+     it to gamedata/resources.lua `graphics.decals`. Outside a writable .sdd
+     it says so and the copy is manual.
 
-Limitations (will iterate):
-  - Captures only what's on-screen RIGHT NOW. Fly your camera so the area
-    is fully visible before issuing the command.
-  - Diffuse only. Normal/specular channels later.
-  - Alpha is currently a radial feather only — no smart color isolation
-    yet (next iteration).
-  - The engine builds the decal atlas at startup, so a new capture shows
-    up in the decal library only after a restart.
+Limitations:
+  - Captures only what is on screen now: frame the whole area first.
+  - Diffuse only, no normal or specular.
+  - Alpha is a radial feather, no colour isolation.
+  - The engine builds the decal atlas at startup, so a new capture shows up
+    in the decal library only after a restart.
 ]]
 
 local OUT_SIZE = 512
@@ -54,7 +51,7 @@ local VERT_SRC = [[
 	}
 ]]
 
--- Fragment: project world→screen, sample current-frame gbuffer.
+-- Fragment: project world to screen, sample the current-frame gbuffer.
 --
 -- INPUT
 --   tex0           : $map_gbuffer_difftex (screen-space lit diffuse)
@@ -146,7 +143,7 @@ local function initShader()
 end
 
 --------------------------------------------------------------------------------
--- Capture (must run inside DrawScreen — gl.RenderToTexture restriction)
+-- Capture (DrawScreen only: gl.RenderToTexture restriction)
 --------------------------------------------------------------------------------
 local function runCapture(job)
 	if not initShader() then
@@ -217,7 +214,7 @@ local function runCapture(job)
 		gl.Texture(0, false)
 		gl.Texture(1, false)
 
-		-- Save inside the FBO callback (proven pattern: dp_preview_bake.lua)
+		-- gl.SaveImage must run inside the FBO callback to read this target.
 		gl.SaveImage(0, 0, OUT_SIZE, OUT_SIZE, outPath, { yflip = false, alpha = true })
 		saved = true
 
@@ -284,14 +281,9 @@ local function actionCapture(_, _, params)
 end
 
 --------------------------------------------------------------------------------
--- Auto-install: copy capture into the .sdd's bitmaps/decals/ and append the
--- entry to gamedata/resources.lua so a single restart picks it up.
---
--- Returns true on success, false (with echo'd reason) otherwise. Uses io.*
--- with absolute paths derived from VFS.GetFileAbsolutePath. Only works when
--- the mod is loaded from a writable .sdd directory; falls back gracefully
--- for .sdz/.sd7 archives.
---------------------------------------------------------------------------------
+-- Auto-install: copy the capture into the .sdd's bitmaps/decals/ and append it
+-- to gamedata/resources.lua so one restart picks it up. Returns false (with an
+-- echoed reason) when the game is not loaded from a writable .sdd directory.
 local function autoInstall(name, capturedRel)
 	local resAbs = VFS.GetFileAbsolutePath("gamedata/resources.lua", VFS.MOD)
 	if not resAbs then

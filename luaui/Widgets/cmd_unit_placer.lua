@@ -12,9 +12,9 @@ function widget:GetInfo()
 	}
 end
 
--- The terraform brush's UNITS tool (refactor plan, U6). The same unit library and the same
--- placer as the mission editor (luaui/RmlWidgets/gui_unit_library, luaui/Include/unit_placer);
--- what differs is where a placement goes: here it becomes REAL units, through the Unit Placer
+-- The terraform brush's UNITS tool. The same unit library and the same placer as the
+-- mission editor (luaui/RmlWidgets/gui_unit_library, luaui/Include/unit_placer); what
+-- differs is where a placement goes: here it becomes REAL units, through the Unit Placer
 -- gadget, which keeps every gesture as one stroke to undo and redo.
 --
 -- It works the way the FEATURES tool (cmd_feature_placer.lua) does, with units:
@@ -22,21 +22,25 @@ end
 --            clustered spots; or, with distribution line / grid / box, a FORMATION dragged
 --            out through the shared placer (the Blueprint API draws it)
 --   POINT    one unit per click under the cursor (a multi-pick cycles the type)
---   REMOVE   the brush takes units away; in the other modes right-click lets go of the pick
--- Every placement honours the smart filters and the terraform brush's symmetry. With
--- nothing picked the left button SELECTS instead: click, Shift+click, box drag; drag a
--- selected unit to move them all, R turns them, Ctrl+click faces them at a point, Delete,
--- Ctrl+C / X / V.
+--   REMOVE   the brush takes units away (left button)
+-- Every placement honours the smart filters and the terraform brush's symmetry. Right-click
+-- lets go of the pick; it never removes. With nothing picked, LIVE mode leaves plain clicks
+-- to the game (select and order as usual); MISSION mode and other owners keep the tool's
+-- own selection: click, Shift+click, box drag, drag a selected unit to move them all,
+-- Ctrl+click faces them at a point. Either way Delete, R, Ctrl+A and Ctrl+C / X / V act on
+-- the selection.
 --
 -- Keys while active: Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z) undo and redo whole strokes, Tab cycles
--- the formation, R / Shift+R turn, Escape steps back (selection, then the pick). Wheel: Alt
--- rotate, Shift count, Space cadence, Ctrl radius. The panel's TEAM chip cycles the team.
+-- the formation of an armed placer, R / Shift+R turn, Escape steps back (selection, then the pick),
+-- Alt+Z / Alt+X or mouse 4 / 5 spread or pack. Wheel: Alt rotate, Shift count, Space
+-- cadence, Ctrl radius. There is no team key: the panel's TEAM chip cycles the team.
 
 local Placer = VFS.Include("luaui/Include/unit_placer/placer.lua")
 local Cycle = VFS.Include("luaui/Include/unit_placer/cycle.lua")
 local Layout = VFS.Include("luaui/Include/unit_placer/layout.lua")
 local BrushShapes = require("common/brush_shapes")
 local Scatter = require("common/feature_scatter")
+local WorldTool = require("luaui/Include/tf_world_tool")
 
 local MSG = {
 	place = "$unit_place$",
@@ -48,13 +52,17 @@ local MSG = {
 	mission = "$unit_mission$",
 }
 
--- MISSION UNITS (Terraform Brush 1.18). The brush places either LIVE units (normal units
+-- MISSION UNITS. The brush places either LIVE units (normal units
 -- to look at, fight with, light) or MISSION units: stand-ins for a mission, frozen in place
 -- by the gadget and carrying a mission TEAM NUMBER (0..TEAMS-1) that need not exist in this
 -- session (they stand on Gaia when it does not). The map project saves them with that
 -- number, which is what the mission editor takes as its loadout. The kind and the mission
 -- team are the brush's own (owner "terraform_brush"); another owner (the mission editor)
 -- brings its own sink and teams.
+---@class UnitPlacerMission
+---@field TEAMS integer
+---@field PARAM string
+---@field PALETTE table<number, number[]> one colour per mission team
 local mission = {
 	TEAMS = 16,
 	PARAM = "mission_team",
@@ -184,6 +192,8 @@ local cos, sin, pi = math.cos, math.sin, math.pi
 ---@field modBase string?
 ---@field lastStampX number?
 ---@field lastStampZ number?
+---@field kind string "live" | "mission": what the brush places
+---@field missionTeam number the mission team number new mission units get
 
 ---@type UnitPlacerState
 local up = {
@@ -310,20 +320,21 @@ local lastPick -- { kind = "unit" | "blueprint" | "paste", value, facing, cycle 
 local Tool = {} -- WG.UnitPlacerTool
 
 ----------------------------------------------------------------
--- Provider and sink (units unification, phase 2)
+-- Provider and sink
 ----------------------------------------------------------------
 -- Everything the gestures READ about placed units goes through `owner.provider`, and
 -- everything they DO goes through `owner.sink`. The brush installs the engine pair (real
 -- units through the Unit Placer gadget, below); the mission editor installs a pair over its
 -- document (records keyed by string, its own undo), and the same gestures, brush,
 -- formations, keys and panel drive both. An id is whatever the provider hands out: a unit
--- id here, a record key there; the tool never arithmetics on it.
+-- id here, a record key there; the tool never does arithmetic on it.
 --
 -- provider = { valid(id), info(id) -> { id, name, defID, x, z, facing, xsize, zsize, team,
---   extra? } | nil, extra?(id) -> table (optional: what a copy carries besides type and place), all() -> ids, inScreenRect(x1, y1, x2, y2) -> ids, inCylinder(x, z, r)
---   -> ids, teams() -> teamIDs, myTeam() -> teamID, pick(mx, my) -> id | nil }
+--   extra? } | nil, extra?(id) -> table (optional: what a copy carries besides type and
+--   place), all() -> ids, inScreenRect(x1, y1, x2, y2) -> ids, inCylinder(x, z, r) -> ids,
+--   teams() -> teamIDs, myTeam() -> teamID, pick(mx, my, gx, gz) -> id | nil }
 -- sink = { place(spots, strokeId) -> strokeId, remove(ids, strokeId), transform(moves),
---   undo(), redo(), clearAll(strokeId) }
+--   undo(), redo(), clearAll(strokeId), selectionChanged?(ids) }
 local engineProvider = {
 	valid = function(unitID)
 		return Spring.ValidUnitID(unitID)
@@ -434,7 +445,7 @@ local function isFormation()
 end
 
 --- Is the pointer over the unit library, or (`withPanel`) over the terraform brush panel or
---- a project dialog in front of the world? Keys only step aside for the library, as before.
+--- a project dialog in front of the world? Keys only step aside for the library.
 local function overUi(withPanel)
 	-- A harness pointer is on the map by definition.
 	if sel.pointer then
@@ -480,18 +491,10 @@ end
 --- The brush cursor: the terraform brush's edge-extended one when it is there, which keeps
 --- following the mouse a little past the map border and fades out.
 local function brushCursor()
-	up.edgeFade = 1
-	---@type table?
-	local tb = WG.TerraformBrush
-	if tb and tb.getWorldPositionExtended then
-		local wx, wz, fade = tb.getWorldPositionExtended(up.mode == "point" and 64 or up.radius)
-		if wx then
-			up.edgeFade = fade or 1
-			return wx, wz
-		end
-		return nil, nil
-	end
-	return groundUnderMouse()
+	-- Without the brush this is groundUnderMouse, which honours the harness pointer (Tool.setPointer).
+	local wx, wz, fade = WorldTool.cursor(up.mode == "point" and 64 or up.radius, groundUnderMouse)
+	up.edgeFade = fade
+	return wx, wz
 end
 
 local function getSymmetricPositions(wx, wz, rot)
@@ -547,28 +550,7 @@ local function passesFilters(x, z)
 	if not up.smartEnabled then
 		return true
 	end
-	local sf = up.smartFilters
-	local h = Spring.GetGroundHeight(x, z)
-	if sf.avoidWater and h < 0 then
-		return false
-	end
-	if sf.avoidCliffs or sf.preferSlopes then
-		local _, ny = Spring.GetGroundNormal(x, z)
-		ny = ny or 1.0
-		if sf.avoidCliffs and ny < cos(sf.slopeMax * pi / 180) then
-			return false
-		end
-		if sf.preferSlopes and ny > cos(sf.slopeMin * pi / 180) then
-			return false
-		end
-	end
-	if sf.altMinEnable and h < sf.altMin then
-		return false
-	end
-	if sf.altMaxEnable and h > sf.altMax then
-		return false
-	end
-	return true
+	return WorldTool.smart.passes(x, z, up.smartFilters)
 end
 
 --- Spots whose footprint overlaps an earlier one are dropped (a spatial hash, so a big
@@ -855,8 +837,6 @@ local function pickedNames()
 	return out
 end
 
---- Does the shared placer (the Blueprint API drag) do the placing now? Groups always; a unit
---- pick when the scatter distribution is a formation.
 --- The game's own build-drag keys, as cmd_blueprint reads them (determineBuildMode):
 --- Shift drags a line, Shift+Ctrl a snapped line, Shift+Alt a filled grid and
 --- Shift+Alt+Ctrl a hollow box. nil without Shift.
@@ -871,6 +851,8 @@ local function gameBuildMode()
 	return ctrl and "SNAPLINE" or "LINE"
 end
 
+--- Does the shared placer (the Blueprint API drag) do the placing now? Groups and Shift
+--- drags always; a unit pick when the scatter distribution is a formation.
 local function placerWanted()
 	if not (up.active and lastPick and up.mode ~= "remove") then
 		return false
@@ -910,7 +892,8 @@ local function syncArming()
 	end
 end
 
---- The pick is gone (Escape, a right-click on the placer, deactivation): back to select mode.
+--- The pick is gone (Escape, a right-click, the placer cancelled, deactivation): back to
+--- select mode.
 local function dropPick()
 	lastPick = nil
 	if placer and placer.armed() then
@@ -960,7 +943,10 @@ local function stampParams(names)
 	return {
 		shape = up.shape,
 		radius = up.radius,
-		rotation = up.rotation,
+		-- Negated: Scatter turns positions and headings together the engine heading
+		-- way, the mirror of how the outline (and the remove brush) turn, so this makes
+		-- the whole stamp turn with the outline the user aims with.
+		rotation = -up.rotation,
 		count = up.unitCount,
 		distribution = up.distribution,
 		rotRandom = up.rotRandom,
@@ -1050,7 +1036,8 @@ local function currentStamp(x, z)
 		local params = stampParams(names)
 		local layout = ensureLayout(params)
 		for _, p in ipairs(positions) do
-			local copyRot = (p.rot or up.rotation) - up.rotation
+			-- The copy's extra turn, negated like the base rotation in stampParams.
+			local copyRot = up.rotation - (p.rot or up.rotation)
 			local resolved = Scatter.resolve(layoutInsideMap(layout, p.x, p.z, copyRot), p.x, p.z, params, copyRot)
 			for _, placement in ipairs(resolved) do
 				local spot =
@@ -1063,7 +1050,8 @@ local function currentStamp(x, z)
 	elseif up.mode == "point" then
 		local rng = Scatter.newRng(pv.seed)
 		for _, p in ipairs(positions) do
-			local facing = degreesToFacing(p.rot or up.rotation)
+			-- Negated like stampParams, so POINT faces where a SCATTER stamp at this rotation does.
+			local facing = degreesToFacing(-(p.rot or up.rotation))
 			if up.rotRandom > 0 and rng:next() * 100 < up.rotRandom then
 				facing = rng:int(0, 3)
 			end
@@ -1378,8 +1366,8 @@ end
 
 ----------------------------------------------------------------
 -- The lasso: a loop round a selection of two or more. A press on empty ground INSIDE it
--- grabs the whole group (a drag moves them all), one outside starts a box as ever. Drawn as
--- a faint fill, brighter under the pointer. (From the mission editor, PtaQ 2026-09-29.)
+-- grabs the whole group (a drag moves them all), one outside starts a box. Drawn as a
+-- faint fill, brighter under the pointer.
 ----------------------------------------------------------------
 local LASSO_PAD = 20
 local LASSO_SIDES = 12
@@ -1695,7 +1683,7 @@ local function openLibrary()
 	end
 	return WG.UnitLibrary.open({
 		title = libraryTitle(),
-		-- Several picked (Shift+click): each drop moves on to the next type (PtaQ's N2).
+		-- Several picked (Shift+click): each drop moves on to the next type.
 		onPick = function(unitDefName, set)
 			local names = set and set.names or { unitDefName }
 			local cycle = #names > 1 and Cycle.new(names, set.mode) or nil
@@ -1930,12 +1918,12 @@ function Tool.getState()
 	}
 end
 
---- Spacing of a line / grid / box drag, in build squares, kept across picks.
 --- Let go of the library pick, as a right-click on the map does.
 function Tool.dropPick()
 	dropPick()
 end
 
+--- Spacing of a line / grid / box drag, in build squares, kept across picks.
 function Tool.setSpacing(n)
 	up.spacing = max(0, min(LIMIT.spacingMax, floor(tonumber(n) or 0)))
 	local spec = placer and placer.spec()
@@ -2056,10 +2044,10 @@ function Tool.clearAll()
 	owner.sink.clearAll(nextStrokeId())
 end
 
---- Another owner takes the tool (units unification, phase 2): its provider says what is
---- placed, its sink does what a gesture asks. The mission editor installs a pair over its
---- document; `Tool.resetOwner` gives the brush its engine pair back. Both drop the
---- selection and the pick: ids mean nothing across owners.
+--- Another owner takes the tool: its provider says what is placed, its sink does what a
+--- gesture asks. The mission editor installs a pair over its document; `Tool.resetOwner`
+--- gives the brush its engine pair back. Both drop the selection and the pick: ids mean
+--- nothing across owners.
 ---@param name string
 ---@param provider table see PROVIDER_FIELDS
 ---@param sink table see SINK_FIELDS
@@ -2103,8 +2091,7 @@ function Tool.setHistory(undoCount, redoCount)
 	up.redoCount = tonumber(redoCount) or 0
 end
 
---- For the harness: the placer, the type armed now, and a drop at a world point as a click
---- would (a drag from (x1, z1) to (x2, z2) for the placer; a stamp at (x1, z1) for the brush).
+--- For the harness: the placer and the type armed now.
 function Tool.placer()
 	return placer
 end
@@ -2205,6 +2192,8 @@ function Tool.keyPress(key, mods)
 	return widget:KeyPress(key, mods or {}, false, "", 0, 0)
 end
 
+--- For the harness: a drop at a world point as a click would (a drag from (x1, z1) to
+--- (x2, z2) for the placer; a stamp at (x1, z1) for the brush).
 function Tool.placeAt(x1, z1, x2, z2)
 	if placer.armed() then
 		placer.mousePress(x1, z1, 1)
@@ -2485,8 +2474,8 @@ function widget:MouseRelease(mx, my, button)
 		return true
 	end
 	-- Only the left button ends a drag: this widget owns the mouse for the whole drag, so the
-	-- release of a spacing button (mouse 4 / 5) pressed mid-drag arrives here too, and used to
-	-- drop the formation on the spot.
+	-- release of a spacing button (mouse 4 / 5) pressed mid-drag arrives here too and must
+	-- not drop the formation on the spot.
 	if up.active and placer.armed() and button == 1 then
 		local consumed = placer.mouseRelease()
 		if up.modDrag then
@@ -2700,44 +2689,6 @@ end
 ----------------------------------------------------------------
 -- Drawing
 ----------------------------------------------------------------
-local function rotatePoint(px, pz, angleDeg)
-	local rad = angleDeg * pi / 180
-	return px * cos(rad) - pz * sin(rad), px * sin(rad) + pz * cos(rad)
-end
-
-local function drawRegularPolygon(cx, cz, radius, angleDeg, sides)
-	local step = 2 * pi / sides
-	local offset = angleDeg * pi / 180
-	gl.BeginEnd(GL.LINE_LOOP, function()
-		for i = 0, sides - 1 do
-			local a = i * step + offset
-			local x, z = cx + radius * cos(a), cz + radius * sin(a)
-			gl.Vertex(x, Spring.GetGroundHeight(x, z) + 4, z)
-		end
-	end)
-end
-
-local function drawRotatedSquare(cx, cz, radius, angleDeg)
-	local corners = { { -radius, -radius }, { radius, -radius }, { radius, radius }, { -radius, radius } }
-	gl.BeginEnd(GL.LINE_LOOP, function()
-		for _, c in ipairs(corners) do
-			local rx, rz = rotatePoint(c[1], c[2], angleDeg)
-			local x, z = cx + rx, cz + rz
-			gl.Vertex(x, Spring.GetGroundHeight(x, z) + 4, z)
-		end
-	end)
-end
-
-local SHAPE_SIDES = { circle = CIRCLE_SEGMENTS, hexagon = 6, octagon = 8, triangle = 3 }
-
-local function drawShape(cx, cz, angleDeg)
-	if up.shape == "square" then
-		drawRotatedSquare(cx, cz, up.radius, angleDeg)
-	else
-		drawRegularPolygon(cx, cz, up.radius, angleDeg, SHAPE_SIDES[up.shape] or CIRCLE_SEGMENTS)
-	end
-end
-
 local function drawCrosshair(x, z)
 	local y = Spring.GetGroundHeight(x, z) + 4
 	local s = 12
@@ -2761,41 +2712,6 @@ local function drawFootprint(x, z, w, h)
 	end)
 end
 
---- Green where the smart filters let a unit stand, red where they refuse.
-local function drawSmartFilterOverlay(cx, cz)
-	local radius = up.radius
-	local rad = up.rotation * pi / 180
-	local cosR, sinR = cos(rad), sin(rad)
-	local half = SMART_GRID_STEP * 0.3
-	local fade = up.edgeFade
-	local GetGroundHeight = Spring.GetGroundHeight
-	gl.DepthTest(true)
-	gl.BeginEnd(GL.TRIANGLES, function()
-		for lx = -radius, radius, SMART_GRID_STEP do
-			for lz = -radius, radius, SMART_GRID_STEP do
-				if BrushShapes.isInside(lx, lz, radius, up.shape, 0) then
-					local wx, wz = cx + lx * cosR - lz * sinR, cz + lx * sinR + lz * cosR
-					if passesFilters(wx, wz) then
-						gl.Color(0.2, 0.85, 0.3, 0.08 * fade)
-					else
-						gl.Color(0.9, 0.15, 0.15, 0.14 * fade)
-					end
-					local x0, x1, z0, z1 = wx - half, wx + half, wz - half, wz + half
-					local y00, y10 = GetGroundHeight(x0, z0) + 3, GetGroundHeight(x1, z0) + 3
-					local y01, y11 = GetGroundHeight(x0, z1) + 3, GetGroundHeight(x1, z1) + 3
-					gl.Vertex(x0, y00, z0)
-					gl.Vertex(x1, y10, z0)
-					gl.Vertex(x1, y11, z1)
-					gl.Vertex(x0, y00, z0)
-					gl.Vertex(x1, y11, z1)
-					gl.Vertex(x0, y01, z1)
-				end
-			end
-		end
-	end)
-	gl.DepthTest(false)
-end
-
 --- Rings under the selected units, sized by footprint.
 local function drawSelection()
 	gl.LineWidth(2)
@@ -2803,7 +2719,7 @@ local function drawSelection()
 	for _, unitID in ipairs(sel.ids) do
 		local info = unitInfo(unitID)
 		if info then
-			drawRegularPolygon(info.x, info.z, max(info.xsize or 2, info.zsize or 2) * 8 * 0.75 + 4, 0, 20)
+			WorldTool.drawPolygon(info.x, info.z, max(info.xsize or 2, info.zsize or 2) * 8 * 0.75 + 4, 0, 20, 1, 4, 1)
 		end
 	end
 	gl.LineWidth(1)
@@ -2859,7 +2775,7 @@ local function drawRemovalTargets(x, z)
 		if info then
 			local w, h = Layout.footprint(info.xsize, info.zsize, info.facing or 0)
 			drawFootprint(info.x, info.z, w + 4, h + 4)
-			drawRegularPolygon(info.x, info.z, max(w, h) * 0.5, 45, 4)
+			WorldTool.drawPolygon(info.x, info.z, max(w, h) * 0.5, 45, 4, 1, 4, 1)
 		end
 	end
 	gl.LineWidth(1)
@@ -3004,11 +2920,23 @@ function widget:DrawWorld()
 		if up.mode == "point" and not removing then
 			drawCrosshair(p.x, p.z)
 		else
-			drawShape(p.x, p.z, p.rot or up.rotation)
+			WorldTool.drawShape(up.shape, p.x, p.z, up.radius, p.rot or up.rotation, 1, 4, 1, CIRCLE_SEGMENTS)
 		end
 	end
 	if up.smartEnabled and up.mode == "scatter" and not removing then
-		drawSmartFilterOverlay(x, z)
+		-- green where the smart filters let a unit stand, red where they refuse
+		WorldTool.drawFilterOverlay(
+			x,
+			z,
+			up.radius,
+			up.shape,
+			up.rotation,
+			1,
+			up.edgeFade,
+			SMART_GRID_STEP,
+			nil,
+			passesFilters
+		)
 	end
 	gl.Color(1, 1, 1, 1)
 	gl.LineWidth(1)

@@ -19,7 +19,6 @@ local GetModKeyState = Spring.GetModKeyState
 local GetKeyState = Spring.GetKeyState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
-local GetGroundNormal = Spring.GetGroundNormal
 -- Every message this widget sends changes the feature set, so it is also
 -- where the project learns it has unsaved changes (a project load's own
 -- messages are ignored by markDirty while the load runs).
@@ -43,17 +42,15 @@ local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
 local glCallList = gl.CallList
 local glPolygonOffset = gl.PolygonOffset
-local GL_TRIANGLES = GL.TRIANGLES
-local GL_LINES = GL.LINES
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_LINE_STRIP = GL.LINE_STRIP
 
 ----------------------------------------------------------------
 -- Constants
 ----------------------------------------------------------------
--- Placement is now a list this widget generated and previewed, not a set of
--- brush parameters for the gadget to roll its own dice with. That is what makes
--- the ghost preview truthful: preview and result are the same array.
+-- Placement sends the list this widget generated and previewed, not brush
+-- parameters for the gadget to roll its own dice with: preview and result are
+-- the same array, so the ghost preview is truthful.
 local PLACELIST_HEADER = "$feature_place_list$"
 local TRANSFORM_HEADER = "$feature_transform$"
 local REMOVEIDS_HEADER = "$feature_remove_ids$"
@@ -66,9 +63,8 @@ local CLEARALL_HEADER = "$feature_clearall$"
 
 local SAVE_DIR = "Terraform Brush/FeatureMaps/"
 
--- Features per message. The richer placement format runs ~45 chars an entry, so
--- this keeps a full batch around 2 KB, in line with the load path that has been
--- shipping 50 shorter entries per message.
+-- Features per message for placement, transforms and file loads. At ~45 chars
+-- an entry a full batch stays around 2 KB.
 local PLACE_BATCH = 40
 
 local GHOST_ALPHA = 0.55
@@ -76,11 +72,12 @@ local GHOST_OWNER = "cmd_feature_placer"
 -- Ceiling on previewed ghosts only; placement is never capped.
 local PREVIEW_GHOST_CAP = 300
 
--- Same generators the gadget used to run, moved widget-side so the preview can
--- see them. See the header of that file for why.
+-- Layout generation lives widget-side so the preview can see it; see the
+-- header of common/feature_scatter.lua.
 local BrushShapes = require("common/brush_shapes")
 local Gizmo = require("luaui/Include/gizmo3d_gl4")
 local Scatter = require("common/feature_scatter")
+local WorldTool = require("luaui/Include/tf_world_tool")
 
 local abs = math.abs
 local asin = math.asin
@@ -108,8 +105,35 @@ local pi = math.pi
 local sqrt = math.sqrt
 
 ----------------------------------------------------------------
--- State (packed into table to conserve locals)
+-- State (one table: this chunk sits at Lua 5.1's 200-local limit)
 ----------------------------------------------------------------
+---@class FeaturePlacerState
+---@field active boolean
+---@field mode string? "scatter" | "point" | "remove"
+---@field shape string
+---@field radius number
+---@field rotation number
+---@field rotRandom number
+---@field tiltRandom number
+---@field featureCount number
+---@field cadence number
+---@field distribution string
+---@field scaleMin number
+---@field heightOffset number
+---@field scaleMax number
+---@field clumps number
+---@field clumpSize number
+---@field clumpLoose number
+---@field clumpVariety number
+---@field smartEnabled boolean
+---@field smartFilters table<string, any>
+---@field selectedDefs string[]
+---@field selectedSet table<string, boolean>
+---@field dragging boolean
+---@field placeTimer number
+---@field undoCount integer
+---@field redoCount integer
+---@field rightPress table<integer, number>? screen point of the last right press
 local fp = {
 	active = false,
 	mode = nil, -- "scatter", "point", "remove"
@@ -122,14 +146,14 @@ local fp = {
 	cadence = 10, -- 1-1000 logarithmic (higher = faster)
 	distribution = "random", -- "random", "regular", or "clustered"
 	-- Per-feature visual scale range. 1/1 means untouched: entries then carry no
-	-- scale at all, keeping wire traffic and save files byte-identical.
+	-- scale token, keeping wire traffic and save files small.
 	scaleMin = 1.0,
-	-- elmos above (+) or below (-) the ground the next placements land at: Alt+Shift+Scroll or the
-	-- HEIGHT OFFSET slider. Rides each placement's own y, so undo, saves and projects keep it.
+	-- Elmos above (+) or below (-) the ground the next placements land at (Ctrl+Shift+Scroll or
+	-- the HEIGHT OFFSET slider). Rides each placement's own y, so undo, saves and projects keep it.
 	heightOffset = 0,
 	scaleMax = 1.0,
 	-- Clustered distribution shape, see generateClustered in common/feature_scatter.lua.
-	-- Defaults reproduce the original fixed stand.
+	-- Defaults match that generator's own defaults.
 	clumps = 0, -- 0 = auto
 	clumpSize = 1.0,
 	clumpLoose = 25, -- percent of features scattered between clumps
@@ -160,7 +184,9 @@ local edgeFade = 1
 local gridOverlay = false
 local gridSnap = false
 local gridShowing = false
+---@type integer?
 local gridDL = nil
+---@type number?
 local gridDLSize = nil
 local gridDirty = false
 
@@ -298,10 +324,9 @@ local function classifyFeature(name, def)
 end
 
 -- Baked scale variants (see tools/s3o_scale.py and features/enginetrees_override.lua).
--- The engine rejects runtime piece-matrix scale, so the scale sliders work by
--- snapping each rolled scale to the nearest pre-baked variant def. Defs without
--- variants simply ignore the roll -- the ghost preview then shows base size,
--- which is exactly what gets placed, keeping the preview truthful.
+-- A def with variants snaps each rolled scale to the nearest variant def; other
+-- defs keep the rolled scale (see applyScaleVariants).
+---@type table<string, any>
 local variantSets = {} -- baseDefName -> sorted { { factor, name }, ... } including the base itself at 1.0
 
 local function buildFeatureDefList()
@@ -362,6 +387,7 @@ end
 ----------------------------------------------------------------
 -- Grid overlay / snap helpers
 ----------------------------------------------------------------
+---@type integer?
 local gridForceShowDefID
 for id, def in pairs(UnitDefs) do
 	if not def.modCategories or not def.modCategories.underwater then
@@ -374,6 +400,7 @@ local function showBuildGrid()
 	if gridShowing then
 		return
 	end
+	---@type table<string, any>?
 	local bg = WG.buildinggrid
 	if bg and bg.setForceShow and gridForceShowDefID then
 		bg.setForceShow("featureplacer", true, gridForceShowDefID)
@@ -385,6 +412,7 @@ local function hideBuildGrid()
 	if not gridShowing then
 		return
 	end
+	---@type table<string, any>?
 	local bg = WG.buildinggrid
 	if bg and bg.setForceShow then
 		bg.setForceShow("featureplacer", false)
@@ -397,9 +425,9 @@ local function snapToGrid(x, z)
 end
 
 -- Full-map grid display list: terrain-following lines at gridSnapSize intervals.
--- Mirrors the implementation in cmd_terraform_brush.lua (extraState.buildFullMapGrid)
--- so that the FP DISPLAY "Grid" chip shows the same map-wide grid as TB's Display Grid,
--- not just the cursor-following Building Grid GL4 quad.
+-- Mirrors extraState.buildFullMapGrid in cmd_terraform_brush.lua, so the DISPLAY
+-- "Grid" chip shows the same map-wide grid, not only the cursor-following
+-- Building Grid GL4 quad.
 local function buildFullMapGrid()
 	if gridDL then
 		glDeleteList(gridDL)
@@ -453,9 +481,8 @@ local function ensureBuildGridLoaded()
 	if WG.buildinggrid then
 		return
 	end
-	-- Building Grid GL4 is disabled by default. Use SendCommands so the call
-	-- works from any context (including RmlUi data-event-click handlers, where
-	-- the dynamically-attached widgetHandler:EnableWidget can be nil).
+	-- Building Grid GL4 is off by default. SendCommands works from any context;
+	-- widgetHandler:EnableWidget can be nil inside RmlUi click handlers.
 	Spring.SendCommands("luaui enablewidget Building Grid GL4")
 end
 
@@ -483,31 +510,18 @@ end
 -- World mouse position
 ----------------------------------------------------------------
 local function getWorldMousePosition()
-	edgeFade = 1
 	-- Shared edge-extended cursor: keeps following the mouse slightly past the
 	-- map border, with fade < 1 once the footprint no longer touches the map.
-	local tb = WG.TerraformBrush
-	if tb and tb.getWorldPositionExtended then
-		local radius = fp.mode == "point" and 64 or fp.radius
-		local wx, wz, fade = tb.getWorldPositionExtended(radius)
-		if wx then
-			edgeFade = fade or 1
-			return wx, wz
-		end
-		return nil, nil
-	end
-	local mx, my = GetMouseState()
-	local _, pos = TraceScreenRay(mx, my, true)
-	if pos then
-		return pos[1], pos[3]
-	end
-	return nil, nil
+	local wx, wz, fade = WorldTool.cursor(fp.mode == "point" and 64 or fp.radius)
+	edgeFade = fade
+	return wx, wz
 end
 
 ----------------------------------------------------------------
--- Symmetry helper — delegates to terraform brush's symmetry system
+-- Symmetry helper: delegates to the terraform brush's symmetry system
 ----------------------------------------------------------------
 local function getSymmetricPositions(wx, wz, rot)
+	---@type table<string, any>?
 	local tb = WG.TerraformBrush
 	if tb and tb.getSymmetricPositions then
 		return tb.getSymmetricPositions(wx, wz, rot or 0)
@@ -516,10 +530,9 @@ local function getSymmetricPositions(wx, wz, rot)
 end
 
 ----------------------------------------------------------------
--- Cadence → seconds between placements
+-- Cadence to seconds between placements
 ----------------------------------------------------------------
 local function getCadenceInterval()
-	-- cadence 1-1000 (logarithmic slider): interval inversely proportional to rate
 	return max(0.03, 2.0 / fp.cadence)
 end
 
@@ -527,12 +540,17 @@ end
 -- Brush layout: generate once, resolve per frame
 ----------------------------------------------------------------
 -- The layout is brush-relative and cached, so the preview keeps its shape while
--- the cursor moves instead of reshuffling every frame. It is rebuilt only when a
--- brush parameter or the seed changes; the seed is rerolled after every stamp so
--- consecutive stamps do not come out identical.
+-- the cursor moves. It is rebuilt when a brush parameter or the seed changes;
+-- the seed is rerolled after every stamp so consecutive stamps differ.
+---@class FeaturePlacerPreview
+---@field seed number
+---@field layout table?
+---@field layoutKey string?
+---@field ghosts table<integer, any>
+---@field ghostCount integer
+---@field warnedCap boolean
 local preview = {
-	-- Clock-derived so two sessions do not open with the same scatter, then
-	-- advanced by a fixed stride on every reroll. Kept well under 2^24.
+	-- Clock-derived so two sessions do not open with the same scatter.
 	seed = floor(os.clock() * 1000) % 16777216,
 	layout = nil,
 	layoutKey = nil,
@@ -541,17 +559,15 @@ local preview = {
 	warnedCap = false,
 }
 
--- Seeds stay under 2^24 because Recoil builds Lua with LUA_NUMBER = float, so
--- integers above that are not exact -- see the RNG note in common/feature_scatter.lua.
+-- Seeds stay under 2^24: Recoil builds Lua with LUA_NUMBER = float, so larger
+-- integers are not exact (see the RNG note in common/feature_scatter.lua).
 local SEED_MAX = 16777216
 local SEED_STRIDE = 8191
 
 local function rerollPreview()
-	-- Advance a counter rather than re-reading the clock: os.clock is coarse
-	-- enough that two stamps in the same tick would land on the same seed and
-	-- rubber-stamp an identical layout. The clock only seeds the very first one,
-	-- so layouts differ between sessions too (widgets do not seed math.random,
-	-- so that is not an option here).
+	-- Step a counter, not the clock: os.clock is coarse enough that two stamps
+	-- in one tick would get the same seed. math.random is no option either,
+	-- widgets do not seed it.
 	preview.seed = (preview.seed + SEED_STRIDE) % SEED_MAX
 	preview.layoutKey = nil
 end
@@ -560,7 +576,10 @@ local function layoutParams()
 	return {
 		shape = fp.shape,
 		radius = fp.radius,
-		rotation = fp.rotation,
+		-- Negated: Scatter turns positions and headings together the engine heading
+		-- way, which is the mirror of how the outline (and the remove brush) turn, so
+		-- this makes the whole stamp turn with the outline the user aims with.
+		rotation = -fp.rotation,
 		count = fp.featureCount,
 		distribution = fp.distribution,
 		rotRandom = fp.rotRandom,
@@ -663,11 +682,9 @@ local function ensureLayout(params)
 end
 
 -- The edge-extended cursor can put part of the footprint outside the map, and
--- both Scatter.resolve and the gadget CLAMP such positions onto the border
--- instead of dropping them -- features would pile up along the edge line. So
--- out-of-map entries are filtered per symmetry copy BEFORE resolving, using the
--- same rotation maths resolve itself applies. Preview and placement share this,
--- keeping the ghost preview truthful about what actually gets placed.
+-- both Scatter.resolve and the gadget CLAMP such positions onto the border, so
+-- features would pile up along the edge. Out-of-map entries are dropped per
+-- symmetry copy BEFORE resolving, with the same rotation maths resolve applies.
 local function layoutInsideMap(layout, centerX, centerZ, extraRotDeg)
 	local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
 	local kept = {}
@@ -697,15 +714,14 @@ local function resolvePlacements(worldX, worldZ)
 	local positions = getSymmetricPositions(worldX, worldZ, fp.rotation)
 	for i = 1, #positions do
 		local p = positions[i]
-		-- Each symmetry copy carries its own rotation, and the outline and the
-		-- erase brush both already honour it. The layout was rotated once by the
-		-- base rotation, so hand resolve() only the difference.
-		local copyRot = (p.rot or fp.rotation) - fp.rotation
+		-- Each symmetry copy carries its own rotation. The layout was rotated
+		-- once by the base rotation, so hand resolve() only the difference, negated
+		-- like the base rotation in layoutParams.
+		local copyRot = fp.rotation - (p.rot or fp.rotation)
 		local resolved = Scatter.resolve(layoutInsideMap(layout, p.x, p.z, copyRot), p.x, p.z, params, copyRot)
 		for j = 1, #resolved do
 			local r = resolved[j]
-			-- resolve hands back fresh entries at ground height: the offset lifts or sinks them,
-			-- preview and placement alike
+			-- resolve returns fresh entries at ground height; the offset lifts or sinks them.
 			if fp.heightOffset ~= 0 then
 				r.y = r.y + fp.heightOffset
 			end
@@ -718,24 +734,17 @@ end
 ----------------------------------------------------------------
 -- Ghost preview
 ----------------------------------------------------------------
--- Heading and yaw run in OPPOSITE directions, so these conversions are not just
--- a unit change.
---
--- GetVectorFromHeading builds frontdir = (sin t, 0, cos t) with t = heading in
--- radians (System/SpringMath.cpp). A draw matrix carrying only yaw y has
--- frontdir = column 2 of the engine's Ry, which is (-sin y, 0, cos y). Equating
--- the two gives y = -t. Drop the sign and every previewed feature is mirrored
--- about the Z axis relative to the one that actually gets placed.
+-- Heading and yaw run in OPPOSITE directions. GetVectorFromHeading gives
+-- frontdir = (sin t, 0, cos t); a yaw-only draw matrix gives (-sin y, 0, cos y),
+-- so y = -t. Without the sign every ghost is mirrored about Z.
 local HEADING_TO_RAD = 2 * pi / 65536
 
 local function headingToYaw(heading)
 	return -(heading or 0) * HEADING_TO_RAD
 end
 
--- The visual scale the gadget gave a live feature (its public "visualScale"
--- rules param, drawn by the CUS shaders). 1 for anything never scaled. Needed so
--- removal highlights and gizmo ghosts drawn over an already scaled feature match
--- it instead of reverting to model size.
+-- A live feature's visual scale (the gadget's public "visualScale" rules param),
+-- so removal highlights and gizmo ghosts match an already scaled feature.
 local function getFeatureVisualScale(featureID)
 	return Spring.GetFeatureRulesParam(featureID, "visualScale") or 1
 end
@@ -758,9 +767,8 @@ local function syncGhosts(items)
 		return
 	end
 
-	-- The preview is redrawn every frame while the cursor moves, so a 500-feature
-	-- brush under symmetry would be thousands of instances a frame for something
-	-- the eye cannot read anyway. Placement is NOT capped -- only what is shown.
+	-- A big brush under symmetry would be thousands of instances a frame. Only
+	-- the preview is capped, never the placement.
 	local shown = #items
 	if shown > PREVIEW_GHOST_CAP then
 		shown = PREVIEW_GHOST_CAP
@@ -857,15 +865,14 @@ end
 -- Send messages to gadget
 ----------------------------------------------------------------
 -- Stroke ids let the gadget fold every message of one user action into a single
--- undo entry. os.clock rather than math.random: widgets never seed math.random,
--- so it would hand out an identical sequence every session and merge unrelated
--- actions into one another's undo entries.
+-- undo entry. Not math.random: widgets never seed it, so ids would repeat
+-- across sessions.
 local strokeCounter = 0
 local function nextStrokeID()
 	strokeCounter = strokeCounter + 1
-	-- Counter guarantees uniqueness within a session; the clock component only
-	-- keeps a reloaded widget from reusing an id the gadget still has open. Both
-	-- stay small because Lua numbers are floats here.
+	-- The counter is unique within a session; the clock part keeps a reloaded
+	-- widget from reusing an id the gadget still has open. Both stay small
+	-- because Lua numbers are floats.
 	return string.format("%d.%d", floor(os.clock() * 100) % 65536, strokeCounter)
 end
 
@@ -937,9 +944,26 @@ end
 -- Selection and gizmo
 ----------------------------------------------------------------
 -- Selection is only live on an "empty mouse": with nothing chosen in the asset
--- library there is nothing to place, so a click means "pick that one" instead.
--- The moment a library item is selected the tool goes back to placing and the
--- gizmo disappears.
+-- library a click picks a feature instead of placing. Picking a library item
+-- returns the tool to placing and drops the gizmo.
+---@class FeaturePlacerGizmoState
+---@field selection table<integer, integer> feature IDs
+---@field selectedSet table<integer, boolean>
+---@field base table<integer, any> featureID -> transform snapshotted at drag start
+---@field pivotBase {x: number, y: number, z: number}? set at drag start
+---@field hovered string? gizmo handle under the cursor
+---@field dragging boolean
+---@field strokeID string?
+---@field boxing boolean
+---@field boxX1 number
+---@field boxY1 number
+---@field boxX2 number
+---@field boxY2 number
+---@field ghosts table<integer, any>
+---@field ghostCount integer
+---@field hidden table<integer, boolean>
+---@field settleTargets table?
+---@field settleDeadline number
 local gz = {
 	selection = {},
 	selectedSet = {},
@@ -968,9 +992,8 @@ local SETTLE_EPSILON = 0.5
 -- A press that moves less than this many pixels is a click, not a box select.
 local BOX_MIN_PX = 4
 
--- Remove mode is excluded on purpose: an empty library is the normal way to use
--- the erase brush, so hijacking its left button for selection would break the
--- tool's whole point.
+-- Remove mode is excluded on purpose: the erase brush is normally used with an
+-- empty library, so its left button must keep erasing.
 local function selectModeActive()
 	return fp.active and (fp.mode == "scatter" or fp.mode == "point") and #fp.selectedDefs == 0
 end
@@ -992,10 +1015,9 @@ local function readFeatureTransform(featureID)
 	}
 end
 
--- How far a feature reaches from its own origin. Position is the model's base,
--- so a tall tree needs its height counted, not just its collision radius, or the
--- gizmo would sit around the trunk with the canopy hiding it. Def dimensions are
--- model-space, so the live visual scale multiplies in.
+-- How far a feature reaches from its origin (the model's base). Counts model
+-- height, not only radius, so the gizmo clears a tree's canopy. Def dimensions
+-- are model-space, so the live visual scale multiplies in.
 local function featureReach(featureID)
 	local defID = GetFeatureDefID(featureID)
 	local def = defID and FeatureDefs[defID]
@@ -1015,6 +1037,7 @@ local function recomputePivot()
 		return
 	end
 
+	---@type number, number, number, integer
 	local sx, sy, sz, valid = 0, 0, 0, 0
 	for i = 1, n do
 		local t = readFeatureTransform(gz.selection[i])
@@ -1034,12 +1057,8 @@ local function recomputePivot()
 	Gizmo.setPivot(px, py, pz)
 
 	-- Bounding radius of the whole selection about the pivot, so the handles sit
-	-- outside the group rather than buried among its members. For a single
-	-- feature this reduces to that feature's own reach.
-	--
-	-- The gizmo caps itself against the viewport (see gizmoScale), which is what
-	-- keeps a huge group zoomed in from producing a gizmo thousands of pixels
-	-- across.
+	-- outside the group. The gizmo caps its own size against the viewport.
+	---@type number
 	local reach = 0
 	for i = 1, n do
 		local featureID = gz.selection[i]
@@ -1119,23 +1138,14 @@ end
 ----------------------------------------------------------------
 -- Orientation maths (Recoil convention)
 ----------------------------------------------------------------
--- The gizmo presents three WORLD-aligned rings, so a drag has to be composed as
--- a world-space rotation. Adding the drag angle to the matching euler component
--- does not do that, and is wrong in the ordinary case:
---
---   SetFeatureRotation composes M = Rx(pitch) * Ry(yaw) * Rz(roll). Only pitch
---   is applied last and is therefore a genuine world-X rotation. Roll is applied
---   FIRST, so it turns the model about its own local Z -- and once a feature has
---   a yaw (scatter gives every feature a random heading) that local Z has swung
---   away from world Z. At yaw 90 degrees it lies along world X, so the roll ring
---   does exactly what the pitch ring does.
---
--- So: rebuild the current matrix, pre-multiply the world delta, read the euler
--- triple back out. Matrices are Recoil's, not the right-handed GLSL ones -- see
--- the note in gfx_DrawFeatureShape_GL4.lua's vertex shader.
---
--- Row-major, m[row][col], acting on column vectors.
+-- The gizmo rings are WORLD-aligned, so a drag is a world-space rotation.
+-- Adding the angle to an euler component is wrong: SetFeatureRotation composes
+-- M = Rx(pitch) * Ry(yaw) * Rz(roll), so roll turns about the model's LOCAL Z,
+-- which any yaw swings away from world Z. Instead: rebuild the matrix,
+-- pre-multiply the world delta, read the eulers back. Recoil's convention, not
+-- GLSL's (see gfx_DrawFeatureShape_GL4.lua). Row-major m[row][col] on column vectors.
 local function mat3Mul(a, b)
+	---@type table<integer, table>
 	local r = { {}, {}, {} }
 	for i = 1, 3 do
 		local ai = a[i]
@@ -1178,15 +1188,9 @@ local function eulerFromMat(m)
 	end
 	local yaw = asin(sy)
 
-	-- Both branches lose accuracy as cos(yaw) goes to zero, in opposite
-	-- directions: the general one divides by it (error ~ eps/cos), the
-	-- degenerate one assumes it is exactly zero (error ~ cos). They cross around
-	-- cos(yaw) = sqrt(eps), so the best split is to take the general branch right
-	-- up to the point where sin(yaw) stops being representably below 1. Measured
-	-- over 60k samples biased hard toward gimbal lock: worst round-trip error
-	-- 1.0e-8 at this threshold, versus 8.8e-3 at a "safe-looking" 0.99999.
-	-- Exact +/-90 degrees still lands in the degenerate branch, since sin is
-	-- exactly 1.0 there.
+	-- Threshold is exactly 1.0 on purpose: the general branch errs ~eps/cos, the
+	-- degenerate one ~cos, and taking the general branch up to sin = 1 measured
+	-- 1e-8 worst round-trip error versus 8.8e-3 at 0.99999.
 	if abs(m[1][3]) < 1.0 then
 		return atan2(m[2][3], m[3][3]), yaw, atan2(m[1][2], m[1][1])
 	end
@@ -1211,15 +1215,13 @@ local function applyMat(m, x, y, z)
 		m[3][1] * x + m[3][2] * y + m[3][3] * z
 end
 
--- Where every selected feature ends up for a given gizmo delta.
---
--- Exactly one ring drags at a time, so (dPitch, dYaw, dRoll) is really one
--- world-axis rotation: the non-zero component names both the axis and the angle.
--- That single delta matrix both spins each member and orbits it around the
--- pivot, so the two can never disagree.
+-- Where every selected feature ends up for a given gizmo delta. One ring drags
+-- at a time, so the non-zero component of (dPitch, dYaw, dRoll) names the axis.
+-- One delta matrix both spins each member and orbits it around the pivot.
 local function computeDragTargets(dx, dy, dz, dPitch, dYaw, dRoll)
 	local pivotBase = gz.pivotBase
 
+	---@type table?
 	local delta = nil
 	if dPitch ~= 0 then
 		delta = worldRotation(1, dPitch)
@@ -1309,6 +1311,7 @@ local function beginGizmoDrag(handle, mx, my)
 	end
 
 	local pivot = Gizmo.getPivot()
+	---@cast pivot {x: number, y: number, z: number}
 	gz.pivotBase = { x = pivot.x, y = pivot.y, z = pivot.z }
 	gz.base = {}
 	for i = 1, #gz.selection do
@@ -1316,9 +1319,8 @@ local function beginGizmoDrag(handle, mx, my)
 		gz.base[featureID] = readFeatureTransform(featureID)
 	end
 
-	-- Hide the real features locally and show ghosts instead. The drag is then a
-	-- pure client-side preview: nothing goes over the wire until the mouse comes
-	-- up, so a slow drag costs no network traffic and no sim churn.
+	-- Hide the real features locally and drag ghosts: nothing goes over the wire
+	-- until the mouse comes up.
 	for i = 1, #gz.selection do
 		local featureID = gz.selection[i]
 		if Spring.ValidFeatureID(featureID) then
@@ -1330,6 +1332,7 @@ local function beginGizmoDrag(handle, mx, my)
 	gz.dragging = true
 	gz.strokeID = nextStrokeID()
 
+	---@type table<string, any>?
 	local tb = WG.TerraformBrush
 	local tbState = tb and tb.getState and tb.getState()
 	Gizmo.setSnap({
@@ -1392,8 +1395,7 @@ local function endGizmoDrag(mx, my)
 	Gizmo.endDrag()
 	gz.dragging = false
 
-	-- A click that grabbed a handle without dragging it anywhere should not cost
-	-- an undo entry.
+	-- A click on a handle without a drag costs no undo entry.
 	if not moved or not targets then
 		showHiddenFeatures()
 		clearGizmoGhosts()
@@ -1403,9 +1405,8 @@ local function endGizmoDrag(mx, my)
 
 	sendTransforms(targets)
 
-	-- Keep the ghosts up until the sim has actually moved the real features,
-	-- otherwise they visibly snap back for the round-trip. Deadline guards
-	-- against a message that never lands.
+	-- Keep the ghosts up until the sim has moved the real features, or they snap
+	-- back for the round-trip. The deadline covers a message that never lands.
 	gz.settleTargets = targets
 	gz.settleDeadline = os.clock() + SETTLE_TIMEOUT
 end
@@ -1529,8 +1530,8 @@ local function setDistribution(mode)
 	end
 end
 
--- Dragging one bound through the other pushes the other bound along rather than
--- rejecting the input, so the pair can never invert.
+-- The min/max setters below push the other bound along rather than rejecting
+-- the input, so the pair can never invert.
 local function clampScale(v)
 	v = tonumber(v)
 	if not v then
@@ -1565,8 +1566,7 @@ local function setSmartEnabled(val)
 	fp.smartEnabled = val and true or false
 end
 
--- Clump controls for the clustered distribution. One table, not four locals:
--- this chunk sits at Lua 5.1's 200-local limit.
+-- Clump controls for the clustered distribution, one table to save locals.
 local clumpSetters = {
 	setClumps = function(v)
 		v = tonumber(v)
@@ -1642,12 +1642,10 @@ end
 ----------------------------------------------------------------
 local saveBuffer = {}
 
--- One-shot feature-list read for other widgets. The Map Project save used to
--- walk Spring.GetAllFeatures() itself, but Spring.GetFeatureRotation called from
--- LuaUI reads transMatrix[0], which FeatureDrawerData only refreshes for
--- features that were actually drawn this frame -- so off-screen features
--- reported zero rotation and the saved file depended on where the camera was
--- pointing. The gadget runs synced, where the transform is always current.
+-- One-shot feature-list read for other widgets, served by the synced gadget.
+-- Engine trap: Spring.GetFeatureRotation in LuaUI reads a transform that is only
+-- refreshed for features drawn this frame, so off-screen features read zero.
+---@type function?
 local dataWaiter = nil
 local dataWaiterTicks = 0
 local DATA_WAITER_TIMEOUT = 300 -- Update ticks, ~10s
@@ -1661,10 +1659,9 @@ local function parseSavedEntries()
 				parts[#parts + 1] = word
 			end
 			if parts[1] and parts[2] and parts[3] then
-				-- Token counts, mirroring the gadget's export: 4 plain, 5 with
-				-- scale, 7 tilt/lift, 8 both. Present only for features that were
-				-- actually transformed; the gadget decides, comparing against the
-				-- engine's own resting alignment rather than against zero.
+				-- Token counts, as the gadget exports them: 4 plain, 5 with scale,
+				-- 7 tilt/lift, 8 both. The gadget writes the tails only for
+				-- features off the engine's own resting alignment.
 				local n = #parts
 				local scale
 				if n == 5 then
@@ -1742,8 +1739,8 @@ local function handleSaveEnd(count)
 		return
 	end
 
-	-- FeaturePlacer setcfg format: unitlist / buildinglist / objectlist with `rot`,
-	-- consumed out-of-the-box by the map-side feature placer gadget.
+	-- FeaturePlacer setcfg format (unitlist / buildinglist / objectlist with `rot`),
+	-- which the map-side feature placer gadget reads as is.
 	file:write("----------------------------------------------------------\n")
 	file:write("-- Feature map: " .. mapName .. "\n")
 	file:write("-- Saved: " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n")
@@ -1755,6 +1752,7 @@ local function handleSaveEnd(count)
 
 	for _, batchStr in ipairs(saveBuffer) do
 		for entry in batchStr:gmatch("[^|]+") do
+			---@type string[]
 			local parts = {}
 			for word in entry:gmatch("%S+") do
 				parts[#parts + 1] = word
@@ -1764,10 +1762,9 @@ local function handleSaveEnd(count)
 			local z = parts[3]
 			local rot = parts[4] or "0" -- engine heading, written as rot
 			if defName and x and z then
-				-- Optional tails only appear for features that were actually
-				-- tilted, lifted, or scaled, so a map that was never edited that
-				-- way writes exactly the same bytes it always did. Token counts:
-				-- 4 plain, 5 scale, 7 tilt, 8 tilt+scale.
+				-- Optional tails appear only for tilted, lifted or scaled features,
+				-- so plain maps keep the plain format. Token counts: 4 plain,
+				-- 5 scale, 7 tilt, 8 tilt+scale (scale is token 5 or token 8).
 				local n = #parts
 				local scaleField = ""
 				if n == 5 then
@@ -1817,9 +1814,8 @@ local function featureLoad(filename)
 		return
 	end
 
-	-- VFS.DirList returns absolute paths that io.open can't always reopen on
-	-- Windows when the path contains spaces; VFS.LoadFile with VFS.RAW handles
-	-- both absolute and relative write-dir paths consistently.
+	-- io.open cannot always reopen VFS.DirList's absolute paths on Windows when
+	-- they contain spaces; VFS.LoadFile with VFS.RAW handles both path kinds.
 	local content = VFS.LoadFile(filename, VFS.RAW)
 	if not content then
 		local file = io.open(filename, "r")
@@ -1845,12 +1841,11 @@ local function featureLoad(filename)
 		return
 	end
 
-	-- Accept the setcfg/objectlist format (map-gadget compatible, `rot`) as well as
-	-- the legacy flat array of {name, x, z, heading}.
+	-- Save compatibility: reads the setcfg objectlist format (`rot`) and the older
+	-- flat array of {name, x, z, heading}.
 	local list = data.objectlist or data
 
-	-- Send features to gadget in batches, all under one stroke id so replaying a
-	-- whole saved map is a single undo step rather than #features/40 of them.
+	-- All batches share one stroke id, so loading a whole map is one undo step.
 	local strokeID = nextStrokeID()
 	local count = #list
 	for i = 1, count, PLACE_BATCH do
@@ -1858,23 +1853,21 @@ local function featureLoad(filename)
 		for j = i, min(i + PLACE_BATCH - 1, count) do
 			local f = list[j]
 			if f.name and f.x and f.z then
-				-- `rot` (setcfg) or `heading` (legacy); "random"/non-numeric → random heading
+				-- `rot` (setcfg) or `heading` (older files); a non-number such as "random" rolls a heading
 				local rot = f.rot or f.heading or 0
 				if type(rot) ~= "number" then
 					rot = math.random(-32768, 32767)
 				end
 				local entry = f.name .. " " .. floor(f.x) .. " " .. floor(f.z) .. " " .. floor(rot)
-				-- Optional gizmo transform. Files written before the gizmo
-				-- existed simply have none of these and load as they always did.
+				-- Optional gizmo transform; records without these fields load plain.
 				local hasScale = tonumber(f.scale) and abs(tonumber(f.scale) - 1) > 0.001
 				if f.pitch or f.roll or f.y then
 					entry = entry .. string.format(" %.4f %.4f", tonumber(f.pitch) or 0, tonumber(f.roll) or 0)
 					if f.y then
 						entry = entry .. string.format(" %.1f", tonumber(f.y))
 					elseif hasScale then
-						-- Scale is token 8 and only unambiguous after a full tilt
-						-- tail, so a tilted-but-unlifted record gets its resting
-						-- height written out.
+						-- Scale is token 8, unambiguous only after a full tilt
+						-- tail, so a tilted, unlifted record writes its ground height.
 						entry = entry .. string.format(" %.1f", GetGroundHeight(f.x, f.z))
 					end
 				end
@@ -1925,8 +1918,7 @@ local function getState()
 		gridOverlay = gridOverlay,
 		gridSnap = gridSnap,
 		gridSnapSize = gridSnapSize,
-		-- Gizmo selection. selectMode tells the panel whether clicking the map
-		-- picks features or places them.
+		-- selectMode tells the panel whether a map click picks or places.
 		selectMode = selectModeActive(),
 		selectionCount = #gz.selection,
 		gizmoDragging = gz.dragging,
@@ -1951,250 +1943,6 @@ local function handleHistoryUpdate(undoCount, redoCount)
 end
 
 ----------------------------------------------------------------
--- Drawing helpers
-----------------------------------------------------------------
-local function rotatePoint(px, pz, angleDeg)
-	local rad = angleDeg * pi / 180
-	return px * cos(rad) - pz * sin(rad), px * sin(rad) + pz * cos(rad)
-end
-
-local function drawRegularPolygon(cx, cz, radius, angleDeg, numSides)
-	local angleStep = 2 * pi / numSides
-	local offsetRad = angleDeg * pi / 180
-	glBeginEnd(GL.LINE_LOOP, function()
-		for i = 0, numSides - 1 do
-			local a = i * angleStep + offsetRad
-			local x = cx + radius * cos(a)
-			local z = cz + radius * sin(a)
-			local y = GetGroundHeight(x, z) + 4
-			glVertex(x, y, z)
-		end
-	end)
-end
-
-local function drawRotatedSquare(cx, cz, radius, angleDeg)
-	local corners = {
-		{ -radius, -radius },
-		{ radius, -radius },
-		{ radius, radius },
-		{ -radius, radius },
-	}
-	glBeginEnd(GL.LINE_LOOP, function()
-		for i = 1, 4 do
-			local rx, rz = rotatePoint(corners[i][1], corners[i][2], angleDeg)
-			local wx, wz = cx + rx, cz + rz
-			local wy = GetGroundHeight(wx, wz)
-			glVertex(wx, wy + 4, wz)
-		end
-	end)
-end
-
-----------------------------------------------------------------
--- Smart filter visualization helpers
-----------------------------------------------------------------
-local GRID_STEP = 24 -- elmos between sample points
-
--- Check if a point passes the current smart filter constraints
-local function isPointValid(px, pz, sf)
-	local h = GetGroundHeight(px, pz)
-	if sf.avoidWater and h < 0 then
-		return false
-	end
-	if sf.avoidCliffs or sf.preferSlopes then
-		local _, ny = GetGroundNormal(px, pz)
-		ny = ny or 1.0
-		if sf.avoidCliffs then
-			local nyMin = cos(sf.slopeMax * pi / 180)
-			if ny < nyMin then
-				return false
-			end
-		end
-		if sf.preferSlopes then
-			local nyMax = cos(sf.slopeMin * pi / 180)
-			if ny > nyMax then
-				return false
-			end
-		end
-	end
-	if sf.altMinEnable and h < sf.altMin then
-		return false
-	end
-	if sf.altMaxEnable and h > sf.altMax then
-		return false
-	end
-	return true
-end
-
--- Check if a local-space point is inside the brush shape
-local function isInsideBrush(lx, lz, radius, shape)
-	if shape == "circle" then
-		return (lx * lx + lz * lz) <= radius * radius
-	elseif shape == "square" then
-		return math.abs(lx) <= radius and math.abs(lz) <= radius
-	elseif shape == "hexagon" then
-		local ax, az = math.abs(lx), math.abs(lz)
-		local apothem = radius * cos(pi / 6)
-		if az > apothem then
-			return false
-		end
-		if ax > radius then
-			return false
-		end
-		return ax * cos(pi / 6) + az * sin(pi / 6) <= apothem
-	elseif shape == "octagon" then
-		local ax, az = math.abs(lx), math.abs(lz)
-		local cut = radius * sin(pi / 8)
-		local side = radius * cos(pi / 8)
-		if ax > side or az > side then
-			return false
-		end
-		return (ax + az) <= (side + cut)
-	elseif shape == "triangle" then
-		local dist = sqrt(lx * lx + lz * lz)
-		if dist < 0.001 then
-			return true
-		end
-		local angle = math.atan2(lz, lx)
-		if angle < 0 then
-			angle = angle + 2 * pi
-		end
-		local sectorAngle = 2 * pi / 3
-		local angleInSector = (angle % sectorAngle) - sectorAngle / 2
-		local apothem = radius * cos(pi / 3)
-		local edgeDist = apothem / cos(angleInSector)
-		return dist <= edgeDist
-	end
-	return true
-end
-
--- Draw colored terrain-following quads showing valid (green) vs rejected (red) areas
-local function drawSmartFilterOverlay(cx, cz, radius, shape, angleDeg, sf)
-	local step = GRID_STEP
-	local halfStep = step * 0.3
-	local rad = angleDeg * pi / 180
-	local cosR, sinR = cos(rad), sin(rad)
-
-	glDepthTest(true)
-	glBeginEnd(GL_TRIANGLES, function()
-		for lx = -radius, radius, step do
-			for lz = -radius, radius, step do
-				if isInsideBrush(lx, lz, radius, shape) then
-					local wx = cx + lx * cosR - lz * sinR
-					local wz = cz + lx * sinR + lz * cosR
-					local valid = isPointValid(wx, wz, sf)
-
-					if valid then
-						glColor(0.2, 0.85, 0.3, 0.08 * edgeFade)
-					else
-						glColor(0.9, 0.15, 0.15, 0.14 * edgeFade)
-					end
-
-					local x0 = wx - halfStep
-					local x1 = wx + halfStep
-					local z0 = wz - halfStep
-					local z1 = wz + halfStep
-					local y00 = GetGroundHeight(x0, z0) + 3
-					local y10 = GetGroundHeight(x1, z0) + 3
-					local y01 = GetGroundHeight(x0, z1) + 3
-					local y11 = GetGroundHeight(x1, z1) + 3
-
-					glVertex(x0, y00, z0)
-					glVertex(x1, y10, z0)
-					glVertex(x1, y11, z1)
-
-					glVertex(x0, y00, z0)
-					glVertex(x1, y11, z1)
-					glVertex(x0, y01, z1)
-				end
-			end
-		end
-	end)
-	glDepthTest(false)
-end
-
--- Get shape corner points for altitude cap prism drawing
-local function getShapeCorners(shape, radius, angleDeg)
-	local corners = {}
-	local rad = angleDeg * pi / 180
-	if shape == "circle" then
-		for i = 0, 15 do
-			local a = i * (2 * pi / 16) + rad
-			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
-		end
-	elseif shape == "square" then
-		local pts = { { -radius, -radius }, { radius, -radius }, { radius, radius }, { -radius, radius } }
-		for _, p in ipairs(pts) do
-			local rx = p[1] * cos(rad) - p[2] * sin(rad)
-			local rz = p[1] * sin(rad) + p[2] * cos(rad)
-			corners[#corners + 1] = { rx, rz }
-		end
-	elseif shape == "hexagon" then
-		for i = 0, 5 do
-			local a = i * (2 * pi / 6) + rad
-			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
-		end
-	elseif shape == "octagon" then
-		for i = 0, 7 do
-			local a = i * (2 * pi / 8) + rad
-			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
-		end
-	end
-	return corners
-end
-
--- Draw altitude cap prism (orange for max, cyan for min, white struts)
-local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg, sf)
-	if not sf.altMinEnable and not sf.altMaxEnable then
-		return
-	end
-
-	local corners = getShapeCorners(shape, radius, angleDeg)
-	if #corners == 0 then
-		return
-	end
-
-	local botY = sf.altMinEnable and sf.altMin or nil
-	local topY = sf.altMaxEnable and sf.altMax or nil
-
-	glDepthTest(true)
-	glLineWidth(1.5)
-
-	if topY then
-		glColor(1.0, 0.6, 0.1, 0.55 * edgeFade)
-		glBeginEnd(GL_LINE_LOOP, function()
-			for i = 1, #corners do
-				glVertex(cx + corners[i][1], topY, cz + corners[i][2])
-			end
-		end)
-	end
-
-	if botY then
-		glColor(0.1, 0.6, 1.0, 0.55 * edgeFade)
-		glBeginEnd(GL_LINE_LOOP, function()
-			for i = 1, #corners do
-				glVertex(cx + corners[i][1], botY, cz + corners[i][2])
-			end
-		end)
-	end
-
-	local stride = max(1, floor(#corners / 8))
-	local strutBot = botY or (topY and topY - 100) or 0
-	local strutTop = topY or (botY and botY + 100) or 0
-	glColor(1, 1, 1, 0.2 * edgeFade)
-	glBeginEnd(GL_LINES, function()
-		for i = 1, #corners, stride do
-			local wx = cx + corners[i][1]
-			local wz = cz + corners[i][2]
-			glVertex(wx, strutBot, wz)
-			glVertex(wx, strutTop, wz)
-		end
-	end)
-
-	glLineWidth(1)
-	glDepthTest(false)
-end
-
-----------------------------------------------------------------
 -- Keybinds
 ----------------------------------------------------------------
 function widget:KeyPress(key, mods, isRepeat)
@@ -2203,8 +1951,7 @@ function widget:KeyPress(key, mods, isRepeat)
 	end
 
 	if key == 0x1B then -- Escape
-		-- First Escape drops the selection, second leaves the tool. Deactivating
-		-- out from under an active selection loses work with no way back.
+		-- First Escape drops the selection, the second leaves the tool.
 		if #gz.selection > 0 then
 			clearSelection()
 		else
@@ -2213,14 +1960,13 @@ function widget:KeyPress(key, mods, isRepeat)
 		return true
 	end
 
-	-- Delete / Backspace removes the gizmo selection: the only way, besides the REMOVE
-	-- mode's brush, that features come off the map.
+	-- Delete / Backspace removes the gizmo selection.
 	if (key == 0x7F or key == 0x08) and #gz.selection > 0 then
 		deleteSelection()
 		return true
 	end
 
-	-- Ctrl+A selects everything the camera can see.
+	-- Ctrl+A selects every feature on screen.
 	if mods.ctrl and key == 97 and selectModeActive() then -- a
 		local vsx, vsy = Spring.GetViewGeometry()
 		selectAllInBox(0, 0, vsx, vsy)
@@ -2249,6 +1995,7 @@ function widget:MousePress(mx, my, button)
 	end
 
 	-- Defer to measure / symmetry origin tools when active
+	---@type table<string, any>?
 	local tb = WG.TerraformBrush
 	if tb and tb.getState then
 		local st = tb.getState()
@@ -2268,8 +2015,7 @@ function widget:MousePress(mx, my, button)
 		return false
 	end
 
-	-- Empty mouse: nothing is selected in the library, so the left button
-	-- manipulates what is already on the map instead of placing more.
+	-- Empty mouse: the left button selects and moves what is already on the map.
 	if button == 1 and selectModeActive() then
 		if #gz.selection > 0 then
 			local handle = Gizmo.hitTest(mx, my)
@@ -2289,8 +2035,7 @@ function widget:MousePress(mx, my, button)
 			return true
 		end
 
-		-- Empty ground: start a box select. Whether this was a box or just a
-		-- click that clears the selection is decided on release.
+		-- Empty ground: start a box select. The release decides box or deselect.
 		gz.boxing = true
 		gz.boxX1, gz.boxY1 = mx, my
 		gz.boxX2, gz.boxY2 = mx, my
@@ -2309,7 +2054,7 @@ function widget:MousePress(mx, my, button)
 		fp.dragging = true
 		fp.placeTimer = 0
 
-		-- Perform initial placement
+		-- First stamp on press; Update repeats it at the cadence while held.
 		if fp.mode == "remove" then
 			sendRemoveMessage(worldX, worldZ)
 		else
@@ -2319,10 +2064,9 @@ function widget:MousePress(mx, my, button)
 		return true
 	end
 
-	-- Right-click lets go of what the asset library has picked, so the mouse is empty and
-	-- selects again (the UNITS tool does the same). It never removes: that is Delete on a
-	-- selection, or the REMOVE mode's brush. Decided on the RELEASE, and only for a click:
-	-- a right drag (camera, habit) must not empty the mouse behind the artist's back.
+	-- Right-click clears the library pick so the mouse selects again (as in the UNITS
+	-- tool); it never removes. Decided on RELEASE and only for a click, so a right
+	-- drag does not empty the mouse.
 	if button == 3 and fp.mode ~= "remove" and #fp.selectedDefs > 0 then
 		fp.rightPress = { mx, my }
 		return true
@@ -2377,6 +2121,7 @@ function widget:MouseRelease(mx, my, button)
 	return false
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
 	if not fp.active then
 		return false
@@ -2398,7 +2143,9 @@ function widget:MouseWheel(up, value)
 
 	if alt then
 		-- Alt+Scroll = rotate brush (snap to TB protractor step when angleSnap on)
+		---@type number
 		local step = ROTATION_STEP
+		---@type table<string, any>?
 		local tb = WG.TerraformBrush
 		local tbs = tb and tb.getState and tb.getState() or nil
 		if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
@@ -2416,10 +2163,8 @@ function widget:MouseWheel(up, value)
 	end
 
 	if shift then
-		-- Shift+Scroll = one fixed scale for everything placed, superseding the
-		-- SCALE MIN / MAX range: both bounds collapse onto it, so the sliders show
-		-- what is in effect and the ghost preview grows and shrinks live. Steps
-		-- are multiplicative (10 % a notch) and snap onto 1x when passing it.
+		-- Shift+Scroll = one fixed scale: both SCALE MIN / MAX bounds collapse onto
+		-- it, so the sliders show what is in effect. 10% a notch, snapping onto 1x.
 		local cur = (fp.scaleMin + fp.scaleMax) * 0.5
 		---@type number
 		local v = up and cur * 1.1 or cur / 1.1
@@ -2469,9 +2214,8 @@ function widget:Update(dt)
 		return
 	end
 
-	-- Selection survives a mode switch but not a library pick: choosing something
-	-- to place means the tool is placing again, and a stale gizmo would sit there
-	-- catching clicks meant for the brush.
+	-- Selection survives a mode switch but not a library pick, or a stale gizmo
+	-- would catch clicks meant for the brush.
 	if #fp.selectedDefs > 0 and #gz.selection > 0 then
 		clearSelection()
 	end
@@ -2517,7 +2261,7 @@ function widget:Update(dt)
 		return
 	end
 
-	-- Accumulate real time and check cadence interval
+	-- Held button: repeat stamps at the cadence.
 	fp.placeTimer = (fp.placeTimer or 0) + dt
 	local interval = getCadenceInterval()
 	if fp.placeTimer < interval then
@@ -2543,9 +2287,8 @@ end
 ----------------------------------------------------------------
 -- Selection markers
 ----------------------------------------------------------------
--- A ring on the ground under each selected feature, sized from the feature's own
--- collision radius. Deliberately not a tinted model ghost: that would draw the
--- model a second time on top of itself and read as a rendering fault.
+-- A ground ring under each selected feature, sized from its radius. Not a tinted
+-- ghost: a second model drawn over the first reads as a rendering fault.
 local function drawSelectionMarkers()
 	glDepthTest(false)
 	glLineWidth(2)
@@ -2558,7 +2301,7 @@ local function drawSelectionMarkers()
 			local defID = GetFeatureDefID(featureID)
 			local def = defID and FeatureDefs[defID]
 			local r = (def and def.radius or 16) * 1.1
-			drawRegularPolygon(x, z, r, 0, 20)
+			WorldTool.drawPolygon(x, z, r, 0, 20, 1, 4, 1)
 		end
 	end
 
@@ -2566,11 +2309,10 @@ local function drawSelectionMarkers()
 end
 
 ----------------------------------------------------------------
--- DrawWorld — brush outline
+-- DrawWorld: brush outline
 ----------------------------------------------------------------
 function widget:DrawWorld()
-	-- Full-map grid overlay: visible across the whole map regardless of brush active state
-	-- (mirrors cmd_terraform_brush.lua DISPLAY Grid behavior).
+	-- Full-map grid overlay, drawn even while the tool is inactive.
 	if gridOverlay then
 		if (not gridDL) or gridDLSize ~= gridSnapSize or gridDirty then
 			buildFullMapGrid()
@@ -2586,8 +2328,7 @@ function widget:DrawWorld()
 		return
 	end
 
-	-- Selection rings and the gizmo sit on top of everything else this tool
-	-- draws, and stay up while the brush outline is hidden behind the panel.
+	-- Drawn before the cursor check, so they stay up while the cursor is over the panel.
 	if #gz.selection > 0 then
 		drawSelectionMarkers()
 		Gizmo.draw(gz.hovered)
@@ -2595,6 +2336,7 @@ function widget:DrawWorld()
 
 	local worldX, worldZ = getWorldMousePosition()
 	do
+		---@type table<string, any>?
 		local tb = WG.TerraformBrush
 		if tb and tb.animateUnmouse then
 			worldX, worldZ = tb.animateUnmouse("featurePlacer", worldX, worldZ, fp.radius, 1.0)
@@ -2617,16 +2359,14 @@ function widget:DrawWorld()
 		hideBuildGrid()
 	end
 
-	-- WYSIWYG: the exact features about to be placed, at their exact positions
-	-- and orientations. Remove mode has nothing to place, so it tints what the
-	-- brush would destroy instead.
+	-- Ghosts of the exact features about to be placed; remove mode tints what
+	-- the brush would destroy instead.
 	if fp.mode == "remove" then
 		syncGhosts(collectRemovalTargets(worldX, worldZ))
 	else
 		syncGhosts(resolvePlacements(worldX, worldZ))
 	end
 
-	-- Color by mode
 	if fp.mode == "scatter" then
 		glColor(0.2, 0.8, 0.4, 0.7 * edgeFade)
 	elseif fp.mode == "point" then
@@ -2638,7 +2378,6 @@ function widget:DrawWorld()
 	glLineWidth(2)
 
 	if fp.mode == "point" then
-		-- Draw small crosshair for point mode
 		local cy = GetGroundHeight(worldX, worldZ) + 4
 		local s = 12
 		glBeginEnd(GL.LINES, function()
@@ -2648,23 +2387,26 @@ function widget:DrawWorld()
 			glVertex(worldX, cy, worldZ + s)
 		end)
 	else
-		-- Draw brush shape
-		if fp.shape == "circle" then
-			drawRegularPolygon(worldX, worldZ, fp.radius, fp.rotation, CIRCLE_SEGMENTS)
-		elseif fp.shape == "square" then
-			drawRotatedSquare(worldX, worldZ, fp.radius, fp.rotation)
-		elseif fp.shape == "hexagon" then
-			drawRegularPolygon(worldX, worldZ, fp.radius, fp.rotation, 6)
-		elseif fp.shape == "octagon" then
-			drawRegularPolygon(worldX, worldZ, fp.radius, fp.rotation, 8)
-		elseif fp.shape == "triangle" then
-			drawRegularPolygon(worldX, worldZ, fp.radius, fp.rotation, 3)
-		end
+		WorldTool.drawShape(fp.shape, worldX, worldZ, fp.radius, fp.rotation, 1, 4, 1, CIRCLE_SEGMENTS)
 
-		-- Smart filter overlay: show valid/rejected terrain areas
-		if fp.smartEnabled then
-			drawSmartFilterOverlay(worldX, worldZ, fp.radius, fp.shape, fp.rotation, fp.smartFilters)
-			drawAltitudeCapPrism(worldX, worldZ, fp.radius, fp.shape, fp.rotation, fp.smartFilters)
+		-- Smart filter overlay: show valid/rejected terrain areas. Not in REMOVE, which
+		-- ignores the filters (UNITS hides it there too).
+		if fp.smartEnabled and fp.mode ~= "remove" then
+			local sf = fp.smartFilters
+			WorldTool.drawFilterOverlay(
+				worldX,
+				worldZ,
+				fp.radius,
+				fp.shape,
+				fp.rotation,
+				1,
+				edgeFade,
+				24,
+				nil,
+				WorldTool.smart.passes,
+				sf
+			)
+			WorldTool.drawAltitudePrism(worldX, worldZ, fp.radius, fp.shape, fp.rotation, sf, edgeFade)
 		end
 	end
 
@@ -2691,17 +2433,7 @@ function widget:DrawWorld()
 					glVertex(p.x, cy, p.z + s)
 				end)
 			else
-				if fp.shape == "circle" then
-					drawRegularPolygon(p.x, p.z, fp.radius, p.rot, CIRCLE_SEGMENTS)
-				elseif fp.shape == "square" then
-					drawRotatedSquare(p.x, p.z, fp.radius, p.rot)
-				elseif fp.shape == "hexagon" then
-					drawRegularPolygon(p.x, p.z, fp.radius, p.rot, 6)
-				elseif fp.shape == "octagon" then
-					drawRegularPolygon(p.x, p.z, fp.radius, p.rot, 8)
-				elseif fp.shape == "triangle" then
-					drawRegularPolygon(p.x, p.z, fp.radius, p.rot, 3)
-				end
+				WorldTool.drawShape(fp.shape, p.x, p.z, fp.radius, p.rot, 1, 4, 1, CIRCLE_SEGMENTS)
 			end
 		end
 	end
@@ -2711,7 +2443,7 @@ function widget:DrawWorld()
 end
 
 ----------------------------------------------------------------
--- DrawScreen — box selection rectangle
+-- DrawScreen: box selection rectangle
 ----------------------------------------------------------------
 function widget:DrawScreen()
 	if not gz.boxing then
@@ -2736,11 +2468,8 @@ function widget:DrawScreen()
 	gl.Color(1, 1, 1, 1)
 end
 
--- The geo-circles widget (Geothermalspots) removes itself on maps that boot
--- without geothermal features, so the first vent placed at runtime needs it
--- brought back; once alive it tracks further vents through its own
--- FeatureCreated. SendCommands like ensureBuildGridLoaded, so the call works
--- from any context.
+-- Geothermalspots removes itself on maps that boot without vents, so the first
+-- vent placed at runtime re-enables it; it then tracks further vents itself.
 function widget:FeatureCreated(featureID, allyTeamID)
 	local def = FeatureDefs[GetFeatureDefID(featureID)]
 	if def and def.geoThermal and not WG.geothermalspots then
@@ -2770,7 +2499,7 @@ function widget:Initialize()
 		setRotation = setRotation,
 		rotate = rotate,
 		setRotRandom = setRotRandom,
-		-- Inline rather than a file local: this widget sits near Lua's 200-local ceiling.
+		-- Inline setters save file locals.
 		setHeightOffset = function(v)
 			fp.heightOffset = max(-500, min(500, floor((tonumber(v) or 0) + 0.5)))
 		end,
@@ -2811,9 +2540,8 @@ function widget:Initialize()
 		deactivate = deactivate,
 	}
 
-	-- These names live in the shared widget global namespace; RegisterGlobal
-	-- silently returns false on a name clash, so namespace them and warn if a
-	-- collision ever happens rather than failing invisibly.
+	-- RegisterGlobal silently returns false on a name clash in the shared widget
+	-- namespace, so warn instead of failing invisibly.
 	local function registerGlobalChecked(name, fn)
 		if not widgetHandler:RegisterGlobal(name, fn) then
 			Spring.Echo("[Feature Placer] RegisterGlobal name collision, callback inactive: " .. name)
