@@ -79,6 +79,7 @@ end
 --   In every zombie mode, a heap becomes a corpse after twice the resurrection time. That corpse then
 --     rises on the normal timer, so heap, corpse, then zombie takes three times as long.
 --   Zombies on Gaia or the scavenger team resurrect wrecks, capture units, and finish construction as zombies.
+--   Metal extractors and geothermal buildings rise from their heap and corpse as themselves.
 --   A capture turns the unit into a zombie only when zombies made the capture. Another builder capturing it
 --     cancels that, including a capture they started in the last second.
 --   If the wraith unit cannot be created, the game tries twice more. After the third failure, a substitute
@@ -462,7 +463,7 @@ do
 			isCommander = customParams.iscommander and true or false,
 			isPoolMember = isPoolMember,
 			forceRespawn = isPoolMember,
-			neverRespawn = unitRequiresSpecificPlacement(unitDef),
+			selfDestructOnSpawn = unitRequiresSpecificPlacement(unitDef),
 			expiryLifetimeFrames = getExpiryLifetimeFrames(unitDef, rezPower),
 			excludedFromWraithSpawn = isExcludedFromWraithSpawn(unitDef),
 			scavVariantUnitDefID = getScavVariantUnitDefID(unitDef, unitDefID),
@@ -925,7 +926,7 @@ local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie
 	end
 
 	local spawnUnitDefID, plannedCount, isSubstitute
-	if sourceIsScav then
+	if sourceIsScav or unitDefData.selfDestructOnSpawn then
 		spawnUnitDefID, plannedCount, isSubstitute = unitDefID, 1, false
 	else
 		spawnUnitDefID, plannedCount, isSubstitute =
