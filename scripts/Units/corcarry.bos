@@ -10,7 +10,7 @@ static-var  Stunned;
 
 // Signal definitions
 #define SIG_MOVE			2
-#define SIG_AIM				3
+#define SIG_AIM				4
 
 #define BASEPIECE base
 #define HITSPEED <10.0>
