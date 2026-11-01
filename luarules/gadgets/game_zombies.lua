@@ -1,14 +1,3 @@
--- Code notes.
--- Resurrectable wrecks live in a 512-elmo grid, and wreck queries read those cells and take one wreck at random inside the radius. A same-frame successor wreck is matched from the position saved when it was created.
--- Attacker positions on a wreck are recorded only while wraiths are on, and the same attacker is sampled at most once a second on that wreck. Deaths that leave no feature are resolved every 15 frames.
--- A wraith's first clear drop tests three sites, then one site each clear second. A failed wraith CreateUnit is retried twice, five frames apart, and the third failure adds a substitute purchase's power back to excess power. A missing wraith unit def returns that power immediately.
--- Queueing wrecks again leaves a wreck's existing spawn frame alone.
---
--- ai_zombies.lua issues orders. A target scan rejects a unit def that cannot shoot or capture the target before reading that unit's position. An order update reuses a zombie position already fetched in that update, and underwater range adds the unit def height to the target height.
--- Combat orders are the half-range engage point plus a 45 degree orbit. An orbit still within 250 of that ring is kept. A target that drifts 250 does not refresh the order while any enemy is inside half weapon range. Each combat check still has a 0.05% chance to issue a new pair.
--- A wander order tries up to four headings and queues one move, and repeat keeps it. Gaia zombies the AI watches are set to repeat. The repeat icon skips Gaia, as the fire-state icons do.
--- Every 12 seconds, a zombie within 400 of its move point and not in combat gets a new move. So does one that has moved less than 50, is not standing on a remembered enemy edge, and is not resurrecting or reclaiming. That reroute tries up to ten headings. The worker task is read only after the move check fails.
--- Aggro reads the ally unit lists. A zombie whose target is still on that ally team keeps the assignment with no position check. visitZombieOrders and visitStuckZombie each check death once per visit.
 function gadget:GetInfo()
 	return {
 		name = "Zombies",
@@ -72,13 +61,6 @@ end
 --     wraiths, in every mode.
 --   zombie_enable_hydra (1 enables, 0 disables)
 --     multiple spawns per corpse, in every mode.
---
--- What players see:
---   One revived unit appears on the wreck. When several rise from the same wreck, they scatter around it.
---   In every zombie mode, a heap becomes a corpse after twice the resurrection time, and that corpse rises on the normal timer. Heap, corpse, then zombie takes three times as long.
---   Zombies on Gaia or the scavenger team resurrect wrecks, capture units, and finish construction as zombies.
---   Metal extractors and geothermal buildings rise from their heap and corpse as themselves.
---   A capture turns the unit into a zombie only when zombies made the capture. Another builder capturing it cancels that, including a capture they started in the last second.
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -1853,7 +1835,7 @@ local function addResurrectableWreck(featureID, featureX, featureY, featureZ)
 		resurrectableWreckCells[cellKey] = cell
 	end
 	local wreckIndex = #cell + 1
-	cell[wreckIndex] = featureID
+	cell[wreckIndex] = featureID -- buckets keep resurrectable wrecks only, so a query skips the trees and rocks on a forest map
 	wreckCellIndex[featureID] = {
 		cellKey = cellKey,
 		index = wreckIndex,
