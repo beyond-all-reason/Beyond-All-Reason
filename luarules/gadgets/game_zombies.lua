@@ -169,7 +169,7 @@ local ESCALATION = {
 	costPosition = { { 0, 0 }, { 400, 0.3 }, { 3000, 0.66 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
 	costDelayPercent = 39, -- how late the most expensive unit reads the count and veterancy curves
 	rollLean = 3, -- the count roll leans low, 1 is a flat roll, higher makes big counts rarer
-	elitePackChance = 0.1, -- a wreck rises as half its minimum count at top rank instead
+	elitePackChance = 0.1, -- a wreck rises as half its minimum count at top rank instead, fades as the ranks arrive
 	hordeVeterancyShare = 0.6, -- the biggest roll keeps this much of the veterancy, the smallest keeps all of it
 	rezWindow = { { 0, 60, 200 }, { 100, 8, 45 } }, -- cheapest to most expensive
 	spawnCounts = { { 0, 4, 9 }, { 7, 4, 9 }, { 41, 5, 24 } },
@@ -609,13 +609,14 @@ local function calculateEscalationSpawnCount(unitDefData)
 	local percent = getEscalationCurvePercent(unitDefData.escalationCostPosition)
 	local spawnMinimum, spawnMaximum = interpolateAnchors(ESCALATION.spawnCounts, percent)
 	spawnMinimum, spawnMaximum = math.round(spawnMinimum, 0), math.round(spawnMaximum, 0)
+	local veterancy = getEscalationVeterancy(unitDefData)
 	local roll = random()
-	if roll < ESCALATION.elitePackChance then
+	if roll < ESCALATION.elitePackChance * (1 - veterancy) then
 		return math.ceil(spawnMinimum / 2), 1
 	end
 	local rollPosition = roll ^ ESCALATION.rollLean
 	local spawnCount = spawnMinimum + floor((spawnMaximum - spawnMinimum + 1) * rollPosition)
-	return spawnCount, getEscalationVeterancy(unitDefData) * (1 - rollPosition * (1 - ESCALATION.hordeVeterancyShare))
+	return spawnCount, veterancy * (1 - rollPosition * (1 - ESCALATION.hordeVeterancyShare))
 end
 
 local function calculateEscalationExperience(veterancy)
