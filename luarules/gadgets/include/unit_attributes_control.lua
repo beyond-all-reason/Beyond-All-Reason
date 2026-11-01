@@ -61,7 +61,7 @@ local spSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
 local spGetCOBScriptID = Spring.GetCOBScriptID
 local spCallCOBScript = Spring.CallCOBScript
 local unitScript = Spring.UnitScript or {}
-local spCallLuaScript = unitScript.CallAsUnit
+local spCallLuaScript = unitScript.CallAsUnitNoReturn
 
 local gameSpeed = Game.gameSpeed ---@as integer
 local armorTypeMin, armorTypeMax = 0, #Game.armorTypes
@@ -310,16 +310,21 @@ local function getWeaponBaselines(unitDefID)
 	return weapons
 end
 
-local function setMaxWeaponRange(unitID, ranges)
+local function setMaxWeaponRange(unitID, ranges, previous)
 	local unitDefID = spGetUnitDefID(unitID)
-	local rangeMax = 0
+	local rangeMax, rangeMaxBefore = 0, 0
 
-	for weaponNum in ipairs(getWeaponBaselines(unitDefID)) do
-		spSetUnitWeaponState(unitID, weaponNum, "range", ranges[weaponNum])
-		rangeMax = math_max(rangeMax, ranges[weaponNum])
+	for weaponNum, weapon in ipairs(getWeaponBaselines(unitDefID)) do
+		local range = ranges[weaponNum]
+		local before = previous and previous[weaponNum] or weapon.range
+		if range ~= before then
+			spSetUnitWeaponState(unitID, weaponNum, "range", range)
+		end
+		rangeMax = math_max(rangeMax, range)
+		rangeMaxBefore = math_max(rangeMaxBefore, before)
 	end
 
-	if not hasCustomEngageRange[unitDefID] then
+	if rangeMax ~= rangeMaxBefore and not hasCustomEngageRange[unitDefID] then
 		spSetUnitMaxRange(unitID, rangeMax)
 	end
 end
@@ -446,16 +451,18 @@ local spawnedDefsByParent = {} ---@type table<WeaponDefID, WeaponDefID[]?>
 local damagesArray = table.new(armorTypeMax, 1 - armorTypeMin) ---@as number[] reusable scratch table
 local weaponVector = {} ---@type number[] reusable scratch, one composed value per weapon
 
-local function setDamage(unitID, scales)
+local function setDamage(unitID, scales, previous)
 	local unitDefID = spGetUnitDefID(unitID) ---@as UnitDefID
 
 	for weaponNum, damages in pairs(getWeaponDamages(unitDefID)) do
 		local scale = scales[weaponNum]
-		for armorIndex = armorTypeMin, armorTypeMax do
-			damagesArray[armorIndex] = damages[armorIndex] * scale
+		if scale ~= (previous and previous[weaponNum] or 1.0) then
+			for armorIndex = armorTypeMin, armorTypeMax do
+				damagesArray[armorIndex] = damages[armorIndex] * scale
+			end
+			---@cast damagesArray WeaponDamages
+			spSetUnitWeaponDamages(unitID, weaponNum, damagesArray)
 		end
-		---@cast damagesArray WeaponDamages
-		spSetUnitWeaponDamages(unitID, weaponNum, damagesArray)
 	end
 
 	local weaponNumbers = weaponNumbersByDef[unitDefID]
@@ -479,16 +486,13 @@ local function setDamage(unitID, scales)
 	end
 
 	-- Explosions are only modified directly. They ignore effects on "all weapons".
-	local applied = appliedValues[unitID]
-	local previous = applied and applied.damage
 	local slots = weaponLayoutByDef[unitDefID].slots
 	local explosions = getExplosionDamages(unitDefID)
 	for index, explosion in ipairs(explosionKinds) do
 		local damages = explosions[index]
 		local slot = slots[explosion.key]
 		local scale = scales[slot]
-		local before = previous and previous[slot] or 1.0
-		if damages and (scale ~= 1.0 or before ~= 1.0) then
+		if damages and scale ~= (previous and previous[slot] or 1.0) then
 			for armorIndex = armorTypeMin, armorTypeMax do
 				damagesArray[armorIndex] = damages[armorIndex] * scale
 			end
@@ -530,7 +534,7 @@ local function getDamagesFieldBaselines(unitDefID, field)
 	return baselines
 end
 
-local function setDamagesField(unitID, scales, attribute)
+local function setDamagesField(unitID, scales, attribute, previous)
 	local unitDefID = spGetUnitDefID(unitID)
 	local field = damagesFieldByAttribute[attribute]
 	local baselines = getDamagesFieldBaselines(unitDefID, field)
@@ -538,58 +542,68 @@ local function setDamagesField(unitID, scales, attribute)
 
 	for weaponNum = 1, layout.weaponCount do
 		local baseline = baselines[weaponNum]
-		if baseline then
-			spSetUnitWeaponDamages(unitID, weaponNum, field, baseline * scales[weaponNum])
+		local scale = scales[weaponNum]
+		if baseline and scale ~= (previous and previous[weaponNum] or 1.0) then
+			spSetUnitWeaponDamages(unitID, weaponNum, field, baseline * scale)
 		end
 	end
 
 	-- Explosions are only modified directly. They ignore effects on "all weapons".
-	local applied = appliedValues[unitID]
-	local previous = applied and applied[attribute]
 	for _, explosion in ipairs(explosionKinds) do
 		local slot = layout.slots[explosion.key]
 		local baseline = baselines[slot]
 		local scale = scales[slot]
-		local before = previous and previous[slot] or 1.0
-		if baseline and (scale ~= 1.0 or before ~= 1.0) then
+		if baseline and scale ~= (previous and previous[slot] or 1.0) then
 			spSetUnitWeaponDamages(unitID, explosion.target, field, baseline * scale)
 		end
 	end
 end
 
-local function setImpulse(unitID, scales)
-	setDamagesField(unitID, scales, "impulse")
+local function setImpulse(unitID, scales, previous)
+	setDamagesField(unitID, scales, "impulse", previous)
 end
 
-local function setCratering(unitID, scales)
-	setDamagesField(unitID, scales, "cratering")
+local function setCratering(unitID, scales, previous)
+	setDamagesField(unitID, scales, "cratering", previous)
 end
 
-local function setReloadTime(unitID, times)
+local function setReloadTime(unitID, times, previous)
 	local unitDefID = spGetUnitDefID(unitID)
 	local gameFrame = spGetGameFrame()
 	local luaEnv = getUnitScriptEnv(unitID)
-	local reloadMax = 0.0
+	local reloadMax, reloadMaxBefore = 0.0, 0.0
 
 	-- Rescale reloads for slowing effects to apply and restore immediately.
 	-- Units can have animation states tied to reload state and reload time.
 	for weaponNum in ipairs(getWeaponBaselines(unitDefID)) do
-		local previous = spGetUnitWeaponState(unitID, weaponNum, "reloadTime")
 		local reloadTime = toFrameTime(times[weaponNum])
-		spSetUnitWeaponState(unitID, weaponNum, "reloadTime", reloadTime)
-
-		local reloadState = spGetUnitWeaponState(unitID, weaponNum, "reloadState")
-		if previous and previous > 0 and reloadState and reloadState > gameFrame then
-			-- Round ahead of the engine truncating integers passed from Lua:
-			local framesLeft = math_round((reloadState - gameFrame) * reloadTime / previous, 0)
-			spSetUnitWeaponState(unitID, weaponNum, "reloadState", gameFrame + framesLeft)
+		local before ---@type number?
+		if previous then
+			before = toFrameTime(previous[weaponNum])
+		else
+			before = spGetUnitWeaponState(unitID, weaponNum, "reloadTime")
+			before = before and toFrameTime(before)
 		end
 
-		callUnitScript(unitID, unitDefID, luaEnv, reloadMethodByWeapon[weaponNum], reloadTime * 1000)
+		if reloadTime ~= before then
+			spSetUnitWeaponState(unitID, weaponNum, "reloadTime", reloadTime)
+
+			local reloadState = spGetUnitWeaponState(unitID, weaponNum, "reloadState")
+			if before and before > 0 and reloadState and reloadState > gameFrame then
+				-- Round ahead of the engine truncating integers passed from Lua:
+				local framesLeft = math_round((reloadState - gameFrame) * reloadTime / before, 0)
+				spSetUnitWeaponState(unitID, weaponNum, "reloadState", gameFrame + framesLeft)
+			end
+
+			callUnitScript(unitID, unitDefID, luaEnv, reloadMethodByWeapon[weaponNum], reloadTime * 1000)
+		end
 		reloadMax = math_max(reloadMax, reloadTime)
+		reloadMaxBefore = math_max(reloadMaxBefore, before or 0.0)
 	end
 
-	callUnitScript(unitID, unitDefID, luaEnv, "SetMaxReloadTime", reloadMax * 1000)
+	if reloadMax ~= reloadMaxBefore then
+		callUnitScript(unitID, unitDefID, luaEnv, "SetMaxReloadTime", reloadMax * 1000)
+	end
 end
 
 local function setBuildSpeed(unitID, value)
@@ -657,7 +671,7 @@ end
 ---
 ---A `false` return means the write was blocked or declined, and the attribute stays marked.
 ---Marked attributes are retried on a later frame, so (eg) MoveCtrl can release a unit properly.
----@alias UnitAttributeApply fun(unitID: UnitID, value: any): boolean?
+---@alias UnitAttributeApply fun(unitID: UnitID, value: any, previous: any?): boolean?
 
 ---@type table<string, UnitAttributeApply>
 local applyUnitAttribute = {
@@ -1522,8 +1536,11 @@ local function updateAll(frame)
 				if weaponAttributes[attribute] then
 					local baseVector = getBaselineVector(unitDefID, attribute)
 					local vector = composeWeaponVector(unitID, unitDefID, teamID, attribute, baseVector, weaponVector)
-					local previous = applied and applied[attribute] or baseVector
-					if sameArray(vector, previous) or applyUnitAttribute[attribute](unitID, vector) ~= false then
+					local previous = applied and applied[attribute]
+					if
+						sameArray(vector, previous or baseVector)
+						or applyUnitAttribute[attribute](unitID, vector, previous) ~= false
+					then
 						if sameArray(vector, baseVector) then
 							applied = setApplied(unitID, attribute, nil)
 						else
@@ -1602,15 +1619,19 @@ local function applyOnPreDamaged(damage, weaponDefID, attackerID)
 	end
 end
 
--- Shutdown --------------------------------------------------------------------
+-- Lifecycle -------------------------------------------------------------------
+
+local function initialize()
+	spCallLuaScript = unitScript.CallAsUnitNoReturn
+end
 
 local function clearAll()
 	for unitID, attributes in pairs(appliedValues) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if unitDefID then
-			for attribute in pairs(attributes) do
+			for attribute, value in pairs(attributes) do
 				if weaponAttributes[attribute] then
-					applyUnitAttribute[attribute](unitID, getBaselineVector(unitDefID, attribute))
+					applyUnitAttribute[attribute](unitID, getBaselineVector(unitDefID, attribute), value)
 				else
 					local baseline = getBaseline(unitDefID, attribute)
 					if baseline ~= nil then
@@ -1662,6 +1683,7 @@ return {
 	SetWeaponDefParent = setWeaponDefParent,
 	ApplyOnPreDamaged = applyOnPreDamaged,
 
+	Initialize = initialize,
 	ApplyOnCreated = applyOnCreated,
 	ApplyOnDestroyed = applyOnDestroyed,
 	ApplyOnGiven = applyOnGiven,

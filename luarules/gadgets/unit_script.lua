@@ -336,6 +336,7 @@ local function CallAsUnitNoReturn(unitID, fun, ...)
 	sp_CallAsUnit(unitID, fun, ...)
 	PopActiveUnitID()
 end
+Spring.UnitScript.CallAsUnitNoReturn = CallAsUnitNoReturn
 
 -- Helper for WaitForMove and WaitForTurn
 -- Unsafe, because it does not check whether the animation to wait for actually exists.
