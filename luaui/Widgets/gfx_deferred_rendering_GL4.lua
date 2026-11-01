@@ -677,10 +677,14 @@ local function InitializeLight(lightTable, unitID)
 
 			if pieceMap == nil or unitDefID == nil then
 				return false
-			elseif pieceMap[lightTable.pieceName] then -- if its not a real piece, it will default to the model worldpos!
+				--Spring.Debug.TraceFullEcho(nil,nil,nil,"InitializeLight, pieceMap == nil")
+			end
+
+			if pieceMap[lightTable.pieceName] then -- if its not a real piece, it will default to the model worldpos!
 				lightTable.pieceIndex = pieceMap[lightTable.pieceName]
 				lightTable.lightParamTable[pieceIndexPos] = lightTable.pieceIndex
 			end
+			--spEcho(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
 		end
 
 		lightTable.initComplete = true
@@ -1370,7 +1374,7 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 		local unitDefLight = unitDefLights[unitDefID]
 		if unitDefLight.initComplete ~= true then -- late init
 			for lightname, lightParams in pairs(unitDefLight) do
-				if lightname ~= "initComplete" and not InitializeLight(lightParams, unitID) then
+				if not InitializeLight(lightParams, unitID) then
 					return
 				end
 			end
