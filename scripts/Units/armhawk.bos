@@ -39,7 +39,7 @@ Deactivate()
 
 AimWeapon1(heading, pitch)
 {
-	return (1);
+	return (get ACTIVATION);
 }
 
 QueryWeapon1(pieceIndex)

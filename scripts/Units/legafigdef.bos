@@ -84,7 +84,7 @@ Deactivate()
 
 AimPrimary(heading, pitch)
 {
-	return (1);
+	return (get ACTIVATION);
 }
 
 FirePrimary()

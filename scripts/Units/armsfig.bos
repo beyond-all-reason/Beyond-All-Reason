@@ -62,7 +62,7 @@ StopMoving()
 
 AimWeapon1(heading, pitch)
 {
-	return (1);
+	return (get ACTIVATION);
 }
 
 FireWeapon1()
@@ -72,7 +72,7 @@ FireWeapon1()
 
 AimWeapon2(heading, pitch)
 {
-	return (1);
+	return (get ACTIVATION);
 }
 
 FireWeapon2()
