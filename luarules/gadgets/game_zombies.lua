@@ -166,12 +166,12 @@ local ESCALATION = {
 	-- the escalation cannot pass a gate below its tech level, until the next gate's minute
 	gates = { { percent = 23, techLevel = 1.5 }, { percent = 46, techLevel = 2.5 } },
 	peakExperience = 0.8,
-	costPosition = { { 0, 0 }, { 400, 0.2 }, { 3000, 0.45 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
+	costPosition = { { 0, 0 }, { 400, 0.3 }, { 3000, 0.66 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
 	costDelayPercent = 39, -- how late the most expensive unit reads the count and veterancy curves
 	rollLean = 3, -- the count roll leans low, 1 is a flat roll, higher makes big counts rarer
 	rezWindow = { { 0, 60, 200 }, { 100, 8, 45 } }, -- cheapest to most expensive
-	spawnCounts = { { 0, 4, 9 }, { 23, 4, 9 }, { 37, 5, 24 } },
-	veterancy = { { 0, 0 }, { 23, 0.15 }, { 37, 1 } },
+	spawnCounts = { { 0, 4, 9 }, { 7, 4, 9 }, { 41, 5, 24 } },
+	veterancy = { { 0, 0 }, { 7, 0.15 }, { 41, 1 } },
 }
 local escalationPercent = 0
 local escalationRezMinimum, escalationRezMaximum = 0, 0
