@@ -1,3 +1,15 @@
+-- Resurrectable wrecks are stored in a grid and queried by cell instead of scanning every feature in range.
+-- Same-frame successor wrecks are matched from positions saved at creation instead of asking the engine for each one.
+-- Wreck attacker positions are skipped when wraiths are off, and otherwise updated at most once a second per attacker.
+-- Vanished deaths are checked every 15 frames instead of every 3.
+-- A wraith tries three drop sites on its first clear search and one site each second after that.
+-- Zombie target scans reject unit defs that cannot be shot or captured before calling the engine.
+-- Combat moves refresh after the target drifts 250 elmos, and a still-valid orbit is reused.
+-- Normal objective routes try 4 headings, and a second hop is queued only when the first is shorter than 800 elmos.
+-- One order update reuses the zombie position, and underwater weapon range uses the unit def height.
+-- Aggro assignment uses the ally unit lists and skips a position check for zombies whose target is still alive.
+-- The stuck check asks for the worker task only after the zombie has failed to move.
+-- Order and stuck bucket visitors are named functions, and each visit makes one death check.
 function gadget:GetInfo()
 	return {
 		name = "Zombies",
@@ -89,6 +101,8 @@ local unitDefs = UnitDefs
 local unitDefNames = UnitDefNames
 local random = math.random
 local floor = math.floor
+local distance2dSquared = math.distance2dSquared
+local abs = math.abs
 local clamp = math.clamp
 
 local scavTeamID = BAR.Utilities.GetScavTeamID()
@@ -182,7 +196,13 @@ local WATER_DAMAGE_DEF_ID = Game.envDamageTypes.Water
 local KILLED_BY_LUA_DAMAGE_DEF_ID = Game.envDamageTypes.KilledByLua
 local WATER_IS_LAVA = BAR.Lava ~= nil and BAR.Lava.isLavaMap == true
 local PENDING_DEATH_TIMEOUT_FRAMES = Game.gameSpeed * 3
-local VANISHED_DEATH_CHECK_INTERVAL = 3
+local VANISHED_DEATH_CHECK_INTERVAL = 15
+local ATTACKER_SAMPLE_INTERVAL = Game.gameSpeed
+local WRECK_CELL_SIZE = 512
+local WRECK_CELL_STRIDE = 4096
+local POSITION_HASH_X = 73856093
+local POSITION_HASH_Y = 19349663
+local POSITION_HASH_Z = 83492791
 local DEATH_NAMES_BLOCKING_WRAITHS = {
 	SetNegativeHealth = true,
 	KilledByCheat = true,
@@ -215,6 +235,9 @@ local pendingWraithFeeds = {}
 local pendingWraithSpawns = {}
 local wreckWraithFeeds = {}
 local featuresCreatedThisFrame = {}
+local createdFeaturesByPosition = {}
+local resurrectableWreckCells = {}
+local wreckCellIndex = {}
 local heapFeatureDefIDs = {}
 local zombieFactories = {} ---@type table<UnitID, table?>
 local expiringBuildingFrames = {}
@@ -678,7 +701,7 @@ local function wasZombieCorpse(featureID, corpseData)
 	return wasZombieParam == 1
 end
 
-local function armCorpseSpawn(featureID, featureData, spawnFrame)
+local function armCorpseSpawn(featureID, featureData, spawnFrame, armFrame)
 	spawnFrame = math.max(spawnFrame, gameFrame + 1)
 	featureData.spawnFrame = spawnFrame
 	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME, spawnFrame, RULES_PARAM.PUBLIC_ACCESS)
@@ -688,7 +711,7 @@ local function armCorpseSpawn(featureID, featureData, spawnFrame)
 		return
 	end
 	if GG.ZombieWreckEffects then
-		GG.ZombieWreckEffects.Arm(featureID, featureData.creationFrame, spawnFrame)
+		GG.ZombieWreckEffects.Arm(featureID, armFrame or featureData.creationFrame, spawnFrame)
 	end
 end
 
@@ -707,6 +730,37 @@ local function pushBackCorpseSpawn(featureID, corpseData)
 		corpseData.pushbackFrames = corpseData.pushbackFrames - pushbackFrames
 		armCorpseSpawn(featureID, corpseData, corpseData.spawnFrame + pushbackFrames)
 	end
+end
+
+local function publishPushedSpawn(featureID, corpseData)
+	corpseData.publishedFrame = gameFrame
+	local shownSpawnFrame = floor((corpseData.spawnFrame or gameFrame) + (corpseData.pushbackFrames or 0))
+	if shownSpawnFrame < gameFrame + 1 then
+		shownSpawnFrame = gameFrame + 1
+	end
+	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME, shownSpawnFrame, RULES_PARAM.PUBLIC_ACCESS)
+	if corpseData.isHeap or not GG.ZombieWreckEffects then
+		return
+	end
+	GG.ZombieWreckEffects.Arm(featureID, gameFrame, shownSpawnFrame)
+end
+
+local function disturbCorpse(featureID, corpseData)
+	local delayFrames = corpseData.spawnDelayFrames or 0
+	local restartPushback = gameFrame + delayFrames - (corpseData.spawnFrame or gameFrame)
+	if restartPushback < 0 then
+		restartPushback = 0
+	end
+	if (corpseData.pushbackFrames or 0) < restartPushback then
+		corpseData.pushbackFrames = restartPushback
+	end
+	local publishedFrame = corpseData.publishedFrame
+	local recentlyPublished = publishedFrame and publishedFrame > 0 and gameFrame - publishedFrame < RECENT_TAMPER_FRAMES
+	corpseData.tamperedFrame = gameFrame
+	if recentlyPublished then
+		return
+	end
+	publishPushedSpawn(featureID, corpseData)
 end
 
 local function rollFor(keep, rollCount, minimum, maximum)
@@ -1113,7 +1167,7 @@ local function isEnemyWithinRadius(positionX, positionY, positionZ, radius)
 	return spring.GetClosestEnemyUnit(positionX, positionY, positionZ, radius, gaiaAllyTeamID, false) ~= nil
 end
 
-local function spawnHeapAtWraith(wraithData, wraithX, wraithZ)
+local function spawnHeapAtWraith(wraithData, wraithX, wraithZ, maxAttempts)
 	local payloadUnitDefID = wraithData.payloadUnitDefID
 	local payloadUnitDefData = payloadUnitDefID and zombieUnitDefs[payloadUnitDefID]
 	if not payloadUnitDefData then
@@ -1129,7 +1183,7 @@ local function spawnHeapAtWraith(wraithData, wraithX, wraithZ)
 		return false
 	end
 	local size = scavUnitDefData.size or payloadUnitDefData.size
-	for _ = 1, WRAITH.SPAWN_ATTEMPT_COUNT do
+	for _ = 1, maxAttempts do
 		local angle = random() * 2 * math.pi
 		local distance = random() * WRAITH.SPAWN_OFFSET_DISTANCE
 		local spawnX = clamp(wraithX + math.cos(angle) * distance, size, Game.mapSizeX - size)
@@ -1185,10 +1239,17 @@ local function updateWraiths()
 				else
 					enemyNearby = isEnemyWithinRadius(wraithX, wraithY, wraithZ, WRAITH.ENEMY_CLEAR_RADIUS)
 				end
-				if gameFrame >= wraithData.readyFrame and not enemyNearby and spawnHeapAtWraith(wraithData, wraithX, wraithZ) then
-					wraithData.payloadCount = wraithData.payloadCount - 1
-					if wraithData.payloadCount <= 0 then
-						removeWraith(unitID)
+				if gameFrame >= wraithData.readyFrame and not enemyNearby then
+					local maxAttempts = 1
+					if not wraithData.didExpandedDropSearch then
+						wraithData.didExpandedDropSearch = true
+						maxAttempts = WRAITH.SPAWN_ATTEMPT_COUNT
+					end
+					if spawnHeapAtWraith(wraithData, wraithX, wraithZ, maxAttempts) then
+						wraithData.payloadCount = wraithData.payloadCount - 1
+						if wraithData.payloadCount <= 0 then
+							removeWraith(unitID)
+						end
 					end
 				end
 			end
@@ -1283,11 +1344,9 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 	if not corpseData then
 		return true
 	end
-	corpseData.pushbackFrames = corpseData.pushbackFrames + math.abs(part) * corpseData.spawnDelayFrames
-	if gameFrame - corpseData.tamperedFrame >= BUILD_STEP_CHECK_INTERVAL then
-		corpseData.tamperedFrame = gameFrame
-		pushBackCorpseSpawn(featureID, corpseData)
-	end
+	local delayFrames = corpseData.spawnDelayFrames or 0
+	corpseData.pushbackFrames = (corpseData.pushbackFrames or 0) + abs(part) * delayFrames
+	disturbCorpse(featureID, corpseData)
 	return true
 end
 
@@ -1310,7 +1369,11 @@ local function recordPendingDeath(unitID, unitDefID, weaponDefID, attackerID)
 	if not unitX then
 		return
 	end
-	local attackerX, attackerZ = getLiveAttackerPosition(attackerID)
+	local attackerX
+	local attackerZ
+	if currentModeFeatures.wraithRespawns then
+		attackerX, attackerZ = getLiveAttackerPosition(attackerID)
+	end
 	pendingDeaths[unitID] = {
 		unitDefID = unitDefID,
 		x = unitX,
@@ -1643,6 +1706,7 @@ function gadget:GameFrame(frame)
 	end
 	if #featuresCreatedThisFrame > 0 then
 		featuresCreatedThisFrame = {}
+		createdFeaturesByPosition = {}
 	end
 end
 
@@ -1691,17 +1755,139 @@ local function handlePendingCreatedFeature(featureID, createdData)
 	end
 end
 
+local function featurePositionKey(positionX, positionY, positionZ)
+	return floor(positionX + 0.5) * POSITION_HASH_X
+		+ floor(positionY + 0.5) * POSITION_HASH_Y
+		+ floor(positionZ + 0.5) * POSITION_HASH_Z
+end
+
+local function rememberFeatureCreatedThisFrame(featureID)
+	featuresCreatedThisFrame[#featuresCreatedThisFrame + 1] = featureID
+	local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
+	if not featureX then
+		return
+	end
+	local positionKey = featurePositionKey(featureX, featureY, featureZ)
+	local bucket = createdFeaturesByPosition[positionKey]
+	if not bucket then
+		bucket = {}
+		createdFeaturesByPosition[positionKey] = bucket
+	end
+	bucket[#bucket + 1] = {
+		featureID = featureID,
+		x = featureX,
+		y = featureY,
+		z = featureZ,
+	}
+end
+
+local function wreckCellKey(cellX, cellZ)
+	return cellX * WRECK_CELL_STRIDE + cellZ
+end
+
+local function addResurrectableWreck(featureID, featureX, featureY, featureZ)
+	local cellX = floor(featureX / WRECK_CELL_SIZE)
+	local cellZ = floor(featureZ / WRECK_CELL_SIZE)
+	local cellKey = wreckCellKey(cellX, cellZ)
+	local cell = resurrectableWreckCells[cellKey]
+	if not cell then
+		cell = {}
+		resurrectableWreckCells[cellKey] = cell
+	end
+	local wreckIndex = #cell + 1
+	cell[wreckIndex] = featureID
+	wreckCellIndex[featureID] = {
+		cellKey = cellKey,
+		index = wreckIndex,
+		x = featureX,
+		y = featureY,
+		z = featureZ,
+	}
+end
+
+local function removeResurrectableWreck(featureID)
+	local trackedWreck = wreckCellIndex[featureID]
+	if not trackedWreck then
+		return
+	end
+	local cell = resurrectableWreckCells[trackedWreck.cellKey]
+	local lastIndex = #cell
+	local lastFeatureID = cell[lastIndex]
+	cell[trackedWreck.index] = lastFeatureID
+	cell[lastIndex] = nil
+	if lastFeatureID ~= featureID then
+		wreckCellIndex[lastFeatureID].index = trackedWreck.index
+	end
+	wreckCellIndex[featureID] = nil
+	if lastIndex == 1 then
+		resurrectableWreckCells[trackedWreck.cellKey] = nil
+	end
+end
+
+local function trackResurrectableWreck(featureID)
+	if wreckCellIndex[featureID] then
+		return
+	end
+	local resurrectName = spring.GetFeatureResurrect(featureID)
+	if not resurrectName or resurrectName == "" then
+		return
+	end
+	local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
+	if not featureX then
+		return
+	end
+	addResurrectableWreck(featureID, featureX, featureY, featureZ)
+end
+
+local function getNearestResurrectableWreck(originX, originZ, radius)
+	local radiusSquared = radius * radius
+	local minCellX = floor((originX - radius) / WRECK_CELL_SIZE)
+	local maxCellX = floor((originX + radius) / WRECK_CELL_SIZE)
+	local minCellZ = floor((originZ - radius) / WRECK_CELL_SIZE)
+	local maxCellZ = floor((originZ + radius) / WRECK_CELL_SIZE)
+	local bestFeatureID
+	local bestDistanceSquared
+	for cellX = minCellX, maxCellX do
+		for cellZ = minCellZ, maxCellZ do
+			local cell = resurrectableWreckCells[wreckCellKey(cellX, cellZ)]
+			if cell then
+				for wreckIndex = 1, #cell do
+					local featureID = cell[wreckIndex]
+					local trackedWreck = wreckCellIndex[featureID]
+					if trackedWreck and not isPositionInLava(trackedWreck.y) then
+						local wreckDistanceSquared = distance2dSquared(originX, originZ, trackedWreck.x, trackedWreck.z)
+						if wreckDistanceSquared <= radiusSquared and (not bestDistanceSquared or wreckDistanceSquared < bestDistanceSquared) then
+							bestFeatureID = featureID
+							bestDistanceSquared = wreckDistanceSquared
+						end
+					end
+				end
+			end
+		end
+	end
+	return bestFeatureID
+end
+
+local function indexExistingResurrectableWrecks()
+	local features = spring.GetAllFeatures()
+	for featureIndex = 1, #features do
+		trackResurrectableWreck(features[featureIndex])
+	end
+end
+
 function gadget:FeatureCreated(featureID, _, sourceID)
 	if pendingCreatedFeatureData then
 		local createdData = pendingCreatedFeatureData
 		pendingCreatedFeatureData = nil
 		handlePendingCreatedFeature(featureID, createdData)
+		trackResurrectableWreck(featureID)
 		return
 	end
-	featuresCreatedThisFrame[#featuresCreatedThisFrame + 1] = featureID
+	rememberFeatureCreatedThisFrame(featureID)
 	if creatingForcedHeap then
 		spring.SetFeatureRulesParam(featureID, RULES_PARAM.WAS_ZOMBIE, 1, RULES_PARAM.PUBLIC_ACCESS)
 		queueHeapForSpawning(featureID, false, true)
+		trackResurrectableWreck(featureID)
 		return
 	end
 	local featureDefID = spring.GetFeatureDefID(featureID)
@@ -1729,10 +1915,12 @@ function gadget:FeatureCreated(featureID, _, sourceID)
 				end
 			end
 			pendingWreckSwaps[#pendingWreckSwaps + 1] = featureID
+			trackResurrectableWreck(featureID)
 			return
 		end
 	end
 	registerDeathFeature(featureID, featureDefID, deathData)
+	trackResurrectableWreck(featureID)
 end
 
 local function wasCorpseReclaimedOrResurrected(featureID)
@@ -1745,17 +1933,22 @@ local function wasCorpseReclaimedOrResurrected(featureID)
 end
 
 local function findSuccessorFeatureID(featureID, featureX, featureY, featureZ)
+	local bucket = createdFeaturesByPosition[featurePositionKey(featureX, featureY, featureZ)]
+	if not bucket then
+		return
+	end
 	local successorFeatureID
-	for createdIndex = 1, #featuresCreatedThisFrame do
-		local createdFeatureID = featuresCreatedThisFrame[createdIndex]
-		if createdFeatureID ~= featureID then
-			local createdX, createdY, createdZ = spring.GetFeaturePosition(createdFeatureID)
-			if createdX == featureX and createdY == featureY and createdZ == featureZ then
-				successorFeatureID = createdFeatureID
-			end
+	local successorX
+	local successorZ
+	for entryIndex = 1, #bucket do
+		local entry = bucket[entryIndex]
+		if entry.featureID ~= featureID and entry.x == featureX and entry.y == featureY and entry.z == featureZ then
+			successorFeatureID = entry.featureID
+			successorX = entry.x
+			successorZ = entry.z
 		end
 	end
-	return successorFeatureID
+	return successorFeatureID, successorX, successorZ
 end
 
 local function releaseWreckWraithFeed(featureID)
@@ -1785,11 +1978,12 @@ local function releaseWreckWraithFeed(featureID)
 	local featureDefID = spring.GetFeatureDefID(featureID)
 	local isHeap = featureDefID ~= nil and heapFeatureDefIDs[featureDefID] == true
 	local successorFeatureID
+	local successorX
+	local successorZ
 	if featureX ~= nil and featureY ~= nil and not isHeap then
-		successorFeatureID = findSuccessorFeatureID(featureID, featureX, featureY, featureZ)
+		successorFeatureID, successorX, successorZ = findSuccessorFeatureID(featureID, featureX, featureY, featureZ)
 	end
 	if successorFeatureID then
-		local successorX, _, successorZ = spring.GetFeaturePosition(successorFeatureID)
 		if successorX ~= nil then
 			wreckFeed.x = successorX
 			wreckFeed.z = successorZ
@@ -1822,9 +2016,15 @@ local function releaseWreckWraithFeed(featureID)
 	)
 end
 
-function gadget:FeatureDamaged(featureID, _, _, _, _, _, attackerID)
+function gadget:FeatureDamaged(featureID, _, _, damage, _, _, attackerID)
 	local corpseData = corpsesData[featureID]
-	if not corpseData then
+	if corpseData and damage and damage > 0 then
+		disturbCorpse(featureID, corpseData)
+	end
+	if not currentModeFeatures.wraithRespawns or not corpseData then
+		return
+	end
+	if corpseData.attackerID == attackerID and gameFrame - (corpseData.attackerSampleFrame or 0) < ATTACKER_SAMPLE_INTERVAL then
 		return
 	end
 	local attackerX, attackerZ = getLiveAttackerPosition(attackerID)
@@ -1834,9 +2034,11 @@ function gadget:FeatureDamaged(featureID, _, _, _, _, _, attackerID)
 	corpseData.attackerID = attackerID
 	corpseData.attackerX = attackerX
 	corpseData.attackerZ = attackerZ
+	corpseData.attackerSampleFrame = gameFrame
 end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
+	removeResurrectableWreck(featureID)
 	releaseWreckWraithFeed(featureID)
 	local corpseData = corpsesData[featureID]
 	if corpseData then
@@ -1979,6 +2181,7 @@ local function clearWraithState()
 	pendingWraithSpawns = {}
 	wreckWraithFeeds = {}
 	featuresCreatedThisFrame = {}
+	createdFeaturesByPosition = {}
 end
 
 ---Drops every queued corpse spawn without affecting zombies already raised.
@@ -2353,7 +2556,10 @@ function gadget:Initialize()
 		end
 	end
 
+	indexExistingResurrectableWrecks()
+
 	GG.Zombies = { IdleMode = isIdleMode, tooLong = tooLong }
+	GG.Zombies.GetNearestResurrectableWreck = getNearestResurrectableWreck
 	GG.Zombies.SetZombie = setZombie
 	GG.Zombies.ConvertUnitsToZombies = convertUnitsToZombies
 	GG.Zombies.SetAllGaiaToZombies = setAllGaiaToZombies
