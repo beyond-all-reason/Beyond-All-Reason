@@ -1130,8 +1130,8 @@ local function issueResurrectOrder(unitID, zombieData, currentCommand, unitX, un
 	return true
 end
 
-local function updateOrders(unitID, unitDefID)
-	local zombieData = zombieWatch[unitID]
+local function updateOrders(unitID, zombieData)
+	local unitDefID = zombieData.unitDefID
 	if mobileUnitDefs[unitDefID] then
 		local previousCombatTargetID = zombieData.combatTargetID
 		local currentCommand = spGetUnitCurrentCommand(unitID)
@@ -1291,7 +1291,7 @@ local function initializeZombie(unitID, unitDefID)
 	end
 	setZombieStates(unitID, unitDefID)
 	if ordersEnabled then
-		updateOrders(unitID, unitDefID)
+		updateOrders(unitID, zombieData)
 	end
 end
 
@@ -1452,11 +1452,7 @@ local function forEachLiveZombieInBucket(buckets, interval, visitZombie)
 	end
 end
 
-local function visitZombieOrders(unitID, zombieData)
-	updateOrders(unitID, zombieData.unitDefID)
-end
-
-local function visitStuckZombie(unitID, zombieData)
+local function updateStuckZombie(unitID, zombieData)
 	local unitX, _, unitZ = spGetUnitPosition(unitID)
 	if not unitX then
 		return
@@ -1523,14 +1519,6 @@ local function visitStuckZombie(unitID, zombieData)
 	zombieData.lastZ = unitZ
 end
 
-local function updateZombieOrders()
-	forEachLiveZombieInBucket(zombieOrderBuckets, ZOMBIE_ORDER_CHECK_INTERVAL, visitZombieOrders)
-end
-
-local function updateStuckZombies()
-	forEachLiveZombieInBucket(zombieStuckBuckets, STUCK_CHECK_INTERVAL, visitStuckZombie)
-end
-
 local function getWraithData(unitID, unitDefID)
 	local wraithData = wraithWatch[unitID]
 	if not wraithData then
@@ -1593,8 +1581,8 @@ function gadget:GameFrame(frame)
 	end
 	updateAggro()
 	if ordersEnabled then
-		updateZombieOrders()
-		updateStuckZombies()
+		forEachLiveZombieInBucket(zombieOrderBuckets, ZOMBIE_ORDER_CHECK_INTERVAL, updateOrders)
+		forEachLiveZombieInBucket(zombieStuckBuckets, STUCK_CHECK_INTERVAL, updateStuckZombie)
 	end
 end
 
