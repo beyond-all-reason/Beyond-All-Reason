@@ -1,16 +1,14 @@
--- Resurrectable wrecks are stored in a grid and queried by cell instead of scanning every feature in range.
--- Same-frame successor wrecks are matched from positions saved at creation instead of asking the engine for each one.
--- Wreck attacker positions are skipped when wraiths are off, and otherwise updated at most once a second per attacker.
--- Vanished deaths are checked every 15 frames instead of every 3.
--- A wraith tries three drop sites on its first clear search and one site each second after that.
--- Zombie target scans reject unit defs that cannot be shot or captured before calling the engine.
--- Combat orders stay the engage point plus the 45 degree orbit. The 250 drift refresh is skipped while GetClosestEnemyUnit finds any enemy inside half of weapon range.
--- Objective routes try 4 headings and queue one move. Repeat keeps it, and the 12-second stuck pass issues a new move within 400 of that point or when the zombie has not moved.
--- Every zombie is set to repeat. Gaia units are skipped by the repeat icon the same way the fire-state icons skip Gaia.
--- One order update reuses the zombie position, and underwater weapon range uses the unit def height.
--- Aggro assignment uses the ally unit lists and skips a position check for zombies whose target is still alive.
--- The stuck check asks for the worker task only after the zombie has failed to move.
--- Order and stuck bucket visitors are named functions, and each visit makes one death check.
+-- Code notes.
+-- Resurrectable wrecks live in a 512-elmo grid, and wreck queries read those cells and take one wreck at random inside the radius. A same-frame successor wreck is matched from the position saved when it was created.
+-- Attacker positions on a wreck are recorded only while wraiths are on, and the same attacker is sampled at most once a second on that wreck. Deaths that leave no feature are resolved every 15 frames.
+-- A wraith's first clear drop tests three sites, then one site each clear second. A failed wraith CreateUnit is retried twice, five frames apart, and the third failure adds a substitute purchase's power back to excess power. A missing wraith unit def returns that power immediately.
+-- Queueing wrecks again leaves a wreck's existing spawn frame alone.
+--
+-- ai_zombies.lua issues orders. A target scan rejects a unit def that cannot shoot or capture the target before reading that unit's position. An order update reuses a zombie position already fetched in that update, and underwater range adds the unit def height to the target height.
+-- Combat orders are the half-range engage point plus a 45 degree orbit. An orbit still within 250 of that ring is kept. A target that drifts 250 does not refresh the order while any enemy is inside half weapon range. Each combat check still has a 0.05% chance to issue a new pair.
+-- A wander order tries up to four headings and queues one move, and repeat keeps it. Gaia zombies the AI watches are set to repeat. The repeat icon skips Gaia, as the fire-state icons do.
+-- Every 12 seconds, a zombie within 400 of its move point and not in combat gets a new move. So does one that has moved less than 50, is not standing on a remembered enemy edge, and is not resurrecting or reclaiming. That reroute tries up to ten headings. The worker task is read only after the move check fails.
+-- Aggro reads the ally unit lists. A zombie whose target is still on that ally team keeps the assignment with no position check. visitZombieOrders and visitStuckZombie each check death once per visit.
 function gadget:GetInfo()
 	return {
 		name = "Zombies",
@@ -77,15 +75,10 @@ end
 --
 -- What players see:
 --   One revived unit appears on the wreck. When several rise from the same wreck, they scatter around it.
---   In every zombie mode, a heap becomes a corpse after twice the resurrection time. That corpse then
---     rises on the normal timer, so heap, corpse, then zombie takes three times as long.
+--   In every zombie mode, a heap becomes a corpse after twice the resurrection time, and that corpse rises on the normal timer. Heap, corpse, then zombie takes three times as long.
 --   Zombies on Gaia or the scavenger team resurrect wrecks, capture units, and finish construction as zombies.
 --   Metal extractors and geothermal buildings rise from their heap and corpse as themselves.
---   A capture turns the unit into a zombie only when zombies made the capture. Another builder capturing it
---     cancels that, including a capture they started in the last second.
---   If the wraith unit cannot be created, the game tries twice more. After the third failure, a substitute
---     purchase is returned to the pool instead of being retried forever.
---   A wreck already waiting to rise keeps its timer when wrecks are queued again.
+--   A capture turns the unit into a zombie only when zombies made the capture. Another builder capturing it cancels that, including a capture they started in the last second.
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -158,6 +151,7 @@ local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed -- How often (in frames) everything
 local REZ_SPEED_UPDATE_INTERVAL = Game.gameSpeed * 60
 
 local gameFrame = 0
+local runFeatureBuildStepCheck = false
 local tooLong = false
 local adjustedRezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[1]
 local factoryBuildpowerMultiplier = 1
@@ -191,8 +185,8 @@ local ZOMBIE_EXPIRING_FACTORY_LIFETIME = Game.gameSpeed * 60 * 5
 
 local UNTAMPERED_FRAME = -math.huge
 local RECENT_TAMPER_FRAMES = Game.gameSpeed
-local BUILD_STEP_CHECK_INTERVAL = floor(Game.gameSpeed / 3)
-local ZOMBIE_REZ_HIJACK_LEAD_FRAMES = BUILD_STEP_CHECK_INTERVAL * 2.5
+local BUILD_STEP_CHECK_INTERVAL = floor(Game.gameSpeed / 2)
+local ZOMBIE_REZ_HIJACK_LEAD_FRAMES = 30
 
 local WATER_DAMAGE_DEF_ID = Game.envDamageTypes.Water
 local KILLED_BY_LUA_DAMAGE_DEF_ID = Game.envDamageTypes.KilledByLua
@@ -250,6 +244,7 @@ local corpsesData = {}
 local corpseCheckFrames = {}
 local rezzedCorpses = {}
 local zombieRezChecks = {}
+local pendingTamperedFrames = {}
 local pendingDeaths = {}
 local vanishedDeaths = {}
 local pendingWreckSwaps = {}
@@ -446,7 +441,11 @@ do
 		setSetting(customParams, "zombie_heap_respawn_delay_multiplier", "heapRespawnDelayMultiplier")
 		setSetting(customParams, "zombie_factory_buildpower_tech_multiplier", "factoryBuildpowerTechMultiplier")
 		setSetting(customParams, "zombie_rez_power_speed_multiplier", "rezPowerSpeedMultiplier")
-		setSetting(customParams, "zombie_wraith_spawn_max_units_per_spawn_multiplier", "wraithSpawnMaxUnitsPerSpawnMultiplier")
+		setSetting(
+			customParams,
+			"zombie_wraith_spawn_max_units_per_spawn_multiplier",
+			"wraithSpawnMaxUnitsPerSpawnMultiplier"
+		)
 		setSetting(customParams, "zombie_minimum_spawns", "spawnCountMinimum")
 		setSetting(customParams, "zombie_maximum_spawns", "spawnCountMaximum")
 		setSetting(customParams, "zombie_minimum_respawn_delay", "respawnDelayMinimum")
@@ -540,10 +539,8 @@ do
 	table.sort(wraithPoolUnitDefIDs, compareUnitDefPower)
 
 	zombieModeSettings.spawnCountMinimum = math.max(1, floor(zombieModeSettings.spawnCountMinimum))
-	zombieModeSettings.spawnCountMaximum = math.max(
-		zombieModeSettings.spawnCountMinimum,
-		floor(zombieModeSettings.spawnCountMaximum)
-	)
+	zombieModeSettings.spawnCountMaximum =
+		math.max(zombieModeSettings.spawnCountMinimum, floor(zombieModeSettings.spawnCountMaximum))
 	zombieModeSettings.respawnDelayMinimum = math.max(0, zombieModeSettings.respawnDelayMinimum)
 	if zombieModeSettings.respawnDelayMinimum > zombieModeSettings.respawnDelayMaximum then
 		zombieModeSettings.respawnDelayMaximum = zombieModeSettings.respawnDelayMinimum
@@ -608,14 +605,12 @@ local function rebuildZombieCorpseSpawnDelays()
 			unitDefData.heapSpawnDelayFrames = nil
 		elseif unitDefData.customRespawnTime then
 			unitDefData.spawnDelayFrames = floor(unitDefData.customRespawnTime * Game.gameSpeed)
-			unitDefData.heapSpawnDelayFrames = floor(
-				unitDefData.spawnDelayFrames * zombieModeSettings.heapRespawnDelayMultiplier
-			)
+			unitDefData.heapSpawnDelayFrames =
+				floor(unitDefData.spawnDelayFrames * zombieModeSettings.heapRespawnDelayMultiplier)
 		else
 			unitDefData.spawnDelayFrames = unitDefData.powerSpawnDelayFrames
-			unitDefData.heapSpawnDelayFrames = floor(
-				unitDefData.spawnDelayFrames * zombieModeSettings.heapRespawnDelayMultiplier
-			)
+			unitDefData.heapSpawnDelayFrames =
+				floor(unitDefData.spawnDelayFrames * zombieModeSettings.heapRespawnDelayMultiplier)
 		end
 	end
 end
@@ -623,7 +618,8 @@ end
 local function setZombieFactoryBuildpower(unitID, useZombieBuildpower, unitDefID)
 	if not unitID then
 		for trackedUnitID, factoryData in pairs(zombieFactories) do
-			local keepZombieBuildpower = spring.ValidUnitID(trackedUnitID) and spring.GetUnitTeam(trackedUnitID) == gaiaTeamID
+			local keepZombieBuildpower = spring.ValidUnitID(trackedUnitID)
+				and spring.GetUnitTeam(trackedUnitID) == gaiaTeamID
 			setZombieFactoryBuildpower(trackedUnitID, keepZombieBuildpower, factoryData.unitDefID)
 		end
 		return
@@ -709,7 +705,12 @@ local function armCorpseSpawn(featureID, featureData, spawnFrame, armFrame)
 	spawnFrame = math.max(spawnFrame, gameFrame + 1)
 	featureData.spawnFrame = spawnFrame
 	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME, spawnFrame, RULES_PARAM.PUBLIC_ACCESS)
-	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_DELAY, featureData.spawnDelayFrames, RULES_PARAM.PUBLIC_ACCESS)
+	spring.SetFeatureRulesParam(
+		featureID,
+		RULES_PARAM.REZ_DELAY,
+		featureData.spawnDelayFrames,
+		RULES_PARAM.PUBLIC_ACCESS
+	)
 	addToFrameList(corpseCheckFrames, spawnFrame, featureID)
 	if featureData.isHeap then
 		return
@@ -759,7 +760,9 @@ local function disturbCorpse(featureID, corpseData)
 		corpseData.pushbackFrames = restartPushback
 	end
 	local publishedFrame = corpseData.publishedFrame
-	local recentlyPublished = publishedFrame and publishedFrame > 0 and gameFrame - publishedFrame < RECENT_TAMPER_FRAMES
+	local recentlyPublished = publishedFrame
+		and publishedFrame > 0
+		and gameFrame - publishedFrame < RECENT_TAMPER_FRAMES
 	corpseData.tamperedFrame = gameFrame
 	if recentlyPublished then
 		return
@@ -814,15 +817,7 @@ local function registerZombie(unitID, unitDefID, transferToScavs)
 end
 
 ---@return integer spawnedCount
-local function spawnZombieUnits(
-	unitDefID,
-	spawnCount,
-	spawnX,
-	spawnY,
-	spawnZ,
-	facing,
-	inheritedExperience
-)
+local function spawnZombieUnits(unitDefID, spawnCount, spawnX, spawnY, spawnZ, facing, inheritedExperience)
 	local unitDefData = zombieUnitDefs[unitDefID]
 	if not unitDefData then
 		return 0
@@ -867,9 +862,8 @@ local function resolveSpawnPlan(unitDefID, wasZombie, unitPower, spawnCount)
 
 	local borrowedPower = math.min(excessPower, unitPower)
 	local totalPower = unitPower * spawnCount + borrowedPower
-	local wraithSpawnMaxUnits = math.ceil(
-		zombieModeSettings.spawnCountMaximum * zombieModeSettings.wraithSpawnMaxUnitsPerSpawnMultiplier
-	)
+	local wraithSpawnMaxUnits =
+		math.ceil(zombieModeSettings.spawnCountMaximum * zombieModeSettings.wraithSpawnMaxUnitsPerSpawnMultiplier)
 	excessPower = excessPower - borrowedPower
 
 	local lowestIndex
@@ -939,15 +933,8 @@ local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie
 	if not spawnUnitDefID then
 		return
 	end
-	local spawnedCount = spawnZombieUnits(
-		spawnUnitDefID,
-		plannedCount,
-		spawnX,
-		spawnY,
-		spawnZ,
-		facing,
-		inheritedExperience
-	)
+	local spawnedCount =
+		spawnZombieUnits(spawnUnitDefID, plannedCount, spawnX, spawnY, spawnZ, facing, inheritedExperience)
 	if isSubstitute then
 		retryFailedSubstitutes(spawnUnitDefID, plannedCount - spawnedCount)
 	end
@@ -1036,8 +1023,7 @@ local function createWraith(spawnData)
 		spawnData.payloadUnitDefID,
 		spawnData.payloadCount
 	)
-	local attackerX, attackerZ =
-		getLiveAttackerPosition(spawnData.attackerID, spawnData.attackerX, spawnData.attackerZ)
+	local attackerX, attackerZ = getLiveAttackerPosition(spawnData.attackerID, spawnData.attackerX, spawnData.attackerZ)
 	if GG.ZombieAI then
 		GG.ZombieAI.CommandWraith(unitID, wraithUnitDefID, wraithX, wraithY, wraithZ, attackerX, attackerZ)
 	end
@@ -1069,7 +1055,16 @@ local function feedWraithQueue(unitDefID, spawnX, spawnZ, wasZombie, attackerID,
 	}
 end
 
-local function rememberWreckWraithFeed(featureID, unitDefID, featureX, featureZ, wasZombie, attackerID, attackerX, attackerZ)
+local function rememberWreckWraithFeed(
+	featureID,
+	unitDefID,
+	featureX,
+	featureZ,
+	wasZombie,
+	attackerID,
+	attackerX,
+	attackerZ
+)
 	if not featureID or not unitDefID or featureX == nil then
 		return
 	end
@@ -1308,8 +1303,36 @@ local function wasTamperedRecently(tamperedFrame)
 	return tamperedFrame and gameFrame - tamperedFrame < RECENT_TAMPER_FRAMES
 end
 
-function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
-	if part > 0 and isZombieTeam(builderTeam) and zombieUnitIDs[builderID] then
+local function framesUntilResurrectCompletes(featureID, buildStepFraction)
+	local _, _, resurrectProgress = spring.GetFeatureHealth(featureID)
+	if not resurrectProgress or buildStepFraction <= 0 then
+		return nil
+	end
+	local progressPerFrame = buildStepFraction
+	local rezCheck = zombieRezChecks[featureID]
+	if rezCheck and rezCheck.frame < gameFrame then
+		local measuredProgressPerFrame = (resurrectProgress - rezCheck.progress) / (gameFrame - rezCheck.frame)
+		if measuredProgressPerFrame > progressPerFrame then
+			progressPerFrame = measuredProgressPerFrame
+		end
+	end
+	if not rezCheck or rezCheck.frame ~= gameFrame then
+		zombieRezChecks[featureID] = { frame = gameFrame, progress = resurrectProgress }
+	end
+	if progressPerFrame <= 0 then
+		return nil
+	end
+	return (1 - resurrectProgress) / progressPerFrame
+end
+
+function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, buildStepFraction)
+	if not runFeatureBuildStepCheck then
+		return true
+	end
+	if isZombieTeam(builderTeam) then
+		if buildStepFraction <= 0 or not zombieUnitIDs[builderID] then
+			return true
+		end
 		local corpseDefData = zombieCorpseDefs[featureDefID]
 		if not corpseDefData then
 			return true
@@ -1318,30 +1341,15 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 			return false
 		end
 		local corpseData = corpsesData[featureID]
-		if corpseData and wasTamperedRecently(corpseData.tamperedFrame) then
+		local tamperedFrame = pendingTamperedFrames[featureID]
+		if not tamperedFrame and corpseData then
+			tamperedFrame = corpseData.tamperedFrame
+		end
+		if wasTamperedRecently(tamperedFrame) then
 			return true
 		end
-		local rezCheck = zombieRezChecks[featureID]
-		if rezCheck and gameFrame - rezCheck.frame < BUILD_STEP_CHECK_INTERVAL then
-			return true
-		end
-		local _, _, resurrectProgress = spring.GetFeatureHealth(featureID)
-		local progressPerFrame = part
-		if rezCheck then
-			local measuredProgressPerFrame = (resurrectProgress - rezCheck.progress) / (gameFrame - rezCheck.frame)
-			if measuredProgressPerFrame > progressPerFrame then
-				progressPerFrame = measuredProgressPerFrame
-			end
-			rezCheck.frame = gameFrame
-			rezCheck.progress = resurrectProgress
-		else
-			zombieRezChecks[featureID] = { frame = gameFrame, progress = resurrectProgress }
-		end
-		if resurrectProgress + progressPerFrame * ZOMBIE_REZ_HIJACK_LEAD_FRAMES < 1 then
-			return true
-		end
-		local metal, maxMetal = spring.GetFeatureResources(featureID)
-		if metal < maxMetal then
+		local framesRemaining = framesUntilResurrectCompletes(featureID, buildStepFraction)
+		if not framesRemaining or framesRemaining > ZOMBIE_REZ_HIJACK_LEAD_FRAMES then
 			return true
 		end
 		rezzedCorpses[featureID] = true
@@ -1351,13 +1359,9 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		rezzedCorpses[featureID] = nil
 		return true
 	end
-	local corpseData = corpsesData[featureID]
-	if not corpseData then
-		return true
+	if corpsesData[featureID] then
+		pendingTamperedFrames[featureID] = gameFrame
 	end
-	local delayFrames = corpseData.spawnDelayFrames or 0
-	corpseData.pushbackFrames = (corpseData.pushbackFrames or 0) + abs(part) * delayFrames
-	disturbCorpse(featureID, corpseData)
 	return true
 end
 
@@ -1470,7 +1474,15 @@ local function queueFeatureForSpawning(
 	rememberWreckWraithFeed(featureID, unitDefID, featureX, featureZ, wasZombie, attackerID, attackerX, attackerZ)
 end
 
-local function queueCorpseForSpawning(featureID, override, wasZombie, spawnDelayMultiplier, attackerID, attackerX, attackerZ)
+local function queueCorpseForSpawning(
+	featureID,
+	override,
+	wasZombie,
+	spawnDelayMultiplier,
+	attackerID,
+	attackerX,
+	attackerZ
+)
 	if not override and not autoSpawningEnabled then
 		return
 	end
@@ -1689,8 +1701,42 @@ local function topUpGaiaResources()
 	end
 end
 
+local function publishPendingTamperedCorpses()
+	if next(pendingTamperedFrames) == nil then
+		return
+	end
+	local featureIDs = {}
+	for featureID in pairs(pendingTamperedFrames) do
+		featureIDs[#featureIDs + 1] = featureID
+	end
+	table.sort(featureIDs)
+	for featureIndex = 1, #featureIDs do
+		local featureID = featureIDs[featureIndex]
+		local tamperedFrame = pendingTamperedFrames[featureID]
+		pendingTamperedFrames[featureID] = nil
+		local corpseData = corpsesData[featureID]
+		if corpseData then
+			corpseData.tamperedFrame = tamperedFrame
+			local delayFrames = corpseData.spawnDelayFrames or 0
+			local restartPushback = gameFrame + delayFrames - (corpseData.spawnFrame or gameFrame)
+			if restartPushback < 0 then
+				restartPushback = 0
+			end
+			if (corpseData.pushbackFrames or 0) < restartPushback then
+				corpseData.pushbackFrames = restartPushback
+			end
+			publishPushedSpawn(featureID, corpseData)
+		end
+	end
+end
+
 function gadget:GameFrame(frame)
 	gameFrame = frame
+	if frame % BUILD_STEP_CHECK_INTERVAL == 5 then
+		runFeatureBuildStepCheck = true
+	else
+		runFeatureBuildStepCheck = false
+	end
 
 	processWreckSwaps()
 	if frame % VANISHED_DEATH_CHECK_INTERVAL == 0 then
@@ -1706,15 +1752,16 @@ function gadget:GameFrame(frame)
 		updateRezSpeed()
 	end
 
-	processDueCorpses(frame)
-
 	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
+		publishPendingTamperedCorpses()
 		updateTooLong(frame)
 		if currentModeFeatures.wraithRespawns then
 			updateWraiths()
 		end
 		topUpGaiaResources()
 	end
+
+	processDueCorpses(frame)
 	if #featuresCreatedThisFrame > 0 then
 		featuresCreatedThisFrame = {}
 		createdFeaturesByPosition = {}
@@ -1850,14 +1897,14 @@ local function trackResurrectableWreck(featureID)
 	addResurrectableWreck(featureID, featureX, featureY, featureZ)
 end
 
-local function getNearestResurrectableWreck(originX, originZ, radius)
+local function getRandomResurrectableWreck(originX, originZ, radius)
 	local radiusSquared = radius * radius
 	local minCellX = floor((originX - radius) / WRECK_CELL_SIZE)
 	local maxCellX = floor((originX + radius) / WRECK_CELL_SIZE)
 	local minCellZ = floor((originZ - radius) / WRECK_CELL_SIZE)
 	local maxCellZ = floor((originZ + radius) / WRECK_CELL_SIZE)
-	local bestFeatureID
-	local bestDistanceSquared
+	local chosenFeatureID
+	local validWreckCount = 0
 	for cellX = minCellX, maxCellX do
 		for cellZ = minCellZ, maxCellZ do
 			local cell = resurrectableWreckCells[wreckCellKey(cellX, cellZ)]
@@ -1867,16 +1914,18 @@ local function getNearestResurrectableWreck(originX, originZ, radius)
 					local trackedWreck = wreckCellIndex[featureID]
 					if trackedWreck and not isPositionInLava(trackedWreck.y) then
 						local wreckDistanceSquared = distance2dSquared(originX, originZ, trackedWreck.x, trackedWreck.z)
-						if wreckDistanceSquared <= radiusSquared and (not bestDistanceSquared or wreckDistanceSquared < bestDistanceSquared) then
-							bestFeatureID = featureID
-							bestDistanceSquared = wreckDistanceSquared
+						if wreckDistanceSquared <= radiusSquared then
+							validWreckCount = validWreckCount + 1
+							if random(1, validWreckCount) == 1 then
+								chosenFeatureID = featureID
+							end
 						end
 					end
 				end
 			end
 		end
 	end
-	return bestFeatureID
+	return chosenFeatureID
 end
 
 local function indexExistingResurrectableWrecks()
@@ -2035,7 +2084,10 @@ function gadget:FeatureDamaged(featureID, _, _, damage, _, _, attackerID)
 	if not currentModeFeatures.wraithRespawns or not corpseData then
 		return
 	end
-	if corpseData.attackerID == attackerID and gameFrame - (corpseData.attackerSampleFrame or 0) < ATTACKER_SAMPLE_INTERVAL then
+	if
+		corpseData.attackerID == attackerID
+		and gameFrame - (corpseData.attackerSampleFrame or 0) < ATTACKER_SAMPLE_INTERVAL
+	then
 		return
 	end
 	local attackerX, attackerZ = getLiveAttackerPosition(attackerID)
@@ -2058,6 +2110,7 @@ function gadget:FeatureDestroyed(featureID, allyTeam)
 	end
 	rezzedCorpses[featureID] = nil
 	zombieRezChecks[featureID] = nil
+	pendingTamperedFrames[featureID] = nil
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -2449,10 +2502,7 @@ local ZOMBIE_CHAT_ACTIONS = {
 			end
 			local mode = string.lower(words[1])
 			if not setZombieMode(mode) then
-				spring.SendMessageToPlayer(
-					playerID,
-					"Invalid mode. Use: basic, wraith, hydra, akumu, or spidergeddon"
-				)
+				spring.SendMessageToPlayer(playerID, "Invalid mode. Use: basic, wraith, hydra, akumu, or spidergeddon")
 				return
 			end
 			spring.SendMessageToPlayer(playerID, "Zombie mode set to " .. mode)
@@ -2483,6 +2533,7 @@ local function saveReloadState()
 			corpsesData = corpsesData,
 			corpseCheckFrames = corpseCheckFrames,
 			zombieRezChecks = zombieRezChecks,
+			pendingTamperedFrames = pendingTamperedFrames,
 			pendingDeaths = pendingDeaths,
 			pendingWreckSwaps = pendingWreckSwaps,
 			pendingZombieCaptures = pendingZombieCaptures,
@@ -2523,6 +2574,7 @@ local function restoreReloadState()
 	end
 	corpseCheckFrames = reloadState.corpseCheckFrames
 	zombieRezChecks = reloadState.zombieRezChecks
+	pendingTamperedFrames = reloadState.pendingTamperedFrames or {}
 	pendingDeaths = reloadState.pendingDeaths
 	pendingWreckSwaps = reloadState.pendingWreckSwaps
 	pendingZombieCaptures = reloadState.pendingZombieCaptures
@@ -2570,7 +2622,7 @@ function gadget:Initialize()
 	indexExistingResurrectableWrecks()
 
 	GG.Zombies = { IdleMode = isIdleMode, tooLong = tooLong }
-	GG.Zombies.GetNearestResurrectableWreck = getNearestResurrectableWreck
+	GG.Zombies.GetRandomResurrectableWreck = getRandomResurrectableWreck
 	GG.Zombies.SetZombie = setZombie
 	GG.Zombies.ConvertUnitsToZombies = convertUnitsToZombies
 	GG.Zombies.SetAllGaiaToZombies = setAllGaiaToZombies
