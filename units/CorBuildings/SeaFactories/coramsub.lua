@@ -36,6 +36,7 @@ return {
 			[5] = "corcrash",
 			[6] = "coraak",
 			[7] = "cordecom",
+			[8] = "cormando",
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
