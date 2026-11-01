@@ -1036,6 +1036,10 @@ local icontypes = {
 		bitmap = "icons/armsptkt4.png",
 		size = 2.30999994,
 	},
+	armscorp = {
+		bitmap = "icons/armsptkt4.png",
+		size = 2.30999994,
+	},
 	squadarmsptk = {
 		bitmap = "icons/armsptk_1.44.png",
 		size = 1.65199995,

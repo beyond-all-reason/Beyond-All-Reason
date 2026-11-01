@@ -962,6 +962,7 @@ return {
 				armspid = "Spider",
 				armsptk = "Recluse",
 				armsptkt4 = "Epic Recluse",
+				armscorp = "Scorpion",
 				armspy = "Infiltrator",
 				armstil = "Stiletto",
 				armstone = "Commander Tombstone",
