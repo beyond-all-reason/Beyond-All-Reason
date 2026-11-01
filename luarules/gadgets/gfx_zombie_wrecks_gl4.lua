@@ -459,6 +459,23 @@ local function armWreck(_, featureID, armFrame, riseFrame)
 	updateWreckSprites(featureID, wreck)
 end
 
+local function restoreWreck(featureID, armFrame, riseFrame, frame)
+	armWreck(nil, featureID, armFrame, riseFrame)
+	local wreck = wrecks[featureID]
+	if not wreck then
+		return
+	end
+	wreck.settleFrame = armFrame
+	local progress = math.min(1, (frame - armFrame) / math.max(riseFrame - armFrame, 1))
+	wreck.flashCount = math.min(flashesPerWreck, math.floor(flashEasing(progress) * (flashesPerWreck + 1)))
+	local firstStrikeFrame = riseFrame - SMOKE_FINISH_FRAMES_BEFORE_RISE
+	if frame >= firstStrikeFrame then
+		wreck.strikeCount =
+			math.min(strikesPerWreck, math.floor((frame - firstStrikeFrame) / STRIKE_INTERVAL_FRAMES) + 1)
+	end
+	updateWreckSprites(featureID, wreck)
+end
+
 local function disarmWreck(_, featureID)
 	wrecks[featureID] = nil
 	removeWreckSprite(featureID)
@@ -710,7 +727,8 @@ function gadget:Initialize()
 	for _, featureID in ipairs(Spring.GetAllFeatures()) do
 		local riseFrame = spGetFeatureRulesParam(featureID, "zombie_rez_frame")
 		if riseFrame and riseFrame > frame then
-			armWreck(nil, featureID, frame, riseFrame)
+			local armFrame = spGetFeatureRulesParam(featureID, "zombie_rez_arm_frame") or frame
+			restoreWreck(featureID, armFrame, riseFrame, frame)
 		end
 	end
 end
