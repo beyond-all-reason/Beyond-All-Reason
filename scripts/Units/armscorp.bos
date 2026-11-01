@@ -512,18 +512,30 @@ RestoreAfterDelay()
 
 	//closes doors
 	sleep 2500;
+	start-script CloseDoors();
+
+}
+
+CloseDoors()
+{
 	turn doorl to z-axis <0.0> speed <50.0>;
 	turn doorr to z-axis <0.0> speed <50.0>;
 
+	return(1);
+}
+
+OpenDoors()
+{
+	turn doorl to z-axis <90.0> speed <95.0>;
+	turn doorr to z-axis <-90.0> speed <95.0>;
+
+	return(1);
 }
 
 AimWeapon1(heading, pitch)
 {
 	//open doors
-	turn doorl to z-axis <90.0> speed <95.0>;
-	turn doorr to z-axis <-90.0> speed <95.0>;
-
-
+	start-script OpenDoors();
 
 	//rise turret to aim
 	turn weight to x-axis <-90.0> speed <30.0>;
@@ -557,7 +569,9 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode base type  FIRE | SMOKE | NOHEATCLOUD | EXPLODE_ON_HIT;
+		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode leg1a type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode leg1b type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode leg1c type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -566,9 +580,11 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode base type  FIRE | SMOKE | NOHEATCLOUD | EXPLODE_ON_HIT;
 		explode leg1a type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode leg1b type FALL | NOHEATCLOUD;
+		explode doorl type FALL | NOHEATCLOUD;
+		explode doorr type FALL | NOHEATCLOUD;
 		explode leg1c type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode leg6a type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -576,15 +592,19 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode base type FIRE | SMOKE | NOHEATCLOUD | EXPLODE_ON_HIT;
 		explode leg1a type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode leg1b type SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type SMOKE | FALL | NOHEATCLOUD;
+		explode doorr type SMOKE | FALL | NOHEATCLOUD;
 		explode leg1c type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode leg6a type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode base type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
+		explode doorl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode leg1a type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode leg1b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode leg1c type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
