@@ -434,6 +434,9 @@ local function ClearSelectionPrimitives()
 end
 
 function widget:Update(dt)
+	if WG.PortalWorldView then
+		updateSelection = true
+	end
 	-- Handle UI visibility: clear selections when hidden, resync on show
 	if spIsGUIHidden() then
 		if not cleanedForHiddenUI then
@@ -467,8 +470,11 @@ function widget:Update(dt)
 		-- add to selection
 		for i = 1, #selectedUnits do
 			local unitID = selectedUnits[i]
-			newSelUnits[unitID] = true
-			if not oldSelUnits[unitID] then
+			local inView = not WG.PortalWorldView or WG.PortalWorldView.ContainsUnit(unitID)
+			if inView then
+				newSelUnits[unitID] = true
+			end
+			if inView and not oldSelUnits[unitID] then
 				startFrame = startFrame or primitiveStartFrame()
 				AddPrimitiveAtUnit(unitID, startFrame, waterLevel)
 				changedVBOs = true

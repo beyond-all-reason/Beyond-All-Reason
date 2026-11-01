@@ -2237,6 +2237,10 @@ function gadgetHandler:UnitPreDamaged(
 	attackerDefID,
 	attackerTeam
 )
+	local isolation = self.GG.PortalIsolation
+	if isolation and not isolation.UnitDamageAllowed(unitID, attackerID, projectileID) then
+		return 0, 0
+	end
 	tracyZoneBeginN("G:UnitPreDamaged")
 	local retDamage = damage
 	local retImpulse = 1.0
@@ -2292,6 +2296,10 @@ function gadgetHandler:UnitDamaged(
 	attackerDefID,
 	attackerTeam
 )
+	local isolation = self.GG.PortalIsolation
+	if isolation and not isolation.UnitDamageAllowed(unitID, attackerID, projectileID) then
+		return
+	end
 	tracyZoneBeginN("G:UnitDamaged")
 	local list = self.UnitDamagedList ---@type table[]
 	local i, g = 1, list[1]
@@ -2549,6 +2557,13 @@ function gadgetHandler:FeaturePreDamaged(
 	attackerDefID,
 	attackerTeam
 )
+	local isolation = self.GG.PortalIsolation
+	if isolation then
+		local x, _, z = Spring.GetFeaturePosition(featureID)
+		if not isolation.DamageAllowed(isolation.Region(x, z), attackerID, projectileID) then
+			return 0, 0
+		end
+	end
 	local retDamage = damage
 	local retImpulse = 1.0
 
@@ -2591,7 +2606,7 @@ function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	return
 end
 
-function gadgetHandler:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
+local function DispatchProjectileDestroyed(self, proID, proOwnerID, proWeaponDefID)
 	tracyZoneBeginN("G:ProjectileDestroyed")
 	local list = projectileDestroyedLists[proWeaponDefID]
 	for i = 1, #list do
@@ -2599,6 +2614,22 @@ function gadgetHandler:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
 	end
 	tracyZoneEnd()
 	return
+end
+
+function gadgetHandler:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
+	local isolation = self.GG.PortalIsolation
+	local projectile = isolation and isolation.projectiles[proID]
+	if projectile and projectile.region then
+		return isolation.DamageInRegion(
+			projectile.region,
+			DispatchProjectileDestroyed,
+			self,
+			proID,
+			proOwnerID,
+			proWeaponDefID
+		)
+	end
+	return DispatchProjectileDestroyed(self, proID, proOwnerID, proWeaponDefID)
 end
 
 --------------------------------------------------------------------------------
@@ -2621,6 +2652,10 @@ function gadgetHandler:ShieldPreDamaged(
 	hitY,
 	hitZ
 )
+	local isolation = self.GG.PortalIsolation
+	if isolation and not isolation.UnitDamageAllowed(shieldCarrierUnitID, beamEmitterUnitID or proOwnerID, proID) then
+		return true
+	end
 	for _, g in ipairs(self.ShieldPreDamagedList) do
 		-- first gadget to handle this consumes the event
 		if
@@ -2652,7 +2687,7 @@ end
 --  Misc call-ins
 --
 
-function gadgetHandler:Explosion(weaponID, px, py, pz, ownerID, projectileID)
+local function DispatchExplosion(self, weaponID, px, py, pz, ownerID, projectileID)
 	-- "noGfx = noGfx or ..." short-circuits, so equivalent to this
 	local list = explosionLists[weaponID]
 	for i = #list, 1, -1 do
@@ -2663,6 +2698,21 @@ function gadgetHandler:Explosion(weaponID, px, py, pz, ownerID, projectileID)
 	end
 
 	return false
+end
+
+function gadgetHandler:Explosion(weaponID, px, py, pz, ownerID, projectileID)
+	local isolation = self.GG.PortalIsolation
+	if isolation then
+		local projectile = projectileID and isolation.projectiles[projectileID]
+		local region = (projectile and projectile.region)
+			or (ownerID and isolation.UnitRegion(ownerID))
+			or isolation.Region(px, pz)
+		if not region or isolation.Region(px, pz) ~= region then
+			return true
+		end
+		return isolation.DamageInRegion(region, DispatchExplosion, self, weaponID, px, py, pz, ownerID, projectileID)
+	end
+	return DispatchExplosion(self, weaponID, px, py, pz, ownerID, projectileID)
 end
 
 --------------------------------------------------------------------------------
