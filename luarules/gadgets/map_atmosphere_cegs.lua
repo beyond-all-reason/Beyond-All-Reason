@@ -245,6 +245,9 @@ if not gadgetHandler:IsSyncedCode() then
 		sundir
 	)
 		--Spring.Echo("MapAtmosphereConfigSetSun", targetbrightness, transitionspeed, redlevel, greenlevel, bluelevel, sundir)
+		if GG.MapLightingActive then
+			return -- GG.MapLighting (api_map_lighting.lua) has the lighting
+		end
 		local transitionspeedpercented = transitionspeed * 0.000333
 		if not transition then
 			transition = 1
