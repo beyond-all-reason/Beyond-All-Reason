@@ -156,7 +156,7 @@ UnitSpeed()
 			//get PRINT(1,WALK_PERIOD,moveSpeed);
 			WALK_PERIOD=98;
 		}
-		sleep 142;
+		sleep 50;
 		//get PRINT(moving, currentSpeed,0,0);
 	}
 }
