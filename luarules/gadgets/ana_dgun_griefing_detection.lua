@@ -499,7 +499,7 @@ local function GetGameID()
 end
 
 function gadget:Initialize()
-    gadgetHandler:RegisterUnitCommand(CMD.MANUALFIRE)
+	gadgetHandler:RegisterUnitCommand(CMD.MANUALFIRE)
 	RefreshPlayerState()
 end
 
