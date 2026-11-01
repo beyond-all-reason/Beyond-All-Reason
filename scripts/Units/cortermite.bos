@@ -150,7 +150,7 @@ UnitSpeed()
 			//get PRINT(1,WALK_PERIOD,moveSpeed);
 			WALK_PERIOD=98;
 		}
-		sleep 142;
+		sleep 50;
 		//get PRINT(moving, currentSpeed,0,0);
 	}
 }
@@ -298,6 +298,8 @@ AimWeapon1(heading, pitch)
 	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
 		wpn1_lasthead = 0xbadface;
+
+		//Prevents the head from visually snapping it's neck, but can interfere with firing when doing 180 turns
 		wait-for-turn head around y-axis;
 		wait-for-turn head around x-axis;
 	}
@@ -337,12 +339,12 @@ AimFromWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		pieceIndex = flare1;
+		pieceIndex = head;
 		return (0);
 	}
 	if( gun_1 == 1 )
 	{
-		pieceIndex = flare2;
+		pieceIndex = head;
 		return (0);
 	}
 }
