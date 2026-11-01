@@ -350,7 +350,7 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
-	-- legsrail armscab armsptk armscorp cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere leginfestor
+	-- legsrail armscab armsptk cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere leginfestor
 	TBOT3 = {
 		crushstrength = CRUSH.SMALL - 3,
 		footprint = 3,
@@ -500,7 +500,7 @@ local moveDatas = {
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedModClass = SPEED_CLASS.Ship,
 	},
-	-- armvadert4 armsptkt4 corkargenetht4
+	-- armvadert4 armsptkt4 armscorp corkargenetht4
 	EPICALLTERRAIN = {
 		crushstrength = CRUSH.MASSIVE,
 		depthMod = 0,
