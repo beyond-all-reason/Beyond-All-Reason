@@ -1095,6 +1095,46 @@ else -- UNSYNCED
 	local drawTarget = {}
 	local targetList = {}
 
+	-- Widgets cannot call into LuaRules, so the user-set ground targets of a unit
+	-- are pushed to LuaUI whenever its list changes. gui_attack_aoe draws damage
+	-- rings at these positions next to the lines and icons drawn below.
+	local LUAUI_TARGET_CALLIN = "UnitSetTargetListChanged"
+	local luauiHasCallin = false
+
+	---Sends the unit's user-set ground positions to LuaUI, `nil` when there are none.
+	---@param unitID UnitID
+	local function pushTargetListToLuaUI(unitID)
+		if not Script.LuaUI(LUAUI_TARGET_CALLIN) then
+			return
+		end
+		local unitData = targetList[unitID]
+		local positions
+		local activeIndex
+		if unitData and (fullview or spGetUnitAllyTeam(unitID) == myAllyTeam) then
+			for index, targetData in ipairs(unitData.targets) do
+				if targetData.userTarget and type(targetData.target) == "table" then
+					positions = positions or {}
+					positions[#positions + 1] = targetData.target
+					if index == unitData.targetIndex and unitData.targetActive then
+						activeIndex = #positions
+					end
+				end
+			end
+		end
+		Script.LuaUI[LUAUI_TARGET_CALLIN](unitID, positions, activeIndex)
+	end
+
+	function gadget:Update()
+		-- Resend every list when the receiving widget (re)loads or the viewpoint changes.
+		local hasCallin = Script.LuaUI(LUAUI_TARGET_CALLIN)
+		if hasCallin and not luauiHasCallin then
+			for unitID in pairs(targetList) do
+				pushTargetListToLuaUI(unitID)
+			end
+		end
+		luauiHasCallin = hasCallin
+	end
+
 	function gadget:Initialize()
 		gadgetHandler:AddChatAction(
 			"targetdrawteam",
@@ -1123,6 +1163,7 @@ else -- UNSYNCED
 		myAllyTeam = spGetMyAllyTeamID()
 		myTeam = spGetMyTeamID()
 		mySpec, fullview = spGetSpectatingState()
+		luauiHasCallin = false
 	end
 
 	function gadget:Shutdown()
@@ -1198,6 +1239,9 @@ else -- UNSYNCED
 			if index == unitData.targetIndex then
 				unitData.targetActive = false
 			end
+		elseif not targetA then
+			-- Every batch of list updates ends with a truncation or a clear.
+			pushTargetListToLuaUI(unitID)
 		end
 		--tracy.ZoneEnd()
 	end
@@ -1206,6 +1250,7 @@ else -- UNSYNCED
 		local unitData = getUnitTargetList(unitID, false)
 		if unitData then
 			table_remove(unitData.targets, index)
+			pushTargetListToLuaUI(unitID)
 		end
 	end
 
@@ -1213,8 +1258,12 @@ else -- UNSYNCED
 		if not targetList[unitID] then
 			return
 		end
+		local changed = targetList[unitID].targetIndex ~= index or targetList[unitID].targetActive ~= active
 		targetList[unitID].targetIndex = index
 		targetList[unitID].targetActive = active
+		if changed then
+			pushTargetListToLuaUI(unitID)
+		end
 	end
 
 	function handleUnitTargetDrawEvent(_, _, params)
