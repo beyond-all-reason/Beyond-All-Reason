@@ -26,8 +26,8 @@ local rangeLineWidth = 4.5 -- (note: will end up larger for larger vertical scre
 local lineScale = 1 -- this is a multiplier for the line width, to make it look better on high res screens
 
 local circleSegments = 62 -- To ensure its only 2 warps per instance
-local fadeStart = 4000 -- elmos from the camera where the lines start fading out
-local fadeEnd = 8000 -- elmos from the camera where they are gone
+local fadeStart = 400000 -- elmos from the camera where the lines start fading out
+local fadeEnd = 800000 -- elmos from the camera where they are gone
 -- players outside the LOS view (L) see their coverage only through these lines, so those don't fade for them
 local noFadeWithoutLosView = true
 --------- End configurables ------

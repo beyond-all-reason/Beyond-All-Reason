@@ -23,6 +23,8 @@ Settings.version = 6 -- just so it won't restore configdata on load if it differ
 
 local force = true
 local autoCursorSize
+local pendingCursorDir ---@type string?
+local pendingCursorIndex = 0
 
 -- note: first entry should be icons inside base /anims folder
 local cursorSets = {}
@@ -56,6 +58,10 @@ end
 function widget:Initialize()
 	force = true
 	widget:ViewResize()
+	-- at game load this runs in the loading screen, where the rest costs nothing visible (in pregame it stutters)
+	while pendingCursorDir do
+		widget:Update(0)
+	end
 
 	WG.cursors = {}
 	WG.cursors.getcursor = function()
@@ -92,7 +98,8 @@ end
 ----------------------------
 -- load cursors
 
--- replaced right away; the rest is animated (~60 frames each, ~0.7 s for all) and replaced one per Update
+-- replaced right away; the rest is animated (~60 frames each, ~0.7 s for all) and replaced one per Update after a
+-- resize or cursor set change
 local immediateCursorNames = {
 	"cursornormal",
 	"uiresizev",
@@ -129,8 +136,6 @@ local deferredCursorNames = {
 	"cursorupgmex",
 	"cursorareamex",
 }
-local pendingCursorDir ---@type string?
-local pendingCursorIndex = 0
 
 local function replaceCursor(cursorDir, cursorName)
 	Spring.ReplaceMouseCursor(cursorName, cursorDir .. "/" .. cursorName, (cursorName == "cursornormal"))

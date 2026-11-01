@@ -300,7 +300,10 @@ end
 
 function gadget:Initialize()
 	for i = 1, #wantedList do
-		Script.SetWatchExplosion(wantedList[i], true)
+		gadgetHandler:RegisterExplosion(wantedList[i])
+	end
+	if #wantedList == 0 then
+		gadgetHandler:RemoveCallIn("Explosion")
 	end
 end
 
@@ -322,26 +325,24 @@ function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
 		return
 	end
 
-	if spawnDefs[weaponDefID] then
-		local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
-		local teamID = proID and getProjectileTeam(proID, ownerID)
-		if not teamID then
-			return
-		end
-
-		-- Don't let awakening children embrace the glory of their birthright
-		-- i.e. relegate spawn to GameFrame not to be damaged by the very explosion that bore them
-		spawnCount = spawnCount + 1
-		local spawnData = spawnList[spawnCount] or {}
-		spawnData.spawnDef = spawnDef
-		spawnData.x = x
-		spawnData.y = y
-		spawnData.z = z
-		spawnData.ownerID = ownerID
-		spawnData.teamID = teamID
-		spawnData.weaponDefID = weaponDefID
-		spawnList[spawnCount] = spawnData
+	local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
+	local teamID = proID and getProjectileTeam(proID, ownerID)
+	if not teamID then
+		return
 	end
+
+	-- Don't let awakening children embrace the glory of their birthright
+	-- i.e. relegate spawn to GameFrame not to be damaged by the very explosion that bore them
+	spawnCount = spawnCount + 1
+	local spawnData = spawnList[spawnCount] or {}
+	spawnData.spawnDef = spawnDef
+	spawnData.x = x
+	spawnData.y = y
+	spawnData.z = z
+	spawnData.ownerID = ownerID
+	spawnData.teamID = teamID
+	spawnData.weaponDefID = weaponDefID
+	spawnList[spawnCount] = spawnData
 end
 
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile)

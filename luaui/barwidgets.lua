@@ -153,6 +153,10 @@ local widgetHandler = {
 	-- And how many in all, so a panel can notice a new one with a single comparison.
 	errorCount = 0,
 	orderList = {},
+	-- Widgets switched off because another took their place (GetInfo `replaces`), each by that
+	-- one's name. Saved with the order: they come back once it is gone, e.g. played on a version
+	-- of the game without it (see restoreReplaced).
+	replacedList = {},
 
 	knownWidgets = {},
 	knownCount = 0,
@@ -444,6 +448,7 @@ function widgetHandler:LoadConfigData()
 	self.orderList = config.order
 	self.configData = config.data
 	self.allowUserWidgets = config.allowUserWidgets
+	self.replacedList = type(config.replaced) == "table" and config.replaced or {}
 	if not self.orderList then
 		self.orderList = {} -- safety
 	end
@@ -478,6 +483,7 @@ function widgetHandler:SaveConfigData()
 	-- them has saved is kept.
 	if not self.__blankOutOrder then
 		filetable.order = self.orderList
+		filetable.replaced = self.replacedList
 	end
 	filetable.data = self.configData
 	filetable.allowUserWidgets = self.allowUserWidgets
@@ -535,6 +541,52 @@ local function loadWidgetFiles(folder, vfsMode)
 			if widget then
 				tableInsert(unsortedWidgets, widget)
 				Yield()
+			end
+		end
+	end
+end
+
+-- Whether a known widget takes the place of widget `name` (GetInfo `replaces`: a name or a list).
+local function takesPlaceOf(ki, name)
+	local replaces = ki.replaces
+	if type(replaces) == "table" then
+		for i = 1, #replaces do
+			if replaces[i] == name then
+				return true
+			end
+		end
+		return false
+	end
+	return replaces == name
+end
+
+-- The running widget that takes the place of widget `name`, if any.
+local function replacerOf(name)
+	for byName, ki in pairs(widgetHandler.knownWidgets) do
+		if ki.active and byName ~= name and takesPlaceOf(ki, name) then
+			return byName
+		end
+	end
+	return nil
+end
+
+-- A widget switched off for one that took its place comes back once that one is not running: its
+-- file is gone (a version of the game without it, a removed user widget), it is off, or it no
+-- longer replaces it. Runs once the widget files are read, before any of them starts.
+local function restoreReplaced()
+	local wh = widgetHandler
+	for name, by in pairs(wh.replacedList) do
+		local replacer = wh.knownWidgets[by]
+		if not (replacer and replacer.active and takesPlaceOf(replacer, name)) then
+			wh.replacedList[name] = nil
+			local ki = wh.knownWidgets[name]
+			if ki and not ki.active and (wh.orderList[name] or 0) <= 0 then
+				wh.orderList[name] = 1
+				local w = wh:LoadWidget(ki.filename, ki.fromZip)
+				if w then
+					tableInsert(unsortedWidgets, w)
+					spEcho("Switched " .. name .. " back on: " .. by .. " took its place and is not running")
+				end
 			end
 		end
 	end
@@ -1018,6 +1070,7 @@ function widgetHandler:Initialize()
 	for _, moduleWidgetDir in ipairs(ModuleHandler.RmlWidgetDirs(vfsZip)) do
 		loadWidgetFiles(moduleWidgetDir, vfsZip)
 	end
+	restoreReplaced()
 
 	tableSort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
@@ -1036,16 +1089,42 @@ function widgetHandler:Initialize()
 		end
 	end)
 
+	-- A widget that takes the place of others (GetInfo `replaces`: a name or a list) keeps them from
+	-- loading while it is on: they are switched off, and told which widget took their place so it
+	-- can hand it back. Switching one off once it has started would still run its Initialize and
+	-- Shutdown, which can undo what the new one set up.
+	local replacedBy = {} ---@type table<string, string>
+	for _, w in ipairs(unsortedWidgets) do
+		local replaces = w.whInfo.replaces
+		for _, name in ipairs(type(replaces) == "table" and replaces or { replaces }) do
+			if name ~= w.whInfo.name then
+				replacedBy[name] = w.whInfo.name
+				-- remembered, also when it was off already: it comes back if this one goes
+				if self.knownWidgets[name] then
+					self.replacedList[name] = w.whInfo.name
+				end
+			end
+		end
+	end
+
 	-- Every call-in once up front: a full pass after each insert was ~35k engine calls per load.
 	self:UpdateCallIns()
 	insertingStartupWidgets = true
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
-		local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
-		spEcho(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
-		Yield()
-		widgetHandler:InsertWidgetRaw(w)
+		local by = replacedBy[name]
+		if by then
+			local ki = self.knownWidgets[name]
+			ki.active, ki.replacedBy = false, by
+			self.orderList[name] = 0
+			spEcho(string.format("Not loading widget %-18s  <%s>  (replaced by %s)", name, basename, by))
+		else
+			local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
+			spEcho(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
+			Yield()
+			widgetHandler:InsertWidgetRaw(w)
+		end
 	end
 	insertingStartupWidgets = false
 	-- Kept, the list would hold every startup widget in memory after it is switched off.
@@ -1372,6 +1451,8 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		-- seen for a widget that ends up not being loaded: whInfo belongs to the instance, and
 		-- a widget that is off has no instance.
 		knownInfo.enabled = widget.whInfo.enabled
+		-- What it takes the place of (GetInfo `replaces`), for the widgets it switches off.
+		knownInfo.replaces = widget.whInfo.replaces
 		-- And whether it draws through RmlUi, which nothing else records. Read out of the
 		-- source, because where the file sits does not answer it: most RmlUi widgets live
 		-- under LuaUI/RmlWidgets but a player's own can sit anywhere and still use the API.
@@ -1848,6 +1929,7 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.enabled = info.enabled or false
 		wi.hidden = info.hidden or false
 		wi.modalExempt = info.modalExempt or false
+		wi.replaces = info.replaces
 		wi.unsafe = info.unsafe or false
 		wi.depends = info.depends
 		wi.control = info.control or false
@@ -2352,6 +2434,8 @@ function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 		spEcho("EnableWidget(), could not find widget: " .. tostring(name))
 		return false
 	end
+	ki.replacedBy = nil
+	self.replacedList[name] = nil
 	if not ki.active then
 		spEcho("Loading:  " .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
 		local order = widgetHandler.orderList[name]
@@ -2376,6 +2460,12 @@ function widgetHandler:DisableWidgetRaw(name)
 	end
 	if ki.hidden then
 		return false -- hidden widgets back other widgets; disabling one breaks them with no way back
+	end
+	ki.replacedBy = nil
+	-- off while a widget that takes its place runs: it comes back once that one is gone
+	local by = replacerOf(name)
+	if by then
+		self.replacedList[name] = by
 	end
 	if ki.active then
 		local w = self:FindWidget(name)
@@ -2669,7 +2759,21 @@ local DEFAULT_INTERFACE_ALLOW = { "Top Bar Buttons" }
 -- when nothing is hiding anything.
 local function allowedWidget(widget)
 	if interfaceHidden then
-		return interfaceAllowedNames[widget.whInfo.name] == true
+		local info = widget.whInfo
+		if interfaceAllowedNames[info.name] then
+			return true
+		end
+		-- a widget taking another's place (GetInfo replaces) is kept where that one would be
+		local replaces = info.replaces
+		if type(replaces) == "table" then
+			for i = 1, #replaces do
+				if interfaceAllowedNames[replaces[i]] then
+					return true
+				end
+			end
+			return false
+		end
+		return replaces ~= nil and interfaceAllowedNames[replaces] == true
 	end
 	return (not modalActive) or (modalAllowed[widget] == true)
 end

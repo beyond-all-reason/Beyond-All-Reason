@@ -54,6 +54,8 @@
 				"overflowing": "Overflowing",
 				"wastingMetal": "Wasting metal",
 				"wastingEnergy": "Wasting energy",
+				"metalStall": "Metal stall imminent",
+				"energyStall": "Energy stall imminent",
 				"shareMetalTooltipTitle": "Metal Share Slider",
 				"shareMetalTooltip": "Share excess metal above this point with your team",
 				"shareEnergyTooltipTitle": "Energy Share Slider",
@@ -63,7 +65,13 @@
 				"expenseTooltip": "%{resource} spending (per second)",
 				"storageTooltip": "%{resource} storage",
 				"conversionTooltipTitle": "Energy Conversion Slider",
-				"conversionTooltip": "Excess energy above this point\nwill power your Energy Converters"
+				"conversionTooltip": "Excess energy above this point\nwill power your Energy Converters",
+				"converterUsageTooltipTitle": "Energy Converter Usage",
+				"converterUsageTooltip": "How much of your Energy Converters' capacity is in use.\nThey run on the energy above the conversion marker on the energy bar.",
+				"convertedMetalTooltipTitle": "Converted Metal",
+				"convertedMetalTooltip": "Metal your Energy Converters make (per second)",
+				"convertedEnergyTooltipTitle": "Converter Energy Use",
+				"convertedEnergyTooltip": "Energy your Energy Converters use (per second)"
 			},
 			"converter_usage": {
 				"defaultTooltipTitle": "Energy converter usage",
@@ -107,6 +115,8 @@
 			"aiName": "%{name} (AI)",
 			"aiPlaceMe": "Place me!",
 			"desynced": "desynced",
+			"take": "Take",
+			"skill": "Skill: %{skill}",
 			"chat": {
 				"needSupport": "I need unit support!",
 				"needMetal": "I need metal!",
@@ -150,6 +160,28 @@
 			"playerViewTooltip": "Only view what the player can see",
 			"playerCamera": "Player Camera",
 			"playerCameraTooltip": "Follow player camera perspective and apply selections"
+		},
+		"minimap": {
+			"resizeTitle": "Minimap Size",
+			"resizeTooltip": "Drag to resize the minimap",
+			"windTooltip": "Wind speed on this map ranges from %{minWindValue} to %{maxWindValue}\nAverage wind speed is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
+			"lavaTitle": "Lava",
+			"lavaRiseIn": "The lava rises in %{time}",
+			"lavaSinkIn": "The lava sinks in %{time}",
+			"lavaRising": "The lava is rising, for another %{time}",
+			"lavaSinking": "The lava is sinking, for another %{time}",
+			"windAverage": "Average speed",
+			"windMinimum": "Minimum speed",
+			"windMaximum": "Maximum speed",
+			"windLow": "Time below 6",
+			"windAdvice": "Solar Collectors are better when the average\nwind speed is below 5 (Armada) or 6 (Cortex)"
+		},
+		"tooltip": {
+			"low": "Low",
+			"medium": "Medium",
+			"high": "High",
+			"slow": "Slow",
+			"fast": "Fast"
 		},
 		"pip": {
 			"tooltip": "Toggle Picture-in-Picture",
@@ -210,7 +242,18 @@
 			"previousPage": "Previous page",
 			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
 			"nextBuilder": "Next Builder",
-			"areamex_tooltip": "Tip: Select this extractor twice to use area mex command"
+			"areamex_tooltip": "Tip: Select this extractor twice to use area mex command",
+			"all": "All",
+			"next": "Next",
+			"disabledShort": "Disabled",
+			"buildTab": "Build",
+			"blueprintsTab": "Blueprints",
+			"blueprint": "Blueprint %{index}",
+			"blueprintUnits": "%{count} buildings",
+			"noBlueprints": "No blueprints saved yet",
+			"noBuildableBlueprints": "None of the saved blueprints can be built by these builders",
+			"queueBuilding": "In production",
+			"queueControls": "Drag: reorder\nRight-click: remove one (SHIFT: all of them)\nRight-drag or mouse wheel: scroll"
 		},
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}"
@@ -968,7 +1011,13 @@
 		},
 		"reclaimInfo": {
 			"metal": "Metal: %{metal}",
-			"energy": "Energy: %{energy}"
+			"energy": "Energy: %{energy}",
+			"area": "Reclaim area",
+			"features": {
+				"one": "%{count} feature",
+				"other": "%{count} features"
+			},
+			"notReclaimable": "Cannot be reclaimed"
 		},
 		"prospector": {
 			"metalExtraction": "Metal extraction: %{amount}"
@@ -1581,7 +1630,37 @@
 			"shieldcapacity": "Shield capacity",
 			"shieldrange": "Shield range",
 			"shieldrechargerate": "Recharge rate",
-			"shieldrechargecost": "Recharge cost"
+			"shieldrechargecost": "Recharge cost",
+			"cellHowto": "Click to select, right click to remove, middle click to view them (with Ctrl: all of this type)",
+			"tags": {
+				"buildpower": "Build power",
+				"dps": "Damage per second",
+				"emp": "Paralyze damage per second",
+				"range": "Weapon range",
+				"coverage": "Interception range",
+				"reload": "Reload time",
+				"shield": "Shield capacity",
+				"shieldRadius": "Shield radius",
+				"shieldRegen": "Shield recharge per second",
+				"radar": "Radar range",
+				"sonar": "Sonar range",
+				"jammer": "Radar jamming range",
+				"sonarJammer": "Sonar jamming range",
+				"speed": "Speed",
+				"sight": "Line of sight",
+				"metalStorage": "Metal storage",
+				"energyStorage": "Energy storage",
+				"stockpile": "Stockpiled",
+				"cloak": "Cloaking costs energy per second",
+				"progress": "Under construction",
+				"stealth": "Stealthy: radar does not show it",
+				"amphib": "Amphibious",
+				"allTerrain": "All-terrain",
+				"capture": "Can capture units",
+				"resurrect": "Can resurrect wrecks",
+				"paralyzer": "Paralyzes what it hits",
+				"unload": "Click to unload"
+			}
 		},
 		"spectator_hud": {
 			"metalIncome_title": "Metal Income",
@@ -1942,6 +2021,11 @@
 				"guitileopacity": "opacity",
 				"guishader": "blur",
 				"guishader_descr": "Blurs the world under every user interface element",
+				"supersample": "sharpness",
+				"supersample_descr": "Draws interface panels at twice the screen's pixels and scales them down: sharper unit pictures and icons, using more video memory.\nAuto does this on screens less than about 1600 pixels tall.",
+				"supersample_auto": "auto",
+				"supersample_off": "normal",
+				"supersample_2x": "sharp (2x)",
 				"guishaderintensity": "   intensity",
 				"font": "Font",
 				"font_descr": "Regular read friendly font used for text",
@@ -3311,7 +3395,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[basic|draugr|wraith|hydra|akumu|spidergeddon] Set zombie mode"
+			"zombiemode": "[basic|wraith|hydra|akumu|spidergeddon] Set zombie mode"
 		}
 	},
 	"modoptions": {
@@ -4064,7 +4148,7 @@
 		},
 		"zombies": {
 			"name": "Scavenger Zombies",
-			"desc": "Corpses left on the battlefield rise again as hostile zombies that attack every player. Revival takes 45 to 120 seconds, with stronger units taking longer and revival speeding up as the game reaches higher tech. Reclaim or resurrect corpses to stop them from rising. After 60 minutes, zombies stay permanently aggressive, and revival times chosen after that use a fixed speed instead of the tech estimate. Corpses already counting down keep their old timer.",
+			"desc": "Corpses left on the battlefield rise again as hostile zombies. Revival takes 45 to 120 seconds, with stronger units taking longer and revival speeding up as the game reaches higher tech. Reclaim or resurrect corpses to stop them from rising.",
 			"items": {
 				"disabled": {
 					"name": "Disabled",
@@ -4072,15 +4156,11 @@
 				},
 				"basic": {
 					"name": "Basic",
-					"desc": "Unit dies, after a while it comes back to life as a zombie. Destroyed zombies leave heaps."
-				},
-				"draugr": {
-					"name": "Draugr",
-					"desc": "Basic, and destroyed zombies always leave corpses that can become zombies again."
+					"desc": "The dead come back to life"
 				},
 				"wraith": {
 					"name": "Wraith",
-					"desc": "Basic, and ghostly apparitions appear from overkill and from destroyed corpses. When a zombie's corpse is destroyed, it can respawn at an isolated Apparition."
+					"desc": "Basic, and Wraiths appear from overkill and from destroyed corpses. When a zombie's corpse is destroyed, it can respawn at any isolated Wraith."
 				},
 				"hydra": {
 					"name": "Hydra",
@@ -4088,7 +4168,7 @@
 				},
 				"akumu": {
 					"name": "Akumu",
-					"desc": "Basic, Draugr, Wraith, and Hydra combined."
+					"desc": "Basic, Wraith, and Hydra combined."
 				},
 				"spidergeddon": {
 					"name": "Spidergeddon (LIMITED TIME)",

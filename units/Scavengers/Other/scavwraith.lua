@@ -1,5 +1,5 @@
 return {
-	scavapparition = {
+	scavwraith = {
 		maxacc = 15,
 		airhoverfactor = 0,
 		autoheal = 50,
@@ -28,7 +28,7 @@ return {
 		kamikaze = true,
 		kamikazedistance = 50,
 		mass = 1000,
-		health = 500,
+		health = 100,
 		speed = 60.0,
 		nochasecategory = "ALL",
 		objectname = "scavs/scavmistflare.s3o",
@@ -42,7 +42,7 @@ return {
 		stealth = true,
 		strafetoattack = true,
 		turnrate = 1200,
-		unitname = "scavapparition",
+		unitname = "scavwraith",
 		customparams = {
 			juno_deny = true,
 			juno_kill = true,
@@ -53,7 +53,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:scavapparition",
+				[1] = "custom:scavwraith",
 			},
 		},
 		sounds = {

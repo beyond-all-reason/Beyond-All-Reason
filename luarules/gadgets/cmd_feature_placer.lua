@@ -23,16 +23,118 @@ if not gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	-- Visual scale lives in the per-object uniform buffer the CUS vertex shaders
+	-- read (userDefined[3].z, buffer index 14; 0 = unscaled). The synced side
+	-- keeps the authoritative value in the public "visualScale" feature rules
+	-- param and pings this side to upload it. Brush placement also plays a short
+	-- grow-in: the uniform is animated from a sliver up to the final scale.
+	local SCALE_UNIFORM_INDEX = 14
+	local GROW_SECONDS = 0.35
+	local SetFeatureBufferUniforms = gl.SetFeatureBufferUniforms
+	local GetFeatureRulesParam = Spring.GetFeatureRulesParam
+	local ValidFeatureID = Spring.ValidFeatureID
+	local scaleUniform = { 0 }
+	local growing = {} -- featureID -> { target, t }
+	local growCount = 0
+
+	local function writeScale(featureID, s)
+		if SetFeatureBufferUniforms and ValidFeatureID(featureID) then
+			scaleUniform[1] = s
+			SetFeatureBufferUniforms(featureID, scaleUniform, SCALE_UNIFORM_INDEX)
+		end
+	end
+
+	-- Overshoots a little before settling, which reads as sprouting rather than
+	-- a linear zoom.
+	local function easeOutBack(t)
+		local c1 = 1.4
+		local u = t - 1
+		return 1 + (c1 + 1) * u * u * u + c1 * u * u
+	end
+
 	local syncActions = {
 		FeaturePlacerHistory = forwardToLuaUI("terraform_feature_history"),
 		feature_save_begin = forwardToLuaUI("terraform_feature_save_begin"),
 		feature_save_data = forwardToLuaUI("terraform_feature_save_data"),
 		feature_save_end = forwardToLuaUI("terraform_feature_save_end"),
+		fpFeatureScale = function(_, featureID, s, grow)
+			-- Mouse picking (hover, click, reclaim targeting) tests the selection
+			-- volume, a separate engine volume the synced half cannot reach: it
+			-- scaled the collision volume, which only weapons and projectiles hit.
+			-- One message per created feature, carrying its final scale.
+			if s ~= 1 and Spring.SetFeatureSelectionVolumeData then
+				local sx, sy, sz, ox, oy, oz, vtype, ttype, axis = Spring.GetFeatureSelectionVolumeData(featureID)
+				if sx then
+					Spring.SetFeatureSelectionVolumeData(
+						featureID,
+						sx * s,
+						sy * s,
+						sz * s,
+						ox * s,
+						oy * s,
+						oz * s,
+						vtype,
+						ttype,
+						axis
+					)
+				end
+			end
+			if grow == 1 then
+				if not growing[featureID] then
+					growCount = growCount + 1
+				end
+				growing[featureID] = { target = s, t = 0 }
+				writeScale(featureID, s * 0.05)
+			else
+				if growing[featureID] then
+					growing[featureID] = nil
+					growCount = growCount - 1
+				end
+				writeScale(featureID, s)
+			end
+			return true
+		end,
 	}
+
+	function gadget:Update()
+		if growCount == 0 then
+			return
+		end
+		local dt = Spring.GetLastUpdateSeconds() or 0.033
+		local step = math.min(dt, 0.1) / GROW_SECONDS
+		for featureID, g in pairs(growing) do
+			g.t = g.t + step
+			if g.t >= 1 or not ValidFeatureID(featureID) then
+				writeScale(featureID, g.target)
+				growing[featureID] = nil
+				growCount = growCount - 1
+			else
+				writeScale(featureID, g.target * math.max(0.05, easeOutBack(g.t)))
+			end
+		end
+	end
+
+	function gadget:FeatureDestroyed(featureID)
+		if growing[featureID] then
+			growing[featureID] = nil
+			growCount = growCount - 1
+		end
+	end
 
 	function gadget:Initialize()
 		for name, func in pairs(syncActions) do
 			gadgetHandler:AddSyncAction(name, func)
+		end
+		-- Re-upload every scaled feature, so a /luarules reload (or a feature
+		-- that predates this gadget instance) keeps its size. Rules params are
+		-- plain sim data: unlike the piece callouts, reading them at load is
+		-- safe on map features.
+		local features = Spring.GetAllFeatures()
+		for i = 1, #features do
+			local s = GetFeatureRulesParam(features[i], "visualScale")
+			if s then
+				writeScale(features[i], s)
+			end
 		end
 	end
 
@@ -97,9 +199,8 @@ local GetFeatureRotation = Spring.GetFeatureRotation
 local SetFeaturePosition = Spring.SetFeaturePosition
 local SetFeatureMoveCtrl = Spring.SetFeatureMoveCtrl
 local GetGameFrame = Spring.GetGameFrame
-local GetFeatureRootPiece = Spring.GetFeatureRootPiece
-local GetFeaturePieceMatrix = Spring.GetFeaturePieceMatrix
-local SetFeaturePieceMatrix = Spring.SetFeaturePieceMatrix
+local SetFeatureRulesParam = Spring.SetFeatureRulesParam
+local PUBLIC_PARAM = { public = true }
 local GetFeatureCollisionVolumeData = Spring.GetFeatureCollisionVolumeData
 local SetFeatureCollisionVolumeData = Spring.SetFeatureCollisionVolumeData
 local GetFeatureRadius = Spring.GetFeatureRadius
@@ -120,67 +221,47 @@ local undoStack = {}
 local redoStack = {}
 local gaiaTeamID
 
--- Visual scale applied per feature, keyed by live featureID. Nothing engine-side
--- records it (see applyFeatureScale), so this table is the only authority for
+-- Visual scale applied per feature, keyed by live featureID. Mirrored into the
+-- public "visualScale" feature rules param (widgets read it back, the unsynced
+-- half re-uploads it after a reload); this table stays the authority for
 -- capture/save. Entries exist only for features that were actually scaled.
 local featureScales = {}
 
 ----------------------------------------------------------------
 -- Per-feature scaling
 ----------------------------------------------------------------
--- There is no way to scale a feature's model from Lua on current engines, so
--- placement-time scaling ships as pre-baked model variants and this path stays
--- dormant: Spring.SetFeaturePieceMatrix looks like the API for it, but
--- LocalModelPiece::SetPieceSpaceMatrix only validates the matrix and throws the
--- geometry away, leaving a piece's transform derived solely from its pos/rot/
--- scale, which nothing outside a unit animation script can write.
+-- The engine cannot scale a feature's model: Spring.SetFeaturePieceMatrix looks
+-- like the API for it, but LocalModelPiece::SetPieceSpaceMatrix only validates
+-- the matrix and throws the geometry away, and piece scale is reachable only from
+-- unit animation scripts, which features do not have.
 --
--- Kept because the rest of it is correct and cheap: were the matrix honoured,
--- visual scale alone would desync interaction, so the collision volume, the
--- selection/reclaim radius+height, and the mid/aim positions are scaled to
--- match. Footprint blocking stays def-side, which is fine for the 1x1 feature
--- defs this tool mostly places.
+-- So the size is drawn, not simulated: the CUS vertex shaders multiply the model
+-- by a per-object uniform (see the unsynced half at the top of this file), in
+-- every pass including shadows. Interaction is scaled here to match -- collision
+-- volume, selection/reclaim radius+height (which also drives draw culling), and
+-- the mid/aim positions. Footprint blocking stays def-side, which is fine for the
+-- 1x1 feature defs this tool mostly places.
 local SCALE_EPSILON = 0.001
 local SCALE_MIN = 0.05
 local SCALE_MAX = 10
 
-local function applyFeatureScale(featureID, s)
-	if not s or abs(s - 1) < SCALE_EPSILON then
+-- `grow` asks the unsynced half to animate the size in from nothing; a brush
+-- stroke sets it, loads and undo do not. Unscaled features only send the
+-- message when they grow, and then settle on 1.
+local function applyFeatureScale(featureID, s, grow)
+	local scaled = s and abs(s - 1) >= SCALE_EPSILON
+	if not scaled then
+		if grow then
+			SendToUnsynced("fpFeatureScale", featureID, 1, 1)
+		end
 		return
 	end
-	if not (SetFeaturePieceMatrix and GetFeatureRootPiece) then
-		return
-	end
-	-- Model-less defs (editor_geocrack and friends) never get a LocalModel, and
-	-- the piece callouts deref the empty piece list -- an access violation, the
-	-- same crash the Initialize comment below documents for map features.
+	-- Model-less defs (editor_geocrack and friends) have nothing to draw scaled.
 	local def = FeatureDefs[GetFeatureDefID(featureID) or -1]
 	if not def or (def.modelname or "") == "" then
 		return
 	end
 	s = max(SCALE_MIN, min(SCALE_MAX, s))
-
-	local root = GetFeatureRootPiece(featureID) or 1
-	-- Compose onto the piece's current local matrix rather than assuming
-	-- identity. M * diag(s,s,s,1) scales the three basis columns -- the first
-	-- twelve floats of the engine's flat matrix -- and leaves translation alone.
-	local m = { GetFeaturePieceMatrix(featureID, root) }
-	if not m[16] then
-		m = { s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1 }
-	else
-		for i = 1, 12 do
-			m[i] = m[i] * s
-		end
-	end
-	-- Engines to date cannot scale a feature at all: SetPieceSpaceMatrix only
-	-- validates the matrix with IsRotOrRotTranMatrix() and discards it, which
-	-- is why scaling ships as pre-baked model variants instead. Bail when the
-	-- call reports the matrix unusable, so collision and radius are not scaled
-	-- away from a model that stayed its original size. If a future engine
-	-- accepts the matrix, this path lights up as written.
-	if not SetFeaturePieceMatrix(featureID, root, m) then
-		return
-	end
 
 	local vsx, vsy, vsz, vox, voy, voz, vtype, ttype, axis = GetFeatureCollisionVolumeData(featureID)
 	if vsx and SetFeatureCollisionVolumeData then
@@ -218,6 +299,8 @@ local function applyFeatureScale(featureID, s)
 		)
 	end
 
+	SetFeatureRulesParam(featureID, "visualScale", s, PUBLIC_PARAM)
+	SendToUnsynced("fpFeatureScale", featureID, s, grow and 1 or 0)
 	featureScales[featureID] = s
 end
 
@@ -284,9 +367,19 @@ end
 -- the height it was given. Deliberately not unlocked again if it later returns
 -- to the ground: this is authored scenery, and staying put is what the author
 -- asked for.
-local function lockFeatureInPlace(featureID)
+--
+-- A SUNK feature (below the ground: the brush's HEIGHT OFFSET) needs more: the
+-- engine's non-moveCtrl update lifts anything buried back onto the ground
+-- (CFeature::UpdatePosition, "the ground moved and buried us"), masks or not.
+-- moveCtrl ENABLED with zero velocity and acceleration is raw movement, never
+-- clamped, so it stays where it was put (and in the update queue, at no cost).
+local function lockFeatureInPlace(featureID, sunk)
 	if SetFeatureMoveCtrl then
-		SetFeatureMoveCtrl(featureID, false, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+		if sunk then
+			SetFeatureMoveCtrl(featureID, true, 0, 0, 0, 0, 0, 0)
+		else
+			SetFeatureMoveCtrl(featureID, false, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+		end
 	end
 end
 
@@ -309,8 +402,9 @@ local function applyTransform(featureID, t)
 	-- restore the pre-transform orientation when it finished.
 	wobbleQueue[featureID] = nil
 
-	if t.y > GetGroundHeight(t.x, t.z) + LIFT_EPSILON then
-		lockFeatureInPlace(featureID)
+	local groundY = GetGroundHeight(t.x, t.z)
+	if abs(t.y - groundY) > LIFT_EPSILON then
+		lockFeatureInPlace(featureID, t.y < groundY)
 	end
 
 	SetFeaturePosition(featureID, t.x, t.y, t.z)
@@ -368,14 +462,16 @@ local function parsePlacement(entry)
 	}
 end
 
-local function createFromPlacement(p)
+local function createFromPlacement(p, grow)
 	local id = CreateFeature(p.defName, p.x, p.y, p.z, p.heading, gaiaTeamID)
 	if not id then
 		return nil
 	end
 
-	if p.y > GetGroundHeight(p.x, p.z) + LIFT_EPSILON then
-		lockFeatureInPlace(id)
+	-- lifted OR sunk (the brush's HEIGHT OFFSET can push it into the ground): held where it was put
+	local groundY = GetGroundHeight(p.x, p.z)
+	if abs(p.y - groundY) > LIFT_EPSILON then
+		lockFeatureInPlace(id, p.y < groundY)
 		SetFeaturePosition(id, p.x, p.y, p.z)
 	end
 
@@ -390,7 +486,7 @@ local function createFromPlacement(p)
 	-- After creation on purpose: FeatureCreated callins (the dynamic collision
 	-- volume gadget among them) fire inside CreateFeature, so scaling here
 	-- multiplies on top of whatever they set rather than being stomped by it.
-	applyFeatureScale(id, p.scale)
+	applyFeatureScale(id, p.scale, grow)
 
 	return id
 end
@@ -454,7 +550,7 @@ local function placeFromList(payload, wobble)
 	for chunk in payload:sub(bodyStart):gmatch("[^|]+") do
 		local p = parsePlacement(chunk)
 		if p then
-			local id = createFromPlacement(p)
+			local id = createFromPlacement(p, wobble)
 			if id then
 				p.id = id
 				placed[#placed + 1] = p
@@ -932,15 +1028,17 @@ end
 function gadget:Initialize()
 	gaiaTeamID = GetGaiaTeamID()
 
-	-- Deliberately NO walk over existing features here. Calling
-	-- GetFeatureRootPiece / GetFeaturePieceMatrix during LuaRules load CRASHES
-	-- the engine (access violation): map features' local piece models are only
-	-- instantiated when the drawer first touches them, and the piece callouts
-	-- deref an empty piece list before that. Runtime calls on freshly created
-	-- features are fine -- load-time calls on map features are not. The only
-	-- cost is that the (currently dormant) runtime-scale bookkeeping forgets
-	-- its entries across a /luarules reload; baked variant defs, the shipping
-	-- mechanism, carry their scale in the def and are unaffected.
+	-- Rebuild the scale table from the rules params, which survive a /luarules
+	-- reload. Never touch piece callouts here: GetFeatureRootPiece /
+	-- GetFeaturePieceMatrix during LuaRules load CRASH the engine (map features'
+	-- local piece models are instantiated lazily by the drawer).
+	local features = GetAllFeatures()
+	for i = 1, #features do
+		local s = Spring.GetFeatureRulesParam(features[i], "visualScale")
+		if s then
+			featureScales[features[i]] = s
+		end
+	end
 
 	-- Idle until the first wobble is queued (see addWobble).
 	gadgetHandler:RemoveCallIn("GameFrame")

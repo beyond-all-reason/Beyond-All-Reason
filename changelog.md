@@ -1,4 +1,11 @@
 # October
+- [Zombies]
+  - Zombie factories expire 5 minutes after rising. Expiring zombie buildings now self-destruct instead of vanishing.
+  - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
+  - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
+  - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
+  - Wraith respawns no longer have a 1/3rd chance to drop a queued zombie spawn. Each wave drops its lowest-value third instead.
+  - Wraith health 500 -> 100
 - [Commands]
   - Shift+Space area commands give your units a faster path to travel. Large areas can take 20%–70% less travel time.
   - Area commands (with and without Shift+Space) no longer drop targets past the 2,000 command limit. Your unit selection gets split into groups that take their own targets, with no targets dropped.
@@ -7,7 +14,7 @@
   - Difficulty levels have been replaced with modes you can mix and match:
     - Basic: the dead come back to life once
     - Draugr: all dead always create a corpse
-    - Wraith: destroyed corpses leave apparitions that respawn 2/3rds of the dead with a 3x zombie resurrection time delay
+    - Wraith: destroyed corpses leave Wraiths that respawn 2/3rds of the dead with a 3x zombie resurrection time delay
     - Hydra: spawn 2-6 zombies from each corpse
     - Akumu: all of the above
     - Spidergeddon: Akumu, but zombies are converted into an equivalent value of spider-like units
@@ -52,15 +59,16 @@
   - Sweepfire heatrays have a smoother motion and do not slip off their targets on slopes.
   - Drones spread out better, guard moving carriers better (unused in vanilla), and land and launch smoothly.
   - T1 Drones no longer crash on death.  Drones will be weaker against AA because the AA won't overkill them and will swap targets faster.  
+  - Better Martyr and Phoenix aiming. Martyr used to require a skill shot with manual attack timing. It is more reliable.
 - [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
   - Over-large area attacks no longer send only 30 units to Attack and the rest to Fight. They split your selection into squads that Attack all the targets in one "lane" through the full area. Bomber behavior especially was non-functional with large area attacks; this is fixed.
   - Turtle and other mixed ground/air units no longer stop outside their ground-weapon range when attacking ground or ghost buildings.
   - Temporary preventative measures against cheats. We have no evidence for common cheats but have locked down user widgets while we upgrade the engine. Hang tight.
+  - User widgets can no longer be hidden and cannot pass themselves off as game widgets. Protected against widgets changing their own permissions or loading via injection.
   - Twitcher can leave behind wrecks and debris again.
   - Autotargeting for dozens of weapons (and most Raptors units) now reads the weapon's position and direction correctly.
-  - User widgets can no longer be hidden and cannot pass themselves off as game widgets. Protected against widgets changing their own permissions or loading via injection.
   - Advanced Fusion health was increased by 5% last month by mistake, reverted.
   - Cortex / Legion advanced UW mexes had an unintended 50% damage reduction, removed.
   - Defenses that open and close cannot fire during their open or close animations.

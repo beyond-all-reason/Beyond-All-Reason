@@ -27,10 +27,6 @@ if gadgetHandler:IsSyncedCode() then
 		TorpedoLauncher = true,
 	}
 
-	local cannonWeapons = {}
-	local watchedExplosions = {}
-	local watchedProjectiles = {}
-
 	-- a sim frame's events as x, y, z, weaponDefID, ownerID runs, handed over once in GameFramePost
 	local explosions, explosionCount = {}, 0
 	local barrelfires, barrelfireCount = {}, 0
@@ -38,28 +34,13 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		for wdid, wd in pairs(WeaponDefs) do
 			if explosionTypes[wd.type] then
-				Script.SetWatchExplosion(wdid, true)
-				watchedExplosions[wdid] = true
-			end
-			if wd.type == "Cannon" or wd.type == "LaserCannon" then
-				cannonWeapons[wdid] = true
+				gadgetHandler:RegisterExplosion(wdid)
 			end
 			if wd.type == "Cannon" and wd.damages[0] >= 20 then
-				Script.SetWatchProjectile(wdid, true)
-				watchedProjectiles[wdid] = true
+				gadgetHandler:RegisterProjectile(wdid)
 			elseif wd.type == "LaserCannon" and wd.damages[0] >= 10 then
-				Script.SetWatchProjectile(wdid, true)
-				watchedProjectiles[wdid] = true
+				gadgetHandler:RegisterProjectile(wdid)
 			end
-		end
-	end
-
-	function gadget:Shutdown()
-		for wdid in pairs(watchedExplosions) do
-			Script.SetWatchExplosion(wdid, false)
-		end
-		for wdid in pairs(watchedProjectiles) do
-			Script.SetWatchProjectile(wdid, false)
 		end
 	end
 
@@ -77,16 +58,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:ProjectileCreated(projectileID, ownerID, weaponID)
-		if cannonWeapons[weaponID] then
-			local px, py, pz = spGetProjectilePosition(projectileID)
-			local n = barrelfireCount
-			barrelfires[n + 1] = px
-			barrelfires[n + 2] = py
-			barrelfires[n + 3] = pz
-			barrelfires[n + 4] = weaponID
-			barrelfires[n + 5] = ownerID
-			barrelfireCount = n + 5
-		end
+		local px, py, pz = spGetProjectilePosition(projectileID)
+		local n = barrelfireCount
+		barrelfires[n + 1] = px
+		barrelfires[n + 2] = py
+		barrelfires[n + 3] = pz
+		barrelfires[n + 4] = weaponID
+		barrelfires[n + 5] = ownerID
+		barrelfireCount = n + 5
 	end
 
 	function gadget:GameFramePost()

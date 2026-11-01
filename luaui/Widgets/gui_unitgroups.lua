@@ -603,7 +603,7 @@ local function updateList()
 		if not uiBgTex then
 			uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4] - backgroundRect[2]), {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 			gl.R2tHelper.RenderInRect(
@@ -619,7 +619,7 @@ local function updateList()
 		if not uiTex then
 			uiTex = gl.CreateTexture(mathFloor(uiTexWidth) * 2, mathFloor(backgroundRect[4] - backgroundRect[2]) * 2, {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 		end
