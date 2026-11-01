@@ -166,7 +166,8 @@ local ESCALATION = {
 	-- the escalation cannot pass a gate below its tech level, until the next gate's minute
 	gates = { { percent = 23, techLevel = 1.5 }, { percent = 46, techLevel = 2.5 } },
 	peakExperience = 0.8,
-	costPosition = { { 0, 0 }, { 400, 0.3 }, { 3000, 0.66 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
+	costPosition = { { 0, 0 }, { 400, 0.3 }, { 3000, 0.66 }, { 40000, 1 } }, -- { unit power, position 0 to 1 }
+	rezPosition = { { 0, 0 }, { 400, 0.2 }, { 3000, 0.45 }, { 40000, 1 } }, -- { unit power, spot in the rez window }
 	costDelayPercent = 39, -- how late the most expensive unit reads the count and veterancy curves
 	rollLean = 3, -- the count roll leans low, 1 is a flat roll, higher makes big counts rarer
 	elitePackChance = 0.1, -- a wreck rises as half its minimum count at top rank instead, fades as the ranks arrive
@@ -427,6 +428,7 @@ do
 			unitDefID = unitDefID,
 			rezPower = rezPower,
 			escalationCostPosition = interpolateAnchors(ESCALATION.costPosition, rezPower),
+			escalationRezPosition = interpolateAnchors(ESCALATION.rezPosition, rezPower),
 			size = unitDef.xsize,
 			isMobile = unitDef.speed > 0,
 			isCommander = customParams.iscommander and true or false,
@@ -512,7 +514,7 @@ end
 local function calculateSpawnDelayFrames(unitDefData)
 	if currentModeFeatures.escalation then
 		local spawnSeconds =
-			floor(math.mix(escalationRezMinimum, escalationRezMaximum, unitDefData.escalationCostPosition))
+			floor(math.mix(escalationRezMinimum, escalationRezMaximum, unitDefData.escalationRezPosition))
 		return spawnSeconds * Game.gameSpeed
 	end
 	local spawnSeconds = clamp(
