@@ -33,6 +33,12 @@
 				"retreat": 0.0,
 				"power": 15.0
 			},
+			"armscorp": {
+				"role": ["assault"],
+				"attribute": ["melee"],
+				"retreat": 0.0,
+				"power": 15.0
+			},
 			"armvadert4": {
 				"role": ["super"],
 				"attribute": ["melee"],

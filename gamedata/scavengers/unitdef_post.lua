@@ -489,9 +489,10 @@ local function scavUnitDef_Post(name, uDef)
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "armrattet4_scav" -- Ratte - Very Heavy Tank
 		uDef.buildoptions[numBuildoptions + 2] = "armsptkt4_scav" -- Epic Recluse
-		uDef.buildoptions[numBuildoptions + 3] = "armpwt4_scav" -- Epic Pawn
-		uDef.buildoptions[numBuildoptions + 4] = "armvadert4_scav" -- Epic Tumbleweed - Nuclear Rolling Bomb
-		uDef.buildoptions[numBuildoptions + 5] = "armdronecarryland_scav" -- Nexus Terra - Drone Carrier
+		uDef.buildoptions[numBuildoptions + 3] = "armscorp_scav" -- Scorpion
+		uDef.buildoptions[numBuildoptions + 4] = "armpwt4_scav" -- Epic Pawn
+		uDef.buildoptions[numBuildoptions + 5] = "armvadert4_scav" -- Epic Tumbleweed - Nuclear Rolling Bomb
+		uDef.buildoptions[numBuildoptions + 6] = "armdronecarryland_scav" -- Nexus Terra - Drone Carrier
 	end
 
 	-- Armada T3 Underwater Gantry
@@ -499,8 +500,9 @@ local function scavUnitDef_Post(name, uDef)
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "armrattet4_scav" -- Ratte - Very Heavy Tank
 		uDef.buildoptions[numBuildoptions + 2] = "armsptkt4_scav" -- Epic Recluse
-		uDef.buildoptions[numBuildoptions + 3] = "armpwt4_scav" -- Epic Pawn
-		uDef.buildoptions[numBuildoptions + 4] = "armvadert4_scav" -- Epic Tumbleweed - Nuclear Rolling Bomb
+		uDef.buildoptions[numBuildoptions + 3] = "armscorp_scav" -- Scorpion
+		uDef.buildoptions[numBuildoptions + 4] = "armpwt4_scav" -- Epic Pawn
+		uDef.buildoptions[numBuildoptions + 5] = "armvadert4_scav" -- Epic Tumbleweed - Nuclear Rolling Bomb
 	end
 
 	-- Cortex T1 Bots Factory
