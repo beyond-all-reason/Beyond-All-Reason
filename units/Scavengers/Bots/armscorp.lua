@@ -115,7 +115,7 @@ return {
 				range = 1000,
 				reloadtime = 10,
 				smoketrail = false,
-				soundhit = "rockhit3",
+				soundhit = "rockhit",
 				soundhitwet = "splssml",
 				soundstart = "rocksalvo",
 				soundtrigger = true,
@@ -139,9 +139,9 @@ return {
 				weaponvelocity = 1800,
 				wobble = 2000,
 				customparams = {
-					-- lockon_dist = "150",
 					overrange_distance = 1150,
 					projectile_destruction_method = "descend",
+					-- lockon_dist = "150",
 					-- speceffect = "cruise",
 				},
 				damage = {
