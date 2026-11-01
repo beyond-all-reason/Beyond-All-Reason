@@ -7,7 +7,7 @@
 //#define WALK_PERIOD 100
 
 
-piece	flare1, flare2, flare3, flare4, base, doorl, doorr, weight, turret1, turret2, sleeve, barrel, leg1a, leg1b, leg1c, leg2a, leg2b, leg2c, leg3a, leg3b, leg3c, leg4a, leg4b, leg4c, leg5a, leg5b, leg5c, leg6a, leg6b, leg6c, aimy1, aimfromy;
+piece	flare1, flare2, flare3, flare4, base, doorl, doorr, weight, turret1, turret2, sleeve, barrel, leg1a, leg1b, leg1c, leg2a, leg2b, leg2c, leg3a, leg3b, leg3c, leg4a, leg4b, leg4c, leg5a, leg5b, leg5c, leg6a, leg6b, leg6c, aimy1, aimfromy, light;
 
 static-var fire_count, firing, open, maxreloadtime, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
@@ -505,29 +505,38 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 	
-	//closes doors
-	turn doorl to z-axis <0.0> speed <60.0>;
-	turn doorr to z-axis <0.0> speed <60.0>;
-
 	//lower turret to default position
-	turn weight to x-axis <0.0> speed <20.0>;
+	turn turret1 to y-axis <0.0> speed <150.0>;
+	turn turret1 to x-axis <0.0> speed <150.0>;
+	turn weight to x-axis <0.0> speed <30.0>;
+
+	//closes doors
+	sleep 2500;
+	turn doorl to z-axis <0.0> speed <50.0>;
+	turn doorr to z-axis <0.0> speed <50.0>;
+
 }
 
 AimWeapon1(heading, pitch)
 {
 	//open doors
-	turn doorl to z-axis <90.0> speed <90.0>;
-	turn doorr to z-axis <-90.0> speed <90.0>;
+	turn doorl to z-axis <90.0> speed <95.0>;
+	turn doorr to z-axis <-90.0> speed <95.0>;
+
+
 
 	//rise turret to aim
-	turn weight to x-axis <-20.0> speed <20.0>;
+	turn weight to x-axis <-90.0> speed <30.0>;
 	
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret1 to y-axis heading speed <150.0>;
-	turn turret1 to x-axis 0 - pitch speed <20.0>;
-	wait-for-turn turret1 around y-axis;
+	turn turret1 to x-axis heading speed <150.0>;
+	turn turret1 to x-axis <40> - pitch speed <30.0>;
+	
+	wait-for-turn weight around x-axis;
 	wait-for-turn turret1 around x-axis;
+
+	// wait-for-turn turret1 around y-axis;
 	// turn turret2 to y-axis heading speed <150.0>;
 	// turn turret2 to x-axis 0 - pitch speed <150.0>;
 	// wait-for-turn turret2 around y-axis;
