@@ -1,12 +1,10 @@
+# November
+- [Zombies]
+  - Spidergeddon is removed for being too spooky.
+  - Complete rework of Wraiths. They're now created when a unit, corpse, or heap is overkilled leaving nothing behind. The Wraith appears, moves away from its killer, and seeks a free space to place a heap. That heap will only ever spawn 1 unit.
+  - Heaps in all zombie modes now become corpses after 2x the zombie resurrection time. A heap -> corpse -> zombie takes 3x the normal resurrection time in total.
 # October
 - [Zombies]
-  - Complete rework of Wraiths. They're now created when a unit, corpse, or heap is overkilled leaving nothing behind. The Wraith appears, moves away from its killer, and seeks a free space to place a heap.
-  - Heaps in all zombie modes now become corpses after 2x the zombie resurrection time. A heap -> corpse -> zombie takes 3x the normal resurrection time in total.
-  - One revived unit appears on the wreck. When several rise from the same wreck, they scatter around it.
-  - Fixed Scavenger-team zombies not resurrecting wrecks, capturing units, or finishing construction as zombies.
-  - Fixed a capture becoming a zombie when another builder made it, including a capture they started in the last second.
-  - Fixed Wraith creation retrying forever when the Wraith could not be created. It now tries three times, then returns a substitute purchase to the pool.
-  - Fixed queued wrecks losing their rise timer when wrecks are queued again.
   - Zombie factories expire 5 minutes after rising. Expiring zombie buildings now self-destruct instead of vanishing.
   - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
   - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
