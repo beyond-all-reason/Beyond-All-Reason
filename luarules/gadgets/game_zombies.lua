@@ -169,9 +169,10 @@ local ESCALATION = {
 	costPosition = { { 0, 0 }, { 400, 0.3 }, { 3000, 0.66 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
 	costDelayPercent = 39, -- how late the most expensive unit reads the count and veterancy curves
 	rollLean = 3, -- the count roll leans low, 1 is a flat roll, higher makes big counts rarer
+	elitePackChance = 0.1, -- a wreck rises as half its minimum count at top rank instead
 	rezWindow = { { 0, 60, 200 }, { 100, 8, 45 } }, -- cheapest to most expensive
 	spawnCounts = { { 0, 4, 9 }, { 7, 4, 9 }, { 41, 5, 24 } },
-	veterancy = { { 0, 0 }, { 7, 0.15 }, { 41, 1 } },
+	veterancy = { { 0, 0 }, { 55, 1 } },
 }
 local escalationPercent = 0
 local escalationRezMinimum, escalationRezMaximum = 0, 0
@@ -598,16 +599,25 @@ local function getEscalationCurvePercent(costPosition)
 	return escalationPercent - ESCALATION.costDelayPercent * costPosition
 end
 
+local function getEscalationVeterancy(unitDefData)
+	return interpolateAnchors(ESCALATION.veterancy, getEscalationCurvePercent(unitDefData.escalationCostPosition))
+end
+
+---@return integer spawnCount, number veterancy fraction of the top rank, a big roll comes back green
 local function calculateEscalationSpawnCount(unitDefData)
 	local percent = getEscalationCurvePercent(unitDefData.escalationCostPosition)
 	local spawnMinimum, spawnMaximum = interpolateAnchors(ESCALATION.spawnCounts, percent)
 	spawnMinimum, spawnMaximum = math.round(spawnMinimum, 0), math.round(spawnMaximum, 0)
-	return spawnMinimum + floor((spawnMaximum - spawnMinimum + 1) * random() ^ ESCALATION.rollLean)
+	local roll = random()
+	if roll < ESCALATION.elitePackChance then
+		return math.ceil(spawnMinimum / 2), 1
+	end
+	local rollPosition = roll ^ ESCALATION.rollLean
+	local spawnCount = spawnMinimum + floor((spawnMaximum - spawnMinimum + 1) * rollPosition)
+	return spawnCount, getEscalationVeterancy(unitDefData) * (1 - rollPosition)
 end
 
-local function calculateEscalationExperience(unitDefData)
-	local veterancy =
-		interpolateAnchors(ESCALATION.veterancy, getEscalationCurvePercent(unitDefData.escalationCostPosition))
+local function calculateEscalationExperience(veterancy)
 	-- the engine scales XP bonuses by xp / (xp + 1), so veterancy is a fraction of that value, converted back to XP
 	local limitedExperience = veterancy * ESCALATION.peakExperience / (ESCALATION.peakExperience + 1)
 	return limitedExperience / (1 - limitedExperience)
@@ -720,7 +730,7 @@ local function spawnZombieUnits(
 	spawnY,
 	spawnZ,
 	facing,
-	inheritedXp,
+	experience,
 	useExactPosition
 )
 	local unitDefData = zombieUnitDefs[unitDefID]
@@ -747,11 +757,8 @@ local function spawnZombieUnits(
 		local unitID = spring.CreateUnit(unitDefToCreate, randomX, adjustedY, randomZ, facing, gaiaTeamID)
 		if unitID then
 			spring.SpawnCEG(unitDefData.spawnExplosionCeg, randomX, adjustedY, randomZ, 0, 0, 0)
-			local escalationExperience = currentModeFeatures.escalation and calculateEscalationExperience(unitDefData)
-				or 0
-			local spawnExperience = math.max(inheritedXp or 0, escalationExperience)
-			if spawnExperience > 0 then
-				spring.SetUnitExperience(unitID, spawnExperience)
+			if experience > 0 then
+				spring.SetUnitExperience(unitID, experience)
 			end
 			registerZombie(unitID, unitDefToCreate, true)
 			spawnedCount = spawnedCount + 1
@@ -818,9 +825,13 @@ local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie
 	if not unitDefData then
 		return
 	end
-	local spawnCount = 1 -- dead zombies never multiply, so they can't snowball
+	local spawnCount, veterancy = 1, nil -- dead zombies never multiply, so they can't snowball
 	if not wasZombie and unitDefData.isMobile then
-		spawnCount = calculateSpawnCount(unitDefID)
+		spawnCount, veterancy = calculateSpawnCount(unitDefID)
+	end
+	local experience = inheritedXp or 0
+	if currentModeFeatures.escalation then
+		experience = math.max(experience, calculateEscalationExperience(veterancy or getEscalationVeterancy(unitDefData)))
 	end
 
 	local spawnUnitDefID, plannedCount, isSubstitute =
@@ -835,7 +846,7 @@ local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie
 		spawnY,
 		spawnZ,
 		facing,
-		inheritedXp
+		experience
 	)
 	if isSubstitute then
 		retryFailedSubstitutes(spawnUnitDefID, plannedCount - spawnedCount)
