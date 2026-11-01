@@ -527,11 +527,13 @@ do
 			scavUnitDefData.forceRespawn = true
 		end
 		local baseUnitName = string.gsub(unitDefs[unitDefID].name, "_scav$", "")
-		local baseUnitDef = unitDefNames[baseUnitName]
-		local baseUnitDefData = baseUnitDef and zombieUnitDefs[baseUnitDef.id]
-		if baseUnitDefData and baseUnitDef.id ~= unitDefID then
-			baseUnitDefData.isPoolMember = true
-			baseUnitDefData.forceRespawn = true
+		local baseUnitDef = unitDefNames[baseUnitName] ---@as UnitDef?
+		if baseUnitDef and baseUnitDef.id ~= unitDefID then
+			local baseUnitDefData = zombieUnitDefs[baseUnitDef.id]
+			if baseUnitDefData then
+				baseUnitDefData.isPoolMember = true
+				baseUnitDefData.forceRespawn = true
+			end
 		end
 	end
 	table.sort(wraithPoolUnitDefIDs, compareUnitDefPower)
@@ -903,8 +905,9 @@ local function retryFailedSubstitutes(substituteUnitDefID, failedCount)
 end
 
 local function isScavUnitDefID(unitDefID)
-	local unitDef = unitDefs[unitDefID]
-	return unitDef ~= nil and string.sub(unitDef.name, -5) == "_scav"
+	local unitDef = unitDefs[unitDefID] ---@as UnitDef?
+	local unitName = unitDef and unitDef.name
+	return unitName ~= nil and string.sub(unitName, -5) == "_scav"
 end
 
 local function isScavFeature(featureID)
@@ -1045,7 +1048,13 @@ local function feedWraithQueue(unitDefID, spawnX, spawnZ, wasZombie, attackerID,
 		return
 	end
 	local unitDefData = zombieUnitDefs[unitDefID]
-	if not unitDefData.isMobile or not unitDefData.corpseDefID or unitDefData.neverRespawn or unitDefData.excludedFromWraithSpawn then
+	if
+		not unitDefData
+		or not unitDefData.isMobile
+		or not unitDefData.corpseDefID
+		or unitDefData.neverRespawn
+		or unitDefData.excludedFromWraithSpawn
+	then
 		return
 	end
 	pendingWraithFeeds[#pendingWraithFeeds + 1] = {

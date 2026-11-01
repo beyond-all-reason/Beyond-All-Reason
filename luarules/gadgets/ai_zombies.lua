@@ -396,7 +396,7 @@ local function canEngageAirTargetDef(attackerDefID, targetDefID)
 	if cachedEngage ~= nil then
 		return cachedEngage
 	end
-	local weaponRanges = unitDefWeaponRanges[attackerDefID]
+	local weaponRanges = unitDefWeaponRanges[attackerDefID] ---@as { ground: number, air: number, underwater: number }?
 	local canEngage = weaponRanges ~= nil and weaponRanges.air > 0
 	if not canEngage and capturingUnits[attackerDefID] and trackedUnitData.capturableOrObjective[targetDefID] then
 		canEngage = true
@@ -410,7 +410,7 @@ local function canEngageGroundTargetDef(attackerDefID, targetDefID)
 	if cachedEngage ~= nil then
 		return cachedEngage
 	end
-	local weaponRanges = unitDefWeaponRanges[attackerDefID]
+	local weaponRanges = unitDefWeaponRanges[attackerDefID] ---@as { ground: number, air: number, underwater: number }?
 	local canEngage = weaponRanges ~= nil and (weaponRanges.ground > 0 or weaponRanges.underwater > 0)
 	if not canEngage and capturingUnits[attackerDefID] and trackedUnitData.capturableOrObjective[targetDefID] then
 		canEngage = true
@@ -429,7 +429,7 @@ local function attackerMightEngage(attackerDefID, targetDefID, targetID)
 end
 
 local function cachedUnitDefID(unitID)
-	local cachedDefID = trackedUnitData.defIDs[unitID]
+	local cachedDefID = trackedUnitData.defIDs[unitID] ---@as UnitDefID?
 	if cachedDefID then
 		return cachedDefID
 	end
@@ -441,7 +441,7 @@ local function cachedUnitDefID(unitID)
 end
 
 local function cachedUnitTeamID(unitID)
-	local cachedTeamID = trackedUnitData.teamIDs[unitID]
+	local cachedTeamID = trackedUnitData.teamIDs[unitID] ---@as TeamID?
 	if cachedTeamID then
 		return cachedTeamID
 	end
@@ -691,7 +691,7 @@ local function assignZombieAggroEvenly()
 	local eligibleAllies = {}
 	local eligibleAlliesByID = {}
 	for allyTeamID, allyPower in pairs(allyPowers) do
-		local allyUnitList = allyTeamUnits[allyTeamID]
+		local allyUnitList = allyTeamUnits[allyTeamID] ---@as UnitID[]?
 		if allyPower > 0 and allyUnitList and #allyUnitList > 0 then
 			local allyData = {
 				allyTeamID = allyTeamID,
@@ -1399,7 +1399,8 @@ local function visitStuckZombie(unitID, zombieData)
 	local movedDistanceSquared = distance2dSquared(unitX, unitZ, zombieData.lastX, zombieData.lastZ)
 	local isAtRememberedObjective = objectiveIsRememberedEdge(zombieData, objective)
 		and isObjectiveReached(unitID, objective, unitX, unitZ)
-	local isStationary = mobileUnitDefs[unitDefID] and not isAtRememberedObjective and movedDistanceSquared < STUCK_DISTANCE_SQUARED
+	local isMobileUnit = mobileUnitDefs[unitDefID] ---@as true?
+	local isStationary = isMobileUnit and not isAtRememberedObjective and movedDistanceSquared < STUCK_DISTANCE_SQUARED
 	local workerTask
 	if isStationary then
 		workerTask = spGetUnitWorkerTask(unitID)
