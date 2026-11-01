@@ -35,7 +35,7 @@ local MANIFESTS = {
 	},
 }
 
-local function run(files, writes, body)
+local function run(files, writes, body, manifests)
 	local realOpen = io.open
 
 	local env = SpecEnv.new({
@@ -81,7 +81,7 @@ local function run(files, writes, body)
 				return realOpen(path, mode)
 			end,
 		},
-		WG = { widgetManifests = { widgets = MANIFESTS, revision = 0, changes = 0 } },
+		WG = { widgetManifests = { widgets = manifests or MANIFESTS, revision = 0, changes = 0 } },
 		widgetHandler = {
 			GetWidgetsRevision = function()
 				return 0
@@ -127,13 +127,13 @@ local function ownStore(profile)
 	return Json.encode({ version = 2, active = profile.name, profiles = { profile } })
 end
 
-local function materialized(storeText, name)
+local function materialized(storeText, name, manifests)
 	local writes = {}
 	run({ [STORE] = storeText, [KEYMAP] = false }, writes, function(profiles)
 		profiles.materialize(name)
 
 		return {}
-	end)
+	end, manifests)
 
 	return writes
 end
@@ -215,6 +215,82 @@ describe("widget defaults on a player's profile", function()
 		local fresh = storedProfile(writes, "Fresh")
 		assert.are.same({ { keyset = "esc", action = "quitmessage" } }, fresh.binds)
 		assert.are.same({ "example_toggle", "example_taken", "second_toggle" }, fresh.seeded)
+	end)
+end)
+
+describe("widget defaults made for one layout", function()
+	local SMALL = "Grid (60% Keyboard)"
+	local SHIPPED_STORE = '{"version":2,"active":"Grid","profiles":[]}'
+	local LAYOUT_MANIFESTS = {
+		{
+			id = "gui_layout",
+			dir = "LuaUI/Widgets/gui_layout/",
+			loaded = true,
+			manifest = {
+				id = "gui_layout",
+				keybindings = {
+					{
+						action = "layout_toggle",
+						label = "actions.toggle",
+						defaultKeysets = { "sc_f13" },
+						profileKeysets = { grid60 = { "sc_f14" } },
+					},
+					{ action = "layout_only", label = "actions.only", profileKeysets = { grid60 = { "sc_f15" } } },
+					{ action = "layout_load", label = "actions.load", profileKeysets = { grid = { "sc_f16" } } },
+				},
+			},
+		},
+	}
+
+	it("go on top of the shared ones for that shipped profile only", function()
+		local small = bindLines(materialized(SHIPPED_STORE, SMALL, LAYOUT_MANIFESTS)[KEYMAP])
+		local grid = bindLines(materialized(SHIPPED_STORE, "Grid", LAYOUT_MANIFESTS)[KEYMAP])
+
+		assert.is_true(holds(small, "bind sc_f13 layout_toggle"))
+		assert.is_true(holds(small, "bind sc_f14 layout_toggle"))
+		assert.is_true(holds(small, "bind sc_f15 layout_only"))
+		assert.is_true(holds(grid, "bind sc_f13 layout_toggle"))
+		assert.is_false(holds(grid, "bind sc_f14 layout_toggle"))
+		assert.is_false(holds(grid, "bind sc_f15 layout_only"))
+	end)
+
+	it("follow a player's profile back to the shipped one it was made from", function()
+		local writes = materialized(
+			Json.encode({
+				version = 2,
+				active = "Mine",
+				profiles = {
+					{ name = "Base", basedOn = SMALL, binds = {} },
+					{ name = "Mine", basedOn = "Base", binds = {} },
+				},
+			}),
+			"Mine",
+			LAYOUT_MANIFESTS
+		)
+
+		assert.are.same({
+			{ keyset = "sc_f13", action = "layout_toggle" },
+			{ keyset = "sc_f14", action = "layout_toggle" },
+			{ keyset = "sc_f15", action = "layout_only" },
+		}, storedProfile(writes, "Mine").binds)
+		assert.are.same({ "layout_toggle", "layout_only" }, storedProfile(writes, "Mine").seeded)
+	end)
+
+	it("stay with the layout a profile was made from when the player compares it with another", function()
+		local writes = {}
+		local store = ownStore({ name = "Mine", basedOn = SMALL, binds = {} })
+		run({ [STORE] = store, [KEYMAP] = false }, writes, function(profiles)
+			profiles.materialize("Mine")
+			profiles.setBase("Mine", "Grid")
+			profiles.materialize("Mine")
+
+			return {}
+		end, LAYOUT_MANIFESTS)
+
+		assert.is_false(holds(bindLines(writes[KEYMAP]), "bind sc_f16 layout_load"))
+		for _, b in ipairs(storedProfile(writes, "Mine").binds) do
+			assert.are_not.equal("layout_load", b.action)
+		end
 	end)
 end)
 
