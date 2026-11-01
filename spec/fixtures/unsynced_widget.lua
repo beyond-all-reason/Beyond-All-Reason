@@ -25,6 +25,9 @@ function widget:Initialize()
 			return Spring.GetUnitDefID(id)
 		end,
 	}
+	widgetHandler:RegisterGlobal("TmpUnsyncedGlobal", function()
+		return "called"
+	end)
 end
 
 return GetInfo
