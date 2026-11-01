@@ -907,15 +907,8 @@ local function issueObjectiveMove(unitID, unitDefID, zombieData, objective, unit
 		getObjectiveMoveTarget(unitDefID, zombieData, objective, unitX, unitZ, attemptLimit)
 	if firstTargetX then
 		spGiveOrderToUnit(unitID, movementCommand, { firstTargetX, firstTargetY, firstTargetZ }, 0)
-		local hopDistanceSquared = distance2dSquared(unitX, unitZ, firstTargetX, firstTargetZ)
-		local longObjectiveStepSquared = 800 * 800
-		if hopDistanceSquared < longObjectiveStepSquared then
-			local secondTargetX, secondTargetY, secondTargetZ =
-				getObjectiveMoveTarget(unitDefID, zombieData, objective, firstTargetX, firstTargetZ, attemptLimit) -- pre-queue the next hop so they don't stall between order ticks
-			if secondTargetX then
-				spGiveOrderToUnit(unitID, movementCommand, { secondTargetX, secondTargetY, secondTargetZ }, CMD_OPT_SHIFT)
-			end
-		end
+		zombieData.moveOrderX = firstTargetX
+		zombieData.moveOrderZ = firstTargetZ
 		return
 	end
 
@@ -1136,6 +1129,8 @@ local function updateOrders(unitID, unitDefID)
 					spGiveOrderToUnit(unitID, CMD_CAPTURE, { zombieData.combatTargetID }, 0)
 				end
 			else
+				local commandNeedsMove = currentCommand ~= movementCommand
+				local targetChanged = previousCombatTargetID ~= zombieData.combatTargetID
 				local combatTargetMoved = not zombieData.lastCombatTargetX
 					or distance2dSquared(
 							targetX,
@@ -1144,12 +1139,18 @@ local function updateOrders(unitID, unitDefID)
 							zombieData.lastCombatTargetZ
 						)
 						>= COMBAT_TARGET_MOVE_REFRESH_DISTANCE_SQUARED
-				if
-					currentCommand ~= movementCommand
-					or previousCombatTargetID ~= zombieData.combatTargetID
-					or combatTargetMoved
-				then
+				if commandNeedsMove or targetChanged then
 					issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ, zombieData, unitX, unitZ)
+				elseif combatTargetMoved then
+					local positionX, positionY, positionZ = spGetUnitPosition(unitID)
+					local engageRange = weaponRange and weaponRange * COMBAT_ENGAGE_RANGE_RATIO
+					local enemyWithinEngageRange = positionX ~= nil
+						and engageRange
+						and engageRange > 0
+						and spGetClosestEnemyUnit(positionX, positionY, positionZ, engageRange, gaiaAllyTeamID, true) ~= nil
+					if not enemyWithinEngageRange then
+						issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ, zombieData, unitX, unitZ)
+					end
 				end
 			end
 		else
@@ -1174,9 +1175,7 @@ local function updateOrders(unitID, unitDefID)
 end
 
 local function setZombieStates(unitID, unitDefID)
-	if factoriesWithWantedOptions[unitDefID] then
-		spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
-	end
+	spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
 	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVE_STATE_ROAM, 0)
 	if aircraftUnitDefs[unitDefID] then
 		spGiveOrderToUnit(unitID, CMD_IDLEMODE, IDLEMODE_FLY, 0)
@@ -1395,31 +1394,40 @@ local function visitStuckZombie(unitID, zombieData)
 		return
 	end
 	local unitDefID = zombieData.unitDefID
-	local objective = zombieData.objective
-	local movedDistanceSquared = distance2dSquared(unitX, unitZ, zombieData.lastX, zombieData.lastZ)
-	local isAtRememberedObjective = objectiveIsRememberedEdge(zombieData, objective)
-		and isObjectiveReached(unitID, objective, unitX, unitZ)
 	local isMobileUnit = mobileUnitDefs[unitDefID] ---@as true?
-	local isStationary = isMobileUnit and not isAtRememberedObjective and movedDistanceSquared < STUCK_DISTANCE_SQUARED
-	local workerTask
-	if isStationary then
-		workerTask = spGetUnitWorkerTask(unitID)
-	end
-	if isStationary and workerTask ~= CMD_RESURRECT and workerTask ~= CMD_RECLAIM then -- if they haven't moved, blacklist this spot and reroute; keep a remembered-enemy goal
-		clearUnitOrders(unitID)
-		clearCombatTracking(zombieData)
-		zombieData.resurrectTargetID = nil
-		if objective and (objective.type == OBJECTIVE_TYPE_AGGRO or not zombieData.rememberedObjectiveX) then
-			zombieData.objective = nil
+	local arrivedAtMoveOrder = isMobileUnit
+		and zombieData.moveOrderX
+		and not zombieData.combatTargetID
+		and distance2dSquared(unitX, unitZ, zombieData.moveOrderX, zombieData.moveOrderZ) <= 400 * 400
+	if arrivedAtMoveOrder then
+		local arrivalObjective = ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
+		issueObjectiveMove(unitID, unitDefID, zombieData, arrivalObjective, unitX, unitZ)
+	else
+		local objective = zombieData.objective
+		local movedDistanceSquared = distance2dSquared(unitX, unitZ, zombieData.lastX, zombieData.lastZ)
+		local isAtRememberedObjective = objectiveIsRememberedEdge(zombieData, objective)
+			and isObjectiveReached(unitID, objective, unitX, unitZ)
+		local isStationary = isMobileUnit and not isAtRememberedObjective and movedDistanceSquared < STUCK_DISTANCE_SQUARED
+		local workerTask
+		if isStationary then
+			workerTask = spGetUnitWorkerTask(unitID)
 		end
-		if not isInNoGoZone(zombieData, unitX, unitZ) then
-			if #zombieData.noGoZones >= MAX_NOGO_ZONES then
-				table.remove(zombieData.noGoZones, 1)
+		if isStationary and workerTask ~= CMD_RESURRECT and workerTask ~= CMD_RECLAIM then -- if they haven't moved, blacklist this spot and reroute; keep a remembered-enemy goal
+			clearUnitOrders(unitID)
+			clearCombatTracking(zombieData)
+			zombieData.resurrectTargetID = nil
+			if objective and (objective.type == OBJECTIVE_TYPE_AGGRO or not zombieData.rememberedObjectiveX) then
+				zombieData.objective = nil
 			end
-			table.insert(zombieData.noGoZones, { x = unitX, z = unitZ })
+			if not isInNoGoZone(zombieData, unitX, unitZ) then
+				if #zombieData.noGoZones >= MAX_NOGO_ZONES then
+					table.remove(zombieData.noGoZones, 1)
+				end
+				table.insert(zombieData.noGoZones, { x = unitX, z = unitZ })
+			end
+			local recoveryObjective = ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
+			issueObjectiveMove(unitID, unitDefID, zombieData, recoveryObjective, unitX, unitZ, ZOMBIE_MAX_ORDER_ATTEMPTS)
 		end
-		local recoveryObjective = ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
-		issueObjectiveMove(unitID, unitDefID, zombieData, recoveryObjective, unitX, unitZ, ZOMBIE_MAX_ORDER_ATTEMPTS)
 	end
 	if mobileUnitDefs[unitDefID] and gameFrame - zombieData.selfDestructTimestamp >= STUCK_SELF_DESTRUCT_INTERVAL then
 		if

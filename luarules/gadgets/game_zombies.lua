@@ -4,8 +4,9 @@
 -- Vanished deaths are checked every 15 frames instead of every 3.
 -- A wraith tries three drop sites on its first clear search and one site each second after that.
 -- Zombie target scans reject unit defs that cannot be shot or captured before calling the engine.
--- Combat moves refresh after the target drifts 250 elmos, and a still-valid orbit is reused.
--- Normal objective routes try 4 headings, and a second hop is queued only when the first is shorter than 800 elmos.
+-- Combat orders stay the engage point plus the 45 degree orbit. The 250 drift refresh is skipped while GetClosestEnemyUnit finds any enemy inside half of weapon range.
+-- Objective routes try 4 headings and queue one move. Repeat keeps it, and the 12-second stuck pass issues a new move within 400 of that point or when the zombie has not moved.
+-- Every zombie is set to repeat. Gaia units are skipped by the repeat icon the same way the fire-state icons skip Gaia.
 -- One order update reuses the zombie position, and underwater weapon range uses the unit def height.
 -- Aggro assignment uses the ally unit lists and skips a position check for zombies whose target is still alive.
 -- The stuck check asks for the worker task only after the zombie has failed to move.
