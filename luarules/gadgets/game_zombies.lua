@@ -167,30 +167,35 @@ local ZOMBIE_EXPIRING_BUILDING_LIFETIME = Game.gameSpeed * 60 * 10 -- we don't w
 local ZOMBIE_PERMANENT_BUILDING_POWER_LIMIT = 5000 -- to preserve more impactful units
 local MINUTE_FRAMES = Game.gameSpeed * 60
 
--- Escalation over the game. Anchors are { percent of zombie_escalation_minutes, values... }, straight lines between
+-- Escalation over the game. Percents are of zombie_escalation_minutes, anchors are { percent, values... }
 local ESCALATION = {
 	-- the escalation cannot pass a gate below its tech level, until the next gate's minute
 	gates = { { percent = 23, techLevel = 1.5 }, { percent = 46, techLevel = 2.5 } },
-	peakExperience = 0.8,
-	costPosition = { { 0, 0 }, { 400, 0.3 }, { 3000, 0.66 }, { 40000, 1 } }, -- { unit power, cost position 0 to 1 }
-	costDelayPercent = 39, -- how late the most expensive unit reads the count and veterancy curves
-	rollLean = 3, -- the count roll leans low, 1 is a flat roll, higher makes big counts rarer
-	elitePackChance = 0.1, -- a wreck rises as half its minimum count at top rank instead, fades as the ranks arrive
-	hordeVeterancyShare = 0.6, -- the biggest roll keeps this much of the veterancy, the smallest keeps all of it
-	rezWindow = { { 0, 60, 160 }, { 100, 8, 40 } }, -- cheapest to most expensive
-	spawnCounts = { { 0, 4, 9 }, { 7, 4, 9 }, { 41, 5, 24 } },
-	veterancy = { { 0, 0 }, { 41, 1 } },
+	costLevels = { { 0, 0 }, { 400, 0.3 }, { 3000, 0.66 }, { 40000, 1 } }, -- { unit power, 0 cheapest .. 1 priciest }
+	riseSeconds = { { 0, 60, 160 }, { 100, 8, 40 } }, -- { percent, cheapest unit, most expensive unit }
+	packSize = { { 0, 4, 9 }, { 7, 4, 9 }, { 41, 5, 15 } }, -- { percent, smallest pack, biggest pack }
+	packDelayPercent = 39, -- the most expensive unit reads the pack sizes this much later
+	packRollsMostExpensive = 3, -- rolls the pack size this often and keeps the smallest, cheapest unit rolls once
+	xpStartPercent = 36, -- no veterancy before this
+	xpFullPercent = 64, -- the cheapest unit reaches maxXp here, the most expensive unit xpDelayPercent later
+	xpDelayPercent = 21,
+	xpCurvePower = 3, -- the climb starts slow and ends steep
+	maxXp = 0.8,
+	veteranPackChance = 0.05, -- a wreck rises as half its smallest pack at maxXp, fades as veterancy arrives
 }
 local escalationPercent = 0
-local escalationRezMinimum, escalationRezMaximum = 0, 0
+local riseSecondsCheapest, riseSecondsMostExpensive = 0, 0
 local escalationMinute = 0
 
-local function interpolateAnchors(anchors, position)
+local function interpolateAnchors(anchors, position, smooth)
 	local previous = anchors[1]
 	for anchorIndex = 2, #anchors do
 		local following = anchors[anchorIndex]
 		if position < following[1] then
 			local progress = clamp((position - previous[1]) / (following[1] - previous[1]), 0, 1)
+			if smooth then
+				progress = (1 - math.cos(progress * math.pi)) / 2
+			end
 			return math.mix(previous[2], following[2], progress),
 				previous[3] and math.mix(previous[3], following[3], progress)
 		end
@@ -432,7 +437,7 @@ do
 		local unitDefData = {
 			unitDefID = unitDefID,
 			rezPower = rezPower,
-			escalationCostPosition = interpolateAnchors(ESCALATION.costPosition, rezPower),
+			costLevel = interpolateAnchors(ESCALATION.costLevels, rezPower),
 			size = unitDef.xsize,
 			isMobile = unitDef.speed > 0,
 			isCommander = customParams.iscommander and true or false,
@@ -517,8 +522,7 @@ end
 
 local function calculateSpawnDelayFrames(unitDefData)
 	if currentModeFeatures.escalation then
-		local spawnSeconds =
-			floor(math.mix(escalationRezMinimum, escalationRezMaximum, unitDefData.escalationCostPosition))
+		local spawnSeconds = floor(math.mix(riseSecondsCheapest, riseSecondsMostExpensive, unitDefData.costLevel))
 		return spawnSeconds * Game.gameSpeed
 	end
 	local spawnSeconds = clamp(
@@ -597,38 +601,19 @@ local function updateEscalation(frame)
 		escalationMinute = 0
 	end
 	escalationPercent = escalationMinute / length * 100
-	escalationRezMinimum, escalationRezMaximum = interpolateAnchors(ESCALATION.rezWindow, escalationPercent)
+	riseSecondsCheapest, riseSecondsMostExpensive = interpolateAnchors(ESCALATION.riseSeconds, escalationPercent)
 	spring.SetGameRulesParam(RULES_PARAM.ESCALATION_MINUTE, escalationMinute)
 end
 
--- expensive units read the curves later in the game
-local function getEscalationCurvePercent(costPosition)
-	return escalationPercent - ESCALATION.costDelayPercent * costPosition
+-- expensive units reach every stage of the escalation later
+local function escalationPercentFor(unitDefData, delayPercent)
+	return escalationPercent - delayPercent * unitDefData.costLevel
 end
 
-local function getEscalationVeterancy(unitDefData)
-	return interpolateAnchors(ESCALATION.veterancy, getEscalationCurvePercent(unitDefData.escalationCostPosition))
-end
-
----@return number spawnCount, number veterancy fraction of the top rank, a big roll comes back green
-local function calculateEscalationSpawnCount(unitDefData)
-	local percent = getEscalationCurvePercent(unitDefData.escalationCostPosition)
-	local spawnMinimum, spawnMaximum = interpolateAnchors(ESCALATION.spawnCounts, percent)
-	spawnMinimum, spawnMaximum = math.round(spawnMinimum, 0), math.round(spawnMaximum, 0)
-	local veterancy = getEscalationVeterancy(unitDefData)
-	local roll = random()
-	if roll < ESCALATION.elitePackChance * (1 - veterancy) then
-		return math.ceil(spawnMinimum / 2), 1
-	end
-	local rollPosition = roll ^ ESCALATION.rollLean
-	local spawnCount = spawnMinimum + floor((spawnMaximum - spawnMinimum + 1) * rollPosition)
-	return spawnCount, veterancy * (1 - rollPosition * (1 - ESCALATION.hordeVeterancyShare))
-end
-
-local function calculateEscalationExperience(veterancy)
-	-- the engine scales XP bonuses by xp / (xp + 1), so veterancy is a fraction of that value, converted back to XP
-	local limitedExperience = veterancy * ESCALATION.peakExperience / (ESCALATION.peakExperience + 1)
-	return limitedExperience / (1 - limitedExperience)
+local function xpAtThisMinute(unitDefData)
+	local percent = escalationPercentFor(unitDefData, ESCALATION.xpDelayPercent)
+	local climb = (percent - ESCALATION.xpStartPercent) / (ESCALATION.xpFullPercent - ESCALATION.xpStartPercent)
+	return ESCALATION.maxXp * clamp(climb, 0, 1) ^ ESCALATION.xpCurvePower
 end
 
 local function updateTooLong(frame)
@@ -694,6 +679,20 @@ local function rollFor(keep, rollCount, minimum, maximum)
 	return result
 end
 
+---@return integer packSize, number xp for each zombie, a bigger pack shares the xp of the smallest one
+local function rollPackSize(unitDefData)
+	local percent = escalationPercentFor(unitDefData, ESCALATION.packDelayPercent)
+	local smallestPack, biggestPack = interpolateAnchors(ESCALATION.packSize, percent, true)
+	smallestPack, biggestPack = math.round(smallestPack, 0), math.round(biggestPack, 0)
+	local xp = xpAtThisMinute(unitDefData)
+	if random() < ESCALATION.veteranPackChance * (1 - xp / ESCALATION.maxXp) then
+		return math.ceil(smallestPack / 2), ESCALATION.maxXp
+	end
+	local rolls = 1 + math.round(unitDefData.costLevel * (ESCALATION.packRollsMostExpensive - 1), 0)
+	local packSize = rollFor(PICK_LOWEST, rolls, smallestPack, biggestPack)
+	return packSize, xp * smallestPack / packSize
+end
+
 local function calculateSpawnCount(unitDefID)
 	if not currentModeFeatures.multipleSpawns then
 		return 1
@@ -701,7 +700,7 @@ local function calculateSpawnCount(unitDefID)
 
 	local unitDefData = zombieUnitDefs[unitDefID]
 	if currentModeFeatures.escalation then
-		return calculateEscalationSpawnCount(unitDefData)
+		return rollPackSize(unitDefData)
 	end
 	local rezTimeSeconds = unitDefData.powerSpawnDelayFrames / Game.gameSpeed
 	local keep, rollCount = PICK_LOWEST, 1
@@ -824,14 +823,13 @@ local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie
 	if not unitDefData then
 		return
 	end
-	local spawnCount, veterancy = 1, nil -- dead zombies never multiply, so they can't snowball
+	local spawnCount, xp = 1, nil -- dead zombies never multiply, so they can't snowball
 	if not wasZombie and unitDefData.isMobile then
-		spawnCount, veterancy = calculateSpawnCount(unitDefID)
+		spawnCount, xp = calculateSpawnCount(unitDefID)
 	end
 	local experience = inheritedXp or 0
 	if currentModeFeatures.escalation then
-		experience =
-			math.max(experience, calculateEscalationExperience(veterancy or getEscalationVeterancy(unitDefData)))
+		experience = math.max(experience, xp or xpAtThisMinute(unitDefData))
 	end
 
 	local spawnUnitDefID, plannedCount, isSubstitute =
