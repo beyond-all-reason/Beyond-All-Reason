@@ -383,6 +383,14 @@ function widget:DrawWorld()
 	gl.StencilMask(15) -- Only check the first bit of the stencil buffer
 
 	radarCircleShader:Activate()
+	local regionRect = WG.MapRegionView and WG.MapRegionView.rect
+	radarCircleShader:SetUniform(
+		"regionBounds",
+		regionRect and regionRect.x0 or 0,
+		regionRect and regionRect.z0 or 0,
+		regionRect and regionRect.x1 or 0,
+		regionRect and regionRect.z1 or 0
+	)
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 
 	radarCircleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity)
