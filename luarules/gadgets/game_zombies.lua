@@ -831,7 +831,8 @@ local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie
 	end
 	local experience = inheritedXp or 0
 	if currentModeFeatures.escalation then
-		experience = math.max(experience, calculateEscalationExperience(veterancy or getEscalationVeterancy(unitDefData)))
+		experience =
+			math.max(experience, calculateEscalationExperience(veterancy or getEscalationVeterancy(unitDefData)))
 	end
 
 	local spawnUnitDefID, plannedCount, isSubstitute =
