@@ -431,15 +431,8 @@ local function armWreck(_, featureID, armFrame, riseFrame)
 			seed = featureID % 628 / 100,
 		}
 		wrecks[featureID] = wreck
-	else
-		local sequenceRestarted = wreck.armFrame ~= nil and armFrame > wreck.armFrame
-		if riseFrame > wreck.riseFrame and not sequenceRestarted then
-			wreck.holdUntilFrame = spGetGameFrame() + SMOKE_HOLD_FRAMES_AFTER_PUSHBACK
-		end
-		if sequenceRestarted then
-			wreck.flashCount = 0
-			wreck.holdUntilFrame = 0
-		end
+	elseif riseFrame > wreck.riseFrame then
+		wreck.holdUntilFrame = spGetGameFrame() + SMOKE_HOLD_FRAMES_AFTER_PUSHBACK
 	end
 	wreck.armFrame = armFrame
 	wreck.riseFrame = riseFrame
