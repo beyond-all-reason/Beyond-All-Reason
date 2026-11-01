@@ -112,6 +112,82 @@ local nudgedCount = 0
 local nudgedBuilder = {} ---@type table<integer, UnitID>
 local nudgedTeam = {} ---@type table<integer, TeamID>
 
+-- Resource/s the restricted passive builders would have pulled at full speed, so that
+-- the engine-reported pull can be corrected. Visible to allies (and spectators) only.
+local HIDDEN_METAL_PULL_PARAM = "hiddenMetalPull"
+local HIDDEN_ENERGY_PULL_PARAM = "hiddenEnergyPull"
+local HIDDEN_PULL_ACCESS = { allied = true, public = false }
+local hiddenPullMetal = {} ---@type table<TeamID, number>
+local hiddenPullEnergy = {} ---@type table<TeamID, number>
+
+local function setHiddenPull(teamID, metal, energy)
+	if hiddenPullMetal[teamID] ~= metal then
+		hiddenPullMetal[teamID] = metal
+		Spring.SetTeamRulesParam(teamID, HIDDEN_METAL_PULL_PARAM, metal, HIDDEN_PULL_ACCESS)
+	end
+	if hiddenPullEnergy[teamID] ~= energy then
+		hiddenPullEnergy[teamID] = energy
+		Spring.SetTeamRulesParam(teamID, HIDDEN_ENERGY_PULL_PARAM, energy, HIDDEN_PULL_ACCESS)
+	end
+end
+
+-- The engine reports team pull as a sum over the last full TEAM_SLOWUPDATE_RATE-frame window (frames n-29..n
+-- for n divisible by the rate), and Lua sees that window from frame n+1 on. To stay consistent with it, the
+-- hidden pull in effect during each frame is accumulated and the window average is published at the same time.
+local TEAM_SLOWUPDATE_RATE = 30
+local currentHiddenMetal = {} ---@type table<TeamID, number> -- hidden pull in effect for the current frame
+local currentHiddenEnergy = {} ---@type table<TeamID, number>
+local windowHiddenMetal = {} ---@type table<TeamID, number> -- sum over the frames of the current window
+local windowHiddenEnergy = {} ---@type table<TeamID, number>
+-- One-frame correction for builders nudged to BUILDSPEED_MIN, consumed by the accumulation of that frame
+local nudgeHiddenMetal = {} ---@type table<TeamID, number>
+local nudgeHiddenEnergy = {} ---@type table<TeamID, number>
+
+local function setCurrentHiddenPull(teamID, metal, energy)
+	currentHiddenMetal[teamID] = metal
+	currentHiddenEnergy[teamID] = energy
+end
+
+local function accumulateHiddenPull(teamID, publishWindow)
+	if publishWindow then
+		setHiddenPull(
+			teamID,
+			(windowHiddenMetal[teamID] or 0) / TEAM_SLOWUPDATE_RATE,
+			(windowHiddenEnergy[teamID] or 0) / TEAM_SLOWUPDATE_RATE
+		)
+		windowHiddenMetal[teamID] = 0
+		windowHiddenEnergy[teamID] = 0
+	end
+
+	local metal = (currentHiddenMetal[teamID] or 0) + (nudgeHiddenMetal[teamID] or 0)
+	local energy = (currentHiddenEnergy[teamID] or 0) + (nudgeHiddenEnergy[teamID] or 0)
+	nudgeHiddenMetal[teamID] = nil
+	nudgeHiddenEnergy[teamID] = nil
+	if metal ~= 0 or energy ~= 0 then
+		windowHiddenMetal[teamID] = (windowHiddenMetal[teamID] or 0) + metal
+		windowHiddenEnergy[teamID] = (windowHiddenEnergy[teamID] or 0) + energy
+	end
+end
+
+-- Each restricted builder's share of the team totals, so it can be withdrawn as soon as
+-- the builder stops being restricted (priority switch, death, transfer) instead of at the next update.
+local builderHiddenMetal = {} ---@type table<UnitID, number?>
+local builderHiddenEnergy = {} ---@type table<UnitID, number?>
+
+local function releaseHiddenPull(teamID, builderID)
+	local metal = builderHiddenMetal[builderID]
+	if metal then
+		local energy = builderHiddenEnergy[builderID] or 0
+		builderHiddenMetal[builderID] = nil
+		builderHiddenEnergy[builderID] = nil
+		setCurrentHiddenPull(
+			teamID,
+			mathMax(0, (currentHiddenMetal[teamID] or 0) - metal),
+			mathMax(0, (currentHiddenEnergy[teamID] or 0) - energy)
+		)
+	end
+end
+
 local function restrictBuildSpeed(builderID, limited)
 	GG.UnitAttributes.SetUnitModifier(builderID, "buildSpeed", limited and 0 or nil, ATTRIBUTE_SOURCE)
 end
@@ -188,6 +264,12 @@ function gadget:Initialize()
 		passiveCons[teamID] = passiveCons[teamID] or {}
 		passiveConsCount[teamID] = passiveConsCount[teamID] or 0
 		Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 0)
+		hiddenPullMetal[teamID] = nil
+		hiddenPullEnergy[teamID] = nil
+		setHiddenPull(teamID, 0, 0)
+		setCurrentHiddenPull(teamID, 0, 0)
+		windowHiddenMetal[teamID] = 0
+		windowHiddenEnergy[teamID] = 0
 	end
 
 	local allUnits = spGetAllUnits()
@@ -227,9 +309,12 @@ function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
+	releaseHiddenPull(oldTeamID, unitID)
 	if passiveCons[oldTeamID] and passiveCons[oldTeamID][unitID] then
 		setPassive(newTeamID, unitID)
 		clearPassive(oldTeamID, unitID)
+		updateFrame[oldTeamID] = 0
+		updateFrame[newTeamID] = 0
 	elseif nonPassiveCons[oldTeamID] and removeNonPassive(oldTeamID, unitID) then
 		addNonPassive(newTeamID, unitID)
 	end
@@ -241,6 +326,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
 	if realBuildSpeed[unitID] then
+		releaseHiddenPull(teamID, unitID)
 		if passiveCons[teamID][unitID] then
 			clearPassive(teamID, unitID)
 		else
@@ -281,13 +367,16 @@ function gadget:AllowCommand(
 				if not passiveCons[teamID][unitID] then
 					setPassive(teamID, unitID)
 					removeNonPassive(teamID, unitID)
+					updateFrame[teamID] = 0 -- re-evaluate on the next frame
 				end
 			elseif realBuildSpeed[unitID] then
 				restrictBuildSpeed(unitID, false)
 				isBuildRestricted[unitID] = nil
+				releaseHiddenPull(teamID, unitID)
 				if passiveCons[teamID][unitID] then
 					clearPassive(teamID, unitID)
 					addNonPassive(teamID, unitID)
+					updateFrame[teamID] = 0
 				end
 			end
 		end
@@ -336,11 +425,14 @@ local function UpdatePassiveBuilders(
 )
 	if spGetTeamRulesParam(teamID, "suspendbuilderpriority") ~= 0 then
 		for builderID in pairs(passiveCons[teamID]) do
+			builderHiddenMetal[builderID] = nil
+			builderHiddenEnergy[builderID] = nil
 			if isBuildRestricted[builderID] then
 				restrictBuildSpeed(builderID, false)
 				isBuildRestricted[builderID] = nil
 			end
 		end
+		setCurrentHiddenPull(teamID, 0, 0)
 		return
 	end
 
@@ -451,6 +543,8 @@ local function UpdatePassiveBuilders(
 	end
 
 	-- work through passive cons allocating as much expense as we have left
+	local hiddenMetal = 0.0
+	local hiddenEnergy = 0.0
 	for i = 1, passiveTeamConsCount do
 		local builderID = passiveTeamCons[i]
 		local wouldStall = false
@@ -465,11 +559,19 @@ local function UpdatePassiveBuilders(
 					or (teamStallingEnergy - passivePullEnergy <= 0 and passivePullEnergy > 0)
 				then
 					wouldStall = true
+					hiddenMetal = hiddenMetal + pMetal
+					hiddenEnergy = hiddenEnergy + passiveEnergy[i]
+					builderHiddenMetal[builderID] = pMetal
+					builderHiddenEnergy[builderID] = passiveEnergy[i]
 				else
 					teamStallingMetal = teamStallingMetal - passivePullMetal
 					teamStallingEnergy = teamStallingEnergy - passivePullEnergy
 				end
 			end
+		end
+		if not wouldStall then
+			builderHiddenMetal[builderID] = nil
+			builderHiddenEnergy[builderID] = nil
 		end
 
 		-- turn this passive builder on/off as appropriate
@@ -487,8 +589,18 @@ local function UpdatePassiveBuilders(
 			nudgedCount = nudgedCount + 1
 			nudgedBuilder[nudgedCount] = builderID
 			nudgedTeam[nudgedCount] = teamID
+
+			-- For this one frame the builder pulls BUILDSPEED_MIN/realBuildSpeed of its full rate, so the hidden
+			-- pull is that much lower than the per-cycle value if it stays restricted, or nearly full if it was
+			-- just released (the released case isn't in the per-cycle value at all).
+			local pullShare = mathMin(1, BUILDSPEED_MIN / realBuildSpeed[builderID])
+			local hiddenShare = wouldStall and -pullShare or (1 - pullShare)
+			nudgeHiddenMetal[teamID] = (nudgeHiddenMetal[teamID] or 0) + passiveMetal[i] * hiddenShare
+			nudgeHiddenEnergy[teamID] = (nudgeHiddenEnergy[teamID] or 0) + passiveEnergy[i] * hiddenShare
 		end
 	end
+
+	setCurrentHiddenPull(teamID, hiddenMetal, hiddenEnergy)
 end
 
 function gadget:GameFrame(n)
@@ -514,9 +626,12 @@ function gadget:GameFrame(n)
 	end
 	nudgedCount = keptCount
 
-	-- Only process teams that have passive builders and are not dead
+	-- The engine's pull window for a team becomes readable on these frames (see accumulateHiddenPull)
+	local publishWindow = n % TEAM_SLOWUPDATE_RATE == 1
+
 	for i = 1, #teamList do
 		local teamID = teamList[i]
+		-- Only process teams that have passive builders and are not dead
 		if not deadTeamList[teamID] then
 			-- Skip teams with no passive builders
 			if passiveConsCount[teamID] and passiveConsCount[teamID] > 0 then
@@ -559,8 +674,13 @@ function gadget:GameFrame(n)
 					)
 					updateFrame[teamID] = n + interval
 				end
+			elseif (currentHiddenMetal[teamID] or 0) ~= 0 or (currentHiddenEnergy[teamID] or 0) ~= 0 then
+				setCurrentHiddenPull(teamID, 0, 0)
 			end
 		end
+
+		-- After the team's evaluation, so this frame's restrictions are included
+		accumulateHiddenPull(teamID, publishWindow)
 	end
 end
 
