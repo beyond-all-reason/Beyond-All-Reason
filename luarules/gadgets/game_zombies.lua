@@ -98,6 +98,12 @@ local zombieModeSettings = {
 ---One of the zombie modes, matching the keys of `ZOMBIE_MODE_FEATURES`.
 ---@alias ZombieMode "basic"|"wraith"|"hydra"|"akumu"|"spidergeddon"
 
+---@class ZombieModeFeatures
+---@field wraithRespawns boolean?
+---@field multipleSpawns boolean?
+---@field escalation boolean?
+
+---@type table<ZombieMode, ZombieModeFeatures>
 local ZOMBIE_MODE_FEATURES = {
 	basic = { escalation = true },
 	wraith = { wraithRespawns = true, escalation = true },
@@ -604,7 +610,7 @@ local function getEscalationVeterancy(unitDefData)
 	return interpolateAnchors(ESCALATION.veterancy, getEscalationCurvePercent(unitDefData.escalationCostPosition))
 end
 
----@return integer spawnCount, number veterancy fraction of the top rank, a big roll comes back green
+---@return number spawnCount, number veterancy fraction of the top rank, a big roll comes back green
 local function calculateEscalationSpawnCount(unitDefData)
 	local percent = getEscalationCurvePercent(unitDefData.escalationCostPosition)
 	local spawnMinimum, spawnMaximum = interpolateAnchors(ESCALATION.spawnCounts, percent)
@@ -725,16 +731,7 @@ local function registerZombie(unitID, unitDefID, transferToScavs)
 end
 
 ---@return integer spawnedCount
-local function spawnZombieUnits(
-	unitDefID,
-	spawnCount,
-	spawnX,
-	spawnY,
-	spawnZ,
-	facing,
-	experience,
-	useExactPosition
-)
+local function spawnZombieUnits(unitDefID, spawnCount, spawnX, spawnY, spawnZ, facing, experience, useExactPosition)
 	local unitDefData = zombieUnitDefs[unitDefID]
 	if not unitDefData then
 		return 0
@@ -842,15 +839,7 @@ local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie
 	if not spawnUnitDefID then
 		return
 	end
-	local spawnedCount = spawnZombieUnits(
-		spawnUnitDefID,
-		plannedCount,
-		spawnX,
-		spawnY,
-		spawnZ,
-		facing,
-		experience
-	)
+	local spawnedCount = spawnZombieUnits(spawnUnitDefID, plannedCount, spawnX, spawnY, spawnZ, facing, experience)
 	if isSubstitute then
 		retryFailedSubstitutes(spawnUnitDefID, plannedCount - spawnedCount)
 	end
