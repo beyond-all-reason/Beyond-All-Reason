@@ -18,7 +18,10 @@ end
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitStates = Spring.GetUnitStates
 local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitTeam = Spring.GetUnitTeam
 local spIsGUIHidden = Spring.IsGUIHidden
+
+local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local repeatTexture = "LuaUI/Images/repeat.png"
 
@@ -165,7 +168,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	unitRepeat = {}
 	local gf = spGetGameFrame()
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		if unitConf[unitDefID] then
+		if spGetUnitTeam(unitID) ~= gaiaTeamID and unitConf[unitDefID] then
 			visibleUnits[unitID] = unitDefID
 			if not crashingUnits[unitID] then
 				-- the 4th value is the repeat state (no table built), all nil for units that are not ours to read
@@ -183,6 +186,9 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	if unitTeam == gaiaTeamID then
+		return
+	end
 	if not unitConf[unitDefID] then
 		return
 	end
@@ -212,6 +218,9 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:CrashingAircraft(unitID, unitDefID, teamID)
+	if teamID == gaiaTeamID then
+		return
+	end
 	crashingUnits[unitID] = true
 	unitRepeat[unitID] = nil
 	if repeatVBO.instanceIDtoIndex[unitID] then
@@ -221,6 +230,9 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts)
+	if teamID == gaiaTeamID then
+		return
+	end
 	if cmdID ~= CMD.REPEAT then
 		return
 	end
