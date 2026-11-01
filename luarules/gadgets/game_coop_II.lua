@@ -36,6 +36,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function SetCoopStartPoint(playerID, x, y, z)
 		coopStartPoints[playerID] = { x, y, z }
+		if GG.UpdatePregameQueuePosition then
+			GG.UpdatePregameQueuePosition(playerID, x, z)
+		end
 		SendToUnsynced("CoopStartPoint", playerID, x, y, z)
 	end
 
@@ -162,7 +165,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		-- create
-		local unitID = Spring.CreateUnit(startUnit, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+		local unitID
+		if GG.CreatePregameStartUnit then
+			unitID = GG.CreatePregameStartUnit(playerID, startUnit, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+		else
+			unitID = Spring.CreateUnit(startUnit, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+		end
 		coopStartPoints[playerID] = { x, z }
 		GG.playerStartingUnits[playerID] = startUnit
 		-- we set unit rule to mark who belongs to, so initial queue knows which com unitID belongs to which player's initial queue

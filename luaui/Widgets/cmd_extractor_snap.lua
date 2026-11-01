@@ -39,8 +39,6 @@ local metalMap = false
 local metalSpots = {}
 local geoSpots = {}
 
-local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
-
 local function MakeLine(x1, y1, z1, x2, y2, z2)
 	gl.Vertex(x1, y1, z1)
 	gl.Vertex(x2, y2, z2)
@@ -72,10 +70,6 @@ function widget:Initialize()
 	metalMap = WG.resource_spot_finder.isMetalMap
 end
 
-function widget:GameStart()
-	isPregame = false
-end
-
 local function clear()
 	if activeUnitShape then
 		WG.StopDrawUnitShapeGL4(activeUnitShape)
@@ -97,7 +91,6 @@ end
 local function clashesWithBuildQueue(uid, pos)
 	local units = Spring.GetSelectedUnits()
 
-	-- local building test functions taken from pregame_build
 	local function GetBuildingDimensions(uDefID, facing)
 		local bDef = UnitDefs[uDefID]
 		if facing % 2 == 1 then
@@ -119,29 +112,20 @@ local function clashesWithBuildQueue(uid, pos)
 
 	local buildFacing = Spring.GetBuildFacing()
 	local newBuildData = { uid, pos.x, pos.y, pos.z, buildFacing }
-	if isPregame then
-		local queue = WG["pregame-build"].getBuildQueue()
-		for i = 1, #queue do
-			if DoBuildingsClash(newBuildData, queue[i]) then
-				return true
-			end
-		end
-	else
-		for i = 1, #units do
-			local queue = Spring.GetUnitCommands(units[i], 100)
-			if queue then
-				for j = 1, #queue do
-					local command = queue[j]
-					local id = command.id and command.id or command[1]
-					if id < 0 then
-						local x = command.params and command.params[1] or command[2]
-						local y = command.params and command.params[2] or command[3]
-						local z = command.params and command.params[3] or command[4]
-						local facing = command.params and command.params[4] or 1
-						local buildData = { -id, x, y, z, facing }
-						if DoBuildingsClash(newBuildData, buildData) then
-							return true
-						end
+	for i = 1, #units do
+		local queue = Spring.GetUnitCommands(units[i], 100)
+		if queue then
+			for j = 1, #queue do
+				local command = queue[j]
+				local id = command.id
+				if id < 0 then
+					local x = command.params[1]
+					local y = command.params[2]
+					local z = command.params[3]
+					local facing = command.params[4] or 1
+					local buildData = { -id, x, y, z, facing }
+					if DoBuildingsClash(newBuildData, buildData) then
+						return true
 					end
 				end
 			end
@@ -155,14 +139,7 @@ function widget:Update()
 	selectedMex = nil
 	selectedGeo = nil
 
-	if isPregame then
-		activeCmdID = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
-		if activeCmdID then
-			activeCmdID = -activeCmdID
-		end
-	else
-		_, activeCmdID = spGetActiveCommand()
-	end
+	_, activeCmdID = spGetActiveCommand()
 
 	if not activeCmdID then
 		clear()
@@ -201,13 +178,7 @@ function widget:Update()
 
 	-- check if there is stuff in the way - if there is we change behavior
 	local clashes = clashesWithBuildQueue(buildingId, cursorPos)
-	if clashes and isPregame then
-		if shift then
-			clear()
-			return
-		end
-	end
-	if clashes and not isPregame then
+	if clashes then
 		clear()
 		return
 	end
@@ -239,13 +210,13 @@ function widget:Update()
 	local cmd = WG.resource_spot_builder.PreviewExtractorCommand(pos, buildingId, nearestSpot)
 	if cmd and #cmd > 0 then
 		targetPos = { x = cmd[2], y = cmd[3], z = cmd[4] }
-		WG.ExtractorSnap.position = targetPos -- used by prospector and pregame queue
+		WG.ExtractorSnap.position = targetPos -- used by the build preview
 
 		local dist =
 			math.distance3dSquared(cursorPos.x, cursorPos.y, cursorPos.z, targetPos.x, targetPos.y, targetPos.z)
 		if dist < 1 then
 			clear()
-			WG.ExtractorSnap.position = targetPos --bit of a hack, this still needs to be set during pregame
+			WG.ExtractorSnap.position = targetPos
 			return
 		end
 
@@ -308,9 +279,6 @@ local function handleBuildMenu(shift)
 end
 
 function widget:MousePress(x, y, button)
-	if isPregame then
-		return
-	end
 
 	if button == 1 and buildCmd and buildCmd[1] then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()

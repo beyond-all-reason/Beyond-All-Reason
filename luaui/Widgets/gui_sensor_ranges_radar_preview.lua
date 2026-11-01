@@ -1098,18 +1098,7 @@ local function previewedRadarDef()
 	else
 		cmdID = select(2, spGetActiveCommand())
 		if cmdID == nil or cmdID >= 0 then
-			-- before game start builds are queued through the pregame build widget, not via an active command.
-			-- Only while the game hasn't started: that widget keeps its picked unit after GameStart, which would
-			-- otherwise leave the preview stuck to the cursor with nothing selected.
-			if Spring.GetGameFrame() > 0 then
-				return nil
-			end
-			local pregameBuild = WG["pregame-build"]
-			local pregameDefID = pregameBuild and pregameBuild.getPreGameDefID and pregameBuild.getPreGameDefID()
-			if not pregameDefID then
-				return nil
-			end
-			cmdID = -pregameDefID
+			return nil
 		end
 	end
 

@@ -626,7 +626,8 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 	startPolygonShader:SetUniformInt("myAllyTeamID", myAllyTeamID or -1)
-	local selectedUnitDefID = WG["pregame-unit-selected"]
+	local _, buildCommand = Spring.GetActiveCommand()
+	local selectedUnitDefID = buildCommand and buildCommand < 0 and -buildCommand
 	local selectedUnitDef = selectedUnitDefID and UnitDefs[selectedUnitDefID]
 	local waterSurfaceMode = not inminimap and selectedUnitDef and selectedUnitDef.floatOnWater
 	startPolygonShader:SetUniformInt("waterSurfaceMode", waterSurfaceMode and 1 or 0)
@@ -1683,8 +1684,8 @@ function widget:MousePress(x, y, button)
 		end
 	end
 
-	local pregameUnitSelected = WG["pregame-unit-selected"]
-	if not isSpec and not (pregameUnitSelected and pregameUnitSelected > 0) then
+	local _, activeCommand = Spring.GetActiveCommand()
+	if not isSpec and not activeCommand then
 		spRequestStartPosition(worldX, worldY, worldZ, false)
 		return true
 	end

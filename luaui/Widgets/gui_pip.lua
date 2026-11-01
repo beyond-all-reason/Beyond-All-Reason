@@ -11703,22 +11703,24 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 				if ux then
 					local firstWP = cached[1]
 
-					-- Always draw unit → first waypoint (unique per unit position)
-					local firstColor = cmdColors[firstWP[3]] or cmdColors.unknown
-					GL4AddNormLine(
-						ux,
-						uz,
-						firstWP[1],
-						firstWP[2],
-						firstColor[1],
-						firstColor[2],
-						firstColor[3],
-						0.8,
-						firstColor[1],
-						firstColor[2],
-						firstColor[3],
-						0.8
-					)
+					if Spring.GetUnitRulesParam(uID, "pregame_positioned") ~= 0 then
+						-- A pregame queue has no origin until its start position is chosen.
+						local firstColor = cmdColors[firstWP[3]] or cmdColors.unknown
+						GL4AddNormLine(
+							ux,
+							uz,
+							firstWP[1],
+							firstWP[2],
+							firstColor[1],
+							firstColor[2],
+							firstColor[3],
+							0.8,
+							firstColor[1],
+							firstColor[2],
+							firstColor[3],
+							0.8
+						)
+					end
 
 					-- Full chain: only for first N units (rest is visual overlap).
 					-- Per-segment dedup ensures shared segments draw only once.

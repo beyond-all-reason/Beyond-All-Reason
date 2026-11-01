@@ -3149,12 +3149,7 @@ function checkChanges()
 	displayUnitID = nil
 	displayUnitDefID = nil
 
-	if isPregame and not mySpec then
-		activeCmdID = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
-		activeCmdID = activeCmdID and -activeCmdID
-	else
-		activeCmdID = select(2, Spring.GetActiveCommand())
-	end
+	activeCmdID = select(2, Spring.GetActiveCommand())
 
 	-- buildmenu unitdef
 	if WG.buildmenu and WG.buildmenu.hoverID then

@@ -212,7 +212,6 @@ local statusCheckPeriod = 1
 local statusChecksEnabled = true
 local statusCheckTargetPhase = 0
 local orderedPreviewCaches = {}
-local pregameStatuses = {}
 local snapStatuses = {}
 -- Queued build footprints of the selected units, hashed into map buckets so a preview only tests the footprints
 -- near it. Per-unit queues are re-read when their command count changes, a build command arrives, the selection
@@ -440,28 +439,8 @@ local function rebuildQueuedBuildFootprints()
 end
 
 local function updateQueuedBuildFootprints(gameFrame)
-	if gameFrame <= 0 then
-		-- Pregame: the queue lives in the pregame build widget and is small, re-read it every draw frame.
-		if queuedBuilds.drawFrame == extendedCellsDrawFrame then
-			return
-		end
-		queuedBuilds.drawFrame = extendedCellsDrawFrame
-		rebuildQueuedBuildFootprints()
-		local pregameBuild = WG["pregame-build"]
-		local getBuildQueue = pregameBuild and pregameBuild.getBuildQueue
-		local buildQueue = getBuildQueue and getBuildQueue()
-		if buildQueue then
-			for queueIndex = 1, #buildQueue do
-				local buildData = buildQueue[queueIndex]
-				if buildData[1] and buildData[2] and buildData[4] then
-					addQueuedBuildFootprint(buildData[1], buildData[2], buildData[4], buildData[5] or 0)
-				end
-			end
-		end
-		return
-	end
 
-	if queuedBuilds.gameFrame == gameFrame then
+	if gameFrame > 0 and queuedBuilds.gameFrame == gameFrame then
 		return
 	end
 	queuedBuilds.gameFrame = gameFrame
@@ -2059,50 +2038,6 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	)
 end
 
-local function collectPregameBuildSquare()
-	if spGetGameFrame() > 0 then
-		return
-	end
-
-	local pregameBuild = WG["pregame-build"]
-	local getPreGameDefID = pregameBuild and pregameBuild.getPreGameDefID
-	local unitDefID = getPreGameDefID and getPreGameDefID()
-	if not unitDefID then
-		return
-	end
-	local unitDef = UnitDefs[unitDefID]
-	if not unitDef then
-		return
-	end
-
-	local mouseX, mouseY = spGetMouseState()
-	local _, position = spTraceScreenRay(mouseX, mouseY, true, false, false, unitDef.modCategories.underwater)
-	if not position then
-		return
-	end
-	local positionX = position[1]
-	local positionY = position[2]
-	local positionZ = position[3]
-	if not positionX or not positionY or not positionZ then
-		return
-	end
-
-	local facing = spGetBuildFacing()
-	local x, buildHeight, z = spPos2BuildPos(unitDefID, positionX, positionY, positionZ, facing)
-	if not x or not buildHeight or not z then
-		return
-	end
-
-	local footprint = getFootprintData(unitDefID, facing)
-	if not footprint then
-		return
-	end
-
-	local placementValid = spTestBuildOrder(unitDefID, x, buildHeight, z, facing) ~= 0
-	fillPredictedStatuses(pregameStatuses, unitDef, x, buildHeight, z, footprint, placementValid)
-
-	widget:DrawBuildSquare(unitDefID, x, z, facing, pregameStatuses)
-end
 
 local function rebuildBatchBuffer()
 	tracy.ZoneBeginN("W:BuildSquare:BuildBatch")
@@ -2315,7 +2250,6 @@ end
 
 function widget:DrawWorldPreUnit()
 	local drawFrame = beginBuildSquareDrawFrame(spGetDrawFrame())
-	collectPregameBuildSquare()
 	if collectedPreviewCount == 0 or collectedDrawFrame < drawFrame - 1 or collectedDrawFrame > drawFrame then
 		batchInstanceCount = 0
 		minimapInstanceCount = 0
