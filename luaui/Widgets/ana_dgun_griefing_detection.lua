@@ -9,6 +9,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -1,
 		enabled = true,
+		hidden = true, -- don't want players intentionally suppressing events
 	}
 end
 

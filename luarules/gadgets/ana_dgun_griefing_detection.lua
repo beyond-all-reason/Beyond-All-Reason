@@ -499,6 +499,7 @@ local function GetGameID()
 end
 
 function gadget:Initialize()
+    gadgetHandler:RegisterUnitCommand(CMD.MANUALFIRE)
 	RefreshPlayerState()
 end
 
@@ -692,7 +693,7 @@ end
 
 -- Observe DGun commands and write analytics for local commanders only.
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
-	if cmdID ~= CMD_DGUN or unitTeam ~= myTeamID or not isCommander[unitDefID] then
+	if unitTeam ~= myTeamID or not isCommander[unitDefID] then
 		return
 	end
 
