@@ -1150,6 +1150,9 @@ else -- UNSYNCED
 		end
 	end
 
+	local vsx, vsy = Spring.GetViewGeometry()
+	local uiScale = vsy / 1080
+
 	-- Modbroadcast draw state, unsynced, reaches all players.
 	local modbroadcastActive = nil
 	local MODBROADCAST_DURATION = 7
@@ -1885,10 +1888,9 @@ else -- UNSYNCED
 				if elapsed > MODBROADCAST_HOLD then
 					alpha = 1 - ((elapsed - MODBROADCAST_HOLD) / (MODBROADCAST_DURATION - MODBROADCAST_HOLD))
 				end
-				local vsx, vsy = Spring.GetViewGeometry()
 				local c = modbroadcastActive
 				gl.Color(c.r, c.g, c.b, alpha)
-				gl.Text(c.text, vsx / 2, vsy / 2, MODBROADCAST_FONT_SIZE, "cvo")
+				gl.Text(c.text, vsx / 2, vsy / 2, MODBROADCAST_FONT_SIZE * uiScale, "cvo")
 				gl.Color(1, 1, 1, 1)
 			end
 		end
