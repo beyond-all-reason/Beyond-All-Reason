@@ -1,23 +1,27 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local actions = VFS.Include("luarules/mission_api/actions/features/destroy_features.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/features/destroy_features.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 ---Track the given `name -> featureID` pairs, and mark those IDs valid.
 local function seedFeatures(name, ...)
-	local missionApi = Builders.MissionApi.new()
-	local spring = Builders.Spring.new()
+	local missionApi = MissionApiBuilder.new()
+	local spring = SpringSyncedBuilder.new()
 	for _, featureID in ipairs({ ... }) do
 		missionApi:WithTrackedFeature(name, featureID)
 		spring:WithValidFeature(featureID)
 	end
 	missionApi:Install()
-	_G.Spring = spring:Build()
-	return Spring.calls.destroyFeature
+	env.Spring = spring:Build()
+	return env.Spring.calls.destroyFeature
 end
 
 describe("mission_api.actions.destroy_features", function()
@@ -25,9 +29,9 @@ describe("mission_api.actions.destroy_features", function()
 	local destroyFeatureCalls
 
 	before_each(function()
-		Builders.MissionApi.new():Install()
-		_G.Spring = Builders.Spring.new():Build()
-		destroyFeatureCalls = Spring.calls.destroyFeature
+		MissionApiBuilder.new():Install()
+		env.Spring = SpringSyncedBuilder.new():Build()
+		destroyFeatureCalls = env.Spring.calls.destroyFeature
 	end)
 
 	it("declares its type and parameters", function()
@@ -51,22 +55,22 @@ describe("mission_api.actions.destroy_features", function()
 
 		it("skips invalid feature IDs", function()
 			-- tracked, but never marked valid
-			Builders.MissionApi.new():WithTrackedFeature("rock", 10):Install()
-			_G.Spring = Builders.Spring.new():Build()
+			MissionApiBuilder.new():WithTrackedFeature("rock", 10):Install()
+			env.Spring = SpringSyncedBuilder.new():Build()
 
 			action.actionFunction("rock")
 
-			assert.are.equal(0, #Spring.calls.destroyFeature)
+			assert.are.equal(0, #env.Spring.calls.destroyFeature)
 		end)
 
 		it("only destroys features matching the given name", function()
-			Builders.MissionApi.new():WithTrackedFeature("rock", 10):WithTrackedFeature("tree", 20):Install()
-			_G.Spring = Builders.Spring.new():WithValidFeature(10):WithValidFeature(20):Build()
+			MissionApiBuilder.new():WithTrackedFeature("rock", 10):WithTrackedFeature("tree", 20):Install()
+			env.Spring = SpringSyncedBuilder.new():WithValidFeature(10):WithValidFeature(20):Build()
 
 			action.actionFunction("rock")
 
-			assert.are.equal(1, #Spring.calls.destroyFeature)
-			assert.are.equal(10, Spring.calls.destroyFeature[1])
+			assert.are.equal(1, #env.Spring.calls.destroyFeature)
+			assert.are.equal(10, env.Spring.calls.destroyFeature[1])
 		end)
 	end)
 

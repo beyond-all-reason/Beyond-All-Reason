@@ -8,7 +8,7 @@ return {
 	parameters = {
 		{ name = 'passengerName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'passengerDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',           required = false, type = ParameterTypes.TeamID },
+		{ name = 'teamName',         required = false, type = ParameterTypes.TeamName },
 		{ name = 'transportName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'transportDefName', required = false, type = ParameterTypes.UnitDefName },
 		requiresOneOf = { 'passengerName', 'passengerDefName' },
@@ -26,7 +26,7 @@ return {
 			if parameters.passengerDefName and parameters.passengerDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if parameters.teamID and parameters.teamID ~= unitTeam then
+			if parameters.teamName and parameters.teamName ~= unitTeam then
 				return
 			end
 			if parameters.transportName and not context.DoesUnitHaveName(transportID, parameters.transportName) then

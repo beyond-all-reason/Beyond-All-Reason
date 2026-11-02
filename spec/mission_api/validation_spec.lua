@@ -44,7 +44,7 @@ describe("mission_api.validation", function()
 			local result = V.validate(
 				V.mission():WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 })):WithAction(
 					"ok",
-					{ type = V.actionTypes.NameUnits, parameters = { unitName = "unreferenced", teamID = 0 } }
+					{ type = V.actionTypes.NameUnits, parameters = { unitName = "unreferenced", teamName = "player" } }
 				)
 			)
 
@@ -91,7 +91,7 @@ describe("mission_api.validation", function()
 					:WithObjective("o2", { textKey = "ok", onCompleted = "t" })
 					:WithTrigger("t", { type = "invalidType", actions = { "a" } })
 					:WithAction("a", { type = V.actionTypes.SendMessage, parameters = {} })
-					:WithUnitLoadout({ { unitDefName = "noSuch", x = 0, z = 0, team = 0 } })
+					:WithUnitLoadout({ { unitDefName = "noSuch", x = 0, z = 0, teamName = "player" } })
 			)
 
 			assert.are.same({

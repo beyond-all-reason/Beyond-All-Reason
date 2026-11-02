@@ -309,7 +309,7 @@ describe("mission_api.validation.sections", function()
 		it("warns when a statistics trigger specifies quantity", function()
 			local result = validateObjectiveTrigger({
 				type = V.triggerTypes.UnitsOwned,
-				parameters = { teamID = 0, quantity = 5, unitDefName = "armwar" },
+				parameters = { teamName = "player", quantity = 5, unitDefName = "armwar" },
 			})
 
 			V.assertMessage(result, "Objective trigger 'quantity' is not supported and will be ignored. Objective: o")
@@ -504,7 +504,7 @@ describe("mission_api.validation.sections", function()
 		it("warns that the AI of the old team stays", function()
 			local result = V.validate(V.mission():WithAction("defect", {
 				type = V.actionTypes.ChangeTeam,
-				parameters = { oldTeam = "loyalists", newTeam = "rebels" },
+				parameters = { oldTeamName = "loyalists", newTeamName = "rebels" },
 			}))
 
 			V.assertMessage(result, "ChangeTeam moves players only, the AI of team 'loyalists' stays. Action: defect")
@@ -516,8 +516,8 @@ describe("mission_api.validation.sections", function()
 				V.validate(V.mission():WithAction("defect", {
 					type = V.actionTypes.ChangeTeam,
 					parameters = {
-						oldTeam = { difficulties = { Easy = "rebels", Hard = "loyalists" } },
-						newTeam = "rebels",
+						oldTeamName = { difficulties = { Easy = "rebels", Hard = "loyalists" } },
+						newTeamName = "rebels",
 					},
 				})),
 				"ChangeTeam moves players only, the AI of team 'loyalists' stays. Action: defect"
@@ -528,7 +528,7 @@ describe("mission_api.validation.sections", function()
 			V.assertNoMessageContaining(
 				V.validate(V.mission():WithAction("defect", {
 					type = V.actionTypes.ChangeTeam,
-					parameters = { oldTeam = "rebels", newTeam = "loyalists" },
+					parameters = { oldTeamName = "rebels", newTeamName = "loyalists" },
 				})),
 				"ChangeTeam"
 			)
@@ -539,16 +539,16 @@ describe("mission_api.validation.sections", function()
 		local originalWeaponDefs
 
 		before_each(function()
-			originalWeaponDefs = _G.WeaponDefs
-			_G.WeaponDefs = { [1] = { stockpile = true }, [2] = { stockpile = false } }
-			_G.UnitDefNames = {
+			originalWeaponDefs = V.env.WeaponDefs
+			V.env.WeaponDefs = { [1] = { stockpile = true }, [2] = { stockpile = false } }
+			V.env.UnitDefNames = {
 				armmercury = { id = 1, weapons = { { weaponDef = 2 }, { weaponDef = 1 } } },
 				armwar = { id = 2, weapons = { { weaponDef = 2 } } },
 			}
 		end)
 
 		after_each(function()
-			_G.WeaponDefs = originalWeaponDefs
+			V.env.WeaponDefs = originalWeaponDefs
 		end)
 
 		it("accepts any fractional progress value", function()
@@ -727,7 +727,7 @@ describe("mission_api.validation.sections", function()
 	it("validates loadout entries", function()
 		local result = V.validate(
 			V.mission()
-				:WithUnitLoadout({ { unitDefName = "noSuch", x = 0, z = 0, team = 0 } })
+				:WithUnitLoadout({ { unitDefName = "noSuch", x = 0, z = 0, teamName = "player" } })
 				:WithFeatureLoadout({ { featureDefName = "rockdef", z = 0 } })
 		)
 
@@ -900,7 +900,7 @@ describe("mission_api.validation.sections", function()
 			{ id = 1, name = "armwar", isImmobile = false, isBuilder = false, weapons = { { weaponDef = 1 } } }
 
 		local function validateAttributeAction(unitDefs, action)
-			_G.UnitDefNames = unitDefs
+			V.env.UnitDefNames = unitDefs
 			return V.validateAction(action)
 		end
 

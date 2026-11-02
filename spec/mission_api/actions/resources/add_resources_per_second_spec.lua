@@ -14,6 +14,7 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 
 describe("mission_api.actions.add_resources_per_second", function()
 
+	---@type table, table
 	local metalCalls, energyCalls
 
 	before_each(function()
@@ -30,7 +31,7 @@ describe("mission_api.actions.add_resources_per_second", function()
 	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "AddResourcesPerSecond",
-			teamID = "TeamID!",
+			teamName = "TeamName!",
 			metal = "Number",
 			energy = "Number",
 			requiresOneOf = { "metal", "energy" },

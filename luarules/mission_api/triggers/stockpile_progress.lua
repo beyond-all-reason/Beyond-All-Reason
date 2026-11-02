@@ -32,7 +32,7 @@ return {
 		{ name = 'progress',    required = true,  type = ParameterTypes.Fraction },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
+		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
@@ -55,7 +55,7 @@ return {
 
 				if crossings > 0
 					and (not parameters.unitName or context.DoesUnitHaveName(unitID, parameters.unitName))
-					and (not parameters.teamID or parameters.teamID == Spring.GetUnitTeam(unitID))
+					and (not parameters.teamName or parameters.teamName == Spring.GetUnitTeam(unitID))
 				then
 					for _ = 1, crossings do
 						context.ActivateTrigger(trigger)

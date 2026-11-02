@@ -76,6 +76,13 @@ local function loadMission(gameSetup)
 	)
 	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
+	parameterProcessing.ProcessManagedObjectiveParameters(GG["MissionAPI"].ManagedObjectives)
+	if GG["MissionAPI"].UnitLoadout then
+		parameterProcessing.ProcessValue(
+			GG["MissionAPI"].Modules.ParameterTypes.Types.UnitLoadout,
+			GG["MissionAPI"].UnitLoadout
+		)
+	end
 end
 
 function gadget:Initialize()
@@ -90,7 +97,7 @@ function gadget:Initialize()
 	GG["MissionAPI"].Variables = gameSetup.variables
 	GG["MissionAPI"].PersistentVariables = gameSetup.persistentVariables
 	GG["MissionAPI"].Teams = gameSetup.teams
-	GG["MissionAPI"].AllyTeams = gameSetup.allyTeams
+	GG["MissionAPI"].Alliances = gameSetup.alliances
 	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
 	GG["MissionAPI"].trackedUnitIDs = {}
 	GG["MissionAPI"].trackedUnitNames = {}

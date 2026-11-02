@@ -1,21 +1,24 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and
 -- Spring.GetUnitIsBeingBuilt / Spring.GetUnitDefID / UnitDefs inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 -- Builder ids double as their own defIDs below, so UnitDefs is keyed by both. Maybe too confusing.
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armpw" },
 	[2] = { name = "armck" },
 	[10] = { name = "armlab", isFactory = true },
 	[11] = { name = "armvp", isFactory = true },
 	[20] = { name = "armck" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local productionStarted = MissionSpecEnv.include(env, "luarules/mission_api/triggers/production_started.lua")
 local onUnitCreated = productionStarted.callins.UnitCreated
@@ -32,11 +35,11 @@ describe("mission_api.triggers.production_started", function()
 	end)
 
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
@@ -55,7 +58,7 @@ describe("mission_api.triggers.production_started", function()
 			names[parameter.name] = parameter.required
 		end
 		assert.is_true(names.unitDefName) -- a buildee has no unitName yet, so this stands in as required
-		assert.is_false(names.teamID)
+		assert.is_false(names.teamName)
 		assert.is_false(names.factoryName)
 		assert.is_false(names.factoryDefName)
 	end)
@@ -66,9 +69,9 @@ describe("mission_api.triggers.production_started", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw", teamID = 0 }), context, 1, 9, 10)
+		produced(trigger({ unitDefName = "armpw", teamName = 0 }), context, 1, 9, 10)
 		assert.are.equal(0, fired())
 	end)
 
@@ -91,7 +94,7 @@ describe("mission_api.triggers.production_started", function()
 
 	it("fires for a matching production", function()
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw", teamID = 0 }), context, 1, 0, 10)
+		produced(trigger({ unitDefName = "armpw", teamName = 0 }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 

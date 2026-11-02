@@ -1,17 +1,20 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here),
 -- Game.envDamageTypes from the harness, and Spring / UnitDefs inside its handlers.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armsolar" },
 	[2] = { name = "armwin" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local productionCanceled = MissionSpecEnv.include(env, "luarules/mission_api/triggers/production_canceled.lua")
 local onUnitDestroyed = productionCanceled.callins.UnitDestroyed
@@ -26,11 +29,11 @@ describe("mission_api.triggers.production_canceled", function()
 	end)
 
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():WithInFactory(true):Build()
+		local context = TriggerContextBuilder.new():WithInFactory(true):Build()
 		return context, context.timesFired
 	end
 
@@ -53,7 +56,7 @@ describe("mission_api.triggers.production_canceled", function()
 		end
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.factoryName)
 		assert.is_true(names.factoryDefName)
 		assert.are.same({ "unitName", "unitDefName" }, productionCanceled.parameters.requiresOneOf)
@@ -65,15 +68,15 @@ describe("mission_api.triggers.production_canceled", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
-		canceled(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 9)
+		canceled(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 9)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when a unit in production is canceled", function()
 		local context, fired = newContext()
-		canceled(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 0)
+		canceled(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -94,7 +97,7 @@ describe("mission_api.triggers.production_canceled", function()
 
 	it("fires for a buildee taken by an enemy team, for the team it was taken from", function()
 		local context, fired = newContext()
-		taken(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 0, 9)
+		taken(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0, 9)
 		assert.are.equal(1, fired())
 	end)
 

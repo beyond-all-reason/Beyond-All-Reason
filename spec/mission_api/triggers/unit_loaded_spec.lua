@@ -1,9 +1,12 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and UnitDefs inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-_G.UnitDefs = {
+env.UnitDefs = {
 	[1] = { name = "armpw", isTransport = false },
 	[2] = { name = "armck", isTransport = false },
 	[10] = { name = "armatlas", isTransport = true },
@@ -11,7 +14,7 @@ _G.UnitDefs = {
 	[20] = { name = "armdronecarryland", isTransport = false },
 }
 
-local unitLoaded = VFS.Include("luarules/mission_api/triggers/unit_loaded.lua")
+local unitLoaded = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_loaded.lua")
 local onUnitLoaded = unitLoaded.callins.UnitLoaded
 
 describe("mission_api.triggers.unit_loaded", function()
@@ -25,7 +28,7 @@ describe("mission_api.triggers.unit_loaded", function()
 			ActivateTrigger = function()
 				fired = fired + 1
 			end,
-			DoesUnitHaveName = function()
+			DoesUnitHaveName = function(_unitID)
 				return true
 			end,
 		}
@@ -49,7 +52,7 @@ describe("mission_api.triggers.unit_loaded", function()
 		end
 		assert.is_true(names.passengerName)
 		assert.is_true(names.passengerDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.transportName)
 		assert.is_true(names.transportDefName)
 		assert.are.same({ "passengerName", "passengerDefName" }, unitLoaded.parameters.requiresOneOf)
@@ -57,7 +60,7 @@ describe("mission_api.triggers.unit_loaded", function()
 
 	it("fires when a unit is loaded into a transport", function()
 		local context, fired = newContext()
-		loaded(trigger({ passengerDefName = "armpw", teamID = 0 }), context, 1, 0)
+		loaded(trigger({ passengerDefName = "armpw", teamName = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -67,9 +70,9 @@ describe("mission_api.triggers.unit_loaded", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID, which is the passenger's team", function()
+	it("filters by teamName, which is the passenger's team", function()
 		local context, fired = newContext()
-		loaded(trigger({ passengerDefName = "armpw", teamID = 9 }), context, 1, 0)
+		loaded(trigger({ passengerDefName = "armpw", teamName = 9 }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 

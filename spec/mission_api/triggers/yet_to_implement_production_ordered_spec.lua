@@ -1,19 +1,22 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local CMD = { INSERT = 34, MOVE = 10 }
 local env = MissionSpecEnv.new({ CMD = CMD })
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armlab", isFactory = true },
 	[2] = { name = "corvp", isFactory = true },
 	[10] = { name = "armpw" },
 	[11] = { name = "corfast" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local productionOrdered =
 	MissionSpecEnv.include(env, "luarules/mission_api/triggers/yet_to_implement_production_ordered.lua")
@@ -21,11 +24,11 @@ local onUnitCommand = productionOrdered.callins.UnitCommand
 
 describe("mission_api.triggers.yet_to_implement_production_ordered", function()
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
@@ -60,7 +63,7 @@ describe("mission_api.triggers.yet_to_implement_production_ordered", function()
 		assert.is_true(names.buildDefName)
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.ignoreMissionActions)
 		assert.are.same({ buildDefName = true }, required)
 	end)
@@ -117,9 +120,9 @@ describe("mission_api.triggers.yet_to_implement_production_ordered", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
-		order(trigger({ buildDefName = "armpw", teamID = 9 }), context, -10)
+		order(trigger({ buildDefName = "armpw", teamName = 9 }), context, -10)
 		assert.are.equal(0, fired())
 	end)
 

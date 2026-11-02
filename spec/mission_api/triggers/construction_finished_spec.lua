@@ -1,25 +1,31 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here)
 -- and UnitDefs inside its handler. The gadget filters spawned units via WasUnderConstruction.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armsolar" },
 	[2] = { name = "armwin" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
-local constructionFinished = VFS.Include("luarules/mission_api/triggers/construction_finished.lua")
+local constructionFinished = MissionSpecEnv.include(env, "luarules/mission_api/triggers/construction_finished.lua")
 local onUnitFinished = constructionFinished.callins.UnitFinished
 
 describe("mission_api.triggers.construction_finished", function()
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
@@ -37,7 +43,7 @@ describe("mission_api.triggers.construction_finished", function()
 		end
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.are.same({ "unitName", "unitDefName" }, constructionFinished.parameters.requiresOneOf)
 	end)
 
@@ -56,15 +62,15 @@ describe("mission_api.triggers.construction_finished", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 9)
+		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 9)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching completed unit", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 0)
+		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -75,15 +81,15 @@ describe("mission_api.triggers.construction_finished", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("does not fire when finished on a team allied with teamID", function()
+	it("does not fire when finished on a team allied with teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 2) -- team 2 allied with 0
+		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 2) -- team 2 allied with 0
 		assert.are.equal(0, fired())
 	end)
 
-	it("does not fire when finished on a team hostile to teamID", function()
+	it("does not fire when finished on a team hostile to teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 3)
+		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 3)
 		assert.are.equal(0, fired())
 	end)
 end)

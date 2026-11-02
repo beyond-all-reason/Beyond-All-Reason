@@ -1,23 +1,27 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so here), and
 -- UnitDefs / Spring.GetUnitIsBeingBuilt / Spring.GetUnitTeam / Spring.GetUnitDefID in its handlers.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armsolar" },
 	[2] = { name = "armwar" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local constructionProgress = MissionSpecEnv.include(env, "luarules/mission_api/triggers/construction_progress.lua")
 local onUnitBuildStep = constructionProgress.callins.UnitBuildStepPost
 local onMetaUnitRemoved = constructionProgress.callins.MetaUnitRemoved
 
 describe("mission_api.triggers.construction_progress", function()
+	---@type table<integer, table>
 	local world -- The trigger tracks units so that decay and reclaim do not rearm them.
 
 	before_each(function()
@@ -43,11 +47,11 @@ describe("mission_api.triggers.construction_progress", function()
 	end)
 
 	local function trigger(parameters, settings)
-		return Builders.Trigger.new():WithParameters(parameters):WithSettings(settings):Build()
+		return TriggerBuilder.new():WithParameters(parameters):WithSettings(settings):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
@@ -91,14 +95,14 @@ describe("mission_api.triggers.construction_progress", function()
 		assert.is_true(required.progress)
 		assert.is_false(required.unitName)
 		assert.is_false(required.unitDefName)
-		assert.is_false(required.teamID)
+		assert.is_false(required.teamName)
 		assert.are.same({ "unitName", "unitDefName" }, constructionProgress.parameters.requiresOneOf)
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
 		building(100, 0.9, 0, 2)
-		step(trigger({ teamID = 0, progress = 0.5, unitDefName = "armsolar" }), context, 100)
+		step(trigger({ teamName = 0, progress = 0.5, unitDefName = "armsolar" }), context, 100)
 		assert.are.equal(0, fired())
 	end)
 
@@ -108,18 +112,18 @@ describe("mission_api.triggers.construction_progress", function()
 			return false
 		end
 		building(100, 0.6)
-		step(trigger({ teamID = 0, progress = 0.5, unitName = "target" }), context, 100)
+		step(trigger({ teamName = 0, progress = 0.5, unitName = "target" }), context, 100)
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
 		building(100, 0.6, 1)
-		step(trigger({ teamID = 0, progress = 0.5, unitDefName = "armsolar" }), context, 100)
+		step(trigger({ teamName = 0, progress = 0.5, unitDefName = "armsolar" }), context, 100)
 		assert.are.equal(0, fired())
 	end)
 
-	it("watches every team when teamID is omitted", function()
+	it("watches every team when teamName is omitted", function()
 		local context, fired = newContext()
 		building(100, 0.6, 1)
 		step(trigger({ progress = 0.5, unitDefName = "armsolar" }), context, 100)
@@ -129,7 +133,7 @@ describe("mission_api.triggers.construction_progress", function()
 	it("fires when a unit under construction reaches the threshold", function()
 		local context, fired = newContext()
 		building(100, 0.6)
-		local t = trigger({ teamID = 0, progress = 0.5, unitDefName = "armsolar" })
+		local t = trigger({ teamName = 0, progress = 0.5, unitDefName = "armsolar" })
 		step(t, context, 100)
 		step(t, context, 100)
 		assert.are.equal(1, fired())
@@ -138,14 +142,14 @@ describe("mission_api.triggers.construction_progress", function()
 	it("does not fire while a unit is below the threshold", function()
 		local context, fired = newContext()
 		building(100, 0.4)
-		step(trigger({ teamID = 0, progress = 0.5, unitDefName = "armsolar" }), context, 100)
+		step(trigger({ teamName = 0, progress = 0.5, unitDefName = "armsolar" }), context, 100)
 		assert.are.equal(0, fired())
 	end)
 
 	it("never fires for a unit never seen under construction, as repair steps it", function()
 		local context, fired = newContext()
 		finished(100)
-		local t = trigger({ teamID = 0, progress = 0.5, unitDefName = "armsolar" })
+		local t = trigger({ teamName = 0, progress = 0.5, unitDefName = "armsolar" })
 		step(t, context, 100)
 		step(t, context, 100)
 		assert.are.equal(0, fired())
@@ -153,7 +157,7 @@ describe("mission_api.triggers.construction_progress", function()
 
 	it("fires at full progress as a tracked unit finishes (progress = 1.0)", function()
 		local context, fired = newContext()
-		local t = trigger({ teamID = 0, progress = 1.0, unitDefName = "armsolar" })
+		local t = trigger({ teamName = 0, progress = 1.0, unitDefName = "armsolar" })
 		building(100, 0.9)
 		step(t, context, 100)
 		assert.are.equal(0, fired())
@@ -165,7 +169,7 @@ describe("mission_api.triggers.construction_progress", function()
 
 	it("counts a unit once, even if it dips below the threshold and recrosses", function()
 		local context, fired = newContext()
-		local t = trigger({ teamID = 0, progress = 0.5, unitDefName = "armsolar" })
+		local t = trigger({ teamName = 0, progress = 0.5, unitDefName = "armsolar" })
 		building(100, 0.6)
 		step(t, context, 100)
 		world[100].buildProgress = 0.3
@@ -180,7 +184,7 @@ describe("mission_api.triggers.construction_progress", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		local t = trigger({ teamID = 0, progress = 0.5, unitName = "target" })
+		local t = trigger({ teamName = 0, progress = 0.5, unitName = "target" })
 		building(100, 0.6)
 		step(t, context, 100)
 		assert.are.equal(0, fired())
@@ -195,7 +199,7 @@ describe("mission_api.triggers.construction_progress", function()
 
 	it("counts each distinct unit as it crosses the threshold over time", function()
 		local context, fired = newContext()
-		local t = trigger({ teamID = 0, progress = 0.5, unitDefName = "armsolar" })
+		local t = trigger({ teamName = 0, progress = 0.5, unitDefName = "armsolar" })
 
 		building(100, 0.6)
 		step(t, context, 100)
@@ -212,7 +216,7 @@ describe("mission_api.triggers.construction_progress", function()
 
 	it("fires for each unit that crosses in the same frame", function()
 		local context, fired = newContext()
-		local t = trigger({ teamID = 0, progress = 0.5, unitDefName = "armsolar" })
+		local t = trigger({ teamName = 0, progress = 0.5, unitDefName = "armsolar" })
 		building(100, 0.6)
 		building(101, 0.8)
 		step(t, context, 100)
@@ -231,7 +235,7 @@ describe("mission_api.triggers.construction_progress", function()
 
 	it("forgets a unit when it is removed, so a reused unit ID arms again", function()
 		local context, fired = newContext()
-		local t = trigger({ teamID = 0, progress = 0.5, unitDefName = "armsolar" })
+		local t = trigger({ teamName = 0, progress = 0.5, unitDefName = "armsolar" })
 		building(100, 0.6)
 		step(t, context, 100)
 		assert.are.equal(1, fired())

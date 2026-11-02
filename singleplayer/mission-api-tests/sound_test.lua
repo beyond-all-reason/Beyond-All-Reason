@@ -62,7 +62,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armeyes', x = 1800, z = 1600, team = 0 },
+				{ unitDefName = 'armeyes', x = 1800, z = 1600, teamName = 'player' },
 			},
 		},
 	},
@@ -118,7 +118,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsilo', x = 1900, z = 1800, team = 1 },
+				{ unitDefName = 'armsilo', x = 1900, z = 1800, teamName = 'enemy' },
 			},
 		},
 	},

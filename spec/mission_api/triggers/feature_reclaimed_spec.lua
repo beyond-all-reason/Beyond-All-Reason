@@ -1,24 +1,30 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local FeatureDefsBuilder = VFS.Include("spec/builders/feature_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and FeatureDefs inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local featureDefs = Builders.FeatureDefs.new():WithFeatureDefs({
+local featureDefs = FeatureDefsBuilder.new():WithFeatureDefs({
 	[1] = { name = "treetype1" },
 	[2] = { name = "rock1" },
 })
-_G.FeatureDefs = featureDefs:GetFeatureDefsByID()
+env.FeatureDefs = featureDefs:GetFeatureDefsByID()
 
-local featureReclaimed = VFS.Include("luarules/mission_api/triggers/feature_reclaimed.lua")
+local featureReclaimed = MissionSpecEnv.include(env, "luarules/mission_api/triggers/feature_reclaimed.lua")
 local onFeatureDestroyed = featureReclaimed.callins.FeatureDestroyed
 
 describe("mission_api.triggers.feature_reclaimed", function()
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
@@ -36,10 +42,10 @@ describe("mission_api.triggers.feature_reclaimed", function()
 		end
 		assert.is_true(names.featureName)
 		assert.is_true(names.featureDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.area)
 		assert.are.same(
-			{ "featureName", "featureDefName", "teamID", "area" },
+			{ "featureName", "featureDefName", "teamName", "area" },
 			featureReclaimed.parameters.requiresOneOf
 		)
 	end)
@@ -71,9 +77,9 @@ describe("mission_api.triggers.feature_reclaimed", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
-		destroyed(trigger({ featureDefName = "treetype1", teamID = 5 }), context, 1, nil, 2, 0)
+		destroyed(trigger({ featureDefName = "treetype1", teamName = 5 }), context, 1, nil, 2, 0)
 		assert.are.equal(0, fired())
 	end)
 
@@ -88,7 +94,7 @@ describe("mission_api.triggers.feature_reclaimed", function()
 
 	it("fires when the feature is fully reclaimed", function()
 		local context, fired = newContext()
-		destroyed(trigger({ featureDefName = "treetype1", teamID = 2 }), context, 1, nil, 2, 0)
+		destroyed(trigger({ featureDefName = "treetype1", teamName = 2 }), context, 1, nil, 2, 0)
 		assert.are.equal(1, fired())
 	end)
 end)
