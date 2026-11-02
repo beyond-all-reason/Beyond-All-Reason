@@ -49,6 +49,8 @@ end
 local spAddTeamResource = Spring.AddTeamResource
 local spUseTeamResource = Spring.UseTeamResource
 
+local formationSpeed = VFS.Include("luarules/mission_api/formation_speed.lua")
+
 GG.MissionAPIActionHelper = {}
 
 local framesHalfSecond = math.round(0.5 * Game.gameSpeed, 0)
@@ -77,7 +79,16 @@ GG.MissionAPIActionHelper.addEnergyPerSecond = function(teamID, energyPerSecond)
 	resourcing.active = true
 end
 
+GG.MissionAPIActionHelper.matchFormationSpeed = formationSpeed.Match
+
 function gadget:GameFrame(frame)
+	---------------
+	-- Formation speed
+	---------------
+	if formationSpeed.IsActive() and frame % framesHalfSecond == 0 then
+		formationSpeed.Update()
+	end
+
 	---------------
 	-- Resourcing
 	---------------
