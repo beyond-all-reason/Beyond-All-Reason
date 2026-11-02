@@ -202,6 +202,15 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.TriggerIDs] = getListValidator(parameterValidators[Types.TriggerID])
 	parameterValidators[Types.ObjectiveIDs] = getListValidator(parameterValidators[Types.ObjectiveID])
 
+	--- One unit name, or a list of them: what a loadout entry's unitName gives its units.
+	local validateUnitNameList = getListValidator(parameterValidators[Types.UnitName])
+	parameterValidators[Types.UnitNames] = function(value)
+		if type(value) == "table" then
+			return validateUnitNameList(value)
+		end
+		return parameterValidators[Types.UnitName](value)
+	end
+
 	parameterValidators[Types.Difficulty] = getLookupValidator(validateString, "difficulty", function(difficulty)
 		return enums[Types.Difficulty][difficulty]
 	end)

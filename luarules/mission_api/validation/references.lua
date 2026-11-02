@@ -192,11 +192,31 @@ end
 ---@field creatingActionTypes table<string, boolean>  the action types that can create the name. Any other
 ---												      action naming it is referencing it instead.
 
+--- The names a loadout entry gives, each with the part of the entry holding it.
+local function entryNames(nameKind, entry)
+	local names = {}
+	if type(entry) ~= "table" then
+		return names
+	end
+	local given = entry[nameKind.nameKey]
+	if type(given) == "string" then
+		names[#names + 1] = { name = given, suffix = "" }
+	elseif type(given) == "table" then
+		-- A unit entry can give a list of names.
+		for index, name in ipairs(given) do
+			if type(name) == "string" then
+				names[#names + 1] = { name = name, suffix = "." .. nameKind.nameKey .. "[" .. index .. "]" }
+			end
+		end
+	end
+	return names
+end
+
 --- A top level loadout entry creates every name it gives.
 local function collectLoadoutNames(nameKind, createdNames)
 	for index, entry in ipairs(nameKind.loadout) do
-		if type(entry) == "table" and type(entry[nameKind.nameKey]) == "string" then
-			recordSource(createdNames, entry[nameKind.nameKey], nameKind.loadoutLabel .. "[" .. index .. "]")
+		for _, given in ipairs(entryNames(nameKind, entry)) do
+			recordSource(createdNames, given.name, nameKind.loadoutLabel .. "[" .. index .. "]" .. given.suffix)
 		end
 	end
 end
@@ -206,11 +226,12 @@ local function collectInlineLoadoutNames(context, nameKind, actionID, parameters
 	for _, entries in ipairs(context.PossibleValues(parameters[nameKind.loadoutParameter])) do
 		if type(entries) == "table" then
 			for index, entry in ipairs(entries) do
-				if type(entry) == "table" and type(entry[nameKind.nameKey]) == "string" then
+				local entryLabel = nameKind.loadoutParameter .. "[" .. index .. "]"
+				for _, given in ipairs(entryNames(nameKind, entry)) do
 					recordSource(
 						createdNames,
-						entry[nameKind.nameKey],
-						"action " .. actionID .. " (" .. nameKind.loadoutParameter .. "[" .. index .. "])"
+						given.name,
+						"action " .. actionID .. " (" .. entryLabel .. given.suffix .. ")"
 					)
 				end
 			end

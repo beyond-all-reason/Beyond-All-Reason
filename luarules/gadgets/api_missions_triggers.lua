@@ -400,14 +400,19 @@ function gadget:GameFramePost(frameNumber)
 end
 
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	-- Set in spawnUnit() in loadout.lua. Read first, as a trigger can spawn units and clear them
+	local nameOfUnitBeingSpawned = GG["MissionAPI"].nameOfUnitBeingSpawned
 	dispatchTriggerCallin("MetaUnitAdded", unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = table.copy(trackedUnitNames[unitID] or {})
 
-	-- Set in spawnUnit() in loadout.lua
-	local nameOfUnitBeingSpawned = GG["MissionAPI"].nameOfUnitBeingSpawned
-	if nameOfUnitBeingSpawned then
+	-- A loadout entry's unitName is one name, or a list of them.
+	if type(nameOfUnitBeingSpawned) == "table" then
+		for _, name in ipairs(nameOfUnitBeingSpawned) do
+			unitNames[name] = true
+		end
+	elseif nameOfUnitBeingSpawned then
 		unitNames[nameOfUnitBeingSpawned] = true
 	end
 	statistics.Increment(triggerTypes.UnitsOwned, unitTeam, unitDefName, unitNames)

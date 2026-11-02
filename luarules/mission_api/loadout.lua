@@ -30,7 +30,7 @@ local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpac
 end
 
 local function spawnUnit(unit, pos)
-	-- Make unitName available to MetaUnitAdded call-in which gets triggered by Spring.CreateUnit
+	-- Make unitName (one name, or a list of them) available to MetaUnitAdded call-in which gets triggered by Spring.CreateUnit
 	GG["MissionAPI"].nameOfUnitBeingSpawned = unit.unitName
 	GG["MissionAPI"].spawnedUnitIsBeingBuilt = unit.construction
 	local unitID =
@@ -42,7 +42,13 @@ local function spawnUnit(unit, pos)
 		Spring.SetUnitNeutral(unitID, true)
 	end
 
-	tracking.TrackUnit(unit.unitName, unitID)
+	if type(unit.unitName) == "table" then
+		for _, name in ipairs(unit.unitName) do
+			tracking.TrackUnit(name, unitID)
+		end
+	else
+		tracking.TrackUnit(unit.unitName, unitID)
+	end
 
 	return unitID
 end

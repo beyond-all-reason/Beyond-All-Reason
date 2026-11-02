@@ -8,7 +8,7 @@ local unitEntryFields = {
 	{ name = "unitDefName", type = Types.UnitDefName, required = true },
 	{ name = "teamName", type = Types.TeamName, required = true },
 	{ name = "facing", type = Types.Facing },
-	{ name = "unitName", type = Types.String },
+	{ name = "unitName", type = Types.UnitNames },
 	{ name = "construction", type = Types.Boolean },
 	{ name = "quantity", type = Types.Number },
 	{ name = "spacing", type = Types.Number },
