@@ -136,6 +136,18 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("CountdownID", function()
+		it("rejects an ID starting with __, which the Mission API keeps for its own countdowns", function()
+			V.assertMessage(
+				V.validateAction({
+					type = V.actionTypes.AddCountdown,
+					parameters = { countdownID = "__timeElapsed_t", seconds = 5 },
+				}),
+				"Invalid countdownID: __timeElapsed_t. Action: a, Parameter: countdownID"
+			)
+		end)
+	end)
+
 	describe("PositiveInteger", function()
 		local function validateTimeRemaining(timeRemaining)
 			return V.validateTrigger(

@@ -15,6 +15,7 @@ end
 ---@field displayed boolean
 ---@field buffered boolean? displayed only; held through its first tick
 ---@field tickPhase integer? non-displayed only; the frame % gameSpeed it ticks on
+---@field addedFrame integer? AddCountdownFrames only; the frame it was added on, which it never ticks on
 
 -- Displayed countdowns (the default) tick on the shared whole-second cadence;
 -- non-displayed ones tick relative to their creation frame. See Decrement().
@@ -27,6 +28,25 @@ local function addCountdown(countdownID, seconds, displayed)
 		displayed = displayed,
 		buffered = displayed or nil, -- see Decrement()
 		tickPhase = not displayed and Spring.GetGameFrame() % Game.gameSpeed or nil,
+	}
+end
+
+-- A non-displayed countdown that ends exactly `frames` game frames from now: it ticks on the
+-- phase that puts its last tick on that frame, and never on the frame it was added (GameStart
+-- adds them before the frame 0 tick). TimeElapsed runs on these.
+local function addCountdownFrames(countdownID, frames)
+	local gameSpeed = Game.gameSpeed
+	local frame = Spring.GetGameFrame()
+	-- At GameStart GetGameFrame reads 0 before frame 0 has run, and a tick is never on the frame a
+	-- countdown was added, so 0 frames would end a whole second late: count at least one.
+	frames = math.max(1, frames)
+	GG["MissionAPI"].Countdowns[countdownID] = {
+		id = countdownID,
+		timeRemaining = math.ceil(frames / gameSpeed),
+		paused = false,
+		displayed = false,
+		tickPhase = (frame + frames) % gameSpeed,
+		addedFrame = frame,
 	}
 end
 
@@ -100,7 +120,7 @@ local function decrement(frameNumber)
 		if countdown.displayed then
 			dueToTick = onWholeSecond
 		else
-			dueToTick = frameNumber % gameSpeed == countdown.tickPhase
+			dueToTick = frameNumber % gameSpeed == countdown.tickPhase and frameNumber ~= countdown.addedFrame
 		end
 
 		if dueToTick and not countdown.paused then
@@ -125,6 +145,7 @@ end
 
 return {
 	AddCountdown = addCountdown,
+	AddCountdownFrames = addCountdownFrames,
 	CancelCountdown = cancelCountdown,
 	PauseCountdown = pauseCountdown,
 	UnpauseCountdown = unpauseCountdown,
