@@ -49,7 +49,7 @@ end
 local spAddTeamResource = Spring.AddTeamResource
 local spUseTeamResource = Spring.UseTeamResource
 
-GG["MissionAPIActionHelper"] = {}
+GG.MissionAPIActionHelper = {}
 
 local framesHalfSecond = math.round(0.5 * Game.gameSpeed, 0)
 
@@ -59,7 +59,7 @@ local resourcing = {
 	energyPerSecond = {},
 }
 
-GG["MissionAPIActionHelper"].addMetalPerSecond = function(teamID, metalPerSecond)
+GG.MissionAPIActionHelper.addMetalPerSecond = function(teamID, metalPerSecond)
 	if not resourcing.metalPerSecond[teamID] then
 		resourcing.metalPerSecond[teamID] = 0
 	end
@@ -68,7 +68,7 @@ GG["MissionAPIActionHelper"].addMetalPerSecond = function(teamID, metalPerSecond
 	resourcing.active = true
 end
 
-GG["MissionAPIActionHelper"].addEnergyPerSecond = function(teamID, energyPerSecond)
+GG.MissionAPIActionHelper.addEnergyPerSecond = function(teamID, energyPerSecond)
 	if not resourcing.energyPerSecond[teamID] then
 		resourcing.energyPerSecond[teamID] = 0
 	end
@@ -114,4 +114,8 @@ function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
 		return
 	end
+end
+
+function gadget:Shutdown()
+	GG.MissionAPIActionHelper = nil
 end
