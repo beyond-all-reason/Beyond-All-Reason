@@ -130,8 +130,6 @@ local rows = {}
 local rowsGen = 0
 local scroll = 0
 
--- `grab` is the distance from the cursor to the thumb top edge, so the thumb follows the
--- cursor instead of jumping its middle to the press.
 local hover = {
 	sb = 0,
 	row = 0,
@@ -144,9 +142,7 @@ local hover = {
 	gb = 0,
 	btn = "",
 	bar = 0,
-	grab = 0,
 	cat = 0,
-	drag = false,
 	kb = 0,
 }
 local dirty = false
@@ -217,8 +213,6 @@ local capturing
 local font
 ---@type function
 local RectRound
----@type table
-local Scroller
 ---@type function
 local UiElement
 ---@type function
@@ -378,7 +372,7 @@ local presetDropdown
 local nameBox
 ---@type function?
 local menuToggle
-local switchToPreset, scrollFromY
+local switchToPreset
 
 ---@type table?
 local dialog
@@ -2112,7 +2106,7 @@ local function startClipboard(exporting)
 	local d = {
 		title = L.importTitle,
 		initial = profiles.uniqueName(stamped or L.newProfile),
-		preview = { lines = lines, scroll = 0, summary = "" },
+		preview = state.newPreview(lines),
 		choice = { label = L.importAsNew, on = whole or not own, locked = not own },
 		hint = BAR.I18N("ui.keybinds.editor.importAddHint", { name = from }),
 		nameless = false,
@@ -2534,7 +2528,7 @@ end
 function view.init()
 	font = WG["fonts"].getFont()
 	RectRound = WG.FlowUI.Draw.RectRound
-	Scroller = WG.FlowUI.Draw.Scroller
+	state.listScroller = WG.FlowUI.Scroller.new(state.listMeasure)
 	UiElement = WG.FlowUI.Draw.Element
 	Highlight = WG.FlowUI.Draw.SelectHighlight
 	UiButton = WG.FlowUI.Draw.Button
@@ -2612,7 +2606,7 @@ function view.setArea(x1, y1, x2, y2, s, wx1, wy1, wx2, wy2)
 	metrics.compareBandH = metrics.compareStripH + floor(rowHeight * 0.5)
 	-- The gap matches the one the bar keeps from the panel edge on its other side, so it sits in
 	-- a channel rather than hugging the rows.
-	local barW = floor(14 * scale)
+	local barW = WG.FlowUI.Scroller.width(scale)
 	barX1 = area.x2 - metrics.edgeInset - barW
 	listRight = barX1 - metrics.listGap
 	metrics.keyAreaX1 = listX1 + floor((listRight - listX1) * 0.45)
@@ -3666,7 +3660,7 @@ local function drawSidebar(hoverIdx)
 	-- there are more categories than the card has room for.
 	if catScrolled(0) > 0 then
 		local bx2 = area.x1 + sidebarW - metrics.catInset
-		Scroller(
+		WG.FlowUI.Draw.Scroller(
 			bx2 - metrics.catBarW,
 			-- Over the entries rather than the whole card: a bar running past the last row reads
 			-- as dead space, and its thumb then says more fits than does.
@@ -4212,7 +4206,7 @@ end
 function state.previewGeometry(pv, x1, y1, x2, y2)
 	local lineH = floor(rowHeight * 0.66)
 	local pad = floor(6 * scale)
-	local barW = floor(10 * scale)
+	local barW = WG.FlowUI.Scroller.width(scale)
 	local visible = math.max(1, floor((y2 - y1 - pad * 2) / lineH))
 	local most = math.max(0, #pv.lines - visible)
 	local bar = most > 0 and { x2 - pad - barW, y1 + pad, x2 - pad, y2 - pad } or nil
@@ -4220,22 +4214,14 @@ function state.previewGeometry(pv, x1, y1, x2, y2)
 	return lineH, pad, visible, most, bar
 end
 
--- Scrolls the preview so the thumb's top sits where the cursor has dragged it, the offset
--- taken at the grab keeping it relative - as the list's own bar does.
-function state.previewScrollFromY(pv, bar, lineH, most, y)
-	local _, _, trackTop, travel =
-		WG.FlowUI.Draw.ScrollerGeometry(bar[1], bar[2], bar[3], bar[4], #pv.lines * lineH, pv.scroll * lineH)
-	if not travel or travel <= 0 then
-		return
-	end
+-- The import's lines, where they are scrolled to, and the bar that scrolls them.
+function state.newPreview(lines)
+	local pv = { lines = lines, scroll = 0, summary = "", lineH = 1, most = 0 }
+	pv.scroller = WG.FlowUI.Scroller.new(function()
+		return #pv.lines * pv.lineH, pv.scroll * pv.lineH, pv.most
+	end)
 
-	local f = (trackTop - (y - pv.grab)) / travel
-	if f < 0 then
-		f = 0
-	elseif f > 1 then
-		f = 1
-	end
-	pv.scroll = floor(f * most + 0.5)
+	return pv
 end
 
 -- Fitted to the box once per width and face.
@@ -4245,15 +4231,12 @@ function state.drawPreview(pv, x1, y1, x2, y2, mx, my)
 	local lineH, pad, visible, most, bar = state.previewGeometry(pv, x1, y1, x2, y2)
 	pv.visible = visible
 
-	-- A drag in progress follows the cursor and ends with the button.
-	if pv.drag then
-		local _, _, lmb = spGetMouseState()
-		if lmb and bar then
-			state.previewScrollFromY(pv, bar, lineH, most, my)
-		else
-			pv.drag = false
-		end
+	pv.lineH, pv.most = lineH, most
+	if bar then
+		pv.scroller:setRect(bar[1], bar[2], bar[3], bar[4])
 	end
+	local _, _, lmb = spGetMouseState()
+	pv.scroll = pv.scroller:drag(my, lmb) or pv.scroll
 	if pv.scroll > most then
 		pv.scroll = most
 	end
@@ -4292,10 +4275,7 @@ function state.drawPreview(pv, x1, y1, x2, y2, mx, my)
 		end
 	end
 	if bar then
-		local content, pos = #pv.lines * lineH, pv.scroll * lineH
-		local top, thumbH = WG.FlowUI.Draw.ScrollerGeometry(bar[1], bar[2], bar[3], bar[4], content, pos)
-		local onThumb = top ~= nil and isInRect(mx, my, bar[1], top - thumbH, bar[3], top)
-		Scroller(bar[1], bar[2], bar[3], bar[4], content, pos, onThumb, pv.drag)
+		pv.scroller:draw(pv.scroller:isOverThumb(mx, my))
 	end
 
 	mono:Begin()
@@ -4503,16 +4483,11 @@ local function drawButtons(hotId)
 	end
 end
 
--- Nil when the list fits and no bar is drawn.
-local function scrollerThumb()
-	return WG.FlowUI.Draw.ScrollerGeometry(
-		barX1,
-		listBottom(),
-		area.x2 - metrics.edgeInset,
-		listTop,
-		rowMetrics.totalH,
-		scrollOffset()
-	)
+-- The list's bar draws by pixels, as headings are taller than rows, and scrolls by rows.
+function state.listMeasure()
+	local position = scrollOffset()
+
+	return rowMetrics.totalH, position, maxScroll()
 end
 
 -- Reads the hover state and answers a signature of everything the baked panel is painted
@@ -4529,11 +4504,8 @@ local function panelSignature(mx, my)
 
 	-- Over the thumb itself, which lights it. The track either side is not part of this:
 	-- only the thumb is something to take hold of.
-	if not keyboardPage and mx >= barX1 and mx <= area.x2 - metrics.edgeInset then
-		local top, height = scrollerThumb()
-		if top and my <= top and my >= top - height then
-			h.bar = 1
-		end
+	if not keyboardPage and state.listScroller:isOverThumb(mx, my) then
+		h.bar = 1
 	end
 
 	if keyboardPage then
@@ -4604,7 +4576,7 @@ local function panelSignature(mx, my)
 		.. "|"
 		.. h.cat
 		.. "|"
-		.. (hover.drag and 1 or 0)
+		.. (state.listScroller:isDragging() and 1 or 0)
 		.. "|"
 		.. state.page
 		.. "|"
@@ -4746,7 +4718,8 @@ local function drawPanel()
 		end
 		flushText()
 
-		Scroller(barX1, lb, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base, h.bar == 1, hover.drag)
+		state.listScroller:setRect(barX1, lb, area.x2 - metrics.edgeInset, listTop)
+		state.listScroller:draw(h.bar == 1)
 	end
 
 	-- The picker's caption. Nothing about it changes between layouts, so it bakes with the
@@ -4968,12 +4941,10 @@ function view.draw()
 	gl.DepthTest(false)
 
 	local rawMx, rawMy, lmb = spGetMouseState()
-	if hover.drag then
-		if lmb then
-			scrollFromY(rawMy)
-		else
-			hover.drag = false
-		end
+	local step = state.listScroller:drag(rawMy, lmb)
+	if step then
+		scroll = step
+		clampScroll()
 	end
 
 	-- Prevent the hover over preset options and modals from also being detected by the
@@ -5067,24 +5038,6 @@ function view.draw()
 	shade.update()
 
 	state.showTooltips(rawMx, rawMy)
-end
-
--- The offset taken at the grab is what keeps this relative, so taking hold of the thumb does
--- not shift the list before the drag.
-scrollFromY = function(y)
-	local _, _, trackTop, travel = scrollerThumb()
-	if not travel or travel <= 0 then
-		return
-	end
-
-	local f = (trackTop - (y - hover.grab)) / travel
-	if f < 0 then
-		f = 0
-	elseif f > 1 then
-		f = 1
-	end
-	scroll = floor(f * maxScroll() + 0.5)
-	clampScroll()
 end
 
 ----------------------------------------------------------------
@@ -5290,28 +5243,10 @@ function view.mousePress(x, y, button)
 			then
 				cancelDialog()
 			elseif box and isInRect(x, y, box[1], box[2], box[3], box[4]) then
-				-- Taking hold of the preview's bar: on the thumb a grab that keeps the lines put,
-				-- on the track a jump to the cursor and then a drag from the thumb's middle.
 				local pv = dialog.preview
-				local lineH, _, _, most, bar = state.previewGeometry(pv, box[1], box[2], box[3], box[4])
+				local _, _, _, _, bar = state.previewGeometry(pv, box[1], box[2], box[3], box[4])
 				if bar and isInRect(x, y, bar[1], bar[2], bar[3], bar[4]) then
-					local top, thumbH = WG.FlowUI.Draw.ScrollerGeometry(
-						bar[1],
-						bar[2],
-						bar[3],
-						bar[4],
-						#pv.lines * lineH,
-						pv.scroll * lineH
-					)
-					if top then
-						pv.drag = true
-						if y <= top and y >= top - thumbH then
-							pv.grab = y - top
-						else
-							pv.grab = -floor(thumbH * 0.5)
-							state.previewScrollFromY(pv, bar, lineH, most, y)
-						end
-					end
+					pv.scroll = pv.scroller:press(y) or pv.scroll
 				end
 			elseif choice and isInRect(x, y, choice.hit[1], choice.hit[2], choice.hit[3], choice.hit[4]) then
 				if not choice.locked then
@@ -5444,17 +5379,10 @@ function view.mousePress(x, y, button)
 	end
 
 	if not gridGroup and isInRect(x, y, barX1, listBottom(), area.x2, listTop) then
-		-- On the thumb that is a grab and the list stays put; on bare track the thumb jumps to the
-		-- cursor first, which is what a press there is asking for.
-		local top, height = scrollerThumb()
-		if top then
-			hover.drag = true
-			if y <= top and y >= top - height then
-				hover.grab = y - top
-			else
-				hover.grab = -floor(height * 0.5)
-				scrollFromY(y)
-			end
+		local step = state.listScroller:press(y)
+		if step then
+			scroll = step
+			clampScroll()
 		end
 
 		return true
