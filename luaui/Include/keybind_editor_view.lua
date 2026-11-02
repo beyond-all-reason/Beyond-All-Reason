@@ -438,6 +438,8 @@ local state = {
 	batchEdited = false,
 	---@type string
 	page = "list",
+	---@type table?
+	rowDrag = nil,
 	keyboard = require("luaui/Include/keybind_keyboard").new(),
 	keyboardGen = -1,
 	selectCommand = require("luaui/Include/keybind_select"),
@@ -1096,6 +1098,37 @@ function state.countClashes()
 	end
 end
 
+-- Where each action is first bound. The keymap is written in bind order, so that is the order
+-- the player drags rows into.
+function state.bindPositions()
+	local at = {}
+	for i, b in ipairs(working.binds) do
+		at[b.action] = at[b.action] or i
+	end
+
+	return at
+end
+
+-- An action left with no binds has no place in the file, so it trails, as it was.
+function state.inBindOrder(actions, boundAt)
+	local was = {}
+	for i, action in ipairs(actions) do
+		was[action] = i
+	end
+	table.sort(actions, function(a, b)
+		local pa, pb = boundAt[a], boundAt[b]
+		if pa and pb then
+			return pa < pb
+		elseif pa or pb then
+			return pa ~= nil
+		end
+
+		return was[a] < was[b]
+	end)
+
+	return actions
+end
+
 -- Rebuilds the display list from the catalog and the staged binds, honouring both the
 -- search box and the category column.
 local function rebuildRows()
@@ -1137,6 +1170,9 @@ local function rebuildRows()
 	-- there are is counted whatever is shown, since its label says so.
 	local changedOnly = selectedCategory == state.changedKey
 	local changedCount = 0
+	-- A narrowed list hides rows whose binds a drop would move, so only the whole one can be dragged.
+	local reorderable = query.empty and not changedOnly
+	local boundAt = state.bindPositions()
 
 	-- Whole keys only, as the chips print them: "f1" does not find F11, and a paired action
 	-- hidden Shift half does not answer to "shift".
@@ -1221,6 +1257,9 @@ local function rebuildRows()
 			-- An empty prefix would claim every bound action, so treat it as no prefix.
 			if item.prefix and item.prefix ~= "" then
 				local matched = state.prefixActions(item, catalogActions)
+				if item.selection then
+					state.inBindOrder(matched, boundAt)
+				end
 				for i = 1, #matched do
 					local action = matched[i]
 					local arg = action:sub(#item.prefix + 1)
@@ -1267,6 +1306,7 @@ local function rebuildRows()
 							label = label,
 							editSelection = buildable or nil,
 							custom = item.selection and not buildable or nil,
+							reorder = reorderable and item.selection and boundAt[action] and item or nil,
 							description = item.description,
 							change = change,
 							queryAny = byKey == "any",
@@ -1385,6 +1425,7 @@ local function rebuildRows()
 
 	if #others > 0 and inOther then
 		table.sort(others)
+		state.inBindOrder(others, boundAt)
 
 		-- A catalog category can be titled the same as this generated one; when it is,
 		-- the leftovers join it after its own items instead of repeating the header.
@@ -1399,8 +1440,14 @@ local function rebuildRows()
 		end
 
 		for _, action in ipairs(others) do
-			rows[#rows + 1] =
-				{ type = "editable", action = action, label = action, custom = true, change = rowChange(action) }
+			rows[#rows + 1] = {
+				type = "editable",
+				action = action,
+				label = action,
+				custom = true,
+				reorder = reorderable and boundAt[action] and L.other or nil,
+				change = rowChange(action),
+			}
 		end
 		for i = 1, #tail do
 			rows[#rows + 1] = tail[i]
@@ -2652,6 +2699,7 @@ function view.blur()
 	end
 	state.tooltipsRegistered = false
 	state.tipKey = nil
+	state.rowDrag = nil
 	state.selectionBuilder:close()
 	if state.panelList then
 		gl.DeleteList(state.panelList)
@@ -4578,6 +4626,8 @@ local function panelSignature(mx, my)
 		.. "|"
 		.. (state.listScroller:isDragging() and 1 or 0)
 		.. "|"
+		.. (state.rowDrag and state.rowDrag.moved and state.rowDrag.at or 0)
+		.. "|"
 		.. state.page
 		.. "|"
 		.. (keyboardPage and state.keyboard:signature(h.kb) or "")
@@ -4714,6 +4764,10 @@ local function drawPanel()
 				break
 			end
 			local hovered = h.row == r
+			local drag = state.rowDrag
+			if drag and drag.moved and drag.at == scroll + r then
+				RectRound(listX1, bottom, listRight, top, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
+			end
 			drawRow(row, top, bottom, hovered, hovered and h.zone or "", h.idx)
 		end
 		flushText()
@@ -4946,6 +5000,9 @@ function view.draw()
 		scroll = step
 		clampScroll()
 	end
+	if state.rowDrag then
+		state.dragRow(rawMy, lmb)
+	end
 
 	-- Prevent the hover over preset options and modals from also being detected by the
 	-- regular rows, sidebar and buttons sitting underneath them.
@@ -4956,6 +5013,7 @@ function view.draw()
 		or presetDropdown:isOpen()
 		or state.compareDropdown:isOpen()
 		or state.selectionBuilder:isOpen()
+		or (state.rowDrag and state.rowDrag.moved)
 	then
 		mx, my = -1, -1
 	end
@@ -5038,6 +5096,132 @@ function view.draw()
 	shade.update()
 
 	state.showTooltips(rawMx, rawMy)
+end
+
+-- The row a dragged one would land on: the nearest whole one painted when the cursor is off the band.
+function state.rowNear(y)
+	local lb = listBottom()
+	local r = rowAt(math.max(math.min(y, listTop), lb + 1))
+	if r then
+		return scroll + r
+	end
+
+	local base, last = scrollOffset(), scroll + 1
+	for i = scroll + 1, #rows do
+		if listTop - (rows[i].off - base) - rowHeightOf(rows[i]) < lb then
+			break
+		end
+		last = i
+	end
+
+	return last
+end
+
+-- Staged once the row is let go. The block's binds trade places among the slots they already
+-- hold, so every other bind keeps its place in the file.
+function state.stageRowOrder(reorder)
+	local rank, n = {}, 0
+	for _, row in ipairs(rows) do
+		if row.reorder == reorder then
+			n = n + 1
+			rank[row.action] = n
+		end
+	end
+
+	local slots, moved = {}, {}
+	for i, b in ipairs(working.binds) do
+		if rank[b.action] then
+			slots[#slots + 1] = i
+			moved[#moved + 1] = { bind = b, at = i }
+		end
+	end
+	table.sort(moved, function(a, b)
+		if rank[a.bind.action] ~= rank[b.bind.action] then
+			return rank[a.bind.action] < rank[b.bind.action]
+		end
+
+		return a.at < b.at
+	end)
+	local changed = false
+	for i, slot in ipairs(slots) do
+		changed = changed or working.binds[slot] ~= moved[i].bind
+		working.binds[slot] = moved[i].bind
+	end
+	if changed then
+		markStaged()
+	else
+		rebuildRows()
+	end
+end
+
+-- A held row follows the cursor within its own block. Past either end of the band the list
+-- scrolls under it, faster the further out the cursor is.
+function state.dragRow(y, held)
+	local d = state.rowDrag
+	if not d then
+		return
+	end
+
+	if not held then
+		state.rowDrag = nil
+		if d.moved then
+			state.stageRowOrder(d.reorder)
+		else
+			d.click()
+		end
+
+		return
+	end
+
+	-- A rebuild under the drag leaves nothing for it to hold.
+	local holding = rows[d.at]
+	if not (holding and holding.action == d.action and holding.reorder == d.reorder) then
+		state.rowDrag = nil
+
+		return
+	end
+
+	if not d.moved then
+		if math.abs(y - d.y0) < floor(4 * scale) then
+			return
+		end
+		d.moved, d.carry, d.timer = true, 0, spGetTimer()
+	end
+
+	local now = spGetTimer()
+	local dt = spDiffTimers(now, d.timer)
+	d.timer = now
+	local lb = listBottom()
+	local past = (y > listTop and y - listTop) or (y < lb and y - lb) or 0
+	if past == 0 then
+		d.carry = 0
+	else
+		d.carry = d.carry + dt * (6 + 12 * math.abs(past) / rowHeight)
+		while d.carry >= 1 do
+			d.carry = d.carry - 1
+			scroll = scroll + (past > 0 and -1 or 1)
+		end
+		clampScroll()
+	end
+
+	local first, last = d.at, d.at
+	while rows[first - 1] and rows[first - 1].reorder == d.reorder do
+		first = first - 1
+	end
+	while rows[last + 1] and rows[last + 1].reorder == d.reorder do
+		last = last + 1
+	end
+	local to = state.rowNear(y)
+	if to < first then
+		to = first
+	elseif to > last then
+		to = last
+	end
+	if to ~= d.at then
+		table.insert(rows, to, table.remove(rows, d.at))
+		d.at = to
+		rowsGen = rowsGen + 1
+	end
 end
 
 ----------------------------------------------------------------
@@ -5401,10 +5585,21 @@ function view.mousePress(x, y, button)
 			local kind, raw = hitTestRow(row, x)
 			if kind then
 				handleZone(kind, row.action, row.label, raw)
-			elseif row.editSelection and x < metrics.keyAreaX1 then
-				state.openSelectionBuilder(row.action)
-			elseif row.custom and x < metrics.keyAreaX1 then
-				state.addBind(row.action)
+			elseif (row.editSelection or row.custom) and x < metrics.keyAreaX1 then
+				local action = row.action
+				local function click()
+					if row.editSelection then
+						state.openSelectionBuilder(action)
+					else
+						state.addBind(action)
+					end
+				end
+				-- Held rather than clicked until the button comes up, since moving first is a drag.
+				if row.reorder then
+					state.rowDrag = { at = scroll + r, action = action, reorder = row.reorder, y0 = y, click = click }
+				else
+					click()
+				end
 			end
 		elseif row and row.type == "header" and row.add and x >= rowLayout(row).addX - metrics.rowPad then
 			state.openSelectionBuilder()
