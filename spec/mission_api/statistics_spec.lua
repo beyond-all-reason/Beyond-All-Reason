@@ -3,8 +3,11 @@ local statistics = VFS.Include("luarules/mission_api/statistics.lua")
 describe("mission_api.statistics", function()
 	local TRIGGER_TYPE = 1
 
+	---@type table<string, table>
 	local triggers -- triggerID -> trigger
+	---@type table[]
 	local activated -- ordered list of activated triggers
+	---@type table
 	local objectiveUpdates -- ordered list of managed-objective update calls
 
 	-- Fakes injected in place of the gadget's trigger core:
@@ -164,7 +167,7 @@ describe("mission_api.statistics", function()
 		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
 
 		assert.are.equal(1, #objectiveUpdates)
-		local objectiveUpdate = objectiveUpdates[1]
+		local objectiveUpdate = objectiveUpdates[1] --[[@as table<string, any>]]
 		assert.are.equal("obj", objectiveUpdate.objectiveID)
 		assert.are.equal(0, objectiveUpdate.teamID)
 		assert.are.equal("armwar", objectiveUpdate.unitDefName)

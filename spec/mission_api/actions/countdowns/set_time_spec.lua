@@ -1,7 +1,7 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/countdowns/set_time.lua")
 local action = actions[1]
@@ -15,8 +15,7 @@ describe("mission_api.actions.set_time", function()
 	local missionApi
 
 	before_each(function()
-		missionApi = Builders.MissionApi
-			.new()
+		missionApi = MissionApiBuilder.new()
 			:WithModule("Countdowns", countdownsModule)
 			:WithCountdown("evacuate", { id = "evacuate", timeRemaining = 120, paused = false, displayed = true })
 			:Install()

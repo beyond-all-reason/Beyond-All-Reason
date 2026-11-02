@@ -32,9 +32,9 @@ local validation = MissionSpecEnv.include(env, "luarules/mission_api/validation.
 env.CMD, env.GameCMD = savedCMD, savedGameCMD
 
 -- Def-name globals the validators read, set at module scope for every test in this file.
-_G.UnitDefNames = { armwar = { id = 1 }, armpw = { id = 2 } }
-_G.FeatureDefNames = {}
-_G.WeaponDefNames = {}
+env.UnitDefNames = { armwar = { id = 1 }, armpw = { id = 2 } }
+env.FeatureDefNames = {}
+env.WeaponDefNames = {}
 
 local originalLog = env.Spring.Log
 

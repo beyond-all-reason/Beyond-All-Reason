@@ -21,7 +21,7 @@ GG["MissionAPI"].Modules.Tracking = {
 }
 
 -- Mock Spring unit query functions
-_G.UnitDefNames = {}
+env.UnitDefNames = {}
 env.Spring.GetTeamUnits = function(teamID)
 	return {}
 end
@@ -61,7 +61,7 @@ describe("mission_api.actions.name_units", function()
 
 	before_each(function()
 		clearTracking()
-		_G.UnitDefNames = {}
+		env.UnitDefNames = {}
 		env.Spring.GetTeamUnits = function()
 			return {}
 		end
@@ -112,7 +112,7 @@ describe("mission_api.actions.name_units", function()
 
 	describe("actionFunction - unitDefName filter", function()
 		it("tracks units matching the unitDefName from all teams when teamID is nil", function()
-			_G.UnitDefNames = { mybot = { id = 7 } }
+			env.UnitDefNames = { mybot = { id = 7 } }
 			env.Spring.GetAllyTeamList = function()
 				return { 0 }
 			end
@@ -131,7 +131,7 @@ describe("mission_api.actions.name_units", function()
 		end)
 
 		it("tracks units by def within a specific team when teamID is also provided", function()
-			_G.UnitDefNames = { tank = { id = 3 } }
+			env.UnitDefNames = { tank = { id = 3 } }
 			env.Spring.GetTeamUnitsByDefs = function(teamID, defID)
 				return { 100 }
 			end
@@ -140,7 +140,7 @@ describe("mission_api.actions.name_units", function()
 		end)
 
 		it("skips tracking when unitDefName is not in UnitDefNames", function()
-			_G.UnitDefNames = {}
+			env.UnitDefNames = {}
 			action.actionFunction("ghosts", nil, "unknown", nil)
 			assert.is_nil(trackedUnitIDs["ghosts"])
 		end)

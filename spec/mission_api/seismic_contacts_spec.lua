@@ -20,7 +20,9 @@ local RUN_CYCLES = 100 -- ping cycles long enough for a losing rate to drain a f
 
 describe("mission_api.seismic_contacts", function()
 	local ALLY, OTHER_ALLY = 0, 1
+	---@type integer[]
 	local undetected
+	---@type integer
 	local nextUnitID
 
 	-- Each contact is global to the module rather than per-trigger, and the spec helper caches includes.
@@ -199,14 +201,14 @@ describe("mission_api.seismic_contacts", function()
 		end)
 
 		it("holds every period below the break-even, so the threshold is one edge", function()
-			local breakEven = findBreakEven()
+			local breakEven = findBreakEven() --[[@as integer]]
 			for period = 1, breakEven - 1 do
 				assert.is_true(holdsAtPingPeriod(period))
 			end
 		end)
 
 		it("drops every period above the break-even", function()
-			local breakEven = findBreakEven()
+			local breakEven = findBreakEven() --[[@as integer]]
 			for period = breakEven, SLOWEST_PERIOD do
 				assert.is_false(holdsAtPingPeriod(period))
 			end

@@ -1,6 +1,7 @@
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 describe("mission_api.cutscenes", function()
+	---@type table, table, table, fun()?
 	local env, cutscenes, calls, onVideoFinished
 
 	before_each(function()
@@ -20,7 +21,7 @@ describe("mission_api.cutscenes", function()
 		GG.VideoPlayback = {
 			-- Replacing a video finishes the replaced one, as api_video_playback.lua does.
 			Play = function(videoFile, onFinished, skippable)
-				local replaced = onVideoFinished
+				local replaced = onVideoFinished --[[@as fun()?]]
 				calls[#calls + 1] = "Play " .. videoFile .. (skippable and " skippable" or "")
 				onVideoFinished = onFinished
 				if replaced then
@@ -55,6 +56,7 @@ describe("mission_api.cutscenes", function()
 
 		it("unpauses the game when the video ends", function()
 			cutscenes.StartCutscene("intro")
+			---@cast onVideoFinished -?
 			onVideoFinished()
 			assert.are.same({ "Pause cutscene", "Play videos/intro.webm", "Unpause cutscene" }, calls)
 		end)
@@ -67,6 +69,7 @@ describe("mission_api.cutscenes", function()
 				calls
 			)
 
+			---@cast onVideoFinished -?
 			onVideoFinished()
 			assert.are.equal("Unpause cutscene", calls[#calls])
 		end)

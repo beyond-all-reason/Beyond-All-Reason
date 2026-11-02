@@ -1,4 +1,7 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local CMD = { RESURRECT = 125, RECLAIM = 90 }
@@ -6,17 +9,15 @@ local env = MissionSpecEnv.new({ CMD = CMD, Game = { maxUnits = 32000 } })
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and
 -- Spring.GetUnitWorkerTask / CMD.RESURRECT / Engine.FeatureSupport / Game.maxUnits / UnitDefs inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armpw" },
 	[2] = { name = "corfast" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
-_G.Engine = _G.Engine or {}
-_G.Engine.FeatureSupport = _G.Engine.FeatureSupport or {}
-_G.Engine.FeatureSupport.noOffsetForFeatureID = true
+env.Engine = { FeatureSupport = { noOffsetForFeatureID = true } }
 
 local unitResurrected = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_resurrected.lua")
 local onUnitCreated = unitResurrected.callins.UnitCreated
@@ -29,11 +30,11 @@ describe("mission_api.triggers.unit_resurrected", function()
 	end)
 
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
@@ -99,7 +100,7 @@ describe("mission_api.triggers.unit_resurrected", function()
 	end)
 
 	it("offsets the featureID by Game.maxUnits on engines without native support", function()
-		Engine.FeatureSupport.noOffsetForFeatureID = false
+		env.Engine.FeatureSupport.noOffsetForFeatureID = false
 		local seenFeatureID
 		env.Spring.GetUnitWorkerTask = function()
 			return CMD.RESURRECT, env.Game.maxUnits + 42

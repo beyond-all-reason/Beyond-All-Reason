@@ -1,6 +1,6 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/media/play_sound.lua")
 local action = actions[1]
@@ -11,7 +11,7 @@ local missionApi = GG["MissionAPI"]
 describe("mission_api.actions.play_sound", function()
 
 	before_each(function()
-		Builders.MissionApi.new():Install()
+		MissionApiBuilder.new():Install()
 	end)
 
 	it("declares its type and parameters", function()

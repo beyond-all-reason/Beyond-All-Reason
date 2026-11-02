@@ -539,16 +539,16 @@ describe("mission_api.validation.sections", function()
 		local originalWeaponDefs
 
 		before_each(function()
-			originalWeaponDefs = _G.WeaponDefs
-			_G.WeaponDefs = { [1] = { stockpile = true }, [2] = { stockpile = false } }
-			_G.UnitDefNames = {
+			originalWeaponDefs = V.env.WeaponDefs
+			V.env.WeaponDefs = { [1] = { stockpile = true }, [2] = { stockpile = false } }
+			V.env.UnitDefNames = {
 				armmercury = { id = 1, weapons = { { weaponDef = 2 }, { weaponDef = 1 } } },
 				armwar = { id = 2, weapons = { { weaponDef = 2 } } },
 			}
 		end)
 
 		after_each(function()
-			_G.WeaponDefs = originalWeaponDefs
+			V.env.WeaponDefs = originalWeaponDefs
 		end)
 
 		it("accepts any fractional progress value", function()
@@ -900,7 +900,7 @@ describe("mission_api.validation.sections", function()
 			{ id = 1, name = "armwar", isImmobile = false, isBuilder = false, weapons = { { weaponDef = 1 } } }
 
 		local function validateAttributeAction(unitDefs, action)
-			_G.UnitDefNames = unitDefs
+			V.env.UnitDefNames = unitDefs
 			return V.validateAction(action)
 		end
 

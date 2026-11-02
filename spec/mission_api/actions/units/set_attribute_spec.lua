@@ -1,8 +1,9 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
+---@type table, table
 local queried, queryResult
 local unitQuerySpy = {
 	MatchingUnits = function(unitName, unitDefName, teamID)
@@ -11,7 +12,7 @@ local unitQuerySpy = {
 	end,
 }
 
-Builders.MissionApi.new():WithModule("UnitQuery", unitQuerySpy):Install()
+MissionApiBuilder.new():WithModule("UnitQuery", unitQuerySpy):Install()
 
 local calls = {}
 local function record(name)
@@ -43,7 +44,7 @@ end
 describe("mission_api.actions.set_attribute", function()
 	before_each(function()
 		calls, queried, queryResult = {}, {}, {}
-		_G.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } } ---@diagnostic disable-line: global-in-non-module
+		env.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } }
 	end)
 
 	describe("SetUnitDefAttribute", function()

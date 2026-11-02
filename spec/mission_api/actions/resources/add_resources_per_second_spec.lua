@@ -14,6 +14,7 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 
 describe("mission_api.actions.add_resources_per_second", function()
 
+	---@type table, table
 	local metalCalls, energyCalls
 
 	before_each(function()

@@ -1,8 +1,8 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local FeatureDefsBuilder = VFS.Include("spec/builders/feature_defs_builder.lua")
 
 describe("FeatureDefsBuilder", function()
 	it("starts empty", function()
-		local defs = Builders.FeatureDefs.new()
+		local defs = FeatureDefsBuilder.new()
 
 		assert.are.same({}, defs:GetFeatureDefsByID())
 		assert.are.same({}, defs:GetFeatureDefsByName())
@@ -11,7 +11,7 @@ describe("FeatureDefsBuilder", function()
 
 	it("registers a def under both its ID and its name", function()
 		local defs =
-			Builders.FeatureDefs.new():WithFeatureDef(1, { name = "treetype1" }):WithFeatureDef(2, { name = "rock1" })
+			FeatureDefsBuilder.new():WithFeatureDef(1, { name = "treetype1" }):WithFeatureDef(2, { name = "rock1" })
 
 		assert.are.equal("treetype1", defs:GetFeatureDefsByID()[1].name)
 		assert.are.equal("rock1", defs:GetFeatureDefsByID()[2].name)
@@ -20,7 +20,7 @@ describe("FeatureDefsBuilder", function()
 	end)
 
 	it("keeps an unnamed def addressable by ID", function()
-		local defs = Builders.FeatureDefs.new():WithFeatureDef(1, { reclaimable = true })
+		local defs = FeatureDefsBuilder.new():WithFeatureDef(1, { reclaimable = true })
 
 		assert.is_true(defs:GetFeatureDefsByID()[1].reclaimable)
 		assert.are.same({}, defs:GetFeatureDefsByName())

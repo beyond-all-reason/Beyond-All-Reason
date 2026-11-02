@@ -1,15 +1,19 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-Builders.MissionApi.new():Install()
+local env = MissionSpecEnv.new()
 
-local actions = VFS.Include("luarules/mission_api/actions/units/issue_orders.lua")
+MissionApiBuilder.new():Install()
+
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/units/issue_orders.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 local missionApi = GG["MissionAPI"]
 
 local function seedUnits(name, ...)
-	local builder = Builders.MissionApi.new()
+	local builder = MissionApiBuilder.new()
 	for _, unitID in ipairs({ ... }) do
 		builder:WithTrackedUnit(name, unitID)
 	end
@@ -19,8 +23,8 @@ end
 describe("mission_api.actions.issue_orders", function()
 
 	before_each(function()
-		Builders.MissionApi.new():Install()
-		_G.Spring = Builders.Spring.new():Build()
+		MissionApiBuilder.new():Install()
+		env.Spring = SpringSyncedBuilder.new():Build()
 	end)
 
 	it("declares its type and parameters", function()
@@ -34,21 +38,20 @@ describe("mission_api.actions.issue_orders", function()
 	describe("actionFunction", function()
 		it("is a no-op for an untracked unit name", function()
 			action.actionFunction("unknownUnit", {})
-			assert.are.equal(0, #Spring.calls.giveOrderArrayToUnitMap)
+			assert.are.equal(0, #env.Spring.calls.giveOrderArrayToUnitMap)
 		end)
 
 		it("calls GiveOrderArrayToUnitMap with the tracked unit map and converted orders", function()
 			seedUnits("bots", 101, 102)
 			local orders = { { 10, {}, {} } }
 			action.actionFunction("bots", orders)
-			assert.are.equal(1, #Spring.calls.giveOrderArrayToUnitMap)
-			assert.are.same(missionApi.trackedUnitIDs["bots"], Spring.calls.giveOrderArrayToUnitMap[1].unitMap)
+			assert.are.equal(1, #env.Spring.calls.giveOrderArrayToUnitMap)
+			assert.are.same(missionApi.trackedUnitIDs["bots"], env.Spring.calls.giveOrderArrayToUnitMap[1].unitMap)
 		end)
 
 		it("passes the result of ConvertOrdersTargetingNames as the orders", function()
 			local convertedOrders = { { 999, {}, {} } }
-			Builders.MissionApi
-				.new()
+			MissionApiBuilder.new()
 				:WithTrackedUnit("scout", 5)
 				:WithModule("Loadout", {
 					ConvertOrdersTargetingNames = function()
@@ -57,7 +60,7 @@ describe("mission_api.actions.issue_orders", function()
 				})
 				:Install()
 			action.actionFunction("scout", {})
-			assert.are.same(convertedOrders, Spring.calls.giveOrderArrayToUnitMap[1].orders)
+			assert.are.same(convertedOrders, env.Spring.calls.giveOrderArrayToUnitMap[1].orders)
 		end)
 	end)
 
