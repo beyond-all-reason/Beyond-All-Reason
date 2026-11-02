@@ -49,10 +49,6 @@ describe("keybind catalog", function()
 		conformsTo("common/configs/keybind_catalog.schema.json", "common/configs/keybind_catalog.json")
 	end)
 
-	-- Action::Action lowercases the command before Spring.GetKeyBindings ever sees it, so
-	-- a capitalised id here silently matches nothing and the row renders with no keys.
-	-- Only the command is lowered; its arguments keep their case.
-
 	it("never both hides and lists an action", function()
 		local hidden = {}
 		for _, group in ipairs(catalog) do
