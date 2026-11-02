@@ -47,7 +47,7 @@
 		"stockpile": "Stockpile %{stockpileStatus}",
 		"stockpile_tooltip": "[ stockpiled number ] / [ target stockpile number ]",
 		"stopproduction": "Clear Queue",
-		"stopproduction_tooltip": "Clear build queue and quotas for all units on selected factories",
+		"stopproduction_tooltip": "Clear build queue and quotas for all units on selected factories\nThe unit in production is kept: clear again to cancel it too",
 		"morph": "Upgrade",
 		"morph_tooltip": "Upgrade to next Tech-level (second click to cancel)",
 		"Spawning Disabled": "Spawning disabled",

@@ -20,6 +20,7 @@ end
 
 local wavePeriod = 550
 local noCratersWhenGameOver = true -- units of the last losing allyteam leave the terrain alone, craters cost sim time
+local damageDelayFrames = 128 -- the engine lands explosion damage up to 127 frames after the blast
 
 local math_floor = math.floor
 local math_min = math.min
@@ -52,6 +53,19 @@ end
 local wipedoutTeams = {}
 local destroyUnitQueue = {} ---@type table<UnitID, UnitID|false> unitID : attackerID|false
 local destroyByFrame = {} ---@type table<integer, UnitID[]?>
+
+-- The blasts are for show: doomed units take no hits, and once a wipeout decides the game no unit
+-- does until it is over. The engine counts every hit in the team stats (own units included), so
+-- a skipped hit (0, 0) keeps the effect out of damage, kills and losses.
+local harmlessUntil = -1
+local guardingDamage = false
+
+local function guardDamage()
+	if not guardingDamage then
+		guardingDamage = true
+		gadgetHandler:UpdateCallIn("UnitPreDamaged")
+	end
+end
 
 ---Neutralizes a team's units and queues them to explode
 ---@param teamID TeamID
@@ -126,6 +140,7 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult,
 		Spring.GiveOrderToUnitArray(armed, CMD.FIRE_STATE, 0)
 		Spring.GiveOrderToUnitArray(armed, GameCMD.UNIT_CANCEL_TARGET)
 	end
+	guardDamage()
 	wipedoutTeams[teamID] = math_max(wipedoutTeams[teamID] or 0, gameFrame + math_max(maxDeathFrame, 300))
 	GG.maxDeathFrame = GG.maxDeathFrame and math_max(GG.maxDeathFrame, maxDeathFrame) or maxDeathFrame -- storing frame of total unit wipeout
 end
@@ -168,18 +183,38 @@ local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, per
 	end
 	periodMult = (periodMult or 1.0) * math.clamp(totalUnits / 300, 0.33, 1.0) -- make low unitcount blow up faster
 
-	local noCraters = noCratersWhenGameOver and isGameDecidedWithout(allyTeamID)
+	local decided = isGameDecidedWithout(allyTeamID)
+	local noCraters = noCratersWhenGameOver and decided
 
 	-- destroy all teams
 	for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
 		wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult, noCraters)
+		if decided then
+			harmlessUntil = math_max(harmlessUntil, wipedoutTeams[teamID] + damageDelayFrames)
+		end
 	end
 end
 
 GG.wipeoutTeam = wipeoutTeam
 GG.wipeoutAllyTeam = wipeoutAllyTeam
 
+function gadget:Initialize()
+	gadgetHandler:RemoveCallIn("UnitPreDamaged")
+end
+
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage)
+	if destroyUnitQueue[unitID] ~= nil or spGetGameFrame() <= harmlessUntil then
+		return 0, 0
+	end
+	return damage, 1
+end
+
 function gadget:GameFrame(frame)
+	if guardingDamage and frame > harmlessUntil and next(destroyUnitQueue) == nil then
+		guardingDamage = false
+		gadgetHandler:RemoveCallIn("UnitPreDamaged")
+	end
+
 	local units = destroyByFrame[frame]
 	if not units then
 		return
