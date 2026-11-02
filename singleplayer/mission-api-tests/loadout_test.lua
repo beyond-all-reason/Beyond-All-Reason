@@ -172,6 +172,9 @@ local unitLoadout    = {
 	-- Enemy team (team 1)
 	{ unitDefName = 'corsolar', x = 1700, z = 2150, facing = 'w', teamName = 'enemy' },
 	{ unitDefName = 'corsolar', x = 1800, z = 2150, facing = 's', teamName = 'enemy' },
+
+	-- Gaia's team
+	{ unitDefName = 'corsolar', x = 1900, z = 2150, facing = 's', teamName = 'gaia' },
 }
 
 local featureLoadout = {

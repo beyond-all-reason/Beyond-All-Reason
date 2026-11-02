@@ -4,13 +4,14 @@
 
 -- The order in the log:
 local sections = {
-	Stages = 1,
-	Objectives = 2,
-	Triggers = 3,
-	Actions = 4,
-	Cutscenes = 5,
-	Loadouts = 6,
-	References = 7,
+	GameSetup = 1,
+	Stages = 2,
+	Objectives = 3,
+	Triggers = 4,
+	Actions = 5,
+	Cutscenes = 6,
+	Loadouts = 7,
+	References = 8,
 }
 
 --- A total order, so entries of the same entity keep the order they were reported in.

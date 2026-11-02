@@ -491,7 +491,9 @@ describe("mission_api.validation.sections", function()
 
 		before_each(function()
 			originalGetTeamInfo = V.env.Spring.GetTeamInfo
-			V.missionAPI().Teams = { rebels = 0, [0] = "rebels", loyalists = 1, [1] = "loyalists" }
+			-- Gaia's team is 2 in the spec env's team layout.
+			V.missionAPI().Teams =
+				{ rebels = 0, [0] = "rebels", loyalists = 1, [1] = "loyalists", gaia = 2, [2] = "gaia" }
 			V.env.Spring.GetTeamInfo = function(teamID)
 				return teamID, 0, false, teamID == 1
 			end
@@ -531,6 +533,36 @@ describe("mission_api.validation.sections", function()
 					parameters = { oldTeamName = "rebels", newTeamName = "loyalists" },
 				})),
 				"ChangeTeam"
+			)
+		end)
+
+		it("rejects Gaia's team as either team", function()
+			local result = V.validate(V.mission()
+				:WithAction("toGaia", {
+					type = V.actionTypes.ChangeTeam,
+					parameters = { oldTeamName = "rebels", newTeamName = "gaia" },
+				})
+				:WithAction("fromGaia", {
+					type = V.actionTypes.ChangeTeam,
+					parameters = { oldTeamName = "gaia", newTeamName = "rebels" },
+				}))
+
+			assert.are.same({
+				"ChangeTeam cannot move players to or from Gaia's team. Action: fromGaia, Parameter: oldTeamName",
+				"ChangeTeam cannot move players to or from Gaia's team. Action: toGaia, Parameter: newTeamName",
+			}, result.errors)
+		end)
+
+		it("rejects Gaia's team on any difficulty", function()
+			V.assertMessage(
+				V.validate(V.mission():WithAction("defect", {
+					type = V.actionTypes.ChangeTeam,
+					parameters = {
+						oldTeamName = "rebels",
+						newTeamName = { difficulties = { Easy = "loyalists", Hard = "gaia" } },
+					},
+				})),
+				"ChangeTeam cannot move players to or from Gaia's team. Action: defect, Parameter: newTeamName"
 			)
 		end)
 	end)

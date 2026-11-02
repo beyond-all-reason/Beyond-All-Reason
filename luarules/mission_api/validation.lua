@@ -52,6 +52,7 @@ local function createValidationContext(mission, report)
 		Teams = missionAPI.Teams or {},
 		Alliances = missionAPI.Alliances or {},
 		Variables = missionAPI.Variables or {},
+		GameSetupErrors = missionAPI.GameSetupErrors or {},
 
 		-- Parameter types:
 		Types = parameterTypes.Types,
@@ -89,6 +90,9 @@ local function runValidation(mission, report)
 	local context = createValidationContext(mission, report)
 	local parameterValidators = createParameterValidators(context)
 
+	for _, message in ipairs(context.GameSetupErrors) do
+		report.Error(sections.GameSetup, nil, nil, message)
+	end
 	sectionsValidation.Validate(context, report, parameterValidators)
 	referencesValidation.Validate(context, report)
 end

@@ -37,6 +37,10 @@ local function withGameSetup(setup)
 	env.Spring.GetAllyTeamInfo = function(allyTeamID)
 		return setup.allyTeams[allyTeamID].keys
 	end
+	-- The engine adds Gaia's team after the start script's teams.
+	env.Spring.GetGaiaTeamID = function()
+		return #sortedIDs(setup.teams)
+	end
 end
 
 describe("mission_api.game_setup", function()
@@ -50,6 +54,7 @@ describe("mission_api.game_setup", function()
 			GetTeamInfo = env.Spring.GetTeamInfo,
 			GetAllyTeamList = env.Spring.GetAllyTeamList,
 			GetAllyTeamInfo = env.Spring.GetAllyTeamInfo,
+			GetGaiaTeamID = env.Spring.GetGaiaTeamID,
 			Log = env.Spring.Log,
 		}
 		logged = {}
@@ -132,9 +137,11 @@ describe("mission_api.game_setup", function()
 				[0] = "player",
 				[1] = "ally1",
 				[2] = "mainEnemy",
+				[4] = "gaia",
 				player = 0,
 				ally1 = 1,
 				mainEnemy = 2,
+				gaia = 4,
 			}, gameSetup.teams)
 			assert.are.same({ [0] = "goodies", [1] = "enemies", goodies = 0, enemies = 1 }, gameSetup.alliances)
 		end)
@@ -157,7 +164,52 @@ describe("mission_api.game_setup", function()
 			local gameSetup = readGameSetup()
 
 			assert.are.same({ [0] = 1, [1] = 3 }, gameSetup.dummyTeams)
-			assert.are.same({ [0] = "player", [2] = "mainEnemy", player = 0, mainEnemy = 2 }, gameSetup.teams)
+			assert.are.same(
+				{ [0] = "player", [2] = "mainEnemy", [4] = "gaia", player = 0, mainEnemy = 2, gaia = 4 },
+				gameSetup.teams
+			)
+		end)
+
+		it("has no errors for a start script a mission can run under", function()
+			withGameSetup({
+				modOptions = { missionoptions = encodeMissionOptions([[{"entryPoint":"mission.lua"}]]) },
+				teams = { [0] = { allyTeam = 0, keys = { name = "player" } } },
+				allyTeams = { [0] = { keys = { name = "goodies" } } },
+			})
+
+			assert.are.same({}, readGameSetup().errors)
+		end)
+
+		it("gives an error for a team named 'gaia' and keeps the name for Gaia's team", function()
+			withGameSetup({
+				modOptions = { missionoptions = encodeMissionOptions([[{"entryPoint":"mission.lua"}]]) },
+				teams = {
+					[0] = { allyTeam = 0, keys = { name = "player" } },
+					[1] = { allyTeam = 1, keys = { name = "gaia" } },
+				},
+				allyTeams = { [0] = { keys = { name = "goodies" } }, [1] = { keys = {} } },
+			})
+
+			local gameSetup = readGameSetup()
+
+			assert.are.same({ [0] = "player", [2] = "gaia", player = 0, gaia = 2 }, gameSetup.teams)
+			assert.are.same({ "Team 1 is named 'gaia', the name reserved for Gaia" }, gameSetup.errors)
+			assert.are.same({}, logged)
+		end)
+
+		it("gives an error and no Gaia name when the start script sets luagaia=0", function()
+			withGameSetup({
+				modOptions = { missionoptions = encodeMissionOptions([[{"entryPoint":"mission.lua"}]]) },
+				teams = { [0] = { allyTeam = 0, keys = { name = "player" } } },
+				allyTeams = { [0] = { keys = { name = "goodies" } } },
+			})
+			-- Spring.GetGaiaTeamID returns nothing without Gaia, see rts/Lua/LuaSyncedRead.cpp.
+			env.Spring.GetGaiaTeamID = function() end
+
+			local gameSetup = readGameSetup()
+
+			assert.are.same({ [0] = "player", player = 0 }, gameSetup.teams)
+			assert.are.same({ "Missions need Gaia's team, but the start script sets luagaia=0" }, gameSetup.errors)
 		end)
 
 		it("returns nil without logging when there is no missionoptions", function()
