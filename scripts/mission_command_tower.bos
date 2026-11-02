@@ -54,6 +54,6 @@ Create()
 Killed(severity, corpsetype)
 {
 	corpsetype = 3;
-	explode fusionsphere type SHATTER;
+	explode fusionsphere type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
