@@ -7,6 +7,41 @@ local tracking = GG["MissionAPI"].Modules.Tracking
 local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
 local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
 
+--- Orientation of unit and feature entries
+
+-- A point closer than this is on the entry itself, as in RotateUnits.
+local MIN_DIRECTION_DISTANCE = 0.001
+
+local function compassAngleToHeading(angle)
+	-- TODO: refactor to call CompassAngleToHeading when it is merged
+	return math.floor((angle % 360 - 180) / 360 * -65536)
+end
+
+local function directionToHeading(entry, direction)
+	if direction.angle then
+		return compassAngleToHeading(direction.angle)
+	end
+
+	local dx, dz = direction.x - entry.x, direction.z - entry.z
+	if math.abs(dx) < MIN_DIRECTION_DISTANCE and math.abs(dz) < MIN_DIRECTION_DISTANCE then
+		return BAR.Utilities.FacingToHeading(0)
+	end
+	-- Not Spring.GetHeadingFromVector: before RecoilEngine #3240 it swaps east and west for dz just above zero.
+	-- Compass angles run clockwise from north, which is -z.
+	return compassAngleToHeading(math.deg(math.atan2(dx, -dz)))
+end
+
+-- A point is taken from the entry's own x and z, so every unit of an entry turns the same way.
+local function orientationOf(entry)
+	local orientation = entry.orientation
+	if type(orientation) == "table" then
+		local heading = directionToHeading(entry, orientation)
+		return heading, BAR.Utilities.HeadingToFacing(heading)
+	end
+	local facing = orientation or 0
+	return BAR.Utilities.FacingToHeading(facing), facing
+end
+
 --- Units
 
 local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpacing)
@@ -29,14 +64,19 @@ local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpac
 	return positions
 end
 
-local function spawnUnit(unit, pos)
+local function spawnUnit(unit, pos, facing, heading)
 	-- Make unitName available to MetaUnitAdded call-in which gets triggered by Spring.CreateUnit
 	GG["MissionAPI"].nameOfUnitBeingSpawned = unit.unitName
 	GG["MissionAPI"].spawnedUnitIsBeingBuilt = unit.construction
-	local unitID =
-		Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or "s", unit.teamName, unit.construction)
+	local unitID = Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, facing, unit.teamName, unit.construction)
 	GG["MissionAPI"].nameOfUnitBeingSpawned = nil
 	GG["MissionAPI"].spawnedUnitIsBeingBuilt = nil
+
+	if unitID and heading then
+		-- Keep the slope the unit was created standing on.
+		local _, upDir = Spring.GetUnitVectors(unitID)
+		Spring.SetUnitHeadingAndUpDir(unitID, heading, upDir[1], upDir[2], upDir[3])
+	end
 
 	if unitID and unit.neutral then
 		Spring.SetUnitNeutral(unitID, true)
@@ -96,18 +136,26 @@ end
 local function spawnUnitLoadout(unitLoadout)
 	for _, unit in ipairs(unitLoadout or {}) do
 		local spacing = unit.spacing or 0
+		---@type table
 		local unitDef = UnitDefNames[unit.unitDefName]
 		local xsize = unitDef.xsize * Game.squareSize + spacing
 		local zsize = unitDef.zsize * Game.squareSize + spacing
 
+		-- A building stands on one of the four facings; a unit that moves turns to the exact heading.
+		local heading, facing = orientationOf(unit)
+		local turnTo = nil
+		if type(unit.orientation) == "table" and not unitDef.isImmobile then
+			turnTo = heading
+		end
+
 		-- adjust for facing of non-square units
-		if BAR.Utilities.IsFacingEW(unit.facing) then
+		if BAR.Utilities.IsFacingEW(facing) then
 			xsize, zsize = zsize, xsize
 		end
 
 		local positions = generateGridPositions(unit.x, unit.z, unit.quantity or 1, xsize, zsize)
 		for _, pos in pairs(positions) do
-			local unitID = spawnUnit(unit, pos)
+			local unitID = spawnUnit(unit, pos, facing, turnTo)
 			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 			GG["MissionAPI"].issuingOrders = true
 			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
@@ -127,8 +175,7 @@ for _, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local function spawnFeature(featureDefName, position, facing, featureName)
-	local heading = BAR.Utilities.FacingToHeading(facing or 0)
+local function spawnFeature(featureDefName, position, heading, facing, featureName)
 	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
 	local unitDefName = corpseToUnitDefName[featureDefName]
 
@@ -141,7 +188,9 @@ end
 local function spawnFeatureLoadout(featureLoadout)
 	for _, feature in ipairs(featureLoadout or {}) do
 		feature.y = Spring.GetGroundHeight(feature.x, feature.z)
-		spawnFeature(feature.featureDefName, feature, feature.facing, feature.featureName)
+		-- The facing is for resurrection, which only takes one of the four.
+		local heading, facing = orientationOf(feature)
+		spawnFeature(feature.featureDefName, feature, heading, facing, feature.featureName)
 	end
 end
 

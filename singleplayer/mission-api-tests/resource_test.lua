@@ -351,7 +351,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'armllt_dead', x = 2100, z = 2000, facing = 's' },
+				{ featureDefName = 'armllt_dead', x = 2100, z = 2000, orientation = 's' },
 			},
 		},
 	},

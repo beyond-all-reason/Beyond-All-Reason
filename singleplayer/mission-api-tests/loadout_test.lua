@@ -63,7 +63,10 @@ local actions = {
 		parameters = {
 			messageKey = 'Loadout test: pre-spawned units and features are live. ' ..
 			          'Player con has an initial patrol order from loadout. ' ..
-			          'The wreck (featureName="the-wreck") will be destroyed.',
+			          'The wreck (featureName="the-wreck") will be destroyed. ' ..
+			          'The wreck east of it faces east-northeast (angle 60). ' ..
+			          'The tank west of the cons faces north-east (angle 45). ' ..
+			          'The third enemy solar stands east though its angle is 100: buildings keep the four facings.',
 		},
 	},
 
@@ -95,8 +98,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck',   x = 1900, z = 1700, facing = 'e', teamName = 'player', unitName = 'reinforcement-con' },
-				{ unitDefName = 'armflea', x = 1900, z = 1820, facing = 'e', teamName = 'player',
+				{ unitDefName = 'armck',   x = 1900, z = 1700, orientation = 'e', teamName = 'player', unitName = 'reinforcement-con' },
+				{ unitDefName = 'armflea', x = 1900, z = 1820, orientation = 'e', teamName = 'player',
 				  orders = {
 				    { CMD.MOVE, { 2100, 0, 2220 }, {} },
 				  },
@@ -109,7 +112,8 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'corak_dead', x = 1800, z = 1750, facing = 's', featureName = 'reinforcement-wreck' },
+				{ featureDefName = 'corak_dead', x = 1800, z = 1750, orientation = 's', featureName = 'reinforcement-wreck' },
+				{ featureDefName = 'corak_dead', x = 2000, z = 1700, orientation = { x = 1900, z = 1700 } },
 			},
 		},
 	},
@@ -117,7 +121,8 @@ local actions = {
 	messageReinforcementsArrived = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = 'Reinforcements spawned via SpawnUnits + CreateFeatures. Con tracked as "reinforcement-con", wreck as "reinforcement-wreck".',
+			messageKey = 'Reinforcements spawned via SpawnUnits + CreateFeatures. Con tracked as "reinforcement-con", wreck as "reinforcement-wreck". ' ..
+			          'The wreck east of the con faces it (facing a point).',
 		},
 	},
 
@@ -162,21 +167,26 @@ local actions = {
 
 local unitLoadout    = {
 	-- Player team (team 0).
-	{ unitDefName = 'armck', x = 1780, z = 1850, facing = 'e', teamName = 'player', unitName = 'player-con' },
-	{ unitDefName = 'corck', x = 1780, z = 1800, facing = 'e', teamName = 'player',
+	{ unitDefName = 'armck', x = 1780, z = 1850, orientation = 'e', teamName = 'player', unitName = 'player-con' },
+	{ unitDefName = 'corck', x = 1780, z = 1800, orientation = 'e', teamName = 'player',
 	  orders = {
 	    { CMD.PATROL, { 1780, 0, 1950 }, {} },
 	  },
 	},
+	-- A unit that moves turns to any angle.
+	{ unitDefName = 'armflash', x = 1680, z = 1850, orientation = { angle = 45 }, teamName = 'player' },
 
 	-- Enemy team (team 1)
-	{ unitDefName = 'corsolar', x = 1700, z = 2150, facing = 'w', teamName = 'enemy' },
-	{ unitDefName = 'corsolar', x = 1800, z = 2150, facing = 's', teamName = 'enemy' },
+	{ unitDefName = 'corsolar', x = 1700, z = 2150, orientation = 'w', teamName = 'enemy' },
+	{ unitDefName = 'corsolar', x = 1800, z = 2150, orientation = 's', teamName = 'enemy' },
+	-- A building keeps the nearest of the four facings: angle 100 stands east.
+	{ unitDefName = 'corsolar', x = 1900, z = 2150, orientation = { angle = 100 }, teamName = 'enemy' },
 }
 
 local featureLoadout = {
-	{ featureDefName = 'corak_dead',  x = 1900, z = 1800, facing = 's', featureName = 'the-wreck' },
-	{ featureDefName = 'armfus_dead', x = 1900, z = 2000, facing = 'e' },
+	{ featureDefName = 'corak_dead',  x = 1900, z = 1800, orientation = 's', featureName = 'the-wreck' },
+	{ featureDefName = 'corak_dead',  x = 2000, z = 1800, orientation = { angle = 60 } },
+	{ featureDefName = 'armfus_dead', x = 1900, z = 2000, orientation = 'e' },
 }
 
 return {

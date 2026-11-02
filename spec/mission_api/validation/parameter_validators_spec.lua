@@ -355,32 +355,35 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
-	describe("Facing", function()
-		it("rejects a type that is neither string nor number", function()
-			local result = V.validateAction({
+	describe("A unit entry's orientation", function()
+		local function validateUnitOrientation(orientation)
+			return V.validateAction({
 				type = V.actionTypes.SpawnUnits,
 				parameters = {
-					unitLoadout = { { unitDefName = "armwar", teamName = "player", x = 0, z = 0, facing = {} } },
+					unitLoadout = {
+						{ unitDefName = "armwar", teamName = "player", x = 0, z = 0, orientation = orientation },
+					},
 				},
 			})
+		end
 
+		it("passes for one of the four facings and for a direction", function()
+			V.assertNoMessageContaining(validateUnitOrientation("e"), "unitLoadout")
+			V.assertNoMessageContaining(validateUnitOrientation({ angle = 45 }), "unitLoadout")
+			V.assertNoMessageContaining(validateUnitOrientation({ x = 10, z = 0 }), "unitLoadout")
+		end)
+
+		it("validates a table as a Direction", function()
 			V.assertMessage(
-				result,
-				"Unexpected parameter type, expected string or number, got table. Action: a, Parameter: unitLoadout[1].facing"
+				validateUnitOrientation({}),
+				"Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }. Action: a, Parameter: unitLoadout[1].orientation"
 			)
 		end)
 
 		it("rejects a facing that is not a compass direction", function()
-			local result = V.validateAction({
-				type = V.actionTypes.SpawnUnits,
-				parameters = {
-					unitLoadout = { { unitDefName = "armwar", teamName = "player", x = 0, z = 0, facing = "diagonal" } },
-				},
-			})
-
 			V.assertMessage(
-				result,
-				"Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'. Action: a, Parameter: unitLoadout[1].facing"
+				validateUnitOrientation("diagonal"),
+				"Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'. Action: a, Parameter: unitLoadout[1].orientation"
 			)
 		end)
 	end)
@@ -1013,6 +1016,43 @@ describe("mission_api.validation.parameter_validators", function()
 			local result = validateFeatureLoadout({ { featureDefName = "rockdef", z = 0 } })
 
 			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: featureLoadout[1].x")
+		end)
+
+		it("passes for an orientation that is a direction", function()
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", x = 0, z = 0, orientation = { angle = 45 } },
+				{ featureDefName = "rockdef", x = 0, z = 0, orientation = { x = 10, z = 0 } },
+			})
+
+			V.assertNoMessageContaining(result, "featureLoadout")
+		end)
+
+		it("validates an orientation table as a Direction", function()
+			local result = validateFeatureLoadout({ { featureDefName = "rockdef", x = 0, z = 0, orientation = {} } })
+
+			V.assertMessage(
+				result,
+				"Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }. Action: a, Parameter: featureLoadout[1].orientation"
+			)
+		end)
+
+		it("validates any other orientation as a Facing", function()
+			local result =
+				validateFeatureLoadout({ { featureDefName = "rockdef", x = 0, z = 0, orientation = "diagonal" } })
+
+			V.assertMessage(
+				result,
+				"Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'. Action: a, Parameter: featureLoadout[1].orientation"
+			)
+		end)
+
+		it("rejects an orientation that is neither a facing nor a direction", function()
+			local result = validateFeatureLoadout({ { featureDefName = "rockdef", x = 0, z = 0, orientation = true } })
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected string, number or table, got boolean. Action: a, Parameter: featureLoadout[1].orientation"
+			)
 		end)
 	end)
 end)

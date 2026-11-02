@@ -1724,7 +1724,7 @@ else -- UNSYNCED
 			end
 			Spring.Echo(
 				string.format(
-					"\t{ unitDefName = '%s', x = %d, z = %d, facing = '%s', teamName = '%s'%s },",
+					"\t{ unitDefName = '%s', x = %d, z = %d, orientation = '%s', teamName = '%s'%s },",
 					unitDefName,
 					math.floor(x),
 					math.floor(z),
@@ -1743,7 +1743,7 @@ else -- UNSYNCED
 			local facing = headingToFacing(Spring.GetFeatureHeading(featureID))
 			Spring.Echo(
 				string.format(
-					"\t{ featureDefName = '%s', x = %d, z = %d, facing = '%s' },",
+					"\t{ featureDefName = '%s', x = %d, z = %d, orientation = '%s' },",
 					featureDefName,
 					math.floor(x),
 					math.floor(z),
