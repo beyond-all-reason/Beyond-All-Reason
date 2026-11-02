@@ -3085,11 +3085,10 @@ local function startCapture(action, label, oldRaws)
 	}
 end
 
--- `exact` reports every held modifier, whatever the action being captured makes of them.
-local function modPrefix(exact)
+local function modPrefix()
 	-- An action that ignores modifiers can only ever produce Any+<key>, never a
 	-- contradictory Any+Shift+<key>, so held modifiers are dropped outright.
-	if capturing and capturing.any and not exact then
+	if capturing and capturing.any then
 		return ""
 	end
 
@@ -3108,7 +3107,7 @@ local function modPrefix(exact)
 	end
 	-- A paired action answers held or not held, so Shift is not a modifier the player picks
 	-- for it: holding it must read as the bare key and get its partner written behind.
-	if shift and (exact or not (capturing and capturing.pair)) then
+	if shift and not (capturing and capturing.pair) then
 		prefix = prefix .. "Shift+"
 	end
 
@@ -3128,7 +3127,6 @@ local function appendChain(el)
 		c.elems = {}
 	end
 
-	el.held = modPrefix(true)
 	local now = spGetTimer()
 	local last = c.elems[#c.elems]
 	if #c.elems == 0 then
@@ -3136,13 +3134,7 @@ local function appendChain(el)
 	elseif c.lastPress and spDiffTimers(now, c.lastPress) * 1000 <= c.timeout then
 		-- Mirrors the engine's key chain, which folds a modifier into a key pressed while it is held.
 		-- Modifiers held together fold too, so the order they went down in does not matter.
-		local fold = false
-		if last.modifier and el.modifier then
-			fold = c.pressed[last.scan] == true
-		elseif last.modifier then
-			fold = last.held == el.held
-		end
-		if fold then
+		if last.modifier and c.pressed[last.scan] then
 			c.elems[#c.elems] = el
 		else
 			c.elems[#c.elems + 1] = el
@@ -3172,17 +3164,17 @@ local function pressElem(key, scanCode)
 		return nil
 	end
 
-	local modifier = sym:find("ctrl") or sym:find("alt") or sym:find("shift") or sym:find("meta") or sym:find("gui")
+	local modifier = (sym:find("ctrl") or sym:find("alt") or sym:find("shift") or sym:find("meta") or sym:find("gui"))
+		~= nil
 	-- A modifier alone reads the same with Shift held or not, so it cannot pair.
 	if modifier and capturing and capturing.pair then
 		return nil
 	end
-	local fakeMeta = capturing and key == capturing.fakeMetaCode
 
 	return {
 		sym = sym,
 		mods = modifier and "" or modPrefix(),
-		modifier = (modifier or fakeMeta) and true,
+		modifier = modifier or (capturing ~= nil and key == capturing.fakeMetaCode),
 		scan = scanCode,
 	}
 end
