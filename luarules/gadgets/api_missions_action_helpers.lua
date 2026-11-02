@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		name = "Mission API Actions Helper",
 		desc = "Execute certain Mission API actions which cannot be completely done within the actions currently.",
 		date = "2026",
-		layer = 0,
+		layer = 1, -- after api_missions.lua sets inMission
 		enabled = true,
 	}
 end
@@ -32,6 +32,10 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
+		if not Spring.GetGameRulesParam("inMission") then
+			gadgetHandler:RemoveGadget()
+			return
+		end
 		gadgetHandler:AddSyncAction(SYNC_ACTION_SKIPPABLE, setCutsceneSkippable)
 	end
 
@@ -102,5 +106,12 @@ function gadget:RecvLuaMsg(message, playerID)
 			GG["MissionAPI"].Modules.Cutscenes.SkipCutscene()
 		end
 		return true
+	end
+end
+
+function gadget:Initialize()
+	if not Spring.GetGameRulesParam("inMission") then
+		gadgetHandler:RemoveGadget()
+		return
 	end
 end
