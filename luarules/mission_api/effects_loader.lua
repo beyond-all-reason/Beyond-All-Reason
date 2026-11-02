@@ -11,7 +11,7 @@ local function loadEffectDefinitions()
 		if effects[effectType] then
 			Spring.Log(
 				"effects_loader.lua",
-				LOG.ERROR,
+				LOG.WARNING,
 				"[Mission API] Effect type '" .. effectType .. "' is defined twice, second in: " .. filePath
 			)
 		end
