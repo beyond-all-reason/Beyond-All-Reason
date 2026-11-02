@@ -421,8 +421,8 @@ local function deleteBlueprint(index)
 
 	if #blueprints == 0 then
 		setSelectedBlueprintIndex(nil)
-	elseif index > selectedBlueprintIndex then
-		-- no need to do anything
+	elseif not selectedBlueprintIndex or index > selectedBlueprintIndex then
+		-- no need to do anything (none selected, or one after it deleted)
 	elseif index == selectedBlueprintIndex then
 		-- find the closest valid blueprint, searching backwards
 		setSelectedBlueprintIndex(getPrevFilteredBlueprintIndex(selectedBlueprintIndex))
@@ -1286,6 +1286,15 @@ function widget:Initialize()
 			if isValidBlueprint(blueprints[index]) then
 				setSelectedBlueprintIndex(index)
 			end
+		end,
+		-- deletes a saved blueprint (a menu's delete option); false when there is none at index
+		deleteBlueprint = function(index)
+			if not blueprints[index] then
+				return false
+			end
+			deleteBlueprint(index)
+			Spring.PlaySoundFile(sounds.deleteBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
+			return true
 		end,
 	}
 	WG.cmd_blueprint.nextBlueprintUnitID = nextBlueprintUnitID
