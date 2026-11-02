@@ -192,6 +192,9 @@ meaningful.
 
 Specs mirror the source tree under `spec/mission_api/` and are the primary way to verify this subsystem.
 
+CI skips `spec/mission_api/` on a pull request that changes none of the paths in `MISSION_SPEC_INPUTS`
+(`.github/workflows/test_unit.yml`). A nightly run still covers these. `SPEC_SKIP=mission_api` skips them locally.
+
 - `require("mission_api.spec_helper")` returns `MissionSpecEnv`. `new(overrides)` builds a `SpecEnv` holding the
   ambient globals the modules read at load time (`math.bit_and`, team layout, `CMD`/`GameCMD`), `include(env, path)`
   loads the code under test into it, and `registerModules(env)` loads `Modules.ParameterTypes` and the other shared
