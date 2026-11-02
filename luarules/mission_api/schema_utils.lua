@@ -69,7 +69,7 @@ local function collateSchemas()
 	local parameterTypes = missionAPI.Modules.ParameterTypes
 	return {
 		triggers = collateObjectSchemas(missionAPI.TriggerDefinitions),
-		triggerSettings = table.copy(missionAPI.TriggerDefinitions.Settings),
+		triggerSettings = table.copy(VFS.Include("luarules/mission_api/triggers_schema.lua").Settings),
 		actions = collateObjectSchemas(missionAPI.ActionDefinitions),
 		objectiveSettings = table.copy(VFS.Include("luarules/mission_api/objectives_schema.lua").Settings),
 		parameterTypes = table.copy(parameterTypes.Types),
