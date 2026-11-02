@@ -1,5 +1,6 @@
 ---@diagnostic disable: undefined-field
 local widgetPath = "luaui/Widgets/cmd_area_commands_filter.lua"
+local unitSelectionPath = "luaui/Widgets/api_unit_selection.lua"
 
 describe("Area Command Filter drag origin", function()
 	local widget, env, orders, traceType, traceID, activeCommand, held
@@ -14,6 +15,7 @@ describe("Area Command Filter drag origin", function()
 		local defs = { [1] = 3, [101] = 1, [102] = 1, [103] = 2 }
 		env = setmetatable({
 			widget = widget,
+			WG = {},
 			BAR = { Utilities = {} },
 			VFS = {
 				Include = function(path, _, mode)
@@ -43,6 +45,9 @@ describe("Area Command Filter drag origin", function()
 				GetSelectedUnits = function()
 					return { 1 }
 				end,
+				GetSelectedUnitsCount = function()
+					return 1
+				end,
 				GetUnitsInCylinder = function()
 					return { 101, 102, 103 }
 				end,
@@ -69,6 +74,9 @@ describe("Area Command Filter drag origin", function()
 				end,
 			},
 		}, { __index = _G })
+		local unitSelection = {}
+		setfenv(assert(loadfile(unitSelectionPath)), setmetatable({ widget = unitSelection }, { __index = env }))()
+		unitSelection:Initialize()
 		setfenv(assert(loadfile(widgetPath)), env)()
 		widget:Initialize()
 	end)
