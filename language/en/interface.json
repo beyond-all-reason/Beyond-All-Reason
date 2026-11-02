@@ -259,13 +259,20 @@
 			"blueprint": "Blueprint %{index}",
 			"blueprintUnits": "%{count} buildings",
 			"deleteBlueprint": "Delete blueprint",
+			"renameBlueprint": "Rename blueprint",
+			"renameBlueprintTooltip": "Type its name on its cell: Enter keeps it, Escape cancels",
+			"noBlueprintPicked": "Click a blueprint first",
+			"rename": "Rename",
+			"delete": "Delete",
 			"noBlueprints": "No blueprints saved yet",
 			"noBuildableBlueprints": "None of the saved blueprints can be built by these builders",
 			"queueBuilding": "In production",
 			"queueControls": "Drag: reorder\nRight-click: remove one (SHIFT: all of them)\nRight-drag or mouse wheel: scroll"
 		},
 		"orderMenu": {
-			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}"
+			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
+			"tapHotkeys": "Tap %{highlightColor}%{hotkey}%{textColor} quickly: %{taps}",
+			"tapCount": "%{count}x %{state}"
 		},
 		"idleBuilders": {
 			"name": "Idle Builders",
