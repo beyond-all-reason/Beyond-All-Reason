@@ -22,7 +22,9 @@ local assistGhostInterval = 0.2
 local tableInsert = table.insert
 local mathFloor = math.floor
 local mathMin = math.min
+local halfPi = math.pi / 2
 
+local spGetGroundHeight = Spring.GetGroundHeight
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
@@ -52,10 +54,22 @@ local builderQueueApiCallbacks = {} --- @type BuilderQueueEventCallback[]
 local myPlayerId = Spring.GetLocalPlayerID()
 local _, fullView, _ = spGetSpectatingState()
 
-local spGetGroundHeight = Spring.GetGroundHeight
-local halfPi = math.pi / 2
-
 local reInitialize
+
+local isBuilder = {}
+local isBuildOption = {}
+local unitWaterlineMap = {} -- ensure proper display of submerged buildings
+for unitDefId, unitDefinition in ipairs(UnitDefs) do
+	if unitDefinition.isBuilder and not unitDefinition.isFactory and unitDefinition.buildOptions[1] then
+		isBuilder[unitDefId] = true
+		for _, optionDefId in ipairs(unitDefinition.buildOptions) do
+			isBuildOption[optionDefId] = true
+		end
+	end
+	if unitDefinition.waterline and unitDefinition.waterline > 0 then
+		unitWaterlineMap[unitDefId] = unitDefinition.waterline
+	end
+end
 
 local numUnitShapes = 0
 local unitShapes = {}
@@ -64,22 +78,6 @@ local removedUnitShapes = {}
 local assistGhosts = {}
 local assistedFrameDefIds = {}
 local assistGhostTimer = 0
-
--- Used to ensure proper display of submerged buildings
-local isBuilder = {}
-local isBuildOption = {}
-local unitWaterlineMap = {}
-for unitDefId, unitDefinition in ipairs(UnitDefs) do
-	if unitDefinition.waterline and unitDefinition.waterline > 0 then
-		unitWaterlineMap[unitDefId] = unitDefinition.waterline
-	end
-	if unitDefinition.isBuilder and not unitDefinition.isFactory and unitDefinition.buildOptions[1] then
-		isBuilder[unitDefId] = true
-		for _, optionDefId in ipairs(unitDefinition.buildOptions) do
-			isBuildOption[optionDefId] = true
-		end
-	end
-end
 
 --- @param buildCommand BuildCommandEntry
 local function drawUnitShape(shapeId, unitDefId, groundHeight, buildCommand)
@@ -175,7 +173,7 @@ local function updateAssistGhosts()
 		end
 	end
 
-	-- The engine skips assisters when drawing build ghosts for selected units.
+	-- The engine draws build ghosts for selected units, but skips build-assisters.
 	if hasAssistedFrame then
 		for i = 1, #selectedUnits do
 			local unitId = selectedUnits[i]
