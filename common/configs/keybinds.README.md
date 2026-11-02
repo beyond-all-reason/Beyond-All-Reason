@@ -13,8 +13,8 @@ data or the rules. They hold *data and rules only* - no rendering, no engine cal
 | `keybind_retired_includes.json` | What the deleted `luaui/configs/hotkeys` fragments bound, for migrating a player's own bind file that still keyloads one. | `keybind_retired_includes.schema.json` |
 
 All three are validated in CI by `spec/common/keybind_catalog_spec.lua`: each file against its schema,
-profile names unique across the shipped set, every purely modifier-only action marked
-read-only, and every action command written in lower case.
+profile names unique across the shipped set, no action both hidden and listed, and every
+action command written in lower case.
 
 They are separate because a catalog entry is per action while a binding is per action *and*
 profile. The four shipped profiles share only 207 of the 381 actions they bind between them,
@@ -45,9 +45,9 @@ letting it stand in for what ships.
 
 ## Catalog item kinds
 
-Everything the catalog lists is rebindable. An action a player cannot change - one bound to
-a bare modifier, or handled by a widget that ships disabled - belongs in `hidden` or nowhere,
-not in a category as a row that does nothing.
+Everything the catalog lists is rebindable. An action a player cannot change - one handled
+by a widget that ships disabled - belongs in `hidden` or nowhere, not in a category as a row
+that does nothing.
 
 Each category's `items` entry is one of:
 

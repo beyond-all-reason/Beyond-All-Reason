@@ -23,23 +23,14 @@
 			"edit_prev_word",
 			"edit_return",
 			"losradar",
-			"movereset",
-			"moverotate",
-			"moveslow",
-			"movetilt",
 			"pastetext",
 			"quitforce",
 			"quitmenu",
 			"quitmessage",
 			"reloadforce",
-			"selectbox_any",
-			"selectbox_append",
-			"selectbox_deselect",
-			"selectbox_mobile",
 			"selectloop_add",
 			"selectloop_invert",
 			"teamstatus_close",
-			"toggle_allied_upgrade",
 			"togglecammode",
 			"togglelos",
 			"toggleoverview",
@@ -111,6 +102,26 @@
 			{
 				"action": "selectbox_same",
 				"label": "actions.selection.boxSame",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "selectbox_append",
+				"label": "actions.selection.boxAppend",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "selectbox_deselect",
+				"label": "actions.selection.boxDeselect",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "selectbox_mobile",
+				"label": "actions.selection.boxMobile",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "selectbox_any",
+				"label": "actions.selection.boxAny",
 				"alwaysModifier": "any"
 			}
 		]
@@ -710,6 +721,11 @@
 				"action": "buildsplit",
 				"label": "actions.buildHotkeys.split",
 				"alwaysModifier": "any"
+			},
+			{
+				"action": "toggle_allied_upgrade",
+				"label": "actions.buildHotkeys.skipAlliedUpgrade",
+				"alwaysModifier": "any"
 			}
 		]
 	},
@@ -834,6 +850,26 @@
 			{
 				"action": "movefast",
 				"label": "actions.camera.moveFast",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "moveslow",
+				"label": "actions.camera.moveSlow",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "movetilt",
+				"label": "actions.camera.tilt",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "moverotate",
+				"label": "actions.camera.rotate",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "movereset",
+				"label": "actions.camera.zoomReset",
 				"alwaysModifier": "any"
 			},
 			{
