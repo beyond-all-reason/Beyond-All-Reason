@@ -52,7 +52,7 @@ describe("mission_api.actions.unit_markers", function()
 			type = "AddUnitMarker",
 			unitName = "UnitName",
 			unitDefName = "UnitDefName",
-			teamID = "TeamID",
+			teamName = "TeamName",
 			markerType = "String",
 			requiresOneOf = { "unitName", "unitDefName" },
 		}, summarizeSchema(addAction))

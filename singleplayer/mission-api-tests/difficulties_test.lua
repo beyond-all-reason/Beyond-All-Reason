@@ -93,10 +93,10 @@ local actions = {
 			unitLoadout = {
 				difficulties = {
 					Easy = {
-						{ unitDefName = 'armpw', x = 1800, z = 1600, facing = 's', team = 0, unitName = 'wave', quantity = 2, spacing = 32 },
+						{ unitDefName = 'armpw', x = 1800, z = 1600, facing = 's', teamName = 'player', unitName = 'wave', quantity = 2, spacing = 32 },
 					},
 					Hard = {
-						{ unitDefName = 'armpw', x = 1800, z = 1600, facing = 's', team = 0, unitName = 'wave', quantity = 8, spacing = 32 },
+						{ unitDefName = 'armpw', x = 1800, z = 1600, facing = 's', teamName = 'player', unitName = 'wave', quantity = 8, spacing = 32 },
 					},
 				},
 			},

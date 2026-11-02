@@ -8,7 +8,9 @@ local V = require("mission_api.validation.validation_spec_helper")
 local function spawnUnits(unitName)
 	return {
 		type = V.actionTypes.SpawnUnits,
-		parameters = { unitLoadout = { { unitDefName = "armwar", x = 0, z = 0, team = 0, unitName = unitName } } },
+		parameters = {
+			unitLoadout = { { unitDefName = "armwar", x = 0, z = 0, teamName = "player", unitName = unitName } },
+		},
 	}
 end
 
@@ -52,7 +54,7 @@ describe("mission_api.validation.references", function()
 		V.assertValid(V.validate(V.mission()
 			:WithTrigger("t", {
 				type = V.triggerTypes.TotalUnitsKilled,
-				parameters = { teamID = 0, quantity = 1, unitName = "bot" },
+				parameters = { teamName = "player", quantity = 1, unitName = "bot" },
 				actions = { "spawn", "create", "delete", "add", "remove" },
 			})
 			:WithAction("spawn", spawnUnits("bot"))
@@ -77,7 +79,7 @@ describe("mission_api.validation.references", function()
 				"destroyFeature",
 				{ type = V.actionTypes.DestroyFeatures, parameters = { featureName = "loadoutRock" } }
 			)
-			:WithUnitLoadout({ { unitDefName = "armwar", x = 0, z = 0, team = 0, unitName = "loadoutBot" } })
+			:WithUnitLoadout({ { unitDefName = "armwar", x = 0, z = 0, teamName = "player", unitName = "loadoutBot" } })
 			:WithFeatureLoadout({ { featureDefName = "rockdef", x = 0, z = 0, featureName = "loadoutRock" } })))
 	end)
 
@@ -85,7 +87,7 @@ describe("mission_api.validation.references", function()
 		V.assertValid(V.validate(V.mission()
 			:WithObjective("watchBot", {
 				textKey = "watch bot",
-				trigger = { type = V.triggerTypes.UnitsOwned, parameters = { teamID = 0, unitName = "bot" } },
+				trigger = { type = V.triggerTypes.UnitsOwned, parameters = { teamName = "player", unitName = "bot" } },
 			})
 			:WithObjective("watchRock", {
 				textKey = "watch rock",
@@ -127,7 +129,10 @@ describe("mission_api.validation.references", function()
 				parameters = { seconds = 1 },
 				actions = { "name", "destroy", "reclaim" },
 			})
-			:WithAction("name", { type = V.actionTypes.NameUnits, parameters = { unitName = "bot", teamID = 0 } })
+			:WithAction(
+				"name",
+				{ type = V.actionTypes.NameUnits, parameters = { unitName = "bot", teamName = "player" } }
+			)
 			:WithAction("destroy", { type = V.actionTypes.DestroyUnits, parameters = { unitName = "bot" } })
 			:WithAction("reclaim", { type = V.actionTypes.ReclaimUnits, parameters = { unitName = "bot" } })))
 	end)
@@ -190,7 +195,7 @@ describe("mission_api.validation.references", function()
 		local result = V.validate(
 			V.mission():WithAction("spawnUnused", spawnUnits("unusedUnit")):WithAction(
 				"nameUnused",
-				{ type = V.actionTypes.NameUnits, parameters = { unitName = "unusedUnit", teamID = 0 } }
+				{ type = V.actionTypes.NameUnits, parameters = { unitName = "unusedUnit", teamName = "player" } }
 			)
 		)
 

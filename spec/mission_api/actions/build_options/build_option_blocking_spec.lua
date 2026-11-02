@@ -63,7 +63,7 @@ describe("mission_api.actions.build_option_blocking", function()
 			type = "DisableBuildOption",
 			builtDefName = "UnitDefName!",
 			builderDefName = "UnitDefName",
-			teamID = "TeamID!",
+			teamName = "TeamName!",
 		}, summarizeSchema(disableAction))
 	end)
 
@@ -72,7 +72,7 @@ describe("mission_api.actions.build_option_blocking", function()
 			type = "EnableBuildOption",
 			builtDefName = "UnitDefName!",
 			builderDefName = "UnitDefName",
-			teamID = "TeamID!",
+			teamName = "TeamName!",
 		}, summarizeSchema(enableAction))
 	end)
 

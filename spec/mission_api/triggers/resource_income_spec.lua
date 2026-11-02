@@ -62,7 +62,7 @@ describe("mission_api.triggers.resource_income", function()
 		for _, parameter in ipairs(resourceIncome.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.metal)
 		assert.is_true(names.energy)
 		assert.is_true(names.sources)
@@ -72,28 +72,28 @@ describe("mission_api.triggers.resource_income", function()
 	it("only evaluates once per second", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, 1)
+		onGameFrame(trigger({ teamName = 0, metal = 5 }), triggerID, context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when unfiltered income meets the metal threshold", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
+		onGameFrame(trigger({ teamName = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire when unfiltered income is below the metal threshold", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(1)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
+		onGameFrame(trigger({ teamName = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire when unfiltered income is below the energy threshold", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(1)
-		onGameFrame(trigger({ teamID = 0, energy = 5 }), triggerID, context, Game.gameSpeed)
+		onGameFrame(trigger({ teamName = 0, energy = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(0, fired())
 	end)
 
@@ -112,7 +112,7 @@ describe("mission_api.triggers.resource_income", function()
 		end
 		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
-			trigger({ teamID = 0, metal = 1, sources = { production = true } }),
+			trigger({ teamName = 0, metal = 1, sources = { production = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
@@ -132,7 +132,7 @@ describe("mission_api.triggers.resource_income", function()
 		end
 		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
-			trigger({ teamID = 0, metal = 5, sources = { extractor = true } }),
+			trigger({ teamName = 0, metal = 5, sources = { extractor = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
@@ -144,7 +144,7 @@ describe("mission_api.triggers.resource_income", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10, 20)
 		onGameFrame(
-			trigger({ teamID = 0, metal = 15, sources = { transfer = true } }),
+			trigger({ teamName = 0, metal = 15, sources = { transfer = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
@@ -159,7 +159,7 @@ describe("mission_api.triggers.resource_income", function()
 		end
 		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
-			trigger({ teamID = 0, metal = 5, sources = { reclaim = true } }),
+			trigger({ teamName = 0, metal = 5, sources = { reclaim = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
@@ -180,7 +180,7 @@ describe("mission_api.triggers.resource_income", function()
 		end
 		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
-			trigger({ teamID = 0, energy = 1, sources = { extractor = true } }),
+			trigger({ teamName = 0, energy = 1, sources = { extractor = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
