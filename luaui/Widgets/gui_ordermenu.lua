@@ -282,6 +282,8 @@ local isSpectating = spGetSpectatingState()
 local cursorTextures = {}
 ---@type table<string, string>
 local actionHotkeys
+local tapHotkeys
+local tapHotkeyLines = {}
 
 local function clearStateLightDisplayLists()
 	for cell, cache in pairs(stateLightDisplayLists) do
@@ -710,6 +712,37 @@ end
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = require("luaui/Include/action_hotkeys")
+	tapHotkeys = require("luaui/Include/action_tap_hotkeys")
+	tapHotkeyLines = {}
+end
+
+-- "Tap L quickly: 1x Fire at will, 2x Hold fire, 3x Return fire" for a state set by the number of taps
+local function tapHotkeyLine(cmd)
+	local line = tapHotkeyLines[cmd.action]
+	if line == nil then
+		line = false
+		local chain = tapHotkeys[cmd.action]
+		if chain then
+			local taps = {}
+			for count = 1, #chain do
+				local state = cmd.params[chain[count] + 2]
+				if state then
+					taps[#taps + 1] = getCachedTranslation("ui.orderMenu.tapCount", {
+						count = count,
+						state = getCachedTranslation("commands." .. state),
+					})
+				end
+			end
+			line = getCachedTranslation("ui.orderMenu.tapHotkeys", {
+				hotkey = keyConfig.sanitizeKey(chain.key, currentLayout):upper(),
+				taps = table.concat(taps, ", "),
+				highlightColor = "\255\255\215\100",
+				textColor = "\255\240\240\240",
+			})
+		end
+		tapHotkeyLines[cmd.action] = line
+	end
+	return line or nil
 end
 
 function widget:Initialize()
@@ -1437,7 +1470,8 @@ function widget:DrawScreen()
 								hotkeyCache[cmd.action] =
 									keyConfig.sanitizeKey(actionHotkeys[cmd.action], currentLayout)
 							end
-							local hotkey = hotkeyCache[cmd.action]
+							local tapLine = tapHotkeyLine(cmd)
+							local hotkey = tapLine and "" or hotkeyCache[cmd.action]
 							local hotkeyApplied = false
 
 							if cmd.id == CMD.FIRE_STATE then
@@ -1472,6 +1506,9 @@ function widget:DrawScreen()
 									highlightColor = "\255\255\215\100",
 									textColor = "\255\240\240\240",
 								})
+							end
+							if tapLine then
+								tooltip = tooltip ~= "" and (tooltip .. "\n" .. tapLine) or tapLine
 							end
 							if tooltip ~= "" then
 								local title
@@ -1883,6 +1920,7 @@ end
 function widget:LanguageChanged()
 	commandTextCache = {}
 	translationCache = {}
+	tapHotkeyLines = {}
 	widget:ViewResize()
 end
 
