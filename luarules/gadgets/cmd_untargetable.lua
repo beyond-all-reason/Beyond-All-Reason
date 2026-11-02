@@ -96,8 +96,14 @@ if gadgetHandler:IsSyncedCode() then
 			local allyTeamID = allyTeamIDs[i]
 			if allyTeamID ~= unitAllyTeamID then
 				local teamIDs = spGetTeamList(allyTeamID)
-				if teamIDs and teamIDs[1] and not spAreTeamsAllied(unitTeamID, teamIDs[1]) and not allyTeamHasHumanPlayer(allyTeamID) then
-					losMasks[allyTeamID] = math.floor((spGetUnitLosState(unitID, allyTeamID, true) or 0) / LOS_MASK_DIVISOR)
+				if
+					teamIDs
+					and teamIDs[1]
+					and not spAreTeamsAllied(unitTeamID, teamIDs[1])
+					and not allyTeamHasHumanPlayer(allyTeamID)
+				then
+					losMasks[allyTeamID] =
+						math.floor((spGetUnitLosState(unitID, allyTeamID, true) or 0) / LOS_MASK_DIVISOR)
 					spSetUnitLosMask(unitID, allyTeamID, LOS_HIDDEN_MASK)
 					spSetUnitLosState(unitID, allyTeamID, LOS_HIDDEN_STATE)
 				end
@@ -126,7 +132,8 @@ if gadgetHandler:IsSyncedCode() then
 				for j = 1, #commands do
 					local command = commands[j]
 					local params = command.params
-					if (command.id == CMD_ATTACK or command.id == CMD_MANUALFIRE)
+					if
+						(command.id == CMD_ATTACK or command.id == CMD_MANUALFIRE)
 						and params
 						and params[2] == nil
 						and params[1] == targetID
