@@ -38,8 +38,9 @@ local flyingPatrolRadiusIdle = 750
 local waterPatrolRadius = 1000
 local waterPatrolAttempts = 150
 
+local companionCountMax = 2
 local companionRadiusStart = 140
-local companionRadiusAfterStart = 13
+local companionRadiusAfterStart = 100
 local companionPatrolRadius = 200
 
 local random = math.random
@@ -52,10 +53,9 @@ local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitTeam = Spring.GetUnitTeam
 local GetUnitHealth = Spring.GetUnitHealth
-local GetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local GetUnitRulesParam = Spring.GetUnitRulesParam
-local SetUnitHealth = Spring.SetUnitHealth
-local SetUnitMaxHealth = Spring.SetUnitMaxHealth
+local GetUnitIsCloaked = Spring.GetUnitIsCloaked
+local GetUnitTransporter = Spring.GetUnitTransporter
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local CreateUnit = Spring.CreateUnit
@@ -75,20 +75,12 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local isCritter = {} ---@type table<UnitDefID, true?>
 local isFlyingCritter = {} ---@type table<UnitDefID, true?>
 local isCommander = {} ---@type table<UnitDefID, true?>
-local moveTypeDataSetter = {} ---@type table<UnitDefID, function?> -- TODO: replace with new attributes module
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscritter then
 		isCritter[unitDefID] = true
 		if unitDef.canFly then
 			isFlyingCritter[unitDefID] = true
-			if unitDef.isHoveringAirUnit then
-				moveTypeDataSetter[unitDefID] = Spring.MoveCtrl.SetGunshipMoveTypeData
-			else
-				moveTypeDataSetter[unitDefID] = Spring.MoveCtrl.SetAirMoveTypeData
-			end
-		elseif not unitDef.isImmobile then
-			moveTypeDataSetter[unitDefID] = Spring.MoveCtrl.SetGroundMoveTypeData
 		end
 	elseif unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
@@ -266,26 +258,43 @@ local function adjustMapCritterPopulation()
 	end
 end
 
-local function setCompanionSpeed(companionID, speed)
-	local setMoveTypeData = moveTypeDataSetter[GetUnitDefID(companionID)]
-	if setMoveTypeData then
-		setMoveTypeData(companionID, { maxSpeed = speed, maxWantedSpeed = speed })
+local function canAdoptCompanion(commanderID)
+	if GetUnitIsCloaked(commanderID) or GetUnitTransporter(commanderID) then
+		return false
 	end
+	local companions = companionCritters[commanderID]
+	if not companions then
+		return true
+	end
+	local count = 0
+	for _ in pairs(companions) do
+		count = count + 1
+	end
+	return count < companionCountMax
+end
+
+local function setCompanionHealth(companionID, maxHealth, health)
+	local setUnitAttribute = GG.UnitAttributes.SetUnitAttribute
+	setUnitAttribute(companionID, "maxHealth", maxHealth, ATTRIBUTE_SOURCE)
+	setUnitAttribute(companionID, "health", health, ATTRIBUTE_SOURCE)
+end
+
+local function setCompanionSpeed(companionID, speed)
+	GG.UnitAttributes.SetUnitAttribute(companionID, "speed", speed, ATTRIBUTE_SOURCE)
 end
 
 local function syncCompanionToCommander(companionID, data, commanderID)
 	local health = GetUnitHealth(companionID)
 	local _, commanderMaxHealth = GetUnitHealth(commanderID)
-	local commanderMoveType = GetUnitMoveTypeData(commanderID)
-	if not health or not commanderMaxHealth or not commanderMoveType then
+	local commanderSpeed = GG.UnitAttributes.GetUnitAttributeValue(commanderID, "speed")
+	if not health or not commanderMaxHealth or not commanderSpeed then
 		return
 	end
 	local boostedMaxHealth = max(data.maxHealth, commanderMaxHealth)
 	local damage = data.boostedMaxHealth - health
 	data.boostedMaxHealth = boostedMaxHealth
-	SetUnitMaxHealth(companionID, boostedMaxHealth)
-	SetUnitHealth(companionID, boostedMaxHealth - damage)
-	setCompanionSpeed(companionID, max(data.speed, commanderMoveType.maxSpeed))
+	setCompanionHealth(companionID, boostedMaxHealth, boostedMaxHealth - damage)
+	setCompanionSpeed(companionID, max(data.speed, commanderSpeed))
 end
 
 local function addCompanion(companionID, data, commanderID)
@@ -315,10 +324,27 @@ local function revertCompanion(companionID, data)
 		DestroyUnit(companionID)
 		return
 	end
-	SetUnitMaxHealth(companionID, data.maxHealth)
-	SetUnitHealth(companionID, health)
-	setCompanionSpeed(companionID, data.speed)
+	setCompanionHealth(companionID, data.maxHealth, health)
+	setCompanionSpeed(companionID, nil)
 	mapCritters[companionID] = data.mapCritterName
+end
+
+local function releaseCompanions(commanderID, inheritorID)
+	local companions = companionCritters[commanderID]
+	if not companions then
+		return
+	end
+	companionCritters[commanderID] = nil
+	for companionID in pairs(companions) do
+		local data = companionData[companionID]
+		if data then
+			if inheritorID then
+				addCompanion(companionID, data, inheritorID)
+			else
+				revertCompanion(companionID, data)
+			end
+		end
+	end
 end
 
 local function pairCompanion(companionID, commanderID)
@@ -326,14 +352,14 @@ local function pairCompanion(companionID, commanderID)
 		return
 	end
 	local _, maxHealth = GetUnitHealth(companionID)
-	local moveType = GetUnitMoveTypeData(companionID)
-	if not maxHealth or not moveType then
+	local speed = GG.UnitAttributes.GetUnitAttributeValue(companionID, "speed")
+	if not maxHealth or not speed then
 		return
 	end
 	local data = {
 		commanderID = commanderID,
 		maxHealth = maxHealth,
-		speed = moveType.maxSpeed,
+		speed = speed,
 		boostedMaxHealth = maxHealth,
 		mapCritterName = mapCritters[companionID],
 	}
@@ -350,7 +376,7 @@ local function getNearestCommander(x, z, radius, teamID)
 			local cx, _, cz = GetUnitPosition(commanderID)
 			if cx then
 				local distanceSq = (x - cx) * (x - cx) + (z - cz) * (z - cz)
-				if distanceSq < nearestDistanceSq then
+				if distanceSq < nearestDistanceSq and canAdoptCompanion(commanderID) then
 					nearestID = commanderID
 					nearestDistanceSq = distanceSq
 				end
@@ -470,22 +496,24 @@ function gadget:UnitDestroyed(unitID)
 	end
 	commanders[unitID] = nil
 
-	local companions = companionCritters[unitID]
-	if not companions then
-		return
-	end
-	companionCritters[unitID] = nil
 	-- Evolution destroys the old commander _after_ creating the new unit.
 	local evolvedID = GetUnitRulesParam(unitID, "unit_evolved")
-	for companionID in pairs(companions) do
-		local companion = companionData[companionID]
-		if companion then
-			if evolvedID and commanders[evolvedID] then
-				addCompanion(companionID, companion, evolvedID)
-			else
-				revertCompanion(companionID, companion)
-			end
-		end
+	if evolvedID and commanders[evolvedID] then
+		releaseCompanions(unitID, evolvedID)
+	else
+		releaseCompanions(unitID)
+	end
+end
+
+function gadget:UnitCloaked(unitID, unitDefID)
+	if isCommander[unitDefID] then
+		releaseCompanions(unitID)
+	end
+end
+
+function gadget:UnitLoaded(unitID, unitDefID)
+	if isCommander[unitDefID] then
+		releaseCompanions(unitID)
 	end
 end
 
