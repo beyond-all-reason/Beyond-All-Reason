@@ -1027,7 +1027,8 @@
 			"notReclaimable": "Cannot be reclaimed"
 		},
 		"prospector": {
-			"metalExtraction": "Metal extraction: %{amount}"
+			"metalExtraction": "Metal extraction: %{amount}",
+			"extraction": "Metal extraction"
 		},
 		"buildEstimate": {
 			"time": "ETA",
@@ -1624,6 +1625,7 @@
 			"heavyTransport": "Heavy transport",
 			"underConstruction": "Under construction: %{percent}%",
 			"damage": "Damage",
+			"damagePerSecond": "Damage per second",
 			"damagePerShot": "Damage per shot",
 			"reloadTime": "Reload time",
 			"rangeLabel": "Range",
@@ -1634,6 +1636,66 @@
 			"interceptRange": "Interception range",
 			"costToFire": "Cost to fire",
 			"damageModifiers": "Damage modifiers",
+			"modifierMore": "Deals %{percent}% more damage to them than to default armor",
+			"modifierLess": "Deals %{percent}% less damage to them than to default armor",
+			"armorClasses": {
+				"default": {
+					"name": "Default armor",
+					"description": "Units without a special armor class"
+				},
+				"standard": {
+					"name": "Standard armor",
+					"description": "Most land units and buildings"
+				},
+				"commanders": {
+					"name": "Commanders",
+					"description": "Commanders and decoy commanders"
+				},
+				"scavboss": {
+					"name": "Scavenger boss",
+					"description": "The Scavengers' boss commanders"
+				},
+				"crawlingbombs": {
+					"name": "Crawling bombs",
+					"description": "Bots that walk up to their target and explode"
+				},
+				"mines": {
+					"name": "Mines",
+					"description": "Land and naval mines"
+				},
+				"nanos": {
+					"name": "Construction turrets",
+					"description": "Stationary builders that assist and repair nearby"
+				},
+				"vtol": {
+					"name": "Aircraft",
+					"description": "Everything that flies"
+				},
+				"shields": {
+					"name": "Shields",
+					"description": "Plasma deflector shields"
+				},
+				"lboats": {
+					"name": "Light ships",
+					"description": "Scout boats, frigates, construction and support ships"
+				},
+				"hvyboats": {
+					"name": "Heavy ships",
+					"description": "Destroyers, cruisers, battleships, carriers and other large ships"
+				},
+				"subs": {
+					"name": "Submarines",
+					"description": "Submarines and other underwater units"
+				},
+				"raptor": {
+					"name": "Raptors",
+					"description": "Raptor creatures and their hives"
+				},
+				"raptorqueen": {
+					"name": "Raptor queen",
+					"description": "The Raptor queen"
+				}
+			},
 			"buildOptions": "Build options",
 			"buildOptionTooltip": "Click to see its stats",
 			"metalCost": "Metal cost",
