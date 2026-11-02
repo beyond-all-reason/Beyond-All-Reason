@@ -18912,7 +18912,7 @@ local function UpdateMapRulerTexture()
 		end
 		pipR2T.rulerTex = gl.CreateTexture(math.floor(pipWidth), math.floor(pipHeight), {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		pipR2T.rulerLastWidth = math.floor(pipWidth)
@@ -20510,7 +20510,7 @@ local function UpdateR2TFrame(pipWidth, pipHeight)
 		if not pipR2T.frameBackgroundTex then
 			pipR2T.frameBackgroundTex = gl.CreateTexture(bgTexWidth, bgTexHeight, {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 		end
@@ -20533,7 +20533,7 @@ local function UpdateR2TFrame(pipWidth, pipHeight)
 		if not pipR2T.frameButtonsTex then
 			pipR2T.frameButtonsTex = gl.CreateTexture(math.floor(pipWidth), math.floor(pipHeight), {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 		end
@@ -20750,7 +20750,7 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 		tracy.ZoneBeginN("W:PIP:R2T:Units:CreateTexture")
 		pipR2T.unitsTex = gl.CreateTexture(uW, uH, {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		pipR2T.unitsTexWidth = uW
@@ -21059,7 +21059,7 @@ function UpdateR2TFeatures(currentTime, pipWidth, pipHeight, unitsJustRendered)
 	if not pipR2T.featuresTex and uW >= 1 and uH >= 1 then
 		pipR2T.featuresTex = gl.CreateTexture(uW, uH, {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		pipR2T.featuresTexWidth = uW
@@ -21261,7 +21261,7 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 		tracy.ZoneBeginN("W:PIP:R2T:CheapLayers:CreateTexture")
 		pipR2T.contentTex = gl.CreateTexture(cW, cH, {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		pipR2T.contentTexWidth = cW

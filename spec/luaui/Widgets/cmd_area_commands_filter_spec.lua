@@ -14,6 +14,12 @@ describe("Area Command Filter drag origin", function()
 		local defs = { [1] = 3, [101] = 1, [102] = 1, [103] = 2 }
 		env = setmetatable({
 			widget = widget,
+			BAR = { Utilities = {} },
+			VFS = {
+				Include = function(path, _, mode)
+					return VFS.Include(path, env, mode)
+				end,
+			},
 			UnitDefs = { [3] = { canAttack = true, maxWeaponRange = 100 } },
 			Game = { maxUnits = 32000 },
 			CMD = { ATTACK = 20, CAPTURE = 21, GUARD = 25, REPAIR = 40, RECLAIM = 90, LOAD_UNITS = 75, RESURRECT = 125 },
@@ -94,8 +100,9 @@ describe("Area Command Filter drag origin", function()
 	end)
 
 	it("preserves Ctrl's all-types behavior", function()
+		activeCommand = 34923
 		widget:MousePress(10, 20, 1)
-		assert.is_true(notify({ ctrl = true }))
+		assert.is_true(notify({ ctrl = true }, nil, activeCommand))
 		assert.same({ 101, 102, 103 }, orders)
 	end)
 

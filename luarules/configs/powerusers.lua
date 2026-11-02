@@ -14,20 +14,24 @@ local everything = {
 	modmarker = true,
 	sysinfo = true,
 	volcano = true,
+	director = true,
 	userrmlui_player = true, -- short-term exception to rmlui sandboxing, with granular grants
 	userrmlui_spectator = true,
 }
 local moderator = {
-	give = false,
+	give = true,
 	undo = true,
 	cmd = false,
 	devhelpers = false,
+	devhelpers_units = true, -- givecat, xpunits, destroyunits, removeunits, reclaimunits, transferunits, wreckunits, spawnceg, spawnunitexplosion, removeunitdef
+	devhelpers_teams = true, -- playertoteam, killteam
 	playerdata = true,
 	waterlevel = false,
 	lavalevel = false,
 	modmarker = true,
 	sysinfo = true,
 	volcano = true,
+	director = false,
 	userrmlui_player = false,
 	userrmlui_spectator = true,
 }
@@ -44,6 +48,7 @@ local eventmanager = {
 	modmarker = true,
 	sysinfo = false,
 	volcano = true,
+	director = true,
 	userrmlui_player = false,
 	userrmlui_spectator = true,
 }
@@ -58,6 +63,7 @@ local singleplayer = { -- note: these permissions override others when singlepla
 	playerdata = true,
 	sysinfo = false,
 	volcano = true,
+	director = true,
 }
 
 return {
@@ -95,4 +101,6 @@ return {
 	[78506] = eventmanager, -- Twig (KOTH organizer)
 	[51535] = eventmanager, -- Nightmare2512
 	--[84658] = eventmanager, -- OPman
+	[113844] = eventmanager, -- Chronographer
+	[336478] = eventmanager, -- HMSIndeconstructable
 }
