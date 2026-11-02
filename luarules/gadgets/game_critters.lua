@@ -52,10 +52,7 @@ local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitTeam = Spring.GetUnitTeam
 local GetUnitHealth = Spring.GetUnitHealth
-local GetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local GetUnitRulesParam = Spring.GetUnitRulesParam
-local SetUnitHealth = Spring.SetUnitHealth
-local SetUnitMaxHealth = Spring.SetUnitMaxHealth
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local CreateUnit = Spring.CreateUnit
@@ -75,20 +72,12 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local isCritter = {} ---@type table<UnitDefID, true?>
 local isFlyingCritter = {} ---@type table<UnitDefID, true?>
 local isCommander = {} ---@type table<UnitDefID, true?>
-local moveTypeDataSetter = {} ---@type table<UnitDefID, function?> -- TODO: replace with new attributes module
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscritter then
 		isCritter[unitDefID] = true
 		if unitDef.canFly then
 			isFlyingCritter[unitDefID] = true
-			if unitDef.isHoveringAirUnit then
-				moveTypeDataSetter[unitDefID] = Spring.MoveCtrl.SetGunshipMoveTypeData
-			else
-				moveTypeDataSetter[unitDefID] = Spring.MoveCtrl.SetAirMoveTypeData
-			end
-		elseif not unitDef.isImmobile then
-			moveTypeDataSetter[unitDefID] = Spring.MoveCtrl.SetGroundMoveTypeData
 		end
 	elseif unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
@@ -266,26 +255,28 @@ local function adjustMapCritterPopulation()
 	end
 end
 
+local function setCompanionHealth(companionID, maxHealth, health)
+	local setUnitAttribute = GG.UnitAttributes.SetUnitAttribute
+	setUnitAttribute(companionID, "maxHealth", maxHealth, ATTRIBUTE_SOURCE)
+	setUnitAttribute(companionID, "health", health, ATTRIBUTE_SOURCE)
+end
+
 local function setCompanionSpeed(companionID, speed)
-	local setMoveTypeData = moveTypeDataSetter[GetUnitDefID(companionID)]
-	if setMoveTypeData then
-		setMoveTypeData(companionID, { maxSpeed = speed, maxWantedSpeed = speed })
-	end
+	GG.UnitAttributes.SetUnitAttribute(companionID, "speed", speed, ATTRIBUTE_SOURCE)
 end
 
 local function syncCompanionToCommander(companionID, data, commanderID)
 	local health = GetUnitHealth(companionID)
 	local _, commanderMaxHealth = GetUnitHealth(commanderID)
-	local commanderMoveType = GetUnitMoveTypeData(commanderID)
-	if not health or not commanderMaxHealth or not commanderMoveType then
+	local commanderSpeed = GG.UnitAttributes.GetUnitAttributeValue(commanderID, "speed")
+	if not health or not commanderMaxHealth or not commanderSpeed then
 		return
 	end
 	local boostedMaxHealth = max(data.maxHealth, commanderMaxHealth)
 	local damage = data.boostedMaxHealth - health
 	data.boostedMaxHealth = boostedMaxHealth
-	SetUnitMaxHealth(companionID, boostedMaxHealth)
-	SetUnitHealth(companionID, boostedMaxHealth - damage)
-	setCompanionSpeed(companionID, max(data.speed, commanderMoveType.maxSpeed))
+	setCompanionHealth(companionID, boostedMaxHealth, boostedMaxHealth - damage)
+	setCompanionSpeed(companionID, max(data.speed, commanderSpeed))
 end
 
 local function addCompanion(companionID, data, commanderID)
@@ -315,9 +306,8 @@ local function revertCompanion(companionID, data)
 		DestroyUnit(companionID)
 		return
 	end
-	SetUnitMaxHealth(companionID, data.maxHealth)
-	SetUnitHealth(companionID, health)
-	setCompanionSpeed(companionID, data.speed)
+	setCompanionHealth(companionID, data.maxHealth, health)
+	setCompanionSpeed(companionID, nil)
 	mapCritters[companionID] = data.mapCritterName
 end
 
@@ -326,14 +316,14 @@ local function pairCompanion(companionID, commanderID)
 		return
 	end
 	local _, maxHealth = GetUnitHealth(companionID)
-	local moveType = GetUnitMoveTypeData(companionID)
-	if not maxHealth or not moveType then
+	local speed = GG.UnitAttributes.GetUnitAttributeValue(companionID, "speed")
+	if not maxHealth or not speed then
 		return
 	end
 	local data = {
 		commanderID = commanderID,
 		maxHealth = maxHealth,
-		speed = moveType.maxSpeed,
+		speed = speed,
 		boostedMaxHealth = maxHealth,
 		mapCritterName = mapCritters[companionID],
 	}
