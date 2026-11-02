@@ -17,7 +17,7 @@ end
 --     < 0  never respawn as a zombie
 --     0    respawn instantly
 --     > 0  custom respawn delay in seconds
---     this replaces the power-based delay. Spawn-count rolls still use the power-based delay.
+--     this replaces the power-based delay. A heap waits twice this delay.
 --   zombie_wraith_respawn_pool (any value)
 --     adds the unit to the substitute pool. When the pool has any units, revived corpses, wraith
 --     respawns, and units captured by zombies rise as pool units instead of the original unit. Pool units
@@ -31,15 +31,18 @@ end
 --
 -- On any unit def, applied to the whole mode. The highest unitDefID that sets a value wins.
 -- Out-of-range values are corrected: spawn counts are whole numbers of at least 1 and the minimum cannot
--- exceed the maximum, the minimum respawn delay cannot exceed the maximum, wraith chance stays between
--- 0 and 1, and a resurrection speed multiplier of 0 or less is treated as 1.
+-- exceed the maximum, the minimum respawn delay cannot exceed the maximum, and wraith chance stays between
+-- 0 and 1.
 --   zombie_minimum_spawns (integer, default 2)
+--     the configured maximum cannot be set below this.
 --   zombie_maximum_spawns (integer, default 6)
---     the range rolled per corpse when multiple spawns are enabled. The maximum also caps how many
---     substitutes one spawn can buy.
+--     multiple spawns roll from 4 copies through minute 20 and 5 after that, up to a maximum that
+--     starts here and grows to 15 at minute 35. That live maximum also caps how many substitutes
+--     one spawn can buy.
 --   zombie_minimum_respawn_delay (seconds, default 45)
 --   zombie_maximum_respawn_delay (seconds, default 120)
---     the window that power-based revival times are clamped to.
+--     the starting window for power-based revival times. After minute 45 both ends decay by 0.96
+--     each minute. A heap waits twice its unit's delay.
 --   zombie_wraith_respawn_chance (0 to 1, default 0.66)
 --     the chance one of these destructions creates a wraith: a unit that leaves no wreck,
 --     a corpse that leaves no heap, or a heap. Reclaim and resurrection do not count.
@@ -52,8 +55,6 @@ end
 --   zombie_factory_buildpower_tech_multiplier (default 1.7)
 --     a Gaia zombie factory's buildpower is its build speed times this value raised to the current tech
 --     level. Scavenger-team zombie factories keep their normal build speed.
---   zombie_rez_power_speed_multiplier (default 1)
---     multiplies the tech-level resurrection power speeds. Higher values shorten power-based revival delays.
 --   zombie_wraith_spawn_max_units_per_spawn_multiplier (default 1)
 --     scales how many copies a pool unit may take and still stay in the substitute roll range.
 --     The permitted count is the spawn maximum times this value, rounded up.
@@ -61,10 +62,6 @@ end
 --     wraiths, in every mode.
 --   zombie_enable_hydra (1 enables, 0 disables)
 --     multiple spawns per corpse, in every mode.
---   zombie_enable_escalation (1 enables, 0 disables)
---     the escalation of rez times, veterancy and Hydra spawn counts over the game. See ESCALATION.
---   zombie_escalation_minutes (minutes, default 70)
---     when the escalation reaches full strength. Every anchor is a percentage of it.
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -94,13 +91,11 @@ local zombieModeSettings = {
 	spawnCountMaximum = 6,
 	respawnDelayMinimum = 45,
 	respawnDelayMaximum = 120,
-	escalationMinutes = 70,
 	wraithFeedSuccessChance = 0.66,
 	wraithPowerMultiplier = 1,
 	wraithRespawnDelayMultiplier = 3,
 	heapRespawnDelayMultiplier = 2,
 	factoryBuildpowerTechMultiplier = 1.7,
-	rezPowerSpeedMultiplier = 1,
 	wraithSpawnMaxUnitsPerSpawnMultiplier = 1,
 }
 
@@ -110,15 +105,14 @@ local zombieModeSettings = {
 ---@class ZombieModeFeatures
 ---@field wraithRespawns boolean?
 ---@field multipleSpawns boolean?
----@field escalation boolean?
 
 ---@type table<ZombieMode, ZombieModeFeatures>
 local ZOMBIE_MODE_FEATURES = {
-	basic = { escalation = true },
-	wraith = { wraithRespawns = true, escalation = true },
-	hydra = { multipleSpawns = true, escalation = true },
-	akumu = { wraithRespawns = true, multipleSpawns = true, escalation = true },
-	spidergeddon = { wraithRespawns = true, multipleSpawns = true, escalation = true },
+	basic = {},
+	wraith = { wraithRespawns = true },
+	hydra = { multipleSpawns = true },
+	akumu = { wraithRespawns = true, multipleSpawns = true },
+	spidergeddon = { wraithRespawns = true, multipleSpawns = true },
 }
 local DEFAULT_ZOMBIE_MODE = "basic"
 
@@ -127,21 +121,38 @@ local currentZombieMode = DEFAULT_ZOMBIE_MODE
 local currentModeFeatures = ZOMBIE_MODE_FEATURES[DEFAULT_ZOMBIE_MODE]
 local autoSpawningEnabled = true
 
-local TECH_TO_REZ_POWER_SPEEDS = { -- calibrated manually, spitballed numbers that seemed to be balanced.
-	[0.5] = 1,
-	[1] = 2,
-	[1.5] = 5,
-	[2] = 12,
-	[2.5] = 38,
-	[3] = 64,
-	[3.5] = 86,
-	[4] = 108,
-	[4.5] = 130,
+local POWER_BAND = {
+	SCALE_RATE = 10 ^ (1 / 35),
+	BOTTOM_START = 50,
+	TOP_START = 500,
+	BOTTOM_GRACE_MINUTES = 35,
+	ADVANTAGE_AT_BOTTOM = 2,
+	ADVANTAGE_AT_TOP = -2,
+}
+local SPAWN_COUNT_GROWTH = {
+	MAXIMUM_RATE = 2.5 ^ (1 / 25),
+	MAXIMUM_START_MINUTE = 10,
+	ABSOLUTE_MAXIMUM = 15,
+	SMALLEST_PACK_STEP_MINUTE = 20,
+	SMALLEST_PACK_EARLY = 4,
+	SMALLEST_PACK_LATE = 5,
+}
+local SPAWN_TIME_DECAY = {
+	RATE = 0.96,
+	DELAY_MINUTES = 45,
+}
+local EXPERIENCE_GROWTH = {
+	RATE = 1.15,
+	START_MINUTE = 25.2,
+	CAP_MINUTE = 44.8,
+	MAXIMUM = 0.8,
+	VETERAN_PACK_CHANCE = 0.05,
+	ELITE_BONUS = 0.25,
 }
 local FRAMES = {
 	TOO_LONG = Game.gameSpeed * 60 * 45,
 	CHECK_INTERVAL = Game.gameSpeed, -- How often (in frames) everything else is checked
-	REZ_SPEED_UPDATE = Game.gameSpeed * 60,
+	TECH_UPDATE = Game.gameSpeed * 60,
 	MINUTE = Game.gameSpeed * 60,
 	SUBSTITUTE_FAIR_ROLL = Game.gameSpeed * 60 * 20,
 	RECENT_TAMPER = Game.gameSpeed,
@@ -173,7 +184,6 @@ local DAMAGE = {
 local gameFrame = 0
 local runFeatureBuildStepCheck = false
 local tooLong = false
-local adjustedRezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[1]
 local factoryBuildpowerMultiplier = 1
 local currentTechLevel = 1
 
@@ -200,64 +210,10 @@ local WRAITH = {
 local wraithUnitDefID = unitDefNames[WRAITH.UNIT_NAME] and unitDefNames[WRAITH.UNIT_NAME].id
 local IDLEMODE_FLY = 0
 
--- Escalation over the game. Percents are of zombie_escalation_minutes.
-local ESCALATION = {
-	-- the escalation cannot pass a gate below its tech level, until the next gate's minute
-	gates = { { percent = 23, techLevel = 1.5 }, { percent = 46, techLevel = 2.5 } },
-	costLevels = {
-		{ power = 0, costLevel = 0 },
-		{ power = 400, costLevel = 0.3 },
-		{ power = 3000, costLevel = 0.66 },
-		{ power = 40000, costLevel = 1 },
-	},
-	riseSeconds = {
-		{ percent = 0, cheapestSeconds = 60, mostExpensiveSeconds = 160 },
-		{ percent = 100, cheapestSeconds = 8, mostExpensiveSeconds = 40 },
-	},
-	packSizes = {
-		{ percent = 0, smallestPack = 4, biggestPack = 9 },
-		{ percent = 7, smallestPack = 4, biggestPack = 9 },
-		{ percent = 41, smallestPack = 5, biggestPack = 15 },
-	},
-	packDelayPercent = 39, -- the most expensive unit reads the pack sizes this much later
-	packRollsMostExpensive = 3, -- rolls the pack size this often and keeps the smallest, cheapest unit rolls once
-	xpStartPercent = 36, -- no veterancy before this
-	xpFullPercent = 64, -- the cheapest unit reaches maxExperience here, the most expensive unit xpDelayPercent later
-	xpDelayPercent = 21,
-	xpCurvePower = 3, -- the climb starts slow and ends steep
-	maxExperience = 0.8,
-	veteranPackChance = 0.05, -- a wreck rises as half its smallest pack at maxExperience, fades as veterancy arrives
-}
-local escalationPercent = 0
-local riseSeconds = { cheapest = 0, mostExpensive = 0 }
-local escalationMinute = 0
-
-local function interpolateAnchors(anchors, lookupValue, lookupField, lowField, highField, easeInOut)
-	local previousAnchor = anchors[1]
-	for anchorIndex = 2, #anchors do
-		local nextAnchor = anchors[anchorIndex]
-		local nextLookup = nextAnchor[lookupField]
-		if lookupValue < nextLookup then
-			local previousLookup = previousAnchor[lookupField]
-			local blend = clamp((lookupValue - previousLookup) / (nextLookup - previousLookup), 0, 1)
-			if easeInOut then
-				blend = (1 - math.cos(blend * math.pi)) / 2
-			end
-			local lowValue = math.mix(previousAnchor[lowField], nextAnchor[lowField], blend)
-			local highValue = highField and math.mix(previousAnchor[highField], nextAnchor[highField], blend)
-			return lowValue, highValue
-		end
-		previousAnchor = nextAnchor
-	end
-	return previousAnchor[lowField], highField and previousAnchor[highField]
-end
-
 local RULES_PARAM = {
 	ENABLED = "zombies_enabled",
 	TECH_LEVEL = "zombie_tech_level",
-	REZ_POWER_SPEED = "zombie_rez_power_speed",
 	FACTORY_BUILDPOWER_MULTIPLIER = "zombie_factory_buildpower_multiplier",
-	ESCALATION_MINUTE = "zombie_escalation_minute",
 	REZ_FRAME = "zombie_rez_frame",
 	REZ_DELAY = "zombie_rez_delay",
 	WAS_ZOMBIE = "wasZombie",
@@ -495,7 +451,6 @@ do
 		setSetting(customParams, "zombie_wraith_respawn_delay_multiplier", "wraithRespawnDelayMultiplier")
 		setSetting(customParams, "zombie_heap_respawn_delay_multiplier", "heapRespawnDelayMultiplier")
 		setSetting(customParams, "zombie_factory_buildpower_tech_multiplier", "factoryBuildpowerTechMultiplier")
-		setSetting(customParams, "zombie_rez_power_speed_multiplier", "rezPowerSpeedMultiplier")
 		setSetting(
 			customParams,
 			"zombie_wraith_spawn_max_units_per_spawn_multiplier",
@@ -507,15 +462,12 @@ do
 		setSetting(customParams, "zombie_maximum_respawn_delay", "respawnDelayMaximum")
 		setSetting(customParams, "zombie_enable_wraith", "wraithRespawns", true)
 		setSetting(customParams, "zombie_enable_hydra", "multipleSpawns", true)
-		setSetting(customParams, "zombie_enable_escalation", "escalation", true)
-		setSetting(customParams, "zombie_escalation_minutes", "escalationMinutes")
 
 		local rezPower = math.max(1, unitDef.power or 1)
 		local isPoolMember = customParams.zombie_wraith_respawn_pool and true or false
 		local unitDefData = {
 			unitDefID = unitDefID,
 			rezPower = rezPower,
-			costLevel = interpolateAnchors(ESCALATION.costLevels, rezPower, "power", "costLevel"),
 			size = unitDef.xsize,
 			isMobile = unitDef.speed > 0,
 			isCommander = customParams.iscommander and true or false,
@@ -603,9 +555,6 @@ do
 	if zombieModeSettings.respawnDelayMinimum > zombieModeSettings.respawnDelayMaximum then
 		zombieModeSettings.respawnDelayMaximum = zombieModeSettings.respawnDelayMinimum
 	end
-	if zombieModeSettings.rezPowerSpeedMultiplier <= 0 then
-		zombieModeSettings.rezPowerSpeedMultiplier = 1
-	end
 	zombieModeSettings.wraithFeedSuccessChance = clamp(zombieModeSettings.wraithFeedSuccessChance, 0, 1)
 end
 
@@ -645,36 +594,82 @@ local function addToFrameList(frameLists, frame, id)
 	list[#list + 1] = id
 end
 
-local function calculateSpawnDelayFrames(unitDefData)
-	if currentModeFeatures.escalation then
-		local spawnSeconds = floor(math.mix(riseSeconds.cheapest, riseSeconds.mostExpensive, unitDefData.costLevel))
-		return spawnSeconds * Game.gameSpeed
+local function getElapsedMinutes()
+	return gameFrame / FRAMES.MINUTE
+end
+
+local function getGameStateScaleForPower(power, rangeMinimum, rangeMaximum)
+	local elapsedMinutes = getElapsedMinutes()
+	local bottomPowerThreshold = POWER_BAND.BOTTOM_START
+		* POWER_BAND.SCALE_RATE ^ math.max(0, elapsedMinutes - POWER_BAND.BOTTOM_GRACE_MINUTES)
+	local topPowerThreshold = POWER_BAND.TOP_START * POWER_BAND.SCALE_RATE ^ elapsedMinutes
+	if power <= bottomPowerThreshold then
+		return rangeMinimum
 	end
-	local spawnSeconds = clamp(
-		floor(unitDefData.rezPower / adjustedRezPowerSpeed),
-		zombieModeSettings.respawnDelayMinimum,
-		zombieModeSettings.respawnDelayMaximum
+	if power >= topPowerThreshold then
+		return rangeMaximum
+	end
+	local blend = (power - bottomPowerThreshold) / (topPowerThreshold - bottomPowerThreshold)
+	return math.mix(rangeMinimum, rangeMaximum, blend)
+end
+
+local function getSpawnCountMaximum()
+	local minutesAfterStart = math.max(0, getElapsedMinutes() - SPAWN_COUNT_GROWTH.MAXIMUM_START_MINUTE)
+	local grownMaximum = math.round(
+		zombieModeSettings.spawnCountMaximum * SPAWN_COUNT_GROWTH.MAXIMUM_RATE ^ minutesAfterStart,
+		0
+	)
+	return math.min(SPAWN_COUNT_GROWTH.ABSOLUTE_MAXIMUM, grownMaximum)
+end
+
+local function getSmallestPack()
+	if getElapsedMinutes() <= SPAWN_COUNT_GROWTH.SMALLEST_PACK_STEP_MINUTE then
+		return SPAWN_COUNT_GROWTH.SMALLEST_PACK_EARLY
+	end
+	return SPAWN_COUNT_GROWTH.SMALLEST_PACK_LATE
+end
+
+local function experienceAtThisMinute()
+	local elapsedMinutes = getElapsedMinutes()
+	if elapsedMinutes < EXPERIENCE_GROWTH.START_MINUTE then
+		return 0
+	end
+	local experience = EXPERIENCE_GROWTH.MAXIMUM
+		* EXPERIENCE_GROWTH.RATE ^ (elapsedMinutes - EXPERIENCE_GROWTH.CAP_MINUTE)
+	if experience > EXPERIENCE_GROWTH.MAXIMUM then
+		return EXPERIENCE_GROWTH.MAXIMUM
+	end
+	return experience
+end
+
+local function calculateSpawnDelayFrames(unitDefData)
+	local decaySteps = math.max(0, getElapsedMinutes() - SPAWN_TIME_DECAY.DELAY_MINUTES)
+	local decay = SPAWN_TIME_DECAY.RATE ^ decaySteps
+	local minimumSpawnSeconds = zombieModeSettings.respawnDelayMinimum * decay
+	local maximumSpawnSeconds = zombieModeSettings.respawnDelayMaximum * decay
+	local spawnSeconds = math.round(
+		getGameStateScaleForPower(unitDefData.rezPower, minimumSpawnSeconds, maximumSpawnSeconds),
+		0
 	)
 	return floor(spawnSeconds * Game.gameSpeed)
 end
 
-local function rebuildZombieCorpseSpawnDelays()
-	for unitDefID = 1, #zombieUnitDefs do
-		local unitDefData = zombieUnitDefs[unitDefID]
-		unitDefData.powerSpawnDelayFrames = calculateSpawnDelayFrames(unitDefData)
-		if unitDefData.neverRespawn then
-			unitDefData.spawnDelayFrames = nil
-			unitDefData.heapSpawnDelayFrames = nil
-		elseif unitDefData.customRespawnTime then
-			unitDefData.spawnDelayFrames = floor(unitDefData.customRespawnTime * Game.gameSpeed)
-			unitDefData.heapSpawnDelayFrames =
-				floor(unitDefData.spawnDelayFrames * zombieModeSettings.heapRespawnDelayMultiplier)
-		else
-			unitDefData.spawnDelayFrames = unitDefData.powerSpawnDelayFrames
-			unitDefData.heapSpawnDelayFrames =
-				floor(unitDefData.spawnDelayFrames * zombieModeSettings.heapRespawnDelayMultiplier)
-		end
+local function getUnitSpawnDelayFrames(unitDefData)
+	if unitDefData.neverRespawn then
+		return nil
 	end
+	if unitDefData.customRespawnTime then
+		return floor(unitDefData.customRespawnTime * Game.gameSpeed)
+	end
+	return calculateSpawnDelayFrames(unitDefData)
+end
+
+local function getHeapSpawnDelayFrames(unitDefData)
+	local spawnDelayFrames = getUnitSpawnDelayFrames(unitDefData)
+	if spawnDelayFrames == nil then
+		return nil
+	end
+	return floor(spawnDelayFrames * zombieModeSettings.heapRespawnDelayMultiplier)
 end
 
 local function setZombieFactoryBuildpower(unitID, useZombieBuildpower, unitDefID)
@@ -700,59 +695,17 @@ local function setZombieFactoryBuildpower(unitID, useZombieBuildpower, unitDefID
 	zombieFactories[unitID] = nil
 end
 
-local function updateRezSpeed()
+local function updateTechLevel()
 	local techLevel = 1
 	if GG.PowerLib and GG.PowerLib.HighestPlayerTeamPower and GG.PowerLib.TechGuesstimate then
 		local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
 		techLevel = GG.PowerLib.TechGuesstimate(highestPowerData.power)
 	end
-	local rezPowerSpeed = TECH_TO_REZ_POWER_SPEEDS[techLevel] or TECH_TO_REZ_POWER_SPEEDS[1]
-	adjustedRezPowerSpeed = rezPowerSpeed * zombieModeSettings.rezPowerSpeedMultiplier
 	factoryBuildpowerMultiplier = zombieModeSettings.factoryBuildpowerTechMultiplier ^ techLevel
 	currentTechLevel = techLevel
 	setZombieFactoryBuildpower()
 	spring.SetGameRulesParam(RULES_PARAM.TECH_LEVEL, techLevel)
-	spring.SetGameRulesParam(RULES_PARAM.REZ_POWER_SPEED, adjustedRezPowerSpeed)
 	spring.SetGameRulesParam(RULES_PARAM.FACTORY_BUILDPOWER_MULTIPLIER, factoryBuildpowerMultiplier)
-end
-
-local function updateEscalation(frame)
-	local escalationLengthMinutes = zombieModeSettings.escalationMinutes
-	local realMinutes = frame / FRAMES.MINUTE
-	local heldMinute = math.min(realMinutes, escalationLengthMinutes)
-	if currentModeFeatures.escalation then
-		for gateIndex, gate in ipairs(ESCALATION.gates) do
-			local nextGate = ESCALATION.gates[gateIndex + 1]
-			local nextGateMinute = nextGate and nextGate.percent / 100 * escalationLengthMinutes or math.huge
-			if (currentTechLevel or 0) < gate.techLevel and realMinutes < nextGateMinute then
-				heldMinute = math.min(heldMinute, gate.percent / 100 * escalationLengthMinutes)
-			end
-		end
-		escalationMinute = math.max(escalationMinute, heldMinute)
-	else
-		escalationMinute = 0
-	end
-	escalationPercent = escalationMinute / escalationLengthMinutes * 100
-	riseSeconds.cheapest, riseSeconds.mostExpensive = interpolateAnchors(
-		ESCALATION.riseSeconds,
-		escalationPercent,
-		"percent",
-		"cheapestSeconds",
-		"mostExpensiveSeconds"
-	)
-	spring.SetGameRulesParam(RULES_PARAM.ESCALATION_MINUTE, escalationMinute)
-end
-
--- expensive units reach every stage of the escalation later
-local function delayedEscalationPercent(unitDefData, delayPercent)
-	return escalationPercent - delayPercent * unitDefData.costLevel
-end
-
-local function experienceAtThisMinute(unitDefData)
-	local unitEscalationPercent = delayedEscalationPercent(unitDefData, ESCALATION.xpDelayPercent)
-	local experienceClimb = (unitEscalationPercent - ESCALATION.xpStartPercent)
-		/ (ESCALATION.xpFullPercent - ESCALATION.xpStartPercent)
-	return ESCALATION.maxExperience * clamp(experienceClimb, 0, 1) ^ ESCALATION.xpCurvePower
 end
 
 local function updateTooLong(frame)
@@ -881,41 +834,39 @@ local function rollFor(keep, rollCount, minimum, maximum)
 	return result
 end
 
-local function calculateSpawnCount(unitDefID)
+local function calculateSpawnCount(unitDefID, inheritedExperience)
+	local minuteExperience = experienceAtThisMinute()
+	local budget = math.max(minuteExperience, inheritedExperience)
 	if not currentModeFeatures.multipleSpawns then
-		return 1
+		return 1, budget
+	end
+
+	local smallestPack = getSmallestPack()
+	local spawnCountMaximum = getSpawnCountMaximum()
+	if smallestPack > spawnCountMaximum then
+		smallestPack = spawnCountMaximum
+	end
+	local veteranChance = EXPERIENCE_GROWTH.VETERAN_PACK_CHANCE
+		* (1 - minuteExperience / EXPERIENCE_GROWTH.MAXIMUM)
+	if random() < veteranChance then
+		local eliteCount = math.ceil(smallestPack / 2)
+		local eliteExperience = math.max(minuteExperience * 2, minuteExperience + EXPERIENCE_GROWTH.ELITE_BONUS)
+		local dividedInherited = inheritedExperience * smallestPack / eliteCount
+		return eliteCount, math.max(eliteExperience, dividedInherited)
 	end
 
 	local unitDefData = zombieUnitDefs[unitDefID]
-	if currentModeFeatures.escalation then
-		local packEscalationPercent = delayedEscalationPercent(unitDefData, ESCALATION.packDelayPercent)
-		local smallestPack, biggestPack = interpolateAnchors(
-			ESCALATION.packSizes,
-			packEscalationPercent,
-			"percent",
-			"smallestPack",
-			"biggestPack",
-			true
-		)
-		smallestPack, biggestPack = math.round(smallestPack, 0), math.round(biggestPack, 0)
-		local packExperience = experienceAtThisMinute(unitDefData)
-		local packRollCount = 1 + math.round(unitDefData.costLevel * (ESCALATION.packRollsMostExpensive - 1), 0)
-		if random() < ESCALATION.veteranPackChance * (1 - packExperience / ESCALATION.maxExperience) then
-			return math.ceil(smallestPack / 2), ESCALATION.maxExperience
-		end
-		local packSize = rollFor(PICK.LOWEST, packRollCount, smallestPack, biggestPack)
-		return packSize, packExperience * smallestPack / packSize
+	local advantage = math.round(
+		getGameStateScaleForPower(unitDefData.rezPower, POWER_BAND.ADVANTAGE_AT_BOTTOM, POWER_BAND.ADVANTAGE_AT_TOP),
+		0
+	)
+	local rollCount = 1 + math.abs(advantage)
+	local keep = PICK.LOWEST
+	if advantage > 0 then
+		keep = PICK.HIGHEST
 	end
-	local rezTimeSeconds = unitDefData.powerSpawnDelayFrames / Game.gameSpeed
-	local keep, rollCount = PICK.LOWEST, 1
-	if currentTechLevel <= 1 then
-		keep, rollCount = PICK.LOWEST, 3
-	elseif rezTimeSeconds == zombieModeSettings.respawnDelayMinimum then
-		keep, rollCount = PICK.HIGHEST, 2
-	elseif rezTimeSeconds == zombieModeSettings.respawnDelayMaximum then
-		keep, rollCount = PICK.LOWEST, 3
-	end
-	return rollFor(keep, rollCount, zombieModeSettings.spawnCountMinimum, zombieModeSettings.spawnCountMaximum)
+	local spawnCount = rollFor(keep, rollCount, smallestPack, spawnCountMaximum)
+	return spawnCount, budget * smallestPack / spawnCount
 end
 
 local function registerZombie(unitID, unitDefID, transferToScavs)
@@ -982,8 +933,9 @@ local function resolveSpawnPlan(unitDefID, wasZombie, unitPower, spawnCount)
 
 	local borrowedPower = math.min(excessPower, unitPower)
 	local totalPower = unitPower * spawnCount + borrowedPower
+	local spawnCountMaximum = getSpawnCountMaximum()
 	local wraithSpawnMaxUnits =
-		math.ceil(zombieModeSettings.spawnCountMaximum * zombieModeSettings.wraithSpawnMaxUnitsPerSpawnMultiplier)
+		math.ceil(spawnCountMaximum * zombieModeSettings.wraithSpawnMaxUnitsPerSpawnMultiplier)
 	excessPower = excessPower - borrowedPower
 
 	local lowestIndex
@@ -1010,7 +962,7 @@ local function resolveSpawnPlan(unitDefID, wasZombie, unitPower, spawnCount)
 	local substituteIndex = rollFor(PICK.LOWEST, substituteRollCount, lowestIndex or highestIndex, highestIndex)
 	local substituteUnitDefID = wraithPoolUnitDefIDs[substituteIndex]
 	local substitutePower = zombieUnitDefs[substituteUnitDefID].rezPower
-	local purchaseCount = math.min(floor(totalPower / substitutePower), zombieModeSettings.spawnCountMaximum)
+	local purchaseCount = math.min(floor(totalPower / substitutePower), spawnCountMaximum)
 	excessPower = excessPower + totalPower - purchaseCount * substitutePower
 	return substituteUnitDefID, purchaseCount, true
 end
@@ -1038,13 +990,10 @@ local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie
 		return
 	end
 	local sourceIsScav = featureIsScav == true or (featureIsScav == nil and isScavUnitDefID(unitDefID))
-	local spawnCount, packExperience = 1, nil
+	local inherited = inheritedExperience or 0
+	local spawnCount, experience = 1, math.max(inherited, experienceAtThisMinute())
 	if not wasZombie and not sourceIsScav and unitDefData.isMobile then
-		spawnCount, packExperience = calculateSpawnCount(unitDefID)
-	end
-	local experience = inheritedExperience or 0
-	if currentModeFeatures.escalation then
-		experience = math.max(experience, packExperience or experienceAtThisMinute(unitDefData))
+		spawnCount, experience = calculateSpawnCount(unitDefID, inherited)
 	end
 
 	local spawnUnitDefID, plannedCount, isSubstitute
@@ -1542,7 +1491,7 @@ local function corpseCanRespawn(featureID, corpseDefData)
 end
 
 local function heapCanRespawn(heapDefData)
-	if not heapDefData or heapDefData.neverRespawn or not heapDefData.heapSpawnDelayFrames then
+	if not heapDefData or heapDefData.neverRespawn then
 		return false
 	end
 	return true
@@ -1617,7 +1566,7 @@ local function queueCorpseForSpawning(
 		return
 	end
 
-	local spawnDelayFrames = corpseDefData.spawnDelayFrames
+	local spawnDelayFrames = getUnitSpawnDelayFrames(corpseDefData)
 	if spawnDelayFrames and spawnDelayMultiplier then
 		spawnDelayFrames = floor(spawnDelayFrames * spawnDelayMultiplier)
 	end
@@ -1649,7 +1598,7 @@ local function queueHeapForSpawning(featureID, override, wasZombie, attackerID, 
 		featureID,
 		featureDefID,
 		heapDefData.unitDefID,
-		heapDefData.heapSpawnDelayFrames,
+		getHeapSpawnDelayFrames(heapDefData),
 		wasZombie,
 		true,
 		attackerID,
@@ -1872,10 +1821,8 @@ function gadget:GameFrame(frame)
 		processDueWraithSpawns(frame)
 	end
 
-	if frame % FRAMES.REZ_SPEED_UPDATE == 0 then
-		updateRezSpeed()
-		updateEscalation(frame)
-		rebuildZombieCorpseSpawnDelays()
+	if frame % FRAMES.TECH_UPDATE == 0 then
+		updateTechLevel()
 	end
 
 	if frame % FRAMES.CHECK_INTERVAL == 0 then
@@ -2471,8 +2418,6 @@ local function setZombieMode(modeName)
 		return false
 	end
 	applyZombieModeSettings(modeName)
-	updateEscalation(gameFrame)
-	rebuildZombieCorpseSpawnDelays()
 	return true
 end
 
@@ -2649,9 +2594,7 @@ local function saveReloadState()
 			zombieMode = currentZombieMode,
 			autoSpawningEnabled = autoSpawningEnabled,
 			tooLong = tooLong,
-			adjustedRezPowerSpeed = adjustedRezPowerSpeed,
 			currentTechLevel = currentTechLevel,
-			escalationMinute = escalationMinute,
 			excessPower = excessPower,
 			wraiths = wraiths,
 			pendingWraithFeeds = pendingWraithFeeds,
@@ -2687,9 +2630,7 @@ local function restoreReloadState()
 	applyZombieModeSettings(resolveZombieMode(reloadState.zombieMode))
 	autoSpawningEnabled = reloadState.autoSpawningEnabled
 	tooLong = reloadState.tooLong
-	adjustedRezPowerSpeed = reloadState.adjustedRezPowerSpeed
 	currentTechLevel = reloadState.currentTechLevel or 1
-	escalationMinute = reloadState.escalationMinute or 0
 	excessPower = reloadState.excessPower
 	factoryBuildpowerMultiplier = zombieModeSettings.factoryBuildpowerTechMultiplier ^ currentTechLevel
 	wraiths = reloadState.wraiths
@@ -2711,7 +2652,6 @@ local function restoreReloadState()
 	unitTamperFrames = reloadState.unitTamperFrames
 	zombiesBeingBuilt = reloadState.zombiesBeingBuilt
 	zombieUnitIDs = reloadState.zombieUnitIDs
-	rebuildZombieCorpseSpawnDelays()
 	setZombieFactoryBuildpower()
 
 	spring.SetGameRulesParam(RELOAD_STATE_RULES_PARAM, nil)
@@ -2724,7 +2664,7 @@ function gadget:Initialize()
 
 	if not restoreReloadState() then
 		applyZombieModeSettings(resolveZombieMode(modOptions.zombies))
-		updateRezSpeed()
+		updateTechLevel()
 
 		autoSpawningEnabled = modOptionEnabled and not isIdleMode
 
@@ -2748,9 +2688,6 @@ function gadget:Initialize()
 			end
 		end
 	end
-	updateEscalation(gameFrame)
-	rebuildZombieCorpseSpawnDelays()
-
 	indexExistingResurrectableWrecks()
 
 	GG.Zombies = { IdleMode = isIdleMode, tooLong = tooLong }
