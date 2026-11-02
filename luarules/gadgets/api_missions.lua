@@ -122,6 +122,7 @@ function gadget:Initialize()
 	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
 	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
+	GG["MissionAPI"].Modules.GatherWaits = VFS.Include("luarules/mission_api/gather_waits.lua")
 	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
 	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
 	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
@@ -171,6 +172,7 @@ function gadget:GameFrame(frameNumber)
 
 	GG["MissionAPI"].Modules.Sounds.ProcessSoundQueue(frameNumber)
 	GG["MissionAPI"].Modules.AreaTracking.UpdateTrackedAreas()
+	GG["MissionAPI"].Modules.GatherWaits.Update(frameNumber)
 end
 
 function gadget:GameOver()

@@ -625,6 +625,7 @@ local validatorsByCommandName = {
 	STOP = validateNoParams,
 	SELFD = validateNoParams, -- a toggle: a second SELFD cancels the first
 	WAIT = validateNoParams, -- a toggle: a second WAIT cancels the first
+	GATHERWAIT = validateNoParams, -- run by gather_waits.lua; next to a WAIT, the two cancel each other
 	-- 0 (off) or 1 (on):
 	CLOAK = validateOnOffParam,
 	ONOFF = validateOnOffParam,
@@ -633,7 +634,6 @@ local validatorsByCommandName = {
 	TIMEWAIT = getUIOnlyValidator("TIMEWAIT"),
 	DEATHWAIT = getUIOnlyValidator("DEATHWAIT"),
 	SQUADWAIT = getUIOnlyValidator("SQUADWAIT"),
-	GATHERWAIT = getUIOnlyValidator("GATHERWAIT"),
 	-- Unit name parameter:
 	GUARD = validateUnitNameParam,
 	-- 3 number parameters:

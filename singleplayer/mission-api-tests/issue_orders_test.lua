@@ -65,6 +65,14 @@ local triggers = {
 		},
 		actions = { 'spawnArtilleryTargets', 'spawnArtillery', 'artilleryAreaAttack', 'messageArtilleryAreaAttack' },
 	},
+
+	gather = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 55,
+		},
+		actions = { 'spawnGatherers', 'gatherThenMoveOn', 'messageGather' },
+	},
 }
 
 local actions = {
@@ -322,6 +330,36 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "Stop all that.",
+		},
+	},
+
+	-- One starts next to the gathering point, the other far from it.
+	spawnGatherers = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armpw', x = 2300, z = 1700, teamName = 'player', unitName = 'gatherers' },
+				{ unitDefName = 'armpw', x = 1200, z = 2700, teamName = 'player', unitName = 'gatherers' },
+			},
+		},
+	},
+
+	gatherThenMoveOn = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'gatherers',
+			orders = {
+				{ CMD.MOVE, { 2400, 0, 1600 } },
+				{ CMD.GATHERWAIT, {}, { 'shift' } },
+				{ CMD.MOVE, { 2400, 0, 1100 }, { 'shift' } },
+			},
+		},
+	},
+
+	messageGather = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Two Pawns go to the same spot; the near one waits there for the far one, then both move north together.",
 		},
 	},
 }

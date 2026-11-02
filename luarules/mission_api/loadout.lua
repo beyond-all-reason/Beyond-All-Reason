@@ -105,14 +105,26 @@ local function spawnUnitLoadout(unitLoadout)
 			xsize, zsize = zsize, xsize
 		end
 
+		-- The units of an entry wait for each other at each GATHERWAIT in its orders, when they can gather.
+		local gatherWaits = GG["MissionAPI"].Modules.GatherWaits
+		local orders, gatherKeys = unit.orders, {}
+		if gatherWaits.CanGather(unitDef) then
+			orders, gatherKeys = gatherWaits.TagOrders(unit.orders)
+		end
+		local spawnedUnitIDs = {}
+
 		local positions = generateGridPositions(unit.x, unit.z, unit.quantity or 1, xsize, zsize)
 		for _, pos in pairs(positions) do
 			local unitID = spawnUnit(unit, pos)
 			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 			GG["MissionAPI"].issuingOrders = true
-			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
+			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(orders))
 			GG["MissionAPI"].issuingOrders = nil
+			if unitID then
+				spawnedUnitIDs[unitID] = true
+			end
 		end
+		gatherWaits.Add(gatherKeys, spawnedUnitIDs)
 	end
 end
 

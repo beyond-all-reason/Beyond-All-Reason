@@ -62,6 +62,59 @@ describe("mission_api.actions.issue_orders", function()
 			action.actionFunction("scout", {})
 			assert.are.same(convertedOrders, env.Spring.calls.giveOrderArrayToUnitMap[1].orders)
 		end)
+
+		it("gives the orders with each GATHERWAIT tagged, and the name's units wait for each other", function()
+			local taggedOrders = { { 5, { 4, -1 }, { "shift" } } }
+			local added
+			MissionApiBuilder.new()
+				:WithTrackedUnit("bots", 101)
+				:WithTrackedUnit("bots", 102)
+				:WithModule("GatherWaits", {
+					TagOrders = function()
+						return taggedOrders, { -1 }
+					end,
+					Add = function(keys, unitIDs)
+						added = { keys = keys, unitIDs = unitIDs }
+					end,
+				})
+				:Install()
+			action.actionFunction("bots", { { 9, {}, {} } })
+			assert.are.same(taggedOrders, env.Spring.calls.giveOrderArrayToUnitMap[1].orders)
+			assert.are.same({ keys = { -1 }, unitIDs = { [101] = true, [102] = true } }, added)
+		end)
+
+		it("gives a factory of the name the orders as written, and does not wait for it", function()
+			local orders = { { 9, {}, {} } }
+			local taggedOrders = { { 5, { 4, -1 }, { "shift" } } }
+			local added
+			MissionApiBuilder.new()
+				:WithTrackedUnit("outpost", 101)
+				:WithTrackedUnit("outpost", 102)
+				:WithModule("GatherWaits", {
+					TagOrders = function()
+						return taggedOrders, { -1 }
+					end,
+					CanGather = function(unitDef)
+						return not unitDef.isFactory
+					end,
+					Add = function(keys, unitIDs)
+						added = { keys = keys, unitIDs = unitIDs }
+					end,
+				})
+				:Install()
+			env.UnitDefs = { [1] = { canMove = true }, [2] = { canMove = true, isFactory = true } }
+			env.Spring.GetUnitDefID = function(unitID)
+				return unitID == 102 and 2 or 1
+			end
+			action.actionFunction("outpost", orders)
+
+			local given = env.Spring.calls.giveOrderArrayToUnitMap
+			assert.are.same({ [101] = true }, given[1].unitMap)
+			assert.are.same(taggedOrders, given[1].orders)
+			assert.are.same({ [102] = true }, given[2].unitMap)
+			assert.are.same(orders, given[2].orders)
+			assert.are.same({ keys = { -1 }, unitIDs = { [101] = true } }, added)
+		end)
 	end)
 
 end)

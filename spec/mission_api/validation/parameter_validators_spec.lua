@@ -908,10 +908,9 @@ describe("mission_api.validation.parameter_validators", function()
 			{ V.env.CMD.TIMEWAIT, { 5 } },
 			{ V.env.CMD.DEATHWAIT },
 			{ V.env.CMD.SQUADWAIT, { 2 } },
-			{ V.env.CMD.GATHERWAIT },
 		})
 
-		for index, commandName in ipairs({ "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
+		for index, commandName in ipairs({ "TIMEWAIT", "DEATHWAIT", "SQUADWAIT" }) do
 			local message = "Command "
 				.. commandName
 				.. " is dropped when a mission gives it, it only works for a player's selected units."
@@ -920,6 +919,14 @@ describe("mission_api.validation.parameter_validators", function()
 				.. "][1]"
 			assert.is_true(table.contains(result.errors, message), "expected error: " .. message)
 		end
+	end)
+
+	it("takes GATHERWAIT, which the Mission API runs itself, without parameters", function()
+		V.assertNoMessageContaining(validateOrders({ { V.env.CMD.GATHERWAIT } }), "orders[1]")
+		V.assertMessage(
+			validateOrders({ { V.env.CMD.GATHERWAIT, { 1 } } }),
+			"Command takes no parameters. Action: a, Parameter: orders[1][2]"
+		)
 	end)
 
 	for _, commandName in ipairs({ "CLOAK", "ONOFF", "REPEAT" }) do

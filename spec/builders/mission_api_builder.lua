@@ -444,9 +444,22 @@ function MB:Build(installed)
 		end,
 	}
 
+	local gatherWaits = {
+		-- No GATHERWAIT to tag by default.
+		TagOrders = function(orders)
+			return orders, {}
+		end,
+		CanGather = function()
+			return true
+		end,
+		Add = function() end,
+		Update = function() end,
+	}
+
 	local modules = {
 		Tracking = tracking,
 		Loadout = loadout,
+		GatherWaits = gatherWaits,
 		Sounds = sounds,
 		Objectives = objectives,
 	}

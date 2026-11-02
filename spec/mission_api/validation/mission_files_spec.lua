@@ -47,6 +47,7 @@ local function mockCommands()
 		"MOVE_STATE",
 		"LOAD_UNITS",
 		"UNLOAD_UNITS",
+		"GATHERWAIT",
 		"INTERNAL",
 	}) do
 		V.env.CMD[name] = index
