@@ -8,7 +8,7 @@ return {
 	{	
 		type = 'Victory',
 		parameters = {
-			{ name = 'allyTeamIDs', required = true, type = ParameterTypes.AllyTeamIDs },
+			{ name = 'allianceNames', required = true, type = ParameterTypes.AllianceNames },
 		},
 		actionFunction = victory,
 	}

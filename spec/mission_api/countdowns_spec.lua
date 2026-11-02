@@ -294,7 +294,7 @@ describe("mission_api.countdowns", function()
 
 	describe("unknown countdown IDs", function()
 		it("are safe no-ops for every operation", function()
-			assert.has_no.errors(function()
+			assert.has_no.error(function()
 				countdowns.CancelCountdown("missing")
 				countdowns.PauseCountdown("missing")
 				countdowns.UnpauseCountdown("missing")

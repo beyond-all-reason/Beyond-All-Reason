@@ -4,7 +4,7 @@
 
 local V = require("mission_api.validation.validation_spec_helper")
 
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 local missionDirectory = "singleplayer/mission-api-tests/"
 
@@ -18,9 +18,9 @@ local function mockDefNames()
 			return { id = 1 }
 		end,
 	})
-	_G.UnitDefNames = anyDefName
-	_G.FeatureDefNames = anyDefName
-	_G.WeaponDefNames = anyDefName
+	V.env.UnitDefNames = anyDefName
+	V.env.FeatureDefNames = anyDefName
+	V.env.WeaponDefNames = anyDefName
 end
 
 --- The engine CMD table maps both ways: name -> id and id -> name.
@@ -86,6 +86,7 @@ local function getMissionFileNames()
 	local handle = io.popen("ls " .. missionDirectory)
 	local fileNames = {}
 	for fileName in handle:lines() do
+		---@cast fileName string
 		if fileName:match("%.lua$") then
 			fileNames[#fileNames + 1] = fileName
 		end
@@ -96,8 +97,7 @@ end
 
 local function validateMissionFile(fileName)
 	-- Mission files read the definitions from GG when they are included.
-	Builders.MissionApi
-		.new()
+	MissionApiBuilder.new()
 		:WithActionDefinitions(V.definitions.ActionDefinitions)
 		:WithTriggerDefinitions(V.definitions.TriggerDefinitions)
 		:Install()
@@ -119,6 +119,7 @@ describe("mission_api mission files", function()
 		end
 		-- The named teams of tools/StartScripts/startscript_mission_api_test_quicksilver.txt, neither run by an AI.
 		V.missionAPI().Teams = { player = 0, enemy = 1, [0] = "player", [1] = "enemy" }
+		V.missionAPI().Alliances = { players = 0, enemies = 1, [0] = "players", [1] = "enemies" }
 		V.env.Spring.GetTeamInfo = function(teamID)
 			return teamID, 0, false, false
 		end

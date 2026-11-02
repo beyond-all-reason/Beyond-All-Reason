@@ -1,20 +1,23 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and
 -- Spring.GetUnitIsBeingBuilt / UnitDefs / Spring.GetUnitDefID inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 -- Builder ids double as their own defIDs below, so UnitDefs is keyed by both. Maybe too confusing.
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armsolar" },
 	[2] = { name = "armwin" },
 	[10] = { name = "armck" },
 	[11] = { name = "corck" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local constructionStarted = MissionSpecEnv.include(env, "luarules/mission_api/triggers/construction_started.lua")
 local onUnitCreated = constructionStarted.callins.UnitCreated
@@ -31,13 +34,13 @@ describe("mission_api.triggers.construction_started", function()
 	end)
 
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	-- The gadget's build claims live across the mission; each built context carries its own,
 	-- and its ActivateTrigger reports the success that claiming depends on.
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
@@ -61,7 +64,7 @@ describe("mission_api.triggers.construction_started", function()
 			names[parameter.name] = true
 		end
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.builderName)
 		assert.is_true(names.builderDefName)
 	end)
@@ -77,9 +80,9 @@ describe("mission_api.triggers.construction_started", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 9, 10)
+		created(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 9, 10)
 		assert.are.equal(0, fired())
 	end)
 
@@ -111,7 +114,7 @@ describe("mission_api.triggers.construction_started", function()
 
 	it("fires for a matching construction", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 0, 10)
+		created(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 
@@ -123,7 +126,7 @@ describe("mission_api.triggers.construction_started", function()
 
 	it("fires for a matching build-assist", function()
 		local context, fired = newContext()
-		assisted(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 0, 10)
+		assisted(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 

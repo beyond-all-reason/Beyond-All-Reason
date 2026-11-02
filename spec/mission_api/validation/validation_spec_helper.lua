@@ -8,7 +8,7 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 -- busted only exposes luassert as a global inside spec files, not in required modules.
 local assert = require("luassert")
 
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionBuilder = VFS.Include("spec/builders/mission_builder.lua")
 
 -- The definition files read the Mission API modules from GG when they are included, in a
 -- specific load order, mirroring the eager module loading in api_missions.lua. GG is put
@@ -19,7 +19,7 @@ local env = MissionSpecEnv.new()
 local previousMissionAPI = GG["MissionAPI"]
 local modules = MissionSpecEnv.registerModules(env)
 local definitions = {
-	ParameterTypes = modules.ParameterTypes,
+	ParameterTypes = modules.ParameterTypes --[[@as table<string, any>]],
 	ActionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua").LoadActionDefinitions(),
 	TriggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
 		.LoadTriggerDefinitions(),
@@ -48,22 +48,20 @@ local helper = {
 --- Engine globals the validators read. Set per test, since other specs reset them.
 function helper.mockEngineGlobals()
 	env.CMD, env.GameCMD = originalCMD, originalGameCMD
-	missionAPI.Teams = nil
+	-- The named team and alliance of a single player start script.
+	missionAPI.Teams = { player = 0, [0] = "player" }
+	missionAPI.Alliances = { players = 0, [0] = "players" }
 	missionAPI.Variables = {}
-	env.Spring.GetTeamAllyTeamID = function()
-		return true
-	end
 	env.Spring.GetAllyTeamList = function()
 		return { 0 }
 	end
-	_G.UnitDefNames = { armwar = { id = 1 } }
-	_G.FeatureDefNames = { rockdef = { id = 1 } }
-	_G.WeaponDefNames = {}
+	env.UnitDefNames = { armwar = { id = 1 } }
+	env.FeatureDefNames = { rockdef = { id = 1 } }
+	env.WeaponDefNames = {}
 end
 
---- @return MissionBuilder
 function helper.mission()
-	return Builders.Mission.new()
+	return MissionBuilder.new()
 end
 
 --- Runs `call` with `installed` as GG["MissionAPI"], putting back whatever was there.

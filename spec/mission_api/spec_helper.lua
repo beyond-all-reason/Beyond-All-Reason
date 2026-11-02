@@ -4,10 +4,6 @@
 
 local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 
--- A spec that needs defs installs its own before loading.
-_G.UnitDefs = _G.UnitDefs or {}
-_G.WeaponDefs = _G.WeaponDefs or {}
-
 -- math.bit_and is one of Recoil's MathExtra additions, not standard Lua, so it needs a
 -- stand-in here. Engine-side it takes a varargs list and folds it over 24-bit integers.
 local function bitAnd(...)
@@ -37,13 +33,29 @@ end
 local function commandIDs()
 	return {
 		MOVE = 10,
+		ATTACK = 20,
+		GUARD = 25,
 		REPAIR = 40,
+		LOAD_UNITS = 75,
+		RECLAIM = 90,
+		RESURRECT = 125,
+		CAPTURE = 130,
 		OPT_META = 4,
 		OPT_INTERNAL = 8,
 		OPT_RIGHT = 16,
 		OPT_SHIFT = 32,
 		OPT_CTRL = 64,
 		OPT_ALT = 128,
+		-- MOVE_STATE and FIRE_STATE, and the states they take.
+		MOVE_STATE = 50,
+		FIRE_STATE = 45,
+		MOVESTATE_HOLDPOS = 0,
+		MOVESTATE_MANEUVER = 1,
+		MOVESTATE_ROAM = 2,
+		FIRESTATE_HOLDFIRE = 0,
+		FIRESTATE_RETURNFIRE = 1,
+		FIRESTATE_FIREATWILL = 2,
+		FIRESTATE_FIREATNEUTRAL = 3,
 	}
 end
 
@@ -78,6 +90,9 @@ function MissionSpecEnv.new(overrides)
 		math = { bit_and = bitAnd },
 		CMD = commandIDs(),
 		Spring = teamLayout(),
+		-- A spec that needs defs sets its own on the env.
+		UnitDefs = {},
+		WeaponDefs = {},
 	}
 
 	for name, value in pairs(overrides or {}) do
@@ -119,15 +134,15 @@ function MissionSpecEnv.registerModules(env)
 	GG["MissionAPI"] = GG["MissionAPI"] or {}
 	local modules = GG["MissionAPI"].Modules or {}
 	GG["MissionAPI"].Modules = modules
-	local function include(path)
+	local function includeModule(path)
 		return SpecEnv.include(env, path)
 	end
-	modules.ParameterTypes = modules.ParameterTypes or include("luarules/mission_api/parameter_types.lua")
-	modules.Difficulty = modules.Difficulty or include("luarules/mission_api/difficulty.lua")
-	modules.Variables = modules.Variables or include("luarules/mission_api/variables.lua")
-	modules.UnitQuery = modules.UnitQuery or include("luarules/mission_api/unit_query.lua")
-	modules.SeismicContacts = modules.SeismicContacts or include("luarules/mission_api/seismic_contacts.lua")
-	modules.DetectionLevels = modules.DetectionLevels or include("luarules/mission_api/detection_levels.lua")
+	modules.ParameterTypes = modules.ParameterTypes or includeModule("luarules/mission_api/parameter_types.lua")
+	modules.Difficulty = modules.Difficulty or includeModule("luarules/mission_api/difficulty.lua")
+	modules.Variables = modules.Variables or includeModule("luarules/mission_api/variables.lua")
+	modules.UnitQuery = modules.UnitQuery or includeModule("luarules/mission_api/unit_query.lua")
+	modules.SeismicContacts = modules.SeismicContacts or includeModule("luarules/mission_api/seismic_contacts.lua")
+	modules.DetectionLevels = modules.DetectionLevels or includeModule("luarules/mission_api/detection_levels.lua")
 	return modules
 end
 

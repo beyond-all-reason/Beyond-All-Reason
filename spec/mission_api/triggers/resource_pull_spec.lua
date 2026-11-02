@@ -1,21 +1,25 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local TeamBuilder = VFS.Include("spec/builders/team_builder.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and Game.gameSpeed / Spring.GetTeamResources inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local resourcePull = MissionSpecEnv.include(env, "luarules/mission_api/triggers/resource_pull.lua")
 local onGameFrame = resourcePull.callins.GameFrame
 
 describe("mission_api.triggers.resource_pull", function()
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
@@ -24,8 +28,8 @@ describe("mission_api.triggers.resource_pull", function()
 	-- Pull comes from a built team, so the tuple GetTeamResources returns keeps the
 	-- engine's field order.
 	local function resources(pull)
-		local team = Builders.Team.new():WithID(0):WithMetalPull(pull):WithEnergyPull(pull)
-		return Builders.Spring.new():WithTeam(team):Build().GetTeamResources
+		local team = TeamBuilder.new():WithID(0):WithMetalPull(pull):WithEnergyPull(pull)
+		return SpringSyncedBuilder.new():WithTeam(team):Build().GetTeamResources
 	end
 
 	it("declares its type and parameters", function()
@@ -34,7 +38,7 @@ describe("mission_api.triggers.resource_pull", function()
 		for _, parameter in ipairs(resourcePull.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.metal)
 		assert.is_true(names.energy)
 		assert.are.same({ "metal", "energy" }, resourcePull.parameters.requiresOneOf)
@@ -43,35 +47,35 @@ describe("mission_api.triggers.resource_pull", function()
 	it("only evaluates once per second", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, 1)
+		onGameFrame(trigger({ teamName = 0, metal = 5 }), triggerID, context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when metal pull meets the threshold", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
+		onGameFrame(trigger({ teamName = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire when metal pull is below the threshold", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(1)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
+		onGameFrame(trigger({ teamName = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when energy pull meets the threshold", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, energy = 5 }), triggerID, context, Game.gameSpeed)
+		onGameFrame(trigger({ teamName = 0, energy = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(1, fired())
 	end)
 
 	it("requires both thresholds to be met when both are set", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5, energy = 20 }), triggerID, context, Game.gameSpeed)
+		onGameFrame(trigger({ teamName = 0, metal = 5, energy = 20 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(0, fired())
 	end)
 end)

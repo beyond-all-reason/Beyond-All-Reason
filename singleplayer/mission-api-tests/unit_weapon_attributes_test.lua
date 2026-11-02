@@ -48,7 +48,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armstump', x = 2300, z = 1900, team = 0, unitName = 'tank' },
+				{ unitDefName = 'armstump', x = 2300, z = 1900, teamName = 'player', unitName = 'tank' },
 			},
 		},
 	},
@@ -57,7 +57,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 1800, z = 1600, team = 0, quantity = 3, unitName = 'bots' },
+				{ unitDefName = 'armpw', x = 1800, z = 1600, teamName = 'player', quantity = 3, unitName = 'bots' },
 			},
 		},
 	},
@@ -73,7 +73,7 @@ local actions = {
 		type = actionTypes.SetUnitWeaponAttribute,
 		parameters = {
 			unitDefName = 'armpw',
-			teamID = 0,
+			teamName = 'player',
 			attribute = 'maxWeaponRange',
 			value = 600,
 		},

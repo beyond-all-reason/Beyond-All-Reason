@@ -1,10 +1,10 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/countdowns/add_countdown.lua")
 local action = actions[1]
@@ -18,7 +18,7 @@ describe("mission_api.actions.add_countdown", function()
 	local missionApi
 
 	before_each(function()
-		missionApi = Builders.MissionApi.new():WithModule("Countdowns", countdownsModule):Install()
+		missionApi = MissionApiBuilder.new():WithModule("Countdowns", countdownsModule):Install()
 		-- GetGameFrame returns frameNum % dayFrames and frameNum / dayFrames; a
 		-- spec never reaches a second day, so the day count is always 0.
 		env.Spring.GetGameFrame = function()

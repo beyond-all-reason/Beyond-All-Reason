@@ -1,11 +1,16 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local TeamBuilder = VFS.Include("spec/builders/team_builder.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and
 -- Game.gameSpeed / Spring.GetTeamResources / Spring.GetTeamUnits / UnitDefs inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local resourceIncome = MissionSpecEnv.include(env, "luarules/mission_api/triggers/resource_income.lua")
 local onGameFrame = resourceIncome.callins.GameFrame
@@ -24,11 +29,11 @@ describe("mission_api.triggers.resource_income", function()
 	end)
 
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
@@ -37,19 +42,18 @@ describe("mission_api.triggers.resource_income", function()
 	-- Income and the resources received via sharing come from a built team, so the
 	-- tuple GetTeamResources returns keeps the engine's field order.
 	local function resources(income, received)
-		local team = Builders.Team
-			.new()
+		local team = TeamBuilder.new()
 			:WithID(0)
 			:WithMetalIncome(income)
 			:WithEnergyIncome(income)
 			:WithMetalReceived(received or 0)
 			:WithEnergyReceived(received or 0)
-		return Builders.Spring.new():WithTeam(team):Build().GetTeamResources
+		return SpringSyncedBuilder.new():WithTeam(team):Build().GetTeamResources
 	end
 
 	-- The extractor-sourced tests need a def that extracts metal.
 	local function extractorUnitDefs()
-		return Builders.UnitDefs.new():WithUnitDef(1, { extractsMetal = 1 }):GetUnitDefsByID()
+		return UnitDefsBuilder.new():WithUnitDef(1, { extractsMetal = 1 }):GetUnitDefsByID()
 	end
 
 	it("declares its type and parameters", function()
@@ -58,7 +62,7 @@ describe("mission_api.triggers.resource_income", function()
 		for _, parameter in ipairs(resourceIncome.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.metal)
 		assert.is_true(names.energy)
 		assert.is_true(names.sources)
@@ -68,28 +72,28 @@ describe("mission_api.triggers.resource_income", function()
 	it("only evaluates once per second", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, 1)
+		onGameFrame(trigger({ teamName = 0, metal = 5 }), triggerID, context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when unfiltered income meets the metal threshold", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
+		onGameFrame(trigger({ teamName = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire when unfiltered income is below the metal threshold", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(1)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
+		onGameFrame(trigger({ teamName = 0, metal = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire when unfiltered income is below the energy threshold", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(1)
-		onGameFrame(trigger({ teamID = 0, energy = 5 }), triggerID, context, Game.gameSpeed)
+		onGameFrame(trigger({ teamName = 0, energy = 5 }), triggerID, context, Game.gameSpeed)
 		assert.are.equal(0, fired())
 	end)
 
@@ -99,7 +103,7 @@ describe("mission_api.triggers.resource_income", function()
 		env.Spring.GetUnitDefID = function()
 			return 1
 		end
-		_G.UnitDefs = extractorUnitDefs()
+		env.UnitDefs = extractorUnitDefs()
 		env.Spring.GetTeamUnits = function()
 			return { 1 }
 		end
@@ -108,7 +112,7 @@ describe("mission_api.triggers.resource_income", function()
 		end
 		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
-			trigger({ teamID = 0, metal = 1, sources = { production = true } }),
+			trigger({ teamName = 0, metal = 1, sources = { production = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
@@ -119,7 +123,7 @@ describe("mission_api.triggers.resource_income", function()
 
 	it("filters by source: extractor income alone", function()
 		local context, fired = newContext()
-		_G.UnitDefs = extractorUnitDefs()
+		env.UnitDefs = extractorUnitDefs()
 		env.Spring.GetTeamUnits = function()
 			return { 1 }
 		end
@@ -128,7 +132,7 @@ describe("mission_api.triggers.resource_income", function()
 		end
 		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
-			trigger({ teamID = 0, metal = 5, sources = { extractor = true } }),
+			trigger({ teamName = 0, metal = 5, sources = { extractor = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
@@ -140,7 +144,7 @@ describe("mission_api.triggers.resource_income", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10, 20)
 		onGameFrame(
-			trigger({ teamID = 0, metal = 15, sources = { transfer = true } }),
+			trigger({ teamName = 0, metal = 15, sources = { transfer = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
@@ -155,7 +159,7 @@ describe("mission_api.triggers.resource_income", function()
 		end
 		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
-			trigger({ teamID = 0, metal = 5, sources = { reclaim = true } }),
+			trigger({ teamName = 0, metal = 5, sources = { reclaim = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed
@@ -167,7 +171,7 @@ describe("mission_api.triggers.resource_income", function()
 		-- Extractor income is metal-only per the trigger; requesting extractor-sourced
 		-- energy income should never exceed a positive threshold.
 		local context, fired = newContext()
-		_G.UnitDefs = extractorUnitDefs()
+		env.UnitDefs = extractorUnitDefs()
 		env.Spring.GetTeamUnits = function()
 			return { 1 }
 		end
@@ -176,7 +180,7 @@ describe("mission_api.triggers.resource_income", function()
 		end
 		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(
-			trigger({ teamID = 0, energy = 1, sources = { extractor = true } }),
+			trigger({ teamName = 0, energy = 1, sources = { extractor = true } }),
 			triggerID,
 			context,
 			Game.gameSpeed

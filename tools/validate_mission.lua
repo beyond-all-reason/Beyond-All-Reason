@@ -15,6 +15,7 @@
 	                         since a standalone run has no game setup to read. Default 2.
 	    --team-names <a,b>   Names of teams 0, 1, ... as the startscript gives them. Without
 	                         it, any team name is accepted, since only the startscript has them.
+	                         Alliance names are always accepted, for the same reason.
 	    --verbose            Print informational output as well as the validation result.
 	    --help               Show this help and exit.
 
@@ -56,6 +57,7 @@ Usage: lua tools/validate_mission.lua <mission_script.lua> [options]
   --teams <n>            Number of teams and ally teams to assume (default 2).
   --team-names <a,b>     Names of teams 0, 1, ... from the startscript. Any name is
                          accepted without it.
+                         Alliance names are always accepted.
   --verbose              Print informational output as well as the validation result.
   --help                 Show this help and exit.
 ]]):gsub("^\n", "")))
@@ -421,6 +423,11 @@ else
 		end,
 	})
 end
+_G.GG["MissionAPI"].Alliances = setmetatable({}, {
+	__index = function(_, name)
+		return type(name) == "string" and 0 or nil
+	end,
+})
 
 --------------------------------------------------------------------------------
 -- Load the mission

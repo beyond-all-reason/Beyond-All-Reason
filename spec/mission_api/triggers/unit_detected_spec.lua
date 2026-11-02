@@ -1,4 +1,7 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
@@ -12,13 +15,13 @@ local seismicContacts = {
 		return false
 	end,
 }
-Builders.MissionApi.new():WithModule("SeismicContacts", seismicContacts):Install()
+MissionApiBuilder.new():WithModule("SeismicContacts", seismicContacts):Install()
 
-local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[1] = { name = "armpw" },
 	[2] = { name = "corfast" },
 })
-_G.UnitDefs = unitDefs:GetUnitDefsByID()
+env.UnitDefs = unitDefs:GetUnitDefsByID()
 
 -- detection_levels reads the modules installed above at its own load, so it joins them after.
 local DetectionLevels = MissionSpecEnv.include(env, "luarules/mission_api/detection_levels.lua")
@@ -38,6 +41,7 @@ local SENSOR_ALLY, OTHER_ALLY, GAIA_ALLY = 0, 1, 2
 describe("mission_api.triggers.unit_detected", function()
 	-- The latch lives in detection_levels, keyed by triggerID, and the spec harness caches
 	-- includes, so each test takes fresh IDs rather than sharing state with the one before it.
+	---@type table<integer, table<integer, integer>>
 	local losStatus
 	local nextTriggerID, nextUnitID = 0, 1000
 
@@ -75,11 +79,11 @@ describe("mission_api.triggers.unit_detected", function()
 	end
 
 	local function trigger(parameters, settings)
-		return Builders.Trigger.new():WithParameters(parameters):WithSettings(settings):Build()
+		return TriggerBuilder.new():WithParameters(parameters):WithSettings(settings):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
@@ -122,8 +126,8 @@ describe("mission_api.triggers.unit_detected", function()
 			end
 			assert.is_true(names.unitName)
 			assert.is_true(names.unitDefName)
-			assert.is_true(names.owningTeamID)
-			assert.is_true(names.sensorAllyTeam)
+			assert.is_true(names.owningTeamName)
+			assert.is_true(names.sensorAllianceName)
 			assert.is_true(names.sensorTypes)
 			assert.are.same({ "unitName", "unitDefName" }, unitDetected.parameters.requiresOneOf)
 		end)
@@ -147,22 +151,22 @@ describe("mission_api.triggers.unit_detected", function()
 			assert.are.equal(0, fired())
 		end)
 
-		it("filters on owningTeamID", function()
+		it("filters on owningTeamName", function()
 			local context, fired = newContext()
 			env.Spring.GetUnitTeam = function(_unitID)
 				return 5
 			end
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ unitDefName = "armpw", owningTeamID = 3 }), freshTriggerID(), context, { unitID })
+			update(trigger({ unitDefName = "armpw", owningTeamName = 3 }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 
-		it("filters on sensorAllyTeam", function()
+		it("filters on sensorAllianceName", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID, OTHER_ALLY)
-			local t = trigger({ unitDefName = "armpw", sensorAllyTeam = SENSOR_ALLY })
+			local t = trigger({ unitDefName = "armpw", sensorAllianceName = SENSOR_ALLY })
 			update(t, freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
@@ -189,7 +193,7 @@ describe("mission_api.triggers.unit_detected", function()
 			assert.are.equal(1, fired())
 		end)
 
-		it("activates for a unit detected only by another allyTeam, absent a sensorAllyTeam", function()
+		it("activates for a unit detected only by another allyTeam, absent a sensorAllianceName", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID, OTHER_ALLY)
@@ -199,7 +203,7 @@ describe("mission_api.triggers.unit_detected", function()
 
 		-- An allyTeam always has vision of its own units. Counting that would report every unit
 		-- as seen by every sensor, which silently disables sensorTypes and UnitUndetected.
-		it("ignores the owning allyTeam's own vision, absent a sensorAllyTeam", function()
+		it("ignores the owning allyTeam's own vision, absent a sensorAllianceName", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			env.Spring.GetUnitAllyTeam = function(_unitID)
@@ -210,7 +214,7 @@ describe("mission_api.triggers.unit_detected", function()
 			assert.are.equal(0, fired())
 		end)
 
-		it("still reports a radar contact the owner cannot mask, absent a sensorAllyTeam", function()
+		it("still reports a radar contact the owner cannot mask, absent a sensorAllianceName", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			env.Spring.GetUnitAllyTeam = function(_unitID)

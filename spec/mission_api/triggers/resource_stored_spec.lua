@@ -1,21 +1,25 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local TeamBuilder = VFS.Include("spec/builders/team_builder.lua")
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and Spring.GetTeamResources inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local resourceStored = MissionSpecEnv.include(env, "luarules/mission_api/triggers/resource_stored.lua")
 local onGameFrame = resourceStored.callins.GameFrame
 
 describe("mission_api.triggers.resource_stored", function()
 	local function trigger(parameters)
-		return Builders.Trigger.new():WithParameters(parameters):Build()
+		return TriggerBuilder.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = TriggerContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
@@ -24,8 +28,8 @@ describe("mission_api.triggers.resource_stored", function()
 	-- Stored levels come from a built team, so the tuple GetTeamResources returns
 	-- keeps the engine's field order.
 	local function resources(level)
-		local team = Builders.Team.new():WithID(0):WithMetal(level):WithEnergy(level)
-		return Builders.Spring.new():WithTeam(team):Build().GetTeamResources
+		local team = TeamBuilder.new():WithID(0):WithMetal(level):WithEnergy(level)
+		return SpringSyncedBuilder.new():WithTeam(team):Build().GetTeamResources
 	end
 
 	it("declares its type and parameters", function()
@@ -34,7 +38,7 @@ describe("mission_api.triggers.resource_stored", function()
 		for _, parameter in ipairs(resourceStored.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.metal)
 		assert.is_true(names.energy)
 		assert.are.same({ "metal", "energy" }, resourceStored.parameters.requiresOneOf)
@@ -43,35 +47,35 @@ describe("mission_api.triggers.resource_stored", function()
 	it("evaluates every frame, with no interval gate", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context)
+		onGameFrame(trigger({ teamName = 0, metal = 5 }), triggerID, context)
 		assert.are.equal(1, fired())
 	end)
 
 	it("fires when the stored metal meets the threshold", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context)
+		onGameFrame(trigger({ teamName = 0, metal = 5 }), triggerID, context)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire when the stored metal is below the threshold", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(1)
-		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context)
+		onGameFrame(trigger({ teamName = 0, metal = 5 }), triggerID, context)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when the stored energy meets the threshold", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, energy = 5 }), triggerID, context)
+		onGameFrame(trigger({ teamName = 0, energy = 5 }), triggerID, context)
 		assert.are.equal(1, fired())
 	end)
 
 	it("requires both thresholds to be met when both are set", function()
 		local context, fired = newContext()
 		env.Spring.GetTeamResources = resources(10)
-		onGameFrame(trigger({ teamID = 0, metal = 5, energy = 20 }), triggerID, context)
+		onGameFrame(trigger({ teamName = 0, metal = 5, energy = 20 }), triggerID, context)
 		assert.are.equal(0, fired())
 	end)
 end)

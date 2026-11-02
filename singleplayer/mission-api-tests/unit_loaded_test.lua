@@ -36,7 +36,7 @@ local triggers = {
 		type = triggerTypes.UnitLoaded,
 		parameters = {
 			passengerDefName = 'armpw',
-			teamID = 0,
+			teamName = 'player',
 			transportDefName = 'armatlas',
 		},
 		actions = { 'messagePawnLoadedByAtlas' },
@@ -68,7 +68,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armatlas', x = 2400, z = 2400, team = 0, unitName = 'dropship' },
+				{ unitDefName = 'armatlas', x = 2400, z = 2400, teamName = 'player', unitName = 'dropship' },
 			},
 		},
 	},
@@ -77,7 +77,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 2480, z = 2400, team = 0, unitName = 'passenger' },
+				{ unitDefName = 'armpw', x = 2480, z = 2400, teamName = 'player', unitName = 'passenger' },
 			},
 		},
 	},
@@ -86,7 +86,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corvac', x = 2200, z = 2400, team = 0 },
+				{ unitDefName = 'corvac', x = 2200, z = 2400, teamName = 'player' },
 			},
 		},
 	},

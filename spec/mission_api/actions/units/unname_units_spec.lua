@@ -70,7 +70,7 @@ describe("mission_api.actions.unname_units", function()
 		end)
 
 		it("is a no-op for a name that was never tracked", function()
-			assert.has_no.errors(function()
+			assert.has_no.error(function()
 				action.actionFunction("ghost")
 			end)
 		end)

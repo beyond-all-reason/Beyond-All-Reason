@@ -1,7 +1,7 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
 local totalUnitsLost = VFS.Include("luarules/mission_api/triggers/total_units_lost.lua")
 
@@ -16,11 +16,11 @@ describe("mission_api.triggers.total_units_lost", function()
 				required[parameter.name] = true
 			end
 		end
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.quantity)
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.are.same({ teamID = true, quantity = true }, required)
+		assert.are.same({ teamName = true, quantity = true }, required)
 		assert.is_nil(totalUnitsLost.callins)
 	end)
 end)

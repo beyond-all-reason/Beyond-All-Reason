@@ -1,12 +1,15 @@
-local Builders = VFS.Include("spec/builders/index.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and UnitDefs and
 -- the TransferUnits fence inside its handler.
-Builders.MissionApi.new():Install()
+MissionApiBuilder.new():Install()
 
-_G.UnitDefs = { [1] = { name = "armwin" }, [2] = { name = "armsolar" } }
+env.UnitDefs = { [1] = { name = "armwin" }, [2] = { name = "armsolar" } }
 
-local unitReceived = VFS.Include("luarules/mission_api/triggers/unit_received.lua")
+local unitReceived = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_received.lua")
 local onUnitGiven = unitReceived.callins.UnitGiven
 
 describe("mission_api.triggers.unit_received", function()
@@ -58,15 +61,15 @@ describe("mission_api.triggers.unit_received", function()
 		end
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.oldTeamID)
-		assert.is_true(names.newTeamID)
+		assert.is_true(names.oldTeamName)
+		assert.is_true(names.newTeamName)
 		assert.is_true(names.ignoreMissionActions)
 		assert.are.same({ "unitName", "unitDefName" }, unitReceived.parameters.requiresOneOf)
 	end)
 
 	it("fires when a unit is shared to a team", function()
 		local context, fired = newContext()
-		given(trigger({ unitDefName = "armwin", oldTeamID = 1, newTeamID = 0 }), context, 1)
+		given(trigger({ unitDefName = "armwin", oldTeamName = 1, newTeamName = 0 }), context, 1)
 		assert.are.equal(1, fired())
 	end)
 
@@ -85,15 +88,15 @@ describe("mission_api.triggers.unit_received", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by oldTeamID, which is the giving team", function()
+	it("filters by oldTeamName, which is the giving team", function()
 		local context, fired = newContext()
-		given(trigger({ unitDefName = "armwin", oldTeamID = 9 }), context, 1)
+		given(trigger({ unitDefName = "armwin", oldTeamName = 9 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by newTeamID, which is the receiving team", function()
+	it("filters by newTeamName, which is the receiving team", function()
 		local context, fired = newContext()
-		given(trigger({ unitDefName = "armwin", newTeamID = 9 }), context, 1)
+		given(trigger({ unitDefName = "armwin", newTeamName = 9 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 

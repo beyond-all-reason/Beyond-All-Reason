@@ -45,7 +45,7 @@ local triggers = {
 		type = triggerTypes.FeatureReclaimed,
 		parameters = {
 			featureName = 'theRocks',
-			teamID = 0,
+			teamName = 'player',
 		},
 		actions = { 'messageRockReclaimed' },
 	},
@@ -62,7 +62,7 @@ local triggers = {
 		type = triggerTypes.UnitResurrected,
 		parameters = {
 			featureName  = 'wreck-to-resurrect',
-			teamID = 0,
+			teamName = 'player',
 		},
 		actions = { 'messageWreckResurrected' },
 	},
@@ -127,7 +127,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrectr', x = 1800, z = 1900, team = 0, unitName = 'reclaimer' },
+				{ unitDefName = 'armrectr', x = 1800, z = 1900, teamName = 'player', unitName = 'reclaimer' },
 			},
 		},
 	},
@@ -136,7 +136,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armham', x = 1800, z = 2100, team = 0, unitName = 'attacker' },
+				{ unitDefName = 'armham', x = 1800, z = 2100, teamName = 'player', unitName = 'attacker' },
 			},
 		},
 	},
