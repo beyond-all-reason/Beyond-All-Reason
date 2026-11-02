@@ -143,6 +143,7 @@ local hover = {
 	btn = "",
 	bar = 0,
 	cat = 0,
+	catBarLit = false,
 	kb = 0,
 }
 local dirty = false
@@ -2576,6 +2577,7 @@ function view.init()
 	font = WG["fonts"].getFont()
 	RectRound = WG.FlowUI.Draw.RectRound
 	state.listScroller = WG.FlowUI.Scroller.new(state.listMeasure)
+	state.catScroller = WG.FlowUI.Scroller.new(state.catMeasure)
 	UiElement = WG.FlowUI.Draw.Element
 	Highlight = WG.FlowUI.Draw.SelectHighlight
 	UiButton = WG.FlowUI.Draw.Button
@@ -2611,7 +2613,7 @@ function view.setArea(x1, y1, x2, y2, s, wx1, wy1, wx2, wy2)
 	scale = s or 1
 	rowHeight = floor(24 * scale)
 	metrics.catRowHeight = floor(29 * scale)
-	metrics.catBarW = math.max(3, floor(6 * scale))
+	metrics.catBarW = WG.FlowUI.Scroller.width(scale)
 	-- Whole pixels throughout: a size or a corner landing on a fraction puts glyph and
 	-- rectangle edges between pixels, which the renderer then blends across both.
 	metrics.rowFs = floor(rowHeight * 0.55)
@@ -3570,6 +3572,27 @@ local function catScrolled(delta)
 	return most
 end
 
+-- Over the entries rather than the whole card: a bar running past the last row reads as dead
+-- space, and its thumb then says more fits than does. Nil while every entry fits.
+function state.catBar()
+	if catScrolled(0) == 0 then
+		return nil
+	end
+
+	local rowH = metrics.catRowHeight
+	local page = math.max(1, floor((sidebarTop() - state.sidebarBottom()) / rowH))
+	local bx2 = area.x1 + sidebarW - metrics.catInset
+
+	return { bx2 - metrics.catBarW, sidebarTop() - page * rowH, bx2, sidebarTop() }
+end
+
+function state.catMeasure()
+	local rowH = metrics.catRowHeight
+	local most = catScrolled(0)
+
+	return #categories * rowH, hover.cat * rowH, most
+end
+
 -- The category entry under x,y, or nil. Half-open on the shared edge, like the rows, so
 -- one point never lands in two entries.
 local function sidebarIndexAt(x, y)
@@ -3704,22 +3727,10 @@ local function drawSidebar(hoverIdx)
 		"cov"
 	)
 
-	-- A bar of its own, and a slim one: the column is narrow and this only shows up when
-	-- there are more categories than the card has room for.
-	if catScrolled(0) > 0 then
-		local bx2 = area.x1 + sidebarW - metrics.catInset
-		WG.FlowUI.Draw.Scroller(
-			bx2 - metrics.catBarW,
-			-- Over the entries rather than the whole card: a bar running past the last row reads
-			-- as dead space, and its thumb then says more fits than does.
-			sidebarTop()
-				- math.max(1, floor((sidebarTop() - state.sidebarBottom()) / metrics.catRowHeight))
-					* metrics.catRowHeight,
-			bx2,
-			sidebarTop(),
-			#categories * metrics.catRowHeight,
-			hover.cat * metrics.catRowHeight
-		)
+	local catBar = state.catBar()
+	if catBar then
+		state.catScroller:setRect(catBar[1], catBar[2], catBar[3], catBar[4])
+		state.catScroller:draw(hover.catBarLit)
 	end
 
 	-- Laid out before the font existed, so the labels are still waiting to be fitted; or one of
@@ -4555,6 +4566,14 @@ local function panelSignature(mx, my)
 	if not keyboardPage and state.listScroller:isOverThumb(mx, my) then
 		h.bar = 1
 	end
+	local catBar = state.catBar()
+	h.catBarLit = false
+	if catBar and not keyboardPage then
+		h.catBarLit = state.catScroller:isOverThumb(mx, my)
+		if isInRect(mx, my, catBar[1], catBar[2], catBar[3], catBar[4]) then
+			h.sb = 0
+		end
+	end
 
 	if keyboardPage then
 		h.kb = state.keyboard:hitTest(mx, my) or 0
@@ -4625,6 +4644,10 @@ local function panelSignature(mx, my)
 		.. h.cat
 		.. "|"
 		.. (state.listScroller:isDragging() and 1 or 0)
+		.. "|"
+		.. (h.catBarLit and 1 or 0)
+		.. "|"
+		.. (state.catScroller:isDragging() and 1 or 0)
 		.. "|"
 		.. (state.rowDrag and state.rowDrag.moved and state.rowDrag.at or 0)
 		.. "|"
@@ -4999,6 +5022,10 @@ function view.draw()
 	if step then
 		scroll = step
 		clampScroll()
+	end
+	local catStep = state.catScroller:drag(rawMy, lmb)
+	if catStep then
+		catScrolled(catStep - hover.cat)
 	end
 	if state.rowDrag then
 		state.dragRow(rawMy, lmb)
@@ -5553,6 +5580,17 @@ function view.mousePress(x, y, button)
 			if searchBox then
 				searchBox:setText(state.keyboard:keysetName(key, layer))
 			end
+		end
+
+		return true
+	end
+
+	-- Ahead of the entries, which reach under the bar and would take the press as a pick.
+	local catBar = state.catBar()
+	if catBar and isInRect(x, y, catBar[1], catBar[2], catBar[3], catBar[4]) then
+		local step = state.catScroller:press(y)
+		if step then
+			catScrolled(step - hover.cat)
 		end
 
 		return true
