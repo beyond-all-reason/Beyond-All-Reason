@@ -224,7 +224,7 @@ end
 ----------------------------------------------------------------
 
 function gadget:Initialize()
-	if not GG["MissionAPI"] then
+	if not Spring.GetGameRulesParam("inMission") then
 		gadgetHandler:RemoveGadget()
 		return
 	end
