@@ -704,6 +704,25 @@ local function registerOrderValidators(parameterValidators, context)
 		end
 	end
 
+	parameterValidators[Types.MoveCommand] = function(command)
+		if command ~= CMD.MOVE and command ~= CMD.FIGHT and command ~= CMD.PATROL then
+			local said
+			if type(command) == "string" then
+				local constant = command:match("^CMD%.[%u_]+$") and command or "the constant"
+				said = '"' .. command .. '" is text, write ' .. constant .. " without quotes;"
+			elseif type(command) == "number" and CMD[command] then
+				said = "CMD." .. tostring(CMD[command]) .. ","
+			else
+				said = tostring(command) .. ","
+			end
+			return {
+				{
+					message = "Invalid move command: " .. said .. " must be CMD.MOVE, CMD.FIGHT or CMD.PATROL",
+				},
+			}
+		end
+	end
+
 	-- Validators by command ID, skipping any command this engine version does not define.
 	local commandValidators = {}
 	for commandName, commandValidator in pairs(validatorsByCommandName) do
