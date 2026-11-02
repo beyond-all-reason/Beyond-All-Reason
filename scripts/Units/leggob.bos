@@ -3,7 +3,7 @@
 
 piece  torso, flare, sleeve, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, aimx1, aimy1, lbarrel;
 
-static-var  isMoving, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading, aimBelief, lastAimFrame;
+static-var  isMoving, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, aimBelief, lastAimFrame;
 
 #define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
@@ -163,7 +163,7 @@ UnitSpeed(){
 		sleep 164;
 	}
 }
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
@@ -223,20 +223,20 @@ QueryWeapon1(pieceIndex)
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
-    // home at the aim turn rate and restart the frame clock so the belief model stays true
-    lastAimFrame = get GAME_FRAME;
-    turn aimy1 to y-axis <0.0> speed AIM_SPEED_YAW;
-    turn aimx1 to x-axis <15.0> speed <45>;
-    wpnheading = 0;
+	if (Stunned) {
+		return (1);
+	}
+	// home at the aim turn rate and restart the frame clock so the belief model stays true
+	lastAimFrame = get GAME_FRAME;
+	turn aimy1 to y-axis <0.0> speed AIM_SPEED_YAW;
+	turn aimx1 to x-axis <15.0> speed <45>;
+	wpnheading = 0;
 
 }
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
 	}
@@ -246,14 +246,13 @@ RestoreAfterDelay()
 {
 
 	set-signal-mask SIGNAL_AIM1;
-    sleep 2750;
+	sleep 2750;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 
 AimWeapon1(heading, pitch)
 {
-	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 

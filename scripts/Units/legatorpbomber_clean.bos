@@ -11,11 +11,6 @@ piece chassis, launcher, torpflare, leftAJet, leftBJet, rightAJet, rightBJet, ma
 #define UNITSIZE 3
 #define MAXTILT 100
 
-// #define BARRELROLL_PIECE chassis
-// #define BARRELROLLSPEEED <200>
-// #include "../air_barrelroll.h"
-
-
 Create()
 {
 	turn rightWing to y-axis <45> now;
@@ -50,7 +45,7 @@ Deactivate()
 	hide rightBjet;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	turn launcher to x-axis <10> speed <10>;
 	sleep 1000;

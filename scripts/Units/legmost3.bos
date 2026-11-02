@@ -6,7 +6,39 @@ sleeve, aimx1, launcher, launcherl, launcherr, flare1r, flare2r, flare1l, flare2
 thruster, blades, thrust, blur,
 wing_bl, wing_br, wing_fl, wing_fr;
 
-static-var gun_1, isMoving;
+static-var gun_1, isMoving, Stunned;
+
+#define BASEPIECE base
+#define HITSPEED <105.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 1
+#define MAXTILT 100
+
+ExecuteRestoreAfterDelay()
+{
+	if (Stunned) {
+		return (1);
+	}
+	turn launcher to x-axis <0> speed <20>;
+	turn launcherl to x-axis <0> speed <20>;
+	turn launcherr to x-axis <0> speed <20>;
+	move sleeve to y-axis [0] speed [10];
+}
+SetStunned(State)
+{
+	Stunned = State;
+	if (!Stunned) {
+		start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	set-signal-mask 0;
+	set-signal-mask SIGNAL_AIM1;
+	set-signal-mask SIGNAL_MOVE;
+	sleep 2000;
+	start-script ExecuteRestoreAfterDelay();
+}
 
 IdleHover()
 {
@@ -53,7 +85,7 @@ Create()
 
 	turn thruster to x-axis <-90.0> now;
 
-	gun_1=0;
+	gun_1 = 0;
 	isMoving = 0;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
@@ -125,40 +157,6 @@ MoveRate3()
 {
 	turn thruster to x-axis <0.0> speed <85.0>;
 }
-
-static-var  Stunned;
-ExecuteRestoreAfterDelay()
-{
-	if (Stunned) {
-        return (1);
-    }
-	turn launcher to x-axis <0> speed <20>;
-	turn launcherl to x-axis <0> speed <20>;
-	turn launcherr to x-axis <0> speed <20>;
-	move sleeve to y-axis [0] speed [10];
-}
-SetStunned(State)
-{
-    Stunned = State;
-	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	}
-}
-RestoreAfterDelay()
-{
-	set-signal-mask 0;
-	set-signal-mask SIGNAL_AIM1;
-	set-signal-mask SIGNAL_MOVE;
-	sleep 2000;
-	start-script ExecuteRestoreAfterDelay();
-}
-
-
-#define BASEPIECE base
-#define HITSPEED <105.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 1
-#define MAXTILT 100
 
 AimFromWeapon1(pieceIndex)
 {
@@ -258,10 +256,10 @@ Killed(severity, corpsetype)
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-    explode base type BITMAPONLY | NOHEATCLOUD;
-    explode thruster type BITMAPONLY | NOHEATCLOUD;
-    explode thrust type BITMAPONLY | NOHEATCLOUD;
-    explode flare1 type BITMAPONLY | NOHEATCLOUD;
-    explode flare2 type BITMAPONLY | NOHEATCLOUD;
-    return(corpsetype);
+	explode base type BITMAPONLY | NOHEATCLOUD;
+	explode thruster type BITMAPONLY | NOHEATCLOUD;
+	explode thrust type BITMAPONLY | NOHEATCLOUD;
+	explode flare1 type BITMAPONLY | NOHEATCLOUD;
+	explode flare2 type BITMAPONLY | NOHEATCLOUD;
+	return(corpsetype);
 }

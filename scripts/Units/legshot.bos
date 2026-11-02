@@ -28,7 +28,7 @@ torsoPivot;
 
 static-var  isAiming, restore_delay, explosions, shieldup, whichBarrel;
 
-static-var  animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
+static-var  animSpeed, isMoving;
 
 Walk() {
 	set-signal-mask SIGNAL_MOVE;
@@ -219,20 +219,6 @@ StopWalking() {
 	turn torso to y-axis <-8.382025> speed <507.823348> / animSpeed;
 	turn torso to z-axis <0> speed <-5.114343> / animSpeed;
 }
-// REMEMBER TO animspeed = 2 in Create() !!
-UnitSpeed(){
-	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = 2; //we need to calc the frames per keyframe value, from the known animtime
-	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
-	while(TRUE){
-		animSpeed = (get CURRENT_SPEED);
-		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 2) / animSpeed; 
-		if (animSpeed<1) animSpeed=1;
-		if (animspeed>5) animSpeed = 5;
-		sleep 94;
-	}
-}
 StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	animspeed = 3;
@@ -251,28 +237,7 @@ StopMoving(){
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 3
 #define MAXTILT 100
-
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
-}
-
-// Disable armored state when 2000 damage is taken
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 // Set armored state at begin/end of animations
 

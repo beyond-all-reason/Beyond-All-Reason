@@ -1,8 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-
-piece   door1, door3, door5, door2, door6, door4, base, fan1, fan2;
+piece  door1, door3, door5, door2, door6, door4, base, fan1, fan2;
 
 static-var door;
 static-var  Stunned;
@@ -16,13 +15,11 @@ Start()
 {
 	spin fan1 around y-axis speed <25>;
 	spin fan2 around y-axis speed <25>;
-	return (0);
 }
 Stop()
 {
 	spin fan1 around y-axis speed <0.0>;
 	spin fan2 around y-axis speed <0.0>;
-	return (0);
 }
 
 Activate()
@@ -31,53 +28,49 @@ Activate()
 	{
 		if (door==0){
 			turn door1 to z-axis <50> speed <100>;
-			sleep 250;	
+			sleep 250;
 			emit-sfx 256 | 3 from door1;
 			sleep 250;
 			turn door1 to z-axis <0> speed <100>;
 		}
 		if (door==1){
 			turn door3 to x-axis <50> speed <100>;
-			sleep 250;	
+			sleep 250;
 			emit-sfx 256 | 3 from door3;
 			sleep 250;
 			turn door3 to x-axis <0> speed <100>;
 		}
 		if (door==2){
 			turn door5 to x-axis <-50> speed <100>;
-			sleep 250;	
+			sleep 250;
 			emit-sfx 256 | 3 from door5;
 			sleep 250;
 			turn door5 to x-axis <0> speed <100>;
 		}
 		if (door==3){
 			turn door2 to x-axis <50> speed <100>;
-			sleep 250;	
+			sleep 250;
 			emit-sfx 256 | 3 from door2;
 			sleep 250;
 			turn door2 to x-axis <0> speed <100>;
 		}
 		if (door==4){
 			turn door6 to x-axis <-50> speed <100>;
-			sleep 250;	
+			sleep 250;
 			emit-sfx 256 | 3 from door6;
 			sleep 250;
 			turn door6 to x-axis <0> speed <100>;
 		}
 		if (door==5){
 			turn door4 to z-axis <-50> speed <100>;
-			sleep 250;	
+			sleep 250;
 			emit-sfx 256 | 3 from door4;
 			sleep 250;
 			turn door4 to z-axis <0> speed <100>;
 		}
-		door = door+1;
-		if (door > 5){
-			door=0;
-		}
+		door = (door + 1) % 6;
 		sleep 2000;
 	}
-	return (0);
 }
 
 SetStunned(State)
@@ -89,7 +82,6 @@ SetStunned(State)
 	    call-script Start();
 	}
 }
-
 
 
 Killed(severity, corpsetype)

@@ -2,10 +2,10 @@
 #include "../recoil_common_includes.h"
 
 piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
-    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, nanol1, nanol2, nanol3, leye, reye, eyeflare, cagelight, cagelight_emit, headmount, hatpoint, crown, medalsilver, medalbronze, medalgold, torsofrontmarker;
+	rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, nanol1, nanol2, nanol3, leye, reye, eyeflare, cagelight, cagelight_emit, headmount, hatpoint, crown, medalsilver, medalbronze, medalgold, torsofrontmarker;
 
 static-var isMoving, isAiming, gun_6, gun_3, gun_2, gun_eye,
-      isBuilding, buildPitch, buildHeading, maxSpeed, animSpeed, shotcount;
+	isBuilding, buildPitch, buildHeading, maxSpeed, animSpeed, shotcount;
 
 // for the AimWeapon1 script, to skip wait-for-turn if needed
 static-var last_primary_heading,last_primary_pitch;
@@ -346,7 +346,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move pelvis to x-axis [0.0] speed [7.224650];
 	move pelvis to y-axis [-0.301224] speed [6.500000];
@@ -728,10 +728,10 @@ StopDancing() {
 }
 
 GameOverAnim() {
-  	if (isDancing == FALSE){
-  	  	start-script Dance();
-  	}
-  	isDancing = TRUE;
+	if (isDancing == FALSE){
+		start-script Dance();
+	}
+	isDancing = TRUE;
 }
 
 TriggerDance() {
@@ -742,25 +742,23 @@ TriggerDance() {
 }
 
 UnitSpeed(){
- maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
- animFramesPerKeyframe = 6; //we need to calc the frames per keyframe value, from the known animtime
- maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
- while(TRUE){
-  animSpeed = (get CURRENT_SPEED);
-  if (animSpeed<1) animSpeed=1;
-  animSpeed = 1 + (maxSpeed * 6) / animSpeed; 
-  //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
-  if (animSpeed<3) animSpeed=3;
-  if (animspeed>12) animSpeed = 12;
-  //animSpeed = 1;
-  sleep 197;
-	if ((isMoving) OR (isAiming) OR (isBuilding)) {
-		if (isDancing) {
-			call-script StopDancing();
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 6; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = 1 + (maxSpeed * 6) / animSpeed;
+		if (animSpeed<3) animSpeed=3;
+		if (animspeed>12) animSpeed = 12;
+		sleep 197;
+		if ((isMoving) OR (isAiming) OR (isBuilding)) {
+			if (isDancing) {
+				call-script StopDancing();
+			}
+			isDancing = FALSE;
 		}
-		isDancing = FALSE;
 	}
- }
 }
 
 Create()
@@ -771,7 +769,6 @@ Create()
 	hide hatpoint;
 	hide aimy1;
 	hide teleport;
-	hide rbigflash;
 	hide lfirept;
 	hide cagelight_emit;
 	hide eyeflare;
@@ -805,7 +802,6 @@ Create()
 	last_primary_pitch = -1000000;
 	maxSpeed = get MAX_SPEED;
 	animSpeed = 6;
-	//call-script TeleportControl();
 	start-script UnitSpeed();
 }
 
@@ -822,8 +818,6 @@ bigfire()
 	turn biggun to x-axis <-40> now;
 	turn ruparm to x-axis <0> speed <250>;
 	turn biggun to x-axis <0> speed <250>;
-	//sleep 100;
-	return (0);
 }
 
 ShowCrown()
@@ -852,7 +846,7 @@ StartMoving(reversing)
 	gun_eye = head;
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	start-script walk();
+	start-script Walk();
 }
 
 StopMoving()
@@ -865,7 +859,6 @@ StopMoving()
 QueryNanoPiece(pieceIndex)
 {
 	pieceIndex = nanospray;
-	return (0);
 }
 
 RestorePosition()
@@ -876,12 +869,10 @@ RestorePosition()
 	sleep 2000;
 	turn aimy1 to y-axis <0.0> speed <90.0>;
 	turn aimx1 to x-axis <0> speed <90>;
-	//wait-for-turn aimy1 around y-axis;
 	isAiming = FALSE;
 	// set last headings and pitches to large negative numbers
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
-	return (0);
 }
 
 RestoreHeadPosition()
@@ -891,12 +882,10 @@ RestoreHeadPosition()
 	sleep 2000;
 	turn head to y-axis <0.0> speed <90.0>;
 	turn head to x-axis <0> speed <90>;
-	//wait-for-turn aimy1 around y-axis;
 	isAiming = FALSE;
 	// set last headings and pitches to large negative numbers
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
-	return (0);
 }
 
 ResumeBuilding()
@@ -905,15 +894,14 @@ ResumeBuilding()
 	sleep 400;
 	if( isBuilding AND ( !gun_2 ) )
 	{
-	turn aimy1 to y-axis buildheading - <20> speed <300.0>;
-	turn aimx1 to x-axis <-20.0> - buildpitch speed <90.0>;
+	turn aimy1 to y-axis buildHeading - <20> speed <300.0>;
+	turn aimx1 to x-axis <-20.0> - buildPitch speed <90.0>;
 	}
-	return (0);
 }
 
 HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500],
 {
-	var shieldPower, shieldDamage;
+	var shieldPower;
 	
 	shieldPower = get SHIELD_POWER;
 		
@@ -929,13 +917,11 @@ HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500],
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = torso;
-	return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = lfirept;
-	return (0);
 }
 
 AimWeapon1(heading, pitch)
@@ -959,7 +945,6 @@ AimWeapon1(heading, pitch)
 	// In general, 6 cau per frame ~= 1 degree per second
 	turn aimy1 to y-axis heading speed <300.0>;
 	turn aimx1 to x-axis <-5.0> - pitch speed <250.0>;
-	//turn nanolathe to x-axis <000000> speed <250.0>;
 	// if the turret cannot turn to its new heading in one frame, wait for turn
 	if ( (get ABS(last_primary_heading - heading)>1800) OR (get ABS(last_primary_pitch - pitch)>1500) )
 	{
@@ -983,19 +968,16 @@ FireWeapon1()
 	sleep 100;
 	sleep 400;
 	gun_2 = torso;
-	return (0);
 }
 
 AimFromWeapon3(pieceIndex)
 {
 	pieceIndex = rbigflash;
-	return (0);
 }
 
 QueryWeapon3(pieceIndex)
 {
 	pieceIndex = rbigflash;
-	return (0);
 }
 
 AimWeapon3(heading, pitch)
@@ -1006,33 +988,26 @@ AimWeapon3(heading, pitch)
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <360.0>;
 	turn aimx1 to x-axis <0> - pitch speed <360.0>;
-	//turn ruparm to x-axis <0> speed <360>;
 	wait-for-turn aimy1 around y-axis;
-	//wait-for-turn biggun around x-axis;
 	start-script RestorePosition();
 	return (1);
 }
 
 FireWeapon3()
 {
-	//shotcount = shotcount + 1;
 	emit-sfx 1024 + 0 from rbigflash;
-	//call-script lua_UnitScriptLight(1, shotcount);
 	gun_3 = torso;
 	call-script bigfire();
-	return (0);
 }
 
 AimFromWeapon2(pieceIndex)
 {
 	pieceIndex = lfirept;
-	return (0);
 }
 
 QueryWeapon2(pieceIndex)
 {
 	pieceIndex = lfirept;
-	return (0);
 }
 
 AimWeapon2(heading, pitch)
@@ -1058,7 +1033,6 @@ AimWeapon2(heading, pitch)
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <300.0>;
 	turn aimx1 to x-axis <-5.0> - pitch speed <250.0>;
-	//turn nanolathe to x-axis <000000> speed <250.0>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	gun_2 = lfirept;
@@ -1077,7 +1051,6 @@ FireWeapon2()
 	emit-sfx 1024 + 0 from lfirept;
 	sleep 400;
 	gun_2 = torso;
-	return (0);
 }
 
 AimFromWeapon4(pieceIndex)
@@ -1095,13 +1068,11 @@ QueryWeapon4(pieceIndex)
 AimFromWeapon5(pieceIndex)
 {
 	pieceIndex = head;
-	return (0);
 }
 
 QueryWeapon5(pieceIndex)
 {
 	pieceIndex = eyeflare;
-	return (0);
 }
 
 AimWeapon5(heading, pitch)
@@ -1128,19 +1099,16 @@ FireWeapon5()
 	sleep 100;
 	sleep 400;
 	gun_eye = head;
-	return (0);
 }
 
 AimFromWeapon6(pieceIndex)
 {
 	pieceIndex = rbigflash;
-	return (0);
 }
 
 QueryWeapon6(pieceIndex)
 {
 	pieceIndex = rbigflash;
-	return (0);
 }
 
 AimWeapon6(heading, pitch)
@@ -1165,21 +1133,16 @@ AimWeapon6(heading, pitch)
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <360.0>;
 	turn aimx1 to x-axis <0> - pitch speed <360.0>;
-	//turn ruparm to x-axis <0> speed <360>;
 	wait-for-turn aimy1 around y-axis;
-	//wait-for-turn biggun around x-axis;
 	start-script RestorePosition();
 	return (1);
 }
 
 FireWeapon6()
 {
-	//shotcount = shotcount + 1;
 	emit-sfx 1024 + 0 from rbigflash;
-	//call-script lua_UnitScriptLight(1, shotcount);
 	gun_6 = torso;
 	call-script bigfire();
-	return (0);
 }
 
 StartBuilding(heading, pitch)
@@ -1187,24 +1150,20 @@ StartBuilding(heading, pitch)
 	show nanospray;
 	gun_3 = torso;
 	signal SIGNAL_AIM1;
-	//set-signal-mask SIGNAL_AIM1;
 	if (isDancing) {
 		call-script StopDancing();
 		isDancing = FALSE;
 	}
 	isAiming = TRUE;
 	isBuilding = TRUE;
-	//}
 	buildHeading = heading;
 	buildPitch = pitch;
 	turn aimy1 to y-axis heading - <20> speed <300.0>;
 	turn aimx1 to x-axis <-20.0> - pitch speed <90.0>;
-	//wait-for-turn torso around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	set INBUILDSTANCE to 1;
 	show cagelight_emit;
 	spin cagelight_emit around y-axis speed <450>;
-	return (0);
 }
 
 StopBuilding()
@@ -1217,7 +1176,6 @@ StopBuilding()
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	call-script RestorePosition();
-	return (0);
 }
 
 Killed( severity, corpsetype )

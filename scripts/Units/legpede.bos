@@ -1,11 +1,5 @@
 #include "../recoil_common_includes.h"
 
-
-// One sixth of the full cycle duration, in millisecond
-// The larger this value the slower the walk animation
-//#define WALK_PERIOD 100
-
-
 piece	base1, rdoor1, ldoor1, legr1, legrb1, legl1, leglb1, steer2, base2, rdoor2, ldoor2, legr2, legrb2, legl2, leglb2,
 		steer3, base3, rdoor3, ldoor3, legr3, legrb3, legl3, leglb3, steer4, base4, rdoor4, ldoor4, legr4, legrb4, legl4, leglb4,
 		steer5, base5, rdoor5, ldoor5, legr5, legrb5, legl5, leglb5, steer6, base6, rdoor6, ldoor6, legr6, legrb6, legl6, leglb6,
@@ -64,7 +58,6 @@ Steering(heading, steery, currentSpeed)
 		turn steer5 to y-axis steery speed speed5 * turnslow;
 		turn steer6 to y-axis steery speed speed6 * turnslow;
 		sleep 33;
-		//sleep 66;
 		oldHeading = heading;
 	}
 }
@@ -104,7 +97,6 @@ RestoreAfterDelay()
 }
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armspid_anim_walk.blend 
-	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn legl1 to x-axis <7.879442> speed <236.383259> / animSpeed; //delta=-7.88 
 			turn legl1 to z-axis <-6.25> speed <615> / animSpeed; //delta=-13.64 
@@ -830,7 +822,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		}
 	}
 }
-// Call this from MotionControl()!
 StopWalking() {
 	turn legl1 to x-axis <0.0> speed <78.794420>;
 	turn legl1 to y-axis <0.0> speed <187.467365>;
@@ -920,7 +911,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 7 / 2) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>14) animSpeed = 14;
 		sleep 98;
@@ -970,10 +960,7 @@ Create()
 	fire_count_3 = 0;
 	fire_count_4 = 0;
 	animSpeed = 4;
-	while(get BUILD_PERCENT_LEFT)
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	restore_delay = 5000;
 }
 
@@ -1007,14 +994,14 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = sleeve1;
+	pieceIndex = sleeve1;
 }
 
 FireWeapon6()
@@ -1034,14 +1021,14 @@ AimWeapon6(heading, pitch)
 	return (1);
 }
 
-QueryWeapon6(piecenum)
+QueryWeapon6(pieceIndex)
 {
-	piecenum = flare6;
+	pieceIndex = flare6;
 }
 
-AimFromWeapon6(piecenum)
+AimFromWeapon6(pieceIndex)
 {
-	piecenum = sleeve6;
+	pieceIndex = sleeve6;
 }
 
 FireWeapon2()
@@ -1075,14 +1062,14 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare2;
+	pieceIndex = flare2;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = sleeve2;
+	pieceIndex = sleeve2;
 }
 
 FireWeapon5()
@@ -1115,14 +1102,14 @@ AimWeapon5(heading, pitch)
 	return (1);
 }
 
-QueryWeapon5(piecenum)
+QueryWeapon5(pieceIndex)
 {
-	piecenum = flare5;
+	pieceIndex = flare5;
 }
 
-AimFromWeapon5(piecenum)
+AimFromWeapon5(pieceIndex)
 {
-	piecenum = sleeve5;
+	pieceIndex = sleeve5;
 }
 
 FireWeapon3()
@@ -1147,11 +1134,7 @@ Shot3(zero)
 		emit-sfx 1024+0 from flare33;
 	}
 	sleep 32;
-	++fire_count_3;
-	if(fire_count_3>=3)
-	{
-		fire_count_3=0;
-	}
+	fire_count_3 = (fire_count_3 + 1) % 3;
 	return(1);
 }
 
@@ -1166,25 +1149,25 @@ AimWeapon3(heading, pitch)
 	return (1);
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
 	if(fire_count_3==0)
 	{
-		piecenum=flare13;	
+		pieceIndex=flare13;	
 	}
 	if(fire_count_3==1)
 	{
-		piecenum=flare23;
+		pieceIndex=flare23;
 	}
 	if(fire_count_3==2)
 	{
-		piecenum=flare33;
+		pieceIndex=flare33;
 	}
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = flare23;
+	pieceIndex = flare23;
 }
 
 FireWeapon4()
@@ -1209,11 +1192,7 @@ Shot4(zero)
 		emit-sfx 1024+0 from flare34;
 	}
 	sleep 32;
-	++fire_count_4;
-	if(fire_count_4>=3)
-	{
-		fire_count_4=0;
-	}
+	fire_count_4 = (fire_count_4 + 1) % 3;
 	return(1);
 }
 
@@ -1228,25 +1207,25 @@ AimWeapon4(heading, pitch)
 	return (1);
 }
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
 	if(fire_count_4==0)
 	{
-		piecenum=flare14;	
+		pieceIndex=flare14;	
 	}
 	if(fire_count_4==1)
 	{
-		piecenum=flare24;
+		pieceIndex=flare24;
 	}
 	if(fire_count_4==2)
 	{
-		piecenum=flare34;
+		pieceIndex=flare34;
 	}
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = flare24;
+	pieceIndex = flare24;
 }
 
 Killed(severity, corpsetype)
@@ -1258,18 +1237,6 @@ Killed(severity, corpsetype)
 		explode stand1 type BITMAPONLY | NOHEATCLOUD;
 		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		//explode leg6a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg6b type BITMAPONLY | NOHEATCLOUD;
-		//explode leg4a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg4b type BITMAPONLY | NOHEATCLOUD;
-		//explode legl1 type BITMAPONLY | NOHEATCLOUD;
-		//explode leglb1 type BITMAPONLY | NOHEATCLOUD;
-		//explode leg1a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg3b type BITMAPONLY | NOHEATCLOUD;
-		//explode legr1 type BITMAPONLY | NOHEATCLOUD;
-		//explode legrb1 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -1279,18 +1246,6 @@ Killed(severity, corpsetype)
 		explode stand1 type FALL | NOHEATCLOUD;
 		explode barrel1 type FALL | NOHEATCLOUD;
 		explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legl1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leglb1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1a type FALL | NOHEATCLOUD;
-		//explode leg1b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legr1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legrb1 type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -1300,17 +1255,6 @@ Killed(severity, corpsetype)
 		explode stand1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel1 type SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6b type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4a type SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legl1 type SMOKE | FALL | NOHEATCLOUD;
-		//explode leglb1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3b type SMOKE | FALL | NOHEATCLOUD;
-		//explode legr1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legrb1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -1318,16 +1262,5 @@ Killed(severity, corpsetype)
 		explode stand1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg4a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legl1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leglb1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg3a type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg3b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode legr1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode legrb1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

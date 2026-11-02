@@ -7,20 +7,14 @@ piece  base, radar, wake, bow, engine,
 	   arty1, arty2, flakbasea,  Flaka, Flaka1, flakbaseb,  Flakb, Flakab1, cannon1, cannon2, cannon3, cannon4, cannon5, cannon6,
 	   recoiltube1, recoiltube2, recoiltube3, recoiltube4, recoiltube5, recoiltube6, turret1pitchpivot;
 
-static-var  gun_1, gun_2, gun_3, aimDir1;
+static-var  aimDir1;
 static-var 	currentHeadMain, newHeadMain,
 			currentHeadBack, newHeadBack,
 			currentHeadFront, newHeadFront;
-static-var  active_barrel_one, active_barrel_two, active_barrel_three, active_barrel_flak, restore_delay, oldHead, aimy1target, aimy1position, Func_Var_1, Func_Var_2, Static_Var_8, aimDir;
+static-var  active_barrel_one, active_barrel_two, active_barrel_three, active_barrel_flak, restore_delay, Stunned;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIGNAL_AIM_MAIN 2
-#define SIGNAL_AIM_BACK 4
-#define SIGNAL_AIM_FRONT_A 8
-#define SIGNAL_AIM_FRONT_B 16
-#define SIGNAL_AIM_FLAK_A 32
-#define SIGNAL_AIM_FLAK_B 64
 
 
 #define RB_MASS 60
@@ -29,7 +23,6 @@ static-var  active_barrel_one, active_barrel_two, active_barrel_three, active_ba
 #define RB_PITCH_ACCELERATION 30
 #define RB_ROLL_ACCELERATION 8
 #define RB_RECOIL_ENERGY_1 100
-#define RB_RECOIL_ENERGY_2 100
 #define RB_WAKE_PIECE wake
 #define RB_WAKE_PIECE2 engine
 #define RB_WAKE_CEG 1024 + 4
@@ -46,7 +39,7 @@ Create()
 	hide wake;
 	hide bow;
 	hide engine;
-    hide flare1c;
+	hide flare1c;
 	hide flare2c;
 	hide flare3c;
 	hide flare4c;
@@ -62,10 +55,6 @@ Create()
 	hide flare4;
 	hide flare5;
 	hide flare6;
-	
-	aimDir = 0;
-	aimy1target = 0;
-	aimy1position = 0;
 
 	active_barrel_one = 0;
 	active_barrel_two = 0;
@@ -81,14 +70,13 @@ Create()
 	turn wake to y-axis <180> now;
 	turn engine to y-axis <180> now;
 	turn turret3 to y-axis <-180> now;
-	// spin radar around y-axis speed <100.021978>;
-	restore_delay = 6000;	
-	SLEEP_UNTIL_UNITFINISHED;
+	restore_delay = 6000;
+
 	start-script CATT1_Init();
 	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script BoatPhysics();
 
-	start-script ExecuteRestoreAfterDelay();
 	call-script ExecuteRestoreAfterDelay2();
 	call-script ExecuteRestoreAfterDelay3();
 	call-script ExecuteRestoreAfterDelay4();
@@ -100,50 +88,16 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 }
 
-static-var  Stunned;
-static-var aimy1velocity, gameFrame;
-
-//////////////////////////////////////////////////////////////// WEAPON 1 RESTORE FUNCTIONS
-#define AIMY1_RESTORE_SPEED <1.0>
-ExecuteRestoreAfterDelay()
-{
-    if (Stunned) {
-        return (1);
-    }
-	//turn sleeves1 to x-axis <0.0> speed <45.0>;
-	while ( get ABS(aimy1position) > AIMY1_RESTORE_SPEED){
-		if (aimy1position > 0 ) {
-			aimy1position = aimy1position - AIMY1_RESTORE_SPEED;
-			aimy1velocity = (-1) * AIMY1_RESTORE_SPEED;
-		}
-		else
-		{
-			aimy1position = aimy1position + AIMY1_RESTORE_SPEED;
-			aimy1velocity = AIMY1_RESTORE_SPEED;
-		}
-		//turn tur1 to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
-		// WEAPON 1 RESTOREs HERE
-		sleep 30;
-	}
-	aimy1velocity = 0;
-}
-RestoreAfterDelay()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
-}
-
-//////////////////////////////////////////////////////////////// WEAPON 2 RESTORE FUNCTIONS
+////////////////////////////////////////////////////////////// WEAPON 2 RESTORE FUNCTIONS
 ExecuteRestoreAfterDelay2()
 {
-    if (Stunned) {
-        return (1);
-    }
-	//turn sleeves1 to x-axis <0.0> speed <45.0>;
+	if (Stunned) {
+		return (1);
+	}
 
-	turn turret3 to y-axis <-180> speed <50.000000>;
-	turn cannon5 to x-axis <0.000000> speed <20.000000>;
-	turn cannon6 to x-axis <0.000000> speed <25.000000>;
+	turn turret3 to y-axis <-180> speed <50.0>;
+	turn cannon5 to x-axis <0.0> speed <20.0>;
+	turn cannon6 to x-axis <0.0> speed <25.0>;
 
 }
 RestoreAfterDelay2()
@@ -152,21 +106,20 @@ RestoreAfterDelay2()
 	start-script ExecuteRestoreAfterDelay2();
 }
 
-//////////////////////////////////////////////////////////////// WEAPON 3 RESTORE FUNCTIONS
+////////////////////////////////////////////////////////////// WEAPON 3 RESTORE FUNCTIONS
 ExecuteRestoreAfterDelay3()
 {
-    if (Stunned) {
-        return (1);
-    }
-	//turn sleeves1 to x-axis <0.0> speed <45.0>;
+	if (Stunned) {
+		return (1);
+	}
 
-	turn turret2 to y-axis <0> speed <50.000000>;
-	turn cannon3 to x-axis <0.000000> speed <20.000000>;
-	turn cannon4 to x-axis <0.000000> speed <25.000000>;
+	turn turret2 to y-axis <0> speed <50.0>;
+	turn cannon3 to x-axis <0.0> speed <20.0>;
+	turn cannon4 to x-axis <0.0> speed <25.0>;
 
-	turn turret1 to y-axis <0> speed <50.000000>;
-	turn cannon1 to x-axis <0.000000> speed <20.000000>;
-	turn cannon2 to x-axis <0.000000> speed <25.000000>;
+	turn turret1 to y-axis <0> speed <50.0>;
+	turn cannon1 to x-axis <0.0> speed <20.0>;
+	turn cannon2 to x-axis <0.0> speed <25.0>;
 
 }
 RestoreAfterDelay3()
@@ -175,13 +128,12 @@ RestoreAfterDelay3()
 	start-script ExecuteRestoreAfterDelay3();
 }
 
-//////////////////////////////////////////////////////////////// WEAPON 4 RESTORE FUNCTIONS
+////////////////////////////////////////////////////////////// WEAPON 4 RESTORE FUNCTIONS
 ExecuteRestoreAfterDelay4()
 {
-    if (Stunned) {
-        return (1);
-    }
-	//turn sleeves1 to x-axis <0.0> speed <45.0>;
+	if (Stunned) {
+		return (1);
+	}
 
 	turn flakbasea to x-axis <-40> speed <20>;
 	turn flakbaseb to x-axis <-40> speed <20>;
@@ -201,25 +153,11 @@ RestoreAfterDelay4()
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	    call-script ExecuteRestoreAfterDelay2();
-	    call-script ExecuteRestoreAfterDelay3();
-	    call-script ExecuteRestoreAfterDelay4();
-	}
-}
-
-waveSplash()
-{
-	while( TRUE )
-	{
-		turn base to x-axis <-1.0> speed <1.0>;
-		move base to y-axis [0.23] speed [0.17];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <1.0>;
-		move base to y-axis [0.0] speed [0.17];
-		wait-for-turn base around x-axis;
+		call-script ExecuteRestoreAfterDelay2();
+		call-script ExecuteRestoreAfterDelay3();
+		call-script ExecuteRestoreAfterDelay4();
 	}
 }
 
@@ -234,7 +172,7 @@ StopMoving()
 }
 
 
-/////////////////////////////////////// MAIN TURRET
+///////////////////////////////////// MAIN TURRET
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = artyturret;
@@ -252,20 +190,20 @@ QueryWeapon1(pieceIndex)
 
 Shot1(heading) {
 	aimDir1 = heading;
-	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1)
 	if( active_barrel_one )
 	{
-	    emit-sfx 1024 + 1 from flare1r;
-		move arty1 to z-axis [-15.000000] now;
+		emit-sfx 1024 + 1 from flare1r;
+		move arty1 to z-axis [-15.0] now;
 		sleep 10;
-		move arty1 to z-axis [0.000000] speed [3.000000];
+		move arty1 to z-axis [0.0] speed [3.0];
 	}
 	else
 	{
-	    emit-sfx 1024 + 1 from flare2r;
-		move arty2 to z-axis [-15.000000] now;
+		emit-sfx 1024 + 1 from flare2r;
+		move arty2 to z-axis [-15.0] now;
 		sleep 10;
-		move arty2 to z-axis [0.000000] speed [3.000000];
+		move arty2 to z-axis [0.0] speed [3.0];
 	}
 	active_barrel_one = !active_barrel_one;
 }
@@ -275,7 +213,7 @@ Shot1(heading) {
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
 // Jerk is the minimum velocity of the turret
-// A high precision requirement can result in overshoots if desired 
+// A high precision requirement can result in overshoots if desired
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
 #define CATT1_PIECE_X turret1pitchpivot
@@ -292,87 +230,77 @@ Shot1(heading) {
 
 AimWeapon1(heading, pitch)
 {
-    signal SIGNAL_AIM_MAIN;
-    set-signal-mask SIGNAL_AIM_MAIN;
-    aimDir1 = heading;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	aimDir1 = heading;
 
-    turn turret1pitchpivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <10>;
-
-
-    if (heading < <150> AND heading > <-150>) { //check if in allowed arc of fire
-        newHeadMain = heading;
+	turn turret1pitchpivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <10>;
 
 
-        if ((currentHeadMain > <50> AND currentHeadMain < <150> AND newHeadMain < <0> AND newHeadMain > <-150>) OR
-            (currentHeadMain < <-50> AND currentHeadMain > <-150> AND newHeadMain > <0> AND newHeadMain < <150>)) { // check if crossing zero is required
+	if (heading < <150> AND heading > <-150>) { //check if in allowed arc of fire
+		newHeadMain = heading;
 
-            call-script CATT1_Aim(<0>, pitch); // turn to neutral first to avoid rearward clipping
 
-        }
+		if ((currentHeadMain > <50> AND currentHeadMain < <150> AND newHeadMain < <0> AND newHeadMain > <-150>) OR
+			(currentHeadMain < <-50> AND currentHeadMain > <-150> AND newHeadMain > <0> AND newHeadMain < <150>)) { // check if crossing zero is required
 
-        currentHeadMain = newHeadMain;
-        call-script CATT1_Aim(newHeadMain, pitch);
-        return (1);
-    }
-    else {
-        return (0);
-    }
+			call-script CATT1_Aim(<0>, pitch); // turn to neutral first to avoid rearward clipping
+
+		}
+
+		currentHeadMain = newHeadMain;
+		call-script CATT1_Aim(newHeadMain, pitch);
+		return (1);
+	}
+	else {
+		return (0);
+	}
 }
 
 
 FireWeapon1()
 {
-	// if (active_barrel_one){
-	// 	move arty1 to z-axis [-15.000000] speed [500.000000];
-	// 	sleep 100;
-	// 	move arty1 to z-axis [0.000000] speed [3.000000];
-	// }
-	// else{
-	// 	move arty2 to z-axis [-15.000000] speed [500.000000];
-	// 	sleep 100;
-	// 	move arty2 to z-axis [0.000000] speed [3.000000];
-	// }
 }
 
 
-/////////////////////////////////////// BACK TURRET
-AimFromWeapon2(piecenum)
+///////////////////////////////////// BACK TURRET
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turret3;
+	pieceIndex = turret3;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare5 + active_barrel_one;
+	pieceIndex = flare5 + active_barrel_one;
 }
 
 AimWeapon2(heading, pitch)
 {
-	signal SIGNAL_AIM_BACK;
-	set-signal-mask SIGNAL_AIM_BACK;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 
-	turn cannon5 to x-axis <0.000000> - pitch speed <20.000000>;
-	turn cannon6 to x-axis <0.000000> - pitch speed <25.000000>;
+	turn cannon5 to x-axis <0.0> - pitch speed <20.0>;
+	turn cannon6 to x-axis <0.0> - pitch speed <25.0>;
 
-    if (heading < <60> AND heading > <-60>) { //check if in unallowed arc of fire
-		return 0;
-    }
-    else {
-        newHeadBack = heading;
-        if ((currentHeadBack < <90> AND currentHeadBack > <60> AND newHeadBack > <-179> AND newHeadBack < <-60>) OR
-            (currentHeadBack > <-90> AND currentHeadBack < <-60> AND newHeadBack < <179> AND newHeadBack > <60>)) { // check if crossing -180 is required
+	if (heading < <60> AND heading > <-60>) { //check if in unallowed arc of fire
+		return (0);
+	}
+	else {
+		newHeadBack = heading;
+		if ((currentHeadBack < <90> AND currentHeadBack > <60> AND newHeadBack > <-179> AND newHeadBack < <-60>) OR
+			(currentHeadBack > <-90> AND currentHeadBack < <-60> AND newHeadBack < <179> AND newHeadBack > <60>)) { // check if crossing -180 is required
 
-            turn turret3 to y-axis <-180> speed <50.000000>; // turn to neutral -180 first to avoid rearward clipping
+			turn turret3 to y-axis <-180> speed <50.0>; // turn to neutral -180 first to avoid rearward clipping
 			wait-for-turn turret3 around y-axis;
 
-        }
+		}
 
-        currentHeadBack = newHeadBack;
-        turn turret3 to y-axis newHeadBack speed <50>;
+		currentHeadBack = newHeadBack;
+		turn turret3 to y-axis newHeadBack speed <50>;
 		wait-for-turn turret3 around y-axis;
 		start-script RestoreAfterDelay2();
-        return (1);
-    }
+		return (1);
+	}
 
 }
 
@@ -383,66 +311,66 @@ FireWeapon2()
 
 Shot2(heading) {
 	aimDir1 = heading;
-	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1)
 	if( active_barrel_two )
 	{
-	    emit-sfx 1024 + 1 from flare5;
-		move cannon5 to z-axis [-10.000000] now;
+		emit-sfx 1024 + 1 from flare5;
+		move cannon5 to z-axis [-10.0] now;
 		sleep 10;
-		move cannon5 to z-axis [0.000000] speed [3.000000];
+		move cannon5 to z-axis [0.0] speed [3.0];
 		hide flare1;
 	}
 	else
 	{
-	    emit-sfx 1024 + 1 from flare6;
-		move cannon6 to z-axis [-10.000000] now;
+		emit-sfx 1024 + 1 from flare6;
+		move cannon6 to z-axis [-10.0] now;
 		sleep 10;
-		move cannon6 to z-axis [0.000000] speed [3.000000];
+		move cannon6 to z-axis [0.0] speed [3.0];
 	}
 	active_barrel_two = !active_barrel_two;
 }
 
-/////////////////////////////////////// FRONT TURRET 1
+///////////////////////////////////// FRONT TURRET 1
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = turret2;
+	pieceIndex = turret2;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = flare3 + active_barrel_one;
+	pieceIndex = flare3 + active_barrel_one;
 }
 
 AimWeapon3(heading, pitch)
 {
-	signal SIGNAL_AIM_FRONT_A;
-	set-signal-mask SIGNAL_AIM_FRONT_A;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 
 
-	turn cannon3 to x-axis <0.000000> - pitch speed <20.000000>;
-	turn cannon4 to x-axis <0.000000> - pitch speed <25.000000>;
+	turn cannon3 to x-axis <0.0> - pitch speed <20.0>;
+	turn cannon4 to x-axis <0.0> - pitch speed <25.0>;
 
-    if (heading < <150> AND heading > <-150>) { //check if in allowed arc of fire
-        newHeadFront = heading;
+	if (heading < <150> AND heading > <-150>) { //check if in allowed arc of fire
+		newHeadFront = heading;
 
-        if ((currentHeadFront > <90> AND currentHeadFront < <150> AND newHeadFront < <0>) OR
-            (currentHeadFront < <-90> AND currentHeadFront > <-150> AND newHeadFront > <0>)) { // check if crossing zero is required
+		if ((currentHeadFront > <90> AND currentHeadFront < <150> AND newHeadFront < <0>) OR
+			(currentHeadFront < <-90> AND currentHeadFront > <-150> AND newHeadFront > <0>)) { // check if crossing zero is required
 
-        	turn turret2 to y-axis <0> speed <50.000000>;
+			turn turret2 to y-axis <0> speed <50.0>;
 			wait-for-turn turret2 around y-axis;
 
-        }
+		}
 
-        currentHeadFront = newHeadFront;
-        turn turret2 to y-axis newHeadFront speed <50.000000>;
+		currentHeadFront = newHeadFront;
+		turn turret2 to y-axis newHeadFront speed <50.0>;
 		wait-for-turn turret2 around y-axis;
 		start-script RestoreAfterDelay3();
-        return (1);
-    }
-    else {
-        return (0);
-    }
+		return (1);
+	}
+	else {
+		return (0);
+	}
 
 }
 
@@ -453,65 +381,65 @@ FireWeapon3()
 
 Shot3(heading) {
 	aimDir1 = heading;
-	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1)
 	if( active_barrel_three )
 	{
-	    emit-sfx 1024 + 1 from flare3;
-		move cannon3 to z-axis [-10.000000] now;
+		emit-sfx 1024 + 1 from flare3;
+		move cannon3 to z-axis [-10.0] now;
 		sleep 10;
-		move cannon3 to z-axis [0.000000] speed [3.000000];
+		move cannon3 to z-axis [0.0] speed [3.0];
 		hide flare3;
 	}
 	else
 	{
-	    emit-sfx 1024 + 1 from flare4;
-		move cannon4 to z-axis [-10.000000] now;
+		emit-sfx 1024 + 1 from flare4;
+		move cannon4 to z-axis [-10.0] now;
 		sleep 10;
-		move cannon4 to z-axis [0.000000] speed [3.000000];
+		move cannon4 to z-axis [0.0] speed [3.0];
 	}
 	active_barrel_three = !active_barrel_three;
 }
 
 
-/////////////////////////////////////// FRONT TURRET 2
-AimFromWeapon4(piecenum)
+///////////////////////////////////// FRONT TURRET 2
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = turret1;
+	pieceIndex = turret1;
 }
 
-QueryWeapon4(piecenum)
+QueryWeapon4(pieceIndex)
 {
-	piecenum = flare1 + active_barrel_one;
+	pieceIndex = flare1 + active_barrel_one;
 }
 
 AimWeapon4(heading, pitch)
 {
-	signal SIGNAL_AIM_FRONT_B;
-	set-signal-mask SIGNAL_AIM_FRONT_B;
+	signal SIGNAL_AIM4;
+	set-signal-mask SIGNAL_AIM4;
 
-	turn cannon1 to x-axis <0.000000> - pitch speed <20.000000>;
-	turn cannon2 to x-axis <0.000000> - pitch speed <25.000000>;
+	turn cannon1 to x-axis <0.0> - pitch speed <20.0>;
+	turn cannon2 to x-axis <0.0> - pitch speed <25.0>;
 
-    if (heading < <150> AND heading > <-150>) { //check if in allowed arc of fire
-        newHeadFront = heading;
+	if (heading < <150> AND heading > <-150>) { //check if in allowed arc of fire
+		newHeadFront = heading;
 
-        if ((currentHeadFront > <90> AND currentHeadFront < <150> AND newHeadFront < <0>) OR
-            (currentHeadFront < <-90> AND currentHeadFront > <-150> AND newHeadFront > <0>)) { // check if crossing zero is required
+		if ((currentHeadFront > <90> AND currentHeadFront < <150> AND newHeadFront < <0>) OR
+			(currentHeadFront < <-90> AND currentHeadFront > <-150> AND newHeadFront > <0>)) { // check if crossing zero is required
 
-        	turn turret1 to y-axis <0> speed <50.000000>;
+			turn turret1 to y-axis <0> speed <50.0>;
 			wait-for-turn turret1 around y-axis;
 
-        }
+		}
 
-        currentHeadFront = newHeadFront;
-        turn turret1 to y-axis newHeadFront speed <50.000000>;
+		currentHeadFront = newHeadFront;
+		turn turret1 to y-axis newHeadFront speed <50.0>;
 		wait-for-turn turret1 around y-axis;
 		start-script RestoreAfterDelay3();
-        return (1);
-    }
-    else {
-        return (0);
-    }
+		return (1);
+	}
+	else {
+		return (0);
+	}
 }
 
 FireWeapon4()
@@ -521,45 +449,44 @@ FireWeapon4()
 
 Shot4(heading) {
 	aimDir1 = heading;
-	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1)
 	if( active_barrel_one )
 	{
-	    emit-sfx 1024 + 1 from flare1;
-		move cannon1 to z-axis [-10.000000] now;
+		emit-sfx 1024 + 1 from flare1;
+		move cannon1 to z-axis [-10.0] now;
 		sleep 10;
-		move cannon1 to z-axis [0.000000] speed [3.000000];
+		move cannon1 to z-axis [0.0] speed [3.0];
 		hide flare1;
 	}
 	else
 	{
-	    emit-sfx 1024 + 1 from flare2;
-		move cannon2 to z-axis [-10.000000] now;
+		emit-sfx 1024 + 1 from flare2;
+		move cannon2 to z-axis [-10.0] now;
 		sleep 10;
-		move cannon2 to z-axis [0.000000] speed [3.000000];
+		move cannon2 to z-axis [0.0] speed [3.0];
 	}
 	active_barrel_one = !active_barrel_one;
 }
 
 ////////////////////////////// FLAK 1
 
-AimFromWeapon5(piecenum)
+AimFromWeapon5(pieceIndex)
 {
-	piecenum = flakturreta;
+	pieceIndex = flakturreta;
 }
 
-QueryWeapon5(piecenum)
+QueryWeapon5(pieceIndex)
 {
-	piecenum = flare1aa + Active_barrel_one;
+	pieceIndex = flare1aa + active_barrel_one;
 }
 
 AimWeapon5(heading, pitch)
 {
-	signal SIGNAL_AIM_FLAK_A;
-	set-signal-mask SIGNAL_AIM_FLAK_A;
+	signal SIGNAL_AIM5;
+	set-signal-mask SIGNAL_AIM5;
 	stop-spin flakturreta around y-axis;
-	turn flakturreta to y-axis heading speed <250.000000>;
-	turn flakbasea to x-axis <0> - pitch speed <200.000000>;
-	// wait-for-turn flakturreta around y-axis;
+	turn flakturreta to y-axis heading speed <250.0>;
+	turn flakbasea to x-axis <0> - pitch speed <200.0>;
 	wait-for-turn flakbasea around x-axis;
 	start-script RestoreAfterDelay4();
 	return (1);
@@ -570,44 +497,43 @@ FireWeapon5()
 
 }
 
-Shot5(zero) {
+Shot5() {
 	if( active_barrel_flak )
 	{
-	    emit-sfx 1024 + 1 from flare1aa;
-		move Flaka1 to z-axis [-3.000000] now;
+		emit-sfx 1024 + 1 from flare1aa;
+		move Flaka1 to z-axis [-3.0] now;
 		sleep 10;
-		move Flaka1 to z-axis [0.000000] speed [3.000000];
+		move Flaka1 to z-axis [0.0] speed [3.0];
 	}
 	else
 	{
-	    emit-sfx 1024 + 1 from flare1ab;
-		move Flaka to z-axis [-3.000000] now;
+		emit-sfx 1024 + 1 from flare1ab;
+		move Flaka to z-axis [-3.0] now;
 		sleep 10;
-		move Flaka to z-axis [0.000000] speed [3.000000];
+		move Flaka to z-axis [0.0] speed [3.0];
 	}
 	active_barrel_flak = !active_barrel_flak;
 }
 
 ////////////////////////////// FLAK 2
 
-AimFromWeapon6(piecenum)
+AimFromWeapon6(pieceIndex)
 {
-	piecenum = flakturretb;
+	pieceIndex = flakturretb;
 }
 
-QueryWeapon6(piecenum)
+QueryWeapon6(pieceIndex)
 {
-	piecenum = flare2aa + Active_barrel_one;
+	pieceIndex = flare2aa + active_barrel_one;
 }
 
 AimWeapon6(heading, pitch)
 {
-	signal SIGNAL_AIM_FLAK_B;
-	set-signal-mask SIGNAL_AIM_FLAK_B;
+	signal SIGNAL_AIM6;
+	set-signal-mask SIGNAL_AIM6;
 	stop-spin flakturretb around y-axis;
-	turn flakturretb to y-axis heading speed <250.000000>;
-	turn flakbaseb to x-axis <0> - pitch speed <200.000000>;
-	// wait-for-turn flakturretb around y-axis;
+	turn flakturretb to y-axis heading speed <250.0>;
+	turn flakbaseb to x-axis <0> - pitch speed <200.0>;
 	wait-for-turn flakbaseb around x-axis;
 	start-script RestoreAfterDelay4();
 	return (1);
@@ -618,27 +544,22 @@ FireWeapon6()
 
 }
 
-Shot6(zero) {
+Shot6() {
 	if( active_barrel_flak )
 	{
-	    emit-sfx 1024 + 1 from flare2aa;
-		move Flakab1 to z-axis [-3.000000] now;
+		emit-sfx 1024 + 1 from flare2aa;
+		move Flakab1 to z-axis [-3.0] now;
 		sleep 10;
-		move Flakab1 to z-axis [0.000000] speed [3.000000];
+		move Flakab1 to z-axis [0.0] speed [3.0];
 	}
 	else
 	{
-	    emit-sfx 1024 + 1 from flare2ab;
-		move Flakb to z-axis [-3.000000] now;
+		emit-sfx 1024 + 1 from flare2ab;
+		move Flakb to z-axis [-3.0] now;
 		sleep 10;
-		move Flakb to z-axis [0.000000] speed [3.000000];
+		move Flakb to z-axis [0.0] speed [3.0];
 	}
 	active_barrel_flak = !active_barrel_flak;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
 }
 
 Killed(severity, corpsetype)
@@ -676,7 +597,6 @@ Killed(severity, corpsetype)
 		explode recoiltube5 type FIRE | SMOKE | NOHEATCLOUD;
 		explode recoiltube6 type FIRE | SMOKE | NOHEATCLOUD;
 		return(corpsetype);
-		 
 	}
 	if( severity <= 50 )
 	{
@@ -746,37 +666,4 @@ Killed(severity, corpsetype)
 		explode recoiltube6 type FIRE | SMOKE | NOHEATCLOUD;
 		return(corpsetype);
 	}
-	//corpsetype = 3 ;
-	//	explode hull type BITMAPONLY | NOHEATCLOUD;
-	//	explode radar type BITMAPONLY | NOHEATCLOUD;
-	//	explode artyturret type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-	//	explode flakturreta type FIRE | SMOKE | FALL | NOHEATCLOUD;
-	//	explode artyturret type BITMAPONLY | NOHEATCLOUD;
-	//	explode flakturretb type FALL | NOHEATCLOUD;
-	//	explode turret1 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-	//	explode turret2 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-	//	explode turret3 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-	//  explode arty1 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode arty2 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode flakbasea type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode flakbasea1 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode Flaka type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode Flaka1 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode flakbaseb type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode flakbaseb1 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode Flakb type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode Flakb1 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode cannon1 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode cannon2 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode cannon3 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode cannon4 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode cannon5 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode cannon6 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode recoiltube1 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode recoiltube2 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode recoiltube3 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode recoiltube4 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode recoiltube5 type FIRE | SMOKE | NOHEATCLOUD;
-	//	explode recoiltube6 type FIRE | SMOKE | NOHEATCLOUD;
-	//	return corpsetype;
 }

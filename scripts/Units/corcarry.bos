@@ -3,7 +3,7 @@
 
 piece  base, pad1, pad0, dish, wake, bow, beam1, beam2, nano1, nano2, anti, dtr, dtl, dbr, dbl, blink;
 
-static-var  landingPadSelector, oldHead;
+static-var  landingPadSelector;
 static-var  Stunned;
 
 // Signal definitions
@@ -40,13 +40,11 @@ Lights()
 Go()
 {
 	spin dish around y-axis speed <-50.043956> accelerate <2>;
-	return (0);
 }
 
 Stop()
 {
 	spin dish around y-axis speed <0.0>;
-	return (0);
 }
 
 Create()
@@ -69,14 +67,12 @@ StartBuilding()
 {
 	show nano1;
 	show nano2;
-	return (0);
 }
 
 StopBuilding()
 {
 	hide nano1;
 	hide nano2;
-	return (0);
 }
 
 Activate()
@@ -104,13 +100,13 @@ StopMoving()
 
 QueryLandingPad(pieceIndex1, pieceIndex2)
 {
-	pieceIndex1 = 1;
-	pieceIndex2 = 2;
+	pieceIndex1 = pad1;
+	pieceIndex2 = pad0;
 	landingPadSelector = !landingPadSelector;
 	if( landingPadSelector )
 	{
-		pieceIndex1 = 2;
-		pieceIndex2 = 1;
+		pieceIndex1 = pad0;
+		pieceIndex2 = pad1;
 	}
 }
 

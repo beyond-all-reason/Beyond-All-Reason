@@ -34,13 +34,11 @@ Lights()
 Go()
 {
 	spin radar around y-axis speed <-50.043956> accelerate <2>;
-	return (0);
 }
 
 Stop()
 {
 	spin radar around y-axis speed <0.0>;
-	return (0);
 }
 
 ExecuteRestoreAfterDelay()
@@ -93,14 +91,14 @@ Steering(heading, steer, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
-		steer = (heading - oldheading)*7;
+		steer = (heading - oldHeading)*7;
 		turn frontwheels to y-axis steer speed <40>;
-		steer = (heading - oldheading)*2;
+		steer = (heading - oldHeading)*2;
 		turn backwheels to y-axis steer * -1 speed <30>;
 		currentSpeed = <3.92> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
 		sleep 85;
-		oldheading = heading;
+		oldHeading = heading;
 	}
 }
 
@@ -134,13 +132,11 @@ FireWeapon1()
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = firepoint;
-	return (0);
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = radar;
-	return (0);
 }
 
 Killed(severity, corpsetype)

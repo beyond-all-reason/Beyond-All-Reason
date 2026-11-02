@@ -20,7 +20,7 @@ return {
 		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORAAK.s3o",
-		script = "Units/coraak_clean.cob",
+		script = "Units/coraak.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
 		sightdistance = 390,

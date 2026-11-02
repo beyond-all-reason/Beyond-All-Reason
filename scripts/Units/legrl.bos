@@ -30,20 +30,20 @@ Stop()
 }
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
-    turn barrel to x-axis <-25> speed <25.0>;
-    spin turret around y-axis speed <25.0>;
+	if (Stunned) {
+		return (1);
+	}
+	turn barrel to x-axis <-25> speed <25.0>;
+	spin turret around y-axis speed <25.0>;
 }
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+		call-script Stop();
 	} else {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -68,19 +68,16 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	gun_1 = !gun_1;
-	return (0);
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = flare2;
-	return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare1 + gun_1;
-	return (0);
 }
 
 Killed(severity, corpsetype)

@@ -7,15 +7,9 @@ static-var  restore_delay,  shotcount, timer, lastfired, gameframe, wpn1_lasthea
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIGNAL_LIGHT 4
 #define SIGNAL_IDLE 8
 
-//#define DEBUG
-#include "../debug.h"
-
 #include "../opencloseanim.h"
-
-static-var Stunned;
 
 Open()
 {
@@ -112,7 +106,6 @@ RestoreAfterDelay() {
 		turn sauron to y-axis <0> speed <35>;
 		start-script SpinIdle();
 	}
-	return (0);
 }
 
 SpinIdle() {
@@ -171,9 +164,6 @@ SweepFire()
 	while (TRUE)
 	{
 		gameframe = get(GAME_FRAME);
-		//get PRINT(123, lastfired, gameframe, gameframe);
-		//get PRINT(1235, targetswap, isfiring, timer);
-		dbg(targetswap, isfiring, firetime, gameframe);
 		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
 		{
 			emit-sfx 2048 from fireline;
@@ -181,8 +171,6 @@ SweepFire()
 		}
 		if (timer > 150)
 		{
-			//signal SIG_AIM;
-			//timer = 0;
 			start-script RestoreAfterDelay();
 		}
 		sleep 20;
@@ -193,14 +181,9 @@ SweepFire()
 FireWeapon1()
 {
 	gameframe = get(GAME_FRAME);
-	//get PRINT(1, lastfired, gameframe);
-	//if (lastfired+firetime>gameframe) return (0);
 	lastfired = gameframe;
-	//get PRINT(11);
 	start-script SpinFiring();
 	timer = 0;
-	//start-script Enlighten();
-	//sleep 150;
 	start-script RestoreAfterDelay();
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);

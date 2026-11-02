@@ -12,7 +12,7 @@ static-var lastHeading;
 
 Create()
 {
-    hide flare;
+	hide flare;
 }
 
 #define BASEPIECE base
@@ -85,7 +85,7 @@ AimWeapon2(heading, pitch)
 	{
 		return(0);
 	}
-	
+
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	call-script aimCommon(heading, pitch);

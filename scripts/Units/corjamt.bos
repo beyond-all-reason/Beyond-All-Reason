@@ -16,6 +16,7 @@ SetStunned(State)
 
 Create()
 {
+	hide jam;
 }
 
 #define BASEPIECE base
@@ -25,7 +26,7 @@ Create()
 Activate()
 {
 	show jam;
-	spin dish around y-axis speed <200.000000> accelerate <1>;
+	spin dish around y-axis speed <200.0> accelerate <1>;
 }
 
 Deactivate()

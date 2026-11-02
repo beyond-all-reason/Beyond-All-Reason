@@ -254,18 +254,17 @@ StopWalking() {
 	turn torso to y-axis <0.0> speed <130.0>;
 }
 UnitSpeed(){
- maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
- animFramesPerKeyframe = 2; //we need to calc the frames per keyframe value, from the known animtime
- maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
- while(TRUE){
-  animSpeed = (get CURRENT_SPEED);
-  if (animSpeed<1) animSpeed=1;
-  animSpeed = (maxSpeed * 2) / animSpeed; 
-  //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
-  if (animSpeed<1) animSpeed=1;
-  if (animspeed>4) animSpeed = 4;
-  sleep 65;
- }
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 2; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 2) / animSpeed;
+		if (animSpeed<1) animSpeed=1;
+		if (animSpeed>4) animSpeed = 4;
+		sleep 65;
+	}
 }
 
 
@@ -277,26 +276,18 @@ UnitSpeed(){
 
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-Stop()
-{
-	set INBUILDSTANCE to 0;
-}
-
-
 Create()
 {
 	hide aimx1;
 	hide aimy1;
-    hide lnano;
-    hide rnano;
-    hide armhexl_emit;
-    hide armhexl2_emit;
+	hide lnano;
+	hide rnano;
+	hide armhexl_emit;
+	hide armhexl2_emit;
 	isMoving = FALSE;
 	animSpeed = 3;
 	nanoNozzle = 0;
 	animSpeed = 60;
-	//turn luparm to x-axis <45.010989> speed <45>;
-	//turn ruparm to x-axis <45.010989> speed <45>;
 }
 
 BuildAnim(){
@@ -312,8 +303,8 @@ BuildAnim(){
 
 StartBuilding(heading, pitch)
 {
-    show lnano;
-    show rnano;
+	show lnano;
+	show rnano;
 	signal SIGNAL_BUILD;
 	turn aimy1 to y-axis heading speed <240.0>;
 	turn aimx1 to x-axis <-50> - pitch speed <240.0>;
@@ -321,29 +312,29 @@ StartBuilding(heading, pitch)
 	set INBUILDSTANCE to 1;
 	show armhexl_emit;
 	show armhexl2_emit;
-	start-script BuildAnim();	
+	start-script BuildAnim();
 }
 
 StopBuilding()
 {
-    hide lnano;
-    hide rnano;
-	signal SIGNAL_BUILD;	
+	hide lnano;
+	hide rnano;
+	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
 	hide armhexl_emit;
 	hide armhexl2_emit;
 	turn aimy1 to y-axis <0.0> speed <160.0>;
 	turn aimx1 to x-axis <0> speed <240.0>;
-	turn aimy1 to x-axis <0> speed <5>;	
+	turn aimy1 to x-axis <0> speed <5>;
 }
 
 StartMoving(reversing)
 {
-  	signal SIGNAL_MOVE;
-  	set-signal-mask SIGNAL_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving = TRUE;
 	start-script UnitSpeed();
-	start-script walk();
+	start-script Walk();
 
 }
 
@@ -351,7 +342,7 @@ StopMoving()
 {
 	signal SIGNAL_MOVE;
 	isMoving = FALSE;
-	call-script StopWalking();	
+	call-script StopWalking();
 }
 
 

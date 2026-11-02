@@ -3,7 +3,7 @@
 
 piece body, aimy1, turret, aimx1, sleeve, flare, ringinner, ringouter, blfoot, blhinge, bltoes, brfoot, brhinge, brtoes, flfoot, flhinge, fltoes, frfoot, frhinge, frtoes;
 
-static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, aimAdj, oldsteerheading, oldpitch;
+static-var restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, aimAdj, oldsteerheading, oldpitch;
 
 
 #define BASEPIECE body
@@ -14,16 +14,8 @@ static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, 
 #define RECOIL_POWER 1000
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-//#define TB_BASE body 
-//#define TB_TURNRATE <12.0> 
-//#define TB_TILT_X <0.20>
-//#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
-//#include "../tilt_bank_mobileunit.h"
-
-Steering(heading, steery, currentSpeed)
+Steering(heading)
 {
-	//signal SIGNAL_MOVE;
-	//set-signal-mask SIGNAL_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
@@ -36,7 +28,6 @@ Steering(heading, steery, currentSpeed)
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
-#define SIGNAL_RESTORE 2
 
 
 Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
@@ -403,8 +394,8 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 
 Die()
 {
-	turn aimy1 to y-axis <0.000000> speed <20.000000>;
-	turn aimx1 to x-axis <0.000000> speed <20.000000>;
+	turn aimy1 to y-axis <0.0> speed <20.0>;
+	turn aimx1 to x-axis <0.0> speed <20.0>;
 	
 	turn flhinge to z-axis <-15> speed <100>;
 	turn flhinge to y-axis <-45> speed <300>;
@@ -498,25 +489,25 @@ StopWalking() {
 	// Turn hinges to rest position and lifted position sequentially
 	sleep (2000);
 	
-	turn flhinge to z-axis <-10> speed <200> / animspeed;
+	turn flhinge to z-axis <-10> speed <200> / animSpeed;
 	sleep (300);
 	turn flhinge to y-axis <-45> speed <900> / animSpeed;
-	turn flhinge to z-axis <0> speed <500> / animspeed;
+	turn flhinge to z-axis <0> speed <500> / animSpeed;
 	
-	turn frhinge to z-axis <10> speed <200> / animspeed;
+	turn frhinge to z-axis <10> speed <200> / animSpeed;
 	sleep (300);
 	turn frhinge to y-axis <45> speed <900> / animSpeed;
-	turn frhinge to z-axis <0> speed <500> / animspeed;
+	turn frhinge to z-axis <0> speed <500> / animSpeed;
 	
-	turn blhinge to z-axis <-10> speed <200> / animspeed;
+	turn blhinge to z-axis <-10> speed <200> / animSpeed;
 	sleep (300);
 	turn blhinge to y-axis <45> speed <900> / animSpeed;
-	turn blhinge to z-axis <0> speed <500> / animspeed;
+	turn blhinge to z-axis <0> speed <500> / animSpeed;
 	
-	turn brhinge to z-axis <10> speed <200> / animspeed;
+	turn brhinge to z-axis <10> speed <200> / animSpeed;
 	sleep (300);
 	turn brhinge to y-axis <-45> speed <900> / animSpeed;
-	turn brhinge to z-axis <0> speed <500> / animspeed;
+	turn brhinge to z-axis <0> speed <500> / animSpeed;
 }
 
 UnitSpeed(){
@@ -527,9 +518,8 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 5) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>6) animSpeed = 6;
+		if (animSpeed>6) animSpeed = 6;
 		sleep 98;
 	}
 }
@@ -541,7 +531,6 @@ StartMoving(reversing)
 	isMoving = TRUE;
 	start-script UnitSpeed();
 	start-script walk();
-	//START_TILTBANK;
 }
 
 StopMoving()
@@ -549,11 +538,6 @@ StopMoving()
 	isMoving = FALSE;
 	signal SIGNAL_MOVE;
 	call-script StopWalking();
-	//STOP_TILTBANK;
-}
-Stop()
-{
-	hide flare;
 }
 
 RestoreAfterDelay()
@@ -563,16 +547,16 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-ExecuteRestoreAfterDelay() 
+ExecuteRestoreAfterDelay()
 {
-	signal SIGNAL_RESTORE;
-	set-signal-mask SIGNAL_RESTORE;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
 	hide flare;
 	turn aimy1 to y-axis <0.0> speed <20.0>;
 	turn aimx1 to x-axis <0.0> speed <20.0>;
-    isfiring = 0;
+	isfiring = 0;
 	oldhead = -1000000;
-	aimAdj = 0;	
+	aimAdj = 0;
 }
 
 Create()
@@ -606,11 +590,8 @@ QueryWeapon1(pieceIndex)
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 }
-
-//#include "../debug.h"
-//#define DEBUG
 
 AimWeapon1(heading, pitch)
 {
@@ -642,7 +623,6 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	return (0);
 }
 
 Killed(severity, corpsetype)

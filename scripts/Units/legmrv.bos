@@ -1,10 +1,7 @@
 #include "../recoil_common_includes.h"
 
-// piece  base, steer, turret, fwheel, bwheel, gunr, sleever, barrelr, flarer, gunr2, sleever2, barrelr2, flarer2,
-// 		gunl, sleevel, barrell, flarel, gunl2, sleevel2, barrell2, flarel2;
-
 piece base, flWheel, frWheel, rrTrack, rlTrack, turret, aimfrom, sleeveTop, sleeveBottom, flareTop, flareBottom, barrelTop, barrelBottom, flTyre, frTyre;
-static-var  restore_delay, moveSpeed, wheelSpeed, whichGun, oldHeading, timeLeft, Stunned, last_primary_heading;
+static-var  restore_delay, whichGun, oldHeading, timeLeft, Stunned, last_primary_heading;
 
 #define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
@@ -12,12 +9,9 @@ static-var  restore_delay, moveSpeed, wheelSpeed, whichGun, oldHeading, timeLeft
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIGNAL_FIRE1 1024
+#define SIGNAL_SHOOT1 16
 #define SIGNAL_MOVE 1
 
-
-//#define DEBUG
-#include "../debug.h"
 
 #define TB_BASE base 
 #define TB_TURNRATE <30.0> 
@@ -37,29 +31,25 @@ static-var  restore_delay, moveSpeed, wheelSpeed, whichGun, oldHeading, timeLeft
 
 
 
-//#include "unit_hitbyweaponid_and_smoke.h"
-
 Create()
 {
-	Weapon1TurretX = <200.000000>;
-	Weapon1TurretY = <400.000000>;
+	Weapon1TurretX = <200.0>;
+	Weapon1TurretY = <400.0>;
 	hide flareTop;
 	hide flareBottom;
 	whichGun = 9;
-	oldheading = get HEADING;
+	oldHeading = get HEADING;
 	restore_delay = 3000;
 	last_primary_heading = -1000000;
 	call-script TB_Init();
 }
 
 
-
 StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-    start-script Steering();
-	
+	start-script Steering();
 
 	spin flTyre around x-axis speed <140.0> accelerate <5.0>;
 	spin frTyre around x-axis speed <140.0> accelerate <5.0>;
@@ -68,9 +58,8 @@ StartMoving(reversing)
 
 StopMoving()
 {
-	//dbg();
-    stop-spin flTyre around x-axis;
-    stop-spin frTyre around x-axis;
+	stop-spin flTyre around x-axis;
+	stop-spin frTyre around x-axis;
 	signal SIGNAL_MOVE;
 
 	STOP_TILTBANK;
@@ -79,7 +68,6 @@ StopMoving()
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;
-	return (0);
 }
 
 
@@ -90,60 +78,56 @@ Steering(heading, steery, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
-		steery = (heading - oldheading)*3;
+		steery = (heading - oldHeading)*3;
 		turn flWheel to y-axis steery speed <180>;
-		//turn flCover to y-axis steery speed <180>;	
 		turn frWheel to y-axis steery speed <180>;
-		//turn frCover to y-axis steery speed <180>;		
 		currentSpeed = <2.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
 		spin flTyre around x-axis speed (currentSpeed*4.0);
 		spin frTyre around x-axis speed (currentSpeed*4.0);
 		sleep 66;
-		oldheading = heading;
+		oldHeading = heading;
 	}
 }
 
 
 
 
-
 TimeToRestore(addTime){
-    // This function may not be signal terminated
-    // If it has to be, it _must_ be immediately restarted
-    // PROBLEM: the time that is slept depends on number of aim calls.
-    while((timeLeft > 1) || Stunned){
-		//get PRINT(timeLeft, get GAME_FRAME);
-        addTime = timeLeft;
-        timeLeft = 1;
-        sleep addTime;
-    }
-    // The restore section must be atomic :/
-    timeLeft = 0;
+	// This function may not be signal terminated
+	// If it has to be, it _must_ be immediately restarted
+	// PROBLEM: the time that is slept depends on number of aim calls.
+	while((timeLeft > 1) || Stunned){
+		addTime = timeLeft;
+		timeLeft = 1;
+		sleep addTime;
+	}
+	// The restore section must be atomic :/
+	timeLeft = 0;
 	last_primary_heading = -1000000;
 	whichGun = 9;
-	turn turret to y-axis <0.000000> speed <90.000000>;
-	turn sleeveTop to x-axis <0.000000> speed <50.000000>;
-	turn sleeveBottom to x-axis <0.000000> speed <50.000000>;
+	turn turret to y-axis <0.0> speed <90.0>;
+	turn sleeveTop to x-axis <0.0> speed <50.0>;
+	turn sleeveBottom to x-axis <0.0> speed <50.0>;
 }
 
 
 AimWeapon1(heading, pitch)
 {
 	if (timeLeft == 0)
-    {
-        start-script TimeToRestore();
-    }
-    timeLeft = restore_delay;
+	{
+		start-script TimeToRestore();
+	}
+	timeLeft = restore_delay;
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed Weapon1TurretY;
-	turn sleeveTop to x-axis <0.000000> - pitch speed Weapon1TurretX;
-	turn sleeveBottom to x-axis <0.000000> - pitch speed Weapon1TurretX;
+	turn sleeveTop to x-axis <0.0> - pitch speed Weapon1TurretX;
+	turn sleeveBottom to x-axis <0.0> - pitch speed Weapon1TurretX;
 	if (get ABS(last_primary_heading - heading)> <20>)
 	{
 		// seems to take 3 frames for wait-for-turn to process
-        wait-for-turn turret around y-axis;
+		wait-for-turn turret around y-axis;
 		wait-for-turn sleeveBottom around x-axis;
 	}
 	last_primary_heading = heading;
@@ -151,11 +135,10 @@ AimWeapon1(heading, pitch)
 }
 
 
-///////////////////
-
-Shot1(zero) {//unsure you need signals here tbh?
-	signal SIGNAL_FIRE1;
-	set-signal-mask SIGNAL_FIRE1;
+Shot1()
+{
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	if (whichGun == 9){
 		emit-sfx 1024 + 0 from flareTop;
 		move barrelTop to z-axis [-5] now;
@@ -170,37 +153,20 @@ Shot1(zero) {//unsure you need signals here tbh?
 		whichGun = 9;
 		sleep 150;
 	}
-	return(0);
 }
 
 FireWeapon1()
 {
-	
-	// if (whichGun == 0){
-
-	// 	whichGun = 1;
-	// 	return(0);
-	// }
-
-	// if (whichGun == 1){
-
-	// 	whichGun = 0;
-	// 	return(0);
-	// }
-	//sleep 150;
-	return (0);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimfrom;
-	return (0);
+	pieceIndex = aimfrom;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = whichGun;
-	return (0);
+	pieceIndex = whichGun;
 }
 
 

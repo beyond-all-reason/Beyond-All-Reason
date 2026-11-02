@@ -40,6 +40,7 @@ Create()
 	hide flare;
 	hide smoke2;
 	restore_delay = 200;
+	wpn1_lasthead = 0xbadface;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -48,12 +49,11 @@ SetMaxReloadTime(reloadMS)
 }
 
 StartMoving(reversing)
-{  
+{
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	start-script Vehicle_Dirt_Ceg();
 }
-
 
 StopMoving()
 {
@@ -63,9 +63,9 @@ StopMoving()
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	turn turret to y-axis <0.0> speed <50.0>;
 	turn sleeve to x-axis <0.0> speed <25.0>;
 	spin barrel around z-axis speed <600.0>;
@@ -80,9 +80,9 @@ ExecuteRestoreAfterDelay()
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -124,15 +124,13 @@ Shot1(zero)
 
 QueryWeapon1(pieceIndex)
 {
-		pieceIndex = flare;
+	pieceIndex = flare;
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = sleeve;
 }
-
-
 
 Killed(severity, corpsetype)
 {

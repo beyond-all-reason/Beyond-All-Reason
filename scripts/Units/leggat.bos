@@ -5,6 +5,9 @@ piece body, bars, tracks, turret, sleeve, barrel, flare, smoke1, smoke2;
 
 static-var  restore_delay, wpn1_lasthead;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
@@ -36,10 +39,13 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	Weapon1TurretX = <65.0>;
+	Weapon1TurretY = <120.0>;
 	hide smoke1;
 	hide flare;
 	hide smoke2;
 	restore_delay = 200;
+	wpn1_lasthead = 0xbadface;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -48,12 +54,11 @@ SetMaxReloadTime(reloadMS)
 }
 
 StartMoving(reversing)
-{  
+{
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	start-script Vehicle_Dirt_Ceg();
 }
-
 
 StopMoving()
 {
@@ -63,31 +68,25 @@ StopMoving()
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	turn turret to y-axis <0.0> speed <50.0>;
 	turn sleeve to x-axis <0.0> speed <25.0>;
 	spin barrel around z-axis speed <600.0>;
-	sleep restore_delay;
-	spin barrel around z-axis speed <300.0>;
-	sleep (restore_delay / 2);
-	spin barrel around z-axis speed <150.0>;
-	sleep (restore_delay / 4);
-	stop-spin barrel around z-axis;
+	stop-spin barrel around z-axis decelerate <5>;
 	wpn1_lasthead = 0xbadface;
 	set-signal-mask 0;
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -95,8 +94,9 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	turn turret to y-axis heading speed <120.0>;
-	turn sleeve to x-axis <0.0> - pitch speed <65.0>;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret to y-axis heading speed Weapon1TurretY;
+	turn sleeve to x-axis <0.0> - pitch speed Weapon1TurretX;
 	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <20>))
 	{
 		wpn1_lasthead = 0xbadface;
@@ -110,7 +110,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	spin barrel around z-axis speed <900.0>;
+	spin barrel around z-axis speed <900.0> accelerate <30>;
 	return (1);
 }
 
@@ -124,15 +124,13 @@ Shot1(zero)
 
 QueryWeapon1(pieceIndex)
 {
-		pieceIndex = flare;
+	pieceIndex = flare;
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = sleeve;
 }
-
-
 
 Killed(severity, corpsetype)
 {

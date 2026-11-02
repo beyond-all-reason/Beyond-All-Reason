@@ -3,7 +3,7 @@
 
 piece  base, ground, cylinder, cagelight, cagelight_emit, fan, lfan, rfan, lhinge1, lhinge2, ldoor, rhinge1, rhinge2, rdoor, turret, box, gun, nano, wake;
 
-static-var  terrain, readyToBuild;
+static-var  readyToBuild;
  
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -67,7 +67,7 @@ StartBuilding(heading, pitch)
 	show nano;
 	
 	turn turret to y-axis heading speed <160.0>;
-	turn gun to x-axis <0.000000> - pitch speed <40.0>;
+	turn gun to x-axis <0.0> - pitch speed <40.0>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
 	

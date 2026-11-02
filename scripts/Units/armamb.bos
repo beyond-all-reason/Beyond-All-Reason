@@ -4,11 +4,9 @@
 
 piece  base, flare, turret, door1, door2, door3, door4, barrel, stand, aimpoint, turretmidpoint;
 
-static-var  turretOpen, restoreDelay, trajectoryMode, stunned, lastHeading;
+static-var  turretOpen, restoreDelay, stunned, lastHeading;
 
 #define SIGNAL_AIM2			1
-#define LOW_TRAJECTORY		0
-#define HIGH_TRAJECTORY		1
 
 openTurret()
 {
@@ -32,26 +30,26 @@ openTurret()
 
 closeTurret()
 {
-    if (lastHeading <= <-145.000000>)
-    {
-        turn stand to y-axis <180.000000> speed <30.000000>;
-    }
-    else if (lastHeading <= <-45.000000>)
-    {
-        turn stand to y-axis <270.000000> speed <30.000000>;
-    }
-    else if (lastHeading <= <45.000000>)
-    {
-        turn stand to y-axis <0.000000> speed <30.000000>;
-    }
-    else if (lastHeading <= <90.000000>)
-    {
-        turn stand to y-axis <90.000000> speed <30.000000>;
-    }
-    else
-    {
-        turn stand to y-axis <180.000000> speed <30.000000>;
-    }
+	if (lastHeading <= <-145.0>)
+	{
+		turn stand to y-axis <180.0> speed <30.0>;
+	}
+	else if (lastHeading <= <-45.0>)
+	{
+		turn stand to y-axis <270.0> speed <30.0>;
+	}
+	else if (lastHeading <= <45.0>)
+	{
+		turn stand to y-axis <0.0> speed <30.0>;
+	}
+	else if (lastHeading <= <90.0>)
+	{
+		turn stand to y-axis <90.0> speed <30.0>;
+	}
+	else
+	{
+		turn stand to y-axis <180.0> speed <30.0>;
+	}
 
 	turn stand to y-axis <0> speed <100>;
 	turn turret to x-axis <0> speed <50>;
@@ -84,7 +82,6 @@ Go()
 	}
 	turretOpen = 1;
 	set ARMORED to 0;
-	return (0);
 }
 
 Stop()
@@ -92,15 +89,14 @@ Stop()
 	set ARMORED to 1;
 	turretOpen = 0;
 	call-script closeTurret();
-	return (0);
 }
 
 ExecuteRestoreAfterDelay()
 {
-    if (stunned)
+	if (stunned)
 	{
-        return (1);
-    }
+		return (1);
+	}
 
 	//set-signal-mask 0;
 	turn turret to y-axis <0.0> speed <100.016484>;
@@ -113,10 +109,10 @@ ExecuteRestoreAfterDelay()
 
 SetStunned(state)
 {
-    stunned = state;
+	stunned = state;
 	if (!stunned)
 	{
-	    start-script RestoreAfterDelay();
+		start-script RestoreAfterDelay();
 	}
 }
 
@@ -138,7 +134,6 @@ Create()
 	SLEEP_UNTIL_UNITFINISHED;
 
 	start-script RestoreAfterDelay();
-	return (0);
 }
 
 #define BASEPIECE base
@@ -207,7 +202,7 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-AimWeapon3(piecenum)
+AimWeapon3(pieceIndex)
 {
 	return (0);
 }

@@ -25,7 +25,7 @@ pod4firepoint;
 static-var restore_delay, wpn1_lasthead, whichPod;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 #define WATER_ROCK_UNITSIZE 10
 #include "../floatmotion.h"
@@ -38,7 +38,7 @@ static-var restore_delay, wpn1_lasthead, whichPod;
 #define MAXTILT 100
 #define RECOIL_POWER 20000
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
@@ -74,12 +74,12 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turretHeadingPivot to y-axis heading speed <150>;
-	turn turretPitchPivot to x-axis <0.000000> - pitch speed <80>;
+	turn turretPitchPivot to x-axis <0.0> - pitch speed <80>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
@@ -91,12 +91,12 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 
 }
 
-Shot1(zero)
+Shot1()
 {
 	if(whichPod == 0){
         move pod1 to z-axis [-5] now;
@@ -131,30 +131,25 @@ Shot1(zero)
     }
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if(whichPod == 0){
-        piecenum = pod1firepoint;
+        pieceIndex = pod1firepoint;
     }
 	else if(whichPod == 1){
-        piecenum = pod2firepoint;
+        pieceIndex = pod2firepoint;
     }
 	else if(whichPod == 2){
-        piecenum = pod3firepoint;
+        pieceIndex = pod3firepoint;
     }
 	else if(whichPod == 3){
-        piecenum = pod4firepoint;
+        pieceIndex = pod4firepoint;
     }
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
 }
 
 Killed(severity, corpsetype)

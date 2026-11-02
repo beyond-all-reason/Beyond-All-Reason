@@ -29,13 +29,11 @@ Lights()
 Go()
 {
 	spin radar around y-axis speed <-50.043956> accelerate <2>;
-	return (0);
 }
 
 Stop()
 {
 	spin radar around y-axis speed <0.0>;
-	return (0);
 }
 
 ExecuteRestoreAfterDelay()
@@ -147,7 +145,6 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	start-script RestoreAfterDelay();
-	return (0);
 }
 
 FireWeapon1()
@@ -158,13 +155,11 @@ FireWeapon1()
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = firepoint;
-	return (0);
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = radar;
-	return (0);
 }
 
 Killed(severity, corpsetype)

@@ -430,15 +430,14 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 54 / 10) / animSpeed;
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
 		sleep 131;
 	}
 }
 StartMoving(reversing){
-  signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
@@ -452,8 +451,6 @@ StopMoving(){
 
 
 AmIBored() {
-	//--[[Spring.Echo("isAiming: " , isAiming, "isBuilding: " , isBuilding, "isAiming == false and isBuilding == false", isAiming == false and isBuilding == false)]]--
-	//return isAiming == false and isBuilding == false and isMoving == false
 	if (isAiming == 0){
 		if (isBuilding == 0 ){
 			if (isMoving == 0){
@@ -483,12 +480,11 @@ Create(){
 	hide railflarer;
 	hide railflarel;
 	hide Ref_Point;
-	//turn rloarm to  x-axis <-15> speed <130.0> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
-	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
+	turn lflare to x-axis <90> now;
 	turn flare to x-axis <90> now;
-	turn nano to x-axis <90> now; //Turn(nano, x-axis,math.rad(90))
-	turn laserflare to x-axis <90> now; //	Turn(laserflare, x-axis,math.rad(90))
-	spin dish around y-axis speed <100>; //Spin(dish, y-axis, 2.5)
+	turn nano to x-axis <90> now;
+	turn laserflare to x-axis <90> now;
+	spin dish around y-axis speed <100>;
 	animSpeed = 4;
 	gun_1 = 1;
 	torsoaim = 0;
@@ -506,7 +502,6 @@ Create(){
 QueryNanoPiece(pieceIndex)
 {
 	pieceIndex = nano;
-	return (0);
 }
 
 
@@ -514,12 +509,12 @@ QueryNanoPiece(pieceIndex)
 RestoreAfterDelay(){
 	set-signal-mask SIGNAL_AIM1;
 	sleep 1000;
-	turn torso to  y-axis <0> speed <105.0> ; //-- Turn(torso, y-axis, 0, math.rad(305))
+	turn torso to  y-axis <0> speed <105.0> ;
 	
-	turn biggun to  x-axis <-38> speed <95.0> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
-	turn luparm to  x-axis <0> speed <95.0> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
-	turn rloarm to  x-axis <-38> speed <95.0> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
-	turn ruparm to  x-axis <0> speed <95.0> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
+	turn biggun to  x-axis <-38> speed <95.0> ;
+	turn luparm to  x-axis <0> speed <95.0> ;
+	turn rloarm to  x-axis <-38> speed <95.0> ;
+	turn ruparm to  x-axis <0> speed <95.0> ;
 	stop-spin barrelr around y-axis;
 	torsoaim = 0;
 	isAiming = 0;
@@ -539,7 +534,6 @@ ResumeBuilding()
 		turn torso to y-axis buildHeading speed <150.0>;
 		turn luparm to x-axis <-55.0> - buildPitch speed <45.0>;
 	}
-	return (0);
 }
 
 
@@ -551,13 +545,11 @@ ResumeBuilding()
 QueryWeapon1(pieceIndex) //pew laser
 {
 	pieceIndex = flare;
-	return (0);
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = ruparm;
-	return (0);
 }
 
 AimWeapon1(heading, pitch) //pew pew
@@ -569,10 +561,9 @@ AimWeapon1(heading, pitch) //pew pew
 		return (0);
 	}
 	rightarm = 0;
-	//call-script FixArms(0, 1);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn torso to  y-axis heading + <10> speed <300.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading + <10> speed <300.0> ;
 	
 	var gun_xz;
     gun_xz = get PIECE_XZ(rloarm);                                //get packed gun coordinates
@@ -618,19 +609,15 @@ AimWeapon1(heading, pitch) //pew pew
     cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
     cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
     
-    //var torsoaim;
     torsoaim = cauface - cauaim;                                //calculate angle of turret relative to the hull
-	//torsoaim = heading;
-	turn rloarm to  x-axis <-55> speed <390.0> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-	turn ruparm to x-axis <-40> - pitch speed <390.0> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
+	turn rloarm to  x-axis <-55> speed <390.0> ;
+	turn ruparm to x-axis <-40> - pitch speed <390.0> ;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
 		wait-for-turn torso around y-axis;
 	}
 	wpn1_lasthead = heading;
-	//wait-for-turn rloarm around x-axis;
-	//wait-for-turn ruparm around x-axis;
 	isAiming = 1;
 	if( isBuilding == 1 )
 	{
@@ -646,7 +633,7 @@ FireWeapon1()
 	return (1);
 }
 
-Shot1(zero)
+Shot1()
 {
 	signal SIGNAL_SHOOT1;
 	set-signal-mask SIGNAL_SHOOT1;
@@ -659,13 +646,11 @@ Shot1(zero)
 QueryWeapon2(pieceIndex) //uw weapon
 {
 	pieceIndex = laserflare;
-	return (0);
 }
 
 AimFromWeapon2(pieceIndex)
 {
 	pieceIndex = laserflare;
-	return (0);
 }
 
 AimWeapon2(heading, pitch)
@@ -685,16 +670,13 @@ AimWeapon2(heading, pitch)
 		return (0);
 	}
 	rightarm = 0;
-	//call-script FixArms(0, 1);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn torso to  y-axis heading speed <300.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading speed <300.0> ;
 	torsoaim = heading;
-	turn rloarm to  x-axis <-55> speed <390.0> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-	turn ruparm to x-axis <-40> - pitch speed <390.0> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
+	turn rloarm to  x-axis <-55> speed <390.0> ;
+	turn ruparm to x-axis <-40> - pitch speed <390.0> ;
 	wait-for-turn torso around y-axis;
-	//wait-for-turn rloarm around x-axis;
-	//wait-for-turn ruparm around x-axis;
 	isAiming = 1;
 	if( isBuilding == 1 )
 	{
@@ -707,24 +689,20 @@ AimWeapon2(heading, pitch)
 FireWeapon2()
 {
 	sleep 100;
-	return (0);
 }
 
 QueryWeapon3(pieceIndex) //dgun
 {
 	pieceIndex = lflare;
-	return (0);
 }
 
 AimFromWeapon3(pieceIndex)
 {
 	pieceIndex = biggun;
-	return (0);
 }
 
 FireWeapon3()
 {
-	//emit-sfx 1024 + 0 from lflare;
 	isAimingDgun = 0;
 	turn luparm to x-axis <20> now;
 	turn biggun to x-axis <-100> now;
@@ -733,9 +711,6 @@ FireWeapon3()
 	turn luparm to x-axis <5> speed <100>;
 	turn biggun to x-axis <-85> speed <100>;
 	move barrel to y-axis [0] speed [5];
-	
-	//call-script bigfire();
-	return (0);
 }
 
 AimWeapon3(heading, pitch)
@@ -745,12 +720,10 @@ AimWeapon3(heading, pitch)
 	isAimingDgun = 1;
 	isAiming = 1;
 	leftArm = 0;
-	//call-script FixArms(1, 0);
-	turn torso to  y-axis heading speed <360.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn biggun to  x-axis <-85> speed <390.0> ; //-- Turn(biggun, x-axis, math.rad(-85), math.rad(390))
-	turn luparm to 	x-axis <5> - pitch speed <390.0> ; //-- Turn(luparm,	x-axis, math.rad(-5) - pitch, math.rad(390))
+	turn torso to  y-axis heading speed <360.0> ;
+	turn biggun to  x-axis <-85> speed <390.0> ;
+	turn luparm to 	x-axis <5> - pitch speed <390.0> ;
 	wait-for-turn torso around y-axis;
-	//wait-for-turn biggun around x-axis;
 	return (1);
 }
 
@@ -825,13 +798,11 @@ AimWeapon4(heading, pitch)
 AimFromWeapon5(pieceIndex)
 {
 	pieceIndex = biggun;
-	return (0);
 }
 
 QueryWeapon5(pieceIndex)
 {
 	pieceIndex = lflare;
-	return (0);
 }
 
 AimWeapon5(heading, pitch)
@@ -849,12 +820,10 @@ AimWeapon5(heading, pitch)
 	isAimingBotCannon = 1;
 	isAiming = 1;
 	leftArm = 0;
-	//call-script FixArms(1, 0);
-	turn torso to  y-axis heading speed <360.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn biggun to  x-axis <-85> speed <390.0> ; //-- Turn(biggun, x-axis, math.rad(-85), math.rad(390))
-	turn luparm to 	x-axis <5> - pitch speed <390.0> ; //-- Turn(luparm,	x-axis, math.rad(-5) - pitch, math.rad(390))
+	turn torso to  y-axis heading speed <360.0> ;
+	turn biggun to  x-axis <-85> speed <390.0> ;
+	turn luparm to 	x-axis <5> - pitch speed <390.0> ;
 	wait-for-turn torso around y-axis;
-	//wait-for-turn biggun around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -869,9 +838,6 @@ FireWeapon5()
 	turn luparm to x-axis <5> speed <100>;
 	turn biggun to x-axis <-85> speed <100>;
 	move barrel to y-axis [0] speed [5];
-	
-	//call-script bigfire();
-	return (0);
 }
 
 SprayNano(heading, pitch){
@@ -890,21 +856,17 @@ SprayNano(heading, pitch){
 StartBuilding(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	//set-signal-mask SIGNAL_AIM1;
 	isBuilding		= 1;
 	rightArm = 0;
-	//turn torso to  x-axis <0> speed <395.0> ; //-- Turn(torso, x-axis, 0, math.rad(395))
-	//turn pelvis to  x-axis <0> speed <395.0> ; //-- Turn(pelvis, x-axis, 0, math.rad(395))
-	turn torso to  y-axis heading speed <300.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn rloarm to  x-axis <-40> speed <390.0> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-	turn ruparm to x-axis <-55> -pitch speed <390.0> ; //-- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
+	turn torso to  y-axis heading speed <300.0> ;
+	turn rloarm to  x-axis <-40> speed <390.0> ;
+	turn ruparm to x-axis <-55> -pitch speed <390.0> ;
 
 	wait-for-turn ruparm around x-axis;
 	set INBUILDSTANCE to 1;
 	buildHeading = heading;
 	buildPitch = pitch;
 	start-script SprayNano(heading,pitch);
-	return (0);
 }
 
 
@@ -915,7 +877,6 @@ TargetCleared(targetID)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	call-script RestoreAfterDelay();
-	return (0);
 }
 
 
@@ -927,7 +888,6 @@ StopBuilding()
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	call-script RestoreAfterDelay();
-	return (0);
 }
 
 //-----------------------------------------------------------------------

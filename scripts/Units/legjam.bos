@@ -8,46 +8,13 @@ static-var  Stunned;
 #define SMOKE_PIECE base
 #include "../damagedsmoke.h"
 
-Go()
-{
-	spin strut around y-axis speed <80>;
-
-	move dishD to x-axis [0] speed <600>;
-	move dishD to z-axis [0] speed <600>;
-
-	move dishC to x-axis [0] speed <600>;
-	move dishC to z-axis [0] speed <600>;
-
-	move dishB to x-axis [0] speed <600>;
-	move dishB to z-axis [0] speed <600>;
-
-	move dishA to x-axis [0] speed <600>;
-	move dishA to z-axis [0] speed <600>;
-}
-Stop()
-{
-	move dishD to x-axis [-3.4] speed <600>;
-	move dishD to z-axis [-3.4] speed <600>;
-
-	move dishC to x-axis [3.4] speed <600>;
-	move dishC to z-axis [-3.4] speed <600>;
-
-	move dishB to x-axis [3.4] speed <600>;
-	move dishB to z-axis [3.4] speed <600>;
-
-	move dishA to x-axis [-3.4] speed <600>;
-	move dishA to z-axis [3.4] speed <600>;
-
-	stop-spin strut around y-axis;
-}
-
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+		call-script Deactivate();
 	} else {
-	    call-script Go();
+		call-script Activate();
 	}
 }
 
@@ -71,12 +38,36 @@ Create()
 
 Activate()
 {
-	call-script Go();
+	spin strut around y-axis speed <80>;
+
+	move dishD to x-axis [0] speed <600>;
+	move dishD to z-axis [0] speed <600>;
+
+	move dishC to x-axis [0] speed <600>;
+	move dishC to z-axis [0] speed <600>;
+
+	move dishB to x-axis [0] speed <600>;
+	move dishB to z-axis [0] speed <600>;
+
+	move dishA to x-axis [0] speed <600>;
+	move dishA to z-axis [0] speed <600>;
 }
 
 Deactivate()
 {
-	call-script Stop();
+	move dishD to x-axis [-3.4] speed <600>;
+	move dishD to z-axis [-3.4] speed <600>;
+
+	move dishC to x-axis [3.4] speed <600>;
+	move dishC to z-axis [-3.4] speed <600>;
+
+	move dishB to x-axis [3.4] speed <600>;
+	move dishB to z-axis [3.4] speed <600>;
+
+	move dishA to x-axis [-3.4] speed <600>;
+	move dishA to z-axis [3.4] speed <600>;
+
+	stop-spin strut around y-axis;
 }
 
 Killed(severity, corpsetype)

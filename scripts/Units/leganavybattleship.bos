@@ -1,6 +1,5 @@
 
 #include "../recoil_common_includes.h"
-#include "../opencloseanim.h"
 
 
 piece
@@ -82,14 +81,12 @@ piece
 // initialisation
 
 static-var justCreated, whichBarrel;
-static-var  gun_2;
 static-var reloading_barrel_1, reloading_barrel_2, last_primary_heading2, last_primary_heading3;
 static-var deltaheading, newchassisheading, chassisheading, restore_position, aimDir1;
 // Signal definitions
 #define SIGNAL_AIM1	256
 #define SIGNAL_AIM2 512
 #define SIGNAL_AIM3 1024
-// #define SIGNAL_AIM4 2048
 #define SIGNAL_MOVE 1
 
 #define RB_MASS 40
@@ -118,69 +115,17 @@ static-var deltaheading, newchassisheading, chassisheading, restore_position, ai
 #define AIMY1_RESTORE_SPEED <1.0>
 
 static-var aimy1delta, timetozero, deceleratethreshold;
-static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
+static-var aimy1velocity, aimy1target, aimy1position;
 static-var  Stunned;
-static-var  isMoving, isAiming, inWaterForm,
-            restore_delay, isInWater, wpn1_lasthead, wpn3_lasthead;
+static-var  isMoving, inWaterForm,
+            restore_delay, isInWater;
 
 /////////////////////////////////////////////////////////////// WALK CYCLE
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 // this iteration cannot ever use a while loop or else memory leak will happen, every if statement is perfectly timed
 static-var animSpeed, animFramesPerKeyframe;
-//#define SIGNAL_MOVE 1
-Walk() {//
-	//set-signal-mask SIGNAL_MOVE;
-	// if (isMoving) { //Frame:1
-	// 	move base to y-axis [-3.378240] speed [5.718963] / animSpeed; 
-	// 	turn legFootL1 to x-axis <-1.789077> speed <25.161802> / animSpeed; 
-	// 	turn legFootL1 to z-axis <-2.532734> speed <7.003548> / animSpeed; 
-	// 	turn legFootL1 to y-axis <-5.896861> speed <27.795224> / animSpeed; 
-	// 	move legFootL2 to z-axis [-1.310204] speed [8.095533] / animSpeed; 
-	// 	turn legFootL2 to x-axis <-10.324307> speed <71.364830> / animSpeed; 
-	// 	turn legFootL2 to z-axis <13.503781> speed <24.241187> / animSpeed; 
-	// 	turn legFootL2 to y-axis <-8.808150> speed <38.734549> / animSpeed; 
-	// 	turn legFootR1 to x-axis <17.763329> speed <23.210639> / animSpeed; 
-	// 	turn legFootR1 to z-axis <-24.279781> speed <12.635918> / animSpeed; 
-	// 	turn legFootR1 to y-axis <-17.248236> speed <17.292195> / animSpeed; 
-	// 	turn legFootR2 to x-axis <-11.834739> speed <20.371159> / animSpeed; 
-	// 	turn legFootR2 to z-axis <2.081089> speed <8.030145> / animSpeed; 
-	// 	turn legFootR2 to y-axis <11.960652> speed <24.627767> / animSpeed; 
-	// 	turn legLowerL1 to x-axis <1.199315> speed <15.002166> / animSpeed; 
-	// 	turn legLowerL1 to z-axis <-4.309484> speed <14.408903> / animSpeed; 
-	// 	turn legLowerL1 to y-axis <0.432853> speed <3.708152> / animSpeed; 
-	// 	turn legLowerL2 to x-axis <4.827670> speed <34.594225> / animSpeed; 
-	// 	turn legLowerL2 to z-axis <15.981692> speed <67.392759> / animSpeed; 
-	// 	turn legLowerL2 to y-axis <-1.982103> speed <17.515516> / animSpeed; 
-	// 	turn legLowerR1 to z-axis <56.586468> speed <74.829196> / animSpeed; 
-	// 	turn legLowerR1 to y-axis <3.832764> speed <5.960988> / animSpeed; 
-	// 	turn legLowerR2 to x-axis <7.326858> speed <11.166975> / animSpeed; 
-	// 	turn legLowerR2 to z-axis <3.051907> speed <12.105078> / animSpeed; 
-	// 	turn legMidL1 to z-axis <2.506720> speed <7.151490> / animSpeed; 
-	// 	turn legMidL2 to x-axis <0.931742> speed <6.846673> / animSpeed; 
-	// 	turn legMidL2 to z-axis <-7.384340> speed <10.559289> / animSpeed; 
-	// 	turn legMidL2 to y-axis <-1.413452> speed <11.815857> / animSpeed; 
-	// 	turn legMidR1 to z-axis <-12.085315> speed <34.591382> / animSpeed; 
-	// 	turn legMidR2 to z-axis <0.132029> speed <3.637605> / animSpeed; 
-	// 	turn legPivotL1 to y-axis <1.094960> speed <13.481953> / animSpeed; 
-	// 	turn legPivotL2 to y-axis <3.371136> speed <22.843294> / animSpeed; 
-	// 	turn legPivotR1 to y-axis <15.443968> speed <17.518155> / animSpeed; 
-	// 	turn legPivotR2 to y-axis <-6.851866> speed <12.245727> / animSpeed; 
-	// 	turn legUpperL1 to x-axis <0.820449> speed <9.542444> / animSpeed; 
-	// 	turn legUpperL1 to z-axis <6.157162> speed <18.507042> / animSpeed; 
-	// 	turn legUpperL1 to y-axis <1.198651> speed <14.744647> / animSpeed; 
-	// 	turn legUpperL2 to x-axis <1.953881> speed <14.210023> / animSpeed; 
-	// 	turn legUpperL2 to z-axis <-21.755474> speed <68.825152> / animSpeed; 
-	// 	turn legUpperL2 to y-axis <4.697618> speed <34.352526> / animSpeed; 
-	// 	turn legUpperR1 to x-axis <-3.987169> speed <4.905391> / animSpeed; 
-	// 	turn legUpperR1 to z-axis <-14.333548> speed <19.684469> / animSpeed; 
-	// 	turn legUpperR1 to y-axis <6.752313> speed <7.043940> / animSpeed; 
-	// 	turn legUpperR2 to x-axis <3.929096> speed <4.985534> / animSpeed; 
-	// 	turn legUpperR2 to z-axis <-0.552935> speed <4.118739> / animSpeed; 
-	// 	turn legUpperR2 to y-axis <-7.697430> speed <12.154774> / animSpeed; 
-	// 	turn mainTurretPitchPivot to x-axis <0.255541> speed <4.160940> / animSpeed; 
-	// sleep ((33*animSpeed) -1);
-	// }
+Walk() {
 	animSpeed = 6;
 	if (isMoving) { //Frame:3
 			move base to y-axis [0.255720] speed [10.447083] / animSpeed; 
@@ -1064,7 +1009,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 5) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>11) animSpeed = 11;
 		animSpeed = 6;
@@ -1080,7 +1024,6 @@ StartMoving(reversing)
 	animSpeed = 6;
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	return (0);
 }
 
 StopMoving()
@@ -1090,15 +1033,12 @@ StopMoving()
 	if (!inWaterForm){
 		call-script StopWalking();
 	}
-	
-	return (0);
 }
 
 ///////////////////////////////////////////////////////////////
 
 Close()
 {
-	// set-signal-mask SIGNAL_AIM1;
 	move base to y-axis [-25] speed [35];
 	move legJointPivotRR to z-axis [0] speed [3];
 	move legJointPivotRL to z-axis [0] speed [3];
@@ -1162,14 +1102,13 @@ Close()
 
 	sleep 300;
 	set ARMORED to 1;
-	return (0);
 }
 
 Open()
 {
 	set ARMORED to 0;
 
-    /////////////
+	/////////////
 	move base to 		y-axis [0] speed [35];
 	move legJointPivotRR to z-axis [-3] speed [3];
 	move legJointPivotRL to z-axis [-3] speed [3];
@@ -1196,33 +1135,26 @@ Open()
 	move legJointPivotRL to x-axis [0] speed [18];
 	move legJointPivotRR to x-axis [0] speed [18];
 	sleep 300;
-	return (0);
 }
-
-static-var walkCall;
-
-
-
 
 ExecuteRestoreAfterDelay()
 {
-    while (Stunned) {
+	while (Stunned) {
 		sleep 1;
-    }
+	}
 
 	restore_position = 1;
 	last_primary_heading2 = -1000000;
 	last_primary_heading3 = -1000000;
 	turn mainTurretHeadingPivot to y-axis <0> speed <30>;
-    turn mainTurretPitchPivot to x-axis <0> speed <30>;
+	turn mainTurretPitchPivot to x-axis <0> speed <30>;
 	move base to z-axis [0] speed [100];
-	
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -1301,8 +1233,6 @@ AimControl()
 
 				if (get ABS(aimy1velocity) < (2 * AIMY1_SNAP_TOLERANCE) ){
 					if (get ABS(aimy1delta) < AIMY1_SNAP_TOLERANCE) aimy1velocity = aimy1delta;
-					//if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
-					//if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
 				}
 			
 				aimy1position = aimy1position + aimy1velocity; 
@@ -1317,42 +1247,40 @@ AimControl()
 Movement() {
 	while (TRUE) {
 		isInWater = ((get GROUND_WATER_HEIGHT(get UNIT_XZ)) <-270000);
-        // Handle water transition
-        if (!inWaterForm) {
-            if (isInWater == 1) {
-                call-script Close();
-                inWaterForm = 1;
-                isMoving = FALSE; // try to tell movement to stfu
-                signal SIGNAL_MOVE; // kill Walk() but doesn't work right now due to no signal mask
-            }
-        } else {
-            if (isInWater == 0 && justCreated == 0) {
-                call-script Open();
+		// Handle water transition
+		if (!inWaterForm) {
+			if (isInWater == 1) {
+				call-script Close();
+				inWaterForm = 1;
+				isMoving = FALSE; // try to tell movement to stfu
+				signal SIGNAL_MOVE; // kill Walk() but doesn't work right now due to no signal mask
+			}
+		} else {
+			if (isInWater == 0 && justCreated == 0) {
+				call-script Open();
 				sleep 500;
 				animSpeed = 6;
 				if(isMoving == 0){
 					animSpeed = 6;
 					isMoving = TRUE;
 				}
-				//call-script Walk();
 				animSpeed = 6;
-                inWaterForm = 0;
+				inWaterForm = 0;
 				animSpeed = 6;
-            }
-        }
+			}
+		}
 
-        if (isMoving) {
-            // doubly make sure this thing closes in water
-            if (inWaterForm) {
-                call-script Close();
-            } else {
-                call-script Walk();
-            }
-        } else {
-            sleep 100;
-        }
-    }
-    return (0);
+		if (isMoving) {
+			// doubly make sure this thing closes in water
+			if (inWaterForm) {
+				call-script Close();
+			} else {
+				call-script Walk();
+			}
+		} else {
+			sleep 100;
+		}
+	}
 }
 
 static-var Wobble_status;
@@ -1513,7 +1441,6 @@ FiringMode(){
 
 Create()
 {
-	gun_2 = 1;
 	chassisheading = get HEADING;
 	newchassisheading = chassisheading;
 	deltaheading = 0;
@@ -1523,7 +1450,7 @@ Create()
 	aimy1position = 0;
 	aimy1target = 0;
 	aimy1delta = 0;
-    inWaterForm = 1;
+	inWaterForm = 1;
 	justCreated = 1;
 	isInWater = 1;
 	isMoving = FALSE;
@@ -1540,67 +1467,66 @@ Create()
 	turn cellRotation1 to z-axis <-15> now;
 
 	// CLOSE IT IMMEDIATELY
-		// set-signal-mask SIGNAL_AIM1;
-		move base to y-axis [-25] now;
-		move legJointPivotRR to z-axis [0] now;
-		move legJointPivotRL to z-axis [0] now;
-		move legJointPivotRR to x-axis [0] now;
-		move legJointPivotRL to x-axis [0] now;
+	move base to y-axis [-25] now;
+	move legJointPivotRR to z-axis [0] now;
+	move legJointPivotRL to z-axis [0] now;
+	move legJointPivotRR to x-axis [0] now;
+	move legJointPivotRL to x-axis [0] now;
 
-		//////// back to normal pose
-		turn footJointRL to x-axis <0> now;
-		turn footJointRL to y-axis <0> now;
-		turn footJointRL to z-axis <0> now;
-		turn footJointRR to x-axis <0> now;
-		turn footJointRR to y-axis <0> now;
-		turn footJointRR to z-axis <0> now;
-		turn footJointFL to x-axis <0> now;
-		turn footJointFL to y-axis <0> now;
-		turn footJointFL to z-axis <0> now;
-		turn footJointFR to x-axis <0> now;
-		turn footJointFR to y-axis <0> now;
-		turn footJointFR to z-axis <0> now;
-		turn legJointPivotFL to x-axis <0> now;
-		turn legJointPivotFL to z-axis <0> now;
-		turn legJointPivotFL to y-axis <0> now;
-		turn legJointPivotFR to x-axis <0> now;
-		turn legJointPivotFR to z-axis <0> now;
-		turn legJointPivotFR to y-axis <0> now;
-		turn legJointPivotRL to x-axis <0> now;
-		turn legJointPivotRL to z-axis <0> now;
-		turn legJointPivotRL to y-axis <0> now;
-		turn legJointPivotRR to x-axis <0> now;
-		turn legJointPivotRR to z-axis <0> now;
-		turn legJointPivotRR to y-axis <0> now;
-		turn upperJointFL to 	z-axis <0> now;
-		turn upperJointFR to 	z-axis <0> now;
-		turn upperJointRL to 	x-axis <0> now;
-		turn upperJointRL to 	z-axis <0> now;
-		turn upperJointRL to 	y-axis <0> now;
-		turn upperJointRR to 	x-axis <0> now;
-		turn upperJointRR to 	z-axis <0> now;
-		turn upperJointRR to 	y-axis <0> now;
-		/////////// back to normal pose endnow;
+	//////// back to normal pose
+	turn footJointRL to x-axis <0> now;
+	turn footJointRL to y-axis <0> now;
+	turn footJointRL to z-axis <0> now;
+	turn footJointRR to x-axis <0> now;
+	turn footJointRR to y-axis <0> now;
+	turn footJointRR to z-axis <0> now;
+	turn footJointFL to x-axis <0> now;
+	turn footJointFL to y-axis <0> now;
+	turn footJointFL to z-axis <0> now;
+	turn footJointFR to x-axis <0> now;
+	turn footJointFR to y-axis <0> now;
+	turn footJointFR to z-axis <0> now;
+	turn legJointPivotFL to x-axis <0> now;
+	turn legJointPivotFL to z-axis <0> now;
+	turn legJointPivotFL to y-axis <0> now;
+	turn legJointPivotFR to x-axis <0> now;
+	turn legJointPivotFR to z-axis <0> now;
+	turn legJointPivotFR to y-axis <0> now;
+	turn legJointPivotRL to x-axis <0> now;
+	turn legJointPivotRL to z-axis <0> now;
+	turn legJointPivotRL to y-axis <0> now;
+	turn legJointPivotRR to x-axis <0> now;
+	turn legJointPivotRR to z-axis <0> now;
+	turn legJointPivotRR to y-axis <0> now;
+	turn upperJointFL to 	z-axis <0> now;
+	turn upperJointFR to 	z-axis <0> now;
+	turn upperJointRL to 	x-axis <0> now;
+	turn upperJointRL to 	z-axis <0> now;
+	turn upperJointRL to 	y-axis <0> now;
+	turn upperJointRR to 	x-axis <0> now;
+	turn upperJointRR to 	z-axis <0> now;
+	turn upperJointRR to 	y-axis <0> now;
+	/////////// back to normal pose end
 
-		turn legJointPivotFL to z-axis <35> 	now;
-		turn legJointPivotFR to z-axis <-35> 	now;
-		turn legJointPivotRL to z-axis <35> 	now;
-		turn legJointPivotRR to z-axis <-35> 	now;
+	turn legJointPivotFL to z-axis <35> 	now;
+	turn legJointPivotFR to z-axis <-35> 	now;
+	turn legJointPivotRL to z-axis <35> 	now;
+	turn legJointPivotRR to z-axis <-35> 	now;
 
-		turn lowerLegFL to z-axis <0> now;
-		turn lowerLegFR to z-axis <0> now;
-		turn lowerLegRL to z-axis <0> now;
-		turn lowerLegRR to z-axis <0> now;
+	turn lowerLegFL to z-axis <0> now;
+	turn lowerLegFR to z-axis <0> now;
+	turn lowerLegRL to z-axis <0> now;
+	turn lowerLegRR to z-axis <0> now;
 
-		turn legJointPivotFL to x-axis <-90> 	now;
-		turn legJointPivotFR to x-axis <-90> 	now;
-		turn legJointPivotRL to x-axis <90> 	now;
-		turn legJointPivotRR to x-axis <90> 	now;
-		
-		move legJointPivotFL to x-axis [18] 	now;
-		move legJointPivotFR to x-axis [-18] 	now;
-		move legJointPivotRL to x-axis [18] 	now;
-		move legJointPivotRR to x-axis [-18] 	now;
+	turn legJointPivotFL to x-axis <-90> 	now;
+	turn legJointPivotFR to x-axis <-90> 	now;
+	turn legJointPivotRL to x-axis <90> 	now;
+	turn legJointPivotRR to x-axis <90> 	now;
+	
+	move legJointPivotFL to x-axis [18] 	now;
+	move legJointPivotFR to x-axis [-18] 	now;
+	move legJointPivotRL to x-axis [18] 	now;
+	move legJointPivotRR to x-axis [-18] 	now;
 
 
 	restore_delay = 3000;	
@@ -1614,17 +1540,11 @@ Create()
 		call-script Close();
 		start-script WobbleUnit();
 		start-script Wake();
-		
-		//call-script InitRockBoat();
-		//start-script BoatPhysics();
-		
 	}
 	else{
 		call-script Open();
 		call-script StopWalking();
 	}
-	
-	//start-script BoatPhysics();
 
 	start-script AimControl();
 }
@@ -1669,7 +1589,7 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	if(isInWater){
-		RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+		RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1)
 	}
 	else{
 		return (0);
@@ -1677,7 +1597,7 @@ FireWeapon1()
 
 }
 
-Shot1(zero){
+Shot1(){
 	if(whichBarrel == 0){
 		move barrel1 to z-axis [-10] now;
 		emit-sfx 1024 from flare1;
@@ -1685,7 +1605,6 @@ Shot1(zero){
 		move barrel1 to z-axis [0] speed [10];
 
 		whichBarrel = 1;
-		//return(1);
 	}
 	else if(whichBarrel == 1){
 		move barrel2 to z-axis [-10] now;
@@ -1694,14 +1613,13 @@ Shot1(zero){
 		move barrel2 to z-axis [0] speed [10];
 
 		whichBarrel = 2;
-		//return(1);
 	}
 	else if(whichBarrel == 2){
 		move barrel3 to z-axis [-10] now;
 		emit-sfx 1024 from flare3;
-		sleep 1;	
+		sleep 1;
 		move barrel3 to z-axis [0] speed [10];
-	
+
 		whichBarrel = 0;
 	}
 }
@@ -1760,7 +1678,7 @@ AimWeapon2(heading, pitch)
 FireWeapon2()
 {
 	if(!isInWater){
-		RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+		RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1)
 		move barrel1 to z-axis [-5] now;
 		move barrel2 to z-axis [-5] now;
 		move barrel3 to z-axis [-5] now;
@@ -1775,26 +1693,17 @@ FireWeapon2()
 
 }
 
-Shot2(zero){
+Shot2(){
 	if(whichBarrel == 0){
-		// move barrel1 to z-axis [-10] now;
 		emit-sfx 1024 from flare1b;
-		// sleep 1;
-		// move barrel1 to z-axis [0] speed [10];
 		whichBarrel = 1;
 	}
 	else if(whichBarrel == 1){
-		// move barrel2 to z-axis [-10] now;
 		emit-sfx 1024 from flare2b;
-		// sleep 1;
-		// move barrel2 to z-axis [0] speed [10];
 		whichBarrel = 2;
 	}
 	else if(whichBarrel == 2){
-		// move barrel3 to z-axis [-10] now;
 		emit-sfx 1024 from flare3b;
-		// sleep 1;	
-		// move barrel3 to z-axis [0] speed [10];
 		whichBarrel = 0;
 	}
 }
@@ -1890,46 +1799,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode turreta type BITMAPONLY | NOHEATCLOUD;
-		// explode sleevea type BITMAPONLY | NOHEATCLOUD;
-		// explode guna type BITMAPONLY | NOHEATCLOUD;
-		// explode barrela3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrela2 type BITMAPONLY | NOHEATCLOUD;
-		// explode barrela1 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode turreta type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode sleevea type FALL | NOHEATCLOUD;
-		// explode guna type FALL | NOHEATCLOUD;
-		// explode barrela3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrela2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrela1 type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode turreta type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode sleevea type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode guna type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrela3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrela2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrela1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode turreta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode sleevea type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode guna type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrela3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrela2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrela1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

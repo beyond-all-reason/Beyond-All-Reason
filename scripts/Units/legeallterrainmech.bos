@@ -50,7 +50,7 @@ piece
     rocketFlare3,
     turretfirepoint;
 
-static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult, whichBarrel, whichMissile;
+static-var  last_primary_heading, last_primary_pitch, whichBarrel, whichMissile;
 
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
@@ -1022,7 +1022,7 @@ UnitSpeed(){
 	}
 }
 
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
     animSpeed = 5;
@@ -1033,21 +1033,6 @@ StopMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
-}
-
-Steering(heading)
-{
-	while( 1 )
-	{
-		heading = get HEADING;
-
-		if ( heading < oldheading )	bSteering=TRUE;
-		if ( heading > oldheading )	bSteering=TRUE;
-		if (heading == oldheading ) bSteering=FALSE;
-
-		sleep 66;
-		oldheading = heading;
-	}
 }
 
 #define BASEPIECE chassis
@@ -1066,8 +1051,6 @@ RockUnit(anglex, anglez)
 Create()
 {	
 	isMoving = FALSE;
-	bSteering = FALSE;
-	oldHeading = get HEADING;
 	animSpeed = 5;
     whichBarrel = 0;
     whichMissile = 0;
@@ -1075,14 +1058,12 @@ Create()
     move padR to y-axis [-5] now;
     move padL to y-axis [-5] now;
 	
-	start-script Steering();
 	start-script UnitSpeed();
 	
 	turn legPivotR1 to y-axis <30> now;
 	turn legPivotL1 to y-axis <-30> now;
 	turn legPivotR3 to y-axis <-30> now;
 	turn legPivotL3 to y-axis <30> now;
-	speedmult = 70;
 	
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
@@ -1104,7 +1085,6 @@ ExecuteRestoreAfterDelay()
 	last_primary_pitch = -1000000;
 	wait-for-turn turretHeadingPivot around y-axis;
 	wait-for-turn turretPitchFake around x-axis;
-	wpn1_lasthead = 0xbadface;
 }
 
 SetStunned(State)
@@ -1135,29 +1115,28 @@ fireCommon()
         sleep 1;
         move lowerBarrel to z-axis [-10] speed [1000];
         whichBarrel = 0;
-	    // sleep 751;
         }
     sleep 751;
-	move upperBarrel to z-axis [0.000000] speed [4.000000];
-    move lowerBarrel to z-axis [0.000000] speed [4.000000];
+	move upperBarrel to z-axis [0.0] speed [4.0];
+    move lowerBarrel to z-axis [0.0] speed [4.0];
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turretPitchPivot;
+	pieceIndex = turretPitchPivot;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
     if(whichBarrel == 0) {
-        piecenum = barrelFlare1;
+        pieceIndex = barrelFlare1;
         }
     if(whichBarrel == 1) {
-        piecenum = barrelFlare2;
+        pieceIndex = barrelFlare2;
     }
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	if (AimingState != AIMING_PRIORITY)
 	{
@@ -1169,8 +1148,8 @@ AimPrimary(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn turretHeadingPivot to y-axis heading speed <30.000000>;
-	turn turretPitchFake to x-axis <0.000000> - pitch speed <45.000000>;
+	turn turretHeadingPivot to y-axis heading speed <30.0>;
+	turn turretPitchFake to x-axis <0.0> - pitch speed <45.0>;
 	if ( (get ABS(last_primary_heading - heading)>180) OR (get ABS(last_primary_pitch - pitch)>270) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
@@ -1192,27 +1171,27 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	call-script fireCommon();
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turretPitchPivot;
+	pieceIndex = turretPitchPivot;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
     if(whichBarrel == 0) {
-        piecenum = barrelFlare1;
+        pieceIndex = barrelFlare1;
         }
     if(whichBarrel == 1) {
-        piecenum = barrelFlare2;
+        pieceIndex = barrelFlare2;
     }
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	if (AimingState != AIMING_BACKUP)
 	{
@@ -1224,8 +1203,8 @@ AimSecondary(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn turretHeadingPivot to y-axis heading speed <30.000000>;
-	turn turretPitchFake to x-axis <0.000000> - pitch speed <45.000000>;
+	turn turretHeadingPivot to y-axis heading speed <30.0>;
+	turn turretPitchFake to x-axis <0.0> - pitch speed <45.0>;
 	if ( (get ABS(last_primary_heading - heading)>180) OR (get ABS(last_primary_pitch - pitch)>270) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
@@ -1246,22 +1225,22 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {	
 	call-script fireCommon();
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = turretfirepoint;
+	pieceIndex = turretfirepoint;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = chassis;
+	pieceIndex = chassis;
 }
 
-AimTertiary(piecenum)
+AimWeapon3(piecenum)
 {
 	return (0);
 }
@@ -1308,17 +1287,14 @@ QueryWeapon4(pieceIndex){
 
 Shot4(zero) {
     if (whichMissile == 0){
-        //emit-sfx 1024 + 0 from barrelFlare1;
         whichMissile = 1;
         emit-sfx 1024 + 1 from rocketFlare1;
     }
     if (whichMissile == 1){
-        //emit-sfx 1024 + 0 from barrelFlare2;
         whichMissile = 2;
         emit-sfx 1024 + 1 from rocketFlare2;
     }
     if (whichMissile == 2){
-        //emit-sfx 1024 + 0 from barrelFlare3;
         whichMissile = 0;
         emit-sfx 1024 + 1 from rocketFlare3;
     }

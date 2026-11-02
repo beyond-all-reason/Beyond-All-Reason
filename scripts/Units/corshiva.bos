@@ -6,7 +6,7 @@ piece  pelvis, aimy1, torso, aimx1, lgun, rgun, lflare, rflare, lbarrel, rbarrel
 
 static-var  isMoving, isAiming, restore_delay, gun_left;
 
-static-var animSpeed, maxSpeed, animFramesPerKeyframe, curSpeed, doorOpen, rocketswitch, bAnimate;
+static-var animSpeed, maxSpeed, animFramesPerKeyframe, doorOpen, rocketswitch, bAnimate;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -438,9 +438,8 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 3) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>6) animSpeed = 6;
+		if (animSpeed>6) animSpeed = 6;
 		sleep 200;
 		
 		groundheight = (get GROUND_WATER_HEIGHT(unitxz));
@@ -479,16 +478,13 @@ Create()
 	rocketswitch = 0;
 	
 	call-script CATT1_Init();
-	hide lflare;
-	hide rflare;
 	restore_delay = 5000;
 	set ARMORED to 1;
 	start-script UnitSpeed();
 }
 
-SetMaxReloadTime(maxtime_ms) //this is called by engine immediately after Create(), and returns the longest of all weapon reload times in ms
+SetMaxReloadTime(reloadMS) //this is called by engine immediately after Create(), and returns the longest of all weapon reload times in ms
 {
-	//restore_delay = maxtime_ms;
 }
 
 StartMoving(reversing)
@@ -596,7 +592,6 @@ QueryWeapon1(pieceIndex)
 //													Rocket Launcher
 AimWeapon2(heading, pitch)
 {
-	
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
 	
@@ -777,4 +772,3 @@ Killed(severity, corpsetype)
 		explode torso type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
-

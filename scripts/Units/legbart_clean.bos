@@ -30,17 +30,16 @@ cannisterFlare;
 //MAKE SURE FIRE POINTS REMAIN CONSECUTIVE!
 
 // Signal definitions
+#define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
-#define SIG_RESTORE 512
-#define SIG_TRANS 	1024
+// SIGNAL_TRANS needs an unused bit: the legacy value 1024 collides with canonical SIGNAL_AIM3
+#define SIGNAL_TRANS 16384
 
 // 
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // Generated for N:\animations\corcat_anim_walk_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
-// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, whichBarrel, deployed, opening;
-#define SIGNAL_MOVE 1
+static-var animSpeed, isMoving, whichBarrel, deployed, opening;
 Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\Tier 2\legbart5SKELETONEXPORT.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:1
@@ -319,22 +318,7 @@ StopWalking() {
 	turn rUpperLeg to y-axis <-1.314367> speed <353.904841> / animSpeed;
 	turn rUpperLeg to z-axis <1.312115> speed <767.861313> / animSpeed;
 }
-// REMEMBER TO animspeed = 4 in Create() !!
-UnitSpeed(){
-	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
-	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
-	while(TRUE){
-		animSpeed = (get CURRENT_SPEED);
-		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<2) animSpeed=2;
-		if (animspeed>9) animSpeed = 9;
-		sleep 158;
-	}
-}
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	animSpeed = 4; 
 	isMoving=TRUE;
@@ -361,8 +345,8 @@ Open()
 
 	if( !opening )
 	{
-		signal SIG_TRANS;
-		set-signal-mask SIG_TRANS;
+		signal SIGNAL_TRANS;
+		set-signal-mask SIGNAL_TRANS;
 		opening = 1;
 	
 		turn topPlate to x-axis <0> speed <90>;
@@ -378,8 +362,8 @@ Close()
 {
 	if( opening )
 	{
-		signal SIG_TRANS;
-		set-signal-mask SIG_TRANS;
+		signal SIGNAL_TRANS;
+		set-signal-mask SIGNAL_TRANS;
 		deployed = 0;
 		opening = 0;
 	
@@ -399,7 +383,7 @@ SetStunned(State)
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_RESTORE;
+	set-signal-mask SIGNAL_IDLE;
 	sleep 3000;
 	if (Stunned) {
         return (1);
@@ -434,12 +418,10 @@ FireWeapon1()
 	move turret to z-axis [-5.0] speed [60.0];
 	wait-for-move turret along z-axis;
 	move turret to z-axis [0.0] speed [3.0];
-	return (0);
 }
 
-Shot1(zero)
+Shot1()
 {
-
 	if (whichBarrel == 0){
 		emit-sfx 1024 + 0 from leftFlare;
 		whichBarrel = 1;
@@ -448,7 +430,6 @@ Shot1(zero)
 		emit-sfx 1024 + 0 from rightFlare;
 		whichBarrel = 0;
 	}
-	return (0);
 }
 
 static-var tilt;
@@ -463,23 +444,23 @@ AimWeapon1(heading, pitch)
 	tilt = get ABS(tilt)/10;
 	tilt = -1*tilt;
 
-	signal SIG_RESTORE;
+	signal SIGNAL_IDLE;
 	start-script RestoreAfterDelay();
     start-script Open();
 
 	turn chassis to y-axis heading speed <140>;
 
-	if ((<0.000000> - pitch) < <-20>)
+	if ((<0.0> - pitch) < <-20>)
 	{
 		turn turretBase to x-axis <-20> speed <85>;
 	}
-	else if ((<0.000000> - pitch) > <25>)
+	else if ((<0.0> - pitch) > <25>)
 	{
 		turn turretBase to x-axis <25> speed <85>;
 	}
 	else
 	{
-		turn turretBase to x-axis <0.000000> - pitch speed <85>;
+		turn turretBase to x-axis <0.0> - pitch speed <85>;
 	}
 	
 	turn turretBase to x-axis tilt speed <10>;

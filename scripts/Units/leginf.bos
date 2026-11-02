@@ -30,8 +30,8 @@ static-var  gun_1, restore_delay;
 #define UNITSIZE 3
 #define MAXTILT 100
 
-#define TB_BASE base 
-#define TB_TURNRATE <15.0> 
+#define TB_BASE base
+#define TB_TURNRATE <15.0>
 #define TB_TILT_X <0.1>
 #define TB_BANK_Z <0.1> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
@@ -108,7 +108,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	if(heading < <90> AND heading > <-90>){	
+	if(heading < <90> AND heading > <-90>){
 		turn turretHeadingPivot to y-axis heading speed <40.0>;
 		if(-1*pitch > <0>){
 			move topBarrel to y-axis [1] speed [10];

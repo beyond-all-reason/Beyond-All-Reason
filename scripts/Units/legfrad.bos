@@ -19,9 +19,57 @@ static-var  Stunned;
 
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-Go()
+Lights()
 {
-	
+	while( TRUE )
+	{
+		if (!Stunned) {
+			emit-sfx 1024 + 0 from blink;
+		}
+		sleep 2500;
+	}
+}
+
+SetStunned(State)
+{
+	Stunned = State;
+	if (Stunned) {
+		call-script Deactivate();
+	} else {
+		call-script Activate();
+	}
+}
+
+Create()
+{
+	turn dishA1 to x-axis <-25> now;
+	turn dishA1 to z-axis <-33> now;
+	turn dishA1 to y-axis <73.3> now;
+
+	turn dishA2 to x-axis <25> now;
+	turn dishA2 to z-axis <-33> now;
+	turn dishA2 to y-axis <-73.3> now;
+
+	turn dishA3 to z-axis <90> now;
+
+	turn dishB1 to x-axis <25> now;
+	turn dishB1 to z-axis <-33> now;
+	turn dishB1 to y-axis <-73.3> now;
+
+	turn dishB2 to x-axis <-25> now;
+	turn dishB2 to z-axis <-33> now;
+	turn dishB2 to y-axis <73.3> now;
+
+	turn dishB3 to z-axis <90> now;
+
+	hide blink;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
+	start-script Lights();
+}
+
+Activate()
+{
 	turn dishA1 to x-axis <0> speed <40>;
 	turn dishA1 to y-axis <0> speed <40>;
 	turn dishA1 to z-axis <0> speed <40>;
@@ -47,92 +95,31 @@ Go()
 	spin dishB around x-axis speed <-40>;
 }
 
-Stop()
+Deactivate()
 {
 	turn dishA1 to x-axis <-25> speed <40>;
 	turn dishA1 to z-axis <-33> speed <40>;
-	turn dishA1 to y-axis <73.300000> speed <40>;
+	turn dishA1 to y-axis <73.3> speed <40>;
 
 	turn dishA2 to x-axis <25> speed <40>;
 	turn dishA2 to z-axis <-33> speed <40>;
-	turn dishA2 to y-axis <-73.300000> speed <40>;
+	turn dishA2 to y-axis <-73.3> speed <40>;
 
 	turn dishA3 to z-axis <90> speed <40>;
 
 	turn dishB1 to x-axis <25> speed <40>;
 	turn dishB1 to z-axis <-33> speed <40>;
-	turn dishB1 to y-axis <-73.300000> speed <40>;
+	turn dishB1 to y-axis <-73.3> speed <40>;
 
 	turn dishB2 to x-axis <-25> speed <40>;
 	turn dishB2 to z-axis <-33> speed <40>;
-	turn dishB2 to y-axis <73.300000> speed <40>;
+	turn dishB2 to y-axis <73.3> speed <40>;
 
 	turn dishB3 to z-axis <90> speed <40>;
 
 	stop-spin dishA around x-axis;
 	stop-spin dishB around x-axis;
 	stop-spin strut around y-axis;
-}
-
-
-SetStunned(State)
-{
-    Stunned = State;
-	if (Stunned) {
-	    call-script Stop();
-	} else {
-	    call-script Go();
-	}
-}
-
-Create()
-{
-	turn dishA1 to x-axis <-25> now;
-	turn dishA1 to z-axis <-33> now;
-	turn dishA1 to y-axis <73.300000> now;
-
-	turn dishA2 to x-axis <25> now;
-	turn dishA2 to z-axis <-33> now;
-	turn dishA2 to y-axis <-73.300000> now;
-
-	turn dishA3 to z-axis <90> now;
-
-	turn dishB1 to x-axis <25> now;
-	turn dishB1 to z-axis <-33> now;
-	turn dishB1 to y-axis <-73.300000> now;
-
-	turn dishB2 to x-axis <-25> now;
-	turn dishB2 to z-axis <-33> now;
-	turn dishB2 to y-axis <73.300000> now;
-
-	turn dishB3 to z-axis <90> now;
-
-	hide blink;
-	SLEEP_UNTIL_UNITFINISHED;
-	start-script FloatMotion();
-	call-script Go();
-}
-
-Lights()
-{
-	while( TRUE )
-	{
-	    if (!Stunned) {
-		    emit-sfx 1024 + 0 from blink;
-		}
-		sleep 2500;
-	}
-}
-
-Activate()
-{
-	start-script Lights();
-	start-script Go();
-}
-
-Deactivate()
-{
-	start-script Stop();
 }
 
 Killed(severity, corpsetype)

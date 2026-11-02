@@ -18,10 +18,10 @@ Go()
 	spin cradle around y-axis speed WindSpeed / -5.0 accelerate <1.0>;
 	spin fan around y-axis speed WindSpeed accelerate <1.0>;
 	//The angular acceleration should always be positive, even if you are spinning the piece at a negative angular speed.
-	//It is measured in Spring angles per frame-second (sa/f*s); in other words, 
-	//the speed of the piece will increase by that amount every frame, not every second. There are 30 frames per second. 
+	//It is measured in Spring angles per frame-second (sa/f*s); in other words,
+	//the speed of the piece will increase by that amount every frame, not every second. There are 30 frames per second.
 	//spin [piece] around [axis] speed [angular speed] accelerate [angular acceleration];
-	
+
 }
 
 Create()
@@ -51,7 +51,7 @@ SetDirection(windDir, windStrength) //called every 450 frames
 {
 	LastDirection = WindDirection;
 	WindDirection = windDir;
-	
+
 	if (!Stunned) {
 		if(Built)
 		{

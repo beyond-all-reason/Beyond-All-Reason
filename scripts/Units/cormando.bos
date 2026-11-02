@@ -7,9 +7,9 @@ piece  turret, sleeve, barrel, torso, rnano,
 
 
 
-#define SIGNAL_AIM1 2
-#define SIGNAL_BUILD 4
-#define SIGNAL_AIM_TRACKER 8
+#define SIGNAL_AIM1 256
+#define SIGNAL_BUILD 2
+#define SIGNAL_AIM_TRACKER 16384
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -321,14 +321,6 @@ StopMoving(){
 #define MAXTILT 100
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-Lights()
-{
-	while (TRUE){
-		emit-sfx 1024 + 1 from head;
-		sleep 2000;
-	}
-}
-
 AimReadyAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM_TRACKER;
@@ -358,14 +350,12 @@ Create()
 	lastTargetID = -4;
 	deploy_state = NOT_DEPLOYED;
 	aimReady = FALSE;
-	// turn flare to x-axis <90> now;
 	animSpeed = 5;
 	spray = 0;
 	restore_delay = 3000;
-	//start-script Lights();
 }
 
-StartBuilding(torsoing, pitch)
+StartBuilding(heading, pitch)
 {
 	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
@@ -373,14 +363,14 @@ StartBuilding(torsoing, pitch)
 	show lnano;
 	show rnano;
 
-	turn luparm to x-axis <-45> speed <375.000000>;
-	turn larm to x-axis <-45> speed <375.000000>;
-	turn ruparm to x-axis <-45> speed <375.000000>;
-	turn rarm to x-axis <-45> speed <375.000000>;
+	turn luparm to x-axis <-45> speed <375.0>;
+	turn larm to x-axis <-45> speed <375.0>;
+	turn ruparm to x-axis <-45> speed <375.0>;
+	turn rarm to x-axis <-45> speed <375.0>;
 	wait-for-turn luparm around x-axis;
 
-	torsoRotation = torsoing;
-	turn aimy1 to y-axis torsoing speed <480.0>;
+	torsoRotation = heading;
+	turn aimy1 to y-axis heading speed <480.0>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
 }
@@ -397,10 +387,10 @@ StopBuilding()
 	set INBUILDSTANCE to 0;
 
 	torsoRotation = 0;
-	turn luparm to x-axis <0> speed <375.000000>;
-	turn larm to x-axis <0> speed <375.000000>;
-	turn ruparm to x-axis <0> speed <375.000000>;
-	turn rarm to x-axis <0> speed <375.000000>;
+	turn luparm to x-axis <0> speed <375.0>;
+	turn larm to x-axis <0> speed <375.0>;
+	turn ruparm to x-axis <0> speed <375.0>;
+	turn rarm to x-axis <0> speed <375.0>;
 	turn aimy1 to y-axis <0.0> speed <320.0>;
 }
 

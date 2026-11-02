@@ -26,7 +26,7 @@ static-var  turretOpen, nextBarrel, stunned, restoreDelay;
 
 Create()
 {
-    hide flareBottom;
+	hide flareBottom;
 	hide flareTop;
 
 	move door1Pivot to y-axis [30] now;
@@ -55,8 +55,6 @@ Create()
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
 	start-script RestoreAfterDelay();
-	return (0);
-	
 }
 
 openTurret(){
@@ -75,7 +73,7 @@ openTurret(){
 	wait-for-turn door6 around x-axis;
 
 	move mainStrut to y-axis [0] speed [100];
-	
+
 	wait-for-move mainStrut along y-axis;
 
 	turn supportStrut to x-axis <0> speed <220>;
@@ -112,37 +110,35 @@ Go(){
 	}
 	turretOpen = 1;
 	set ARMORED to 0;
-	return (0);
 }
 
 Stop(){
 	set ARMORED to 1;
 	turretOpen = 0;
 	call-script closeTurret();
-	return (0);	
 }
 
 ExecuteRestoreAfterDelay()
 {
-    if (stunned)
+	if (stunned)
 	{
-        return (1);
-    }
+		return (1);
+	}
 	set-signal-mask 0;
 	turn mainStrut to y-axis <0.0> speed <100.016484>;
 	turn sleeveHousing to x-axis <0.0> speed <50.005495>;
 	wait-for-turn mainStrut around y-axis;
 	wait-for-turn sleeveHousing around x-axis;
-	
+
 	start-script Stop();
 }
 
 SetStunned(State)
 {
-    stunned = State;
+	stunned = State;
 	if (!stunned)
 	{
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 
@@ -155,7 +151,7 @@ RestoreAfterDelay()
 
 aimCommon(heading, pitch)
 {
-	while( turretOpen == 0 )
+	while( !turretOpen )
 	{
 		sleep 250;
 	}
@@ -169,7 +165,7 @@ aimCommon(heading, pitch)
 
 aimCommonHigh(heading, pitch)
 {
-	while( turretOpen == 0 )
+	while( !turretOpen )
 	{
 		sleep 250;
 	}
@@ -185,7 +181,7 @@ aimCommonHigh(heading, pitch)
 AimWeapon1(heading, pitch)
 {
 	start-script Go();
-	
+
 	if (AimingState != AIMING_PRIORITY)
 	{
 		return(0);
@@ -251,20 +247,20 @@ AimFromWeapon2(pieceIndex)
 fireCommon()
 {
 	if( nextBarrel == 0 )
-		{
-			emit-sfx 1024 + 0 from flareTop;
-			move barrelTop to z-axis [-6.250000] now;
-			sleep 100;
-			move barrelTop to z-axis [0.0] speed [2.500000];
-		}
-		if( nextBarrel == 1 )
-		{
-			emit-sfx 1024 + 0 from flareBottom;
-			move barrelBottom to z-axis [-6.250000] now;
-			sleep 100;
-			move barrelBottom to z-axis [0.0] speed [2.500000];
-		}
-		nextBarrel = !nextBarrel;
+	{
+		emit-sfx 1024 + 0 from flareTop;
+		move barrelTop to z-axis [-6.250000] now;
+		sleep 100;
+		move barrelTop to z-axis [0.0] speed [2.500000];
+	}
+	if( nextBarrel == 1 )
+	{
+		emit-sfx 1024 + 0 from flareBottom;
+		move barrelBottom to z-axis [-6.250000] now;
+		sleep 100;
+		move barrelBottom to z-axis [0.0] speed [2.500000];
+	}
+	nextBarrel = !nextBarrel;
 }
 
 FireWeapon1()

@@ -3,14 +3,7 @@
 
 piece  ground, base, radar, nano1, nano2, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, jetl1, jetr1, jetl2, jetr2, thrustl1, thrustr1, thrustl2, thrustr2;
 
-static-var  oldHead;
 static-var  Stunned;
-
-// Signal definitions
-#define SIGNAL_MOVE 1
-
-#define SIGNAL_AIM1 256
-
 
 #define BASEPIECE base
 #define HITSPEED <10.0>
@@ -136,19 +129,6 @@ Deactivate()
 	start-script Stop();
 }
 
-waveSplash()
-{
-	while( TRUE )
-	{
-		turn base to x-axis <-1.0> speed <1.0>;
-		move base to y-axis [0.23] speed [0.17];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <1.0>;
-		move base to y-axis [0.0] speed [0.17];
-		wait-for-turn base around x-axis;
-	}
-}
-
 StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
@@ -161,8 +141,6 @@ StopMoving()
 	turn base to x-axis <0.0> speed <1.0>;
 	move base to y-axis [0.0] speed [0.17];
 }
-
-
 
 AimWeapon1(heading, pitch)
 {

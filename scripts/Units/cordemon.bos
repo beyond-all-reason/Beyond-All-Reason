@@ -497,18 +497,17 @@ StopWalking() {
 	turn torso to z-axis <0> speed <1.045705>;
 }
 UnitSpeed(){
- maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
- animFramesPerKeyframe = 6; //we need to calc the frames per keyframe value, from the known animtime
- maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
- while(TRUE){
-  animSpeed = (get CURRENT_SPEED);
-  if (animSpeed<1) animSpeed=1;
-  animSpeed = (maxSpeed * 9) / animSpeed; 
-  //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
-  if (animSpeed<4) animSpeed=4;
-  if (animspeed>16) animSpeed = 16;
-  sleep 197;
- }
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 6; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 9) / animSpeed; 
+		if (animSpeed<4) animSpeed=4;
+		if (animSpeed>16) animSpeed = 16;
+		sleep 197;
+	}
 }
 
 Die(){
@@ -881,7 +880,6 @@ Create()
 	turn rbflare to y-axis <35> now;
 	turn lbflare to y-axis <-35> now;
 	SLEEP_UNTIL_UNITFINISHED;
-	return (0);
 }
 
 
@@ -891,22 +889,18 @@ QueryWeapon1(pieceIndex)
 	if( gun_1 == 1 )
 	{
 		pieceIndex = lfflare1;
-		return (0);
 	}
 	if( gun_1 == 2 )
 	{
 		pieceIndex = rfflare1;
-		return (0);
 	}
 	if( gun_1 == 3 )
 	{
 		pieceIndex = lfflare2;
-		return (0);
 	}
 	if( gun_1 == 4 )
 	{
 		pieceIndex = rfflare2;
-		return (0);
 	}
 }
 
@@ -915,19 +909,16 @@ QueryWeapon2(pieceIndex)
 	if( gun_2 == 0 )
 	{
 		pieceIndex = aaflarel;
-		return (0);
 	}
 	if( gun_2 == 1 )
 	{
 		pieceIndex = aaflarer;
-		return (0);
 	}
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = torso;
-	return (0);
 }
 
 AimFromWeapon2(pieceIndex)
@@ -935,12 +926,10 @@ AimFromWeapon2(pieceIndex)
 	if( gun_2 == 1 )
 	{
 		pieceIndex = aaflarel;
-		return (0);
 	}
 	if( gun_2 == 0 )
 	{
 		pieceIndex = aaflarer;
-		return (0);
 	}
 }
 
@@ -984,43 +973,6 @@ SmokeItUp()
 	}
 }
 
-SweepFire()
-{
-	start-script SmokeItUp();
-	if( gun_1 == 1 )
-	{
-		emit-sfx 2048 from lfflare1;
-		emit-sfx 2048 from rfflare1;
-		//emit-sfx 1024 + 0 from lfflare2;
-		//emit-sfx 1024 + 0 from rfflare1;
-	}
-	if( gun_1 == 2 )
-	{
-		emit-sfx 2048 from rfflare1;
-		emit-sfx 2048 from lfflare2;
-		//emit-sfx 1024 + 0 from lfflare2;
-		//emit-sfx 1024 + 0 from rfflare1;
-	}
-	if( gun_1 == 3 )
-	{
-		gun_1 = 0;
-		emit-sfx 2048 from lfflare2;
-		emit-sfx 2048 from rfflare2;
-		//emit-sfx 1024 + 0 from lfflare2;
-		//emit-sfx 1024 + 0 from rfflare1;
-	}
-	if( gun_1 == 4 )
-	{
-		gun_1 = 1;
-		emit-sfx 2048 from rfflare2;
-		emit-sfx 2048 from lfflare1;
-		//emit-sfx 1024 + 0 from lfflare2;
-		//emit-sfx 1024 + 0 from rfflare1;
-	}
-	gun_1 = gun_1 + 2;
-	return (0);
-}
-
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
@@ -1038,24 +990,6 @@ AimWeapon1(heading, pitch)
 		targetswap = -1*(oldheading - heading)/3034;
 	}
 	oldheading = heading;
-	if ( targetswap > 0 AND isfiring == 1 AND FALSE)
-	{
-		start-script SweepFire();
-		sleep 33;
-		start-script SweepFire();
-		sleep 33;
-		start-script SweepFire();
-		sleep 33;
-		//start-script SweepFire();
-		//sleep 33;
-		//start-script SweepFire();
-		//sleep 33;
-		//start-script SweepFire();
-		//sleep 33;
-		targetswap = targetswap - 1;
-		start-script RestoreAfterDelay();
-		return (0);
-	}
 	
 	if ((get ABS(oldheading - heading)) > 2000){
 		wait-for-turn aimy1 around y-axis;
@@ -1063,8 +997,6 @@ AimWeapon1(heading, pitch)
 	}
 	
 	oldheading = heading;
-	//wait-for-turn aimy1 around y-axis;
-	//wait-for-turn aimx1 around x-axis;
 	start-script RestoreAfterDelay();
 	isfiring = 1;
 	return (1);
@@ -1074,8 +1006,8 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn aaturretl to y-axis heading speed <192.500000>;
-	turn aaturretr to y-axis heading speed <192.500000>;
+	turn aaturretl to y-axis heading speed <192.5>;
+	turn aaturretr to y-axis heading speed <192.5>;
 	turn boxl to x-axis -1*pitch speed <90>;
 	turn boxr to x-axis -1*pitch speed <90>;
 	wait-for-turn aaturretl around y-axis;
@@ -1090,32 +1022,24 @@ Shot1()
 	signal SIGNAL_SHOOT1;
 	
 	set-signal-mask SIGNAL_SHOOT1;
-	//emit-sfx 1024 + 0 from lfflare2;
-	//emit-sfx 1024 + 0 from rfflare1;
-	//start-script SmokeItUp();
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptDistortion(3, shotcount);
 	call-script lua_UnitScriptDistortion(4, shotcount);
 
-	//call-script lua_UnitScriptLight(5, shotcount);
-	//call-script lua_UnitScriptLight(6, shotcount);
 	if( gun_1 == 1 )
 	{
 		turn aimy1 to x-axis <-1> now; 
-		//call-script lua_UnitScriptLight(1, shotcount);
 		gun_1 = 2;
 		return(1);
 	}
 	if( gun_1 == 2 )
 	{
-		//call-script lua_UnitScriptLight(2, shotcount);
 		gun_1 = 3;
 		return(1);
 	}
 	if( gun_1 == 3 )
 
 	{		
-		//get PRINT(lightcount1);
 		if (lightcount1 == 25) {
 			call-script lua_UnitScriptLight(1, shotcount);
 			call-script lua_UnitScriptDistortion(1, shotcount);
@@ -1135,8 +1059,6 @@ Shot1()
 		} else {
 			lightcount2 = lightcount2 + 1;
 		}
-		//call-script lua_UnitScriptLight(2, shotcount);
-
 		gun_1 = 1;
 		return(1);
 	}
@@ -1157,17 +1079,16 @@ FireWeapon2()
 		turn aimy1 to x-axis <0> speed <5>;
 		move lfbarrel1 to z-axis [-1] speed [750.0];
 		sleep 150;
-		move lfbarrel1 to z-axis [0.0] speed [8.750000];
+		move lfbarrel1 to z-axis [0.0] speed [8.75];
 		
 	}
 	if( gun_2 == 1 )
 	{
 		move rfbarrel1 to z-axis [-1] speed [750.0];
 		sleep 150;
-		move rfbarrel1 to z-axis [0.0] speed [8.750000];
+		move rfbarrel1 to z-axis [0.0] speed [8.75];
 	}
 	gun_2 = !gun_2;
-	return (0);
 }
 
 Killed(severity, corpsetype)
