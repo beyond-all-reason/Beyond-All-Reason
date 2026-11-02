@@ -17,6 +17,10 @@ if not gadgetHandler:IsSyncedCode() then
 	local aiMsg = VFS.Include("luarules/utilities/campaign_ai_msg.lua")
 
 	function gadget:Initialize()
+		if not Spring.GetGameRulesParam("inMission") then
+			gadgetHandler:RemoveGadget()
+			return
+		end
 		gadgetHandler:AddSyncAction("SetUnitDefsEnabled", BroadcastUnitDefsEnabled)
 		gadgetHandler:AddSyncAction("SetUnitsCtrlEnabled", BroadcastUnitsCtrlEnabled)
 	end

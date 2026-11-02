@@ -33,16 +33,24 @@ describe("luaui.Widgets.api_mission_battle_log", function()
 	end
 
 	before_each(function()
-		rulesParams = {}
+		rulesParams = { inMission = true }
 		i18nCalls = {}
 		language = "en"
 		_G.BAR = { I18N = i18n } ---@diagnostic disable-line: global-in-non-module
 	end)
 
-	it("keeps an empty log outside a mission", function()
+	it("keeps an empty log until the mission publishes one", function()
 		local loaded = loadWidget()
 
 		assert.are.same({}, loaded.WG.MissionAPI.BattleLog)
+	end)
+
+	it("provides no log when no mission loaded", function()
+		rulesParams.inMission = nil
+
+		local loaded = loadWidget()
+
+		assert.is_nil(loaded.WG.MissionAPI)
 	end)
 
 	it("translates the log published so far, oldest first", function()

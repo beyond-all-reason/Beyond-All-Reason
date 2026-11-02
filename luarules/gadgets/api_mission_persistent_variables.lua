@@ -26,6 +26,10 @@ local function savePersistentVariablesToDemo(_, payload)
 end
 
 function gadget:Initialize()
+	if not Spring.GetGameRulesParam("inMission") then
+		gadgetHandler:RemoveGadget()
+		return
+	end
 	gadgetHandler:AddSyncAction(SYNC_ACTION, savePersistentVariablesToDemo)
 end
 

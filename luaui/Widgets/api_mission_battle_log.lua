@@ -41,13 +41,19 @@ local function readNewEntries()
 end
 
 function widget:Initialize()
+	if not spGetGameRulesParam("inMission") then
+		widgetHandler:RemoveWidget()
+		return
+	end
 	table.ensureTable(WG, "MissionAPI").BattleLog = battleLog
 	widgetHandler:RegisterGlobal("MissionBattleLogChanged", readNewEntries)
 	readNewEntries()
 end
 
 function widget:Shutdown()
-	WG.MissionAPI.BattleLog = nil
+	if WG.MissionAPI then
+		WG.MissionAPI.BattleLog = nil
+	end
 	widgetHandler:DeregisterGlobal("MissionBattleLogChanged")
 end
 

@@ -83,6 +83,8 @@ local function loadMission(gameSetup)
 			GG["MissionAPI"].UnitLoadout
 		)
 	end
+
+	Spring.SetGameRulesParam("inMission", true)
 end
 
 function gadget:Initialize()

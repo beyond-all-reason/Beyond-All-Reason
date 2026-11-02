@@ -55,6 +55,10 @@ local function drawUnitMarkers(x, y, z, count)
 end
 
 function gadget:Initialize()
+	if not Spring.GetGameRulesParam("inMission") then
+		gadgetHandler:RemoveGadget()
+		return
+	end
 	gadgetHandler:AddSyncAction(SYNC_ACTION, handleUnitMarkers)
 end
 

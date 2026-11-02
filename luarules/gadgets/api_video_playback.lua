@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc = "Lets synced code play video files and determine when they end",
 		date = "2026-10",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1, -- after api_missions.lua sets inMission
 		enabled = true,
 	}
 end
@@ -109,6 +109,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function gadget:Initialize()
+		if not Spring.GetGameRulesParam("inMission") then
+			gadgetHandler:RemoveGadget()
+			return
+		end
+	end
+
 	function gadget:Shutdown()
 		GG.VideoPlayback = nil
 	end
@@ -129,6 +136,10 @@ else
 	end
 
 	function gadget:Initialize()
+		if not Spring.GetGameRulesParam("inMission") then
+			gadgetHandler:RemoveGadget()
+			return
+		end
 		gadgetHandler:AddSyncAction(SYNC_ACTION, play)
 		gadgetHandler:AddSyncAction(SYNC_ACTION_STOP, stop)
 	end

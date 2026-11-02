@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		name = "Mission API Actions Helper",
 		desc = "Execute certain Mission API actions which cannot be completely done within the actions currently.",
 		date = "2026",
-		layer = 0,
+		layer = 1, -- after api_missions.lua sets inMission
 		enabled = true,
 	}
 end
@@ -32,6 +32,10 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
+		if not Spring.GetGameRulesParam("inMission") then
+			gadgetHandler:RemoveGadget()
+			return
+		end
 		gadgetHandler:AddSyncAction(SYNC_ACTION_SKIPPABLE, setCutsceneSkippable)
 	end
 
@@ -45,7 +49,7 @@ end
 local spAddTeamResource = Spring.AddTeamResource
 local spUseTeamResource = Spring.UseTeamResource
 
-GG["MissionAPIActionHelper"] = {}
+GG.MissionAPIActionHelper = {}
 
 local framesHalfSecond = math.round(0.5 * Game.gameSpeed, 0)
 
@@ -55,7 +59,7 @@ local resourcing = {
 	energyPerSecond = {},
 }
 
-GG["MissionAPIActionHelper"].addMetalPerSecond = function(teamID, metalPerSecond)
+GG.MissionAPIActionHelper.addMetalPerSecond = function(teamID, metalPerSecond)
 	if not resourcing.metalPerSecond[teamID] then
 		resourcing.metalPerSecond[teamID] = 0
 	end
@@ -64,7 +68,7 @@ GG["MissionAPIActionHelper"].addMetalPerSecond = function(teamID, metalPerSecond
 	resourcing.active = true
 end
 
-GG["MissionAPIActionHelper"].addEnergyPerSecond = function(teamID, energyPerSecond)
+GG.MissionAPIActionHelper.addEnergyPerSecond = function(teamID, energyPerSecond)
 	if not resourcing.energyPerSecond[teamID] then
 		resourcing.energyPerSecond[teamID] = 0
 	end
@@ -103,4 +107,15 @@ function gadget:RecvLuaMsg(message, playerID)
 		end
 		return true
 	end
+end
+
+function gadget:Initialize()
+	if not Spring.GetGameRulesParam("inMission") then
+		gadgetHandler:RemoveGadget()
+		return
+	end
+end
+
+function gadget:Shutdown()
+	GG.MissionAPIActionHelper = nil
 end

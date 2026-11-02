@@ -25,6 +25,10 @@ local function onBattleLogChanged()
 end
 
 function gadget:Initialize()
+	if not Spring.GetGameRulesParam("inMission") then
+		gadgetHandler:RemoveGadget()
+		return
+	end
 	gadgetHandler:AddSyncAction(SYNC_ACTION, onBattleLogChanged)
 end
 
