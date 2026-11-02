@@ -55,11 +55,8 @@ local function discoverIn(folder, vfsMode, widgets, warnings, byId)
 		elseif manifest then
 			local id = manifest.id
 			if not WidgetManifests.IsValidId(id) then
-				warnings[#warnings + 1] = string.format(
-					"%s: id %s is not a valid widget id; manifest ignored",
-					manifestFile,
-					tostring(id)
-				)
+				warnings[#warnings + 1] =
+					string.format("%s: id %s is not a valid widget id; manifest ignored", manifestFile, tostring(id))
 			elseif byId[id] then
 				warnings[#warnings + 1] = string.format(
 					"%s: widget id %s is already claimed by %s; manifest ignored",
