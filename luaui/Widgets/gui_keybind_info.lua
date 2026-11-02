@@ -255,6 +255,10 @@ function widget:TextInput(utf8char)
 	return false
 end
 
+local function overPanel(x, y)
+	return math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY)
+end
+
 -- Clicks inside the panel go to the editor; a click outside closes it.
 local function mouseEvent(x, y, button, release)
 	if Spring.IsGUIHidden() then
@@ -268,7 +272,7 @@ local function mouseEvent(x, y, button, release)
 			return false
 		end
 
-		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+		if overPanel(x, y) then
 			if not release then
 				keybindEditor.mousePress(x, y, button)
 			end
@@ -293,6 +297,11 @@ end
 
 function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
+end
+
+-- The engine asks this before it picks the cursor and the default command from what is under the panel.
+function widget:IsAbove(x, y)
+	return show == true and not Spring.IsGUIHidden() and overPanel(x, y)
 end
 
 -- Swallowed across the whole panel, not just the list: a wheel that gets through zooms
