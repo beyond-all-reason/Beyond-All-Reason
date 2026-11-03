@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  wingl, wingr, finl, finr, base, thrusta, thrustb, doorr, doorl, bombr1,bombr2,bombl1, bombl2, cowl, fan, arml, armr;
+piece  wingl, wingr, finl, finr, base, thrusta, thrustb, doorr, doorl, bombr1,bombr2,bombl1, bombl2, cowl, fan, arml, armr, firepoint;
 
 static-var  inAileronRoll, gun_3;
 
@@ -60,7 +60,12 @@ Deactivate()
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = fan;
+	pieceIndex = firepoint;
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = firepoint;
 }
 
 FireWeapon1()

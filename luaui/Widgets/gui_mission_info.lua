@@ -24,13 +24,13 @@ local mathFloor = math.floor
 
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
-local spGetGameSpeed = Spring.GetGameSpeed
+
+local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
 
 local vsx, vsy = spGetViewGeometry()
 
 local show = true -- shown by default on first open
 local showOnceMore = false -- used for guishader delay
-local wePaused = false -- tracks if we issued the pause
 local justClosedFromPress = false -- prevents toggleWindow re-opening after mouseEvent close
 
 local screenHeightOrg = 520
@@ -66,19 +66,8 @@ local RectRound, UiElement, UiScroller, elementCorner
 local scenarioData = nil
 
 local function getScenarioid()
-	local raw = _modOpts.scenariooptions
-	if not raw then
-		return nil
-	end
-	local ok, decoded = pcall(string.base64Decode, raw)
-	if not ok or not decoded then
-		return nil
-	end
-	local ok2, opts = pcall(Json.decode, decoded)
-	if not ok2 or type(opts) ~= "table" then
-		return nil
-	end
-	return opts.scenarioid
+	local opts = decodeModoption(_modOpts.scenariooptions)
+	return opts and opts.scenarioid or nil
 end
 
 local function findScenarioData(targetid)
@@ -363,29 +352,11 @@ end
 
 -- ─── Input ───────────────────────────────────────────────────────────────────
 
--- ─── Pause helpers ───────────────────────────────────────────────────────────
-
-local function pauseGame()
-	local _, _, isPaused = spGetGameSpeed()
-	if not isPaused then
-		Spring.SendCommands("pause 1")
-		wePaused = true
-	end
-end
-
-local function unpauseGame()
-	if wePaused then
-		wePaused = false
-		Spring.SendCommands("pause 0")
-	end
-end
-
 function widget:KeyPress(key)
 	if key == 27 then -- ESC
 		if show then
 			showOnceMore = show
 			show = false
-			unpauseGame()
 		end
 	end
 end
@@ -441,7 +412,6 @@ function mouseEvent(x, y, button, release)
 				showOnceMore = show
 				show = false
 				justClosedFromPress = true
-				unpauseGame()
 			end
 		end
 	end
@@ -476,17 +446,11 @@ function widget:Initialize()
 
 	WG.missioninfo = {}
 	WG.missioninfo.toggle = function(state)
-		local wasVisible = show
 		if state ~= nil then
 			show = state
 			justClosedFromPress = false -- explicit state set clears the flag
 		else
 			show = not show
-		end
-		if show and not wasVisible then
-			pauseGame()
-		elseif not show and wasVisible then
-			unpauseGame()
 		end
 		if show then
 			if textList then
@@ -504,19 +468,12 @@ function widget:Initialize()
 	widget:ViewResize()
 end
 
-function widget:GameStart()
-	if show then
-		pauseGame()
-	end
-end
-
 function widget:Update()
 	-- Clear the flag after all mouse events for this frame have been processed
 	justClosedFromPress = false
 end
 
 function widget:Shutdown()
-	unpauseGame()
 	if textList then
 		glDeleteList(textList)
 		textList = nil

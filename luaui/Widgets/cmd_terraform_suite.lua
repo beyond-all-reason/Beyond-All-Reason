@@ -44,7 +44,11 @@ local SUITE_WIDGETS = {
 	"Feature Placer UI",
 	"Weather Brush UI",
 	"Map Labels UI",
+	"Unit Library UI",
+	"Unit Placer",
 	"Map Project",
+	"Map Transform",
+	"Terraform Key Gate",
 }
 
 -- Entry commands that must work before the suite is loaded. Sub-tool actions
@@ -64,13 +68,13 @@ local ENTRY_ACTIONS = {
 }
 
 local suiteEnabled = false
+local pendingCommand, pendingFrames -- entry command to re-dispatch once the suite is in
 
 local function enableSuite()
 	if suiteEnabled then
 		return false
 	end
 	suiteEnabled = true
-	Spring.Echo("[Terraform Suite] Loading map editor widgets...")
 	for i = 1, #SUITE_WIDGETS do
 		widgetHandler:EnableWidget(SUITE_WIDGETS[i])
 	end
@@ -78,6 +82,9 @@ local function enableSuite()
 end
 
 function widget:Initialize()
+	-- the key gate hands keys to these widgets first
+	WG.TerraformSuiteWidgets = SUITE_WIDGETS
+
 	-- EnableWidget persists enablement through SaveConfigData. If a crash
 	-- skipped our Shutdown cleanup the suite comes back enabled next game;
 	-- adopt it so entry commands pass through and Shutdown disables it again.
@@ -112,11 +119,25 @@ function widget:Initialize()
 				return false -- suite widgets own this command now
 			end
 			enableSuite()
-			-- Re-dispatch so the real handler, registered while enabling,
-			-- receives the original command with its arguments.
-			Spring.SendCommands(cmd .. ((optLine and optLine ~= "") and (" " .. optLine) or ""))
+			-- Re-dispatch so the real handler receives the original command with its
+			-- arguments. Not right away: widgets enabled from inside an action are only
+			-- inserted on a later frame, and a command sent now reached no handler.
+			pendingCommand = cmd .. ((optLine and optLine ~= "") and (" " .. optLine) or "")
+			pendingFrames = 2
 			return true
 		end, nil, "t")
+	end
+end
+
+function widget:Update()
+	if not pendingCommand then
+		return
+	end
+	pendingFrames = pendingFrames - 1
+	if pendingFrames <= 0 then
+		local cmd = pendingCommand
+		pendingCommand = nil
+		Spring.SendCommands(cmd)
 	end
 end
 

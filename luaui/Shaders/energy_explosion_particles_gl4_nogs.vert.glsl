@@ -23,16 +23,53 @@ uniform float drawRadius;
 uniform int   u_shape;
 uniform float glowScale;
 uniform float glowIntensity;
+uniform float glowFalloff;
+uniform float coreBoost;
+uniform float hueJitter;
+uniform float cubeNoiseScale;
+uniform float glowBreath;
+uniform float glowBreathFreq;
+uniform float glowBreathVar;
+uniform float glowBreathFreqVar;
 
-out vec4 g_color;
-out vec3 g_normal;
-out vec3 g_worldPos;
-out vec3 g_localPos;
-out vec3 g_noiseSeed;
-out vec2 g_glowUV;
-out float g_isGlow;
-out float g_seed;
-out float g_breathScale;
+// Same outputs as the geometry shader path (gsSrc in gfx_energy_explosion_particles_gl4.lua).
+flat out vec4 g_color; // shape: rgb * hue tint * coreBoost, alpha; halo: premultiplied centre colour
+out vec3 g_normal;     // shape: face normal; halo: (uv, 2.0)
+out vec3 g_worldPos;   // shape only
+out vec3 g_noisePos;   // shape only: localPos * cubeNoiseScale + per-particle seed
+
+// Halo contributions under this round away in the RGBA8 framebuffer (sources clamp to [0, 1]),
+// so each halo quad is cut to the radius where its falloff drops below it.
+const float GLOW_CUTOFF = 0.25 / 255.0;
+
+// Corner signs per template slot in the geometry shader's emit order:
+// cube = 6 faces x 4 (strips), octahedron = 8 triangles x 3.
+const vec3 CUBE_CORNERS[24] = vec3[24](
+	vec3( 1,-1,-1), vec3( 1, 1,-1), vec3( 1,-1, 1), vec3( 1, 1, 1),
+	vec3(-1,-1,-1), vec3(-1,-1, 1), vec3(-1, 1,-1), vec3(-1, 1, 1),
+	vec3(-1, 1,-1), vec3(-1, 1, 1), vec3( 1, 1,-1), vec3( 1, 1, 1),
+	vec3(-1,-1,-1), vec3( 1,-1,-1), vec3(-1,-1, 1), vec3( 1,-1, 1),
+	vec3(-1,-1, 1), vec3( 1,-1, 1), vec3(-1, 1, 1), vec3( 1, 1, 1),
+	vec3(-1,-1,-1), vec3(-1, 1,-1), vec3( 1,-1,-1), vec3( 1, 1,-1)
+);
+const vec3 CUBE_NORMALS[6] = vec3[6](
+	vec3(1, 0, 0), vec3(-1, 0, 0), vec3(0, 1, 0), vec3(0, -1, 0), vec3(0, 0, 1), vec3(0, 0, -1)
+);
+const vec3 OCTA_CORNERS[24] = vec3[24](
+	vec3(0, 1, 0), vec3(0, 0, 1), vec3(1, 0, 0),
+	vec3(0, 1, 0), vec3(-1, 0, 0), vec3(0, 0, 1),
+	vec3(0, 1, 0), vec3(0, 0, -1), vec3(-1, 0, 0),
+	vec3(0, 1, 0), vec3(1, 0, 0), vec3(0, 0, -1),
+	vec3(0, -1, 0), vec3(1, 0, 0), vec3(0, 0, 1),
+	vec3(0, -1, 0), vec3(0, 0, 1), vec3(-1, 0, 0),
+	vec3(0, -1, 0), vec3(-1, 0, 0), vec3(0, 0, -1),
+	vec3(0, -1, 0), vec3(0, 0, -1), vec3(1, 0, 0)
+);
+const vec3 OCTA_NORMALS[8] = vec3[8](
+	vec3( 1,  1,  1), vec3(-1,  1,  1), vec3(-1,  1, -1), vec3( 1,  1, -1),
+	vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, -1, -1), vec3( 1, -1, -1)
+);
+const vec2 GLOW_CORNERS[4] = vec2[4](vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(-1.0, 1.0), vec2(1.0, 1.0));
 
 float hash11(float x) {
 	return fract(sin(x) * 43758.5453);
@@ -48,50 +85,22 @@ mat3 rotXYZ(vec3 a) {
 	return Rz * Ry * Rx;
 }
 
-void emitShapeVertex(int slot, vec3 localPos, vec3 normal, vec3 center, vec4 col, vec3 noiseSeed, float seed, float breathScale) {
-	g_color = col;
-	g_normal = normal;
-	g_noiseSeed = noiseSeed;
-	g_isGlow = 0.0;
-	g_glowUV = vec2(0.0);
-	g_seed = seed;
-	g_breathScale = breathScale;
-	g_localPos = localPos;
-	g_worldPos = center + localPos;
-	gl_Position = cameraViewProj * vec4(g_worldPos, 1.0);
-}
-
-void emitGlowVertex(int slot, vec3 localPos, vec2 glowUV, vec3 center, vec4 col, float seed, float breathScale) {
-	g_color = col;
-	g_normal = vec3(0.0, 1.0, 0.0);
-	g_noiseSeed = vec3(0.0);
-	g_localPos = vec3(0.0);
-	g_isGlow = 1.0;
-	g_seed = seed;
-	g_breathScale = breathScale;
-	g_glowUV = glowUV;
-	g_worldPos = center + localPos;
-	gl_Position = cameraViewProj * vec4(g_worldPos, 1.0);
-}
-
 void main() {
+	// Dead particles and skipped halos collapse off-screen.
+	gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+	g_color = vec4(0.0);
+	g_normal = vec3(0.0);
+	g_worldPos = vec3(0.0);
+	g_noisePos = vec3(0.0);
+
 	float currentFrame = timeInfo.x + timeInfo.w;
 	float spawnFrame   = velAndSpawnFrame.w;
 	float deathFrame   = rotData.w;
+	if (currentFrame >= deathFrame) return;
 
-	if (currentFrame >= deathFrame) {
-		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
-		g_color = vec4(0.0);
-		g_normal = vec3(0.0);
-		g_worldPos = vec3(0.0);
-		g_localPos = vec3(0.0);
-		g_noiseSeed = vec3(0.0);
-		g_glowUV = vec2(0.0);
-		g_isGlow = 0.0;
-		g_seed = 0.0;
-		g_breathScale = 0.0;
-		return;
-	}
+	int slot = int(vertexSlot);
+	bool isGlow = slot >= 24;
+	if (isGlow && !(glowIntensity > 0.0 && glowScale > 1.001)) return;
 
 	float t = max(currentFrame - spawnFrame, 0.0);
 
@@ -153,110 +162,79 @@ void main() {
 		: 1.0;
 	float fade    = fadeOut * fadeIn;
 
-	float rotVel = rotData.y;
-	float rotAcc = rotData.z;
-	float rotVal = rotData.x + rotVel * t + 0.5 * rotAcc * t * t;
-
 	vec3 center = worldPos;
 	vec4 col = instColor * fade;
 	float size  = drawRadius * sizeMult;
 
 	vec3 phaseSeed = vec3(rotData.x, rotData.y, rotData.x + rotData.y);
-	vec3 noiseSeed = phaseSeed * 137.0 + vec3(11.0, 47.0, 83.0);
-	float h  = dot(phaseSeed, vec3(0.123, 0.456, 0.789));
-	vec3 phase = vec3(hash11(h), hash11(h+1.7), hash11(h+3.3)) * 6.2831853;
-	float r = radians(rotVal);
-	vec3 ang = phase + vec3(r * 1.0, r * 1.3, r * 0.7);
-	mat3 R = rotXYZ(ang);
 	float seed = radians(phaseSeed.x);
 
+	vec3 tint = vec3(1.0);
+	if (hueJitter > 0.0001) {
+		tint = vec3(1.0) + hueJitter * vec3(
+			sin(seed),
+			sin(seed + 2.094),
+			sin(seed + 4.188));
+	}
+
+	if (!isGlow) {
+		float rotVel = rotData.y;
+		float rotAcc = rotData.z;
+		float rotVal = rotData.x + rotVel * t + 0.5 * rotAcc * t * t;
+
+		vec3 noiseSeed = phaseSeed * 137.0 + vec3(11.0, 47.0, 83.0);
+		float h  = dot(phaseSeed, vec3(0.123, 0.456, 0.789));
+		vec3 phase = vec3(hash11(h), hash11(h+1.7), hash11(h+3.3)) * 6.2831853;
+		float r = radians(rotVal);
+		vec3 ang = phase + vec3(r * 1.0, r * 1.3, r * 0.7);
+		mat3 R = rotXYZ(ang);
+
+		vec3 s, n;
+		if (u_shape == 1) {
+			s = OCTA_CORNERS[slot];
+			n = R * (OCTA_NORMALS[slot / 3] * 0.57735027);
+		} else {
+			s = CUBE_CORNERS[slot];
+			n = R * CUBE_NORMALS[slot / 4];
+		}
+		vec3 lp = s.x * (R * vec3(size, 0, 0)) + s.y * (R * vec3(0, size, 0)) + s.z * (R * vec3(0, 0, size));
+		g_color = vec4(col.rgb * tint * coreBoost, col.a);
+		g_normal = n;
+		g_worldPos = center + lp;
+		g_noisePos = lp * cubeNoiseScale + noiseSeed;
+		gl_Position = cameraViewProj * vec4(g_worldPos, 1.0);
+		return;
+	}
+
+	// Halo: same per-particle colour and cut radius as the geometry shader path.
 	float totalLifeBR = max(deathFrame - spawnFrame, 1.0);
 	float lifeFrac    = clamp(t / totalLifeBR, 0.0, 1.0);
 	float breathScale = 1.0 - smoothstep(0.5, 1.0, lifeFrac);
 
-	int slot = int(vertexSlot);
-
-	// The geometry shader only emits the glow quad when glow is actually enabled.
-	// The template mesh always contains the 4 glow slots, so move them off-screen
-	// when disabled to avoid wasted fragment shader work.
-	bool emitGlow = (glowIntensity > 0.001) && (glowScale > 1.001);
-	if (slot >= 24 && !emitGlow) {
-		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
-		g_color = vec4(0.0);
-		g_normal = vec3(0.0);
-		g_worldPos = vec3(0.0);
-		g_localPos = vec3(0.0);
-		g_noiseSeed = vec3(0.0);
-		g_glowUV = vec2(0.0);
-		g_isGlow = 0.0;
-		g_seed = 0.0;
-		g_breathScale = 0.0;
-		return;
+	float gI = glowIntensity;
+	if (glowBreath > 0.0001) {
+		float hAmp  = fract(sin(seed * 91.7253 + 17.31) * 43758.5453);
+		float hFreq = fract(sin(seed * 33.1117 + 43.93) * 27183.4500);
+		float ampScale  = max(0.0, 1.0 + glowBreathVar     * (2.0 * hAmp  - 1.0));
+		float freqScale = max(0.0, 1.0 + glowBreathFreqVar * (2.0 * hFreq - 1.0));
+		float ph = (timeInfo.x + timeInfo.w) * glowBreathFreq * freqScale * (6.2831853 / 30.0) + seed;
+		gI *= max(1.0 + glowBreath * breathScale * ampScale * sin(ph), 0.35);
 	}
+	vec3  glowTint = col.rgb / max(max(col.r, max(col.g, col.b)), 0.001);
+	float gLuma    = dot(glowTint, vec3(0.2126, 0.7152, 0.0722));
+	const float GLOW_LUMA_TARGET = 0.55;
+	const float GLOW_BOOST_MAX   = 5.0;
+	float glowBoost = min(GLOW_LUMA_TARGET / max(gLuma, 0.001), GLOW_BOOST_MAX);
+	vec4 glowCol = vec4(glowTint * tint * (gI * glowBoost * col.a), gI * col.a);
+	float peak = max(max(glowCol.r, glowCol.g), max(glowCol.b, glowCol.a));
+	if (peak <= GLOW_CUTOFF) return;
 
-	if (u_shape == 1) {
-		if (slot < 24) {
-			vec3 X = R * vec3(size, 0, 0); vec3 nX = -X;
-			vec3 Y = R * vec3(0, size, 0); vec3 nY = -Y;
-			vec3 Z = R * vec3(0, 0, size); vec3 nZ = -Z;
-			float k = 0.57735027;
-			vec3 n[8];
-			n[0] = R * vec3( k,  k,  k);
-			n[1] = R * vec3(-k,  k,  k);
-			n[2] = R * vec3(-k,  k, -k);
-			n[3] = R * vec3( k,  k, -k);
-			n[4] = R * vec3( k, -k,  k);
-			n[5] = R * vec3(-k, -k,  k);
-			n[6] = R * vec3(-k, -k, -k);
-			n[7] = R * vec3( k, -k, -k);
-			vec3 corners[8][3];
-			corners[0][0] = Y;  corners[0][1] = Z;  corners[0][2] = X;
-			corners[1][0] = Y;  corners[1][1] = nX; corners[1][2] = Z;
-			corners[2][0] = Y;  corners[2][1] = nZ; corners[2][2] = nX;
-			corners[3][0] = Y;  corners[3][1] = X;  corners[3][2] = nZ;
-			corners[4][0] = nY; corners[4][1] = X;  corners[4][2] = Z;
-			corners[5][0] = nY; corners[5][1] = Z;  corners[5][2] = nX;
-			corners[6][0] = nY; corners[6][1] = nX; corners[6][2] = nZ;
-			corners[7][0] = nY; corners[7][1] = nZ; corners[7][2] = X;
-			int tri = slot / 3;
-			int ci  = slot - tri * 3;
-			emitShapeVertex(slot, corners[tri][ci], n[tri], center, col, noiseSeed, seed, breathScale);
-		} else {
-			vec3 right = cameraViewInv[0].xyz * (size * glowScale);
-			vec3 up    = cameraViewInv[1].xyz * (size * glowScale);
-			int gi = slot - 24;
-			if (gi == 0) emitGlowVertex(slot, -right - up, vec2(-1.0, -1.0), center, col, seed, breathScale);
-			else if (gi == 1) emitGlowVertex(slot,  right - up, vec2( 1.0, -1.0), center, col, seed, breathScale);
-			else if (gi == 2) emitGlowVertex(slot, -right + up, vec2(-1.0,  1.0), center, col, seed, breathScale);
-			else              emitGlowVertex(slot,  right + up, vec2( 1.0,  1.0), center, col, seed, breathScale);
-		}
-	} else {
-		if (slot < 24) {
-			vec3 X = R * vec3(size, 0, 0);
-			vec3 Y = R * vec3(0, size, 0);
-			vec3 Z = R * vec3(0, 0, size);
-			vec3 nXp =  R[0]; vec3 nXm = -R[0];
-			vec3 nYp =  R[1]; vec3 nYm = -R[1];
-			vec3 nZp =  R[2]; vec3 nZm = -R[2];
-			vec3 corners[6][4];
-			vec3 normals[6];
-			corners[0][0] =  X-Y-Z; corners[0][1] =  X+Y-Z; corners[0][2] =  X-Y+Z; corners[0][3] =  X+Y+Z; normals[0] = nXp;
-			corners[1][0] = -X-Y-Z; corners[1][1] = -X-Y+Z; corners[1][2] = -X+Y-Z; corners[1][3] = -X+Y+Z; normals[1] = nXm;
-			corners[2][0] = -X+Y-Z; corners[2][1] = -X+Y+Z; corners[2][2] =  X+Y-Z; corners[2][3] =  X+Y+Z; normals[2] = nYp;
-			corners[3][0] = -X-Y-Z; corners[3][1] =  X-Y-Z; corners[3][2] = -X-Y+Z; corners[3][3] =  X-Y+Z; normals[3] = nYm;
-			corners[4][0] = -X-Y+Z; corners[4][1] =  X-Y+Z; corners[4][2] = -X+Y+Z; corners[4][3] =  X+Y+Z; normals[4] = nZp;
-			corners[5][0] = -X-Y-Z; corners[5][1] = -X+Y-Z; corners[5][2] =  X-Y-Z; corners[5][3] =  X+Y-Z; normals[5] = nZm;
-			int quad = slot / 4;
-			int ci   = slot - quad * 4;
-			emitShapeVertex(slot, corners[quad][ci], normals[quad], center, col, noiseSeed, seed, breathScale);
-		} else {
-			vec3 right = cameraViewInv[0].xyz * (size * glowScale);
-			vec3 up    = cameraViewInv[1].xyz * (size * glowScale);
-			int gi = slot - 24;
-			if (gi == 0) emitGlowVertex(slot, -right - up, vec2(-1.0, -1.0), center, col, seed, breathScale);
-			else if (gi == 1) emitGlowVertex(slot,  right - up, vec2( 1.0, -1.0), center, col, seed, breathScale);
-			else if (gi == 2) emitGlowVertex(slot, -right + up, vec2(-1.0,  1.0), center, col, seed, breathScale);
-			else              emitGlowVertex(slot,  right + up, vec2( 1.0,  1.0), center, col, seed, breathScale);
-		}
-	}
+	float extent = min(1.0 - pow(GLOW_CUTOFF / peak, 1.0 / max(glowFalloff, 0.01)), 1.0);
+	vec2 uv = GLOW_CORNERS[slot - 24] * extent;
+	float halfSize = size * glowScale;
+	g_color = glowCol;
+	g_normal = vec3(uv, 2.0);
+	g_worldPos = center;
+	g_noisePos = vec3(0.0);
+	gl_Position = cameraViewProj * vec4(center + (cameraViewInv[0].xyz * uv.x + cameraViewInv[1].xyz * uv.y) * halfSize, 1.0);
 }

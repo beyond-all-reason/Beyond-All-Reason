@@ -246,10 +246,10 @@ void main() {
 	if (doOutline) {
 		float minDepth = 1.0;
 		if (BITMASK_FIELD(effects, 1)) { // terrain outline
-			minDepth = min(minDepth, texture( mapDepthTex, v_screenUV ).r);
+			minDepth = min(minDepth, textureLod( mapDepthTex, v_screenUV, 0.0 ).r); // depth buffer has no mips, and this sits in a non-uniform branch
 		}
 		if (BITMASK_FIELD(effects, 2)) { // units outline
-			minDepth = min(minDepth, texture( modelsDepthTex, v_screenUV ).r);
+			minDepth = min(minDepth, textureLod( modelsDepthTex, v_screenUV, 0.0 ).r);
 		}
 
 		#if (DEPTH_CLIP01 == 1)

@@ -49,7 +49,6 @@ out DataVS {
 	vec4 v_mincolor;
 	vec4 v_maxcolor;
 	vec4 v_centerpos;
-	vec4 v_uvoffsets;
 	vec4 v_parameters;
 	vec2 v_sizemodifiers;
 	uvec4 v_bartype_index_ssboloc;

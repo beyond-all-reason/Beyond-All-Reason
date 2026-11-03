@@ -2811,6 +2811,26 @@ local unitDistortions = {
 		},
 	},
 
+	corhltfus = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "emit",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 23,
+				noiseStrength = 3.3,
+				noiseScaleSpace = 1.5,
+				distanceFalloff = 0.5,
+				windAffected = -0.5,
+				riseRate = -0.7,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
 	corafus = {
 		distortion = {
 			distortionType = "point",
@@ -4243,7 +4263,7 @@ local unitDistortions = {
 	},
 }
 
-local airjets_effects = VFS.Include("luaui/configs/airjet_effects.lua")
+local airjets_effects = require("luaui/configs/airjet_effects")
 --	["armfig"] = {
 --	{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust" },
 --},
@@ -4281,15 +4301,33 @@ do
 					break
 				end
 			end
-			if not alreadyhasjet then
+
+			if not airjet.distortionEnabled then
+				airjet.distortionEnabled = true
+			end
+
+			if (not alreadyhasjet) and airjet.distortionEnabled then
 				local effectname = "airjet" .. tostring(i) .. airjet.piece
 				local airjetConfig = table.copy(longAirJet)
 
-				-- The radius and cone angle are set to be close to the airjet length and width
-				airjetConfig.radius = airjet.length * 6
-				-- We need to set the theta angle (half -angle of the cone in radians) to ensure that the width-length ratio is correct
-				airjetConfig.theta = math.atan(airjet.width / airjet.length) * 1.2
+				if not airjet.distortionSizeMult then
+					airjet.distortionSizeMult = 1
+				end
+				if not airjet.distortionNoiseStrengthMult then
+					airjet.distortionNoiseStrengthMult = 1
+				end
+				if not airjet.distortionNoiseScaleMult then
+					airjet.distortionNoiseScaleMult = 1
+				end
 
+				-- The radius and cone angle are set to be close to the airjet length and width
+				airjetConfig.radius = airjet.length * 6 * airjet.distortionSizeMult
+				-- We need to set the theta angle (half -angle of the cone in radians) to ensure that the width-length ratio is correct
+				airjetConfig.theta = math.atan(airjet.width / airjet.length) * 1.2 * airjet.distortionSizeMult
+				-- Amount of noise adjustable per-jet.
+				airjetConfig.noiseStrength = airjetConfig.noiseStrength * airjet.distortionNoiseStrengthMult
+				airjetConfig.effectStrength = airjetConfig.effectStrength * airjet.distortionNoiseStrengthMult
+				airjetConfig.noiseScaleSpace = airjetConfig.noiseScaleSpace * airjet.distortionNoiseScaleMult
 				--Spring.Echo("airjetConfig.theta", airjetConfig.theta, airjet.width, airjet.length)
 
 				unitDistortions[unitDefName][effectname] = {

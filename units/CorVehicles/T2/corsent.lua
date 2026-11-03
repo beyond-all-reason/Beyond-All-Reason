@@ -177,6 +177,7 @@ return {
 			[2] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "MOBILEFLAK",
+				fastautoretargeting = true,
 				onlytargetcategory = "VTOL",
 			},
 		},

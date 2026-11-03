@@ -36,6 +36,7 @@ return {
 		turnrate = 520.5,
 		waterline = 0,
 		customparams = {
+			maxrange = 650,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 1,

@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 
 local spGetActionHotkeys = Spring.GetActionHotKeys
 local spGetCameraState = Spring.GetCameraState

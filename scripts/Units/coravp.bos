@@ -5,7 +5,7 @@
 
 piece  base,doorl,doorr ,nano1,nano2,nano3,nano4,nano5,nano6,nano7,nano8,pad, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
 
-static-var  spray;
+static-var  spray, hasOpened;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
@@ -24,6 +24,7 @@ Create()
 	hide cagelight_emit;
 	hide cagelight_emit2;
 	spray = 0;
+	hasOpened = 0;
 }
 
 
@@ -39,26 +40,26 @@ QueryNanoPiece(pieceIndex)
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	move doorl to x-axis [-27.0] speed [27];
-	move doorr to x-axis [27.0] speed [27];
-	wait-for-move doorl along x-axis;
-	
+	if( !hasOpened )
+	{
+		move doorl to x-axis [-27.0] speed [27];
+		move doorr to x-axis [27.0] speed [27];
+		wait-for-move doorl along x-axis;
+		hasOpened = 1;
+	}
 	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	sleep 5000;
-	
-	move doorl to x-axis [0.0] speed [24];
-	move doorr to x-axis [0.0] speed [24];
-	wait-for-move doorl along x-axis;
-	
+
 	FACTORY_CLOSE_BUILD;
 }
 

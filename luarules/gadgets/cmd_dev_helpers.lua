@@ -24,6 +24,8 @@ local PACKET_HEADER = "$dev$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 local PH_B1 = string.byte(PACKET_HEADER, 1)
 
+local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 if gadgetHandler:IsSyncedCode() then
 	startPlayers = {}
 end
@@ -787,6 +789,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n == 1 and isTerrainMod(Spring.GetModOptions().debugcommands) then
 			adjustFeatureHeight()
 		end
+		-- ! FIXME: These are console commands on every client.
 		if debugcommands then
 			if debugcommands[n] then
 				Spring.Echo("Executing debugcommand", debugcommands[n])
@@ -821,6 +824,31 @@ if gadgetHandler:IsSyncedCode() then
 				z = z + spacing
 			else
 				x = x + spacing
+			end
+		end
+	end
+
+	local hideFromSensors, restoreSensors ---@type function, function
+	do
+		local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+		local SENSOR_SOURCE = "setsensors"
+		local SENSOR_ATTRIBUTES = {
+			"losRadius",
+			"airLosRadius",
+			"radarRadius",
+			"sonarRadius",
+			"seismicRadius",
+			"jammerRadius",
+			"sonarJamRadius",
+		}
+		hideFromSensors = function(unitID)
+			for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+				setUnitModifier(unitID, attribute, 0, SENSOR_SOURCE)
+			end
+		end
+		restoreSensors = function(unitID)
+			for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+				setUnitModifier(unitID, attribute, nil, SENSOR_SOURCE)
 			end
 		end
 	end
@@ -865,25 +893,9 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				elseif action == "setsensors" then
 					if params == "0" then
-						Spring.SetUnitSensorRadius(unitID, "los", 0)
-						Spring.SetUnitSensorRadius(unitID, "airLos", 0)
-						Spring.SetUnitSensorRadius(unitID, "radar", 0)
-						Spring.SetUnitSensorRadius(unitID, "sonar", 0)
-						Spring.SetUnitSensorRadius(unitID, "seismic", 0)
-						Spring.SetUnitSensorRadius(unitID, "radarJammer", 0)
-						Spring.SetUnitSensorRadius(unitID, "sonarJammer", 0)
+						hideFromSensors(unitID)
 					else
-						local unitDefID = Spring.GetUnitDefID(unitID)
-						local ud = unitDefID and UnitDefs[unitDefID]
-						if ud then
-							Spring.SetUnitSensorRadius(unitID, "los", ud.losRadius or 0)
-							Spring.SetUnitSensorRadius(unitID, "airLos", ud.airLosRadius or ud.losRadius or 0)
-							Spring.SetUnitSensorRadius(unitID, "radar", ud.radarDistance or 0)
-							Spring.SetUnitSensorRadius(unitID, "sonar", ud.sonarDistance or 0)
-							Spring.SetUnitSensorRadius(unitID, "seismic", ud.seismicDistance or ud.seismicdistance or 0)
-							Spring.SetUnitSensorRadius(unitID, "radarJammer", ud.radarDistanceJam or 0)
-							Spring.SetUnitSensorRadius(unitID, "sonarJammer", ud.sonarDistanceJam or 0)
-						end
+						restoreSensors(unitID)
 					end
 				elseif action == "setblocking" then
 					Spring.SetUnitBlocking(unitID, params ~= "0")
@@ -1137,6 +1149,9 @@ else -- UNSYNCED
 			godModeControlEnemies = enabled
 		end
 	end
+
+	local vsx, vsy = Spring.GetViewGeometry()
+	local uiScale = vsy / 1080
 
 	-- Modbroadcast draw state, unsynced, reaches all players.
 	local modbroadcastActive = nil
@@ -1685,12 +1700,19 @@ else -- UNSYNCED
 
 		local headingToFacing = BAR.Utilities.HeadingToFacing
 
+		-- Missions name teams as the startscript does. A team without a name gets a placeholder to replace.
+		local teamNames = {}
+		for _, teamID in ipairs(Spring.GetTeamList()) do
+			local customKeys = select(8, Spring.GetTeamInfo(teamID, true))
+			teamNames[teamID] = customKeys and customKeys.name or ("team" .. teamID)
+		end
+
 		Spring.Echo("local unitLoadout = {")
 		for _, unitID in pairs(Spring.GetAllUnits()) do
 			local unitDefName = UnitDefs[Spring.GetUnitDefID(unitID)].name or "nil"
 			local x, y, z = Spring.GetUnitPosition(unitID)
 			local facing = headingToFacing(Spring.GetUnitHeading(unitID))
-			local team = Spring.GetUnitTeam(unitID)
+			local teamName = teamNames[Spring.GetUnitTeam(unitID)]
 			local isBeingBuilt = Spring.GetUnitIsBeingBuilt(unitID)
 			local isNeutral = Spring.GetUnitNeutral(unitID)
 			local extras = ""
@@ -1702,12 +1724,12 @@ else -- UNSYNCED
 			end
 			Spring.Echo(
 				string.format(
-					"\t{ unitDefName = '%s', x = %d, z = %d, facing = '%s', team = %d%s },",
+					"\t{ unitDefName = '%s', x = %d, z = %d, facing = '%s', teamName = '%s'%s },",
 					unitDefName,
 					math.floor(x),
 					math.floor(z),
 					facing,
-					team,
+					teamName,
 					extras
 				)
 			)
@@ -1873,10 +1895,9 @@ else -- UNSYNCED
 				if elapsed > MODBROADCAST_HOLD then
 					alpha = 1 - ((elapsed - MODBROADCAST_HOLD) / (MODBROADCAST_DURATION - MODBROADCAST_HOLD))
 				end
-				local vsx, vsy = Spring.GetViewGeometry()
 				local c = modbroadcastActive
 				gl.Color(c.r, c.g, c.b, alpha)
-				gl.Text(c.text, vsx / 2, vsy / 2, MODBROADCAST_FONT_SIZE, "cvo")
+				gl.Text(c.text, vsx / 2, vsy / 2, MODBROADCAST_FONT_SIZE * uiScale, "cvo")
 				gl.Color(1, 1, 1, 1)
 			end
 		end
@@ -1986,10 +2007,11 @@ else -- UNSYNCED
 			Spring.Echo("Starting Fightertest")
 			if Spring.GetModOptions().scenariooptions then
 				--Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
-				local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-				Spring.Echo(scenariooptions)
-				scenariooptions = Json.decode(scenariooptions)
-				if scenariooptions and scenariooptions.benchmarkcommand then
+				local scenariooptions = decodeModoption(Spring.GetModOptions().scenariooptions)
+				if not scenariooptions then
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Could not decode scenariooptions")
+				elseif scenariooptions.benchmarkcommand then
+					Spring.Echo(Json.encode(scenariooptions))
 					--This is where the magic happens!
 					isBenchMark = scenariooptions.benchmarkcommand
 					benchMarkFrames = scenariooptions.benchmarkframes

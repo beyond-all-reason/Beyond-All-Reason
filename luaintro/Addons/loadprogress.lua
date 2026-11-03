@@ -13,7 +13,9 @@ end
 local tips = require("savetable.lua")
 
 local startTime = -1
-local cachedLoadTimes = VFS.FileExists("loadprogress_cached.lua") and VFS.Include("loadprogress_cached.lua") or {}
+local cachedLoadTimes = VFS.FileExists("loadprogress_cached.lua")
+		and VFS.Include("loadprogress_cached.lua", {}, VFS.RAW)
+	or {}
 local cachedTotalTime = (cachedLoadTimes[Game.mapName] or -1) * 0.97 --*0.97 cause else last rendered frame would show 99%
 
 function SG.GetLoadProgress()

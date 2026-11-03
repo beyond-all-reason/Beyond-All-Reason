@@ -1118,7 +1118,8 @@ local function provideTopBarFallbacks()
 		return
 	end
 	provide("GetPosition", function()
-		return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale, buttonsArea[2] }
+		local buttonsBottom = showButtons and buttonsArea[2] or buttonsArea[4]
+		return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale, buttonsBottom }
 	end)
 	provide("GetFreeArea", function()
 		-- no resource bars to make room for, so everything left of the strip is free
@@ -1282,14 +1283,15 @@ function widget:Initialize()
 		return buttonAt(x, y)
 	end
 
-	-- The strip's rect, for widgets that place themselves under or beside it (ecostats,
-	-- the spectator HUD). Reports the geometry whether or not the buttons are currently
-	-- drawn; ask getShowButtons() for that.
+	-- The strip's rect, for widgets that place themselves under it (ecostats, the
+	-- spectator HUD). While auto-hidden it has no height, bottom at the screen top, so
+	-- those widgets move up into the space it gave up.
 	WG.topbar.GetButtonsPosition = function()
 		if not buttonsArea[1] then
 			return nil
 		end
-		return { buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], widgetScale }
+		local bottom = showButtons and buttonsArea[2] or buttonsArea[4]
+		return { buttonsArea[1], bottom, buttonsArea[3], buttonsArea[4], widgetScale }
 	end
 
 	WG.topbar.setAutoHideButtons = function(value)

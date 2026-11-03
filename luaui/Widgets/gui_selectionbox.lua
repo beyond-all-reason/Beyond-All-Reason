@@ -7,15 +7,42 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "September 2024",
 		license = "GNU GPL, v2 or later",
-		layer = 999999,
+		layer = 999998, -- alone on its layer: toggling DrawScreen must not reorder it against other widgets
 		enabled = true,
 	}
 end
+
+local spGetSelectionBox = Spring.GetSelectionBox
+local spGetModKeyState = Spring.GetModKeyState
+local spGetMouseState = Spring.GetMouseState
+local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
+
+local glColor = gl.Color
+local glRect = gl.Rect
+local glTexRect = gl.TexRect
+local glTexture = gl.Texture
+local glPolygonMode = gl.PolygonMode
+local glLineWidth = gl.LineWidth
+local glLineStipple = gl.LineStipple
+local glBeginEnd = gl.BeginEnd
+local glVertex = gl.Vertex
+local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
+local GL_LINE = GL.LINE
+local GL_FILL = GL.FILL
+local GL_LINE_LOOP = GL.LINE_LOOP
+
+local mathMax = math.max
+local mathMin = math.min
+
+local vignetteTexture = ":n:" .. LUAUI_DIRNAME .. "Images/vignette.dds"
 
 local lineWidth = 1.5
 
 -- Optional: Enable colored selection box based on modifier keys
 local coloredModifierKeys = true -- Set to false to always use white selection box
+
+-- Update/DrawScreen only run from a left press until its release
+local tracking = false
 
 -- Track minimap selection
 local minimapSelectionActive = false
@@ -23,8 +50,60 @@ local minimapSelectionStart = { x = 0, y = 0 }
 local minimapSelectionEnd = { x = 0, y = 0 }
 local minimapGeometryCache = { x = 0, y = 0, w = 0, h = 0 }
 
+local loopX1, loopY1, loopX2, loopY2 = 0.0, 0.0, 0.0, 0.0
+local function minimapBoxVertices()
+	glVertex(loopX1, loopY1)
+	glVertex(loopX2, loopY1)
+	glVertex(loopX2, loopY2)
+	glVertex(loopX1, loopY2)
+end
+
+local function setTracking(active)
+	if active == tracking then
+		return
+	end
+	tracking = active
+	if active then
+		widgetHandler:UpdateCallIn("Update")
+		widgetHandler:UpdateCallIn("DrawScreen")
+	else
+		widgetHandler:RemoveCallIn("Update")
+		widgetHandler:RemoveCallIn("DrawScreen")
+	end
+end
+
+local function setMinimapSelectionActive(active)
+	if active == minimapSelectionActive then
+		return
+	end
+	minimapSelectionActive = active
+	if active then
+		widgetHandler:UpdateCallIn("DrawInMiniMap")
+	else
+		widgetHandler:RemoveCallIn("DrawInMiniMap")
+	end
+end
+
+local function startMinimapSelection(x, y, mmX, mmY, mmW, mmH)
+	setMinimapSelectionActive(true)
+	minimapSelectionStart.x = x
+	minimapSelectionStart.y = y
+	minimapSelectionEnd.x = x
+	minimapSelectionEnd.y = y
+	-- Cache the geometry
+	minimapGeometryCache.x = mmX
+	minimapGeometryCache.y = mmY
+	minimapGeometryCache.w = mmW
+	minimapGeometryCache.h = mmH
+end
+
+local function leftClickMovesCamera()
+	local minimap = WG.minimap
+	return minimap and minimap.getLeftClickMove and minimap.getLeftClickMove()
+end
+
 function widget:ViewResize(vsx, vsy)
-	lineWidth = math.max(1.5, vsy / 1080)
+	lineWidth = mathMax(1.5, vsy / 1080)
 end
 
 function widget:Initialize()
@@ -33,6 +112,14 @@ function widget:Initialize()
 	-- and making the color transparent
 
 	Spring.LoadCmdColorsConfig("mouseBoxLineWidth 0")
+
+	widgetHandler:RemoveCallIn("Update")
+	widgetHandler:RemoveCallIn("DrawScreen")
+	widgetHandler:RemoveCallIn("DrawInMiniMap")
+	local _, _, leftPressed = spGetMouseState()
+	if leftPressed then
+		setTracking(true)
+	end
 end
 
 function widget:Shutdown()
@@ -41,60 +128,56 @@ function widget:Shutdown()
 end
 
 function widget:DrawScreen() -- This blurs the UI elements obscured by other UI elements (only unit stats so far!)
-	local x1, y1, x2, y2 = Spring.GetSelectionBox()
+	local x1, y1, x2, y2 = spGetSelectionBox()
 	if y2 then
 		-- Get modifier key states
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-
-		gl.PushMatrix()
+		local alt, ctrl, meta, shift = spGetModKeyState()
 
 		local a = 0.03
 		-- Determine color based on modifier keys (if enabled)
 		if coloredModifierKeys and ctrl then
 			-- Brighter red when ctrl is held (with or without other keys)
-			gl.Color(1, 0.25, 0.25, a)
+			glColor(1, 0.25, 0.25, a)
 		elseif coloredModifierKeys and shift then
 			-- Bright green when only shift is held
-			gl.Color(0.45, 1, 0.45, a)
+			glColor(0.45, 1, 0.45, a)
 		else
 			-- White for normal selection
-			gl.Color(1, 1, 1, a * 0.8)
+			glColor(1, 1, 1, a * 0.8)
 		end
 		-- selection box background
-		gl.Rect(x1, y1, x2, y2)
+		glRect(x1, y1, x2, y2)
 		-- selection box background vignette
-		gl.Color(1, 1, 1, 0.03)
-		gl.Texture(":n:" .. LUAUI_DIRNAME .. "Images/vignette.dds")
-		gl.TexRect(x1, y1, x2, y2)
-		gl.Texture(false)
+		glColor(1, 1, 1, 0.03)
+		glTexture(vignetteTexture)
+		glTexRect(x1, y1, x2, y2)
+		glTexture(false)
 
 		-- black selection outline
-		gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
-		gl.LineWidth(lineWidth + 2.5)
-		gl.Color(0, 0, 0, 0.12)
-		gl.Rect(x1, y1, x2, y2)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+		glLineWidth(lineWidth + 2.5)
+		glColor(0, 0, 0, 0.12)
+		glRect(x1, y1, x2, y2)
 
 		-- colored selection outline based on modifier keys
-		gl.LineStipple(true) -- animated stipplelines!
-		gl.LineWidth(lineWidth)
+		glLineStipple(true) -- animated stipplelines!
+		glLineWidth(lineWidth)
 
 		-- Determine color based on modifier keys (if enabled)
 		if coloredModifierKeys and ctrl then
 			-- Brighter red when ctrl is held (with or without other keys)
-			gl.Color(1, 0.82, 0.82, 1)
+			glColor(1, 0.82, 0.82, 1)
 		elseif coloredModifierKeys and shift then
 			-- Bright green when only shift is held
-			gl.Color(0.92, 1, 0.92, 1)
+			glColor(0.92, 1, 0.92, 1)
 		else
 			-- White for normal selection
-			gl.Color(1, 1, 1, 1)
+			glColor(1, 1, 1, 1)
 		end
 
-		gl.Rect(x1, y1, x2, y2)
-		gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
-		gl.LineStipple(false)
-
-		gl.PopMatrix()
+		glRect(x1, y1, x2, y2)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+		glLineStipple(false)
 	end
 end
 
@@ -102,99 +185,69 @@ function widget:MousePress(x, y, button)
 	if button ~= 1 then
 		return false
 	end
+	-- Every engine selection box starts with a left press no widget claimed, so this one is seen
+	setTracking(true)
 
 	-- Don't track selection if minimap left-click-move is enabled
-	if WG.minimap and WG.minimap.getLeftClickMove and WG.minimap.getLeftClickMove() then
+	if leftClickMovesCamera() then
 		return false
 	end
 
 	-- Check if click is on minimap
-	local mmX, mmY, mmW, mmH, minimized, maximized = Spring.GetMiniMapGeometry()
+	local mmX, mmY, mmW, mmH, minimized, maximized = spGetMiniMapGeometry()
 	if not mmX or minimized or maximized then
 		return false
 	end
 
 	-- mmY is bottom edge, top edge is mmY + mmH
-	local minimapBottom = mmY
-	local minimapTop = mmY + mmH
-
-	if x >= mmX and x <= mmX + mmW and y >= minimapBottom and y <= minimapTop then
+	if x >= mmX and x <= mmX + mmW and y >= mmY and y <= mmY + mmH then
 		-- Click is on minimap, start tracking selection
-		minimapSelectionActive = true
-		minimapSelectionStart.x = x
-		minimapSelectionStart.y = y
-		minimapSelectionEnd.x = x
-		minimapSelectionEnd.y = y
-		-- Cache the geometry
-		minimapGeometryCache.x = mmX
-		minimapGeometryCache.y = mmY
-		minimapGeometryCache.w = mmW
-		minimapGeometryCache.h = mmH
+		startMinimapSelection(x, y, mmX, mmY, mmW, mmH)
 	end
 
 	return false
 end
 
 function widget:Update()
-	-- Check if mouse is pressed and on minimap
-	local mx, my, leftPressed = Spring.GetMouseState()
+	local mx, my, leftPressed = spGetMouseState()
 
-	if leftPressed then
-		-- Don't track selection if minimap left-click-move is enabled
-		if WG.minimap and WG.minimap.getLeftClickMove and WG.minimap.getLeftClickMove() then
-			if minimapSelectionActive then
-				minimapSelectionActive = false
-			end
-			return
-		end
-
-		local mmX, mmY, mmW, mmH, minimized, maximized = Spring.GetMiniMapGeometry()
-		local vsx, vsy = Spring.GetViewGeometry()
-		if mmX and not minimized and not maximized then
-			-- mmY is the bottom edge of the minimap (distance from screen bottom)
-			-- Top edge is at mmY + mmH
-			local minimapBottom = mmY
-			local minimapTop = mmY + mmH
-
-			-- Check if mouse is within minimap bounds
-			local onMinimap = (mx >= mmX and mx <= mmX + mmW and my >= minimapBottom and my <= minimapTop)
-
-			if onMinimap then
-				if not minimapSelectionActive then
-					-- Start new selection
-					minimapSelectionActive = true
-					minimapSelectionStart.x = mx
-					minimapSelectionStart.y = my
-					-- Cache the geometry
-					minimapGeometryCache.x = mmX
-					minimapGeometryCache.y = mmY
-					minimapGeometryCache.w = mmW
-					minimapGeometryCache.h = mmH
-				end
-				-- Update end position (not clamped yet, will clamp in Draw)
-				minimapSelectionEnd.x = mx
-				minimapSelectionEnd.y = my
-			elseif minimapSelectionActive then
-				-- Mouse left minimap while dragging, clamp to minimap bounds
-				minimapSelectionEnd.x = math.max(mmX, math.min(mmX + mmW, mx))
-				minimapSelectionEnd.y = math.max(minimapBottom, math.min(minimapTop, my))
-			end
-		end
-	else
+	if not leftPressed then
 		-- Mouse released
-		if minimapSelectionActive then
-			minimapSelectionActive = false
+		setMinimapSelectionActive(false)
+		setTracking(false)
+		return
+	end
+
+	-- Don't track selection if minimap left-click-move is enabled
+	if leftClickMovesCamera() then
+		setMinimapSelectionActive(false)
+		return
+	end
+
+	local mmX, mmY, mmW, mmH, minimized, maximized = spGetMiniMapGeometry()
+	if mmX and not minimized and not maximized then
+		-- mmY is the bottom edge of the minimap (distance from screen bottom)
+		-- Top edge is at mmY + mmH
+		local minimapBottom = mmY
+		local minimapTop = mmY + mmH
+
+		-- Check if mouse is within minimap bounds
+		if mx >= mmX and mx <= mmX + mmW and my >= minimapBottom and my <= minimapTop then
+			if not minimapSelectionActive then
+				-- Start new selection
+				startMinimapSelection(mx, my, mmX, mmY, mmW, mmH)
+			end
+			-- Update end position (not clamped yet, will clamp in Draw)
+			minimapSelectionEnd.x = mx
+			minimapSelectionEnd.y = my
+		elseif minimapSelectionActive then
+			-- Mouse left minimap while dragging, clamp to minimap bounds
+			minimapSelectionEnd.x = mathMax(mmX, mathMin(mmX + mmW, mx))
+			minimapSelectionEnd.y = mathMax(minimapBottom, mathMin(minimapTop, my))
 		end
 	end
 end
 
-function widget:MouseMove(x, y, dx, dy, button)
-	if minimapSelectionActive then
-		minimapSelectionEnd.x = x
-		minimapSelectionEnd.y = y
-	end
-	return false
-end
 function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	-- Skip if PIP minimap replacement is active (it handles its own selection box)
 	if WG.minimap and WG.minimap.isPipMinimapActive and WG.minimap.isPipMinimapActive() then
@@ -207,7 +260,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	end
 
 	-- Don't draw if minimap left-click-move is enabled
-	if WG.minimap and WG.minimap.getLeftClickMove and WG.minimap.getLeftClickMove() then
+	if leftClickMovesCamera() then
 		return
 	end
 
@@ -222,7 +275,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	end
 
 	-- Get modifier key states
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = spGetModKeyState()
 
 	-- Validate that both start and end are within minimap bounds
 	local x1, y1 = minimapSelectionStart.x, minimapSelectionStart.y
@@ -233,10 +286,10 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	local minimapTop = mmY + mmH
 
 	-- Clamp coordinates to minimap bounds (in case mouse went outside)
-	x1 = math.max(mmX, math.min(mmX + mmW, x1))
-	y1 = math.max(minimapBottom, math.min(minimapTop, y1))
-	x2 = math.max(mmX, math.min(mmX + mmW, x2))
-	y2 = math.max(minimapBottom, math.min(minimapTop, y2)) -- Convert screen coordinates to minimap pixel coordinates
+	x1 = mathMax(mmX, mathMin(mmX + mmW, x1))
+	y1 = mathMax(minimapBottom, mathMin(minimapTop, y1))
+	x2 = mathMax(mmX, mathMin(mmX + mmW, x2))
+	y2 = mathMax(minimapBottom, mathMin(minimapTop, y2)) -- Convert screen coordinates to minimap pixel coordinates
 	local mx1 = ((x1 - mmX) / mmW) * minimapWidth
 	local my1 = ((y1 - mmY) / mmH) * minimapHeight
 	local mx2 = ((x2 - mmX) / mmW) * minimapWidth
@@ -259,37 +312,28 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	end -- Draw filled rectangle with transparency
 	local a = 0.08
 	if ctrl then
-		gl.Color(1, 0.25, 0.25, a)
+		glColor(1, 0.25, 0.25, a)
 	elseif shift then
-		gl.Color(0.45, 1, 0.45, a)
+		glColor(0.45, 1, 0.45, a)
 	else
-		gl.Color(1, 1, 1, a * 0.8)
+		glColor(1, 1, 1, a * 0.8)
 	end
-	gl.BeginEnd(GL.QUADS, function()
-		gl.Vertex(mx1, my1)
-		gl.Vertex(mx2, my1)
-		gl.Vertex(mx2, my2)
-		gl.Vertex(mx1, my2)
-	end)
+	glRect(mx1, my1, mx2, my2)
 
 	-- Draw stippled outline
-	gl.LineStipple(true)
-	gl.LineWidth(2.0)
+	glLineStipple(true)
+	glLineWidth(2.0)
 	if ctrl then
-		gl.Color(1, 0.82, 0.82, 1)
+		glColor(1, 0.82, 0.82, 1)
 	elseif shift then
-		gl.Color(0.92, 1, 0.92, 1)
+		glColor(0.92, 1, 0.92, 1)
 	else
-		gl.Color(1, 1, 1, 1)
+		glColor(1, 1, 1, 1)
 	end
-	gl.BeginEnd(GL.LINE_LOOP, function()
-		gl.Vertex(mx1, my1)
-		gl.Vertex(mx2, my1)
-		gl.Vertex(mx2, my2)
-		gl.Vertex(mx1, my2)
-	end)
-	gl.LineStipple(false)
+	loopX1, loopY1, loopX2, loopY2 = mx1, my1, mx2, my2
+	glBeginEnd(GL_LINE_LOOP, minimapBoxVertices)
+	glLineStipple(false)
 
-	gl.LineWidth(1.0)
-	gl.Color(1, 1, 1, 1)
+	glLineWidth(1.0)
+	glColor(1, 1, 1, 1)
 end

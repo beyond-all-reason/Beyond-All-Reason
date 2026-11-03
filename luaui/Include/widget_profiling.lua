@@ -58,6 +58,7 @@ local retainSortTime = 100
 local subscribers = {}
 local subscriberCount = 0
 local hooked = false
+local hookedHandler
 
 -- [name][callin] = { time since last sample, time since forever, space since last, space }
 local callinStats = {}
@@ -198,8 +199,8 @@ local function hook(w, name)
 	return hookFunc
 end
 
-local function startHook()
-	local wh = widgetHandler
+local function startHook(wh)
+	hookedHandler = wh
 	callInsList = callInsList or buildCallInsList(wh)
 
 	for i = 1, #callInsList do
@@ -252,7 +253,7 @@ local function startHook()
 end
 
 local function stopHook()
-	local wh = widgetHandler
+	local wh = hookedHandler
 	local list = callInsList or buildCallInsList(wh)
 
 	-- Every widget the handler holds, not only the ones still in a callin list: a widget
@@ -311,10 +312,11 @@ local function retick()
 	tick = want or DEFAULT_TICK
 end
 
--- `owner` is any unique key; the widget table itself does. Subscribing twice from the same
--- owner counts once, so a panel can ask on every toggle without keeping track. `interval`
--- is how often that owner wants the numbers refreshed - a reader that updates a column a
--- player is glancing at does not need them as often as one drawing a live graph.
+-- `owner` is the subscribing widget, and the first one's widgetHandler is the one hooked.
+-- Subscribing twice from the same owner counts once, so a panel can ask on every toggle
+-- without keeping track. `interval` is how often that owner wants the numbers refreshed - a
+-- reader that updates a column a player is glancing at does not need them as often as one
+-- drawing a live graph.
 function M.subscribe(owner, interval)
 	if subscribers[owner] then
 		return
@@ -323,7 +325,7 @@ function M.subscribe(owner, interval)
 	subscriberCount = subscriberCount + 1
 	retick()
 	if subscriberCount == 1 then
-		startHook()
+		startHook(owner.widgetHandler)
 	end
 end
 

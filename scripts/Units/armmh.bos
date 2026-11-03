@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  ground, base, flare, box, wake;
+piece  ground, base, flare, box, wake, firepoint;
 
 static-var  isOpen, restore_delay, pivotAngle;
  
@@ -55,6 +55,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+	isOpen = 0;
 	turn box to x-axis <90> speed <90.0>;
 }
 SetStunned(State)
@@ -79,6 +80,7 @@ AimWeapon1(heading, pitch)
 
 	turn box to x-axis <-90> speed <90.0>;
 	wait-for-turn box around x-axis;
+	isOpen = 1;
 
 	start-script RestoreAfterDelay();
 	return (1);
@@ -88,6 +90,11 @@ FireWeapon1()
 {
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = box;
@@ -95,9 +102,8 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = flare;
+	pieceIndex = firepoint;
 }
-
 
 
 Killed(severity, corpsetype)

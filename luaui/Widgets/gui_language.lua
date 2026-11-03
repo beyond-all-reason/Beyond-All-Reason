@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local i18nHelper = VFS.Include("luaui/i18nhelpers.lua")
+local i18nHelper = require("luaui/i18nhelpers")
 
 local customMessageProxies = {
 	["ui.chickens.queenResistant"] = function(data)
@@ -31,7 +31,12 @@ function widget:LanguageChanged()
 end
 
 function widget:Initialize()
-	i18nHelper.RefreshDefs()
+	-- setupdefs.lua refreshed the defs as LuaUI loaded. WG.language is left over only when this widget
+	-- was on before, and the language can have changed through it while this widget was off.
+	local previous = WG.language ---@type table?
+	if previous ~= nil then
+		i18nHelper.RefreshDefs()
+	end
 
 	widgetHandler:RegisterGlobal("GadgetMessageProxy", getMessageProxy)
 

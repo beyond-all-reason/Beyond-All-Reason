@@ -1,7 +1,5 @@
 #version 150 compatibility
 
-uniform sampler2D mapDepths;
-uniform sampler2D modelDepths;
 uniform sampler2D screenCopyTexture;
 uniform sampler2D distortionTexture;
 uniform float distortionOverallStrength = 1.0;
@@ -41,9 +39,8 @@ void main(void) {
     distortion.rgb = distortion.rgb;
     distortion.rg = (1536.0 * distortion.rg) * inverseScreenResolution;
     if (length(distortion.rg) < 0.01) {
-        // Bail early if no real distortion is present
-        gl_FragColor = vec4(0.0);
-        return;
+        // Bail early if no real distortion is present; a discard skips the blend's framebuffer read and write
+        discard;
     }
     // Declare the UV sets and final screen color
     vec2 offsetUV1;

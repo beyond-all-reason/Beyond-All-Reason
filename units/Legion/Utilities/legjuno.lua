@@ -129,12 +129,14 @@ return {
 				texture2 = "smoketrailbar",
 				texture3 = "null",
 				tolerance = 4000,
-				turnrate = 5500,
+				turnrate = 12000,
 				weaponacceleration = 75,
 				weapontimer = 4,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
+					cruise_and_verticalize = true,
+					uptime_max = 9,
 					stockpilelimit = 20,
 					nofire = true,
 					water_splash = 0, -- juno can explode on water

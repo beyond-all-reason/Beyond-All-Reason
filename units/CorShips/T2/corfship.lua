@@ -34,6 +34,7 @@ return {
 		turnrate = 425,
 		waterline = 0,
 		customparams = {
+			maxrange = 450,
 			model_author = "Odin",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorShips/T2",

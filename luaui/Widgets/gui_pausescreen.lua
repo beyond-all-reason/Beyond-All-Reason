@@ -1,5 +1,3 @@
-include("keysym.h.lua")
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
@@ -9,32 +7,40 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "sept 2016",
 		license = "GNU GPL, v2 or later",
-		version = "1.34",
+		version = "1.35",
 		layer = 999999,
 		enabled = true,
 		modalExempt = true, -- some windows pause the game, so this has to stay visible
 	}
 end
 
+-- Overlay look options; all off gives the default look
+-- weigh red/green/blue by perceived brightness (HSP) instead of equally; greys stay the same
+local USE_PERCEIVED_LUMA = true ---@type boolean
+-- smooth tone curve through the 5 grey levels instead of hard steps (no contour lines)
+local SMOOTH_TONE = false ---@type boolean
+-- 0 = off, 1 = overlay ~1.8x stronger and darker towards the corners
+local VIGNETTE = 1 ---@type number
+-- multiplies the grey layer, e.g. { 0.90, 0.97, 1.10 } for a cool look
+local TINT = { 1, 1, 1 } ---@type number[]
+
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
-
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetGameFrame = Spring.GetGameFrame
+local spGetGameRulesParam = Spring.GetGameRulesParam
+local spIsGUIHidden = Spring.IsGUIHidden
 
 local glColor = gl.Color
 local glTexture = gl.Texture
-local glScale = gl.Scale
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
 local glTranslate = gl.Translate
 local glTexRect = gl.TexRect
-local glDeleteFont = gl.DeleteFont
 local glRect = gl.Rect
 local glUseShader = gl.UseShader
-local glCopyToTexture = gl.CopyToTexture
 local glUniform = gl.Uniform
-local glGetUniformLocation = gl.GetUniformLocation
+local glCallList = gl.CallList
 
 local osClock = os.clock
 
@@ -43,13 +49,9 @@ local osClock = os.clock
 -- CONFIGURATION
 
 local fontfile = "fonts/unlisted/Xolonium.otf"
-local vsx, vsy, vpx, vpy = spGetViewGeometry()
-local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 35
 local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.3
-local font =
-	gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 local sizeMultiplier = 1
 local maxShaderAlpha = 0.25
@@ -60,244 +62,284 @@ local slideTime = 0.12
 local fadeToTextAlpha = 0.33
 local fontSizeHeadline = 30
 local autoFadeTime = 1
+local pollInterval = 0.1 -- seconds between pause/freeze checks while nothing is shown
 
-local pauseTimestamp = -10 --start or end of pause
-local lastPause = false
-local wndX1 = nil
-local wndY1 = nil
-local wndX2 = nil
-local wndY2 = nil
-local textX = nil
-local textY = nil
-local usedSizeMultiplier = 1
-local widgetInitTime = osClock()
+local vsx, vsy = spGetViewGeometry()
+local font ---@type LuaFont?
+local fontfileScale = 0.0
+local usedSizeMultiplier = 1.0
+local textX, textY, slideDistance = 0.0, 0.0, 0.0
+local textList ---@type integer?
+local cachedPauseText
+
+local pauseTimestamp = -10.0 --start or end of pause
 local paused = false
+local visible = false -- paused, or still sliding out
+local slideX = 0.0
+local shaderAlpha = 0.0
+local nonShaderAlpha = 0.0
+local widgetInitTime = osClock()
 local lastGameFrame = spGetGameFrame()
 local lastGameFrameTime = osClock() + 10
-
-local shaderAlpha = 0
-local screencopy, shaderProgram
-local alphaLoc, showPauseScreen, nonShaderAlpha
+local pollTimer = 0.0
 local gameover = false
-local noNewGameframes = false
-local cachedPauseText = nil
-local spIsGUIHidden = Spring.IsGUIHidden
 
--- Pre-allocated color tables
-local textColor = { 1.0, 1.0, 1.0, 0 }
-local outlineColor = { 0.0, 0.0, 0.0, 0 }
+local shaderProgram ---@type integer?
+local alphaLoc, uniformAlpha
+local effectsCallIn = true -- DrawScreenEffects is registered (only while the overlay shows)
+
+local textColor = { 1.0, 1.0, 1.0, fadeToTextAlpha }
+local outlineColor = { 0.0, 0.0, 0.0, fadeToTextAlpha / 2.25 }
 
 --intensity formula based on http://alienryderflex.com/hsp.html
 local fragmentShaderSource = [[
 	#version 150 compatibility
+	//__DEFINES__
 	uniform sampler2D screencopy;
 	uniform float alpha;
 
-	float getIntensity(vec4 color) {
-	  vec3 intensityVector = color.rgb * vec3(0.66,0.66,0.66);
-	  return length(intensityVector);
-	}
-
 	void main() {
-	  vec2 texCoord = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
-	  vec4 origColor = texture2D(screencopy, texCoord);
-	  float intensity = getIntensity(origColor);
-	  intensity = intensity * 1.15;
-	  float multi = intensity * 0.9;
-	  if (intensity > 1) intensity = 1;
-	  if (intensity < 0.5) {
-			if (intensity < 0.2) {
-			  gl_FragColor = vec4(multi*0.22, multi*0.22, multi*0.22, alpha);
-			} else if (intensity < 0.35) {
-			  gl_FragColor = vec4(multi*0.32, multi*0.32, multi*0.32, alpha);
-			} else {
-			  gl_FragColor = vec4(multi*0.55, multi*0.55, multi*0.55, alpha);
-			}
-	  } else {
-			if (intensity < 0.75) {
-				gl_FragColor = vec4(multi*0.7, multi*0.7, multi*0.7, alpha);
-			} else {
-			  gl_FragColor = vec4(multi*0.82, multi*0.82, multi*0.82, alpha);
-			}
-	  }
+		vec2 uv = gl_TexCoord[0].st;
+		vec3 origColor = texture2D(screencopy, uv).rgb;
+	#ifdef PERCEIVED_LUMA
+		// scaled so a grey gets the same intensity as the equal weights below
+		float intensity = sqrt(dot(origColor * origColor, vec3(0.299, 0.587, 0.114))) * (0.66 * 1.15 * 1.7320508);
+	#else
+		float intensity = length(origColor * vec3(0.66)) * 1.15;
+	#endif
+	#ifdef SMOOTH_TONE
+		// linear between the band centres of the levels below
+		float t = clamp(intensity, 0.1, 0.875);
+		float level = t < 0.275 ? mix(0.22, 0.32, (t - 0.1) / 0.175)
+			: (t < 0.425 ? mix(0.32, 0.55, (t - 0.275) / 0.15)
+			: (t < 0.625 ? mix(0.55, 0.7, (t - 0.425) / 0.2) : mix(0.7, 0.82, (t - 0.625) / 0.25)));
+	#else
+		float level = intensity < 0.5
+			? (intensity < 0.2 ? 0.22 : (intensity < 0.35 ? 0.32 : 0.55))
+			: (intensity < 0.75 ? 0.7 : 0.82);
+	#endif
+		vec3 grey = vec3(intensity * 0.9 * level);
+		float a = alpha;
+	#ifdef VIGNETTE
+		vec2 size = vec2(textureSize(screencopy, 0));
+		vec2 d = (uv * 2.0 - 1.0) * vec2(size.x / size.y, 1.0);
+		float v = smoothstep(0.3, 1.0, length(d) / length(vec2(size.x / size.y, 1.0))) * VIGNETTE;
+		grey *= 1.0 - 0.35 * v;
+		a = min(a * (1.0 + 0.8 * v), 1.0);
+	#endif
+	#ifdef TINT
+		grey = min(grey * TINT, 1.0);
+	#endif
+		gl_FragColor = vec4(grey, a);
 	}
 ]]
+
+local function shaderDefines()
+	local defines = {}
+	if USE_PERCEIVED_LUMA then
+		defines[#defines + 1] = "#define PERCEIVED_LUMA"
+	end
+	if SMOOTH_TONE then
+		defines[#defines + 1] = "#define SMOOTH_TONE"
+	end
+	if VIGNETTE > 0 then
+		defines[#defines + 1] = string.format("#define VIGNETTE %.4f", VIGNETTE)
+	end
+	if TINT[1] ~= 1 or TINT[2] ~= 1 or TINT[3] ~= 1 then
+		defines[#defines + 1] = string.format("#define TINT vec3(%.4f, %.4f, %.4f)", TINT[1], TINT[2], TINT[3])
+	end
+	return table.concat(defines, "\n")
+end
+
+local function setEffectsCallIn(active)
+	if active ~= effectsCallIn then
+		effectsCallIn = active
+		if active then
+			widgetHandler:UpdateCallIn("DrawScreenEffects")
+		else
+			widgetHandler:RemoveCallIn("DrawScreenEffects")
+		end
+	end
+end
+
+local function clearTextList()
+	if textList then
+		gl.DeleteList(textList)
+		textList = nil
+	end
+end
+
+local function drawText(textFont)
+	textFont:Begin()
+	textFont:SetOutlineColor(outlineColor)
+	textFont:SetTextColor(textColor)
+	textFont:Print(cachedPauseText, textX, textY, fontSizeHeadline * usedSizeMultiplier, "O")
+	textFont:End()
+end
+
+local function updateAnimation(now)
+	local diffPauseTime = now - pauseTimestamp
+	local progress = diffPauseTime / slideTime
+	if not paused then
+		progress = 1 - progress
+	end
+	if progress > 1 then
+		progress = 1
+	elseif progress < 0 then
+		progress = 0
+	end
+	shaderAlpha = progress * maxShaderAlpha
+	nonShaderAlpha = progress * maxNonShaderAlpha
+
+	if diffPauseTime <= slideTime then
+		-- sliding in from the right, or out to it
+		slideX = slideDistance * (paused and (1 - diffPauseTime / slideTime) or (diffPauseTime / slideTime))
+	else
+		slideX = 0
+		if not paused then
+			visible = false
+			setEffectsCallIn(false)
+		end
+	end
+end
+
+-- No overlay and no "paused" text for non-player pauses.
+local function isGadgetPaused()
+	return spGetGameRulesParam("gamePaused") == 1
+end
+
+local function setPaused(state, now)
+	if state == paused then
+		return
+	end
+	paused = state
+	local diffPauseTime = now - pauseTimestamp
+	if state and widgetInitTime + 5 > now then
+		-- so if you do /luaui reload when paused, it won't re-animate
+		pauseTimestamp = now - (slideTime + autoFadeTime)
+	elseif diffPauseTime <= slideTime then
+		-- turning around mid-slide
+		pauseTimestamp = now - (slideTime - diffPauseTime)
+	else
+		pauseTimestamp = now
+	end
+	if state and not visible then
+		visible = true
+		setEffectsCallIn(shaderProgram ~= nil)
+	end
+	updateAnimation(now)
+end
+
+local function pollPauseState(now)
+	local gameFrame = spGetGameFrame()
+	if not visible and (gameFrame == 0 or gameover) then
+		return
+	end
+
+	local _, gameSpeed, isPaused = spGetGameSpeed()
+	-- when host (admin) paused its just gamespeed 0
+	local state = isPaused or (not gameover and gameSpeed == 0)
+	if state then
+		-- a pause is not a freeze: the freeze timer starts once the game runs again
+		if lastGameFrameTime < now then
+			lastGameFrameTime = now
+		end
+	elseif gameFrame > 0 and not gameover then
+		-- admin pause / game freeze: no new game frames for a second
+		if gameFrame ~= lastGameFrame then
+			lastGameFrame = gameFrame
+			lastGameFrameTime = now
+		elseif now - lastGameFrameTime > 1 then
+			state = true
+		end
+	end
+	setPaused(state and not isGadgetPaused(), now)
+end
 
 function widget:GameOver()
 	gameover = true
 end
 
+function widget:GamePaused(playerID, isGamePaused)
+	setPaused(isGamePaused and not isGadgetPaused(), osClock())
+end
+
 function widget:Update(dt)
+	if not visible then
+		pollTimer = pollTimer + dt
+		if pollTimer < pollInterval then
+			return
+		end
+	end
+	pollTimer = 0
+
 	local now = osClock()
-	local gameFrame = spGetGameFrame()
-
-	local diffPauseTime = (now - pauseTimestamp)
-
-	-- Early exit: not paused, not sliding, no freeze detection needed
-	if not paused and not lastPause and diffPauseTime > slideTime and (gameFrame == 0 or gameover) then
-		return
-	end
-
-	if (not paused and lastPause) or (paused and not lastPause) then
-		--pause switch
-		pauseTimestamp = osClock()
-		if diffPauseTime <= slideTime then
-			pauseTimestamp = pauseTimestamp - (slideTime - (diffPauseTime / slideTime) * slideTime)
-		end
-	end
-
-	if paused and not lastPause then
-		--new pause
-		if widgetInitTime + 5 > now then
-			-- so if you do /luaui reload when paused, it won't re-animate
-			pauseTimestamp = now - (slideTime + autoFadeTime)
-		end
-	end
-
-	lastPause = paused
-
-	local _, gameSpeed, isPaused = spGetGameSpeed()
-	if (not gameover and gameSpeed == 0) or isPaused then
-		-- when host (admin) paused its just gamespeed 0
-		paused = true
-	else
-		paused = false
-	end
-
-	-- admin pause / game freeze
-	if not paused and gameFrame > 0 and not gameover then
-		if lastGameFrame == gameFrame then
-			if now - lastGameFrameTime > 1 then
-				if not noNewGameframes then
-					pauseTimestamp = now - (slideTime + autoFadeTime)
-				end
-				paused = true
-				noNewGameframes = true
-			else
-				noNewGameframes = false
-			end
-		else
-			lastGameFrame = gameFrame
-			lastGameFrameTime = now
-			paused = false
-			noNewGameframes = false
-		end
+	pollPauseState(now)
+	if visible then
+		updateAnimation(now)
 	end
 end
 
-local function drawPause(now)
-	local diffPauseTime = (now - pauseTimestamp)
-
-	local progress
-	if paused then
-		progress = (now - pauseTimestamp) / slideTime
-	else
-		progress = 1 - ((now - pauseTimestamp) / slideTime)
+function widget:DrawScreen()
+	if not visible then
+		return
 	end
-	if progress > 1 then
-		progress = 1
-	end
-	if progress < 0 then
-		progress = 0
-	end
-	textColor[4] = (0 * (1 - progress)) + fadeToTextAlpha
-	outlineColor[4] = (0 * (1 - progress)) + (fadeToTextAlpha / 2.25)
-
-	shaderAlpha = progress * maxShaderAlpha
-	nonShaderAlpha = progress * maxNonShaderAlpha
-
-	glPushMatrix()
 
 	if not shaderProgram then
 		glColor(0, 0, 0, nonShaderAlpha)
 		glRect(0, 0, vsx, vsy)
 	end
 
-	glTranslate(-vsx * (usedSizeMultiplier - 1) / 2, -vsy * (usedSizeMultiplier - 1) / 2, 0)
-	glScale(usedSizeMultiplier, usedSizeMultiplier, 1)
-	if slideTime > 0 and diffPauseTime <= slideTime then
-		--we are sliding
-		if paused then
-			--sliding in
-			glTranslate(((vsx - wndX1) / usedSizeMultiplier) * (1.0 - (diffPauseTime / slideTime)), 0, 0)
-		else
-			--sliding out
-			glTranslate(((vsx - wndX1) / usedSizeMultiplier) * (diffPauseTime / slideTime), 0, 0)
-		end
-	end
-
 	--draw text
 	if not gameover then
-		if not cachedPauseText then
-			cachedPauseText = BAR.I18N("ui.pauseScreen.paused")
+		local list = textList
+		if not list then
+			cachedPauseText = cachedPauseText or BAR.I18N("ui.pauseScreen.paused")
+			list = gl.CreateList(drawText, font)
+			textList = list
 		end
-		font:Begin()
-		font:SetOutlineColor(outlineColor)
-		font:SetTextColor(textColor)
-		font:Print(cachedPauseText, textX, textY, fontSizeHeadline, "O")
-		font:End()
-	end
-
-	glPopMatrix()
-end
-
-function widget:Initialize()
-	vsx, vsy = widgetHandler:GetViewSizes()
-	widget:ViewResize(vsx, vsy)
-
-	local _, gameSpeed, isPaused = spGetGameSpeed()
-	if gameSpeed == 0 or isPaused then
-		-- when host admin paused its just gamespeed 0
-		paused = true
-	end
-
-	if gl.CreateShader then
-		shaderProgram = gl.CreateShader({
-			fragment = fragmentShaderSource,
-			uniformInt = {
-				screencopy = 0,
-			},
-		})
-		if shaderProgram then
-			alphaLoc = glGetUniformLocation(shaderProgram, "alpha")
+		if slideX ~= 0 then
+			glPushMatrix()
+			glTranslate(slideX, 0, 0)
+			glCallList(list)
+			glPopMatrix()
+		else
+			glCallList(list)
 		end
-	else
-		Spring.Echo("<Screen Shader>: GLSL not supported.")
 	end
 end
 
-function widget:GamePaused(playerID, isGamePaused)
-	paused = isGamePaused
-end
-
-function widget:DrawScreen()
-	local now = osClock()
-
-	if paused or (now - pauseTimestamp) <= slideTime then
-		showPauseScreen = true
-		drawPause(now)
-	else
-		showPauseScreen = false
+function widget:DrawScreenEffects()
+	if shaderAlpha <= 0 or not shaderProgram or not WG.screencopymanager or spIsGUIHidden() then
+		return
 	end
-end
-
-local function updateWindowCoords()
-	wndX1 = (vsx / 2) - boxWidth
-	wndY1 = (vsy / 2) + boxHeight
-	wndX2 = (vsx / 2) + boxWidth
-	wndY2 = (vsy / 2) - boxHeight
-
-	textX = wndX1 + (wndX2 - wndX1) * 0.33
-	textY = wndY2 + (wndY1 - wndY2) * 0.4
+	local screencopy = WG.screencopymanager.GetScreenCopy()
+	if screencopy then
+		glTexture(0, screencopy)
+		glUseShader(shaderProgram)
+		if uniformAlpha ~= shaderAlpha then
+			uniformAlpha = shaderAlpha
+			glUniform(alphaLoc, shaderAlpha)
+		end
+		glTexRect(0, vsy, vsx, 0)
+		glTexture(0, false)
+		glUseShader(0)
+		-- CAS runs after this and rewrites the screen from the shared copy, which has to include this overlay
+		WG.screencopymanager.InvalidateScreenCopy()
+	end
 end
 
 function widget:ViewResize()
-	vsx, vsy, vpx, vpy = spGetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	usedSizeMultiplier = (0.5 + ((vsx * vsy) / 5500000)) * sizeMultiplier
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
+		clearTextList()
+		if font then
+			gl.DeleteFont(font)
+		end
 		font = gl.LoadFont(
 			fontfile,
 			fontfileSize * fontfileScale,
@@ -306,34 +348,56 @@ function widget:ViewResize()
 		)
 	end
 
-	updateWindowCoords()
-
-	screencopy = gl.CreateTexture(vsx, vsy, {
-		border = false,
-		min_filter = GL.NEAREST,
-		mag_filter = GL.NEAREST,
-	})
+	-- the text box, scaled by usedSizeMultiplier around the screen centre
+	local wndX1 = (vsx / 2) - boxWidth
+	local wndY1 = (vsy / 2) + boxHeight
+	local wndX2 = (vsx / 2) + boxWidth
+	local wndY2 = (vsy / 2) - boxHeight
+	textX = (vsx / 2) + (wndX1 + (wndX2 - wndX1) * 0.33 - (vsx / 2)) * usedSizeMultiplier
+	textY = (vsy / 2) + (wndY2 + (wndY1 - wndY2) * 0.4 - (vsy / 2)) * usedSizeMultiplier
+	slideDistance = vsx - wndX1
+	clearTextList()
 end
 
-function widget:DrawScreenEffects()
-	if spIsGUIHidden() then
-		return
+function widget:LanguageChanged()
+	cachedPauseText = nil
+	clearTextList()
+end
+
+function widget:FontsChanged()
+	clearTextList()
+end
+
+function widget:Initialize()
+	widget:ViewResize(vsx, vsy)
+
+	if gl.CreateShader then
+		shaderProgram = gl.CreateShader({
+			fragment = fragmentShaderSource:gsub("//__DEFINES__", shaderDefines()),
+			uniformInt = {
+				screencopy = 0,
+			},
+		})
+		if shaderProgram then
+			alphaLoc = gl.GetUniformLocation(shaderProgram, "alpha")
+		else
+			Spring.Echo("Pause Screen: shader failed to compile: " .. tostring(gl.GetShaderLog()))
+		end
+	else
+		Spring.Echo("<Screen Shader>: GLSL not supported.")
 	end
-	if shaderProgram and showPauseScreen and WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
-		glCopyToTexture(screencopy, 0, 0, vpx, vpy, vsx, vsy)
-		--screencopy = WG['screencopymanager'].GetScreenCopy()	-- can't get this method to work
-		glTexture(0, screencopy)
-		glUseShader(shaderProgram)
-		glUniform(alphaLoc, shaderAlpha)
-		glTexRect(0, vsy, vsx, 0)
-		glTexture(0, false)
-		glUseShader(0)
-	end
+
+	local _, gameSpeed, isPaused = spGetGameSpeed()
+	-- when host admin paused its just gamespeed 0
+	setPaused((gameSpeed == 0 or isPaused) and not isGadgetPaused(), osClock())
+	setEffectsCallIn(visible and shaderProgram ~= nil)
 end
 
 function widget:Shutdown()
-	gl.DeleteTexture(screencopy)
-	glDeleteFont(font)
+	clearTextList()
+	if font then
+		gl.DeleteFont(font)
+	end
 	if shaderProgram then
 		gl.DeleteShader(shaderProgram)
 	end

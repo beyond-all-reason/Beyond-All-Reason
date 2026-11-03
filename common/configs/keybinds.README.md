@@ -39,7 +39,9 @@ they held. It is a frozen record of files that no longer exist, not something to
 with the profiles.
 
 Every shipped profile is selectable and read-only; editing one forks a copy under a name
-the player chooses.
+the player chooses. A shipped profile is not the store's to define either: a store naming one
+is the player's own entry under a name that collides, so keep it under a free name rather than
+letting it stand in for what ships.
 
 ## Catalog item kinds
 
@@ -165,6 +167,10 @@ the clipboard and what Import reads back, and the same text a player would put i
   `space`; `fakemeta none` asks for no Meta modifier at all. Record what was written in the
   store as `written`, above - a surface that skips this makes the next launch read its own
   output as a keymap the player hand-wrote.
+- **Never overwrite without a copy.** Before writing over a keymap or a profiles file that
+  did not come from you - a migration, or a store that will not decode - copy it aside first,
+  to a name nothing already holds (`<file>.bak`, then `<file>.bak.2`, and so on). An earlier
+  copy is never replaced: the first one is what the player had before any of this existed.
 - **Reconcile on load.** Either side can have moved since the keymap was written: a game
   update changes a shipped profile, or a tool changes the store between sessions. Compare the
   keymap on disk against `written.stamp`. Equal means nobody has touched the file, so the
@@ -210,15 +216,19 @@ The editor's own UI - buttons, dialogs, prompts - is not vocabulary and stays in
 `interface.json` under `ui.keybinds.editor.*`. A surface that builds its own UI needs the
 three namespaces above and none of that.
 
+## Widget-declared actions
+
+A widget from the widget hub can declare bindable actions, their labels and their default keys
+in its `manifest.json`, in the format the hub's manifest schema sets. Each loaded widget gets an
+editor category of its own. A shipped profile adds the defaults it lacks every time it is
+written; a player's profile takes each one once and records it under `seeded`, so one the
+player removes stays removed.
+
 ## Not covered yet
 
-- A widget/mod action-declaration API, so widgets register their own bindable actions
-  (with label + category + description) into the catalog at runtime instead of only being
-  editable when already bound.
 - Command descriptions for every action. A catalog item may carry `description`, an i18n
   key for a tooltip sentence; without one the in-game editor falls back to the command
   card's tooltip (`commands.<name>_tooltip`, for a row labelled `commands.<name>`) and then
   to the engine's command description (`cmd.<command>`, `cmd.<command>._description` for the
   structured ones, `cmd.luarules.<command>` for gadget commands). Roughly a third of the
-  catalog still has none of those. Widget/mod actions have no `cmd.*` entry, so their
-  descriptions depend on the declaration API above.
+  catalog still has none of those; a widget action's comes from its manifest.

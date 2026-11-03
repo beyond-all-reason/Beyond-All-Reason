@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local PolygonLib = VFS.Include("common/lib_polygon.lua")
+local PolygonLib = require("common/lib_polygon")
 
 local SPAWN_CHOOSE_IN_GAME = 2
 
@@ -25,7 +25,7 @@ local configSource
 local isExplicitConfig = false
 
 function gadget:Initialize()
-	local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+	local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
 	startBoxConfig, configSource, isExplicitConfig = StartboxLib.GetConfig()
 
 	-- Only choose-in-game places by start box. Other modes take the map's own start

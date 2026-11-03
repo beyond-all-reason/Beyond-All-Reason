@@ -9,6 +9,7 @@ return { --costs should be same as legmohocon and legmohoconct
 		buildpic = "LEGMOHOCON.DDS",
 		buildtime = 19400,
 		canrepeat = false,
+		capturable = false,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "7 4 7",
 		collisionvolumetype = "CylY",

@@ -29,8 +29,8 @@ local activeCmdID
 local emptyInfo = false
 local showEngineTooltip = false -- straight up display old engine delivered text
 
-local iconTypes = VFS.Include("gamedata/icontypes.lua")
-local weaponInfo = VFS.Include("common/weapons.lua")
+local iconTypes = require("gamedata/icontypes")
+local weaponInfo = require("common/weapons")
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -435,7 +435,14 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
 				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
 			else
-				if unitDef.customParams.weapons_smart_select and (weaponDef.customParams.smart_priority or weaponDef.customParams.smart_backup or weaponDef.customParams.smart_trajectory_checker) then
+				if
+					unitDef.customParams.weapons_smart_select
+					and (
+						weaponDef.customParams.smart_priority
+						or weaponDef.customParams.smart_backup
+						or weaponDef.customParams.smart_trajectory_checker
+					)
+				then
 					unitExempt = true -- NB: I hate this thing
 					if weaponDef.customParams.smart_priority then
 						addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0]))
@@ -860,6 +867,12 @@ function widget:Initialize()
 	tracy.ZoneEnd()
 
 	widget:ViewResize()
+
+	-- load the kill count skull now, its first lazy load stalled a battle frame by up to 24 ms
+	gl.DeleteList(gl.CreateList(function()
+		glTexture(":l:LuaUI/Images/skull.dds")
+		glTexture(false)
+	end))
 
 	WG.info = {}
 	WG.info.getShowBuilderBuildlist = function()
@@ -2327,7 +2340,7 @@ local function drawEngineTooltip()
 		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
 		if showEngineTooltip then
 			-- display default plaintext engine tooltip
-			local text, numLines = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
+			local text, _ = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
 			font:Begin(true)
 			font:SetTextColor(1, 1, 1, 1)
 			font:SetOutlineColor(0.1, 0.1, 0.1, 1)
@@ -2593,7 +2606,7 @@ local function LeftMouseButton(unitDefID, unitTable)
 end
 
 local function MiddleMouseButton(unitDefID, unitTable)
-	local alt, ctrl, meta, shift = spGetModKeyState()
+	local _, ctrl, _, _ = spGetModKeyState()
 	if ctrl then
 		-- center the view on the entire selection
 		Spring.SendCommands(viewSelectionCmd)
@@ -2609,7 +2622,7 @@ local function MiddleMouseButton(unitDefID, unitTable)
 end
 
 local function RightMouseButton(unitDefID, unitTable)
-	local alt, ctrl, meta, shift = spGetModKeyState()
+	local _, ctrl, _, _ = spGetModKeyState()
 
 	-- remove selected units of icon type
 	-- Clear and reuse map table instead of creating new one
@@ -2809,7 +2822,7 @@ function widget:DrawScreen()
 		tracy.ZoneBeginN("W:Info:DrawScreen:CreateBackgroundTexture")
 		infoBgTex = gl.CreateTexture(math_floor(width * vsx), math_floor(height * vsy), {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		gl.R2tHelper.RenderToTexture(infoBgTex, function()
@@ -2821,9 +2834,10 @@ function widget:DrawScreen()
 	end
 	if not infoTex then
 		tracy.ZoneBeginN("W:Info:DrawScreen:CreateInfoTexture")
-		infoTex = gl.CreateTexture(math_floor(width * vsx) * 2, math_floor(height * vsy) * 2, {
+		local ss = WG.FlowUI.supersample or 2
+		infoTex = gl.CreateTexture(math_floor(width * vsx) * ss, math_floor(height * vsy) * ss, {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		tracy.ZoneEnd()
@@ -2994,7 +3008,7 @@ function widget:DrawScreen()
 				--local cells = cellHovered and { [cellHovered] = selectionCells[cellHovered] } or selectionCells
 				-- description
 				if cellHovered then
-					local text, numLines = font:WrapText(
+					local text, _ = font:WrapText(
 						unitDefInfo[selectionCells[cellHovered]].description,
 						(backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16)
 					)

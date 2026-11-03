@@ -87,6 +87,7 @@ return {
 			[29] = "corjamt",
 		},
 		customparams = {
+			maxrange = 400,
 			unitgroup = "builder",
 			iscommander = true,
 			model_author = "FireStorm",
@@ -109,7 +110,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 2000,
-				object = "Units/armcom_dead.s3o",
+				object = "Units/legcom_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {

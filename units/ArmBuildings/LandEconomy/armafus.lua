@@ -2,7 +2,7 @@ return {
 	armafus = {
 		buildangle = 4096,
 		buildpic = "ARMAFUS.DDS",
-		buildtime = 312500,
+		buildtime = 313000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 96 96",
@@ -14,7 +14,7 @@ return {
 		explodeas = "customfusionexplo",
 		footprintx = 6,
 		footprintz = 6,
-		health = 8300,
+		health = 7900,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 13,

@@ -26,6 +26,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 ---@type InstanceVBOTable?
 local teamplatterVBO = nil
 local teamplatterShader = nil
+local shaderOpacity = -1.0 -- the opacity the shader's uniforms were last set for
 local luaShaderDir = "LuaUI/Include/"
 
 -- Localize for speedups:
@@ -34,146 +35,131 @@ local glStencilOp = gl.StencilOp
 local glStencilTest = gl.StencilTest
 local glStencilMask = gl.StencilMask
 local glDepthTest = gl.DepthTest
-local glClear = gl.Clear
+local glCulling = gl.Culling
+local glColorMask = gl.ColorMask
 local GL_ALWAYS = GL.ALWAYS
-local GL_NOTEQUAL = GL.NOTEQUAL
+local GL_EQUAL = GL.EQUAL
 local GL_KEEP = GL.KEEP
-local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
 local GL_REPLACE = GL.REPLACE
+local GL_ZERO = GL.ZERO
 local GL_POINTS = GL.POINTS
+local GL_BACK = GL.BACK
 
 local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 
 local spGetUnitTeam = Spring.GetUnitTeam
+local spIsGUIHidden = Spring.IsGUIHidden
 
 local myTeamID = Spring.GetLocalTeamID()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
-local unitScale = {}
-local unitCanFly = {}
-local unitBuilding = {}
+-- per unitDefID primitive: length, width, corner size and numvertices (64 circle, 3 triangle, 2 cornerrect)
+local unitLength = {}
+local unitWidth = {}
+local unitCorner = {}
+local unitNumVertices = {}
 local unitDecoration = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitScale[unitDefID] = (7.5 * (unitDef.xsize * unitDef.xsize + unitDef.zsize * unitDef.zsize) ^ 0.5) + 8
+	local radius = (7.5 * (unitDef.xsize * unitDef.xsize + unitDef.zsize * unitDef.zsize) ^ 0.5) + 8
+	local width, length, cornersize, numVertices = radius, radius, 0, 64
 	if unitDef.canFly then
-		unitCanFly[unitDefID] = true
-		unitScale[unitDefID] = unitScale[unitDefID] * 0.7
+		width = radius * 0.7
+		length = width
+		numVertices = 3
 	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed == 0 then
-		unitBuilding[unitDefID] = {
-			unitDef.xsize * 8.2 + 12,
-			unitDef.zsize * 8.2 + 12,
-		}
+		width = unitDef.xsize * 8.2 + 12
+		length = unitDef.zsize * 8.2 + 12
+		cornersize = (width + length) * 0.075
+		numVertices = 2
 	end
+	unitLength[unitDefID] = length
+	unitWidth[unitDefID] = width
+	unitCorner[unitDefID] = cornersize
+	unitNumVertices[unitDefID] = numVertices
 	if unitDef.customParams.decoration then
 		unitDecoration[unitDefID] = true
 	end
 end
 
+-- pushElementInstance copies the values, so one table serves every unit
+local instanceCache = {
+	0,
+	0,
+	0,
+	0, -- lengthwidthcornerheight
+	0, -- teamID
+	0, -- numvertices
+	0,
+	0,
+	0,
+	0, -- parameters (the spawn frame is only read with ANIMATION)
+	0,
+	1,
+	0,
+	1, -- uvoffsets
+	0,
+	0,
+	0,
+	0, -- instData, filled in by the engine
+}
+
 local function AddPrimitiveAtUnit(unitID, unitDefID, unitTeamID, noUpload)
 	if (not skipOwnTeam or unitTeamID ~= myTeamID) and unitTeamID ~= gaiaTeamID and not unitDecoration[unitDefID] then
-		local gf = Spring.GetGameFrame()
-
-		local numVertices = 64 -- default to circle
-		local cornersize = 0
-
-		local radius = unitScale[unitDefID]
-
-		local additionalheight = 0
-		local width, length
-		if unitCanFly[unitDefID] then
-			numVertices = 3 -- triangles for planes
-			width = radius
-			length = radius
-		elseif unitBuilding[unitDefID] then
-			width = unitBuilding[unitDefID][1]
-			length = unitBuilding[unitDefID][2]
-			cornersize = (width + length) * 0.075
-			numVertices = 2
-		else
-			width = radius
-			length = radius
-		end
-
-		pushElementInstance(
-			teamplatterVBO, -- push into this Instance VBO Table
-			{
-				length,
-				width,
-				cornersize,
-				additionalheight, -- lengthwidthcornerheight
-				unitTeamID, -- teamID
-				numVertices, -- how many triangles should we make
-				gf,
-				0,
-				0,
-				0, -- the gameFrame (for animations), and any other parameters one might want to add
-				0,
-				1,
-				0,
-				1, -- These are our default UV atlas transformations
-				0,
-				0,
-				0,
-				0, -- these are just padding zeros, that will get filled in
-			},
-			unitID, -- this is the key inside the VBO TAble,
-			true, -- update existing element
-			noUpload, -- noupload, dont use unless you
-			unitID -- last one should be UNITID?
-		)
+		instanceCache[1] = unitLength[unitDefID]
+		instanceCache[2] = unitWidth[unitDefID]
+		instanceCache[3] = unitCorner[unitDefID]
+		instanceCache[5] = unitTeamID
+		instanceCache[6] = unitNumVertices[unitDefID]
+		pushElementInstance(teamplatterVBO, instanceCache, unitID, true, noUpload, unitID)
 	end
 end
 
-local drawFrame = 0
+local function drawPlatters()
+	teamplatterVBO.VAO:DrawArrays(GL_POINTS, teamplatterVBO.usedElements)
+end
+
 function widget:DrawWorldPreUnit()
-	if Spring.IsGUIHidden() then
+	if teamplatterVBO.usedElements == 0 or spIsGUIHidden() then
 		return
 	end
-	drawFrame = drawFrame + 1
-	if teamplatterVBO.usedElements > 0 then
-		teamplatterShader:Activate()
-		teamplatterShader:SetUniform("iconDistance", 99999) -- pass
-		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
-		glDepthTest(true)
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
-		glClear(GL_STENCIL_BUFFER_BIT) -- set stencil buffer to 0
-
-		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
-		glStencilMask(1)
-
-		if hasBadCulling then
-			gl.Culling(false)
-		else
-			gl.Culling(GL.BACK)
-		end
-
-		teamplatterShader:SetUniform("addRadius", 0)
-		teamplatterVBO.VAO:DrawArrays(GL_POINTS, teamplatterVBO.usedElements)
-
-		--[[ -- this second draw pass is only needed if we actually want to draw the unit's radius
-		glStencilFunc(GL_NOTEQUAL, 1, 1)
-		glStencilMask(0)
-		glDepthTest(true)
-
-		teamplatterShader:SetUniform("addRadius", 0.15)
-		teamplatterVBO.VAO:DrawArrays(GL_POINTS, teamplatterVBO.usedElements)
-		]]
-		--
-
-		glStencilMask(1)
-		glStencilFunc(GL_ALWAYS, 1, 1)
-		glDepthTest(true)
-
-		teamplatterShader:Deactivate()
-
-		-- Restore default state (same as gui_selectedunits_gl4), so culling/stencil state doesn't
-		-- leak into widgets drawn after this one:
-		gl.Culling(false)
-		glStencilTest(false)
-		glStencilMask(255)
-		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-		glClear(GL_STENCIL_BUFFER_BIT)
+	teamplatterShader:Activate()
+	if shaderOpacity ~= opacity then
+		shaderOpacity = opacity
+		teamplatterShader:SetUniform("iconDistance", 99999) -- no distance cutoff
+		teamplatterShader:SetUniform("transparency", opacity)
 	end
+	glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
+	glDepthTest(true)
+	glStencilMask(1)
+
+	if hasBadCulling then
+		glCulling(false)
+	else
+		glCulling(GL_BACK)
+	end
+
+	-- Overlapping platters must blend each pixel once: mark their pixels in stencil bit 0, then draw where marked and
+	-- unmark in the same pass. The first platter still wins, and the bit ends at 0 without full-screen stencil clears
+	-- (one costs ~50 us at 5K right after a pass that wrote stencil).
+	glColorMask(false, false, false, false)
+	glStencilFunc(GL_ALWAYS, 1, 1)
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE)
+	drawPlatters()
+	glColorMask(true, true, true, true)
+	glStencilFunc(GL_EQUAL, 1, 1)
+	glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO)
+	drawPlatters()
+
+	glStencilFunc(GL_ALWAYS, 1, 1)
+
+	teamplatterShader:Deactivate()
+
+	-- Restore default state (same as gui_selectedunits_gl4), so culling/stencil state doesn't
+	-- leak into widgets drawn after this one:
+	glCulling(false)
+	glStencilTest(false)
+	glStencilMask(255)
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
 end
 
 local function RemoveUnit(unitID)
@@ -203,6 +189,30 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	RemoveUnit(unitID)
 end
 
+local function rebuild()
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
+	end
+end
+
+local function checkMyTeam()
+	local teamID = Spring.GetLocalTeamID()
+	if teamID ~= myTeamID then
+		myTeamID = teamID
+		if skipOwnTeam then
+			rebuild()
+		end
+	end
+end
+
+function widget:PlayerChanged(playerID)
+	checkMyTeam()
+end
+
+function widget:GameStart()
+	checkMyTeam() -- the engine can reset the local team at game start without a PlayerChanged
+end
+
 local function init()
 	local DPatUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
@@ -211,15 +221,14 @@ local function init()
 	shaderConfig.ANIMATION = 0
 	shaderConfig.HEIGHTOFFSET = 3.99
 	shaderConfig.USETEXTURE = 0
+	shaderConfig.USE_QUADS = nil
 	teamplatterVBO, teamplatterShader = InitDrawPrimitiveAtUnit(shaderConfig, "teamPlatters")
 	if teamplatterVBO == nil then
 		widgetHandler:RemoveWidget()
 		return false
 	end
 
-	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
-		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
-	end
+	rebuild()
 	return true
 end
 
@@ -232,20 +241,27 @@ function widget:Initialize()
 		return opacity
 	end
 	WG.teamplatter.setOpacity = function(value)
-		opacity = value
-		init()
+		opacity = value -- DrawWorldPreUnit passes it to the shader
 	end
 	WG.teamplatter.getSkipOwnTeam = function()
 		return skipOwnTeam
 	end
 	WG.teamplatter.setSkipOwnTeam = function(value)
 		skipOwnTeam = value
-		init()
+		rebuild()
 	end
 end
 
 function widget:Shutdown()
 	WG.teamplatter = nil
+	if type(teamplatterShader) == "table" then
+		teamplatterShader:Finalize()
+		teamplatterShader = nil
+	end
+	if teamplatterVBO then
+		teamplatterVBO:Delete()
+		teamplatterVBO = nil
+	end
 end
 
 function widget:GetConfigData(data)

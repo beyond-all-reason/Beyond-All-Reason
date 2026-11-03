@@ -96,7 +96,7 @@ local spawnInitialFrame = Game.spawnInitialFrame
 local spectatingState = select(1, Spring.GetSpectatingState())
 local priorUserFirestateFunction = nil
 
-VFS.Include("luaui/Include/user_firestate_commands.lua")
+require("luaui/Include/user_firestate_commands")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -350,7 +350,7 @@ end
 
 function widget:GameFrame(n)
 	if Spring.GetGameState then
-		local finishedLoading, loadedFromSave, locallyPaused, lagging = Spring.GetGameState()
+		local _, loadedFromSave, _, _ = Spring.GetGameState()
 		if loadedFromSave then
 			widgetHandler:RemoveCallIn("GameFrame", self)
 			return

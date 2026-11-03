@@ -102,6 +102,7 @@ return {
 				customparams = {
 					nofire = true,
 					junotype = "mini",
+					norangering = 1,
 				},
 				damage = {
 					default = 1,

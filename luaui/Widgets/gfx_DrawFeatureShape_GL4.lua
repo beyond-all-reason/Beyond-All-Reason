@@ -30,8 +30,9 @@ end
 local LuaShader = gl.LuaShader
 local InstanceVBOIdTable = gl.InstanceVBOIdTable
 
-local pushElementInstance = InstanceVBOIdTable.pushElementInstance
-local popElementInstance = InstanceVBOIdTable.popElementInstance
+local pushDefElement = InstanceVBOIdTable.pushDefElement
+local popDefElement = InstanceVBOIdTable.popDefElement
+local flushDefElements = InstanceVBOIdTable.flushDefElements
 
 local Echo = Spring.Echo
 local PreloadFeatureDefModel = Spring.PreloadFeatureDefModel
@@ -183,10 +184,10 @@ local vertexVBO, indexVBO
 ---Instance buffers keyed by the texture pair they draw with.
 ---@type table<string, InstanceVBOTable?>
 local texKeyToBucket = {}
-local buckets = {} -- array of the above, for iteration
+local buckets = {} ---@type table<integer, table> array of the above, for iteration
 local featureDefIDToBucket = {} -- featureDefID -> instance table
 local unsupportedDefIDs = {} -- featureDefIDs with no usable model, warned about once
-local uniqueIDToBucket = {}
+local uniqueIDToBucket = {} ---@type table<integer, table?>
 local owners = {} -- uniqueID -> ownerID
 
 local uniqueID = 0
@@ -305,11 +306,7 @@ local function DrawFeatureShapeGL4(
 	if updateID and uniqueIDToBucket[updateID] and uniqueIDToBucket[updateID] ~= bucket then
 		-- The caller reused a handle for a different def whose textures live in
 		-- another bucket. Drop the old instance or it leaks in the old table.
-		local oldBucket = uniqueIDToBucket[updateID]
-		if oldBucket.instanceIDtoIndex[updateID] then
-			popElementInstance(oldBucket, updateID)
-			oldBucket.dirty = true
-		end
+		popDefElement(uniqueIDToBucket[updateID], updateID)
 	end
 
 	if not updateID then
@@ -328,18 +325,8 @@ local function DrawFeatureShapeGL4(
 
 	uniqueIDToBucket[updateID] = bucket
 
-	-- Pushes are deferred (noUpload) and flushed once per bucket in DrawWorld:
-	-- callers move whole fleets of ghosts every frame, and a per-instance Upload
-	-- would be hundreds of GL calls a frame. Safe because pushElementInstance
-	-- records indextoUnitID/indextoObjectType OUTSIDE its noUpload guard.
-	--
-	-- Pops deliberately do NOT defer. popElementInstance does its swap-with-last
-	-- fixup of those same two tables INSIDE the guard, so a deferred pop leaves
-	-- the def bookkeeping pointing at instances that have moved or gone -- and
-	-- uploadAllElements then rebuilds the submission from that stale array,
-	-- drawing phantom ghosts with the wrong models.
-	pushElementInstance(bucket, instanceCache, updateID, true, true, featureDefID, "featureDefID")
-	bucket.dirty = true
+	-- Deferred: callers move whole fleets of ghosts every frame, DrawWorld uploads once per bucket
+	pushDefElement(bucket, instanceCache, updateID, featureDefID)
 
 	return updateID
 end
@@ -353,10 +340,7 @@ local function StopDrawFeatureShapeGL4(handleID)
 
 	local bucket = uniqueIDToBucket[handleID]
 	if bucket then
-		if bucket.instanceIDtoIndex[handleID] then
-			popElementInstance(bucket, handleID)
-			bucket.dirty = true
-		end
+		popDefElement(bucket, handleID)
 		uniqueIDToBucket[handleID] = nil
 	end
 
@@ -373,9 +357,8 @@ local function StopDrawFeatureShapesGL4(ownerID)
 	for handleID, owner in pairs(owners) do
 		if ownerID == nil or owner == ownerID then
 			local bucket = uniqueIDToBucket[handleID]
-			if bucket and bucket.instanceIDtoIndex[handleID] then
-				popElementInstance(bucket, handleID)
-				bucket.dirty = true
+			if bucket then
+				popDefElement(bucket, handleID)
 			end
 			uniqueIDToBucket[handleID] = nil
 			owners[handleID] = nil
@@ -592,18 +575,7 @@ function widget:DrawWorld()
 
 	for i = 1, #buckets do
 		local bucket = buckets[i]
-		-- Flush this frame's deferred pushes. uploadAllElements also rebuilds the
-		-- VAO submission from indextoUnitID, but it bails early on an empty table
-		-- and would leave the previous frame's submission live, so clear that case
-		-- explicitly.
-		if bucket.dirty then
-			if bucket.usedElements > 0 then
-				InstanceVBOIdTable.uploadAllElements(bucket)
-			elseif bucket.VAO then
-				bucket.VAO:ClearSubmission()
-			end
-			bucket.dirty = false
-		end
+		flushDefElements(bucket)
 		if bucket.usedElements > 0 then
 			if not active then
 				-- Depth-test against the world that is already on screen so

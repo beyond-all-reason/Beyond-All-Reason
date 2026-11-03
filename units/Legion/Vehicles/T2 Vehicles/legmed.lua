@@ -144,6 +144,7 @@ return {
 					projectile_destruction_method = "descend",
 					overrange_distance = 1093,
 					speceffect = "guidance",
+					soundstart_volume_multiplier = 0.7,
 				},
 			},
 			laser = {

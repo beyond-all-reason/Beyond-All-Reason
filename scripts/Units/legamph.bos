@@ -1615,7 +1615,8 @@ RestoreAfterDelayGun(addTime)
 
 //Heatray
 AimPrimary(heading, pitch)
-{ 
+{
+	var pitchSpeed, deltaHeading;
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
 	//gameframe = get(GAME_FRAME);
@@ -1643,8 +1644,17 @@ AimPrimary(heading, pitch)
 	
 	// checks if the mouth is deployed
 	turn neck to x-axis <0> speed <50>; //Fix leftover rotation from walk anim
+	// Turn the pitch and heading together
+	pitchSpeed = <50.000000>;
+	deltaHeading = get ABS(gun_lasthead - heading);
+	if ((deltaHeading > <1>) AND (deltaHeading < <20>))
+	{
+		pitchSpeed = <100.000000> * (get ABS(gun_lastpitch - pitch)) / deltaHeading;
+		if (pitchSpeed > <50.000000>) pitchSpeed = <50.000000>;
+		if (pitchSpeed < <5>) pitchSpeed = <5>;
+	}
 	turn heatray_xy to y-axis adjheading - aimAdj speed <100.000000>;
-	turn heatray_xy to x-axis <0.000000> - pitch speed <50.000000>;
+	turn heatray_xy to x-axis <0.000000> - pitch speed pitchSpeed;
 	start-script RestoreAfterDelay();
 	if (cooldown > fireTime)
 	{

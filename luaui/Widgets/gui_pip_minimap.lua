@@ -8,7 +8,7 @@
 
 pipNumber = 0 -- Triggers minimap mode in gui_pip.lua
 
-VFS.Include("LuaUI/Widgets/gui_pip.lua")
+require("luaui/Widgets/gui_pip")
 
 -- Override GetInfo to change the name and layer
 widget.GetInfo = function()

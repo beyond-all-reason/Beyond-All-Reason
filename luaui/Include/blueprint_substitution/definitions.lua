@@ -4,7 +4,7 @@
 
 local DefinitionsModule = {}
 
-local SIDES_ENUM = VFS.Include("gamedata/sides_enum.lua")
+local SIDES_ENUM = require("gamedata/sides_enum")
 if not SIDES_ENUM then
 	error("[BlueprintDefinitions] CRITICAL: Failed to load sides_enum.lua!")
 	-- Return an empty or minimal table if sides are critical and missing

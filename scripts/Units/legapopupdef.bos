@@ -24,7 +24,7 @@ piece
     doorFlare1,
     doorFlare2;
 
-static-var  restore_delay, wpn1_lasthead, isOpen;
+static-var  restore_delay, wpn1_lasthead;
 static-var  Stunned;
 
 // Signal definitions
@@ -38,11 +38,10 @@ static-var  Stunned;
 #define MAXTILT 0
 
 #include "../unit_hitbyweaponid_and_smoke.h"
+#include "../popup_openclose.h"
 
-Close()
+CloseAnim()
 {
-	if (!isOpen) return 0;
-
     move backStruts to y-axis [0] speed [7];
     turn minigunHousingL to z-axis <45> speed <45>;
     turn minigunHousingR to z-axis <-45> speed <45>;
@@ -59,13 +58,11 @@ Close()
     turn doorC to x-axis <120> speed <240>;
 
 	set ARMORED to 1;
-	isOpen = FALSE;
+    wait-for-turn doorA around x-axis;
 }
 
-Open()
+OpenAnim()
 {
-	if (isOpen) return 0;
-
 	set ARMORED to 0;
 
     turn doorA to x-axis <0> speed <-360>;
@@ -84,8 +81,10 @@ Open()
     turn minigunHousingL to z-axis <0> speed <45>;
     turn minigunHousingR to z-axis <0> speed <45>;
 
-	isOpen = TRUE;
-	start-script RestoreAfterDelay();
+    wait-for-turn turretPivotPitch around x-axis;
+    wait-for-turn turretPivotBottom around x-axis;
+    wait-for-move backStruts along y-axis;
+    wait-for-turn minigunHousingL around z-axis;
 }
 
 ExecuteRestoreAfterDelay()
@@ -96,8 +95,7 @@ ExecuteRestoreAfterDelay()
     stop-spin minigunR around z-axis decelerate <10>;
     stop-spin minigunL around z-axis decelerate <10>;
     turn turretBaseHeading to y-axis <0> speed <100>;
-	set-signal-mask 0;
-    start-script Close();
+    start-script RequestClose();
     wpn1_lasthead = -1000000;
 }
 
@@ -122,7 +120,6 @@ Create()
     turn minigunHousingL to z-axis <0> now;
     turn minigunHousingR to z-axis <0> now;
 	restore_delay = 3000;
-	isOpen = FALSE;
 
     turn doorFlare1 to y-axis <-120> now;
     turn doorFlare2 to y-axis <120> now;
@@ -149,11 +146,19 @@ Create()
 
 AimWeapon1(heading, pitch)
 {
-    call-script Open();
+    start-script RequestOpen();
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
-	if (!isOpen) return 0;
+	if (!isOpen)
+	{
+		while (!isOpen)
+		{
+			sleep 250;
+		}
+		// time the restore from when opening finished
+		start-script RestoreAfterDelay();
+	}
 
 	turn turretBaseHeading to y-axis heading speed <180.0>;
 	turn turretPivotPitch to x-axis (-1*pitch) speed <180.0>;
@@ -178,6 +183,11 @@ FireWeapon1()
     move riotcannon to z-axis [0] speed [10];
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
 AimWeapon2(heading, pitch)
 {
 	if (!isOpen) return 0;
@@ -189,6 +199,11 @@ AimWeapon2(heading, pitch)
 FireWeapon2(){
     spin minigunR around z-axis speed <600>;
     //emit-sfx 1024 + 1 from minigunFlareR;
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 Shot2(zero)
@@ -219,6 +234,11 @@ AimWeapon3(heading, pitch)
 FireWeapon3(){
     spin minigunL around z-axis speed <-600>;
     emit-sfx 1024 + 1 from minigunFlareL;
+}
+
+BlockShot3(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 Shot3(zero)
