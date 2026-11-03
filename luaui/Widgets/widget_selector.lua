@@ -15,7 +15,7 @@ end
 
 -- Laid out the way the game info panel and the keybind editor are: the same inset area,
 -- the title in the top-left corner over a darker card holding the category column, a
--- search field and a filter toggle in the header band, a 14 px scrollbar in its own
+-- search field and a filter toggle in the header band, a scrollbar in its own
 -- channel against the right edge, and the actions along the bottom.
 --
 -- The categories come from the filename prefix every widget in the game already carries -
@@ -73,10 +73,10 @@ local RectRound
 local UiElement
 ---@type function
 local UiButton
----@type function
-local UiScroller
----@type function
-local UiScrollerAt
+---@type FlowUIScroller
+local listScroller
+---@type FlowUIScroller
+local catScroller
 ---@type function
 local Highlight
 ---@type function
@@ -446,8 +446,6 @@ local rows = {}
 local rowsGen = 0
 local layoutGen = 0
 local scroll = 0
-local dragging = false
-local dragGrab = 0
 local localWidgetCount = 0
 local allowuserwidgets = true
 ---@type string?
@@ -521,7 +519,7 @@ local pressedRow
 local pressedButton = 0
 local pressedOn
 
-local hover = { sb = 0, row = 0, sw = 0, tog = 0, bar = 0, clr = 0, dat = 0, star = 0, btn = "", dlg = "" }
+local hover = { sb = 0, row = 0, sw = 0, tog = 0, bar = 0, catBar = 0, clr = 0, dat = 0, star = 0, btn = "", dlg = "" }
 
 -- Input ownership, taken once when the search field takes focus and given back when it
 -- loses it. `widgetHandler:OwnText()` is not available here: it is built onto the
@@ -1273,53 +1271,6 @@ local function rowAt(y)
 	return i
 end
 
-local function scrollerThumb()
-	return UiScrollerAt(
-		barX1,
-		listBottom,
-		area.x2 - metrics.edgeInset,
-		listTop,
-		#rows * metrics.rowHeight,
-		scroll * metrics.rowHeight
-	)
-end
-
--- Scrolls so the thumb's top sits where the cursor has dragged it. The offset taken at
--- the grab keeps this relative: the thumb moves with the cursor rather than centring
--- itself on it, so taking hold of it does not shift the list before the drag begins.
-local function scrollFromY(y)
-	local _, _, trackTop, travel = scrollerThumb()
-	if not travel or travel <= 0 then
-		return
-	end
-
-	local f = (trackTop - (y - dragGrab)) / travel
-	if f < 0 then
-		f = 0
-	elseif f > 1 then
-		f = 1
-	end
-	setScroll(mathFloor(f * maxScroll() + 0.5))
-end
-
--- Takes hold of the bar. On the thumb that is a grab and the list stays put; on the track
--- either side the thumb jumps to the cursor first and is then dragged from its middle,
--- which is what a press on bare track is asking for.
-local function grabScroller(y)
-	local top, height = scrollerThumb()
-	if not top then
-		return
-	end
-
-	dragging = true
-	if y <= top and y >= top - height then
-		dragGrab = y - top
-	else
-		dragGrab = -mathFloor(height * 0.5)
-		scrollFromY(y)
-	end
-end
-
 -- The modal's box and its two buttons. Centred on the panel rather than the screen, so it
 -- reads as belonging to what it is about to change.
 local function dialogGeometry()
@@ -1855,51 +1806,6 @@ function dataView.maxScroll()
 	return over > 0 and over or 0
 end
 
--- Where the thumb is, in the same terms the list's bar answers in.
-function dataView.thumb()
-	return UiScrollerAt(
-		dataView.barX1,
-		dataView.bottom,
-		dataView.barX2,
-		dataView.top + dataView.lineH,
-		#dataView.rows * dataView.lineH,
-		dataView.scroll * dataView.lineH
-	)
-end
-
--- Taking hold of the bar. On the thumb it is taken where it was grabbed, so the listing
--- does not jump before the drag starts; on the bare track it goes there at once, which is
--- what a press away from the thumb is asking for.
-function dataView.grab(y)
-	local top, height = dataView.thumb()
-	if not top then
-		return
-	end
-
-	dataView.dragging = true
-	if y <= top and y >= top - height then
-		dataView.grabAt = y - top
-	else
-		dataView.grabAt = -mathFloor(height * 0.5)
-		dataView.dragTo(y)
-	end
-end
-
-function dataView.dragTo(y)
-	local _, _, trackTop, travel = dataView.thumb()
-	if not travel or travel <= 0 then
-		return
-	end
-
-	local f = (trackTop - (y - dataView.grabAt)) / travel
-	if f < 0 then
-		f = 0
-	elseif f > 1 then
-		f = 1
-	end
-	dataView.setScroll(mathFloor(f * dataView.maxScroll() + 0.5))
-end
-
 function dataView.setScroll(v)
 	local max = dataView.maxScroll()
 	dataView.scroll = (v < 0 and 0) or (v > max and max) or v
@@ -1925,7 +1831,7 @@ function dataView.press(x, y)
 		dataView.maxScroll() > 0
 		and math_isInRect(x, y, dataView.barX1, dataView.bottom, dataView.barX2, dataView.top + dataView.lineH)
 	then
-		dataView.grab(y)
+		dataView.setScroll(dataView.scroller:press(y) or dataView.scroll)
 	end
 
 	return true
@@ -2035,6 +1941,16 @@ setCatScroll = function(n)
 	catScroll = (n < 0 and 0) or (n > m and m) or n
 end
 
+-- No size at all while every entry fits.
+local function catBarRect()
+	if maxCatScroll() == 0 then
+		return 0, 0, 0, 0
+	end
+	local bx2 = area.x1 + metrics.sidebarW - metrics.catInset
+
+	return bx2 - metrics.catBarW, categoryBottom(), bx2, sidebarTop()
+end
+
 local function sidebarIndexAt(x, y)
 	local top = sidebarTop()
 	if x < area.x1 or x > area.x1 + metrics.sidebarW or y > top or y <= categoryBottom() then
@@ -2088,8 +2004,8 @@ setLayout = function()
 	metrics.titleFs = mathFloor(metrics.rowHeight * 0.85)
 	metrics.sidebarDrop = mathFloor(8 * s)
 	metrics.sidebarW = mathFloor(240 * s)
-	metrics.barW = mathFloor(14 * s)
-	metrics.catBarW = mathMax(3, mathFloor(6 * s))
+	metrics.barW = WG.FlowUI.Scroller.width(s)
+	metrics.catBarW = WG.FlowUI.Scroller.width(s)
 	metrics.csPanel = mathFloor(elementCorner)
 	metrics.csSmall = mathFloor(elementCorner * 0.66)
 	metrics.csButton = mathFloor(elementCorner * 0.66)
@@ -2592,15 +2508,8 @@ function dataView.draw()
 	local mx, my, lmb = spGetMouseState()
 	local pad = dataView.pad
 
-	-- A drag runs for as long as the button is held, wherever the cursor goes: letting go
-	-- is the only thing that ends it.
-	if dataView.dragging then
-		if lmb then
-			dataView.dragTo(my)
-		else
-			dataView.dragging = false
-		end
-	end
+	dataView.scroller:setRect(dataView.barX1, dataView.bottom, dataView.barX2, dataView.top + dataView.lineH)
+	dataView.setScroll(dataView.scroller:drag(my, lmb) or dataView.scroll)
 
 	-- Everything behind it dims, the same as a confirmation does: this is the only thing
 	-- that will answer while it is up.
@@ -2657,20 +2566,7 @@ function dataView.draw()
 	-- says there is more without saying where, and this panel scrolls everything else with
 	-- a bar you can take hold of.
 	if dataView.maxScroll() > 0 then
-		-- Lit under the cursor and again while it is being dragged, the same as the list's
-		-- bar: a bar that does not react is a bar nobody tries to take hold of.
-		local top, height = dataView.thumb()
-		local onThumb = top and my <= top and my >= top - height and mx >= dataView.barX1 and mx <= dataView.barX2
-		UiScroller(
-			dataView.barX1,
-			dataView.bottom,
-			dataView.barX2,
-			dataView.top + dataView.lineH,
-			#dataView.rows * dataView.lineH,
-			dataView.scroll * dataView.lineH,
-			onThumb or false,
-			dataView.dragging or false
-		)
+		dataView.scroller:draw(dataView.scroller:isOverThumb(mx, my))
 	end
 end
 
@@ -2807,19 +2703,8 @@ local function drawSidebar()
 		queueText(c.countText, x2 - metrics.sidePad, ty, metrics.catFs, "rov")
 	end
 
-	-- A bar of its own, and a slim one: the column is narrow and this only appears when
-	-- there are more categories than the card has room for.
-	if maxCatScroll() > 0 then
-		local bx2 = area.x1 + metrics.sidebarW - metrics.catInset
-		UiScroller(
-			bx2 - metrics.catBarW,
-			categoryBottom(),
-			bx2,
-			sidebarTop(),
-			#categories * metrics.catRowHeight,
-			catScroll * metrics.catRowHeight
-		)
-	end
+	catScroller:setRect(catBarRect())
+	catScroller:draw(hover.catBar == 1)
 end
 
 -- One switch and its caption. The plate goes behind the switch and the switch lights
@@ -2952,18 +2837,8 @@ local function drawPanel()
 	drawFooter()
 	flushText()
 
-	if #rows > 0 then
-		UiScroller(
-			barX1,
-			listBottom,
-			area.x2 - metrics.edgeInset,
-			listTop,
-			#rows * metrics.rowHeight,
-			scroll * metrics.rowHeight,
-			hover.bar == 1,
-			dragging
-		)
-	end
+	listScroller:setRect(barX1, listBottom, area.x2 - metrics.edgeInset, listTop)
+	listScroller:draw(hover.bar == 1)
 
 end
 
@@ -3102,7 +2977,7 @@ local function rowClearable(i)
 end
 
 local function panelChanged(mx, my)
-	hover.sb, hover.row, hover.sw, hover.tog, hover.bar = 0, 0, 0, 0, 0
+	hover.sb, hover.row, hover.sw, hover.tog, hover.bar, hover.catBar = 0, 0, 0, 0, 0, 0
 	hover.clr, hover.dat, hover.star = 0, 0, 0
 	hover.btn, hover.dlg = "", ""
 
@@ -3147,11 +3022,12 @@ local function panelChanged(mx, my)
 			elseif hover.row > 0 and mx >= metrics.dataX1 and rowClearable(hover.row) then
 				hover.dat = 1
 			end
-		elseif mx >= barX1 and mx <= area.x2 then
-			local top, height = scrollerThumb()
-			if top and my <= top and my >= top - height then
-				hover.bar = 1
-			end
+		elseif listScroller:isOverThumb(mx, my) then
+			hover.bar = 1
+		end
+		hover.catBar = catScroller:isOverThumb(mx, my) and 1 or 0
+		if math_isInRect(mx, my, catBarRect()) then
+			hover.sb = 0
 		end
 		-- Written out rather than looped over a { buttons, setButtons } literal: that literal
 		-- is a table built and thrown away on every frame the panel is open.
@@ -3188,15 +3064,17 @@ local function panelChanged(mx, my)
 	now[11] = rowsGen
 	now[12] = layoutGen
 	now[13] = catScroll
-	now[14] = dragging
+	now[14] = listScroller:isDragging()
 	now[15] = dialog ~= nil
 	-- Only asked while a dialog is actually up: answering it trims the field with a gsub,
 	-- and a gsub on every frame the panel is open is a string on every frame.
 	now[16] = dialog ~= nil and select(2, dialogName()) or false
 	now[18] = hover.star
+	now[19] = hover.catBar
+	now[20] = catScroller:isDragging()
 
 	local changed = false
-	for i = 1, 18 do
+	for i = 1, 20 do
 		if was[i] ~= now[i] then
 			was[i] = now[i]
 			changed = true
@@ -3544,8 +3422,15 @@ local function bindUi()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
-	UiScroller = WG.FlowUI.Draw.Scroller
-	UiScrollerAt = WG.FlowUI.Draw.ScrollerGeometry
+	listScroller = WG.FlowUI.Scroller.new(function()
+		return #rows * metrics.rowHeight, scroll * metrics.rowHeight, maxScroll()
+	end)
+	catScroller = WG.FlowUI.Scroller.new(function()
+		return #categories * metrics.catRowHeight, catScroll * metrics.catRowHeight, maxCatScroll()
+	end)
+	dataView.scroller = WG.FlowUI.Scroller.new(function()
+		return #dataView.rows * dataView.lineH, dataView.scroll * dataView.lineH, dataView.maxScroll()
+	end)
 	Highlight = WG.FlowUI.Draw.SelectHighlight
 	UiToggle = WG.FlowUI.Draw.Toggle
 
@@ -4026,14 +3911,7 @@ local function showTooltip(row)
 	if hover.dat == 1 then
 		local data = widgetHandler.configData[row.name]
 		if not tipCache.same("data", row.name, data, false) then
-			tipCache.keep(
-				"data",
-				row.name,
-				data,
-				false,
-				L.showdata .. "\n",
-				dataView.preview(row.name, maxWidth)
-			)
+			tipCache.keep("data", row.name, data, false, L.showdata .. "\n", dataView.preview(row.name, maxWidth))
 		end
 		WG.tooltip.ShowTooltip("widgetselector", tipCache.text, nil, nil, tipCache.title)
 
@@ -4200,12 +4078,13 @@ function widget:DrawScreen()
 	glColor(1, 1, 1, 1)
 
 	local mx, my, lmb = spGetMouseState()
-	if dragging then
-		if lmb then
-			scrollFromY(my)
-		else
-			dragging = false
-		end
+	local step = listScroller:drag(my, lmb)
+	if step then
+		setScroll(step)
+	end
+	local catStep = catScroller:drag(my, lmb)
+	if catStep then
+		setCatScroll(catStep)
 	end
 
 	-- Answers whether anything painted into the baked panel moved. It has to run even
@@ -4447,6 +4326,28 @@ end
 
 -- A press inside the panel goes to the modal, the field, the switches, the column, the
 -- scrollbar, a row or a footer button; a press outside closes it.
+-- The column's bar ahead of its entries, which reach under it and would take the press as a pick.
+local function pressScrollers(x, y)
+	if math_isInRect(x, y, catBarRect()) then
+		local step = catScroller:press(y)
+		if step then
+			setCatScroll(step)
+		end
+
+		return true
+	end
+	if math_isInRect(x, y, barX1, listBottom, area.x2, listTop) then
+		local step = listScroller:press(y)
+		if step then
+			setScroll(step)
+		end
+
+		return true
+	end
+
+	return false
+end
+
 local function mouseEvent(x, y, button, release)
 	if spIsGUIHidden() or not show or not uiBound then
 		return false
@@ -4524,7 +4425,9 @@ local function mouseEvent(x, y, button, release)
 					hitSwitch = switches[n].key
 				end
 			end
-			if hitSwitch then
+			if pressScrollers(x, y) then
+				-- A bar has it.
+			elseif hitSwitch then
 				filters[hitSwitch] = not filters[hitSwitch]
 				-- Two ways of ordering the same list, so switching one on takes the other off
 				-- rather than leaving the header claiming both.
@@ -4544,8 +4447,6 @@ local function mouseEvent(x, y, button, release)
 				click()
 			elseif i then
 				selectCategory(categories[i].key)
-			elseif math_isInRect(x, y, barX1, listBottom, area.x2, listTop) then
-				grabScroller(y)
 			else
 				for _, b in ipairs(buttons) do
 					local r = b.rect
@@ -4674,7 +4575,7 @@ function widget:MouseRelease(x, y, button)
 	-- The window owns the release as well as the press: a drag down its bar can end with
 	-- the cursor anywhere, and that must not read as a click on a row behind it.
 	if dataView.name then
-		dataView.dragging = false
+		dataView.scroller:drag(y, false)
 
 		return true
 	end
