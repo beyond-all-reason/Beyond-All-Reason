@@ -96,9 +96,17 @@ end
 local function loadMission(gameSetup)
 	missionLoadStep = "loading " .. gameSetup.entryPoint
 	local mission = VFS.Include(gameSetup.entryPoint)
+	if not mission then
+		local reason = gameSetup.entryPoint .. " returned no mission table"
+		local report = validationReport.Create()
+		report.Error(validationReport.Sections.Loading, nil, nil, reason)
+		validationReport.Log(report.GetResult())
+		failMission(reason)
+		return
+	end
+
 	missionLoadStep = "validating " .. gameSetup.entryPoint
 	local validationResult = validateMission(mission)
-
 	if not validationResult.ok then
 		failMission(#validationResult.errors .. " validation errors in " .. gameSetup.entryPoint)
 		return
