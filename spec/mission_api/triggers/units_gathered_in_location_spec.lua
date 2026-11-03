@@ -5,12 +5,17 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 local unitTeams, beingBuilt = {}, {}
+---@type table<integer, boolean?>
+local dead = {}
 local looks = 0
 
 -- unit_query captures these at its load.
 local env = MissionSpecEnv.new({
 	Spring = {
 		GetUnitTeam = function(unitID)
+			if dead[unitID] then
+				return nil
+			end
 			return unitTeams[unitID] or 0
 		end,
 		GetUnitIsBeingBuilt = function(unitID)
@@ -30,9 +35,11 @@ describe("mission_api.triggers.units_gathered_in_location", function()
 	local tracking = GG["MissionAPI"].Modules.Tracking
 	local triggerID = "t"
 	local area = { x = 0, z = 0, radius = 100 }
+	local frameNumber = 0
 
 	before_each(function()
-		unitTeams, beingBuilt, looks = {}, {}, 0
+		unitTeams, beingBuilt, looks, frameNumber = {}, {}, 0, 0
+		dead = {}
 		for _, unitID in ipairs({ 100, 101, 102 }) do
 			tracking.TrackUnit("squad", unitID)
 		end
@@ -52,7 +59,8 @@ describe("mission_api.triggers.units_gathered_in_location", function()
 	end
 
 	local function frame(t, context, id)
-		callins.GameFrame(t, id or triggerID, context)
+		frameNumber = frameNumber + 1
+		callins.GameFrame(t, id or triggerID, context, frameNumber)
 	end
 
 	it("declares its type and parameters, all required", function()
@@ -90,12 +98,49 @@ describe("mission_api.triggers.units_gathered_in_location", function()
 		assert.are.equal(2, fired())
 	end)
 
+	it("does not fire again when one of them dies inside", function()
+		local t = squadTrigger()
+		local context, fired = newContext()
+		callins.UnitsEnteredArea(t, triggerID, context, { 100, 101, 102 })
+		frame(t, context)
+		dead[102] = true
+		callins.UnitDestroyed(t, triggerID, context, 102)
+		tracking.UntrackUnitID(102)
+		callins.UnitsLeftArea(t, triggerID, context, { 102 })
+		frame(t, context)
+		assert.are.equal(1, fired())
+	end)
+
+	it("does not fire again when another unit walks out", function()
+		local t = squadTrigger()
+		local context, fired = newContext()
+		context.DoesUnitHaveName = function(unitID)
+			return unitID ~= 200
+		end
+		callins.UnitsEnteredArea(t, triggerID, context, { 100, 101, 102, 200 })
+		frame(t, context)
+		callins.UnitsLeftArea(t, triggerID, context, { 200 })
+		frame(t, context)
+		assert.are.equal(1, fired())
+	end)
+
 	it("is not held up by other units in the area", function()
 		local t = squadTrigger()
 		local context, fired = newContext()
 		callins.UnitsEnteredArea(t, triggerID, context, { 100, 200, 101, 102 })
 		frame(t, context)
 		assert.are.equal(1, fired())
+	end)
+
+	it("does not look at them once it fired, while they stay", function()
+		local t = squadTrigger()
+		local context = newContext()
+		callins.UnitsEnteredArea(t, triggerID, context, { 100, 101, 102 })
+		frame(t, context)
+		looks = 0
+		callins.UnitsEnteredArea(t, triggerID, context, { 200 })
+		frame(t, context)
+		assert.are.equal(0, looks)
 	end)
 
 	it("does not look at them on a frame after nothing changed", function()
@@ -144,6 +189,21 @@ describe("mission_api.triggers.units_gathered_in_location", function()
 		assert.are.equal(1, fired())
 	end)
 
+	it("counts one built inside the area once it is finished", function()
+		beingBuilt = { [100] = true, [101] = true, [102] = true }
+		local t = squadTrigger()
+		local context, fired = newContext()
+		callins.UnitsEnteredArea(t, triggerID, context, { 100, 101, 102 })
+		frame(t, context)
+		beingBuilt = {}
+		frame(t, context)
+		assert.are.equal(0, fired())
+
+		callins.UnitFinished(t, triggerID, context, 102)
+		frame(t, context)
+		assert.are.equal(1, fired())
+	end)
+
 	it("does not fire once every one of them is gone", function()
 		local t = squadTrigger()
 		local context, fired = newContext()
@@ -153,11 +213,12 @@ describe("mission_api.triggers.units_gathered_in_location", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("fires when the trigger becomes valid while they are all inside", function()
+	it("asks a refused trigger again half a second later while they are all inside", function()
 		local t = squadTrigger()
 		local context = newContext()
-		local valid, fires = false, 0
+		local valid, asks, fires = false, 0, 0
 		context.ActivateTrigger = function()
+			asks = asks + 1
 			if valid then
 				fires = fires + 1
 			end
@@ -166,8 +227,15 @@ describe("mission_api.triggers.units_gathered_in_location", function()
 		callins.UnitsEnteredArea(t, triggerID, context, { 100, 101, 102 })
 		frame(t, context)
 		valid = true
+		for _ = 1, 14 do
+			frame(t, context)
+		end
+		assert.are.equal(1, asks)
+		assert.are.equal(0, fires)
+
 		frame(t, context)
 		frame(t, context)
+		assert.are.equal(2, asks)
 		assert.are.equal(1, fires)
 	end)
 
