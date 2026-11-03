@@ -305,19 +305,18 @@ local function collectTriggerNames(context, nameKind, referencedNames)
 	end
 end
 
---- An objective can hold a trigger inline, which refers to names as any other trigger does.
+--- An objective holds its condition inline, which refers to names as any trigger does.
 local function collectObjectiveTriggerNames(context, nameKind, referencedNames)
 	local referencingParameterNames = getParameterNamesWithType(context.TriggerParameters, nameKind.nameType)
 
 	for objectiveID, objective in pairs(context.Objectives) do
-		local trigger = type(objective) == "table" and objective.trigger
-		local parameters = parametersOf(trigger)
+		local parameters = parametersOf(objective)
 		if parameters then
 			collectParameterNames(
 				context,
-				referencingParameterNames[trigger.type],
+				referencingParameterNames[objective.type],
 				parameters,
-				"objective " .. objectiveID .. " (trigger)",
+				"objective " .. objectiveID .. " (condition)",
 				referencedNames
 			)
 		end
@@ -382,11 +381,10 @@ local function validateCountdownIDReferences(context, report)
 		end
 	end
 
-	-- Objectives can hold a trigger inline, which refers to a countdown as any other trigger does.
+	-- Objectives hold their condition inline, which refers to a countdown as any trigger does.
 	for objectiveID, objective in pairs(context.Objectives) do
-		local parameters = parametersOf(type(objective) == "table" and objective.trigger)
-		for _, countdownID in ipairs(countdownIDsOf(parameters)) do
-			recordSource(referencedIDs, countdownID, "objective " .. objectiveID .. " (trigger)")
+		for _, countdownID in ipairs(countdownIDsOf(parametersOf(objective))) do
+			recordSource(referencedIDs, countdownID, "objective " .. objectiveID .. " (condition)")
 		end
 	end
 
@@ -424,9 +422,8 @@ local function validateCutsceneIDReferences(context, report)
 		end
 	end
 	for objectiveID, objective in pairs(context.Objectives) do
-		local trigger = type(objective) == "table" and objective.trigger
-		if referencingTriggerTypes[type(trigger) == "table" and trigger.type] then
-			recordCutsceneIDs(parametersOf(trigger), "objective " .. objectiveID .. " (trigger)")
+		if referencingTriggerTypes[type(objective) == "table" and objective.type] then
+			recordCutsceneIDs(parametersOf(objective), "objective " .. objectiveID .. " (condition)")
 		end
 	end
 
@@ -472,14 +469,20 @@ local function validateVariableReferences(context, report)
 
 	for triggerID, trigger in pairs(context.Triggers) do
 		recordKeys(parametersOf(trigger), "trigger " .. triggerID)
+		if type(trigger) == "table" then
+			recordKeys(
+				{ count = trigger.count, atLeast = trigger.atLeast, atMost = trigger.atMost },
+				"trigger " .. triggerID
+			)
+		end
 	end
 	for actionID, action in pairs(context.Actions) do
 		recordKeys(parametersOf(action), "action " .. actionID)
 	end
 	for objectiveID, objective in pairs(context.Objectives) do
 		if type(objective) == "table" then
-			recordKeys(objective, "objective " .. objectiveID, "trigger")
-			recordKeys(parametersOf(objective.trigger), "objective " .. objectiveID .. " trigger")
+			recordKeys(objective, "objective " .. objectiveID, "parameters")
+			recordKeys(parametersOf(objective), "objective " .. objectiveID .. " condition")
 		end
 	end
 

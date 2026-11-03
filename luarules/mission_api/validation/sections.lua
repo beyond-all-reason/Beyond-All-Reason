@@ -137,6 +137,64 @@ local function createValueValidators(context, parameterValidators)
 	return validateValue, validateValueWithDifficulties, validateValueWithDifficultiesAndVariables
 end
 
+--- Reports every string key not in `allowedKeys`, so that a misspelt field fails loudly
+--- instead of being silently ignored at runtime.
+local function validateNoUnknownKeys(reporter, id, values, allowedKeys, valueLabel)
+	local unknownKeys = {}
+	for key in pairs(values) do
+		if type(key) == "string" and not allowedKeys[key] then
+			unknownKeys[#unknownKeys + 1] = key
+		end
+	end
+	table.sort(unknownKeys)
+	for _, key in ipairs(unknownKeys) do
+		reporter.Error(id, "Unknown " .. string.lower(valueLabel), valueLabel .. ": " .. key)
+	end
+end
+
+local THRESHOLD_FIELDS = { "count", "atLeast", "atMost" }
+
+--- Checks a condition's threshold against its kind, so that picking a type from the
+--- wrong family is an error rather than a silently ignored field:
+---   event  - an occurrence tallied upwards, thresholded with `count`
+---   metric - a level sampled now, thresholded with `atLeast` / `atMost`
+--- Thresholds may differ by difficulty and read variables, which resolve at mission start.
+local function validateConditionThreshold(context, reporter, id, condition, validateValue)
+	local Types = context.Types
+	local fieldTypes = { count = Types.PositiveInteger, atLeast = Types.Number, atMost = Types.Number }
+	for _, fieldName in ipairs(THRESHOLD_FIELDS) do
+		local value = condition[fieldName]
+		if value ~= nil then
+			for _, result in ipairs(validateValue(fieldTypes[fieldName], value)) do
+				local details = "Field: " .. fieldName .. (result.parameterNameSuffix or "")
+				local reportResult = result.isWarning and reporter.Warn or reporter.Error
+				reportResult(id, result.message, details)
+			end
+		end
+	end
+
+	local kind = context.ConditionKinds[condition.type]
+	if kind == "metric" then
+		if condition.count ~= nil then
+			reporter.Error(id, "Metric conditions are thresholded with atLeast/atMost, not count")
+		end
+		if condition.atLeast == nil and condition.atMost == nil then
+			reporter.Error(id, "Metric conditions require atLeast and/or atMost")
+		end
+		if
+			type(condition.atLeast) == "number"
+			and type(condition.atMost) == "number"
+			and condition.atLeast > condition.atMost
+		then
+			reporter.Error(id, "atLeast must not be greater than atMost")
+		end
+	elseif kind == "event" then
+		if condition.atLeast ~= nil or condition.atMost ~= nil then
+			reporter.Error(id, "Event conditions are thresholded with count, not atLeast/atMost")
+		end
+	end
+end
+
 local function createEntryValidator(context, validateValue)
 	return function(reporter, id, data)
 		for _, result in ipairs(validateValue(context.Types.String, id)) do
@@ -152,7 +210,7 @@ local function createEntryValidator(context, validateValue)
 end
 
 --------------------------------------------------------------------------------
--- Schema driven parameter validation, shared by triggers, actions and objective triggers
+-- Schema driven parameter validation, shared by triggers, actions and objective conditions
 --------------------------------------------------------------------------------
 
 --- Every parameter may differ by difficulty, and read its value from variables.
@@ -160,7 +218,7 @@ local function createSchemaValidator(context, parameterValidators, validateParam
 	local validateTableType = parameterValidators[context.Types.Table]
 
 	--- @param name string what the entity is called in messages. An objective's inline
-	---        trigger is reported against the objective, but named 'Objective trigger'.
+	---        condition is reported against the objective, but named 'Objective condition'.
 	--- @param schemaParameters table parameter schemas indexed by entity type
 	return function(reporter, id, name, schemaParameters, entityType, parameters)
 		if not entityType then
@@ -193,7 +251,9 @@ local function createSchemaValidator(context, parameterValidators, validateParam
 			)
 		end
 
+		local declaredParameters = {}
 		for _, parameter in ipairs(schema) do
+			declaredParameters[parameter.name] = true
 			local value = parameters[parameter.name]
 			if value == nil then
 				if parameter.required then
@@ -207,6 +267,7 @@ local function createSchemaValidator(context, parameterValidators, validateParam
 				end
 			end
 		end
+		validateNoUnknownKeys(reporter, id, parameters, declaredParameters, "Parameter")
 	end
 end
 
@@ -247,7 +308,7 @@ local function validateStagesSection(context, report, validateValue, validateEnt
 end
 
 --------------------------------------------------------------------------------
--- Stockpile triggers, as triggers and as objective triggers
+-- Stockpile conditions, on triggers and on objectives
 --------------------------------------------------------------------------------
 
 --- A unit def known only by name, as in the standalone validator, has no weapons to check.
@@ -282,65 +343,49 @@ local function validateStockpileTrigger(context, reporter, id, trigger)
 end
 
 --------------------------------------------------------------------------------
--- Objectives: fields and inline triggers
+-- Objectives: fields and inline conditions
 --------------------------------------------------------------------------------
 
-local function validateObjectiveInlineTrigger(
+--- Objectives declare their condition inline, in the same flat shape as a trigger:
+--- `type`, `parameters` and a threshold. An objective without a `type` is completed by
+--- actions alone; `count` then sets how many UpdateObjective steps complete it.
+local function validateObjectiveCondition(
 	context,
 	objectiveReport,
 	validateSchema,
-	statisticsTriggerTypes,
+	validateValue,
 	objective,
 	objectiveID
 )
-	local trigger = objective.trigger
-	if type(trigger) ~= "table" or context.IsDifficultiesTable(trigger) or context.IsVariableReference(trigger) then
-		return
-	end
-
-	if trigger.settings ~= nil then
-		objectiveReport.Error(objectiveID, "Objective trigger must not have a 'settings' field")
-	end
-	if trigger.actions ~= nil then
-		objectiveReport.Error(objectiveID, "Objective trigger must not have an 'actions' field")
-	end
-
-	-- Statistics triggers require a quantity, but an objective tracks its progress with its
-	-- own 'amount' instead: the loader registers a managed objective, which never reads quantity.
-	local parameters = trigger.parameters
-	if statisticsTriggerTypes[trigger.type] and type(parameters) == "table" then
-		if parameters.quantity ~= nil then
-			objectiveReport.Warn(objectiveID, "Objective trigger 'quantity' is not supported and will be ignored")
+	if objective.type == nil then
+		if objective.parameters ~= nil then
+			objectiveReport.Error(objectiveID, "Objective has parameters but no condition type")
 		end
-		parameters = table.copy(parameters)
-		parameters.quantity = 1
+		if objective.atLeast ~= nil or objective.atMost ~= nil then
+			objectiveReport.Error(objectiveID, "Objective has atLeast/atMost but no condition type")
+		end
+		validateConditionThreshold(context, objectiveReport, objectiveID, objective, validateValue)
+		return
 	end
 
 	validateSchema(
 		objectiveReport,
 		objectiveID,
-		"Objective trigger",
+		"Objective condition",
 		context.TriggerParameters,
-		trigger.type,
-		parameters
+		objective.type,
+		objective.parameters
 	)
-	validateStockpileTrigger(context, objectiveReport, objectiveID, trigger)
+	validateConditionThreshold(context, objectiveReport, objectiveID, objective, validateValue)
+	validateStockpileTrigger(context, objectiveReport, objectiveID, objective)
 end
 
 local function validateObjectivesSection(context, report, validateFieldValue, validateEntry, validateSchema)
 	local objectiveReport = reporterFor(report, SECTIONS.Objectives, "Objective")
-	local statisticsTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.Quantity)
 
-	-- The inline trigger is registered before the difficulty and variables are resolved,
-	-- so it can't vary. Its parameters can, as any trigger's.
-	local function validateField(fieldType, value, fieldName)
-		if fieldName == "trigger" and context.IsDifficultiesTable(value) then
-			return { { message = "Objective 'trigger' field does not support difficulties" } }
-		end
-		if fieldName == "trigger" and context.IsVariableReference(value) then
-			return { { message = "Objective 'trigger' field does not support variables" } }
-		end
-		return validateFieldValue(fieldType, value)
+	local allowedKeys = table.copy(objectiveFieldTypes)
+	for _, fieldName in ipairs({ "type", "parameters", "count", "atLeast", "atMost" }) do
+		allowedKeys[fieldName] = true
 	end
 
 	for objectiveID, objective in pairs(context.Objectives) do
@@ -351,15 +396,32 @@ local function validateObjectivesSection(context, report, validateFieldValue, va
 				objectiveReport.Error(objectiveID, "Objective has empty textKey")
 			end
 
-			validateTypedFields(objectiveReport, objectiveID, validateField, objectiveFieldTypes, objective, "Field")
-			validateObjectiveInlineTrigger(
-				context,
+			validateNoUnknownKeys(objectiveReport, objectiveID, objective, allowedKeys, "Field")
+			validateTypedFields(
 				objectiveReport,
-				validateSchema,
-				statisticsTriggerTypes,
+				objectiveID,
+				validateFieldValue,
+				objectiveFieldTypes,
 				objective,
-				objectiveID
+				"Field"
 			)
+			-- The condition record is registered before the difficulty and variables are resolved,
+			-- so its type can't vary. Its parameters and threshold can, as any trigger's.
+			if type(objective.type) == "table" then
+				objectiveReport.Error(
+					objectiveID,
+					"Objective condition type does not support difficulties or variables"
+				)
+			else
+				validateObjectiveCondition(
+					context,
+					objectiveReport,
+					validateSchema,
+					validateFieldValue,
+					objective,
+					objectiveID
+				)
+			end
 		end
 	end
 end
@@ -388,7 +450,7 @@ local function validateTriggerActions(context, triggerReport, trigger, triggerID
 	end
 end
 
---- Settings are optional in raw missions; triggers_loader.lua applies the defaults later.
+--- Settings are optional in raw missions; conditions_loader.lua applies the defaults later.
 local function validateTriggerSettings(triggerReport, validateValue, validateTableType, trigger, triggerID)
 	local settings = trigger.settings
 	if settings == nil then
@@ -402,12 +464,19 @@ local function validateTriggerSettings(triggerReport, validateValue, validateTab
 	end
 
 	-- The TriggerIDs and StageIDs types also check that all prerequisite triggers and stages exists.
+	validateNoUnknownKeys(triggerReport, triggerID, settings, triggerSettingTypes, "Setting")
 	validateTypedFields(triggerReport, triggerID, validateValue, triggerSettingTypes, settings, "Setting")
-
-	if settings.maxRepeats and not settings.repeating then
-		triggerReport.Error(triggerID, "Trigger has maxRepeats setting but is not set to repeating")
-	end
 end
+
+local ALLOWED_TRIGGER_KEYS = {
+	type = true,
+	parameters = true,
+	settings = true,
+	actions = true,
+	count = true,
+	atLeast = true,
+	atMost = true,
+}
 
 local function validateTriggersSection(
 	context,
@@ -415,14 +484,17 @@ local function validateTriggersSection(
 	parameterValidators,
 	validateValue,
 	validateEntry,
-	validateSchema
+	validateSchema,
+	validateThresholdValue
 )
 	local triggerReport = reporterFor(report, SECTIONS.Triggers, "Trigger")
 	local validateTableType = parameterValidators[context.Types.Table]
 
 	for triggerID, trigger in pairs(context.Triggers) do
 		if validateEntry(triggerReport, triggerID, trigger) then
+			validateNoUnknownKeys(triggerReport, triggerID, trigger, ALLOWED_TRIGGER_KEYS, "Field")
 			validateTriggerActions(context, triggerReport, trigger, triggerID)
+			validateConditionThreshold(context, triggerReport, triggerID, trigger, validateThresholdValue)
 			validateTriggerSettings(triggerReport, validateValue, validateTableType, trigger, triggerID)
 			validateSchema(
 				triggerReport,
@@ -620,7 +692,15 @@ local function validate(context, report, parameterValidators)
 	-- Same order here as in the report:
 	validateStagesSection(context, report, validateValue, validateEntry)
 	validateObjectivesSection(context, report, validateValueWithDifficultiesAndVariables, validateEntry, validateSchema)
-	validateTriggersSection(context, report, parameterValidators, validateValue, validateEntry, validateSchema)
+	validateTriggersSection(
+		context,
+		report,
+		parameterValidators,
+		validateValue,
+		validateEntry,
+		validateSchema,
+		validateValueWithDifficultiesAndVariables
+	)
 	validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	validateCutscenesSection(context, report, validateValueWithDifficulties, validateEntry)
 	validateLoadoutsSection(context, report, parameterValidators)

@@ -7,13 +7,13 @@
 --- the greyed-out options must also refuse build orders given by hotkey.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	setup = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -21,7 +21,7 @@ local triggers = {
 	},
 
 	disableSolar = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -29,7 +29,7 @@ local triggers = {
 	},
 
 	disableWindForBot = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 10,
 		},
@@ -37,7 +37,7 @@ local triggers = {
 	},
 
 	removeOptions = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 15,
 		},
@@ -45,7 +45,7 @@ local triggers = {
 	},
 
 	addOptions = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
 		},

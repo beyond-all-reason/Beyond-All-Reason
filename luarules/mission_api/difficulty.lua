@@ -7,6 +7,7 @@
 ---
 
 local difficulties = GG["MissionAPI"].Modules.ParameterTypes.Enums.Difficulty
+local objectivesLoader = VFS.Include("luarules/mission_api/objectives_loader.lua")
 
 local function isDifficultiesTable(value)
 	return type(value) == "table" and value.difficulties ~= nil
@@ -64,11 +65,22 @@ local function resolveParameters(parameters)
 	end
 end
 
+local thresholdFields = { "count", "atLeast", "atMost" }
+
+local function resolveThresholds(condition)
+	for _, fieldName in ipairs(thresholdFields) do
+		if isDifficultiesTable(condition[fieldName]) then
+			condition[fieldName] = resolve(condition[fieldName])
+		end
+	end
+end
+
 --- Resolve trigger parameters, and convert the settings.difficulties names into difficulty
 --- values for the runtime check in api_missions_triggers.lua.
 local function resolveTriggers(triggers)
 	for _, trigger in pairs(triggers) do
 		resolveParameters(trigger.parameters)
+		resolveThresholds(trigger)
 
 		local triggerDifficulties = trigger.settings.difficulties
 		if triggerDifficulties ~= nil then
@@ -91,38 +103,18 @@ local function resolveCutscenes(cutscenes)
 	end
 end
 
---- Resolve objective fields, inline trigger parameters, and managed objective metadata in
---- place. objectives_loader ran before the difficulty was resolved, so the maxRepeats it
---- derives from amount is filled in here for synthesized triggers.
+--- Resolve objective fields and the parameters of their inline condition in place.
+--- objectives_loader built each condition record before the difficulty was known, so
+--- the resolved threshold is copied onto it here.
 local function resolveObjectives(objectives)
 	for objectiveID, objective in pairs(objectives) do
-		if isDifficultiesTable(objective.amount) then
-			objective.amount = resolve(objective.amount)
-
-			local triggerID = GG["MissionAPI"].ObjectiveTriggers[objectiveID]
-			local trigger = triggerID and GG["MissionAPI"].Triggers[triggerID]
-			if trigger then
-				trigger.settings.maxRepeats = objective.amount > 1 and (objective.amount - 1) or nil
-			end
-		end
-
 		for fieldName, value in pairs(objective) do
-			if fieldName ~= "trigger" and isDifficultiesTable(value) then
+			if fieldName ~= "parameters" and isDifficultiesTable(value) then
 				objective[fieldName] = resolve(value)
 			end
 		end
-		resolveParameters(objective.trigger and objective.trigger.parameters)
-	end
-
-	for _, managedObjectives in pairs(GG["MissionAPI"].ManagedObjectives) do
-		for _, metadata in ipairs(managedObjectives) do
-			if isDifficultiesTable(metadata.amount) then
-				metadata.amount = resolve(metadata.amount)
-			end
-			if isDifficultiesTable(metadata.nextStage) then
-				metadata.nextStage = resolve(metadata.nextStage)
-			end
-		end
+		resolveParameters(objective.parameters)
+		objectivesLoader.ApplyThresholds(objectiveID, objective, GG["MissionAPI"].Triggers)
 	end
 end
 
