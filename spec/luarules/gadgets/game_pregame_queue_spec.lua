@@ -73,6 +73,12 @@ local function loadQueue(coop)
 		GetGroundHeight = function()
 			return 10
 		end,
+		AddTeamUnitStats = function(team, produced, died)
+			local current = stats(team)
+			current.unitsProduced = current.unitsProduced + produced
+			current.unitsDied = current.unitsDied + died
+			assert.is_true(current.unitsProduced >= 0 and current.unitsDied >= 0)
+		end,
 		GetTeamStatsHistory = function(team, first, last)
 			if not first then
 				return 1
@@ -226,11 +232,11 @@ describe("Pregame engine queue lifecycle", function()
 	end)
 
 	it("parks unplaced previews far away and uses a placed coop position", function()
-		local _, units, rules = loadQueue()
+		local env, units, rules = loadQueue()
 		assert.equals(-32768, units[rules["0pregameQueue_0"]].x)
 		assert.equals(-32768, units[rules["0pregameQueue_0"]].z)
 		assert.equals(1200, units[rules["0pregameQueue_1"]].x)
-		assert.equals(2, rules["0pregameUnitsProduced"])
+		assert.equals(0, env.Spring.GetTeamStatsHistory(0, 1)[1].unitsProduced)
 	end)
 
 	it("allows only the owner or synced Lua to command a proxy", function()
@@ -519,13 +525,9 @@ describe("Pregame queue reconnect acknowledgement", function()
 end)
 
 describe("Pregame statistics corrections", function()
-	local function reader(env)
-		return setfenv(assert(loadfile("common/pregame_stats.lua")), env)()
-	end
-
 	it("excludes repeated faction previews but counts the real commander and later losses", function()
 		local env, units, rules = loadQueue(false)
-		local history = reader(env)
+		local history = env.Spring.GetTeamStatsHistory
 		for _, def in ipairs({ 2, 1, 2 }) do
 			rules["0startUnit"] = def
 			env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
@@ -538,7 +540,6 @@ describe("Pregame statistics corrections", function()
 		assert.equals(1, history(0))
 		assert.equals(1, history(0, 1)[1].unitsProduced)
 		assert.equals(0, history(0, 1)[1].unitsDied)
-		assert.equals(5, env.Spring.GetTeamStatsHistory(0, 1)[1].unitsProduced)
 		env.Spring.DestroyUnit(id, false, true)
 		assert.equals(1, history(0, 1)[1].unitsDied)
 	end)
@@ -550,7 +551,7 @@ describe("Pregame statistics corrections", function()
 		env.GG.CreatePregameStartUnit(0, 1, 500, 10, 600, 0, 0)
 		env.gadget:GameFrame(0)
 		assert.is_nil(units[leftover])
-		local sample = reader(env)(0, 1)[1]
+		local sample = env.Spring.GetTeamStatsHistory(0, 1)[1]
 		assert.equals(1, sample.unitsProduced)
 		assert.equals(0, sample.unitsDied)
 	end)
@@ -559,37 +560,22 @@ describe("Pregame statistics corrections", function()
 		local env, _, _, _, _, players = loadQueue(false)
 		players[0].team, players[1].team = 2, 2
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
-		local history = reader(env)
+		local history = env.Spring.GetTeamStatsHistory
 		for _, team in ipairs({ 0, 2 }) do
 			assert.equals(0, history(team, 1)[1].unitsProduced)
 			assert.equals(0, history(team, 1)[1].unitsDied)
 		end
 	end)
 
-	it("corrects every historical entry and leaves old replays without parameters unchanged", function()
-		local env = {
-			Spring = {
-				GetTeamStatsHistory = function(team, first, last)
-					if not first then
-						return 3
-					end
-					return {
-						{ unitsProduced = 0, unitsDied = 0, unitsKilled = 0 },
-						{ unitsProduced = 4, unitsDied = 3, unitsKilled = 2 },
-						{ unitsProduced = 9, unitsDied = 5, unitsKilled = 7 },
-					}
-				end,
-				GetTeamRulesParam = function(team, key)
-					return team == 0 and 3 or nil
-				end,
-			},
-		}
-		setmetatable(env, { __index = _G })
-		local history = reader(env)
-		local corrected = history(0, 1, 3)
-		assert.same({ unitsProduced = 0, unitsDied = 0, unitsKilled = 0 }, corrected[1])
-		assert.same({ unitsProduced = 1, unitsDied = 0, unitsKilled = 2 }, corrected[2])
-		assert.same({ unitsProduced = 6, unitsDied = 2, unitsKilled = 7 }, corrected[3])
-		assert.same(env.Spring.GetTeamStatsHistory(1, 1, 3), history(1, 1, 3))
+	it("does not subtract production when replacement creation fails", function()
+		local env, _, rules = loadQueue(false)
+		env.Spring.CreateUnit = function()
+			return nil
+		end
+		rules["0startUnit"] = 2
+		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
+		local sample = env.Spring.GetTeamStatsHistory(0, 1)[1]
+		assert.equals(0, sample.unitsProduced)
+		assert.equals(0, sample.unitsDied)
 	end)
 end)

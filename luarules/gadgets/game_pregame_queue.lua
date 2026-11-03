@@ -22,10 +22,6 @@ local generation = 0
 -- Beyond the engine's 16384-world-unit queue-origin margin; no simulation runs here.
 local UNPLACED_POSITION = -32768
 
-local function recordProxyStat(teamID, key)
-	Spring.SetTeamRulesParam(teamID, key, (Spring.GetTeamRulesParam(teamID, key) or 0) + 1, { allied = true })
-end
-
 local function queueKey(playerID, teamID)
 	return GG.coopMode and playerID or "team" .. teamID
 end
@@ -109,7 +105,7 @@ local function removeProxy(key)
 	local teamID = Spring.GetUnitTeam(unitID)
 	-- All callers run outside unit updates; finish removal before stats snapshots.
 	Spring.DestroyUnit(unitID, false, true, nil, true)
-	recordProxyStat(teamID, "pregameUnitsDied")
+	Spring.AddTeamUnitStats(teamID, 0, -1)
 end
 
 -- Called from the normal and coop spawners, outside the engine's unit update loop.
@@ -184,7 +180,7 @@ local function refresh(playerID)
 	if not replacement then
 		return
 	end
-	recordProxyStat(teamID, "pregameUnitsProduced")
+	Spring.AddTeamUnitStats(teamID, -1, 0)
 	-- GameStart resets team storage; removing the proxy must not subtract it again.
 	Spring.SetUnitStorage(replacement, { metal = 0, energy = 0 })
 	Spring.SetUnitRulesParam(replacement, "pregame_proxy", 1, { public = true })
