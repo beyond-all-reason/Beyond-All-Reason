@@ -41,10 +41,6 @@ end
 
 local SYNCACTION = "MapLighting"
 
-local function clamp(value, low, high)
-	return math.min(math.max(value, low), high)
-end
-
 if gadgetHandler:IsSyncedCode() then
 	local spGetGameFrame = Spring.GetGameFrame
 
@@ -80,6 +76,7 @@ else
 
 	local sin, cos, asin, atan2, sqrt = math.sin, math.cos, math.asin, math.atan2, math.sqrt
 	local rad, deg, pi = math.rad, math.deg, math.pi
+	local clamp, mix, smoothstep = math.clamp, math.mix, math.smoothstep
 
 	local UNIT_LIGHT_KEPT = 0.66 -- units follow a third of the change, so they stay readable
 	local NOTIFY_SECONDS = 1 -- widgets lose the night factor on /luaui reload
@@ -152,14 +149,6 @@ else
 	local lastSunLighting ---@type table?
 	local notifySeconds = 0 ---@type number
 	local mapSkybox ---@type boolean?
-
-	local function mix(a, b, f)
-		return a + (b - a) * f
-	end
-
-	local function ease(f)
-		return f * f * (3 - 2 * f)
-	end
 
 	local function shortArc(from, to, period)
 		local difference = (to - from) % period
@@ -250,14 +239,14 @@ else
 		if lighting.frames <= 0 or elapsed >= lighting.frames then
 			return lighting.to
 		end
-		return blendParams(lighting.from, lighting.to, ease(math.max(elapsed, 0) / lighting.frames))
+		return blendParams(lighting.from, lighting.to, smoothstep(0, 1, math.max(elapsed, 0) / lighting.frames))
 	end
 
 	local function hourAt(t)
 		local elapsed = t - clock.startFrame
 		local hour = clock.toHour
 		if clock.frames > 0 and elapsed < clock.frames then
-			local f = ease(math.max(elapsed, 0) / clock.frames)
+			local f = smoothstep(0, 1, math.max(elapsed, 0) / clock.frames)
 			hour = clock.fromHour + shortArc(clock.fromHour, clock.toHour, 24) * f
 		elseif clock.dayFrames > 0 then
 			hour = hour + (elapsed - clock.frames) * 24 / clock.dayFrames

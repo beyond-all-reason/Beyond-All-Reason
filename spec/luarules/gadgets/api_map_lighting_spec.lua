@@ -108,6 +108,19 @@ local function loadGadget(synced, world)
 				return world.textures[name]
 			end,
 		},
+		-- The engine's math extras, which stock Lua lacks.
+		math = setmetatable({
+			clamp = function(value, low, high)
+				return math.min(math.max(value, low), high)
+			end,
+			mix = function(x, y, a)
+				return x + (y - x) * a
+			end,
+			smoothstep = function(edge0, edge1, value)
+				local t = math.min(math.max((value - edge0) / (edge1 - edge0), 0), 1)
+				return t * t * (3 - 2 * t)
+			end,
+		}, { __index = math }),
 		Spring = {
 			GetGameFrame = function()
 				return world.gameFrame
