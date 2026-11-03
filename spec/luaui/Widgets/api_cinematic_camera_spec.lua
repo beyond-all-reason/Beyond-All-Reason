@@ -27,6 +27,7 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 	local offsets ---@type table<integer, { n: integer, [integer]: number }> every Spring.SetCameraOffset call
 	local configWrites ---@type table<integer, { key: string, value: integer, overlay: boolean }>
 	local windowOpen ---@type boolean
+	local gameSeconds ---@type number
 
 	local function lastState()
 		return setStates[#setStates].state
@@ -76,6 +77,9 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 				config[key] = value
 				configWrites[#configWrites + 1] = { key = key, value = value, overlay = overlay }
 			end)
+			:WithSpringFn("GetGameSecondsInterpolated", function()
+				return gameSeconds
+			end)
 			:LoadWidget(WIDGET_PATH)
 		loaded.env.widgetHandler.IsAnyWindowOpen = function()
 			return windowOpen
@@ -93,6 +97,7 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 		offsets = {}
 		configWrites = {}
 		windowOpen = false
+		gameSeconds = 0
 	end)
 
 	describe("Play", function()
@@ -542,6 +547,79 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 			loaded.WG.cinematicCamera.Restore(nil, 0)
 			loaded.env.widget:Update(0.016)
 			assert.are.same(playerState, lastState())
+		end)
+	end)
+
+	describe("clock", function()
+		local function playOnGameTime(loaded, sequence)
+			sequence.clock = "game"
+			loaded.WG.cinematicCamera.Play(sequence)
+			loaded.env.widget:Update(0.016) -- the first frame only reads the game time
+		end
+
+		local function twoSecondMove()
+			return { keyframes = { { position = { x = 200, y = 100, z = 0 }, duration = 2, easing = "linear" } } }
+		end
+
+		it("runs a sequence on game time, standing still while the game is paused", function()
+			local loaded = loadWidget()
+			playOnGameTime(loaded, twoSecondMove())
+
+			gameSeconds = 1
+			loaded.env.widget:Update(0.016)
+			near(100, lastState().px)
+
+			loaded.env.widget:Update(5) -- real time passes, game time does not
+			near(100, lastState().px)
+			assert.is_true(loaded.WG.cinematicCamera.IsActive())
+		end)
+
+		it("keeps a game-time shot moving with the game while a window is open", function()
+			local loaded = loadWidget()
+			playOnGameTime(loaded, twoSecondMove())
+
+			windowOpen = true
+			gameSeconds = 1
+			loaded.env.widget:Update(0.016)
+
+			near(100, lastState().px)
+		end)
+
+		it("runs the ending on the same clock", function()
+			local loaded = loadWidget()
+			playOnGameTime(loaded, { keyframes = { { position = { x = 0, y = 100, z = 0 }, duration = 0 } } })
+
+			loaded.env.widget:Update(5)
+			assert.is_true(loaded.WG.cinematicCamera.IsActive()) -- the release waits for game time
+
+			gameSeconds = 2
+			loaded.env.widget:Update(0.016)
+			assert.is_false(loaded.WG.cinematicCamera.IsActive())
+		end)
+
+		it("restores on the clock it is given", function()
+			local loaded = loadWidget()
+			loaded.WG.cinematicCamera.Save()
+			loaded.WG.cinematicCamera.Restore(nil, 2, "linear", "game")
+
+			loaded.env.widget:Update(5)
+			assert.is_true(loaded.WG.cinematicCamera.IsActive())
+
+			gameSeconds = 3
+			loaded.env.widget:Update(0.016)
+			assert.is_false(loaded.WG.cinematicCamera.IsActive())
+		end)
+
+		it("runs a game-time shake on game time", function()
+			local loaded = loadWidget()
+			loaded.WG.cinematicCamera.Shake({ magnitude = 5, duration = 1, clock = "game" })
+
+			loaded.env.widget:Update(5)
+			assert.is_true(loaded.WG.cinematicCamera.IsShaking())
+
+			gameSeconds = 1.5
+			loaded.env.widget:Update(0.016)
+			assert.is_false(loaded.WG.cinematicCamera.IsShaking())
 		end)
 	end)
 

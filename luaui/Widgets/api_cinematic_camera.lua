@@ -19,7 +19,7 @@ end
 		Orbit(params)         circle a target
 		Shake(params)         shake the view; concurrent shakes add up
 		Save(slot)            remember the player's camera under a name ("default")
-		Restore(slot, duration, easing)   blend back to a saved camera and hand control back
+		Restore(slot, duration, easing, clock)   blend back to a saved camera and hand control back
 		Stop()                hand control back where the camera is, in the player's camera mode
 		IsActive(), IsShaking(), GetPlayerCameraState()
 
@@ -48,13 +48,16 @@ end
 	           (both start moving at once; the first transitionDuration seconds blend the current
 	            view into the moving shot)
 	shake    = { magnitude, duration?, rampUp?, falloff?, frequency?, rotationMagnitude? }
+	sequence, follow, orbit and shake also take clock = "real" | "game", as Restore does.
 
 	The camera is driven every frame as the engine's fps camera with its position clamp lifted
 	(FPSClampPos overlay), since the engine's own transitions cannot be timed in BAR's default
-	transition mode. Timing is real time, so sequences also play while the game is paused; an
-	open menu window pauses them where the widget handler can say so (IsAnyWindowOpen, which
-	comes with the player input lock; without it nothing pauses). Once the game is over, a shot
-	without an end (an endless follow, a hold ending) hands the camera back as a release.
+	transition mode. Timing is real time by default, so sequences also play while the game is
+	paused; an open menu window pauses them where the widget handler can say so (IsAnyWindowOpen,
+	which comes with the player input lock; without it nothing pauses). clock = "game" runs a shot,
+	its ending included, on game time instead: it stops with the game, follows the game speed and
+	stays in step with game-time triggers. Once the game is over, a shot without an end (an
+	endless follow, a hold ending) hands the camera back as a release.
 ]]
 
 local CameraMath = VFS.Include("common/camera_math.lua")
@@ -70,6 +73,7 @@ local spGetUnitHeading = Spring.GetUnitHeading
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetConfigInt = Spring.GetConfigInt
 local spSetConfigInt = Spring.SetConfigInt
+local spGetGameSecondsInterpolated = Spring.GetGameSecondsInterpolated
 
 local Easings = CameraMath.Easings
 local FwdFromRot = CameraMath.FwdFromRot
@@ -133,6 +137,7 @@ local SHAKE_BAND_SCALE = 1 / (1 + SHAKE_OVERTONE_WEIGHT)
 ---@field index integer
 ---@field elapsed number
 ---@field pose CinematicPose the pose shown last
+---@field clock string? "game" to run on game time, else real time
 
 ---@type CinematicControl?
 local control
@@ -141,6 +146,7 @@ local shakes = {} ---@type table<integer, table> active shakes, see Shake()
 local shakeOffsetApplied = false
 local shakeSeed = 0
 local gameOver = false
+local lastGameSeconds ---@type number?
 
 --------------------------------------------------------------------------------
 -- Poses
@@ -601,22 +607,29 @@ local function appendEnding(running, segments, params, lastMove)
 end
 
 ---@param running CinematicControl
-local function startTimeline(running, segments)
+---@param clock string? "game" to run on game time, else real time
+local function startTimeline(running, segments, clock)
 	running.segments = segments
 	running.index = 1
 	running.elapsed = 0
+	running.clock = clock
 end
 
 --------------------------------------------------------------------------------
 -- Shake
 --------------------------------------------------------------------------------
 
-local function updateShakes(dt)
+---@param realDt number? nil while an open window holds real time
+---@param gameDt number
+local function updateShakes(realDt, gameDt)
 	local px, py, pz, tx, ty = 0.0, 0.0, 0.0, 0.0, 0.0
 	local i = 1
 	while i <= #shakes do
 		local shake = shakes[i]
-		shake.elapsed = shake.elapsed + dt
+		local dt = shake.clock == "game" and gameDt or realDt
+		if dt then
+			shake.elapsed = shake.elapsed + dt
+		end
 		if shake.elapsed >= shake.duration then
 			table.remove(shakes, i)
 		else
@@ -662,7 +675,7 @@ local function play(sequence)
 		end
 	end
 	appendEnding(running, segments, sequence, move)
-	startTimeline(running, segments)
+	startTimeline(running, segments, sequence.clock)
 end
 
 ---The path a sequence would fly, for drawing it. `points` lie along the eye path, spaced evenly
@@ -737,14 +750,14 @@ local function follow(params)
 	if not untilStopped then
 		appendEnding(running, segments, params)
 	end
-	startTimeline(running, segments)
+	startTimeline(running, segments, params.clock)
 end
 
 local function orbit(params)
 	local running = takeControl()
 	local segments = { orbitSegment(params) }
 	appendEnding(running, segments, params)
-	startTimeline(running, segments)
+	startTimeline(running, segments, params.clock)
 end
 
 local function shake(params)
@@ -765,6 +778,7 @@ local function shake(params)
 		falloff = params.falloff or DEFAULTS.shakeFalloff,
 		elapsed = 0,
 		noise = noise,
+		clock = params.clock,
 	}
 end
 
@@ -777,7 +791,7 @@ local function save(slot)
 	}
 end
 
-local function restore(slot, duration, easing)
+local function restore(slot, duration, easing, clock)
 	local saved = savedCamera(slot)
 	if (slot and not slots[slot]) or not saved then
 		Spring.Log(
@@ -793,7 +807,7 @@ local function restore(slot, duration, easing)
 		return
 	end
 	local running = takeControl()
-	startTimeline(running, { restoreSegment(saved, duration, easing) })
+	startTimeline(running, { restoreSegment(saved, duration, easing) }, clock)
 end
 
 local function stop()
@@ -825,22 +839,17 @@ end
 -- Call-ins
 --------------------------------------------------------------------------------
 
-function widget:Update(dt)
-	local running = control
-	if windowOpen() then
-		if running then
-			applyPose(running.pose)
-		end
-		return
-	end
+---Seconds of game time since the last call, interpolated between sim frames; none while paused.
+local function gameStep()
+	local now = spGetGameSecondsInterpolated()
+	local step = lastGameSeconds and math.max(0, now - lastGameSeconds) or 0
+	lastGameSeconds = now
+	return step
+end
 
-	if #shakes > 0 or shakeOffsetApplied then
-		updateShakes(dt)
-	end
-	if not running then
-		return
-	end
-
+---Moves the running timeline on by `dt` seconds of its clock.
+---@param running CinematicControl
+local function advance(running, dt)
 	running.elapsed = running.elapsed + dt
 	local segments = running.segments
 	while control do
@@ -874,7 +883,24 @@ function widget:Update(dt)
 			break
 		end
 	end
+end
 
+function widget:Update(dt)
+	local gameDt = gameStep()
+	local realDt = not windowOpen() and dt or nil -- an open window holds what runs on real time
+
+	if #shakes > 0 or shakeOffsetApplied then
+		updateShakes(realDt, gameDt)
+	end
+	local running = control
+	if not running then
+		return
+	end
+
+	local step = running.clock == "game" and gameDt or realDt
+	if step then
+		advance(running, step)
+	end
 	if control then
 		applyPose(running.pose)
 	end
