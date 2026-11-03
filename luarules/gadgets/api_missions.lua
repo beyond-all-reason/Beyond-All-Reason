@@ -16,6 +16,7 @@ end
 
 -- Included outside the guarded load, so a Lua error in any other Mission API file can still be reported.
 local validationReport = VFS.Include("luarules/mission_api/validation/report.lua")
+local loadReport = validationReport.Create()
 
 local missionLoaded = true
 local missionLoadError
@@ -98,9 +99,7 @@ local function loadMission(gameSetup)
 	local mission = VFS.Include(gameSetup.entryPoint)
 	if not mission then
 		local reason = gameSetup.entryPoint .. " returned no mission table"
-		local report = validationReport.Create()
-		report.Error(validationReport.Sections.Loading, nil, nil, reason)
-		validationReport.Log(report.GetResult())
+		loadReport.Error(validationReport.Sections.Loading, nil, nil, reason)
 		failMission(reason)
 		return
 	end
@@ -185,11 +184,12 @@ function gadget:Initialize()
 		local failedPath = tostring(loadError):match("file=(%S+)")
 		local step = failedPath and ("loading " .. failedPath) or missionLoadStep
 		local message = "Lua error while " .. step .. ": " .. tostring(loadError)
-		local report = validationReport.Create()
-		report.Error(validationReport.Sections.Loading, nil, nil, message)
-		validationReport.Log(report.GetResult())
+		loadReport.Error(validationReport.Sections.Loading, nil, nil, message)
 		failMission(message:match("^[^\n]*"))
 	end
+
+	validationReport.Log(loadReport.GetResult())
+	loadReport = nil
 end
 
 function gadget:GamePreload()
