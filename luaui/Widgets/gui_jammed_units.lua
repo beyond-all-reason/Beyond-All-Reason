@@ -33,7 +33,7 @@ local POLL_FRAMES = 6 -- game frames between two checks of the same unit (6 = 5 
 local UNIFORM_INDEX = 7 -- unit buffer uniform (userDefined[1].w) the CUS shaders read
 local OUTLINE_OWNER = "jammed"
 -- width and blur in pixels at 1080p, see gfx_outline_shader_gl4.lua
-local OUTLINE_STYLE = { color = { 1, 0.25, 0.18, 0.22 }, width = 0.8, blur = 0.5, fadeTime = 0.3 }
+local OUTLINE_STYLE = { color = { 1, 0.25, 0.18, 0.2 }, width = 0.8, blur = 0.5, fadeTime = 0.3 }
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetPositionLosState = Spring.GetPositionLosState

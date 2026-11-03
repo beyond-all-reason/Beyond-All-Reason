@@ -285,6 +285,72 @@ describe("unbinding a keychain", function()
 	end)
 end)
 
+-- The order binds land in uikeys.txt, for a chain and the keyset that is just its tail.
+local function bindOrder(binds)
+	local text = includeProfiles().exportText({ name = "Test", binds = binds })
+	local order = {}
+	for keyset in text:gmatch("\nbind%s+(%S+)%s") do
+		order[#order + 1] = keyset
+	end
+
+	return order
+end
+
+describe("ordering a chain bind against the keyset that is just its tail", function()
+	-- CKeyChain::fit matches a chain's own trailing taps too, so once "g,g" is fully pressed,
+	-- a bind on "g" alone fits just as well. The engine tries binds in file order and stops at
+	-- the first match, so "g,g" has to be written first or the second "g" is always claimed by
+	-- the shorter bind before "g,g" ever gets a look.
+	it("writes the chain before the keyset it ends with, however it was added", function()
+		local order = bindOrder({
+			{ keyset = "g", action = "probe_single" },
+			{ keyset = "g,g", action = "probe_chain" },
+		})
+
+		assert.are.same({ "g,g", "g" }, order)
+	end)
+
+	it("writes the chain first even when it was added second", function()
+		local order = bindOrder({
+			{ keyset = "g,g", action = "probe_chain" },
+			{ keyset = "g", action = "probe_single" },
+		})
+
+		assert.are.same({ "g,g", "g" }, order)
+	end)
+
+	it("leaves unrelated binds in their original order", function()
+		local order = bindOrder({
+			{ keyset = "h", action = "probe_h" },
+			{ keyset = "g,g", action = "probe_chain" },
+			{ keyset = "g", action = "probe_single" },
+		})
+
+		assert.are.same({ "h", "g,g", "g" }, order)
+	end)
+
+	-- CKeyChain::fit compares only the trailing taps of whatever chain is pressed, so any chain
+	-- ending in "g" - not just "g,g" - also satisfies a bare "g" bind once it completes.
+	it("still moves a chain ahead of a bind on its own last tap, whatever came before", function()
+		local order = bindOrder({
+			{ keyset = "g", action = "probe_single" },
+			{ keyset = "a,g", action = "probe_chain" },
+		})
+
+		assert.are.same({ "a,g", "g" }, order)
+	end)
+
+	it("still orders a three-tap chain ahead of both of its own tails", function()
+		local order = bindOrder({
+			{ keyset = "g", action = "probe_single" },
+			{ keyset = "g,g,g", action = "probe_triple" },
+			{ keyset = "g,g", action = "probe_chain" },
+		})
+
+		assert.are.same({ "g,g,g", "g,g", "g" }, order)
+	end)
+end)
+
 describe("inferring which shipped profile a keymap came from", function()
 	-- The engine lowercases a command word as it parses a bind, and the shipped data has moved
 	-- between spellings, so a profile carrying the older one is still that profile.

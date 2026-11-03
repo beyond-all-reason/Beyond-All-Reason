@@ -72,6 +72,7 @@ return {
 			[16] = "legfeconv",
 		},
 		customparams = {
+			maxrange = 300,
 			unitgroup = "buildert2",
 			canwearcosmetics = true,
 			decoyfor = "legcom",

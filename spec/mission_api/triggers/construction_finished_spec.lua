@@ -1,0 +1,95 @@
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
+
+-- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here)
+-- and UnitDefs inside its handler. The gadget filters spawned units via WasUnderConstruction.
+MissionApiBuilder.new():Install()
+
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
+	[1] = { name = "armsolar" },
+	[2] = { name = "armwin" },
+})
+env.UnitDefs = unitDefs:GetUnitDefsByID()
+
+local constructionFinished = MissionSpecEnv.include(env, "luarules/mission_api/triggers/construction_finished.lua")
+local onUnitFinished = constructionFinished.callins.UnitFinished
+
+describe("mission_api.triggers.construction_finished", function()
+	local function trigger(parameters)
+		return TriggerBuilder.new():WithParameters(parameters):Build()
+	end
+
+	local function newContext()
+		local context = TriggerContextBuilder.new():Build()
+		return context, context.timesFired
+	end
+
+	local triggerID = "t"
+
+	local function finished(trigger, context, unitDefID, unitTeam)
+		onUnitFinished(trigger, triggerID, context, 100, unitDefID, unitTeam)
+	end
+
+	it("declares its type and parameters", function()
+		assert.are.equal("ConstructionFinished", constructionFinished.type)
+		local names = {}
+		for _, parameter in ipairs(constructionFinished.parameters) do
+			names[parameter.name] = true
+		end
+		assert.is_true(names.unitName)
+		assert.is_true(names.unitDefName)
+		assert.is_true(names.teamName)
+		assert.are.same({ "unitName", "unitDefName" }, constructionFinished.parameters.requiresOneOf)
+	end)
+
+	it("filters by unitName", function()
+		local context, fired = newContext()
+		context.DoesUnitHaveName = function()
+			return false
+		end
+		finished(trigger({ unitName = "powerplant" }), context, 1, 0)
+		assert.are.equal(0, fired())
+	end)
+
+	it("filters by unitDefName", function()
+		local context, fired = newContext()
+		finished(trigger({ unitDefName = "armsolar" }), context, 2, 0) -- unitDefID 2 = armwin
+		assert.are.equal(0, fired())
+	end)
+
+	it("filters by teamName", function()
+		local context, fired = newContext()
+		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 9)
+		assert.are.equal(0, fired())
+	end)
+
+	it("fires for a matching completed unit", function()
+		local context, fired = newContext()
+		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0)
+		assert.are.equal(1, fired())
+	end)
+
+	it("does not fire for a unit that was never under construction (spawned, etc)", function()
+		local context, fired = newContext()
+		context.WasUnderConstruction = {} -- gives nil
+		finished(trigger({ unitDefName = "armsolar" }), context, 1, 0)
+		assert.are.equal(0, fired())
+	end)
+
+	it("does not fire when finished on a team allied with teamName", function()
+		local context, fired = newContext()
+		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 2) -- team 2 allied with 0
+		assert.are.equal(0, fired())
+	end)
+
+	it("does not fire when finished on a team hostile to teamName", function()
+		local context, fired = newContext()
+		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 3)
+		assert.are.equal(0, fired())
+	end)
+end)

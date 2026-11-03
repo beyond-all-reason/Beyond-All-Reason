@@ -173,7 +173,6 @@ local edgeFade = 1 -- cursor fade past the map edge (from getWorldPositionExtend
 -- "medium" feels harder/lighter.
 local PEN_RADIUS_FLOOR = 0.25
 local PEN_STRENGTH_FLOOR = 0.05
-local _penDiagPrinted = false
 local function getEffectiveBrush()
 	local effRadius, effStrength = brushRadius, brushStrength
 	local tfBrush = WG.TerraformBrush
@@ -199,19 +198,7 @@ local function getEffectiveBrush()
 	elseif pressure > 1 then
 		pressure = 1
 	end
-	if not _penDiagPrinted then
-		_penDiagPrinted = true
-		Echo(
-			string.format(
-				"[Diffuse Painter] pen pressure ACTIVE: pm=%.3f sens=%.2f size=%s intensity=%s",
-				pressureMapped,
-				sensitivity,
-				tostring(tbState.penPressureModulateSize),
-				tostring(tbState.penPressureModulateIntensity)
-			)
-		)
-	end
-	if tbState.penPressureModulateSize or tbState.penPressureModulateRadius then
+	if tbState.penPressureModulateSize then
 		local factor = PEN_RADIUS_FLOOR + (1.0 - PEN_RADIUS_FLOOR) * pressure
 		effRadius = max(MIN_RADIUS, min(MAX_RADIUS, floor(effRadius * factor + 0.5)))
 	end
@@ -241,7 +228,6 @@ local pendingStrokeFinish = false -- mouse released but queued strokes not yet e
 local pendingHistoryOps = {} -- "undo"/"redo"/number(target index); run in DrawWorld (GL context)
 
 -- Deferred GL work (Draw call-in context required)
-local pendingInit = false
 local pendingFullBake = false -- re-bake already-allocated squares
 local pendingFullCover = false -- allocate every map square + bake (heavy)
 local pendingExport = false -- /diffusepaintexport queued; runs in DrawWorld (GL context)
@@ -1956,20 +1942,6 @@ local function executeStroke(wx, wz, layerId, erase)
 					if not useRough then
 						glTexture(3, "$heightmap")
 					end
-					if not layer._pbrLogged then
-						layer._pbrLogged = true
-						Echo(
-							string.format(
-								"[Diffuse Painter] layer '%s' PBR: diff=%s normal=%s(%s) rough=%s(%s)",
-								tostring(layer.name),
-								tostring(useTex),
-								tostring(useNormal),
-								tostring(layer.normalPath or "-"),
-								tostring(useRough),
-								tostring(layer.roughPath or "-")
-							)
-						)
-					end
 					glRenderToTexture(tempMask, function()
 						glBlending(false)
 						glUseShader(stampShader)
@@ -2123,8 +2095,6 @@ local function findSibling(diffPath, channel)
 		exts = { "exr", "jpg", "png" }
 	elseif channel == "rough" then
 		exts = { "jpg", "exr", "png" }
-	elseif channel == "disp" then
-		exts = { "png", "exr", "jpg" }
 	else
 		exts = { "jpg", "png", "exr" }
 	end
@@ -2168,7 +2138,6 @@ local function scanMaterialLibrary()
 						resK = resK,
 						normalPath = findSibling(f, "nor_gl"),
 						roughPath = findSibling(f, "rough"),
-						dispPath = findSibling(f, "disp"),
 					}
 				end
 			end
@@ -2222,7 +2191,6 @@ local function setLayerTexture(id, path, tileScale, name)
 	local mat = findMaterialByPath(path)
 	layer.normalPath = mat and mat.normalPath or nil
 	layer.roughPath = mat and mat.roughPath or nil
-	layer.dispPath = mat and mat.dispPath or nil
 	-- Auto-name the layer after the material when we have one. Keeps the
 	-- LAYERS list readable ("snow 01", "rock face 03") instead of generic
 	-- "Layer N" placeholders. User-renamed layers are preserved via the
@@ -2282,8 +2250,6 @@ local function activate()
 		scanMaterialLibrary()
 	end
 	active = true
-	pendingInit = true
-	Echo("[Diffuse Painter] active. LMB paint, RMB erase. /diffusepaint to toggle.")
 end
 
 local function deactivate()
@@ -2439,7 +2405,6 @@ function widget:Initialize()
 		getMaterialLibrary = function()
 			return materialLibrary
 		end,
-		rescanMaterialLibrary = scanMaterialLibrary,
 		bakeAll = function()
 			pendingFullCover = true
 		end,
@@ -2556,20 +2521,6 @@ function widget:Initialize()
 				layer.thermoFalloff = max(0.5, min(45.0, falloff))
 			end
 			pendingFullBake = true
-		end,
-		resetSquare = function(wx, wz)
-			local sx, sy = floor(wx / SQUARE_SIZE_ELMOS), floor(wz / SQUARE_SIZE_ELMOS)
-			local k = squareKey(sx, sy)
-			for layerId, layerMasks in pairs(masks) do
-				local maskTex = layerMasks[k]
-				if maskTex then
-					clearMaskTex(maskTex)
-				end
-			end
-			-- Snapshots of this square are stale now; undoing one would restore
-			-- paint onto a square the user explicitly cleared.
-			clearHistory()
-			dirtySquares[k] = true
 		end,
 		resetAll = function()
 			for layerId, layerMasks in pairs(masks) do
@@ -2977,13 +2928,6 @@ local function projectLoadTick()
 end
 
 function widget:DrawWorld()
-	-- Lazy init: NO bulk alloc. Squares are allocated on first paint stroke
-	-- (executeStroke) or on explicit /diffusepaintbake (which will allocate
-	-- every map square — heavy, opt-in).
-	if pendingInit then
-		pendingInit = false
-	end
-
 	-- Channel enable requests (texture alloc + seed need this GL context).
 	-- Must run BEFORE strokes: channelsEnabled flips synchronously in the UI
 	-- handler, so a stroke queued the same frame would otherwise pass the

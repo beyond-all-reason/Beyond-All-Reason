@@ -188,9 +188,9 @@ in Data {
 // it stays visible on red team colors: bright red over dark pixels, deep red over bright ones (JAMMED_SHADE_* range)
 #define JAMMED_COLOR vec3(1.0, 0.25, 0.18)
 #define JAMMED_DARK_COLOR vec3(0.45, 0.02, 0.0)
-#define JAMMED_FILL 0.09 // tint strength over the whole unit
-#define JAMMED_RIM 0.25 // extra strength at grazing angles
-#define JAMMED_EDGE 0.33 // extra strength right at the silhouette
+#define JAMMED_FILL 0.08 // tint strength over the whole unit
+#define JAMMED_RIM 0.22 // extra strength at grazing angles
+#define JAMMED_EDGE 0.3 // extra strength right at the silhouette
 #define JAMMED_SHADE_DARK 0.35 // pixels at most this bright (max rgb) get JAMMED_COLOR
 #define JAMMED_SHADE_BRIGHT 0.7 // pixels at least this bright get JAMMED_DARK_COLOR
 

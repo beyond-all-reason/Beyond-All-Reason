@@ -477,11 +477,10 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 
-		if select(4, spGetTeamInfo(teamID)) then -- isAiTeam
-			return false
+		local _, _, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID)
+		if not isAiTeam then
+			_, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
 		end
-
-		local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
 		if not teamID or not allyTeamID then
 			return false
 		end --fail

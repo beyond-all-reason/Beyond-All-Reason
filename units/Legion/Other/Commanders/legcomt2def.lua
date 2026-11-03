@@ -92,6 +92,7 @@ return {
 			[33] = "armcir",
 		},
 		customparams = {
+			maxrange = 315,
 			unitgroup = "builder",
 			iscommander = true,
 			model_author = "FireStorm",

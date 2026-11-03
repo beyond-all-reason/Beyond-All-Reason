@@ -135,9 +135,9 @@ return {
 				texture2 = "smoketrailbar",
 				texture3 = "null",
 				tolerance = 4000,
-				turnrate = 22000,
-				weaponacceleration = 70,
-				weapontimer = 2.5,
+				turnrate = 16000,
+				weaponacceleration = 100,
+				weapontimer = 2,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 480,
 				damage = {
@@ -145,9 +145,6 @@ return {
 					subs = 175,
 				},
 				customparams = {
-					cruise_and_verticalize = true,
-					cruise_chase_factor = 0.5,
-					uptime_max = 7,
 					overrange_distance = 805,
 					soundstart_volume_multiplier = 0.7,
 				},

@@ -1,7 +1,7 @@
 local function airReworkUnitTweaks(name, uDef)
 
 	if uDef.fronttospeed == nil then
-		uDef.fronttospeed = 0.048
+		uDef.fronttospeed = 0.05
 	end
 
 	if uDef.mygravity == nil then
@@ -13,11 +13,11 @@ local function airReworkUnitTweaks(name, uDef)
 	end
 
 	if name == "armsfig2" or name == "corsfig2" then
-		uDef.metalcost = 450
-		uDef.energycost = 6500
+		uDef.metalcost = 600
+		uDef.energycost = 9000
 		uDef.buildtime = 14000
-		uDef.speed = 180
-		uDef.health = 2700
+		uDef.speed = 170
+		uDef.health = 3000
 
 		--[[uDef.maxacc = 0.13
 		uDef.maxrudder = 0.011
@@ -67,7 +67,7 @@ local function airReworkUnitTweaks(name, uDef)
 	if name == "corsfig2" then
 		uDef.weapondefs.corsfig_weapon.proximitypriority = -1
 		uDef.weapondefs.corsfig_weapon.flighttime = 1.7
-		uDef.weapondefs.corsfig_weapon.range = 680
+		uDef.weapondefs.corsfig_weapon.range = 800
 		uDef.weapondefs.corsfig_weapon.areaofeffect = 220
 		uDef.weapondefs.corsfig_weapon.edgeeffectiveness = 0.55
 		uDef.weapondefs.corsfig_weapon.reloadtime = 6.1
@@ -103,7 +103,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.maxacc = 0.25
 		--uDef.maxdec = 0.12
 		uDef.speed = 320
-		uDef.maxrudder = 0.0088
+		uDef.maxrudder = 0.0082
 		uDef.maxbank = 0.7
 		uDef.health = 740
 		uDef.sightdistance = 550
@@ -116,11 +116,12 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.armvtol_advmissile.impactonly = 0
 		uDef.weapondefs.armvtol_advmissile.flighttime = 2.3
 		uDef.weapondefs.armvtol_advmissile.range = 780
-		uDef.weapondefs.armvtol_advmissile.reloadtime = 3.2
+		uDef.weapondefs.armvtol_advmissile.reloadtime = 3
 		uDef.weapondefs.armvtol_advmissile.startvelocity = 100
-		uDef.weapondefs.armvtol_advmissile.tolerance = 100000
+		uDef.weapondefs.armvtol_advmissile.tolerance = 22500
 		uDef.weapondefs.armvtol_advmissile.turnrate = 37000
-		uDef.weapondefs.armvtol_advmissile.weaponacceleration = 310
+		uDef.weapondefs.armvtol_advmissile.weaponacceleration = 300
+		uDef.weapondefs.armvtol_advmissile.weaponvelocity = 720
 		uDef.weapondefs.armvtol_advmissile.smoketrail = true
 		uDef.weapondefs.armvtol_advmissile.smokePeriod = 12
 		uDef.weapondefs.armvtol_advmissile.smoketime = 24
@@ -129,7 +130,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.armvtol_advmissile.explosiongenerator = "custom:genericshellexplosion-medium-bomb"
 		uDef.weapondefs.armvtol_advmissile.damage = {
 			default = 1,
-			vtol = 500,
+			vtol = 520,
 		}
 	end
 	if name == "corvamp" then
@@ -140,9 +141,10 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.corvtol_advmissile.range = 710
 		uDef.weapondefs.corvtol_advmissile.reloadtime = 1.7
 		uDef.weapondefs.corvtol_advmissile.startvelocity = 100
-		uDef.weapondefs.corvtol_advmissile.tolerance = 100000
+		uDef.weapondefs.corvtol_advmissile.tolerance = 22500
 		uDef.weapondefs.corvtol_advmissile.turnrate = 37000
-		uDef.weapondefs.corvtol_advmissile.weaponacceleration = 310
+		uDef.weapondefs.corvtol_advmissile.weaponacceleration = 300
+		uDef.weapondefs.corvtol_advmissile.weaponvelocity = 720
 		uDef.weapondefs.corvtol_advmissile.smoketrail = true
 		uDef.weapondefs.corvtol_advmissile.smokePeriod = 12
 		uDef.weapondefs.corvtol_advmissile.smoketime = 24
@@ -180,11 +182,12 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.armvtol_missile.flighttime = 1.7
 		uDef.weapondefs.armvtol_missile.range = 550
 		uDef.weapondefs.armvtol_missile.reloadtime = 1.3
-		uDef.weapondefs.armvtol_missile.startvelocity = 110
+		uDef.weapondefs.armvtol_missile.startvelocity = 100
 		uDef.weapondefs.armvtol_missile.tolerance = 10000
 		uDef.weapondefs.armvtol_missile.turnrate = 23000
 		--uDef.weapondefs.armvtol_missile.name = "Light guided a2a/a2g missile launcher"
-		uDef.weapondefs.armvtol_missile.weaponacceleration = 310
+		uDef.weapondefs.armvtol_missile.weaponacceleration = 300
+		uDef.weapondefs.armvtol_missile.weaponvelocity = 600
 		--uDef.weapondefs.armvtol_missile.canattackground = true
 		uDef.weapondefs.armvtol_missile.damage = {
 			--default = 64,
@@ -192,7 +195,6 @@ local function airReworkUnitTweaks(name, uDef)
 		}
 		--uDef.weapons[1].onlytargetcategory = "NOTSUB"
 	end
-
 	if name == "corveng" then
 		--uDef.weapondefs.corvtol_missile.explosiongenerator = "custom:genericshellexplosion-tiny"
 		--uDef.weapondefs.corvtol_missile.smokePeriod = 8
@@ -204,10 +206,11 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.corvtol_missile.flighttime = 1.7
 		uDef.weapondefs.corvtol_missile.range = 550
 		uDef.weapondefs.corvtol_missile.reloadtime = 1.3
-		uDef.weapondefs.corvtol_missile.startvelocity = 110
+		uDef.weapondefs.corvtol_missile.startvelocity = 100
 		uDef.weapondefs.corvtol_missile.tolerance = 10000
 		uDef.weapondefs.corvtol_missile.turnrate = 23000
-		uDef.weapondefs.corvtol_missile.weaponacceleration = 350
+		uDef.weapondefs.corvtol_missile.weaponacceleration = 300
+		uDef.weapondefs.corvtol_missile.weaponvelocity = 600
 		--uDef.weapondefs.corvtol_missile.canattackground = true
 		--uDef.weapondefs.corvtol_missile.name = "Light guided a2a/a2g missile launcher"
 		uDef.weapondefs.corvtol_missile.damage = {
@@ -216,13 +219,41 @@ local function airReworkUnitTweaks(name, uDef)
 		}
 		--uDef.weapons[1].onlytargetcategory = "NOTSUB"
 	end
+	if name == "armsfig" then
+		uDef.weapondefs.armsfig_weapon.proximitypriority = 0
+		uDef.weapondefs.armsfig_weapon.flighttime = 1.7
+		uDef.weapondefs.armsfig_weapon.range = 550
+		uDef.weapondefs.armsfig_weapon.reloadtime = 1.3
+		uDef.weapondefs.armsfig_weapon.startvelocity = 100
+		uDef.weapondefs.armsfig_weapon.tolerance = 10000
+		uDef.weapondefs.armsfig_weapon.turnrate = 23000
+		uDef.weapondefs.armsfig_weapon.weaponacceleration = 300
+		uDef.weapondefs.armsfig_weapon.weaponvelocity = 600
+		uDef.weapondefs.armsfig_weapon.damage = {
+			vtol = 200,
+		}
+	end
+	if name == "corsfig" then
+		uDef.weapondefs.corsfig_weapon.proximitypriority = 0
+		uDef.weapondefs.corsfig_weapon.flighttime = 1.7
+		uDef.weapondefs.corsfig_weapon.range = 550
+		uDef.weapondefs.corsfig_weapon.reloadtime = 1.3
+		uDef.weapondefs.corsfig_weapon.startvelocity = 100
+		uDef.weapondefs.corsfig_weapon.tolerance = 10000
+		uDef.weapondefs.corsfig_weapon.turnrate = 23000
+		uDef.weapondefs.corsfig_weapon.weaponacceleration = 300
+		uDef.weapondefs.corsfig_weapon.weaponvelocity = 600
+		uDef.weapondefs.corsfig_weapon.damage = {
+			vtol = 200,
+		}
+	end
 
 	if name == "corshad" or name == "armthund" then
-		uDef.metalcost = uDef.metalcost * 1.2
-		uDef.health = uDef.health * 1.25
+		uDef.metalcost = uDef.metalcost * 1.3
+		uDef.health = uDef.health * 1.3
 		uDef.speed = uDef.speed * 0.9
 		uDef.maxbank = 0.65
-		uDef.maxrudder = 0.01
+		uDef.maxrudder = 0.009
 		uDef.maxacc = 0.13
 		uDef.maxdec = 0.08
 	end

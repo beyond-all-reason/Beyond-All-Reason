@@ -139,11 +139,22 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	-- the tide for the interface (a countdown to the next rise): the speed in elmo/s, the level the lava
+	-- moves to (while it holds: the next tide's), and the frames a hold began and ends (0 while moving)
+	local function publishTide(target, holdStart, holdEnd)
+		Spring.SetGameRulesParam("lavaGrow", lavaGrow)
+		Spring.SetGameRulesParam("lavaTarget", target)
+		Spring.SetGameRulesParam("lavaHoldStart", holdStart)
+		Spring.SetGameRulesParam("lavaHoldEnd", holdEnd)
+	end
+
 	function updateLava()
 		if (lavaGrow < 0 and lavaLevel < tideRhythm[tideIndex].targetLevel)
 			or (lavaGrow > 0 and lavaLevel > tideRhythm[tideIndex].targetLevel) then
 			tideContinueFrame = gameframe + math.round(tideRhythm[tideIndex].remainTime*gameSpeed)
 			lavaGrow = 0
+			local nextTide = tideRhythm[tideIndex + 1] or tideRhythm[1]
+			publishTide(nextTide.targetLevel, gameframe, tideContinueFrame)
 		end
 
 		if gameframe == tideContinueFrame then
@@ -155,8 +166,9 @@ if gadgetHandler:IsSyncedCode() then
 			if lavaLevel < tideRhythm[tideIndex].targetLevel then
 				lavaGrow = tideRhythm[tideIndex].speed
 			else
-				lavaGrow = -tideRhythm[tideIndex].speed 
+				lavaGrow = -tideRhythm[tideIndex].speed
 			end
+			publishTide(tideRhythm[tideIndex].targetLevel, 0, 0)
 		end
 		_G.lavaGrow = lavaGrow
 
@@ -337,6 +349,7 @@ if gadgetHandler:IsSyncedCode() then
 		_G.lavaLevel = lavaLevel
 		_G.lavaGrow = lavaGrow
 		Spring.SetGameRulesParam("lavaLevel", -99999)
+		publishTide(tideRhythm[tideIndex].targetLevel, 0, 0)
 		for _, featureID in ipairs(Spring.GetAllFeatures()) do
 			trackFeature(featureID)
 		end

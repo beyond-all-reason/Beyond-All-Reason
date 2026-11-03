@@ -11,7 +11,8 @@
 	whichever opened it last gets the pick. Five filter rows that combine (AND across rows, OR
 	within a row: Shift+click adds), each chip with the count it would leave. Every control is a
 	fixed callback; the arrays are assigned from the widget's Update, at most a page of tiles.
-	Shift+click on TILES picks several; the editor cycles through them, one per drop.
+	Ctrl+click on TILES adds or removes one, Shift+click adds the range from the last tile clicked
+	(the asset library's gestures); the editor cycles through the picks, one per drop.
 -->
 <body data-model="unit_library_model">
 <div id="ul-root" class="fp-root ul-root widget-shadow rounded-md bg-darkest p-2">
@@ -42,7 +43,7 @@
 		<div id="ul-clear" class="fp-cat-btn ul-clear" data-class-active="anyActive" data-event-click="clearAll()"><span class="fp-cat-label">CLEAR</span></div>
 	</div>
 
-	<!-- Several picked (Shift+click on tiles): each drop places the next of them. -->
+	<!-- Several picked (Ctrl or Shift+click on tiles): each drop places the next of them. -->
 	<div id="ul-pickset" class="ul-pickset" data-class-hidden="!pickSetShown">
 		<div class="ul-pickset-text">{{pickCount}} PICKED, CYCLE</div>
 		<div id="ul-cycle-abc" class="fp-cat-btn ul-chip" data-class-active="cycleMode == 'abc'" data-event-click="setCycle('abc')"><span class="fp-cat-label">A B C</span></div>
@@ -156,7 +157,7 @@
 	</div>
 
 	<div id="ul-hover" class="ul-hover">{{hoverText}}</div>
-	<div class="ul-hint">Q W E R, A S D F, Z X C V pick from the first three rows; arrows move, Enter picks, Esc closes. Click the search to type. Pause (top right) gives the keys back to the game. Shift+click chips or tiles to add more; click a row's label to clear it. On the map: click or drag to place, again and again; R turns, Tab shape, right-click lets go.</div>
+	<div class="ul-hint">Q W E R, A S D F, Z X C V pick from the first three rows; arrows move, Enter picks, Esc closes. Click the search to type. Pause (top right) gives the keys back to the game. Tiles: Ctrl+click adds or removes one, Shift+click adds the range from the last one clicked (Shift with a key adds that tile). Shift+click chips to add more; click a row's label to clear it. On the map: click or drag to place, again and again; R turns, Tab shape, right-click lets go.</div>
 </div>
 </body>
 </rml>

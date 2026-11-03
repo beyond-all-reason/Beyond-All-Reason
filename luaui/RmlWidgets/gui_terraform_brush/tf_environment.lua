@@ -15,7 +15,7 @@ function M.attach(doc, ctx)
 	local WG = ctx.WG
 	local playSound = ctx.playSound
 	local trackSliderDrag = ctx.trackSliderDrag
-	-- skyDynamic and quatFromAxisAngle are passed through ctx (file-level in gui_terraform_brush.lua).
+	-- skyDynamic is passed through ctx (file-level in gui_terraform_brush.lua).
 	local skyDynamic = ctx.skyDynamic
 	-- All data-event-click/mousedown handlers (onEnvXxx) are defined in initialModel
 	-- in gui_terraform_brush.lua. Recoil forbids adding or replacing function
@@ -222,9 +222,8 @@ function M.attach(doc, ctx)
 	widgetState.grassCfgRootEl = doc:GetElementById("tf-grasscfg-root")
 
 	-- Helper: wire a slider that maps integer range to float values
-	local function envSlider(sliderId, labelId, toFloat, fromFloat, onChange)
+	local function envSlider(sliderId, toFloat, fromFloat, onChange)
 		local sl = doc:GetElementById(sliderId)
-		local lb = doc:GetElementById(labelId)
 		if not sl then
 			return
 		end
@@ -235,29 +234,19 @@ function M.attach(doc, ctx)
 			end
 			local raw = tonumber(sl:GetAttribute("value")) or 0
 			local val = toFloat(raw)
-			if lb then
-				lb.inner_rml = string.format("%.2f", val)
-			end
 			onChange(val)
 			event:StopPropagation()
 		end, false)
 		-- Set initial value
 		local initVal = fromFloat()
 		sl:SetAttribute("value", tostring(math.floor(initVal + 0.5)))
-		if lb then
-			lb.inner_rml = string.format("%.2f", toFloat(math.floor(initVal + 0.5)))
-		end
 	end
 
-	-- Helper: set slider + label from code
-	local function envSetSlider(sliderId, labelId, intVal, displayVal)
+	-- Helper: set a slider from code
+	local function envSetSlider(sliderId, intVal)
 		local sl = doc:GetElementById(sliderId)
-		local lb = doc:GetElementById(labelId)
 		if sl then
 			sl:SetAttribute("value", tostring(intVal))
-		end
-		if lb then
-			lb.inner_rml = displayVal
 		end
 	end
 
@@ -305,24 +294,9 @@ function M.attach(doc, ctx)
 					local hb = tonumber(hex:sub(5, 6), 16) / 255
 					swatch:AddEventListener("click", function(event)
 						cfg.setColor({ hr, hg, hb })
-						envSetSlider(
-							"slider-env-" .. cfg.sliderPrefix .. "-r",
-							"lbl-env-" .. cfg.sliderPrefix .. "-r",
-							math.floor(hr * 1000 + 0.5),
-							string.format("%.2f", hr)
-						)
-						envSetSlider(
-							"slider-env-" .. cfg.sliderPrefix .. "-g",
-							"lbl-env-" .. cfg.sliderPrefix .. "-g",
-							math.floor(hg * 1000 + 0.5),
-							string.format("%.2f", hg)
-						)
-						envSetSlider(
-							"slider-env-" .. cfg.sliderPrefix .. "-b",
-							"lbl-env-" .. cfg.sliderPrefix .. "-b",
-							math.floor(hb * 1000 + 0.5),
-							string.format("%.2f", hb)
-						)
+						envSetSlider("slider-env-" .. cfg.sliderPrefix .. "-r", math.floor(hr * 1000 + 0.5))
+						envSetSlider("slider-env-" .. cfg.sliderPrefix .. "-g", math.floor(hg * 1000 + 0.5))
+						envSetSlider("slider-env-" .. cfg.sliderPrefix .. "-b", math.floor(hb * 1000 + 0.5))
 						refreshPreview()
 						event:StopPropagation()
 					end, false)
@@ -537,7 +511,6 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-un-save", "img-toggle-un-save", "section-un-save", false)
 	envSectionToggle("btn-toggle-ramp-type", "img-toggle-ramp-type", "section-ramp-type", true)
 	envSectionToggle("btn-toggle-wb-mode", "img-toggle-wb-mode", "section-wb-mode", true)
-	envSectionToggle("btn-toggle-wb-dist", "img-toggle-wb-dist", "section-wb-dist", true)
 	envSectionToggle("btn-toggle-cl-undo", "img-toggle-cl-undo", "section-cl-undo", false)
 	envSectionToggle("btn-toggle-tf-undo", "img-toggle-tf-undo", "section-tf-undo", false)
 	envSectionToggle("btn-toggle-spl-channel", "img-toggle-spl-channel", "section-spl-channel", true)
@@ -547,7 +520,6 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-dfp-undo", "img-toggle-dfp-undo", "section-dfp-undo", false)
 	envSectionToggle("btn-toggle-dfp-actions", "img-toggle-dfp-actions", "section-dfp-actions", false)
 	envSectionToggle("btn-toggle-dc-saveload", "img-toggle-dc-saveload", "section-dc-saveload", false)
-	envSectionToggle("btn-toggle-dc-dist", "img-toggle-dc-dist", "section-dc-dist", true)
 	envSectionToggle("btn-toggle-dc-mode", "img-toggle-dc-mode", "section-dc-mode", true)
 	envSectionToggle("btn-toggle-dc-undo", "img-toggle-dc-undo", "section-dc-undo", false)
 
@@ -768,8 +740,6 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-wb-instruments", "img-toggle-wb-instruments", "section-wb-instruments", false)
 	envSectionToggle("btn-toggle-wb-controls", "img-toggle-wb-controls", "section-wb-controls", true)
 	envSectionToggle("btn-toggle-sp-undo", "img-toggle-sp-undo", "section-sp-undo", false)
-	envSectionToggle("btn-toggle-sp-instruments", "img-toggle-sp-instruments", "section-sp-instruments", false)
-	envSectionToggle("btn-toggle-sp-controls", "img-toggle-sp-controls", "section-sp-controls", true)
 	envSectionToggle("btn-toggle-dc-overlays", "img-toggle-dc-overlays", "section-dc-overlays", false)
 	envSectionToggle("btn-toggle-dc-instruments", "img-toggle-dc-instruments", "section-dc-instruments", false)
 	envSectionToggle("btn-toggle-dc-controls", "img-toggle-dc-controls", "section-dc-controls", true)
@@ -793,11 +763,6 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-st-save", "img-toggle-st-save", "section-st-save", false)
 	envSectionToggle("btn-toggle-env-buttons", "img-toggle-env-buttons", "section-env-buttons", true)
 	envSectionToggle("btn-toggle-env-save", "img-toggle-env-save", "section-env-save", false)
-	envSectionToggle("btn-toggle-lt-type", "img-toggle-lt-type", "section-lt-type", true)
-	envSectionToggle("btn-toggle-lt-placement", "img-toggle-lt-placement", "section-lt-placement", true)
-	envSectionToggle("btn-toggle-lt-dist", "img-toggle-lt-dist", "section-lt-dist", true)
-	envSectionToggle("btn-toggle-lp-color", "img-toggle-lp-color", "section-lp-color", true)
-	envSectionToggle("btn-toggle-lp-undo", "img-toggle-lp-undo", "section-lp-undo", false)
 	envSectionToggle("btn-toggle-noise-type", "img-toggle-noise-type", "section-noise-type", true)
 
 	-- Parameter chip toggles — toggle individual slider row visibility
@@ -831,6 +796,7 @@ function M.attach(doc, ctx)
 	widgetState.chipToggle("fp-param-chip-alignment", "fp-param-alignment-row", true)
 	widgetState.chipToggle("fp-param-chip-count", "fp-param-count-row", true)
 	widgetState.chipToggle("fp-param-chip-rate", "fp-param-rate-row", true)
+	widgetState.chipToggle("fp-param-chip-tilt", "fp-param-tilt-row", true)
 
 	-- Unit placer control pill toggles
 	widgetState.chipToggle("un-param-chip-size", "un-param-size-row", true)
@@ -1009,6 +975,11 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-ts-metal", "img-toggle-ts-metal", "section-ts-metal", false)
 	envSectionToggle("btn-toggle-ts-scale", "img-toggle-ts-scale", "section-ts-scale", true)
 	envSectionToggle("btn-toggle-ts-normals", "img-toggle-ts-normals", "section-ts-normals", false)
+	envSectionToggle("btn-toggle-ts-rocknorm", "img-toggle-ts-rocknorm", "section-ts-rocknorm", false)
+	envSectionToggle("btn-toggle-ts-rockcol", "img-toggle-ts-rockcol", "section-ts-rockcol", false)
+	envSectionToggle("btn-toggle-ts-sortn", "img-toggle-ts-sortn", "section-ts-sortn", false)
+	envSectionToggle("btn-toggle-ts-sorta", "img-toggle-ts-sorta", "section-ts-sorta", false)
+	envSectionToggle("btn-toggle-ts-topscol", "img-toggle-ts-topscol", "section-ts-topscol", false)
 	envSectionToggle("btn-toggle-ts-cliffs", "img-toggle-ts-cliffs", "section-ts-cliffs", false)
 	envSectionToggle("btn-toggle-ts-place", "img-toggle-ts-place", "section-ts-place", false)
 	envSectionToggle("btn-toggle-ts-slot4", "img-toggle-ts-slot4", "section-ts-slot4", false)
@@ -1195,11 +1166,8 @@ function M.attach(doc, ctx)
 	-- ---- Sun & Shadows sliders ----
 	-- Cache DOM elements for live feedback from dynamic rotation
 	skyDynamic.sunSliderX = doc:GetElementById("slider-env-sun-x")
-	skyDynamic.sunLabelX = doc:GetElementById("lbl-env-sun-x")
 	skyDynamic.sunSliderY = doc:GetElementById("slider-env-sun-y")
-	skyDynamic.sunLabelY = doc:GetElementById("lbl-env-sun-y")
 	skyDynamic.sunSliderZ = doc:GetElementById("slider-env-sun-z")
-	skyDynamic.sunLabelZ = doc:GetElementById("lbl-env-sun-z")
 
 	-- Every direction write goes through this: keeps the applied intensity (the
 	-- engine defaults a missing 4th argument to 1.0), re-asserts the shadow
@@ -1218,7 +1186,7 @@ function M.attach(doc, ctx)
 			widgetState.refreshEnvSunSliders()
 		end
 	end
-	envSlider("slider-env-sun-y", "lbl-env-sun-y", function(v)
+	envSlider("slider-env-sun-y", function(v)
 		return v / 10000
 	end, function()
 		return (select(2, gl.GetSun("pos"))) * 10000
@@ -1226,7 +1194,7 @@ function M.attach(doc, ctx)
 		local sx, _, sz = gl.GetSun("pos")
 		widgetState.envSetSunDir(sx, val, sz, "azel")
 	end)
-	envSlider("slider-env-sun-x", "lbl-env-sun-x", function(v)
+	envSlider("slider-env-sun-x", function(v)
 		return v / 10000
 	end, function()
 		return (select(1, gl.GetSun("pos"))) * 10000
@@ -1234,7 +1202,7 @@ function M.attach(doc, ctx)
 		local _, sy, sz = gl.GetSun("pos")
 		widgetState.envSetSunDir(val, sy, sz, "azel")
 	end)
-	envSlider("slider-env-sun-z", "lbl-env-sun-z", function(v)
+	envSlider("slider-env-sun-z", function(v)
 		return v / 10000
 	end, function()
 		return (select(3, gl.GetSun("pos"))) * 10000
@@ -1245,7 +1213,7 @@ function M.attach(doc, ctx)
 	-- AZIMUTH / ELEVATION: the artist-facing pair (tenths of a degree on the
 	-- track). Elevation stays above the horizon; the XYZ rows keep the exact
 	-- vector for people who think in it.
-	envSlider("slider-env-sun-az", "lbl-env-sun-az", function(v)
+	envSlider("slider-env-sun-az", function(v)
 		return v / 10
 	end, function()
 		local az = widgetState.azElFromSunDir(gl.GetSun("pos"))
@@ -1255,7 +1223,7 @@ function M.attach(doc, ctx)
 		local x, y, z = widgetState.sunDirFromAzEl(val, el)
 		widgetState.envSetSunDir(x, y, z, "xyz")
 	end)
-	envSlider("slider-env-sun-el", "lbl-env-sun-el", function(v)
+	envSlider("slider-env-sun-el", function(v)
 		return v / 10
 	end, function()
 		local _, el = widgetState.azElFromSunDir(gl.GetSun("pos"))
@@ -1265,14 +1233,14 @@ function M.attach(doc, ctx)
 		local x, y, z = widgetState.sunDirFromAzEl(az, val)
 		widgetState.envSetSunDir(x, y, z, "xyz")
 	end)
-	envSlider("slider-env-gshadow", "lbl-env-gshadow", function(v)
+	envSlider("slider-env-gshadow", function(v)
 		return v / 1000
 	end, function()
 		return gl.GetSun("shadowDensity", "ground") * 1000
 	end, function(val)
 		Spring.SetSunLighting({ groundShadowDensity = val })
 	end)
-	envSlider("slider-env-ushadow", "lbl-env-ushadow", function(v)
+	envSlider("slider-env-ushadow", function(v)
 		return v / 1000
 	end, function()
 		return gl.GetSun("shadowDensity", "unit") * 1000
@@ -1283,7 +1251,7 @@ function M.attach(doc, ctx)
 	-- (onEnvResetSun now in initialModel in gui_terraform_brush.lua)
 
 	-- Sun intensity slider
-	envSlider("slider-env-sun-intensity", "lbl-env-sun-intensity", function(v)
+	envSlider("slider-env-sun-intensity", function(v)
 		return v / 1000
 	end, function()
 		return (widgetState.envSunIntensity or 1.0) * 1000
@@ -1298,14 +1266,14 @@ function M.attach(doc, ctx)
 	widgetState.envSunIntensity = widgetState.envSunIntensity or 1.0
 
 	-- ---- Fog & Atmosphere sliders ----
-	envSlider("slider-env-fog-start", "lbl-env-fog-start", function(v)
+	envSlider("slider-env-fog-start", function(v)
 		return v / 100
 	end, function()
 		return gl.GetAtmosphere("fogStart") * 100
 	end, function(val)
 		Spring.SetAtmosphere({ fogStart = val })
 	end)
-	envSlider("slider-env-fog-end", "lbl-env-fog-end", function(v)
+	envSlider("slider-env-fog-end", function(v)
 		return v / 100
 	end, function()
 		return gl.GetAtmosphere("fogEnd") * 100
@@ -1317,7 +1285,7 @@ function M.attach(doc, ctx)
 
 	-- Fog color
 	local function fogColorSlider(suffix, idx)
-		envSlider("slider-env-fog-" .. suffix, "lbl-env-fog-" .. suffix, function(v)
+		envSlider("slider-env-fog-" .. suffix, function(v)
 			return v / 1000
 		end, function()
 			local c = { gl.GetAtmosphere("fogColor") }
@@ -1337,7 +1305,7 @@ function M.attach(doc, ctx)
 
 	-- Sun color sliders
 	local function sunColorSlider(suffix, idx)
-		envSlider("slider-env-suncol-" .. suffix, "lbl-env-suncol-" .. suffix, function(v)
+		envSlider("slider-env-suncol-" .. suffix, function(v)
 			return v / 1000
 		end, function()
 			local c = { gl.GetAtmosphere("sunColor") }
@@ -1354,7 +1322,7 @@ function M.attach(doc, ctx)
 
 	-- Sky color sliders
 	local function skyColorSlider(suffix, idx)
-		envSlider("slider-env-skycol-" .. suffix, "lbl-env-skycol-" .. suffix, function(v)
+		envSlider("slider-env-skycol-" .. suffix, function(v)
 			return v / 1000
 		end, function()
 			local c = { gl.GetAtmosphere("skyColor") }
@@ -1371,7 +1339,7 @@ function M.attach(doc, ctx)
 
 	-- Cloud color sliders
 	local function cloudColorSlider(suffix, idx)
-		envSlider("slider-env-cloudcol-" .. suffix, "lbl-env-cloudcol-" .. suffix, function(v)
+		envSlider("slider-env-cloudcol-" .. suffix, function(v)
 			return v / 1000
 		end, function()
 			local c = { gl.GetAtmosphere("cloudColor") }
@@ -1453,7 +1421,10 @@ function M.attach(doc, ctx)
 	-- Snow auto-reduce checkbox
 	do
 		local snowApi = WG.snow
-		local autoReduce = snowApi and snowApi.getAutoReduce and snowApi.getAutoReduce() or true
+		local autoReduce = true
+		if snowApi and snowApi.getAutoReduce and snowApi.getAutoReduce() ~= nil then
+			autoReduce = snowApi.getAutoReduce()
+		end
 		envCheckbox("btn-env-snow-autoreduce", autoReduce, function(val)
 			if WG.snow then
 				WG.snow.setAutoReduce(val)
@@ -1462,7 +1433,7 @@ function M.attach(doc, ctx)
 	end
 
 	-- Snow density slider (multiplier 0.1 - 5.0)
-	envSlider("slider-env-snow-density", "lbl-env-snow-density", function(v)
+	envSlider("slider-env-snow-density", function(v)
 		return v / 100
 	end, function()
 		local snowApi = WG.snow
@@ -1474,7 +1445,7 @@ function M.attach(doc, ctx)
 	end)
 
 	-- Snow speed slider (multiplier 0.1 - 3.0)
-	envSlider("slider-env-snow-speed", "lbl-env-snow-speed", function(v)
+	envSlider("slider-env-snow-speed", function(v)
 		return v / 100
 	end, function()
 		local snowApi = WG.snow
@@ -1486,7 +1457,7 @@ function M.attach(doc, ctx)
 	end)
 
 	-- Snow size slider (multiplier 0.1 - 3.0)
-	envSlider("slider-env-snow-size", "lbl-env-snow-size", function(v)
+	envSlider("slider-env-snow-size", function(v)
 		return v / 100
 	end, function()
 		local snowApi = WG.snow
@@ -1498,7 +1469,7 @@ function M.attach(doc, ctx)
 	end)
 
 	-- Snow wind slider (0.0 - 20.0)
-	envSlider("slider-env-snow-wind", "lbl-env-snow-wind", function(v)
+	envSlider("slider-env-snow-wind", function(v)
 		return v / 10
 	end, function()
 		local snowApi = WG.snow
@@ -1510,7 +1481,7 @@ function M.attach(doc, ctx)
 	end)
 
 	-- Snow opacity slider (0.0 - 1.0)
-	envSlider("slider-env-snow-opacity", "lbl-env-snow-opacity", function(v)
+	envSlider("slider-env-snow-opacity", function(v)
 		return v / 100
 	end, function()
 		local snowApi = WG.snow
@@ -1523,7 +1494,7 @@ function M.attach(doc, ctx)
 
 	-- Snow color sliders
 	local function snowColorSlider(suffix, idx)
-		envSlider("slider-env-snowcol-" .. suffix, "lbl-env-snowcol-" .. suffix, function(v)
+		envSlider("slider-env-snowcol-" .. suffix, function(v)
 			return v / 1000
 		end, function()
 			local snowApi = WG.snow
@@ -1572,7 +1543,7 @@ function M.attach(doc, ctx)
 	-- ---- Lighting sliders ----
 	local function lightingSlider(prefix, sunKind, sunScope, lightingKey)
 		for i, suffix in ipairs({ "r", "g", "b" }) do
-			envSlider("slider-env-" .. prefix .. "-" .. suffix, "lbl-env-" .. prefix .. "-" .. suffix, function(v)
+			envSlider("slider-env-" .. prefix .. "-" .. suffix, function(v)
 				return v / 1000
 			end, function()
 				local r, g, b = gl.GetSun(sunKind, sunScope)
@@ -1629,7 +1600,7 @@ function M.attach(doc, ctx)
 	-- Splat tex multipliers
 	for ch = 0, 3 do
 		local chIdx = ch + 1
-		envSlider("slider-env-splatmult-" .. ch, "lbl-env-splatmult-" .. ch, function(v)
+		envSlider("slider-env-splatmult-" .. ch, function(v)
 			return v / 1000
 		end, function()
 			local r, g, b, a = gl.GetMapRendering("splatTexMults")
@@ -1646,7 +1617,7 @@ function M.attach(doc, ctx)
 	-- Splat tex scales
 	for ch = 0, 3 do
 		local chIdx = ch + 1
-		envSlider("slider-env-splatscale-" .. ch, "lbl-env-splatscale-" .. ch, function(v)
+		envSlider("slider-env-splatscale-" .. ch, function(v)
 			return v / 10000
 		end, function()
 			local r, g, b, a = gl.GetMapRendering("splatTexScales")
@@ -1658,18 +1629,6 @@ function M.attach(doc, ctx)
 			c[chIdx] = val
 			Spring.SetMapRenderingParams({ splatTexScales = c })
 		end)
-		-- Override label format to 3 decimal places
-		local lb = doc:GetElementById("lbl-env-splatscale-" .. ch)
-		local sl = doc:GetElementById("slider-env-splatscale-" .. ch)
-		if sl and lb then
-			sl:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then
-					return
-				end
-				local raw = tonumber(sl:GetAttribute("value")) or 0
-				lb.inner_rml = string.format("%.4f", raw / 10000)
-			end, false)
-		end
 	end
 
 	-- ---- Grass config popup controls ----
@@ -1794,7 +1753,7 @@ function M.attach(doc, ctx)
 	grassCfgPull()
 
 	-- ---- Skybox rotation sliders ----
-	envSlider("slider-env-skyangle", "lbl-env-skyangle", function(v)
+	envSlider("slider-env-skyangle", function(v)
 		return v / 100
 	end, function()
 		local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
@@ -1804,7 +1763,7 @@ function M.attach(doc, ctx)
 		Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, val } })
 	end)
 	local function skyAxisSlider(axis, idx)
-		envSlider("slider-env-skyaxis-" .. axis, "lbl-env-skyaxis-" .. axis, function(v)
+		envSlider("slider-env-skyaxis-" .. axis, function(v)
 			return v / 100
 		end, function()
 			local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
@@ -1825,7 +1784,7 @@ function M.attach(doc, ctx)
 
 	-- ---- Dynamic skybox rotation controls ----
 	local function skyDynSlider(axis, field)
-		envSlider("slider-env-skydyn-" .. axis, "lbl-env-skydyn-" .. axis, function(v)
+		envSlider("slider-env-skydyn-" .. axis, function(v)
 			return v / 100
 		end, function()
 			return skyDynamic[field] * 100
@@ -1859,33 +1818,33 @@ function M.attach(doc, ctx)
 
 	-- Water sliders
 	local waterSliders = {
-		{ "repeatx", "repeatx", 1, "repeatX", "repeatX", 1 },
-		{ "repeaty", "repeaty", 1, "repeatY", "repeatY", 1 },
-		{ "alpha", "alpha", 1000, "surfaceAlpha", "surfaceAlpha", 1000 },
-		{ "ambient", "ambient", 1000, "ambientFactor", "ambientFactor", 1000 },
-		{ "diffuse", "diffuse", 1000, "diffuseFactor", "diffuseFactor", 1000 },
-		{ "specular", "specular", 1000, "specularFactor", "specularFactor", 1000 },
-		{ "specpow", "specpow", 10, "specularPower", "specularPower", 10 },
-		{ "fresnelmin", "fresnelmin", 100, "fresnelMin", "fresnelMin", 100 },
-		{ "fresnelmax", "fresnelmax", 100, "fresnelMax", "fresnelMax", 100 },
-		{ "fresnelpow", "fresnelpow", 10, "fresnelPower", "fresnelPower", 10 },
-		{ "pfreq", "pfreq", 1, "perlinStartFreq", "perlinStartFreq", 1 },
-		{ "placun", "placun", 100, "perlinLacunarity", "perlinLacunarity", 100 },
-		{ "pamp", "pamp", 100, "perlinAmplitude", "perlinAmplitude", 100 },
-		{ "numtiles", "numtiles", 1, "numTiles", "numTiles", 1 },
-		{ "blurbase", "blurbase", 100, "blurBase", "blurBase", 100 },
-		{ "blurexp", "blurexp", 100, "blurExponent", "blurExponent", 100 },
-		{ "refldist", "refldist", 100, "reflectionDistortion", "reflectionDistortion", 100 },
-		{ "waveoff", "waveoff", 100, "waveOffsetFactor", "waveOffsetFactor", 100 },
-		{ "wavelen", "wavelen", 100, "waveLength", "waveLength", 100 },
-		{ "foamdist", "foamdist", 100, "waveFoamDistortion", "waveFoamDistortion", 100 },
-		{ "foamint", "foamint", 100, "waveFoamIntensity", "waveFoamIntensity", 100 },
-		{ "caustres", "caustres", 1, "causticsResolution", "causticsResolution", 1 },
-		{ "cauststr", "cauststr", 100, "causticsStrength", "causticsStrength", 100 },
+		{ "repeatx", 1, "repeatX", "repeatX", 1 },
+		{ "repeaty", 1, "repeatY", "repeatY", 1 },
+		{ "alpha", 1000, "surfaceAlpha", "surfaceAlpha", 1000 },
+		{ "ambient", 1000, "ambientFactor", "ambientFactor", 1000 },
+		{ "diffuse", 1000, "diffuseFactor", "diffuseFactor", 1000 },
+		{ "specular", 1000, "specularFactor", "specularFactor", 1000 },
+		{ "specpow", 10, "specularPower", "specularPower", 10 },
+		{ "fresnelmin", 100, "fresnelMin", "fresnelMin", 100 },
+		{ "fresnelmax", 100, "fresnelMax", "fresnelMax", 100 },
+		{ "fresnelpow", 10, "fresnelPower", "fresnelPower", 10 },
+		{ "pfreq", 1, "perlinStartFreq", "perlinStartFreq", 1 },
+		{ "placun", 100, "perlinLacunarity", "perlinLacunarity", 100 },
+		{ "pamp", 100, "perlinAmplitude", "perlinAmplitude", 100 },
+		{ "numtiles", 1, "numTiles", "numTiles", 1 },
+		{ "blurbase", 100, "blurBase", "blurBase", 100 },
+		{ "blurexp", 100, "blurExponent", "blurExponent", 100 },
+		{ "refldist", 100, "reflectionDistortion", "reflectionDistortion", 100 },
+		{ "waveoff", 100, "waveOffsetFactor", "waveOffsetFactor", 100 },
+		{ "wavelen", 100, "waveLength", "waveLength", 100 },
+		{ "foamdist", 100, "waveFoamDistortion", "waveFoamDistortion", 100 },
+		{ "foamint", 100, "waveFoamIntensity", "waveFoamIntensity", 100 },
+		{ "caustres", 1, "causticsResolution", "causticsResolution", 1 },
+		{ "cauststr", 100, "causticsStrength", "causticsStrength", 100 },
 	}
 	for _, ws in ipairs(waterSliders) do
-		local slSuffix, lblSuffix, divisor, getParam, setParam, getScale = ws[1], ws[2], ws[3], ws[4], ws[5], ws[6]
-		envSlider("slider-env-w-" .. slSuffix, "lbl-env-w-" .. lblSuffix, function(v)
+		local slSuffix, divisor, getParam, setParam, getScale = ws[1], ws[2], ws[3], ws[4], ws[5]
+		envSlider("slider-env-w-" .. slSuffix, function(v)
 			return v / divisor
 		end, function()
 			return (gl.GetWaterRendering(getParam) or 0) * getScale
@@ -1908,23 +1867,17 @@ function M.attach(doc, ctx)
 		}
 		for _, wc in ipairs(waterColorParams) do
 			for i, suffix in ipairs({ "r", "g", "b" }) do
-				envSlider(
-					"slider-env-wc-" .. wc.prefix .. "-" .. suffix,
-					"lbl-env-wc-" .. wc.prefix .. "-" .. suffix,
-					function(v)
-						return v / 1000
-					end,
-					function()
-						local c = { gl.GetWaterRendering(wc.param) }
-						return (c[i] or 0) * 1000
-					end,
-					function(val)
-						local c = { gl.GetWaterRendering(wc.param) }
-						c[i] = val
-						Spring.SetWaterParams({ [wc.param] = c })
-						Spring.SendCommands("water 4")
-					end
-				)
+				envSlider("slider-env-wc-" .. wc.prefix .. "-" .. suffix, function(v)
+					return v / 1000
+				end, function()
+					local c = { gl.GetWaterRendering(wc.param) }
+					return (c[i] or 0) * 1000
+				end, function(val)
+					local c = { gl.GetWaterRendering(wc.param) }
+					c[i] = val
+					Spring.SetWaterParams({ [wc.param] = c })
+					Spring.SendCommands("water 4")
+				end)
 			end
 			wireColorGroup({
 				paletteId = wc.paletteId,
@@ -2018,12 +1971,7 @@ function M.attach(doc, ctx)
 				local prefix, param = entry[1], entry[2]
 				local c = { gl.GetWaterRendering(param) }
 				for i, s in ipairs({ "r", "g", "b" }) do
-					envSetSlider(
-						"slider-env-wc-" .. prefix .. "-" .. s,
-						"lbl-env-wc-" .. prefix .. "-" .. s,
-						math.floor((c[i] or 0) * 1000 + 0.5),
-						string.format("%.2f", c[i] or 0)
-					)
+					envSetSlider("slider-env-wc-" .. prefix .. "-" .. s, math.floor((c[i] or 0) * 1000 + 0.5))
 				end
 				updatePreview(doc:GetElementById("env-wc-preview-" .. prefix), c[1], c[2], c[3])
 			end
@@ -2086,7 +2034,7 @@ function M.attach(doc, ctx)
 		end
 
 		-- Lava / acid shader overlay sliders
-		envSlider("slider-env-lava-amp", "lbl-env-lava-amp", function(v)
+		envSlider("slider-env-lava-amp", function(v)
 			return v
 		end, function()
 			return 2
@@ -2096,7 +2044,7 @@ function M.attach(doc, ctx)
 				ov.setTideAmplitude(val)
 			end
 		end)
-		envSlider("slider-env-lava-period", "lbl-env-lava-period", function(v)
+		envSlider("slider-env-lava-period", function(v)
 			return v
 		end, function()
 			return 200
@@ -2106,7 +2054,7 @@ function M.attach(doc, ctx)
 				ov.setTidePeriod(val)
 			end
 		end)
-		envSlider("slider-env-lava-fogheight", "lbl-env-lava-fogheight", function(v)
+		envSlider("slider-env-lava-fogheight", function(v)
 			return v
 		end, function()
 			return 20

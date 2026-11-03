@@ -5,6 +5,7 @@ local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 local WidgetActions = require("luaui/Include/keybind_widget_actions")
 
 local FOLDER = "LuaUI/Widgets/"
+local KEYS = "widgets.gui_example."
 
 local function widgetEntry(id, actions, loaded)
 	return {
@@ -25,32 +26,60 @@ local function entriesNamed(warnings)
 end
 
 describe("reading a widget's declared actions", function()
-	it("reads the command the way the engine matches it and shapes defaults the way a profile binds them", function()
+	it("keeps every key under the widget and shapes defaults the way a profile binds them", function()
 		local actions, warnings = WidgetActions.parse(widgetEntry("gui_example", {
-			{ action = "  Subgroup_Cycle Next ", defaultKeysets = { "tab", "sc_q" }, icon = "cycle.png" },
-			{ action = "toggle", alwaysModifier = "any", defaultKeysets = { "tab", "Any+sc_q", "*+x" } },
-			{ action = "pair", alwaysModifier = "shift", defaultKeysets = { "Shift+tab" } },
+			{
+				action = "  Subgroup_Cycle Next ",
+				label = "actions.cycle",
+				description = "actions.cycleDescription",
+				defaultKeysets = { "tab", "sc_q" },
+				icon = "cycle.png",
+			},
+			{
+				action = "toggle",
+				label = "actions.toggle",
+				alwaysModifier = "any",
+				defaultKeysets = { "tab", "Any+sc_q", "*+x" },
+			},
+			{ action = "pair", label = "actions.pair", alwaysModifier = "shift", defaultKeysets = { "Shift+tab" } },
 		}))
 
 		assert.are.same({}, warnings)
 		assert.are.same({
-			{ action = "subgroup_cycle Next", icon = FOLDER .. "gui_example/cycle.png", keysets = { "tab", "sc_q" } },
-			{ action = "toggle", alwaysModifier = "any", keysets = { "Any+tab", "Any+sc_q", "*+x" } },
-			{ action = "pair", alwaysModifier = "shift", keysets = { "tab", "Shift+tab" } },
+			{
+				action = "subgroup_cycle Next",
+				label = KEYS .. "actions.cycle",
+				description = KEYS .. "actions.cycleDescription",
+				icon = FOLDER .. "gui_example/cycle.png",
+				keysets = { "tab", "sc_q" },
+			},
+			{
+				action = "toggle",
+				label = KEYS .. "actions.toggle",
+				alwaysModifier = "any",
+				keysets = { "Any+tab", "Any+sc_q", "*+x" },
+			},
+			{
+				action = "pair",
+				label = KEYS .. "actions.pair",
+				alwaysModifier = "shift",
+				keysets = { "tab", "Shift+tab" },
+			},
 		}, actions)
 	end)
 
 	it("skips an entry it cannot read, naming each", function()
 		local actions, warnings = WidgetActions.parse(widgetEntry("gui_example", {
 			"not an object",
-			{ defaultKeysets = { "tab" } },
-			{ action = "bad_modifier", alwaysModifier = "ctrl" },
-			{ action = "load 1" },
-			{ action = "LOAD 1" },
+			{ label = "actions.noAction" },
+			{ action = "no_label" },
+			{ action = "bad_modifier", label = "actions.bad", alwaysModifier = "ctrl" },
+			{ action = "load 1", label = "actions.one" },
+			{ action = "LOAD 1", label = "actions.again" },
 		}))
 
-		assert.are.same({ { action = "load 1" } }, actions)
-		assert.are.same({ 1, 2, 3, 5 }, entriesNamed(warnings))
+		assert.are.same({ { action = "no_label" }, { action = "load 1", label = KEYS .. "actions.one" } }, actions)
+		assert.are.same({ 1, 2, 4, 6 }, entriesNamed(warnings))
 
 		local notList, notListWarnings = WidgetActions.parse(widgetEntry("gui_example", "subgroup_cycle"))
 		assert.are.same({}, notList)
@@ -59,10 +88,10 @@ describe("reading a widget's declared actions", function()
 
 	it("drops a default it cannot make but keeps the action", function()
 		local actions, warnings = WidgetActions.parse(widgetEntry("gui_example", {
-			{ action = "one", defaultKeysets = "tab" },
-			{ action = "two", alwaysModifier = "shift", defaultKeysets = { "tab", "sc_q" } },
-			{ action = "three", defaultKeysets = { "not a keyset" } },
-			{ action = "four", alwaysModifier = "shift", defaultKeysets = { "Any+tab" } },
+			{ action = "one", label = "a.one", defaultKeysets = "tab" },
+			{ action = "two", label = "a.two", alwaysModifier = "shift", defaultKeysets = { "tab", "sc_q" } },
+			{ action = "three", label = "a.three", defaultKeysets = { "not a keyset" } },
+			{ action = "four", label = "a.four", alwaysModifier = "shift", defaultKeysets = { "Any+tab" } },
 		}))
 
 		assert.are.equal(4, #actions)
@@ -74,26 +103,33 @@ describe("reading a widget's declared actions", function()
 end)
 
 describe("what the loaded widgets contribute", function()
-	it("gives each a category titled by its display name, an action two of them declare going to the first", function()
+	it("gives each its own category, an action two of them declare going to the first", function()
 		local groups = WidgetActions.groups({
-			widgetEntry("gui_first", { { action = "shared" }, { action = "mine", alwaysModifier = "any" } }),
-			widgetEntry("gui_off", { { action = "hidden" } }, false),
+			widgetEntry("gui_first", {
+				{ action = "shared", label = "actions.mine" },
+				{ action = "mine", label = "actions.other", alwaysModifier = "any" },
+			}),
+			widgetEntry("gui_off", { { action = "hidden", label = "actions.hidden" } }, false),
 			widgetEntry("gui_silent", nil),
-			widgetEntry("gui_second", { { action = "shared" }, { action = "own" } }),
+			widgetEntry("gui_second", {
+				{ action = "shared", label = "actions.theirs" },
+				{ action = "own", label = "actions.own" },
+			}),
 		})
 
 		assert.are.same({
 			{
-				category = "widgets.gui_first",
-				title = "Example gui_first",
+				category = "widgets.gui_first.displayName",
 				section = "widgets",
-				items = { { action = "shared" }, { action = "mine", alwaysModifier = "any" } },
+				items = {
+					{ action = "shared", label = "widgets.gui_first.actions.mine" },
+					{ action = "mine", label = "widgets.gui_first.actions.other", alwaysModifier = "any" },
+				},
 			},
 			{
-				category = "widgets.gui_second",
-				title = "Example gui_second",
+				category = "widgets.gui_second.displayName",
 				section = "widgets",
-				items = { { action = "own" } },
+				items = { { action = "own", label = "widgets.gui_second.actions.own" } },
 			},
 		}, groups)
 	end)
@@ -101,14 +137,14 @@ describe("what the loaded widgets contribute", function()
 	it("lists their defaults action by action, the first widget's winning", function()
 		local defaults = WidgetActions.defaults({
 			widgetEntry("gui_first", {
-				{ action = "bound", defaultKeysets = { "tab" } },
-				{ action = "unbound" },
-				{ action = "paired", alwaysModifier = "shift", defaultKeysets = { "sc_q" } },
+				{ action = "bound", label = "a.bound", defaultKeysets = { "tab" } },
+				{ action = "unbound", label = "a.unbound" },
+				{ action = "paired", label = "a.paired", alwaysModifier = "shift", defaultKeysets = { "sc_q" } },
 			}),
-			widgetEntry("gui_off", { { action = "hidden", defaultKeysets = { "x" } } }, false),
+			widgetEntry("gui_off", { { action = "hidden", label = "a.hidden", defaultKeysets = { "x" } } }, false),
 			widgetEntry("gui_second", {
-				{ action = "bound", defaultKeysets = { "F1" } },
-				{ action = "own", defaultKeysets = { "Alt+sc_o" } },
+				{ action = "bound", label = "a.bound", defaultKeysets = { "F1" } },
+				{ action = "own", label = "a.own", defaultKeysets = { "Alt+sc_o" } },
 			}),
 		})
 
@@ -121,9 +157,17 @@ describe("what the loaded widgets contribute", function()
 
 	it("keeps the actions of widgets that are off out of sight, less any a loaded one declares", function()
 		local hidden = WidgetActions.hiddenActions({
-			widgetEntry("gui_on", { { action = "shared" } }),
-			widgetEntry("gui_off", { { action = "shared" }, { action = "off" } }, false),
-			widgetEntry("gui_also_off", { { action = "off" }, { action = "other" } }, false),
+			widgetEntry("gui_on", { { action = "shared", label = "a.shared" } }),
+			widgetEntry(
+				"gui_off",
+				{ { action = "shared", label = "a.shared" }, { action = "off", label = "a.off" } },
+				false
+			),
+			widgetEntry(
+				"gui_also_off",
+				{ { action = "off", label = "a.off" }, { action = "other", label = "a.other" } },
+				false
+			),
 		})
 
 		assert.are.same({ "off", "other" }, hidden)
@@ -153,6 +197,7 @@ describe("the manifests of the widgets installed", function()
 				end,
 			},
 			WG = {},
+			BAR = { I18N = { loadWidgetLocalizations = function() end } },
 			widgetHandler = {
 				GetWidgetsRevision = function()
 					return revision

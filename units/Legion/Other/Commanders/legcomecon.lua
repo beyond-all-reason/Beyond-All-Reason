@@ -89,6 +89,7 @@ return {
 			[31] = "armgeo",
 		},
 		customparams = {
+			maxrange = 280,
 			unitgroup = "builder",
 			iscommander = true,
 			model_author = "FireStorm",

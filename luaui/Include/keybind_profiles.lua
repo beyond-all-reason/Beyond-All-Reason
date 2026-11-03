@@ -145,6 +145,83 @@ local function byPriority(binds)
 	return out
 end
 
+-- The engine's CKeySet::fit: a key named Any+ matches one bound with any modifiers held, or
+-- none, so it has to be treated as a wildcard rather than compared for an exact string match.
+local function keyElementFits(a, b)
+	if a == b then
+		return true
+	end
+
+	local keyA, keyB = a:match("[sk]c:.*$"), b:match("[sk]c:.*$")
+
+	return keyA == keyB and (a:find("^any%+", 1) ~= nil or b:find("^any%+", 1) ~= nil)
+end
+
+-- Whether `short` is what the engine's CKeyChain::fit would see as the trailing taps of
+-- `long`: a press of `long` also satisfies `short`, the instant `short` is itself complete.
+local function chainFitsAsTail(short, long)
+	if #short >= #long then
+		return false
+	end
+
+	local offset = #long - #short
+	for i = 1, #short do
+		if not keyElementFits(short[i], long[offset + i]) then
+			return false
+		end
+	end
+
+	return true
+end
+
+local function chainTaps(keyset)
+	return keybindModel.splitChain(keybindModel.canonicalKeyset(keyset))
+end
+
+-- Moves every bind whose keyset chain is a strict suffix of another's to just after it,
+-- preserving byPriority's order otherwise. The dependency graph is sparse (most binds share no
+-- key at all), so a few hundred binds cost this pass nothing worth measuring.
+local function byChainSpecificity(ordered)
+	local n = #ordered
+	local taps = {}
+	for i = 1, n do
+		taps[i] = chainTaps(ordered[i].keyset)
+	end
+
+	local mustFollow = {}
+	for i = 1, n do
+		for j = 1, n do
+			if i ~= j and chainFitsAsTail(taps[i], taps[j]) then
+				mustFollow[i] = mustFollow[i] or {}
+				mustFollow[i][j] = true
+			end
+		end
+	end
+
+	local placed, out = {}, {}
+	while #out < n do
+		for i = 1, n do
+			if not placed[i] then
+				local ready = true
+				for j in pairs(mustFollow[i] or {}) do
+					if not placed[j] then
+						ready = false
+						break
+					end
+				end
+
+				if ready then
+					placed[i] = true
+					out[#out + 1] = ordered[i]
+					break
+				end
+			end
+		end
+	end
+
+	return out
+end
+
 -- The engine drops everything from "//", so this costs nothing on load.
 local GENERATED_PREFIX = "// keybind editor profile: "
 local GENERATED_PATTERN = "^" .. (GENERATED_PREFIX:gsub("(%W)", "%%%1")) .. "([^\r\n]*)"
@@ -303,7 +380,7 @@ local function toBindFile(profile)
 		binds = withWidgetDefaults(binds, {})
 	end
 
-	for _, b in ipairs(byPriority(binds)) do
+	for _, b in ipairs(byChainSpecificity(byPriority(binds))) do
 		out[#out + 1] = "bind " .. b.keyset .. " " .. b.action
 	end
 

@@ -9,7 +9,6 @@ local clips = {}
 
 -- gl and FlowUI are unavailable to specs.
 local env = SpecEnv.new({
-	utf8 = rawget(_G, "utf8") or { len = string.len, sub = string.sub },
 	Spring = {
 		GetTimer = function() end,
 		DiffTimers = function()
