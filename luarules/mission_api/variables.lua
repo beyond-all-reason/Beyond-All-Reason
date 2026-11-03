@@ -97,11 +97,11 @@ end
 
 --- Objective fields and condition thresholds resolve once, when the mission starts.
 --- objectives_loader built each objective's condition record before variables were
---- known, so the resolved amount is copied onto it here as its threshold.
+--- known, so the resolved threshold is copied onto it here.
 local function resolveObjectiveFields(objectives, triggers)
 	for objectiveID, objective in pairs(objectives) do
 		for fieldName, value in pairs(objective) do
-			if fieldName ~= "trigger" and hasVariableReference(value) then
+			if fieldName ~= "parameters" and hasVariableReference(value) then
 				objective[fieldName] = resolveValue(value)
 			end
 		end
@@ -134,10 +134,7 @@ local function resolveReferences(triggers, actions, objectives, processValue)
 		registerParameters(action.parameters, actionSchema[action.type], registered)
 	end
 	for _, objective in pairs(objectives) do
-		local trigger = objective.trigger
-		if type(trigger) == "table" then
-			registerParameters(trigger.parameters, triggerSchema[trigger.type], registered)
-		end
+		registerParameters(objective.parameters, triggerSchema[objective.type], registered)
 	end
 
 	resolveTriggerThresholds(triggers)
