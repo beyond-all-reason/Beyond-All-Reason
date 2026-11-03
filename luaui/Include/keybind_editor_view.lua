@@ -3165,8 +3165,7 @@ local function pressElem(key, scanCode)
 		return nil
 	end
 
-	local modifier = (sym:find("ctrl") or sym:find("alt") or sym:find("shift") or sym:find("meta") or sym:find("gui"))
-		~= nil
+	local modifier = keybindModel.isBareModifier(sym)
 	-- A modifier alone reads the same with Shift held or not, so it cannot pair.
 	if modifier and capturing and capturing.pair then
 		return nil
