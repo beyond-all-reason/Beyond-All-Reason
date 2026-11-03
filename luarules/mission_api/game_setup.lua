@@ -26,7 +26,8 @@ local function readMissionOptions()
 	return missionOptions
 end
 
--- Gaia's team ID is the team count, which changes when the client adds a team, so missions use this name.
+-- Gaia's team ID is the team count, which changes when the client adds a team, so missions use this name,
+-- for Gaia's team and for its allyteam.
 local GAIA_TEAM_NAME = "gaia"
 
 local function readTeams()
@@ -58,14 +59,27 @@ local function readTeams()
 	return teamNames, dummyTeams, errors
 end
 
-local function readAllyTeamNames()
+local function readAllyTeamNames(errors)
 	local allyTeamNames = {}
 	for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 		local customKeys = Spring.GetAllyTeamInfo(allyTeamID)
-		if customKeys ~= nil and customKeys.name ~= nil then
+		if customKeys ~= nil and customKeys.name == GAIA_TEAM_NAME then
+			errors[#errors + 1] = "Allyteam "
+				.. allyTeamID
+				.. " is named '"
+				.. GAIA_TEAM_NAME
+				.. "', the name reserved for Gaia"
+		elseif customKeys ~= nil and customKeys.name ~= nil then
 			allyTeamNames[allyTeamID] = customKeys.name
 		end
 	end
+
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	if gaiaTeamID ~= nil then
+		local _, _, _, _, _, gaiaAllyTeamID = Spring.GetTeamInfo(gaiaTeamID)
+		allyTeamNames[gaiaAllyTeamID] = GAIA_TEAM_NAME
+	end
+
 	return allyTeamNames
 end
 
@@ -89,7 +103,7 @@ end
 ---@field variables table
 ---@field persistentVariables table<string, true> the keys of the variables that came from the save
 ---@field teams table<integer|string, string|integer> team ID to name, and name to team ID, Gaia's team as "gaia"
----@field alliances table<integer|string, string|integer> allyteam ID to name, and name to allyteam ID
+---@field alliances table<integer|string, string|integer> allyteam ID to name, and name to allyteam ID, Gaia's allyteam as "gaia"
 ---@field dummyTeams table<integer, integer> allyteam ID to its dummy team ID
 ---@field errors string[] what the start script gets wrong for a mission, reported by validation
 
@@ -99,7 +113,7 @@ if missionOptions == nil or missionOptions.entryPoint == nil then
 end
 
 local teamNames, dummyTeams, errors = readTeams()
-local allyTeamNames = readAllyTeamNames()
+local allyTeamNames = readAllyTeamNames(errors)
 local variables = missionOptions.variables or {}
 
 return {

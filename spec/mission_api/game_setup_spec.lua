@@ -27,19 +27,24 @@ local function withGameSetup(setup)
 	env.Spring.GetTeamList = function()
 		return sortedIDs(setup.teams)
 	end
+	-- The engine adds Gaia's team after the start script's teams, in an allyteam of its own after theirs.
+	local gaiaTeamID = #sortedIDs(setup.teams)
+	local gaiaAllyTeamID = #sortedIDs(setup.allyTeams)
 	env.Spring.GetTeamInfo = function(teamID, getTeamKeys)
-		local team = setup.teams[teamID]
+		local team = setup.teams[teamID] or { allyTeam = gaiaAllyTeamID, keys = {} }
 		return teamID, 0, false, false, "armada", team.allyTeam, 1, getTeamKeys and team.keys or nil
 	end
 	env.Spring.GetAllyTeamList = function()
-		return sortedIDs(setup.allyTeams)
+		local allyTeamIDs = sortedIDs(setup.allyTeams)
+		allyTeamIDs[#allyTeamIDs + 1] = gaiaAllyTeamID
+		return allyTeamIDs
 	end
 	env.Spring.GetAllyTeamInfo = function(allyTeamID)
-		return setup.allyTeams[allyTeamID].keys
+		local allyTeam = setup.allyTeams[allyTeamID]
+		return allyTeam and allyTeam.keys or {}
 	end
-	-- The engine adds Gaia's team after the start script's teams.
 	env.Spring.GetGaiaTeamID = function()
-		return #sortedIDs(setup.teams)
+		return gaiaTeamID
 	end
 end
 
@@ -143,7 +148,10 @@ describe("mission_api.game_setup", function()
 				mainEnemy = 2,
 				gaia = 4,
 			}, gameSetup.teams)
-			assert.are.same({ [0] = "goodies", [1] = "enemies", goodies = 0, enemies = 1 }, gameSetup.alliances)
+			assert.are.same(
+				{ [0] = "goodies", [1] = "enemies", [3] = "gaia", goodies = 0, enemies = 1, gaia = 3 },
+				gameSetup.alliances
+			)
 		end)
 
 		it("records each allyteam's dummy team and leaves it out of the names", function()
@@ -210,6 +218,23 @@ describe("mission_api.game_setup", function()
 
 			assert.are.same({ [0] = "player", player = 0 }, gameSetup.teams)
 			assert.are.same({ "Missions need Gaia's team, but the start script sets luagaia=0" }, gameSetup.errors)
+			assert.are.same({ [0] = "goodies", goodies = 0 }, gameSetup.alliances)
+		end)
+
+		it("gives an error for an allyteam named 'gaia' and keeps the name for Gaia's allyteam", function()
+			withGameSetup({
+				modOptions = { missionoptions = encodeMissionOptions([[{"entryPoint":"mission.lua"}]]) },
+				teams = {
+					[0] = { allyTeam = 0, keys = { name = "player" } },
+					[1] = { allyTeam = 1, keys = { name = "enemy" } },
+				},
+				allyTeams = { [0] = { keys = { name = "goodies" } }, [1] = { keys = { name = "gaia" } } },
+			})
+
+			local gameSetup = readGameSetup()
+
+			assert.are.same({ [0] = "goodies", [2] = "gaia", goodies = 0, gaia = 2 }, gameSetup.alliances)
+			assert.are.same({ "Allyteam 1 is named 'gaia', the name reserved for Gaia" }, gameSetup.errors)
 		end)
 
 		it("returns nil without logging when there is no missionoptions", function()
