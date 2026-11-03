@@ -27,12 +27,31 @@ local removeAction = findAction("RemoveBuildOption")
 
 describe("mission_api.actions.dynamic_build_options", function()
 
-	---@type { add: table[], remove: table[] }
+	---@type { add: table[], remove: table[], block: table[], unblock: table[] }
 	local calls
 
 	before_each(function()
-		calls = { add = {}, remove = {} }
+		calls = { add = {}, remove = {}, block = {}, unblock = {} }
 		env.UnitDefNames = unitDefNames
+		GG["BuildBlocking"] = {
+			AddBlockedUnit = function(unitDefID, teamID, reasonKey, builderUnitDefID)
+				calls.block[#calls.block + 1] = {
+					unitDefID = unitDefID,
+					teamID = teamID,
+					reasonKey = reasonKey,
+					builderUnitDefID = builderUnitDefID,
+				}
+			end,
+			RemoveBlockedUnit = function(unitDefID, teamID, reasonKey, builderUnitDefID)
+				calls.unblock[#calls.unblock + 1] = {
+					unitDefID = unitDefID,
+					teamID = teamID,
+					reasonKey = reasonKey,
+					builderUnitDefID = builderUnitDefID,
+				}
+				return true
+			end,
+		}
 		GG["DynamicBuildOptions"] = {
 			Add = function(builtUnitDefID, builderUnitDefID, position)
 				calls.add[#calls.add + 1] = {
@@ -54,14 +73,17 @@ describe("mission_api.actions.dynamic_build_options", function()
 
 	after_each(function()
 		GG["DynamicBuildOptions"] = nil
+		GG["BuildBlocking"] = nil
 	end)
 
 	it("declares AddBuildOption and its parameters", function()
 		assert.are.same({
 			type = "AddBuildOption",
 			builtDefName = "UnitDefName!",
-			builderDefName = "UnitDefName!",
+			builderDefName = "UnitDefName",
 			buildMenuPosition = "PositiveInteger",
+			teamName = "TeamName",
+			requiresOneOf = { "builderDefName", "teamName" },
 		}, summarizeSchema(addAction))
 	end)
 
@@ -69,7 +91,9 @@ describe("mission_api.actions.dynamic_build_options", function()
 		assert.are.same({
 			type = "RemoveBuildOption",
 			builtDefName = "UnitDefName!",
-			builderDefName = "UnitDefName!",
+			builderDefName = "UnitDefName",
+			teamName = "TeamName",
+			requiresOneOf = { "builderDefName", "teamName" },
 		}, summarizeSchema(removeAction))
 	end)
 
@@ -88,6 +112,13 @@ describe("mission_api.actions.dynamic_build_options", function()
 			assert.are.equal(1, #calls.add)
 			assert.are.same({ builtUnitDefID = 42, builderUnitDefID = 7, position = 3 }, calls.add[1])
 		end)
+
+		it("shows the option to a team again by lifting its hidden block, leaving the unit defs alone", function()
+			addAction.actionFunction("armsolar", nil, nil, 1)
+
+			assert.are.same({ { unitDefID = 42, teamID = 1, reasonKey = "hidden" } }, calls.unblock)
+			assert.are.equal(0, #calls.add)
+		end)
 	end)
 
 	describe("RemoveBuildOption", function()
@@ -97,6 +128,20 @@ describe("mission_api.actions.dynamic_build_options", function()
 			assert.are.equal(1, #calls.remove)
 			assert.are.same({ builtUnitDefID = 42, builderUnitDefID = 7 }, calls.remove[1])
 			assert.are.equal(0, #calls.add)
+		end)
+
+		it("hides the option from one team with a hidden block, leaving the unit defs alone", function()
+			removeAction.actionFunction("armsolar", nil, 1)
+
+			assert.are.same({ { unitDefID = 42, teamID = 1, reasonKey = "hidden" } }, calls.block)
+			assert.are.equal(0, #calls.remove)
+		end)
+
+		it("is undone for the team by AddBuildOption with the team", function()
+			removeAction.actionFunction("armsolar", nil, 0)
+			addAction.actionFunction("armsolar", nil, nil, 0)
+
+			assert.are.same(calls.block[1], calls.unblock[1])
 		end)
 	end)
 

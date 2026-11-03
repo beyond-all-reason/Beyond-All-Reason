@@ -549,6 +549,30 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
+-- A team's build option is hidden for every builder at once: the build menus hide team-wide blocks only.
+local function validateBuildOptionAction(context, actionReport, actionID, action)
+	local parameters = action.parameters
+	local actionTypes = context.ActionTypes
+	if action.type ~= actionTypes.AddBuildOption and action.type ~= actionTypes.RemoveBuildOption then
+		return
+	end
+	if type(parameters) ~= "table" or parameters.teamName == nil then
+		return
+	end
+
+	if parameters.builderDefName ~= nil then
+		local typeName = action.type == actionTypes.AddBuildOption and "AddBuildOption" or "RemoveBuildOption"
+		actionReport.Error(actionID, typeName .. " takes builderDefName or teamName, not both")
+	end
+	if parameters.buildMenuPosition ~= nil then
+		actionReport.Error(
+			actionID,
+			"Parameter 'buildMenuPosition' needs builderDefName, not teamName",
+			"Parameter: buildMenuPosition"
+		)
+	end
+end
+
 local function validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
@@ -558,6 +582,7 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 			validateAttributeAction(actionReport, actionID, action)
 			validateChangeTeamAction(context, actionReport, actionID, action)
+			validateBuildOptionAction(context, actionReport, actionID, action)
 		end
 	end
 end
