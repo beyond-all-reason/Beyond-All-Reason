@@ -2299,6 +2299,8 @@
 				"buildmenu_groupicon_descr": "Group icons in the buildmenu",
 				"buildmenu_radaricon": "radar icon",
 				"buildmenu_radaricon_descr": "Radar icons in the buildmenu",
+				"buildmenu_blueprints": "blueprints",
+				"buildmenu_blueprints_descr": "Blueprint tab in the buildmenu and blueprint commands in the ordermenu",
 				"ordermenu": "Ordermenu",
 				"ordermenu_colorize": "colorize",
 				"ordermenu_bottompos": "bottom position",
