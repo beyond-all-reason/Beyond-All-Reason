@@ -272,7 +272,8 @@
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
 			"tapHotkeys": "Tap %{highlightColor}%{hotkey}%{textColor} quickly: %{taps}",
-			"tapCount": "%{count}x %{state}"
+			"tapCount": "%{count}x %{state}",
+			"areamexHotkey": "Press %{highlightColor}%{keys}%{textColor} for area mex: the metal extractor is picked first"
 		},
 		"idleBuilders": {
 			"name": "Idle Builders",
