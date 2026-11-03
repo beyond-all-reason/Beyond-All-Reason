@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- The mission gives the player a wind generator, which UnitReceived sees only when asked to see

@@ -9,8 +9,8 @@ GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
 GG["MissionAPI"].Modules.ParameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
 MissionSpecEnv.registerModules(env)
 
-local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
-	.LoadTriggerDefinitions()
+local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+	.LoadConditionDefinitions()
 local parameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
 local schemaUtils = MissionSpecEnv.include(env, "luarules/mission_api/schema_utils.lua")
 
@@ -67,7 +67,7 @@ describe("mission_api.schema_utils", function()
 
 	describe("CollateSchemas", function()
 		it("includes the settings every trigger shares", function()
-			GG["MissionAPI"].TriggerDefinitions = triggerDefinitions
+			GG["MissionAPI"].ConditionDefinitions = triggerDefinitions
 			GG["MissionAPI"].ActionDefinitions = { Types = {}, Parameters = {} }
 
 			local schemas = schemaUtils.CollateSchemas()

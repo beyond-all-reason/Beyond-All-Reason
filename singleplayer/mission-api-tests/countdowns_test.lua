@@ -23,7 +23,7 @@
 ---   15s: message: held finished (3 seconds later than it would have without the pause)
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local objectives = {

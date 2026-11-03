@@ -19,7 +19,7 @@ local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
 	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 	local triggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(
-		GG["MissionAPI"].TriggerDefinitions.Parameters,
+		GG["MissionAPI"].ConditionDefinitions.Parameters,
 		parameterTypes.Types.Quantity
 	)
 

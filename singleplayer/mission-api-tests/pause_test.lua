@@ -6,7 +6,7 @@
 --- Ordering the scout ends each scripted pause (orders still arrive while paused).
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
