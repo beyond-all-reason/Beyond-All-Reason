@@ -792,6 +792,15 @@ describe("mission_api.validation.sections", function()
 
 			V.assertNoMessageContaining(result, "is missing required parameter")
 		end)
+
+		it("requires a camera target", function()
+			local result = V.validateAction({ type = V.actionTypes.FollowCamera, parameters = { distance = 100 } })
+
+			V.assertMessage(
+				result,
+				[[Action is missing required parameter, at least one of {"unitName","position"} is required. Action: a]]
+			)
+		end)
 	end)
 
 	it("reports a DrawLines action without the lineName RemoveLine erases it by", function()

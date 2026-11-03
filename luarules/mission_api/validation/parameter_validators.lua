@@ -11,6 +11,7 @@ VFS.Include("common/wav.lua")
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
 local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
+local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -809,6 +810,107 @@ local function registerLoadoutValidators(parameterValidators, context)
 end
 
 --------------------------------------------------------------------------------
+-- Camera validators: the camera enums and keyframes
+--------------------------------------------------------------------------------
+
+local function quotedList(names)
+	return "'" .. table.concat(names, "', '") .. "'"
+end
+
+--- Validates a string that must be one of an enum's values, listing them when it is not.
+local function getEnumValidator(enums, enumType, valueName)
+	local valueSet = enums[enumType]
+	local names = {}
+	for name in pairs(valueSet) do
+		names[#names + 1] = name
+	end
+	table.sort(names)
+	local allowedList = quotedList(names)
+
+	return function(value)
+		local luaTypeResult = validateLuaType(value, "string")
+		if luaTypeResult then
+			return { { message = luaTypeResult } }
+		end
+		if not valueSet[value] then
+			return { { message = "Invalid " .. valueName .. ": '" .. value .. "'. Must be one of: " .. allowedList } }
+		end
+	end
+end
+
+local function countPresent(keyframe, fields)
+	local count = 0
+	for _, field in ipairs(fields) do
+		if keyframe[field] ~= nil then
+			count = count + 1
+		end
+	end
+	return count
+end
+
+local function registerCameraValidators(parameterValidators, context)
+	local Types = context.Types
+	local enums = context.Enums
+
+	parameterValidators[Types.CameraEasing] = getEnumValidator(enums, Types.CameraEasing, "easing")
+	parameterValidators[Types.CameraSequenceEnd] =
+		getEnumValidator(enums, Types.CameraSequenceEnd, "camera sequence end")
+	parameterValidators[Types.CameraPath] = getEnumValidator(enums, Types.CameraPath, "camera path")
+
+	local eyeFields, lookAtFields = cameraKeyframeSchema.ExactlyOneOf, cameraKeyframeSchema.AtMostOneOf
+
+	local function validateKeyframe(keyframe)
+		local luaTypeResult = validateTableType(keyframe)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		-- Fields in name order, so the messages come out in the same order every run.
+		local fields = {}
+		for field in pairs(keyframe) do
+			fields[#fields + 1] = tostring(field)
+		end
+		table.sort(fields)
+
+		local results = {}
+		for _, field in ipairs(fields) do
+			local fieldType = cameraKeyframeSchema.Settings[field]
+			if fieldType then
+				appendResults(results, parameterValidators[fieldType](keyframe[field]), "." .. field)
+			else
+				results[#results + 1] = { message = "Unknown keyframe field '" .. field .. "'" }
+			end
+		end
+
+		local eyeCount = countPresent(keyframe, eyeFields)
+		if eyeCount == 0 then
+			results[#results + 1] = { message = "Keyframe needs one of: " .. quotedList(eyeFields) }
+		elseif eyeCount > 1 then
+			results[#results + 1] = { message = "Keyframe places the eye twice, use one of: " .. quotedList(eyeFields) }
+		end
+		if keyframe.relativeToHeading ~= nil and keyframe.unitName == nil then
+			results[#results + 1] = {
+				message = "Keyframe relativeToHeading needs a unitName to take the heading from",
+				isWarning = true,
+			}
+		end
+
+		local lookAtCount = countPresent(keyframe, lookAtFields)
+		if lookAtCount > 1 then
+			results[#results + 1] =
+				{ message = "Keyframe has more than one look-at target, use one of: " .. quotedList(lookAtFields) }
+		elseif lookAtCount == 1 and (keyframe.pitch ~= nil or keyframe.yaw ~= nil) then
+			results[#results + 1] =
+				{ message = "Keyframe pitch and yaw are ignored while it looks at a target", isWarning = true }
+		end
+
+		return results
+	end
+
+	parameterValidators[Types.CameraKeyframes] = getListValidator(validateKeyframe, "Keyframes table is empty")
+end
+
+--------------------------------------------------------------------------------
 
 local function createParameterValidators(context)
 	local parameterValidators = {}
@@ -818,6 +920,7 @@ local function createParameterValidators(context)
 	registerSpatialValidators(parameterValidators, context)
 	registerOrderValidators(parameterValidators, context)
 	registerLoadoutValidators(parameterValidators, context)
+	registerCameraValidators(parameterValidators, context)
 
 	return parameterValidators
 end

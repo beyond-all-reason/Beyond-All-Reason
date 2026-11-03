@@ -106,6 +106,10 @@ return {
 the schema array order *is* the `actionFunction` signature: reordering, inserting, or renaming a parameter is a
 breaking change to both the function and every mission using it.
 
+Missions are authored in a mission editor, so keep parameters flat and typed: alternatives are separate optional
+parameters with `requiresOneOf`, choices are enum types, and a record declares its fields in a schema file
+(`camera_keyframe_schema.lua`). Give the unit of every numeric parameter in its comment (seconds, elmos, degrees).
+
 ## Parameters, validation, processing
 
 - Declare types from `parameter_types.lua`; add a new type there only when no existing one fits, and register a
@@ -122,12 +126,13 @@ breaking change to both the function and every mission using it.
 - `validation/references.lua` cross-checks unit/feature/marker/line names, countdown IDs and cutscene IDs between
   where they are created or defined and the actions and triggers that consume them. The consuming types are read from
   the schemas, so an action or trigger declaring a `UnitName`, `FeatureName`, `CountdownID` or `CutsceneID` parameter
-  is picked up without being listed.
+  is picked up without being listed, and so is a `UnitName` field of `camera_keyframe_schema.lua`.
 - The shape of the objects a mission declares itself, rather than of a trigger or action, lives in a schema file
   next to the loaders: `stages_schema.lua` (stage fields), `objectives_schema.lua` (objective fields),
   `triggers_schema.lua` (the settings every trigger shares), `countdowns_schema.lua` and `cutscenes_schema.lua`. They are plain data, so
   tools and the mission editor can read them; `validation/sections.lua` validates against them. Keep them in step
   with the loaders.
+- `difficulties` tables resolve per parameter, not inside a keyframe: give the whole `keyframes` per difficulty.
 
 ## Difficulty
 
@@ -178,6 +183,11 @@ breaking change to both the function and every mission using it.
 - `GG['MissionAPIActionHelper']` (`api_missions_action_helpers.lua`, synced) — for behaviour an action cannot do in
   one call, currently per-second resource drip. Put anything needing its own `GameFrame` accumulator here rather
   than growing the action file.
+- Camera actions (`actions/camera/`) build their parameters with `Modules.Camera` (`camera.lua`) and send them with
+  `SendToUnsynced("MissionCamera<Action>", params)`. `api_mission_camera.lua` (unsynced gadget) passes them to
+  `luaui/Widgets/api_mission_camera.lua`, which calls `WG.cinematicCamera`. `LockPlayerInput`/`UnlockPlayerInput`
+  set the `playerInputLock` game rules param to 1/0, which `luaui/Widgets/api_player_input_lock.lua` follows. They
+  act on every client; defaults live in the widgets. Camera sequences run on real time, also while the game is paused.
 - Unit and feature identity is by **name**, not ID: go through `Modules.Tracking`, never index the tracking tables
   directly.
 
