@@ -421,8 +421,8 @@ local function deleteBlueprint(index)
 
 	if #blueprints == 0 then
 		setSelectedBlueprintIndex(nil)
-	elseif index > selectedBlueprintIndex then
-		-- no need to do anything
+	elseif not selectedBlueprintIndex or index > selectedBlueprintIndex then
+		-- no need to do anything (none selected, or one after it deleted)
 	elseif index == selectedBlueprintIndex then
 		-- find the closest valid blueprint, searching backwards
 		setSelectedBlueprintIndex(getPrevFilteredBlueprintIndex(selectedBlueprintIndex))
@@ -830,6 +830,37 @@ local function handleBlueprintPrevAction()
 
 	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
+	return true
+end
+
+--- Index of the first valid blueprint whose `.name` equals `name`, or nil.
+---@param name string
+---@return integer?
+local function getBlueprintIndexByName(name)
+	if type(name) ~= "string" or name == "" then
+		return nil
+	end
+	for i = 1, #blueprints do
+		local bp = blueprints[i]
+		if bp and bp.name == name and isValidBlueprint(bp) then
+			return i
+		end
+	end
+	return nil
+end
+
+--- Select a saved blueprint by its name (from blueprints.json). Unlike next/prev,
+--- this works even when placement is not active so callers can select then start placing.
+---@param name string
+---@return boolean selected
+local function selectBlueprintByName(name)
+	local index = getBlueprintIndexByName(name)
+	if not index then
+		return false
+	end
+
+	setSelectedBlueprintIndex(index)
+	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 	return true
 end
 
@@ -1241,7 +1272,38 @@ function widget:Initialize()
 		reloadBindings = reloadBindings,
 		selectNextBlueprint = handleBlueprintNextAction,
 		selectPrevBlueprint = handleBlueprintPrevAction,
+		selectBlueprintByName = selectBlueprintByName,
 		rotateBlueprint = rotateBlueprint,
+		-- for menus listing the saved blueprints (read only)
+		getBlueprints = function()
+			return blueprints
+		end,
+		getSelectedBlueprintIndex = function()
+			return selectedBlueprintIndex
+		end,
+		-- the blueprint the next blueprint_place places
+		setSelectedBlueprintIndex = function(index)
+			if isValidBlueprint(blueprints[index]) then
+				setSelectedBlueprintIndex(index)
+			end
+		end,
+		-- deletes a saved blueprint (a menu's delete option); false when there is none at index
+		deleteBlueprint = function(index)
+			if not blueprints[index] then
+				return false
+			end
+			deleteBlueprint(index)
+			Spring.PlaySoundFile(sounds.deleteBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
+			return true
+		end,
+		-- names a saved blueprint (a menu's rename; "" for none); false when there is none at index
+		setBlueprintName = function(index, name)
+			if not blueprints[index] or type(name) ~= "string" then
+				return false
+			end
+			blueprints[index].name = name:match("^%s*(.-)%s*$")
+			return true
+		end,
 	}
 	WG.cmd_blueprint.nextBlueprintUnitID = nextBlueprintUnitID
 

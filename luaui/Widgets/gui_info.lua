@@ -435,7 +435,14 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
 				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
 			else
-				if unitDef.customParams.weapons_smart_select and (weaponDef.customParams.smart_priority or weaponDef.customParams.smart_backup or weaponDef.customParams.smart_trajectory_checker) then
+				if
+					unitDef.customParams.weapons_smart_select
+					and (
+						weaponDef.customParams.smart_priority
+						or weaponDef.customParams.smart_backup
+						or weaponDef.customParams.smart_trajectory_checker
+					)
+				then
 					unitExempt = true -- NB: I hate this thing
 					if weaponDef.customParams.smart_priority then
 						addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0]))
@@ -2815,7 +2822,7 @@ function widget:DrawScreen()
 		tracy.ZoneBeginN("W:Info:DrawScreen:CreateBackgroundTexture")
 		infoBgTex = gl.CreateTexture(math_floor(width * vsx), math_floor(height * vsy), {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		gl.R2tHelper.RenderToTexture(infoBgTex, function()
@@ -2827,9 +2834,10 @@ function widget:DrawScreen()
 	end
 	if not infoTex then
 		tracy.ZoneBeginN("W:Info:DrawScreen:CreateInfoTexture")
-		infoTex = gl.CreateTexture(math_floor(width * vsx) * 2, math_floor(height * vsy) * 2, {
+		local ss = WG.FlowUI.supersample or 2
+		infoTex = gl.CreateTexture(math_floor(width * vsx) * ss, math_floor(height * vsy) * ss, {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		tracy.ZoneEnd()

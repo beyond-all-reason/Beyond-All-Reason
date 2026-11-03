@@ -44,6 +44,9 @@ local PASS_ACTIONS = {
 }
 
 local suiteNames = {} -- name -> true, from the launcher's list (filled on first use: this can load first)
+-- Editor widgets outside the suite that take their own keys: the SURFACE painter ships with the tileset
+-- shader (a user widget, so not in the suite's enable list) and owns Ctrl+Z / Ctrl+Shift+Z for its strokes.
+local EXTRA_KEY_WIDGETS = { "Surface Painter (Tileset Variants)" }
 local passedOnPress = {} -- scanCode -> true: its release goes the same way
 
 local function gateWanted()
@@ -77,6 +80,9 @@ end
 local function offerToSuite(callin, ...)
 	if next(suiteNames) == nil then
 		for _, name in ipairs(WG.TerraformSuiteWidgets or {}) do
+			suiteNames[name] = true
+		end
+		for _, name in ipairs(EXTRA_KEY_WIDGETS) do
 			suiteNames[name] = true
 		end
 	end

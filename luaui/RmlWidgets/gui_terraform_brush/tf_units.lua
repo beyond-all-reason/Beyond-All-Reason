@@ -4,10 +4,7 @@
 local M = {}
 
 function M.attach(doc, ctx)
-	local widgetState = ctx.widgetState
 	local trackSliderDrag = ctx.trackSliderDrag
-
-	-- Cache section elements (used by M.sync)
 
 	-- Slider drag tracking (legitimate imperative state).
 	-- Slider change events wired declaratively via onchange= in RML.
@@ -159,14 +156,6 @@ function M.sync(doc, ctx, unState, setSummary)
 		syncAndFlash(getCachedEl(doc, "un-slider-cadence"), "un-cadence", tostring(cadenceToSlider(unState.cadence)))
 
 		-- Smart filter UI sync
-		local unSmartToggle = getCachedEl(doc, "btn-un-smart-toggle")
-		if unSmartToggle then
-			unSmartToggle:SetAttribute(
-				"src",
-				unState.smartEnabled and "/luaui/images/terraform_brush/check_on.png"
-					or "/luaui/images/terraform_brush/check_off.png"
-			)
-		end
 		do
 			local sf = unState.smartFilters or {}
 			local anyFilterOn = unState.smartEnabled == true
@@ -192,18 +181,10 @@ function M.sync(doc, ctx, unState, setSummary)
 				setDm("unAltMaxEnable", sf.altMaxEnable == true)
 			end
 
-			-- Filter chips: Avoid Water mirrors filter state; slope sub-chips mirror avoidCliffs / preferSlopes
+			-- Filter chips: Avoid Water mirrors filter state (the slope sub-chips bind unAvoidCliffs / unPreferSlopes)
 			local avoidWaterChip = getCachedEl(doc, "un-filter-chip-avoid-water")
 			if avoidWaterChip then
 				avoidWaterChip:SetClass("active", sf.avoidWater == true)
-			end
-			local slopeAvoidChip = getCachedEl(doc, "un-slope-mode-avoid")
-			if slopeAvoidChip then
-				slopeAvoidChip:SetClass("active", sf.avoidCliffs == true)
-			end
-			local slopePreferChip = getCachedEl(doc, "un-slope-mode-prefer")
-			if slopePreferChip then
-				slopePreferChip:SetClass("active", sf.preferSlopes == true)
 			end
 
 			-- Slope-max rows visibility driven by data-if="unAvoidCliffs"
@@ -287,10 +268,6 @@ function M.sync(doc, ctx, unState, setSummary)
 		end
 
 		-- Grid snap chip sync (FP-specific snap state)
-		local unGridSnapBtn = getCachedEl(doc, "btn-un-grid-snap")
-		if unGridSnapBtn then
-			unGridSnapBtn:SetClass("active", unState.gridSnap == true)
-		end
 		if widgetState.dmHandle then
 			local v = unState.gridSnap == true
 			if widgetState.dmHandle.unGridSnap ~= v then
@@ -315,18 +292,6 @@ function M.sync(doc, ctx, unState, setSummary)
 		if WG.TerraformBrush then
 			local tbState = WG.TerraformBrush.getState()
 			if tbState then
-				local unHMap = getCachedEl(doc, "btn-un-height-colormap")
-				if unHMap then
-					unHMap:SetClass("active", tbState.heightColormap == true)
-				end
-				local unMeas = getCachedEl(doc, "btn-un-measure")
-				if unMeas then
-					unMeas:SetClass("active", tbState.measureActive == true)
-				end
-				local unSym = getCachedEl(doc, "btn-un-symmetry")
-				if unSym then
-					unSym:SetClass("active", tbState.symmetryActive == true)
-				end
 				-- Mirror display + symmetry/measure flags into data-model.
 				if widgetState.dmHandle then
 					local dmh = widgetState.dmHandle
@@ -340,7 +305,6 @@ function M.sync(doc, ctx, unState, setSummary)
 					setDm("unHeightColormap", tbState.heightColormap == true)
 					setDm("unSymmetryActive", tbState.symmetryActive == true)
 					setDm("unSymmetryRadial", tbState.symmetryRadial == true)
-					setDm("unSymmetryMirrorAny", (tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false)
 					setDm(
 						"unSymHasAxis",
 						(tbState.symmetryRadial or tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false
@@ -351,32 +315,6 @@ function M.sync(doc, ctx, unState, setSummary)
 					setDm("unMeasureShowLength", tbState.measureShowLength == true)
 					setDm("unSymMirrorX", tbState.symmetryMirrorX == true)
 					setDm("unSymMirrorY", tbState.symmetryMirrorY == true)
-				end
-				-- un-symmetry-toolbar-row visibility driven by data-if="unSymmetryActive"
-				local unSymRadial = getCachedEl(doc, "un-btn-symmetry-radial")
-				if unSymRadial then
-					unSymRadial:SetClass("active", tbState.symmetryRadial == true)
-				end
-				local unSymMX = getCachedEl(doc, "un-btn-symmetry-mirror-x")
-				if unSymMX then
-					unSymMX:SetClass("active", tbState.symmetryMirrorX == true)
-				end
-				local unSymMY = getCachedEl(doc, "un-btn-symmetry-mirror-y")
-				if unSymMY then
-					unSymMY:SetClass("active", tbState.symmetryMirrorY == true)
-				end
-				-- Measure sub-chip active states
-				local unMeasRL = getCachedEl(doc, "un-btn-measure-ruler")
-				if unMeasRL then
-					unMeasRL:SetClass("active", tbState.measureRulerMode == true)
-				end
-				local unMeasST = getCachedEl(doc, "un-btn-measure-sticky")
-				if unMeasST then
-					unMeasST:SetClass("active", tbState.measureStickyMode == true)
-				end
-				local unMeasSL = getCachedEl(doc, "un-btn-measure-show-length")
-				if unMeasSL then
-					unMeasSL:SetClass("active", tbState.measureShowLength == true)
 				end
 				-- un-symmetry-radial-count-row visibility driven by data-if="unSymmetryRadial"
 				if widgetState.dmHandle then
@@ -389,7 +327,7 @@ function M.sync(doc, ctx, unState, setSummary)
 				if unSymRadSlider then
 					unSymRadSlider:SetAttribute("value", tostring(tbState.symmetryRadialCount or 2))
 				end
-				-- un-symmetry-mirror-angle-row visibility driven by data-if="unSymmetryMirrorAny"
+				-- un-symmetry-mirror-angle-row visibility driven by data-if="unSymHasAxis"
 				if widgetState.dmHandle then
 					local v = tostring(math.floor(tbState.symmetryMirrorAngle or 0))
 					if widgetState.dmHandle.tbSymAngleStr ~= v then

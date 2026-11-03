@@ -32,7 +32,7 @@ locally and reproduce exactly. Run the ones your changes touch.
 ## Keeping These Instructions Current
 
 Instruction files: this one, `.github/RmlUi-instructions.md`, `.github/spec-instructions.md`, and
-(only on the `mission-api/dev` branch) `luarules/mission_api/mission-api-instructions.md`.
+`luarules/mission_api/mission-api-instructions.md`.
 The rules below apply to all of them.
 
 - Update the affected file and section in the same pull request whenever a change alters a convention, tool,
@@ -231,8 +231,7 @@ Read `.github/spec-instructions.md` before adding or changing anything under `sp
 
 The data-driven mission runtime has load-order and dispatch conventions of its own. Read
 `luarules/mission_api/mission-api-instructions.md` before editing `luarules/mission_api/`,
-`luarules/gadgets/api_missions*.lua`, `singleplayer/`, or `spec/mission_api/`. That file, and most of what it
-describes, lives on `mission-api/dev` rather than `master`.
+`luarules/gadgets/api_mission*.lua`, `singleplayer/`, or `spec/mission_api/`.
 
 ## RmlUi
 

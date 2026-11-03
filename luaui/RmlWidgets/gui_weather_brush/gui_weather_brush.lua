@@ -64,12 +64,10 @@ function widget:OnQuit()
 end
 
 function widget:OnFilterFocus()
-	WG.WeatherBrushInputFocused = true
 	Spring.SDLStartTextInput()
 end
 
 function widget:OnFilterBlur()
-	WG.WeatherBrushInputFocused = false
 	Spring.SDLStopTextInput()
 end
 
@@ -141,12 +139,10 @@ function widget:OnAltitudeStep(delta)
 end
 
 function widget:OnAltitudeFocus()
-	WG.WeatherBrushInputFocused = true
 	Spring.SDLStartTextInput()
 end
 
 function widget:OnAltitudeBlur()
-	WG.WeatherBrushInputFocused = false
 	Spring.SDLStopTextInput()
 end
 
@@ -198,9 +194,9 @@ local categoryGroups = {
 	{ label = "FOG &amp; ATMOSPHERE", startIdx = 10 },
 	{ label = "FIRE &amp; VOLCANIC", startIdx = 15 },
 	{ label = "AMBIENT &amp; MAGICAL", startIdx = 19 },
-	{ label = "STORM &amp; ENERGY", startIdx = 25 },
-	{ label = "SMOKE &amp; INDUSTRIAL", startIdx = 27 },
-	{ label = "SPECIAL", startIdx = 29 },
+	{ label = "STORM &amp; ENERGY", startIdx = 24 },
+	{ label = "SMOKE &amp; INDUSTRIAL", startIdx = 26 },
+	{ label = "SPECIAL", startIdx = 28 },
 }
 
 -- ===========================================================================
@@ -443,8 +439,6 @@ function widget:Update()
 end
 
 function widget:Shutdown()
-	WG.WeatherBrushInputFocused = nil
-
 	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then
 		WG.TerraformerShared.unregisterDocument("weather_brush")
 	end

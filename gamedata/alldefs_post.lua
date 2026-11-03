@@ -225,6 +225,30 @@ local function unitDef_Post(name, uDef)
 	local weapondefs = uDef.weapondefs
 	local weapons = uDef.weapons
 
+	local ZOMBIE_WRAITH_RESPAWN_POOL_UNITS = {
+		legsrail = true,
+		corkarg = true,
+		cortermite = true,
+		armsptk = true,
+		armspid = true,
+		corkarganetht4 = true,
+		corthermite = true,
+		armvang = true,
+		armsptkt4 = true,
+		legpede = true,
+		corsktl = true,
+		armflea = true,
+		leganavybattleship = true,
+		legkark = true,
+	}
+	if modOptions.zombies == "spidergeddon" and ZOMBIE_WRAITH_RESPAWN_POOL_UNITS[basename] then
+		customparams.zombie_wraith_respawn_pool = true
+		customparams.zombie_wraith_respawn_delay_multiplier = 3
+		customparams.zombie_wraith_respawn_chance = 1
+		customparams.zombie_rez_power_speed_multiplier = 1.2
+		customparams.zombie_wraith_spawn_max_units_per_spawn_multiplier = 1.8
+	end
+
 	if not uDef.icontype then
 		uDef.icontype = name
 	end

@@ -303,12 +303,6 @@
 			"armzapper": "Zapper",
 			"armzeus": "Welder",
 			"comeffigy": "Commander Effigy",
-			"cor_hat_fightnight": "#1 Grunt",
-			"cor_hat_hornet": "Hornet's Tricorn",
-			"cor_hat_hw": "Spooky Pumpkin",
-			"cor_hat_legfn": "#1 Goblin",
-			"cor_hat_ptaq": "PtaQ's Hat",
-			"cor_hat_viking": "Viking Helmet",
 			"coraak": "Manticore",
 			"coraap": "Advanced Aircraft Plant",
 			"coraca": "Advanced Construction Aircraft",
@@ -414,6 +408,7 @@
 			"corfship": "Brimstone",
 			"corftiger": "Heat Tiger",
 			"corfus": "Fusion Reactor",
+			"corhltfus": "Overlord",
 			"corgant": "Experimental Gantry",
 			"corgantuw": "Experimental Gantry",
 			"leggantuw": "Experimental Gantry",
@@ -961,6 +956,7 @@
 			"scavengerbossv4": "Epic Commander - Final Boss",
 			"scavengerdroppod": "Scavenger Droppod",
 			"scavengerdroppodfriendly": "Friendly Droppod",
+			"scavwraith": "Scav Wraith",
 			"scavmist": "Mist",
 			"scavmistxl": "Mist",
 			"scavmistxxl": "Mist",
@@ -979,7 +975,8 @@
 			"xmasball2_3": "Xmas ball",
 			"xmasball2_4": "Xmas ball",
 			"xmasball2_5": "Xmas ball",
-			"xmasball2_6": "Xmas ball"
+			"xmasball2_6": "Xmas ball",
+			"cosmeticitem": "Cosmetic"
 		},
 		"descriptions": {
 			"legsplab": "Constructs Seaplanes",
@@ -1275,12 +1272,6 @@
 			"armzeus": "Assault Bot",
 			"chip": "Chip",
 			"comeffigy": "Transposes with Commander upon death; build one only",
-			"cor_hat_fightnight": "The legendary Fight Night Trophy",
-			"cor_hat_hornet": "A weathered yet dapper tricorn",
-			"cor_hat_hw": "Spooky Fight Night Trophy",
-			"cor_hat_legfn": "The Legendary Legion Fight Night Trophy",
-			"cor_hat_ptaq": "The finest bonnet in all of Gnomedom",
-			"cor_hat_viking": "A fierce Viking helmet",
 			"coraak": "Heavy Amphibious Anti-Air Bot",
 			"coraap": "Produces Tech 2 Aircraft",
 			"coraca": "Tech 2 Constructor",
@@ -1387,6 +1378,7 @@
 			"corfship": "Anti-Swarm Ship",
 			"corftiger": "Main Battle Tank",
 			"corfus": "Produces 850 Energy",
+			"corhltfus": "Weaponized Fusion Reactor",
 			"corgant": "Produces Experimental Units",
 			"corgantuw": "Produces Large Amphibious Units",
 			"leggantuw": "Produces Large Amphibious Units",
@@ -1936,6 +1928,7 @@
 			"scavengerbossv4": "Father of All Scavengers",
 			"scavengerdroppod": "Scavenger Droppod",
 			"scavengerdroppodfriendly": "Spawning droppod for reinforcements",
+			"scavwraith": "Infected nano-wreck cloud - manifests Scavs",
 			"scavmist": "Scav Nano Cloud",
 			"scavmistxl": "Scav Nano Cloud",
 			"scavmistxxl": "Scav Nano Cloud",
@@ -1954,7 +1947,8 @@
 			"xmasball2_3": "Xmas ball",
 			"xmasball2_4": "Xmas ball",
 			"xmasball2_5": "Xmas ball",
-			"xmasball2_6": "Xmas ball"
+			"xmasball2_6": "Xmas ball",
+			"cosmeticitem": "Wearable Cosmetic Item. Capturable."
 		}
 	}
 }

@@ -3586,6 +3586,27 @@ function widget:ViewResize()
 	deleteGuishader()
 end
 
+local wrapTooltip ---@type fun(tip: string): string
+do
+	local wrappedTip, wrappedFrom, wrappedWidth
+	wrapTooltip = function(tip)
+		local width = WG.tooltip.getFontsize() * 90
+		if tip ~= wrappedFrom or width ~= wrappedWidth then
+			wrappedFrom, wrappedWidth = tip, width
+			local lines, count, color = {}, 0, ""
+			for line in (font:WrapText(tip, width) .. "\n"):gmatch("(.-)\n") do
+				count = count + 1
+				lines[count] = color .. line
+				for code in line:gmatch("\255...") do
+					color = code -- newly-wrapped lines start with the color
+				end
+			end
+			wrappedTip = table.concat(lines, "\n")
+		end
+		return wrappedTip
+	end
+end
+
 function widget:DrawScreen()
 	if not (show or showOnceMore) then
 		deleteGuishader()
@@ -3759,7 +3780,7 @@ function widget:DrawScreen()
 				end
 			end
 			if tip then
-				WG.tooltip.ShowTooltip("teamstats", tip, nil, nil, title)
+				WG.tooltip.ShowTooltip("teamstats", wrapTooltip(tip), nil, nil, title)
 			end
 		end
 	end

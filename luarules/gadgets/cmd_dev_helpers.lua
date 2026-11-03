@@ -1150,6 +1150,9 @@ else -- UNSYNCED
 		end
 	end
 
+	local vsx, vsy = Spring.GetViewGeometry()
+	local uiScale = vsy / 1080
+
 	-- Modbroadcast draw state, unsynced, reaches all players.
 	local modbroadcastActive = nil
 	local MODBROADCAST_DURATION = 7
@@ -1697,12 +1700,19 @@ else -- UNSYNCED
 
 		local headingToFacing = BAR.Utilities.HeadingToFacing
 
+		-- Missions name teams as the startscript does. A team without a name gets a placeholder to replace.
+		local teamNames = {}
+		for _, teamID in ipairs(Spring.GetTeamList()) do
+			local customKeys = select(8, Spring.GetTeamInfo(teamID, true))
+			teamNames[teamID] = customKeys and customKeys.name or ("team" .. teamID)
+		end
+
 		Spring.Echo("local unitLoadout = {")
 		for _, unitID in pairs(Spring.GetAllUnits()) do
 			local unitDefName = UnitDefs[Spring.GetUnitDefID(unitID)].name or "nil"
 			local x, y, z = Spring.GetUnitPosition(unitID)
 			local facing = headingToFacing(Spring.GetUnitHeading(unitID))
-			local team = Spring.GetUnitTeam(unitID)
+			local teamName = teamNames[Spring.GetUnitTeam(unitID)]
 			local isBeingBuilt = Spring.GetUnitIsBeingBuilt(unitID)
 			local isNeutral = Spring.GetUnitNeutral(unitID)
 			local extras = ""
@@ -1714,12 +1724,12 @@ else -- UNSYNCED
 			end
 			Spring.Echo(
 				string.format(
-					"\t{ unitDefName = '%s', x = %d, z = %d, facing = '%s', team = %d%s },",
+					"\t{ unitDefName = '%s', x = %d, z = %d, facing = '%s', teamName = '%s'%s },",
 					unitDefName,
 					math.floor(x),
 					math.floor(z),
 					facing,
-					team,
+					teamName,
 					extras
 				)
 			)
@@ -1885,10 +1895,9 @@ else -- UNSYNCED
 				if elapsed > MODBROADCAST_HOLD then
 					alpha = 1 - ((elapsed - MODBROADCAST_HOLD) / (MODBROADCAST_DURATION - MODBROADCAST_HOLD))
 				end
-				local vsx, vsy = Spring.GetViewGeometry()
 				local c = modbroadcastActive
 				gl.Color(c.r, c.g, c.b, alpha)
-				gl.Text(c.text, vsx / 2, vsy / 2, MODBROADCAST_FONT_SIZE, "cvo")
+				gl.Text(c.text, vsx / 2, vsy / 2, MODBROADCAST_FONT_SIZE * uiScale, "cvo")
 				gl.Color(1, 1, 1, 1)
 			end
 		end
