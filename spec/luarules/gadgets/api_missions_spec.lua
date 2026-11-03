@@ -74,7 +74,6 @@ local function loadGadget(options, world)
 				crashes("parameters")
 			end,
 			ProcessTriggerParameters = noop,
-			ProcessManagedObjectiveParameters = noop,
 		},
 		["luarules/mission_api/loadout.lua"] = function()
 			crashes("module")

@@ -8,6 +8,7 @@ local ACTIVATION = true
 
 return {
 	type = 'UnitIdled',
+	kind = 'event',
 	parameters = {
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },

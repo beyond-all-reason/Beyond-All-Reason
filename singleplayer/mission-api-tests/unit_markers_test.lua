@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local unitLoadout = {
@@ -8,7 +8,7 @@ local unitLoadout = {
 
 local triggers = {
 	markScout = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -16,7 +16,7 @@ local triggers = {
 	},
 
 	markTwice = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -24,7 +24,7 @@ local triggers = {
 	},
 
 	markTeam = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 8,
 		},
@@ -32,7 +32,7 @@ local triggers = {
 	},
 
 	removeOneType = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 11,
 		},
@@ -40,7 +40,7 @@ local triggers = {
 	},
 
 	removeAll = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 14,
 		},
@@ -48,7 +48,7 @@ local triggers = {
 	},
 
 	killBrawler = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 17,
 		},

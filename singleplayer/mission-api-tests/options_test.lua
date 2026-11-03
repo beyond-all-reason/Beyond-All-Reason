@@ -2,13 +2,13 @@
 --- Test mission demonstrating Options, which a mission reads while it loads.
 ---
 
-local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes  = GG['MissionAPI'].ActionDefinitions.Types
 local options      = GG['MissionAPI'].Options
 
 local triggers = {
 	intro = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 0,
 		},
@@ -16,7 +16,7 @@ local triggers = {
 	},
 
 	victory = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
 		},

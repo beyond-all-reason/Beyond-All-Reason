@@ -10,6 +10,7 @@ local CMD_INSERT = CMD.INSERT
 
 return {
 	type = 'ProductionOrdered',
+	kind = 'event',
 	parameters = {
 		{ name = 'buildDefName',         required = true,  type = ParameterTypes.UnitDefName },
 		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
