@@ -92,8 +92,8 @@ describe("mission_api.formation_orders", function()
 			end,
 		}
 		GG["MissionAPIActionHelper"] = {
-			matchFormationSpeed = function(unitIDs, targets, command)
-				matched[#matched + 1] = { unitIDs = unitIDs, targets = targets, command = command }
+			matchFormationSpeed = function(pacedIDs, targets, command)
+				matched[#matched + 1] = { unitIDs = pacedIDs, targets = targets, command = command }
 			end,
 		}
 	end)
