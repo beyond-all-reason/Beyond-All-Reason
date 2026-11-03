@@ -34,11 +34,11 @@ end
 -- exceed the maximum, the minimum respawn delay cannot exceed the maximum, and wraith chance stays between
 -- 0 and 1.
 --   zombie_minimum_spawns (integer, default 2)
---     the configured maximum cannot be set below this.
+--     the pack roll floor. After the power-band bottom grace it grows by 1.1 per band-minute,
+--     capped by the live spawn maximum. Also floors the configured maximum.
 --   zombie_maximum_spawns (integer, default 6)
---     multiple spawns roll from 4 copies through minute 20 and 5 after that, up to a maximum that
---     starts here and grows to 15 at minute 35. That live maximum also caps how many substitutes
---     one spawn can buy.
+--     multiple spawns roll from the live minimum up to a maximum that starts here and grows to
+--     15 at minute 35. That live maximum also caps how many substitutes one spawn can buy.
 --   zombie_minimum_respawn_delay (seconds, default 45)
 --   zombie_maximum_respawn_delay (seconds, default 120)
 --     the starting window for power-based revival times. After minute 45 both ends decay by 0.96
@@ -85,6 +85,7 @@ local clamp = math.clamp
 local scavTeamID = BAR.Utilities.GetScavTeamID()
 local gaiaTeamID = spring.GetGaiaTeamID()
 local gaiaAllyTeamID = select(6, spring.GetTeamInfo(gaiaTeamID))
+local unitTranslations = Json.decode(VFS.LoadFile("language/en/units.json")).units
 
 local zombieModeSettings = {
 	spawnCountMinimum = 2,
@@ -122,20 +123,28 @@ local currentModeFeatures = ZOMBIE_MODE_FEATURES[DEFAULT_ZOMBIE_MODE]
 local autoSpawningEnabled = true
 
 local POWER_BAND = {
-	SCALE_RATE = 10 ^ (1 / 35),
-	BOTTOM_START = 50,
-	TOP_START = 500,
+	SCALE_RATE = 1.07,
+	BOTTOM_START = 10,
+	TOP_START = 150,
 	BOTTOM_GRACE_MINUTES = 35,
 	ADVANTAGE_AT_BOTTOM = 2,
-	ADVANTAGE_AT_TOP = -2,
+	ADVANTAGE_AT_TOP = -3,
+}
+local TECH_BAND = {
+	BASE_TECH_LEVEL = 0.5,
+	MINUTES_PER_TECH_LEVEL = 14, -- to convert a tech level guesstimate into an equivalent minutes so tech can out-pace time based scaling
+	SCALING_DELAY_MINUTES = 10,
+}
+local echoedBand = {
+	scalerName = "",
+	bottomPowerThreshold = -1,
+	topPowerThreshold = -1,
 }
 local SPAWN_COUNT_GROWTH = {
-	MAXIMUM_RATE = 2.5 ^ (1 / 25),
+	MAXIMUM_RATE = 1.04,
 	MAXIMUM_START_MINUTE = 10,
 	ABSOLUTE_MAXIMUM = 15,
-	SMALLEST_PACK_STEP_MINUTE = 20,
-	SMALLEST_PACK_EARLY = 4,
-	SMALLEST_PACK_LATE = 5,
+	MINIMUM_RATE = 1.05,
 }
 local SPAWN_TIME_DECAY = {
 	RATE = 0.96,
@@ -164,9 +173,10 @@ local FRAMES = {
 	UNTAMPERED = -math.huge,
 }
 local BUILDING = {
-	EXPIRING_LIFETIME = Game.gameSpeed * 60 * 10, -- we don't want random zombie immobile trash taking up unit cap forever.
+	EXPIRING_LIFETIME = Game.gameSpeed * 60 * 5, -- we don't want random zombie immobile trash taking up unit cap forever.
 	PERMANENT_POWER_LIMIT = 5000, -- to preserve more impactful units
 	EXPIRING_FACTORY_LIFETIME = Game.gameSpeed * 60 * 5,
+	EXPIRING_CONSTRUCTOR_POWER_LIMIT = 1000,
 }
 local WRECK_GRID = {
 	CELL_SIZE = 512,
@@ -398,6 +408,8 @@ do
 			return BUILDING.EXPIRING_FACTORY_LIFETIME
 		elseif unitDef.speed <= 0 and rezPower <= BUILDING.PERMANENT_POWER_LIMIT then
 			return BUILDING.EXPIRING_LIFETIME
+		elseif unitDef.isBuilder and unitDef.speed > 0 and rezPower < BUILDING.EXPIRING_CONSTRUCTOR_POWER_LIMIT then
+			return BUILDING.EXPIRING_LIFETIME
 		end
 	end
 
@@ -598,11 +610,95 @@ local function getElapsedMinutes()
 	return gameFrame / FRAMES.MINUTE
 end
 
-local function getGameStateScaleForPower(power, rangeMinimum, rangeMaximum)
-	local elapsedMinutes = getElapsedMinutes()
+local function techLevelForPower(power)
+	local powerThresholds = GG.PowerLib and GG.PowerLib.PowerThresholds
+	local previousThreshold = powerThresholds and powerThresholds[1]
+	if not previousThreshold then
+		return TECH_BAND.BASE_TECH_LEVEL
+	end
+	for thresholdIndex = 2, #powerThresholds do
+		local nextThreshold = powerThresholds[thresholdIndex]
+		if power < nextThreshold.threshold then
+			local powerSpan = nextThreshold.threshold - previousThreshold.threshold
+			local blend = 0
+			if powerSpan > 0 then
+				blend = (power - previousThreshold.threshold) / powerSpan
+			end
+			return previousThreshold.techLevel
+				+ (nextThreshold.techLevel - previousThreshold.techLevel) * blend
+		end
+		previousThreshold = nextThreshold
+	end
+	return previousThreshold.techLevel
+end
+
+local function bandMinutesFromPlayerPower()
+	if not GG.PowerLib or not GG.PowerLib.HighestPlayerTeamPower then
+		return 0
+	end
+	local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
+	local techLevel = techLevelForPower(highestPowerData.power)
+	if getElapsedMinutes() < TECH_BAND.SCALING_DELAY_MINUTES then
+		techLevel = techLevel - TECH_BAND.BASE_TECH_LEVEL
+	end
+	local bandMinutes = (techLevel - TECH_BAND.BASE_TECH_LEVEL) * TECH_BAND.MINUTES_PER_TECH_LEVEL
+	if bandMinutes < 0 then
+		return 0
+	end
+	return bandMinutes
+end
+
+local function getBandMinutes()
+	local timeMinutes = getElapsedMinutes()
+	local powerMinutes = bandMinutesFromPlayerPower()
+	if powerMinutes > timeMinutes then
+		return powerMinutes, "POWER", timeMinutes, powerMinutes
+	end
+	return timeMinutes, "TIME", timeMinutes, powerMinutes
+end
+
+local function powerBandThresholdsForMinutes(bandMinutes)
 	local bottomPowerThreshold = POWER_BAND.BOTTOM_START
-		* POWER_BAND.SCALE_RATE ^ math.max(0, elapsedMinutes - POWER_BAND.BOTTOM_GRACE_MINUTES)
-	local topPowerThreshold = POWER_BAND.TOP_START * POWER_BAND.SCALE_RATE ^ elapsedMinutes
+		* POWER_BAND.SCALE_RATE ^ math.max(0, bandMinutes - POWER_BAND.BOTTOM_GRACE_MINUTES)
+	local topPowerThreshold = POWER_BAND.TOP_START * POWER_BAND.SCALE_RATE ^ bandMinutes
+	return bottomPowerThreshold, topPowerThreshold
+end
+
+local function echoBandRange(scalerName, timeMinutes, powerMinutes)
+	local timeBottomPowerThreshold, timeTopPowerThreshold = powerBandThresholdsForMinutes(timeMinutes)
+	local powerBottomPowerThreshold, powerTopPowerThreshold = powerBandThresholdsForMinutes(powerMinutes)
+	local bottomPowerThreshold = timeBottomPowerThreshold
+	local topPowerThreshold = timeTopPowerThreshold
+	if scalerName == "POWER" then
+		bottomPowerThreshold = powerBottomPowerThreshold
+		topPowerThreshold = powerTopPowerThreshold
+	end
+	local shownBottomPowerThreshold = floor(bottomPowerThreshold)
+	local shownTopPowerThreshold = floor(topPowerThreshold)
+	if scalerName == echoedBand.scalerName
+		and shownBottomPowerThreshold == echoedBand.bottomPowerThreshold
+		and shownTopPowerThreshold == echoedBand.topPowerThreshold
+	then
+		return
+	end
+	echoedBand.scalerName = scalerName
+	echoedBand.bottomPowerThreshold = shownBottomPowerThreshold
+	echoedBand.topPowerThreshold = shownTopPowerThreshold
+	spring.Echo(
+		"winner=" .. scalerName,
+		"TIME",
+		floor(timeBottomPowerThreshold),
+		floor(timeTopPowerThreshold),
+		"POWER",
+		floor(powerBottomPowerThreshold),
+		floor(powerTopPowerThreshold)
+	)
+end
+
+local function getGameStateScaleForPower(power, rangeMinimum, rangeMaximum)
+	local bandMinutes, scalerName, timeMinutes, powerMinutes = getBandMinutes()
+	local bottomPowerThreshold, topPowerThreshold = powerBandThresholdsForMinutes(bandMinutes)
+	echoBandRange(scalerName, timeMinutes, powerMinutes)
 	if power <= bottomPowerThreshold then
 		return rangeMinimum
 	end
@@ -623,10 +719,12 @@ local function getSpawnCountMaximum()
 end
 
 local function getSmallestPack()
-	if getElapsedMinutes() <= SPAWN_COUNT_GROWTH.SMALLEST_PACK_STEP_MINUTE then
-		return SPAWN_COUNT_GROWTH.SMALLEST_PACK_EARLY
-	end
-	return SPAWN_COUNT_GROWTH.SMALLEST_PACK_LATE
+	local bandMinutes = getBandMinutes()
+	local minutesAfterStart = math.max(0, bandMinutes - POWER_BAND.BOTTOM_GRACE_MINUTES)
+	return math.round(
+		zombieModeSettings.spawnCountMinimum * SPAWN_COUNT_GROWTH.MINIMUM_RATE ^ minutesAfterStart,
+		0
+	)
 end
 
 local function experienceAtThisMinute()
@@ -824,14 +922,37 @@ local function disturbCorpse(featureID, corpseData)
 end
 
 local function rollFor(keep, rollCount, minimum, maximum)
+	local rolls = {}
 	local result = random(minimum, maximum)
-	for _ = 2, rollCount do
+	rolls[1] = result
+	local selectedIndex = 1
+	for rollIndex = 2, rollCount do
 		local roll = random(minimum, maximum)
+		rolls[rollIndex] = roll
 		if (keep == PICK.LOWEST and roll < result) or (keep == PICK.HIGHEST and roll > result) then
 			result = roll
+			selectedIndex = rollIndex
 		end
 	end
-	return result
+	return result, rolls, selectedIndex
+end
+
+local function getTranslatedUnitName(unitDefID)
+	local unitDef = unitDefs[unitDefID]
+	if not unitDef then
+		return tostring(unitDefID)
+	end
+	local customParams = unitDef.customParams
+	local unitDefName = unitDef.name
+	if customParams.isscavenger then
+		local proxyUnitDefName = customParams.fromunit
+		local proxyUnitDef = unitDefNames[proxyUnitDefName]
+		proxyUnitDefName = proxyUnitDef and proxyUnitDef.customParams.i18nfromunit or proxyUnitDefName
+		local fromUnitHumanName = unitTranslations.names[proxyUnitDefName] or proxyUnitDefName
+		return string.gsub(unitTranslations.scavenger, "%%{name}", fromUnitHumanName)
+	end
+	local proxyUnitDefName = customParams.i18nfromunit or unitDefName
+	return unitTranslations.names[proxyUnitDefName] or unitDefName
 end
 
 local function calculateSpawnCount(unitDefID, inheritedExperience)
@@ -865,7 +986,28 @@ local function calculateSpawnCount(unitDefID, inheritedExperience)
 	if advantage > 0 then
 		keep = PICK.HIGHEST
 	end
-	local spawnCount = rollFor(keep, rollCount, smallestPack, spawnCountMaximum)
+	local spawnCount, rolls, selectedIndex = rollFor(keep, rollCount, smallestPack, spawnCountMaximum)
+	local unitRealName = getTranslatedUnitName(unitDefID)
+	local keepLabel = "take lowest"
+	if keep == PICK.HIGHEST then
+		keepLabel = "take highest"
+	end
+	local rollParts = {}
+	for rollIndex = 1, #rolls do
+		local rollText = tostring(rolls[rollIndex])
+		if rollIndex == selectedIndex then
+			rollText = "*" .. rollText .. "*"
+		end
+		rollParts[rollIndex] = rollText
+	end
+	spring.Echo(
+		unitRealName,
+		keepLabel,
+		table.concat(rollParts, " "),
+		"result=" .. spawnCount,
+		"queued=" .. spawnCount,
+		"range=" .. smallestPack .. "-" .. spawnCountMaximum
+	)
 	return spawnCount, budget * smallestPack / spawnCount
 end
 
