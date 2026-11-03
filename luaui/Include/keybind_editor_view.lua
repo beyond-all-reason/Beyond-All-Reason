@@ -3133,8 +3133,9 @@ local function appendChain(el)
 		c.elems[1] = el
 	elseif c.lastPress and spDiffTimers(now, c.lastPress) * 1000 <= c.timeout then
 		-- Mirrors the engine's key chain, which folds a modifier into a key pressed while it is held.
-		-- Modifiers held together fold too, so the order they went down in does not matter.
-		if last.modifier and c.pressed[last.scan] then
+		-- Modifiers held together fold too, so the order they went down in does not matter. A key
+		-- tapped again is already marked pressed by then, so it never folds into itself.
+		if last.modifier and last.scan ~= el.scan and c.pressed[last.scan] then
 			c.elems[#c.elems] = el
 		else
 			c.elems[#c.elems + 1] = el
