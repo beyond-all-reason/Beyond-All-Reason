@@ -8,7 +8,7 @@
 						"legnanotc",		"legarad",					"legtarg",		"legadvestore", "legperdition",	"legajam",		"legfus",     	"legsolar",     "legdeflector", "legfmg",
 					
 					//Sea Defenses
-						"leganavalaaturret", "leganavalatorpturret", 	"leganavaldefturret"]
+						"leganavalaaturret", "leganavaltorpturret", 	"leganavaldefturret"]
 		},
 		
 	// Actual number of defences per cluster bounded by income - the order of defenses that should be build with numbers as above.

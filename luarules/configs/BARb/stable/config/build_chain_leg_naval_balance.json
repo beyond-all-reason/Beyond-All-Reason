@@ -1,0 +1,73 @@
+{
+  "porcupine": {
+    "unit": {
+      "legion": [
+        "leglht",
+        "legtl",
+        "legrl",
+        "legmg",
+        "leghive",
+        "legdtr",
+        "legrhapsis",
+        "leglupara",
+        "legapopupdef",
+        "leghive",
+        "legflak",
+        "legacluster",
+        "legbastion",
+        "legcluster",
+        "legabm",
+        "legrad",
+        "legjam",
+        "legestor",
+        "legmstor",
+        "legadvsol",
+        "legnanotc",
+        "legarad",
+        "legtarg",
+        "legadvestore",
+        "legperdition",
+        "legajam",
+        "legfus",
+        "legsolar",
+        "legdeflector",
+        "legnavaldefturret",
+        "leganavalaaturret",
+        "leganavaltorpturret",
+        "leganavaldefturret"
+      ]
+    }
+  },
+  "behaviour": {
+    "legnavaldefturret": {
+      "limit": 3,
+      "power": 1.0,
+      "role": [
+        "static"
+      ],
+      "since": 360,
+      "threat": {
+        "air": 0.0,
+        "default": 0.0,
+        "surf": 0.0,
+        "water": 0.0
+      }
+    }
+  },
+  "building": {
+    "class_land": {
+      "naval_balance_leg_hvy": {
+        "radius": 8,
+        "type": [
+          "circle",
+          "def_low"
+        ]
+      }
+    },
+    "instance": {
+      "naval_balance_leg_hvy": [
+        "legnavaldefturret"
+      ]
+    }
+  }
+}

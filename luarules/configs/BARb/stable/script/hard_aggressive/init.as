@@ -19,8 +19,14 @@ SInitInfo AiInit()
 		AiLog("Inserting Legion");
 		Side::LEGION = aiSideMasker.GetTypeMask("legion");
 		data.profile.insertAt(data.profile.length(), {"behaviour_leg", "build_chain_leg", "commander_leg", "economy_leg", "factory_leg"});
+		if (string(aiSetupMgr.GetModOptions()["naval_balance_tweaks"]) == "1") {
+			data.profile.insertAt(data.profile.length(), {"build_chain_leg_naval_balance"});
+		}
 	} else {
 		AiLog("Ignoring Legion");
+	}
+	if (string(aiSetupMgr.GetModOptions()["naval_balance_tweaks"]) == "1") {
+		data.profile.insertAt(data.profile.length(), {"build_chain_naval_balance"});
 	}
 	if (string(aiSetupMgr.GetModOptions()["scavunitsforplayers"]) == "1") {
 		AiLog("Inserting Scav Units");
