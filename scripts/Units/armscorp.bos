@@ -387,10 +387,10 @@ Create()
 	restore_delay=2000;
 }
 
-SetMaxReloadTime(t)
-{
-	restore_delay=5000;
-}
+// SetMaxReloadTime(t)
+// {
+// 	restore_delay=5000;
+// }
 
 
 FireWeapon1()
@@ -521,7 +521,7 @@ RestoreAfterDelay()
 
 RestoreAfterDelay2()
 {
-	sleep 2000;
+	sleep restore_delay;
 	turn turret2 to y-axis <0.0> speed <225.0>;
 	turn sleeve to x-axis <0.0> speed <225.0>;
 
@@ -554,11 +554,13 @@ AimWeapon1(heading, pitch)
 	
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
+
 	turn turret1 to x-axis heading speed <150.0>;
 	turn turret1 to x-axis <40> - pitch speed <30.0>;
 	
 	wait-for-turn weight around x-axis;
 	wait-for-turn turret1 around x-axis;
+	wait-for-turn turret1 around y-axis;
 
 	start-script RestoreAfterDelay();
 	return (1);
@@ -566,14 +568,15 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
+	if(pitch < <-60>) pitch = <-60>;
 
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	
-	wait-for-turn sleeve around x-axis;
-	
 	turn sleeve to x-axis <0> - pitch speed <225.0>;
 	turn turret2 to y-axis heading speed <225.0>;
+	
+	wait-for-turn sleeve around x-axis;
 	wait-for-turn turret2 around y-axis;
 	
 
@@ -589,7 +592,7 @@ AimFromWeapon1(pieceIndex)
 
 AimFromWeapon2(pieceIndex)
 {
-	pieceIndex = sleeve;
+	pieceIndex = flare4;
 }
 
 
