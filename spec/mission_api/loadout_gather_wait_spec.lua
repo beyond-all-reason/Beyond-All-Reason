@@ -8,7 +8,7 @@ local givenOrders
 local lastUnitID = 0
 
 local env = MissionSpecEnv.new({
-	Game = { squareSize = 8 },
+	Game = { squareSize = 8, footprintScale = 2 },
 	UnitDefNames = {
 		bot = { xsize = 2, zsize = 2, canMove = true },
 		lab = { xsize = 6, zsize = 6, canMove = true, isFactory = true },

@@ -279,7 +279,7 @@ function gadget:Initialize()
 		if unitsEnteredAreaHandlers[trigger.type] or unitsLeftAreaHandlers[trigger.type] then
 			local parameters = trigger.parameters
 			local trackingID =
-				areaTracking.TrackUnitsInArea(parameters.area, parameters.teamID, onUnitsEnteredArea, onUnitsLeftArea)
+				areaTracking.TrackUnitsInArea(parameters.area, parameters.teamName, onUnitsEnteredArea, onUnitsLeftArea)
 			triggersByTrackingID[trackingID] = { trigger = trigger, triggerID = triggerID }
 		end
 	end

@@ -9,16 +9,26 @@ local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
 
 --- Units
 
+local BUILD_GRID_SIZE = Game.squareSize * Game.footprintScale
+
 local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpacing)
 	local positions = {}
-	local xGridSize = math.ceil(math.sqrt(quantity)) * xSpacing
-	local zGridSize = math.ceil(math.sqrt(quantity)) * zSpacing
-	local left = centerX - math.floor(xGridSize / 2)
-	local top = centerZ - math.floor(zGridSize / 2)
+	if quantity <= 0 then
+		return positions
+	end
+
+	-- Rows of the nearest square, and only the columns the quantity fills, centered on the point.
+	local rows = math.ceil(math.sqrt(quantity))
+	local columns = math.ceil(quantity / rows)
+	-- From the first unit to the last, one spacing fewer than the units in a row or column.
+	local xSpan = (columns - 1) * xSpacing
+	local zSpan = (rows - 1) * zSpacing
+	local left = centerX - math.floor(xSpan / 2)
+	local top = centerZ - math.floor(zSpan / 2)
 	local count = 0
 
-	for x = left, left + xGridSize - xSpacing, xSpacing do
-		for z = top, top + zGridSize - zSpacing, zSpacing do
+	for x = left, left + xSpan, xSpacing do
+		for z = top, top + zSpan, zSpacing do
 			if count >= quantity then
 				return positions
 			end
@@ -96,6 +106,7 @@ end
 local function spawnUnitLoadout(unitLoadout)
 	for _, unit in ipairs(unitLoadout or {}) do
 		local spacing = unit.spacing or 0
+		---@type table
 		local unitDef = UnitDefNames[unit.unitDefName]
 		local xsize = unitDef.xsize * Game.squareSize + spacing
 		local zsize = unitDef.zsize * Game.squareSize + spacing
@@ -103,6 +114,15 @@ local function spawnUnitLoadout(unitLoadout)
 		-- adjust for facing of non-square units
 		if BAR.Utilities.IsFacingEW(unit.facing) then
 			xsize, zsize = zsize, xsize
+		end
+
+		local snapToBuildGrid = unitDef.isImmobile
+		local buildFacing
+		if snapToBuildGrid then
+			-- Round up to whole grid cells so snapping keeps the buildings evenly spaced.
+			xsize = math.ceil(xsize / BUILD_GRID_SIZE) * BUILD_GRID_SIZE
+			zsize = math.ceil(zsize / BUILD_GRID_SIZE) * BUILD_GRID_SIZE
+			buildFacing = BAR.Utilities.FacingToNumber(unit.facing)
 		end
 
 		-- The units of an entry wait for each other at each GATHERWAIT in its orders, when they can gather.
@@ -114,7 +134,10 @@ local function spawnUnitLoadout(unitLoadout)
 		local spawnedUnitIDs = {}
 
 		local positions = generateGridPositions(unit.x, unit.z, unit.quantity or 1, xsize, zsize)
-		for _, pos in pairs(positions) do
+		for _, pos in ipairs(positions) do
+			if snapToBuildGrid then
+				pos.x, pos.y, pos.z = Spring.Pos2BuildPos(unitDef.id, pos.x, pos.y, pos.z, buildFacing)
+			end
 			local unitID = spawnUnit(unit, pos)
 			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 			GG["MissionAPI"].issuingOrders = true

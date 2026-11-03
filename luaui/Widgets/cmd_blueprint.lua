@@ -1296,6 +1296,14 @@ function widget:Initialize()
 			Spring.PlaySoundFile(sounds.deleteBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 			return true
 		end,
+		-- names a saved blueprint (a menu's rename; "" for none); false when there is none at index
+		setBlueprintName = function(index, name)
+			if not blueprints[index] or type(name) ~= "string" then
+				return false
+			end
+			blueprints[index].name = name:match("^%s*(.-)%s*$")
+			return true
+		end,
 	}
 	WG.cmd_blueprint.nextBlueprintUnitID = nextBlueprintUnitID
 
