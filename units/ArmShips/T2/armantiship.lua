@@ -164,7 +164,7 @@ return {
 				weaponvelocity = 6000,
 				customparams = {
 					stockpilelimit = 20,
-					terminal_intercept_time = 8.0,
+					terminal_intercept_time = 5.667,
 				},
 				damage = {
 					default = 1500,
