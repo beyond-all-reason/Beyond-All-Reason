@@ -58,10 +58,10 @@ local screenY = mathFloor((vsy * 0.5) + (screenHeight / 2))
 local RectRound
 ---@type function
 local UiElement
----@type function
-local UiScroller
----@type function
-local UiScrollerAt
+---@type FlowUIScroller
+local listScroller
+---@type FlowUIScroller
+local sideScroller
 ---@type function
 local Highlight
 ---@type function
@@ -275,15 +275,10 @@ local layoutGen = 0
 ---@type { gen: number, rows: number, totalH: number }
 local rowMetrics = { gen = -1, rows = -1, totalH = 0 }
 local scroll = 0
----@type boolean
-local dragging = false
--- Where the thumb was taken hold of, as the distance from the cursor to its top edge.
----@type number
-local dragGrab = 0
 -- What the cursor is over, in the terms the baked panel is painted with. Refilled in
 -- place each frame rather than allocated. `cols` is the table's Columns... button.
 ---@type table<string, integer>
-local hover = { sb = 0, row = 0, col = 0, hcol = 0, tog = 0, bar = 0, cols = 0 }
+local hover = { sb = 0, row = 0, col = 0, hcol = 0, tog = 0, bar = 0, sideBar = 0, cols = 0 }
 
 -- Text is queued while the panel is baked and printed in one Begin/End at the end.
 local pending = {}
@@ -406,60 +401,29 @@ end
 ----------------------------------------------------------------
 
 -- The bar serves whichever of the two is open: the table's rows, or the grid of charts on
--- the Graphs page, which runs up to the top of the charts. Its band and its thumb come out
--- of the same call, so the page's top is worked out once.
-local function scrollerThumb()
-	local total, offset = rowMetrics.totalH, scrollOffset()
-	local top = listTop
-	if graphs and graphs.open then
-		total, offset = graphs.scrollExtent()
-		top = graphs.rects and graphs.rects.chart[4] or listTop
-	end
-	local a, b, c, d = UiScrollerAt(barX1, listBottom, area.x2 - metrics.edgeInset, top, total, offset)
-	return a, b, c, d, top, total, offset
+-- the Graphs page, which runs up to the top of the charts and scrolls by the pixel.
+local function barTop()
+	return graphs and graphs.open and graphs.rects and graphs.rects.chart[4] or listTop
 end
 
--- Scrolls so the thumb's top sits where the cursor has dragged it. The offset taken at the
--- grab is what keeps this relative: the thumb moves with the cursor rather than centring
--- itself on it, so taking hold of it does not shift the view before the drag begins.
-local function scrollFromY(y)
-	local _, _, trackTop, travel = scrollerThumb()
-	if not travel or travel <= 0 then
-		return
-	end
-
-	local f = (trackTop - (y - dragGrab)) / travel
-	if f < 0 then
-		f = 0
-	elseif f > 1 then
-		f = 1
-	end
+local function measureBar()
 	if graphs and graphs.open then
-		-- The grid scrolls by whole rows, so the bar asks for the row it landed on.
-		local total = graphs.scrollExtent()
+		local total, offset = graphs.scrollExtent()
 		local c = graphs.rects and graphs.rects.chart
-		-- The page's own generation is part of the bake signature, so the picture follows.
-		graphs.setScrollPixels(f * mathMax(0, total - (c and c[4] - c[2] or 0)))
-		return
+
+		return total, offset, mathFloor(mathMax(0, total - (c and c[4] - c[2] or 0)))
 	end
-	setScroll(mathFloor(f * maxScroll() + 0.5))
+	local position = scrollOffset()
+
+	return rowMetrics.totalH, position, maxScroll()
 end
 
--- Takes hold of the bar. On the thumb that is a grab, and the view stays where it is; on
--- the track either side of it the thumb jumps to the cursor first and is then dragged from
--- its middle, which is what a press on empty track is asking for.
-local function grabScroller(y)
-	local top, height = scrollerThumb()
-	if not top then
-		return
-	end
-
-	dragging = true
-	if y <= top and y >= top - height then
-		dragGrab = y - top
+local function scrollBarTo(step)
+	if graphs and graphs.open then
+		-- The page's own generation is part of the bake signature, so the picture follows.
+		graphs.setScrollPixels(step)
 	else
-		dragGrab = -mathFloor(height * 0.5)
-		scrollFromY(y)
+		setScroll(step)
 	end
 end
 
@@ -547,6 +511,35 @@ function sidebar.reveal(i)
 		sidebar.scroll = sidebar.scroll + 1
 		_, bottom = entryRect(i)
 	end
+end
+
+-- The graphs' entries' own bar, from under their caption down to where they stop. No size at
+-- all while they all fit.
+local function sideBarRect()
+	local first = sidebar.first
+	if not (sidebar.bar and first) then
+		return 0, 0, 0, 0
+	end
+	local _, top = entryRect(first - 1)
+	local x2 = area.x1 + metrics.sidebarW - metrics.catInset
+
+	return x2 - metrics.sideBarW, metrics.settingsTop, x2, top
+end
+
+function sidebar.measure()
+	local first = sidebar.first
+	local total, offset = 0, 0
+	if first then
+		for i = first, #model.entries do
+			local h = model.entries[i].divider and metrics.dividerH or metrics.catRowHeight
+			total = total + h
+			if i < first + sidebar.scroll then
+				offset = offset + h
+			end
+		end
+	end
+
+	return total, offset, sidebar.max
 end
 
 -- The entry under x,y, or nil. A rule or a section's caption is not one.
@@ -700,9 +693,9 @@ local function setLayout()
 	metrics.titleFs = mathFloor(metrics.rowHeight * 0.85)
 	metrics.sidebarDrop = mathFloor(8 * s)
 	metrics.sidebarW = mathFloor(190 * s)
-	metrics.sideBarW = mathMax(3, mathFloor(6 * s))
+	metrics.sideBarW = WG.FlowUI.Scroller.width(s)
 	metrics.pageGap = mathFloor(8 * s)
-	metrics.barW = mathFloor(14 * s)
+	metrics.barW = WG.FlowUI.Scroller.width(s)
 	metrics.nameMinW = mathFloor(150 * s)
 	metrics.colMaxW = mathFloor(150 * s)
 	-- The narrowest a number's column gets: a table holds no more columns than that leaves room
@@ -1359,22 +1352,8 @@ local function drawSidebar()
 		end
 	end
 
-	-- A slim bar beside the graphs' entries while they do not all fit, as the widget selector's
-	-- categories have: from under their caption down to where they stop.
-	if sidebar.bar then
-		local first = sidebar.first
-		local _, top = entryRect(first - 1)
-		local total, offset = 0, 0
-		for i = first, #model.entries do
-			local h = model.entries[i].divider and metrics.dividerH or metrics.catRowHeight
-			total = total + h
-			if i < first + sidebar.scroll then
-				offset = offset + h
-			end
-		end
-		local x2 = area.x1 + metrics.sidebarW - metrics.catInset
-		UiScroller(x2 - metrics.sideBarW, metrics.settingsTop, x2, top, total, offset)
-	end
+	sideScroller:setRect(sideBarRect())
+	sideScroller:draw(hover.sideBar == 1)
 end
 
 -- The switches and their captions. The plate goes behind the switch and the switch
@@ -1466,10 +1445,8 @@ local function drawPanel()
 	drawSettings()
 	if graphs.open then
 		graphs.drawPanel()
-		local top, total, offset = select(5, scrollerThumb())
-		if total > 0 then
-			UiScroller(barX1, listBottom, area.x2 - metrics.edgeInset, top, total, offset, hover.bar == 1, dragging)
-		end
+		listScroller:setRect(barX1, listBottom, area.x2 - metrics.edgeInset, barTop())
+		listScroller:draw(hover.bar == 1)
 		flushText()
 		glColor(1, 1, 1, 1)
 		return
@@ -1488,18 +1465,8 @@ local function drawPanel()
 		)
 	end
 
-	if rowMetrics.totalH > 0 then
-		UiScroller(
-			barX1,
-			listBottom,
-			area.x2 - metrics.edgeInset,
-			listTop,
-			rowMetrics.totalH,
-			scrollOffset(),
-			hover.bar == 1,
-			dragging
-		)
-	end
+	listScroller:setRect(barX1, listBottom, area.x2 - metrics.edgeInset, barTop())
+	listScroller:draw(hover.bar == 1)
 
 	flushText()
 
@@ -1560,14 +1527,10 @@ local function panelSignature(mx, my)
 	hover.col = 0
 	hover.hcol = 0
 	hover.tog = switchAt(mx, my) or 0
-	hover.bar = 0
-	if mx >= barX1 and mx <= area.x2 then
-		-- The thumb itself, not the track: it is the part that can be taken hold of, so it
-		-- is the part that lights up.
-		local top, height = scrollerThumb()
-		if top and my <= top and my >= top - height then
-			hover.bar = 1
-		end
+	hover.bar = listScroller:isOverThumb(mx, my) and 1 or 0
+	hover.sideBar = sideScroller:isOverThumb(mx, my) and 1 or 0
+	if math_isInRect(mx, my, sideBarRect()) then
+		hover.sb = 0
 	end
 
 	local extra = ""
@@ -1610,7 +1573,11 @@ local function panelSignature(mx, my)
 		.. "|"
 		.. layoutGen
 		.. "|"
-		.. (dragging and 1 or 0)
+		.. (listScroller:isDragging() and 1 or 0)
+		.. "|"
+		.. hover.sideBar
+		.. "|"
+		.. (sideScroller:isDragging() and 1 or 0)
 		.. extra
 end
 
@@ -1634,8 +1601,8 @@ function widget:ViewResize()
 
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
-	UiScroller = WG.FlowUI.Draw.Scroller
-	UiScrollerAt = WG.FlowUI.Draw.ScrollerGeometry
+	listScroller = WG.FlowUI.Scroller.new(measureBar)
+	sideScroller = WG.FlowUI.Scroller.new(sidebar.measure)
 	Highlight = WG.FlowUI.Draw.SelectHighlight
 	UiToggle = WG.FlowUI.Draw.Toggle
 
@@ -1656,12 +1623,13 @@ function widget:DrawScreen()
 	glColor(1, 1, 1, 1)
 
 	local mx, my, lmb = spGetMouseState()
-	if dragging then
-		if lmb then
-			scrollFromY(my)
-		else
-			dragging = false
-		end
+	local step = listScroller:drag(my, lmb)
+	if step then
+		scrollBarTo(step)
+	end
+	local sideStep = sideScroller:drag(my, lmb)
+	if sideStep then
+		sidebar.scroll = sideStep
 	end
 	-- A graph pressed in a category of the player's own, or a table's caption, turns into a
 	-- drag as it travels.
@@ -1814,7 +1782,8 @@ end
 
 local function closePanel()
 	show = false
-	dragging = false
+	listScroller:drag(0, false)
+	sideScroller:drag(0, false)
 	model.listen(false)
 	-- A name being typed is kept; a card and a drag are put away.
 	graphs.stopNaming(true)
@@ -1938,6 +1907,30 @@ end
 
 -- Clicks inside the panel pick a view, flip a switch, sort a column or grab the
 -- scrollbar; a press outside closes it.
+-- The column's bar ahead of its entries, which reach under it and would take the press as a pick;
+-- the list's bar owns its column in both views, so it is asked before the table's rows and before
+-- the page's charts. The strip between the bar and the panel edge stays grabbable too.
+local function pressScrollers(x, y)
+	if math_isInRect(x, y, sideBarRect()) then
+		local step = sideScroller:press(y)
+		if step then
+			sidebar.scroll = step
+		end
+
+		return true
+	end
+	if math_isInRect(x, y, barX1, listBottom, area.x2, barTop()) then
+		local step = listScroller:press(y)
+		if step then
+			scrollBarTo(step)
+		end
+
+		return true
+	end
+
+	return false
+end
+
 local function mouseEvent(x, y, button, release)
 	if spIsGUIHidden() then
 		return false
@@ -2050,7 +2043,9 @@ local function mouseEvent(x, y, button, release)
 					fold = row.ally.id
 				end
 			end
-			if sw then
+			if pressScrollers(x, y) then
+				-- A bar has it.
+			elseif sw then
 				model.toggleSwitch(sw)
 			elseif i then
 				local e = model.entries[i]
@@ -2058,11 +2053,6 @@ local function mouseEvent(x, y, button, release)
 				model.selectEntry(e.key)
 			elseif not graphs.open and tables.buttonAt(x, y) then
 				tables.openCard(tables.current)
-			-- The bar owns its column in both views, so it is asked before the table's rows
-			-- and before the page's charts.
-			elseif math_isInRect(x, y, barX1, listBottom, area.x2, select(5, scrollerThumb()) or listTop) then
-				-- The strip between the bar and the panel edge stays grabbable too.
-				grabScroller(y)
 			elseif graphs.open then
 				local stat, applies = graphs.stat, graphs.shareApplies()
 				graphs.mousePress(x, y, 1)
