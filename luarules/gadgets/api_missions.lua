@@ -76,7 +76,6 @@ local function loadMission(gameSetup)
 	)
 	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
-	parameterProcessing.ProcessManagedObjectiveParameters(GG["MissionAPI"].ManagedObjectives)
 	if GG["MissionAPI"].UnitLoadout then
 		parameterProcessing.ProcessValue(
 			GG["MissionAPI"].Modules.ParameterTypes.Types.UnitLoadout,
@@ -111,7 +110,6 @@ function gadget:Initialize()
 	GG["MissionAPI"].soundFiles = {}
 	GG["MissionAPI"].soundQueue = {}
 	GG["MissionAPI"].effectNames = {}
-	GG["MissionAPI"].ManagedObjectives = {}
 	GG["MissionAPI"].ObjectiveTriggers = {}
 	GG["MissionAPI"].ObjectiveStages = {}
 	GG["MissionAPI"].Countdowns = {}
@@ -142,8 +140,8 @@ function gadget:Initialize()
 	actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
 	GG["MissionAPI"].ActionDefinitions = actionsController.LoadActionDefinitions()
 
-	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
-	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
+	triggersController = VFS.Include("luarules/mission_api/conditions_loader.lua")
+	GG["MissionAPI"].ConditionDefinitions = triggersController.LoadConditionDefinitions()
 
 	GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
 	local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes
