@@ -288,6 +288,36 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 			near(600, state.pz)
 		end)
 
+		it("keeps riding and looking at units through a hold and a hold ending", function()
+			units[7] = { x = 500, y = 0, z = 500 }
+			units[8] = { x = 500, y = 0, z = 1000 }
+			local loaded = loadWidget()
+			loaded.WG.cinematicCamera.Play({
+				keyframes = {
+					{
+						position = { unitIDs = { 7 }, offset = { x = 0, y = 100, z = 0 } },
+						lookAt = { unitIDs = { 8 } },
+						duration = 0,
+						hold = 5,
+					},
+				},
+				onEnd = "hold",
+			})
+			loaded.env.widget:Update(0.1)
+			near(500, lastState().px)
+
+			units[7] = { x = 700, y = 0, z = 500 }
+			units[8] = { x = 900, y = 0, z = 1000 }
+			loaded.env.widget:Update(1) -- in the keyframe's hold
+			near(700, lastState().px)
+			local _, ry = CameraMath.LookAtRotation(700, 100, 500, 900, 0, 1000)
+			near(0, math.sin(lastState().ry - ry))
+
+			units[7] = { x = 900, y = 0, z = 500 }
+			loaded.env.widget:Update(5) -- past it, in the hold ending
+			near(900, lastState().px)
+		end)
+
 		it("holds the last pose while a window is open", function()
 			local loaded = loadWidget()
 			loaded.WG.cinematicCamera.Play({
@@ -515,6 +545,51 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 		end)
 	end)
 
+	describe("GameOver", function()
+		local function assertHandedBackAfterGameOver(loaded)
+			loaded.env.widget:Update(0.1)
+			loaded.env.widget:GameOver({ 0 })
+
+			loaded.env.widget:Update(0.1)
+			assert.is_true(loaded.WG.cinematicCamera.IsActive()) -- easing out as a release
+			loaded.env.widget:Update(2)
+
+			assert.is_false(loaded.WG.cinematicCamera.IsActive())
+			assert.are.equal(2, lastState().mode)
+		end
+
+		it("hands back an endless follow", function()
+			units[3] = { x = 10, y = 0, z = 20 }
+			local loaded = loadWidget()
+			loaded.WG.cinematicCamera.Follow({ target = { unitIDs = { 3 } }, transitionDuration = 0 })
+
+			assertHandedBackAfterGameOver(loaded)
+		end)
+
+		it("hands back a hold ending", function()
+			local loaded = loadWidget()
+			loaded.WG.cinematicCamera.Play({
+				keyframes = { { position = { x = 0, y = 100, z = 0 }, duration = 0 } },
+				onEnd = "hold",
+			})
+
+			assertHandedBackAfterGameOver(loaded)
+		end)
+
+		it("lets a shot with an end play out", function()
+			local loaded = loadWidget()
+			loaded.env.widget:GameOver({ 0 })
+			loaded.WG.cinematicCamera.Play({
+				keyframes = { { position = { x = 200, y = 100, z = 0 }, duration = 2, easing = "linear" } },
+			})
+
+			loaded.env.widget:Update(1)
+
+			assert.is_true(loaded.WG.cinematicCamera.IsActive())
+			near(100, lastState().px)
+		end)
+	end)
+
 	describe("Stop and Shutdown", function()
 		it("stops in place and clears shakes", function()
 			local loaded = loadWidget()
@@ -547,6 +622,20 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 
 			assert.are.equal(0, lastState().mode)
 			assert.are.equal(0, lastState().rz)
+		end)
+
+		it("gives the player's fov back when stopped during a shot with its own fov", function()
+			local loaded = loadWidget()
+			loaded.WG.cinematicCamera.Play({
+				keyframes = { { position = { x = 0, y = 100, z = 0 }, pitch = 45, fov = 20, duration = 0 } },
+				onEnd = "hold",
+			})
+			loaded.env.widget:Update(0.1)
+			near(20, lastState().fov)
+
+			loaded.WG.cinematicCamera.Stop()
+
+			near(45, lastState().fov)
 		end)
 
 		it("gives the player's camera back on shutdown", function()

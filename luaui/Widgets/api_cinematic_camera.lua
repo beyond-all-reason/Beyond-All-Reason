@@ -33,7 +33,8 @@ end
 	keyframe = { position = target, lookAt = target?, pitch?, yaw?, roll?, fov?, duration?, hold?,
 	             easing?, path = "linear" | "spline" }
 	           (path shapes the eye's move and, when the previous keyframe has a lookAt too, the
-	            sweep of the point looked at between the two)
+	            sweep of the point looked at between the two; a hold, and a hold ending, stay on the
+	            keyframe and keep riding and looking at its units)
 	sequence = { keyframes = {...}, onEnd = "release" | "restore" | "hold", restoreSlot?,
 	             restoreDuration?, restoreEasing?, releaseDuration?, releaseEasing? }
 	           (release eases roll and fov back over releaseDuration before the player's camera
@@ -52,7 +53,8 @@ end
 	(FPSClampPos overlay), since the engine's own transitions cannot be timed in BAR's default
 	transition mode. Timing is real time, so sequences also play while the game is paused; an
 	open menu window pauses them where the widget handler can say so (IsAnyWindowOpen, which
-	comes with the player input lock; without it nothing pauses).
+	comes with the player input lock; without it nothing pauses). Once the game is over, a shot
+	without an end (an endless follow, a hold ending) hands the camera back as a release.
 ]]
 
 local CameraMath = VFS.Include("common/camera_math.lua")
@@ -138,6 +140,7 @@ local slots = {} ---@type table<string, { state: table, pose: CinematicPose }>
 local shakes = {} ---@type table<integer, table> active shakes, see Shake()
 local shakeOffsetApplied = false
 local shakeSeed = 0
+local gameOver = false
 
 --------------------------------------------------------------------------------
 -- Poses
@@ -380,12 +383,17 @@ local function moveSegment(keyframe, previous, beforePrevious, following)
 	return segment
 end
 
-local function holdSegment(duration)
+---Stays on a keyframe's `move` at its end, so units it rides or looks at are still followed;
+---without one, keeps the pose it was entered with.
+local function holdSegment(duration, move)
 	local segment = { duration = duration }
 	function segment.enter(self, startPose)
 		self.start = copyPose(startPose)
 	end
 	function segment.evaluate(self)
+		if move then
+			return move:evaluate(move.duration)
+		end
 		return self.start
 	end
 	return segment
@@ -514,11 +522,13 @@ local function releaseControl(running, state)
 	spSetConfigInt(CLAMP_CONFIG, running.snapshot.clampPos, true)
 end
 
----The player's camera mode, showing what the sequence last showed.
+---The player's camera mode, showing what the sequence last showed in the player's own fov.
 ---@param running CinematicControl
 local function releaseInPlaceState(running)
+	local pose = copyPose(running.pose)
+	pose.fov = running.snapshot.pose.fov
 	local cardinalLock = spGetConfigInt(CARDINAL_LOCK_CONFIG, 1) == 1
-	return CameraMath.StateFromPose(running.pose, running.snapshot.state, spGetGroundHeight, cardinalLock)
+	return CameraMath.StateFromPose(pose, running.snapshot.state, spGetGroundHeight, cardinalLock)
 		or running.snapshot.state
 end
 
@@ -577,13 +587,14 @@ end
 
 ---What happens after the last shot: the default is handing the camera back where it is.
 ---@param running CinematicControl
-local function appendEnding(running, segments, params)
+---@param lastMove table? the last keyframe's move, which a hold ending stays on
+local function appendEnding(running, segments, params, lastMove)
 	local onEnd = params.onEnd or DEFAULTS.onEnd
 	if onEnd == "restore" then
 		local saved = savedCamera(params.restoreSlot)
 		segments[#segments + 1] = restoreSegment(saved, params.restoreDuration, params.restoreEasing)
 	elseif onEnd == "hold" then
-		segments[#segments + 1] = holdSegment(nil)
+		segments[#segments + 1] = holdSegment(nil, lastMove)
 	else
 		segments[#segments + 1] = releaseSegment(running, params.releaseDuration, params.releaseEasing)
 	end
@@ -641,14 +652,16 @@ local function play(sequence)
 	local running = takeControl()
 	local keyframes = sequence.keyframes
 	local segments = {}
+	local move
 	for i = 1, #keyframes do
 		local keyframe = keyframes[i]
-		segments[#segments + 1] = moveSegment(keyframe, keyframes[i - 1], keyframes[i - 2], keyframes[i + 1])
+		move = moveSegment(keyframe, keyframes[i - 1], keyframes[i - 2], keyframes[i + 1])
+		segments[#segments + 1] = move
 		if (keyframe.hold or 0) > 0 then
-			segments[#segments + 1] = holdSegment(keyframe.hold)
+			segments[#segments + 1] = holdSegment(keyframe.hold, move)
 		end
 	end
-	appendEnding(running, segments, sequence)
+	appendEnding(running, segments, sequence, move)
 	startTimeline(running, segments)
 end
 
@@ -835,6 +848,14 @@ function widget:Update(dt)
 		if not segment then
 			break -- past the last segment: keep showing the last pose
 		end
+		if gameOver and not segment.duration then
+			-- a shot without an end gives the camera back once the game is over
+			if segment.entered then
+				running.elapsed = 0
+			end
+			segment = releaseSegment(running)
+			segments[running.index] = segment
+		end
 		if not segment.entered then
 			segment.entered = true
 			segment:enter(running.pose)
@@ -857,6 +878,10 @@ function widget:Update(dt)
 	if control then
 		applyPose(running.pose)
 	end
+end
+
+function widget:GameOver()
+	gameOver = true
 end
 
 function widget:Initialize()
