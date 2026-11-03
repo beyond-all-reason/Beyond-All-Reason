@@ -248,6 +248,7 @@
 			"mainView": "Main view",
 			"nextPage": "Next page",
 			"previousPage": "Previous page",
+			"pageScroll": "Or scroll the mouse wheel over the build options",
 			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
 			"nextBuilder": "Next Builder",
 			"areamex_tooltip": "Tip: Select this extractor twice to use area mex command",
