@@ -1,4 +1,4 @@
-local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local SILO = { 1400, 0, 2600 }
@@ -23,7 +23,7 @@ end
 
 local triggers = {
 	spawnSilo = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -31,7 +31,7 @@ local triggers = {
 	},
 
 	firstNukeHalfBuilt = {
-		type = conditionTypes.StockpileProgress,
+		type = eventTypes.StockpileProgress,
 		parameters = {
 			unitName = 'silo',
 			progress = 0.5,
@@ -40,7 +40,7 @@ local triggers = {
 	},
 
 	firstNukeStocked = {
-		type = conditionTypes.StockpileCount,
+		type = eventTypes.StockpileCount,
 		parameters = {
 			unitName = 'silo',
 			count = 1,
@@ -49,7 +49,7 @@ local triggers = {
 	},
 
 	launchFirstNuke = {
-		type = conditionTypes.CountdownFinished,
+		type = eventTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'launchFirstNuke',
 		},
@@ -57,7 +57,7 @@ local triggers = {
 	},
 
 	spawnCitadel = {
-		type = conditionTypes.CountdownFinished,
+		type = eventTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'firstNukeLanded',
 		},
@@ -65,7 +65,7 @@ local triggers = {
 	},
 
 	fiveNukesStocked = {
-		type = conditionTypes.StockpileCount,
+		type = eventTypes.StockpileCount,
 		parameters = {
 			unitName = 'silo',
 			count = 5,
@@ -74,7 +74,7 @@ local triggers = {
 	},
 
 	launchFiveNukes = {
-		type = conditionTypes.CountdownFinished,
+		type = eventTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'launchFiveNukes',
 		},
@@ -82,7 +82,7 @@ local triggers = {
 	},
 
 	fiveNukesIntercepted = {
-		type = conditionTypes.CountdownFinished,
+		type = eventTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'fiveNukesIntercepted',
 		},

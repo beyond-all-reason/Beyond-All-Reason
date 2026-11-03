@@ -46,6 +46,7 @@ end
 -- one has walked out and they are all back, if it repeats.
 return {
 	type = 'UnitsGatheredInLocation',
+	kind = 'event',
 	parameters = {
 		{ name = 'area',     required = true, type = ParameterTypes.Area },
 		{ name = 'unitName', required = true, type = ParameterTypes.UnitName },

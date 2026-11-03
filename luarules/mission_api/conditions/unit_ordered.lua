@@ -38,6 +38,7 @@ end
 
 return {
 	type = 'UnitOrdered',
+	kind = 'event',
 	parameters = {
 		{ name = 'command',              required = true,  type = ParameterTypes.Command },
 		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
