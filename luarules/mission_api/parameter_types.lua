@@ -16,6 +16,7 @@ local types = {
 	Orders = "Orders",
 	Area = "Area",
 	Direction = "Direction",
+	Formation = "Formation",
 	UnitLoadout = "UnitLoadout",
 	FeatureLoadout = "FeatureLoadout",
 	ResourceIncomeSources = "ResourceIncomeSources",
@@ -49,7 +50,6 @@ local types = {
 	PositiveInteger = "PositiveInteger",
 	Fraction = "Fraction",
 	MessageType = "MessageType",
-	MoveCommand = "MoveCommand",
 
 	-- Boolean Validators:
 	Boolean = "Boolean",

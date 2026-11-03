@@ -32,6 +32,7 @@ describe("mission_api.actions.issue_orders", function()
 			type = "IssueOrders",
 			unitName = "UnitName!",
 			orders = "Orders!",
+			formation = "Formation",
 		}, summarizeSchema(action))
 	end)
 
@@ -47,6 +48,40 @@ describe("mission_api.actions.issue_orders", function()
 			action.actionFunction("bots", orders)
 			assert.are.equal(1, #env.Spring.calls.giveOrderArrayToUnitMap)
 			assert.are.same(missionApi.trackedUnitIDs["bots"], env.Spring.calls.giveOrderArrayToUnitMap[1].unitMap)
+		end)
+
+		it("gives each unit its own order with a formation, not one order to all", function()
+			seedUnits("bots", 101, 102)
+			local given = {}
+			env.UnitDefs = { [1] = { canMove = true, speed = 60 } }
+			env.Game = { mapSizeX = 4096, mapSizeZ = 4096, squareSize = 8 }
+			env.Spring.GetUnitDefID = function()
+				return 1
+			end
+			env.Spring.GetUnitIsDead = function()
+				return false
+			end
+			env.Spring.GetUnitIsBeingBuilt = function()
+				return false
+			end
+			env.Spring.GetUnitTransporter = function() end
+			env.Spring.GetUnitPosition = function(unitID)
+				return unitID, 0, 100
+			end
+			env.Spring.GetGroundHeight = function()
+				return 0
+			end
+			env.Spring.GiveOrderToUnit = function(unitID, command, params)
+				given[unitID] = { command = command, params = params, fenced = missionApi.issuingOrders }
+			end
+
+			action.actionFunction("bots", { { env.CMD.MOVE, { 1000, 0, 1000 }, {} } }, {})
+
+			assert.are.equal(0, #env.Spring.calls.giveOrderArrayToUnitMap)
+			assert.are.same({ 999.5, 0, 1000 }, given[101].params)
+			assert.are.same({ 1000.5, 0, 1000 }, given[102].params)
+			assert.is_true(given[101].fenced)
+			assert.is_nil(missionApi.issuingOrders)
 		end)
 
 		it("passes the result of ConvertOrdersTargetingNames as the orders", function()

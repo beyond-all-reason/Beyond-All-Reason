@@ -844,11 +844,25 @@ describe("mission_api.validation.parameter_validators", function()
 		)
 	end)
 
+	local MSG_LINE =
+		"Parameter must be an array of 3 numbers {x, y, z}, or more in threes for a line. Action: a, Parameter: orders"
+
 	it("rejects the wrong number of parameters for a move command", function()
 		V.assertMessage(
 			validateOrders({ { V.env.CMD.MOVE, {} } }),
-			"Parameter must be an array of 3 numbers {x, y, z}. Action: a, Parameter: orders[1][2]"
+			"Parameter must be an array of 3 numbers {x, y, z}, or more in threes for a line. Action: a, Parameter: orders[1][2]"
 		)
+	end)
+
+	it("accepts a move command with a line of points in threes", function()
+		V.assertNoMessageContaining(
+			validateOrders({ { V.env.CMD.FIGHT, { 0, 0, 0, 100, 0, 0, 200, 0, 50 } } }),
+			"Parameter must be"
+		)
+	end)
+
+	it("rejects a line whose numbers are not in threes", function()
+		V.assertMessage(validateOrders({ { V.env.CMD.MOVE, { 0, 0, 0, 100 } } }), MSG_LINE .. "[1][2]")
 	end)
 
 	it("accepts a unit name instead of coordinates, for commands that allow it", function()
@@ -869,7 +883,10 @@ describe("mission_api.validation.parameter_validators", function()
 	it("reports every invalid order, named after its position in the list", function()
 		local result = validateOrders({ { V.env.CMD.MOVE, { 0, 0, 0 } }, { V.env.CMD.MOVE, {} }, { 99999 } })
 
-		V.assertMessage(result, "Parameter must be an array of 3 numbers {x, y, z}. Action: a, Parameter: orders[2][2]")
+		V.assertMessage(
+			result,
+			"Parameter must be an array of 3 numbers {x, y, z}, or more in threes for a line. Action: a, Parameter: orders[2][2]"
+		)
 		V.assertMessage(result, "Unknown command ID: 99999. Action: a, Parameter: orders[3][1]")
 	end)
 
@@ -946,43 +963,38 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
-	describe("MoveCommand", function()
-		before_each(function()
-			V.env.CMD = { MOVE = 10, PATROL = 15, FIGHT = 16, ATTACK = 20, [20] = "ATTACK" }
-		end)
-
-		after_each(function()
-			V.env.CMD = {}
-		end)
-
-		local function validateMoveCommand(command)
+	describe("Formation", function()
+		local function validateFormation(formation)
 			return V.validateAction({
-				type = V.actionTypes.IssueFormationOrders,
-				parameters = { unitName = "squad", command = command, position = { x = 0, z = 0 } },
+				type = V.actionTypes.IssueOrders,
+				parameters = { unitName = "squad", orders = { { V.env.CMD.MOVE, { 0, 0, 0 } } }, formation = formation },
 			})
 		end
 
-		it("accepts MOVE, FIGHT and PATROL", function()
-			for _, command in ipairs({ V.env.CMD.MOVE, V.env.CMD.FIGHT, V.env.CMD.PATROL }) do
-				V.assertNoMessageContaining(validateMoveCommand(command), "command")
-			end
+		it("accepts an empty formation and one with a direction", function()
+			V.assertNoMessageContaining(validateFormation({}), "formation")
+			V.assertNoMessageContaining(validateFormation({ direction = { angle = 90 } }), "formation")
+			V.assertNoMessageContaining(validateFormation({ matchSpeed = true }), "formation")
 		end)
 
-		it("rejects any other command, named as the constant", function()
+		it("validates the direction", function()
 			V.assertMessage(
-				validateMoveCommand(V.env.CMD.ATTACK),
-				"Invalid move command: CMD.ATTACK, must be CMD.MOVE, CMD.FIGHT or CMD.PATROL. Action: a, Parameter: command"
+				validateFormation({ direction = {} }),
+				"Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }. Action: a, Parameter: formation.direction"
 			)
 		end)
 
-		it("says a string is text, the constant written in quotes", function()
+		it("rejects a field it does not know", function()
 			V.assertMessage(
-				validateMoveCommand("CMD.MOVE"),
-				'Invalid move command: "CMD.MOVE" is text, write CMD.MOVE without quotes; must be CMD.MOVE, CMD.FIGHT or CMD.PATROL. Action: a, Parameter: command'
+				validateFormation({ facing = 1 }),
+				"Unknown formation field, expected direction or matchSpeed. Action: a, Parameter: formation.facing"
 			)
+		end)
+
+		it("rejects a formation that is not a table", function()
 			V.assertMessage(
-				validateMoveCommand("move"),
-				'Invalid move command: "move" is text, write the constant without quotes; must be CMD.MOVE, CMD.FIGHT or CMD.PATROL. Action: a, Parameter: command'
+				validateFormation(true),
+				"Unexpected parameter type, expected table, got boolean. Action: a, Parameter: formation"
 			)
 		end)
 	end)
@@ -1018,6 +1030,23 @@ describe("mission_api.validation.parameter_validators", function()
 			local result = validateUnitLoadout({ { unitDefName = "armwar", x = 0, z = 0 } })
 
 			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: unitLoadout[1].teamName")
+		end)
+
+		it("reports a line in an entry's orders, which needs IssueOrders with formation", function()
+			local result = validateUnitLoadout({
+				{
+					unitDefName = "armwar",
+					teamName = "player",
+					x = 0,
+					z = 0,
+					orders = { { V.env.CMD.MOVE, { 0, 0, 0, 9, 0, 9 } } },
+				},
+			})
+
+			V.assertMessage(
+				result,
+				"A line of points needs IssueOrders with formation. Action: a, Parameter: unitLoadout[1].orders[1][2]"
+			)
 		end)
 
 		it("reports a missing position coordinate", function()
