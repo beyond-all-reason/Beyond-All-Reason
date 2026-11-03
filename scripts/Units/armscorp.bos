@@ -369,8 +369,7 @@ StopMoving(){
 #define BASEPIECE base
 #define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 5
-#define MAXTILT 100
+#define UNITSIZE 15
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
@@ -378,6 +377,7 @@ Create()
 	hide flare1;
 	hide flare3;
 	hide flare2;
+	hide flare4;
 	hide aimy1;
 	fire_count=0;
 	animspeed = 4;
@@ -449,6 +449,10 @@ QueryWeapon1(pieceIndex)
 	}
 }
 
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = flare4;
+}
 
 	//maxvelocity	1.7200000286102, thus elmos per frame = 52 elmost per second
 	//http://www.google.hu/imgres?imgurl=http%3A%2F%2Fwww.mindcreators.com%2FImages%2FLM_InsectGaits.gif&imgrefurl=http%3A%2F%2Fwww.blendpolis.de%2Fviewtopic.php%3Ff%3D14%26t%3D20955&h=269&w=564&tbnid=eM6Ce18iiKEsNM%3A&zoom=1&docid=9I0ZGCOGTgSBFM&ei=bGpFU_T9G8f8ygOqs4DoCg&tbm=isch&client=firefox-a&ved=0CKcBEIQcMBg&iact=rc&dur=400&page=1&start=0&ndsp=59
@@ -516,6 +520,15 @@ RestoreAfterDelay()
 
 }
 
+RestoreAfterDelay2()
+{
+	sleep 2000;
+	turn turret2 to y-axis <0.0> speed <225.0>;
+	turn sleeve to x-axis <0.0> speed <225.0>;
+
+}
+
+
 CloseDoors()
 {
 	turn doorl to z-axis <0.0> speed <50.0>;
@@ -548,12 +561,21 @@ AimWeapon1(heading, pitch)
 	wait-for-turn weight around x-axis;
 	wait-for-turn turret1 around x-axis;
 
-	// wait-for-turn turret1 around y-axis;
-	// turn turret2 to y-axis heading speed <150.0>;
-	// turn turret2 to x-axis 0 - pitch speed <150.0>;
-	// wait-for-turn turret2 around y-axis;
-	// wait-for-turn turret2 around x-axis;
 	start-script RestoreAfterDelay();
+	return (1);
+}
+
+AimWeapon2(heading, pitch)
+{
+
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret2 to y-axis heading speed <225.0>;
+	turn sleeve to x-axis <0> - pitch speed <225.0>;
+	
+	wait-for-turn turret2 around y-axis;
+
+	start-script RestoreAfterDelay2();
 	return (1);
 }
 
@@ -561,6 +583,11 @@ AimWeapon1(heading, pitch)
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = flare2;
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = sleeve;
 }
 
 
