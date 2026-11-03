@@ -549,6 +549,41 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
+local followEndingParameters =
+	{ "onEnd", "restoreSlot", "restoreDuration", "restoreEasing", "releaseDuration", "releaseEasing" }
+
+-- A FollowCamera without a duration runs until the next camera action replaces it, so it never ends.
+local function validateFollowCameraEnding(context, actionReport, actionID, action)
+	local parameters = action.parameters
+	if action.type ~= context.ActionTypes.FollowCamera or type(parameters) ~= "table" then
+		return
+	end
+
+	local endingParameters = {}
+	for _, name in ipairs(followEndingParameters) do
+		if parameters[name] ~= nil then
+			endingParameters[#endingParameters + 1] = name
+		end
+	end
+	if #endingParameters == 0 then
+		return
+	end
+
+	local untilReplaced = parameters.duration == nil
+	for _, duration in ipairs(context.PossibleValues(parameters.duration)) do
+		if type(duration) == "number" and duration <= 0 then
+			untilReplaced = true
+		end
+	end
+	if untilReplaced then
+		actionReport.Warn(
+			actionID,
+			"FollowCamera without a duration runs until the next camera action, so its ending never runs: "
+				.. table.concat(endingParameters, ", ")
+		)
+	end
+end
+
 local function validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
@@ -558,6 +593,7 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 			validateAttributeAction(actionReport, actionID, action)
 			validateChangeTeamAction(context, actionReport, actionID, action)
+			validateFollowCameraEnding(context, actionReport, actionID, action)
 		end
 	end
 end

@@ -35,7 +35,7 @@ return {
 			{ name = 'transitionDuration', required = false, type = ParameterTypes.Quantity },     -- seconds to blend in from the current view
 			{ name = 'easing',             required = false, type = ParameterTypes.CameraEasing }, -- of that blend
 			{ name = 'smoothing',          required = false, type = ParameterTypes.Quantity },     -- seconds for the lag behind the target to halve, 0 = none
-			{ name = 'onEnd',              required = false, type = ParameterTypes.CameraSequenceEnd },
+			{ name = 'onEnd',              required = false, type = ParameterTypes.CameraSequenceEnd }, -- after duration, so with a duration only
 			{ name = 'restoreSlot',        required = false, type = ParameterTypes.String },       -- SaveCamera slot for onEnd = 'restore'
 			{ name = 'restoreDuration',    required = false, type = ParameterTypes.Quantity },     -- seconds
 			{ name = 'restoreEasing',      required = false, type = ParameterTypes.CameraEasing },
