@@ -103,17 +103,17 @@ local function resolveCutscenes(cutscenes)
 	end
 end
 
---- Resolve objective fields and the parameters of their trigger in place.
+--- Resolve objective fields and the parameters of their inline condition in place.
 --- objectives_loader built each condition record before the difficulty was known, so
---- the resolved amount is copied onto it here as its threshold.
+--- the resolved threshold is copied onto it here.
 local function resolveObjectives(objectives)
 	for objectiveID, objective in pairs(objectives) do
 		for fieldName, value in pairs(objective) do
-			if fieldName ~= "trigger" and isDifficultiesTable(value) then
+			if fieldName ~= "parameters" and isDifficultiesTable(value) then
 				objective[fieldName] = resolve(value)
 			end
 		end
-		resolveParameters(objective.trigger and objective.trigger.parameters)
+		resolveParameters(objective.parameters)
 		objectivesLoader.ApplyThresholds(objectiveID, objective, GG["MissionAPI"].Triggers)
 	end
 end
