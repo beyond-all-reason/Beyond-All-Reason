@@ -266,6 +266,8 @@ return {
   `__updateObjective_<objectiveID>` into the raw tables.
 - Adding or removing a `Quantity` parameter on a trigger silently moves every objective using it
   between those two paths.
+- Stage logic lives in `stages.lua` (`ChangeStage`, `ActivateStage`, …) and objective state in
+  `objectives.lua`; the two call each other through `GG['MissionAPI'].Modules`.
 - The `__` prefixes are reserved, so mission scripts do not define IDs that collide.
 - Stage membership comes from `Stages[stageID].objectives` and is copied onto the synthesized
   trigger's `settings.stages`; `stages_loader` is otherwise a pass-through.
