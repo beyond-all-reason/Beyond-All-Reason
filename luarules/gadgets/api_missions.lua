@@ -142,8 +142,8 @@ function gadget:Initialize()
 	actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
 	GG["MissionAPI"].ActionDefinitions = actionsController.LoadActionDefinitions()
 
-	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
-	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
+	triggersController = VFS.Include("luarules/mission_api/conditions_loader.lua")
+	GG["MissionAPI"].ConditionDefinitions = triggersController.LoadConditionDefinitions()
 
 	GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
 	local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes

@@ -395,10 +395,10 @@ _G.GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variab
 _G.GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
 
 local actionDefinitions = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
-local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
+local triggerDefinitions = VFS.Include("luarules/mission_api/conditions_loader.lua").LoadConditionDefinitions()
 
 _G.GG["MissionAPI"].ActionDefinitions = actionDefinitions
-_G.GG["MissionAPI"].TriggerDefinitions = triggerDefinitions
+_G.GG["MissionAPI"].ConditionDefinitions = triggerDefinitions
 _G.GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
 parameterTypes.Enums[parameterTypes.Types.EffectType] = _G.GG["MissionAPI"].EffectDefinitions.Types
 local lowestDifficulty = math.huge

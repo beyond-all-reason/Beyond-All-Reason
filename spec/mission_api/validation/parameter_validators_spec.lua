@@ -22,7 +22,7 @@ describe("mission_api.validation.parameter_validators", function()
 			})
 
 		local missing = {}
-		for _, definitions in ipairs({ V.definitions.ActionDefinitions, V.definitions.TriggerDefinitions }) do
+		for _, definitions in ipairs({ V.definitions.ActionDefinitions, V.definitions.ConditionDefinitions }) do
 			for entityType, parameters in pairs(definitions.Parameters) do
 				for _, parameter in ipairs(parameters) do
 					if parameterValidators[parameter.type] == nil then

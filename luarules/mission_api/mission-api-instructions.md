@@ -19,8 +19,8 @@ Nothing here works outside this sequence, so keep it in mind when something read
 1. `api_missions.lua` (layer 0, synced) `Initialize()` creates `GG['MissionAPI']`, then `VFS.Include`s the modules
    into `GG['MissionAPI'].Modules` **in a fixed order** — `ParameterTypes` first, because every other file reads it
    at load time.
-2. `actions_loader.LoadActionDefinitions()` then `triggers_loader.LoadTriggerDefinitions()` scan their directories
-   and populate `GG['MissionAPI'].ActionDefinitions` / `.TriggerDefinitions`.
+2. `actions_loader.LoadActionDefinitions()` then `conditions_loader.LoadConditionDefinitions()` scan their directories
+   and populate `GG['MissionAPI'].ActionDefinitions` / `.ConditionDefinitions`.
 3. `loadMission(gameSetup)` includes the mission named by the startscript, validates the raw mission with
    `validation.lua`, runs the four `*_loader` normalisers, resolves difficulties, then variable references (`variables.lua`), then runs
    `parameter_processing.lua`.
@@ -33,7 +33,7 @@ the definitions per call rather than at include time, so that including it does 
 
 ## Type IDs are directory-order integers
 
-`triggers_loader` assigns each trigger type an integer from `ipairs(VFS.DirList(...))`; `actions_loader` does the
+`conditions_loader` assigns each trigger type an integer from `ipairs(VFS.DirList(...))`; `actions_loader` does the
 same with a running counter over `VFS.SubDirs`. Missions author `type = triggerTypes.TimeElapsed`, so the string name
 never reaches the runtime — `trigger.type` and `action.type` are integers, and the schema tables
 (`Parameters`, `Functions`, `Callins`) are keyed by them.
@@ -46,7 +46,7 @@ Consequences:
 
 ## Adding a trigger type
 
-One file per type in `luarules/mission_api/triggers/`, snake_case, returning a single table:
+One file per type in `luarules/mission_api/conditions/`, snake_case, returning a single table:
 
 ```lua
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types

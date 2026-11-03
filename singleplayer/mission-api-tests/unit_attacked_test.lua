@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- An enemy attacks a named tank, which fires the trigger on the first hit and again on each hit
