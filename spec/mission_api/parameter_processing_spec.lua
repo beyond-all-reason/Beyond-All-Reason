@@ -117,6 +117,21 @@ describe("mission_api.parameter_processing", function()
 		end)
 	end)
 
+	describe("Color", function()
+		it("turns { r, g, b } fields into the engine's array", function()
+			local parameters = processAction({
+				type = actionTypes.SetMapLighting,
+				parameters = {
+					tint = { r = 1, g = 0.5, b = 0 },
+					groundDiffuseColor = { r = 0.2, g = 0.3, b = 0.9 },
+				},
+			})
+
+			assert.are.same({ 1, 0.5, 0 }, parameters.tint)
+			assert.are.same({ 0.2, 0.3, 0.9 }, parameters.groundDiffuseColor)
+		end)
+	end)
+
 	describe("enum sets", function()
 		it("turns the list of values into a set", function()
 			local parameters = processTrigger({
