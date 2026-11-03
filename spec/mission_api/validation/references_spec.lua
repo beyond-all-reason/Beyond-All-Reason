@@ -54,7 +54,8 @@ describe("mission_api.validation.references", function()
 		V.assertValid(V.validate(V.mission()
 			:WithTrigger("t", {
 				type = V.triggerTypes.TotalUnitsKilled,
-				parameters = { teamName = "player", quantity = 1, unitName = "bot" },
+				parameters = { teamName = "player", unitName = "bot" },
+				count = 1,
 				actions = { "spawn", "create", "delete", "add", "remove" },
 			})
 			:WithAction("spawn", spawnUnits("bot"))

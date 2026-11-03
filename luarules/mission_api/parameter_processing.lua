@@ -175,18 +175,9 @@ local function processTriggerParameters(triggers)
 	processParameters(triggers, triggersSchemaParameters)
 end
 
-local function processManagedObjectiveParameters(managedObjectives)
-	for triggerType, objectives in pairs(managedObjectives) do
-		for _, objective in ipairs(objectives) do
-			processSchemaParameters(objective.parameters, triggersSchemaParameters[triggerType])
-		end
-	end
-end
-
 return {
 	ProcessValue = processValue,
 	ProcessParameter = processParameter,
 	ProcessActionParameters = processActionParameters,
 	ProcessTriggerParameters = processTriggerParameters,
-	ProcessManagedObjectiveParameters = processManagedObjectiveParameters,
 }

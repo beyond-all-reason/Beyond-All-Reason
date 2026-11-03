@@ -15,6 +15,8 @@ local triggersLoader = VFS.Include("luarules/mission_api/conditions_loader.lua")
 ---@field settings table
 ---@field triggered boolean
 ---@field repeatCount number
+---@field occurrences number
+---@field metricSatisfied boolean
 
 ---@class TriggerBuilder
 ---@field parameters table

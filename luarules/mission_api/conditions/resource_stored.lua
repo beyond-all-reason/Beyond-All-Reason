@@ -5,21 +5,16 @@ local CURRENT_RESOURCE_LEVEL_INDEX = 1
 
 return {
 	type = 'ResourceStored',
+	kind = 'metric',
 	parameters = {
-		{ name = 'teamName', required = true,  type = ParameterTypes.TeamName },
-		{ name = 'metal',  required = false, type = ParameterTypes.Number },
-		{ name = 'energy', required = false, type = ParameterTypes.Number },
-		requiresOneOf = { 'metal', 'energy' },
+		{ name = 'teamName', required = true, type = ParameterTypes.TeamName },
+		{ name = 'resource', required = true, type = ParameterTypes.Resource },
 	},
 	callins = {
 		GameFrame = function(trigger, triggerID, context)
-			if trigger.parameters.metal and select(CURRENT_RESOURCE_LEVEL_INDEX, Spring.GetTeamResources(trigger.parameters.teamName, "metal")) < trigger.parameters.metal then
-				return
-			end
-			if trigger.parameters.energy and select(CURRENT_RESOURCE_LEVEL_INDEX, Spring.GetTeamResources(trigger.parameters.teamName, "energy")) < trigger.parameters.energy then
-				return
-			end
-			context.ActivateTrigger(trigger)
+			local stored = select(CURRENT_RESOURCE_LEVEL_INDEX,
+				Spring.GetTeamResources(trigger.parameters.teamName, trigger.parameters.resource))
+			context.EvaluateMetric(trigger, stored or 0)
 		end,
 	},
 }

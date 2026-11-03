@@ -38,6 +38,7 @@ local types = {
 	AllianceName = "AllianceName",
 	Facing = "Facing",
 	SoundFile = "SoundFile",
+	Resource = "Resource",
 	VideoFile = "VideoFile",
 	Difficulty = "Difficulty",
 	UnitAttribute = "UnitAttribute",
@@ -97,6 +98,9 @@ local enums = {
 		east = true,
 		west = true,
 	},
+	-- A metric must yield a single measured value, so resource-based metrics
+	-- select one resource rather than accepting metal and energy together.
+	[types.Resource] = { metal = true, energy = true },
 
 	[types.Difficulty] = difficulties,
 
