@@ -1049,6 +1049,14 @@ describe("mission_api.validation.parameter_validators", function()
 				"Invalid camera sequence end: 'stay'. Must be one of: 'hold', 'release', 'restore'. Action: a, Parameter: onEnd"
 			)
 		end)
+
+		it("accepts the game clock and rejects an unknown one", function()
+			V.assertNoMessageContaining(validateFollowCamera({ clock = "game" }), "clock")
+			V.assertMessage(
+				validateFollowCamera({ clock = "sim" }),
+				"Invalid camera clock: 'sim'. Must be one of: 'game', 'real'. Action: a, Parameter: clock"
+			)
+		end)
 	end)
 
 	describe("CameraKeyframes", function()

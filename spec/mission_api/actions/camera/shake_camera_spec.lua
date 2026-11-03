@@ -29,11 +29,12 @@ describe("mission_api.actions.shake_camera", function()
 			falloff = "Quantity",
 			frequency = "Quantity",
 			rotationMagnitude = "Quantity",
+			clock = "CameraClock",
 		}, summarizeSchema(action))
 	end)
 
 	it("sends the shake as given", function()
-		action.actionFunction(20, 3, 0.5, 1, 8, 2)
+		action.actionFunction(20, 3, 0.5, 1, 8, 2, "game")
 
 		assert.are.same({
 			{
@@ -45,6 +46,7 @@ describe("mission_api.actions.shake_camera", function()
 					falloff = 1,
 					frequency = 8,
 					rotationMagnitude = 2,
+					clock = "game",
 				},
 			},
 		}, sent)

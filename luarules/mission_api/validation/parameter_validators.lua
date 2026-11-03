@@ -856,6 +856,7 @@ local function registerCameraValidators(parameterValidators, context)
 	parameterValidators[Types.CameraSequenceEnd] =
 		getEnumValidator(enums, Types.CameraSequenceEnd, "camera sequence end")
 	parameterValidators[Types.CameraPath] = getEnumValidator(enums, Types.CameraPath, "camera path")
+	parameterValidators[Types.CameraClock] = getEnumValidator(enums, Types.CameraClock, "camera clock")
 
 	local eyeFields, lookAtFields = cameraKeyframeSchema.ExactlyOneOf, cameraKeyframeSchema.AtMostOneOf
 

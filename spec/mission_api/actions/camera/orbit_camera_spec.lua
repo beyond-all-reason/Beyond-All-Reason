@@ -47,6 +47,7 @@ describe("mission_api.actions.orbit_camera", function()
 			restoreEasing = "CameraEasing",
 			releaseDuration = "Quantity",
 			releaseEasing = "CameraEasing",
+			clock = "CameraClock",
 			requiresOneOf = { "unitName", "position" },
 		}, summarizeSchema(action))
 	end)
@@ -68,7 +69,8 @@ describe("mission_api.actions.orbit_camera", function()
 			2,
 			"linear",
 			0.5,
-			"inOutCubic"
+			"inOutCubic",
+			"game"
 		)
 
 		assert.are.same({
@@ -90,6 +92,7 @@ describe("mission_api.actions.orbit_camera", function()
 					restoreEasing = "linear",
 					releaseDuration = 0.5,
 					releaseEasing = "inOutCubic",
+					clock = "game",
 				},
 			},
 		}, sent)

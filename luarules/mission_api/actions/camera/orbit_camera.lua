@@ -1,7 +1,7 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 -- Circles a unit (the middle of the group when several share the name) or a position.
-local function orbitCamera(unitName, position, distance, pitch, startYaw, degrees, fov, duration, transitionDuration, easing, onEnd, restoreSlot, restoreDuration, restoreEasing, releaseDuration, releaseEasing)
+local function orbitCamera(unitName, position, distance, pitch, startYaw, degrees, fov, duration, transitionDuration, easing, onEnd, restoreSlot, restoreDuration, restoreEasing, releaseDuration, releaseEasing, clock)
 	SendToUnsynced('MissionCameraOrbit', {
 		target = GG['MissionAPI'].Modules.Camera.BuildTarget(unitName, position),
 		distance = distance,
@@ -18,6 +18,7 @@ local function orbitCamera(unitName, position, distance, pitch, startYaw, degree
 		restoreEasing = restoreEasing,
 		releaseDuration = releaseDuration,
 		releaseEasing = releaseEasing,
+		clock = clock,
 	})
 end
 
@@ -41,6 +42,7 @@ return {
 			{ name = 'restoreEasing',      required = false, type = ParameterTypes.CameraEasing },
 			{ name = 'releaseDuration',    required = false, type = ParameterTypes.Quantity },     -- seconds to ease roll and fov back for onEnd = 'release'
 			{ name = 'releaseEasing',      required = false, type = ParameterTypes.CameraEasing },
+			{ name = 'clock',              required = false, type = ParameterTypes.CameraClock },  -- 'real' (default): real seconds, also while paused; 'game': game seconds
 			requiresOneOf = { 'unitName', 'position' },
 		},
 		actionFunction = orbitCamera,

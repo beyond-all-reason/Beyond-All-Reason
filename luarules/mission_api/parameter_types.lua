@@ -44,6 +44,7 @@ local types = {
 	CameraEasing = "CameraEasing",
 	CameraSequenceEnd = "CameraSequenceEnd",
 	CameraPath = "CameraPath",
+	CameraClock = "CameraClock",
 	UnitAttribute = "UnitAttribute",
 	WeaponAttribute = "WeaponAttribute",
 	EffectType = "EffectType",
@@ -137,6 +138,12 @@ local enums = {
 	[types.CameraPath] = {
 		linear = true,
 		spline = true,
+	},
+
+	-- real: seconds of real time, also while the game is paused; game: game seconds
+	[types.CameraClock] = {
+		real = true,
+		game = true,
 	},
 	[types.WeaponNumber] = attributeDefinitions.EXPLOSIONS,
 }

@@ -22,10 +22,13 @@ describe("mission_api.actions.camera_state", function()
 
 	it("declares the three actions", function()
 		assert.are.same({ type = "SaveCamera", slot = "String" }, summarizeSchema(saveAction))
-		assert.are.same(
-			{ type = "RestoreCamera", slot = "String", duration = "Quantity", easing = "CameraEasing" },
-			summarizeSchema(restoreAction)
-		)
+		assert.are.same({
+			type = "RestoreCamera",
+			slot = "String",
+			duration = "Quantity",
+			easing = "CameraEasing",
+			clock = "CameraClock",
+		}, summarizeSchema(restoreAction))
 		assert.are.same({ type = "StopCamera" }, summarizeSchema(stopAction))
 	end)
 
@@ -35,8 +38,11 @@ describe("mission_api.actions.camera_state", function()
 	end)
 
 	it("restores a slot with a blend", function()
-		restoreAction.actionFunction("intro", 2, "linear")
-		assert.are.same({ { "MissionCameraRestore", { slot = "intro", duration = 2, easing = "linear" } } }, sent)
+		restoreAction.actionFunction("intro", 2, "linear", "game")
+		assert.are.same(
+			{ { "MissionCameraRestore", { slot = "intro", duration = 2, easing = "linear", clock = "game" } } },
+			sent
+		)
 	end)
 
 	it("stops", function()

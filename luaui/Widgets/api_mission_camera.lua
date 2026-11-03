@@ -29,7 +29,7 @@ local handlers = {
 		camera.Save(params.slot)
 	end,
 	MissionCameraRestore = function(camera, params)
-		camera.Restore(params.slot, params.duration, params.easing)
+		camera.Restore(params.slot, params.duration, params.easing, params.clock)
 	end,
 	MissionCameraStop = function(camera)
 		camera.Stop()

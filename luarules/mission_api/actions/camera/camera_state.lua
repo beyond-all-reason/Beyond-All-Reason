@@ -4,8 +4,8 @@ local function saveCamera(slot)
 	SendToUnsynced('MissionCameraSave', { slot = slot })
 end
 
-local function restoreCamera(slot, duration, easing)
-	SendToUnsynced('MissionCameraRestore', { slot = slot, duration = duration, easing = easing })
+local function restoreCamera(slot, duration, easing, clock)
+	SendToUnsynced('MissionCameraRestore', { slot = slot, duration = duration, easing = easing, clock = clock })
 end
 
 -- Hands the camera back to the player where it is.
@@ -27,6 +27,7 @@ return {
 			{ name = 'slot',     required = false, type = ParameterTypes.String },
 			{ name = 'duration', required = false, type = ParameterTypes.Quantity }, -- seconds
 			{ name = 'easing',   required = false, type = ParameterTypes.CameraEasing },
+			{ name = 'clock',    required = false, type = ParameterTypes.CameraClock }, -- 'real' (default): real seconds, also while paused; 'game': game seconds
 		},
 		actionFunction = restoreCamera,
 	},

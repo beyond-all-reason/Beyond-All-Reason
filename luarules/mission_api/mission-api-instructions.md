@@ -197,7 +197,8 @@ parameters with `requiresOneOf`, choices are enum types, and a record declares i
   `SendToUnsynced("MissionCamera<Action>", params)`. `api_mission_camera.lua` (unsynced gadget) passes them to
   `luaui/Widgets/api_mission_camera.lua`, which calls `WG.cinematicCamera`. `LockPlayerInput`/`UnlockPlayerInput`
   set the `playerInputLock` game rules param to 1/0, which `luaui/Widgets/api_player_input_lock.lua` follows. They
-  act on every client; defaults live in the widgets. Camera sequences run on real time, also while the game is paused.
+  act on every client; defaults live in the widgets. Camera durations are real seconds by default, so a sequence
+  also plays while the game is paused; `clock = 'game'` runs it on game time instead, in step with `TimeElapsed`.
 - Unit and feature identity is by **name**, not ID: go through `Modules.Tracking`, never index the tracking tables
   directly.
 

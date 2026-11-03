@@ -39,7 +39,7 @@ describe("luaui.Widgets.api_mission_camera", function()
 		env.MissionCameraOrbit({ target = { x = 0, y = 0, z = 0 } })
 		env.MissionCameraShake({ magnitude = 10 })
 		env.MissionCameraSave({ slot = "intro" })
-		env.MissionCameraRestore({ slot = "intro", duration = 2, easing = "linear" })
+		env.MissionCameraRestore({ slot = "intro", duration = 2, easing = "linear", clock = "game" })
 		env.MissionCameraStop()
 
 		assert.are.same({
@@ -48,7 +48,7 @@ describe("luaui.Widgets.api_mission_camera", function()
 			{ "Orbit", { target = { x = 0, y = 0, z = 0 } } },
 			{ "Shake", { magnitude = 10 } },
 			{ "Save", "intro" },
-			{ "Restore", "intro", 2, "linear" },
+			{ "Restore", "intro", 2, "linear", "game" },
 			{ "Stop" },
 		}, calls)
 	end)

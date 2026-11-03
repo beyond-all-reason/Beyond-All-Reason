@@ -47,6 +47,7 @@ describe("mission_api.actions.follow_camera", function()
 			restoreEasing = "CameraEasing",
 			releaseDuration = "Quantity",
 			releaseEasing = "CameraEasing",
+			clock = "CameraClock",
 			requiresOneOf = { "unitName", "position" },
 		}, summarizeSchema(action))
 	end)
@@ -68,7 +69,8 @@ describe("mission_api.actions.follow_camera", function()
 			2,
 			"inOutSine",
 			1,
-			"linear"
+			"linear",
+			"game"
 		)
 
 		assert.are.same({
@@ -90,6 +92,7 @@ describe("mission_api.actions.follow_camera", function()
 					restoreEasing = "inOutSine",
 					releaseDuration = 1,
 					releaseEasing = "linear",
+					clock = "game",
 				},
 			},
 		}, sent)
