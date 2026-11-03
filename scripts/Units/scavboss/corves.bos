@@ -134,7 +134,7 @@ FireWeapon1()
 	if ( (BarrelLastFired==2) )
 	{
 		emit-sfx 1024 + 0 from BarrelFlare1;
-		move BarrelExit to z-axis [-2.400000] speed [500.0];
+		move BarrelExit to z-axis [-2.4] speed [500.0];
 		emit-sfx 1024 + 0 from BarrelFlare1;
 		wait-for-move BarrelExit along z-axis;
 		move BarrelExit to z-axis [0.0] speed [3.0];
@@ -143,7 +143,7 @@ FireWeapon1()
 	else
 	{
 		emit-sfx 1024 + 0 from BarrelFlare2;
-		move BarrelExit to z-axis [-2.400000] speed [500.0];
+		move BarrelExit to z-axis [-2.4] speed [500.0];
 		emit-sfx 1024 + 0 from BarrelFlare2;
 		wait-for-move BarrelExit along z-axis;
 		move BarrelExit to z-axis [0.0] speed [3.0];

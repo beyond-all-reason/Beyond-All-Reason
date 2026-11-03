@@ -11,7 +11,7 @@ static-var  isMoving, isAiming, animFramesPerKeyframe, wpn1_lasthead, animSpeed,
 
 // Signal definitions
 #define SIGNAL_MOVE			1
-#define SIGNAL_AIM			2
+#define SIGNAL_AIM1			256
 
 Walk() {
 	set-signal-mask SIGNAL_MOVE;
@@ -289,13 +289,12 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 4 * (44/10)) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>44) animSpeed = 44;
 		sleep 164;
 	}
 }
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
@@ -340,11 +339,6 @@ Create()
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum = pelvis;
-}
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -368,25 +362,25 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 15000;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = sleeve;
+	pieceIndex = sleeve;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	isAiming = TRUE;
-	signal SIGNAL_AIM;
+	signal SIGNAL_AIM1;
 	
 	turn aimy1 to y-axis heading speed <20.0>;
 	
@@ -405,10 +399,10 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	isAiming = TRUE;
-	signal SIGNAL_AIM;
+	signal SIGNAL_AIM1;
 	
 	turn aimy1 to y-axis heading speed <20.0>;
 	
@@ -427,7 +421,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	++shotcount;
 	emit-sfx 1024 + 0 from flare1;
@@ -450,7 +444,7 @@ FirePrimary()
 	spin sleevedeco2 around z-axis speed <-360> accelerate <6>;
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	++shotcount;
 	emit-sfx 1024 + 0 from flare1;

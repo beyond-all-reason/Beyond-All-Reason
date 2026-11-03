@@ -331,7 +331,6 @@ RockUnit(anglex, anglez)
 Create()
 {
 	hide flare;
-	hide flare;
 	isMoving = FALSE;
 	isSteering = FALSE;
 	oldHeading = get HEADING;
@@ -473,7 +472,7 @@ Killed(severity, corpsetype)
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rbthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rbfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rbleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;

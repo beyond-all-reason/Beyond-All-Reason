@@ -275,7 +275,7 @@ Create()
 	isMoving = FALSE;
 	isAiming = FALSE;
 	canAim = 1;
-	gun_1 = 1;
+	gun_1 = 0;
 
 	restore_delay = 3000;
 	start-script MotionControl();
@@ -288,11 +288,13 @@ SetMaxReloadTime(reloadMS)
 
 StartMoving(reversing)
 {
+	signal SIGNAL_MOVE;
 	isMoving = TRUE;
 }
 
 StopMoving()
 {
+	signal SIGNAL_MOVE;
 	isMoving = FALSE;
 }
 
@@ -316,9 +318,9 @@ AimWeapon1(heading, pitch)
 	turn body to y-axis heading speed Weapon1TurretY;
 	turn lturret to x-axis 0 - pitch speed Weapon1TurretX;
 	turn rturret to x-axis 0 - pitch speed Weapon1TurretX;
-	while( !canAim )
+	if ( !canAim )
 	{
-		return(0);
+		return (0);
 	}
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
@@ -347,22 +349,22 @@ AimWeapon2(heading, pitch)
 
 FireWeapon1()
 {
-	if( gun_1 == 1 )
+	if( gun_1 == 0 )
 	{
 		emit-sfx 1024 + 0 from lflare;
 		move lbarrel to z-axis [-2.0] speed [30.0];
 		sleep 100;
 		move lbarrel to z-axis [0.0] speed [10.0];
-		gun_1 = 2;
+		gun_1 = 1;
 		return (0);
 	}
-	if( gun_1 == 2 )
+	if( gun_1 == 1 )
 	{
 		emit-sfx 1024 + 0 from rflare;
 		move rbarrel to z-axis [-2.0] speed [30.0];
 		sleep 100;
 		move rbarrel to z-axis [0.0] speed [10.0];
-		gun_1 = 1;
+		gun_1 = 0;
 	}
 }
 
@@ -386,14 +388,7 @@ AimFromWeapon2(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 1 )
-	{
-		pieceIndex = lflare;
-	}
-	if( gun_1 == 2 )
-	{
-		pieceIndex = rflare;
-	}
+	pieceIndex = lflare + gun_1;
 }
 
 

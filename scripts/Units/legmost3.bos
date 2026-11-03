@@ -33,8 +33,6 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask 0;
-	set-signal-mask SIGNAL_AIM1;
 	set-signal-mask SIGNAL_MOVE;
 	sleep 2000;
 	start-script ExecuteRestoreAfterDelay();
@@ -89,6 +87,7 @@ Create()
 	isMoving = 0;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
+	call-script Activate();
 }
 
 Activate()

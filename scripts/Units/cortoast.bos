@@ -1,5 +1,4 @@
 
-
 #include "../recoil_common_includes.h"
 #include "smart_weapon_select.h"
 
@@ -28,7 +27,7 @@ openTurret()
 }
 
 closeTurret()
-{ 
+{
 	if (lastHeading <= <-135.0>)
 	{
 		cardinalHeading = <180.0>;
@@ -98,7 +97,7 @@ ExecuteRestoreAfterDelay()
 	turn turret to x-axis <0.0> speed <50.005495>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
-	
+
 	start-script Stop();
 }
 
@@ -130,14 +129,13 @@ Create()
 	start-script RestoreAfterDelay();
 }
 
-
 #define BASEPIECE base
 #define MAXTILT 0
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 aimCommon(heading, pitch)
 {
-	while( turretOpen == 0 )
+	while(!turretOpen)
 	{
 		sleep 250;
 	}
@@ -157,7 +155,6 @@ AimWeapon1(heading, pitch)
 	}
 	start-script Go();
 
-
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
 
@@ -171,7 +168,7 @@ AimWeapon1(heading, pitch)
 	{
 		return(0);
 	}
-	
+
 	return (1);
 }
 
@@ -255,11 +252,11 @@ QueryWeapon2(pieceIndex)
 {
 	pieceIndex = flare;
 }
+
 QueryWeapon3(pieceIndex)
 {
 	pieceIndex = turretmidpoint;
 }
-
 
 
 Killed(severity, corpsetype)

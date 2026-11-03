@@ -71,7 +71,7 @@ FireWeapon1()
 	emit-sfx 1024 + 0 from flare;
 	move barrel to z-axis [-3.0] speed [1250.0];
 	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.0] speed [7.500000];
+	move barrel to z-axis [0.0] speed [7.5];
 }
 
 AimFromWeapon1(pieceIndex)

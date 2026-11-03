@@ -275,10 +275,10 @@ UnitSpeed(){
 }
 StartMoving(reversing){
 	signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
-  start-script UnitSpeed(); 
+	start-script UnitSpeed();
 }
 StopMoving(){
 	signal SIGNAL_MOVE;
@@ -373,8 +373,8 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-7.500000] speed [56.250000];
-	move barrel to z-axis [0.0] speed [2.500000];
+	move barrel to z-axis [-7.5] speed [56.25];
+	move barrel to z-axis [0.0] speed [2.5];
 }
 
 Killed(severity, corpsetype)

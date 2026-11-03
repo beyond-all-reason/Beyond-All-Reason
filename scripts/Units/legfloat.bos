@@ -73,7 +73,7 @@ WobbleUnit()
 		{
 			if( inwater ) //Over Water
 			{
-				move base to y-axis [-10.250000] speed [0.50000];
+				move base to y-axis [-10.250000] speed [0.5];
 				wait-for-move base along y-axis;
 			}
 		}
@@ -81,7 +81,7 @@ WobbleUnit()
 		{
 			if( inwater ) //Over Water
 			{
-				move base to y-axis [-11.0] speed [0.50000];
+				move base to y-axis [-11.0] speed [0.5];
 				wait-for-move base along y-axis;
 			}
 		}

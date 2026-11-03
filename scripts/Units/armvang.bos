@@ -15,10 +15,6 @@ static-var  last_primary_heading, last_primary_pitch;
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
 
-#define LOW_TRAJECTORY		0
-#define HIGH_TRAJECTORY		1
-
-
 // Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -572,7 +568,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 3) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>6) animSpeed = 6;
 		sleep 98;
@@ -628,10 +623,10 @@ Create()
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned)
+	if (Stunned)
 	{
-        return (1);
-    }
+		return (1);
+	}
 	set-signal-mask 0;
 	turn turret to y-axis <0.0> speed <36.0>;
 	turn aimx1 to x-axis <0.0> speed <30.0>;
@@ -644,9 +639,9 @@ ExecuteRestoreAfterDelay()
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 
@@ -775,6 +770,11 @@ QueryWeapon3(pieceIndex)
 AimWeapon3(pieceIndex)
 {
 	return (0);
+}
+
+AimFromWeapon3(pieceIndex)
+{
+	pieceIndex = turretmidpoint;
 }
 
 

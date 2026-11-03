@@ -5,7 +5,7 @@ piece pelvis, aimy1, torso, aimx1, sleeve, barrel, flare, armor, flap, lthigh, l
 
 static-var  isMoving, animSpeed, maxSpeed, animFramesPerKeyframe;
 
-lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 {
 	return 0;
 }
@@ -110,8 +110,7 @@ StopWalking() {
 	turn rthigh to x-axis <0> speed <3788.745992> / animSpeed;
 	turn sleeve to x-axis <0> speed <464.935024> / animSpeed;
 	turn torso to y-axis <0> speed <320.718111> / animSpeed;
-	
-	
+
 	turn lthigh to y-axis <10> speed <600> / animSpeed;
 	turn rthigh to y-axis <-10> speed <600> / animSpeed;
 	turn lleg to y-axis <5> speed <600> / animSpeed;
@@ -126,8 +125,7 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		animSpeed = (maxSpeed * 4) / animSpeed;
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>10) animSpeed = 10;
 		sleep 164;
@@ -234,13 +232,13 @@ AimWeapon1(heading, pitch)
 		move flap to y-axis [0.0] speed [1];
 		move flap to z-axis [0.0] speed [6];
 	}
-	
+
 	turn aimy1 to y-axis heading speed <140>;
 	turn aimx1 to x-axis <0.0> - pitch speed <50>;
-	
-	wait-for-turn aimy1 around y-axis; 
+
+	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	
+
 	start-script RestoreAfterDelay();
 
 	var reloading;
@@ -263,34 +261,33 @@ FireWeapon1()
 }
 
 //use call-script DeathAnim(); from Killed()
-DeathAnim() 
+DeathAnim()
 {
 	signal SIGNAL_MOVE;
 	signal SIGNAL_AIM1;
 	call-script StopWalking();
 	sleep (100);
-	
+
 	turn aimy1 to y-axis <0> speed <600>;
 	turn aimx1 to x-axis <0> speed <200>;
-	
+
 	turn torso to y-axis <40> speed <200>;
 	turn sleeve to x-axis <-40> speed <200>;
-	
+
 	move pelvis to y-axis [-9] speed [30];
 	turn pelvis to x-axis <75> speed <300>;
-	
+
 	turn lthigh to y-axis <60> speed <200>;
 	turn rthigh to y-axis <-60> speed <200>;
-	
+
 	turn lthigh to x-axis <-25> speed <200>;
 	turn rthigh to x-axis <-25> speed <200>;
-	
+
 	turn lleg to x-axis <15> speed <200>;
 	turn rleg to x-axis <15> speed <200>;
-	
+
 	sleep (300);
 }
-
 
 Killed(severity, corpsetype)
 {

@@ -157,7 +157,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 4) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>10) animSpeed = 10;
 		sleep 164;
@@ -199,7 +198,6 @@ Create()
 {
 	Weapon1TurretX = <100>;
 	Weapon1TurretY = <300>;
-	animSpeed = 5;
 	hide flare;
 	hide aimx1;
 	hide aimy1;
@@ -238,7 +236,7 @@ SetStunned(State)
 {
 	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 

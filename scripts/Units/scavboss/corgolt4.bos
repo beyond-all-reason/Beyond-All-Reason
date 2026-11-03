@@ -36,7 +36,7 @@ static-var  restore_delay, last_lball_heading, last_rball_heading, willlaughing,
 
 HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
 {
-	var amount;//, speedz, speedx;
+	var amount;
 	amount = damage / (100 * UNITSIZE);
 	if (amount < 3  ) return (0);
 	if (amount > MAXTILT) amount = MAXTILT;
@@ -53,16 +53,16 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	if ((dmg<5000) AND (waslaughing==0) AND (islaughing==0) AND (willlaughing==0)) {
 		start-script startLaughing();
 	}
-	
+
 	if ((dmg>90000) AND (willlaughing==0) AND (islaughing==1)) {
 		start-script stopLaughing();
 	}
-	
+
 	healthperc = get HEALTH;
 	if ((islaughing==1) AND (healthperc < 5)) {
 		start-script stopLaughing();
 	}
-	
+
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
 }
@@ -70,7 +70,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 startLaughing (){
 	if (willlaughing==0) {
 		willlaughing = 1;
-		
+
 		//animate flag in
 		show flag;
 		move flag to y-axis [34] speed [200.0];//start is 14 abs, 0 rel...
@@ -84,12 +84,12 @@ stopLaughing (){
 	if (islaughing==1 AND waslaughing==0) {
 		islaughing = 0;
 		waslaughing = 1;
-		
+
 		//animate flag out
 		move flag to y-axis [0] speed [200.0];//start is 14 abs, 0 rel...
-		sleep 1000;		
+		sleep 1000;
 		hide flag;
-		
+
 		start-script reset_waslaughing();
 	}
 }
@@ -168,7 +168,6 @@ ExecuteRestoreAfterDelay()
     }
 	turn turret to y-axis <0.0> speed <35.005495>;
 	turn sleeve to x-axis <0.0> speed <15.0>;
-	
 }
 
 SetStunned(State)
@@ -220,7 +219,7 @@ FireWeapon1()
 {
 	lastfired = 1;
 	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-2.400000] speed [500.0];
+	move barrel to z-axis [-2.4] speed [500.0];
 	emit-sfx 1024 + 0 from flare;
 	wait-for-move barrel along z-axis;
 	move barrel to z-axis [0.0] speed [3.0];
@@ -267,7 +266,7 @@ AimWeapon2(heading, pitch)
 FireWeapon2()
 {
 	lastfired = 2;
-	move lbarrel to z-axis [-1] speed [62.500000];
+	move lbarrel to z-axis [-1] speed [62.5];
 	wait-for-move lbarrel along z-axis;
 	move lbarrel to z-axis [0.0] speed [4.0];
 }
@@ -311,7 +310,7 @@ AimWeapon3(heading, pitch)
 FireWeapon3()
 {
 	lastfired=3;
-	move rbarrel to z-axis [-1] speed [62.500000];
+	move rbarrel to z-axis [-1] speed [62.5];
 	wait-for-move rbarrel along z-axis;
 	move rbarrel to z-axis [0.0] speed [4.0];
 }

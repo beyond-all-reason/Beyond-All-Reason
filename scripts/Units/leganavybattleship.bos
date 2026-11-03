@@ -81,8 +81,8 @@ piece
 // initialisation
 
 static-var justCreated, whichBarrel;
-static-var reloading_barrel_1, reloading_barrel_2, last_primary_heading2, last_primary_heading3;
-static-var deltaheading, newchassisheading, chassisheading, restore_position, aimDir1;
+static-var last_primary_heading2, last_primary_heading3;
+static-var aimDir1;
 // Signal definitions
 #define SIGNAL_AIM1	256
 #define SIGNAL_AIM2 512
@@ -97,28 +97,32 @@ static-var deltaheading, newchassisheading, chassisheading, restore_position, ai
 #define RB_PITCH_ACCELERATION 10
 #define RB_ROLL_ACCELERATION 16
 #define RB_RECOIL_ENERGY_1 150
-#define RB_RECOIL_ENERGY_2 150
 #define RB_BOWSPLASH_PIECE bow
 
 #include "../bar_ships_common.h"
 
-//-------------------------------CONSTANT ACCELERATION mainTurretHousing TURNING---------------------------
-// MaxVelocity and acceleration are in degrees per frame (not second!)
-// Jerk is the minimum velocity of the mainTurretHousing
-// A high precision requirement can result in overshoots if desired 
-// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
-// adjustments by Itanthias
-#define MAX_AIMY1_VELOCITY <2.20>
-#define AIMY1_ACCELERATION <0.3>
-#define AIMY1_SNAP_TOLERANCE <0.5>
-#define AIMY1_PRECISION <10>
-#define AIMY1_RESTORE_SPEED <1.0>
-
-static-var aimy1delta, timetozero, deceleratethreshold;
-static-var aimy1velocity, aimy1target, aimy1position;
 static-var  Stunned;
 static-var  isMoving, inWaterForm,
             restore_delay, isInWater;
+
+//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+// MaxVelocity and acceleration are in degrees per frame (not second!)
+// Jerk is the minimum velocity of the turret
+// A high precision requirement can result in overshoots if desired 
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+// adjustments by Itanthias
+
+#define CATT1_PIECE_Y mainTurretHeadingPivot
+
+#define CATT1_MAX_VELOCITY <2.20>
+#define CATT1_ACCELERATION <0.3>
+#define CATT1_JERK <0.5>
+#define CATT1_PRECISION <10>
+#define CATT1_RESTORE_SPEED <1.0>
+
+#define HAS_STUN
+
+#include "../constant_acceleration_turret_turning_1.h"
 
 /////////////////////////////////////////////////////////////// WALK CYCLE
 
@@ -1139,14 +1143,13 @@ Open()
 
 ExecuteRestoreAfterDelay()
 {
-	while (Stunned) {
-		sleep 1;
+	if (Stunned) {
+		return (1);
 	}
 
-	restore_position = 1;
+	start-script CATT1_Restore();
 	last_primary_heading2 = -1000000;
 	last_primary_heading3 = -1000000;
-	turn mainTurretHeadingPivot to y-axis <0> speed <30>;
 	turn mainTurretPitchPivot to x-axis <0> speed <30>;
 	move base to z-axis [0] speed [100];
 }
@@ -1161,87 +1164,6 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
-}
-
-AimControl()
-{
-	
-	//-------------------------------CONSTANT ACCELERATION mainTurretHousing TURNING---------------------------
-	while( TRUE  ){
-		// only turn when not stunned
-		if (Stunned == 0){
-
-			// apply correction for chassis turning
-			newchassisheading = get HEADING; //get heading
-			deltaheading = newchassisheading - chassisheading;
-			chassisheading = newchassisheading;
-			aimy1target = aimy1target - deltaheading;
-
-			// apply aimy1target for neutral, restored, position
-			if (restore_position == 1)
-			{
-				aimy1target = 0;
-			}
-	
-			aimy1delta = aimy1target - aimy1position ; 	
-			//Clamp angles between <-180>;<180>
-			while (aimy1target >  <180>) aimy1target = aimy1target - <360>;
-			while (aimy1target < <-180>) aimy1target = aimy1target + <360>;
-			while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
-			while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
-			while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
-			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
-			
-			// Snap mainTurretHousing exactly to aimy1target if within snap tolerance
-			if (get ABS(aimy1delta) < AIMY1_SNAP_TOLERANCE) {
-				aimy1position = aimy1target;
-				turn mainTurretHeadingPivot to y-axis aimy1position now;	
-
-				// velocity match to chassis heading change
-				if ( (restore_position == 0) ){
-					aimy1velocity = (-1)*deltaheading;
-					// clamp velocity to max value
-					aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity); 
-					aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity);
-				}
-				else
-				{
-					aimy1velocity = 0;
-				}
-			}
-			else
-			{
-
-				//number of frames required to decelerate to 0
-				//account for chassis rotation speed
-				timetozero = get ABS(aimy1velocity - deltaheading) / AIMY1_ACCELERATION;
-			
-				//distance from target where we should start decelerating, always 'positive'
-				//pos = t * v - (t*(t-1)*a/2)
-				deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
-			
-				if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
-					if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
-					else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
-			
-				}	
-				else //we need to accelerate
-				{
-					if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
-					else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
-				}
-
-				if (get ABS(aimy1velocity) < (2 * AIMY1_SNAP_TOLERANCE) ){
-					if (get ABS(aimy1delta) < AIMY1_SNAP_TOLERANCE) aimy1velocity = aimy1delta;
-				}
-			
-				aimy1position = aimy1position + aimy1velocity; 
-				turn mainTurretHeadingPivot to y-axis aimy1position now;
-			}
-
-		}
-		sleep 30;
-	}
 }
 
 Movement() {
@@ -1317,26 +1239,26 @@ WobbleUnit()
 Wake()
 {
 	var waketime;
-    var bowtime;
-    bowtime = 0;
+	var bowtime;
+	bowtime = 0;
 	while( TRUE )
 	{
 	if( isInWater )
 		{
-        	if (bowtime AND isMoving and isInWater){
+			if (bowtime AND isMoving and isInWater){
 				emit-sfx 1024 + 1 from wake;
 				emit-sfx 1024 + 2 from bow;
 			}
-        	bowtime = !bowtime;
-        	waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-        	if( waketime < 20 ) waketime = 20;
-        	sleep 15000 / waketime;
-        }
-    if( !isInWater )
+			bowtime = !bowtime;
+			waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+			if( waketime < 20 ) waketime = 20;
+			sleep 15000 / waketime;
+		}
+	if( !isInWater )
 		{
 			sleep 500;
 		}
-    }
+	}
 }
 
 FiringMode(){
@@ -1441,15 +1363,6 @@ FiringMode(){
 
 Create()
 {
-	chassisheading = get HEADING;
-	newchassisheading = chassisheading;
-	deltaheading = 0;
-
-	restore_position = 1;
-
-	aimy1position = 0;
-	aimy1target = 0;
-	aimy1delta = 0;
 	inWaterForm = 1;
 	justCreated = 1;
 	isInWater = 1;
@@ -1546,7 +1459,7 @@ Create()
 		call-script StopWalking();
 	}
 
-	start-script AimControl();
+	start-script CATT1_Init();
 }
 
 SetMaxReloadTime(reloadMS)
@@ -1563,21 +1476,11 @@ AimWeapon1(heading, pitch)
 
 	if(isInWater){
 		//We can do this any time
-		restore_position = 0;
 		turn mainTurretPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <30.0>;
 		start-script RestoreAfterDelay();
 
-		// let AimControl know what to aim at
-		aimy1target = heading;
-		while ( TRUE )
-		{
-			// condition 1, is aim good?
-			aimy1delta = aimy1target - aimy1position ; 	
-			if (get ABS(aimy1delta) < AIMY1_PRECISION) {
-				return (1); 
-			}
-			sleep 1;
-		}
+		call-script CATT1_Aim(heading,pitch);
+		return (1);
 	}
 	else{
 		start-script RestoreAfterDelay();
@@ -1653,21 +1556,11 @@ AimWeapon2(heading, pitch)
 
 	if(!isInWater){
 		//We can do this any time
-		restore_position = 0;
 		turn mainTurretPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <30.0>;
 		start-script RestoreAfterDelay();
 
-		// let AimControl know what to aim at
-		aimy1target = heading;
-		while ( TRUE )
-		{
-			// condition 1, is aim good?
-			aimy1delta = aimy1target - aimy1position ; 	
-			if (get ABS(aimy1delta) < AIMY1_PRECISION) {
-				return (1); 
-			}
-			sleep 1;
-		}
+		call-script CATT1_Aim(heading,pitch);
+		return (1);
 	}
 	else{
 		start-script RestoreAfterDelay();
