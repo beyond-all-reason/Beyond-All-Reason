@@ -19,9 +19,7 @@ local validationReport = VFS.Include("luarules/mission_api/validation/report.lua
 
 local missionLoaded = true
 local missionLoadError
-
--- What Initialize is doing, named in the message when a Lua error stops it.
-local loadStep = "loading the Mission API"
+local missionLoadStep
 
 local function failMission(reason)
 	GG["MissionAPI"] = nil
@@ -32,6 +30,8 @@ end
 local objectivesController, stagesController, triggersController, actionsController
 
 local function setUpMissionAPI(gameSetup)
+	missionLoadStep = "loading the Mission API"
+
 	GG["MissionAPI"] = {}
 	GG["MissionAPI"].Options = gameSetup.options
 	GG["MissionAPI"].Variables = gameSetup.variables
@@ -94,9 +94,9 @@ local function validateMission(mission)
 end
 
 local function loadMission(gameSetup)
-	loadStep = "loading " .. gameSetup.entryPoint
+	missionLoadStep = "loading " .. gameSetup.entryPoint
 	local mission = VFS.Include(gameSetup.entryPoint)
-	loadStep = "validating " .. gameSetup.entryPoint
+	missionLoadStep = "validating " .. gameSetup.entryPoint
 	local validationResult = validateMission(mission)
 
 	if not validationResult.ok then
@@ -104,7 +104,7 @@ local function loadMission(gameSetup)
 		return
 	end
 
-	loadStep = "processing " .. gameSetup.entryPoint
+	missionLoadStep = "processing " .. gameSetup.entryPoint
 
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
@@ -174,9 +174,8 @@ function gadget:Initialize()
 	end, withTraceback)
 
 	if not loaded then
-		-- The engine's include error names the file it was loading ("file=<path>"), so a failing module names itself.
 		local failedPath = tostring(loadError):match("file=(%S+)")
-		local step = failedPath and ("loading " .. failedPath) or loadStep
+		local step = failedPath and ("loading " .. failedPath) or missionLoadStep
 		local message = "Lua error while " .. step .. ": " .. tostring(loadError)
 		local report = validationReport.Create()
 		report.Error(validationReport.Sections.Loading, nil, nil, message)
