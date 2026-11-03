@@ -7,14 +7,14 @@
 //#define WALK_PERIOD 100
 
 
-piece	flare1, flare2, flare3, flare4, base, doorl, doorr, weight, turret1, turret2, sleeve, barrel, leg1a, leg1b, leg1c, leg2a, leg2b, leg2c, leg3a, leg3b, leg3c, leg4a, leg4b, leg4c, leg5a, leg5b, leg5c, leg6a, leg6b, leg6c, aimy1, aimfromy, light;
+piece	flare1, flare2, flare3, flare4, base, doorl, doorr, weight, turret1, turret2, sleeve, barrel, leg1a, leg1b, leg1c, leg2a, leg2b, leg2c, leg3a, leg3b, leg3c, leg4a, leg4b, leg4c, leg5a, leg5b, leg5c, leg6a, leg6b, leg6c, aimfromy, light;
 
 static-var fire_count, firing, open, maxreloadtime, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
 #define SIGNAL_AIM1 256
 #define SIGNAL_SHOOT1 16
 #define SIGNAL_MOVE 1
-#define SMOKEPIECE1 body
+#define SMOKEPIECE1 base
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armsptk_anim_walk.blend 
 	//set-signal-mask SIGNAL_MOVE;
@@ -138,7 +138,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn leg6b to y-axis <-1.165111> speed <5.222434> / animSpeed; //delta=0.17 
 			turn leg6c to z-axis <-22.324612> speed <945.774160> / animSpeed; //delta=-31.53 
 			turn turret1 to x-axis <4.999999> speed <149.999985> / animSpeed; //delta=-5.00 
-			turn turret2 to x-axis <4.999999> speed <149.999985> / animSpeed; //delta=-5.00 
+			// turn turret2 to x-axis <4.999999> speed <149.999985> / animSpeed; //delta=-5.00 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:21
@@ -170,7 +170,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn leg6b to y-axis <-1.060665> speed <3.133379> / animSpeed; //delta=0.10 
 			turn leg6c to z-axis <9.201177> speed <945.773673> / animSpeed; //delta=-31.53 
 			turn turret1 to x-axis <-0.0> speed <149.999983> / animSpeed; //delta=5.00 
-			turn turret2 to x-axis <-0.0> speed <149.999983> / animSpeed; //delta=5.00 
+			// turn turret2 to x-axis <-0.0> speed <149.999983> / animSpeed; //delta=5.00 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:25
@@ -261,7 +261,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn leg6b to z-axis <7.481733> speed <705.956451> / animSpeed; //delta=-23.53 
 			turn leg6c to z-axis <-9.779541> speed <1148.253931> / animSpeed; //delta=38.28 
 			turn turret1 to x-axis <4.999999> speed <149.999972> / animSpeed; //delta=-5.00 
-			turn turret2 to x-axis <4.999999> speed <149.999972> / animSpeed; //delta=-5.00 
+			// turn turret2 to x-axis <4.999999> speed <149.999972> / animSpeed; //delta=-5.00 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:37
@@ -293,7 +293,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn leg6b to y-axis <-1.407501> speed <133.642875> / animSpeed; //delta=-4.45 
 			turn leg6c to z-axis <-22.361993> speed <377.473572> / animSpeed; //delta=12.58 
 			turn turret1 to x-axis <0.0> speed <149.999970> / animSpeed; //delta=5.00 
-			turn turret2 to x-axis <0.0> speed <149.999970> / animSpeed; //delta=5.00 
+			// turn turret2 to x-axis <0.0> speed <149.999970> / animSpeed; //delta=5.00 
 		sleep ((33*animSpeed) -1);
 		}
 	}
@@ -335,7 +335,7 @@ StopWalking() {
 	turn leg6b to z-axis <0.0> speed <452.167684>;
 	turn leg6c to z-axis <0.0> speed <471.767008>;
 	turn turret1 to x-axis <0.0> speed <37.499996>;
-	turn turret2 to x-axis <0.0> speed <37.499996>;
+	// turn turret2 to x-axis <0.0> speed <37.499996>;
 }
 // REMEMBER TO animspeed = 4 in Create() !!
 UnitSpeed(){
@@ -378,7 +378,6 @@ Create()
 	hide flare3;
 	hide flare2;
 	hide flare4;
-	hide aimy1;
 	fire_count=0;
 	animspeed = 4;
 	maxreloadtime=0;
@@ -570,10 +569,13 @@ AimWeapon2(heading, pitch)
 
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret2 to y-axis heading speed <225.0>;
-	turn sleeve to x-axis <0> - pitch speed <225.0>;
 	
+	wait-for-turn sleeve around x-axis;
+	
+	turn sleeve to x-axis <0> - pitch speed <225.0>;
+	turn turret2 to y-axis heading speed <225.0>;
 	wait-for-turn turret2 around y-axis;
+	
 
 	start-script RestoreAfterDelay2();
 	return (1);
