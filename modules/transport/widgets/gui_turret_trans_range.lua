@@ -81,7 +81,7 @@ end
 
 function widget:DrawWorldPreUnit()
 	local _, cmdId, _, _ = spGetActiveCmd()
-	if cmdId ~= CMD_UNLOAD_UNITS or not widgetHandler:ModalAllows(widget) then
+	if cmdId ~= CMD_UNLOAD_UNITS then
 		return
 	end
 	local sel = GetSelectedUnitsSorted()
