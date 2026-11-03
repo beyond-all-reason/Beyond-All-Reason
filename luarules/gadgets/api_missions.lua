@@ -181,7 +181,10 @@ function gadget:Initialize()
 	end, withTraceback)
 
 	if not loaded then
-		local failedPath = tostring(loadError):match("file=(%S+)")
+		local failedPath
+		for path in tostring(loadError):gmatch("file=(.-) %a+=") do
+			failedPath = path
+		end
 		local step = failedPath and ("loading " .. failedPath) or missionLoadStep
 		local message = "Lua error while " .. step .. ": " .. tostring(loadError)
 		loadReport.Error(validationReport.Sections.Loading, nil, nil, message)
