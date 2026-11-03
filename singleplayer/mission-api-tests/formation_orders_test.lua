@@ -59,10 +59,11 @@ local actions = {
 	},
 
 	moveEastKeepingShape = {
-		type = actionTypes.IssueFormationOrders,
+		type = actionTypes.IssueOrders,
 		parameters = {
 			unitName = 'squad',
-			position = { x = 2400, z = 1150 },
+			orders = { { CMD.MOVE, { 2400, 0, 1150 } } },
+			formation = {},
 		},
 	},
 
@@ -74,11 +75,11 @@ local actions = {
 	},
 
 	moveSouthFacingSouth = {
-		type = actionTypes.IssueFormationOrders,
+		type = actionTypes.IssueOrders,
 		parameters = {
 			unitName = 'squad',
-			position = { x = 2400, z = 2400 },
-			direction = { angle = 180 },
+			orders = { { CMD.MOVE, { 2400, 0, 2400 } } },
+			formation = { direction = { angle = 180 } },
 		},
 	},
 
@@ -90,11 +91,12 @@ local actions = {
 	},
 
 	fightAlongLine = {
-		type = actionTypes.IssueFormationOrders,
+		type = actionTypes.IssueOrders,
 		parameters = {
 			unitName = 'squad',
-			command = CMD.FIGHT,
-			positions = { { x = 1400, z = 3000 }, { x = 2000, z = 3200 }, { x = 2600, z = 3000 } },
+			-- Several points in one order are a line.
+			orders = { { CMD.FIGHT, { 1400, 0, 3000, 2000, 0, 3200, 2600, 0, 3000 } } },
+			formation = {},
 		},
 	},
 
@@ -106,20 +108,20 @@ local actions = {
 	},
 
 	moveNorth = {
-		type = actionTypes.IssueFormationOrders,
+		type = actionTypes.IssueOrders,
 		parameters = {
 			unitName = 'squad',
-			position = { x = 1000, z = 1800 },
+			orders = { { CMD.MOVE, { 1000, 0, 1800 } } },
+			formation = {},
 		},
 	},
 
 	queueMoveEastFacingNorth = {
-		type = actionTypes.IssueFormationOrders,
+		type = actionTypes.IssueOrders,
 		parameters = {
 			unitName = 'squad',
-			position = { x = 2400, z = 1800 },
-			direction = { x = 2400, z = 0 },
-			queue = true,
+			orders = { { CMD.MOVE, { 2400, 0, 1800 }, { 'shift' } } },
+			formation = { direction = { x = 2400, z = 0 } },
 		},
 	},
 

@@ -549,17 +549,32 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
-local function validateFormationOrdersAction(context, actionReport, actionID, action)
+-- A MOVE, FIGHT or PATROL order with more than one point is a line, which only a formation spreads the units along.
+local function isLineOrder(order)
+	if type(order) ~= "table" or type(order[2]) ~= "table" or #order[2] <= 3 then
+		return false
+	end
+	local command = order[1]
+	return command == CMD.MOVE or command == CMD.FIGHT or command == CMD.PATROL
+end
+
+local function validateIssueOrdersAction(context, actionReport, actionID, action)
 	local parameters = action.parameters
-	if action.type ~= context.ActionTypes.IssueFormationOrders or type(parameters) ~= "table" then
+	if action.type ~= context.ActionTypes.IssueOrders or type(parameters) ~= "table" then
+		return
+	end
+	if type(parameters.orders) ~= "table" or parameters.formation ~= nil then
 		return
 	end
 
-	if parameters.position ~= nil and parameters.positions ~= nil then
-		actionReport.Error(actionID, "IssueFormationOrders takes position or positions, not both")
-	end
-	if parameters.direction ~= nil and parameters.positions ~= nil then
-		actionReport.Error(actionID, "Parameter 'direction' needs position, not positions", "Parameter: direction")
+	for index, order in ipairs(parameters.orders) do
+		if isLineOrder(order) then
+			actionReport.Error(
+				actionID,
+				"An order with more than one point is a line, which needs formation",
+				"Parameter: orders[" .. index .. "][2]"
+			)
+		end
 	end
 end
 
@@ -572,7 +587,7 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 			validateAttributeAction(actionReport, actionID, action)
 			validateChangeTeamAction(context, actionReport, actionID, action)
-			validateFormationOrdersAction(context, actionReport, actionID, action)
+			validateIssueOrdersAction(context, actionReport, actionID, action)
 		end
 	end
 end

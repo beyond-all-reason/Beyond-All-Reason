@@ -1,5 +1,10 @@
-local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
-local matchingUnits = GG['MissionAPI'].Modules.UnitQuery.MatchingUnits
+---
+--- Orders for a group the way a player's formation move gives them: each MOVE, FIGHT or PATROL order sends each
+--- unit to its own spot, worked out from where the units are. IssueOrders gives orders this way with `formation`.
+---
+--- The engine makes formation moves only for a player's own orders to their selection, so synced Lua needs this.
+---
+
 local Formation = VFS.Include("luarules/mission_api/formation_math.lua")
 
 -- In elmos. Closer than this, the way between two points says nothing about which way the group will face.
@@ -89,21 +94,33 @@ local function getTurn(units, starts, queue, direction, destination)
 	return 0
 end
 
-local function issueFormationOrders(unitName, command, position, positions, direction, queue)
-	local units = table.filterArray(matchingUnits(unitName), function(unitID)
-		-- A factory can move, to take rally orders, but has no speed.
-		local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
-		return Spring.GetUnitIsDead(unitID) == false
-			and unitDef.canMove
-			and unitDef.speed > 0
-			and not Spring.GetUnitIsBeingBuilt(unitID)
-			and not Spring.GetUnitTransporter(unitID)
-	end)
-	if #units == 0 then
-		return
+-- A factory can move, to take rally orders, but has no speed.
+local function canSpread(unitID)
+	local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
+	return unitDef ~= nil
+		and unitDef.canMove
+		and unitDef.speed > 0
+		and not Spring.GetUnitIsBeingBuilt(unitID)
+		and not Spring.GetUnitTransporter(unitID)
+end
+
+local function isSpreadOrder(order)
+	local command = order[1]
+	return command == CMD.MOVE or command == CMD.FIGHT or command == CMD.PATROL
+end
+
+-- A spread order with more than one point is a line: { x1, y1, z1, x2, y2, z2, ... }.
+local function linePoints(params)
+	local points = {}
+	for i = 1, #params - 2, 3 do
+		points[#points + 1] = { x = params[i], z = params[i + 2] }
 	end
-	-- The matching breaks ties by order, so the result must not depend on how the names table was filled.
-	table.sort(units)
+	return points
+end
+
+local function spreadOrder(units, order, direction)
+	local command, params, options = order[1], order[2], order[3] or {}
+	local queue = table.contains(options, "shift")
 
 	local starts = {}
 	for i, unitID in ipairs(units) do
@@ -112,42 +129,74 @@ local function issueFormationOrders(unitName, command, position, positions, dire
 
 	---@type table<integer, table>
 	local targets
-	if positions then
-		targets = Formation.AlongLine(starts, positions)
+	if #params > 3 then
+		targets = Formation.AlongLine(starts, linePoints(params))
 	else
-		local turn = direction and getTurn(units, starts, queue, direction, position) or 0
-		targets = Formation.AroundPoint(starts, position, turn)
+		local destination = { x = params[1], z = params[3] }
+		local turn = direction and getTurn(units, starts, queue, direction, destination) or 0
+		targets = Formation.AroundPoint(starts, destination, turn)
 	end
 
-	command = command or CMD.MOVE
-	local options = queue and { "shift" } or {}
-
-	-- Fence around mission-issued orders for UnitOrdered triggers using ignoreMissionActions.
-	GG['MissionAPI'].issuingOrders = true
 	for i, unitID in ipairs(units) do
 		local x, z = clampToMap(targets[i].x, targets[i].z)
 		Spring.GiveOrderToUnit(unitID, command, { x, Spring.GetGroundHeight(x, z), z }, options)
 	end
-	GG['MissionAPI'].issuingOrders = nil
+end
+
+-- Units that are not spread take the orders as written, a line as its first point.
+local function asWritten(orders)
+	local written = {}
+	for i, order in ipairs(orders) do
+		local params = order[2]
+		if isSpreadOrder(order) and #params > 3 then
+			written[i] = { order[1], { params[1], params[2], params[3] }, order[3] }
+		else
+			written[i] = order
+		end
+	end
+	return written
+end
+
+--- Nanoframes, transported units and units that cannot move take the orders as written; dead units take none.
+---@param unitIDs integer[]
+---@param orders table[] with unit and feature names already turned into IDs
+---@param formation table { direction: the way the shape faces at each point it keeps }
+local function giveFormationOrders(unitIDs, orders, formation)
+	local spread, others = {}, {}
+	for _, unitID in ipairs(unitIDs) do
+		if Spring.GetUnitIsDead(unitID) ~= false then
+			-- Dead, or no longer a unit.
+		elseif canSpread(unitID) then
+			spread[#spread + 1] = unitID
+		else
+			others[#others + 1] = unitID
+		end
+	end
+	-- The matching breaks ties by order, so the result must not depend on how the names table was filled.
+	table.sort(spread)
+
+	if #others > 0 then
+		local written = asWritten(orders)
+		for _, unitID in ipairs(others) do
+			Spring.GiveOrderArrayToUnit(unitID, written)
+		end
+	end
+
+	-- One order at a time to the whole group, so a queued order starts from where the one before it ends.
+	for _, order in ipairs(orders) do
+		if isSpreadOrder(order) then
+			if #spread > 0 then
+				spreadOrder(spread, order, formation.direction)
+			end
+		else
+			for _, unitID in ipairs(spread) do
+				Spring.GiveOrderToUnit(unitID, order[1], order[2], order[3] or {})
+			end
+		end
+	end
 end
 
 return {
-	{
-		type = 'IssueFormationOrders',
-		parameters = {
-			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-			-- CMD.MOVE when not given.
-			{ name = 'command', required = false, type = ParameterTypes.MoveCommand },
-			-- The units keep their shape around position.
-			{ name = 'position', required = false, type = ParameterTypes.Position },
-			-- The units spread evenly along the line.
-			{ name = 'positions', required = false, type = ParameterTypes.Positions },
-			-- The way the shape faces at position.
-			{ name = 'direction', required = false, type = ParameterTypes.Direction },
-			-- Add the move to the end of each unit's queue, as the 'shift' option does.
-			{ name = 'queue', required = false, type = ParameterTypes.Boolean },
-			requiresOneOf = { 'position', 'positions' },
-		},
-		actionFunction = issueFormationOrders,
-	},
+	GiveFormationOrders = giveFormationOrders,
+	IsSpreadOrder = isSpreadOrder,
 }

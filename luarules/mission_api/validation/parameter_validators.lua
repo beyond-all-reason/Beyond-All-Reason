@@ -493,6 +493,30 @@ local function registerSpatialValidators(parameterValidators, context)
 		local angleResult = validateField(direction.angle, "angle", "number")
 		return angleResult and { angleResult } or nil
 	end
+
+	local formationFields = { direction = Types.Direction }
+
+	--- IssueOrders' formation: { direction = Direction }, every field optional.
+	parameterValidators[Types.Formation] = function(formation)
+		local luaTypeResult = validateTableType(formation)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		local results = {}
+		for fieldName, value in pairs(formation) do
+			local fieldType = formationFields[fieldName]
+			if fieldType then
+				appendResults(results, parameterValidators[fieldType](value), "." .. fieldName)
+			else
+				results[#results + 1] = {
+					message = "Unknown formation field, expected direction",
+					parameterNameSuffix = "." .. tostring(fieldName),
+				}
+			end
+		end
+		return results
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -563,6 +587,29 @@ end
 
 local validateUnitNameParam = getNameValidator("unitName", "{ unitName = 'aUnitName' }")
 local validate3 = getNumberArrayValidator({ 3 }, "3 numbers {x, y, z}")
+
+-- One point, or several in threes { x1, y1, z1, x2, y2, z2, ... }: a line, which IssueOrders' formation spreads along.
+local function validatePoints(params, results)
+	local luaTypeResult = validateLuaType(params, "table")
+	if luaTypeResult then
+		return addResult(results, luaTypeResult, "[2]")
+	end
+	params = params or {}
+
+	if #params < 3 or #params % 3 ~= 0 then
+		return addResult(
+			results,
+			"Parameter must be an array of 3 numbers {x, y, z}, or more in threes for a line",
+			"[2]"
+		)
+	end
+	for index, param in ipairs(params) do
+		local paramTypeResult = validateLuaType(param, "number")
+		if paramTypeResult then
+			return addResult(results, paramTypeResult, "[2][" .. index .. "]")
+		end
+	end
+end
 local validate3orUnitName = getNumberArrayValidator({ 3 }, "3 numbers {x, y, z}, or a unit name", { "unitName" })
 local validate3or4 = getNumberArrayValidator({ 3, 4 }, "3 or 4 numbers {x, y, z, optional radius}")
 local validate4 = getNumberArrayValidator({ 4 }, "4 numbers {x, y, z, radius}")
@@ -586,6 +633,15 @@ local validate4orEitherName = getNumberArrayValidator(
 local validateBuildOrder =
 	getNumberArrayValidator({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")
 
+--- A MOVE, FIGHT or PATROL order with more than one point, which only IssueOrders' formation can give.
+local function isLineOrder(order)
+	if type(order) ~= "table" or type(order[2]) ~= "table" or #order[2] <= 3 then
+		return false
+	end
+	local command = order[1]
+	return command == CMD.MOVE or command == CMD.FIGHT or command == CMD.PATROL
+end
+
 --- Parameter validator per command name. false means the command takes no parameters.
 local validatorsByCommandName = {
 	-- No parameters:
@@ -596,9 +652,10 @@ local validatorsByCommandName = {
 	GUARD = validateUnitNameParam,
 	-- 3 number parameters:
 	DGUN = validate3,
-	MOVE = validate3,
-	FIGHT = validate3,
-	PATROL = validate3,
+	-- 3 number parameters, or more in threes for a line:
+	MOVE = validatePoints,
+	FIGHT = validatePoints,
+	PATROL = validatePoints,
 	-- 3 or 4 number parameters:
 	UNLOAD_UNITS = validate3or4,
 	-- 4 number parameters:
@@ -704,25 +761,6 @@ local function registerOrderValidators(parameterValidators, context)
 		end
 	end
 
-	parameterValidators[Types.MoveCommand] = function(command)
-		if command ~= CMD.MOVE and command ~= CMD.FIGHT and command ~= CMD.PATROL then
-			local said
-			if type(command) == "string" then
-				local constant = command:match("^CMD%.[%u_]+$") and command or "the constant"
-				said = '"' .. command .. '" is text, write ' .. constant .. " without quotes;"
-			elseif type(command) == "number" and CMD[command] then
-				said = "CMD." .. tostring(CMD[command]) .. ","
-			else
-				said = tostring(command) .. ","
-			end
-			return {
-				{
-					message = "Invalid move command: " .. said .. " must be CMD.MOVE, CMD.FIGHT or CMD.PATROL",
-				},
-			}
-		end
-	end
-
 	-- Validators by command ID, skipping any command this engine version does not define.
 	local commandValidators = {}
 	for commandName, commandValidator in pairs(validatorsByCommandName) do
@@ -812,6 +850,17 @@ local function registerLoadoutValidators(parameterValidators, context)
 					end
 				else
 					appendResults(results, parameterValidators[field.type](value), "." .. field.name)
+				end
+			end
+
+			if type(entry.orders) == "table" then
+				for index, order in ipairs(entry.orders) do
+					if isLineOrder(order) then
+						results[#results + 1] = {
+							message = "A line of points needs IssueOrders with formation",
+							parameterNameSuffix = ".orders[" .. index .. "][2]",
+						}
+					end
 				end
 			end
 
