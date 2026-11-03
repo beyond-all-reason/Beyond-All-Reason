@@ -3,15 +3,27 @@ local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
+	-- Three waves, nine seconds apart. Separate triggers, as a repeating one never stops on its own.
 	spawnCons1 = {
 		type = eventTypes.TimeElapsed,
-		settings = {
-			repeating = true,
-			maxRepeats = 3,
-		},
 		parameters = {
 			seconds = 0,
-			interval = 9,
+		},
+		actions = { 'spawnCons1' },
+	},
+
+	spawnCons1Second = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 9,
+		},
+		actions = { 'spawnCons1' },
+	},
+
+	spawnCons1Third = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 18,
 		},
 		actions = { 'spawnCons1' },
 	},
