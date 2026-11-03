@@ -259,6 +259,7 @@
 			"blueprintsTab": "Blueprints",
 			"blueprint": "Blueprint %{index}",
 			"blueprintUnits": "%{count} buildings",
+			"blueprintCost": "Total cost: %{metal} metal, %{energy} energy",
 			"deleteBlueprint": "Delete blueprint",
 			"renameBlueprint": "Rename blueprint",
 			"renameBlueprintTooltip": "Type its name on its cell: Enter keeps it, Escape cancels",
