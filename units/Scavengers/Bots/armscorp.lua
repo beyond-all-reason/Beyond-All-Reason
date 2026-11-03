@@ -152,7 +152,7 @@ return {
 				},
 			},
 			corsok_laser = {
-				areaofeffect = 60,
+				areaofeffect = 96,
 				avoidfeature = false,
 				burst = 2,
 				burstrate = 0.25,
