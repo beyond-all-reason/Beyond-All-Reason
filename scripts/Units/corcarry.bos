@@ -12,6 +12,8 @@ static-var  Stunned;
 #define SIG_MOVE			2
 #define SIG_AIM				4
 
+#include "../popup_openclose.h"
+
 #define BASEPIECE base
 #define HITSPEED <10.0>
 //how 'heavy' the unit is, on a scale of 1-10
@@ -165,12 +167,21 @@ QueryLandingPad(Func_Var_1, Func_Var_2)
 	}
 }
 
-ExecuteRestoreAfterDelay()
+OpenAnim()
 {
-    if (Stunned) {
-        return (1);
-    }
-	set-signal-mask 0;
+	move dbl to x-axis [-5.6] speed [8];
+	move dbl to z-axis [-5.6] speed [8];
+	move dbr to x-axis [5.6] speed [8];
+	move dbr to z-axis [-5.6] speed [8];
+	move dtl to x-axis [-5.6] speed [8];
+	move dtl to z-axis [5.6] speed [8];
+	move dtr to x-axis [5.6] speed [8];
+	move dtr to z-axis [5.6] speed [8];
+	wait-for-move dtr along x-axis;
+}
+
+CloseAnim()
+{
 	move dbl to x-axis [0] speed [8];
 	move dbl to z-axis [0] speed [8];
 	move dbr to x-axis [0] speed [8];
@@ -179,6 +190,15 @@ ExecuteRestoreAfterDelay()
 	move dtl to z-axis [0] speed [8];
 	move dtr to x-axis [0] speed [8];
 	move dtr to z-axis [0] speed [8];
+	wait-for-move dtr along x-axis;
+}
+
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	start-script RequestClose();
 }
 SetStunned(State)
 {
@@ -199,19 +219,21 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
+	start-script RequestOpen();
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	move dbl to x-axis [-5.6] speed [8];
-	move dbl to z-axis [-5.6] speed [8];
-	move dbr to x-axis [5.6] speed [8];
-	move dbr to z-axis [-5.6] speed [8];
-	move dtl to x-axis [-5.6] speed [8];  
-	move dtl to z-axis [5.6] speed [8];
-	move dtr to x-axis [5.6] speed [8];
-	move dtr to z-axis [5.6] speed [8];
-	wait-for-move dtr along x-axis;
+	// poll every frame so the interception is not delayed
+	while( !isOpen )
+	{
+		sleep 1;
+	}
 	start-script RestoreAfterDelay();
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 FirePrimary()
