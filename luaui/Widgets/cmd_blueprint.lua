@@ -753,8 +753,24 @@ function widget:LanguageChanged()
 	drawCursorText.invalidate()
 end
 
+-- the cursor as last drawn (DrawScreenPost): over the world the placement command's, "cursornormal" where
+-- a panel set it over itself in its DrawScreen (or the engine over an IsAbove widget)
+local shownCursor = nil
+
+function widget:DrawScreenPost()
+	if blueprintPlacementActive then
+		shownCursor = Spring.GetMouseCursor()
+	end
+end
+
 function widget:DrawScreenEffects()
 	if not blueprintPlacementActive then
+		return
+	end
+
+	-- none over the interface (user): its own tooltips show there
+	local x, y = SpringGetMouseState()
+	if not x or not y or widgetHandler:IsAbove(x, y) or shownCursor == "cursornormal" then
 		return
 	end
 
@@ -763,11 +779,6 @@ function widget:DrawScreenEffects()
 	local tooltip = WG.tooltip
 	if tooltip and tooltip.ShowTooltip then
 		tooltip.ShowTooltip("blueprint", buildHotkeyText(), nil, nil, cursorTitle(selectedBlueprintIndex))
-		return
-	end
-
-	local x, y = SpringGetMouseState()
-	if not x or not y then
 		return
 	end
 
