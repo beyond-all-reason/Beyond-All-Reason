@@ -9,6 +9,8 @@ local function loadQueue(coop)
 		engineStats[team] = engineStats[team] or { unitsProduced = 0, unitsDied = 0, unitsKilled = 0 }
 		return engineStats[team]
 	end
+	-- This sandbox provides partial engine mocks, not the full Spring API.
+	---@type table<string, any>
 	local env = setmetatable({
 		gadget = {},
 		Game = { mapSizeX = 4096, mapSizeZ = 4096 },
@@ -209,12 +211,12 @@ describe("Pregame engine queue lifecycle", function()
 		local env, units, rules = loadQueue()
 		local id = rules["0pregameQueue_0"]
 		env.GG.UpdatePregameQueuePosition(0, 1800, 1900)
-		assert.equals(1800, units[id].x)
-		assert.equals(1900, units[id].z)
+		assert.equal(1800, units[id].x)
+		assert.equal(1900, units[id].z)
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
-		assert.equals(1800, units[id].x)
+		assert.equal(1800, units[id].x)
 		env.GG.UpdatePregameQueuePosition(0, 2000, 2100)
-		assert.equals(2000, units[id].x)
+		assert.equal(2000, units[id].x)
 	end)
 
 	it("does not remove the real commander's storage after the GameStart reset", function()
@@ -233,10 +235,10 @@ describe("Pregame engine queue lifecycle", function()
 
 	it("parks unplaced previews far away and uses a placed coop position", function()
 		local env, units, rules = loadQueue()
-		assert.equals(-32768, units[rules["0pregameQueue_0"]].x)
-		assert.equals(-32768, units[rules["0pregameQueue_0"]].z)
-		assert.equals(1200, units[rules["0pregameQueue_1"]].x)
-		assert.equals(0, env.Spring.GetTeamStatsHistory(0, 1)[1].unitsProduced)
+		assert.equal(-32768, units[rules["0pregameQueue_0"]].x)
+		assert.equal(-32768, units[rules["0pregameQueue_0"]].z)
+		assert.equal(1200, units[rules["0pregameQueue_1"]].x)
+		assert.equal(0, env.Spring.GetTeamStatsHistory(0, 1)[1].unitsProduced)
 	end)
 
 	it("allows only the owner or synced Lua to command a proxy", function()
@@ -256,9 +258,9 @@ describe("Pregame engine queue lifecycle", function()
 		env.GG.playerStartingUnits[0] = 2
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
 		local replacement = rules["0pregameQueue_0"]
-		assert.equals(old, replacement)
+		assert.equal(old, replacement)
 		assert.same({ replacement, -4, { 800, 0, 900, 0 }, 32 }, orders[1])
-		assert.equals(10, orders[2][2])
+		assert.equal(10, orders[2][2])
 		assert.same({ false, true }, destroyed[old])
 	end)
 
@@ -269,33 +271,33 @@ describe("Pregame engine queue lifecycle", function()
 		buildQueue(units[rules["0pregameQueue_1"]])
 		env.GG.playerStartingUnits[0] = 9
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
-		assert.equals(old, rules["0pregameQueue_0"])
+		assert.equal(old, rules["0pregameQueue_0"])
 		env.gadget:GameStart()
 		local coopID = rules["0pregameQueue_1"]
-		assert.equals(old, env.GG.CreatePregameStartUnit(0, 2, 500, 10, 600, 0, 0))
-		assert.equals(coopID, env.GG.CreatePregameStartUnit(1, 1, 1200, 10, 1300, 0, 0))
+		assert.equal(old, env.GG.CreatePregameStartUnit(0, 2, 500, 10, 600, 0, 0))
+		assert.equal(coopID, env.GG.CreatePregameStartUnit(1, 1, 1200, 10, 1300, 0, 0))
 		env.gadget:GameFrame(0)
-		assert.equals(old, rules["0pregameQueueTarget_0"])
-		assert.equals(coopID, rules["0pregameQueueTarget_1"])
-		assert.equals(4, #orders)
+		assert.equal(old, rules["0pregameQueueTarget_0"])
+		assert.equal(coopID, rules["0pregameQueueTarget_1"])
+		assert.equal(4, #orders)
 		for _, order in ipairs(orders) do
 			if order[2] < 0 then
-				assert.equals(order[1] == old and -4 or -3, order[2])
+				assert.equal(order[1] == old and -4 or -3, order[2])
 			end
 		end
 		assert.is_not_nil(destroyed[old])
-		assert.equals(-1, rules["0pregameQueue_0"])
+		assert.equal(-1, rules["0pregameQueue_0"])
 	end)
 
 	it("recreates a proxy on team changes and removes it for spectators", function()
 		local env, units, rules, _, _, players = loadQueue()
 		players[0].team = 2
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
-		assert.equals(-1, rules["0pregameQueue_0"])
-		assert.equals(2, units[rules["2pregameQueue_0"]].team)
+		assert.equal(-1, rules["0pregameQueue_0"])
+		assert.equal(2, units[rules["2pregameQueue_0"]].team)
 		players[0].spectator = true
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
-		assert.equals(-1, rules["2pregameQueue_0"])
+		assert.equal(-1, rules["2pregameQueue_0"])
 	end)
 end)
 
@@ -303,27 +305,27 @@ describe("Shared pregame engine queues", function()
 	it("publishes one queue per team, permits both players, and transfers it only once", function()
 		local env, units, rules, orders = loadQueue(false)
 		local id = rules["0pregameQueue_0"]
-		assert.equals(id, rules["0pregameQueue_1"])
+		assert.equal(id, rules["0pregameQueue_1"])
 		for player = 0, 1 do
 			assert.is_true(env.gadget:AllowCommand(id, 1, 0, 10, {}, {}, 0, player, true, false))
 		end
 		buildQueue(units[id])
 		env.GG.UpdatePregameQueuePosition(1, 1800, 1900)
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
-		assert.equals(1800, units[id].x)
+		assert.equal(1800, units[id].x)
 		rules["0startUnit"] = 2
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 1)
 		id = rules["0pregameQueue_0"]
-		assert.equals(id, rules["0pregameQueue_1"])
-		assert.equals(2, units[id].def)
-		assert.equals(-4, units[id].queue[1].id)
+		assert.equal(id, rules["0pregameQueue_1"])
+		assert.equal(2, units[id].def)
+		assert.equal(-4, units[id].queue[1].id)
 		env.gadget:GameStart()
-		assert.equals(id, env.GG.CreatePregameStartUnit(0, 2, 500, 10, 600, 0, 0))
+		assert.equal(id, env.GG.CreatePregameStartUnit(0, 2, 500, 10, 600, 0, 0))
 		env.gadget:GameFrame(0)
-		assert.equals(id, rules["0pregameQueueTarget_0"])
-		assert.equals(id, rules["0pregameQueueTarget_1"])
-		assert.equals(2, #units[id].queue)
-		assert.equals(4, #orders)
+		assert.equal(id, rules["0pregameQueueTarget_0"])
+		assert.equal(id, rules["0pregameQueueTarget_1"])
+		assert.equal(2, #units[id].queue)
+		assert.equal(4, #orders)
 	end)
 
 	it("keeps the shared queue when one player leaves the team", function()
@@ -333,9 +335,9 @@ describe("Shared pregame engine queues", function()
 		players[0].team = 2
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
 		assert.is_nil(destroyed[id])
-		assert.equals(id, rules["0pregameQueue_1"])
-		assert.equals(2, #units[id].queue)
-		assert.equals(-1, rules["0pregameQueue_0"])
+		assert.equal(id, rules["0pregameQueue_1"])
+		assert.equal(2, #units[id].queue)
+		assert.equal(-1, rules["0pregameQueue_0"])
 	end)
 end)
 
@@ -373,7 +375,7 @@ describe("Quick Start engine queue metadata", function()
 		local env, units, rules = loadQueue()
 		local adapter, deliver = loadAdapter(env, rules)
 		adapter.setBuildQueue({ { 3, 800, 0, 900, 0, quickStartGenerated = true }, { -10, 1000, 0, 1100 } })
-		assert.equals(0, #adapter.getBuildQueue()) -- no local shadow queue while the request is in flight
+		assert.equal(0, #adapter.getBuildQueue()) -- no local shadow queue while the request is in flight
 		deliver()
 		local queue = adapter.getBuildQueue()
 		assert.is_true(queue[1].quickStartGenerated)
@@ -382,11 +384,11 @@ describe("Quick Start engine queue metadata", function()
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
 		env.widget:Update(0)
 		queue = adapter.getBuildQueue()
-		assert.equals(4, queue[1][1])
+		assert.equal(4, queue[1][1])
 		assert.is_true(queue[1].quickStartGenerated)
 		adapter.setBuildQueue({ queue[2] }) -- clearing suggestions preserves the manual move
 		deliver()
-		assert.equals(1, #adapter.getBuildQueue())
+		assert.equal(1, #adapter.getBuildQueue())
 		adapter.setBuildQueue({ { 4, 800, 0, 900, 0 } }) -- manually requeue the same building
 		deliver()
 		assert.is_false(adapter.getBuildQueue()[1].quickStartGenerated)
@@ -398,7 +400,7 @@ describe("Quick Start engine queue metadata", function()
 		buildQueue(units[id])
 		for _, payload in ipairs({ "{", "false", "[[42, false, 0]]", "[[-999, [], 0]]", "[[10, [1, false], 0]]" }) do
 			env.gadget:RecvLuaMsg("pregameQueueSet:" .. payload, 0)
-			assert.equals(2, #units[id].queue)
+			assert.equal(2, #units[id].queue)
 		end
 	end)
 end)
@@ -411,8 +413,8 @@ describe("Stable pregame unit IDs", function()
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
 		env.GG.playerStartingUnits[0] = 1
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
-		assert.equals(id, rules["0pregameQueue_0"])
-		assert.equals(1, units[id].def)
+		assert.equal(id, rules["0pregameQueue_0"])
+		assert.equal(1, units[id].def)
 		assert.is_false(env.gadget:AllowCommand(id, 1, 0, -4, { 800, 0, 900, 0 }, { coded = 32 }, 0, 0, true, false))
 		assert.same({ id, -3, { 800, 0, 900, 0 }, 32 }, orders[#orders])
 		assert.is_false(
@@ -433,7 +435,7 @@ describe("Stable pregame unit IDs", function()
 		assert.same({ id, 1, { 5, -3, 32, 1100, 0, 1200, 2 }, 128 }, orders[#orders])
 		local before = #orders
 		assert.is_false(env.gadget:AllowCommand(id, 1, 0, -4, {}, { coded = 32 }, 0, 1, true, false))
-		assert.equals(before, #orders) -- another coop player cannot redirect orders into this queue
+		assert.equal(before, #orders) -- another coop player cannot redirect orders into this queue
 	end)
 
 	it("keeps the ID and translates late builds after the real commander spawns", function()
@@ -441,12 +443,12 @@ describe("Stable pregame unit IDs", function()
 		local id = rules["0pregameQueue_0"]
 		buildQueue(units[id])
 		env.gadget:GameStart()
-		assert.equals(id, env.GG.CreatePregameStartUnit(0, 2, 500, 10, 600, 0, 0))
+		assert.equal(id, env.GG.CreatePregameStartUnit(0, 2, 500, 10, 600, 0, 0))
 		assert.is_nil(units[id].skipStats)
 		assert.is_nil(units[id].rules.pregame_proxy)
-		assert.equals(-4, units[id].queue[1].id)
+		assert.equal(-4, units[id].queue[1].id)
 		assert.is_false(env.gadget:AllowCommand(id, 2, 0, -3, { 800, 0, 900, 0 }, { coded = 32 }, 0, 0, true, false))
-		assert.equals(-4, orders[#orders][2])
+		assert.equal(-4, orders[#orders][2])
 		env.gadget:UnitDestroyed(id)
 		assert.is_true(env.gadget:AllowCommand(id, 2, 0, -3, {}, {}, 0, 0, true, false))
 	end)
@@ -494,7 +496,7 @@ describe("Pregame builder selection", function()
 		env.widget:Update(0)
 		assert.is_nil(active)
 		env.widget:Update(0)
-		assert.equals(-4, active)
+		assert.equal(-4, active)
 		env.Spring.GetActiveCommand = function()
 			return 1, active
 		end
@@ -504,7 +506,7 @@ describe("Pregame builder selection", function()
 		env.widget:GameStart()
 		env.widget:Update(0)
 		env.widget:Update(0)
-		assert.equals(-3, active)
+		assert.equal(-3, active)
 	end)
 end)
 
@@ -531,17 +533,17 @@ describe("Pregame statistics corrections", function()
 		for _, def in ipairs({ 2, 1, 2 }) do
 			rules["0startUnit"] = def
 			env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
-			assert.equals(0, history(0, 1)[1].unitsProduced)
-			assert.equals(0, history(0, 1)[1].unitsDied)
+			assert.equal(0, history(0, 1)[1].unitsProduced)
+			assert.equal(0, history(0, 1)[1].unitsDied)
 		end
 		env.gadget:GameStart()
 		local id = env.GG.CreatePregameStartUnit(0, 2, 500, 10, 600, 0, 0)
 		env.gadget:GameFrame(0)
-		assert.equals(1, history(0))
-		assert.equals(1, history(0, 1)[1].unitsProduced)
-		assert.equals(0, history(0, 1)[1].unitsDied)
+		assert.equal(1, history(0))
+		assert.equal(1, history(0, 1)[1].unitsProduced)
+		assert.equal(0, history(0, 1)[1].unitsDied)
 		env.Spring.DestroyUnit(id, false, true)
-		assert.equals(1, history(0, 1)[1].unitsDied)
+		assert.equal(1, history(0, 1)[1].unitsDied)
 	end)
 
 	it("removes leftover coop previews before the first history snapshot", function()
@@ -552,8 +554,8 @@ describe("Pregame statistics corrections", function()
 		env.gadget:GameFrame(0)
 		assert.is_nil(units[leftover])
 		local sample = env.Spring.GetTeamStatsHistory(0, 1)[1]
-		assert.equals(1, sample.unitsProduced)
-		assert.equals(0, sample.unitsDied)
+		assert.equal(1, sample.unitsProduced)
+		assert.equal(0, sample.unitsDied)
 	end)
 
 	it("attributes corrections to the old and new team across a team change", function()
@@ -562,8 +564,8 @@ describe("Pregame statistics corrections", function()
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
 		local history = env.Spring.GetTeamStatsHistory
 		for _, team in ipairs({ 0, 2 }) do
-			assert.equals(0, history(team, 1)[1].unitsProduced)
-			assert.equals(0, history(team, 1)[1].unitsDied)
+			assert.equal(0, history(team, 1)[1].unitsProduced)
+			assert.equal(0, history(team, 1)[1].unitsDied)
 		end
 	end)
 
@@ -575,7 +577,7 @@ describe("Pregame statistics corrections", function()
 		rules["0startUnit"] = 2
 		env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)
 		local sample = env.Spring.GetTeamStatsHistory(0, 1)[1]
-		assert.equals(0, sample.unitsProduced)
-		assert.equals(0, sample.unitsDied)
+		assert.equal(0, sample.unitsProduced)
+		assert.equal(0, sample.unitsDied)
 	end)
 end)

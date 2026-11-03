@@ -649,7 +649,9 @@ local function drawTooltip()
 		return
 	end
 	for _, unitID in ipairs(Spring.GetSelectedUnits()) do
-		if (Spring.GetUnitCommandCount(unitID) or 0) > 0 then return end
+		if (Spring.GetUnitCommandCount(unitID) or 0) > 0 then
+			return
+		end
 	end
 
 	local x, y = spGetMouseState()

@@ -2038,7 +2038,6 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	)
 end
 
-
 -- A placed blueprint's buildings (api_blueprint), drawn as single buildings' previews with predicted
 -- statuses (as the pregame one's). A new spot starts all open or all blocked (the blueprint's own build
 -- test); the spots are checked round the list, the new ones first, up to a cell budget per frame

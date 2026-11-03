@@ -2163,9 +2163,6 @@ function widget:Initialize()
 		maxPosY = value
 		clear()
 	end
-	WG.buildmenu.reloadBindings = function()
-		bindBuildUnits(self)
-	end
 	WG.buildmenu.getIsShowing = function()
 		return buildmenuShows
 	end
