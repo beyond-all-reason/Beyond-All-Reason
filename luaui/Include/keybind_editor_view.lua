@@ -3133,8 +3133,6 @@ local function appendChain(el)
 		c.elems[1] = el
 	elseif c.lastPress and spDiffTimers(now, c.lastPress) * 1000 <= c.timeout then
 		-- Mirrors the engine's key chain, which folds a modifier into a key pressed while it is held.
-		-- Modifiers held together fold too, so the order they went down in does not matter. A key
-		-- tapped again is already marked pressed by then, so it never folds into itself.
 		if last.modifier and last.scan ~= el.scan and c.pressed[last.scan] then
 			c.elems[#c.elems] = el
 		else
@@ -3155,8 +3153,7 @@ local function captureCanAccept()
 	return c ~= nil and #c.elems > 0 and not c.seeded
 end
 
--- The engine reads a modifier key as Any+ whatever else is held, so it is written bare. It
--- folds the stand-in Meta key like one, but binds it with the Meta+ that holding it adds.
+-- The engine binds a lone modifier as Any+, but the stand-in Meta key keeps the Meta+ it adds.
 local function pressElem(key, scanCode)
 	-- Not localised like its neighbours: this chunk is at Lua's ceiling of 200 locals and
 	-- a slot is worth more elsewhere. It runs on a key press, not on a frame.
