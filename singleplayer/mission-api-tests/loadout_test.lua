@@ -173,6 +173,15 @@ local unitLoadout    = {
 	    { CMD.PATROL, { 1780, 0, 1950 }, {} },
 	  },
 	},
+	-- A lab in a ring of dragon's teeth, each tooth 16 elmos clear of the lab, open to the south.
+	{ unitDefName = 'armlab',  x = 1520, z = 1600, orientation = 's', teamName = 'player' },
+	{ unitDefName = 'armdrag', x = 1440, z = 1520, teamName = 'player' },
+	{ unitDefName = 'armdrag', x = 1520, z = 1520, teamName = 'player' },
+	{ unitDefName = 'armdrag', x = 1600, z = 1520, teamName = 'player' },
+	{ unitDefName = 'armdrag', x = 1440, z = 1600, teamName = 'player' },
+	{ unitDefName = 'armdrag', x = 1600, z = 1600, teamName = 'player' },
+	{ unitDefName = 'armdrag', x = 1440, z = 1680, teamName = 'player' },
+	{ unitDefName = 'armdrag', x = 1600, z = 1680, teamName = 'player' },
 	-- A unit that moves turns to any angle.
 	{ unitDefName = 'armflash', x = 1680, z = 1850, orientation = { angle = 45 }, teamName = 'player' },
 

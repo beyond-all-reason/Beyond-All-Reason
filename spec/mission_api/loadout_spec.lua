@@ -49,6 +49,9 @@ local env = MissionSpecEnv.new({
 			turnedUpDirs[unitID] = { upX, upY, upZ }
 		end,
 		GiveOrderArrayToUnit = function() end,
+		Pos2BuildPos = function(_, x, y, z)
+			return x, y, z
+		end,
 	},
 })
 env.UnitDefs = { { name = "armwar", corpse = "armwar_dead" } }
