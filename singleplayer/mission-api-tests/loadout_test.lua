@@ -122,7 +122,7 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = 'Reinforcements spawned via SpawnUnits + CreateFeatures. Con tracked as "reinforcement-con", wreck as "reinforcement-wreck". ' ..
-			          'The wreck east of the con faces it (facing a point).',
+				'The wreck east of the con faces it (facing a point).',
 		},
 	},
 

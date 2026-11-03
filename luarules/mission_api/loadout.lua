@@ -152,6 +152,7 @@ local function spawnUnitLoadout(unitLoadout)
 		local zsize = unitDef.zsize * Game.squareSize + spacing
 
 		-- A building stands on one of the four facings; a unit that moves turns to the exact heading.
+		-- A facing is exact from CreateUnit already, so only an angle or a point needs the turn.
 		local heading, facing = orientationOf(unit)
 		local turnTo = nil
 		if type(unit.orientation) == "table" and not unitDef.isImmobile then
