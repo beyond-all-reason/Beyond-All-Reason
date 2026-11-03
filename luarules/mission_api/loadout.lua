@@ -76,11 +76,14 @@ end
 
 local function spawnUnit(unit, pos, facing, heading)
 	-- Make unitName available to MetaUnitAdded call-in which gets triggered by Spring.CreateUnit
+	-- A trigger there can spawn units inside this CreateUnit, so the outer values are put back after it
+	local inProgressSpawnName = GG["MissionAPI"].nameOfUnitBeingSpawned
+	local inProgressSpawnIsBeingBuilt = GG["MissionAPI"].spawnedUnitIsBeingBuilt
 	GG["MissionAPI"].nameOfUnitBeingSpawned = unit.unitName
 	GG["MissionAPI"].spawnedUnitIsBeingBuilt = unit.construction
 	local unitID = Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, facing, unit.teamName, unit.construction)
-	GG["MissionAPI"].nameOfUnitBeingSpawned = nil
-	GG["MissionAPI"].spawnedUnitIsBeingBuilt = nil
+	GG["MissionAPI"].nameOfUnitBeingSpawned = inProgressSpawnName
+	GG["MissionAPI"].spawnedUnitIsBeingBuilt = inProgressSpawnIsBeingBuilt
 
 	if unitID and heading then
 		-- Keep the slope the unit was created standing on.
