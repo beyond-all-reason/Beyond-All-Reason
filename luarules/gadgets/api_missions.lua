@@ -17,8 +17,6 @@ end
 -- Included outside the guarded load, so a Lua error in any other Mission API file can still be reported.
 local validationReport = VFS.Include("luarules/mission_api/validation/report.lua")
 
-local objectivesController, stagesController, triggersController, actionsController
-
 local missionLoaded = true
 local missionLoadError
 
@@ -29,6 +27,61 @@ local function failMission(reason)
 	GG["MissionAPI"] = nil
 	missionLoaded = false
 	missionLoadError = "[Mission API] Mission not loaded: " .. reason .. " (see infolog)"
+end
+
+local objectivesController, stagesController, triggersController, actionsController
+
+local function setUpMissionAPI(gameSetup)
+	GG["MissionAPI"] = {}
+	GG["MissionAPI"].Options = gameSetup.options
+	GG["MissionAPI"].Variables = gameSetup.variables
+	GG["MissionAPI"].PersistentVariables = gameSetup.persistentVariables
+	GG["MissionAPI"].Teams = gameSetup.teams
+	GG["MissionAPI"].Alliances = gameSetup.alliances
+	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
+	GG["MissionAPI"].trackedUnitIDs = {}
+	GG["MissionAPI"].trackedUnitNames = {}
+	GG["MissionAPI"].trackedFeatureIDs = {}
+	GG["MissionAPI"].trackedFeatureNames = {}
+	GG["MissionAPI"].markerNames = {}
+	GG["MissionAPI"].lineNames = {}
+	GG["MissionAPI"].unitMarkers = {}
+	GG["MissionAPI"].soundFiles = {}
+	GG["MissionAPI"].soundQueue = {}
+	GG["MissionAPI"].ManagedObjectives = {}
+	GG["MissionAPI"].ObjectiveTriggers = {}
+	GG["MissionAPI"].ObjectiveStages = {}
+	GG["MissionAPI"].Countdowns = {}
+	GG["MissionAPI"].BattleLogRaw = {}
+	GG["MissionAPI"].Modules = {}
+	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
+	GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variables.lua")
+	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
+	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
+	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
+	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
+	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
+	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
+	GG["MissionAPI"].Modules.Countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
+	GG["MissionAPI"].Modules.BattleLog = VFS.Include("luarules/mission_api/battle_log.lua")
+	GG["MissionAPI"].Modules.Cutscenes = VFS.Include("luarules/mission_api/cutscenes.lua")
+	GG["MissionAPI"].Modules.MapLines = VFS.Include("luarules/mission_api/map_lines.lua")
+	GG["MissionAPI"].Modules.UnitMarkers = VFS.Include("luarules/mission_api/unit_markers.lua")
+	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
+	GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
+	GG["MissionAPI"].Modules.AreaTracking = VFS.Include("luarules/mission_api/area_tracking.lua")
+
+	objectivesController = VFS.Include("luarules/mission_api/objectives_loader.lua")
+	stagesController = VFS.Include("luarules/mission_api/stages_loader.lua")
+
+	actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
+	GG["MissionAPI"].ActionDefinitions = actionsController.LoadActionDefinitions()
+
+	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
+	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
+
+	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
 end
 
 -- Runs on the raw mission data
@@ -96,59 +149,6 @@ local function loadMission(gameSetup)
 	end
 
 	Spring.SetGameRulesParam("inMission", true)
-end
-
-local function setUpMissionAPI(gameSetup)
-	GG["MissionAPI"] = {}
-	GG["MissionAPI"].Options = gameSetup.options
-	GG["MissionAPI"].Variables = gameSetup.variables
-	GG["MissionAPI"].PersistentVariables = gameSetup.persistentVariables
-	GG["MissionAPI"].Teams = gameSetup.teams
-	GG["MissionAPI"].Alliances = gameSetup.alliances
-	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
-	GG["MissionAPI"].trackedUnitIDs = {}
-	GG["MissionAPI"].trackedUnitNames = {}
-	GG["MissionAPI"].trackedFeatureIDs = {}
-	GG["MissionAPI"].trackedFeatureNames = {}
-	GG["MissionAPI"].markerNames = {}
-	GG["MissionAPI"].lineNames = {}
-	GG["MissionAPI"].unitMarkers = {}
-	GG["MissionAPI"].soundFiles = {}
-	GG["MissionAPI"].soundQueue = {}
-	GG["MissionAPI"].ManagedObjectives = {}
-	GG["MissionAPI"].ObjectiveTriggers = {}
-	GG["MissionAPI"].ObjectiveStages = {}
-	GG["MissionAPI"].Countdowns = {}
-	GG["MissionAPI"].BattleLogRaw = {}
-	GG["MissionAPI"].Modules = {}
-	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
-	GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variables.lua")
-	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
-	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
-	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
-	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
-	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
-	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
-	GG["MissionAPI"].Modules.Countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
-	GG["MissionAPI"].Modules.BattleLog = VFS.Include("luarules/mission_api/battle_log.lua")
-	GG["MissionAPI"].Modules.Cutscenes = VFS.Include("luarules/mission_api/cutscenes.lua")
-	GG["MissionAPI"].Modules.MapLines = VFS.Include("luarules/mission_api/map_lines.lua")
-	GG["MissionAPI"].Modules.UnitMarkers = VFS.Include("luarules/mission_api/unit_markers.lua")
-	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
-	GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
-	GG["MissionAPI"].Modules.AreaTracking = VFS.Include("luarules/mission_api/area_tracking.lua")
-
-	objectivesController = VFS.Include("luarules/mission_api/objectives_loader.lua")
-	stagesController = VFS.Include("luarules/mission_api/stages_loader.lua")
-
-	actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
-	GG["MissionAPI"].ActionDefinitions = actionsController.LoadActionDefinitions()
-
-	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
-	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
-
-	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
 end
 
 -- Outside dev mode synced Lua's debug table is empty, so there is no traceback. VFS.Include runs each file in its own
