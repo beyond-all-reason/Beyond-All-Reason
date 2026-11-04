@@ -292,10 +292,10 @@ local function parseFilter(filterDef)
 				break
 			end
 
-			local udefid = UnitDefNames[name]
-
-			if udefid then
-				idMatchesSet[udefid] = true
+			local unitDef = UnitDefNames[name] ---@as table?
+			if unitDef ~= nil then
+				local unitDefID = unitDef.id
+				idMatchesSet[unitDefID] = true
 
 				-- requires special invert logic
 				-- treats `invert = false` as priority
@@ -312,8 +312,8 @@ local function parseFilter(filterDef)
 				end
 
 				if not skip then
-					filters.idMatches = invertCurry(invertIdMatches, function(_, udefid, _, idMatchesSet)
-						return idMatchesSet[udefid] or false
+					filters.idMatches = invertCurry(invertIdMatches, function(_, udefid, _, matchSet)
+						return matchSet[udefid] or false
 					end, idMatchesSet)
 				end
 			end
