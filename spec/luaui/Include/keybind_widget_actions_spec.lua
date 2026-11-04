@@ -68,6 +68,19 @@ describe("reading a widget's declared actions", function()
 		}, actions)
 	end)
 
+	it("takes a shipped widget's keys as they are written", function()
+		local widget = widgetEntry("gui_example", {
+			{ action = "zoom", label = "actions.camera.zoom", description = "actions.camera.zoomDescription" },
+		})
+		widget.vfsMode = VFS.ZIP
+
+		local actions = WidgetActions.parse(widget)
+
+		assert.are.same({
+			{ action = "zoom", label = "actions.camera.zoom", description = "actions.camera.zoomDescription" },
+		}, actions)
+	end)
+
 	it("skips an entry it cannot read, naming each", function()
 		local actions, warnings = WidgetActions.parse(widgetEntry("gui_example", {
 			"not an object",
@@ -294,8 +307,8 @@ describe("the manifests of the widgets installed", function()
 
 		local env = SpecEnv.new({
 			VFS = {
-				SubDirs = function(folder)
-					return folder == FOLDER and { FOLDER .. "gui_example/" } or {}
+				SubDirs = function(folder, _, mode)
+					return (folder == FOLDER and mode == VFS.ZIP) and { FOLDER .. "gui_example/" } or {}
 				end,
 				-- Faked only for the widget manifest; other paths (the module code itself, included
 				-- via `require`) still need to resolve to real files on disk.

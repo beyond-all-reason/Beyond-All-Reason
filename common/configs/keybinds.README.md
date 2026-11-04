@@ -220,8 +220,9 @@ three namespaces above and none of that.
 
 A widget in a folder of its own, shipped with the game or from the widget hub, can declare
 bindable actions, their labels and their default keys in its `manifest.json`, in the format the
-hub's manifest schema sets. Labels resolve under `widgets.<id>.` from the widget's
-`localizations.json`. Each loaded widget gets an editor category of its own under Widgets, and
+hub's manifest schema sets. A hub widget's labels resolve under `widgets.<id>.` from its
+`localizations.json`. A shipped widget's are full keys in `language/en/`, since Transifex only
+picks up the files there. Each loaded widget gets an editor category of its own under Widgets, and
 its actions are hidden while it is off. A shipped profile adds the defaults it lacks every time
 it is written; a player's profile takes each one once and records it under `seeded`, so one the
 player removes stays removed.

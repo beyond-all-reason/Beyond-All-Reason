@@ -127,7 +127,10 @@
 			"boxAppend": "Box select: add to selection",
 			"boxDeselect": "Box select: remove from selection",
 			"boxMobile": "Box select: mobile units only",
-			"boxAny": "Box select: include buildings"
+			"boxAny": "Box select: include buildings",
+			"loopActivate": "Loop select: activate",
+			"loopAdd": "Loop select: add to selection",
+			"loopDeselect": "Loop select: deselect"
 		},
 		"massSelect": {
 			"all": "Select all units",
@@ -197,6 +200,29 @@
 			"removeOne": "Remove closest unit from its group",
 			"preset": "Load auto-group preset %{n}"
 		},
+		"squads": {
+			"select": "Select nearest squad",
+			"append": "Add nearest unselected squad",
+			"selectFiltered": "Select one unit type from nearest squad",
+			"appendFiltered": "Add squad units of the selected types",
+			"selectHalfAppend": "Add half of nearest squad",
+			"selectHalf": "Select half of nearest squad",
+			"selectHalfFilteredAppend": "Add half of squad units of the selected types",
+			"selectHalfFiltered": "Select half of squad units of the selected types",
+			"selectOne": "Select closest squad unit",
+			"appendOne": "Add closest unselected squad unit",
+			"selectOneFiltered": "Select closest squad unit of the selected types",
+			"appendOneFiltered": "Add closest unselected squad unit of the selected types",
+			"create": "Create squad from selected units",
+			"lock": "Lock/unlock selected units, or select nearest locked squad",
+			"appendLocked": "Add nearest locked squad",
+			"limitFlip": "Invert selection within a squad",
+			"expand": "Expand selection to whole squads",
+			"cycleRecent": "Cycle through recently used squads",
+			"cycleIdle": "Cycle through idle squads",
+			"group": "Select nearest squad in control group %{n}",
+			"groupAppend": "Add nearest unselected squad in control group %{n}"
+		},
 		"buildHotkeys": {
 			"unit": "Build %{n}",
 			"split": "Split build orders between builders",
@@ -211,7 +237,11 @@
 			"spacingDown": "Decrease build spacing"
 		},
 		"factory": {
-			"queueMode": "Toggle factory queue/quota mode"
+			"queueMode": "Toggle factory queue/quota mode",
+			"loadPreset": "Load factory preset %{n}",
+			"savePreset": "Save factory preset %{n}",
+			"showPresets": "Show factory presets",
+			"togglePresets": "Toggle factory presets"
 		},
 		"gridMenu": {
 			"buildKey": "Row %{row}, column %{col}",
@@ -238,6 +268,9 @@
 			"zoomReset": "Zoom camera all the way with the mouse wheel",
 			"setAnchor": "Set camera anchor %{n}",
 			"jumpAnchor": "Jump to camera anchor %{n}",
+			"pipSwitch": "Swap camera with picture-in-picture",
+			"pipCopy": "Copy camera to picture-in-picture",
+			"pipTrack": "Track selection in picture-in-picture",
 			"pipReplay": "Picture-in-picture: instant replay of the last seconds",
 			"pipReplayDeath": "Picture-in-picture: replay your last unit loss",
 			"pipHistoryToggle": "Picture-in-picture: show or hide the rewind timeline",
@@ -250,6 +283,8 @@
 			"pipHistoryReverse": "Picture-in-picture: play the history backwards from live",
 			"pipHistoryPlay": "Picture-in-picture: play the history forwards",
 			"pipHistoryStats": "Picture-in-picture: print the history recorder's size and timings",
+			"fovIncrease": "Increase field of view",
+			"fovDecrease": "Decrease field of view",
 			"cycleSelectedNext": "Cycle camera to next selected unit",
 			"cycleSelectedPrev": "Cycle camera to previous selected unit"
 		},

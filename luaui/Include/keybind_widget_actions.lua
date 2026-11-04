@@ -225,6 +225,11 @@ local function readAction(entry, keyPrefix, dir, seen)
 		dropped
 end
 
+-- Transifex only picks up language/, so a shipped widget names its keys there in full.
+local function keyPrefixOf(widget)
+	return widget.vfsMode == VFS.ZIP and "" or ("widgets." .. widget.id .. ".")
+end
+
 function M.parse(widget)
 	local actions = {}
 	local warnings = {}
@@ -241,7 +246,7 @@ function M.parse(widget)
 		return actions, warnings
 	end
 
-	local keyPrefix = "widgets." .. widget.id .. "."
+	local keyPrefix = keyPrefixOf(widget)
 	local seen = {}
 	for i, entry in ipairs(declared) do
 		local at = string.format("%s: keybindings[%d]", where, i)
