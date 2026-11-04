@@ -45,6 +45,11 @@ Deactivate()
 	turn wingr to z-axis <0> speed <90.0>;
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
@@ -128,9 +133,4 @@ Killed(severity, corpsetype)
 		explode flarel type BITMAPONLY | NOHEATCLOUD;
 		explode wingl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
-}
-
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
 }

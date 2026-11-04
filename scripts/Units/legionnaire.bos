@@ -103,6 +103,11 @@ Deactivate()
 	start-script RequestState(1);
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 AimPrimary(heading, pitch)
 {
 	return (1);
@@ -165,9 +170,4 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 
 	return corpsetype;
-}
-
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
 }

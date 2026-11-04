@@ -37,6 +37,11 @@ Deactivate()
 	hide thrusta;
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 AimWeapon1(heading, pitch)
 {
 	return (1);
@@ -96,9 +101,4 @@ Killed(severity, corpsetype)
 		explode thrustb1 type BITMAPONLY | NOHEATCLOUD;
 		explode thrustb2 type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
-}
-
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
 }

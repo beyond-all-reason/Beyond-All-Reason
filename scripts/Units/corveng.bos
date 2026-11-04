@@ -36,9 +36,19 @@ Deactivate()
 	hide thrust2;
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 AimWeapon1(heading, pitch)
 {
 	return (1);
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
 }
 
 AimWeapon2(heading, pitch)
@@ -107,14 +117,4 @@ Killed(severity, corpsetype)
 		explode missile1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode missile2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
-}
-
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
-}
-
-BlockShot2(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
 }

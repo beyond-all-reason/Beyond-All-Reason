@@ -37,6 +37,11 @@ Deactivate()
 	turn cowl to x-axis <0> speed <30>;
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 AimWeapon1(heading, pitch)
 {
 	return (1);
@@ -96,9 +101,4 @@ Killed(severity, corpsetype)
 		explode cowl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode fan type BITMAPONLY| NOHEATCLOUD;
 	return corpsetype;
-}
-
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
 }

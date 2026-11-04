@@ -64,6 +64,11 @@ Deactivate()
 	turn wingD to z-axis <60> speed <60>;
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 AimWeapon1(heading, pitch)
 {
 	return (1);
@@ -123,9 +128,4 @@ Killed(severity, corpsetype)
 		explode wingC type BITMAPONLY | NOHEATCLOUD;
 		explode wingD type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
-}
-
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
 }

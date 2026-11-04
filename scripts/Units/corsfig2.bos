@@ -41,6 +41,11 @@ Deactivate()
 	hide thrust;
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
@@ -57,6 +62,11 @@ FireWeapon1()
 {
 	gun_1 = !gun_1;
 	sleep 100;
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
 }
 
 AimWeapon2(heading, pitch)
@@ -115,14 +125,4 @@ Killed(severity, corpsetype)
 		explode flare1 type BITMAPONLY | NOHEATCLOUD;
 		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
-}
-
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
-}
-
-BlockShot2(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
 }

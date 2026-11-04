@@ -75,6 +75,11 @@ StopMoving()
 	
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 AimWeapon1(heading, pitch)
 {
 	return (1);
@@ -218,9 +223,4 @@ Killed(severity, corpsetype)
 		// explode fanl type BITMAPONLY | NOHEATCLOUD;
 		// explode wingl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
-}
-
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
 }

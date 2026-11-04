@@ -82,6 +82,11 @@ Deactivate()
     hide mainAirjet;
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 AimPrimary(heading, pitch)
 {
 	return (1);
@@ -186,9 +191,4 @@ Killed(severity, corpsetype)
 		explode leftGun type BITMAPONLY | NOHEATCLOUD;
 		explode rightGun type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
-}
-
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
 }
