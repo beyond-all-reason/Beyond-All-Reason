@@ -5,7 +5,7 @@ return {
 		energycost = 57000,
 		metalcost = 2600,
 		buildpic = "LEGKERES.DDS",
-		buildtime = 60000,
+		buildtime = 76650,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -2 0",
