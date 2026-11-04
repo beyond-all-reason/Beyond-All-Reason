@@ -33,9 +33,6 @@ local setHeight = 0.046
 local maxIcons = 9
 local showRez = true
 local doUpdateForce = true
-local justSelected = false
-local listSorted = {} -- listSorted[unitDefID]: set to nil when idle list is updated, set to true when idleList[unitDefID] is sorted
-local prevCameraPosition -- {posX, posY, posZ}: camera position for sorting idle units, used to have consistent point of reference when right clicking
 
 local leftclick = "LuaUI/Sounds/buildbar_add.wav"
 local rightclick = "LuaUI/Sounds/buildbar_click.wav"
@@ -55,6 +52,7 @@ local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 local myTeamID = Spring.GetLocalTeamID()
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetCameraPosition = Spring.GetCameraPosition
 
 local floor = mathFloor
 local ceil = math.ceil
@@ -88,7 +86,9 @@ local doUpdate = true
 
 local iconButtons = {}
 local existingIcons = {}
-local clicks = {}
+local cycleOriginX, cycleOriginZ -- kept for clicks that move the camera
+local lastSelectedUnitID
+local visitedUnits = {} ---@type table<UnitDefID, table<UnitID, true?>>
 local unitList = {}
 
 local idleList = {}
@@ -391,7 +391,6 @@ end
 local function updateList(force)
 	local prevIdleList = idleList
 	idleList = {}
-	listSorted = {}
 	for unitID, unitDefID in pairs(unitList) do
 		if isWorkerUnitIdle(unitID, unitDefID) then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
@@ -536,6 +535,42 @@ local function updateList(force)
 			drawContent,
 			true
 		)
+	end
+end
+
+local getNextIdleUnit ---@type fun(unitDefID:UnitDefID, button:integer):UnitID?
+do
+	local function getNearestUnvisitedUnit(unitDefID)
+		local units, visited = idleList[unitDefID], visitedUnits[unitDefID]
+		local nearestUnitID, nearestDistance
+		for i = 1, #units do
+			local unitID = units[i]
+			local unitX, _, unitZ = spGetUnitPosition(unitID)
+			if unitX and not visited[unitID] then
+				local distance = math_distance2dSquared(unitX, unitZ, cycleOriginX, cycleOriginZ)
+				if not nearestDistance or distance < nearestDistance then
+					nearestUnitID, nearestDistance = unitID, distance
+				end
+			end
+		end
+		return nearestUnitID
+	end
+
+	getNextIdleUnit = function(unitDefID, button)
+		if button == 1 or not cycleOriginX then
+			local cameraX, _, cameraZ = spGetCameraPosition()
+			cycleOriginX, cycleOriginZ = cameraX, cameraZ
+		end
+		visitedUnits[unitDefID] = visitedUnits[unitDefID] or {}
+		local unitID = getNearestUnvisitedUnit(unitDefID)
+		if not unitID then
+			visitedUnits[unitDefID] = {}
+			unitID = getNearestUnvisitedUnit(unitDefID)
+		end
+		if unitID then
+			visitedUnits[unitDefID][unitID] = true
+		end
+		return unitID
 	end
 end
 
@@ -865,29 +900,9 @@ function widget:MousePress(x, y, button)
 						if shift then
 							units = idleList[unitDefID]
 						else
-							local num = 1
-							if #idleList[unitDefID] > 1 then
-								if clicks[unitDefID] then
-									clicks[unitDefID] = clicks[unitDefID] + 1
-								else
-									clicks[unitDefID] = 0
-								end
-								num = clicks[unitDefID] % #idleList[unitDefID] + 1
-							end
-							if not listSorted[unitDefID] then
-								-- FIXME: should use center of screen rather than camera
-								local camX, camY, camZ = unpack(prevCameraPosition or {Spring.GetCameraPosition()})
-								prevCameraPosition = {camX, camY, camZ}
-								table.sort(idleList[unitDefID], function (a, b)
-									local unitAX, _, unitAZ = spGetUnitPosition(a)
-									local unitBX, _, unitBZ = spGetUnitPosition(b)
-									return math_distance2dSquared(unitAX, unitAZ, camX, camZ) < math_distance2dSquared(unitBX, unitBZ, camX, camZ)
-								end)
-								listSorted[unitDefID] = true
-							end
-							units = { idleList[unitDefID][num] }
+							lastSelectedUnitID = getNextIdleUnit(unitDefID, button)
+							units = { lastSelectedUnitID }
 						end
-						justSelected = true
 						Spring.SelectUnitArray(units)
 					end
 					if button == 3 then
@@ -906,13 +921,11 @@ end
 
 function widget:SelectionChanged(sel)
 	selectedUnits = sel or {}
-	if justSelected then -- ignore selections done by the widget itself 
-		justSelected = false
-		return
+	if #selectedUnits ~= 1 or selectedUnits[1] ~= lastSelectedUnitID then
+		visitedUnits = {}
+		lastSelectedUnitID = nil
+		cycleOriginX, cycleOriginZ = nil, nil
 	end
-	prevCameraPosition = nil
-	listSorted = {}
-	clicks = {}
 end
 
 function widget:GetConfigData()
