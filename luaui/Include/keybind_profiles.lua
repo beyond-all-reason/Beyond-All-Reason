@@ -287,6 +287,7 @@ end
 
 -- Pinned in `layout`, since the editor can repoint `basedOn`.
 local function layoutOf(profile)
+	local start = profile
 	local seen = {}
 	while profile and not seen[profile] do
 		local builtin = M.isBuiltin(profile.name)
@@ -301,7 +302,10 @@ local function layoutOf(profile)
 		profile = type(base) == "string" and (M.isBuiltin(base) or M.get(base)) or nil
 	end
 
-	return nil
+	local closest = start and M.inferBase(start)
+	local inferred = closest and M.isBuiltin(closest)
+
+	return inferred and inferred.id or nil
 end
 
 -- Applied even where the key is taken; the editor shows the clash.
