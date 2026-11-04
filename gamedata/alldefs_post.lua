@@ -1232,14 +1232,11 @@ local function weaponDef_Post(name, wDef)
 
 		-- Prevent weapons from aiming only at auto-generated targets beyond their own range.
 		if wDef.proximitypriority then
-			local range = math.max(wDef.range or 10, 1) -- prevent div0 -- todo: account for multiplier_weaponrange
-			local rangeBoost = math.max(
-				range
-					+ ((customparams.exclude_preaim and 0) or (customparams.preaim_range or math.max(range * 0.1, 20))),
-				range
-			) -- see unit_preaim
-			local proximity = math.max(wDef.proximitypriority, (-0.4 * rangeBoost - 100) / range) -- see CGameHelper::GenerateWeaponTargets
-			wDef.proximitypriority = math.clamp(proximity, -1, 10) -- upper range allowed for targeting weapons for drone bombers which can overrange massively
+			local range = math.max(wDef.range or 10, 0) -- todo: account for multiplier_weaponrange
+			local boosted = customparams.exclude_preaim and range
+				or range + math.max(20, range * 0.1, (customparams.preaim_range or 0) - range) -- see preaim_range
+			local proximity = math.max(wDef.proximitypriority, (-0.4 * boosted - 100) / boosted) -- see CGameHelper::GenerateWeaponTargets
+			wDef.proximitypriority = math.clamp(proximity, -1, 10)
 		end
 
 		if wDef.craterareaofeffect then
