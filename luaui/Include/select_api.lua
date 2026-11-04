@@ -41,12 +41,10 @@ local function handleCaching(invert, tokenLower, filterFunction, optionalArg)
 
 	return function(udef)
 		if cache[udef] == nil then
-			local result = filterFunction(udef, optionalArg)
-			-- handle invert explicitly here for caching
-			result = (result or false) ~= invert
-			cache[udef] = result
+			-- the inverted filter shares this cache
+			cache[udef] = filterFunction(udef, optionalArg) and true or false
 		end
-		return cache[udef]
+		return cache[udef] ~= invert
 	end
 end
 
