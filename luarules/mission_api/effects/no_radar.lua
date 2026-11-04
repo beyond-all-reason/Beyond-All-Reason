@@ -1,10 +1,30 @@
 ---
---- No Radar: a stub for an effect that removes every unit's radar. It does nothing yet.
+--- No Radar: removes the radar of every unit inside its area.
 ---
 
-local function removeRadar() end
+local function setRadarMultiplier(unitIDs, multiplier, trackingID)
+	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+	local source = "NoRadar" .. trackingID
+	for i = 1, #unitIDs do
+		setUnitModifier(unitIDs[i], "radarRadius", multiplier, source)
+	end
+end
 
-local function restoreRadar() end
+local function onUnitsEntered(unitIDs, trackingID)
+	setRadarMultiplier(unitIDs, 0, trackingID)
+end
+
+local function onUnitsLeft(unitIDs, trackingID)
+	setRadarMultiplier(unitIDs, nil, trackingID)
+end
+
+local function removeRadar(area)
+	return GG["MissionAPI"].Modules.AreaTracking.TrackUnitsInArea(area, nil, onUnitsEntered, onUnitsLeft)
+end
+
+local function restoreRadar(trackingID)
+	GG["MissionAPI"].Modules.AreaTracking.StopTrackingUnits(trackingID)
+end
 
 return {
 	type = "NoRadar",
