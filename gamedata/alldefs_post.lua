@@ -1223,8 +1223,8 @@ local function weaponDef_Post(name, wDef)
 			wDef.targetborder = 1 --Aim for just inside the hitsphere
 
 			if
-				Engine.FeatureSupport.targetBorderBug and wDef.weapontype == "BeamLaser"
-				or wDef.weapontype == "LightningCannon"
+				Engine.FeatureSupport.targetBorderBug
+				and (wDef.weapontype == "BeamLaser" or wDef.weapontype == "LightningCannon")
 			then
 				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1.
 			end
