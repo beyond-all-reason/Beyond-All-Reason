@@ -371,6 +371,9 @@ weaponCustomParamKeys.retarget = {
 
 local retargetWeapons = {}
 local hashBaseDefs = #WeaponDefs + 1
+-- Crashing aircraft are still alive but cannot be damaged (see unit_crashing_aircraft),
+-- so missiles heading for one are as wasted as missiles heading for a dead unit.
+local crashing = table.ensureTable(GG, "Crashing")
 assert(hashBaseDefs * (#UnitDefs + 1) <= math.int_max)
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local weaponDefToNum = {}
@@ -397,7 +400,7 @@ specialEffectFunction.retarget = function(_, projectileID)
 		return true -- retarget doesn't allow prefiring at the ground & reaiming onto targets
 	end
 	---@cast target UnitID
-	if spGetUnitIsDead(target) == false then
+	if spGetUnitIsDead(target) == false and not crashing[target] then
 		return false
 	end
 
@@ -411,6 +414,9 @@ specialEffectFunction.retarget = function(_, projectileID)
 	local weaponNum = retargetWeapons[spGetProjectileDefID(projectileID) + ownerDefID * hashBaseDefs] or 1
 	---@diagnostic disable-next-line: param-type-mismatch -- OK: owner is alive
 	local ownerTargetType, _fromUser, ownerTarget = spGetUnitWeaponTarget(ownerID, weaponNum)
+	if ownerTargetType == 1 and ownerTarget == target then
+		return false -- the launcher has not switched away from the crashing unit yet
+	end
 	setProjectileTarget(projectileID, ownerTarget, ownerTargetType)
 	return false
 end
