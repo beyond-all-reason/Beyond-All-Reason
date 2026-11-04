@@ -143,7 +143,7 @@ local hover = {
 	btn = "",
 	bar = 0,
 	cat = 0,
-	catBarLit = false,
+	catThumbHovered = false,
 	kb = 0,
 }
 local dirty = false
@@ -3730,7 +3730,7 @@ local function drawSidebar(hoverIdx)
 	local catBar = state.catBar()
 	if catBar then
 		state.catScroller:setRect(catBar[1], catBar[2], catBar[3], catBar[4])
-		state.catScroller:draw(hover.catBarLit)
+		state.catScroller:draw(hover.catThumbHovered)
 	end
 
 	-- Laid out before the font existed, so the labels are still waiting to be fitted; or one of
@@ -4567,9 +4567,9 @@ local function panelSignature(mx, my)
 		h.bar = 1
 	end
 	local catBar = state.catBar()
-	h.catBarLit = false
+	h.catThumbHovered = false
 	if catBar and not keyboardPage then
-		h.catBarLit = state.catScroller:isOverThumb(mx, my)
+		h.catThumbHovered = state.catScroller:isOverThumb(mx, my)
 		if isInRect(mx, my, catBar[1], catBar[2], catBar[3], catBar[4]) then
 			h.sb = 0
 		end
@@ -4645,7 +4645,7 @@ local function panelSignature(mx, my)
 		.. "|"
 		.. (state.listScroller:isDragging() and 1 or 0)
 		.. "|"
-		.. (h.catBarLit and 1 or 0)
+		.. (h.catThumbHovered and 1 or 0)
 		.. "|"
 		.. (state.catScroller:isDragging() and 1 or 0)
 		.. "|"
