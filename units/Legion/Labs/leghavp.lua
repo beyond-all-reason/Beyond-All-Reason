@@ -22,7 +22,6 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 800,
 		objectname = "Units/LEGHAVP.s3o",
-		radardistance = 50,
 		script = "Units/LEGHAVP.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
