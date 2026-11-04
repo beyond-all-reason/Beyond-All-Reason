@@ -456,7 +456,6 @@ QueryWeapon2(pieceIndex)
 }
 
 	//maxvelocity	1.7200000286102, thus elmos per frame = 52 elmost per second
-	//http://www.google.hu/imgres?imgurl=http%3A%2F%2Fwww.mindcreators.com%2FImages%2FLM_InsectGaits.gif&imgrefurl=http%3A%2F%2Fwww.blendpolis.de%2Fviewtopic.php%3Ff%3D14%26t%3D20955&h=269&w=564&tbnid=eM6Ce18iiKEsNM%3A&zoom=1&docid=9I0ZGCOGTgSBFM&ei=bGpFU_T9G8f8ygOqs4DoCg&tbm=isch&client=firefox-a&ved=0CKcBEIQcMBg&iact=rc&dur=400&page=1&start=0&ndsp=59
 	//4 states of legs:
 		//go to forward
 		//pick up and center
