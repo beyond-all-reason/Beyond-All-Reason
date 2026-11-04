@@ -689,9 +689,6 @@ local function drawWreckSpriteInstances()
 end
 
 function gadget:DrawWorld()
-	if Spring.IsGUIHidden() then
-		return
-	end
 	drawWrecks()
 end
 
