@@ -41,7 +41,7 @@ end
 --     15 at minute 35. That live maximum also caps how many substitutes one spawn can buy.
 --   zombie_minimum_respawn_delay (seconds, default 45)
 --   zombie_maximum_respawn_delay (seconds, default 120)
---     the starting window for power-based revival times. After minute 45 both ends decay by 0.96
+--     the starting window for power-based revival times. After minute 40 both ends decay by 0.96
 --     each minute. A heap waits twice its unit's delay.
 --   zombie_wraith_respawn_chance (0 to 1, default 0.66)
 --     the chance one of these destructions creates a wraith: a unit that leaves no wreck,
@@ -123,13 +123,27 @@ local currentModeFeatures = ZOMBIE_MODE_FEATURES[DEFAULT_ZOMBIE_MODE]
 local autoSpawningEnabled = true
 
 local POWER_BAND = {
-	SCALE_RATE = 1.07,
+	SCALE_RATE = 1.13,
 	BOTTOM_START = 10,
 	TOP_START = 150,
-	BOTTOM_GRACE_MINUTES = 35,
+	BOTTOM_GRACE_MINUTES = 15,
 	ADVANTAGE_AT_BOTTOM = 2,
 	ADVANTAGE_AT_TOP = -3,
 }
+local ruinsEnabled = modOptions.ruins == "enabled"
+	or (modOptions.ruins == "scav_only" and BAR.Utilities.Gametype.IsScavengers())
+local evocomEnabled = modOptions.evocom and true or false
+local quickStartMode = modOptions.quick_start
+local quickStartEnabled = quickStartMode == "enabled"
+	or quickStartMode == "factory_discount"
+	or quickStartMode == "factory_discount_only"
+	or (quickStartMode == "default" and modOptions.deathmode == "dominion")
+-- TEMPORARY bandaid fix, to make the balance of the traditional non-accelerated games reasonable. power based progression must be calibrated.
+local TRADITIONAL_GAME_BAND_DELAY_MINUTES = 10
+local traditionalGameBandDelayMinutes = 0
+if not ruinsEnabled and not evocomEnabled and not quickStartEnabled then
+	traditionalGameBandDelayMinutes = TRADITIONAL_GAME_BAND_DELAY_MINUTES
+end
 local TECH_BAND = {
 	BASE_TECH_LEVEL = 0.5,
 	MINUTES_PER_TECH_LEVEL = 14, -- to convert a tech level guesstimate into an equivalent minutes so tech can out-pace time based scaling
@@ -148,7 +162,7 @@ local SPAWN_COUNT_GROWTH = {
 }
 local SPAWN_TIME_DECAY = {
 	RATE = 0.96,
-	DELAY_MINUTES = 45,
+	DELAY_MINUTES = 40,
 }
 local EXPERIENCE_GROWTH = {
 	RATE = 1.15,
@@ -659,8 +673,12 @@ end
 
 local function powerBandThresholdsForMinutes(bandMinutes)
 	local bottomPowerThreshold = POWER_BAND.BOTTOM_START
-		* POWER_BAND.SCALE_RATE ^ math.max(0, bandMinutes - POWER_BAND.BOTTOM_GRACE_MINUTES)
-	local topPowerThreshold = POWER_BAND.TOP_START * POWER_BAND.SCALE_RATE ^ bandMinutes
+		* POWER_BAND.SCALE_RATE ^ math.max(
+			0,
+			bandMinutes - POWER_BAND.BOTTOM_GRACE_MINUTES - TRADITIONAL_GAME_BAND_DELAY_MINUTES
+		)
+	local topPowerThreshold = POWER_BAND.TOP_START
+		* POWER_BAND.SCALE_RATE ^ math.max(0, bandMinutes - traditionalGameBandDelayMinutes)
 	return bottomPowerThreshold, topPowerThreshold
 end
 
