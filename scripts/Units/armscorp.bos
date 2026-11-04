@@ -7,7 +7,7 @@
 //#define WALK_PERIOD 100
 
 
-piece	flare1, flare2, flare3, flare4, base, doorl, doorr, weight, turret1, turret2, sleeve, barrel, leg1a, leg1b, leg1c, leg2a, leg2b, leg2c, leg3a, leg3b, leg3c, leg4a, leg4b, leg4c, leg5a, leg5b, leg5c, leg6a, leg6b, leg6c, aimfromy, light;
+piece	flare1, flare2, flare3, flare4, base, doorl, doorr, weight, turret1, turret2, sleeve, leg1a, leg1b, leg1c, leg2a, leg2b, leg2c, leg3a, leg3b, leg3c, leg4a, leg4b, leg4c, leg5a, leg5b, leg5c, leg6a, leg6b, leg6c, aimfromy, light;
 
 static-var fire_count, firing, open, maxreloadtime, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
@@ -386,7 +386,7 @@ Create()
 	open=FALSE;
 	firing=FALSE;
 	SLEEP_UNTIL_UNITFINISHED;
-	restore_delay=2000;
+	restore_delay=3000;
 }
 
 // SetMaxReloadTime(t)
