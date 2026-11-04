@@ -12,7 +12,9 @@ piece	flare1, flare2, flare3, flare4, base, doorl, doorr, weight, turret1, turre
 static-var fire_count, firing, open, maxreloadtime, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
 #define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 #define SIGNAL_SHOOT1 16
+#define SIGNAL_SHOOT2 32
 #define SIGNAL_MOVE 1
 #define SMOKEPIECE1 base
 
@@ -570,8 +572,8 @@ AimWeapon2(heading, pitch)
 {
 	if(pitch < <-60>) pitch = <-60>;
 
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	
 	turn sleeve to x-axis <0> - pitch speed <225.0>;
 	turn turret2 to y-axis heading speed <225.0>;
