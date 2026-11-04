@@ -1,4 +1,5 @@
 # October
+- [Lava] will now damage unit wrecks, rocks, and other metal containing features.
 - [Zombies]
   - Zombie factories expire 5 minutes after rising. Expiring zombie buildings now self-destruct instead of vanishing.
   - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
