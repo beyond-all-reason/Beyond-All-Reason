@@ -66,6 +66,11 @@ jobs:
           # .cob that come apart are seen from both ends.
           git diff --name-only -z --no-renames "$BASE_SHA" HEAD -- scripts > changed.txt
 
+          # A change to the check can change the result for any script.
+          if ! git diff --quiet "$BASE_SHA" HEAD -- tools/unit_scripts .github/workflows/unit_script_check.yml; then
+            git ls-files -z -- scripts >> changed.txt
+          fi
+
           python tools/unit_scripts/check_compiled_scripts.py \
             --compiler-dir compilers/barscriptcompiler-dd01436 \
             --compiler-dir compilers/barscriptcompiler-b6f5315 \
