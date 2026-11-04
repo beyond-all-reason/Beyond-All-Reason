@@ -152,4 +152,15 @@ describe("a text field and the clipboard", function()
 
 		assert.are.equal("armcom corcom ", box:getText())
 	end)
+
+	it("leaves the selection alone when there is nothing to paste", function()
+		clipboard = ""
+		local box = field("armcom")
+		box:setCaret(0)
+		box:setCaret(6, true)
+		chord(box, KEYSYMS.V)
+
+		assert.are.equal("armcom", box:getText())
+		assert.is_true(box:hasSelection())
+	end)
 end)

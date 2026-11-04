@@ -220,6 +220,10 @@ end
 -- Takes clipboard text at the caret, replacing any selection, as much of it as the field holds.
 function Editbox:paste(clip)
 	clip = (clip or ""):gsub("[\r\n\t]+", " "):gsub("%c", "")
+	if clip == "" then
+		return false
+	end
+
 	self:deleteSelection()
 
 	local room = self.maxChars - utf8.len(self.text)
