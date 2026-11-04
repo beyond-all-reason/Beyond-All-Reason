@@ -899,6 +899,14 @@ local function unitDef_Post(name, uDef)
 			local weaponDef = weapondefs[weaponName]
 			local weaponParams = weaponDef and weaponDef.customparams or {}
 
+			-- AA weapons choose targets independently of temporary movement attack orders.
+			if
+				(weapon.onlytargetcategory == "VTOL" or weapon.onlytargetcategory == "VTOL T4AIR")
+				and not weaponParams.bogus
+			then
+				weapon.independentautotargeting = true
+			end
+
 			if weaponParams.smart_priority and not priorityWeapon then
 				priorityWeapon = weaponNumber
 			elseif weaponParams.smart_backup and not backupWeapon then

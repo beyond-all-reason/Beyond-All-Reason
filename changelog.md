@@ -1,4 +1,5 @@
 # October
+- [Anti-air] With engine support, mobile AA can prioritize aircraft independently of automatic movement targets. Enabled for static AA and AA weapons on mixed-role units as well.
 - [Zombies]
   - Zombie factories expire 5 minutes after rising. Expiring zombie buildings now self-destruct instead of vanishing.
   - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
