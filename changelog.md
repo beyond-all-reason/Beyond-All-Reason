@@ -7,9 +7,10 @@
   - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
   - Wraith respawns no longer have a 1/3rd chance to drop a queued zombie spawn. Each wave drops its lowest-value third instead.
   - Wraith health 500 -> 100
-- [Commands]
+- [Controls]
   - Shift+Space area commands give your units a faster path to travel. Large areas can take 20%–70% less travel time.
   - Area commands (with and without Shift+Space) no longer drop targets past the 2,000 command limit. Your unit selection gets split into groups that take their own targets, with no targets dropped.
+  - Clicking an idle builder icon now selects the builder closest to the center of your view. Repeated clicks cycle through them, nearest first.
 - [Zombies]
   - Added a limited time Spidergeddon mode
   - Difficulty levels have been replaced with modes you can mix and match:
