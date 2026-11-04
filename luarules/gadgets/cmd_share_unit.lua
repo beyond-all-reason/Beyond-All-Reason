@@ -91,7 +91,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- already marked below, this is how a factory holds it and hands it to its units
 		if paramCount == 2 then
-			return true
+			return cmdParams[2] == IS_RALLY_SHARE
 		end
 
 		if isFactory[unitDefID] then
