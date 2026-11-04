@@ -53,6 +53,7 @@ local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 local myTeamID = Spring.GetLocalTeamID()
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetCameraPosition = Spring.GetCameraPosition
+local spTraceScreenRay = Spring.TraceScreenRay
 
 local floor = mathFloor
 local ceil = math.ceil
@@ -540,6 +541,15 @@ end
 
 local getNextIdleUnit ---@type fun(unitDefID:UnitDefID, button:integer):UnitID?
 do
+	local function getViewCenter()
+		local _, position = spTraceScreenRay(floor(vsx * 0.5), floor(vsy * 0.5), true)
+		if position then
+			return position[1], position[3]
+		end
+		local cameraX, _, cameraZ = spGetCameraPosition()
+		return cameraX, cameraZ
+	end
+
 	local function getNearestUnvisitedUnit(unitDefID)
 		local units, visited = idleList[unitDefID], visitedUnits[unitDefID]
 		local nearestUnitID, nearestDistance
@@ -558,8 +568,7 @@ do
 
 	getNextIdleUnit = function(unitDefID, button)
 		if button == 1 or not cycleOriginX then
-			local cameraX, _, cameraZ = spGetCameraPosition()
-			cycleOriginX, cycleOriginZ = cameraX, cameraZ
+			cycleOriginX, cycleOriginZ = getViewCenter()
 		end
 		visitedUnits[unitDefID] = visitedUnits[unitDefID] or {}
 		local unitID = getNearestUnvisitedUnit(unitDefID)
