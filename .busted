@@ -1,79 +1,103 @@
 -- Discover spec roots generically: the repo spec/ tree plus any module that
 -- ships its own spec/ dir (modules are self-contained; no per-module entries).
+-- SPEC_SKIP lists spec/ dirs to ignore, split on `, `, e.g. SPEC_SKIP=mission_api.
 local function specRoots()
-  local roots = { "spec/" }
-  local find = io.popen('find modules -mindepth 2 -maxdepth 2 -type d -name spec 2>/dev/null')
-  if find then
-    for dir in find:lines() do
-      roots[#roots + 1] = dir .. "/"
-    end
-    find:close()
-  end
-  return roots
+	local skip = {}
+	for name in (os.getenv("SPEC_SKIP") or ""):gmatch("[^,%s]+") do
+		skip[name] = true
+	end
+
+	local roots = {}
+	if next(skip) == nil then
+		roots[1] = "spec/"
+	else
+		local dirs = io.popen("find spec -mindepth 1 -maxdepth 1 -type d | sort")
+		for dir in dirs:lines() do
+			if not skip[dir:match("[^/]+$")] then
+				roots[#roots + 1] = dir .. "/"
+			end
+		end
+		dirs:close()
+	end
+
+	local find = io.popen("find modules -mindepth 2 -maxdepth 2 -type d -name spec 2>/dev/null")
+	if find then
+		for dir in find:lines() do
+			roots[#roots + 1] = dir .. "/"
+		end
+		find:close()
+	end
+	return roots
 end
 
 -- busted has no reverse order, so SPEC_ORDER=reverse builds the file list for it.
 local reverse = os.getenv("SPEC_ORDER") == "reverse"
 
 local function reversedSpecFiles()
-  local files = {}
-  for _, root in ipairs(specRoots()) do
-    for _, file in ipairs(require("pl.dir").getallfiles(root, "*_spec.lua")) do
-      files[#files + 1] = file
-    end
-  end
-  table.sort(files, function(a, b)
-    return a > b
-  end)
+	local files = {}
+	for _, root in ipairs(specRoots()) do
+		for _, file in ipairs(require("pl.dir").getallfiles(root, "*_spec.lua")) do
+			files[#files + 1] = file
+		end
+	end
+	table.sort(files, function(a, b)
+		return a > b
+	end)
 
-  return files
+	return files
 end
 
 return {
 
-  default = {
-    -- add your project roots to Lua’s package.path for tests
-    -- This is necessary during the initial phase of the Lux rollout
-    --   where we don't have a project root and `src/` directory in accordance with canonical lua rock/package structure
-    --   https://github.com/beyond-all-reason/Beyond-All-Reason/pull/6005#issuecomment-3504830009
-    lpath = table.concat({
-      "./?.lua", "./?/init.lua",
-      "common/?.lua", "common/?/init.lua",
-      "common/luaUtilities/?.lua", "common/luaUtilities/?/init.lua",
-      "luarules/?.lua", "luarules/?/init.lua",
-      "luaui/?.lua", "luaui/?/init.lua",
-      "spec/?.lua", "spec/?/init.lua",
-    }, ";"),
-    helper = "spec/spec_helper.lua",
-  },
-  -- Default configuration
-  verbose = true,
-  output = "utfTerminal",
-  pattern = "_spec",
-  ROOT = specRoots(),
+	default = {
+		-- add your project roots to Lua’s package.path for tests
+		-- This is necessary during the initial phase of the Lux rollout
+		--   where we don't have a project root and `src/` directory in accordance with canonical lua rock/package structure
+		--   https://github.com/beyond-all-reason/Beyond-All-Reason/pull/6005#issuecomment-3504830009
+		lpath = table.concat({
+			"./?.lua",
+			"./?/init.lua",
+			"common/?.lua",
+			"common/?/init.lua",
+			"common/luaUtilities/?.lua",
+			"common/luaUtilities/?/init.lua",
+			"luarules/?.lua",
+			"luarules/?/init.lua",
+			"luaui/?.lua",
+			"luaui/?/init.lua",
+			"spec/?.lua",
+			"spec/?/init.lua",
+		}, ";"),
+		helper = "spec/spec_helper.lua",
+	},
+	-- Default configuration
+	verbose = true,
+	output = "utfTerminal",
+	pattern = "_spec",
+	ROOT = specRoots(),
 
-  -- busted merges _all into whichever task runs, so the file order lives here.
-  _all = {
-    -- Alphabetical, not the directory walk, which differs between machines.
-    ["sort-files"] = not reverse,
-    -- spec_helper leaves top-level globals to busted's own restore between files.
-    ["auto-insulate"] = true,
-    verbose = true,
-    output = "utfTerminal",
-    pattern = "_spec",
-    helper = "spec/spec_helper.lua",
-    ROOT = reverse and reversedSpecFiles() or specRoots()
-  },
-  unit = {
-    verbose = true,
-    ROOT = specRoots()
-  },
-  coverage = {
-    verbose = true,
-    output = "utfTerminal",
-    pattern = "_spec",
-    helper = "spec/spec_helper.lua",
-    coverage = true,
-    ROOT = specRoots()
-  }
+	-- busted merges _all into whichever task runs, so the file order lives here.
+	_all = {
+		-- Alphabetical, not the directory walk, which differs between machines.
+		["sort-files"] = not reverse,
+		-- spec_helper leaves top-level globals to busted's own restore between files.
+		["auto-insulate"] = true,
+		verbose = true,
+		output = "utfTerminal",
+		pattern = "_spec",
+		helper = "spec/spec_helper.lua",
+		ROOT = reverse and reversedSpecFiles() or specRoots(),
+	},
+	unit = {
+		verbose = true,
+		ROOT = specRoots(),
+	},
+	coverage = {
+		verbose = true,
+		output = "utfTerminal",
+		pattern = "_spec",
+		helper = "spec/spec_helper.lua",
+		coverage = true,
+		ROOT = specRoots(),
+	},
 }

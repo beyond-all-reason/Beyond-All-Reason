@@ -1,4 +1,5 @@
 # October
+- [Lava] will now damage unit wrecks, rocks, and other metal containing features.
 - [Zombies]
   - Zombie factories expire 5 minutes after rising. Expiring zombie buildings now self-destruct instead of vanishing.
   - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
@@ -73,6 +74,7 @@
   - Cortex / Legion advanced UW mexes had an unintended 50% damage reduction, removed.
   - Defenses that open and close cannot fire during their open or close animations.
   - Lens flares of searchlights, headlights and other unit lights no longer flicker.
+  - `select` filters and their inverses can be used together without one being wrong.
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.
