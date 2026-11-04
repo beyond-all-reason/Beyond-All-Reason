@@ -29,12 +29,12 @@ local range = 200
 --speedups
 --------------------------------------------------------------------------------
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
-local GetMyTeamID = Spring.GetMyTeamID
+local GetMyTeamID = Spring.GetLocalTeamID
 local GetUnitTeam = Spring.GetUnitTeam
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetTeamAllyTeamID = Spring.GetTeamAllyTeamID
 local ShareResources = Spring.ShareResources
-local I18N = Spring.I18N
+local I18N = BAR.I18N
 local GetSpectatingState = Spring.GetSpectatingState
 local WorldToScreenCoords = Spring.WorldToScreenCoords
 local PlaySoundFile = Spring.PlaySoundFile
@@ -46,7 +46,6 @@ local TraceScreenRay = Spring.TraceScreenRay
 local GetPlayerList = Spring.GetPlayerList
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetGameRulesParam = Spring.GetGameRulesParam
-local GetViewGeometry = Spring.GetViewGeometry
 
 local glBeginEnd = gl.BeginEnd
 local glCallList = gl.CallList
@@ -69,6 +68,7 @@ local sqrt = math.sqrt
 local max = math.max
 
 local defaultColor
+local textScale = 1 -- the label's size and distance from the cursor: 1080p's times this
 
 local cmdQuickShareToTargetId = 455624
 local myTeamID = GetMyTeamID()
@@ -179,12 +179,12 @@ local function drawAoE(tx, ty, tz, selectedTeam)
 end
 
 local function findPlayerName(teamId)
-	local name = ''
-	if GetGameRulesParam('ainame_' .. teamId) then
-		name = I18N('ui.playersList.aiName', { name = GetGameRulesParam('ainame_' .. teamId) })
+	local name = ""
+	if GetGameRulesParam("ainame_" .. teamId) then
+		name = I18N("ui.playersList.aiName", { name = GetGameRulesParam("ainame_" .. teamId) })
 	else
 		local players = GetPlayerList(teamId)
-		name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
+		name = (#players > 0) and GetPlayerInfo(players[1], false) or "------"
 
 		for _, pID in ipairs(players) do
 			local pname, active, isspec = GetPlayerInfo(pID, false)
@@ -201,31 +201,37 @@ local function colourNames(teamId)
 	if tonumber(teamId) < 0 then
 		return ""
 	end
-	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamId)
-	return Spring.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
+	local nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamId)
+	return BAR.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
 end
 
 local function drawName(teamId)
 	local mouseX, mouseY = GetMouseState()
-	local textY = mouseY + 40
+	local textY = mouseY + 40 * textScale
+	local textSize = 20 * textScale
 
 	if teamId then
 		font:Begin()
 		font:SetTextColor(defaultColor)
 		font:SetOutlineColor({ 0, 0, 0, 1 })
-		font:Print(I18N("ui.quickShareToTarget.shareTo", {
-			playerColor = colourNames(teamId),
-			player = findPlayerName(teamId)
-		}), mouseX, textY, 24, "con")
+		font:Print(
+			I18N("ui.quickShareToTarget.shareTo", {
+				playerColor = colourNames(teamId),
+				player = findPlayerName(teamId),
+			}),
+			mouseX,
+			textY,
+			textSize,
+			"con"
+		)
 		font:End()
 	else
 		font:Begin()
 		font:SetTextColor(defaultColor)
 		font:SetOutlineColor({ 0, 0, 0, 1 })
-		font:Print(I18N("ui.quickShareToTarget.noTarget"), mouseX, textY, 24, "con")
+		font:Print(I18N("ui.quickShareToTarget.noTarget"), mouseX, textY, textSize, "con")
 		font:End()
 	end
-
 end
 
 local function isAlly(unitTeamId)
@@ -274,6 +280,15 @@ local function findTeamInArea(mx, my)
 	return selectedTeam
 end
 
+-- whether the mouse was over the interface last frame: few panels have IsAbove, but over themselves
+-- they set the normal cursor in their DrawScreen (in place of this command's), read after all of them
+local overInterface = false
+
+function widget:DrawScreenPost()
+	local _, cmd = GetActiveCommand()
+	overInterface = cmd == cmdQuickShareToTargetId and Spring.GetMouseCursor() == "cursornormal"
+end
+
 local function getSelectedTeam()
 	local _, cmd, _ = GetActiveCommand()
 
@@ -281,9 +296,15 @@ local function getSelectedTeam()
 		return nil
 	end
 
+	-- over the interface (a player list takes clicks on its players itself): no world target
+	local mx, my = GetMouseState()
+	if overInterface or widgetHandler:IsAbove(mx, my) then
+		return nil
+	end
+
 	local tx, ty, tz, targetUnitID = getMouseTargetPosition()
 
-	if (not tx and not targetUnitID) then
+	if not tx and not targetUnitID then
 		return nil
 	end
 
@@ -304,17 +325,17 @@ end
 function widget:DrawWorld()
 	local targetX, targetY, targetZ, selectedTeam = getSelectedTeam()
 
-	if (not targetX) then
+	if not targetX then
 		return
 	end
 
-	drawAoE(targetX, targetY+10, targetZ, selectedTeam)
+	drawAoE(targetX, targetY + 10, targetZ, selectedTeam)
 end
 
 function widget:DrawScreen()
 	local targetX, _, _, selectedTeam = getSelectedTeam()
 
-	if (not targetX) then
+	if not targetX then
 		return
 	end
 
@@ -342,7 +363,7 @@ function widget:CommandNotify(cmdID, cmdParams, _)
 		end
 
 		ShareResources(targetTeamID, "units")
-		PlaySoundFile("beep4", 1, 'ui')
+		PlaySoundFile("beep4", 1, "ui")
 		return false
 	end
 end
@@ -352,21 +373,28 @@ function widget:CommandsChanged()
 		return
 	end
 
+	local teams = Spring.GetTeamList(myAllyTeamID)
+	if not teams or #teams <= 1 then
+		return -- no allied teams to share to
+	end
+
 	local selectedUnits = GetSelectedUnits()
 	if #selectedUnits > 0 then
 		local customCommands = widgetHandler.customCommands
 		customCommands[#customCommands + 1] = {
 			id = cmdQuickShareToTargetId,
 			type = CMDTYPE.ICON_UNIT_OR_MAP,
-			name = 'Share Unit To Target',
-			cursor = 'settarget',
-			action = 'quicksharetotarget',
+			name = "Share Unit To Target",
+			cursor = "settarget",
+			action = "quicksharetotarget",
 		}
 	end
 end
 
-function widget:ViewResize(vsx, vsy)
-	font = WG['fonts'].getFont(2, 1.5)
+function widget:ViewResize()
+	local _, vsy = Spring.GetViewGeometry()
+	textScale = (vsy / 1080) * Spring.GetConfigFloat("ui_scale", 1)
+	font = WG.fonts.getFont(2, 1.5)
 end
 
 function widget:Initialize()

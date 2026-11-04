@@ -1,8 +1,8 @@
 return {
 	armexcalibur = {
 		activatewhenbuilt = false,
-		buildcostenergy = 16000,
-		buildcostmetal = 900,
+		energycost = 16000,
+		metalcost = 900,
 		buildpic = "armexcalibur.DDS",
 		buildtime = 18000,
 		canmove = true,
@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1200,
-		idleautoheal = 10,
-		idletime = 900,
 		maxacc = 0.03,
 		maxdec = 0.05,
 		minwaterdepth = 15,
@@ -36,7 +34,7 @@ return {
 		waterline = 25,
 		customparams = {
 			model_author = "Hornet",
-			normaltex = "unittextures/arm_normal.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips/T2",
 			techlevel = 2,
 			unitgroup = "sub",
@@ -85,11 +83,6 @@ return {
 				[0] = "custom:subbubbles",
 				[1] = "custom:subwake",
 				[2] = "custom:tachyonshot",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

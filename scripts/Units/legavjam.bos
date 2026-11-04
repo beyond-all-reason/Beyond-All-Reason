@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
+#include "../unitDefsDeactivateTime.h";
 
-//piece  base, dish, turret, eye, fwheel, rwheel;
 piece 	chassis, dishBase, lTrack, rTrack, trackGuards, dishA, dishB, dishC, dishD, cloaklight, pointlight1, pointlight2;
 
 static-var recently_damaged, desired_activation;
@@ -15,7 +15,8 @@ static-var recently_damaged, desired_activation;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 2
 #define MAXTILT 100
-#include "../unit_hitbyweaponid_and_smoke.h"
+#define SMOKE_PIECE chassis
+#include "../damagedsmoke.h"
 
 
 #define TB_BASE chassis 
@@ -139,12 +140,15 @@ OffOnHit()
 	set-signal-mask SIGNAL_OFF;
 	recently_damaged = 1;
 	set ACTIVATION to 0; // turn off unit
-	sleep 8000; //hardcoded time to stay off after being hit
+	sleep deactivateTime;
 	recently_damaged = 0;
 	set ACTIVATION to desired_activation;
 }
-
-
+HitByWeapon(anglex, anglez)
+{
+	if (!(get BUILD_PERCENT_LEFT)) start-script OffOnHit();
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

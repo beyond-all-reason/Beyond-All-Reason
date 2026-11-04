@@ -1,6 +1,8 @@
 // This shader is Copyright (c) 2025 Beherith (mysterme@gmail.com) and licensed under the MIT License
 //shader version is added via gadget
 
+//__ENGINEUNIFORMBUFFERDEFS__
+
 #if (RENDERING_MODE == 2) //shadows pass. AMD requests that extensions are declared right on top of the shader
 	#if (SUPPORT_DEPTH_LAYOUT == 1)
 		//#extension GL_ARB_conservative_depth : enable // this is commented out because AMD wants me to add it at start of shader, hope this works...
@@ -162,7 +164,7 @@ in Data {
 	//vec3 worldBitangent;
 	vec3 worldNormal_VS; // needs to be normalized due to varying interpolation
 
-	vec4 uvCoords;
+	vec4 uvCoords; // .z contains unitID, .w the jammed highlight 0-1
 	flat vec4 teamCol; //.a contains selectedness
 	// main light vector(s)
 //	vec3 worldCameraDir;
@@ -181,6 +183,16 @@ in Data {
 //	flat int unitID;
 //	flat vec4 userDefined2;
 };
+
+// Jammed units highlight (gui_jammed_units.lua): red like the jammer preview. The shade adapts to the pixel underneath so
+// it stays visible on red team colors: bright red over dark pixels, deep red over bright ones (JAMMED_SHADE_* range)
+#define JAMMED_COLOR vec3(1.0, 0.25, 0.18)
+#define JAMMED_DARK_COLOR vec3(0.45, 0.02, 0.0)
+#define JAMMED_FILL 0.08 // tint strength over the whole unit
+#define JAMMED_RIM 0.22 // extra strength at grazing angles
+#define JAMMED_EDGE 0.3 // extra strength right at the silhouette
+#define JAMMED_SHADE_DARK 0.35 // pixels at most this bright (max rgb) get JAMMED_COLOR
+#define JAMMED_SHADE_BRIGHT 0.7 // pixels at least this bright get JAMMED_DARK_COLOR
 
 
 /***********************************************************************/
@@ -456,7 +468,7 @@ vec3 shToColor(mat3 shR, mat3 shG, mat3 shB, vec3 rayDir) {
 		shUnproject(shG, rayDir),
 		shUnproject(shB, rayDir));
 
-	// A "max" is usually recomended to avoid negative values (can happen with SH)
+	// A "max" is usually recommended to avoid negative values (can happen with SH)
 	rgbColor = max(vec3(0.0), vec3(rgbColor));
 	return rgbColor;
 }
@@ -785,7 +797,7 @@ void main(void){
 		normalTexVal = texture(normalTex, myUV);
 	}
 
-	float healthMix;
+	float healthMix = 0.0;
 	vec3 seedVec;
 
 	#ifdef ENABLE_OPTION_HEALTH_TEXTURING
@@ -914,6 +926,25 @@ void main(void){
 		roughness = 0.8;
 		metalness = 0.1;
 	}
+
+	#ifdef TREE_RANDOMIZATION
+	// Charring effect for burning felled trees. The tree-feller gadget drives a
+	// felled, burning tree's health fraction down (via Spring.SetFeatureHealth)
+	// while it burns, so healthFraction goes 1 -> ~0. A full-health tree has
+	// charAmount 0 and is completely unaffected. As it chars, the bark darkens
+	// toward near-black charcoal. Charred wood is also forced matte/non-metallic.
+	// Suppress char during pregame (simFrame ~ 0) so map trees that spawn with
+	// pathological health values do not appear burnt before the match starts.
+	{
+		float charAmount = clamp(1.0 - aoterm_fogFactor_selfIllumMod_healthFraction.w, 0.0, 1.0);
+		charAmount *= step(0.5, simFrame);
+		if (charAmount > 0.002) {
+			albedoColor = mix(albedoColor, vec3(0.018, 0.015, 0.013), charAmount);
+			roughness = max(roughness, mix(roughness, 0.9, charAmount));
+			metalness = min(metalness, mix(metalness, 0.0, charAmount));
+		}
+	}
+	#endif
 
 	//roughness = SNORM2NORM( sin(simFrame * 0.25) );
 	//roughness = 0.5;
@@ -1136,8 +1167,8 @@ void main(void){
 	}
 	#ifdef REFLECT_DISCARD
 		//if ((uint(drawPass) & 4u ) == 4u){ // reflections
-			//if (worldVertexPos.y < -2.0) discard; // I cant figure out how clipspace works, so this is poor mans clip
-		// AVOID THIS DISCARD LIKE THE PLAGUE, even DYNAMICALLY UNIFORM DISCARDS ARENT FREE!
+			//if (worldVertexPos.y < -2.0) discard; // I can't figure out how clipspace works, so this is poor mans clip
+		// AVOID THIS DISCARD LIKE THE PLAGUE, even DYNAMICALLY UNIFORM DISCARDS AREN'T FREE!
 		//}
 	#endif
 
@@ -1167,7 +1198,7 @@ void main(void){
 			// with a power curve, each next faster than the other, meaning .x is the bottom level, .w is the top level
 			vec4 progressLevels = vec4(buildProgress);
 			progressLevels = pow(progressLevels, vec4(3.0, 1.5, 0.7, 0.35));
-			// Add perlin and ensure that perlin doesnt cause inaccuracy at the top of the model:
+			// Add perlin and ensure that perlin doesn't cause inaccuracy at the top of the model:
 			progressLevels = mix(progressLevels, vec4(myPerlin.g + myPerlin.b*sin(simFrame * 0.042342)), 0.05 * smoothstep(0.00, 0.05, 1.0 - buildProgress));
 			
 			vec4 levelLines = clamp(1.0 - 100 * abs(progressLevels - vec4(height)), 0,1);
@@ -1287,6 +1318,22 @@ void main(void){
 		}
 	#endif 
 
+	// JAMMED UNITS HIGHLIGHT
+	// uvCoords.w is 0-1 (faded in the vertex shader from unit buffer uniforms 1.w, #7, written by gui_jammed_units.lua)
+	// while the unit stands in allied jammer coverage: a faint red tint over the whole unit and a red rim at grazing angles.
+	float jammedness = uvCoords.w;
+	if (jammedness > 0.001) {
+		float jammedRim = clamp(1.0 - dot(worldNormal, V), 0.0, 1.0);
+		jammedRim *= jammedRim;
+		// bright red over dark pixels, deep red over bright ones: a bright red alone vanishes on red team colors
+		float brightness = max(outColor.r, max(outColor.g, outColor.b));
+		vec3 jammedColor = mix(JAMMED_COLOR, JAMMED_DARK_COLOR, smoothstep(JAMMED_SHADE_DARK, JAMMED_SHADE_BRIGHT, brightness));
+		outColor.rgb = mix(outColor.rgb, jammedColor, jammedness * min(JAMMED_FILL + JAMMED_RIM * jammedRim, 1.0));
+		// thin, stronger edge along the silhouette
+		float jammedEdge = jammedRim * jammedRim * jammedRim;
+		outColor.rgb = mix(outColor.rgb, jammedColor, jammedness * JAMMED_EDGE * jammedEdge);
+	}
+
 	// CLOAK EFFECTS
 	#if ENABLE_OPTION_HEALTH_TEXTURING 
 		float cloakTime = worldVertexPos.w;
@@ -1358,7 +1405,13 @@ void main(void){
 			// This seems to be a silly way of forcing no bloom on trees, as only trees HASALPHASHADOWS
 			fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(albedoColor * emissiveness * 2.0) + outSpecularColor * 0.3, alphaBin);
 		#endif
-		fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
+		#ifdef ENABLE_OPTION_HEALTH_TEXTURING
+			// unit pixels for gfx_outline_shader_gl4: green = 1, unitID + 1 in red (low byte) and blue (high byte)
+			uint outlineID = uint(unitID) + 1u;
+			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(outlineID & 255u) / 255.0, 1.0, float(outlineID >> 8u) / 255.0, alphaBin);
+		#else
+			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
+		#endif
 	#endif
 }
 #else //shadow pass

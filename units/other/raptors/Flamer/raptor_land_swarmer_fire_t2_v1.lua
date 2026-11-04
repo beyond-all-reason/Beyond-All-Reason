@@ -53,6 +53,7 @@ return {
 		customparams = {
 			maxrange = "200",
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
@@ -83,11 +84,13 @@ return {
 				range = 200,
 				reloadtime = 30,
 				size = 0.001,
-				targetborder = 1,
 				tolerance = 5000,
 				turret = "true",
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0.001,
 				},
@@ -124,7 +127,6 @@ return {
 				soundstart = "cflamhvy1",
 				soundtrigger = false,
 				sprayangle = 100,
-				targetborder = 0.75,
 				targetmoveerror = 0.001,
 				tolerance = 2500,
 				turret = true,

@@ -29,3 +29,7 @@ All rights reserved for the folder "raptors" for all sounds created after july 2
 /sounds/voice
 
 All rights reserved for the above mentioned folders for all sound files in these folders.
+
+/sounds/voice-soundeffects/AllyRequest.wav
+
+Authored by Inimitible_Wolf. Released under CC0 1.0 Universal (CC0 1.0) Public Domain Dedication.

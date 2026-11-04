@@ -1,5 +1,6 @@
 
 #include "../recoil_common_includes.h"
+#include "../unitDefsDeactivateTime.h";
 
 
 piece  base, fan, d1,d2,d3,d4;
@@ -33,6 +34,7 @@ Create()
 
 Open()
 {
+	set-signal-mask SIGNAL_TURNON;
 	turn d1 to x-axis <90> speed <30>;
 	turn d3 to x-axis <-90> speed <30>;
 	turn d1 to y-axis <180> speed <60>;
@@ -77,11 +79,15 @@ Activate()
 		wantOpen = 1;
 		return (0);
 	}
+	wantOpen = 1;
 	call-script Open();
 }
 
 Deactivate()
 {
+	if (!recentlyHit) {
+		wantOpen = 0;
+	}
 	call-script Close();
 }
 
@@ -90,13 +96,12 @@ HitByWeapon(anglex, anglez)
 	if (!recentlyHit){
 		start-script Close(); 
 		recentlyHit = 1;
-		wantOpen = get ACTIVATION;
 	}
 	// Signal after Close() so as not to interrupt it
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 
-	sleep 8000;
+	sleep deactivateTime;
 	recentlyHit = 0;
 	if (wantOpen){
 		start-script Open();

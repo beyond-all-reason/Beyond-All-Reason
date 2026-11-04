@@ -14,9 +14,7 @@ return {
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 355,
-		idleautoheal = 5,
-		idletime = 1800,
+		health = 500,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -29,7 +27,7 @@ return {
 		script = "Units/ARMARAD.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
-		sightdistance = 820,
+		sightdistance = 1000,
 		sightemitheight = 40,
 		usepiececollisionvolumes = 0,
 		yardmap = "oooo",
@@ -38,6 +36,7 @@ return {
 			buildinggrounddecalsizex = 3.6,
 			buildinggrounddecalsizey = 3.6,
 			buildinggrounddecaltype = "decals/armarad_aoplane.dds",
+			juno_kill = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
@@ -81,11 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t2_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

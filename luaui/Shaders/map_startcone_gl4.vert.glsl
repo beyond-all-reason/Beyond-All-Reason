@@ -20,6 +20,7 @@ layout (location = 4) in vec4 teamcolor;
 uniform float isMinimap = 0;
 uniform int rotationMiniMap = 0;
 uniform float startPosScale = 0.0005;
+uniform vec4 pipVisibleArea = vec4(0, 1, 0, 1); // left, right, bottom, top in normalized [0,1] coords for PIP minimap
 
 out DataVS {
 	vec4 v_worldposrad;
@@ -38,13 +39,17 @@ void main()
 		v_worldposrad = vec4(worldPos.xyz, worldposrad.w);
 		gl_Position = cameraViewProj * worldPos;
 	}else{
-		//vec2 ndcxy = normalize(position.xz);//  * 100/256.0;
-		//if (length(position.xz) < 1e3) { ndcxy = vec2(0);}
-		vec2 ndcxy = position.xz * startPosScale;
-		ndcxy.y *= mapSize.x/mapSize.y;
+		// Calculate cone offset in screen space
+		vec2 coneOffset = position.xz * startPosScale;
+		coneOffset.y *= mapSize.x/mapSize.y;
 
-		vec2 xz = worldposrad.xz;
-		ndcxy = (xz / mapSize.xy + ndcxy) * 2.0 - 1.0;
+		// Get world position of the start point in normalized coords [0,1]
+		vec2 normPos = worldposrad.xz / mapSize.xy;
+		
+		// Convert to NDC first (standard minimap transform)
+		vec2 ndcxy = normPos * 2.0 - 1.0;
+		
+		// Apply rotation
 		if (rotationMiniMap == 0) {
 			ndcxy.y *= -1;
 		}else if (rotationMiniMap == 1) {
@@ -54,6 +59,38 @@ void main()
 		}else if (rotationMiniMap == 3) {
 			ndcxy.xy = -ndcxy.yx;
 		}
+		
+		// Check if PIP mode (visible area not default)
+		bool isPip = (pipVisibleArea.x != 0.0 || pipVisibleArea.y != 1.0 || pipVisibleArea.z != 0.0 || pipVisibleArea.w != 1.0);
+		
+		// For PIP: transform from world-normalized to visible area screen coords AFTER rotation
+		if (isPip) {
+			// Convert NDC back to [0,1] for transform
+			vec2 screenPos = ndcxy * 0.5 + 0.5;
+			// Map from world [0,1] to screen position based on visible area
+			// World position normPos.x in [visL, visR] -> screen [0,1]
+			screenPos.x = (normPos.x - pipVisibleArea.x) / (pipVisibleArea.y - pipVisibleArea.x);
+			// Flip Y: world Z in [visB, visT] -> screen Y flipped
+			screenPos.y = 1.0 - (normPos.y - pipVisibleArea.z) / (pipVisibleArea.w - pipVisibleArea.z);
+			// Apply rotation to screen position
+			if (rotationMiniMap == 0) {
+				screenPos.y = 1.0 - screenPos.y;
+			}else if (rotationMiniMap == 1) {
+				screenPos.xy = screenPos.yx;
+			}else if (rotationMiniMap == 2) {
+				screenPos.x = 1.0 - screenPos.x;
+			}else if (rotationMiniMap == 3) {
+				screenPos.xy = vec2(1.0) - screenPos.yx;
+			}
+			ndcxy = screenPos * 2.0 - 1.0;
+			// Scale cone offset for zoom level
+			float zoomFactor = 1.0 / max(pipVisibleArea.y - pipVisibleArea.x, 0.001);
+			coneOffset *= zoomFactor;
+		}
+		
+		// Add cone offset
+		ndcxy += coneOffset;
+		
 		gl_Position = vec4(ndcxy, 0.0, 1.0);
 	}
 }

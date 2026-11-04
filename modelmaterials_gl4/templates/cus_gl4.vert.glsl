@@ -1,6 +1,8 @@
 // This shader is Copyright (c) 2025 Beherith (mysterme@gmail.com) and licensed under the MIT License
 //shader version is added via widget
 
+//__ENGINEUNIFORMBUFFERDEFS__
+
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 T;
@@ -53,6 +55,8 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 #define UNITUNIFORMS uni[instData.y]
 #define UNITID (uni[instData.y].composite >> 16)
 #define TREADOFFSET uni[instData.y].speed.w
+// Jammed units highlight (gui_jammed_units.lua): how long the tint fades in and out, in seconds
+#define JAMMED_FADE_SECONDS 0.3
 
 %%GLOBAL_NAMESPACE%%
 
@@ -100,6 +104,10 @@ uniform int drawPass = 1;
 //4: refraction
 //5: shadows
 
+// Feature fade: squared distances for distance-based fade (0 = disabled)
+uniform float featureFadeDistSq = 0.0;
+uniform float featureDrawDistSq = 0.0;
+
 /***********************************************************************/
 vec3 cameraPos	 = cameraViewInv[3].xyz;
 vec3 cameraDir = -1.0 * vec3(cameraView[0].z,cameraView[1].z,cameraView[2].z);
@@ -141,7 +149,7 @@ out Data {
 	//vec3 worldBitangent;
 	vec3 worldNormal_VS;
 
-	vec4 uvCoords;
+	vec4 uvCoords; // .z contains unitID, .w the jammed highlight 0-1
 	flat vec4 teamCol; // .a contains selectedness
 
 	// main light vector(s)
@@ -484,6 +492,24 @@ void main(void)
 	//userDefined2 = UNITUNIFORMS.userDefined[2];
 	//userDefined2.w = UNITUNIFORMS.userDefined[0].x; // pass in construction progress 0-1
 
+	// Feature fade: distance-based culling and scale-down for features/trees
+	// Only check in non-shadow passes (shadow pass cameraPos is the light position)
+	float featureFadeFactor = 1.0;
+	#if (RENDERING_MODE != 2)
+	if (featureFadeDistSq > 0.0) {
+		vec3 toCamera = cameraPos - UNITUNIFORMS.drawPos.xyz;
+		float distSq = dot(toCamera, toCamera);
+		if (distSq > featureDrawDistSq) {
+			// Beyond draw distance: collapse to degenerate triangle (no FS cost)
+			gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
+			return;
+		} else if (distSq > featureFadeDistSq) {
+			// In fade zone: scale model down toward base (shrink-to-nothing)
+			featureFadeFactor = 1.0 - (distSq - featureFadeDistSq) / (featureDrawDistSq - featureFadeDistSq);
+		}
+	}
+	#endif
+
 	// 
 	vec4 piecePos = vec4(pos, 1.0);
 
@@ -496,6 +522,15 @@ void main(void)
 		if (buildProgress > -0.5){
 			// healthFraction, cannot, in theory be more than buildProgress
 			aoterm_fogFactor_selfIllumMod_healthFraction.w = clamp(aoterm_fogFactor_selfIllumMod_healthFraction.w / max(0.00000001,buildProgress), 0.0, 1.0);
+
+			// Push under-construction units upward by a small amount in model space so
+			// they don't z-fight with the engine-drawn build preview ghost (the engine
+			// renders gl.UnitShape() at the build position for each selected builder's
+			// queued build orders, including the one currently being constructed).
+			// Fades out near completion so the placed unit lands at exactly groundheight.
+			if (buildProgress < 0.999){
+				piecePos.y += 0.5 * (1.0 - smoothstep(0.95, 1.0, buildProgress));
+			}
 		}
 	#endif
 
@@ -503,6 +538,9 @@ void main(void)
 		float randomScale = fract(float(UNITID)*0.01)*0.2 + 0.9;
 		piecePos.xyz *= randomScale;
 	#endif
+
+	// Feature fade: scale model down in the fade zone (shrinks toward base)
+	piecePos.xyz *= featureFadeFactor;
 
 	#if (XMAS == 1)
 	//	piecePos.xyz +=  piecePos.xyz * 10.0 * UNITUNIFORMS.userDefined[2].y; // number 9
@@ -546,13 +584,25 @@ void main(void)
 	vec3 modelSpaceBitangent;
 	GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal, safeT, modelSpaceTangent, safeB, modelSpaceBitangent);
 
+	// Per-object uniform scale about the model origin, userDefined[3].z (buffer index 14). The
+	// engine cannot scale a feature's model (SetFeaturePieceMatrix discards the matrix), so the
+	// feature placer writes the scale here; 0, the default, means unscaled. Applied in model
+	// space, after the piece transform, so multi-piece models keep their proportions, and in
+	// every pass (this source is the shadow and reflection shader too). modelPos itself stays
+	// unscaled: the bounds terms below normalise it by the model's own height.
+	float objectScale = UNITUNIFORMS.userDefined[3].z;
+	vec4 scaledModelPos = modelPos;
+	if (objectScale > 0.0) {
+		scaledModelPos.xyz *= objectScale;
+	}
+
 	#if USEQUATERNIONS == 1
 		Transform modelToWorldTX = Lerp(
 			transforms[instData.x + 0u],
 			transforms[instData.x + 1u],
 			timeInfo.w
 		);
-		vec4 worldPos = ApplyTransform(modelToWorldTX, modelPos);
+		vec4 worldPos = ApplyTransform(modelToWorldTX, scaledModelPos);
 
 		// Rotate normals with quaternions (this is incorrect, as modelvertexnormal is purely in modelspace, whereas T and B are in piece space!)
 		worldTangent_VS   = RotateByQuaternion(modelToWorldTX.quat, modelSpaceTangent);
@@ -563,7 +613,7 @@ void main(void)
 		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
 		// Then it places it in the world
 		mat4 worldMatrix = mat[instData.x];
-		vec4 worldPos = worldMatrix * modelPos;
+		vec4 worldPos = worldMatrix * scaledModelPos;
 
 		// Calculate Normals:
 		// tangent --> world space transformation (for vectors)
@@ -581,10 +631,19 @@ void main(void)
 
 	//gl_TexCoord[0] = gl_MultiTexCoord0;
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
-	teamCol = teamColor[teamIndex];
+	// 255 = no team (map features), a palette slot the engine never writes: it holds garbage
+	teamCol = (teamIndex == 255u) ? vec4(0.0) : teamColor[teamIndex];
 
 	// Pack selectedness into teamCol.a
 	teamCol.a = UNITUNIFORMS.userDefined[1].z;
+
+	#if (RENDERING_MODE != 2)
+		// Jammed units highlight: userDefined[1].w (#7) holds the draw time (timeInfo.y) at which the unit entered allied
+		// jammer coverage (positive) or left it (negative), 0 = never. Faded to 0-1 in uvCoords.w for the fragment shader.
+		float jammedSince = UNITUNIFORMS.userDefined[1].w;
+		float jammedFade = clamp((timeInfo.y - abs(jammedSince)) * (1.0 / JAMMED_FADE_SECONDS), 0.0, 1.0);
+		uvCoords.w = (jammedSince > 0.0) ? jammedFade : ((jammedSince < 0.0) ? (1.0 - jammedFade) : 0.0);
+	#endif
 
 	#if (RENDERING_MODE != 2) //non-shadow pass
 

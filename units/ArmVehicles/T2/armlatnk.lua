@@ -1,7 +1,7 @@
 return {
 	armlatnk = {
 		buildpic = "ARMLATNK.DDS",
-		buildtime = 6030,
+		buildtime = 8000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 26 34",
@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1060,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.05833,
 		maxdec = 0.11666,
@@ -38,6 +36,7 @@ return {
 		turnrate = 440,
 		usepiececollisionvolumes = 1,
 		customparams = {
+			maxrange = 300,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles/T2",
@@ -78,11 +77,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg3-lightning",
 			},
 		},
 		sounds = {
@@ -148,6 +142,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 90,
 				},
@@ -163,7 +160,7 @@ return {
 				cratermult = 0,
 				duration = 1,
 				edgeeffectiveness = 0.15,
-				energypershot = 5,
+				energypershot = 10,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 1,
@@ -171,8 +168,8 @@ return {
 				intensity = 24,
 				name = "Close-quarters lightning turret",
 				noselfdamage = true,
-				range = 320,
-				reloadtime = 1.4,
+				range = 300,
+				reloadtime = 1.5,
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "lashit",
 				soundhitwet = "sizzle",
@@ -189,7 +186,7 @@ return {
 					spark_range = "60",
 				},
 				damage = {
-					default = 22.7,
+					default = 22,
 				},
 			},
 		},

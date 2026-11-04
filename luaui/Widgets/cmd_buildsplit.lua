@@ -13,12 +13,12 @@ function widget:GetInfo()
 	}
 end
 
-local floor = math.floor
+-- Localized Spring API for performance
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local spTestBuildOrder = Spring.TestBuildOrder
 local spGetSelUnitCount = Spring.GetSelectedUnitsCount
 local spGetSelUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local activeModifier = false
 
 local unitBuildOptions = {}
@@ -31,6 +31,11 @@ end
 local buildID = 0
 local buildLocs = {}
 local buildCount = 0
+
+-- The consumed commands never reach the LuaRules command limiter, so the batch
+-- is bounded here (same figure as the limiter).
+local MAX_BUILDINGS = 700
+local limitReported = false
 
 local gameStarted = false
 local isSpec = false
@@ -48,7 +53,7 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged()
-	isSpec = Spring.GetSpectatingState()
+	isSpec = spGetSpectatingState()
 	maybeRemoveSelf()
 end
 
@@ -57,9 +62,28 @@ local function handleSetModifier(_, _, _, data)
 	activeModifier = data[1]
 end
 
+local function getBuilderInfos(unitIDs)
+	local builders = {}
+	for _, unitID in ipairs(unitIDs) do
+		local builderInfo = WG.api_build_orders.getBuilderInfo(unitID)
+		if builderInfo and unitBuildOptions[builderInfo.unitDefID] then
+			table.insert(builders, builderInfo)
+		end
+	end
+	return builders
+end
+
+---@param builderIDs UnitID[]
+---@param buildings BuildingInfo[]
+---@param cmdOpts table
+local function splitBuildings(builderIDs, buildings, cmdOpts)
+	local builders = getBuilderInfos(builderIDs)
+	WG.api_build_orders.splitBuildOrders(builders, buildings, cmdOpts or { "shift" })
+end
+
 function widget:Initialize()
 	gameStarted = Spring.GetGameFrame() > 0
-	isSpec = Spring.GetSpectatingState()
+	isSpec = spGetSpectatingState()
 
 	if maybeRemoveSelf() then
 		return
@@ -67,9 +91,21 @@ function widget:Initialize()
 
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { true }, "p")
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { false }, "r")
+
+	WG.build_split = {
+		isActive = function()
+			return activeModifier
+		end,
+		splitBuildings = splitBuildings,
+	}
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters
+	-- Don't handle blueprint commands (let cmd_blueprint handle those)
+	if cmdID == GameCMD.BLUEPRINT_PLACE or cmdID == GameCMD.BLUEPRINT_CREATE then
+		return false
+	end
+
 	if not (cmdID < 0 and cmdOpts.shift and activeModifier) then
 		return false
 	end -- Note: All multibuilds require shift
@@ -78,9 +114,19 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters
 		return false
 	end
 
+	if buildCount >= MAX_BUILDINGS then
+		if not limitReported then
+			limitReported = true
+			Spring.Echo(string.format("[Build Split] limiting to %d buildings", MAX_BUILDINGS))
+		end
+		return true
+	end
+
 	--if #cmdParams < 4 then return false end -- Probably not possible, commented for now
 	if spTestBuildOrder(-cmdID, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4]) == 0 then
-		return false
+		-- A blocked spot is skipped. Passing it on would hand it to every
+		-- selected builder, and to CommandInsert when its modifier is held too.
+		return true
 	end
 
 	buildID = -cmdID
@@ -101,59 +147,31 @@ function widget:Update()
 
 	local selUnits = spGetSelUnitsSorted()
 
-	local builders = {}
-	local builderCount = 0
+	local builderIDs = {}
 	for uDefID, uIDs in pairs(selUnits) do
-		local uBuilds = unitBuildOptions[uDefID]
-		if uBuilds then
-			for bi = 1, #uBuilds do
-				if uBuilds[bi] == buildID then
-					for ui = 1, #uIDs do
-						builderCount = builderCount + 1
-						builders[builderCount] = uIDs[ui]
-					end
-					break
-				end
+		if unitBuildOptions[uDefID] then
+			for _, uID in ipairs(uIDs) do
+				table.insert(builderIDs, uID)
 			end
 		end
 	end
 
-	if buildCount > builderCount then
-		local ratio = floor(buildCount / builderCount)
-		local excess = buildCount - builderCount * ratio -- == buildCount % builderCount
-		local buildingInd = 0
-		for bi = 1, builderCount do
-			for _ = 1, ratio do
-				buildingInd = buildingInd + 1
-				spGiveOrderToUnit(builders[bi], -buildID, buildLocs[buildingInd], { "shift" })
-			end
-			if bi <= excess then
-				buildingInd = buildingInd + 1
-				spGiveOrderToUnit(builders[bi], -buildID, buildLocs[buildingInd], { "shift" })
-			end
-		end
-	else
-		local ratio = floor(builderCount / buildCount)
-		local excess = builderCount - buildCount * ratio -- == builderCount % buildCount
-		local builderInd = 0
-
-		for bi = 1, buildCount do
-			local setUnits = {}
-			local setCount = 0
-			for _ = 1, ratio do
-				builderInd = builderInd + 1
-				setCount = setCount + 1
-				setUnits[setCount] = builders[builderInd]
-			end
-			if bi <= excess then
-				builderInd = builderInd + 1
-				setCount = setCount + 1
-				setUnits[setCount] = builders[builderInd]
-			end
-
-			spGiveOrderToUnitArray(setUnits, -buildID, buildLocs[bi], { "shift" })
-		end
+	local buildings = {}
+	for i = 1, buildCount do
+		---@type BuildingInfo
+		local buildingInfo = {}
+		buildingInfo.unitDefID = buildID
+		buildingInfo.position = { buildLocs[i][1], buildLocs[i][2], buildLocs[i][3] }
+		buildingInfo.facing = buildLocs[i][4]
+		table.insert(buildings, buildingInfo)
 	end
+
+	splitBuildings(builderIDs, buildings, { "shift" })
 
 	buildCount = 0
+	limitReported = false
+end
+
+function widget:Shutdown()
+	WG.build_split = nil
 end

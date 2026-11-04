@@ -1,6 +1,5 @@
 return {
 	legkam = {
-		acceleration = 0.3,
 		blocking = false,
 		maxdec = 0.1,
 		energycost = 2000,
@@ -10,7 +9,7 @@ return {
 		canfly = true,
 		canmove = true,
 		collide = false,
-		collisionvolumeoffsets = "0 5 12",
+		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "15 15 40",
 		collisionvolumetype = "CylZ",
 		cruisealtitude = 50,
@@ -18,8 +17,6 @@ return {
 		firestate = 0,
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.6,
 		maxaileron = 0.028,
 		maxbank = 0.8,
@@ -28,7 +25,7 @@ return {
 		maxpitch = 0.625,
 		maxrudder = 0.015,
 		maxslope = 10,
-		speed = 230.0,
+		speed = 220.0,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/legkam.s3o",
@@ -36,15 +33,16 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "",
 		selfdestructcountdown = 0,
-		sightdistance = 250,
+		sightdistance = 430,
 		speedtofront = 0.06183,
 		turnradius = 48,
-		turnrate = 800,
-		usesmoothmesh = true,
+		turnrate = 750,
+		usesmoothmesh = false,
 		wingangle = 0.06296,
 		wingdrag = 0.06,
 		customparams = {
-			unitgroup = 'weapon',
+			attacksafetydistance = 2000,
+			unitgroup = "weapon",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air",
@@ -53,18 +51,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:genericunitexplosion-large",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
 			},
 		},
 		sounds = {
@@ -90,24 +76,29 @@ return {
 		},
 		weapondefs = {
 			trigger = {
-				areaofeffect = 0,
+				areaofeffect = 4,
 				avoidfeature = false,
-				burst = 3,
-				burstrate = 0.5,
+				burstrate = 0.1,
 				collidefriendly = 0,
 				commandfire = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
+				firetolerance = 50,
 				impulsefactor = 0,
-				model = "legnade.s3o",
-				mygravity = 0.23,
 				name = "Martyr trigger",
-				range = 1280,
+				predictboost = 1.0,
+				range = 500,
 				reloadtime = 10,
-				weapontype = "AircraftBomb",
+				turret = true,
+				weapontype = "LaserCannon",
+				weaponvelocity = 236,
 				customparams = {
+					bogus = 1,
+					release_gravity = 0.2,
+					release_pitch_tolerance = 0.5,
+					release_heading_tolerance = 18,
 				},
 				damage = {
 					default = 1,
@@ -132,6 +123,9 @@ return {
 				soundstart = "bombdropxx",
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					vtol = 1000,
 					default = 1,
@@ -163,7 +157,7 @@ return {
 					spawns_expire = 10,
 				},
 				damage = {
-					commanders = 330,
+					commanders = 220,
 					default = 440,
 				},
 			},
@@ -171,8 +165,8 @@ return {
 		weapons = {
 			[1] = {
 				def = "TRIGGER",
-				maindir = "0 -1 1",
-				maxangledif = 150,
+				maindir = "0 -0.392 1",
+				maxangledif = 40,
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {

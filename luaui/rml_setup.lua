@@ -5,7 +5,7 @@
 --  Copyright (C) 2024.
 --  Licensed under the terms of the GNU GPL, v2 or later.
 
-if (RmlGuard or not RmlUi) then
+if RmlGuard or not RmlUi then
 	return
 end
 -- don't allow this initialization code to be run multiple times
@@ -39,6 +39,17 @@ local function NewCreateContext(name)
 	-- set up dp_ratio considering the user's UI scale preference and the screen resolution
 	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
 
+	-- In the engine's dual-screen mode RmlUi panels live on the FREE screen, so the
+	-- scale keys off that screen rather than the world view. Height-keyed, like
+	-- rml_context_manager: a narrower-than-16:9 free screen must not shrink the text
+	-- through the width term while vw and px widths hold. One screen, no change.
+	if Spring.GetDualViewGeometry then
+		local dualW, dualH = Spring.GetDualViewGeometry()
+		if type(dualW) == "number" and dualW > 0 then
+			viewSizeX, viewSizeY = math.max(dualW, math.floor(dualH * 1920 / 1080)), dualH
+		end
+	end
+
 	local userScale = Spring.GetConfigFloat("ui_scale", 1)
 
 	local baseWidth = 1920
@@ -55,7 +66,7 @@ RmlUi.CreateContext = NewCreateContext
 
 -- Load fonts
 RmlUi.LoadFontFace("fonts/Poppins-Regular.otf", true)
-local font_files = VFS.DirList('fonts/exo2', '*.ttf')
+local font_files = VFS.DirList("fonts/exo2", "*.ttf")
 for _, file in ipairs(font_files) do
 	Spring.Echo("loading font", file)
 	RmlUi.LoadFontFace(file, true)
@@ -73,12 +84,12 @@ end
 ]]
 
 -- when "cursor: normal" is set via RCSS, "cursornormal" will be sent to the engine... and so on for the rest
-RmlUi.SetMouseCursorAlias("default", 'cursornormal')
-RmlUi.SetMouseCursorAlias("pointer", 'Move') -- command cursors use the command name. TODO: replace with actual pointer cursor?
-RmlUi.SetMouseCursorAlias("move", 'uimove')
-RmlUi.SetMouseCursorAlias("nesw-resize", 'uiresized2')
-RmlUi.SetMouseCursorAlias("nwse-resize", 'uiresized1')
-RmlUi.SetMouseCursorAlias("ns-resize", 'uiresizev')
-RmlUi.SetMouseCursorAlias("ew-resize", 'uiresizeh')
+RmlUi.SetMouseCursorAlias("default", "cursornormal")
+RmlUi.SetMouseCursorAlias("pointer", "Move") -- command cursors use the command name. TODO: replace with actual pointer cursor?
+RmlUi.SetMouseCursorAlias("move", "uimove")
+RmlUi.SetMouseCursorAlias("nesw-resize", "uiresized2")
+RmlUi.SetMouseCursorAlias("nwse-resize", "uiresized1")
+RmlUi.SetMouseCursorAlias("ns-resize", "uiresizev")
+RmlUi.SetMouseCursorAlias("ew-resize", "uiresizeh")
 
 RmlUi.CreateContext("shared")

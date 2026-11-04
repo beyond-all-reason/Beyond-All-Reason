@@ -1,4 +1,3 @@
-
 -- When tabbing out of the overview, the camera DOES NOT "zoom-to-cursor"
 -- When scrolling out of the overiew, the camera DOES "zoom-to-cursor"
 
@@ -12,11 +11,11 @@ function widget:GetInfo()
 		date = "May 13, 2023",
 		license = "GNU GPL, v2 or later",
 		layer = 1,
-		enabled = true
+		enabled = true,
 	}
 end
 
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 local camKeys = {} -- list of buttons that switch to Overview
 local prevCamState
 
@@ -48,18 +47,19 @@ local function isOverview()
 	return Spring.GetCameraState().name == "ov"
 end
 
-
 function widget:MouseWheel(up, value)
 	if isOverview() and up then
 		Spring.SendCommands({ "toggleoverview" })
-		return true;
+		return true
 	end
 
 	return false
 end
 
 function widget:KeyPress(key, modifier)
-	if not isCamKey(key) then return end
+	if not isCamKey(key) then
+		return
+	end
 	if isOverview() then
 		if prevCamState ~= nil then
 			Spring.SetCameraState(prevCamState, 1)
@@ -68,4 +68,3 @@ function widget:KeyPress(key, modifier)
 		prevCamState = Spring.GetCameraState()
 	end
 end
-

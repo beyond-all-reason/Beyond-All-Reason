@@ -1,327 +1,322 @@
 local function proposed_unit_reworksTweaks(name, uDef)
+
+	if name == "armrock" or name == "corstorm" then
+		uDef.speed = uDef.speed + 4.3
+		uDef.turnrate = 840
+		uDef.buildtime = math.ceil(uDef.buildtime * 1.15 / 100) * 100
+		uDef.energycost = math.ceil(uDef.energycost * 1.1 / 100) * 100
+	end
+
+	if name == "armwar" then
+		uDef.metalcost = 200
+		uDef.energycost = 2300
+		uDef.turnrate = 700
+		uDef.maxacc = 0.06
+		uDef.health = 1500
+		uDef.speed = 47
+		uDef.weapondefs.armwar_laser.range = 290
+		uDef.weapondefs.armwar_laser.damage.default = 38
+		uDef.weapondefs.armwar_laser.damage.vtol = 7
+	end
+
+	if name == "armham" then
+		uDef.speed = 47
+		uDef.weapondefs.arm_ham.areaofeffect = 48
+		uDef.weapondefs.arm_ham.reloadtime = 1.7
+		uDef.turnrate = 1200
+	end
+	if name == "corthud" then
+		uDef.health = 1200
+		uDef.buildtime = 2300
+		uDef.energycost = 1400
+		uDef.weapondefs.arm_ham.areaofeffect = 48
+		uDef.weapondefs.arm_ham.reloadtime = 1.7
+		uDef.turnrate = 1200
+	end
+
+	if name == "armart" then
+		uDef.speed = 56 --was 54
+		uDef.turnrate = 300 --394
+		uDef.maxacc = 0.02
+		uDef.weapondefs.tawf113_weapon.weaponvelocity = 390
+		uDef.weapondefs.tawf113_weapon.mygravity = nil
+		uDef.weapondefs.tawf113_weapon.areaofeffect = 80 --75
+		uDef.weapondefs.tawf113_weapon.range = 730 --710
+		uDef.weapondefs.tawf113_weapon.impulsefactor = 0.5
+		uDef.weapondefs.tawf113_weapon.damage.default = 260 --182
+		uDef.weapondefs.tawf113_weapon.reloadtime = 5
+		uDef.weapondefs.tawf113_weapon.accuracy = 100
+		uDef.weapons[1].maxangledif = 140
+	end
+	if name == "corwolv" then
+		uDef.speed = 53 --was 48
+		uDef.turnrate = 260 --466
+		uDef.maxacc = 0.019
+		uDef.metalcost = 200
+		uDef.energycost = 3000
+		uDef.buildtime = 4000
+		uDef.weapondefs.corwolv_gun.weaponvelocity = 390
+		uDef.weapondefs.corwolv_gun.mygravity = nil
+		uDef.weapondefs.corwolv_gun.range = 750 --710
+		uDef.weapondefs.corwolv_gun.areaofeffect = 144 --113
+		uDef.weapondefs.corwolv_gun.impulsefactor = 0.5
+		uDef.weapondefs.corwolv_gun.damage.default = 420
+		uDef.weapondefs.corwolv_gun.reloadtime = 8
+		uDef.weapons[1].maxangledif = 140
+		uDef.health = 1100
+	end
+
+	if name == "armmart" then
+		uDef.metalcost = 260 --320
+		uDef.speed = 48 --was 60
+		uDef.maxacc = 0.02
+		uDef.weapondefs.arm_artillery.edgeeffectiveness = 0.15
+		uDef.weapondefs.arm_artillery.accuracy = 0
+		uDef.weapondefs.arm_artillery.reloadtime = 3 --3.05
+		uDef.weapondefs.arm_artillery.damage.default = 260 --260.
+		uDef.weapons[1].maxangledif = 140
+		uDef.health = 1200
+	end
+	if name == "cormart" then
+		uDef.metalcost = 320 --400
+		uDef.speed = 46 -- was 58
+		uDef.maxacc = 0.019
+		uDef.weapondefs.cor_artillery.edgeeffectiveness = 0.15
+		uDef.weapondefs.cor_artillery.accuracy = 0
+		uDef.weapondefs.cor_artillery.reloadtime = 6.4 --5
+		uDef.weapondefs.cor_artillery.damage.default = 540 --420.
+		uDef.weapons[1].maxangledif = 140
+		uDef.health = 1400
+	end
+
 	if name == "armsam" then
-		uDef.collisionvolumetype = "ellipsoid"
-		uDef.collisionvolumescales = "29 31 41"
-		uDef.collisionvolumeoffsets = "0 3 -1"
+		uDef.weapondefs.armtruck_missile.flighttime = 1.6
+		uDef.weapondefs.armtruck_missile.tracks = true
+		uDef.weapondefs.armtruck_missile.turnrate = 10000
+		uDef.weapondefs.armtruck_missile.damage.default = 55
+		uDef.weapondefs.armtruck_missile.weaponvelocity = 550
+		uDef.weapondefs.armtruck_missile.reloadtime = 3
+		uDef.weapondefs.armtruck_aa.reloadtime = 3
+		uDef.buildtime = 3600
 	end
 	if name == "cormist" then
-		uDef.collisionvolumetype = "ellipsoid"
-		uDef.collisionvolumescales = "32 31 43"
-		uDef.collisionvolumeoffsets = "0 0 -2"
+		uDef.weapondefs.cortruck_missile.tracks = true
+		uDef.weapondefs.cortruck_missile.turnrate = 10000
+		uDef.weapondefs.cortruck_missile.damage.default = 40
+		uDef.weapondefs.cortruck_missile.flighttime = 1.6
+		uDef.weapondefs.cortruck_missile.weaponvelocity = 550
+		uDef.weapondefs.cortruck_missile.reloadtime = 2.2
+		uDef.weapondefs.cortruck_aa.reloadtime = 2.2
+		uDef.buildtime = 3600
 	end
 
-	
-	if name == "armmex" or name == "cormex" then
-		uDef.health = uDef.health + 81
-	end
-	if name == "armck" or name == "corck" then
-		uDef.health = uDef.health + 90
-	end
-	if name == "armllt" or name == "corllt" or name == "armbeamer" or name == "corhllt" or name == "corhlt" or name == "armhlt" or name == "armguard" or name == "corpun" or name == "armdl" or name == "cordl" then
-		uDef.buildtime = math.ceil(uDef.buildtime * 0.009) * 100	-- 0.9x buildtime
-	end
-	if uDef.customparams.subfolder and uDef.buildtime and (uDef.customparams.subfolder == "CorShips" or uDef.customparams.subfolder == "ArmShips") then
-		uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100	-- 1.5x buildtime
+	if name == "corlevlr" then
+		uDef.buildtime = 3400
 	end
 
-	if name == "armfast" then
-		uDef.metalcost = math.floor(uDef.metalcost *0.9)
-		uDef.energycost = math.floor(uDef.energycost *0.9)
-		uDef.buildtime = math.floor(uDef.buildtime *0.9)
+	if name == "armjanus" then
+		--uDef.weapondefs.janus_rocket.edgeeffectiveness = 0.5
+		uDef.weapondefs.janus_rocket.impulsefactor = 1
+		uDef.speed = 56
+		uDef.turnrate = 300
+		uDef.buildtime = 3900
 	end
 
-	if name == "cortermite" then
-		uDef.metalcost = math.floor(uDef.metalcost *0.9)
-		uDef.energycost = math.floor(uDef.energycost *0.9)
-		uDef.buildtime = math.floor(uDef.buildtime *0.9)
-		uDef.speed = 50
+	if name == "armllt" then
+		uDef.buildtime = uDef.buildtime - 700
+		uDef.metalcost = uDef.metalcost - 5
+		uDef.health = uDef.health - 140
+		--uDef.weapondefs.arm_lightlaser.range = uDef.weapondefs.arm_lightlaser.range - 10
+		uDef.weapondefs.arm_lightlaser.energypershot = 15
+		uDef.weapondefs.arm_lightlaser.reloadtime = 0.6
+	end
+	if name == "corllt" then
+		uDef.buildtime = uDef.buildtime - 700
+		uDef.metalcost = uDef.metalcost - 5
+		uDef.health = uDef.health - 140
+		--uDef.weapondefs.cor_lightlaser.range = uDef.weapondefs.cor_lightlaser.range - 10
+		uDef.weapondefs.cor_lightlaser.energypershot = 15
+		uDef.weapondefs.cor_lightlaser.reloadtime = 0.6
+	end
+	if name == "corexp" then
+		uDef.buildtime = 2400 --2900
+		uDef.metalcost = 200
+		uDef.health = 1100
+		uDef.weapondefs.hllt_bottom.reloadtime = 0.6
+		--uDef.weapondefs.hllt_bottom.range = 425
+	end
+	if name == "corhllt" then
+		uDef.health = 1500
+		uDef.weapondefs.hllt_bottom.range = 435
+		uDef.weapondefs.hllt_bottom.reloadtime = 0.5
+		uDef.weapondefs.hllt_top.reloadtime = 0.4
+	end
+	if name == "armbeamer" then
+		uDef.health = 1100
+		uDef.weapondefs.armbeamer_weapon.damage.default = 32
+	end
+	if name == "armclaw" then
+		uDef.health = 1600
+	end
+	if name == "cormaw" then
+		uDef.health = 1900
+	end
+	if name == "corhlt" then
+		uDef.weapondefs.cor_laserh1.range = 660
+		uDef.health = 2600
+	end
+	if name == "armhlt" then
+		uDef.weapondefs.arm_laserh1.range = 660
+		uDef.health = 2400
+	end
+	if name == "armpb" then
+		uDef.weapondefs.armpb_weapon.range = 600
+		uDef.weapondefs.armpb_weapon.damage = {
+			default = 330,
+			vtol = 80,
+		}
+		uDef.weapondefs.armpb_weapon.reloadtime = 0.8
+		uDef.weapondefs.armpb_weapon.impulsefactor = 1.1
+		uDef.weapondefs.armpb_weapon.targetmoveerror = 0
+		uDef.weapondefs.armpb_weapon.damage.hvyboats = nil
+		uDef.metalcost = 470
+		uDef.energycost = 7000
+		uDef.buildtime = 12000
+		uDef.damagemodifier = 0.33
+		uDef.health = 2500
+	end
+	if name == "corvipe" then
+		uDef.weapondefs.vipersabot.range = 600
+		uDef.weapondefs.vipersabot.areaofeffect = 48
+		uDef.weapondefs.vipersabot.edgeeffectiveness = 0.5
+		uDef.weapondefs.vipersabot.targetmoveerror = 0
+		uDef.weapondefs.vipersabot.damage.hvyboats = nil
+		uDef.metalcost = 500
+		uDef.energycost = 6000
+		uDef.buildtime = 12000
+		uDef.damagemodifier = 0.33
+		uDef.health = 2700
 	end
 
-	if name == "armepoch" then
-		uDef.metalcost = math.floor(uDef.metalcost *1.15)
-		uDef.energycost = math.floor(uDef.energycost *1.15)
-		uDef.buildtime = math.floor(uDef.buildtime *1.15)
-		uDef.weapondefs.heavyplasma.damage.default = 500
-		uDef.weapondefs.heavyplasma.reloadtime = 3.5
-		uDef.weapondefs.heavyplasma.areaofeffect = 160
-		uDef.weapondefs.heavyplasma.burstrate = 0.8
-		uDef.weapondefs.heavyplasma.explosiongenerator = "custom:genericshellexplosion-large-aoe"
-		uDef.weapondefs.heavyplasma.impulsefactor = 1
+	if
+		name == "armap"
+		or name == "armlab"
+		or name == "armsy"
+		or name == "armvp"
+		or name == "corap"
+		or name == "corlab"
+		or name == "corsy"
+		or name == "corvp"
+		or name == "legap"
+		or name == "leglab"
+		or name == "legsy"
+		or name == "legvp"
+	then
+		uDef.energycost = uDef.energycost + 150
 	end
-	if name == "corblackhy" then
-		uDef.metalcost = math.floor(uDef.metalcost *1.15)
-		uDef.energycost = math.floor(uDef.energycost *1.15)
-		uDef.buildtime = math.floor(uDef.buildtime *1.15)
-		uDef.weapondefs.heavyplasma.damage.default = 600
-		uDef.weapondefs.heavyplasma.reloadtime = 5.5
-		uDef.weapondefs.heavyplasma.areaofeffect = 240
-		uDef.weapondefs.heavyplasma.burstrate = 0.8
-		uDef.weapondefs.heavyplasma.explosiongenerator = "custom:genericshellexplosion-large-aoe"
-		uDef.weapondefs.heavyplasma.impulsefactor = 1
-	end
-	if name == "corkorg" then
-		uDef.speed = 37
+	if name == "armap" or name == "armlab" or name == "armvp" then
+		uDef.metalcost = uDef.metalcost - 20
 	end
 
-	if name == "armcom" or name == "corcom" then
-		uDef.energymake = 30
+	if name == "armcom" or name == "corcom" or name == "legcom" then
+		uDef.energymake = 50
+		uDef.metalmake = 3
+		uDef.speed = 38
 	end
 
-	if (uDef.customparams.subfolder == "ArmBuildings/LandFactories" 
-	or uDef.customparams.subfolder == "CorBuildings/LandFactories" 
-	or uDef.customparams.subfolder == "ArmBuildings/SeaFactories" 
-	or uDef.customparams.subfolder == "CorBuildings/SeaFactories" )
-	and uDef.customparams.techlevel == 1 then
-		uDef.metalcost = uDef.metalcost - 150
-		uDef.buildtime = uDef.buildtime - 1500
-		uDef.energycost = uDef.energycost - 250
-		uDef.workertime = 150
+	if name == "armmex" or name == "cormex" or name == "legmex" then
+		uDef.energycost = uDef.energycost + 100
+		uDef.buildtime = 2000
 	end
 
+	if
+		name == "armck"
+		or name == "corck"
+		or name == "legck"
+		or name == "armcv"
+		or name == "corcv"
+		or name == "legcv"
+		or name == "armcs"
+		or name == "corcs"
+		or name == "legcs"
+	then
+		uDef.energycost = uDef.energycost + 300
+		uDef.buildtime = math.floor((uDef.buildtime + 150) / 100) * 100
+	end
+
+	if name == "armmoho" or name == "cormoho" or name == "legmoho" then
+		uDef.energycost = 11000
+		uDef.health = 2400
+		uDef.buildtime = 15000
+		uDef.metalcost = 650
+	end
+
+	if name == "armflea" then
+		uDef.health = 70
+		uDef.speed = 128
+		uDef.weapondefs.flea_laser.reloadtime = 0.7
+	end
+	if name == "corfav" then
+		uDef.speed = 145
+		uDef.health = 100
+		uDef.weapondefs.cor_laser.reloadtime = 1.2
+	end
+	if name == "armfav" then
+		uDef.health = 110
+		uDef.speed = 155
+		uDef.weapondefs.arm_laser.range = 170
+	end
 	if name == "corak" then
-		uDef.metalcost = 42
-		uDef.energycost = 820
-		uDef.buildtime = 1250
+		uDef.metalcost = 44
+	end
+	if name == "armpw" then
+		uDef.metalcost = 55
+		uDef.weapondefs.emg.sprayangle = 880
 	end
 	if name == "armflash" then
-		uDef.speed = 101
+		uDef.health = 710
+		uDef.weapondefs.emgx.sprayangle = 880
+	end
+	if name == "corgator" then
+		uDef.health = 800
 	end
 
-	if name == "armmanni" then
-		uDef.energycost = 18500
+	if name == "armguard" or name == "corpun" then
+		uDef.weapondefs.plasma_high.mygravity = nil
+		uDef.weapondefs.plasma_high.weaponvelocity = 420
+		uDef.weapondefs.plasma_high.edgeeffectiveness = 0.15
+		uDef.weapondefs.plasma.edgeeffectiveness = 0.15
+		uDef.weapondefs.plasma.weaponvelocity = 420
+		uDef.weapondefs.plasma.reloadtime = math.ceil(10 * uDef.weapondefs.plasma.reloadtime) / 10
+		uDef.weapondefs.plasma_high.reloadtime = math.ceil(10 * uDef.weapondefs.plasma.reloadtime) / 10
+		uDef.metalcost = uDef.metalcost - 150
+		uDef.energycost = uDef.energycost - 500
+		uDef.buildtime = 20000
 	end
-	if name == "armbull" then
-		uDef.speed = 60
+	if name == "cortoast" then
+		uDef.weapondefs.cortoast_gun_high.mygravity = nil
+		uDef.weapondefs.cortoast_gun_high.edgeeffectiveness = 0.15
+		uDef.weapondefs.cortoast_gun.edgeeffectiveness = 0.15
 	end
-	if name == "armlatnk" then
-		uDef.weapondefs.lightning.damage.default = 22
-		uDef.weapondefs.lightning.reloadtime = 1.5
-		uDef.weapondefs.lightning.range = 300
-	end
-	if name == "corgol" then
-		uDef.energycost = 28000
-	end
-
-	if name == "coraak" then
-		uDef.script = "Units/coraak_clean.cob"
-		uDef.health = 3200
-		uDef.weapondefs = {
-			coraabot_missile1 = {
-				areaofeffect = 24,
-				avoidfeature = false,
-				burnblow = true,
-				canattackground = false,
-				castshadow = false,
-				cegtag = "missiletrailaa",
-				craterareaofeffect = 0,
-				craterboost = 0,
-				cratermult = 0,
-				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
-				firestarter = 70,
-				fixedlauncher = true,
-				flighttime = 1.9,
-				impulsefactor = 0,
-				metalpershot = 0,
-				model = "cormissile.s3o",
-				name = "Missiles",
-				noselfdamage = true,
-				range = 1300,
-				reloadtime = 1.6,
-				smokecolor = 0.5,
-				smokeperiod = 6,
-				smokesize = 6,
-				smoketime = 12,
-				smoketrail = true,
-				smoketrailcastshadow = false,
-				soundhit = "xplosml2",
-				soundhitvolume = 7.5,
-				soundhitwet = "splshbig",
-				soundstart = "rocklit1",
-				soundstartvolume = 7.5,
-				startvelocity = 640,
-				texture1 = "null",
-				texture2 = "smoketrailaa",
-				tolerance = 15000,
-				tracks = true,
-				turnrate = 30000,
-				turret = true,
-				weaponacceleration = 141,
-				weapontimer = 5,
-				weapontype = "MissileLauncher",
-				weaponvelocity = 825,
-				damage = {
-					vtol = 250,
-				},
-			},
-			botflak = {
-				accuracy = 1000,
-				areaofeffect = 140,
-				avoidfeature = false,
-				burnblow = true,
-				canattackground = false,
-				cegtag = "flaktrailaa",
-				craterareaofeffect = 140,
-				craterboost = 0,
-				cratermult = 0,
-				cylindertargeting = 2,
-				edgeeffectiveness = 1,
-				explosiongenerator = "custom:flak",
-				impulsefactor = 0,
-				name = "Heavy g2a flak cannon",
-				noselfdamage = true,
-				range = 775,
-				reloadtime = 5.5,
-				soundhit = "flakhit",
-				soundhitwet = "splsmed",
-				soundstart = "flakfire",
-				stages = 0,
-				turret = true,
-				weapontimer = 1,
-				weapontype = "Cannon",
-				weaponvelocity = 1550,
-				damage = {
-					vtol = 300,
-				},
-				rgbcolor = {
-					[1] = 1,
-					[2] = 0.33,
-					[3] = 0.7,
-				},
-			},
-		}
-		uDef.weapons = {
-			[1] = {
-				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "CORAABOT_MISSILE1",
-				onlytargetcategory = "VTOL",
-			},
-			[2] = {
-				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "BOTFLAK",
-				onlytargetcategory = "VTOL",
-			},
-		}
-	end
-	if name == "armaak" then
-		uDef.script = "Units/armaak_clean.cob"
-		uDef.health = 2200
-		uDef.weapondefs = {	
-			longrangemissile = {
-				areaofeffect = 24,
-				avoidfeature = false,
-				burnblow = true,
-				canattackground = false,
-				castshadow = false,
-				cegtag = "missiletrailaa",
-				craterareaofeffect = 0,
-				craterboost = 0,
-				cratermult = 0,
-				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
-				firestarter = 70,
-				fixedlauncher = true,
-				flighttime = 1.8,
-				impulsefactor = 0,
-				metalpershot = 0,
-				model = "cormissile.s3o",
-				name = "Long-Range Anti-Air Missile Launcher",
-				noselfdamage = true,
-				proximitypriority = -1,
-				range = 1200,
-				reloadtime = 1.5,
-				smokecolor = 1,
-				smokeperiod = 6,
-				smokesize = 5.5,
-				smoketime = 11,
-				smoketrail = true,
-				smoketrailcastshadow = false,
-				soundhit = "xplosml2",
-				soundhitvolume = 7.5,
-				soundhitwet = "splssml",
-				soundstart = "rocklit1",
-				soundstartvolume = 7.5,
-				startvelocity = 590,
-				texture1 = "null",
-				texture2 = "smoketrailaa3",
-				tolerance = 15000,
-				tracks = true,
-				turnrate = 30000,
-				turret = true,
-				weaponacceleration = 150,
-				weapontimer = 6,
-				weapontype = "MissileLauncher",
-				weaponvelocity = 1000,
-				damage = {
-					vtol = 150,
-				},
-			},
-			shortrangemissile = {
-				areaofeffect = 24,
-				avoidfeature = false,
-				burnblow = true,
-				canattackground = false,
-				castshadow = false,
-				cegtag = "missiletrailaa",
-				craterareaofeffect = 0,
-				craterboost = 0,
-				cratermult = 0,
-				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
-				firestarter = 70,
-				fixedlauncher = true,
-				flighttime = 1.85,
-				impulsefactor = 0,
-				metalpershot = 0,
-				model = "cormissile.s3o",
-				name = "Medium-Range Anti-Air Missile Launcher",
-				noselfdamage = true,
-				proximitypriority = 1,
-				range = 880,
-				reloadtime = 0.7,
-				smokecolor = 1,
-				smokeperiod = 6,
-				smokesize = 2,
-				smoketime = 11,
-				smoketrail = true,
-				smoketrailcastshadow = false,
-				soundhit = "xplosml2",
-				soundhitvolume = 7.5,
-				soundhitwet = "splshbig",
-				soundstart = "rocklit1",
-				soundstartvolume = 7.5,
-				startvelocity = 100,
-				texture1 = "null",
-				texture2 = "smoketrailaa",
-				tolerance = 26000,
-				tracks = true,
-				turnrate = 30000,
-				turret = true,
-				weaponacceleration = 400,
-				weapontimer = 5,
-				weapontype = "MissileLauncher",
-				weaponvelocity = 800,
-				damage = {
-					vtol = 100,
-				},
-			},
-		}
-		uDef.weapons = {
-			[1] = {
-				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "LONGRANGEMISSILE",
-				onlytargetcategory = "VTOL",
-			},
-			[2] = {
-				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "SHORTRANGEMISSILE",
-				onlytargetcategory = "VTOL",
-			},
-		}
+	if name == "armamb" then
+		uDef.weapondefs.armamb_gun_high.mygravity = nil
+		uDef.weapondefs.armamb_gun_high.edgeeffectiveness = 0.15
+		uDef.weapondefs.armamb_gun.edgeeffectiveness = 0.15
 	end
 
+	if name == "armmlv" or name == "cormlv" or name == "legmlv" then
+		uDef.canreclaim = true
+		uDef.metalcost = uDef.metalcost + 30
+		uDef.buildtime = 3500
+		uDef.health = math.ceil(uDef.health * 1.33 / 10) * 10
+	end
+	if name == "armmine3" or name == "legmine3" or name == "cormine3" then
+		uDef.energycost = 2500
+		uDef.buildtime = 500
+	end
 
 	return uDef
+
 end
 
 return {

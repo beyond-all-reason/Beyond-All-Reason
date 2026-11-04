@@ -5,6 +5,9 @@ piece  base, turret, barrel, flare, sleeve, head, tail, lid, turretmis, misbox, 
 
 static-var  restore_delay, gun_2, corrected;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
@@ -27,6 +30,8 @@ static-var  restore_delay, gun_2, corrected;
 
 Create()
 {
+	Weapon1TurretX = <45>;
+	Weapon1TurretY = <90>;
 	hide flare;
 	hide misflare;
 	restore_delay = 3000;
@@ -90,9 +95,9 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	move turret to y-axis [6] speed [20];
 	wait-for-move turret along y-axis;
-	turn turret to y-axis heading speed <90>;
+	turn turret to y-axis heading speed Weapon1TurretY;
 	move barrel to z-axis [0] speed [8];
-	turn sleeve to x-axis <0> - pitch speed <45>;
+	turn sleeve to x-axis <0> - pitch speed Weapon1TurretX;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();

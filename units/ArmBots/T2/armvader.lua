@@ -2,20 +2,18 @@ return {
 	armvader = {
 		activatewhenbuilt = true,
 		buildpic = "ARMVADER.DDS",
-		buildtime = 7900,
+		buildtime = 8000,
 		canmove = true,
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "17 13 17",
 		collisionvolumetype = "box",
-		corpse = "CORPSE",
+		corpse = "DEAD",
 		energycost = 5800,
 		explodeas = "crawl_blastsml",
 		firestate = 0,
 		footprintx = 2,
 		footprintz = 2,
 		health = 445,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 749,
 		maxacc = 0.1518,
 		maxdec = 0.5589,
@@ -29,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "crawl_blast",
 		selfdestructcountdown = 0,
-		sightdistance = 273,
+		sightdistance = 260,
 		speed = 84,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -44,7 +42,7 @@ return {
 			unitgroup = "explo",
 		},
 		featuredefs = {
-			corpse = {
+			dead = {
 				blocking = true,
 				category = "corpses",
 				damage = 300,
@@ -69,13 +67,6 @@ return {
 				object = "Units/arm1X1B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -117,6 +108,9 @@ return {
 				soundhitwet = "splshbig",
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					crawlingbombs = 1000,
 					default = 1000,

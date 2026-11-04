@@ -1,0 +1,244 @@
+#include "../recoil_common_includes.h"
+
+piece base, turret, gun, lFlap, lFlap1, rFlap, rFlap1, tFlap, flare, fan, fan1, wake;
+
+static-var  gun_1, restore_delay, fired, last_primary_heading, last_secondary_heading;
+
+// Signal definitions
+#define SIG_MOVE			2
+#define SIG_AIM_1			4
+#define SIG_AIM_2			8
+
+#define RB_MASS 10
+#define RB_LENGTH 5
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_RECOIL_ENERGY_2 500
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_CEG 1024 + 0
+#define RB_IDLE_KICK 10000
+#define RB_ROCKUNIT 75
+
+#include "../bar_ships_common.h"
+
+Create()
+{
+	hide flare;
+	hide wake;
+	fired = 0;
+	gun_1 = 1;
+	restore_delay = 3000;
+	last_primary_heading = -1000000;
+	last_secondary_heading = -1000000;
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	turn fan1 to x-axis <50.2> now;
+	turn fan1 to z-axis <16> now;
+	turn rFlap1 to z-axis <-30> now;
+	turn lFlap1 to z-axis <30> now;
+	turn rFlap to z-axis <30> now;
+	turn lFlap to z-axis <-30> now;
+	spin fan around y-axis speed <300> accelerate <30>;
+	start-script BoatPhysics();
+	return (0);
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+	return (0);
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	last_primary_heading = -1000000;
+	last_secondary_heading = -1000000;
+	turn turret to y-axis <0.000000> speed <60.000000>;
+	turn gun to x-axis <0.000000> speed <60.000000>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+ResetFire()
+{
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
+	fired = 1;
+	sleep 1200;
+	fired = 0;
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	var waketime;
+	while( TRUE )
+	{
+		emit-sfx 1024 + 0 from wake;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 50 ) waketime = 50;
+		sleep 10000 / waketime;
+	}
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+	return (0);
+}
+
+/// anti-surface
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM_1;
+	set-signal-mask SIG_AIM_1;
+	turn turret to y-axis heading speed <120.000000>;
+	turn gun to x-axis <0> - pitch / 3 speed <120>;
+	if (get ABS(last_primary_heading - heading)> <20>)
+	{
+		wait-for-turn turret around y-axis;
+		wait-for-turn gun around x-axis;
+	}
+	start-script RestoreAfterDelay();
+	if(fired == 1)
+	{
+		return (0);
+	}
+	last_primary_heading = heading;
+	return (1);
+}
+
+FirePrimary()
+{
+	emit-sfx 1024 + 1 from flare;
+	start-script ResetFire();
+
+	turn lFlap to y-axis <44> speed <440>;
+	turn rFlap to y-axis <-44> speed <440>;
+	turn tFlap to x-axis <-29> speed <290>;
+	wait-for-turn lFlap around y-axis;
+	turn lFlap to y-axis <0> speed <36>;
+	turn rFlap to y-axis <0> speed <36>;
+	turn tFlap to x-axis <0> speed <24>;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare;
+}
+
+/// anti-sub
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn turret to y-axis heading speed <120.000000>;
+	turn gun to x-axis <0> - pitch / 3 speed <120>;
+	if (get ABS(last_secondary_heading - heading)> <20>)
+	{
+		wait-for-turn turret around y-axis;
+		wait-for-turn gun around x-axis;
+	}
+	start-script RestoreAfterDelay();
+	sleep 33;
+	if(fired == 1)
+	{
+		return (0);
+	}
+	last_secondary_heading = heading;
+	return (1);
+}
+
+FireSecondary()
+{
+	emit-sfx 1024 + 1 from flare;
+	start-script ResetFire();
+	turn lFlap to y-axis <44> speed <440>;
+	turn rFlap to y-axis <-44> speed <440>;
+	turn tFlap to x-axis <-29> speed <290>;
+	wait-for-turn lFlap around y-axis;
+	turn lFlap to y-axis <0> speed <36>;
+	turn rFlap to y-axis <0> speed <36>;
+	turn tFlap to x-axis <0> speed <24>;
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = turret;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = flare;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode gun type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
+		//explode wake1 type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode gun type FALL | NOHEATCLOUD;
+		explode turret type FALL | NOHEATCLOUD;
+		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode wake1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare1 type SMOKE | FALL | NOHEATCLOUD;
+		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode wake1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode wake1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

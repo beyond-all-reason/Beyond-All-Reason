@@ -61,6 +61,9 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
+			juno_deny = true,
+			juno_kill = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
@@ -73,9 +76,7 @@ return {
 				[3] = "custom:dirt",
 			},
 			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-				[3] = "blood_spray",
+				[1] = "blood_spray",
 			},
 		},
 	},

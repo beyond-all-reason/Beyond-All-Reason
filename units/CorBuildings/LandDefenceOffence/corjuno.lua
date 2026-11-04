@@ -11,8 +11,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2500,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -72,10 +70,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:juno_sphere_emit",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -131,20 +125,24 @@ return {
 				soundstart = "junofir2",
 				stockpile = true,
 				stockpiletime = 75,
+				interceptedbyshieldtype = 0,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
 				texture3 = "null",
 				tolerance = 4000,
-				turnrate = 5500,
+				turnrate = 12000,
 				weaponacceleration = 75,
 				weapontimer = 4,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
-					stockpilelimit = 20,
-					lups_noshockwave = 1,
+					cruise_and_verticalize = true,
+					uptime_max = 9,
+					junotype = "base",
 					nofire = true,
-					water_splash = 0, -- juno can explode on water
+					shield_aoe_penetration = true,
+					stockpilelimit = 20,
+					water_splash = 0,
 				},
 				damage = {
 					default = 1,

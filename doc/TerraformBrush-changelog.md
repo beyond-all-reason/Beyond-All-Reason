@@ -1,0 +1,449 @@
+# Terraform Brush Changelog
+
+Release history for the Terraform Brush map-editing suite.
+
+Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
+
+## 1.18 - 2026-10-19
+
+### New
+
+- **TILESET: the new layer sort (MrBob's three layers), side by side with the old one.** OLD SORT and NEW SORT at the top of the TILESET window switch the look and the sliders together. Each biome opens in the sort its settings were tuned in (tileset shader build 22: Teizer, Cetheta_02, Pale Hang and Perseus Gate on NEW, the rest on OLD); the switch compares the two until the next biome pick and is never saved into a preset or map. NEW places the top, the intermediary and the cliff by slope, twice: the normal maps by the terrain's own slope and the colour by the normal-mapped slope. Its sections are MrBob's: INTERMEDIARY / CLIFF NORMALS (flip and strength for each), INTERMEDIARY / CLIFF COLOR (hue, saturation, value, R, G, B), ANGLE: NORMALS and ANGLE: ALBEDO / ROUGHNESS (each lists the angles it puts on the ground) and TOP COLOR. CLIFFS & FOOTHILLS, LAYER PLACEMENT, the EXTRA LAYER and the sliders only the old sort reads step aside while NEW is on and come back with OLD, as they were. Debug views Sort N and Sort A paint each pass cliff red, intermediary green, top blue. Needs tileset shader build 19; on build 18 the window looks as it did.
+- **Features scale to any size.** SCALE MIN and MAX now give a real size anywhere from 0.1x to 5x, not only the sizes a def ships baked variants for. The size draws in every pass, shadows included; the collision volume, selection size and aim points scale with it, and brush placements grow in over a third of a second. Undo, redo, saves and map projects keep each feature's scale. Shift+Scroll sets one fixed scale (both ends together, 10% a notch, snapping to 1x); feature count moved to Ctrl+Alt+Scroll.
+- **Clustered stamps grow in clumps.** With Clustered distribution four controls appear: CLUMPS (0 picks a number from the feature count), CLUMP SIZE, STRAGGLERS (the share scattered between the clumps) and CLUMP VARIETY (how unlike each other the clumps are, from dense thickets to open groves, young to old). Their defaults keep the old clustering.
+- **Features sit higher or lower.** HEIGHT OFFSET (CONTROLS, or Ctrl+Shift+Scroll) places the next features up to 500 elmos above the ground or below it, so a rock can sit half buried or a tree stand on a ledge. The preview shows it, and undo, redo, saves and map projects keep each feature's height.
+- **Features lean.** RANDOMIZE TILT (Alt+Shift+Scroll) gives each placed feature a lean of up to the set angle (0 to 45 degrees) in a random direction, so a stand of trees comes out with most upright and a few leaning. The preview shows it, and undo, redo, saves and map projects keep it. RANDOMIZE ALIGNMENT and RANDOMIZE TILT are now the last two CONTROLS rows.
+- **The unit library picks like the asset library.** Ctrl+click adds a unit to the pick or takes it out, and Shift+click adds every tile from the last one clicked, in the list as it is filtered and sorted (Shift+click used to add or remove one).
+- **Picking several features in the asset library.** Ctrl+click adds a feature to the pick or takes it out, and Shift+click adds every tile from the last one clicked to this one, in the list as it is filtered. A plain click still picks one feature.
+- **The clone paste preview is the copied terrain itself,** lit and textured at the cursor instead of a wire grid. It follows rotation, mirroring, height offset, symmetry and grid snap, and parts below the ground show through it. PASTE > PREVIEW OPACITY sets how solid it looks (0 leaves the outline). On tileset maps it wears the biome colour without the slope rock.
+- **The clone tool's WEATHER and LIGHTS layers copy and paste.** Both chips did nothing before. Lights land as high above the pasted ground as they stood, with cone and beam aim turned and mirrored with the paste; one undo in LIGHTS takes the paste back. Weather spawners paste with their shape angle turned; the weather brush keeps no undo.
+- **Clone PASTE MODE: RAISE ONLY and LOWER ONLY.** RAISE ONLY pastes only what stands above the ground under it, LOWER ONLY only what lies below, so a copied hill and valley pasted on flat ground leave just the hill or just the valley. Features, metal, paint and the other layers come along only where the terrain does, and the preview shows exactly that. REPLACE, the default, pastes as before.
+- **UNITS: live units or mission units.** LIVE UNITS places normal units, and with nothing picked a click selects and orders them as in a game (Delete, R, Ctrl+A and copy act on that selection). MISSION UNITS places stand-ins for a mission: frozen in place, neutral, taking no orders, each on a mission team number the TEAM chip cycles (0 to 15, so a mission can have more teams than the session; a team the session lacks stands on Gaia, and a coloured ring and number under each unit tells the teams apart). ALL TO MISSION and ALL TO LIVE turn every unit on the map into one or the other in place, as one undo step. A map project saves mission units with their team number (`mission = n` in `units.lua`) and brings them back frozen, ready for the mission editor to take as its loadout.
+- **UNITS: a selection of two or more units gets a loop around it,** and pressing on empty ground inside the loop drags the whole group.
+- **Start position suggestions** (by NortySpock, #9386). STARTS > Roles gives each start position a role: left click for the next role, right click for the previous. Save and Load keep the names and roles, and the save also writes the rowy JSON and a `bset` command to `Terraform Brush/StartPositions/Suggestions/` for trying a layout in a skirmish.
+
+### Improvements
+
+- **PASSABILITY shows ships** (asked for by Moose). The DISPLAY chip now cycles BOT, VEH, HOVER, AMPH, SHIP and off. Ships care about water depth, not slope, so SHIP switches to the game's own traversability view for a ship movedef, F6's colours without selecting a ship: green where ships sail, purple where the water is too shallow or there is land. Leaving SHIP brings back the view that was on before. SHIP works without the tileset shader.
+- **A much quieter console.** Routine messages from every tool are gone: activation and deactivation banners, wheel and slider echoes, the sculpt Fill diagnostics (17 lines per click on every client), the metal gadget's lines on every client, and the map project's step-by-step save and load progress. Results, warnings and errors stay.
+- The WEATHER summary strip shows the brush rotation where it showed the frequency.
+- The TILESET biome library has new art. Tileset shader build 18 adds Perseus Gate, Pale Hang and Cetheta (Enborelde's textures under its own config), and the placeholder biomes (Namaqualand, Protodesert, Prototemperate) are gone.
+- Tileset shader build 20 adds **Cetheta_02**, MrBob's own Cetheta tops; the first Cetheta is now Cetheta_01. Teizer opens with MrBob's new config.
+- Tileset shader build 22: Teizer, Cetheta_02, Pale Hang and Perseus Gate take MrBob's Redux configs, made for the new sort, each also as a preset (MrBob <biome> 2026-10-21). Perseus Gate has five new tops (new pattern, lichen).
+- **DuneMaker** joins the built-in brush presets: MrBob's dune shaper, a large soft triangle that rides the stroke.
+- **Tileset presets are files.** SAVE in the TILESET window writes the preset straight away to `Terraform Brush/TilesetPresets/<name>.lua`, one file per preset, with the biome it was tuned on (loading it switches there). Deleting it in the list deletes the file. Presets saved before move out of the game's config into files the first time this version runs. Needs tileset shader build 21.
+
+### Fixes
+
+- SURFACE undo and redo (Ctrl+Z, Ctrl+Shift+Z) work again. Since 1.17 the editor's key gate offered keys only to the suite's own tools, and the SURFACE painter ships with the tileset shader, so its strokes could not be undone from the keyboard (reported by Moose).
+- **FEATURES no longer gets stuck in selection mode** (Moose). A right click on the map lets go of the asset library's picks, but the library kept those tiles lit, so it looked picked while a left click drew the selection box. The tiles now follow the picks, and only a right click lets go of them, not a right drag.
+- **Symmetric clone pastes turn each copy.** Radial copies all faced one way and mirror copies were turned instead of reflected, in the preview and in the paste.
+- The clone Copy button stays live after a copy, like Ctrl+C, and Shift+Scroll on the height offset stops at 500 like the slider.
+- **Decal REDO works.** The button did nothing; Ctrl+Y and Ctrl+Shift+Z redo, the history slider moves forward, and a redone batch keeps its alpha and tint.
+- **The triangle brush paints metal,** and the metal cursor draws a triangle for it. Painting metal refreshes the overlay, clusters and balance sums.
+- The LIGHTS preset preview sits at the height the lights land (it was 20 elmos low).
+- The WEATHER library headers sit on the right presets, and SPECIAL shows.
+- A plain click on a wheel-locked slider frees it and clears the WHEEL LOCK line.
+- The snow auto-reduce checkbox shows off when it is off, and seven LIGHTS and SURFACE section headers play their toggle sound once.
+
+### Removed
+
+- WEATHER FREQUENCY and DISTRIBUTION, and DECALS DISTRIBUTION: none of them did anything.
+- The DECALS heatmap (SAVE HEATMAP, RESET, "Explosions tracked"): it could never record an explosion.
+- Console commands with no button, key or caller: `/featureplacer*`, `/decalplacer*`, `/weatherbrush*` (open the tools from the panel), and the debug commands `/tf_sunlog` (1.15.1), `decalsdump`, `decaldumpres` and `/mapproject dirty`.
+
+The TILESET SHADER UPDATE row matches 1.18 from tileset shader build 18 on.
+
+## 1.17.1 - 2026-10-15
+
+### Fixes
+
+- **LAYERS works on every canvas again.** A canvas made without a splat set (no DNTS pack installed, or a map project saved from such a canvas) had no splat distribution texture, so LAYERS refused to open and the tileset shader had nothing to paint into. New Map and Open Project now ask the engine for its fallback distribution when there is no splat set, and the LAYERS painter makes one of its own on a canvas started some other way. Existing projects need nothing: open them again.
+
+## 1.17 - 2026-10-13
+
+### New
+
+- **UNITS places real units.** The UNITS button on the tool row, greyed out as a placeholder until now, opens the unit library and places units on the map. Pick a unit, then click to place one or drag to lay out several: SINGLE, LINE, GRID or BOX (Tab cycles the shape, R turns the units a quarter, Shift+R back). The preview and the layout come from the game's own blueprint tool, so a drag of units lays out exactly as a build drag does, footprints outlined and red where the ground refuses. The tool stays armed after each placement, so a base or a battle goes down one drag after another; a right click lets go. The TEAM chip picks the team the units join, and Ctrl+Z / Ctrl+Y take back or restore a whole placement at a time, however many units it was. The panel works like FEATURES: PLACEMENT MODE has Scatter, Point and Remove, and DISPLAY (grid, height map, passability, image), INSTRUMENTS (grid snap, measure, symmetry) and FILTERS (avoid water, slope, altitude with SAMPLE) under it. CONTROLS holds size, rotation, randomized alignment, count and rate (the usual Ctrl / Alt / Shift / Space + wheel), DISTRIBUTION is random, regular or clustered, spaced by each unit's footprint, and FORMATION's Tighter / Looser packs or spreads a selection, or sets the spacing of the next drag. SELECTION selects what is visible, clears, deletes and turns; on the map a selection drags to move, a box selects, Ctrl+click faces a point, and Ctrl+A, Ctrl+C / X / V and Esc work as usual. UNDO & REDO keeps a 100-stroke history with a slider, SAVE & LOAD writes unit layouts to `Terraform Brush/UnitMaps/`, and Reroll Preview shuffles a scatter before it goes down. The game's own build keys apply: Shift drags a line, Shift+Alt a grid, Shift+Alt+Ctrl a box, Alt+Z / Alt+X and mouse 4/5 change the spacing. Units come off the map through Delete on a selection, the REMOVE brush, or SAVE & LOAD > CLEAR (one undoable stroke for every unit of every team). U opens the tool. Needs `/cheat`, like the rest of the editor.
+- **The unit library** is a window of its own, shared with the mission editor. Click the search field to search names and tags ("t2 arty cor"), or narrow the list with chips for faction, tier, type (units and buildings on rows of their own), role and domain, each row labelled at the left and each chip showing how many units it would leave; Shift+click a chip to combine values in a row, and click a row's label to clear it. Roles (builder, scout, raider, skirmish, arty, AA) are inferred from each unit's stats against the others of its tier. The chips carry the faction emblems and the game's strategic icons. **SORT** orders the grid by name, power (metal plus energy at 60 to 1), type, size (footprint), tier, speed, range or health; clicking the active sort again turns it round, and an arrow shows which way it runs. The first three rows of the grid answer to Q W E R / A S D F / Z X C V like the game's build grid (each tile shows its key, Shift adds to a set), and the pause button beside close hands those letters back to the game. Recently picked units sit in a row of their own, and the arrow keys and Enter pick from the keyboard. The window is 480dp wide with four tiles to a row, each filter row on one line with its label at the left (FACTION, TIER, MOBILE, BUILDING, ROLE, DOMAIN) and the faction chips spelled out. FILTERS, BLUEPRINTS, RECENT and UNITS fold away like the brush's own sections, RECENT and BLUEPRINTS start folded at the bottom, and the library remembers its filters, sort and folds.
+- **Several units at once.** Shift+click tiles in the library to pick a set (the tiles show 1, 2, 3); each placement then uses the next unit of the set, in order (A B C) or at random, chosen with the CYCLE chips. The facing and the shape set with R and Tab carry over from one unit to the next.
+- **Blueprints.** Saved groups of units (in `LuaUI/Config/UnitBlueprints/`) list in the library's BLUEPRINTS row; picking one arms the placer with the whole group, which R turns as one and a click drops.
+- **New Map: MEX RADIUS.** A generated canvas used to get the engine's mapinfo defaults, a 500 elmo pull for every extractor and metal capped at 0.02 per square, so painted spots could not be worth what real maps use and neighbouring spots shared their metal. The New Map dialog sets the radius (default 90, what most BAR maps use) and raises the cap to 2 per square, and the project remembers the radius. Needs an engine with the blank map metal options (beyond-all-reason/RecoilEngine#3506); older engines ignore both and keep the defaults.
+- **WET SHORE** opens TILESET > WORLDSPACE TINT with its own sub-section and RESET: Strength (0 turns the wet band off, which could only be shrunk before), Band, Slope bite (keeps the band to flat shore) and Gloss. The old Wet shore and Wet gloss rows moved here from LIGHTING. Strength and Slope bite need tileset shader build 15 or newer.
+
+### Improvements
+
+- **Game hotkeys stay out of the editor's way, and editor sessions keep the game UI.** A map editor session used to remove the build menu, order menu, player list and resource bars so their hotkeys would not fight the editor's. They stay now: units have their build menus. While an editor tool is in use, the game's hotkeys (unit orders, build keys, selection and groups) are held back so the editor's own keys work. The camera, chat, Esc, the F-key views, screenshots, game pause, the console, the quit menu, the LOS toggle and build spacing still reach the game. The pause button on the panel hands every key back, so you have full control of your units until you unpause.
+- **WORLDSPACE TINT is split into folding sub-sections** (WET SHORE, AXIS, GRADE, STRATA, GRADIENT STOPS, COLOUR, RAMP, SATURATION, TIDE RINGS, SNOW LINE), all folded to start, instead of one long list under inline headings.
+- **The slider wheel lock takes a double middle click.** A single middle click (1.16) still fired while adjusting values. Double middle click a slider to tie it to the mouse wheel, the same again to let it go, ESC to let go of all of them; several can be locked at once. Every slider in the panel and its floating windows can be locked now, every one shows it (the colour channel thumbs used to hide the lock style), and a line under the status strip lists what is locked with the way out.
+- **The camera holds still while you sculpt.** The spring camera puts its focus on the ground every frame, so raising or lowering the terrain under the view carried the camera up and down with the stroke. The eye now stays where it was until you pan, zoom, rotate or switch camera; ground raised into the camera still lifts it. No camera setting changes and normal play is untouched.
+- **FEATURES: right click drops the pick**, as in UNITS, instead of erasing features. Features come off the map through Delete on a selection or the REMOVE mode.
+- The brush cursor stops under every floating window (TILESET, the SCENE windows, noise, the libraries), not only under the main panel.
+- The metal brush's STAMP draws an inner circle when the brush is wider than a mex can reach, showing where the metal actually lands.
+- Guide mode's floating tip no longer costs frame time: it moved by rewriting its position, which re-laid out the whole panel every frame (1.5 ms at 2560x1440), and now moves by a transform.
+- LAYER PLACEMENT warns above Intermediate scatter past 1.0, where it wipes the intermediate layer and the other placement sliders stop doing anything. LIGHTING and METAL SPOTS lose the six rows whose shader settings were retired in tileset shader 0.28.
+- The New Map dialog's size and mex radius rows have the -/+ buttons and the number box the other sliders have.
+- The tool hotkeys work again (they had silently stopped for every tool), with new ones for SURFACE (S), LAYERS (T) and UNITS (U); in a terrain mode a letter that belongs to the mode keeps its meaning there.
+
+### Fixes
+
+- **New metal spots work with the mex tools.** Spots painted in the editor or loaded from a project were invisible to everything that reads the metal spot list: the game refused extractors on them, and Metalspots and Quick Build saw nothing. The list is rescanned shortly after a stroke ends or a project finishes loading, and those widgets reload with it.
+- **Extractor income matches the spot.** Extractors near a stroke were given the summed metal under them as their extraction rate, which the engine multiplied by the metal again, so income grew with every stamp nearby (0.1, then 19, then 34). A stamp also keeps its metal within reach of a mex built on its centre, so the spot snaps and pays in full, and the stamp corrects the metal map's rounding so a 2.0 spot pays 2.0.
+- **Panel sliders no longer go dead** after a long tuning session (TILESET showed it most). A stuck "updating from code" flag is cleared every frame, and the click-to-jump drag reuses one pair of listeners instead of adding a pair per drag that was never removed. `/tfsliders` prints the slider state if one ever sticks again.
+- **SURFACE paint saves with the project under the user widget sandbox.** BAR now runs personal widgets, the tileset shader and the SURFACE painter among them, in a sandbox that lets them write and read files only under `LuaUI/`. A map project lost its SURFACE paint (the save log said the painter's file was missing) and a project's variant 4 paint did not load back. The mask now passes through `LuaUI/Config/TilesetSurface/project_stage/` on its way into and out of the project folder; the project files are the same as before. The RAMP section names the folder the tileset shader reads ramps from (`LuaUI/Config/TilesetRamps/` from shader build 16) instead of `Terraform Brush/Ramps/`.
+- Loading a project replaces the live SURFACE > GRADING slot tints with the project's instead of adding to every tint set before.
+- The editor opens on start in every session, not just the cursor UI, and the title wordmark is no longer squashed by the eye button.
+
+## 1.16 - 2026-09-23
+
+### New
+
+- **MAP TRANSFORM** (SCENE > Dimensions) turns, flips and resizes the whole map with everything on it. Rotate left or right a quarter turn at a time, flip horizontally or vertically the way you see it on screen, and set a new canvas in map units. STRETCH scales the map onto the new size, keeping the composition; KEEP SCALE holds one elmo to one elmo and places the map by a 3x3 anchor, which is how a map gets cropped or gains a strip of new ground (terrain past the old edge continues its border height, and anything outside the new canvas is dropped with a count in the log). Terrain, splat and SURFACE paint, diffuse art, metal, features and their tilt, units, decals, lights, comments, start positions, start boxes, grass and weather all move together, and the sun turns with the map so the light keeps falling the way it was authored. A footprint preview shows the new canvas, where the current map lands in it and which corner is north-west today, with a line naming what the transform costs. The current size reads in map units with the elmo figure beside it, and APPLY greys out whenever it reads NO CHANGE or TOO BIG. The same section also **EXPANDS** a map: pick a side and the canvas doubles that way, with the new half either an empty flat canvas at the New Map base height or a copy of the map: plain, mirrored across the seam (the join is exact), flipped along it, or turned half way round. A copy brings everything with it (features, metal, paint, decals, lights, start positions and boxes, with the duplicated start positions renumbered onto fresh ally teams), so a small hand-made piece can be grown into a large symmetric map in two or three doublings, up to the generator's 32-unit ceiling. Map size and orientation are fixed when a map is loaded, so APPLY asks for a second click and then restarts the session onto the new canvas: it saves the session into a staging copy, rewrites every layer through one shared piece of transform math, and replays it. Your project is not touched: the session comes back transformed with the same Save target, so FILE > Save commits it and quitting without saving discards it.
+- **Multi-screen editing.** The suite works with the engine's dual-screen mode: a borderless window spanning two monitors, the world view filling one and the editor's panels living on the other, so the map is never covered by UI. The panels scale for the screen they are on rather than for the world view, keep the proportions they have on a single 4K (their px and vw width rules are blind to the UI scale, so the rows used to stretch on a spanned window), and every window drags freely between the screens in both directions. A panel dropped on the other screen takes that screen's scale on engines that carry the per-document dp override, and the floating windows (noise, skybox and light libraries, environment floats, capture) follow the same rules. All of it is inert on a single screen. Mixed-DPI desks (a scaled 4K beside an unscaled 1440p) additionally need an engine with per-monitor DPI awareness (RecoilEngine PR #3400), or Windows stretches the spanned window on the secondary monitor.
+- The Clone Tool carries the tileset shader's **variant paint**. A new Surface layer copies the SURFACE tool's mask (both of them once variant 4 is in use) with the box and lays it down again at the paste, so a cloned piece of map keeps the material it was painted with instead of arriving as bare terrain. The surface painter does the cutting and pasting itself, which means the paste snapshots onto its undo stack and refreshes the tileset's far-field cache; the layer carries nothing on an install without that widget.
+
+### Improvements
+
+- Locking a slider to the mouse wheel is a **middle click** on it, not a double left click. Two ordinary clicks on the same slider inside a third of a second is something you do while adjusting a value, so the lock kept arming itself by accident (reported by PtaQ). Releasing is unchanged: click the slider, middle click it again, or ESC to clear every lock.
+
+### Fixes
+
+- **A rotated map keeps the look it was painted with.** The tileset shader decides what goes where the artist painted nothing from height, slope and a set of patterns anchored to the world, so a quarter turn used to leave the terrain and the paint turned while all of that automatic placement stayed where it was: cliff and foothill blends, the intermediate scatter, the large-scale tone and hue drift, the automatic deposit's wind. The map came back with its paint exactly right and everything between it re-rolled, which is what "some surfaces aren't being rotated, but some are" looked like (reported by Moose on CM02). A transform now records how the map was turned and the shader reads those patterns through it, so a turn, a flip, a resize and a doubling all come out looking like the map that went in. Old projects are unaffected: a map that was never transformed carries no turn and renders exactly as before. Needs a tileset shader from build 12 or newer.
+- **The panel keeps its proportions on every screen shape.** The brush panel and its floating windows set their width in `vw` with a pixel floor, while everything inside them is in `dp`. `vw` follows the width of the screen and `dp` follows its height, so the proportions only held on 16:9: on an ultrawide, or on a window spanning two monitors, the brush came out fat. The six windows are 290dp now, which is what the old rule worked out to on a single 4K, so the panel is the same shape at every size and aspect. The pixel floor went with it, since a pixel minimum under a dp width brings the same mismatch back at small scales, and so did the dual-screen pin that patched this for spanned windows only.
+- The FEATURES label no longer clips its tile. Six tools to a row leaves each label about 41dp, and FEATURES is the longest of them, so whether it fitted came down to how the text rounded at each display scale: it was cut off by 2px at 2560x1440 while 1080p and 4K happened to fit. The tool labels are tracked a little tighter, which shortens the word without shrinking the type.
+- **The sun no longer arrives flat and from the south.** A map that declares no sun gets the engine's own default direction (`MapInfo.cpp` normalises `sunDir` (0,1,2) to 0.0000 / 0.4472 / 0.8944), and only New Map ever replaced it with the editor sun: and only when it had written a pending environment preset. Every other way onto a canvas (the Chobby launcher, a project whose environment carries no sun, a map transform restart, a `/luaui reload`) kept the engine default, and the first FILE > Save then wrote it into the project permanently: twelve of the projects on the author's disk carry exactly that vector. A generated canvas still sitting on the engine default now gets the editor sun, and an environment section carrying that same vector is treated as "no sun was chosen" and left alone rather than re-applied over a good one. A sun a mapper actually picked is untouched either way.
+- Clone Tool: a rotated or mirrored paste now turns the splat paint with the terrain, and the splat patch lands centred on the cursor. It used to blit axis-aligned from the cursor position, so the paint arrived unrotated and half a box down and to the right of the terrain it belonged to.
+
+## 1.15.1 - 2026-09-23
+
+Source: [PR #9323](https://github.com/beyond-all-reason/Beyond-All-Reason/pull/9323)
+
+### Fixes
+
+- Opening a project no longer floods the log with `attempt to call field 'IsReplay' (a nil value)` and no longer silently loses columns of the imported heightmap (reported by Moose, on both 2026.07.04 and 2026.09.01). `Spring.IsReplay` exists only in unsynced Lua, so the synced gadgets' "trust a `$c$`-certified message during replay" fallback raised a Lua error the moment a certified message arrived while `/cheat` happened to be off, and the terrain rows in those frames were refused while the client had already moved past them. A demo replays the `/cheat` command anyway, so that fallback was never needed; the certification is now honoured inside a map-editor session instead, which is what the editor actually needs and is set by the launcher rather than asserted by the client. The same latent call is fixed in the clone tool, the metal brush and the water type overlay. The import also holds its stream while the gate is shut instead of pushing rows into it, and gives up with a message rather than stalling forever if cheats never come back.
+- The editor widgets share one `/cheat` window. `cheat` is a toggle and four widgets nudge it (the brush, the project loader, the match-end keep-alive and dev auto cheat), so two of them seeing it off in the same moment queued two toggles and turned it back off in the middle of a project load, which is what exposed the error above.
+
+## 1.15 - 2026-09-13
+
+### New
+
+- FILE > Open Project is one **Projects** browser over the projects on this disk and, with Team Sync on, the campaign team's library: a Sync column with a dot per row (in sync, diverged with which side is newer on hover, team only, new since the last look), filter chips instead of tabs, column headers that sort (click the sorted column again to flip), a folder tree with guide lines whose folded state is remembered, and a details pane with the map size, dates, the units loadout and a mark on the open project. Every save now writes a minimap of the project and the pane leads with it (a MAP / HEIGHT switch where a project has both). Rows drag between folders with a ghost under the pointer; in the team view a drop stages a move and CONFIRM MOVES hands the plan to Team Sync one move at a time. RENAME (or F2) renames inline, NEW FOLDER creates one in place, DELETE takes projects and folders and asks twice, and the keyboard works: Up and Down, Enter, Esc, double click.
+- Save As is the same browser without tabs: the NAME box holds the name and the folder being saved into reads before it, clicking a folder retargets the save, a destination chip and a summary pane say whether the save will create a project or write over one, and an UPLOAD switch (Team Sync only) uploads exactly one copy once that save has finished. Failed or incomplete saves never upload, and an upload error leaves the local save alone. Quick Save stays local.
+- **Team Sync** (Settings > General, off by default): the BAR campaign team's private map library. Git runs in a companion process started outside the game from a start card in the Projects window, so credentials and the network never enter the engine; the editor talks to it through files. It pulls on connect, downloads, uploads, moves, renames and deletes from the team, keeps the copies it replaces under MapProjects/_replaced (newest three per project), shows the author and size of every team project, reports LOADING, UPLOADING and the last team outcome in the status strip, and gives the Tileset window a SHADER UPDATE row that pulls the tileset shader from its own private repository. The team workflow is documented for the team in the library repository.
+- The editor knows when the map has unsaved changes: the sculpt, LAYERS, DIFFUSE, METAL and feature tools report their edits, and Open asks before throwing them away. Ctrl+S saves, Ctrl+Shift+S opens Save As and Ctrl+O opens Projects, while the panel is up and no text field has the keyboard.
+- **Autosave** (Settings > General, on by default): while the open project, or a New Map canvas, has unsaved changes, a snapshot is saved every 10 minutes (5 to 60, click the pill to cycle) under MapProjects/_autosave as project-YYYYMMDDHHMM. The status strip reads AUTOSAVE while one runs and AUTOSAVED after. Snapshots list under their own Autosaves chip in the Projects window and nowhere else: not in the other views, not in Save As, never in the team library. Opening one makes its project the Save target again, so FILE > Save writes the recovered state back. Old snapshots are deleted a minute after the editor starts and every half hour after: after 3 days by default, except the newest snapshot of each project, which lives 10 days (both configurable). A manual save starts the interval over, a snapshot waits while the brush is down, and a snapshot never takes the place of a manual save's receipt, Save target or unsaved-changes flag. The lights and decals tools now report their edits to that flag too. `/mapproject autosave` takes a snapshot now, `/mapproject prune` runs the sweep.
+- Quitting with unsaved changes asks first. The top bar's Quit (to the desktop or the lobby) and the editor's own New Map stop at a popup that names the project with the changes and offers Save, then continue (the quick save runs and the quit follows once it is written; Save as when no project is open), Don't save, or Cancel. Nothing closes until one of the first two is chosen; Esc cancels, Enter saves. The window's close button and Alt+F4 belong to the engine and cannot be caught from the game on current engines, which is what autosave is for; on an engine with the `AllowQuit` callin (proposed to Recoil alongside this release) they ask the same way.
+
+### Improvements
+
+- The brush parks itself behind the Projects and Save As windows the way it does behind the panel, instead of working through the ground under them, and its resting spot prefers a side of the screen clear of the window it is stepping out from behind.
+- A project's manifest name is its leaf: a project saved into a folder lists by its own name rather than the whole path, and one written the old way is corrected on re-save.
+- Settings > Stroke > Clay build-up is on by default (the per-tick stacking from before 1.14; the single-layer clay is one click away).
+- In the status strip the save-progress bar gives way before the step name does; twenty saver steps used to clip the label.
+- The team library has a fixed folder structure, Map Prototypes and Texture Pass with Drafts / Review / Done each, plus Other. A project can be moved into it from anywhere the library already holds it, uploading over a project already there replaces it (fast-forward pushes only, so the previous version stays in the branch history), and downloads land at the repository's own path.
+
+### Fixes
+
+- A save can no longer delete a project's diffuse squares that this session never loaded. When the load's diffuse phase was skipped, failed or timed out, the painter's empty state used to read as "no paint" and the cleanup step removed every square in diffuse/ (24 squares on one project). The project now remembers whose squares the painter holds; a save over the open project while its squares were never loaded keeps them, carries the previous diffuse section forward and warns, which also holds the upload back.
+- The WORLDSPACE TINT colour editor keeps a chip's hue while the colour is gray or black (reported by Moose). Most chips are stored as R/G/B, and a gray carries no hue at all, so dragging Sat down to 0 and back up read the colour back as hue 0 and turned the chip red. The editor now remembers the last hue and saturation each chip actually had and hands them back while the colour has none of its own.
+- A project opened from a subfolder saves back into that folder. The slug read from the load pointer was cut to its leaf, so the next FILE > Save wrote a new project at the root and the OPEN badge never lit.
+- Saving a project that was moved or renamed this session no longer warns about unreadable DNTS textures and then only saves locally: the map options still named the folder the project was in at game start, and the save now looks in the project's current folder first. The DNTS files are also read with a raw fallback, since the engine's VFS cannot see a folder created this session.
+- The sync dot no longer stays hollow after a download (a downloaded project is read from its own manifest when the folder walk cannot see it yet), DELETE FROM TEAM reaches the companion (the request was checked against the folder list although it names no destination), and dragging a row works at all (RmlUi consumes the press a row is dragged from, so the button state the drag polled never came true).
+- The minimap thumbnail no longer keeps the picture of two saves ago when a save's minimap step skipped.
+
+## 1.14 - 2026-09-04
+
+### New
+
+- The Open Project browser gained a search box (matches the name, the folder path or the NxN size), RECENT / NAME / SIZE sort chips and a folder tree. Projects may live in subfolders of MapProjects/ up to four levels deep, and a project name may contain "/" to save into one, so a git clone of a maps repository placed inside MapProjects/ lists as it is on disk and pulls straight into the browser. The date column reads as an age ("3 h ago", "yesterday"); RECENT orders by the last open or save through the editor, not only the last save; and a project saved this session, or freshly cloned and opened once, lists even while the engine's folder snapshot cannot see it yet.
+
+- Sun & Shadows gained PRESETS (requested by PtaQ and MrBob): three sun-only times of day (Canonical, Dusk and Overcast: direction, intensity, sun colours and shadow densities, nothing else; Canonical is PtaQ's saved editor sun and also the New Map wizard's Clear Daylight sun), the harvested map moods the New Map wizard offers, and your own saved files. Save writes the whole live environment under a name to Terraform Brush/Environments/, so a look carries to every map and session; a SUN ONLY / FULL ENVIRONMENT switch decides what a click applies. The sun direction also has AZIMUTH and ELEVATION sliders next to the vector rows.
+- `/tf_sunlog` logs every sun write from any widget with a traceback, for finding out what reset a sun.
+- SURFACE and LAYERS gained an INFLUENCE section (requested by PtaQ and MrBob): an altitude band and a slope band, each with a feather, that scale a stroke instead of cutting it the way the FILTERS do, so a texture does more of its thing in the lowlands or on the flats and fades out beyond them. SURFACE remembers a profile per texture (it follows the texture across slots and biome swaps, projects keep it in surface.lua, and Copy to all stamps it onto every slot); LAYERS keeps one per channel. Erasing is never scaled, and the Ctrl sneak peek shows the band so what you see is what lands.
+
+- SURFACE > FILL AND SEED gained an AUTOMATIC DEPOSIT block (requested by PtaQ and MrBob, for Teizer's craters): a SURFACE variant slot the shader claims on its own where wind-blown sand would gather, on the lee side of slopes relative to a wind direction and in the pockets the intermediary already reads. It only fills ground no stroke claimed, so paint wins; cliffs stay clean; and it is off until a slot is chosen. It is an authoring control, so it sits with the other fill tools rather than in the tileset config; the values still save with the tileset knobs.
+- SURFACE > GRADING gained SELECTED SLOT tints: a per-texture albedo tint for the armed variant, remembered by texture like FLIP, saved with the project in tileset.lua, and independent of the TOPS group tint that moves every top together. (The Teizer tileset briefly borrowed two grass tops and tinted a desert top green as an oasis stand-in; both were walked back the same day, the oasis is an asset-side job.)
+- The Tileset window's METAL SPOTS glow light gained the LIGHTS tool's point-light controls (requested by PtaQ): INTENSITY, RADIUS and HEIGHT sliders, the colour swatch palette with a preview bar and RED / GREEN / BLUE sliders. The block grays out while the glow is off. The settings are tileset knobs, so they save with the project, ride in presets and come back on a section RESET; picking a style reseeds the colour, intensity and radius from the style, and the on/off state now persists too.
+- METAL SPOTS gained a BAND WIDTH slider (requested by PtaQ): how far the silhouette band, the rubble skirt that Band layer and Band tone shape, reaches around a spot. 1 is the previous look; below it the skirt tightens, above it the band spreads to roughly four times the old reach. It saves with the tileset knobs and a style pick or section RESET restores it.
+- The Tileset window gained a WORLDSPACE TINT (WIP) section (requested by PtaQ; the GRADIENT STOPS by MrBob): world-height tinting as one system with a wide look range, from the old three-colour grade to a layered canyon. One shared AXIS feeds every lever: Auto rides the map's height reference, so a flat canvas stays untinted, and Manual pins it to elmos and can be tilted along a direction and wobbled. GRADE is the old three stops as colour chips with a movable split. STRATA lays repeating tint beds along the axis: one to eight beds, their period, phase, hardness (a soft crossfade to a knife edge), wobble and per-bed jitter, with BASE / INTER / CLIFF / PLAT chips choosing which layers take them and a colour chip per bed. GRADIENT STOPS is MrBob's array of two to eight hue / saturation / value entries spread evenly over the height, in Multiply or Colorize mode. RAMP samples a painted gradient image along the axis (a PNG from Terraform Brush/Ramps/, picked from a file list with Rescan folder and Clear) in Multiply or Tint mode, with a strength and a repeat count. SATURATION scales colour from base to top, TIDE RINGS darkens rings above the waterline, and SNOW LINE whitens the tops above a height with a band, a slope limit and its own colour. Every colour chip (grade stops, beds, gradient stops, snow) selects what one shared COLOUR editor edits: the swatch palette, a preview bar, and Red / Green / Blue plus Hue / Sat / Value sliders that work for every chip whichever way it is stored. Each sub-group has its own RESET and the header RESET takes them all; the chips follow presets, project loads and console changes. The ramp file is saved with the project next to the biome. Needs tileset shader 0.27; with the shipped defaults a map renders exactly as it did. It is marked WIP: it will get more work in a later release.
+
+- SHAPE gained a FOLLOW STROKE chip (requested by MrBob and PtaQ): the brush shape turns to the direction you are dragging, so a square, hexagon or triangle leaves a ribbon with its flat sides along the path instead of a chain of same-angle stamps. The angle is smoothed over the last few dabs, so mouse jitter cannot spin the shape, and quantised to 2 degrees, the step the brush's own falloff cache keys on. The protractor snaps it to the spoke grid when both are on, the brush ring shows the angle that will land, and your own rotation comes back when the stroke ends. The chip is offered for the sculpt modes only (raise, lower, level, smooth, smudge): the other tools sharing the SHAPE row stamp rather than stroke.
+- A CLAY SCULPT preset ships MrBob's sculpting setup from the campaign terrain tutorial: clay on, intensity at the floor, the sharpest falloff, square with FOLLOW STROKE. It is the single brush he makes a whole map with.
+- Every DISPLAY row gained a PASSABILITY chip: it tints ground steeper than a move class in the engine's impassable purple, so cliff height can be judged while sculpting without selecting a unit and pressing F6. Clicking cycles BOT, VEH, HOVER, AMPH and off; the slopes come off the real movedefs, so the band matches what F6 draws. Needs the tileset shader.
+- Every DISPLAY row also gained an IMAGE chip (requested by PtaQ): lay a reference image over the whole map, a real coastline to sculpt against or a transparent sheet of guide lines, and paint over it. Images are read from Terraform Brush/Overlays/ in the install folder (PNG, JPG, TGA, BMP or DDS); alpha is kept, so only the lines of a transparent sheet show. The gear next to the chip (or a right click on it) opens the IMAGE OVERLAY window with the file list and the placement controls: OPACITY, OFFSET X / Y and SCALE sliders that preview live on the ground while you drag, STRETCH or KEEP ASPECT, FLIP H / V and a RESET; a left click on the chip toggles the overlay once an image is loaded. The image is projected onto the ground through the map's depth, so it hugs every slope at any map size for one fullscreen pass, and units and features draw over it. The pick and placement survive a reload. `/tfimage <file>` picks a file from the console, `/tfimage` alone toggles it, `/tfimage off` unloads it.
+- SURFACE gained SCATTER: position, size and strength jitter per stamp, on top of SPACING. With spacing near one and a half brush widths, one drag lays the hand-placed dot field the texturing pass wants instead of a solid band. The DOT preset now carries a generous falloff and the scatter, matching MrBob's texturing brush.
+- The SURFACE palette captions each texture with its role (TINT, NORMAL and so on). A tileset manifest can name a role per texture; without one the tutorial's numbering convention is used, where 002 is the tint accent and 003 the sculpted-normal style layer.
+- The header gained FOCUS MODE, an eye button next to the pause button (requested by PtaQ): it hides the game interface the way F5 does but leaves the editor alive. The panel, the brush preview, the grid and water overlays and skybox switching all keep working, so a map can be looked at, sculpted and screenshotted without the HUD. Skybox picks used to wait for the HUD to come back, because they were applied from the one draw call-in the interface hide skips; they now apply from DrawScreenPost, as do the New Map reload's environment preset, fog-off and forcestart, the heightmap import and export jobs, and the project Save / Open driver, none of which would have run under a hidden interface. Closing the panel, quitting the editor, a `/luaui reload` or F5 all end focus mode and hand the interface back; hiding the panel with its hotkey does not, so focus plus a hidden panel is the clean-screenshot setup. A map capture started in focus mode still comes out clean and leaves the interface hidden afterwards.
+- A New Map and an opened project bring the Terraformer up by themselves (requested by PtaQ): the brush arms in RAISE the moment the canvas is playable, at the New Map's forcestart and at the end of a project's load phases, unless a tool is already up.
+
+### Improvements
+
+- Sculpt drags cost a fraction of what they did (reported by huskyvoiceyui and Moose on big maps). The gadget now applies every dab of a tick against a working copy of the cells it touches and commits once per tick, so the engine's terrain recalculation (mip heightmaps, normals, slopes, pathing, LOS, the normal and shading textures, mesh patch updates) runs once per tick per symmetry copy instead of once per dab (up to 48 times), the undo stack gets one entry per tick instead of one per dab (a stroke's undo is that much cheaper too), and the per-cell engine reads drop to one per tick. Non-clay results are unchanged to floating-point noise.
+- The falloff-stamp cache no longer keys the circle and ring on rotation (FOLLOW STROKE with the default circle was rebuilding an identical stamp every 2 degrees of tangent), holds stamps by a cell budget instead of a fixed four, and steps very large shaped stamps at a coarser angle so a FOLLOW drag at big radius cannot rebuild a 100k-cell stamp per dab.
+- The ground mesh refresh is now armed from the engine's own heightmap-update event instead of ten frames per brush tick, which had the whole visible mesh re-tessellating every frame for the length of a drag (the bigger the map, the more it cost). The panel mirrors terraform state at a quarter rate while the brush is down on the world, and its per-frame slider writes go through the dirty-check helper.
+- Settings > General gained a persisted Performance mode toggle (requested by PtaQ for the mapmaking artists): wider dab spacing where the falloff can take it (a quarter radius for soft curves and clay, a fifth up to curve 2.0, unchanged above), 32 dabs per tick instead of 48, 6-degree FOLLOW STROKE steps, and the panel readouts strided all the time. Its description names the two free levers, pausing the game and Focus mode.
+- Sculpt strokes follow the path the mouse actually drew. The brush sampled the cursor 20 times a second and bridged a straight line between samples, so a fast scribble arrived with its corners cut and its dabs delivered in visible bursts. Every mouse move is now recorded and the tick walks that polyline, dropping dabs at the brush's own spacing.
+- Clay strokes deposit per distance travelled, not per tick. A tick's intensity used to be divided by the number of dabs it contained, so the faster you moved the less clay landed, to the point where a fast pass left almost nothing. A whole tick of dabs is now sent as one message and the gadget derives every clay plane from the heightmap as it was before the tick, so speed no longer removes the stroke and overlapping dabs still cannot compound past one brush step. It also cuts up to 48 network messages a tick down to one.
+- SURFACE brush size steps by a tenth of the current size per scroll notch instead of a flat 8 elmos, so a small brush can be tuned (reported by MrBob).
+- The New Map wizard's ENVIRONMENT pick opens on Default again, and Default now means the canonical editor sun (requested by PtaQ). It used to mean "leave the engine lighting alone", which is placeholder lighting (ground ambient and diffuse both a flat 0.5 against about 0.99 on a real daylight map), so the wizard had been pointed at a harvested mood to work around it, and every new map inherited that map's water, fog and sky with it. Default now applies the sun and nothing else; the harvested moods are still in the list.
+- SURFACE altitude bounds gained SAMPLE buttons like the raise tool's HEIGHT CAP (requested by PtaQ): the FILTERS Alt min / Alt max rows in both modes and the INFLUENCE Alt min / Alt max rows arm the height sampler, the next click on the terrain (or on a colormap contour) writes that height into the bound, pushes the other bound along if the band would invert, and switches the filter or band on.
+- Project folders and names may contain spaces (requested by PtaQ): a cloned maps repository with spaces in its folder names now lists in Open Project, and Save As accepts them; a name still cannot start or end with a space.
+- Open Project rows are set larger and the window is wider, so project names read at a glance (requested by PtaQ and MrBob).
+- The sun sliders keep the applied intensity on every nudge (the engine defaults a missing intensity to 1.0), re-assert the ground and unit shadow densities separately instead of flattening them to the ground value, and restamp each other so the vector rows and the azimuth/elevation rows never disagree.
+
+### Fixes
+
+- Clay strokes no longer leave concentric rings (reported by huskyvoiceyui and Moose). The clay plane is measured on the surface the stroke started on (the pre-stroke heights, averaged over the dab centre and four taps half a radius out), so every dab of a stroke agrees on one plane and the stroke lays exactly one layer of INTENSITY x 8 elmos. The old plane re-measured the live centre height, which from the second tick on was the disc the previous tick had just raised, so every tick stacked another disc one layer up and the disc edges showed as rings (a 40-tick slow drag at intensity 10 piled 2700 elmos). The stacking survives as Settings > Stroke > Clay build-up for anyone who wants a held brush to keep piling.
+- The SURFACE Ctrl sneak peek works at every zoom again (reported by PtaQ). It only exists in the shader's live stack, and last release's far cache and clipmap take over the ground as soon as the camera pulls back, so the preview quietly stopped past a close zoom. A pixel under the brush now takes the live path whatever the distance, and the cache-only shader program stands down while a peek is up.
+- DISPLAY chip rows wrap onto a second line instead of squeezing every label onto two lines when a tool has five chips (reported by PtaQ).
+- Text fields that could not be typed into now can (reported by Moose): the Open Project filter, the Light Library filter and its preset name box, the grass blade and colour-mod texture paths, and the Lights orientation pitch/yaw boxes. A field only receives the keyboard if it starts SDL text input when focused, and these five were added without it, so the game ate every keystroke. Every text field in the panel now goes through one helper instead of each copying the same eight lines.
+- The sun config survives a project open and a preset (requested by PtaQ and MrBob). Three paths could still lose it: the ENV panel's RESET buttons returned to the lighting the engine held when the panel first opened, which on a canvas is the flat blank-map default, and are now re-anchored after every project or preset apply; a preset without an intensity (the map moods have none) forced it back to 1.0 and now keeps the session's; and a skybox fade in flight restored the sun colours it had captured over a config applied mid-fade, and is now retargeted at the new colours.
+- Editor sessions no longer spawn commanders (requested by PtaQ and MrBob). New Map and Open Project start scripts carry an `editor_sandbox` flag; the initial-spawn gadget skips the commander for those sessions and the game-end gadgets stand down on the same flag. A project load runs in pregame, so it used to wipe the units before any commander existed and then start the game, which spawned one per team at a guessed spot; New Map spawned one the moment the session started. Editor canvases now also leave pregame on their own a few frames after boot, so terrain raised above the canvas base is clickable without a manual start.
+
+## 1.13 - 2026-09-02
+
+### New
+
+- The Tileset window gained a PERFORMANCE section: HIGH, MEDIUM and LOW quality presets that drop draw-time features of the tileset shader, and the levers underneath them as sliders (foothills, stagger, far anti-tiling, cliff-tap slack, the far cache with its start and band, "Cliffs cached past" for the distance at which steep faces join the cache, and the clipmap toggle). A preset applies on top of the sliders, so HIGH is where each lever can be judged on its own.
+- The BIOME LIBRARY tiles are built at runtime from the tileset shader's biome manifests (one Lua file per biome in the shader's `tilesets/` folder) instead of six hardcoded RML tiles, so a biome added on disk shows up in the picker without a UI edit. Thumbnails are GL overdraws like the EXTRA LAYER material tiles (a shipped preview drawn whole, or the base albedo as a centered crop), and each biome's skybox pick comes from its manifest instead of a name-match table in the UI.
+
+### Improvements
+
+- AUTORAMP swipe: holding the button and dragging re-fires the ramp along the path, so a whole cliff line restyles in one stroke instead of one click per segment.
+- SURFACE's per-tile FLIP buttons became one FLIP chip in the NOW PAINTING strip that flips the normal map of the selected slot, BASE included. Three buttons per tile left PICK, FLIP and X too cramped to hit; the chip dims when the selected slot has no texture.
+- The SURFACE texture picker asks the painter for its coverage readback only while a picker is open. The readback is a GPU sync, and its only reader is the picker's "already carries paint" warning.
+
+### Fixes
+
+- LAYERS paint, clone-tool pastes and a project's splat swap now tell the tileset shader which region changed, so painted layers no longer vanish when zooming out. The shader serves distant ground from a baked copy that sampled the splat texture at bake time; strokes widen a dirty rectangle that is flushed to the far cache and clipmap during the drag and once more when it ends, and whole-texture changes (undo, redo, load) request a full refill.
+- The picture-in-picture widget no longer floods the log with GL errors on Mesa drivers: a uniform call was handed every return value of a multi-value function instead of only the ones the uniform takes.
+- The FILE dropdown stays on top of the texture thumbnails (reported by Moose). Tile previews (SURFACE palette, EXTRA LAYER, BIOME LIBRARY, skybox and splat channel grids) are GL overdraws painted after the UI renders, so an open menu was drawn under them; every pass now skips tiles the menu covers.
+- The header's passthrough (pause) button works with the SURFACE panel (reported by Moose). The toggle saved, deactivated and restored every tool except the surface painter, so pausing with SURFACE armed left its brush owning the mouse and clicks never reached unit selection. Both submodes now stand down on pause and re-arm on unpause, LAYERS included.
+
+## 1.12 - 2026-08-22
+
+### New
+
+- The Dimensions window's HEIGHT BOUNDS became HEIGHT RANGE, with two modes. RESCALE remaps the whole relief onto a new min/max, so lowering the max compresses the terrain instead of shearing the mountain tops off; CLAMP keeps the old cut behavior for shaving a runaway peak. Both act on the whole map, are undoable like any brush stroke, and the sliders seed from the live extremes with CURRENT and RESET (the map's own range) refills.
+- WATER LEVEL is now a slider with a WYSIWYG shoreline preview: dragging draws the resulting coastline in the world at that height, APPLY slides the terrain so the water lands exactly on the previewed line, and RESET returns the map to its own level. The Water window carries a mirrored FLUID LEVEL track, kept in lockstep.
+- The brush cursor no longer dies at the map border. Every editor brush (terraform, splat, diffuse, grass, metal, features) follows the mouse past the edge through a shared resolver and fades out with distance, so terrain and paint right against the border are comfortable to work. The feature placer drops off-map placements per symmetry copy instead of clamping them, which used to pile features up along the edge line.
+- SURFACE grew from two paintable variant slots to seven: slots 1-3 in the first mask, 4-7 in a second one. The DETAIL SLOT 3 metal-suite toggle this branch briefly carried is gone again; slot 3 is a regular slot and the metal spots always keep their material.
+- DISPLAY, INSTRUMENTS and FILTERS are now canonical sections shared by the SURFACE and LAYERS submodes. The soft submode gains smart filters (avoid water, avoid cliffs, alt min/max), LAYERS gets a Layer Map overlay chip, and grid snap, protractor, measure, symmetry and the height colormap all work with the SURFACE brush.
+- Sneak Peek: while it is on, holding Ctrl renders the selected layer inside the brush ring as if the stroke had landed, in both submodes, so where a texture's fixed features fall can be judged before committing. It re-arms on every entry into the tool.
+- The Tileset window's EXTRA LAYER (slot 4) has its own section with a mode switch, and its texture choice is a tile grid with real albedo thumbnails instead of a prev/next name stepper. The first tile restores the biome's own pick, so the material follows biome swaps again.
+- Feature Placer scale variation groundwork: Scale Min / Max sliders roll a per-feature scale at placement time, realized by snapping to pre-baked model variants since the engine exposes no feature-scale API. No variant sets ship yet, so the sliders are inert for now; the fir variants and the tree clump work are shelved on a separate branch. With clustered distribution the roll correlates size with distance to the cluster core.
+- Map projects round-trip the full Tileset configuration through a new `tileset.lua` section: biome, metal-spot style, glow lights, the EXTRA LAYER material and every tuning knob survive save and open. All SURFACE slots persist too, with a second mask saved whenever slots 4-7 carry paint.
+- Map projects record the skybox picked at runtime in the ENVIRONMENT panel instead of the one the canvas booted with, env configs carry the skybox path, and a project reopens with its sky even if the skybox panel was never opened that session.
+- SMUDGE: a third MODIFY submode that drags terrain along the stroke, GIMP's smudge for the heightfield. A height grab is carried with the cursor and folded into the ground as it moves, so relief smears along the drag and tapers off; intensity sets how long the tail survives. L cycles SMOOTH, LEVEL and SMUDGE.
+- AUTORAMP: a third RAMP type. Click an existing cliff and it is rebuilt at a chosen angle with wavy lips, ridged erosion gullies and a scree fan at the base. Cliff start anchors the face (Extend keeps the top lip, Subtract keeps the bottom one, Average pivots on the mid line), and a WYSIWYG hover preview shows the exact resulting terrain as a translucent fill/cut mesh before the click; the preview and the apply run the same seeded math. R toggles RAMP and AUTORAMP.
+- The Tileset window gains a WATER section: walkable depth, shallows tint, clarity, curve, hue, saturation and power, and a deep-floor glow, driving the tileset shader's terrain-based water shading.
+
+### Improvements
+
+- The smooth brush computes a true dense box mean (summed-area table) instead of a sparse 9-tap blur. The sparse taps were blind to ripples whose wavelength matched their spacing, so grid-aligned stripes survived every smoothing pass while everything else flattened.
+- The SURFACE slot rail is thumbnail-first tiles: the texture takes the tile, PICK opens the library for that slot, X clears it, and clicking a tile only arms the brush. Selecting used to also open the library, which threw the whole catalog on screen every time the brush changed.
+- The SURFACE texture picker gained a large hover preview big enough to judge a material by; the coverage meter is retired, since an artist reads the ground rather than a histogram.
+- The SURFACE brush modes (DOT, WASH, FILL, ERASE) are proper icon buttons matching the terrain modes.
+- The Dimensions height extremes readouts poll while the window is open; the refresh button is gone.
+- The metal brush's Metal Value slider stays usable in remove submode, since the erase rate scales with it.
+- The MODIFY MODE row got real icons, including a hand-drawn SMUDGE glyph, at the same visual weight as the tool set. Panel icons are authored with their brightness in the RGB channels now, since RmlUi clamps mid-to-high alpha to fully opaque and alpha-authored softness rendered as solid white.
+
+### Fixes
+
+- Skybox and texture thumbnails no longer hang over the world after the panel closes. The GL overdraw passes kept rendering against stale layout boxes; they now bail when the panel is disengaged or hidden.
+- The metal brush's remove submode always erases, regardless of which mouse button started the drag.
+- An environment config saved while the engine reported no sun position no longer blacks out the map it is later applied to: a degenerate sun direction is neither serialized nor applied.
+- The ENV sun sliders reseed after a project load applies an environment, instead of writing their stale attach-time values back through the engine on the next nudge.
+- Fast brush drags no longer leave gaps between stamps: the stroke interpolator used to widen its stamp spacing past the brush radius on quick flicks (visible as evenly spaced terrain ribs with SMUDGE), and now lags the cursor at proper overlap instead, catching up over the following ticks.
+- Slider restamps no longer fight the thumb mid-drag (the erode repose marble used to stick while the track still worked).
+- The Feature Placer no longer crashes the engine on model-less feature defs such as the geo vent crack.
+
+## 1.11 - 2026-08-14
+
+### New
+
+- Added the SURFACE and LAYERS tools for tileset maps. SURFACE paints soft-top variants of the active biome over the automatic base: two variant slots with per-slot pickers, a NOW PAINTING readout, coverage meter, dot/wash/fill presets, brush spacing, noise fill seeded from the tileset noise field, sculpted-feature layers, and group grading for tops and rock. LAYERS forces intermediate, cliff, or plateau material anywhere through the tileset shader's override mask, with smart filters, undo/redo, and splat export.
+- The tileset shader now decides which surface-painting pair leads the TOOLS grid: SURFACE and LAYERS while it renders the ground, the legacy DIFFUSE and SPLAT otherwise. The two sets replace each other in the same leading slots.
+- The Tileset panel is now a floating window opened from the SCENE menu instead of a tool tab, so shader knobs, the biome library and metal-spot styles can be tweaked while any tool is active.
+- Every SCENE window (sun and shadows, fog, ground and unit lighting, map rendering, water, dimensions, skybox library, tileset) is now independent of the SCENE tab. Switching tools no longer closes them, so the scene can be tuned while painting.
+- Added FILE > Save, which writes straight to the project the session was loaded from or last saved to and names that target on the menu item. Save As now prefills the name, lists existing projects as pick-to-overwrite rows, asks for a second click before overwriting a project that is not the current one, and closes on commit. A save in progress shows a green segment bar in the status strip, then holds SAVED for a few seconds before the tool readout fades back in.
+- Map projects now round-trip the SURFACE variant mask, including biome and slot assignments.
+- Added a FIT button that snaps the custom heightmap export range to the terrain's exact current extremes.
+- Added Intermediate evidence and Cavity floor tuning knobs to the Tileset height layers.
+- Added Exposure, Bias on tops and Surface claim to the Tileset window. Exposure is a final gain on the lit ground, for a dark set on a dimly lit map. Bias on tops decides whether the brightness bias also applies to the soft tops, so how much ground a top takes is authored rather than decided by whichever top is paler. Surface claim sets how strongly a SURFACE stroke decides which top belongs somewhere: at 1 a painted top outvotes the automatic plateau band, which is what made high flats unpaintable, and the plateau band now ships parked off to match.
+- Every section of the Tileset window has its own RESET button, matching the SCENE environment windows. It restores just that section's knobs, to the global defaults overlaid with the active biome's recipe, instead of throwing away every knob in every section.
+- Added placeable geothermal vents: game-side vent features make working geo spots (engine smoke, geo build placement, geo circles) available on blank canvases and map projects through the Feature Placer, with project round-tripping. Two variants under the new Geo catalog category: geovent+crack (Moose's flat black-crack vent, as shipped on his maps) and geovent+mesh (a selectable body for geo outputs with real geometry, no crack). The rock model is a placeholder pending a dedicated asset.
+- Added a grayed-out UNITS entry to the TOOLS grid, reserving the slot for the unit placer.
+
+### Improvements
+
+- The height cap and all altitude-filter sliders now scale to the map's real height range instead of a hardcoded -500..500, so caps above 500 elevation are reachable by slider and by typing.
+- Custom heightmap export ranges now seed from the map's actual terrain via an exact heightmap scan, re-seed after imports and project loads, and no longer leak from one map into another through saved preferences.
+- The tileset shader re-anchors its intermediate and plateau height reference after heightmap imports and project loads.
+- Cliff protection moved from the SURFACE brush into the Tileset window as a PROTECT CLIFFS button: it is a shader setting rather than a brush one, and it is now a labelled toggle instead of a 0/1 slider. The tileset shader switch reads as an ACTIVATE SHADER button for the same reason, with PAINT SURFACES greyed while it is off.
+- Cliff protection is now one-way. Soft strokes still sweep around cliff bodies instead of eating them, but painting CLIFF forces cliff rock anywhere, including flat ground, which is what that channel is for.
+- The metal brush cursor readout sits just below the brush outline and right-aligned to its edge, instead of over the area being painted.
+- Slider rows across the suite share one label style, a size larger and slightly wider, and every window's close button draws the same rounded box as the header buttons.
+- Decals and weather now fill the status strip like the other tools, so their readouts align instead of floating off the left edge.
+- The TOOLS grid is reordered: SCENE sits last, after CLONE.
+- Teizer-5 and Enborelde default to no old-map cliff blending, keeping their authored cliff palettes free of the host map's colours.
+- The terrain layers are called BASE and INTERMEDIATE throughout the panel, instead of soil, gravel, rocky and talus. Those were the assets an early set happened to use, so a biome whose middle band is sand or ash had sliders labelled Gravel and a LAYERS channel reading TALUS. Knob keys, slider labels, the LAYERS channel and every hint now follow the shader's own naming.
+- New maps start on the Clear Daylight environment preset instead of the engine's own lighting. The engine defaults are placeholder values, a flat 0.5 ground ambient and diffuse against roughly 0.99 diffuse on a real daylight map, so a fresh canvas received about 60% of the light it should. A baked map texture carries the mapper's own brightness and hides that; the tileset shader draws raw albedo and cannot, so new maps read as though the shader were broken. Default is still selectable in the wizard.
+- The whole SURFACE slot chip opens that slot's variant library, and arms the slot's variant if it already has one. The small caret it replaces rendered as a missing-glyph box, and a filled chip offered no way back to the library at all.
+- SURFACE erase readouts describe what erasing does now: it withdraws the painted claim so the shader chooses again, rather than returning the ground to the base surface. BASE is a paint target of its own since the paintability change.
+- Refreshed the Enborelde and Teizer biome thumbnails, which still showed those sets as they looked several tuning passes ago.
+
+### Fixes
+
+- Fixed every slider in the SURFACE and LAYERS panels being inert. An echo guard meant to drop the change events raised by programmatic stamps was armed on every frame rather than on actual stamps, so it discarded the user's own input as well. Fill scale and seed never reached the painter, which is why the seed always read 0.
+- FILL WITH NOISE now greys out and explains itself when no variant slot is assigned or enabled, instead of silently doing nothing.
+- An enabled but idle Terraformer no longer swallows its tool hotkeys (F, M, G, K, P, W, V, J) from engine keybinds. Tool keys now require the editor to actually be in use; opening a tool from the header rail re-enables them.
+- Fixed custom heightmap export ranges initializing to the blank canvas constants (-75..696) on map projects, which clipped all terrain above 696 in exports.
+- Fixed height cap changes made with the Alt+Shift scroll combo not updating the panel's slider and readout.
+- Fixed tileset tuning knobs drifting a little further on every biome swap (deferred slider-change echoes read stale values back into the knobs).
+- Fixed a GL instance-table error when elements were removed while deferred pushes were pending (affected feature ghost previews).
+- The legacy SPLAT tool no longer competes with the tileset shader for the splat texture: while the shader is on, SPLAT and DIFFUSE give up their slots to SURFACE and LAYERS.
+- Removed stale "waiting on engine support" skybox notices; runtime skybox swaps now work on generated maps.
+- Grass loaded from a map project now renders immediately instead of waiting for the Grass tool to be opened once.
+- Grass undo/redo now reports what it did (or why it could not) instead of silently doing nothing.
+- Tidied the custom export-range row layout.
+- The metal overlay's map dim no longer goes through the Darken map widget, whose persisted setting it could permanently overwrite when a session ended while the overlay was up (every later game then started with the terrain darkened, beyond the settings slider's range). The metal brush now draws its own dim while the overlay is active.
+- An empty New Map environment marker file no longer replaces the skybox of every subsequently loaded map with the first library one. The marker is now deleted after reading instead of blanked, and is only acted on when the session is actually a generated blank canvas.
+- The placeholder-fog suppression no longer removes the baked fog of real maps whenever the editor widget is enabled; it now applies only to generated blank canvases.
+
+## 1.10 - 2026-08-08
+
+### New
+
+- Added the Prototemperate biome preset.
+
+### Improvements
+
+- Terraform Brush now remembers the positions of its main panel and all floating windows, including asset libraries, environment configurations, settings, and capture windows.
+- The heightmap browser can be refreshed without reloading LuaUI, allowing PNG files copied into `Terraform Brush/Heightmaps/` to appear immediately.
+- The heightmap browser now lists externally named PNG files as well as Terraform Brush exports.
+- Project heightmap imports use the project manifest's height range when replacement PNG metadata is unavailable, preserving the intended terrain scale.
+- Custom heightmap export ranges now initialize from the current terrain extremes instead of the unusable `0..1` default.
+- Splat channel swatches refresh immediately after changing biome presets.
+- Terrain edits outside unit vision now render immediately for the editing allyteam.
+
+### Fixes
+
+- Fixed loaded map projects incorrectly requiring the optional DNTS library pack when the project contains its own textures.
+- Fixed tools failing to re-arm correctly after restoring input passthrough.
+- Fixed the FILE dropdown being covered by the Tileset status strip.
+- Fixed the main close button failing to close Terraform Brush while the Tileset tool was active.
+- Reduced repeated console and infolog messages when terraform actions are rejected by game-state gates.
+- Replaced the malformed heightmap-browser chevron and unclear refresh symbol with the established rotation icon.
+
+## 1.9 - 2026-08-06
+
+Sources: [PR #8642](https://github.com/beyond-all-reason/Beyond-All-Reason/pull/8642), [hotfix PR #8658](https://github.com/beyond-all-reason/Beyond-All-Reason/pull/8658)
+
+### New
+
+- Added scrollable panel bodies with pinned headers to every Terraform suite window. Available content height now follows window position and viewport size.
+- Added a Tileset shader master switch that returns rendering to the engine for maps with hand-authored textures.
+- Added independent per-layer albedo tiling and normal strength controls.
+- Added talus scatter, splat punch-through, parallax depth, macro softness, height blending, specular AA, wet gloss, and metal-apron controls.
+- Extended layer scale controls for very large maps.
+- Added the Protodesert biome and a dedicated Teizer texture set.
+- Added configurable talus slope-angle bands and cliff splat protection in the 1.9 hotfix.
+
+### Fixes
+
+- GL splat previews now clip to their scrolling panel instead of drawing over pinned headers.
+- Locked brush sliders no longer fight panel scrolling for the mouse wheel.
+- Feature-selection and reroll rows no longer remain visible after leaving the Feature Placer.
+- Corrected the header version badge to 1.9 in the hotfix.
+
+## 1.8 - 2026-07-30
+
+Source: [PR #8545](https://github.com/beyond-all-reason/Beyond-All-Reason/pull/8545)
+
+### Feature Placer
+
+- Added WYSIWYG feature ghosts using a new GL4 feature renderer. Previewed positions and rotations are the exact placements applied.
+- Added deterministic layouts, `R` rerolling, remove previews, correct brush-shape containment, and one undo step per stamp.
+- Added map selection, box selection, and a reusable 3D transform gizmo for moving and rotating features.
+- Added optional pitch, roll, and elevation fields to `features.lua`; map projects now preserve off-screen feature rotations through synced export.
+- Fixed collapsed random scatter layouts, incorrect group rotation, duplicate same-tick layouts, feature tilt loss, and unusable gizmos on large selections.
+- Cached feature thumbnails are now reused between sessions.
+
+### Map Projects And Capture
+
+- Added Terraform Brush Capture via `/tfcapture` and the camera button: orthographic top-down map photos plus Figma-ready SVG unit and map-label layers.
+- Added optional unit loadouts to map projects, including team, rotation, neutral state, and synced collection outside player LOS.
+- Added world-anchored map comments with colors, text, draggable pins, project persistence, and capture export.
+- Reworked the Open Project browser with explicit selection, load, and confirmed deletion.
+- Added `Keep match alive` and `Remove all units` editor controls.
+- New Map canvases now allow start positions anywhere and remain alive without units or commanders.
+- Fixed project-loaded terrain becoming unclickable above the blank canvas base height.
+
+### Other Fixes
+
+- Smooth/Level and Raise/Lower now retain separate curve, intensity, and clay settings.
+- Runtime fog now survives skybox and biome changes. This work came from the closed 1.7 branch and shipped in 1.8.
+- Terraform suite widgets added after a player's saved widget order now enable without a fresh game start.
+- Fixed the GL4 feature-instance offset argument.
+- Added the visible tool version badge, establishing the numbered release scheme.
+
+## 1.7 - not released separately
+
+[PR #8538](https://github.com/beyond-all-reason/Beyond-All-Reason/pull/8538) was closed without merge. Its runtime-fog preservation fix was carried into 1.8.
+
+## 1.6 - 2026-07-27
+
+Source: [PR #8501](https://github.com/beyond-all-reason/Beyond-All-Reason/pull/8501)
+
+- Fixed the Tileset toolbar button not showing its active highlight.
+
+## 1.5 - 2026-07-27
+
+Source: [PR #8500](https://github.com/beyond-all-reason/Beyond-All-Reason/pull/8500)
+
+### Tileset Tool
+
+- Integrated Tileset Terrain controls into Terraform Brush with collapsible tuning sections and live splat-channel texture previews.
+- Added a biome library for Namaqualand, Teizer-5, Enborelde, Bismuth, and Pale Hang, with optional matching skyboxes.
+- Added soil, gravel, and plateau height bands, cliff-border blending, metal-spot materials and glow lights, and named Tileset presets.
+- Added fractal edge and frequency controls for organic splat painting.
+- Added a height-cap master toggle while preserving configured min/max values.
+
+### Workflow And Fixes
+
+- Heightmap saves from regenerated canvases of the same size now share a browser pool; legacy filenames remain discoverable.
+- Added custom, sanitized names to the New Map wizard.
+- Metal Brush now restores shared shape, radius, and snap settings when leaving the tool.
+- Generated maps no longer start with dense near-camera fog.
+
+## 1.3 and 1.4 - development branches
+
+GitHub has no separately merged PRs for these versions. Their stacked Tileset and splat work was merged together in 1.5, so no independent release entries are claimed here.
+
+## 1.2 - 2026-07-24
+
+Source: [PR #8423](https://github.com/beyond-all-reason/Beyond-All-Reason/pull/8423)
+
+- Enabled Splat Painter on generated blank maps by recognizing the engine's editable 1x1 fallback distribution texture when DNTS normals are available.
+
+## 1.1 - 2026-07-23
+
+Source: [PR #8420](https://github.com/beyond-all-reason/Beyond-All-Reason/pull/8420)
+
+- Replaced Smooth mode's single brush-wide mean with per-cell local-neighbor blur.
+- Removed hard seams at brush boundaries while retaining the existing falloff curve.
+- Scaled blur spacing with intensity so low values preserve broad forms and high values flatten larger bumps efficiently.
+
+## 1.0 - 2026-07-21
+
+Source: [PR #7219](https://github.com/beyond-all-reason/Beyond-All-Reason/pull/7219)
+
+- Introduced the RmlUi Terraform Brush map-editing suite with Raise, Lower, Level, Smooth, Ramp, Restore, and procedural Noise modes.
+- Added Circle, Square, Triangle, Hexagon, Octagon, and Ring brushes with clay, stamp, height-cap, rotation, length, curve, and intensity controls.
+- Added shared instruments: grid and angle snapping, protractor, measure splines, symmetry, terrain overlays, and tablet-pressure controls.
+- Added Feature, Metal, Grass, Splat, Decal, Light, Weather, Clone, and Start Position tools with shared smart terrain filters.
+- Added the live Environment editor for skybox, sun, fog, lighting, rendering, and water settings.
+- Added heightmap import/export, environment export, presets, searchable asset libraries, customizable keybinds, contextual guidance, and UI sounds.
+- Added merged-stroke undo/redo with history scrubbing and bounded snapshot memory.
+- Added the first full Terraform Brush feature reference and tool architecture documentation.

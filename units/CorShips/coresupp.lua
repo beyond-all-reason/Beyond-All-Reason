@@ -14,8 +14,6 @@ return {
 		footprintx = 2,
 		footprintz = 3,
 		health = 480,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.11054,
 		maxdec = 0.11054,
 		metalcost = 100,
@@ -35,6 +33,7 @@ return {
 		customparams = {
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 6,
 			subfolder = "CorShips",
 			unitgroup = "weapon",
 		},
@@ -72,11 +71,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:waterwake-tiny-long",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

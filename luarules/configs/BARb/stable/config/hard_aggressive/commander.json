@@ -1,4 +1,5 @@
 // Mono-space font required
+// last changes f002: added a eco push start
 {
 "commander": {
 	"prefix": "",
@@ -10,16 +11,16 @@
 
 			// Morph params
 			"upgrade": {
-//				"time": 120,  // Force-morph delay, in seconds
+				//"time": 120,  // Force-morph delay, in seconds
 				"module": []
 			},
 
 			// Commander hides if ("time" elapsed) and ("threat" exceeds value or enemy has "air")
 			"hide": {
-				"time": 270,  // seconds
-				"threat": 7,
+				"time": 420,  // seconds
+				"threat": 8,
 				"air": true,
-				"task_rad": [3300.0, 1000.0]  // [<peace_radius>, <danger_radius>]
+				"task_rad": [2000, 800.0]  // [<peace_radius>, <danger_radius>] value -1 for deactivation was -1, 800
 			},
 
 			"assist_fac": 3,  // commander assists factory with high priority till number of constructors reached
@@ -31,16 +32,16 @@
 
 			// Morph params
 			"upgrade": {
-//				"time": 120,  // Force-morph delay, in seconds
+				//"time": 120,  // Force-morph delay, in seconds
 				"module": []
 			},
 
 			// Commander hides if ("time" elapsed) and ("threat" exceeds value or enemy has "air")
 			"hide": {
-				"time": 270,  // seconds
+				"time": 240,  // seconds
 				"threat": 7,
 				"air": true,
-				"task_rad": [3300.0, 1000.0]  // [<peace_radius>, <danger_radius>]
+				"task_rad": [2000, 800.0]  // [<peace_radius>, <danger_radius>] peace radius was -1
 			},
 
 			"assist_fac": 3,  // commander assists factory with high priority till number of constructors reached

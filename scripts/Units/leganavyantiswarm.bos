@@ -1,0 +1,221 @@
+
+#include "../recoil_common_includes.h"
+
+piece  
+base,
+turret,
+gun,
+flare,
+aaTurret,
+aaBarrel,
+aaSpin,
+aaFlare,
+wake,
+bow;
+
+static-var restore_delay, oldheading, aimDir1, wpn1_lasthead;
+
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_MOVE 1
+
+
+#define RB_MASS 10
+#define RB_LENGTH 5
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_RECOIL_ENERGY_2 500
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_CEG 1024 + 2
+#define RB_RECOIL_ENERGY_1 700
+#define RB_IDLE_KICK 10000
+
+#include "../bar_ships_common.h"
+
+
+Steering(heading, steery, currentspeed)
+{
+	//signal SIGNAL_MOVE;
+	//set-signal-mask SIGNAL_MOVE;
+	while(1)
+	{
+		heading = get HEADING;
+		steery = (oldheading - heading)*2;
+		sleep 100;
+		oldheading = heading;
+	}
+}
+
+
+
+Create()
+{
+	restore_delay = 3000;
+	wpn1_lasthead = 1000000;
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+	return (0);
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	wpn1_lasthead = 1000000;
+    turn turret to y-axis <0> speed <100.0>;
+	turn gun to x-axis <0> speed <20.0>;
+	turn aaBarrel to x-axis <-25> speed <20.0>;
+	spin aaTurret around y-axis speed <30.0>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script Steering();
+}
+
+
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	return (0);
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	aimDir1  = heading;
+	turn turret to y-axis heading speed <170.0>;
+	turn gun to x-axis -1 * pitch speed <70.0>;
+	if (get ABS(wpn1_lasthead - heading)> <20>)
+	{
+		wait-for-turn turret around y-axis;
+		wait-for-turn gun around x-axis;
+	}
+	wpn1_lasthead = heading;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon1()
+{
+	emit-sfx 1024 + 0 from flare;
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+	move gun to z-axis [-3.0] speed [1250.0];
+	wait-for-move gun along z-axis;
+	move gun to z-axis [0.0] speed [7.500000];
+	return (0);
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = gun;
+	return (0);
+}
+
+
+QueryWeapon1(pieceIndex)
+{
+    pieceIndex = flare;
+}
+
+AimWeapon2(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	turn aaTurret to y-axis heading speed <170.0>;
+	turn aaBarrel to x-axis -1 * pitch speed <70.0>;
+	wait-for-turn aaTurret around y-axis;
+	wait-for-turn aaBarrel around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon2()
+{
+	emit-sfx 1024 + 1 from aaFlare;
+	spin aaSpin around z-axis speed <360>;
+	sleep 10;
+	stop-spin aaSpin around z-axis decelerate <2>;
+	return (0);
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = aaBarrel;
+	return (0);
+}
+
+
+QueryWeapon2(pieceIndex)
+{
+    pieceIndex = aaFlare;
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode fturret type BITMAPONLY | NOHEATCLOUD;
+		// explode flbarrel type BITMAPONLY | NOHEATCLOUD;
+		// explode frbarrel type BITMAPONLY | NOHEATCLOUD;
+		// explode bturret type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode fturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode flbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode frbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode bturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode fturret type SMOKE | FALL | NOHEATCLOUD;
+		// explode flbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode frbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode bturret type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode fturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode flbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode frbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode bturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

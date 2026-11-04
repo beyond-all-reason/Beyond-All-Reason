@@ -1,7 +1,7 @@
 return {
 	armmart = {
 		buildpic = "ARMMART.DDS",
-		buildtime = 6500,
+		buildtime = 8500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "36 20 38",
@@ -12,11 +12,9 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1070,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.033,
-		maxdec = 0.066,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 0,
 		metalcost = 320,
@@ -27,7 +25,7 @@ return {
 		script = "Units/ARMMART.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 286,
+		sightdistance = 330,
 		speed = 60,
 		trackoffset = -8,
 		trackstrength = 8,
@@ -48,8 +46,6 @@ return {
 			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 35,
-			weapon1turrety = 35,
 		},
 		featuredefs = {
 			dead = {
@@ -85,11 +81,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -134,7 +125,11 @@ return {
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 355.28159,
+				weaponvelocity = 355,
+				customparams = {
+					turretspeedx = 35,
+					turretspeedy = 35,
+				},
 				damage = {
 					default = 260,
 					subs = 65,

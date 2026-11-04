@@ -5,6 +5,9 @@ piece  torso, flare, sleeve, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, a
 
 static-var  isMoving, isAiming, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../../unitDefsTurretSpeeds.h"
+
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
 	return 0;
@@ -151,10 +154,10 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 14) / animSpeed; 
+		animSpeed = (maxSpeed * 9) / animSpeed;
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<8) animSpeed=7;
-		if (animspeed>40) animSpeed = 35;
+		if (animSpeed<3) animSpeed=3;
+		if (animspeed>16) animSpeed = 16;
 		sleep 164;
 	}
 }
@@ -192,6 +195,8 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	Weapon1TurretX = <50>;
+	Weapon1TurretY = <200>;
 	animSpeed = 17;
 	hide flare;
 	hide aimx1;
@@ -248,8 +253,8 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	
 	if (isAiming == 1) return;
-	turn aimy1 to y-axis heading speed <100>;
-	turn aimx1 to x-axis <0.0> - pitch speed <50>;
+	turn aimy1 to y-axis heading speed Weapon1TurretY;
+	turn aimx1 to x-axis <0.0> - pitch speed Weapon1TurretX;
 	
 	//needed for luarules\gadgets\unit_continuous_aim.lua
 	if ((get ABS(wpnheading - heading)) > 500){

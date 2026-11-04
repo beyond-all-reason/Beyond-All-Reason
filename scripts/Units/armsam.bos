@@ -109,6 +109,8 @@ FireWeapon1()
 	return (0);
 }
 
+
+
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = mlauncher;
@@ -142,8 +144,12 @@ AimWeapon2(heading, pitch)
 FireWeapon2()
 {
 	start-script ResetFire();
-	gun_1 = !gun_1;
 	return (0);
+}
+
+EndBurst2()
+{
+	gun_1 = !gun_1;
 }
 
 AimFromWeapon2(piecenum)

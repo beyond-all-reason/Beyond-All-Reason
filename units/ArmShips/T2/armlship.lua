@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		blocking = true,
 		buildpic = "ARMLSHIP.DDS",
-		buildtime = 11400,
+		buildtime = 15000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 4",
 		collisionvolumescales = "28 30 82",
@@ -15,8 +15,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2200,
-		idleautoheal = 2,
-		idletime = 900,
 		maxacc = 0.065,
 		maxdec = 0.065,
 		metalcost = 570,
@@ -36,6 +34,7 @@ return {
 		turnrate = 450,
 		waterline = 0,
 		customparams = {
+			maxrange = 400,
 			model_author = "mightyodin01",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips/T2",
@@ -78,11 +77,6 @@ return {
 				[1] = "custom:waterwake-medium",
 				[2] = "custom:bowsplash-small",
 				[3] = "custom:barrelshot-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg3-lightning",
 			},
 		},
 		sounds = {
@@ -149,6 +143,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 138,
 				},
@@ -164,7 +161,7 @@ return {
 				cratermult = 0,
 				duration = 1,
 				edgeeffectiveness = 0.15,
-				energypershot = 5,
+				energypershot = 10,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 1,
@@ -185,11 +182,11 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				customparams = {
+					noattackrangearc = 1,
 					spark_ceg = "genericshellexplosion-splash-lightning",
 					spark_forkdamage = "0.5",
 					spark_maxunits = "2",
 					spark_range = "100",
-					noattackrangearc= 1,
 				},
 				damage = {
 					default = 35,

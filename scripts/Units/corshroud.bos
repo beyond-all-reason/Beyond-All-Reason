@@ -2,6 +2,7 @@
 
 
 #include "../recoil_common_includes.h"
+#include "../unitDefsDeactivateTime.h";
 
 piece  base, tower, jam;
 
@@ -43,7 +44,7 @@ TurnOffWhileDamaged(){
 	recentlyDamaged = 1;
 	set ACTIVATION to 0;
 
-	sleep 8000;
+	sleep deactivateTime;
 
 	recentlyDamaged = 0;
 	set ACTIVATION to 100;

@@ -37,6 +37,14 @@ vec3 hash32(vec2 p) {
 	return fract((p3.xxy+p3.yzz)*p3.zyx);
 }
 
+// Interleaved Gradient Noise (Jorge Jimenez, "Next Generation Post Processing in CoD:AW", 2014).
+// Same cost as a hash, but produces a structured screen-space pattern that the bilateral
+// blur can dissolve into a smooth result far more effectively than uncorrelated white noise.
+// This lets us use significantly fewer SSAO samples for the same perceived quality.
+float IGN(vec2 p) {
+	return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715))));
+}
+
 uniform float testuniform = 0.5;
 
 in DataVS {
@@ -50,7 +58,7 @@ uniform vec3 samplingKernel[kernelSize];
 
 // Returns 0 in alpha if its a null-normal (invalid)
 vec4 GetModelNormalCameraSpace(vec2 uv){
-	vec4 modelNormal = texture(modelNormalTex, uv);
+	vec4 modelNormal = textureLod(modelNormalTex, uv, 0.0);
 	modelNormal.a = step(0.1, dot(modelNormal,modelNormal));
 	modelNormal.xyz = normalize(NORM2SNORM(modelNormal.xyz));
 	modelNormal.xyz = vec3(cameraView * vec4(modelNormal.xyz, 0.0));
@@ -59,8 +67,8 @@ vec4 GetModelNormalCameraSpace(vec2 uv){
 
 // Returns 0 in alpha if 
 vec4 GetViewPos(vec2 texCoord) {
-	float mapDepth = texture(mapDepthTex, texCoord).r;
-	float modelDepth =  texture(modelDepthTex, texCoord).r;
+	float mapDepth = textureLod(mapDepthTex, texCoord, 0.0).r;
+	float modelDepth = textureLod(modelDepthTex, texCoord, 0.0).r;
 
 	float modelOccludesMap = float(modelDepth < mapDepth);
 	float depth = min(mapDepth, modelDepth);
@@ -81,14 +89,31 @@ vec4 GetViewPos(vec2 texCoord) {
 	return viewPosition;
 }
 
+// View-space depth only, for the kernel samples: the two gbuffer depth reads are the cost
+// here, and the inverse projection is reduced to the z and w rows it needs.
+float GetViewPosZ(vec2 texCoord) {
+	float depth = min(textureLod(mapDepthTex, texCoord, 0.0).r, textureLod(modelDepthTex, texCoord, 0.0).r);
+
+	#if (DEPTH_CLIP01 == 1)
+		vec4 projPosition = vec4(NORM2SNORM(texCoord), depth, 1.0);
+	#else
+		vec4 projPosition = vec4(NORM2SNORM(vec3(texCoord, depth)), 1.0);
+	#endif
+
+	float z = dot(vec4(cameraProjInv[0][2], cameraProjInv[1][2], cameraProjInv[2][2], cameraProjInv[3][2]), projPosition);
+	float w = dot(vec4(cameraProjInv[0][3], cameraProjInv[1][3], cameraProjInv[2][3], cameraProjInv[3][3]), projPosition);
+	return z / w;
+}
+
 // generally follow https://github.com/McNopper/OpenGL/blob/master/Example28/shader/ssao.frag.glsl
 void main() {
 
 	vec2 texelSize = 0.5 / vec2(VSX,VSY);
 	vec2 uv = gl_FragCoord.xy * DOWNSAMPLE / vec2(VSX,VSY);
 
-	#if USE_STENCIL == 1 
-		if (texture(unitStencilTex, uv).r < 0.1) { fragColor = vec4(1,0,1,1) ; return;}
+	#if USE_STENCIL == 1
+		// Output would be vec4(1,0,1,1), which the widget clears the target to
+		if (textureLod(unitStencilTex, uv, 0.0).r < 0.1) { discard; }
 	#endif
 
 	#if NOFUSE == 1 
@@ -100,7 +125,7 @@ void main() {
 		validFragment *= viewPosition.w;
 
 	#else
-		vec4 viewPosition = vec4( texture(viewPosTex, uv).xyz, 1.0 );
+		vec4 viewPosition = vec4( textureLod(viewPosTex, uv, 0.0).xyz, 1.0 );
 		vec4 viewNormalSample = GetModelNormalCameraSpace(uv);
 		vec3 viewNormal = viewNormalSample.xyz;
 		float validFragment = viewNormalSample.a * step(viewPosition.z,0.0);
@@ -122,7 +147,10 @@ void main() {
 
 	if ( dot(viewNormal, viewNormal) > 0.1 && fragDistFactor > 0.0 && (validFragment > 0.5) ) {
 		// Calculate the rotation matrix for the kernel.
-		vec3 randomVector = normalize( NORM2SNORM(hash32(gl_FragCoord.xy)) );
+		// IGN gives a structured 2D rotation phase per pixel (much better blur convergence than white-noise hash).
+		// We construct an in-plane random direction and combine with a stable z lift to avoid degeneracy.
+		float ignPhase = IGN(gl_FragCoord.xy) * 6.28318530718;
+		vec3 randomVector = normalize(vec3(cos(ignPhase), sin(ignPhase), 0.5));
 
 		// Using Gram-Schmidt process to get an orthogonal vector to the normal vector.
 		// The resulting tangent is on the same plane as the random and normal vector.
@@ -156,7 +184,7 @@ void main() {
 						#if NOFUSE == 1 
 							viewPosition = GetViewPos(uv) ;
 						#else
-							viewPosition = vec4( texture(viewPosTex, newUV).xyz, 1.0 );
+							viewPosition = vec4( textureLod(viewPosTex, newUV, 0.0).xyz, 1.0 );
 						#endif
 						viewTangent = normalize(randomVector - dot(randomVector, viewNormal) * viewNormal);
 						viewBitangent = cross(viewNormal, viewTangent);
@@ -184,9 +212,9 @@ void main() {
 			// Get sample viewPos from the viewPosTex texture
 			float viewPositionSampledZ;
 			#if NOFUSE == 1 
-				viewPositionSampledZ = GetViewPos(texSampingPoint).z;
+				viewPositionSampledZ = GetViewPosZ(texSampingPoint);
 			#else
-				viewPositionSampledZ = -1 * abs(texture(viewPosTex, texSampingPoint).z);
+				viewPositionSampledZ = -1 * abs(textureLod(viewPosTex, texSampingPoint, 0.0).z);
 			#endif
 			// Delta is how much deeper our ray is compared to sample, in elmos
 			// negative numbers mean ray is in front of sample, no occulsion
@@ -200,7 +228,7 @@ void main() {
 			// smaller delta hits should occlude less
 			float occlDelta = smoothstep(0,1,delta);
 
-			// hits further thay the rays length shouldnt occlude either
+			// hits further than the rays length shouldn't occlude either
 
 			float toofar = 1.0 - smoothstep (SSAO_RADIUS * 0.75, SSAO_RADIUS * 1.25, delta);
 
@@ -220,6 +248,15 @@ void main() {
 		float fullylit = clamp(1.0 - occlusion, 0.0, 1.0);
 
 		fullylit = pow(fullylit, SSAO_OCCLUSION_POWER);
+
+		// Jimenez multi-bounce AO approximation (Activision GDC 2016, "Practical Realtime Strategies for
+		// Accurate Indirect Occlusion"). Pre-baked for an average albedo of 0.95 since this widget outputs
+		// scalar AO that gets multiplied into deferred lighting downstream. The curve mostly affects the
+		// dark end: it lifts already-dark crevices back up to account for indirect light bouncing back into
+		// them, so AO no longer over-darkens regions that physical light would partially fill in.
+		// Coefficients: a = 2.0404*albedo - 0.3324; b = -4.7951*albedo + 0.6417; c = 2.7552*albedo + 0.6903.
+		fullylit = max(fullylit, ((fullylit * 1.6060 - 3.9136) * fullylit + 3.3077) * fullylit);
+		fullylit = clamp(fullylit, 0.0, 1.0);
 
 		#if DEBUG_SSAO == 1
 			fragColor = vec4(vec3( fullylit ), 1.0 );

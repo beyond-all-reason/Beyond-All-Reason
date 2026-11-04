@@ -17,8 +17,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 1440,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 30,
@@ -31,8 +29,7 @@ return {
 		script = "Units/COREXP.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		--selfdestructcountdown = 1,
-		sightdistance = 455,
+		sightdistance = 500,
 		yardmap = "h cbbbbbbc bssssosb bosbbssb bsbbbbsb bsbbbbsb bssbbsob bsossssb cbbbbbbc",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
@@ -77,13 +74,6 @@ return {
 				object = "Units/cor3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -141,9 +131,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
-				customparams = {
-					exclude_preaim = true,
-				},
 				damage = {
 					commanders = 112.5,
 					default = 75,

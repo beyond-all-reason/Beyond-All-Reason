@@ -11,8 +11,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2350,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -72,10 +70,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:juno_sphere_emit",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -116,6 +110,7 @@ return {
 				explosiongenerator = "custom:juno-explo",
 				flighttime = 400,
 				impulsefactor = 0,
+				interceptedbyshieldtype = 0,
 				metalpershot = 200,
 				model = "epulse.s3o",
 				name = "Anti radar/minefield/jammer magnetic impulse rocket",
@@ -135,15 +130,19 @@ return {
 				texture2 = "smoketrailbar",
 				texture3 = "null",
 				tolerance = 4000,
-				turnrate = 5500,
+				turnrate = 12000,
 				weaponacceleration = 75,
 				weapontimer = 4,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
+					cruise_and_verticalize = true,
+					uptime_max = 9,
+					junotype = "base",
 					nofire = true,
+					shield_aoe_penetration = true,
 					stockpilelimit = 20,
-					water_splash = 0, -- juno can explode on water
+					water_splash = 0,
 				},
 				damage = {
 					default = 1,

@@ -5,6 +5,7 @@ return {
 		buildpic = "ARMPLAT.DDS",
 		buildtime = 12000,
 		canmove = true,
+		canReclaim = false,
 		category = "SURFACE UNDERWATER",
 		corpse = "DEAD",
 		energycost = 5000,
@@ -13,8 +14,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 2000,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 1450,
@@ -29,7 +28,7 @@ return {
 		sonardistance = 600,
 		terraformspeed = 1000,
 		waterline = 39,
-		workertime = 200,
+		workertime = 300,
 		yardmap = "wwwwww weeeew weeeew weeeew weeeew wwwwww",
 		buildoptions = {
 			[1] = "armcsa",
@@ -45,6 +44,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBuildings/SeaFactories",
 			unitgroup = "builder",
+			restrictions_inclusion = "_noair_",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -65,11 +66,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -25,9 +25,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
-		idleautoheal = 5,
-		idletime = 1800,
+		holdsteady = true,
 		sightemitheight = 40,
 		mass = 4999,
 		health = 3350,
@@ -43,7 +41,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legcomoff.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -89,12 +87,15 @@ return {
 			[29] = "corjamt",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			maxrange = 400,
+			unitgroup = "builder",
 			iscommander = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "",
+			reaimtime = 5,
+			subfolder = "Legion/Other/Commanders",
+			tombstone = "legstone",
 		},
 		featuredefs = {
 			dead = {
@@ -109,7 +110,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 2000,
-				object = "Units/armcom_dead.s3o",
+				object = "Units/legcom_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -132,10 +133,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -197,13 +194,15 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 4.5,
 				sprayangle = 1200,
 				thickness = 0.91,
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 950,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 13,
 					default = 26,
@@ -241,6 +240,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 250,
 					subs = 125,
@@ -269,6 +271,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 0,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 10000,
 				},
@@ -316,6 +321,10 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 150,
 					commanders = 1,
@@ -330,7 +339,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",

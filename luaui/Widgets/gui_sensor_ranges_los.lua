@@ -8,9 +8,13 @@ function widget:GetInfo()
 		date = "2021.06.18",
 		license = "GPLv2, (c) Beherith (mysterme@gmail.com)",
 		layer = 20,
-		enabled = true
+		enabled = true,
 	}
 end
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
 
 -------   Configurables: -------------------
 local debugmode = false
@@ -23,6 +27,10 @@ local lineScale = 1 -- this is a multiplier for the line width, to make it look 
 
 local circleSegments = 62 -- To ensure its only 2 warps per instance
 local rangecorrectionelmos = debugmode and -16 or 16 -- how much smaller they are drawn than truth due to LOS mipping
+local fadeStart = 4000 -- elmos from the camera where the lines start fading out
+local fadeEnd = 8000 -- elmos from the camera where they are gone
+-- players outside the LOS view (L) see their coverage only through these lines, so those don't fade for them
+local noFadeWithoutLosView = true
 --------- End configurables ------
 
 local minSightDistance = 100
@@ -32,44 +40,43 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 -- TODO: draw ally ranges in diff color!
 -- 172 vs 123 preopt
 -- TODO 2023.07.06:
-	-- X Use drawpos
-	-- X Stencil outlines too
-	-- X remove debug code
-	-- X validate options!
-	-- X The only actual param needed per unit is its los range :D
-	-- X refactor the opacity
+-- X Use drawpos
+-- X Stencil outlines too
+-- X remove debug code
+-- X validate options!
+-- X The only actual param needed per unit is its los range :D
+-- X refactor the opacity
 
 -- TODO: 2025.07.02:
-	-- [x] rangecorrectionelmos = 16 
-	-- [ ] DO NOT DELETE BRANCH ON MERGE! 
-	-- [x] Fix screen resize
-	-- [-] Engine Version Check for baseVertex offset 
-	-- [x] Teamcolor no worky
-	-- [x] override master 
-	-- [x] profile
-	-- [x] Correctly reset GL state for build ETA 
-	-- [ ] Try to use only one stencil clear op, use a mask that is unique
-	-- [x] Put SDscreenSphere into LuaShader.lua
-	-- [-] Draw los in minimap, add config optios for it.  
-
-
+-- [x] rangecorrectionelmos = 16
+-- [ ] DO NOT DELETE BRANCH ON MERGE!
+-- [x] Fix screen resize
+-- [-] Engine Version Check for baseVertex offset
+-- [x] Teamcolor no worky
+-- [x] override master
+-- [x] profile
+-- [x] Correctly reset GL state for build ETA
+-- [ ] Try to use only one stencil clear op, use a mask that is unique
+-- [x] Put SDscreenSphere into LuaShader.lua
+-- [-] Draw los in minimap, add config options for it.
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
-local losStencilShader = nil
-local losCircleShader = nil
+local losStencilShader ---@type LuaShader
+local losCircleShader ---@type LuaShader
+---@type InstanceVBOTable?
 local circleInstanceVBO = nil
 
-local losStencilTexture 
+local losStencilTexture
 local resolution = 4
-local vsx, vsy  = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local circleShaderSourceCache = {
-	shaderName = 'LOS Ranges Circles GL4',
+	shaderName = "LOS Ranges Circles GL4",
 	vssrcpath = "LuaUI/Shaders/sensor_ranges_los.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/sensor_ranges_los.frag.glsl",
 	shaderConfig = {
@@ -79,6 +86,12 @@ local circleShaderSourceCache = {
 		PADDING = 1,
 		USE_TEAMCOLOR = 1,
 		VISIBILITYCULLING = 1,
+		LINE_THIN_START = 3000, -- elmos from the camera where the line starts thinning
+		LINE_THIN_END = 8000, -- elmos from the camera where it has thinned to LINE_THIN_SCALE
+		LINE_THIN_SCALE = 0.4, -- line width at LINE_THIN_END and further, relative to its full width
+		LINE_MIN_WIDTH = 0.7, -- screen pixels (not scaled with the resolution) the thinning stops at
+		FADE_START = fadeStart,
+		FADE_END = fadeEnd,
 	},
 	uniformInt = {
 		heightmapTex = 0,
@@ -89,19 +102,31 @@ local circleShaderSourceCache = {
 		rangeColor = rangeColor,
 	},
 	silent = not debugmode, -- do not print shader compile timing
-} 
- 
+}
+
 local stencilShaderSourceCache = table.copy(circleShaderSourceCache) -- copy the circle shader source cache, and modify it for stencil pass
 stencilShaderSourceCache.shaderConfig.STENCILPASS = 1 -- this is a stencil pass
+stencilShaderSourceCache.shaderName = "LOS Ranges Stencil GL4"
 
 local function goodbye(reason)
-	Spring.Echo("Sensor Ranges LOS widget exiting with reason: " .. reason)
+	spEcho("Sensor Ranges LOS widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
 	return false
 end
- 
+
+local builtVsx, builtVsy = -1, -1 -- view size the stencil shaders (VSX/VSY defines) and texture were made for
+
+local function finalizeShader(shader)
+	if shader then
+		shader:Finalize()
+	end
+end
+
 local function CreateStencilShaderAndTexture()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
+	if vsx == builtVsx and vsy == builtVsy then
+		return -- e.g. the handler's first ViewResize after load, at the size Initialize built for
+	end
 	circleShaderSourceCache.shaderConfig.VSX = vsx
 	circleShaderSourceCache.shaderConfig.VSY = vsy
 	circleShaderSourceCache.forceupdate = true
@@ -109,97 +134,129 @@ local function CreateStencilShaderAndTexture()
 	stencilShaderSourceCache.shaderConfig.VSY = vsy
 	stencilShaderSourceCache.forceupdate = true
 
-	losStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0)	
+	local oldStencilShader, oldCircleShader = losStencilShader, losCircleShader
+	losStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache, 0)
 
 	if not losStencilShader then
-  		return goodbye("Failed to compile losrange stencil shader GL4 ")
- 	end
-	losCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0)
+		return goodbye("Failed to compile losrange stencil shader GL4 ")
+	end
+	losCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache, 0)
 	if not losCircleShader then
 		return goodbye("Failed to compile losrange shader GL4 ")
 	end
+	finalizeShader(oldStencilShader)
+	finalizeShader(oldCircleShader)
 
 	local GL_R8 = 0x8229
-    vsx, vsy = Spring.GetViewGeometry()
-	lineScale = (vsy + 500)/ 1300
-    if losStencilTexture then gl.DeleteTexture(losStencilTexture) end
-    losStencilTexture = gl.CreateTexture(vsx/resolution, vsy/resolution, {
+	vsx, vsy = spGetViewGeometry()
+	lineScale = (vsy + 500) / 1300
+	if losStencilTexture then
+		gl.DeleteTexture(losStencilTexture)
+	end
+	losStencilTexture = gl.CreateTexture(vsx / resolution, vsy / resolution, {
 		--format = GL.RGBA8,
-        format = GL_R8,
+		format = GL_R8,
 		fbo = true,
 		min_filter = GL.NEAREST,
 		mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 	})
+	builtVsx, builtVsy = vsx, vsy
 end
 local function initgl4()
 	-- Due to the view size being part of the shader config, we need to initialize the shaders after the view size is known.
 
-	-- Note that we are createing a special Circle VBO, that starts at the center vertex! This is needed for triangle fans
+	-- Note that we are creating a special Circle VBO, that starts at the center vertex! This is needed for triangle fans
 	local circleVBO, numVertices = InstanceVBOTable.makeCircleVBO(circleSegments, nil, true, "LOSRangeCircles")
 	local circleInstanceVBOLayout = {
-		{ id = 1, name = 'radius_params', size = 4 }, -- radius, gameframe, 2 unused floats
-		{ id = 2, name = 'instData', size = 4, type = GL.UNSIGNED_INT}, -- instData
+		{ id = 1, name = "radius_params", size = 4 }, -- radius, gameframe, 2 unused floats
+		{ id = 2, name = "instData", size = 4, type = GL.UNSIGNED_INT }, -- instData
 	}
 
 	circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 128, "losrangeVBO", 2)
 	circleInstanceVBO.numVertices = numVertices
 	circleInstanceVBO.vertexVBO = circleVBO
-	circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
+	circleInstanceVBO.VAO = InstanceVBOTable.fillVAOSlots(
+		InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO),
+		false,
+		true
+	)
 
 	CreateStencilShaderAndTexture()
 end
- 
- 
+
 local function DrawLOSStencil() -- about 0.025 ms
 	if circleInstanceVBO.usedElements > 0 then
-        gl.Clear(GL.COLOR_BUFFER_BIT,0,0,0,0)
+		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		gl.BlendEquation(GL.MAX)
 		gl.Blending(GL.ONE, GL.ONE)
-        gl.Culling(false)
-		
+		gl.Culling(false)
+
 		gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 		losStencilShader:Activate()
-		circleInstanceVBO.VAO:DrawArrays(GL.TRIANGLE_FAN, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
+		circleInstanceVBO.VAO:DrawArrays(
+			GL.TRIANGLE_FAN,
+			circleInstanceVBO.numVertices,
+			0,
+			circleInstanceVBO.usedElements,
+			0
+		)
 		losStencilShader:Deactivate()
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		gl.BlendEquation(GL.FUNC_ADD)
 	end
 end
 
-function widget:DrawGenesis()
-    gl.RenderToTexture(losStencilTexture, DrawLOSStencil)
-end
-
 -- This shows the debug stencil texture in the bottom left corner of the screen
-if debugmode then 
-	function widget:DrawScreen()	
-		losCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0) or losCircleShader
-		losStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0) or losStencilShader
-		gl.Color(1,1,1,1)
+if debugmode then
+	function widget:DrawScreen()
+		losCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache, 0) or losCircleShader
+		losStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache, 0) or losStencilShader
+		gl.Color(1, 1, 1, 1)
 		gl.Blending(GL.ONE, GL.ZERO)
 		gl.Texture(losStencilTexture)
-		gl.TexRect(0, 0, vsx/resolution, vsy/resolution, 0, 0, 1, 1)
+		gl.TexRect(0, 0, vsx / resolution, vsy / resolution, 0, 0, 1, 1)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
-end  
+end
 
 -- Functions shortcuts
 local spGetSpectatingState = Spring.GetSpectatingState
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetCameraPosition = Spring.GetCameraPosition
+local spGetGroundExtremes = Spring.GetGroundExtremes
+local spGetMapDrawMode = Spring.GetMapDrawMode
 local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_LINE_LOOP = GL.LINE_LOOP
-local GL_KEEP = 0x1E00 --GL.KEEP
+local GL_KEEP = GL.KEEP
 local GL_REPLACE = GL.REPLACE
 
 -- Globals
 local spec, fullview = spGetSpectatingState()
-local allyTeamID = Spring.GetMyAllyTeamID()
+local allyTeamID = Spring.GetLocalAllyTeamID()
 
 -- find all unit types with radar in the game and place ranges into unitRange table
 local unitRange = {} -- table of unit types with their radar ranges
+
+-- 1 when the lines fade out with the camera distance, 0 when they don't
+local function getFadeStrength()
+	if noFadeWithoutLosView and not spec and spGetMapDrawMode() ~= "los" then
+		return 0
+	end
+	return 1
+end
+
+-- true when the camera is so far above the ground that every line (they sit at max(0, ground)) has faded out
+local function fadedOut(fadeStrength)
+	if fadeStrength <= 0 then
+		return false
+	end
+	local _, camY = spGetCameraPosition()
+	local _, _, _, maxHeight = spGetGroundExtremes()
+	return camY - math.max(maxHeight, 0) >= fadeEnd
+end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	-- save perf by excluding low los range units
@@ -210,16 +267,16 @@ end
 
 function widget:ViewResize(newX, newY)
 	CreateStencilShaderAndTexture()
-end 
+end
 
 -- a reusable table, since we will literally only modify its first element.
-local instanceCache = {0,0,0,0,0,0,0,0}
+local instanceCache = { 0, 0, 0, 0, 0, 0, 0, 0 }
 
 local function InitializeUnits()
-	--Spring.Echo("Sensor Ranges LOS InitializeUnits")
+	--spEcho("Sensor Ranges LOS InitializeUnits")
 	InstanceVBOTable.clearInstanceTable(circleInstanceVBO)
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		local visibleUnits =  WG['unittrackerapi'].visibleUnits
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		local visibleUnits = WG.unittrackerapi.visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), nil, true)
 		end
@@ -228,11 +285,12 @@ local function InitializeUnits()
 end
 
 function widget:PlayerChanged()
-	local prevFullview = fullview
+	local wasFullview = spec and fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
-	allyTeamID = Spring.GetMyAllyTeamID()
-	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
+	allyTeamID = Spring.GetLocalAllyTeamID()
+	local isFullview = spec and fullview
+	if isFullview ~= wasFullview or ((not isFullview) and allyTeamID ~= myPrevAllyTeamID) then
 		InitializeUnits()
 	end
 end
@@ -244,41 +302,58 @@ function widget:Initialize()
 	end
 
 	WG.losrange = {
-		getOpacity = function() return opacity end,
-		setOpacity = function(value) opacity = value end,
-		getUseTeamColors = function() return useteamcolors	end,
-		setUseTeamColors = function(value) useteamcolors = value end,
+		getOpacity = function()
+			return opacity
+		end,
+		setOpacity = function(value)
+			opacity = value
+		end,
+		getUseTeamColors = function()
+			return useteamcolors
+		end,
+		setUseTeamColors = function(value)
+			useteamcolors = value
+		end,
 	}
 
-	initgl4()	
+	initgl4()
 
 	InitializeUnits()
 end
 
 function widget:Shutdown()
-	if losStencilTexture then gl.DeleteTexture(losStencilTexture) end
+	if losStencilTexture then
+		gl.DeleteTexture(losStencilTexture)
+	end
+	finalizeShader(losStencilShader)
+	finalizeShader(losCircleShader)
 	WG.losrange = nil
 end
 
-function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason,  noupload)
-	--Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, reason, noupload)
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason, noupload)
+	--spEcho("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, reason, noupload)
 	unitTeam = unitTeam or spGetUnitTeam(unitID)
 	noupload = noupload == true
-	if unitRange[unitDefID] == nil or unitTeam == gaiaTeamID then return end
+	if unitRange[unitDefID] == nil or unitTeam == gaiaTeamID then
+		return
+	end
 
 	if (not (spec and fullview)) and (not spIsUnitAllied(unitID)) then -- given units are still considered allies :/
 		return
 	end -- display mode for specs
 
-	if Spring.GetUnitIsBeingBuilt(unitID) then return end
+	if Spring.GetUnitIsBeingBuilt(unitID) then
+		return
+	end
 
-	instanceCache[1] =  unitRange[unitDefID]
+	instanceCache[1] = unitRange[unitDefID]
 	if reason == "UnitFinished" then
 		instanceCache[2] = Spring.GetGameFrame()
 	else
 		instanceCache[2] = 0 -- start from full size
 	end
-	pushElementInstance(circleInstanceVBO,
+	pushElementInstance(
+		circleInstanceVBO,
 		instanceCache,
 		unitID, --key
 		true, -- updateExisting
@@ -297,45 +372,63 @@ function widget:VisibleUnitRemoved(unitID)
 	end
 end
 
+function widget:DrawGenesis()
+	if fadedOut(getFadeStrength()) then
+		return -- nothing reads the stencil texture this frame
+	end
+	gl.RenderToTexture(losStencilTexture, DrawLOSStencil)
+end
+
 function widget:DrawWorld()
 	--if spec and fullview then return end
-	if Spring.IsGUIHidden() or 
-		(circleInstanceVBO.usedElements == 0) or
-		(opacity <= 0.01)
-	then return end
-    
+	local fadeStrength = getFadeStrength()
+	if Spring.IsGUIHidden() or (circleInstanceVBO.usedElements == 0) or (opacity <= 0.01) or fadedOut(fadeStrength) then
+		return
+	end
+
 	--gl.Clear(GL.STENCIL_BUFFER_BIT) -- Preemtively clear the stencil buffer
 	gl.StencilTest(true) -- Enable stencil testing
 	gl.StencilFunc(GL_NOTEQUAL, 1, 1) -- Always Passes, 0 Bit Plane, 0 As Mask
 	gl.StencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
 	gl.StencilMask(15) -- Only check the first bit of the stencil buffer
-  
+
 	losCircleShader:Activate()
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 	gl.Texture(1, losStencilTexture) -- Bind the heightmap texture
 
-	losCircleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
-	--Spring.Echo("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
+	losCircleShader:SetUniform(
+		"rangeColor",
+		rangeColor[1],
+		rangeColor[2],
+		rangeColor[3],
+		opacity * (useteamcolors and 2 or 1)
+	)
+	--spEcho("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
 	losCircleShader:SetUniform("teamColorMix", useteamcolors and 1 or 0)
+	local lineWidth = rangeLineWidth * lineScale
+	losCircleShader:SetUniform("lineWidthPx", lineWidth) -- the shader thins it far from the camera
+	losCircleShader:SetUniform("fadeStrength", fadeStrength)
 
-	gl.LineWidth(rangeLineWidth * lineScale * 1.0)
+	gl.LineWidth(lineWidth)
 
 	gl.DepthTest(true)
-	-- Note that we are skipping the first and last vertex, as those are the center of the circle : 
-	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices -0, 0, circleInstanceVBO.usedElements) 
+	-- Note that we are skipping the first and last vertex, as those are the center of the circle :
+	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices - 0, 0, circleInstanceVBO.usedElements)
 	-- TODO: In the future, when BASE VERTEX works, use the following line instead:
-	--circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices -2, 1, circleInstanceVBO.usedElements) 
-	
+	--circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices -2, 1, circleInstanceVBO.usedElements)
+
 	losCircleShader:Deactivate()
 	gl.Texture(0, false)
 	gl.Texture(1, false)
 	gl.DepthTest(true)
 	gl.StencilTest(false) -- Disable stencil testing
+	-- the engine's area command volumes expect stencil bit 1 to be clear
+	gl.StencilMask(1)
+	gl.Clear(GL.STENCIL_BUFFER_BIT, 0)
+	gl.StencilMask(255)
 
-	gl.LineWidth(1.0) 
-	--gl.Clear(GL.STENCIL_BUFFER_BIT)
+	gl.LineWidth(1.0)
 end
-
 
 function widget:GetConfigData(data)
 	return {

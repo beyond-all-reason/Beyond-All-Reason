@@ -12,27 +12,33 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMin = math.min
 
-local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
 
+local minimapToWorld = require("luaui/Include/minimap_utils").minimapToWorld
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
+local ROTATION = require("luaui/Include/minimap_utils").ROTATION
 
-local maxAllowedWidth = 0.26
-local maxAllowedHeight = 0.32
-local leftClickMove = true
+local maxWidthFraction = 0.25
+local maxAllowedWidth = maxWidthFraction
+local maxAllowedHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32)
+local leftClickMove = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1
 
-local vsx, vsy, _, vpy = Spring.GetViewGeometry()
+local vsx, vsy, _, vpy = spGetViewGeometry()
 
 local minimized = false
 local maximized = false
 
 local maxHeight = maxAllowedHeight
 local ratio = Game.mapX / Game.mapY
-local maxWidth = math.min(maxHeight * ratio, maxAllowedWidth * (vsx / vsy))
-local usedWidth = math.floor(maxWidth * vsy)
-local usedHeight = math.floor(maxHeight * vsy)
+local maxWidth = mathMin(maxHeight * ratio, maxAllowedWidth * (vsx / vsy))
+local usedWidth = mathFloor(maxWidth * vsy)
+local usedHeight = mathFloor(maxHeight * vsy)
+---@type ScreenRect
 local backgroundRect = { 0, 0, 0, 0 }
 
 local delayedSetup = false
@@ -50,22 +56,23 @@ local leftclicked = false
 local RectRound, UiElement, elementCorner, elementPadding, elementMargin
 local dlistGuishader, dlistMinimap, oldMinimapGeometry
 
+-- another widget's frame around the minimap (WG.minimap.setExternalFrame): it places the map and
+-- draws the background and blur; outerHeight is how far down from the screen's top the frame reaches
+---@type { l: number, b: number, r: number, t: number, outerHeight: number }?
+local externalFrame = nil
+
 local dualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
 
+-- Icon density scaling: reduce icon size when many units are on the map
+local iconDensityMaxUnits = 18000
+local iconDensityMinScale = 0.5
+local baseMinimapIconScale = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+local lastAppliedIconScale = nil
+
 local function checkGuishader(force)
-	if WG['guishader'] then
-		if force and dlistGuishader then
-			dlistGuishader = gl.DeleteList(dlistGuishader)
-		end
-		if not dlistGuishader then
-			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4], elementCorner)
-			end)
-			WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
-		end
-	elseif dlistGuishader then
-		dlistGuishader = gl.DeleteList(dlistGuishader)
-	end
+	dlistGuishader = WG.FlowUI.guishaderCheckDlist(dlistGuishader, "minimap", function()
+		RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
+	end, force)
 end
 
 local function clear()
@@ -74,10 +81,8 @@ local function clear()
 		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
 	end
-	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('minimap')
-		dlistGuishader = nil
-	end
+	WG.FlowUI.guishaderDeleteDlist("minimap")
+	dlistGuishader = nil
 end
 
 function widget:ViewResize()
@@ -92,7 +97,7 @@ function widget:ViewResize()
 		return
 	end
 
-	vsx, vsy, _, vpy = Spring.GetViewGeometry()
+	vsx, vsy, _, vpy = spGetViewGeometry()
 
 	elementPadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
@@ -100,26 +105,43 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	elementMargin = WG.FlowUI.elementMargin
 
-	if WG['topbar'] ~= nil then
-		local topbarArea = WG['topbar'].GetPosition()
-		maxAllowedWidth = (topbarArea[1] - elementMargin - elementPadding) / vsx
+	if WG.topbar ~= nil then
+		local topbarArea = WG.topbar.GetPosition()
+		maxAllowedWidth = mathMin(maxWidthFraction, (topbarArea[1] - (elementMargin * 6)) / vsx)
 	end
 
-	maxWidth = math.min(maxAllowedHeight * ratio, maxAllowedWidth * (vsx / vsy))
+	maxWidth = mathMin(maxAllowedHeight * ratio, maxAllowedWidth * (vsx / vsy))
 	if maxWidth >= maxAllowedWidth * (vsx / vsy) then
 		maxHeight = maxWidth / ratio
 	else
 		maxHeight = maxAllowedHeight
 	end
 
-	usedWidth = math.floor(maxWidth * vsy)
-	usedHeight = math.floor(maxHeight * vsy)
+	usedWidth = mathFloor(maxWidth * vsy)
+	usedHeight = mathFloor(maxHeight * vsy)
 
-	backgroundRect = { 0, vsy - (usedHeight) - elementPadding, usedWidth + elementPadding, vsy }
+	backgroundRect = { 0, vsy - usedHeight - elementPadding, usedWidth + elementPadding, vsy }
+	if externalFrame then
+		local f = externalFrame
+		usedWidth, usedHeight = mathFloor(f.r - f.l), mathFloor(f.t - f.b)
+		backgroundRect = { f.l, f.b, f.r, f.t }
+		WG.FlowUI.guishaderDeleteDlist("minimap")
+		dlistGuishader = nil
+	end
 
 	if not dualscreenMode then
-		Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
-		checkGuishader(true)
+		Spring.SendCommands(
+			string.format(
+				"minimap geometry %i %i %i %i",
+				backgroundRect[1],
+				vsy - backgroundRect[4],
+				usedWidth,
+				usedHeight
+			)
+		)
+		if not externalFrame then
+			checkGuishader(true)
+		end
 	end
 	dlistMinimap = gl.DeleteList(dlistMinimap)
 	if uiBgTex then
@@ -139,22 +161,43 @@ function widget:Initialize()
 	end
 	_, _, _, _, minimized, maximized = Spring.GetMiniMapGeometry()
 
-	WG['minimap'] = {}
-	WG['minimap'].getHeight = function()
+	WG.minimap = {}
+	WG.minimap.getHeight = function()
+		if externalFrame then
+			return externalFrame.outerHeight
+		end
 		return usedHeight + elementPadding
 	end
-	WG['minimap'].getMaxHeight = function()
-		return math.floor(maxAllowedHeight * vsy), maxAllowedHeight
+	-- l, b, r, t: the map's screen rect; outerHeight: the frame's reach down from the screen's top
+	-- (what getHeight reports). No arguments: back to its own place and background. resizing (the
+	-- frame's size being dragged) changes nothing here: the engine minimap follows at once.
+	WG.minimap.setExternalFrame = function(l, b, r, t, outerHeight, resizing)
+		if l then
+			externalFrame = { l = l, b = b, r = r, t = t, outerHeight = outerHeight or (vsy - b) }
+		elseif not externalFrame then
+			return
+		else
+			externalFrame = nil
+		end
+		widget:ViewResize(vsx, vsy)
 	end
-	WG['minimap'].setMaxHeight = function(value)
+	WG.minimap.getMaxHeight = function()
+		return mathFloor(maxAllowedHeight * vsy), maxAllowedHeight
+	end
+	WG.minimap.setMaxHeight = function(value)
+		Spring.SetConfigFloat("MinimapMaxHeight", value)
 		maxAllowedHeight = value
 		widget:ViewResize()
 	end
-	WG['minimap'].getLeftClickMove = function()
+	WG.minimap.getLeftClickMove = function()
 		return leftClickMove
 	end
-	WG['minimap'].setLeftClickMove = function(value)
+	WG.minimap.setLeftClickMove = function(value)
 		leftClickMove = value
+		Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
+	end
+	WG.minimap.setBaseIconScale = function(value)
+		baseMinimapIconScale = value
 	end
 end
 
@@ -165,6 +208,10 @@ end
 function widget:Shutdown()
 	clear()
 	gl.SlaveMiniMap(false)
+
+	-- Restore original icon scale
+	Spring.SendCommands("minimap unitsize " .. baseMinimapIconScale)
+	Spring.SetConfigFloat("MinimapIconScale", baseMinimapIconScale)
 
 	if not dualscreenMode then
 		Spring.SendCommands("minimap geometry " .. oldMinimapGeometry)
@@ -192,30 +239,72 @@ function widget:Update(dt)
 	end
 
 	sec2 = sec2 + dt
-	if sec2 <= 0.25 then return end
+	if sec2 <= 0.25 then
+		return
+	end
 	sec2 = 0
 
-	if dualscreenMode then return end
+	-- Poll ConfigFloat for external changes (e.g. from gui_options)
+	local cfgMaxHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32)
+	if cfgMaxHeight ~= maxAllowedHeight then
+		maxAllowedHeight = cfgMaxHeight
+		widget:ViewResize()
+	end
+
+	if dualscreenMode then
+		return
+	end
 
 	_, _, _, _, minimized, maximized = Spring.GetMiniMapGeometry()
 	if minimized or maximized then
 		return
 	end
 
-	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
-	checkGuishader()
+	Spring.SendCommands(
+		string.format("minimap geometry %i %i %i %i", backgroundRect[1], vsy - backgroundRect[4], usedWidth, usedHeight)
+	)
+	if not externalFrame then
+		checkGuishader()
+	end
+
+	-- Icon density scaling: reduce icon size when many units are on the map
+	local allUnits = Spring.GetAllUnits()
+	local totalUnits = allUnits and #allUnits or 0
+	local unitFraction = math.min(totalUnits / iconDensityMaxUnits, 1.0)
+	local densityScale = 1.0 - (1.0 - iconDensityMinScale) * unitFraction
+	-- Resolution boost: icons look relatively small on high-res screens
+	local resBoost = 1.0 + 0.18 * math.min(math.max((vsy - 1080) / (2880 - 1080), 0), 1)
+	local scaledIconSize = baseMinimapIconScale * densityScale * resBoost
+	if scaledIconSize ~= lastAppliedIconScale then
+		Spring.SendCommands("minimap unitsize " .. scaledIconSize)
+		lastAppliedIconScale = scaledIconSize
+	end
 end
 
-
-
 local function drawBackground()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 0, 1, 0, nil, nil, nil, nil, nil, nil, nil, nil)
+	UiElement(
+		backgroundRect[1],
+		backgroundRect[2],
+		backgroundRect[3],
+		backgroundRect[4],
+		0,
+		0,
+		1,
+		0,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil
+	)
 end
 
 local st = spGetCameraState()
 local stframe = 0
 function widget:DrawScreen()
-
 	if dualscreenMode and not minimized then
 		gl.DrawMiniMap()
 		return
@@ -225,9 +314,27 @@ function widget:DrawScreen()
 		clear()
 	else
 		local x, y = Spring.GetMouseState()
-		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
-			if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
-				Spring.SetMouseCursor('cursornormal')
+		if
+			math_isInRect(
+				x,
+				y,
+				backgroundRect[1],
+				backgroundRect[2] - elementPadding,
+				backgroundRect[3] + elementPadding,
+				backgroundRect[4]
+			)
+		then
+			if
+				not math_isInRect(
+					x,
+					y,
+					backgroundRect[1],
+					backgroundRect[2] + 1,
+					backgroundRect[3] - 1,
+					backgroundRect[4]
+				)
+			then
+				Spring.SetMouseCursor("cursornormal")
 			end
 		end
 	end
@@ -238,12 +345,11 @@ function widget:DrawScreen()
 	end
 	if st.name == "ov" then
 		-- overview camera
-		if dlistGuishader and WG['guishader'] then
-			WG['guishader'].RemoveDlist('minimap')
+		if dlistGuishader and WG.guishader then
+			WG.guishader.RemoveDlist("minimap")
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
 		wasOverview = true
-
 	elseif not (minimized or maximized) or (wasOverview and Spring.GetConfigInt("MinimapMinimize", 0) == 0) then
 		if wasOverview and Spring.GetConfigInt("MinimapMinimize", 0) == 0 then
 			gl.SlaveMiniMap(true)
@@ -251,38 +357,44 @@ function widget:DrawScreen()
 			Spring.SendCommands("minimap minimize 0")
 		end
 
-
-		if dlistGuishader and WG['guishader'] then
-			WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
+		if dlistGuishader and WG.guishader then
+			WG.guishader.InsertDlist(dlistGuishader, "minimap")
 		end
-		if useRenderToTexture then
-			if not uiBgTex and backgroundRect[3]-backgroundRect[1] >= 1 and backgroundRect[4]-backgroundRect[2] >= 1 then
-				uiBgTex = gl.CreateTexture(math.floor(backgroundRect[3]-backgroundRect[1]), math.floor(backgroundRect[4]-backgroundRect[2]), {
+		if
+			not uiBgTex
+			and not externalFrame
+			and backgroundRect[3] - backgroundRect[1] >= 1
+			and backgroundRect[4] - backgroundRect[2] >= 1
+		then
+			uiBgTex = gl.CreateTexture(
+				mathFloor(backgroundRect[3] - backgroundRect[1]),
+				mathFloor(backgroundRect[4] - backgroundRect[2]),
+				{
 					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
+					format = GL.RGBA8,
 					fbo = true,
-				})
-				gl.R2tHelper.RenderToTexture(uiBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBackground()
-					end,
-					useRenderToTexture
-				)
-			end
-			if uiBgTex then
-				-- background element
-				gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-			end
-		else
-			if not dlistMinimap then
-				dlistMinimap = gl.CreateList(function()
-					drawBackground()
-				end)
-			end
-			gl.CallList(dlistMinimap)
+				}
+			)
+			gl.R2tHelper.RenderInRect(
+				uiBgTex,
+				backgroundRect[1],
+				backgroundRect[2],
+				backgroundRect[3],
+				backgroundRect[4],
+				drawBackground,
+				true
+			)
+		end
+		if uiBgTex and not externalFrame then
+			-- background element
+			gl.R2tHelper.BlendTexRect(
+				uiBgTex,
+				backgroundRect[1],
+				backgroundRect[2],
+				backgroundRect[3],
+				backgroundRect[4],
+				true
+			)
 		end
 	end
 
@@ -290,18 +402,20 @@ function widget:DrawScreen()
 end
 
 function widget:GetConfigData()
-	return {
-		maxHeight = maxAllowedHeight,
-		leftClickMove = leftClickMove
-	}
+	return {}
 end
 
 function widget:SetConfigData(data)
-	if data.maxHeight ~= nil then
+	-- Migrate old maxHeight config data to ConfigFloat (one-time)
+	if data.maxHeight ~= nil and Spring.GetConfigFloat("MinimapMaxHeight", -1) == -1 then
 		maxAllowedHeight = data.maxHeight
+		Spring.SetConfigFloat("MinimapMaxHeight", data.maxHeight)
 	end
-	if data.leftClickMove ~= nil then
+	-- leftClickMove now stored as Spring ConfigInt "MinimapLeftClickMove"
+	if data.leftClickMove ~= nil and Spring.GetConfigInt("MinimapLeftClickMove", -1) == -1 then
+		-- Migrate old config data to new ConfigInt (one-time)
 		leftClickMove = data.leftClickMove
+		Spring.SetConfigInt("MinimapLeftClickMove", data.leftClickMove and 1 or 0)
 	end
 end
 
@@ -317,20 +431,39 @@ function widget:MouseMove(x, y)
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then return end
-	if dualscreenMode then return end
-	if minimized then return end
+	if Spring.IsGUIHidden() then
+		return
+	end
+	if dualscreenMode then
+		return
+	end
+	if minimized then
+		return
+	end
+	if WG.chat and WG.chat.isMapDrawActive and WG.chat.isMapDrawActive() then
+		return false
+	end
 
 	leftclicked = false
 
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
-
+	if
+		math_isInRect(
+			x,
+			y,
+			backgroundRect[1],
+			backgroundRect[2] - elementPadding,
+			backgroundRect[3] + elementPadding,
+			backgroundRect[4]
+		)
+	then
 		local activeCmd = spGetActiveCommand()
 		if activeCmd and activeCmd ~= 0 then
 			return false
 		end
 
-		if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
+		if
+			not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4])
+		then
 			return true
 		elseif button == 1 and leftClickMove then
 			leftclicked = true
@@ -344,7 +477,9 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseRelease(x, y, button)
-	if dualscreenMode then return end
+	if dualscreenMode then
+		return
+	end
 
 	leftclicked = false
 end

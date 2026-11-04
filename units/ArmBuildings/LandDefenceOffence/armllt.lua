@@ -2,10 +2,10 @@ return {
 	armllt = {
 		buildangle = 32768,
 		buildpic = "ARMLLT.DDS",
-		buildtime = 2660,
+		buildtime = 2400,
 		canrepeat = false,
 		cantbetransported = false,
-		collisionvolumeoffsets = "0 -31 0",
+		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "32 77 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
@@ -14,8 +14,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 620,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 5100,
 		maxacc = 0,
 		maxdec = 0,
@@ -27,7 +25,7 @@ return {
 		script = "Units/ARMLLT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 494,
+		sightdistance = 500,
 		yardmap = "oooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
@@ -70,12 +68,6 @@ return {
 				object = "Units/arm2X2B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -137,9 +129,6 @@ return {
 					subs = 5,
 					vtol = 5,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

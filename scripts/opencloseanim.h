@@ -9,7 +9,7 @@
 // 2. Define the Open() and Close() functions in your script
 // 3. When you want the unit to open, like in Activate, always start-script Open();
 //		- dont use call-script, as that could block for too long
-// 4. This scrips assumes the unit is in a default closed position. 
+// 4. This scripts assumes the unit is in a default closed position. 
 // 	- Try to use wait-for-turns instead of sleeps in your animation
 // 5. If you want to be default open, then do OCA_intransition_wantOpen = 1; in Create()
 // 	- Or just call it in create via start-script OpenCloseAnim(1);

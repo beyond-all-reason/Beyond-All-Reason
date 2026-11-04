@@ -10,7 +10,7 @@ piece  base, jet, thrustl, thrustr, rflare, lflare;
 #define IDLEBASEPIECE base
 #include "../idlehover.h"
 
-static-var gun_1;
+static-var gun_1, docked;
 
 
 Create()
@@ -34,6 +34,16 @@ Deactivate()
 {
 	hide thrustl;
 	hide thrustr;
+}
+
+Docked(customparam, dockpiece)
+{
+	docked = 1;
+}
+
+Undocked(customparam, dockpiece)
+{
+	docked = 0;
 }
 
 MoveRate0()
@@ -63,7 +73,7 @@ AimFromWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	return (1);
+	return (!docked);
 }
 
 QueryWeapon1(pieceIndex)

@@ -1,7 +1,10 @@
 #define TA			// This is a TA script
 
 #include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+#include "../unitDefsDeactivateTime.h";
+
+#define SIGNAL_TURNON 4
 
 piece  base, skirt, corecont,
 	  Acore, A, Ar, Ar1, A1, AL, AL1,
@@ -11,7 +14,7 @@ piece  base, skirt, corecont,
 	  Ecore, E, Er, Er1, E1, EL, EL1,
 	  Fcore, F, Fr, Fr1, F1, FL, FL1;//fuck me SLIGHTLY LESS
 
-static-var  Activating, statechg_DesiredState, statechg_StateChanging;
+static-var  Activating, statechg_DesiredState, statechg_StateChanging, wantOpen;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -44,6 +47,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Go()
 {
+	set-signal-mask SIGNAL_TURNON;
 	if( Activating )
 	{
 		set ACTIVATION to 0;
@@ -221,6 +225,7 @@ Create()
 	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
 	Activating = 0;
+	wantOpen = 1;
 }
 
 Activate()
@@ -228,29 +233,36 @@ Activate()
 	if( Activating )
 	{
 		set ACTIVATION to 0;
+		wantOpen = 1;
 		return (0);
 	}
+	wantOpen = 1;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	if (!Activating) {
+		wantOpen = 0;
+		start-script RequestState(1);
+	}
 }
 
 HitByWeapon(anglex, anglez)
 {
-	if( get ACTIVATION )
-	{
+	if (!Activating) {
 		Activating = 1;
-	}
-	if( Activating )
-	{
-		signal 2;
-		set-signal-mask 2;
+		wantOpen = get ACTIVATION;
+		statechg_DesiredState = TRUE;
+		statechg_StateChanging = FALSE;
+		start-script Stop();
 		set ACTIVATION to 0;
-		sleep 8000;
-		Activating = 0;
+	}
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep deactivateTime;
+	Activating = 0;
+	if (wantOpen) {
 		set ACTIVATION to 100;
 	}
 }

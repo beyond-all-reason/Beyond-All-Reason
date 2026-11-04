@@ -1,6 +1,5 @@
 return {
 	raptor_air_scout_basic_t3_v1 = {
-		acceleration = 2,
 		airhoverfactor = 0,
 		attackrunlength = 32,
 		maxdec = 0.4,
@@ -23,14 +22,12 @@ return {
 		collisionvolumeoffsets = "0 8 -2",
 		collisionvolumescales = "70 70 70",
 		collisionvolumetype = "sphere",
-		cruisealtitude = 200,
+		cruisealtitude = 220,
 		defaultmissiontype = "Standby",
 		explodeas = "TALON_DEATH",
 		footprintx = 3,
 		footprintz = 3,
 		hidedamage = 1,
-		idleautoheal = 15,
-		idletime = 900,
 		maneuverleashlength = "20000",
 		mass = 227.5,
 		maxacc = 0.25,
@@ -63,18 +60,12 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
 		},
 		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
 			explosiongenerators = {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",

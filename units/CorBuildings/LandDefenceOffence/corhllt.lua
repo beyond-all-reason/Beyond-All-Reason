@@ -2,7 +2,7 @@ return {
 	corhllt = {
 		buildangle = 32768,
 		buildpic = "CORHLLT.DDS",
-		buildtime = 5440,
+		buildtime = 4900,
 		canrepeat = false,
 		cantbetransported = false,
 		collisionvolumeoffsets = "0 6 0",
@@ -14,8 +14,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1670,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 10200,
 		maxacc = 0,
 		maxdec = 0,
@@ -26,7 +24,7 @@ return {
 		script = "Units/CORHLLT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 475,
+		sightdistance = 500,
 		yardmap = "oooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
@@ -69,12 +67,6 @@ return {
 				object = "Units/cor4X4D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -136,9 +128,6 @@ return {
 					default = 75,
 					vtol = 5,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 			hllt_top = {
 				areaofeffect = 12,
@@ -158,7 +147,7 @@ return {
 				name = "Close-quarters light g2g laser",
 				noselfdamage = true,
 				proximitypriority = -1,
-				range = 480,
+				range = 490,
 				reloadtime = 0.46667,
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
@@ -175,9 +164,6 @@ return {
 					default = 75,
 					vtol = 5,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

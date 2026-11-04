@@ -2,7 +2,6 @@ return {
 	corpt = {
 		activatewhenbuilt = true,
 		airsightdistance = 800,
-		autoheal = 1.5,
 		buildpic = "CORPT.DDS",
 		buildtime = 2500,
 		canmove = true,
@@ -16,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 890,
-		idleautoheal = 5,
-		idletime = 900,
 		maxacc = 0.05,
 		maxdec = 0.06473,
 		metalcost = 210,
@@ -39,6 +36,7 @@ return {
 		turnrate = 520.5,
 		waterline = 0,
 		customparams = {
+			maxrange = 650,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 1,
@@ -80,10 +78,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:waterwake-tiny",
 				[2] = "custom:radarpulse_t1",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -138,7 +132,6 @@ return {
 				soundhit = "rockhit2",
 				soundhitwet = "splssml",
 				soundstart = "rockhvy2",
-				soundstartvolume = 8.5,
 				startvelocity = 500,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
@@ -150,6 +143,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 680,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 1,
 					vtol = 120,
@@ -183,7 +179,6 @@ return {
 				soundhit = "rockhit2",
 				soundhitwet = "splssml",
 				soundstart = "rockhvy2",
-				soundstartvolume = 8.5,
 				startvelocity = 420,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
@@ -195,12 +190,12 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 680,
+				customparams = {
+					overrange_distance = 748,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 47,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 748,
 				},
 			},
 		},

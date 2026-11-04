@@ -16,8 +16,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		idleautoheal = 10,
-		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
 		health = 5320, --was 4450, --1/2 of corfort
@@ -40,7 +38,7 @@ return {
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			decoyfor = "armfort",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
@@ -84,13 +82,7 @@ return {
 			},
 		},
 		sfxtypes = {
-			explosiongenerators = {
-				[1] = "custom:flamestreamxm",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4-fire",
-			},
+			explosiongenerators = {},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -211,7 +203,7 @@ return {
 					exclude_preaim = true,
 					overrange_distance = 777,
 					projectile_destruction_method = "descend",
-				}
+				},
 			},
 		},
 		weapons = {

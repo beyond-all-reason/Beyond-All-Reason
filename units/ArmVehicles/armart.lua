@@ -13,11 +13,9 @@ return {
 		footprintz = 3,
 		health = 620,
 		hightrajectory = 1,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.02727,
-		maxdec = 0.05454,
+		maxdec = 0.1,
 		maxslope = 15,
 		maxwaterdepth = 8,
 		metalcost = 135,
@@ -46,8 +44,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 40,
-			weapon1turrety = 110,
 		},
 		featuredefs = {
 			dead = {
@@ -83,11 +79,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -135,6 +126,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					turretspeedx = 40,
+					turretspeedy = 110,
+				},
 				damage = {
 					default = 182,
 					subs = 61,

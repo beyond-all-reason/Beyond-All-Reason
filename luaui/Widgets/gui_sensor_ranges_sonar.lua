@@ -8,9 +8,14 @@ function widget:GetInfo()
 		date = "2021.06.18",
 		license = "GPLv2, (c) Beherith (mysterme@gmail.com)",
 		layer = 18,
-		enabled = true
+		enabled = true,
 	}
 end
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
 
 -------   Configurables: -------------------
 local debugmode = false
@@ -21,192 +26,207 @@ local rangeLineWidth = 4.5 -- (note: will end up larger for larger vertical scre
 local lineScale = 1 -- this is a multiplier for the line width, to make it look better on high res screens
 
 local circleSegments = 62 -- To ensure its only 2 warps per instance
-local rangecorrectionelmos = debugmode and -16 or 16 -- how much smaller they are drawn than truth due to LOS mipping
+local fadeStart = 400000 -- elmos from the camera where the lines start fading out
+local fadeEnd = 800000 -- elmos from the camera where they are gone
+-- players outside the LOS view (L) see their coverage only through these lines, so those don't fade for them
+local noFadeWithoutLosView = true
 --------- End configurables ------
 
-local minSonarDistance = 250
+local minSonarDistance = 150
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 ------- GL4 NOTES -----
 -- TODO: 2025.07.02:
 
-
-
-
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
-local sonarStencilShader = nil
-local sonarCircleShader = nil
+local sonarCircleShader ---@type LuaShader
+---@type InstanceVBOTable?
 local circleInstanceVBO = nil
 
-local sonarStencilTexture 
-local resolution = 4
-local vsx, vsy  = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
+
+-- The fragment shader clips each line where it enters another circle, testing every circle exactly: the shader
+-- storage copy of the instance buffer (its instData is filled on the GPU) is bound here before drawing. The radar
+-- preview uses this binding as well and binds its own buffers before its passes.
+local CIRCLE_SSBO_BINDING = 5
+local circleSSBO = nil ---@type VBO?
+local circleSSBOCapacity = 0
 
 local circleShaderSourceCache = {
-	shaderName = 'Sonar Ranges Circles GL4',
+	shaderName = "Sonar Ranges Circles GL4",
 	vssrcpath = "LuaUI/Shaders/sensor_ranges_los.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/sensor_ranges_los.frag.glsl",
 	shaderConfig = {
 		VSX = vsx,
 		VSY = vsy,
-		RESOLUTION = resolution,
 		PADDING = 1,
+		EXACT_CIRCLES = 1,
+		CIRCLE_SEGMENTS = circleSegments - 1, -- makeCircleVBO repeats its first vertex
+		CIRCLE_SSBO_BINDING = CIRCLE_SSBO_BINDING,
 		VISIBILITYCULLING = 1,
 		MAX_HEIGHT = 0, -- dont show above this height
 		STIPPLE_RATE = 1.0,
+		FADE_START = fadeStart,
+		FADE_END = fadeEnd,
 	},
 	uniformInt = {
 		heightmapTex = 0,
-		losStencilTexture = 1,
 	},
 	uniformFloat = {
 		teamColorMix = 1.0,
 		rangeColor = rangeColor,
 	},
 	silent = not debugmode, -- do not print shader compile timing
-} 
- 
-local stencilShaderSourceCache = table.copy(circleShaderSourceCache) -- copy the circle shader source cache, and modify it for stencil pass
-stencilShaderSourceCache.shaderConfig.STENCILPASS = 1 -- this is a stencil pass
-stencilShaderSourceCache.shaderName = 'Sonar Ranges Stencil GL4'
+}
 
 local function goodbye(reason)
-	Spring.Echo("Sensor Ranges LOS widget exiting with reason: " .. reason)
+	spEcho("Sensor Ranges LOS widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
 	return false
 end
- 
-local function CreateStencilShaderAndTexture()
-	vsx, vsy = Spring.GetViewGeometry()
+
+local builtVsx, builtVsy = -1, -1 -- view size the shader (VSX/VSY defines) was made for
+
+local function finalizeShader(shader)
+	if shader then
+		shader:Finalize()
+	end
+end
+
+local function CreateCircleShader()
+	vsx, vsy = spGetViewGeometry()
+	if vsx == builtVsx and vsy == builtVsy then
+		return -- e.g. the handler's first ViewResize after load, at the size Initialize built for
+	end
 	circleShaderSourceCache.shaderConfig.VSX = vsx
 	circleShaderSourceCache.shaderConfig.VSY = vsy
 	circleShaderSourceCache.forceupdate = true
-	stencilShaderSourceCache.shaderConfig.VSX = vsx
-	stencilShaderSourceCache.shaderConfig.VSY = vsy
-	stencilShaderSourceCache.forceupdate = true
 
-	sonarStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0)	
-
-	if not sonarStencilShader then
-  		return goodbye("Failed to compile sonarrange stencil shader GL4 ")
- 	end
-	sonarCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0)
+	local oldCircleShader = sonarCircleShader
+	sonarCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache, 0)
 	if not sonarCircleShader then
 		return goodbye("Failed to compile sonarrange shader GL4 ")
 	end
+	finalizeShader(oldCircleShader)
 
-	local GL_R8 = 0x8229
-    vsx, vsy = Spring.GetViewGeometry()
-	lineScale = (vsy + 500)/ 1300
-    if sonarStencilTexture then gl.DeleteTexture(sonarStencilTexture) end
-    sonarStencilTexture = gl.CreateTexture(vsx/resolution, vsy/resolution, {
-		--format = GL.RGBA8,
-        format = GL_R8,
-		fbo = true,
-		min_filter = GL.NEAREST,
-		mag_filter = GL.LINEAR,
-		wrap_s = GL.CLAMP_TO_EDGE,
-		wrap_t = GL.CLAMP_TO_EDGE,
-	})
+	lineScale = (vsy + 500) / 1300
+	builtVsx, builtVsy = vsx, vsy
 end
+
 local function initgl4()
 	-- Due to the view size being part of the shader config, we need to initialize the shaders after the view size is known.
 
-	-- Note that we are createing a special Circle VBO, that starts at the center vertex! This is needed for triangle fans
+	-- Note that we are creating a special Circle VBO, that starts at the center vertex! This is needed for triangle fans
 	local circleVBO, numVertices = InstanceVBOTable.makeCircleVBO(circleSegments, nil, true, "sonarrangeCircles")
 	local circleInstanceVBOLayout = {
-		{ id = 1, name = 'radius_params', size = 4 }, -- radius, gameframe, 2 unused floats
-		{ id = 2, name = 'instData', size = 4, type = GL.UNSIGNED_INT}, -- instData
+		{ id = 1, name = "radius_params", size = 4 }, -- radius, gameframe, 2 unused floats
+		{ id = 2, name = "instData", size = 4, type = GL.UNSIGNED_INT }, -- instData
 	}
 
 	circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 128, "sonarrangeVBO", 2)
 	circleInstanceVBO.numVertices = numVertices
 	circleInstanceVBO.vertexVBO = circleVBO
-	circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
+	circleInstanceVBO.VAO = InstanceVBOTable.fillVAOSlots(
+		InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO),
+		false,
+		true
+	)
 
-	CreateStencilShaderAndTexture()
+	CreateCircleShader()
 end
- 
- 
-local function DrawLOSStencil() -- about 0.025 ms
-	if circleInstanceVBO.usedElements > 0 then
-        gl.Clear(GL.COLOR_BUFFER_BIT,0,0,0,0)
-		gl.BlendEquation(GL.MAX)
-		gl.Blending(GL.ONE, GL.ONE)
-        gl.Culling(false)
-		
-		gl.Texture(0, "$heightmap") -- Bind the heightmap texture
-		sonarStencilShader:Activate()
-		circleInstanceVBO.VAO:DrawArrays(GL.TRIANGLE_FAN, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
-		sonarStencilShader:Deactivate()
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		gl.BlendEquation(GL.FUNC_ADD)
+
+-- copies the instance buffer into the shader storage buffer the fragment shader reads, and binds it
+local function UpdateCircleSSBO()
+	local instances = circleInstanceVBO
+	if not instances then
+		return false
 	end
-end
-
-function widget:DrawGenesis()
-    gl.RenderToTexture(sonarStencilTexture, DrawLOSStencil)
-end
-
--- This shows the debug stencil texture in the bottom left corner of the screen
-if debugmode then 
-	function widget:DrawScreen()	
-		sonarCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0) or sonarCircleShader
-		sonarStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0) or sonarStencilShader
-		gl.Color(1,1,1,1)
-		gl.Blending(GL.ONE, GL.ZERO)
-		gl.Texture(sonarStencilTexture)
-		gl.TexRect(0, 0, vsx/resolution, vsy/resolution, 0, 0, 1, 1)
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	local ssbo = circleSSBO
+	if not ssbo or circleSSBOCapacity < instances.maxElements then
+		if ssbo then
+			ssbo:Delete()
+		end
+		ssbo = gl.GetVBO(GL.SHADER_STORAGE_BUFFER, false)
+		circleSSBO, circleSSBOCapacity = ssbo, 0
+		if not ssbo then
+			return false
+		end
+		ssbo:Define(instances.maxElements, { { id = 0, name = "circle", size = 2 } }) -- two vec4: radius_params, instData
+		circleSSBOCapacity = instances.maxElements
 	end
-end  
+	instances.instanceVBO:CopyTo(ssbo, instances.usedElements * 32)
+	ssbo:BindBufferRange(CIRCLE_SSBO_BINDING)
+	return true
+end
 
 -- Functions shortcuts
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitDefID = Spring.GetUnitDefID
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitIsActive 	= Spring.GetUnitIsActive
+local spGetUnitIsActive = Spring.GetUnitIsActive
+local spGetCameraPosition = Spring.GetCameraPosition
+local spGetGroundExtremes = Spring.GetGroundExtremes
+local spGetMapDrawMode = Spring.GetMapDrawMode
 local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_LINE_LOOP = GL.LINE_LOOP
-local GL_KEEP = 0x1E00 --GL.KEEP
+local GL_KEEP = GL.KEEP
 local GL_REPLACE = GL.REPLACE
 
 -- Globals
 local spec, fullview = spGetSpectatingState()
-local allyTeamID = Spring.GetMyAllyTeamID()
+local allyTeamID = Spring.GetLocalAllyTeamID()
 
 -- find all unit types with sonar in the game and place ranges into unitRange table
 local unitRange = {} -- table of unit types with their sonar ranges
 
 local unitList = {} -- all ally units and their coordinates and sonar ranges
 
+-- 1 when the lines fade out with the camera distance, 0 when they don't
+local function getFadeStrength()
+	if noFadeWithoutLosView and not spec and spGetMapDrawMode() ~= "los" then
+		return 0
+	end
+	return 1
+end
+
+-- true when the camera is so far above the ground that every line (they sit at max(0, ground)) has faded out
+local function fadedOut(fadeStrength)
+	if fadeStrength <= 0 then
+		return false
+	end
+	local _, camY = spGetCameraPosition()
+	local _, _, _, maxHeight = spGetGroundExtremes()
+	return camY - math.max(maxHeight, 0) >= fadeEnd
+end
+
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.sonarDistance and unitDef.sonarDistance > minSonarDistance then	-- save perf by excluding low sonar range units
-		if  string.find(unitDef.name, "raptor", nil, true) then
+	if unitDef.sonarDistance and unitDef.sonarDistance >= minSonarDistance then -- save perf by excluding low sonar range units
+		if string.find(unitDef.name, "raptor", nil, true) then
 			-- skip raptors from sonar
-		else	
+		else
 			unitRange[unitDefID] = unitDef.sonarDistance
 		end
 	end
 end
 
 function widget:ViewResize(newX, newY)
-	CreateStencilShaderAndTexture()
-end 
+	CreateCircleShader()
+end
 
 -- a reusable table, since we will literally only modify its first element.
-local instanceCache = {0,0,0,0,0,0,0,0}
+local instanceCache = { 0, 0, 0, 0, 0, 0, 0, 0 }
 
 local function InitializeUnits()
-	--Spring.Echo("Sensor Ranges LOS InitializeUnits")
+	--spEcho("Sensor Ranges LOS InitializeUnits")
 	InstanceVBOTable.clearInstanceTable(circleInstanceVBO)
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		local visibleUnits =  WG['unittrackerapi'].visibleUnits
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		local visibleUnits = WG.unittrackerapi.visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), nil, true)
 		end
@@ -215,11 +235,12 @@ local function InitializeUnits()
 end
 
 function widget:PlayerChanged()
-	local prevFullview = fullview
+	local wasFullview = spec and fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
-	allyTeamID = Spring.GetMyAllyTeamID()
-	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
+	allyTeamID = Spring.GetLocalAllyTeamID()
+	local isFullview = spec and fullview
+	if isFullview ~= wasFullview or ((not isFullview) and allyTeamID ~= myPrevAllyTeamID) then
 		InitializeUnits()
 	end
 end
@@ -235,52 +256,63 @@ function widget:Initialize()
 	end
 
 	WG.sonarrange = {
-		getOpacity = function() return opacity end,
-		setOpacity = function(value) opacity = value end,
+		getOpacity = function()
+			return opacity
+		end,
+		setOpacity = function(value)
+			opacity = value
+		end,
 	}
 
-	initgl4()	
+	initgl4()
 
 	InitializeUnits()
 end
 
 function widget:Shutdown()
-	if sonarStencilTexture then gl.DeleteTexture(sonarStencilTexture) end
+	if circleSSBO then
+		circleSSBO:Delete()
+	end
+	finalizeShader(sonarCircleShader)
 	WG.sonarrange = nil
 end
 
-function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason,  noupload)
-	--Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, reason, noupload)
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason, noupload)
+	--spEcho("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, reason, noupload)
 	unitTeam = unitTeam or spGetUnitTeam(unitID)
 	noupload = noupload == true
-	if unitRange[unitDefID] == nil or unitTeam == gaiaTeamID then return end
+	if unitRange[unitDefID] == nil or unitTeam == gaiaTeamID then
+		return
+	end
 
 	if (not (spec and fullview)) and (not spIsUnitAllied(unitID)) then -- given units are still considered allies :/
 		return
 	end -- display mode for specs
 
-	if Spring.GetUnitIsBeingBuilt(unitID) then return end
+	if Spring.GetUnitIsBeingBuilt(unitID) then
+		return
+	end
 
-	instanceCache[1] =  unitRange[unitDefID]
+	instanceCache[1] = unitRange[unitDefID]
 
-	
-	local active = true
-	local gameFrame = Spring.GetGameFrame()
+	local active = spGetUnitIsActive(unitID)
+	local gameFrame = spGetGameFrame()
 	if reason == "UnitFinished" then
-		if active then 
-			instanceCache[2] = Spring.GetGameFrame()
+		if active then
+			instanceCache[2] = spGetGameFrame()
 		else
 			instanceCache[2] = -2 -- start from full size
 		end
 	else
-		if active then 
+		if active then
 			instanceCache[2] = gameFrame
 		else
-			instanceCache[2] = -1 * gameFrame 
+			instanceCache[2] = -1 * gameFrame
 		end
 	end
 	unitList[unitID] = active
-	pushElementInstance(circleInstanceVBO,
+	pushElementInstance(
+		circleInstanceVBO,
 		instanceCache,
 		unitID, --key
 		true, -- updateExisting
@@ -300,46 +332,62 @@ function widget:VisibleUnitRemoved(unitID)
 	unitList[unitID] = nil
 end
 
+function widget:GameFrame(n)
+	if spec and fullview then
+		return
+	end
+	if n % 15 == 2 then
+		for unitID, oldActive in pairs(unitList) do
+			local active = spGetUnitIsActive(unitID)
+			if active ~= oldActive then
+				unitList[unitID] = active
+				widget:VisibleUnitAdded(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
+			end
+		end
+	end
+end
 
 function widget:DrawWorld()
 	--if spec and fullview then return end
-	if Spring.IsGUIHidden() or 
-		(circleInstanceVBO.usedElements == 0) or
-		(opacity <= 0.01)
-	then return end
-    
+	local fadeStrength = getFadeStrength()
+	if Spring.IsGUIHidden() or (circleInstanceVBO.usedElements == 0) or (opacity <= 0.01) or fadedOut(fadeStrength) then
+		return
+	end
+	if not UpdateCircleSSBO() then
+		return
+	end
+
 	--gl.Clear(GL.STENCIL_BUFFER_BIT) -- Preemtively clear the stencil buffer
 	gl.StencilTest(true) -- Enable stencil testing
 	gl.StencilFunc(GL_NOTEQUAL, 2, 2) -- Always Passes, 0 Bit Plane, 0 As Mask
 	gl.StencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
 	gl.StencilMask(15) -- Only check the first bit of the stencil buffer
-  
+
 	sonarCircleShader:Activate()
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
-	gl.Texture(1, sonarStencilTexture) -- Bind the heightmap texture
 
-	sonarCircleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity )
-	--Spring.Echo("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
+	sonarCircleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity)
+	--spEcho("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
 	sonarCircleShader:SetUniform("teamColorMix", 0)
+	sonarCircleShader:SetUniformInt("circleCount", circleInstanceVBO.usedElements)
+	sonarCircleShader:SetUniform("fadeStrength", fadeStrength)
 
 	gl.LineWidth(rangeLineWidth * lineScale * 1.0)
 
 	gl.DepthTest(true)
-	-- Note that we are skipping the first and last vertex, as those are the center of the circle : 
-	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices -0, 0, circleInstanceVBO.usedElements) 
+	-- Note that we are skipping the first and last vertex, as those are the center of the circle :
+	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices - 0, 0, circleInstanceVBO.usedElements)
 	-- TODO: In the future, when BASE VERTEX works, use the following line instead:
-	--circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices -2, 1, circleInstanceVBO.usedElements) 
-	
+	--circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices -2, 1, circleInstanceVBO.usedElements)
+
 	sonarCircleShader:Deactivate()
 	gl.Texture(0, false)
-	gl.Texture(1, false)
 	gl.DepthTest(true)
 	gl.StencilTest(false) -- Disable stencil testing
 
-	gl.LineWidth(1.0) 
+	gl.LineWidth(1.0)
 	--gl.Clear(GL.STENCIL_BUFFER_BIT)
 end
-
 
 function widget:GetConfigData(data)
 	return {

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="64" viewBox="0 0 512 64">
+  <defs>
+    <radialGradient id="boltGlow">
+      <stop offset="0" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="0.32" stop-color="#fff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="plasmaGlow">
+      <stop offset="0" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="0.24" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="0.58" stop-color="#ddd" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#aaa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="flameGlow" cx="50%" cy="28%" r="72%">
+      <stop offset="0" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="0.36" stop-color="#eee" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#999" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 0: solid-color compatibility cell -->
+  <rect width="64" height="64" fill="#fff"/>
+
+  <!-- 1: missile, forward is toward the top -->
+  <path fill="#fff" d="M96 3l8 15v28l11 11-12-3-3 7h-8l-3-7-12 3 11-11V18z"/>
+  <path fill="#bbb" d="M92 20h8v34h-8z"/>
+  <path fill="#ddd" d="M96 3l4 17h-8z"/>
+
+  <!-- 2: blaster bolt -->
+  <ellipse cx="160" cy="32" rx="14" ry="30" fill="url(#boltGlow)"/>
+  <ellipse cx="160" cy="32" rx="4" ry="23" fill="#fff"/>
+
+  <!-- 3: aircraft bomb, forward is toward the top -->
+  <path fill="#fff" d="M224 5l9 13v27l10 12-14-6-5 9-5-9-14 6 10-12V18z"/>
+  <path fill="#aaa" d="M219 19h10v31h-10z"/>
+
+  <!-- 4: generic shell -->
+  <path fill="#fff" d="M288 8l8 12v29l-8 8-8-8V20z"/>
+  <path fill="#bbb" d="M284 22h8v27h-8z"/>
+
+  <!-- 5: debris -->
+  <path fill="#fff" d="M333 11l17 6 13 14-8 19-18 4-13-12 4-14z"/>
+  <path fill="#aaa" d="M333 11l13 18-18-1zm13 18l17 2-8 19z"/>
+
+  <!-- 6: plasma -->
+  <circle cx="416" cy="32" r="30" fill="url(#plasmaGlow)"/>
+  <circle cx="416" cy="32" r="8" fill="#fff"/>
+
+  <!-- 7: flame particle -->
+  <path fill="url(#flameGlow)" d="M480 3c13 13 23 27 18 42-3 10-10 16-18 16s-15-6-18-16c-5-15 5-29 18-42z"/>
+  <ellipse cx="480" cy="29" rx="7" ry="13" fill="#fff" fill-opacity="0.82"/>
+</svg>

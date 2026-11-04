@@ -3,7 +3,11 @@
 uniform sampler2D heightMap;
 
 uniform vec4 visibilitycontrols;
-// This shader is (c) Beherith (mysterme@gmail.com)
+uniform float drawPass; // 0 = above-water only, 1 = underwater only
+uniform float waterLevel; // dynamic water/lava surface level in elmos
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Beherith (mysterme@gmail.com)
+// This shader is part of the Beyond All Reason repository.  
 
 layout (location = 0) in vec4 localpos_dir_angle;
 layout (location = 1) in vec4 worldpos_radius;
@@ -28,7 +32,7 @@ float heightAtWorldPos(vec2 w){
 #define VERTEXTYPE localpos_dir_angle.w
 
 #define NOTOCCUPIED visibility.x
-#define GAMEFRAMECHANGED visibilty.y
+#define GAMEFRAMECHANGED visibility.y
 
 #define TEXTWIDTH visibility.z
 #define TEXTHEIGHT visibility.w
@@ -36,8 +40,28 @@ float heightAtWorldPos(vec2 w){
 
 void main()
 {
-	// Bail early for out-of-view stuff
-	if (isSphereVisibleXY(vec4(worldpos_radius.xyz,1.0),128.0)) {
+	circlealpha = mix(
+		0.5 - ((timeInfo.x + timeInfo.w)- visibility.y) / 30.0, // turned unoccipied, fading into visibility
+		      ((timeInfo.x + timeInfo.w) - visibility.y) / 30.0, // going into occupied, so fade out from visibility.y
+		step(0.5, visibility.x)            // 1.0 if visibility is > 0.5
+	);
+	circlealpha = clamp(circlealpha, 0.0, 0.5);
+
+	// Bail early for the fully faded rings of occupied spots (they blend to nothing) and for out-of-view stuff
+	if ((VERTEXTYPE == 0.0 && circlealpha <= 0.0) || isSphereVisibleXY(vec4(worldpos_radius.xyz,1.0),128.0)) {
+		gl_Position = cameraViewProj * vec4(-1000,-1000,-1000,1);
+		return;
+	}
+
+	// scale the circle and move to world pos:
+	float groundHeight = heightAtWorldPos(worldpos_radius.xz);
+
+	// drawPass 0 = above-water only (DrawWorldPreUnit), 1 = underwater only (DrawWorld)
+	if (drawPass < 0.5 && groundHeight < waterLevel) {
+		gl_Position = cameraViewProj * vec4(-1000,-1000,-1000,1);
+		return;
+	}
+	if (drawPass > 0.5 && groundHeight >= waterLevel) {
 		gl_Position = cameraViewProj * vec4(-1000,-1000,-1000,1);
 		return;
 	}
@@ -51,19 +75,12 @@ void main()
 
 	vertexWorldPos = roty * vertexWorldPos;
 
-	// scale the circle and move to world pos:
-	vec3 worldXYZ = vec3(worldpos_radius.x, heightAtWorldPos(worldpos_radius.xz), worldpos_radius.z);
+	vec3 worldXYZ = vec3(worldpos_radius.x, groundHeight + 5.0, worldpos_radius.z);
 	vertexWorldPos = vertexWorldPos * (12.0 + ROTDIR) * 2.0 * worldpos_radius.w + worldXYZ;
 
 	//dump to FS:
 	gl_Position = cameraViewProj * vec4(vertexWorldPos,1.0);
 
-	circlealpha = mix(
-		0.5 - ((timeInfo.x + timeInfo.w)- visibility.y) / 30.0, // turned unoccipied, fading into visibility
-		      ((timeInfo.x + timeInfo.w) - visibility.y) / 30.0, // going into occupied, so fade out from visibility.y
-		step(0.5, visibility.x)            // 1.0 if visibility is > 0.5
-	);
-	circlealpha = clamp(circlealpha, 0.0, 0.5);
 	v_targetcolor = vec4(vec3(1),circlealpha);
 	
 	v_uvcoords = vec4(-1);

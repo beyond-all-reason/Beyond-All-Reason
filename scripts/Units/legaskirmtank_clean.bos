@@ -6,6 +6,9 @@ piece base, tracks, turretBase, barrelPivot, barrelBack, barrelMid, barrelAim, b
 
 static-var   statechg_DesiredState, statechg_StateChanging, restore_delay, Stunned, timeLeft, last_primary_heading;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_FIRE1 1024
@@ -36,6 +39,8 @@ static-var   statechg_DesiredState, statechg_StateChanging, restore_delay, Stunn
 
 Create()
 {
+	Weapon1TurretX = <60>;
+	Weapon1TurretY = <120>;
 	timeLeft = 0;
 	hide flare;
 	// hide flarer;
@@ -106,8 +111,8 @@ AimWeapon1(heading, pitch)
     timeLeft = restore_delay;
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turretBase to y-axis heading speed <120>;
-	turn barrelPivot to x-axis <0.000000> - pitch speed <60>;
+	turn turretBase to y-axis heading speed Weapon1TurretY;
+	turn barrelPivot to x-axis <0.000000> - pitch speed Weapon1TurretX;
 	if (get ABS(last_primary_heading - heading)> <20>)
 	{
 		// seems to take 3 frames for wait-for-turn to process

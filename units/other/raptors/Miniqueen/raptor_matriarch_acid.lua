@@ -57,6 +57,7 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			normaltex = "unittextures/chicken_l_normals.png",
 		},
 		sfxtypes = {
@@ -189,6 +190,8 @@ return {
 					area_onhit_damage = 40,
 					area_onhit_range = 75,
 					area_onhit_resistance = "_RAPTORACID_",
+					nofire = true,
+					water_splash = 0,
 				},
 				damage = {
 					default = 1,

@@ -4,11 +4,11 @@
 --- @field getCommand fun(cmd: string): any
 local SelectApi = {}
 
-local defaultdamagetag = Game.armorTypes['default']
-local vtoldamagetag = Game.armorTypes['vtol']
+local defaultdamagetag = Game.armorTypes.default
+local vtoldamagetag = Game.armorTypes.vtol
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitGroup = Spring.GetUnitGroup
@@ -41,12 +41,10 @@ local function handleCaching(invert, tokenLower, filterFunction, optionalArg)
 
 	return function(udef)
 		if cache[udef] == nil then
-			local result = filterFunction(udef, optionalArg)
-			-- handle invert explicitly here for caching
-			result = (result or false) ~= invert
-			cache[udef] = result
+			-- the inverted filter shares this cache
+			cache[udef] = filterFunction(udef, optionalArg) and true or false
 		end
-		return cache[udef]
+		return cache[udef] ~= invert
 	end
 end
 
@@ -55,11 +53,11 @@ local function logError(message)
 end
 
 local function isBuilder(udef)
-	return (udef.canReclaim and udef.reclaimSpeed > 0) or
-		(udef.canResurrect and udef.resurrectSpeed > 0) or
-		(udef.canRepair and udef.repairSpeed > 0) or
-		(udef.buildOptions and udef.buildOptions[1]) or
-		(udef.canStockpile and udef.modCategories.ship and udef.modCategories.noweapon) -- carrier ships
+	return (udef.canReclaim and udef.reclaimSpeed > 0)
+		or (udef.canResurrect and udef.resurrectSpeed > 0)
+		or (udef.canRepair and udef.repairSpeed > 0)
+		or (udef.buildOptions and udef.buildOptions[1])
+		or (udef.canStockpile and udef.modCategories.ship and udef.modCategories.noweapon) -- carrier ships
 end
 
 local function invertCurry(invert, filter, args)
@@ -87,16 +85,13 @@ local function notEmptyUdefFilter(invert, property)
 end
 
 local function checkCmd(uid, cmdId, indexTemp)
-	local index = indexTemp or 1
-	local cmd = spGetUnitCommands(uid, index)
-	if cmd and cmd[index] and cmd[index]["id"] == cmdId then
-		return true
-	end
-	return false
+	return spGetUnitCurrentCommand(uid, indexTemp or 1) == cmdId
 end
 
+local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
+
 local function isIdle(udef, _udefid, uid)
-	return spGetUnitCommandCount(uid) == 0
+	return spGetUnitCommandCount(uid) == 0 or inIdleWorkerTask[uid]
 end
 
 local function stringContains(mainString, searchString)
@@ -131,7 +126,7 @@ local function parseFilter(filterDef)
 		local tokenLower = string.lower(token)
 
 		if tokenLower == "not" then
-			invert = true;
+			invert = true
 			token = getNextToken()
 			tokenLower = string.lower(token)
 		end
@@ -181,7 +176,11 @@ local function parseFilter(filterDef)
 			filters.idle = invertCurry(invert, isIdle)
 		elseif tokenLower == "guarding" then
 			filters.guarding = invertCurry(invert, function(_udef, _udefid, uid)
-				return checkCmd(uid, CMD.GUARD)
+				local firstCmdId = spGetUnitCurrentCommand(uid, 1)
+				if firstCmdId == CMD.GUARD then
+					return true
+				end
+				return (firstCmdId == CMD.REPAIR or firstCmdId == CMD.ATTACK) and checkCmd(uid, CMD.GUARD, 2)
 			end)
 		elseif tokenLower == "waiting" then
 			filters.waiting = invertCurry(invert, function(_udef, _udefid, uid)
@@ -250,7 +249,7 @@ local function parseFilter(filterDef)
 				end
 
 				for _name, weapondef in pairs(udef.wDefs) do
-					if (weapondef.damages[vtoldamagetag] > weapondef.damages[defaultdamagetag]) then
+					if weapondef.damages[vtoldamagetag] > weapondef.damages[defaultdamagetag] then
 						return true
 					end
 				end
@@ -293,10 +292,10 @@ local function parseFilter(filterDef)
 				break
 			end
 
-			local udefid = UnitDefNames[name];
-
-			if udefid then
-				idMatchesSet[udefid] = true
+			local unitDef = UnitDefNames[name] ---@as table?
+			if unitDef ~= nil then
+				local unitDefID = unitDef.id
+				idMatchesSet[unitDefID] = true
 
 				-- requires special invert logic
 				-- treats `invert = false` as priority
@@ -313,8 +312,8 @@ local function parseFilter(filterDef)
 				end
 
 				if not skip then
-					filters.idMatches = invertCurry(invertIdMatches, function(_, udefid, _, idMatchesSet)
-						return idMatchesSet[udefid] or false
+					filters.idMatches = invertCurry(invertIdMatches, function(_, udefid, _, matchSet)
+						return matchSet[udefid] or false
 					end, idMatchesSet)
 				end
 			end
@@ -338,7 +337,7 @@ end
 --- Parses the filter definition and returns a function that determines if a unit passes the
 --- filter.
 ---
---- The parsing will only occure the first time this function is called, after that it is stored in
+--- The parsing will only occur the first time this function is called, after that it is stored in
 --- a lookup table.
 --- @param filterDef string The filter definition string.
 --- @return function the function to call to execute the filter
@@ -356,7 +355,7 @@ end
 --- Applies the filter function to the unit represented by the unit ID to determine if the unit
 --- passes the filter.
 ---
---- @param uid integer The unit ID
+--- @param uid UnitID
 --- @param filterFunctions table List of filter functions
 --- @return boolean? passes Whether the unit passes the filter, nil if the unit doesn't exist
 function SelectApi.unitPassesFilter(uid, filterFunctions)
@@ -397,8 +396,12 @@ local function getMouseWorldPos()
 	local mouseX, mouseY = spGetMouseState()
 	local desc, args = spTraceScreenRay(mouseX, mouseY, true)
 
-	if nil == desc then return end -- off map
-	if nil == args then return end
+	if nil == desc then
+		return
+	end -- off map
+	if nil == args then
+		return
+	end
 
 	local x = args[1]
 	local y = args[2]
@@ -409,7 +412,8 @@ end
 
 local countUnitsIndex = 1
 local function getCountUnits(uids, countUntil, appendSelected)
-	if #uids == 0 then
+	local numUids = #uids
+	if numUids == 0 then
 		return {}
 	end
 
@@ -423,7 +427,7 @@ local function getCountUnits(uids, countUntil, appendSelected)
 	local selectedCount = 0
 	local units = {}
 
-	if countUnitsIndex > #uids then
+	if countUnitsIndex > numUids then
 		countUnitsIndex = 1
 	end
 
@@ -433,19 +437,19 @@ local function getCountUnits(uids, countUntil, appendSelected)
 
 		if not alreadySelectedSet[uid] then
 			selectedCount = selectedCount + 1
-			table.insert(units, uid)
+			units[selectedCount] = uid
 		end
 
 		-- circular array index
 		countUnitsIndex = countUnitsIndex + 1
 
-		if countUnitsIndex > #uids then
+		if countUnitsIndex > numUids then
 			countUnitsIndex = 1
 		end
 
 		-- break after full cycle or countUntil reached
 		if countUnitsIndex == countUnitsIndexStart or selectedCount >= countUntil then
-			break;
+			break
 		end
 	end
 
@@ -471,7 +475,6 @@ local function parseNumber(input, fn)
 		return fn(distance or 0, args)
 	end
 end
-
 
 local function parseConclusion(conclusionDef)
 	local appendSelected = true
@@ -563,12 +566,12 @@ local function parseSource(sourceDef)
 
 	if sourceDefLower == "allmap" then
 		return function()
-			local myTeamId = Spring.GetMyTeamID()
+			local myTeamId = Spring.GetLocalTeamID()
 			return Spring.GetTeamUnits(myTeamId)
 		end
 	elseif sourceDefLower == "visible" then
 		return function()
-			local myTeamId = Spring.GetMyTeamID()
+			local myTeamId = Spring.GetLocalTeamID()
 			return Spring.GetVisibleUnits(myTeamId)
 		end
 	elseif sourceDefLower == "prevselection" or sourceDefLower == "previousselection" then

@@ -1,12 +1,11 @@
 return {
 	legmineb = {
-		acceleration = 0.055,
 		blocking = false,
 		maxdec = 0.045,
 		energycost = 21000,
 		metalcost = 300,
 		buildpic = "LEGMINEB.DDS",
-		buildtime = 26000,
+		buildtime = 30550,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -14,8 +13,6 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.06,
 		maxaileron = 0.01347,
 		maxbank = 0.8,
@@ -26,7 +23,6 @@ return {
 		maxslope = 10,
 		speed = 210.0,
 		maxwaterdepth = 0,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/legmineb.s3o",
 		script = "Units/legmineb.cob",
@@ -40,24 +36,11 @@ return {
 		wingangle = 0.06222,
 		wingdrag = 0.125,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air/T2 Air",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
+			techlevel = 2,
 		},
 		sounds = {
 			build = "nanlath1",

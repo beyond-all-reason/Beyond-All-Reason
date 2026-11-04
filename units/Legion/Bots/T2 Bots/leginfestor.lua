@@ -6,7 +6,7 @@ return {
 		metalcost = 250,
 		buildpic = "LEGINFESTOR.DDS",
 		builddistance = 175,
-		buildtime = 3000,
+		buildtime = 4310,
 		builder = true,
 		canassist = true,
 		canreclaim = true,
@@ -18,8 +18,6 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1200,
 		maxslope = 50,
 		speed = 54.0,
@@ -40,14 +38,16 @@ return {
 		turnrate = 1214.40002,
 		workertime = 100,
 		buildoptions = {
-			[1] = "leginfestor"
+			[1] = "leginfestor",
 		},
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
+			guards_own_builder = true,
 			model_author = "Zath (model), Tuerk (animation)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,
-			subfolder = "CorBots/T2",
+			selectable_as_combat_unit = true,
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			selectionscalemult = 1,
 		},
@@ -79,13 +79,6 @@ return {
 				object = "Units/cor3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -133,7 +126,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "heatray1",
 				soundtrigger = 1,
-				targetborder = 0.3,
 				thickness = 1.5,
 				tolerance = 2000,
 				turret = true,
@@ -150,6 +142,7 @@ return {
 			[1] = {
 				def = "festorbeam",
 				onlytargetcategory = "SURFACE",
+				burstControlWhenOutOfArc = 1,
 			},
 		},
 	},

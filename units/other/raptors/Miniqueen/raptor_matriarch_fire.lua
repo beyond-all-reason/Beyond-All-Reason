@@ -32,7 +32,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 2000,
 		mass = 2000000,
-		health = 60000,
+		health = 30000,
 		maxslope = 40,
 		speed = 67.5,
 		maxwaterdepth = 0,
@@ -60,6 +60,7 @@ return {
 		workertime = 5000,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			normaltex = "unittextures/chicken_l_normals.png",
 		},
 		sfxtypes = {
@@ -107,7 +108,6 @@ return {
 				soundstart = "cflamhvy1",
 				soundtrigger = false,
 				sprayangle = 100,
-				targetborder = 0.75,
 				targetmoveerror = 0.001,
 				tolerance = 2500,
 				turret = true,
@@ -150,7 +150,6 @@ return {
 				soundstart = "cflamhvy1",
 				soundtrigger = false,
 				sprayangle = 100,
-				targetborder = 0.75,
 				targetmoveerror = 0.001,
 				tolerance = 2500,
 				turret = true,

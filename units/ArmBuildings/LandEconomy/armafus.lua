@@ -2,13 +2,12 @@ return {
 	armafus = {
 		buildangle = 4096,
 		buildpic = "ARMAFUS.DDS",
-		buildtime = 312500,
+		buildtime = 313000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 96 96",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		damagemodifier = 0.95,
 		energycost = 69000,
 		energymake = 3000,
 		energystorage = 9000,
@@ -16,8 +15,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 7900,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 13,
@@ -41,6 +38,7 @@ return {
 			subfolder = "ArmBuildings/LandEconomy",
 			techlevel = 2,
 			unitgroup = "energy",
+			restrictions_inclusion = "_nofusion_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -72,13 +70,6 @@ return {
 				object = "Units/arm4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

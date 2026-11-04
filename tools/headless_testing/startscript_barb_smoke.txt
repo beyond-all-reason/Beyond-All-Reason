@@ -1,0 +1,77 @@
+[GAME]
+{
+	MapName=Supreme Isthmus v2.1;
+	GameType=Beyond All Reason $VERSION;
+	GameStartDelay=0;
+	StartPosType=0;
+	RecordDemo=0;
+	MyPlayerName=SmokeRunner;
+	IsHost=1;
+	FixedRNGSeed=1;
+	NumPlayers=1;
+	NumUsers=1;
+	HostIP=127.0.0.1;
+	HostPort=0;
+	NoHelperAIs=0;
+
+	[MODOPTIONS]
+	{
+		deathmode=neverend;
+		debugcommands=1800:quitforce;
+	}
+
+	[ALLYTEAM0]
+	{
+		NumAllies=0;
+	}
+
+	[ALLYTEAM1]
+	{
+		NumAllies=0;
+	}
+
+	[TEAM0]
+	{
+		Side=Armada;
+		Handicap=0;
+		AllyTeam=0;
+		TeamLeader=0;
+	}
+
+	[TEAM1]
+	{
+		Side=Cortex;
+		Handicap=0;
+		AllyTeam=1;
+		TeamLeader=0;
+	}
+
+	[AI0]
+	{
+		Host=0;
+		IsFromDemo=0;
+		Name=BARbarianAI(1);
+		ShortName=BARb;
+		Team=0;
+		Version=stable;
+	}
+
+	[AI1]
+	{
+		Host=0;
+		IsFromDemo=0;
+		Name=BARbarianAI(2);
+		ShortName=BARb;
+		Team=1;
+		Version=stable;
+	}
+
+	[PLAYER0]
+	{
+		IsFromDemo=0;
+		Name=SmokeRunner;
+		Team=0;
+		Spectator=0;
+		Rank=0;
+	}
+}

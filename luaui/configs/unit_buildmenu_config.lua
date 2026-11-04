@@ -3,39 +3,22 @@
 --- DateTime: 4/26/2023 8:48 PM
 ---
 
+local unitBlocking = require("common/unitBlocking")
 
 local unitEnergyCost = {} ---@type table<number, number>
 local unitMetalCost = {} ---@type table<number, number>
 local unitGroup = {} ---@type table<number, number>
-local unitRestricted = {} ---@type table<number, true>
-local manualUnitRestricted = {} ---@type table<number, true>
+local unitRestricted = {} ---@type table<number, boolean>
+local unitHidden = {} ---@type table<number, boolean>
+local builderUnitRestricted = {} ---@type table<number, table<number, table<string, boolean>>> builder UnitDefID -> blocked UnitDefID -> reasons
 local isBuilder = {} ---@type table<number, true>
 local isFactory = {} ---@type table<number, true>
 local unitIconType = {} ---@type table<number, number>
 local isMex = {} ---@type table<number, true>
-local isWind = {} ---@type table<number, true>
-local isWaterUnit = {} ---@type table<number, true>
-local isGeothermal = {} ---@type table<number, true>
 local unitMaxWeaponRange = {} ---@type table<number, number>
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-
 	unitGroup[unitDefID] = unitDef.customParams.unitgroup
-
-	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan' or unitDef.name == 'legatorpbomber'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
-		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
-		isWaterUnit[unitDefID] = true
-	end
-	if unitDef.name == 'armthovr' or unitDef.name == 'corintr' then
-		isWaterUnit[unitDefID] = nil
-	end
-	if unitDef.customParams.enabled_on_no_sea_maps then
-		isWaterUnit[unitDefID] = nil
-	end
-
-	if unitDef.needGeo then
-		isGeothermal[unitDefID] = true
-	end
 
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
@@ -44,11 +27,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitIconType[unitDefID] = unitDef.iconType
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
-
-	if unitDef.maxThisUnit == 0 then
-		unitRestricted[unitDefID] = true
-		manualUnitRestricted[unitDefID] = true
-	end
 
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = unitDef.buildOptions
@@ -61,53 +39,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
 	end
-
-	if unitDef.windGenerator > 0 then
-		isWind[unitDefID] = true
-	end
 end
-
----@param disable boolean
-local function restrictWindUnits(disable)
-	for unitDefID,_ in pairs(isWind) do
-		unitRestricted[unitDefID] = manualUnitRestricted[unitDefID] or disable
-	end
-end
-
----@param disable boolean
-local function restrictGeothermalUnits(disable)
-	for unitDefID,_ in pairs(isGeothermal) do
-		unitRestricted[unitDefID] = manualUnitRestricted[unitDefID] or disable
-	end
-end
-
----@param disable boolean
-local function restrictWaterUnits(disable)
-	for unitDefID,_ in pairs(isWaterUnit) do
-		unitRestricted[unitDefID] = manualUnitRestricted[unitDefID] or disable
-	end
-end
-
----Sets geothermal unit restriction based on the presence of geothermal
----features.
-local function checkGeothermalFeatures()
-	local hideGeoUnits = true
-	local geoThermalFeatures = {}
-	for defID, def in pairs(FeatureDefs) do
-		if def.geoThermal then
-			geoThermalFeatures[defID] = true
-		end
-	end
-	local features = Spring.GetAllFeatures()
-	for i = 1, #features do
-		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
-			hideGeoUnits = false
-			break
-		end
-	end
-	restrictGeothermalUnits(hideGeoUnits)
-end
-
 
 ------------------------------------
 -- UNIT ORDER ----------------------
@@ -119,7 +51,7 @@ end
 ---@type number[]
 local unitOrder = {}
 
-local unitOrderManualOverrideTable = VFS.Include("luaui/configs/buildmenu_sorting.lua")
+local unitOrderManualOverrideTable = require("luaui/configs/buildmenu_sorting")
 
 -- Populate unitOrder with unit IDs.
 local count = 1
@@ -149,18 +81,62 @@ table.sort(unitOrder, function(aID, bID)
 	local aOrder = unitOrderManualOverrideTable[aID] or maxOrder
 	local bOrder = unitOrderManualOverrideTable[bID] or maxOrder
 
-	if (aOrder == bOrder) then
+	if aOrder == bOrder then
 		return aID < bID
 	end
 	return aOrder < bOrder
 end)
 
+---Blocked for the whole team, or for this builder type.
+---@param unitDefID number
+---@param builderDefID number?
+---@return boolean
+local function isRestricted(unitDefID, builderDefID)
+	if unitRestricted[unitDefID] then
+		return true
+	end
+	if not builderDefID then
+		return false
+	end
+	local builderRestricted = builderUnitRestricted[builderDefID]
+	return builderRestricted ~= nil and builderRestricted[unitDefID] ~= nil
+end
+
+---Applies a UnitBlocked callin.
+---@param unitDefID number
+---@param reasons table<string, boolean> empty when unblocked
+---@param builderDefID number? set for a per-builder block
+local function setBlocked(unitDefID, reasons, builderDefID)
+	if builderDefID then
+		table.ensureTable(builderUnitRestricted, builderDefID)[unitDefID] = next(reasons) ~= nil and reasons or nil
+	else
+		unitRestricted[unitDefID] = next(reasons) ~= nil
+		unitHidden[unitDefID] = reasons.hidden ~= nil
+	end
+end
+
+---Loads the current blocks (widget load).
+local function loadBlocked()
+	local teamID = Spring.GetLocalTeamID()
+	for unitDefID, reasons in pairs(unitBlocking.getBlockedUnitDefs(teamID)) do
+		setBlocked(unitDefID, reasons)
+	end
+	for builderDefID, blockedUnits in pairs(unitBlocking.getBuilderBlockedUnitDefs(teamID)) do
+		builderUnitRestricted[builderDefID] = blockedUnits
+	end
+end
 
 local units = {
+	isRestricted = isRestricted,
+	setBlocked = setBlocked,
+	loadBlocked = loadBlocked,
 	unitEnergyCost = unitEnergyCost,
 	unitMetalCost = unitMetalCost,
 	unitGroup = unitGroup,
 	unitRestricted = unitRestricted,
+	unitHidden = unitHidden,
+	---Per-builder blocks: builder UnitDefID -> blocked UnitDefID -> reasons.
+	builderUnitRestricted = builderUnitRestricted,
 	unitIconType = unitIconType,
 	unitMaxWeaponRange = unitMaxWeaponRange,
 	---Set of unit IDs that are factories.
@@ -169,22 +145,10 @@ local units = {
 	isBuilder = isBuilder,
 	---Set of unit IDs that require metal.
 	isMex = isMex,
-	---Set of unit IDs that require wind.
-	isWind = isWind,
-	---Set of unit IDs that require water.
-	isWaterUnit = isWaterUnit,
-	---Set of unit IDs that require geothermal.
-	isGeothermal = isGeothermal,
-	minWaterUnitDepth = -11,
 	---An array with unitIDs sorted by their value specified in
 	---`unitOrderManualOverrideTable`. If no value is specified, the unit will be
 	---placed at the end of the array.
 	unitOrder = unitOrder,
-
-	checkGeothermalFeatures = checkGeothermalFeatures,
-	restrictGeothermalUnits = restrictGeothermalUnits,
-	restrictWindUnits = restrictWindUnits,
-	restrictWaterUnits = restrictWaterUnits,
 }
 
 return units

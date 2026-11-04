@@ -1,4 +1,4 @@
-piece body,head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liwing;
+piece body,head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liwing, firepoint;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -68,7 +68,12 @@ Create()
 
 
 QueryWeapon1(pieceIndex)
-	{	pieceIndex=head; }
+	{	pieceIndex=firepoint; }
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = head;
+}
 
 RestoreAfterDelay()
 	{

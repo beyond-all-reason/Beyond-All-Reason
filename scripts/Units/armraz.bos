@@ -8,6 +8,9 @@ piece  pelvis, rthigh, rleg, rfoot, rrfinger, rlfinger, lthigh, lleg, lfoot, llf
 
 static-var  gun_1, isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, shotcount, isAiming; 
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
@@ -362,6 +365,8 @@ StopMoving(){
 
 Create()
 {
+	Weapon1TurretX = <85>;
+	Weapon1TurretY = <270>;
 	hide lflare;
 	hide rflare;
 	hide aimx1;
@@ -373,6 +378,7 @@ Create()
 	isAiming = FALSE;
 	
 	start-script UnitSpeed();
+	call-script CATT1_Init();
 	call-script StopWalking();
 	isMoving = FALSE;
 }
@@ -391,21 +397,20 @@ lua_UnitScriptDistortion(lightIndex, count)
 
 #define CATT1_PIECE_Y aimy1
 #define CATT1_PIECE_X aimx1
+#define CATT1_MAX_VELOCITY (Weapon1TurretY / GAME_SPEED) // degrees per frame
+#define CATT1_ACCELERATION (Weapon1TurretY / 6 / GAME_SPEED) // degrees per frame
+#define CATT1_JERK (Weapon1TurretY * 4 / 9 / GAME_SPEED) // degrees per frame
+#define CATT1_PRECISION <9> // degrees
+#define CATT1_PITCH_SPEED Weapon1TurretX // degrees per SECOOND
+#define CATT1_RESTORE_DELAY 3000 // ms
+#define CATT1_RESTORE_SPEED (Weapon1TurretY / 3 / GAME_SPEED) // degrees per frame
 
-#define CATT1_MAX_VELOCITY <9.0>
-#define CATT1_ACCELERATION <1.5>
-#define CATT1_JERK <4>
-#define CATT1_PRECISION <10.0>
-#define CATT1_PITCH_SPEED <85>
-#define CATT1_RESTORE_DELAY 3000
-#define CATT1_RESTORE_SPEED <3.0>
-
-#include "../constant_acceleration_turret_turning_1.h"
+#include "../constant_acceleration_turret_turning.h"
 
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = torso;
+	pieceIndex = aimy1;
 }
 
 RestoreAfterDelay()
@@ -420,9 +425,7 @@ ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
-    }
-    
-	start-script CATT1_Restore();
+    }    
 	isAiming = FALSE;
 }
 
@@ -432,7 +435,7 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	spin rbarrel around z-axis speed <1000>;
 	spin lbarrel around z-axis speed <-1000>;
-	turn luparm to y-axis <5.0> speed <120.0>;
+	turn luparm to y-axis <-5.0> speed <120.0>;
 	turn ruparm to y-axis <5.0> speed <120.0>;
 
 	call-script CATT1_Aim(heading,pitch);
@@ -448,8 +451,6 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	// has to be up here or it uses both guns per burst
-	gun_1 = !gun_1;
 	
 	if( !gun_1 )
 	{
@@ -475,6 +476,11 @@ FireWeapon1()
 		call-script lua_UnitScriptLight(5, shotcount);
 		call-script lua_UnitScriptLight(6, shotcount);
 	}
+}
+
+EndBurst1()
+{
+	gun_1 = !gun_1;
 }
 
 QueryWeapon1(pieceIndex)

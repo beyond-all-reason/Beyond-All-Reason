@@ -1,17 +1,26 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-   return {
-      name      = "API Screencopy Manager",
-      desc      = "Provides a per-frame shared screencopy to any widget/gadget requesting it",
-      author    = "Beherith",
-      date      = "2022.02.18",
-      license   = "GNU GPL, v2 or later",
-      layer     = -828888, -- This means it runs late in the render order
-	  handler   = true,
-      enabled   = true
-   }
+	return {
+		name = "API Screencopy Manager",
+		desc = "Provides a per-frame shared screencopy to any widget/gadget requesting it",
+		author = "Beherith",
+		date = "2022.02.18",
+		license = "GNU GPL, v2 or later",
+		layer = -828888, -- This means it runs late in the render order
+		handler = true,
+		enabled = true,
+	}
 end
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetDrawFrame = Spring.GetDrawFrame
+
+local glCopyToTexture = gl.CopyToTexture
+local glCreateTexture = gl.CreateTexture
+local glDeleteTexture = gl.DeleteTexture
 
 -- So in total about 168/162 fps delta just going from 1 to 2 screencopies!
 
@@ -19,7 +28,7 @@ end
 -- GUIshader - Done -- dont care if its not sharpened, in fact!
 -- CAS - Done
 -- TODO:
-	-- LUPS distortionFBO - hard because large areas might have a noticable lack of sharpening...
+-- distortionFBO - hard because large areas might have a noticeable lack of sharpening...
 
 -- Code snippet to use if you want to request a copy:
 -- also note that the first copy will return nil, as its all black!
@@ -29,56 +38,73 @@ end
 			screencopy = WG['screencopymanager'].GetScreenCopy()
 		else
 			-- gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy) -- copy screen to screencopy, and render screencopy into blurtex
-			Spring.Echo("no manager",  WG['screencopymanager'] )
+			spEcho("no manager",  WG['screencopymanager'] )
 			return
 		end
 		if screencopy == nil then return end
-]]--
+]]
+-- If you draw over the screen after reading the copy, call InvalidateScreenCopy() so that later callers
+-- this frame get a new copy with your drawing in it (CAS rewrites every pixel from the copy).
+--
 
 -- Also provide a depth copy too!
--- For correct render order, the depth copy should be requested before things like healthbars. 
+-- For correct render order, the depth copy should be requested before things like healthbars.
 -- Why do we even return nil for our first copy?
 
+local GL_DEPTH_COMPONENT32 = 0x81A7
+
+-- created on first request, so a copy nobody asks for (usually the depth one) takes no VRAM; false if that failed
 local ScreenCopy
 local lastScreenCopyFrame
-
 
 local DepthCopy
 local lastDepthCopyFrame
 
-local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+local vsx, vsy, vpx, vpy = spGetViewGeometry()
 local firstCopy = true
 
-function widget:ViewResize()
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
-	if ScreenCopy then gl.DeleteTexture(ScreenCopy) end
-	ScreenCopy = gl.CreateTexture(vsx  , vsy, {
+local function CreateCopyTexture(format, filter, name)
+	local texture = glCreateTexture(vsx, vsy, {
 		border = false,
-		min_filter = GL.LINEAR,
-		mag_filter = GL.LINEAR,
+		format = format,
+		min_filter = filter,
+		mag_filter = filter,
 		wrap_s = GL.CLAMP,
 		wrap_t = GL.CLAMP,
 	})
+	if not texture then
+		spEcho("ScreenCopy Manager failed to create a " .. name)
+	end
+	return texture or false
+end
 
-	local GL_DEPTH_COMPONENT32 = 0x81A7
-	if DepthCopy then gl.DeleteTexture(DepthCopy) end
-	DepthCopy = gl.CreateTexture(vsx  , vsy, {
-		border = false,
-		format = GL_DEPTH_COMPONENT32,
-		min_filter = GL.NEAREST,
-		mag_filter = GL.NEAREST,
-		wrap_s = GL.CLAMP,
-		wrap_t = GL.CLAMP,
-	})
-	if not ScreenCopy then Spring.Echo("ScreenCopy Manager failed to create a ScreenCopy") end 
-	if not DepthCopy then Spring.Echo("ScreenCopy Manager failed to create a DepthCopy") end 
+local function DeleteCopies()
+	if ScreenCopy then
+		glDeleteTexture(ScreenCopy)
+	end
+	if DepthCopy then
+		glDeleteTexture(DepthCopy)
+	end
+	ScreenCopy, lastScreenCopyFrame = nil, nil
+	DepthCopy, lastDepthCopyFrame = nil, nil
+end
+
+function widget:ViewResize()
+	vsx, vsy, vpx, vpy = spGetViewGeometry()
+	DeleteCopies()
 end
 
 local function GetScreenCopy()
-	local df = Spring.GetDrawFrame()
-	--Spring.Echo("GetScreenCopy", df)
+	local df = spGetDrawFrame()
+	--spEcho("GetScreenCopy", df)
 	if df ~= lastScreenCopyFrame then
-		gl.CopyToTexture(ScreenCopy, 0, 0, vpx, vpy, vsx, vsy)
+		if ScreenCopy == nil then
+			ScreenCopy = CreateCopyTexture(nil, GL.LINEAR, "ScreenCopy")
+		end
+		if not ScreenCopy then
+			return nil
+		end
+		glCopyToTexture(ScreenCopy, 0, 0, vpx, vpy, vsx, vsy)
 		lastScreenCopyFrame = df
 	end
 	if firstCopy then
@@ -88,12 +114,21 @@ local function GetScreenCopy()
 	return ScreenCopy
 end
 
+local function InvalidateScreenCopy()
+	lastScreenCopyFrame = nil
+end
 
 local function GetDepthCopy()
-	local df = Spring.GetDrawFrame()
-	--Spring.Echo("GetScreenCopy", df)
+	local df = spGetDrawFrame()
+	--spEcho("GetScreenCopy", df)
 	if df ~= lastDepthCopyFrame then
-		gl.CopyToTexture(DepthCopy, 0, 0, vpx, vpy, vsx, vsy)
+		if DepthCopy == nil then
+			DepthCopy = CreateCopyTexture(GL_DEPTH_COMPONENT32, GL.NEAREST, "DepthCopy")
+		end
+		if not DepthCopy then
+			return nil
+		end
+		glCopyToTexture(DepthCopy, 0, 0, vpx, vpy, vsx, vsy)
 		lastDepthCopyFrame = df
 	end
 	if firstCopy then
@@ -103,25 +138,23 @@ local function GetDepthCopy()
 	return DepthCopy
 end
 
-
 function widget:Initialize()
-	if gl.CopyToTexture == nil then
-		Spring.Echo("ScreenCopy Manager API: your hardware is missing the necessary CopyToTexture feature")
+	if glCopyToTexture == nil then
+		spEcho("ScreenCopy Manager API: your hardware is missing the necessary CopyToTexture feature")
 		widgetHandler:RemoveWidget()
 		return false
 	end
-	self:ViewResize(vsx, vsy)
-	WG['screencopymanager'] = {}
-	WG['screencopymanager'].GetScreenCopy = GetScreenCopy
-	WG['screencopymanager'].GetDepthCopy = GetDepthCopy
-	widgetHandler:RegisterGlobal('GetScreenCopy', WG['screencopymanager'].GetScreenCopy)
-	widgetHandler:RegisterGlobal('GetDepthCopy', WG['screencopymanager'].GetDepthCopy)
+	WG.screencopymanager = {}
+	WG.screencopymanager.GetScreenCopy = GetScreenCopy
+	WG.screencopymanager.InvalidateScreenCopy = InvalidateScreenCopy
+	WG.screencopymanager.GetDepthCopy = GetDepthCopy
+	widgetHandler:RegisterGlobal("GetScreenCopy", WG.screencopymanager.GetScreenCopy)
+	widgetHandler:RegisterGlobal("GetDepthCopy", WG.screencopymanager.GetDepthCopy)
 end
 
 function widget:Shutdown()
-	gl.DeleteTexture(ScreenCopy or 0)
-	gl.DeleteTexture(DepthCopy or 0)
-	WG['screencopymanager'] = nil
-	widgetHandler:DeregisterGlobal('GetScreenCopy')
-	widgetHandler:DeregisterGlobal('GetDepthCopy')
+	DeleteCopies()
+	WG.screencopymanager = nil
+	widgetHandler:DeregisterGlobal("GetScreenCopy")
+	widgetHandler:DeregisterGlobal("GetDepthCopy")
 end

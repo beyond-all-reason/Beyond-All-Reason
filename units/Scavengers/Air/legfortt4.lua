@@ -21,8 +21,6 @@ return {
 		footprintx = 8,
 		footprintz = 8,
 		hoverattack = true,
-		idleautoheal = 15,
-		idletime = 1200,
 		health = 167000,
 		maxslope = 10,
 		speed = 30.0,
@@ -38,27 +36,15 @@ return {
 		turnrate = 120,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "tHARSIS",
-			normaltex = "unittextures/LEG_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorAircraft/T2",
 			techlevel = 3,
 		},
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
 			},
 		},
 		sounds = {
@@ -116,7 +102,7 @@ return {
 				customparams = {
 					--isupgraded = isupgraded,
 					--damagetype = "ehbotkarganneth",
-					noattackrangearc= 1,
+					noattackrangearc = 1,
 				},
 				damage = {
 					default = 50,

@@ -1,0 +1,2673 @@
+-- tf_environment.lua: extracted tool module for gui_terraform_brush
+local M = {}
+
+-- Capture engine globals as module upvalues. RmlUi-dispatched event closures
+-- (AddEventListener bodies) may execute outside the host widget's global env,
+-- so referring to bare globals from inside a handler throws nil-index errors.
+-- See memory: rmlui_addeventlistener_globals.md.
+local WG = WG
+local Spring = Spring
+local gl = gl
+
+function M.attach(doc, ctx)
+	local widgetState = ctx.widgetState
+	local uiState = ctx.uiState
+	local WG = ctx.WG
+	local playSound = ctx.playSound
+	local trackSliderDrag = ctx.trackSliderDrag
+	-- skyDynamic is passed through ctx (file-level in gui_terraform_brush.lua).
+	local skyDynamic = ctx.skyDynamic
+	-- All data-event-click/mousedown handlers (onEnvXxx) are defined in initialModel
+	-- in gui_terraform_brush.lua. Recoil forbids adding or replacing function
+	-- keys in a DataModel after OpenDataModel.
+
+	widgetState.envControlsEl = doc:GetElementById("tf-environment-controls")
+
+	-- Scan for skybox textures and build the thumbnail grid.
+	-- User-facing location: <data>/Terraform Brush/SkyBoxes/  (writable data dir).
+	local SKYBOX_DIR = "Terraform Brush/SkyBoxes/"
+	local skyboxFiles = VFS.DirList(SKYBOX_DIR, "*", VFS.RAW_FIRST) or {}
+
+	-- Separate DDS skybox textures from preview images (jpg/png)
+	local ddsFiles = {} -- { {path, baseLower}, ... }
+	local previewFiles = {} -- baseLower -> path  (jpg/png only)
+	for _, fp in ipairs(skyboxFiles) do
+		local ext = (fp:match("%.([^%.]+)$") or ""):lower()
+		local basename = fp:match("([^/\\]+)%.[^%.]+$") or ""
+		local baseLower = basename:lower()
+		if ext == "dds" then
+			ddsFiles[#ddsFiles + 1] = { path = fp, baseLower = baseLower }
+		elseif ext == "jpg" or ext == "jpeg" or ext == "png" then
+			previewFiles[baseLower] = fp
+		end
+	end
+
+	-- Match each DDS to its preview image using fuzzy name matching
+	local function findPreview(ddsBase)
+		-- Try direct match first (unlikely but cheap)
+		if previewFiles[ddsBase] then
+			return previewFiles[ddsBase]
+		end
+		-- Try common naming: "Name - Preview", "Name Reflections"
+		for key, path in pairs(previewFiles) do
+			local stripped = key:gsub("%s*%-%s*preview$", ""):gsub("%s*reflections$", "")
+			local ddsStripped = ddsBase:gsub("_skybox", ""):gsub("skybox", "")
+			-- Check if either name starts with the other's prefix (at least 6 chars)
+			if
+				#stripped >= 6
+				and (
+					ddsBase:find(stripped:sub(1, math.min(#stripped, 12)), 1, true)
+					or stripped:find(ddsBase:sub(1, math.min(#ddsBase, 12)), 1, true)
+				)
+			then
+				return path
+			end
+			if
+				#ddsStripped >= 4
+				and (
+					key:find(ddsStripped:sub(1, math.min(#ddsStripped, 10)), 1, true)
+					or ddsStripped:find(stripped:sub(1, math.min(#stripped, 10)), 1, true)
+				)
+			then
+				return path
+			end
+		end
+		return nil
+	end
+
+	local gridEl = doc:GetElementById("env-skybox-grid")
+	if gridEl then
+		-- Store grid element for GL scissoring in drawSkyboxThumbnailPreviews
+		widgetState.envSkyboxGridEl = gridEl
+		-- Store DDS paths for deferred pre-loading in DrawScreen
+		-- (gl.Texture cannot be called in Initialize, only in Draw call-ins)
+		for _, dds in ipairs(ddsFiles) do
+			widgetState.envLoadedTextures[#widgetState.envLoadedTextures + 1] = dds.path
+		end
+		widgetState.envTexturesPreloaded = false
+
+		for _, dds in ipairs(ddsFiles) do
+			local previewPath = findPreview(dds.baseLower)
+			local ddsPath = dds.path:gsub("\\", "/")
+			local displayName = dds.path:match("([^/\\]+)%.%w+$") or dds.path
+
+			local thumbDiv = doc:CreateElement("div")
+			thumbDiv:SetClass("env-skybox-thumb", true)
+			thumbDiv:SetAttribute("title", displayName)
+
+			local addedPreviewImg = false
+			if previewPath then
+				-- Guard: RmlUi loads the FULL uncompressed bitmap into TexMemPool when
+				-- an <img> element becomes visible. A single 4096×4096 preview render
+				-- (even JPEG) decompresses to ~67 MB; 8 of them = ~536 MB > the 512 MB
+				-- TexMemPool, causing std::bad_alloc on library open.
+				-- Only add the img element for images that are likely small thumbnails
+				-- (< 512 KB on disk). Larger files are shown as name-only tiles.
+				local pf = io.open(previewPath, "rb")
+				local psize = pf and pf:seek("end")
+				if pf then
+					pf:close()
+				end
+				if psize and psize < 512 * 1024 then
+					local img = doc:CreateElement("img")
+					img:SetAttribute("src", "/" .. previewPath)
+					thumbDiv:AppendChild(img)
+					addedPreviewImg = true
+				end
+			end
+			-- If no preview image was added, the tile will receive a GL-rendered
+			-- cubemap preview drawn in DrawScreenPost (see drawSkyboxThumbnailPreviews).
+
+			local label = doc:CreateElement("div")
+			label:SetClass("env-skybox-name", true)
+			label.inner_rml = displayName
+			thumbDiv:AppendChild(label)
+
+			thumbDiv:AddEventListener("click", function(event)
+				playSound("click")
+				widgetState.applySkybox(ddsPath)
+				widgetState.envCurrentSkybox = ddsPath
+				for _, t in ipairs(widgetState.envSkyboxThumbs) do
+					t.element:SetClass("active", t.path == ddsPath)
+				end
+				event:StopPropagation()
+			end, false)
+
+			gridEl:AppendChild(thumbDiv)
+			widgetState.envSkyboxThumbs[#widgetState.envSkyboxThumbs + 1] =
+				{ element = thumbDiv, path = ddsPath, hasPreviewImg = addedPreviewImg }
+		end
+
+		if #ddsFiles == 0 then
+			gridEl.inner_rml = '<div class="text-sm text-keybind" style="padding: 16dp; text-align: center; font-size: 1rem; line-height: 1.5;">'
+				.. "No skybox textures found.<br/>"
+				.. 'Get skyboxes from the Discord <span style="color: #fdc04c;">#mapping</span> channel pins<br/>'
+				.. "and place .dds files in your BAR data folder:<br/>"
+				.. '<span style="color: #9ca3af;">Beyond-All-Reason/data/Terraform Brush/SkyBoxes/</span>'
+				.. "</div>"
+		end
+	end
+
+	-- (onEnvResetSkybox / onEnvToggleFade now in initialModel in gui_terraform_brush.lua)
+
+	-- Environment sub-windows
+	-- Capture the "defaults" the RESET buttons return to. Captured here at
+	-- attach, and again by applyEnvConfig after a project or preset apply, so
+	-- RESET means "what this session loaded", not the flat blank-map lighting
+	-- the engine happened to hold when the panel first opened.
+	widgetState.captureEnvDefaults = function()
+		local sunX, sunY, sunZ = gl.GetSun("pos")
+		sunX, sunY, sunZ = sunX or 0, sunY or 1, sunZ or 0
+		local gaR, gaG, gaB = gl.GetSun("ambient")
+		gaR, gaG, gaB = gaR or 0, gaG or 0, gaB or 0
+		local gdR, gdG, gdB = gl.GetSun("diffuse")
+		gdR, gdG, gdB = gdR or 0, gdG or 0, gdB or 0
+		local gsR, gsG, gsB = gl.GetSun("specular")
+		gsR, gsG, gsB = gsR or 0, gsG or 0, gsB or 0
+		local uaR, uaG, uaB = gl.GetSun("ambient", "unit")
+		uaR, uaG, uaB = uaR or 0, uaG or 0, uaB or 0
+		local udR, udG, udB = gl.GetSun("diffuse", "unit")
+		udR, udG, udB = udR or 0, udG or 0, udB or 0
+		local usR, usG, usB = gl.GetSun("specular", "unit")
+		usR, usG, usB = usR or 0, usG or 0, usB or 0
+		local fogS = gl.GetAtmosphere("fogStart")
+		local fogE = gl.GetAtmosphere("fogEnd")
+		local fR, fG, fB, fA = gl.GetAtmosphere("fogColor")
+		local scR, scG, scB = gl.GetAtmosphere("sunColor")
+		local skR, skG, skB = gl.GetAtmosphere("skyColor")
+		local saX, saY, saZ, saAngle = gl.GetAtmosphere("skyAxisAngle")
+		local gsd = gl.GetSun("shadowDensity", "ground") or 0
+		local usd = gl.GetSun("shadowDensity", "unit") or 0
+
+		widgetState.envDefaults = {
+			sunPos = { sunX, sunY, sunZ },
+			groundAmbient = { gaR, gaG, gaB },
+			groundDiffuse = { gdR, gdG, gdB },
+			groundSpecular = { gsR, gsG, gsB },
+			unitAmbient = { uaR, uaG, uaB },
+			unitDiffuse = { udR, udG, udB },
+			unitSpecular = { usR, usG, usB },
+			fogStart = fogS,
+			fogEnd = fogE,
+			fogColor = { fR, fG, fB, fA },
+			sunColor = { scR, scG, scB },
+			skyColor = { skR, skG, skB },
+			skyAxisAngle = { saX, saY, saZ, saAngle },
+			groundShadowDensity = gsd,
+			unitShadowDensity = usd,
+			cloudColor = { gl.GetAtmosphere("cloudColor") },
+			-- The engine has no intensity getter; the UI tracks what it applied.
+			sunIntensity = widgetState.envSunIntensity or 1.0,
+			waterAbsorb = { gl.GetWaterRendering("absorb") },
+			waterBaseColor = { gl.GetWaterRendering("baseColor") },
+			waterMinColor = { gl.GetWaterRendering("minColor") },
+			waterSurfaceColor = { gl.GetWaterRendering("surfaceColor") },
+			waterPlaneColor = { gl.GetWaterRendering("planeColor") },
+			waterDiffuseColor = { gl.GetWaterRendering("diffuseColor") },
+			waterSpecularColor = { gl.GetWaterRendering("specularColor") },
+		}
+	end
+	widgetState.captureEnvDefaults()
+
+	-- Grab floating window root elements
+	widgetState.envSunRootEl = doc:GetElementById("tf-env-sun-root")
+	widgetState.envFogRootEl = doc:GetElementById("tf-env-fog-root")
+	widgetState.envGroundLightingRootEl = doc:GetElementById("tf-env-ground-lighting-root")
+	widgetState.envUnitLightingRootEl = doc:GetElementById("tf-env-unit-lighting-root")
+	widgetState.envMapRootEl = doc:GetElementById("tf-env-map-root")
+	widgetState.envWaterRootEl = doc:GetElementById("tf-env-water-root")
+	widgetState.envDimensionsRootEl = doc:GetElementById("tf-env-dimensions-root")
+	widgetState.envTilesetRootEl = doc:GetElementById("tf-env-tileset-root")
+	widgetState.splatTexRootEl = doc:GetElementById("tf-splattex-root")
+	widgetState.grassCfgRootEl = doc:GetElementById("tf-grasscfg-root")
+
+	-- Helper: wire a slider that maps integer range to float values
+	local function envSlider(sliderId, toFloat, fromFloat, onChange)
+		local sl = doc:GetElementById(sliderId)
+		if not sl then
+			return
+		end
+		trackSliderDrag(sl, sliderId)
+		sl:AddEventListener("change", function(event)
+			if uiState.updatingFromCode then
+				return
+			end
+			local raw = tonumber(sl:GetAttribute("value")) or 0
+			local val = toFloat(raw)
+			onChange(val)
+			event:StopPropagation()
+		end, false)
+		-- Set initial value
+		local initVal = fromFloat()
+		sl:SetAttribute("value", tostring(math.floor(initVal + 0.5)))
+	end
+
+	-- Helper: set a slider from code
+	local function envSetSlider(sliderId, intVal)
+		local sl = doc:GetElementById(sliderId)
+		if sl then
+			sl:SetAttribute("value", tostring(intVal))
+		end
+	end
+
+	-- Helper: update a preview box's background-color from RGB (0-1 range)
+	local function updatePreview(previewEl, r, g, b)
+		if not previewEl then
+			return
+		end
+		local ri = math.floor(math.min(math.max(r or 0, 0), 1) * 255 + 0.5)
+		local gi = math.floor(math.min(math.max(g or 0, 0), 1) * 255 + 0.5)
+		local bi = math.floor(math.min(math.max(b or 0, 0), 1) * 255 + 0.5)
+		previewEl:SetAttribute("style", string.format("background-color: rgb(%d, %d, %d);", ri, gi, bi))
+	end
+
+	-- Helper: wire palette swatches + color preview for a color group
+	-- cfg = { paletteId, previewId, sliderPrefix, channels, getColor, setColor }
+	local function wireColorGroup(cfg)
+		local previewEl = doc:GetElementById(cfg.previewId)
+		local paletteEl = cfg.paletteId and doc:GetElementById(cfg.paletteId)
+		local channels = cfg.channels or { "r", "g", "b" }
+		local function refreshPreview()
+			local c = cfg.getColor()
+			updatePreview(previewEl, c[1], c[2], c[3])
+		end
+		for _, s in ipairs(channels) do
+			local sl = doc:GetElementById("slider-env-" .. cfg.sliderPrefix .. "-" .. s)
+			if sl then
+				sl:AddEventListener("change", function()
+					refreshPreview()
+				end, false)
+			end
+		end
+		if paletteEl then
+			local idx = 0
+			while true do
+				local swatch = paletteEl:GetChild(idx)
+				if not swatch then
+					break
+				end
+				local style = swatch:GetAttribute("style") or ""
+				local hex = style:match("#(%x%x%x%x%x%x)")
+				if hex then
+					local hr = tonumber(hex:sub(1, 2), 16) / 255
+					local hg = tonumber(hex:sub(3, 4), 16) / 255
+					local hb = tonumber(hex:sub(5, 6), 16) / 255
+					swatch:AddEventListener("click", function(event)
+						cfg.setColor({ hr, hg, hb })
+						envSetSlider("slider-env-" .. cfg.sliderPrefix .. "-r", math.floor(hr * 1000 + 0.5))
+						envSetSlider("slider-env-" .. cfg.sliderPrefix .. "-g", math.floor(hg * 1000 + 0.5))
+						envSetSlider("slider-env-" .. cfg.sliderPrefix .. "-b", math.floor(hb * 1000 + 0.5))
+						refreshPreview()
+						event:StopPropagation()
+					end, false)
+				end
+				idx = idx + 1
+			end
+		end
+		refreshPreview()
+	end
+
+	-- Helper: wire a checkbox toggle
+	local function envCheckbox(btnId, initVal, onChange)
+		local btn = doc:GetElementById(btnId)
+		if not btn then
+			return
+		end
+		local state = initVal
+		btn:SetAttribute(
+			"src",
+			state and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png"
+		)
+		btn:AddEventListener("click", function(event)
+			state = not state
+			btn:SetAttribute(
+				"src",
+				state and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png"
+			)
+			onChange(state)
+			event:StopPropagation()
+		end, false)
+	end
+
+	-- Helper: wire a window toggle button + close button
+	-- dmKey (optional): data-model field to sync alongside widgetState[stateKey]
+	local function envWindowToggle(openBtnId, closeBtnId, rootEl, stateKey, dmKey)
+		local openBtn = doc:GetElementById(openBtnId)
+		if openBtn then
+			openBtn:AddEventListener("mousedown", function(event)
+				widgetState[stateKey] = not widgetState[stateKey]
+				playSound(widgetState[stateKey] and "panelOpen" or "click")
+				if rootEl then
+					rootEl:SetClass("hidden", not widgetState[stateKey])
+				end
+				if dmKey and widgetState.dmHandle then
+					widgetState.dmHandle[dmKey] = widgetState[stateKey] and true or false
+				end
+				openBtn:SetClass("env-open", widgetState[stateKey] == true)
+				event:StopPropagation()
+			end, false)
+		end
+		local closeBtn = doc:GetElementById(closeBtnId)
+		if closeBtn then
+			closeBtn:AddEventListener("mousedown", function(event)
+				playSound("click")
+				widgetState[stateKey] = false
+				if rootEl then
+					rootEl:SetClass("hidden", true)
+				end
+				if dmKey and widgetState.dmHandle then
+					widgetState.dmHandle[dmKey] = false
+				end
+				if openBtn then
+					openBtn:SetClass("env-open", false)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+	end
+
+	-- Wire toggle/close for each sub-window
+	envWindowToggle("btn-env-sun-shadows", "btn-env-sun-close", widgetState.envSunRootEl, "envSunOpen", "envSunVisible")
+	envWindowToggle("btn-env-fog-atmo", "btn-env-fog-close", widgetState.envFogRootEl, "envFogOpen", "envFogVisible")
+	envWindowToggle(
+		"btn-env-ground-lighting",
+		"btn-env-ground-lighting-close",
+		widgetState.envGroundLightingRootEl,
+		"envGroundLightingOpen",
+		"envGroundLightingVisible"
+	)
+	envWindowToggle(
+		"btn-env-unit-lighting",
+		"btn-env-unit-lighting-close",
+		widgetState.envUnitLightingRootEl,
+		"envUnitLightingOpen",
+		"envUnitLightingVisible"
+	)
+	envWindowToggle("btn-env-map-render", "btn-env-map-close", widgetState.envMapRootEl, "envMapOpen", "envMapVisible")
+	envWindowToggle(
+		"btn-env-water",
+		"btn-env-water-close",
+		widgetState.envWaterRootEl,
+		"envWaterOpen",
+		"envWaterVisible"
+	)
+	envWindowToggle(
+		"btn-env-dimensions",
+		"btn-env-dimensions-close",
+		widgetState.envDimensionsRootEl,
+		"envDimensionsOpen",
+		"envDimensionsVisible"
+	)
+	envWindowToggle(
+		"btn-env-tileset",
+		"btn-env-tileset-close",
+		widgetState.envTilesetRootEl,
+		"envTilesetOpen",
+		"envTilesetVisible"
+	)
+	envWindowToggle(
+		"btn-sp-splattex",
+		"btn-splattex-close",
+		widgetState.splatTexRootEl,
+		"splatTexOpen",
+		"splatTexVisible"
+	)
+	envWindowToggle(
+		"btn-gb-grasscfg",
+		"btn-grasscfg-close",
+		widgetState.grassCfgRootEl,
+		"grassCfgOpen",
+		"grassCfgVisible"
+	)
+
+	-- Helper: wire a collapsible section toggle (click header row to expand/collapse)
+	-- Returns a ctrl table with an expand() method for programmatic expansion.
+	local function envSectionToggle(toggleBtnId, toggleImgId, sectionId, defaultExpanded)
+		local toggleBtn = doc:GetElementById(toggleBtnId)
+		local toggleImg = doc:GetElementById(toggleImgId)
+		local section = doc:GetElementById(sectionId)
+		if not toggleBtn or not toggleImg or not section then
+			return {}
+		end
+		local frameId = sectionId:gsub("section%-", "frame-", 1)
+		local frame = doc:GetElementById(frameId) -- may be nil if inside data-if block
+		local expanded = defaultExpanded
+		local function setFrameClass(f, collapsed)
+			if not f then
+				f = doc:GetElementById(frameId)
+				frame = f
+			end
+			if f then
+				f:SetClass("tf-collapsed", collapsed)
+			end
+		end
+		section:SetClass("hidden", not expanded)
+		setFrameClass(frame, not expanded)
+		toggleImg:SetAttribute(
+			"src",
+			expanded and "/luaui/images/terraform_brush/minus.png" or "/luaui/images/terraform_brush/plus.png"
+		)
+		toggleBtn:AddEventListener("click", function(event)
+			-- Controls embedded in the header row sit INSIDE this toggle, so
+			-- their clicks bubble up to here and would collapse the section as
+			-- a side effect of pressing them. The per-section RESET buttons are
+			-- the case that surfaced it: resetting a section also folded it
+			-- away. Ignore anything that originated on one — matched by class,
+			-- not by id, so any future header control gets the same treatment
+			-- just by wearing the same class.
+			local t = event.target_element
+			if t and t.IsClassSet and t:IsClassSet("tf-env-reset-btn") then
+				return
+			end
+			expanded = not expanded
+			playSound(expanded and "panelOpen" or "click")
+			section:SetClass("hidden", not expanded)
+			setFrameClass(frame, not expanded)
+			toggleImg:SetAttribute(
+				"src",
+				expanded and "/luaui/images/terraform_brush/minus.png" or "/luaui/images/terraform_brush/plus.png"
+			)
+			event:StopPropagation()
+		end, false)
+		return {
+			expand = function()
+				if not expanded then
+					expanded = true
+					playSound("panelOpen")
+					section:SetClass("hidden", false)
+					setFrameClass(frame, false)
+					toggleImg:SetAttribute("src", "/luaui/images/terraform_brush/minus.png")
+				end
+			end,
+		}
+	end
+
+	-- Terrain panel collapsible sections (default collapsed)
+	envSectionToggle("btn-toggle-terrain", "img-toggle-terrain", "section-terrain", true)
+	envSectionToggle("btn-toggle-tools", "img-toggle-tools", "section-tools", true)
+	envSectionToggle("btn-toggle-shape", "img-toggle-shape", "section-shape", true)
+	envSectionToggle("btn-toggle-sliders", "img-toggle-sliders", "section-sliders", true)
+	widgetState.heightCapSectionCtrl =
+		envSectionToggle("btn-toggle-heightcap", "img-toggle-heightcap", "section-heightcap", false)
+	envSectionToggle("btn-toggle-presets", "img-toggle-presets", "section-presets", false)
+	envSectionToggle("btn-toggle-heightmap", "img-toggle-heightmap", "section-heightmap", true)
+
+	-- Tool sub-panel collapsible sections
+	envSectionToggle("btn-toggle-sp-mode", "img-toggle-sp-mode", "section-sp-mode", true)
+	envSectionToggle("btn-toggle-mb-mode", "img-toggle-mb-mode", "section-mb-mode", true)
+	envSectionToggle("btn-toggle-mb-undo", "img-toggle-mb-undo", "section-mb-undo", false)
+	envSectionToggle("btn-toggle-gb-mode", "img-toggle-gb-mode", "section-gb-mode", true)
+	envSectionToggle("btn-toggle-gb-shape", "img-toggle-gb-shape", "section-gb-shape", true)
+	envSectionToggle("btn-toggle-gb-undo", "img-toggle-gb-undo", "section-gb-undo", false)
+	envSectionToggle("btn-toggle-fp-mode", "img-toggle-fp-mode", "section-fp-mode", true)
+	envSectionToggle("btn-toggle-smooth-mode", "img-toggle-smooth-mode", "section-smooth-mode", true)
+	envSectionToggle("btn-toggle-erode", "img-toggle-erode", "section-erode", true)
+	envSectionToggle("btn-toggle-fp-undo", "img-toggle-fp-undo", "section-fp-undo", false)
+	envSectionToggle("btn-toggle-fp-dist", "img-toggle-fp-dist", "section-fp-dist", true)
+	envSectionToggle("btn-toggle-fp-save", "img-toggle-fp-save", "section-fp-save", false)
+	envSectionToggle("btn-toggle-un-mode", "img-toggle-un-mode", "section-un-mode", true)
+	envSectionToggle("btn-toggle-un-undo", "img-toggle-un-undo", "section-un-undo", false)
+	envSectionToggle("btn-toggle-un-dist", "img-toggle-un-dist", "section-un-dist", true)
+	envSectionToggle("btn-toggle-un-save", "img-toggle-un-save", "section-un-save", false)
+	envSectionToggle("btn-toggle-ramp-type", "img-toggle-ramp-type", "section-ramp-type", true)
+	envSectionToggle("btn-toggle-wb-mode", "img-toggle-wb-mode", "section-wb-mode", true)
+	envSectionToggle("btn-toggle-cl-undo", "img-toggle-cl-undo", "section-cl-undo", false)
+	envSectionToggle("btn-toggle-tf-undo", "img-toggle-tf-undo", "section-tf-undo", false)
+	envSectionToggle("btn-toggle-spl-channel", "img-toggle-spl-channel", "section-spl-channel", true)
+	envSectionToggle("btn-toggle-dfp-brush", "img-toggle-dfp-brush", "section-dfp-brush", true)
+	envSectionToggle("btn-toggle-dfp-effects", "img-toggle-dfp-effects", "section-dfp-effects", false)
+	envSectionToggle("btn-toggle-dfp-layers", "img-toggle-dfp-layers", "section-dfp-layers", true)
+	envSectionToggle("btn-toggle-dfp-undo", "img-toggle-dfp-undo", "section-dfp-undo", false)
+	envSectionToggle("btn-toggle-dfp-actions", "img-toggle-dfp-actions", "section-dfp-actions", false)
+	envSectionToggle("btn-toggle-dc-saveload", "img-toggle-dc-saveload", "section-dc-saveload", false)
+	envSectionToggle("btn-toggle-dc-mode", "img-toggle-dc-mode", "section-dc-mode", true)
+	envSectionToggle("btn-toggle-dc-undo", "img-toggle-dc-undo", "section-dc-undo", false)
+
+	-- New: DISPLAY / INSTRUMENTS / CONTROLS collapsible wrappers per panel
+	envSectionToggle("btn-toggle-mb-overlays", "img-toggle-mb-overlays", "section-mb-overlays", false)
+	envSectionToggle("btn-toggle-mb-instruments", "img-toggle-mb-instruments", "section-mb-instruments", false)
+	envSectionToggle("btn-toggle-mb-controls", "img-toggle-mb-controls", "section-mb-controls", true)
+	envSectionToggle("btn-toggle-mb-save", "img-toggle-mb-save", "section-mb-save", false)
+	envSectionToggle("btn-toggle-gb-overlays", "img-toggle-gb-overlays", "section-gb-overlays", false)
+	envSectionToggle("btn-toggle-gb-instruments", "img-toggle-gb-instruments", "section-gb-instruments", false)
+	envSectionToggle("btn-toggle-gb-controls", "img-toggle-gb-controls", "section-gb-controls", true)
+	envSectionToggle("btn-toggle-gb-save", "img-toggle-gb-save", "section-gb-save", false)
+	envSectionToggle("btn-toggle-fp-overlays", "img-toggle-fp-overlays", "section-fp-overlays", false)
+	envSectionToggle("btn-toggle-fp-instruments", "img-toggle-fp-instruments", "section-fp-instruments", false)
+	envSectionToggle("btn-toggle-fp-controls", "img-toggle-fp-controls", "section-fp-controls", true)
+	envSectionToggle("btn-toggle-fp-smart", "img-toggle-fp-smart", "section-fp-smart", false)
+	envSectionToggle("btn-toggle-un-overlays", "img-toggle-un-overlays", "section-un-overlays", false)
+	envSectionToggle("btn-toggle-un-instruments", "img-toggle-un-instruments", "section-un-instruments", false)
+	envSectionToggle("btn-toggle-un-controls", "img-toggle-un-controls", "section-un-controls", true)
+	envSectionToggle("btn-toggle-un-smart", "img-toggle-un-smart", "section-un-smart", false)
+	envSectionToggle("btn-toggle-gb-smart", "img-toggle-gb-smart", "section-gb-smart", false)
+	envSectionToggle("btn-toggle-sp-overlays", "img-toggle-sp-overlays", "section-sp-overlays", false)
+	do
+		local spOvBtn = doc:GetElementById("btn-toggle-sp-overlays")
+		if spOvBtn then
+			spOvBtn:AddEventListener("click", function()
+				local sec = doc:GetElementById("section-sp-overlays")
+				if sec and not sec:IsClassSet("hidden") then
+					if widgetState.uiPrefs and not widgetState.uiPrefs.seenSplatDisplayHint then
+						widgetState.splatDisplayPulseFrame = Spring.GetGameFrame() + 1
+						widgetState.uiPrefs.seenSplatDisplayHint = true
+						if widgetState.saveUiPrefs then
+							widgetState.saveUiPrefs()
+						end
+					end
+				end
+			end, false)
+		end
+	end
+	envSectionToggle("btn-toggle-sp-instruments", "img-toggle-sp-instruments", "section-sp-instruments", false)
+	envSectionToggle("btn-toggle-sp-controls", "img-toggle-sp-controls", "section-sp-controls", true)
+	envSectionToggle("btn-toggle-sp-smart", "img-toggle-sp-smart", "section-sp-smart", false)
+	envSectionToggle("btn-toggle-sp-save", "img-toggle-sp-save", "section-sp-save", false)
+
+	-- Pill-button tab switching for smart filter sub-panels
+	do
+		-- Chip that directly toggles a single filter key (active class mirrors filter state).
+		-- Used for Avoid Water / Avoid Slopes chips (FP + GB).
+		-- Keys that count toward "any filter on" for auto-disabling smartEnabled
+		-- when the user toggles the last active filter off.
+		local SMART_FILTER_BOOL_KEYS = {
+			"avoidWater",
+			"avoidCliffs",
+			"preferSlopes",
+			"altMinEnable",
+			"altMaxEnable",
+		}
+		local function anySmartFilterOn(sf)
+			if not sf then
+				return false
+			end
+			for _, k in ipairs(SMART_FILTER_BOOL_KEYS) do
+				if sf[k] then
+					return true
+				end
+			end
+			return false
+		end
+		local function wireFilterToggleChip(btnId, filterKey, getBrush)
+			local btn = doc:GetElementById(btnId)
+			if not btn then
+				return
+			end
+			btn:AddEventListener("click", function()
+				local brush = getBrush()
+				if not brush then
+					return
+				end
+				local sf = brush.getState().smartFilters or {}
+				local newVal = not sf[filterKey]
+				brush.setSmartFilter(filterKey, newVal)
+				-- Re-read state after mutation, decide smartEnabled from "any filter on"
+				local sf2 = brush.getState().smartFilters or {}
+				brush.setSmartEnabled(anySmartFilterOn(sf2))
+			end)
+		end
+
+		-- Mutually-exclusive chip pair: clicking a chip turns on its filter key AND
+		-- turns off the other's, so only one of the two can be active at a time.
+		-- Clicking the already-active chip turns its filter off (nothing active).
+		local function wireMutexChipPair(btnIdA, keyA, btnIdB, keyB, getBrush)
+			local btnA = doc:GetElementById(btnIdA)
+			local btnB = doc:GetElementById(btnIdB)
+			local function makeHandler(ownKey, otherKey)
+				return function()
+					local brush = getBrush()
+					if not brush then
+						return
+					end
+					local sf = brush.getState().smartFilters or {}
+					local newVal = not sf[ownKey]
+					if newVal and sf[otherKey] then
+						brush.setSmartFilter(otherKey, false)
+					end
+					brush.setSmartFilter(ownKey, newVal)
+					local sf2 = brush.getState().smartFilters or {}
+					brush.setSmartEnabled(anySmartFilterOn(sf2))
+				end
+			end
+			if btnA then
+				btnA:AddEventListener("click", makeHandler(keyA, keyB))
+			end
+			if btnB then
+				btnB:AddEventListener("click", makeHandler(keyB, keyA))
+			end
+		end
+
+		-- Chip that toggles visibility of a content section.
+		-- Expanding the section is purely visual; the user must click a sub-filter
+		-- chip to actually enable anything. Collapsing the section disables all
+		-- sub-filters in the category so nothing stays silently active.
+		local function wireVisibilityChip(btnId, contentId, getBrush, filterKeys, defaultKey)
+			local btn = doc:GetElementById(btnId)
+			local content = doc:GetElementById(contentId)
+			if not btn or not content then
+				return
+			end
+			btn:AddEventListener("click", function()
+				local isActive = btn:IsClassSet("active")
+				local newActive = not isActive
+				btn:SetClass("active", newActive)
+				content:SetClass("hidden", not newActive)
+				if not newActive then
+					local brush = getBrush()
+					if brush and filterKeys then
+						for _, k in ipairs(filterKeys) do
+							brush.setSmartFilter(k, false)
+						end
+					end
+				end
+			end)
+		end
+
+		local function getFP()
+			return WG.FeaturePlacer
+		end
+		local function getUN()
+			return WG.UnitPlacerTool
+		end
+		local function getSP()
+			return WG.SplatPainter
+		end
+
+		-- Feature Placer chips
+		wireFilterToggleChip("fp-filter-chip-avoid-water", "avoidWater", getFP)
+		-- Slope chip: activating defaults avoidCliffs on (so filtering starts immediately).
+		-- Sub-chips inside fp-smart-slope-content let user switch to prefer-slopes mode.
+		wireVisibilityChip(
+			"fp-filter-chip-slope",
+			"fp-smart-slope-content",
+			getFP,
+			{ "avoidCliffs", "preferSlopes" },
+			"avoidCliffs"
+		)
+		wireVisibilityChip(
+			"fp-filter-chip-altitude",
+			"fp-smart-altitude-content",
+			getFP,
+			{ "altMinEnable", "altMaxEnable" },
+			"altMinEnable"
+		)
+		-- Slope double-toggle sub-chips (inside slope content): mutually exclusive — activating one disables the other.
+		wireMutexChipPair("fp-slope-mode-avoid", "avoidCliffs", "fp-slope-mode-prefer", "preferSlopes", getFP)
+
+		-- Unit placer chips: the same three filters as the feature placer
+		wireFilterToggleChip("un-filter-chip-avoid-water", "avoidWater", getUN)
+		-- Slope chip (units): activating defaults avoidCliffs on (so filtering starts immediately).
+		-- Sub-chips inside fp-smart-slope-content let user switch to prefer-slopes mode.
+		wireVisibilityChip(
+			"un-filter-chip-slope",
+			"un-smart-slope-content",
+			getUN,
+			{ "avoidCliffs", "preferSlopes" },
+			"avoidCliffs"
+		)
+		wireVisibilityChip(
+			"un-filter-chip-altitude",
+			"un-smart-altitude-content",
+			getUN,
+			{ "altMinEnable", "altMaxEnable" },
+			"altMinEnable"
+		)
+		-- Slope double-toggle sub-chips (inside slope content): mutually exclusive — activating one disables the other.
+		wireMutexChipPair("un-slope-mode-avoid", "avoidCliffs", "un-slope-mode-prefer", "preferSlopes", getUN)
+
+		-- Splat painter chips (mirror FP structure: avoid-water chip + slope/altitude sections with defaults + mutex slope-mode sub-chips)
+		wireFilterToggleChip("sp-filter-chip-avoid-water", "avoidWater", getSP)
+		wireVisibilityChip(
+			"sp-filter-chip-slope",
+			"sp-smart-slope-content",
+			getSP,
+			{ "avoidCliffs", "preferSlopes" },
+			"avoidCliffs"
+		)
+		wireVisibilityChip(
+			"sp-filter-chip-altitude",
+			"sp-smart-altitude-content",
+			getSP,
+			{ "altMinEnable", "altMaxEnable" },
+			"altMinEnable"
+		)
+		wireMutexChipPair("sp-slope-mode-avoid", "avoidCliffs", "sp-slope-mode-prefer", "preferSlopes", getSP)
+
+		-- gb pill/slope/altitude/avoid-water/color chips all use data-event-click in RML → onGbXxx handlers in initialModel
+	end
+	envSectionToggle("btn-toggle-wb-undo", "img-toggle-wb-undo", "section-wb-undo", false)
+	envSectionToggle("btn-toggle-wb-overlays", "img-toggle-wb-overlays", "section-wb-overlays", false)
+	envSectionToggle("btn-toggle-wb-instruments", "img-toggle-wb-instruments", "section-wb-instruments", false)
+	envSectionToggle("btn-toggle-wb-controls", "img-toggle-wb-controls", "section-wb-controls", true)
+	envSectionToggle("btn-toggle-sp-undo", "img-toggle-sp-undo", "section-sp-undo", false)
+	envSectionToggle("btn-toggle-dc-overlays", "img-toggle-dc-overlays", "section-dc-overlays", false)
+	envSectionToggle("btn-toggle-dc-instruments", "img-toggle-dc-instruments", "section-dc-instruments", false)
+	envSectionToggle("btn-toggle-dc-controls", "img-toggle-dc-controls", "section-dc-controls", true)
+	envSectionToggle("btn-toggle-lp-overlays", "img-toggle-lp-overlays", "section-lp-overlays", false)
+	envSectionToggle("btn-toggle-lp-instruments", "img-toggle-lp-instruments", "section-lp-instruments", false)
+	envSectionToggle("btn-toggle-lt-type", "img-toggle-lt-type", "section-lt-type", true)
+	envSectionToggle("btn-toggle-lt-placement", "img-toggle-lt-placement", "section-lt-placement", true)
+	envSectionToggle("btn-toggle-lt-dist", "img-toggle-lt-dist", "section-lt-dist", true)
+	envSectionToggle("btn-toggle-lp-controls", "img-toggle-lp-controls", "section-lp-controls", true)
+	envSectionToggle("btn-toggle-lp-undo", "img-toggle-lp-undo", "section-lp-undo", false)
+	envSectionToggle("btn-toggle-lp-color", "img-toggle-lp-color", "section-lp-color", true)
+	envSectionToggle("btn-toggle-lp-saveload", "img-toggle-lp-saveload", "section-lp-saveload", false)
+	envSectionToggle("btn-toggle-cl-instruments", "img-toggle-cl-instruments", "section-cl-instruments", false)
+	envSectionToggle("btn-toggle-cl-overlays", "img-toggle-cl-overlays", "section-cl-overlays", false)
+	envSectionToggle("btn-toggle-cl-controls", "img-toggle-cl-controls", "section-cl-controls", true)
+	envSectionToggle("btn-toggle-cl-paste", "img-toggle-cl-paste", "section-cl-paste", false)
+	envSectionToggle("btn-toggle-cl-quality", "img-toggle-cl-quality", "section-cl-quality", false)
+	envSectionToggle("btn-toggle-st-overlays", "img-toggle-st-overlays", "section-st-overlays", false)
+	envSectionToggle("btn-toggle-st-instruments", "img-toggle-st-instruments", "section-st-instruments", false)
+	envSectionToggle("btn-toggle-st-controls", "img-toggle-st-controls", "section-st-controls", true)
+	envSectionToggle("btn-toggle-st-save", "img-toggle-st-save", "section-st-save", false)
+	envSectionToggle("btn-toggle-env-buttons", "img-toggle-env-buttons", "section-env-buttons", true)
+	envSectionToggle("btn-toggle-env-save", "img-toggle-env-save", "section-env-save", false)
+	envSectionToggle("btn-toggle-noise-type", "img-toggle-noise-type", "section-noise-type", true)
+
+	-- Parameter chip toggles — toggle individual slider row visibility
+	-- Uses table field instead of local function to avoid the 200-local limit
+	widgetState.chipToggle = function(chipId, rowId, defaultVis)
+		local chip = doc:GetElementById(chipId)
+		local row = doc:GetElementById(rowId)
+		if not chip or not row then
+			return
+		end
+		local visible = defaultVis ~= false
+		chip:SetClass("active", visible)
+		row:SetClass("hidden", not visible)
+		chip:AddEventListener("click", function(event)
+			visible = not visible
+			chip:SetClass("active", visible)
+			row:SetClass("hidden", not visible)
+			playSound(visible and "panelOpen" or "click")
+			event:StopPropagation()
+		end, false)
+	end
+	widgetState.chipToggle("param-chip-rotation", "param-rotation-row", true)
+	widgetState.chipToggle("param-chip-intensity", "param-intensity-row", true)
+	widgetState.chipToggle("param-chip-size", "param-size-row", true)
+	widgetState.chipToggle("param-chip-length", "param-length-row", true)
+	widgetState.chipToggle("param-chip-falloff", "param-falloff-row", true)
+
+	-- Feature placer control pill toggles
+	widgetState.chipToggle("fp-param-chip-size", "fp-param-size-row", true)
+	widgetState.chipToggle("fp-param-chip-rotation", "fp-param-rotation-row", true)
+	widgetState.chipToggle("fp-param-chip-alignment", "fp-param-alignment-row", true)
+	widgetState.chipToggle("fp-param-chip-count", "fp-param-count-row", true)
+	widgetState.chipToggle("fp-param-chip-rate", "fp-param-rate-row", true)
+	widgetState.chipToggle("fp-param-chip-tilt", "fp-param-tilt-row", true)
+
+	-- Unit placer control pill toggles
+	widgetState.chipToggle("un-param-chip-size", "un-param-size-row", true)
+	widgetState.chipToggle("un-param-chip-rotation", "un-param-rotation-row", true)
+	widgetState.chipToggle("un-param-chip-alignment", "un-param-alignment-row", true)
+	widgetState.chipToggle("un-param-chip-count", "un-param-count-row", true)
+	widgetState.chipToggle("un-param-chip-rate", "un-param-rate-row", true)
+
+	-- Collapsible toggle with warning chip: shown when collapsed but any listed chip is active.
+	-- Uses table field to avoid the 200-local chunk limit.
+	widgetState.warningToggle = function(toggleId, imgId, sectionId, warnId, activeIds, defaultExpanded)
+		local toggleBtn = doc:GetElementById(toggleId)
+		local toggleImg = doc:GetElementById(imgId)
+		local section = doc:GetElementById(sectionId)
+		local warnChip = doc:GetElementById(warnId)
+		if not toggleBtn or not toggleImg or not section or not warnChip then
+			return
+		end
+		local expanded = defaultExpanded ~= false
+		local frameId = sectionId:gsub("section%-", "frame-", 1)
+		local frame = doc:GetElementById(frameId)
+		local function setFrameClass(collapsed)
+			if not frame then
+				frame = doc:GetElementById(frameId)
+			end
+			if frame then
+				frame:SetClass("tf-collapsed", collapsed)
+			end
+		end
+		local function refreshWarn()
+			if expanded then
+				warnChip:SetClass("hidden", true)
+				return
+			end
+			local anyActive = false
+			for i = 1, #activeIds do
+				local chip = doc:GetElementById(activeIds[i])
+				if chip and chip.class_name and chip.class_name:find("active") then
+					anyActive = true
+					break
+				end
+			end
+			warnChip:SetClass("hidden", not anyActive)
+		end
+		if not widgetState.warnRefreshFuncs then
+			widgetState.warnRefreshFuncs = {}
+		end
+		widgetState.warnRefreshFuncs[#widgetState.warnRefreshFuncs + 1] = refreshWarn
+		local function setExpanded(v)
+			expanded = v
+			section:SetClass("hidden", not expanded)
+			setFrameClass(not expanded)
+			toggleImg:SetAttribute(
+				"src",
+				expanded and "/luaui/images/terraform_brush/minus.png" or "/luaui/images/terraform_brush/plus.png"
+			)
+			refreshWarn()
+		end
+		setExpanded(expanded)
+		toggleBtn:AddEventListener("click", function(event)
+			setExpanded(not expanded)
+			playSound(expanded and "panelOpen" or "click")
+			event:StopPropagation()
+		end, false)
+		warnChip:AddEventListener("click", function(event)
+			event:StopPropagation()
+		end, false)
+	end
+	widgetState.warningToggle(
+		"btn-toggle-overlays",
+		"img-toggle-overlays",
+		"section-overlays",
+		"warn-chip-overlays",
+		{ "btn-grid-overlay", "btn-height-colormap", "btn-image-overlay" },
+		false
+	)
+	widgetState.warningToggle(
+		"btn-toggle-instruments",
+		"img-toggle-instruments",
+		"section-instruments",
+		"warn-chip-instruments",
+		{ "btn-grid-snap", "btn-angle-snap", "btn-measure", "btn-symmetry" },
+		false
+	)
+	do
+		local instBtn = doc:GetElementById("btn-toggle-instruments")
+		if instBtn then
+			instBtn:AddEventListener("click", function()
+				local sec = doc:GetElementById("section-instruments")
+				if sec and not sec:IsClassSet("hidden") then
+					if widgetState.uiPrefs and not widgetState.uiPrefs.seenInstrumentsHint then
+						widgetState.instrumentsPulseFrame = Spring.GetGameFrame() + 1
+						widgetState.uiPrefs.seenInstrumentsHint = true
+						if widgetState.saveUiPrefs then
+							widgetState.saveUiPrefs()
+						end
+					end
+				end
+			end, false)
+		end
+	end
+
+	-- Skybox Library collapsible sections (default collapsed)
+	envSectionToggle("btn-env-toggle-skyrot", "img-env-toggle-skyrot", "env-section-skyrot", false)
+	envSectionToggle("btn-env-toggle-skydyn", "img-env-toggle-skydyn", "env-section-skydyn", false)
+
+	-- Capture window collapsible sections (extra layers collapsed: rarely used)
+	envSectionToggle("btn-capture-toggle-output", "img-capture-toggle-output", "capture-section-output", true)
+	envSectionToggle("btn-capture-toggle-photo", "img-capture-toggle-photo", "capture-section-photo", true)
+	envSectionToggle("btn-capture-toggle-units", "img-capture-toggle-units", "capture-section-units", true)
+	envSectionToggle("btn-capture-toggle-extra", "img-capture-toggle-extra", "capture-section-extra", false)
+
+	-- Sun & Shadows collapsible sections (default expanded)
+	envSectionToggle("btn-env-toggle-sundir", "img-env-toggle-sundir", "env-section-sundir", true)
+	envSectionToggle("btn-env-toggle-sunint", "img-env-toggle-sunint", "env-section-sunint", true)
+	envSectionToggle("btn-env-toggle-sunpre", "img-env-toggle-sunpre", "env-section-sunpre", true)
+	envSectionToggle("btn-env-toggle-shadow", "img-env-toggle-shadow", "env-section-shadow", true)
+
+	-- Fog & Atmosphere collapsible sections (default collapsed)
+	envSectionToggle("btn-env-toggle-fogdist", "img-env-toggle-fogdist", "env-section-fogdist", true)
+	envSectionToggle("btn-env-toggle-fogcol", "img-env-toggle-fogcol", "env-section-fogcol", true)
+	envSectionToggle("btn-env-toggle-suncol", "img-env-toggle-suncol", "env-section-suncol", false)
+	envSectionToggle("btn-env-toggle-skycol", "img-env-toggle-skycol", "env-section-skycol", false)
+	envSectionToggle("btn-env-toggle-cloudcol", "img-env-toggle-cloudcol", "env-section-cloudcol", false)
+
+	-- Ground Lighting collapsible sections (default expanded)
+	envSectionToggle("btn-env-toggle-gambient", "img-env-toggle-gambient", "env-section-gambient", true)
+	envSectionToggle("btn-env-toggle-gdiffuse", "img-env-toggle-gdiffuse", "env-section-gdiffuse", true)
+	envSectionToggle("btn-env-toggle-gspecular", "img-env-toggle-gspecular", "env-section-gspecular", true)
+
+	-- Unit Lighting collapsible sections (default expanded)
+	envSectionToggle("btn-env-toggle-uambient", "img-env-toggle-uambient", "env-section-uambient", true)
+	envSectionToggle("btn-env-toggle-udiffuse", "img-env-toggle-udiffuse", "env-section-udiffuse", true)
+	envSectionToggle("btn-env-toggle-uspecular", "img-env-toggle-uspecular", "env-section-uspecular", true)
+
+	-- Map Rendering collapsible sections (default expanded)
+	envSectionToggle("btn-env-toggle-rendertoggle", "img-env-toggle-rendertoggle", "env-section-rendertoggle", true)
+	envSectionToggle("btn-env-toggle-deferred", "img-env-toggle-deferred", "env-section-deferred", true)
+	envSectionToggle("btn-env-toggle-mapparams", "img-env-toggle-mapparams", "env-section-mapparams", true)
+
+	-- Water collapsible sections (default collapsed)
+	envSectionToggle("btn-env-toggle-wtoggle", "img-env-toggle-wtoggle", "env-section-wtoggle", true)
+	envSectionToggle("btn-env-toggle-wcolors", "img-env-toggle-wcolors", "env-section-wcolors", false)
+	-- Water color sub-sections (lower level, default collapsed)
+	envSectionToggle("btn-env-toggle-wc-absorb", "img-env-toggle-wc-absorb", "env-section-wc-absorb", false)
+	envSectionToggle("btn-env-toggle-wc-basecolor", "img-env-toggle-wc-basecolor", "env-section-wc-basecolor", false)
+	envSectionToggle("btn-env-toggle-wc-mincolor", "img-env-toggle-wc-mincolor", "env-section-wc-mincolor", false)
+	envSectionToggle(
+		"btn-env-toggle-wc-surfacecolor",
+		"img-env-toggle-wc-surfacecolor",
+		"env-section-wc-surfacecolor",
+		false
+	)
+	envSectionToggle("btn-env-toggle-wc-planecolor", "img-env-toggle-wc-planecolor", "env-section-wc-planecolor", false)
+	envSectionToggle(
+		"btn-env-toggle-wc-diffusecolor",
+		"img-env-toggle-wc-diffusecolor",
+		"env-section-wc-diffusecolor",
+		false
+	)
+	envSectionToggle(
+		"btn-env-toggle-wc-specularcolor",
+		"img-env-toggle-wc-specularcolor",
+		"env-section-wc-specularcolor",
+		false
+	)
+	envSectionToggle("btn-env-toggle-surface", "img-env-toggle-surface", "env-section-surface", false)
+	envSectionToggle("btn-env-toggle-material", "img-env-toggle-material", "env-section-material", false)
+	envSectionToggle("btn-env-toggle-fresnel", "img-env-toggle-fresnel", "env-section-fresnel", false)
+	envSectionToggle("btn-env-toggle-perlin", "img-env-toggle-perlin", "env-section-perlin", false)
+	envSectionToggle("btn-env-toggle-blur", "img-env-toggle-blur", "env-section-blur", false)
+
+	-- Tileset Terrain tool (TILESET) category sections
+	envSectionToggle("btn-toggle-ts-library", "img-toggle-ts-library", "section-ts-library", true)
+	envSectionToggle("btn-toggle-ts-perf", "img-toggle-ts-perf", "section-ts-perf", false)
+	envSectionToggle("btn-toggle-ts-metal", "img-toggle-ts-metal", "section-ts-metal", false)
+	envSectionToggle("btn-toggle-ts-scale", "img-toggle-ts-scale", "section-ts-scale", true)
+	envSectionToggle("btn-toggle-ts-normals", "img-toggle-ts-normals", "section-ts-normals", false)
+	envSectionToggle("btn-toggle-ts-rocknorm", "img-toggle-ts-rocknorm", "section-ts-rocknorm", false)
+	envSectionToggle("btn-toggle-ts-rockcol", "img-toggle-ts-rockcol", "section-ts-rockcol", false)
+	envSectionToggle("btn-toggle-ts-sortn", "img-toggle-ts-sortn", "section-ts-sortn", false)
+	envSectionToggle("btn-toggle-ts-sorta", "img-toggle-ts-sorta", "section-ts-sorta", false)
+	envSectionToggle("btn-toggle-ts-topscol", "img-toggle-ts-topscol", "section-ts-topscol", false)
+	envSectionToggle("btn-toggle-ts-cliffs", "img-toggle-ts-cliffs", "section-ts-cliffs", false)
+	envSectionToggle("btn-toggle-ts-place", "img-toggle-ts-place", "section-ts-place", false)
+	envSectionToggle("btn-toggle-ts-slot4", "img-toggle-ts-slot4", "section-ts-slot4", false)
+	envSectionToggle("btn-toggle-ts-deposit", "img-toggle-ts-deposit", "section-ts-deposit", false)
+	envSectionToggle("btn-toggle-ts-blend", "img-toggle-ts-blend", "section-ts-blend", false)
+	envSectionToggle("btn-toggle-ts-curv", "img-toggle-ts-curv", "section-ts-curv", false)
+	envSectionToggle("btn-toggle-ts-light", "img-toggle-ts-light", "section-ts-light", false)
+	envSectionToggle("btn-toggle-ts-water", "img-toggle-ts-water", "section-ts-water", false)
+	envSectionToggle("btn-toggle-ts-oldmap", "img-toggle-ts-oldmap", "section-ts-oldmap", false)
+	envSectionToggle("btn-toggle-ts-biome", "img-toggle-ts-biome", "section-ts-biome", false)
+	envSectionToggle("btn-toggle-ts-htint", "img-toggle-ts-htint", "section-ts-htint", false)
+	-- WORLDSPACE TINT sub-sections, each collapsed until opened (the section is long)
+	envSectionToggle("btn-toggle-ts-hsub-wet", "img-toggle-ts-hsub-wet", "section-ts-hsub-wet", false)
+	envSectionToggle("btn-toggle-ts-hsub-axis", "img-toggle-ts-hsub-axis", "section-ts-hsub-axis", false)
+	envSectionToggle("btn-toggle-ts-hsub-grade", "img-toggle-ts-hsub-grade", "section-ts-hsub-grade", false)
+	envSectionToggle("btn-toggle-ts-hsub-strata", "img-toggle-ts-hsub-strata", "section-ts-hsub-strata", false)
+	envSectionToggle("btn-toggle-ts-hsub-stops", "img-toggle-ts-hsub-stops", "section-ts-hsub-stops", false)
+	envSectionToggle("btn-toggle-ts-hsub-colour", "img-toggle-ts-hsub-colour", "section-ts-hsub-colour", false)
+	envSectionToggle("btn-toggle-ts-hsub-ramp", "img-toggle-ts-hsub-ramp", "section-ts-hsub-ramp", false)
+	envSectionToggle("btn-toggle-ts-hsub-sat", "img-toggle-ts-hsub-sat", "section-ts-hsub-sat", false)
+	envSectionToggle("btn-toggle-ts-hsub-tide", "img-toggle-ts-hsub-tide", "section-ts-hsub-tide", false)
+	envSectionToggle("btn-toggle-ts-hsub-snow", "img-toggle-ts-hsub-snow", "section-ts-hsub-snow", false)
+	envSectionToggle("btn-toggle-ts-tints", "img-toggle-ts-tints", "section-ts-tints", false)
+	envSectionToggle("btn-toggle-ts-debug", "img-toggle-ts-debug", "section-ts-debug", false)
+	envSectionToggle("btn-toggle-ts-presets", "img-toggle-ts-presets", "section-ts-presets", false)
+
+	-- SURFACE tool (tileset variant paint) sections
+	envSectionToggle("btn-toggle-surf-palette", "img-toggle-surf-palette", "section-surf-palette", true)
+	envSectionToggle("btn-toggle-surf-hard", "img-toggle-surf-hard", "section-surf-hard", true)
+	-- SURFACE/LAYERS canonical DISPLAY / INSTRUMENTS / FILTERS (sf prefix)
+	envSectionToggle("btn-toggle-sf-overlays", "img-toggle-sf-overlays", "section-sf-overlays", false)
+	envSectionToggle("btn-toggle-sf-instruments", "img-toggle-sf-instruments", "section-sf-instruments", false)
+	envSectionToggle("btn-toggle-sf-smart", "img-toggle-sf-smart", "section-sf-smart", false)
+	envSectionToggle("btn-toggle-sf-influence", "img-toggle-sf-influence", "section-sf-influence", false)
+	envSectionToggle("btn-toggle-surf-brush", "img-toggle-surf-brush", "section-surf-brush", true)
+	envSectionToggle("btn-toggle-surf-fill", "img-toggle-surf-fill", "section-surf-fill", false)
+	envSectionToggle("btn-toggle-surf-sculpt", "img-toggle-surf-sculpt", "section-surf-sculpt", false)
+	envSectionToggle("btn-toggle-surf-grading", "img-toggle-surf-grading", "section-surf-grading", false)
+
+	-- Wire ± buttons for env color RGB sliders
+	do
+		local colorSliders = {
+			"suncol-r",
+			"suncol-g",
+			"suncol-b",
+			"fog-r",
+			"fog-g",
+			"fog-b",
+			"skycol-r",
+			"skycol-g",
+			"skycol-b",
+			"cloudcol-r",
+			"cloudcol-g",
+			"cloudcol-b",
+			"snowcol-r",
+			"snowcol-g",
+			"snowcol-b",
+			"gambient-r",
+			"gambient-g",
+			"gambient-b",
+			"gdiffuse-r",
+			"gdiffuse-g",
+			"gdiffuse-b",
+			"gspecular-r",
+			"gspecular-g",
+			"gspecular-b",
+			"uambient-r",
+			"uambient-g",
+			"uambient-b",
+			"udiffuse-r",
+			"udiffuse-g",
+			"udiffuse-b",
+			"uspecular-r",
+			"uspecular-g",
+			"uspecular-b",
+			"wc-absorb-r",
+			"wc-absorb-g",
+			"wc-absorb-b",
+			"wc-basecolor-r",
+			"wc-basecolor-g",
+			"wc-basecolor-b",
+			"wc-mincolor-r",
+			"wc-mincolor-g",
+			"wc-mincolor-b",
+			"wc-surfacecolor-r",
+			"wc-surfacecolor-g",
+			"wc-surfacecolor-b",
+			"wc-planecolor-r",
+			"wc-planecolor-g",
+			"wc-planecolor-b",
+			"wc-diffusecolor-r",
+			"wc-diffusecolor-g",
+			"wc-diffusecolor-b",
+			"wc-specularcolor-r",
+			"wc-specularcolor-g",
+			"wc-specularcolor-b",
+			-- non-color sliders with ± buttons
+			"sun-y",
+			"sun-x",
+			"sun-az",
+			"sun-el",
+			"sun-z",
+			"sun-intensity",
+			"gshadow",
+			"ushadow",
+			"fog-start",
+			"fog-end",
+			"fog-a",
+			"snow-density",
+			"snow-speed",
+			"snow-size",
+			"snow-wind",
+			"snow-opacity",
+			"skyangle",
+			"skyaxis-x",
+			"skyaxis-y",
+			"skyaxis-z",
+			"skydyn-x",
+			"skydyn-y",
+			"skydyn-z",
+			"w-repeatx",
+			"w-repeaty",
+			"w-alpha",
+			"w-ambient",
+			"w-diffuse",
+			"w-specular",
+			"w-specpow",
+			"w-fresnelmin",
+			"w-fresnelmax",
+			"w-fresnelpow",
+			"w-pfreq",
+			"w-placun",
+			"w-pamp",
+			"w-numtiles",
+			"w-blurbase",
+			"w-blurexp",
+			"w-refldist",
+			"w-waveoff",
+			"w-wavelen",
+			"w-foamdist",
+			"w-foamint",
+			"w-caustres",
+			"w-cauststr",
+			"splatmult-0",
+			"splatmult-1",
+			"splatmult-2",
+			"splatmult-3",
+			"splatscale-0",
+			"splatscale-1",
+			"splatscale-2",
+			"splatscale-3",
+			"lava-amp",
+			"lava-period",
+			"lava-fogheight",
+		}
+		for _, suffix in ipairs(colorSliders) do
+			local sl = doc:GetElementById("slider-env-" .. suffix)
+			if sl then
+				local mn = tonumber(sl:GetAttribute("min")) or 0
+				local mx = tonumber(sl:GetAttribute("max")) or 1000
+				local st = tonumber(sl:GetAttribute("step")) or 1
+				local downBtn = doc:GetElementById("btn-env-" .. suffix .. "-down")
+				local upBtn = doc:GetElementById("btn-env-" .. suffix .. "-up")
+				if downBtn then
+					downBtn:AddEventListener("click", function(event)
+						playSound("tick")
+						local val = tonumber(sl:GetAttribute("value")) or 0
+						sl:SetAttribute("value", tostring(math.max(mn, val - st)))
+						event:StopPropagation()
+					end, false)
+				end
+				if upBtn then
+					upBtn:AddEventListener("click", function(event)
+						playSound("tick")
+						local val = tonumber(sl:GetAttribute("value")) or 0
+						sl:SetAttribute("value", tostring(math.min(mx, val + st)))
+						event:StopPropagation()
+					end, false)
+				end
+			end
+		end
+	end
+
+	-- ---- Sun & Shadows sliders ----
+	-- Cache DOM elements for live feedback from dynamic rotation
+	skyDynamic.sunSliderX = doc:GetElementById("slider-env-sun-x")
+	skyDynamic.sunSliderY = doc:GetElementById("slider-env-sun-y")
+	skyDynamic.sunSliderZ = doc:GetElementById("slider-env-sun-z")
+
+	-- Every direction write goes through this: keeps the applied intensity (the
+	-- engine defaults a missing 4th argument to 1.0), re-asserts the shadow
+	-- densities PER SCOPE (reading "shadowDensity" without a scope returns the
+	-- ground value, which used to flatten a ground/unit split on every nudge),
+	-- and restamps the other slider pair.
+	widgetState.envSetSunDir = function(x, y, z, restamp)
+		Spring.SetSunDirection(x, y, z, widgetState.envSunIntensity or 1.0)
+		Spring.SetSunLighting({
+			groundShadowDensity = gl.GetSun("shadowDensity", "ground"),
+			modelShadowDensity = gl.GetSun("shadowDensity", "unit"),
+		})
+		if restamp == "azel" and widgetState.refreshEnvSunAzEl then
+			widgetState.refreshEnvSunAzEl()
+		elseif restamp == "xyz" and widgetState.refreshEnvSunSliders then
+			widgetState.refreshEnvSunSliders()
+		end
+	end
+	envSlider("slider-env-sun-y", function(v)
+		return v / 10000
+	end, function()
+		return (select(2, gl.GetSun("pos"))) * 10000
+	end, function(val)
+		local sx, _, sz = gl.GetSun("pos")
+		widgetState.envSetSunDir(sx, val, sz, "azel")
+	end)
+	envSlider("slider-env-sun-x", function(v)
+		return v / 10000
+	end, function()
+		return (select(1, gl.GetSun("pos"))) * 10000
+	end, function(val)
+		local _, sy, sz = gl.GetSun("pos")
+		widgetState.envSetSunDir(val, sy, sz, "azel")
+	end)
+	envSlider("slider-env-sun-z", function(v)
+		return v / 10000
+	end, function()
+		return (select(3, gl.GetSun("pos"))) * 10000
+	end, function(val)
+		local sx, sy, _ = gl.GetSun("pos")
+		widgetState.envSetSunDir(sx, sy, val, "azel")
+	end)
+	-- AZIMUTH / ELEVATION: the artist-facing pair (tenths of a degree on the
+	-- track). Elevation stays above the horizon; the XYZ rows keep the exact
+	-- vector for people who think in it.
+	envSlider("slider-env-sun-az", function(v)
+		return v / 10
+	end, function()
+		local az = widgetState.azElFromSunDir(gl.GetSun("pos"))
+		return az * 10
+	end, function(val)
+		local _, el = widgetState.azElFromSunDir(gl.GetSun("pos"))
+		local x, y, z = widgetState.sunDirFromAzEl(val, el)
+		widgetState.envSetSunDir(x, y, z, "xyz")
+	end)
+	envSlider("slider-env-sun-el", function(v)
+		return v / 10
+	end, function()
+		local _, el = widgetState.azElFromSunDir(gl.GetSun("pos"))
+		return el * 10
+	end, function(val)
+		local az = widgetState.azElFromSunDir(gl.GetSun("pos"))
+		local x, y, z = widgetState.sunDirFromAzEl(az, val)
+		widgetState.envSetSunDir(x, y, z, "xyz")
+	end)
+	envSlider("slider-env-gshadow", function(v)
+		return v / 1000
+	end, function()
+		return gl.GetSun("shadowDensity", "ground") * 1000
+	end, function(val)
+		Spring.SetSunLighting({ groundShadowDensity = val })
+	end)
+	envSlider("slider-env-ushadow", function(v)
+		return v / 1000
+	end, function()
+		return gl.GetSun("shadowDensity", "unit") * 1000
+	end, function(val)
+		Spring.SetSunLighting({ modelShadowDensity = val })
+	end)
+
+	-- (onEnvResetSun now in initialModel in gui_terraform_brush.lua)
+
+	-- Sun intensity slider
+	envSlider("slider-env-sun-intensity", function(v)
+		return v / 1000
+	end, function()
+		return (widgetState.envSunIntensity or 1.0) * 1000
+	end, function(val)
+		widgetState.envSunIntensity = val
+		local sx, sy, sz = gl.GetSun("pos")
+		if sx then
+			Spring.SetSunDirection(sx, sy, sz, val)
+		end
+	end)
+	-- Keep an intensity a project load already applied; default only when unset
+	widgetState.envSunIntensity = widgetState.envSunIntensity or 1.0
+
+	-- ---- Fog & Atmosphere sliders ----
+	envSlider("slider-env-fog-start", function(v)
+		return v / 100
+	end, function()
+		return gl.GetAtmosphere("fogStart") * 100
+	end, function(val)
+		Spring.SetAtmosphere({ fogStart = val })
+	end)
+	envSlider("slider-env-fog-end", function(v)
+		return v / 100
+	end, function()
+		return gl.GetAtmosphere("fogEnd") * 100
+	end, function(val)
+		Spring.SetAtmosphere({ fogEnd = val })
+	end)
+
+	-- (onEnvResetFog now in initialModel in gui_terraform_brush.lua)
+
+	-- Fog color
+	local function fogColorSlider(suffix, idx)
+		envSlider("slider-env-fog-" .. suffix, function(v)
+			return v / 1000
+		end, function()
+			local c = { gl.GetAtmosphere("fogColor") }
+			return (c[idx] or 0) * 1000
+		end, function(val)
+			local c = { gl.GetAtmosphere("fogColor") }
+			c[idx] = val
+			Spring.SetAtmosphere({ fogColor = c })
+		end)
+	end
+	fogColorSlider("r", 1)
+	fogColorSlider("g", 2)
+	fogColorSlider("b", 3)
+	fogColorSlider("a", 4)
+
+	-- (onEnvResetFogColor now in initialModel in gui_terraform_brush.lua)
+
+	-- Sun color sliders
+	local function sunColorSlider(suffix, idx)
+		envSlider("slider-env-suncol-" .. suffix, function(v)
+			return v / 1000
+		end, function()
+			local c = { gl.GetAtmosphere("sunColor") }
+			return (c[idx] or 0) * 1000
+		end, function(val)
+			local c = { gl.GetAtmosphere("sunColor") }
+			c[idx] = val
+			Spring.SetAtmosphere({ sunColor = c })
+		end)
+	end
+	sunColorSlider("r", 1)
+	sunColorSlider("g", 2)
+	sunColorSlider("b", 3)
+
+	-- Sky color sliders
+	local function skyColorSlider(suffix, idx)
+		envSlider("slider-env-skycol-" .. suffix, function(v)
+			return v / 1000
+		end, function()
+			local c = { gl.GetAtmosphere("skyColor") }
+			return (c[idx] or 0) * 1000
+		end, function(val)
+			local c = { gl.GetAtmosphere("skyColor") }
+			c[idx] = val
+			Spring.SetAtmosphere({ skyColor = c })
+		end)
+	end
+	skyColorSlider("r", 1)
+	skyColorSlider("g", 2)
+	skyColorSlider("b", 3)
+
+	-- Cloud color sliders
+	local function cloudColorSlider(suffix, idx)
+		envSlider("slider-env-cloudcol-" .. suffix, function(v)
+			return v / 1000
+		end, function()
+			local c = { gl.GetAtmosphere("cloudColor") }
+			return (c[idx] or 0) * 1000
+		end, function(val)
+			local c = { gl.GetAtmosphere("cloudColor") }
+			c[idx] = val
+			Spring.SetAtmosphere({ cloudColor = c })
+		end)
+	end
+	cloudColorSlider("r", 1)
+	cloudColorSlider("g", 2)
+	cloudColorSlider("b", 3)
+
+	-- Wire palette + preview for fog, sun, sky, cloud colors
+	wireColorGroup({
+		paletteId = "env-fog-palette",
+		previewId = "env-fog-preview",
+		sliderPrefix = "fog",
+		channels = { "r", "g", "b", "a" },
+		getColor = function()
+			return { gl.GetAtmosphere("fogColor") }
+		end,
+		setColor = function(c)
+			local existing = { gl.GetAtmosphere("fogColor") }
+			Spring.SetAtmosphere({ fogColor = { c[1], c[2], c[3], existing[4] or 0 } })
+		end,
+	})
+	wireColorGroup({
+		paletteId = "env-suncol-palette",
+		previewId = "env-suncol-preview",
+		sliderPrefix = "suncol",
+		getColor = function()
+			return { gl.GetAtmosphere("sunColor") }
+		end,
+		setColor = function(c)
+			Spring.SetAtmosphere({ sunColor = c })
+		end,
+	})
+	wireColorGroup({
+		paletteId = "env-skycol-palette",
+		previewId = "env-skycol-preview",
+		sliderPrefix = "skycol",
+		getColor = function()
+			return { gl.GetAtmosphere("skyColor") }
+		end,
+		setColor = function(c)
+			Spring.SetAtmosphere({ skyColor = c })
+		end,
+	})
+	wireColorGroup({
+		paletteId = "env-cloudcol-palette",
+		previewId = "env-cloudcol-preview",
+		sliderPrefix = "cloudcol",
+		getColor = function()
+			return { gl.GetAtmosphere("cloudColor") }
+		end,
+		setColor = function(c)
+			Spring.SetAtmosphere({ cloudColor = c })
+		end,
+	})
+
+	-- (onEnvResetSunCol / onEnvResetSkyCol / onEnvResetCloudCol now in initialModel in gui_terraform_brush.lua)
+
+	-- ---- Snow controls ----
+	envSectionToggle("btn-env-toggle-snow", "img-env-toggle-snow", "env-section-snow", false)
+
+	-- Snow enable checkbox
+	do
+		local snowApi = WG.snow
+		local snowEnabled = snowApi and snowApi.getSnowMap() or false
+		envCheckbox("btn-env-snow-enabled", snowEnabled, function(val)
+			if WG.snow then
+				WG.snow.setSnowMap(val)
+			end
+		end)
+	end
+
+	-- Snow auto-reduce checkbox
+	do
+		local snowApi = WG.snow
+		local autoReduce = true
+		if snowApi and snowApi.getAutoReduce and snowApi.getAutoReduce() ~= nil then
+			autoReduce = snowApi.getAutoReduce()
+		end
+		envCheckbox("btn-env-snow-autoreduce", autoReduce, function(val)
+			if WG.snow then
+				WG.snow.setAutoReduce(val)
+			end
+		end)
+	end
+
+	-- Snow density slider (multiplier 0.1 - 5.0)
+	envSlider("slider-env-snow-density", function(v)
+		return v / 100
+	end, function()
+		local snowApi = WG.snow
+		return snowApi and snowApi.getMultiplier and snowApi.getMultiplier() * 100 or 100
+	end, function(val)
+		if WG.snow then
+			WG.snow.setMultiplier(val)
+		end
+	end)
+
+	-- Snow speed slider (multiplier 0.1 - 3.0)
+	envSlider("slider-env-snow-speed", function(v)
+		return v / 100
+	end, function()
+		local snowApi = WG.snow
+		return snowApi and snowApi.getSpeedMultiplier and snowApi.getSpeedMultiplier() * 100 or 100
+	end, function(val)
+		if WG.snow then
+			WG.snow.setSpeedMultiplier(val)
+		end
+	end)
+
+	-- Snow size slider (multiplier 0.1 - 3.0)
+	envSlider("slider-env-snow-size", function(v)
+		return v / 100
+	end, function()
+		local snowApi = WG.snow
+		return snowApi and snowApi.getSizeMultiplier and snowApi.getSizeMultiplier() * 100 or 100
+	end, function(val)
+		if WG.snow then
+			WG.snow.setSizeMultiplier(val)
+		end
+	end)
+
+	-- Snow wind slider (0.0 - 20.0)
+	envSlider("slider-env-snow-wind", function(v)
+		return v / 10
+	end, function()
+		local snowApi = WG.snow
+		return snowApi and snowApi.getWindMultiplier and snowApi.getWindMultiplier() * 10 or 45
+	end, function(val)
+		if WG.snow then
+			WG.snow.setWindMultiplier(val)
+		end
+	end)
+
+	-- Snow opacity slider (0.0 - 1.0)
+	envSlider("slider-env-snow-opacity", function(v)
+		return v / 100
+	end, function()
+		local snowApi = WG.snow
+		return snowApi and snowApi.getOpacity and snowApi.getOpacity() * 100 or 66
+	end, function(val)
+		if WG.snow then
+			WG.snow.setOpacity(val)
+		end
+	end)
+
+	-- Snow color sliders
+	local function snowColorSlider(suffix, idx)
+		envSlider("slider-env-snowcol-" .. suffix, function(v)
+			return v / 1000
+		end, function()
+			local snowApi = WG.snow
+			if snowApi and snowApi.getColor then
+				local r, g, b = snowApi.getColor()
+				local c = { r, g, b }
+				return (c[idx] or 0) * 1000
+			end
+			return ({ 800, 800, 900 })[idx]
+		end, function(val)
+			if WG.snow and WG.snow.getColor and WG.snow.setColor then
+				local r, g, b = WG.snow.getColor()
+				local c = { r, g, b }
+				c[idx] = val
+				WG.snow.setColor(c[1], c[2], c[3])
+				updatePreview(doc:GetElementById("env-snowcol-preview"), c[1], c[2], c[3])
+			end
+		end)
+	end
+	snowColorSlider("r", 1)
+	snowColorSlider("g", 2)
+	snowColorSlider("b", 3)
+
+	-- Wire snow color palette + preview
+	wireColorGroup({
+		paletteId = "env-snowcol-palette",
+		previewId = "env-snowcol-preview",
+		sliderPrefix = "snowcol",
+		getColor = function()
+			local snowApi = WG.snow
+			if snowApi and snowApi.getColor then
+				local r, g, b = snowApi.getColor()
+				return { r, g, b }
+			end
+			return { 0.8, 0.8, 0.9 }
+		end,
+		setColor = function(c)
+			if WG.snow and WG.snow.setColor then
+				WG.snow.setColor(c[1], c[2], c[3])
+			end
+		end,
+	})
+
+	-- (onEnvResetSnow now in initialModel in gui_terraform_brush.lua)
+
+	-- ---- Lighting sliders ----
+	local function lightingSlider(prefix, sunKind, sunScope, lightingKey)
+		for i, suffix in ipairs({ "r", "g", "b" }) do
+			envSlider("slider-env-" .. prefix .. "-" .. suffix, function(v)
+				return v / 1000
+			end, function()
+				local r, g, b = gl.GetSun(sunKind, sunScope)
+				local c = { r, g, b }
+				return (c[i] or 0) * 1000
+			end, function(val)
+				local r, g, b = gl.GetSun(sunKind, sunScope)
+				local c = { r or 0, g or 0, b or 0 }
+				c[i] = val
+				Spring.SetSunLighting({ [lightingKey] = c })
+				Spring.SendCommands("luarules updatesun")
+			end)
+		end
+	end
+	lightingSlider("gambient", "ambient", nil, "groundAmbientColor")
+	lightingSlider("gdiffuse", "diffuse", nil, "groundDiffuseColor")
+	lightingSlider("gspecular", "specular", nil, "groundSpecularColor")
+	lightingSlider("uambient", "ambient", "unit", "unitAmbientColor")
+	lightingSlider("udiffuse", "diffuse", "unit", "unitDiffuseColor")
+	lightingSlider("uspecular", "specular", "unit", "unitSpecularColor")
+
+	-- (onEnvResetGroundLighting / onEnvResetUnitLighting now in initialModel in gui_terraform_brush.lua)
+
+	-- ---- Map Rendering controls ----
+	-- Render toggles (default to true; no engine getter available)
+	envCheckbox("btn-env-drawsky", true, function(val)
+		Spring.SetDrawSky(val)
+	end)
+	envCheckbox("btn-env-drawwater", true, function(val)
+		Spring.SetDrawWater(val)
+	end)
+	envCheckbox("btn-env-drawground", true, function(val)
+		Spring.SetDrawGround(val)
+	end)
+
+	-- Deferred rendering toggles (default to true)
+	envCheckbox("btn-env-deferground", true, function(val)
+		Spring.SetDrawGroundDeferred(val)
+	end)
+	envCheckbox("btn-env-defermodels", true, function(val)
+		Spring.SetDrawModelsDeferred(val, val)
+	end)
+
+	envCheckbox("btn-env-splatdnda", gl.GetMapRendering("splatDetailNormalDiffuseAlpha"), function(val)
+		Spring.SetMapRenderingParams({ splatDetailNormalDiffuseAlpha = val })
+	end)
+	envCheckbox("btn-env-voidwater", gl.GetMapRendering("voidWater"), function(val)
+		Spring.SetMapRenderingParams({ voidWater = val })
+	end)
+	envCheckbox("btn-env-voidground", gl.GetMapRendering("voidGround"), function(val)
+		Spring.SetMapRenderingParams({ voidGround = val })
+	end)
+
+	-- Splat tex multipliers
+	for ch = 0, 3 do
+		local chIdx = ch + 1
+		envSlider("slider-env-splatmult-" .. ch, function(v)
+			return v / 1000
+		end, function()
+			local r, g, b, a = gl.GetMapRendering("splatTexMults")
+			local c = { r, g, b, a }
+			return (c[chIdx] or 0) * 1000
+		end, function(val)
+			local r, g, b, a = gl.GetMapRendering("splatTexMults")
+			local c = { r, g, b, a }
+			c[chIdx] = val
+			Spring.SetMapRenderingParams({ splatTexMults = c })
+		end)
+	end
+
+	-- Splat tex scales
+	for ch = 0, 3 do
+		local chIdx = ch + 1
+		envSlider("slider-env-splatscale-" .. ch, function(v)
+			return v / 10000
+		end, function()
+			local r, g, b, a = gl.GetMapRendering("splatTexScales")
+			local c = { r, g, b, a }
+			return (c[chIdx] or 0) * 10000
+		end, function(val)
+			local r, g, b, a = gl.GetMapRendering("splatTexScales")
+			local c = { r, g, b, a }
+			c[chIdx] = val
+			Spring.SetMapRenderingParams({ splatTexScales = c })
+		end)
+	end
+
+	-- ---- Grass config popup controls ----
+	local function grassCfgPull()
+		local api = WG.grassgl4
+		if not (api and api.getVisualConfig) then
+			return
+		end
+		local cfg = api.getVisualConfig() or {}
+		local function setS(slId, lbId, val, scale)
+			local sl = doc:GetElementById(slId)
+			local lb = doc:GetElementById(lbId)
+			local raw = math.floor((tonumber(val) or 0) * scale + 0.5)
+			if sl then
+				sl:SetAttribute("value", tostring(raw))
+			end
+			if lb then
+				lb:SetAttribute("value", string.format("%.3f", (tonumber(val) or 0)))
+			end
+		end
+		setS("slider-gb-mapcolorfactor", "lbl-gb-mapcolorfactor", cfg.mapColorFactor, 1000)
+		setS("slider-gb-mapcolorbase", "lbl-gb-mapcolorbase", cfg.mapColorBase, 1000)
+		setS("slider-gb-grassbrightness", "lbl-gb-grassbrightness", cfg.grassBrightness, 1000)
+		local blade = doc:GetElementById("input-gb-blade-tex")
+		if blade then
+			blade:SetAttribute("value", tostring(cfg.grassBladeColorTex or ""))
+		end
+		local mod = doc:GetElementById("input-gb-colormod-tex")
+		if mod then
+			mod:SetAttribute("value", tostring(cfg.mapGrassColorModTex or "$grass"))
+		end
+	end
+
+	local function grassCfgPush(tbl)
+		local api = WG.grassgl4
+		if api and api.setVisualConfig then
+			api.setVisualConfig(tbl)
+		end
+	end
+
+	local function grassCfgWireSlider(slId, lbId, key, scale)
+		local sl = doc:GetElementById(slId)
+		local lb = doc:GetElementById(lbId)
+		if not sl then
+			return
+		end
+		trackSliderDrag(sl, slId)
+		sl:AddEventListener("change", function(event)
+			if uiState.updatingFromCode then
+				return
+			end
+			local raw = tonumber(sl:GetAttribute("value")) or 0
+			local val = raw / scale
+			if lb then
+				lb:SetAttribute("value", string.format("%.3f", val))
+			end
+			grassCfgPush({ [key] = val })
+			event:StopPropagation()
+		end, false)
+	end
+
+	grassCfgWireSlider("slider-gb-mapcolorfactor", "lbl-gb-mapcolorfactor", "mapColorFactor", 1000)
+	grassCfgWireSlider("slider-gb-mapcolorbase", "lbl-gb-mapcolorbase", "mapColorBase", 1000)
+	grassCfgWireSlider("slider-gb-grassbrightness", "lbl-gb-grassbrightness", "grassBrightness", 1000)
+
+	-- Same keyboard capture the panel's other text fields get, or these two
+	-- cannot be typed into (see widgetState.wireTextInput).
+	ctx.widgetState.wireTextInput(doc:GetElementById("input-gb-blade-tex"))
+	ctx.widgetState.wireTextInput(doc:GetElementById("input-gb-colormod-tex"))
+
+	local bladeApply = doc:GetElementById("btn-gb-blade-tex-apply")
+	if bladeApply then
+		bladeApply:AddEventListener("mousedown", function(event)
+			local blade = doc:GetElementById("input-gb-blade-tex")
+			local path = blade and blade:GetAttribute("value") or ""
+			if path and path ~= "" then
+				grassCfgPush({ grassBladeColorTex = path })
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
+	local modApply = doc:GetElementById("btn-gb-colormod-tex-apply")
+	if modApply then
+		modApply:AddEventListener("mousedown", function(event)
+			local mod = doc:GetElementById("input-gb-colormod-tex")
+			local path = mod and mod:GetAttribute("value") or ""
+			if path and path ~= "" then
+				grassCfgPush({ mapGrassColorModTex = path })
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
+	local cfgSave = doc:GetElementById("btn-gb-grasscfg-save")
+	if cfgSave then
+		cfgSave:AddEventListener("mousedown", function(event)
+			local api = WG.grassgl4
+			if api and api.saveGrassConfig then
+				api.saveGrassConfig()
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
+	local cfgRefresh = doc:GetElementById("btn-gb-grasscfg-refresh")
+	if cfgRefresh then
+		cfgRefresh:AddEventListener("mousedown", function(event)
+			grassCfgPull()
+			event:StopPropagation()
+		end, false)
+	end
+
+	local cfgOpen = doc:GetElementById("btn-gb-grasscfg")
+	if cfgOpen then
+		cfgOpen:AddEventListener("mousedown", function(event)
+			grassCfgPull()
+			event:StopPropagation()
+		end, false)
+	end
+
+	grassCfgPull()
+
+	-- ---- Skybox rotation sliders ----
+	envSlider("slider-env-skyangle", function(v)
+		return v / 100
+	end, function()
+		local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+		return (angle or 0) * 100
+	end, function(val)
+		local x, y, z, _ = gl.GetAtmosphere("skyAxisAngle")
+		Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, val } })
+	end)
+	local function skyAxisSlider(axis, idx)
+		envSlider("slider-env-skyaxis-" .. axis, function(v)
+			return v / 100
+		end, function()
+			local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			local c = { x, y, z, angle }
+			return (c[idx] or 0) * 100
+		end, function(val)
+			local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			local c = { x, y, z, angle }
+			c[idx] = val
+			Spring.SetAtmosphere({ skyAxisAngle = c })
+		end)
+	end
+	skyAxisSlider("x", 1)
+	skyAxisSlider("y", 2)
+	skyAxisSlider("z", 3)
+
+	-- (onEnvResetSkyAxis now in initialModel in gui_terraform_brush.lua)
+
+	-- ---- Dynamic skybox rotation controls ----
+	local function skyDynSlider(axis, field)
+		envSlider("slider-env-skydyn-" .. axis, function(v)
+			return v / 100
+		end, function()
+			return skyDynamic[field] * 100
+		end, function(val)
+			skyDynamic[field] = val
+		end)
+	end
+	skyDynSlider("x", "speedX")
+	skyDynSlider("y", "speedY")
+	skyDynSlider("z", "speedZ")
+
+	envCheckbox("btn-env-skydyn-sunsync", skyDynamic.sunSync, function(val)
+		skyDynamic.sunSync = val
+	end)
+
+	-- (onEnvSkyDynPlay / onEnvSkyDynPause now in initialModel in gui_terraform_brush.lua)
+
+	-- ---- Water controls ----
+	envCheckbox("btn-env-w-shorewaves", gl.GetWaterRendering("shoreWaves"), function(val)
+		Spring.SetWaterParams({ shoreWaves = val })
+		Spring.SendCommands("water 4")
+	end)
+	envCheckbox("btn-env-w-waterplane", gl.GetWaterRendering("hasWaterPlane"), function(val)
+		Spring.SetWaterParams({ hasWaterPlane = val })
+		Spring.SendCommands("water 4")
+	end)
+	envCheckbox("btn-env-w-forcerender", gl.GetWaterRendering("forceRendering"), function(val)
+		Spring.SetWaterParams({ forceRendering = val })
+		Spring.SendCommands("water 4")
+	end)
+
+	-- Water sliders
+	local waterSliders = {
+		{ "repeatx", 1, "repeatX", "repeatX", 1 },
+		{ "repeaty", 1, "repeatY", "repeatY", 1 },
+		{ "alpha", 1000, "surfaceAlpha", "surfaceAlpha", 1000 },
+		{ "ambient", 1000, "ambientFactor", "ambientFactor", 1000 },
+		{ "diffuse", 1000, "diffuseFactor", "diffuseFactor", 1000 },
+		{ "specular", 1000, "specularFactor", "specularFactor", 1000 },
+		{ "specpow", 10, "specularPower", "specularPower", 10 },
+		{ "fresnelmin", 100, "fresnelMin", "fresnelMin", 100 },
+		{ "fresnelmax", 100, "fresnelMax", "fresnelMax", 100 },
+		{ "fresnelpow", 10, "fresnelPower", "fresnelPower", 10 },
+		{ "pfreq", 1, "perlinStartFreq", "perlinStartFreq", 1 },
+		{ "placun", 100, "perlinLacunarity", "perlinLacunarity", 100 },
+		{ "pamp", 100, "perlinAmplitude", "perlinAmplitude", 100 },
+		{ "numtiles", 1, "numTiles", "numTiles", 1 },
+		{ "blurbase", 100, "blurBase", "blurBase", 100 },
+		{ "blurexp", 100, "blurExponent", "blurExponent", 100 },
+		{ "refldist", 100, "reflectionDistortion", "reflectionDistortion", 100 },
+		{ "waveoff", 100, "waveOffsetFactor", "waveOffsetFactor", 100 },
+		{ "wavelen", 100, "waveLength", "waveLength", 100 },
+		{ "foamdist", 100, "waveFoamDistortion", "waveFoamDistortion", 100 },
+		{ "foamint", 100, "waveFoamIntensity", "waveFoamIntensity", 100 },
+		{ "caustres", 1, "causticsResolution", "causticsResolution", 1 },
+		{ "cauststr", 100, "causticsStrength", "causticsStrength", 100 },
+	}
+	for _, ws in ipairs(waterSliders) do
+		local slSuffix, divisor, getParam, setParam, getScale = ws[1], ws[2], ws[3], ws[4], ws[5]
+		envSlider("slider-env-w-" .. slSuffix, function(v)
+			return v / divisor
+		end, function()
+			return (gl.GetWaterRendering(getParam) or 0) * getScale
+		end, function(val)
+			Spring.SetWaterParams({ [setParam] = val })
+			Spring.SendCommands("water 4")
+		end)
+	end
+
+	-- ---- Water color sliders ----
+	do
+		local waterColorParams = {
+			{ prefix = "absorb", param = "absorb", paletteId = "env-wc-palette-absorb" },
+			{ prefix = "basecolor", param = "baseColor", paletteId = "env-wc-palette-basecolor" },
+			{ prefix = "mincolor", param = "minColor" },
+			{ prefix = "surfacecolor", param = "surfaceColor" },
+			{ prefix = "planecolor", param = "planeColor" },
+			{ prefix = "diffusecolor", param = "diffuseColor" },
+			{ prefix = "specularcolor", param = "specularColor" },
+		}
+		for _, wc in ipairs(waterColorParams) do
+			for i, suffix in ipairs({ "r", "g", "b" }) do
+				envSlider("slider-env-wc-" .. wc.prefix .. "-" .. suffix, function(v)
+					return v / 1000
+				end, function()
+					local c = { gl.GetWaterRendering(wc.param) }
+					return (c[i] or 0) * 1000
+				end, function(val)
+					local c = { gl.GetWaterRendering(wc.param) }
+					c[i] = val
+					Spring.SetWaterParams({ [wc.param] = c })
+					Spring.SendCommands("water 4")
+				end)
+			end
+			wireColorGroup({
+				paletteId = wc.paletteId,
+				previewId = "env-wc-preview-" .. wc.prefix,
+				sliderPrefix = "wc-" .. wc.prefix,
+				getColor = function()
+					return { gl.GetWaterRendering(wc.param) }
+				end,
+				setColor = function(c)
+					Spring.SetWaterParams({ [wc.param] = c })
+					Spring.SendCommands("water 4")
+				end,
+			})
+		end
+
+		-- (onEnvResetWaterColors now in initialModel in gui_terraform_brush.lua)
+	end
+
+	-- ---- Water Type Preset Switcher ----
+	do
+		local waterTypePresets = {
+			ocean = {
+				absorb = { 0.30, 0.04, 0.03 },
+				baseColor = { 0.00, 0.10, 0.30 },
+				minColor = { 0.00, 0.02, 0.08 },
+				surfaceColor = { 0.60, 0.70, 0.85 },
+				planeColor = { 0.00, 0.15, 0.35 },
+				diffuseColor = { 1.00, 1.00, 1.00 },
+				specularColor = { 0.80, 0.80, 0.90 },
+			},
+			lava = {
+				absorb = { 0.00, 0.25, 0.45 },
+				baseColor = { 0.80, 0.20, 0.00 },
+				minColor = { 0.50, 0.05, 0.00 },
+				surfaceColor = { 1.00, 0.50, 0.10 },
+				planeColor = { 0.60, 0.10, 0.00 },
+				diffuseColor = { 1.00, 0.40, 0.00 },
+				specularColor = { 1.00, 0.60, 0.20 },
+			},
+			acid = {
+				absorb = { 0.30, 0.02, 0.35 },
+				baseColor = { 0.10, 0.40, 0.05 },
+				minColor = { 0.00, 0.15, 0.00 },
+				surfaceColor = { 0.30, 0.80, 0.20 },
+				planeColor = { 0.05, 0.30, 0.02 },
+				diffuseColor = { 0.50, 1.00, 0.30 },
+				specularColor = { 0.40, 0.90, 0.30 },
+			},
+			swamp = {
+				absorb = { 0.15, 0.08, 0.02 },
+				baseColor = { 0.15, 0.18, 0.05 },
+				minColor = { 0.03, 0.05, 0.02 },
+				surfaceColor = { 0.25, 0.30, 0.15 },
+				planeColor = { 0.10, 0.12, 0.04 },
+				diffuseColor = { 0.60, 0.70, 0.40 },
+				specularColor = { 0.30, 0.35, 0.20 },
+			},
+			ice = {
+				absorb = { 0.15, 0.05, 0.03 },
+				baseColor = { 0.50, 0.65, 0.80 },
+				minColor = { 0.20, 0.30, 0.40 },
+				surfaceColor = { 0.85, 0.90, 0.95 },
+				planeColor = { 0.40, 0.55, 0.70 },
+				diffuseColor = { 0.90, 0.95, 1.00 },
+				specularColor = { 1.00, 1.00, 1.00 },
+			},
+		}
+
+		local wtypeButtons = { "default", "ocean", "lava", "acid", "swamp", "ice" }
+		local wtypeBtnEls = {}
+		for _, name in ipairs(wtypeButtons) do
+			wtypeBtnEls[name] = doc:GetElementById("btn-wtype-" .. name)
+		end
+
+		local function applyWaterTypePreset(colors)
+			for param, c in pairs(colors) do
+				Spring.SetWaterParams({ [param] = c })
+			end
+			Spring.SendCommands("water 4")
+			-- Update all water color sliders to reflect new values
+			local sliderMap = {
+				{ "absorb", "absorb" },
+				{ "basecolor", "baseColor" },
+				{ "mincolor", "minColor" },
+				{ "surfacecolor", "surfaceColor" },
+				{ "planecolor", "planeColor" },
+				{ "diffusecolor", "diffuseColor" },
+				{ "specularcolor", "specularColor" },
+			}
+			for _, entry in ipairs(sliderMap) do
+				local prefix, param = entry[1], entry[2]
+				local c = { gl.GetWaterRendering(param) }
+				for i, s in ipairs({ "r", "g", "b" }) do
+					envSetSlider("slider-env-wc-" .. prefix .. "-" .. s, math.floor((c[i] or 0) * 1000 + 0.5))
+				end
+				updatePreview(doc:GetElementById("env-wc-preview-" .. prefix), c[1], c[2], c[3])
+			end
+		end
+
+		local function setWtypeActive(activeName)
+			for _, name in ipairs(wtypeButtons) do
+				local el = wtypeBtnEls[name]
+				if el then
+					if name == activeName then
+						el:SetClass("tf-wtype-active", true)
+					else
+						el:SetClass("tf-wtype-active", false)
+					end
+				end
+			end
+		end
+
+		for _, name in ipairs(wtypeButtons) do
+			local btn = wtypeBtnEls[name]
+			if btn then
+				btn:AddEventListener("click", function(event)
+					if name == "default" then
+						-- Reset to map defaults
+						local d = widgetState.envDefaults
+						local defColors = {
+							absorb = d.waterAbsorb,
+							baseColor = d.waterBaseColor,
+							minColor = d.waterMinColor,
+							surfaceColor = d.waterSurfaceColor,
+							planeColor = d.waterPlaneColor,
+							diffuseColor = d.waterDiffuseColor,
+							specularColor = d.waterSpecularColor,
+						}
+						applyWaterTypePreset(defColors)
+					else
+						applyWaterTypePreset(waterTypePresets[name])
+					end
+					-- Activate/deactivate the shader overlay for lava/acid
+					local overlay = WG.WaterTypeOverlay
+					if overlay then
+						if name == "lava" or name == "acid" then
+							overlay.activate(name)
+						else
+							overlay.deactivate()
+						end
+					end
+					setWtypeActive(name)
+					-- Show/hide water sections for lava/acid types
+					local stdSections = doc:GetElementById("env-water-std-sections")
+					local lavaSections = doc:GetElementById("env-lava-sections")
+					if stdSections and lavaSections then
+						local isLavaType = name == "lava" or name == "acid"
+						stdSections:SetClass("hidden", isLavaType)
+						lavaSections:SetClass("hidden", not isLavaType)
+					end
+					event:StopPropagation()
+				end, false)
+			end
+		end
+
+		-- Lava / acid shader overlay sliders
+		envSlider("slider-env-lava-amp", function(v)
+			return v
+		end, function()
+			return 2
+		end, function(val)
+			local ov = WG.WaterTypeOverlay
+			if ov and ov.setTideAmplitude then
+				ov.setTideAmplitude(val)
+			end
+		end)
+		envSlider("slider-env-lava-period", function(v)
+			return v
+		end, function()
+			return 200
+		end, function(val)
+			local ov = WG.WaterTypeOverlay
+			if ov and ov.setTidePeriod then
+				ov.setTidePeriod(val)
+			end
+		end)
+		envSlider("slider-env-lava-fogheight", function(v)
+			return v
+		end, function()
+			return 20
+		end, function(val)
+			local ov = WG.WaterTypeOverlay
+			if ov and ov.setFogHeight then
+				ov.setFogHeight(val)
+			end
+		end)
+	end
+
+	-- ---- Dimensions panel controls ----
+	do
+		-- (the map size readout moved into MAP TRANSFORM, which states it in the
+		-- unit its own controls use; envRefreshXform writes those strings)
+
+		-- Height extreme labels (driven by {{envInitMinStr}}/etc. in RML)
+		local function refreshDimExtremes()
+			local initMin, initMax, currMin, currMax = Spring.GetGroundExtremes()
+			local wl = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
+			if widgetState.dmHandle then
+				local dm = widgetState.dmHandle
+				local v = string.format("%.1f", initMin or 0)
+				if dm.envInitMinStr ~= v then
+					dm.envInitMinStr = v
+				end
+				v = string.format("%.1f", initMax or 0)
+				if dm.envInitMaxStr ~= v then
+					dm.envInitMaxStr = v
+				end
+				v = string.format("%.1f", currMin or 0)
+				if dm.envCurrMinStr ~= v then
+					dm.envCurrMinStr = v
+				end
+				v = string.format("%.1f", currMax or 0)
+				if dm.envCurrMaxStr ~= v then
+					dm.envCurrMaxStr = v
+				end
+				v = string.format("%.1f", wl)
+				if dm.envWaterPlaneStr ~= v then
+					dm.envWaterPlaneStr = v
+				end
+			end
+		end
+
+		refreshDimExtremes()
+		-- Stored for the Update-loop poll in gui_terraform_brush.lua:
+		widgetState.envRefreshDimExtremes = refreshDimExtremes
+
+		-- Prefill the HEIGHT RANGE sliders, so the panel opens showing the range
+		-- it is about to change and only one end has to be moved. useInit picks
+		-- the map's own extremes (the RESET chip) over the live ones (CURRENT,
+		-- and the open-edge prefill): init min/max come from the map's SMF header
+		-- and are not moved by any edit, so they stay a true "back to default"
+		-- target. Both tracks are reseeded to span the init and live extremes
+		-- with a full span of headroom each way, so RESCALE can stretch the
+		-- relief well past what the map has now; 512 is the floor for a flat
+		-- canvas, which would otherwise collapse both tracks to a point.
+		-- Deliberately not a local (M.attach is near the Lua 5.1 200-local cap)
+		-- and deliberately not called from the per-frame poll, which would
+		-- overwrite whatever is being adjusted.
+		widgetState.envFillDimRangeInputs = function(useInit)
+			local initMin, initMax, currMin, currMax = Spring.GetGroundExtremes()
+			local boundLo = math.min(initMin or 0, currMin or 0)
+			local boundHi = math.max(initMax or 0, currMax or 0)
+			local pad = math.max(512, boundHi - boundLo)
+			boundLo = math.floor(boundLo - pad)
+			boundHi = math.ceil(boundHi + pad)
+			local vals = {
+				["slider-env-dim-minheight"] = (useInit and initMin or currMin) or 0,
+				["slider-env-dim-maxheight"] = (useInit and initMax or currMax) or 0,
+			}
+			for id, v in pairs(vals) do
+				local vStr = string.format("%.0f", v)
+				local sl = doc:GetElementById(id)
+				if sl then
+					sl:SetAttribute("min", tostring(boundLo))
+					sl:SetAttribute("max", tostring(boundHi))
+					sl:SetAttribute("value", vStr)
+				end
+				-- Programmatic slider sets do not fire change, so the numbox
+				-- has to be moved by hand.
+				local nb = doc:GetElementById(id .. "-numbox")
+				if nb then
+					nb:SetAttribute("value", vStr)
+				end
+			end
+		end
+		widgetState.envFillDimRangeInputs()
+
+		-- The shoreline is driven by TWO mirrored tracks: WATER LEVEL in the
+		-- Dimensions window and FLUID LEVEL in the Water window. Same value,
+		-- same preview, same APPLY; the sync poll below keeps them equal.
+		-- On widgetState, not a local: M.attach is near the Lua 5.1 200-local cap.
+		widgetState.envWaterSliderIds = { "slider-env-waterlevel", "slider-env-wl" }
+
+		-- Seed the water level sliders: they address an absolute world height
+		-- (the height the shoreline will sit at), so their bounds have to span
+		-- the terrain rather than being fixed from the RML. Reseeded on open
+		-- and after an apply, never while dragging.
+		--
+		-- The track is centred on the current plane with equal travel each way,
+		-- so the handle starts in the middle and drags to raise or lower. Bounding
+		-- it to the terrain instead would park the handle wherever the water
+		-- happens to sit (11% from the left on a -198..1608 map), which reads as
+		-- a slider that can only raise. The half-span is whichever direction
+		-- needs more reach, so the map floor and the highest peak both stay
+		-- inside the track; 200 is the floor for a flat canvas, which would
+		-- otherwise collapse the slider to a single position.
+		widgetState.envSeedWaterSlider = function()
+			local _, _, currMin, currMax = Spring.GetGroundExtremes()
+			local plane = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
+			local half = math.max(200, plane - (currMin or 0), (currMax or 0) - plane)
+			local lo = math.floor(plane - half)
+			local hi = math.ceil(plane + half)
+			local vStr = tostring(math.floor(plane + 0.5))
+			for _, id in ipairs(widgetState.envWaterSliderIds) do
+				local sl = doc:GetElementById(id)
+				if sl then
+					sl:SetAttribute("min", tostring(lo))
+					sl:SetAttribute("max", tostring(hi))
+					sl:SetAttribute("value", vStr)
+				end
+				local nb = doc:GetElementById(id .. "-numbox")
+				if nb then
+					nb:SetAttribute("value", vStr)
+				end
+			end
+			widgetState.envWaterPreviewAt = nil
+			if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+				WG.TerraformBrush.setWaterLevelPreview(nil)
+			end
+		end
+		widgetState.envSeedWaterSlider()
+
+		-- Polled from the panel Update loop while either window is open. Reading
+		-- the sliders on a timer rather than off their change events is
+		-- deliberate: the value also moves via the numboxes and the +/- steppers,
+		-- and RmlUi does not fire change for programmatic sets. Whichever track
+		-- moved since the last poll wins and is copied onto the other (a
+		-- programmatic set fires no change, so this cannot loop). Suppressed at
+		-- zero delta so the preview plane does not sit permanently on top of the
+		-- real water.
+		widgetState.envSyncWaterPreview = function()
+			local level
+			for _, id in ipairs(widgetState.envWaterSliderIds) do
+				local sl = doc:GetElementById(id)
+				local v = sl and tonumber(sl:GetAttribute("value"))
+				if v and v ~= widgetState.envWaterPreviewAt then
+					level = v
+					break
+				end
+			end
+			if not level then
+				return
+			end
+			widgetState.envWaterPreviewAt = level
+			for _, id in ipairs(widgetState.envWaterSliderIds) do
+				local sl = doc:GetElementById(id)
+				if sl and tonumber(sl:GetAttribute("value")) ~= level then
+					sl:SetAttribute("value", tostring(level))
+				end
+				local nb = doc:GetElementById(id .. "-numbox")
+				if nb then
+					nb:SetAttribute("value", tostring(level))
+				end
+			end
+			local plane = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
+			local delta = math.floor(level - plane + 0.5)
+			if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+				WG.TerraformBrush.setWaterLevelPreview(delta ~= 0 and level or nil)
+			end
+			local dm = widgetState.dmHandle
+			if dm then
+				-- Name the marker, and state the mechanism after it: the water plane
+				-- never moves, the terrain slides under it.
+				if delta == 0 then
+					dm.envWaterTargetStr = "Drag to move the shoreline."
+				elseif delta > 0 then
+					dm.envWaterTargetStr =
+						string.format("Flood to the blue line, +%.0f. Terrain drops %.0f.", delta, delta)
+				else
+					dm.envWaterTargetStr =
+						string.format("Drain to the blue line, %.0f. Terrain rises %.0f.", delta, -delta)
+				end
+			end
+		end
+
+		-- (onEnvApplyWaterLevel / onEnvApplyHeightRange / onEnvDimRangeMode /
+		--  onEnvResetWaterLevel / onEnvResetBounds now in initialModel in
+		--  gui_terraform_brush.lua)
+
+		-- HEIGHT RANGE slider steppers. Not wired through the colorSliders loop:
+		-- that loop captures the RML min/max at attach, while these two tracks
+		-- reseed their bounds at runtime (envFillDimRangeInputs), so the clamp
+		-- has to read the live attributes. The numbox is moved by hand because
+		-- a programmatic slider set does not fire change (their numboxes are
+		-- still typed into via the shared tf-slider-numbox wiring).
+		-- On widgetState, not a local: M.attach is near the Lua 5.1 200-local cap.
+		widgetState.envWireDimStepper = function(suffix)
+			local sl = doc:GetElementById("slider-env-" .. suffix)
+			if not sl then
+				return
+			end
+			local function step(dir)
+				return function(event)
+					playSound("tick")
+					local mn = tonumber(sl:GetAttribute("min")) or -10000
+					local mx = tonumber(sl:GetAttribute("max")) or 10000
+					local val = (tonumber(sl:GetAttribute("value")) or 0) + dir
+					val = math.max(mn, math.min(mx, val))
+					sl:SetAttribute("value", tostring(val))
+					local nb = doc:GetElementById("slider-env-" .. suffix .. "-numbox")
+					if nb then
+						nb:SetAttribute("value", tostring(val))
+					end
+					event:StopPropagation()
+				end
+			end
+			local downBtn = doc:GetElementById("btn-env-" .. suffix .. "-down")
+			if downBtn then
+				downBtn:AddEventListener("click", step(-1), false)
+			end
+			local upBtn = doc:GetElementById("btn-env-" .. suffix .. "-up")
+			if upBtn then
+				upBtn:AddEventListener("click", step(1), false)
+			end
+		end
+		widgetState.envWireDimStepper("dim-minheight")
+		widgetState.envWireDimStepper("dim-maxheight")
+		-- The two shoreline tracks reseed their bounds too (envSeedWaterSlider),
+		-- so they get the same live-bounds steppers; pulled out of the
+		-- colorSliders loop for the same reason as the HEIGHT RANGE pair.
+		widgetState.envWireDimStepper("waterlevel")
+		widgetState.envWireDimStepper("wl")
+
+		-- ---- MAP TRANSFORM section ----
+		-- One function owns every reactive part of it: the canonical spec, the
+		-- labels, and the three boxes in the footprint preview. The handlers in
+		-- gui_terraform_brush.lua only move state and call this, so there is a
+		-- single place where a spec turns into what the user sees.
+		-- On widgetState, not locals: M.attach is near the Lua 5.1 200-local cap.
+		widgetState.envResetXform = function()
+			widgetState.xformMode = "transform"
+			widgetState.xformDir = "right"
+			widgetState.xformFill = "copy"
+			widgetState.xformCopy = "mirror"
+			widgetState.xformRot = 0
+			widgetState.xformMirrorX = false
+			widgetState.xformMirrorZ = false
+			widgetState.xformFit = "stretch"
+			widgetState.xformAnchorX = 0
+			widgetState.xformAnchorZ = 0
+			widgetState.xformW = math.floor(Game.mapSizeX / 512)
+			widgetState.xformH = math.floor(Game.mapSizeZ / 512)
+			widgetState.xformArmedUntil = nil
+			if widgetState.envRefreshXform then
+				widgetState.envRefreshXform()
+			end
+		end
+
+		-- Where each side of the map sits after the transform, in words.
+		widgetState.envXformAnchorWords = function(ax, az)
+			local vertical = (az < 0) and "top" or ((az > 0) and "bottom" or "")
+			local horizontal = (ax < 0) and "left" or ((ax > 0) and "right" or "")
+			if vertical == "" and horizontal == "" then
+				return "kept centred"
+			elseif vertical == "" then
+				return "pinned " .. horizontal
+			elseif horizontal == "" then
+				return "pinned " .. vertical
+			end
+			return "pinned " .. vertical .. " " .. horizontal
+		end
+
+		widgetState.envRefreshXform = function()
+			local dm = widgetState.dmHandle
+			if not dm then
+				return
+			end
+			---@type table?
+			local mt = WG.MapTransform
+			if not (mt and mt.math) then
+				if dm.envXformSummaryStr ~= "The map transform widget is not loaded." then
+					dm.envXformSummaryStr = "The map transform widget is not loaded."
+					dm.envXformApplyStr = "UNAVAILABLE"
+				end
+				return
+			end
+			local math_lib = mt.math
+			local srcW, srcH = Game.mapSizeX, Game.mapSizeZ
+			local expanding = (widgetState.xformMode == "expand")
+			local spec = math_lib.canonical({
+				rot = widgetState.xformRot or 0,
+				mirrorX = widgetState.xformMirrorX,
+				mirrorZ = widgetState.xformMirrorZ,
+				fit = widgetState.xformFit or "stretch",
+				anchorX = widgetState.xformAnchorX or 0,
+				anchorZ = widgetState.xformAnchorZ or 0,
+			})
+			-- canonical() folds a double mirror into a half turn; write it back so
+			-- the buttons and the transform agree on what is set.
+			widgetState.xformRot = spec.rot
+			widgetState.xformMirrorX = spec.mirrorX
+			widgetState.xformMirrorZ = spec.mirrorZ
+
+			-- Both modes end as a list of placements on a destination canvas,
+			-- which is all the preview and the summary below need to know.
+			-- Seeded with the plain-transform case rather than declared bare: a
+			-- local with no value types nil for good, and every later read of
+			-- dstW/dstH then reads as possibly-nil however many branches assign it.
+			local setW = widgetState.xformW or math.floor(srcW / 512)
+			local setH = widgetState.xformH or math.floor(srcH / 512)
+			local plan, dstW, dstH = { spec }, setW * 512, setH * 512
+			local copyMode = nil
+			if expanding then
+				if widgetState.xformFill ~= "empty" then
+					copyMode = widgetState.xformCopy or "mirror"
+				end
+				-- Through their own locals and back with `or`: expandPlan reaches the
+				-- panel as an `any` call (math_lib hangs off a `table?`), so a direct
+				-- multi-return assignment re-widens dstW/dstH to possibly-nil.
+				local xPlan, xW, xH = math_lib.expandPlan(widgetState.xformDir or "right", copyMode, srcW, srcH)
+				plan = xPlan or plan
+				dstW = xW or dstW
+				dstH = xH or dstH
+			end
+			local unitsW, unitsH = math.floor(dstW / 512), math.floor(dstH / 512)
+			local placements = {}
+			for i, p in ipairs(plan) do
+				placements[i] = math_lib.new(p, srcW, srcH, dstW, dstH)
+			end
+			-- The first placement is built as its own value rather than read back
+			-- with placements[1]: an indexed read types as possibly-nil, and every
+			-- use of it below would have to be guarded against a case that cannot
+			-- happen. Same reasoning as job.T in cmd_map_transform, and the list
+			-- above is left exactly as it was so ITS reads keep their own typing.
+			local T = math_lib.new(plan[1] or spec, srcW, srcH, dstW, dstH)
+
+			local function setStr(key, value)
+				if dm[key] ~= value then
+					dm[key] = value
+				end
+			end
+			setStr("envXformWStr", tostring(unitsW))
+			setStr("envXformHStr", tostring(unitsH))
+			setStr("envXformFit", spec.fit)
+			setStr("envXformAnchor", string.format("%d,%d", spec.anchorX, spec.anchorZ))
+			setStr("envXformMode", expanding and "expand" or "transform")
+			setStr("envXformDir", widgetState.xformDir or "right")
+			setStr("envXformFill", widgetState.xformFill or "copy")
+			setStr("envXformCopy", widgetState.xformCopy or "mirror")
+			-- One derived flag rather than a two-term test in the RML: the data
+			-- expression parser would need an escaped `&&` in the attribute.
+			setStr("envXformAnchorRow", (not expanding) and spec.fit == "keep")
+			-- The steppers already say "units", so the line under them carries the
+			-- figure they do not: what the canvas measures in elmos.
+			setStr("envXformSizeStr", string.format("%d x %d elmos", dstW, dstH))
+			setStr("envXformCurrentStr", string.format("%d x %d units", math.floor(srcW / 512), math.floor(srcH / 512)))
+			setStr("envXformCurrentElmoStr", string.format("%d x %d elmos", srcW, srcH))
+			setStr("envXformAnchorStr", widgetState.envXformAnchorWords(spec.anchorX, spec.anchorZ))
+			-- A screen-space flip is a mirror in X on an upright map and a mirror
+			-- in Z on a quarter-turned one; light the button the user pressed.
+			-- Not an `and/or` ternary: both sides are booleans, so a false left
+			-- hand would fall through to the wrong mirror.
+			local flipH, flipV = spec.mirrorX, spec.mirrorZ
+			if spec.rot == 90 or spec.rot == 270 then
+				flipH, flipV = spec.mirrorZ, spec.mirrorX
+			end
+			setStr("envXformFlipH", flipH)
+			setStr("envXformFlipV", flipV)
+
+			-- Where the current map lands on the new canvas, in destination elmos.
+			local x0, z0 = T:srcToDst(0, 0)
+			local x1, z1 = T:srcToDst(srcW, srcH)
+			local minX, maxX = math.min(x0, x1), math.max(x0, x1)
+			local minZ, maxZ = math.min(z0, z1), math.max(z0, z1)
+
+			-- Summary. What is lost and what is gained is the part a preview
+			-- cannot say precisely, so it is spelled out.
+			local parts = {}
+			if expanding then
+				local words = math_lib.describeExpand(widgetState.xformDir or "right", copyMode)
+				parts[#parts + 1] = words:sub(1, 1):upper() .. words:sub(2)
+				if copyMode then
+					parts[#parts + 1] = "everything on it is duplicated with the ground"
+				end
+			elseif T:isIdentity() then
+				parts[#parts + 1] = "This is the map you already have."
+			else
+				local orient = math_lib.describe(spec)
+				local sized = (dstW ~= srcW or dstH ~= srcH)
+				if orient ~= "no rotation" then
+					parts[#parts + 1] = orient:sub(1, 1):upper() .. orient:sub(2)
+				end
+				if sized then
+					if spec.fit == "keep" then
+						parts[#parts + 1] = string.format(
+							"%dx%d units at true scale, %s",
+							unitsW,
+							unitsH,
+							widgetState.envXformAnchorWords(spec.anchorX, spec.anchorZ)
+						)
+					else
+						parts[#parts + 1] = string.format("stretched onto %dx%d units", unitsW, unitsH)
+					end
+				end
+				local overlapW = math.max(0, math.min(maxX, dstW) - math.max(minX, 0))
+				local overlapH = math.max(0, math.min(maxZ, dstH) - math.max(minZ, 0))
+				local srcArea = (maxX - minX) * (maxZ - minZ)
+				local overlap = overlapW * overlapH
+				if srcArea > 0 and overlap < srcArea * 0.999 then
+					parts[#parts + 1] =
+						string.format("cuts %d%% of the map", math.floor((1 - overlap / srcArea) * 100 + 0.5))
+				end
+				if dstW * dstH > 0 and overlap < dstW * dstH * 0.999 then
+					parts[#parts + 1] =
+						string.format("adds %d%% new ground", math.floor((1 - overlap / (dstW * dstH)) * 100 + 0.5))
+				end
+			end
+			setStr(
+				"envXformSummaryStr",
+				table.concat(parts, ", ") .. ((not expanding and T:isIdentity()) and "" or ".")
+			)
+
+			-- Button label doubles as the state: idle, armed, or running.
+			local label = "APPLY"
+			-- Nothing to apply = the button greys out (data-class-disabled picks up
+			-- the shared .disabled rule, which also stops the click).
+			local idle = false
+			local step, total, name = mt.progress()
+			if step then
+				label = string.format("WORKING %d/%d %s", step, total, tostring(name):upper())
+			elseif unitsW > 32 or unitsH > 32 then
+				-- the blank map generator's ceiling; doubling walks into it fast
+				label = "TOO BIG"
+				idle = true
+			elseif not expanding and T:isIdentity() then
+				label = "NO CHANGE"
+				idle = true
+			elseif widgetState.xformArmedUntil then
+				if os.clock() > widgetState.xformArmedUntil then
+					widgetState.xformArmedUntil = nil
+				else
+					label = "CONFIRM - RESTARTS"
+				end
+			end
+			setStr("envXformApplyStr", label)
+			setStr("envXformIdle", idle)
+
+			-- Preview. Both footprints are drawn in one shared frame so a crop
+			-- and an extension read the same way: the union of the new canvas and
+			-- the placed map, scaled to fit the box.
+			local pad, avail = 4, 110
+			local ux0, uz0 = math.min(0, minX), math.min(0, minZ)
+			local ux1, uz1 = math.max(dstW, maxX), math.max(dstH, maxZ)
+			for i = 2, #placements do
+				local bx0, bz0 = placements[i]:srcToDst(0, 0)
+				local bx1, bz1 = placements[i]:srcToDst(srcW, srcH)
+				ux0 = math.min(ux0, bx0, bx1)
+				uz0 = math.min(uz0, bz0, bz1)
+				ux1 = math.max(ux1, bx0, bx1)
+				uz1 = math.max(uz1, bz0, bz1)
+			end
+			local span = math.max(ux1 - ux0, uz1 - uz0)
+			if span <= 0 then
+				return
+			end
+			local scale = avail / span
+			local offX = pad + (avail - (ux1 - ux0) * scale) * 0.5
+			local offZ = pad + (avail - (uz1 - uz0) * scale) * 0.5
+			local function place(id, px0, pz0, px1, pz1)
+				local el = doc:GetElementById(id)
+				if not el then
+					return
+				end
+				el:SetAttribute(
+					"style",
+					string.format(
+						"left: %.1fdp; top: %.1fdp; width: %.1fdp; height: %.1fdp;",
+						offX + (px0 - ux0) * scale,
+						offZ + (pz0 - uz0) * scale,
+						math.max(2, (px1 - px0) * scale),
+						math.max(2, (pz1 - pz0) * scale)
+					)
+				)
+			end
+			local function hide(id)
+				local el = doc:GetElementById(id)
+				if el then
+					el:SetAttribute("style", "width: 0dp; height: 0dp;")
+				end
+			end
+			place("tf-xform-prev-dst", 0, 0, dstW, dstH)
+			place("tf-xform-prev-src", minX, minZ, maxX, maxZ)
+			-- The duplicated half, in its own colour, with its own corner dot:
+			-- together they say which way the copy was turned over.
+			if placements[2] then
+				local cx0, cz0 = placements[2]:srcToDst(0, 0)
+				local cx1, cz1 = placements[2]:srcToDst(srcW, srcH)
+				place(
+					"tf-xform-prev-src2",
+					math.min(cx0, cx1),
+					math.min(cz0, cz1),
+					math.max(cx0, cx1),
+					math.max(cz0, cz1)
+				)
+				local el = doc:GetElementById("tf-xform-prev-mark2")
+				if el then
+					el:SetAttribute(
+						"style",
+						string.format(
+							"left: %.1fdp; top: %.1fdp;",
+							offX + (cx0 - ux0) * scale - 4.5,
+							offZ + (cz0 - uz0) * scale - 4.5
+						)
+					)
+				end
+			else
+				hide("tf-xform-prev-src2")
+				hide("tf-xform-prev-mark2")
+			end
+			-- The dot marks where the map's present north-west corner ends up, so
+			-- a turn and a flip are told apart at a glance.
+			local markEl = doc:GetElementById("tf-xform-prev-mark")
+			if markEl then
+				local mx, mz = T:srcToDst(0, 0)
+				markEl:SetAttribute(
+					"style",
+					string.format(
+						"left: %.1fdp; top: %.1fdp;",
+						offX + (mx - ux0) * scale - 4.5,
+						offZ + (mz - uz0) * scale - 4.5
+					)
+				)
+			end
+		end
+		widgetState.envResetXform()
+	end
+
+	-- (onEnvSave / onEnvLoad now in initialModel in gui_terraform_brush.lua)
+
+	-- ============ Skybox Library floating window ============
+
+	widgetState.skyboxLibraryRootEl = doc:GetElementById("tf-skybox-library-root")
+
+	-- (onEnvSkyboxLibToggle / onEnvSkyboxLibClose now in initialModel in gui_terraform_brush.lua)
+
+	-- Blue-dot hint wiring: delegated to a module-level helper to avoid
+	-- adding more locals to M.attach (which is near the Lua 5.1 200-local cap).
+	M._attachHintDots(doc, widgetState)
+end
+
+-- Wires click listeners for every entry in widgetState.hintDots:
+--   * Clicking any button in h.markOnClick marks the hint seen + saves prefs.
+--   * If h.sectionToggleId/sectionId are set, clicking the section toggle
+--     while the section becomes open schedules a chip 2-pulse (handled in
+--     the main widget Update loop) and marks seen.
+function M._attachHintDots(doc, widgetState)
+	local hintDots = widgetState.hintDots
+	if not hintDots or not doc then
+		return
+	end
+	local function makeMarkSeen(prefKey)
+		return function()
+			if widgetState.uiPrefs and not widgetState.uiPrefs[prefKey] then
+				widgetState.uiPrefs[prefKey] = true
+				if widgetState.saveUiPrefs then
+					widgetState.saveUiPrefs()
+				end
+			end
+		end
+	end
+	for _, h in ipairs(hintDots) do
+		local markSeen = makeMarkSeen(h.prefKey)
+		if h.sectionToggleId and h.sectionId then
+			local sectBtn = doc:GetElementById(h.sectionToggleId)
+			if sectBtn then
+				local sectionId = h.sectionId
+				local pulseKey = h.pulseKey
+				sectBtn:AddEventListener("click", function()
+					local sec = doc:GetElementById(sectionId)
+					if sec and not sec:IsClassSet("hidden") then
+						if pulseKey then
+							widgetState[pulseKey] = Spring.GetGameFrame() + 1
+						end
+						markSeen()
+					end
+				end, false)
+			end
+		end
+		if h.markOnClick then
+			for _, btnId in ipairs(h.markOnClick) do
+				local b = doc:GetElementById(btnId)
+				if b then
+					b:AddEventListener("click", function()
+						markSeen()
+					end, false)
+				end
+			end
+		end
+	end
+end
+
+function M.sync(doc, ctx, setSummary)
+	local widgetState = ctx.widgetState
+	-- ===== Environment mode: highlight button, clear other highlights =====
+	-- btn-environment active state driven by data-class-active="activeTool == 'env'" in RML.
+	if widgetState.dmHandle and widgetState.dmHandle.activeMode ~= "" then
+		widgetState.dmHandle.activeMode = ""
+	end
+
+	setSummary("ENVIRONMENT", "#fdc04c")
+end
+
+return M

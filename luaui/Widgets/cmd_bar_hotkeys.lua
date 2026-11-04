@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "BAR Hotkeys",
-		desc = "Enables BAR Hotkeys" ,
+		desc = "Enables BAR Hotkeys",
 		author = "Beherith",
 		date = "23 march 2012",
 		license = "GNU GPL, v2 or later",
@@ -12,13 +12,16 @@ function widget:GetInfo()
 	}
 end
 
-local currentLayout
-local currentKeybindingsFile
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
 
+local WidgetActions = require("luaui/Include/keybind_widget_actions")
+local profiles = require("luaui/Include/keybind_profiles")
+
+local manifestsVersion, defaultsSignature
 
 local function reloadWidgetsBindings()
-	local reloadableWidgets = {'buildmenu', 'ordermenu', 'keybinds', 'cmd_blueprint'}
+	local reloadableWidgets = { "buildmenu", "ordermenu", "keybinds", "cmd_blueprint" }
 
 	for _, w in pairs(reloadableWidgets) do
 		if WG[w] and WG[w].reloadBindings then
@@ -27,63 +30,106 @@ local function reloadWidgetsBindings()
 	end
 end
 
+-- Also the upgrade path once the shipped preset files stop being installed.
+local function fallbackToProfile(missing)
+	spEcho("BAR Hotkeys: Did not find keybindings file " .. missing .. ". Writing the active profile")
 
-local function replaceDefaultWithLegacy(file)
-	if file == 'luaui/configs/hotkeys/default_keys.txt' then
-		return 'luaui/configs/hotkeys/legacy_keys.txt'
+	local file = profiles.materialize(profiles.activeName())
+	if file then
+		Spring.SetConfigString("KeybindingFile", file)
 	end
-	if file == 'luaui/configs/hotkeys/default_keys_60pct.txt' then
-		return 'luaui/configs/hotkeys/legacy_keys_60pct.txt'
-	end
+
+	return file
 end
-
-
--- if keybinds are missing, load default hotkeys
-local function fallbackToDefault(currentKeys)
-	local default = keyConfig.keybindingLayoutFiles[1]
-	Spring.Echo("BAR Hotkeys: Did not find keybindings file " .. currentKeys ..". Loading grid keys")
-	Spring.SendCommands("keyreload " .. default)
-	return default
-end
-
 
 local function reloadBindings()
-	-- Second parameter here is just a fallback if this config is undefined
-	currentLayout = Spring.GetConfigString("KeyboardLayout", 'qwerty')
+	-- The editor holds a store of its own, so the selection this one last read may be stale.
+	profiles.invalidate()
 
-	currentKeybindingsFile = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingLayoutFiles[1])
+	-- Still read from config rather than the store: on the launch a player is migrated this is
+	-- what they were on.
+	local file = Spring.GetConfigString("KeybindingFile", profiles.activeFile)
 
-	-- detect if old "default" settings are present, replace with "legacy"
-	local usingOldPreset = string.find(currentKeybindingsFile, "default") and true or false
-	if usingOldPreset then
-		currentKeybindingsFile = replaceDefaultWithLegacy(currentKeybindingsFile)
-		Spring.Echo("BAR Hotkeys: Found old default key config, replacing with legacy", currentKeybindingsFile)
+	if not VFS.FileExists(file) then
+		file = fallbackToProfile(file)
 	end
 
-	if not VFS.FileExists(currentKeybindingsFile) then
-		currentKeybindingsFile = fallbackToDefault(currentKeybindingsFile)
-	end
-
-	if VFS.FileExists(currentKeybindingsFile) then
-		Spring.SendCommands("keyreload " .. currentKeybindingsFile)
-		Spring.Echo("BAR Hotkeys: Loaded hotkeys from " .. currentKeybindingsFile)
-		if usingOldPreset then
-			-- resolve upgrading from old "default" to "legacy"
-			Spring.SetConfigString("KeybindingFile", currentKeybindingsFile)
+	if file then
+		Spring.SendCommands("keyreload " .. file)
+		-- A KeybindingFile the player pointed elsewhere is named on its own rather than credited to
+		-- whatever the store has selected.
+		local name = file == profiles.activeFile and profiles.activeName()
+		if name then
+			spEcho("BAR Hotkeys: Loaded profile '" .. name .. "' from " .. file)
+		else
+			spEcho("BAR Hotkeys: Loaded hotkeys from " .. file)
 		end
 	else
-		Spring.Echo("BAR Hotkeys: No hotkey file found")
+		spEcho("BAR Hotkeys: No hotkey file found")
 	end
 
 	reloadWidgetsBindings()
 end
 
+-- A hand-edited uikeys.txt becomes a profile of theirs before the editor writes over it.
+local function adoptEditedKeymap()
+	local name = profiles.adoptEditedKeymap()
+	if not name then
+		return
+	end
+
+	spEcho("BAR Hotkeys: " .. profiles.activeFile .. " was edited outside the keybind editor; kept as profile " .. name)
+
+	local file = profiles.materialize(name)
+	if file then
+		Spring.SetConfigString("KeybindingFile", file)
+	end
+end
+
+local function widgetDefaultsSignature()
+	local parts = {}
+	for i, default in ipairs(WidgetActions.defaults((WidgetActions.manifests()))) do
+		parts[i] = default.action .. "=" .. table.concat(default.keysets, ",")
+	end
+
+	return table.concat(parts, ";")
+end
+
+-- Held while the editor has edits staged: a reload would reseed it over them, and saving applies the defaults.
+function widget:Update()
+	local _, version = WidgetActions.manifests()
+	if version == manifestsVersion then
+		return
+	end
+	if WG.keybinds and WG.keybinds.hasStagedEdits and WG.keybinds.hasStagedEdits() then
+		return
+	end
+	manifestsVersion = version
+
+	local signature = widgetDefaultsSignature()
+	if signature == defaultsSignature then
+		return
+	end
+	defaultsSignature = signature
+
+	if Spring.GetConfigString("KeybindingFile", profiles.activeFile) ~= profiles.activeFile then
+		return
+	end
+	-- The editor writes the store from a copy of its own.
+	profiles.invalidate()
+	if profiles.materialize(profiles.activeName()) then
+		reloadBindings()
+	end
+end
 
 function widget:Initialize()
+	adoptEditedKeymap()
 	reloadBindings()
+	manifestsVersion = select(2, WidgetActions.manifests())
+	defaultsSignature = widgetDefaultsSignature()
 
-	WG['bar_hotkeys'] = {}
-	WG['bar_hotkeys'].reloadBindings = reloadBindings
+	WG.bar_hotkeys = {}
+	WG.bar_hotkeys.reloadBindings = reloadBindings
 end
 
 function widget:Shutdown()

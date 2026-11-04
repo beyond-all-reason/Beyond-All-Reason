@@ -1,7 +1,7 @@
 return {
 	corkorg = {
 		buildpic = "corkorg.DDS",
-		buildtime = 555000,
+		buildtime = 730000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -6 -5",
@@ -15,8 +15,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 149000,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 29000,
 		maxacc = 0.1242,
 		maxdec = 0.8211,
@@ -31,7 +29,7 @@ return {
 		selfdestructas = "korgExplosionSelfd",
 		selfdestructcountdown = 10,
 		sightdistance = 845,
-		speed = 33.6,
+		speed = 37,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.7392,
@@ -42,6 +40,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 1,
 			subfolder = "CorGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
@@ -77,13 +76,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -114,6 +106,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 0.8,
 				intensity = 5,
 				name = "GaussCannon",
@@ -175,6 +168,9 @@ return {
 					default = 5500,
 					vtol = 2750,
 				},
+				customparams = {
+					sound_volume_multiplier = 2.5,
+				},
 			},
 			corkorg_rocket = {
 				areaofeffect = 200,
@@ -183,7 +179,7 @@ return {
 				cegtag = "missiletrailmedium-starburst",
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.85,
+				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 70,
 				impulsefactor = 1,
@@ -209,17 +205,16 @@ return {
 				texture3 = "null",
 				tolerance = 9000,
 				tracks = true,
-				turnrate = 15000,
-				weaponacceleration = 230,
-				weapontimer = 1,
+				turnrate = 16000,
+				weaponacceleration = 250,
+				weapontimer = 0.9,
 				weapontype = "StarburstLauncher",
-				weaponvelocity = 2600,
-				damage = {
-					default = 800,
-				},
+				weaponvelocity = 510,
 				customparams = {
-					projectile_destruction_method = "descend",
 					overrange_distance = 1093,
+				},
+				damage = {
+					default = 1000,
 				},
 			},
 			krogfootstep = {
@@ -241,12 +236,11 @@ return {
 				soundhitdry = "korgstep",
 				soundhitdryvolume = 18,
 				soundhitwet = "splssml",
-				soundhitwetvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					nodecal = true,
 					noexplosionlight = 1,
-					bogus = 1,
 				},
 				damage = {
 					default = 0,
@@ -280,9 +274,9 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1650,
 				customparams = {
-					nofire = true,
-					noattackrangearc= 1,
 					bogus = 1,
+					noattackrangearc = 1,
+					nofire = true,
 				},
 				damage = {
 					default = 150,
@@ -297,8 +291,8 @@ return {
 				soundhitdryvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
-					noexplosionlight = 1,
 					bogus = 1,
+					noexplosionlight = 1,
 				},
 				damage = {
 					default = 0,
@@ -313,8 +307,8 @@ return {
 				soundhitdryvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
-					noexplosionlight = 1,
 					bogus = 1,
+					noexplosionlight = 1,
 				},
 				damage = {
 					default = 0,

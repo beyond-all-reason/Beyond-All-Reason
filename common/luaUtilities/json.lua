@@ -18,10 +18,11 @@
 --   compat-5.1 if using Lua 5.0
 --
 -- CHANGELOG
+--   0.9.50.2 BAR change: fix issues decoding unicode and backslash in loadstring
 --   0.9.50.1 BAR changes by Beherith: fix issue when decoding empty arrays.
 --	 0.9.50 Radical performance improvement on decode from Eike Decker. Many thanks!
 --	 0.9.40 Changed licence to MIT License (MIT)
---   0.9.20 Introduction of local Lua functions for private functions (removed _ function prefix). 
+--   0.9.20 Introduction of local Lua functions for private functions (removed _ function prefix).
 --          Fixed Lua 5.1 compatibility issues.
 --   		Introduced json.null to have null values in associative arrays.
 --          encode() performance improvement (more than 50%) through table.concat rather than ..
@@ -46,13 +47,6 @@ local base = _G
 -- Public functions
 
 -- Private functions
-local decode_scanArray
-local decode_scanComment
-local decode_scanConstant
-local decode_scanNumber
-local decode_scanObject
-local decode_scanString
-local decode_scanWhitespace
 local encodeString
 local isArray
 local isEncodable
@@ -60,58 +54,147 @@ local isEncodable
 -----------------------------------------------------------------------------
 -- PUBLIC FUNCTIONS
 -----------------------------------------------------------------------------
+--- The null function allows one to specify a null value in an associative array (which is otherwise
+-- discarded if you set the value with 'nil' in Lua. Simply set t = { first=json.null }
+local function null()
+	return null -- so json.null() will also return null ;-)
+end
+
 --- Encodes an arbitrary Lua object / variable.
 -- @param v The Lua object / variable to be JSON encoded.
 -- @return String containing the JSON encoding in internal Lua string format (i.e. not unicode)
-local function encode (v)
-  -- Handle nil values
-  if v==nil then
-    return "null"
-  end
-  
-  local vtype = base.type(v)  
+local function encode(v)
+	-- Handle nil values
+	if v == nil then
+		return "null"
+	end
 
-  -- Handle strings
-  if vtype=='string' then    
-    return '"' .. encodeString(v) .. '"'	    -- Need to handle encoding in string
-  end
-  
-  -- Handle booleans
-  if vtype=='number' or vtype=='boolean' then
-    return base.tostring(v)
-  end
-  
-  -- Handle tables
-  if vtype=='table' then
-    local rval = {}
-    -- Consider arrays separately
-    local bArray, maxCount = isArray(v)
-    if bArray then
-      for i = 1,maxCount do
-        table.insert(rval, encode(v[i]))
-      end
-    else	-- An object, not an array
-      for i,j in base.pairs(v) do
-        if isEncodable(i) and isEncodable(j) then
-          table.insert(rval, '"' .. encodeString(i) .. '":' .. encode(j))
-        end
-      end
-    end
-    if bArray then
-      return '[' .. table.concat(rval,',') ..']'
-    else
-      return '{' .. table.concat(rval,',') .. '}'
-    end
-  end
-  
-  -- Handle null values
-  if vtype=='function' and v==null then
-    return 'null'
-  end
-  
-  base.assert(false,'encode attempt to encode unsupported type ' .. vtype .. ':' .. base.tostring(v))
+	local vtype = base.type(v)
+
+	-- Handle strings
+	if vtype == "string" then
+		return '"' .. encodeString(v) .. '"' -- Need to handle encoding in string
+	end
+
+	-- Handle booleans
+	if vtype == "number" or vtype == "boolean" then
+		return base.tostring(v)
+	end
+
+	-- Handle tables
+	if vtype == "table" then
+		local rval = {}
+		-- Consider arrays separately
+		local bArray, maxCount = isArray(v)
+		if bArray then
+			for i = 1, maxCount do
+				table.insert(rval, encode(v[i]))
+			end
+		else -- An object, not an array
+			for i, j in base.pairs(v) do
+				if isEncodable(i) and isEncodable(j) then
+					table.insert(rval, '"' .. encodeString(i) .. '":' .. encode(j))
+				end
+			end
+		end
+		if bArray then
+			return "[" .. table.concat(rval, ",") .. "]"
+		else
+			return "{" .. table.concat(rval, ",") .. "}"
+		end
+	end
+
+	-- Handle null values
+	if vtype == "function" and v == null then
+		return "null"
+	end
+
+	base.assert(false, "encode attempt to encode unsupported type " .. vtype .. ":" .. base.tostring(v))
 end
 
+-- A code point as the Lua decimal escapes for its UTF-8 bytes, so the result survives
+-- being handed to loadstring below. Always three digits, or a digit following in the
+-- string would be swallowed into the escape.
+local function utf8Escapes(code)
+	local bytes
+	if code < 0x80 then
+		bytes = { code }
+	elseif code < 0x800 then
+		bytes = { 0xC0 + math.floor(code / 0x40), 0x80 + code % 0x40 }
+	elseif code < 0x10000 then
+		bytes = { 0xE0 + math.floor(code / 0x1000), 0x80 + math.floor(code / 0x40) % 0x40, 0x80 + code % 0x40 }
+	else
+		bytes = {
+			0xF0 + math.floor(code / 0x40000),
+			0x80 + math.floor(code / 0x1000) % 0x40,
+			0x80 + math.floor(code / 0x40) % 0x40,
+			0x80 + code % 0x40,
+		}
+	end
+
+	for i = 1, #bytes do
+		bytes[i] = string.format("\\%03d", bytes[i])
+	end
+
+	return table.concat(bytes)
+end
+
+-- Strings are unescaped by handing the literal to loadstring, which accepts every JSON
+-- escape except \uXXXX and \/ - Lua 5.1 rejects both outright, taking the whole decode
+-- down with them. Rewrite only those two into forms it does accept.
+local function rewriteJsonOnlyEscapes(literal)
+	local out = {}
+	local pos = 1
+	local len = #literal
+
+	while pos <= len do
+		local char = literal:sub(pos, pos)
+		if char ~= "\\" then
+			out[#out + 1] = char
+			pos = pos + 1
+		else
+			local following = literal:sub(pos + 1, pos + 1)
+			if following == "/" then
+				out[#out + 1] = "/"
+				pos = pos + 2
+			elseif following == "u" then
+				-- Four hex digits are the only legal form. Without this check a short or
+				-- non-hex escape either loses characters silently or shifts the rest of the
+				-- literal out of step, and the failure then surfaces as a loadstring error
+				-- that says nothing about where it came from.
+				local hex = literal:sub(pos + 2, pos + 5)
+				if not hex:match("^%x%x%x%x$") then
+					error("Invalid \\u escape in JSON string: " .. literal:sub(pos, pos + 5))
+				end
+
+				local code = tonumber(hex, 16)
+				pos = pos + 6
+				-- Anything above the BMP arrives as a surrogate pair.
+				if code and code >= 0xD800 and code <= 0xDBFF and literal:sub(pos, pos + 1) == "\\u" then
+					local low = tonumber(literal:sub(pos + 2, pos + 5), 16)
+					if low and low >= 0xDC00 and low <= 0xDFFF then
+						code = 0x10000 + (code - 0xD800) * 0x400 + (low - 0xDC00)
+						pos = pos + 6
+					end
+				end
+				-- A surrogate half that never found its partner is not a code point at all.
+				-- Encoding it anyway yields bytes no UTF-8 reader accepts, which spreads the
+				-- damage into whatever handles the string later, so drop it and leave the rest
+				-- of the string well formed.
+				if code < 0xD800 or code > 0xDFFF then
+					out[#out + 1] = utf8Escapes(code)
+				end
+			else
+				-- Kept as-is, which also steps past an escaped backslash so the character
+				-- after it is not mistaken for an escape of its own.
+				out[#out + 1] = char .. following
+				pos = pos + 2
+			end
+		end
+	end
+
+	return table.concat(out)
+end
 
 --- Decodes a JSON string and returns the decoded value as a Lua data structure / value.
 -- @param s The string to scan.
@@ -122,12 +205,6 @@ local function decode(s)
 	return null
 end
 
---- The null function allows one to specify a null value in an associative array (which is otherwise
--- discarded if you set the value with 'nil' in Lua. Simply set t = { first=json.null }
-local function null()
-  return null -- so json.null() will also return null ;-)
-end
-
 -----------------------------------------------------------------------------
 -- Internal, PRIVATE functions.
 -----------------------------------------------------------------------------
@@ -136,9 +213,20 @@ end
 -- This just involves back-quoting inverted commas, back-quotes and newlines, I think ;-)
 -- @param s The string to return as a JSON encoded (i.e. backquoted string)
 -- @return The string appropriately escaped.
-local qrep = {["\\"]="\\\\", ['"']='\\"',['\n']='\\n',['\t']='\\t'}
+local qrep =
+	{ ["\\"] = "\\\\", ['"'] = '\\"', ["\b"] = "\\b", ["\f"] = "\\f", ["\n"] = "\\n", ["\r"] = "\\r", ["\t"] = "\\t" }
+
+-- Writing control characters produces a broken file unless properly escaped.
+-- All shorthand escapes are listed above; the rest must encode into \uXXXX,
+-- which we also decode on the way in to keep a single properly copied json.
+for byte = 0, 0x1f do
+	local char = string.char(byte)
+	if not qrep[char] then
+		qrep[char] = string.format("\\u%04x", byte)
+	end
+end
 function encodeString(s)
-  return tostring(s):gsub('["\\\n\t]',qrep)
+	return (tostring(s):gsub('[%z\1-\31"\\]', qrep))
 end
 
 -- Determines whether the given Lua type is an array or a table / dictionary.
@@ -148,24 +236,30 @@ end
 -- @param t The table to evaluate as an array
 -- @return boolean, number True if the table can be represented as an array, false otherwise. If true,
 -- the second returned value is the maximum
--- number of indexed elements in the array. 
+-- number of indexed elements in the array.
 function isArray(t)
-  -- Next we count all the elements, ensuring that any non-indexed elements are not-encodable 
-  -- (with the possible exception of 'n')
-  local maxIndex = 0
-  for k,v in base.pairs(t) do
-    if (base.type(k)=='number' and math.floor(k)==k and 1<=k) then	-- k,v is an indexed pair
-      if (not isEncodable(v)) then return false end	-- All array elements must be encodable
-      maxIndex = math.max(maxIndex,k)
-    else
-      if (k=='n') then
-        if v ~= table.getn(t) then return false end  -- False if n does not hold the number of elements
-      else -- Else of (k=='n')
-        if isEncodable(v) then return false end
-      end  -- End of (k~='n')
-    end -- End of k,v not an indexed pair
-  end  -- End of loop across all pairs
-  return true, maxIndex
+	-- Next we count all the elements, ensuring that any non-indexed elements are not-encodable
+	-- (with the possible exception of 'n')
+	local maxIndex = 0
+	for k, v in base.pairs(t) do
+		if base.type(k) == "number" and math.floor(k) == k and 1 <= k then -- k,v is an indexed pair
+			if not isEncodable(v) then
+				return false
+			end -- All array elements must be encodable
+			maxIndex = math.max(maxIndex, k)
+		else
+			if k == "n" then
+				if v ~= table.getn(t) then
+					return false
+				end -- False if n does not hold the number of elements
+			else -- Else of (k=='n')
+				if isEncodable(v) then
+					return false
+				end
+			end -- End of (k~='n')
+		end -- End of k,v not an indexed pair
+	end -- End of loop across all pairs
+	return true, maxIndex
 end
 
 --- Determines whether the given Lua object / table / variable can be JSON encoded. The only
@@ -174,8 +268,9 @@ end
 -- @param o The object to examine.
 -- @return boolean True if the object should be JSON encoded, false if it should be ignored.
 function isEncodable(o)
-  local t = base.type(o)
-  return (t=='string' or t=='boolean' or t=='number' or t=='nil' or t=='table') or (t=='function' and o==null) 
+	local t = base.type(o)
+	return (t == "string" or t == "boolean" or t == "number" or t == "nil" or t == "table")
+		or (t == "function" and o == null)
 end
 
 local instrumentedDecode
@@ -185,10 +280,12 @@ do
 	local error = base.error
 	local assert = base.assert
 	local print = base.print
-	if Spring and Spring.Echo then print = Spring.Echo end
+	if Spring and Spring.Echo then
+		print = Spring.Echo
+	end
 	local tonumber = base.tonumber
 	-- initialize some values to be used in decoding function
-	
+
 	-- initializes a table to contain a byte=>table mapping
 	-- the table contains tokens (byte values) as keys and maps them on other
 	-- token tables (mostly, the boolean value 'true' is used to indicate termination
@@ -196,7 +293,7 @@ do
 	-- the token table's purpose is, that it allows scanning a sequence of bytes
 	-- until something interesting has been found (e.g. a token that is not expected)
 	-- name is a descriptor for the table to be printed in error messages
-	local function init_token_table (tt)
+	local function init_token_table(tt)
 		local struct = {}
 		local value
 		function struct:link(other_tt)
@@ -204,198 +301,276 @@ do
 			return struct
 		end
 		function struct:to(chars)
-			for i=1,#chars do 
+			for i = 1, #chars do
 				tt[chars:byte(i)] = value
 			end
 			return struct
 		end
-		return function (name)
+		return function(name)
 			tt.name = name
 			return struct
 		end
 	end
-	
+
 	-- keep "named" byte values at hands
-	local 
-		c_esc,
-		c_e,
-		c_l,
-		c_r,
-		c_u,
-		c_f,
-		c_a,
-		c_s,
-		c_slash = ("\\elrufas/"):byte(1,9)
-	
+	local c_esc, c_e, c_l, c_r, c_u, c_f, c_a, c_s, c_slash = ("\\elrufas/"):byte(1, 9)
+
 	-- token tables - tt_doublequote_string = strDoubleQuot, tt_singlequote_string = strSingleQuot
-	local 
-		tt_object_key,
-		tt_object_colon,
-		tt_object_value,
-		tt_doublequote_string,
-		tt_singlequote_string,
-		tt_array_value,
-		tt_array_separator,
-		tt_numeric,
-		tt_boolean,
-		tt_null,
-		tt_comment_start,
-		tt_comment_middle,
-		tt_ignore --< tt_ignore is special - marked tokens will be tt_ignored
-			= {},{},{},{},{},{},{},{},{},{},{},{},{},{}
-			--= {myname = "tt_object_key"},{myname = "tt_object_colon"},{myname = "tt_object_value"},{myname = "tt_doublequote_string"},{myname = "tt_singlequote_string"},{myname = "tt_array_value"},{myname = "tt_array_separator"},{myname = "tt_numeric"},{myname = "tt_boolean"},{myname = "tt_null"},{myname = "tt_comment_start"},{myname = "tt_comment_middle"},{myname = "tt_ignore"}
-	
+	local tt_object_key, tt_object_colon, tt_object_value, tt_doublequote_string, tt_singlequote_string, tt_array_value, tt_array_separator, tt_numeric, tt_boolean, tt_null, tt_comment_start, tt_comment_middle, tt_ignore --< tt_ignore is special - marked tokens will be tt_ignored
+		=
+			{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+	--= {myname = "tt_object_key"},{myname = "tt_object_colon"},{myname = "tt_object_value"},{myname = "tt_doublequote_string"},{myname = "tt_singlequote_string"},{myname = "tt_array_value"},{myname = "tt_array_separator"},{myname = "tt_numeric"},{myname = "tt_boolean"},{myname = "tt_null"},{myname = "tt_comment_start"},{myname = "tt_comment_middle"},{myname = "tt_ignore"}
+
 	-- strings to be used in certain token tables
 	local strchars = "" -- all valid string characters (all except newlines)
 	local allchars = "" -- all characters that are valid in comments
 	--local escapechar = {}
-	for i=0,0xff do 
+	for i = 0, 0xff do
 		local c = string.char(i)
-		if c~="\n" and c~="\r" then strchars = strchars .. c end
+		if c ~= "\n" and c ~= "\r" then
+			strchars = strchars .. c
+		end
 		allchars = allchars .. c
 		--escapechar[i] = "\\" .. string.char(i)
 	end
-	
---[[	
+
+	--[[	
 	charstounescape = "\"\'\\bfnrt/";
 	unescapechars = "\"'\\\b\f\n\r\t\/";
 	for i=1,#charstounescape do
 		escapechar[ charstounescape:byte(i) ] = unescapechars:sub(i,i)
 	end
-]]--
+]]
+	--
 
 	-- obj key reader, expects the end of the object or a quoted string as key
-	init_token_table (tt_object_key) "tt_object_key: object (' or \" or } or , expected)" 
-		:link(tt_singlequote_string) :to "'"
-		:link(tt_doublequote_string) :to '"'
-		:link(true)                  :to "}"
-		:link(tt_object_key)         :to ","
-		:link(tt_comment_start)      :to "/"
-		:link(tt_ignore)             :to " \t\r\n"
-	
-	
+	init_token_table(tt_object_key)("tt_object_key: object (' or \" or } or , expected)")
+		:link(tt_singlequote_string)
+		:to("'")
+		:link(tt_doublequote_string)
+		:to('"')
+		:link(true)
+		:to("}")
+		:link(tt_object_key)
+		:to(",")
+		:link(tt_comment_start)
+		:to("/")
+		:link(tt_ignore)
+		:to(" \t\r\n")
+
 	-- after the key, a colon is expected (or comment)
-	init_token_table (tt_object_colon) "tt_object_colon: object (: expected)" 
-		:link(tt_object_value)       :to ":"  
-		:link(tt_comment_start)      :to "/" 
-		:link(tt_ignore)             :to" \t\r\n"
-		
+	init_token_table(tt_object_colon)("tt_object_colon: object (: expected)")
+		:link(tt_object_value)
+		:to(":")
+		:link(tt_comment_start)
+		:to("/")
+		:link(tt_ignore)
+		:to(" \t\r\n")
+
 	-- as values, anything is possible, numbers, arrays, objects, boolean, null, strings
-	init_token_table (tt_object_value) "tt_object_value: object ({ or [ or ' or \" or number or boolean or null expected)"
-		:link(tt_object_key)         :to "{" 
-		:link(tt_array_separator)    :to "[" 
-		:link(tt_singlequote_string) :to "'" 
-		:link(tt_doublequote_string) :to '"' 
-		:link(tt_numeric)            :to "0123456789.-" 
-		:link(tt_boolean)            :to "tf" 
-		:link(tt_null)               :to "n" 
-		:link(tt_comment_start)      :to "/" 
-		:link(tt_ignore)             :to " \t\r\n"
-		--:link(true)					 :to "]"
-		
+	init_token_table(tt_object_value)("tt_object_value: object ({ or [ or ' or \" or number or boolean or null expected)")
+		:link(tt_object_key)
+		:to("{")
+		:link(tt_array_separator)
+		:to("[")
+		:link(tt_singlequote_string)
+		:to("'")
+		:link(tt_doublequote_string)
+		:to('"')
+		:link(tt_numeric)
+		:to("0123456789.-")
+		:link(tt_boolean)
+		:to("tf")
+		:link(tt_null)
+		:to("n")
+		:link(tt_comment_start)
+		:to("/")
+		:link(tt_ignore)
+		:to(" \t\r\n")
+	--:link(true)					 :to "]"
+
 	-- token tables for reading strings
-	init_token_table (tt_doublequote_string) "tt_doublequote_string: double quoted string"
-		:link(tt_ignore)             :to (strchars)
-		:link(c_esc)                 :to "\\"
-		:link(true)                  :to '"'
-		
-	init_token_table (tt_singlequote_string) "single quoted string"
-		:link(tt_ignore)             :to (strchars)
-		:link(c_esc)                 :to "\\" 
-		:link(true)                  :to "'"
-		
+	init_token_table(tt_doublequote_string)("tt_doublequote_string: double quoted string")
+		:link(tt_ignore)
+		:to(strchars)
+		:link(c_esc)
+		:to("\\")
+		:link(true)
+		:to('"')
+
+	init_token_table(tt_singlequote_string)("single quoted string")
+		:link(tt_ignore)
+		:to(strchars)
+		:link(c_esc)
+		:to("\\")
+		:link(true)
+		:to("'")
+
 	-- array reader that expects termination of the array or a comma that indicates the next value
-	init_token_table (tt_array_value) "tt_array_value: array (, or ] expected)"
-		:link(tt_array_separator)    :to "," 
-		:link(true)                  :to "]"
-		:link(tt_comment_start)      :to "/" 
-		:link(tt_ignore)             :to " \t\r\n"
-	
+	init_token_table(tt_array_value)("tt_array_value: array (, or ] expected)")
+		:link(tt_array_separator)
+		:to(",")
+		:link(true)
+		:to("]")
+		:link(tt_comment_start)
+		:to("/")
+		:link(tt_ignore)
+		:to(" \t\r\n")
+
 	-- a value, pretty similar to tt_object_value
-	init_token_table (tt_array_separator) "tt_array_separator: array ({ or [ or ' or \" or number or boolean or null expected)"
-		:link(tt_object_key)         :to "{" 
-		:link(tt_array_separator)    :to "[" 
-		:link(tt_singlequote_string) :to "'" 
-		:link(tt_doublequote_string) :to '"'  
-		:link(tt_comment_start)      :to "/" 
-		:link(tt_numeric)            :to "0123456789.-" 
-		:link(tt_boolean)            :to "tf" 
-		:link(tt_null)               :to "n" 
-		:link(tt_ignore)             :to " \t\r\n"
-		:link(true)    :to "]" 
-	
+	init_token_table(tt_array_separator)("tt_array_separator: array ({ or [ or ' or \" or number or boolean or null expected)")
+		:link(tt_object_key)
+		:to("{")
+		:link(tt_array_separator)
+		:to("[")
+		:link(tt_singlequote_string)
+		:to("'")
+		:link(tt_doublequote_string)
+		:to('"')
+		:link(tt_comment_start)
+		:to("/")
+		:link(tt_numeric)
+		:to("0123456789.-")
+		:link(tt_boolean)
+		:to("tf")
+		:link(tt_null)
+		:to("n")
+		:link(tt_ignore)
+		:to(" \t\r\n")
+		:link(true)
+		:to("]")
+
 	-- valid number tokens
-	init_token_table (tt_numeric) "tt_numeric: number"
-		:link(tt_ignore)             :to "0123456789.-Ee"
-		
+	init_token_table(tt_numeric)("tt_numeric: number"):link(tt_ignore):to("0123456789.-Ee")
+
 	-- once a comment has been started with /, a * is expected
-	init_token_table (tt_comment_start) "comment start (* expected)"
-		:link(tt_comment_middle)     :to "*"
-		
+	init_token_table(tt_comment_start)("comment start (* expected)"):link(tt_comment_middle):to("*")
+
 	-- now everything is allowed, watch out for * though. The next char is then checked manually
-	init_token_table (tt_comment_middle) "comment end"
-		:link(tt_ignore)             :to (allchars)
-		:link(true)                  :to "*"
-		
-	function decode (js_string)
+	init_token_table(tt_comment_middle)("comment end"):link(tt_ignore):to(allchars):link(true):to("*")
+
+	local strbyte, strfind, strsub = string.byte, string.find, string.sub
+
+	-- Token tables that ignore whitespace and nothing else, so a run of it can be skipped with one find.
+	---@type table<table, boolean>
+	local skipsWhitespace = {
+		[tt_object_key] = true,
+		[tt_object_colon] = true,
+		[tt_object_value] = true,
+		[tt_array_value] = true,
+		[tt_array_separator] = true,
+	}
+
+	-- First byte that ends a plain run inside a string: its quote, an escape or a line break.
+	local stringRunEnd = {
+		[tt_doublequote_string] = '["\\\r\n]',
+		[tt_singlequote_string] = "['\\\r\n]",
+	}
+	local stringQuote = {
+		[tt_doublequote_string] = strbyte('"'),
+		[tt_singlequote_string] = strbyte("'"),
+	}
+
+	function decode(js_string)
 		local pos = 1 -- position in the string
-		
+		local len = #js_string
+
 		-- read the next byte value
-		local function next_byte () pos = pos + 1 return js_string:byte(pos-1) end
-		
+		local function next_byte()
+			pos = pos + 1
+			return strbyte(js_string, pos - 1)
+		end
+
 		-- in case of error, report the location using line numbers
-		local function location () 
+		local function location()
 			local n = ("\n"):byte()
-			local line,lpos = 1,0
-			for i=1,pos do 
+			local line, lpos = 1, 0
+			for i = 1, pos do
 				if js_string:byte(i) == n then
-					line,lpos = line + 1,1
+					line, lpos = line + 1, 1
 				else
 					lpos = lpos + 1
 				end
 			end
-			return "Line "..line.." character "..lpos
+			return "Line " .. line .. " character " .. lpos
 		end
-		
+
 		-- debug func
 		--local function status (str)
 		--	print(str.." ("..s:sub(math.max(1,p-10),p+10)..")")
 		--end
-		
+
 		-- read the next token, according to the passed token table
-		local function next_token (tok)
-			while pos <= #js_string do
-				local b = js_string:byte(pos) 
+		local function next_token(tok)
+			if skipsWhitespace[tok] then
+				pos = strfind(js_string, "[^ \t\r\n]", pos) or len + 1
+			end
+			while pos <= len do
+				local b = strbyte(js_string, pos)
 				local t = tok[b]
-				if not t then 
-					error("Unexpected character at "..location()..": "..
-						string.char(b).." ("..b..") when reading "..tok.name.."\nContext: \n"..
-						js_string:sub(math.max(1,pos-30),pos+30).."\n"..(" "):rep(pos+math.min(-1,30-pos)).."^")
+				if not t then
+					error(
+						"Unexpected character at "
+							.. location()
+							.. ": "
+							.. string.char(b)
+							.. " ("
+							.. b
+							.. ") when reading "
+							.. tok.name
+							.. "\nContext: \n"
+							.. js_string:sub(math.max(1, pos - 30), pos + 30)
+							.. "\n"
+							.. (" "):rep(pos + math.min(-1, 30 - pos))
+							.. "^"
+					)
 				end
 				pos = pos + 1
-				if t~=tt_ignore then return t end
+				if t ~= tt_ignore then
+					return t
+				end
 			end
-			error("unexpected termination of JSON while looking for "..tok.name)
+			error("unexpected termination of JSON while looking for " .. tok.name)
 		end
-		
+
 		-- read a string, double and single quoted ones
-		local function read_string (tok)
+		local function read_string(tok)
 			local start = pos
+			-- Without an escape the literal is its own value, so there is nothing for loadstring to do.
+			local stop = strfind(js_string, stringRunEnd[tok], pos)
+			if stop and strbyte(js_string, stop) == stringQuote[tok] then
+				pos = stop + 1
+				return strsub(js_string, start, stop - 1)
+			end
+
+			local rewrite = false
 			--local returnString = {}
 			repeat
 				local t = next_token(tok)
-				if t == c_esc then 
+				if t == c_esc then
+					-- pos sits on the escaped character. u and / are the two JSON escapes Lua
+					-- has no equivalent for, and the interpreters disagree on them: 5.1 quietly
+					-- drops the backslash while LuaJIT refuses to compile at all. Neither can be
+					-- left to loadstring, so flag them here rather than reacting to a failure.
+					local e = js_string:byte(pos)
+					if e == 117 or e == 47 then
+						rewrite = true
+					end
 					--table.insert(returnString, js_string:sub(start, pos-2))
 					--table.insert(returnString, escapechar[ js_string:byte(pos) ])
 					pos = pos + 1
 					--start = pos
 				end -- jump over escaped chars, no matter what
 			until t == true
-			return (base.loadstring("return " .. js_string:sub(start-1, pos-1) ) ())
+			local literal = js_string:sub(start - 1, pos - 1)
+			if rewrite then
+				literal = rewriteJsonOnlyEscapes(literal)
+			end
+			return (base.loadstring("return " .. literal)())
 
 			-- We consider the situation where no escaped chars were encountered separately,
 			-- and use the fastest possible return in this case.
-			
+
 			--if 0 == #returnString then
 			--	return js_string:sub(start,pos-2)
 			--else
@@ -404,136 +579,171 @@ do
 			--end
 			--return js_string:sub(start,pos-2)
 		end
-		
-		local function read_num ()
+
+		local function read_num()
 			local start = pos
-			while pos <= #js_string do
-				local b = js_string:byte(pos)
-				if not tt_numeric[b] then break end
-				pos = pos + 1
-			end
-			return tonumber(js_string:sub(start-1,pos-1))
+			-- stops at the first byte not in tt_numeric
+			pos = strfind(js_string, "[^0-9%.%-Ee]", pos) or len + 1
+			return tonumber(strsub(js_string, start - 1, pos - 1))
 		end
-		
+
 		-- read_bool and read_null are both making an assumption that I have not tested:
-		-- I would expect that the string extraction is more expensive than actually 
-		-- making manual comparision of the byte values
-		local function read_bool () 
+		-- I would expect that the string extraction is more expensive than actually
+		-- making manual comparison of the byte values
+		local function read_bool()
 			pos = pos + 3
-			local a,b,c,d = js_string:byte(pos-3,pos)
-			if a == c_r and b == c_u and c == c_e then return true end
+			local a, b, c, d = js_string:byte(pos - 3, pos)
+			if a == c_r and b == c_u and c == c_e then
+				return true
+			end
 			pos = pos + 1
-			if a ~= c_a or b ~= c_l or c ~= c_s or d ~= c_e then 
-				error("Invalid boolean: "..js_string:sub(math.max(1,pos-5),pos+5)) 
+			if a ~= c_a or b ~= c_l or c ~= c_s or d ~= c_e then
+				error("Invalid boolean: " .. js_string:sub(math.max(1, pos - 5), pos + 5))
 			end
 			return false
 		end
-		
-		-- same as read_bool: only last 
-		local function read_null ()
+
+		-- same as read_bool: only last
+		local function read_null()
 			pos = pos + 3
-			local u,l1,l2 = js_string:byte(pos-3,pos-1)
-			if u == c_u and l1 == c_l and l2 == c_l then return nil end
-			error("Invalid value (expected null):"..js_string:sub(pos-4,pos-1)..
-				" ("..js_string:byte(pos-1).."="..js_string:sub(pos-1,pos-1).." / "..c_l..")")
+			local u, l1, l2 = js_string:byte(pos - 3, pos - 1)
+			if u == c_u and l1 == c_l and l2 == c_l then
+				return nil
+			end
+			error(
+				"Invalid value (expected null):"
+					.. js_string:sub(pos - 4, pos - 1)
+					.. " ("
+					.. js_string:byte(pos - 1)
+					.. "="
+					.. js_string:sub(pos - 1, pos - 1)
+					.. " / "
+					.. c_l
+					.. ")"
+			)
 		end
-		
-		local read_object_value,read_object_key,read_array,read_value,read_comment
-	
+
+		local read_object_value, read_object_key, read_array, read_value, read_comment
+
 		-- read a value depending on what token was returned, might require info what was used (in case of comments)
-		function read_value (t,fromt)
-			if t == tt_object_key         then return read_object_key({}) end
-			if t == tt_array_separator    then return read_array({}) end
-			if t == tt_singlequote_string or 
-			   t == tt_doublequote_string then return read_string(t) end
-			if t == tt_numeric            then return read_num() end
-			if t == tt_boolean            then return read_bool() end	
-			if t == tt_null               then return read_null() end
-			if t == tt_comment_start      then return read_value(read_comment(fromt)) end
-			error("unexpected termination - "..js_string:sub(math.max(1,pos-10),pos+10))
+		function read_value(t, fromt)
+			if t == tt_object_key then
+				return read_object_key({})
+			end
+			if t == tt_array_separator then
+				return read_array({})
+			end
+			if t == tt_singlequote_string or t == tt_doublequote_string then
+				return read_string(t)
+			end
+			if t == tt_numeric then
+				return read_num()
+			end
+			if t == tt_boolean then
+				return read_bool()
+			end
+			if t == tt_null then
+				return read_null()
+			end
+			if t == tt_comment_start then
+				return read_value(read_comment(fromt))
+			end
+			error("unexpected termination - " .. js_string:sub(math.max(1, pos - 10), pos + 10))
 		end
-		
-		-- read comments until something noncomment like surfaces, using the token reader which was 
+
+		-- read comments until something noncomment like surfaces, using the token reader which was
 		-- used when stumbling over this comment
-		function read_comment (fromt)
+		function read_comment(fromt)
 			while true do
 				next_token(tt_comment_start)
 				while true do
 					local t = next_token(tt_comment_middle)
 					if next_byte() == c_slash then
 						local t = next_token(fromt)
-						if t~= tt_comment_start then return t end
+						if t ~= tt_comment_start then
+							return t
+						end
 						break
 					end
 				end
 			end
 		end
-		
+
 		-- read arrays, empty array expected as o arg
-		function read_array (o,i)
+		function read_array(o, i)
 			--if not i then status "arr open" end
 			i = i or 1
 			-- loop until ...
 			while true do
-				
+
 				-- At this point, the array might be empty!
 				local next_tokenvalue = next_token(tt_array_separator)
-				if next_tokenvalue == true then return o end
-				
+				if next_tokenvalue == true then
+					return o
+				end
+
 				o[i] = read_value(next_tokenvalue, tt_array_separator)
 				local t = next_token(tt_array_value)
 				if t == tt_comment_start then
 					t = read_comment(tt_array_value)
 				end
-				if t == true then  -- ... we found a terminator token
+				if t == true then -- ... we found a terminator token
 					--status "arr close"
-					return o 
+					return o
 				end
-				i = i + 1			
+				i = i + 1
 			end
 		end
-		
+
 		-- object value reading
-		function read_object_value (o)
+		function read_object_value(o)
 			local t = next_token(tt_object_value)
-			return read_value(t,tt_object_value)
+			return read_value(t, tt_object_value)
 		end
-		
+
 		-- object key reading, might also terminate the object
-		function read_object_key (o)
-			
+		function read_object_key(o)
+
 			while true do
 				local t = next_token(tt_object_key)
 				if t == tt_comment_start then
 					t = read_comment(tt_object_key)
 				end
-				if t == true then return o end
-				if t == tt_object_key then return read_object_key(o) end
+				if t == true then
+					return o
+				end
+				if t == tt_object_key then
+					return read_object_key(o)
+				end
 				local k = read_string(t)
-				
+
 				if next_token(tt_object_colon) == tt_comment_start then
 					t = read_comment(tt_object_colon)
 				end
-				
+
 				local v = read_object_value(o)
 				o[k] = v
 			end
 		end
-		
+
 		-- now let's read data from our string and pretend it's an object value
 		local r = read_object_value()
-		if pos<=#js_string then
+		if pos <= #js_string then
 			-- not sure about what to do with dangling characters
 			--error("Dangling characters in JSON code ("..location()..")")
 		end
-		
+
 		return r
 	end
 
-	instrumentedDecode = function (js_string)
-		if tracy then tracy.ZoneBeginN("Json:Decode") end 
+	instrumentedDecode = function(js_string)
+		if tracy then
+			tracy.ZoneBeginN("Json:Decode")
+		end
 		local localret = decode(js_string)
-		if tracy then tracy.ZoneEnd() end 
+		if tracy then
+			tracy.ZoneEnd()
+		end
 		return localret
 	end
 end

@@ -12,8 +12,6 @@ return {
 		footprintx = 2,
 		footprintz = 3,
 		health = 265,
-		idleautoheal = 5,
-		idletime = 1800,
 		loadingradius = 300,
 		maxacc = 0.1,
 		maxdec = 0.75,
@@ -25,7 +23,7 @@ return {
 		script = "Units/leglts.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 260,
+		sightdistance = 430,
 		speed = 207,
 		transportcapacity = 1,
 		transportmass = 750,
@@ -40,20 +38,6 @@ return {
 			paralyzemultiplier = 0,
 			subfolder = "Legion/Air",
 			crashable = 0,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

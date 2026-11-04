@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 940,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.07,
 		maxdec = 0.07,
 		metalcost = 300,
@@ -53,7 +51,7 @@ return {
 				footprintz = 4,
 				height = 20,
 				metal = 100,
-				object = "Units/cormls_dead.s3o",
+				object = "Units/armmls_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -69,13 +67,6 @@ return {
 				object = "Units/cor4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

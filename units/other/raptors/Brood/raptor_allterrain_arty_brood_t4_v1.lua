@@ -23,8 +23,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		hidedamage = 1,
-		idleautoheal = 20,
-		idletime = 300,
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 40000,
@@ -56,6 +54,7 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",

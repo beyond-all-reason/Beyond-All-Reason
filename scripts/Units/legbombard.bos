@@ -5,7 +5,7 @@
 
 piece  base, turrbase, turret, barrels, flare, lida, lidb, aimfrom, aimpoint;
 
-static-var  restore_delay, is_open, shotcount;
+static-var  restore_delay, shotcount;
 static-var  Stunned;
 
 // Signal definitions
@@ -19,11 +19,10 @@ static-var  Stunned;
 #define MAXTILT 0
 
 #include "unit_hitbyweaponid_and_smoke.h"
+#include "../popup_openclose.h"
 
-Close()
+CloseAnim()
 {
-	set-signal-mask SIG_AIM;
-	is_open = 0;
 	turn turret to y-axis 0 speed <100.000000>;
 	wait-for-turn turret around y-axis;
 	move turrbase to y-axis [-16] speed [69];
@@ -34,7 +33,7 @@ Close()
 	set ARMORED to 1;
 }
 
-Open()
+OpenAnim()
 {
 	set ARMORED to 0;
 	turn lida to z-axis <-179> speed <250>;
@@ -42,7 +41,6 @@ Open()
 	wait-for-turn lidb around z-axis;
 	move turrbase to y-axis [12] speed [69.000000];
 	wait-for-move turrbase along y-axis;
-	is_open = 1;
 }
 
 ExecuteRestoreAfterDelay()
@@ -50,7 +48,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	start-script Close();
+	start-script RequestClose();
 }
 SetStunned(State)
 {
@@ -71,7 +69,6 @@ Create()
 	shotcount = 1;
 	hide flare;
 	restore_delay = 3000;
-	is_open = 0;
 	move turrbase to y-axis [-12] now;
 	move turret to y-axis [5] now;
 
@@ -82,22 +79,19 @@ Create()
 	// close and armor once construction is done
 	// only if no target in range when done
 	sleep 1000;
-	if ( is_open == 0 )
-	{
-		start-script Close();
-	}
+	start-script CloseBuildPose();
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	if ( is_open == 0 )
+	if ( isOpen == 0 )
 	{
-		start-script Open();
+		start-script RequestOpen();
 		start-script RestoreAfterDelay();
 	}
-	while( is_open == 0 )
+	while( isOpen == 0 )
 	{
 		sleep 150;
 	}
@@ -105,6 +99,11 @@ AimPrimary(heading, pitch)
 	wait-for-turn turret around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 FirePrimary()
@@ -130,7 +129,7 @@ Shot1() {
 }
 QueryPrimary(piecenum)
 {
-	if (is_open == 1)
+	if (isOpen == 1)
 	{
 		piecenum = flare;
 	}

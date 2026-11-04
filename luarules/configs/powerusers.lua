@@ -2,49 +2,105 @@ local everything = {
 	give = true,
 	undo = true,
 	cmd = true,
-	devhelpers = true,
+	devhelpers = true, -- catch-all for all dev helper commands
+	-- granular devhelper sub-permissions (checked when devhelpers is false):
+	-- devhelpers_units = true,	-- givecat, xpunits, destroyunits, removeunits, reclaimunits, transferunits, wreckunits, spawnceg, spawnunitexplosion, removeunitdef
+	-- devhelpers_teams = true,	-- playertoteam, killteam
+	-- devhelpers_terrain = true,	-- benchmark, globallos, clearwrecks, reducewrecks
+	-- devhelpers_test = true,	-- desync
 	playerdata = true,
 	waterlevel = true,
+	lavalevel = true,
+	modmarker = true,
 	sysinfo = true,
+	volcano = true,
+	director = true,
+	userrmlui_player = true, -- short-term exception to rmlui sandboxing, with granular grants
+	userrmlui_spectator = true,
 }
 local moderator = {
-	give = false,
+	give = true,
 	undo = true,
 	cmd = false,
 	devhelpers = false,
-	playerdata = false,
+	devhelpers_units = true, -- givecat, xpunits, destroyunits, removeunits, reclaimunits, transferunits, wreckunits, spawnceg, spawnunitexplosion, removeunitdef
+	devhelpers_teams = true, -- playertoteam, killteam
+	playerdata = true,
 	waterlevel = false,
+	lavalevel = false,
+	modmarker = true,
 	sysinfo = true,
+	volcano = true,
+	director = false,
+	userrmlui_player = false,
+	userrmlui_spectator = true,
 }
-local singleplayer = {		-- note: these permissions override others when singleplayer
+local eventmanager = {
+	give = true,
+	undo = true,
+	cmd = false,
+	devhelpers = false,
+	devhelpers_units = true, -- givecat, xpunits, destroyunits, removeunits, reclaimunits, transferunits, wreckunits, spawnceg, spawnunitexplosion, removeunitdef
+	devhelpers_teams = true, -- playertoteam, killteam
+	playerdata = false,
+	waterlevel = true,
+	lavalevel = true,
+	modmarker = true,
+	sysinfo = false,
+	volcano = true,
+	director = true,
+	userrmlui_player = false,
+	userrmlui_spectator = true,
+}
+local singleplayer = { -- note: these permissions override others when singleplayer
 	give = true,
 	undo = true,
 	cmd = true,
 	devhelpers = true,
 	waterlevel = true,
-	playerdata = false,
+	lavalevel = true,
+	modmarker = true,
+	playerdata = true,
 	sysinfo = false,
+	volcano = true,
+	director = true,
 }
 
 return {
-	['   '] = singleplayer,		-- SPECIAL NAME/ADDITION: dont change it
+	[-1] = singleplayer, -- SPECIAL NAME/ADDITION: dont change it
 
-	['[teh]Flow'] = everything,
-	['Floris'] = everything,
-	['IceXuick'] = everything,
-	['[teh]Beherith'] = everything,
-	['PtaQ'] = everything,
-	['TarnishedKnight'] = everything,
-	['OPman'] = everything,
-	['Nightmare2512'] = everything,
+	-- admins
+	[112] = everything, -- [teh]Flow
+	[4430] = everything, -- Floris
+	[2585] = everything, -- IceXuick
+	[1214] = everything, -- [teh]Beherith
+	[1172] = everything, -- PtaQ
+	[2260] = everything, -- TarnishedKnight
+	--[130329] = everything, -- SethDGamre
+	[36669] = everything, -- Steel
+	[57158] = everything, -- Endorphins
+	[4102] = everything, -- KayZee
+	[591000] = everything, -- krolya
 
-	['Shadhunter'] = moderator,
-	['DeviousNull'] = moderator,
-	['Fire[Z]torm_'] = moderator,
-	['Pooman'] = moderator,
-	['ScavengersOffenseAI'] = moderator,
-	['Steel'] = moderator,
-	['[BAC]SnekVonPess'] = moderator,
-	['[BAC]Bacchus'] = moderator,
-	['[FH]Amojini'] = moderator,
+	-- moderator
+	[3] = moderator, -- Teifion
+	[3133] = moderator, -- Lexon
+	[258984] = moderator, -- ScavengersOffenseAI
+	[22297] = moderator, -- Shadhunter
+	[125301] = moderator, -- DeviousNull
+	[128743] = moderator, -- Pooman
+	[57869] = moderator, -- [BAC]SnekVonPess
+	[21114] = moderator, -- [FH]Amojini
+	[168817] = moderator, -- SongbirdOfChirping
+	[88808] = moderator, -- Shadowisperke
+	[197109] = moderator, -- Gabba_Gandalf
+
+	-- event manager
+	[132545] = eventmanager, -- Praedyth (KOTH organizer)
+	[136110] = eventmanager, -- TANKTOM (KOTH organizer)
+	[78506] = eventmanager, -- Twig (KOTH organizer)
+	[51535] = eventmanager, -- Nightmare2512
+	--[84658] = eventmanager, -- OPman
+	[113844] = eventmanager, -- Chronographer
+	[336478] = eventmanager, -- HMSIndeconstructable
 }

@@ -1,16 +1,16 @@
 return {
 	blob_fire = {
-		splashes =	{
+		splashes = {
 			class = [[CSimpleParticleSystem]],
 			properties = {
-				sizegrowth = -.1,
+				sizegrowth = -0.1,
 				sizemod = 1,
 				pos = [[0, 1.0, 0]],
 				emitVector = [[0, 1, 0]],
 				gravity = [[0, 0, 0]],
 				Texture = [[blooddropwhite]],
 				colorMap = [[0 0.6 0.6 1   0.3 0.6 0.6 0.4   0.85 0.6 0.6 0]],
-				airdrag = .96,
+				airdrag = 0.96,
 				particleLife = 18,
 				particleLifeSpread = 8,
 				numParticles = 2,
@@ -36,7 +36,7 @@ return {
 				gravity = [[0, 0, 0]],
 				Texture = [[bloodblastwhite]],
 				colorMap = [[0.85 0.6 0.6 1   0 0.6 0.6 0.4   0 0 0 0]],
-				airdrag = .9,
+				airdrag = 0.9,
 				particleLife = 14,
 				particleLifeSpread = 2,
 				numParticles = 1,
@@ -50,6 +50,6 @@ return {
 			},
 			air = 1,
 			ground = 1,
-		}
-	}
+		},
+	},
 }

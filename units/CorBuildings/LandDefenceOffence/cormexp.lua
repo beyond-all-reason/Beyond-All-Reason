@@ -18,8 +18,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 7800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 30,
@@ -78,13 +76,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			activate = "mohorun2",
 			canceldestruct = "cancel2",
@@ -137,15 +128,15 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 750,
-				damage = {
-					default = 260,
-					vtol = 45,
-				},
 				customparams = {
 					exclude_preaim = true,
 					overrange_distance = 748,
 					projectile_destruction_method = "descend",
-				}
+				},
+				damage = {
+					default = 260,
+					vtol = 45,
+				},
 			},
 			corsumo_weapon = {
 				areaofeffect = 12,
@@ -176,13 +167,13 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					default = 215,
 					vtol = 50,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

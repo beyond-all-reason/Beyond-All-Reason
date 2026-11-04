@@ -8,6 +8,7 @@ return {
 		buildpic = "legamphlab.DDS",
 		buildtime = 11400,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "98 60 91",
 		collisionvolumetype = "Box",
@@ -16,8 +17,6 @@ return {
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 2800,
 		maxslope = 10,
 		minwaterdepth = 25,
@@ -29,20 +28,20 @@ return {
 		terraformspeed = 750,
 		workertime = 150,
 		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
-	-- 	yardmap = [[h
-    -- oo oo oo oo oo oo
-    -- oo oo oo oo oo oo
-    -- oo oo oo oo oo oo
-    -- oo oo oo oo oo oo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- ]],
+		-- 	yardmap = [[h
+		-- oo oo oo oo oo oo
+		-- oo oo oo oo oo oo
+		-- oo oo oo oo oo oo
+		-- oo oo oo oo oo oo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- ]],
 		buildoptions = {
 			[1] = "legotter",
 			[2] = "legamphtank",
@@ -58,10 +57,11 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "ZephyrSkies, Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -77,13 +77,6 @@ return {
 				metal = 800,
 				object = "Units/legamphlab_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

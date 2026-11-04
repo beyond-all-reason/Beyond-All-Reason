@@ -3,8 +3,9 @@ return {
 		activatewhenbuilt = true,
 		builder = true,
 		buildpic = "ARMAAP.DDS",
-		buildtime = 20900,
+		buildtime = 32000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 4 0",
 		collisionvolumescales = "144 70 144",
 		collisionvolumetype = "Box",
@@ -15,13 +16,11 @@ return {
 		footprintx = 9,
 		footprintz = 9,
 		health = 3750,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
 		maxwaterdepth = 0,
-		metalcost = 3200,
+		metalcost = 2900,
 		metalstorage = 200,
 		objectname = "Units/ARMAAP.s3o",
 		radardistance = 1000,
@@ -31,7 +30,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 312,
 		terraformspeed = 1000,
-		workertime = 200,
+		workertime = 600,
 		yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
 		buildoptions = {
 			[1] = "armaca",
@@ -56,6 +55,7 @@ return {
 			subfolder = "ArmBuildings/LandFactories",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			restrictions_inclusion = "_noair_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -91,10 +91,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
 				[2] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

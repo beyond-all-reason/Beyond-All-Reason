@@ -12,13 +12,11 @@ return {
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
 		damagemodifier = 0.33,
-		decoyfor = "scavdrag",
+		decoyfor = "corscavdrag",
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		idleautoheal = 10,
-		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
 		health = 1330,
@@ -41,7 +39,7 @@ return {
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			decoyfor = "corscavdrag",
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
@@ -85,10 +83,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3-lightning",
-				[2] = "deathceg4-lightning",
 			},
 		},
 		sounds = {

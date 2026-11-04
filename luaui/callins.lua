@@ -97,6 +97,8 @@ CallInsList = {
 	"DrawScreen",
 	"DrawInMiniMap",
 
+	"DrawBuildSquare",
+
 	"DrawOpaqueUnitsLua",
 	"DrawOpaqueFeaturesLua",
 	"DrawAlphaUnitsLua",
@@ -140,12 +142,14 @@ CallInsList = {
 	"UnitSold",
 
 	"VisibleExplosion",
+	"VisibleExplosionBatch",
 	"Barrelfire",
+	"BarrelfireBatch",
 	"CrashingAircraft",
 	"ClearMapMarks",
 }
 
 CallInsMap = {}
 for _, callin in ipairs(CallInsList) do
-  CallInsMap[callin] = true
+	CallInsMap[callin] = true
 end

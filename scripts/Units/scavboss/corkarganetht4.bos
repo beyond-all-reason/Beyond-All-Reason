@@ -8,7 +8,7 @@ piece  pelvis, rfhip, rfleg, rffoot, lmhip, lmleg, lmfoot, lbhip, lbleg,
 		turret, shoulder, rlauncher, rbarrel1, flare1, rbarrel2, flare3, llauncher,
 		lbarrel1, flare2, lbarrel2, flare4, aacover, aimy1, aimx1; 
 
-static-var  bMoving, bAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1, wpnheading;
+static-var  bMoving, bAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1, wpnheading, holdFireUntil;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -686,18 +686,25 @@ RestoreAfterDelay()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	if (bAiming == 1) return;
+	set-signal-mask SIG_AIM;
 	turn aimy1 to y-axis heading speed <85.00000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <85.000000>;
-	//needed for luarules\gadgets\unit_continuous_aim.lua
-	if ((get ABS(wpnheading - heading)) > 2000){
-		bAiming = 1;
-		wait-for-turn aimy1 around y-axis;
-		wait-for-turn aimx1 around x-axis;
-		bAiming = 0;
+	var delta;
+	delta = get ABS(wpnheading - heading);
+	if (delta > 32768)
+	{
+		delta = 65536 - delta;
+	}
+	if (delta > <45>)
+	{
+		holdFireUntil = (get GAME_FRAME) + (delta / (<85> / 30));
 	}
 	wpnheading = heading;
 	start-script RestoreAfterDelay();
+	if ((get GAME_FRAME) < holdFireUntil)
+	{
+		return (0);
+	}
 	return (1);
 }
 

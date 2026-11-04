@@ -1,7 +1,7 @@
 return {
 	corjugg = {
 		buildpic = "CORJUGG.DDS",
-		buildtime = 630000,
+		buildtime = 780000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -13,8 +13,6 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		health = 335000,
-		idleautoheal = 40,
-		idletime = 1800,
 		mass = 20000,
 		maxacc = 0.0552,
 		maxdec = 0.43125,
@@ -77,11 +75,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -135,11 +128,11 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 75,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			juggernaut_fire = {
@@ -165,7 +158,6 @@ return {
 				rgbcolor = "1 0.8 0.17",
 				size = 6.5,
 				soundhit = "xplomed2",
-				soundhitvolume = 32,
 				soundhitwet = "sizzlexs",
 				soundstart = "krogun1",
 				soundtrigger = true,
@@ -230,9 +222,9 @@ return {
 				soundhitdry = "korgstep",
 				soundhitdryvolume = 18,
 				soundhitwet = "splssml",
-				soundhitwetvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					nodecal = true,
 					noexplosionlight = 1,
 				},

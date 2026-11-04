@@ -21,7 +21,7 @@ end
 -- Locals
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitCommandsSize = Spring.GetUnitCommands
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetGameFrame = Spring.GetGameFrame
@@ -37,7 +37,7 @@ function SkipCurrentCommand()
 		if force then
 			RemoveCommand(nil, 1, nil)
 		else
-			RemoveCommand(id, 1, spGetUnitCommandsSize(id, 0))
+			RemoveCommand(id, 1, spGetUnitCommandCount(id))
 		end
 	end)
 end
@@ -47,7 +47,7 @@ function CancelLastCommand()
 		if force then
 			RemoveCommand(nil, #WG["pregame-build"].getBuildQueue(), nil)
 		else
-			local commandQueueSize = spGetUnitCommandsSize(id, 0)
+			local commandQueueSize = spGetUnitCommandCount(id)
 			if not commandQueueSize or commandQueueSize < 1 then
 				return
 			end
@@ -79,7 +79,7 @@ function RemoveCommand(unitID, cmdIndex, commandQueueSize)
 				spGiveOrderToUnit(unitID, CMD.REMOVE, { cmdTag, cmdTag2 }, 0)
 				commandDeleted = true
 			end
-		elseif cmdID == CMD.FIGHT and cmdIndex == 1 then  --removes patrol commands too
+		elseif cmdID == CMD.FIGHT and cmdIndex == 1 then --removes patrol commands too
 			local commands = spGetUnitCommands(unitID, -1)
 			if commands and commands[2] and commands[2].id == CMDPATROL then
 				commandQueueSize = commandQueueSize - 2
@@ -90,7 +90,7 @@ function RemoveCommand(unitID, cmdIndex, commandQueueSize)
 						spGiveOrderToUnit(unitID, CMD.MOVE, commands[i].params, {})
 					end
 					if i ~= cmdIndex then
-						spGiveOrderToUnit(unitID, commands[i].id, commands[i].params, {"shift"})
+						spGiveOrderToUnit(unitID, commands[i].id, commands[i].params, { "shift" })
 					end
 				end
 				commandDeleted = true

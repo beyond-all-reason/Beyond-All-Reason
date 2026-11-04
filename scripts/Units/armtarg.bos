@@ -1,5 +1,6 @@
 
 #include "../recoil_common_includes.h"
+#include "../unitDefsDeactivateTime.h";
 
 piece  base;
 
@@ -26,7 +27,7 @@ HitByWeapon(anglex, anglez)
 	signal 2;
 	set-signal-mask 2;
 	set ACTIVATION to 0;
-	sleep 8000;
+	sleep deactivateTime;
 	set ACTIVATION to 1;
 }
 
