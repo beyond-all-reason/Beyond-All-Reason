@@ -6748,6 +6748,20 @@ function init()
 				saveOptionValue("Grid menu", "buildmenu", "setShowRadarIcon", { "showRadarIcon" }, value)
 			end,
 		},
+		{
+			id = "buildmenu_blueprints",
+			parent = "buildmenu_bottom",
+			group = "ui",
+			category = types.dev,
+			name = BAR.I18N("ui.settings.option.buildmenu_blueprints"),
+			type = "bool",
+			value = Spring.GetConfigInt("ShowBlueprintUI", 1) == 1,
+			description = BAR.I18N("ui.settings.option.buildmenu_blueprints_descr"),
+			onchange = function(option, value)
+				Spring.SetConfigInt("ShowBlueprintUI", value and 1 or 0)
+				Spring.ForceLayoutUpdate() -- the menus read it with the commands (CommandsChanged)
+			end,
+		},
 
 		{
 			id = "ordermenu_bottompos",

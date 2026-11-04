@@ -30,6 +30,13 @@ local function headingToFacing(heading)
 	return facingNames[Spring.GetFacingFromHeading(heading)]
 end
 
+---Convert a named facing to the engine's facing number.
+---@param facing string|integer
+---@return integer facing 0 south, 1 east, 2 north, 3 west
+local function facingToNumber(facing)
+	return facingMap[facing or 0]
+end
+
 --- Whether the given facing is east or west
 --- @param facing string|integer
 --- @return boolean
@@ -40,6 +47,7 @@ end
 
 return {
 	FacingToHeading = facingToHeading,
+	FacingToNumber = facingToNumber,
 	HeadingToFacing = headingToFacing,
 	IsFacingEW = isFacingEW,
 }
