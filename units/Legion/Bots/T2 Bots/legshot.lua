@@ -25,7 +25,7 @@ return {
 		script = "Units/LEGSHOT.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeexplosiongenericSelfd",
-		sightdistance = 350,
+		sightdistance = 380,
 		strafetoattack = true,
 		turninplace = true,
 		turninplaceanglelimit = 90,
