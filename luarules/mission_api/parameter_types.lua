@@ -52,6 +52,8 @@ local types = {
 	PositiveInteger = "PositiveInteger",
 	Fraction = "Fraction",
 	TimeOfDay = "TimeOfDay",
+	CompassAngle = "CompassAngle", -- degrees clockwise from north (-z): 90 = east (+x), as Direction's angle
+	Elevation = "Elevation", -- degrees above the horizon: 90 = straight up, -90 = straight down
 	MessageType = "MessageType",
 
 	-- Boolean Validators:

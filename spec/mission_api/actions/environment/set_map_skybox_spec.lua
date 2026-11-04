@@ -26,7 +26,7 @@ describe("mission_api.actions.set_map_skybox", function()
 		assert.are.same({
 			type = "SetMapSkybox",
 			texture = "SkyboxFile!",
-			rotation = "Number",
+			rotation = "CompassAngle",
 		}, summarizeSchema(action))
 	end)
 

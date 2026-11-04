@@ -430,6 +430,20 @@ local function registerValueValidators(parameterValidators, context)
 			return { { message = "TimeOfDay must be an hour from 0 to 24, got " .. hour } }
 		end
 	end
+
+	-- Any number of degrees: 450 is 90, east.
+	parameterValidators[Types.CompassAngle] = parameterValidators[Types.Number]
+
+	parameterValidators[Types.Elevation] = function(degrees)
+		local luaTypeResult = parameterValidators[Types.Number](degrees)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if degrees < -90 or degrees > 90 then
+			return { { message = "Elevation must be between -90 and 90 degrees, got " .. degrees } }
+		end
+	end
 end
 
 --------------------------------------------------------------------------------

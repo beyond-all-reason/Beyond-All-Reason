@@ -115,6 +115,9 @@ An action that calls a game gadget's `GG` API (`GG.GamePause`, `GG.MapLighting`,
   validator for it in `validation/parameter_validators.lua` (a function returning `nil` or a list of
   `{ message = ... }`, with optional `isWarning = true` and `parameterNameSuffix` for nested fields). An unvalidated
   type silently accepts anything.
+- Angles are degrees in one of two conventions, so the editor can show them: `CompassAngle` for a bearing or a turn
+  about the vertical axis (clockwise from north, as `Direction`'s angle) and `Elevation` for an angle above the
+  horizon (-90 to 90). Use them instead of a plain `Number`.
 - `parameter_processing.lua` rewrites values after validation (ground height for `Position`, unit-def names to
   negative build command IDs for `Orders`/`Command`, `.wav` length caching for `SoundFile`, enum lists to sets,
   `Color` `{ r, g, b }` fields to the engine's `{ r, g, b }` array). If

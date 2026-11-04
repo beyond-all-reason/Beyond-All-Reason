@@ -161,6 +161,53 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("CompassAngle", function()
+		local function validateAzimuth(degrees)
+			return V.validateAction({ type = V.actionTypes.SetMapLighting, parameters = { sunAzimuth = degrees } })
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateAzimuth("east"),
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: sunAzimuth"
+			)
+		end)
+
+		it("accepts any number of degrees", function()
+			V.assertNoMessageContaining(validateAzimuth(-90), "Parameter: sunAzimuth")
+			V.assertNoMessageContaining(validateAzimuth(450), "Parameter: sunAzimuth")
+		end)
+	end)
+
+	describe("Elevation", function()
+		local function validateElevation(degrees)
+			return V.validateAction({ type = V.actionTypes.SetMapLighting, parameters = { sunElevation = degrees } })
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateElevation("high"),
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: sunElevation"
+			)
+		end)
+
+		it("rejects an elevation past straight up or down", function()
+			V.assertMessage(
+				validateElevation(91),
+				"Elevation must be between -90 and 90 degrees, got 91. Action: a, Parameter: sunElevation"
+			)
+			V.assertMessage(
+				validateElevation(-91),
+				"Elevation must be between -90 and 90 degrees, got -91. Action: a, Parameter: sunElevation"
+			)
+		end)
+
+		it("accepts straight up and straight down", function()
+			V.assertNoMessageContaining(validateElevation(90), "Parameter: sunElevation")
+			V.assertNoMessageContaining(validateElevation(-90), "Parameter: sunElevation")
+		end)
+	end)
+
 	describe("PositiveInteger", function()
 		local function validateTimeRemaining(timeRemaining)
 			return V.validateTrigger(

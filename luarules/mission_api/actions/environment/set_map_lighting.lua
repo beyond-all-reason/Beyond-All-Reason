@@ -24,10 +24,10 @@ return {
 	{
 		type = 'SetMapLighting',
 		parameters = {
-			{ name = 'brightness',          required = false, type = ParameterTypes.Quantity }, -- multiplier on all colours, 1 = unchanged
-			{ name = 'tint',                required = false, type = ParameterTypes.Color },    -- multiplier per channel
-			{ name = 'sunAzimuth',          required = false, type = ParameterTypes.Number },   -- compass degrees, 0 = north
-			{ name = 'sunElevation',        required = false, type = ParameterTypes.Number },   -- degrees above the horizon
+			{ name = 'brightness',          required = false, type = ParameterTypes.Quantity },     -- multiplier on all colours, 1 = unchanged
+			{ name = 'tint',                required = false, type = ParameterTypes.Color },        -- multiplier per channel
+			{ name = 'sunAzimuth',          required = false, type = ParameterTypes.CompassAngle }, -- the bearing of the sun
+			{ name = 'sunElevation',        required = false, type = ParameterTypes.Elevation },    -- the sun stays between 1 and 90
 			{ name = 'groundAmbientColor',  required = false, type = ParameterTypes.Color },
 			{ name = 'groundDiffuseColor',  required = false, type = ParameterTypes.Color },
 			{ name = 'groundSpecularColor', required = false, type = ParameterTypes.Color },
@@ -36,7 +36,7 @@ return {
 			{ name = 'unitSpecularColor',   required = false, type = ParameterTypes.Color },
 			{ name = 'groundShadowDensity', required = false, type = ParameterTypes.Fraction },
 			{ name = 'unitShadowDensity',   required = false, type = ParameterTypes.Fraction },
-			{ name = 'transitionDuration',  required = false, type = ParameterTypes.Quantity }, -- seconds, default 0
+			{ name = 'transitionDuration',  required = false, type = ParameterTypes.Quantity },     -- seconds, default 0
 			requiresOneOf = {
 				'brightness', 'tint', 'sunAzimuth', 'sunElevation',
 				'groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor',
