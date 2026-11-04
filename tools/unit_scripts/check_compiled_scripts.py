@@ -32,6 +32,7 @@ SCRIPTS_DIR = "scripts"
 INCLUDE_PATTERN = re.compile(r'^\s*#\s*include\s*[<"]([^">]+)[">]', re.MULTILINE)
 DIFF_CONTEXT_LINES = 40
 ANNOTATION_CAP = 10
+COMPILER_REPOSITORY = "https://github.com/beyond-all-reason/BARScriptCompiler"
 
 # Opcodes and how many operands follow each in the code, from the engine's CobOpCodes.h and the
 # reads in CobThread.cpp. CALL is the only call written to files; the engine rewrites it in place.
@@ -208,6 +209,11 @@ def compile_bos(compiler_dir: Path, bos_path: Path):
 	return cob_path, None
 
 
+def final_line(log: str):
+	"""The compiler ends its output with the cause, after any traceback."""
+	return log.splitlines()[-1] if log else "The compiler printed nothing."
+
+
 def decode(cob_path: Path):
 	"""The script as comparable lines: header facts, then each script's instructions."""
 	data = cob_path.read_bytes()
@@ -245,6 +251,32 @@ def decode(cob_path: Path):
 	return lines
 
 
+def script_bodies(lines):
+	bodies = {}
+	body = None
+	for line in lines:
+		if line.startswith("script "):
+			body = bodies.setdefault(line.removeprefix("script "), [])
+		elif body is not None:
+			body.append(line)
+	return bodies
+
+
+def summarize_difference(expected, actual):
+	"""Says what differs in one line, since the diff that follows can be cut off."""
+	header_fields = ("version", "static variables", "pieces")
+	header = [field for field, ours, theirs in zip(header_fields, expected, actual) if ours != theirs]
+	ours = script_bodies(expected)
+	theirs = script_bodies(actual)
+	scripts = sorted(name for name in ours.keys() | theirs.keys() if ours.get(name) != theirs.get(name))
+	summary = []
+	if header:
+		summary.append("Header differs: " + ", ".join(header) + ".")
+	if scripts:
+		summary.append("Scripts differ: " + ", ".join(scripts) + ".")
+	return " ".join(summary) or "Only the order of the scripts differs."
+
+
 def compiler_label(compiler_dir: Path):
 	source = (compiler_dir / "bos2cob_py3.py").read_text(encoding="utf-8", errors="replace")
 	version = re.search(r'^version\s*=\s*"([^"]+)"', source, re.MULTILINE)
@@ -261,6 +293,11 @@ def main():
 	repo = args.repo.resolve()
 	compilers = [(path.resolve(), compiler_label(path.resolve())) for path in args.compiler_dir]
 	scripts_root = repo / SCRIPTS_DIR
+	recompile_help = (
+		f"Recompile it with bos2cob_py3.py from {COMPILER_REPOSITORY}, at "
+		+ " or ".join(label for _, label in compilers)
+		+ "."
+	)
 
 	changed_bos = set()
 	changed_headers = set()
@@ -318,7 +355,7 @@ def main():
 			cob_rel = checked_in.relative_to(repo).as_posix()
 			expected = decode(checked_in)
 			matched = None
-			closest = None  # (diff, label) with the fewest differing lines
+			closest = None  # (diff, label, actual) with the fewest differing lines
 			errors = []
 			for compiler_dir, label in compilers:
 				fresh, log = compile_bos(compiler_dir, scratch / bos_path.relative_to(repo))
@@ -331,24 +368,26 @@ def main():
 					break
 				diff = list(difflib.unified_diff(expected, actual, fromfile=cob_rel, tofile=label, lineterm="", n=2))
 				if closest is None or len(diff) < len(closest[0]):
-					closest = (diff, label)
+					closest = (diff, label, actual)
 
 			if matched:
 				print(f"ok: {rel} matches {matched}")
 				continue
 
 			if closest is None:
-				annotate(level, rel, "No compiler could compile this script.")
+				causes = dict.fromkeys(final_line(log) for _, log in errors)
+				annotate(level, rel, "No compiler could compile this script: " + " / ".join(causes))
 			elif required:
-				annotate("error", cob_rel, f"No compiler reproduces this from {bos_path.name}; recompile it.")
+				annotate("error", cob_rel, f"No compiler reproduces this from {bos_path.name}. {recompile_help}")
 			else:
-				annotate("warning", cob_rel, f"Stale: no compiler reproduces this from {bos_path.name}.")
+				annotate("warning", cob_rel, f"Stale: no compiler reproduces this from {bos_path.name}. {recompile_help}")
 			failures += required
 			stale += not required
-			for label, log in errors:
-				print(f"{label} failed to compile {rel}:\n{log}")
 			if closest:
-				diff, label = closest
+				for label, log in errors:
+					print(f"{label} failed to compile {rel}: {final_line(log)}")
+				diff, label, actual = closest
+				print(summarize_difference(expected, actual))
 				print(f"Closest compile, from {label}:")
 				print("\n".join(diff[:DIFF_CONTEXT_LINES]))
 				if len(diff) > DIFF_CONTEXT_LINES:
