@@ -328,16 +328,14 @@ local layouts = {
 -- The order the engine writes modifiers in, and the one every surface should read and emit.
 local modifierOrder = { "Alt", "Ctrl", "Meta", "Shift" }
 
--- Single-letter abbreviations, as uikeys.txt may spell them (A/C/M/S; * for Any). Derived so
--- the vocabulary is stated once.
+-- Single-letter abbreviations, as uikeys.txt may spell them (A/C/M/S; * for Any).
 local modAbbrev = {}
 for _, name in ipairs(modifierOrder) do
 	modAbbrev[name:sub(1, 1):upper()] = name:upper() .. "+"
 end
 
--- Printable keys the engine reports by name. The scancode names are positional, so
--- they map to the qwerty character and pick up the layout translation afterwards;
--- the keycode names are the character outright.
+-- Scancode names are positional, so they map to the qwerty character and pick up the layout
+-- translation afterwards; keycode names already name the character.
 local scanKeyWords = {
 	minus = "-",
 	equals = "=",
@@ -357,6 +355,15 @@ local keyCodeWords = {
 	caret = "^",
 	backslash = "\\",
 }
+-- Keys the engine has no scancode name for print as a number ("sc_0x039"); these read as the keycode name of the same key.
+-- The ISO key between left Shift and Z/Y gets the legend most layouts print on it.
+local scanLabels = {
+	["0X039"] = "CAPSLOCK",
+	["0X047"] = "SCROLLOCK",
+	["0X053"] = "NUMLOCK",
+	["0X064"] = "ISO <>",
+	NONUSBACKSLASH = "ISO <>",
+}
 
 local function sanitizeKey(key, layout)
 	if type(key) ~= "string" then
@@ -365,25 +372,20 @@ local function sanitizeKey(key, layout)
 
 	layout = layout or Spring.GetConfigString("KeyboardLayout", "qwerty")
 
-	-- The engine names the punctuation keys with words rather than the character they
-	-- produce ("sc_backquote", "backslash"). Fold those back first so they render as
-	-- the key itself, and so the scancode form still picks up the layout mapping below.
+	-- The engine names punctuation with words rather than the character it produces
+	-- ("sc_backquote", "backslash").
 	key = key:gsub("[Ss][Cc]_(%a%a+)", function(word)
 		return "sc_" .. (scanKeyWords[word:lower()] or word)
 	end)
-	-- Whole words wherever they sit, not just the last one: a chain's first tap is a key
-	-- name too. Anything not a key name falls through unchanged, modifiers included.
+	-- Whole words wherever they sit: a chain first tap is a key name too.
 	key = key:gsub("%f[%a](%a%a+)%f[%A]", function(word)
 		return keyCodeWords[word:lower()] or word
 	end)
 
 	key = key:upper():gsub("ANY%+", ""):gsub("%*%+", "")
 
-	-- Callers pass whole keysets, chains included, so a key name runs to the next comma
-	-- rather than to the end of the string. The leading "." takes one character before the
-	-- comma test so a bound comma key reads as itself instead of a separator.
-	-- Only a single character is positional: matching one character of a named key would
-	-- remap its first letter instead, which renders sc_space as "OPACE" on dvorak.
+	-- Callers pass whole keysets, chains included, so a key name runs to the next comma. The
+	-- leading "." takes one character before the comma to stop an empty match looping.
 	local positional = scanToCode[layout] or scanToCode.qwerty
 	key = key:gsub("SC_(.[^,]*)", function(token)
 		if #token == 1 then
@@ -391,7 +393,7 @@ local function sanitizeKey(key, layout)
 		end
 
 		-- Named keys sit in the same place on every layout, so the name is the label.
-		return token
+		return scanLabels[token] or token
 	end)
 	-- Expand a single-letter modifier token (frontier so it doesn't eat the A in META+).
 	key = key:gsub("%f[%u]([ACMS])%+", function(m)

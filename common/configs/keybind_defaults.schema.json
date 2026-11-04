@@ -17,9 +17,14 @@
 					"minLength": 1,
 					"description": "Display name, and the id a surface stores as the active selection. Unique across both lists."
 				},
+				"description": {
+					"type": "string",
+					"minLength": 1,
+					"description": "i18n key for a sentence or two saying what the profile is for, shown where a surface lets the player pick one. A surface without that translation shows the key's own text."
+				},
 				"fakeMeta": {
 					"type": "string",
-					"description": "Key to treat as the Meta modifier, if the profile wants one."
+					"description": "Key to treat as the Meta modifier. A keycode, never a scancode, which the engine refuses here. Leave it out to get the engine's own, which is space; set \"none\" for a profile that wants no Meta modifier at all."
 				},
 				"binds": {
 					"type": "array",

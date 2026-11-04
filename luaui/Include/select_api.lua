@@ -8,7 +8,7 @@ local defaultdamagetag = Game.armorTypes.default
 local vtoldamagetag = Game.armorTypes.vtol
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitGroup = Spring.GetUnitGroup
@@ -41,12 +41,10 @@ local function handleCaching(invert, tokenLower, filterFunction, optionalArg)
 
 	return function(udef)
 		if cache[udef] == nil then
-			local result = filterFunction(udef, optionalArg)
-			-- handle invert explicitly here for caching
-			result = (result or false) ~= invert
-			cache[udef] = result
+			-- the inverted filter shares this cache
+			cache[udef] = filterFunction(udef, optionalArg) and true or false
 		end
-		return cache[udef]
+		return cache[udef] ~= invert
 	end
 end
 
@@ -87,12 +85,7 @@ local function notEmptyUdefFilter(invert, property)
 end
 
 local function checkCmd(uid, cmdId, indexTemp)
-	local index = indexTemp or 1
-	local cmd = spGetUnitCommands(uid, index)
-	if cmd and cmd[index] and cmd[index].id == cmdId then
-		return true
-	end
-	return false
+	return spGetUnitCurrentCommand(uid, indexTemp or 1) == cmdId
 end
 
 local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
@@ -183,7 +176,11 @@ local function parseFilter(filterDef)
 			filters.idle = invertCurry(invert, isIdle)
 		elseif tokenLower == "guarding" then
 			filters.guarding = invertCurry(invert, function(_udef, _udefid, uid)
-				return checkCmd(uid, CMD.GUARD)
+				local firstCmdId = spGetUnitCurrentCommand(uid, 1)
+				if firstCmdId == CMD.GUARD then
+					return true
+				end
+				return (firstCmdId == CMD.REPAIR or firstCmdId == CMD.ATTACK) and checkCmd(uid, CMD.GUARD, 2)
 			end)
 		elseif tokenLower == "waiting" then
 			filters.waiting = invertCurry(invert, function(_udef, _udefid, uid)

@@ -7,6 +7,9 @@ piece  base, flare, turret, barrel, smoke1, smoke2;
 
 static-var  restore_delay;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIG_AIM				2
 
@@ -54,6 +57,7 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	Weapon1TurretY = <30.0>;
 	hide smoke1;
 	hide smoke2;
 	hide flare;
@@ -101,7 +105,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <30.0>;
+	turn turret to y-axis heading speed Weapon1TurretY;
 	wait-for-turn turret around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);

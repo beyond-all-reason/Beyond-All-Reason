@@ -1,7 +1,7 @@
 -- see alldefs.lua for documentation
 local system = VFS.Include("gamedata/system.lua")
-local alldefs = VFS.Include("gamedata/alldefs_post.lua")
-local savedefs = VFS.Include("gamedata/post_save_to_customparams.lua")
+local alldefs = require("gamedata/alldefs_post")
+local savedefs = require("gamedata/post_save_to_customparams")
 
 local unitDef_Post = alldefs.UnitDef_Post
 local saveDefToCustomParams = savedefs.SaveDefToCustomParams
@@ -208,7 +208,7 @@ local function preProcessUnitDefs()
 end
 
 local function createScavengerUnitDefs()
-	local customScavDefs = VFS.Include("gamedata/scavengers/unitdef_changes.lua")
+	local customScavDefs = require("gamedata/scavengers/unitdef_changes")
 
 	for name, unitDef in pairs(UnitDefs) do
 		if not string.find(name, "_scav") and not string.find(name, "critter") and not string.find(name, "raptor") then
@@ -384,7 +384,7 @@ local function postProcessRegularUnitDefs()
 end
 
 local function postProcessScavengerUnitDefs()
-	local scavPostProcessor = VFS.Include("gamedata/scavengers/unitdef_post.lua")
+	local scavPostProcessor = require("gamedata/scavengers/unitdef_post")
 	for name, unitDef in pairs(scavengerUnitDefs) do
 		unitDef = scavPostProcessor.ScavUnitDef_Post(name, unitDef)
 	end

@@ -35,7 +35,6 @@ return {
 		sonarstealth = true,
 		stealth = true,
 		usebuildinggrounddecal = false,
-		yardmap = "f",
 		customparams = {
 			model_author = "Floris",
 			nohealthbars = true,

@@ -34,7 +34,7 @@ return {
 		waterline = 25,
 		customparams = {
 			model_author = "Hornet",
-			normaltex = "unittextures/arm_normal.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips/T2",
 			techlevel = 2,
 			unitgroup = "sub",

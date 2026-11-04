@@ -8,17 +8,6 @@ static-var maxSpeed, currentSpeed, shotcount, timer, isfiring, fireTime;
 
 
 
-//fakeupright
-#define FAKE_UPRIGHT_REFERENCE		1
-#define FAKE_UPRIGHT_TARGET_triparent	2
-#define FAKE_UPRIGHT_TARGET_CHILD	3	//piece to make upright
-#define FAKE_UPRIGHT_X				4
-#define FAKE_UPRIGHT_Z				5
-
-
-
-
-
 #define BASEPIECE base
 #define HITSPEED <105.0>
 //how 'heavy' the unit is, on a scale of 1-10
@@ -40,26 +29,6 @@ static-var maxSpeed, currentSpeed, shotcount, timer, isfiring, fireTime;
 
 //move linefire into child obj / unify to reduce piece bloat
 
-
-FakeUprightInit() {
-	move x to z-axis [1] now;
-	move z to x-axis [-1] now;
-	turn lineflare to x-axis <-90> now;
-}
-
-FakeUprightTurn() {
-	var angle_x, angle_z, dy_x, dy_z;
-	dy_x = GET PIECE_Y(x) - GET PIECE_Y(base);
-	dy_z = GET PIECE_Y(z) - GET PIECE_Y(base);
-	angle_x = 65536 * GET ATAN(dy_x, GET POW(1 - GET POW(dy_x, 2), 0.5));
-	angle_z = 65536 * GET ATAN(dy_z, GET POW(1 - GET POW(dy_z, 2), 0.5));
-	//angle_x = GET ATAN(dy_x, GET POW(65536 - GET POW(dy_x, 131072), 32768));
-	//angle_z = GET ATAN(dy_z, GET POW(65536 - GET POW(dy_z, 131072), 32768));
-	turn triparent to y-axis <180> now;
-	turn triparent to x-axis angle_x now;
-	turn triparent to z-axis angle_z now;
-}
-
 DoBarrelRoll() {
 	turn base to z-axis <240.054945> speed <120.027473>;
 	wait-for-turn base around z-axis;
@@ -76,7 +45,8 @@ lua_UnitScriptLight(lightIndex, count)
 
 Create()
 {
-	call-script FakeUprightInit();
+	turn triparent to y-axis <180> now;
+	turn lineflare to x-axis <-90> now;
 	turn fireline to x-axis <115> now;
 	shotcount = 0;
 	timer = 0;
@@ -147,15 +117,11 @@ StrafeFire() {
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
 
-
-	call-script FakeUprightTurn();
-
 	while (isfiring == 1) {
 		timer = timer + 1;
 		if (timer<fireTime) {
 			//get PRINT(timer);
 			emit-sfx 2048+1 from fireline;
-			call-script FakeUprightTurn();
 			sleep 1;
 		} else {
 			spin ring1 around x-axis speed <90> accelerate <200>;

@@ -6,6 +6,7 @@
 // This shader is part of the Beyond All Reason repository.  
 
 //__ENGINEUNIFORMBUFFERDEFS__
+//__WATERBLENDDEFS__
 //__DEFINES__
 
 // TODO: maybe sample SSMF mapnormals too?

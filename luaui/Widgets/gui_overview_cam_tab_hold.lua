@@ -16,7 +16,7 @@ function widget:GetInfo()
 	}
 end
 
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 local camKeys = {} -- list of buttons that switch to Overview
 local isLongPress = false -- enabled when user presses tab for longer
 local prevCamState = nil

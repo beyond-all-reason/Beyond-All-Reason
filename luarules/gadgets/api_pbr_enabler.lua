@@ -76,7 +76,7 @@ if not gadgetHandler:IsSyncedCode() then --unsynced gadget
 		Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 		Spring.SetConfigInt("CubeTexSizeReflection", 1024)
 
-		local brdfLutClass = VFS.Include("LuaRules/Gadgets/Include/GenBrdfLut.lua")
+		local brdfLutClass = require("luarules/gadgets/include/GenBrdfLut")
 		if brdfLutClass then
 			brdfLut = brdfLutClass(BRDFLUT_TEXDIM, BRDFLUT_GOPTION)
 			if brdfLut then
@@ -85,7 +85,7 @@ if not gadgetHandler:IsSyncedCode() then --unsynced gadget
 			end
 		end
 
-		local envLutClass = VFS.Include("LuaRules/Gadgets/Include/GenEnvLut.lua")
+		local envLutClass = require("luarules/gadgets/include/GenEnvLut")
 		if envLutClass then
 			envLut = envLutClass(ENVLUT_SAMPLES)
 			if envLut then

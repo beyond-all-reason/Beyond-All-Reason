@@ -19,6 +19,10 @@ end
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGameFrame = Spring.GetGameFrame
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+
+local MAX_QUEUE_WALK = 100
 
 local math_sqrt = math.sqrt
 
@@ -85,22 +89,22 @@ local function GetUnitOrFeaturePosition(id)
 	end
 end
 
-local function GetCommandPos(command) --- get the command position
+local function GetCommandPos(id, p1, p2, p3) --- get the command position
 	if
-		command.id < 0
-		or command.id == CMD.MOVE
-		or command.id == CMD.REPAIR
-		or command.id == CMD.RECLAIM
-		or command.id == CMD.RESURRECT
-		or command.id == CMD.DGUN
-		or command.id == CMD.GUARD
-		or command.id == CMD.FIGHT
-		or command.id == CMD.ATTACK
+		id < 0
+		or id == CMD.MOVE
+		or id == CMD.REPAIR
+		or id == CMD.RECLAIM
+		or id == CMD.RESURRECT
+		or id == CMD.DGUN
+		or id == CMD.GUARD
+		or id == CMD.FIGHT
+		or id == CMD.ATTACK
 	then
-		if table.getn(command.params) >= 3 then
-			return command.params[1], command.params[2], command.params[3]
-		elseif table.getn(command.params) >= 1 then
-			return GetUnitOrFeaturePosition(command.params[1])
+		if p3 ~= nil then
+			return p1, p2, p3
+		elseif p1 ~= nil then
+			return GetUnitOrFeaturePosition(p1)
 		end
 	end
 	return -10, -10, -10
@@ -140,8 +144,7 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	-- Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
-	local my_command = { id = id, params = params, options = options }
-	local cx, cy, cz = GetCommandPos(my_command)
+	local cx, cy, cz = GetCommandPos(id, params[1], params[2], params[3])
 	if cx < -1 then
 		return false
 	end
@@ -149,13 +152,13 @@ function widget:CommandNotify(id, params, options)
 	local units = Spring.GetSelectedUnits()
 	for i = 1, #units do
 		local unit_id = units[i]
-		local commands = Spring.GetUnitCommands(unit_id, 100)
+		local commandCount = math.min(spGetUnitCommandCount(unit_id) or 0, MAX_QUEUE_WALK)
 		local px, py, pz = spGetUnitPosition(unit_id)
 		local min_dlen = 1000000
 		local insert_pos = 0
-		for j = 1, #commands do
-			local command = commands[j]
-			local px2, py2, pz2 = GetCommandPos(command)
+		for j = 1, commandCount do
+			local cmdID, _, _, p1, p2, p3 = spGetUnitCurrentCommand(unit_id, j)
+			local px2, py2, pz2 = GetCommandPos(cmdID, p1, p2, p3)
 			if px2 and px2 > -1 then
 				local dlen = math_sqrt(
 					((px2 - cx) * (px2 - cx)) + ((py2 - cy) * (py2 - cy)) + ((pz2 - cz) * (pz2 - cz))

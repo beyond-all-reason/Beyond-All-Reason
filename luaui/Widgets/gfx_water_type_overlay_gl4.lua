@@ -41,10 +41,12 @@ local active = false
 local activeType = nil -- "lava" or "acid"
 local lavaShader = nil
 local foglightShader = nil
-local planeVAO = nil
+local planeVAO ---@type VAO?
+local planeVBO, planeIndexVBO ---@type VBO?, VBO?
 local engineWaterHidden = false
 
 local lavaLevel = 0
+local tideLevel = 0.0 -- set in DrawWorldPreUnit, reused by the fog pass in DrawWorld
 local targetLevel = 0
 local currentLevel = 0
 local baseWaterLevel = 0 -- engine water plane at activation time
@@ -201,15 +203,30 @@ local function ensurePlaneVAO()
 	end
 	local xsquares = 3 * Game.mapSizeX / elmosPerSquare
 	local zsquares = 3 * Game.mapSizeZ / elmosPerSquare
-	local vertexBuffer = InstanceVBOTable.makePlaneVBO(1, 1, xsquares, zsquares)
-	local indexBuffer = InstanceVBOTable.makePlaneIndexVBO(xsquares, zsquares)
+	planeVBO = InstanceVBOTable.makePlaneVBO(1, 1, xsquares, zsquares)
+	planeIndexVBO = InstanceVBOTable.makePlaneIndexVBO(xsquares, zsquares)
 	planeVAO = gl.GetVAO()
 	if not planeVAO then
 		return false
 	end
-	planeVAO:AttachVertexBuffer(vertexBuffer)
-	planeVAO:AttachIndexBuffer(indexBuffer)
+	planeVAO:AttachVertexBuffer(planeVBO)
+	planeVAO:AttachIndexBuffer(planeIndexVBO)
 	return true
+end
+
+-- The draw callins are registered only while the overlay is active, so the
+-- widget costs nothing per frame while the editor suite is loaded but unused.
+local function updateDrawCallIns()
+	if active then
+		widgetHandler:UpdateCallIn("DrawWorldPreUnit")
+	else
+		widgetHandler:RemoveCallIn("DrawWorldPreUnit")
+	end
+	if active and allowDeferredMapRendering and typeParams[activeType].fogEnabled then
+		widgetHandler:UpdateCallIn("DrawWorld")
+	else
+		widgetHandler:RemoveCallIn("DrawWorld")
+	end
 end
 
 local function activateOverlay(typeName)
@@ -249,6 +266,7 @@ local function activateOverlay(typeName)
 		engineWaterHidden = true
 	end
 	active = true
+	updateDrawCallIns()
 	sendOverlayMsg("wateroverlay:activate:" .. typeName)
 end
 
@@ -261,6 +279,7 @@ local function deactivateOverlay()
 	activeType = nil
 	lavaShader = nil
 	foglightShader = nil
+	updateDrawCallIns()
 	sendOverlayMsg("wateroverlay:deactivate")
 end
 
@@ -269,6 +288,7 @@ function widget:Initialize()
 	if isRealLavaMap then
 		Spring.Echo("[WaterOverlay] Real lava map detected, overlay disabled")
 	end
+	updateDrawCallIns()
 	WG.WaterTypeOverlay = {
 		activate = activateOverlay,
 		deactivate = deactivateOverlay,
@@ -319,7 +339,18 @@ function widget:Shutdown()
 		end
 	end
 	compiledShaders = {}
-	planeVAO = nil
+	if planeVAO then
+		planeVAO:Delete()
+		planeVAO = nil
+	end
+	if planeVBO then
+		planeVBO:Delete()
+		planeVBO = nil
+	end
+	if planeIndexVBO then
+		planeIndexVBO:Delete()
+		planeIndexVBO = nil
+	end
 	WG.WaterTypeOverlay = nil
 end
 
@@ -350,8 +381,7 @@ function widget:DrawWorldPreUnit()
 	lavaLevel = currentLevel
 
 	-- Animate tide
-	local gameFrame = Spring.GetGameFrame()
-	local tideLevel = math.sin(gameFrame / tidePeriod) * tideAmplitude + lavaLevel
+	tideLevel = math.sin(Spring.GetGameFrame() / tidePeriod) * tideAmplitude + lavaLevel
 
 	lavaShader:Activate()
 	lavaShader:SetUniform("lavaHeight", tideLevel)
@@ -383,20 +413,10 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:DrawWorld()
+	-- registered only while the fog pass applies, see updateDrawCallIns
 	if not active or not foglightShader or not planeVAO then
 		return
 	end
-	if not allowDeferredMapRendering then
-		return
-	end
-
-	local tp = typeParams[activeType]
-	if not tp or not tp.fogEnabled then
-		return
-	end
-
-	local gameFrame = Spring.GetGameFrame()
-	local tideLevel = math.sin(gameFrame / tidePeriod) * tideAmplitude + lavaLevel
 
 	foglightShader:Activate()
 	foglightShader:SetUniform("lavaHeight", tideLevel + fogheightabovelava)

@@ -23,8 +23,8 @@ end
 
 --increase safety margin buffer so a pawn can walk through a minefield that's exposed
 
-local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
-local WeaponThreat = VFS.Include("modules/weaponthreat.lua")
+local CustomFirestateDefs = require("modules/custom_firestate_defs")
+local WeaponThreat = require("modules/weaponthreat")
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local ALWAYS_SHOOT = WeaponThreat.ALWAYS_SHOOT
 local NO_THREAT = WeaponThreat.NO_THREAT
@@ -60,7 +60,7 @@ local function addWeaponWatches(weaponDefIDs)
 		local refCount = (weaponWatchRefCount[weaponDefID] or 0) + 1
 		weaponWatchRefCount[weaponDefID] = refCount
 		if refCount == 1 then
-			Script.SetWatchAllowTarget(weaponDefID, true)
+			gadgetHandler:RegisterWeaponTarget(weaponDefID)
 		end
 	end
 end
@@ -71,7 +71,7 @@ local function removeWeaponWatches(weaponDefIDs)
 		local refCount = (weaponWatchRefCount[weaponDefID] or 0) - 1
 		if refCount <= 0 then
 			weaponWatchRefCount[weaponDefID] = nil
-			Script.SetWatchAllowTarget(weaponDefID, false)
+			gadgetHandler:DeregisterWeaponTarget(weaponDefID)
 		else
 			weaponWatchRefCount[weaponDefID] = refCount
 		end
@@ -246,6 +246,8 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterUnitCommand(CMD_FIRE_STATE)
+	gadgetHandler:RegisterWeaponTarget(Game.noneID) -- registration is dynamic
 	defThreatRanges, watchedWeaponsByUnitDef, neverHesitateAttackers, alwaysHarmlessUnitDefs =
 		WeaponThreat.buildDefendData()
 

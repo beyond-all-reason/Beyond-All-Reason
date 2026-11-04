@@ -1,6 +1,6 @@
 local widget = widget ---@type Widget
 
-local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
+local SubLogic = require("luaui/Include/blueprint_substitution/logic")
 
 local ENABLE_REPORTS = BAR.Utilities.IsDevMode()
 
@@ -444,7 +444,7 @@ local function getBuildPositionsGrid(blueprint, startPos, endPos, spacing)
 	startPos = snapBlueprint(blueprint, startPos, blueprint.facing)
 	endPos = snapBlueprint(blueprint, endPos, blueprint.facing)
 
-	local xStep, zStep, xNum, zNum, delta = calculateSteps(blueprint, startPos, endPos, spacing)
+	local xStep, zStep, xNum, zNum, _ = calculateSteps(blueprint, startPos, endPos, spacing)
 
 	local result = {}
 	local z = startPos[3]
@@ -471,7 +471,7 @@ local function getBuildPositionsBox(blueprint, startPos, endPos, spacing)
 	startPos = snapBlueprint(blueprint, startPos, blueprint.facing)
 	endPos = snapBlueprint(blueprint, endPos, blueprint.facing)
 
-	local xStep, zStep, xNum, zNum, delta = calculateSteps(blueprint, startPos, endPos, spacing)
+	local xStep, zStep, xNum, zNum, _ = calculateSteps(blueprint, startPos, endPos, spacing)
 
 	local result = {}
 
@@ -587,8 +587,13 @@ local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit,
 	end
 end
 
--- instanceIDs[buildPositionKey] = { outline = { instanceID1, ...}, unit = { instanceID1, ...}, }
+-- instanceIDs[buildPositionKey] = { outline = { instanceID1, ...}, unit = { instanceID1, ...}, buildings = { ... } }
 local instanceIDs = {}
+
+-- The placed buildings for the build squares widget (gui_buildsquare_gl4 draws them as a single building's
+-- preview, these outlines are left out then): { unitDefID, x, y, z, facing, buildable, valid } per
+-- building, in the build positions' order, rebuilt after the instances change
+local previewBuildings = { list = {}, dirty = true }
 
 local function clearInstances()
 	if isHeadless then
@@ -603,6 +608,7 @@ local function clearInstances()
 	end
 
 	instanceIDs = {}
+	previewBuildings.dirty = true
 end
 
 local blockingColor = { 1.0, 0.0, 0.0, 1.0 }
@@ -615,7 +621,7 @@ local unbuildableColor = { 1.0, 1.0, 0.0, 1.0 }
 ---@param copyPosition Blueprint
 ---@param positionKey Blueprint
 local function createInstancesForPosition(blueprint, teamID, copyPosition, positionKey)
-	instanceIDs[positionKey] = { outline = {}, unit = {} }
+	instanceIDs[positionKey] = { outline = {}, unit = {}, buildings = {} }
 
 	local effectiveBlueprint = blueprint
 	if copyPosition[4] ~= nil then
@@ -643,6 +649,15 @@ local function createInstancesForPosition(blueprint, teamID, copyPosition, posit
 			else
 				color = unbuildableColor
 			end
+			tableInsert(instanceIDs[positionKey].buildings, {
+				unitDefID = unit.unitDefID,
+				x = sx,
+				y = sy,
+				z = sz,
+				facing = unit.facing,
+				buildable = activeBuilderBuildOptions[unit.unitDefID] ~= nil, -- (one they can't: as blocked)
+				valid = color == buildableColor, -- buildable, and its build test passed when placed
+			})
 
 			-- outline
 			local outlineInstanceID = pushElementInstance(outlineInstanceVBO, {
@@ -700,6 +715,7 @@ local function updateInstances(blueprint, buildPositions, teamID)
 
 		if not instanceIDs[positionKey] then
 			createInstancesForPosition(blueprint, teamID, copyPosition, positionKey)
+			previewBuildings.dirty = true
 		end
 	end
 
@@ -713,6 +729,7 @@ local function updateInstances(blueprint, buildPositions, teamID)
 				popElementInstance(outlineInstanceVBO, instanceID, true)
 			end
 			instanceIDs[positionKey] = nil
+			previewBuildings.dirty = true
 		end
 	end
 
@@ -720,7 +737,7 @@ local function updateInstances(blueprint, buildPositions, teamID)
 end
 
 local function drawOutlines()
-	if outlineInstanceVBO.usedElements == 0 or isHeadless then
+	if outlineInstanceVBO.usedElements == 0 or isHeadless or WG["buildsquare-gl4"] then
 		return
 	end
 
@@ -803,6 +820,30 @@ local function setBlueprintPositions(buildPositions)
 	activeBuildPositions = buildPositions
 
 	updateInstances(activeBlueprint, activeBuildPositions, SpringGetMyTeamID())
+end
+
+---The placed blueprint's buildings, for the build squares widget (nil while none is placed).
+---@return { unitDefID: integer, x: number, y: number, z: number, facing: integer, buildable: boolean, valid: boolean }[]?
+local function getPreviewBuildings()
+	if not activeBlueprint or not activeBuildPositions then
+		return nil
+	end
+	local list = previewBuildings.list
+	if previewBuildings.dirty then
+		previewBuildings.dirty = false
+		local n = 0
+		for _, copyPosition in ipairs(activeBuildPositions) do
+			local position = instanceIDs[table.toString(copyPosition)]
+			for _, building in ipairs(position and position.buildings or {}) do
+				n = n + 1
+				list[n] = building
+			end
+		end
+		for i = n + 1, #list do
+			list[i] = nil
+		end
+	end
+	return list
 end
 
 local function calculateBuildPositions(blueprint, mode, ...)
@@ -940,6 +981,7 @@ function widget:Initialize()
 		getUnitsBounds = getUnitsBounds,
 		snapBlueprint = snapBlueprint,
 		placeBlueprint = placeBlueprint,
+		getPreviewBuildings = getPreviewBuildings,
 		BUILD_MODES = BUILD_MODES,
 		SQUARE_SIZE = SQUARE_SIZE,
 		BUILD_SQUARE_SIZE = BUILD_SQUARE_SIZE,

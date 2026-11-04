@@ -2,7 +2,8 @@
 #include "../recoil_common_includes.h"
 
 piece  ground, lflare, rflare, turret, wake, barrelcon, lbarrel, rbarrel, launch, lrocket,
-       rrocket, base;
+       rrocket, base,
+       basefirepoint;
 
 static-var  gun_1, isAiming, restore_delay;
 
@@ -39,8 +40,6 @@ Create()
 	hide wake;
 	hide lflare;
 	hide rflare;
-	turn lflare to y-axis <175> now;
-	turn rflare to y-axis <175> now;
 	move lflare to z-axis [6] now;
 	move rflare to z-axis [6] now;
 	isAiming = FALSE;
@@ -141,7 +140,7 @@ QueryWeapon1(pieceIndex)
 
 QueryWeapon2(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = basefirepoint;
 }
 
 AimFromWeapon2(pieceIndex)

@@ -18,6 +18,7 @@
 -- 11110xxx	10xxxxxx 10xxxxxx 10xxxxxx | 10FFFF (1114111)
 
 local pattern = '[%z\1-\127\194-\244][\128-\191]*'
+local positionPattern = '()' .. pattern .. '()'
 
 -- helper function
 local posrelat =
@@ -102,27 +103,20 @@ utf8.sub =
 
 		if i > j then return '' end
 
-		local diff = j - i
-		local iter = utf8.chars(s, true)
-
-		-- advance up to i
-		for _ = 1, i - 1 do iter() end
-
-		local c, b = select(2, iter())
-
-		-- i and j are the same, single-charaacter sub
-		if diff == 0 then
-			return string.sub(s, b, b + c - 1)
+		-- walks the characters directly; utf8.chars would make a coroutine per call
+		local count, first = 0, 1
+		for b, e in s:gmatch(positionPattern) do
+			count = count + 1
+			if count == i then
+				first = b
+			end
+			if count == j then
+				return string.sub(s, first, e - 1)
+			end
 		end
 
-		i = b
-
-		-- advance up to j
-		for _ = 1, diff - 1 do iter() end
-
-		c, b = select(2, iter())
-
-		return string.sub(s, i, b + c - 1)
+		-- utf8.len counts lead bytes the pattern does not match (\245-\255)
+		error("utf8.sub: malformed UTF-8 string")
 	end
 
 return utf8

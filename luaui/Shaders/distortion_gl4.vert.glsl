@@ -99,7 +99,6 @@ out DataVS {
 	noperspective vec2 v_screenUV;
 };
 
-#define NOISESTRENGTH v_universalParams.x;
 
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
@@ -165,8 +164,6 @@ void main()
 			v_unibuffercopy = uni[instData.y].speed - uniCopy[instData.y].speed;
 		#endif
 
-		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
-		vec4 teamCol = teamColor[teamIndex];
 	}
 	
 	vec4 worldPos = vec4(1.0);

@@ -211,6 +211,7 @@ body {
 .fp-thumb-trees { background-color: #4ade80; }
 .fp-thumb-foliage { background-color: #86efac; }
 .fp-thumb-crystals { background-color: #a78bfa; }
+.fp-thumb-osemo { background-color: #d4c21a; }
 .fp-thumb-christmas { background-color: #fbbf24; }
 .fp-thumb-raptor { background-color: #f87171; }
 .fp-thumb-armada_wrecks { background-color: #60a5fa; }

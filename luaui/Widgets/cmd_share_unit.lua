@@ -84,6 +84,7 @@ local sqrt = math.sqrt
 local max = math.max
 
 local defaultColor
+local textScale = 1 -- the label's size and distance from the cursor: 1080p's times this
 
 local cmdQuickShareToTargetId = GameCMD.SHARE_UNIT
 local myTeamID = GetMyTeamID()
@@ -216,13 +217,14 @@ local function colourNames(teamId)
 	if tonumber(teamId) < 0 then
 		return ""
 	end
-	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamId)
+	local nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamId)
 	return BAR.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
 end
 
 local function drawName(teamId)
 	local mouseX, mouseY = GetMouseState()
-	local textY = mouseY + 40
+	local textY = mouseY + 40 * textScale
+	local textSize = 20 * textScale
 
 	if teamId then
 		font:Begin()
@@ -235,7 +237,7 @@ local function drawName(teamId)
 			}),
 			mouseX,
 			textY,
-			24,
+			textSize,
 			"con"
 		)
 		font:End()
@@ -243,7 +245,7 @@ local function drawName(teamId)
 		font:Begin()
 		font:SetTextColor(defaultColor)
 		font:SetOutlineColor({ 0, 0, 0, 1 })
-		font:Print(I18N("ui.quickShareToTarget.noTarget"), mouseX, textY, 24, "con")
+		font:Print(I18N("ui.quickShareToTarget.noTarget"), mouseX, textY, textSize, "con")
 		font:End()
 	end
 end
@@ -294,10 +296,25 @@ local function findTeamInArea(mx, my)
 	return selectedTeam
 end
 
+-- whether the mouse was over the interface last frame: few panels have IsAbove, but over themselves
+-- they set the normal cursor in their DrawScreen (in place of this command's), read after all of them
+local overInterface = false
+
+function widget:DrawScreenPost()
+	local _, cmd = GetActiveCommand()
+	overInterface = cmd == cmdQuickShareToTargetId and Spring.GetMouseCursor() == "cursornormal"
+end
+
 local function getSelectedTeam()
 	local _, cmd, _ = GetActiveCommand()
 
 	if cmd ~= cmdQuickShareToTargetId then
+		return nil
+	end
+
+	-- over the interface (a player list takes clicks on its players itself): no world target
+	local mx, my = GetMouseState()
+	if overInterface or widgetHandler:IsAbove(mx, my) then
 		return nil
 	end
 
@@ -441,7 +458,9 @@ function widget:DrawScreen()
 	drawName(selectedTeam)
 end
 
-function widget:ViewResize(vsx, vsy)
+function widget:ViewResize()
+	local _, vsy = Spring.GetViewGeometry()
+	textScale = (vsy / 1080) * Spring.GetConfigFloat("ui_scale", 1)
 	font = WG.fonts.getFont(2, 1.5)
 end
 

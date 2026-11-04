@@ -1,23 +1,39 @@
 -- Ensure TeamData type is available
-local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
+local ResourceTypes = require("gamedata/resource_types")
 
 VFS.Include("spec/builders/team_builder.lua")
-VFS.Include("common/stringFunctions.lua")
-VFS.Include("common.tablefunctions.lua")
 
 local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 
 ---@class SpringSyncedMock : SpringSynced
+--- Mocked engine calls keep the engine's PascalCase; test-only helpers are
+--- camelCase, so the two are easy to tell apart at a call site.
 ---@field GetUnitDefs fun(): table<string, UnitWrapper>
 ---@field GetUnitDefNames fun(): table<string, { id: number }>
 ---@field GetPlayerListUnpacked fun(): TeamData[]?
 ---@field GetPlayerIdsList fun(): number[]?
----@field _builtTeams table
----@field setDataCalls table
----@field __resourceSetCalls table
----@field __clearResourceDataCalls fun()
+---@field builtTeams table
+---@field calls SpringSyncedMockCalls
+---@field clearResourceCalls fun()
+---@field clearCalls fun()
 ---@field GetLoggedMessages fun(): table
----@field __getInitialUnits fun(): table
+
+--- Recorded calls, keyed by the mocked engine function that produced them.
+---@class SpringSyncedMockCalls
+---@field addTeamResource table
+---@field useTeamResource table
+---@field markerAddPoint table
+---@field markerAddLine table
+---@field gameOver table
+---@field spawnExplosion table
+---@field giveOrderArrayToUnitMap table
+---@field transferUnit table
+---@field setUnitNoSelect table
+---@field markerErasePosition table
+---@field sendCommands table
+---@field destroyFeature table
+---@field destroyUnit table
+---@field assignPlayerToTeam table
 
 ---@class SpringSyncedBuilder : SpringSyncedMock
 ---@field modOptions table
@@ -30,67 +46,6 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 ---@field initialUnits table<number, table<number, string>>
 local SB = {}
 SB.__index = SB
-
----Get comprehensive default mod options required for unitdefs and alldefs_post.lua loading
----@return table
-local function getUnitDefRequireModoptionDefaults()
-	return {
-		-- Multipliers
-		multiplier_maxvelocity = 1,
-		multiplier_turnrate = 1,
-		multiplier_builddistance = 1,
-		multiplier_buildpower = 1,
-		multiplier_metalextraction = 1,
-		multiplier_resourceincome = 1,
-		multiplier_energyproduction = 1,
-		multiplier_energyconversion = 1,
-		multiplier_losrange = 1,
-		multiplier_radarrange = 1,
-		multiplier_shieldpower = 1,
-		multiplier_weaponrange = 1,
-		multiplier_weapondamage = 1,
-
-		-- Unit restrictions
-		unit_restrictions_notech2 = false,
-		unit_restrictions_notech3 = false,
-		unit_restrictions_noair = false,
-		unit_restrictions_nobots = false,
-		unit_restrictions_nocons = false,
-		unit_restrictions_nodrops = false,
-		unit_restrictions_noecon = false,
-		unit_restrictions_nofactory = false,
-		unit_restrictions_nogh = false,
-		unit_restrictions_nohover = false,
-		unit_restrictions_nokbot = false,
-		unit_restrictions_nonavy = false,
-		unit_restrictions_noradarvh = false,
-		unit_restrictions_notank = false,
-		unit_restrictions_nouber = false,
-		unit_restrictions_nowall = false,
-		unit_restrictions_noxp = false,
-		unit_restrictions_nosuperweapons = false,
-
-		-- Commander perks
-		commander = 0,
-		commtype = 0,
-		commanderstorage = 0,
-		automatic_swarm = 0,
-		automatic_factory = 0,
-
-		-- Other features
-		unithats = false,
-		scavunitsforplayers = false,
-		releasecandidates = false,
-		ruins = "disabled",
-		forceallunits = false,
-		transportenemy = "all",
-		animationcleanup = false,
-		xmas = false,
-		assistdronesbuildpowermultiplier = 1,
-
-		gamespeed = 30,
-	}
-end
 
 local function normalizeUnitDef(unitDef)
 	if not unitDef then
@@ -148,8 +103,18 @@ function SB.new()
 		gameFrame = 1,
 		cheatingEnabled = false,
 		unitDefs = UnitDefsBuilder.new(),
+		validFeatures = {}, -- featureID -> true, consulted by ValidFeatureID
 		_globalUnitDefs = nil, -- mirror of unitDefs:GetUnitDefsByName() once loaded
 	}, SB)
+end
+
+---Mark a feature ID as valid, so ValidFeatureID reports it as existing.
+---@param self SpringSyncedBuilder
+---@param featureID number
+---@return SpringSyncedBuilder
+function SB:WithValidFeature(featureID)
+	self.validFeatures[featureID] = true
+	return self
 end
 
 ---@param self SpringSyncedBuilder
@@ -226,7 +191,7 @@ function SB:BuildSpring()
 		builtTeams[teamId] = teamBuilder:Build()
 	end
 	-- Store built teams for access by other functions
-	instance._builtTeams = builtTeams
+	instance.builtTeams = builtTeams
 
 	-- Integrate real unit definitions into built teams if available
 	if instance._globalUnitDefs then
@@ -298,11 +263,24 @@ function SB:BuildSpring()
 		return team.energy, normalized
 	end
 
-	local resourceSetCalls = {}
+	local addCalls = {}
+	local useCalls = {}
+	local markerCalls = {}
+	local lineCalls = {}
+	local gameOverCalls = {}
+	local explosionCalls = {}
+	local giveOrderCalls = {}
+	local transferCalls = {}
+	local noSelectCalls = {}
+	local eraseCalls = {}
+	local sendCommandsCalls = {}
+	local destroyFeatureCalls = {}
+	local destroyUnitCalls = {}
+	local assignPlayerCalls = {}
 
 	---@type SpringSyncedMock
 	local mock = {
-		CMD = Spring and Spring.CMD or {
+		CMD = {
 			LOAD_ONTO = 1,
 			SELFD = 2,
 			GUARD = 25,
@@ -386,11 +364,8 @@ function SB:BuildSpring()
 				data.expense,
 				data.shareSlider,
 				data.sent,
-				data.received
-		end,
-		-- Convenience accessors for tests
-		__getInitialUnits = function()
-			return instance.initialUnits
+				data.received,
+				data.excess
 		end,
 		GetUnitDefs = function()
 			-- Return instance globals from WithRealUnitDefs
@@ -436,12 +411,55 @@ function SB:BuildSpring()
 			return instance._globalUnitDefNames
 		end,
 
-		_builtTeams = builtTeams,
-		setDataCalls = resourceSetCalls,
-		__resourceSetCalls = resourceSetCalls,
-		__clearResourceDataCalls = function()
-			for i = #resourceSetCalls, 1, -1 do
-				resourceSetCalls[i] = nil
+		builtTeams = builtTeams,
+		--- Recorded engine calls, keyed by the mocked function they came from:
+		--- `spring.calls.setUnitNoSelect` records `Spring.SetUnitNoSelect`.
+		calls = {
+			addTeamResource = addCalls,
+			useTeamResource = useCalls,
+			markerAddPoint = markerCalls,
+			markerAddLine = lineCalls,
+			gameOver = gameOverCalls,
+			spawnExplosion = explosionCalls,
+			giveOrderArrayToUnitMap = giveOrderCalls,
+			transferUnit = transferCalls,
+			setUnitNoSelect = noSelectCalls,
+			markerErasePosition = eraseCalls,
+			sendCommands = sendCommandsCalls,
+			destroyFeature = destroyFeatureCalls,
+			destroyUnit = destroyUnitCalls,
+			assignPlayerToTeam = assignPlayerCalls,
+		},
+		clearResourceCalls = function()
+			for i = #addCalls, 1, -1 do
+				addCalls[i] = nil
+			end
+			for i = #useCalls, 1, -1 do
+				useCalls[i] = nil
+			end
+		end,
+		clearCalls = function()
+			local tracked = {
+				addCalls,
+				useCalls,
+				markerCalls,
+				lineCalls,
+				gameOverCalls,
+				explosionCalls,
+				giveOrderCalls,
+				transferCalls,
+				noSelectCalls,
+				eraseCalls,
+				sendCommandsCalls,
+				destroyFeatureCalls,
+				destroyUnitCalls,
+				assignPlayerCalls,
+			}
+			for i = 1, #tracked do
+				local list = tracked[i]
+				for j = #list, 1, -1 do
+					list[j] = nil
+				end
 			end
 		end,
 
@@ -534,6 +552,85 @@ function SB:BuildSpring()
 			return true
 		end,
 
+		GiveOrderArrayToUnitMap = function(unitMap, orders)
+			table.insert(giveOrderCalls, { unitMap = unitMap, orders = orders })
+			return true
+		end,
+
+		SetUnitNoSelect = function(unitID, noSelect)
+			table.insert(noSelectCalls, { unitID = unitID, noSelect = noSelect })
+		end,
+
+		MarkerErasePosition = function(x, y, z)
+			table.insert(eraseCalls, { x = x, y = y, z = z })
+		end,
+
+		SendCommands = function(command)
+			table.insert(sendCommandsCalls, command)
+		end,
+
+		DestroyFeature = function(featureID)
+			table.insert(destroyFeatureCalls, featureID)
+		end,
+
+		ValidFeatureID = function(featureID)
+			return instance.validFeatures[featureID] == true
+		end,
+
+		-- Engine parameter names: selfd triggers the self-destruct explosion,
+		-- reclaimed removes the unit without a wreck.
+		DestroyUnit = function(unitID, selfd, reclaimed)
+			table.insert(destroyUnitCalls, { unitID = unitID, selfd = selfd, reclaimed = reclaimed })
+		end,
+
+		-- Units are alive unless a spec overrides this; nothing here models death.
+		GetUnitIsDead = function(unitID)
+			return false
+		end,
+
+		MarkerAddPoint = function(x, y, z, label, localOnly)
+			table.insert(markerCalls, { x = x, y = y, z = z, label = label, local_ = localOnly })
+		end,
+
+		MarkerAddLine = function(x1, y1, z1, x2, y2, z2)
+			table.insert(lineCalls, { x1 = x1, y1 = y1, z1 = z1, x2 = x2, y2 = y2, z2 = z2 })
+		end,
+
+		GameOver = function(winners)
+			table.insert(gameOverCalls, winners)
+		end,
+
+		AssignPlayerToTeam = function(playerID, teamID)
+			table.insert(assignPlayerCalls, { playerID = playerID, teamID = teamID })
+		end,
+
+		SpawnExplosion = function(x, y, z, dx, dy, dz, params)
+			table.insert(explosionCalls, { x = x, y = y, z = z, dx = dx, dy = dy, dz = dz, params = params })
+		end,
+
+		GetAllyTeamList = function()
+			local seen = {}
+			local allyTeams = {}
+			for _, teamData in pairs(builtTeams) do
+				local allyTeam = teamData.allyTeam or teamData.id
+				if allyTeam and not seen[allyTeam] then
+					seen[allyTeam] = true
+					allyTeams[#allyTeams + 1] = allyTeam
+				end
+			end
+			table.sort(allyTeams)
+			return allyTeams
+		end,
+
+		GetUnitAllyTeam = function(unitID)
+			for _, teamData in pairs(builtTeams) do
+				if teamData.units and teamData.units[unitID] then
+					return teamData.allyTeam or teamData.id
+				end
+			end
+			return nil
+		end,
+
 		AddTeamResource = function(teamID, resourceType, amount)
 			local teamData = builtTeams[teamID]
 			if teamData then
@@ -543,7 +640,49 @@ function SB:BuildSpring()
 					teamData.energy.current = teamData.energy.current + amount
 				end
 			end
+			table.insert(addCalls, { teamID = teamID, resource = resourceType, amount = amount })
 			return true, amount
+		end,
+
+		UseTeamResource = function(teamID, resourceType, amount)
+			local teamData = builtTeams[teamID]
+			if teamData then
+				if resourceType == "metal" then
+					teamData.metal.current = teamData.metal.current - amount
+				elseif resourceType == "energy" then
+					teamData.energy.current = teamData.energy.current - amount
+				end
+			end
+			table.insert(useCalls, { teamID = teamID, resource = resourceType, amount = amount })
+			return true, amount
+		end,
+
+		-- as the engine: the amount is clamped to the storage, setting the storage clamps the amount,
+		-- and a key it does not know is ignored
+		SetTeamResource = function(teamID, resourceType, value)
+			local team = ensureTeam(teamID)
+			value = math.max(0, value)
+			if resourceType == "m" or resourceType == "metal" then
+				team.metal.current = math.min(team.metal.storage, value)
+			elseif resourceType == "e" or resourceType == "energy" then
+				team.energy.current = math.min(team.energy.storage, value)
+			elseif resourceType == "ms" or resourceType == "metalStorage" then
+				team.metal.storage = value
+				team.metal.current = math.min(team.metal.current, value)
+			elseif resourceType == "es" or resourceType == "energyStorage" then
+				team.energy.storage = value
+				team.energy.current = math.min(team.energy.current, value)
+			end
+		end,
+
+		-- as the engine: the excess accumulates over the frame, the type is read from its first letter
+		AddTeamResourceExcessStats = function(teamID, resourceType, excess)
+			local team = ensureTeam(teamID)
+			local rtype = resourceType:sub(1, 1)
+			local store = (rtype == "m" and team.metal) or (rtype == "e" and team.energy)
+			if store then
+				store.excess = (store.excess or 0) + math.max(0, excess)
+			end
 		end,
 
 		ValidUnitID = function(unitID)
@@ -566,6 +705,8 @@ function SB:BuildSpring()
 		end,
 
 		TransferUnit = function(unitID, newTeamID, given)
+			table.insert(transferCalls, { unitID = unitID, newTeam = newTeamID, given = given })
+
 			local currentTeamID = nil
 			local unitDefID = nil
 			for teamId, teamBuilder in pairs(builtTeams) do
@@ -692,193 +833,6 @@ function SB:BuildSpring()
 	return mock
 end
 
----Temporarily install minimal global Spring/VFS/Game/LOG (spec_helper does some of this but we try for thoroughness) to allow real unitdefs load
----@param self SpringSyncedBuilder
----@param fn fun()
----@param persist? boolean If true, don't clean up globals after execution
-function SB:WithGlobalsDefined(fn, persist)
-	local instance = self
-	-- Save current globals
-	local prevSpring = _G.Spring
-	local prevBAR = _G.BAR
-	local prevVFS = _G.VFS
-	local prevGame = _G.Game
-	local prevLOG = _G.LOG
-	local prevSplit = string.split
-	local prevUnitDefs = _G.UnitDefs
-	local prevUnitDefNames = _G.UnitDefNames
-
-	-- Set up mocks for the duration of the function
-	_G.Spring = _G.Spring or {}
-	_G.BAR = _G.BAR or {} -- post-detach namespace; the codemod rewrites the mocks below onto it
-	local mock = self:BuildSpring()
-
-	-- Expose all Spring functions to global Spring object
-	-- Defer to already defined GetModOptions if it exists (defined by springOverrides.lua)
-	if not _G.Spring.GetModOptions then
-		---@diagnostic disable: duplicate-set-field
-		_G.Spring.GetModOptions = function()
-			-- Start with comprehensive defaults, then override with explicitly set mod options
-			local modOptions = getUnitDefRequireModoptionDefaults()
-			-- Override with any mod options that were explicitly set via WithModOption
-			for k, v in pairs(self.modOptions) do
-				modOptions[k] = v
-			end
-			return modOptions
-		end
-	end
-	_G.Spring.GetGameFrame = mock.GetGameFrame
-	_G.Spring.IsCheatingEnabled = mock.IsCheatingEnabled
-	-- Don't override Spring.Log if it's already set by spec_helper
-	if not _G.Spring.Log then
-		_G.Spring.Log = mock.Log
-	end
-	_G.Spring.GetTeamRulesParam = mock.GetTeamRulesParam
-	_G.Spring.SetTeamRulesParam = mock.SetTeamRulesParam
-	_G.Spring.GetUnitDefID = mock.GetUnitDefID
-	_G.Spring.ValidUnitID = mock.ValidUnitID
-
-	-- Additional Spring functions that may be needed
-	-- Defer to already defined GetTeamLuaAI if it exists (real Spring API function)
-	if not _G.Spring.GetTeamLuaAI then
-		---@diagnostic disable: duplicate-set-field
-		_G.Spring.GetTeamLuaAI = function(_)
-			return ""
-		end
-	end
-	if not _G.Spring.GetConfigInt then
-		_G.Spring.GetConfigInt = function(name, default)
-			return default or 0
-		end
-	end
-	_G.BAR.Utilities = _G.BAR.Utilities
-		or {
-			Gametype = {
-				IsScavengers = function()
-					return false
-				end,
-				IsRaptors = function()
-					return false
-				end,
-				GetCurrentHolidays = function()
-					return {}
-				end,
-			},
-		}
-
-	-- Mock VFS.Include cache to intercept system.lua load
-	local originalVFSInclude = _G.VFS.Include
-	_G.VFS.Include = function(path, ...)
-		if path == "gamedata/system.lua" then
-			return {
-				lowerkeys = function(t)
-					return t
-				end,
-				reftable = function(ref, tbl)
-					tbl = tbl or {}
-					setmetatable(tbl, { __index = ref })
-					return tbl
-				end,
-				VFS = _G.VFS,
-				Spring = _G.Spring,
-				-- Export standard Lua libs as system.lua does
-				pairs = pairs,
-				ipairs = ipairs,
-				math = math,
-				table = table,
-				string = string,
-				tonumber = tonumber,
-				tostring = tostring,
-				type = type,
-				unpack = unpack or table.unpack,
-				print = print,
-				error = error,
-				pcall = pcall,
-				select = select,
-				next = next,
-				require = require,
-			}
-		end
-		if originalVFSInclude then
-			return originalVFSInclude(path, ...)
-		end
-		-- Fallback if original was nil (unlikely given setup)
-		return {}
-	end
-
-	-- Mock VFS.Include cache to intercept system.lua load
-	local originalVFSInclude = _G.VFS.Include
-	_G.VFS.Include = function(path, ...)
-		if path == "gamedata/system.lua" then
-			return {
-				lowerkeys = function(t)
-					return t
-				end,
-				reftable = function(ref, tbl)
-					tbl = tbl or {}
-					setmetatable(tbl, { __index = ref })
-					return tbl
-				end,
-				VFS = _G.VFS,
-				Spring = _G.Spring,
-				BAR = _G.BAR,
-				-- Export standard Lua libs as system.lua does
-				pairs = pairs,
-				ipairs = ipairs,
-				math = math,
-				table = table,
-				string = string,
-				tonumber = tonumber,
-				tostring = tostring,
-				type = type,
-				unpack = unpack or table.unpack,
-				print = print,
-				error = error,
-				pcall = pcall,
-				select = select,
-				next = next,
-				require = require,
-			}
-		end
-		if originalVFSInclude then
-			return originalVFSInclude(path, ...)
-		end
-		-- Fallback if original was nil (unlikely given setup)
-		return {}
-	end
-
-	-- Execute the function with globals set up
-	local success, result = pcall(fn)
-	if not success then
-		error("WithGlobalsDefined function failed: " .. tostring(result))
-	end
-
-	-- If not persisting, restore original globals
-	if not persist then
-		_G.Spring = prevSpring
-		_G.VFS = prevVFS
-		_G.Game = prevGame
-		_G.LOG = prevLOG
-		string.split = prevSplit
-		_G.UnitDefs = prevUnitDefs
-		_G.UnitDefNames = prevUnitDefNames
-	end
-
-	-- If not persisting, restore original globals
-	if not persist then
-		_G.Spring = prevSpring
-		_G.BAR = prevBAR
-		_G.VFS = prevVFS
-		_G.Game = prevGame
-		_G.LOG = prevLOG
-		string.split = prevSplit
-		_G.UnitDefs = prevUnitDefs
-		_G.UnitDefNames = prevUnitDefNames
-	end
-
-	return instance
-end
-
 ---@param self SpringSyncedBuilder
 ---@param teamBuilder TeamBuilder The team builder instance
 ---@return SpringSyncedBuilder
@@ -901,10 +855,8 @@ function SB:WithUnitDef(defID, def)
 	return self
 end
 
----Load real BAR UnitDefs from gamedata into the registry.
----Uses WithGlobalsDefined as the harness so modoptions are honored during the load.
----After loading, normalizes the defs into the polyglot index that downstream code
----(GetUnitDefs, BuildSpring team-resolution) expects.
+---Load the real unit defs into the registry and the index GetUnitDefs reads, with
+---whatever modoptions are set so far.
 ---@param self SpringSyncedBuilder
 ---@return SpringSyncedBuilder
 function SB:WithRealUnitDefs()
@@ -912,18 +864,14 @@ function SB:WithRealUnitDefs()
 		return self
 	end
 
-	self.unitDefs:WithRealUnitDefs(function(loadFn)
-		self:WithGlobalsDefined(loadFn)
-	end)
+	self.unitDefs:WithRealUnitDefs(self.modOptions)
 
-	-- Build the polyglot index downstream code reads via _globalUnitDefs.
-	-- In the gamedata pre-load shape this is name-keyed (no numeric IDs);
-	-- buildUnitDefIndex also runs normalizeUnitDef to fold customParams etc.
 	local byName = self.unitDefs:GetUnitDefsByName()
 	if next(byName) ~= nil then
 		self._globalUnitDefs = buildUnitDefIndex(byName, self.unitDefs:GetUnitDefNames())
 		self._globalUnitDefNames = self.unitDefs:GetUnitDefNames()
 	end
+
 	return self
 end
 

@@ -8,7 +8,7 @@
 -- modoption cannot change during a game, so call once at widget file scope or in
 -- Initialize and keep the boolean; never per frame.
 
-local ModoptionPayload = VFS.Include("common/luaUtilities/modoption_payload.lua")
+local ModoptionPayload = require("common/luaUtilities/modoption_payload")
 
 local missionOptions = {}
 

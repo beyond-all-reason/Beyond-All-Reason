@@ -16,6 +16,7 @@ local eraseTime = 60
 local frame = -1
 local pointsToErase = {}
 local recentlyErased = {}
+local erasing = false
 
 function widget:Initialize()
 	WG.autoeraser = {}
@@ -28,10 +29,14 @@ function widget:Initialize()
 	WG.autoeraser.getRecentlyErased = function(value) -- so mapmarks fx widget can call this and won't activate on auto erasing
 		return recentlyErased
 	end
+	WG.autoeraser.isErasing = function() -- true while our own erase is dispatched to MapDrawCmd
+		return erasing
+	end
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz, arg1, arg2, arg3, arg4) -- cmdType can be 'erase', 'point', or 'line', arg1 is the text or line length(?)
-	if cmdType ~= "erase" then
+	-- ignored players' marks are never drawn, erasing there would only clear other marks nearby
+	if cmdType ~= "erase" and not (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID)) then
 		local f = frame + (eraseTime * 30)
 		local count = pointsToErase[f] and #pointsToErase[f] or 0
 		if count == 0 then
@@ -47,7 +52,9 @@ function widget:GameFrame(f)
 	if pointsToErase[f] then
 		for i = 1, #pointsToErase[f] do
 			local point = pointsToErase[f][i]
+			erasing = true
 			Spring.MarkerErasePosition(point[1], point[2], point[3], nil, true, point[4], true)
+			erasing = false
 			recentlyErased[#recentlyErased + 1] = { f, point[1], point[2], point[3] }
 		end
 		pointsToErase[f] = nil
