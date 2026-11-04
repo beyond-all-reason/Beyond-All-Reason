@@ -62,6 +62,7 @@
   - T1 Drones no longer crash on death.  Drones will be weaker against AA because the AA won't overkill them and will swap targets faster.  
   - Better Martyr and Phoenix aiming. Martyr used to require a skill shot with manual attack timing. It is more reliable.
 - [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
+- [Naval Balance Tweaks] No longer removes the floating HLT units from most constructors. Hover cons still lose access to them.
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
   - Over-large area attacks no longer send only 30 units to Attack and the rest to Fight. They split your selection into squads that Attack all the targets in one "lane" through the full area. Bomber behavior especially was non-functional with large area attacks; this is fixed.
