@@ -70,7 +70,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				collisionvolumescales = "35.0 4.0 6.0",
-				collisionvolumetype = "Box",
+				collisionvolumetype = "cylY",
 				damage = 528,
 				footprintx = 2,
 				footprintz = 2,
