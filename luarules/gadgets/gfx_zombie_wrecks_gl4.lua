@@ -87,6 +87,7 @@ local THUNDER_SOUNDS = {
 	"sounds/atmos/thunder6.wav",
 }
 local THUNDER_VOLUME = 0.8
+local THUNDER_INTERVAL_FRAMES = gameSpeed * 0.25
 local THUNDER_FULL_VOLUME_WRECK_RADIUS = 40
 local THUNDER_FULL_VOLUME_CAMERA_DISTANCE = 600
 local THUNDER_SILENT_CAMERA_DISTANCE = 3000
@@ -419,10 +420,16 @@ local function thunderVolumeScale(wreck)
 	return math.min(1, math.max(0, cameraCloseness)) * math.min(1, wreckSizeFraction)
 end
 
-local function strikeWreck(wreck, playsThunder)
+local lastThunderFrame = -math.huge
+
+local function strikeWreck(wreck, playsThunder, frame)
 	spawnStrike(wreck)
+	if not playsThunder or frame - lastThunderFrame < THUNDER_INTERVAL_FRAMES then
+		return
+	end
 	local volumeScale = thunderVolumeScale(wreck)
-	if playsThunder and math.random() < volumeScale then
+	if math.random() < volumeScale then
+		lastThunderFrame = frame
 		local sound = THUNDER_SOUNDS[math.random(#THUNDER_SOUNDS)] --[[@as string]]
 		Spring.PlaySoundFile(sound, THUNDER_VOLUME * volumeScale, wreck.x, wreck.y, wreck.z, 0)
 	end
@@ -528,7 +535,7 @@ local function updateWreck(featureID, wreck, frame)
 		if frame >= nextStrikeFrame then
 			wreck.strikeCount = wreck.strikeCount + 1
 			if isWreckShown(wreck) then
-				strikeWreck(wreck, wreck.strikeCount == 1)
+				strikeWreck(wreck, wreck.strikeCount == 1, frame)
 			end
 		end
 	end
