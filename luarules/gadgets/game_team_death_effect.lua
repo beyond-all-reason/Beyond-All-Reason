@@ -53,6 +53,8 @@ end
 local wipedoutTeams = {}
 local destroyUnitQueue = {} ---@type table<UnitID, UnitID|false> unitID : attackerID|false
 local destroyByFrame = {} ---@type table<integer, UnitID[]?>
+local deferredDeaths = {}
+local deferredDeathsByFrame = {}
 
 -- The blasts are for show: doomed units take no hits, and once a wipeout decides the game no unit
 -- does until it is over. The engine counts every hit in the team stats (own units included), so
@@ -210,6 +212,23 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage)
 end
 
 function gadget:GameFrame(frame)
+	-- UnitCreated/UnitFinished can run inside a factory's build update. Exploding
+	-- the new unit there can kill the factory and invalidate its current build.
+	local deferred = deferredDeathsByFrame[frame]
+	deferredDeathsByFrame[frame] = nil
+	if deferred then
+		for i = 1, #deferred do
+			local death = deferred[i]
+			local unitID = death.unitID
+			if deferredDeaths[unitID] == death then
+				deferredDeaths[unitID] = nil
+				if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
+					spDestroyUnit(unitID, death.selfD, false)
+				end
+			end
+		end
+	end
+
 	if guardingDamage and frame > harmlessUntil and next(destroyUnitQueue) == nil then
 		guardingDamage = false
 		gadgetHandler:RemoveCallIn("UnitPreDamaged")
@@ -240,11 +259,32 @@ end
 
 local function denyAndDestroyUnit(_, unitID, _, unitTeam)
 	if wipedoutTeams[unitTeam] and wipedoutTeams[unitTeam] >= spGetGameFrame() then
-		spDestroyUnit(unitID, not GG.wipeoutWithWreckage, false)
+		if deferredDeaths[unitID] then
+			return
+		end
+		local death = { unitID = unitID, selfD = not GG.wipeoutWithWreckage }
+		deferredDeaths[unitID] = death
+		local frame = spGetGameFrame() + 1
+		local units = deferredDeathsByFrame[frame]
+		if not units then
+			units = {}
+			deferredDeathsByFrame[frame] = units
+		end
+		units[#units + 1] = death
 	end
 end
-gadget.UnitCreated = denyAndDestroyUnit
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	-- A recycled ID must never inherit a pending destruction.
+	deferredDeaths[unitID] = nil
+	denyAndDestroyUnit(self, unitID, unitDefID, unitTeam)
+end
+
 gadget.UnitFinished = denyAndDestroyUnit
+
+function gadget:UnitDestroyed(unitID)
+	deferredDeaths[unitID] = nil
+end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
 	---@diagnostic disable-next-line -- OK: leaving second return `nil` is better
