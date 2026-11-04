@@ -75,6 +75,10 @@ if gadgetHandler:IsSyncedCode() then
 			spSetUnitRulesParam(unitID, "shareCommandFrame", spGetGameFrame(), alliesCanSeeParam)
 		end
 		spTransferUnit(unitID, targetTeamID, true)
+		if shouldNotAnnounce then
+			-- any callins that care about this should have gone by now
+			spSetUnitRulesParam(unitID, "shareCommandFrame", nil, alliesCanSeeParam)
+		end
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
