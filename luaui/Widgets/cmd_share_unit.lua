@@ -10,6 +10,7 @@ function widget:GetInfo()
 		version = 1.0,
 		layer = 0,
 		enabled = true,
+		handler = true,
 	}
 end
 
