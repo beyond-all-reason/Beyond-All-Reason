@@ -12,12 +12,13 @@ function widget:GetInfo()
 	}
 end
 
-local CMD_GUARD = CMD.GUARD
-local OPT_SHIFT = CMD.OPT_SHIFT
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
+local CMD_GUARD = CMD.GUARD
+local OPT_SHIFT = CMD.OPT_SHIFT
+
 local validGuardingBuilders = {}
 for unitDefID, ud in pairs(UnitDefs) do
 	validGuardingBuilders[unitDefID] = (ud.isBuilder and ud.canAssist and ud.canMove and not ud.isFactory)
@@ -27,8 +28,8 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, _, _)
 	if not validGuardingBuilders[unitDefID] then
 		return
 	end
-	local isRepair = (cmdID == CMD.REPAIR)
-	if not (isRepair or cmdID < 0) then
+	local isUnitRepair = cmdID == CMD.REPAIR and #cmdParams ~= 4
+	if not (isUnitRepair or cmdID < 0) then
 		return
 	end
 	if unitTeam ~= spGetMyTeamID() then
@@ -38,13 +39,12 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, _, _)
 		return
 	end
 
-	local buildeeDef = isRepair and UnitDefs[spGetUnitDefID(cmdParams[1])] or UnitDefs[-cmdID]
-
+	local buildeeDef = isUnitRepair and UnitDefs[spGetUnitDefID(cmdParams[1])] or UnitDefs[-cmdID]
 	if not (buildeeDef and buildeeDef.isFactory) then
 		return
 	end
 
-	if isRepair then
+	if isUnitRepair then
 		spGiveOrderToUnit(unitID, CMD_GUARD, cmdParams[1], OPT_SHIFT)
 		return
 	end
