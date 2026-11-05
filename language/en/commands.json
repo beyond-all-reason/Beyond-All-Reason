@@ -124,7 +124,11 @@
 			"commFocus": "Select and go to commander",
 			"boxIdle": "Box select: idle units only",
 			"boxSame": "Box select: matching unit types",
-			"loopActivate": "Loop select: activate"
+			"loopActivate": "Loop select: activate",
+			"boxAppend": "Box select: add to selection",
+			"boxDeselect": "Box select: remove from selection",
+			"boxMobile": "Box select: mobile units only",
+			"boxAny": "Box select: include buildings"
 		},
 		"massSelect": {
 			"all": "Select all units",
@@ -219,7 +223,8 @@
 		},
 		"buildHotkeys": {
 			"unit": "Build %{n}",
-			"split": "Split build orders between builders"
+			"split": "Split build orders between builders",
+			"skipAlliedUpgrade": "Skip allied mexes and geos when upgrading"
 		},
 		"buildOrders": {
 			"rotate": "Rotate building placement",
@@ -255,6 +260,10 @@
 			"moveUp": "Move camera up",
 			"moveDown": "Move camera down",
 			"moveFast": "Move camera faster",
+			"moveSlow": "Move camera slower",
+			"tilt": "Tilt camera with the mouse wheel",
+			"rotate": "Rotate camera with the middle mouse button",
+			"zoomReset": "Zoom camera all the way with the mouse wheel",
 			"setAnchor": "Set camera anchor %{n}",
 			"jumpAnchor": "Jump to camera anchor %{n}",
 			"pipSwitch": "Swap camera with picture-in-picture",

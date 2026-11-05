@@ -3017,31 +3017,6 @@ local function actionUsesAny(action, oldRaw)
 	return false
 end
 
--- A press within the timeout extends the sequence; a slower one starts over.
-local function appendChain(el)
-	local c = capturing
-	if not c then
-		return
-	end
-
-	-- The first real press replaces what the modal opened showing.
-	if c.seeded then
-		c.seeded = false
-		c.elems = {}
-	end
-
-	local now = spGetTimer()
-	if #c.elems == 0 then
-		c.elems[1] = el
-	elseif c.lastPress and spDiffTimers(now, c.lastPress) * 1000 <= c.timeout then
-		c.elems[#c.elems + 1] = el
-	else
-		c.elems = { el }
-	end
-
-	c.lastPress = now
-end
-
 -- Derived from the one canonical list so a modifier added there is understood here too.
 -- modPrefix below emits in the same order, reading the state Spring returns positionally.
 local modNames = {}
@@ -3139,6 +3114,37 @@ local function modPrefix()
 	return prefix
 end
 
+-- A press within the timeout extends the sequence; a slower one starts over.
+local function appendChain(el)
+	local c = capturing
+	if not c then
+		return
+	end
+
+	-- The first real press replaces what the modal opened showing.
+	if c.seeded then
+		c.seeded = false
+		c.elems = {}
+	end
+
+	local now = spGetTimer()
+	local last = c.elems[#c.elems]
+	if #c.elems == 0 then
+		c.elems[1] = el
+	elseif c.lastPress and spDiffTimers(now, c.lastPress) * 1000 <= c.timeout then
+		-- Mirrors the engine's key chain, which folds a modifier into a key pressed while it is held.
+		if last.modifier and last.scan ~= el.scan and c.pressed[last.scan] then
+			c.elems[#c.elems] = el
+		else
+			c.elems[#c.elems + 1] = el
+		end
+	else
+		c.elems = { el }
+	end
+
+	c.lastPress = now
+end
+
 -- Accept is shown and acts only on this, so a button not on screen cannot be clicked. Seeded
 -- means nothing has been pressed yet: accepting would rewrite a keyset to itself.
 local function captureCanAccept()
@@ -3147,24 +3153,27 @@ local function captureCanAccept()
 	return c ~= nil and #c.elems > 0 and not c.seeded
 end
 
--- Scancode to keyset symbol, refusing modifier keys and the stand-in Meta key so they
--- cannot bind alone; the latter is held down while the player picks what goes with it.
-local function pressSym(key, scanCode)
-	if capturing and key == capturing.fakeMetaCode then
-		return nil
-	end
-
+-- The engine binds a lone modifier as Any+, but the stand-in Meta key keeps the Meta+ it adds.
+local function pressElem(key, scanCode)
 	-- Not localised like its neighbours: this chunk is at Lua's ceiling of 200 locals and
 	-- a slot is worth more elsewhere. It runs on a key press, not on a frame.
 	local sym = scanCode and Spring.GetScanSymbol(scanCode)
 	if not sym or sym == "" then
 		return nil
 	end
-	if sym:find("ctrl") or sym:find("alt") or sym:find("shift") or sym:find("meta") or sym:find("gui") then
+
+	local modifier = keybindModel.isBareModifier(sym)
+	-- A modifier alone reads the same with Shift held or not, so it cannot pair.
+	if modifier and capturing and capturing.pair then
 		return nil
 	end
 
-	return sym
+	return {
+		sym = sym,
+		mods = modifier and "" or modPrefix(),
+		modifier = modifier or (capturing ~= nil and key == capturing.fakeMetaCode),
+		scan = scanCode,
+	}
 end
 
 -- Any+ replaces the held modifiers, so toggling the checkbox re-derives each element.
@@ -5529,10 +5538,10 @@ function view.keyPress(key, scanCode)
 			capturing = nil
 		else
 			-- Skip auto-repeat; only the initial press adds an element (release clears pressed).
-			local sym = pressSym(key, scanCode)
-			if sym and not capturing.pressed[scanCode] then
+			local elem = pressElem(key, scanCode)
+			if elem and not capturing.pressed[scanCode] then
 				capturing.pressed[scanCode] = true
-				appendChain({ sym = sym, mods = modPrefix() })
+				appendChain(elem)
 			end
 		end
 		return true
