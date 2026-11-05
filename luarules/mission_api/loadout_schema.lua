@@ -5,6 +5,8 @@
 local Types = VFS.Include("luarules/mission_api/parameter_types.lua").Types
 
 local unitEntryFields = {
+	{ name = "x", type = Types.Number, required = true },
+	{ name = "z", type = Types.Number, required = true },
 	{ name = "unitDefName", type = Types.UnitDefName, required = true },
 	{ name = "teamName", type = Types.TeamName, required = true },
 	{ name = "facing", type = Types.Facing },
@@ -17,6 +19,8 @@ local unitEntryFields = {
 }
 
 local featureEntryFields = {
+	{ name = "x", type = Types.Number, required = true },
+	{ name = "z", type = Types.Number, required = true },
 	{ name = "featureDefName", type = Types.FeatureDefName, required = true },
 	{ name = "facing", type = Types.Facing },
 	{ name = "featureName", type = Types.String },
