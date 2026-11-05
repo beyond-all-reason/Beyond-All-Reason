@@ -103,7 +103,7 @@ describe("modules.formation_math", function()
 	describe("headings", function()
 		it("averages headings across the wrap", function()
 			assert.is_true(near(0, Formation.MeanHeading({ 0.1, -0.1 })))
-			assert.is_true(near(math.pi, math.abs(Formation.MeanHeading({ math.pi - 0.1, -math.pi + 0.1 }))))
+			assert.is_true(near(math.pi, math.abs(Formation.MeanHeading({ math.pi - 0.1, -math.pi + 0.1 }) or 0)))
 		end)
 
 		it("has no mean for headings that cancel out", function()

@@ -1,7 +1,5 @@
 local MAP_SIZE = 4096
 
-_G.CMD = { MOVE = 10, PATROL = 15, FIGHT = 16, ATTACK = 20, REPAIR = 40, RECLAIM = 90, RESURRECT = 125, CAPTURE = 130 } ---@diagnostic disable-line: global-in-non-module
-
 local FormationOrders = require("modules/formation_orders")
 
 describe("modules.formation_orders", function()
@@ -27,7 +25,8 @@ describe("modules.formation_orders", function()
 
 	before_each(function()
 		given, givenAsWritten = {}, {}
-		_G.CMD = {
+		-- rawset, so the type checker does not take these few IDs for the engine's CMD table.
+		rawset(_G, "CMD", {
 			MOVE = 10,
 			PATROL = 15,
 			FIGHT = 16,
@@ -36,7 +35,7 @@ describe("modules.formation_orders", function()
 			RECLAIM = 90,
 			RESURRECT = 125,
 			CAPTURE = 130,
-		} ---@diagnostic disable-line: global-in-non-module
+		})
 		_G.Game = { mapSizeX = MAP_SIZE, mapSizeZ = MAP_SIZE, squareSize = 8 } ---@diagnostic disable-line: global-in-non-module
 		---@diagnostic disable-next-line: global-in-non-module
 		_G.UnitDefs = {
