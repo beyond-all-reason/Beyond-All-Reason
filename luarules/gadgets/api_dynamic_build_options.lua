@@ -25,9 +25,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 	local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
 	local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
-	local CMD_REMOVE = CMD.REMOVE
 	local CMDTYPE_ICON = CMDTYPE.ICON
 	local CMDTYPE_ICON_BUILDING = CMDTYPE.ICON_BUILDING
 
@@ -125,13 +123,6 @@ if gadgetHandler:IsSyncedCode() then
 		if index then
 			spRemoveUnitCmdDesc(unitID, index)
 		end
-	end
-
-	-- For units that may have queued the option already.
-	local function removeQueuedBuildOption(unitID, builtUnitDefID, isFactory)
-		removeBuildOption(unitID, builtUnitDefID)
-		-- alt: by command ID; ctrl: a factory's own build queue, not the orders for its new units
-		spGiveOrderToUnit(unitID, CMD_REMOVE, { -builtUnitDefID }, isFactory and { "alt", "ctrl" } or { "alt" })
 	end
 
 	local function forEachTeamUnitOfDef(teamID, unitDefID, callback, ...)
@@ -276,21 +267,19 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- Brings one unit's build option in line with the changes for its team.
-	local function applyBuildOption(builtUnitDefID, unitID, unitDefID, teamID, dropQueued)
+	local function applyBuildOption(builtUnitDefID, unitID, unitDefID, teamID)
 		local isFactory = isFactoryDef[unitDefID]
 		if hasBuildOption(builtUnitDefID, unitDefID, teamID) then
 			insertBuildOption(unitID, builtUnitDefID, isFactory, addedPosition(builtUnitDefID, unitDefID, teamID))
-		elseif dropQueued then
-			removeQueuedBuildOption(unitID, builtUnitDefID, isFactory)
 		else
 			removeBuildOption(unitID, builtUnitDefID)
 		end
 	end
 
-	local function applyBuildOptions(options, unitID, unitDefID, teamID, dropQueued)
+	local function applyBuildOptions(options, unitID, unitDefID, teamID)
 		if options then
 			for builtUnitDefID in pairs(options) do
-				applyBuildOption(builtUnitDefID, unitID, unitDefID, teamID, dropQueued)
+				applyBuildOption(builtUnitDefID, unitID, unitDefID, teamID)
 			end
 		end
 	end
@@ -316,7 +305,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	---Takes a build option away from every current and future unit of a builder or factory type, or only
-	---from those of one team. Queued orders for it are dropped too.
+	---from those of one team. The engine also drops queued orders for it.
 	---@param builtUnitDefID UnitDefID
 	---@param builderUnitDefID UnitDefID
 	---@param teamID integer? only this team's units; nil for every team
@@ -326,8 +315,7 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 		registerRemoved(builtUnitDefID, builderUnitDefID, teamID)
-		local isFactory = isFactoryDef[builderUnitDefID]
-		forEachUnitOfDef(builderUnitDefID, teamID, removeQueuedBuildOption, builtUnitDefID, isFactory)
+		forEachUnitOfDef(builderUnitDefID, teamID, removeBuildOption, builtUnitDefID)
 		publish(builderUnitDefID, builtUnitDefID, false, teamID)
 		return true
 	end
@@ -357,8 +345,8 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		for _, teamID in ipairs({ oldTeam, newTeam }) do
-			applyBuildOptions(teamOptions(teamRemovedBuildOptions, teamID, unitDefID), unitID, unitDefID, newTeam, true)
-			applyBuildOptions(teamOptions(teamAddedBuildOptions, teamID, unitDefID), unitID, unitDefID, newTeam, true)
+			applyBuildOptions(teamOptions(teamRemovedBuildOptions, teamID, unitDefID), unitID, unitDefID, newTeam)
+			applyBuildOptions(teamOptions(teamAddedBuildOptions, teamID, unitDefID), unitID, unitDefID, newTeam)
 		end
 	end
 

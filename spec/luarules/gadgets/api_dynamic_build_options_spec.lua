@@ -5,7 +5,6 @@ local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 local GADGET_PATH = "luarules/gadgets/api_dynamic_build_options.lua"
 
 local CMD_MOVE = 10
-local CMD_REMOVE = 2
 
 local SOLAR = 42
 local WIND = 43
@@ -23,7 +22,7 @@ local UNIT_DEFS = {
 
 -- A world of two teams: a construction bot on team 0, a construction bot and a bot lab on team 1.
 local function newWorld()
-	local world = { units = {}, orders = {}, sent = {}, gameRulesParams = {}, teamRulesParams = { [0] = {}, [1] = {} } }
+	local world = { units = {}, sent = {}, gameRulesParams = {}, teamRulesParams = { [0] = {}, [1] = {} } }
 
 	function world.addUnit(unitID, unitDefID, teamID)
 		local cmdDescs = { { id = CMD_MOVE } }
@@ -84,9 +83,6 @@ local function newSpring(world)
 		GetTeamUnitsByDefs = function(teamID, unitDefID)
 			return teamUnitsOfDef(world, teamID, unitDefID)
 		end,
-		GiveOrderToUnit = function(unitID, cmdID, params, options)
-			world.orders[#world.orders + 1] = { unitID = unitID, cmdID = cmdID, params = params, options = options }
-		end,
 		SetGameRulesParam = function(name, value)
 			world.gameRulesParams[name] = value
 		end,
@@ -114,7 +110,6 @@ local function loadGadget(world)
 		SendToUnsynced = function(...)
 			world.sent[#world.sent + 1] = { ... }
 		end,
-		CMD = { REMOVE = CMD_REMOVE },
 		CMDTYPE = { ICON = 0, ICON_BUILDING = 1 },
 		LOG = { WARNING = "warning" },
 		UnitDefs = UNIT_DEFS,
@@ -151,17 +146,6 @@ describe("api_dynamic_build_options", function()
 			assert.is_false(buildOptions.HasBuildOption(SOLAR, CON_BOT, 1))
 			assert.is_true(buildOptions.HasBuildOption(SOLAR, CON_BOT, 0))
 			assert.is_true(buildOptions.HasBuildOption(SOLAR, CON_BOT))
-		end)
-
-		it("drops the option's queued orders from that team's units", function()
-			buildOptions.Remove(SOLAR, CON_BOT, 1)
-			buildOptions.Add(SOLAR, BOT_LAB, nil, 1)
-			buildOptions.Remove(SOLAR, BOT_LAB, 1)
-
-			assert.are.same({
-				{ unitID = 101, cmdID = CMD_REMOVE, params = { -SOLAR }, options = { "alt" } },
-				{ unitID = 102, cmdID = CMD_REMOVE, params = { -SOLAR }, options = { "alt", "ctrl" } },
-			}, world.orders)
 		end)
 
 		it("adds the option to that team's units only", function()
@@ -206,10 +190,6 @@ describe("api_dynamic_build_options", function()
 
 			assert.is_true(hasOption(world, 101, SOLAR))
 			assert.is_false(hasOption(world, 100, SOLAR))
-			assert.are.same(
-				{ unitID = 100, cmdID = CMD_REMOVE, params = { -SOLAR }, options = { "alt" } },
-				world.orders[#world.orders]
-			)
 		end)
 
 		it("is replaced by a later change for every team", function()
