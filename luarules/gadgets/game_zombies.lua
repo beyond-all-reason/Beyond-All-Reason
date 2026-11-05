@@ -31,18 +31,49 @@ end
 --
 -- On any unit def, applied to the whole mode. The highest unitDefID that sets a value wins.
 -- Out-of-range values are corrected: spawn counts are whole numbers of at least 1 and the minimum cannot
--- exceed the maximum, the minimum respawn delay cannot exceed the maximum, and wraith chance stays between
--- 0 and 1.
+-- exceed the maximum, the spawn cap is a whole number at least as high as that maximum, the minimum
+-- respawn delay cannot exceed the maximum, wraith chance stays between 0 and 1, band delays, the respawn
+-- decay delay, the ceiling growth delay, and the tech scaling delay stay at least 0, minutes per tech
+-- level stay at least 0, and a scale, decay, or spawn growth rate of 0 or less is replaced with its default.
 --   zombie_minimum_spawns (integer, default 2)
---     the pack roll floor. After the power-band bottom grace it grows by 1.1 per band-minute,
---     capped by the live spawn maximum. Also floors the configured maximum.
+--     the pack roll floor. After the bottom band delay it compounds by the minimum spawn growth rate
+--     each clock minute, capped by the live spawn maximum. Also floors the configured maximum.
 --   zombie_maximum_spawns (integer, default 6)
---     multiple spawns roll from the live minimum up to a maximum that starts here and grows to
---     15 at minute 35. That live maximum also caps how many substitutes one spawn can buy.
+--     multiple spawns roll from the live minimum up to a maximum that starts here. After the maximum
+--     spawn growth delay it compounds by the maximum spawn growth rate each clock minute, capped by the
+--     spawn count cap. That live maximum also caps how many substitutes one spawn can buy.
+--   zombie_minimum_spawn_growth_rate (default 1.05)
+--     the pack floor multiplies by this each clock minute after the bottom band delay.
+--   zombie_maximum_spawn_growth_rate (default 1.04)
+--     the pack ceiling multiplies by this each clock minute after its growth delay.
+--   zombie_maximum_spawn_growth_delay (minutes, default 10)
+--     the pack ceiling stays at the configured maximum until this clock minute. 0 starts growth immediately.
+--   zombie_spawn_count_cap (integer, default 15)
+--     the pack ceiling cannot grow past this.
+--   zombie_minutes_per_tech_level (default 14)
+--     band-minutes gained for each tech level above the base. This is what lets player power outrun the clock.
+--   zombie_tech_scaling_delay (minutes, default 10)
+--     before this clock minute, player power loses one extra base tech level before the conversion.
+--     0 applies the full conversion immediately.
 --   zombie_minimum_respawn_delay (seconds, default 45)
 --   zombie_maximum_respawn_delay (seconds, default 120)
---     the starting window for power-based revival times. After minute 40 both ends decay by 0.96
---     each minute. A heap waits twice its unit's delay.
+--     the starting window for power-based revival times. After the respawn decay delay both ends
+--     multiply by the respawn decay rate each minute. A heap waits twice its unit's delay.
+--   zombie_power_scale_rate (default 1.13)
+--     both power-band thresholds compound by this each band-minute after their delays.
+--   zombie_bottom_band_delay (band-minutes, default 15)
+--     the bottom stays at 10 until this many band-minutes. The pack floor waits this many clock minutes.
+--     0 starts immediately.
+--   zombie_top_band_delay (band-minutes, default 0)
+--     the top stays at 150 until this many band-minutes, then compounds. 0 starts immediately.
+--   zombie_respawn_decay_rate (default 0.96)
+--     after the respawn decay delay, the minimum and maximum respawn delays multiply by this each minute.
+--   zombie_respawn_decay_delay (minutes, default 40)
+--     the respawn window stays at its starting minimum and maximum until this minute. 0 starts decay
+--     immediately.
+--   zombie_traditional_band_delay (band-minutes, default 10, or 0 when ruins, evocom, or quick start is on)
+--     TEMPORARY bandaid fix, to make the balance of the traditional non-accelerated games reasonable. power based progression must be calibrated.
+--     added on top of the bottom and top band delays. A customparam replaces that default. 0 adds nothing.
 --   zombie_wraith_respawn_chance (0 to 1, default 0.66)
 --     the chance one of these destructions creates a wraith: a unit that leaves no wreck,
 --     a corpse that leaves no heap, or a heap. Reclaim and resurrection do not count.
@@ -50,8 +81,6 @@ end
 --   zombie_wraith_power_multiplier (default 1)
 --     multiplies a unit's power when a wraith respawn spends it on substitutes. Units that rise as
 --     themselves are unchanged. Revived corpses and captures do not use this multiplier.
---   zombie_wraith_respawn_delay_multiplier (default 3)
---     multiplies the resurrection delay of each corpse a wraith drops.
 --   zombie_factory_buildpower_tech_multiplier (default 1.7)
 --     a Gaia zombie factory's buildpower is its build speed times this value raised to the current tech
 --     level. Scavenger-team zombie factories keep their normal build speed.
@@ -94,10 +123,22 @@ local zombieModeSettings = {
 	respawnDelayMaximum = 120,
 	wraithFeedSuccessChance = 0.66,
 	wraithPowerMultiplier = 1,
-	wraithRespawnDelayMultiplier = 3,
-	heapRespawnDelayMultiplier = 2,
+	heapRespawnDelayMultiplier = 2, -- multiplied by the base corpse respawn delay
 	factoryBuildpowerTechMultiplier = 1.7,
 	wraithSpawnMaxUnitsPerSpawnMultiplier = 1,
+	powerScaleRate = 1.13,
+	minimumSpawnGrowthRate = 1.04,
+	maximumSpawnGrowthRate = 1.04,
+	maximumSpawnGrowthDelayMinutes = 10,
+	spawnCountCap = 15,
+	minutesPerTechLevel = 16,
+	techScalingDelayMinutes = 15,
+	bottomBandDelayMinutes = 15,
+	topBandDelayMinutes = 0,
+	respawnDecayRate = 0.96,
+	respawnDecayDelayMinutes = 40,
+	-- TEMPORARY bandaid fix, to make the balance of the traditional non-accelerated games reasonable. power based progression must be calibrated.
+	traditionalBandDelayMinutes = 10,
 }
 
 ---One of the zombie modes, matching the keys of `ZOMBIE_MODE_FEATURES`.
@@ -122,11 +163,10 @@ local currentZombieMode = DEFAULT_ZOMBIE_MODE
 local currentModeFeatures = ZOMBIE_MODE_FEATURES[DEFAULT_ZOMBIE_MODE]
 local autoSpawningEnabled = true
 
+local BASE_TECH_LEVEL = 0.5
 local POWER_BAND = {
-	SCALE_RATE = 1.13,
 	BOTTOM_START = 10,
 	TOP_START = 150,
-	BOTTOM_GRACE_MINUTES = 15,
 	ADVANTAGE_AT_BOTTOM = 2,
 	ADVANTAGE_AT_TOP = -3,
 }
@@ -138,32 +178,9 @@ local quickStartEnabled = quickStartMode == "enabled"
 	or quickStartMode == "factory_discount"
 	or quickStartMode == "factory_discount_only"
 	or (quickStartMode == "default" and modOptions.deathmode == "dominion")
--- TEMPORARY bandaid fix, to make the balance of the traditional non-accelerated games reasonable. power based progression must be calibrated.
-local TRADITIONAL_GAME_BAND_DELAY_MINUTES = 10
-local traditionalGameBandDelayMinutes = 0
-if not ruinsEnabled and not evocomEnabled and not quickStartEnabled then
-	traditionalGameBandDelayMinutes = TRADITIONAL_GAME_BAND_DELAY_MINUTES
+if ruinsEnabled or evocomEnabled or quickStartEnabled then
+	zombieModeSettings.traditionalBandDelayMinutes = 0
 end
-local TECH_BAND = {
-	BASE_TECH_LEVEL = 0.5,
-	MINUTES_PER_TECH_LEVEL = 14, -- to convert a tech level guesstimate into an equivalent minutes so tech can out-pace time based scaling
-	SCALING_DELAY_MINUTES = 10,
-}
-local echoedBand = {
-	scalerName = "",
-	bottomPowerThreshold = -1,
-	topPowerThreshold = -1,
-}
-local SPAWN_COUNT_GROWTH = {
-	MAXIMUM_RATE = 1.04,
-	MAXIMUM_START_MINUTE = 10,
-	ABSOLUTE_MAXIMUM = 15,
-	MINIMUM_RATE = 1.05,
-}
-local SPAWN_TIME_DECAY = {
-	RATE = 0.96,
-	DELAY_MINUTES = 40,
-}
 local EXPERIENCE_GROWTH = {
 	RATE = 1.15,
 	START_MINUTE = 25.2,
@@ -352,6 +369,11 @@ local function compareUnitDefPower(firstUnitDefID, secondUnitDefID)
 end
 
 do
+	local defaultPowerScaleRate = zombieModeSettings.powerScaleRate
+	local defaultRespawnDecayRate = zombieModeSettings.respawnDecayRate
+	local defaultMinimumSpawnGrowthRate = zombieModeSettings.minimumSpawnGrowthRate
+	local defaultMaximumSpawnGrowthRate = zombieModeSettings.maximumSpawnGrowthRate
+
 	local function setSetting(customParams, customParamName, settingName, isModeFeature)
 		local value = tonumber(customParams[customParamName])
 		if value then
@@ -474,7 +496,6 @@ do
 		local customParams = unitDef.customParams ---@type table<string, any>
 		setSetting(customParams, "zombie_wraith_respawn_chance", "wraithFeedSuccessChance")
 		setSetting(customParams, "zombie_wraith_power_multiplier", "wraithPowerMultiplier")
-		setSetting(customParams, "zombie_wraith_respawn_delay_multiplier", "wraithRespawnDelayMultiplier")
 		setSetting(customParams, "zombie_heap_respawn_delay_multiplier", "heapRespawnDelayMultiplier")
 		setSetting(customParams, "zombie_factory_buildpower_tech_multiplier", "factoryBuildpowerTechMultiplier")
 		setSetting(
@@ -484,8 +505,20 @@ do
 		)
 		setSetting(customParams, "zombie_minimum_spawns", "spawnCountMinimum")
 		setSetting(customParams, "zombie_maximum_spawns", "spawnCountMaximum")
+		setSetting(customParams, "zombie_minimum_spawn_growth_rate", "minimumSpawnGrowthRate")
+		setSetting(customParams, "zombie_maximum_spawn_growth_rate", "maximumSpawnGrowthRate")
+		setSetting(customParams, "zombie_maximum_spawn_growth_delay", "maximumSpawnGrowthDelayMinutes")
+		setSetting(customParams, "zombie_spawn_count_cap", "spawnCountCap")
+		setSetting(customParams, "zombie_minutes_per_tech_level", "minutesPerTechLevel")
+		setSetting(customParams, "zombie_tech_scaling_delay", "techScalingDelayMinutes")
 		setSetting(customParams, "zombie_minimum_respawn_delay", "respawnDelayMinimum")
 		setSetting(customParams, "zombie_maximum_respawn_delay", "respawnDelayMaximum")
+		setSetting(customParams, "zombie_power_scale_rate", "powerScaleRate")
+		setSetting(customParams, "zombie_bottom_band_delay", "bottomBandDelayMinutes")
+		setSetting(customParams, "zombie_top_band_delay", "topBandDelayMinutes")
+		setSetting(customParams, "zombie_respawn_decay_rate", "respawnDecayRate")
+		setSetting(customParams, "zombie_respawn_decay_delay", "respawnDecayDelayMinutes")
+		setSetting(customParams, "zombie_traditional_band_delay", "traditionalBandDelayMinutes")
 		setSetting(customParams, "zombie_enable_wraith", "wraithRespawns", true)
 		setSetting(customParams, "zombie_enable_hydra", "multipleSpawns", true)
 
@@ -577,11 +610,33 @@ do
 	zombieModeSettings.spawnCountMinimum = math.max(1, floor(zombieModeSettings.spawnCountMinimum))
 	zombieModeSettings.spawnCountMaximum =
 		math.max(zombieModeSettings.spawnCountMinimum, floor(zombieModeSettings.spawnCountMaximum))
+	zombieModeSettings.spawnCountCap =
+		math.max(zombieModeSettings.spawnCountMaximum, floor(zombieModeSettings.spawnCountCap))
+	zombieModeSettings.maximumSpawnGrowthDelayMinutes =
+		math.max(0, zombieModeSettings.maximumSpawnGrowthDelayMinutes)
+	zombieModeSettings.techScalingDelayMinutes = math.max(0, zombieModeSettings.techScalingDelayMinutes)
+	zombieModeSettings.minutesPerTechLevel = math.max(0, zombieModeSettings.minutesPerTechLevel)
 	zombieModeSettings.respawnDelayMinimum = math.max(0, zombieModeSettings.respawnDelayMinimum)
 	if zombieModeSettings.respawnDelayMinimum > zombieModeSettings.respawnDelayMaximum then
 		zombieModeSettings.respawnDelayMaximum = zombieModeSettings.respawnDelayMinimum
 	end
 	zombieModeSettings.wraithFeedSuccessChance = clamp(zombieModeSettings.wraithFeedSuccessChance, 0, 1)
+	zombieModeSettings.bottomBandDelayMinutes = math.max(0, zombieModeSettings.bottomBandDelayMinutes)
+	zombieModeSettings.topBandDelayMinutes = math.max(0, zombieModeSettings.topBandDelayMinutes)
+	zombieModeSettings.respawnDecayDelayMinutes = math.max(0, zombieModeSettings.respawnDecayDelayMinutes)
+	zombieModeSettings.traditionalBandDelayMinutes = math.max(0, zombieModeSettings.traditionalBandDelayMinutes)
+	if zombieModeSettings.powerScaleRate <= 0 then
+		zombieModeSettings.powerScaleRate = defaultPowerScaleRate
+	end
+	if zombieModeSettings.respawnDecayRate <= 0 then
+		zombieModeSettings.respawnDecayRate = defaultRespawnDecayRate
+	end
+	if zombieModeSettings.minimumSpawnGrowthRate <= 0 then
+		zombieModeSettings.minimumSpawnGrowthRate = defaultMinimumSpawnGrowthRate
+	end
+	if zombieModeSettings.maximumSpawnGrowthRate <= 0 then
+		zombieModeSettings.maximumSpawnGrowthRate = defaultMaximumSpawnGrowthRate
+	end
 end
 
 local function isZombie(unitID)
@@ -628,7 +683,7 @@ local function techLevelForPower(power)
 	local powerThresholds = GG.PowerLib and GG.PowerLib.PowerThresholds
 	local previousThreshold = powerThresholds and powerThresholds[1]
 	if not previousThreshold then
-		return TECH_BAND.BASE_TECH_LEVEL
+		return BASE_TECH_LEVEL
 	end
 	for thresholdIndex = 2, #powerThresholds do
 		local nextThreshold = powerThresholds[thresholdIndex]
@@ -652,10 +707,10 @@ local function bandMinutesFromPlayerPower()
 	end
 	local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
 	local techLevel = techLevelForPower(highestPowerData.power)
-	if getElapsedMinutes() < TECH_BAND.SCALING_DELAY_MINUTES then
-		techLevel = techLevel - TECH_BAND.BASE_TECH_LEVEL
+	if getElapsedMinutes() < zombieModeSettings.techScalingDelayMinutes then
+		techLevel = techLevel - BASE_TECH_LEVEL
 	end
-	local bandMinutes = (techLevel - TECH_BAND.BASE_TECH_LEVEL) * TECH_BAND.MINUTES_PER_TECH_LEVEL
+	local bandMinutes = (techLevel - BASE_TECH_LEVEL) * zombieModeSettings.minutesPerTechLevel
 	if bandMinutes < 0 then
 		return 0
 	end
@@ -666,57 +721,29 @@ local function getBandMinutes()
 	local timeMinutes = getElapsedMinutes()
 	local powerMinutes = bandMinutesFromPlayerPower()
 	if powerMinutes > timeMinutes then
-		return powerMinutes, "POWER", timeMinutes, powerMinutes
+		return powerMinutes
 	end
-	return timeMinutes, "TIME", timeMinutes, powerMinutes
+	return timeMinutes
 end
 
 local function powerBandThresholdsForMinutes(bandMinutes)
+	local bandDelayMinutes = zombieModeSettings.traditionalBandDelayMinutes
 	local bottomPowerThreshold = POWER_BAND.BOTTOM_START
-		* POWER_BAND.SCALE_RATE ^ math.max(
+		* zombieModeSettings.powerScaleRate ^ math.max(
 			0,
-			bandMinutes - POWER_BAND.BOTTOM_GRACE_MINUTES - TRADITIONAL_GAME_BAND_DELAY_MINUTES
+			bandMinutes - zombieModeSettings.bottomBandDelayMinutes - bandDelayMinutes
 		)
 	local topPowerThreshold = POWER_BAND.TOP_START
-		* POWER_BAND.SCALE_RATE ^ math.max(0, bandMinutes - traditionalGameBandDelayMinutes)
+		* zombieModeSettings.powerScaleRate ^ math.max(
+			0,
+			bandMinutes - zombieModeSettings.topBandDelayMinutes - bandDelayMinutes
+		)
 	return bottomPowerThreshold, topPowerThreshold
 end
 
-local function echoBandRange(scalerName, timeMinutes, powerMinutes)
-	local timeBottomPowerThreshold, timeTopPowerThreshold = powerBandThresholdsForMinutes(timeMinutes)
-	local powerBottomPowerThreshold, powerTopPowerThreshold = powerBandThresholdsForMinutes(powerMinutes)
-	local bottomPowerThreshold = timeBottomPowerThreshold
-	local topPowerThreshold = timeTopPowerThreshold
-	if scalerName == "POWER" then
-		bottomPowerThreshold = powerBottomPowerThreshold
-		topPowerThreshold = powerTopPowerThreshold
-	end
-	local shownBottomPowerThreshold = floor(bottomPowerThreshold)
-	local shownTopPowerThreshold = floor(topPowerThreshold)
-	if scalerName == echoedBand.scalerName
-		and shownBottomPowerThreshold == echoedBand.bottomPowerThreshold
-		and shownTopPowerThreshold == echoedBand.topPowerThreshold
-	then
-		return
-	end
-	echoedBand.scalerName = scalerName
-	echoedBand.bottomPowerThreshold = shownBottomPowerThreshold
-	echoedBand.topPowerThreshold = shownTopPowerThreshold
-	spring.Echo(
-		"winner=" .. scalerName,
-		"TIME",
-		floor(timeBottomPowerThreshold),
-		floor(timeTopPowerThreshold),
-		"POWER",
-		floor(powerBottomPowerThreshold),
-		floor(powerTopPowerThreshold)
-	)
-end
-
 local function getGameStateScaleForPower(power, rangeMinimum, rangeMaximum)
-	local bandMinutes, scalerName, timeMinutes, powerMinutes = getBandMinutes()
+	local bandMinutes = getBandMinutes()
 	local bottomPowerThreshold, topPowerThreshold = powerBandThresholdsForMinutes(bandMinutes)
-	echoBandRange(scalerName, timeMinutes, powerMinutes)
 	if power <= bottomPowerThreshold then
 		return rangeMinimum
 	end
@@ -728,19 +755,18 @@ local function getGameStateScaleForPower(power, rangeMinimum, rangeMaximum)
 end
 
 local function getSpawnCountMaximum()
-	local minutesAfterStart = math.max(0, getElapsedMinutes() - SPAWN_COUNT_GROWTH.MAXIMUM_START_MINUTE)
+	local minutesAfterStart = math.max(0, getElapsedMinutes() - zombieModeSettings.maximumSpawnGrowthDelayMinutes)
 	local grownMaximum = math.round(
-		zombieModeSettings.spawnCountMaximum * SPAWN_COUNT_GROWTH.MAXIMUM_RATE ^ minutesAfterStart,
+		zombieModeSettings.spawnCountMaximum * zombieModeSettings.maximumSpawnGrowthRate ^ minutesAfterStart,
 		0
 	)
-	return math.min(SPAWN_COUNT_GROWTH.ABSOLUTE_MAXIMUM, grownMaximum)
+	return math.min(zombieModeSettings.spawnCountCap, grownMaximum)
 end
 
 local function getSmallestPack()
-	local bandMinutes = getBandMinutes()
-	local minutesAfterStart = math.max(0, bandMinutes - POWER_BAND.BOTTOM_GRACE_MINUTES)
+	local minutesAfterStart = math.max(0, getElapsedMinutes() - zombieModeSettings.bottomBandDelayMinutes)
 	return math.round(
-		zombieModeSettings.spawnCountMinimum * SPAWN_COUNT_GROWTH.MINIMUM_RATE ^ minutesAfterStart,
+		zombieModeSettings.spawnCountMinimum * zombieModeSettings.minimumSpawnGrowthRate ^ minutesAfterStart,
 		0
 	)
 end
@@ -759,8 +785,8 @@ local function experienceAtThisMinute()
 end
 
 local function calculateSpawnDelayFrames(unitDefData)
-	local decaySteps = math.max(0, getElapsedMinutes() - SPAWN_TIME_DECAY.DELAY_MINUTES)
-	local decay = SPAWN_TIME_DECAY.RATE ^ decaySteps
+	local decaySteps = math.max(0, getElapsedMinutes() - zombieModeSettings.respawnDecayDelayMinutes)
+	local decay = zombieModeSettings.respawnDecayRate ^ decaySteps
 	local minimumSpawnSeconds = zombieModeSettings.respawnDelayMinimum * decay
 	local maximumSpawnSeconds = zombieModeSettings.respawnDelayMaximum * decay
 	local spawnSeconds = math.round(
@@ -917,26 +943,6 @@ local function publishPushedSpawn(featureID, corpseData)
 		return
 	end
 	GG.ZombieWreckEffects.Arm(featureID, gameFrame, shownSpawnFrame)
-end
-
-local function disturbCorpse(featureID, corpseData)
-	local delayFrames = corpseData.spawnDelayFrames or 0
-	local restartPushback = gameFrame + delayFrames - (corpseData.spawnFrame or gameFrame)
-	if restartPushback < 0 then
-		restartPushback = 0
-	end
-	if (corpseData.pushbackFrames or 0) < restartPushback then
-		corpseData.pushbackFrames = restartPushback
-	end
-	local publishedFrame = corpseData.publishedFrame
-	local recentlyPublished = publishedFrame
-		and publishedFrame > 0
-		and gameFrame - publishedFrame < FRAMES.RECENT_TAMPER
-	corpseData.tamperedFrame = gameFrame
-	if recentlyPublished then
-		return
-	end
-	publishPushedSpawn(featureID, corpseData)
 end
 
 local function rollFor(keep, rollCount, minimum, maximum)
@@ -1318,6 +1324,20 @@ local function refundSubstitutePayload(payloadUnitDefID, payloadCount, isSubstit
 	end
 end
 
+local function getWraithPayloadHeap(payloadUnitDefID)
+	local payloadUnitDefData = payloadUnitDefID and zombieUnitDefs[payloadUnitDefID]
+	if not payloadUnitDefData then
+		return
+	end
+	local scavUnitDefID = payloadUnitDefData.scavVariantUnitDefID
+	local scavUnitDefData = zombieUnitDefs[scavUnitDefID] or payloadUnitDefData
+	local heapDefID = scavUnitDefData.heapDefID
+	if not heapDefID or not zombieHeapDefs[heapDefID] then
+		return
+	end
+	return heapDefID, scavUnitDefID, scavUnitDefData
+end
+
 local function processWraithFeeds()
 	if #pendingWraithFeeds == 0 then
 		return
@@ -1330,9 +1350,8 @@ local function processWraithFeeds()
 			local unitPower = getSubstitutionPower(wraithFeed.unitDefID) * zombieModeSettings.wraithPowerMultiplier
 			local payloadUnitDefID, payloadCount, isSubstitute =
 				resolveSpawnPlan(wraithFeed.unitDefID, wraithFeed.wasZombie, unitPower, 1)
-			local payloadUnitDefData = payloadUnitDefID and zombieUnitDefs[payloadUnitDefID]
-			local corpseDefID = payloadUnitDefData and payloadUnitDefData.corpseDefID
-			if payloadUnitDefID and payloadCount > 0 and corpseDefID and zombieCorpseDefs[corpseDefID] then
+			local heapDefID = getWraithPayloadHeap(payloadUnitDefID)
+			if payloadUnitDefID and payloadCount > 0 and heapDefID then
 				addToFrameList(pendingWraithSpawns, gameFrame + WRAITH.SPAWN_DELAY, {
 					x = wraithFeed.x,
 					z = wraithFeed.z,
@@ -1407,21 +1426,11 @@ local function isEnemyWithinRadius(positionX, positionY, positionZ, radius)
 end
 
 local function spawnHeapAtWraith(wraithData, wraithX, wraithZ, maxAttempts)
-	local payloadUnitDefID = wraithData.payloadUnitDefID
-	local payloadUnitDefData = payloadUnitDefID and zombieUnitDefs[payloadUnitDefID]
-	if not payloadUnitDefData then
+	local heapDefID, scavUnitDefID, scavUnitDefData = getWraithPayloadHeap(wraithData.payloadUnitDefID)
+	if not heapDefID then
 		return false
 	end
-	local scavUnitDefID = payloadUnitDefData.scavVariantUnitDefID
-	local scavUnitDefData = zombieUnitDefs[scavUnitDefID] or payloadUnitDefData
-	local heapDefID = scavUnitDefData.heapDefID
-	local corpseDefID = scavUnitDefData.corpseDefID
-	local hasHeapDef = heapDefID ~= nil and zombieHeapDefs[heapDefID] ~= nil
-	local dropFeatureDefID = hasHeapDef and heapDefID or corpseDefID
-	if not dropFeatureDefID or (not hasHeapDef and not zombieCorpseDefs[dropFeatureDefID]) then
-		return false
-	end
-	local size = scavUnitDefData.size or payloadUnitDefData.size
+	local size = scavUnitDefData.size
 	for _ = 1, maxAttempts do
 		local angle = random() * 2 * math.pi
 		local distance = random() * WRAITH.SPAWN_OFFSET_DISTANCE
@@ -1438,10 +1447,9 @@ local function spawnHeapAtWraith(wraithData, wraithX, wraithZ, maxAttempts)
 				unitDefID = scavUnitDefID,
 				facing = facing,
 				wasZombie = true,
-				spawnDelayMultiplier = not hasHeapDef and zombieModeSettings.wraithRespawnDelayMultiplier or nil,
 			}
 			local featureID = spring.CreateFeature(
-				dropFeatureDefID,
+				heapDefID,
 				spawnX,
 				spawnY,
 				spawnZ,
@@ -1707,15 +1715,7 @@ local function queueFeatureForSpawning(
 	rememberWreckWraithFeed(featureID, unitDefID, featureX, featureZ, wasZombie, attackerID, attackerX, attackerZ)
 end
 
-local function queueCorpseForSpawning(
-	featureID,
-	override,
-	wasZombie,
-	spawnDelayMultiplier,
-	attackerID,
-	attackerX,
-	attackerZ
-)
+local function queueCorpseForSpawning(featureID, override, wasZombie, attackerID, attackerX, attackerZ)
 	if not override and not autoSpawningEnabled then
 		return
 	end
@@ -1727,9 +1727,6 @@ local function queueCorpseForSpawning(
 	end
 
 	local spawnDelayFrames = getUnitSpawnDelayFrames(corpseDefData)
-	if spawnDelayFrames and spawnDelayMultiplier then
-		spawnDelayFrames = floor(spawnDelayFrames * spawnDelayMultiplier)
-	end
 	queueFeatureForSpawning(
 		featureID,
 		featureDefID,
@@ -1815,7 +1812,7 @@ local function registerDeathFeature(featureID, featureDefID, deathData)
 		spring.SetFeatureRulesParam(featureID, RULES_PARAM.WAS_ZOMBIE, 1, RULES_PARAM.PUBLIC_ACCESS)
 	end
 	if zombieCorpseDefs[featureDefID] then
-		queueCorpseForSpawning(featureID, false, wasZombie, nil, attackerID, attackerX, attackerZ)
+		queueCorpseForSpawning(featureID, false, wasZombie, attackerID, attackerX, attackerZ)
 		return
 	end
 	if zombieHeapDefs[featureDefID] then
@@ -2038,7 +2035,6 @@ local function handlePendingCreatedFeature(featureID, createdData)
 			featureID,
 			true,
 			createdData.wasZombie,
-			createdData.spawnDelayMultiplier,
 			createdData.attackerID,
 			createdData.attackerX,
 			createdData.attackerZ
@@ -2309,12 +2305,12 @@ local function releaseWreckWraithFeed(featureID)
 	)
 end
 
-function gadget:FeatureDamaged(featureID, _, _, damage, _, _, attackerID)
-	local corpseData = corpsesData[featureID]
-	if corpseData and damage and damage > 0 then
-		disturbCorpse(featureID, corpseData)
+function gadget:FeatureDamaged(featureID, _, _, _, _, _, attackerID)
+	if not currentModeFeatures.wraithRespawns then
+		return
 	end
-	if not currentModeFeatures.wraithRespawns or not corpseData then
+	local corpseData = corpsesData[featureID]
+	if not corpseData then
 		return
 	end
 	if
