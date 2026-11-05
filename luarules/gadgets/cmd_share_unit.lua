@@ -77,7 +77,7 @@ if gadgetHandler:IsSyncedCode() then
 		spTransferUnit(unitID, targetTeamID, true)
 		if shouldNotAnnounce then
 			-- any callins that care about this should have gone by now
-			spSetUnitRulesParam(unitID, "shareCommandFrame", nil, alliesCanSeeParam)
+			spSetUnitRulesParam(unitID, "isRallyShare", true, alliesCanSeeParam)
 		end
 	end
 
