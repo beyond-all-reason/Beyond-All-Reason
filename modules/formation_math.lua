@@ -1,7 +1,7 @@
----
---- Where each unit of a group goes in a formation move, on plain { x = number, z = number } tables.
---- Headings are radians as Spring.GetUnitHeading(unitID, true) returns them: 0 faces +z, pi / 2 faces +x.
----
+-- modules/formation_math.lua
+--
+-- Where each unit of a group goes in a formation move, on plain { x = number, z = number } tables.
+-- Headings are radians as Spring.GetUnitHeading(unitID, true) returns them: 0 faces +z, pi / 2 faces +x.
 
 -- The Hungarian method is O(n^3), about 3 ms for 40 units. Above this many, a greedy match is used instead.
 local EXACT_MATCHING_LIMIT = 40

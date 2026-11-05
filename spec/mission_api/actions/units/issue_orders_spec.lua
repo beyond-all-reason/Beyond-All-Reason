@@ -50,9 +50,9 @@ describe("mission_api.actions.issue_orders", function()
 			assert.are.same(missionApi.trackedUnitIDs["bots"], env.Spring.calls.giveOrderArrayToUnitMap[1].unitMap)
 		end)
 
-		it("gives each unit its own order with a formation, not one order to all", function()
+		-- Units 101 and 102 side by side along x, both facing south.
+		local function stubFormationUnits(given)
 			seedUnits("bots", 101, 102)
-			local given = {}
 			env.UnitDefs = { [1] = { canMove = true, speed = 60 } }
 			env.Game = { mapSizeX = 4096, mapSizeZ = 4096, squareSize = 8 }
 			env.Spring.GetUnitDefID = function()
@@ -68,12 +68,20 @@ describe("mission_api.actions.issue_orders", function()
 			env.Spring.GetUnitPosition = function(unitID)
 				return unitID, 0, 100
 			end
+			env.Spring.GetUnitHeading = function()
+				return 0
+			end
 			env.Spring.GetGroundHeight = function()
 				return 0
 			end
 			env.Spring.GiveOrderToUnit = function(unitID, command, params)
 				given[unitID] = { command = command, params = params, fenced = missionApi.issuingOrders }
 			end
+		end
+
+		it("gives each unit its own order with a formation, not one order to all", function()
+			local given = {}
+			stubFormationUnits(given)
 
 			action.actionFunction("bots", { { env.CMD.MOVE, { 1000, 0, 1000 }, {} } }, {})
 
@@ -82,6 +90,17 @@ describe("mission_api.actions.issue_orders", function()
 			assert.are.same({ 1000.5, 0, 1000 }, given[102].params)
 			assert.is_true(given[101].fenced)
 			assert.is_nil(missionApi.issuingOrders)
+		end)
+
+		it("turns the formation to a compass angle direction", function()
+			local given = {}
+			stubFormationUnits(given)
+
+			action.actionFunction("bots", { { env.CMD.MOVE, { 1000, 0, 1000 }, {} } }, { direction = { angle = 90 } })
+
+			assert.is_true(math.abs(given[101].params[1] - 1000) < 0.001)
+			assert.is_true(math.abs(given[102].params[1] - 1000) < 0.001)
+			assert.is_true(math.abs(given[101].params[3] - given[102].params[3]) > 0.999)
 		end)
 
 		it("passes the result of ConvertOrdersTargetingNames as the orders", function()

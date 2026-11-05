@@ -1,4 +1,4 @@
-local Formation = VFS.Include("luarules/mission_api/formation_math.lua")
+local Formation = require("modules/formation_math")
 
 local function near(expected, actual)
 	return math.abs(expected - actual) < 1e-6
@@ -33,7 +33,7 @@ local function cheapestCost(starts, spots)
 	return best
 end
 
-describe("mission_api.formation_math", function()
+describe("modules.formation_math", function()
 	describe("AroundPoint", function()
 		it("keeps the shape around the destination without a turn", function()
 			local starts = { { x = 0, z = 0 }, { x = 40, z = 0 }, { x = 20, z = 30 } }

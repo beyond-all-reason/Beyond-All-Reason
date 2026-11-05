@@ -1,5 +1,14 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
-local FormationOrders = VFS.Include("luarules/mission_api/formation_orders.lua")
+local FormationOrders = require("modules/formation_orders")
+
+-- A Direction: a compass angle (0 north, clockwise) as a heading, or the point to face.
+local function getFacing(direction)
+	if direction and direction.angle then
+		-- TODO: refactor to call CompassAngleToHeading when it is merged
+		return math.rad(180 - direction.angle)
+	end
+	return direction
+end
 
 local function issueOrders(unitName, orders, formation)
 	local tracking = GG['MissionAPI'].Modules.Tracking
@@ -11,7 +20,8 @@ local function issueOrders(unitName, orders, formation)
 	-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 	GG['MissionAPI'].issuingOrders = true
 	if formation then
-		FormationOrders.GiveFormationOrders(table.keys(unitIDs), convertedOrders, formation)
+		local options = { facing = getFacing(formation.direction) }
+		FormationOrders.GiveFormationOrders(table.keys(unitIDs), convertedOrders, options)
 	else
 		Spring.GiveOrderArrayToUnitMap(unitIDs, convertedOrders)
 	end

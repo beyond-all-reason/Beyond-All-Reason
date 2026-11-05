@@ -2,9 +2,9 @@ local MAP_SIZE = 4096
 
 _G.CMD = { MOVE = 10, PATROL = 15, FIGHT = 16, ATTACK = 20, REPAIR = 40, RECLAIM = 90, RESURRECT = 125, CAPTURE = 130 } ---@diagnostic disable-line: global-in-non-module
 
-local FormationOrders = VFS.Include("luarules/mission_api/formation_orders.lua")
+local FormationOrders = require("modules/formation_orders")
 
-describe("mission_api.formation_orders", function()
+describe("modules.formation_orders", function()
 	---@type table<integer, table>
 	local units
 	---@type table<integer, table>
@@ -98,8 +98,8 @@ describe("mission_api.formation_orders", function()
 		return orders
 	end
 
-	local function issue(orders, formation)
-		FormationOrders.GiveFormationOrders(unitIDs(), orders, formation or {})
+	local function issue(orders, options)
+		FormationOrders.GiveFormationOrders(unitIDs(), orders, options or {})
 	end
 
 	local function moveTo(x, z, options)
@@ -147,15 +147,15 @@ describe("mission_api.formation_orders", function()
 		assert.are.same({ 77 }, given[2].params)
 	end)
 
-	describe("direction", function()
+	describe("facing", function()
 		-- Side by side along x, both facing south.
 		local function sideBySide()
 			setUnits({ [1] = { x = 1000, z = 1000, heading = 0 }, [2] = { x = 1100, z = 1000, heading = 0 } })
 		end
 
-		it("turns the shape to a compass angle", function()
+		it("turns the shape to a heading", function()
 			sideBySide()
-			issue({ moveTo(3000, 1000) }, { direction = { angle = 90 } })
+			issue({ moveTo(3000, 1000) }, { facing = math.pi / 2 })
 			local orders = ordersByUnit()
 			assert.is_true(near(3000, orders[1].x) and near(3000, orders[2].x))
 			assert.is_true(near(100, math.abs(orders[1].z - orders[2].z)))
@@ -163,14 +163,14 @@ describe("mission_api.formation_orders", function()
 
 		it("does not turn the shape for the way it already faces", function()
 			sideBySide()
-			issue({ moveTo(3000, 1000) }, { direction = { angle = 180 } })
+			issue({ moveTo(3000, 1000) }, { facing = 0 })
 			local orders = ordersByUnit()
 			assert.is_true(near(2950, orders[1].x) and near(3050, orders[2].x))
 		end)
 
 		it("turns the shape to face a point from the order's point", function()
 			sideBySide()
-			issue({ moveTo(3000, 1000) }, { direction = { x = 4000, z = 1000 } })
+			issue({ moveTo(3000, 1000) }, { facing = { x = 4000, z = 1000 } })
 			local orders = ordersByUnit()
 			assert.is_true(near(3000, orders[1].x) and near(3000, orders[2].x))
 			assert.is_true(near(100, math.abs(orders[1].z - orders[2].z)))
@@ -178,7 +178,7 @@ describe("mission_api.formation_orders", function()
 
 		it("turns from the way to the point when the units face opposite ways", function()
 			setUnits({ [1] = { x = 1000, z = 1000, heading = 0 }, [2] = { x = 1100, z = 1000, heading = math.pi } })
-			issue({ moveTo(3000, 1000) }, { direction = { angle = 180 } })
+			issue({ moveTo(3000, 1000) }, { facing = 0 })
 			local orders = ordersByUnit()
 			assert.is_true(near(3000, orders[1].x) and near(3000, orders[2].x))
 			assert.is_true(near(100, math.abs(orders[1].z - orders[2].z)))
