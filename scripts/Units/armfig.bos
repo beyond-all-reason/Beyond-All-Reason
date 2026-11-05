@@ -32,14 +32,14 @@ Deactivate()
 	hide thrust;
 }
 
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
-}
-
 AimWeapon1(heading, pitch)
 {
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
 }
 
 FireWeapon1()

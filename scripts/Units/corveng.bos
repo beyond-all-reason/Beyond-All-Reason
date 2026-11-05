@@ -36,17 +36,12 @@ Deactivate()
 	hide thrust2;
 }
 
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
-}
-
 AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-BlockShot2(targetID, block, userTarget)
+BlockShot1(targetID, block, userTarget)
 {
 	block = !(get ACTIVATION);
 }
@@ -54,6 +49,11 @@ BlockShot2(targetID, block, userTarget)
 AimWeapon2(heading, pitch)
 {
 	return (1);
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
 }
 
 FireWeapon1()

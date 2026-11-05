@@ -45,11 +45,6 @@ Deactivate()
 	turn wingr to z-axis <0> speed <90.0>;
 }
 
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
-}
-
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
@@ -62,6 +57,11 @@ AimWeapon1(heading, pitch)
 	wait-for-turn turretmisl around x-axis;
 	wait-for-turn turretmisl around y-axis;
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
 }
 
 FireWeapon1()

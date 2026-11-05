@@ -41,11 +41,6 @@ Deactivate()
 	hide thrust;
 }
 
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
-}
-
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
@@ -58,20 +53,25 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 FireWeapon1()
 {
 	gun_1 = !gun_1;
 	sleep 100;
 }
 
-BlockShot2(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
-}
-
 AimWeapon2(heading, pitch)
 {
 	return (1);
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
 }
 
 FireWeapon2()

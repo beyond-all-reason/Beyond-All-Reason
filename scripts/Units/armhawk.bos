@@ -37,14 +37,14 @@ Deactivate()
 	turn cowl to x-axis <0> speed <30>;
 }
 
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
-}
-
 AimWeapon1(heading, pitch)
 {
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
 }
 
 QueryWeapon1(pieceIndex)

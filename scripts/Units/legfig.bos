@@ -64,14 +64,14 @@ Deactivate()
 	turn wingD to z-axis <60> speed <60>;
 }
 
-BlockShot1(targetID, block, userTarget)
-{
-	block = !(get ACTIVATION);
-}
-
 AimWeapon1(heading, pitch)
 {
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
 }
 
 FireWeapon1()
