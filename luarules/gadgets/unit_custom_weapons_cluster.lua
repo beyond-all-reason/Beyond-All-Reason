@@ -425,6 +425,9 @@ end
 
 local function inheritMomentum(projectileID)
 	local vx, vy, vz, vw = spGetProjectileVelocity(projectileID)
+	if not vx then
+		return 0, 0, 0 -- Death explosions have no projectile.
+	end
 	-- Apply major loss from scattering (~50%) and reduce hyperspeeds (1 is convenient).
 	local scale = 0.5 / max(vw or 0, 1)
 	return vx * scale, vy * scale, vz * scale
