@@ -11,7 +11,7 @@ local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
 
 local BUILD_GRID_SIZE = Game.squareSize * Game.footprintScale
 
-local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpacing)
+local function generateGridPositions(centerX, centerY, centerZ, quantity, xSpacing, zSpacing)
 	local positions = {}
 	if quantity <= 0 then
 		return positions
@@ -32,7 +32,7 @@ local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpac
 			if count >= quantity then
 				return positions
 			end
-			table.insert(positions, { x = x, y = Spring.GetGroundHeight(x, z), z = z })
+			table.insert(positions, { x = x, y = centerY or Spring.GetGroundHeight(x, z), z = z })
 			count = count + 1
 		end
 	end
@@ -128,7 +128,8 @@ local function spawnUnitLoadout(unitLoadout)
 			buildFacing = BAR.Utilities.FacingToNumber(unit.facing)
 		end
 
-		local positions = generateGridPositions(unit.position.x, unit.position.z, unit.quantity or 1, xsize, zsize)
+		local center = unit.position
+		local positions = generateGridPositions(center.x, center.y, center.z, unit.quantity or 1, xsize, zsize)
 		for _, pos in ipairs(positions) do
 			if snapToBuildGrid then
 				pos.x, pos.y, pos.z = Spring.Pos2BuildPos(unitDef.id, pos.x, pos.y, pos.z, buildFacing)
@@ -166,8 +167,8 @@ end
 
 local function spawnFeatureLoadout(featureLoadout)
 	for _, feature in ipairs(featureLoadout or {}) do
-		local x, z = feature.position.x, feature.position.z
-		local y = Spring.GetGroundHeight(x, z)
+		local x, y, z = feature.position.x, feature.position.y, feature.position.z
+		y = y or Spring.GetGroundHeight(x, z)
 		spawnFeature(feature.featureDefName, x, y, z, feature.facing, feature.featureName)
 	end
 end
