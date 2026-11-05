@@ -19,6 +19,7 @@ in DataVS {
     float g_showIcon;
     float g_showText;
     float g_bartype;
+    float g_limit;
 };
 
 uniform sampler2D healthbartexture;
@@ -28,6 +29,8 @@ out vec4 fragColor;
 #define BITPERCENTAGE 4
 #define BITTIMELEFT 8
 #define BITINTEGERNUMBER 16
+#define BITAMMO 256
+#define MAXAMMO 8.0
 
 vec4 sampleAtlasGlyph(float col, float row, vec2 uv01)
 {
@@ -93,13 +96,25 @@ void main(void)
     float innerY = smoothstep(borderY, borderY + 0.02, g_uv.y) * (1.0 - smoothstep(1.0 - borderY - 0.02, 1.0 - borderY, g_uv.y));
     float innerMask = innerX * innerY;
 
-    float fill = step(barU, g_value) * innerMask;
-
     // Bar texture overlay (same atlas strip concept as GS path).
     vec2 innerUV = vec2(
         clamp((barU - borderX) / max(1.0 - 2.0 * borderX, 0.001), 0.0, 1.0),
         clamp((g_uv.y - borderY) / max(1.0 - 2.0 * borderY, 0.001), 0.0, 1.0)
     );
+
+    float fill = step(barU, g_value);
+    int bartype = int(g_bartype + 0.5);
+    float limit = floor(g_limit + 0.5);
+    if ((bartype & BITAMMO) != 0 && limit >= 1.0 && limit <= MAXAMMO) {
+        // One brick per ammunition round, cut by the same gap rule as the geometry shader.
+        float slot = innerUV.x * limit;
+        float index = floor(slot);
+        float t = slot - index;
+        float gapFrac = min(0.3, 0.12 * limit / (2.0 * BARWIDTH));
+        float cut = step(t, 0.5 * gapFrac) * step(1.0, index) + step(1.0 - 0.5 * gapFrac, t) * step(index, limit - 2.0);
+        fill = step(index + 0.5, floor(g_value * limit + 0.5)) * (1.0 - min(cut, 1.0));
+    }
+    fill *= innerMask;
 
     // Try both GS-like flipped Y and direct Y row mapping; combine for robustness
     // across atlas content differences.
@@ -142,7 +157,6 @@ void main(void)
         drawGlyph(outCol, guv, iconX0, iconX1, iconY0, iconY1, 1.0, g_uvoffset / ATLASSTEP, glyphAlphaMul);
     }
 
-    int bartype = int(g_bartype + 0.5);
     bool drawPct = (g_showText > 0.5) && ((bartype & BITPERCENTAGE) != 0 || (bartype & BITTIMELEFT) != 0);
     bool drawInt = (g_showText > 0.5) && ((bartype & BITINTEGERNUMBER) != 0);
 

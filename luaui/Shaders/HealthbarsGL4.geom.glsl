@@ -34,6 +34,8 @@ mat3 rotY;
 vec4 centerpos;
 float zoffset;
 float depthbuffermod;
+float glyphalpha;
+float baralpha;
 float sizemultiplier = dataIn[0].v_sizemodifiers.x;
 #define HALFPIXEL 0.0019765625
 
@@ -51,6 +53,8 @@ float sizemultiplier = dataIn[0].v_sizemodifiers.x;
 #define BITGETPROGRESS 32u
 #define BITFLASHBAR 64u
 #define BITCOLORCORRECT 128u
+#define BITAMMO 256u
+#define MAXAMMO 8.0
 
 void emitVertexBG(in vec2 pos){
 	g_uv.xy = vec2(0.0,0.0);
@@ -63,7 +67,7 @@ void emitVertexBG(in vec2 pos){
 		extracolor = 0.5;
 	}
 	g_color = mix(BGBOTTOMCOLOR + extracolor, BGTOPCOLOR + extracolor, pos.y);
-	g_color.a *= dataIn[0].v_parameters.y; // blend with bar fade alpha
+	g_color.a *= baralpha;
 	EmitVertex();
 }
 
@@ -81,7 +85,7 @@ void emitVertexBarBG(in vec2 pos, in vec4 botcolor, in float bartextureoffset){
 	g_uv.z = clamp(10000 * bartextureoffset, 0, 1); // this tells us to use color if we are using bartextureoffset
 	g_color = botcolor;
 	//g_color = vec4(g_uv.x, g_uv.y, 0.0, 1.0);
-	g_color.a *= dataIn[0].v_parameters.y; // blend with bar fade alpha
+	g_color.a *= baralpha;
 	//g_color.a = 1.0;
 	//	g_uv.y -= ATLASSTEP * 8;
 	EmitVertex();
@@ -92,7 +96,7 @@ void emitVertexGlyph(in vec2 pos, in vec2 uv){
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
 	g_uv.z = 1.0; // this tells us to use texture
 	g_color = vec4(1.0);
-	g_color.a *= dataIn[0].v_parameters.z; // blend with text/icon fade alpha
+	g_color.a *= glyphalpha;
 	EmitVertex();
 }
 
@@ -123,11 +127,15 @@ void main(){
 
 
 	float health = dataIn[0].v_parameters.x;
-	if (BARALPHA < MINALPHA) return; // Dont draw below 50% transparency
+	bool ammo = (BARTYPE & BITAMMO) > 0u;
+	baralpha = ammo ? GLYPHALPHA : BARALPHA;
+	if (baralpha < MINALPHA) return;
 
 	// All the early bail conditions to not draw full/empty bars
 	#ifndef DEBUGSHOW
-		if (health < 0.00001) return;
+		if (ammo) {
+			if (health > 0.999) return;
+		} else if (health < 0.00001) return;
 		if ((BARTYPE & BITPERCENTAGE) > 0u) { // for percentage bars
 			if (health > 0.999) return;
 		}else{
@@ -208,6 +216,23 @@ void main(){
 		if ((BARTYPE & BITUSEOVERLAY) > 0u) bartextureoffset = UVOFFSET; // if the bar type is a textured bar, we have a lot of work to do
 
 		depthbuffermod = -0.001;
+		float limit = dataIn[0].v_sizemodifiers.y;
+		if (ammo && limit >= 1.0 && limit <= MAXAMMO) {
+			// One brick per ammunition round, which is a count so has similar display reason to a glyph.
+			float x0 = -BARWIDTH + BARCORNER + SMALLERCORNER;
+			float brickwidth = (2.0 * (BARWIDTH - BARCORNER) - 2.0 * SMALLERCORNER) / limit;
+			float gap = min(0.12, 0.3 * brickwidth);
+			int bricks = int(health * limit + 0.5);
+			for (int i = 0; i < bricks; i++) {
+				float left = x0 + float(i) * brickwidth + ((i > 0) ? 0.5 * gap : 0.0);
+				float right = x0 + float(i + 1) * brickwidth - ((i + 1 < int(limit)) ? 0.5 * gap : 0.0);
+				emitVertexBarBG(vec2(left,  BARCORNER            ), botcolor,  bartextureoffset);
+				emitVertexBarBG(vec2(left,  BARHEIGHT - BARCORNER), truecolor, bartextureoffset);
+				emitVertexBarBG(vec2(right, BARCORNER            ), botcolor,  bartextureoffset);
+				emitVertexBarBG(vec2(right, BARHEIGHT - BARCORNER), truecolor, bartextureoffset);
+				EndPrimitive();
+			}
+		} else {
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER,                                  SMALLERCORNER + BARCORNER            ), botcolor,  bartextureoffset); //1
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER,                                  BARHEIGHT - BARCORNER - SMALLERCORNER), truecolor, bartextureoffset); //2
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER + SMALLERCORNER,                  BARCORNER                            ), botcolor,  bartextureoffset); //3
@@ -219,10 +244,14 @@ void main(){
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER + 2 *SMALLERCORNER + healthbasedpos,                 BARCORNER + SMALLERCORNER            ), botcolor,  bartextureoffset); //7
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER + 2 *SMALLERCORNER + healthbasedpos,                 BARHEIGHT - BARCORNER - SMALLERCORNER), truecolor, bartextureoffset); //8
 		EndPrimitive();
+		}
 
 	// try to emit text?
 
-	if (GLYPHALPHA < MINALPHA) return; // dont display glyphs below 50% transparency
+	// Stockpile bars should display their stockpile counts primarily, not a progress primarily.
+	// So the glyph showing the count has to fade with the progress bar to display further away.
+	glyphalpha = ((BARTYPE & BITINTEGERNUMBER) > 0u) ? BARALPHA : GLYPHALPHA;
+	if (glyphalpha < MINALPHA) return;
 
 	if (skipGlyphsNumbers > 1.5) return;
 

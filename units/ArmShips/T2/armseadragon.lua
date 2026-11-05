@@ -39,7 +39,7 @@ return {
 		customparams = {
 			maxrange = "720",
 			model_author = "Hornet",
-			normaltex = "unittextures/arm_normal.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "ArmShips/T2",
 			techlevel = 2,

@@ -4,6 +4,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.speed = uDef.speed + 4.3
 		uDef.turnrate = 840
 		uDef.buildtime = math.ceil(uDef.buildtime * 1.15 / 100) * 100
+		uDef.energycost = math.ceil(uDef.energycost * 1.1 / 100) * 100
 	end
 
 	if name == "armwar" then
@@ -36,18 +37,21 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "armart" then
 		uDef.speed = 56 --was 54
 		uDef.turnrate = 300 --394
+		uDef.maxacc = 0.02
 		uDef.weapondefs.tawf113_weapon.weaponvelocity = 390
 		uDef.weapondefs.tawf113_weapon.mygravity = nil
 		uDef.weapondefs.tawf113_weapon.areaofeffect = 80 --75
 		uDef.weapondefs.tawf113_weapon.range = 730 --710
 		uDef.weapondefs.tawf113_weapon.impulsefactor = 0.5
-		uDef.weapondefs.tawf113_weapon.damage.default = 230 --182
-		uDef.weapondefs.tawf113_weapon.reloadtime = 4.6
+		uDef.weapondefs.tawf113_weapon.damage.default = 260 --182
+		uDef.weapondefs.tawf113_weapon.reloadtime = 5
 		uDef.weapondefs.tawf113_weapon.accuracy = 100
+		uDef.weapons[1].maxangledif = 140
 	end
 	if name == "corwolv" then
 		uDef.speed = 53 --was 48
 		uDef.turnrate = 260 --466
+		uDef.maxacc = 0.019
 		uDef.metalcost = 200
 		uDef.energycost = 3000
 		uDef.buildtime = 4000
@@ -56,36 +60,44 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.corwolv_gun.range = 750 --710
 		uDef.weapondefs.corwolv_gun.areaofeffect = 144 --113
 		uDef.weapondefs.corwolv_gun.impulsefactor = 0.5
-		uDef.weapondefs.corwolv_gun.damage.default = 400
+		uDef.weapondefs.corwolv_gun.damage.default = 420
 		uDef.weapondefs.corwolv_gun.reloadtime = 8
+		uDef.weapons[1].maxangledif = 140
 		uDef.health = 1100
 	end
 
 	if name == "armmart" then
 		uDef.metalcost = 260 --320
 		uDef.speed = 48 --was 60
+		uDef.maxacc = 0.02
 		uDef.weapondefs.arm_artillery.edgeeffectiveness = 0.15
 		uDef.weapondefs.arm_artillery.accuracy = 0
 		uDef.weapondefs.arm_artillery.reloadtime = 3 --3.05
 		uDef.weapondefs.arm_artillery.damage.default = 260 --260.
+		uDef.weapons[1].maxangledif = 140
+		uDef.health = 1200
 	end
 	if name == "cormart" then
 		uDef.metalcost = 320 --400
 		uDef.speed = 46 -- was 58
+		uDef.maxacc = 0.019
 		uDef.weapondefs.cor_artillery.edgeeffectiveness = 0.15
 		uDef.weapondefs.cor_artillery.accuracy = 0
 		uDef.weapondefs.cor_artillery.reloadtime = 6.4 --5
 		uDef.weapondefs.cor_artillery.damage.default = 540 --420.
+		uDef.weapons[1].maxangledif = 140
+		uDef.health = 1400
 	end
 
 	if name == "armsam" then
 		uDef.weapondefs.armtruck_missile.flighttime = 1.6
 		uDef.weapondefs.armtruck_missile.tracks = true
 		uDef.weapondefs.armtruck_missile.turnrate = 10000
-		uDef.weapondefs.armtruck_missile.damage.default = 54
+		uDef.weapondefs.armtruck_missile.damage.default = 55
 		uDef.weapondefs.armtruck_missile.weaponvelocity = 550
 		uDef.weapondefs.armtruck_missile.reloadtime = 3
 		uDef.weapondefs.armtruck_aa.reloadtime = 3
+		uDef.buildtime = 3600
 	end
 	if name == "cormist" then
 		uDef.weapondefs.cortruck_missile.tracks = true
@@ -95,17 +107,24 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.cortruck_missile.weaponvelocity = 550
 		uDef.weapondefs.cortruck_missile.reloadtime = 2.2
 		uDef.weapondefs.cortruck_aa.reloadtime = 2.2
+		uDef.buildtime = 3600
+	end
+
+	if name == "corlevlr" then
+		uDef.buildtime = 3400
 	end
 
 	if name == "armjanus" then
-		uDef.weapondefs.janus_rocket.edgeeffectiveness = 0.5
+		--uDef.weapondefs.janus_rocket.edgeeffectiveness = 0.5
 		uDef.weapondefs.janus_rocket.impulsefactor = 1
 		uDef.speed = 56
 		uDef.turnrate = 300
+		uDef.buildtime = 3900
 	end
 
 	if name == "armllt" then
 		uDef.buildtime = uDef.buildtime - 700
+		uDef.metalcost = uDef.metalcost - 5
 		uDef.health = uDef.health - 140
 		--uDef.weapondefs.arm_lightlaser.range = uDef.weapondefs.arm_lightlaser.range - 10
 		uDef.weapondefs.arm_lightlaser.energypershot = 15
@@ -113,6 +132,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 	if name == "corllt" then
 		uDef.buildtime = uDef.buildtime - 700
+		uDef.metalcost = uDef.metalcost - 5
 		uDef.health = uDef.health - 140
 		--uDef.weapondefs.cor_lightlaser.range = uDef.weapondefs.cor_lightlaser.range - 10
 		uDef.weapondefs.cor_lightlaser.energypershot = 15
@@ -194,6 +214,9 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	then
 		uDef.energycost = uDef.energycost + 150
 	end
+	if name == "armap" or name == "armlab" or name == "armvp" then
+		uDef.metalcost = uDef.metalcost - 20
+	end
 
 	if name == "armcom" or name == "corcom" or name == "legcom" then
 		uDef.energymake = 50
@@ -203,6 +226,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 	if name == "armmex" or name == "cormex" or name == "legmex" then
 		uDef.energycost = uDef.energycost + 100
+		uDef.buildtime = 2000
 	end
 
 	if
@@ -221,20 +245,74 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 
 	if name == "armmoho" or name == "cormoho" or name == "legmoho" then
-		uDef.energycost = uDef.energycost + 3900
-		uDef.health = math.ceil(uDef.health * 0.8 / 100) * 100
+		uDef.energycost = 11000
+		uDef.health = 2400
+		uDef.buildtime = 15000
+		uDef.metalcost = 650
 	end
 
 	if name == "armflea" then
+		uDef.health = 70
+		uDef.speed = 128
 		uDef.weapondefs.flea_laser.reloadtime = 0.7
 	end
 	if name == "corfav" then
-		uDef.speed = 150
+		uDef.speed = 145
+		uDef.health = 100
 		uDef.weapondefs.cor_laser.reloadtime = 1.2
 	end
 	if name == "armfav" then
-		uDef.speed = 163
+		uDef.health = 110
+		uDef.speed = 155
 		uDef.weapondefs.arm_laser.range = 170
+	end
+	if name == "corak" then
+		uDef.metalcost = 44
+	end
+	if name == "armpw" then
+		uDef.metalcost = 55
+		uDef.weapondefs.emg.sprayangle = 880
+	end
+	if name == "armflash" then
+		uDef.health = 710
+		uDef.weapondefs.emgx.sprayangle = 880
+	end
+	if name == "corgator" then
+		uDef.health = 800
+	end
+
+	if name == "armguard" or name == "corpun" then
+		uDef.weapondefs.plasma_high.mygravity = nil
+		uDef.weapondefs.plasma_high.weaponvelocity = 420
+		uDef.weapondefs.plasma_high.edgeeffectiveness = 0.15
+		uDef.weapondefs.plasma.edgeeffectiveness = 0.15
+		uDef.weapondefs.plasma.weaponvelocity = 420
+		uDef.weapondefs.plasma.reloadtime = math.ceil(10 * uDef.weapondefs.plasma.reloadtime) / 10
+		uDef.weapondefs.plasma_high.reloadtime = math.ceil(10 * uDef.weapondefs.plasma.reloadtime) / 10
+		uDef.metalcost = uDef.metalcost - 150
+		uDef.energycost = uDef.energycost - 500
+		uDef.buildtime = 20000
+	end
+	if name == "cortoast" then
+		uDef.weapondefs.cortoast_gun_high.mygravity = nil
+		uDef.weapondefs.cortoast_gun_high.edgeeffectiveness = 0.15
+		uDef.weapondefs.cortoast_gun.edgeeffectiveness = 0.15
+	end
+	if name == "armamb" then
+		uDef.weapondefs.armamb_gun_high.mygravity = nil
+		uDef.weapondefs.armamb_gun_high.edgeeffectiveness = 0.15
+		uDef.weapondefs.armamb_gun.edgeeffectiveness = 0.15
+	end
+
+	if name == "armmlv" or name == "cormlv" or name == "legmlv" then
+		uDef.canreclaim = true
+		uDef.metalcost = uDef.metalcost + 30
+		uDef.buildtime = 3500
+		uDef.health = math.ceil(uDef.health * 1.33 / 10) * 10
+	end
+	if name == "armmine3" or name == "legmine3" or name == "cormine3" then
+		uDef.energycost = 2500
+		uDef.buildtime = 500
 	end
 
 	return uDef

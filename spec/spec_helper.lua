@@ -250,8 +250,8 @@ _G.VFS.SubDirs = function(path)
 		searchPath = path
 	else
 		-- Try to find matching directory
-		local parent = path:match("(.+)/[^/]+$") or "."
-		local base = path:match("([^/]+)$")
+		local parent = path:match("(.+)/[^/]+/?$") or "."
+		local base = path:match("([^/]+)/?$")
 		if base then
 			local pHandle = io.popen(string.format("find %s -maxdepth 1 -type d -iname '%s'", parent, base))
 			if pHandle then

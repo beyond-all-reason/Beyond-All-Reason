@@ -60,6 +60,7 @@ utilities = {
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
 
 	FacingToHeading = facingFunctions.FacingToHeading,
+	FacingToNumber = facingFunctions.FacingToNumber,
 	HeadingToFacing = facingFunctions.HeadingToFacing,
 	IsFacingEW = facingFunctions.IsFacingEW,
 
