@@ -108,6 +108,9 @@ end
 function M:show(command, opts)
 	self.open = true
 	self.scroll = 0
+	self.scroller = WG.FlowUI.Scroller.new(function()
+		return #self.order * self.g.rowH, self.scroll * self.g.rowH, self:maxScroll()
+	end)
 	self.title = opts.title
 	self.acceptLabel = opts.acceptLabel
 	self.cancelLabel = opts.cancelLabel
@@ -310,6 +313,8 @@ function M:geometry()
 	g.listY2 = g.filtersLabelY - floor(14 * s)
 	g.listY1 = g.buttonY2 + floor(14 * s)
 	g.listRows = max(1, floor((g.listY2 - g.listY1) / g.rowH))
+	-- Only as tall as the rows drawn, or the thumb counts the band's leftover as room.
+	g.bar = { g.x2 - g.pad - WG.FlowUI.Scroller.width(s), g.listY2 - g.listRows * g.rowH, g.x2 - g.pad, g.listY2 }
 
 	local font = WG["fonts"].getFont()
 	local nameW = 0
@@ -320,7 +325,7 @@ function M:geometry()
 	g.segW = floor(56 * s)
 	g.segX = g.labelX + floor(nameW * g.fs) + floor(16 * s)
 	g.argX = g.segX + g.segW * 3 + floor(12 * s)
-	g.argX2 = g.x2 - g.pad - floor(8 * s) - g.gap
+	g.argX2 = g.bar[1] - g.gap
 
 	g.wayLabelW = floor(max(font:GetTextWidth(self.L.state.is), font:GetTextWidth(self.L.state["not"])) * g.fs * 0.9)
 		+ floor(8 * s)
@@ -350,7 +355,27 @@ function M:rect()
 end
 
 function M:clampScroll()
-	self.scroll = max(0, min(self.scroll, #self.order - self.g.listRows))
+	self.scroll = max(0, min(self.scroll, self:maxScroll()))
+end
+
+function M:maxScroll()
+	return max(0, #self.order - self.g.listRows)
+end
+
+-- A field scrolled out of view lets go, or typing would change a value nobody can see.
+function M:setScroll(scroll)
+	local g = self.g
+	self.scroll = scroll
+	self:clampScroll()
+	for row, id in ipairs(self.order) do
+		if row <= self.scroll or row > self.scroll + g.listRows then
+			for _, fields in pairs(self.args[id] or {}) do
+				for _, box in ipairs(fields) do
+					box:blur()
+				end
+			end
+		end
+	end
 end
 
 function M:filterAt(x, y)
@@ -384,6 +409,13 @@ function M:draw(mx, my)
 		self.summary = Select.describe(command)
 	end
 	local s = self.scale or 1
+
+	self.scroller:setRect(g.bar[1], g.bar[2], g.bar[3], g.bar[4])
+	local _, _, lmb = Spring.GetMouseState()
+	local step = self.scroller:drag(my, lmb)
+	if step then
+		self:setScroll(step)
+	end
 
 	-- Only the fields drawn this frame get a place; the rest must not take a click where they last were.
 	for _, box in ipairs(self:fields()) do
@@ -460,16 +492,7 @@ function M:draw(mx, my)
 			end
 		end
 	end
-	if #self.order > g.listRows then
-		WG.FlowUI.Draw.Scroller(
-			g.x2 - g.pad - floor(8 * s),
-			g.listY1,
-			g.x2 - g.pad,
-			g.listY2,
-			#self.order * g.rowH,
-			self.scroll * g.rowH
-		)
-	end
+	self.scroller:draw(self.scroller:isOverThumb(mx, my))
 
 	if Select.sourceById[self.source].arg then
 		local x1 = g.controlX + g.pickerW + floor(10 * s)
@@ -619,6 +642,15 @@ function M:mousePress(x, y)
 		end
 	end
 
+	if #self.order > g.listRows and isInRect(x, y, g.bar[1], g.bar[2], g.bar[3], g.bar[4]) then
+		local step = self.scroller:press(y)
+		if step then
+			self:setScroll(step)
+		end
+
+		return true
+	end
+
 	local id = self:filterAt(x, y)
 	if id and x >= g.segX and x < g.segX + g.segW * 3 then
 		local picked = STATES[floor((x - g.segX) / g.segW) + 1]
@@ -638,7 +670,6 @@ function M:mousePress(x, y)
 	return true
 end
 
--- A field scrolled out of view lets go, or typing would change a value nobody can see.
 function M:mouseWheel(up)
 	local g = self.g
 	local mx, my = Spring.GetMouseState()
@@ -646,17 +677,7 @@ function M:mouseWheel(up)
 		return
 	end
 
-	self.scroll = self.scroll + (up and -1 or 1)
-	self:clampScroll()
-	for row, id in ipairs(self.order) do
-		if row <= self.scroll or row > self.scroll + g.listRows then
-			for _, fields in pairs(self.args[id] or {}) do
-				for _, box in ipairs(fields) do
-					box:blur()
-				end
-			end
-		end
-	end
+	self:setScroll(self.scroll + (up and -1 or 1))
 end
 
 function M:textInput(char)

@@ -14,7 +14,7 @@ end
 
 -- The panel is laid out the way the keybind editor lays out its own: the same inset area,
 -- the title in the top-left corner over a darker card holding the category column, a
--- search field and a filter toggle in the header band, and a 14 px scrollbar standing in
+-- search field and a filter toggle in the header band, and a scrollbar standing in
 -- its own channel against the right edge.
 --
 -- Everything shown is built once into blocks of rows, each block belonging to a category.
@@ -69,10 +69,10 @@ local screenY = mathFloor((vsy * 0.5) + (screenHeight / 2))
 local RectRound
 ---@type function
 local UiElement
----@type function
-local UiScroller
----@type function
-local UiScrollerAt
+---@type FlowUIScroller
+local listScroller
+---@type FlowUIScroller
+local catScroller
 ---@type function
 local Highlight
 ---@type function
@@ -244,11 +244,6 @@ local scroll = 0
 -- How far the category column is scrolled, in whole entries. A game with enough
 -- modoption sections, or a short enough panel, has more of them than the column holds.
 local catScroll = 0
-local dragging = false
--- Where the thumb was taken hold of, as the distance from the cursor to its top edge. The
--- thumb then follows the cursor by that much, instead of jumping its middle to wherever
--- the press landed.
-local dragGrab = 0
 -- Rows of decoded tweak the cursor has dragged over, as indices into `rows`. Source is the
 -- one thing in here worth taking somewhere else, so it is the one thing that selects.
 local selFrom, selTo = 0, 0
@@ -265,7 +260,7 @@ local changedOnly = false
 local searchBox
 -- What the cursor is over, in the terms the baked panel is painted with. Refilled in
 -- place each frame rather than allocated.
-local hover = { sb = 0, row = 0, tog = 0, bar = 0, strip = 0, option = 0 }
+local hover = { sb = 0, row = 0, tog = 0, bar = 0, catBar = 0, strip = 0, option = 0 }
 -- The units a tweakunits listing names, as pictures above it that jump the list to each one.
 -- `ids` and `rows` are parallel and reused between rebuilds; `count` says how much is live.
 -- Its functions live on it too: this chunk is at Lua's limit of 200 locals.
@@ -1257,47 +1252,6 @@ local function selectAllCode()
 	return true
 end
 
--- The thumb, where it is now. Nil when everything fits and no bar is drawn.
-local function scrollerThumb()
-	return UiScrollerAt(barX1, listBottom, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, scrollOffset())
-end
-
--- Scrolls so the thumb's top sits where the cursor has dragged it. The offset taken at the
--- grab is what keeps this relative: the thumb moves with the cursor rather than centring
--- itself on it, so taking hold of it does not shift the view before the drag begins.
-local function scrollFromY(y)
-	local _, _, trackTop, travel = scrollerThumb()
-	if not travel or travel <= 0 then
-		return
-	end
-
-	local f = (trackTop - (y - dragGrab)) / travel
-	if f < 0 then
-		f = 0
-	elseif f > 1 then
-		f = 1
-	end
-	setScroll(mathFloor(f * maxScroll() + 0.5))
-end
-
--- Takes hold of the bar. On the thumb that is a grab, and the view stays where it is; on
--- the track either side of it the thumb jumps to the cursor first and is then dragged from
--- its middle, which is what a press on empty track is asking for.
-local function grabScroller(y)
-	local top, height = scrollerThumb()
-	if not top then
-		return
-	end
-
-	dragging = true
-	if y <= top and y >= top - height then
-		dragGrab = y - top
-	else
-		dragGrab = -mathFloor(height * 0.5)
-		scrollFromY(y)
-	end
-end
-
 -- Rebuilds the list from the blocks, honouring the category column, the search box and
 -- the changed-only toggle. A block whose heading matches the search shows all of its rows,
 -- so hunting for a category by name works the way hunting for an option does.
@@ -1421,6 +1375,18 @@ local function setCatScroll(n)
 	catScroll = (n < 0 and 0) or (n > m and m) or n
 end
 
+-- Over the entries, not over the whole card: the last row rarely lands exactly on the bottom,
+-- and a bar running past it reads as a column with dead space at its foot - and makes the
+-- thumb say more fits than does. No size at all while every entry fits.
+local function catBarRect()
+	if maxCatScroll() == 0 then
+		return 0, 0, 0, 0
+	end
+	local bx2 = area.x1 + metrics.sidebarW - metrics.catInset
+
+	return bx2 - metrics.catBarW, sidebarTop() - catPageRows() * metrics.catRowHeight, bx2, sidebarTop()
+end
+
 -- Rebuilds every rect against the panel size. Whole pixels throughout, so glyph and
 -- rectangle edges do not land between pixels.
 local function setLayout()
@@ -1461,8 +1427,8 @@ local function setLayout()
 	metrics.stripPad = mathMax(2, mathFloor(6 * s))
 	metrics.stripGap = mathMax(2, mathFloor(8 * s))
 	metrics.stripMin = mathMax(8, mathFloor(12 * s))
-	metrics.barW = mathFloor(14 * s)
-	metrics.catBarW = mathMax(3, mathFloor(6 * s))
+	metrics.barW = WG.FlowUI.Scroller.width(s)
+	metrics.catBarW = WG.FlowUI.Scroller.width(s)
 	-- Rounded like the settings panel's inner elements, which take a share of this too.
 	metrics.csPanel = mathFloor(elementCorner)
 	metrics.csSmall = mathFloor(elementCorner * 0.66)
@@ -2111,22 +2077,8 @@ local function drawSidebar()
 		end
 	end
 
-	-- A bar of its own, and a slim one: the column is narrow and this only shows up when
-	-- there are more categories than the card has room for.
-	if maxCatScroll() > 0 then
-		local bx2 = area.x1 + metrics.sidebarW - metrics.catInset
-		-- Over the entries, not over the whole card: the last row rarely lands exactly on the
-		-- bottom, and a bar running past it reads as a column with dead space at its foot -
-		-- and makes the thumb say more fits than does.
-		UiScroller(
-			bx2 - metrics.catBarW,
-			sidebarTop() - catPageRows() * metrics.catRowHeight,
-			bx2,
-			sidebarTop(),
-			#categories * metrics.catRowHeight,
-			catScroll * metrics.catRowHeight
-		)
-	end
+	catScroller:setRect(catBarRect())
+	catScroller:draw(hover.catBar == 1)
 end
 
 -- The filter toggle and its caption. The search field draws itself, live, so its caret
@@ -2194,19 +2146,8 @@ local function drawPanel()
 	unitStrip.draw()
 	drawRows()
 
-	local base = scrollOffset()
-	if rowMetrics.totalH > 0 then
-		UiScroller(
-			barX1,
-			listBottom,
-			area.x2 - metrics.edgeInset,
-			listTop,
-			rowMetrics.totalH,
-			base,
-			hover.bar == 1,
-			dragging
-		)
-	end
+	listScroller:setRect(barX1, listBottom, area.x2 - metrics.edgeInset, listTop)
+	listScroller:draw(hover.bar == 1)
 
 	flushText(1, font)
 	flushText(2, fontMono)
@@ -2272,13 +2213,12 @@ local function panelSignature(mx, my)
 	elseif mx >= listX1 and mx <= listRight then
 		hover.row = rowAt(my) or 0
 		hover.option = (hover.row > 0 and unitStrip.optionAt(mx, my)) and 1 or 0
-	elseif mx >= barX1 and mx <= area.x2 then
-		-- The thumb itself, not the track: it is the part that can be taken hold of, so it
-		-- is the part that lights up.
-		local top, height = scrollerThumb()
-		if top and my <= top and my >= top - height then
-			hover.bar = 1
-		end
+	elseif listScroller:isOverThumb(mx, my) then
+		hover.bar = 1
+	end
+	hover.catBar = catScroller:isOverThumb(mx, my) and 1 or 0
+	if math_isInRect(mx, my, catBarRect()) then
+		hover.sb = 0
 	end
 
 	return hover.sb
@@ -2305,7 +2245,11 @@ local function panelSignature(mx, my)
 		.. "|"
 		.. selTo
 		.. "|"
-		.. (dragging and 1 or 0)
+		.. (listScroller:isDragging() and 1 or 0)
+		.. "|"
+		.. hover.catBar
+		.. "|"
+		.. (catScroller:isDragging() and 1 or 0)
 end
 
 ----------------------------------------------------------------
@@ -2355,8 +2299,14 @@ function widget:ViewResize()
 
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
-	UiScroller = WG.FlowUI.Draw.Scroller
-	UiScrollerAt = WG.FlowUI.Draw.ScrollerGeometry
+	listScroller = WG.FlowUI.Scroller.new(function()
+		local position = scrollOffset()
+
+		return rowMetrics.totalH, position, maxScroll()
+	end)
+	catScroller = WG.FlowUI.Scroller.new(function()
+		return #categories * metrics.catRowHeight, catScroll * metrics.catRowHeight, maxCatScroll()
+	end)
 	Highlight = WG.FlowUI.Draw.SelectHighlight
 	UiToggle = WG.FlowUI.Draw.Toggle
 	UiUnit = WG.FlowUI.Draw.Unit
@@ -2392,12 +2342,13 @@ function widget:DrawScreen()
 	glColor(1, 1, 1, 1)
 
 	local mx, my, lmb = spGetMouseState()
-	if dragging then
-		if lmb then
-			scrollFromY(my)
-		else
-			dragging = false
-		end
+	local step = listScroller:drag(my, lmb)
+	if step then
+		setScroll(step)
+	end
+	local catStep = catScroller:drag(my, lmb)
+	if catStep then
+		setCatScroll(catStep)
 	end
 
 	if selecting then
@@ -2647,7 +2598,13 @@ local function mouseEvent(x, y, button, release)
 
 				local i = sidebarIndexAt(x, y)
 				local unit = unitStrip.indexAt(x, y)
-				if math_isInRect(x, y, toggleHit[1], toggleHit[2], toggleHit[3], toggleHit[4]) then
+				-- Ahead of the entries, which reach under the bar and would take the press as a pick.
+				if math_isInRect(x, y, catBarRect()) then
+					local step = catScroller:press(y)
+					if step then
+						setCatScroll(step)
+					end
+				elseif math_isInRect(x, y, toggleHit[1], toggleHit[2], toggleHit[3], toggleHit[4]) then
 					clearSelection()
 					changedOnly = not changedOnly
 					setScroll(0)
@@ -2668,7 +2625,10 @@ local function mouseEvent(x, y, button, release)
 					-- The strip between the bar and the panel edge stays grabbable too. The
 					-- selection survives it: scrolling to reach more of the source is part of
 					-- selecting it, not a change of mind.
-					grabScroller(y)
+					local step = listScroller:press(y)
+					if step then
+						setScroll(step)
+					end
 				elseif math_isInRect(x, y, listX1, listBottom, listRight, listTop) then
 					-- Source is the only thing here worth taking elsewhere, so it is the only
 					-- thing that selects; a press on any other row puts the selection down.
