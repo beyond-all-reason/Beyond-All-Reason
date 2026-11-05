@@ -85,7 +85,7 @@ local function updateTrackedArea(trackedArea)
 			if #left > 0 then
 				tracker.onUnitsLeft(left, trackingID, tracker.owner)
 			end
-			if #entered > 0 then
+			if #entered > 0 and areaTrackers[trackingID] then
 				tracker.onUnitsEntered(entered, trackingID, tracker.owner)
 			end
 			tracker.unitIDs = insideNow
