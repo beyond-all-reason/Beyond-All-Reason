@@ -18,7 +18,8 @@ if gadget and not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == false then
+local tractorBeamMode = Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam
+if not tractorBeamMode or tractorBeamMode == "disabled" then
 	Spring.Echo("Custom transports disabled via modoption, skipping transport API upget")
 	return false
 end
@@ -55,6 +56,8 @@ local SEATS_TO_PAD_SIZE = { -- footprint size of the unload pad to spawn for a g
 	[15] = 12,
 	[16] = 10,
 }
+
+local CMD_LOAD_UNIT = 39752 -- successive load, defined by the Transport Handler gadget
 
 -- VARIABLES
 local cachedUnitSizes = {} -- unitDefID -> size, cached for performance
@@ -207,15 +210,40 @@ function TransportAPI.GetPassengerSize(unitID)
 end
 
 ---@param transporterID number
+---@return table passengerIDs carried units plus the single-unit loads still in the queue
+function TransportAPI.GetExpectedCargo(transporterID)
+	local cargo = {}
+	local carried = spGetUnitIsTransporting(transporterID)
+	if carried then
+		for i = 1, #carried do
+			cargo[#cargo + 1] = carried[i]
+		end
+	end
+	local Q = spGetUnitCommands(transporterID, -1)
+	if Q then
+		for i = 1, #Q do
+			local cmd = Q[i]
+			if cmd.id == CMD_LOAD_UNIT and spValidUnitID(cmd.params[1]) then
+				cargo[#cargo + 1] = cmd.params[1]
+			end
+		end
+	end
+	return cargo
+end
+
+---@param transporterID number
 ---@param passengerID number|nil
+---@param queued boolean|nil the unload goes behind the current queue: count queued loads as cargo
 ---@return number|nil padTypeDefID
-function TransportAPI.GetUnloadPadType(transporterID, passengerID)
+function TransportAPI.GetUnloadPadType(transporterID, passengerID, queued)
 	local transporterSeats = spGetUnitRulesParam(transporterID, "transporterSeats") -- set by CargoHandler
 	if not transporterSeats then
 		spEcho("Error, GetUnloadPadType expects a valid transporter ID as 1st arg, transporterID "..transporterID.." does not point to a valid transporter ID")
 		return nil
 	end
-	local passengers = passengerID and {passengerID} or spGetUnitIsTransporting(transporterID)
+	local passengers = passengerID and {passengerID}
+		or (queued and TransportAPI.GetExpectedCargo(transporterID))
+		or spGetUnitIsTransporting(transporterID)
 	local suffix = TransportAPI.HasAmphibCargo(passengers) and "_amphib" or ""
 	local padSize = SEATS_TO_PAD_SIZE[transporterSeats] or 10
 	local padString = "unloadsize"..tostring(padSize)..suffix

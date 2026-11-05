@@ -1174,7 +1174,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			end
 		end
 
-		local newPosX, newPosY, newPosZ = spClosestBuildPos(unitTeam, GetUnloadPadType(unitID, cmdParams[4]), posX, posY, posZ, 512, 0, 0)
+		local newPosX, newPosY, newPosZ = spClosestBuildPos(unitTeam, GetUnloadPadType(unitID, cmdParams[4], cmdOptions.shift), posX, posY, posZ, 512, 0, 0)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
 			reissueOrder(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions, cmdTag, fromInsert)
