@@ -19,6 +19,7 @@ return {
 		speed = 60.0,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGBART.s3o",
 		script = "Units/LEGBART.cob",

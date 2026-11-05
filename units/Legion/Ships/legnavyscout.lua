@@ -20,6 +20,7 @@ return {
 		speed = 97,
 		minwaterdepth = 12,
 		movementclass = "BOAT3",
+		movestate = 0,
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/legnavyscout.s3o",
 		script = "Units/legnavyscout.cob",

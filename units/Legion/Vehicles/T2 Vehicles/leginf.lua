@@ -23,6 +23,7 @@ return {
 		speed = 37.5,
 		maxwaterdepth = 15,
 		movementclass = "HTANK4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/leginf.s3o",
 		script = "Units/LEGINF.cob",

@@ -21,7 +21,7 @@ return {
 		speed = 160.0,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
-		--movestate = 0,
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGSCOUT.s3o",
 		script = "Units/LEGSCOUT.cob",
