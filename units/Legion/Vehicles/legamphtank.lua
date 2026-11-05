@@ -44,7 +44,7 @@ return {
 			kickback = "-2.7",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			paralyzemultiplier = 0.125,
+			paralyzemultiplier = 0.2,
 			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {

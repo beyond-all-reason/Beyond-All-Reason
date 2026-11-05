@@ -79,7 +79,7 @@ return {
 			firestateoncloak = 0,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			paralyzemultiplier = 0.025,
+			paralyzemultiplier = 0,
 			reaimtime = 5,
 			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
