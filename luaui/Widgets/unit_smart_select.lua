@@ -532,9 +532,14 @@ function widget:Initialize()
 	-- Function to set the reference selection for external box selections
 	WG.SmartSelect_SetReference = function()
 		externalSelectionReference = {}
+		referenceSelectionTypes = {}
 		local current = spGetSelectedUnits()
 		for i = 1, #current do
 			externalSelectionReference[current[i]] = true
+			local udid = spGetUnitDefID(current[i])
+			if udid then
+				referenceSelectionTypes[udid] = 1
+			end
 		end
 	end
 
@@ -544,10 +549,16 @@ function widget:Initialize()
 	end
 
 	-- Function to handle external unit selections (e.g., from PIP widget)
-	WG.SmartSelect_SelectUnits = function(units)
+	-- ignoredMods: optional set of modifier names the caller's own key holds down (the loop select key is also selectbox_idle)
+	WG.SmartSelect_SelectUnits = function(units, ignoredMods)
 		-- Apply smart select filtering to the provided units
 		local mouseSelection = units
 		local uid, udid
+		ignoredMods = ignoredMods or {}
+		local idle = mods.idle and not ignoredMods.idle
+		local same = mods.same and not ignoredMods.same
+		local mobile = mods.mobile and not ignoredMods.mobile
+		local anyType = (mods.any and not ignoredMods.any) or (mods.all and not ignoredMods.all)
 
 		local included = {}
 
@@ -616,7 +627,7 @@ function widget:Initialize()
 		end
 
 		-- Apply idle filter if active
-		if mods.idle then
+		if idle then
 			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
@@ -628,7 +639,7 @@ function widget:Initialize()
 		end
 
 		-- Apply same-type filter if active
-		if mods.same and next(referenceSelectionTypes) ~= nil then
+		if same and next(referenceSelectionTypes) ~= nil then
 			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
@@ -640,7 +651,7 @@ function widget:Initialize()
 		end
 
 		-- Apply mobile filter if active
-		if mods.mobile then
+		if mobile then
 			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
@@ -649,7 +660,7 @@ function widget:Initialize()
 				end
 			end
 			mouseSelection = included
-		elseif selectBuildingsWithMobile == false and (mods.any == false and mods.all == false) then
+		elseif selectBuildingsWithMobile == false and not anyType then
 			-- Filter out buildings if mobile units are present
 			local mobiles = false
 			for i = 1, #mouseSelection do

@@ -18,7 +18,7 @@
 				<div class="text-lg text-light">FEATURES</div>
 			</div>
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-sm text-keybind">Shift+Click to select multiple</div>
+				<div class="text-sm text-keybind">Ctrl+Click: add/remove · Shift+Click: range</div>
 				<div class="text-sm text-keybind"><span id="selected-count">0</span> selected</div>
 			</div>
 			<div id="category-buttons" class="fp-cat-row">

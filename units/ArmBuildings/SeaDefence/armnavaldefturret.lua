@@ -28,7 +28,7 @@ return {
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
 			model_author = "ZephyrSkies",
-			normaltex = "unittextures/arm_normal.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "ArmBuildings/SeaDefence",
 			unitgroup = "weapon",

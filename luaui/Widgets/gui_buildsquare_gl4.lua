@@ -2104,6 +2104,67 @@ local function collectPregameBuildSquare()
 	widget:DrawBuildSquare(unitDefID, x, z, facing, pregameStatuses)
 end
 
+-- A placed blueprint's buildings (api_blueprint), drawn as single buildings' previews with predicted
+-- statuses (as the pregame one's). A new spot starts all open or all blocked (the blueprint's own build
+-- test); the spots are checked round the list, the new ones first, up to a cell budget per frame
+local blueprintSquares = { spots = {}, nextCheck = 1, budget = 0 }
+
+-- a spot's statuses predicted again (its cells off the frame's budget)
+function blueprintSquares.check(spot)
+	local b = spot.building
+	local unitDef = UnitDefs[b.unitDefID]
+	local footprint = getFootprintData(b.unitDefID, b.facing)
+	if unitDef and footprint then
+		local valid = b.buildable and spTestBuildOrder(b.unitDefID, b.x, b.y, b.z, b.facing) ~= 0
+		fillPredictedStatuses(spot.statuses, unitDef, b.x, b.y, b.z, footprint, valid)
+		blueprintSquares.budget = blueprintSquares.budget - footprint.cellCount
+	end
+end
+
+local function collectBlueprintBuildSquares()
+	local api = WG.api_blueprint
+	local buildings = api and api.getPreviewBuildings and api.getPreviewBuildings()
+	local count = buildings and #buildings or 0
+	if count == 0 then
+		return
+	end
+	local spots, firstNew = blueprintSquares.spots, nil
+	for i = 1, count do
+		local b, spot = buildings[i], spots[i]
+		if not spot then
+			spot = { statuses = {} }
+			spots[i] = spot
+		end
+		if spot.building ~= b then
+			spot.building = b
+			firstNew = firstNew or i
+			local footprint = getFootprintData(b.unitDefID, b.facing)
+			local cellCount = footprint and footprint.cellCount or 0
+			local statuses, status = spot.statuses, b.valid and STATUS_OPEN or STATUS_BLOCKED
+			for c = 1, cellCount do
+				statuses[c] = status
+			end
+			for c = cellCount + 1, #statuses do
+				statuses[c] = nil
+			end
+		end
+	end
+	local index, checked = firstNew or blueprintSquares.nextCheck, 0
+	blueprintSquares.budget = TARGET_STATUS_CELLS_PER_GAME_FRAME
+	while blueprintSquares.budget > 0 and checked < count do
+		if index > count then
+			index = 1
+		end
+		blueprintSquares.check(spots[index])
+		index, checked = index + 1, checked + 1
+	end
+	blueprintSquares.nextCheck = index
+	for i = 1, count do
+		local b = buildings[i]
+		widget:DrawBuildSquare(b.unitDefID, b.x, b.z, b.facing, spots[i].statuses)
+	end
+end
+
 local function rebuildBatchBuffer()
 	tracy.ZoneBeginN("W:BuildSquare:BuildBatch")
 	local dataIndex = 0
@@ -2316,6 +2377,7 @@ end
 function widget:DrawWorldPreUnit()
 	local drawFrame = beginBuildSquareDrawFrame(spGetDrawFrame())
 	collectPregameBuildSquare()
+	collectBlueprintBuildSquares()
 	if collectedPreviewCount == 0 or collectedDrawFrame < drawFrame - 1 or collectedDrawFrame > drawFrame then
 		batchInstanceCount = 0
 		minimapInstanceCount = 0

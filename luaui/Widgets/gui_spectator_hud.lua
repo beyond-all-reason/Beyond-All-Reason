@@ -823,7 +823,7 @@ end
 local function createTextures()
 	local textureProperties = {
 		target = GL.TEXTURE_2D,
-		format = GL.RGBA,
+		format = GL.RGBA8,
 		fbo = true,
 	}
 

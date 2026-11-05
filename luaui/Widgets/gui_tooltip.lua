@@ -81,7 +81,7 @@ local function getPooledTexture(width, height, key)
 	-- Create a new texture
 	return gl.CreateTexture(w, h, {
 		target = GL.TEXTURE_2D,
-		format = GL.RGBA,
+		format = GL.RGBA8,
 		fbo = true,
 	})
 end

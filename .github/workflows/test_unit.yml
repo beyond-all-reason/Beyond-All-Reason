@@ -5,13 +5,42 @@ on:
     branches: ['**'] # needs to tolerate a slash but not run on tag pushes
   pull_request:
     branches: ['**'] # needs to tolerate a slash but not run on tag pushes
+  schedule:
+    - cron: '0 4 * * *' # nightly, includes specs that pull requests skip
+  workflow_dispatch:
 
 jobs:
+  pull-request-for-push:
+    if: github.event_name == 'push'
+    permissions:
+      pull-requests: read
+    uses: ./.github/workflows/pull_request_for_push.yml
+
   busted:
-    runs-on: ubuntu-latest
+    needs: pull-request-for-push
+    if: ${{ !cancelled() && needs.pull-request-for-push.outputs.has-pull-request != 'true' }}
+    # lx needs libgpgme.so.11, which ubuntu-26.04 doesn't have
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
 
     steps:
     - uses: actions/checkout@v5
+      with:
+        fetch-depth: 2 # the merge commit and base tip
+
+    - name: Skip mission specs
+      if: github.event_name == 'pull_request'
+      env:
+        MISSION_SPEC_INPUTS: >-
+          ^(luarules/mission_api/|spec/mission_api/|luarules/gadgets/api_mission|luaui/Widgets/api_mission|singleplayer/|common/|gamedata/|spec/builders/|spec/support/|spec/spec_helper\.lua$|\.github/workflows/test_unit\.yml$|\.busted$|lux\.)
+      run: |
+        changed=$(git diff --name-only HEAD^1 HEAD)
+        if ! grep -qE "$MISSION_SPEC_INPUTS" <<< "$changed"; then
+          echo "SPEC_SKIP=mission_api" >> "$GITHUB_ENV"
+          echo "::notice title=Mission specs skipped::No changed file is a mission spec input. Pushes to master and the nightly run cover them."
+        fi
 
     - name: Install Lua 5.1
       run: |
@@ -46,3 +75,18 @@ jobs:
       env:
         SPEC_ORDER: reverse
       run: lx --lua-version 5.1 test
+
+    - name: Report failures from scheduled runs
+      if: failure() && github.event_name == 'schedule'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        TITLE: Scheduled unit tests failed
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        issue=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty')
+        if [ -n "$issue" ]; then
+          gh issue comment "$issue" --body "Failed on $GITHUB_SHA: $RUN_URL"
+        else
+          gh issue create --title "$TITLE" --body "Failed on $GITHUB_SHA: $RUN_URL"
+        fi

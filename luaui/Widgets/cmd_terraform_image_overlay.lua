@@ -255,9 +255,6 @@ function widget:Initialize()
 			return selectFile(nil)
 		end,
 		setEnabled = setEnabled,
-		toggle = function()
-			return setEnabled(not st.enabled)
-		end,
 		isEnabled = function()
 			return st.enabled and texName ~= nil
 		end,
@@ -275,10 +272,6 @@ function widget:Initialize()
 			if z ~= nil then
 				st.offsetZ = clamp(tonumber(z) or st.offsetZ, -1, 1)
 			end
-		end,
-		nudge = function(dx, dz)
-			st.offsetX = clamp(st.offsetX + (tonumber(dx) or 0), -1, 1)
-			st.offsetZ = clamp(st.offsetZ + (tonumber(dz) or 0), -1, 1)
 		end,
 		setScale = function(v)
 			st.scale = clamp(tonumber(v) or st.scale, 0.05, 8)

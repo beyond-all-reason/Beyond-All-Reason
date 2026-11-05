@@ -94,9 +94,6 @@ local function readAction(entry, keyPrefix, dir, seen)
 	if named == "" then
 		return nil, "names no action"
 	end
-	if not isNonEmptyString(entry.label) then
-		return nil, "names no label"
-	end
 	local modifier = entry.alwaysModifier
 	if modifier ~= nil and modifier ~= "any" and modifier ~= "shift" then
 		return nil, 'alwaysModifier must be "any" or "shift"'
@@ -112,7 +109,7 @@ local function readAction(entry, keyPrefix, dir, seen)
 
 	return {
 		action = action,
-		label = keyPrefix .. entry.label,
+		label = relativeTo(keyPrefix, entry.label),
 		description = relativeTo(keyPrefix, entry.description),
 		alwaysModifier = modifier,
 		icon = relativeTo(dir, entry.icon),

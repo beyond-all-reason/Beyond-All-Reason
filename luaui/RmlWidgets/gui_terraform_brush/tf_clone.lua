@@ -2,9 +2,6 @@
 local M = {}
 
 function M.attach(doc, ctx)
-	if ctx.attachTBMirrorControls then
-		ctx.attachTBMirrorControls(doc, "cl")
-	end
 	local widgetState = ctx.widgetState
 	local trackSliderDrag = ctx.trackSliderDrag
 
@@ -12,7 +9,7 @@ function M.attach(doc, ctx)
 
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 	-- Slider change events are wired declaratively via data-event-change= in RML.
-	for _, sid in ipairs({ "cl-rotation", "cl-height", "cl-history" }) do
+	for _, sid in ipairs({ "cl-rotation", "cl-height", "cl-history", "cl-opacity" }) do
 		local sl = doc:GetElementById("slider-" .. sid)
 		if sl then
 			trackSliderDrag(sl, sid)
@@ -86,6 +83,14 @@ function M.sync(doc, ctx, clState, setSummary)
 				heightNumbox:SetAttribute("value", tostring(math.floor(clState.pasteHeightOffset)))
 			end
 
+			-- Ghost opacity: dirty-checked, a raw SetAttribute raises a change every frame
+			if ds ~= "cl-opacity" and clState and clState.previewOpacity then
+				local v = tostring(math.floor(clState.previewOpacity * 100 + 0.5))
+				local setAttr = ctx.setAttrValueIfChanged
+				setAttr(getCachedEl(doc, "slider-cl-opacity"), "slider-cl-opacity", v)
+				setAttr(getCachedEl(doc, "slider-cl-opacity-numbox"), "slider-cl-opacity-numbox", v)
+			end
+
 			-- Sync mirror buttons (dm)
 			if clState and widgetState.dmHandle then
 				local dm = widgetState.dmHandle
@@ -138,6 +143,10 @@ function M.sync(doc, ctx, clState, setSummary)
 				if widgetState.dmHandle.clQuality ~= tq then
 					widgetState.dmHandle.clQuality = tq
 				end
+				local pb = clState.pasteBlend or "replace"
+				if widgetState.dmHandle.clBlend ~= pb then
+					widgetState.dmHandle.clBlend = pb
+				end
 			end
 
 			-- Sync history slider
@@ -181,9 +190,9 @@ function M.sync(doc, ctx, clState, setSummary)
 	if doc and ctx.setDisabledIds and clState then
 		local cs = clState.state or "idle"
 		local hasBuf = clState.hasBuffer == true
-		local hasSel = (cs == "selecting" or cs == "box_drawn")
+		local hasSel = (cs == "selecting" or cs == "box_drawn" or cs == "copied")
 		local inPaste = (cs == "paste_preview")
-		-- Copy: needs an active selection
+		-- Copy: needs an active selection (a copied box can be copied again, as Ctrl+C does)
 		ctx.setDisabled(doc, "btn-cl-copy", not hasSel)
 		-- Paste: needs a buffer
 		ctx.setDisabled(doc, "btn-cl-paste", not hasBuf)

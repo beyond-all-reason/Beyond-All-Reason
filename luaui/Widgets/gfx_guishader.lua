@@ -46,6 +46,11 @@ local NON_POWER_OF_TWO = gl.HasExtension("GL_ARB_texture_non_power_of_two")
 local TILE_SIZE = 32
 -- the tile mask is reduced from the stencil in two passes, through blocks of this many pixels
 local MASK_STEP = 8
+-- up to this many rects (and no dlists) go to the shader as uniforms instead of through the stencil and tile mask
+local MAX_RECTS = 16
+local UNIFORM_TYPE_FLOAT = 2 -- gl.UniformArray: glUniform1fv
+-- regions count of a stencil that needs the stencil texture
+local STENCIL_TEXTURE = -1
 
 -- Localized GL functions for hot paths
 local glTexture = gl.Texture
@@ -53,6 +58,9 @@ local glBlending = gl.Blending
 local glColor = gl.Color
 local glCopyToTexture = gl.CopyToTexture
 local glRenderToTexture = gl.RenderToTexture
+local glRawBindFBO = gl.RawBindFBO
+local glViewport = gl.Viewport
+local glUniformArray = gl.UniformArray
 local glRect = gl.Rect
 local glClear = gl.Clear
 local glScissor = gl.Scissor
@@ -71,6 +79,8 @@ local deleteDlistQueue = {}
 local blurShader ---@type LuaShader
 local tileMaskShader ---@type LuaShader
 local toScreenUniform ---@type integer
+local rectsUniform ---@type integer
+local rectCountUniform ---@type integer
 
 -- alpha of the regions to blur
 local stenciltex ---@type string
@@ -82,6 +92,12 @@ local maskBlocks ---@type string
 -- targets of the offscreen passes, B also takes the screen copy for DrawScreen
 local blurTexA ---@type string
 local blurTexB ---@type string
+local blurFboA ---@type FBO?
+local blurFboB ---@type FBO?
+
+-- per stencil: how many rects describe its regions (rect data x0, y0, x1, y1 sorted), or STENCIL_TEXTURE
+local worldRegions, screenRegions = 0, 0
+local worldRectData, screenRectData = {}, {}
 
 local tileVAO ---@type VAO
 local tileObjects = {}
@@ -119,8 +135,10 @@ local cachedIvsx = 0.5 / vsx
 local cachedIvsy = 0.5 / vsy
 local uniformsDirty = true
 
+-- shared by both blur stages: the regions as rects (x0, y0, x1, y1 in pixels, sorted) when rectCount > 0
+local regionUniforms = "uniform float rects[" .. MAX_RECTS * 4 .. "];\nuniform int rectCount;\n"
+
 local tileVertexShader = [[
-#version 330
 layout (location = 0) in vec2 corner;
 layout (location = 1) in vec2 tile;
 
@@ -134,13 +152,26 @@ out vec2 texCoord;
 void main(void)
 {
 	ivec2 t = ivec2(tile);
-	float covered = texelFetch(tileMask, t, 0).r;
-	if (toScreen == 0) {
-		// the next pass samples a few pixels past a region's edge, so offscreen passes also fill the tiles around it
-		ivec2 last = textureSize(tileMask, 0) - 1;
-		for (int y = -1; y <= 1; ++y) {
-			for (int x = -1; x <= 1; ++x) {
-				covered = max(covered, texelFetch(tileMask, clamp(t + ivec2(x, y), ivec2(0), last), 0).r);
+	float covered = 0.0;
+	// the next pass samples a few pixels past a region's edge, so offscreen passes also fill the tiles around it
+	if (rectCount > 0) {
+		float grow = toScreen == 0 ? tileSize : 0.0;
+		vec2 lo = tile * tileSize - grow;
+		vec2 hi = (tile + 1.0) * tileSize + grow;
+		for (int i = 0; i < rectCount; ++i) {
+			int k = i * 4;
+			if (rects[k] < hi.x && rects[k + 1] < hi.y && rects[k + 2] > lo.x && rects[k + 3] > lo.y) {
+				covered = 1.0;
+			}
+		}
+	} else {
+		covered = texelFetch(tileMask, t, 0).r;
+		if (toScreen == 0) {
+			ivec2 last = textureSize(tileMask, 0) - 1;
+			for (int y = -1; y <= 1; ++y) {
+				for (int x = -1; x <= 1; ++x) {
+					covered = max(covered, texelFetch(tileMask, clamp(t + ivec2(x, y), ivec2(0), last), 0).r);
+				}
 			}
 		}
 	}
@@ -158,9 +189,26 @@ uniform float ivsx;
 uniform float ivsy;
 uniform float blurScale;
 uniform int toScreen;
+uniform vec2 viewSize;
 
 in vec2 texCoord;
 out vec4 fragColor;
+
+// the stencil's alpha at this pixel; rects cover the pixels whose centres they hold, like the stencil's glRect
+float stencilAlpha(void)
+{
+	if (rectCount > 0) {
+		vec2 pixel = floor(texCoord * viewSize) + 0.5;
+		for (int i = 0; i < rectCount; ++i) {
+			int k = i * 4;
+			if (pixel.x >= rects[k] && pixel.y >= rects[k + 1] && pixel.x < rects[k + 2] && pixel.y < rects[k + 3]) {
+				return 1.0;
+			}
+		}
+		return 0.0;
+	}
+	return texture(tex2, texCoord).a;
+}
 
 #ifndef INTEL_GPU
 vec2 quadGetQuadVector(vec2 screenCoords){
@@ -175,7 +223,7 @@ void main(void)
 {
 #ifdef INTEL_GPU
 	// Intel without fine derivatives: a 9-tap weighted blur that needs no dFdx/dFdy
-	float stencil = texture(tex2, texCoord).a;
+	float stencil = stencilAlpha();
 	if (stencil < 0.01)
 	{
 		if (toScreen == 1) {
@@ -229,7 +277,7 @@ void main(void)
 	sum += inputadjx + inputadjy + inputdiag;
 	vec4 blurred = sum / 16.0;
 
-	float stencil = texture(tex2, texCoord).a;
+	float stencil = stencilAlpha();
 	if (stencil < 0.01)
 	{
 		fragColor = toScreen == 1 ? vec4(0.0) : texelFetch(tex0, ivec2(gl_FragCoord.xy), 0);
@@ -373,6 +421,55 @@ local function DrawStencilTexture(world, fullscreen)
 	glBlending(true)
 end
 
+-- Writes the stencil's regions into `out` as sorted rects and returns how many, or nil when they
+-- need the stencil texture: a dlist region, or more rects than the shader takes.
+local function CollectRects(world, fullscreen, out)
+	local count = 0
+	if fullscreen then
+		out[1], out[2], out[3], out[4] = 0, 0, vsx, vsy
+		count = 1
+	else
+		local owners = world and dlistOwners or screenDlistOwners
+		for name in pairs(world and guishaderDlists or guishaderScreenDlists) do
+			if widgetHandler:ModalAllows(owners[name]) then
+				return nil
+			end
+		end
+		owners = world and rectOwners or screenRectOwners
+		for name, rect in pairs(world and guishaderRects or guishaderScreenRects) do
+			if widgetHandler:ModalAllows(owners[name]) then
+				if count == MAX_RECTS then
+					return nil
+				end
+				local i = count * 4
+				out[i + 1] = mathMin(rect[1], rect[3])
+				out[i + 2] = mathMin(rect[2], rect[4])
+				out[i + 3] = mathMax(rect[1], rect[3])
+				out[i + 4] = mathMax(rect[2], rect[4])
+				count = count + 1
+			end
+		end
+	end
+	for i = #out, count * 4 + 1, -1 do
+		out[i] = nil
+	end
+	return count
+end
+
+-- Rect-only regions skip the stencil and tile mask passes: the shader tests the rects itself.
+local function UpdateRegions(world, fullscreen)
+	local count = CollectRects(world, fullscreen, world and worldRectData or screenRectData)
+	if not count then
+		DrawStencilTexture(world, fullscreen)
+		count = STENCIL_TEXTURE
+	end
+	if world then
+		worldRegions = count
+	else
+		screenRegions = count
+	end
+end
+
 -- Offscreen passes fill a tile around each region's tiles and sample a few pixels past those,
 -- so two tiles of margin cover everything the blur reads.
 local function UpdateScreenCopyRegion(fullscreen)
@@ -400,11 +497,15 @@ local function UpdateScreenCopyRegion(fullscreen)
 	copyH = mathMin(vsy, (mathFloor(y1 / TILE_SIZE) + 1) * TILE_SIZE + margin) - copyY
 end
 
--- Blurs `source` inside the stencil's regions: the extra passes go through the offscreen
--- textures and the last one is blended onto the screen. Expects blending enabled.
-local function DrawBlur(source, stencil, mask)
-	glTexture(1, mask)
-	glTexture(2, stencil)
+-- Blurs `source` inside the stencil's regions (`regions` rects in `rectData`, or the stencil
+-- textures): the extra passes go through the offscreen textures and the last one is blended
+-- onto the screen. Expects blending enabled.
+local function DrawBlur(source, regions, rectData, stencil, mask)
+	local useTextures = regions == STENCIL_TEXTURE
+	if useTextures then
+		glTexture(1, mask)
+		glTexture(2, stencil)
+	end
 	blurShader:Activate()
 	if uniformsDirty then
 		blurShader:SetUniform("ivsx", cachedIvsx)
@@ -413,35 +514,55 @@ local function DrawBlur(source, stencil, mask)
 		blurShader:SetUniform("viewSize", vsx, vsy)
 		uniformsDirty = false
 	end
+	if useTextures then
+		glUniformInt(rectCountUniform, 0)
+	else
+		glUniformArray(rectsUniform, UNIFORM_TYPE_FLOAT, rectData)
+		glUniformInt(rectCountUniform, regions)
+	end
 	if extraBlurPasses > 0 then
+		-- the passes chain the FBO binds, the same as gl.RenderToTexture without its rebind to the screen after each one
 		glScissor(false)
 		glBlending(false)
 		glUniformInt(toScreenUniform, 0)
+		local prevFBO
 		for pass = 1, extraBlurPasses do
-			local target = pass % 2 == 1 and blurTexA or blurTexB
+			local odd = pass % 2 == 1
 			glTexture(0, source)
-			glRenderToTexture(target, DrawTiles)
-			source = target
+			local target = odd and blurFboA or blurFboB
+			---@cast target -?
+			local bound = glRawBindFBO(target)
+			if pass == 1 then
+				prevFBO = bound
+				glViewport(0, 0, vsx, vsy)
+			end
+			DrawTiles()
+			source = odd and blurTexA or blurTexB
 		end
+		glRawBindFBO(nil, nil, prevFBO)
+		glViewport(vpx, vpy, vsx, vsy)
 		glUniformInt(toScreenUniform, 1)
 		glBlending(true)
 	end
 	glTexture(0, source)
 	DrawTiles()
 	blurShader:Deactivate()
-	glTexture(2, false)
-	glTexture(1, false)
+	if useTextures then
+		glTexture(2, false)
+		glTexture(1, false)
+	end
 	glTexture(false)
 end
 
-local function FboTexture(width, height, filter)
+-- `rawFbo`: the texture goes into an FBO of its own (gl.CreateFBO) instead of gl.RenderToTexture's
+local function FboTexture(width, height, filter, rawFbo)
 	return gl.CreateTexture(width, height, {
 		border = false,
 		min_filter = filter,
 		mag_filter = filter,
 		wrap_s = GL.CLAMP,
 		wrap_t = GL.CLAMP,
-		fbo = true,
+		fbo = not rawFbo,
 	})
 end
 
@@ -452,6 +573,13 @@ local function DeleteResources()
 	glDeleteTexture(tileMask)
 	glDeleteTexture(tileMaskScreen)
 	glDeleteTexture(maskBlocks)
+	if blurFboA then
+		gl.DeleteFBO(blurFboA)
+	end
+	if blurFboB then
+		gl.DeleteFBO(blurFboB)
+	end
+	blurFboA, blurFboB = nil, nil
 	glDeleteTexture(blurTexA)
 	glDeleteTexture(blurTexB)
 	for i = 1, #tileObjects do
@@ -500,13 +628,19 @@ local function CreateResources()
 	local stencil, stencilScreen = FboTexture(vsx, vsy, GL.NEAREST), FboTexture(vsx, vsy, GL.NEAREST)
 	local mask, maskScreen = FboTexture(tilesX, tilesY, GL.NEAREST), FboTexture(tilesX, tilesY, GL.NEAREST)
 	local blocks = FboTexture(mathCeil(vsx / MASK_STEP), mathCeil(vsy / MASK_STEP), GL.NEAREST)
-	local texA, texB = FboTexture(vsx, vsy, GL.LINEAR), FboTexture(vsx, vsy, GL.LINEAR)
+	local texA, texB = FboTexture(vsx, vsy, GL.LINEAR, true), FboTexture(vsx, vsy, GL.LINEAR, true)
 	if not (stencil and stencilScreen and mask and maskScreen and blocks and texA and texB) then
 		return false
 	end
 	stenciltex, stenciltexScreen, tileMask, tileMaskScreen = stencil, stencilScreen, mask, maskScreen
 	maskBlocks = blocks
 	blurTexA, blurTexB = texA, texB
+	local drawBuffers = { GL.COLOR_ATTACHMENT0_EXT }
+	blurFboA = gl.CreateFBO({ color0 = texA, drawbuffers = drawBuffers })
+	blurFboB = gl.CreateFBO({ color0 = texB, drawbuffers = drawBuffers })
+	if not (blurFboA and blurFboB and gl.IsValidFBO(blurFboA) and gl.IsValidFBO(blurFboB)) then
+		return false
+	end
 	return CreateTileVAO()
 end
 
@@ -553,14 +687,15 @@ end
 
 local function CreateBlurShader(header)
 	local shader = LuaShader({
-		vertex = tileVertexShader,
-		fragment = header .. blurFragmentShader,
+		vertex = "#version 330\n" .. regionUniforms .. tileVertexShader,
+		fragment = header .. regionUniforms .. blurFragmentShader,
 
 		uniformInt = {
 			tex0 = 0,
 			tileMask = 1,
 			tex2 = 2,
 			toScreen = 1,
+			rectCount = 0,
 		},
 		uniformFloat = {
 			ivsx = 0,
@@ -593,6 +728,9 @@ local function CreateShaders()
 	end
 	blurShader = shader
 	toScreenUniform = shader.uniformLocations.toScreen
+	rectCountUniform = shader.uniformLocations.rectCount
+	-- not shader:GetUniformLocation, that one needs the shader active
+	rectsUniform = gl.GetUniformLocation(shader:GetHandle(), "rects")
 
 	shader = LuaShader({
 		vertex = maskVertexShader,
@@ -668,11 +806,13 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 		glBlending(true)
 
 		if updateStencilTexture then
-			DrawStencilTexture(true)
+			UpdateRegions(true)
 			updateStencilTexture = false
 		end
 
-		DrawBlur(screencopy, stenciltex, tileMask)
+		if worldRegions ~= 0 then
+			DrawBlur(screencopy, worldRegions, worldRectData, stenciltex, tileMask)
+		end
 		glBlending(false)
 	end
 end
@@ -697,14 +837,14 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 		glBlending(true)
 
 		if updateStencilTextureScreen then
-			DrawStencilTexture(false, screenBlur)
+			UpdateRegions(false, screenBlur)
 			UpdateScreenCopyRegion(screenBlur)
 			updateStencilTextureScreen = false
 		end
 
-		if copyW > 0 then
+		if copyW > 0 and screenRegions ~= 0 then
 			glCopyToTexture(blurTexB, copyX, copyY, vpx + copyX, vpy + copyY, copyW, copyH)
-			DrawBlur(blurTexB, stenciltexScreen, tileMaskScreen)
+			DrawBlur(blurTexB, screenRegions, screenRectData, stenciltexScreen, tileMaskScreen)
 		end
 	end
 
@@ -730,6 +870,16 @@ end
 -- some widgets re-register an unchanged rect every frame, that must not rebuild the stencil
 local function sameRect(rect, left, top, right, bottom)
 	return rect ~= nil and rect[1] == left and rect[2] == top and rect[3] == right and rect[4] == bottom
+end
+
+-- a tooltip moves its rects every frame: their tables are reused
+local function setRect(rects, name, left, top, right, bottom)
+	local rect = rects[name]
+	if rect then
+		rect[1], rect[2], rect[3], rect[4] = left, top, right, bottom
+	else
+		rects[name] = { left, top, right, bottom }
+	end
 end
 
 function widget:Initialize()
@@ -778,7 +928,7 @@ function widget:Initialize()
 		if sameRect(guishaderRects[name], left, top, right, bottom) and rectOwners[name] == owner then
 			return
 		end
-		guishaderRects[name] = { left, top, right, bottom }
+		setRect(guishaderRects, name, left, top, right, bottom)
 		rectOwners[name] = owner
 		updateStencilTexture = true
 	end
@@ -811,6 +961,7 @@ function widget:Initialize()
 			deleteDlistQueue[#deleteDlistQueue + 1] = guishaderScreenDlists[name]
 			guishaderScreenDlists[name] = nil
 			screenDlistOwners[name] = nil
+			updateStencilTextureScreen = true
 		end
 		return found
 	end
@@ -818,7 +969,7 @@ function widget:Initialize()
 		if sameRect(guishaderScreenRects[name], left, top, right, bottom) and screenRectOwners[name] == owner then
 			return
 		end
-		guishaderScreenRects[name] = { left, top, right, bottom }
+		setRect(guishaderScreenRects, name, left, top, right, bottom)
 		screenRectOwners[name] = owner
 		updateStencilTextureScreen = true
 	end

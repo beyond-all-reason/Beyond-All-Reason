@@ -54,6 +54,11 @@
 				"overflowing": "Overflowing",
 				"wastingMetal": "Wasting metal",
 				"wastingEnergy": "Wasting energy",
+				"metalStall": "Metal stall imminent",
+				"energyStall": "Energy stall imminent",
+				"overflowingTooltip": "%{resource} above your share slider is being sent to allies who still have storage room.\nSpend it or build more storage to keep it for yourself.",
+				"wastingTooltip": "Your whole team's %{resource} storage is full: what is produced on top of it is lost.\nSpend it or build more storage.",
+				"stallTooltip": "%{resource} is about to run out: your builders will slow down to what your income allows.\nSpend less or increase your income.",
 				"shareMetalTooltipTitle": "Metal Share Slider",
 				"shareMetalTooltip": "Share excess metal above this point with your team",
 				"shareEnergyTooltipTitle": "Energy Share Slider",
@@ -63,7 +68,13 @@
 				"expenseTooltip": "%{resource} spending (per second)",
 				"storageTooltip": "%{resource} storage",
 				"conversionTooltipTitle": "Energy Conversion Slider",
-				"conversionTooltip": "Excess energy above this point\nwill power your Energy Converters"
+				"conversionTooltip": "Excess energy above this point\nwill power your Energy Converters",
+				"converterUsageTooltipTitle": "Energy Converter Usage",
+				"converterUsageTooltip": "How much of your Energy Converters' capacity is in use.\nThey run on the energy above the conversion marker on the energy bar.",
+				"convertedMetalTooltipTitle": "Converted Metal",
+				"convertedMetalTooltip": "Metal your Energy Converters make (per second)",
+				"convertedEnergyTooltipTitle": "Converter Energy Use",
+				"convertedEnergyTooltip": "Energy your Energy Converters use (per second)"
 			},
 			"converter_usage": {
 				"defaultTooltipTitle": "Energy converter usage",
@@ -107,6 +118,8 @@
 			"aiName": "%{name} (AI)",
 			"aiPlaceMe": "Place me!",
 			"desynced": "desynced",
+			"take": "Take",
+			"skill": "Skill: %{skill}",
 			"chat": {
 				"needSupport": "I need unit support!",
 				"needMetal": "I need metal!",
@@ -149,7 +162,33 @@
 			"globalView": "Turn off Player View",
 			"playerViewTooltip": "Only view what the player can see",
 			"playerCamera": "Player Camera",
-			"playerCameraTooltip": "Follow player camera perspective and apply selections"
+			"playerCameraTooltip": "Follow player camera perspective and apply selections",
+			"spectator": "Spectator",
+			"replaySpeed": "Replay speed",
+			"replaySpeedTooltip": "Click or drag to set how fast the replay plays",
+			"skipPregame": "Skip pregame"
+		},
+		"minimap": {
+			"resizeTitle": "Minimap Size",
+			"resizeTooltip": "Drag to resize the minimap",
+			"windTooltip": "Wind speed on this map ranges from %{minWindValue} to %{maxWindValue}\nAverage wind speed is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
+			"lavaTitle": "Lava",
+			"lavaRiseIn": "The lava rises in %{time}",
+			"lavaSinkIn": "The lava sinks in %{time}",
+			"lavaRising": "The lava is rising, for another %{time}",
+			"lavaSinking": "The lava is sinking, for another %{time}",
+			"windAverage": "Average speed",
+			"windMinimum": "Minimum speed",
+			"windMaximum": "Maximum speed",
+			"windLow": "Time below 6",
+			"windAdvice": "Solar Collectors are better when the average\nwind speed is below 5 (Armada) or 6 (Cortex)"
+		},
+		"tooltip": {
+			"low": "Low",
+			"medium": "Medium",
+			"high": "High",
+			"slow": "Slow",
+			"fast": "Fast"
 		},
 		"pip": {
 			"tooltip": "Toggle Picture-in-Picture",
@@ -206,14 +245,37 @@
 			"category_production_descr": "Show production structures",
 			"buildmode_descr": "Enable unit production hotkeys",
 			"homePage": "Go back to main view",
+			"mainView": "Main view",
 			"nextPage": "Next page",
 			"previousPage": "Previous page",
+			"pageScroll": "Or scroll the mouse wheel over the build options",
 			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
 			"nextBuilder": "Next Builder",
-			"areamex_tooltip": "Tip: Select this extractor twice to use area mex command"
+			"areamex_tooltip": "Tip: Select this extractor twice to use area mex command",
+			"all": "All",
+			"next": "Next",
+			"disabledShort": "Disabled",
+			"buildTab": "Build",
+			"blueprintsTab": "Blueprints",
+			"blueprint": "Blueprint %{index}",
+			"blueprintUnits": "%{count} buildings",
+			"blueprintCost": "Total cost: %{metal} metal, %{energy} energy",
+			"deleteBlueprint": "Delete blueprint",
+			"renameBlueprint": "Rename blueprint",
+			"renameBlueprintTooltip": "Type its name on its cell: Enter keeps it, Escape cancels",
+			"noBlueprintPicked": "Click a blueprint first",
+			"rename": "Rename",
+			"delete": "Delete",
+			"noBlueprints": "No blueprints saved yet",
+			"noBuildableBlueprints": "None of the saved blueprints can be built by these builders",
+			"queueBuilding": "In production",
+			"queueControls": "Drag: reorder\nRight-click: remove one (SHIFT: all of them)\nRight-drag or mouse wheel: scroll"
 		},
 		"orderMenu": {
-			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}"
+			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
+			"tapHotkeys": "Tap %{highlightColor}%{hotkey}%{textColor} quickly: %{taps}",
+			"tapCount": "%{count}x %{state}",
+			"areamexHotkey": "Press %{highlightColor}%{keys}%{textColor} for area mex: the metal extractor is picked first"
 		},
 		"idleBuilders": {
 			"name": "Idle Builders",
@@ -319,6 +381,108 @@
 				"applyFailedMessage": "\"%{name}\" could not be written to disk, so your keybinds are unchanged. Check that the game folder is writable.",
 				"accept": "Accept",
 				"cancel": "Cancel"
+			},
+			"select": {
+				"addLink": "Add selection...",
+				"titleAdd": "Add selection",
+				"titleEdit": "Edit selection",
+				"chooseKey": "Choose key",
+				"from": "From",
+				"pick": "Select",
+				"replace": "Replace the current selection",
+				"filters": "Filters",
+				"incomplete": "Fill in the values the chosen filters need",
+				"state": {
+					"any": "Any",
+					"is": "Is",
+					"not": "Not"
+				},
+				"sourceName": {
+					"AllMap": "Whole map",
+					"Visible": "On screen",
+					"PrevSelection": "Current selection",
+					"FromMouse": "Around the cursor",
+					"FromMouseC": "Around the cursor, any height"
+				},
+				"source": {
+					"AllMap": "whole map",
+					"Visible": "on screen",
+					"PrevSelection": "current selection",
+					"FromMouse": "within %{value} of the cursor",
+					"FromMouseC": "within %{value} of the cursor, any height"
+				},
+				"conclusionName": {
+					"SelectAll": "All of them",
+					"SelectOne": "One at a time",
+					"SelectClosestToCursor": "The closest to the cursor",
+					"SelectNum": "A number of them",
+					"SelectPart": "A percentage of them"
+				},
+				"conclusion": {
+					"SelectAll": "Select all",
+					"SelectOne": "Select one at a time",
+					"SelectClosestToCursor": "Select the closest",
+					"SelectNum": "Select %{value}",
+					"SelectPart": "Select %{value}%%"
+				},
+				"filterName": {
+					"Builder": "Builders",
+					"Buildoptions": "Able to build",
+					"Building": "Buildings",
+					"Aircraft": "Aircraft",
+					"Transport": "Transports",
+					"Weapons": "Armed",
+					"ManualFireUnit": "Manual-fire weapon",
+					"Resurrect": "Able to resurrect",
+					"Radar": "Radar or sonar",
+					"Jammer": "Jammers",
+					"Stealth": "Stealthy",
+					"Cloak": "Able to cloak",
+					"Cloaked": "Cloaked",
+					"Idle": "Idle",
+					"Waiting": "Waiting",
+					"Guarding": "Guarding",
+					"Patrolling": "Patrolling",
+					"InHotkeyGroup": "In a control group",
+					"InPrevSel": "Same type as selected",
+					"InGroup": "In control group",
+					"RelativeHealth": "Health above (%%)",
+					"AbsoluteHealth": "Health above",
+					"WeaponRange": "Range above",
+					"IdMatches": "Unit (internal names)"
+				},
+				"filter": {
+					"Builder": "builders",
+					"Buildoptions": "able to build",
+					"Building": "buildings",
+					"Aircraft": "aircraft",
+					"Transport": "transports",
+					"Weapons": "armed",
+					"ManualFireUnit": "manual-fire weapon",
+					"Resurrect": "able to resurrect",
+					"Radar": "radar or sonar",
+					"Jammer": "jammers",
+					"Stealth": "stealthy",
+					"Cloak": "able to cloak",
+					"Cloaked": "cloaked",
+					"Idle": "idle",
+					"Waiting": "waiting",
+					"Guarding": "guarding",
+					"Patrolling": "patrolling",
+					"InHotkeyGroup": "in a control group",
+					"InPrevSel": "same type as selected",
+					"InGroup": "in control group %{value}",
+					"RelativeHealth": "health above %{value}%%",
+					"AbsoluteHealth": "health above %{value}",
+					"WeaponRange": "range above %{value}",
+					"IdMatches": "%{value}"
+				},
+				"not": "not %{filter}",
+				"separator": ", ",
+				"anyOf": "%{units} or %{last}",
+				"summary": "%{conclusion}: %{filters} (%{source})",
+				"summaryAll": "%{conclusion} (%{source})",
+				"keepSelection": "%{summary}, added to the selection"
 			},
 			"keyboard": {
 				"layerBase": "No modifier held",
@@ -866,10 +1030,17 @@
 		},
 		"reclaimInfo": {
 			"metal": "Metal: %{metal}",
-			"energy": "Energy: %{energy}"
+			"energy": "Energy: %{energy}",
+			"area": "Reclaim area",
+			"features": {
+				"one": "%{count} feature",
+				"other": "%{count} features"
+			},
+			"notReclaimable": "Cannot be reclaimed"
 		},
 		"prospector": {
-			"metalExtraction": "Metal extraction: %{amount}"
+			"metalExtraction": "Metal extraction: %{amount}",
+			"extraction": "Metal extraction"
 		},
 		"buildEstimate": {
 			"time": "ETA",
@@ -1215,7 +1386,22 @@
 			"reconnected": "No Owner Mode: Team %{team} reconnected"
 		},
 		"unitTotals": {
-			"totals": "%{titleColor}Units  %{textColor}%{units} / %{maxUnits}      %{titleColor}Total  %{textColor}%{totalUnits}"
+			"totals": "%{titleColor}Units  %{textColor}%{units} / %{maxUnits}      %{titleColor}Total  %{textColor}%{totalUnits}",
+			"units": "Units",
+			"total": "Total",
+			"unitsTooltip": "Your units, against the most you can have",
+			"totalTooltip": "All units in the game",
+			"totalNote": "Enemy units only count while in sight or on radar"
+		},
+		"displayInfo": {
+			"speed": "Game speed",
+			"speedTooltip": "How fast the game runs against real time (set to %{speed}x)",
+			"time": "Game time",
+			"timeTooltip": "Time since the game started",
+			"fps": "Frames per second",
+			"fpsTooltip": "How many frames your screen draws each second",
+			"clock": "Clock",
+			"clockTooltip": "Your local time"
 		},
 		"resolutionswitcher": {
 			"multidisplay": "Multi Display",
@@ -1412,13 +1598,147 @@
 			"info": "Info",
 			"dmg": "Dmg",
 			"infinite": "infinite",
+			"infiniteShort": "INF",
 			"burst": "Burst",
 			"modifiers": "Modifiers",
 			"intercepts": "Intercepts",
 			"each": "each",
 			"dps": "DPS",
 			"persecond": "per second",
-			"totaldmg": "Total Dmg"
+			"totaldmg": "Total Dmg",
+			"buildPower": "Build power",
+			"speed": "Speed",
+			"sight": "Line of sight",
+			"radarRange": "Radar range",
+			"sonarRange": "Sonar range",
+			"jammerRange": "Radar jamming range",
+			"sonarJammerRange": "Sonar jamming range",
+			"seismicRange": "Seismic detection range",
+			"metalStorage": "Metal storage",
+			"energyStorage": "Energy storage",
+			"metalMake": "Metal production",
+			"energyMake": "Energy production",
+			"energyUse": "Energy upkeep",
+			"shieldPower": "Shield capacity",
+			"shieldRegen": "Shield regeneration per second",
+			"shieldRadius": "Shield radius",
+			"shieldCost": "Shield energy use per second",
+			"amphibious": "Amphibious",
+			"allTerrain": "All-terrain",
+			"empResistance": "EMP resistance",
+			"empImmune": "full",
+			"cloakMoving": "Cloak moving",
+			"canCapture": "Can capture",
+			"canResurrect": "Resurrects",
+			"transports": "Transports units",
+			"armored": "Armored",
+			"requires": "Requires",
+			"lightTransport": "Light transport",
+			"heavyTransport": "Heavy transport",
+			"underConstruction": "Under construction: %{percent}%",
+			"damage": "Damage",
+			"damagePerSecond": "Damage per second",
+			"damagePerShot": "Damage per shot",
+			"reloadTime": "Reload time",
+			"rangeLabel": "Range",
+			"areaOfEffect": "Area of effect",
+			"edgeEffectiveness": "Edge effectiveness",
+			"paralyzeTime": "Paralyze time",
+			"stockpileTime": "Stockpile time",
+			"interceptRange": "Interception range",
+			"costToFire": "Cost to fire",
+			"damageModifiers": "Damage modifiers",
+			"modifierMore": "Deals %{percent}% more damage to them than to default armor",
+			"modifierLess": "Deals %{percent}% less damage to them than to default armor",
+			"armorClasses": {
+				"default": {
+					"name": "Default armor",
+					"description": "Units without a special armor class"
+				},
+				"standard": {
+					"name": "Standard armor",
+					"description": "Most land units and buildings"
+				},
+				"commanders": {
+					"name": "Commanders",
+					"description": "Commanders and decoy commanders"
+				},
+				"scavboss": {
+					"name": "Scavenger boss",
+					"description": "The Scavengers' boss commanders"
+				},
+				"crawlingbombs": {
+					"name": "Crawling bombs",
+					"description": "Bots that walk up to their target and explode"
+				},
+				"mines": {
+					"name": "Mines",
+					"description": "Land and naval mines"
+				},
+				"nanos": {
+					"name": "Construction turrets",
+					"description": "Stationary builders that assist and repair nearby"
+				},
+				"vtol": {
+					"name": "Aircraft",
+					"description": "Everything that flies"
+				},
+				"shields": {
+					"name": "Shields",
+					"description": "Plasma deflector shields"
+				},
+				"lboats": {
+					"name": "Light ships",
+					"description": "Scout boats, frigates, construction and support ships"
+				},
+				"hvyboats": {
+					"name": "Heavy ships",
+					"description": "Destroyers, cruisers, battleships, carriers and other large ships"
+				},
+				"subs": {
+					"name": "Submarines",
+					"description": "Submarines and other underwater units"
+				},
+				"raptor": {
+					"name": "Raptors",
+					"description": "Raptor creatures and their hives"
+				},
+				"raptorqueen": {
+					"name": "Raptor queen",
+					"description": "The Raptor queen"
+				}
+			},
+			"buildOptions": "Build options",
+			"buildOptionTooltip": "Click to see its stats",
+			"metalCost": "Metal cost",
+			"energyCost": "Energy cost",
+			"buildTime": "Build time",
+			"buildTimeTooltip": "The work it takes to build: a builder with 100 build power needs %{time}\n(the time is the build time over the build power)",
+			"sec": "sec",
+			"units": "units",
+			"rapidFire": "Rapid-fire",
+			"salvo": "Salvo %{count}",
+			"beam": "Beam",
+			"homing": "Homing",
+			"blast": "Blast",
+			"antiAir": "Anti-air",
+			"underwater": "Underwater",
+			"arcing": "Arcing",
+			"interceptor": "Interceptor",
+			"weaponTypes": {
+				"Cannon": "Cannon",
+				"BeamLaser": "Beam laser",
+				"LaserCannon": "Laser cannon",
+				"MissileLauncher": "Missile launcher",
+				"StarburstLauncher": "Vertical launcher",
+				"TorpedoLauncher": "Torpedo launcher",
+				"AircraftBomb": "Bomb",
+				"DGun": "Disintegrator",
+				"Flame": "Flamethrower",
+				"LightningCannon": "Lightning gun",
+				"EmgCannon": "Pulse cannon",
+				"Melee": "Melee"
+			}
 		},
 		"info": {
 			"selectedunits": "Selected units",
@@ -1479,7 +1799,48 @@
 			"shieldcapacity": "Shield capacity",
 			"shieldrange": "Shield range",
 			"shieldrechargerate": "Recharge rate",
-			"shieldrechargecost": "Recharge cost"
+			"shieldrechargecost": "Recharge cost",
+			"cellHowto": "Click to select, right click to remove, middle click to view them (with Ctrl: all of this type)",
+			"flows": {
+				"metal": "Metal per second",
+				"energy": "Energy per second",
+				"unit": "What it makes, less what it uses right now",
+				"selection": "What the selected units make, less what they use right now",
+				"def": "What it makes, less its upkeep",
+				"wind": "At the map's average wind, less its upkeep",
+				"tidal": "At the map's tidal strength, less its upkeep",
+				"converter": "Converting energy into metal at full capacity"
+			},
+			"tags": {
+				"buildpower": "Build power",
+				"dps": "Damage per second",
+				"emp": "Paralyze damage per second",
+				"range": "Weapon range",
+				"coverage": "Interception range",
+				"reload": "Reload time",
+				"shield": "Shield capacity",
+				"shieldRadius": "Shield radius",
+				"shieldRegen": "Shield recharge per second",
+				"radar": "Radar range",
+				"sonar": "Sonar range",
+				"jammer": "Radar jamming range",
+				"sonarJammer": "Sonar jamming range",
+				"speed": "Speed",
+				"sight": "Line of sight",
+				"metalStorage": "Metal storage",
+				"energyStorage": "Energy storage",
+				"stockpile": "Stockpiled",
+				"cloak": "Cloaking costs energy per second",
+				"cloakMoving": "Cloaking costs energy per second, standing still / moving",
+				"progress": "Under construction",
+				"stealth": "Stealthy: radar does not show it",
+				"amphib": "Amphibious",
+				"allTerrain": "All-terrain",
+				"capture": "Can capture units",
+				"resurrect": "Can resurrect wrecks",
+				"paralyzer": "Paralyzes what it hits",
+				"unload": "Click to unload"
+			}
 		},
 		"spectator_hud": {
 			"metalIncome_title": "Metal Income",
@@ -1840,6 +2201,11 @@
 				"guitileopacity": "opacity",
 				"guishader": "blur",
 				"guishader_descr": "Blurs the world under every user interface element",
+				"supersample": "sharpness",
+				"supersample_descr": "Draws interface panels at twice the screen's pixels and scales them down: sharper unit pictures and icons, using more video memory.\nAuto does this on screens less than about 1600 pixels tall.",
+				"supersample_auto": "auto",
+				"supersample_off": "normal",
+				"supersample_2x": "sharp (2x)",
 				"guishaderintensity": "   intensity",
 				"font": "Font",
 				"font_descr": "Regular read friendly font used for text",
@@ -1935,6 +2301,8 @@
 				"buildmenu_groupicon_descr": "Group icons in the buildmenu",
 				"buildmenu_radaricon": "radar icon",
 				"buildmenu_radaricon_descr": "Radar icons in the buildmenu",
+				"buildmenu_blueprints": "blueprints",
+				"buildmenu_blueprints_descr": "Blueprint tab in the buildmenu and blueprint commands in the ordermenu",
 				"ordermenu": "Ordermenu",
 				"ordermenu_colorize": "colorize",
 				"ordermenu_bottompos": "bottom position",
@@ -3209,7 +3577,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[basic|draugr|wraith|hydra|akumu|spidergeddon] Set zombie mode"
+			"zombiemode": "[basic|wraith|hydra|akumu|spidergeddon] Set zombie mode"
 		}
 	},
 	"modoptions": {
@@ -3962,7 +4330,7 @@
 		},
 		"zombies": {
 			"name": "Scavenger Zombies",
-			"desc": "Corpses left on the battlefield rise again as hostile zombies that attack every player. Revival takes 45 to 120 seconds, with stronger units taking longer and revival speeding up as the game reaches higher tech. Reclaim or resurrect corpses to stop them from rising. After 60 minutes, zombies stay permanently aggressive, and revival times chosen after that use a fixed speed instead of the tech estimate. Corpses already counting down keep their old timer.",
+			"desc": "Corpses left on the battlefield rise again as hostile zombies. Revival takes 45 to 120 seconds, with stronger units taking longer and revival speeding up as the game reaches higher tech. Reclaim or resurrect corpses to stop them from rising.",
 			"items": {
 				"disabled": {
 					"name": "Disabled",
@@ -3970,15 +4338,11 @@
 				},
 				"basic": {
 					"name": "Basic",
-					"desc": "Unit dies, after a while it comes back to life as a zombie. Destroyed zombies leave heaps."
-				},
-				"draugr": {
-					"name": "Draugr",
-					"desc": "Basic, and destroyed zombies always leave corpses that can become zombies again."
+					"desc": "The dead come back to life"
 				},
 				"wraith": {
 					"name": "Wraith",
-					"desc": "Basic, and ghostly apparitions appear from overkill and from destroyed corpses. When a zombie's corpse is destroyed, it can respawn at an isolated Apparition."
+					"desc": "Basic, and Wraiths appear from overkill and from destroyed corpses. When a zombie's corpse is destroyed, it can respawn at any isolated Wraith."
 				},
 				"hydra": {
 					"name": "Hydra",
@@ -3986,7 +4350,7 @@
 				},
 				"akumu": {
 					"name": "Akumu",
-					"desc": "Basic, Draugr, Wraith, and Hydra combined."
+					"desc": "Basic, Wraith, and Hydra combined."
 				},
 				"spidergeddon": {
 					"name": "Spidergeddon (LIMITED TIME)",

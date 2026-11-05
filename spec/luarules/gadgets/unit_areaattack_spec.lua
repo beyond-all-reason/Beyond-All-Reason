@@ -15,7 +15,7 @@ local function loadGadget(commands, weaponState)
 	local orders = {}
 	local finishedUnits = {}
 	local currentFrame = 1
-	local unitDefLookups = 0
+	local commandLookups = 0
 	local env = {
 		gadget = {},
 		gadgetHandler = {
@@ -52,13 +52,13 @@ local function loadGadget(commands, weaponState)
 				return currentFrame
 			end,
 			GetUnitCurrentCommand = function(_, index)
+				commandLookups = commandLookups + 1
 				local command = commands[index or 1]
 				if command then
 					return command.id, command.options.coded, command.tag, unpack(command.params)
 				end
 			end,
 			GetUnitDefID = function()
-				unitDefLookups = unitDefLookups + 1
 				return UNIT_DEF_ID
 			end,
 			GetUnitWeaponState = function(_, _, stateName)
@@ -90,7 +90,7 @@ local function loadGadget(commands, weaponState)
 			currentFrame = frame
 		end,
 		function()
-			return unitDefLookups
+			return commandLookups
 		end
 end
 
@@ -125,13 +125,13 @@ describe("unit_areaattack", function()
 	it("does not process every projectile in a burst", function()
 		local commands = generatedAreaCommands()
 		local weaponState = { salvoLeft = 2, nextSalvo = 2 }
-		local gadget, _, _, _, getUnitDefLookups = loadGadget(commands, weaponState)
+		local gadget, _, _, _, getCommandLookups = loadGadget(commands, weaponState)
 
 		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
 		gadget:ProjectileCreated(2, UNIT_ID, WEAPON_DEF_ID)
 		gadget:ProjectileCreated(3, UNIT_ID, WEAPON_DEF_ID)
 
-		assert.equals(1, getUnitDefLookups())
+		assert.equals(2, getCommandLookups())
 	end)
 
 	it("finishes after a canceled final shot without another projectile", function()
