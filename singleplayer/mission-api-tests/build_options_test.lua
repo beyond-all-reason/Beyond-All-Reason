@@ -85,7 +85,7 @@ local actions = {
 			unitLoadout = {
 				{ unitDefName = 'armck', x = 1800, z = 1600, teamName = 'player' },
 				{ unitDefName = 'armlab', x = 2000, z = 1800, teamName = 'player' },
-				{ unitDefName = 'armck', x = 2200, z = 1600, teamName = 'enemy', unitName = 'enemyBot' },
+				{ unitDefName = 'armck', x = 1800, z = 1400, teamName = 'enemy', unitName = 'enemyBot' },
 			},
 		},
 	},
