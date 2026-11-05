@@ -4,9 +4,10 @@
 ---
 
 local table_keys = table.keys
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
 -- As often as the engine checks a player's gather waits.
-local UPDATE_PERIOD_FRAMES = 3
+local UPDATE_INTERVAL_FRAMES = 3
 
 ---@type table<integer, boolean> Factories hand their orders to the units they build.
 local canGatherByUnitDefID = {}
@@ -38,15 +39,14 @@ end
 
 ---@return integer? queueIndex nil when the unit is gone or has lost the wait
 local function getGatherWaitQueueIndex(unitID, gatherKey)
-	local queueIndex = 1
-	local commandID, _, _, waitCode, waitKey = Spring.GetUnitCurrentCommand(unitID, queueIndex)
-	while commandID do
+	local queueIndex = 0
+	repeat
+		queueIndex = queueIndex + 1
+		local commandID, _, _, waitCode, waitKey = spGetUnitCurrentCommand(unitID, queueIndex)
 		if commandID == CMD.WAIT and waitCode == CMD.WAITCODE_GATHER and waitKey == gatherKey then
 			return queueIndex
 		end
-		queueIndex = queueIndex + 1
-		commandID, _, _, waitCode, waitKey = Spring.GetUnitCurrentCommand(unitID, queueIndex)
-	end
+	until commandID == nil
 end
 
 --- At each GATHERWAIT, the units wait until all of them have reached it. Units that cannot gather
@@ -78,7 +78,7 @@ local function giveOrdersWithGatherWaits(unitIDs, orders)
 end
 
 local function updateGatherWaits(frameNumber)
-	if frameNumber % UPDATE_PERIOD_FRAMES ~= 0 then
+	if frameNumber % UPDATE_INTERVAL_FRAMES ~= 0 then
 		return
 	end
 

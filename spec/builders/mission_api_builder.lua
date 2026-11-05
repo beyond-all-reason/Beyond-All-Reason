@@ -385,7 +385,6 @@ function MB:Build(installed)
 		GiveOrdersWithGatherWaits = function(unitIDs, orders)
 			giveOrdersCalls[#giveOrdersCalls + 1] = { unitIDs = unitIDs, orders = orders }
 		end,
-		UpdateGatherWaits = function() end,
 	}
 
 	local sounds = {
