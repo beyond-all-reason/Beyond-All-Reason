@@ -1,27 +1,27 @@
 ---
---- Gather waits in mission orders. The engine runs them only for a player's selected units, on that
---- player's client, so a mission's units wait for each other here.
+--- Lets mission orders use GATHERWAIT, which makes the units given the orders wait for each other.
 ---
 
 local table_keys = table.keys
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
--- As often as the engine checks a player's gather waits.
 local UPDATE_INTERVAL_FRAMES = 3
 
----@type table<integer, boolean> Factories hand their orders to the units they build.
+---@type table<integer, boolean>
 local canGatherByUnitDefID = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
+	-- Factories hand their orders on to the units they build, so they never hold at a wait.
 	canGatherByUnitDefID[unitDefID] = unitDef.canMove and not unitDef.isFactory
 end
 
--- Keys count down, since a player's wait keys are positive when they are read as a float.
+-- Negative keys can never equal a player's own wait keys.
 local lastGatherKey = 0
 
 ---@type table<number, table<integer, true>>
 local unitIDsByGatherKey = {}
 
----@return table gatherOrders the orders with each GATHERWAIT as a CMD.WAIT tagged for the engine
+---@param orders CreateCommand[]
+---@return CreateCommand[] gatherOrders the orders, with each GATHERWAIT replaced by a keyed CMD.WAIT
 ---@return number[] gatherKeys
 local function tagGatherWaits(orders)
 	local gatherOrders, gatherKeys = {}, {}
@@ -49,10 +49,10 @@ local function getGatherWaitQueueIndex(unitID, gatherKey)
 	until commandID == nil
 end
 
---- At each GATHERWAIT, the units wait until all of them have reached it. Units that cannot gather
---- skip it.
+--- At each GATHERWAIT, the units wait until all of them have reached it. Factories and units that
+--- cannot move skip it.
 ---@param unitIDs table<integer, true>
----@param orders table
+---@param orders CreateCommand[]
 local function giveOrdersWithGatherWaits(unitIDs, orders)
 	local gatherOrders, gatherKeys = tagGatherWaits(orders)
 	if #gatherKeys == 0 then
@@ -98,9 +98,9 @@ local function updateGatherWaits(frameNumber)
 
 		if isGathered then
 			unitIDsByGatherKey[gatherKey] = nil
-			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
+			-- Triggers using `ignoreMissionActions` must not react to this mission order.
 			GG["MissionAPI"].issuingOrders = true
-			-- Without shift, this lifts the wait that each unit is holding at.
+			-- A second WAIT cancels the first, which releases the units.
 			Spring.GiveOrderToUnitMap(unitIDs, CMD.WAIT, {}, {})
 			GG["MissionAPI"].issuingOrders = nil
 		end
