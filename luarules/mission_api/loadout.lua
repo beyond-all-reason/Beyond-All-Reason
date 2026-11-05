@@ -3,6 +3,7 @@
 ---
 
 local tracking = GG["MissionAPI"].Modules.Tracking
+local gatherWaits = GG["MissionAPI"].Modules.GatherWaits
 
 local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
 local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
@@ -139,7 +140,7 @@ local function spawnUnitLoadout(unitLoadout)
 
 		-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 		GG["MissionAPI"].issuingOrders = true
-		Spring.GiveOrderArrayToUnitMap(spawnedUnitIDs, convertOrdersTargetingNames(unit.orders))
+		gatherWaits.GiveOrdersWithGatherWaits(spawnedUnitIDs, convertOrdersTargetingNames(unit.orders))
 		GG["MissionAPI"].issuingOrders = nil
 	end
 end

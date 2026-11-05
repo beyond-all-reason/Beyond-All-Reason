@@ -38,7 +38,6 @@ local env = MissionSpecEnv.new({
 			end
 			return unitID
 		end,
-		GiveOrderArrayToUnitMap = function() end,
 	},
 })
 env.BAR = { Utilities = MissionSpecEnv.include(env, "common/springUtilities/facingFunctions.lua") }

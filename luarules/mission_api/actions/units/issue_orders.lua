@@ -8,7 +8,7 @@ local function issueOrders(unitName, orders)
 
 	-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 	GG['MissionAPI'].issuingOrders = true
-	Spring.GiveOrderArrayToUnitMap(GG['MissionAPI'].trackedUnitIDs[unitName], convertedOrders)
+	GG['MissionAPI'].Modules.GatherWaits.GiveOrdersWithGatherWaits(GG['MissionAPI'].trackedUnitIDs[unitName], convertedOrders)
 	GG['MissionAPI'].issuingOrders = nil
 end
 
