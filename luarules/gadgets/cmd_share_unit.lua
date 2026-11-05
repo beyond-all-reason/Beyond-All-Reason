@@ -3,8 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Share Unit Command",
-		desc = "Queueable command that gives the unit to an allied team. \
-		When issued with shift on a factory, adds the command to its rally commands",
+		desc = "Queueable command that gives the unit to an allied team. When issued with shift on a factory, adds the command to its rally commands",
 		author = "SuperKitowiec",
 		date = "2024",
 		license = "GNU GPL, v2 or later",
@@ -74,7 +73,9 @@ if gadgetHandler:IsSyncedCode() then
 			-- lets widgets tell these shares apart, e.g. gui_chat doesn't announce them
 			spSetUnitRulesParam(unitID, "shareCommandFrame", spGetGameFrame(), alliesCanSeeParam)
 		end
-		spTransferUnit(unitID, targetTeamID, true)
+		if isShareTarget(spGetUnitTeam(unitID), targetTeamID) then
+			spTransferUnit(unitID, targetTeamID, true)
+		end
 		if shouldNotAnnounce then
 			-- any callins that care about this should have gone by now
 			spSetUnitRulesParam(unitID, "isRallyShare", true, alliesCanSeeParam)
