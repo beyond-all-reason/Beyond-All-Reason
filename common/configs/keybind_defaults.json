@@ -22,7 +22,7 @@
 		"factory_preset save 7",
 		"factory_preset save 8",
 		"factory_preset save 9",
-		"factory_preset_toggle",
+		"factory_preset_show",
 		"fov_dec 5",
 		"fov_inc 5",
 		"pip1_copy",

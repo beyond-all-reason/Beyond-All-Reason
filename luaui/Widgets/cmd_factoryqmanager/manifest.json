@@ -14,12 +14,12 @@
 			"label": "actions.factory.savePreset",
 			"profileKeysets": { "grid": ["meta+alt+%{n}"], "legacy": ["meta+alt+%{n}"] }
 		},
-		{ "action": "factory_preset_show", "label": "actions.factory.showPresets", "alwaysModifier": "any" },
 		{
-			"action": "factory_preset_toggle",
-			"label": "actions.factory.togglePresets",
+			"action": "factory_preset_show",
+			"label": "actions.factory.showPresets",
 			"alwaysModifier": "any",
 			"profileKeysets": { "grid": ["any+sc_space"], "legacy": ["any+sc_space"] }
-		}
+		},
+		{ "action": "factory_preset_toggle", "label": "actions.factory.togglePresets", "alwaysModifier": "any" }
 	]
 }
