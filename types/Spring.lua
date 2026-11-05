@@ -1,5 +1,6 @@
 ---@class UnitScriptTable
 ---@field CallAsUnit fun(unitID: UnitID, fn: function, ...: any): any
+---@field CallAsUnitNoReturn fun(unitID: UnitID, fn: function, ...: any)
 ---@field WaitForMove fun(pieceNum: integer, axis: integer)
 ---@field WaitForTurn fun(pieceNum: integer, axis: integer)
 ---@field WaitForScale fun(pieceNum: integer)
