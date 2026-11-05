@@ -32,14 +32,7 @@ local CLOSE_DISTANCE_SQ = 32 * 32
 local state = {}
 
 function gadget:Initialize()
-	if
-		not (
-			Spring.TestUnitAttackWeapon
-			and Spring.GetUnitAttackTargetPosition
-			and Spring.SetUnitFacingTarget
-			and Spring.FinishUnitAttackCommand
-		)
-	then
+	if not (Spring.GetUnitWeaponTryTarget and Spring.SetUnitFacingTarget and Spring.UnitFinishCommand) then
 		gadgetHandler:RemoveGadget(self)
 	end
 end
@@ -72,6 +65,7 @@ function gadget:AttackCommandMovement(unitID, cmdTag, cmdID, cmdOptions, targetI
 	if mode == "fallback" then
 		return false
 	end
+	local ex, ey, ez = tx, ty, tz -- attacker-perceived coordinates supplied by the engine
 	local def = UnitDefs[Spring.GetUnitDefID(unitID)]
 	local _, moveState = Spring.GetUnitStates(unitID, false, false, false)
 	local holdPosition = moveState == 0
@@ -88,6 +82,17 @@ function gadget:AttackCommandMovement(unitID, cmdTag, cmdID, cmdOptions, targetI
 		-- to Lua; do not consume another value from the shared simulation RNG.
 		memory = { lastApproach = -1, strafeLeft = motion.strafeLeft }
 		state[unitID] = memory
+	end
+	local function query(weaponNum, orientation)
+		local options = {
+			orientation = orientation or (targetID and "rotate" or "heading"),
+			userTarget = userTarget,
+			manualFire = targetID ~= nil and manual,
+		}
+		if targetID then
+			return Spring.GetUnitWeaponTryTarget(unitID, weaponNum, targetID, options)
+		end
+		return Spring.GetUnitWeaponTryTarget(unitID, weaponNum, tx, ty, tz, options)
 	end
 	local function face(radius)
 		Spring.SetUnitFacingTarget(unitID, tx, ty, tz, radius)
@@ -112,7 +117,7 @@ function gadget:AttackCommandMovement(unitID, cmdTag, cmdID, cmdOptions, targetI
 			return true
 		end
 		for weaponNum = 1, #def.weapons do
-			if Spring.TestUnitAttackWeapon(unitID, weaponNum, { orientation = "heading" }) then
+			if query(weaponNum, "heading") then
 				if assign() then
 					stopAndFace()
 					return true
@@ -139,11 +144,11 @@ function gadget:AttackCommandMovement(unitID, cmdTag, cmdID, cmdOptions, targetI
 		local wd = WeaponDefs[weapon.weaponDef]
 		if not manual or wd.manualFire then
 			border = math.abs(wd.targetBorder)
-			if Spring.TestUnitAttackWeapon(unitID, weaponNum) then
+			if query(weaponNum) then
 				rotateWeapon = weaponNum
 				break
 			end
-			needsTurn = needsTurn or Spring.GetUnitWeaponState(unitID, weaponNum, "onlyForward")
+			needsTurn = needsTurn or wd.onlyForward
 		end
 	end
 	if rotateWeapon then
@@ -154,7 +159,7 @@ function gadget:AttackCommandMovement(unitID, cmdTag, cmdID, cmdOptions, targetI
 			and not holdPosition
 			and targetBehind
 			and not def.isHoveringAirUnit
-			and Spring.TestUnitAttackWeapon(unitID, rotateWeapon, { orientation = "heading" })
+			and query(rotateWeapon, "heading")
 		then
 			move(
 				unitID,
@@ -175,7 +180,7 @@ function gadget:AttackCommandMovement(unitID, cmdTag, cmdID, cmdOptions, targetI
 	end
 	if temporary and holdPosition then
 		stop(unitID)
-		Spring.FinishUnitAttackCommand(unitID)
+		Spring.UnitFinishCommand(unitID)
 		return true
 	end
 	if distance < engagementRange then
@@ -197,7 +202,6 @@ function gadget:AttackCommandMovement(unitID, cmdTag, cmdID, cmdOptions, targetI
 		end
 		return true
 	end
-	local ex, ey, ez = Spring.GetUnitAttackTargetPosition(unitID)
 	local gx, gz = ex - motion.goalx, ez - motion.goalz
 	local baseDx, baseDz = bx - x, bz - z
 	local tolerance = GOAL_BASE_TOLERANCE + math.sqrt(baseDx * baseDx + baseDz * baseDz) * GOAL_DISTANCE_FACTOR

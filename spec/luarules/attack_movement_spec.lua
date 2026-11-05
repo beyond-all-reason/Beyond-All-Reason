@@ -29,7 +29,15 @@ describe("Lua attack movement", function()
 				RemoveGadget = spy.new(function() end),
 			},
 			UnitDefs = { [1] = def, [2] = { isImmobile = false } },
-			WeaponDefs = { [1] = { targetBorder = 0, manualFire = false } },
+			WeaponDefs = {
+				[1] = setmetatable({ targetBorder = 0, manualFire = false }, {
+					__index = function(_, key)
+						if key == "onlyForward" then
+							return needsTurn
+						end
+					end,
+				}),
+			},
 			Game = { squareSize = 8 },
 			CMD = Commands,
 		}, { __index = _G })
@@ -38,16 +46,16 @@ describe("Lua attack movement", function()
 		chunk()
 		return env
 	end
-	local function update(targetID, command, temporary)
+	local function update(targetID, command, temporary, cmdOptions)
 		return controller:AttackCommandMovement(
 			1,
 			1,
 			command or Commands.ATTACK,
-			0,
+			cmdOptions or 0,
 			targetID,
 			0,
 			0,
-			target.z,
+			target.perceivedZ or target.z,
 			temporary
 		)
 	end
@@ -85,15 +93,12 @@ describe("Lua attack movement", function()
 			GetUnitSensorRadius = function()
 				return 500
 			end,
-			GetUnitWeaponState = function()
-				return needsTurn
-			end,
-			TestUnitAttackWeapon = function(_, _, options)
-				assert.is_nil(options and options.avoidFlags)
+			GetUnitWeaponTryTarget = function(_, _, a, b, c, d)
+				local options = type(b) == "table" and b or d
+				assert.is_nil(options.avoidFlags)
+				assert.is_boolean(options.userTarget)
+				assert.is_boolean(options.manualFire)
 				return clear
-			end,
-			GetUnitAttackTargetPosition = function()
-				return 0, 0, target.z
 			end,
 			SetUnitMoveGoal = function(_, x, y, z, radius, speed, raw)
 				actions[#actions + 1] = { kind = "move", x = x, y = y, z = z }
@@ -109,7 +114,7 @@ describe("Lua attack movement", function()
 				actions[#actions + 1] = { kind = "assign" }
 				return true
 			end,
-			FinishUnitAttackCommand = function()
+			UnitFinishCommand = function()
 				actions[#actions + 1] = { kind = "finish" }
 			end,
 		}
@@ -126,7 +131,7 @@ describe("Lua attack movement", function()
 	end)
 	it("removes itself on an unsupported engine", function()
 		local env = load("lua")
-		api.TestUnitAttackWeapon = nil
+		api.GetUnitWeaponTryTarget = nil
 		controller:Initialize()
 		assert.spy(env.gadgetHandler.RemoveGadget).was_called()
 	end)
@@ -189,4 +194,31 @@ describe("Lua attack movement", function()
 		update(nil, Commands.MANUALFIRE)
 		assert.same({ { kind = "assign" }, { kind = "face" }, { kind = "stop" } }, actions)
 	end)
+	it("uses perceived callback coordinates when approaching an object", function()
+		load("lua")
+		target.perceivedZ = 620
+		update(2)
+		assert.equals(620, actions[1].z)
+	end)
+	it("passes the explicit object target and internal-order flag to the query", function()
+		load("lua")
+		local seen
+		api.GetUnitWeaponTryTarget = function(id, weapon, targetID, options)
+			seen = { id, weapon, targetID, options }
+			return false
+		end
+		update(2, Commands.ATTACK, true, Commands.OPT_INTERNAL)
+		assert.same({ 1, 1, 2, { orientation = "rotate", userTarget = false, manualFire = false } }, seen)
+	end)
+	it("passes explicit ground coordinates and heading geometry to the query", function()
+		load("lua")
+		local seen
+		api.GetUnitWeaponTryTarget = function(...)
+			seen = { ... }
+			return false
+		end
+		update(nil)
+		assert.same({ 1, 1, 0, 0, target.z, { orientation = "heading", userTarget = true, manualFire = false } }, seen)
+	end)
+
 end)
