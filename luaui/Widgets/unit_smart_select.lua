@@ -24,6 +24,7 @@ local selectApi = require("luaui/Include/select_api")
 local skipSel
 local inSelection = false
 local inMiniMapSel = false
+local interruptedCommand ---@type CMD?
 
 local referenceX, referenceY
 
@@ -63,6 +64,9 @@ local spGetUnitsInScreenRectangle = Spring.GetUnitsInScreenRectangle
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spSelectUnitArray = Spring.SelectUnitArray
 local spGetActiveCommand = Spring.GetActiveCommand
+local spSetActiveCommand = Spring.SetActiveCommand
+local spGetCmdDescIndex = Spring.GetCmdDescIndex
+local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetUnitTeam = Spring.GetUnitTeam
 
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
@@ -75,6 +79,12 @@ local selectedUnits = spGetSelectedUnits()
 
 local spec = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
+
+local areaCommandTypes = {
+	[CMDTYPE.ICON_AREA] = true,
+	[CMDTYPE.ICON_UNIT_OR_AREA] = true,
+	[CMDTYPE.ICON_UNIT_FEATURE_OR_AREA] = true,
+}
 
 local ignoreUnits = {}
 local combatFilter = {}
@@ -221,6 +231,7 @@ end
 function widget:MousePress(x, y, button)
 	if button == 1 then
 		referenceSelection = spGetSelectedUnits()
+		interruptedCommand = nil
 	end
 	return false
 end
@@ -254,13 +265,49 @@ function widget:PlayerChanged()
 	myTeamID = spGetMyTeamID()
 end
 
+local function unitsHaveCommand(units, commandID)
+	for i = 1, #units do
+		if spFindUnitCmdDesc(units[i], commandID) then
+			return true
+		end
+	end
+	return false
+end
+
+local function rearmDeferredCommand()
+	if spGetActiveCommand() ~= 0 or not unitsHaveCommand(selectedUnits, interruptedCommand) then
+		interruptedCommand = nil
+		return
+	end
+	-- The command list updates after the selection does, so this can take another Update.
+	local commandIndex = spGetCmdDescIndex(interruptedCommand)
+	if commandIndex then
+		interruptedCommand = nil
+		spSetActiveCommand(commandIndex)
+	end
+end
+
 local sec = 0
 ---@type SelectionBoxRect
 local prevSelRect = {}
 function widget:Update(dt)
 	sec = sec + dt
 
-	if skipSel or spGetActiveCommand() ~= 0 then
+	if interruptedCommand and not select(3, spGetMouseState()) then -- left mouse button
+		rearmDeferredCommand()
+	end
+
+	if skipSel then
+		return
+	end
+
+	local activeCommandIndex, activeCommandID, activeCommandType = spGetActiveCommand()
+	if activeCommandIndex ~= 0 then
+		if areaCommandTypes[activeCommandType] and spGetSelectionBox() then
+			-- The drag can't issue the command. Finish the selection, first.
+			interruptedCommand = activeCommandID
+			spSetActiveCommand(nil)
+		end
 		return
 	end
 
