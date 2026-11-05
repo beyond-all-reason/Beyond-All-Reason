@@ -22,6 +22,7 @@ on:
       - Type Check
       - Run Unit Tests
       - Run Integration Tests
+      - Unit Script Check
     types:
       - completed
 
@@ -39,7 +40,7 @@ jobs:
       pull-requests: write
       actions: read
 
-    # Five workflows finish at five different times and each one wakes this up,
+    # Six workflows finish at six different times and each one wakes this up,
     # so the writes are serialised per commit. Cancelling instead would drop
     # the last update and leave a stale comment.
     concurrency:

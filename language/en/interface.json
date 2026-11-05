@@ -248,6 +248,7 @@
 			"mainView": "Main view",
 			"nextPage": "Next page",
 			"previousPage": "Previous page",
+			"pageScroll": "Or scroll the mouse wheel over the build options",
 			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
 			"nextBuilder": "Next Builder",
 			"areamex_tooltip": "Tip: Select this extractor twice to use area mex command",
@@ -258,6 +259,7 @@
 			"blueprintsTab": "Blueprints",
 			"blueprint": "Blueprint %{index}",
 			"blueprintUnits": "%{count} buildings",
+			"blueprintCost": "Total cost: %{metal} metal, %{energy} energy",
 			"deleteBlueprint": "Delete blueprint",
 			"renameBlueprint": "Rename blueprint",
 			"renameBlueprintTooltip": "Type its name on its cell: Enter keeps it, Escape cancels",
@@ -272,7 +274,8 @@
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
 			"tapHotkeys": "Tap %{highlightColor}%{hotkey}%{textColor} quickly: %{taps}",
-			"tapCount": "%{count}x %{state}"
+			"tapCount": "%{count}x %{state}",
+			"areamexHotkey": "Press %{highlightColor}%{keys}%{textColor} for area mex: the metal extractor is picked first"
 		},
 		"idleBuilders": {
 			"name": "Idle Builders",
@@ -2298,6 +2301,8 @@
 				"buildmenu_groupicon_descr": "Group icons in the buildmenu",
 				"buildmenu_radaricon": "radar icon",
 				"buildmenu_radaricon_descr": "Radar icons in the buildmenu",
+				"buildmenu_blueprints": "blueprints",
+				"buildmenu_blueprints_descr": "Blueprint tab in the buildmenu and blueprint commands in the ordermenu",
 				"ordermenu": "Ordermenu",
 				"ordermenu_colorize": "colorize",
 				"ordermenu_bottompos": "bottom position",
