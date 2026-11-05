@@ -7,9 +7,10 @@
   - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
   - Wraith respawns no longer have a 1/3rd chance to drop a queued zombie spawn. Each wave drops its lowest-value third instead.
   - Wraith health 500 -> 100
-- [Commands]
+- [Controls]
   - Shift+Space area commands give your units a faster path to travel. Large areas can take 20%–70% less travel time.
   - Area commands (with and without Shift+Space) no longer drop targets past the 2,000 command limit. Your unit selection gets split into groups that take their own targets, with no targets dropped.
+  - Clicking an idle builder icon now selects the builder closest to the center of your view. Repeated clicks cycle through them, nearest first.
 - [Zombies]
   - Added a limited time Spidergeddon mode
   - Difficulty levels have been replaced with modes you can mix and match:
@@ -62,6 +63,7 @@
   - T1 Drones no longer crash on death.  Drones will be weaker against AA because the AA won't overkill them and will swap targets faster.  
   - Better Martyr and Phoenix aiming. Martyr used to require a skill shot with manual attack timing. It is more reliable.
 - [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
+- [Naval Balance Tweaks] No longer removes the floating HLT units from T1 constructors.
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
   - Over-large area attacks no longer send only 30 units to Attack and the rest to Fight. They split your selection into squads that Attack all the targets in one "lane" through the full area. Bomber behavior especially was non-functional with large area attacks; this is fixed.
