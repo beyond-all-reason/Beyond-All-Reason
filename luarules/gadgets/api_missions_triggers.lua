@@ -20,7 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local actionsDispatcher
-local triggerTypes, triggers, callins, triggerContext
+local triggerTypes, triggers, callins, triggerContext ---@type table, table<string, table>, table, table
 local trackedUnitNames
 local statistics
 local countdowns
