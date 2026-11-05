@@ -2,7 +2,7 @@ local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 --- Covers UnitDetected and UnitUndetected across every sensor level and filter, and
---- LocationRevealed for an area and a point.
+--- LocationRevealed for a point that comes into sight and one that never does.
 ---
 --- Detection levels escalate: unseen -> seismic -> radar -> vision, and a unit sits at
 --- exactly one of them per alliance. A trigger without sensorTypes watches all of them,
@@ -363,11 +363,11 @@ local triggers = {
 	----------------------------------------------------------------
 	--- Locations --------------------------------------------------
 
-	-- Centre 900 south of armrad, outside its sight of 680; the north edge is the point 400 south of it.
+	-- 400 south of armrad, inside its sight of 680 once it spawns.
 	radarSiteRevealed = {
 		type = triggerTypes.LocationRevealed,
 		parameters = {
-			area = { x = 4700, z = 2900, radius = 500 },
+			position = { x = 4700, z = 2400 },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageRadarSiteRevealed' },
@@ -377,7 +377,7 @@ local triggers = {
 	radarTargetSpawnRevealed = {
 		type = triggerTypes.LocationRevealed,
 		parameters = {
-			area = { x = 4500, z = 4900, radius = 0 },
+			position = { x = 4500, z = 4900 },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageRadarTargetSpawnRevealed' },
@@ -601,7 +601,7 @@ local actions = {
 
 	messageRadarSiteRevealed = {
 		type = actionTypes.SendMessage,
-		parameters = { messageKey = "Location revealed: the area south of the radar tower came into sight." },
+		parameters = { messageKey = "Location revealed: the point south of the radar tower came into sight." },
 	},
 
 	messageRadarTargetSpawnRevealed = {
