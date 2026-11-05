@@ -147,6 +147,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "t2heatray",
+				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 			},
 		},
