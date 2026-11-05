@@ -58,6 +58,7 @@ local GetFeaturePosition = Spring.GetFeaturePosition
 local ValidUnitID = Spring.ValidUnitID
 local IsGUIHidden = Spring.IsGUIHidden
 local GiveOrderToUnitArray = Spring.GiveOrderToUnitArray
+local PlaySoundFile = Spring.PlaySoundFile
 local maxUnits = Game.maxUnits
 
 local glBeginEnd = gl.BeginEnd
@@ -354,6 +355,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 
 	if targetTeamID and isAlly(targetTeamID) then
 		GiveOrderToUnitArray(GetSelectedUnits(), cmdQuickShareToTargetId, { targetTeamID }, cmdOptions)
+		PlaySoundFile("beep4", 1, "ui")
 	end
 	return true -- always consume, the raw target params are not a valid order
 end
