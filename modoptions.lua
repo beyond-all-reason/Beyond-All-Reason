@@ -1794,17 +1794,17 @@ local options = {
 			{
 				key = "basic",
 				name = "Basic",
-				desc = "The dead come back to life",
+				desc = "Any trace of dead units will resurrect as zombies.",
 			},
 			{
 				key = "wraith",
 				name = "Wraith",
-				desc = "Basic, and Wraiths appear from overkill and from destroyed corpses. When a zombie's corpse is destroyed, it can respawn at any isolated Wraith.",
+				desc = "Basic, but when a unit, corpse, or heap is destroyed entirely, a wraith will appear and place its heap in unoccupied places.",
 			},
 			{
 				key = "hydra",
 				name = "Hydra",
-				desc = "Basic, and each corpse will resurrect between 2 and 6 zombies.",
+				desc = "Basic, and each corpse will resurrect multiple zombies escalating over the course of the game.",
 			},
 			{
 				key = "akumu",
