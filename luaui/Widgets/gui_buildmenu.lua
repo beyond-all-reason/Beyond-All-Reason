@@ -209,7 +209,7 @@ local function refreshUnitDefs()
 			iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
 		end
 	end
-	dynamicBuildOptions.apply(unitBuildOptions)
+	dynamicBuildOptions.apply(unitBuildOptions, myTeamID)
 	for udid, buildOptions in pairs(unitBuildOptions) do
 		local set = {}
 		for i = 1, #buildOptions do
@@ -431,7 +431,14 @@ end
 
 function widget:PlayerChanged(playerID)
 	isSpec = spGetSpectatingState()
+	local previousTeamID = myTeamID
 	myTeamID = spGetMyTeamID()
+	if myTeamID ~= previousTeamID then
+		-- build options can differ per team
+		refreshUnitDefs()
+		cachedActiveCmdDescs = nil
+		doUpdate = true
+	end
 end
 
 local function UpdateGridGeometry()
@@ -2478,7 +2485,10 @@ function widget:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	end
 end
 
-function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
+	if teamID and teamID ~= myTeamID then
+		return
+	end
 	local buildOptions = unitBuildOptions[builderUnitDefID]
 	if buildOptions then
 		dynamicBuildOptions.patch(buildOptions, builtUnitDefID, added)

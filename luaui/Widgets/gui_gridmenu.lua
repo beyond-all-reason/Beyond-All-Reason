@@ -395,7 +395,7 @@ local function refreshUnitDefs()
 			iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
 		end
 	end
-	dynamicBuildOptions.apply(unitBuildOptions)
+	dynamicBuildOptions.apply(unitBuildOptions, Spring.GetLocalTeamID())
 end
 
 -------------------------------------------------------------------------------
@@ -3303,7 +3303,13 @@ end
 
 function widget:PlayerChanged()
 	isSpec = Spring.GetSpectatingState()
+	local previousTeamID = myTeamID
 	myTeamID = Spring.GetLocalTeamID()
+	if myTeamID ~= previousTeamID then
+		-- build options can differ per team
+		refreshUnitDefs()
+		doUpdate = true
+	end
 end
 
 function widget:GetConfigData()
@@ -3362,7 +3368,10 @@ function widget:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	end
 end
 
-function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
+	if teamID and teamID ~= myTeamID then
+		return
+	end
 	local buildOptions = unitBuildOptions[builderUnitDefID]
 	if buildOptions then
 		dynamicBuildOptions.patch(buildOptions, builtUnitDefID, added)
