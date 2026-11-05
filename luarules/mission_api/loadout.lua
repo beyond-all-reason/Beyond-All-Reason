@@ -129,16 +129,18 @@ local function spawnUnitLoadout(unitLoadout)
 		end
 
 		local positions = generateGridPositions(unit.x, unit.z, unit.quantity or 1, xsize, zsize)
+		local spawnedUnitIDs = {}
 		for _, pos in ipairs(positions) do
 			if snapToBuildGrid then
 				pos.x, pos.y, pos.z = Spring.Pos2BuildPos(unitDef.id, pos.x, pos.y, pos.z, buildFacing)
 			end
-			local unitID = spawnUnit(unit, pos)
-			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
-			GG["MissionAPI"].issuingOrders = true
-			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
-			GG["MissionAPI"].issuingOrders = nil
+			spawnedUnitIDs[spawnUnit(unit, pos)] = true
 		end
+
+		-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
+		GG["MissionAPI"].issuingOrders = true
+		Spring.GiveOrderArrayToUnitMap(spawnedUnitIDs, convertOrdersTargetingNames(unit.orders))
+		GG["MissionAPI"].issuingOrders = nil
 	end
 end
 
