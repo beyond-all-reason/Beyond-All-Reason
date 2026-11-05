@@ -28,8 +28,6 @@
 			"quitmenu",
 			"quitmessage",
 			"reloadforce",
-			"selectloop_add",
-			"selectloop_invert",
 			"teamstatus_close",
 			"togglecammode",
 			"togglelos",
@@ -573,119 +571,6 @@
 		]
 	},
 	{
-		"category": "categories.squads",
-		"items": [
-			{
-				"action": "squad_select",
-				"label": "actions.squads.select"
-			},
-			{
-				"action": "squad_select append_domain",
-				"label": "actions.squads.append"
-			},
-			{
-				"action": "squad_select_filtered retarget",
-				"label": "actions.squads.selectFiltered"
-			},
-			{
-				"action": "squad_select_filtered append distance_850",
-				"label": "actions.squads.appendFiltered"
-			},
-			{
-				"action": "squad_select_portion 0.5 append_domain",
-				"label": "actions.squads.selectHalfAppend"
-			},
-			{
-				"action": "squad_select_portion 0.5",
-				"label": "actions.squads.selectHalf"
-			},
-			{
-				"action": "squad_select_portion_filtered 0.5 append_domain",
-				"label": "actions.squads.selectHalfFilteredAppend"
-			},
-			{
-				"action": "squad_select_portion_filtered 0.5",
-				"label": "actions.squads.selectHalfFiltered"
-			},
-			{
-				"action": "squad_select_portion 0",
-				"label": "actions.squads.selectOne"
-			},
-			{
-				"action": "squad_select_portion 0 append_domain",
-				"label": "actions.squads.appendOne"
-			},
-			{
-				"action": "squad_select_portion_filtered 0",
-				"label": "actions.squads.selectOneFiltered"
-			},
-			{
-				"action": "squad_select_portion_filtered 0 append",
-				"label": "actions.squads.appendOneFiltered"
-			},
-			{
-				"action": "squad_select append locked",
-				"label": "actions.squads.appendLocked"
-			},
-			{
-				"action": "squad_create",
-				"label": "actions.squads.create"
-			},
-			{
-				"action": "squad_lock",
-				"label": "actions.squads.lock"
-			},
-			{
-				"action": "squad_limit_flip",
-				"label": "actions.squads.limitFlip"
-			},
-			{
-				"action": "squad_expand",
-				"label": "actions.squads.expand"
-			},
-			{
-				"action": "squad_cycle_recent",
-				"label": "actions.squads.cycleRecent"
-			},
-			{
-				"action": "squad_cycle_idle",
-				"label": "actions.squads.cycleIdle"
-			},
-			{
-				"prefix": "squad_select_group append_domain ",
-				"label": "actions.squads.groupAppend",
-				"members": [
-					"0",
-					"1",
-					"2",
-					"3",
-					"4",
-					"5",
-					"6",
-					"7",
-					"8",
-					"9"
-				]
-			},
-			{
-				"prefix": "squad_select_group ",
-				"label": "actions.squads.group",
-				"members": [
-					"0",
-					"1",
-					"2",
-					"3",
-					"4",
-					"5",
-					"6",
-					"7",
-					"8",
-					"9"
-				]
-			}
-		]
-	},
-	{
 		"category": "categories.buildHotkeys",
 		"items": [
 			{
@@ -905,18 +790,6 @@
 				"label": "actions.camera.cycleSelectedPrev"
 			},
 			{
-				"action": "pip1_switch",
-				"label": "actions.camera.pipSwitch"
-			},
-			{
-				"action": "pip1_copy",
-				"label": "actions.camera.pipCopy"
-			},
-			{
-				"action": "pip1_track",
-				"label": "actions.camera.pipTrack"
-			},
-			{
 				"action": "pip_replay",
 				"label": "actions.camera.pipReplay"
 			},
@@ -1095,66 +968,6 @@
 				"label": "actions.keybindProfiles.activate",
 				"description": "actions.keybindProfiles.activateDescription",
 				"membersFrom": "profiles"
-			}
-		]
-	},
-	{
-		"category": "categories.other",
-		"items": [
-			{
-				"action": "selectloop",
-				"label": "actions.selection.loopActivate",
-				"alwaysModifier": "any"
-			},
-			{
-				"prefix": "factory_preset load ",
-				"label": "actions.factory.loadPreset",
-				"members": [
-					"0",
-					"1",
-					"2",
-					"3",
-					"4",
-					"5",
-					"6",
-					"7",
-					"8",
-					"9"
-				]
-			},
-			{
-				"prefix": "factory_preset save ",
-				"label": "actions.factory.savePreset",
-				"members": [
-					"0",
-					"1",
-					"2",
-					"3",
-					"4",
-					"5",
-					"6",
-					"7",
-					"8",
-					"9"
-				]
-			},
-			{
-				"action": "factory_preset_show",
-				"label": "actions.factory.showPresets",
-				"alwaysModifier": "any"
-			},
-			{
-				"action": "factory_preset_toggle",
-				"label": "actions.factory.togglePresets",
-				"alwaysModifier": "any"
-			},
-			{
-				"action": "fov_inc 5",
-				"label": "actions.camera.fovIncrease"
-			},
-			{
-				"action": "fov_dec 5",
-				"label": "actions.camera.fovDecrease"
 			}
 		]
 	}

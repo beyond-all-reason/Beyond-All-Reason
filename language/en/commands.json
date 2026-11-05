@@ -124,11 +124,13 @@
 			"commFocus": "Select and go to commander",
 			"boxIdle": "Box select: idle units only",
 			"boxSame": "Box select: matching unit types",
-			"loopActivate": "Loop select: activate",
 			"boxAppend": "Box select: add to selection",
 			"boxDeselect": "Box select: remove from selection",
 			"boxMobile": "Box select: mobile units only",
-			"boxAny": "Box select: include buildings"
+			"boxAny": "Box select: include buildings",
+			"loopActivate": "Loop select: activate",
+			"loopAdd": "Loop select: add to selection",
+			"loopDeselect": "Loop select: deselect"
 		},
 		"massSelect": {
 			"all": "Select all units",
@@ -334,7 +336,6 @@
 		"queues": "Order modifiers",
 		"unitStates": "Unit states",
 		"controlGroups": "Control groups",
-		"squads": "Squads",
 		"buildHotkeys": "Build",
 		"gridMenu": "Grid menu",
 		"blueprints": "Blueprints",

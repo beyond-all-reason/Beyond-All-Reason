@@ -66,6 +66,11 @@
 			"items": { "type": "string", "minLength": 1 },
 			"description": "Action prefixes, highest priority first. Two actions on one key are tried in the order they were bound, so bind files are emitted with these actions first; anything unlisted keeps the order it already had."
 		},
+		"movedToWidgets": {
+			"type": "array",
+			"items": { "type": "string", "minLength": 1 },
+			"description": "Actions these profiles used to bind whose defaults now come from a widget's manifest. A player's profile saved before they moved counts them as already offered, so one the player had removed is not bound again."
+		},
 		"profiles": {
 			"type": "array",
 			"minItems": 1,
