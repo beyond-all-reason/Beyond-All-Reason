@@ -23,7 +23,7 @@ local function loadEffectDefinitions()
 				)
 			end
 			effects[effectType] = effectDefinition
-			effectTypes[effectType] = true
+			effectTypes[effectType] = effectType
 		end
 	end
 
