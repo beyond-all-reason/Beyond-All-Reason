@@ -19,7 +19,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 	local spGetTeamInfo = Spring.GetTeamInfo
 	local spAreTeamsAllied = Spring.AreTeamsAllied
-	local spGetGameFrame = Spring.GetGameFrame
 	local spTransferUnit = Spring.TransferUnit
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
@@ -71,14 +70,14 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if shouldNotAnnounce then
 			-- lets widgets tell these shares apart, e.g. gui_chat doesn't announce them
-			spSetUnitRulesParam(unitID, "shareCommandFrame", spGetGameFrame(), alliesCanSeeParam)
+			spSetUnitRulesParam(unitID, "isRallyShare", true, alliesCanSeeParam)
 		end
 		if isShareTarget(spGetUnitTeam(unitID), targetTeamID) then
 			spTransferUnit(unitID, targetTeamID, true)
 		end
 		if shouldNotAnnounce then
 			-- any callins that care about this should have gone by now
-			spSetUnitRulesParam(unitID, "isRallyShare", true, alliesCanSeeParam)
+			spSetUnitRulesParam(unitID, "isRallyShare", nil, alliesCanSeeParam)
 		end
 	end
 
