@@ -46,6 +46,9 @@ return {
 			lumamult = "1.3",
 			model_author = "Flaka",
 			normaltex = "unittextures/leg_normal.dds",
+			reaim_spam = true,
+			reaimtime = 3,
+			stompable = true,
 			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {

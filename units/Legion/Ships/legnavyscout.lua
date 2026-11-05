@@ -34,6 +34,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies (Model), Phill-Art (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 6,
 			subfolder = "Legion/Ships",
 		},
 		featuredefs = {
