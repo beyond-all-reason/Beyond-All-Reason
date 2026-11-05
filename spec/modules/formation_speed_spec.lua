@@ -1,4 +1,4 @@
-describe("mission_api.formation_speed", function()
+describe("modules.formation_speed", function()
 	---@type table
 	local FormationSpeed
 	---@type table<integer, table>
@@ -47,7 +47,7 @@ describe("mission_api.formation_speed", function()
 				end,
 			},
 		}
-		FormationSpeed = VFS.Include("luarules/mission_api/formation_speed.lua")
+		FormationSpeed = require("modules/formation_speed")
 	end)
 
 	local spot = { x = 0, z = 1000 }

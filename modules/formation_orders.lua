@@ -1,11 +1,10 @@
----
---- Orders for a group the way a player's formation move gives them: each MOVE, FIGHT or PATROL order sends each
---- unit to its own spot, worked out from where the units are. IssueOrders gives orders this way with `formation`.
----
---- The engine makes formation moves only for a player's own orders to their selection, so synced Lua needs this.
----
+-- modules/formation_orders.lua
+--
+-- Orders for a group the way a player's formation move gives them: each MOVE, FIGHT or PATROL order sends each
+-- unit to its own spot, worked out from where the units are.
+-- The engine makes formation moves only for a player's own orders to their selection, so synced Lua needs this.
 
-local Formation = VFS.Include("luarules/mission_api/formation_math.lua")
+local Formation = require("modules/formation_math")
 
 -- In elmos. Closer than this, the way between two points says nothing about which way the group will face.
 local MIN_FACING_DISTANCE = 32
@@ -74,20 +73,19 @@ local function getGroupHeading(units, starts, queue, destination)
 	end
 end
 
--- A compass angle (0 north, clockwise), or a point to face from the destination.
-local function getDirectionHeading(direction, destination)
-	if direction.angle then
-		-- TODO: refactor to call CompassAngleToHeading when it is merged
-		return math.rad(180 - direction.angle)
+-- A heading, or a point to face from the destination.
+local function getFacingHeading(facing, destination)
+	if type(facing) == "number" then
+		return facing
 	end
-	if direction.x ~= destination.x or direction.z ~= destination.z then
-		return math.atan2(direction.x - destination.x, direction.z - destination.z)
+	if facing.x ~= destination.x or facing.z ~= destination.z then
+		return math.atan2(facing.x - destination.x, facing.z - destination.z)
 	end
 end
 
-local function getTurn(units, starts, queue, direction, destination)
+local function getTurn(units, starts, queue, facing, destination)
 	local heading = getGroupHeading(units, starts, queue, destination)
-	local wanted = getDirectionHeading(direction, destination)
+	local wanted = getFacingHeading(facing, destination)
 	if heading and wanted then
 		return math.clampRadians(wanted - heading)
 	end
@@ -118,7 +116,7 @@ local function linePoints(params)
 	return points
 end
 
-local function spreadOrder(units, order, direction, matchSpeed)
+local function spreadOrder(units, order, facing, pace)
 	local command, params, options = order[1], order[2], order[3] or {}
 	local queue = table.contains(options, "shift")
 
@@ -126,7 +124,7 @@ local function spreadOrder(units, order, direction, matchSpeed)
 	local starts, paced = {}, {}
 	for i, unitID in ipairs(units) do
 		starts[i] = getStart(unitID, queue)
-		paced[i] = matchSpeed and (not queue or Spring.GetUnitCommandCount(unitID) == 0)
+		paced[i] = pace and (not queue or Spring.GetUnitCommandCount(unitID) == 0)
 	end
 
 	---@type table<integer, table>
@@ -135,7 +133,7 @@ local function spreadOrder(units, order, direction, matchSpeed)
 		targets = Formation.AlongLine(starts, linePoints(params))
 	else
 		local destination = { x = params[1], z = params[3] }
-		local turn = direction and getTurn(units, starts, queue, direction, destination) or 0
+		local turn = facing and getTurn(units, starts, queue, facing, destination) or 0
 		targets = Formation.AroundPoint(starts, destination, turn)
 	end
 
@@ -149,8 +147,8 @@ local function spreadOrder(units, order, direction, matchSpeed)
 		end
 	end
 
-	if matchSpeed then
-		GG["MissionAPIActionHelper"].matchFormationSpeed(pacedUnits, pacedTargets, command)
+	if pace then
+		pace(pacedUnits, pacedTargets, command)
 	end
 end
 
@@ -170,10 +168,10 @@ end
 
 --- Nanoframes, transported units and units that cannot move take the orders as written; dead units take none.
 ---@param unitIDs integer[]
----@param orders table[] with unit and feature names already turned into IDs
----@param formation table { direction: the way the shape faces at each point it keeps, matchSpeed: arrive together at
---- the first point }
-local function giveFormationOrders(unitIDs, orders, formation)
+---@param orders table[] as Spring.GiveOrderArrayToUnit takes them
+---@param options table { facing: a heading, or a point { x, z }, the shape faces at each point it keeps,
+--- pace: function(unitIDs, targets, command) given the units and spots of the first move, to set their speeds }
+local function giveFormationOrders(unitIDs, orders, options)
 	local spread, others = {}, {}
 	for _, unitID in ipairs(unitIDs) do
 		if Spring.GetUnitIsDead(unitID) ~= false then
@@ -184,7 +182,7 @@ local function giveFormationOrders(unitIDs, orders, formation)
 			others[#others + 1] = unitID
 		end
 	end
-	-- The matching breaks ties by order, so the result must not depend on how the names table was filled.
+	-- The matching breaks ties by order, so the result must not depend on the order of unitIDs.
 	table.sort(spread)
 
 	if #others > 0 then
@@ -195,13 +193,13 @@ local function giveFormationOrders(unitIDs, orders, formation)
 	end
 
 	-- One order at a time to the whole group, so a queued order starts from where the one before it ends.
-	-- matchSpeed paces the first move, the leg the units set out on now.
-	local matchSpeed = formation.matchSpeed == true
+	-- pace takes the first move, the leg the units set out on now.
+	local pace = options.pace
 	for _, order in ipairs(orders) do
 		if isSpreadOrder(order) then
 			if #spread > 0 then
-				spreadOrder(spread, order, formation.direction, matchSpeed)
-				matchSpeed = false
+				spreadOrder(spread, order, options.facing, pace)
+				pace = nil
 			end
 		else
 			for _, unitID in ipairs(spread) do

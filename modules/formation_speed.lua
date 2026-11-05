@@ -1,9 +1,9 @@
----
---- Paces the ground units of a formation move so they arrive together.
---- Polled every half second from the action helper's GameFrame, so no callins are added to every game.
----
+-- modules/formation_speed.lua
+--
+-- Paces the ground units of a formation move so they arrive together.
+-- Its owner polls Update every half second while IsActive, so no callins are added to every game.
 
-local Formation = VFS.Include("luarules/mission_api/formation_math.lua")
+local Formation = require("modules/formation_math")
 
 -- In elmos. How far a queued order's position may be from a unit's spot and still be its formation order.
 local SAME_POSITION = 1

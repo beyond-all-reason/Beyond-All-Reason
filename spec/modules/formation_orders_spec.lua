@@ -1,10 +1,8 @@
 local MAP_SIZE = 4096
 
-_G.CMD = { MOVE = 10, PATROL = 15, FIGHT = 16, ATTACK = 20, REPAIR = 40, RECLAIM = 90, RESURRECT = 125, CAPTURE = 130 } ---@diagnostic disable-line: global-in-non-module
+local FormationOrders = require("modules/formation_orders")
 
-local FormationOrders = VFS.Include("luarules/mission_api/formation_orders.lua")
-
-describe("mission_api.formation_orders", function()
+describe("modules.formation_orders", function()
 	---@type table<integer, table>
 	local units
 	---@type table<integer, table>
@@ -29,7 +27,8 @@ describe("mission_api.formation_orders", function()
 
 	before_each(function()
 		given, givenAsWritten, matched = {}, {}, {}
-		_G.CMD = {
+		-- rawset, so the type checker does not take these few IDs for the engine's CMD table.
+		rawset(_G, "CMD", {
 			MOVE = 10,
 			PATROL = 15,
 			FIGHT = 16,
@@ -38,7 +37,7 @@ describe("mission_api.formation_orders", function()
 			RECLAIM = 90,
 			RESURRECT = 125,
 			CAPTURE = 130,
-		} ---@diagnostic disable-line: global-in-non-module
+		})
 		_G.Game = { mapSizeX = MAP_SIZE, mapSizeZ = MAP_SIZE, squareSize = 8 } ---@diagnostic disable-line: global-in-non-module
 		---@diagnostic disable-next-line: global-in-non-module
 		_G.UnitDefs = {
@@ -91,12 +90,11 @@ describe("mission_api.formation_orders", function()
 				givenAsWritten[#givenAsWritten + 1] = { unitID = unitID, orders = orders }
 			end,
 		}
-		GG["MissionAPIActionHelper"] = {
-			matchFormationSpeed = function(pacedIDs, targets, command)
-				matched[#matched + 1] = { unitIDs = pacedIDs, targets = targets, command = command }
-			end,
-		}
 	end)
+
+	local function pace(pacedIDs, targets, command)
+		matched[#matched + 1] = { unitIDs = pacedIDs, targets = targets, command = command }
+	end
 
 	-- The last order each unit was given.
 	local function ordersByUnit()
@@ -108,8 +106,8 @@ describe("mission_api.formation_orders", function()
 		return orders
 	end
 
-	local function issue(orders, formation)
-		FormationOrders.GiveFormationOrders(unitIDs(), orders, formation or {})
+	local function issue(orders, options)
+		FormationOrders.GiveFormationOrders(unitIDs(), orders, options or {})
 	end
 
 	local function moveTo(x, z, options)
@@ -157,15 +155,15 @@ describe("mission_api.formation_orders", function()
 		assert.are.same({ 77 }, given[2].params)
 	end)
 
-	describe("direction", function()
+	describe("facing", function()
 		-- Side by side along x, both facing south.
 		local function sideBySide()
 			setUnits({ [1] = { x = 1000, z = 1000, heading = 0 }, [2] = { x = 1100, z = 1000, heading = 0 } })
 		end
 
-		it("turns the shape to a compass angle", function()
+		it("turns the shape to a heading", function()
 			sideBySide()
-			issue({ moveTo(3000, 1000) }, { direction = { angle = 90 } })
+			issue({ moveTo(3000, 1000) }, { facing = math.pi / 2 })
 			local orders = ordersByUnit()
 			assert.is_true(near(3000, orders[1].x) and near(3000, orders[2].x))
 			assert.is_true(near(100, math.abs(orders[1].z - orders[2].z)))
@@ -173,14 +171,14 @@ describe("mission_api.formation_orders", function()
 
 		it("does not turn the shape for the way it already faces", function()
 			sideBySide()
-			issue({ moveTo(3000, 1000) }, { direction = { angle = 180 } })
+			issue({ moveTo(3000, 1000) }, { facing = 0 })
 			local orders = ordersByUnit()
 			assert.is_true(near(2950, orders[1].x) and near(3050, orders[2].x))
 		end)
 
 		it("turns the shape to face a point from the order's point", function()
 			sideBySide()
-			issue({ moveTo(3000, 1000) }, { direction = { x = 4000, z = 1000 } })
+			issue({ moveTo(3000, 1000) }, { facing = { x = 4000, z = 1000 } })
 			local orders = ordersByUnit()
 			assert.is_true(near(3000, orders[1].x) and near(3000, orders[2].x))
 			assert.is_true(near(100, math.abs(orders[1].z - orders[2].z)))
@@ -188,7 +186,7 @@ describe("mission_api.formation_orders", function()
 
 		it("turns from the way to the point when the units face opposite ways", function()
 			setUnits({ [1] = { x = 1000, z = 1000, heading = 0 }, [2] = { x = 1100, z = 1000, heading = math.pi } })
-			issue({ moveTo(3000, 1000) }, { direction = { angle = 180 } })
+			issue({ moveTo(3000, 1000) }, { facing = 0 })
 			local orders = ordersByUnit()
 			assert.is_true(near(3000, orders[1].x) and near(3000, orders[2].x))
 			assert.is_true(near(100, math.abs(orders[1].z - orders[2].z)))
@@ -282,10 +280,10 @@ describe("mission_api.formation_orders", function()
 		assert.are.same({ { CMD.FIGHT, { 100, 0, 500 }, { "shift" } } }, givenAsWritten[1].orders)
 	end)
 
-	describe("matchSpeed", function()
-		it("hands the units, their targets and the command to the helper", function()
+	describe("pace", function()
+		it("hands the units, their targets and the command to pace", function()
 			setUnits({ [1] = { x = 100, z = 100 }, [2] = { x = 200, z = 100 } })
-			issue({ { CMD.PATROL, { 1000, 0, 1000 }, {} } }, { matchSpeed = true })
+			issue({ { CMD.PATROL, { 1000, 0, 1000 }, {} } }, { pace = pace })
 			assert.are.equal(1, #matched)
 			assert.are.same({ 1, 2 }, matched[1].unitIDs)
 			assert.are.same({ { x = 950, z = 1000 }, { x = 1050, z = 1000 } }, matched[1].targets)
@@ -294,13 +292,13 @@ describe("mission_api.formation_orders", function()
 
 		it("hands the targets kept on the map", function()
 			setUnits({ [1] = { x = 0, z = 0 }, [2] = { x = 400, z = 0 } })
-			issue({ moveTo(MAP_SIZE - 10, 10) }, { matchSpeed = true })
+			issue({ moveTo(MAP_SIZE - 10, 10) }, { pace = pace })
 			assert.are.equal(MAP_SIZE - Game.squareSize, matched[1].targets[2].x)
 		end)
 
 		it("paces only the first move of the list", function()
 			setUnits({ [1] = { x = 100, z = 100 }, [2] = { x = 200, z = 100 } })
-			issue({ moveTo(1000, 1000), moveTo(1000, 2000, { "shift" }) }, { matchSpeed = true })
+			issue({ moveTo(1000, 1000), moveTo(1000, 2000, { "shift" }) }, { pace = pace })
 			assert.are.equal(1, #matched)
 			assert.are.equal(1000, matched[1].targets[1].z)
 		end)
@@ -311,11 +309,11 @@ describe("mission_api.formation_orders", function()
 				[2] = { x = 100, z = 0 },
 				[3] = { x = 200, z = 0 },
 			})
-			issue({ moveTo(2000, 2000, { "shift" }) }, { matchSpeed = true })
+			issue({ moveTo(2000, 2000, { "shift" }) }, { pace = pace })
 			assert.are.same({ 2, 3 }, matched[1].unitIDs)
 		end)
 
-		it("does not match speeds unless asked", function()
+		it("paces nothing without pace", function()
 			setUnits({ [1] = { x = 100, z = 100 }, [2] = { x = 200, z = 100 } })
 			issue({ moveTo(1000, 1000) })
 			assert.are.equal(0, #matched)

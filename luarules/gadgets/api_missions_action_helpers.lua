@@ -49,7 +49,7 @@ end
 local spAddTeamResource = Spring.AddTeamResource
 local spUseTeamResource = Spring.UseTeamResource
 
-local formationSpeed = VFS.Include("luarules/mission_api/formation_speed.lua")
+local formationSpeed = require("modules/formation_speed")
 
 GG.MissionAPIActionHelper = {}
 
