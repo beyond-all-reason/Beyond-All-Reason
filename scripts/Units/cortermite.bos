@@ -254,6 +254,8 @@ Create()
 	turn leg3a to y-axis <30> now;//5
 	moveSpeed = (get MAX_SPEED);
 	WALK_PERIOD=400;
+	// turn flare1 to z-axis <-35> speed <55.0>;
+	// turn flare2 to z-axis <35> speed <55.0>;
 }
 
 
