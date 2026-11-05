@@ -10,7 +10,7 @@ return {
 		type = 'SetMapSkybox',
 		parameters = {
 			{ name = 'texture',  required = true,  type = ParameterTypes.SkyboxFile },
-			{ name = 'rotation', required = false, type = ParameterTypes.CompassAngle }, -- turns the sky clockwise seen from above
+			{ name = 'rotation', required = false, type = ParameterTypes.CompassAngle },
 		},
 		actionFunction = setMapSkybox,
 	}
