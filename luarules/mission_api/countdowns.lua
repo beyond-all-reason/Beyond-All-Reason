@@ -15,38 +15,21 @@ end
 ---@field displayed boolean
 ---@field buffered boolean? displayed only; held through its first tick
 ---@field tickPhase integer? non-displayed only; the frame % gameSpeed it ticks on
----@field addedFrame integer? AddCountdownFrames only; the frame it was added on, which it never ticks on
+---@field startFrame integer? non-displayed only; the frame it was added or set on, which it does not tick on
 
 -- Displayed countdowns (the default) tick on the shared whole-second cadence;
 -- non-displayed ones tick relative to their creation frame. See Decrement().
 local function addCountdown(countdownID, seconds, displayed)
 	displayed = displayed ~= false
+	local frame = not displayed and Spring.GetGameFrame() or nil
 	GG["MissionAPI"].Countdowns[countdownID] = {
 		id = countdownID,
 		timeRemaining = sanitizeSeconds(seconds),
 		paused = false,
 		displayed = displayed,
 		buffered = displayed or nil, -- see Decrement()
-		tickPhase = not displayed and Spring.GetGameFrame() % Game.gameSpeed or nil,
-	}
-end
-
--- A non-displayed countdown that ends exactly `frames` game frames from now: it ticks on the
--- phase that puts its last tick on that frame, and never on the frame it was added (GameStart
--- adds them before the frame 0 tick). TimeElapsed runs on these.
-local function addCountdownFrames(countdownID, frames)
-	local gameSpeed = Game.gameSpeed
-	local frame = Spring.GetGameFrame()
-	-- At GameStart GetGameFrame reads 0 before frame 0 has run, and a tick is never on the frame a
-	-- countdown was added, so 0 frames would end a whole second late: count at least one.
-	frames = math.max(1, frames)
-	GG["MissionAPI"].Countdowns[countdownID] = {
-		id = countdownID,
-		timeRemaining = math.ceil(frames / gameSpeed),
-		paused = false,
-		displayed = false,
-		tickPhase = (frame + frames) % gameSpeed,
-		addedFrame = frame,
+		tickPhase = frame and frame % Game.gameSpeed,
+		startFrame = frame,
 	}
 end
 
@@ -80,7 +63,8 @@ local function setTime(countdownID, seconds)
 		if countdown.displayed then
 			countdown.buffered = true
 		else
-			countdown.tickPhase = Spring.GetGameFrame() % Game.gameSpeed
+			countdown.startFrame = Spring.GetGameFrame()
+			countdown.tickPhase = countdown.startFrame % Game.gameSpeed
 		end
 	end
 end
@@ -105,7 +89,8 @@ end
 -- immediately, so each one is held through its first tick; this also gives the
 -- player a moment to notice the new timer. Non-displayed countdowns have
 -- nothing to synchronise, so they skip the hold and tick relative to their
--- creation frame, which makes their duration exact.
+-- creation frame, which makes their duration exact. They never tick on that
+-- frame itself: one added at GameStart would otherwise tick on frame 0.
 local function decrement(frameNumber)
 	local countdowns = GG["MissionAPI"].Countdowns
 	local gameSpeed = Game.gameSpeed
@@ -120,7 +105,7 @@ local function decrement(frameNumber)
 		if countdown.displayed then
 			dueToTick = onWholeSecond
 		else
-			dueToTick = frameNumber % gameSpeed == countdown.tickPhase and frameNumber ~= countdown.addedFrame
+			dueToTick = frameNumber % gameSpeed == countdown.tickPhase and frameNumber ~= countdown.startFrame
 		end
 
 		if dueToTick and not countdown.paused then
@@ -145,7 +130,6 @@ end
 
 return {
 	AddCountdown = addCountdown,
-	AddCountdownFrames = addCountdownFrames,
 	CancelCountdown = cancelCountdown,
 	PauseCountdown = pauseCountdown,
 	UnpauseCountdown = unpauseCountdown,

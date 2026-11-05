@@ -38,57 +38,6 @@ describe("mission_api.countdowns", function()
 		tickSecond()
 	end
 
-	describe("AddCountdownFrames", function()
-		-- Runs Decrement() frame by frame from the current frame and returns how many frames
-		-- later the countdown ended.
-		local function framesUntilEnded(countdownID, limit)
-			local start = currentFrame
-			for frame = start + 1, start + limit do
-				currentFrame = frame
-				local endedIDs = countdowns.Decrement(frame)
-				for _, endedID in ipairs(endedIDs) do
-					if endedID == countdownID then
-						return frame - start
-					end
-				end
-			end
-		end
-
-		it("ends exactly the given number of frames later, from any frame", function()
-			for _, frames in ipairs({ 1, 29, 30, 31, 45, 60, 451 }) do
-				for _, startFrame in ipairs({ 0, 7, 30 }) do
-					currentFrame = startFrame
-					countdowns.AddCountdownFrames("exact", frames)
-					assert.are.equal(
-						frames,
-						framesUntilEnded("exact", 600),
-						frames .. " frames from frame " .. startFrame
-					)
-				end
-			end
-		end)
-
-		it("ends on the next frame for 0 frames", function()
-			currentFrame = 0
-			countdowns.AddCountdownFrames("now", 0)
-			assert.are.equal(1, framesUntilEnded("now", 60))
-		end)
-
-		it("does not tick on the frame it was added", function()
-			currentFrame = 30
-			countdowns.AddCountdownFrames("added", 60)
-			countdowns.Decrement(30)
-			assert.are.equal(2, get("added").timeRemaining)
-			assert.are.equal(60, framesUntilEnded("added", 120))
-		end)
-
-		it("is not displayed", function()
-			countdowns.AddCountdownFrames("hidden", 90)
-			assert.is_false(get("hidden").displayed)
-			assert.are.equal(3, get("hidden").timeRemaining)
-		end)
-	end)
-
 	describe("AddCountdown", function()
 		it("adds an unpaused countdown with the given time", function()
 			countdowns.AddCountdown("evacuate", 120)
@@ -289,6 +238,37 @@ describe("mission_api.countdowns", function()
 			assert.are.equal(5, get("hidden").timeRemaining)
 
 			countdowns.Decrement(115) -- one second after the set
+			assert.are.equal(4, get("hidden").timeRemaining)
+		end)
+
+		it("do not tick on the frame they were added, so one added at GameStart ends on time", function()
+			-- GetGameFrame reads 0 at GameStart, before GameFrame(0) ticks the countdowns.
+			currentFrame = 0
+			countdowns.AddCountdown("start", 3, false)
+
+			countdowns.Decrement(0)
+			assert.are.equal(3, get("start").timeRemaining)
+
+			local endedIDs
+			for frame = 1, 3 * 30 do
+				endedIDs = countdowns.Decrement(frame)
+				if frame < 3 * 30 then
+					assert.are.same({}, endedIDs)
+				end
+			end
+			assert.are.same({ "start" }, endedIDs)
+		end)
+
+		it("do not tick on the frame SetTime restarted them", function()
+			currentFrame = 47
+			countdowns.AddCountdown("hidden", 10, false)
+
+			currentFrame = 60
+			countdowns.SetTime("hidden", 5)
+			countdowns.Decrement(60)
+			assert.are.equal(5, get("hidden").timeRemaining)
+
+			countdowns.Decrement(90)
 			assert.are.equal(4, get("hidden").timeRemaining)
 		end)
 	end)

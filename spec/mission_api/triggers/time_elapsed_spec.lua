@@ -23,22 +23,23 @@ describe("mission_api.triggers.time_elapsed", function()
 
 	-- Starts the mission on startFrame (0 by default), then runs the countdowns for the
 	-- frames after it, as api_missions_triggers.lua does, and returns the frames after the
-	-- start on which context.ActivateTrigger was invoked.
+	-- start on which context.ActivateTrigger was invoked (0: at GameStart).
 	local function firedFrames(triggerTable, maxFrame, startFrame)
 		startFrame = startFrame or 0
 		GG["MissionAPI"].Countdowns = {}
 		local fired = {}
+		local frame = 0
 		local context = Builders.TriggerContext.new():Build()
+		context.ActivateTrigger = function()
+			fired[#fired + 1] = frame
+		end
 		currentFrame = startFrame
 		onGameStart(triggerTable, "t", context)
 		-- The game ticks the countdowns on the start frame too, after GameStart.
 		countdowns.Decrement(startFrame)
-		for frame = 1, maxFrame do
+		for nextFrame = 1, maxFrame do
+			frame = nextFrame
 			currentFrame = startFrame + frame
-			-- Re-pointed each frame, so the recorded value is the frame that fired.
-			context.ActivateTrigger = function()
-				fired[#fired + 1] = frame
-			end
 			local endedIDs = countdowns.Decrement(currentFrame)
 			for _, countdownID in ipairs(endedIDs) do
 				onCountdownEnded(triggerTable, "t", context, countdownID)
@@ -63,15 +64,13 @@ describe("mission_api.triggers.time_elapsed", function()
 		assert.are.same({}, firedFrames(trigger({ seconds = 3 }), 89))
 	end)
 
-	it("fires on the first frame for seconds = 0", function()
-		assert.are.same({ 1 }, firedFrames(trigger({ seconds = 0 }), 5))
+	it("fires at the start for seconds = 0", function()
+		assert.are.same({ 0 }, firedFrames(trigger({ seconds = 0 }), 60))
 	end)
 
-	it("rounds a fractional-frame conversion to the nearest frame", function()
-		-- 1/30 s * 30 fps = 0.9999… which must round to frame 1, not be missed.
-		assert.are.same({ 1 }, firedFrames(trigger({ seconds = 1 / 30 }), 5))
-		-- 1.5 s * 30 fps = 45.
-		assert.are.same({ 45 }, firedFrames(trigger({ seconds = 1.5 }), 90))
+	it("counts whole seconds, rounding a fraction", function()
+		assert.are.same({ 30 }, firedFrames(trigger({ seconds = 1.4 }), 90))
+		assert.are.same({ 60 }, firedFrames(trigger({ seconds = 1.5 }), 90))
 	end)
 
 	it("fires only once, interval or not", function()
@@ -80,7 +79,7 @@ describe("mission_api.triggers.time_elapsed", function()
 
 	it("counts from the frame the mission started on", function()
 		assert.are.same({ 60 }, firedFrames(trigger({ seconds = 2 }), 90, 450))
-		assert.are.same({ 45 }, firedFrames(trigger({ seconds = 1.5 }), 90, 457))
+		assert.are.same({ 60 }, firedFrames(trigger({ seconds = 2 }), 90, 457))
 	end)
 
 	it("runs on a hidden countdown named after the trigger", function()
