@@ -128,7 +128,7 @@ local function spawnUnitLoadout(unitLoadout)
 			buildFacing = BAR.Utilities.FacingToNumber(unit.facing)
 		end
 
-		local positions = generateGridPositions(unit.x, unit.z, unit.quantity or 1, xsize, zsize)
+		local positions = generateGridPositions(unit.position.x, unit.position.z, unit.quantity or 1, xsize, zsize)
 		for _, pos in ipairs(positions) do
 			if snapToBuildGrid then
 				pos.x, pos.y, pos.z = Spring.Pos2BuildPos(unitDef.id, pos.x, pos.y, pos.z, buildFacing)
@@ -153,9 +153,9 @@ for _, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local function spawnFeature(featureDefName, position, facing, featureName)
+local function spawnFeature(featureDefName, x, y, z, facing, featureName)
 	local heading = BAR.Utilities.FacingToHeading(facing or 0)
-	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
+	local featureID = Spring.CreateFeature(featureDefName, x, y, z, heading, gaiaTeamID)
 	local unitDefName = corpseToUnitDefName[featureDefName]
 
 	if featureID and unitDefName then
@@ -166,8 +166,9 @@ end
 
 local function spawnFeatureLoadout(featureLoadout)
 	for _, feature in ipairs(featureLoadout or {}) do
-		feature.y = Spring.GetGroundHeight(feature.x, feature.z)
-		spawnFeature(feature.featureDefName, feature, feature.facing, feature.featureName)
+		local x, z = feature.position.x, feature.position.z
+		local y = Spring.GetGroundHeight(x, z)
+		spawnFeature(feature.featureDefName, x, y, z, feature.facing, feature.featureName)
 	end
 end
 
