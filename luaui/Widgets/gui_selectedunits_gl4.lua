@@ -13,7 +13,6 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -79,8 +78,8 @@ local initialized = false
 local selUnits = {}
 local nextSelUnits = {}
 local updateSelection = true
-local selectedUnits = spGetSelectedUnits()
-local pendingSelectedUnits = nil
+local selectedUnits = {}
+local getSelectedUnits = Spring.GetSelectedUnits -- replaced in init
 local drawWorldEnabled = true
 local drawWorldPreUnitEnabled = true
 
@@ -391,8 +390,7 @@ local function RemovePrimitive(unitID, noUpload)
 	unitWaterPass[unitID] = nil
 end
 
-function widget:SelectionChanged(sel)
-	pendingSelectedUnits = sel
+function widget:SelectionChanged()
 	updateSelection = true
 end
 
@@ -451,8 +449,7 @@ function widget:Update(dt)
 	end
 
 	if updateSelection then
-		selectedUnits = pendingSelectedUnits or spGetSelectedUnits()
-		pendingSelectedUnits = nil
+		selectedUnits = getSelectedUnits()
 		updateSelection = false
 
 		local oldSelUnits = selUnits
@@ -686,6 +683,8 @@ local function init()
 end
 
 function widget:Initialize()
+	getSelectedUnits = WG.UnitSelection and WG.UnitSelection.GetUnits or Spring.GetSelectedUnits
+
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return

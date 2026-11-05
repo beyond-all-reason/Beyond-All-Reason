@@ -17,10 +17,10 @@ local mathCeil = math.ceil
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetGameFrame = Spring.GetGameFrame
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
+local getSelectedUnits = Spring.GetSelectedUnits -- replaced at init
 
 local CustomFirestateDefs = require("modules/custom_firestate_defs")
 local OrderMenuFirestate = require("luaui/Include/ordermenu_firestate")
@@ -29,7 +29,7 @@ local CANCEL_TARGET_CMD_ID = 34924
 local currentLayout
 
 local function resolveHotkeyTargetVirtualIndex(optWords)
-	local selectedUnits = spGetSelectedUnits()
+	local selectedUnits = getSelectedUnits()
 	if #selectedUnits == 0 then
 		return nil
 	end
@@ -194,7 +194,6 @@ local commandTextCache = {}
 -- Cached WAIT command state (computed once per refresh, not per drawCell call)
 local cachedWaitState = nil
 local hasWaitCommand = false
-local cachedFirstUnit = nil -- first selected unit, avoids spGetSelectedUnits() table alloc
 
 -- Cancel target button visibility tracking
 ---@type number
@@ -419,8 +418,7 @@ local function computeWaitState()
 		cachedWaitState = nil
 		return
 	end
-	-- Use cached first unit instead of calling spGetSelectedUnits() which allocates a large table
-	local ref = cachedFirstUnit
+	local ref = getSelectedUnits()[1]
 	if ref and Spring.ValidUnitID(ref) and Spring.FindUnitCmdDesc(ref, CMD.WAIT) then
 		local commandQueue
 		if isFactory[Spring.GetUnitDefID(ref)] then
@@ -457,6 +455,7 @@ local function refreshCommands()
 
 	-- cancelTargetLastState is kept current by SelectionChanged and by the poll in Update
 	local cancelTargetRelevant = cancelTargetLastState
+	local firstSelectedUnit = getSelectedUnits()[1]
 
 	-- the blueprint commands, unless the blueprint UI is off (ShowBlueprintUI: settings, dev)
 	local hideBlueprints = Spring.GetConfigInt("ShowBlueprintUI", 1) == 0 or nil
@@ -483,8 +482,8 @@ local function refreshCommands()
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
 					stateCommandsCount = stateCommandsCount + 1
-					if command.id == CMD.FIRE_STATE and cachedFirstUnit and Spring.ValidUnitID(cachedFirstUnit) then
-						local virtualIndex = OrderMenuFirestate.resolveVirtualIndex(cachedFirstUnit)
+					if command.id == CMD.FIRE_STATE and firstSelectedUnit and Spring.ValidUnitID(firstSelectedUnit) then
+						local virtualIndex = OrderMenuFirestate.resolveVirtualIndex(firstSelectedUnit)
 						stateCommandsTemp[stateCommandsCount] = virtualIndex
 								and OrderMenuFirestate.buildCmdDesc(command, virtualIndex)
 							or command
@@ -781,6 +780,8 @@ end
 
 function widget:Initialize()
 	widgetHandler:RegisterUnitCommand(CMD.WAIT)
+	getSelectedUnits = WG.UnitSelection and WG.UnitSelection.GetUnits or Spring.GetSelectedUnits
+
 	OrderMenuFirestate.init({
 		onOrderGiven = function()
 			doUpdate = true
@@ -790,7 +791,7 @@ function widget:Initialize()
 	reloadBindings()
 	activeCommand = select(4, spGetActiveCommand())
 	widget:ViewResize()
-	widget:SelectionChanged(spGetSelectedUnits())
+	widget:SelectionChanged(getSelectedUnits())
 
 	WG.ordermenu = {}
 	WG.ordermenu.getPosition = function()
@@ -943,7 +944,7 @@ function widget:Update(dt)
 	if cancelTargetPollSec > 0.1 then
 		cancelTargetPollSec = 0
 		if #commands > 0 or alwaysShow then
-			local selected = Spring.GetSelectedUnits()
+			local selected = getSelectedUnits()
 			local hasTarget = selectionHasPriorityTarget(selected)
 			if hasTarget ~= cancelTargetLastState then
 				cancelTargetLastState = hasTarget
@@ -1922,9 +1923,6 @@ end
 function widget:SelectionChanged(sel)
 	clickCountDown = 2
 	clickedCellDesiredState = nil
-
-	-- Cache first selected unit to avoid spGetSelectedUnits() table allocation later
-	cachedFirstUnit = sel[1] or nil
 
 	-- Update cancel target state using the selection already provided here
 	cancelTargetLastState = selectionHasPriorityTarget(sel)

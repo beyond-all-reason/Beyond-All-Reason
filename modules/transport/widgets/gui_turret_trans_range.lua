@@ -28,7 +28,7 @@ local color
 --------------------------------------------------------------------------------
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 local spGetActiveCmd = Spring.GetActiveCommand
-local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local getSelectedUnits = Spring.GetSelectedUnits -- replaced in init
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glDrawGroundCircle = gl.DrawGroundCircle
@@ -64,6 +64,10 @@ local function DrawNanoRange(x, y, z, range)
 	glLineWidth(1)
 end
 
+function widget:Initialize()
+	getSelectedUnits = WG.UnitSelection and WG.UnitSelection.GetUnits or Spring.GetSelectedUnits
+end
+
 function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
 	if isTransportableBuilding[unitDefID] then
 		range = turretRange[unitDefID]
@@ -84,16 +88,15 @@ function widget:DrawWorldPreUnit()
 	if cmdId ~= CMD_UNLOAD_UNITS then
 		return
 	end
-	local sel = GetSelectedUnitsSorted()
+	local sel = getSelectedUnits()
 	local ranges = {}
-	for _, unitIds in pairs(sel) do
-		for _, unitId in pairs(unitIds) do
-			if transportWithBuilding[unitId] then
-				table.insert(ranges, {
-					unitDefID = transportWithBuilding[unitId],
-					range = turretRange[transportWithBuilding[unitId]],
-				})
-			end
+	for i = 1, #sel do
+		local unitId = sel[i]
+		if transportWithBuilding[unitId] then
+			table.insert(ranges, {
+				unitDefID = transportWithBuilding[unitId],
+				range = turretRange[transportWithBuilding[unitId]],
+			})
 		end
 	end
 	if #ranges == 0 then
