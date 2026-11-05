@@ -1,6 +1,6 @@
---- Build options changed at runtime by api_dynamic_build_options.lua, published as "dynamic_build_options"
---- "<builderUnitDefID>:<builtUnitDefID>:<1 added / 0 removed>" entries: a game rules param for the changes for
---- every team, and a team rules param for a team's own changes on top of them.
+--- Build options changed at runtime by api_dynamic_build_options.lua, published in the game rules param
+--- "dynamic_build_options" as "<builderUnitDefID>:<builtUnitDefID>:<1 added / 0 removed>" entries.
+--- A team rules param of the same name holds one team's own changes.
 local dynamicBuildOptions = {}
 
 local RULES_PARAM = "dynamic_build_options"

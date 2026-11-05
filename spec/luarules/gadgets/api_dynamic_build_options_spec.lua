@@ -170,6 +170,25 @@ describe("api_dynamic_build_options", function()
 			assert.is_nil(world.teamRulesParams[1].dynamic_build_options)
 		end)
 
+		it("takes the option off every builder type of the team at once", function()
+			buildOptions.Remove(SOLAR, nil, 1)
+
+			assert.is_false(hasOption(world, 101, SOLAR))
+			assert.is_true(hasOption(world, 100, SOLAR))
+			assert.is_false(buildOptions.HasBuildOption(SOLAR, CON_BOT, 1))
+			assert.are.equal(1, #world.sent)
+			assert.are.equal("7:42:0", world.teamRulesParams[1].dynamic_build_options)
+		end)
+
+		it("gives every builder type of the team back what it has for all teams", function()
+			buildOptions.Remove(SOLAR, nil, 1)
+			buildOptions.Add(SOLAR, nil, nil, 1)
+
+			assert.is_true(hasOption(world, 101, SOLAR))
+			assert.is_false(hasOption(world, 102, SOLAR))
+			assert.is_nil(world.teamRulesParams[1].dynamic_build_options)
+		end)
+
 		it("applies to the team's new units", function()
 			buildOptions.Remove(SOLAR, CON_BOT, 1)
 			world.addUnit(103, CON_BOT, 1)
@@ -190,6 +209,13 @@ describe("api_dynamic_build_options", function()
 
 			assert.is_true(hasOption(world, 101, SOLAR))
 			assert.is_false(hasOption(world, 100, SOLAR))
+		end)
+
+		it("clears the team's rules param when a change for all teams replaces its own", function()
+			buildOptions.Remove(SOLAR, CON_BOT, 1)
+			buildOptions.Add(SOLAR, CON_BOT)
+
+			assert.is_nil(world.teamRulesParams[1].dynamic_build_options)
 		end)
 
 		it("is replaced by a later change for every team", function()

@@ -34,20 +34,9 @@ describe("mission_api.actions.dynamic_build_options", function()
 
 	---@type { add: table[], remove: table[] }
 	local calls
-	-- builderUnitDefID -> teamID or "all" -> has the solar collector
-	local hasSolar
-
-	local function sortedByBuilder(list)
-		table.sort(list, function(a, b)
-			return a.builderUnitDefID < b.builderUnitDefID
-		end)
-		return list
-	end
 
 	before_each(function()
 		calls = { add = {}, remove = {} }
-		-- the bot and the aircraft build it, the lab doesn't; team 1 already lost it on the aircraft
-		hasSolar = { [7] = { all = true, [1] = true }, [8] = { all = true, [1] = false }, [9] = {} }
 		env.UnitDefNames = unitDefNames
 		env.UnitDefs = unitDefs:GetUnitDefsByID()
 		GG["DynamicBuildOptions"] = {
@@ -67,9 +56,6 @@ describe("mission_api.actions.dynamic_build_options", function()
 					teamID = teamID,
 				}
 				return true
-			end,
-			HasBuildOption = function(builtUnitDefID, builderUnitDefID, teamID)
-				return builtUnitDefID == 42 and hasSolar[builderUnitDefID][teamID or "all"] == true
 			end,
 		}
 	end)
@@ -121,13 +107,10 @@ describe("mission_api.actions.dynamic_build_options", function()
 			assert.are.same({ { builtUnitDefID = 42, builderUnitDefID = 9, position = 2, teamID = 1 } }, calls.add)
 		end)
 
-		it("gives a team back the option on every builder type that has it for every team", function()
+		it("adds the option back for every builder type of one team", function()
 			addAction.actionFunction("armsolar", nil, nil, 1)
 
-			assert.are.same({
-				{ builtUnitDefID = 42, builderUnitDefID = 7, teamID = 1 },
-				{ builtUnitDefID = 42, builderUnitDefID = 8, teamID = 1 },
-			}, sortedByBuilder(calls.add))
+			assert.are.same({ { builtUnitDefID = 42, teamID = 1 } }, calls.add)
 			assert.are.equal(0, #calls.remove)
 		end)
 	end)
@@ -147,10 +130,10 @@ describe("mission_api.actions.dynamic_build_options", function()
 			assert.are.same({ { builtUnitDefID = 42, builderUnitDefID = 7, teamID = 1 } }, calls.remove)
 		end)
 
-		it("removes the option from every builder type of one team that still has it", function()
+		it("removes the option from every builder type of one team", function()
 			removeAction.actionFunction("armsolar", nil, 1)
 
-			assert.are.same({ { builtUnitDefID = 42, builderUnitDefID = 7, teamID = 1 } }, calls.remove)
+			assert.are.same({ { builtUnitDefID = 42, teamID = 1 } }, calls.remove)
 			assert.are.equal(0, #calls.add)
 		end)
 	end)

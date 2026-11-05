@@ -549,8 +549,8 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
--- Without a builder type there is no build menu slot to put the option in.
-local function validateBuildOptionAction(context, actionReport, actionID, action)
+-- a menu slot needs a builder type
+local function validateAddBuildOptionAction(context, actionReport, actionID, action)
 	local parameters = action.parameters
 	if action.type ~= context.ActionTypes.AddBuildOption or type(parameters) ~= "table" then
 		return
@@ -574,7 +574,7 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 			validateAttributeAction(actionReport, actionID, action)
 			validateChangeTeamAction(context, actionReport, actionID, action)
-			validateBuildOptionAction(context, actionReport, actionID, action)
+			validateAddBuildOptionAction(context, actionReport, actionID, action)
 		end
 	end
 end
