@@ -16,6 +16,11 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
+	Spring.Echo("Custom transports enabled via modoption, skipping gadget " .. gadget:GetInfo().name)
+	return false
+end
+
 local frameMargin = 10
 
 -- paradropped units (customparams.paratrooper) keep the transport's momentum on unload
