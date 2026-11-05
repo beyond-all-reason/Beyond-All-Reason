@@ -17,7 +17,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		leavetracks = true,
-		mass = 5001,
 		health = 3650,
 		maxslope = 14,
 		speed = 37.5,
