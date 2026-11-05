@@ -11,19 +11,14 @@ handle the update. `false`/`nil` delegates to native movement. Existing command
 initialization, completion checks and weapon firing remain native. `temporary`
 identifies an engine-generated suborder, such as an attack during fight.
 
-The engine supplies four focused capabilities:
+The engine adds one control operation, `SetUnitFacingTarget(unitID, x, y, z,
+radius)`, and extends the existing `GetUnitWeaponTryTarget` query. Target
+coordinates arrive as callback arguments; command completion uses the existing
+`Spring.UnitFinishCommand(unitID)`.
 
-| Call | Purpose |
-| --- | --- |
-| `TestUnitAttackWeapon(unitID, weaponNum, options?)` | Test one firing geometry for the current command target |
-| `GetUnitAttackTargetPosition(unitID)` | Get the target midpoint with the attacking allyteam's sensor error, or the ground command position |
-| `SetUnitFacingTarget(unitID, x, y, z, radius)` | Ask the movement controller to face a position without stopping or assigning a target |
-| `FinishUnitAttackCommand(unitID)` | Finish the active attack without discarding queued successors |
-
-The query and finish calls require the active callback for the same controlled
-unit. They reject a command or target invalidated during dispatch. Handler
-dispatch stops after the first `true` or an invalidated command/owner/target.
-Effects of existing movement/target calls are immediate, not transactional.
+Weapon queries accept explicit targets and do not require an active callback.
+Handler dispatch stops after the first `true` or an invalidated command, owner
+or target. Movement and target effects are immediate, not transactional.
 
 Target assignment uses existing `SetUnitTarget`; stopping uses
 `ClearUnitGoal(unitID, false)`. Normal `SetUnitMoveGoal` calls for the current
@@ -35,14 +30,18 @@ movement behavior.
 ## Weapon queries
 
 ```lua
-local clear, reason, blockerType, blockerID = Spring.TestUnitAttackWeapon(
-    unitID, weaponNum, { orientation = "heading", avoidFlags = flags }
+local clear, reason, blockerType, blockerID = Spring.GetUnitWeaponTryTarget(
+    unitID, weaponNum, targetID, { orientation = "heading", avoidFlags = flags }
 )
+-- Ground target overload: unitID, weaponNum, x, y, z, options
 ```
 
-`rotate` tests the native object-target rotation solution. `heading` tests the
-chassis facing the target. Defaults are `rotate` for unit targets and `heading`
-for ground targets. A ground `rotate` query returns `notChecked`.
+Without options the existing single boolean result and argument handling remain
+unchanged. With a synced options table the query returns four values.
+`current` (the default) tests the current pose, `rotate` tests the native weapon
+rotation solution for unit or ground targets, and `heading` tests the chassis
+facing the target. `userTarget` defaults to true and `manualFire` to false.
+The controller sets these flags explicitly from the current command.
 
 For candidate geometry, use `orientation="heading"`, `position={x,y,z}` and an
 explicit signed `heading`. `useMuzzle=true` selects current muzzle geometry.
@@ -59,8 +58,8 @@ Use `noCloaked` as well as `noUnits` when excluding all units from ray tests.
 The result reports the first failed test and optional blocker identity in native
 scan order, not all blockers or necessarily the nearest. Query categories
 separately for simultaneous terrain and allied-unit obstruction.
-`GetUnitWeaponState(unitID, weaponNum, "onlyForward")` reports the actual weapon's
-chassis-turn requirement, including weapon-type overrides of its definition.
+`WeaponDefs[weaponDefID].onlyForward` supplies the chassis-turn requirement;
+weapon initialization assigns this value after construction, including bombdroppers.
 
 ## Gameplay decisions
 
@@ -114,7 +113,8 @@ reported destination tolerance. Active Lua replay runs and controlled scenarios
 check the resulting simulation; a numeric divergence is investigated rather than
 "fixed" by exposing more implementation details.
 
-Before rebasing, the 2026-10-27 refactor matched engine parent `bb3ff79675` in all three
+The following results are historical evidence, not validation of later API
+changes. Before rebasing, the 2026-10-27 refactor matched engine parent `bb3ff79675` in all three
 replay windows (36,000 + 18,000 + 18,000 frames) for native, false-fallback and
 active Lua modes, plus 5,280 controlled scenario frames. Shadow comparisons
 matched 4,018 replay updates and 280 scenario updates exactly, including numeric
@@ -142,3 +142,10 @@ check. All post-rebase runs completed without crashes.
 
 OpenAI Codex assisted this refactor and its automated checks. Human API review
 and interactive gameplay validation remain necessary.
+
+The subsequent API reuse change was checked with 5,280 controlled frames per
+mode, 86 blocker cases and nine dispatch cases. Long replay comparisons have
+not yet been repeated for that change. The engine validation runner
+`validate_workspace.py` records exact source commits/trees, input hashes and
+frozen binary hashes for the next run; only its completed results establish
+validation of the revised stack.
