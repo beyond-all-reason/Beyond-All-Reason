@@ -193,6 +193,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-large",
+				gravityaffected = "true",
 				impulsefactor = 2.4,
 				name = "Ultra Heavy Riot Autocannon",
 				noselfdamage = true,

@@ -114,6 +114,7 @@ return {
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Light Close-quarters Gauss Cannon",
 				noselfdamage = true,
