@@ -1843,6 +1843,12 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 		return
 	end
 
+	-- units shared by the Share Unit command (luarules/gadgets/cmd_share_unit.lua) aren't announced
+	-- when used as part of a factory rally. Otherwise, it would spam the chat.
+	if Spring.GetUnitRulesParam(unitID, "isRallyShare") then
+		return
+	end
+
 	if not lastUnitShare then
 		lastUnitShare = {}
 	end
