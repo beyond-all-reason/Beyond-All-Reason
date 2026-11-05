@@ -638,15 +638,18 @@ QueryWeapon2(piecenum)
 
 AimWeapon2(heading, pitch)
 {
+	var relativeHeading;
+
 	signal SIGNAL_AIM2;
 	isAiming = TRUE;
-	
+
 	// Restrict secondary weapons firing angles relative to the primary weapons heading
-	if (heading-torsoHeading < 12000 AND heading-torsoHeading > -6000)
+	relativeHeading = WRAPDELTA(heading - torsoHeading);
+	if (relativeHeading < 12000 AND relativeHeading > -6000)
 	{
-		turn lshoulder to y-axis (heading-torsoHeading)/2 speed <90>;
-		turn lsleeve to y-axis (heading-torsoHeading)/2 speed <90>;
-		
+		turn lshoulder to y-axis relativeHeading/2 speed <90>;
+		turn lsleeve to y-axis relativeHeading/2 speed <90>;
+
 		return (1);
 	}
 	else
