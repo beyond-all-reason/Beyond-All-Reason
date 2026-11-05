@@ -12,6 +12,7 @@ return {
 		collisionvolumescales = "25 9 20",
 		collisionvolumetype = "CylY",
 		explodeas = "crawl_blastsml",
+		firestate = 0,
 		footprintx = 2,
 		footprintz = 2,
 		mass = 749,
