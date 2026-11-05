@@ -292,6 +292,31 @@ describe("widget defaults made for one layout", function()
 			assert.are_not.equal("layout_load", b.action)
 		end
 	end)
+
+	it("take the layout of the closest shipped profile for a keymap edited by hand", function()
+		local files, writes = { [STORE] = SHIPPED_STORE, [KEYMAP] = false }, {}
+		local name = run(files, writes, function(profiles)
+			profiles.materialize(SMALL)
+			files[KEYMAP] = writes[KEYMAP] .. "bind sc_f20 quitmessage\n"
+			local adopted = profiles.adoptEditedKeymap()
+			profiles.materialize(adopted)
+
+			return adopted
+		end, LAYOUT_MANIFESTS)
+
+		assert.are.equal("grid60", storedProfile(writes, name).layout)
+	end)
+
+	it("take the layout of the closest shipped profile when compared with nothing", function()
+		local smallBinds = run({ [STORE] = SHIPPED_STORE, [KEYMAP] = false }, {}, function(profiles)
+			return profiles.isBuiltin(SMALL).binds
+		end, LAYOUT_MANIFESTS)
+
+		local store = ownStore({ name = "Mine", basedOn = "none", binds = smallBinds })
+		local writes = materialized(store, "Mine", LAYOUT_MANIFESTS)
+
+		assert.are.equal("grid60", storedProfile(writes, "Mine").layout)
+	end)
 end)
 
 describe("widget defaults on a keymap edited by hand", function()
