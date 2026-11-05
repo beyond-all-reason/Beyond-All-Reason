@@ -431,7 +431,7 @@ local function tryLoadWIPConfig(currentMapName)
 				currentMapName
 			)
 		)
-		return VFS.Include(lastWIPConfig)
+		return VFS.Include(lastWIPConfig, {}, VFS.RAW_FIRST)
 	end
 	return nil
 end
@@ -449,7 +449,7 @@ local function tryLoadConfigFromBAR(currentMapName)
 				LOG.INFO,
 				string.format("found config %s provided by BAR for current map %s", configFile, currentMapName)
 			)
-			return VFS.Include(configFile)
+			return VFS.Include(configFile, {})
 		end
 	end
 	return nil

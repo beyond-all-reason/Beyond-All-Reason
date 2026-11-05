@@ -572,10 +572,16 @@ function widget:Initialize()
 
 	resetEmoteState()
 	updatePosition()
+	WG.advplayerlist_mascot = {}
+	WG.advplayerlist_mascot.GetPosition = function()
+		local mascotRadius = usedImgSize
+		return { yPos + mascotRadius, xPos - mascotRadius, yPos - mascotRadius, xPos + mascotRadius, 1 }
+	end
 end
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("mascot", "t")
+	WG.advplayerlist_mascot = nil
 	for i = 1, 4 do
 		if drawlist[i] then
 			glDeleteList(drawlist[i])

@@ -498,6 +498,10 @@ local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
 local prevPlayedTime = playedTime
+-- GetSoundStreamTime waits for the sound mutex, which the sound thread holds while decoding stream chunks:
+-- polled every frame it caught those waits (up to ms), so poll a few times a second unless the progress bar shows
+local STREAM_TIME_POLL_INTERVAL = 0.25
+local streamTimePollTimer = STREAM_TIME_POLL_INTERVAL
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 50) -- user value, cause actual volume will change during fadein/outc
 if maxMusicVolume > 99 then
@@ -863,7 +867,7 @@ local function refreshUiDrawing()
 		if not uiBgTex then
 			uiBgTex = gl.CreateTexture(mathFloor(right - left), mathFloor(top - bottom), {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 			gl.R2tHelper.RenderInRect(uiBgTex, left, bottom, right, top, drawBackground, true)
@@ -871,7 +875,7 @@ local function refreshUiDrawing()
 		if not uiTex then
 			uiTex = gl.CreateTexture(mathFloor(right - left), mathFloor(top - bottom), { --*(vsy<1400 and 2 or 1)
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 		end
@@ -1272,7 +1276,11 @@ function widget:Update(dt)
 	local frame = spGetGameFrame()
 	local _, _, paused = Spring.GetGameSpeed()
 
-	playedTime, totalTime = Spring.GetSoundStreamTime()
+	streamTimePollTimer = streamTimePollTimer + dt
+	if streamTimePollTimer >= STREAM_TIME_POLL_INTERVAL or mouseover or draggingSlider then
+		streamTimePollTimer = 0
+		playedTime, totalTime = Spring.GetSoundStreamTime()
+	end
 
 	if not playingInit then
 		playingInit = true
@@ -1457,6 +1465,7 @@ function PlayNewTrack(paused)
 	end
 	isChangingTrack = true
 	lastTrackAttemptTime = spGetTimer()
+	streamTimePollTimer = STREAM_TIME_POLL_INTERVAL -- read the new stream's times on the next Update
 
 	if Spring.GetConfigInt("music", 1) ~= 1 then
 		isChangingTrack = false

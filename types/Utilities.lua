@@ -48,6 +48,8 @@
 ---@field Color UtilitiesColor
 ---@field ConvertColor fun(r: number, g: number, b: number): string
 ---@field GetAccountID fun(playerID: number): number
+---@field GetObjectPosition fun(objectID: integer): number?, number?, number?
+---@field GetObjectCentroid fun(objects: integer[], getPosition: fun(objectID: integer): number?, number?, number?): number, number
 
 ---@type Utilities
 Utilities = {}

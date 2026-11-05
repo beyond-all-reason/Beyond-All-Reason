@@ -5,10 +5,12 @@
 
 piece  base, post, turret, flare, aimpoint;
 
-static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  restore_delay;
 
 // Signal definitions
 #define SIG_AIM				2
+
+#include "../../popup_openclose.h"
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -39,20 +41,18 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 }
 
 
-Go()
+OpenAnim()
 {
 	set ARMORED to 0;
 	move post to y-axis [0] speed [50];
 	wait-for-move post along y-axis;
 	turn turret to x-axis <0> speed <300>; 
 	wait-for-turn turret around x-axis;
-	Static_Var_1 = 1;
 }
 
-Stop()
+CloseAnim()
 {
 	set ARMORED to 1;
-	Static_Var_1 = 0;
 	turn post to y-axis <0.000000> speed <300.000000>;
 	turn turret to x-axis <90> speed <300>;
 	wait-for-turn post around y-axis;
@@ -61,63 +61,29 @@ Stop()
 	wait-for-move post along y-axis;
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide aimpoint;
 	hide flare;
 	hide flare;
 	restore_delay = 2000;
-	Static_Var_1 = 0;
-	call-script InitState();
-	start-script RequestState(0);
+	start-script RequestOpen();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
 	start-script SmokeUnit();
-	start-script RequestState(1);
+	start-script RequestClose();
 }
 
 Activate()
 {
-	start-script RequestState(0);
+	start-script RequestOpen();
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	start-script RequestClose();
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -131,8 +97,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script RequestClose();
 }
 SetStunned(State)
 {
@@ -149,10 +114,10 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-	start-script RequestState(0);
+	start-script RequestOpen();
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
+	while( !isOpen )
 	{
 		sleep 250;
 	}
@@ -160,6 +125,11 @@ AimPrimary(heading, pitch)
 	wait-for-turn post around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 Shot1()

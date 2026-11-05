@@ -1,7 +1,7 @@
 --DEFEND FIRESTATE REWORK: Remove modoption branching; always use the enabled virtual-index tables, always issue CMD_USER_FIRESTATE, and delete the disabled-variant tables.
 
-local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
-local UserFirestateCommands = VFS.Include("luaui/Include/user_firestate_commands.lua")
+local CustomFirestateDefs = require("modules/custom_firestate_defs")
+local UserFirestateCommands = require("luaui/Include/user_firestate_commands")
 
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 

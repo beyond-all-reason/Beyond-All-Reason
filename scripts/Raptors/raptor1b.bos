@@ -1,4 +1,4 @@
-piece base,body,head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lforearm,lupperarm,lblade,rforearm,rupperarm,rblade, aimy1;
+piece base,body,head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lforearm,lupperarm,lblade,rforearm,rupperarm,rblade, aimy1, firepoint;
 
 #include "../recoil_common_includes.h"
 
@@ -53,7 +53,12 @@ static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed, isDying, gun_1;
 
 
 QueryWeapon1(pieceIndex)
-	{	pieceIndex=head; }
+	{	pieceIndex=firepoint; }
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = head;
+}
 
 
 AimWeapon1(heading,pitch)

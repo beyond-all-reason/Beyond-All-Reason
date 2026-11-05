@@ -40,7 +40,7 @@ return {
 		customparams = {
 			maxrange = 600,
 			model_author = "Odin, Hornet",
-			normaltex = "unittextures/Cor_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorShips/T2",
 			techlevel = 2,
 			inheritxpratemultiplier = 1,

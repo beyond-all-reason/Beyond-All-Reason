@@ -64,6 +64,7 @@ local glDeleteFont = gl.DeleteFont
 local hideBelowGameframe = 130 -- delay to give spawn fx some time
 local drawForIcon = true -- note that commander icon still gets drawn on top of the name
 local nameScaling = true
+---@type boolean
 local useThickLeterring = false -- Sorry, the performance cost of this is quite high :( triples the amount of text drawn
 local heightOffset = 50
 local fontSize = 15 -- not real fontsize, it will be scaled
@@ -117,7 +118,10 @@ local function loadFonts()
 		fontfileOutlineSize * fontfileScale,
 		fontfileOutlineStrength
 	)
-	shadowFont = glLoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
+	-- only thick lettering prints with it; its wide blurred outline is costly to rasterize at high resolutions
+	if useThickLeterring and fontShadow then
+		shadowFont = glLoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
+	end
 	fonticon = glLoadFont(
 		fontfile,
 		fontfileSize * fontfileScale2,
@@ -128,7 +132,10 @@ end
 
 local function deleteFonts()
 	glDeleteFont(font)
-	glDeleteFont(shadowFont)
+	if shadowFont then
+		glDeleteFont(shadowFont)
+		shadowFont = nil
+	end
 	glDeleteFont(fonticon)
 end
 
@@ -578,7 +585,7 @@ function widget:DrawScreenEffects()
 							end
 							if useThickLeterring then
 								local shadowText = attributes.shadowText
-								if shadowText then
+								if shadowText and shadowFont then
 									if not shadowFontBegun then
 										shadowFont:Begin()
 										shadowFontBegun = true

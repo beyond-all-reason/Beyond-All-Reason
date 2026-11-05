@@ -17,8 +17,8 @@ local spEcho = Spring.Echo
 
 -- spEcho(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
-local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
-local StartPolygonSDF = VFS.Include("luaui/Include/startpolygon_sdf_gl4.lua")
+local StartPolygonSDF = require("luaui/Include/startpolygon_sdf_gl4")
+local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
 
 local pveAllyTeamID = BAR.Utilities.GetScavAllyTeamID() or BAR.Utilities.GetRaptorAllyTeamID()
 
@@ -90,11 +90,11 @@ function widget:DrawWorldPreUnit()
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
-		if WG.screencopymanager and WG.screencopymanager.GetDepthCopy() then
-			gl.Texture(0, WG.screencopymanager.GetDepthCopy())
-		else
+		local depthCopy = WG.screencopymanager and WG.screencopymanager.GetDepthCopy()
+		if not depthCopy then
 			return
 		end
+		gl.Texture(0, depthCopy)
 	end
 
 	-- The polygons never change, so this runs once. It has to happen in a world draw
@@ -109,7 +109,6 @@ function widget:DrawWorldPreUnit()
 	gl.DepthMask(false)
 
 	norushTimerShader:Activate()
-	norushTimerShader:SetUniform("noRushTimer", noRushTime)
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	norushTimerShader:Deactivate()
 	glTexture(0, false)
@@ -143,7 +142,13 @@ local function BuildStartPolygons()
 		-- colour each zone gets, and pairs() would let two clients disagree about it.
 		for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 			local entry = startBoxConfig[allyTeamID]
-			if allyTeamID ~= gaiaAllyTeamID and allyTeamID ~= pveAllyTeamID and entry and entry.boxes then
+			if
+				allyTeamID ~= gaiaAllyTeamID
+				and allyTeamID ~= pveAllyTeamID
+				and entry
+				and entry.boxes
+				and not entry.wholeMap
+			then
 				for _, polygon in ipairs(entry.boxes) do
 					polygons[#polygons + 1] = { team = ColourTeamOf(allyTeamID), poly = polygon }
 				end
@@ -231,7 +236,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	fullScreenRectVAO = InstanceVBOTable.MakeTexRectVAO()
+	fullScreenRectVAO = InstanceVBOTable.fillVAOSlots(InstanceVBOTable.MakeTexRectVAO())
 end
 
 function widget:Shutdown()

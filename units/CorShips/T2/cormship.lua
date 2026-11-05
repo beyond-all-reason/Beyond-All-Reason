@@ -189,6 +189,7 @@ return {
 					speceffect = "split",
 					speceffect_def = "cormship_rocket_split",
 					splitexplosionceg = "genericshellexplosion-medium",
+					soundstart_volume_multiplier = 0.7,
 				},
 				damage = {
 					commanders = 500,
@@ -231,6 +232,9 @@ return {
 				weapontimer = 5,
 				weapontype = "Cannon",
 				weaponvelocity = 480,
+				customparams = {
+					soundstart_volume_multiplier = 0.7,
+				},
 				damage = {
 					commanders = 223,
 					default = 350,

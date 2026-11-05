@@ -19,9 +19,9 @@ function gadget:GetInfo()
 	}
 end
 
-local config = VFS.Include("LuaRules/Configs/raptor_spawn_defs.lua")
-local EnemyLib = VFS.Include("LuaRules/Gadgets/Include/SpawnerEnemyLib.lua")
-local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+local EnemyLib = require("luarules/gadgets/include/SpawnerEnemyLib")
+local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
+local config = require("luarules/configs/raptor_spawn_defs")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -271,7 +271,7 @@ if gadgetHandler:IsSyncedCode() then
 	--
 	-- Utility
 
-	local SetListUtilities = VFS.Include("common/SetList.lua")
+	local SetListUtilities = require("common/SetList")
 
 	function SetToList(set)
 		local list = {}
@@ -470,7 +470,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- Spawn Dynamics
 	--
 
-	local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+	local positionCheckLibrary = require("luarules/Utilities/damgam_lib/position_checks")
 	local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax =
 		EnemyLib.GetAdjustedStartBox(raptorAllyTeamID, config.burrowSize * 1.5 * spawnAreaMultiplier)
 

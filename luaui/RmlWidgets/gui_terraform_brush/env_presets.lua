@@ -7,7 +7,8 @@ return {
 	{
 		name = "Clear Daylight",
 		source = "Altair_Crossing_V4.1",
-		sunDir = { 0.8000, 0.8000, -0.7000 },
+		-- sunDir + sunColor hand-set to PtaQ's canonical editor sun (2026-09-03); re-apply after a harvest
+		sunDir = { 0.4490, 0.5645, -0.6926 },
 		groundShadowDensity = 0.7500,
 		modelShadowDensity = 0.7500,
 		groundAmbientColor = { 0.5000, 0.5000, 0.5000 },
@@ -19,7 +20,7 @@ return {
 		fogStart = 0.8000,
 		fogEnd = 1.0000,
 		fogColor = { 0.8000, 0.8000, 0.5000, 1.0000 },
-		sunColor = { 1.0000, 0.9200, 0.7800 },
+		sunColor = { 1.0000, 1.0000, 1.0000 },
 		skyColor = { 0.4288, 0.5802, 0.6400 },
 		cloudColor = { 0.9600, 0.9600, 0.9600 },
 		splatTexMults = { 1.2000, 0.7000, 0.5300, 0.5000 },

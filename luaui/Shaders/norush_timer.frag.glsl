@@ -26,7 +26,7 @@ out vec4 fragColor;
 #line 21000
 void main(void)
 {
-	float mapdepth = texture(mapDepths, v_position.zw).x;
+	float mapdepth = textureLod(mapDepths, v_position.zw, 0.0).x;
 	// Transform screen-space depth to world-space position
 	vec4 mapWorldPos =  vec4( vec3(v_position.xy, mapdepth),  1.0);
 	mapWorldPos = cameraViewProjInv * mapWorldPos;
@@ -68,13 +68,13 @@ void main(void)
 
 	// First we color based on their distance
 	noRushFramesLeft = (clamp((noRushTimer - timeInfo.x+30), 0, 300)/300);
-	fragColor.rgba = vec4(mycolor * sin(closestbox*3 / (40/3.14)), 0.5);
-	//fragColor.rgba = vec4(mycolor*0.5, 0.5);
+	float ring = sin(closestbox*3 / (40/3.14));
+	float ringFade = clamp(1 - exp(-closestbox/400.0) * ring, 0, 1);
+	fragColor.rgba = vec4(mycolor * ring, 0.5);
 	if (timeInfo.x < 150) {
-		fragColor.a = (timeInfo.x/150) - clamp(1 - exp(-closestbox/400.0) * sin(closestbox*3 / (40/3.14)), 0, 1);
-	}
-	if (timeInfo.x >= 150) {
-		fragColor.a = noRushFramesLeft - clamp(1 - exp(-closestbox/400.0) * sin(closestbox*3 / (40/3.14)), 0, 1);
+		fragColor.a = (timeInfo.x/150) - ringFade;
+	} else {
+		fragColor.a = noRushFramesLeft - ringFade;
 	}
 	// But if we are within a box, then we set the alpha to 0
 	if (closestbox < 0.5) {

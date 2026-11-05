@@ -139,90 +139,7 @@
 			"disabled": "%{textColor}%{unit}%{warnColor} (deaktiviert)"
 		},
 		"orderMenu": {
-			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
-			"move": "Bewegen",
-			"move_tooltip": "Bewege eine Einheit zu einer Position oder folge anderen Einheiten",
-			"stop": "Stoppen",
-			"stop_tooltip": "Breche die aktuell ausgeführte Aktion der Einheit ab",
-			"attack": "Angreifen",
-			"attack_tooltip": "Greife eine Einheit oder Bodenposition an",
-			"areaattack": "Flächenangriff",
-			"areaattack_tooltip": "Greife alles in einem Umkreis an (Klicken und Ziehen)",
-			"manualfire": "D-Gun",
-			"manualfire_tooltip": "Feuere die mächtige Desintegrations-Kanone des Kommandanten",
-			"manuallaunch": "Abschuss",
-			"manuallaunch_tooltip": "Schieße eine Rakete auf ein Ziel",
-			"patrol": "Patrouillieren",
-			"patrol_tooltip": "Einen oder mehrere Patrouillen-Wegpunkte ablaufen",
-			"fight": "Kämpfen",
-			"fight_tooltip": "Befehle Einheiten anzugreifen, während sie sich zu einer Position bewegen",
-			"resurrect": "Wiederbeleben",
-			"resurrect_tooltip": "Belebe Wracks wieder, damit sie erneut zu Einheiten werden (Klicke und ziehe für Bereichsauswahl)",
-			"guard": "Beschützen",
-			"guard_tooltip": "Eine andere Einheit vor feindlichen Einheiten schützen, die sie angreifen",
-			"wait": "Warten",
-			"wait_tooltip": "Eine Einheit/Fabrik beim Abarbeiten der Befehlswarteschlange anhalten",
-			"repair": "Reparieren",
-			"repair_tooltip": "Eine beschädigte Einheit reparieren",
-			"reclaim": "Zerlegen",
-			"reclaim_tooltip": "Metall/Energie aus Wracks oder Besonderheiten (Bäume/Steine) gewinnen",
-			"restore": "Wiederherstellen",
-			"restore_tooltip": "Einen Teil der Karte zur Originalhöhe wiederherstellen",
-			"capture": "Einnehmen",
-			"capture_tooltip": "Konvertiert Einheiten, die einem Feind (oder Verbündeten) gehören",
-			"settarget": "Ziel festlegen",
-			"settarget_tooltip": "Setzt das Prioritätsziel (Ziel wird priorisiert, wenn es in Reichweite ist)",
-			"canceltarget": "Ziel löschen",
-			"canceltarget_tooltip": "Löscht das Prioritätsziel",
-			"areamex": "Gebiets-Metallextraktion",
-			"areamex_tooltip": "Klicke und ziehe einen Bereich, in dem automatisch auf allen verfügbaren Metallquellen Extraktoren gebaut werden sollen",
-			"loadunits": "Einheiten Aufladen",
-			"loadunits_tooltip": "Lädt eine oder mehrere Einheiten aus dem Bereich in den Transporter auf",
-			"unloadunits": "Einheiten Absetzen",
-			"unloadunits_tooltip": "Setzt eine oder mehrere Einheiten aus dem Bereich aus dem Transporter ab",
-			"stockpile": "Vorrat %{stockpileStatus}",
-			"stockpile_tooltip": "[ Anzahl im Vorrat ] / [ Angestrebte Anzahl ]",
-			"stopproduction": "Warteschlange leeren",
-			"stopproduction_tooltip": "Leert die Warteschlange für alle Einheiten in den ausgewählten Fabriken",
-			"morph": "Verbessern",
-			"morph_tooltip": "Auf die nächste Technologiestufe aufwerten (zweiter Klick bricht ab)",
-			
-			"Fire at will": "Feuer frei",
-			"Hold fire": "Feuer einstellen",
-			"Return fire": "Zurückschießen",
-			"firestate_tooltip": "Setzt die Bedingungen, unter denen Einheiten auf Feinde schießen sollen (ohne expliziten Angriffsbefehl)",
-			"Hold pos": "Stellung halten",
-			"Maneuver": "Manövrieren",
-			"Roam": "Frei bewegen",
-			"movestate_tooltip": "Setzt die Beschränkung dafür, wie weit sich eine Einheit bewegen darf, um Gegner anzugreifen",
-			"Repeat on": "Wiederholen an",
-			"Repeat off": "Wiederholen aus",
-			"repeat_tooltip": "Wiederholt die Befehlswarteschlange",
-			"Low Prio": "Niedrige Priorität",
-			"High Prio": "Hohe Priorität",
-			"priority_tooltip": "Bestimmt die Ressourcenzuteilung dieses Arbeiters, wenn Mangel herrscht",
-			"Decloaked": "Sichtbar",
-			"Cloaked": "Getarnt",
-			"wantcloak_tooltip": "Sichtbarkeitszustand",
-			" On ": "An",
-			" Off ": "Aus",
-			"onoff_tooltip": "Aktivitätszustand: Schaltet eine Einheit an/aus",
-			" Fly ": "Fliegen",
-			"Land": "Landen",
-			"idlemode_tooltip": "Bestimmt, was Flugzeuge tun, wenn sie untätig sind",
-			"apLandAt_tooltip": "Bestimmt, was Flugzeuge tun, wenn sie die Fabrik verlassen",
-			"Low traj": "Direktes Feuer",
-			"High traj": "Indirektes Feuer",
-			"trajectory_tooltip": "Setzt den Feuermodus im Artilleriezustand (Flache/Steile Flugbahn)",
-			"hound_weapon_plasma": "Schwere Plasmakanonea",
-			"hound_weapon_gauss": "Gauß-Kanone",
-			"hound_weapon_toggle_tooltip": "Wechselt zwischen Gauss-Kanone und schwerer Plasmakanone",
-
-			"customOnOff": {
-				"lowTrajectory": "Direktes Feuer",
-				"highTrajectory": "Indirektes Feuer",
-				"trajectory_tooltip": "Schaltet den Artillerie-Abschusswinkel zwischen flacher und steiler Flugbahn um"
-			}
+			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}"
 		},
 		"idleBuilders": {
 			"name": "Untätige Arbeiter",
@@ -245,7 +162,7 @@
 		"keybinds": {
 			"title": "Tastenbelegungen",
 			"disclaimer": "Diese Tastenbelegungen sind standardmäßig gesetzt. Wenn du Hotkey-Widgets entfernst/ersetzt oder deine eigenen UIKeys verwendest, funktionieren sie möglicherweise nicht mehr!",
-			"howtochangekeybinds":"Zum Ändern: in Einstellungen/Steuerung Tastenbelegungen auf \"Benutzerdefiniert\" setzen, um die Datei BAR/data/uikeys.txt zu erstellen.\nBearbeite diese Datei und wähle \"Benutzerdefiniert\" wieder aus, um erneut zu laden.",
+			"howtochangekeybinds": "Zum Ändern: in Einstellungen/Steuerung Tastenbelegungen auf \"Benutzerdefiniert\" setzen, um die Datei BAR/data/uikeys.txt zu erstellen.\nBearbeite diese Datei und wähle \"Benutzerdefiniert\" wieder aus, um erneut zu laden.",
 			"chat": {
 				"title": "Chat",
 				"send": "Chatnachricht senden",
@@ -264,7 +181,6 @@
 				"share": "Einheiten/Ressourcen teilen"
 			},
 			"camera": {
-				"title": "Kamerabewegung",
 				"zoomKey": "Mausrad",
 				"zoom": "Kamera zoomen",
 				"panKey": "Pfeiltasten / Maus am Bildschirmrand",
@@ -272,8 +188,7 @@
 				"tiltKey": "STRG + Mausrad",
 				"tilt": "Kamerawinkel ändern",
 				"dragKey": "Mittlere Maustaste (+ Ziehen)",
-				"drag": "Kamera ziehen",
-				"flip": "Kamera umdrehen"
+				"drag": "Kamera ziehen"
 			},
 			"cameraModes": {
 				"title": "Kameramodi",
@@ -282,21 +197,13 @@
 				"fullscreenKey": "ALT + Backspace",
 				"fullscreen": "Vollbild umschalten",
 				"overview": "Überblickende Kamera umschalten",
-				"los": "Sichtlinienansicht umschalten",
-				"heightmap": "Höhenkarte anzeigen",
-				"traversability": "Passierbarkeit anzeigen (für ausgewählte Einheit)",
-				"mapmarks": "Durch Kartenmarkierungen springen",
-				"resourceSpots": "Metallkarte anzeigen",
-				"interface": "Benutzeroberfläche verstecken"
+				"los": "Sichtlinienansicht umschalten"
 			},
 			"sound": {
-				"title": "Sound",
 				"volumeKey": "-/+",
-				"volume": "Lautstärke ändern",
-				"mute": "Stummschaltung umschalten"
+				"volume": "Lautstärke ändern"
 			},
 			"selection": {
-				"title": "Einheiten auswählen",
 				"unitsKey": "Linke Maustaste (+ Ziehen)",
 				"units": "Einheiten aus- oder abwählen"
 			},
@@ -308,23 +215,8 @@
 				"formationOrder": "Formationsbefehl an Einheit(en) geben"
 			},
 			"orders": {
-				"title": "Auswahlbefehle",
 				"defaultKey": "(nichts)",
-				"default": "Standardbefehl (meist Bewegen)",
-				"move": "Bewegen",
-				"attack": "Angreifen",
-				"stop": "Stoppen (löscht Befehlswarteschlange)",
-				"repair": "Reparieren",
-				"reclaim": "Zerlegen",
-				"resurrect": "Wiederbeleben",
-				"patrol": "Patroullieren",
-				"fight": "Kämpfen",
-				"setTarget": "Prioritätsziel setzen",
-				"cancelTarget": "Prioritätsziel löschen",
-				"wait": "Warten (Aktuellen Befehl pausieren)",
-				"cloak": "Tarnen",
-				"dGun": "Manuelles Feuern (D-Gun)",
-				"selfDestruct": "Selbstzerstörung"
+				"default": "Standardbefehl (meist Bewegen)"
 			},
 			"issueOrders": {
 				"title": "Ausgewählte Befehle geben",
@@ -336,11 +228,9 @@
 				"formation": "Formationsbefehl an Einheit(en) geben"
 			},
 			"queues": {
-				"title": "Befehle einreihen",
 				"append": "Befehl am Ende der Warteschlange anfügen",
 				"appendKey": "Umschalttaste + (irgendein Befehl)",
-				"prependKey": "Leertaste + (irgendein Befehl)",
-				"prepend": "Befehl am Anfang der Warteschlange einfügen"
+				"prependKey": "Leertaste + (irgendein Befehl)"
 			},
 			"buildOrders": {
 				"title": "Bauaufträge auswählen",
@@ -354,8 +244,7 @@
 				"intel": "Durch Radar/Verteidigung/etc. schalten",
 				"factoriesKey": "V",
 				"factories": "Durch Fabriken schalten",
-				"rotateKey": "ü und +",
-				"rotate": "Gebäudeausrichtung ändern"
+				"rotateKey": "ü und +"
 			},
 			"issueBuildOrders": {
 				"title": "Bauaufträge erteilen",
@@ -368,29 +257,22 @@
 				"gridKey": "Umschalttaste + ALT + (Bauauftrag)",
 				"grid": "Als Rechteck bauen",
 				"spacingUpKey": "ALT + Y",
-				"spacingUp": "Bauabstand erhöhen",
-				"spacingDownKey": "ALT + X",
-				"spacingDown": "Bauabstand verringern"
+				"spacingDownKey": "ALT + X"
 			},
 			"massSelect": {
 				"title": "Gruppenauswahl",
 				"allKey": "STRG + A",
-				"all": "Alle Einheiten auswählen",
 				"buildersKey": "STRG + B",
-				"builders": "Alle Bauarbeiter auswählen",
 				"createGroupKey": "STRG + (Nummer)",
 				"createGroup": "Einheiten zu Gruppe hinzufügen (Nummer=1,2,...)",
 				"createAutoGroupKey": "ALT + (Nummer)",
 				"createAutoGroup": "Einheitstyp zu Autogruppe hinzufügen (Nummer=1,2,...)",
 				"removeAutoGroupKey": "ALT + ^",
-				"removeAutoGroup": "Einheitstyp aus Autogruppe entfernen",
 				"groupKey": "(Nummer)",
 				"group": "Alle der Gruppe (Nummer) zugewiesenen Einheiten auswählen",
-				"sameTypeKey": "STRG + Y",
-				"sameType": "Alle Einheiten des selben Typs wie die Ausgewählte auswählen"
+				"sameTypeKey": "STRG + Y"
 			},
 			"drawing": {
-				"title": "Zeichnen",
 				"mapmarkKey": "^ + Doppelklick",
 				"mapmark": "Kartenmarkierung platzieren",
 				"drawKey": "^ + Linke Maustaste ziehen",
@@ -401,9 +283,7 @@
 			"console": {
 				"title": "Konsolenbefehle",
 				"eraseKey": "/clearmapmarks",
-				"erase": "Alle Zeichnungen und Marker wegradieren",
-				"pauseKey": "/pause",
-				"pause": "Pause"
+				"pauseKey": "/pause"
 			}
 		},
 		"chat": {
@@ -471,7 +351,7 @@
 			"heightTitle": "Höhe",
 			"heightmap": "[%{keyset}] Zeigt jede Höhenstufe in einer anderen Farbe",
 			"pathingTitle": "Passierbarkeit",
-			"pathing":"[%{keyset}] Zeigt an, wohin die ausgewählte Einheit sich bewegen kann, Grün: okay, Rot: problematisch, Lila: unerreichbar",
+			"pathing": "[%{keyset}] Zeigt an, wohin die ausgewählte Einheit sich bewegen kann, Grün: okay, Rot: problematisch, Lila: unerreichbar",
 			"resourcesTitle": "Ressourcen",
 			"resources": "[%{keyset}] Hebt Metalladern in Grün und geothermische Quellen in Gelb hervor. Besetzte Metalladern werden in Rot angezeigt."
 		},
@@ -594,7 +474,7 @@
 		},
 		"moveAttackNotify": {
 			"underAttack": "%{unit} wird angegriffen!",
-			"cantMove":"%{unit}: Kann Ziel nicht erreichen!"
+			"cantMove": "%{unit}: Kann Ziel nicht erreichen!"
 		},
 		"unitShare": {
 			"received": "Du hast %{count}neue Einheit(en)* erhalten",

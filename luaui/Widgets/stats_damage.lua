@@ -40,7 +40,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitHumanName[unitDefID] = unitDef.translatedHumanName
 end
 
-local chunk, err = loadfile(STATS_FILE)
+local chunk, _err = loadfile(STATS_FILE)
 if chunk then
 	local tmp = {}
 	setfenv(chunk, tmp)

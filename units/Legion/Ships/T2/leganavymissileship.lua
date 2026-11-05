@@ -36,7 +36,7 @@ return {
 			maxrange = "1650",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorShips/T2",
+			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
 		},
@@ -195,6 +195,7 @@ return {
 					noattackrangearc = 1,
 					projectile_destruction_method = "descend",
 					overrange_distance = 3000,
+					soundstart_volume_multiplier = 0.7,
 				},
 				damage = {
 					commanders = 300,

@@ -50,7 +50,8 @@ piece
     rearRailgun2Flare,
 	toroidFireFlare,
 	cableHolders
-;
+,
+	torus3firepoint;
 
 
 static-var
@@ -359,7 +360,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = torus3;
+	pieceIndex = torus3firepoint;
 }
 
 
@@ -401,7 +402,7 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	isfiring = 1;
-	return (0);
+	return (1);
 }
 
 

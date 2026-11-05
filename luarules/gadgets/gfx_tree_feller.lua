@@ -401,7 +401,7 @@ if gadgetHandler:IsSyncedCode() then
 			local featureID = allFeatures[i]
 			local featureDefID = Spring.GetFeatureDefID(featureID)
 			if IsLikelyTreeFeature(featureID, featureDefID) then
-				local fx, fy, fz = GetFeaturePosition(featureID)
+				local fx, fy, _ = GetFeaturePosition(featureID)
 				if fx and fy <= lavaLevel then
 					DestroyFeature(featureID)
 				end
@@ -522,10 +522,10 @@ if gadgetHandler:IsSyncedCode() then
 
 		local ppx, ppy, ppz
 		if fx ~= nil then
-			local health, maxhealth, _ = GetFeatureHealth(featureID)
+			local health, _, _ = GetFeatureHealth(featureID)
 			if dmg >= health then
 				local fire
-				local _, maxMetal, _, maxEnergy, reclaimLeft = GetFeatureResources(featureID)
+				local _, maxMetal, _, maxEnergy, _ = GetFeatureResources(featureID)
 				local dissapearSpeed = 1.7
 				local size = "medium"
 				if treeScaleY[featureDefID] then
@@ -549,7 +549,7 @@ if gadgetHandler:IsSyncedCode() then
 					--if crushed, attackerID returns unit, but projectileID is nil, if projectile destroys feature, then attackerID is nil, but projectileID contains the projectile.
 					--Echo('tree dying...',featureID)
 					local dx, dy, dz, rx, ry, rz = GetFeatureDirection(featureID)
-					SetFeatureBlocking(featureID, false, false, false, false, false, false, false) --doesnt block anything
+					SetFeatureBlocking(featureID, false, false, false, false, false, false, false) --doesn't block anything
 					if weaponDefID == -7 then
 						--weapon is crush
 						--crushed features cannot be saved by returning 0 damage. Must create new one!

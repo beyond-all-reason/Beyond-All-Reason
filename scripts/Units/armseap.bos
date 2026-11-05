@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  lwing, rwing, base, thrustm, lthrust, rthrust;
+piece  lwing, rwing, base, thrustm, lthrust, rthrust, firepoint;
 
 
 // Signal definitions
@@ -53,6 +53,11 @@ AimWeapon1(heading,pitch)
 }
 
 QueryWeapon1(pieceIndex)
+{
+	pieceIndex = firepoint;
+}
+
+AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = base;
 }

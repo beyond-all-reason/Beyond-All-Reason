@@ -170,7 +170,7 @@ local moveDatas = {
 	BOAT9 = {
 		crushstrength = CRUSH.HEAVY + 2,
 		footprint = 9,
-		minwaterdepth = DEPTH.SUBMERGED,
+		minwaterdepth = DEPTH.MIN_SHALLOW,
 	},
 
 	--critter_goldfish coracsub armacsub armserp corrsub armsubk correcl corshark corsub

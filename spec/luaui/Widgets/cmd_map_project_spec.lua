@@ -1,0 +1,498 @@
+-- Exercise the real widget/API/pump with in-memory files. Only rendering-bound
+-- section writers are skipped; prepare, heightmap, manifest and finish stay real.
+local function upvalue(fn, wanted)
+	for index = 1, 60 do
+		local name, value = debug.getupvalue(fn, index)
+		if name == wanted then
+			return value
+		end
+	end
+	error("missing upvalue " .. wanted)
+end
+
+local function fixture()
+	local f = { files = {}, writes = {}, requests = {} }
+	local function noop() end
+	f.client = {
+		state = { online = true, allow_push = true, session = "session", remote = "repo", branch = "main" },
+		isBusy = function()
+			return f.libraryBusy == true
+		end,
+		update = noop,
+		request = function(operation, source)
+			assert(not f.project.isBusy())
+			assert(f.files["MapProjects/" .. source .. "/project.lua"])
+			f.requests[#f.requests + 1] = operation
+			return true, "request"
+		end,
+	}
+	f.codec = {
+		encodeGray16 = function()
+			return "png-bytes"
+		end,
+	}
+	f.environment = setmetatable({
+		widget = {},
+		WG = {},
+		gl = {},
+		Game = { mapSizeX = 512, mapSizeZ = 512, squareSize = 512, mapName = "test" },
+		Spring = {
+			Echo = noop,
+			CreateDir = noop,
+			GetMapOptions = function()
+				return { blank_map_x = 1, blank_map_y = 1 }
+			end,
+			GetGroundHeight = function()
+				return 0
+			end,
+		},
+		widgetHandler = { AddAction = noop, RegisterGlobal = noop, RemoveAction = noop, DeregisterGlobal = noop },
+		os = setmetatable({
+			remove = function(path)
+				local had = f.files[path] ~= nil
+				f.files[path] = nil
+				return had or nil
+			end,
+		}, { __index = os }),
+		VFS = {
+			Include = function(path)
+				-- The tileset section round-trips the WORLD PATTERN FRAME through the
+				-- shared transform math. That module is pure and has no engine calls,
+				-- so the real one is loaded rather than stubbed: a stub here could
+				-- disagree with the transform about what "no frame at all" means.
+				if path == "luaui/Include/map_transform.lua" then
+					return _G.VFS.Include(path)
+				end
+				if path == "luaui/Include/map_library.lua" then
+					return {
+						new = function()
+							return f.client
+						end,
+					}
+				end
+				assert(path == "luaui/Widgets/cmd_terraform_brush_png.lua")
+				return f.codec
+			end,
+			-- The autosave listing walks its folder; the fixture holds no
+			-- folders, so this session's journal is the only source.
+			SubDirs = function()
+				return {}
+			end,
+			DirList = function()
+				return {}
+			end,
+		},
+		io = {
+			open = function(path, mode)
+				if not mode:find("w", 1, true) then
+					if not f.files[path] then
+						return nil
+					end
+					return {
+						read = function()
+							return f.files[path]
+						end,
+						close = function()
+							return true
+						end,
+						seek = function()
+							return #f.files[path]
+						end,
+					}
+				end
+				local fail = path == f.failPath and f.failMode
+				if fail == "open" then
+					return nil
+				end
+				return {
+					write = function(_, content)
+						if fail == "write" then
+							return nil
+						end
+						f.files[path] = content
+						f.writes[#f.writes + 1] = path
+						return true
+					end,
+					close = function()
+						return fail ~= "close"
+					end,
+				}
+			end,
+		},
+	}, { __index = _G })
+	require("luaui/Widgets/cmd_map_project", f.environment)
+	f.widget = f.environment.widget
+	f.widget:Initialize()
+	f.project = f.environment.WG.MapProject
+	assert(f.project)
+	f.steps = {}
+	for _, step in ipairs(upvalue(f.widget.DrawScreenPost, "STEPS")) do
+		f.steps[step.name] = { entry = step, original = step.run }
+		if step.name ~= "prepare" and step.name ~= "heightmap" and step.name ~= "manifest" then
+			step.run = function()
+				return true
+			end
+		end
+	end
+	f.pump = function()
+		for _ = 1, 100 do
+			if not f.project.saveProgress() then
+				return
+			end
+			f.widget:DrawScreenPost()
+		end
+		error("save did not finish")
+	end
+	return f
+end
+
+describe("map project completion receipts", function()
+	it("returns a unique normalized receipt and completes only after the real manifest write", function()
+		local f = fixture()
+		local accepted, receipt = f.project.save("/campaign/arena/")
+		assert(accepted and receipt.slug == "campaign/arena" and not receipt.done)
+		assert(f.project.lastSave() == nil)
+		f.pump()
+		assert(receipt.done and receipt.ok and receipt.uploadReady and f.project.lastSave() == receipt)
+		assert(f.files["MapProjects/campaign/arena/project.lua"]:find('kind = "bar-map-project"', 1, true))
+		local _, nextReceipt = f.project.save("campaign/arena")
+		assert(nextReceipt ~= receipt and not nextReceipt.done and f.project.lastSave() == receipt)
+	end)
+
+	it("manifest open, write and close failures cannot report save success", function()
+		for _, mode in ipairs({ "open", "write", "close" }) do
+			local f = fixture()
+			f.project.save("arena")
+			f.pump() -- an old successful manifest must not count as this save
+			f.failPath, f.failMode = "MapProjects/arena/project.lua", mode
+			local _, receipt = f.project.save("arena")
+			f.pump()
+			assert(receipt.done and not receipt.ok and not receipt.uploadReady)
+			assert(f.project.lastSave() == receipt)
+		end
+	end)
+
+	it("capture exceptions and reported section failures block automatic upload", function()
+		local f = fixture()
+		f.steps.decals.entry.run = function()
+			error("capture failed")
+		end
+		local _, receipt = f.project.save("arena")
+		f.pump()
+		assert(receipt.ok and not receipt.uploadReady)
+		f = fixture()
+		f.environment.WG.DecalPlacer = {
+			saveProject = function()
+				return nil
+			end,
+		}
+		f.steps.decals.entry.run = f.steps.decals.original
+		_, receipt = f.project.save("arena")
+		f.pump()
+		assert(receipt.ok and not receipt.uploadReady)
+	end)
+
+	it("heightmap encoding and write failures never qualify for upload", function()
+		for _, mode in ipairs({ "encode", "write", "close" }) do
+			local f = fixture()
+			if mode == "encode" then
+				f.codec.encodeGray16 = function()
+					return nil
+				end
+			else
+				f.failPath, f.failMode = "MapProjects/arena/heightmap.png", mode
+			end
+			local _, receipt = f.project.save("arena")
+			f.pump()
+			assert(receipt.done and not receipt.uploadReady)
+		end
+	end)
+
+	it("rejected starts have no receipt and shutdown marks the active receipt failed", function()
+		local f = fixture()
+		local accepted, receipt = f.project.save("../invalid")
+		assert(not accepted and not receipt)
+		accepted, receipt = f.project.save("arena")
+		assert(accepted)
+		local second, other = f.project.save("other")
+		assert(not second and not other)
+		f.widget:Shutdown()
+		assert(receipt.done and not receipt.ok and not receipt.uploadReady)
+	end)
+
+	it("chains the real save pump to the UI publication once, only on complete success", function()
+		for _, failure in ipairs({ false, "close" }) do
+			local f = fixture()
+			local model = { projectSaveOpen = true, libraryStage = "Design" }
+			-- The widget's seams the controller reads: the team's folders, the
+			-- team catalogue (empty, so no confirmation stands in the way), and
+			-- the switch the widget would have offered for "Design/".
+			local state = {
+				dmHandle = model,
+				projectTeamDestinations = function()
+					return { Design = true }
+				end,
+				projectTeamBySlug = function()
+					return {}
+				end,
+				projectSyncTarget = function() end,
+			}
+			local ui = require("luaui/RmlWidgets/gui_terraform_brush/tf_map_library").newSave(state, model, {
+				getMapProject = function()
+					return f.project
+				end,
+				translate = function(key)
+					return key
+				end,
+			})
+			model.projectSaveUploadAllowed = true
+			model.projectSaveSetUpload(nil, true)
+			assert(ui.save("Design/arena"))
+			if failure then
+				f.failPath, f.failMode = "MapProjects/Design/arena/project.lua", failure
+			end
+			for _ = 1, 100 do
+				if not f.project.saveProgress() then
+					break
+				end
+				ui.sync()
+				assert(#f.requests == 0)
+				f.widget:DrawScreenPost()
+			end
+			ui.sync()
+			ui.sync()
+			assert(#f.requests == (failure and 0 or 1))
+		end
+	end)
+end)
+
+describe("map project autosave", function()
+	it("prunes old snapshots but spares the newest of each project for longer", function()
+		local f = fixture()
+		local day = 86400
+		local now = 100 * day
+		local entries = {
+			{ slug = "_autosave/a-1", autosave_base = "a", autosave_stamp = now - 1 * day },
+			{ slug = "_autosave/a-2", autosave_base = "a", autosave_stamp = now - 5 * day },
+			{ slug = "_autosave/b-1", autosave_base = "b", autosave_stamp = now - 5 * day },
+			{ slug = "_autosave/b-2", autosave_base = "b", autosave_stamp = now - 12 * day },
+			{ slug = "_autosave/c-1", autosave_base = "c", autosave_stamp = now - 11 * day },
+		}
+		local doomed = f.project.autosavePrunePlan(entries, now, 3, 10)
+		table.sort(doomed)
+		-- a-2 is old and not a's newest; b-1 is b's newest and inside 10 days;
+		-- b-2 is old; c-1 is c's newest but past 10 days.
+		assert(#doomed == 3, "expected 3 doomed, got " .. #doomed)
+		assert(doomed[1] == "_autosave/a-2" and doomed[2] == "_autosave/b-2" and doomed[3] == "_autosave/c-1")
+	end)
+
+	it("a snapshot records its origin and leaves the Save target and manual receipt alone", function()
+		local f = fixture()
+		local accepted, receipt = f.project.save("campaign/arena")
+		assert(accepted)
+		f.pump()
+		assert(f.project.current() == "campaign/arena")
+		local ok = f.project.autosaveNow(true)
+		assert(ok, "autosave refused")
+		local step, _, _, kind = f.project.saveProgress()
+		assert(step and kind == "autosave")
+		f.pump()
+		assert(f.project.current() == "campaign/arena", "autosave must not become the Save target")
+		assert(f.project.lastSave() == receipt, "autosave must not replace the manual receipt")
+		local last = f.project.lastAutosave()
+		assert(
+			last and last.ok and last.slug:match("^_autosave/arena%-%d%d%d%d%d%d%d%d%d%d%d%d$"),
+			tostring(last and last.slug)
+		)
+		local manifest = f.files["MapProjects/" .. last.slug .. "/project.lua"]
+		assert(manifest and manifest:find('autosave_of = "campaign/arena"', 1, true))
+		local list = f.project.listAutosaves()
+		assert(#list == 1 and list[1].slug == last.slug and list[1].autosave_of == "campaign/arena")
+		assert(list[1].folder == "" and list[1].autosave_base == "arena" and list[1].autosave_stamp > 0)
+		-- The same minute again is refused rather than overwritten.
+		local again, why = f.project.autosaveNow(true)
+		assert(again == false, "a second snapshot in the same minute must be refused")
+		assert(why == "a snapshot for this minute exists", tostring(why))
+	end)
+end)
+
+-- The pointer is how a MAP TRANSFORM restart tells the next session to replay
+-- the recorded sections onto the new canvas. The heightmap is its only
+-- consumer and the only layer not already rewritten on disk, so if the
+-- transform goes missing here the masks still turn and the terrain is quietly
+-- stretched corner to corner instead, with nothing logged. That is exactly
+-- what a dropped `%s` in the format string did (string.format ignores an
+-- argument with no specifier), so the block is asserted rather than trusted.
+describe("map transform pointer", function()
+	local function writePointerOf(f)
+		local openProject = upvalue(f.project.openStaged, "openProject")
+		return upvalue(openProject, "writePointer")
+	end
+
+	it("carries the transform block through to the pointer file", function()
+		local f = fixture()
+		local ok = writePointerOf(f)({
+			path = "MapProjects/_transform/staged/",
+			size_x = 10,
+			size_z = 8,
+			phase = 0,
+			phases = 0,
+			transform = {
+				src_x = 8,
+				src_z = 10,
+				fill_height = 120.5,
+				placements = {
+					{ rot = 90, mirrorX = false, mirrorZ = false, fit = "stretch", anchorX = 0, anchorZ = 0 },
+				},
+			},
+		})
+		assert(ok, "the pointer was not written")
+		local text = f.files["Terraform Brush/pending_project.lua"]
+		assert(text, "no pointer file")
+		local pointer = assert(loadstring(text))()
+		assert.is_not_nil(pointer.transform)
+		assert.are.equal(8, pointer.transform.src_x)
+		assert.are.equal(10, pointer.transform.src_z)
+		assert.are.equal(1, #pointer.transform.placements)
+		assert.are.equal(90, pointer.transform.placements[1].rot)
+		assert.are.equal("stretch", pointer.transform.placements[1].fit)
+		assert.are.equal(120.5, pointer.transform.fill_height)
+	end)
+
+	it("writes no transform key for an ordinary load", function()
+		local f = fixture()
+		writePointerOf(f)({ path = "MapProjects/arena/", size_x = 12, size_z = 12, phase = 0, phases = 0 })
+		local pointer = assert(loadstring(f.files["Terraform Brush/pending_project.lua"]))()
+		assert.is_nil(pointer.transform)
+		assert.are.equal("MapProjects/arena/", pointer.path)
+	end)
+end)
+
+-- The SURFACE painter is a user widget, which the sandbox keeps to files under
+-- LuaUI/, so the mask reaches a project folder through a staging folder.
+describe("map project SURFACE mask staging", function()
+	local STAGE = "LuaUI/Config/TilesetSurface/project_stage/"
+
+	local function findUpvalue(fn, wanted, seen)
+		seen = seen or {}
+		if seen[fn] then
+			return nil
+		end
+		seen[fn] = true
+		for index = 1, 60 do
+			local name, value = debug.getupvalue(fn, index)
+			if not name then
+				break
+			end
+			if name == wanted then
+				return value
+			end
+			if type(value) == "function" then
+				local found = findUpvalue(value, wanted, seen)
+				if found ~= nil then
+					return found
+				end
+			end
+		end
+	end
+
+	local function surfacePhase(f)
+		for _, p in ipairs(findUpvalue(f.widget.DrawScreenPost, "LOAD_PHASES")) do
+			if p.name == "surface" then
+				return p.run
+			end
+		end
+		error("no surface load phase")
+	end
+
+	local function painter(f, v4)
+		local api = {
+			saved = {},
+			hasMaskState = function()
+				return true
+			end,
+			saveMask = nil,
+			isSavePending = function()
+				return false
+			end,
+			getPersist = function()
+				return { biome = "osemo" }
+			end,
+		}
+		api.saveMask = function(path)
+			api.saved[#api.saved + 1] = path
+			f.files[path] = "mask"
+			if v4 then
+				f.files[(path:gsub("%.png$", "_v4.png"))] = "mask4"
+			end
+			return true
+		end
+		f.environment.WG.SurfacePainter = api
+		return api
+	end
+
+	it("saves through the stage into the project, and a stale staged _v4 never rides along", function()
+		for _, v4 in ipairs({ false, true }) do
+			local f = fixture()
+			local api = painter(f, v4)
+			f.steps.surface.entry.run = f.steps.surface.original
+			f.files[STAGE .. "surface_v4.png"] = "stale"
+			local _, receipt = f.project.save("arena")
+			f.pump()
+			assert(receipt.ok and receipt.uploadReady)
+			assert.are.equal(STAGE .. "surface.png", api.saved[1])
+			assert.are.equal("mask", f.files["MapProjects/arena/surface.png"])
+			assert.are.equal(v4 and "mask4" or nil, f.files["MapProjects/arena/surface_v4.png"])
+			assert.is_nil(f.files[STAGE .. "surface.png"])
+			assert.is_nil(f.files[STAGE .. "surface_v4.png"])
+			assert(f.files["MapProjects/arena/project.lua"]:find('file = "surface.png"', 1, true))
+		end
+	end)
+
+	it("loads the project mask from the stage, its _v4 sibling with it, and clears the stage", function()
+		for _, v4 in ipairs({ false, true }) do
+			local f = fixture()
+			local api = painter(f, v4)
+			local pending
+			api.loadMask = function(path)
+				pending = path
+				return true
+			end
+			api.isLoadPending = function()
+				return false
+			end
+			api.getLoadResult = function()
+				return "ok"
+			end
+			local seenMain, seenV4
+			local phase = surfacePhase(f)
+			local loadOk = findUpvalue(phase, "loadOk")
+			for index = 1, 60 do
+				local name = debug.getupvalue(loadOk, index)
+				if name == "loadJob" then
+					debug.setupvalue(loadOk, index, {
+						dir = "MapProjects/arena/",
+						manifest = { sections = { surface = { file = "surface.png", bytes = 4 } } },
+						loaded = {},
+						skipped = {},
+						missingWarned = {},
+					})
+					break
+				end
+			end
+			f.files["MapProjects/arena/surface.png"] = "mask"
+			f.files["MapProjects/arena/surface_v4.png"] = v4 and "mask4" or nil
+			f.files[STAGE .. "surface_v4.png"] = "stale"
+			local c = {}
+			assert.is_false(phase(c))
+			assert.are.equal(STAGE .. "surface.png", pending)
+			seenMain, seenV4 = f.files[STAGE .. "surface.png"], f.files[STAGE .. "surface_v4.png"]
+			assert.are.equal("mask", seenMain)
+			assert.are.equal(v4 and "mask4" or nil, seenV4)
+			assert.is_true(phase(c))
+			assert.is_nil(f.files[STAGE .. "surface.png"])
+			assert.is_nil(f.files[STAGE .. "surface_v4.png"])
+			assert.are.equal("mask", f.files["MapProjects/arena/surface.png"])
+		end
+	end)
+end)

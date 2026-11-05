@@ -1,3 +1,7 @@
+if not BAR.Utilities.IsDevMode() or not BAR.Utilities.Gametype.IsSinglePlayer() then
+	return
+end
+
 local customparamDefsDetected = false
 for _, def in pairs(UnitDefs) do
 	if def.customParams and def.customParams.__def ~= nil then
@@ -180,7 +184,7 @@ if customparamDefsDetected then
 					else
 						-- round to 5dp, convert to string, then remove trailing 0s after decimal point
 						v = string.format("%.5f", v)
-						local a, b = string.find(v, ".")
+						local a, _ = string.find(v, ".")
 						if a ~= nil then
 							v = string.reverse(v)
 							while string.sub(v, 1, 1) == "0" do

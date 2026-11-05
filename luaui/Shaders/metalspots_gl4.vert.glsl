@@ -40,20 +40,18 @@ float heightAtWorldPos(vec2 w){
 
 void main()
 {
-	// Bail early for out-of-view stuff
-	if (isSphereVisibleXY(vec4(worldpos_radius.xyz,1.0),128.0)) {
+	circlealpha = mix(
+		0.5 - ((timeInfo.x + timeInfo.w)- visibility.y) / 30.0, // turned unoccipied, fading into visibility
+		      ((timeInfo.x + timeInfo.w) - visibility.y) / 30.0, // going into occupied, so fade out from visibility.y
+		step(0.5, visibility.x)            // 1.0 if visibility is > 0.5
+	);
+	circlealpha = clamp(circlealpha, 0.0, 0.5);
+
+	// Bail early for the fully faded rings of occupied spots (they blend to nothing) and for out-of-view stuff
+	if ((VERTEXTYPE == 0.0 && circlealpha <= 0.0) || isSphereVisibleXY(vec4(worldpos_radius.xyz,1.0),128.0)) {
 		gl_Position = cameraViewProj * vec4(-1000,-1000,-1000,1);
 		return;
 	}
-
-	// rotate for animation:
-	vec3 vertexWorldPos = vec3(localpos_dir_angle.x,0,localpos_dir_angle.y);
-
-	float s = sign(ROTDIR);
-	mat3 roty = rotation3dY(s * (timeInfo.x + timeInfo.w) * 0.005);
-	vertexWorldPos.x *= s;
-
-	vertexWorldPos = roty * vertexWorldPos;
 
 	// scale the circle and move to world pos:
 	float groundHeight = heightAtWorldPos(worldpos_radius.xz);
@@ -68,18 +66,21 @@ void main()
 		return;
 	}
 
+	// rotate for animation:
+	vec3 vertexWorldPos = vec3(localpos_dir_angle.x,0,localpos_dir_angle.y);
+
+	float s = sign(ROTDIR);
+	mat3 roty = rotation3dY(s * (timeInfo.x + timeInfo.w) * 0.005);
+	vertexWorldPos.x *= s;
+
+	vertexWorldPos = roty * vertexWorldPos;
+
 	vec3 worldXYZ = vec3(worldpos_radius.x, groundHeight + 5.0, worldpos_radius.z);
 	vertexWorldPos = vertexWorldPos * (12.0 + ROTDIR) * 2.0 * worldpos_radius.w + worldXYZ;
 
 	//dump to FS:
 	gl_Position = cameraViewProj * vec4(vertexWorldPos,1.0);
 
-	circlealpha = mix(
-		0.5 - ((timeInfo.x + timeInfo.w)- visibility.y) / 30.0, // turned unoccipied, fading into visibility
-		      ((timeInfo.x + timeInfo.w) - visibility.y) / 30.0, // going into occupied, so fade out from visibility.y
-		step(0.5, visibility.x)            // 1.0 if visibility is > 0.5
-	);
-	circlealpha = clamp(circlealpha, 0.0, 0.5);
 	v_targetcolor = vec4(vec3(1),circlealpha);
 	
 	v_uvcoords = vec4(-1);

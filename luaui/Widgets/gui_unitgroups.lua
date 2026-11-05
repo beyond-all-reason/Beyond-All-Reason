@@ -352,7 +352,7 @@ local function drawContent()
 
 	if numGroups > 0 then
 		local hoveredGroup = -1
-		local x, y, b, b2, b3 = spGetMouseState()
+		local x, y, b, _, _ = spGetMouseState()
 		if groupButtons then
 			for i, v in pairs(groupButtons) do
 				if
@@ -603,7 +603,7 @@ local function updateList()
 		if not uiBgTex then
 			uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4] - backgroundRect[2]), {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 			gl.R2tHelper.RenderInRect(
@@ -619,7 +619,7 @@ local function updateList()
 		if not uiTex then
 			uiTex = gl.CreateTexture(mathFloor(uiTexWidth) * 2, mathFloor(backgroundRect[4] - backgroundRect[2]) * 2, {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 		end

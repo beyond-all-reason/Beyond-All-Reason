@@ -22,6 +22,10 @@ function widget:PlayerChanged(playerID)
 	myTeamID = spGetMyTeamID()
 end
 
+function widget:Initialize()
+	widgetHandler:RegisterUnitCommand(CMD_STOP)
+end
+
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, playerID, fromSynced, fromLua)
 	if cmdID ~= CMD_STOP then
 		return
