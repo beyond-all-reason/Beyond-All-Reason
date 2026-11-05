@@ -239,6 +239,7 @@ local function refreshUnitInfo()
 		if
 			unitDef.name == "armdl"
 			or unitDef.name == "cordl"
+			or unitDef.name == "legctl"
 			or unitDef.name == "armlance"
 			or unitDef.name == "cortitan"
 			or (unitDef.minWaterDepth > 0 or unitDef.modCategories.ship)
