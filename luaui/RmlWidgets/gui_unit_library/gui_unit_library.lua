@@ -215,9 +215,12 @@ local state = {
 	keyIds = nil,
 	keyWired = false,
 	blueprints = nil, -- { { name, file, units }, ... } read from BLUEPRINT_DIR on first open
-	-- The PICK SET (PtaQ's N2): a plain click picks one, Shift+click adds or removes. The
-	-- owner cycles through it, one type per drop, in order or at random.
+	-- The PICK SET (PtaQ's N2): a plain click picks one, Ctrl+click adds or removes one, and
+	-- Shift+click adds every tile from the last one clicked (the asset library's gestures).
+	-- The owner cycles through it, one type per drop, in order or at random.
 	picks = {},
+	pickAnchor = nil, -- the tile clicked last: where a Shift+click range starts
+	matchNames = {}, -- every tile the filters leave, in the order shown (the range runs over it)
 	cycleMode = Cycle.ORDER,
 	folded = {}, -- section name -> true while folded
 	sort = { key = "name", desc = false }, -- the SORT chips; remembered
@@ -537,6 +540,11 @@ local function refresh()
 	end
 	m.tiles = padded(tiles, PAGE)
 	state.lastTiles = names
+	local matchNames = {}
+	for index, entry in ipairs(matches) do
+		matchNames[index] = entry.name
+	end
+	state.matchNames = matchNames
 	state.focusIndex = math.max(1, math.min(state.focusIndex, #names))
 	m.focusIndex = state.focusIndex
 	m.countText = (#matches > PAGE) and string.format("%d of %d shown: refine the search", PAGE, #matches)
@@ -648,15 +656,28 @@ local function notifyOwner()
 	end
 end
 
---- A tile clicked. Plain: that one alone. Shift (additive): add it to the pick set, or take it
---- back out.
-local function pick(name, additive)
+--- A tile clicked, with the asset library's gestures. `gesture`: "plain" (that one alone),
+--- "toggle" (Ctrl: add it to the pick set or take it back out) or "range" (Shift: every tile
+--- from the one clicked last to this one, in the filtered order; a toggle when there is no
+--- such tile). A boolean still works for older callers: true = toggle.
+local function pick(name, gesture)
 	name = tostring(name or "")
 	ensureCatalogue()
 	if not state.byName[name] then
 		return false
 	end
-	state.picks = Cycle.toggle(state.picks, name, additive == true)
+	if gesture == true then
+		gesture = "toggle"
+	elseif gesture ~= "toggle" and gesture ~= "range" then
+		gesture = "plain"
+	end
+	local ranged = gesture == "range" and Cycle.addRange(state.picks, state.matchNames, state.pickAnchor, name)
+	if ranged then
+		state.picks = ranged
+	else
+		state.picks = Cycle.toggle(state.picks, name, gesture ~= "plain")
+		state.pickAnchor = name
+	end
 	state.model.picked = state.picks[1] or ""
 	if pickOrder(name) then
 		state.recent = Catalogue.remember(state.recent, name, RECENT_LIMIT)
@@ -914,11 +935,12 @@ local initialModel = {
 		state.model.hoverText = ROW_NOTES[tostring(key)] or ""
 	end,
 	pick = function(event, name)
-		local additive = false
+		local shift, ctrl = false, false
 		pcall(function()
-			additive = event.parameters.shift_key == 1 or event.parameters.shift_key == true
+			shift = event.parameters.shift_key == 1 or event.parameters.shift_key == true
+			ctrl = event.parameters.ctrl_key == 1 or event.parameters.ctrl_key == true
 		end)
-		pick(name, additive)
+		pick(name, shift and "range" or (ctrl and "toggle" or "plain"))
 	end,
 	chip = function(event, row, value)
 		local additive = false

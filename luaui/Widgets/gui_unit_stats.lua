@@ -300,7 +300,7 @@ local function renderPanelToTexture(uDefID, uID)
 	if not panelTex then
 		panelTex = gl.CreateTexture(w, h, {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		panelTexW = w

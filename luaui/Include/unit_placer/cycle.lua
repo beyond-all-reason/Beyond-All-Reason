@@ -17,7 +17,6 @@ local Cycle = {}
 
 Cycle.ORDER = "abc"
 Cycle.RANDOM = "random"
-Cycle.MODES = { Cycle.ORDER, Cycle.RANDOM }
 
 local seeded = false
 local function defaultDraw(n)
@@ -64,6 +63,43 @@ function Cycle.toggle(names, name, additive)
 	end
 	if #out == 0 then
 		return { name }
+	end
+	return out
+end
+
+--- Shift+click after a pick: every name from the anchor (the tile clicked last) to `name`,
+--- in `list` (the library's filtered order), joins the set, walking from the anchor so the
+--- set's order follows the run. Names already in the set stay where they are. Nil when the
+--- anchor or the name is not in the list (filtered out since): the caller toggles instead.
+---@param names string[] the set now
+---@param list string[] the tiles in the order the library shows them
+---@param anchor string|nil
+---@param name string
+---@return string[]|nil the new set (a fresh table)
+function Cycle.addRange(names, list, anchor, name)
+	local from, to
+	for index, listed in ipairs(list or {}) do
+		if listed == anchor then
+			from = index
+		end
+		if listed == name then
+			to = index
+		end
+	end
+	if not (from and to) then
+		return nil
+	end
+	local out, have = {}, {}
+	for _, existing in ipairs(names or {}) do
+		out[#out + 1] = existing
+		have[existing] = true
+	end
+	for index = from, to, (from <= to) and 1 or -1 do
+		local listed = list[index]
+		if not have[listed] then
+			out[#out + 1] = listed
+			have[listed] = true
+		end
 	end
 	return out
 end

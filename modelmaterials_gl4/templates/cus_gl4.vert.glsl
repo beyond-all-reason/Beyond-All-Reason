@@ -584,13 +584,25 @@ void main(void)
 	vec3 modelSpaceBitangent;
 	GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal, safeT, modelSpaceTangent, safeB, modelSpaceBitangent);
 
+	// Per-object uniform scale about the model origin, userDefined[3].z (buffer index 14). The
+	// engine cannot scale a feature's model (SetFeaturePieceMatrix discards the matrix), so the
+	// feature placer writes the scale here; 0, the default, means unscaled. Applied in model
+	// space, after the piece transform, so multi-piece models keep their proportions, and in
+	// every pass (this source is the shadow and reflection shader too). modelPos itself stays
+	// unscaled: the bounds terms below normalise it by the model's own height.
+	float objectScale = UNITUNIFORMS.userDefined[3].z;
+	vec4 scaledModelPos = modelPos;
+	if (objectScale > 0.0) {
+		scaledModelPos.xyz *= objectScale;
+	}
+
 	#if USEQUATERNIONS == 1
 		Transform modelToWorldTX = Lerp(
 			transforms[instData.x + 0u],
 			transforms[instData.x + 1u],
 			timeInfo.w
 		);
-		vec4 worldPos = ApplyTransform(modelToWorldTX, modelPos);
+		vec4 worldPos = ApplyTransform(modelToWorldTX, scaledModelPos);
 
 		// Rotate normals with quaternions (this is incorrect, as modelvertexnormal is purely in modelspace, whereas T and B are in piece space!)
 		worldTangent_VS   = RotateByQuaternion(modelToWorldTX.quat, modelSpaceTangent);
@@ -601,7 +613,7 @@ void main(void)
 		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
 		// Then it places it in the world
 		mat4 worldMatrix = mat[instData.x];
-		vec4 worldPos = worldMatrix * modelPos;
+		vec4 worldPos = worldMatrix * scaledModelPos;
 
 		// Calculate Normals:
 		// tangent --> world space transformation (for vectors)

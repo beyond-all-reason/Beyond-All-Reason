@@ -75,7 +75,6 @@ local function enableSuite()
 		return false
 	end
 	suiteEnabled = true
-	Spring.Echo("[Terraform Suite] Loading map editor widgets...")
 	for i = 1, #SUITE_WIDGETS do
 		widgetHandler:EnableWidget(SUITE_WIDGETS[i])
 	end

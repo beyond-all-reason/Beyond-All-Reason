@@ -544,11 +544,8 @@ local wb = {
 	radius = DEFAULT_RADIUS,
 	lengthScale = DEFAULT_LENGTH_SCALE,
 	rotation = 0,
-	rotRandom = 0, -- 0-100
 	spawnCount = DEFAULT_COUNT,
 	cadence = DEFAULT_CADENCE, -- 1-1000 logarithmic placement speed
-	frequency = 1.0, -- spawn interval in seconds (0.1-60.0)
-	distribution = "random",
 	altitude = 0, -- Y offset above ground for spawn point
 
 	selectedCegs = {}, -- ordered list of selected CEG names
@@ -562,9 +559,6 @@ local wb = {
 	-- Drag state
 	dragging = false,
 	dragAction = nil, -- "place" or "remove"
-	lockedWorldX = 0,
-	lockedWorldZ = 0,
-	placeTimer = 0,
 
 	-- Active persistent spawner tracking
 	-- Each entry: { cegs={}, x=, z=, radius=, count=, interval=, expireFrame=nil/number, nextFrame=0 }
@@ -831,10 +825,7 @@ local function doPointPlace(cx, cz)
 end
 
 local function doRemove(cx, cz)
-	local count = removePersistentSpawnersInArea(cx, cz, wb.radius, wb.shape, wb.rotation, wb.lengthScale)
-	if count > 0 then
-		Echo("[Weather Brush] Removed " .. count .. " persistent effect(s)")
-	end
+	removePersistentSpawnersInArea(cx, cz, wb.radius, wb.shape, wb.rotation, wb.lengthScale)
 end
 
 -- Apply TerraformBrush grid-snap + symmetric fan-out to a placement call.
@@ -892,12 +883,6 @@ end
 -- ===========================================================================
 -- Parameter Setters
 -- ===========================================================================
-local function setShape(shape)
-	if shape == "circle" or shape == "square" or shape == "hexagon" or shape == "octagon" then
-		wb.shape = shape
-	end
-end
-
 local function setRadius(val)
 	wb.radius = max(MIN_RADIUS, min(MAX_RADIUS, floor(val)))
 end
@@ -914,11 +899,6 @@ local function rotate(delta)
 	setRotation(wb.rotation + delta)
 end
 
-local function setRotRandom(val)
-	-- rotRandom is a 0-100% random-rotation amount applied per placement
-	wb.rotRandom = math.clamp(floor(val), 0, 100)
-end
-
 local function setSpawnCount(val)
 	wb.spawnCount = max(1, min(500, floor(val)))
 end
@@ -929,16 +909,6 @@ end
 
 local function setAltitude(val)
 	wb.altitude = max(0, min(2000, floor(val)))
-end
-
-local function setFrequency(val)
-	wb.frequency = max(0.1, min(60.0, val))
-end
-
-local function setDistribution(dist)
-	if dist == "random" or dist == "regular" then
-		wb.distribution = dist
-	end
 end
 
 local function setPersistenceSeconds(val)
@@ -1068,11 +1038,7 @@ local function getPersistentSpawners()
 			altitude = s.altitude,
 			interval = s.interval,
 			refreshInterval = s.refreshInterval,
-			startFrame = s.startFrame,
 			expireFrame = s.expireFrame,
-			nextFrame = s.nextFrame,
-			spawnCycles = s.spawnCycles,
-			saturationCycles = s.saturationCycles,
 		}
 	end
 	return out
@@ -1135,23 +1101,14 @@ local function getState()
 		radius = wb.radius,
 		lengthScale = wb.lengthScale,
 		rotation = wb.rotation,
-		rotRandom = wb.rotRandom,
 		spawnCount = wb.spawnCount,
 		cadence = wb.cadence,
-		frequency = wb.frequency,
-		distribution = wb.distribution,
 		altitude = wb.altitude,
 		selectedCegs = wb.selectedCegs,
 		persistenceSeconds = wb.persistenceSeconds,
 		persistentMode = wb.persistentMode,
-		persistentCount = 0, -- calculated below
+		persistentCount = table.count(wb.persistentSpawners),
 	}
-end
-
-local function getStateWithCount()
-	local state = getState()
-	state.persistentCount = table.count(wb.persistentSpawners)
-	return state
 end
 
 local function getCegNames()
@@ -1166,35 +1123,12 @@ end
 -- ===========================================================================
 -- Drawing (Brush Outline in World)
 -- ===========================================================================
-local function rotatePoint(x, z, angleDeg)
-	local rad = angleDeg * pi / 180
-	local c, s = cos(rad), sin(rad)
-	return x * c - z * s, x * s + z * c
-end
-
 local function drawRegularPolygon(cx, cy, cz, radius, sides, lengthScale)
 	lengthScale = lengthScale or 1.0
 	glBeginEnd(GL_LINE_LOOP, function()
 		for i = 0, sides - 1 do
 			local angle = (2 * pi * i) / sides
 			glVertex(cx + radius * cos(angle), cy, cz + radius * lengthScale * sin(angle))
-		end
-	end)
-end
-
-local function drawRotatedSquare(cx, cy, cz, radius, angleDeg, lengthScale)
-	lengthScale = lengthScale or 1.0
-	local radiusZ = radius * lengthScale
-	glBeginEnd(GL_LINE_LOOP, function()
-		local corners = {
-			{ -radius, -radiusZ },
-			{ radius, -radiusZ },
-			{ radius, radiusZ },
-			{ -radius, radiusZ },
-		}
-		for _, corner in ipairs(corners) do
-			local rx, rz = rotatePoint(corner[1], corner[2], angleDeg)
-			glVertex(cx + rx, cy, cz + rz)
 		end
 	end)
 end
@@ -1243,15 +1177,12 @@ function widget:MousePress(mx, my, button)
 		end
 	end
 
-	local wx, wy, wz = getWorldMousePosition()
+	local wx, _, wz = getWorldMousePosition()
 	if not wx then
 		return false
 	end
 
 	wb.dragging = true
-	wb.lockedWorldX = wx
-	wb.lockedWorldZ = wz
-	wb.placeTimer = 0
 	wb.dragSpawnerCreated = false
 
 	if button == 3 then
@@ -1350,9 +1281,6 @@ function widget:Update(dt)
 		return
 	end
 
-	wb.lockedWorldX = wx
-	wb.lockedWorldZ = wz
-
 	if wb.dragAction == "remove" then
 		placeSymmetric(doRemove, wx, wz)
 	elseif wb.mode == "scatter" then
@@ -1418,17 +1346,8 @@ function widget:DrawWorld()
 			glVertex(wx, groundY, wz + s)
 		end)
 	else
-		-- Area brush outline
-		if wb.shape == "circle" then
-			drawRegularPolygon(wx, groundY, wz, wb.radius, CIRCLE_SEGMENTS, wb.lengthScale)
-		elseif wb.shape == "square" then
-			drawRotatedSquare(wx, groundY, wz, wb.radius, wb.rotation, wb.lengthScale)
-		elseif wb.shape == "hexagon" then
-			drawRotatedSquare(wx, groundY, wz, wb.radius, wb.rotation, wb.lengthScale) -- simplified
-			drawRegularPolygon(wx, groundY, wz, wb.radius, 6, wb.lengthScale)
-		elseif wb.shape == "octagon" then
-			drawRegularPolygon(wx, groundY, wz, wb.radius, 8, wb.lengthScale)
-		end
+		-- Area brush outline (always a circle: nothing sets another shape)
+		drawRegularPolygon(wx, groundY, wz, wb.radius, CIRCLE_SEGMENTS, wb.lengthScale)
 	end
 
 	-- Draw persistent spawner markers
@@ -1449,47 +1368,19 @@ end
 function widget:Initialize()
 	-- CEG names load lazily on first UI/selection use, not here.
 
-	-- Register slash commands
-	widgetHandler:AddAction("weatherbrush", function(_, _, args)
-		local mode = args and args[1]
-		if mode == "off" then
-			deactivate()
-		else
-			activate(mode or "scatter")
-		end
-	end, nil, "t")
-
-	widgetHandler:AddAction("weatherbrushscatter", function()
-		activate("scatter")
-	end, nil, "t")
-
-	widgetHandler:AddAction("weatherbrushpoint", function()
-		activate("point")
-	end, nil, "t")
-
-	widgetHandler:AddAction("weatherbrushremove", function()
-		activate("remove")
-	end, nil, "t")
-
-	widgetHandler:AddAction("weatherbrushoff", deactivate, nil, "t")
-
 	-- Expose API for the RmlUI controller
 	WG.WeatherBrush = {
 		activate = activate,
 		deactivate = deactivate,
 		setMode = setMode,
-		getState = getStateWithCount,
-		setShape = setShape,
+		getState = getState,
 		setRadius = setRadius,
 		setLengthScale = setLengthScale,
 		setRotation = setRotation,
 		rotate = rotate,
-		setRotRandom = setRotRandom,
 		setSpawnCount = setSpawnCount,
 		setCadence = setCadence,
 		setAltitude = setAltitude,
-		setFrequency = setFrequency,
-		setDistribution = setDistribution,
 		setPersistenceSeconds = setPersistenceSeconds,
 		selectCeg = selectCeg,
 		toggleCeg = toggleCeg,
@@ -1505,10 +1396,4 @@ end
 
 function widget:Shutdown()
 	WG.WeatherBrush = nil
-
-	widgetHandler:RemoveAction("weatherbrush")
-	widgetHandler:RemoveAction("weatherbrushscatter")
-	widgetHandler:RemoveAction("weatherbrushpoint")
-	widgetHandler:RemoveAction("weatherbrushremove")
-	widgetHandler:RemoveAction("weatherbrushoff")
 end

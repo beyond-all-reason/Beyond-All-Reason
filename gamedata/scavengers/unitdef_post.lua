@@ -518,6 +518,8 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 4] = "cordoomt3_scav" -- Epic Bulwark
 		uDef.buildoptions[numBuildoptions + 5] = "corafust3_scav" -- Epic Fusion Reactor
 		uDef.buildoptions[numBuildoptions + 6] = "cormmkrt3_scav" -- Epic Energy Converter
+		uDef.buildoptions[numBuildoptions + 7] = "corhltfus_scav" -- Overlord - Weaponized Fusion Reactor
+
 	end
 
 	-- Cortex T2 Sea Constructors

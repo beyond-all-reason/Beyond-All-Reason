@@ -27,6 +27,34 @@ describe("unit_placer.cycle", function()
 		end)
 	end)
 
+	describe("addRange", function()
+		local list = { "a", "b", "c", "d", "e" }
+
+		it("adds every tile from the anchor to the one clicked", function()
+			assert.are.same({ "b", "c", "d" }, Cycle.addRange({ "b" }, list, "b", "d"))
+		end)
+
+		it("walks from the anchor when the click is above it", function()
+			assert.are.same({ "d", "c", "b" }, Cycle.addRange({ "d" }, list, "d", "b"))
+		end)
+
+		it("keeps what was picked already, in its place", function()
+			assert.are.same({ "e", "c", "b", "d" }, Cycle.addRange({ "e", "c" }, list, "b", "d"))
+		end)
+
+		it("is nil when the anchor or the tile is filtered out", function()
+			assert.is_nil(Cycle.addRange({ "a" }, list, "z", "c"))
+			assert.is_nil(Cycle.addRange({ "a" }, list, "a", "z"))
+			assert.is_nil(Cycle.addRange({ "a" }, list, nil, "c"))
+		end)
+
+		it("does not change the set it was handed", function()
+			local names = { "a" }
+			Cycle.addRange(names, list, "a", "c")
+			assert.are.same({ "a" }, names)
+		end)
+	end)
+
 	describe("mode", function()
 		it("reads anything unknown as ORDER, and flips between the two", function()
 			assert.are.equal("abc", Cycle.mode(nil))

@@ -35,7 +35,6 @@ end
 
 -- Prefix embedded in messages sent by an authorised editor session.
 local CHEAT_SIG = "$c$"
-local CHEAT_SIG_LEN = #CHEAT_SIG
 
 -- Spring.IsReplay lives in LuaUnsyncedRead and is nil in synced gadget code, so
 -- the old "certified and Spring.IsReplay()" fallback raised a Lua error on every
@@ -85,11 +84,6 @@ local function ensureEditorLos(playerID)
 	end
 	if not Spring.GetGlobalLos(allyTeamID) then
 		Spring.SetGlobalLos(allyTeamID, true)
-		Spring.Echo(
-			"[Terraform Brush] Global LOS enabled for allyteam "
-				.. allyTeamID
-				.. " so terrain edits render outside unit vision"
-		)
 	end
 end
 
@@ -112,16 +106,11 @@ local function isTerraformAllowed(certified, playerID)
 end
 
 local PACKET_HEADER = "$terraform_brush$"
-local PACKET_HEADER_LENGTH = #PACKET_HEADER
 local RAMP_HEADER = "$terraform_ramp$"
-local RAMP_HEADER_LENGTH = #RAMP_HEADER
 local SPLINE_RAMP_HEADER = "$terraform_ramp_spline$"
-local SPLINE_RAMP_HEADER_LENGTH = #SPLINE_RAMP_HEADER
 local RESTORE_HEADER = "$terraform_restore$"
-local RESTORE_HEADER_LENGTH = #RESTORE_HEADER
 local FULL_RESTORE_HEADER = "$terraform_full_restore$"
 local IMPORT_HEADER = "$terraform_import$"
-local IMPORT_HEADER_LENGTH = #IMPORT_HEADER
 local IMPORT_END_HEADER = "$terraform_import_end$"
 local UNDO_HEADER = "$terraform_undo$"
 local UNDO_STROKE_HEADER = "$terraform_undo_stroke$"
@@ -129,11 +118,8 @@ local REDO_HEADER = "$terraform_redo$"
 local MERGE_END_HEADER = "$terraform_merge_end$"
 local STROKE_END_HEADER = "$terraform_stroke_end$"
 local NOISE_HEADER = "$terraform_noise$"
-local NOISE_HEADER_LENGTH = #NOISE_HEADER
 local ERODE_HEADER = "$terraform_erode$"
-local ERODE_HEADER_LENGTH = #ERODE_HEADER
 local WARM_HEADER = "$terraform_warm$"
-local WARM_HEADER_LENGTH = #WARM_HEADER
 local REMAP_HEADER = "$terraform_remap$"
 local REMAP_HEADER_LENGTH = #REMAP_HEADER
 local AUTORAMP_HEADER = "$terraform_autoramp$"
@@ -160,21 +146,16 @@ local totalVertexCount = 0 -- track approximate memory usage
 -- /luaui reload, so a mid-load widget reload can still observe completion.
 local importDoneCounter = 0
 
--- Active drag session: all pushSnapshot/pushSnapshotFromFlat calls merge into mergeSnapshot until
+-- Active drag session: all pushSnapshotFromFlat calls merge into mergeSnapshot until
 -- MERGE_END is received (sent by widget on mouse release).  No time window — MERGE_END is authoritative.
 local mergeSnapshot = nil -- the active snapshot being merged into; nil = no drag in progress
 local mergeSnapshotLen = 0 -- explicit length of mergeSnapshot (avoids # on growing tables)
 local currentStrokeId = 0 -- incremented on each STROKE_END; tags all entries in a stroke
-local lastUndoFrame = -1 -- throttle: only one undo per game frame
 local MAX_RADIUS = 2000
 local MIN_RADIUS = 8
 local MAX_BLUR_STEP = 6 -- smooth mode: widest box half-width (grid cells) at max intensity
 local MAX_SMUDGE_BUFFERS = 16 -- smudge mode: carried height grabs alive at once (one per stroke chain)
 
--- ── Diagnostics ──────────────────────────────────────────────────────────────
-local DIAG = false -- set false to silence
-local diagPushCount = 0 -- number of pushSnapshotFromFlat calls in current merge
-local diagMergeVerts = 0 -- vertices added during merge phase
 local ringInnerRatio = 0.6
 
 -- Reusable scratch tables to reduce GC pressure in hot paths
@@ -436,20 +417,6 @@ end
 
 local function finalizeMerge()
 	if mergeSnapshot then
-		if DIAG then
-			local vc = mergeSnapshotLen / 3
-			Spring.Echo(
-				string.format(
-					"[TFBrush DIAG] finalizeMerge: verts=%d pushCalls=%d mergeAdded=%d undoDepth=%d",
-					vc,
-					diagPushCount,
-					diagMergeVerts,
-					#undoStack
-				)
-			)
-			diagPushCount = 0
-			diagMergeVerts = 0
-		end
 		mergeSnapshot.vertexCount = mergeSnapshotLen / 3
 	end
 	mergeSnapshot = nil
@@ -459,7 +426,7 @@ end
 -- Convert a flat {x,z,h,...} buffer to a bbox-grid snapshot and push it.
 -- ONE ENTRY PER TICK is mandatory (see bar_stripy_terrain_bug.md): brush dabs
 -- commit through flushBatch (one entry per STROKE message); the ramp, noise,
--- erode and fill ops route through here; pushSnapshot flattens sub-tables first.
+-- erode and fill ops route through here.
 -- Push a ready bbox-grid snapshot as a new undo entry. Bookkeeping shared by
 -- the flat converter below and the per-tick batch commit (flushBatch).
 local function pushBboxSnapshot(snapshot)
@@ -474,9 +441,6 @@ local function pushBboxSnapshot(snapshot)
 	snapshot.strokeId = currentStrokeId
 	undoStack[#undoStack + 1] = snapshot
 	totalVertexCount = totalVertexCount + vertexCount
-	if DIAG then
-		Spring.Echo(string.format("[TFBrush DIAG] NEW entry: verts=%d undoDepth=%d", vertexCount, #undoStack))
-	end
 	if #undoStack > MAX_UNDO then
 		local old = undoStack[1]
 		totalVertexCount = totalVertexCount - (old.vertexCount or 0)
@@ -495,27 +459,6 @@ local function pushSnapshotFromFlat(flatBuf, vertexCount)
 		return
 	end
 	pushBboxSnapshot(flatToBboxSnapshot(flatBuf, vertexCount))
-end
-
--- Sub-table format {{x,z,h},...} cold path: flatten via scratchSnapFlat then
--- route through pushSnapshotFromFlat. Currently unused but kept for API stability.
-local function pushSnapshot(snapshot)
-	local vertexCount = #snapshot
-	if vertexCount == 0 then
-		return
-	end
-	if vertexCount > MAX_SNAPSHOT_VERTICES then
-		return
-	end
-	local buf = scratchSnapFlat
-	for i = 1, vertexCount do
-		local base = (i - 1) * 3
-		local v = snapshot[i]
-		buf[base + 1] = v[1]
-		buf[base + 2] = v[2]
-		buf[base + 3] = v[3]
-	end
-	pushSnapshotFromFlat(buf, vertexCount)
 end
 
 -- Snapshot every heightmap vertex into one undo entry.
@@ -765,7 +708,6 @@ end
 
 local function computeFalloff(dx, dz, radius, shape, angleDeg, curve, lengthScale)
 	lengthScale = lengthScale or 1.0
-	local distSquared = dx * dx + dz * dz
 	local radiusSquared = radius * radius
 	local rawFalloff = nil
 
@@ -2485,7 +2427,6 @@ end
 -- Phase 4: Raise (never lower) each basin cell to its IDW target.
 -- ─────────────────────────────────────────────────────────────────────────────
 local FILL_HEADER = "$terraform_fill$"
-local FILL_HEADER_LENGTH = #FILL_HEADER
 
 local FILL_NUM_RAYS = 128 -- radial rays for rim detection
 -- Ray walk length and basin cell cap are derived per-call from map size so
@@ -2504,9 +2445,6 @@ local function applyFill(cx, cz)
 	local mapXCells = mapX / ss
 	local mapZCells = mapZ / ss
 	local fillRayMaxSteps = floor(math.sqrt(mapXCells * mapXCells + mapZCells * mapZCells)) + 4
-	-- Past-peak cutoff: long enough to skip interior noise on huge maps
-	-- but still terminate rays once they're clearly outside a wall.
-	local pastPeakLimit = max(80, floor(fillRayMaxSteps * 0.15))
 	-- Hard upper bound on basin size = whole map (rare; fill is meant to
 	-- be permissive). Watchdog risk on enormous bowls is acceptable per request.
 	local fillMaxCells = floor(mapXCells * mapZCells) + 1
@@ -2529,9 +2467,6 @@ local function applyFill(cx, cz)
 	-- peak (and stay near/below startH+rise/2) to
 	-- count as "exited the bowl"
 
-	-- Diagnostic: track all ray results
-	local diagPeaks = {}
-	local diagSteps = {}
 	local openRays = 0 -- rays that never exited → direction is open
 
 	for ri = 0, FILL_NUM_RAYS - 1 do
@@ -2540,8 +2475,6 @@ local function applyFill(cx, cz)
 		local ddz = sin(angle)
 		local peakX, peakZ, peakH, peakStep = cx, cz, startH, 0
 		local exited = false
-		local totalSteps = 0
-		local stopReason = "maxsteps"
 		local exitCeiling = startH + WALL_MIN_RISE * 0.5
 
 		for step = 1, fillRayMaxSteps do
@@ -2550,7 +2483,6 @@ local function applyFill(cx, cz)
 			rx = max(0, min(mapX, rx))
 			rz = max(0, min(mapZ, rz))
 			local h = Spring.GetGroundHeight(rx, rz)
-			totalSteps = step
 
 			if h > peakH then
 				peakX, peakZ, peakH, peakStep = rx, rz, h, step
@@ -2562,19 +2494,14 @@ local function applyFill(cx, cz)
 			-- Interior bumps that don't return to low ground don't count.
 			if peakH >= startH + WALL_MIN_RISE and h <= exitCeiling and h < peakH - EXIT_DROP then
 				exited = true
-				stopReason = "exited"
 				break
 			end
 
 			-- Stop at map edge (direction is open if we didn't exit first)
 			if rx <= 0 or rx >= mapX or rz <= 0 or rz >= mapZ then
-				stopReason = "edge"
 				break
 			end
 		end
-
-		diagPeaks[ri] = peakH
-		diagSteps[ri] = totalSteps
 
 		-- A ray only contributes a rim if it successfully exited the bowl.
 		-- Rays that hit the map edge or step limit without descending back
@@ -2588,45 +2515,7 @@ local function applyFill(cx, cz)
 		else
 			openRays = openRays + 1
 		end
-
-		-- Log first 12 rays in detail
-		if ri < 12 then
-			Spring.Echo(
-				string.format(
-					"[Terraform Fill] ray%02d angle=%.0f° peak=%.1f at(%d,%d) steps=%d stop=%s %s",
-					ri,
-					angle * 180 / pi,
-					peakH,
-					peakX,
-					peakZ,
-					totalSteps,
-					stopReason,
-					exited and "ACCEPT" or "REJECT"
-				)
-			)
-		end
 	end
-
-	-- Summary: show peak distribution
-	local peakMin, peakMax = 99999, -99999
-	for ri = 0, FILL_NUM_RAYS - 1 do
-		if diagPeaks[ri] < peakMin then
-			peakMin = diagPeaks[ri]
-		end
-		if diagPeaks[ri] > peakMax then
-			peakMax = diagPeaks[ri]
-		end
-	end
-	Spring.Echo(
-		string.format(
-			"[Terraform Fill] peakRange=[%.1f .. %.1f] openRays=%d/%d startH=%.1f",
-			peakMin,
-			peakMax,
-			openRays,
-			FILL_NUM_RAYS,
-			startH
-		)
-	)
 
 	-- Closed-shape verification: too many open directions → abort.
 	-- Allow small gaps (e.g. narrow canyon entrance) but not an open side.
@@ -2787,31 +2676,6 @@ local function applyFill(cx, cz)
 		Spring.Echo("[Terraform Fill] Basin hit cell cap — bowl too large")
 	end
 
-	-- spillover (informational only)
-	local spillover = rimPH[1]
-	for i = 2, rimN do
-		if rimPH[i] < spillover then
-			spillover = rimPH[i]
-		end
-	end
-
-	Spring.Echo(
-		string.format(
-			"[Terraform Fill] click=%.1f  rimPeaks=%d  spillover=%.1f  maxStep=%d",
-			startH,
-			rimN,
-			spillover,
-			maxStep
-		)
-	)
-
-	-- Show all rim peak heights for diagnosis
-	local rimStr = ""
-	for i = 1, rimN do
-		rimStr = rimStr .. string.format("%.0f ", rimPH[i])
-	end
-	Spring.Echo("[Terraform Fill] rimHeights: " .. rimStr)
-
 	-- ── Phase 3+4: Raise each basin cell to its (already computed) IDW target
 	local snapFlat = scratchSnapFlat
 	local sCount = 0
@@ -2844,34 +2708,6 @@ local function applyFill(cx, cz)
 	end
 	scratchHeightDataMax = hIdx
 
-	Spring.Echo(string.format("[Terraform Fill] basin=%d  raised=%d", bN, hIdx))
-
-	-- Diagnostic: show target height range for raised cells
-	if hIdx > 0 then
-		local tMin, tMax = hBuf[1][3], hBuf[1][3]
-		local cMin, cMax = 99999, -99999
-		for i = 1, hIdx do
-			if hBuf[i][3] < tMin then
-				tMin = hBuf[i][3]
-			end
-			if hBuf[i][3] > tMax then
-				tMax = hBuf[i][3]
-			end
-		end
-		for i = 1, bN do
-			local ch = Spring.GetGroundHeight(basinX[i], basinZ[i])
-			if ch < cMin then
-				cMin = ch
-			end
-			if ch > cMax then
-				cMax = ch
-			end
-		end
-		Spring.Echo(
-			string.format("[Terraform Fill] targetRange=[%.1f..%.1f] basinCurH=[%.1f..%.1f]", tMin, tMax, cMin, cMax)
-		)
-	end
-
 	if hIdx > 0 then
 		applyHeightChanges(hBuf, hIdx)
 		pushSnapshotFromFlat(snapFlat, sCount)
@@ -2883,7 +2719,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 	-- UPVALUE BUDGET: Recoil's Lua 5.1 caps a function at 60 upvalues and this
 	-- dispatcher sits near it (every header, helper, and state table it touches
 	-- counts once). Header lengths are therefore spelled #X_HEADER instead of
-	-- the X_HEADER_LENGTH locals -- same cost, no upvalue. When adding a
+	-- cached in locals: same cost, no upvalue. When adding a
 	-- message branch, prefer hoisting its body into a local handler function.
 	--
 	-- Defensive: engine always passes a string, but a malformed caller or
@@ -2917,10 +2753,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 		-- Capture current heights into a parallel bbox snapshot for redo
 		local redoSnapshot = captureCurrentForSnapshot(snapshot)
 		redoSnapshot.strokeId = snapshot.strokeId
-
-		if DIAG then
-			Spring.Echo(string.format("[TFBrush DIAG] UNDO: verts=%d remaining=%d", vertexCount, #undoStack))
-		end
 
 		-- Restore the before-heights via SetHeightMapFunc (batched, single RecalcArea)
 		applySnapshotHeights(snapshot)
@@ -2978,17 +2810,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 			applySnapshotHeights(entry)
 			redoStack[#redoStack + 1] = redoSnapshot
 			totalVertexCount = totalVertexCount + vertexCount
-		end
-
-		if DIAG then
-			Spring.Echo(
-				string.format(
-					"[TFBrush DIAG] UNDO_STROKE: strokeId=%d queued=%d remaining=%d",
-					targetStrokeId or -1,
-					#collected,
-					#undoStack
-				)
-			)
 		end
 
 		SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)

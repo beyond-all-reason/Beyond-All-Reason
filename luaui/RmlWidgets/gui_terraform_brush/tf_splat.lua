@@ -2,21 +2,8 @@
 local M = {}
 
 function M.attach(doc, ctx)
-	if ctx.attachTBMirrorControls then
-		ctx.attachTBMirrorControls(doc, "sp")
-	end
 	local widgetState = ctx.widgetState
 	local trackSliderDrag = ctx.trackSliderDrag
-
-	widgetState.spControlsEl = doc:GetElementById("tf-splat-controls")
-
-	-- Cache channel button elements (active class driven by sync).
-	widgetState.spChannelButtons = {
-		doc:GetElementById("btn-sp-ch1"),
-		doc:GetElementById("btn-sp-ch2"),
-		doc:GetElementById("btn-sp-ch3"),
-		doc:GetElementById("btn-sp-ch4"),
-	}
 
 	widgetState.spPreviewEls = {
 		doc:GetElementById("sp-ch1-preview"),
@@ -83,27 +70,6 @@ function M.sync(doc, ctx, spState, setSummary)
 		-- Splat labels (Phase 2 step 4: dm-driven {{interpolation}})
 		local dm = widgetState.dmHandle
 		if dm then
-			local s1 = string.format("%.2f", spState.strength)
-			if dm.splatStrengthStr ~= s1 then
-				dm.splatStrengthStr = s1
-			end
-			local s2 = string.format("%.1f", spState.intensity)
-			if dm.splatIntensityStr ~= s2 then
-				dm.splatIntensityStr = s2
-			end
-			local s3 = tostring(spState.radius)
-			if dm.splatRadiusStr ~= s3 then
-				dm.splatRadiusStr = s3
-			end
-			local s4 = tostring(spState.rotationDeg)
-			if dm.splatRotationStr ~= s4 then
-				dm.splatRotationStr = s4
-			end
-			local s5 = string.format("%.1f", spState.curve)
-			if dm.splatCurveStr ~= s5 then
-				dm.splatCurveStr = s5
-			end
-
 			-- Fractal brush-edge warp labels
 			local fracStr = string.format("%.2f", spState.fractalAmount or 0)
 			if dm.splatFractalStr ~= fracStr then
@@ -189,25 +155,11 @@ function M.sync(doc, ctx, spState, setSummary)
 					end
 				end
 
-				-- Slope-max row visibility driven by data-if="spAvoidCliffs"
-				if widgetState.dmHandle then
-					local v = tostring(sf.slopeMax)
-					if widgetState.dmHandle.splatSlopeMaxStr ~= v then
-						widgetState.dmHandle.splatSlopeMaxStr = v
-					end
-				end
 				local spSSlopeMax = getCachedEl(doc, "sp-slider-slope-max")
 				if spSSlopeMax and ds ~= "sp-slope-max" then
 					spSSlopeMax:SetAttribute("value", tostring(sf.slopeMax))
 				end
 
-				-- Slope-min row visibility driven by data-if="spPreferSlopes"
-				if widgetState.dmHandle then
-					local v = tostring(sf.slopeMin)
-					if widgetState.dmHandle.splatSlopeMinStr ~= v then
-						widgetState.dmHandle.splatSlopeMinStr = v
-					end
-				end
 				local spSSlopeMin = getCachedEl(doc, "sp-slider-slope-min")
 				if spSSlopeMin and ds ~= "sp-slope-min" then
 					spSSlopeMin:SetAttribute("value", tostring(sf.slopeMin))
@@ -221,13 +173,6 @@ function M.sync(doc, ctx, spState, setSummary)
 							or "/luaui/images/terraform_brush/check_off.png"
 					)
 				end
-				-- Alt-min slider-row visibility driven by data-if="spAltMinEnable"
-				if widgetState.dmHandle then
-					local v = tostring(sf.altMin)
-					if widgetState.dmHandle.splatAltMinStr ~= v then
-						widgetState.dmHandle.splatAltMinStr = v
-					end
-				end
 				local spSAltMin = getCachedEl(doc, "sp-slider-alt-min")
 				if spSAltMin and ds ~= "sp-alt-min" then
 					spSAltMin:SetAttribute("value", tostring(sf.altMin))
@@ -240,13 +185,6 @@ function M.sync(doc, ctx, spState, setSummary)
 						sf.altMaxEnable and "/luaui/images/terraform_brush/check_on.png"
 							or "/luaui/images/terraform_brush/check_off.png"
 					)
-				end
-				-- Alt-max slider-row visibility driven by data-if="spAltMaxEnable"
-				if widgetState.dmHandle then
-					local v = tostring(sf.altMax)
-					if widgetState.dmHandle.splatAltMaxStr ~= v then
-						widgetState.dmHandle.splatAltMaxStr = v
-					end
 				end
 				local spSAltMax = getCachedEl(doc, "sp-slider-alt-max")
 				if spSAltMax and ds ~= "sp-alt-max" then
@@ -289,19 +227,6 @@ function M.sync(doc, ctx, spState, setSummary)
 			local spHistNumbox = getCachedEl(doc, "slider-sp-history-numbox")
 			if spHistNumbox then
 				ctx.setInnerRmlIfChanged(spHistNumbox, "slider-sp-history-numbox", tostring(undoCount))
-			end
-		end
-
-		-- Decal Exporter stats sync (throttled — every ~1 second)
-		-- dc-heat-explosions driven by {{dcHeatExpStr}} in RML.
-		do
-			if WG.DecalExporter and (Spring.GetGameFrame() % 30 == 0) then
-				if widgetState.dmHandle then
-					local v = tostring(WG.DecalExporter.getTotalExplosions())
-					if widgetState.dmHandle.dcHeatExpStr ~= v then
-						widgetState.dmHandle.dcHeatExpStr = v
-					end
-				end
 			end
 		end
 
@@ -351,7 +276,6 @@ function M.sync(doc, ctx, spState, setSummary)
 				setDm("spMeasureActive", s.measureActive and true or false)
 				setDm("spSymmetryActive", s.symmetryActive and true or false)
 				setDm("spSymmetryRadial", s.symmetryRadial and true or false)
-				setDm("spSymmetryMirrorAny", (s.symmetryMirrorX or s.symmetryMirrorY) and true or false)
 				setDm("spSymHasAxis", (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false)
 				setDm("spAngleSnapAuto", s.angleSnapAuto and true or false)
 				setDm("spGridOverlay", s.gridOverlay and true or false)
@@ -404,7 +328,7 @@ function M.sync(doc, ctx, spState, setSummary)
 			-- Symmetry sub chips + sub rows
 			-- (active driven by data-class-active="spSymmetryRadial"/spSymMirrorX/spSymMirrorY)
 			-- sp-symmetry-radial-count-row, sp-symmetry-mirror-angle-row visibility
-			-- driven by data-if (dm.spSymmetryRadial / dm.spSymmetryMirrorAny).
+			-- driven by data-if (dm.spSymmetryRadial / dm.spSymHasAxis).
 			-- Measure sub chips
 			-- (active driven by data-class-active="spMeasureShowLength")
 			-- Angle auto-snap chip + manual spoke row (data-if="!spAngleSnapAuto")

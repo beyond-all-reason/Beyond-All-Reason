@@ -269,8 +269,18 @@ function widget:Initialize()
 	spEcho("Widget Auto Reloader: tracking " .. includeCount .. " included files")
 end
 
+-- Widgets being reloaded: knownWidgets[name].reloading is set until the next Update, while their queued
+-- switch-off and switch-on run, so one that hands something back when switched off (a FlowUI2 copy
+-- switching the widget it replaces back on) can tell a reload from it.
+local reloading = {} ---@type string[]
+
 local function ReloadWidget(widgetName, reason)
 	spEcho("Reloading widget: " .. widgetName .. " (" .. reason .. ")")
+	local ki = widgetHandler.knownWidgets[widgetName]
+	if ki then
+		ki.reloading = true
+		reloading[#reloading + 1] = widgetName
+	end
 	widgetHandler:DisableWidget(widgetName)
 	widgetHandler:EnableWidget(widgetName)
 end
@@ -355,8 +365,19 @@ function widget:GameFrame()
 end
 
 function widget:Update()
+	-- the reloads queued last time have run
+	for i = #reloading, 1, -1 do
+		local ki = widgetHandler.knownWidgets[reloading[i]]
+		if ki then
+			ki.reloading = nil
+		end
+		reloading[i] = nil
+	end
 	local now = Spring.GetTimer()
-	if queueIndex <= #updateQueue and (not gameFrameHappened or Spring.DiffTimers(now, lastQueueRun) >= minimumQueueRate) then
+	if
+		queueIndex <= #updateQueue
+		and (not gameFrameHappened or Spring.DiffTimers(now, lastQueueRun) >= minimumQueueRate)
+	then
 		lastQueueRun = now
 		-- 2 ms budget per frame
 		while queueIndex <= #updateQueue and Spring.DiffTimers(Spring.GetTimer(), now, true) < 2.0 do

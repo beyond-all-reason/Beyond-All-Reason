@@ -41,6 +41,7 @@ local spGetProjectileTarget = Spring.GetProjectileTarget
 local spGetProjectileTeamID = Spring.GetProjectileTeamID
 local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -359,26 +360,59 @@ end
 -- Retarget
 -- Missile guidance behavior that changes the projectile's target when its intended target is destroyed.
 -- This could be made much more efficient by creating an explicit death dependence (in another gadget).
--- The retargeting behavior relies on the owner unit's primary weapon, so ends when it is also destroyed.
+-- The retargeting behavior relies on the owner unit's weapon, so it ends when its unit is destroyed.
 
--- Uses no weapon customParams.
+weaponCustomParamKeys.retarget = {
+	-- Specify another weapon (by its full weapondef name) as the targeting weapon.
+	retarget_weapon = function(value)
+		return value and toWeaponDefID(value) or false
+	end,
+}
 
-specialEffectFunction.retarget = function(projectileID)
-	if spGetProjectileTimeToLive(projectileID) > 0 then
-		local targetType, target = spGetProjectileTarget(projectileID)
-
-		if targetType == targetedUnit then
-			if spGetUnitIsDead(target) ~= false then
-				local ownerID = spGetProjectileOwnerID(projectileID)
-				-- Hardcoded to retarget only from the primary weapon and only units or ground
-				local ownerTargetType, fromUser, ownerTarget = spGetUnitWeaponTarget(ownerID, 1)
-				setProjectileTarget(projectileID, ownerTarget, ownerTargetType)
-			end
-			return false
+local retargetWeapons = {}
+local hashBaseDefs = #WeaponDefs + 1
+assert(hashBaseDefs * (#UnitDefs + 1) <= math.int_max)
+for unitDefID, unitDef in pairs(UnitDefs) do
+	local weaponDefToNum = {}
+	for weaponNum, weapon in ipairs(unitDef.weapons) do
+		weaponDefToNum[weapon.weaponDef] = weaponDefToNum[weapon.weaponDef] or weaponNum
+	end
+	for weaponDefID, weaponNum in pairs(weaponDefToNum) do
+		local customParams = WeaponDefs[weaponDefID].customParams
+		if customParams.speceffect == "retarget" then
+			local targetingDef = customParams.retarget_weapon and WeaponDefNames[customParams.retarget_weapon]
+			local retargetNum = targetingDef and weaponDefToNum[targetingDef.id] or weaponNum
+			retargetWeapons[weaponDefID + unitDefID * hashBaseDefs] = retargetNum
 		end
-	else
+	end
+end
+
+specialEffectFunction.retarget = function(_, projectileID)
+	if spGetProjectileTimeToLive(projectileID) <= 0 then
 		return true
 	end
+
+	local targetType, target = spGetProjectileTarget(projectileID)
+	if targetType ~= targetedUnit then
+		return true -- retarget doesn't allow prefiring at the ground & reaiming onto targets
+	end
+	---@cast target UnitID
+	if spGetUnitIsDead(target) == false then
+		return false
+	end
+
+	local ownerID = spGetProjectileOwnerID(projectileID)
+	local ownerDefID = ownerID and spGetUnitDefID(ownerID)
+	if not ownerDefID then
+		return true
+	end
+
+	---@diagnostic disable-next-line: need-check-nil -- OK: projectile is alive
+	local weaponNum = retargetWeapons[spGetProjectileDefID(projectileID) + ownerDefID * hashBaseDefs] or 1
+	---@diagnostic disable-next-line: param-type-mismatch -- OK: owner is alive
+	local ownerTargetType, _fromUser, ownerTarget = spGetUnitWeaponTarget(ownerID, weaponNum)
+	setProjectileTarget(projectileID, ownerTarget, ownerTargetType)
+	return false
 end
 
 -- Guidance
@@ -709,7 +743,7 @@ function gadget:Initialize()
 
 	if next(weaponDefEffect) then
 		for weaponDefID in pairs(weaponDefEffect) do
-			Script.SetWatchProjectile(weaponDefID, true)
+			gadgetHandler:RegisterProjectile(weaponDefID)
 		end
 		gameFrame = Spring.GetGameFrame()
 	else
@@ -719,9 +753,7 @@ function gadget:Initialize()
 end
 
 function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
-	if weaponDefEffect[weaponDefID] then
-		projectiles[projectileID] = weaponDefEffect[weaponDefID]
-	end
+	projectiles[projectileID] = weaponDefEffect[weaponDefID]
 end
 
 function gadget:ProjectileDestroyed(projectileID)

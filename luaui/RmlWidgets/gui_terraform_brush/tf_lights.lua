@@ -70,9 +70,6 @@ local PALETTE = {
 }
 
 function M.attach(doc, ctx)
-	if ctx.attachTBMirrorControls then
-		ctx.attachTBMirrorControls(doc, "lp")
-	end
 	local widgetState = ctx.widgetState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
@@ -441,18 +438,6 @@ function M.sync(doc, ctx, lpState, setSummary)
 		local sr = tbs.symmetryRadial and true or false
 		if dm.lpSymmetryRadial ~= sr then
 			dm.lpSymmetryRadial = sr
-		end
-		local sma = (tbs.symmetryMirrorX or tbs.symmetryMirrorY) and true or false
-		if dm.lpSymmetryMirrorAny ~= sma then
-			dm.lpSymmetryMirrorAny = sma
-		end
-		local cs = tostring(tbs.symmetryRadialCount or 2)
-		if dm.lpSymCountStr ~= cs then
-			dm.lpSymCountStr = cs
-		end
-		local as = tostring(math.floor(tbs.symmetryMirrorAngle or 0))
-		if dm.lpSymAngleStr ~= as then
-			dm.lpSymAngleStr = as
 		end
 	end
 	-- Gray out scatter + distribution for cone/beam (they only support single placement)

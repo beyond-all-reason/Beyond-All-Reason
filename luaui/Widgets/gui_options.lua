@@ -6327,6 +6327,26 @@ function init()
 		},
 
 		{
+			id = "supersample",
+			parent = "uiscale",
+			group = "ui",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.supersample"),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.supersample_auto"),
+				BAR.I18N("ui.settings.option.supersample_off"),
+				BAR.I18N("ui.settings.option.supersample_2x"),
+			},
+			value = (Spring.GetConfigInt("ui_supersample", 2) or 2) + 1,
+			description = BAR.I18N("ui.settings.option.supersample_descr"),
+			onchange = function(option, value)
+				Spring.SetConfigInt("ui_supersample", value - 1) -- 0 auto, 1 off, 2 always 2x (default)
+				Spring.SendCommands("luarules reloadluaui") -- the widgets size their textures by it at start
+			end,
+		},
+
+		{
 			id = "guishader",
 			parent = "uiscale",
 			group = "ui",
@@ -6726,6 +6746,20 @@ function init()
 			onchange = function(option, value)
 				saveOptionValue("Build menu", "buildmenu", "setShowRadarIcon", { "showRadarIcon" }, value)
 				saveOptionValue("Grid menu", "buildmenu", "setShowRadarIcon", { "showRadarIcon" }, value)
+			end,
+		},
+		{
+			id = "buildmenu_blueprints",
+			parent = "buildmenu_bottom",
+			group = "ui",
+			category = types.dev,
+			name = BAR.I18N("ui.settings.option.buildmenu_blueprints"),
+			type = "bool",
+			value = Spring.GetConfigInt("ShowBlueprintUI", 1) == 1,
+			description = BAR.I18N("ui.settings.option.buildmenu_blueprints_descr"),
+			onchange = function(option, value)
+				Spring.SetConfigInt("ShowBlueprintUI", value and 1 or 0)
+				Spring.ForceLayoutUpdate() -- the menus read it with the commands (CommandsChanged)
 			end,
 		},
 
