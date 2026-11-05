@@ -11,7 +11,8 @@ on:
 
 jobs:
   busted:
-    runs-on: ubuntu-latest
+    # lx needs libgpgme.so.11, which ubuntu-26.04 doesn't have
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       issues: write
