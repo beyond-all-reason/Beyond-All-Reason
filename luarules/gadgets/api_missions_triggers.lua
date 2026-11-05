@@ -202,19 +202,21 @@ local inactiveSeismicContacts = {}
 -- Each has its own tracker. Callbacks then act on the units that crossed a tracking boundary.
 local unitsEnteredAreaHandlers, unitsLeftAreaHandlers ---@type table<string, function?>, table<string, function?>
 
----@param tracked { trigger: table, triggerID: string }
-local function onUnitsEnteredArea(unitIDs, trackingID, tracked)
-	local handler = unitsEnteredAreaHandlers[tracked.trigger.type]
+---@param triggerID string
+local function onUnitsEnteredArea(unitIDs, _, triggerID)
+	local trigger = triggers[triggerID]
+	local handler = unitsEnteredAreaHandlers[trigger.type]
 	if handler then
-		handler(tracked.trigger, tracked.triggerID, triggerContext, unitIDs)
+		handler(trigger, triggerID, triggerContext, unitIDs)
 	end
 end
 
----@param tracked { trigger: table, triggerID: string }
-local function onUnitsLeftArea(unitIDs, trackingID, tracked)
-	local handler = unitsLeftAreaHandlers[tracked.trigger.type]
+---@param triggerID string
+local function onUnitsLeftArea(unitIDs, _, triggerID)
+	local trigger = triggers[triggerID]
+	local handler = unitsLeftAreaHandlers[trigger.type]
 	if handler then
-		handler(tracked.trigger, tracked.triggerID, triggerContext, unitIDs)
+		handler(trigger, triggerID, triggerContext, unitIDs)
 	end
 end
 
@@ -282,7 +284,7 @@ function gadget:Initialize()
 				parameters.teamName,
 				onUnitsEnteredArea,
 				onUnitsLeftArea,
-				{ trigger = trigger, triggerID = triggerID }
+				triggerID
 			)
 		end
 	end
