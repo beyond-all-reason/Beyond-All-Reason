@@ -3087,6 +3087,52 @@ function GetWidgetToggleValue(widgetname)
 	end
 end
 
+-- A widget another takes the place of (GetInfo replaces, as FlowUI2's copies): an option made for it switches
+-- the one taking its place when that one is known (the running one first)
+function WidgetToggleTarget(name)
+	local found = nil
+	for byName, ki in pairs(widgetHandler.knownWidgets or {}) do
+		local replaces = ki.replaces
+		if replaces ~= nil and byName ~= name then
+			local hit = replaces == name
+			if type(replaces) == "table" then
+				for i = 1, #replaces do
+					hit = hit or replaces[i] == name
+				end
+			end
+			if hit and (found == nil or ki.active) then
+				found = byName
+			end
+		end
+	end
+	return found or name
+end
+
+-- Switched off from here, a widget taking others' places leaves them off: no longer recorded as replaced by
+-- it, they are not handed back now (FlowUI2's takeover) nor switched back on at the next start
+function KeepReplacedOff(name)
+	local known = widgetHandler.knownWidgets and widgetHandler.knownWidgets[name]
+	local replaces = known and known.replaces
+	if replaces == nil then
+		return
+	end
+	for _, replaced in ipairs(type(replaces) == "table" and replaces or { replaces }) do
+		if widgetHandler.replacedList[replaced] == name then
+			widgetHandler.replacedList[replaced] = nil
+		end
+	end
+end
+
+-- The build menu's grid layout: the Grid menu widget on, or the layout of a build menu taking its place
+-- (Build Menu FlowUI2 shows both layouts itself: WG.buildmenu.getLayout/setLayout)
+function GridLayoutOn()
+	local api = WG.buildmenu
+	if api and api.getLayout then
+		return api.getLayout() == "grid"
+	end
+	return GetWidgetToggleValue("Grid menu") and true or false
+end
+
 -- the value at a path in a widget's saved config data, e.g. {'Config','console','maxlines'}; nil when it is missing
 local function widgetConfigValue(widgetName, path)
 	local value = widgetHandler.configData[widgetName]
@@ -3262,6 +3308,7 @@ function applyOptionValue(option, newValue, skipRedrawWindow, force)
 			end
 		else
 			if widgetHandler.orderList[option.widget] > 0 then
+				KeepReplacedOff(option.widget)
 				widgetHandler:DisableWidget(option.widget)
 			end
 		end
@@ -3885,7 +3932,7 @@ function init()
 			aiDetected = true
 		end
 	end
-	local gridMenuOn = GetWidgetToggleValue("Grid menu") and true or false
+	local gridMenuOn = GridLayoutOn()
 	local holidays = BAR.Utilities.Gametype.GetCurrentHolidays()
 	local camMode = Spring.GetConfigInt("CamMode", 2)
 
@@ -5565,10 +5612,13 @@ function init()
 			available = Spring.GetConfigString("KeybindingFile") == "uikeys.txt",
 			name = BAR.I18N("ui.settings.option.gridmenu"),
 			type = "bool",
-			value = GetWidgetToggleValue("Grid menu"),
+			value = gridMenuOn,
 			description = BAR.I18N("ui.settings.option.gridmenu_descr"),
 			onchange = function(option, value)
-				if value then
+				local api = WG.buildmenu
+				if api and api.setLayout then -- a build menu with both layouts (Build Menu FlowUI2)
+					api.setLayout(value and "grid" or "build")
+				elseif value then
 					widgetHandler:DisableWidget("Build menu")
 					widgetHandler:EnableWidget("Grid menu")
 				else
@@ -6746,6 +6796,20 @@ function init()
 			onchange = function(option, value)
 				saveOptionValue("Build menu", "buildmenu", "setShowRadarIcon", { "showRadarIcon" }, value)
 				saveOptionValue("Grid menu", "buildmenu", "setShowRadarIcon", { "showRadarIcon" }, value)
+			end,
+		},
+		{
+			id = "buildmenu_blueprints",
+			parent = "buildmenu_bottom",
+			group = "ui",
+			category = types.dev,
+			name = BAR.I18N("ui.settings.option.buildmenu_blueprints"),
+			type = "bool",
+			value = Spring.GetConfigInt("ShowBlueprintUI", 1) == 1,
+			description = BAR.I18N("ui.settings.option.buildmenu_blueprints_descr"),
+			onchange = function(option, value)
+				Spring.SetConfigInt("ShowBlueprintUI", value and 1 or 0)
+				Spring.ForceLayoutUpdate() -- the menus read it with the commands (CommandsChanged)
 			end,
 		},
 
@@ -11992,6 +12056,17 @@ function init()
 	end
 	removeOptions(unknownWidgetOptions)
 
+	-- a toggle made for a widget another takes the place of switches that one (WidgetToggleTarget)
+	for _, option in ipairs(options) do
+		local target = option.widget and WidgetToggleTarget(option.widget)
+		if target and target ~= option.widget then
+			option.widget = target
+			if option.type == "bool" then
+				option.value = GetWidgetToggleValue(target)
+			end
+		end
+	end
+
 	-- add music tracks options
 	local trackList
 	if WG.music ~= nil then
@@ -12539,8 +12614,8 @@ function widget:Initialize()
 	-- set nano particle rotation: rotValue, rotVelocity, rotAcceleration, rotValueRNG, rotVelocityRNG, rotAccelerationRNG (in degrees)
 	Spring.SetNanoProjectileParams(-180, -50, -50, 360, 100, 100)
 
-	-- just making sure
-	if widgetHandler.orderList["Pregame UI"] < 0.5 then
+	-- just making sure (not while a widget that takes its place is on: GetInfo replaces)
+	if widgetHandler.orderList["Pregame UI"] < 0.5 and not widgetHandler.replacedList["Pregame UI"] then
 		widgetHandler:EnableWidget("Pregame UI")
 	end
 	if widgetHandler.orderList["Pregame Queue"] < 0.5 then

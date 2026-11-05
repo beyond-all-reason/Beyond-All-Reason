@@ -458,6 +458,11 @@ local function refreshCommands()
 	-- cancelTargetLastState is kept current by SelectionChanged and by the poll in Update
 	local cancelTargetRelevant = cancelTargetLastState
 
+	-- the blueprint commands, unless the blueprint UI is off (ShowBlueprintUI: settings, dev)
+	local hideBlueprints = Spring.GetConfigInt("ShowBlueprintUI", 1) == 0 or nil
+	hiddenCommands[GameCMD.BLUEPRINT_PLACE] = hideBlueprints
+	hiddenCommands[GameCMD.BLUEPRINT_CREATE] = hideBlueprints
+
 	local activeCmdDescs = spGetActiveCmdDescs()
 	for _, command in ipairs(activeCmdDescs) do
 		if type(command) == "table" and not disabledCommand[command.name] then
@@ -716,8 +721,37 @@ local function reloadBindings()
 	tapHotkeyLines = {}
 end
 
--- "Tap L quickly: 1x Fire at will, 2x Hold fire, 3x Return fire" for a state set by the number of taps
+-- "Tap L quickly: 1x Fire at will, 2x Hold fire, 3x Return fire" for a state set by the number of taps;
+-- "Press Z Z for area mex" when it needs the extractor picked first: its key bound to an extractor too
+-- (Legacy presets), or the grid layout's keys (the build menu's WG.gridmenu.getAreaMexKeys)
 local function tapHotkeyLine(cmd)
+	if cmd.action == "areamex" then
+		local keys
+		local key = actionHotkeys.areamex
+		if key then
+			if tapHotkeyLines.areamex == nil then
+				tapHotkeyLines.areamex = false
+				for _, keybinding in ipairs(Spring.GetKeyBindings()) do
+					if keybinding.boundWith == key and keybinding.command:find("buildunit_", 1, true) == 1 then
+						local label = keyConfig.sanitizeKey(key, currentLayout):upper()
+						tapHotkeyLines.areamex = label .. " " .. label
+						break
+					end
+				end
+			end
+			keys = tapHotkeyLines.areamex or nil
+		elseif WG.gridmenu and WG.gridmenu.getAreaMexKeys then
+			local grid = WG.gridmenu.getAreaMexKeys()
+			keys = grid and table.concat(grid, " ")
+		end
+		return keys
+				and getCachedTranslation("ui.orderMenu.areamexHotkey", {
+					keys = keys,
+					highlightColor = "\255\255\215\100",
+					textColor = "\255\240\240\240",
+				})
+			or nil
+	end
 	local line = tapHotkeyLines[cmd.action]
 	if line == nil then
 		line = false
