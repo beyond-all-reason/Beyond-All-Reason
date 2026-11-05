@@ -3,6 +3,7 @@
 	"priority": [],
 	"profiles": [
 		{
+			"id": "grid",
 			"name": "Grid",
 			"description": "ui.keybinds.presets.grid",
 			"fakeMeta": "space",
@@ -1494,6 +1495,7 @@
 			]
 		},
 		{
+			"id": "grid60",
 			"name": "Grid (60% Keyboard)",
 			"description": "ui.keybinds.presets.grid60",
 			"fakeMeta": "space",
@@ -2817,6 +2819,7 @@
 			]
 		},
 		{
+			"id": "legacy",
 			"name": "Legacy",
 			"description": "ui.keybinds.presets.legacy",
 			"fakeMeta": "space",
@@ -4760,6 +4763,7 @@
 			]
 		},
 		{
+			"id": "legacy60",
 			"name": "Legacy (60% Keyboard)",
 			"description": "ui.keybinds.presets.legacy60",
 			"fakeMeta": "space",

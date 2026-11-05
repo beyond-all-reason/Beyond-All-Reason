@@ -9,9 +9,14 @@
 	"definitions": {
 		"profile": {
 			"type": "object",
-			"required": ["name", "binds"],
+			"required": ["id", "name", "binds"],
 			"additionalProperties": false,
 			"properties": {
+				"id": {
+					"type": "string",
+					"pattern": "^[a-z0-9_]+$",
+					"description": "Lowercase id a widget manifest's profileKeysets names this profile by. Unique; unlike the name, it is never shown."
+				},
 				"name": {
 					"type": "string",
 					"minLength": 1,
