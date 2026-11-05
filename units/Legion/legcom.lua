@@ -346,6 +346,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "legcomlaser",
+				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
