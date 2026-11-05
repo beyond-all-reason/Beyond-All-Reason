@@ -3,6 +3,8 @@
 --- player's client, so a mission's units wait for each other here.
 ---
 
+local table_keys = table.keys
+
 -- As often as the engine checks a player's gather waits.
 local UPDATE_PERIOD_FRAMES = 3
 
@@ -80,7 +82,9 @@ local function updateGatherWaits(frameNumber)
 		return
 	end
 
-	for gatherKey, unitIDs in pairs(unitIDsByGatherKey) do
+	-- Releasing units can fire triggers that give new gather waits.
+	for _, gatherKey in ipairs(table_keys(unitIDsByGatherKey)) do
+		local unitIDs = unitIDsByGatherKey[gatherKey]
 		local isGathered = true
 		for unitID in pairs(unitIDs) do
 			local queueIndex = getGatherWaitQueueIndex(unitID, gatherKey)
