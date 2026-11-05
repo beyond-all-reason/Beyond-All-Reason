@@ -200,19 +200,18 @@ local inactiveSeismicContacts = {}
 
 -- Location triggers are dispatched through area tracking instead of by polling with GameFrame.
 -- Each has its own tracker. Callbacks then act on the units that crossed a tracking boundary.
-local triggersByTrackingID = {} ---@type table<integer, { trigger: table, triggerID: string }>
 local unitsEnteredAreaHandlers, unitsLeftAreaHandlers ---@type table<string, function?>, table<string, function?>
 
-local function onUnitsEnteredArea(unitIDs, trackingID)
-	local tracked = triggersByTrackingID[trackingID]
+---@param tracked { trigger: table, triggerID: string }
+local function onUnitsEnteredArea(unitIDs, trackingID, tracked)
 	local handler = unitsEnteredAreaHandlers[tracked.trigger.type]
 	if handler then
 		handler(tracked.trigger, tracked.triggerID, triggerContext, unitIDs)
 	end
 end
 
-local function onUnitsLeftArea(unitIDs, trackingID)
-	local tracked = triggersByTrackingID[trackingID]
+---@param tracked { trigger: table, triggerID: string }
+local function onUnitsLeftArea(unitIDs, trackingID, tracked)
 	local handler = unitsLeftAreaHandlers[tracked.trigger.type]
 	if handler then
 		handler(tracked.trigger, tracked.triggerID, triggerContext, unitIDs)
@@ -278,9 +277,13 @@ function gadget:Initialize()
 	for triggerID, trigger in pairs(triggers) do
 		if unitsEnteredAreaHandlers[trigger.type] or unitsLeftAreaHandlers[trigger.type] then
 			local parameters = trigger.parameters
-			local trackingID =
-				areaTracking.TrackUnitsInArea(parameters.area, parameters.teamName, onUnitsEnteredArea, onUnitsLeftArea)
-			triggersByTrackingID[trackingID] = { trigger = trigger, triggerID = triggerID }
+			areaTracking.TrackUnitsInArea(
+				parameters.area,
+				parameters.teamName,
+				onUnitsEnteredArea,
+				onUnitsLeftArea,
+				{ trigger = trigger, triggerID = triggerID }
+			)
 		end
 	end
 
