@@ -43,7 +43,7 @@ local function markChanged(context, triggerID)
 end
 
 -- Fires once when every unit named unitName on teamName is inside the area, and again only after
--- one has walked out and they are all back.
+-- one has walked out and they are all back, if it repeats.
 return {
 	type = 'UnitsGatheredInLocation',
 	parameters = {
@@ -57,6 +57,9 @@ return {
 		-- Looking at the group costs engine calls per unit, so it is done last: only after something
 		-- changed, before this gathering has fired, and not before a refused trigger's retry frame.
 		GameFrame = function(trigger, triggerID, context, frameNumber)
+			if trigger.triggered and not trigger.settings.repeating then
+				return
+			end
 			local gathering = context.GatheredUnitsInAreas[triggerID]
 			if not gathering or not gathering.changed or gathering.fired then
 				return
@@ -90,8 +93,8 @@ return {
 			for i = 1, #unitIDs do
 				local unitID = unitIDs[i]
 				gathering.unitIDs[unitID] = nil
-				if gathering.fired and Spring.GetUnitTeam(unitID) == parameters.teamName
-					and context.DoesUnitHaveName(unitID, parameters.unitName) then
+				if gathering.fired and context.DoesUnitHaveName(unitID, parameters.unitName)
+					and Spring.GetUnitTeam(unitID) == parameters.teamName then
 					gathering.fired = false
 				end
 			end

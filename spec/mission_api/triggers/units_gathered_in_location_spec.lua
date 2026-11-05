@@ -58,6 +58,23 @@ describe("mission_api.triggers.units_gathered_in_location", function()
 		return context, context.timesFired
 	end
 
+	-- Refuses a trigger that fired and does not repeat, as the gadget's ActivateTrigger does.
+	local function gatedContext()
+		local context = newContext()
+		local fires = 0
+		context.ActivateTrigger = function(t)
+			if t.triggered and not t.settings.repeating then
+				return false
+			end
+			t.triggered = true
+			fires = fires + 1
+			return true
+		end
+		return context, function()
+			return fires
+		end
+	end
+
 	local function frame(t, context, id)
 		frameNumber = frameNumber + 1
 		callins.GameFrame(t, id or triggerID, context, frameNumber)
@@ -86,16 +103,35 @@ describe("mission_api.triggers.units_gathered_in_location", function()
 		assert.are.equal(1, fired())
 	end)
 
-	it("fires again once one has left and they are all back", function()
+	it("fires again for each new gathering when it repeats", function()
 		local t = squadTrigger()
-		local context, fired = newContext()
+		t.settings.repeating = true
+		local context, fired = gatedContext()
 		callins.UnitsEnteredArea(t, triggerID, context, { 100, 101, 102 })
 		frame(t, context)
+		for _ = 1, 2 do
+			callins.UnitsLeftArea(t, triggerID, context, { 102 })
+			frame(t, context)
+			callins.UnitsEnteredArea(t, triggerID, context, { 102 })
+			frame(t, context)
+		end
+		assert.are.equal(3, fired())
+	end)
+
+	it("fires once when it does not repeat, and stops looking at them", function()
+		local t = squadTrigger()
+		local context, fired = gatedContext()
+		callins.UnitsEnteredArea(t, triggerID, context, { 100, 101, 102 })
+		frame(t, context)
+		looks = 0
 		callins.UnitsLeftArea(t, triggerID, context, { 102 })
 		frame(t, context)
 		callins.UnitsEnteredArea(t, triggerID, context, { 102 })
-		frame(t, context)
-		assert.are.equal(2, fired())
+		for _ = 1, 30 do
+			frame(t, context)
+		end
+		assert.are.equal(1, fired())
+		assert.are.equal(0, looks)
 	end)
 
 	it("does not fire again when one of them dies inside", function()
