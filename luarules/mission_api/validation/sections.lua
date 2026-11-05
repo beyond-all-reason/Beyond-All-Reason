@@ -535,10 +535,9 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 		return
 	end
 
-	local gaiaTeamID = Spring.GetGaiaTeamID()
 	for _, parameterName in ipairs({ "oldTeamName", "newTeamName" }) do
 		for _, teamName in ipairs(context.PossibleValues(action.parameters[parameterName])) do
-			if gaiaTeamID ~= nil and type(teamName) == "string" and context.Teams[teamName] == gaiaTeamID then
+			if teamName == "gaia" then
 				actionReport.Error(
 					actionID,
 					"ChangeTeam cannot move players to or from Gaia's team",

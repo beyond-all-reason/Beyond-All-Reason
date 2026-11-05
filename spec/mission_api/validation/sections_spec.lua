@@ -491,7 +491,6 @@ describe("mission_api.validation.sections", function()
 
 		before_each(function()
 			originalGetTeamInfo = V.env.Spring.GetTeamInfo
-			-- Gaia's team is 2 in the spec env's team layout.
 			V.missionAPI().Teams =
 				{ rebels = 0, [0] = "rebels", loyalists = 1, [1] = "loyalists", gaia = 2, [2] = "gaia" }
 			V.env.Spring.GetTeamInfo = function(teamID)

@@ -26,8 +26,6 @@ local function readMissionOptions()
 	return missionOptions
 end
 
--- Gaia's team ID is the team count, which changes when the client adds a team, so missions use this name,
--- for Gaia's team and for its allyteam.
 local GAIA_TEAM_NAME = "gaia"
 
 local function readTeams()
@@ -76,7 +74,7 @@ local function readAllyTeamNames(errors)
 
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	if gaiaTeamID ~= nil then
-		local _, _, _, _, _, gaiaAllyTeamID = Spring.GetTeamInfo(gaiaTeamID)
+		local gaiaAllyTeamID = Spring.GetTeamAllyTeamID(gaiaTeamID)
 		allyTeamNames[gaiaAllyTeamID] = GAIA_TEAM_NAME
 	end
 

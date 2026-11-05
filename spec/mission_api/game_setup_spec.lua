@@ -27,11 +27,11 @@ local function withGameSetup(setup)
 	env.Spring.GetTeamList = function()
 		return sortedIDs(setup.teams)
 	end
-	-- The engine adds Gaia's team after the start script's teams, in an allyteam of its own after theirs.
+	-- Gaia's team and allyteam come after the start script's.
 	local gaiaTeamID = #sortedIDs(setup.teams)
 	local gaiaAllyTeamID = #sortedIDs(setup.allyTeams)
 	env.Spring.GetTeamInfo = function(teamID, getTeamKeys)
-		local team = setup.teams[teamID] or { allyTeam = gaiaAllyTeamID, keys = {} }
+		local team = setup.teams[teamID]
 		return teamID, 0, false, false, "armada", team.allyTeam, 1, getTeamKeys and team.keys or nil
 	end
 	env.Spring.GetAllyTeamList = function()
@@ -42,6 +42,9 @@ local function withGameSetup(setup)
 	env.Spring.GetAllyTeamInfo = function(allyTeamID)
 		local allyTeam = setup.allyTeams[allyTeamID]
 		return allyTeam and allyTeam.keys or {}
+	end
+	env.Spring.GetTeamAllyTeamID = function(teamID)
+		return teamID == gaiaTeamID and gaiaAllyTeamID or setup.teams[teamID].allyTeam
 	end
 	env.Spring.GetGaiaTeamID = function()
 		return gaiaTeamID
@@ -60,6 +63,7 @@ describe("mission_api.game_setup", function()
 			GetAllyTeamList = env.Spring.GetAllyTeamList,
 			GetAllyTeamInfo = env.Spring.GetAllyTeamInfo,
 			GetGaiaTeamID = env.Spring.GetGaiaTeamID,
+			GetTeamAllyTeamID = env.Spring.GetTeamAllyTeamID,
 			Log = env.Spring.Log,
 		}
 		logged = {}
