@@ -546,17 +546,18 @@ describe("mission_api.validation.sections", function()
 			V.assertNoMessageContaining(result, "builderDefName")
 		end)
 
-		it("reports a builder and a team together", function()
-			V.assertMessage(
-				validateBuildOption("RemoveBuildOption", { builderDefName = "armck", teamName = "player" }),
-				"RemoveBuildOption takes builderDefName or teamName, not both. Action: a"
+		it("passes a builder and a team together", function()
+			local result = validateBuildOption(
+				"AddBuildOption",
+				{ builderDefName = "armck", teamName = "player", buildMenuPosition = 2 }
 			)
+			V.assertNoMessageContaining(result, "needs builderDefName")
 		end)
 
-		it("reports a build menu position with a team", function()
+		it("reports a build menu position with a team and no builder", function()
 			V.assertMessage(
 				validateBuildOption("AddBuildOption", { teamName = "player", buildMenuPosition = 2 }),
-				"Parameter 'buildMenuPosition' needs builderDefName, not teamName. Action: a, Parameter: buildMenuPosition"
+				"Parameter 'buildMenuPosition' needs builderDefName. Action: a, Parameter: buildMenuPosition"
 			)
 		end)
 	end)

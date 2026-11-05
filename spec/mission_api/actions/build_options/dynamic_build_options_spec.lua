@@ -13,14 +13,10 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
 	[42] = { name = "armsolar" },
 	[7] = { name = "armck", isBuilder = true },
+	[8] = { name = "armca", isBuilder = true },
 	[9] = { name = "armlab", isBuilder = true, isFactory = true },
 })
 local unitDefNames = unitDefs:GetUnitDefNames()
-
--- team 1: a construction bot, a bot lab and a solar collector
-local teamUnitDefIDs = { [1] = { [100] = 7, [101] = 9, [102] = 42 } }
-
-env.CMD.REMOVE = 2
 
 local function findAction(actionType)
 	for _, action in ipairs(actions) do
@@ -36,68 +32,50 @@ local removeAction = findAction("RemoveBuildOption")
 
 describe("mission_api.actions.dynamic_build_options", function()
 
-	---@type { add: table[], remove: table[], block: table[], unblock: table[], orders: table[] }
+	---@type { add: table[], remove: table[] }
 	local calls
+	-- builderUnitDefID -> teamID or "all" -> has the solar collector
+	local hasSolar
+
+	local function sortedByBuilder(list)
+		table.sort(list, function(a, b)
+			return a.builderUnitDefID < b.builderUnitDefID
+		end)
+		return list
+	end
 
 	before_each(function()
-		calls = { add = {}, remove = {}, block = {}, unblock = {}, orders = {} }
+		calls = { add = {}, remove = {} }
+		-- the bot and the aircraft build it, the lab doesn't; team 1 already lost it on the aircraft
+		hasSolar = { [7] = { all = true, [1] = true }, [8] = { all = true, [1] = false }, [9] = {} }
 		env.UnitDefNames = unitDefNames
 		env.UnitDefs = unitDefs:GetUnitDefsByID()
-		env.Spring.GetTeamUnits = function(teamID)
-			local unitIDs = {}
-			for unitID in pairs(teamUnitDefIDs[teamID] or {}) do
-				unitIDs[#unitIDs + 1] = unitID
-			end
-			table.sort(unitIDs)
-			return unitIDs
-		end
-		env.Spring.GetUnitDefID = function(unitID)
-			return teamUnitDefIDs[1][unitID]
-		end
-		env.Spring.GiveOrderToUnit = function(unitID, cmdID, params, options)
-			calls.orders[#calls.orders + 1] = { unitID = unitID, cmdID = cmdID, params = params, options = options }
-		end
-		GG["BuildBlocking"] = {
-			AddBlockedUnit = function(unitDefID, teamID, reasonKey, builderUnitDefID)
-				calls.block[#calls.block + 1] = {
-					unitDefID = unitDefID,
-					teamID = teamID,
-					reasonKey = reasonKey,
-					builderUnitDefID = builderUnitDefID,
-				}
-			end,
-			RemoveBlockedUnit = function(unitDefID, teamID, reasonKey, builderUnitDefID)
-				calls.unblock[#calls.unblock + 1] = {
-					unitDefID = unitDefID,
-					teamID = teamID,
-					reasonKey = reasonKey,
-					builderUnitDefID = builderUnitDefID,
-				}
-				return true
-			end,
-		}
 		GG["DynamicBuildOptions"] = {
-			Add = function(builtUnitDefID, builderUnitDefID, position)
+			Add = function(builtUnitDefID, builderUnitDefID, position, teamID)
 				calls.add[#calls.add + 1] = {
 					builtUnitDefID = builtUnitDefID,
 					builderUnitDefID = builderUnitDefID,
 					position = position,
+					teamID = teamID,
 				}
 				return true
 			end,
-			Remove = function(builtUnitDefID, builderUnitDefID)
+			Remove = function(builtUnitDefID, builderUnitDefID, teamID)
 				calls.remove[#calls.remove + 1] = {
 					builtUnitDefID = builtUnitDefID,
 					builderUnitDefID = builderUnitDefID,
+					teamID = teamID,
 				}
 				return true
+			end,
+			HasBuildOption = function(builtUnitDefID, builderUnitDefID, teamID)
+				return builtUnitDefID == 42 and hasSolar[builderUnitDefID][teamID or "all"] == true
 			end,
 		}
 	end)
 
 	after_each(function()
 		GG["DynamicBuildOptions"] = nil
-		GG["BuildBlocking"] = nil
 	end)
 
 	it("declares AddBuildOption and its parameters", function()
@@ -137,11 +115,20 @@ describe("mission_api.actions.dynamic_build_options", function()
 			assert.are.same({ builtUnitDefID = 42, builderUnitDefID = 7, position = 3 }, calls.add[1])
 		end)
 
-		it("shows the option to a team again by lifting its hidden block, leaving the unit defs alone", function()
+		it("adds the option to the builder type of one team", function()
+			addAction.actionFunction("armsolar", "armlab", 2, 1)
+
+			assert.are.same({ { builtUnitDefID = 42, builderUnitDefID = 9, position = 2, teamID = 1 } }, calls.add)
+		end)
+
+		it("gives a team back the option on every builder type that has it for every team", function()
 			addAction.actionFunction("armsolar", nil, nil, 1)
 
-			assert.are.same({ { unitDefID = 42, teamID = 1, reasonKey = "hidden" } }, calls.unblock)
-			assert.are.equal(0, #calls.add)
+			assert.are.same({
+				{ builtUnitDefID = 42, builderUnitDefID = 7, teamID = 1 },
+				{ builtUnitDefID = 42, builderUnitDefID = 8, teamID = 1 },
+			}, sortedByBuilder(calls.add))
+			assert.are.equal(0, #calls.remove)
 		end)
 	end)
 
@@ -152,36 +139,19 @@ describe("mission_api.actions.dynamic_build_options", function()
 			assert.are.equal(1, #calls.remove)
 			assert.are.same({ builtUnitDefID = 42, builderUnitDefID = 7 }, calls.remove[1])
 			assert.are.equal(0, #calls.add)
-			assert.are.equal(0, #calls.orders)
 		end)
 
-		it("hides the option from one team with a hidden block, leaving the builder types alone", function()
+		it("removes the option from the builder type of one team", function()
+			removeAction.actionFunction("armsolar", "armck", 1)
+
+			assert.are.same({ { builtUnitDefID = 42, builderUnitDefID = 7, teamID = 1 } }, calls.remove)
+		end)
+
+		it("removes the option from every builder type of one team that still has it", function()
 			removeAction.actionFunction("armsolar", nil, 1)
 
-			assert.are.same({ { unitDefID = 42, teamID = 1, reasonKey = "hidden" } }, calls.block)
-			assert.are.equal(0, #calls.remove)
-		end)
-
-		it("drops the type's queued orders from the team's builders and factories", function()
-			removeAction.actionFunction("armsolar", nil, 1)
-
-			assert.are.same({
-				{ unitID = 100, cmdID = 2, params = { -42 }, options = { "alt" } },
-				{ unitID = 101, cmdID = 2, params = { -42 }, options = { "alt", "ctrl" } },
-			}, calls.orders)
-		end)
-
-		it("leaves the queues of other teams alone", function()
-			removeAction.actionFunction("armsolar", nil, 0)
-
-			assert.are.equal(0, #calls.orders)
-		end)
-
-		it("is undone for the team by AddBuildOption with the team", function()
-			removeAction.actionFunction("armsolar", nil, 0)
-			addAction.actionFunction("armsolar", nil, nil, 0)
-
-			assert.are.same(calls.block[1], calls.unblock[1])
+			assert.are.same({ { builtUnitDefID = 42, builderUnitDefID = 7, teamID = 1 } }, calls.remove)
+			assert.are.equal(0, #calls.add)
 		end)
 	end)
 

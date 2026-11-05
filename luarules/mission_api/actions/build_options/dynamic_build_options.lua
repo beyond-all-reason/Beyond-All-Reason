@@ -1,37 +1,32 @@
 -- Adds or removes a build option of a builder or factory type, for its current and future units (GG.DynamicBuildOptions).
--- With teamName it is blocked for that team instead (GG.BuildBlocking, reason 'hidden': also out of the build menus).
+-- With teamName only for that team's units; without builderDefName then, for every builder type of the team.
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local HIDDEN_REASON = 'hidden'
-
-local function dropQueuedBuilds(builtUnitDefID, teamID)
-	for _, unitID in ipairs(Spring.GetTeamUnits(teamID)) do
-		local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
-		if unitDef.isBuilder then
-			-- ctrl: a factory's own build queue, not the orders for its new units
-			local options = unitDef.isFactory and { 'alt', 'ctrl' } or { 'alt' }
-			Spring.GiveOrderToUnit(unitID, CMD.REMOVE, { -builtUnitDefID }, options)
+local function addBuildOption(builtDefName, builderDefName, buildMenuPosition, teamID)
+	local builtUnitDefID = UnitDefNames[builtDefName].id
+	if builderDefName then
+		GG.DynamicBuildOptions.Add(builtUnitDefID, UnitDefNames[builderDefName].id, buildMenuPosition, teamID)
+		return
+	end
+	-- back for the team on the builder types that have it for every team
+	for builderUnitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.isBuilder and GG.DynamicBuildOptions.HasBuildOption(builtUnitDefID, builderUnitDefID) then
+			GG.DynamicBuildOptions.Add(builtUnitDefID, builderUnitDefID, nil, teamID)
 		end
 	end
 end
 
-local function addBuildOption(builtDefName, builderDefName, buildMenuPosition, teamID)
-	local builtUnitDefID = UnitDefNames[builtDefName].id
-	if teamID then
-		GG.BuildBlocking.RemoveBlockedUnit(builtUnitDefID, teamID, HIDDEN_REASON)
-		return
-	end
-	GG.DynamicBuildOptions.Add(builtUnitDefID, UnitDefNames[builderDefName].id, buildMenuPosition)
-end
-
 local function removeBuildOption(builtDefName, builderDefName, teamID)
 	local builtUnitDefID = UnitDefNames[builtDefName].id
-	if teamID then
-		GG.BuildBlocking.AddBlockedUnit(builtUnitDefID, teamID, HIDDEN_REASON)
-		dropQueuedBuilds(builtUnitDefID, teamID)
+	if builderDefName then
+		GG.DynamicBuildOptions.Remove(builtUnitDefID, UnitDefNames[builderDefName].id, teamID)
 		return
 	end
-	GG.DynamicBuildOptions.Remove(builtUnitDefID, UnitDefNames[builderDefName].id)
+	for builderUnitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.isBuilder and GG.DynamicBuildOptions.HasBuildOption(builtUnitDefID, builderUnitDefID, teamID) then
+			GG.DynamicBuildOptions.Remove(builtUnitDefID, builderUnitDefID, teamID)
+		end
+	end
 end
 
 return {

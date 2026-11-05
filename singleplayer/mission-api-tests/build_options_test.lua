@@ -2,7 +2,7 @@
 --- Build option actions test mission.
 ---
 --- Disable/EnableBuildOption grey an option out (team-wide, or for one builder type).
---- Remove/AddBuildOption take an option out of, or put one into, a builder type's menu, or every menu of one team.
+--- Remove/AddBuildOption take an option out of, or put one into, a builder type's menu, or every menu of one team only.
 --- Select the construction bot and the bot lab to watch the menus change every 5 seconds;
 --- the greyed-out options must also refuse build orders given by hotkey.
 ---
@@ -60,10 +60,18 @@ local triggers = {
 		actions = { 'hideSolar', 'messageHideSolar' },
 	},
 
-	showSolar = {
+	giveEnemyBot = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 30,
+		},
+		actions = { 'giveEnemyBot', 'messageGiveEnemyBot' },
+	},
+
+	showSolar = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 35,
 		},
 		actions = { 'showSolar', 'messageShowSolar' },
 	},
@@ -77,6 +85,7 @@ local actions = {
 			unitLoadout = {
 				{ unitDefName = 'armck', x = 1800, z = 1600, teamName = 'player' },
 				{ unitDefName = 'armlab', x = 2000, z = 1800, teamName = 'player' },
+				{ unitDefName = 'armck', x = 2200, z = 1600, teamName = 'enemy', unitName = 'enemyBot' },
 			},
 		},
 	},
@@ -186,7 +195,7 @@ local actions = {
 		},
 	},
 
-	-- For one team: gone from every menu of the player's builders, the unit defs untouched.
+	-- For one team: gone from every menu of the player's builders, the enemy's construction bot keeps it.
 	hideSolar = {
 		type = actionTypes.RemoveBuildOption,
 		parameters = {
@@ -198,7 +207,23 @@ local actions = {
 	messageHideSolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Solar collector removed for the player: gone from every builder's menu.",
+			messageKey = "Solar collector removed for the player only: gone from every builder's menu, the enemy's construction bot keeps it.",
+		},
+	},
+
+	-- The given unit takes the player's build options.
+	giveEnemyBot = {
+		type = actionTypes.TransferUnits,
+		parameters = {
+			unitName = 'enemyBot',
+			newTeamName = 'player',
+		},
+	},
+
+	messageGiveEnemyBot = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "The enemy's construction bot is yours now: select it, the solar collector is gone from its menu too.",
 		},
 	},
 
@@ -213,7 +238,7 @@ local actions = {
 	messageShowSolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Solar collector added back for the player: in the menus again.",
+			messageKey = "Solar collector added back for the player: in every menu again, the given construction bot's too.",
 		},
 	},
 }

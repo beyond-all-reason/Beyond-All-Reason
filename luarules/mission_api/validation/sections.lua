@@ -549,25 +549,17 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
--- A team's build option is hidden for every builder at once: the build menus hide team-wide blocks only.
+-- Without a builder type there is no build menu slot to put the option in.
 local function validateBuildOptionAction(context, actionReport, actionID, action)
 	local parameters = action.parameters
-	local actionTypes = context.ActionTypes
-	if action.type ~= actionTypes.AddBuildOption and action.type ~= actionTypes.RemoveBuildOption then
-		return
-	end
-	if type(parameters) ~= "table" or parameters.teamName == nil then
+	if action.type ~= context.ActionTypes.AddBuildOption or type(parameters) ~= "table" then
 		return
 	end
 
-	if parameters.builderDefName ~= nil then
-		local typeName = action.type == actionTypes.AddBuildOption and "AddBuildOption" or "RemoveBuildOption"
-		actionReport.Error(actionID, typeName .. " takes builderDefName or teamName, not both")
-	end
-	if parameters.buildMenuPosition ~= nil then
+	if parameters.buildMenuPosition ~= nil and parameters.builderDefName == nil then
 		actionReport.Error(
 			actionID,
-			"Parameter 'buildMenuPosition' needs builderDefName, not teamName",
+			"Parameter 'buildMenuPosition' needs builderDefName",
 			"Parameter: buildMenuPosition"
 		)
 	end
