@@ -2350,6 +2350,10 @@ function widget:Update(dt)
 					local saved = spGetSelectedUnits()
 					spSelectUnitArray(units)
 					spGiveOrder(CMD.MOVE, { wx, wy, wz }, opts)
+					-- Command Sounds only for selected units by default, call playUnselectedOrderSound when issuing orders to unselected units.
+					if not keepSelection and WG["commandsounds"] then
+						WG["commandsounds"].playUnselectedOrderSound(units, CMD.MOVE)
+					end
 					-- Commanding a reserve promotes it to a manual squad.
 					if config.rightClickMoveControlsReserves and sq.isReserve then
 						createSquadFromSelection()
