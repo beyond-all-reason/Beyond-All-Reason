@@ -499,8 +499,6 @@ local function registerSpatialValidators(parameterValidators, context)
 	end
 
 	--- One of the four facings, or a direction for any angle.
-	--- A number or string goes to the Facing validator, a table to the Direction validator,
-	--- so a compass angle never reads as a facing.
 	parameterValidators[Types.FacingOrDirection] = function(value)
 		local valueType = type(value)
 		if valueType == "table" then

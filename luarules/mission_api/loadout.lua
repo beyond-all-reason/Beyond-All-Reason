@@ -27,11 +27,9 @@ local function directionToHeading(entry, direction)
 		return BAR.Utilities.FacingToHeading(0)
 	end
 	-- Not Spring.GetHeadingFromVector: before RecoilEngine #3240 it swaps east and west for dz just above zero.
-	-- Compass angles run clockwise from north, which is -z.
 	return compassAngleToHeading(math.deg(math.atan2(dx, -dz)))
 end
 
--- A point is taken from the entry's own x and z, so every unit of an entry turns the same way.
 local function orientationOf(entry)
 	local orientation = entry.orientation
 	if type(orientation) == "table" then
@@ -154,8 +152,7 @@ local function spawnUnitLoadout(unitLoadout)
 		local xsize = unitDef.xsize * Game.squareSize + spacing
 		local zsize = unitDef.zsize * Game.squareSize + spacing
 
-		-- A building stands on one of the four facings; a unit that moves turns to the exact heading.
-		-- A facing is exact from CreateUnit already, so only an angle or a point needs the turn.
+		-- Buildings keep the nearest of the four facings.
 		local heading, facing = orientationOf(unit)
 		local turnTo = nil
 		if type(unit.orientation) == "table" and not unitDef.isImmobile then
@@ -214,7 +211,6 @@ end
 local function spawnFeatureLoadout(featureLoadout)
 	for _, feature in ipairs(featureLoadout or {}) do
 		feature.y = Spring.GetGroundHeight(feature.x, feature.z)
-		-- The facing is for resurrection, which only takes one of the four.
 		local heading, facing = orientationOf(feature)
 		spawnFeature(feature.featureDefName, feature, heading, facing, feature.featureName)
 	end

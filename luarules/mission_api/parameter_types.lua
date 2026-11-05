@@ -62,9 +62,6 @@ local types = {
 	WeaponNumber = "WeaponNumber",
 
 	-- Number-or-String-or-Table Validators:
-	-- A bare number or string is always an engine facing (0 to 3, or "n", "east" and so on).
-	-- A compass angle is always a table, { angle = n }, and a point is { x = , z = },
-	-- so { angle = 0 } and facing 0 are different values.
 	FacingOrDirection = "FacingOrDirection",
 
 	-- Number-or-String-or-Boolean Validators:
