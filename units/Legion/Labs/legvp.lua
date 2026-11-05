@@ -3,7 +3,7 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 2048,
-		energycost = 1650,
+		energycost = 1550,
 		metalcost = 570,
 		builder = true,
 		buildpic = "LEGVP.DDS",
