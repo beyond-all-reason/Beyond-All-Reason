@@ -399,7 +399,10 @@ function widget:Initialize()
 			return
 		end
 
-		if useGrid then
+		local api = WG.buildmenu
+		if api and api.setLayout then -- a build menu with both layouts (Build Menu FlowUI2)
+			api.setLayout(useGrid and "grid" or "build")
+		elseif useGrid then
 			Spring.SendCommands("luaui disablewidget Build menu")
 			Spring.SendCommands("luaui enablewidget Grid menu")
 		else
