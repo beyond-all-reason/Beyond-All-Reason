@@ -48,6 +48,8 @@ local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
+local spGetUnitTransporter = Spring.GetUnitTransporter
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitArrayCentroid = Spring.GetUnitArrayCentroid
@@ -129,16 +131,20 @@ end
 --> tab[slotSize2] = { transportID2, transportID5,... }
 -- this table holds possible transport IDs per slot size)
 
-local queuedSizePerTransport = {} -- transportID -> queuedSize, used to keep track of how many passengers are already assigned to each transport when distributing targets
-
 --- @return table<number,table<number>> Map of transportId -> array of passengerIds
 local function distributeTargetsToTransports(transports, targets, shifted)
 	local validTransports = createEmptyValidTransportsTable()
 
+	-- seats each transport already owes: a shift order goes behind its claims and queued loads, a plain one replaces them
+	local queuedSizePerTransport = {}
+	for _, transportUnitId in ipairs(transports) do
+		queuedSizePerTransport[transportUnitId] = shifted and TransportAPI.GetPendingSeats(transportUnitId) or 0
+	end
+
 	-- 1: exclude already full transports
 	-- 2: sort transports into seat sizes categories
 	for _, transportUnitId in ipairs(transports) do
-		if not TransportAPI.IsTransportFull(transportUnitId) then
+		if not TransportAPI.IsTransportFull(transportUnitId, queuedSizePerTransport[transportUnitId]) then
 			for i = 0, 5 do
 				validTransports[2^(i)] = validTransports[2^(i)] or {}
 				local slotSize = 2^(i)
@@ -166,20 +172,24 @@ local function distributeTargetsToTransports(transports, targets, shifted)
 
 	-- 4. Distribute passengers between transports, starting with the biggest ones
 	local passengerAssignments = {}
-	queuedSizePerTransport = shifted and queuedSizePerTransport or {} -- if shift is held we want to keep the same queued size 
 	for i = 1, #passengersData do
 		local passengerData = passengersData[i]
 		local passengerID = passengerData.id
-		local assigned = false
-		for index, transportID in ipairs(passengerData.matchingTransports) do
+		for _, transportID in ipairs(passengerData.matchingTransports) do
 			local queuedSize = queuedSizePerTransport[transportID] or 0
-			if TransportAPI.IsTransportFull(transportID, queuedSize) then
-				table.remove(passengerData.matchingTransports, index)
-			elseif TransportAPI.CanPassengerFitInTransporter(transportID, passengerID, nil, passengerData.size, queuedSize) then
+			if
+				not TransportAPI.IsTransportFull(transportID, queuedSize)
+				and TransportAPI.CanPassengerFitInTransporter(
+					transportID,
+					passengerID,
+					nil,
+					passengerData.size,
+					queuedSize
+				)
+			then
 				passengerAssignments[transportID] = passengerAssignments[transportID] or {}
 				tableInsert(passengerAssignments[transportID], passengerID)
 				queuedSizePerTransport[transportID] = queuedSize + passengerData.size
-				assigned = true
 				break
 			end
 		end
@@ -286,7 +296,29 @@ local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
 	if #transports == 0 then
 		return
 	end
-	local passengerAssignments = distributeTargetsToTransports(transports, filteredTargets, options.shift)
+	-- leave units another order already has: aboard, being lifted, claimed or queued. A plain order replaces
+	-- the selected transports' own claims and queues, so those units are free again
+	local isSelectedTransport, queuedLoad = {}, {}
+	for _, transportId in ipairs(transports) do
+		isSelectedTransport[transportId] = true
+		if options.shift then
+			for _, passengerId in ipairs(TransportAPI.GetExpectedCargo(transportId)) do
+				queuedLoad[passengerId] = true
+			end
+		end
+	end
+	local freeTargets = {}
+	for _, targetId in ipairs(filteredTargets) do
+		local owner = spGetUnitRulesParam(targetId, "transportClaimedBy") or 0
+		local taken = spGetUnitTransporter(targetId)
+			or (spGetUnitRulesParam(targetId, "inLoadAnim") or 0) > 0
+			or (owner ~= 0 and (options.shift or not isSelectedTransport[owner]))
+			or queuedLoad[targetId]
+		if not taken then
+			freeTargets[#freeTargets + 1] = targetId
+		end
+	end
+	local passengerAssignments = distributeTargetsToTransports(transports, freeTargets, options.shift)
 	-- distributeTargetsToTransports already sorted the targets so no sortTargetsByDistance call here
 	for transportId, targetIds in pairs(passengerAssignments) do
 		giveOrders(cmdId, { transportId }, targetIds, options)
