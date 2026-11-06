@@ -371,7 +371,8 @@ def pack(archive_dir, out_path, fmt, seven_zip):
             f.write("\n".join(archive_files(archive_dir)) + "\n")
         try:
             r = subprocess.run(
-                [seven_zip, "a", "-t7z", "-mx=5", "-bd", "-y", os.path.abspath(out_path), "@" + os.path.abspath(listfile)],
+                # non-solid: the engine reads single files out of a map archive
+                [seven_zip, "a", "-t7z", "-mx=5", "-ms=off", "-bd", "-y", os.path.abspath(out_path), "@" + os.path.abspath(listfile)],
                 cwd=archive_dir,
                 capture_output=True,
                 text=True,
