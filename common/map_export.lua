@@ -21,7 +21,7 @@
 
 local MapExport = {}
 
-MapExport.FORMAT_VERSION = 1
+MapExport.FORMAT_VERSION = 2
 MapExport.TILESET_FORMAT_VERSION = 1
 
 local format = string.format
@@ -709,12 +709,14 @@ function MapExport.run(opts)
 	end
 
 	-- Splats: the distribution texture (both renderers read it) + DNTS sets (legacy renderer only) --
+	-- the binary step encodes it as a DXT5 .dds with mipmaps, as maps usually ship it
 	local splatFile = sectionFile("splat")
 	if splatFile then
-		local splatName = base .. "_splat.png"
-		if copyFromProject(splatFile, "maps/" .. splatName) then
+		local splatName = base .. "_splat.dds"
+		if copyFromProject(splatFile, "splat.png", true) then
+			compile.splat = { src = "splat.png", dds = "maps/" .. splatName }
 			mapinfo.resources.splatDistrTex = splatName
-			report.sections.splat = "maps/" .. splatName
+			report.sections.splat = "maps/" .. splatName .. " (DXT5, from compile/splat.png)"
 		end
 	end
 	local dnts = type(map.dnts) == "table" and map.dnts or nil

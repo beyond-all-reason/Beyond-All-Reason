@@ -32,7 +32,7 @@ import zlib
 import numpy as np
 from PIL import Image
 
-FORMAT_VERSION = 1  # compile.json versions this reads
+FORMAT_VERSION = 2  # compile.json versions this reads
 SQUARE = 8  # elmos per heightmap square, fixed by the engine
 TEXELS_PER_SQUARE = 8
 TILE = 32  # texels per tile side
@@ -166,10 +166,91 @@ def dxt1_decode(blocks):
 
 
 def half(img):
-    """2x2 box filter; (H, W, 3) uint8 with even sizes."""
+    """2x2 box filter; (H, W, C) uint8 with even sizes."""
     f = img.astype(np.float32)
     f = (f[0::2, 0::2] + f[1::2, 0::2] + f[0::2, 1::2] + f[1::2, 1::2]) / 4
     return np.rint(f).astype(np.uint8)
+
+
+# DXT5 (the splat distribution) ----------------------------------------------------------------------
+
+
+def _encode_alpha(a):
+    """a: (N, 16) float32 0..255 -> (N, 8) uint8 alpha blocks, 8-value mode (a0 > a1)."""
+    n = a.shape[0]
+    a0 = np.rint(a.max(axis=1)).astype(np.int32)
+    a1 = np.rint(a.min(axis=1)).astype(np.int32)
+    pal = np.empty((n, 8), np.float32)
+    pal[:, 0], pal[:, 1] = a0, a1
+    for i in range(1, 7):
+        pal[:, i + 1] = ((7 - i) * a0 + i * a1) / 7
+    idx = np.abs(a[:, :, None] - pal[:, None, :]).argmin(axis=2).astype(np.uint64)
+    idx = np.where((a0 == a1)[:, None], np.uint64(0), idx)
+    bits = (idx << (np.uint64(3) * np.arange(16, dtype=np.uint64))).sum(axis=1, dtype=np.uint64)
+    out = np.empty((n, 8), np.uint8)
+    out[:, 0] = a0
+    out[:, 1] = a1
+    out[:, 2:8] = bits.astype("<u8").view(np.uint8).reshape(n, 8)[:, :6]
+    return out
+
+
+def dxt5(img, strip_rows=256):
+    """img: (H, W, 4) uint8, H and W multiples of 4 -> (H/4, W/4, 16) uint8 blocks."""
+    h, w, _ = img.shape
+    if h % 4 or w % 4:
+        raise CompileError(f"DXT5 needs sizes in multiples of 4, got {w}x{h}")
+    out = np.empty((h // 4, w // 4, 16), np.uint8)
+    for y in range(0, h, strip_rows):
+        strip = img[y : y + strip_rows].astype(np.float32)
+        sh = strip.shape[0]
+        blocks = strip.reshape(sh // 4, 4, w // 4, 4, 4).transpose(0, 2, 1, 3, 4).reshape(-1, 16, 4)
+        enc = np.empty((blocks.shape[0], 16), np.uint8)
+        enc[:, 0:8] = _encode_alpha(blocks[:, :, 3])
+        enc[:, 8:16] = _encode_blocks(blocks[:, :, :3])
+        out[y // 4 : (y + sh) // 4] = enc.reshape(sh // 4, w // 4, 16)
+    return out
+
+
+def _shrink(img):
+    """Next mip level of (H, W, C) uint8: half size, at least 1. Per channel, so no alpha premultiply."""
+    h, w, c = img.shape
+    nw, nh = max(1, w // 2), max(1, h // 2)
+    if h % 2 == 0 and w % 2 == 0:
+        return half(img)
+    chans = [np.asarray(Image.fromarray(img[..., i]).resize((nw, nh), Image.BOX)) for i in range(c)]
+    return np.stack(chans, axis=-1)
+
+
+def _pad4(img):
+    """Edge-pad to multiples of 4: the small mip levels still take whole blocks."""
+    h, w, _ = img.shape
+    return np.pad(img, ((0, -h % 4), (0, -w % 4), (0, 0)), mode="edge")
+
+
+def write_dds_dxt5(path, img):
+    """RGBA uint8 -> DXT5 .dds with the full mip chain down to 1x1.
+
+    The chain must be complete: a mipmapped texture missing levels samples as (0, 0, 0, 1)."""
+    h, w, _ = img.shape
+    if h % 4 or w % 4:
+        raise CompileError(f"DXT5 needs sizes in multiples of 4, got {w}x{h}")
+    levels = [img]
+    while levels[-1].shape[0] > 1 or levels[-1].shape[1] > 1:
+        levels.append(_shrink(levels[-1]))
+    flags = 0x1 | 0x2 | 0x4 | 0x1000 | 0x20000 | 0x80000  # caps, height, width, pixel format, mips, linear size
+    caps = 0x1000 | 0x8 | 0x400000  # texture, complex, mipmap
+    header = struct.pack("<4sIIIIIII", b"DDS ", 124, flags, h, w, (w // 4) * (h // 4) * 16, 0, len(levels))
+    header += b"\0" * 44 + struct.pack("<II4sIIIII", 32, 0x4, b"DXT5", 0, 0, 0, 0, 0)
+    header += struct.pack("<IIIII", caps, 0, 0, 0, 0)
+    data = b"".join(dxt5(_pad4(lv)).tobytes() for lv in levels)
+    with open(path, "wb") as f:
+        f.write(header + data)
+    return len(header) + len(data), len(levels)
+
+
+def load_rgba(path):
+    with Image.open(path) as im:
+        return np.asarray(im.convert("RGBA"), np.uint8)
 
 
 # Inputs -------------------------------------------------------------------------------------------
@@ -460,6 +541,16 @@ def compile_export(export_dir, fmt="sd7", seven_zip=None, log=print):
     )
     smt_bytes = write_smt(os.path.join(archive_dir, smt_rel), tiles)
 
+    splat = spec.get("splat")
+    if splat:
+        src = os.path.join(compile_dir, splat["src"])
+        if not os.path.isfile(src):
+            raise CompileError(f"compile.json names a splat it does not carry: {splat['src']}")
+        log("splat distribution (DXT5)...")
+        # bottom row first: the engine uploads DDS rows as stored, PNG rows flipped
+        splat_rgba = np.ascontiguousarray(load_rgba(src)[::-1])
+        splat_bytes, splat_mips = write_dds_dxt5(os.path.join(archive_dir, splat["dds"]), splat_rgba)
+
     # quality of the ground texture after DXT1, so a bad encode shows in the report
     sample = ground[: min(tex_h, 1024), : min(tex_w, 1024)]
     sample = sample[: sample.shape[0] // 4 * 4, : sample.shape[1] // 4 * 4]
@@ -472,6 +563,8 @@ def compile_export(export_dir, fmt="sd7", seven_zip=None, log=print):
         "ground": f"{ground_source}; DXT1 {psnr:.1f} dB on the top-left 1024 texels",
         "features": "none in the .smf: placements ship in mapconfig/featureplacer/set.lua",
     }
+    if splat:
+        report["sections"]["splat"] = f"{splat['dds']} ({splat_bytes:,} bytes): DXT5, {splat_mips} mip levels"
 
     if fmt != "none":
         base = spec.get("file_base")

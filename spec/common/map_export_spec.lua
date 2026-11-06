@@ -295,7 +295,10 @@ describe("map_export", function()
 		assert.is_nil(mapinfo.resources.splatdetailnormaltex1)
 		assert.is_nil(fs.files["o/archive/maps/rock.dds"])
 		-- the engine loads the distribution only with a detail named, and the tileset shader samples it
-		assert.is_truthy(mapinfo.resources.splatdistrtex)
+		-- the binary step encodes the splat to DXT5
+		assert.is_truthy(mapinfo.resources.splatdistrtex:find("_splat%.dds$"))
+		assert.are.equal("SPLAT", fs.files["o/compile/splat.png"])
+		assert.is_truthy(fs.files["o/compile/compile.json"]:find('"dds"', 1, true))
 		assert.are.equal("tileset_flat_detail.png", mapinfo.resources.splatdetailtex)
 		assert.are.equal("\137PNG", fs.files["o/archive/maps/tileset_flat_detail.png"]:sub(1, 4))
 	end)

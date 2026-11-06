@@ -62,6 +62,42 @@ class Dxt1Test(unittest.TestCase):
         self.assertTrue((mc.dxt1(img, strip_rows=16) == mc.dxt1(img, strip_rows=1024)).all())
 
 
+class Dxt5Test(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def splat(self, h=64, w=96):
+        rgb = smooth_image(h, w)
+        a = np.clip(128 + 120 * np.sin(np.mgrid[0:h, 0:w][1] / 19), 0, 255).astype(np.uint8)
+        return np.dstack([rgb, a])
+
+    def test_dds_reads_back_with_every_mip(self):
+        img = self.splat()
+        path = os.path.join(self.tmp.name, "s.dds")
+        size, mips = mc.write_dds_dxt5(path, img)
+        data = open(path, "rb").read()
+        self.assertEqual(len(data), size)
+        self.assertEqual(data[84:88], b"DXT5")
+        # the full chain: 96x64, 48x32, 24x16, 12x8, 6x4, 3x2, 1x1 (a short one samples as black)
+        self.assertEqual((mips, struct.unpack_from("<I", data, 28)[0]), (7, 7))
+        self.assertEqual(size, 128 + 16 * (24 * 16 + 12 * 8 + 6 * 4 + 3 * 2 + 2 * 1 + 1 + 1))
+        with Image.open(path) as back:
+            out = np.asarray(back.convert("RGBA"))
+        self.assertGreater(psnr(out[..., :3], img[..., :3]), 30)
+        self.assertGreater(psnr(out[..., 3], img[..., 3]), 40)
+
+    def test_flat_alpha_is_exact(self):
+        img = self.splat(8, 8)
+        img[..., 3] = 200
+        path = os.path.join(self.tmp.name, "f.dds")
+        mc.write_dds_dxt5(path, img)
+        with Image.open(path) as back:
+            self.assertTrue((np.asarray(back.convert("RGBA"))[..., 3] == 200).all())
+
+
 class TilesTest(unittest.TestCase):
     def test_flat_ground_is_one_tile(self):
         img = np.zeros((128, 256, 3), np.uint8)
@@ -103,7 +139,7 @@ def write_export(root, size_x=1, size_z=2, squares=True, metal=True):
     Image.fromarray(hm).save(os.path.join(comp, "heightmap.png"))
     Image.fromarray(smooth_image(64, 32)).save(os.path.join(comp, "minimap.png"))
     spec = {
-        "format_version": 1,
+        "format_version": mc.FORMAT_VERSION,
         "name": "Tiny 1.0",
         "file_base": "tiny_1_0",
         "smf": "maps/tiny_1_0.smf",
@@ -209,6 +245,24 @@ class CompileTest(unittest.TestCase):
         report = mc.compile_export(self.root, fmt="sd7", log=lambda *_: None)
         self.assertTrue(os.path.isfile(os.path.join(self.root, "tiny_1_0.sd7")))
         self.assertIn("tiny_1_0.sd7", report["archive"])
+
+    def test_splat_ships_as_dxt5(self):
+        write_export(self.root)
+        splat = np.zeros((128, 64, 4), np.uint8)
+        splat[:64, :, 0] = 255  # top half on channel 1
+        splat[64:, :, 3] = 255
+        Image.fromarray(splat).save(os.path.join(self.root, "compile", "splat.png"))
+        p = os.path.join(self.root, "compile", "compile.json")
+        spec = json.load(open(p))
+        spec["splat"] = {"src": "splat.png", "dds": "maps/tiny_1_0_splat.dds"}
+        json.dump(spec, open(p, "w"))
+        report = mc.compile_export(self.root, fmt="none", log=lambda *_: None)
+        self.assertIn("DXT5", report["sections"]["splat"])
+        self.assertIn("maps/tiny_1_0_splat.dds", report["files"])
+        # stored bottom row first, as the engine expects a DDS
+        with Image.open(os.path.join(self.root, "archive", "maps", "tiny_1_0_splat.dds")) as back:
+            out = np.asarray(back.convert("RGBA"))
+        self.assertTrue((out == splat[::-1]).all())
 
     def test_wrong_heightmap_size_is_resized(self):
         write_export(self.root)
