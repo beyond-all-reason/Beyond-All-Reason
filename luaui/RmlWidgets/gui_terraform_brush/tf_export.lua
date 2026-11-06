@@ -24,6 +24,8 @@ function M.attach(doc, ctx)
 		status = doc:GetElementById("tf-export-status"),
 		copy = doc:GetElementById("tf-export-copy"),
 	}
+	widgetState.wireTextInput(el.name)
+	widgetState.wireTextInput(el.version)
 	-- slug -> the version last exported, so the field remembers it per project this session
 	local versions = {}
 	local X = { open = false, slug = nil, saving = nil, path = nil }
