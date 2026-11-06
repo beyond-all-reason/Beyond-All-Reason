@@ -7,7 +7,7 @@
 -- --asset-dir: where to look for files the project only names, such as the skybox or the ramp image (repeatable).
 -- Writes <output>/archive, <output>/compile and <output>/export_report.txt; exits 1 on errors.
 
-local scriptDir = (arg[0]:gsub("\\", "/"):match("^(.*)/[^/]*$")) or "."
+local scriptDir = ((arg[0] or ""):gsub("\\", "/"):match("^(.*)/[^/]*$")) or "."
 package.path = scriptDir .. "/../../common/?.lua;" .. package.path
 local MapExport = require("map_export")
 
@@ -48,10 +48,13 @@ function fs.mkdir(path)
 	end
 end
 
-local positional, opts = {}, { assetDirs = {} }
+---@type string[]
+local positional = {}
+---@type table
+local opts = { assetDirs = {} }
 local i = 1
 while i <= #arg do
-	local a = arg[i]
+	local a = arg[i] or ""
 	if a == "--asset-dir" then
 		opts.assetDirs[#opts.assetDirs + 1] = arg[i + 1]
 		i = i + 1

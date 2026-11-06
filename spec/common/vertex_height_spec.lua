@@ -21,9 +21,14 @@ local function engineLookup(grid)
 end
 
 describe("vertex_height", function()
-	local grid, vertexHeight, lookup
+	---@type table<integer, table<integer, number>>
+	local grid = {}
+	---@type fun(x: number, z: number): number
+	local vertexHeight
+	---@type fun(x: number, z: number): number
+	local lookup
 	before_each(function()
-		_G.Game = { squareSize = SQ, mapSizeX = MX * SQ, mapSizeZ = MZ * SQ }
+		rawset(_G, "Game", { squareSize = SQ, mapSizeX = MX * SQ, mapSizeZ = MZ * SQ })
 		math.randomseed(7)
 		grid = {}
 		for iz = 0, MZ do
@@ -36,7 +41,7 @@ describe("vertex_height", function()
 		vertexHeight = dofile("common/vertex_height.lua")(lookup)
 	end)
 	after_each(function()
-		_G.Game = nil
+		rawset(_G, "Game", nil)
 	end)
 
 	it("plain lookups miss the far edge (the bug this fixes)", function()

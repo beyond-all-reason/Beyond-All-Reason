@@ -1,6 +1,7 @@
 local MapExport = require("common/map_export")
 
 -- An in-memory file system: the export only touches files through the adapter.
+---@return table fs
 local function memoryFs(files)
 	local fs = { files = files, dirs = {} }
 	function fs.read(path)
@@ -19,6 +20,7 @@ local function memoryFs(files)
 	return fs
 end
 
+---@return table fs
 local function project(extra)
 	local files = {
 		["p/project.lua"] = [[return {
@@ -95,6 +97,7 @@ return setcfg]],
 	return memoryFs(files)
 end
 
+---@return table report
 local function run(fs, opts)
 	opts = opts or {}
 	opts.project, opts.out, opts.io = "p", "o", fs
@@ -144,7 +147,10 @@ describe("map_export", function()
 	end)
 
 	describe("run", function()
-		local fs, report
+		---@type table
+		local fs
+		---@type table
+		local report
 		before_each(function()
 			fs = project()
 			report = run(fs, { name = "Test Map", version = "1.2" })

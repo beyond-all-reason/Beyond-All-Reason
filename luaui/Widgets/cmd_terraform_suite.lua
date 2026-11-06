@@ -107,7 +107,7 @@ local mapTileset = {
 		passSlopeDeg = true,
 	},
 	cfg = nil, -- the map's tileset.lua while it waits; kept after applying for the painter hand-back
-	waited = 0,
+	waited = 0.0,
 	applied = false,
 	painterFed = false,
 }
@@ -203,6 +203,7 @@ local function applyMapTileset(T, cfg)
 		T.setSlot4Material(cfg.slot4_material)
 	end
 	if surfaceFits(cfg) then
+		---@type table?
 		local sp = WG.SurfacePainter
 		if sp and sp.loadMask then
 			feedPainter(sp, cfg)
@@ -235,9 +236,10 @@ local function updateMapTileset(dt)
 	if mapTileset.applied and WG.TilesetTerrain and WG.TilesetTerrain ~= mapTileset.appliedTo then
 		-- the shader widget restarted (switched off and on in the widget list): it came back
 		-- with the player's saved look, so the map's goes on again once its API is up
-		mapTileset.applied, mapTileset.painterFed, mapTileset.waited = false, false, 0
+		mapTileset.applied, mapTileset.painterFed, mapTileset.waited = false, false, 0.0
 	end
 	if mapTileset.applied then
+		---@type table?
 		local sp = WG.SurfacePainter
 		if not mapTileset.painterFed and sp and sp.loadMask and not (sp.hasMaskState and sp.hasMaskState()) then
 			mapTileset.painterFed = true
@@ -247,7 +249,9 @@ local function updateMapTileset(dt)
 		end
 		return
 	end
+	---@type table?
 	local T = WG.TilesetTerrain
+	---@type table?
 	local MP = WG.MapProject
 	if T and T.setSlotTint and not (MP and MP.isLoading and MP.isLoading()) then
 		mapTileset.applied, mapTileset.appliedTo = true, T

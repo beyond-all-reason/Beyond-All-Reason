@@ -54,7 +54,10 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 		return
 	end
-	local known, norms = {}, {}
+	---@type table<string, string>
+	local known = {}
+	---@type table<string, string>
+	local norms = {}
 	for _, n in ipairs(Spring.GetGroundDecalTextures(true, true) or {}) do
 		local l = n:lower()
 		known[l] = n
