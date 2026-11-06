@@ -63,6 +63,7 @@ utilities = {
 	FacingToNumber = facingFunctions.FacingToNumber,
 	HeadingToFacing = facingFunctions.HeadingToFacing,
 	IsFacingEW = facingFunctions.IsFacingEW,
+	AngleToHeading = facingFunctions.AngleToHeading,
 
 	GetObjectPosition = objectFunctions and objectFunctions.GetObjectPosition,
 	GetObjectCentroid = objectFunctions and objectFunctions.GetObjectCentroid,
