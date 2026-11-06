@@ -112,7 +112,6 @@ local function changeStage(stageID)
 end
 
 return {
-	Announce = announce,
 	GetCurrentStageID = getCurrentStageID,
 	GetChangeCount = getChangeCount,
 	SetInitialStage = setInitialStage,
