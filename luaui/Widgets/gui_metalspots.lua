@@ -157,6 +157,7 @@ local shaderSourceCache = {
 		visibilitycontrols = { 0, 0, 0, 0 },
 		drawPass = 0,
 		waterLevel = 0,
+		regionBounds = { 0, 0, 0, 0 },
 	},
 	shaderConfig = shaderConfig,
 }
@@ -761,6 +762,18 @@ local function spotsHidden()
 	return chobbyInterface or (metalViewOnly and spGetMapDrawMode() ~= "metal") or spIsGUIHidden()
 end
 
+-- Both the rings and yield billboards use this shader. Read the view each draw
+-- so switching maps while paused cannot leave the previous region visible.
+local function setRegionBounds()
+	if not spotShader then
+		return
+	end
+	local view = WG.MapRegionView
+	local r = view and view.rect
+	---@diagnostic disable-next-line: call-non-callable
+	spotShader:SetUniformFloat("regionBounds", r and r.x0 or 0, r and r.z0 or 0, r and r.x1 or 0, r and r.z1 or 0)
+end
+
 -- Draw above-water metalspots before units (old method, no ghost occlusion)
 function widget:DrawWorldPreUnit()
 	if spotsHidden() then
@@ -781,6 +794,7 @@ function widget:DrawWorldPreUnit()
 	gl.DepthMask(false)
 
 	spotShader:Activate()
+	setRegionBounds()
 	spotShader:SetUniformFloat("drawPass", 0)
 	spotShader:SetUniformFloat("waterLevel", wl)
 	drawInstanceVBO(spotInstanceVBO)
@@ -812,6 +826,7 @@ function widget:DrawWorld()
 	gl.PolygonOffset(-40, -40)
 
 	spotShader:Activate()
+	setRegionBounds()
 	spotShader:SetUniformFloat("drawPass", 1)
 	spotShader:SetUniformFloat("waterLevel", wl)
 	drawInstanceVBO(spotInstanceVBO)
