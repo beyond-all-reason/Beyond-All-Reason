@@ -517,6 +517,10 @@ local function syncGhosts()
 	if not WG.DrawUnitShapeGL4 then
 		return
 	end
+	if WG.TransportSettings and WG.TransportSettings.ghosts == false then
+		clearGhosts()
+		return
+	end
 	local pads = plan and plan.pads or {}
 	local myTeam = spGetMyTeamID()
 	local n = 0

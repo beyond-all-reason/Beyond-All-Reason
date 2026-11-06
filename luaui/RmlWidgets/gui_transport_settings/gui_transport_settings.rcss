@@ -1,0 +1,117 @@
+body {
+	font-family: "Exo 2";
+	font-size: 13dp;
+	color: #e6e6e6;
+}
+
+.ts-panel {
+	position: absolute;
+	left: 12dp;
+	top: 34%;
+	width: 300dp;
+	background-color: #141414e6;
+	border: 1dp #ffffff22;
+	border-radius: 6dp;
+	padding: 6dp;
+}
+
+.ts-header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	height: 26dp;
+	cursor: pointer;
+}
+
+.ts-title {
+	display: block;
+	flex: 1;
+	font-size: 14dp;
+	font-weight: bold;
+	color: #ffcc33;
+}
+
+.ts-chevron {
+	display: block;
+	width: 26dp;
+	text-align: center;
+	font-size: 16dp;
+}
+
+.ts-section {
+	display: block;
+	margin-top: 8dp;
+	margin-bottom: 2dp;
+	font-size: 11dp;
+	color: #a0a0a0;
+}
+
+.ts-hint {
+	display: block;
+	margin-bottom: 4dp;
+	font-size: 11dp;
+	color: #ff8a70;
+}
+
+.ts-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	height: 28dp;
+}
+
+.ts-label {
+	display: block;
+	flex: 1;
+}
+
+.ts-value {
+	display: block;
+	width: 110dp;
+	text-align: center;
+	color: #ffffff;
+}
+
+.ts-btn {
+	display: block;
+	width: 26dp;
+	height: 26dp;
+	border-radius: 4dp;
+	background-color: #ffffff18;
+	cursor: pointer;
+}
+
+.ts-btn:hover {
+	background-color: #ffcc3355;
+}
+
+.ts-btn.ts-off {
+	background-color: #ffffff08;
+	color: #666666;
+	cursor: default;
+}
+
+.ts-btn-text {
+	display: block;
+	line-height: 26dp;
+	text-align: center;
+	font-size: 16dp;
+}
+
+.ts-toggle {
+	cursor: pointer;
+}
+
+.ts-check {
+	display: block;
+	width: 18dp;
+	height: 18dp;
+	margin-right: 8dp;
+	border: 2dp #ffffff55;
+	border-radius: 3dp;
+}
+
+.ts-check.ts-on {
+	background-color: #ffcc33;
+	border-color: #ffcc33;
+}

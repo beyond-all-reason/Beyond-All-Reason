@@ -281,8 +281,14 @@ function widget:SelectionChanged()
 	refreshSelection()
 end
 
+-- a preview toggle from Transport Settings; on when that widget is off
+local function settingOn(key)
+	local settings = WG.TransportSettings
+	return not settings or settings[key] ~= false
+end
+
 function widget:DefaultCommand(targetType, targetID)
-	if targetType ~= "unit" or not onlyTransports then
+	if targetType ~= "unit" or not onlyTransports or not settingOn("rightClickLoad") then
 		return
 	end
 	if not isLoadable(targetID, spGetUnitDefID(targetID)) or spGetUnitTeam(targetID) ~= spGetMyTeamID() then
@@ -331,7 +337,7 @@ function widget:Update()
 	end
 	lastRefresh = frame
 
-	claims = collectClaims()
+	claims = settingOn("claimLines") and collectClaims() or {}
 
 	local mx, my, lmb = spGetMouseState()
 	if areaStart and not lmb then
@@ -355,7 +361,7 @@ function widget:Update()
 
 	local cx, _, cz = cursorGround(mx, my)
 	rings = {}
-	if cx then
+	if cx and settingOn("rings") then
 		local units = spGetUnitsInCylinder(cx, cz, PREVIEW_RADIUS)
 		for i = 1, #units do
 			local unitID = units[i]
