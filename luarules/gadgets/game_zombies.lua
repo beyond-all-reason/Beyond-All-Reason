@@ -611,8 +611,7 @@ do
 		math.max(zombieModeSettings.initialSpawnCountMinimum, floor(zombieModeSettings.initialSpawnCountMaximum))
 	zombieModeSettings.spawnCountCap =
 		math.max(zombieModeSettings.initialSpawnCountMaximum, floor(zombieModeSettings.spawnCountCap))
-	zombieModeSettings.maximumSpawnGrowthDelayMinutes =
-		math.max(0, zombieModeSettings.maximumSpawnGrowthDelayMinutes)
+	zombieModeSettings.maximumSpawnGrowthDelayMinutes = math.max(0, zombieModeSettings.maximumSpawnGrowthDelayMinutes)
 	zombieModeSettings.techScalingDelayMinutes = math.max(0, zombieModeSettings.techScalingDelayMinutes)
 	zombieModeSettings.minutesPerTechLevel = math.max(0, zombieModeSettings.minutesPerTechLevel)
 	zombieModeSettings.initialRespawnDelayMinimum = math.max(0, zombieModeSettings.initialRespawnDelayMinimum)
@@ -709,8 +708,7 @@ local function techLevelForPower(power)
 			if powerSpan > 0 then
 				blend = (power - previousThreshold.threshold) / powerSpan
 			end
-			return previousThreshold.techLevel
-				+ (nextThreshold.techLevel - previousThreshold.techLevel) * blend
+			return previousThreshold.techLevel + (nextThreshold.techLevel - previousThreshold.techLevel) * blend
 		end
 		previousThreshold = nextThreshold
 	end
@@ -740,15 +738,11 @@ end
 local function powerBandThresholdsForMinutes(bandMinutes)
 	local bandDelayMinutes = zombieModeSettings.traditionalBandDelayMinutes
 	local bottomPowerThreshold = POWER_BAND.BOTTOM_START
-		* zombieModeSettings.powerScaleRate ^ math.max(
-			0,
-			bandMinutes - zombieModeSettings.bottomBandDelayMinutes - bandDelayMinutes
-		)
+		* zombieModeSettings.powerScaleRate
+			^ math.max(0, bandMinutes - zombieModeSettings.bottomBandDelayMinutes - bandDelayMinutes)
 	local topPowerThreshold = POWER_BAND.TOP_START
-		* zombieModeSettings.powerScaleRate ^ math.max(
-			0,
-			bandMinutes - zombieModeSettings.topBandDelayMinutes - bandDelayMinutes
-		)
+		* zombieModeSettings.powerScaleRate
+			^ math.max(0, bandMinutes - zombieModeSettings.topBandDelayMinutes - bandDelayMinutes)
 	return bottomPowerThreshold, topPowerThreshold
 end
 
@@ -801,10 +795,8 @@ local function calculateSpawnDelayFrames(unitDefData)
 	local decay = zombieModeSettings.respawnDecayRate ^ decaySteps
 	local minimumSpawnSeconds = zombieModeSettings.initialRespawnDelayMinimum * decay
 	local maximumSpawnSeconds = zombieModeSettings.initialRespawnDelayMaximum * decay
-	local spawnSeconds = math.round(
-		getGameStateScaleForPower(unitDefData.rezPower, minimumSpawnSeconds, maximumSpawnSeconds),
-		0
-	)
+	local spawnSeconds =
+		math.round(getGameStateScaleForPower(unitDefData.rezPower, minimumSpawnSeconds, maximumSpawnSeconds), 0)
 	return floor(spawnSeconds * Game.gameSpeed)
 end
 
@@ -922,12 +914,7 @@ local function armCorpseSpawn(featureID, featureData, spawnFrame, armFrame)
 		return
 	end
 	local resolvedArmFrame = armFrame or featureData.creationFrame
-	spring.SetFeatureRulesParam(
-		featureID,
-		RULES_PARAM.REZ_ARM_FRAME,
-		resolvedArmFrame,
-		RULES_PARAM.PUBLIC_ACCESS
-	)
+	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_ARM_FRAME, resolvedArmFrame, RULES_PARAM.PUBLIC_ACCESS)
 	if GG.ZombieWreckEffects then
 		GG.ZombieWreckEffects.Arm(featureID, resolvedArmFrame, spawnFrame)
 	end
@@ -982,8 +969,7 @@ local function calculateSpawnCount(unitDefID, inheritedExperience)
 
 	local smallestPack = getSmallestPack()
 	local spawnCountMaximum = getSpawnCountMaximum()
-	local veteranChance = EXPERIENCE_GROWTH.VETERAN_PACK_CHANCE
-		* (1 - minuteExperience / EXPERIENCE_GROWTH.MAXIMUM)
+	local veteranChance = EXPERIENCE_GROWTH.VETERAN_PACK_CHANCE * (1 - minuteExperience / EXPERIENCE_GROWTH.MAXIMUM)
 	if random() < veteranChance then
 		local eliteCount = math.ceil(smallestPack / 2)
 		local eliteExperience = math.max(minuteExperience * 2, minuteExperience + EXPERIENCE_GROWTH.ELITE_BONUS)
@@ -1070,8 +1056,7 @@ local function resolveSpawnPlan(unitDefID, wasZombie, unitPower, spawnCount)
 	local borrowedPower = math.min(excessPower, unitPower)
 	local totalPower = unitPower * spawnCount + borrowedPower
 	local spawnCountMaximum = getSpawnCountMaximum()
-	local wraithSpawnMaxUnits =
-		math.ceil(spawnCountMaximum * zombieModeSettings.wraithSpawnMaxUnitsPerSpawnMultiplier)
+	local wraithSpawnMaxUnits = math.ceil(spawnCountMaximum * zombieModeSettings.wraithSpawnMaxUnitsPerSpawnMultiplier)
 	excessPower = excessPower - borrowedPower
 
 	local lowestIndex
@@ -1143,8 +1128,7 @@ local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie
 	if not spawnUnitDefID then
 		return
 	end
-	local spawnedCount =
-		spawnZombieUnits(spawnUnitDefID, plannedCount, spawnX, spawnY, spawnZ, facing, experience)
+	local spawnedCount = spawnZombieUnits(spawnUnitDefID, plannedCount, spawnX, spawnY, spawnZ, facing, experience)
 	refundSubstitutePayload(spawnUnitDefID, plannedCount - spawnedCount, isSubstitute)
 end
 
@@ -1399,14 +1383,8 @@ local function spawnHeapAtWraith(wraithData, wraithX, wraithZ, maxAttempts)
 				facing = facing,
 				wasZombie = true,
 			}
-			local featureID = spring.CreateFeature(
-				heapDefID,
-				spawnX,
-				spawnY,
-				spawnZ,
-				spring.GetHeadingFromFacing(facing),
-				gaiaTeamID
-			)
+			local featureID =
+				spring.CreateFeature(heapDefID, spawnX, spawnY, spawnZ, spring.GetHeadingFromFacing(facing), gaiaTeamID)
 			pendingCreatedFeatureData = nil
 			if featureID then
 				if trackedFeatures[featureID] then
