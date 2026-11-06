@@ -13,6 +13,8 @@ local unitEntryFields = {
 	{ name = "quantity", type = Types.Number },
 	{ name = "spacing", type = Types.Number },
 	{ name = "neutral", type = Types.Boolean },
+	{ name = "moveState", type = Types.MoveState },
+	{ name = "fireState", type = Types.FireState },
 	{ name = "orders", type = Types.Orders },
 }
 
