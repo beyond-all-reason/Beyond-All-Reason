@@ -52,7 +52,7 @@ describe("mission_api.effects.no_radar", function()
 		assert.is_true(hasRadarRemoved(101))
 	end)
 
-	it("scales radar to zero, so that a value set on the unit cannot restore it", function()
+	it("scales radar to zero", function()
 		unitsInArea = { 100 }
 		create()
 		local _, multiplier = next(multipliers[100])
