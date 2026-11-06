@@ -18,6 +18,8 @@
   - Placeholder mass removed: Incinerator 5001 -> 2300, Inferno 5001 -> 1700, Praetorian 200000 -> 7000
   - Cannons no longer change arc with map gravity: Phobos, Phalanx, Leocampus, Sol Invictus, Cetus, Triton, Keres, Sapper, Enyo, Venator, Chimera, Dragon's Jaw
   - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
+- [Fixed]
+  - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
 
 # October
 - [Lava] will now damage unit wrecks, rocks, and other metal containing features.
