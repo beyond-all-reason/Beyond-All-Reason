@@ -825,9 +825,7 @@ local function registerLoadoutValidators(parameterValidators, context)
 				return entryTypeResult
 			end
 
-			-- The entry itself is the position, since x, y and z are fields of the entry.
-			local results = appendResults({}, parameterValidators[Types.Position](entry))
-
+			local results = {}
 			for _, field in ipairs(fields) do
 				local value = entry[field.name]
 				if value == nil then
