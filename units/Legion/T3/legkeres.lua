@@ -186,7 +186,6 @@ return {
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				badtargetcategory = "NOTSUB",
 				burstcontrolwhenoutofarc = 2,
 				def = "LEGKERES_GATLING",
 				fastautoretargeting = true,
@@ -194,7 +193,6 @@ return {
 				slaveTo = 1,
 			},
 			[3] = {
-				badtargetcategory = "NOTSUB",
 				burstcontrolwhenoutofarc = 2,
 				def = "LEGKERES_GATLING",
 				fastautoretargeting = true,

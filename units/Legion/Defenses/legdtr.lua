@@ -36,7 +36,7 @@ return {
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecaltype = "decals/legdrag_aoplane.dds",
-			decoyfor = "LEGLAW",
+			decoyfor = "legdrag",
 			model_author = "ZephyrSkies",
 			neutral_when_closed = true,
 			normaltex = "unittextures/leg_normal.dds",

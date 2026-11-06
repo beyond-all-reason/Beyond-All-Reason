@@ -102,6 +102,7 @@ return {
 			legion_riot_cannon_t2 = {
 				-- burst = 2,
 				-- bursrate = 0.25,
+				tolerance = 3000,
 				gravityaffected = "true",
 				tolerace = 3000,
 				firetolerance = 3000,
