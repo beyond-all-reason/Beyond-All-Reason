@@ -2,13 +2,14 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function issueOrders(unitName, orders)
 	local tracking = GG['MissionAPI'].Modules.Tracking
+	local gatherWaits = GG['MissionAPI'].Modules.GatherWaits
 	if tracking.IsUnitNameUntracked(unitName) then return end
 
 	local convertedOrders = GG['MissionAPI'].Modules.Loadout.ConvertOrdersTargetingNames(orders)
 
 	-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 	GG['MissionAPI'].issuingOrders = true
-	Spring.GiveOrderArrayToUnitMap(GG['MissionAPI'].trackedUnitIDs[unitName], convertedOrders)
+	gatherWaits.GiveOrdersWithGatherWaits(GG['MissionAPI'].trackedUnitIDs[unitName], convertedOrders)
 	GG['MissionAPI'].issuingOrders = nil
 end
 

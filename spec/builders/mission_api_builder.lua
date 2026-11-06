@@ -50,6 +50,7 @@ end, math.huge)
 ---@field spawnUnitLoadout table
 ---@field spawnFeatureLoadout table
 ---@field convertOrdersTargetingNames table
+---@field giveOrdersWithGatherWaits table
 ---@field playSound table
 ---@field enqueueSound table
 ---@field processSoundQueue table
@@ -348,6 +349,7 @@ function MB:Build(installed)
 	local spawnUnitCalls = {}
 	local spawnFeatureCalls = {}
 	local convertOrdersCalls = {}
+	local giveOrdersCalls = {}
 	local playSoundCalls = {}
 	local enqueueSoundCalls = {}
 	local processSoundQueueCalls = {}
@@ -376,6 +378,12 @@ function MB:Build(installed)
 		end,
 		SpawnFeatureLoadout = function(featureLoadout)
 			spawnFeatureCalls[#spawnFeatureCalls + 1] = { loadout = featureLoadout }
+		end,
+	}
+
+	local gatherWaits = {
+		GiveOrdersWithGatherWaits = function(unitIDs, orders)
+			giveOrdersCalls[#giveOrdersCalls + 1] = { unitIDs = unitIDs, orders = orders }
 		end,
 	}
 
@@ -447,6 +455,7 @@ function MB:Build(installed)
 	local modules = {
 		Tracking = tracking,
 		Loadout = loadout,
+		GatherWaits = gatherWaits,
 		Sounds = sounds,
 		Objectives = objectives,
 	}
@@ -499,6 +508,7 @@ function MB:Build(installed)
 			spawnUnitLoadout = spawnUnitCalls,
 			spawnFeatureLoadout = spawnFeatureCalls,
 			convertOrdersTargetingNames = convertOrdersCalls,
+			giveOrdersWithGatherWaits = giveOrdersCalls,
 			playSound = playSoundCalls,
 			enqueueSound = enqueueSoundCalls,
 			processSoundQueue = processSoundQueueCalls,

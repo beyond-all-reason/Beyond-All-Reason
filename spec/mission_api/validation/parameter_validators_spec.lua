@@ -908,10 +908,9 @@ describe("mission_api.validation.parameter_validators", function()
 			{ V.env.CMD.TIMEWAIT, { 5 } },
 			{ V.env.CMD.DEATHWAIT },
 			{ V.env.CMD.SQUADWAIT, { 2 } },
-			{ V.env.CMD.GATHERWAIT },
 		})
 
-		for index, commandName in ipairs({ "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
+		for index, commandName in ipairs({ "TIMEWAIT", "DEATHWAIT", "SQUADWAIT" }) do
 			local message = "Command "
 				.. commandName
 				.. " is dropped when a mission gives it, it only works for a player's selected units."
