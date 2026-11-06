@@ -98,3 +98,7 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
 		end
 	end
 end
+
+function gadget:Initialize()
+	gadgetHandler:RegisterUnitCommand(CMD_FIRE_STATE)
+end
