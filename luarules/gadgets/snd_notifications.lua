@@ -206,6 +206,7 @@ else
 	local myTeamID = Spring.GetLocalTeamID()
 	local myPlayerID = Spring.GetLocalPlayerID()
 	local myAllyTeamID = Spring.GetLocalAllyTeamID()
+	local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 	function gadget:PlayerChanged(playerID)
 		isSpec = Spring.GetSpectatingState()
 		myTeamID = Spring.GetLocalTeamID()
@@ -323,6 +324,8 @@ else
 			isCommander[unitDefID]
 			and not select(3, Spring.GetTeamInfo(unitTeam))
 			and not Spring.GetUnitRulesParam(unitID, "muteDestructionNotification")
+			and not Spring.GetUnitRulesParam(unitID, "unitTransitioning")
+			and unitTeam ~= GAIA_TEAM_ID
 		then
 			local myComCount = 0
 			local allyComCount = 0
@@ -348,8 +351,7 @@ else
 					for ct, player in pairs(players) do
 						if tostring(player) then
 							--if not unitInView then
-							if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-							elseif
+							if
 								not attackerTeam
 								and select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID
 								and (
@@ -391,7 +393,7 @@ else
 				--if not unitInView then
 				local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs(players) do
-					if tostring(player) and not Spring.GetUnitRulesParam(unitID, "unit_evolved") then
+					if tostring(player) then
 						GG.notifications.queueNotification("EnemyCommanderDied", "playerID", tostring(player))
 					end
 				end
@@ -400,8 +402,7 @@ else
 				local players = PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs(players) do
 					if tostring(player) then
-						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-						elseif
+						if
 							not attackerTeam
 							and (
 								not commanderLastDamaged[unitID]
@@ -427,8 +428,7 @@ else
 				local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs(players) do
 					if tostring(player) then
-						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-						elseif
+						if
 							not attackerTeam
 							and (
 								not commanderLastDamaged[unitID]
@@ -452,7 +452,7 @@ else
 					end
 				end
 			end
-			commanderLastDamaged[unitID] = nil
 		end
+		commanderLastDamaged[unitID] = nil
 	end
 end

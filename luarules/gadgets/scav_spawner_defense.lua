@@ -2118,6 +2118,13 @@ if gadgetHandler:IsSyncedCode() then
 	-- Call-ins
 	--------------------------------------------------------------------------------
 	local createUnitQueue = {}
+	local PUBLIC_ACCESS = { public = true }
+
+	local function destroySubstitutedUnit(unitID)
+		Spring.SetUnitRulesParam(unitID, "unitTransitioning", 1, PUBLIC_ACCESS)
+		DestroyUnit(unitID, true, true)
+	end
+
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == scavTeamID then
 			local _, maxH = Spring.GetUnitHealth(unitID)
@@ -2139,7 +2146,7 @@ if gadgetHandler:IsSyncedCode() then
 							Spring.GetUnitBuildFacing(unitID) or 0,
 							scavTeamID,
 						}
-						DestroyUnit(unitID, true, true)
+						destroySubstitutedUnit(unitID)
 					end
 				elseif UnitDefs[unitDefID].customParams.scav_swap_override_created == "delete" then
 					Spring.DestroyUnit(unitID, true, true)
@@ -2153,8 +2160,10 @@ if gadgetHandler:IsSyncedCode() then
 							Spring.GetUnitBuildFacing(unitID) or 0,
 							scavTeamID,
 						}
+						destroySubstitutedUnit(unitID)
+					else
+						DestroyUnit(unitID, true, true)
 					end
-					DestroyUnit(unitID, true, true)
 				end
 				return
 			else
@@ -3097,7 +3106,7 @@ if gadgetHandler:IsSyncedCode() then
 							GetUnitBuildFacing(unitID) or 0,
 							scavTeamID,
 						}
-						DestroyUnit(unitID, true, true)
+						destroySubstitutedUnit(unitID)
 					end
 				elseif UnitDefs[unitDefID].customParams.scav_swap_override_captured == "delete" then
 					DestroyUnit(unitID, true, true)
@@ -3111,8 +3120,10 @@ if gadgetHandler:IsSyncedCode() then
 							GetUnitBuildFacing(unitID) or 0,
 							scavTeamID,
 						}
+						destroySubstitutedUnit(unitID)
+					else
+						DestroyUnit(unitID, true, true)
 					end
-					DestroyUnit(unitID, true, true)
 				end
 				return
 			else
