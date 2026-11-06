@@ -1569,59 +1569,142 @@ function tractorCargo.hasCargo(unitID)
 	return seats ~= nil and usedSeats > 0
 end
 
--- one solid block per passenger as wide as its seats (faded while it gets out), a hollow block for seats held
--- by units on their way in or out, faint pips for free seats; returns the height it took
-function tractorCargo.drawStrip(unitID, units, left, right, top, stripHeight)
+-- units the beam is lifting into this transport right now (not in its cargo list until they arrive)
+function tractorCargo.incoming(unitID)
+	local list = {}
+	local x, _, z = Spring.GetUnitPosition(unitID)
+	if not x then
+		return list
+	end
+	local nearby = Spring.GetUnitsInCylinder(x, z, 400)
+	for i = 1, #nearby do
+		if Spring.GetUnitRulesParam(nearby[i], "inLoadAnim") == unitID then
+			list[#list + 1] = nearby[i]
+		end
+	end
+	return list
+end
+
+-- one slot per seat, the size of a unit icon, filled with unit pictures as units come aboard. A unit taking
+-- several seats shows in its first slot and faded in the rest; units flying in or being set down show faded.
+-- cellRect[i] is the first slot of units[i], for the hover and click code. Returns false for other transports.
+function tractorCargo.drawSlots(unitID, units, area, areaWidth, areaHeight)
 	local seats, usedSeats = tractorCargo.seats(unitID)
 	if not seats then
-		return 0
+		return false
 	end
-	local padding = math_max(1, math_floor(stripHeight * 0.12))
-	local y1, y2 = top - stripHeight + padding, top - padding
-	local h = y2 - y1
-	local corner = math_max(1, math_floor(h * 0.15))
+	local labelSize = math_floor(areaHeight * 0.17)
+	gridHeight = math_ceil(areaHeight * 0.975)
+	local rows = seats > 6 and 2 or 1
+	local cols = math_ceil(seats / rows)
+	cellsize = math_floor(math_min(areaWidth / cols, (gridHeight - labelSize * 1.4) / rows) + 0.5)
+	cellPadding = math_floor((cellsize * 0.022) + 0.5)
+	cornerSize = math_max(1, cellPadding * 0.9)
+	if not cellRect then
+		cellRect = {}
+	else
+		for i = #cellRect, 1, -1 do
+			cellRect[i] = nil
+		end
+	end
 
-	local labelSize = h * 0.85
+	-- what sits in each seat: { unitID, first slot of that unit, faded }
+	local slots = {}
+	local function seat(passengerID, index, faded)
+		local size = WG.TransportAPI and WG.TransportAPI.GetPassengerSize(passengerID) or 1
+		for s = 1, math_max(1, size) do
+			if #slots < seats then
+				slots[#slots + 1] = { passengerID, s == 1 and index, faded or s > 1 }
+			end
+		end
+	end
+	for i = 1, #units do
+		seat(units[i], i, Spring.GetUnitRulesParam(units[i], "inUnloadAnim") == 1)
+	end
+	local incoming = tractorCargo.incoming(unitID)
+	for i = 1, #incoming do
+		seat(incoming[i], nil, true)
+	end
+	local held = math_min(usedSeats, seats) - #slots -- set down but still counted while the beam lets go
+
+	local function slotRect(k)
+		local row, col = math_ceil(k / cols), (k - 1) % cols + 1
+		return {
+			math_floor(area[3] - cellPadding - ((cols - col + 1) * cellsize)),
+			math_floor(area[2] + cellPadding + ((rows - row) * cellsize)),
+			math_floor(area[3] - cellPadding - ((cols - col) * cellsize)),
+			math_floor(area[2] + cellPadding + ((rows - row + 1) * cellsize)),
+		}
+	end
+
+	for k = 1, seats do
+		local r = slotRect(k)
+		local s = slots[k]
+		if s then
+			local uDefID = spGetUnitDefID(s[1])
+			if uDefID then
+				UiUnit(
+					r[1] + cellPadding,
+					r[2] + cellPadding,
+					r[3],
+					r[4],
+					cellPadding * 1.3,
+					1,
+					1,
+					1,
+					1,
+					0.1,
+					nil,
+					nil,
+					"#" .. uDefID,
+					(unitDefInfo[uDefID].icontype and ":l:" .. unitDefInfo[uDefID].icontype or nil),
+					groups[unitGroup[uDefID]],
+					{ unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost }
+				)
+				if s[3] then
+					RectRound(
+						r[1] + cellPadding,
+						r[2] + cellPadding,
+						r[3],
+						r[4],
+						cornerSize,
+						1,
+						1,
+						1,
+						1,
+						{ 0, 0, 0, 0.6 }
+					)
+				end
+			end
+			if s[2] then
+				cellRect[s[2]] = r
+			end
+		else
+			-- empty seat, or one still held by a unit just set down (brighter edge)
+			local edge = (k - #slots <= held) and 0.3 or 0.12
+			RectRound(r[1] + cellPadding, r[2] + cellPadding, r[3], r[4], cornerSize, 1, 1, 1, 1, { 1, 1, 1, edge })
+			RectRound(
+				r[1] + cellPadding * 2,
+				r[2] + cellPadding * 2,
+				r[3] - cellPadding,
+				r[4] - cellPadding,
+				cornerSize,
+				1,
+				1,
+				1,
+				1,
+				{ 0, 0, 0, 0.35 }
+			)
+		end
+	end
+	glTexture(false)
+	glColor(1, 1, 1, 1)
+
 	font2:Begin(true)
 	font2:SetOutlineColor(0, 0, 0, 1)
-	font2:Print(usedSeats .. "/" .. seats, left + padding * 2, y1 + h * 0.5 - (labelSize * 0.31), labelSize, "o")
+	font2:Print(usedSeats .. "/" .. seats, area[1] + labelSize * 0.6, area[4] - labelSize * 1.15, labelSize, "o")
 	font2:End()
-	-- room for the widest label, so the pips don't shift as seats fill
-	local labelWidth = font2:GetTextWidth(seats .. "/" .. seats) * labelSize + padding * 4
-
-	local gap = math_max(1, math_floor(h * 0.2))
-	local pipWidth = math_min(h * 1.6, (right - left - labelWidth - padding - gap * (seats - 1)) / seats)
-	local x = right - padding - seats * pipWidth - gap * (seats - 1)
-	local function blockWidth(n)
-		return n * pipWidth + (n - 1) * gap
-	end
-
-	local aboard = 0
-	for i = 1, #units do
-		local size = math_min(WG.TransportAPI and WG.TransportAPI.GetPassengerSize(units[i]) or 1, seats - aboard)
-		if size < 1 then
-			break
-		end
-		local alpha = Spring.GetUnitRulesParam(units[i], "inUnloadAnim") == 1 and 0.35 or 0.9
-		local w = blockWidth(size)
-		RectRound(x, y1, x + w, y2, corner, 1, 1, 1, 1, { 0.85, 0.85, 0.85, alpha }, { 0.7, 0.7, 0.7, alpha })
-		x = x + w + gap
-		aboard = aboard + size
-	end
-	local held = math_min(usedSeats - aboard, seats - aboard)
-	if held > 0 then
-		local w = blockWidth(held)
-		local inset = math_max(1, math_floor(h * 0.14))
-		RectRound(x, y1, x + w, y2, corner, 1, 1, 1, 1, { 0.85, 0.85, 0.85, 0.75 })
-		RectRound(x + inset, y1 + inset, x + w - inset, y2 - inset, corner, 1, 1, 1, 1, { 0.05, 0.05, 0.05, 0.9 })
-		x = x + w + gap
-		aboard = aboard + held
-	end
-	for _ = aboard + 1, seats do
-		RectRound(x, y1, x + pipWidth, y2, corner, 1, 1, 1, 1, { 1, 1, 1, 0.08 })
-		x = x + pipWidth + gap
-	end
-	return stripHeight
+	return true
 end
 
 local function drawUnitInfo()
@@ -2071,16 +2154,9 @@ local function drawUnitInfo()
 		tracy.ZoneBeginN("W:Info:DrawUnitInfo:Transported")
 		local units = Spring.GetUnitIsTransporting(displayUnitID) or {}
 		gridHeight = math_ceil(height * 0.975)
-		gridHeight = gridHeight
-			- tractorCargo.drawStrip(
-				displayUnitID,
-				units,
-				customInfoArea[1],
-				customInfoArea[3],
-				customInfoArea[4],
-				math_floor(height * 0.2)
-			)
-		if #units > 0 then
+		if tractorCargo.drawSlots(displayUnitID, units, customInfoArea, width, height) then
+			-- tractor beam transport: one slot per seat
+		elseif #units > 0 then
 			local rows = 2
 			local colls = math_ceil(#units / rows)
 			cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
