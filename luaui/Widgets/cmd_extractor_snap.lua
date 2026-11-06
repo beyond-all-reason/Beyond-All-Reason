@@ -44,13 +44,11 @@ local metalMap = false
 local metalSpots = {}
 local geoSpots = {}
 
-local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
-
 -- the cursor as last drawn (DrawScreenPost)
 local shownCursor
 
 ---Over the world the active command's cursor shows. The engine shows "cursornormal" over IsAbove widgets
----(the PIP), and HUD panels set it over themselves in DrawScreen. Pregame has no command cursor to compare.
+---(the PIP), and HUD panels set it over themselves in DrawScreen.
 local function overInterface()
 	return spGetMouseCursor() == "cursornormal" or shownCursor == "cursornormal"
 end
@@ -86,10 +84,6 @@ function widget:Initialize()
 	metalMap = WG.resource_spot_finder.isMetalMap
 end
 
-function widget:GameStart()
-	isPregame = false
-end
-
 local function clear()
 	if activeUnitShape then
 		WG.StopDrawUnitShapeGL4(activeUnitShape)
@@ -106,7 +100,6 @@ end
 -- Footprint half sizes, read from UnitDefs once per def
 local halfSizeX, halfSizeZ = {}, {}
 
--- local building test functions taken from pregame_build
 local function getBuildingDimensions(uDefID, facing)
 	local sizeX = halfSizeX[uDefID]
 	if not sizeX then
@@ -149,14 +142,7 @@ function widget:Update()
 	selectedMex = nil
 	selectedGeo = nil
 
-	if isPregame then
-		activeCmdID = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
-		if activeCmdID then
-			activeCmdID = -activeCmdID
-		end
-	else
-		_, activeCmdID = spGetActiveCommand()
-	end
+	_, activeCmdID = spGetActiveCommand()
 
 	if not activeCmdID then
 		clear()
@@ -180,7 +166,7 @@ function widget:Update()
 		return
 	end
 
-	if not isPregame and overInterface() then
+	if overInterface() then
 		clear()
 		return
 	end
@@ -198,8 +184,8 @@ function widget:Update()
 	cursorPos = cursorPoint
 	cursorPos.x, cursorPos.y, cursorPos.z = spPos2BuildPos(buildingId, x, y, z)
 
-	-- check if there is stuff in the way - if there is we change behavior (in pregame only with shift held)
-	if (shift or not isPregame) and clashesWithBuildQueue(buildingId, cursorPos.x, cursorPos.z) then
+	-- check if there is stuff in the way - if there is we change behavior
+	if clashesWithBuildQueue(buildingId, cursorPos.x, cursorPos.z) then
 		clear()
 		return
 	end
@@ -234,13 +220,13 @@ function widget:Update()
 		if not targetPos or targetPos.x ~= cmd[2] or targetPos.y ~= cmd[3] or targetPos.z ~= cmd[4] then
 			targetPos = { x = cmd[2], y = cmd[3], z = cmd[4] }
 		end
-		WG.ExtractorSnap.position = targetPos -- used by prospector and pregame queue
+		WG.ExtractorSnap.position = targetPos -- used by prospector and the build preview
 
 		local dist =
 			math.distance3dSquared(cursorPos.x, cursorPos.y, cursorPos.z, targetPos.x, targetPos.y, targetPos.z)
 		if dist < 1 then
 			clear()
-			WG.ExtractorSnap.position = targetPos --bit of a hack, this still needs to be set during pregame
+			WG.ExtractorSnap.position = targetPos
 			return
 		end
 
@@ -312,9 +298,6 @@ local function handleBuildMenu(shift)
 end
 
 function widget:MousePress(x, y, button)
-	if isPregame then
-		return
-	end
 
 	if button == 1 and buildCmd[1] and not overInterface() then
 		local _, _, _, shift = spGetModKeyState()

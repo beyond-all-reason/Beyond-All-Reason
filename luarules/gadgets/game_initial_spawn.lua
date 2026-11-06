@@ -555,6 +555,9 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			-- player placed startpoint OR game is starting and player is ready
 			startPointTable[teamID] = { x, z }
+			if GG.UpdatePregameQueuePosition then
+				GG.UpdatePregameQueuePosition(playerID, x, z)
+			end
 			if is_player_ready ~= READYSTATE_READY then
 				-- game is not starting (therefore, player cannot yet have pressed ready)
 				Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", READYSTATE_PLACED_UNREADY)
@@ -607,8 +610,24 @@ if gadgetHandler:IsSyncedCode() then
 
 		if not scenarioSpawnsUnits then
 			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI")) then
-				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
+				local startingPlayer
+				for _, playerID in ipairs(Spring.GetPlayerList(teamID)) do
+					local _, _, spectator = Spring.GetPlayerInfo(playerID, false)
+					if not spectator then
+						startingPlayer = playerID
+						break
+					end
+				end
+				local unitID
+				if GG.CreatePregameStartUnit then
+					unitID = GG.CreatePregameStartUnit(startingPlayer, startUnit, x, y, z, 0, teamID)
+				else
+					unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
+				end
 				if unitID then
+					if startingPlayer then
+						Spring.SetUnitRulesParam(unitID, "startingOwner", startingPlayer, { allied = true })
+					end
 					startUnitList[#startUnitList + 1] = { unitID = unitID, teamID = teamID, x = x, y = y, z = z }
 					if not isAI then
 						Spring.MoveCtrl.Enable(unitID)

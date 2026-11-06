@@ -46,8 +46,6 @@ local selectedBuilders = {}
 
 local Game_extractorRadius = Game.extractorRadius
 
-local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
-
 ------------------------------------------------------------
 -- unit tables
 ------------------------------------------------------------
@@ -151,7 +149,7 @@ end
 -- Queued build orders
 ------------------------------------------------------------
 
--- Build orders of the selected builders (in pregame: the pregame queue) as parallel arrays.
+-- Build orders of the selected builders as parallel arrays.
 -- Walked once per game frame instead of once per spot and caller. Orders given while paused
 -- don't advance the frame, so UnitCommand and SelectionChanged mark the scan stale too.
 local QUEUE_SCAN_LIMIT = 100
@@ -183,28 +181,7 @@ local function scanBuildQueues(units)
 	queuedCount = count
 end
 
-local function scanPregameQueue()
-	local count = 0
-	local queue = WG["pregame-build"] and WG["pregame-build"].getBuildQueue() ---@type table<integer, table>?
-	if queue then
-		for i = 1, #queue do
-			local buildData = queue[i]
-			count = count + 1
-			queuedDefs[count] = buildData[1]
-			queuedX[count] = buildData[2]
-			queuedZ[count] = buildData[4]
-			queuedFacing[count] = buildData[5] -- nil for queued moves
-		end
-	end
-	queuedCount = count
-end
-
 local function refreshBuildQueue()
-	if isPregame then
-		scanPregameQueue()
-		queueScanFrame = nil
-		return
-	end
 	local frame = spGetGameFrame()
 	if queueScanFrame ~= frame then
 		queueScanFrame = frame
@@ -227,13 +204,13 @@ local function setSelection(units)
 	queueScanFrame = nil
 end
 
----Build orders queued by the selected builders, or the pregame queue before the game starts.
+---Build orders queued by the selected builders.
 ---The arrays are reused: read them right away and don't keep them.
 ---@return integer count
 ---@return table<integer, integer> unitDefIDs
 ---@return table<integer, number> xs
 ---@return table<integer, number> zs
----@return table<integer, integer?> facings nil for queued pregame moves
+---@return table<integer, integer> facings
 local function getSelectedBuildQueue()
 	refreshBuildQueue()
 	return queuedCount, queuedDefs, queuedX, queuedZ, queuedFacing
@@ -260,7 +237,7 @@ end
 ---@param spot table
 ---@param builders table? which units will have their queues checked (default: the selected units) - doing a global check is too expensive
 local function spotHasExtractorQueued(spot, builders)
-	if builders and builders ~= selectedUnits and not isPregame then
+	if builders and builders ~= selectedUnits then
 		scanBuildQueues(builders)
 		queueScanFrame = nil -- the arrays no longer hold the selection's orders
 	else
@@ -701,10 +678,6 @@ function widget:UnitGiven(unitID, unitDefID, newTeam)
 	if not mexConstructors[unitID] or geoConstructors[unitID] then
 		widget:UnitCreated(unitID, unitDefID, newTeam)
 	end
-end
-
-function widget:GameStart()
-	isPregame = false
 end
 
 function widget:Initialize()
