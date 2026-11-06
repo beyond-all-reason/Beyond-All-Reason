@@ -119,10 +119,11 @@ end
 ---@param goalY number
 ---@param goalZ number
 ---@param exact boolean|nil set down on the goal itself, not at its slot's offset (a building placed like a build order)
-function PerformUnload(passengerID, goalX, goalY, goalZ, exact) -- entry point from gadget transport handler: called once per passenger
+---@param facing number|nil build facing for a building set down exactly
+function PerformUnload(passengerID, goalX, goalY, goalZ, exact, facing) -- entry point from gadget transport handler: called once per passenger
     local passengerData = cargo.passengers[passengerID]
     if passengerData and spValidUnitID(passengerID) and not spGetUnitIsDead(passengerID) then
-        StartThread(TransportAnimator.Unload, passengerData, goalX, goalY, goalZ, nil, exact)
+        StartThread(TransportAnimator.Unload, passengerData, goalX, goalY, goalZ, nil, exact, facing)
     else -- unit invalid/dead: reset slot and unregister without animating
         if spValidUnitID(passengerID) then -- unit is valid but dead
             spUnitDetach(passengerID)

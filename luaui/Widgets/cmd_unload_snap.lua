@@ -60,6 +60,8 @@ local spGetInvertQueueKey = Spring.GetInvertQueueKey
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetUnitHeading = Spring.GetUnitHeading
+local spGetBuildFacing = Spring.GetBuildFacing
+local spSetBuildFacing = Spring.SetBuildFacing
 
 local mathAbs = math.abs
 local mathFloor = math.floor
@@ -361,23 +363,32 @@ local function buildingsToPlace(shift)
 	return transportID, carried
 end
 
-local function footprintsOverlap(x1, z1, defID1, x2, z2, defID2)
-	return mathAbs(x1 - x2) < defHalfX[defID1] + defHalfX[defID2]
-		and mathAbs(z1 - z2) < defHalfZ[defID1] + defHalfZ[defID2]
+-- footprint half sizes turned to a build facing (1 and 3 swap x and z)
+local function footprintHalf(defID, facing)
+	if facing % 2 == 1 then
+		return defHalfZ[defID], defHalfX[defID]
+	end
+	return defHalfX[defID], defHalfZ[defID]
 end
 
--- buildings go down like a build order: their cargo layout turned to the heading the transport arrives with,
--- spread so footprints don't overlap, each on the grid with its own footprint tested
+local function footprintsOverlap(x1, z1, defID1, x2, z2, defID2, facing)
+	local hx1, hz1 = footprintHalf(defID1, facing)
+	local hx2, hz2 = footprintHalf(defID2, facing)
+	return mathAbs(x1 - x2) < hx1 + hx2 and mathAbs(z1 - z2) < hz1 + hz2
+end
+
+-- buildings go down like a build order: laid out as they sit in the transport, turned by the build facing
+-- (the build rotate keys), spread so footprints don't overlap, each on the grid with its own footprint tested
 local function placementPlan(transportID, passengers, cx, cz, shift)
 	local tx, _, tz = spGetUnitPosition(transportID)
 	if not tx then
 		return nil
 	end
+	local facing = spGetBuildFacing() or 0
 	local nowHeading = (spGetUnitHeading(transportID) or 0) * HEADING_TO_RAD
-	local dx, dz = cx - tx, cz - tz
-	local arriveHeading = (dx * dx + dz * dz > 64 * 64) and mathAtan2(dx, dz) or nowHeading
+	local facingAngle = facing * HALF_PI
 	local sa, ca = mathSin(nowHeading), mathCos(nowHeading)
-	local sb, cb = mathSin(arriveHeading), mathCos(arriveHeading)
+	local sb, cb = mathSin(facingAngle), mathCos(facingAngle)
 
 	local entries, minGap, widest = {}, math.huge, 0
 	for i = 1, #passengers do
@@ -387,13 +398,11 @@ local function placementPlan(transportID, passengers, cx, cz, shift)
 		if defID and px then
 			local ox, oz = px - tx, pz - tz
 			local fwd, side = ox * sa + oz * ca, ox * ca - oz * sa
-			local rot = (spGetUnitHeading(passengerID) or 0) * HEADING_TO_RAD - nowHeading + arriveHeading
 			entries[#entries + 1] = {
 				id = passengerID,
 				defID = defID,
 				ox = fwd * sb + side * cb,
 				oz = fwd * cb - side * sb,
-				rot = mathFloor(rot / HALF_PI + 0.5) * HALF_PI,
 			}
 			widest = mathMax(widest, 2 * defHalfX[defID], 2 * defHalfZ[defID])
 		end
@@ -412,11 +421,20 @@ local function placementPlan(transportID, passengers, cx, cz, shift)
 		entries[1].ox, entries[1].oz = 0, 0
 	end
 
-	local newPlan = { cx = cx, cz = cz, shift = shift, frame = spGetGameFrame(), place = true, pads = {}, failed = {} }
+	local newPlan = {
+		cx = cx,
+		cz = cz,
+		shift = shift,
+		facing = facing,
+		frame = spGetGameFrame(),
+		place = true,
+		pads = {},
+		failed = {},
+	}
 	for i = 1, #entries do
 		local e = entries[i]
 		local wx, wz = cx + e.ox * spread, cz + e.oz * spread
-		local bx, by, bz = spPos2BuildPos(e.defID, wx, spGetGroundHeight(wx, wz), wz)
+		local bx, by, bz = spPos2BuildPos(e.defID, wx, spGetGroundHeight(wx, wz), wz, facing)
 		-- grid snapping can still bring two together: step this one outward until it is clear
 		local stepX, stepZ = e.ox >= 0 and BUILD_SQUARE or -BUILD_SQUARE, 0
 		if mathAbs(e.oz) > mathAbs(e.ox) then
@@ -426,7 +444,7 @@ local function placementPlan(transportID, passengers, cx, cz, shift)
 			local clash = false
 			for j = 1, #newPlan.pads do
 				local q = newPlan.pads[j]
-				if footprintsOverlap(bx, bz, e.defID, q[3], q[5], q[2]) then
+				if footprintsOverlap(bx, bz, e.defID, q[3], q[5], q[2], facing) then
 					clash = true
 					break
 				end
@@ -434,13 +452,14 @@ local function placementPlan(transportID, passengers, cx, cz, shift)
 			if not clash then
 				break
 			end
-			bx, by, bz = spPos2BuildPos(e.defID, bx + stepX, spGetGroundHeight(bx + stepX, bz + stepZ), bz + stepZ)
+			local nx, nz = bx + stepX, bz + stepZ
+			bx, by, bz = spPos2BuildPos(e.defID, nx, spGetGroundHeight(nx, nz), nz, facing)
 		end
-		local status, featureID = spTestBuildOrder(e.defID, bx, by, bz, 0)
+		local status, featureID = spTestBuildOrder(e.defID, bx, by, bz, facing)
 		local fits = (status == FREE or status == MOBILE) and not featureID -- units in the way get pushed aside
 		newPlan.place = newPlan.place and fits
 		newPlan.pads[#newPlan.pads + 1] =
-			{ transportID, e.defID, bx, by, bz, e.id, { { e.defID, bx, by, bz, e.rot } }, fits }
+			{ transportID, e.defID, bx, by, bz, e.id, { { e.defID, bx, by, bz, facingAngle } }, fits }
 	end
 	return newPlan
 end
@@ -567,7 +586,7 @@ local function issuePlan(p, options)
 			spGiveOrderToUnit(
 				pad[1],
 				CMD_UNLOAD_UNIT,
-				{ pad[3], pad[4], pad[5], pad[6] },
+				{ pad[3], pad[4], pad[5], pad[6], p.facing },
 				i == 1 and options or CMD.OPT_SHIFT
 			)
 		end
@@ -616,6 +635,29 @@ local function dropUnit(transportID, passengerID)
 	return true
 end
 
+local FACING_NAMES = { south = 0, east = 1, north = 2, west = 3 }
+
+-- the build rotate keys (any binding of the buildfacing action) turn buildings being placed from a transport
+local function handleFacingAction(_, _, args)
+	if not (plan and plan.place ~= nil and unloadMode()) then
+		return
+	end
+	local facing = spGetBuildFacing() or 0
+	local newFacing
+	if args and args[1] == "inc" then
+		newFacing = (facing + 1) % 4
+	elseif args and args[1] == "dec" then
+		newFacing = (facing - 1) % 4
+	elseif args and FACING_NAMES[args[1]] then
+		newFacing = FACING_NAMES[args[1]]
+	end
+	if newFacing then
+		spSetBuildFacing(newFacing)
+		Spring.PlaySoundFile("LuaUI/Sounds/buildbar_hover.wav", 0.75, nil, nil, nil, nil, nil, nil, "ui")
+		return true
+	end
+end
+
 function widget:Initialize()
 	TransportAPI = WG.TransportAPI
 	if not TransportAPI or not TransportAPI.GetExpectedCargo then
@@ -623,6 +665,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", handleFacingAction, nil, "p")
 	WG.UnloadSnap = {
 		DropUnit = dropUnit,
 		GetDrop = function()
@@ -646,6 +689,7 @@ end
 function widget:Shutdown()
 	clearGhosts()
 	WG.UnloadSnap = nil
+	widgetHandler.actionHandler:RemoveAction(self, "buildfacing", "p")
 end
 
 function widget:SelectionChanged()
@@ -713,7 +757,14 @@ function widget:Update()
 	end
 	local shift = shiftHeld()
 	local scx, scz = mathFloor(cx / BUILD_SQUARE), mathFloor(cz / BUILD_SQUARE)
-	if not plan or plan.scx ~= scx or plan.scz ~= scz or plan.shift ~= shift or frame - plan.frame >= REPLAN_FRAMES then
+	if
+		not plan
+		or plan.scx ~= scx
+		or plan.scz ~= scz
+		or plan.shift ~= shift
+		or (plan.facing and plan.facing ~= spGetBuildFacing())
+		or frame - plan.frame >= REPLAN_FRAMES
+	then
 		plan = makePlan(cx, cz, shift)
 		if plan then
 			plan.scx, plan.scz = scx, scz
@@ -861,8 +912,8 @@ local function drawBrackets(padDefID, x, z, width, alpha)
 end
 
 -- a building placed like a build order: green where it can go, red where it cannot (blueprint colours)
-local function drawFootprint(defID, x, z, placeable)
-	local hx, hz = defHalfX[defID], defHalfZ[defID]
+local function drawFootprint(defID, x, z, placeable, facing)
+	local hx, hz = footprintHalf(defID, facing)
 	local r, g, b = 0.0, 1.0, 0.0
 	if not placeable then
 		r, g, b = 1.0, 0.0, 0.0
@@ -893,7 +944,7 @@ function widget:DrawWorld()
 		for i = 1, #plan.pads do
 			local p = plan.pads[i]
 			if plan.place ~= nil then
-				drawFootprint(p[2], p[3], p[5], p[8])
+				drawFootprint(p[2], p[3], p[5], p[8], plan.facing)
 			else
 				drawBrackets(p[2], p[3], p[5], 2, 0.85)
 			end

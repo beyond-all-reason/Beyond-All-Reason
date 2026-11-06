@@ -311,7 +311,7 @@ end
 -- @param goalPosY       number   world-space Y hint (actual Y is clamped to ground height)
 -- @param goalPosZ       number   world-space Z of the drop point
 -- @param doAnim         boolean  if false, detach in-place only  (default: true)
-function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, doAnim, exact)
+function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, doAnim, exact, facing)
 	if passengerData.unloading then return end
 	TransportAPI.DisablePassenger(passengerData.id)
 	passengerData.unloading = true
@@ -332,8 +332,12 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 		local goalRotX, goalRotY, goalRotZ
 		if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].speed == 0 then
 			spSetUnitRadiusAndHeight(passengerData.id, slotPosY - spGetGroundHeight(slotPosX, slotPosZ) + 20, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
-			goalRotY = math.floor(startRotY/(PI/2) + 0.5) *(PI/2) -- cardinal facing
-			goalPosX, goalPosY, goalPosZ = spPos2BuildPos(passengerDefID, goalPosX, goalPosY, goalPosZ) -- always align buildings on build grid
+			if facing then
+				goalRotY = -facing * (PI/2) -- build facing 1 (east) is yaw -pi/2
+			else
+				goalRotY = math.floor(startRotY/(PI/2) + 0.5) *(PI/2) -- cardinal facing
+			end
+			goalPosX, goalPosY, goalPosZ = spPos2BuildPos(passengerDefID, goalPosX, goalPosY, goalPosZ, facing or 0) -- always align buildings on build grid
 		else
 			spSetUnitRadiusAndHeight(passengerData.id, 0, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
 		end

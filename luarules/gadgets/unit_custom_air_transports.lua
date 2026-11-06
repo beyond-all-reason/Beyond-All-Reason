@@ -1103,10 +1103,11 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
 	local Q = spGetUnitCommands(transporterID, 1)
 	local buildingDefID = Q and Q[1] and Q[1].id == CMD.UNLOAD_UNIT and buildingUnloadDefID(Q[1].params[4])
+	local facing = buildingDefID and Q[1].params[5] or 0
 	local unloadPadType = buildingDefID or GetUnloadPadType(transporterID)
-	local blocked = spTestBuildOrder(unloadPadType, goalX, goalY, goalZ, 0)
+	local blocked = spTestBuildOrder(unloadPadType, goalX, goalY, goalZ, facing)
 	if blocked == 0 then
-		goalX, goalY, goalZ = spClosestBuildPos(transporterTeamID, unloadPadType, goalX, goalY, goalZ, 512, 0, 0)
+		goalX, goalY, goalZ = spClosestBuildPos(transporterTeamID, unloadPadType, goalX, goalY, goalZ, 512, 0, facing)
 		if not goalX then 
 			-- this currently does not happen because even unsynced ClosestBuildPos avoids out of sight buildings
 			-- But in hope of getting a fix for this LOSHack, i prepared a final check in the case 
@@ -1116,7 +1117,7 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 		end
 	end
 	-- test for non-blocking mobile units in the way
-	blocked = spTestBuildOrder(unloadPadType, goalX, goalY, goalZ, 0)
+	blocked = spTestBuildOrder(unloadPadType, goalX, goalY, goalZ, facing)
 	if blocked == 1 then
 		BuggerOff(goalX, goalY, goalZ, unloadPadType, transporterID)
 	elseif blocked == 3 then
@@ -1135,7 +1136,7 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 		end
 		local targets = GetUnloadTargets(transporterID, passengerID, goalX, goalY, goalZ)
 		for i = 1, #targets do
-			customTransportUnload[transporterDefID](transporterID, 'PerformUnload', targets[i], goalX, goalY, goalZ, buildingDefID ~= nil)
+			customTransportUnload[transporterDefID](transporterID, 'PerformUnload', targets[i], goalX, goalY, goalZ, buildingDefID ~= nil, buildingDefID and facing)
 		end
 		spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- Keep overriding engine's movegoal
 		spUnitFinishCommand(transporterID) -- consume the command
@@ -1205,8 +1206,10 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			end
 		end
 
-		local snapDefID = buildingUnloadDefID(cmdParams[4]) or GetUnloadPadType(unitID, cmdParams[4], cmdOptions.shift)
-		local newPosX, newPosY, newPosZ = spClosestBuildPos(unitTeam, snapDefID, posX, posY, posZ, 512, 0, 0)
+		local buildingDefID = buildingUnloadDefID(cmdParams[4])
+		local snapDefID = buildingDefID or GetUnloadPadType(unitID, cmdParams[4], cmdOptions.shift)
+		local snapFacing = buildingDefID and cmdParams[5] or 0
+		local newPosX, newPosY, newPosZ = spClosestBuildPos(unitTeam, snapDefID, posX, posY, posZ, 512, 0, snapFacing)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
 			reissueOrder(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions, cmdTag, fromInsert)
