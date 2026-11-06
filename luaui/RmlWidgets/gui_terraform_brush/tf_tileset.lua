@@ -794,7 +794,7 @@ local function rebuildRampList(doc, ctx, T)
 	listEl.inner_rml = ""
 	if #files == 0 then
 		listEl.inner_rml = '<div class="tf-hm-empty">No images in '
-			.. tostring(T.getRampDir and T.getRampDir() or "Terraform Brush/Ramps/")
+			.. tostring(T.getRampDir and T.getRampDir() or "LuaUI/Widgets/tileset_dev/ramps/")
 			.. " yet. Drop a gradient PNG in and hit Rescan folder.</div>"
 		return
 	end

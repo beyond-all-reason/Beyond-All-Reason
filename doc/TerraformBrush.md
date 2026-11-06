@@ -24,7 +24,7 @@ The panel is one window with a header and folding sections. Click a section titl
 | Pause | Stops every editor tool and hands the keyboard and mouse back to the game. Click again (or any mode button) to resume |
 | Eye (Focus mode) | Hides the game interface the way F5 does, but keeps the editor, its brush preview and overlays working. Click again, close the panel or press F5 to bring the interface back |
 | X | Closes the editor |
-| Folder (FILE) | New Map..., Save, Save As..., Open Project... |
+| Folder (FILE) | New Map..., Save, Save As..., Open Project..., Export Map... |
 | Map Labels | Shows the map comments and opens the Map Labels window |
 | Camera | Opens the Capture window |
 | Speaker | Turns the panel's sounds on or off |
@@ -82,6 +82,7 @@ A **project** is the whole map in one folder: terrain, paint, metal, features, u
 | Save | Ctrl+S | Saves into the project you opened or last saved. The menu item names it |
 | Save As... | Ctrl+Shift+S | Saves under a new name or into another folder |
 | Open Project... | Ctrl+O | Opens the Projects window |
+| Export Map... | | Writes the saved project as the files of a map archive (see below) |
 
 The shortcuts work while the panel is up and no text field has the keyboard.
 
@@ -96,6 +97,18 @@ Opening a project restarts the game onto a blank map of the project's size and t
 **Autosave** (Settings > General, on by default). While the open project, or a New Map canvas, has unsaved changes, a snapshot is saved every 10 minutes into `MapProjects/_autosave/` as `<project>-YYYYMMDDHHMM`. Snapshots list only under the Autosaves chip of the Projects window. Opening one makes its project the Save target again. Old snapshots are deleted after 3 days, except the newest one of each project, which is kept for 10 days. All three numbers can be changed in Settings.
 
 **Team Sync** (Settings > General, off by default) shows the BAR campaign team's private map library in the Projects and Save As windows. It needs access to the team's private repository; leave it off otherwise. The team's workflow is documented in the library repository.
+
+**Export Map window.** Writes the open project as the files of a map archive, for a map that plays without the editor. Give the map a name and a version, then EXPORT. Unsaved changes are saved first: the export reads the saved project. The output goes to `Terraform Brush/Exports/<name>_<version>/` in the data folder, and COPY PATH puts that folder on the clipboard. `/mapproject export [version] [project]` does the same from the console.
+
+| Folder | What is in it |
+|---|---|
+| `archive/` | What goes into the map archive: `mapinfo.lua` (lighting, atmosphere, water, splats, start positions, height fog, grass), `maps/` (splat textures, skybox) and `mapconfig/`, one file per section the game reads at load: `tileset/` (its presence switches the map onto the tileset renderer), `featureplacer/set.lua` (features with their tilt, height and scale), `lights.lua`, `decals.lua`, `weather.lua`, `blockout.lua`, `edge_extension.lua`, `map_startboxes.lua`, `grass_dist.tga` |
+| `compile/` | Inputs for the compile step (below): heightmap, minimap, diffuse squares and the metal grid, described by `compile.json`. Not shipped |
+| `export_report.txt` | What became of each section, files the map needs that were not found, and the game content the map names (feature types, decal textures, CEGs, blockout models, the biome) |
+
+A map carries data only: feature models, decal textures, CEGs and the tileset's textures come from the game. Units stay out (they belong to a mission), and so do map comments. The same export runs without the game: `lua5.1 tools/map_export/export.lua <project folder> <output folder> --name <name> --version <version>`, which is how a build workflow turns a projects repository into maps. Exporting again replaces the previous export of the same name and version.
+
+**Compile step.** The game cannot write the binary map files, so one command outside it finishes the map: `python tools/map_export/compile_map.py "<export folder>"` (Python 3 with numpy and Pillow). It writes `archive/maps/<name>_<version>.smf` and `.smt` (height, metal, minimap and a ground texture: the captured diffuse squares, else the minimap stretched to full size) and packs `archive/` into `<name>_<version>.sd7` next to it, with 7-Zip, or a `.sdz` when 7-Zip is missing. `compile_report.txt` says what went in. Copy the `.sd7` into the `maps` folder to play it. Until the game reads the new `mapconfig/` files, such a map shows its height, water, metal, splats, start positions, fog and grass, but not its features, lights, decals, weather or tileset look.
 
 ## Sculpting
 
@@ -254,7 +267,7 @@ Opened from SCENE. It holds the tileset shader's settings and stays open while y
 | WATER | Shallow water tint and clarity, walkable depth, a glow on deep floors |
 | OLD-MAP BLEND | How much cliffs borrow the colours of the map's own texture |
 | BIOME TINT, LAYER TINTS | One tint over the whole biome; a tint per layer |
-| WORLDSPACE TINT (WIP) | Tinting by world height: WET SHORE, AXIS, GRADE, STRATA, GRADIENT STOPS, COLOUR, RAMP (a gradient image from `LuaUI/Config/TilesetRamps/`), SATURATION, TIDE RINGS, SNOW LINE |
+| WORLDSPACE TINT (WIP) | Tinting by world height: WET SHORE, AXIS, GRADE, STRATA, GRADIENT STOPS, COLOUR, RAMP (a gradient image from `LuaUI/Widgets/tileset_dev/ramps/`), SATURATION, TIDE RINGS, SNOW LINE |
 | DEBUG | Debug views of the shader's inputs |
 | CONFIG & PRESETS | Save and Browse presets (one file each in `Terraform Brush/TilesetPresets/`, loading one also switches to its biome), Restore Defaults, Dump Config (prints the settings to the console) |
 
@@ -708,7 +721,7 @@ All paths are relative to the game's data folder (the folder the game writes its
 | `lightmaps/` | Saved LIGHTS layouts, and `presets/` for your light presets |
 | `<map>_grassDist.tga` | A saved grass map |
 | `LuaUI/Config/UnitBlueprints/` | Unit blueprints |
-| `LuaUI/Config/TilesetRamps/` | Gradient images for WORLDSPACE TINT > RAMP |
+| `LuaUI/Widgets/tileset_dev/ramps/` | Gradient images for WORLDSPACE TINT > RAMP |
 
 ### File formats
 
