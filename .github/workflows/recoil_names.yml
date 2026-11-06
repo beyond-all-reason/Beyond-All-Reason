@@ -1,0 +1,50 @@
+name: Recoil Names
+
+# common/recoil/names.lua is what each Lua handle registers, generated from the pinned recoil-lua-library. A pull
+# request that moves the pin, or touches the file or its generator, has to carry the file the pin generates.
+on:
+  pull_request:
+    paths:
+      - "recoil-lua-library"
+      - "common/recoil/names.lua"
+      - ".github/scripts/recoil_names.py"
+      - ".github/workflows/recoil_names.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EMMYLUA_VERSION: 0.24.0
+
+jobs:
+  names:
+    name: recoil names
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: true
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.gitmodules
+            /.github/scripts
+            /common/recoil
+            /recoil-lua-library
+
+      - name: Install emmylua_doc_cli
+        run: |
+          URL="https://github.com/EmmyLuaLs/emmylua-analyzer-rust/releases/download/${EMMYLUA_VERSION}/emmylua_doc_cli-linux-x64.tar.gz"
+          curl -fsSL "$URL" | sudo tar xz -C /usr/local/bin
+          sudo chmod +x /usr/local/bin/emmylua_doc_cli
+
+      - name: Generate
+        run: python3 .github/scripts/recoil_names.py
+
+      - name: Compare
+        run: |
+          if ! git diff --exit-code -- common/recoil/names.lua; then
+            echo "::error file=common/recoil/names.lua::not what the pinned recoil-lua-library generates; run .github/scripts/recoil_names.py and commit the result"
+            exit 1
+          fi
