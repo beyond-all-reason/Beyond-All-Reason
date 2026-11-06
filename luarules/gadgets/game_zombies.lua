@@ -42,7 +42,7 @@ end
 --     multiple spawns roll from the live minimum up to a maximum that starts here. After the maximum
 --     spawn growth delay it compounds by the maximum spawn growth rate each clock minute, capped by the
 --     spawn count cap. That live maximum also caps how many substitutes one spawn can buy.
---   zombie_minimum_spawn_growth_rate (default 1.05)
+--   zombie_minimum_spawn_growth_rate (default 1.04)
 --     the pack floor multiplies by this each clock minute after the bottom band delay.
 --   zombie_maximum_spawn_growth_rate (default 1.04)
 --     the pack ceiling multiplies by this each clock minute after its growth delay.
@@ -50,9 +50,9 @@ end
 --     the pack ceiling stays at the configured maximum until this clock minute. 0 starts growth immediately.
 --   zombie_spawn_count_cap (integer, default 15)
 --     the pack ceiling cannot grow past this.
---   zombie_minutes_per_tech_level (default 14)
+--   zombie_minutes_per_tech_level (default 16)
 --     band-minutes gained for each tech level above the base. This is what lets player power outrun the clock.
---   zombie_tech_scaling_delay (minutes, default 10)
+--   zombie_tech_scaling_delay (minutes, default 15)
 --     before this clock minute, player power loses one extra base tech level before the conversion.
 --     0 applies the full conversion immediately.
 --   zombie_minimum_respawn_delay (seconds, default 45)
@@ -266,7 +266,6 @@ local wraiths = {} ---@type table<UnitID, table?>
 local pendingWraithFeeds = {}
 local pendingWraithSpawns = {}
 local wreckWraithFeeds = {}
-local featuresCreatedThisFrame = {}
 local createdFeaturesByPosition = {}
 local resurrectableWreckCells = {}
 local wreckCellIndex = {}
@@ -276,13 +275,12 @@ local expiringBuildingFrames = {}
 local zombieUnitDefs = {}
 local zombieCorpseDefs = {} ---@type table<FeatureDefID, table?>
 local zombieHeapDefs = {} ---@type table<FeatureDefID, table?>
-local corpsesData = {}
-local corpseCheckFrames = {}
+local trackedFeatures = {}
+local featureCheckFrames = {}
 local rezzedCorpses = {}
 local zombieRezChecks = {}
 local pendingTamperedFrames = {}
 local pendingDeaths = {}
-local vanishedDeaths = {}
 local pendingWreckSwaps = {}
 local suppressedDeaths = {}
 local DEATHS_BLOCKING_WRAITHS = {}
@@ -348,13 +346,17 @@ local GAIA_RESOURCES = {
 	{ resourceName = "energy", storageKey = "es" },
 }
 
-local ZOMBIE_AI_FORWARDED_METHODS = {
-	{ methodName = "PacifyZombies" },
-	{ methodName = "SuspendAutoOrders" },
-	{ methodName = "AggroTeamID", missingResult = false },
-	{ methodName = "AggroAllyID", missingResult = false },
-	{ methodName = "KillAllZombies" },
-	{ methodName = "ClearAllOrders" },
+local ZOMBIE_AI_FORWARDED_METHOD_NAMES = {
+	"PacifyZombies",
+	"SuspendAutoOrders",
+	"AggroTeamID",
+	"AggroAllyID",
+	"KillAllZombies",
+	"ClearAllOrders",
+}
+local ZOMBIE_AI_MISSING_RESULTS = {
+	AggroTeamID = false,
+	AggroAllyID = false,
 }
 
 local function compareUnitDefPower(firstUnitDefID, secondUnitDefID)
@@ -364,6 +366,10 @@ local function compareUnitDefPower(firstUnitDefID, secondUnitDefID)
 		return firstUnitDefID < secondUnitDefID
 	end
 	return firstPower < secondPower
+end
+
+local function nameEndsWithScav(name)
+	return name ~= nil and string.sub(name, -5) == "_scav"
 end
 
 do
@@ -448,16 +454,11 @@ do
 	end
 
 	local function getScavVariantUnitDefID(unitDef, unitDefID)
-		if string.find(unitDef.name, "_scav") then
+		if nameEndsWithScav(unitDef.name) then
 			return unitDefID
 		end
 		local scavUnitDef = unitDefNames[unitDef.name .. "_scav"]
 		return scavUnitDef and scavUnitDef.id or unitDefID
-	end
-
-	local function featureFromUnitName(featureDef)
-		local customParams = featureDef.customParams
-		return customParams and customParams.fromunit or ""
 	end
 
 	local function claimZombieFeature(featureDefsByID, featureDef, unitDef, unitDefData)
@@ -466,7 +467,8 @@ do
 			featureDefsByID[featureDef.id] = unitDefData
 			return
 		end
-		local fromUnitName = featureFromUnitName(featureDef)
+		local customParams = featureDef.customParams
+		local fromUnitName = customParams and customParams.fromunit or ""
 		if fromUnitName == unitDef.name then
 			featureDefsByID[featureDef.id] = unitDefData
 			return
@@ -582,25 +584,23 @@ do
 		end
 	end
 
+	local function markPoolMembership(unitDefID)
+		local unitDefData = zombieUnitDefs[unitDefID]
+		if unitDefData then
+			unitDefData.isPoolMember = true
+			unitDefData.forceRespawn = true
+		end
+	end
+
 	for _, unitDefID in pairs(poolUnitDefIDsByBaseName) do
 		wraithPoolUnitDefIDs[#wraithPoolUnitDefIDs + 1] = unitDefID
 		local poolUnitDefData = zombieUnitDefs[unitDefID]
-		poolUnitDefData.isPoolMember = true
-		poolUnitDefData.forceRespawn = true
-		local scavUnitDefID = poolUnitDefData.scavVariantUnitDefID
-		local scavUnitDefData = zombieUnitDefs[scavUnitDefID]
-		if scavUnitDefData and scavUnitDefID ~= unitDefID then
-			scavUnitDefData.isPoolMember = true
-			scavUnitDefData.forceRespawn = true
-		end
+		markPoolMembership(unitDefID)
+		markPoolMembership(poolUnitDefData.scavVariantUnitDefID)
 		local baseUnitName = string.gsub(unitDefs[unitDefID].name, "_scav$", "")
 		local baseUnitDef = unitDefNames[baseUnitName] ---@as UnitDef?
-		if baseUnitDef and baseUnitDef.id ~= unitDefID then
-			local baseUnitDefData = zombieUnitDefs[baseUnitDef.id]
-			if baseUnitDefData then
-				baseUnitDefData.isPoolMember = true
-				baseUnitDefData.forceRespawn = true
-			end
+		if baseUnitDef then
+			markPoolMembership(baseUnitDef.id)
 		end
 	end
 	table.sort(wraithPoolUnitDefIDs, compareUnitDefPower)
@@ -638,7 +638,7 @@ do
 end
 
 local function isZombie(unitID)
-	return zombieUnitIDs[unitID] == true
+	return zombieUnitIDs[unitID]
 end
 
 local function isZombieTeam(teamID)
@@ -671,6 +671,23 @@ local function addToFrameList(frameLists, frame, id)
 		frameLists[frame] = list
 	end
 	list[#list + 1] = id
+end
+
+local function removeFromFrameList(frameLists, frame, id)
+	local list = frameLists[frame]
+	if not list then
+		return
+	end
+	for listIndex = 1, #list do
+		if list[listIndex] == id then
+			list[listIndex] = list[#list]
+			list[#list] = nil
+			if #list == 0 then
+				frameLists[frame] = nil
+			end
+			return
+		end
+	end
 end
 
 local function getElapsedMinutes()
@@ -716,12 +733,7 @@ local function bandMinutesFromPlayerPower()
 end
 
 local function getBandMinutes()
-	local timeMinutes = getElapsedMinutes()
-	local powerMinutes = bandMinutesFromPlayerPower()
-	if powerMinutes > timeMinutes then
-		return powerMinutes
-	end
-	return timeMinutes
+	return math.max(getElapsedMinutes(), bandMinutesFromPlayerPower())
 end
 
 local function powerBandThresholdsForMinutes(bandMinutes)
@@ -749,8 +761,7 @@ local function getGameStateScaleForPower(power, rangeMinimum, rangeMaximum)
 		return rangeMaximum
 	end
 	local blend = (power - bottomPowerThreshold) / (topPowerThreshold - bottomPowerThreshold)
-	local remaining = 1 - blend
-	return math.mix(rangeMinimum, rangeMaximum, 1 - remaining * remaining * remaining)
+	return math.mix(rangeMinimum, rangeMaximum, 1 - (1 - blend) ^ 3)
 end
 
 local function getSpawnCountMaximum()
@@ -764,10 +775,11 @@ end
 
 local function getSmallestPack()
 	local minutesAfterStart = math.max(0, getElapsedMinutes() - zombieModeSettings.bottomBandDelayMinutes)
-	return math.round(
+	local grownMinimum = math.round(
 		zombieModeSettings.initialSpawnCountMinimum * zombieModeSettings.minimumSpawnGrowthRate ^ minutesAfterStart,
 		0
 	)
+	return math.min(grownMinimum, getSpawnCountMaximum())
 end
 
 local function experienceAtThisMinute()
@@ -805,23 +817,7 @@ local function getUnitSpawnDelayFrames(unitDefData)
 	return calculateSpawnDelayFrames(unitDefData)
 end
 
-local function getHeapSpawnDelayFrames(unitDefData)
-	local spawnDelayFrames = getUnitSpawnDelayFrames(unitDefData)
-	if spawnDelayFrames == nil then
-		return nil
-	end
-	return floor(spawnDelayFrames * zombieModeSettings.heapRespawnDelayMultiplier)
-end
-
 local function setZombieFactoryBuildpower(unitID, useZombieBuildpower, unitDefID)
-	if not unitID then
-		for trackedUnitID, factoryData in pairs(zombieFactories) do
-			local keepZombieBuildpower = spring.ValidUnitID(trackedUnitID)
-				and spring.GetUnitTeam(trackedUnitID) == gaiaTeamID
-			setZombieFactoryBuildpower(trackedUnitID, keepZombieBuildpower, factoryData.unitDefID)
-		end
-		return
-	end
 	local factoryData = zombieFactories[unitID]
 	local resolvedUnitDefID = unitDefID or (factoryData and factoryData.unitDefID)
 	local unitDef = resolvedUnitDefID and unitDefs[resolvedUnitDefID]
@@ -836,6 +832,14 @@ local function setZombieFactoryBuildpower(unitID, useZombieBuildpower, unitDefID
 	zombieFactories[unitID] = nil
 end
 
+local function refreshZombieFactoryBuildpowers()
+	for trackedUnitID, factoryData in pairs(zombieFactories) do
+		local keepZombieBuildpower = spring.ValidUnitID(trackedUnitID)
+			and spring.GetUnitTeam(trackedUnitID) == gaiaTeamID
+		setZombieFactoryBuildpower(trackedUnitID, keepZombieBuildpower, factoryData.unitDefID)
+	end
+end
+
 local function updateTechLevel()
 	local techLevel = 1
 	if GG.PowerLib and GG.PowerLib.HighestPlayerTeamPower and GG.PowerLib.TechGuesstimate then
@@ -844,7 +848,7 @@ local function updateTechLevel()
 	end
 	factoryBuildpowerMultiplier = zombieModeSettings.factoryBuildpowerTechMultiplier ^ techLevel
 	currentTechLevel = techLevel
-	setZombieFactoryBuildpower()
+	refreshZombieFactoryBuildpowers()
 	spring.SetGameRulesParam(RULES_PARAM.TECH_LEVEL, techLevel)
 	spring.SetGameRulesParam(RULES_PARAM.FACTORY_BUILDPOWER_MULTIPLIER, factoryBuildpowerMultiplier)
 end
@@ -897,7 +901,14 @@ end
 
 local function armCorpseSpawn(featureID, featureData, spawnFrame, armFrame)
 	spawnFrame = math.max(spawnFrame, gameFrame + 1)
-	featureData.spawnFrame = spawnFrame
+	local previousSpawnFrame = featureData.spawnFrame
+	if previousSpawnFrame ~= spawnFrame then
+		if previousSpawnFrame then
+			removeFromFrameList(featureCheckFrames, previousSpawnFrame, featureID)
+		end
+		featureData.spawnFrame = spawnFrame
+		addToFrameList(featureCheckFrames, spawnFrame, featureID)
+	end
 	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME, spawnFrame, RULES_PARAM.PUBLIC_ACCESS)
 	spring.SetFeatureRulesParam(
 		featureID,
@@ -905,7 +916,6 @@ local function armCorpseSpawn(featureID, featureData, spawnFrame, armFrame)
 		featureData.spawnDelayFrames,
 		RULES_PARAM.PUBLIC_ACCESS
 	)
-	addToFrameList(corpseCheckFrames, spawnFrame, featureID)
 	if featureData.isHeap then
 		return
 	end
@@ -932,7 +942,6 @@ local function pushBackCorpseSpawn(featureID, corpseData)
 end
 
 local function publishPushedSpawn(featureID, corpseData)
-	corpseData.publishedFrame = gameFrame
 	local shownSpawnFrame = floor((corpseData.spawnFrame or gameFrame) + (corpseData.pushbackFrames or 0))
 	if shownSpawnFrame < gameFrame + 1 then
 		shownSpawnFrame = gameFrame + 1
@@ -964,9 +973,6 @@ local function calculateSpawnCount(unitDefID, inheritedExperience)
 
 	local smallestPack = getSmallestPack()
 	local spawnCountMaximum = getSpawnCountMaximum()
-	if smallestPack > spawnCountMaximum then
-		smallestPack = spawnCountMaximum
-	end
 	local veteranChance = EXPERIENCE_GROWTH.VETERAN_PACK_CHANCE
 		* (1 - minuteExperience / EXPERIENCE_GROWTH.MAXIMUM)
 	if random() < veteranChance then
@@ -1088,21 +1094,22 @@ local function resolveSpawnPlan(unitDefID, wasZombie, unitPower, spawnCount)
 	return substituteUnitDefID, purchaseCount, true
 end
 
-local function retryFailedSubstitutes(substituteUnitDefID, failedCount)
-	excessPower = excessPower + failedCount * zombieUnitDefs[substituteUnitDefID].rezPower
+local function refundSubstitutePayload(payloadUnitDefID, payloadCount, isSubstitute)
+	if isSubstitute and payloadUnitDefID and payloadCount > 0 then
+		excessPower = excessPower + payloadCount * zombieUnitDefs[payloadUnitDefID].rezPower
+	end
 end
 
 local function isScavUnitDefID(unitDefID)
 	local unitDef = unitDefs[unitDefID] ---@as UnitDef?
-	local unitName = unitDef and unitDef.name
-	return unitName ~= nil and string.sub(unitName, -5) == "_scav"
+	return nameEndsWithScav(unitDef and unitDef.name)
 end
 
 local function isScavFeature(featureID)
 	local featureDefID = spring.GetFeatureDefID(featureID)
 	local featureDef = featureDefID and FeatureDefs[featureDefID]
 	local fromUnitName = featureDef and featureDef.customParams and featureDef.customParams.fromunit or ""
-	return string.sub(fromUnitName, -5) == "_scav"
+	return nameEndsWithScav(fromUnitName)
 end
 
 local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie, inheritedExperience, featureIsScav)
@@ -1129,9 +1136,7 @@ local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie
 	end
 	local spawnedCount =
 		spawnZombieUnits(spawnUnitDefID, plannedCount, spawnX, spawnY, spawnZ, facing, experience)
-	if isSubstitute then
-		retryFailedSubstitutes(spawnUnitDefID, plannedCount - spawnedCount)
-	end
+	refundSubstitutePayload(spawnUnitDefID, plannedCount - spawnedCount, isSubstitute)
 end
 
 local function spawnZombiesFromFeature(featureID, unitDefID, wasZombie)
@@ -1142,8 +1147,8 @@ local function spawnZombiesFromFeature(featureID, unitDefID, wasZombie)
 	local inheritedExperience = spring.GetFeatureRulesParam(featureID, "previous_xp") or 0
 	local facing = spring.GetFacingFromHeading(spring.GetFeatureHeading(featureID) or 0)
 	local featureIsScav = isScavFeature(featureID)
-	local corpseData = corpsesData[featureID]
-	corpsesData[featureID] = nil
+	local corpseData = trackedFeatures[featureID]
+	trackedFeatures[featureID] = nil
 	wreckWraithFeeds[featureID] = nil
 	disarmCorpseEffects(featureID, corpseData)
 	spring.DestroyFeature(featureID)
@@ -1167,15 +1172,6 @@ local function removeWraith(unitID)
 	end
 	wraiths[unitID] = nil
 	spring.DestroyUnit(unitID, false, true)
-end
-
-local function trackWraith(unitID, readyFrame, expirationFrame, payloadUnitDefID, payloadCount)
-	wraiths[unitID] = {
-		readyFrame = readyFrame,
-		expirationFrame = expirationFrame,
-		payloadUnitDefID = payloadUnitDefID,
-		payloadCount = payloadCount or 0,
-	}
 end
 
 local function getLiveAttackerPosition(attackerID, fallbackX, fallbackZ)
@@ -1210,18 +1206,29 @@ local function createWraith(spawnData)
 	end
 
 	local fleeDuration = random(WRAITH.MIN_FLEE_TIME, WRAITH.MAX_FLEE_TIME)
-	trackWraith(
-		unitID,
-		gameFrame + fleeDuration,
-		gameFrame + WRAITH.EXPIRATION_TIME,
-		spawnData.payloadUnitDefID,
-		spawnData.payloadCount
-	)
+	wraiths[unitID] = {
+		readyFrame = gameFrame + fleeDuration,
+		expirationFrame = gameFrame + WRAITH.EXPIRATION_TIME,
+		payloadUnitDefID = spawnData.payloadUnitDefID,
+		payloadCount = spawnData.payloadCount or 0,
+	}
 	local attackerX, attackerZ = getLiveAttackerPosition(spawnData.attackerID, spawnData.attackerX, spawnData.attackerZ)
 	if GG.ZombieAI then
 		GG.ZombieAI.CommandWraith(unitID, wraithUnitDefID, wraithX, wraithY, wraithZ, attackerX, attackerZ)
 	end
 	return unitID
+end
+
+local function makeWraithFeed(unitDefID, x, z, wasZombie, attackerID, attackerX, attackerZ)
+	return {
+		unitDefID = unitDefID,
+		x = x,
+		z = z,
+		wasZombie = wasZombie,
+		attackerID = attackerID,
+		attackerX = attackerX,
+		attackerZ = attackerZ,
+	}
 end
 
 local function feedWraithQueue(unitDefID, spawnX, spawnZ, wasZombie, attackerID, attackerX, attackerZ)
@@ -1238,15 +1245,8 @@ local function feedWraithQueue(unitDefID, spawnX, spawnZ, wasZombie, attackerID,
 	then
 		return
 	end
-	pendingWraithFeeds[#pendingWraithFeeds + 1] = {
-		unitDefID = unitDefID,
-		x = spawnX,
-		z = spawnZ,
-		wasZombie = wasZombie,
-		attackerID = attackerID,
-		attackerX = attackerX,
-		attackerZ = attackerZ,
-	}
+	pendingWraithFeeds[#pendingWraithFeeds + 1] =
+		makeWraithFeed(unitDefID, spawnX, spawnZ, wasZombie, attackerID, attackerX, attackerZ)
 end
 
 local function rememberWreckWraithFeed(
@@ -1262,21 +1262,8 @@ local function rememberWreckWraithFeed(
 	if not featureID or not unitDefID or featureX == nil then
 		return
 	end
-	wreckWraithFeeds[featureID] = {
-		unitDefID = unitDefID,
-		x = featureX,
-		z = featureZ,
-		wasZombie = wasZombie,
-		attackerID = attackerID,
-		attackerX = attackerX,
-		attackerZ = attackerZ,
-	}
-end
-
-local function refundSubstitutePayload(payloadUnitDefID, payloadCount, isSubstitute)
-	if isSubstitute and payloadUnitDefID and payloadCount > 0 then
-		excessPower = excessPower + payloadCount * zombieUnitDefs[payloadUnitDefID].rezPower
-	end
+	wreckWraithFeeds[featureID] =
+		makeWraithFeed(unitDefID, featureX, featureZ, wasZombie, attackerID, attackerX, attackerZ)
 end
 
 local function getWraithPayloadHeap(payloadUnitDefID)
@@ -1367,7 +1354,7 @@ local function canSpawnUnitAt(unitDefID, spawnX, spawnY, spawnZ, facing)
 		return false
 	end
 	if unitDefData.isMobile then
-		return spring.TestMoveOrder(unitDefID, spawnX, spawnY, spawnZ) and true or false
+		return spring.TestMoveOrder(unitDefID, spawnX, spawnY, spawnZ)
 	end
 	return spring.TestBuildOrder(unitDefID, spawnX, spawnY, spawnZ, facing) > 0
 end
@@ -1413,7 +1400,7 @@ local function spawnHeapAtWraith(wraithData, wraithX, wraithZ, maxAttempts)
 			)
 			pendingCreatedFeatureData = nil
 			if featureID then
-				if corpsesData[featureID] then
+				if trackedFeatures[featureID] then
 					spring.SpawnCEG(scavUnitDefData.spawnExplosionCeg, spawnX, spawnY, spawnZ, 0, 0, 0)
 					return true
 				end
@@ -1436,8 +1423,7 @@ local function updateWraiths()
 			else
 				local enemyNearby = false
 				if GG.ZombieAI then
-					enemyNearby = GG.ZombieAI.CommandWraith(unitID, wraithUnitDefID, wraithX, wraithY, wraithZ) and true
-						or false
+					enemyNearby = not not GG.ZombieAI.CommandWraith(unitID, wraithUnitDefID, wraithX, wraithY, wraithZ)
 				else
 					enemyNearby = isEnemyWithinRadius(wraithX, wraithY, wraithZ, WRAITH.ENEMY_CLEAR_RADIUS)
 				end
@@ -1536,7 +1522,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		if rezzedCorpses[featureID] then
 			return false
 		end
-		local corpseData = corpsesData[featureID]
+		local corpseData = trackedFeatures[featureID]
 		local tamperedFrame = pendingTamperedFrames[featureID]
 		if not tamperedFrame and corpseData then
 			tamperedFrame = corpseData.tamperedFrame
@@ -1555,7 +1541,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		rezzedCorpses[featureID] = nil
 		return true
 	end
-	if corpsesData[featureID] then
+	if trackedFeatures[featureID] then
 		pendingTamperedFrames[featureID] = gameFrame
 	end
 	return true
@@ -1613,27 +1599,32 @@ local function corpseCanRespawn(featureID, corpseDefData)
 	return isScavFeature(featureID)
 end
 
-local function heapCanRespawn(heapDefData)
-	if not heapDefData or heapDefData.neverRespawn then
-		return false
-	end
-	return true
-end
-
-local function queueFeatureForSpawning(
-	featureID,
-	featureDefID,
-	unitDefID,
-	spawnDelayFrames,
-	wasZombie,
-	isHeap,
-	attackerID,
-	attackerX,
-	attackerZ
-)
-	if corpsesData[featureID] then
+local function queueZombieFeature(featureID, override, wasZombie, attackerID, attackerX, attackerZ, isHeap)
+	if not override and not autoSpawningEnabled then
 		return
 	end
+	if trackedFeatures[featureID] then
+		return
+	end
+
+	local featureDefID = spring.GetFeatureDefID(featureID)
+	local featureDefData = featureDefID and (isHeap and zombieHeapDefs or zombieCorpseDefs)[featureDefID]
+	if isHeap then
+		if not featureDefData or featureDefData.neverRespawn then
+			return
+		end
+	elseif not corpseCanRespawn(featureID, featureDefData) then
+		return
+	end
+
+	local spawnDelayFrames = getUnitSpawnDelayFrames(featureDefData)
+	if spawnDelayFrames == nil then
+		return
+	end
+	if isHeap then
+		spawnDelayFrames = floor(spawnDelayFrames * zombieModeSettings.heapRespawnDelayMultiplier)
+	end
+
 	local featureX, _, featureZ = spring.GetFeaturePosition(featureID)
 	if not featureX then
 		return
@@ -1644,9 +1635,8 @@ local function queueFeatureForSpawning(
 		spring.SetFeatureRulesParam(featureID, RULES_PARAM.WAS_ZOMBIE, 1, RULES_PARAM.PUBLIC_ACCESS)
 	end
 
-	local existingRezFrame = spring.GetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME)
-	existingRezFrame = tonumber(existingRezFrame)
-	local spawnFrame = gameFrame + (spawnDelayFrames or 0)
+	local existingRezFrame = tonumber(spring.GetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME))
+	local spawnFrame = gameFrame + spawnDelayFrames
 	if existingRezFrame and existingRezFrame > 0 then
 		spawnFrame = floor(existingRezFrame)
 	end
@@ -1665,54 +1655,14 @@ local function queueFeatureForSpawning(
 		attackerX = attackerX,
 		attackerZ = attackerZ,
 	}
-	corpsesData[featureID] = featureData
+	trackedFeatures[featureID] = featureData
 	armCorpseSpawn(featureID, featureData, spawnFrame)
-	rememberWreckWraithFeed(featureID, unitDefID, featureX, featureZ, wasZombie, attackerID, attackerX, attackerZ)
-end
-
-local function queueCorpseForSpawning(featureID, override, wasZombie, attackerID, attackerX, attackerZ)
-	if not override and not autoSpawningEnabled then
-		return
-	end
-
-	local featureDefID = spring.GetFeatureDefID(featureID)
-	local corpseDefData = featureDefID and zombieCorpseDefs[featureDefID]
-	if not corpseDefData or not corpseCanRespawn(featureID, corpseDefData) then
-		return
-	end
-
-	local spawnDelayFrames = getUnitSpawnDelayFrames(corpseDefData)
-	queueFeatureForSpawning(
+	rememberWreckWraithFeed(
 		featureID,
-		featureDefID,
-		corpseDefData.unitDefID,
-		spawnDelayFrames,
+		featureDefData.unitDefID,
+		featureX,
+		featureZ,
 		wasZombie,
-		nil,
-		attackerID,
-		attackerX,
-		attackerZ
-	)
-end
-
-local function queueHeapForSpawning(featureID, override, wasZombie, attackerID, attackerX, attackerZ)
-	if not override and not autoSpawningEnabled then
-		return
-	end
-
-	local featureDefID = spring.GetFeatureDefID(featureID)
-	local heapDefData = featureDefID and zombieHeapDefs[featureDefID]
-	if not heapCanRespawn(heapDefData) then
-		return
-	end
-
-	queueFeatureForSpawning(
-		featureID,
-		featureDefID,
-		heapDefData.unitDefID,
-		getHeapSpawnDelayFrames(heapDefData),
-		wasZombie,
-		true,
 		attackerID,
 		attackerX,
 		attackerZ
@@ -1738,7 +1688,7 @@ local function spawnCorpseFromHeap(featureID, heapDefData, heapData)
 	local attackerX = heapData and heapData.attackerX or (wreckFeed and wreckFeed.attackerX)
 	local attackerZ = heapData and heapData.attackerZ or (wreckFeed and wreckFeed.attackerZ)
 
-	corpsesData[featureID] = nil
+	trackedFeatures[featureID] = nil
 	wreckWraithFeeds[featureID] = nil
 	disarmCorpseEffects(featureID, heapData)
 	spring.DestroyFeature(featureID)
@@ -1763,15 +1713,12 @@ local function registerDeathFeature(featureID, featureDefID, deathData)
 	local attackerID = deathData and deathData.attackerID
 	local attackerX = deathData and deathData.attackerX
 	local attackerZ = deathData and deathData.attackerZ
-	if wasZombie then
-		spring.SetFeatureRulesParam(featureID, RULES_PARAM.WAS_ZOMBIE, 1, RULES_PARAM.PUBLIC_ACCESS)
-	end
 	if zombieCorpseDefs[featureDefID] then
-		queueCorpseForSpawning(featureID, false, wasZombie, attackerID, attackerX, attackerZ)
+		queueZombieFeature(featureID, false, wasZombie, attackerID, attackerX, attackerZ, false)
 		return
 	end
 	if zombieHeapDefs[featureDefID] then
-		queueHeapForSpawning(featureID, false, wasZombie, attackerID, attackerX, attackerZ)
+		queueZombieFeature(featureID, false, wasZombie, attackerID, attackerX, attackerZ, true)
 		return
 	end
 
@@ -1780,6 +1727,9 @@ local function registerDeathFeature(featureID, featureDefID, deathData)
 	end
 	local featureX, _, featureZ = spring.GetFeaturePosition(featureID)
 	if featureX ~= nil then
+		if wasZombie then
+			spring.SetFeatureRulesParam(featureID, RULES_PARAM.WAS_ZOMBIE, 1, RULES_PARAM.PUBLIC_ACCESS)
+		end
 		rememberWreckWraithFeed(
 			featureID,
 			deathData.unitDefID,
@@ -1813,21 +1763,23 @@ local function resolveVanishedDeaths()
 	if next(pendingDeaths) == nil then
 		return
 	end
-	local vanishedUnitIDs = {}
+	local vanishedEntries = {}
 	for unitID, deathData in pairs(pendingDeaths) do
 		if spring.GetUnitIsDead(unitID) ~= true then
 			pendingDeaths[unitID] = nil
-			vanishedUnitIDs[#vanishedUnitIDs + 1] = unitID
-			vanishedDeaths[unitID] = deathData
+			vanishedEntries[#vanishedEntries + 1] = {
+				unitID = unitID,
+				deathData = deathData,
+			}
 		elseif deathData.timeoutFrame < gameFrame then
 			pendingDeaths[unitID] = nil
 		end
 	end
-	table.sort(vanishedUnitIDs)
-	for vanishedIndex = 1, #vanishedUnitIDs do
-		local unitID = vanishedUnitIDs[vanishedIndex]
-		local deathData = vanishedDeaths[unitID]
-		vanishedDeaths[unitID] = nil
+	table.sort(vanishedEntries, function(firstEntry, secondEntry)
+		return firstEntry.unitID < secondEntry.unitID
+	end)
+	for vanishedIndex = 1, #vanishedEntries do
+		local deathData = vanishedEntries[vanishedIndex].deathData
 		if deathData.feedsWraith then
 			feedWraithQueue(
 				deathData.unitDefID,
@@ -1843,12 +1795,12 @@ local function resolveVanishedDeaths()
 end
 
 local function processDueCorpse(featureID, frame)
-	local corpseData = corpsesData[featureID]
+	local corpseData = trackedFeatures[featureID]
 	if not corpseData or corpseData.spawnFrame ~= frame then
 		return
 	end
 	if not spring.ValidFeatureID(featureID) then
-		corpsesData[featureID] = nil
+		trackedFeatures[featureID] = nil
 		wreckWraithFeeds[featureID] = nil
 		return
 	end
@@ -1870,14 +1822,14 @@ local function processDueCorpse(featureID, frame)
 end
 
 local function processDueCorpses(frame)
-	local corpsesToCheck = corpseCheckFrames[frame]
-	if not corpsesToCheck then
+	local featuresToCheck = featureCheckFrames[frame]
+	if not featuresToCheck then
 		return
 	end
-	for _, featureID in ipairs(corpsesToCheck) do
+	featureCheckFrames[frame] = nil
+	for _, featureID in ipairs(featuresToCheck) do
 		processDueCorpse(featureID, frame)
 	end
-	corpseCheckFrames[frame] = nil
 end
 
 local function topUpGaiaResources()
@@ -1899,7 +1851,7 @@ local function publishPendingTamperedCorpses()
 		local featureID = featureIDs[featureIndex]
 		local tamperedFrame = pendingTamperedFrames[featureID]
 		pendingTamperedFrames[featureID] = nil
-		local corpseData = corpsesData[featureID]
+		local corpseData = trackedFeatures[featureID]
 		if corpseData then
 			corpseData.tamperedFrame = tamperedFrame
 			local delayFrames = corpseData.spawnDelayFrames or 0
@@ -1947,18 +1899,14 @@ function gadget:GameFrame(frame)
 	end
 
 	processDueCorpses(frame)
-	if #featuresCreatedThisFrame > 0 then
-		featuresCreatedThisFrame = {}
+	if next(createdFeaturesByPosition) then
 		createdFeaturesByPosition = {}
 	end
 end
 
 local function isFeatureInLava(featureID)
-	if not DAMAGE.IS_LAVA or not _G.lavaLevel then
-		return false
-	end
 	local _, featureY = spring.GetFeaturePosition(featureID)
-	return featureY ~= nil and featureY < _G.lavaLevel
+	return featureY ~= nil and isPositionInLava(featureY)
 end
 
 local function handlePendingCreatedFeature(featureID, createdData)
@@ -1977,22 +1925,24 @@ local function handlePendingCreatedFeature(featureID, createdData)
 		spring.SetFeatureResurrect(featureID, createdData.unitDefID, createdData.facing or 0)
 	end
 	if zombieHeapDefs[featureDefID] then
-		queueHeapForSpawning(
+		queueZombieFeature(
 			featureID,
 			true,
 			createdData.wasZombie,
 			createdData.attackerID,
 			createdData.attackerX,
-			createdData.attackerZ
+			createdData.attackerZ,
+			true
 		)
 	elseif zombieCorpseDefs[featureDefID] then
-		queueCorpseForSpawning(
+		queueZombieFeature(
 			featureID,
 			true,
 			createdData.wasZombie,
 			createdData.attackerID,
 			createdData.attackerX,
-			createdData.attackerZ
+			createdData.attackerZ,
+			false
 		)
 	end
 end
@@ -2004,7 +1954,6 @@ local function featurePositionKey(positionX, positionY, positionZ)
 end
 
 local function rememberFeatureCreatedThisFrame(featureID)
-	featuresCreatedThisFrame[#featuresCreatedThisFrame + 1] = featureID
 	local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
 	if not featureX then
 		return
@@ -2130,7 +2079,7 @@ function gadget:FeatureCreated(featureID, _, sourceID)
 	rememberFeatureCreatedThisFrame(featureID)
 	if creatingForcedHeap then
 		spring.SetFeatureRulesParam(featureID, RULES_PARAM.WAS_ZOMBIE, 1, RULES_PARAM.PUBLIC_ACCESS)
-		queueHeapForSpawning(featureID, false, true)
+		queueZombieFeature(featureID, false, true, nil, nil, nil, true)
 		trackResurrectableWreck(featureID)
 		return
 	end
@@ -2202,7 +2151,7 @@ local function releaseWreckWraithFeed(featureID)
 		return
 	end
 	local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
-	local corpseData = corpsesData[featureID]
+	local corpseData = trackedFeatures[featureID]
 	if corpseData then
 		if corpseData.attackerX then
 			wreckFeed.attackerID = corpseData.attackerID
@@ -2239,7 +2188,7 @@ local function releaseWreckWraithFeed(featureID)
 		if inheritedExperience and inheritedExperience > 0 then
 			spring.SetFeatureRulesParam(successorFeatureID, "previous_xp", inheritedExperience)
 		end
-		local successorData = corpsesData[successorFeatureID]
+		local successorData = trackedFeatures[successorFeatureID]
 		if successorData then
 			successorData.wasZombie = wreckFeed.wasZombie
 			successorData.attackerID = wreckFeed.attackerID
@@ -2264,7 +2213,7 @@ function gadget:FeatureDamaged(featureID, _, _, _, _, _, attackerID)
 	if not currentModeFeatures.wraithRespawns then
 		return
 	end
-	local corpseData = corpsesData[featureID]
+	local corpseData = trackedFeatures[featureID]
 	if not corpseData then
 		return
 	end
@@ -2287,9 +2236,9 @@ end
 function gadget:FeatureDestroyed(featureID, allyTeam)
 	removeResurrectableWreck(featureID)
 	releaseWreckWraithFeed(featureID)
-	local corpseData = corpsesData[featureID]
+	local corpseData = trackedFeatures[featureID]
 	if corpseData then
-		corpsesData[featureID] = nil
+		trackedFeatures[featureID] = nil
 		disarmCorpseEffects(featureID, corpseData)
 	end
 	rezzedCorpses[featureID] = nil
@@ -2353,8 +2302,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	end
 	local captureFrame = pendingZombieCaptures[unitID]
 	pendingZombieCaptures[unitID] = nil
-	local capturedByZombie = captureFrame == true or wasTamperedRecently(captureFrame)
-	if not capturedByZombie or not isZombieTeam(newTeam) or isZombie(unitID) then
+	if not wasTamperedRecently(captureFrame) or not isZombieTeam(newTeam) or isZombie(unitID) then
 		return
 	end
 
@@ -2386,7 +2334,7 @@ local function createZombieFromFeature(featureID)
 	if not featureDefData or not corpseCanRespawn(featureID, featureDefData) then
 		return false
 	end
-	local wasZombie = wasZombieCorpse(featureID, corpsesData[featureID])
+	local wasZombie = wasZombieCorpse(featureID, trackedFeatures[featureID])
 	return spawnZombiesFromFeature(featureID, featureDefData.unitDefID, wasZombie)
 end
 
@@ -2396,17 +2344,10 @@ local function queueAllCorpsesForSpawning()
 	for _, featureID in ipairs(features) do
 		local featureDefID = spring.GetFeatureDefID(featureID)
 		if zombieCorpseDefs[featureDefID] then
-			queueCorpseForSpawning(featureID, true)
+			queueZombieFeature(featureID, true, nil, nil, nil, nil, false)
 		elseif zombieHeapDefs[featureDefID] then
-			queueHeapForSpawning(featureID, true)
+			queueZombieFeature(featureID, true, nil, nil, nil, nil, true)
 		end
-	end
-end
-
-local function callZombieAI(methodName, ...)
-	local zombieAI = GG.ZombieAI
-	if zombieAI then
-		return zombieAI[methodName](...)
 	end
 end
 
@@ -2428,18 +2369,17 @@ local function clearWraithState()
 	pendingWraithFeeds = {}
 	pendingWraithSpawns = {}
 	wreckWraithFeeds = {}
-	featuresCreatedThisFrame = {}
 	createdFeaturesByPosition = {}
 end
 
 ---Drops every queued corpse spawn without affecting zombies already raised.
 local function clearAllZombieSpawns()
-	for featureID, featureData in pairs(corpsesData) do
+	for featureID, featureData in pairs(trackedFeatures) do
 		clearCorpseRezRulesParam(featureID)
 		disarmCorpseEffects(featureID, featureData)
 	end
-	corpsesData = {}
-	corpseCheckFrames = {}
+	trackedFeatures = {}
+	featureCheckFrames = {}
 	excessPower = 0
 	clearWraithState()
 end
@@ -2475,7 +2415,7 @@ local function convertUnitsToZombies(unitIDs)
 
 	local convertedCount = 0
 	for _, unitID in ipairs(unitIDs) do
-		if spring.ValidUnitID(unitID) then
+		if spring.ValidUnitID(unitID) and not isZombie(unitID) then
 			setZombie(unitID)
 			convertedCount = convertedCount + 1
 		end
@@ -2511,29 +2451,19 @@ local function resolveZombieMode(modeName)
 	return DEFAULT_ZOMBIE_MODE
 end
 
----Switches the live zombie mode, removing wraiths when the new mode has no wraiths.
----@param mode ZombieMode
-local function applyZombieModeSettings(mode)
-	currentZombieMode = mode
-	currentModeFeatures = ZOMBIE_MODE_FEATURES[mode]
-	if not currentModeFeatures.wraithRespawns then
-		clearWraithState()
-	end
-end
-
----Switches the zombie mode.
+---Switches the zombie mode, removing wraiths when the new mode has no wraiths.
 ---@param modeName string
 ---@return boolean applied `false` when `modeName` is not a known mode.
 local function setZombieMode(modeName)
 	if not ZOMBIE_MODE_FEATURES[modeName] then
 		return false
 	end
-	applyZombieModeSettings(modeName)
+	currentZombieMode = modeName
+	currentModeFeatures = ZOMBIE_MODE_FEATURES[modeName]
+	if not currentModeFeatures.wraithRespawns then
+		clearWraithState()
+	end
 	return true
-end
-
-local function getZombieMode()
-	return currentZombieMode
 end
 
 local function readToggleArgument(words, playerID, usageText)
@@ -2607,7 +2537,7 @@ local ZOMBIE_CHAT_ACTIONS = {
 			if enabled == nil then
 				return
 			end
-			callZombieAI("PacifyZombies", enabled)
+			GG.Zombies.PacifyZombies(enabled)
 			spring.SendMessageToPlayer(playerID, "Zombies " .. (enabled and "pacified" or "unpacified"))
 		end,
 	},
@@ -2619,7 +2549,7 @@ local ZOMBIE_CHAT_ACTIONS = {
 			if enabled == nil then
 				return
 			end
-			callZombieAI("SuspendAutoOrders", enabled)
+			GG.Zombies.SuspendAutoOrders(enabled)
 			spring.SendMessageToPlayer(playerID, "Zombie auto-orders " .. (enabled and "suspended" or "resumed"))
 		end,
 	},
@@ -2632,8 +2562,7 @@ local ZOMBIE_CHAT_ACTIONS = {
 			if targetTeamID == nil then
 				return
 			end
-			local success = callZombieAI("AggroTeamID", targetTeamID)
-			if success then
+			if GG.Zombies.AggroTeamID(targetTeamID) then
 				spring.SendMessageToPlayer(playerID, "Zombies aggroed to team " .. targetTeamID)
 			else
 				spring.SendMessageToPlayer(playerID, "Team " .. targetTeamID .. " not found or has no units")
@@ -2649,8 +2578,7 @@ local ZOMBIE_CHAT_ACTIONS = {
 			if targetAllyID == nil then
 				return
 			end
-			local success = callZombieAI("AggroAllyID", targetAllyID)
-			if success then
+			if GG.Zombies.AggroAllyID(targetAllyID) then
 				spring.SendMessageToPlayer(playerID, "Zombies aggroed to ally team " .. targetAllyID)
 			else
 				spring.SendMessageToPlayer(playerID, "Ally team " .. targetAllyID .. " not found or has no units")
@@ -2661,7 +2589,7 @@ local ZOMBIE_CHAT_ACTIONS = {
 		name = "zombiekillall",
 		description = "Kill all zombies",
 		run = function(words, playerID)
-			callZombieAI("KillAllZombies")
+			GG.Zombies.KillAllZombies()
 			spring.SendMessageToPlayer(playerID, "Killed all zombies")
 		end,
 	},
@@ -2669,7 +2597,7 @@ local ZOMBIE_CHAT_ACTIONS = {
 		name = "zombieclearallorders",
 		description = "Clear all zombie orders",
 		run = function(words, playerID)
-			callZombieAI("ClearAllOrders")
+			GG.Zombies.ClearAllOrders()
 			spring.SendMessageToPlayer(playerID, "Cleared zombie orders")
 		end,
 	},
@@ -2713,8 +2641,8 @@ local function saveReloadState()
 			wreckWraithFeeds = wreckWraithFeeds,
 			zombieFactories = zombieFactories,
 			expiringBuildingFrames = expiringBuildingFrames,
-			corpsesData = corpsesData,
-			corpseCheckFrames = corpseCheckFrames,
+			trackedFeatures = trackedFeatures,
+			featureCheckFrames = featureCheckFrames,
 			zombieRezChecks = zombieRezChecks,
 			pendingTamperedFrames = pendingTamperedFrames,
 			pendingDeaths = pendingDeaths,
@@ -2738,7 +2666,7 @@ local function restoreReloadState()
 		return false
 	end
 
-	applyZombieModeSettings(resolveZombieMode(reloadState.zombieMode))
+	setZombieMode(resolveZombieMode(reloadState.zombieMode))
 	autoSpawningEnabled = reloadState.autoSpawningEnabled
 	tooLong = reloadState.tooLong
 	currentTechLevel = reloadState.currentTechLevel or 1
@@ -2750,11 +2678,11 @@ local function restoreReloadState()
 	wreckWraithFeeds = reloadState.wreckWraithFeeds
 	zombieFactories = reloadState.zombieFactories
 	expiringBuildingFrames = reloadState.expiringBuildingFrames
-	corpsesData = reloadState.corpsesData
-	for _, corpseData in pairs(corpsesData) do
+	trackedFeatures = reloadState.trackedFeatures
+	for _, corpseData in pairs(trackedFeatures) do
 		corpseData.pushbackFrames = corpseData.pushbackFrames or 0
 	end
-	corpseCheckFrames = reloadState.corpseCheckFrames
+	featureCheckFrames = reloadState.featureCheckFrames
 	zombieRezChecks = reloadState.zombieRezChecks
 	pendingTamperedFrames = reloadState.pendingTamperedFrames or {}
 	pendingDeaths = reloadState.pendingDeaths
@@ -2763,7 +2691,7 @@ local function restoreReloadState()
 	unitTamperFrames = reloadState.unitTamperFrames
 	zombiesBeingBuilt = reloadState.zombiesBeingBuilt
 	zombieUnitIDs = reloadState.zombieUnitIDs
-	setZombieFactoryBuildpower()
+	refreshZombieFactoryBuildpowers()
 
 	spring.SetGameRulesParam(RELOAD_STATE_RULES_PARAM, nil)
 	return true
@@ -2774,7 +2702,7 @@ function gadget:Initialize()
 	spring.SetGameRulesParam(RULES_PARAM.ENABLED, true)
 
 	if not restoreReloadState() then
-		applyZombieModeSettings(resolveZombieMode(modOptions.zombies))
+		setZombieMode(resolveZombieMode(modOptions.zombies))
 		updateTechLevel()
 
 		autoSpawningEnabled = modOptionEnabled and not isIdleMode
@@ -2811,14 +2739,15 @@ function gadget:Initialize()
 	GG.Zombies.SetAutoSpawning = setAutoSpawning
 	GG.Zombies.ClearAllZombieSpawns = clearAllZombieSpawns
 	GG.Zombies.SetZombieMode = setZombieMode
-	GG.Zombies.GetZombieMode = getZombieMode
-	for methodIndex = 1, #ZOMBIE_AI_FORWARDED_METHODS do
-		local forwardedMethod = ZOMBIE_AI_FORWARDED_METHODS[methodIndex]
-		local methodName = forwardedMethod.methodName
+	GG.Zombies.GetZombieMode = function()
+		return currentZombieMode
+	end
+	for methodIndex = 1, #ZOMBIE_AI_FORWARDED_METHOD_NAMES do
+		local methodName = ZOMBIE_AI_FORWARDED_METHOD_NAMES[methodIndex]
 		GG.Zombies[methodName] = function(...)
 			local zombieAI = GG.ZombieAI
 			if not zombieAI then
-				return forwardedMethod.missingResult
+				return ZOMBIE_AI_MISSING_RESULTS[methodName]
 			end
 			return zombieAI[methodName](...)
 		end
