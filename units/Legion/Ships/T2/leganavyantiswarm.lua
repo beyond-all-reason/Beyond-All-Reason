@@ -107,6 +107,8 @@ return {
 				-- burst = 2,
 				-- bursrate = 0.25,
 				tolerance = 3000,
+				gravityaffected = "true",
+				tolerace = 3000,
 				firetolerance = 3000,
 				areaofeffect = 144,
 				avoidfeature = false,

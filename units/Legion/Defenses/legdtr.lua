@@ -119,6 +119,7 @@ return {
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-large",
 				flighttime = 0.610,
+				gravityaffected = "true",
 				heightboostfactor = 0,
 				heightmod = 1,
 				impulsefactor = 2.0,
@@ -153,6 +154,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORLEVLR_WEAPON",
+				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 			},
 		},
