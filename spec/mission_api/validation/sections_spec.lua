@@ -535,6 +535,28 @@ describe("mission_api.validation.sections", function()
 		end)
 	end)
 
+	describe("IssueOrders actions", function()
+		local line = { 0, 0, 0, 200, 0, 0 }
+
+		local function validateIssueOrders(orders, formation)
+			return V.validateAction({
+				type = V.actionTypes.IssueOrders,
+				parameters = { unitName = "squad", orders = orders, formation = formation },
+			})
+		end
+
+		it("passes a line with a formation", function()
+			V.assertNoMessageContaining(validateIssueOrders({ { V.env.CMD.FIGHT, line } }, {}), "line")
+		end)
+
+		it("reports a line without a formation", function()
+			V.assertMessage(
+				validateIssueOrders({ { V.env.CMD.MOVE, { 0, 0, 0 } }, { V.env.CMD.FIGHT, line } }),
+				"An order with more than one point is a line, which needs formation. Action: a, Parameter: orders[2][2]"
+			)
+		end)
+	end)
+
 	describe("stockpile triggers", function()
 		local originalWeaponDefs
 
