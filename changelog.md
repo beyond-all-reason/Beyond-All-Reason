@@ -1,4 +1,12 @@
 # November
+- [Zombies]
+  - Spidergeddon is removed for being too spooky.
+  - Complete rework of Wraiths. They're now created when a unit, corpse, or heap is overkilled leaving nothing behind. The Wraith appears, moves away from its killer, and seeks a free space to place a heap. That heap will only ever spawn 1 unit.
+  - Heaps in all zombie modes now become corpses after 2x the zombie resurrection time. A heap -> corpse -> zombie takes 3x the normal resurrection time in total.
+  - Resurrection time, pack size, and veterancy now follow the clock and the wreck's power. Cheap wrecks rise sooner and roll more copies. Expensive wrecks rise later and roll fewer. Player tech no longer holds that back.
+  - Hydra packs roll from 4 copies, or 5 after minute 20, up to a cap that starts at 6 and reaches 15 at minute 35. A smaller pack is a stronger zombie. An elite roll is a half-size pack with a larger experience bump.
+  - Veterancy is 0 before minute 25 and reaches 0.8 at minute 45 for every unit.
+  - Resurrection times start between 45 and 120 seconds, by wreck power, and shorten after minute 45. A heap still waits twice that unit's time.
 - [Legion]
   - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Advanced Underwater Geothermal Powerplant 32000 -> 49950
   - Snapper buildtime 9260 -> 8000, Fortification Wall buildtime 1000 -> 900
