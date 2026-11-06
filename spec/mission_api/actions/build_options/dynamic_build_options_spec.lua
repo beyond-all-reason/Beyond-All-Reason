@@ -10,8 +10,13 @@ MissionApiBuilder.new():Install()
 local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/build_options/dynamic_build_options.lua")
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
-local unitDefNames =
-	UnitDefsBuilder.new():WithUnitDefs({ [42] = { name = "armsolar" }, [7] = { name = "armck" } }):GetUnitDefNames()
+local unitDefs = UnitDefsBuilder.new():WithUnitDefs({
+	[42] = { name = "armsolar" },
+	[7] = { name = "armck", isBuilder = true },
+	[8] = { name = "armca", isBuilder = true },
+	[9] = { name = "armlab", isBuilder = true, isFactory = true },
+})
+local unitDefNames = unitDefs:GetUnitDefNames()
 
 local function findAction(actionType)
 	for _, action in ipairs(actions) do
@@ -33,19 +38,22 @@ describe("mission_api.actions.dynamic_build_options", function()
 	before_each(function()
 		calls = { add = {}, remove = {} }
 		env.UnitDefNames = unitDefNames
+		env.UnitDefs = unitDefs:GetUnitDefsByID()
 		GG["DynamicBuildOptions"] = {
-			Add = function(builtUnitDefID, builderUnitDefID, position)
+			Add = function(builtUnitDefID, builderUnitDefID, position, teamID)
 				calls.add[#calls.add + 1] = {
 					builtUnitDefID = builtUnitDefID,
 					builderUnitDefID = builderUnitDefID,
 					position = position,
+					teamID = teamID,
 				}
 				return true
 			end,
-			Remove = function(builtUnitDefID, builderUnitDefID)
+			Remove = function(builtUnitDefID, builderUnitDefID, teamID)
 				calls.remove[#calls.remove + 1] = {
 					builtUnitDefID = builtUnitDefID,
 					builderUnitDefID = builderUnitDefID,
+					teamID = teamID,
 				}
 				return true
 			end,
@@ -60,8 +68,10 @@ describe("mission_api.actions.dynamic_build_options", function()
 		assert.are.same({
 			type = "AddBuildOption",
 			builtDefName = "UnitDefName!",
-			builderDefName = "UnitDefName!",
+			builderDefName = "UnitDefName",
 			buildMenuPosition = "PositiveInteger",
+			teamName = "TeamName",
+			requiresOneOf = { "builderDefName", "teamName" },
 		}, summarizeSchema(addAction))
 	end)
 
@@ -69,7 +79,9 @@ describe("mission_api.actions.dynamic_build_options", function()
 		assert.are.same({
 			type = "RemoveBuildOption",
 			builtDefName = "UnitDefName!",
-			builderDefName = "UnitDefName!",
+			builderDefName = "UnitDefName",
+			teamName = "TeamName",
+			requiresOneOf = { "builderDefName", "teamName" },
 		}, summarizeSchema(removeAction))
 	end)
 
@@ -88,6 +100,19 @@ describe("mission_api.actions.dynamic_build_options", function()
 			assert.are.equal(1, #calls.add)
 			assert.are.same({ builtUnitDefID = 42, builderUnitDefID = 7, position = 3 }, calls.add[1])
 		end)
+
+		it("adds the option to the builder type of one team", function()
+			addAction.actionFunction("armsolar", "armlab", 2, 1)
+
+			assert.are.same({ { builtUnitDefID = 42, builderUnitDefID = 9, position = 2, teamID = 1 } }, calls.add)
+		end)
+
+		it("adds the option back for every builder type of one team", function()
+			addAction.actionFunction("armsolar", nil, nil, 1)
+
+			assert.are.same({ { builtUnitDefID = 42, teamID = 1 } }, calls.add)
+			assert.are.equal(0, #calls.remove)
+		end)
 	end)
 
 	describe("RemoveBuildOption", function()
@@ -96,6 +121,19 @@ describe("mission_api.actions.dynamic_build_options", function()
 
 			assert.are.equal(1, #calls.remove)
 			assert.are.same({ builtUnitDefID = 42, builderUnitDefID = 7 }, calls.remove[1])
+			assert.are.equal(0, #calls.add)
+		end)
+
+		it("removes the option from the builder type of one team", function()
+			removeAction.actionFunction("armsolar", "armck", 1)
+
+			assert.are.same({ { builtUnitDefID = 42, builderUnitDefID = 7, teamID = 1 } }, calls.remove)
+		end)
+
+		it("removes the option from every builder type of one team", function()
+			removeAction.actionFunction("armsolar", nil, 1)
+
+			assert.are.same({ { builtUnitDefID = 42, teamID = 1 } }, calls.remove)
 			assert.are.equal(0, #calls.add)
 		end)
 	end)
