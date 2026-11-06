@@ -16,6 +16,8 @@ Map export: a saved project becomes a map that plays without the editor, and com
 - Exported maps carry the project's heights, metal, lighting, water, fog, splats, skybox, grass and start positions.
 - `/mapproject export [version] [project]` runs the same export from the console.
 - `tools/map_export/compile_map.py` turns an export into a playable `.sd7` (a `.sdz` without 7-Zip) and writes `compile_report.txt`. Needs Python 3 with numpy and Pillow.
+- The `.sd7` is non-solid, and the splat ships as a DXT5 `.dds` with mipmaps.
+- Maps with a TILESET section leave the splat detail textures out: the tileset shader does not draw them.
 - `tools/map_export/export.lua` runs the export without the game, for build workflows.
 - Each export writes `export_report.txt`: what became of every section, missing files, and the game content the map needs.
 - Exported maps load their features with tilt, height offset and scale.
