@@ -59,21 +59,36 @@ local spGetModKeyState = Spring.GetModKeyState
 local spGetInvertQueueKey = Spring.GetInvertQueueKey
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
+local spGetUnitHeading = Spring.GetUnitHeading
 
 local mathAbs = math.abs
 local mathFloor = math.floor
 local mathMax = math.max
+local mathMin = math.min
+local mathSin = math.sin
+local mathCos = math.cos
+local mathSqrt = math.sqrt
+local mathAtan2 = math.atan2 or math.atan
+local HALF_PI = math.pi / 2
+local HEADING_TO_RAD = math.pi / 32768
+
+-- same look as the other placement previews: blueprint ghost alpha, the unload command's colour
+local GHOST_ALPHA = 0.6
+local UNLOAD_R, UNLOAD_G, UNLOAD_B = 1.0, 0.8, 0.0
+local DASH, DASH_PERIOD = 14, 24
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
 local TransportAPI
 
 local isFactory = {}
+local isImmobile = {} -- these land on the build grid, facing a cardinal direction
 local defHalfX, defHalfZ = {}, {}
 for unitDefID, ud in pairs(UnitDefs) do
 	if ud.isFactory then
 		isFactory[unitDefID] = true
 	end
+	isImmobile[unitDefID] = ud.speed == 0
 	defHalfX[unitDefID] = ud.xsize * Game.squareSize * 0.5
 	defHalfZ[unitDefID] = ud.zsize * Game.squareSize * 0.5
 end
@@ -105,8 +120,8 @@ do
 	end)
 end
 
-local plan -- { cx, cz, scx, scz, shift, frame, pads = { {unitID, padDefID, x, y, z, passengerID, ghostDefID} }, failed = { entry } }
-local ghosts = {} -- pad index -> { id, defID, x, z }
+local plan -- { cx, cz, scx, scz, shift, frame, pads = { {unitID, padDefID, x, y, z, passengerID, spots} }, failed = { entry } }
+local ghosts = {} -- { id, defID, x, z, rot }, one per unit about to land
 local queuedPads = {} -- { padDefID, x, y, z } of unloads the selection already has queued
 local press -- a click being tracked, see MousePress
 local drop -- { transportID, passengerID }: one unit picked in the info panel, placed with the unload command
@@ -278,6 +293,39 @@ local function chooseTransports(cx, cz, shift)
 	return chosen
 end
 
+-- where each passenger touches down: the animator keeps its offset from the transport, turned to the heading
+-- the transport arrives with (facing the pad from where it is now)
+local function landingSpots(transportID, passengers, padX, padZ)
+	local tx, _, tz = spGetUnitPosition(transportID)
+	local spots = {}
+	if not tx then
+		return spots
+	end
+	local nowHeading = (spGetUnitHeading(transportID) or 0) * HEADING_TO_RAD
+	local dx, dz = padX - tx, padZ - tz
+	local arriveHeading = (dx * dx + dz * dz > 64 * 64) and mathAtan2(dx, dz) or nowHeading
+	local sa, ca = mathSin(nowHeading), mathCos(nowHeading)
+	local sb, cb = mathSin(arriveHeading), mathCos(arriveHeading)
+	for i = 1, #passengers do
+		local passengerID = passengers[i]
+		local defID = spGetUnitDefID(passengerID)
+		local px, _, pz = spGetUnitPosition(passengerID)
+		if defID and px then
+			local ox, oz = px - tx, pz - tz
+			local fwd, side = ox * sa + oz * ca, ox * ca - oz * sa
+			local x, z = padX + fwd * sb + side * cb, padZ + fwd * cb - side * sb
+			local rot = (spGetUnitHeading(passengerID) or 0) * HEADING_TO_RAD - nowHeading + arriveHeading
+			local y = mathMax(spGetGroundHeight(x, z), 0)
+			if isImmobile[defID] then
+				x, y, z = spPos2BuildPos(defID, x, y, z)
+				rot = mathFloor(rot / HALF_PI + 0.5) * HALF_PI
+			end
+			spots[#spots + 1] = { defID, x, y, z, rot }
+		end
+	end
+	return spots
+end
+
 local function makePlan(cx, cz, shift)
 	local chosen = chooseTransports(cx, cz, shift)
 	if not chosen then
@@ -299,8 +347,9 @@ local function makePlan(cx, cz, shift)
 		local x, y, z
 		x, y, z, budget = findPadSpot(e.padDefID, cx, cz, reserved, budget)
 		if x then
-			local ghostDefID = e.passengerID and spGetUnitDefID(e.passengerID) or e.padDefID
-			newPlan.pads[#newPlan.pads + 1] = { e.unitID, e.padDefID, x, y, z, e.passengerID, ghostDefID }
+			local cargo = e.passengerID and { e.passengerID } or spGetUnitIsTransporting(e.unitID) or {}
+			local spots = landingSpots(e.unitID, cargo, x, z)
+			newPlan.pads[#newPlan.pads + 1] = { e.unitID, e.padDefID, x, y, z, e.passengerID, spots }
 			reserved[#reserved + 1] = { x, z, defHalfX[e.padDefID], defHalfZ[e.padDefID] }
 		else
 			newPlan.failed[#newPlan.failed + 1] = e
@@ -313,40 +362,45 @@ local function clearGhosts()
 	if not WG.StopDrawUnitShapeGL4 then
 		return
 	end
-	for i, g in pairs(ghosts) do
-		WG.StopDrawUnitShapeGL4(g.id)
+	for i = #ghosts, 1, -1 do
+		if ghosts[i].id then
+			WG.StopDrawUnitShapeGL4(ghosts[i].id)
+		end
 		ghosts[i] = nil
 	end
 end
 
--- pad models where the cargo lands (the unit itself for a single drop); the outlines in DrawWorld carry it
--- when DrawUnitShape GL4 is off
+-- the cargo as ghosts where it lands; the brackets in DrawWorld carry the preview when DrawUnitShape GL4 is off
 local function syncGhosts()
 	if not WG.DrawUnitShapeGL4 then
 		return
 	end
 	local pads = plan and plan.pads or {}
 	local myTeam = spGetMyTeamID()
+	local n = 0
 	for i = 1, #pads do
-		local p = pads[i]
-		local g = ghosts[i]
-		if not g or g.defID ~= p[7] or g.x ~= p[3] or g.z ~= p[5] then
-			if g then
-				WG.StopDrawUnitShapeGL4(g.id)
+		local spots = pads[i][7]
+		for j = 1, #spots do
+			local s = spots[j]
+			n = n + 1
+			local g = ghosts[n]
+			if g and g.defID ~= s[1] then
+				if g.id then
+					WG.StopDrawUnitShapeGL4(g.id)
+				end
+				g = nil
 			end
-			ghosts[i] = {
-				id = WG.DrawUnitShapeGL4(p[7], p[3], p[4], p[5], 0, 0.55, myTeam, 0.15, 0.3),
-				defID = p[7],
-				x = p[3],
-				z = p[5],
-			}
+			if not g or g.x ~= s[2] or g.z ~= s[4] or g.rot ~= s[5] then
+				local id = WG.DrawUnitShapeGL4(s[1], s[2], s[3], s[4], s[5], GHOST_ALPHA, myTeam, nil, nil, g and g.id)
+				ghosts[n] = { id = id, defID = s[1], x = s[2], z = s[4], rot = s[5] }
+			end
 		end
 	end
-	for i, g in pairs(ghosts) do
-		if i > #pads then
-			WG.StopDrawUnitShapeGL4(g.id)
-			ghosts[i] = nil
+	for i = #ghosts, n + 1, -1 do
+		if ghosts[i].id then
+			WG.StopDrawUnitShapeGL4(ghosts[i].id)
 		end
+		ghosts[i] = nil
 	end
 end
 
@@ -433,9 +487,15 @@ function widget:Initialize()
 				return drop[1], drop[2]
 			end
 		end,
-		-- the pads shown right now: { {transportID, padDefID, x, y, z, passengerID} }
+		-- the drops shown right now: { {transportID, padDefID, x, y, z, passengerID, spots} },
+		-- spots = { {unitDefID, x, y, z, rotation} } where each passenger lands
 		GetPads = function()
 			return plan and plan.pads
+		end,
+		-- the drops an unload of the selection at x, z would get
+		PreviewAt = function(x, z, shift)
+			local p = makePlan(x, z, shift)
+			return p and p.pads
 		end,
 	}
 end
@@ -579,23 +639,46 @@ local function groundY(x, z)
 	return mathMax(spGetGroundHeight(x, z), 0) + 2
 end
 
-local function padOutline(padDefID, x, z)
-	local hx, hz = defHalfX[padDefID], defHalfZ[padDefID]
-	local step = BUILD_SQUARE
-	gl.BeginEnd(GL.LINE_LOOP, function()
-		for px = x - hx, x + hx - 1, step do
-			gl.Vertex(px, groundY(px, z - hz), z - hz)
+-- corner brackets of a drop zone, following the ground
+local function bracketVertices(x, z, hx, hz)
+	local lx, lz = hx * 0.4, hz * 0.4
+	for sx = -1, 1, 2 do
+		for sz = -1, 1, 2 do
+			local cx, cz = x + sx * hx, z + sz * hz
+			local cy = groundY(cx, cz)
+			gl.Vertex(cx - sx * lx, groundY(cx - sx * lx, cz), cz)
+			gl.Vertex(cx, cy, cz)
+			gl.Vertex(cx, cy, cz)
+			gl.Vertex(cx, groundY(cx, cz - sz * lz), cz - sz * lz)
 		end
-		for pz = z - hz, z + hz - 1, step do
-			gl.Vertex(x + hx, groundY(x + hx, pz), pz)
-		end
-		for px = x + hx, x - hx + 1, -step do
-			gl.Vertex(px, groundY(px, z + hz), z + hz)
-		end
-		for pz = z + hz, z - hz + 1, -step do
-			gl.Vertex(x - hx, groundY(x - hx, pz), pz)
-		end
-	end)
+	end
+end
+
+local function dashVertices(x1, y1, z1, x2, y2, z2)
+	local dx, dy, dz = x2 - x1, y2 - y1, z2 - z1
+	local len = mathSqrt(dx * dx + dy * dy + dz * dz)
+	if len < 1 then
+		return
+	end
+	for d = 0, len, DASH_PERIOD do
+		local t1, t2 = d / len, mathMin(d + DASH, len) / len
+		gl.Vertex(x1 + dx * t1, y1 + dy * t1, z1 + dz * t1)
+		gl.Vertex(x1 + dx * t2, y1 + dy * t2, z1 + dz * t2)
+	end
+end
+
+-- amber like the unload command's queue lines, over a soft dark line that keeps it readable on light ground
+local function drawLines(fn, width, alpha, ...)
+	gl.LineWidth(width + 2)
+	gl.Color(0, 0, 0, alpha * 0.3)
+	gl.BeginEnd(GL.LINES, fn, ...)
+	gl.LineWidth(width)
+	gl.Color(UNLOAD_R, UNLOAD_G, UNLOAD_B, alpha)
+	gl.BeginEnd(GL.LINES, fn, ...)
+end
+
+local function drawBrackets(padDefID, x, z, width, alpha)
+	drawLines(bracketVertices, width, alpha, x, z, defHalfX[padDefID], defHalfZ[padDefID])
 end
 
 function widget:DrawWorld()
@@ -604,42 +687,48 @@ function widget:DrawWorld()
 	end
 	gl.DepthTest(false)
 
-	-- unloads already queued: thin and grey, so the new drop reads apart from them
-	gl.LineWidth(1.5)
-	gl.Color(0.8, 0.8, 0.8, 0.45)
+	-- unloads already queued: faint, so the new drop reads apart from them
 	for i = 1, #queuedPads do
 		local q = queuedPads[i]
-		padOutline(q[1], q[2], q[4])
+		drawBrackets(q[1], q[2], q[4], 1.5, 0.3)
 	end
 
 	if plan then
-		gl.LineWidth(2.5)
-		gl.Color(0.35, 1, 0.45, 0.8)
 		for i = 1, #plan.pads do
 			local p = plan.pads[i]
-			padOutline(p[2], p[3], p[5])
+			drawBrackets(p[2], p[3], p[5], 2, 0.85)
+			-- which transport drops here
+			local tx, ty, tz = spGetUnitPosition(p[1])
+			if tx then
+				drawLines(dashVertices, 1.5, 0.4, tx, ty, tz, p[3], groundY(p[3], p[5]), p[5])
+			end
 		end
 
-		-- the nearest pad had to move off the cursor: show where to
+		-- the nearest drop had to move off the cursor: show where to
 		local first = plan.pads[1]
 		if
 			first
 			and (mathAbs(first[3] - plan.cx) > defHalfX[first[2]] or mathAbs(first[5] - plan.cz) > defHalfZ[first[2]])
 		then
-			gl.LineWidth(2)
-			gl.Color(1, 1, 0, 0.45)
-			gl.BeginEnd(GL.LINES, function()
-				gl.Vertex(plan.cx, groundY(plan.cx, plan.cz), plan.cz)
-				gl.Vertex(first[3], groundY(first[3], first[5]), first[5])
-			end)
+			drawLines(
+				dashVertices,
+				1.5,
+				0.6,
+				plan.cx,
+				groundY(plan.cx, plan.cz),
+				plan.cz,
+				first[3],
+				groundY(first[3], first[5]),
+				first[5]
+			)
 		end
 
 		-- some transports found no spot within reach: a cross on the cursor
 		if #plan.failed > 0 then
-			local s = 24
+			local s = 20
 			local y = groundY(plan.cx, plan.cz)
-			gl.LineWidth(3)
-			gl.Color(1, 0.3, 0.2, 0.9)
+			gl.LineWidth(2.5)
+			gl.Color(1, 0.25, 0.2, 0.9)
 			gl.BeginEnd(GL.LINES, function()
 				gl.Vertex(plan.cx - s, y, plan.cz - s)
 				gl.Vertex(plan.cx + s, y, plan.cz + s)

@@ -89,13 +89,12 @@ local function drawTractorRanges()
 		return
 	end
 	for i = 1, #pads do
-		local pad = pads[i]
-		local passengers = pad[6] and { pad[6] } or Spring.GetUnitIsTransporting(pad[1]) or {}
-		for j = 1, #passengers do
-			local unitDefID = Spring.GetUnitDefID(passengers[j])
-			if unitDefID and isTransportableBuilding[unitDefID] and turretRange[unitDefID] then
+		local spots = pads[i][7] -- { unitDefID, x, y, z, rotation } where each passenger lands
+		for j = 1, #spots do
+			local unitDefID = spots[j][1]
+			if isTransportableBuilding[unitDefID] and turretRange[unitDefID] then
 				color = isTurret[unitDefID] and colors.turret or colors.tower
-				DrawNanoRange(pad[3], pad[4], pad[5], turretRange[unitDefID])
+				DrawNanoRange(spots[j][2], spots[j][3], spots[j][4], turretRange[unitDefID])
 			end
 		end
 	end
