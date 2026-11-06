@@ -131,7 +131,7 @@ function widget:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	if scanCode and passedOnPress[scanCode] then
 		passedOnPress[scanCode] = nil
 		-- The handler offers a release to the text owner and again in its list: without this the
-		-- second offer swallowed it and held camera actions (Alt moverotate) stuck on.
+		-- second offer swallows it and held camera actions (Alt moverotate) stay stuck on.
 		if widgetHandler.textOwner == widget then
 			widgetHandler.textOwner = nil
 		end
