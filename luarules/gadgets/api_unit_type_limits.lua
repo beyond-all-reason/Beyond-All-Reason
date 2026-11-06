@@ -12,11 +12,8 @@ function gadget:GetInfo()
 	}
 end
 
--- Units of a capped type count for the team that has them now, finished or under construction.
--- At the cap the type is blocked through GG.BuildBlocking (greyed out, new orders refused), a
--- new one is refused and a resurrection of one stops; it comes back when one is destroyed or
--- given away. Units the game spawns, gives or captures are counted, never refused. Nothing is
--- counted until a mission caps a type.
+-- Finished units and frames count for the team that has them. At the cap the type is blocked and
+-- new ones refused; spawned, given and captured units are counted, never refused.
 
 if gadgetHandler:IsSyncedCode() then
 	local REASON = "mission_limit"

@@ -1,11 +1,5 @@
----
---- Unit type limit test mission.
----
---- SetUnitTypeLimit caps how many units of a type a team may have at once, finished or under
---- construction. Queue three Light Laser Towers with the construction bot: the option greys out
---- at two and the third is refused; a second bot can still help build a placed tower. Destroy
---- one tower and the option comes back. At 60 s RemoveUnitTypeLimit takes the cap away.
----
+--- Unit type limit test: at most 2 Light Laser Towers. The third is refused, a second bot can
+--- still assist, destroying one frees a slot, and the cap goes at 60 s.
 
 local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
 local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
