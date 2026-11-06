@@ -327,6 +327,7 @@ local unitOrderTable = {
     corakt4        = 007310,
     leggobt3       = 007315,
 	armsptkt4      = 007320,
+	armscorp      = 007321,
 	cordemon     = 007330,
 	corkarganetht4 = 007340,
 	corthermite = 007341,

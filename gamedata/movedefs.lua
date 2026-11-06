@@ -500,7 +500,7 @@ local moveDatas = {
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedModClass = SPEED_CLASS.Ship,
 	},
-	-- armvadert4 armsptkt4 corkargenetht4
+	-- armvadert4 armsptkt4 armscorp corkargenetht4
 	EPICALLTERRAIN = {
 		crushstrength = CRUSH.MASSIVE,
 		depthMod = 0,
