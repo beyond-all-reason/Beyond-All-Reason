@@ -493,6 +493,44 @@ function BlueprintSubLogic.processBlueprintSubstitution(originalBlueprint, targe
 	return { stats = aggregatedStats, summaryMessage = summaryMsg, substitutionFailed = subFailed }
 end
 
+function BlueprintSubLogic.removeOverlappingBuildQueueItems(buildQueue, doBuildingsClash)
+	local keptItems = {}
+	local removedCount = 0
+
+	for _, buildQueueItem in ipairs(buildQueue) do
+		local overlaps = false
+
+		if type(buildQueueItem) == "table" and buildQueueItem[1] and buildQueueItem[1] > 0 then
+			for _, keptItem in ipairs(keptItems) do
+				if
+					type(keptItem) == "table"
+					and keptItem[1]
+					and keptItem[1] > 0
+					and doBuildingsClash(buildQueueItem, keptItem)
+				then
+					overlaps = true
+					break
+				end
+			end
+		end
+
+		if overlaps then
+			removedCount = removedCount + 1
+		else
+			keptItems[#keptItems + 1] = buildQueueItem
+		end
+	end
+
+	for i = #buildQueue, 1, -1 do
+		buildQueue[i] = nil
+	end
+	for i = 1, #keptItems do
+		buildQueue[i] = keptItems[i]
+	end
+
+	return removedCount
+end
+
 function BlueprintSubLogic.processBuildQueueSubstitution(originalBuildQueue, sourceSide, targetSide)
 	if not (originalBuildQueue and sourceSide and targetSide) then
 		Spring.Log(
