@@ -75,12 +75,6 @@ local function loadQueue(coop)
 		GetGroundHeight = function()
 			return 10
 		end,
-		AddTeamUnitStats = function(team, produced, died)
-			local current = stats(team)
-			current.unitsProduced = current.unitsProduced + produced
-			current.unitsDied = current.unitsDied + died
-			assert.is_true(current.unitsProduced >= 0 and current.unitsDied >= 0)
-		end,
 		GetTeamStatsHistory = function(team, first, last)
 			if not first then
 				return 1
@@ -91,7 +85,10 @@ local function loadQueue(coop)
 		GetTeamRulesParam = function(team, key)
 			return rules[team .. key] or (key == "startUnit" and 1 or nil)
 		end,
-		SetTeamRulesParam = function(team, key, value)
+		SetTeamRulesParam = function(team, key, value, visibility)
+			if key:find("^pregameUnits") then
+				assert.is_true(visibility.public)
+			end
 			rules[team .. key] = value
 		end,
 		GetUnitDefID = function(id)
@@ -196,6 +193,8 @@ local function loadQueue(coop)
 	}
 	setfenv(assert(loadfile("luarules/gadgets/game_pregame_queue.lua")), env)()
 	env.gadget:Initialize()
+	env.rawHistory = env.Spring.GetTeamStatsHistory
+	setfenv(assert(loadfile("luaui/Include/pregame_stats.lua")), env)()
 	return env, units, rules, orders, destroyed, players, storage
 end
 
@@ -530,6 +529,7 @@ describe("Pregame statistics corrections", function()
 	it("excludes repeated faction previews but counts the real commander and later losses", function()
 		local env, units, rules = loadQueue(false)
 		local history = env.Spring.GetTeamStatsHistory
+		assert.equal(1, env.rawHistory(0, 1)[1].unitsProduced)
 		for _, def in ipairs({ 2, 1, 2 }) do
 			rules["0startUnit"] = def
 			env.gadget:RecvLuaMsg("pregameQueueRefresh", 0)

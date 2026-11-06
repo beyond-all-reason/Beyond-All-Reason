@@ -90,6 +90,13 @@ local function restoreQueue(queue, target)
 	end
 end
 
+-- All proxy changes finish before the first team-statistics snapshot (frame 0).
+-- The same offsets therefore apply to every history entry, including after a
+-- LuaUI reload. Publish them for spectators and post-game replay extractors too.
+local function adjustStats(teamID, key)
+	Spring.SetTeamRulesParam(teamID, key, (Spring.GetTeamRulesParam(teamID, key) or 0) - 1, { public = true })
+end
+
 local function removeProxy(key)
 	local unitID = proxies[key]
 	if not unitID then
@@ -105,7 +112,7 @@ local function removeProxy(key)
 	local teamID = Spring.GetUnitTeam(unitID)
 	-- All callers run outside unit updates; finish removal before stats snapshots.
 	Spring.DestroyUnit(unitID, false, true, nil, true)
-	Spring.AddTeamUnitStats(teamID, 0, -1)
+	adjustStats(teamID, "pregameUnitsDied")
 end
 
 -- Called from the normal and coop spawners, outside the engine's unit update loop.
@@ -180,7 +187,7 @@ local function refresh(playerID)
 	if not replacement then
 		return
 	end
-	Spring.AddTeamUnitStats(teamID, -1, 0)
+	adjustStats(teamID, "pregameUnitsProduced")
 	-- GameStart resets team storage; removing the proxy must not subtract it again.
 	Spring.SetUnitStorage(replacement, { metal = 0, energy = 0 })
 	Spring.SetUnitRulesParam(replacement, "pregame_proxy", 1, { public = true })
