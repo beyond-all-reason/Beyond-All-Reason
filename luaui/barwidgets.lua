@@ -2339,6 +2339,9 @@ local function forgetWidgetRegistrations(handler, widget)
 	if handler.textOwner == widget then
 		handler.textOwner = nil
 	end
+	if handler.mouseOwner == widget then
+		handler.mouseOwner = nil
+	end
 	forgetModalWidget(widget)
 	forgetHidingWidget(handler, widget)
 	forgetPausingWidget(handler, widget)
