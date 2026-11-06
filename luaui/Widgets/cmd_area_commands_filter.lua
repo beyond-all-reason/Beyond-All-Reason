@@ -111,12 +111,28 @@ end
 
 local canAttack, canCapture, canReclaim = {}, {}, {}
 local canGuard, canRepair, canResurrect = {}, {}, {}
+local canSetTarget = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	canAttack[unitDefID] = unitDef.canAttack and unitDef.maxWeaponRange > 0 or nil
+	-- TODO: can_set_target seems like a good customparam to verify at alldefs.
+	if (unitDef.canAttack or unitDef.customParams.allow_set_target) and unitDef.maxWeaponRange > 0 then
+		for _, weapon in pairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef] ---@as table
+			if
+				weapon.slavedTo == 0
+				and weaponDef.type ~= "Shield"
+				and not (unitDef.canManualFire and weaponDef.manualFire)
+				and weaponDef.range > 10
+			then
+				canSetTarget[unitDefID] = true
+				break
+			end
+		end
+	end
 	canCapture[unitDefID] = unitDef.canCapture or nil
 	canGuard[unitDefID] = unitDef.canGuard or nil
-	canRepair[unitDefID] = unitDef.canRepair or unitDef.canAssist or nil -- assist without repair is nanoframes only, decided per target
+	canRepair[unitDefID] = not unitDef.isFactory and (unitDef.canRepair or unitDef.canAssist) or nil
 	canReclaim[unitDefID] = unitDef.canReclaim or nil
 	canResurrect[unitDefID] = unitDef.canResurrect or nil
 end
@@ -432,8 +448,8 @@ local allowedCommands = {
 	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, canAttack),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS, canCapture),
 	-- Set Target does not move the unit, so its split has no distance to shorten:
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, canAttack, nil, splitRoundRobin),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, canAttack, nil, splitRoundRobin),
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, canSetTarget, nil, splitRoundRobin),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, canSetTarget, nil, splitRoundRobin),
 	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS, canGuard),
 	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS, canRepair),
 	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS, canReclaim),

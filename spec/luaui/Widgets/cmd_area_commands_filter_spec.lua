@@ -20,7 +20,15 @@ describe("Area Command Filter drag origin", function()
 					return VFS.Include(path, env, mode)
 				end,
 			},
-			UnitDefs = { [3] = { canAttack = true, maxWeaponRange = 100 } },
+			UnitDefs = {
+				[3] = {
+					canAttack = true,
+					maxWeaponRange = 100,
+					customParams = {},
+					weapons = { { weaponDef = 1, slavedTo = 0 } },
+				},
+			},
+			WeaponDefs = { [1] = { type = "Cannon", range = 100 } },
 			Game = { maxUnits = 32000 },
 			CMD = { ATTACK = 20, CAPTURE = 21, GUARD = 25, REPAIR = 40, RECLAIM = 90, LOAD_UNITS = 75, RESURRECT = 125 },
 			GameCMD = { UNIT_SET_TARGET = 34923, UNIT_SET_TARGET_NO_GROUND = 34924 },
