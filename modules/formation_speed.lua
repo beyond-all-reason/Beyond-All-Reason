@@ -5,11 +5,14 @@
 
 local Formation = require("modules/formation_math")
 
+-- The unit attributes controller's source for the paced speed.
+local SOURCE = "formation"
+
 -- In elmos. How far a queued order's position may be from a unit's spot and still be its formation order.
 local SAME_POSITION = 1
 
 -- In elmos per second. A wanted speed further than this from ours was set by a player's move, a guard or a script:
--- leave it alone.
+-- the unit is let go.
 local SAME_SPEED = 0.01
 
 -- In elmos, more than most units walk between two updates: a PATROL never leaves the queue, so arrival is checked by
@@ -18,8 +21,6 @@ local ARRIVED_DISTANCE = 64
 
 local groups = {}
 local groupOf = {}
--- Units let go under MoveCtrl get their speed back once it ends.
-local pending = {}
 
 local function getGroundMoveData(unitID)
 	local data = Spring.GetUnitMoveTypeData(unitID)
@@ -32,36 +33,12 @@ local function isOwnSpeed(data, speed)
 	return math.abs(data.maxWantedSpeed - speed) < SAME_SPEED
 end
 
--- False under MoveCtrl, to retry later.
-local function restoreSpeed(unitID, speed)
-	if Spring.GetUnitIsDead(unitID) ~= false then
-		return true
-	end
-	local data = getGroundMoveData(unitID)
-	if not data then
-		return false
-	end
-	if isOwnSpeed(data, speed) then
-		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, { maxWantedSpeed = data.maxSpeed })
-	end
-	return true
-end
-
+-- The controller gives the unit its own speed back, waiting out MoveCtrl itself.
 local function release(member)
 	groupOf[member.unitID] = nil
-	if not restoreSpeed(member.unitID, member.speed) then
-		pending[#pending + 1] = { unitID = member.unitID, speed = member.speed }
+	if Spring.GetUnitIsDead(member.unitID) == false then
+		GG.UnitAttributes.SetUnitAttribute(member.unitID, "maxWantedSpeed", nil, SOURCE)
 	end
-end
-
-local function retryPending()
-	local waiting = {}
-	for _, entry in ipairs(pending) do
-		if not groupOf[entry.unitID] and not restoreSpeed(entry.unitID, entry.speed) then
-			waiting[#waiting + 1] = entry
-		end
-	end
-	pending = waiting
 end
 
 -- The whole queue, as an ATTACK can be pushed in front of a FIGHT.
@@ -117,7 +94,7 @@ local function pace(group)
 	end
 	local speeds = Formation.ArrivalSpeeds(ways, slowest)
 	for i, member in ipairs(group.members) do
-		Spring.MoveCtrl.SetGroundMoveTypeData(member.unitID, { maxWantedSpeed = speeds[i] })
+		GG.UnitAttributes.SetUnitAttribute(member.unitID, "maxWantedSpeed", speeds[i], SOURCE)
 		member.speed = speeds[i]
 	end
 end
@@ -149,8 +126,6 @@ local function match(units, targets, command)
 end
 
 local function update()
-	retryPending()
-
 	local remaining = {}
 	for _, group in ipairs(groups) do
 		local members = {}
@@ -179,7 +154,7 @@ local function update()
 end
 
 local function isActive()
-	return #groups > 0 or #pending > 0
+	return #groups > 0
 end
 
 return {

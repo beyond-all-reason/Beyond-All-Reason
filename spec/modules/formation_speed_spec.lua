@@ -40,10 +40,15 @@ describe("modules.formation_speed", function()
 					return command.id, 0, 0, 99
 				end
 			end,
-			MoveCtrl = {
-				SetGroundMoveTypeData = function(unitID, data)
-					speedsSet[unitID] = data.maxWantedSpeed
-					units[unitID].wanted = data.maxWantedSpeed
+		}
+		-- As the controller does: a value sets the wanted speed, nil gives the unit its own back.
+		_G.GG = { ---@diagnostic disable-line: global-in-non-module
+			UnitAttributes = {
+				SetUnitAttribute = function(unitID, attribute, value, source)
+					assert.are.equal("maxWantedSpeed", attribute)
+					assert.are.equal("formation", source)
+					units[unitID].wanted = value
+					speedsSet[unitID] = value or units[unitID].maxSpeed
 				end,
 			},
 		}
@@ -159,14 +164,13 @@ describe("modules.formation_speed", function()
 		assert.is_true(near(90, speedsSet[2]))
 	end)
 
-	it("leaves a wanted speed alone that something else has set since", function()
+	it("lets go of a unit whose wanted speed something else has set since", function()
 		matchPair()
 		units[2].wanted = 45
-		speedsSet = {}
 		FormationSpeed.Update()
-		assert.is_nil(speedsSet[2])
-		assert.are.equal(45, units[2].wanted)
+		assert.is_true(near(90, speedsSet[2]))
 		assert.is_true(near(60, speedsSet[1]), "the lone unit left gets its top speed back")
+		assert.is_false(FormationSpeed.IsActive())
 	end)
 
 	it("keeps pacing a FIGHT with an attack pushed in front of it", function()
@@ -271,16 +275,10 @@ describe("modules.formation_speed", function()
 		assert.is_true(FormationSpeed.IsActive())
 	end)
 
-	it("gives a unit under MoveCtrl its top speed back once MoveCtrl ends", function()
+	it("hands a unit under MoveCtrl back to the controller, which waits it out", function()
 		matchPair()
 		units[2].moveType = "script"
 		units[2].queue = {}
-		speedsSet = {}
-		FormationSpeed.Update()
-		assert.is_nil(speedsSet[2])
-		assert.is_true(FormationSpeed.IsActive())
-
-		units[2].moveType = nil
 		FormationSpeed.Update()
 		assert.is_true(near(90, speedsSet[2]))
 		assert.is_false(FormationSpeed.IsActive())
