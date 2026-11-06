@@ -105,10 +105,12 @@ do
 	end)
 end
 
-local plan -- { cx, cz, scx, scz, shift, frame, pads = { {unitID, padDefID, x, y, z} }, failed = { unitID } }
-local ghosts = {} -- pad index -> { id, padDefID, x, z }
+local plan -- { cx, cz, scx, scz, shift, frame, pads = { {unitID, padDefID, x, y, z, passengerID, ghostDefID} }, failed = { entry } }
+local ghosts = {} -- pad index -> { id, defID, x, z }
 local queuedPads = {} -- { padDefID, x, y, z } of unloads the selection already has queued
 local press -- a click being tracked, see MousePress
+local drop -- { transportID, passengerID }: one unit picked in the info panel, placed with the unload command
+local dropPlaced
 
 local function isTractorTransport(unitID)
 	local seats = spGetUnitRulesParam(unitID, "transporterSeats")
@@ -218,7 +220,24 @@ local function collectQueuedPads(transports)
 	return pads
 end
 
-local function makePlan(cx, cz, shift)
+local function isCarrying(transportID, passengerID)
+	local carried = spGetUnitIsTransporting(transportID)
+	if carried then
+		for i = 1, #carried do
+			if carried[i] == passengerID then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local function chooseTransports(cx, cz, shift)
+	if drop then
+		local padDefID = TransportAPI.GetUnloadPadType(drop[1], drop[2])
+		return padDefID and { { unitID = drop[1], padDefID = padDefID, passengerID = drop[2] } }
+	end
+
 	local transports = getTransports(spGetSelectedUnits())
 	if #transports == 0 then
 		return nil
@@ -256,6 +275,14 @@ local function makePlan(cx, cz, shift)
 		end
 		return a.dist < b.dist
 	end)
+	return chosen
+end
+
+local function makePlan(cx, cz, shift)
+	local chosen = chooseTransports(cx, cz, shift)
+	if not chosen then
+		return nil
+	end
 
 	local reserved = {}
 	if shift then
@@ -272,10 +299,11 @@ local function makePlan(cx, cz, shift)
 		local x, y, z
 		x, y, z, budget = findPadSpot(e.padDefID, cx, cz, reserved, budget)
 		if x then
-			newPlan.pads[#newPlan.pads + 1] = { e.unitID, e.padDefID, x, y, z }
+			local ghostDefID = e.passengerID and spGetUnitDefID(e.passengerID) or e.padDefID
+			newPlan.pads[#newPlan.pads + 1] = { e.unitID, e.padDefID, x, y, z, e.passengerID, ghostDefID }
 			reserved[#reserved + 1] = { x, z, defHalfX[e.padDefID], defHalfZ[e.padDefID] }
 		else
-			newPlan.failed[#newPlan.failed + 1] = e.unitID
+			newPlan.failed[#newPlan.failed + 1] = e
 		end
 	end
 	return newPlan
@@ -291,7 +319,8 @@ local function clearGhosts()
 	end
 end
 
--- pad models where the cargo lands; the outlines in DrawWorld carry it when DrawUnitShape GL4 is off
+-- pad models where the cargo lands (the unit itself for a single drop); the outlines in DrawWorld carry it
+-- when DrawUnitShape GL4 is off
 local function syncGhosts()
 	if not WG.DrawUnitShapeGL4 then
 		return
@@ -301,13 +330,13 @@ local function syncGhosts()
 	for i = 1, #pads do
 		local p = pads[i]
 		local g = ghosts[i]
-		if not g or g.padDefID ~= p[2] or g.x ~= p[3] or g.z ~= p[5] then
+		if not g or g.defID ~= p[7] or g.x ~= p[3] or g.z ~= p[5] then
 			if g then
 				WG.StopDrawUnitShapeGL4(g.id)
 			end
 			ghosts[i] = {
-				id = WG.DrawUnitShapeGL4(p[2], p[3], p[4], p[5], 0, 0.55, myTeam, 0.15, 0.3),
-				padDefID = p[2],
+				id = WG.DrawUnitShapeGL4(p[7], p[3], p[4], p[5], 0, 0.55, myTeam, 0.15, 0.3),
+				defID = p[7],
 				x = p[3],
 				z = p[5],
 			}
@@ -353,12 +382,41 @@ end
 local function issuePlan(p, options)
 	for i = 1, #p.pads do
 		local pad = p.pads[i]
-		spGiveOrderToUnit(pad[1], CMD_UNLOAD_UNIT, { pad[3], pad[4], pad[5] }, options)
+		spGiveOrderToUnit(pad[1], CMD_UNLOAD_UNIT, { pad[3], pad[4], pad[5], pad[6] }, options)
 	end
 	-- no free spot found here: hand the raw point to the gadget, which searches with everything it knows
 	for i = 1, #p.failed do
-		spGiveOrderToUnit(p.failed[i], CMD_UNLOAD_UNIT, { p.cx, spGetGroundHeight(p.cx, p.cz), p.cz }, options)
+		local e = p.failed[i]
+		spGiveOrderToUnit(
+			e.unitID,
+			CMD_UNLOAD_UNIT,
+			{ p.cx, spGetGroundHeight(p.cx, p.cz), p.cz, e.passengerID },
+			options
+		)
 	end
+	if drop then
+		drop = nil
+		dropPlaced = true
+	end
+end
+
+-- the info panel's cargo icons: arm the unload command for one passenger of the selected transport
+local function dropUnit(transportID, passengerID)
+	local selected = spGetSelectedUnits()
+	if #selected ~= 1 or selected[1] ~= transportID or not isTractorTransport(transportID) then
+		return false
+	end
+	if not isCarrying(transportID, passengerID) then
+		return false
+	end
+	-- transports carry the area unload button only; its click comes back here as a point
+	local index = Spring.GetCmdDescIndex(CMD_UNLOAD_UNITS)
+	if not index or not Spring.SetActiveCommand(index) then
+		return false
+	end
+	drop = { transportID, passengerID }
+	plan = nil
+	return true
 end
 
 function widget:Initialize()
@@ -366,15 +424,26 @@ function widget:Initialize()
 	if not TransportAPI or not TransportAPI.GetExpectedCargo then
 		Spring.Echo("Unload Snap and Preview: needs the Transport Handler API, removing")
 		widgetHandler:RemoveWidget()
+		return
 	end
+	WG.UnloadSnap = {
+		DropUnit = dropUnit,
+		GetDrop = function()
+			if drop then
+				return drop[1], drop[2]
+			end
+		end,
+	}
 end
 
 function widget:Shutdown()
 	clearGhosts()
+	WG.UnloadSnap = nil
 end
 
 function widget:SelectionChanged()
 	plan = nil
+	drop = nil
 end
 
 local lastQueueScan = -math.huge
@@ -395,6 +464,18 @@ function widget:Update()
 	end
 
 	local mode = unloadMode()
+	-- a single drop is one click; a shift click would leave the unload armed for the whole cargo
+	if dropPlaced then
+		dropPlaced = nil
+		if mode == "active" then
+			Spring.SetActiveCommand(0)
+			mode = nil
+		end
+	end
+	if drop and (mode ~= "active" or not isCarrying(drop[1], drop[2])) then
+		drop = nil
+		plan = nil
+	end
 	if not mode then
 		plan = nil
 		queuedPads = {}
