@@ -1085,13 +1085,25 @@ end
 -- Note: this ends up functionning like CommandFallback as soon as dist to pos is < unitDef.loadingRadius
 -- Note2: i should be more careful as, unlike the tractor beam specific logic in CommandFallback,
 -- this here is shared with all non tractor beams transports to.
+-- a named unload of a building is placed like a build order: its own footprint, exactly on the spot
+local isImmobileDef = {}
+for defID, ud in pairs(UnitDefs) do
+	isImmobileDef[defID] = ud.speed == 0 or nil
+end
+local function buildingUnloadDefID(passengerID)
+	local passengerDefID = passengerID and spValidUnitID(passengerID) and spGetUnitDefID(passengerID)
+	return passengerDefID and isImmobileDef[passengerDefID] and passengerDefID or nil
+end
+
 function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transporterTeamID, passengerID, passengerDefID, passengerTeamID, goalX, goalY, goalZ)
 	if isUnderwater(passengerID, goalY) then return false end -- Commands are given with goalY = 0 anyways, so this should no fail unless some hackery happened
 	if not isAirTransport[transporterDefID] then return true end -- only handle air transports here
 
 
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
-	local unloadPadType = GetUnloadPadType(transporterID)
+	local Q = spGetUnitCommands(transporterID, 1)
+	local buildingDefID = Q and Q[1] and Q[1].id == CMD.UNLOAD_UNIT and buildingUnloadDefID(Q[1].params[4])
+	local unloadPadType = buildingDefID or GetUnloadPadType(transporterID)
 	local blocked = spTestBuildOrder(unloadPadType, goalX, goalY, goalZ, 0)
 	if blocked == 0 then
 		goalX, goalY, goalZ = spClosestBuildPos(transporterTeamID, unloadPadType, goalX, goalY, goalZ, 512, 0, 0)
@@ -1123,7 +1135,7 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 		end
 		local targets = GetUnloadTargets(transporterID, passengerID, goalX, goalY, goalZ)
 		for i = 1, #targets do
-			customTransportUnload[transporterDefID](transporterID, 'PerformUnload', targets[i], goalX, goalY, goalZ)
+			customTransportUnload[transporterDefID](transporterID, 'PerformUnload', targets[i], goalX, goalY, goalZ, buildingDefID ~= nil)
 		end
 		spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- Keep overriding engine's movegoal
 		spUnitFinishCommand(transporterID) -- consume the command
@@ -1193,7 +1205,8 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			end
 		end
 
-		local newPosX, newPosY, newPosZ = spClosestBuildPos(unitTeam, GetUnloadPadType(unitID, cmdParams[4], cmdOptions.shift), posX, posY, posZ, 512, 0, 0)
+		local snapDefID = buildingUnloadDefID(cmdParams[4]) or GetUnloadPadType(unitID, cmdParams[4], cmdOptions.shift)
+		local newPosX, newPosY, newPosZ = spClosestBuildPos(unitTeam, snapDefID, posX, posY, posZ, 512, 0, 0)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
 			reissueOrder(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions, cmdTag, fromInsert)

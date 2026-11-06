@@ -126,6 +126,7 @@ local queuedPads = {} -- { padDefID, x, y, z } of unloads the selection already 
 local press -- a click being tracked, see MousePress
 local drop -- { transportID, passengerID }: one unit picked in the info panel, placed with the unload command
 local dropPlaced
+local rearmDrop
 
 local function isTractorTransport(unitID)
 	local seats = spGetUnitRulesParam(unitID, "transporterSeats")
@@ -224,7 +225,10 @@ local function collectQueuedPads(transports)
 			for j = 1, #Q do
 				local cmd = Q[j]
 				if cmd.id == CMD_UNLOAD_UNIT then
-					local padDefID = TransportAPI.GetUnloadPadType(unitID, cmd.params[4], true)
+					-- a queued building takes its own footprint, everything else the unload pad
+					local buildingDefID = cmd.params[4] and spGetUnitDefID(cmd.params[4])
+					local padDefID = buildingDefID and isImmobile[buildingDefID] and buildingDefID
+						or TransportAPI.GetUnloadPadType(unitID, cmd.params[4], true)
 					if padDefID then
 						pads[#pads + 1] = { padDefID, cmd.params[1], cmd.params[2], cmd.params[3] }
 					end
@@ -326,7 +330,47 @@ local function landingSpots(transportID, passengers, padX, padZ)
 	return spots
 end
 
+-- one building to set down (picked in the info panel, or the only cargo of the only selected transport)
+local function buildingToPlace(shift)
+	if drop then
+		local defID = spGetUnitDefID(drop[2])
+		return defID and isImmobile[defID] and drop or nil
+	end
+	local transports = getTransports(spGetSelectedUnits())
+	if #transports ~= 1 then
+		return nil
+	end
+	local transportID = transports[1]
+	local carried = spGetUnitIsTransporting(transportID) or {}
+	if #carried ~= 1 or (keepsQueuedLoads(transportID, shift) and #TransportAPI.GetExpectedCargo(transportID) > 1) then
+		return nil
+	end
+	local defID = spGetUnitDefID(carried[1])
+	return defID and isImmobile[defID] and { transportID, carried[1] } or nil
+end
+
+-- a building goes down like a build order: on the grid at the cursor, its own footprint tested, nowhere else
+local function placementPlan(place, cx, cz, shift)
+	local defID = spGetUnitDefID(place[2])
+	local bx, by, bz = spPos2BuildPos(defID, cx, spGetGroundHeight(cx, cz), cz)
+	local status, featureID = spTestBuildOrder(defID, bx, by, bz, 0)
+	local rot = mathFloor((spGetUnitHeading(place[2]) or 0) * HEADING_TO_RAD / HALF_PI + 0.5) * HALF_PI
+	return {
+		cx = cx,
+		cz = cz,
+		shift = shift,
+		frame = spGetGameFrame(),
+		place = (status == FREE or status == MOBILE) and not featureID, -- units in the way get pushed aside
+		pads = { { place[1], defID, bx, by, bz, place[2], { { defID, bx, by, bz, rot } } } },
+		failed = {},
+	}
+end
+
 local function makePlan(cx, cz, shift)
+	local place = buildingToPlace(shift)
+	if place then
+		return placementPlan(place, cx, cz, shift)
+	end
 	local chosen = chooseTransports(cx, cz, shift)
 	if not chosen then
 		return nil
@@ -434,6 +478,9 @@ local function cursorGround(mx, my)
 end
 
 local function issuePlan(p, options)
+	if p.place == false then
+		return
+	end
 	for i = 1, #p.pads do
 		local pad = p.pads[i]
 		spGiveOrderToUnit(pad[1], CMD_UNLOAD_UNIT, { pad[3], pad[4], pad[5], pad[6] }, options)
@@ -536,6 +583,16 @@ function widget:Update()
 			mode = nil
 		end
 	end
+	-- a click on a blocked spot gives no order and leaves the single drop armed, like a build order would
+	if rearmDrop then
+		rearmDrop = nil
+		if drop and mode ~= "active" then
+			local index = Spring.GetCmdDescIndex(CMD_UNLOAD_UNITS)
+			if index and Spring.SetActiveCommand(index) then
+				mode = "active"
+			end
+		end
+	end
 	if drop and (mode ~= "active" or not isCarrying(drop[1], drop[2])) then
 		drop = nil
 		plan = nil
@@ -631,6 +688,10 @@ function widget:CommandNotify(cmdID, params, options)
 	if press then
 		press.notified = true
 	end
+	if p.place == false then
+		rearmDrop = drop ~= nil
+		return true
+	end
 	issuePlan(p, options.coded)
 	return true
 end
@@ -667,18 +728,57 @@ local function dashVertices(x1, y1, z1, x2, y2, z2)
 	end
 end
 
--- amber like the unload command's queue lines, over a soft dark line that keeps it readable on light ground
-local function drawLines(fn, width, alpha, ...)
+-- a building's footprint edge, following the ground
+local function footprintVertices(x, z, hx, hz)
+	local cornersX = { x - hx, x + hx, x + hx, x - hx }
+	local cornersZ = { z - hz, z - hz, z + hz, z + hz }
+	for i = 1, 4 do
+		local ax, az = cornersX[i], cornersZ[i]
+		local bx, bz = cornersX[i % 4 + 1], cornersZ[i % 4 + 1]
+		local steps = mathMax(1, mathFloor(mathMax(mathAbs(bx - ax), mathAbs(bz - az)) / 8))
+		for s = 0, steps - 1 do
+			local x1, z1 = ax + (bx - ax) * s / steps, az + (bz - az) * s / steps
+			local x2, z2 = ax + (bx - ax) * (s + 1) / steps, az + (bz - az) * (s + 1) / steps
+			gl.Vertex(x1, groundY(x1, z1), z1)
+			gl.Vertex(x2, groundY(x2, z2), z2)
+		end
+	end
+end
+
+-- over a soft dark line that keeps it readable on light ground
+local function drawLinesColored(fn, width, r, g, b, a, ...)
 	gl.LineWidth(width + 2)
-	gl.Color(0, 0, 0, alpha * 0.3)
+	gl.Color(0, 0, 0, a * 0.3)
 	gl.BeginEnd(GL.LINES, fn, ...)
 	gl.LineWidth(width)
-	gl.Color(UNLOAD_R, UNLOAD_G, UNLOAD_B, alpha)
+	gl.Color(r, g, b, a)
 	gl.BeginEnd(GL.LINES, fn, ...)
+end
+
+-- amber like the unload command's queue lines
+local function drawLines(fn, width, alpha, ...)
+	drawLinesColored(fn, width, UNLOAD_R, UNLOAD_G, UNLOAD_B, alpha, ...)
 end
 
 local function drawBrackets(padDefID, x, z, width, alpha)
 	drawLines(bracketVertices, width, alpha, x, z, defHalfX[padDefID], defHalfZ[padDefID])
+end
+
+-- a building placed like a build order: green where it can go, red where it cannot (blueprint colours)
+local function drawFootprint(defID, x, z, placeable)
+	local hx, hz = defHalfX[defID], defHalfZ[defID]
+	local r, g, b = 0.0, 1.0, 0.0
+	if not placeable then
+		r, g, b = 1.0, 0.0, 0.0
+	end
+	gl.Color(r, g, b, 0.12)
+	gl.BeginEnd(GL.QUADS, function()
+		gl.Vertex(x - hx, groundY(x - hx, z - hz), z - hz)
+		gl.Vertex(x + hx, groundY(x + hx, z - hz), z - hz)
+		gl.Vertex(x + hx, groundY(x + hx, z + hz), z + hz)
+		gl.Vertex(x - hx, groundY(x - hx, z + hz), z + hz)
+	end)
+	drawLinesColored(footprintVertices, 2, r, g, b, 0.9, x, z, hx, hz)
 end
 
 function widget:DrawWorld()
@@ -696,7 +796,11 @@ function widget:DrawWorld()
 	if plan then
 		for i = 1, #plan.pads do
 			local p = plan.pads[i]
-			drawBrackets(p[2], p[3], p[5], 2, 0.85)
+			if plan.place ~= nil then
+				drawFootprint(p[2], p[3], p[5], plan.place)
+			else
+				drawBrackets(p[2], p[3], p[5], 2, 0.85)
+			end
 			-- which transport drops here
 			local tx, ty, tz = spGetUnitPosition(p[1])
 			if tx then

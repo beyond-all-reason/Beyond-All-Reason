@@ -311,7 +311,7 @@ end
 -- @param goalPosY       number   world-space Y hint (actual Y is clamped to ground height)
 -- @param goalPosZ       number   world-space Z of the drop point
 -- @param doAnim         boolean  if false, detach in-place only  (default: true)
-function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, doAnim)
+function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, doAnim, exact)
 	if passengerData.unloading then return end
 	TransportAPI.DisablePassenger(passengerData.id)
 	passengerData.unloading = true
@@ -323,7 +323,9 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 		spSetUnitRulesParam(passengerData.id, "inUnloadAnim", 1, ALLIED_READ)
 		local slotPosX, slotPosY, slotPosZ = spGetUnitPiecePosDir(transporterID, passengerData.slotID)
 		local transporterPosX, _, transporterPosZ, startTransporterRotX, startTransporterRotY, startTransporterRotZ = getTransporterState()
-		goalPosX, goalPosZ = goalPosX + (slotPosX - transporterPosX), goalPosZ + (slotPosZ - transporterPosZ)
+		if not exact then
+			goalPosX, goalPosZ = goalPosX + (slotPosX - transporterPosX), goalPosZ + (slotPosZ - transporterPosZ)
+		end
 		goalPosY = math.max(0,spGetGroundHeight(goalPosX, goalPosZ))
 		local passengerDefID = spGetUnitDefID(passengerData.id)
 		local startRotX, startRotY, startRotZ = spGetUnitRotation(passengerData.id)
