@@ -1313,6 +1313,7 @@ local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, b
 local userCustomCommands = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
 -- Weak values. The proxy's closures hold references to the widget. In 5.1, this prevents collection.
 local widgetProxies = setmetatable({}, { __mode = "kv" }) ---@type table<table, table>
+local widgetActionProxies = setmetatable({}, { __mode = "kv" }) ---@type table<table, table>
 
 local function findPrivilegedCommand(list)
 	if type(list) ~= "table" then
@@ -1889,6 +1890,8 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		return self:Unpause(source)
 	end
 
+	widgetActionProxies[widget] = wh.actionHandler
+
 	if not fromZip then
 		-- Warnings are not repeated to avoid clogging the infolog. Error logs are repeated on purpose.
 		local warned = {}
@@ -2369,7 +2372,7 @@ local function retireProxy(widget)
 	end
 	local info = rawget(widget, "whInfo")
 	local name = tostring(info and info.name or "A widget")
-	local actions = rawget(wh, "actionHandler")
+	local actions = widgetActionProxies[widget]
 	local customCommands = rawget(wh, "customCommands")
 	for key in pairs(wh) do
 		wh[key] = nil
@@ -2381,11 +2384,11 @@ local function retireProxy(widget)
 		for key in pairs(actions) do
 			actions[key] = nil
 		end
-		setmetatable(actions, RetiredProxyMeta)
+		pcall(setmetatable, actions, RetiredProxyMeta)
 		retiredProxyNames[actions] = name
 		rawset(wh, "actionHandler", actions)
 	end
-	setmetatable(wh, RetiredProxyMeta)
+	pcall(setmetatable, wh, RetiredProxyMeta)
 	retiredProxyNames[wh] = name
 	rawset(widget, "widgetHandler", wh) -- takes back the real handler if LoadWidget granted it
 end
@@ -2411,10 +2414,10 @@ function widgetHandler:RemoveWidgetRaw(widget)
 	end
 	ArrayRemove(self.widgets, widget)
 	forgetWidgetRegistrations(self, widget)
-	retireProxy(widget)
 	for _, listname in ipairs(callInLists) do
 		ArrayRemove(self[listname .. "List"], widget)
 	end
+	retireProxy(widget)
 	self:UpdateCallIns()
 	self.widgetsRevision = self.widgetsRevision + 1
 end
@@ -3005,7 +3008,7 @@ end
 -- region) counts as not allowed, which is the wanted default.
 function widgetHandler:ModalAllows(widget)
 	if widget == nil then
-		return (not modalActive) and (not interfaceHidden)
+		return (not modalActive) and not interfaceHidden
 	end
 	return allowedWidget(widget)
 end
