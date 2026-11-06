@@ -183,6 +183,7 @@ local function registerValueValidators(parameterValidators, context)
 	-- only cross-referenced (see references.lua) and guarded at runtime.
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
+	parameterValidators[Types.EffectName] = validateString
 	parameterValidators[Types.CountdownID] = validateString
 	parameterValidators[Types.CutsceneID] = validateString
 	-- TODO: A cutscene-type script has no definition yet.
