@@ -246,7 +246,7 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 	return radius, damage
 end
 
-local weaponSearchRadius = {} ---@type number[]
+local weaponSearchRadius = {} ---@type table<WeaponDefID, number>
 
 local function addWeaponCollateral(unitDef)
 	local groups = getWeaponGroups(unitDef)
@@ -332,20 +332,19 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 
 	-- This search was not cached yet to within our search radius +/- 10.
 	readAs.read = unitTeam[unitID]
-	local friendPower, enemyPower = CallAsTeam(readAs, getUnitCollateral, unitID, allyTeam, searchRadius, targetID)
-	---@cast friendPower number
-	---@cast enemyPower number
+	local friendPower, enemyPower = CallAsTeam(readAs, getUnitCollateral, unitID, allyTeam, searchRadius, targetID) ---@as number, number
 
 	local allowed = true
-
 	if enemyPower <= friendPower * friendPowerRatio then
 		-- The avoid radius shrinks because a smaller attack region can eliminate
 		-- specific targets trivially without causing any friendly-fire damages.
-		if not avoidRadius or avoidRadius > searchRadius then
+		if avoidRadius == nil or avoidRadius > searchRadius then
 			cache[targetID] = searchRadius
 		end
-		if enemyPower <= spamPowerMax or enemyPower / friendPower <= spamRatioMin then
+		if enemyPower <= spamPowerMax then
 			allowed = allowBadSpamTarget
+			priority = priority * PRIORITY_ANTICOLLAT_SPAM
+		elseif enemyPower / friendPower <= spamRatioMin then
 			priority = priority * PRIORITY_ANTICOLLAT_SPAM
 		else
 			priority = priority * PRIORITY_ANTI_COLLATERAL
@@ -353,14 +352,13 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 	else
 		-- The preferred target radius grows since it represents the net region
 		-- of incoming attacks that will be (probably) directed at that unit.
-		if not preferRadius or preferRadius < searchRadius then
+		if preferRadius == nil or preferRadius < searchRadius then
 			cache[-targetID] = searchRadius
 		end
 		if friendPower <= spamPowerMax then
 			priority = priority * PRIORITY_CLEAN_SHOT
 		end
 	end
-
 	return allowed, priority
 end
 
