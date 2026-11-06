@@ -197,7 +197,9 @@ local function giveFormationOrders(unitIDs, orders, options)
 				local x, z = clampToMap(targets[i].x, targets[i].z)
 				list[#list + 1] = { command, { x, Spring.GetGroundHeight(x, z), z }, orderOptions }
 				lastSpots[unitID] = { x = x, z = z }
-				if pacing and (not table.contains(orderOptions, "shift") or Spring.GetUnitCommandCount(unitID) == 0) then
+				if
+					pacing and (not table.contains(orderOptions, "shift") or Spring.GetUnitCommandCount(unitID) == 0)
+				then
 					paced.units[#paced.units + 1] = unitID
 					paced.targets[#paced.targets + 1] = { x = x, z = z }
 				end
