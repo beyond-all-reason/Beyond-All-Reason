@@ -65,8 +65,16 @@ describe("modules.formation_orders", function()
 				assert.is_true(radians)
 				return units[unitID].heading or 0
 			end,
-			GetUnitCommands = function(unitID)
-				return units[unitID].queue or {}
+			GetUnitCommandCount = function(unitID)
+				return #(units[unitID].queue or {})
+			end,
+			-- A negative index counts from the end of the queue.
+			GetUnitCurrentCommand = function(unitID, index)
+				local queue = units[unitID].queue or {}
+				local command = queue[#queue + 1 + index]
+				if command then
+					return command.id, 0, 0, unpack(command.params)
+				end
 			end,
 			GetUnitCommandCount = function(unitID)
 				return #(units[unitID].queue or {})
@@ -88,6 +96,9 @@ describe("modules.formation_orders", function()
 			end,
 			GiveOrderArrayToUnit = function(unitID, orders)
 				givenAsWritten[#givenAsWritten + 1] = { unitID = unitID, orders = orders }
+				for _, order in ipairs(orders) do
+					Spring.GiveOrderToUnit(unitID, order[1], order[2], order[3] or {})
+				end
 			end,
 		}
 	end)
@@ -267,10 +278,15 @@ describe("modules.formation_orders", function()
 			})
 			local orders = { moveTo(1000, 1000) }
 			issue(orders)
-			assert.are.equal(1, #given)
-			assert.are.equal(1, given[1].unitID)
-			assert.are.equal(4, #givenAsWritten)
-			assert.are.same(orders, givenAsWritten[1].orders)
+			local byUnit = {}
+			for _, batch in ipairs(givenAsWritten) do
+				byUnit[batch.unitID] = batch.orders
+			end
+			for _, unitID in ipairs({ 2, 4, 5, 6 }) do
+				assert.are.same(orders, byUnit[unitID])
+			end
+			assert.is_nil(byUnit[3])
+			assert.are.equal(5, #givenAsWritten)
 		end
 	)
 
@@ -318,6 +334,13 @@ describe("modules.formation_orders", function()
 			issue({ moveTo(1000, 1000) })
 			assert.are.equal(0, #matched)
 		end)
+	end)
+
+	it("gives each spread unit all its orders in one call", function()
+		setUnits({ [1] = { x = 100, z = 100 }, [2] = { x = 200, z = 100 } })
+		issue({ moveTo(1000, 1000), moveTo(1000, 2000, { "shift" }) })
+		assert.are.equal(2, #givenAsWritten)
+		assert.are.equal(2, #givenAsWritten[1].orders)
 	end)
 
 	it("keeps the targets on the map", function()

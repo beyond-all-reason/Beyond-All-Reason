@@ -37,10 +37,6 @@ return {
 		parameters = {
 			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
 			{ name = 'orders', required = true, type = ParameterTypes.Orders },
-			-- With formation, each MOVE, FIGHT and PATROL order sends each unit to its own spot: the group keeps
-			-- its shape around the order's point, or spreads along a line when the order has several points.
-			-- { direction = Direction }: the way the shape faces at each point, as in MoveUnits.
-			-- { matchSpeed = true }: the ground units arrive together at the first point.
 			{ name = 'formation', required = false, type = ParameterTypes.Formation },
 		},
 		actionFunction = issueOrders,

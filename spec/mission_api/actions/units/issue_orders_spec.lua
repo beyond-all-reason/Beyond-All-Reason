@@ -74,8 +74,9 @@ describe("mission_api.actions.issue_orders", function()
 			env.Spring.GetGroundHeight = function()
 				return 0
 			end
-			env.Spring.GiveOrderToUnit = function(unitID, command, params)
-				given[unitID] = { command = command, params = params, fenced = missionApi.issuingOrders }
+			env.Spring.GiveOrderArrayToUnit = function(unitID, orders)
+				local last = orders[#orders]
+				given[unitID] = { command = last[1], params = last[2], fenced = missionApi.issuingOrders }
 			end
 		end
 

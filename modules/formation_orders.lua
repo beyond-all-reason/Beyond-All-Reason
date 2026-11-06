@@ -15,11 +15,8 @@ local function clampToMap(x, z)
 	return math.max(edge, math.min(Game.mapSizeX - edge, x)), math.max(edge, math.min(Game.mapSizeZ - edge, z))
 end
 
--- The position a queued command goes to. CAPTURE, RECLAIM, REPAIR and RESURRECT on a target inside an area take
--- { targetID, x, y, z, radius }.
-local function getCommandPosition(command)
-	local params = command.params
-	local id = command.id
+-- CAPTURE, RECLAIM, REPAIR and RESURRECT on a target inside an area take { targetID, x, y, z, radius }.
+local function getCommandPosition(id, params)
 	if #params == 5 and (id == CMD.CAPTURE or id == CMD.RECLAIM or id == CMD.REPAIR or id == CMD.RESURRECT) then
 		return params[2], params[4]
 	end
@@ -28,15 +25,13 @@ local function getCommandPosition(command)
 	end
 end
 
--- With queue, the unit starts from the last position in its queue.
-local function getStart(unitID, queue)
-	if queue then
-		local commands = Spring.GetUnitCommands(unitID, -1)
-		for i = #commands, 1, -1 do
-			local x, z = getCommandPosition(commands[i])
-			if x then
-				return { x = x, z = z }
-			end
+-- The last queued command with a position, else where the unit stands.
+local function getQueueEndPosition(unitID)
+	for index = -1, -(Spring.GetUnitCommandCount(unitID) or 0), -1 do
+		local id, _, _, a, b, c, d, e = Spring.GetUnitCurrentCommand(unitID, index)
+		local x, z = getCommandPosition(id, { a, b, c, d, e })
+		if x then
+			return { x = x, z = z }
 		end
 	end
 	local x, _, z = Spring.GetUnitPosition(unitID)
@@ -116,15 +111,19 @@ local function linePoints(params)
 	return points
 end
 
-local function spreadOrder(units, order, facing, pace)
-	local command, params, options = order[1], order[2], order[3] or {}
+-- Each unit's spot for one order. A queued order starts where the unit's previous one ends.
+local function spreadTargets(units, order, facing, lastSpots)
+	local params, options = order[2], order[3] or {}
 	local queue = table.contains(options, "shift")
 
-	-- With shift, skip units that already have orders: the cap would slow those too.
-	local starts, paced = {}, {}
+	local starts = {}
 	for i, unitID in ipairs(units) do
-		starts[i] = getStart(unitID, queue)
-		paced[i] = pace and (not queue or Spring.GetUnitCommandCount(unitID) == 0)
+		if queue then
+			starts[i] = lastSpots[unitID] or getQueueEndPosition(unitID)
+		else
+			local x, _, z = Spring.GetUnitPosition(unitID)
+			starts[i] = { x = x, z = z }
+		end
 	end
 
 	---@type table<integer, table>
@@ -137,23 +136,11 @@ local function spreadOrder(units, order, facing, pace)
 		targets = Formation.AroundPoint(starts, destination, turn)
 	end
 
-	local pacedUnits, pacedTargets = {}, {}
-	for i, unitID in ipairs(units) do
-		local x, z = clampToMap(targets[i].x, targets[i].z)
-		Spring.GiveOrderToUnit(unitID, command, { x, Spring.GetGroundHeight(x, z), z }, options)
-		if paced[i] then
-			pacedUnits[#pacedUnits + 1] = unitID
-			pacedTargets[#pacedTargets + 1] = { x = x, z = z }
-		end
-	end
-
-	if pace then
-		pace(pacedUnits, pacedTargets, command)
-	end
+	return targets
 end
 
--- Units that are not spread take the orders as written, a line as its first point.
-local function asWritten(orders)
+-- Units that are not spread take a line as its first point.
+local function ordersWithoutFormation(orders)
 	local written = {}
 	for i, order in ipairs(orders) do
 		local params = order[2]
@@ -186,26 +173,46 @@ local function giveFormationOrders(unitIDs, orders, options)
 	table.sort(spread)
 
 	if #others > 0 then
-		local written = asWritten(orders)
+		local written = ordersWithoutFormation(orders)
 		for _, unitID in ipairs(others) do
 			Spring.GiveOrderArrayToUnit(unitID, written)
 		end
 	end
 
-	-- One order at a time to the whole group, so a queued order starts from where the one before it ends.
-	-- pace takes the first move, the leg the units set out on now.
-	local pace = options.pace
+	local unitOrders, lastSpots, paced = {}, {}, nil
+	for _, unitID in ipairs(spread) do
+		unitOrders[unitID] = {}
+	end
 	for _, order in ipairs(orders) do
-		if isSpreadOrder(order) then
-			if #spread > 0 then
-				spreadOrder(spread, order, options.facing, pace)
-				pace = nil
-			end
-		else
-			for _, unitID in ipairs(spread) do
-				Spring.GiveOrderToUnit(unitID, order[1], order[2], order[3] or {})
+		local command, params, orderOptions = order[1], order[2], order[3] or {}
+		local targets = isSpreadOrder(order) and #spread > 0 and spreadTargets(spread, order, options.facing, lastSpots)
+		-- The first move is the leg the units set out on now; a queued one only where nothing is queued before it.
+		local pacing = targets and options.pace and not paced
+		if pacing then
+			paced = { units = {}, targets = {}, command = command }
+		end
+		for i, unitID in ipairs(spread) do
+			local list = unitOrders[unitID]
+			if targets then
+				local x, z = clampToMap(targets[i].x, targets[i].z)
+				list[#list + 1] = { command, { x, Spring.GetGroundHeight(x, z), z }, orderOptions }
+				lastSpots[unitID] = { x = x, z = z }
+				if pacing and (not table.contains(orderOptions, "shift") or Spring.GetUnitCommandCount(unitID) == 0) then
+					paced.units[#paced.units + 1] = unitID
+					paced.targets[#paced.targets + 1] = { x = x, z = z }
+				end
+			else
+				list[#list + 1] = { command, params, orderOptions }
+				local x, z = getCommandPosition(command, params)
+				lastSpots[unitID] = x and { x = x, z = z } or lastSpots[unitID]
 			end
 		end
+	end
+	for _, unitID in ipairs(spread) do
+		Spring.GiveOrderArrayToUnit(unitID, unitOrders[unitID])
+	end
+	if paced then
+		options.pace(paced.units, paced.targets, paced.command)
 	end
 end
 
