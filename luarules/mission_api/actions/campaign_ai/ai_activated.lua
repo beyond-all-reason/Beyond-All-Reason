@@ -1,13 +1,12 @@
 -- Enable/Disable events processing of campaign AI
 local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
-local teams = GG["MissionAPI"].Teams
 
-local function activateAI(teamName)
-	GG["CampaignAI"].SetAiActive(true, teams[teamName])
+local function activateAI(teamID)
+	GG["CampaignAI"].SetAiActive(true, teamID)
 end
 
-local function deactivateAI(teamName)
-	GG["CampaignAI"].SetAiActive(false, teams[teamName])
+local function deactivateAI(teamID)
+	GG["CampaignAI"].SetAiActive(false, teamID)
 end
 
 return {

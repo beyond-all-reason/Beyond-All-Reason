@@ -2,7 +2,6 @@
 local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 local tracking = GG["MissionAPI"].Modules.Tracking
 local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
-local teams = GG["MissionAPI"].Teams
 
 local function collectUnitIDs(unitName)
 	if tracking.IsUnitNameUntracked(unitName) then
@@ -16,20 +15,20 @@ local function collectUnitIDs(unitName)
 	return unitIDs
 end
 
-local function enableUnitsControl(unitName, teamName)
+local function enableUnitsControl(unitName, teamID)
 	local unitIDs = collectUnitIDs(unitName)
 	if not unitIDs then
 		return
 	end
-	GG["CampaignAI"].SetUnitsCtrlEnabled(unitIDs, true, teams[teamName])
+	GG["CampaignAI"].SetUnitsCtrlEnabled(unitIDs, true, teamID)
 end
 
-local function disableUnitsControl(unitName, teamName)
+local function disableUnitsControl(unitName, teamID)
 	local unitIDs = collectUnitIDs(unitName)
 	if not unitIDs then
 		return
 	end
-	GG["CampaignAI"].SetUnitsCtrlEnabled(unitIDs, false, teams[teamName])
+	GG["CampaignAI"].SetUnitsCtrlEnabled(unitIDs, false, teamID)
 end
 
 return {

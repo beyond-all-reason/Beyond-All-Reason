@@ -1,9 +1,8 @@
 local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 local enums = GG["MissionAPI"].Modules.ParameterTypes.Enums
 
-local function setAiState(state, teamName)
-	local teams = GG["MissionAPI"].Teams
-	GG["CampaignAI"].SetAiState(enums[ParameterTypes.AiState][state], teams[teamName])
+local function setAiState(state, teamID)
+	GG["CampaignAI"].SetAiState(enums[ParameterTypes.AiState][state], teamID)
 end
 
 return {
