@@ -5,6 +5,7 @@
 --- Provides: onUnitsEntered(unitIDs, trackingID, owner) and onUnitsLeft(unitIDs, trackingID, owner).
 --- When a tracker is started, it calls onUnitsEntered on all units within the area, before it returns.
 --- When a tracker is stopped, it calls onUnitsLeft on all units it had been tracking.
+--- Destroyed units also deliver their death events to onUnitsLeft.
 ---
 --- A callback may start or stop trackers, including its own.
 --- When a tracker is stopped mid-callback, it stops hearing enter and leave events.
