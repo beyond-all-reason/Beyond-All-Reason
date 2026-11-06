@@ -79,7 +79,33 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	transportWithBuilding[unitID] = nil
 end
 
+local tractorBeamMode = Spring.GetModOptions().beta_tractorbeam
+local tractorBeams = tractorBeamMode and tractorBeamMode ~= "disabled"
+
+-- tractor beam transports carry several buildings and set them down on the unload preview's pads
+local function drawTractorRanges()
+	local pads = WG.UnloadSnap and WG.UnloadSnap.GetPads()
+	if not pads then
+		return
+	end
+	for i = 1, #pads do
+		local pad = pads[i]
+		local passengers = pad[6] and { pad[6] } or Spring.GetUnitIsTransporting(pad[1]) or {}
+		for j = 1, #passengers do
+			local unitDefID = Spring.GetUnitDefID(passengers[j])
+			if unitDefID and isTransportableBuilding[unitDefID] and turretRange[unitDefID] then
+				color = isTurret[unitDefID] and colors.turret or colors.tower
+				DrawNanoRange(pad[3], pad[4], pad[5], turretRange[unitDefID])
+			end
+		end
+	end
+end
+
 function widget:DrawWorldPreUnit()
+	if tractorBeams then
+		drawTractorRanges()
+		return
+	end
 	local _, cmdId, _, _ = spGetActiveCmd()
 	if cmdId ~= CMD_UNLOAD_UNITS then
 		return

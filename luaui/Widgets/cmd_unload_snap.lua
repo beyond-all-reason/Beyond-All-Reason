@@ -433,6 +433,10 @@ function widget:Initialize()
 				return drop[1], drop[2]
 			end
 		end,
+		-- the pads shown right now: { {transportID, padDefID, x, y, z, passengerID} }
+		GetPads = function()
+			return plan and plan.pads
+		end,
 	}
 end
 
@@ -517,12 +521,43 @@ function widget:MousePress(mx, my, button)
 	return false -- custom formations still gets the drag for line unloads
 end
 
--- a drawn line: custom formations hands out one unload per unit, and the gadget snaps each of them
-function widget:UnitCommandNotify(unitID, cmdID)
-	if press and isUnloadCmd(cmdID) then
+local lineReserve -- { time, rects }: pads already handed out along the line being given
+
+-- a drawn line: custom formations hands out one unload per transport; each gets the free pad nearest its point,
+-- clear of the pads given to the others on the same line
+function widget:UnitCommandNotify(unitID, cmdID, params, options)
+	if not isUnloadCmd(cmdID) or not params or not params[3] or (cmdID == CMD_UNLOAD_UNIT and params[4]) then
+		return false
+	end
+	if press then
 		press.formation = true
 	end
-	return false
+	if not isTractorTransport(unitID) then
+		return false
+	end
+	local shift = options and options.shift
+	local now = os.clock()
+	if not lineReserve or now - lineReserve.time > 0.25 then
+		lineReserve = { rects = {} }
+		if shift then
+			for i = 1, #queuedPads do
+				local q = queuedPads[i]
+				lineReserve.rects[#lineReserve.rects + 1] = { q[2], q[4], defHalfX[q[1]], defHalfZ[q[1]] }
+			end
+		end
+	end
+	lineReserve.time = now
+	local padDefID = TransportAPI.GetUnloadPadType(unitID, nil, keepsQueuedLoads(unitID, shift))
+	if not padDefID then
+		return false
+	end
+	local x, y, z = findPadSpot(padDefID, params[1], params[3], lineReserve.rects, SEARCH_BUDGET / 4)
+	if not x then
+		return false -- the gadget snaps the raw point
+	end
+	lineReserve.rects[#lineReserve.rects + 1] = { x, z, defHalfX[padDefID], defHalfZ[padDefID] }
+	spGiveOrderToUnit(unitID, CMD_UNLOAD_UNIT, { x, y, z }, options and options.coded or 0)
+	return true
 end
 
 function widget:CommandNotify(cmdID, params, options)
