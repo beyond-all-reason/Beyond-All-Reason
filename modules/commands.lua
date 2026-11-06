@@ -2,6 +2,7 @@
 -- commands.lua ----------------------------------------------------------------
 
 local bit_and = math.bit_and
+local modf = math.modf
 
 local spGetActiveCmdDesc = Spring.GetActiveCmdDesc
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
@@ -33,12 +34,13 @@ end
 -- Module functions ------------------------------------------------------------
 
 ---Unpack the inner command from the params of a `CMD_INSERT`.
----@param cmdParams number[]
+---@param cmdParams [number, number, number, number...]
 ---@return integer tagOrPos The command tag value or, when `CMD.OPT_ALT` is true, the queue position. See CCommandAI::ExecuteInsert.
 ---@return CMD innerCommand
 ---@return CommandOptions innerOptions
 local function unpackInsertParams(cmdParams)
-	local tagOrPos, innerCommand, innerOptionBits = cmdParams[1], cmdParams[2], cmdParams[3]
+	-- tag/pos has no rounding rule; the engine truncates the inner command; the inner options are a bit set:
+	local tagOrPos, innerCommand, innerOptionBits = cmdParams[1], modf(cmdParams[2]), cmdParams[3]
 
 	-- Update in-place, and assume n >= 3:
 	local n = #cmdParams
@@ -50,7 +52,6 @@ local function unpackInsertParams(cmdParams)
 	cmdParams[n - 2] = nil
 
 	local band = bit_and
-
 	local innerOptions = {
 		coded = innerOptionBits,
 		internal = 0 ~= band(innerOptionBits, OPT_INTERNAL),

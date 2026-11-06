@@ -2491,8 +2491,7 @@ do
 	-- Void takes precedence over the waterislava modoption (matches modules/lava.lua,
 	-- which never enables lava on voidwater maps): void must stay void, not become lava.
 	local waterIsLava = Spring.GetModOptions().map_waterislava
-	mapInfo.isLava = BAR.Lava.isLavaMap
-		or (not voidWater and waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
+	mapInfo.isLava = BAR.Lava.isLavaMap or (not voidWater and waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
 end
 mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
 mapInfo.dynamicWaterLevel = nil -- current water/lava level (nil = static sea level = 0)
@@ -14013,7 +14012,7 @@ function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam, track
 		if uvs and defaultUV then
 			local unitDefCacheTbl = gl4Icons.unitDefCache
 			local cacheUnitIcon = cache.unitIcon
-			glFunc.Texture('$icons')
+			glFunc.Texture("$icons")
 			glFunc.Color(1, 1, 1, 1)
 			for uID in pairs(trackedSelectedSet) do
 				local ux, _, uz = spFunc.GetUnitBasePosition(uID)
@@ -14710,7 +14709,15 @@ function miscState.hist.LogCommand(unitID, unitTeam, cmdID, cmdParams, cmdOpts)
 	if not x then
 		return
 	end
-	store:OnCommand(unitID, kind, x, z, target, cmdOpts and cmdOpts.shift, miscState.hist.frame or Spring.GetGameFrame())
+	store:OnCommand(
+		unitID,
+		kind,
+		x,
+		z,
+		target,
+		cmdOpts and cmdOpts.shift,
+		miscState.hist.frame or Spring.GetGameFrame()
+	)
 end
 
 -- Effect builders shared by the live callins and playback ----------------------------------------
@@ -15107,7 +15114,10 @@ function miscState.hist.PosVisibility(x, z, air)
 		for k = 1, grid.losN[c] or 0 do
 			local e = list[k]
 			local dx, dz = ex[e] - x, ez[e] - z
-			if dx * dx + dz * dz <= (air and ea2[e] or er2[e]) and (not terrain or LosClear(ex[e], ez[e], eh[e], x, z, gz)) then
+			if
+				dx * dx + dz * dz <= (air and ea2[e] or er2[e])
+				and (not terrain or LosClear(ex[e], ez[e], eh[e], x, z, gz))
+			then
 				return 2
 			end
 		end
@@ -16970,7 +16980,11 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Draw commander nametags above icons.
 	-- Refresh commander membership first: when no commanders are in view, all the
 	-- nametag machinery below (name cache refresh, matrix pops, font passes) skips.
-	if config.drawComNametags and cameraState.zoom >= config.comNametagZoomThreshold and miscState.pipCommandersDirty then
+	if
+		config.drawComNametags
+		and cameraState.zoom >= config.comNametagZoomThreshold
+		and miscState.pipCommandersDirty
+	then
 		miscState.pipCommandersDirty = false
 		local pipCommanders = pools.pipCommanders
 		if not pipCommanders then
@@ -21216,13 +21230,7 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 	if
 		unitsJustRendered
 		and not pipR2T.contentStaggerDeferred
-		and not (
-			pipR2T.contentNeedsUpdate
-			or rotChanged
-			or driftForced
-			or sizeChanged
-			or pipR2T.forceRefreshFrames > 0
-		)
+		and not (pipR2T.contentNeedsUpdate or rotChanged or driftForced or sizeChanged or pipR2T.forceRefreshFrames > 0)
 	then
 		pipR2T.contentStaggerDeferred = true
 		-- Re-phase: land the next content tick halfway between units ticks instead of
@@ -21623,8 +21631,7 @@ function UpdateLOSTexture(currentTime)
 		-- Engine LOS is a cheap shader blit but still a full FBO pass (~15 µs CPU);
 		-- the overlay is slow-moving fog, so ~10 Hz is visually indistinguishable
 		-- from refreshing on every content render
-		shouldUpdate = pipR2T.losNeedsUpdate
-			or (currentTime - pipR2T.losLastUpdateTime) >= pipR2T.losEngineUpdateRate
+		shouldUpdate = pipR2T.losNeedsUpdate or (currentTime - pipR2T.losLastUpdateTime) >= pipR2T.losEngineUpdateRate
 	else
 		-- Only apply rate limiting when manually generating LOS (expensive)
 		shouldUpdate = pipR2T.losNeedsUpdate or (currentTime - pipR2T.losLastUpdateTime) >= pipR2T.losUpdateRate
@@ -22035,7 +22042,10 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 				elseif btn.command == "pip_trackplayer" then
 					local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 					local aliveTeammates = GetAliveTeammates(pools.aliveTeammates)
-					if (interactionState.trackingPlayerID or spec or (#aliveTeammates > 0)) and not miscState.tvEnabled then
+					if
+						(interactionState.trackingPlayerID or spec or (#aliveTeammates > 0))
+						and not miscState.tvEnabled
+					then
 						visibleButtons[#visibleButtons + 1] = btn
 					end
 				elseif btn.command == "pip_view" then

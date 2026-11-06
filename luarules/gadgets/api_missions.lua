@@ -14,85 +14,24 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+-- Included outside the guarded load, so a Lua error in any other Mission API file can still be reported.
+local validationReport = VFS.Include("luarules/mission_api/validation/report.lua")
+local loadReport = validationReport.Create()
+
+local missionLoaded = true
+local missionLoadError
+local missionLoadStep
+
+local function failMission(reason)
+	GG["MissionAPI"] = nil
+	missionLoaded = false
+	missionLoadError = "[Mission API] Mission not loaded: " .. reason .. " (see infolog)"
+end
+
 local objectivesController, stagesController, triggersController, actionsController
 
--- Used in GameFrame.
-local missionValidationFailure
-
--- Runs on the raw mission data
-local function validateMission(mission)
-	local validation = VFS.Include("luarules/mission_api/validation.lua")
-	local result = validation.ValidateMission(mission)
-	validation.LogResult(result)
-
-	return result
-end
-
-local function loadMission(gameSetup)
-	local mission = VFS.Include(gameSetup.entryPoint)
-	local validationResult = validateMission(mission)
-
-	if not validationResult.ok then
-		GG["MissionAPI"] = nil -- stops gadget api_missions_triggers from loading
-		missionValidationFailure = "[Mission API] Mission not loaded: "
-			.. #validationResult.errors
-			.. " validation errors in "
-			.. gameSetup.entryPoint
-			.. " (see infolog)"
-		return
-	end
-
-	local initialStage = mission.InitialStage
-	local stages = mission.Stages or {}
-	local rawObjectives = mission.Objectives or {}
-	local rawTriggers = mission.Triggers or {}
-	local rawActions = mission.Actions or {}
-
-	GG["MissionAPI"].Stages = stagesController.ProcessRawStages(stages)
-	GG["MissionAPI"].Modules.Stages.SetInitialStage(initialStage)
-	GG["MissionAPI"].Objectives =
-		objectivesController.ProcessRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
-	GG["MissionAPI"].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
-	GG["MissionAPI"].Actions = actionsController.ProcessRawActions(rawActions)
-	GG["MissionAPI"].UnitLoadout = mission.UnitLoadout
-	GG["MissionAPI"].FeatureLoadout = mission.FeatureLoadout
-	GG["MissionAPI"].Cutscenes = mission.Cutscenes or {}
-
-	-- Difficulties tables stay unresolved through validation so every difficulty's value is checked.
-	local difficultyController = GG["MissionAPI"].Modules.Difficulty
-	GG["MissionAPI"].Difficulty = difficultyController.FromName(gameSetup.difficulty)
-	difficultyController.ResolveTriggers(GG["MissionAPI"].Triggers)
-	difficultyController.ResolveActions(GG["MissionAPI"].Actions)
-	difficultyController.ResolveObjectives(GG["MissionAPI"].Objectives)
-	difficultyController.ResolveCutscenes(GG["MissionAPI"].Cutscenes)
-
-	-- TODO: refactor loaders after merging loadouts
-	local parameterProcessing = VFS.Include("luarules/mission_api/parameter_processing.lua")
-	GG["MissionAPI"].Modules.Variables.ResolveReferences(
-		GG["MissionAPI"].Triggers,
-		GG["MissionAPI"].Actions,
-		GG["MissionAPI"].Objectives,
-		parameterProcessing.ProcessValue
-	)
-	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)
-	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
-	parameterProcessing.ProcessManagedObjectiveParameters(GG["MissionAPI"].ManagedObjectives)
-	if GG["MissionAPI"].UnitLoadout then
-		parameterProcessing.ProcessValue(
-			GG["MissionAPI"].Modules.ParameterTypes.Types.UnitLoadout,
-			GG["MissionAPI"].UnitLoadout
-		)
-	end
-
-	Spring.SetGameRulesParam("inMission", true)
-end
-
-function gadget:Initialize()
-	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua")
-	if not gameSetup then
-		gadgetHandler:RemoveGadget()
-		return
-	end
+local function setUpMissionAPI(gameSetup)
+	missionLoadStep = "loading the Mission API"
 
 	GG["MissionAPI"] = {}
 	GG["MissionAPI"].Options = gameSetup.options
@@ -151,12 +90,120 @@ function gadget:Initialize()
 	parameterTypes.Enums[parameterTypes.Types.EffectType] = GG["MissionAPI"].EffectDefinitions.Types
 
 	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
+end
 
-	loadMission(gameSetup)
+-- Runs on the raw mission data
+local function validateMission(mission)
+	local validation = VFS.Include("luarules/mission_api/validation.lua")
+	local result = validation.ValidateMission(mission)
+	validation.LogResult(result)
+
+	return result
+end
+
+local function loadMission(gameSetup)
+	missionLoadStep = "loading " .. gameSetup.entryPoint
+	local mission = VFS.Include(gameSetup.entryPoint)
+	if not mission then
+		local reason = gameSetup.entryPoint .. " returned no mission table"
+		loadReport.Error(validationReport.Sections.Loading, nil, nil, reason)
+		failMission(reason)
+		return
+	end
+
+	missionLoadStep = "validating " .. gameSetup.entryPoint
+	local validationResult = validateMission(mission)
+	if not validationResult.ok then
+		failMission(#validationResult.errors .. " validation errors in " .. gameSetup.entryPoint)
+		return
+	end
+
+	missionLoadStep = "processing " .. gameSetup.entryPoint
+
+	local initialStage = mission.InitialStage
+	local stages = mission.Stages or {}
+	local rawObjectives = mission.Objectives or {}
+	local rawTriggers = mission.Triggers or {}
+	local rawActions = mission.Actions or {}
+
+	GG["MissionAPI"].Stages = stagesController.ProcessRawStages(stages)
+	GG["MissionAPI"].Modules.Stages.SetInitialStage(initialStage)
+	GG["MissionAPI"].Objectives =
+		objectivesController.ProcessRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
+	GG["MissionAPI"].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
+	GG["MissionAPI"].Actions = actionsController.ProcessRawActions(rawActions)
+	GG["MissionAPI"].UnitLoadout = mission.UnitLoadout
+	GG["MissionAPI"].FeatureLoadout = mission.FeatureLoadout
+	GG["MissionAPI"].Cutscenes = mission.Cutscenes or {}
+
+	-- Difficulties tables stay unresolved through validation so every difficulty's value is checked.
+	local difficultyController = GG["MissionAPI"].Modules.Difficulty
+	GG["MissionAPI"].Difficulty = difficultyController.FromName(gameSetup.difficulty)
+	difficultyController.ResolveTriggers(GG["MissionAPI"].Triggers)
+	difficultyController.ResolveActions(GG["MissionAPI"].Actions)
+	difficultyController.ResolveObjectives(GG["MissionAPI"].Objectives)
+	difficultyController.ResolveCutscenes(GG["MissionAPI"].Cutscenes)
+
+	-- TODO: refactor loaders after merging loadouts
+	local parameterProcessing = VFS.Include("luarules/mission_api/parameter_processing.lua")
+	GG["MissionAPI"].Modules.Variables.ResolveReferences(
+		GG["MissionAPI"].Triggers,
+		GG["MissionAPI"].Actions,
+		GG["MissionAPI"].Objectives,
+		parameterProcessing.ProcessValue
+	)
+	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)
+	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
+	parameterProcessing.ProcessManagedObjectiveParameters(GG["MissionAPI"].ManagedObjectives)
+	if GG["MissionAPI"].UnitLoadout then
+		parameterProcessing.ProcessValue(
+			GG["MissionAPI"].Modules.ParameterTypes.Types.UnitLoadout,
+			GG["MissionAPI"].UnitLoadout
+		)
+	end
+
+	Spring.SetGameRulesParam("inMission", true)
+end
+
+-- Outside dev mode synced Lua's debug table is empty, so there is no traceback. VFS.Include runs each file in its own
+-- pcall, so for an error raised while a file loads the stack ends at the include; the message still names the file.
+local function withTraceback(err)
+	if debug.traceback then
+		return debug.traceback(tostring(err), 2)
+	end
+	return tostring(err)
+end
+
+function gadget:Initialize()
+	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua")
+	if not gameSetup then
+		gadgetHandler:RemoveGadget()
+		return
+	end
+
+	-- gadgets.lua calls Initialize unprotected: an error escaping it kills the whole LuaRules handle.
+	local loaded, loadError = xpcall(function()
+		setUpMissionAPI(gameSetup)
+		loadMission(gameSetup)
+	end, withTraceback)
+
+	if not loaded then
+		local failedPath
+		for path in tostring(loadError):gmatch("file=(.-) %a+=") do
+			failedPath = path
+		end
+		local step = failedPath and ("loading " .. failedPath) or missionLoadStep
+		local message = "Lua error while " .. step .. ": " .. tostring(loadError)
+		loadReport.Error(validationReport.Sections.Loading, nil, nil, message)
+		failMission(message:match("^[^\n]*"))
+	end
+
+	validationReport.Log(loadReport.GetResult())
+	loadReport = nil
 end
 
 function gadget:GamePreload()
-	if missionValidationFailure then
+	if not missionLoaded then
 		return
 	end
 
@@ -168,10 +215,9 @@ function gadget:GamePreload()
 end
 
 function gadget:GameFrame(frameNumber)
-	-- Invalid mission ends the game
-	if missionValidationFailure then
-		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionValidationFailure after this
-		Spring.Echo(missionValidationFailure)
+	if not missionLoaded then
+		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionLoadError after this
+		Spring.Echo(missionLoadError)
 		gadgetHandler:RemoveGadget()
 		return
 	end
@@ -182,7 +228,7 @@ function gadget:GameFrame(frameNumber)
 end
 
 function gadget:GameOver()
-	if missionValidationFailure then
+	if not missionLoaded then
 		return
 	end
 

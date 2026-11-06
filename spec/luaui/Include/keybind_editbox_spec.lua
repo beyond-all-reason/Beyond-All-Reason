@@ -6,6 +6,8 @@ local ignore = {
 	end,
 }
 local clips = {}
+local ctrl = false
+local clipboard = ""
 
 -- gl and FlowUI are unavailable to specs.
 local env = SpecEnv.new({
@@ -18,7 +20,13 @@ local env = SpecEnv.new({
 			return -1, -1, false
 		end,
 		GetModKeyState = function()
-			return false, false, false, false
+			return false, ctrl, false, false
+		end,
+		GetClipboard = function()
+			return clipboard
+		end,
+		SetClipboard = function(s)
+			clipboard = s
 		end,
 	},
 	gl = setmetatable({
@@ -91,5 +99,68 @@ describe("a text field narrower than its text", function()
 		box:draw()
 
 		assert.are.equal(0, box.scrollPx)
+	end)
+end)
+
+describe("a text field and the clipboard", function()
+	local KEYSYMS = require("luaui/Include/keybind_keysyms")
+
+	local function field(text)
+		local box = Editbox.new({ maxChars = 255 })
+		box:setText(text)
+		box:focus()
+
+		return box
+	end
+
+	local function chord(box, key)
+		ctrl = true
+		box:keyPress(key)
+		ctrl = false
+	end
+
+	it("copies or cuts only what is selected", function()
+		clipboard = ""
+		local box = field("armcom,corcom")
+		box:setCaret(0)
+		box:setCaret(6, true)
+
+		chord(box, KEYSYMS.C)
+		assert.are.equal("armcom", clipboard)
+		assert.are.equal("armcom,corcom", box:getText())
+
+		chord(box, KEYSYMS.X)
+		assert.are.equal("armcom", clipboard)
+		assert.are.equal(",corcom", box:getText())
+	end)
+
+	it("pastes at the caret over any selection", function()
+		clipboard = "legcom"
+		local box = field("armcom,corcom")
+		box:setCaret(7)
+		box:setCaret(13, true)
+		chord(box, KEYSYMS.V)
+
+		assert.are.equal("armcom,legcom", box:getText())
+		assert.are.equal(13, box.caret)
+	end)
+
+	it("pastes a list copied a line at a time onto one line", function()
+		clipboard = "armcom\r\ncorcom\n"
+		local box = field("")
+		chord(box, KEYSYMS.V)
+
+		assert.are.equal("armcom corcom ", box:getText())
+	end)
+
+	it("leaves the selection alone when there is nothing to paste", function()
+		clipboard = ""
+		local box = field("armcom")
+		box:setCaret(0)
+		box:setCaret(6, true)
+		chord(box, KEYSYMS.V)
+
+		assert.are.equal("armcom", box:getText())
+		assert.is_true(box:hasSelection())
 	end)
 end)
