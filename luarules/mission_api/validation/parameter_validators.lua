@@ -148,15 +148,12 @@ local function registerValueValidators(parameterValidators, context)
 		parameterValidators[enumSetName] = getEnumSetValidator(enums, enumSetName, valuesList)
 	end
 
-	-- Enum validators:
-	local validateNumber = parameterValidators[Types.Number]
-
-	parameterValidators[Types.AiState] = getLookupValidator(validateNumber, "state", function(state)
-		return enums[Types.AiState][state]
-	end)
-
 	--- String validators:
 	local validateString = parameterValidators[Types.String]
+
+	parameterValidators[Types.AiState] = getLookupValidator(validateString, "state", function(state)
+		return enums[Types.AiState][state]
+	end)
 
 	parameterValidators[Types.StageID] = getLookupValidator(validateString, "stageID", function(stageID)
 		return context.Stages[stageID]
