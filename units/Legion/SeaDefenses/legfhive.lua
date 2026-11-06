@@ -6,7 +6,7 @@ return {
 		energycost = 9000,
 		metalcost = 350,
 		buildpic = "legfhive.DDS",
-		buildtime = 6600,
+		buildtime = 7500,
 		canrepeat = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -7 0",
