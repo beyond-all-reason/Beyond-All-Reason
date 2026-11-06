@@ -259,6 +259,11 @@ end
 -- Helpers
 --------------------------------------------------------------------------------
 
+-- 1x1 grey PNG (127, 127, 127): the splat detail texture of a tileset map
+local FLAT_DETAIL_NAME = "tileset_flat_detail.png"
+local FLAT_DETAIL_PNG = "\137\80\78\71\13\10\26\10\0\0\0\13\73\72\68\82\0\0\0\1\0\0\0\1\8\2\0\0\0\144\119\83\222"
+	.. "\0\0\0\12\73\68\65\84\120\218\99\168\175\175\7\0\2\254\1\126\132\216\163\137\0\0\0\0\73\69\78\68\174\66\96\130"
+
 -- A file name part from a map name: lower case, letters, digits and underscores.
 function MapExport.fileBase(name, version)
 	local s = (tostring(name or "map") .. ((version and version ~= "") and ("_" .. version) or ""))
@@ -716,6 +721,12 @@ function MapExport.run(opts)
 	if dnts and sectionFile("tileset") then
 		dnts = nil
 		report.sections.dnts = "not shipped: the tileset renderer does not draw them"
+	end
+	-- the engine loads the distribution only when a detail or DNTS texture is named
+	-- (SMFReadMap), and the tileset shader samples it: a 1x1 grey detail stands in
+	if not dnts and mapinfo.resources.splatDistrTex and sectionFile("tileset") then
+		emit("maps/" .. FLAT_DETAIL_NAME, FLAT_DETAIL_PNG)
+		mapinfo.resources.splatDetailTex = FLAT_DETAIL_NAME
 	end
 	if dnts then
 		local function dntsFile(path)

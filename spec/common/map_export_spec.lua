@@ -269,11 +269,16 @@ describe("map_export", function()
 		assert.is_truthy(report.missing[1]:find("ramp image dusk.png", 1, true))
 	end)
 
-	it("ships DNTS textures only for the legacy renderer", function()
+	it("ships DNTS textures only for the legacy renderer, a flat detail for the tileset", function()
 		local function withDnts(tileset)
-			local fs = project({ ["p/assets/dnts/rock.dds"] = "ROCK", ["p/assets/dnts/noise.png"] = "NOISE" })
+			local fs = project({
+				["p/assets/dnts/rock.dds"] = "ROCK",
+				["p/assets/dnts/noise.png"] = "NOISE",
+				["p/splat.png"] = "SPLAT",
+			})
 			local manifest = fs.files["p/project.lua"]
 				:gsub('skybox = "sky.dds",', 'skybox = "sky.dds",\n\t\tdnts = { textures = { "rock.dds" }, detail = "noise.png" },')
+				:gsub("sections = {", 'sections = {\n\t\tsplat = { file = "splat.png" },')
 			if not tileset then
 				manifest = manifest:gsub('tileset = { file = "tileset.lua" },', "")
 			end
@@ -288,8 +293,11 @@ describe("map_export", function()
 
 		fs, mapinfo = withDnts(true)
 		assert.is_nil(mapinfo.resources.splatdetailnormaltex1)
-		assert.is_nil(mapinfo.resources.splatdetailtex)
 		assert.is_nil(fs.files["o/archive/maps/rock.dds"])
+		-- the engine loads the distribution only with a detail named, and the tileset shader samples it
+		assert.is_truthy(mapinfo.resources.splatdistrtex)
+		assert.are.equal("tileset_flat_detail.png", mapinfo.resources.splatdetailtex)
+		assert.are.equal("\137PNG", fs.files["o/archive/maps/tileset_flat_detail.png"]:sub(1, 4))
 	end)
 
 	it("reports a skybox it cannot find", function()
