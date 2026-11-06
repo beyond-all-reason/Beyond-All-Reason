@@ -330,11 +330,15 @@ local function landingSpots(transportID, passengers, padX, padZ)
 	return spots
 end
 
--- one building to set down (picked in the info panel, or the only cargo of the only selected transport)
-local function buildingToPlace(shift)
+-- buildings to set down: one picked in the info panel, or the whole cargo of the only selected transport
+-- when all of it is buildings. Returns transportID, { passengerID }
+local function buildingsToPlace(shift)
 	if drop then
 		local defID = spGetUnitDefID(drop[2])
-		return defID and isImmobile[defID] and drop or nil
+		if defID and isImmobile[defID] then
+			return drop[1], { drop[2] }
+		end
+		return nil
 	end
 	local transports = getTransports(spGetSelectedUnits())
 	if #transports ~= 1 then
@@ -342,34 +346,109 @@ local function buildingToPlace(shift)
 	end
 	local transportID = transports[1]
 	local carried = spGetUnitIsTransporting(transportID) or {}
-	if #carried ~= 1 or (keepsQueuedLoads(transportID, shift) and #TransportAPI.GetExpectedCargo(transportID) > 1) then
+	if
+		#carried == 0
+		or (keepsQueuedLoads(transportID, shift) and #TransportAPI.GetExpectedCargo(transportID) > #carried)
+	then
 		return nil
 	end
-	local defID = spGetUnitDefID(carried[1])
-	return defID and isImmobile[defID] and { transportID, carried[1] } or nil
+	for i = 1, #carried do
+		local defID = spGetUnitDefID(carried[i])
+		if not (defID and isImmobile[defID]) then
+			return nil
+		end
+	end
+	return transportID, carried
 end
 
--- a building goes down like a build order: on the grid at the cursor, its own footprint tested, nowhere else
-local function placementPlan(place, cx, cz, shift)
-	local defID = spGetUnitDefID(place[2])
-	local bx, by, bz = spPos2BuildPos(defID, cx, spGetGroundHeight(cx, cz), cz)
-	local status, featureID = spTestBuildOrder(defID, bx, by, bz, 0)
-	local rot = mathFloor((spGetUnitHeading(place[2]) or 0) * HEADING_TO_RAD / HALF_PI + 0.5) * HALF_PI
-	return {
-		cx = cx,
-		cz = cz,
-		shift = shift,
-		frame = spGetGameFrame(),
-		place = (status == FREE or status == MOBILE) and not featureID, -- units in the way get pushed aside
-		pads = { { place[1], defID, bx, by, bz, place[2], { { defID, bx, by, bz, rot } } } },
-		failed = {},
-	}
+local function footprintsOverlap(x1, z1, defID1, x2, z2, defID2)
+	return mathAbs(x1 - x2) < defHalfX[defID1] + defHalfX[defID2]
+		and mathAbs(z1 - z2) < defHalfZ[defID1] + defHalfZ[defID2]
+end
+
+-- buildings go down like a build order: their cargo layout turned to the heading the transport arrives with,
+-- spread so footprints don't overlap, each on the grid with its own footprint tested
+local function placementPlan(transportID, passengers, cx, cz, shift)
+	local tx, _, tz = spGetUnitPosition(transportID)
+	if not tx then
+		return nil
+	end
+	local nowHeading = (spGetUnitHeading(transportID) or 0) * HEADING_TO_RAD
+	local dx, dz = cx - tx, cz - tz
+	local arriveHeading = (dx * dx + dz * dz > 64 * 64) and mathAtan2(dx, dz) or nowHeading
+	local sa, ca = mathSin(nowHeading), mathCos(nowHeading)
+	local sb, cb = mathSin(arriveHeading), mathCos(arriveHeading)
+
+	local entries, minGap, widest = {}, math.huge, 0
+	for i = 1, #passengers do
+		local passengerID = passengers[i]
+		local defID = spGetUnitDefID(passengerID)
+		local px, _, pz = spGetUnitPosition(passengerID)
+		if defID and px then
+			local ox, oz = px - tx, pz - tz
+			local fwd, side = ox * sa + oz * ca, ox * ca - oz * sa
+			local rot = (spGetUnitHeading(passengerID) or 0) * HEADING_TO_RAD - nowHeading + arriveHeading
+			entries[#entries + 1] = {
+				id = passengerID,
+				defID = defID,
+				ox = fwd * sb + side * cb,
+				oz = fwd * cb - side * sb,
+				rot = mathFloor(rot / HALF_PI + 0.5) * HALF_PI,
+			}
+			widest = mathMax(widest, 2 * defHalfX[defID], 2 * defHalfZ[defID])
+		end
+	end
+	if #entries == 0 then
+		return nil
+	end
+	for i = 1, #entries do
+		for j = i + 1, #entries do
+			local a, b = entries[i], entries[j]
+			minGap = math.min(minGap, mathSqrt((a.ox - b.ox) ^ 2 + (a.oz - b.oz) ^ 2))
+		end
+	end
+	local spread = (#entries > 1 and minGap > 0 and minGap < widest) and widest / minGap or 1
+	if #entries == 1 then
+		entries[1].ox, entries[1].oz = 0, 0
+	end
+
+	local newPlan = { cx = cx, cz = cz, shift = shift, frame = spGetGameFrame(), place = true, pads = {}, failed = {} }
+	for i = 1, #entries do
+		local e = entries[i]
+		local wx, wz = cx + e.ox * spread, cz + e.oz * spread
+		local bx, by, bz = spPos2BuildPos(e.defID, wx, spGetGroundHeight(wx, wz), wz)
+		-- grid snapping can still bring two together: step this one outward until it is clear
+		local stepX, stepZ = e.ox >= 0 and BUILD_SQUARE or -BUILD_SQUARE, 0
+		if mathAbs(e.oz) > mathAbs(e.ox) then
+			stepX, stepZ = 0, e.oz >= 0 and BUILD_SQUARE or -BUILD_SQUARE
+		end
+		for _ = 1, 8 do
+			local clash = false
+			for j = 1, #newPlan.pads do
+				local q = newPlan.pads[j]
+				if footprintsOverlap(bx, bz, e.defID, q[3], q[5], q[2]) then
+					clash = true
+					break
+				end
+			end
+			if not clash then
+				break
+			end
+			bx, by, bz = spPos2BuildPos(e.defID, bx + stepX, spGetGroundHeight(bx + stepX, bz + stepZ), bz + stepZ)
+		end
+		local status, featureID = spTestBuildOrder(e.defID, bx, by, bz, 0)
+		local fits = (status == FREE or status == MOBILE) and not featureID -- units in the way get pushed aside
+		newPlan.place = newPlan.place and fits
+		newPlan.pads[#newPlan.pads + 1] =
+			{ transportID, e.defID, bx, by, bz, e.id, { { e.defID, bx, by, bz, e.rot } }, fits }
+	end
+	return newPlan
 end
 
 local function makePlan(cx, cz, shift)
-	local place = buildingToPlace(shift)
-	if place then
-		return placementPlan(place, cx, cz, shift)
+	local placeTransport, buildings = buildingsToPlace(shift)
+	if placeTransport then
+		return placementPlan(placeTransport, buildings, cx, cz, shift)
 	end
 	local chosen = chooseTransports(cx, cz, shift)
 	if not chosen then
@@ -479,6 +558,23 @@ end
 
 local function issuePlan(p, options)
 	if p.place == false then
+		return
+	end
+	-- buildings: one exact drop each, queued one after another
+	if p.place then
+		for i = 1, #p.pads do
+			local pad = p.pads[i]
+			spGiveOrderToUnit(
+				pad[1],
+				CMD_UNLOAD_UNIT,
+				{ pad[3], pad[4], pad[5], pad[6] },
+				i == 1 and options or CMD.OPT_SHIFT
+			)
+		end
+		if drop then
+			drop = nil
+			dropPlaced = true
+		end
 		return
 	end
 	for i = 1, #p.pads do
@@ -797,14 +893,16 @@ function widget:DrawWorld()
 		for i = 1, #plan.pads do
 			local p = plan.pads[i]
 			if plan.place ~= nil then
-				drawFootprint(p[2], p[3], p[5], plan.place)
+				drawFootprint(p[2], p[3], p[5], p[8])
 			else
 				drawBrackets(p[2], p[3], p[5], 2, 0.85)
 			end
-			-- which transport drops here
+			-- which transport drops here (buildings: one line, to the cursor)
 			local tx, ty, tz = spGetUnitPosition(p[1])
-			if tx then
+			if tx and plan.place == nil then
 				drawLines(dashVertices, 1.5, 0.4, tx, ty, tz, p[3], groundY(p[3], p[5]), p[5])
+			elseif tx and i == 1 then
+				drawLines(dashVertices, 1.5, 0.4, tx, ty, tz, plan.cx, groundY(plan.cx, plan.cz), plan.cz)
 			end
 		end
 
@@ -812,6 +910,7 @@ function widget:DrawWorld()
 		local first = plan.pads[1]
 		if
 			first
+			and plan.place == nil
 			and (mathAbs(first[3] - plan.cx) > defHalfX[first[2]] or mathAbs(first[5] - plan.cz) > defHalfZ[first[2]])
 		then
 			drawLines(
