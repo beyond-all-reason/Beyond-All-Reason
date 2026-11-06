@@ -155,6 +155,7 @@ local normalTexOf = {} -- featureDefID -> normal map path or false
 
 ---@class BlockoutLayer
 ---@field def string? feature def name, nil when the layer is empty
+---@field missing string? a def this game lacks: drawn as empty, saved back as it came
 ---@field yaw number
 ---@field scale number
 
@@ -279,13 +280,13 @@ function Blockout.setLayer(i, fields)
 		return false
 	end
 	if fields.def == false or fields.def == "" then
-		l.def = nil
+		l.def, l.missing = nil, nil
 	elseif fields.def then
 		local fd = FeatureDefNames[fields.def]
 		if not (fd and fd.customParams and fd.customParams.blockout) then
 			return false
 		end
-		l.def = fields.def
+		l.def, l.missing = fields.def, nil
 	end
 	if fields.yaw then
 		l.yaw = ((tonumber(fields.yaw) or 0) % 360)
@@ -303,7 +304,7 @@ function Blockout.getState()
 	for i = 1, LAYER_COUNT do
 		local l = layers[i]
 		---@cast l BlockoutLayer
-		out.layers[i] = { def = l.def or "", yaw = l.yaw, scale = l.scale }
+		out.layers[i] = { def = l.def or l.missing or "", yaw = l.yaw, scale = l.scale }
 	end
 	return out
 end
@@ -316,8 +317,10 @@ function Blockout.setState(state)
 		local def = s.def
 		---@type table|false|nil
 		local fd = def and def ~= "" and FeatureDefNames[def]
+		local known = fd and fd.customParams and fd.customParams.blockout
 		layers[i] = {
-			def = (fd and fd.customParams and fd.customParams.blockout) and def or nil,
+			def = known and def or nil,
+			missing = not fd and type(def) == "string" and def ~= "" and def or nil,
 			yaw = (tonumber(s.yaw) or 0) % 360,
 			scale = math.max(MIN_SCALE, math.min(MAX_SCALE, tonumber(s.scale) or 1)),
 		}
@@ -413,6 +416,17 @@ function widget:Initialize()
 		return
 	end
 	WG.Blockout = Blockout
+	-- A map exported from a Terraform Brush project carries its backdrop. A project load
+	-- (environment phase) or the ENV window can still replace it later through WG.Blockout.
+	local mapFile = "mapconfig/blockout.lua"
+	if VFS.FileExists(mapFile, VFS.MAP) then
+		local ok, cfg = pcall(VFS.Include, mapFile, {}, VFS.MAP)
+		if ok and type(cfg) == "table" and type(cfg.layers) == "table" and (tonumber(cfg.version) or 1) <= 1 then
+			Blockout.setState({ layers = cfg.layers }) -- validates defs, clamps yaw and scale, refreshes
+			return
+		end
+		Echo("[Map Blockout] " .. mapFile .. " not applied: " .. tostring(ok and "bad format" or cfg))
+	end
 	refresh()
 end
 

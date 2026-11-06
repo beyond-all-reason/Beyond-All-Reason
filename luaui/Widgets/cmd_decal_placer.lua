@@ -877,6 +877,25 @@ function widget:Initialize()
 		saveProject = decalSaveProject,
 		load = decalLoad,
 		listSaves = listSavedDecalMaps,
+		-- adopt({ {id=, d={tex, x, z, sx, sz, rot}} }): decals a map placed (map_decals_loader)
+		-- become this tool's, so they can be edited and are saved with a project
+		adopt = function(items)
+			for _, it in ipairs(items or {}) do
+				local d = it.d
+				dp.projectIDs[it.id] = true
+				dp.specs[it.id] = {
+					tex = d.tex,
+					x = d.x,
+					z = d.z,
+					sx = d.sx or 64,
+					sz = d.sz or 64,
+					rot = d.rot or 0,
+					alpha = 0.85,
+					tint = { 0.5, 0.5, 0.5, 0.5 },
+					align = true,
+				}
+			end
+		end,
 		deactivate = deactivate,
 	}
 end

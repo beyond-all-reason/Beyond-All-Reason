@@ -86,6 +86,185 @@ local ENTRY_ACTIONS = {
 local suiteEnabled = false
 local pendingCommand, pendingFrames -- entry command to re-dispatch once the suite is in
 
+-- A map exported from a Terraform Brush project with a tileset look carries it in
+-- mapconfig/tileset/ (its presence is the renderer switch). This launcher turns the
+-- tileset shader on for such a map and applies the look once the shader's API is up:
+-- biome, pattern frame, metal style, tints, knobs, slots and the surface masks, read
+-- straight from the archive. Viewer knobs (performance and debug) stay the player's.
+-- In the editor the surface painter takes the masks, so they can be painted and saved.
+local mapTileset = {
+	FILE = "mapconfig/tileset/tileset.lua",
+	VIEWER_KNOBS = {
+		farCache = true,
+		farStart = true,
+		farBand = true,
+		farCliffFp = true,
+		clipCache = true,
+		clipRes = true,
+		clipCoarseMin = true,
+		coProgram = true,
+		debugView = true,
+		passSlopeDeg = true,
+	},
+	cfg = nil, -- the map's tileset.lua while it waits; kept after applying for the painter hand-back
+	waited = 0,
+	applied = false,
+	painterFed = false,
+}
+
+local function readMapTileset()
+	if not VFS.FileExists(mapTileset.FILE, VFS.MAP) then
+		return nil
+	end
+	local ok, cfg = pcall(VFS.Include, mapTileset.FILE, {}, VFS.MAP)
+	if ok and type(cfg) == "table" and cfg.renderer == "tileset" and cfg.format_version == 1 then
+		return cfg
+	end
+	Spring.Echo("[Terraform Suite] " .. mapTileset.FILE .. " not applied: " .. tostring(ok and "unknown format" or cfg))
+	return nil
+end
+
+local function deepCopy(t)
+	local c = {}
+	for k, v in pairs(t) do
+		c[k] = type(v) == "table" and deepCopy(v) or v
+	end
+	return c
+end
+
+-- The handler collects GetConfigData before the shutdown pass, so the map's look would
+-- become the player's saved shader config (and their next editor session's). Pin what
+-- the shader would have saved before the map touched it.
+local function pinShaderConfig()
+	for _, w in ipairs(widgetHandler.widgets or {}) do
+		if w.whInfo and w.whInfo.name == OPTIONAL_WIDGETS[1] and w.GetConfigData then
+			local ok, snap = pcall(w.GetConfigData, w)
+			if ok and type(snap) == "table" then
+				snap = deepCopy(snap)
+				w.GetConfigData = function()
+					return snap
+				end
+			end
+			return
+		end
+	end
+end
+
+local function feedPainter(sp, cfg)
+	local s = cfg.surface_slots
+	local picks = {}
+	for i = 1, 8 do
+		picks[i] = (s["slot" .. i] ~= "" and s["slot" .. i]) or nil
+	end
+	sp.applySlots(picks)
+	sp.setInfluenceTable(s.influence)
+	sp.loadMask(cfg.surface)
+end
+
+local function surfaceFits(cfg)
+	local s = cfg.surface_slots
+	return cfg.surface and type(s) == "table" and (s.biome == nil or s.biome == "" or s.biome == cfg.biome)
+end
+
+local function applyMapTileset(T, cfg)
+	pinShaderConfig()
+	if not T.isActive() then
+		T.setActive(true)
+	end
+	local f = type(cfg.pattern_frame) == "table" and cfg.pattern_frame or {}
+	T.setPatternFrame(f[1] or 1, f[2] or 0, f[3] or 0, f[4] or 1, f[5] or 0, f[6] or 0)
+	local _, _, active = T.getActiveBiome()
+	if type(cfg.biome) == "string" and cfg.biome ~= "" and cfg.biome ~= active then
+		T.setBiome(cfg.biome)
+	end
+	-- knobs the file lacks go to the biome's defaults, not the player's own tuning
+	T.reset()
+	if type(cfg.metal_style) == "string" and cfg.metal_style ~= "" then
+		T.setMetalStyle(cfg.metal_style)
+	end
+	for asset in pairs(T.getSlotTints() or {}) do
+		T.setSlotTint(asset, 1, 1, 1)
+	end
+	for asset, c in pairs(type(cfg.slot_tints) == "table" and cfg.slot_tints or {}) do
+		T.setSlotTint(asset, c[1], c[2], c[3])
+	end
+	-- the map ships its ramp under mapconfig/; an older shader keeps only the name and shows a same-named local one
+	T.setRamp(type(cfg.ramp) == "string" and cfg.ramp or "")
+	local live = T.getKnobs()
+	for k, v in pairs(type(cfg.knobs) == "table" and cfg.knobs or {}) do
+		if type(v) == "number" and not mapTileset.VIEWER_KNOBS[k] and not T.setKnob(k, v) and live[k] ~= nil then
+			live[k] = v
+		end
+	end
+	if cfg.metal_lights ~= nil then
+		T.setMetalLights(cfg.metal_lights)
+	end
+	if type(cfg.slot4_material) == "string" and cfg.slot4_material ~= "" then
+		T.setSlot4Material(cfg.slot4_material)
+	end
+	if surfaceFits(cfg) then
+		local sp = WG.SurfacePainter
+		if sp and sp.loadMask then
+			feedPainter(sp, cfg)
+			mapTileset.painterFed = true
+		else
+			-- a normal game: bind the masks straight, no painter
+			local s = cfg.surface_slots
+			for i = 1, 8 do
+				T.setSurfaceVariant(i, (s["slot" .. i] ~= "" and s["slot" .. i]) or nil)
+			end
+			T.setSurfaceMask(":l:" .. cfg.surface)
+			if cfg.surface_v4 then
+				T.setSurfaceMask2(":l:" .. cfg.surface_v4)
+			end
+		end
+	end
+	Spring.Echo(
+		"[Terraform Suite] tileset look applied from " .. mapTileset.FILE .. " (biome " .. tostring(cfg.biome) .. ")"
+	)
+end
+
+-- Per frame until the map's tileset is applied, then only to hand the masks to a painter
+-- that appears later (the editor opened mid-game): its first stroke would otherwise paint
+-- over a blank mask.
+local function updateMapTileset(dt)
+	local cfg = mapTileset.cfg
+	if not cfg then
+		return
+	end
+	if mapTileset.applied and WG.TilesetTerrain and WG.TilesetTerrain ~= mapTileset.appliedTo then
+		-- the shader widget restarted (switched off and on in the widget list): it came back
+		-- with the player's saved look, so the map's goes on again once its API is up
+		mapTileset.applied, mapTileset.painterFed, mapTileset.waited = false, false, 0
+	end
+	if mapTileset.applied then
+		local sp = WG.SurfacePainter
+		if not mapTileset.painterFed and sp and sp.loadMask and not (sp.hasMaskState and sp.hasMaskState()) then
+			mapTileset.painterFed = true
+			if surfaceFits(cfg) then
+				feedPainter(sp, cfg)
+			end
+		end
+		return
+	end
+	local T = WG.TilesetTerrain
+	local MP = WG.MapProject
+	if T and T.setSlotTint and not (MP and MP.isLoading and MP.isLoading()) then
+		mapTileset.applied, mapTileset.appliedTo = true, T
+		local ok, err = pcall(applyMapTileset, T, cfg)
+		if not ok then
+			Spring.Echo("[Terraform Suite] map tileset failed: " .. tostring(err))
+		end
+		return
+	end
+	-- capped: the first Update after the loading screen carries the whole load in its dt
+	mapTileset.waited = mapTileset.waited + math.min(dt, 0.25)
+	if mapTileset.waited > 20 then
+		Spring.Echo("[Terraform Suite] this map has a tileset look, but the tileset shader is not available")
+		mapTileset.cfg = nil
+	end
+end
+
 local function enableOptionalWidgets()
 	local known = widgetHandler.knownWidgets
 	if not (known and widgetHandler.orderList) then
@@ -132,6 +311,18 @@ function widget:Initialize()
 		end
 	end
 
+	-- A map that carries a tileset look switches the tileset shader on (released at Shutdown
+	-- like the suite's own optional widgets, so normal maps stay on the engine shader).
+	mapTileset.cfg = readMapTileset()
+	if mapTileset.cfg then
+		local known = widgetHandler.knownWidgets
+		local name = OPTIONAL_WIDGETS[1]
+		if known and known[name] and widgetHandler.orderList and (widgetHandler.orderList[name] or 0) <= 0 then
+			optionalEnabled[name] = true
+			widgetHandler:EnableWidget(name)
+		end
+	end
+
 	-- handler = true hands us the RAW widgetHandler, which has no AddAction
 	-- method (that lives on the per-widget proxy). Register through the
 	-- actionHandler directly, like gui_options and dbg_test_runner do.
@@ -159,7 +350,8 @@ function widget:Initialize()
 	end
 end
 
-function widget:Update()
+function widget:Update(dt)
+	updateMapTileset(dt)
 	if not pendingCommand then
 		return
 	end
