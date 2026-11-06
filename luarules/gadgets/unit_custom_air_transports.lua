@@ -810,6 +810,82 @@ end
 -- function gadget:AllowCommand(...)         -- Inject CMD_LOAD_WAIT to suppress default engine load behavior
 
 -- UNIT LIFECYCLE
+-- live settings for balance tests: cheats only, published to everyone as game rules params
+local SPEED_OVERRIDES = { speedModMode = true, speedModStrength = true, comSpeedModStrength = true }
+local liveSettings = {
+	enemyLoadMode = { 1, 5, true },
+	loadRadius = { 32, 512 },
+	unloadRadius = { 16, 256 },
+	enemyRadiusMult = { 0.1, 1 },
+	enemyLoadFrames = { 1, 600, true },
+	speedModMode = { -1, 2, true }, -- -1: each transport's own setting
+	speedModStrength = { -1, 1 },
+	comSpeedModStrength = { -1, 1 },
+}
+
+local function getLiveSetting(key)
+	if key == "enemyLoadMode" then
+		return ALLOW_ENEMY_LOAD_MODE
+	elseif key == "loadRadius" then
+		return LOAD_RADIUS
+	elseif key == "unloadRadius" then
+		return UNLOAD_RADIUS
+	elseif key == "enemyRadiusMult" then
+		return ENEMY_LOAD_RADIUS_MULTIPLIER
+	elseif key == "enemyLoadFrames" then
+		return MIN_CONSECUTIVE_FRAMES_TO_LOAD_ENEMY
+	end
+	return Spring.GetGameRulesParam("tractorbeam_" .. key) or -1
+end
+
+local function setLiveSetting(key, value)
+	if key == "enemyLoadMode" then
+		ALLOW_ENEMY_LOAD_MODE = value
+	elseif key == "loadRadius" then
+		LOAD_RADIUS = value
+	elseif key == "unloadRadius" then
+		UNLOAD_RADIUS = value
+	elseif key == "enemyRadiusMult" then
+		ENEMY_LOAD_RADIUS_MULTIPLIER = value
+	elseif key == "enemyLoadFrames" then
+		MIN_CONSECUTIVE_FRAMES_TO_LOAD_ENEMY = value
+	end
+	ENEMY_LOAD_RADIUS = LOAD_RADIUS * ENEMY_LOAD_RADIUS_MULTIPLIER
+	Spring.SetGameRulesParam("tractorbeam_" .. key, value)
+end
+
+local function refreshTransportSpeeds()
+	for transporterID in pairs(transporterClaims) do
+		local refresh = spValidUnitID(transporterID) and GetScriptFunc(transporterID, "RefreshSpeed")
+		if refresh then
+			refresh(transporterID, "RefreshSpeed")
+		end
+	end
+end
+
+function gadget:RecvLuaMsg(msg, playerID)
+	local key, raw = msg:match("^tractorbeam_set (%a+) (%-?[%d%.]+)$")
+	local range = key and liveSettings[key]
+	if not range then
+		return
+	end
+	local playerName = Spring.GetPlayerInfo(playerID, false) or "?"
+	if not Spring.IsCheatingEnabled() then
+		spEcho("Transport settings: " .. playerName .. " tried to change " .. key .. ", needs /cheat")
+		return true
+	end
+	local value = math.max(range[1], math.min(range[2], tonumber(raw)))
+	if range[3] then
+		value = math.floor(value + 0.5)
+	end
+	setLiveSetting(key, value)
+	if SPEED_OVERRIDES[key] then
+		refreshTransportSpeeds()
+	end
+	spEcho("Transport settings: " .. playerName .. " set " .. key .. " to " .. value)
+	return true
+end
+
 function gadget:Initialize()
 	local AllUnits = spGetAllUnits()
 	if #AllUnits > 0 then
@@ -842,6 +918,9 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.LOAD_ONTO)
 	gadgetHandler:RegisterAllowCommand(CMD.UNLOAD_UNIT)
 	gadgetHandler:RegisterAllowCommand(CMD.UNLOAD_UNITS)
+	for key in pairs(liveSettings) do
+		Spring.SetGameRulesParam("tractorbeam_" .. key, getLiveSetting(key))
+	end
 	local allyTeams = spGetAllyTeamList()
 	for _, allyTeam in pairs(allyTeams) do
 		claimedBy[allyTeam] = {}
@@ -855,9 +934,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		customTransportUnload[unitDefID] = GetScriptFunc(unitID, 'PerformUnload')
 	end
 	if isAirTransport[unitDefID] then
-		if ALLOW_ENEMY_LOAD_MODE >= 3 then
-			consecutiveFramesOverEnemyPassenger[unitID] = {}
-		end
+		consecutiveFramesOverEnemyPassenger[unitID] = {} -- always: the enemy load mode can change live
 		transporterClaims[unitID] = {}
 		queuedSeats[unitID] = 0
 	end

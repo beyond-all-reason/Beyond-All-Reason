@@ -37,6 +37,7 @@ local spGetUnitHeight          = Spring.GetUnitHeight
 local spGetUnitCommands        = Spring.GetUnitCommands
 local spGetUnitIsTransporting  = Spring.GetUnitIsTransporting
 local spGetUnitTransporter     = Spring.GetUnitTransporter
+local spGetGameRulesParam      = Spring.GetGameRulesParam
 local spGetGroundHeight        = Spring.GetGroundHeight
 local spEcho                   = Spring.Echo
 local spSetUnitBuildParams     = Spring.SetUnitBuildParams
@@ -397,17 +398,28 @@ end
 
 ---@param cargo table
 ---@return number speedMultiplier
+-- live settings from a balance test (see the Transport Handler gadget); below 0 keeps the transport's own
+local function speedSetting(key, own)
+	local value = spGetGameRulesParam("tractorbeam_" .. key)
+	if value and value >= 0 then
+		return value
+	end
+	return own
+end
+
 function TransportAPI.CalculateTransporterSpeed(cargo)
 	local speedNerf = 0
-	local transporterSpeedModMode = cargo.transporterSpeedModMode or 0
+	local transporterSpeedModMode = speedSetting("speedModMode", cargo.transporterSpeedModMode or 0)
+	local speedModStrength = speedSetting("speedModStrength", cargo.transporterSpeedModStrength or 0)
+	local comSpeedModStrength = speedSetting("comSpeedModStrength", cargo.transporterComSpeedModStrength or 0)
 	if transporterSpeedModMode == 1 then
-		speedNerf = (cargo.transporterUsedSeats / cargo.transporterSeats) * cargo.transporterSpeedModStrength
+		speedNerf = (cargo.transporterUsedSeats / cargo.transporterSeats) * speedModStrength
 	elseif transporterSpeedModMode == 2 then
 		local maxWeight = cargo.transporterSeats -- max capacity
 		local maxOverWeight = maxWeight * 0.5
-		speedNerf = ((cargo.passengersTotalWeight - maxWeight) / maxOverWeight) * cargo.transporterSpeedModStrength
+		speedNerf = ((cargo.passengersTotalWeight - maxWeight) / maxOverWeight) * speedModStrength
 	end
-	local comSpeedNerf = cargo.loadedCommandersCount > 0 and cargo.transporterComSpeedModStrength or 0
+	local comSpeedNerf = cargo.loadedCommandersCount > 0 and comSpeedModStrength or 0
 	speedNerf = math.max(speedNerf, comSpeedNerf)
 	return math.max(0, 1 - speedNerf) -- final speed multiplier, between 0 and 1
 end

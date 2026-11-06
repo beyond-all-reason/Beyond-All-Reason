@@ -137,6 +137,12 @@ function PerformUnloadInstant(passengerID, goalX, goalY, goalZ) -- used by Reorg
     StartThread(TransportAnimator.Unload, passengerData, goalX, goalY, goalZ, false)
 end
 
+function RefreshSpeed() -- entry point from gadget transport handler: the speed penalty settings changed
+    if cargo and cargo.loadingCount == 0 and cargo.unloadingCount == 0 then
+        CargoHandler.SetSpeedDamping(TransportAPI.CalculateTransporterSpeed(cargo), cargo, true)
+    end
+end
+
 function script.Activate()   GenericAnimator.Activate()         end
 
 function script.Deactivate() GenericAnimator.Deactivate()        end
