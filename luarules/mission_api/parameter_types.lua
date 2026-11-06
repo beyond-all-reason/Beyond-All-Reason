@@ -16,6 +16,7 @@ local types = {
 	Orders = "Orders",
 	Area = "Area",
 	Direction = "Direction",
+	Formation = "Formation",
 	UnitLoadout = "UnitLoadout",
 	FeatureLoadout = "FeatureLoadout",
 	ResourceIncomeSources = "ResourceIncomeSources",

@@ -549,6 +549,34 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
+local function isFormationOrder(order)
+	if type(order) ~= "table" or type(order[2]) ~= "table" or #order[2] < 6 then
+		return false
+	end
+	local command = order[1]
+	return command == CMD.MOVE or command == CMD.FIGHT or command == CMD.PATROL
+end
+
+local function validateIssueOrdersAction(context, actionReport, actionID, action)
+	local parameters = action.parameters
+	if action.type ~= context.ActionTypes.IssueOrders or type(parameters) ~= "table" then
+		return
+	end
+	if type(parameters.orders) ~= "table" or parameters.formation ~= nil then
+		return
+	end
+
+	for index, order in ipairs(parameters.orders) do
+		if isFormationOrder(order) then
+			actionReport.Error(
+				actionID,
+				"An order with more than one point is a line, which needs formation",
+				"Parameter: orders[" .. index .. "][2]"
+			)
+		end
+	end
+end
+
 local function validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
@@ -558,6 +586,7 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 			validateAttributeAction(actionReport, actionID, action)
 			validateChangeTeamAction(context, actionReport, actionID, action)
+			validateIssueOrdersAction(context, actionReport, actionID, action)
 		end
 	end
 end
