@@ -136,8 +136,7 @@ local function restoreTeamMaxUnits(teamID)
 		local donorID = teammates[i]
 		local donorAmount = Spring.GetTeamMaxUnits(donorID)
 		-- The engine refuses a transfer that would leave a team below its current unit count.
-		local transferAmount =
-			mathMin(needed, donorAmount - share, donorAmount - Spring.GetTeamUnitCount(donorID))
+		local transferAmount = mathMin(needed, donorAmount - share, donorAmount - Spring.GetTeamUnitCount(donorID))
 		if transferAmount > 0 and Spring.TransferTeamMaxUnits(donorID, teamID, transferAmount) then
 			needed = needed - transferAmount
 		end
