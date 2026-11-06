@@ -130,7 +130,10 @@ local function hasOption(world, unitID, builtUnitDefID)
 end
 
 describe("api_dynamic_build_options", function()
-	local world, gadget, buildOptions, env
+	local world ---@type table
+	local gadget ---@type table
+	local buildOptions ---@type table
+	local env ---@type table
 
 	before_each(function()
 		world = newWorld()
