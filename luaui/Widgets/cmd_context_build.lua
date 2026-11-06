@@ -119,6 +119,10 @@ for udid, ud in pairs(UnitDefs) do
 end
 local mouseDownPos
 local cycleKey, cycleIndex
+local modifierKeys = {}
+for _, keyName in ipairs({ "shift", "ctrl", "alt", "meta", "rshift", "rctrl", "ralt", "rmeta" }) do
+	modifierKeys[Spring.GetKeyCode(keyName)] = true
+end
 
 local updateRate = 0.1
 local lastUpdateTime = 0
@@ -198,6 +202,10 @@ end
 
 -- Swapping a building resets the engine's cycle through a key's actions, so we cycle through keys ourselves.
 function widget:KeyPress(key, _mods, _isRepeat, _label, _unicode, _scanCode, actions)
+	if key ~= cycleKey and not modifierKeys[key] then
+		cycleKey = nil
+	end
+
 	if isPregame or not actions or #actions < 2 or not hasBuildAction(actions) then
 		return false
 	end
