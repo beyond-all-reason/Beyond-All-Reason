@@ -114,13 +114,11 @@ local clamp = math.clamp
 local scavTeamID = BAR.Utilities.GetScavTeamID()
 local gaiaTeamID = spring.GetGaiaTeamID()
 local gaiaAllyTeamID = select(6, spring.GetTeamInfo(gaiaTeamID))
-local unitTranslations = Json.decode(VFS.LoadFile("language/en/units.json")).units
-
 local zombieModeSettings = {
-	spawnCountMinimum = 2,
-	spawnCountMaximum = 6,
-	respawnDelayMinimum = 45,
-	respawnDelayMaximum = 120,
+	initialSpawnCountMinimum = 2,
+	initialSpawnCountMaximum = 6,
+	initialRespawnDelayMinimum = 45,
+	initialRespawnDelayMaximum = 120,
 	wraithFeedSuccessChance = 0.66,
 	wraithPowerMultiplier = 1,
 	heapRespawnDelayMultiplier = 2, -- multiplied by the base corpse respawn delay
@@ -503,16 +501,16 @@ do
 			"zombie_wraith_spawn_max_units_per_spawn_multiplier",
 			"wraithSpawnMaxUnitsPerSpawnMultiplier"
 		)
-		setSetting(customParams, "zombie_minimum_spawns", "spawnCountMinimum")
-		setSetting(customParams, "zombie_maximum_spawns", "spawnCountMaximum")
+		setSetting(customParams, "zombie_minimum_spawns", "initialSpawnCountMinimum")
+		setSetting(customParams, "zombie_maximum_spawns", "initialSpawnCountMaximum")
 		setSetting(customParams, "zombie_minimum_spawn_growth_rate", "minimumSpawnGrowthRate")
 		setSetting(customParams, "zombie_maximum_spawn_growth_rate", "maximumSpawnGrowthRate")
 		setSetting(customParams, "zombie_maximum_spawn_growth_delay", "maximumSpawnGrowthDelayMinutes")
 		setSetting(customParams, "zombie_spawn_count_cap", "spawnCountCap")
 		setSetting(customParams, "zombie_minutes_per_tech_level", "minutesPerTechLevel")
 		setSetting(customParams, "zombie_tech_scaling_delay", "techScalingDelayMinutes")
-		setSetting(customParams, "zombie_minimum_respawn_delay", "respawnDelayMinimum")
-		setSetting(customParams, "zombie_maximum_respawn_delay", "respawnDelayMaximum")
+		setSetting(customParams, "zombie_minimum_respawn_delay", "initialRespawnDelayMinimum")
+		setSetting(customParams, "zombie_maximum_respawn_delay", "initialRespawnDelayMaximum")
 		setSetting(customParams, "zombie_power_scale_rate", "powerScaleRate")
 		setSetting(customParams, "zombie_bottom_band_delay", "bottomBandDelayMinutes")
 		setSetting(customParams, "zombie_top_band_delay", "topBandDelayMinutes")
@@ -607,18 +605,18 @@ do
 	end
 	table.sort(wraithPoolUnitDefIDs, compareUnitDefPower)
 
-	zombieModeSettings.spawnCountMinimum = math.max(1, floor(zombieModeSettings.spawnCountMinimum))
-	zombieModeSettings.spawnCountMaximum =
-		math.max(zombieModeSettings.spawnCountMinimum, floor(zombieModeSettings.spawnCountMaximum))
+	zombieModeSettings.initialSpawnCountMinimum = math.max(1, floor(zombieModeSettings.initialSpawnCountMinimum))
+	zombieModeSettings.initialSpawnCountMaximum =
+		math.max(zombieModeSettings.initialSpawnCountMinimum, floor(zombieModeSettings.initialSpawnCountMaximum))
 	zombieModeSettings.spawnCountCap =
-		math.max(zombieModeSettings.spawnCountMaximum, floor(zombieModeSettings.spawnCountCap))
+		math.max(zombieModeSettings.initialSpawnCountMaximum, floor(zombieModeSettings.spawnCountCap))
 	zombieModeSettings.maximumSpawnGrowthDelayMinutes =
 		math.max(0, zombieModeSettings.maximumSpawnGrowthDelayMinutes)
 	zombieModeSettings.techScalingDelayMinutes = math.max(0, zombieModeSettings.techScalingDelayMinutes)
 	zombieModeSettings.minutesPerTechLevel = math.max(0, zombieModeSettings.minutesPerTechLevel)
-	zombieModeSettings.respawnDelayMinimum = math.max(0, zombieModeSettings.respawnDelayMinimum)
-	if zombieModeSettings.respawnDelayMinimum > zombieModeSettings.respawnDelayMaximum then
-		zombieModeSettings.respawnDelayMaximum = zombieModeSettings.respawnDelayMinimum
+	zombieModeSettings.initialRespawnDelayMinimum = math.max(0, zombieModeSettings.initialRespawnDelayMinimum)
+	if zombieModeSettings.initialRespawnDelayMinimum > zombieModeSettings.initialRespawnDelayMaximum then
+		zombieModeSettings.initialRespawnDelayMaximum = zombieModeSettings.initialRespawnDelayMinimum
 	end
 	zombieModeSettings.wraithFeedSuccessChance = clamp(zombieModeSettings.wraithFeedSuccessChance, 0, 1)
 	zombieModeSettings.bottomBandDelayMinutes = math.max(0, zombieModeSettings.bottomBandDelayMinutes)
@@ -751,13 +749,14 @@ local function getGameStateScaleForPower(power, rangeMinimum, rangeMaximum)
 		return rangeMaximum
 	end
 	local blend = (power - bottomPowerThreshold) / (topPowerThreshold - bottomPowerThreshold)
-	return math.mix(rangeMinimum, rangeMaximum, blend)
+	local remaining = 1 - blend
+	return math.mix(rangeMinimum, rangeMaximum, 1 - remaining * remaining * remaining)
 end
 
 local function getSpawnCountMaximum()
 	local minutesAfterStart = math.max(0, getElapsedMinutes() - zombieModeSettings.maximumSpawnGrowthDelayMinutes)
 	local grownMaximum = math.round(
-		zombieModeSettings.spawnCountMaximum * zombieModeSettings.maximumSpawnGrowthRate ^ minutesAfterStart,
+		zombieModeSettings.initialSpawnCountMaximum * zombieModeSettings.maximumSpawnGrowthRate ^ minutesAfterStart,
 		0
 	)
 	return math.min(zombieModeSettings.spawnCountCap, grownMaximum)
@@ -766,7 +765,7 @@ end
 local function getSmallestPack()
 	local minutesAfterStart = math.max(0, getElapsedMinutes() - zombieModeSettings.bottomBandDelayMinutes)
 	return math.round(
-		zombieModeSettings.spawnCountMinimum * zombieModeSettings.minimumSpawnGrowthRate ^ minutesAfterStart,
+		zombieModeSettings.initialSpawnCountMinimum * zombieModeSettings.minimumSpawnGrowthRate ^ minutesAfterStart,
 		0
 	)
 end
@@ -787,8 +786,8 @@ end
 local function calculateSpawnDelayFrames(unitDefData)
 	local decaySteps = math.max(0, getElapsedMinutes() - zombieModeSettings.respawnDecayDelayMinutes)
 	local decay = zombieModeSettings.respawnDecayRate ^ decaySteps
-	local minimumSpawnSeconds = zombieModeSettings.respawnDelayMinimum * decay
-	local maximumSpawnSeconds = zombieModeSettings.respawnDelayMaximum * decay
+	local minimumSpawnSeconds = zombieModeSettings.initialRespawnDelayMinimum * decay
+	local maximumSpawnSeconds = zombieModeSettings.initialRespawnDelayMaximum * decay
 	local spawnSeconds = math.round(
 		getGameStateScaleForPower(unitDefData.rezPower, minimumSpawnSeconds, maximumSpawnSeconds),
 		0
@@ -946,37 +945,14 @@ local function publishPushedSpawn(featureID, corpseData)
 end
 
 local function rollFor(keep, rollCount, minimum, maximum)
-	local rolls = {}
 	local result = random(minimum, maximum)
-	rolls[1] = result
-	local selectedIndex = 1
-	for rollIndex = 2, rollCount do
+	for _ = 2, rollCount do
 		local roll = random(minimum, maximum)
-		rolls[rollIndex] = roll
 		if (keep == PICK.LOWEST and roll < result) or (keep == PICK.HIGHEST and roll > result) then
 			result = roll
-			selectedIndex = rollIndex
 		end
 	end
-	return result, rolls, selectedIndex
-end
-
-local function getTranslatedUnitName(unitDefID)
-	local unitDef = unitDefs[unitDefID]
-	if not unitDef then
-		return tostring(unitDefID)
-	end
-	local customParams = unitDef.customParams
-	local unitDefName = unitDef.name
-	if customParams.isscavenger then
-		local proxyUnitDefName = customParams.fromunit
-		local proxyUnitDef = unitDefNames[proxyUnitDefName]
-		proxyUnitDefName = proxyUnitDef and proxyUnitDef.customParams.i18nfromunit or proxyUnitDefName
-		local fromUnitHumanName = unitTranslations.names[proxyUnitDefName] or proxyUnitDefName
-		return string.gsub(unitTranslations.scavenger, "%%{name}", fromUnitHumanName)
-	end
-	local proxyUnitDefName = customParams.i18nfromunit or unitDefName
-	return unitTranslations.names[proxyUnitDefName] or unitDefName
+	return result
 end
 
 local function calculateSpawnCount(unitDefID, inheritedExperience)
@@ -1010,28 +986,7 @@ local function calculateSpawnCount(unitDefID, inheritedExperience)
 	if advantage > 0 then
 		keep = PICK.HIGHEST
 	end
-	local spawnCount, rolls, selectedIndex = rollFor(keep, rollCount, smallestPack, spawnCountMaximum)
-	local unitRealName = getTranslatedUnitName(unitDefID)
-	local keepLabel = "take lowest"
-	if keep == PICK.HIGHEST then
-		keepLabel = "take highest"
-	end
-	local rollParts = {}
-	for rollIndex = 1, #rolls do
-		local rollText = tostring(rolls[rollIndex])
-		if rollIndex == selectedIndex then
-			rollText = "*" .. rollText .. "*"
-		end
-		rollParts[rollIndex] = rollText
-	end
-	spring.Echo(
-		unitRealName,
-		keepLabel,
-		table.concat(rollParts, " "),
-		"result=" .. spawnCount,
-		"queued=" .. spawnCount,
-		"range=" .. smallestPack .. "-" .. spawnCountMaximum
-	)
+	local spawnCount = rollFor(keep, rollCount, smallestPack, spawnCountMaximum)
 	return spawnCount, budget * smallestPack / spawnCount
 end
 
@@ -1401,7 +1356,7 @@ local function expireDueBuildings(frame)
 		local unitDefID = spring.ValidUnitID(unitID) and spring.GetUnitDefID(unitID)
 		if unitDefID and isZombie(unitID) and zombieUnitDefs[unitDefID].expiryLifetimeFrames then
 			suppressedDeaths[unitID] = true
-			spring.DestroyUnit(unitID, true, false)
+			spring.DestroyUnit(unitID, false, true)
 		end
 	end
 end
