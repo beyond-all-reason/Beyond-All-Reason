@@ -4483,7 +4483,7 @@ function widget:ViewResize()
 
 	local chatPanelWidth = activationArea[3] - activationArea[1]
 	local chatTextStartOffset = maxTimeWidth + maxPlayernameWidth + lineSpaceWidth
-	local chatTextEndMargin = floor(38 * widgetScale)
+	local chatTextEndMargin = floor(48 * widgetScale) -- clear of the history view's scrollbar
 	lineMaxWidth =
 		floor(math.max(120, chatPanelWidth - chatTextStartOffset - chatTextEndMargin - (backgroundPadding * 2)))
 	consoleLineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.88)
