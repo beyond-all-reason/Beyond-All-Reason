@@ -1,5 +1,5 @@
 ---
---- No Radar: removes the radar of every unit inside its area.
+--- No Radar: removes the radar of every unit inside its area. Its strength does nothing.
 ---
 
 local function setRadarMultiplier(unitIDs, multiplier, trackingID)

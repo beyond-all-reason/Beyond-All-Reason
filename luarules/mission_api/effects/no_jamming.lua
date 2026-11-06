@@ -1,5 +1,5 @@
 ---
---- No Jamming: removes the radar jamming of every unit inside its area.
+--- No Jamming: removes the radar jamming of every unit inside its area. Its strength does nothing.
 ---
 
 local function setJammerMultiplier(unitIDs, multiplier, trackingID)
