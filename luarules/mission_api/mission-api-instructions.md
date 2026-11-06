@@ -210,6 +210,9 @@ return {
 
 `CONTRIBUTING.md` has the general rule; these are the comments review removes most often here.
 
+- Parameters, schema fields, and their comments are phrased for the mission author, by what the
+  author gets (`skippable`); mechanism names (`publish`) stay in module code and commit messages.
+- New entries go into the existing group in a table or a file, not at the end.
 - An annotation types a value, a `---` doc line states a caller's contract, and a `--` comment gives
   a reason; none of them describes what the code does, records a fixed bug, or explains the engine.
 - Schemas, `parameter_types.lua`, and `validation/parameter_validators.lua` carry no documentation:
@@ -221,7 +224,6 @@ return {
   what it acts on, in the vocabulary of the system it touches.
 - Write the direct form: no helper for one table access, no packed parameter table, and no export
   without a caller.
-- New entries go into the existing group in a table or a file, not at the end.
 
 ## Testing
 
