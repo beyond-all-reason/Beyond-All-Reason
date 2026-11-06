@@ -333,7 +333,7 @@ UnitSpeed()
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>10) animSpeed = 10;
-		sleep 164;
+		sleep 50;
 	}
 }
 
