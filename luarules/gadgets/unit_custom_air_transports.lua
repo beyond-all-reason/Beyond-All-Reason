@@ -448,6 +448,19 @@ local function CanMoveToTransporter(passengerID, passengerTeamID, transporterID,
 	end
 end
 
+-- claims readable by allies: the load preview draws which transport picks which unit
+local ALLIED_READ = { allied = true }
+local function publishClaim(passengerID, transporterID)
+	if spValidUnitID(passengerID) then
+		spSetUnitRulesParam(passengerID, "transportClaimedBy", transporterID or 0, ALLIED_READ)
+	end
+end
+local function publishClaimedSeats(transporterID)
+	if spValidUnitID(transporterID) then
+		spSetUnitRulesParam(transporterID, "transporterClaimedSeats", queuedSeats[transporterID] or 0, ALLIED_READ)
+	end
+end
+
 ---@param passengerID number
 ---@param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
 ---@return nil
@@ -478,6 +491,8 @@ local function releasePassenger(passengerID, transporterAllyTeam)
 	else
 		queuedSeats[transporterID] = 0
 	end
+	publishClaim(passengerID, nil)
+	publishClaimedSeats(transporterID)
 end
 
 ---@param transporterID number
@@ -505,6 +520,8 @@ local function claimPassenger(transporterID, passengerID, passengerSize, manualC
 		total = total + (GetPassengerSize(transporterClaims[transporterID][i]) or 0)
 	end
 	queuedSeats[transporterID] = total
+	publishClaim(passengerID, transporterID)
+	publishClaimedSeats(transporterID)
 	return true
 end
 
@@ -517,12 +534,14 @@ local function releaseAllClaims(transporterID)
 	for i = 1, #claims do
 		local passengerID = claims[i]
 		claimedBy[transporterAllyTeam][passengerID] = nil
+		publishClaim(passengerID, nil)
 	end
 	if ALLOW_ENEMY_LOAD_MODE >= 3 and consecutiveFramesOverEnemyPassenger[transporterID] then
 		consecutiveFramesOverEnemyPassenger[transporterID] = {}
 	end
 	transporterClaims[transporterID] = {}
 	queuedSeats[transporterID] = 0
+	publishClaimedSeats(transporterID)
 end
 
 ---@param transporterID number
@@ -799,7 +818,7 @@ function gadget:Initialize()
 			if spGetUnitRulesParam(unitID, "inUnloadAnim") == 1 then
 				spEcho("Repairing unit " .. unitID .. " stuck in unload anim on gadget initialization")
 				spMoveCtrlDisable(unitID, false)
-				spSetUnitRulesParam(unitID, "inUnloadAnim", 0)
+				spSetUnitRulesParam(unitID, "inUnloadAnim", 0, ALLIED_READ)
 				EnablePassenger(unitID)
 				local unitDefID = spGetUnitDefID(unitID)
 				spSetUnitRadiusAndHeight(unitID, UnitDefs[unitDefID].radius, UnitDefs[unitDefID].height)
@@ -810,7 +829,7 @@ function gadget:Initialize()
 				spEcho("Repairing unit " .. unitID .. " stuck in load anim on gadget initialization")
 				EnablePassenger(unitID)
 				spMoveCtrlDisable(unitID, false)
-				spSetUnitRulesParam(unitID, "inLoadAnim", 0)
+				spSetUnitRulesParam(unitID, "inLoadAnim", 0, ALLIED_READ)
 				local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
 				spSetUnitPosition(unitID, unitPosX, spGetGroundHeight(unitPosX, unitPosZ), unitPosZ)
 			end

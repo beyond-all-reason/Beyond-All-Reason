@@ -8,6 +8,7 @@ local spGetUnitRotation           = Spring.GetUnitRotation
 local spGetUnitHeight             = Spring.GetUnitHeight
 local spGetUnitRadius             = Spring.GetUnitRadius
 local spSetUnitRulesParam         = Spring.SetUnitRulesParam
+local ALLIED_READ = { allied = true } -- allies and spectators see seats and load states
 local spMoveCtrlSetGunshipMoveTypeData = Spring.MoveCtrl.SetGunshipMoveTypeData
 
 -- CUSTOM SETTINGS
@@ -120,11 +121,11 @@ function CargoHandler.Init(setup)
 	-- set some initial unit rules params for the gadget to read, and for UI display
 	for size, bool in pairs (slotSizes) do
 		local rulesParamString = "transporterHasSlotOfSize"..size
-		spSetUnitRulesParam(transporterID, rulesParamString, bool)
+		spSetUnitRulesParam(transporterID, rulesParamString, bool, ALLIED_READ)
 	end
 	CargoHandler.SetSpeedDamping(1.0, cargo, true) -- make sure no silent damping stays after a reload, will be reapplied if necessary.
-	spSetUnitRulesParam(transporterID, "transporterSeats",    cargo.transporterSeats) -- used by gadget to determine if a passenger can be loaded, and by anim handler to determine whether to show hover effect
-	spSetUnitRulesParam(transporterID, "transporterUsedSeats", 0) -- used by gadget to determine if a passenger can be loaded/unloaded, and by anim handler to determine whether to show hover effect
+	spSetUnitRulesParam(transporterID, "transporterSeats",    cargo.transporterSeats, ALLIED_READ) -- used by gadget to determine if a passenger can be loaded, and by anim handler to determine whether to show hover effect
+	spSetUnitRulesParam(transporterID, "transporterUsedSeats", 0, ALLIED_READ) -- used by gadget to determine if a passenger can be loaded/unloaded, and by anim handler to determine whether to show hover effect
 	CargoHandler.CanLoad(true)
 	CargoHandler.CanUnload(true)
 	return cargo
@@ -147,12 +148,12 @@ end
 
 ---@param bool boolean  true to allow loading, false to block
 function CargoHandler.CanLoad(bool)
-	spSetUnitRulesParam(transporterID, "canLoad", bool and 1 or 0)
+	spSetUnitRulesParam(transporterID, "canLoad", bool and 1 or 0, ALLIED_READ)
 end
 
 ---@param bool boolean  true to allow unloading, false to block
 function CargoHandler.CanUnload(bool)
-	spSetUnitRulesParam(transporterID, "canUnload", bool and 1 or 0)
+	spSetUnitRulesParam(transporterID, "canUnload", bool and 1 or 0, ALLIED_READ)
 end
 
 ---@param cargo table
@@ -329,7 +330,7 @@ function CargoHandler.Register(passengerID, passengerData, cargo)
 	cargo.passengers[passengerID] = passengerData
 	cargo.count     = cargo.count + 1
 	cargo.transporterUsedSeats = cargo.transporterUsedSeats + (cargo.slots[passengerData.slotID].size or 0)
-	spSetUnitRulesParam(cargo.transporterID, "transporterUsedSeats", cargo.transporterUsedSeats)
+	spSetUnitRulesParam(cargo.transporterID, "transporterUsedSeats", cargo.transporterUsedSeats, ALLIED_READ)
 	cargo.passengersTotalWeight = cargo.passengersTotalWeight + (TransportAPI.GetPassengerWeight(passengerID, cargo) or 0)
 	cargo.loadedCommandersCount = cargo.loadedCommandersCount + (TransportAPI.IsPassengerCommander(passengerID) and 1 or 0)
 	CargoHandler.SetSpeedDamping(0.2, cargo, false)
@@ -343,7 +344,7 @@ function CargoHandler.Unregister(passengerID, cargo) -- marks the end of unloadi
 	local passengerData = cargo.passengers[passengerID]
 	if passengerData and passengerData.slotID then
 		cargo.transporterUsedSeats = math.max(0, cargo.transporterUsedSeats - (cargo.slots[passengerData.slotID].size or 0))
-		spSetUnitRulesParam(cargo.transporterID, "transporterUsedSeats", cargo.transporterUsedSeats)
+		spSetUnitRulesParam(cargo.transporterID, "transporterUsedSeats", cargo.transporterUsedSeats, ALLIED_READ)
 		CargoHandler.ReleaseSlot(passengerData.slotID, cargo)
 	end
 	cargo.passengers[passengerID] = nil

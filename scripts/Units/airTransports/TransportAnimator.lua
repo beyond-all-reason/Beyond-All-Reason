@@ -20,6 +20,7 @@ local spGetGroundNormal           = Spring.GetGroundNormal
 local spSetUnitRadiusAndHeight    = Spring.SetUnitRadiusAndHeight
 local spGetUnitDefID              = Spring.GetUnitDefID
 local spSetUnitRulesParam         = Spring.SetUnitRulesParam
+local ALLIED_READ = { allied = true } -- allies and spectators see seats and load states
 local spSetUnitPhysicalStateBit   = Spring.SetUnitPhysicalStateBit
 local spPos2BuildPos              = Spring.Pos2BuildPos
 local spGetUnitCommands           = Spring.GetUnitCommands
@@ -240,7 +241,7 @@ function TransportAnimator.Load(passengerData, doAnim)
 	passengerData.beamPieces = beamsBySlotID[passengerData.slotID]
 	TransportAPI.DisablePassenger(passengerData.id)
 	CargoHandler.BeginLoading(cargo)
-	spSetUnitRulesParam(passengerData.id, "inLoadAnim", transporterID)
+	spSetUnitRulesParam(passengerData.id, "inLoadAnim", transporterID, ALLIED_READ)
 
 	local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerData.id)
 	local passengerRotX, passengerRotY, passengerRotZ = spGetUnitRotation(passengerData.id)
@@ -301,7 +302,7 @@ function TransportAnimator.Load(passengerData, doAnim)
 	end
 	TransportAPI.EnablePassenger(passengerData.id)
 
-	spSetUnitRulesParam(passengerData.id, "inLoadAnim", 0)
+	spSetUnitRulesParam(passengerData.id, "inLoadAnim", 0, ALLIED_READ)
 	CargoHandler.EndLoading(cargo)
 end
 
@@ -319,7 +320,7 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 	spSetUnitBlocking(passengerData.id, nil, nil, true, true) -- restore upon starting the detach process
 	
 	if doAnim ~= false then
-		spSetUnitRulesParam(passengerData.id, "inUnloadAnim", 1)
+		spSetUnitRulesParam(passengerData.id, "inUnloadAnim", 1, ALLIED_READ)
 		local slotPosX, slotPosY, slotPosZ = spGetUnitPiecePosDir(transporterID, passengerData.slotID)
 		local transporterPosX, _, transporterPosZ, startTransporterRotX, startTransporterRotY, startTransporterRotZ = getTransporterState()
 		goalPosX, goalPosZ = goalPosX + (slotPosX - transporterPosX), goalPosZ + (slotPosZ - transporterPosZ)
@@ -395,7 +396,7 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 
 	resetSlot(passengerData.slotID)
 	local count = CargoHandler.Unregister(passengerData.id, cargo)
-	spSetUnitRulesParam(passengerData.id, "inUnloadAnim", 0)
+	spSetUnitRulesParam(passengerData.id, "inUnloadAnim", 0, ALLIED_READ)
 	TransportAPI.EnablePassenger(passengerData.id)
 	spSetUnitRadiusAndHeight(passengerData.id, passengerData.radius, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
 	if count == 0 then TransportAnimator.HasCargo(false) end

@@ -36,6 +36,7 @@ local spGetUnitDefID           = Spring.GetUnitDefID
 local spGetUnitHeight          = Spring.GetUnitHeight
 local spGetUnitCommands        = Spring.GetUnitCommands
 local spGetUnitIsTransporting  = Spring.GetUnitIsTransporting
+local spGetUnitTransporter     = Spring.GetUnitTransporter
 local spGetGroundHeight        = Spring.GetGroundHeight
 local spEcho                   = Spring.Echo
 local spSetUnitBuildParams     = Spring.SetUnitBuildParams
@@ -90,10 +91,12 @@ end
 -- function TransportAPI.HasAmphibCargo(...)              -- Return true if any passenger is amphibious or hover
 -- function TransportAPI.GetUnloadTargets(...)            -- Return filtered list of passengers valid to unload at goal position
 -- function TransportAPI.GetPassengerSize(...)            -- Return seat cost of a unit based on footprint or customParams.nseats
+-- function TransportAPI.GetPassengerSizeForDef(...)      -- Same, for a unit def (build menu, stats)
 -- function TransportAPI.GetUnloadPadType(...)            -- Return unload pad defID for a given transporter and optional passenger
 -- function TransportAPI.GetBiggestUnloadPadType(...)     -- Return unload pad defID for the largest transporter in a selection
 -- function TransportAPI.CanPassengerFitInTransporter(...)-- Return true if the passenger can fit in the transporter
 -- function TransportAPI.IsTransportFull(...)             -- Return true if the transporter has no remaining seat capacity
+-- function TransportAPI.GetPendingSeats(...)             -- Return seats claimed or queued to load, not yet aboard
 -- function TransportAPI.GetPassengerWeight(...)          -- Return passenger weight (seat cost × oversize multiplier)
 -- function TransportAPI.IsPassengerCommander(...)        -- Return true if the passenger is a commander unit
 -- function TransportAPI.EnablePassenger(...)             -- Restore build range and weapons after transport
@@ -186,8 +189,14 @@ end
 function TransportAPI.GetPassengerSize(unitID)
 	local udefID = spGetUnitDefID(unitID)
 	if not udefID then -- dead unit/invalid, treat as size 0
-		return 0 
-	end 
+		return 0
+	end
+	return TransportAPI.GetPassengerSizeForDef(udefID)
+end
+
+---@param udefID number
+---@return number size seat cost of any unit of this def
+function TransportAPI.GetPassengerSizeForDef(udefID)
 	if cachedUnitSizes[udefID] then
 		return cachedUnitSizes[udefID]
 	end
@@ -229,6 +238,29 @@ function TransportAPI.GetExpectedCargo(transporterID)
 		end
 	end
 	return cargo
+end
+
+---@param transporterID number
+---@return number seats the transporter has claimed or still has queued to load, on top of transporterUsedSeats
+function TransportAPI.GetPendingSeats(transporterID)
+	local pending = spGetUnitRulesParam(transporterID, "transporterClaimedSeats") or 0
+	local Q = spGetUnitCommands(transporterID, -1)
+	if Q then
+		for i = 1, #Q do
+			local cmd = Q[i]
+			local passengerID = cmd.id == CMD_LOAD_UNIT and cmd.params[1]
+			if
+				passengerID
+				and spValidUnitID(passengerID)
+				and spGetUnitRulesParam(passengerID, "transportClaimedBy") ~= transporterID
+				and spGetUnitRulesParam(passengerID, "inLoadAnim") ~= transporterID
+				and spGetUnitTransporter(passengerID) ~= transporterID
+			then
+				pending = pending + TransportAPI.GetPassengerSize(passengerID)
+			end
+		end
+	end
+	return pending
 end
 
 ---@param transporterID number

@@ -6,6 +6,7 @@ local spValidUnitID             = Spring.ValidUnitID
 local spGetUnitIsDead           = Spring.GetUnitIsDead
 local spSetUnitRadiusAndHeight  = Spring.SetUnitRadiusAndHeight
 local spSetUnitRulesParam       = Spring.SetUnitRulesParam
+local ALLIED_READ = { allied = true } -- allies and spectators see seats and load states
 local spSetUnitPhysicalStateBit = Spring.SetUnitPhysicalStateBit
 local spGetUnitDefID            = Spring.GetUnitDefID
 local spAddUnitDamage           = Spring.AddUnitDamage
@@ -120,8 +121,8 @@ function GenericAnimator.Killed(severity)
 	for passengerID, passengerData in pairs(cargo.passengers) do
 		spMoveCtrlDisable(passengerID) -- safe to call on attached passengers too
 		if spValidUnitID(passengerID) and not spGetUnitIsDead(passengerID) then
-			spSetUnitRulesParam(passengerID, "inLoadAnim", 0)
-			spSetUnitRulesParam(passengerID, "inUnloadAnim", 0)
+			spSetUnitRulesParam(passengerID, "inLoadAnim", 0, ALLIED_READ)
+			spSetUnitRulesParam(passengerID, "inUnloadAnim", 0, ALLIED_READ)
 			TransportAPI.EnablePassenger(passengerID) -- re-enable if mid-unload (no-op if mid-load, abilities were never disabled)
 			spSetUnitRadiusAndHeight(passengerID, passengerData.radius, passengerData.height)
 			spSetUnitPhysicalStateBit(passengerID, 128 + 512)  -- PSTATE_BIT_FLYING | PSTATE_BIT_SKIDDING (matches engine ReleasePassengers releaseHeld path)
