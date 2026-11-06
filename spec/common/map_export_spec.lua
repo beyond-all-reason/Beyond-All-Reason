@@ -269,6 +269,29 @@ describe("map_export", function()
 		assert.is_truthy(report.missing[1]:find("ramp image dusk.png", 1, true))
 	end)
 
+	it("ships DNTS textures only for the legacy renderer", function()
+		local function withDnts(tileset)
+			local fs = project({ ["p/assets/dnts/rock.dds"] = "ROCK", ["p/assets/dnts/noise.png"] = "NOISE" })
+			local manifest = fs.files["p/project.lua"]
+				:gsub('skybox = "sky.dds",', 'skybox = "sky.dds",\n\t\tdnts = { textures = { "rock.dds" }, detail = "noise.png" },')
+			if not tileset then
+				manifest = manifest:gsub('tileset = { file = "tileset.lua" },', "")
+			end
+			fs.files["p/project.lua"] = manifest
+			run(fs)
+			return fs, archiveTable(fs, "mapinfo.lua")
+		end
+
+		local fs, mapinfo = withDnts(false)
+		assert.are.equal("rock.dds", mapinfo.resources.splatdetailnormaltex1)
+		assert.are.equal("ROCK", fs.files["o/archive/maps/rock.dds"])
+
+		fs, mapinfo = withDnts(true)
+		assert.is_nil(mapinfo.resources.splatdetailnormaltex1)
+		assert.is_nil(mapinfo.resources.splatdetailtex)
+		assert.is_nil(fs.files["o/archive/maps/rock.dds"])
+	end)
+
 	it("reports a skybox it cannot find", function()
 		local fs = project({ ["Terraform Brush/SkyBoxes/sky.dds"] = false })
 		fs.files["Terraform Brush/SkyBoxes/sky.dds"] = nil

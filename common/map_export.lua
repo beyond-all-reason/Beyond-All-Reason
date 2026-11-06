@@ -703,7 +703,7 @@ function MapExport.run(opts)
 		note("no environment section: the engine's default lighting, atmosphere and water")
 	end
 
-	-- Splats: distribution texture + DNTS sets (the legacy renderer and the tileset fallback) --
+	-- Splats: the distribution texture (both renderers read it) + DNTS sets (legacy renderer only) --
 	local splatFile = sectionFile("splat")
 	if splatFile then
 		local splatName = base .. "_splat.png"
@@ -713,6 +713,10 @@ function MapExport.run(opts)
 		end
 	end
 	local dnts = type(map.dnts) == "table" and map.dnts or nil
+	if dnts and sectionFile("tileset") then
+		dnts = nil
+		report.sections.dnts = "not shipped: the tileset renderer does not draw them"
+	end
 	if dnts then
 		local function dntsFile(path)
 			if type(path) ~= "string" or path == "" then
