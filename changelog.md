@@ -32,7 +32,6 @@
 # October
 - [Lava] will now damage unit wrecks, rocks, and other metal containing features.
 - [Zombies]
-  - Zombies now escalate over the game, rising faster and with veterancy, in Hydra also in bigger numbers. Cheap units first and the most expensive last, and it waits for the players' tech on the way.
   - Zombie factories expire 5 minutes after rising. Expiring zombie buildings now self-destruct instead of vanishing.
   - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
   - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
