@@ -1644,7 +1644,8 @@ local function queueZombieFeature(featureID, override, wasZombie, attackerID, at
 		spring.SetFeatureRulesParam(featureID, RULES_PARAM.WAS_ZOMBIE, 1, RULES_PARAM.PUBLIC_ACCESS)
 	end
 
-	local existingRezFrame = tonumber(spring.GetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME))
+	local rezFrameParam = spring.GetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME)
+	local existingRezFrame = rezFrameParam and tonumber(rezFrameParam)
 	local spawnFrame = gameFrame + spawnDelayFrames
 	if existingRezFrame and existingRezFrame > 0 then
 		spawnFrame = floor(existingRezFrame)
