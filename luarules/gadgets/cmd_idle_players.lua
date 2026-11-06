@@ -41,6 +41,8 @@ if gadgetHandler:IsSyncedCode() then
 	local currentGameFrame = 0
 
 	local TransferUnit = Spring.TransferUnit
+	local GetTeamMaxUnits = Spring.GetTeamMaxUnits
+	local GetTeamUnitCount = Spring.GetTeamUnitCount
 	local GetPlayerList = Spring.GetPlayerList
 	local ShareTeamResource = Spring.ShareTeamResource
 	local GetTeamResources = Spring.GetTeamResources
@@ -149,6 +151,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local targetTeam = tonumber(words[1])
 		local _, _, _, takerID, allyTeamID = GetPlayerInfo(playerID, false)
+		local takeUnitLimit = GetTeamUnitCount(takerID) >= GetTeamMaxUnits(takerID)
 		local teamList = GetTeamList(allyTeamID)
 		if targetTeam then
 			if select(6, GetTeamInfo(targetTeam, false)) ~= allyTeamID then
@@ -167,7 +170,8 @@ if gadgetHandler:IsSyncedCode() then
 				local teamUnits = GetTeamUnits(teamID)
 				local unitsTaken = 0
 				for i = 1, #teamUnits do
-					if TransferUnit(teamUnits[i], takerID) then
+					takeUnitLimit = takeUnitLimit or GetTeamUnitCount(takerID) >= GetTeamMaxUnits(takerID)
+					if TransferUnit(teamUnits[i], takerID, true, takeUnitLimit) then
 						unitsTaken = unitsTaken + 1
 					end
 				end
