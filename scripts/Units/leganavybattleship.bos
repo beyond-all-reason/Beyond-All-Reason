@@ -1609,12 +1609,12 @@ Create()
 	start-script UnitSpeed();
 	start-script Movement();
 	start-script FiringMode();
+	start-script WobbleUnit();
+	start-script Wake();
 
 	if (isInWater){
 
 		call-script Close();
-		start-script WobbleUnit();
-		start-script Wake();
 		
 		//call-script InitRockBoat();
 		//start-script BoatPhysics();
