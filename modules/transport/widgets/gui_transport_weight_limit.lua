@@ -12,6 +12,12 @@ function widget:GetInfo()
 	}
 end
 
+-- tractor beam transports go by seats: Tractor Beam Load shows what fits
+local tractorBeamMode = Spring.GetModOptions().beta_tractorbeam
+if tractorBeamMode and tractorBeamMode ~= "disabled" then
+	return false
+end
+
 -- Localized functions for performance
 local mathSin = math.sin
 local mathCos = math.cos
