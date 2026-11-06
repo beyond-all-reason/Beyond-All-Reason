@@ -500,7 +500,6 @@ local function registerSpatialValidators(parameterValidators, context)
 
 	local formationFields = { direction = Types.Direction }
 
-	--- IssueOrders' formation: { direction = Direction }, every field optional.
 	parameterValidators[Types.Formation] = function(formation)
 		local luaTypeResult = validateTableType(formation)
 		if luaTypeResult then
@@ -625,7 +624,6 @@ end
 local validateUnitNameParam = getNameValidator("unitName", "{ unitName = 'aUnitName' }")
 local validate3 = getNumberArrayValidator({ 3 }, "3 numbers {x, y, z}")
 
--- One point, or several in threes { x1, y1, z1, x2, y2, z2, ... }: a line, which IssueOrders' formation spreads along.
 local function validatePoints(params, results)
 	local luaTypeResult = validateLuaType(params, "table")
 	if luaTypeResult then
@@ -670,9 +668,8 @@ local validate4orEitherName = getNumberArrayValidator(
 local validateBuildOrder =
 	getNumberArrayValidator({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")
 
---- A MOVE, FIGHT or PATROL order with more than one point, which only IssueOrders' formation can give.
-local function isLineOrder(order)
-	if type(order) ~= "table" or type(order[2]) ~= "table" or #order[2] <= 3 then
+local function isFormationOrder(order)
+	if type(order) ~= "table" or type(order[2]) ~= "table" or #order[2] < 6 then
 		return false
 	end
 	local command = order[1]
@@ -899,7 +896,7 @@ local function registerLoadoutValidators(parameterValidators, context)
 
 			if type(entry.orders) == "table" then
 				for index, order in ipairs(entry.orders) do
-					if isLineOrder(order) then
+					if isFormationOrder(order) then
 						results[#results + 1] = {
 							message = "A line of points needs IssueOrders with formation",
 							parameterNameSuffix = ".orders[" .. index .. "][2]",

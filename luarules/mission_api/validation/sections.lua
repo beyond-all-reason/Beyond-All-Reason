@@ -549,9 +549,8 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
--- A MOVE, FIGHT or PATROL order with more than one point is a line, which only a formation spreads the units along.
-local function isLineOrder(order)
-	if type(order) ~= "table" or type(order[2]) ~= "table" or #order[2] <= 3 then
+local function isFormationOrder(order)
+	if type(order) ~= "table" or type(order[2]) ~= "table" or #order[2] < 6 then
 		return false
 	end
 	local command = order[1]
@@ -568,7 +567,7 @@ local function validateIssueOrdersAction(context, actionReport, actionID, action
 	end
 
 	for index, order in ipairs(parameters.orders) do
-		if isLineOrder(order) then
+		if isFormationOrder(order) then
 			actionReport.Error(
 				actionID,
 				"An order with more than one point is a line, which needs formation",
