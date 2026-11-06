@@ -269,6 +269,11 @@ if gadgetHandler:IsSyncedCode() then
 		return type(target) ~= "number" or (not isDeadOrCrashing(target) and not isAlliedUnit(teamID, target))
 	end
 
+	local function isDeadAlwaysSeenTarget(targetData)
+		local target = targetData.target
+		return targetData.alwaysSeen and type(target) == "number" and spGetUnitIsDead(target) ~= false
+	end
+
 	local function inReturnFire(unitID)
 		return spGetUnitStates(unitID, false) == FIRESTATE_RETURNFIRE
 	end
@@ -390,7 +395,7 @@ if gadgetHandler:IsSyncedCode() then
 			return TARGET_AVAILABLE
 		end
 		if isDeadOrCrashing(target) then
-			return TARGET_GONE
+			return alwaysSeen and TARGET_UNSEEN or TARGET_GONE
 		end
 		if alwaysSeen then
 			return TARGET_AVAILABLE
@@ -969,9 +974,10 @@ if gadgetHandler:IsSyncedCode() then
 		local updateIndex = 0 -- table.remove is slow, as is iterating forward then backward, so we do an erase-remove
 		for index = 1, targetCount do
 			local targetData = targets[index]
-			if checkTarget(teamID, targetData.target) then
+			local isDeadAlwaysSeen = isDeadAlwaysSeenTarget(targetData)
+			if isDeadAlwaysSeen or checkTarget(teamID, targetData.target) then
 				updateIndex = updateIndex + 1
-				if testTarget(unitID, teamID, weapons, targetData.target) then
+				if not isDeadAlwaysSeen and testTarget(unitID, teamID, weapons, targetData.target) then
 					if updateIndex ~= index then
 						targets[updateIndex] = targetData
 					end
