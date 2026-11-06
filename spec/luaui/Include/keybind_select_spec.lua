@@ -23,6 +23,16 @@ local env = SpecEnv.new({
 				}
 			end,
 		},
+		FlowUI = {
+			Scroller = {
+				width = function(scale)
+					return math.floor(11 * scale)
+				end,
+				new = function()
+					return {}
+				end,
+			},
+		},
 	},
 	BAR = {
 		I18N = function(key)

@@ -99,7 +99,7 @@ local legionUnitlist = {
 	{ "leglht", "legtl" },
 	{ "leghive", "legfhive" },
 	{ "legnanotc", "legnanotcplat" },
-	{ "legvp", "legamsub" },
+	{ "legvp", "legamphlab" },
 	{ "leggeo", "leguwgeo" },
 	--{'cortarg','corfatf'}, --asym pairs cannot overlap with core placeholders
 	--{'cormmkr','coruwmmm'},

@@ -130,8 +130,6 @@ local rows = {}
 local rowsGen = 0
 local scroll = 0
 
--- `grab` is the distance from the cursor to the thumb top edge, so the thumb follows the
--- cursor instead of jumping its middle to the press.
 local hover = {
 	sb = 0,
 	row = 0,
@@ -144,9 +142,8 @@ local hover = {
 	gb = 0,
 	btn = "",
 	bar = 0,
-	grab = 0,
 	cat = 0,
-	drag = false,
+	catThumbHovered = false,
 	kb = 0,
 }
 local dirty = false
@@ -217,8 +214,6 @@ local capturing
 local font
 ---@type function
 local RectRound
----@type table
-local Scroller
 ---@type function
 local UiElement
 ---@type function
@@ -378,7 +373,7 @@ local presetDropdown
 local nameBox
 ---@type function?
 local menuToggle
-local switchToPreset, scrollFromY
+local switchToPreset
 
 ---@type table?
 local dialog
@@ -444,6 +439,8 @@ local state = {
 	batchEdited = false,
 	---@type string
 	page = "list",
+	---@type table?
+	rowDrag = nil,
 	keyboard = require("luaui/Include/keybind_keyboard").new(),
 	keyboardGen = -1,
 	selectCommand = require("luaui/Include/keybind_select"),
@@ -1102,6 +1099,37 @@ function state.countClashes()
 	end
 end
 
+-- Where each action is first bound. The keymap is written in bind order, so that is the order
+-- the player drags rows into.
+function state.bindPositions()
+	local at = {}
+	for i, b in ipairs(working.binds) do
+		at[b.action] = at[b.action] or i
+	end
+
+	return at
+end
+
+-- An action left with no binds has no place in the file, so it trails, as it was.
+function state.inBindOrder(actions, boundAt)
+	local was = {}
+	for i, action in ipairs(actions) do
+		was[action] = i
+	end
+	table.sort(actions, function(a, b)
+		local pa, pb = boundAt[a], boundAt[b]
+		if pa and pb then
+			return pa < pb
+		elseif pa or pb then
+			return pa ~= nil
+		end
+
+		return was[a] < was[b]
+	end)
+
+	return actions
+end
+
 -- Rebuilds the display list from the catalog and the staged binds, honouring both the
 -- search box and the category column.
 local function rebuildRows()
@@ -1143,6 +1171,9 @@ local function rebuildRows()
 	-- there are is counted whatever is shown, since its label says so.
 	local changedOnly = selectedCategory == state.changedKey
 	local changedCount = 0
+	-- A narrowed list hides rows whose binds a drop would move, so only the whole one can be dragged.
+	local reorderable = query.empty and not changedOnly
+	local boundAt = state.bindPositions()
 
 	-- Whole keys only, as the chips print them: "f1" does not find F11, and a paired action
 	-- hidden Shift half does not answer to "shift".
@@ -1227,6 +1258,9 @@ local function rebuildRows()
 			-- An empty prefix would claim every bound action, so treat it as no prefix.
 			if item.prefix and item.prefix ~= "" then
 				local matched = state.prefixActions(item, catalogActions)
+				if item.selection then
+					state.inBindOrder(matched, boundAt)
+				end
 				for i = 1, #matched do
 					local action = matched[i]
 					local arg = action:sub(#item.prefix + 1)
@@ -1273,6 +1307,7 @@ local function rebuildRows()
 							label = label,
 							editSelection = buildable or nil,
 							custom = item.selection and not buildable or nil,
+							reorder = reorderable and item.selection and boundAt[action] and item or nil,
 							description = item.description,
 							change = change,
 							queryAny = byKey == "any",
@@ -1391,6 +1426,7 @@ local function rebuildRows()
 
 	if #others > 0 and inOther then
 		table.sort(others)
+		state.inBindOrder(others, boundAt)
 
 		-- A catalog category can be titled the same as this generated one; when it is,
 		-- the leftovers join it after its own items instead of repeating the header.
@@ -1405,8 +1441,14 @@ local function rebuildRows()
 		end
 
 		for _, action in ipairs(others) do
-			rows[#rows + 1] =
-				{ type = "editable", action = action, label = action, custom = true, change = rowChange(action) }
+			rows[#rows + 1] = {
+				type = "editable",
+				action = action,
+				label = action,
+				custom = true,
+				reorder = reorderable and boundAt[action] and L.other or nil,
+				change = rowChange(action),
+			}
 		end
 		for i = 1, #tail do
 			rows[#rows + 1] = tail[i]
@@ -2112,7 +2154,7 @@ local function startClipboard(exporting)
 	local d = {
 		title = L.importTitle,
 		initial = profiles.uniqueName(stamped or L.newProfile),
-		preview = { lines = lines, scroll = 0, summary = "" },
+		preview = state.newPreview(lines),
 		choice = { label = L.importAsNew, on = whole or not own, locked = not own },
 		hint = BAR.I18N("ui.keybinds.editor.importAddHint", { name = from }),
 		nameless = false,
@@ -2534,7 +2576,8 @@ end
 function view.init()
 	font = WG["fonts"].getFont()
 	RectRound = WG.FlowUI.Draw.RectRound
-	Scroller = WG.FlowUI.Draw.Scroller
+	state.listScroller = WG.FlowUI.Scroller.new(state.listMeasure)
+	state.catScroller = WG.FlowUI.Scroller.new(state.catMeasure)
 	UiElement = WG.FlowUI.Draw.Element
 	Highlight = WG.FlowUI.Draw.SelectHighlight
 	UiButton = WG.FlowUI.Draw.Button
@@ -2570,7 +2613,7 @@ function view.setArea(x1, y1, x2, y2, s, wx1, wy1, wx2, wy2)
 	scale = s or 1
 	rowHeight = floor(24 * scale)
 	metrics.catRowHeight = floor(29 * scale)
-	metrics.catBarW = math.max(3, floor(6 * scale))
+	metrics.catBarW = WG.FlowUI.Scroller.width(scale)
 	-- Whole pixels throughout: a size or a corner landing on a fraction puts glyph and
 	-- rectangle edges between pixels, which the renderer then blends across both.
 	metrics.rowFs = floor(rowHeight * 0.55)
@@ -2612,7 +2655,7 @@ function view.setArea(x1, y1, x2, y2, s, wx1, wy1, wx2, wy2)
 	metrics.compareBandH = metrics.compareStripH + floor(rowHeight * 0.5)
 	-- The gap matches the one the bar keeps from the panel edge on its other side, so it sits in
 	-- a channel rather than hugging the rows.
-	local barW = floor(14 * scale)
+	local barW = WG.FlowUI.Scroller.width(scale)
 	barX1 = area.x2 - metrics.edgeInset - barW
 	listRight = barX1 - metrics.listGap
 	metrics.keyAreaX1 = listX1 + floor((listRight - listX1) * 0.45)
@@ -2658,6 +2701,7 @@ function view.blur()
 	end
 	state.tooltipsRegistered = false
 	state.tipKey = nil
+	state.rowDrag = nil
 	state.selectionBuilder:close()
 	if state.panelList then
 		gl.DeleteList(state.panelList)
@@ -3017,31 +3061,6 @@ local function actionUsesAny(action, oldRaw)
 	return false
 end
 
--- A press within the timeout extends the sequence; a slower one starts over.
-local function appendChain(el)
-	local c = capturing
-	if not c then
-		return
-	end
-
-	-- The first real press replaces what the modal opened showing.
-	if c.seeded then
-		c.seeded = false
-		c.elems = {}
-	end
-
-	local now = spGetTimer()
-	if #c.elems == 0 then
-		c.elems[1] = el
-	elseif c.lastPress and spDiffTimers(now, c.lastPress) * 1000 <= c.timeout then
-		c.elems[#c.elems + 1] = el
-	else
-		c.elems = { el }
-	end
-
-	c.lastPress = now
-end
-
 -- Derived from the one canonical list so a modifier added there is understood here too.
 -- modPrefix below emits in the same order, reading the state Spring returns positionally.
 local modNames = {}
@@ -3139,6 +3158,37 @@ local function modPrefix()
 	return prefix
 end
 
+-- A press within the timeout extends the sequence; a slower one starts over.
+local function appendChain(el)
+	local c = capturing
+	if not c then
+		return
+	end
+
+	-- The first real press replaces what the modal opened showing.
+	if c.seeded then
+		c.seeded = false
+		c.elems = {}
+	end
+
+	local now = spGetTimer()
+	local last = c.elems[#c.elems]
+	if #c.elems == 0 then
+		c.elems[1] = el
+	elseif c.lastPress and spDiffTimers(now, c.lastPress) * 1000 <= c.timeout then
+		-- Mirrors the engine's key chain, which folds a modifier into a key pressed while it is held.
+		if last.modifier and last.scan ~= el.scan and c.pressed[last.scan] then
+			c.elems[#c.elems] = el
+		else
+			c.elems[#c.elems + 1] = el
+		end
+	else
+		c.elems = { el }
+	end
+
+	c.lastPress = now
+end
+
 -- Accept is shown and acts only on this, so a button not on screen cannot be clicked. Seeded
 -- means nothing has been pressed yet: accepting would rewrite a keyset to itself.
 local function captureCanAccept()
@@ -3147,24 +3197,27 @@ local function captureCanAccept()
 	return c ~= nil and #c.elems > 0 and not c.seeded
 end
 
--- Scancode to keyset symbol, refusing modifier keys and the stand-in Meta key so they
--- cannot bind alone; the latter is held down while the player picks what goes with it.
-local function pressSym(key, scanCode)
-	if capturing and key == capturing.fakeMetaCode then
-		return nil
-	end
-
+-- The engine binds a lone modifier as Any+, but the stand-in Meta key keeps the Meta+ it adds.
+local function pressElem(key, scanCode)
 	-- Not localised like its neighbours: this chunk is at Lua's ceiling of 200 locals and
 	-- a slot is worth more elsewhere. It runs on a key press, not on a frame.
 	local sym = scanCode and Spring.GetScanSymbol(scanCode)
 	if not sym or sym == "" then
 		return nil
 	end
-	if sym:find("ctrl") or sym:find("alt") or sym:find("shift") or sym:find("meta") or sym:find("gui") then
+
+	local modifier = keybindModel.isBareModifier(sym)
+	-- A modifier alone reads the same with Shift held or not, so it cannot pair.
+	if modifier and capturing and capturing.pair then
 		return nil
 	end
 
-	return sym
+	return {
+		sym = sym,
+		mods = modifier and "" or modPrefix(),
+		modifier = modifier or (capturing ~= nil and key == capturing.fakeMetaCode),
+		scan = scanCode,
+	}
 end
 
 -- Any+ replaces the held modifiers, so toggling the checkbox re-derives each element.
@@ -3528,6 +3581,27 @@ local function catScrolled(delta)
 	return most
 end
 
+-- Over the entries rather than the whole card: a bar running past the last row reads as dead
+-- space, and its thumb then says more fits than does. Nil while every entry fits.
+function state.catBar()
+	if catScrolled(0) == 0 then
+		return nil
+	end
+
+	local rowH = metrics.catRowHeight
+	local page = math.max(1, floor((sidebarTop() - state.sidebarBottom()) / rowH))
+	local bx2 = area.x1 + sidebarW - metrics.catInset
+
+	return { bx2 - metrics.catBarW, sidebarTop() - page * rowH, bx2, sidebarTop() }
+end
+
+function state.catMeasure()
+	local rowH = metrics.catRowHeight
+	local most = catScrolled(0)
+
+	return #categories * rowH, hover.cat * rowH, most
+end
+
 -- The category entry under x,y, or nil. Half-open on the shared edge, like the rows, so
 -- one point never lands in two entries.
 local function sidebarIndexAt(x, y)
@@ -3662,22 +3736,10 @@ local function drawSidebar(hoverIdx)
 		"cov"
 	)
 
-	-- A bar of its own, and a slim one: the column is narrow and this only shows up when
-	-- there are more categories than the card has room for.
-	if catScrolled(0) > 0 then
-		local bx2 = area.x1 + sidebarW - metrics.catInset
-		Scroller(
-			bx2 - metrics.catBarW,
-			-- Over the entries rather than the whole card: a bar running past the last row reads
-			-- as dead space, and its thumb then says more fits than does.
-			sidebarTop()
-				- math.max(1, floor((sidebarTop() - state.sidebarBottom()) / metrics.catRowHeight))
-					* metrics.catRowHeight,
-			bx2,
-			sidebarTop(),
-			#categories * metrics.catRowHeight,
-			hover.cat * metrics.catRowHeight
-		)
+	local catBar = state.catBar()
+	if catBar then
+		state.catScroller:setRect(catBar[1], catBar[2], catBar[3], catBar[4])
+		state.catScroller:draw(hover.catThumbHovered)
 	end
 
 	-- Laid out before the font existed, so the labels are still waiting to be fitted; or one of
@@ -4212,7 +4274,7 @@ end
 function state.previewGeometry(pv, x1, y1, x2, y2)
 	local lineH = floor(rowHeight * 0.66)
 	local pad = floor(6 * scale)
-	local barW = floor(10 * scale)
+	local barW = WG.FlowUI.Scroller.width(scale)
 	local visible = math.max(1, floor((y2 - y1 - pad * 2) / lineH))
 	local most = math.max(0, #pv.lines - visible)
 	local bar = most > 0 and { x2 - pad - barW, y1 + pad, x2 - pad, y2 - pad } or nil
@@ -4220,22 +4282,14 @@ function state.previewGeometry(pv, x1, y1, x2, y2)
 	return lineH, pad, visible, most, bar
 end
 
--- Scrolls the preview so the thumb's top sits where the cursor has dragged it, the offset
--- taken at the grab keeping it relative - as the list's own bar does.
-function state.previewScrollFromY(pv, bar, lineH, most, y)
-	local _, _, trackTop, travel =
-		WG.FlowUI.Draw.ScrollerGeometry(bar[1], bar[2], bar[3], bar[4], #pv.lines * lineH, pv.scroll * lineH)
-	if not travel or travel <= 0 then
-		return
-	end
+-- The import's lines, where they are scrolled to, and the bar that scrolls them.
+function state.newPreview(lines)
+	local pv = { lines = lines, scroll = 0, summary = "", lineH = 1, most = 0 }
+	pv.scroller = WG.FlowUI.Scroller.new(function()
+		return #pv.lines * pv.lineH, pv.scroll * pv.lineH, pv.most
+	end)
 
-	local f = (trackTop - (y - pv.grab)) / travel
-	if f < 0 then
-		f = 0
-	elseif f > 1 then
-		f = 1
-	end
-	pv.scroll = floor(f * most + 0.5)
+	return pv
 end
 
 -- Fitted to the box once per width and face.
@@ -4245,15 +4299,12 @@ function state.drawPreview(pv, x1, y1, x2, y2, mx, my)
 	local lineH, pad, visible, most, bar = state.previewGeometry(pv, x1, y1, x2, y2)
 	pv.visible = visible
 
-	-- A drag in progress follows the cursor and ends with the button.
-	if pv.drag then
-		local _, _, lmb = spGetMouseState()
-		if lmb and bar then
-			state.previewScrollFromY(pv, bar, lineH, most, my)
-		else
-			pv.drag = false
-		end
+	pv.lineH, pv.most = lineH, most
+	if bar then
+		pv.scroller:setRect(bar[1], bar[2], bar[3], bar[4])
 	end
+	local _, _, lmb = spGetMouseState()
+	pv.scroll = pv.scroller:drag(my, lmb) or pv.scroll
 	if pv.scroll > most then
 		pv.scroll = most
 	end
@@ -4292,10 +4343,7 @@ function state.drawPreview(pv, x1, y1, x2, y2, mx, my)
 		end
 	end
 	if bar then
-		local content, pos = #pv.lines * lineH, pv.scroll * lineH
-		local top, thumbH = WG.FlowUI.Draw.ScrollerGeometry(bar[1], bar[2], bar[3], bar[4], content, pos)
-		local onThumb = top ~= nil and isInRect(mx, my, bar[1], top - thumbH, bar[3], top)
-		Scroller(bar[1], bar[2], bar[3], bar[4], content, pos, onThumb, pv.drag)
+		pv.scroller:draw(pv.scroller:isOverThumb(mx, my))
 	end
 
 	mono:Begin()
@@ -4503,16 +4551,11 @@ local function drawButtons(hotId)
 	end
 end
 
--- Nil when the list fits and no bar is drawn.
-local function scrollerThumb()
-	return WG.FlowUI.Draw.ScrollerGeometry(
-		barX1,
-		listBottom(),
-		area.x2 - metrics.edgeInset,
-		listTop,
-		rowMetrics.totalH,
-		scrollOffset()
-	)
+-- The list's bar draws by pixels, as headings are taller than rows, and scrolls by rows.
+function state.listMeasure()
+	local position = scrollOffset()
+
+	return rowMetrics.totalH, position, maxScroll()
 end
 
 -- Reads the hover state and answers a signature of everything the baked panel is painted
@@ -4529,10 +4572,15 @@ local function panelSignature(mx, my)
 
 	-- Over the thumb itself, which lights it. The track either side is not part of this:
 	-- only the thumb is something to take hold of.
-	if not keyboardPage and mx >= barX1 and mx <= area.x2 - metrics.edgeInset then
-		local top, height = scrollerThumb()
-		if top and my <= top and my >= top - height then
-			h.bar = 1
+	if not keyboardPage and state.listScroller:isOverThumb(mx, my) then
+		h.bar = 1
+	end
+	local catBar = state.catBar()
+	h.catThumbHovered = false
+	if catBar and not keyboardPage then
+		h.catThumbHovered = state.catScroller:isOverThumb(mx, my)
+		if isInRect(mx, my, catBar[1], catBar[2], catBar[3], catBar[4]) then
+			h.sb = 0
 		end
 	end
 
@@ -4604,7 +4652,13 @@ local function panelSignature(mx, my)
 		.. "|"
 		.. h.cat
 		.. "|"
-		.. (hover.drag and 1 or 0)
+		.. (state.listScroller:isDragging() and 1 or 0)
+		.. "|"
+		.. (h.catThumbHovered and 1 or 0)
+		.. "|"
+		.. (state.catScroller:isDragging() and 1 or 0)
+		.. "|"
+		.. (state.rowDrag and state.rowDrag.moved and state.rowDrag.at or 0)
 		.. "|"
 		.. state.page
 		.. "|"
@@ -4742,11 +4796,16 @@ local function drawPanel()
 				break
 			end
 			local hovered = h.row == r
+			local drag = state.rowDrag
+			if drag and drag.moved and drag.at == scroll + r then
+				RectRound(listX1, bottom, listRight, top, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
+			end
 			drawRow(row, top, bottom, hovered, hovered and h.zone or "", h.idx)
 		end
 		flushText()
 
-		Scroller(barX1, lb, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base, h.bar == 1, hover.drag)
+		state.listScroller:setRect(barX1, lb, area.x2 - metrics.edgeInset, listTop)
+		state.listScroller:draw(h.bar == 1)
 	end
 
 	-- The picker's caption. Nothing about it changes between layouts, so it bakes with the
@@ -4968,12 +5027,17 @@ function view.draw()
 	gl.DepthTest(false)
 
 	local rawMx, rawMy, lmb = spGetMouseState()
-	if hover.drag then
-		if lmb then
-			scrollFromY(rawMy)
-		else
-			hover.drag = false
-		end
+	local step = state.listScroller:drag(rawMy, lmb)
+	if step then
+		scroll = step
+		clampScroll()
+	end
+	local catStep = state.catScroller:drag(rawMy, lmb)
+	if catStep then
+		catScrolled(catStep - hover.cat)
+	end
+	if state.rowDrag then
+		state.dragRow(rawMy, lmb)
 	end
 
 	-- Prevent the hover over preset options and modals from also being detected by the
@@ -4985,6 +5049,7 @@ function view.draw()
 		or presetDropdown:isOpen()
 		or state.compareDropdown:isOpen()
 		or state.selectionBuilder:isOpen()
+		or (state.rowDrag and state.rowDrag.moved)
 	then
 		mx, my = -1, -1
 	end
@@ -5069,22 +5134,130 @@ function view.draw()
 	state.showTooltips(rawMx, rawMy)
 end
 
--- The offset taken at the grab is what keeps this relative, so taking hold of the thumb does
--- not shift the list before the drag.
-scrollFromY = function(y)
-	local _, _, trackTop, travel = scrollerThumb()
-	if not travel or travel <= 0 then
+-- The row a dragged one would land on: the nearest whole one painted when the cursor is off the band.
+function state.rowNear(y)
+	local lb = listBottom()
+	local r = rowAt(math.max(math.min(y, listTop), lb + 1))
+	if r then
+		return scroll + r
+	end
+
+	local base, last = scrollOffset(), scroll + 1
+	for i = scroll + 1, #rows do
+		if listTop - (rows[i].off - base) - rowHeightOf(rows[i]) < lb then
+			break
+		end
+		last = i
+	end
+
+	return last
+end
+
+-- Staged once the row is let go. The block's binds trade places among the slots they already
+-- hold, so every other bind keeps its place in the file.
+function state.stageRowOrder(reorder)
+	local rank, n = {}, 0
+	for _, row in ipairs(rows) do
+		if row.reorder == reorder then
+			n = n + 1
+			rank[row.action] = n
+		end
+	end
+
+	local slots, moved = {}, {}
+	for i, b in ipairs(working.binds) do
+		if rank[b.action] then
+			slots[#slots + 1] = i
+			moved[#moved + 1] = { bind = b, at = i }
+		end
+	end
+	table.sort(moved, function(a, b)
+		if rank[a.bind.action] ~= rank[b.bind.action] then
+			return rank[a.bind.action] < rank[b.bind.action]
+		end
+
+		return a.at < b.at
+	end)
+	local changed = false
+	for i, slot in ipairs(slots) do
+		changed = changed or working.binds[slot] ~= moved[i].bind
+		working.binds[slot] = moved[i].bind
+	end
+	if changed then
+		markStaged()
+	else
+		rebuildRows()
+	end
+end
+
+-- A held row follows the cursor within its own block. Past either end of the band the list
+-- scrolls under it, faster the further out the cursor is.
+function state.dragRow(y, held)
+	local d = state.rowDrag
+	if not d then
 		return
 	end
 
-	local f = (trackTop - (y - hover.grab)) / travel
-	if f < 0 then
-		f = 0
-	elseif f > 1 then
-		f = 1
+	if not held then
+		state.rowDrag = nil
+		if d.moved then
+			state.stageRowOrder(d.reorder)
+		else
+			d.click()
+		end
+
+		return
 	end
-	scroll = floor(f * maxScroll() + 0.5)
-	clampScroll()
+
+	-- A rebuild under the drag leaves nothing for it to hold.
+	local holding = rows[d.at]
+	if not (holding and holding.action == d.action and holding.reorder == d.reorder) then
+		state.rowDrag = nil
+
+		return
+	end
+
+	if not d.moved then
+		if math.abs(y - d.y0) < floor(4 * scale) then
+			return
+		end
+		d.moved, d.carry, d.timer = true, 0, spGetTimer()
+	end
+
+	local now = spGetTimer()
+	local dt = spDiffTimers(now, d.timer)
+	d.timer = now
+	local lb = listBottom()
+	local past = (y > listTop and y - listTop) or (y < lb and y - lb) or 0
+	if past == 0 then
+		d.carry = 0
+	else
+		d.carry = d.carry + dt * (6 + 12 * math.abs(past) / rowHeight)
+		while d.carry >= 1 do
+			d.carry = d.carry - 1
+			scroll = scroll + (past > 0 and -1 or 1)
+		end
+		clampScroll()
+	end
+
+	local first, last = d.at, d.at
+	while rows[first - 1] and rows[first - 1].reorder == d.reorder do
+		first = first - 1
+	end
+	while rows[last + 1] and rows[last + 1].reorder == d.reorder do
+		last = last + 1
+	end
+	local to = state.rowNear(y)
+	if to < first then
+		to = first
+	elseif to > last then
+		to = last
+	end
+	if to ~= d.at then
+		table.insert(rows, to, table.remove(rows, d.at))
+		d.at = to
+		rowsGen = rowsGen + 1
+	end
 end
 
 ----------------------------------------------------------------
@@ -5290,28 +5463,10 @@ function view.mousePress(x, y, button)
 			then
 				cancelDialog()
 			elseif box and isInRect(x, y, box[1], box[2], box[3], box[4]) then
-				-- Taking hold of the preview's bar: on the thumb a grab that keeps the lines put,
-				-- on the track a jump to the cursor and then a drag from the thumb's middle.
 				local pv = dialog.preview
-				local lineH, _, _, most, bar = state.previewGeometry(pv, box[1], box[2], box[3], box[4])
+				local _, _, _, _, bar = state.previewGeometry(pv, box[1], box[2], box[3], box[4])
 				if bar and isInRect(x, y, bar[1], bar[2], bar[3], bar[4]) then
-					local top, thumbH = WG.FlowUI.Draw.ScrollerGeometry(
-						bar[1],
-						bar[2],
-						bar[3],
-						bar[4],
-						#pv.lines * lineH,
-						pv.scroll * lineH
-					)
-					if top then
-						pv.drag = true
-						if y <= top and y >= top - thumbH then
-							pv.grab = y - top
-						else
-							pv.grab = -floor(thumbH * 0.5)
-							state.previewScrollFromY(pv, bar, lineH, most, y)
-						end
-					end
+					pv.scroll = pv.scroller:press(y) or pv.scroll
 				end
 			elseif choice and isInRect(x, y, choice.hit[1], choice.hit[2], choice.hit[3], choice.hit[4]) then
 				if not choice.locked then
@@ -5439,22 +5594,26 @@ function view.mousePress(x, y, button)
 		return true
 	end
 
+	-- Ahead of the entries, which reach under the bar and would take the press as a pick.
+	local catBar = state.catBar()
+	if catBar and isInRect(x, y, catBar[1], catBar[2], catBar[3], catBar[4]) then
+		local step = state.catScroller:press(y)
+		if step then
+			catScrolled(step - hover.cat)
+		end
+
+		return true
+	end
+
 	if sidebarPress(x, y) then
 		return true
 	end
 
 	if not gridGroup and isInRect(x, y, barX1, listBottom(), area.x2, listTop) then
-		-- On the thumb that is a grab and the list stays put; on bare track the thumb jumps to the
-		-- cursor first, which is what a press there is asking for.
-		local top, height = scrollerThumb()
-		if top then
-			hover.drag = true
-			if y <= top and y >= top - height then
-				hover.grab = y - top
-			else
-				hover.grab = -floor(height * 0.5)
-				scrollFromY(y)
-			end
+		local step = state.listScroller:press(y)
+		if step then
+			scroll = step
+			clampScroll()
 		end
 
 		return true
@@ -5473,10 +5632,21 @@ function view.mousePress(x, y, button)
 			local kind, raw = hitTestRow(row, x)
 			if kind then
 				handleZone(kind, row.action, row.label, raw)
-			elseif row.editSelection and x < metrics.keyAreaX1 then
-				state.openSelectionBuilder(row.action)
-			elseif row.custom and x < metrics.keyAreaX1 then
-				state.addBind(row.action)
+			elseif (row.editSelection or row.custom) and x < metrics.keyAreaX1 then
+				local action = row.action
+				local function click()
+					if row.editSelection then
+						state.openSelectionBuilder(action)
+					else
+						state.addBind(action)
+					end
+				end
+				-- Held rather than clicked until the button comes up, since moving first is a drag.
+				if row.reorder then
+					state.rowDrag = { at = scroll + r, action = action, reorder = row.reorder, y0 = y, click = click }
+				else
+					click()
+				end
 			end
 		elseif row and row.type == "header" and row.add and x >= rowLayout(row).addX - metrics.rowPad then
 			state.openSelectionBuilder()
@@ -5529,10 +5699,10 @@ function view.keyPress(key, scanCode)
 			capturing = nil
 		else
 			-- Skip auto-repeat; only the initial press adds an element (release clears pressed).
-			local sym = pressSym(key, scanCode)
-			if sym and not capturing.pressed[scanCode] then
+			local elem = pressElem(key, scanCode)
+			if elem and not capturing.pressed[scanCode] then
 				capturing.pressed[scanCode] = true
-				appendChain({ sym = sym, mods = modPrefix() })
+				appendChain(elem)
 			end
 		end
 		return true
