@@ -81,7 +81,7 @@ local removedUnitShapes = {}
 
 local assistGhosts = {}
 local assistedFrameDefIds = {}
-local assistGhostTimer = 0
+local assistGhostTimer = 0 ---@type number
 
 --- @param buildCommand BuildCommandEntry
 local function drawUnitShape(shapeId, unitDefId, groundHeight, buildCommand)
@@ -166,6 +166,7 @@ local function updateAssistGhosts()
 		if isBuildAssister[spGetUnitDefID(unitId)] then
 			for c = 1, mathMin(maxQueueDepth, spGetUnitCommandCount(unitId)) do
 				local cmdId, _, _, paramX, paramY, _, _, paramRadius = spGetUnitCurrentCommand(unitId, c)
+				---@cast paramX UnitID
 				if cmdId == CMD_REPAIR and paramX and (not paramY or paramRadius) and spGetUnitIsBeingBuilt(paramX) then
 					local frameDefId = spGetUnitDefID(paramX)
 					if isBuildOption[frameDefId] then
