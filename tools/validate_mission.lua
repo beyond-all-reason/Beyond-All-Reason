@@ -399,6 +399,8 @@ local triggerDefinitions = VFS.Include("luarules/mission_api/conditions_loader.l
 
 _G.GG["MissionAPI"].ActionDefinitions = actionDefinitions
 _G.GG["MissionAPI"].ConditionDefinitions = triggerDefinitions
+-- Same old name the gadget keeps, so missions exported by the mission editor validate too.
+_G.GG["MissionAPI"].TriggerDefinitions = triggerDefinitions
 _G.GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
 parameterTypes.Enums[parameterTypes.Types.EffectType] = _G.GG["MissionAPI"].EffectDefinitions.Types
 local lowestDifficulty = math.huge

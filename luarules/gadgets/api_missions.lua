@@ -84,6 +84,9 @@ local function setUpMissionAPI(gameSetup)
 
 	triggersController = VFS.Include("luarules/mission_api/conditions_loader.lua")
 	GG["MissionAPI"].ConditionDefinitions = triggersController.LoadConditionDefinitions()
+	-- The mission editor writes TriggerDefinitions.Types into every mission it exports, so the old name
+	-- stays for a release or two to keep those missions loading.
+	GG["MissionAPI"].TriggerDefinitions = GG["MissionAPI"].ConditionDefinitions
 
 	GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
 	local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes
