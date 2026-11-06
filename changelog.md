@@ -1,16 +1,15 @@
 # November
 - [Legion]
-  - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Experimental Bot Lab and Vehicle Plant 67300 -> 92000, Advanced Underwater Geothermal Powerplant 32000 -> 49950
+  - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Advanced Underwater Geothermal Powerplant 32000 -> 49950
   - Snapper buildtime 9260 -> 8000, Fortification Wall buildtime 1000 -> 900
   - Amphibious Complex buildpower 150 -> 300, Experimental Aircraft Plant buildpower 600 -> 1800
   - Aegis health 3650 -> 3300, Lupara range 1125 -> 1200, Legion Vehicle Plant energy cost 1650 -> 1550
   - Decoy commander and Stronghold now fully EMP immune, Cetus EMP resist reduced 87.5% -> 80%
   - Constructor LoS raised: T1 bot 299 -> 380, T1 vehicle and Otter 260 -> 330, T1 aircraft 351 -> 430, T2 bot 318 -> 380, T2 vehicle 295 -> 330, T2 aircraft 383 -> 430
-  - Stronghold LoS 430 -> 520, Phalanx LoS 350 -> 380, Pilum LoS 375 -> 380
+  - Stronghold LoS 430 -> 520, Phalanx LoS 350 -> 380
   - Glaucus damage to aircraft 60 -> 12, Ketea autoheal removed
   - Ladon speed 273 -> 220, Euclid speed 45 -> 38, Salacia missile speed 480 -> 400
   - Argus, Auscultor, and Dolus now die to Juno, Hera and Hecate stun time no longer capped
-  - Removed 50 range radar from factories
   - Supernova, Olympus, and Starfall impulse 0.5 -> 1.1
   - Commander D-Gun damage to raptor queens 99999 -> 10, scav bosses 1000 -> 10
   - Commanders, Cacophony, Dragon's Jaw, Bastion, and Sol Invictus flak now swap targets immediately
