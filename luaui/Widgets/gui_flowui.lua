@@ -38,6 +38,10 @@ WG.FlowUI.scale = Spring.GetConfigFloat("ui_scale", 1)
 WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.014)
 WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
 WG.FlowUI.tileSize = WG.FlowUI.tileScale
+-- ui_supersample (options: sharpness): 0 auto, 1 off, 2 always (the default). Widgets that render to
+-- texture make their content textures WG.FlowUI.supersample times the screen's pixels: pictures are
+-- drawn from their sharper mips and averaged down when shown
+WG.FlowUI.supersampleMode = Spring.GetConfigInt("ui_supersample", 2)
 
 -- Guishader display list lifecycle helpers
 
@@ -108,6 +112,10 @@ local function ViewResize(vsx, vsy)
 	WG.FlowUI.buttonPadding = mathFloor(0.002 * vsy * WG.FlowUI.scale)
 
 	WG.FlowUI.tileSize = WG.FlowUI.tileScale * 0.003 * vsy * WG.FlowUI.scale
+
+	-- auto: twice where a screen pixel is big (under 1.5 of them per 1080p pixel)
+	local mode = WG.FlowUI.supersampleMode
+	WG.FlowUI.supersample = (mode == 1 or mode == 2) and mode or ((vsy / 1080) * WG.FlowUI.scale < 1.5 and 2 or 1)
 end
 
 -- called at the bottom of this file
@@ -2995,6 +3003,125 @@ WG.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position, hove
 		alpha = 0.26
 	end
 	WG.FlowUI.Draw.RectRound(px + padding, top - thumbHeight, sx - padding, top, cs, 1, 1, 1, 1, { 1, 1, 1, alpha })
+end
+
+---A scrollbar for a list that scrolls in whole steps. Its owner lays it out with `setRect`, hands it
+---presses and the button state while one is held, scrolls to the steps it hands back, and draws it.
+---The wheel stays the owner's: how far a notch goes depends on what is listed.
+---@class FlowUIScroller
+---@field measure fun(): number, number, integer Content height and position in pixels, then the furthest step
+---@field px number Left; the bar has no size, and so no thumb, until setRect
+---@field py number Bottom
+---@field sx number Right
+---@field sy number Top
+---@field grab number? While the thumb is held, how far the cursor sits from its top
+local Scrollbar = {}
+Scrollbar.__index = Scrollbar
+
+WG.FlowUI.Scroller = {}
+
+---The width every scrollbar is drawn at, so lists side by side scroll on the same control.
+---@param scale number? Defaults to `1`
+---@return integer
+WG.FlowUI.Scroller.width = function(scale)
+	return mathFloor(11 * (scale or 1))
+end
+
+---Makes a scrollbar.
+---@param measure fun(): number, number, integer Asked each time the bar is used, so it never draws or
+---drags against a list that has since changed
+---@return FlowUIScroller scroller
+WG.FlowUI.Scroller.new = function(measure)
+	return setmetatable({ measure = measure, px = 0, py = 0, sx = 0, sy = 0 }, Scrollbar)
+end
+
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+function Scrollbar:setRect(px, py, sx, sy)
+	self.px, self.py, self.sx, self.sy = px, py, sx, sy
+end
+
+---@return number? top
+---@return number? height
+---@return number? trackTop
+---@return number? travel
+function Scrollbar:thumb()
+	local contentHeight, position = self.measure()
+
+	return WG.FlowUI.Draw.ScrollerGeometry(self.px, self.py, self.sx, self.sy, contentHeight, position)
+end
+
+---@param x number
+---@param y number
+---@return boolean
+function Scrollbar:isOverThumb(x, y)
+	local top, height = self:thumb()
+	if not (top and height) then
+		return false
+	end
+
+	return x >= self.px and x <= self.sx and y <= top and y >= top - height
+end
+
+---@return boolean
+function Scrollbar:isDragging()
+	return self.grab ~= nil
+end
+
+---Takes hold of the bar at height `y`. On the thumb the list stays put; on the track either side
+---the thumb jumps to the cursor and is then held by its middle.
+---@param y number
+---@return integer? step Where a press on the track jumped to
+function Scrollbar:press(y)
+	local top, height = self:thumb()
+	if not (top and height) then
+		return nil
+	end
+
+	if y <= top and y >= top - height then
+		self.grab = y - top
+		return nil
+	end
+	self.grab = -mathFloor(height * 0.5)
+
+	return self:drag(y, true)
+end
+
+---Follows the cursor while the button is `held`, and lets go once it is not.
+---@param y number
+---@param held boolean?
+---@return integer? step Where the drag has moved the list to
+function Scrollbar:drag(y, held)
+	if not self.grab then
+		return nil
+	end
+	if not held then
+		self.grab = nil
+		return nil
+	end
+
+	local _, _, trackTop, travel = self:thumb()
+	if not (trackTop and travel) or travel <= 0 then
+		return nil
+	end
+	local fraction = (trackTop - (y - self.grab)) / travel
+	if fraction < 0 then
+		fraction = 0
+	elseif fraction > 1 then
+		fraction = 1
+	end
+	local _, _, most = self.measure()
+
+	return mathFloor(fraction * most + 0.5)
+end
+
+---Draws the bar where setRect put it; nothing while the content fits.
+---@param hovered boolean? Cursor is over the thumb
+function Scrollbar:draw(hovered)
+	local contentHeight, position = self.measure()
+	WG.FlowUI.Draw.Scroller(self.px, self.py, self.sx, self.sy, contentHeight, position, hovered, self.grab ~= nil)
 end
 
 ---Draws a toggle switch.

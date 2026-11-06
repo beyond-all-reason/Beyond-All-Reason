@@ -12,6 +12,8 @@
 		"manualfire_tooltip": "Fire the powerful commander Disintegrator-gun",
 		"manuallaunch": "Launch",
 		"manuallaunch_tooltip": "Launch a missile at a target",
+		"selfd": "Self Destruct",
+		"selfd_tooltip": "Destroy the selected units after a countdown (give the order again to call it off)",
 		"patrol": "Patrol",
 		"patrol_tooltip": "Patrol along one or more waypoints",
 		"fight": "Fight",
@@ -45,7 +47,7 @@
 		"stockpile": "Stockpile %{stockpileStatus}",
 		"stockpile_tooltip": "[ stockpiled number ] / [ target stockpile number ]",
 		"stopproduction": "Clear Queue",
-		"stopproduction_tooltip": "Clear build queue and quotas for all units on selected factories",
+		"stopproduction_tooltip": "Clear build queue and quotas for all units on selected factories\nThe unit in production is kept: clear again to cancel it too",
 		"morph": "Upgrade",
 		"morph_tooltip": "Upgrade to next Tech-level (second click to cancel)",
 		"Spawning Disabled": "Spawning disabled",
@@ -79,7 +81,10 @@
 		"priority_tooltip": "Assigns resources to use for this builder when not having enough for all",
 		"Decloaked": "Visible",
 		"Cloaked": "Cloaked",
+		"wantcloak": "Cloak",
 		"wantcloak_tooltip": "Visibility state",
+		"wantcloak_cost": "Costs %{standing} energy per second standing still, %{moving} while moving",
+		"wantcloak_cost_standing": "Costs %{standing} energy per second",
 		" On ": "On",
 		" Off ": "Off",
 		"onoff_tooltip": "Active state: turn a unit on/off",
@@ -119,7 +124,13 @@
 			"commFocus": "Select and go to commander",
 			"boxIdle": "Box select: idle units only",
 			"boxSame": "Box select: matching unit types",
-			"loopActivate": "Loop select: activate"
+			"boxAppend": "Box select: add to selection",
+			"boxDeselect": "Box select: remove from selection",
+			"boxMobile": "Box select: mobile units only",
+			"boxAny": "Box select: include buildings",
+			"loopActivate": "Loop select: activate",
+			"loopAdd": "Loop select: add to selection",
+			"loopDeselect": "Loop select: deselect"
 		},
 		"massSelect": {
 			"all": "Select all units",
@@ -214,7 +225,8 @@
 		},
 		"buildHotkeys": {
 			"unit": "Build %{n}",
-			"split": "Split build orders between builders"
+			"split": "Split build orders between builders",
+			"skipAlliedUpgrade": "Skip allied mexes and geos when upgrading"
 		},
 		"buildOrders": {
 			"rotate": "Rotate building placement",
@@ -250,6 +262,10 @@
 			"moveUp": "Move camera up",
 			"moveDown": "Move camera down",
 			"moveFast": "Move camera faster",
+			"moveSlow": "Move camera slower",
+			"tilt": "Tilt camera with the mouse wheel",
+			"rotate": "Rotate camera with the middle mouse button",
+			"zoomReset": "Zoom camera all the way with the mouse wheel",
 			"setAnchor": "Set camera anchor %{n}",
 			"jumpAnchor": "Jump to camera anchor %{n}",
 			"pipSwitch": "Swap camera with picture-in-picture",
@@ -320,7 +336,6 @@
 		"queues": "Order modifiers",
 		"unitStates": "Unit states",
 		"controlGroups": "Control groups",
-		"squads": "Squads",
 		"buildHotkeys": "Build",
 		"gridMenu": "Grid menu",
 		"blueprints": "Blueprints",

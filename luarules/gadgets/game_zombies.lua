@@ -255,6 +255,7 @@ local RULES_PARAM = {
 	FACTORY_BUILDPOWER_MULTIPLIER = "zombie_factory_buildpower_multiplier",
 	REZ_FRAME = "zombie_rez_frame",
 	REZ_DELAY = "zombie_rez_delay",
+	REZ_ARM_FRAME = "zombie_rez_arm_frame",
 	WAS_ZOMBIE = "wasZombie",
 	PUBLIC_ACCESS = { public = true },
 }
@@ -889,6 +890,7 @@ end
 local function clearCorpseRezRulesParam(featureID)
 	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME, nil, RULES_PARAM.PUBLIC_ACCESS)
 	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_DELAY, nil, RULES_PARAM.PUBLIC_ACCESS)
+	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_ARM_FRAME, nil, RULES_PARAM.PUBLIC_ACCESS)
 end
 
 local function wasZombieCorpse(featureID, corpseData)
@@ -919,8 +921,15 @@ local function armCorpseSpawn(featureID, featureData, spawnFrame, armFrame)
 	if featureData.isHeap then
 		return
 	end
+	local resolvedArmFrame = armFrame or featureData.creationFrame
+	spring.SetFeatureRulesParam(
+		featureID,
+		RULES_PARAM.REZ_ARM_FRAME,
+		resolvedArmFrame,
+		RULES_PARAM.PUBLIC_ACCESS
+	)
 	if GG.ZombieWreckEffects then
-		GG.ZombieWreckEffects.Arm(featureID, armFrame or featureData.creationFrame, spawnFrame)
+		GG.ZombieWreckEffects.Arm(featureID, resolvedArmFrame, spawnFrame)
 	end
 end
 

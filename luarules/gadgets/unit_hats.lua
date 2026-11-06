@@ -579,17 +579,13 @@ function gadget:GameFrame(gf)
 			if DEBUG then
 				accountID = 9999999999
 			end
-			if not spec then
+			local teamUnits = spGetTeamUnits(teamID)
+			if not spec and teamUnits and teamUnits[1] then
 				-- Process Player
 				local playerCosmeticOptions =
 					{ hat = {}, rightshoulder = {}, leftshoulder = {}, necklace = {}, belt = {} }
-				local playerFaction = ""
+				local playerFaction = stringSub(UnitDefs[spGetUnitDefID(teamUnits[1])].name, 1, 3)
 				local createdCosmetics = {}
-				if true then
-					local units = spGetTeamUnits(teamID) or {}
-					local unitDefID = spGetUnitDefID(units[1])
-					playerFaction = stringSub(UnitDefs[unitDefID].name, 1, 3)
-				end
 
 				-- Collect all possible cosmetics for this player
 				if PlayerCosmeticList[accountID] then

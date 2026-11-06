@@ -107,6 +107,8 @@ local sources = {}
 
 -- VFS.Include mock for testing
 _G.VFS = _G.VFS or {}
+_G.VFS.RAW = _G.VFS.RAW or "r"
+_G.VFS.ZIP = _G.VFS.ZIP or "Mmb"
 
 _G.VFS.FileExists = function(path)
 	-- First try the exact path provided
@@ -250,8 +252,8 @@ _G.VFS.SubDirs = function(path)
 		searchPath = path
 	else
 		-- Try to find matching directory
-		local parent = path:match("(.+)/[^/]+$") or "."
-		local base = path:match("([^/]+)$")
+		local parent = path:match("(.+)/[^/]+/?$") or "."
+		local base = path:match("([^/]+)/?$")
 		if base then
 			local pHandle = io.popen(string.format("find %s -maxdepth 1 -type d -iname '%s'", parent, base))
 			if pHandle then

@@ -107,6 +107,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				fireTolerance = 7000,
+				gravityaffected = "true",
 				tolerance = 7000,
 				impactonly = 1,
 				impulsefactor = 0.123,
