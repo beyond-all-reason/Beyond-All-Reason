@@ -1314,12 +1314,14 @@ function widget:Update(dt)
 			return
 		end
 
-		local desc, args = spTraceScreenRay(mx, my, false)
 		local mUnitID
-		if desc and desc == "unit" then
-			mUnitID = args
-		else
-			mUnitID = nil
+		if widgetHandler:ModalAllows(widget) then
+			local desc, args = spTraceScreenRay(mx, my, false)
+			if desc == "unit" then
+				mUnitID = args
+			end
+		end
+		if not mUnitID then
 			RemoveSelectedUnit(mouseUnit, true)
 			mouseUnit = nil
 		end
