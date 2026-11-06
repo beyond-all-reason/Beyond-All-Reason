@@ -2662,6 +2662,11 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
 	},
+	legctl = {
+		BaseSoundSelectType = "arm-bld-defense-action-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
 	legrhapsis = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		BaseSoundWeaponType = "aarocket-medium",
