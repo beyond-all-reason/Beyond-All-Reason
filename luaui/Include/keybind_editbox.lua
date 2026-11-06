@@ -217,6 +217,24 @@ function Editbox:indexFromX(x)
 	return n
 end
 
+-- Takes clipboard text at the caret, replacing any selection, as much of it as the field holds.
+function Editbox:paste(clip)
+	clip = (clip or ""):gsub("[\r\n\t]+", " "):gsub("%c", "")
+	if clip == "" then
+		return false
+	end
+
+	self:deleteSelection()
+
+	local room = self.maxChars - utf8.len(self.text)
+	clip = room > 0 and utf8.sub(clip, 1, room) or ""
+	self.text = utf8.sub(self.text, 1, self.caret) .. clip .. utf8.sub(self.text, self.caret + 1)
+	self.caret = self.caret + utf8.len(clip)
+	self.selAnchor = nil
+
+	return true
+end
+
 -- Takes a typed character, replacing any selection.
 function Editbox:textInput(char)
 	if not self.focused then
@@ -252,6 +270,16 @@ function Editbox:keyPress(key)
 	if ctrl and key == KEYSYMS.A then
 		self.selAnchor = 0
 		self.caret = utf8.len(self.text)
+	elseif ctrl and (key == KEYSYMS.C or key == KEYSYMS.X) then
+		if self:hasSelection() then
+			local a, b = self:selRange()
+			Spring.SetClipboard(utf8.sub(self.text, a + 1, b))
+			if key == KEYSYMS.X then
+				changed = self:deleteSelection()
+			end
+		end
+	elseif ctrl and key == KEYSYMS.V then
+		changed = self:paste(Spring.GetClipboard())
 	elseif key == KEYSYMS.ESCAPE or key == KEYSYMS.RETURN then
 		self:blur()
 	elseif key == KEYSYMS.BACKSPACE then

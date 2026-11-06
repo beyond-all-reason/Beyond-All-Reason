@@ -145,6 +145,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "armmg_WEAPON",
+				fastautoretargeting = true,
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 2,
 			},

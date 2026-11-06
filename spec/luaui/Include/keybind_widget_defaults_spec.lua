@@ -35,7 +35,7 @@ local MANIFESTS = {
 	},
 }
 
-local function run(files, writes, body)
+local function run(files, writes, body, manifests)
 	local realOpen = io.open
 
 	local env = SpecEnv.new({
@@ -81,7 +81,7 @@ local function run(files, writes, body)
 				return realOpen(path, mode)
 			end,
 		},
-		WG = { widgetManifests = { widgets = MANIFESTS, revision = 0, changes = 0 } },
+		WG = { widgetManifests = { widgets = manifests or MANIFESTS, revision = 0, changes = 0 } },
 		widgetHandler = {
 			GetWidgetsRevision = function()
 				return 0
@@ -124,16 +124,16 @@ local function storedProfile(writes, name)
 end
 
 local function ownStore(profile)
-	return Json.encode({ version = 2, active = profile.name, profiles = { profile } })
+	return Json.encode({ version = 3, active = profile.name, profiles = { profile } })
 end
 
-local function materialized(storeText, name)
+local function materialized(storeText, name, manifests)
 	local writes = {}
 	run({ [STORE] = storeText, [KEYMAP] = false }, writes, function(profiles)
 		profiles.materialize(name)
 
 		return {}
-	end)
+	end, manifests)
 
 	return writes
 end
@@ -218,6 +218,107 @@ describe("widget defaults on a player's profile", function()
 	end)
 end)
 
+describe("widget defaults made for one layout", function()
+	local SMALL = "Grid (60% Keyboard)"
+	local SHIPPED_STORE = '{"version":2,"active":"Grid","profiles":[]}'
+	local LAYOUT_MANIFESTS = {
+		{
+			id = "gui_layout",
+			dir = "LuaUI/Widgets/gui_layout/",
+			loaded = true,
+			manifest = {
+				id = "gui_layout",
+				keybindings = {
+					{
+						action = "layout_toggle",
+						label = "actions.toggle",
+						defaultKeysets = { "sc_f13" },
+						profileKeysets = { grid60 = { "sc_f14" } },
+					},
+					{ action = "layout_only", label = "actions.only", profileKeysets = { grid60 = { "sc_f15" } } },
+					{ action = "layout_load", label = "actions.load", profileKeysets = { grid = { "sc_f16" } } },
+				},
+			},
+		},
+	}
+
+	it("go on top of the shared ones for that shipped profile only", function()
+		local small = bindLines(materialized(SHIPPED_STORE, SMALL, LAYOUT_MANIFESTS)[KEYMAP])
+		local grid = bindLines(materialized(SHIPPED_STORE, "Grid", LAYOUT_MANIFESTS)[KEYMAP])
+
+		assert.is_true(holds(small, "bind sc_f13 layout_toggle"))
+		assert.is_true(holds(small, "bind sc_f14 layout_toggle"))
+		assert.is_true(holds(small, "bind sc_f15 layout_only"))
+		assert.is_true(holds(grid, "bind sc_f13 layout_toggle"))
+		assert.is_false(holds(grid, "bind sc_f14 layout_toggle"))
+		assert.is_false(holds(grid, "bind sc_f15 layout_only"))
+	end)
+
+	it("follow a player's profile back to the shipped one it was made from", function()
+		local writes = materialized(
+			Json.encode({
+				version = 3,
+				active = "Mine",
+				profiles = {
+					{ name = "Base", basedOn = SMALL, binds = {} },
+					{ name = "Mine", basedOn = "Base", binds = {} },
+				},
+			}),
+			"Mine",
+			LAYOUT_MANIFESTS
+		)
+
+		assert.are.same({
+			{ keyset = "sc_f13", action = "layout_toggle" },
+			{ keyset = "sc_f14", action = "layout_toggle" },
+			{ keyset = "sc_f15", action = "layout_only" },
+		}, storedProfile(writes, "Mine").binds)
+		assert.are.same({ "layout_toggle", "layout_only" }, storedProfile(writes, "Mine").seeded)
+	end)
+
+	it("stay with the layout a profile was made from when the player compares it with another", function()
+		local writes = {}
+		local store = ownStore({ name = "Mine", basedOn = SMALL, binds = {} })
+		run({ [STORE] = store, [KEYMAP] = false }, writes, function(profiles)
+			profiles.materialize("Mine")
+			profiles.setBase("Mine", "Grid")
+			profiles.materialize("Mine")
+
+			return {}
+		end, LAYOUT_MANIFESTS)
+
+		assert.is_false(holds(bindLines(writes[KEYMAP]), "bind sc_f16 layout_load"))
+		for _, b in ipairs(storedProfile(writes, "Mine").binds) do
+			assert.are_not.equal("layout_load", b.action)
+		end
+	end)
+
+	it("take the layout of the closest shipped profile for a keymap edited by hand", function()
+		local files, writes = { [STORE] = SHIPPED_STORE, [KEYMAP] = false }, {}
+		local name = run(files, writes, function(profiles)
+			profiles.materialize(SMALL)
+			files[KEYMAP] = writes[KEYMAP] .. "bind sc_f20 quitmessage\n"
+			local adopted = profiles.adoptEditedKeymap()
+			profiles.materialize(adopted)
+
+			return adopted
+		end, LAYOUT_MANIFESTS)
+
+		assert.are.equal("grid60", storedProfile(writes, name).layout)
+	end)
+
+	it("take the layout of the closest shipped profile when compared with nothing", function()
+		local smallBinds = run({ [STORE] = SHIPPED_STORE, [KEYMAP] = false }, {}, function(profiles)
+			return profiles.isBuiltin(SMALL).binds
+		end, LAYOUT_MANIFESTS)
+
+		local store = ownStore({ name = "Mine", basedOn = "none", binds = smallBinds })
+		local writes = materialized(store, "Mine", LAYOUT_MANIFESTS)
+
+		assert.are.equal("grid60", storedProfile(writes, "Mine").layout)
+	end)
+end)
+
 describe("widget defaults on a keymap edited by hand", function()
 	local SHIPPED_STORE = '{"version":2,"active":"Grid","profiles":[]}'
 
@@ -250,5 +351,42 @@ describe("widget defaults on a keymap edited by hand", function()
 		end)
 
 		assert.is_true(holds(bindLines(writes[KEYMAP]), "bind sc_f13 example_toggle"))
+	end)
+end)
+
+describe("widget defaults for actions the shipped profiles used to bind", function()
+	local SQUADS = {
+		{
+			id = "unit_squad_selection",
+			dir = "LuaUI/Widgets/unit_squad_selection/",
+			loaded = true,
+			manifest = {
+				id = "unit_squad_selection",
+				keybindings = {
+					{ action = "squad_lock", label = "actions.lock", defaultKeysets = { "Meta+sc_v" } },
+				},
+			},
+		},
+	}
+
+	local function mineIn(version)
+		return Json.encode({
+			version = version,
+			active = "Mine",
+			profiles = { { name = "Mine", basedOn = "Grid", binds = { { keyset = "esc", action = "quitmessage" } } } },
+		})
+	end
+
+	it("stay out of a profile from before the move that had them taken out", function()
+		local writes = materialized(mineIn(2), "Mine", SQUADS)
+
+		assert.is_false(holds(bindLines(writes[KEYMAP]), "bind Meta+sc_v squad_lock"))
+		assert.are.same({ { keyset = "esc", action = "quitmessage" } }, storedProfile(writes, "Mine").binds)
+	end)
+
+	it("still reach a profile made after the move", function()
+		local writes = materialized(mineIn(3), "Mine", SQUADS)
+
+		assert.is_true(holds(bindLines(writes[KEYMAP]), "bind Meta+sc_v squad_lock"))
 	end)
 end)

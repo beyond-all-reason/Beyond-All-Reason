@@ -6,6 +6,8 @@ local keyConfig = require("luaui/configs/keyboard_layouts")
 
 -- The file keysym "enter" and the scancode-based "return" from capture are one key.
 local keyNameAlias = { enter = "return" }
+-- The shipped profiles name the ISO key between left Shift and Z/Y by number, capture by name.
+local scanNameAlias = { ["0x064"] = "nonusbackslash" }
 
 -- Keychain separator (U+2192) shown between taps, since the engine's "," collides with a bound comma key.
 local chainSep = " \226\134\146 "
@@ -66,6 +68,12 @@ local bareModifier = {
 	shift = true,
 }
 
+local function isBareModifier(sym)
+	local key = sym:lower():gsub("^sc_", "")
+
+	return bareModifier[keyNameAlias[key] or key] == true
+end
+
 local function canonicalElement(raw)
 	local rest, held = raw, {}
 	local stripped = true
@@ -84,6 +92,7 @@ local function canonicalElement(raw)
 	local scan = key:sub(1, 3) == "sc_"
 	if scan then
 		key = key:sub(4)
+		key = scanNameAlias[key] or key
 	end
 	key = keyNameAlias[key] or key
 	if bareModifier[key] then
@@ -360,6 +369,7 @@ return {
 	displayKeyset = displayKeyset,
 	displayWithoutShift = displayWithoutShift,
 	holdsKeys = holdsKeys,
+	isBareModifier = isBareModifier,
 	canonicalKeyset = canonicalKeyset,
 	reachOf = reachOf,
 	collisionIndex = collisionIndex,

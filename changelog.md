@@ -1,4 +1,26 @@
+# November
+- [Legion]
+  - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Advanced Underwater Geothermal Powerplant 32000 -> 49950
+  - Snapper buildtime 9260 -> 8000, Fortification Wall buildtime 1000 -> 900
+  - Amphibious Complex buildpower 150 -> 300, Experimental Aircraft Plant buildpower 600 -> 1800
+  - Aegis health 3650 -> 3300, Lupara range 1125 -> 1200, Legion Vehicle Plant energy cost 1650 -> 1550
+  - Decoy commander and Stronghold now fully EMP immune, Cetus EMP resist reduced 87.5% -> 80%
+  - Constructor LoS raised: T1 bot 299 -> 380, T1 vehicle and Otter 260 -> 330, T1 aircraft 351 -> 430, T2 bot 318 -> 380, T2 vehicle 295 -> 330, T2 aircraft 383 -> 430
+  - Stronghold LoS 430 -> 520, Phalanx LoS 350 -> 380
+  - Glaucus damage to aircraft 60 -> 12, Ketea autoheal removed
+  - Ladon speed 273 -> 220, Euclid speed 45 -> 38, Salacia missile speed 480 -> 400
+  - Argus, Auscultor, and Dolus now die to Juno, Hera and Hecate stun time no longer capped
+  - Supernova, Olympus, and Starfall impulse 0.5 -> 1.1
+  - Commander D-Gun damage to raptor queens 99999 -> 10, scav bosses 1000 -> 10
+  - Commanders, Cacophony, Dragon's Jaw, Bastion, and Sol Invictus flak now swap targets immediately
+  - Faster re-aim on Wheelie, Goblin, Amputator, Eviscerator, and Hippocampus. Wheelie now stompable.
+  - T2 ships now use heavy ship armor, Scylla now counts as a ship
+  - Placeholder mass removed: Incinerator 5001 -> 2300, Inferno 5001 -> 1700, Praetorian 200000 -> 7000
+  - Cannons no longer change arc with map gravity: Phobos, Phalanx, Leocampus, Sol Invictus, Cetus, Triton, Keres, Sapper, Enyo, Venator, Chimera, Dragon's Jaw
+  - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
+
 # October
+- [Lava] will now damage unit wrecks, rocks, and other metal containing features.
 - [Zombies]
   - Zombie factories expire 5 minutes after rising. Expiring zombie buildings now self-destruct instead of vanishing.
   - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
@@ -6,9 +28,10 @@
   - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
   - Wraith respawns no longer have a 1/3rd chance to drop a queued zombie spawn. Each wave drops its lowest-value third instead.
   - Wraith health 500 -> 100
-- [Commands]
+- [Controls]
   - Shift+Space area commands give your units a faster path to travel. Large areas can take 20%–70% less travel time.
   - Area commands (with and without Shift+Space) no longer drop targets past the 2,000 command limit. Your unit selection gets split into groups that take their own targets, with no targets dropped.
+  - Clicking an idle builder icon now selects the builder closest to the center of your view. Repeated clicks cycle through them, nearest first.
 - [Zombies]
   - Added a limited time Spidergeddon mode
   - Difficulty levels have been replaced with modes you can mix and match:
@@ -61,6 +84,7 @@
   - T1 Drones no longer crash on death.  Drones will be weaker against AA because the AA won't overkill them and will swap targets faster.  
   - Better Martyr and Phoenix aiming. Martyr used to require a skill shot with manual attack timing. It is more reliable.
 - [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
+- [Naval Balance Tweaks] No longer removes the floating HLT units from T1 constructors.
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
   - Over-large area attacks no longer send only 30 units to Attack and the rest to Fight. They split your selection into squads that Attack all the targets in one "lane" through the full area. Bomber behavior especially was non-functional with large area attacks; this is fixed.
@@ -73,6 +97,7 @@
   - Cortex / Legion advanced UW mexes had an unintended 50% damage reduction, removed.
   - Defenses that open and close cannot fire during their open or close animations.
   - Lens flares of searchlights, headlights and other unit lights no longer flicker.
+  - `select` filters and their inverses can be used together without one being wrong.
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.
