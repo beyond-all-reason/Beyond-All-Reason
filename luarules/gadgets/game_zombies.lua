@@ -597,7 +597,9 @@ do
 		wraithPoolUnitDefIDs[#wraithPoolUnitDefIDs + 1] = unitDefID
 		local poolUnitDefData = zombieUnitDefs[unitDefID]
 		markPoolMembership(unitDefID)
-		markPoolMembership(poolUnitDefData.scavVariantUnitDefID)
+		if poolUnitDefData then
+			markPoolMembership(poolUnitDefData.scavVariantUnitDefID)
+		end
 		local baseUnitName = string.gsub(unitDefs[unitDefID].name, "_scav$", "")
 		local baseUnitDef = unitDefNames[baseUnitName] ---@as UnitDef?
 		if baseUnitDef then
@@ -605,6 +607,13 @@ do
 		end
 	end
 	table.sort(wraithPoolUnitDefIDs, compareUnitDefPower)
+
+	local function sanitizePositiveRate(currentRate, defaultRate)
+		if currentRate <= 0 then
+			return defaultRate
+		end
+		return currentRate
+	end
 
 	zombieModeSettings.initialSpawnCountMinimum = math.max(1, floor(zombieModeSettings.initialSpawnCountMinimum))
 	zombieModeSettings.initialSpawnCountMaximum =
@@ -623,18 +632,13 @@ do
 	zombieModeSettings.topBandDelayMinutes = math.max(0, zombieModeSettings.topBandDelayMinutes)
 	zombieModeSettings.respawnDecayDelayMinutes = math.max(0, zombieModeSettings.respawnDecayDelayMinutes)
 	zombieModeSettings.traditionalBandDelayMinutes = math.max(0, zombieModeSettings.traditionalBandDelayMinutes)
-	if zombieModeSettings.powerScaleRate <= 0 then
-		zombieModeSettings.powerScaleRate = defaultPowerScaleRate
-	end
-	if zombieModeSettings.respawnDecayRate <= 0 then
-		zombieModeSettings.respawnDecayRate = defaultRespawnDecayRate
-	end
-	if zombieModeSettings.minimumSpawnGrowthRate <= 0 then
-		zombieModeSettings.minimumSpawnGrowthRate = defaultMinimumSpawnGrowthRate
-	end
-	if zombieModeSettings.maximumSpawnGrowthRate <= 0 then
-		zombieModeSettings.maximumSpawnGrowthRate = defaultMaximumSpawnGrowthRate
-	end
+	zombieModeSettings.powerScaleRate = sanitizePositiveRate(zombieModeSettings.powerScaleRate, defaultPowerScaleRate)
+	zombieModeSettings.respawnDecayRate =
+		sanitizePositiveRate(zombieModeSettings.respawnDecayRate, defaultRespawnDecayRate)
+	zombieModeSettings.minimumSpawnGrowthRate =
+		sanitizePositiveRate(zombieModeSettings.minimumSpawnGrowthRate, defaultMinimumSpawnGrowthRate)
+	zombieModeSettings.maximumSpawnGrowthRate =
+		sanitizePositiveRate(zombieModeSettings.maximumSpawnGrowthRate, defaultMaximumSpawnGrowthRate)
 end
 
 local function isZombie(unitID)
