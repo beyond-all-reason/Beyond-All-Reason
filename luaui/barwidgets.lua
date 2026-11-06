@@ -1311,6 +1311,7 @@ end
 
 -- Prevent widgets rewriting their own fields, namely unit control flags.
 local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
+local retiredWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
 -- What each user widget's proxy hands out as customCommands, kept here so the widget cannot swap it.
 local userCustomCommands = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
 -- Weak values. The proxy's closures hold references to the widget. In 5.1, this prevents collection.
@@ -1759,7 +1760,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		end
 	end
 	wh.OwnText = function(_)
-		if self.textOwner then
+		if self.textOwner or retiredWidgets[widget] then
 			return false
 		end
 
@@ -1841,6 +1842,9 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 
 	-- Modal windows (see the "Modal windows" block further down)
 	wh.RegisterModalWindow = function(_, isOpen)
+		if retiredWidgets[widget] then
+			return false
+		end
 		return self:RegisterModalWindow(widget, isOpen)
 	end
 	wh.DeregisterModalWindow = function(_)
@@ -1868,6 +1872,9 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		return self:SetWindowsPauseGame(enabled)
 	end
 	wh.HideInterface = function(_, reason, keep)
+		if retiredWidgets[widget] then
+			return false
+		end
 		local hidden = self:HideInterface(reason, keep)
 		if hidden then
 			interfaceHiddenOwners[reason] = widget
@@ -1882,6 +1889,9 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	end
 	-- see widgetHandler:Pause
 	wh.Pause = function(_, source)
+		if retiredWidgets[widget] then
+			return false
+		end
 		local paused = self:Pause(source)
 		if paused then
 			pauseOwners[source] = widget
@@ -2371,6 +2381,7 @@ local RetiredProxyMeta = {
 -- Empties the proxy so closures that survive cleanup cannot use it.
 local function retireProxy(widget)
 	loadedWidgets[widget] = nil
+	retiredWidgets[widget] = true
 	local wh = widgetProxies[widget]
 	if not wh then
 		return
