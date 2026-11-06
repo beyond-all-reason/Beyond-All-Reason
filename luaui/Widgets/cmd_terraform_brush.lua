@@ -3038,9 +3038,12 @@ local function doExportHeightmap()
 	local minH, maxH = math.huge, -math.huge
 	local heights = {}
 	local idx = 0
-	for zi = 0, Game.mapSizeZ, squareSize do
-		for xi = 0, Game.mapSizeX, squareSize do
-			local gh = GetGroundHeight(xi, zi)
+	-- the far column and row need the exact read (GetGroundHeight clamps there)
+	local edgeHeight = VFS.Include("common/vertex_height.lua")(GetGroundHeight)
+	local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
+	for zi = 0, mapZ, squareSize do
+		for xi = 0, mapX, squareSize do
+			local gh = (xi < mapX and zi < mapZ) and GetGroundHeight(xi, zi) or edgeHeight(xi, zi)
 			if gh < minH then
 				minH = gh
 			end
