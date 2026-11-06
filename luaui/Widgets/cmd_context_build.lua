@@ -118,6 +118,7 @@ for udid, ud in pairs(UnitDefs) do
 	unitName[udid] = ud.name
 end
 local mouseDownPos
+local cycleKey, cycleIndex
 
 local updateRate = 0.1
 local lastUpdateTime = 0
@@ -184,6 +185,32 @@ function widget:MousePress(mx, my, button)
 	if isBuilding and button == 1 then
 		mouseDownPos = getCursorWorldPosition()
 	end
+end
+
+local function hasBuildAction(actions)
+	for _, action in ipairs(actions) do
+		if action.command:find("buildunit_", 1, true) == 1 then
+			return true
+		end
+	end
+	return false
+end
+
+-- Swapping a building resets the engine's cycle through a key's actions, so we cycle through keys ourselves.
+function widget:KeyPress(key, _mods, _isRepeat, _label, _unicode, _scanCode, actions)
+	if isPregame or not actions or #actions < 2 or not hasBuildAction(actions) then
+		return false
+	end
+
+	local start = key == cycleKey and GetActiveCommand() ~= 0 and cycleIndex or 0
+	for offset = 1, #actions do
+		local index = (start + offset - 1) % #actions + 1
+		if SetActiveCommand(actions[index].command) then
+			cycleKey, cycleIndex = key, index
+			return true
+		end
+	end
+	return false
 end
 
 -- Return the first index with the given value (or nil if not found).
