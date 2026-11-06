@@ -57,6 +57,7 @@ local _, fullView, _ = spGetSpectatingState()
 local reInitialize
 
 local isBuilder = {}
+local isBuildAssister = {}
 local isBuildOption = {}
 local unitWaterlineMap = {} -- ensure proper display of submerged buildings
 for unitDefId, unitDefinition in ipairs(UnitDefs) do
@@ -65,6 +66,9 @@ for unitDefId, unitDefinition in ipairs(UnitDefs) do
 		for _, optionDefId in ipairs(unitDefinition.buildOptions) do
 			isBuildOption[optionDefId] = true
 		end
+	end
+	if unitDefinition.isBuilder and not unitDefinition.isFactory and unitDefinition.canAssist then
+		isBuildAssister[unitDefId] = true
 	end
 	if unitDefinition.waterline and unitDefinition.waterline > 0 then
 		unitWaterlineMap[unitDefId] = unitDefinition.waterline
@@ -159,10 +163,10 @@ local function updateAssistGhosts()
 	end
 	for i = 1, #selectedUnits do
 		local unitId = selectedUnits[i]
-		if isBuilder[spGetUnitDefID(unitId)] then
+		if isBuildAssister[spGetUnitDefID(unitId)] then
 			for c = 1, mathMin(maxQueueDepth, spGetUnitCommandCount(unitId)) do
-				local cmdId, _, _, paramX, paramY = spGetUnitCurrentCommand(unitId, c)
-				if cmdId == CMD_REPAIR and paramX and not paramY and spGetUnitIsBeingBuilt(paramX) then
+				local cmdId, _, _, paramX, paramY, _, _, paramRadius = spGetUnitCurrentCommand(unitId, c)
+				if cmdId == CMD_REPAIR and paramX and (not paramY or paramRadius) and spGetUnitIsBeingBuilt(paramX) then
 					local frameDefId = spGetUnitDefID(paramX)
 					if isBuildOption[frameDefId] then
 						assistedFrameDefIds[paramX] = frameDefId
