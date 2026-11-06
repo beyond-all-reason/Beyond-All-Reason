@@ -21,6 +21,7 @@ local text = require("luaui/Include/keybind_text")
 ---@field outline any
 ---@field clearable any
 ---@field plain any
+---@field keepPlaceholder any
 ---@field rect any
 ---@field fontSize any
 ---@field pad any
@@ -75,6 +76,8 @@ function Editbox.new(opts)
 	self.clearable = opts.clearable
 	-- On a panel of the host's: no fill or hover light of its own.
 	self.plain = opts.plain
+	-- A field focused from the moment it shows would otherwise never say what it is for.
+	self.keepPlaceholder = opts.keepPlaceholder
 	self.rect = { 0, 0, 0, 0 }
 	self.fontSize = 14
 	self.pad = 6
@@ -487,7 +490,7 @@ function Editbox:draw()
 
 	-- The coloured string is kept until the text changes, not rebuilt every frame.
 	local shown
-	if self.text == "" and not self.focused then
+	if self.text == "" and (not self.focused or self.keepPlaceholder) then
 		shown = self.placeholderShown
 		if not shown then
 			shown = colorDim .. self.placeholder
