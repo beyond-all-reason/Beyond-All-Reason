@@ -1036,6 +1036,8 @@ local function CreateSandboxedSystem()
 	SandboxedSystem.RmlUi = grantUserRmlUi() and RmlUi or nil
 end
 
+local releaseRefusedWidget ---@type function
+
 function widgetHandler:Initialize()
 	widgetHandler:CreateQueuedReorderFuncs()
 	widgetHandler:HookReorderSpecialFuncs()
@@ -1119,6 +1121,7 @@ function widgetHandler:Initialize()
 			local ki = self.knownWidgets[name]
 			ki.active, ki.replacedBy = false, by
 			self.orderList[name] = 0
+			releaseRefusedWidget(self, w)
 			spEcho(string.format("Not loading widget %-18s  <%s>  (replaced by %s)", name, basename, by))
 		else
 			local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
@@ -1277,7 +1280,6 @@ end
 
 -- Not a handler method. `fromZip` grants full System to anything with handler access.
 local newWidget ---@type function
-local releaseRefusedWidget ---@type function
 local forgetModalWidget ---@type function
 local forgetHidingWidget ---@type function
 local forgetPausingWidget ---@type function
