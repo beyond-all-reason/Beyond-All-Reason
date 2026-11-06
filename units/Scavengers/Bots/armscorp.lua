@@ -196,6 +196,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ADV_ROCKET",
+				maindir = "0 0 1",
 				angledir = 15,
 				onlytargetcategory = "SURFACE",
 			},
