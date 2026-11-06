@@ -4,6 +4,54 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## 1.20 - 2026-11-06
+
+Map export: a saved project becomes a map that plays without the editor, and comes back into it.
+
+### New
+
+- **FILE > Export Map...** writes the saved project as map archive files, in a folder under `Terraform Brush/Exports/` named after the map and version. Unsaved changes are saved first.
+- The Export Map window takes a **Map name** and **Version**; **Copy path** puts the export folder on the clipboard.
+- Exporting again with the same name and version replaces the earlier export.
+- Exported maps carry the project's heights, metal, lighting, water, fog, splats, skybox, grass and start positions.
+- `/mapproject export [version] [project]` runs the same export from the console.
+- `tools/map_export/compile_map.py` turns an export into a playable `.sd7` (a `.sdz` without 7-Zip) and writes `compile_report.txt`. Needs Python 3 with numpy and Pillow.
+- `tools/map_export/export.lua` runs the export without the game, for build workflows.
+- Each export writes `export_report.txt`: what became of every section, missing files, and the game content the map needs.
+- Exported maps load their features with tilt, height offset and scale.
+- Exported maps with a TILESET section switch the tileset shader on, when it is installed, and show the project's look. Other maps keep the legacy shader.
+- Playing a map with a tileset look leaves your own tileset shader settings as they were.
+- Exported maps load their lights, decals and visual weather.
+- Opening an exported map in the editor hands its features, lights, decals, weather and tileset look back to the tools.
+- The WORLDSPACE TINT > RAMP image ships inside an exported map.
+
+### Improvements
+
+- Saving a compiled or legacy map as a project keeps its splats, skybox, sun intensity, start positions and extractor radius.
+- A project's fog is kept by saves and exports. The editor still shows fog off.
+- Environment settings this build does not know are saved back unchanged.
+- Features whose types this game lacks stay in the project through saves.
+- WORLDSPACE TINT > RAMP images live in `LuaUI/Widgets/tileset_dev/ramps/`, and a ramp that cannot load stays in the project (both need the matching tileset shader update).
+
+### Fixes
+
+- The far map edge no longer drifts on Save, Save Heightmap, HEIGHT RANGE and whole-map undo.
+- Sculpting at the far map edge reads the real heights.
+- Weather spawners keep their lifetime through saves.
+- The grass look comes back when a project opens.
+- Splat textures keep their resolution through saves.
+- Metal amounts load exactly instead of one step low.
+- A save keeps the project's metal on unedited squares above a blank canvas's limit.
+
+### Known
+
+- The edge extension style is not exported yet.
+- Units and map labels are not exported; units belong to a mission.
+- A map with no diffuse squares compiles with a soft ground texture (the minimap, stretched).
+- Decals captured into a project must be added to the game before a map can use them.
+
+The TILESET SHADER UPDATE row matches 1.20 from the next tileset shader build on.
+
 ## 1.19 - 2026-10-26
 
 ### New
