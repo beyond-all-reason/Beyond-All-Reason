@@ -1044,7 +1044,13 @@ function TriggerDance()
 	end
 end
 
+local spGetUnitPiecePosDir = Spring.GetUnitPiecePosDir
+local spSetUnitWeaponState = Spring.SetUnitWeaponState
+
 function UnitSpeed()
+	-- dgun (weapon 3) range bookkeeping, see below
+	local dgunRange = Spring.GetUnitWeaponState(unitID, 3, "range")
+	local dgunDisabled
 	local maxSpeed = UnitDefs[Spring.GetUnitDefID(unitID)].speed
 	local animFramesPerKeyframe = 4 --we need to calc the frames per keyframe value, from the known animtime
 	maxSpeed = maxSpeed + (maxSpeed / (2 * animFramesPerKeyframe)) -- add fudge
@@ -1063,6 +1069,24 @@ function UnitSpeed()
 			animSpeed = 8
 		end
 		Sleep(131)
+		-- The engine never fires the dgun (fireSubmersed = false) while its aim point (lflare, see
+		-- AimFromWeapon) is under water, but still lets it report "in range", so a dgun order stops the
+		-- commander under water and it never fires. Take the dgun's range away while submerged so it
+		-- keeps walking out. Restore it only once the piece is 16 elmo above water: the walk animation
+		-- moves it, and if it dipped back under after the commander stopped to fire, nothing would make
+		-- it walk on.
+		local _, dgunY = spGetUnitPiecePosDir(unitID, lflare)
+		if dgunY <= 0 then
+			if dgunDisabled ~= true then
+				spSetUnitWeaponState(unitID, 3, "range", 0)
+				dgunDisabled = true
+			end
+		elseif dgunY > 16 then
+			if dgunDisabled ~= false then
+				spSetUnitWeaponState(unitID, 3, "range", dgunRange)
+				dgunDisabled = false
+			end
+		end
 		if isDancing and (bMoving or isAiming or isBuilding) then
 			StartThread(StopDance1)
 			isDancing = false
