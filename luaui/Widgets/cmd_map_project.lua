@@ -324,7 +324,7 @@ end
 -- The tileset shader's ramp library: it is a user widget, which reads raw files only under LuaUI/.
 local function rampDir()
 	local T = WG.TilesetTerrain
-	return (T and T.getRampDir and T.getRampDir()) or "LuaUI/Widgets/tileset_dev/ramps/"
+	return (T and T.getRampDir and T.getRampDir()) or "LuaUI/Config/TilesetRamps/"
 end
 
 -- Recently opened or saved projects, newest first, read by the Open Project list.

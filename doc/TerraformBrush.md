@@ -267,7 +267,7 @@ Opened from SCENE. It holds the tileset shader's settings and stays open while y
 | WATER | Shallow water tint and clarity, walkable depth, a glow on deep floors |
 | OLD-MAP BLEND | How much cliffs borrow the colours of the map's own texture |
 | BIOME TINT, LAYER TINTS | One tint over the whole biome; a tint per layer |
-| WORLDSPACE TINT (WIP) | Tinting by world height: WET SHORE, AXIS, GRADE, STRATA, GRADIENT STOPS, COLOUR, RAMP (a gradient image from `LuaUI/Widgets/tileset_dev/ramps/`), SATURATION, TIDE RINGS, SNOW LINE |
+| WORLDSPACE TINT (WIP) | Tinting by world height: WET SHORE, AXIS, GRADE, STRATA, GRADIENT STOPS, COLOUR, RAMP (a gradient image from `LuaUI/Config/TilesetRamps/`), SATURATION, TIDE RINGS, SNOW LINE |
 | DEBUG | Debug views of the shader's inputs |
 | CONFIG & PRESETS | Save and Browse presets (one file each in `Terraform Brush/TilesetPresets/`, loading one also switches to its biome), Restore Defaults, Dump Config (prints the settings to the console) |
 
@@ -721,7 +721,7 @@ All paths are relative to the game's data folder (the folder the game writes its
 | `lightmaps/` | Saved LIGHTS layouts, and `presets/` for your light presets |
 | `<map>_grassDist.tga` | A saved grass map |
 | `LuaUI/Config/UnitBlueprints/` | Unit blueprints |
-| `LuaUI/Widgets/tileset_dev/ramps/` | Gradient images for WORLDSPACE TINT > RAMP |
+| `LuaUI/Config/TilesetRamps/` | Gradient images for WORLDSPACE TINT > RAMP |
 
 ### File formats
 

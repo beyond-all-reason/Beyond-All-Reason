@@ -31,7 +31,7 @@ Map export: a saved project becomes a map that plays without the editor, and com
 - A project's fog is kept by saves and exports. The editor still shows fog off.
 - Environment settings this build does not know are saved back unchanged.
 - Features whose types this game lacks stay in the project through saves.
-- WORLDSPACE TINT > RAMP images live in `LuaUI/Widgets/tileset_dev/ramps/`, and a ramp that cannot load stays in the project (both need the matching tileset shader update).
+- A WORLDSPACE TINT > RAMP image that cannot load stays in the project (needs tileset shader build 26).
 
 ### Fixes
 
