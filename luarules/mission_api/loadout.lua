@@ -7,6 +7,39 @@ local tracking = GG["MissionAPI"].Modules.Tracking
 local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
 local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
 
+--- Orientation of unit and feature entries
+
+-- A point closer than this is on the entry itself, as in RotateUnits.
+local MIN_DIRECTION_DISTANCE = 0.001
+
+local function compassAngleToHeading(angle)
+	-- TODO: refactor to call CompassAngleToHeading when it is merged
+	return math.floor((angle % 360 - 180) / 360 * -65536)
+end
+
+local function directionToHeading(entry, direction)
+	if direction.angle then
+		return compassAngleToHeading(direction.angle)
+	end
+
+	local dx, dz = direction.x - entry.x, direction.z - entry.z
+	if math.abs(dx) < MIN_DIRECTION_DISTANCE and math.abs(dz) < MIN_DIRECTION_DISTANCE then
+		return BAR.Utilities.FacingToHeading(0)
+	end
+	-- Not Spring.GetHeadingFromVector: before RecoilEngine #3240 it swaps east and west for dz just above zero.
+	return compassAngleToHeading(math.deg(math.atan2(dx, -dz)))
+end
+
+local function orientationOf(entry)
+	local orientation = entry.orientation
+	if type(orientation) == "table" then
+		local heading = directionToHeading(entry, orientation)
+		return heading, BAR.Utilities.HeadingToFacing(heading)
+	end
+	local facing = orientation or 0
+	return BAR.Utilities.FacingToHeading(facing), facing
+end
+
 --- Units
 
 local BUILD_GRID_SIZE = Game.squareSize * Game.footprintScale
@@ -39,17 +72,22 @@ local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpac
 	return positions
 end
 
-local function spawnUnit(unit, pos)
+local function spawnUnit(unit, pos, facing, heading)
 	-- Make unitName available to MetaUnitAdded call-in which gets triggered by Spring.CreateUnit
 	-- A trigger there can spawn units inside this CreateUnit, so the outer values are put back after it
 	local inProgressSpawnName = GG["MissionAPI"].nameOfUnitBeingSpawned
 	local inProgressSpawnIsBeingBuilt = GG["MissionAPI"].spawnedUnitIsBeingBuilt
 	GG["MissionAPI"].nameOfUnitBeingSpawned = unit.unitName
 	GG["MissionAPI"].spawnedUnitIsBeingBuilt = unit.construction
-	local unitID =
-		Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or "s", unit.teamName, unit.construction)
+	local unitID = Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, facing, unit.teamName, unit.construction)
 	GG["MissionAPI"].nameOfUnitBeingSpawned = inProgressSpawnName
 	GG["MissionAPI"].spawnedUnitIsBeingBuilt = inProgressSpawnIsBeingBuilt
+
+	if unitID and heading then
+		-- Keep the slope the unit was created standing on.
+		local _, upDir = Spring.GetUnitVectors(unitID)
+		Spring.SetUnitHeadingAndUpDir(unitID, heading, upDir[1], upDir[2], upDir[3])
+	end
 
 	if unitID and unit.neutral then
 		Spring.SetUnitNeutral(unitID, true)
@@ -114,8 +152,15 @@ local function spawnUnitLoadout(unitLoadout)
 		local xsize = unitDef.xsize * Game.squareSize + spacing
 		local zsize = unitDef.zsize * Game.squareSize + spacing
 
+		-- Buildings keep the nearest of the four facings.
+		local heading, facing = orientationOf(unit)
+		local turnTo = nil
+		if type(unit.orientation) == "table" and not unitDef.isImmobile then
+			turnTo = heading
+		end
+
 		-- adjust for facing of non-square units
-		if BAR.Utilities.IsFacingEW(unit.facing) then
+		if BAR.Utilities.IsFacingEW(facing) then
 			xsize, zsize = zsize, xsize
 		end
 
@@ -125,7 +170,7 @@ local function spawnUnitLoadout(unitLoadout)
 			-- Round up to whole grid cells so snapping keeps the buildings evenly spaced.
 			xsize = math.ceil(xsize / BUILD_GRID_SIZE) * BUILD_GRID_SIZE
 			zsize = math.ceil(zsize / BUILD_GRID_SIZE) * BUILD_GRID_SIZE
-			buildFacing = BAR.Utilities.FacingToNumber(unit.facing)
+			buildFacing = BAR.Utilities.FacingToNumber(facing)
 		end
 
 		local positions = generateGridPositions(unit.x, unit.z, unit.quantity or 1, xsize, zsize)
@@ -133,7 +178,7 @@ local function spawnUnitLoadout(unitLoadout)
 			if snapToBuildGrid then
 				pos.x, pos.y, pos.z = Spring.Pos2BuildPos(unitDef.id, pos.x, pos.y, pos.z, buildFacing)
 			end
-			local unitID = spawnUnit(unit, pos)
+			local unitID = spawnUnit(unit, pos, facing, turnTo)
 			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 			GG["MissionAPI"].issuingOrders = true
 			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
@@ -153,8 +198,7 @@ for _, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local function spawnFeature(featureDefName, position, facing, featureName)
-	local heading = BAR.Utilities.FacingToHeading(facing or 0)
+local function spawnFeature(featureDefName, position, heading, facing, featureName)
 	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
 	local unitDefName = corpseToUnitDefName[featureDefName]
 
@@ -167,7 +211,8 @@ end
 local function spawnFeatureLoadout(featureLoadout)
 	for _, feature in ipairs(featureLoadout or {}) do
 		feature.y = Spring.GetGroundHeight(feature.x, feature.z)
-		spawnFeature(feature.featureDefName, feature, feature.facing, feature.featureName)
+		local heading, facing = orientationOf(feature)
+		spawnFeature(feature.featureDefName, feature, heading, facing, feature.featureName)
 	end
 end
 

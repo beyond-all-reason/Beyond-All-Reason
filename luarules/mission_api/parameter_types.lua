@@ -61,6 +61,9 @@ local types = {
 	Command = "Command",
 	WeaponNumber = "WeaponNumber",
 
+	-- Number-or-String-or-Table Validators:
+	FacingOrDirection = "FacingOrDirection",
+
 	-- Number-or-String-or-Boolean Validators:
 	AttributeValue = "AttributeValue",
 

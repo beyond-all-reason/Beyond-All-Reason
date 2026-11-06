@@ -24,6 +24,9 @@ local env = MissionSpecEnv.new({
 		GetGroundHeight = function()
 			return 0
 		end,
+		GetHeadingFromFacing = function(facing)
+			return facing * 16384
+		end,
 		Pos2BuildPos = function(unitDefID, x, y, z, facing)
 			snapped[#snapped + 1] = { unitDefID = unitDefID, x = x, z = z, facing = facing }
 			return x + SNAP_OFFSET, y, z + SNAP_OFFSET
@@ -113,7 +116,7 @@ describe("mission_api.loadout grid", function()
 	end)
 
 	it("gives Pos2BuildPos the entry's facing", function()
-		spawn({ unitDefName = "wall", x = 2048, z = 2048, facing = "east" })
+		spawn({ unitDefName = "wall", x = 2048, z = 2048, orientation = "east" })
 
 		assert.are.equal(1, snapped[1].facing)
 	end)
