@@ -5,8 +5,8 @@ local env = MissionSpecEnv.new()
 -- Trigger and action definition files read the Mission API modules from GG at include time.
 MissionSpecEnv.registerModules(env)
 local actionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
-local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
-	.LoadTriggerDefinitions()
+local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+	.LoadConditionDefinitions()
 GG["MissionAPI"] = nil
 
 local objectivesLoader = MissionSpecEnv.include(env, "luarules/mission_api/objectives_loader.lua")
@@ -19,7 +19,7 @@ describe("mission_api.objectives_loader", function()
 	before_each(function()
 		GG["MissionAPI"] = {
 			ActionDefinitions = actionDefinitions,
-			TriggerDefinitions = triggerDefinitions,
+			ConditionDefinitions = triggerDefinitions,
 			ManagedObjectives = {},
 			ObjectiveTriggers = {},
 			ObjectiveStages = {},
