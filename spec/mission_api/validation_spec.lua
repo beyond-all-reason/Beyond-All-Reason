@@ -105,6 +105,20 @@ describe("mission_api.validation", function()
 		end)
 	end)
 
+	describe("game setup", function()
+		it("fails a mission whose start script does not suit it, ahead of the mission's own errors", function()
+			V.missionAPI().GameSetupErrors = { "Missions need Gaia's team, but the start script sets luagaia=0" }
+
+			local result = V.validate({ Objectives = { o = {} } })
+
+			assert.is_false(result.ok)
+			assert.are.same({
+				"Missions need Gaia's team, but the start script sets luagaia=0",
+				"Objective missing textKey. Objective: o",
+			}, result.errors)
+		end)
+	end)
+
 	describe("LogResult", function()
 		local originalLog
 		local logged
