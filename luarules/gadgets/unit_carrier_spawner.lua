@@ -1260,6 +1260,20 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	local carrierData = carrierMetaList[unitID]
+	if capture or not carrierData then
+		return true
+	end
+	local unitCount = 1
+	for subUnitID in pairsNext, carrierData.subUnitsList do
+		if spGetUnitTeam(subUnitID) ~= newTeam then
+			unitCount = unitCount + 1
+		end
+	end
+	return BAR.Utilities.CanTeamReceiveUnits(newTeam, unitCount)
+end
+
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	if carrierMetaList[unitID] then
 		carrierMetaList[unitID].subInitialSpawnData.teamID = unitTeam
