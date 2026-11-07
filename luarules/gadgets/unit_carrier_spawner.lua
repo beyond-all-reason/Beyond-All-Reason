@@ -1267,7 +1267,8 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	end
 	local unitCount = 1
 	for subUnitID in pairsNext, carrierData.subUnitsList do
-		if spGetUnitTeam(subUnitID) ~= newTeam then
+		local subUnitTeam = spGetUnitTeam(subUnitID)
+		if subUnitTeam ~= newTeam and spAreTeamsAllied(subUnitTeam, oldTeam) then
 			unitCount = unitCount + 1
 		end
 	end
@@ -1279,7 +1280,8 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		carrierMetaList[unitID].subInitialSpawnData.teamID = unitTeam
 		local given = spAreTeamsAllied(unitTeam, oldTeam)
 		for subUnitID, value in pairsNext, carrierMetaList[unitID].subUnitsList do
-			if spGetUnitTeam(subUnitID) ~= unitTeam then
+			local subUnitTeam = spGetUnitTeam(subUnitID)
+			if subUnitTeam ~= unitTeam and spAreTeamsAllied(subUnitTeam, oldTeam) then
 				spTransferUnit(subUnitID, unitTeam, given)
 			end
 		end
