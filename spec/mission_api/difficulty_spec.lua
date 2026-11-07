@@ -66,6 +66,13 @@ describe("mission_api.difficulty", function()
 			assert.are.same({}, logged)
 		end)
 
+		it("matches a name in any case, as the client sends it", function()
+			assert.are.equal(STORY, difficulty.FromName("story"))
+			assert.are.equal(MEDIUM, difficulty.FromName("medium"))
+			assert.are.equal(HARD, difficulty.FromName("HARD"))
+			assert.are.same({}, logged)
+		end)
+
 		it("returns the lowest difficulty without logging when no name is given", function()
 			assert.are.equal(STORY, difficulty.FromName(nil))
 			assert.are.same({}, logged)
