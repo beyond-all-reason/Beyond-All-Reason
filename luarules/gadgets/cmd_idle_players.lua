@@ -41,6 +41,10 @@ if gadgetHandler:IsSyncedCode() then
 	local currentGameFrame = 0
 
 	local TransferUnit = Spring.TransferUnit
+	local GetTeamMaxUnits = Spring.GetTeamMaxUnits
+	local GetTeamUnitCount = Spring.GetTeamUnitCount
+	local GetUnitTeam = Spring.GetUnitTeam
+	local TransferTeamMaxUnits = Spring.TransferTeamMaxUnits
 	local GetPlayerList = Spring.GetPlayerList
 	local ShareTeamResource = Spring.ShareTeamResource
 	local GetTeamResources = Spring.GetTeamResources
@@ -142,6 +146,35 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local takingFromTeam, takingToTeam
+
+	local function isTakingTeam(oldTeam, newTeam)
+		return takingFromTeam ~= nil and oldTeam == takingFromTeam and newTeam == takingToTeam
+	end
+
+	local function takeUnit(unitID, fromTeam, toTeam)
+		local previousFromTeam, previousToTeam = takingFromTeam, takingToTeam
+		takingFromTeam, takingToTeam = fromTeam, toTeam
+		local ok, result = pcall(TransferUnit, unitID, toTeam)
+		takingFromTeam, takingToTeam = previousFromTeam, previousToTeam
+		if not ok then
+			error(result)
+		end
+		if not result then
+			return
+		end
+
+		SetTeamRulesParam(fromTeam, "unitCapRestorePending", 1)
+
+		-- UnitTaken/UnitGiven can transfer linked units too; reconcile after all callbacks finish.
+		local needed = assert(GetTeamUnitCount(toTeam)) - GetTeamMaxUnits(toTeam)
+		local available = GetTeamMaxUnits(fromTeam) - assert(GetTeamUnitCount(fromTeam))
+		local amount = math.min(needed, available) ---@as integer
+		if amount > 0 then
+			TransferTeamMaxUnits(fromTeam, toTeam, amount)
+		end
+	end
+
 	local function takeTeam(cmd, line, words, playerID)
 		if not CheckPlayerState(playerID) then
 			SendToUnsynced("NotifyError", playerID, errorKeys.shareAFK)
@@ -162,14 +195,29 @@ if gadgetHandler:IsSyncedCode() then
 		for _, teamID in ipairs(teamList) do
 			local luaAI = GetTeamLuaAI(teamID)
 			local isAiTeam = select(4, GetTeamInfo(teamID, false))
-			if not isAiTeam and (not luaAI or luaAI == "") and GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
+			if
+				teamID ~= takerID
+				and not isAiTeam
+				and (not luaAI or luaAI == "")
+				and GetTeamRulesParam(teamID, "numActivePlayers") == 0
+			then
 				-- transfer all units
 				local teamUnits = GetTeamUnits(teamID)
 				local unitsTaken = 0
 				for i = 1, #teamUnits do
-					if TransferUnit(teamUnits[i], takerID) then
+					local unitID = teamUnits[i]
+					if GetUnitTeam(unitID) == teamID then
+						takeUnit(unitID, teamID, takerID)
+					end
+					if GetUnitTeam(unitID) == takerID then
 						unitsTaken = unitsTaken + 1
 					end
+				end
+				-- Keep slots for units whose transfer was rejected by another gadget.
+				local remainingCap = GetTeamMaxUnits(teamID) - assert(GetTeamUnitCount(teamID)) ---@as integer
+				local capTaken = remainingCap > 0 and TransferTeamMaxUnits(teamID, takerID, remainingCap)
+				if capTaken then
+					SetTeamRulesParam(teamID, "unitCapRestorePending", 1)
 				end
 				-- send all resources en-block to the taker
 				local taken = {}
@@ -181,7 +229,7 @@ if gadgetHandler:IsSyncedCode() then
 					ShareTeamResource(teamID, takerID, resourceName, shareAmount)
 					taken[resourceName] = math.floor(shareAmount)
 				end
-				if unitsTaken > 0 or taken.metal > 0 or taken.energy > 0 then
+				if unitsTaken > 0 or capTaken or taken.metal > 0 or taken.energy > 0 then
 					numTaken = numTaken + 1
 					SendToUnsynced("TeamTaken", playerID, teamID, unitsTaken, taken.energy, taken.metal)
 				end
@@ -193,11 +241,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
+		GG.IsTakingTeam = isTakingTeam
 		gadgetHandler:AddChatAction(takeCommand, takeTeam, "Take control of units and resources from inactive players")
 		updatePlayersInfo()
 	end
 
 	function gadget:Shutdown()
+		GG.IsTakingTeam = nil
 		gadgetHandler:RemoveChatAction(takeCommand)
 	end
 

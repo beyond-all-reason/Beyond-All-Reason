@@ -1,4 +1,5 @@
 local widget = widget ---@type Widget
+local redirectTakeCommand = VFS.Include("luaui/Include/take_command.lua", nil, VFS.ZIP)
 
 function widget:GetInfo()
 	return {
@@ -3793,7 +3794,8 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 				if inputText ~= "" then
 					local executedInput = inputText
 					if ssub(inputText, 1, 1) == "/" then
-						local command = ssub(inputText, 2)
+						local command =
+							redirectTakeCommand(ssub(inputText, 2), not BAR.Utilities.Gametype.IsSinglePlayer()) ---@as string
 						if command == "lr" then
 							command = "luaui reload"
 						else

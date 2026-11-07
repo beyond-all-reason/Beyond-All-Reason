@@ -51,10 +51,11 @@ end
 	- Gaia and Scavenger/Raptor teams never receive or donate maxunits on team death
 
 	When a Player Rejoins:
-	- A team loses all of its maxunits when it is taken with /take, without dying
-	- Detects these teams by polling, since the engine has no event for a rejoin
-	- Takes an even share of the allyteam's maxunits from what alive teammates aren't using
-	- Retries until the team has maxunits, as teammates may have none free
+	- A team can lose maxunits when it is taken, without dying
+	- Waits for a successful allied unit share before restoring a taken team's capacity
+	- Polls active teams after sharing resumes
+	- Tops them up to an even share of the allyteam's maxunits, by transferring excess from teammates
+	- Keeps retrying, as teammates may have none free
 ]]
 --
 
@@ -107,14 +108,12 @@ local function teamHasActivePlayer(teamID)
 	return false
 end
 
--- Does not completely rebalance the maxunits between teams in an alliance.
--- Returns only the unused portions of allied team's maxunits to this team.
-local function restoreTeamMaxUnits(teamID)
+local function getTeamMaxUnitsShare(teamID)
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local allyID = select(6, Spring.GetTeamInfo(teamID, false))
 	local teams = Spring.GetTeamList(allyID)
 	local teammates = {} ---@type TeamID[]
-	local totalPool = 0
+	local totalPool = Spring.GetTeamMaxUnits(teamID)
 
 	for i = 1, #teams do
 		local currentTeamID = teams[i]
@@ -127,22 +126,50 @@ local function restoreTeamMaxUnits(teamID)
 		end
 	end
 
-	table.sort(teammates)
+	return mathMin(mathFloor(totalPool / (#teammates + 1)), maxunits), teammates
+end
 
-	local share = mathMin(mathFloor(totalPool / (#teammates + 1)), maxunits)
-	local needed = share ---@type number
+local function canShareUnitCap(oldTeam, newTeam)
+	if oldTeam == newTeam or not teamHasActivePlayer(newTeam) then
+		return false
+	end
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	for _, teamID in ipairs({ oldTeam, newTeam }) do
+		if teamID == gaiaTeamID or isScavengerOrRaptor(teamID) or select(3, Spring.GetTeamInfo(teamID, false)) then
+			return false
+		end
+	end
+	if select(6, Spring.GetTeamInfo(oldTeam, false)) ~= select(6, Spring.GetTeamInfo(newTeam, false)) then
+		return false
+	end
+	local share = getTeamMaxUnitsShare(newTeam)
+	return Spring.GetTeamMaxUnits(newTeam) < share
+		and Spring.GetTeamMaxUnits(oldTeam) > share
+		and Spring.GetTeamUnitCount(oldTeam) <= Spring.GetTeamMaxUnits(oldTeam)
+end
+
+-- Returns only the unused portions of allied teams' maxunits to this team.
+local function restoreTeamMaxUnits(teamID)
+	local share, teammates = getTeamMaxUnitsShare(teamID)
+	table.sort(teammates)
+	local needed = share - Spring.GetTeamMaxUnits(teamID)
 
 	for i = 1, #teammates do
 		local donorID = teammates[i]
 		local donorAmount = Spring.GetTeamMaxUnits(donorID)
 		-- The engine refuses a transfer that would leave a team below its current unit count.
-		local transferAmount = mathMin(needed, donorAmount - share, donorAmount - Spring.GetTeamUnitCount(donorID))
+		local transferAmount = mathMin(needed, donorAmount - share, donorAmount - Spring.GetTeamUnitCount(donorID)) ---@as integer
 		if transferAmount > 0 and Spring.TransferTeamMaxUnits(donorID, teamID, transferAmount) then
 			needed = needed - transferAmount
 		end
 	end
 end
+function gadget:Shutdown()
+	GG.CanShareUnitCap = nil
+end
+
 function gadget:Initialize()
+	GG.CanShareUnitCap = canShareUnitCap
 	if Spring.GetGameFrame() > 0 then
 		return
 	end
@@ -474,6 +501,34 @@ function gadget:TeamDied(teamID)
 	end
 end
 
+local pendingShares = {} ---@type table<UnitID, TeamID[]>
+
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	pendingShares[unitID] = nil
+	if
+		not capture
+		and oldTeam ~= newTeam
+		and Spring.GetTeamRulesParam(newTeam, "unitCapRestorePending") == 1
+		and not (GG.IsTakingTeam and GG.IsTakingTeam(oldTeam, newTeam))
+		and select(6, Spring.GetTeamInfo(oldTeam, false)) == select(6, Spring.GetTeamInfo(newTeam, false))
+	then
+		pendingShares[unitID] = { oldTeam, newTeam }
+	end
+	return true
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	local pending = pendingShares[unitID]
+	pendingShares[unitID] = nil
+	if pending and pending[1] == oldTeam and pending[2] == newTeam then
+		Spring.SetTeamRulesParam(newTeam, "unitCapRestorePending", 0)
+	end
+end
+
+function gadget:UnitDestroyed(unitID)
+	pendingShares[unitID] = nil
+end
+
 function gadget:GameFrame(frame)
 	if frame % Game.gameSpeed ~= 0 then
 		return
@@ -482,7 +537,11 @@ function gadget:GameFrame(frame)
 	local teams = Spring.GetTeamList()
 	for i = 1, #teams do
 		local teamID = teams[i]
-		if Spring.GetTeamMaxUnits(teamID) == 0 and teamHasActivePlayer(teamID) then
+		if
+			Spring.GetTeamRulesParam(teamID, "unitCapRestorePending") ~= 1
+			and teamHasActivePlayer(teamID)
+			and not isScavengerOrRaptor(teamID)
+		then
 			restoreTeamMaxUnits(teamID)
 		end
 	end
