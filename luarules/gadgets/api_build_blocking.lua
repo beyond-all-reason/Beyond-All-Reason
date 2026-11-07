@@ -20,7 +20,7 @@ local allExemptReasonKeys = {
 	terrain_geothermal = true,
 	max_this_unit = true,
 	modoption_blocked = true,
-	-- api_unit_type_limits.lua owns it: it comes back by itself when the count changes.
+	-- api_unit_type_limits.lua lifts it when the count drops below the cap.
 	mission_limit = true,
 }
 

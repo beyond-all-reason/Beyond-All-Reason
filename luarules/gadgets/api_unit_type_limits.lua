@@ -16,7 +16,7 @@ end
 -- new ones refused; spawned, given and captured units are counted, never refused.
 
 if gadgetHandler:IsSyncedCode() then
-	local REASON = "mission_limit"
+	local REASON_KEY = "mission_limit"
 
 	local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
@@ -53,22 +53,22 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		blocked[teamID][unitDefID] = over or nil
 		if over then
-			GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, REASON)
+			GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, REASON_KEY)
 		else
-			GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, REASON)
+			GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, REASON_KEY)
 		end
 	end
 
-	local function add(teamID, unitDefID, n)
+	local function countUnits(teamID, unitDefID, delta)
 		local teamCounts = counts[teamID]
 		if teamCounts and teamCounts[unitDefID] then
-			teamCounts[unitDefID] = teamCounts[unitDefID] + n
+			teamCounts[unitDefID] = teamCounts[unitDefID] + delta
 			refresh(teamID, unitDefID)
 		end
 	end
 
 	-- A builder placing the blueprint of a frame already there assists it: no new unit.
-	local function assists(unitDefID, teamID, x, z)
+	local function assistsPlacedFrame(unitDefID, teamID, x, z)
 		if not x then
 			return false
 		end
@@ -95,6 +95,11 @@ if gadgetHandler:IsSyncedCode() then
 			counts[teamID][unitDefID] = cap and spGetTeamUnitDefCount(teamID, unitDefID) or nil
 			refresh(teamID, unitDefID)
 		end,
+		--- The cap and the count of `unitDefID` for `teamID`; nil without a cap.
+		Get = function(teamID, unitDefID)
+			local cap = capOf(teamID, unitDefID)
+			return cap, cap and counts[teamID][unitDefID] or nil
+		end,
 	}
 
 	function gadget:Shutdown()
@@ -102,8 +107,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
-		add(teamID, unitDefID, 1)
-		-- Two factories can start the last one in the same frame.
+		countUnits(teamID, unitDefID, 1)
+		-- A factory checks the cap when it takes the order and creates the unit when its yard opens,
+		-- so two can pass with one slot left.
 		local cap = capOf(teamID, unitDefID)
 		if builderID and cap and counts[teamID][unitDefID] > cap then
 			overCap[unitID] = true
@@ -112,12 +118,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID)
 		overCap[unitID] = nil
-		add(teamID, unitDefID, -1)
+		countUnits(teamID, unitDefID, -1)
 	end
 
 	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-		add(oldTeam, unitDefID, -1)
-		add(newTeam, unitDefID, 1)
+		countUnits(oldTeam, unitDefID, -1)
+		countUnits(newTeam, unitDefID, 1)
 	end
 
 	function gadget:GameFrame()
@@ -127,7 +133,7 @@ if gadgetHandler:IsSyncedCode() then
 			for _, teamID in ipairs(Spring.GetTeamList() or {}) do
 				for unitDefID in pairs(UnitDefs) do
 					if not atCap(teamID, unitDefID) then
-						GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, REASON)
+						GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, REASON_KEY)
 					end
 				end
 			end
@@ -142,7 +148,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
 		-- The second value drops a refused order.
-		return not atCap(builderTeam, unitDefID) or assists(unitDefID, builderTeam, x, z), true
+		return not atCap(builderTeam, unitDefID) or assistsPlacedFrame(unitDefID, builderTeam, x, z), true
 	end
 
 	function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)

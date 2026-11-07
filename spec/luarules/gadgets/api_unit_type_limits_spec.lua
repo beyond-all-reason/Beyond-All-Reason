@@ -128,6 +128,12 @@ describe("api_unit_type_limits", function()
 		assert.is_true(gadget:AllowFeatureBuildStep(9, 1, 8, 3, 0.1), "another wreck")
 	end)
 
+	it("reads the cap and the count back", function()
+		limits.Set(1, TOWER, 2)
+		assert.are.same({ 2, 1 }, { limits.Get(1, TOWER) })
+		assert.is_nil(limits.Get(1, SOLAR))
+	end)
+
 	it("takes the cap away with nil", function()
 		limits.Set(1, TOWER, 1)
 		assert.are.equal(1, blocked["1:50:mission_limit"])
