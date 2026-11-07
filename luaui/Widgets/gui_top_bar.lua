@@ -424,7 +424,6 @@ local function windGraph()
 		points = points,
 		xMax = windHistory.window,
 		yMax = maxWind,
-		color = { 0.6, 0.82, 1 },
 		left = "-5:00",
 		right = "0:00",
 	}

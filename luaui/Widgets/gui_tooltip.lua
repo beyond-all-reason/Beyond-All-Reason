@@ -43,8 +43,9 @@ A value is text (lines at "\n") or a table of parts, each optional:
   tags = { { tag, tag }, { tag } },        rows of tags, each { icon = "LuaUI/Images/...", label = "Medium", color = { r, g, b, a } },
                                            icon and label optional; an icon that is no file is left out
   note = "...",                            dimmer lines at the bottom
-  graph = { points = { x, y, ... }, xMax = 9000, yMax = 15, color = { r, g, b }, left = "-5:00", right = "0:00" },
-                                           a small line chart: x 0 to xMax, y 0 to yMax, what to call its left and right ends
+  graph = { points = { x, y, ... }, xMax = 9000, yMax = 15, left = "-5:00", right = "0:00" },
+                                           a small line chart: x 0 to xMax, y 0 to yMax, what to call its left and right ends;
+                                           in the values' colour unless given color = { r, g, b }
   cost = { metal = 80, energy = 900 },     in the bottom right corner (numbers rounded; a number as a string, "2.04", as it is)
 Tables are compared by value and copied: a new one each call redraws nothing while it is the same.
 
@@ -67,6 +68,7 @@ local PART_DIM = "\255\170\176\174"
 local ROW_STRIPE = { 1, 1, 1, 0.05 }
 local TAG_PLATE = { 1, 1, 1, 0.08 }
 local GRAPH_GRID = { 1, 1, 1, 0.1 }
+local GRAPH_LINE = { 244 / 255, 244 / 255, 244 / 255 } -- PART_TEXT, as the rows' values
 local COST_ORDER = { "metal", "energy" }
 local COST_ICONS = { metal = "LuaUI/Images/metal.png", energy = "LuaUI/Images/energy.png" }
 local COST_COLORS = { metal = "\255\245\245\245", energy = "\255\255\255\130" }
@@ -768,7 +770,8 @@ local function drawParts(parts, addX, addY, maxWidth)
 			chartPoints[i + 1] = bottom + mathMax(0, math.min(yMax, g.points[i + 1])) * sy
 		end
 		chartBottom, chartTop = bottom, top
-		chartR, chartG, chartB = g.color[1], g.color[2], g.color[3]
+		local c = g.color or GRAPH_LINE
+		chartR, chartG, chartB = c[1], c[2], c[3]
 		if #chartPoints >= 4 then
 			gl.BeginEnd(GL.TRIANGLE_STRIP, chartFillVertices)
 			gl.Color(chartR, chartG, chartB, 1)
