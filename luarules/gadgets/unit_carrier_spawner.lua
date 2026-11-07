@@ -1277,9 +1277,10 @@ end
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	if carrierMetaList[unitID] then
 		carrierMetaList[unitID].subInitialSpawnData.teamID = unitTeam
+		local given = spAreTeamsAllied(unitTeam, oldTeam)
 		for subUnitID, value in pairsNext, carrierMetaList[unitID].subUnitsList do
 			if spGetUnitTeam(subUnitID) ~= unitTeam then
-				spTransferUnit(subUnitID, unitTeam, false)
+				spTransferUnit(subUnitID, unitTeam, given)
 			end
 		end
 	end
