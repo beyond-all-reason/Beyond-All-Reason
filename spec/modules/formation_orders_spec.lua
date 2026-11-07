@@ -27,6 +27,7 @@ describe("modules.formation_orders", function()
 		given, givenAsWritten = {}, {}
 		-- rawset, so the type checker does not take these few IDs for the engine's CMD table.
 		rawset(_G, "CMD", {
+			STOP = 0,
 			MOVE = 10,
 			PATROL = 15,
 			FIGHT = 16,
@@ -242,6 +243,39 @@ describe("modules.formation_orders", function()
 			local orders = ordersByUnit()
 			assert.are.equal(1950, orders[1].x)
 			assert.are.equal(2050, orders[2].x)
+		end)
+
+		it("starts after an order without shift from where the unit stands, its old queue gone", function()
+			setUnits({
+				[1] = { x = 100, z = 100, queue = queued(3000, 500) },
+				[2] = { x = 200, z = 100, queue = queued(500, 3000) },
+			})
+			issue({ { CMD.STOP, {}, {} }, moveTo(1000, 1000, { "shift" }) })
+			local orders = ordersByUnit()
+			assert.are.equal(950, orders[1].x)
+			assert.are.equal(1050, orders[2].x)
+		end)
+
+		it("starts after an attack on a unit without shift from where the unit stands", function()
+			setUnits({
+				[1] = { x = 100, z = 100, queue = queued(3000, 500) },
+				[2] = { x = 200, z = 100, queue = queued(500, 3000) },
+			})
+			issue({ { CMD.ATTACK, { 77 }, {} }, moveTo(1000, 1000, { "shift" }) })
+			local orders = ordersByUnit()
+			assert.are.equal(950, orders[1].x)
+			assert.are.equal(1050, orders[2].x)
+		end)
+
+		it("starts after an order with a position, without shift, from that position", function()
+			setUnits({
+				[1] = { x = 100, z = 100, queue = queued(3000, 500) },
+				[2] = { x = 200, z = 100, queue = queued(500, 3000) },
+			})
+			issue({ { CMD.ATTACK, { 600, 0, 600 }, {} }, moveTo(1000, 1000, { "shift" }) })
+			local orders = ordersByUnit()
+			assert.are.equal(1000, orders[1].x)
+			assert.are.equal(1000, orders[2].x)
 		end)
 
 		it("starts from where the unit stands when nothing queued has a position", function()

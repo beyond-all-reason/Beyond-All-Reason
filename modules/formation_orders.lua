@@ -111,19 +111,14 @@ local function linePoints(params)
 	return points
 end
 
--- Each unit's spot for one order. A queued order starts where the unit's previous one ends.
+-- Each unit's spot for one order, starting where the unit's previous order ends.
 local function spreadTargets(units, order, facing, lastSpots)
 	local params, options = order[2], order[3] or {}
 	local queue = table.contains(options, "shift")
 
 	local starts = {}
 	for i, unitID in ipairs(units) do
-		if queue then
-			starts[i] = lastSpots[unitID] or getQueueEndPosition(unitID)
-		else
-			local x, _, z = Spring.GetUnitPosition(unitID)
-			starts[i] = { x = x, z = z }
-		end
+		starts[i] = lastSpots[unitID] or getQueueEndPosition(unitID)
 	end
 
 	---@type table<integer, table>
@@ -184,6 +179,13 @@ local function giveFormationOrders(unitIDs, orders, options)
 	end
 	for _, order in ipairs(orders) do
 		local command, params, orderOptions = order[1], order[2], order[3] or {}
+		-- Without shift an order replaces the queue, so it ends where the unit stands until a position moves it.
+		if not table.contains(orderOptions, "shift") then
+			for _, unitID in ipairs(spread) do
+				local x, _, z = Spring.GetUnitPosition(unitID)
+				lastSpots[unitID] = { x = x, z = z }
+			end
+		end
 		local targets = isSpreadOrder(order) and #spread > 0 and spreadTargets(spread, order, options.facing, lastSpots)
 		for i, unitID in ipairs(spread) do
 			local list = unitOrders[unitID]
