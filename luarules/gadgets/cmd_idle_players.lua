@@ -164,6 +164,8 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
+		SetTeamRulesParam(fromTeam, "unitCapRestorePending", 1)
+
 		-- UnitTaken/UnitGiven can transfer linked units too; reconcile after all callbacks finish.
 		local needed = assert(GetTeamUnitCount(toTeam)) - GetTeamMaxUnits(toTeam)
 		local available = GetTeamMaxUnits(fromTeam) - assert(GetTeamUnitCount(fromTeam))

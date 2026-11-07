@@ -21,6 +21,7 @@ end
 
 local spIsCheatingEnabled = Spring.IsCheatingEnabled
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
+local pendingUnitCaps = {} ---@type table<UnitID, TeamID[]>
 
 ----------------------------------------------------------------
 -- Callins
@@ -55,6 +56,7 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	pendingUnitCaps[unitID] = nil
 	local unitCount = spGetTeamUnitCount(newTeam)
 	if
 		capture
@@ -64,5 +66,22 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	then
 		return true
 	end
+	if unitCount == Spring.GetTeamMaxUnits(newTeam) and GG.CanShareUnitCap and GG.CanShareUnitCap(oldTeam, newTeam) then
+		pendingUnitCaps[unitID] = { oldTeam, newTeam }
+		return true
+	end
 	return false
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	local pending = pendingUnitCaps[unitID]
+	pendingUnitCaps[unitID] = nil
+	if pending and pending[1] == oldTeam and pending[2] == newTeam then
+		-- The unit has left the donor, so even a previously full team can give up its slot.
+		Spring.TransferTeamMaxUnits(oldTeam, newTeam, 1)
+	end
+end
+
+function gadget:UnitDestroyed(unitID)
+	pendingUnitCaps[unitID] = nil
 end

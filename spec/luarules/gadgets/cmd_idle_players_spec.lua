@@ -121,9 +121,7 @@ local function setup(donorCount, donorCap, takerCount, takerCap)
 			env.Spring.TransferUnit(2, to, false)
 		end
 		units[id] = to
-		if limiter.UnitGiven then
-			limiter:UnitGiven(id, 1, to, from)
-		end
+		limiter:UnitGiven(id, 1, to, from)
 		return true
 	end
 	SpecEnv.include(env, "luarules/gadgets/game_prevent_excessive_share.lua")
