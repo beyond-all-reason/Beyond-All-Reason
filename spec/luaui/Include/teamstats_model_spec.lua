@@ -329,6 +329,59 @@ describe("teamstats model", function()
 		assert.equals("gone", other.teamControllers[5])
 	end)
 
+	it("says a cell in a table row: its whole number, under its column's name", function()
+		model.loadLabels()
+		local row = model.rows[2]
+		local column = model.COLUMNS.damageDealt
+		local tip = model.cellTip(column, row, 1234567)
+		assert.equals(1, #tip.rows)
+		assert.equals(model.columnTitle(column), tip.rows[1][1])
+		assert.equals("1,234,567", tip.rows[1][2])
+	end)
+
+	it("says what a share is of, in rows of its own", function()
+		model.loadLabels()
+		model.filters.shareOfTotal = true
+		model.rebuildRows()
+		local row = model.rows[2]
+		local column = model.COLUMNS.damageDealt
+		local tip = model.cellTip(column, row, 50)
+		assert.equals(3, #tip.rows)
+		assert.equals(model.formatExact(column, row.team.stats.damageDealt), tip.rows[1][2])
+		assert.equals("50.0%", tip.rows[2][2])
+		assert.is_true(tip.rows[2].dim)
+		assert.equals(model.formatExact(column, model.ratio.grand(column.key)), tip.rows[3][2])
+	end)
+
+	it("makes a player's card a table with the time in the game as its note", function()
+		model.loadLabels()
+		local team = model.rows[2].team
+		local card = model.nameCard(team)
+		assert.is_true(#card.rows > 0)
+		for _, row in ipairs(card.rows) do
+			assert.is_string(row[1])
+			assert.is_string(row[2])
+		end
+		assert.is_string(card.note)
+		assert.equals(card, model.nameCard(team))
+	end)
+
+	it("wraps a tooltip's text and note and leaves its rows alone", function()
+		local font = {
+			WrapText = function(_, text)
+				return (text:gsub(" ", "\n"))
+			end,
+		}
+		assert.equals("a\nb", model.wrapTip("a b", font, 100))
+		local rows = { { "x y", "z w" } }
+		local tip = { text = "a b", note = "c \255\1\2\3d e", rows = rows }
+		local wrapped = model.wrapTip(tip, font, 100)
+		assert.equals("a\nb", wrapped.text)
+		assert.equals("c\n\255\1\2\3d\n\255\1\2\3e", wrapped.note)
+		assert.equals(rows, wrapped.rows)
+		assert.equals("a b", tip.text)
+	end)
+
 	it("stays on the team the viewer played when they turn spectator", function()
 		viewer.spec, viewer.team = true, 2
 		model.playerChanged()

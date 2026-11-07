@@ -14,6 +14,8 @@
 		"manuallaunch_tooltip": "Launch a missile at a target",
 		"selfd": "Self Destruct",
 		"selfd_tooltip": "Destroy the selected units after a countdown (give the order again to call it off)",
+		"selfd_time": "Self destruct time: %{seconds}s",
+		"selfd_time_instant": "Self destruct time: instant",
 		"patrol": "Patrol",
 		"patrol_tooltip": "Patrol along one or more waypoints",
 		"fight": "Fight",

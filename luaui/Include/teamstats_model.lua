@@ -1717,16 +1717,17 @@ local function columnTitle(column)
 	return L.full[column.key]
 end
 
--- The lines a player's name shows on hover: every column, view by view, at the values the
--- table would show them, and the time the team has been in the game. Built once per read
--- of the numbers: the rows are rebuilt whenever the values or the switches change.
+-- The tooltip a player's name shows on hover: a row a caption, every column view by view at
+-- the values the table would show them, and the time the team has been in the game as its
+-- note. Built once per read of the numbers: the rows are rebuilt whenever the values or the
+-- switches change.
 local function nameCard(team)
 	if team.cardGen == model.rowsGen then
 		return team.card
 	end
 
 	local share = shareMode()
-	local lines = {}
+	local rows = {}
 	for i = 1, #CARD_LINES do
 		local spec = CARD_LINES[i]
 		local parts = {}
@@ -1742,8 +1743,8 @@ local function nameCard(team)
 			end
 		end
 		if #parts > 0 then
-			local caption = spec[1] ~= "" and (colors.header .. L.caption[spec[1]] .. ": ") or "      "
-			lines[#lines + 1] = caption .. table.concat(parts, colors.dim .. "  \194\183  ")
+			local caption = spec[1] ~= "" and (colors.header .. L.caption[spec[1]]) or ""
+			rows[#rows + 1] = { caption, table.concat(parts, colors.dim .. "  \194\183  ") }
 		end
 	end
 
@@ -1780,8 +1781,8 @@ local function nameCard(team)
 			end
 			parts[#parts + 1] = colors.dim .. gameTime(m.frame) .. " " .. colors.title .. label
 			if #parts == 3 or i == #shown then
-				local caption = i <= 3 and (colors.header .. L.milestones .. ": ") or "      "
-				lines[#lines + 1] = caption .. table.concat(parts, colors.dim .. "  \194\183  ")
+				local caption = i <= 3 and (colors.header .. L.milestones) or ""
+				rows[#rows + 1] = { caption, table.concat(parts, colors.dim .. "  \194\183  ") }
 				parts = {}
 			end
 		end
@@ -1789,12 +1790,71 @@ local function nameCard(team)
 
 	local time = gameTime(team.aliveFrames or 0)
 	local key = (team.dead and deathFrame[team.id]) and "ui.teamStats.diedAt" or "ui.teamStats.timeInGame"
-	lines[#lines + 1] = colors.dim .. BAR.I18N(key, { time = time })
 
-	team.card = table.concat(lines, "\n")
+	team.card = { rows = rows, note = BAR.I18N(key, { time = time }) }
 	team.cardGen = model.rowsGen
 
 	return team.card
+end
+
+-- The tooltip of a cell of `column` in `row`, showing `v`: its whole number, a cell rounding to
+-- three figures, with what it is made of. A share says what it is a share of.
+local function cellTip(column, row, v)
+	local isTeam = row.type == "team"
+	local value = v
+	local shared = shareMode() and column.fmt == "si" and isFinite(v)
+	if shared then
+		value = isTeam and baseValue(column, row.team) or row.ally.total[column.key]
+	end
+	local exact = formatExact(column, value)
+	local detail = cellDetail(column, isTeam and row.team.stats or row.ally.total)
+	if detail then
+		exact = exact .. " " .. colors.dim .. detail
+	end
+	local rows = { { columnTitle(column), exact } }
+	if shared then
+		rows[2] = { BAR.I18N("ui.teamStats.switch.shareOfTotal"), stringFormat("%.1f%%", v), dim = true }
+		rows[3] = { BAR.I18N("ui.teamStats.everyTeam"), formatExact(column, model.ratio.grand(column.key)), dim = true }
+	end
+	return { rows = rows }
+end
+
+-- A text broken to fit `width`, a wrapped line starting in the colour the one before ended in. Kept by what it said: a
+-- tooltip asks every frame.
+local wrappedLines, wrappedWidth, wrappedCount = {}, nil, 0
+local function wrapText(text, font, width)
+	if width ~= wrappedWidth or wrappedCount >= 100 then
+		wrappedLines, wrappedWidth, wrappedCount = {}, width, 0
+	end
+	local wrapped = wrappedLines[text]
+	if not wrapped then
+		local lines, count, color = {}, 0, ""
+		for line in (font:WrapText(text, width) .. "\n"):gmatch("(.-)\n") do
+			count = count + 1
+			lines[count] = color .. line
+			for code in line:gmatch("\255...") do
+				color = code
+			end
+		end
+		wrapped = table.concat(lines, "\n")
+		wrappedLines[text] = wrapped
+		wrappedCount = wrappedCount + 1
+	end
+	return wrapped
+end
+
+-- What goes to WG.tooltip for a text or a content table: its text and note wrapped, a table's rows as they are.
+local function wrapTip(tip, font, width)
+	if type(tip) ~= "table" then
+		return wrapText(tip, font, width)
+	end
+	local wrapped = {}
+	for k, v in pairs(tip) do
+		wrapped[k] = v
+	end
+	wrapped.text = tip.text and wrapText(tip.text, font, width)
+	wrapped.note = tip.note and wrapText(tip.note, font, width)
+	return wrapped
 end
 
 -- The column's entries: the tables under their caption, then under theirs the categories of
@@ -2478,6 +2538,7 @@ model.formatCell, model.formatExact, model.cellDetail = formatCell, formatExact,
 model.canGroup, model.grouped, model.shareMode = canGroup, grouped, shareMode
 model.baseValue, model.bandValue, model.cellValue, model.tone = baseValue, bandValue, cellValue, tone
 model.columnTitle, model.nameCard = columnTitle, nameCard
+model.cellTip, model.wrapTip = cellTip, wrapTip
 model.rebuildRows, model.rebuildEntries, model.loadLabels = rebuildRows, rebuildEntries, loadLabels
 model.refresh, model.syncGadgetState, model.listen, model.opened = refresh, syncGadgetState, listen, opened
 model.selectEntry, model.sortBy, model.toggleSwitch = selectEntry, sortBy, toggleSwitch
