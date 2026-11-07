@@ -286,7 +286,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function addOne(builtUnitDefID, builderUnitDefID, position, teamID)
+	local function addToBuilderType(builtUnitDefID, builderUnitDefID, position, teamID)
 		registerAdded(builtUnitDefID, builderUnitDefID, position, teamID)
 		position = position or addedPosition(builtUnitDefID, builderUnitDefID, teamID)
 		local isFactory = isFactoryDef[builderUnitDefID]
@@ -294,7 +294,7 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced(SYNC_ACTION, builderUnitDefID, builtUnitDefID, true, teamID)
 	end
 
-	local function removeOne(builtUnitDefID, builderUnitDefID, teamID)
+	local function removeFromBuilderType(builtUnitDefID, builderUnitDefID, teamID)
 		registerRemoved(builtUnitDefID, builderUnitDefID, teamID)
 		forEachUnitOfDef(builderUnitDefID, teamID, removeBuildOption, builtUnitDefID)
 		SendToUnsynced(SYNC_ACTION, builderUnitDefID, builtUnitDefID, false, teamID)
@@ -303,7 +303,7 @@ if gadgetHandler:IsSyncedCode() then
 	local dynamicBuildOptions = {}
 
 	---Gives every current and future unit of a builder or factory type a build option, or only those of one team.
-	---With a team and no builder type: every builder type that has the option for all teams.
+	---With a team and no builder type: every builder type that builds it by its unit def or was given it for every team.
 	---@param builtUnitDefID UnitDefID
 	---@param builderUnitDefID UnitDefID? nil only with a teamID
 	---@param position integer? Slot among the unit's build options; last when nil. Menus that sort options ignore it.
@@ -313,9 +313,10 @@ if gadgetHandler:IsSyncedCode() then
 		if builderUnitDefID == nil and teamID then
 			for builderID in pairs(staticBuildOptions) do
 				if
-					hasBuildOption(builtUnitDefID, builderID) and not hasBuildOption(builtUnitDefID, builderID, teamID)
+					(isStaticOption(builtUnitDefID, builderID) or hasBuildOption(builtUnitDefID, builderID))
+					and not hasBuildOption(builtUnitDefID, builderID, teamID)
 				then
-					addOne(builtUnitDefID, builderID, nil, teamID)
+					addToBuilderType(builtUnitDefID, builderID, nil, teamID)
 				end
 			end
 			publishTeam(teamID)
@@ -324,7 +325,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not isBuilderDef(builderUnitDefID, "Add") then
 			return false
 		end
-		addOne(builtUnitDefID, builderUnitDefID, position, teamID)
+		addToBuilderType(builtUnitDefID, builderUnitDefID, position, teamID)
 		publish(teamID)
 		return true
 	end
@@ -340,7 +341,7 @@ if gadgetHandler:IsSyncedCode() then
 		if builderUnitDefID == nil and teamID then
 			for builderID in pairs(staticBuildOptions) do
 				if hasBuildOption(builtUnitDefID, builderID, teamID) then
-					removeOne(builtUnitDefID, builderID, teamID)
+					removeFromBuilderType(builtUnitDefID, builderID, teamID)
 				end
 			end
 			publishTeam(teamID)
@@ -349,7 +350,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not isBuilderDef(builderUnitDefID, "Remove") then
 			return false
 		end
-		removeOne(builtUnitDefID, builderUnitDefID, teamID)
+		removeFromBuilderType(builtUnitDefID, builderUnitDefID, teamID)
 		publish(teamID)
 		return true
 	end

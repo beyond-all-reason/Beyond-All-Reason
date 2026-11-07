@@ -192,6 +192,16 @@ describe("api_dynamic_build_options", function()
 			assert.is_nil(world.teamRulesParams[1].dynamic_build_options)
 		end)
 
+		it("gives the team back an option taken from every team", function()
+			buildOptions.Remove(SOLAR, CON_BOT)
+			buildOptions.Add(SOLAR, nil, nil, 1)
+
+			assert.is_true(hasOption(world, 101, SOLAR))
+			assert.is_false(hasOption(world, 100, SOLAR))
+			assert.is_true(buildOptions.HasBuildOption(SOLAR, CON_BOT, 1))
+			assert.is_false(buildOptions.HasBuildOption(SOLAR, CON_BOT, 0))
+		end)
+
 		it("applies to the team's new units", function()
 			buildOptions.Remove(SOLAR, CON_BOT, 1)
 			world.addUnit(103, CON_BOT, 1)
