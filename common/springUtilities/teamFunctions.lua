@@ -237,6 +237,9 @@ return {
 	---@return boolean
 	CanTeamReceiveUnits = function(teamID, unitCount)
 		return Spring.IsCheatingEnabled()
-			or Spring.GetTeamUnitCount(teamID) + unitCount <= Spring.GetTeamMaxUnits(teamID)
+			or (
+				unitCount + Spring.GetTeamUnitCount(teamID) --[[@as integer]]
+				<= Spring.GetTeamMaxUnits(teamID)
+			)
 	end,
 }

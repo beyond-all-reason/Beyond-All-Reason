@@ -25,13 +25,13 @@ local forcedTeamID ---@type TeamID?
 ---@param teamID TeamID
 ---@return boolean transferred
 local function forceUnitTransfer(unitID, teamID)
-	local oldTeamID = Spring.GetUnitTeam(unitID)
+	local oldTeamID = Spring.GetUnitTeam(unitID) ---@as TeamID
 	forcedTeamID = teamID
 	local transferred = Spring.TransferUnit(unitID, teamID)
 	forcedTeamID = nil
 	if transferred then
-		local overLimit = Spring.GetTeamUnitCount(teamID) - Spring.GetTeamMaxUnits(teamID)
-		local unusedLimit = Spring.GetTeamMaxUnits(oldTeamID) - Spring.GetTeamUnitCount(oldTeamID)
+		local overLimit = Spring.GetTeamUnitCount(teamID) --[[@as integer]] - Spring.GetTeamMaxUnits(teamID)
+		local unusedLimit = Spring.GetTeamMaxUnits(oldTeamID) - Spring.GetTeamUnitCount(oldTeamID) --[[@as integer]]
 		local transferAmount = math.min(overLimit, unusedLimit) ---@as integer
 		if transferAmount > 0 then
 			Spring.TransferTeamMaxUnits(oldTeamID, teamID, transferAmount)

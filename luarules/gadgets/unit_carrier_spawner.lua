@@ -926,9 +926,10 @@ local function attachToNewCarrier(newCarrier, subUnitID)
 	end
 end
 
+---@return UnitID?
 local function findParasiteHost(carrierData, subUnitID)
-	local droneTeam = spGetUnitTeam(subUnitID)
-	local droneX, _, droneZ = spGetUnitPosition(subUnitID)
+	local droneTeam = spGetUnitTeam(subUnitID) ---@as TeamID
+	local droneX, _, droneZ = spGetUnitPosition(subUnitID) ---@as number, number, number
 	local hostID, hostDistance
 	for _, candidateID in pairsNext, spGetUnitsInCylinder(droneX, droneZ, carrierData.controlRadius) do
 		if
@@ -939,9 +940,9 @@ local function findParasiteHost(carrierData, subUnitID)
 			and not droneMetaList[candidateID]
 			and not spGetUnitIsBeingBuilt(candidateID)
 		then
-			local allied = spAreTeamsAllied(droneTeam, spGetUnitTeam(candidateID))
+			local allied = spAreTeamsAllied(droneTeam, spGetUnitTeam(candidateID) --[[@as TeamID]])
 			if carrierData.parasite == "all" or (carrierData.parasite == "ally") == allied then
-				local candidateX, _, candidateZ = spGetUnitPosition(candidateID)
+				local candidateX, _, candidateZ = spGetUnitPosition(candidateID) ---@as number, number, number
 				local distance = diag(candidateX - droneX, candidateZ - droneZ)
 				if not hostDistance or distance < hostDistance then
 					hostID, hostDistance = candidateID, distance
@@ -998,7 +999,7 @@ local function applyCarrierDeaththroe(carrierData, subUnitID, droneMetaData)
 	elseif carrierData.carrierDeaththroe == "capture" then
 		standalone = true
 		local spawnData = carrierData.subInitialSpawnData
-		local isCaptured = not spAreTeamsAllied(spGetUnitTeam(subUnitID), spawnData.teamID)
+		local isCaptured = not spAreTeamsAllied(spGetUnitTeam(subUnitID) --[[@as TeamID]], spawnData.teamID)
 		local enemyunitID =
 			spGetUnitNearestEnemy(isCaptured and spawnData.ownerID or subUnitID, carrierData.controlRadius)
 		if enemyunitID and spGetUnitTeam(enemyunitID) ~= spGetUnitTeam(subUnitID) then
@@ -1045,23 +1046,24 @@ local function applyCarrierDeaththroe(carrierData, subUnitID, droneMetaData)
 	end
 end
 
+---@return UnitID?, integer?
 local function findAlliedCarrier(subUnitID)
-	local droneTeam = spGetUnitTeam(subUnitID)
+	local droneTeam = spGetUnitTeam(subUnitID) ---@as TeamID
 	local droneName = UnitDefs[spGetUnitDefID(subUnitID)].name
-	local droneX, _, droneZ = spGetUnitPosition(subUnitID)
+	local droneX, _, droneZ = spGetUnitPosition(subUnitID) ---@as number, number, number
 	local nearestCarrierID, nearestDronetypeIndex, nearestDistance
 	for carrierID, carrierData in pairsNext, carrierMetaList do
 		if
 			carrierData.wasBuilt
 			and carrierDefs[spGetUnitDefID(carrierID)]
-			and spAreTeamsAllied(droneTeam, spGetUnitTeam(carrierID))
+			and spAreTeamsAllied(droneTeam, spGetUnitTeam(carrierID) --[[@as TeamID]])
 		then
 			for dronetypeIndex, dronename in pairsNext, carrierData.dronenames do
 				if
 					dronename == droneName
 					and carrierData.subUnitCount[dronetypeIndex] < carrierData.maxunits[dronetypeIndex]
 				then
-					local carrierX, _, carrierZ = spGetUnitPosition(carrierID)
+					local carrierX, _, carrierZ = spGetUnitPosition(carrierID) ---@as number, number, number
 					local distance = diag(carrierX - droneX, carrierZ - droneZ)
 					if
 						distance <= carrierData.controlRadius and (not nearestDistance or distance < nearestDistance)
@@ -1079,7 +1081,7 @@ local function attachDroneToAlliedCarrier(carrierID, dronetypeIndex, subUnitID)
 	local carrierData = carrierMetaList[carrierID]
 	addDroneToCarrier(carrierID, carrierData, dronetypeIndex, subUnitID)
 	if carrierData.usestockpile then
-		local stockpile, _, stockpilepercentage = spGetUnitStockpile(carrierID)
+		local stockpile, _, stockpilepercentage = spGetUnitStockpile(carrierID) ---@as integer, integer, number
 		spSetUnitStockpile(carrierID, stockpile + 1, stockpilepercentage)
 		spGiveOrderToUnit(carrierID, CMD.STOCKPILE, {}, { "right" })
 		carrierData.stockpilecount = carrierData.stockpilecount + 1
@@ -1090,8 +1092,9 @@ local function attachDroneToAlliedCarrier(carrierID, dronetypeIndex, subUnitID)
 end
 
 local function releaseCapturedDrone(carrierID, subUnitID)
-	local carrierData = carrierMetaList[carrierID]
-	local allied = spAreTeamsAllied(spGetUnitTeam(subUnitID), spGetUnitTeam(carrierID))
+	local carrierData = carrierMetaList[carrierID] ---@as table
+	local allied =
+		spAreTeamsAllied(spGetUnitTeam(subUnitID) --[[@as TeamID]], spGetUnitTeam(carrierID) --[[@as TeamID]])
 	if carrierDefs[spGetUnitDefID(carrierID)] then
 		if allied then
 			return
@@ -1267,7 +1270,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	end
 	local unitCount = 1
 	for subUnitID in pairsNext, carrierData.subUnitsList do
-		local subUnitTeam = spGetUnitTeam(subUnitID)
+		local subUnitTeam = spGetUnitTeam(subUnitID) ---@as TeamID
 		if subUnitTeam ~= newTeam and spAreTeamsAllied(subUnitTeam, oldTeam) then
 			unitCount = unitCount + 1
 		end
@@ -1280,7 +1283,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		carrierMetaList[unitID].subInitialSpawnData.teamID = unitTeam
 		local given = spAreTeamsAllied(unitTeam, oldTeam)
 		for subUnitID, value in pairsNext, carrierMetaList[unitID].subUnitsList do
-			local subUnitTeam = spGetUnitTeam(subUnitID)
+			local subUnitTeam = spGetUnitTeam(subUnitID) ---@as TeamID
 			if subUnitTeam ~= unitTeam and spAreTeamsAllied(subUnitTeam, oldTeam) then
 				spTransferUnit(subUnitID, unitTeam, given)
 			end
