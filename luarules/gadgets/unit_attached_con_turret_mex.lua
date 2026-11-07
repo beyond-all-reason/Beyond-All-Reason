@@ -180,14 +180,26 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	local pairedID = mexTurretDefID[unitDefID] and pairedUnits[unitID]
+	if capture or not pairedID or Spring.GetUnitTeam(pairedID) == newTeam or GG.IsTransferForced(newTeam) then
+		return true
+	end
+	return BAR.Utilities.CanTeamReceiveUnits(newTeam, 2)
+end
+
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if mexTurretDefID[unitDefID] then
 		local pairedID = pairedUnits[unitID]
 		if not pairedID and Spring.GetUnitRulesParam then
 			pairedID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
 		end
-		if pairedID and pairedID ~= 0 then
-			Spring.TransferUnit(pairedID, newTeam)
+		if
+			pairedID
+			and pairedID ~= 0
+			and Spring.GetUnitTeam(pairedID --[[@as UnitID]]) ~= newTeam
+		then
+			Spring.TransferUnit(pairedID, newTeam, Spring.AreTeamsAllied(newTeam, oldTeam))
 		end
 	end
 end
