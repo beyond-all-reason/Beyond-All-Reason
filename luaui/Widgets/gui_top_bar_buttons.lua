@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Top Bar Buttons",
-		desc = "The menu buttons at the top right, and the quit/resign dialog.",
+		desc = "The menu buttons at the top right, and the quit/resign and save dialogs.",
 		author = "Floris",
 		date = "Feb, 2017",
 		license = "GNU GPL, v2 or later",
@@ -18,6 +18,9 @@ end
 -- commander counter, this one owns the button strip in the top right corner and the
 -- quit/resign dialog behind its quit button. The two share the WG.topbar table, each
 -- filling in its own half of the API, so either can run without the other.
+
+local Editbox = require("luaui/Include/keybind_editbox")
+local KEYSYMS = require("luaui/Include/keybind_keysyms")
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -48,6 +51,14 @@ local cfg = {
 	allowSavegame = true,
 	useSkew = true,
 	smallElementHeightFraction = 0.85, -- buttons height as fraction of the top bar
+}
+
+local SAVE_PAUSE = "topbarSaveDialog" -- what the handler holds the game paused under, while the save dialog is up
+-- the save dialog's buttons, as the quit dialog's: at rest bottom and top, hovered bottom and top
+local SAVE_BUTTONS = {
+	cancel = { { 0.25, 0, 0 }, { 0.5, 0, 0 }, { 0.4, 0, 0 }, { 0.6, 0.05, 0.05 } },
+	save = { { 0, 0.25, 0 }, { 0, 0.5, 0 }, { 0, 0.4, 0 }, { 0.05, 0.6, 0.05 } },
+	replace = { { 0.3, 0.2, 0 }, { 0.6, 0.4, 0 }, { 0.45, 0.3, 0 }, { 0.75, 0.5, 0.05 } },
 }
 
 -- OpenGL
@@ -92,7 +103,7 @@ local font2
 -- Display lists
 -- buttons:    the baked button labels and badges
 -- background: the strip's panel chrome, also handed to the blur
--- quit:       the quit/resign dialog, rebuilt every frame while it is up
+-- quit:       the quit/resign or save dialog, rebuilt every frame while it is up
 ---@type table<string, integer>
 local dlist = {}
 -- whether the strip's shape is currently registered with the blur
@@ -115,6 +126,10 @@ local showQuitscreen
 local hideQuitWindow
 ---@type boolean
 local teamResign = false
+-- While the save dialog is up: when it opened, its field (box), what an empty field saves as (fallback),
+-- whether the name is taken (exists), the keys down when it opened (held), its rects once drawn
+---@type table?
+local saveDialog
 
 -- Audio
 local playSounds = true
@@ -697,6 +712,193 @@ local function drawQuitScreen()
 		glCallList(dlist.quit)
 	end
 end
+local function drawSaveButton(area, label, colors, fadeProgress, padding, fontSize)
+	local over = mathIsInRect(mx, my, area[1], area[2], area[3], area[4])
+	local alpha = (over and 0.4 or 0.35) + 0.5 * fadeProgress
+	local c1, c2 = colors[over and 3 or 1], colors[over and 4 or 2]
+	UiButton(
+		area[1],
+		area[2],
+		area[3],
+		area[4],
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		nil,
+		{ c1[1], c1[2], c1[3], alpha },
+		{ c2[1], c2[2], c2[3], alpha },
+		padding * 0.5
+	)
+	font2:Print(label, (area[1] + area[3]) * 0.5, (area[2] + area[4]) * 0.5 - (fontSize / 3), fontSize, "con")
+end
+
+-- Sized as the quit dialog, with room for the name's field and what it says when the name is taken.
+local function drawSaveWindow(fadeProgress)
+	local d = saveDialog --[[@as table]]
+	local w = mathFloor(320 * widgetScale)
+	local base = mathFloor(w / 3.5)
+	local fontSize = base / 6
+	local padding = mathFloor(w / 90)
+	local margin = mathFloor(base / 9)
+	local buttonHeight = mathFloor(base * 0.30)
+	local hintHeight = mathFloor(fontSize * 1.6)
+	local textTopPadding = mathFloor(padding * 5 + fontSize)
+	local h = margin + buttonHeight + hintHeight + buttonHeight + padding * 2 + textTopPadding
+	local x = mathFloor((vsx / 2) - (w / 2))
+	local y = mathFloor((vsy / 1.8) - (h / 2))
+	local buttonWidth = mathFloor((w - margin * 3) / 2)
+	local buttonTop = y + margin + buttonHeight
+	local fieldBottom = buttonTop + hintHeight
+	local fieldTop = fieldBottom + buttonHeight
+	d.area = { x, y, x + w, y + h }
+	d.cancel = { x + margin, y + margin, x + margin + buttonWidth, buttonTop }
+	d.confirm = { x + w - margin - buttonWidth, y + margin, x + w - margin, buttonTop }
+
+	UiElement(
+		x,
+		y,
+		x + w,
+		y + h,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		nil,
+		{ 1, 1, 1, 0.6 + (0.34 * fadeProgress) },
+		{ 0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress) },
+		nil
+	)
+	RectRound(x + margin, fieldBottom, x + w - margin, fieldTop, padding, 1, 1, 1, 1, { 0, 0, 0, 0.65 })
+
+	font:Begin(true)
+	font:SetTextColor(0, 0, 0, 1)
+	font:Print(BAR.I18N("ui.topbar.save.title"), x + (w / 2), y + h - textTopPadding, fontSize, "cn")
+	if d.exists then
+		local hintY = buttonTop + mathFloor(hintHeight * 0.5)
+		font:Print(BAR.I18N("ui.topbar.save.exists"), x + (w / 2), hintY, fontSize * 0.9, "cvn")
+	end
+	font:End()
+
+	font2:Begin(true)
+	font2:SetTextColor(1, 1, 1, 1)
+	font2:SetOutlineColor(0, 0, 0, 0.23)
+	local buttonFontSize = fontSize * 0.92
+	local cancelLabel = BAR.I18N("ui.topbar.save.cancel")
+	drawSaveButton(d.cancel, cancelLabel, SAVE_BUTTONS.cancel, fadeProgress, padding, buttonFontSize)
+	local label = BAR.I18N(d.exists and "ui.topbar.save.replace" or "ui.topbar.button.save")
+	local colors = d.exists and SAVE_BUTTONS.replace or SAVE_BUTTONS.save
+	drawSaveButton(d.confirm, label, colors, fadeProgress, padding, buttonFontSize)
+	font2:End()
+
+	d.box:setRect(x + margin, fieldBottom, x + w - margin, fieldTop, mathFloor(fontSize))
+	d.box:draw()
+end
+
+local function drawSaveScreen(openedAt)
+	local fadeProgress = math.min(1, (now - openedAt) / 0.2)
+	Spring.SetMouseCursor("cursornormal")
+	dlist.quit = glCreateList(function()
+		glColor(0, 0, 0, (WG.guishader and 0.18 or 0.35) * fadeProgress)
+		gl.Rect(0, 0, vsx, vsy)
+		drawSaveWindow(fadeProgress)
+	end)
+	local guishader = WG.guishader ---@type table?
+	if guishader then
+		guishader.setScreenBlur(true)
+		guishader.insertRenderDlist(dlist.quit)
+	else
+		glCallList(dlist.quit)
+	end
+end
+
+-- What a save may be called. The name goes through commands that split on spaces, into a file name and into the
+-- lobby's start script, so anything else becomes an underscore, a whole UTF-8 character at a time: the field's
+-- caret stays where it is.
+local function saveFileName(text)
+	return (text:gsub("[\192-\255][\128-\191]*", "_"):gsub("[^%w%-_%(%)]", "_"))
+end
+
+local function saveNameChanged(text)
+	local d = saveDialog --[[@as table]]
+	local clean = saveFileName(text)
+	d.box.text = clean
+	d.exists = clean ~= "" and VFS.FileExists("Saves/" .. clean .. ".ssf")
+end
+
+local function closeSaveDialog()
+	saveDialog = nil
+	if widgetHandler.textOwner == widget then
+		widgetHandler.textOwner = nil
+	end
+	Spring.SDLStopTextInput()
+	local guishader = WG.guishader ---@type table?
+	if guishader then
+		guishader.setScreenBlur(false)
+	end
+	widgetHandler:Unpause(SAVE_PAUSE)
+end
+
+local function saveAsTyped()
+	local d = saveDialog --[[@as table]]
+	local typed = d.box:getText()
+	Spring.SendCommands("savegame " .. (typed ~= "" and typed or d.fallback))
+	closeSaveDialog()
+end
+
+-- Pauses, and asks for the name: the time unless the player changes it. It opens selected, so typing replaces it.
+local function openSaveDialog()
+	local name = os.date("%Y%m%d_%H%M%S")
+	local box = Editbox.new({
+		text = name,
+		placeholder = name,
+		keepPlaceholder = true,
+		plain = true,
+		outline = { 0, 0, 0, 0.4 },
+		maxChars = 64,
+		onChange = saveNameChanged,
+	})
+	box:focus()
+	box:setCaret(0)
+	box:setCaret(#name, true)
+	saveDialog = { opened = now, box = box, fallback = name, held = Spring.GetPressedKeys() }
+	widgetHandler:Pause(SAVE_PAUSE)
+	-- chat has to be asked to let go: toggling its flag is the public way, and it persists it, so straight back
+	if WG.chat and WG.chat.isInputActive and WG.chat.isInputActive() then
+		WG.chat.setHandleInput(false)
+		WG.chat.setHandleInput(true)
+	end
+	widgetHandler.textOwner = widget
+end
+
+local function pressOnSaveDialog(x, y)
+	local d = saveDialog --[[@as table]]
+	if not d.area or d.box:mousePress(x, y) then
+		return
+	end
+	local cancel = d.cancel --[[@as table]]
+	local confirm = d.confirm --[[@as table]]
+	local toCancel = mathIsInRect(x, y, cancel[1], cancel[2], cancel[3], cancel[4])
+	if toCancel or mathIsInRect(x, y, confirm[1], confirm[2], confirm[3], confirm[4]) then
+		if playSounds then
+			Spring.PlaySoundFile(leftclick, 0.75, "ui")
+		end
+		if toCancel then
+			closeSaveDialog()
+		else
+			saveAsTyped()
+		end
+	end
+end
+
 -- Second return value: the window refused to close (the keybind editor raises a guard
 -- when there are unsaved edits) and is still up.
 local function closeWindow(name)
@@ -727,6 +929,10 @@ local function hideWindows()
 	hide("widgetselector")
 	if showQuitscreen then
 		closedWindow = true
+	end
+	if saveDialog then
+		closedWindow = true
+		closeSaveDialog()
 	end
 
 	showQuitscreen = nil
@@ -803,8 +1009,7 @@ local function applyButtonAction(button)
 	elseif button == "save" then
 		hideWindows()
 		if isSinglePlayer and cfg.allowSavegame and WG.savegame then
-			local time = os.date("%Y%m%d_%H%M%S")
-			Spring.SendCommands("savegame " .. time)
+			openSaveDialog()
 		end
 	elseif button == "scavengers" then
 		toggleWindow("scavengerinfo")
@@ -876,7 +1081,7 @@ function widget:DrawScreen()
 		end
 
 		-- hovered?
-		if not showQuitscreen and buttonsArea.buttons and hoveringButtons then
+		if not showQuitscreen and not saveDialog and buttonsArea.buttons and hoveringButtons then
 			for button, pos in pairs(buttonsArea.buttons) do
 				if mathIsInRect(mx, my, pos[1], pos[2], pos[3], pos[4]) then
 					local paddingsize = 1
@@ -951,12 +1156,25 @@ function widget:DrawScreen()
 
 	if showQuitscreen then
 		drawQuitScreen()
+	elseif saveDialog then
+		-- here, after this frame's Updates: a window that closed to make way stops text input in its own
+		if not saveDialog.textStarted then
+			saveDialog.textStarted = true
+			Spring.SDLStartTextInput()
+		end
+		drawSaveScreen(saveDialog.opened)
 	end
 
 	glColor(1, 1, 1, 1)
 end
 
 function widget:MousePress(x, y, button)
+	if saveDialog then
+		if button == 1 then
+			pressOnSaveDialog(x, y)
+		end
+		return true
+	end
 	if button == 1 then
 		if showQuitscreen and quitscreenArea then
 			if mathIsInRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
@@ -1074,12 +1292,22 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseWheel(up, value) -- up = true/false , value = -1/1
-	if showQuitscreen and quitscreenArea then
+	if saveDialog or (showQuitscreen and quitscreenArea) then
 		return true
 	end
 end
 
 function widget:KeyPress(key)
+	if saveDialog then
+		if key == KEYSYMS.ESCAPE then
+			closeSaveDialog()
+		elseif key == KEYSYMS.RETURN or key == KEYSYMS.KP_ENTER then
+			saveAsTyped()
+		else
+			saveDialog.box:keyPress(key)
+		end
+		return true
+	end
 	if key == 27 then -- ESC
 		if not WG.options or (WG.options.disallowEsc and not WG.options.disallowEsc()) then
 			local escDidSomething = hideWindows()
@@ -1092,6 +1320,27 @@ function widget:KeyPress(key)
 		return true
 	end
 end
+
+-- A key held when the dialog opened: its release is not the field's to swallow. Once per key.
+function widget:KeyRelease(key)
+	if not saveDialog then
+		return false
+	end
+	if saveDialog.held[key] then
+		saveDialog.held[key] = nil
+		return false
+	end
+	return true
+end
+
+function widget:TextInput(char)
+	if saveDialog then
+		saveDialog.box:textInput(char)
+		return true
+	end
+	return false
+end
+
 -- WG.topbar is shared with the Top Bar widget. Consumers guard on the table, not on the
 -- individual functions, so when that widget is not running its half of the API has to be
 -- filled in rather than left missing. Checked from Update, which runs after every
@@ -1241,7 +1490,7 @@ function widget:LanguageChanged()
 end
 
 function widget:MouseRelease(x, y, button)
-	if showQuitscreen and quitscreenArea then
+	if saveDialog or (showQuitscreen and quitscreenArea) then
 		return true
 	end
 end
@@ -1252,10 +1501,10 @@ function widget:Initialize()
 		Spring.SendLuaMenuMsg("disableLobbyButton")
 	end
 
-	-- The quit/resign dialog counts as a window: while it is up, the handler can hide the
-	-- rest of the interface (springsetting WindowsHideInterface), and this widget stays.
+	-- The quit/resign and save dialogs count as windows: while one is up, the handler can hide
+	-- the rest of the interface (springsetting WindowsHideInterface), and this widget stays.
 	widgetHandler:RegisterModalWindow(widget, function()
-		return showQuitscreen ~= nil
+		return showQuitscreen ~= nil or saveDialog ~= nil
 	end)
 
 	-- This widget was split out of "Top Bar", which used to persist the auto-hide setting.
@@ -1271,8 +1520,9 @@ function widget:Initialize()
 	-- Shared with the Top Bar widget: each fills in its own half, so either can run alone.
 	WG.topbar = WG.topbar or {}
 
+	-- (the save dialog too: what makes way for the quit dialog makes way for it)
 	WG.topbar.showingQuit = function()
-		return showQuitscreen
+		return showQuitscreen or (saveDialog and saveDialog.opened)
 	end
 
 	WG.topbar.hideWindows = function()
@@ -1313,6 +1563,9 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	if saveDialog then
+		closeSaveDialog()
+	end
 	removeFallbacks()
 
 	if dlist.buttons then
