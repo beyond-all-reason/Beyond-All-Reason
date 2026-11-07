@@ -19,9 +19,6 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spIsCheatingEnabled = Spring.IsCheatingEnabled
-local spGetTeamUnitCount = Spring.GetTeamUnitCount
-
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
@@ -55,9 +52,5 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	local unitCount = spGetTeamUnitCount(newTeam)
-	if capture or spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
-		return true
-	end
-	return false
+	return capture or BAR.Utilities.CanTeamReceiveUnits(newTeam, 1)
 end
