@@ -36,6 +36,12 @@
 				"reallyResign": "Are you sure you want to resign?",
 				"reallyResignSpectate": "Are you sure you want to resign and spectate?"
 			},
+			"save": {
+				"title": "Save game",
+				"cancel": "Cancel",
+				"replace": "Replace",
+				"exists": "A save with this name already exists."
+			},
 			"catchingUp": "Catching up",
 			"catchingUpTooltip": "Displays the catch-up progress\nGame time: %{gameTime}",
 			"commanderCount": "Commander Counter",
@@ -269,7 +275,7 @@
 			"noBlueprints": "No blueprints saved yet",
 			"noBuildableBlueprints": "None of the saved blueprints can be built by these builders",
 			"queueBuilding": "In production",
-			"queueControls": "Drag: reorder\nRight-click: remove one (SHIFT: all of them)\nRight-drag or mouse wheel: scroll"
+			"queueControls": "Left-click: add, right-click: remove (SHIFT: 5, CTRL: 20)\nDrag: reorder\nRight-drag or mouse wheel: scroll"
 		},
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
