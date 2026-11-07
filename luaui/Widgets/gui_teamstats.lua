@@ -20,7 +20,6 @@ local mathFloor = math.floor
 local mathMax = math.max
 local mathMin = math.min
 local mathHuge = math.huge
-local stringFormat = string.format
 local math_isInRect = math.isInRect
 
 -- Localized Spring API for performance
@@ -1645,27 +1644,6 @@ function widget:ViewResize()
 	deleteGuishader()
 end
 
-local wrapTooltip ---@type fun(tip: string): string
-do
-	local wrappedTip, wrappedFrom, wrappedWidth
-	wrapTooltip = function(tip)
-		local width = WG.tooltip.getFontsize() * 90
-		if tip ~= wrappedFrom or width ~= wrappedWidth then
-			wrappedFrom, wrappedWidth = tip, width
-			local lines, count, color = {}, 0, ""
-			for line in (font:WrapText(tip, width) .. "\n"):gmatch("(.-)\n") do
-				count = count + 1
-				lines[count] = color .. line
-				for code in line:gmatch("\255...") do
-					color = code -- newly-wrapped lines start with the color
-				end
-			end
-			wrappedTip = table.concat(lines, "\n")
-		end
-		return wrappedTip
-	end
-end
-
 function widget:DrawScreen()
 	if not (show or showOnceMore) then
 		deleteGuishader()
@@ -1774,7 +1752,7 @@ function widget:DrawScreen()
 				local column = columns[hover.hcol]
 				---@cast column -?
 				title = model.columnTitle(column)
-				tip = (L.desc[column.key] or "") .. "\n" .. colorDim .. L.captionHint
+				tip = { text = L.desc[column.key], note = L.captionHint }
 			elseif hover.tog > 0 then
 				local sw = switches[hover.tog]
 				---@cast sw -?
@@ -1788,7 +1766,7 @@ function widget:DrawScreen()
 					and groupByKey[model.selectedGroup].custom
 				then
 					local note = graphs.openGraph() and L.perGraphOpen or (sw.top and L.groupAll or L.perGraphGrid)
-					tip = (tip or "") .. "\n" .. colorDim .. note
+					tip = { text = tip, note = note }
 				end
 			elseif entry and entry.disabled then
 				title = entry.label
@@ -1823,28 +1801,12 @@ function widget:DrawScreen()
 				if row then
 					fitRow(row)
 					title = row.type == "team" and row.team.name or row.caption
-					local v = row.vals[hover.col]
-					local exact = model.formatExact(column, v)
-					if model.shareMode() and column.fmt == "si" and model.isFinite(v) then
-						local total = model.ratio.grand(column.key)
-						exact = BAR.I18N("ui.teamStats.partOfTotal", {
-							share = stringFormat("%.1f%%", v),
-							value = model.formatExact(
-								column,
-								row.type == "team" and model.baseValue(column, row.team) or row.ally.total[column.key]
-							),
-							total = model.formatExact(column, total),
-						})
-					end
-					local detail = model.cellDetail(column, row.type == "team" and row.team.stats or row.ally.total)
-					if detail then
-						exact = exact .. " " .. colorDim .. detail
-					end
-					tip = colorDim .. model.columnTitle(column) .. ": " .. colorTitle .. exact
+					tip = model.cellTip(column, row, row.vals[hover.col])
 				end
 			end
 			if tip then
-				WG.tooltip.ShowTooltip("teamstats", wrapTooltip(tip), nil, nil, title)
+				local width = WG.tooltip.getFontsize() * 90
+				WG.tooltip.ShowTooltip("teamstats", model.wrapTip(tip, font, width), nil, nil, title)
 			end
 		end
 	end

@@ -49,7 +49,6 @@
 			"tidalspeed": "Tidal Speed",
 			"tidalspeedTooltip": "Tidal (water) speed on this map (always constant)",
 			"windspeed": "Wind Speed",
-			"windspeedTooltip": "(small numbers are minimum and maximum)\nAverage wind speed on this map is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
 			"wind": {
 				"nowind1": "No",
 				"nowind2": "wind"
@@ -567,7 +566,7 @@
 			"foldHint": "Click to fold.",
 			"timeInGame": "Time in game: %{time}",
 			"diedAt": "Died at %{time}",
-			"partOfTotal": "%{value}, %{share} of the %{total} of every team together",
+			"everyTeam": "Every team together",
 			"ofTotal": "(%{value} of %{total})",
 			"ofTotalUpgraded": "(%{value} of %{total}, %{upgraded} upgraded)",
 			"unitCount": "(%{count} units)",
@@ -935,11 +934,12 @@
 			"idleLabs": "Factories",
 			"shortIdleLabs": "Labs",
 			"report": {
-				"built": "Built %{count}, worth %{value}",
-				"lost": "Lost %{count} to enemies, worth %{value}",
-				"killed": "Destroyed %{value} of the enemy's",
-				"paid": "%{times} times the value built of it",
-				"damage": "Dealt %{value} damage",
+				"builtRow": "Built",
+				"lostRow": "Lost to enemies",
+				"killedRow": "Enemy value destroyed",
+				"paidRow": "Paid for itself",
+				"damageRow": "Damage dealt",
+				"worth": "%{count}, worth %{value}",
 				"builtValue": "Value built",
 				"more": "%{count} more types"
 			},
