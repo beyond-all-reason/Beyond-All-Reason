@@ -12,16 +12,11 @@
 local Search = require("luaui/Include/search")
 local keyConfig = require("luaui/configs/keyboard_layouts")
 local keybindModel = require("luaui/Include/keybind_model")
-local text = require("luaui/Include/keybind_text")
 
 local floor = math.floor
 local max = math.max
 local min = math.min
 local isInRect = math.isInRect
-local glColor = gl.Color
-local glTexture = gl.Texture
-local glTexRect = gl.TexRect
-local glBlending = gl.Blending
 
 ---@class KeybindKeyboard
 ---@field keys table[] Every drawn key, in definition order; `id` is its index
@@ -40,14 +35,8 @@ local glBlending = gl.Blending
 ---@field L table<string, string> The page's strings
 ---@field area table
 ---@field scale number
----@field font table?
----@field UiKey function?
----@field UiButton function?
----@field Highlight function?
 ---@field infoFor function?
 ---@field shiftPair table<string, boolean>
----@field hintLines string[]?
----@field hintWidth number?
 ---@field unit number?
 ---@field frames table<string, table> Per view: the origin the keys are placed from
 ---@field button table? The view toggle's rect
@@ -263,79 +252,6 @@ local function layerKeyOf(mods)
 end
 
 ----------------------------------------------------------------
--- Colours and sizes
-----------------------------------------------------------------
-
-local colorText = "\255\235\235\235"
-local colorDim = "\255\160\160\160"
-local colorKey = "\255\235\185\070"
-
-local look = {
-	-- Bound, nothing on this layer, modifier at rest, modifier showing, and found by search.
-	bound = { 0.22, 0.22, 0.22, 1 },
-	unbound = { 0.16, 0.16, 0.16, 1 },
-	modifier = { 0.28, 0.28, 0.28, 1 },
-	modifierActive = { 0.8, 0.8, 0.78, 1 },
-	hit = { 0.5, 0.4, 0.16, 1 },
-	-- A key the search did not find sinks into the panel so the found ones stand out.
-	missOpacity = 0.4,
-	-- Text on a dark cap, and on the light cap of an active modifier.
-	name = "\255\200\200\200",
-	nameOnLight = "\255\40\40\40",
-	shifted = "\255\125\125\125",
-	shiftedOnLight = "\255\110\110\110",
-	labelOnLight = "\255\30\30\30",
-	-- The Shift half of a paired order, which does what the key does without Shift.
-	paired = "\255\150\150\150",
-	more = colorKey,
-	iconAlpha = 0.85,
-	pairedIconAlpha = 0.45,
-	caption = colorText,
-	captionMods = colorKey,
-	hint = colorDim,
-	-- The view toggle: a button like the header's, pressed while the number pad is showing.
-	buttonFill = { 0.18, 0.18, 0.18, 1 },
-	buttonFillActive = { 0.33, 0.33, 0.33, 1 },
-	buttonFillHover = { 0.4, 0.4, 0.4, 1 },
-	buttonText = colorText,
-	buttonHoverOpacity = 0.25,
-	white = { 1, 1, 1 },
-	-- The font is shared with every other widget, some of which set an outline of their own.
-	outline = { 0, 0, 0, 0.4 },
-}
-
--- Each fill becomes a darker bottom and itself on top, the shape the other buttons take.
-look.gradients = setmetatable({}, {
-	__index = function(self, fill)
-		local pair = {
-			{ fill[1] * 0.55, fill[2] * 0.55, fill[3] * 0.55, fill[4] or 1 },
-			{ fill[1], fill[2], fill[3], fill[4] or 1 },
-		}
-		self[fill] = pair
-
-		return pair
-	end,
-})
-
--- So a key action reads as the kind of thing it is at a glance.
-local categoryColors = {
-	["categories.selection"] = "\255\150\205\255",
-	["categories.orders"] = colorText,
-	["categories.queues"] = "\255\255\190\120",
-	["categories.unitStates"] = "\255\170\230\150",
-	["categories.controlGroups"] = "\255\120\190\255",
-	["categories.buildHotkeys"] = "\255\255\225\120",
-	["categories.gridMenu"] = "\255\255\225\120",
-	["categories.blueprints"] = "\255\200\170\255",
-	["categories.camera"] = "\255\255\215\130",
-	["categories.mapViews"] = "\255\150\230\220",
-	["categories.interfaceDisplay"] = "\255\220\220\220",
-	["categories.drawing"] = "\255\255\170\200",
-	["categories.sound"] = "\255\190\200\230",
-	["categories.gameControl"] = "\255\255\150\150",
-}
-
-----------------------------------------------------------------
 -- Construction
 ----------------------------------------------------------------
 
@@ -375,15 +291,6 @@ function M.new()
 	return self
 end
 
--- The font and FlowUI entry points do not exist at include time. Called again on a resize.
-function M:init(font)
-	self.font = font
-	self.UiKey = WG.FlowUI.Draw.Key
-	self.UiButton = WG.FlowUI.Draw.Button
-	self.Highlight = WG.FlowUI.Draw.SelectHighlight
-	self.layoutGen = self.layoutGen + 1
-end
-
 -- Modifier and key names are read on the next placement: they change with the layout rather
 -- than with the language.
 function M:refreshStrings()
@@ -400,8 +307,6 @@ function M:refreshStrings()
 	L.clickModifierOff = BAR.I18N("ui.keybinds.keyboard.clickModifierOff")
 	L.numpad = BAR.I18N("ui.keybinds.keyboard.numpad")
 	L.numpadTooltip = BAR.I18N("ui.keybinds.keyboard.numpadTooltip")
-	L.numpadText = look.buttonText .. L.numpad
-	self.hintLines = nil
 end
 
 ----------------------------------------------------------------
@@ -460,7 +365,6 @@ function M:setArea(x1, y1, x2, y2, scale, titleFs)
 
 	self:applyView()
 	self.layoutGen = self.layoutGen + 1
-	self.hintLines = nil
 end
 
 -- A key not in the view has no rect, so the hit test and the drawing skip it.
@@ -561,7 +465,6 @@ function M:place(binds, hidden, layoutName, shiftPair, infoFor)
 	self.shiftPair = shiftPair or {}
 	self.gen = self.gen + 1
 	self.unplaced = 0
-	self.hintLines = nil
 
 	for _, key in ipairs(self.keys) do
 		key.layers = {}
@@ -822,66 +725,49 @@ function M:tooltip(idx)
 	return "kb|" .. idx .. "|" .. layer .. "|" .. self.gen, self:keysetName(key)
 end
 
--- Every action on the key for this layer, what one press fires first and in engine order.
-function M:tooltipLines(idx)
+-- Every action on the key for this layer as rows, what one press fires first and in engine order; one action's
+-- description as the text. The view toggle says what it does.
+function M:tooltipContent(idx)
 	local L = self.L
 	if idx == -1 then
-		return { colorDim .. L.numpadTooltip }
+		return { note = L.numpadTooltip }
 	end
 	local key = self.keys[idx]
 	if not key then
-		return {}
+		return nil
 	end
-	local lines = {}
+	local content = {}
 	if key.mod then
-		local tipKey = self.toggled[key.mod] and "ui.keybinds.keyboard.clickModifierOff"
-			or "ui.keybinds.keyboard.clickModifier"
-		lines[#lines + 1] = colorDim .. BAR.I18N(tipKey, { mod = key.label })
+		content.note = BAR.I18N(
+			self.toggled[key.mod] and "ui.keybinds.keyboard.clickModifierOff" or "ui.keybinds.keyboard.clickModifier",
+			{ mod = key.label }
+		)
 	end
 	local entries = self:entries(key, self:layer())
+	if #entries == 1 then
+		content.text = self:infoOf(entries[1]).description
+	end
+	local rows = {}
 	for _, e in ipairs(entries) do
 		local info = self:infoOf(e)
-		local line = (e.paired and look.paired or colorText) .. (info.label or e.action)
+		local value = ""
 		if e.chain then
-			line = line .. "  " .. colorKey .. keybindModel.displayKeyset(e.raw, self.layoutName)
-		end
-		if e.any then
-			line = line .. "  " .. colorDim .. L.anyModifier
+			value = keybindModel.displayKeyset(e.raw, self.layoutName)
+		elseif e.any then
+			value = L.anyModifier
 		elseif e.paired then
-			line = line .. "  " .. colorDim .. L.paired
+			value = L.paired
 		end
-		lines[#lines + 1] = line
-		if info.description then
-			lines[#lines + 1] = colorDim .. info.description
-		end
+		rows[#rows + 1] = { info.label or e.action, value, dim = e.paired or nil }
 	end
-	if #entries == 0 and not key.mod then
-		lines[#lines + 1] = colorDim .. L.unbound
+	if rows[1] then
+		content.rows = rows
 	end
-	if #entries > 0 and not key.mod then
-		lines[#lines + 1] = colorDim .. L.clickKey
+	if not key.mod then
+		content.note = #entries > 0 and L.clickKey or L.unbound
 	end
 
-	return lines
-end
-
-----------------------------------------------------------------
--- Drawing
-----------------------------------------------------------------
-
--- Smaller when the name is wider than the face. Measured once per name and size.
-function M:nameSize(key, room)
-	if key.nameFsGen == self.layoutGen and key.nameFsLabel == key.label and key.nameFsRoom == room then
-		return key.nameFsFit
-	end
-	local size = self.nameFs
-	local width = self.font:GetTextWidth(key.label) * size
-	if width > room and width > 0 then
-		size = max(floor(size * 0.6), floor(size * room / width))
-	end
-	key.nameFsFit, key.nameFsGen, key.nameFsLabel, key.nameFsRoom = size, self.layoutGen, key.label, room
-
-	return size
+	return content
 end
 
 -- Not the first the engine would try: the presets lean on bind order to put a special case
@@ -908,214 +794,6 @@ function M:faceEntry(key, layer)
 	end
 
 	return best
-end
-
--- Kept until the bindings or the geometry change.
-function M:faceLines(key, layer, faceW, maxLines)
-	-- Asked for before the cache is read: a placement this is stale for rebuilds the show table.
-	local first = self:faceEntry(key, layer)
-	local show = key.show[layer]
-	if show.lines and show.linesGen == self.layoutGen and show.linesMax == maxLines then
-		return show.lines, show.first
-	end
-	local lines = {}
-	if first then
-		local info = self:infoOf(first)
-		local label = info.label or first.action
-		local fs = self.labelFs
-		local wrapped = text.wrap(self.font, label, faceW, fs)
-		if #wrapped > maxLines then
-			-- The last line that fits takes the rest of the label, shortened to the face.
-			local rest = {}
-			for i = maxLines, #wrapped do
-				rest[#rest + 1] = wrapped[i]
-			end
-			wrapped[maxLines] = table.concat(rest, " ")
-			for i = #wrapped, maxLines + 1, -1 do
-				wrapped[i] = nil
-			end
-		end
-		for i, line in ipairs(wrapped) do
-			lines[i] = text.fit(self.font, line, faceW, fs)
-		end
-	end
-	show.lines, show.first, show.linesGen, show.linesMax = lines, first, self.layoutGen, maxLines
-
-	return lines, first
-end
-
--- The caption's hint, wrapped to the room left of the caption once, per size and language.
-function M:hintFor(width)
-	if self.hintLines and self.hintWidth == width then
-		return self.hintLines
-	end
-	local lines = text.wrap(self.font, self.L.hint or "", width, self.hintFs)
-	if self.unplaced > 0 then
-		local note = BAR.I18N("ui.keybinds.keyboard.notShown", { n = self.unplaced })
-		for _, line in ipairs(text.wrap(self.font, note, width, self.hintFs)) do
-			lines[#lines + 1] = line
-		end
-	end
-	for i = 4, #lines do
-		lines[i] = nil
-	end
-	for i, line in ipairs(lines) do
-		lines[i] = text.fit(self.font, line, width, self.hintFs)
-	end
-	self.hintLines, self.hintWidth = lines, width
-
-	return lines
-end
-
--- Called inside the host display list, so all of it has to be geometry and text.
-function M:draw(hoverIdx)
-	local font = self.font
-	local UiKey = self.UiKey
-	if not font or not UiKey or not self.unit then
-		return
-	end
-	local mods = self:activeMods()
-	local layer = layerKeyOf(mods)
-	local unit, pad, cs = self.unit, self.pad, self.cs
-	local padY = self.padY
-	local searching = not self.query.empty
-	local nameLineH = floor(self.nameFs * 1.12)
-	local lineH = floor(self.labelFs * 1.1)
-	local prints = {}
-	local function print(str, x, y, size, opts)
-		prints[#prints + 1] = { str, x, y, size, opts }
-	end
-
-	-- Caps and pictures first, words after, in one font batch.
-	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	for _, i in ipairs(self.shown) do
-		local key = self.keys[i] --[[@as table]]
-		local entries = self:entries(key, layer)
-		local active = key.mod and mods[key.mod]
-		local hit = searching and self:matches(key, entries)
-		local fill = (active and look.modifierActive)
-			or (hit and look.hit)
-			or (key.mod and look.modifier)
-			or (entries[1] and look.bound)
-			or look.unbound
-		local opacity = (searching and not hit and not active) and look.missOpacity or 1
-		local fx1, fy1, fx2, fy2 = UiKey(key.x1, key.y1, key.x2, key.y2, cs, fill, active, hoverIdx == i, opacity)
-		local light = active
-		local faceW = fx2 - fx1 - pad * 2
-		-- Dark text on a light cap takes none, an outline there being a dark ring round dark letters.
-		local oLeft, oCentre, oRight = "o", "co", "ro"
-		if light then
-			oLeft, oCentre, oRight = "", "c", "r"
-		end
-
-		-- The symbol Shift makes of it sits beside, dimmer.
-		local nameFs = self:nameSize(key, faceW)
-		local nameTop = fy2 - padY
-		local nameY = text.baseline(font, nameTop - nameLineH, nameTop, nameFs)
-		print((light and look.nameOnLight or look.name) .. key.label, fx1 + pad, nameY, nameFs, oLeft)
-		if key.shiftedLabel then
-			local nameW = floor(font:GetTextWidth(key.label) * nameFs)
-			print(
-				(light and look.shiftedOnLight or look.shifted) .. key.shiftedLabel,
-				fx1 + pad + nameW + floor(pad * 0.8),
-				nameY,
-				nameFs,
-				oLeft
-			)
-		end
-
-		-- The last line may reach into the bottom padding; a label seldom has a descender there.
-		local bandTop = nameTop - nameLineH
-		local bandBottom = fy1 + floor(padY * 0.5)
-		local maxLines = min(3, max(1, floor((bandTop - bandBottom) / lineH)))
-		local lines, first = self:faceLines(key, layer, faceW, maxLines)
-		-- The count of further actions sits left of the picture when there is one.
-		local cornerX = fx2 - pad
-		if first then
-			local info = self:infoOf(first)
-			local color = light and look.labelOnLight
-				or (first.paired and look.paired)
-				or categoryColors[info.category or ""]
-				or colorText
-			local n = #lines
-			local blockTop = floor((bandTop + bandBottom + n * lineH) * 0.5)
-			local cx = floor((fx1 + fx2) * 0.5)
-			for li = 1, n do
-				local top = blockTop - (li - 1) * lineH
-				local ly = text.baseline(font, top - lineH, top, self.labelFs)
-				print(color .. lines[li], cx, ly, self.labelFs, oCentre)
-			end
-
-			if info.icon and self.iconSize > 0 then
-				local s = self.iconSize
-				local iy2 = fy2 - padY
-				glColor(1, 1, 1, (first.paired and look.pairedIconAlpha or look.iconAlpha) * opacity)
-				glTexture(info.icon)
-				glTexRect(cornerX - s, iy2 - s, cornerX, iy2)
-				glTexture(false)
-				glColor(1, 1, 1, 1)
-				cornerX = cornerX - s - floor(pad * 0.6)
-			end
-		end
-		if #entries > 1 then
-			local count = (light and look.nameOnLight or look.more) .. "+" .. (#entries - 1)
-			print(count, cornerX, nameY, self.moreFs, oRight)
-		end
-	end
-
-	-- Which layer this is, how to work the page, and the view toggle.
-	local frame = self.frames.main
-	local rowTop, rowBottom = frame.oy, frame.oy - unit
-	local caption
-	local held = {}
-	for _, name in ipairs(modifierNames) do
-		if mods[name] then
-			held[#held + 1] = name:sub(1, 1):upper() .. name:sub(2)
-		end
-	end
-	if #held > 0 then
-		caption = look.captionMods .. BAR.I18N("ui.keybinds.keyboard.layer", { mods = table.concat(held, " + ") })
-	else
-		caption = look.caption .. (self.L.layerBase or "")
-	end
-	local captionX = frame.ox + floor(unit * 7.5)
-	print(caption, captionX, text.baseline(font, rowBottom, rowTop, self.titleFs), self.titleFs, "co")
-
-	local hintW = floor(unit * 5.5) - pad
-	local hintLines = self:hintFor(hintW)
-	local hintLineH = floor(self.hintFs * 1.25)
-	local blockTop = floor((rowTop + rowBottom + #hintLines * hintLineH) * 0.5)
-	for li, line in ipairs(hintLines) do
-		local top = blockTop - (li - 1) * hintLineH
-		local y = text.baseline(font, top - hintLineH, top, self.hintFs)
-		print(look.hint .. line, frame.ox + pad, y, self.hintFs, "o")
-	end
-
-	local b = self.button
-	if b and self.UiButton then
-		local overButton = hoverIdx == -1
-		local fill = (self.view == "numpad" and (overButton and look.buttonFillHover or look.buttonFillActive))
-			or look.buttonFill
-		local pair = look.gradients[fill]
-		self.UiButton(b[1], b[2], b[3], b[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, pair[1], pair[2])
-		if overButton and self.view ~= "numpad" and self.Highlight then
-			self.Highlight(b[1], b[2], b[3], b[4], floor(cs * 0.5), look.buttonHoverOpacity, look.white)
-		end
-		print(
-			self.L.numpadText or "",
-			floor((b[1] + b[3]) * 0.5),
-			text.baseline(font, b[2], b[4], self.buttonFs),
-			self.buttonFs,
-			"co"
-		)
-	end
-
-	font:Begin()
-	font:SetOutlineColor(look.outline)
-	for _, p in ipairs(prints) do
-		font:Print(p[1], p[2], p[3], p[4], p[5])
-	end
-	font:End()
 end
 
 return M
