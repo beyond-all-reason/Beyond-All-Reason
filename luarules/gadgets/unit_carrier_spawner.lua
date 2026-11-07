@@ -55,7 +55,6 @@ local InsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local spGetGameSeconds = Spring.GetGameSeconds
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitStockpile = Spring.GetUnitStockpile
 local spSetUnitStockpile = Spring.SetUnitStockpile
 local spCallCOBScript = Spring.CallCOBScript
@@ -177,7 +176,8 @@ local STUNNED_HOVER_DESCEND_SPEED = 0.5 -- elmos per frame, maybe: could be a %
 -- attackformationoffset = 0,	Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
 -- decayrate = 0,				health loss per second while not docked.
 -- deathdecayrate = 0,			health loss per second while not docked, and no carrier to land on.
--- carrierdeaththroe = "death",	Behaviour for the drones when the carrier dies. "death": destroy the drones. "control": gain manual control of the drones. "capture": same as "control", but if an enemy is within control range, they get control of the drones instead.
+-- carrierdeaththroe = "death",	Behavior for the drones when the carrier dies. "death": destroy the drones. "control": gain manual control of the drones. "capture": same as "control", but if an enemy is within control range, they get control of the drones instead. "parasite": each drone takes the nearest unit in control range as its new carrier.
+-- parasite = "all",			Which units a parasite drone can take as its new carrier. "all", "ally", or "enemy".
 -- holdfireradius = 0,			Defines the wandering distance of drones from the carrier when "holdfire" command is issued. If it isn't defined, 0 default will dock drones on holdfire by default.
 -- droneminimumidleradius = 0,	Defines the wandering distance of drones from the carrier when it otherwise would have docked the drones, but docking is not enabled.
 
@@ -246,6 +246,7 @@ for weaponDefID = 0, #WeaponDefs do
 			deathdecayRate = wdcp.deathdecayrate,
 			dockToHealThreshold = wdcp.docktohealthreshold,
 			carrierdeaththroe = wdcp.carrierdeaththroe,
+			parasite = wdcp.parasite,
 			holdfireRadius = wdcp.holdfireradius,
 			droneminimumidleradius = wdcp.droneminimumidleradius,
 			dronebombingruns = wdcp.dronebombingruns,
@@ -482,7 +483,10 @@ local function dockUnitQueue(unitID, subUnitID)
 	local validDrone = validCarrierAndDrone(unitID, subUnitID)
 	if not validDrone then
 		return
-	elseif carrierMetaList[unitID].subUnitsList[subUnitID].activeDocking then
+	elseif
+		carrierMetaList[unitID].subUnitsList[subUnitID].activeDocking
+		or not carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece
+	then
 		return
 	end
 	carrierQueuedDockingCount = carrierQueuedDockingCount + 1
@@ -922,6 +926,70 @@ local function attachToNewCarrier(newCarrier, subUnitID)
 	end
 end
 
+local function findParasiteHost(carrierData, subUnitID)
+	local droneTeam = spGetUnitTeam(subUnitID)
+	local droneX, _, droneZ = spGetUnitPosition(subUnitID)
+	local hostID, hostDistance
+	for _, candidateID in pairsNext, spGetUnitsInCylinder(droneX, droneZ, carrierData.controlRadius) do
+		if
+			candidateID ~= subUnitID
+			and candidateID ~= carrierData.subInitialSpawnData.ownerID
+			and not carrierMetaList[candidateID]
+			and not droneCarrierIdList[candidateID]
+			and not droneMetaList[candidateID]
+			and not spGetUnitIsBeingBuilt(candidateID)
+		then
+			local allied = spAreTeamsAllied(droneTeam, spGetUnitTeam(candidateID))
+			if carrierData.parasite == "all" or (carrierData.parasite == "ally") == allied then
+				local candidateX, _, candidateZ = spGetUnitPosition(candidateID)
+				local distance = diag(candidateX - droneX, candidateZ - droneZ)
+				if not hostDistance or distance < hostDistance then
+					hostID, hostDistance = candidateID, distance
+				end
+			end
+		end
+	end
+	return hostID
+end
+
+local function attachDroneToParasiteHost(hostID, carrierData, subUnitID, droneMetaData)
+	local hostTeam = spGetUnitTeam(hostID)
+	local hostX, hostY, hostZ = spGetUnitPosition(hostID)
+	local hostData = {}
+	for key, value in pairsNext, carrierData do
+		hostData[key] = value
+	end
+	hostData.subInitialSpawnData = { ownerID = hostID, teamID = hostTeam, x = hostX, y = hostY, z = hostZ }
+	hostData.subUnitsList = { [subUnitID] = droneMetaData }
+	hostData.subUnitCount = {}
+	for dronetypeIndex in pairsNext, carrierData.dronenames do
+		hostData.subUnitCount[dronetypeIndex] = 0
+	end
+	hostData.subUnitCount[droneMetaData.dronetypeIndex] = 1
+	hostData.spawnRateFrames = 0
+	hostData.startingWithDrones = false
+	hostData.usestockpile = nil
+	hostData.docking = nil
+	hostData.activeDocking = false
+	hostData.activeRecall = false
+	carrierMetaList[hostID] = hostData
+
+	droneMetaData.docked = false
+	droneMetaData.stayDocked = false
+	droneMetaData.activeDocking = false
+	droneMetaData.dockingPiece = nil
+	droneMetaData.dockingPieceIndex = nil
+	droneCarrierIdList[subUnitID] = hostID
+	spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", hostID, PRIVATE)
+end
+
+local function removeEmptyParasiteHost(carrierID)
+	local carrierData = carrierMetaList[carrierID]
+	if carrierData and pairsNext(carrierData.subUnitsList) == nil and not carrierDefs[spGetUnitDefID(carrierID)] then
+		carrierMetaList[carrierID] = nil
+	end
+end
+
 local function applyCarrierDeaththroe(carrierData, subUnitID, droneMetaData)
 	local standalone = false
 	local wild = false
@@ -942,40 +1010,9 @@ local function applyCarrierDeaththroe(carrierData, subUnitID, droneMetaData)
 		standalone = true
 		wild = true
 	elseif carrierData.carrierDeaththroe == "parasite" then
-		local newCarrier
-		local ox, oy, oz = spGetUnitPosition(subUnitID)
-		local newCarrierCandidates = spGetUnitsInCylinder(ox, oz, carrierData.controlRadius)
-		for _, newCarrierCandidate in pairsNext, newCarrierCandidates do
-			local existingCarrier = spGetUnitRulesParam(newCarrierCandidate, "carrier_host_unit_id")
-			if not existingCarrier then
-				if carrierData.parasite == "ally" then
-					if spGetUnitAllyTeam(newCarrierCandidate) then
-						newCarrier = newCarrierCandidate
-					end
-				elseif carrierData.parasite == "enemy" then
-					if not spGetUnitAllyTeam(newCarrierCandidate) then
-						newCarrier = newCarrierCandidate
-					end
-				elseif carrierData.parasite == "all" then
-					newCarrier = newCarrierCandidate
-				end
-			end
-		end
-
-		if newCarrier then
-			if carrierMetaList[newCarrier] then
-				standalone = true
-			else
-				carrierMetaList[newCarrier] = carrierData
-				carrierMetaList[newCarrier].subUnitsList[subUnitID] = carrierData.subUnitsList[subUnitID] -- list of subUnitIDs owned by this unit.
-				carrierMetaList[newCarrier].subUnitCount = 1
-				carrierMetaList[newCarrier].spawnRateFrames = 0
-				carrierMetaList[newCarrier].docking = false
-				carrierMetaList[newCarrier].activeRecall = false
-
-				spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", newCarrier, PRIVATE)
-				droneCarrierIdList[subUnitID] = newCarrier
-			end
+		local hostID = findParasiteHost(carrierData, subUnitID)
+		if hostID then
+			attachDroneToParasiteHost(hostID, carrierData, subUnitID, droneMetaData)
 		else
 			standalone = true
 		end
@@ -1014,7 +1051,11 @@ local function findAlliedCarrier(subUnitID)
 	local droneX, _, droneZ = spGetUnitPosition(subUnitID)
 	local nearestCarrierID, nearestDronetypeIndex, nearestDistance
 	for carrierID, carrierData in pairsNext, carrierMetaList do
-		if carrierData.wasBuilt and spAreTeamsAllied(droneTeam, spGetUnitTeam(carrierID)) then
+		if
+			carrierData.wasBuilt
+			and carrierDefs[spGetUnitDefID(carrierID)]
+			and spAreTeamsAllied(droneTeam, spGetUnitTeam(carrierID))
+		then
 			for dronetypeIndex, dronename in pairsNext, carrierData.dronenames do
 				if
 					dronename == droneName
@@ -1050,6 +1091,14 @@ end
 
 local function releaseCapturedDrone(carrierID, subUnitID)
 	local carrierData = carrierMetaList[carrierID]
+	local allied = spAreTeamsAllied(spGetUnitTeam(subUnitID), spGetUnitTeam(carrierID))
+	if carrierDefs[spGetUnitDefID(carrierID)] then
+		if allied then
+			return
+		end
+	elseif carrierData.parasite == "all" or (carrierData.parasite == "ally") == allied then
+		return
+	end
 	local droneMetaData = carrierData.subUnitsList[subUnitID]
 	deferredDroneReleases[subUnitID] = nil
 	if spGetUnitTransporter(subUnitID) == carrierID then
@@ -1068,7 +1117,7 @@ local function releaseCapturedDrone(carrierID, subUnitID)
 		attachDroneToAlliedCarrier(alliedCarrierID, dronetypeIndex, subUnitID)
 	else
 		applyCarrierDeaththroe(carrierData, subUnitID, droneMetaData)
-		if droneMetaList[subUnitID] then
+		if droneMetaList[subUnitID] or droneCarrierIdList[subUnitID] then
 			totalDroneCount = totalDroneCount + 1
 		end
 	end
@@ -1158,7 +1207,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		activeSpawning = 1,
 		availableSections = availableSections,
 		carrierDeaththroe = spawnDef.carrierdeaththroe or "death",
-		parasite = "all",
+		parasite = spawnDef.parasite or "all",
 		holdfireRadius = spawnDef.holdfireRadius or 0,
 		droneminimumidleradius = spawnDef.droneminimumidleradius or 0,
 		dronebombingruns = tonumber(spawnDef.dronebombingruns) or 1,
@@ -1358,6 +1407,7 @@ function RemoveDrone(carrierUnitID, unitID)
 			if droneCarrierIdList[unitID] then
 				droneCarrierIdList[unitID] = nil
 			end
+			removeEmptyParasiteHost(carrierUnitID)
 		end
 	end
 end
@@ -2247,9 +2297,7 @@ function gadget:GameFramePost(f)
 	while givenDroneID do
 		givenDrones[givenDroneID] = nil
 		local carrierID = droneCarrierIdList[givenDroneID]
-		if
-			carrierMetaList[carrierID] and not spAreTeamsAllied(spGetUnitTeam(givenDroneID), spGetUnitTeam(carrierID))
-		then
+		if carrierMetaList[carrierID] then
 			releaseCapturedDrone(carrierID, givenDroneID)
 		end
 		givenDroneID = pairsNext(givenDrones)
