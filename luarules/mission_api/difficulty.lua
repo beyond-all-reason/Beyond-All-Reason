@@ -132,6 +132,14 @@ local function fromName(name)
 	if name ~= nil and difficulties[name] ~= nil then
 		return difficulties[name]
 	end
+	-- the client sends lowercase ids ("medium")
+	if type(name) == "string" then
+		for difficultyName, difficulty in pairs(difficulties) do
+			if difficultyName:lower() == name:lower() then
+				return difficulty
+			end
+		end
+	end
 	if name ~= nil then
 		Spring.Log("difficulty.lua", LOG.ERROR, "[Mission API] Unknown difficulty: " .. tostring(name))
 	end
