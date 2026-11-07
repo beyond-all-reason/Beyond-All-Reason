@@ -3796,6 +3796,8 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 						local command = ssub(inputText, 2)
 						if command == "lr" then
 							command = "luaui reload"
+						elseif command:lower():find("^take%f[%W]") and not BAR.Utilities.Gametype.IsSinglePlayer() then
+							command = "luarules take2"
 						else
 							local configKey, commandSuffix = command:match("^[sS][eE][tT]%s+(%S+)(.*)$")
 							if configKey then
