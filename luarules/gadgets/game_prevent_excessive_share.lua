@@ -56,7 +56,12 @@ end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	local unitCount = spGetTeamUnitCount(newTeam)
-	if capture or spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
+	if
+		capture
+		or spIsCheatingEnabled()
+		or unitCount < Spring.GetTeamMaxUnits(newTeam)
+		or (GG.IsTakingTeam and GG.IsTakingTeam(oldTeam, newTeam))
+	then
 		return true
 	end
 	return false
