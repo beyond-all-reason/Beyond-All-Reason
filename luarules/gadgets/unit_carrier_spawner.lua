@@ -2064,6 +2064,9 @@ local function landLoop(unitID, subUnitID, droneMetaData)
 	local dockingSnapRange
 
 	while not droneDocked do
+		if carrierMetaList[unitID] ~= carrierMetaData or carrierMetaData.subUnitsList[subUnitID] ~= droneMetaData then
+			return
+		end
 		local px, py, pz = spGetUnitPiecePosDir(unitID, pieceNumber)
 		local subx, suby, subz = spGetUnitPosition(subUnitID)
 		local distance = diag((px - subx), (pz - subz))
@@ -2174,12 +2177,6 @@ local function landLoop(unitID, subUnitID, droneMetaData)
 
 		repeat
 			Sleep()
-			if
-				carrierMetaList[unitID] ~= carrierMetaData
-				or carrierMetaData.subUnitsList[subUnitID] ~= droneMetaData
-			then
-				return
-			end
 			local droneCurrentHealth = spGetUnitHealth(subUnitID)
 			if not droneCurrentHealth or droneCurrentHealth <= 0 then
 				return
