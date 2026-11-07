@@ -19,6 +19,7 @@
   - Cannons no longer change arc with map gravity: Phobos, Phalanx, Leocampus, Sol Invictus, Cetus, Triton, Keres, Sapper, Enyo, Venator, Chimera, Dragon's Jaw
   - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
 - [Fixed]
+  - Custom widgets and chat take commands now use the same takeover logic as the player list in multiplayer.
   - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
   - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
 
