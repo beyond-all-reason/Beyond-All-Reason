@@ -26,7 +26,7 @@ return {
 		script = "Units/armzapper.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
-		sightdistance = 260,
+		sightdistance = 330,
 		trackoffset = -2,
 		trackstrength = 5,
 		tracktype = "armstump_tracks",
