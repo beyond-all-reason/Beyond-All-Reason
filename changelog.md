@@ -1,4 +1,5 @@
 # November
+- [Navy units] Matching land units: Mine uncloak distance 8 -> 30. Radar health 110 -> 180. Nuke subs damage and falloff match silos.
 - [Legion]
   - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Advanced Underwater Geothermal Powerplant 32000 -> 49950
   - Snapper buildtime 9260 -> 8000, Fortification Wall buildtime 1000 -> 900

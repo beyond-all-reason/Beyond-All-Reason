@@ -1,7 +1,7 @@
 return {
 	corgatreap = {
 		maxacc = 0.0362,
-		maxdec = 0.0724,
+		maxdec = 0.1,
 		energycost = 17000,
 		metalcost = 1400,
 		buildpic = "CORGATREAP.DDS",
