@@ -24,7 +24,7 @@ return {
 		script = "Units/armbeamer.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 475,
+		sightdistance = 500,
 		yardmap = "oooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
@@ -33,6 +33,7 @@ return {
 			buildinggrounddecaltype = "decals/armbeamer_aoplane.dds",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 3,
 			removewait = true,
 			subfolder = "ArmBuildings/LandDefenceOffence",
 			unitgroup = "weapon",

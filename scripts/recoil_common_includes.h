@@ -7,6 +7,10 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
+// Engine constants
+#define MILLISECONDS_PER_FRAME	33 // sleeps and other timers count in whole engine ticks
+#define GAME_SPEED      30    // The frames per second rate of the simulation.
+
 // Indices for emit-sfx
 #ifndef __SFXTYPE_H_
 #define SFXTYPE_VTOL		0
@@ -173,7 +177,7 @@
 #define KSIN			135 // get, kiloSine    1024*sin(x) as COB uses only integers
 #define KCOS			136 // get, kiloCosine  1024*cos(x)
 
-#define KTAN			137 // get, kiloTangent 1024*tan(x) carefull with angles close to 90 deg. might cause overflow
+#define KTAN			137 // get, kiloTangent 1024*tan(x) careful with angles close to 90 deg. might cause overflow
 #define SQRT			138 // get, square root (floored to integer)
 
 #define ENERGY_MAKE             140 // set or get (100*E production)

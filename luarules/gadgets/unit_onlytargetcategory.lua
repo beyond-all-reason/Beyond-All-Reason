@@ -20,8 +20,6 @@ for udid, unitDef in pairs(UnitDefs) do
 		unitCategories[udid] = unitDef.modCategories
 	end
 
-	local skip = false
-	local add = false
 	for wid, weapon in ipairs(unitDef.weapons) do
 		if weapon.onlyTargets then
 			local disregard = false

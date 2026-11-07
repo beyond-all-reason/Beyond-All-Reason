@@ -19,6 +19,13 @@ local spEcho = Spring.Echo
 
 local spGetUnitTeam = Spring.GetUnitTeam
 
+-- Lightning orb (fusion) noise: octaves per noise sample. 4 is the original look; 3 cuts the orb's GPU
+-- cost by about a quarter but smooths away the finest arcs, visible when zoomed in on a fusion.
+local orbNoiseOctaves = 4
+-- Blend a second projection in near the poles of a lightning orb to hide the UV singularity there. It
+-- doubles the noise work on roughly half of the sphere; false shows a pinch at its top and bottom.
+local orbPoleBlend = true
+
 --------------------------------------------------------------------------------
 -- Beherith's notes
 --------------------------------------------------------------------------------
@@ -91,6 +98,14 @@ local legafust3ShieldSphere = table.merge(defaults, {
 })
 
 local corfusShieldSphere = table.merge(defaults, {
+	pos = { 0, 51, 0 },
+	size = 23,
+	light = 3.25,
+	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
+	--colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
+})
+
+local corhltfusShieldSphere = table.merge(defaults, {
 	pos = { 0, 51, 0 },
 	size = 23,
 	light = 3.25,
@@ -214,6 +229,13 @@ local UnitEffects = {
 	},
 	corfus = {
 		{ class = "ShieldSphere", options = corfusShieldSphere },
+		{
+			class = "ShieldJitter",
+			options = { life = math.huge, pos = { 0, 50, 0 }, size = 23.5, precision = 22, repeatEffect = true },
+		},
+	},
+	corhltfus = {
+		{ class = "ShieldSphere", options = corhltfusShieldSphere },
 		{
 			class = "ShieldJitter",
 			options = { life = math.huge, pos = { 0, 50, 0 }, size = 23.5, precision = 22, repeatEffect = true },
@@ -525,6 +547,7 @@ UnitEffects = nil
 -- Variables
 --------------------------------------------------------------------------------
 
+---@type InstanceVBOTable?
 local orbVBO = nil
 local orbShader = nil
 
@@ -681,6 +704,7 @@ local fsSrc = [[
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 #line 20000
+//__DEFINES__
 uniform sampler2D noiseMap;
 uniform sampler2D mask;
 
@@ -769,7 +793,7 @@ out vec4 fragColor;
 	}
 
 	float Fbm12(vec2 P) {
-		const int octaves = 4;
+		const int octaves = ORB_NOISE_OCTAVES;
 		const float lacunarity = 1.8;
 		const float gain = 0.80;
 
@@ -940,6 +964,7 @@ void main(void)
 
 		// Near the poles, blend in a second projection rotated 90° around X
 		// so its pole singularity is at the equator of the primary projection
+		#if ORB_POLE_BLEND
 		float poleFade = abs(nDir.y);
 		if (poleFade > 0.45) {
 			vec3 rotatedVec = vec3(noiseVec.x, -noiseVec.z, noiseVec.y);
@@ -948,6 +973,7 @@ void main(void)
 			float blendWeight = smoothstep(0.45, 0.85, poleFade);
 			col = mix(col, col2, blendWeight);
 		}
+		#endif
 
 		// Color variation - bright white on arc peaks, base color in gaps
 		float arcIntensity = clamp(length(col) / (length(baseColor) + 0.001), 0.0, 3.0) / 3.0;
@@ -1019,6 +1045,7 @@ local function initGL4()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	fsSrc = fsSrc:gsub("//__DEFINES__", string.format("#define ORB_NOISE_OCTAVES %d\n#define ORB_POLE_BLEND %d\n", math.max(1, math.floor(orbNoiseOctaves)), orbPoleBlend and 1 or 0))
 	orbShader = LuaShader({
 		vertex = vsSrc,
 		fragment = fsSrc,
@@ -1030,7 +1057,7 @@ local function initGL4()
 			reflectionPass = 0.0,
 		},
 	}, "orbShader GL4")
-	shaderCompiled = orbShader:Initialize()
+	local shaderCompiled = orbShader:Initialize()
 	if not shaderCompiled then
 		goodbye("Failed to compile orbShader GL4 ")
 	end
@@ -1142,13 +1169,18 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.uploadAllElements(orbVBO)
 end
 
-function widget:VisibleUnitRemoved(unitID)
-	shieldFinishFrames[unitID] = spGetGameFrame()
+function widget:VisibleUnitRemoved(unitID, unitDefID)
+	if orbUnitDefs[unitDefID] then -- the only units VisibleUnitAdded reads this for
+		shieldFinishFrames[unitID] = spGetGameFrame()
+	end
 	if orbVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(orbVBO, unitID)
 	end
 end
 
 function widget:Shutdown()
-	-- FIXME: clean up after thyself!
+	if type(orbShader) == "table" then
+		orbShader:Finalize()
+		orbShader = nil
+	end
 end

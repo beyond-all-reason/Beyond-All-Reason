@@ -24,7 +24,6 @@ end
 function animSmoke(getid, getpiece)
 	local id = getid
 	local piece = getpiece
-	local SMOKE = 257
 	local last_inbt = true
 
 	while true do

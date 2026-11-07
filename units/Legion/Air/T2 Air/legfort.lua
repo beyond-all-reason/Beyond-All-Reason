@@ -37,8 +37,8 @@ return {
 		customparams = {
 			unitgroup = "weapon",
 			model_author = "tHARSIS",
-			normaltex = "unittextures/LEG_normal.dds",
-			subfolder = "CorAircraft/T2",
+			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 		},
 		sfxtypes = {

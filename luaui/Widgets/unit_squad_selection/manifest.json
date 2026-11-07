@@ -1,0 +1,57 @@
+{
+	"id": "unit_squad_selection",
+	"display_name": "Squad Selection",
+	"keybindings": [
+		{ "action": "squad_select", "label": "actions.squads.select", "defaultKeysets": ["sc_0x064"] },
+		{ "action": "squad_select append_domain", "label": "actions.squads.append", "defaultKeysets": ["Shift+sc_0x064"] },
+		{ "action": "squad_select_filtered retarget", "label": "actions.squads.selectFiltered", "defaultKeysets": ["Alt+sc_0x064"] },
+		{
+			"action": "squad_select_filtered append distance_850",
+			"label": "actions.squads.appendFiltered",
+			"defaultKeysets": ["Alt+Shift+sc_0x064"]
+		},
+		{
+			"action": "squad_select_portion 0.5 append_domain",
+			"label": "actions.squads.selectHalfAppend",
+			"defaultKeysets": ["Ctrl+Shift+sc_0x064"]
+		},
+		{ "action": "squad_select_portion 0.5", "label": "actions.squads.selectHalf", "defaultKeysets": ["Ctrl+sc_0x064"] },
+		{
+			"action": "squad_select_portion_filtered 0.5 append_domain",
+			"label": "actions.squads.selectHalfFilteredAppend",
+			"defaultKeysets": ["Ctrl+Alt+Shift+sc_0x064"]
+		},
+		{
+			"action": "squad_select_portion_filtered 0.5",
+			"label": "actions.squads.selectHalfFiltered",
+			"defaultKeysets": ["Ctrl+Alt+sc_0x064"]
+		},
+		{ "action": "squad_select_portion 0", "label": "actions.squads.selectOne", "defaultKeysets": ["sc_mouse5"] },
+		{ "action": "squad_select_portion 0 append_domain", "label": "actions.squads.appendOne", "defaultKeysets": ["Shift+sc_mouse5"] },
+		{ "action": "squad_select_portion_filtered 0", "label": "actions.squads.selectOneFiltered", "defaultKeysets": ["Alt+sc_mouse5"] },
+		{
+			"action": "squad_select_portion_filtered 0 append",
+			"label": "actions.squads.appendOneFiltered",
+			"defaultKeysets": ["Alt+Shift+sc_mouse5"]
+		},
+		{ "action": "squad_select append locked", "label": "actions.squads.appendLocked", "defaultKeysets": ["Meta+Shift+sc_v"] },
+		{ "action": "squad_create", "label": "actions.squads.create" },
+		{ "action": "squad_lock", "label": "actions.squads.lock", "defaultKeysets": ["Meta+sc_v"] },
+		{ "action": "squad_limit_flip", "label": "actions.squads.limitFlip", "defaultKeysets": ["Meta+sc_a"] },
+		{ "action": "squad_expand", "label": "actions.squads.expand", "defaultKeysets": ["Meta+Shift+sc_a"] },
+		{ "action": "squad_cycle_recent", "label": "actions.squads.cycleRecent", "defaultKeysets": ["Meta+sc_s"] },
+		{ "action": "squad_cycle_idle", "label": "actions.squads.cycleIdle", "defaultKeysets": ["Meta+sc_d"] },
+		{
+			"action": "squad_select_group append_domain",
+			"members": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+			"label": "actions.squads.groupAppend",
+			"profileKeysets": { "grid": ["Shift+meta+%{n}"], "legacy": ["Shift+meta+%{n}"] }
+		},
+		{
+			"action": "squad_select_group",
+			"members": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+			"label": "actions.squads.group",
+			"profileKeysets": { "grid": ["meta+%{n}"], "legacy": ["meta+%{n}"] }
+		}
+	]
+}

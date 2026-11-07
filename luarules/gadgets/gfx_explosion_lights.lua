@@ -27,46 +27,55 @@ if gadgetHandler:IsSyncedCode() then
 		TorpedoLauncher = true,
 	}
 
-	local cannonWeapons = {}
-	local watchedExplosions = {}
-	local watchedProjectiles = {}
+	-- a sim frame's events as x, y, z, weaponDefID, ownerID runs, handed over once in GameFramePost
+	local explosions, explosionCount = {}, 0
+	local barrelfires, barrelfireCount = {}, 0
 
 	function gadget:Initialize()
 		for wdid, wd in pairs(WeaponDefs) do
 			if explosionTypes[wd.type] then
-				Script.SetWatchExplosion(wdid, true)
-				watchedExplosions[wdid] = true
-			end
-			if wd.type == "Cannon" or wd.type == "LaserCannon" then
-				cannonWeapons[wdid] = true
+				gadgetHandler:RegisterExplosion(wdid)
 			end
 			if wd.type == "Cannon" and wd.damages[0] >= 20 then
-				Script.SetWatchProjectile(wdid, true)
-				watchedProjectiles[wdid] = true
+				gadgetHandler:RegisterProjectile(wdid)
 			elseif wd.type == "LaserCannon" and wd.damages[0] >= 10 then
-				Script.SetWatchProjectile(wdid, true)
-				watchedProjectiles[wdid] = true
+				gadgetHandler:RegisterProjectile(wdid)
 			end
 		end
 	end
 
-	function gadget:Shutdown()
-		for wdid in pairs(watchedExplosions) do
-			Script.SetWatchExplosion(wdid, false)
+	---@param ownerID UnitID? nil for explosions without an owner
+	function gadget:Explosion(weaponID, px, py, pz, ownerID)
+		if ownerID then
+			local n = explosionCount
+			explosions[n + 1] = px
+			explosions[n + 2] = py
+			explosions[n + 3] = pz
+			explosions[n + 4] = weaponID
+			explosions[n + 5] = ownerID
+			explosionCount = n + 5
 		end
-		for wdid in pairs(watchedProjectiles) do
-			Script.SetWatchProjectile(wdid, false)
-		end
-	end
-
-	function gadget:Explosion(weaponID, px, py, pz, ownerID, projectileID)
-		SendToUnsynced("explosion_light", px, py, pz, weaponID, ownerID)
 	end
 
 	function gadget:ProjectileCreated(projectileID, ownerID, weaponID)
-		if cannonWeapons[weaponID] then
-			local px, py, pz = spGetProjectilePosition(projectileID)
-			SendToUnsynced("barrelfire_light", px, py, pz, weaponID, ownerID)
+		local px, py, pz = spGetProjectilePosition(projectileID)
+		local n = barrelfireCount
+		barrelfires[n + 1] = px
+		barrelfires[n + 2] = py
+		barrelfires[n + 3] = pz
+		barrelfires[n + 4] = weaponID
+		barrelfires[n + 5] = ownerID
+		barrelfireCount = n + 5
+	end
+
+	function gadget:GameFramePost()
+		if explosionCount > 0 then
+			SendToUnsynced("explosion_light", explosions, explosionCount)
+			explosions, explosionCount = {}, 0
+		end
+		if barrelfireCount > 0 then
+			SendToUnsynced("barrelfire_light", barrelfires, barrelfireCount)
+			barrelfires, barrelfireCount = {}, 0
 		end
 	end
 else -- Unsynced
@@ -84,25 +93,48 @@ else -- Unsynced
 		end
 	end
 
-	local function SpawnExplosion(_, px, py, pz, weaponID, ownerID)
-		if ownerID ~= nil and Script.LuaUI("VisibleExplosion") then
-			if fullView or spGetUnitAllyTeam(ownerID) == myAllyID or spIsPosInLos(px, py, pz, myAllyID) then
-				Script.LuaUI.VisibleExplosion(px, py, pz, weaponID, ownerID)
+	-- moves the events the local player can see to the front, in order, and returns their length
+	local function keepVisible(events, count)
+		if fullView then
+			return count
+		end
+		local kept = 0
+		for i = 1, count, 5 do
+			local px, py, pz, ownerID = events[i], events[i + 1], events[i + 2], events[i + 4]
+			if spGetUnitAllyTeam(ownerID) == myAllyID or spIsPosInLos(px, py, pz, myAllyID) then
+				events[kept + 1] = px
+				events[kept + 2] = py
+				events[kept + 3] = pz
+				events[kept + 4] = events[i + 3]
+				events[kept + 5] = ownerID
+				kept = kept + 5
 			end
 		end
+		for i = kept + 1, count do
+			events[i] = nil
+		end
+		return kept
 	end
 
-	local function SpawnBarrelfire(_, px, py, pz, weaponID, ownerID)
-		if ownerID ~= nil and Script.LuaUI("Barrelfire") then
-			if fullView or spGetUnitAllyTeam(ownerID) == myAllyID or spIsPosInLos(px, py, pz, myAllyID) then
-				Script.LuaUI.Barrelfire(px, py, pz, weaponID, ownerID)
-			end
+	local function SpawnExplosions(_, explosions, count)
+		count = keepVisible(explosions, count)
+		if count > 0 and Script.LuaUI("VisibleExplosionBatch") then
+			Script.LuaUI.VisibleExplosionBatch(explosions, count)
 		end
+		return true
+	end
+
+	local function SpawnBarrelfires(_, barrelfires, count)
+		count = keepVisible(barrelfires, count)
+		if count > 0 and Script.LuaUI("BarrelfireBatch") then
+			Script.LuaUI.BarrelfireBatch(barrelfires, count)
+		end
+		return true
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("explosion_light", SpawnExplosion)
-		gadgetHandler:AddSyncAction("barrelfire_light", SpawnBarrelfire)
+		gadgetHandler:AddSyncAction("explosion_light", SpawnExplosions)
+		gadgetHandler:AddSyncAction("barrelfire_light", SpawnBarrelfires)
 	end
 
 	function gadget:Shutdown()

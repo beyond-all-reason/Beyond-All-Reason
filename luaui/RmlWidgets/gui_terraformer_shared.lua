@@ -16,11 +16,20 @@ function widget:GetInfo()
 	}
 end
 
+---@type table<string, any>
 local WG = WG
 local Spring = Spring
 
 local function calculateDpRatio()
 	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
+	-- Dual-screen: panels live on the free screen; scale off it, height-keyed, same as
+	-- rml_context_manager, or the two disagree about what a dp is.
+	if Spring.GetDualViewGeometry then
+		local dualW, dualH = Spring.GetDualViewGeometry()
+		if type(dualW) == "number" and dualW > 0 then
+			viewSizeX, viewSizeY = math.max(dualW, math.floor(dualH * 1920 / 1080)), dualH
+		end
+	end
 	local userScale = Spring.GetConfigFloat("ui_scale", 1)
 	local baseWidth = 1920
 	local baseHeight = 1080
@@ -31,30 +40,56 @@ end
 
 local currentDpRatio = calculateDpRatio()
 
+--- Multi-screen: a panel dropped on the WORLD screen takes that screen's scale; dropped
+--- back on the free screen it inherits the context's ratio. Per document, so panels left
+--- behind keep their size. Needs the engine's per-document dp override (recoil_dpi
+--- build); on a stock engine the property does not exist and this does nothing.
+local function applyScreenScale(rootEl)
+	if not rootEl then
+		return
+	end
+	local vsx, vsy, viewPosX = Spring.GetViewGeometry()
+	local winW = Spring.GetWindowGeometry()
+	if not winW or not vsx or winW <= vsx then
+		return -- one screen, one scale
+	end
+	local doc = rootEl.owner_document
+	if not doc then
+		return
+	end
+	local centerX = (rootEl.absolute_left or 0) + (rootEl.offset_width or 0) * 0.5
+	local onWorld = centerX >= (viewPosX or 0) and centerX < (viewPosX or 0) + vsx
+	local userScale = Spring.GetConfigFloat("ui_scale", 1)
+	local worldDp = math.floor((vsy / 1080) * userScale * 100) / 100
+	pcall(function()
+		doc.dp_ratio_override = onWorld and worldDp or 0
+	end)
+end
+
 WG.TerraformerShared = WG.TerraformerShared or {}
 
+-- Exported for panels that still carry their own drag code (the brush's main windows),
+-- so a drop on the other screen rescales there too.
+WG.TerraformerShared.applyScreenScale = applyScreenScale
+
 -- Shared accessor so widgets don't reimplement calculateDpRatio().
--- Returns the current scale factor (resolution_factor * ui_scale), matching
--- whatever the shared RmlUi context is currently using.
+---@return number dpRatio Current scale factor `resolution_factor * ui_scale`, matching the shared RmlUi context.
 WG.TerraformerShared.getDpRatio = function()
 	return currentDpRatio
 end
 
--- Cross-widget DOM-read registry. Widgets that want to be snap targets (or
--- otherwise have their rect read by a sibling widget) should register their
--- root document after LoadDocument(), and unregister on Shutdown().
--- Readers call getElementRect(docName, elementId) to pull live pixel-space
--- layout off the target element instead of mirroring position through WG.*.
+-- Cross-widget DOM-read registry. A widget that is a snap target (or whose rect a
+-- sibling reads) registers its document after LoadDocument() and unregisters on
+-- Shutdown(). Readers call getElementRect(docName, elementId) for live layout
+-- instead of mirroring positions through WG.
+---@type table<string, table|nil>
 local registeredDocuments = {}
 
 -- === Scrollable panel bodies ===
--- Every floating terraformer window pins its header and puts the rest of its
--- content in a `.tf-panel-body` scroll box (see the RML files). RCSS can only
--- give those a fixed vh cap, which is wrong for a window that can be dragged
--- anywhere: a panel near the top of the screen has far more room below it than
--- one near the bottom. So the cap is recomputed here from each window's live
--- position and the viewport height. Bounding the height also lets the drag
--- clamp keep a window fully on-screen.
+-- Floating windows pin their header and scroll the rest in a `.tf-panel-body`.
+-- RCSS only allows a fixed vh cap, wrong for a window dragged anywhere, so the cap
+-- is recomputed from each window's live position. It also lets the drag clamp keep
+-- a window fully on screen.
 local panelBodies = {} -- [docName] = { {root=, body=, lastStyle=}, ... }
 local panelBodyTick = 0
 local wheelHeld = false
@@ -100,18 +135,16 @@ local function sizePanelBodies()
 			-- A window hidden by data-if (or a `hidden` class) has no height;
 			-- skip it and size it on the first tick after it is shown.
 			if e.root.offset_height > 0 then
-				-- body.offset_top is the pinned header's height (the window
-				-- root is the offset parent), so this is "screen bottom minus
-				-- where the scroll box starts", less a small breathing gap.
+				-- body.offset_top is the pinned header's height (the root is the offset
+				-- parent): screen bottom minus where the scroll box starts, less a gap.
 				local avail = vsy - e.root.offset_top - e.body.offset_top - PANEL_BODY_GAP_PX
 				if avail < PANEL_BODY_MIN_PX then
 					avail = PANEL_BODY_MIN_PX
 				end
 				avail = math.floor(avail)
 				local style = "max-height: " .. avail .. "px;"
-				-- A locked slider owns the mouse wheel (the brush drives it
-				-- from anywhere on screen), so panel scrolling stands down
-				-- while one is armed rather than fighting over the cursor.
+				-- A locked slider owns the mouse wheel (the brush drives it from
+				-- anywhere on screen), so panel scrolling stands down meanwhile.
 				if wheelHeld then
 					style = style .. " overflow-y: hidden;"
 				end
@@ -141,6 +174,10 @@ WG.TerraformerShared.setWheelHeld = function(held)
 	end
 end
 
+---Registers a document so sibling widgets can read its live layout.
+---Call after `LoadDocument()`; pair with `unregisterDocument` on Shutdown.
+---@param name string?
+---@param document RmlUi.Document?
 WG.TerraformerShared.registerDocument = function(name, document)
 	if name and document then
 		registeredDocuments[name] = document
@@ -149,6 +186,8 @@ WG.TerraformerShared.registerDocument = function(name, document)
 	end
 end
 
+---Removes a document from the cross-widget registry.
+---@param name string?
 WG.TerraformerShared.unregisterDocument = function(name)
 	if name then
 		registeredDocuments[name] = nil
@@ -156,10 +195,124 @@ WG.TerraformerShared.unregisterDocument = function(name)
 	end
 end
 
-WG.TerraformerShared.getDocument = function(name)
-	return registeredDocuments[name]
+--------------------------------------------------------------------------------
+-- Where the suite's windows are
+--------------------------------------------------------------------------------
+
+--- Tools that draw in the WORLD need to know when the pointer is over ANY suite window,
+--- not only their own, or their ground cursor keeps drawing under another tool's window.
+---
+--- A provider returns one rect, an array of them, or nil while its windows are closed.
+--- Rects are in Spring screen coordinates (y = 0 at the bottom, as `Spring.GetMouseState`
+--- reports), so a provider flips RmlUi's downward y: `topY = vsy - offset_top`.
+local boundsProviders = {}
+
+---@param name string?
+---@param provider fun(): TerraformBrushPanelBounds|TerraformBrushPanelBounds[]|nil
+WG.TerraformerShared.registerBounds = function(name, provider)
+	if name and type(provider) == "function" then
+		boundsProviders[name] = provider
+	end
 end
 
+---@param name string?
+WG.TerraformerShared.unregisterBounds = function(name)
+	if name then
+		boundsProviders[name] = nil
+	end
+end
+
+--- Every suite window currently on screen, flattened.
+---
+--- `Spring.GetMouseState` x is view-relative: the engine subtracts the view's x offset,
+--- which is non-zero once dual-screen mode parks the world on one half of the window.
+--- Providers report RmlUi window-space x, so the offset is removed here, once, for every tool.
+---@return TerraformBrushPanelBounds[] rects
+WG.TerraformerShared.getPanelRects = function()
+	local _, _, viewPosX = Spring.GetViewGeometry()
+	viewPosX = viewPosX or 0
+	local rects = {}
+	local function take(rect)
+		rects[#rects + 1] = {
+			left = rect.left - viewPosX,
+			right = rect.right - viewPosX,
+			topY = rect.topY,
+			bottomY = rect.bottomY,
+		}
+	end
+	for _, provider in pairs(boundsProviders) do
+		-- pcall: a provider may read elements of a closed document, and one broken
+		-- panel must not blind every tool to the others.
+		local ok, result = pcall(provider)
+		if ok and type(result) == "table" then
+			if result.left then
+				take(result)
+			else
+				for _, rect in ipairs(result) do
+					if type(rect) == "table" and rect.left then
+						take(rect)
+					end
+				end
+			end
+		end
+	end
+	return rects
+end
+
+--- The suite window under this screen point, or nil.
+---@param mx number?
+---@param my number?
+---@return TerraformBrushPanelBounds? rect
+WG.TerraformerShared.getPanelRectAt = function(mx, my)
+	if not (mx and my) then
+		return nil
+	end
+	for _, rect in ipairs(WG.TerraformerShared.getPanelRects()) do
+		if mx >= rect.left and mx <= rect.right and my >= rect.bottomY and my <= rect.topY then
+			return rect
+		end
+	end
+	return nil
+end
+
+--- Bring a registered panel to the front of the shared context. Each widget owns its own
+--- RmlUi document and RCSS z-index only orders elements inside one document, so
+--- PullToFront is the only way to stack the brush against the mission editor.
+---@param name string
+WG.TerraformerShared.bringToFront = function(name)
+	local doc = registeredDocuments[name]
+	if doc and doc.PullToFront then
+		pcall(function()
+			doc:PullToFront()
+		end)
+	end
+end
+
+--- Raise a panel whenever the user presses inside it, so windows stack in the order they
+--- were last touched. The event is not stopped: the press still reaches its target.
+---@param name string
+---@param rootEl RmlUi.Element?
+WG.TerraformerShared.raiseOnPress = function(name, rootEl)
+	if not rootEl or not rootEl.AddEventListener then
+		return
+	end
+	rootEl:AddEventListener("mousedown", function()
+		WG.TerraformerShared.bringToFront(name)
+	end, false)
+end
+
+---A registered element's live layout, in pixel space.
+---@class TerraformerElementRect
+---@field left number
+---@field top number
+---@field width number
+---@field height number
+
+---Reads live pixel-space layout off an element of a registered document.
+---@param docName string
+---@param elementId string?
+---@return TerraformerElementRect? rect `nil` when the document or element is missing,
+---or the element has no width yet.
 WG.TerraformerShared.getElementRect = function(docName, elementId)
 	local doc = registeredDocuments[docName]
 	if not doc then
@@ -182,15 +335,52 @@ WG.TerraformerShared.getElementRect = function(docName, elementId)
 	}
 end
 
--- Shared drag-and-drop helper for floating panels.
--- Sets up mousedown on handleId + mouseup on doc, returns a handle with tick().
--- Call handle.tick() every frame from widget:Update() while the widget is alive.
---
--- opts fields (all optional):
---   snapThreshold (number, default 30) — pixel snap distance for edges + panel snap
---   onDragStart   (function)           — called on mousedown (e.g. set userDragged)
---   snapDocName   (string, default "terraform_brush") — registered document to snap to
---   snapElementId (string, default "tf-root")         — element within that document
+--- Is the button that started a gesture on `element` still held? RmlUi keeps `:active` on the
+--- pressed element until the button is let go, wherever that happens -- over another window,
+--- over the map, outside the game window. Spring.GetMouseState cannot say: the engine never
+--- records a press RmlUi consumed (CMouseHandler::MousePress returns before `pressed = true`),
+--- so its left button reads false for the whole gesture. nil when the state cannot be read.
+---
+--- The mousedown handlers SET `:active` themselves (markHeld): they stop the press propagating,
+--- and RmlUi then skips every default action, the one that sets `:active` included
+--- (EventDispatcher.cpp). The element is still in the context's active chain, so the release
+--- clears it as usual (Context::ResetActiveChain).
+local function stillHeld(element)
+	if not element then
+		return nil
+	end
+	local ok, active = pcall(function()
+		return element:IsPseudoClassSet("active")
+	end)
+	if not ok then
+		return nil
+	end
+	return active == true
+end
+
+local function markHeld(element)
+	pcall(function()
+		element:SetPseudoClass("active", true)
+	end)
+end
+
+---Options accepted by `attachDraggable`.
+---@class TerraformerDraggableOpts
+---@field snapThreshold number? Pixel snap distance for edges and panel snap. Defaults to `30`.
+---@field onDragStart fun()? Called on mousedown, e.g. to record that the user moved the panel.
+---@field snapDocName string? Registered document to snap against. Defaults to `"terraform_brush"`.
+---@field snapElementId string? Element within that document. Defaults to `"tf-root"`.
+
+---The value returned by `attachDraggable`.
+---@class TerraformerDraggable
+---@field tick fun() Call every frame from `widget:Update()` while the widget is alive.
+
+---Makes a floating panel draggable by a handle element, with edge and panel snapping.
+---@param doc RmlUi.Document?
+---@param handleId string Id of the element used as the drag handle.
+---@param rootEl RmlUi.Element? The panel being moved.
+---@param opts TerraformerDraggableOpts?
+---@return TerraformerDraggable handle A no-op handle when `doc`, `rootEl` or the handle element is missing.
 WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 	if not doc or not rootEl then
 		return { tick = function() end }
@@ -205,6 +395,17 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 	local snapDocName = (opts and opts.snapDocName) or "terraform_brush"
 	local snapElementId = (opts and opts.snapElementId) or "tf-root"
 
+	---@class TerraformerDragState
+	---@field active boolean
+	---@field rootEl table?
+	---@field offsetX number
+	---@field offsetY number
+	---@field ew number
+	---@field eh number
+	---@field vsx number
+	---@field vsy number
+	---@field lastX number
+	---@field lastY number
 	local ds = {
 		active = false,
 		rootEl = nil,
@@ -225,33 +426,42 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 		end
 		local mx, my = Spring.GetMouseState()
 		local vsx, vsy = Spring.GetViewGeometry()
+		-- Clamp to the WINDOW, not the world view: in dual-screen mode the window spans
+		-- both monitors and the point is dragging a panel onto the other one. The y flip
+		-- stays on the view height, which the horizontal split leaves equal.
+		local winX = Spring.GetWindowGeometry()
 		ds.active = true
 		ds.rootEl = rootEl
 		ds.offsetX = mx - rootEl.offset_left
 		ds.offsetY = (vsx > 0 and vsy > 0) and ((vsy - my) - rootEl.offset_top) or 0
 		ds.ew = rootEl.offset_width
 		ds.eh = rootEl.offset_height
-		ds.vsx = vsx
+		ds.vsx = (winX and winX > vsx) and winX or vsx
 		ds.vsy = vsy
 		ds.lastX = -1
 		ds.lastY = -1
 		if onDragStart then
 			onDragStart()
 		end
+		markHeld(handleEl)
 		event:StopPropagation()
 	end, false)
 
-	doc:AddEventListener("mouseup", function()
+	local function endDrag()
 		if ds.active then
+			local moved = ds.rootEl
 			ds.active = false
 			ds.rootEl = nil
-			-- The window moved, so the room left below it changed. Guarded:
-			-- a document can outlive this widget's Shutdown.
+			-- The room below the window changed. Guarded: a document can outlive
+			-- this widget's Shutdown.
 			if WG.TerraformerShared and WG.TerraformerShared.refreshPanelBodies then
 				WG.TerraformerShared.refreshPanelBodies()
 			end
+			applyScreenScale(moved)
 		end
-	end, false)
+	end
+
+	doc:AddEventListener("mouseup", endDrag, false)
 
 	local T = snapThreshold
 	return {
@@ -260,6 +470,11 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 				return
 			end
 			local mx, my, _, _, _, offscreen = Spring.GetMouseState()
+			-- Released anywhere at all ends the drag; see stillHeld.
+			if stillHeld(handleEl) == false then
+				endDrag()
+				return
+			end
 			if offscreen then
 				return
 			end
@@ -336,9 +551,8 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 end
 
 function widget:Update()
-	-- Panel bodies are re-capped on a poll rather than on events: a window can
-	-- change the space below it by being dragged, by a resize, or by simply
-	-- being opened, and the reads are cheap.
+	-- Polled rather than event-driven: a drag, a resize or simply opening a window
+	-- changes the space below it, and the reads are cheap.
 	panelBodyTick = panelBodyTick - 1
 	if panelBodyTick <= 0 then
 		panelBodyTick = PANEL_BODY_POLL_FRAMES
@@ -356,7 +570,6 @@ function widget:Shutdown()
 		WG.TerraformerShared.getDpRatio = nil
 		WG.TerraformerShared.registerDocument = nil
 		WG.TerraformerShared.unregisterDocument = nil
-		WG.TerraformerShared.getDocument = nil
 		WG.TerraformerShared.getElementRect = nil
 		WG.TerraformerShared.attachDraggable = nil
 		WG.TerraformerShared.refreshPanelBodies = nil

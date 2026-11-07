@@ -6,8 +6,7 @@ function widget:GetInfo()
 		date = "2026",
 		license = "GPL-2.0+",
 		layer = 0,
-		-- Off by default like the rest of the Terraform Brush suite
-		-- (cmd_terraform_brush, cmd_map_project): enabled from the widget list.
+		-- Off by default like the rest of the suite: cmd_terraform_suite.lua enables it.
 		enabled = false,
 	}
 end
@@ -16,34 +15,19 @@ end
 Capture pipeline
 ================
 
-The map photo is a camera walk, not a single screenshot. Per tile we park the
-camera high above the tile looking straight down, let the frame render, copy the
-composited screen, then run a reprojection shader that maps every OUTPUT texel
-to its true world (x,z), looks the ground height up in $heightmap, projects that
-world point through the frame's real view-projection matrix and reads the screen
-copy at the resulting UV.
+The map photo is a camera walk. Per tile the camera looks straight down, the
+frame renders, and a reprojection shader maps every output texel to world (x,z),
+looks up ground height, projects through the frame's view-projection matrix and
+samples the screen copy. Reprojection (not cropping) makes tiles stitch
+pixel-exact, since a crop bakes in perspective and seams show ridges.
 
-Reprojecting rather than cropping screenshots is what makes tiles stitch
-pixel-exact: a plain crop bakes in the frame's perspective, so hilltops shift
-outward from screen centre and every tile seam shows a ridge discontinuity.
-Reprojection is orthographic in world XZ by construction, so neighbouring tiles
-agree on every shared texel regardless of where the camera happened to be.
+Tiles go into one large FBO and a single gl.SaveImage when it fits; otherwise
+each tile row is written as its own strip. Output width is capped by
+GL_MAX_TEXTURE_SIZE, not screen size: more, smaller tiles give more detail.
 
-Tiles are composited into ONE oversized FBO (sub-rect per tile) and written with
-a single gl.SaveImage, so there is no external stitching step. Output resolution
-is therefore capped by GL_MAX_TEXTURE_SIZE, not by screen resolution: the screen
-only limits pixels-per-TILE, and we simply use more, smaller tiles for more
-detail (halving the world span per tile doubles px/elmo).
-
-Units are NOT in the photo -- they are hidden for the walk and exported as a
-separate SVG whose <image> children each carry a base64 PNG. Figma imports that
-as one movable layer per unit, which is the whole point: a campaign designer
-drops photo + unit layer into one frame and re-blocks the mission by dragging.
-
-Reads the unit list through WG.MapProject.requestUnits (a synced gadget
-round-trip). The widget-side unit view is LOS-limited, so enumerating here would
-silently drop every unit outside the player's own LOS -- exactly the units a
-mission draft is about.
+Units are hidden for the walk and exported as a separate SVG of base64 PNGs, one
+movable Figma layer per unit. The unit list comes from WG.MapProject.requestUnits
+(synced round-trip): the widget-side view is LOS-limited.
 ]]
 
 --------------------------------------------------------------------------------
@@ -77,6 +61,21 @@ local Echo = Spring.Echo
 -- Settings (mirrored into the Terraform Brush UI through WG.TerraformCapture)
 --------------------------------------------------------------------------------
 
+---@class TerraformCaptureSettings
+---@field detail number Output pixels per elmo.
+---@field photoWater boolean
+---@field photoShadows boolean
+---@field photoBloom boolean
+---@field photoFog boolean
+---@field photoFeatures boolean Bake features into the photo.
+---@field unitLayer boolean
+---@field unitStyle "portrait"|"topdown" A buildpic tile or a model render.
+---@field unitSize number Sprite pixels at detail 1, scaled with detail.
+---@field unitScaling number `0` draws every sprite the same size, `1` scales them fully with their footprint.
+---@field unitGroupTeam boolean
+---@field unitLabels boolean
+---@field featureLayer boolean Also export features as their own layer.
+---@field commentLayer boolean
 local settings = {
 	detail = 1, -- output pixels per elmo: 0.5 / 1 / 2
 	photoWater = true,
@@ -95,7 +94,7 @@ local settings = {
 }
 
 --------------------------------------------------------------------------------
--- Base64 (SVG images must be inlined -- Figma will not fetch local files)
+-- Base64 (SVG images must be inlined: Figma will not fetch local files)
 --------------------------------------------------------------------------------
 
 local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -218,18 +217,12 @@ local SPRITE_FRAG = [[
 	}
 ]]
 
--- Plan-view model sprites. gl.UnitShape with rawState=true runs the model's
--- DrawStatic() and nothing else -- no shader, no textures, no team colour --
--- which rasterises a flat white hull. rawState=false is not the answer either:
--- the engine's setup path RESETS the projection and modelview matrices, which
--- throws away the orthographic transform this bake depends on and renders
--- nothing. So we keep rawState=true, push the model's textures by hand, and
--- supply this shader.
---
--- gl.UnitShape scopes to the LEGACY model drawer, so the fixed-function vertex
--- aliases are valid here (same as modelmaterials/Templates/defaultMaterialTemplate.lua).
--- Team colour lives in the diffuse ALPHA channel, not a second texture:
--- mix(texColor1.rgb, teamColor.rgb, texColor1.a), per cus_gl4.frag.glsl.
+-- Plan-view model sprites. gl.UnitShape with rawState=true draws a flat white
+-- hull (no shader, textures or team colour); rawState=false resets the projection
+-- and modelview matrices and loses the ortho bake. So rawState stays true, the
+-- textures are bound by hand and this shader is supplied.
+-- gl.UnitShape uses the legacy model drawer, so fixed-function vertex aliases are
+-- valid. Team colour is the diffuse alpha: mix(tex1.rgb, teamColor.rgb, tex1.a).
 local MODEL_VERT = [[
 	#version 150 compatibility
 	varying vec3 vNormal;
@@ -256,6 +249,7 @@ local MODEL_FRAG = [[
 	}
 ]]
 
+---@type integer|false|nil, integer|false|nil, integer|false|nil
 local reprojShader, spriteShader, modelShader
 local uRe, uSp, uMdl = {}, {}, {}
 
@@ -315,7 +309,9 @@ end
 -- Small helpers
 --------------------------------------------------------------------------------
 
+---@type integer?
 local maxTexSize
+---@return integer
 local function getMaxTexSize()
 	if maxTexSize then
 		return maxTexSize
@@ -379,6 +375,52 @@ end
 -- Capture job state
 --------------------------------------------------------------------------------
 
+---@class TerraformCaptureJob
+---@field phase string
+---@field dir string
+---@field detail number
+---@field outW integer
+---@field outH integer
+---@field tilesX integer
+---@field tilesZ integer
+---@field sprites table
+---@field spriteList table[]
+---@field spriteIndex integer
+---@field settle integer
+---@field tileIndex integer
+---@field fitTries integer
+---@field tiles table[]?
+---@field maxRowH number?
+---@field sceneChanged boolean?
+---@field savedCam table?
+---@field hiddenUnits integer[]?
+---@field hiddenFeatures integer[]?
+---@field savedFog number[]?
+---@field savedWater integer?
+---@field savedShadows integer?
+---@field bloomDisabled boolean?
+---@field savedSampleRate number?
+---@field guiHidden boolean?
+---@field unitsRequested boolean?
+---@field units table[]?
+---@field unitsDone boolean?
+---@field unitsError string?
+---@field mapProjectEnableTried boolean?
+---@field collectTicks integer?
+---@field features table[]?
+---@field mosaic any render target
+---@field strip any render target, strip mode only
+---@field stripMode boolean?
+---@field stripH number?
+---@field screenTex any
+---@field terrainFiles table?
+---@field minH number?
+---@field maxH number?
+---@field probeIndex integer?
+---@field probeBest table?
+
+--- `|any`: nil while idle, but the phases only run while it exists.
+---@type TerraformCaptureJob|any
 local job = nil -- nil when idle
 local status =
 	{ active = false, phase = "", step = 0, total = 0, message = "", lastPath = "", lastSummary = "", error = "" }
@@ -386,6 +428,7 @@ local status =
 -- The camera state that actually points straight down is resolved empirically
 -- once per session: the tilt field and its sign differ between camera
 -- controllers, and guessing wrong would silently produce oblique tiles.
+---@type table?
 local downCam = nil
 
 local function setStatus(phase, stepN, totalN, msg)
@@ -401,15 +444,30 @@ end
 -- Estimation (drives the live readout in the Capture window)
 --------------------------------------------------------------------------------
 
+---What a capture at a given detail level would produce.
+---@class TerraformCaptureEstimate
+---@field detail number Pixels per elmo the estimate was made for.
+---@field effectiveDetail number What the capture will actually use, lowered when `capped`.
+---@field capped boolean The requested detail exceeds the GPU texture limit.
+---@field maxTex integer The GPU's maximum texture dimension in pixels.
+---@field strips boolean Too large for one image, so the output lands as horizontal strips.
+---@field outW integer Output width in pixels.
+---@field outH integer Output height in pixels.
+---@field tilesX integer
+---@field tilesZ integer
+---@field tiles integer Total camera moves the walk needs.
+---@field seconds number Rough wall-clock cost of the walk.
+
+---Works out the output size and cost of a capture without starting one.
+---@param detail number? Pixels per elmo. Defaults to the current setting.
+---@return TerraformCaptureEstimate
 local function estimate(detail)
 	detail = tonumber(detail) or settings.detail
 	local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
 	local cap = getMaxTexSize()
 
-	-- Only the WIDTH is a hard limit. A full-height mosaic is attempted first
-	-- because it yields a single PNG, but when it will not allocate the capture
-	-- falls back to one strip per tile row -- and a strip is only outW wide, so
-	-- output height is unbounded.
+	-- Only the width is a hard limit: when a full mosaic will not allocate the
+	-- capture falls back to one outW-wide strip per tile row, so height is unbounded.
 	local effective = detail
 	local capped = false
 	local widthLimit = cap / mapX
@@ -449,6 +507,13 @@ end
 --------------------------------------------------------------------------------
 -- Scene state save / restore
 --------------------------------------------------------------------------------
+
+-- FOCUS MODE (the panel's eye button) hides the game interface on purpose; a
+-- capture may start under it and has to leave it hidden when done.
+local function focusModeOn()
+	local ui = WG.TerraformBrushUI
+	return (ui and ui.isFocusMode and ui.isFocusMode()) == true
+end
 
 -- Everything the walk changes is restored through this one function, which also
 -- runs from Shutdown and from the cancel path: a capture that dies half way
@@ -495,7 +560,8 @@ local function restoreScene()
 		j.savedSampleRate = nil
 	end
 	if j.guiHidden then
-		pcall(Spring.SendCommands, "hideinterface 0")
+		-- Back to what the editor wants, not blindly on: focus mode keeps it hidden.
+		Spring.SendCommands(focusModeOn() and "hideinterface 1" or "hideinterface 0")
 		j.guiHidden = nil
 	end
 	if j.savedCam then
@@ -626,6 +692,7 @@ local function tileFits(j, t)
 	if #m ~= 16 then
 		return false, 2
 	end
+	---@type number
 	local worst = 0
 	for _, x in ipairs({ t.wx0, t.wx1 }) do
 		for _, z in ipairs({ t.wz0, t.wz1 }) do
@@ -706,16 +773,11 @@ local function drawTile(j, t)
 	return true
 end
 
--- Write image rows [imgY0, imgY1) of a render target as a PNG. Row 0 is the TOP
--- of the target while glReadPixels counts from the bottom, hence the flipped
--- origin.
---
--- yflip stays at the engine default (true). yflip=false — which the other
--- SaveImage callers in this repo use — skips the bottom-up-to-top-down flip, so
--- every image comes out vertically mirrored: the terrain landed south-up while
--- the unit SVG places y=0 at world z=0, and the two only lined up after
--- mirroring one of them. Wrapped in a pcall because a large readback is exactly
--- where gl.SaveImage gives up, and that has to read as a message, not a crash.
+-- Write image rows [imgY0, imgY1) of a render target as a PNG. Row 0 is the top
+-- of the target while glReadPixels counts from the bottom, hence the flipped origin.
+-- yflip stays true (the engine default): yflip=false, as other SaveImage callers
+-- use, mirrors the image vertically against the unit SVG. The pcall turns a
+-- refused large readback into a message instead of a crash.
 local function saveTargetRegion(tex, w, texH, imgY0, imgY1, path)
 	local h = imgY1 - imgY0
 	if h <= 0 then
@@ -724,8 +786,8 @@ local function saveTargetRegion(tex, w, texH, imgY0, imgY1, path)
 	local ran, saved = false, false
 	local okCall, callErr = pcall(gl.RenderToTexture, tex, function()
 		ran = true
-		-- Returns boolean? — nil counts as success (older builds return nothing);
-		-- only an explicit false is a refusal.
+		-- Returns boolean?: nil counts as success (some engine builds return
+		-- nothing), only an explicit false is a refusal.
 		saved = (gl.SaveImage(0, texH - imgY1, w, h, path, { yflip = true, alpha = false }) ~= false)
 	end)
 	if okCall and ran and saved then
@@ -1096,10 +1158,8 @@ local function phaseCollect(j)
 			return
 		end
 
-		-- The unit list comes from Map Project's synced round-trip, and that
-		-- widget ships disabled. Enable it ourselves rather than failing the
-		-- headline feature on a dependency the user never chose to skip, then
-		-- give it one frame to publish WG.MapProject.
+		-- The unit list comes from Map Project, which ships disabled: enable it
+		-- and give it one frame to publish WG.MapProject.
 		if not (WG.MapProject and WG.MapProject.requestUnits) then
 			if not j.mapProjectEnableTried then
 				j.mapProjectEnableTried = true
@@ -1148,7 +1208,9 @@ local function phaseCollect(j)
 		for i = 1, #ids do
 			local fid = ids[i]
 			local defID = Spring.GetFeatureDefID(fid)
+			---@type table?
 			local def = defID and FeatureDefs[defID]
+			---@type number?, number?, number?
 			local x, _, z = Spring.GetFeaturePosition(fid)
 			if def and x then
 				j.features[#j.features + 1] = {
@@ -1170,10 +1232,9 @@ local function phasePrep(j)
 		return finish("shader compile failed (see console)")
 	end
 
-	-- One mosaic is preferred (it yields a single PNG), but a full-resolution
-	-- target is hundreds of MB and the allocation is allowed to fail. Falling
-	-- back to one tile row at a time keeps VRAM at a few tens of MB and keeps
-	-- the capture working at any resolution; the cost is one PNG per row.
+	-- One mosaic gives a single PNG, but it can be hundreds of MB and fail to
+	-- allocate. One tile row at a time keeps VRAM to tens of MB at the cost of
+	-- one PNG per row.
 	local cap = getMaxTexSize()
 	local trySingle = (j.outH <= cap) and ((j.outW * j.outH) <= MAX_OUT_PIXELS)
 	j.mosaic = trySingle
@@ -1405,6 +1466,7 @@ local function phaseSave(j)
 	for i = 1, #(j.units or {}) do
 		local u = j.units[i]
 		local defID = UnitDefNames[u.name] and UnitDefNames[u.name].id
+		---@type table?
 		local def = defID and UnitDefs[defID]
 		if def then
 			u.defID = defID
@@ -1567,8 +1629,10 @@ local function phaseSvg(j)
 		local labels = WG.MapLabels.getLabels() or {}
 		if #labels > 0 then
 			local out = { svgHeader(j.outW, j.outH, "Comments"), ' <g id="Comments">\n' }
+			---@type number
 			local r = max(6, 14 * scale)
 			for i = 1, #labels do
+				---@type table
 				local L = labels[i]
 				local cx, cy = L.x * scale, L.z * scale
 				out[#out + 1] = format(
@@ -1652,11 +1716,16 @@ end
 -- Driver
 --------------------------------------------------------------------------------
 
+---Starts the map capture walk, which runs across later frames.
+---@return boolean started
+---@return string? reason Why the capture could not start.
 local function startCapture()
 	if job then
 		return false, "a capture is already running"
 	end
-	if Spring.IsGUIHidden and Spring.IsGUIHidden() then
+	-- A plain F5 is refused (the user hid the UI, the photo path must not un-hide
+	-- it behind their back); focus mode is the editor's own hide and is fine.
+	if Spring.IsGUIHidden and Spring.IsGUIHidden() and not focusModeOn() then
 		return false, "hide-interface is on; turn it off first"
 	end
 
@@ -1708,12 +1777,10 @@ local PHASES = {
 	svg = phaseSvg,
 }
 
--- Everything runs from DrawScreenEffects: it is the one callin that is both
--- allowed to gl.RenderToTexture and guaranteed to see the finished world frame
--- (bloom draws last in DrawWorld) without any interface on top of it yet.
--- The status bar has room for one line, and a bare GL error message is useless
--- without knowing which call raised it, so the traceback is attached here and
--- echoed to the console/infolog.
+-- Phases run from DrawScreenEffects: it may gl.RenderToTexture and sees the
+-- finished world frame (bloom included) before any interface is drawn.
+-- A bare GL error does not say which call raised it, so the traceback is
+-- attached and echoed to the infolog.
 local function phaseTraceback(err)
 	local tb = (debug and debug.traceback) and debug.traceback("", 2) or "(no traceback available)"
 	return tostring(err) .. "\n" .. tb
@@ -1787,13 +1854,20 @@ end
 function widget:Initialize()
 	widgetHandler:AddAction("tfcapture", captureAction, nil, "t")
 	WG.TerraformCapture = {
+		---@return TerraformCaptureSettings settings A shallow copy, so mutating it
+		---does not affect the live settings.
 		getSettings = function()
 			local copy = {}
 			for k, v in pairs(settings) do
 				copy[k] = v
 			end
-			return copy
+			return copy --[[@as TerraformCaptureSettings]]
 		end,
+		---Changes one capture setting.
+		---@param key string
+		---@param value string|number|boolean Must match the kind the setting already holds;
+		---no conversion or validation is done beyond checking that `key` exists.
+		---@return boolean set `false` when `key` is not a known setting.
 		setSetting = function(key, value)
 			if settings[key] == nil then
 				return false
@@ -1803,14 +1877,28 @@ function widget:Initialize()
 		end,
 		estimate = estimate,
 		start = startCapture,
+		---Aborts a running capture and restores the scene. Safe to call when idle.
 		cancel = function()
 			if job then
 				finish("cancelled")
 			end
 		end,
+		---@return boolean busy Whether a capture is running.
 		isBusy = function()
 			return job ~= nil
 		end,
+		---Progress of the current or last capture.
+		---@class TerraformCaptureStatus
+		---@field active boolean Whether a capture is running.
+		---@field phase string Which stage the capture is in.
+		---@field step integer Tiles completed.
+		---@field total integer Tiles to do in total.
+		---@field message string Human-readable progress line.
+		---@field lastPath string Where the last capture was written.
+		---@field lastSummary string One-line summary of the last capture.
+		---@field error string Empty unless the last capture failed.
+
+		---@return TerraformCaptureStatus status The live table; do not mutate.
 		getStatus = function()
 			return status
 		end,

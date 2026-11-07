@@ -20,6 +20,7 @@ return {
 		speed = 40.5,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGBAR.s3o",
 		script = "Units/LEGBAR.cob",
@@ -47,9 +48,8 @@ return {
 			kickback = "-2.4",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorVehicles/T2",
-			weapon1turretx = 30,
-			weapon1turrety = 40,
+			reaimtime = 5,
+			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {
 			dead = {
@@ -148,6 +148,8 @@ return {
 					area_onhit_range = 60,
 					area_onhit_time = 7,
 					water_splash = 0,
+					turretspeedx = 30,
+					turretspeedy = 40,
 				},
 				damage = {
 					default = 60,

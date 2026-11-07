@@ -10,7 +10,7 @@
 --
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-VFS.Include("init.lua")
+VFS.Include("init.lua", nil, VFS.ZIP)
 
 LUA_NAME = Script.GetName()
 LUA_DIRNAME = Script.GetName() .. "/"
@@ -30,7 +30,7 @@ VFS.DEF_MODE = VFS.RAW_FIRST
 if Spring.SetLogSectionFilterLevel then
 	Spring.SetLogSectionFilterLevel(LUA_NAME, "info")
 else
-	-- backward compability
+	-- backward compatibility
 	local origSpringLog = Spring.Log
 
 	Spring.Log = function(name, level, ...)

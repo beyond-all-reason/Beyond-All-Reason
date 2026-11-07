@@ -20,6 +20,9 @@ include("keysym.h.lua")
 
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMouseState = Spring.GetMouseState
+local spGetMouseCursor = Spring.GetMouseCursor
+local spGetModKeyState = Spring.GetModKeyState
+local spGetBuildFacing = Spring.GetBuildFacing
 local spTraceScreenRay = Spring.TraceScreenRay
 local spPos2BuildPos = Spring.Pos2BuildPos
 
@@ -32,14 +35,25 @@ local selectedMex
 local selectedGeo
 local targetPos
 local cursorPos
-local buildCmd
+local cursorPoint = {}
+local buildCmd = {}
 local unitShape
+local unitShapeData = {}
 local activeUnitShape
 local metalMap = false
 local metalSpots = {}
 local geoSpots = {}
 
 local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
+
+-- the cursor as last drawn (DrawScreenPost)
+local shownCursor
+
+---Over the world the active command's cursor shows. The engine shows "cursornormal" over IsAbove widgets
+---(the PIP), and HUD panels set it over themselves in DrawScreen. Pregame has no command cursor to compare.
+local function overInterface()
+	return spGetMouseCursor() == "cursornormal" or shownCursor == "cursornormal"
+end
 
 local function MakeLine(x1, y1, z1, x2, y2, z2)
 	gl.Vertex(x1, y1, z1)
@@ -48,6 +62,12 @@ end
 
 function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	if not WG.resource_spot_builder or not WG.resource_spot_finder then
+		Spring.Echo("Extractor Snap: the mex/geo resource spot API is missing, disabling")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -75,69 +95,49 @@ local function clear()
 		WG.StopDrawUnitShapeGL4(activeUnitShape)
 		activeUnitShape = nil
 	end
-	nearestSpot = nil
 	cursorPos = nil
 	unitShape = nil
 	selectedMex = nil
 	selectedGeo = nil
 	WG.ExtractorSnap.position = nil
-	buildCmd = {}
+	buildCmd[1] = nil
+end
+
+-- Footprint half sizes, read from UnitDefs once per def
+local halfSizeX, halfSizeZ = {}, {}
+
+-- local building test functions taken from pregame_build
+local function getBuildingDimensions(uDefID, facing)
+	local sizeX = halfSizeX[uDefID]
+	if not sizeX then
+		local bDef = UnitDefs[uDefID]
+		if not bDef then
+			return
+		end
+		sizeX = 4 * bDef.xsize
+		halfSizeX[uDefID] = sizeX
+		halfSizeZ[uDefID] = 4 * bDef.zsize
+	end
+	if facing % 2 == 1 then
+		return halfSizeZ[uDefID], sizeX
+	end
+	return sizeX, halfSizeZ[uDefID]
 end
 
 ---If position of the active blueprint is an extractor, the snap behavior of this widget will be
 ---disabled to allow cancelling queue actions the same way other buildings would.
----@param uid table unitDefID
----@param pos table position in format { x, y, z }
-local function clashesWithBuildQueue(uid, pos)
-	local units = Spring.GetSelectedUnits()
-
-	-- local building test functions taken from pregame_build
-	local function GetBuildingDimensions(uDefID, facing)
-		local bDef = UnitDefs[uDefID]
-		if facing % 2 == 1 then
-			return 4 * bDef.zsize, 4 * bDef.xsize
-		else
-			return 4 * bDef.xsize, 4 * bDef.zsize
-		end
-	end
-
-	local function DoBuildingsClash(buildData1, buildData2)
-		if not buildData1[5] or not buildData2[5] then
-			return false
-		end
-		local w1, h1 = GetBuildingDimensions(buildData1[1], buildData1[5])
-		local w2, h2 = GetBuildingDimensions(buildData2[1], buildData2[5])
-
-		return mathAbs(buildData1[2] - buildData2[2]) < w1 + w2 and mathAbs(buildData1[4] - buildData2[4]) < h1 + h2
-	end
-
-	local buildFacing = Spring.GetBuildFacing()
-	local newBuildData = { uid, pos.x, pos.y, pos.z, buildFacing }
-	if isPregame then
-		local queue = WG["pregame-build"].getBuildQueue()
-		for i = 1, #queue do
-			if DoBuildingsClash(newBuildData, queue[i]) then
+---@param uid number unitDefID
+---@param x number
+---@param z number
+local function clashesWithBuildQueue(uid, x, z)
+	local w1, h1 = getBuildingDimensions(uid, spGetBuildFacing())
+	local count, defs, xs, zs, facings = WG.resource_spot_builder.GetSelectedBuildQueue()
+	for i = 1, count do
+		local facing = facings[i]
+		if facing then
+			local w2, h2 = getBuildingDimensions(defs[i], facing)
+			if w2 and mathAbs(x - xs[i]) < w1 + w2 and mathAbs(z - zs[i]) < h1 + h2 then
 				return true
-			end
-		end
-	else
-		for i = 1, #units do
-			local queue = Spring.GetUnitCommands(units[i], 100)
-			if queue then
-				for j = 1, #queue do
-					local command = queue[j]
-					local id = command.id and command.id or command[1]
-					if id < 0 then
-						local x = command.params and command.params[1] or command[2]
-						local y = command.params and command.params[2] or command[3]
-						local z = command.params and command.params[3] or command[4]
-						local facing = command.params and command.params[4] or 1
-						local buildData = { -id, x, y, z, facing }
-						if DoBuildingsClash(newBuildData, buildData) then
-							return true
-						end
-					end
-				end
 			end
 		end
 	end
@@ -180,28 +180,26 @@ function widget:Update()
 		return
 	end
 
-	-- Attempt to get position of command
+	if not isPregame and overInterface() then
+		clear()
+		return
+	end
+
+	-- Attempt to get position of command (through the minimap: the spot it shows there)
 	local buildingId = -activeCmdID
 	local mx, my = spGetMouseState()
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-	local _, pos = spTraceScreenRay(mx, my, true)
+	local _, _, _, shift = spGetModKeyState()
+	local _, pos = spTraceScreenRay(mx, my, true, true)
 	if not pos or not pos[1] then
 		clear()
 		return
 	end
 	local x, y, z = pos[1], pos[2], pos[3]
-	cursorPos = {}
+	cursorPos = cursorPoint
 	cursorPos.x, cursorPos.y, cursorPos.z = spPos2BuildPos(buildingId, x, y, z)
 
-	-- check if there is stuff in the way - if there is we change behavior
-	local clashes = clashesWithBuildQueue(buildingId, cursorPos)
-	if clashes and isPregame then
-		if shift then
-			clear()
-			return
-		end
-	end
-	if clashes and not isPregame then
+	-- check if there is stuff in the way - if there is we change behavior (in pregame only with shift held)
+	if (shift or not isPregame) and clashesWithBuildQueue(buildingId, cursorPos.x, cursorPos.z) then
 		clear()
 		return
 	end
@@ -229,10 +227,13 @@ function widget:Update()
 		return
 	end
 
-	buildCmd = {}
+	buildCmd[1] = nil
 	local cmd = WG.resource_spot_builder.PreviewExtractorCommand(pos, buildingId, nearestSpot)
 	if cmd and #cmd > 0 then
-		targetPos = { x = cmd[2], y = cmd[3], z = cmd[4] }
+		-- a new table only when the target moves, other widgets may hold on to it
+		if not targetPos or targetPos.x ~= cmd[2] or targetPos.y ~= cmd[3] or targetPos.z ~= cmd[4] then
+			targetPos = { x = cmd[2], y = cmd[3], z = cmd[4] }
+		end
 		WG.ExtractorSnap.position = targetPos -- used by prospector and pregame queue
 
 		local dist =
@@ -244,18 +245,27 @@ function widget:Update()
 		end
 
 		buildCmd[1] = cmd
-		local newUnitShape = { mathAbs(buildingId), cmd[2], cmd[3], cmd[4], cmd[5], cmd[6] }
-		-- check equality by position
+		local unitDefID = mathAbs(buildingId)
+		-- redraw the ghost when its building, position, facing or owner changes
 		if
 			unitShape
-			and (unitShape[2] ~= newUnitShape[2] or unitShape[3] ~= newUnitShape[3] or unitShape[4] ~= newUnitShape[4])
+			and (
+				unitShape[1] ~= unitDefID
+				or unitShape[2] ~= cmd[2]
+				or unitShape[3] ~= cmd[3]
+				or unitShape[4] ~= cmd[4]
+				or unitShape[5] ~= cmd[5]
+				or unitShape[6] ~= cmd[6]
+			)
 		then
 			if WG.StopDrawUnitShapeGL4 then
 				WG.StopDrawUnitShapeGL4(activeUnitShape)
 			end
 			activeUnitShape = nil
 		end
-		unitShape = newUnitShape
+		unitShape = unitShapeData
+		unitShape[1], unitShape[2], unitShape[3], unitShape[4], unitShape[5], unitShape[6] =
+			unitDefID, cmd[2], cmd[3], cmd[4], cmd[5], cmd[6]
 	else
 		clear()
 	end
@@ -306,8 +316,8 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if button == 1 and buildCmd and buildCmd[1] then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	if button == 1 and buildCmd[1] and not overInterface() then
+		local _, _, _, shift = spGetModKeyState()
 		shift = Spring.GetInvertQueueKey() and not shift or shift
 		if selectedMex then
 			WG.resource_spot_builder.ApplyPreviewCmds(buildCmd, mexConstructors, shift)
@@ -328,6 +338,10 @@ function widget:KeyRelease(code)
 		Spring.SetActiveCommand(0)
 		endShift = false
 	end
+end
+
+function widget:DrawScreenPost()
+	shownCursor = spGetMouseCursor()
 end
 
 function widget:DrawWorld()

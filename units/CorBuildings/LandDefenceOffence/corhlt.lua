@@ -24,7 +24,7 @@ return {
 		script = "Units/CORHLT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 455,
+		sightdistance = 500,
 		yardmap = "oooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
@@ -34,6 +34,7 @@ return {
 			legacyname = "Gaat Gun",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 5,
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			unitgroup = "weapon",

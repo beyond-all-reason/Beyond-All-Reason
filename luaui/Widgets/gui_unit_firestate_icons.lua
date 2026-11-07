@@ -22,17 +22,25 @@ local shouldShowToSpectators = false
 local spGetGameFrame = Spring.GetGameFrame
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitStates = Spring.GetUnitStates
 local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetMyTeamID = Spring.GetLocalTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+local spIsGUIHidden = Spring.IsGUIHidden
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
+local defendFirestateMode = Spring.GetModOptions().experimental_defend_firestate
+
+-- "UnitIconDistance" is not an engine setting, so this is the default unless someone sets it
+local iconDistance = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5
+local shaderIconDistance
 
 local HOLD_FIRE = 0
 local RETURN_FIRE = 1
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
-local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
-local UserFirestateCommands = VFS.Include("luaui/Include/user_firestate_commands.lua")
+local CustomFirestateDefs = require("modules/custom_firestate_defs")
+local UserFirestateCommands = require("luaui/Include/user_firestate_commands")
 
 -- Textures to display (replace with dedicated icons if available)
 local holdFireTexture = "LuaUI/Images/holdfire.png"
@@ -41,7 +49,10 @@ local returnFireTexture = "LuaUI/Images/returnfire.png"
 --------------------------------------------------------------------------------
 -- GL4 Backend
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable?
 local holdFireVBO = nil
+---@type InstanceVBOTable?
 local returnFireVBO = nil
 local fireIconShader = nil
 
@@ -55,6 +66,7 @@ local popElementInstance = InstanceVBOTable.popElementInstance
 -- Per-UnitDef config: [unitDefID] = {iconSize, iconHeight}
 -- Only populated for units that have at least one weapon
 --------------------------------------------------------------------------------
+---@type table<integer, table>
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
 	local hasWeapons = unitDef.weapons and #unitDef.weapons > 0
@@ -70,7 +82,7 @@ end
 local visibleUnits = {}
 local crashingUnits = {} -- unitIDs currently crashing; skip icon for these
 local chobbyInterface = false
-local unitFireState = {} -- [unitID] = cached icon state
+local isSpectator = spGetSpectatingState() -- refreshed in VisibleUnitsChanged and PlayerChanged
 local userSelectedFirestate = {} -- [unitID] = userState explicitly chosen by this client
 local unitToTeam = {} -- [unitID] = teamID; needed to filter dead-allyteam units
 local deadAllyTeams = {} -- [allyTeamID] = true when entire allyteam has been wiped out
@@ -81,11 +93,15 @@ local myPlayerID = spGetMyPlayerID()
 local myTeamID = spGetMyTeamID()
 
 -- Pre-allocated and reused for every pushElementInstance call to avoid per-push table allocation
+---@type number[]
 local instanceData = { 0, 0, 0, 0, 0, 4, 0, 0, 0.85, 0, 0, 1, 0, 1, 0, 0, 0, 0 }
 
 --------------------------------------------------------------------------------
 -- GL4 Initialization
 --------------------------------------------------------------------------------
+
+---Builds the instance buffer backing one fire state icon.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function createFireIconVBO(shaderConfig, vboName, useGeometryShaderForThisShader)
 	local instanceLayout
 	local unitIDattribID
@@ -119,7 +135,7 @@ local function createFireIconVBO(shaderConfig, vboName, useGeometryShaderForThis
 	if useGeometryShaderForThisShader then
 		local vao = gl.GetVAO()
 		vao:AttachVertexBuffer(vboTable.instanceVBO)
-		vboTable.VAO = vao
+		vboTable.VAO = InstanceVBOTable.fillVAOSlots(vao)
 	else
 		local numSlots = math.max(shaderConfig.MAXVERTICES or 64, 8)
 		local templateVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
@@ -147,8 +163,11 @@ local function createFireIconVBO(shaderConfig, vboName, useGeometryShaderForThis
 
 		vboTable.nogsTemplateVBO = templateVBO
 		vboTable.nogsIndexVBO = indexVBO
+		-- so the resize can find the template mesh when it rebuilds the VAO
+		vboTable.vertexVBO = templateVBO
+		vboTable.indexVBO = indexVBO
 		local indexCount = #indexData
-		vboTable.VAO = {
+		local vaoWrapper = {
 			realVAO = realVAO,
 			indexCount = indexCount,
 			DrawArrays = function(self, _primitiveType, instanceCount)
@@ -160,6 +179,21 @@ local function createFireIconVBO(shaderConfig, vboName, useGeometryShaderForThis
 				self.realVAO:Delete()
 			end,
 		}
+		-- the resize will put a plain VAO into this field, keep our wrapper working like DrawPrimitiveAtUnit.lua does
+		setmetatable(vboTable, {
+			__index = function(_, key)
+				if key == "VAO" then
+					return vaoWrapper
+				end
+			end,
+			__newindex = function(instanceTable, key, value)
+				if key == "VAO" then
+					vaoWrapper.realVAO = value
+				else
+					rawset(instanceTable, key, value)
+				end
+			end,
+		})
 	end
 	return vboTable
 end
@@ -215,13 +249,23 @@ WG.unitfirestate.getShowAllHoldFireIcons = function()
 end
 
 local function iconsEnabled()
-	if not showFireStateIcons then
-		return false
+	return showFireStateIcons and (shouldShowToSpectators or not isSpectator)
+end
+
+local drawCallInActive = true
+
+-- DrawScreenEffects is only registered while there are icons. It also uploads what pushes and pops left
+-- dirty: a group order reaches every unit separately, one full upload each would grow with the square of the group.
+local function updateDrawCallIn()
+	local active = holdFireVBO.usedElements > 0 or returnFireVBO.usedElements > 0
+	if active ~= drawCallInActive then
+		drawCallInActive = active
+		if active then
+			widgetHandler:UpdateCallIn("DrawScreenEffects")
+		else
+			widgetHandler:RemoveCallIn("DrawScreenEffects")
+		end
 	end
-	if shouldShowToSpectators then
-		return true
-	end
-	return not Spring.GetSpectatingState()
 end
 
 local function clearAllIcons()
@@ -230,15 +274,7 @@ local function clearAllIcons()
 	end
 	InstanceVBOTable.clearInstanceTable(holdFireVBO)
 	InstanceVBOTable.clearInstanceTable(returnFireVBO)
-	for unitID in pairs(unitFireState) do
-		unitFireState[unitID] = nil
-	end
-	if holdFireVBO.dirty then
-		uploadAllElements(holdFireVBO)
-	end
-	if returnFireVBO.dirty then
-		uploadAllElements(returnFireVBO)
-	end
+	updateDrawCallIn()
 end
 
 local function userStateToIconState(userState)
@@ -254,10 +290,10 @@ local function resolveActualUserFirestate(unitID)
 	if not spValidUnitID(unitID) then
 		return nil
 	end
-	if Spring.GetModOptions().experimental_defend_firestate then
+	if defendFirestateMode then
 		return CustomFirestateDefs.getUnitUserFirestate(unitID)
 	end
-	return CustomFirestateDefs.fromEngineFirestate(select(1, Spring.GetUnitStates(unitID, false)))
+	return CustomFirestateDefs.fromEngineFirestate((spGetUnitStates(unitID, false)))
 end
 
 local function migrateUserSelectedFirestateStore()
@@ -296,30 +332,27 @@ end
 --------------------------------------------------------------------------------
 -- Helper: push a unit into a fire-state VBO
 --------------------------------------------------------------------------------
-local function pushToVBO(vbo, unitID, unitDefID, gf)
+local function pushToVBO(vbo, unitID, unitDefID)
 	if vbo.instanceIDtoIndex[unitID] then
 		return
 	end
-	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
+	if spGetUnitIsDead(unitID) ~= false then -- nil for invalid units
 		return
 	end
 	local conf = unitConf[unitDefID]
-	if not conf then
-		return
-	end -- unit has no weapons, skip
 	instanceData[1] = conf[1] -- width
 	instanceData[2] = conf[1] -- height
 	instanceData[4] = conf[2] -- unit height offset
-	instanceData[7] = gf -- gameframe for animation
+	instanceData[7] = spGetGameFrame() -- gameframe for animation
 	pushElementInstance(vbo, instanceData, unitID, false, true, unitID)
 end
 
 --------------------------------------------------------------------------------
 -- Apply a fire-state change for one unit into the appropriate VBOs
 --------------------------------------------------------------------------------
-local function applyFireStateDisplay(unitID, unitDefID, showHold, showReturn, gf)
+local function applyFireStateDisplay(unitID, unitDefID, showHold, showReturn)
 	if showHold then
-		pushToVBO(holdFireVBO, unitID, unitDefID, gf)
+		pushToVBO(holdFireVBO, unitID, unitDefID)
 		if returnFireVBO.instanceIDtoIndex[unitID] then
 			popElementInstance(returnFireVBO, unitID, true)
 		end
@@ -327,7 +360,7 @@ local function applyFireStateDisplay(unitID, unitDefID, showHold, showReturn, gf
 		popElementInstance(holdFireVBO, unitID, true)
 	end
 	if showReturn then
-		pushToVBO(returnFireVBO, unitID, unitDefID, gf)
+		pushToVBO(returnFireVBO, unitID, unitDefID)
 		if holdFireVBO.instanceIDtoIndex[unitID] then
 			popElementInstance(holdFireVBO, unitID, true)
 		end
@@ -337,46 +370,28 @@ local function applyFireStateDisplay(unitID, unitDefID, showHold, showReturn, gf
 end
 
 local function refreshUnitFirestateIcon(unitID, unitDefID, teamID, commandActualState)
-	if not iconsEnabled() then
-		unitFireState[unitID] = nil
-		applyFireStateDisplay(unitID, unitDefID, false, false, spGetGameFrame())
-		if holdFireVBO.dirty then
-			uploadAllElements(holdFireVBO)
-		end
-		if returnFireVBO.dirty then
-			uploadAllElements(returnFireVBO)
-		end
-		return
-	end
-	if crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[teamID]] then
-		return
-	end
-	local actualState = commandActualState or resolveActualUserFirestate(unitID)
-	local selectedState = userSelectedFirestate[unitID]
 	local showHold = false
 	local showReturn = false
-	if showAllHoldFireIcons and actualState == CustomFirestateDefs.HOLD_FIRE then
-		showHold = true
-	elseif selectedState ~= nil and selectedState == actualState then
-		local iconState = userStateToIconState(actualState)
-		showHold = iconState == HOLD_FIRE
-		showReturn = iconState == RETURN_FIRE
+	if iconsEnabled() then
+		if crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[teamID]] then
+			return
+		end
+		local selectedState = userSelectedFirestate[unitID]
+		-- an icon needs a weapon and either a state chosen here or the show-all hold fire option,
+		-- so most units (all enemies) skip reading their state
+		if unitConf[unitDefID] and (selectedState ~= nil or showAllHoldFireIcons) then
+			local actualState = commandActualState or resolveActualUserFirestate(unitID)
+			if showAllHoldFireIcons and actualState == CustomFirestateDefs.HOLD_FIRE then
+				showHold = true
+			elseif selectedState ~= nil and selectedState == actualState then
+				local iconState = userStateToIconState(actualState)
+				showHold = iconState == HOLD_FIRE
+				showReturn = iconState == RETURN_FIRE
+			end
+		end
 	end
-	local gf = spGetGameFrame()
-	if showHold then
-		unitFireState[unitID] = HOLD_FIRE
-	elseif showReturn then
-		unitFireState[unitID] = RETURN_FIRE
-	else
-		unitFireState[unitID] = nil
-	end
-	applyFireStateDisplay(unitID, unitDefID, showHold, showReturn, gf)
-	if holdFireVBO.dirty then
-		uploadAllElements(holdFireVBO)
-	end
-	if returnFireVBO.dirty then
-		uploadAllElements(returnFireVBO)
-	end
+	applyFireStateDisplay(unitID, unitDefID, showHold, showReturn)
+	updateDrawCallIn()
 end
 
 local function applyFireStateOrder(unitID, unitDefID, teamID, userState, userInitiated, wasStagedByApi)
@@ -401,6 +416,8 @@ end
 -- Widget callbacks
 --------------------------------------------------------------------------------
 function widget:Initialize()
+	widgetHandler:RegisterUnitCommand(CMD_FIRE_STATE)
+	widgetHandler:RegisterUnitCommand(CMD_USER_FIRESTATE)
 	if not gl.CreateShader then -- headless / no shader support
 		widgetHandler:RemoveWidget()
 		return
@@ -424,21 +441,17 @@ function widget:Initialize()
 	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
 		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
+	updateDrawCallIn()
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
+	isSpectator = spGetSpectatingState()
 	InstanceVBOTable.clearInstanceTable(holdFireVBO)
 	InstanceVBOTable.clearInstanceTable(returnFireVBO)
 	visibleUnits = {}
-	unitFireState = {}
 	unitToTeam = {}
 	if not iconsEnabled() then
-		if holdFireVBO.dirty then
-			uploadAllElements(holdFireVBO)
-		end
-		if returnFireVBO.dirty then
-			uploadAllElements(returnFireVBO)
-		end
+		updateDrawCallIn()
 		return
 	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do
@@ -452,12 +465,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 			end
 		end
 	end
-	if holdFireVBO.dirty then
-		uploadAllElements(holdFireVBO)
-	end
-	if returnFireVBO.dirty then
-		uploadAllElements(returnFireVBO)
-	end
+	updateDrawCallIn()
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
@@ -474,14 +482,15 @@ end
 
 function widget:VisibleUnitRemoved(unitID)
 	visibleUnits[unitID] = nil
-	unitFireState[unitID] = nil
 	unitToTeam[unitID] = nil
 	crashingUnits[unitID] = nil
 	if holdFireVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(holdFireVBO, unitID)
+		updateDrawCallIn()
 	end
 	if returnFireVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(returnFireVBO, unitID)
+		updateDrawCallIn()
 	end
 end
 
@@ -490,18 +499,15 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 		return
 	end
 	crashingUnits[unitID] = true
-	unitFireState[unitID] = nil
 	clearUserSelectedFirestate(unitID)
 	if holdFireVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(holdFireVBO, unitID)
+		updateDrawCallIn()
 	end
 	if returnFireVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(returnFireVBO, unitID)
+		updateDrawCallIn()
 	end
-end
-
-function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	return false
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
@@ -538,7 +544,6 @@ function widget:TeamDied(teamID)
 	deadAllyTeams[allyTeamID] = true
 	for unitID, tid in pairs(unitToTeam) do
 		if teamToAllyTeam[tid] == allyTeamID then
-			unitFireState[unitID] = nil
 			clearUserSelectedFirestate(unitID)
 			if holdFireVBO.instanceIDtoIndex[unitID] then
 				popElementInstance(holdFireVBO, unitID)
@@ -548,9 +553,11 @@ function widget:TeamDied(teamID)
 			end
 		end
 	end
+	updateDrawCallIn()
 end
 
 function widget:PlayerChanged(playerID)
+	isSpectator = spGetSpectatingState()
 	myPlayerID = spGetMyPlayerID()
 	myTeamID = spGetMyTeamID()
 	if not iconsEnabled() then
@@ -565,6 +572,7 @@ function widget:PlayerChanged(playerID)
 			refreshUnitFirestateIcon(unitID, visibleUnits[unitID], unitTeamID)
 		end
 	end
+	updateDrawCallIn()
 end
 
 function widget:UnitDestroyed(unitID)
@@ -585,48 +593,47 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+-- only registered while there are icons
 function widget:DrawScreenEffects()
 	-- DrawScreenEffects renders after deferred lighting/distortion/bloom/tonemap;
 	-- the shader still uses engine cameraViewProj UBO and depth-tests terrain occlusion.
-	if chobbyInterface then
-		return
-	end
-	if Spring.IsGUIHidden() then
-		return
-	end
-	if not iconsEnabled() then
+	if chobbyInterface or not iconsEnabled() or spIsGUIHidden() then
 		return
 	end
 
-	if holdFireVBO.usedElements == 0 and returnFireVBO.usedElements == 0 then
+	local holdCount = holdFireVBO.usedElements
+	local returnCount = returnFireVBO.usedElements
+	if holdCount == 0 and returnCount == 0 then
 		return
 	end
-
-	local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5
+	if holdFireVBO.dirty then
+		uploadAllElements(holdFireVBO)
+	end
+	if returnFireVBO.dirty then
+		uploadAllElements(returnFireVBO)
+	end
 
 	gl.DepthTest(true)
 	gl.DepthMask(false)
+	fireIconShader:Activate()
+	-- addRadius stays at its default of 0
+	if shaderIconDistance ~= iconDistance then
+		shaderIconDistance = iconDistance
+		fireIconShader:SetUniform("iconDistance", iconDistance)
+	end
 
-	if holdFireVBO.usedElements > 0 then
+	if holdCount > 0 then
 		gl.Texture(holdFireTexture)
-		fireIconShader:Activate()
-		fireIconShader:SetUniform("iconDistance", disticon)
-		fireIconShader:SetUniform("addRadius", 0)
-		holdFireVBO.VAO:DrawArrays(GL.POINTS, holdFireVBO.usedElements)
-		fireIconShader:Deactivate()
-		gl.Texture(false)
+		holdFireVBO.VAO:DrawArrays(GL.POINTS, holdCount)
 	end
 
-	if returnFireVBO.usedElements > 0 then
+	if returnCount > 0 then
 		gl.Texture(returnFireTexture)
-		fireIconShader:Activate()
-		fireIconShader:SetUniform("iconDistance", disticon)
-		fireIconShader:SetUniform("addRadius", 0)
-		returnFireVBO.VAO:DrawArrays(GL.POINTS, returnFireVBO.usedElements)
-		fireIconShader:Deactivate()
-		gl.Texture(false)
+		returnFireVBO.VAO:DrawArrays(GL.POINTS, returnCount)
 	end
 
+	fireIconShader:Deactivate()
+	gl.Texture(false)
 	gl.DepthTest(false)
 	gl.DepthMask(true)
 end
@@ -640,5 +647,14 @@ end
 function widget:SetConfigData(data)
 	if data.showAllHoldFireIcons ~= nil then
 		showAllHoldFireIcons = data.showAllHoldFireIcons and true or false
+	end
+end
+
+function widget:Shutdown()
+	-- its functions would reach this widget after it is gone
+	WG.unitfirestate = nil
+	if type(fireIconShader) == "table" then
+		fireIconShader:Finalize()
+		fireIconShader = nil
 	end
 end

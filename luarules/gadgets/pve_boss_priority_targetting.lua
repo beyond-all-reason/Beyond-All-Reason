@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Raptor Queen Anti-Dgun behavior",
-		desc = "Queen will prioritize targetting nearby commander so it doesn't let itself be dgunned",
+		desc = "Queen will prioritize targeting nearby commander so it doesn't let itself be dgunned",
 		author = "Damgam",
 		date = "2023",
 		license = "GNU GPL, v2 or later",

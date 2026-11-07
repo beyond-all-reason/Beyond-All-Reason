@@ -79,7 +79,7 @@ QueryWeapon1(piecenum)
 	return (0);
 }
 
-Shot1(zero) // Animate mines droping one by one
+Shot1(zero) // Animate mines dropping one by one
 {
 	++mineCounter;
 	if(mineCounter == 1)

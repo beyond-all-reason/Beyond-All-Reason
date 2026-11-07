@@ -45,6 +45,7 @@ return {
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecaltype = "decals/cornanotc_aoplane.dds",
+			isnanoturret = true,
 			model_author = "Beherith, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBuildings/SeaUtil",

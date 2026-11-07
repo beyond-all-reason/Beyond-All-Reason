@@ -9,7 +9,7 @@ piece base, strut, dishA, dishA1, dishA2, dishA3, dishB, dishB1, dishB2, dishB3,
 // piece  base, dish, blink;
 
 #define WATER_ROCK_UNITSIZE 5
-// Otherwise it wont move up!
+// Otherwise it won't move up!
 //#define WATER_ROCK_FREQ_Y 0
 #include "../floatmotion.h"
 

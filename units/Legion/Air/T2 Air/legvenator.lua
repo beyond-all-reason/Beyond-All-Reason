@@ -41,6 +41,7 @@ return {
 			unitgroup = "aa",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 			attacksafetydistance = 300,
@@ -71,12 +72,14 @@ return {
 			birdshot = {
 				areaofeffect = 100,
 				avoidfeature = false,
+				avoidfriendly = false,
 				burnblow = true,
 				craterboost = 0,
 				cratermult = 0,
 				collidefriendly = false,
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-small",
+				gravityaffected = "true",
 				impulsefactor = 0.2,
 				intensity = 3,
 				name = "Birdshot Cannon",
@@ -95,9 +98,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
-				customparams = {
-					noattackrangearc = 1,
-				},
 				damage = {
 					commanders = 8,
 					default = 24,

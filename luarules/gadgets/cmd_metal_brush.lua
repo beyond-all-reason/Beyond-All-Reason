@@ -28,15 +28,27 @@ local UNDO_HEADER = "$metal_undo$"
 local UNDO_HEADER_LEN = #UNDO_HEADER
 local REDO_HEADER = "$metal_redo$"
 local REDO_HEADER_LEN = #REDO_HEADER
+local CAP_HEADER = "$metal_cap$"
+local CAP_HEADER_LEN = #CAP_HEADER
 
 local CHEAT_SIG = "$c$"
 local CHEAT_SIG_LEN = #CHEAT_SIG
 
+-- $c$ exists for map-editor sessions, where other widgets can toggle /cheat off
+-- mid-stream. The mapeditor modoption comes from the start script, so a client
+-- cannot forge it. (Spring.IsReplay is unsynced and nil here; demos replay the
+-- /cheat command anyway.)
+local MAP_EDITOR_SESSION = false
+do
+	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
+	MAP_EDITOR_SESSION = mapEditorOpt == true or mapEditorOpt == 1 or mapEditorOpt == "1"
+end
+
 local function isAllowed(certified)
-	-- $c$ is self-asserted by the sender: trust it only during replay (where
-	-- live cheat is always false). Outside replay require live cheat, else any
-	-- modified client could forge the prefix to place metal in a no-cheat game.
-	return Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())
+	-- $c$ is self-asserted by the sender: trust it only in a map-editor session.
+	-- Elsewhere require live cheat, else any modified client could forge the
+	-- prefix to place metal in a no-cheat game.
+	return Spring.IsCheatingEnabled() or (certified and MAP_EDITOR_SESSION)
 end
 
 local METAL_SQ = Game.metalMapSquareSize or 16
@@ -44,9 +56,6 @@ local MAP_X = Game.mapSizeX
 local MAP_Z = Game.mapSizeZ
 local METAL_MAP_X = math.floor(MAP_X / METAL_SQ)
 local METAL_MAP_Z = math.floor(MAP_Z / METAL_SQ)
-
--- Reference values from map_metal_spot_placer.lua for standard metal spots
-local REF_METAL_BUDGET_PER_UNIT = 0.43 * 9 * 255 -- total raw metal budget per 1.0 extraction rate
 
 local floor = math.floor
 local max = math.max
@@ -57,21 +66,19 @@ local sin = math.sin
 local pi = math.pi
 local sqrt = math.sqrt
 
--- Shared falloff curve (also used by the brush widgets) so the metal apply and
--- the previewed ring stay in lockstep. See common/brush_shapes.lua.
-local computeFalloff = VFS.Include("common/brush_shapes.lua").computeFalloff
+-- Same falloff curve as the brush widgets, so the applied metal matches the preview ring.
+local BrushShapes = require("common/brush_shapes")
+local computeFalloff = BrushShapes.computeFalloff
 
 local spGetMetalAmount = Spring.GetMetalAmount
 local spSetMetalAmount = Spring.SetMetalAmount
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
 local spSetUnitMetalExtraction = Spring.SetUnitMetalExtraction
 
 local EXTRACTOR_RADIUS = Game.extractorRadius
 
--- Lookup: unitDefID -> extractsMetal for all extractor units. Built on first
--- editor use instead of walking all UnitDefs at load in every match.
+-- unitDefID -> extractsMetal, built on first editor use so normal matches never walk UnitDefs.
 local extractorDefs = nil
 local function getExtractorDefs()
 	if not extractorDefs then
@@ -85,6 +92,28 @@ local function getExtractorDefs()
 	return extractorDefs
 end
 
+-- Metal per byte step of a metal square (maxMetal / 255; Lua cannot read maxMetal).
+-- Measured once by overfilling square 0,0, which clamps to 255 steps, then restored.
+-- The per-square cap (step * 255) goes to a game rules param for the METAL readout:
+-- LuaUI cannot write metal, so it cannot measure it.
+---@type number?
+local metalStepCache = nil
+local function metalMapStep()
+	if not metalStepCache then
+		local old = spGetMetalAmount(0, 0)
+		-- 1e5, not more: 1e9 on a New Map canvas (maxMetal 0.02) stores 0, not the top
+		-- step, which read as no cap at all.
+		spSetMetalAmount(0, 0, 1e5)
+		local top = spGetMetalAmount(0, 0)
+		spSetMetalAmount(0, 0, old)
+		metalStepCache = (top and top > 0) and (top / 255) or 1
+		if top and top > 0 then
+			Spring.SetGameRulesParam("mb_square_cap", top)
+		end
+	end
+	return metalStepCache
+end
+
 local scratchParts = {}
 
 -- ============================================================
@@ -94,6 +123,7 @@ local undoStack = {}
 local redoStack = {}
 local MAX_UNDO = 50
 
+---@type fun(dx: number, dz: number, radius: number, shape: string, angleDeg: number?): boolean, number?
 local isInsideShape -- forward declaration
 
 local function snapshotShape(centerX, centerZ, radius, shape, angleDeg)
@@ -126,7 +156,6 @@ local function pushUndo(snap)
 	if #undoStack > MAX_UNDO then
 		table.remove(undoStack, 1)
 	end
-	-- New operation invalidates redo stack
 	for i = #redoStack, 1, -1 do
 		redoStack[i] = nil
 	end
@@ -146,6 +175,7 @@ local function applySnapshot(snap)
 	return redo
 end
 
+---@return integer
 local function parseParts(payload)
 	local idx = 0
 	for word in payload:gmatch("[%-%.%w]+") do
@@ -158,7 +188,7 @@ local function parseParts(payload)
 	return idx
 end
 
--- Rotate a point by -angleDeg (inverse rotation for shape testing)
+-- Inverse-rotate an offset into the shape's own frame.
 local function rotateInv(dx, dz, angleDeg)
 	if angleDeg == 0 then
 		return dx, dz
@@ -168,8 +198,7 @@ local function rotateInv(dx, dz, angleDeg)
 	return dx * c - dz * s, dx * s + dz * c
 end
 
--- Test if world-space offset (dx, dz) from brush center is inside the shape,
--- returns (isInside, normalizedDistance)
+-- Returns (isInside, normalizedDistance) for a world-space offset from the brush centre.
 isInsideShape = function(dx, dz, radius, shape, angleDeg)
 	local rx, rz = rotateInv(dx, dz, angleDeg)
 	if shape == "circle" then
@@ -186,12 +215,14 @@ isInsideShape = function(dx, dz, radius, shape, angleDeg)
 		local ax, az = abs(rx), abs(rz)
 		local d = max(ax, az, (ax + az) * 0.7071068)
 		return d <= radius, d / radius
+	elseif shape == "triangle" then
+		return BrushShapes.isInside(dx, dz, radius, shape, angleDeg)
 	end
 	return false, 1
 end
 
 -- ============================================================
--- Paint: Raise/Lower metal under brush with falloff
+-- Paint: raise or lower metal under the brush with falloff
 -- ============================================================
 local function applyPaint(centerX, centerZ, radius, shape, angleDeg, curve, direction, intensity, metalTarget)
 	local halfSq = METAL_SQ * 0.5
@@ -201,7 +232,6 @@ local function applyPaint(centerX, centerZ, radius, shape, angleDeg, curve, dire
 	local mzMax = min(METAL_MAP_Z - 1, floor((centerZ + radius) / METAL_SQ))
 
 	local step = intensity * metalTarget * 2.0
-	local modified = 0
 
 	for mz = mzMin, mzMax do
 		local wz = mz * METAL_SQ + halfSq
@@ -214,17 +244,13 @@ local function applyPaint(centerX, centerZ, radius, shape, angleDeg, curve, dire
 				local delta = direction * step * falloff
 				local newVal = max(0, current + delta)
 				spSetMetalAmount(mx, mz, newVal)
-				modified = modified + 1
 			end
 		end
-	end
-	if modified > 0 then
-		Spring.Echo("[Metal Brush] applyPaint: modified " .. modified .. " squares, step=" .. step)
 	end
 end
 
 -- ============================================================
--- Stamp: Place a complete metal spot with uniform distribution
+-- Stamp: place a complete metal spot with uniform distribution
 -- ============================================================
 local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg, direction)
 	local halfSq = METAL_SQ * 0.5
@@ -233,7 +259,7 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 	local mzMin = max(0, floor((centerZ - radius) / METAL_SQ))
 	local mzMax = min(METAL_MAP_Z - 1, floor((centerZ + radius) / METAL_SQ))
 
-	-- Erase mode: clear all metal in shape
+	-- Erase clears every square in the shape.
 	if direction < 0 then
 		for mz = mzMin, mzMax do
 			local wz = mz * METAL_SQ + halfSq
@@ -248,49 +274,79 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 		return
 	end
 
-	-- Count squares inside shape, and separately count those also within extractor
-	-- radius of brush center. Stamp readout (spot: value) = sum of metal inside
-	-- extractor radius / 1000, so scale per-square such that the sum of in-radius
-	-- squares equals exactly metalTarget * 1000, regardless of brush size.
+	-- A stamp is a mex spot: its metal stays within one metal square short of the
+	-- extractor radius (room for the build grid snap), or no mex could cover it whole
+	-- and the spot finder would offer no build position. The spot readout is the
+	-- summed metal / 1000, so the squares share metalTarget * 1000 at any brush size.
+	local spotRad = math.max(EXTRACTOR_RADIUS - METAL_SQ, METAL_SQ)
+	local spotRadSq = spotRad * spotRad
+	local function inSpot(wx, wz)
+		local dx, dz = wx - centerX, wz - centerZ
+		return dx * dx + dz * dz <= spotRadSq and isInsideShape(dx, dz, radius, shape, angleDeg)
+	end
 	local squareCount = 0
-	local inExtractorCount = 0
-	local extRadSq = EXTRACTOR_RADIUS * EXTRACTOR_RADIUS
 	for mz = mzMin, mzMax do
 		local wz = mz * METAL_SQ + halfSq
 		for mx = mxMin, mxMax do
 			local wx = mx * METAL_SQ + halfSq
-			local inside = isInsideShape(wx - centerX, wz - centerZ, radius, shape, angleDeg)
-			if inside then
+			if inSpot(wx, wz) then
 				squareCount = squareCount + 1
-				local dx, dz = wx - centerX, wz - centerZ
-				if dx * dx + dz * dz < extRadSq then
-					inExtractorCount = inExtractorCount + 1
-				end
 			end
 		end
 	end
 
-	if squareCount == 0 or inExtractorCount == 0 then
+	if squareCount == 0 then
 		return
 	end
 
-	-- per-square value chosen so exactly metalTarget appears in the [spot] readout
-	local perSquare = (metalTarget * 1000) / inExtractorCount
+	local want = metalTarget * 1000
+	local perSquare = want / squareCount
 
+	---@type [integer, integer, number][]
+	local written = {}
+	---@type number
+	local got = 0
 	for mz = mzMin, mzMax do
 		local wz = mz * METAL_SQ + halfSq
 		for mx = mxMin, mxMax do
 			local wx = mx * METAL_SQ + halfSq
-			local inside = isInsideShape(wx - centerX, wz - centerZ, radius, shape, angleDeg)
-			if inside then
+			if inSpot(wx, wz) then
 				spSetMetalAmount(mx, mz, perSquare)
+				got = got + spGetMetalAmount(mx, mz)
+				written[#written + 1] = { mx, mz, (wx - centerX) ^ 2 + (wz - centerZ) ^ 2 }
 			end
+		end
+	end
+
+	-- Each square is stored in byte steps of maxMetal, so the spot rounds short of the
+	-- target. Settle the rest one step at a time on the squares nearest the centre.
+	local step = metalMapStep()
+	local steps = floor((want - got) / step + 0.5)
+	if steps ~= 0 and #written > 0 then
+		table.sort(written, function(a, b)
+			return a[3] < b[3]
+		end)
+		local dir = steps > 0 and 1 or -1
+		local left, tries = math.abs(steps), #written * 4
+		local i = 1
+		while left > 0 and tries > 0 do
+			local sq = written[i]
+			---@cast sq -nil
+			local before = spGetMetalAmount(sq[1], sq[2])
+			-- Aim at the middle of the next step: the engine truncates, and exactly one
+			-- step up can land a hair short and stay on the same one.
+			spSetMetalAmount(sq[1], sq[2], before + (dir + 0.5) * step)
+			if spGetMetalAmount(sq[1], sq[2]) ~= before then
+				left = left - 1
+			end
+			tries = tries - 1
+			i = i % #written + 1
 		end
 	end
 end
 
 -- ============================================================
--- Extractor recalculation: update mex income after metal map edit
+-- Extractor recalculation: update mex income after a metal map edit
 -- ============================================================
 local function recalcNearbyExtractors(centerX, centerZ, brushRadius)
 	local searchRadius = brushRadius + EXTRACTOR_RADIUS + METAL_SQ
@@ -304,8 +360,6 @@ local function recalcNearbyExtractors(centerX, centerZ, brushRadius)
 		return
 	end
 
-	local halfSq = METAL_SQ * 0.5
-	local recalcCount = 0
 	local exDefs = getExtractorDefs()
 
 	for i = 1, #units do
@@ -313,33 +367,55 @@ local function recalcNearbyExtractors(centerX, centerZ, brushRadius)
 		local udid = spGetUnitDefID(uid)
 		local mult = exDefs[udid]
 		if mult then
-			local ux, _, uz = spGetUnitPosition(uid)
-			-- Sample metal map under this extractor's radius
-			local mxMin = max(0, floor((ux - EXTRACTOR_RADIUS) / METAL_SQ))
-			local mxMax = min(METAL_MAP_X - 1, floor((ux + EXTRACTOR_RADIUS) / METAL_SQ))
-			local mzMin = max(0, floor((uz - EXTRACTOR_RADIUS) / METAL_SQ))
-			local mzMax = min(METAL_MAP_Z - 1, floor((uz + EXTRACTOR_RADIUS) / METAL_SQ))
-
-			local totalMetal = 0
-			for mz = mzMin, mzMax do
-				local wz = mz * METAL_SQ + halfSq
-				for mx = mxMin, mxMax do
-					local wx = mx * METAL_SQ + halfSq
-					local dx, dz = wx - ux, wz - uz
-					if sqrt(dx * dx + dz * dz) < EXTRACTOR_RADIUS then
-						totalMetal = totalMetal + spGetMetalAmount(mx, mz)
-					end
-				end
-			end
-
-			local newRate = totalMetal * mult
-			spSetUnitMetalExtraction(uid, newRate)
-			recalcCount = recalcCount + 1
+			-- SetUnitMetalExtraction takes the extraction DEPTH (the def's extractsMetal), not
+			-- a rate; re-setting the def's own depth makes the engine rescan the metal map.
+			spSetUnitMetalExtraction(uid, mult)
 		end
 	end
+end
 
-	if recalcCount > 0 then
-		Spring.Echo("[Metal Brush] Recalculated extraction for " .. recalcCount .. " extractor(s)")
+-- ============================================================
+-- Resource spots: the mex denier, extractor snapping, area mex and the spot markers
+-- read the resource spot finder, which scans the metal map only at game start.
+-- Rescan once the metal stops changing and tell LuaUI to do the same.
+-- GameFrame is registered only while a rescan is pending.
+-- ============================================================
+local SPOT_REFRESH_DELAY = 15 -- frames after the last metal write
+---@type integer?
+local spotRefreshFrame = nil
+
+local function metalChanged()
+	Spring.SendLuaUIMsg("mb_metal_updated")
+	spotRefreshFrame = Spring.GetGameFrame() + SPOT_REFRESH_DELAY
+	gadgetHandler:UpdateCallIn("GameFrame")
+end
+
+-- Other synced gadgets that write the metal map (the clone tool's paste) call this so
+-- the extractors and the resource spots catch up exactly as after a brush stroke.
+GG.MetalBrush = {
+	metalWritten = function(centerX, centerZ, radius)
+		recalcNearbyExtractors(centerX, centerZ, radius)
+		metalChanged()
+	end,
+}
+
+function gadget:Shutdown()
+	GG.MetalBrush = nil
+end
+
+function gadget:GameFrame(frame)
+	if spotRefreshFrame and frame < spotRefreshFrame then
+		return
+	end
+	gadgetHandler:RemoveCallIn("GameFrame")
+	if not spotRefreshFrame then
+		return
+	end
+	spotRefreshFrame = nil
+	local finder = GG.resource_spot_finder
+	if finder and finder.Refresh then
+		finder.Refresh()
+		Spring.SendLuaUIMsg("mb_spots_refreshed")
 	end
 end
 
@@ -347,8 +423,8 @@ end
 -- Message Handler
 -- ============================================================
 function gadget:RecvLuaMsg(msg, playerID)
-	-- Check header first (before $c$) so cmd_sendcommand doesn't intercept
-	-- Format: $metal_paint$$c$payload  or  $metal_paint$payload
+	-- The header comes before $c$ so cmd_sendcommand (which claims $c$-prefixed
+	-- messages) does not intercept: $metal_paint$$c$payload or $metal_paint$payload.
 
 	-- PAINT: $metal_paint$[$c$]direction x z radius shape angleDeg curve intensity metalValue
 	if msg:sub(1, PAINT_HEADER_LEN) == PAINT_HEADER then
@@ -385,23 +461,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		pushUndo(snapshotShape(centerX, centerZ, radius, shape, angleDeg))
 		applyPaint(centerX, centerZ, radius, shape, angleDeg, curve, direction, intensity, metalTarget)
 		recalcNearbyExtractors(centerX, centerZ, radius)
-		Spring.SendLuaUIMsg("mb_metal_updated")
-		Spring.Echo(
-			"[Metal Brush] Paint applied at "
-				.. centerX
-				.. ","
-				.. centerZ
-				.. " r="
-				.. radius
-				.. " shape="
-				.. shape
-				.. " dir="
-				.. direction
-				.. " int="
-				.. intensity
-				.. " mv="
-				.. metalTarget
-		)
+		metalChanged()
 		return
 	end
 
@@ -434,19 +494,15 @@ function gadget:RecvLuaMsg(msg, playerID)
 		pushUndo(snapshotShape(centerX, centerZ, radius, shape, angleDeg))
 		applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg, direction)
 		recalcNearbyExtractors(centerX, centerZ, radius)
-		Spring.SendLuaUIMsg("mb_metal_updated")
-		Spring.Echo(
-			"[Metal Brush] Stamp applied at "
-				.. centerX
-				.. ","
-				.. centerZ
-				.. " r="
-				.. radius
-				.. " mv="
-				.. metalTarget
-				.. " dir="
-				.. direction
-		)
+		metalChanged()
+		return
+	end
+
+	-- CAP: $metal_cap$[$c$] asks for the per-square cap (sent while the METAL tool is open).
+	if msg:sub(1, CAP_HEADER_LEN) == CAP_HEADER then
+		if isAllowed(msg:sub(CAP_HEADER_LEN + 1, CAP_HEADER_LEN + CHEAT_SIG_LEN) == CHEAT_SIG) then
+			metalMapStep()
+		end
 		return
 	end
 
@@ -461,29 +517,27 @@ function gadget:RecvLuaMsg(msg, playerID)
 			return
 		end
 
-		local cleared = 0
 		for mz = 0, METAL_MAP_Z - 1 do
 			for mx = 0, METAL_MAP_X - 1 do
 				if spGetMetalAmount(mx, mz) > 0 then
 					spSetMetalAmount(mx, mz, 0)
-					cleared = cleared + 1
 				end
 			end
 		end
-		-- Recalc all extractors on the map
 		local allUnits = Spring.GetAllUnits()
 		if allUnits then
 			local exDefs = getExtractorDefs()
 			for i = 1, #allUnits do
 				local uid = allUnits[i]
-				local udid = spGetUnitDefID(uid)
-				if exDefs[udid] then
-					spSetUnitMetalExtraction(uid, 0)
+				local mult = exDefs[spGetUnitDefID(uid)]
+				if mult then
+					-- The def's own depth, as everywhere else: with no metal left the mex
+					-- extracts nothing, and a depth of 0 would outlive later metal edits.
+					spSetUnitMetalExtraction(uid, mult)
 				end
 			end
 		end
-		Spring.SendLuaUIMsg("mb_metal_updated")
-		Spring.Echo("[Metal Brush] Cleared all metal (" .. cleared .. " squares)")
+		metalChanged()
 		return
 	end
 
@@ -509,41 +563,22 @@ function gadget:RecvLuaMsg(msg, playerID)
 			end
 		end
 		if loaded > 0 then
-			-- Recalc all extractors
 			local allUnits = Spring.GetAllUnits()
 			if allUnits then
-				local halfSq = METAL_SQ * 0.5
 				local exDefs = getExtractorDefs()
 				for i = 1, #allUnits do
 					local uid = allUnits[i]
-					local udid = spGetUnitDefID(uid)
-					local mult = exDefs[udid]
+					local mult = exDefs[spGetUnitDefID(uid)]
 					if mult then
-						local ux, _, uz = spGetUnitPosition(uid)
-						local mxMin = max(0, floor((ux - EXTRACTOR_RADIUS) / METAL_SQ))
-						local mxMax = min(METAL_MAP_X - 1, floor((ux + EXTRACTOR_RADIUS) / METAL_SQ))
-						local mzMin = max(0, floor((uz - EXTRACTOR_RADIUS) / METAL_SQ))
-						local mzMax = min(METAL_MAP_Z - 1, floor((uz + EXTRACTOR_RADIUS) / METAL_SQ))
-						local totalMetal = 0
-						for mmz = mzMin, mzMax do
-							local wz = mmz * METAL_SQ + halfSq
-							for mmx = mxMin, mxMax do
-								local wx = mmx * METAL_SQ + halfSq
-								local dx, dz = wx - ux, wz - uz
-								if sqrt(dx * dx + dz * dz) < EXTRACTOR_RADIUS then
-									totalMetal = totalMetal + spGetMetalAmount(mmx, mmz)
-								end
-							end
-						end
-						spSetUnitMetalExtraction(uid, totalMetal * mult)
+						-- The def's own depth makes the engine rescan (see recalcNearbyExtractors).
+						spSetUnitMetalExtraction(uid, mult)
 					end
 				end
 			end
 		end
 		if loaded > 0 then
-			Spring.SendLuaUIMsg("mb_metal_updated")
+			metalChanged()
 		end
-		Spring.Echo("[Metal Brush] Loaded " .. loaded .. " metal squares")
 		return
 	end
 
@@ -565,7 +600,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if snap.cx and snap.r then
 			recalcNearbyExtractors(snap.cx, snap.cz, snap.r)
 		end
-		Spring.SendLuaUIMsg("mb_metal_updated")
+		metalChanged()
 		Spring.Echo("[Metal Brush] Undo (" .. (#snap / 3) .. " squares, " .. #undoStack .. " left)")
 		return
 	end
@@ -588,7 +623,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if snap.cx and snap.r then
 			recalcNearbyExtractors(snap.cx, snap.cz, snap.r)
 		end
-		Spring.SendLuaUIMsg("mb_metal_updated")
+		metalChanged()
 		Spring.Echo("[Metal Brush] Redo (" .. (#snap / 3) .. " squares, " .. #redoStack .. " left)")
 		return
 	end

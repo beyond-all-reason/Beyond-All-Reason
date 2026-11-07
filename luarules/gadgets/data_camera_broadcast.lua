@@ -22,7 +22,6 @@ local broadcastPeriodScalingEnd = 32 -- when reaches maxBroadcastPeriod
 local PACKET_HEADER = "="
 
 if gadgetHandler:IsSyncedCode() then
-	local strSub = string.sub
 
 	local validation = string.randomString(2)
 	_G.validationCam = validation
@@ -344,7 +343,7 @@ else -- UNSYNCED
 		if msg ~= PACKET_HEADER then
 			cameraState = PacketToCameraState(msg)
 			if not cameraState then
-				Spring.Echo("<LockCamera>: Bad packet recieved.")
+				Spring.Echo("<LockCamera>: Bad packet received.")
 				return
 			end
 		end

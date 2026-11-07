@@ -18,7 +18,7 @@ end
 -- luarules\gadgets\fx_missile_smoke.lua
 -- luarules\gadgets\fx_missile_starburst_liftoff.lua
 -- luarules\gadgets\fx_submissile_splash.lua -- which was off anyway
--- Also, it should check wether water is even possibly present on the map, and not even check for those
+-- Also, it should check whether water is even possibly present on the map, and not even check for those
 
 if not gadgetHandler:IsSyncedCode() then
 	return false
@@ -182,7 +182,7 @@ local allWatchedProjectileIDs = {}
 local waterIsLava = Spring.GetModOptions().map_waterislava
 
 function gadget:Initialize()
-	local minheight, maxheight = Spring.GetGroundExtremes()
+	local minheight, _ = Spring.GetGroundExtremes()
 	if minheight > 100 then
 		mapHasWater = false
 	end
@@ -207,29 +207,31 @@ function gadget:Initialize()
 			end
 		end
 		for wDID, _ in pairs(depthChargeWeapons) do
-			Script.SetWatchProjectile(wDID, true)
+			gadgetHandler:RegisterProjectile(wDID)
 			allWatchedWeaponDefIDs[wDID] = "depthCharge"
 		end
 	end
 
 	for wDID, _ in pairs(missileWeapons) do
-		Script.SetWatchProjectile(wDID, true)
+		gadgetHandler:RegisterProjectile(wDID)
 		allWatchedWeaponDefIDs[wDID] = "missile"
 		--Spring.Echo("Watching for missile",WeaponDefs[wDID].name, wDID)
 	end
 
 	for wDID, _ in pairs(starburstWeapons) do
-		Script.SetWatchProjectile(wDID, true)
+		gadgetHandler:RegisterProjectile(wDID)
 		allWatchedWeaponDefIDs[wDID] = "starburst"
+	end
+
+	if not next(allWatchedWeaponDefIDs) then
+		gadgetHandler:RemoveCallIn("ProjectileCreated")
+		gadgetHandler:RemoveCallIn("ProjectileDestroyed")
 	end
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean 3.7 us
 	--Spring.Echo("gadget:ProjectileCreated",proID, proOwnerID, weaponDefID)
 	local watchedWeaponType = allWatchedWeaponDefIDs[weaponDefID]
-	if watchedWeaponType == nil then
-		return
-	end
 	allWatchedProjectileIDs[proID] = watchedWeaponType
 	if mapHasWater and watchedWeaponType == "depthCharge" then
 		local _, y, _ = GetProjectilePosition(proID)
@@ -244,6 +246,10 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean
 		local groundHeight = mathMax(GetGroundHeight(x, z), 0)
 		local gf = GetGameFrame()
 		local wData = starburstWeapons[weaponDefID]
+		local respawnUpTime = GG.VerticalizeUptimeFrames
+		if respawnUpTime ~= nil then
+			gf = gf + respawnUpTime - WeaponDefs[weaponDefID].uptime * Game.gameSpeed
+		end
 		starbursts[proID] = {
 			groundHeight + wData[1],
 			wData[2],

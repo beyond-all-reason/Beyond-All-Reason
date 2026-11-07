@@ -5,7 +5,7 @@ local Definitions = require("luaui/Include/blueprint_substitution/definitions")
 local Sides = require("gamedata/sides_enum")
 local ResourceDataBuilder = VFS.Include("spec/builders/resource_data_builder.lua")
 
-local sequence = require("spec/builders/sequence")
+local sequence = VFS.Include("spec/builders/sequence.lua")
 
 local nextPlayerId = sequence.sequence("player_id", {
 	start = 100,
@@ -210,6 +210,16 @@ function TeamBuilder:WithEnergyStorage(storage)
 	return self
 end
 
+function TeamBuilder:WithMetalExcess(excess)
+	self.metal.excess = excess
+	return self
+end
+
+function TeamBuilder:WithEnergyExcess(excess)
+	self.energy.excess = excess
+	return self
+end
+
 function TeamBuilder:WithMetalStorage(storage)
 	self.metal.storage = storage
 	return self
@@ -276,7 +286,7 @@ function TeamBuilder:WithEnergyReceived(received)
 end
 
 ---@param self TeamBuilder
----@param playerId number
+---@param playerId PlayerID
 ---@param opts table|nil
 ---@return TeamBuilder
 function TeamBuilder:WithPlayer(playerId, opts)
@@ -304,7 +314,7 @@ function TeamBuilder:WithPlayer(playerId, opts)
 end
 
 ---@param self TeamBuilder
----@param playerId number
+---@param playerId PlayerID
 ---@return TeamBuilder
 function TeamBuilder:WithLeader(playerId)
 	self.leader = playerId

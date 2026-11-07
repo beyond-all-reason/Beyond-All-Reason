@@ -7,7 +7,7 @@ return {
 		energycost = 500,
 		metalcost = 40,
 		buildpic = "legforti.DDS",
-		buildtime = 1000,
+		buildtime = 900,
 		canattack = false,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 -3 0",
@@ -43,7 +43,8 @@ return {
 			paralyzemultiplier = 0,
 			removestop = true,
 			removewait = true,
-			subfolder = "legion/Defenses",
+			subfolder = "Legion/Defenses",
+			unitgroup = "util",
 			techlevel = 2,
 		},
 		featuredefs = {

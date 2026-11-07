@@ -32,6 +32,7 @@ return {
 		yardmap = "o",
 		customparams = {
 			cannot_capture_territory = true,
+			juno_kill = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

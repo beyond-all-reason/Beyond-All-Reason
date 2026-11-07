@@ -95,12 +95,14 @@ for alias in pairs(aliases) do
 end
 table.sort(autocompleteAliases)
 
+local ceil = math.ceil
 local floor = math.floor
 local max = math.max
 local sfind = string.find
 local ssub = string.sub
 local sbyte = string.byte
 local sort = table.sort
+local tconcat = table.concat
 
 local glColor = gl.Color
 local glTexture = gl.Texture
@@ -226,13 +228,150 @@ function ChatEmoji.HasEmojiAliasCandidate(text)
 	return sfind(text, ":", firstColon + 1, true) ~= nil
 end
 
-function ChatEmoji.WordWrapPlain(textLines, maxWidth, usedFont, fontSize)
+---@param line string
+---@return string[]
+local function colorSafeWords(line)
+	local words = {}
+	local count = 0
+	local len = #line
+	local wordStart = 0
+	local pos = 1
+	while pos <= len do
+		local c = sbyte(line, pos)
+		if c == 255 then
+			-- Inline color code: 255 followed by three color bytes, kept whole so a wrap cannot split it.
+			-- The font eats all four bytes even when fewer than three follow, so do the same here
+			if wordStart == 0 then
+				wordStart = pos
+			end
+			pos = pos + 4
+		elseif c == 32 or (c >= 9 and c <= 13) then
+			-- Whitespace, the same set as %s: space, tab, newline, vertical tab, form feed, carriage return
+			if wordStart > 0 then
+				count = count + 1
+				words[count] = ssub(line, wordStart, pos - 1)
+				wordStart = 0
+			end
+			pos = pos + 1
+		else
+			if wordStart == 0 then
+				wordStart = pos
+			end
+			pos = pos + 1
+		end
+	end
+	if wordStart > 0 then
+		count = count + 1
+		words[count] = ssub(line, wordStart, len)
+	end
+
+	return words
+end
+
+-- Where the character at pos ends: an emoji stays whole, anything else is one UTF-8 character.
+local function characterEnd(line, pos)
+	local c = sbyte(line, pos)
+	if c == 58 then
+		local aliasEnd = sfind(line, ":", pos + 1, true)
+		if aliasEnd and aliasEnd <= pos + maxAliasTokenLength - 1 and aliasTokens[ssub(line, pos, aliasEnd)] then
+			return aliasEnd
+		end
+	end
+	for _, candidate in ipairs(unicodeStartByteLookup[c] or EMPTY_TABLE) do
+		if ssub(line, pos, pos + candidate.len - 1) == candidate.token then
+			return pos + candidate.len - 1
+		end
+	end
+	return pos + (c < 192 and 0 or (c < 224 and 1 or (c < 240 and 2 or 3)))
+end
+
+-- A line's characters; a color code goes with the character after it.
+local function splitCharacters(line)
+	local chars, count = {}, 0
+	local codes = ""
+	local pos, len = 1, #line
+	while pos <= len do
+		if sbyte(line, pos) == 255 then
+			codes = codes .. ssub(line, pos, pos + 3)
+			pos = pos + 4
+		else
+			local last = characterEnd(line, pos)
+			count = count + 1
+			chars[count] = codes .. ssub(line, pos, last)
+			codes = ""
+			pos = last + 1
+		end
+	end
+	if count > 0 then
+		chars[count] = chars[count] .. codes
+	end
+	return chars, count
+end
+
+-- The color code in force after text, given the one before it.
+local function colorAfter(text, color)
+	local pos = sfind(text, "[\255\8]")
+	while pos do
+		if sbyte(text, pos) == 255 then
+			color = ssub(text, pos, pos + 3)
+			pos = pos + 4
+		else
+			color = ""
+			pos = pos + 1
+		end
+		pos = sfind(text, "[\255\8]", pos)
+	end
+	return color
+end
+
+local function plainTextWidth(text, fontSize, usedFont)
+	return usedFont:GetTextWidth(text) * fontSize
+end
+
+-- Word wrapping only breaks at whitespace: a line still too wide (a checksum, a long path) is cut after its
+-- last character that fits, the next part going on in the color it had reached.
+local function breakLongLines(lines, maxWidth, firstLineIndent, textWidth, fontSize, usedFont)
+	local result, count = {}, 0
+	local firstLineWidth = maxWidth - (firstLineIndent or 0)
+	for _, line in ipairs(lines) do
+		if textWidth(line, fontSize, usedFont) <= (count == 0 and firstLineWidth or maxWidth) then
+			count = count + 1
+			result[count] = line
+		else
+			local chars, charCount = splitCharacters(line)
+			local first, color = 1, ""
+			while first <= charCount do
+				local lineWidth = count == 0 and firstLineWidth or maxWidth
+				-- the most characters that fit, at least one
+				local low, high = first, charCount
+				while low < high do
+					local middle = ceil((low + high) / 2)
+					if textWidth(tconcat(chars, "", first, middle), fontSize, usedFont) <= lineWidth then
+						low = middle
+					else
+						high = middle - 1
+					end
+				end
+				local part = tconcat(chars, "", first, low)
+				count = count + 1
+				result[count] = color .. part
+				color = colorAfter(part, color)
+				first = low + 1
+			end
+		end
+	end
+	return result
+end
+
+function ChatEmoji.WordWrapPlain(textLines, maxWidth, usedFont, fontSize, firstLineIndent)
 	local lines = {}
 	local lineCount = 0
+	local firstLineWidth = maxWidth - (firstLineIndent or 0)
 	for _, line in ipairs(textLines) do
 		local linebuffer = ""
-		for word in line:gmatch("%S+") do
-			if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > maxWidth then
+		for _, word in ipairs(colorSafeWords(line)) do
+			local lineWidth = lineCount == 0 and firstLineWidth or maxWidth
+			if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > lineWidth then
 				lineCount = lineCount + 1
 				lines[lineCount] = linebuffer
 				linebuffer = ""
@@ -244,7 +383,7 @@ function ChatEmoji.WordWrapPlain(textLines, maxWidth, usedFont, fontSize)
 			lines[lineCount] = linebuffer
 		end
 	end
-	return lines
+	return breakLongLines(lines, maxWidth, firstLineIndent, plainTextWidth, fontSize, usedFont)
 end
 
 local function parseRichText(text)
@@ -416,9 +555,10 @@ function ChatEmoji.GetLeadingColorPrefix(text)
 	return text and string.byte(text, 1) == 255 and #text >= 4 and ssub(text, 1, 4) or ""
 end
 
-function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
+function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont, firstLineIndent)
 	local lines = {}
 	local lineCount = 0
+	local firstLineWidth = maxWidth - (firstLineIndent or 0)
 	local spaceWidth = usedFont:GetTextWidth(" ") * fontSize
 	for _, line in ipairs(text) do
 		local linebuffer = ""
@@ -426,8 +566,9 @@ function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
 		local lineHasEmoji = likelyContainsEmoji(line)
 
 		if not lineHasEmoji then
-			for word in line:gmatch("%S+") do
-				if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > maxWidth then
+			for _, word in ipairs(colorSafeWords(line)) do
+				local lineWidth = lineCount == 0 and firstLineWidth or maxWidth
+				if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > lineWidth then
 					lineCount = lineCount + 1
 					lines[lineCount] = linebuffer
 					linebuffer = ""
@@ -439,9 +580,10 @@ function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
 				lines[lineCount] = linebuffer
 			end
 		else
-			for word in line:gmatch("%S+") do
+			for _, word in ipairs(colorSafeWords(line)) do
 				local wordWidth = emojiTextWidth(word, fontSize, usedFont)
-				if linebuffer ~= "" and (linebufferWidth + spaceWidth + wordWidth) > maxWidth then
+				local lineWidth = lineCount == 0 and firstLineWidth or maxWidth
+				if linebuffer ~= "" and (linebufferWidth + spaceWidth + wordWidth) > lineWidth then
 					lineCount = lineCount + 1
 					lines[lineCount] = linebuffer
 					linebuffer = word
@@ -462,7 +604,7 @@ function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
 			end
 		end
 	end
-	return lines
+	return breakLongLines(lines, maxWidth, firstLineIndent, emojiTextWidth, fontSize, usedFont)
 end
 
 function ChatEmoji.DrawRichText(usedFont, text, x, y, fontSize, options, outlineColor)

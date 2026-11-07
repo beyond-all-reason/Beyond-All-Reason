@@ -55,6 +55,7 @@ return {
 		waterline = 6,
 		workertime = 0,
 		customparams = {
+			iscritter = true,
 			subfolder = "other/critters",
 		},
 		weapondefs = {

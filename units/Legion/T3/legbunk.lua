@@ -1,7 +1,7 @@
 return {
 	legbunk = {
 		buildpic = "legbunk.dds",
-		buildtime = 46430,
+		buildtime = 66430,
 		canmove = true,
 		cantbetransported = true, --Need to true!!!!!!!!!!
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -9,7 +9,7 @@ return {
 		collisionvolumescales = "40 48 40",
 		collisionvolumetype = "CYLY",
 		corpse = "DEAD",
-		energycost = 42000,
+		energycost = 65000,
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
@@ -18,7 +18,7 @@ return {
 		maxslope = 17,
 		maxacc = 0.253,
 		maxdec = 0.8211,
-		metalcost = 1850,
+		metalcost = 1500,
 		maxwaterdepth = 22,
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
@@ -26,7 +26,7 @@ return {
 		objectname = "Units/legbunk.s3o",
 		script = "Units/legbunk.cob",
 		selfdestructas = "explosiont3xl",
-		sightdistance = 375,
+		sightdistance = 380,
 		strafetoattack = true,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -38,10 +38,9 @@ return {
 			unitgroup = "weapon",
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "leggantry",
+			reaimtime = 3,
+			subfolder = "Legion/T3",
 			techlevel = 3,
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -130,6 +129,8 @@ return {
 				customparams = {
 					bogus = 1,
 					noattackrangearc = 1,
+					turretspeedx = 200,
+					turretspeedy = 200,
 				},
 				damage = {
 					default = 0,
@@ -139,10 +140,10 @@ return {
 				areaofeffect = 144,
 				avoidfeature = false,
 				cegtag = "gausscannonprojectile",
-				craterboost = 0.5,
-				cratermult = 0.5,
-				damagemodifier = 0.33,
-				edgeeffectiveness = 0.8,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:barrelshot-large",
 				gravityaffected = false,
 				impulseboost = 10,
@@ -154,7 +155,7 @@ return {
 				range = 150,
 				reloadtime = 2,
 				rgbcolor = "1 0.8 0.17",
-				size = 0,
+				size = 6.5,
 				soundhit = "xplomed2",
 				soundhitwet = "sizzlexs",
 				soundstart = "packolau",
@@ -162,15 +163,14 @@ return {
 				turret = true,
 				thickness = 24,
 				waterweapon = true,
-				weapontype = "LaserCannon",
+				weapontype = "DGun",
 				weaponvelocity = 600,
 				customparams = {
-					overpenetrate = true,
 					weapons_role = "secondary",
 				},
 				damage = {
-					commanders = 500,
-					default = 1500,
+					commanders = 100,
+					default = 300,
 				},
 			},
 			railgunt2 = {
@@ -190,7 +190,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				firestarter = 0,
 				hardstop = true,
-				impactonly = false,
+				impactonly = true,
 				impulsefactor = 1,
 				intensity = 0.8,
 				name = "Snub-Nose Railgun",
@@ -223,7 +223,7 @@ return {
 				def = "AIMHULL",
 				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 1",
-				maxangledif = 340, --Needed because otherwise targetting logic breaks outside this area.
+				maxangledif = 340, --Needed because otherwise targeting logic breaks outside this area.
 			},
 			[2] = {
 				badtargetcategory = "GROUNDSCOUT",

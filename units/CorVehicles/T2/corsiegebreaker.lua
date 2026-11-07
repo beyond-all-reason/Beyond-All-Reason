@@ -46,6 +46,7 @@ return {
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			onoffname = "dreadshot",
+			reaimtime = 5,
 			restoretime = "3000",
 			rockstrength = "5.5",
 			sleevename = "sleeve",
@@ -133,7 +134,7 @@ return {
 				beamdecay = 0.2,
 				collidefeature = true,
 				collidefriendly = true,
-				corethickness = 0,
+				corethickness = 0.49,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -144,7 +145,7 @@ return {
 				fireTolerance = 1000,
 				impulsefactor = 0.1,
 				largebeamlaser = true,
-				laserflaresize = 0,
+				laserflaresize = 12.25,
 				minintensity = 0.5,
 				name = "Overcharged Dreadshot Ion Accelerator",
 				noselfdamage = true,
@@ -157,7 +158,7 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "annigun1",
 				soundtrigger = 1,
-				thickness = 0,
+				thickness = 2.6,
 				tolerance = 1000,
 				turret = true,
 				weapontype = "BeamLaser",
@@ -166,9 +167,6 @@ return {
 					commanders = 1500,
 					default = 4000, --76
 				},
-				--customparams = {
-				--sweepfire=3.25,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				--}
 			},
 
 			dreadshot = { --silent version

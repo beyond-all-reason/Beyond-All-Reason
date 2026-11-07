@@ -34,10 +34,9 @@ return {
 			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "ArmGantry",
+			reaimtime = 3,
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
-			weapon1turretx = 90,
-			weapon1turrety = 150,
 		},
 		featuredefs = {
 			dead = {
@@ -133,6 +132,10 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 933,
+				customparams = {
+					turretspeedx = 90,
+					turretspeedy = 150,
+				},
 				damage = {
 					default = 8,
 					vtol = 3,

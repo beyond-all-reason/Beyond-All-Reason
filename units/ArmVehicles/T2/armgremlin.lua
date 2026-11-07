@@ -5,8 +5,8 @@ return {
 		canmove = true,
 		cloakcost = 5,
 		cloakcostmoving = 20,
-		collisionvolumeoffsets = "0 1 0",
-		collisionvolumescales = "24 13 39",
+		collisionvolumeoffsets = "0 4 0",
+		collisionvolumescales = "24 15 39",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 3700,
@@ -50,8 +50,6 @@ return {
 			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -131,6 +129,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					turretspeedx = 200,
+					turretspeedy = 200,
+				},
 				damage = {
 					default = 262.5,
 					vtol = 24,

@@ -1,7 +1,7 @@
 // For N:\animations\raptor_allterrain_idle_V1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 //#define IDLEIDLEMOVESCALE 100 //Higher values are bigger, 100 is default
 //#define IDLEAMPLITUDE
-//#deine IDLESPEED
+//#define IDLESPEED
 //Animframes spacing is 12.500000, THIS SHOULD BE AN INTEGER, SPACE YOUR KEYFRAMES EVENLY!
 Idle() {// For N:\animations\raptor_allterrain_idle_V1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
 	set-signal-mask SIGNAL_MOVE;

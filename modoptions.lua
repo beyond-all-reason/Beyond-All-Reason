@@ -17,10 +17,10 @@
 --  items:    array of item strings for list options
 --  section:  so lobbies can order options in categories/panels
 --  scope:    'all', 'player', 'team', 'allyteam'      <<< not supported yet >>>
---  collumn:  moves the option 1 row up if value is greater than the preivous row's one, default: 1
+--  column:  moves the option 1 row up if value is greater than the previous row's one, default: 1
 --         |  negative value forces new row, absolute value is used
 --         |  zero moves to the left, 1 is default, 2 is half way to the right
---         |  recommened values: for 2 columns: 1 and 2, for 3 columns 1, 1.66, and 2.33
+--         |  recommended values: for 2 columns: 1 and 2, for 3 columns 1, 1.66, and 2.33
 --
 --  lock:     if type is bool: hides the table of keys when set to TRUE     <<< can not hide separators >>>
 --      |     if type is list: add under each item what it should SHOW when set to
@@ -140,68 +140,73 @@ local options = {
 				key = "neverend",
 				name = "Never ending",
 				desc = "Teams are never eliminated",
-				lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
+				lock = { "dominion_config", "dominion_elimination_threshold_multiplier" },
 			},
 			{
 				key = "com",
 				name = "Kill all enemy Commanders",
 				desc = "When a team has no Commanders left, it loses",
-				lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
+				lock = { "dominion_config", "dominion_elimination_threshold_multiplier" },
 			},
 			{
-				key = "territorial_domination",
-				name = "Territorial Domination",
-				desc = "Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins.",
-				unlock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
+				key = "dominion",
+				name = "Dominion",
+				desc = "Teams earn points by capturing territory to stay in the game. At the end of the final Deadline, the team with the most points wins.",
+				unlock = { "dominion_config", "dominion_elimination_threshold_multiplier" },
 			},
 			{
 				key = "builders",
 				name = "Kill all Builders",
 				desc = "When a team has no builders left, it loses",
-				lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
+				lock = { "dominion_config", "dominion_elimination_threshold_multiplier" },
 			},
 			{
 				key = "killall",
 				name = "Kill everything",
 				desc = "Every last unit must be eliminated, no exceptions!",
-				lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
+				lock = { "dominion_config", "dominion_elimination_threshold_multiplier" },
 			},
 			{
 				key = "own_com",
 				name = "Player resign on Com death",
 				desc = "When player commander dies, you auto-resign.",
-				lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
+				lock = { "dominion_config", "dominion_elimination_threshold_multiplier" },
 			},
 		},
 	},
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "territorial_domination_config",
-		name = "Territorial Domination Length",
-		desc = "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
+		key = "dominion_config",
+		name = "Dominion Length",
+		desc = "Configures the number of six-minute Deadlines and the total time before final score resolution.",
 		type = "list",
-		def = "25_minutes",
+		def = "30_minutes",
 		section = "options_main",
 		items = {
 			{
-				key = "20_minutes",
-				name = "4 Rounds, 20 Minutes",
+				key = "18_minutes",
+				name = "3 Deadlines, 18 Minutes",
 				desc = "Early tech emphasis, comebacks very likely, elimination unlikely.",
 			},
 			{
-				key = "25_minutes",
-				name = "5 Rounds, 25 Minutes(Default)",
-				desc = "Mid/late-game tech, comebacks a significant factor, eliminations uncommon",
+				key = "24_minutes",
+				name = "4 Deadlines, 24 Minutes",
+				desc = "Early/mid-game tech, comebacks likely, elimination uncommon",
 			},
 			{
 				key = "30_minutes",
-				name = "6 Rounds, 30 Minutes",
+				name = "5 Deadlines, 30 Minutes(Default)",
+				desc = "Mid/late-game tech, comebacks a significant factor, eliminations uncommon",
+			},
+			{
+				key = "42_minutes",
+				name = "7 Deadlines, 42 Minutes",
 				desc = "Late-game tech, comebacks less significant, eliminations likely",
 			},
 			{
-				key = "35_minutes",
-				name = "7 Rounds, 35 Minutes",
+				key = "60_minutes",
+				name = "10 Deadlines, 60 Minutes",
 				desc = "Super lategame tech, eliminations extremely likely",
 			},
 		},
@@ -209,14 +214,14 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "territorial_domination_elimination_threshold_multiplier",
-		name = "Elimination Threshold Multiplier",
-		desc = "Teams are eliminated at round end when score < elimination threshold which is set by highest score multiplied by this value. Lower values are more lenient.",
+		key = "dominion_elimination_threshold_multiplier",
+		name = "Deadline Multiplier",
+		desc = "Teams below the Deadline value are eliminated when a Deadline ends. The next Deadline value is the leader's score multiplied by this value. Lower values are more lenient.",
 		type = "number",
-		def = 1.2,
-		min = 1.0,
+		def = 1.25,
+		min = 0,
 		max = 1.5,
-		step = 0.1,
+		step = 0.01,
 		section = "options_main",
 	},
 
@@ -279,7 +284,7 @@ local options = {
 			},
 			{
 				key = "disco",
-				name = "Shuffle Locally (Continiously)",
+				name = "Shuffle Locally (Continuously)",
 				desc = "Same as local shuffle, except that colors are reshuffled every 2 mins for extra spicyness.",
 			},
 			{
@@ -938,7 +943,7 @@ local options = {
 
 	{
 		key = "sub_header",
-		name = "To Play Add a Scavangers AI to the enemy Team: [Add AI], [ScavengersDefense AI]",
+		name = "To Play Add a Scavengers AI to the enemy Team: [Add AI], [ScavengersDefense AI]",
 		desc = "",
 		section = "scav_defense_options",
 		type = "subheader",
@@ -1669,7 +1674,7 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "assistdronesenabled", -- TODO, turn this into booleam modoption
+		key = "assistdronesenabled", -- TODO, turn this into boolean modoption
 		name = "Commander Drones",
 		type = "list",
 		def = "disabled",
@@ -1779,23 +1784,37 @@ local options = {
 	{
 		key = "zombies",
 		name = "Scavenger Zombies",
+		desc = "Corpses left on the battlefield rise again as hostile zombies. Revival takes 45 to 120 seconds, with stronger units taking longer and revival speeding up as the game reaches higher tech. Reclaim or resurrect corpses to stop them from rising.",
 		type = "list",
 		def = "disabled",
 		section = "options_extra",
 		hidden = false,
 		items = {
-			{ key = "disabled", name = "Disabled", desc = "Disabled" },
-			{ key = "normal", name = "Normal", desc = "Normal revival rate, normal strength." },
-			{ key = "hard", name = "Hard", desc = "Faster revival rate, stronger Zombies." },
+			{ key = "disabled", name = "Disabled", desc = "No zombies. Corpses stay where they fall." },
 			{
-				key = "nightmare",
-				name = "Nightmare",
-				desc = "Faster revival rate, stronger Zombies, 2-5 spawn per corpse.",
+				key = "basic",
+				name = "Basic",
+				desc = "The dead come back to life",
+			},
+			{
+				key = "wraith",
+				name = "Wraith",
+				desc = "Basic, and Wraiths appear from overkill and from destroyed corpses. When a zombie's corpse is destroyed, it can respawn at any isolated Wraith.",
+			},
+			{
+				key = "hydra",
+				name = "Hydra",
+				desc = "Basic, and each corpse will resurrect between 2 and 6 zombies.",
 			},
 			{
 				key = "akumu",
 				name = "Akumu",
-				desc = "Faster revival rate, stronger Zombies, 2-8 spawn per corpse, zombies leave corpses.",
+				desc = "Basic, Wraith, and Hydra combined.",
+			},
+			{
+				key = "spidergeddon",
+				name = "Spidergeddon (LIMITED TIME)",
+				desc = "A modified Akumu mode, but zombies resurrect as Spiders.",
 			},
 		},
 	},
@@ -1852,146 +1871,9 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "community_balance_patch",
-		name = "Community Balance Patch 5-6/26",
-		desc = "Enable community balance patch changes\n(overwrites changes in official seasonal balance test)",
-		type = "list",
-		def = "disabled",
-		section = "options_experimental",
-		items = {
-			{
-				key = "disabled",
-				name = "Disabled",
-				desc = "No community balance changes",
-				lock = {
-					"community_balance_corspy",
-					"community_balance_armmav",
-					"community_balance_corcan",
-					"community_balance_corkarg",
-					"community_balance_armkam",
-					"community_balance_armblade",
-				},
-			},
-
-			{
-				key = "enabled",
-				name = "Enabled",
-				desc = "Enable all community balance changes\nSpectre\nGunslinger\nSumo\nKarganeth\nBanshee\nHornet",
-				lock = {
-					"community_balance_corspy",
-					"community_balance_armmav",
-					"community_balance_corcan",
-					"community_balance_corkarg",
-					"community_balance_armkam",
-					"community_balance_armblade",
-				},
-			},
-
-			{
-				key = "custom",
-				name = "Custom",
-				desc = "Customize individual community balance changes",
-				unlock = {
-					"community_balance_corspy",
-					"community_balance_armmav",
-					"community_balance_corcan",
-					"community_balance_corkarg",
-					"community_balance_armkam",
-					"community_balance_armblade",
-				},
-			},
-		},
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_patch_changelog_link",
-		name = "Changelog/Feedback",
-		desc = "Community Balance Patch discussion",
-		section = "options_experimental",
-		type = "link",
-		link = "https://discord.com/channels/549281623154229250/1512596823070740550",
-		width = 235,
-		column = 2.025,
-		linkheight = 325,
-		linkwidth = 350,
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_corspy",
-		name = "(CBP) Spectre",
-		desc = "(From February)\nEnergy cost: 8800 (from 12500)\nMetal cost: 135 (from 165)",
-		type = "bool",
-		def = false,
-		section = "options_experimental",
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_armmav",
-		name = "(CBP) Gunslinger",
-		desc = "(From April)\nMetal cost: 520 (from 650)\nEnergy cost: 6500 (from 11000)",
-		type = "bool",
-		def = false,
-		section = "options_experimental",
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_corcan",
-		name = "(CBP) Sumo",
-		desc = "(From April)\nMain laser range: 300 (from 275)\nMain laser beam time: 0.24 (from 0.16)",
-		type = "bool",
-		def = false,
-		section = "options_experimental",
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_corkarg",
-		name = "(CBP) Karganeth",
-		desc = "(New)\nSight distance: 515 (from 455)\nMax acceleration: 0.18 (from 0.1104)\nTurn rate: 515 (from 400)\nTurn-in-place speed limit: 1.25 (from 0.99)\nStrafe to attack: true (from false)\nMissile trajectory height: 0.25 (from none)\nMetal cost: 2650 (from 2500)\nBuild time: 100000 (from 94000)",
-		type = "bool",
-		def = false,
-		section = "options_experimental",
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_armkam",
-		name = "(CBP) Banshee",
-		desc = "(New)\nMax acceleration: 0.35 (from 0.15)\nWeapon range: 400 (from 350)\nWeapon reload: 3.0 (from 0.7)\nWeapon damage: 141 single shot (from 9 x 3 burst)\nArea of effect: 32 (from 40)\nEdge effectiveness: 0.40 (from 0.5)\nProjectile velocity: 1090 (from 1000)\nWeapon accuracy: 0 (from 13), spray angle removed (from 1024)\nCylindrical targeting: 0 (from 1)\nWeapon timer: 0 (from 0.1)\nWeapon tolerance: 2000 (from 5000)\nImpulse factor: 2.14 (from 0.123)\nWeapon visual: impulse-trail / genericshellexplosion-small-bomb (from plasmahit-small)\nWeapon sound: mavgun4 (from flashemg)\nTurret: true (from false)\nFiring arc: 45° forward, hidden attack range arc (from unrestricted/fixed)",
-		type = "bool",
-		def = false,
-		section = "options_experimental",
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_armblade",
-		name = "(CBP) Hornet",
-		desc = "(New)\nMax acceleration: 0.28 (from 0.6)\nMax deceleration: 0.55 (from 0.35)\nHealth: 3350 (from 3000)\nSpeed: 125 (from 204)\nTurn angle limit: 120 (from 360)\nTurn rate: 420 (from 720)\nSight distance: 720 (from 624)\nWeapon range: 1100 (from 420)\nWeapon reload: 4.0 (from 2.26667)\nWeapon damage: 425 x 2 burst (from 190 x 2 burst)\nCommander damage: 200 x 2 burst\nBurst rate: 0.15 (from 0.23333)\nArea of effect: 64 (from 32)\nEdge effectiveness: 0.40 (from 0.15)\nProjectile type: Cannon (from MissileLauncher)\nProjectile velocity: 1090 (from 1000)\nImpulse factor: 1.5 (from 0.123)\nWeapon visual: impulse-trail / genericshellexplosion-medium-bomb (from missiletrailsmall-simple / genericshellexplosion-medium)\nWeapon sound: mavgun5 / xplomed2 (from SabotFire / SabotHit)\nTurret: true (from false)\nFiring arc: 45° forward (from unrestricted)",
-		type = "bool",
-		def = false,
-		section = "options_experimental",
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
 		key = "experimentallegionfaction",
 		name = "Legion Faction",
 		desc = "3rd experimental faction",
-		type = "bool",
-		section = "options_experimental",
-		def = false,
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "legionsimplifiedmexes",
-		name = "Legion Simplified Mexes",
-		desc = "Changes the legion T1 mex to act the same as the other T1 mexes.\nAlso buffs the solar/wind generators on par with other factions.\nGoblin cost 25m/500e -> 30m/420e, Satyr 400 -> 600e",
 		type = "bool",
 		section = "options_experimental",
 		def = false,
@@ -2289,6 +2171,15 @@ local options = {
 	},
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
+		key = "mapeditor",
+		name = "Map Editor Session",
+		desc = "Launch as a map editor: the combat UI is left out and the terraformer opens on load.",
+		section = "dev",
+		type = "bool",
+		def = false,
+	},
+	-- NOTE: update language/en/interface.json when you change name or desc
+	{
 		key = "pushresistant",
 		name = "Pushresistance",
 		desc = "Enable to do desync test by the use of pushresistance",
@@ -2303,7 +2194,7 @@ local options = {
 		desc = "This is a dummy to hide some modoptions to not bloat the changed options panel with unneeded information",
 		section = "dev",
 		type = "bool",
-		-- This doesn't have a default on purpse, do not add one
+		-- This doesn't have a default on purpose, do not add one
 		unlock = { "dummyboolfeelfreetotouch", "factionlimiter", "date_year", "date_month", "date_day", "date_hour" },
 	},
 	-- NOTE: update language/en/interface.json when you change name or desc
@@ -2379,7 +2270,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	--
 	-- The modoptions below are intended to be set automatically by lobby/spads based on the selected
-	-- map name. They are used for a dynamic map configuration where the configruation values are not
+	-- map name. They are used for a dynamic map configuration where the configuration values are not
 	-- tied to either game version or reside inside of the map file, allowing for independent distribution
 	-- from the maps metadata source of truth: https://github.com/beyond-all-reason/maps-metadata
 	-- NOTE: update language/en/interface.json when you change name or desc
@@ -2870,7 +2761,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-for i = 1, 9 do
+for i = 1, 29 do
 	-- NOTE: update language/en/interface.json when you change name or desc
 	options[#options + 1] = {
 		key = "tweakunits" .. i,
@@ -2883,7 +2774,7 @@ for i = 1, 9 do
 	}
 end
 
-for i = 1, 9 do
+for i = 1, 29 do
 	-- NOTE: update language/en/interface.json when you change name or desc
 	options[#options + 1] = {
 		key = "tweakdefs" .. i,

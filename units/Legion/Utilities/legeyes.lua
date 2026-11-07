@@ -33,11 +33,12 @@ return {
 		customparams = {
 			cannot_capture_territory = true,
 			unitgroup = "util",
+			juno_kill = true,
 			model_author = "NebuchadnezzarII",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "Legion/utilities",
+			subfolder = "Legion/Utilities",
 		},
 		featuredefs = {
 			heap = {

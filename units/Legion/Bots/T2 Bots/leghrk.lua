@@ -35,7 +35,7 @@ return {
 		customparams = {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "legion/bots/T2 Bots",
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			unitgroup = "weapon",
 		},

@@ -37,10 +37,10 @@ return {
 			geothermal = 1,
 			standardextractor = true,
 			model_author = "Tharsis",
-			normaltex = "unittextures/LEG_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "CorBuildings/LandEconomy",
+			subfolder = "Legion/Economy",
 			techlevel = 2,
 		},
 		sounds = {

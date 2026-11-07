@@ -35,7 +35,8 @@ return {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorBuildings/LandDefenceOffence",
+			reaimtime = 5,
+			subfolder = "Legion/Defenses",
 		},
 		featuredefs = {
 			dead = {

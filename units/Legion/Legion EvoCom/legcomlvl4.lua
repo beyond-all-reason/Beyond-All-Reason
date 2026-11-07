@@ -65,7 +65,6 @@ return {
 			"legwin",
 			"legadvsol",
 			"legeconv",
-			"legmext15",
 			"leggeo",
 			"legtide",
 			"legestor",
@@ -116,7 +115,9 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "",
+			reaimtime = 5,
+			subfolder = "Legion/Legion EvoCom",
+			tombstone = "legstone",
 			workertimeboost = 3,
 			wtboostunittype = "MOBILE",
 			evolution_health_transfer = "percentage",
@@ -417,7 +418,8 @@ return {
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 		},
@@ -425,6 +427,7 @@ return {
 			[1] = {
 				def = "ARMMG_WEAPON",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

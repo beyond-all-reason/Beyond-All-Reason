@@ -74,7 +74,9 @@ void main() {
 	float spawnFrame   = velAndSpawnFrame.w;
 	float deathFrame   = rotData.w;
 
-	if (currentFrame >= deathFrame) {
+	// Dead, or not yet due: stride-staggered batches carry spawn frames a
+	// little ahead of the frame they were written in.
+	if (currentFrame >= deathFrame || currentFrame < spawnFrame) {
 		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
 		g_color = vec4(0.0);
 		g_normal = vec3(0.0);

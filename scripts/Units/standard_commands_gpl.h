@@ -1,7 +1,7 @@
 // Argh's Standard Commands Script
 // This script is released under the terms of the GNU license.
 // It may be used by anyone, for any purpose, so long as you adhere to the GNU license.
-// This script will not work with TAK compiling options, as I do not understand TAK scripts well enough to garantee that they will function as advertised.
+// This script will not work with TAK compiling options, as I do not understand TAK scripts well enough to guarantee that they will function as advertised.
 #ifndef STANDARD_COMMANDS_GPL_H_
 #define STANDARD_COMMANDS_GPL_H_
 //

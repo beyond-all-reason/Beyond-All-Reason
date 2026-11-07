@@ -20,7 +20,6 @@ end
 
 -- Localized functions for performance
 local mathFloor = math.floor
-local mathMax = math.max
 
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
@@ -89,8 +88,8 @@ function widget:ViewResize()
 end
 
 function DrawTextarea(x, y, width, height, scrollbar)
-	local scrollbarOffsetTop = 0 -- note: wont add the offset to the bottom, only to top
-	local scrollbarOffsetBottom = 0 -- note: wont add the offset to the top, only to bottom
+	local scrollbarOffsetTop = 0 -- note: won't add the offset to the bottom, only to top
+	local scrollbarOffsetBottom = 0 -- note: won't add the offset to the top, only to bottom
 	local scrollbarMargin = 10 * widgetScale
 	local scrollbarWidth = 8 * widgetScale
 	local scrollbarPosWidth = 4 * widgetScale
@@ -233,11 +232,11 @@ function widget:DrawScreen()
 				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
 			dlistcreated = true
-			WG.guishader.InsertDlist(backgroundGuishader, "text")
+			WG.guishader.InsertDlist(backgroundGuishader, "text", nil, widget)
 		end
 		showOnceMore = false
 
-		local x, y, pressed = Spring.GetMouseState()
+		local x, y, _ = Spring.GetMouseState()
 		if
 			math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY)
 			or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])
@@ -293,6 +292,12 @@ function mouseEvent(x, y, button, release)
 	end
 
 	if show then
+		-- A press on a top bar button is the top bar's to handle: it closes the open windows
+		-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
+		if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(x, y) then
+			return false
+		end
+
 		-- on window
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			return true
@@ -308,6 +313,11 @@ end
 
 function widget:Initialize()
 	if textFile then
+		-- lets the handler hide the rest of the interface while the panel is open
+		widgetHandler:RegisterModalWindow(function()
+			return show == true
+		end)
+
 		WG.scavengerinfo = {}
 		WG.scavengerinfo.toggle = function(state)
 			if state ~= nil then

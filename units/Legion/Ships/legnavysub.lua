@@ -1,7 +1,6 @@
 return {
 	legnavysub = {
 		activatewhenbuilt = true,
-		autoheal = 2,
 		buildpic = "legnavysub.DDS",
 		buildtime = 4600,
 		canmove = true,
@@ -138,8 +137,6 @@ return {
 			[1] = {
 				badtargetcategory = "NOTSHIP",
 				def = "leg_torpedo_launcher",
-				maindir = "0 0 1",
-				maxangledif = 90,
 				onlytargetcategory = "NOTHOVER",
 			},
 		},

@@ -195,7 +195,8 @@ end
 -- in case we forget to save it once again
 Spring.SetConfigInt("version", version)
 
-Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
+-- VSyncGame is the mode (1 on, -1 adaptive, 0 off)
+Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
 
 -- Configure sane keychain settings, this is to provide a standard experience
 -- for users that is acceptable
@@ -218,7 +219,7 @@ else
 end
 
 -- The default mouse drag threshold is set extremely low for engine by default, and fast clicking often results in a drag.
--- This is bad for single unit commands, which turn into empty area commmands as a result of the small drag
+-- This is bad for single unit commands, which turn into empty area commands as a result of the small drag
 local xresolution = math.max(Spring.GetConfigInt("XResolution", 1920), Spring.GetConfigInt("XResolutionWindowed", 1920))
 local yresolution = math.max(Spring.GetConfigInt("YResolution", 1080), Spring.GetConfigInt("YResolutionWindowed", 1080))
 

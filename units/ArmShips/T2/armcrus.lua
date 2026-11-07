@@ -35,6 +35,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 5,
 			subfolder = "ArmShips/T2",
 			techlevel = 2,
 			unitgroup = "weaponsub",

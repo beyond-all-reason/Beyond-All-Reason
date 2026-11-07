@@ -40,7 +40,7 @@ function gadget:FeatureCreated(featureID)
 			z,
 			vx * damping,
 			0,
-			vz * damping, -- setting vanlue for Y doesnt have effect,
+			vz * damping, -- setting vanlue for Y doesn't have effect,
 			rx,
 			ry,
 			rz

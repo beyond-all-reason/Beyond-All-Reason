@@ -27,7 +27,7 @@ Scoring:
 	playerstarty = "85%", -- Y position of where player comm icon should be drawn, from top left of the map
 	partime = 3000, -- par time in seconds (time a mission is expected to take on average)
 	parresources = 1000000, -- par resource amount (amount of metal one is expected to spend on mission)
-	difficulty = 4, -- Percieved difficulty at 'normal' level: integer 1-10
+	difficulty = 4, -- Perceived difficulty at 'normal' level: integer 1-10
 	defaultdifficulty = "Normal", -- an entry of the difficulty table
 	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
 		-- handicap values range [-100 - +100], with 0 being regular resources

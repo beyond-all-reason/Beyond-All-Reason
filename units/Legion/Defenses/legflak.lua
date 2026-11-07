@@ -36,7 +36,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "Legion/defenses",
+			subfolder = "Legion/Defenses",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -119,7 +119,7 @@ return {
 				impulsefactor = 0,
 				name = "Dual Rotary Microflak Cannons",
 				noselfdamage = true,
-				range = 800,
+				range = 875,
 				reloadtime = 0.166,
 				size = 0,
 				sizedecay = 0.08,

@@ -38,7 +38,6 @@
 
 uniform vec4 grassuniforms; //windx, windz, 0, globalalpha
 uniform float distanceMult; //yes this is the additional distance multiplier
-uniform float grassBladeScale;
 
 uniform sampler2D grassBladeColorTex;
 
@@ -98,7 +97,7 @@ void main() {
     return;
   }
 
-  float bladeScale = instancePosRotSize.w * grassBladeScale;
+  float bladeScale = instancePosRotSize.w; // grassBladeScale is baked into the patch mesh at load time
   vec3 grassVertWorldPos = vertexPos * bladeScale; // scale it
   mat3 rotY = rotation3dY(instancePosRotSize.y); // poor mans random rotate
 
@@ -122,22 +121,31 @@ void main() {
   float shadow = 1.0;
 
   #if HASSHADOWS == 1
-    #define SHADOWOFFSET 4.0
     vec4 shadowVertexPos;
-    shadowVertexPos = shadowView * vec4(grassVertWorldPos+ vec3(SHADOWOFFSET, 0.0, SHADOWOFFSET),1.0);
-    shadowVertexPos.xy += vec2(0.5);
-    shadow += clamp(textureProj(shadowTex, shadowVertexPos), SHADOWFACTOR, 1.0);
-    shadowVertexPos = shadowView * vec4(grassVertWorldPos+ vec3(-SHADOWOFFSET, 0.0, -SHADOWOFFSET),1.0);
-    shadowVertexPos.xy += vec2(0.5);
-    shadow += clamp(textureProj(shadowTex, shadowVertexPos), SHADOWFACTOR, 1.0);
-    shadowVertexPos = shadowView * vec4(grassVertWorldPos+ vec3(-SHADOWOFFSET, 0.0, SHADOWOFFSET),1.0);
-    shadowVertexPos.xy += vec2(0.5);
-    shadow += clamp(textureProj(shadowTex, shadowVertexPos), SHADOWFACTOR, 1.0);
-    shadowVertexPos = shadowView * vec4(grassVertWorldPos+ vec3(SHADOWOFFSET, 0.0, -SHADOWOFFSET),1.0);
-    shadowVertexPos.xy += vec2(0.5);
-    shadow += clamp(textureProj(shadowTex, shadowVertexPos), SHADOWFACTOR, 1.0);
-    shadow = shadow*0.2;
+    #if SHADOWTAPS >= 4
+      // the original cross of four taps around the vertex, a cheap 4x blur of the shadow edge
+      #define SHADOWOFFSET 4.0
+      shadowVertexPos = shadowView * vec4(grassVertWorldPos+ vec3(SHADOWOFFSET, 0.0, SHADOWOFFSET),1.0);
+      shadowVertexPos.xy += vec2(0.5);
+      shadow += clamp(textureProj(shadowTex, shadowVertexPos), SHADOWFACTOR, 1.0);
+      shadowVertexPos = shadowView * vec4(grassVertWorldPos+ vec3(-SHADOWOFFSET, 0.0, -SHADOWOFFSET),1.0);
+      shadowVertexPos.xy += vec2(0.5);
+      shadow += clamp(textureProj(shadowTex, shadowVertexPos), SHADOWFACTOR, 1.0);
+      shadowVertexPos = shadowView * vec4(grassVertWorldPos+ vec3(-SHADOWOFFSET, 0.0, SHADOWOFFSET),1.0);
+      shadowVertexPos.xy += vec2(0.5);
+      shadow += clamp(textureProj(shadowTex, shadowVertexPos), SHADOWFACTOR, 1.0);
+      shadowVertexPos = shadowView * vec4(grassVertWorldPos+ vec3(SHADOWOFFSET, 0.0, -SHADOWOFFSET),1.0);
+      shadowVertexPos.xy += vec2(0.5);
+      shadow += clamp(textureProj(shadowTex, shadowVertexPos), SHADOWFACTOR, 1.0);
+      shadow = shadow*0.2;
+    #else
+      // one tap: the shadow sampler's hardware 2x2 compare filter already softens the edge
+      shadowVertexPos = shadowView * vec4(grassVertWorldPos, 1.0);
+      shadowVertexPos.xy += vec2(0.5);
+      shadow = clamp(textureProj(shadowTex, shadowVertexPos), SHADOWFACTOR, 1.0);
+    #endif
   #endif
+
 
   instanceParamsVS.y = clamp(shadow,SHADOWFACTOR,1.0);
 

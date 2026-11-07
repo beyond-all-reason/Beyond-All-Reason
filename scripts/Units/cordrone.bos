@@ -13,7 +13,7 @@ piece  base, lflare, rflare, thrusta, thrustb;
 #define UNITSIZE 5
 #define MAXTILT 100
 
-static-var gun_1;
+static-var gun_1, docked;
 
 Create()
 {
@@ -35,6 +35,16 @@ Deactivate()
 {
 	hide thrusta;
 	hide thrustb;
+}
+
+Docked(customparam, dockpiece)
+{
+	docked = 1;
+}
+
+Undocked(customparam, dockpiece)
+{
+	docked = 0;
 }
 
 QueryWeapon1(pieceIndex)
@@ -69,6 +79,10 @@ AimWeapon1(heading, pitch)
 {
     signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
+	if (docked)
+	{
+		return (0);
+	}
 	 	while( 255 > heading )
 		{
 			set HEADING to (0 - 1500 + get HEADING);

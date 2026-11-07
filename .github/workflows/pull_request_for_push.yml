@@ -1,0 +1,36 @@
+name: Find Pull Request For Push
+
+# A pull request runs its checks for every push to its branch, so a workflow
+# triggered by both events calls this to skip the push run. A fork's pull
+# request is in the repository it was forked from, and a lookup that fails
+# reports no pull request, so that the checks run rather than go missing.
+
+on:
+  workflow_call:
+    outputs:
+      has-pull-request:
+        value: ${{ jobs.find.outputs.has-pull-request }}
+
+permissions: {}
+
+jobs:
+  find:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      has-pull-request: ${{ steps.find.outputs.has-pull-request }}
+    steps:
+      - name: Find an open pull request from this branch
+        id: find
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          base=$(gh api "repos/$GITHUB_REPOSITORY" --jq '.parent.full_name // .full_name')
+          open=$(gh api -X GET "repos/$base/pulls" -f state=open \
+            -f head="$GITHUB_REPOSITORY_OWNER:$GITHUB_REF_NAME" --jq length)
+          echo "Open pull requests in $base from $GITHUB_REF_NAME: $open"
+          if [ "$open" -gt 0 ]; then
+            echo "has-pull-request=true" >> "$GITHUB_OUTPUT"
+          fi

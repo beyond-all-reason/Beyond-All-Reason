@@ -166,111 +166,7 @@
 			"areamex_tooltip": "提示：双击金属采集器可以使用 划范围建造采集器 的命令"
 		},
 		"orderMenu": {
-			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
-			"move": "移动",
-			"move_tooltip": "将此单位移向指定位置或跟随指定单位",
-			"stop": "停止",
-			"stop_tooltip": "取消单位当前的行动",
-			"attack": "攻击",
-			"attack_tooltip": "攻击指定单位或地面",
-			"areaattack": "区域攻击",
-			"areaattack_tooltip": "区域攻击圆圈内的所有东西(点击-拖动)",
-			"manualfire": "裂解炮",
-			"manualfire_tooltip": "发射强大的指挥官裂解炮",
-			"manuallaunch": "发射",
-			"manuallaunch_tooltip": "向指定目标发射一枚导弹",
-			"patrol": "巡逻",
-			"patrol_tooltip": "沿着一个或多个指定目标点进行巡逻",
-			"fight": "战斗指令",
-			"fight_tooltip": "命令单位移动到指定位置并采取行动",
-			"resurrect": "复活",
-			"resurrect_tooltip": "复活残骸，使其重新投入战斗(点击拖动区域)",
-			"guard": "保护",
-			"guard_tooltip": "保护指定单位不受敌方单位的攻击",
-			"factoryguard": "协助工厂",
-			"factoryguard_tooltip": "工厂生产的建造者会自动协助工厂生产。",
-			"wait": "等待",
-			"wait_tooltip": "暂停指定单位/工厂的命令/建造队列",
-			"repair": "维修",
-			"repair_tooltip": "修复受伤的指定单位",
-			"reclaim": "回收",
-			"reclaim_tooltip": "从指定残骸或自然资源(树木/石头)中吸取金属/电力",
-			"restore": "重置",
-			"restore_tooltip": "将地图的指定区域重置到原来的高度",
-			"capture": "俘获",
-			"capture_tooltip": "俘获属于敌人（或盟友）的指定单位",
-			"settarget": "设定目标",
-			"settarget_tooltip": "设置优先目标(当目标在范围内时，优先选择目标)",
-			"canceltarget": "清理目标",
-			"canceltarget_tooltip": "移除优先级目标",
-			"areamex": "采矿区",
-			"areamex_tooltip": "点击拖动指定区域，为所有可用的金属点自动建造金属提炼器。",
-			"loadunits": "装载单位",
-			"loadunits_tooltip": "在指定的区域内装载单位或多个单位",
-			"unloadunits": "卸载单位",
-			"unloadunits_tooltip": "在指定的区域内卸下单位或多个单位",
-			"stockpile": "储存 %{stockpileStatus}",
-			"stockpile_tooltip": "[ stockpiled number ] / [ target stockpile number ]",
-			"stopproduction": "清除队列",
-			"stopproduction_tooltip": "清除指定工厂的所有单位的建造队列",
-			"morph": "升级",
-			"morph_tooltip": "升级到下一个科技级别(点两下可取消)",
-			"Spawning Disabled": "不自动生产",
-			"Spawning Enabled": "自动生产",
-			"sellunit": "出售单位",
-			"sellunit_tooltip": "切换让选择的单位可以出售，盟友将能够购买这些单位",
-			"For Sale": "待售",
-			"Not For Sale": "非卖品",
-
-			"Fire at will": "随意开火",
-			"Hold fire": "停火",
-			"Return fire": "回击",
-			"firestate_tooltip": "设置此单位在什么条件下应该开始向敌人开火(没有明确的攻击命令)",
-			"Hold pos": "保持位置",
-			"Maneuver": "灵活机动",
-			"Roam": "漫游",
-			"movestate_tooltip": "设置此单位在攻击敌人时应该移动多远的距离",
-			"Repeat on": "开启重复执行",
-			"Repeat off": "关闭重复执行",
-			"repeat_tooltip": "重复单位指令队列",
-			"Low Prio": "低优先级",
-			"High Prio": "高优先级",
-			"priority_tooltip": "当没有足够的资源给所有的建造者时,分配资源给这个建造者使用.",
-			"Decloaked": "隐形关闭",
-			"Cloaked": "隐形",
-			"wantcloak_tooltip": "隐形状态",
-			" On ": "开启",
-			" Off ": "关闭",
-			"onoff_tooltip": "当前状态：打开/关闭此单位",
-			" Fly ": "飞行",
-			"Land": "着陆",
-			"idlemode_tooltip": "设置飞机空闲时的动作",
-			"apLandAt_tooltip": "设定飞机离开飞行器工厂时的动作",
-			"csSpawning_tooltip": "设置航母单位生产模式",
-			"Low traj": "低抛",
-			"High traj": "高抛",
-			"trajectory_toggle_tooltip": "在低弹道、高弹道和自动弹道之间切换火炮射击角度",
-			"trajectory_low": "低弹道",
-			"trajectory_high": "高弹道",
-			"trajectory_auto": "自动调整弹道",
-			"hound_weapon_plasma": "重型等离子火炮",
-			"hound_weapon_gauss": "电磁炮弹",
-			"hound_weapon_toggle_tooltip": "把武器设置为 慢弹速但爆炸范围大的等离子炮 或 弹道快的电磁炮。",
-			"blueprint_place": "放置蓝图",
-			"blueprint_place_tooltip": "放置已保存的蓝图",
-			"blueprint_create": "保存蓝图",
-			"blueprint_create_tooltip": "将选中的单位按选择顺序保存为新的蓝图",
-			"factoryqueuemode_normal": "队列模式",
-			"factoryqueuemode_quota": "配额模式",
-			"factoryqueuemode_tooltip": "队列模式:只建造队列中的单位一次\n配额模式: 保证战场上至少有配额数量的单位",
-			"customOnOff": {
-				"lowTrajectory": "低弹道",
-				"highTrajectory": "高弹道",
-				"trajectory_tooltip": "在低弹道和高弹道之间切换炮台射击角度",
-				"gauss_tooltip": "在电磁炮 和 等离子炮 之间切换"
-			},
-			"quicksharetotarget": "分享单位",
-			"quicksharetotarget_tooltip": "分享单位给目标玩家"
+			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}"
 		},
 		"idleBuilders": {
 			"name": "闲置建造单位",
@@ -293,7 +189,7 @@
 		"keybinds": {
 			"title": "快捷键",
 			"disclaimer": "如果你改动了快捷键插件,或使用自己的快捷键插件,可能导致上述快捷键无效!",
-			"howtochangekeybinds":"如果要改变它们：在 设置/控制 栏目，将键位绑定设置为 自定义， 来创建 BAR/data/uikeys.txt file。\n编辑这个文件，然后在聊天框中输入 /keyreload 来加载自定义键位。",
+			"howtochangekeybinds": "如果要改变它们：在 设置/控制 栏目，将键位绑定设置为 自定义， 来创建 BAR/data/uikeys.txt file。\n编辑这个文件，然后在聊天框中输入 /keyreload 来加载自定义键位。",
 			"chat": {
 				"title": "聊天",
 				"send": "发送消息",
@@ -310,7 +206,6 @@
 				"share": "共享 单位 / 资源"
 			},
 			"camera": {
-				"title": "镜头",
 				"zoomKey": "滚轮",
 				"zoom": "拉近/拉远",
 				"panKey": "方向键 / 鼠标指向屏幕边缘",
@@ -318,8 +213,7 @@
 				"tiltKey": "ctrl + 滚轮",
 				"tilt": "镜头角度",
 				"dragKey": "中键(拖动)",
-				"drag": "拖动镜头",
-				"flip": "反转镜头"
+				"drag": "拖动镜头"
 			},
 			"cameraModes": {
 				"title": "镜头模式",
@@ -328,21 +222,13 @@
 				"fullscreenKey": "alt + 退格",
 				"fullscreen": "切换全屏",
 				"overview": "切换成俯视缩略图",
-				"los": "切换视野范围显示",
-				"heightmap": "切换等高线地图",
-				"traversability": "显示可移动区域 (指定单位)",
-				"mapmarks": "按地图标记循环移动",
-				"resourceSpots": "显示金属矿点地图",
-				"interface": "隐藏图形用户界面"
+				"los": "切换视野范围显示"
 			},
 			"sound": {
-				"title": "声音",
 				"volumeKey": "-/+",
-				"volume": "修改音量",
-				"mute": "静音"
+				"volume": "修改音量"
 			},
 			"selection": {
-				"title": "选择单位",
 				"unitsKey": "左键 (+ 选取)",
 				"units": "选择或取消选择单位"
 			},
@@ -354,23 +240,8 @@
 				"formationOrder": "给单位(组)发出编队指令"
 			},
 			"orders": {
-				"title": "选定后指令",
 				"defaultKey": "(none)",
-				"default": "默认命令(一般为移动)",
-				"move": "移动",
-				"attack": "攻击",
-				"stop": "停止 (取消指令队列)",
-				"repair": "维修",
-				"reclaim": "回收",
-				"resurrect": "复活",
-				"patrol": "巡逻",
-				"fight": "战斗",
-				"setTarget": "设置优先攻击目标",
-				"cancelTarget": "取消优先目标",
-				"wait": "等待 (暂停当前命令)",
-				"cloak": "隐形开启",
-				"dGun": "手动发射 (裂解炮)",
-				"selfDestruct": "自毁"
+				"default": "默认命令(一般为移动)"
 			},
 			"issueOrders": {
 				"title": "下达选择的命令",
@@ -382,11 +253,9 @@
 				"formation": "下达列队命令"
 			},
 			"queues": {
-				"title": "队列指令",
 				"append": "把指令加到队列结尾",
 				"appendKey": "shift + (指令)",
-				"prependKey": "space + (指令)",
-				"prepend": "把指令加到队列开头"
+				"prependKey": "space + (指令)"
 			},
 			"buildOrders": {
 				"title": "选择建造指令",
@@ -400,8 +269,7 @@
 				"intel": "循环指定 雷达/防御/其它 建筑",
 				"factoriesKey": "v",
 				"factories": "循环指定生产工厂",
-				"rotateKey": "[  与  ]",
-				"rotate": "改变建筑朝向"
+				"rotateKey": "[  与  ]"
 			},
 			"issueBuildOrders": {
 				"title": "下达建造指令",
@@ -414,29 +282,22 @@
 				"gridKey": "shift + alt + (建造指令)",
 				"grid": "建成方阵",
 				"spacingUpKey": "alt+z",
-				"spacingUp": "增加建筑间隔",
-				"spacingDownKey": "alt+x",
-				"spacingDown": "减少建筑间隔"
+				"spacingDownKey": "alt+x"
 			},
 			"massSelect": {
 				"title": "编队选择",
 				"allKey": "ctrl + a",
-				"all": "选择所有单位",
 				"buildersKey": "ctrl + b",
-				"builders": "选择所有建造单位",
 				"createGroupKey": "ctrl + (编号)",
 				"createGroup": "向编队中增加单位 (编号=1,2,..)",
 				"createAutoGroupKey": "alt + (编号)",
 				"createAutoGroup": "向自动编队中增加兵种 (编号=1,2,..)",
 				"removeAutoGroupKey": "alt + `",
-				"removeAutoGroup": "从自动编队中移除兵种",
 				"groupKey": "(编号)",
 				"group": "选择编队中所有单位 (编号)",
-				"sameTypeKey": "ctrl + z",
-				"sameType": "选择所有同种单位"
+				"sameTypeKey": "ctrl + z"
 			},
 			"drawing": {
-				"title": "地图标注",
 				"mapmarkKey": "` + 左键双击",
 				"mapmark": "地图标记",
 				"drawKey": "` + 左键拖动",
@@ -447,9 +308,7 @@
 			"console": {
 				"title": "控制台",
 				"eraseKey": "/clearmapmarks",
-				"erase": "清除所有涂鸦和标记",
-				"pauseKey": "/pause",
-				"pause": "暂停"
+				"pauseKey": "/pause"
 			}
 		},
 		"chat": {
@@ -530,7 +389,7 @@
 			"heightTitle": "等高线地图",
 			"heightmap": "[%{keyset}] 为每个地形高度标以不同颜色。",
 			"pathingTitle": "地形通过性地图",
-			"pathing":"[%{keyset}] 为已选择的单位显示其地形通过性,绿色:OK,红色:艰难,紫色:无法移动",
+			"pathing": "[%{keyset}] 为已选择的单位显示其地形通过性,绿色:OK,红色:艰难,紫色:无法移动",
 			"resourcesTitle": "资源图",
 			"resources": "[%{keyset}] 高亮显示 绿色:金属矿,黄色:地热喷口. \n红色:已占领金属矿."
 		},
@@ -571,14 +430,14 @@
 			"airWave1": "飞行虫群来袭！",
 			"airWave2": "%{unitCount}只虫子！",
 			"queenIsAngry1": {
-				"one"   : "女王来袭！",
-				"other" : "女王来袭！"
+				"one": "女王来袭！",
+				"other": "女王来袭！"
 			},
 			"queenIsAngry2": "准备好迎接最后的战斗吧!",
 			"queenResistant": "女王开始对 %{unit} 的攻击产生耐受!",
-			"resistanceUnits":{
-				"one"   : "女王开始对此单位产生耐受：",
-				"other" : "女王开始对此单位产生耐受："
+			"resistanceUnits": {
+				"one": "女王开始对此单位产生耐受：",
+				"other": "女王开始对此单位产生耐受："
 			},
 			"wave1": "第%{waveNumber}波",
 			"wave2": "%{unitCount}只虫子！",
@@ -591,17 +450,17 @@
 			"queenAngerAggression": "玩家攻击性:%{value}%%/s",
 			"queenAngerEco": "经济：+%{value}%%/每秒",
 			"queenETA": {
-				"one"   : "%{time}后虫后降临",
-				"other" : "%{time}秒后%{count}只虫后降临"
+				"one": "%{time}后虫后降临",
+				"other": "%{time}秒后%{count}只虫后降临"
 			},
 			"queenHealth": {
-				"one"   : "虫后血量: %{health}%%",
-				"other" : "虫后血量: %{health}%%"
+				"one": "虫后血量: %{health}%%",
+				"other": "虫后血量: %{health}%%"
 			},
 			"queensKilled": "虫后击杀:%{nKilled}/%{nTotal}",
 			"queenResistantToList": {
-				"one"   : "虫后对此有抵抗性：",
-				"other" : "虫后对此有抵抗性："
+				"one": "虫后对此有抵抗性：",
+				"other": "虫后对此有抵抗性："
 			},
 			"gracePeriod": "和平期: %{time}",
 			"burrowCount": "巢穴数量: %{count}",
@@ -625,14 +484,14 @@
 			"firstWave1": "拾荒者已登陆！",
 			"firstWave2": "准备好保卫自己吧!",
 			"bossIsAngry1": {
-				"one"   : "BOSS已抵达战场！",
-				"other" : "BOSS已抵达战场！"
+				"one": "BOSS已抵达战场！",
+				"other": "BOSS已抵达战场！"
 			},
 			"bossIsAngry2": "准备好迎接最后的战斗吧!",
 			"bossResistant": "BOSS开始对 %{unit} 的攻击产生耐受!",
 			"resistanceUnits": {
-				"one"   : "BOSS开始对此单位产生耐受：",
-				"other" : "BOSS开始对此单位产生耐受："
+				"one": "BOSS开始对此单位产生耐受：",
+				"other": "BOSS开始对此单位产生耐受："
 			},
 			"wave1": "第%{waveNumber}波",
 			"wave2": "%{unitCount}个拾荒者！",
@@ -645,17 +504,17 @@
 			"bossAngerAggression": "玩家攻击性:%{value}%%/s",
 			"bossAngerEco": "经济：+%{value}%%/每秒",
 			"bossETA": {
-				"one"   : "BOSS在%{time}秒后到达。",
-				"other" : "%{time}秒后%{count}个BOSS降临"
+				"one": "BOSS在%{time}秒后到达。",
+				"other": "%{time}秒后%{count}个BOSS降临"
 			},
 			"bossHealth": {
-				"one"   : "BOSS生命值：%{health}%%",
-				"other" : "BOSS生命值：%{health}%%"
+				"one": "BOSS生命值：%{health}%%",
+				"other": "BOSS生命值：%{health}%%"
 			},
 			"bossesKilled": "BOSS击杀:%{nKilled}/%{nTotal}",
 			"bossResistantToList": {
-				"one"   : "BOSS开始对此单位产生耐受：",
-				"other" : "BOSS对此有抵抗性："
+				"one": "BOSS开始对此单位产生耐受：",
+				"other": "BOSS对此有抵抗性："
 			},
 			"gracePeriod": "和平期: %{time}",
 			"burrowCount": "巢穴数量: %{count}",
@@ -735,7 +594,7 @@
 		},
 		"moveAttackNotify": {
 			"underAttack": "%{unit} 正在被攻击!",
-			"cantMove":"%{unit}: 无法到达目的地!"
+			"cantMove": "%{unit}: 无法到达目的地!"
 		},
 		"unitShare": {
 			"shared": "分享了%{units}至%{name}",
@@ -932,15 +791,15 @@
 			"metalIncome_title": "金属收入",
 			"metalIncome_tooltip": "每秒金属收入",
 			"energyConversionMetalIncome_title": "金属转换",
-			"energyConversionMetalIncome_tooltip": "通过能量转换获得的金属收入" ,
+			"energyConversionMetalIncome_tooltip": "通过能量转换获得的金属收入",
 			"energyIncome_title": "能量收入",
 			"energyIncome_tooltip": "每秒能量收入",
 			"buildPower_title": "建造能力",
 			"buildPower_tooltip": "可用建造能力",
 			"metalProduced_title": "已生产金属",
-			"metalProduced_tooltip": "已生产金属总量" ,
+			"metalProduced_tooltip": "已生产金属总量",
 			"energyProduced_title": "已生产能量",
-			"energyProduced_tooltip": "已生产能量总数" ,
+			"energyProduced_tooltip": "已生产能量总数",
 			"metalExcess_title": "金属溢出",
 			"metalExcess_tooltip": "金属溢出总数",
 			"energyExcess_title": "能量溢出",

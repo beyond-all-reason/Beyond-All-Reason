@@ -28,8 +28,13 @@ local Base = {
 
 local biomes = { def = "", snow = "Snowy ", moss = "Mossy ", desert = "Barren ", map = "" }
 
+-- The map biome is for maps that ship their own unittextures/rocks30_map_*.dds. Elsewhere its models
+-- would draw the engine's missing-texture placeholder, so they use the identical def biome models.
+local mapShipsTextures = VFS.FileExists("unittextures/rocks30_map_color.dds")
+
 local rocks = {}
 for biome, descname in pairs(biomes) do
+	local texBiome = (biome == "map" and not mapShipsTextures) and "def" or biome
 	for i = 1, 30 do -- increase if you have more than 3!
 		local name = string.format("rocks30_%s_%02d", biome, i)
 		local def = {}
@@ -44,7 +49,7 @@ for biome, descname in pairs(biomes) do
 			end
 		end
 		def.name = name
-		def.object = string.format("rocks30/rocks30_%s_%02d.s3o", biome, i)
+		def.object = string.format("rocks30/rocks30_%s_%02d.s3o", texBiome, i)
 		def.description = descname .. "Rock"
 
 		def.metal = 9 + i
@@ -57,7 +62,7 @@ for biome, descname in pairs(biomes) do
 		def.footprintZ = tostring(math.floor(i / 8) + 1)
 
 		def.customparams.decalinfo_alpha = "0.9"
-		def.customparams.normaltex = string.format("unittextures/rocks30_%s_normal.dds", biome)
+		def.customparams.normaltex = string.format("unittextures/rocks30_%s_normal.dds", texBiome)
 
 		rocks[name] = def
 	end

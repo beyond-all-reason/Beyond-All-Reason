@@ -5,9 +5,10 @@ return {
 		energycost = 165000,
 		metalcost = 6500,
 		buildpic = "LEGERAILTANK.DDS",
-		buildtime = 125000,
+		buildtime = 165250,
 		--canattack = false,
 		canmove = true,
+		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "65 42 75",
 		collisionvolumetype = "Box",
@@ -40,8 +41,10 @@ return {
 		customparams = {
 			unitgroup = "weapon",
 			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/T3",
 			paralyzemultiplier = 0.5,
 			model_author = "ZephyrSkies",
+			reaimtime = 9,
 			techlevel = 3,
 		},
 		featuredefs = {

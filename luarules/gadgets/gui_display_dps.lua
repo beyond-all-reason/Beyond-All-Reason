@@ -37,8 +37,24 @@ local fontfileScale = 1 + (vsx * vsy / 5700000)
 local fontfileSize = 25
 local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.3
-local font =
-	gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+-- created only while enabled: rasterizing outlined fonts at high resolutions costs load time
+local font ---@type LuaFont
+local fontLoaded = false
+if enabled then
+	font = gl.LoadFont(
+		fontfile,
+		fontfileSize * fontfileScale,
+		fontfileOutlineSize * fontfileScale,
+		fontfileOutlineStrength
+	)
+	fontLoaded = true
+end
+
+local function loadResizedFont()
+	local fontScale = 1 + (vsx * vsy / 5700000)
+	font = gl.LoadFont(fontfile, 52 * fontScale, 17 * fontScale, 1.3)
+	fontLoaded = true
+end
 
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitDefDimensions = Spring.GetUnitDefDimensions
@@ -119,9 +135,10 @@ ignoreDamageTypes[Game.envDamageTypes.UnitScript] = true -- likely to be self-da
 
 function gadget:ViewResize(n_vsx, n_vsy)
 	vsx, vsy = Spring.GetViewGeometry()
-	local fontScale = 1 + (vsx * vsy / 5700000)
 	gadget:Shutdown()
-	font = gl.LoadFont(fontfile, 52 * fontScale, 17 * fontScale, 1.3)
+	if enabled then
+		loadResizedFont()
+	end
 end
 
 local function unitHeight(unitDefID)
@@ -342,6 +359,10 @@ end
 local LOA_B1 = string.byte("L") -- 76, first byte of 'LobbyOverlayActive'
 
 function gadget:RecvLuaMsg(msg, playerID)
+	-- FIXME: We cannot distinguish LuaMenu from an actual player 0.
+	if playerID ~= 0 then
+		return
+	end
 	if #msg < 18 or string.byte(msg, 1) ~= LOA_B1 or msg:sub(1, 18) ~= "LobbyOverlayActive" then
 		return
 	end
@@ -363,6 +384,9 @@ function checkEnabled()
 		drawTextListsDeath = {}
 		drawTextListsEmp = {}
 		if enabled then
+			if not fontLoaded then
+				loadResizedFont()
+			end
 			gadgetHandler:UpdateCallIn("UnitDamaged")
 			gadgetHandler:UpdateCallIn("UnitTaken")
 			gadgetHandler:UpdateCallIn("UnitDestroyed")
@@ -481,5 +505,8 @@ function gadget:Shutdown()
 	for k, _ in pairs(drawTextListsEmp) do
 		gl.DeleteList(drawTextListsEmp[k])
 	end
-	gl.DeleteFont(font)
+	if fontLoaded then
+		gl.DeleteFont(font)
+		fontLoaded = false
+	end
 end

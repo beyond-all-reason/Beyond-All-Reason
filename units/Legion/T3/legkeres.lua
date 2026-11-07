@@ -5,7 +5,7 @@ return {
 		energycost = 57000,
 		metalcost = 2600,
 		buildpic = "LEGKERES.DDS",
-		buildtime = 60000,
+		buildtime = 76650,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -2 0",
@@ -40,8 +40,10 @@ return {
 		customparams = {
 			unitgroup = "weapon",
 			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/T3",
 			paralyzemultiplier = 0.5,
 			model_author = "EnderRobo",
+			reaimtime = 5,
 			techlevel = 3,
 		},
 		featuredefs = {
@@ -112,6 +114,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-large",
+				gravityaffected = "true",
 				impulsefactor = 2.4,
 				name = "Heavy riot cannon",
 				noselfdamage = true,
@@ -131,9 +134,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 650,
 				damage = {
-					bombers = 50,
 					default = 400,
-					fighters = 50,
 					subs = 150,
 					vtol = 50,
 				},
@@ -185,7 +186,6 @@ return {
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				badtargetcategory = "NOTSUB",
 				burstcontrolwhenoutofarc = 2,
 				def = "LEGKERES_GATLING",
 				fastautoretargeting = true,
@@ -193,7 +193,6 @@ return {
 				slaveTo = 1,
 			},
 			[3] = {
-				badtargetcategory = "NOTSUB",
 				burstcontrolwhenoutofarc = 2,
 				def = "LEGKERES_GATLING",
 				fastautoretargeting = true,

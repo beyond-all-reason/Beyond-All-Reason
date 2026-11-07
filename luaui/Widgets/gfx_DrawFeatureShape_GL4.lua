@@ -30,8 +30,9 @@ end
 local LuaShader = gl.LuaShader
 local InstanceVBOIdTable = gl.InstanceVBOIdTable
 
-local pushElementInstance = InstanceVBOIdTable.pushElementInstance
-local popElementInstance = InstanceVBOIdTable.popElementInstance
+local pushDefElement = InstanceVBOIdTable.pushDefElement
+local popDefElement = InstanceVBOIdTable.popDefElement
+local flushDefElements = InstanceVBOIdTable.flushDefElements
 
 local Echo = Spring.Echo
 local PreloadFeatureDefModel = Spring.PreloadFeatureDefModel
@@ -41,7 +42,7 @@ local INSTANCE_STEP = 20
 
 local VBO_LAYOUT = {
 	{ id = 6, name = "worldposyaw", size = 4 }, -- xyz = world position, w = yaw (radians)
-	{ id = 7, name = "pitchroll", size = 4 }, -- x = pitch, y = roll, zw reserved
+	{ id = 7, name = "pitchroll", size = 4 }, -- x = pitch, y = roll, z = uniform scale, w reserved
 	{ id = 8, name = "parameters", size = 4 }, -- x = alpha, y = tint amount, z = highlight, w reserved
 	{ id = 9, name = "tintcolor", size = 4 }, -- rgb = tint target, a reserved
 	{ id = 10, name = "instData", type = GL.UNSIGNED_INT, size = 4 },
@@ -104,6 +105,13 @@ void main() {
 		Transform tx = GetStaticPieceModelTransform(baseIndex, pieceIndex);
 		vec4 localModelPos = ApplyTransform(tx, vec4(pos, 1.0));
 	#endif
+
+	// Uniform scale, applied after the piece matrix so piece offsets scale along
+	// with the geometry -- the same thing the gadget's root-piece-matrix scale
+	// does to the real feature. Instances written before this attribute existed
+	// carry 0 there; treat that as unscaled.
+	float ghostScale = (pitchroll.z > 0.0) ? pitchroll.z : 1.0;
+	localModelPos.xyz *= ghostScale;
 
 	// Match Spring.SetFeatureRotation exactly, or the ghost does not line up with
 	// the feature it previews.
@@ -173,11 +181,13 @@ void main() {
 local featureShapeShader
 local vertexVBO, indexVBO
 
-local texKeyToBucket = {} -- "tex1|tex2" -> instance table
-local buckets = {} -- array of the above, for iteration
+---Instance buffers keyed by the texture pair they draw with.
+---@type table<string, InstanceVBOTable?>
+local texKeyToBucket = {}
+local buckets = {} ---@type table<integer, table> array of the above, for iteration
 local featureDefIDToBucket = {} -- featureDefID -> instance table
 local unsupportedDefIDs = {} -- featureDefIDs with no usable model, warned about once
-local uniqueIDToBucket = {}
+local uniqueIDToBucket = {} ---@type table<integer, table?>
 local owners = {} -- uniqueID -> ownerID
 
 local uniqueID = 0
@@ -255,7 +265,7 @@ end
 ---Callers own the lifetime of everything they submit: pair every call that
 ---creates a ghost with StopDrawFeatureShapeGL4, or batch-remove with
 ---StopDrawFeatureShapesGL4(ownerID).
----@param featureDefID number which featureDef to draw
+---@param featureDefID FeatureDefID which featureDef to draw
 ---@param px number world position
 ---@param py number world position
 ---@param pz number world position
@@ -267,7 +277,8 @@ end
 ---@param tintG number optional tint target colour
 ---@param tintB number optional tint target colour
 ---@param tintAmount number optional how much to blend the tint in [0-1], default 0
----@param updateID number optional a uniqueID returned earlier, to move that ghost instead of adding one
+---@param scale number optional uniform model scale, default 1 (matches the root-piece-matrix scale the feature placer applies)
+---@param updateID integer? optional a uniqueID returned earlier, to move that ghost instead of adding one
 ---@param ownerID any optional tag so a widget can batch-remove everything it submitted
 ---@return number|nil uniqueID pass to StopDrawFeatureShapeGL4 to stop drawing it
 local function DrawFeatureShapeGL4(
@@ -283,6 +294,7 @@ local function DrawFeatureShapeGL4(
 	tintG,
 	tintB,
 	tintAmount,
+	scale,
 	updateID,
 	ownerID
 )
@@ -294,11 +306,7 @@ local function DrawFeatureShapeGL4(
 	if updateID and uniqueIDToBucket[updateID] and uniqueIDToBucket[updateID] ~= bucket then
 		-- The caller reused a handle for a different def whose textures live in
 		-- another bucket. Drop the old instance or it leaks in the old table.
-		local oldBucket = uniqueIDToBucket[updateID]
-		if oldBucket.instanceIDtoIndex[updateID] then
-			popElementInstance(oldBucket, updateID)
-			oldBucket.dirty = true
-		end
+		popDefElement(uniqueIDToBucket[updateID], updateID)
 	end
 
 	if not updateID then
@@ -311,29 +319,19 @@ local function DrawFeatureShapeGL4(
 	end
 
 	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = px, py, pz, yaw or 0
-	instanceCache[5], instanceCache[6], instanceCache[7], instanceCache[8] = pitch or 0, roll or 0, 0, 0
+	instanceCache[5], instanceCache[6], instanceCache[7], instanceCache[8] = pitch or 0, roll or 0, scale or 1, 0
 	instanceCache[9], instanceCache[10], instanceCache[11], instanceCache[12] = alpha or 0.55, tintAmount or 0, 0, 0
 	instanceCache[13], instanceCache[14], instanceCache[15], instanceCache[16] = tintR or 1, tintG or 1, tintB or 1, 1
 
 	uniqueIDToBucket[updateID] = bucket
 
-	-- Pushes are deferred (noUpload) and flushed once per bucket in DrawWorld:
-	-- callers move whole fleets of ghosts every frame, and a per-instance Upload
-	-- would be hundreds of GL calls a frame. Safe because pushElementInstance
-	-- records indextoUnitID/indextoObjectType OUTSIDE its noUpload guard.
-	--
-	-- Pops deliberately do NOT defer. popElementInstance does its swap-with-last
-	-- fixup of those same two tables INSIDE the guard, so a deferred pop leaves
-	-- the def bookkeeping pointing at instances that have moved or gone -- and
-	-- uploadAllElements then rebuilds the submission from that stale array,
-	-- drawing phantom ghosts with the wrong models.
-	pushElementInstance(bucket, instanceCache, updateID, true, true, featureDefID, "featureDefID")
-	bucket.dirty = true
+	-- Deferred: callers move whole fleets of ghosts every frame, DrawWorld uploads once per bucket
+	pushDefElement(bucket, instanceCache, updateID, featureDefID)
 
 	return updateID
 end
 
----@param handleID number a uniqueID returned by DrawFeatureShapeGL4
+---@param handleID integer a uniqueID returned by DrawFeatureShapeGL4
 ---@return any ownerID the owner the handle was registered under, if any
 local function StopDrawFeatureShapeGL4(handleID)
 	if handleID == nil then
@@ -342,10 +340,7 @@ local function StopDrawFeatureShapeGL4(handleID)
 
 	local bucket = uniqueIDToBucket[handleID]
 	if bucket then
-		if bucket.instanceIDtoIndex[handleID] then
-			popElementInstance(bucket, handleID)
-			bucket.dirty = true
-		end
+		popDefElement(bucket, handleID)
 		uniqueIDToBucket[handleID] = nil
 	end
 
@@ -362,9 +357,8 @@ local function StopDrawFeatureShapesGL4(ownerID)
 	for handleID, owner in pairs(owners) do
 		if ownerID == nil or owner == ownerID then
 			local bucket = uniqueIDToBucket[handleID]
-			if bucket and bucket.instanceIDtoIndex[handleID] then
-				popElementInstance(bucket, handleID)
-				bucket.dirty = true
+			if bucket then
+				popDefElement(bucket, handleID)
 			end
 			uniqueIDToBucket[handleID] = nil
 			owners[handleID] = nil
@@ -383,6 +377,26 @@ end
 -- per-instance element offset shows up instantly as a visible offset, a doubled
 -- silhouette, or every ghost collapsing onto one spot.
 local testHandles = {}
+
+-- The uniform scale the feature placer's gadget baked into the root piece
+-- matrix, read back as the length of the first basis vector. 1 for anything
+-- never scaled.
+local sqrt = math.sqrt
+local function readFeatureVisualScale(featureID)
+	if not (Spring.GetFeaturePieceMatrix and Spring.GetFeatureRootPiece) then
+		return 1
+	end
+	local root = Spring.GetFeatureRootPiece(featureID) or 1
+	local m11, m12, m13 = Spring.GetFeaturePieceMatrix(featureID, root)
+	if not m11 then
+		return 1
+	end
+	local s = sqrt(m11 * m11 + m12 * m12 + m13 * m13)
+	if s < 0.01 then
+		return 1
+	end
+	return s
+end
 
 local function clearTest()
 	for i = 1, #testHandles do
@@ -445,6 +459,7 @@ local function drawFeatureShapeTest(_cmd, _line, args)
 				1.0,
 				0.4,
 				0.5,
+				readFeatureVisualScale(featureID),
 				nil,
 				"test"
 			)
@@ -560,18 +575,7 @@ function widget:DrawWorld()
 
 	for i = 1, #buckets do
 		local bucket = buckets[i]
-		-- Flush this frame's deferred pushes. uploadAllElements also rebuilds the
-		-- VAO submission from indextoUnitID, but it bails early on an empty table
-		-- and would leave the previous frame's submission live, so clear that case
-		-- explicitly.
-		if bucket.dirty then
-			if bucket.usedElements > 0 then
-				InstanceVBOIdTable.uploadAllElements(bucket)
-			elseif bucket.VAO then
-				bucket.VAO:ClearSubmission()
-			end
-			bucket.dirty = false
-		end
+		flushDefElements(bucket)
 		if bucket.usedElements > 0 then
 			if not active then
 				-- Depth-test against the world that is already on screen so

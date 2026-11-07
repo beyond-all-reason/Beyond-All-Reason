@@ -36,7 +36,7 @@ local DEPTH = {
 	MAX_SHALLOW = 20, -- default maximum for land units
 	SUBMERGED = 15, -- minimum depth for subs and huge ships
 	AMPHIBIOUS = 5000,
-	MAXIMUM = 9999, -- aribitrary limit
+	MAXIMUM = 9999, -- arbitrary limit
 	DEFAULT = 1000000,
 }
 
@@ -170,7 +170,7 @@ local moveDatas = {
 	BOAT9 = {
 		crushstrength = CRUSH.HEAVY + 2,
 		footprint = 9,
-		minwaterdepth = DEPTH.SUBMERGED,
+		minwaterdepth = DEPTH.MIN_SHALLOW,
 	},
 
 	--critter_goldfish coracsub armacsub armserp corrsub armsubk correcl corshark corsub

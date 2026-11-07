@@ -19,14 +19,13 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+-- both the builder and the new unit must carry customparams.guards_own_builder
 local infestor = {}
 
 -- setup
-if UnitDefNames.leginfestor then
-	infestor[UnitDefNames.leginfestor.id] = true
-
-	if UnitDefNames.leginfestor_scav then
-		infestor[UnitDefNames.leginfestor_scav.id] = true
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.guards_own_builder then
+		infestor[unitDefID] = true
 	end
 end
 

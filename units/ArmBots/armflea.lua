@@ -32,8 +32,13 @@ return {
 		turninplacespeedlimit = 2.904,
 		turnrate = 1807,
 		customparams = {
+			juno_deny = true,
+			juno_kill = true,
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaim_spam = true,
+			reaimtime = 2,
+			stompable = true,
 			subfolder = "ArmBots",
 			unitgroup = "weapon",
 		},

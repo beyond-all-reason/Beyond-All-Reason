@@ -87,20 +87,21 @@ local grassConfig = {
 	patchResolution = 32, -- distance between patches, default is 32, which matches the SpringRTS grass map resolution. If using external .tga, you can use any resolution you wish
 	patchPlacementJitter = 0.66, -- how much each patch should be randomized in XZ position, in fraction of patchResolution
 	patchSize = 4, -- 1 or 4 clusters of blades, 4 recommended
-	grassBladeScale = 0.55, -- scales the baked patch mesh itself; lower this to make blades physically smaller regardless of patchSize
+	grassBladeScale = 0.5, -- baked into the patch mesh: lower it for physically smaller blades; extra copies of the shrunken cluster are added automatically so ground coverage stays the same (vertex cost grows as 1/scale^2)
 	grassMinSize = 0.55, --Size for grassmap value of 1 , min and max should be equal for old style binary grassmap (because its only 0,1)
 	grassMaxSize = 1.5, -- Size for grassmap value of 254
-	grassShaderParams = { -- allcaps because thats how i know
+	grassShaderParams = { -- allcaps because that's how i know
 		MAPCOLORFACTOR = 0.6, -- how much effect the minimapcolor has
 		MAPCOLORBASE = 1.0, --how much more to blend the bottom of the grass patches into map color
 		ALPHATHRESHOLD = 0.01, --alpha limit under which to discard a fragment
-		WINDSTRENGTH = 0.1, -- how much the wind will blow the grass
+		WINDSTRENGTH = 0.06, -- how much the wind will blow the grass
 		WINDSCALE = 0.33, -- how fast the wind texture moves
-		WINDSAMPLESCALE = 0.001, -- tiling resolution of the noise texture
+		WINDSAMPLESCALE = 0.0007, -- tiling resolution of the noise texture
 		FADESTART = 5000, -- distance at which grass starts to fade
 		FADEEND = 8000, --distance at which grass completely fades out
 		SHADOWFACTOR = 0.25, -- how much shadowed grass gets darkened, lower values mean more shadows
 		HASSHADOWS = 1, -- 0 for disable, no real difference in this (does not work yet)
+		SHADOWTAPS = 4, -- shadow map taps per grass vertex: 1 (hardware filtered) or 4 (the original cross pattern, softer shadow edge on the blades, 3 more fetches per vertex)
 		GRASSBRIGHTNESS = 1.0, -- this is for future dark mode
 		COMPACTVBO = 1, -- if set to 1, then the grass patch vbo will be compacted to 8 vertices per patch, otherwise it will be 17 vertices per patch
 		UNITBENDENABLED = 1, -- 1 to enable grass bending away from units, 0 to disable
@@ -228,7 +229,7 @@ local processChanges = false -- auto enabled when map has grass or editmode togg
 local mousepos = { 0, 0, 0 }
 local cursorradius = 50
 local removeUnitGrassFrames = 25
-local placementMode = false -- this controls wether we are in 'game mode' or placement map dev mode
+local placementMode = false -- this controls whether we are in 'game mode' or placement map dev mode
 local externalBrushActive = false -- when true, suppress built-in painting UI (mouse, keys, circle)
 
 -- Spawn animation: grass grows from ground with elastic wobble when placed
@@ -275,7 +276,6 @@ local grassVAO = nil
 local grassShader = nil
 local grassVertexShaderDebug = ""
 local grassFragmentShaderDebug = ""
-local grassPatchCount = 0
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -291,7 +291,7 @@ local removeUnitGrassQueue = {}
 
 local buildingRadius = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if (unitDef.isBuilding or string.find(unitDef.name, "nanotc")) and unitDef.radius > 18 then
+	if (unitDef.isBuilding or unitDef.customParams.isnanoturret) and unitDef.radius > 18 then
 		buildingRadius[unitDefID] = unitDef.radius
 	end
 end
@@ -459,7 +459,7 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 		{ id = 6, name = "pieceindex", size = 1 },
 	} --khm, this should be unsigned int
 
-	local VBOData = VFS.Include("LuaUI/Include/grassPatches.lua")
+	local VBOData = require("luaui/Include/grassPatches")
 
 	if grassPatchSize == 1 then
 		grassPatchVBOsize = 36
@@ -467,6 +467,59 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 	elseif grassPatchSize == 4 then
 		grassPatchVBOsize = 144
 		VBOData = VBOData[4]
+	end
+	-- Bake grassBladeScale into the mesh: uniformly shrink the blade cards (keeping their
+	-- bases on the ground plane), then replicate the shrunken cluster on a jittered sub-grid
+	-- inside the patch cell so total blade area stays ~constant. Smaller blades then don't
+	-- open gaps between the fixed one-instance-per-cell patches.
+	local bladeScale = grassConfig.grassBladeScale or 1
+	if bladeScale ~= 1 then
+		local srcStride = 17
+		local minY = math.huge
+		for v = 0, grassPatchVBOsize - 1 do
+			minY = mathMin(minY, VBOData[v * srcStride + 2])
+		end
+		-- capped: 16 copies (bladeScale 0.25) is already ~2300 soup verts per patch
+		local copies = mathMax(1, mathMin(16, mathFloor(1 / (bladeScale * bladeScale) + 0.5)))
+		local gridN = math.ceil(math.sqrt(copies))
+		local spacing = patchResolution / gridN
+		-- diagonal-stripe order spreads the picked cells when copies < gridN^2
+		local cells = {}
+		for cz = 0, gridN - 1 do
+			for cx = 0, gridN - 1 do
+				cells[#cells + 1] = { cx, cz, ((cx + cz) % gridN) * gridN * gridN + cz * gridN + cx }
+			end
+		end
+		table.sort(cells, function(a, b)
+			return a[3] < b[3]
+		end)
+		local scaledData = {}
+		local dst = 0
+		for c = 1, copies do
+			local ox, oz = 0, 0
+			local cosr, sinr = 1, 0
+			if copies > 1 then
+				local cell = cells[c]
+				ox = (cell[1] - (gridN - 1) * 0.5) * spacing + (mathRandom() - 0.5) * spacing * 0.5
+				oz = (cell[2] - (gridN - 1) * 0.5) * spacing + (mathRandom() - 0.5) * spacing * 0.5
+				local rot = mathRandom() * 6.283
+				cosr, sinr = math.cos(rot), math.sin(rot)
+			end
+			for v = 0, grassPatchVBOsize - 1 do
+				local base = v * srcStride
+				local px = VBOData[base + 1] * bladeScale
+				local pz = VBOData[base + 3] * bladeScale
+				scaledData[dst + 1] = cosr * px + sinr * pz + ox
+				scaledData[dst + 2] = minY + (VBOData[base + 2] - minY) * bladeScale
+				scaledData[dst + 3] = cosr * pz - sinr * px + oz
+				for f = 4, srcStride do
+					scaledData[dst + f] = VBOData[base + f]
+				end
+				dst = dst + srcStride
+			end
+		end
+		VBOData = scaledData
+		grassPatchVBOsize = grassPatchVBOsize * copies
 	end
 	-- What if we went down to 8 vertices?
 	if grassConfig.grassShaderParams.COMPACTVBO == 1 then
@@ -524,33 +577,6 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 	grassPatchVBO:Upload(uniqueVBOData)
 end
 
-local function fsrand(a, b) -- fast, repeatable random vec2
-	local s = math.sin((a * 12.9898 + b * 78.233))
-	return math.fract(s * 43758.5453), math.fract(s * 41758.5453)
-end
-
-local function testForGrass(mx, mz)
-	if grassConfig.obeyGrassMap then
-		if spGetGrass(mx, mz) == 1 then
-			return spGetGroundHeight(mx, mz)
-		else
-			return nil
-		end
-	else
-		local gx, gy, gz, gs = Spring.GetGroundNormal(mx, mz)
-		local gh = spGetGroundHeight(mx, mz)
-		if
-			(gh > grassConfig.grassMinHeight)
-			and (gh < grassConfig.grassMaxHeight)
-			and (gy > grassConfig.grassMaxSlope)
-		then
-			return gh
-		else
-			return nil
-		end
-	end
-end
-
 local function mapHasSMFGrass() -- returns 255 is SMF has no grass, 0 if map has no grass, 1 if map has old style binary grass, 2<=  <=254 if map has new style uint grass
 	local highestgrassmapvalue = 0
 	local patchResolution = 32
@@ -568,7 +594,7 @@ local function mapHasSMFGrass() -- returns 255 is SMF has no grass, 0 if map has
 	return highestgrassmapvalue
 end
 
-local function grassByteToPatchMult(grassbyte) -- coverts grassmap byte to size multiplier for instancebuffer
+local function grassByteToPatchMult(grassbyte) -- converts grassmap byte to size multiplier for instancebuffer
 	if grassbyte == 0 then
 		return 0
 	end
@@ -733,7 +759,6 @@ local function clearGeothermalGrass()
 	if WG.resource_spot_finder then
 		local spots = WG.resource_spot_finder.geoSpotsList
 		if spots then
-			local maxValue = 15
 			for i = 1, #spots do
 				local spot = spots[i]
 				adjustGrass(
@@ -1104,7 +1129,6 @@ local function buildGrassTiles(cols, rows, sampleFn, jitter)
 			tileCount[tile] = offset - tileOffset[tile]
 		end
 	end
-	grassPatchCount = offset
 end
 
 local function LoadGrassTGA(filename)
@@ -1186,7 +1210,6 @@ makeShaderVAO = function()
 		uniformFloat = {
 			grassuniforms = { 1, 1, 1, 1 },
 			distanceMult = distanceMult,
-			grassBladeScale = grassConfig.grassBladeScale,
 			nightFactor = { 1, 1, 1, 1 },
 		},
 		shaderConfig = grassConfig.grassShaderParams,
@@ -1256,7 +1279,8 @@ local function savegrassCmd(_, _, params)
 	-- Instance buffer is tile-ordered; the on-disk TGA stays row-major for backward compatibility.
 	for y = 1, texture.height do
 		for x = 1, texture.width do
-			local elem = world2grassmap((x - 0.5) * grassConfig.patchResolution, (y - 0.5) * grassConfig.patchResolution)
+			local elem =
+				world2grassmap((x - 0.5) * grassConfig.patchResolution, (y - 0.5) * grassConfig.patchResolution)
 			texture[y][x] = grassPatchMultToByte((elem >= 0 and grassInstanceData[elem * 4 + 4]) or 0)
 		end
 	end
@@ -1373,6 +1397,7 @@ local function loadgrassCmd(_, _, params)
 	LoadGrassTGA(filename)
 	defineUploadGrassInstanceVBOData()
 	MakeAndAttachToVAO()
+	processChanges = true -- grass-less boot leaves this false; see loadGrass API
 	--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
 end
 
@@ -1595,7 +1620,8 @@ function widget:Initialize()
 		-- Instance buffer is tile-ordered; the on-disk TGA stays row-major for backward compatibility.
 		for y = 1, texture.height do
 			for x = 1, texture.width do
-				local elem = world2grassmap((x - 0.5) * grassConfig.patchResolution, (y - 0.5) * grassConfig.patchResolution)
+				local elem =
+					world2grassmap((x - 0.5) * grassConfig.patchResolution, (y - 0.5) * grassConfig.patchResolution)
 				texture[y][x] = grassPatchMultToByte((elem >= 0 and grassInstanceData[elem * 4 + 4]) or 0)
 			end
 		end
@@ -1629,6 +1655,11 @@ function widget:Initialize()
 		end
 		defineUploadGrassInstanceVBOData()
 		MakeAndAttachToVAO()
+		-- On maps that booted without engine grass, processChanges initialized
+		-- false and DrawWorldPreUnit bails on it before looking at the instance
+		-- data — the loaded grass existed but stayed invisible until something
+		-- (the Grass tool button) called enableEditMode.
+		processChanges = true
 	end
 	WG.grassgl4.clearGrass = function()
 		cleargrassCmd(nil, nil, {})
@@ -1663,6 +1694,10 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("cleargrass")
 	widgetHandler:RemoveAction("savegrassconfig")
 	widgetHandler:RemoveAction("dumpgrassshaders")
+	if type(grassShader) == "table" then
+		grassShader:Finalize()
+		grassShader = nil
+	end
 end
 
 function widget:SetConfigData(data)
@@ -1692,6 +1727,13 @@ end
 local glTexture = gl.Texture
 
 local smoothGrassFadeExp = 1
+
+-- Visible instance ranges of the last tile cull as {start1, count1, start2, count2, ...}, replayed while the
+-- camera, fade range and tile tables are unchanged (the cull is ~200 sphere tests per frame)
+local cullRuns = { n = 0 } ---@type { n: integer, [integer]: integer }
+local cullKey = {}
+local spGetCameraRotation = Spring.GetCameraRotation
+local spGetCameraFOV = Spring.GetCameraFOV
 
 function widget:DrawWorldPreUnit()
 	if not processChanges then
@@ -1769,64 +1811,95 @@ function widget:DrawWorldPreUnit()
 		local halfZ = tileWorldZ * 0.5
 		local tileRadius = math.sqrt(halfX * halfX + halfZ * halfZ) + tileHeightSlack
 		local fadeBound = fadeEnd + tileRadius
-		local fadeCullSq = fadeBound * fadeBound
-		local spIsSphereInView = Spring.IsSphereInView
-		local drawnInstances = 0
-		local visibleCount = 0
-		-- Only tile centers inside the fade circle can pass the distance test, so bound the
-		-- sweep to the circle's bounding box instead of scanning the whole grid (full grid
-		-- in placement mode; the loops simply don't run when the box misses the map).
-		local tx0, tx1, tz0, tz1
-		if placementMode then
-			tx0, tx1, tz0, tz1 = 0, gridCols - 1, 0, gridRows - 1
-		else
-			local minTx = mathFloor((cx - fadeBound) / tileWorldX)
-			local maxTx = mathFloor((cx + fadeBound) / tileWorldX)
-			local minTz = mathFloor((cz - fadeBound) / tileWorldZ)
-			local maxTz = mathFloor((cz + fadeBound) / tileWorldZ)
-			tx0, tx1 = mathMax(0, minTx), mathMin(gridCols - 1, maxTx)
-			tz0, tz1 = mathMax(0, minTz), mathMin(gridRows - 1, maxTz)
-		end
-		for tz = tz0, tz1 do
-			local czw = tz * tileWorldZ + halfZ
-			local ddz = czw - cz
-			local runStart, runCount = -1, 0
-			for tx = tx0, tx1 do
-				local tile = tz * gridCols + tx
-				local count = tileCount[tile]
-				local visible = false
-				if count and count > 0 then
-					if placementMode then
-						visible = true
-					else
-						local cxw = tx * tileWorldX + halfX
-						local ddx = cxw - cx
-						if ddx * ddx + ddz * ddz < fadeCullSq
-							and spIsSphereInView(cxw, tileMidHeight, czw, tileRadius)
-						then
+		local rx, ry, rz = spGetCameraRotation()
+		local vFov, hFov = spGetCameraFOV()
+		local key = cullKey
+		if
+			placementMode
+			or key.tiles ~= tileCount
+			or key.bound ~= fadeBound
+			or key.x ~= cx
+			or key.y ~= cy
+			or key.z ~= cz
+			or key.rx ~= rx
+			or key.ry ~= ry
+			or key.rz ~= rz
+			or key.vFov ~= vFov
+			or key.hFov ~= hFov
+		then
+			key.tiles, key.bound, key.x, key.y, key.z = tileCount, fadeBound, cx, cy, cz
+			key.rx, key.ry, key.rz, key.vFov, key.hFov = rx, ry, rz, vFov, hFov
+			local fadeCullSq = fadeBound * fadeBound
+			local spIsSphereInView = Spring.IsSphereInView
+			local runs, numRuns = cullRuns, 0
+			local visibleCount = 0
+			-- Only tile centers inside the fade circle can pass the distance test, so bound the
+			-- sweep to the circle's bounding box instead of scanning the whole grid (full grid
+			-- in placement mode; the loops simply don't run when the box misses the map).
+			local tx0, tx1, tz0, tz1
+			if placementMode then
+				tx0, tx1, tz0, tz1 = 0, gridCols - 1, 0, gridRows - 1
+			else
+				local minTx = mathFloor((cx - fadeBound) / tileWorldX)
+				local maxTx = mathFloor((cx + fadeBound) / tileWorldX)
+				local minTz = mathFloor((cz - fadeBound) / tileWorldZ)
+				local maxTz = mathFloor((cz + fadeBound) / tileWorldZ)
+				tx0, tx1 = mathMax(0, minTx), mathMin(gridCols - 1, maxTx)
+				tz0, tz1 = mathMax(0, minTz), mathMin(gridRows - 1, maxTz)
+			end
+			for tz = tz0, tz1 do
+				local czw = tz * tileWorldZ + halfZ
+				local ddz = czw - cz
+				local runStart, runCount = -1, 0
+				for tx = tx0, tx1 do
+					local tile = tz * gridCols + tx
+					local count = tileCount[tile]
+					local visible = false
+					if count and count > 0 then
+						if placementMode then
 							visible = true
+						else
+							local cxw = tx * tileWorldX + halfX
+							local ddx = cxw - cx
+							if
+								ddx * ddx + ddz * ddz < fadeCullSq
+								and spIsSphereInView(cxw, tileMidHeight, czw, tileRadius)
+							then
+								visible = true
+							end
 						end
 					end
-				end
-				if visible then
-					visibleCount = visibleCount + 1
-					if runStart < 0 then
-						runStart = tileOffset[tile]
-						runCount = count
-					else
-						runCount = runCount + count
+					if visible then
+						visibleCount = visibleCount + 1
+						if runStart < 0 then
+							runStart = tileOffset[tile]
+							runCount = count
+						else
+							runCount = runCount + count
+						end
+					elseif runStart >= 0 then
+						runs[numRuns + 1], runs[numRuns + 2] = runStart, runCount
+						numRuns = numRuns + 2
+						runStart, runCount = -1, 0
 					end
-				elseif runStart >= 0 then
-					grassVAO:DrawElements(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, 0, runStart)
-					drawnInstances = drawnInstances + runCount
-					runStart, runCount = -1, 0
+				end
+				if runStart >= 0 then
+					runs[numRuns + 1], runs[numRuns + 2] = runStart, runCount
+					numRuns = numRuns + 2
 				end
 			end
-			if runStart >= 0 then
-				grassVAO:DrawElements(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, 0, runStart)
-				drawnInstances = drawnInstances + runCount
-			end
+			runs.n = numRuns
+			key.visibleCount = visibleCount
 		end
+
+		local runs = cullRuns
+		local drawnInstances = 0
+		for i = 1, runs.n, 2 do
+			local runCount = runs[i + 1]
+			grassVAO:DrawElements(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, 0, runs[i])
+			drawnInstances = drawnInstances + runCount
+		end
+		local visibleCount = key.visibleCount
 
 		if placementMode and Spring.GetGameFrame() % 30 == 0 then
 			spEcho("Drawing", drawnInstances, "grass patches")
@@ -1864,7 +1937,7 @@ function widget:NightFactorChanged(red, green, blue, shadow, altitude)
 	NightFactorChanged(red, green, blue, shadow, altitude)
 end
 
--- ahahahah you cant stop me:
+-- ahahahah you can't stop me:
 --[[
 
 import sys

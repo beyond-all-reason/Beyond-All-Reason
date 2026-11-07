@@ -73,6 +73,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "",
+			tombstone = "corstone",
 			unitgroup = "builder",
 		},
 		featuredefs = {

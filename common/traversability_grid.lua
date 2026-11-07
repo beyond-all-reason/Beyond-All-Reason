@@ -6,7 +6,7 @@ local spGetGroundNormal = Spring.GetGroundNormal
 local floor = math.floor
 local distance2dSquared = math.distance2dSquared
 
-local DEFAULT_GRID_SPACING = 32 -- the interval at which terrain is tested using the unitDefID. A decent compromise between performance and accuracy. Emperically chosen.
+local DEFAULT_GRID_SPACING = 32 -- the interval at which terrain is tested using the unitDefID. A decent compromise between performance and accuracy. Empirically chosen.
 local GRID_RESOLUTION_MULTIPLIER_DEFAULT = 2 -- how many GRID_SPACINGs step to check in each direction to determine if a spot is reachable or not.
 local DEFAULT_MAX_SLOPE = 0.36 -- calibrated using quickstart on ascendency
 

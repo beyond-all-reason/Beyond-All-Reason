@@ -31,8 +31,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local sqrt = math.sqrt
 	local floor = math.floor
-	local max = math.max
-	local min = math.min
 	local clamp = math.clamp
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spGetGameFrame = Spring.GetGameFrame
@@ -138,13 +136,18 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- This checks wether the unit is under any scum
+	---Tests whether a map position is covered by raptor scum.
+	---Underwater scum is ignored for surface units, and positions outside the map never match.
+	---@param unitx number
+	---@param unity number? Height of the tested object. Defaults to `1`; values above `-1` skip underwater scum.
+	---@param unitz number
+	---@return integer? scumID `nil` when the position is not inside any scum.
 	local function IsPosInScum(unitx, unity, unitz)
 		-- out of bounds check, no scum outside of map bounds
 		if unitx < 0 or unitz < 0 or unitx > mapSizeX or unitz > mapSizeZ then
 			return nil
 		end
-		-- underwater scum doesnt count for hovers, ships
+		-- underwater scum doesn't count for hovers, ships
 		unity = unity or 1
 		if unity > -1 and spGetGroundHeight(unitx, unitz) < 0 then
 			return nil
@@ -173,8 +176,11 @@ if gadgetHandler:IsSyncedCode() then
 		return nil
 	end
 
-	GG.IsPosInRaptorScum = IsPosInScum --(x,y,z)
+	GG.IsPosInRaptorScum = IsPosInScum
 
+	---Picks a scum patch at random.
+	---@param startID integer? Scum to start iterating from, so repeated calls can spread out.
+	---@return integer? scumID `nil` when no scum exists.
 	local function GetRandomScumID(startID)
 		if numscums < 1 then
 			return
@@ -190,8 +196,11 @@ if gadgetHandler:IsSyncedCode() then
 		return scumID
 	end
 
-	GG.GetRandomScumID = GetRandomScumID -- Returns nil or scumID
+	GG.GetRandomScumID = GetRandomScumID
 
+	---Picks a random map position inside a random scum patch, staying clear of the map edge.
+	---@return number? x `nil` when no scum exists or no valid position was found.
+	---@return number? z
 	local function GetRandomPositionInScum()
 		local scumID = GetRandomScumID()
 		if not scumID then
@@ -215,7 +224,7 @@ if gadgetHandler:IsSyncedCode() then
 		return px, pz
 	end
 
-	GG.GetRandomPositionInScum = GetRandomPositionInScum -- Returns nil or (X, Z)
+	GG.GetRandomPositionInScum = GetRandomPositionInScum
 
 	local function UpdateBins(scumID, removeScum)
 		local scumTable = scums[scumID]
@@ -249,7 +258,7 @@ if gadgetHandler:IsSyncedCode() then
 		if debugmode then
 			Spring.Echo("AddOrUpdateScum", posx, posy, posz, radius, growthrate, scumID)
 		end
-		-- if scumID is supplied, we are updateing an existing scum instance!
+		-- if scumID is supplied, we are updating an existing scum instance!
 
 		local gf = spGetGameFrame()
 		local deathtime
@@ -371,6 +380,7 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 	local resolution = 32
 	local gameFrame = -1
 
+	---@type InstanceVBOTable?
 	local scumVBO = nil
 	local scumShader = nil
 	local debugmode = false
@@ -397,7 +407,7 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 		SPECULARSTRENGTH = 1.0, -- The peak brightness of specular highlights
 
 		LOSDARKNESS = 0.5, -- how much to darken the out-of-los areas of the lava plane
-		SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
+		SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can receive
 		CREEPTEXREZ = 0.003,
 		JIGGLEAMPLITUDE = 0.2,
 		VOIDWATER = (gl.GetMapRendering("voidWater") and 1 or 0),
@@ -654,8 +664,8 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 			return
 		end
 
-		local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1, 1, resolution, resolution)
-		local planeIndexVBO, numIndices = InstanceVBOTable.makePlaneIndexVBO(resolution, resolution, true)
+		local planeVBO, _ = InstanceVBOTable.makePlaneVBO(1, 1, resolution, resolution)
+		local planeIndexVBO, _ = InstanceVBOTable.makePlaneIndexVBO(resolution, resolution, true)
 
 		scumVBO.vertexVBO = planeVBO
 		scumVBO.indexVBO = planeIndexVBO
@@ -698,13 +708,13 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 		end
 	end
 
-	-- This checks wether the unit is under any scum
+	-- This checks whether the unit is under any scum
 	local function IsPosInScum(unitx, unity, unitz)
 		-- out of bounds check, no scum outside of map bounds
 		if unitx < 0 or unitz < 0 or unitx > mapSizeX or unitz > mapSizeZ then
 			return nil
 		end
-		-- underwater scum doesnt count for hovers, ships
+		-- underwater scum doesn't count for hovers, ships
 		unity = unity or 1
 		if unity > -1 and spGetGroundHeight(unitx, unitz) < 0 then
 			return nil
@@ -779,7 +789,7 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 		if debugmode then
 			Spring.Echo("AddOrUpdateScum", posx, posy, posz, radius, growthrate, scumID)
 		end
-		-- if scumID is supplied, we are updateing an existing scum instance!
+		-- if scumID is supplied, we are updating an existing scum instance!
 
 		local gf = Spring.GetGameFrame()
 		local deathtime
@@ -925,7 +935,7 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 			return
 		end
 		if debugmode then
-			local mx, my, mb = Spring.GetMouseState()
+			local mx, my, _ = Spring.GetMouseState()
 			local _, coords = Spring.TraceScreenRay(mx, my, true)
 			if coords and (IsPosInScum(coords[1], coords[2], coords[3])) then
 				Spring.Echo("Inscum", numscums, IsPosInScum(coords[1], coords[2], coords[3]))
@@ -990,7 +1000,6 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 		end
 		lastSunChanged = df
 		if GG.NightFactor then
-			local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
 			nightFactor[1] = GG.NightFactor.red
 			nightFactor[2] = GG.NightFactor.green
 			nightFactor[3] = GG.NightFactor.blue

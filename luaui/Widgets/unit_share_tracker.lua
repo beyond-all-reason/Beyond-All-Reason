@@ -17,7 +17,6 @@ end
 -- Localized Spring API for performance
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetViewGeometry = Spring.GetViewGeometry
-local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetMyPlayerID = Spring.GetLocalPlayerID
@@ -42,8 +41,8 @@ local mathAbs = math.abs
 local pairs = pairs
 local next = next
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
+local ROTATION = require("luaui/Include/minimap_utils").ROTATION
 
 ----------------------------------------------------------------
 -- config
@@ -130,14 +129,6 @@ local minimapVertices = {
 ----------------------------------------------------------------
 -- local functions
 ----------------------------------------------------------------
-
-local function GetPlayerColor(playerID)
-	local _, _, _, teamID = spGetPlayerInfo(playerID, false)
-	if not teamID then
-		return nil
-	end
-	return spGetTeamColor(teamID)
-end
 
 local function StartTime()
 	timeNow = 0

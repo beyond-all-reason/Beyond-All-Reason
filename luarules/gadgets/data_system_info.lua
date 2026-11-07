@@ -213,9 +213,9 @@ else
 		end
 
 		if s_os then
-			if string.find(s_os, "Windows") then -- simplyfy, also for some privacy (hiding build number)
+			if string.find(s_os, "Windows") then -- simplify, also for some privacy (hiding build number)
 				s_os = string.match(s_os, "(Windows [0-9.]*)")
-			elseif string.find(s_os, "Linux") then -- simplyfy, also for some privacy (hiding build number)
+			elseif string.find(s_os, "Linux") then -- simplify, also for some privacy (hiding build number)
 				s_os = "Linux"
 			end
 		end

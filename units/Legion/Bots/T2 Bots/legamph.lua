@@ -41,7 +41,8 @@ return {
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,
-			subfolder = "Legion/T2",
+			reaimtime = 4,
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			unitgroup = "weaponsub",
 			speedfactorinwater = 1.3,
@@ -143,7 +144,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
 				customparams = {
-					sweepfire = 4.5,
+					sweepfire_firetime = 1.0,
+					sweepfire_reloadtime = 3.0,
 				},
 				damage = {
 					default = 33,

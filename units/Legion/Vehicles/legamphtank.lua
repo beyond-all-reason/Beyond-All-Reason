@@ -44,10 +44,8 @@ return {
 			kickback = "-2.7",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			paralyzemultiplier = 0.125,
+			paralyzemultiplier = 0.2,
 			subfolder = "Legion/Vehicles",
-			weapon1turretx = 130,
-			weapon1turrety = 130,
 		},
 		featuredefs = {
 			dead = {
@@ -116,6 +114,7 @@ return {
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Light Close-quarters Gauss Cannon",
 				noselfdamage = true,
@@ -127,6 +126,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					turretspeedx = 135,
+					turretspeedy = 135,
+				},
 				damage = {
 					default = 116,
 					vtol = 25,

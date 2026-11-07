@@ -9,6 +9,7 @@ return { --costs should be same as legmohocon and legmohoconct
 		buildpic = "LEGMOHOCON.DDS",
 		buildtime = 19400,
 		canrepeat = false,
+		capturable = false,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "7 4 7",
 		collisionvolumetype = "CylY",
@@ -21,7 +22,6 @@ return { --costs should be same as legmohocon and legmohoconct
 		health = 3900,
 		maxslope = 30,
 		maxwaterdepth = 20,
-		metalstorage = 600,
 		objectname = "Units/legmohocon.s3o",
 		onoffable = true,
 		script = "Units/legmohoconin.cob",
@@ -34,13 +34,14 @@ return { --costs should be same as legmohocon and legmohoconct
 			unitgroup = "metal",
 			cvbuildable = true,
 			metal_extractor = 4,
+			nohealthbars = true,
 			model_author = "Tharsis and Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
 			scav_swap_override_created = "delete", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			scav_swap_override_captured = "delete", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
-			subfolder = "CorBuildings/LandEconomy",
+			subfolder = "Legion/Economy",
 			techlevel = 2,
 		},
 		sounds = {

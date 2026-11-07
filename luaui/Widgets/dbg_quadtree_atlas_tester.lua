@@ -22,7 +22,6 @@ local MyAtlasOnDemand
 local buildPicList = {}
 local font
 
-local t = "ABCDEFGHIJKLabcdefghij"
 local n = 0
 function widget:Update()
 	n = n + 1
@@ -104,7 +103,7 @@ function widget:Initialize()
 	--font = WG['fonts'].getFont()
 	font = gl.LoadFont("fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf"), 64, 1, 1)
 
-	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
+	local MakeAtlasOnDemand = require("luaui/Include/AtlasOnDemand")
 	if not MakeAtlasOnDemand then
 		spEcho("Failed to load AtlasOnDemand")
 		return

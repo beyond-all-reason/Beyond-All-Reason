@@ -8,7 +8,6 @@ return {
 		collisionvolumescales = "43 23 49",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		damagemodifier = 0.5,
 		energycost = 30000,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 3,
@@ -37,6 +36,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			paralyzetime_uncapped = true,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "antinuke",
@@ -134,9 +134,9 @@ return {
 				texture3 = "null",
 				tolerance = 7000,
 				tracks = true,
-				turnrate = 10000,
-				weaponacceleration = 150,
-				weapontimer = 2,
+				turnrate = 12000,
+				weaponacceleration = 180,
+				weapontimer = 4,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 7000,
 				customparams = {

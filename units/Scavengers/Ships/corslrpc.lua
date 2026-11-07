@@ -1,4 +1,3 @@
-local unitName = "Intimidator Ship"
 return {
 	corslrpc = {
 		maxacc = 0.005,

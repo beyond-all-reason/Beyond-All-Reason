@@ -30,6 +30,7 @@ return {
 		sightdistance = 195,
 		yardmap = "oooo",
 		customparams = {
+			juno_kill = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

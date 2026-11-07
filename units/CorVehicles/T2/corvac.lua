@@ -47,6 +47,8 @@ return {
 			[4] = "corfort",
 		},
 		customparams = {
+			attached_con_turret = "corvacct",
+			attached_con_turret_noselect = true,
 			model_author = "Itanthias, carved up corintr, with bolted on nanotower",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles/T2",

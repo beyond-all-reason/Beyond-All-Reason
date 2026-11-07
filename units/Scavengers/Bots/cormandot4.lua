@@ -54,8 +54,10 @@ return {
 		},
 		customparams = {
 			unitgroup = "buildert2",
+			mine_resistant = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
+			stealths_transport = true,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			paratrooper = true,

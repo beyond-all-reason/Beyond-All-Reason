@@ -80,7 +80,7 @@ StopBuilding()
     hide nano1;
 	hide nano2;
 	set INBUILDSTANCE to 0;
-	signal 1; // we must signal here, instead of in RestoreAfterDelay(), as that only gets called 1 frame later, so startbuilding wont terminate it
+	signal 1; // we must signal here, instead of in RestoreAfterDelay(), as that only gets called 1 frame later, so startbuilding won't terminate it
 	set-signal-mask 1; // make child threads inherit signal mask of 1
 	start-script RestoreAfterDelay();
 }

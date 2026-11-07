@@ -45,8 +45,6 @@ return {
 			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 50,
-			weapon1turrety = 50,
 		},
 		featuredefs = {
 			dead = {
@@ -132,6 +130,10 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					turretspeedx = 50,
+					turretspeedy = 50,
+				},
 				damage = {
 					commanders = 1000,
 					default = 2500,

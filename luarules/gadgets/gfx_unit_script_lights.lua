@@ -47,8 +47,6 @@ else -- UNSYNCED
 		end
 	end
 
-	local scriptUnitScriptLight = Script.LuaUI.UnitScriptLight
-
 	local function UnitScriptLight(_, unitID, unitDefID, lightIndex, param)
 		if not fullview and not spIsUnitInLos(unitID, myAllyTeamID) then
 			return
@@ -58,8 +56,6 @@ else -- UNSYNCED
 			Script.LuaUI.UnitScriptLight(unitID, unitDefID, lightIndex, param)
 		end
 	end
-
-	local scriptUnitScriptDistortion = Script.LuaUI.UnitScriptDistortion
 
 	local function UnitScriptDistortion(_, unitID, unitDefID, lightIndex, param)
 		if not fullview and not spIsUnitInLos(unitID, myAllyTeamID) then

@@ -1074,7 +1074,7 @@ StartBuilding(heading, pitch)
 	}
 	bAiming = TRUE;
 	bIsBuilding = TRUE;
-	//while( !Busy ) //aiming shouldnt block construction
+	//while( !Busy ) //aiming shouldn't block construction
 	//{
 	//	sleep 30;
 	//}

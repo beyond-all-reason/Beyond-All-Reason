@@ -25,7 +25,7 @@ function UDB.new(name)
 	}, UDB)
 end
 
----@param defID number
+---@param defID UnitDefID
 ---@return UnitDefBuilder
 function UDB:WithDefID(defID)
 	self._defID = defID

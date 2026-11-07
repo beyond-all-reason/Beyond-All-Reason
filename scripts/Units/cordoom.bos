@@ -6,12 +6,14 @@
 piece  base, flarer1, flarer2, body1, body2, turretg, boreg, barrelg, flareg, neck,
  turretb, boreb, barrelb, flareb, turretr, borer, barrelr, aimpoint;
 
-static-var  closed, gun_3, restore_delay, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+static-var  gun_3, restore_delay;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_2			4
 #define SIG_AIM_3			8
+
+#include "../popup_openclose.h"
 
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
@@ -66,14 +68,13 @@ activatescr()
 		wait-for-turn turretb around x-axis;
 		wait-for-move borer along y-axis;
 		wait-for-turn turretg around x-axis;
+		wait-for-move barrelb along z-axis;
 	}
 	sleep 22;
-	closed = FALSE;
 }
 
 deactivatescr()
 {
-	closed = TRUE;
 	if( TRUE )
 	{
 		turn turretb to x-axis <0> speed <180>;
@@ -115,6 +116,7 @@ deactivatescr()
 		move body1 to y-axis [-14] speed [90];
 		move body2 to y-axis [-24] speed [90];
 		wait-for-move body1 along y-axis;
+		wait-for-move body2 along y-axis;
 	}
 
 	wait-for-turn body1 around x-axis;
@@ -123,55 +125,18 @@ deactivatescr()
 }
 
 
-Go()
+OpenAnim()
 {
 
 	set ARMORED to 0;
-	if( !Static_Var_3 )
-	{
-		call-script activatescr();
-	}
-	Static_Var_3 = 1;
+	call-script activatescr();
 }
 
-Stop()
+CloseAnim()
 {
-	Static_Var_3 = 0;
 	call-script deactivatescr();
 	set ARMORED to 1;
 
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
@@ -186,15 +151,9 @@ Create()
     hide flareb;
     hide flareg;
 	gun_3 = 0;
-	closed = FALSE;
-	call-script InitState();
-	Static_Var_3 = 0;
+	isOpen = TRUE;
+	wantOpen = TRUE;
 	restore_delay = 2000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
-	start-script RequestState(0);
 }
 
 #define SMOKEPIECE base
@@ -202,7 +161,7 @@ Create()
 
 Activate()
 {
-	start-script RequestState(0);
+	start-script RequestOpen();
 }
 
 Deactivate()
@@ -210,7 +169,7 @@ Deactivate()
 	signal SIG_AIM;
 	signal SIG_AIM_2;
 	signal SIG_AIM_3;
-	start-script RequestState(1);
+	start-script RequestClose();
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -220,7 +179,7 @@ SetMaxReloadTime(Func_Var_1)
 
 AimWeapon1(heading, pitch)
 {
-	if (closed == TRUE)
+	if (!isOpen)
 	{
 		return (0);
 	}	
@@ -281,7 +240,7 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	if (closed == TRUE)
+	if (!isOpen)
 	{
 		return (0);
 	}	
@@ -375,7 +334,7 @@ AimTertiary(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	while( !Static_Var_3 )
+	while( !isOpen )
 	{
 		sleep 250;
 	}
@@ -408,6 +367,21 @@ FireTertiary()
 	   	gun_3 = 0 ;
 		return (0);
 	}
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot3(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 AimFromPrimary(piecenum)

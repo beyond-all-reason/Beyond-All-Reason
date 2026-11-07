@@ -148,9 +148,11 @@ return {
 				weapontimer = 0.6,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 700,
+				customparams = {
+					soundstart_volume_multiplier = 0.7,
+				},
 				damage = {
 					default = 360,
-					ship = 200,
 					subs = 150,
 				},
 			},

@@ -10,7 +10,7 @@ local scenariodata = {
 	imagepath = "scenario005.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor = "", -- This text will be drawn over image
 	summary = [[Your Armada commander lost the blueprints to most factories and units. Oops! But perhaps your Cortex enemy has a solution for you...]],
-	briefing = [[In this challenge, most Armada combat units and factories are disabled. Use your Commander and static defenses to hold your frontline and your expansions. Find and resurrect an enemy constructor to build combat units. Resurrection Bots (Cortex Graverobber and Armada Lazarus) can resurrect and repair units, but cannot build structures. They are also stealthy, so they dont show up on the enemy's radar. Use your commander's d-gun wisely, as it completely destroys units, including their wrecks. Use terrain to your advantage when playing defensively.
+	briefing = [[In this challenge, most Armada combat units and factories are disabled. Use your Commander and static defenses to hold your frontline and your expansions. Find and resurrect an enemy constructor to build combat units. Resurrection Bots (Cortex Graverobber and Armada Lazarus) can resurrect and repair units, but cannot build structures. They are also stealthy, so they don't show up on the enemy's radar. Use your commander's d-gun wisely, as it completely destroys units, including their wrecks. Use terrain to your advantage when playing defensively.
 
 Score:
 	1. Speed: destroy the enemy Commander as fast as possible.
@@ -28,7 +28,7 @@ Tips:
 	playerstarty = "85%", -- Y position of where player comm icon should be drawn, from top left of the map
 	partime = 3000, -- par time in seconds
 	parresources = 1000000, -- par resource amount
-	difficulty = 5, -- Percieved difficulty at 'normal' level: integer 1-10
+	difficulty = 5, -- Perceived difficulty at 'normal' level: integer 1-10
 	defaultdifficulty = "Normal", -- an entry of the difficulty table
 	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
 		-- handicap values range [-100 - +100], with 0 being regular resources

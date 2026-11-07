@@ -15,7 +15,7 @@ local seed = os.clock()
 math.randomseed(seed)
 
 --// 0: disabled
---// 1: enabled, but can be overriden by widget.GetInfo().unsafe
+--// 1: enabled, but can be overridden by widget.GetInfo().unsafe
 --// 2: always enabled
 SAFEWRAP = 1
 SAFEDRAW = false --// requires SAFEWRAP to work

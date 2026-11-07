@@ -1,6 +1,6 @@
 if Spring.GetModOptions then
 	local modOptions = Spring.GetModOptions()
-	local modOptionsFile = VFS.Include("modoptions.lua")
+	local modOptionsFile = require("modoptions")
 
 	for _, modOption in ipairs(modOptionsFile) do
 		local key = modOption.key

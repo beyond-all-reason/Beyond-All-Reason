@@ -18,15 +18,15 @@ if not BAR.Utilities.IsDevMode() or not BAR.Utilities.Gametype.IsSinglePlayer() 
 	return
 end
 
-local Proxy = VFS.Include("common/testing/synced_proxy.lua")
-local MochaJSONReporter = VFS.Include("common/testing/mocha_json_reporter.lua")
-local Assertions = VFS.Include("common/testing/assertions.lua")
-local TestResults = VFS.Include("common/testing/results.lua")
-local Util = VFS.Include("common/testing/util.lua")
-local Mock = VFS.Include("common/testing/mock.lua")
-local TestExtraUtils = VFS.Include("common/testing/test_extra_utils.lua")
+local Assertions = require("common/testing/assertions")
+local MochaJSONReporter = require("common/testing/mocha_json_reporter")
+local Mock = require("common/testing/mock")
+local Proxy = require("common/testing/synced_proxy")
+local TestExtraUtils = require("common/testing/test_extra_utils")
+local TestResults = require("common/testing/results")
+local Util = require("common/testing/util")
 
-local rpc = VFS.Include("common/testing/rpc.lua"):new()
+local rpc = require("common/testing/rpc"):new()
 
 local LOG_LEVEL = LOG.INFO
 
@@ -191,12 +191,6 @@ end
 local gameTimer
 local runTestsTimer
 local testTimer
-
-local function getGameTime()
-	if gameTimer ~= nil then
-		return Spring.DiffTimers(Spring.GetTimer(), gameTimer, true)
-	end
-end
 
 local function getRunTestsTime()
 	if runTestsTimer ~= nil then
@@ -1010,6 +1004,7 @@ local function initializeTestEnvironment()
 
 		-- game
 		VFS = VFS,
+		require = require, -- init.lua's: the modules a test includes spell their includes this way
 		Script = Script,
 		Spring = Spring,
 		Engine = Engine,

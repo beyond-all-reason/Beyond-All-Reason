@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Unally on demand",
-		desc = "Removes an alliance when a dynamic ally attemps to backstab",
+		desc = "Removes an alliance when a dynamic ally attempts to backstab",
 		author = "BrainDamage",
 		date = "-",
 		license = "GNU GPL, v2 or later",
@@ -97,6 +97,14 @@ if gadgetHandler:IsSyncedCode() then
 			SendToUnsynced("Backstab", targetTeam, attackerTeam)
 			return true
 		end
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:RegisterUnitCommand(CMD_ATTACK)
+		gadgetHandler:RegisterUnitCommand(CMD_LOOPBACKATTACK)
+		gadgetHandler:RegisterUnitCommand(CMD_MANUALFIRE)
+		gadgetHandler:RegisterUnitCommand(CMD_UNIT_SET_TARGET)
+		gadgetHandler:RegisterUnitCommand(CMD_UNIT_SET_TARGET_RECTANGLE)
 	end
 
 	function gadget:UnitCommand(

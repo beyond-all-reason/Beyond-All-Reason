@@ -3212,7 +3212,7 @@ for k, v in pairs(definitions) do
 	scavengerDefs[k .. "-purple"] = table.copy(definitions[k])
 end
 
--- NOTE: this method isnt really working as well for missiletrails since these vary so much from eachother (unlike plasma and unit explosions)
+-- NOTE: this method isn't really working as well for missiletrails since these vary so much from each other (unlike plasma and unit explosions)
 -- improve/customize by renaming some effects so you can separately adjust them more uniquely
 local purpleEffects = {
 	engine = {

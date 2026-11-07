@@ -8,7 +8,7 @@ local defaultdamagetag = Game.armorTypes.default
 local vtoldamagetag = Game.armorTypes.vtol
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitGroup = Spring.GetUnitGroup
@@ -41,12 +41,10 @@ local function handleCaching(invert, tokenLower, filterFunction, optionalArg)
 
 	return function(udef)
 		if cache[udef] == nil then
-			local result = filterFunction(udef, optionalArg)
-			-- handle invert explicitly here for caching
-			result = (result or false) ~= invert
-			cache[udef] = result
+			-- the inverted filter shares this cache
+			cache[udef] = filterFunction(udef, optionalArg) and true or false
 		end
-		return cache[udef]
+		return cache[udef] ~= invert
 	end
 end
 
@@ -87,12 +85,7 @@ local function notEmptyUdefFilter(invert, property)
 end
 
 local function checkCmd(uid, cmdId, indexTemp)
-	local index = indexTemp or 1
-	local cmd = spGetUnitCommands(uid, index)
-	if cmd and cmd[index] and cmd[index].id == cmdId then
-		return true
-	end
-	return false
+	return spGetUnitCurrentCommand(uid, indexTemp or 1) == cmdId
 end
 
 local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
@@ -183,7 +176,11 @@ local function parseFilter(filterDef)
 			filters.idle = invertCurry(invert, isIdle)
 		elseif tokenLower == "guarding" then
 			filters.guarding = invertCurry(invert, function(_udef, _udefid, uid)
-				return checkCmd(uid, CMD.GUARD)
+				local firstCmdId = spGetUnitCurrentCommand(uid, 1)
+				if firstCmdId == CMD.GUARD then
+					return true
+				end
+				return (firstCmdId == CMD.REPAIR or firstCmdId == CMD.ATTACK) and checkCmd(uid, CMD.GUARD, 2)
 			end)
 		elseif tokenLower == "waiting" then
 			filters.waiting = invertCurry(invert, function(_udef, _udefid, uid)
@@ -295,10 +292,10 @@ local function parseFilter(filterDef)
 				break
 			end
 
-			local udefid = UnitDefNames[name]
-
-			if udefid then
-				idMatchesSet[udefid] = true
+			local unitDef = UnitDefNames[name] ---@as table?
+			if unitDef ~= nil then
+				local unitDefID = unitDef.id
+				idMatchesSet[unitDefID] = true
 
 				-- requires special invert logic
 				-- treats `invert = false` as priority
@@ -315,8 +312,8 @@ local function parseFilter(filterDef)
 				end
 
 				if not skip then
-					filters.idMatches = invertCurry(invertIdMatches, function(_, udefid, _, idMatchesSet)
-						return idMatchesSet[udefid] or false
+					filters.idMatches = invertCurry(invertIdMatches, function(_, udefid, _, matchSet)
+						return matchSet[udefid] or false
 					end, idMatchesSet)
 				end
 			end
@@ -340,7 +337,7 @@ end
 --- Parses the filter definition and returns a function that determines if a unit passes the
 --- filter.
 ---
---- The parsing will only occure the first time this function is called, after that it is stored in
+--- The parsing will only occur the first time this function is called, after that it is stored in
 --- a lookup table.
 --- @param filterDef string The filter definition string.
 --- @return function the function to call to execute the filter
@@ -358,7 +355,7 @@ end
 --- Applies the filter function to the unit represented by the unit ID to determine if the unit
 --- passes the filter.
 ---
---- @param uid integer The unit ID
+--- @param uid UnitID
 --- @param filterFunctions table List of filter functions
 --- @return boolean? passes Whether the unit passes the filter, nil if the unit doesn't exist
 function SelectApi.unitPassesFilter(uid, filterFunctions)

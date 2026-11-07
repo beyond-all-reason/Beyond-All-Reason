@@ -12,14 +12,16 @@ local colorAndOutlineIndicator = Game.textColorCodes.ColorAndOutline
 local function ColorStringEx(r, g, b, a, oR, oG, oB, oA)
 	-- Formats alpha and also outline color.
 	return colorAndOutlineIndicator
-		.. schar(floor(r * 255))
-		.. schar(floor(g * 255))
-		.. schar(floor(b * 255))
-		.. schar(floor(a * 255))
-		.. schar(floor(oR * 255))
-		.. schar(floor(oG * 255))
-		.. schar(floor(oB * 255))
-		.. schar(floor(oA * 255))
+		.. schar(
+			floor(r * 255),
+			floor(g * 255),
+			floor(b * 255),
+			floor(a * 255),
+			floor(oR * 255),
+			floor(oG * 255),
+			floor(oB * 255),
+			floor(oA * 255)
+		)
 end
 
 local function ColorArray(r, g, b)
@@ -41,13 +43,13 @@ local function ColorString(r, g, b)
 	if b == 37 then
 		b = 38
 	end -- 37 = %
-	return colorIndicator .. schar(r) .. schar(g) .. schar(b)
+	return colorIndicator .. schar(r, g, b)
 end
 
 local function RgbToLinear(c)
 	-- Convert Gamma corrected RGB (0-1) to linear RGB
 
-	-- See https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ for an explanation of this transfert function
+	-- See https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ for an explanation of this transfer function
 	if c <= 0.04045 then
 		return c / 12.92
 	end
@@ -100,7 +102,7 @@ local function ConvertColor(r, g, b)
 	if b == 37 then
 		b = 38
 	end
-	return colorIndicator .. schar(r) .. schar(g) .. schar(b)
+	return colorIndicator .. schar(r, g, b)
 end
 
 return {

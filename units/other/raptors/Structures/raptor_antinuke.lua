@@ -30,6 +30,7 @@ return {
 		yardmap = "oooo",
 		customparams = {
 			unitgroup = "antinuke",
+			israptor = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/chicken_l_normals.png",
 			removestop = true,

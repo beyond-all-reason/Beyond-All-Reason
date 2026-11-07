@@ -174,7 +174,8 @@ function gadget:GameFrame(frame)
 	for nukeID, cooldown in pairs(aliveNukeLaunchers) do
 		if cooldown <= now then
 			local targetID = targetUnits[math.random(1, targetCount)]
-			if targetID and GetUnitTeam(targetID) ~= GetUnitTeam(nukeID) then
+			local nukeTeam = GetUnitTeam(nukeID)
+			if targetID and nukeTeam and GetUnitTeam(targetID) ~= nukeTeam then
 				local x, y, z = GetUnitPosition(targetID)
 				if x and z then
 					x = x + math.random(-1024, 1024)

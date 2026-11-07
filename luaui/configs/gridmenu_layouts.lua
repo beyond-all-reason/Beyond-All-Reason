@@ -641,7 +641,7 @@ local labGrids = {
 	},
 
 	leghaap = {
-		"legaca",
+		"leghaca",
 		"legafigdef",
 		"legvenator",
 		"legphoenix", --T2 con, defensive fig, interceptor, phoenix
@@ -760,7 +760,7 @@ local unitGrids = {
 		{
 			{ "cormex", "corsolar", "corwin" }, -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide" }, -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "corllt", "cortl" }, -- LLT, offshore torp launcher
@@ -782,11 +782,11 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin" }, -- mex, solar, wind
 			{ "legeconv", "", "leguwmstore", "legtide" }, -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, uw e storage, floating converter
 			{ "legeconv", "", "leguwmstore", "legtide" }, -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, uw e storage, floating converter
 			{ "legeconv", "", "leguwmstore", "legtide" }, -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "leglht", "legtl" }, -- LLT, offshore torp launcher
@@ -832,7 +832,7 @@ local unitGrids = {
 		{
 			{ "cormex", "corsolar", "corwin" }, -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide" }, -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "corllt", "cortl" }, -- LLT, offshore torp launcher
@@ -854,7 +854,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin" }, -- mex, solar, wind
 			{ "legeconv", "", "leguwmstore", "legtide" }, -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "leglht", "legtl" }, -- LLT, offshore torp launcher
@@ -1097,7 +1097,7 @@ local unitGrids = {
 		{
 			{ "cormex", "corsolar", "corwin" }, -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide" }, -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "corllt", "cortl" }, -- LLT, offshore torp launcher
@@ -1119,7 +1119,7 @@ local unitGrids = {
 		{
 			{ "cormex", "corsolar", "corwin" }, -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide" }, -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "corllt", "cortl" }, -- LLT, offshore torp launcher
@@ -1319,7 +1319,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin" }, -- mex, solar, wind
 			{ "legeconv", "", "leguwmstore", "legtide" }, -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "leglht", "legtl" }, -- LLT, offshore torp launcher
@@ -1341,7 +1341,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin" }, -- mex, solar, wind
 			{ "legeconv", "", "leguwmstore", "legtide" }, -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "leglht", "legtl", "leggob", "leglob" }, -- LLT, offshore torp launcher, goblin, lobber
@@ -1936,7 +1936,7 @@ local unitGrids = {
 			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "legdtr" }, -- LLT, machine gun, HLT, flame turret
+			{ "leglht", "legmg", "leghive", "legdtr" }, -- LLT, machine gun, hive, flame turret
 			{ "legrl", "legrhapsis", "leglupara", "legfrl" }, -- basic AA, SAM, eradicator, floating AA
 			{ "legctl", "legcluster", "legtl", "legfmg" }, -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 			{ "legnavaldefturret", "legfhive", "", "" },
@@ -2009,7 +2009,7 @@ local unitGrids = {
 			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "legdtr" }, -- LLT, machine gun, HLT, flame turret
+			{ "leglht", "legmg", "leghive", "legdtr" }, -- LLT, machine gun, hive, flame turret
 			{ "legrl", "legrhapsis", "leglupara", "legfrl" }, -- basic AA, SAM, eradicator, floating AA
 			{ "legctl", "legcluster", "legtl", "legfmg" }, -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 			{ "legnavaldefturret", "", "", "" },
@@ -2922,14 +2922,14 @@ local unitGrids = {
 			{}, --
 		},
 		{
-			{ "legtl", "leganavaldefturret", "legacluster", "corfhlt" }, -- torp launcher, fl DDM, toaster, fHLT
+			{ "legtl", "leganavaldefturret", "legacluster", "legfmg" }, -- torp launcher, fl DDM, toaster, fHLT
 			{ "leganavalaaturret", "legnavyaaship" }, -- fl flak, searcher
 			{ "legnavyscout", "legnavydestro" }, -- supporter, destroyer
 			{ "legnavaldefturret", "legfhive", "", "" },
 		},
 		{
 			{ "legfrad", "legarad" }, -- fl radar, adv radar
-			{}, --
+			{ "legfdrag" }, -- shark's teeth
 			{ "corfmine3" }, -- naval mine
 		},
 		{

@@ -1323,7 +1323,7 @@ Movement() {
                 call-script Close();
                 inWaterForm = 1;
                 isMoving = FALSE; // try to tell movement to stfu
-                signal SIGNAL_MOVE; // kill Walk() but doesnt work right now due to no signal mask
+                signal SIGNAL_MOVE; // kill Walk() but doesn't work right now due to no signal mask
             }
         } else {
             if (isInWater == 0 && justCreated == 0) {

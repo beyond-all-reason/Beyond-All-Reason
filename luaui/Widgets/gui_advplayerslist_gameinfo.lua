@@ -24,11 +24,8 @@ local timeNotation = 24
 local font
 
 local widgetScale = 1
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
-local glCallList = gl.CallList
 
 local drawlist = {}
 local advplayerlistPos = {}
@@ -130,7 +127,7 @@ local function refreshUiDrawing()
 		if not uiBgTex then
 			uiBgTex = gl.CreateTexture(mathFloor(right - left), mathFloor(top - bottom), {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 			gl.R2tHelper.RenderInRect(uiBgTex, left, bottom, right, top, drawBackground, true)
@@ -138,7 +135,7 @@ local function refreshUiDrawing()
 		if not uiTex then
 			uiTex = gl.CreateTexture(mathFloor(right - left), mathFloor(top - bottom), { --*(vsy<1400 and 2 or 1)
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 		end
@@ -181,6 +178,8 @@ function widget:Initialize()
 	widget:ViewResize()
 	updatePosition()
 	WG.displayinfo = {}
+	---Where the game info panel sits, so a neighbour can stack against it.
+	---@return DockedPanelPosition position
 	WG.displayinfo.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end
