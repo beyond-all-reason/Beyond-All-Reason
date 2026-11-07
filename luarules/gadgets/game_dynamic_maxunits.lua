@@ -51,10 +51,10 @@ end
 	- Gaia and Scavenger/Raptor teams never receive or donate maxunits on team death
 
 	When a Player Rejoins:
-	- A team loses all of its maxunits when it is taken with /take, without dying
-	- Detects these teams by polling, since the engine has no event for a rejoin
-	- Takes an even share of the allyteam's maxunits from what alive teammates aren't using
-	- Retries until the team has maxunits, as teammates may have none free
+	- A team can lose maxunits when it is taken, without dying
+	- Polls active teams, since the engine has no event for a rejoin
+	- Tops them up to an even share of the allyteam's maxunits, by transferring excess from teammates
+	- Keeps retrying, as teammates may have none free
 ]]
 --
 
@@ -114,7 +114,7 @@ local function restoreTeamMaxUnits(teamID)
 	local allyID = select(6, Spring.GetTeamInfo(teamID, false))
 	local teams = Spring.GetTeamList(allyID)
 	local teammates = {} ---@type TeamID[]
-	local totalPool = 0
+	local totalPool = Spring.GetTeamMaxUnits(teamID)
 
 	for i = 1, #teams do
 		local currentTeamID = teams[i]
@@ -130,13 +130,13 @@ local function restoreTeamMaxUnits(teamID)
 	table.sort(teammates)
 
 	local share = mathMin(mathFloor(totalPool / (#teammates + 1)), maxunits)
-	local needed = share ---@type number
+	local needed = share - Spring.GetTeamMaxUnits(teamID)
 
 	for i = 1, #teammates do
 		local donorID = teammates[i]
 		local donorAmount = Spring.GetTeamMaxUnits(donorID)
 		-- The engine refuses a transfer that would leave a team below its current unit count.
-		local transferAmount = mathMin(needed, donorAmount - share, donorAmount - Spring.GetTeamUnitCount(donorID))
+		local transferAmount = mathMin(needed, donorAmount - share, donorAmount - Spring.GetTeamUnitCount(donorID)) ---@as integer
 		if transferAmount > 0 and Spring.TransferTeamMaxUnits(donorID, teamID, transferAmount) then
 			needed = needed - transferAmount
 		end
@@ -482,7 +482,7 @@ function gadget:GameFrame(frame)
 	local teams = Spring.GetTeamList()
 	for i = 1, #teams do
 		local teamID = teams[i]
-		if Spring.GetTeamMaxUnits(teamID) == 0 and teamHasActivePlayer(teamID) then
+		if teamHasActivePlayer(teamID) and not isScavengerOrRaptor(teamID) then
 			restoreTeamMaxUnits(teamID)
 		end
 	end
