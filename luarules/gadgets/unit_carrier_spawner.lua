@@ -39,6 +39,7 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 local spTransferUnit = Spring.TransferUnit
 local spGetUnitTeam = Spring.GetUnitTeam
+local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
@@ -124,6 +125,7 @@ local droneCarrierIdList = {}
 
 local carrierUpdateList = {} -- scratch list of the carriers whose turn it is this frame
 local deferredDroneReleases = {}
+local givenDrones = {}
 local stunnedDroneHeights = {} -- wanted height from before the stun
 local inUnitDestroyed = false
 
@@ -927,8 +929,11 @@ local function applyCarrierDeaththroe(carrierData, subUnitID, droneMetaData)
 		spDestroyUnit(subUnitID, true)
 	elseif carrierData.carrierDeaththroe == "capture" then
 		standalone = true
-		local enemyunitID = spGetUnitNearestEnemy(subUnitID, carrierData.controlRadius)
-		if enemyunitID then
+		local spawnData = carrierData.subInitialSpawnData
+		local isCaptured = not spAreTeamsAllied(spGetUnitTeam(subUnitID), spawnData.teamID)
+		local enemyunitID =
+			spGetUnitNearestEnemy(isCaptured and spawnData.ownerID or subUnitID, carrierData.controlRadius)
+		if enemyunitID and spGetUnitTeam(enemyunitID) ~= spGetUnitTeam(subUnitID) then
 			spTransferUnit(subUnitID, spGetUnitTeam(enemyunitID), false)
 		end
 	elseif carrierData.carrierDeaththroe == "control" then
@@ -1000,6 +1005,72 @@ local function applyCarrierDeaththroe(carrierData, subUnitID, droneMetaData)
 			maxAmmo = droneMetaData.maxAmmo,
 		}
 		droneMetaList[subUnitID] = droneData
+	end
+end
+
+local function findAlliedCarrier(subUnitID)
+	local droneTeam = spGetUnitTeam(subUnitID)
+	local droneName = UnitDefs[spGetUnitDefID(subUnitID)].name
+	local droneX, _, droneZ = spGetUnitPosition(subUnitID)
+	local nearestCarrierID, nearestDronetypeIndex, nearestDistance
+	for carrierID, carrierData in pairsNext, carrierMetaList do
+		if carrierData.wasBuilt and spAreTeamsAllied(droneTeam, spGetUnitTeam(carrierID)) then
+			for dronetypeIndex, dronename in pairsNext, carrierData.dronenames do
+				if
+					dronename == droneName
+					and carrierData.subUnitCount[dronetypeIndex] < carrierData.maxunits[dronetypeIndex]
+				then
+					local carrierX, _, carrierZ = spGetUnitPosition(carrierID)
+					local distance = diag(carrierX - droneX, carrierZ - droneZ)
+					if
+						distance <= carrierData.controlRadius and (not nearestDistance or distance < nearestDistance)
+					then
+						nearestCarrierID, nearestDronetypeIndex, nearestDistance = carrierID, dronetypeIndex, distance
+					end
+				end
+			end
+		end
+	end
+	return nearestCarrierID, nearestDronetypeIndex
+end
+
+local function attachDroneToAlliedCarrier(carrierID, dronetypeIndex, subUnitID)
+	local carrierData = carrierMetaList[carrierID]
+	addDroneToCarrier(carrierID, carrierData, dronetypeIndex, subUnitID)
+	if carrierData.usestockpile then
+		local stockpile, _, stockpilepercentage = spGetUnitStockpile(carrierID)
+		spSetUnitStockpile(carrierID, stockpile + 1, stockpilepercentage)
+		spGiveOrderToUnit(carrierID, CMD.STOCKPILE, {}, { "right" })
+		carrierData.stockpilecount = carrierData.stockpilecount + 1
+	end
+	if not carrierData.manualDrones then
+		setDroneNoSelect(subUnitID, true)
+	end
+end
+
+local function releaseCapturedDrone(carrierID, subUnitID)
+	local carrierData = carrierMetaList[carrierID]
+	local droneMetaData = carrierData.subUnitsList[subUnitID]
+	deferredDroneReleases[subUnitID] = nil
+	if spGetUnitTransporter(subUnitID) == carrierID then
+		releaseDrone(carrierID, subUnitID)
+		spSetUnitCOBValue(subUnitID, COB.ACTIVATION, 1)
+		spSetUnitUseAirLos(subUnitID, droneMetaData.isAirUnit)
+		droneMetaData.lastLiftOff = spGetGameFrame()
+		if carrierData.dockArmor then
+			spSetUnitArmored(subUnitID, false, 1)
+		end
+	end
+	RemoveDrone(carrierID, subUnitID)
+
+	local alliedCarrierID, dronetypeIndex = findAlliedCarrier(subUnitID)
+	if alliedCarrierID then
+		attachDroneToAlliedCarrier(alliedCarrierID, dronetypeIndex, subUnitID)
+	else
+		applyCarrierDeaththroe(carrierData, subUnitID, droneMetaData)
+		if droneMetaList[subUnitID] then
+			totalDroneCount = totalDroneCount + 1
+		end
 	end
 end
 
@@ -1155,6 +1226,9 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		for subUnitID, value in pairsNext, carrierMetaList[unitID].subUnitsList do
 			spTransferUnit(subUnitID, unitTeam, false)
 		end
+	end
+	if droneCarrierIdList[unitID] then
+		givenDrones[unitID] = true
 	end
 end
 
@@ -1322,6 +1396,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	deferredDroneReleases[unitID] = nil
+	givenDrones[unitID] = nil
 	stunnedDroneHeights[unitID] = nil
 	if carrierMetaList[unitID] then
 		for subUnitID, carrierID in pairsNext, deferredDroneReleases do
@@ -2168,6 +2243,18 @@ function gadget:GameFrame(f)
 end
 
 function gadget:GameFramePost(f)
+	local givenDroneID = pairsNext(givenDrones)
+	while givenDroneID do
+		givenDrones[givenDroneID] = nil
+		local carrierID = droneCarrierIdList[givenDroneID]
+		if
+			carrierMetaList[carrierID] and not spAreTeamsAllied(spGetUnitTeam(givenDroneID), spGetUnitTeam(carrierID))
+		then
+			releaseCapturedDrone(carrierID, givenDroneID)
+		end
+		givenDroneID = pairsNext(givenDrones)
+	end
+
 	for subUnitID, carrierID in pairsNext, deferredDroneReleases do
 		deferredDroneReleases[subUnitID] = nil
 		local carrierData = carrierMetaList[carrierID]
