@@ -1262,7 +1262,7 @@ end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	local carrierData = carrierMetaList[unitID]
-	if capture or not carrierData then
+	if capture or not carrierData or GG.IsTransferForced(newTeam) then
 		return true
 	end
 	local unitCount = 1

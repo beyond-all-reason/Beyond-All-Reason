@@ -19,6 +19,33 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local forcedTeamID ---@type TeamID?
+
+---@param unitID UnitID
+---@param teamID TeamID
+---@return boolean transferred
+local function forceUnitTransfer(unitID, teamID)
+	local oldTeamID = Spring.GetUnitTeam(unitID)
+	forcedTeamID = teamID
+	local transferred = Spring.TransferUnit(unitID, teamID)
+	forcedTeamID = nil
+	if transferred then
+		local overLimit = Spring.GetTeamUnitCount(teamID) - Spring.GetTeamMaxUnits(teamID)
+		local unusedLimit = Spring.GetTeamMaxUnits(oldTeamID) - Spring.GetTeamUnitCount(oldTeamID)
+		local transferAmount = math.min(overLimit, unusedLimit) ---@as integer
+		if transferAmount > 0 then
+			Spring.TransferTeamMaxUnits(oldTeamID, teamID, transferAmount)
+		end
+	end
+	return transferred
+end
+
+---@param teamID TeamID
+---@return boolean
+local function isTransferForced(teamID)
+	return teamID == forcedTeamID
+end
+
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
@@ -52,5 +79,15 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	return capture or BAR.Utilities.CanTeamReceiveUnits(newTeam, 1)
+	return capture or newTeam == forcedTeamID or BAR.Utilities.CanTeamReceiveUnits(newTeam, 1)
+end
+
+function gadget:Initialize()
+	GG.ForceUnitTransfer = forceUnitTransfer
+	GG.IsTransferForced = isTransferForced
+end
+
+function gadget:Shutdown()
+	GG.ForceUnitTransfer = nil
+	GG.IsTransferForced = nil
 end
