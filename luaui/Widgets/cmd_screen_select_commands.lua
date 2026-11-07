@@ -23,8 +23,8 @@ Click modifiers:
   Shift + Space -> insert into the nearest queued path segment
   Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy excluding neutrals; neutrals: all neutrals; allies: any ally team). For reclaim features, mass-order all reclaimable features (commander corpses still excluded).
   Alt -> partition targets among selected units (see Order assignment below)
-  If units × targets would exceed COMMAND_LIMIT, shrink the shared per-unit target count to fit the budget. Extra targets beyond that per-unit cap are dropped, keeping the closest to the clicked target (or, when using queue-end distance, closest to each unit's last queued order).
-  Shift / Shift + Space / double-click mass-order -> unit-relative distance math (travel routes, closest-target trimming, Alt partition) uses each unit's last positional queued order before the mass order, not its current position. Double-click snapshots that position on the first click; Shift double-click also removes the priming click's trailing order before appending the mass route.
+  If units × targets would exceed COMMAND_LIMIT, shrink the shared per-unit target count to fit the budget. Extra targets beyond that per-unit cap are dropped, keeping those closest to the click (stored click world position, falling back to the clicked target).
+  Shift / Shift + Space / double-click mass-order -> after the click-nearest target set is chosen, unit-relative distance math (travel routes, Alt partition) uses each unit's last positional queued order before the mass order, not its current position. Double-click snapshots that queue-end position on the first click; Shift double-click also removes the priming click's trailing order before appending the mass route.
 
   Order assignment:
   Normal mass-order -> every selected unit gets the same targets; each unit's queue is a nearest-neighbor travel route from that unit (closest next hop first; Space alone reverses that route). Routes are cached by first-hop target so units that share a nearest target reuse the same route.
@@ -130,6 +130,7 @@ local function clearDoubleClickPending()
 		commandID = nil,
 		right = false,
 		queueEndByUnitID = nil,
+		clickWorldPosition = nil,
 	}
 end
 
@@ -326,6 +327,26 @@ local function getTargetPosition(targetID, positionCache)
 	return position
 end
 
+local function resolveClickWorldPosition(mouseX, mouseY, fallbackTargetID, positionCache)
+	if mouseX and mouseY then
+		local _, tracedPosition = spring.TraceScreenRay(mouseX, mouseY, true)
+		if tracedPosition then
+			return toPositionTable(tracedPosition[1], tracedPosition[2], tracedPosition[3])
+		end
+	end
+	if fallbackTargetID then
+		return getTargetPosition(fallbackTargetID, positionCache or {})
+	end
+	return nil
+end
+
+local function captureClickWorldPosition(fallbackTargetID, mouseX, mouseY)
+	if not mouseX or not mouseY then
+		mouseX, mouseY = spring.GetMouseState()
+	end
+	return resolveClickWorldPosition(mouseX, mouseY, fallbackTargetID)
+end
+
 local function canUnitDefReachPosition(unitDefID, targetID, position, reachabilityCache)
 	if not unitDefID or not position then
 		return false
@@ -424,10 +445,11 @@ local function compareNullablePrimary(primaryA, primaryB, indexA, indexB, primar
 	return primaryLess(primaryA, primaryB)
 end
 
-local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, referenceUnitID, positionCache)
+local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, referenceUnitID, positionCache, referencePosition)
 	positionCache = positionCache or {}
-	local referencePosition = referenceUnitID and getTargetPosition(referenceUnitID, positionCache)
-		or getTargetCentroid(selectedUnits, positionCache)
+	referencePosition = referencePosition
+		or (referenceUnitID and getTargetPosition(referenceUnitID, positionCache))
+		or (selectedUnits and getTargetCentroid(selectedUnits, positionCache))
 	if not referencePosition then
 		return nil
 	end
@@ -561,18 +583,16 @@ local function copyArray(source, maxCount)
 	return result
 end
 
-local function limitTargetsToClosest(filteredTargets, referenceTargetID, selectedUnits, maximumTargetCount, positionCache, useUnitReference)
+local function limitTargetsToClosest(filteredTargets, referenceTargetID, maximumTargetCount, positionCache, clickWorldPosition)
 	if maximumTargetCount <= 0 then
 		return {}
 	end
 	if #filteredTargets <= maximumTargetCount then
 		return filteredTargets
 	end
-	local sortReferenceID = (not useUnitReference) and referenceTargetID or nil
-	if sortReferenceID and getTargetPosition(sortReferenceID, positionCache) then
-		sortTargetsByDistance({ sortReferenceID }, filteredTargets, true, sortReferenceID, positionCache)
-	else
-		sortTargetsByDistance(selectedUnits, filteredTargets, true, nil, positionCache)
+	local referencePosition = clickWorldPosition or getTargetPosition(referenceTargetID, positionCache)
+	if referencePosition then
+		sortTargetsByDistance(nil, filteredTargets, true, nil, positionCache, referencePosition)
 	end
 	return copyArray(filteredTargets, maximumTargetCount)
 end
@@ -1395,7 +1415,7 @@ local function collectMassOrderTargets(commandID, targetID, isFeature, options)
 	return collectScopedUnitTargets(commandID, targetID, fallbackAllegiance, nil, options, true)
 end
 
-local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options, queueEndByUnitID)
+local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options, queueEndByUnitID, clickWorldPosition)
 	selectedUnits = filterUnitsForCommand(selectedUnits, issueCommandID)
 	if #selectedUnits == 0 then
 		return false
@@ -1430,7 +1450,10 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 		filteredTargets = filterTargetsReachableByAnyUnit(selectedUnits, filteredTargets, positionCache, reachabilityCache)
 	end
 	local usePartitionedDispatch, maxTargetsPerUnit, maxTargetsToCollect = resolveMassOrderBudget(#selectedUnits, #filteredTargets, options.alt)
-	filteredTargets = limitTargetsToClosest(filteredTargets, referenceTargetID, selectedUnits, maxTargetsToCollect, positionCache, useQueueEndReference)
+	if not clickWorldPosition then
+		clickWorldPosition = captureClickWorldPosition(referenceTargetID)
+	end
+	filteredTargets = limitTargetsToClosest(filteredTargets, referenceTargetID, maxTargetsToCollect, positionCache, clickWorldPosition)
 	if #filteredTargets == 0 or maxTargetsPerUnit <= 0 then
 		if #builderUnits > 0 then
 			finishMassOrderCommandState(issueCommandID, options)
@@ -1458,6 +1481,7 @@ local function issuePendingDoubleClickMassOrders(options)
 	end
 	local referenceTargetIsFeature = isFeatureTargetID(referenceTargetID)
 	local queueEndByUnitID = pendingDoubleClick.queueEndByUnitID
+	local clickWorldPosition = pendingDoubleClick.clickWorldPosition
 	clearDoubleClickPending()
 	local selectedUnits = spring.GetSelectedUnits()
 	local massIssued = false
@@ -1470,7 +1494,7 @@ local function issuePendingDoubleClickMassOrders(options)
 		end
 	end
 	if not skipMassReissue and #selectedUnits > 0 then
-		massIssued = issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options, queueEndByUnitID)
+		massIssued = issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options, queueEndByUnitID, clickWorldPosition)
 	end
 	if not massIssued then
 		clearActiveCommandUnlessShift(options)
@@ -1506,11 +1530,12 @@ local function consumePendingDoubleClickClick(options, effectiveCommandID)
 	return issuePendingDoubleClickMassOrders(options)
 end
 
-local function armPendingDoubleClick(commandID, targetID, options)
+local function armPendingDoubleClick(commandID, targetID, options, mouseX, mouseY)
 	pendingDoubleClick.targetID = targetID
 	pendingDoubleClick.expireTime = osClock() + DOUBLE_CLICK_TIME
 	pendingDoubleClick.commandID = commandID
 	pendingDoubleClick.right = options.right
+	pendingDoubleClick.clickWorldPosition = captureClickWorldPosition(targetID, mouseX, mouseY)
 	if not pendingDoubleClick.queueEndByUnitID then
 		pendingDoubleClick.queueEndByUnitID = collectQueueEndPositions(spring.GetSelectedUnits())
 	end
@@ -1532,7 +1557,7 @@ local function handleScreenSelectCommand(effectiveCommandID, parameters, options
 		return false
 	end
 	if screenSelectKeyHeld then
-		return issueMassOrdersFromTarget(effectiveCommandID, targetID, isFeature, selectedUnits, options)
+		return issueMassOrdersFromTarget(effectiveCommandID, targetID, isFeature, selectedUnits, options, nil, captureClickWorldPosition(targetID))
 	end
 
 	if doubleClickEnabled then
@@ -1540,6 +1565,9 @@ local function handleScreenSelectCommand(effectiveCommandID, parameters, options
 			armPendingDoubleClick(effectiveCommandID, targetID, options)
 		elseif not pendingDoubleClick.targetID then
 			pendingDoubleClick.targetID = targetID
+			if not pendingDoubleClick.clickWorldPosition then
+				pendingDoubleClick.clickWorldPosition = captureClickWorldPosition(targetID)
+			end
 		end
 		return false
 	end
@@ -1592,9 +1620,9 @@ function widget:MousePress(mouseX, mouseY, button)
 			if #selectedUnits == 0 then
 				return false
 			end
-			return issueMassOrdersFromTarget(effectiveCommandID, targetID, targetIsFeature, selectedUnits, options)
+			return issueMassOrdersFromTarget(effectiveCommandID, targetID, targetIsFeature, selectedUnits, options, nil, captureClickWorldPosition(targetID, mouseX, mouseY))
 		end
-		armPendingDoubleClick(effectiveCommandID, targetID, options)
+		armPendingDoubleClick(effectiveCommandID, targetID, options, mouseX, mouseY)
 		return false
 	end
 	local consumed = consumePendingDoubleClickClick(options, effectiveCommandID)
