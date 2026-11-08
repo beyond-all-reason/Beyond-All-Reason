@@ -423,6 +423,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if winners then
+				gadgetHandler:RemoveCallIn("TeamChanged")
+
 				if Spring.GetModOptions().scenariooptions then
 					Spring.Echo("winners", winners[1])
 					SendToUnsynced("scenariogameend", winners[1])
