@@ -1,3 +1,8 @@
+# Air transport setup.lua format
+
+Each transport has `<unitName>/setup.lua` returning a table of this shape.
+
+```lua
 return {
     anim = {
         idleHover = { -- basic hovering effect
@@ -53,3 +58,4 @@ return {
 	},
     ]]--
 }
+```

@@ -68,8 +68,8 @@ local empReworkUnitTweaks = empRework.UnitTweaks
 local empReworkWeaponTweaks = empRework.WeaponTweaks
 
 local scavWeaponDefPost = require("gamedata/scavengers/weapondef_post").scavWeaponDefPost
-local tractorBeamEnabled = modOptions.beta_tractorbeam ~= "disabled"
-local tractorBeamMode = tractorBeamEnabled and modOptions.beta_tractorbeam or nil
+local tractorBeamMode = modOptions.beta_tractorbeam ~= "disabled" and modOptions.beta_tractorbeam or nil
+local tractorBeamEnabled = tractorBeamMode ~= nil
 local _tractorbeamDefs = tractorBeamMode
 		and VFS.Include("tractor_beams_temp_defs/transporter_defs_" .. tractorBeamMode .. ".lua")
 	or {}

@@ -12,7 +12,7 @@
 
 TransportAPI = GG.TransportAPI
 if not TransportAPI then
-	spEcho("TransportAPI must be loaded before this unit script")
+	Spring.Echo("TransportAPI must be loaded before this unit script")
 	return false
 end
 
@@ -43,7 +43,7 @@ include(AIR_TRANSPORT_INC .. "GenericAnimator.lua")
 
 -- VARIABLES (post-include)
 local animSetup = VFS.Include(UNIT_CONFIG_PATH .. "setup.lua")
-local transportSetup = VFS.Include(AIR_TRANSPORT_PATH .. "loadpadsdefinitions/loadpaddefs.lua")
+local transportSetup = VFS.Include(AIR_TRANSPORT_PATH .. "loadPadsDefinitions/loadPadDefs.lua")
 local thisSize = "size" .. (unitDef.customParams.transporterseats or "0")
 cargo = nil -- will be initialized in script.Create
 

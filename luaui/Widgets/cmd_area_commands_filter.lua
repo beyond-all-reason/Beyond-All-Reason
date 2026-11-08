@@ -23,8 +23,7 @@ function widget:GetInfo()
 	}
 end
 
-if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
-	Spring.Echo("Custom transports enabled via modoption, disabling " .. widget:GetInfo().name)
+if Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
 	return false
 end
 
