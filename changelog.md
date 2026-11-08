@@ -21,7 +21,6 @@
   - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
 - [Fixed]
   - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
-  - Taking an inactive teammate's units also takes a portion of their unit limit, always (instead of sometimes).
   - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
   - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
 
