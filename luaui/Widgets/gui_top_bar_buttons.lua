@@ -20,7 +20,9 @@ end
 -- filling in its own half of the API, so either can run without the other.
 
 local Editbox = require("luaui/Include/keybind_editbox")
-local KEYSYMS = require("luaui/Include/keybind_keysyms")
+local KEY_ESCAPE = Spring.GetKeyCode("esc")
+local KEY_RETURN = Spring.GetKeyCode("return")
+local KEY_KP_ENTER = Spring.GetKeyCode("numpad_enter")
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -1299,9 +1301,9 @@ end
 
 function widget:KeyPress(key)
 	if saveDialog then
-		if key == KEYSYMS.ESCAPE then
+		if key == KEY_ESCAPE then
 			closeSaveDialog()
-		elseif key == KEYSYMS.RETURN or key == KEYSYMS.KP_ENTER then
+		elseif key == KEY_RETURN or key == KEY_KP_ENTER then
 			saveAsTyped()
 		else
 			saveDialog.box:keyPress(key)

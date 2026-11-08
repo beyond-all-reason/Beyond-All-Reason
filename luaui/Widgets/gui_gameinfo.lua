@@ -25,7 +25,8 @@ end
 local model = require("luaui/Include/gameinfo_model")
 -- Shared with the keybind editor, which is where both were written for.
 local Editbox = require("luaui/Include/keybind_editbox")
-local KEYSYMS = require("luaui/Include/keybind_keysyms")
+local KEY_C = Spring.GetKeyCode("c")
+local KEY_A = Spring.GetKeyCode("a")
 local text = require("luaui/Include/keybind_text")
 
 -- Localized functions for performance
@@ -1529,8 +1530,8 @@ function widget:KeyPress(key)
 	-- profiles - Ctrl+C focuses the commander - so without that ownership the action handler
 	-- would have had them first.
 	local _, ctrl = Spring.GetModKeyState()
-	if ctrl and (key == KEYSYMS.C or key == KEYSYMS.A) then
-		local took = key == KEYSYMS.C and copySelection() or (key == KEYSYMS.A and selectAllCode())
+	if ctrl and (key == KEY_C or key == KEY_A) then
+		local took = key == KEY_C and copySelection() or (key == KEY_A and selectAllCode())
 		if took then
 			consumedKeys[key] = true
 

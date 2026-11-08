@@ -29,7 +29,8 @@ end
 -- Shared with the keybind editor and the game info panel, which is where they were written.
 local Dropdown = require("luaui/Include/keybind_dropdown")
 local Editbox = require("luaui/Include/keybind_editbox")
-local KEYSYMS = require("luaui/Include/keybind_keysyms")
+local KEY_ESCAPE = Spring.GetKeyCode("esc")
+local KEY_RETURN = Spring.GetKeyCode("return")
 local text = require("luaui/Include/keybind_text")
 -- What the widgets are, how they are listed and what each control says. This file is the window on it.
 local model = VFS.Include("luaui/Include/widget_selector/model.lua")
@@ -2206,7 +2207,7 @@ function widget:KeyPress(key, _mods, _isRepeat, _label, _unicode, _scanCode, act
 	-- Innermost first: the settings window is over everything, so Escape closes it before
 	-- anything else is considered.
 	if dataView.name then
-		if key == KEYSYMS.ESCAPE then
+		if key == KEY_ESCAPE then
 			dataView.shut()
 		end
 
@@ -2214,9 +2215,9 @@ function widget:KeyPress(key, _mods, _isRepeat, _label, _unicode, _scanCode, act
 	end
 
 	if dialog then
-		if key == KEYSYMS.ESCAPE then
+		if key == KEY_ESCAPE then
 			closeDialog()
-		elseif key == KEYSYMS.RETURN then
+		elseif key == KEY_RETURN then
 			local typed, blocked = dialogName()
 			if not blocked then
 				local d = closeDialog()
@@ -2236,7 +2237,7 @@ function widget:KeyPress(key, _mods, _isRepeat, _label, _unicode, _scanCode, act
 	-- Escape takes one thing down at a time, innermost first, and only closes the panel
 	-- once there is nothing left over it: the picker's open list, then the search that
 	-- made the list being read, then the panel itself.
-	if key == KEYSYMS.ESCAPE then
+	if key == KEY_ESCAPE then
 		if setPicker:isOpen() then
 			setPicker:close()
 
