@@ -4,6 +4,7 @@ local noop = function() end
 
 -- What the keys under the player's fingers read as.
 local held = {}
+local keyCodes = { esc = 27, ["return"] = 13, z = 122 }
 
 -- A fresh model over a small keymap, told what a window is told.
 local function newModel(bindings)
@@ -32,8 +33,8 @@ local function newModel(bindings)
 			GetKeyBindings = function()
 				return bindings
 			end,
-			GetKeyCode = function()
-				return 1
+			GetKeyCode = function(name)
+				return keyCodes[name] or 1
 			end,
 			GetKeyFromScanSymbol = function(symbol)
 				return symbol
@@ -157,7 +158,7 @@ describe("the keybind editor's model", function()
 			assert.are.equal(2, #model.working.byAction.wait)
 
 			held.ctrl = true
-			model.keyPress(require("luaui/Include/keybind_keysyms").Z, 1)
+			model.keyPress(keyCodes.z, 1)
 			held.ctrl = false
 
 			assert.is_false(model.dirty)

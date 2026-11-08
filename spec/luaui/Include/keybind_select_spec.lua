@@ -3,6 +3,9 @@ local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 -- The builder reads these at load or on first use; the game provides them, the specs do not.
 local env = SpecEnv.new({
 	Spring = {
+		GetKeyCode = function()
+			return 1
+		end,
 		GetTimer = function() end,
 		DiffTimers = function()
 			return 0
