@@ -56,12 +56,34 @@ local function scaledBlast(def, factor)
 	return copy
 end
 
+local RAIL_FLASH = {
+	brightflare = 0.35,
+	brightflareslow = 0.6,
+	brightflareslowair = 0.6,
+	airflash_anim = 0.6,
+	groundflash_white = 0.5,
+	groundflash_large = 0.6,
+}
+
+local function dimmed(def, factors)
+	---@type table
+	local copy = table.copy(def)
+	for name, factor in pairs(factors) do
+		local props = copy[name] and copy[name].properties
+		if props and type(props.size) == "number" then
+			props.size = math.floor(props.size * factor)
+		end
+	end
+	return copy
+end
+
 local cannons = VFS.Include("effects/cannons.lua")
 local nukes = VFS.Include("effects/nukes.lua")
 
 return {
 	["scavbossrail-trail"] = scaled(cannons["railgun-epic"], TRAIL_SCALE),
 	scavbossblast = scaledBlast(nukes.newnukehuge, BLAST_SCALE),
+	scavbossrailhit = dimmed(nukes.newnukecor, RAIL_FLASH),
 	scavbosssnackring = {
 		ring = {
 			class = [[CSimpleGroundFlash]],
