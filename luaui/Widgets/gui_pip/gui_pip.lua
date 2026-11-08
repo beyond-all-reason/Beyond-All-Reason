@@ -24423,6 +24423,18 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 	return false
 end
 
+-- on a resize grab the look has past the map
+local function IsOnOuterResizeGrab(mx, my)
+	if
+		uiState.inMinMode
+		or uiState.isAnimating
+		or (isMinimapMode and (config.minimapModeHideMoveResize or miscState.minimapMinimized))
+	then
+		return false
+	end
+	return pipView.HitResizeOutside(mx, my)
+end
+
 function widget:IsAbove(mx, my)
 	if miscState.apiInteractionLocked then
 		return false
@@ -24438,6 +24450,10 @@ function widget:IsAbove(mx, my)
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then
 		return false
+	end
+
+	if IsOnOuterResizeGrab(mx, my) then
+		return true
 	end
 
 	-- Rewind timeline strip below the map content
@@ -24693,6 +24709,12 @@ function widget:MousePress(mx, my, mButton)
 	-- double-click from triggering an accidental minimize (which corrupts savedDimensions)
 	if uiState.isAnimating then
 		return
+	end
+
+	-- (before the timeline: the grab can lie on it)
+	if mButton == 1 and IsOnOuterResizeGrab(mx, my) then
+		uiState.areResizing = true
+		return true
 	end
 
 	-- Rewind timeline strip below the map content
