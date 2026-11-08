@@ -22,6 +22,7 @@
 - [Fixed]
   - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
   - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
+  - Resigning during a pause would turn players into spectators who could not unpause, and the game would never end.
   - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
 
 # October
