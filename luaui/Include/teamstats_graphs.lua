@@ -14,13 +14,15 @@
 local Custom = require("luaui/Include/teamstats_custom")
 local Editbox = require("luaui/Include/keybind_editbox")
 local Graph = require("luaui/Include/graph")
-local KEY_RETURN = Spring.GetKeyCode("return")
-local KEY_KP_ENTER = Spring.GetKeyCode("numpad_enter")
-local KEY_ESCAPE = Spring.GetKeyCode("esc")
-local KEY_LEFT = Spring.GetKeyCode("left")
-local KEY_UP = Spring.GetKeyCode("up")
-local KEY_RIGHT = Spring.GetKeyCode("right")
-local KEY_DOWN = Spring.GetKeyCode("down")
+local KEYCODE = {
+	RETURN = Spring.GetKeyCode("return"),
+	KP_ENTER = Spring.GetKeyCode("numpad_enter"),
+	ESCAPE = Spring.GetKeyCode("esc"),
+	LEFT = Spring.GetKeyCode("left"),
+	UP = Spring.GetKeyCode("up"),
+	RIGHT = Spring.GetKeyCode("right"),
+	DOWN = Spring.GetKeyCode("down"),
+}
 
 local mathFloor = math.floor
 local mathMax = math.max
@@ -4361,9 +4363,9 @@ function M.new(ctx)
 		if not naming then
 			return false
 		end
-		if key == KEY_RETURN or key == KEY_KP_ENTER then
+		if key == KEYCODE.RETURN or key == KEYCODE.KP_ENTER then
 			page.stopNaming(true)
-		elseif key == KEY_ESCAPE then
+		elseif key == KEYCODE.ESCAPE then
 			page.stopNaming(false)
 		else
 			naming.box:keyPress(key)
@@ -4746,10 +4748,10 @@ function M.new(ctx)
 		if page.gridded() then
 			return false
 		end
-		if key == KEY_LEFT or key == KEY_UP then
+		if key == KEYCODE.LEFT or key == KEYCODE.UP then
 			page.step(-1)
 			return true
-		elseif key == KEY_RIGHT or key == KEY_DOWN then
+		elseif key == KEYCODE.RIGHT or key == KEYCODE.DOWN then
 			page.step(1)
 			return true
 		end
