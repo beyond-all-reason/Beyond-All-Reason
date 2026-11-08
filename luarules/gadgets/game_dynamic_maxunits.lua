@@ -133,25 +133,8 @@ local function restoreAllyTeamMaxUnits(teams)
 	end
 end
 
-function gadget:Initialize()
+local function assignMaxUnits()
 	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local teams = Spring.GetTeamList()
-	for i = 1, #teams do
-		local teamID = teams[i]
-		local _, _, isDead, _, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
-		if teamID ~= gaiaTeamID and not isDead and not isScavengerOrRaptor(teamID) then
-			local allyTeams = dynamicTeamsByAllyTeam[allyTeamID] or {}
-			allyTeams[#allyTeams + 1] = teamID
-			dynamicTeamsByAllyTeam[allyTeamID] = allyTeams
-			if isControlledByAi(teamID) then
-				aiTeams[teamID] = true
-			end
-		end
-	end
-
-	if Spring.GetGameFrame() > 0 then
-		return
-	end
 
 	-- Ensure Gaia team always get their maxunits
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
@@ -231,7 +214,7 @@ function gadget:Initialize()
 
 	-- Set targets for Scav/Raptor teams (fixed allocation)
 	for _, teamID in ipairs(scavengerRaptorTeams) do
-		local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
+		local currentMaxUnits = spGetTeamMaxUnits(teamID)
 		adjustments[teamID] = {
 			current = currentMaxUnits,
 			target = scavengerRaptorLimit,
@@ -257,7 +240,7 @@ function gadget:Initialize()
 			allyTeamTargetMaxUnits[allyID] = adjustedShare
 
 			for _, teamID in ipairs(teams) do
-				local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
+				local currentMaxUnits = spGetTeamMaxUnits(teamID)
 				adjustments[teamID] = {
 					current = currentMaxUnits,
 					target = adjustedShare,
@@ -280,15 +263,15 @@ function gadget:Initialize()
 	table.sort(sortedTeamIDs)
 
 	-- First collect from Gaia to get the full pool
-	local gaiaInitial = Spring.GetTeamMaxUnits(gaiaTeamID)
+	local gaiaInitial = spGetTeamMaxUnits(gaiaTeamID)
 	local totalAvailable = gaiaInitial
 
 	-- Then collect from all player teams
 	local totalCollected = 0
 	for _, teamID in ipairs(sortedTeamIDs) do
-		local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
+		local currentMaxUnits = spGetTeamMaxUnits(teamID)
 		if currentMaxUnits > 0 then
-			Spring.TransferTeamMaxUnits(teamID, gaiaTeamID, currentMaxUnits)
+			spTransferTeamMaxUnits(teamID, gaiaTeamID, currentMaxUnits)
 			totalCollected = totalCollected + currentMaxUnits
 		end
 	end
@@ -298,7 +281,7 @@ function gadget:Initialize()
 	for _, teamID in ipairs(sortedTeamIDs) do
 		local adj = adjustments[teamID]
 		if adj.target > 0 then
-			Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, adj.target)
+			spTransferTeamMaxUnits(gaiaTeamID, teamID, adj.target)
 		end
 	end
 
@@ -327,7 +310,7 @@ function gadget:Initialize()
 				if remaining > 0 then
 					local takeAmount = mathMin(perTeam, remaining, Spring.GetTeamMaxUnits(teamID))
 					if takeAmount > 0 then
-						Spring.TransferTeamMaxUnits(teamID, gaiaTeamID, takeAmount)
+						spTransferTeamMaxUnits(teamID, gaiaTeamID, takeAmount)
 						remaining = remaining - takeAmount
 					end
 				end
@@ -341,7 +324,7 @@ function gadget:Initialize()
 					end
 					local currentMax = Spring.GetTeamMaxUnits(teamID)
 					if currentMax > 0 then
-						Spring.TransferTeamMaxUnits(teamID, gaiaTeamID, 1)
+						spTransferTeamMaxUnits(teamID, gaiaTeamID, 1)
 						remaining = remaining - 1
 					end
 				end
@@ -371,7 +354,7 @@ function gadget:Initialize()
 					local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
 					local transferAmount = mathMin(perTeam, remaining, maxunits - currentMaxUnits)
 					if transferAmount > 0 then
-						Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, transferAmount)
+						spTransferTeamMaxUnits(gaiaTeamID, teamID, transferAmount)
 						remaining = remaining - transferAmount
 					end
 				end
@@ -385,11 +368,44 @@ function gadget:Initialize()
 					end
 					local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
 					if currentMaxUnits < maxunits then
-						Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, 1)
+						spTransferTeamMaxUnits(gaiaTeamID, teamID, 1)
 						remaining = remaining - 1
 					end
 				end
 			end
+		end
+	end
+end
+
+function gadget:Initialize()
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local teams = Spring.GetTeamList()
+	for i = 1, #teams do
+		local teamID = teams[i]
+		local _, _, isDead, _, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
+		if teamID ~= gaiaTeamID and not isDead and not isScavengerOrRaptor(teamID) then
+			local allyTeams = dynamicTeamsByAllyTeam[allyTeamID] or {}
+			allyTeams[#allyTeams + 1] = teamID
+			dynamicTeamsByAllyTeam[allyTeamID] = allyTeams
+			if isControlledByAi(teamID) then
+				aiTeams[teamID] = true
+			end
+		end
+	end
+
+	if Spring.GetGameFrame() <= 0 then
+		assignMaxUnits()
+	end
+end
+
+function gadget:GameFrame(frame)
+	if frame % Game.gameSpeed ~= 0 then
+		return
+	end
+
+	for _, teams in pairs(dynamicTeamsByAllyTeam) do
+		if #teams > 1 then
+			restoreAllyTeamMaxUnits(teams)
 		end
 	end
 end
@@ -482,18 +498,6 @@ function gadget:TeamDied(teamID)
 					end
 				end
 			end
-		end
-	end
-end
-
-function gadget:GameFrame(frame)
-	if frame % Game.gameSpeed ~= 0 then
-		return
-	end
-
-	for _, teams in pairs(dynamicTeamsByAllyTeam) do
-		if #teams > 1 then
-			restoreAllyTeamMaxUnits(teams)
 		end
 	end
 end
