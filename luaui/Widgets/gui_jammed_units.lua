@@ -17,7 +17,8 @@ end
 -- allyteam's jammer map (Spring.GetPositionLosState, 4th return), the same map the jammer preview draws.
 -- Buildings exactly on a cell line also count when a cell on either side is jammed: unit_jammed_fix.lua hides
 -- those from radar and marks them with the "jammed" unit rules param.
--- Every tracked unit is checked once per POLL_FRAMES game frames, spread evenly over those frames. A change
+-- Every tracked unit is checked once per POLL_FRAMES game frames, spread evenly over those frames, and again over
+-- a few draw frames when the highlight toggles or the view changes. A change
 -- writes a time stamp into unit buffer uniform #7 (Spring.GetDrawSeconds, which is the shaders' timeInfo.y):
 -- positive = jammed since then, negative = unjammed since then, 0 = never jammed. The CUS model shaders
 -- (modelmaterials_gl4/templates/cus_gl4.vert/frag.glsl, JAMMED_* tunables) fade a red tint and rim in or out
@@ -30,6 +31,8 @@ end
 
 -- Tunables
 local POLL_FRAMES = 6 -- game frames between two checks of the same unit (6 = 5 checks per second)
+local SWEEP_FRAMES = 8 -- draw frames that a check of all units is spread over
+local SWEEP_MIN_UNITS = 64 -- units such a check handles per draw frame at least
 local UNIFORM_INDEX = 7 -- unit buffer uniform (userDefined[1].w) the CUS shaders read
 local OUTLINE_OWNER = "jammed"
 -- width and blur in pixels at 1080p, see gfx_outline_shader_gl4.lua
@@ -44,8 +47,10 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetDrawSeconds = Spring.GetDrawSeconds
 local glSetUnitBufferUniforms = gl.SetUnitBufferUniforms
+local mathCeil = math.ceil
 local mathFloor = math.floor
 local mathMax = math.max
+local mathMin = math.min
 
 local hasJammingRule = table.new(#UnitDefs, 0) ---@type table<UnitDefID, true?> see unit_jammed_fix.lua
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -66,6 +71,8 @@ local checkJamming = {} ---@type table<integer, true?> unitID -> special handlin
 local jammed = {} ---@type table<integer, boolean?> unitID -> highlighted right now
 local cursor = 1 -- next trackedUnits index to check
 local pollBudget = 0 -- unit checks owed, in units * frames: every unit gets checked once per POLL_FRAMES frames
+local sweepLeft = 0 -- units left to check after a toggle or view change, works while paused too
+local sweepStep = 0 -- of those, how many per draw frame
 
 local shown = false -- whether the highlights are written at the moment
 local outlineApi = nil -- WG.unitOutlines when last seen, to outline the jammed units again when it (re)loads
@@ -133,12 +140,31 @@ end
 
 local function checkUnit(unitID, now)
 	local was = jammed[unitID] == true
-	local is = isJammed(unitID)
+	local is = shown and isJammed(unitID)
 	if is ~= was then
 		jammed[unitID] = is or nil
-		setStamp(unitID, is and now or -now)
+		if is then
+			setStamp(unitID, now)
+		else
+			clearStamp(unitID, now)
+		end
 		setOutline(unitID, is)
 	end
+end
+
+local function checkNext(count, now)
+	for _ = 1, mathMin(count, trackedCount) do
+		if cursor > trackedCount then
+			cursor = 1
+		end
+		checkUnit(trackedUnits[cursor], now)
+		cursor = cursor + 1
+	end
+end
+
+local function startSweep()
+	sweepLeft = trackedCount
+	sweepStep = mathMax(mathCeil(trackedCount / SWEEP_FRAMES), SWEEP_MIN_UNITS)
 end
 
 local function addUnit(unitID)
@@ -184,14 +210,6 @@ local function hideAll(now)
 	jammed = {}
 end
 
-local function pollAll(now)
-	for i = 1, trackedCount do
-		checkUnit(trackedUnits[i], now)
-	end
-	cursor = 1
-	pollBudget = 0
-end
-
 local function refreshViewer()
 	local _, currentFullview = Spring.GetSpectatingState()
 	fullview = currentFullview
@@ -215,7 +233,7 @@ local function rebuild(visibleUnits)
 		addUnit(unitID)
 	end
 	if shown then
-		pollAll(now)
+		startSweep()
 	end
 end
 
@@ -250,30 +268,24 @@ function widget:Update()
 	local show = coverageShown()
 	if show ~= shown then
 		shown = show
-		local now = drawTime()
-		if show then
-			pollAll(now)
-		else
-			hideAll(now)
-		end
+		startSweep()
+	end
+	if sweepLeft > 0 then
+		local count = mathMin(sweepLeft, sweepStep)
+		sweepLeft = sweepLeft - count
+		checkNext(count, drawTime())
 	end
 end
 
 function widget:GameFrame()
-	if not shown or trackedCount == 0 then
+	if not shown or trackedCount == 0 or sweepLeft > 0 then
 		return
 	end
 	local now = drawTime()
 	pollBudget = pollBudget + trackedCount
 	local count = mathFloor(pollBudget / POLL_FRAMES)
 	pollBudget = pollBudget - count * POLL_FRAMES
-	for _ = 1, count do
-		if cursor > trackedCount then
-			cursor = 1
-		end
-		checkUnit(trackedUnits[cursor], now)
-		cursor = cursor + 1
-	end
+	checkNext(count, now)
 end
 
 function widget:VisibleUnitAdded(unitID)
@@ -296,7 +308,13 @@ function widget:UnitTaken(unitID)
 	unitChangedTeam(unitID)
 end
 
+-- called for every player's change, only the viewer's full view and allyteam matter here
 function widget:PlayerChanged()
+	local wasFullview, wasAllyTeam = fullview, myAllyTeamID
+	refreshViewer()
+	if fullview == wasFullview and (fullview or myAllyTeamID == wasAllyTeam) then
+		return
+	end
 	local tracker = WG.unittrackerapi ---@type table?
 	if tracker and tracker.visibleUnits then
 		rebuild(tracker.visibleUnits)

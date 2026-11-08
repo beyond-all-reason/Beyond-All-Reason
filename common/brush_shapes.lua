@@ -42,6 +42,14 @@ local function rotateInv(dx, dz, angleDeg)
 	return dx * c - dz * s, dx * s + dz * c
 end
 
+-- The forward turn, the inverse of rotateInv: a positive angle turns +X toward
+-- +Z (clockwise on screen), the way every outline is drawn.
+local function rotate(dx, dz, angleDeg)
+	local rad = angleDeg * pi / 180
+	local c, s = cos(rad), sin(rad)
+	return dx * c - dz * s, dx * s + dz * c
+end
+
 local function isInside(dx, dz, radius, shape, angleDeg, lengthScale)
 	lengthScale = lengthScale or 1.0
 	angleDeg = angleDeg or 0
@@ -97,6 +105,7 @@ end
 
 return {
 	isInside = isInside,
+	rotate = rotate,
 	rotateInv = rotateInv,
 	computeFalloff = computeFalloff,
 }

@@ -7,7 +7,7 @@ return {
 		energycost = 500,
 		metalcost = 40,
 		buildpic = "legforti.DDS",
-		buildtime = 1000,
+		buildtime = 900,
 		canattack = false,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 -3 0",

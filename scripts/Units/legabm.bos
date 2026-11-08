@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  	base, flare, panelf, panell, panelr, flare, lpanelpivot, rpanelpivot, vent1, vent2, vent3;
+piece  	base, flare, panelf, panell, panelr, lpanelpivot, rpanelpivot, vent1, vent2, vent3;
 		
 static-var  restore_delay;
 

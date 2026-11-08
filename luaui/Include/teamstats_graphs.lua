@@ -2445,6 +2445,7 @@ function M.new(ctx)
 			end
 			local whose = (team.nameColor or "") .. team.name
 			local text = whose .. "\n" .. ctx.colors.title .. Graph.frameLabel(m.frame) .. "  " .. label
+			local notes = {}
 			-- What a strike, or a nuke's hit, cost: how many units, what they were worth in
 			-- metal, and what share of the side they were.
 			if m.value and m.share and (STRIKES[kind] or kind == "nuked") then
@@ -2453,14 +2454,11 @@ function M.new(ctx)
 				local units = m.count == 1 and ctx.i18n("ui.teamStats.mark.unitOne")
 					or m.count and ctx.i18n("ui.teamStats.mark.units", { count = m.count })
 					or ctx.i18n("ui.teamStats.mark.unitsSome")
-				text = text
-					.. "\n"
-					.. ctx.colors.dim
-					.. ctx.i18n("ui.teamStats.mark." .. of, {
-						units = units,
-						value = valueText(nil, m.value),
-						share = percentFormat(m.share * 100),
-					})
+				notes[#notes + 1] = ctx.i18n("ui.teamStats.mark." .. of, {
+					units = units,
+					value = valueText(nil, m.value),
+					share = percentFormat(m.share * 100),
+				})
 			end
 			-- The ones its stretch had no room for.
 			if c.hidden then
@@ -2472,10 +2470,8 @@ function M.new(ctx)
 					end
 					shownNames[#shownNames + 1] = labelOf(h.m, h.kind)
 				end
-				text = text
-					.. "\n"
-					.. ctx.colors.dim
-					.. ctx.i18n("ui.teamStats.mark.more", { count = #c.hidden, names = tableConcat(shownNames, ", ") })
+				notes[#notes + 1] =
+					ctx.i18n("ui.teamStats.mark.more", { count = #c.hidden, names = tableConcat(shownNames, ", ") })
 			end
 			local lane = lanes[unit.key]
 			local y = nil
@@ -2501,7 +2497,7 @@ function M.new(ctx)
 				texture = ud and ("#" .. m.unitDefID) or (died and SKULL or nil),
 				zoom = died and 0 or nil,
 				backdrop = died and SKULL_BACKDROP or nil,
-				text = text,
+				text = #notes > 0 and { text = text, note = tableConcat(notes, "\n") } or text,
 				series = indexByKey and indexByKey[unit.key] or nil,
 				frame = { team.accent[1], team.accent[2], team.accent[3] },
 				badge = badgeKey and BADGES[badgeKey] or nil,
@@ -2950,7 +2946,7 @@ function M.new(ctx)
 			return a.defID < b.defID
 		end)
 		local color = #of == 1 and of[1].color or REPORT_COLOR
-		local title, dim = ctx.colors.title, ctx.colors.dim
+		local dim = ctx.colors.dim
 		local rows = {}
 		for i = 1, mathMin(#list, REPORT_ROWS) do
 			local e = list[i]
@@ -2958,23 +2954,20 @@ function M.new(ctx)
 			local s, ud = e.s, e.ud
 			local name = ud.translatedHumanName or ud.humanName or ud.name
 			local valueText = siText(s.killed)
-			local lines = { title .. name }
+			local tip = {}
 			if s.built > 0 then
-				lines[#lines + 1] = dim
-					.. ctx.i18n(
-						"ui.teamStats.report.built",
-						{ count = title .. siText(s.built) .. dim, value = title .. siText(s.builtValue) .. dim }
-					)
+				tip[#tip + 1] = {
+					ctx.i18n("ui.teamStats.report.builtRow"),
+					ctx.i18n("ui.teamStats.report.worth", { count = siText(s.built), value = siText(s.builtValue) }),
+				}
 			end
 			if s.lost > 0 then
-				lines[#lines + 1] = dim
-					.. ctx.i18n(
-						"ui.teamStats.report.lost",
-						{ count = title .. siText(s.lost) .. dim, value = title .. siText(s.lostValue) .. dim }
-					)
+				tip[#tip + 1] = {
+					ctx.i18n("ui.teamStats.report.lostRow"),
+					ctx.i18n("ui.teamStats.report.worth", { count = siText(s.lost), value = siText(s.lostValue) }),
+				}
 			end
-			lines[#lines + 1] = dim
-				.. ctx.i18n("ui.teamStats.report.killed", { value = title .. siText(s.killed) .. dim })
+			tip[#tip + 1] = { ctx.i18n("ui.teamStats.report.killedRow"), siText(s.killed) }
 			-- How many times over it paid for itself, once it destroyed anything.
 			if s.builtValue > 0 and s.killed > 0 then
 				local paid = s.killed / s.builtValue
@@ -2990,11 +2983,10 @@ function M.new(ctx)
 					times = "<0.01"
 				end
 				valueText = valueText .. dim .. "  " .. times .. "\195\151"
-				lines[#lines + 1] = dim .. ctx.i18n("ui.teamStats.report.paid", { times = title .. times .. dim })
+				tip[#tip + 1] = { ctx.i18n("ui.teamStats.report.paidRow"), times .. "\195\151" }
 			end
 			if s.damage > 0 then
-				lines[#lines + 1] = dim
-					.. ctx.i18n("ui.teamStats.report.damage", { value = title .. siText(s.damage) .. dim })
+				tip[#tip + 1] = { ctx.i18n("ui.teamStats.report.damageRow"), siText(s.damage) }
 			end
 			rows[i] = {
 				name = name,
@@ -3003,7 +2995,7 @@ function M.new(ctx)
 				color = color,
 				texture = "#" .. e.defID,
 				valueText = valueText,
-				text = tableConcat(lines, "\n"),
+				text = { text = name, rows = tip },
 			}
 		end
 		return rows, #list - #rows
@@ -5089,7 +5081,7 @@ function M.new(ctx)
 			state = composition and "allCounted" or "alike"
 		end
 		local group = #targets > 1
-		local lines = { ctx.colors.title .. ctx.i18n(L .. "state." .. state) }
+		local notes = {}
 		-- Grouped, a team is one line on the bar: its players are picked apart only with the
 		-- grouping off.
 		local several = false
@@ -5097,13 +5089,13 @@ function M.new(ctx)
 			several = several or #u.members > 1
 		end
 		if grouped() and several then
-			lines[#lines + 1] = ctx.colors.dim .. ctx.i18n(L .. "state.grouped")
+			notes[1] = ctx.i18n(L .. "state.grouped")
 		end
 		local suffix = group and "Group" or ""
 		for _, control in ipairs({ "click", "ctrlClick", "rightClick" }) do
-			lines[#lines + 1] = ctx.colors.dim .. ctx.i18n(L .. "control." .. control .. suffix)
+			notes[#notes + 1] = ctx.i18n(L .. "control." .. control .. suffix)
 		end
-		return table.concat(lines, "\n")
+		return { text = ctx.i18n(L .. "state." .. state), note = table.concat(notes, "\n") }
 	end
 
 	-- What a stat's chart shows, in words: its column's description where it is a column's -
@@ -5129,7 +5121,8 @@ function M.new(ctx)
 		if kindRow then
 			local hint = ctx.i18n("ui.teamStats.graph.kindHint")
 			if DESCRIBED[kindRow.key] then
-				hint = ctx.i18n("ui.teamStats.milestoneDesc." .. kindRow.key) .. "\n" .. ctx.colors.dim .. hint
+				return markName(kindRow.key),
+					{ text = ctx.i18n("ui.teamStats.milestoneDesc." .. kindRow.key), note = hint }
 			end
 			return markName(kindRow.key), hint
 		end
@@ -5140,18 +5133,33 @@ function M.new(ctx)
 			local key = page.miniHit and page.miniHit.key or page.zoom or page.stat
 			local column = ctx.COLUMNS[statOf(key)]
 			local idle = settingsOf(key).share and column and column.fmt == "si" and hovered.cfg.kind ~= "stacked"
-			if page.chartHit and idle and page.chartHit.kind ~= "marker" then
-				desc = (desc or "") .. "\n" .. ctx.colors.dim .. ctx.i18n("ui.teamStats.graph.shareOne")
-			end
+			local note = page.chartHit
+					and idle
+					and page.chartHit.kind ~= "marker"
+					and ctx.i18n("ui.teamStats.graph.shareOne")
+				or nil
 			-- A chart of a grid says what it shows, as its name in the list does, over what is
 			-- under the cursor: small, its title alone may not.
-			if page.miniHit then
-				local about = describeStat(statOf(key))
-				if about then
-					desc = desc and (about .. "\n\n" .. desc) or about
-				end
+			local about = page.miniHit and describeStat(statOf(key)) or nil
+			if not (note or about) then
+				return hovered.cfg.title, desc
 			end
-			return hovered.cfg.title, desc
+			-- A copy: the hit keeps its own while the cursor stays on it.
+			local tip = {}
+			if type(desc) == "table" then
+				for k, v in pairs(desc) do
+					tip[k] = v
+				end
+			else
+				tip.text = desc
+			end
+			if note then
+				tip.note = tip.note and (tip.note .. "\n" .. note) or note
+			end
+			if about then
+				tip.text = tip.text and (about .. "\n\n" .. tip.text) or about
+			end
+			return hovered.cfg.title, tip
 		end
 		if page.hover.stat > 0 then
 			local entry = page.statList[page.hover.stat]
@@ -5163,7 +5171,7 @@ function M.new(ctx)
 			-- says it can be moved or removed.
 			local desc = describeStat(entry.stat or entry.key)
 			if entry.graph then
-				desc = (desc and desc .. "\n" or "") .. ctx.colors.dim .. ctx.i18n("ui.teamStats.custom.graphHint")
+				return entry.label, { text = desc, note = ctx.i18n("ui.teamStats.custom.graphHint") }
 			end
 			return entry.label, desc or ""
 		end

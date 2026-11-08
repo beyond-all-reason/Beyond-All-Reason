@@ -1843,6 +1843,12 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 		return
 	end
 
+	-- units shared by the Share Unit command (luarules/gadgets/cmd_share_unit.lua) aren't announced
+	-- when used as part of a factory rally. Otherwise, it would spam the chat.
+	if Spring.GetUnitRulesParam(unitID, "isRallyShare") then
+		return
+	end
+
 	if not lastUnitShare then
 		lastUnitShare = {}
 	end
@@ -3790,6 +3796,8 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 						local command = ssub(inputText, 2)
 						if command == "lr" then
 							command = "luaui reload"
+						elseif command:lower():find("^take%f[%W]") and not BAR.Utilities.Gametype.IsSinglePlayer() then
+							command = "luarules take2" .. ssub(command, 5)
 						else
 							local configKey, commandSuffix = command:match("^[sS][eE][tT]%s+(%S+)(.*)$")
 							if configKey then
@@ -4477,7 +4485,7 @@ function widget:ViewResize()
 
 	local chatPanelWidth = activationArea[3] - activationArea[1]
 	local chatTextStartOffset = maxTimeWidth + maxPlayernameWidth + lineSpaceWidth
-	local chatTextEndMargin = floor(38 * widgetScale)
+	local chatTextEndMargin = floor(48 * widgetScale) -- clear of the history view's scrollbar
 	lineMaxWidth =
 		floor(math.max(120, chatPanelWidth - chatTextStartOffset - chatTextEndMargin - (backgroundPadding * 2)))
 	consoleLineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.88)

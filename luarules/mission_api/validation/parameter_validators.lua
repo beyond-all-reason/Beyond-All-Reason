@@ -151,6 +151,10 @@ local function registerValueValidators(parameterValidators, context)
 	--- String validators:
 	local validateString = parameterValidators[Types.String]
 
+	parameterValidators[Types.AiState] = getLookupValidator(validateString, "state", function(state)
+		return enums[Types.AiState][state]
+	end)
+
 	parameterValidators[Types.StageID] = getLookupValidator(validateString, "stageID", function(stageID)
 		return context.Stages[stageID]
 	end)
@@ -183,7 +187,10 @@ local function registerValueValidators(parameterValidators, context)
 	-- only cross-referenced (see references.lua) and guarded at runtime.
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
-	parameterValidators[Types.CountdownID] = validateString
+	-- IDs starting with __ are the Mission API's own (TimeElapsed's countdowns).
+	parameterValidators[Types.CountdownID] = getLookupValidator(validateString, "countdownID", function(countdownID)
+		return countdownID:sub(1, 2) ~= "__"
+	end)
 	parameterValidators[Types.CutsceneID] = validateString
 	-- TODO: A cutscene-type script has no definition yet.
 	parameterValidators[Types.CutsceneScriptID] = validateString
@@ -565,6 +572,39 @@ local function validateNumberParam(params, results)
 	end
 end
 
+local function validateNoParams(params, results)
+	local luaTypeResult = validateLuaType(params, "table")
+	if luaTypeResult then
+		addResult(results, luaTypeResult, "[2]")
+	elseif params ~= nil and next(params) ~= nil then
+		addResult(results, "Command takes no parameters", "[2]")
+	end
+end
+
+local function validateOnOffParam(params, results)
+	local value = params
+	if type(params) == "table" and #params == 1 then
+		value = params[1]
+	end
+	if value ~= 0 and value ~= 1 then
+		addResult(results, "Parameter must be 0 (off) or 1 (on), as a number or {0} / {1}", "[2]")
+	end
+end
+
+-- The engine's selected units handler passes these to WaitCommandsAI on the player's client, which
+-- gives the selected units WAIT orders. A unit given one with GiveOrderToUnit drops it without waiting.
+local function getUIOnlyValidator(commandName)
+	return function(_, results)
+		addResult(
+			results,
+			"Command "
+				.. commandName
+				.. " is dropped when a mission gives it, it only works for a player's selected units",
+			"[1]"
+		)
+	end
+end
+
 local validateUnitNameParam = getNameValidator("unitName", "{ unitName = 'aUnitName' }")
 local validate3 = getNumberArrayValidator({ 3 }, "3 numbers {x, y, z}")
 local validate3orUnitName = getNumberArrayValidator({ 3 }, "3 numbers {x, y, z}, or a unit name", { "unitName" })
@@ -590,12 +630,21 @@ local validate4orEitherName = getNumberArrayValidator(
 local validateBuildOrder =
 	getNumberArrayValidator({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")
 
---- Parameter validator per command name. false means the command takes no parameters.
+--- Parameter validator per command name.
 local validatorsByCommandName = {
 	-- No parameters:
-	STOP = false,
-	SELFD = false,
-	AREA_ATTACK = false, -- currently broken in engine
+	STOP = validateNoParams,
+	SELFD = validateNoParams, -- a toggle: a second SELFD cancels the first
+	WAIT = validateNoParams, -- a toggle: a second WAIT cancels the first
+	-- 0 (off) or 1 (on):
+	CLOAK = validateOnOffParam,
+	ONOFF = validateOnOffParam,
+	REPEAT = validateOnOffParam,
+	-- UI only:
+	TIMEWAIT = getUIOnlyValidator("TIMEWAIT"),
+	DEATHWAIT = getUIOnlyValidator("DEATHWAIT"),
+	SQUADWAIT = getUIOnlyValidator("SQUADWAIT"),
+	GATHERWAIT = getUIOnlyValidator("GATHERWAIT"),
 	-- Unit name parameter:
 	GUARD = validateUnitNameParam,
 	-- 3 number parameters:
@@ -606,6 +655,9 @@ local validatorsByCommandName = {
 	-- 3 or 4 number parameters:
 	UNLOAD_UNITS = validate3or4,
 	-- 4 number parameters:
+	-- Only fighters and bombers carry out AREA_ATTACK, and a landed one never takes off for it,
+	-- see https://github.com/beyond-all-reason/RecoilEngine/issues/1722
+	AREA_ATTACK = validate4,
 	AREA_ATTACK_GROUND = validate4, -- Only artillery units (customParams.canareaattack = 1) support this
 	RESTORE = validate4,
 	-- 3 number parameters, or unit name:
@@ -619,8 +671,6 @@ local validatorsByCommandName = {
 	-- 4 number parameters, or either unit or feature name:
 	RECLAIM = validate4orEitherName,
 	-- Single number parameter:
-	CLOAK = validateNumberParam,
-	ONOFF = validateNumberParam,
 	FIRE_STATE = validateNumberParam,
 	MOVE_STATE = validateNumberParam,
 }
@@ -724,11 +774,8 @@ local function registerOrderValidators(parameterValidators, context)
 
 		if commandID == nil then
 			addResult(results, "Order is missing a command ID")
-		elseif commandValidator ~= nil then
-			-- `false` means the command takes no parameters, so there is nothing to check.
-			if commandValidator then
-				commandValidator(params, results)
-			end
+		elseif commandValidator then
+			commandValidator(params, results)
 		elseif type(commandID) == "string" then
 			-- Build order: the command ID is a unitDefName.
 			if not UnitDefNames[commandID] then
@@ -785,9 +832,7 @@ local function registerLoadoutValidators(parameterValidators, context)
 				return entryTypeResult
 			end
 
-			-- The entry itself is the position, since x, y and z are fields of the entry.
-			local results = appendResults({}, parameterValidators[Types.Position](entry))
-
+			local results = {}
 			for _, field in ipairs(fields) do
 				local value = entry[field.name]
 				if value == nil then

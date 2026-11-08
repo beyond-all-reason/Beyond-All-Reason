@@ -19,6 +19,7 @@ return {
 		speed = 70,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/legmh.s3o",
 		script = "Units/legmh.cob",
@@ -139,7 +140,7 @@ return {
 				weaponacceleration = 100,
 				weapontimer = 2,
 				weapontype = "StarburstLauncher",
-				weaponvelocity = 480,
+				weaponvelocity = 400,
 				damage = {
 					default = 400,
 					subs = 175,
