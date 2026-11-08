@@ -240,6 +240,37 @@ describe("mission_api.countdowns", function()
 			countdowns.Decrement(115) -- one second after the set
 			assert.are.equal(4, get("hidden").timeRemaining)
 		end)
+
+		it("do not tick on the frame they were added, so one added at GameStart ends on time", function()
+			-- GetGameFrame reads 0 at GameStart, before GameFrame(0) ticks the countdowns.
+			currentFrame = 0
+			countdowns.AddCountdown("start", 3, false)
+
+			countdowns.Decrement(0)
+			assert.are.equal(3, get("start").timeRemaining)
+
+			local endedIDs
+			for frame = 1, 3 * 30 do
+				endedIDs = countdowns.Decrement(frame)
+				if frame < 3 * 30 then
+					assert.are.same({}, endedIDs)
+				end
+			end
+			assert.are.same({ "start" }, endedIDs)
+		end)
+
+		it("do not tick on the frame SetTime restarted them", function()
+			currentFrame = 47
+			countdowns.AddCountdown("hidden", 10, false)
+
+			currentFrame = 60
+			countdowns.SetTime("hidden", 5)
+			countdowns.Decrement(60)
+			assert.are.equal(5, get("hidden").timeRemaining)
+
+			countdowns.Decrement(90)
+			assert.are.equal(4, get("hidden").timeRemaining)
+		end)
 	end)
 
 	describe("CancelCountdown", function()

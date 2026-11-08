@@ -151,6 +151,10 @@ local function registerValueValidators(parameterValidators, context)
 	--- String validators:
 	local validateString = parameterValidators[Types.String]
 
+	parameterValidators[Types.AiState] = getLookupValidator(validateString, "state", function(state)
+		return enums[Types.AiState][state]
+	end)
+
 	parameterValidators[Types.StageID] = getLookupValidator(validateString, "stageID", function(stageID)
 		return context.Stages[stageID]
 	end)
@@ -183,7 +187,10 @@ local function registerValueValidators(parameterValidators, context)
 	-- only cross-referenced (see references.lua) and guarded at runtime.
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
-	parameterValidators[Types.CountdownID] = validateString
+	-- IDs starting with __ are the Mission API's own (TimeElapsed's countdowns).
+	parameterValidators[Types.CountdownID] = getLookupValidator(validateString, "countdownID", function(countdownID)
+		return countdownID:sub(1, 2) ~= "__"
+	end)
 	parameterValidators[Types.CutsceneID] = validateString
 	-- TODO: A cutscene-type script has no definition yet.
 	parameterValidators[Types.CutsceneScriptID] = validateString
@@ -825,9 +832,7 @@ local function registerLoadoutValidators(parameterValidators, context)
 				return entryTypeResult
 			end
 
-			-- The entry itself is the position, since x, y and z are fields of the entry.
-			local results = appendResults({}, parameterValidators[Types.Position](entry))
-
+			local results = {}
 			for _, field in ipairs(fields) do
 				local value = entry[field.name]
 				if value == nil then

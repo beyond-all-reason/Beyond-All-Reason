@@ -91,7 +91,7 @@ describe("mission_api.validation", function()
 					:WithObjective("o2", { textKey = "ok", onCompleted = "t" })
 					:WithTrigger("t", { type = "invalidType", actions = { "a" } })
 					:WithAction("a", { type = V.actionTypes.SendMessage, parameters = {} })
-					:WithUnitLoadout({ { unitDefName = "noSuch", x = 0, z = 0, teamName = "player" } })
+					:WithUnitLoadout({ { unitDefName = "noSuch", position = { x = 0, z = 0 }, teamName = "player" } })
 			)
 
 			assert.are.same({

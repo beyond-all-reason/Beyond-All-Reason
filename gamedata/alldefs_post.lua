@@ -114,6 +114,7 @@ local shipList = {
 	BOAT5 = true,
 	BOAT9 = true,
 	EPICSHIP = true,
+	HOVER7 = true,
 }
 
 local subList = {

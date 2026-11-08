@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "crawl_blastsmlscavboss",
 		selfdestructcountdown = 10,
-		sightdistance = 273,
+		sightdistance = 280,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.848,

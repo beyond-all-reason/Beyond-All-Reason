@@ -1843,6 +1843,12 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 		return
 	end
 
+	-- units shared by the Share Unit command (luarules/gadgets/cmd_share_unit.lua) aren't announced
+	-- when used as part of a factory rally. Otherwise, it would spam the chat.
+	if Spring.GetUnitRulesParam(unitID, "isRallyShare") then
+		return
+	end
+
 	if not lastUnitShare then
 		lastUnitShare = {}
 	end
@@ -4477,7 +4483,7 @@ function widget:ViewResize()
 
 	local chatPanelWidth = activationArea[3] - activationArea[1]
 	local chatTextStartOffset = maxTimeWidth + maxPlayernameWidth + lineSpaceWidth
-	local chatTextEndMargin = floor(38 * widgetScale)
+	local chatTextEndMargin = floor(48 * widgetScale) -- clear of the history view's scrollbar
 	lineMaxWidth =
 		floor(math.max(120, chatPanelWidth - chatTextStartOffset - chatTextEndMargin - (backgroundPadding * 2)))
 	consoleLineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.88)

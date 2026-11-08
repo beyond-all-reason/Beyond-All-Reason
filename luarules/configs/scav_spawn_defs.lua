@@ -1332,7 +1332,7 @@ local Turrets = {
 		coramsub_scav = { type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
 		corasy_scav = { type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
 		corplat_scav = { type = "antiair", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
-		legamsub_scav = { type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
+		legamphlab_scav = { type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
 		--["legasy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 	},
 	[5] = {

@@ -758,12 +758,12 @@ describe("mission_api.validation.sections", function()
 	it("validates loadout entries", function()
 		local result = V.validate(
 			V.mission()
-				:WithUnitLoadout({ { unitDefName = "noSuch", x = 0, z = 0, teamName = "player" } })
-				:WithFeatureLoadout({ { featureDefName = "rockdef", z = 0 } })
+				:WithUnitLoadout({ { unitDefName = "noSuch", position = { x = 0, z = 0 }, teamName = "player" } })
+				:WithFeatureLoadout({ { featureDefName = "rockdef", position = { z = 0 } } })
 		)
 
 		V.assertMessage(result, "Invalid unitDefName: noSuch. Loadout: UnitLoadout[1].unitDefName")
-		V.assertMessage(result, "Missing required parameter. Loadout: FeatureLoadout[1].x")
+		V.assertMessage(result, "Missing required parameter. Loadout: FeatureLoadout[1].position.x")
 	end)
 
 	it("reports loadouts that are not tables", function()

@@ -36,6 +36,12 @@
 				"reallyResign": "Are you sure you want to resign?",
 				"reallyResignSpectate": "Are you sure you want to resign and spectate?"
 			},
+			"save": {
+				"title": "Save game",
+				"cancel": "Cancel",
+				"replace": "Replace",
+				"exists": "A save with this name already exists."
+			},
 			"catchingUp": "Catching up",
 			"catchingUpTooltip": "Displays the catch-up progress\nGame time: %{gameTime}",
 			"commanderCount": "Commander Counter",
@@ -43,7 +49,6 @@
 			"tidalspeed": "Tidal Speed",
 			"tidalspeedTooltip": "Tidal (water) speed on this map (always constant)",
 			"windspeed": "Wind Speed",
-			"windspeedTooltip": "(small numbers are minimum and maximum)\nAverage wind speed on this map is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
 			"wind": {
 				"nowind1": "No",
 				"nowind2": "wind"
@@ -269,7 +274,7 @@
 			"noBlueprints": "No blueprints saved yet",
 			"noBuildableBlueprints": "None of the saved blueprints can be built by these builders",
 			"queueBuilding": "In production",
-			"queueControls": "Drag: reorder\nRight-click: remove one (SHIFT: all of them)\nRight-drag or mouse wheel: scroll"
+			"queueControls": "Left-click: add, right-click: remove (SHIFT: 5, CTRL: 20)\nDrag: reorder\nRight-drag or mouse wheel: scroll"
 		},
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
@@ -561,7 +566,7 @@
 			"foldHint": "Click to fold.",
 			"timeInGame": "Time in game: %{time}",
 			"diedAt": "Died at %{time}",
-			"partOfTotal": "%{value}, %{share} of the %{total} of every team together",
+			"everyTeam": "Every team together",
 			"ofTotal": "(%{value} of %{total})",
 			"ofTotalUpgraded": "(%{value} of %{total}, %{upgraded} upgraded)",
 			"unitCount": "(%{count} units)",
@@ -929,11 +934,12 @@
 			"idleLabs": "Factories",
 			"shortIdleLabs": "Labs",
 			"report": {
-				"built": "Built %{count}, worth %{value}",
-				"lost": "Lost %{count} to enemies, worth %{value}",
-				"killed": "Destroyed %{value} of the enemy's",
-				"paid": "%{times} times the value built of it",
-				"damage": "Dealt %{value} damage",
+				"builtRow": "Built",
+				"lostRow": "Lost to enemies",
+				"killedRow": "Enemy value destroyed",
+				"paidRow": "Paid for itself",
+				"damageRow": "Damage dealt",
+				"worth": "%{count}, worth %{value}",
 				"builtValue": "Value built",
 				"more": "%{count} more types"
 			},
@@ -2352,10 +2358,12 @@
 				"systemprivacy_descr": "disallow other players to view your system specifications (in player list tooltip)\napplies to next game",
 				"mascot": "mascot",
 				"mascot_descr": "Shows a mascot on top of the playerlist",
-				"unittotals": "unit totals",
-				"unittotals_descr": "Show your unit totals on top of the playerlist",
-				"musicplayer": "music player",
-				"musicplayer_descr": "Show music player on top of playerlist",
+				"gameinfo": "Game info",
+				"gameinfo_descr": "Show the game time, game speed and fps",
+				"musicplayer": "Music player",
+				"musicplayer_descr": "Show the music player",
+				"unittotals": "Unit totals",
+				"unittotals_descr": "Show your unit totals",
 				"console": "Console",
 				"console_maxlines": "max chat lines",
 				"console_maxconsolelines": "max console lines",
