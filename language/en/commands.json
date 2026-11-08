@@ -129,10 +129,7 @@
 			"boxAppend": "Box select: add to selection",
 			"boxDeselect": "Box select: remove from selection",
 			"boxMobile": "Box select: mobile units only",
-			"boxAny": "Box select: include buildings",
-			"loopActivate": "Loop select: activate",
-			"loopAdd": "Loop select: add to selection",
-			"loopDeselect": "Loop select: deselect"
+			"boxAny": "Box select: include buildings"
 		},
 		"massSelect": {
 			"all": "Select all units",
