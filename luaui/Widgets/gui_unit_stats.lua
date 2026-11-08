@@ -128,7 +128,7 @@ local yellow = "\255\255\255\1"
 local orange = "\255\255\128\1"
 local blue = "\255\128\128\255"
 
-local tractorBeams = (Spring.GetModOptions().beta_tractorbeam or "disabled") ~= "disabled"
+local tractorBeams = Spring.GetModOptions().beta_tractorbeam ~= "disabled"
 local transportWords = tractorBeams and VFS.Include("luaui/Include/transport_strings.lua")
 
 local metalColor = "\255\196\196\255" -- Light blue
@@ -739,7 +739,8 @@ local function computeContent(uDefID, uID, shiftBool)
 		if transportable then
 			local seats = WG.TransportAPI.GetPassengerSizeForDef(uDefID)
 			local slows = uDef.customParams.iscommander and (", " .. transportWords.slowsTransport) or ""
-			DrawText(texts.transportable .. ":", blue .. seats .. " " .. transportWords.seats .. slows)
+			local seatWord = seats == 1 and transportWords.seat or transportWords.seats
+			DrawText(texts.transportable .. ":", blue .. seats .. " " .. seatWord .. slows)
 		end
 	elseif transportable and mass > 0 and size > 0 then
 		if mass < 751 and size < 4 then -- 3 is t1 transport max size

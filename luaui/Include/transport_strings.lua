@@ -1,5 +1,6 @@
--- Words for the tractor beam transport UI. English only: a translator moves them into language/*.json.
+-- Tractor beam transport UI words. English only until they move into language/*.json.
 return {
+	seat = "seat",
 	seats = "seats",
 	slowsTransport = "slows its transport",
 
