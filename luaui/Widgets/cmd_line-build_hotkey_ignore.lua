@@ -1,4 +1,7 @@
-include("keysym.h.lua")
+local KEY_UP = Spring.GetKeyCode("up")
+local KEY_DOWN = Spring.GetKeyCode("down")
+local KEY_LEFT = Spring.GetKeyCode("left")
+local KEY_RIGHT = Spring.GetKeyCode("right")
 
 local widget = widget ---@type Widget
 
@@ -15,7 +18,7 @@ end
 
 function widget:KeyPress(key, mods, isRepeat)
 	if not mods.alt and mods.shift then
-		if key ~= KEYSYMS.UP and key ~= KEYSYMS.DOWN and key ~= KEYSYMS.LEFT and key ~= KEYSYMS.RIGHT then -- Don't ignore arrow keys
+		if key ~= KEY_UP and key ~= KEY_DOWN and key ~= KEY_LEFT and key ~= KEY_RIGHT then -- Don't ignore arrow keys
 			local _, _, leftPressed, _, _, _ = Spring.GetMouseState()
 			if leftPressed then
 				local _, cmd_id, _, _ = Spring.GetActiveCommand()

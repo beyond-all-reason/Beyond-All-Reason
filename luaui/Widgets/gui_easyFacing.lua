@@ -1,4 +1,3 @@
-include("keysym.h.lua")
 local versionNumber = "1.6"
 
 local widget = widget ---@type Widget
