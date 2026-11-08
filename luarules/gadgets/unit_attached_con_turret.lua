@@ -278,6 +278,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		-- unit limit hit or invalid spawn surface
 		return
 	end
+	if GG.SetTakenUnitOrigin then
+		GG.SetTakenUnitOrigin(nanoID, Spring.GetUnitRulesParam(unitID, "takenFromTeam"))
+	end
 	Spring.UnitAttach(unitID, nanoID, piece, true)
 	-- makes the attached con turret as non-interacting as possible
 	Spring.SetUnitBlocking(nanoID, false, false, false)

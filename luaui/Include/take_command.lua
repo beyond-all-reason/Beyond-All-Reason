@@ -14,5 +14,8 @@ return function(command, multiplayer)
 	if action and action:lower() == "take" then
 		return prefix .. "luarules take2" .. args
 	end
+	if action and action:lower() == "giveback" then
+		return prefix .. "luarules giveback" .. args
+	end
 	return command
 end

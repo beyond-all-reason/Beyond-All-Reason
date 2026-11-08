@@ -22,6 +22,9 @@ local maxPing = 33 -- in seconds
 local finishedResumingPing = 2 --in seconds
 local maxInitialQueueSlack = 150 -- in seconds
 local takeCommand = "take2"
+local giveBackCommand = "giveback"
+local originRule = "takenFromTeam"
+local availableRule = "givebackUnits"
 local minTimeToTake = 12 -- in seconds
 local checkQueueTime = 25 -- in seconds
 -- in chose ingame startpostype, players must place beforehand, so take an action, grace period can be shorter
@@ -39,6 +42,9 @@ local errorKeys = {
 if gadgetHandler:IsSyncedCode() then
 	local playerInfoTable = {}
 	local currentGameFrame = 0
+	local givingBackFrom, givingBackTo
+	local pendingCaptures = {}
+	local trackedUnits, availableUnits = {}, {}
 
 	local GetUnitTeam = Spring.GetUnitTeam
 	local GetPlayerList = Spring.GetPlayerList
@@ -64,6 +70,39 @@ if gadgetHandler:IsSyncedCode() then
 	-- Cache prefix bytes for allocation-free hot-path check
 	local vb1, vb2 = string.byte(validation, 1, 2)
 	local afk_b1 = string.byte(AFKMessage, 1) -- first byte of "idleplayers "
+
+	local function changeAvailable(teamID, origin, delta)
+		local counts = availableUnits[teamID] or {}
+		availableUnits[teamID] = counts
+		counts[origin] = (counts[origin] or 0) + delta
+		SetTeamRulesParam(teamID, availableRule .. origin, counts[origin], { allied = true })
+	end
+
+	local function trackUnit(unitID, owner, origin)
+		if not origin or origin < 0 or owner == origin then
+			origin = nil
+		end
+		local previous = trackedUnits[unitID]
+		if previous and previous.owner == owner and previous.origin == origin then
+			return
+		end
+		if previous then
+			changeAvailable(previous.owner, previous.origin, -1)
+			trackedUnits[unitID] = nil
+		end
+		if owner and origin then
+			trackedUnits[unitID] = { owner = owner, origin = origin }
+			changeAvailable(owner, origin, 1)
+		end
+	end
+
+	-- Inseparable helpers and replacement parts retain their taken chassis's origin.
+	local function setTakenUnitOrigin(unitID, origin)
+		if origin and origin >= 0 then
+			Spring.SetUnitRulesParam(unitID, originRule, origin, { private = true })
+			trackUnit(unitID, GetUnitTeam(unitID), origin)
+		end
+	end
 
 	local function CheckPlayerState(playerID)
 		local newval = playerInfoTable[playerID]
@@ -170,6 +209,11 @@ if gadgetHandler:IsSyncedCode() then
 			then
 				-- transfer all units
 				local teamUnits = GetTeamUnits(teamID)
+				local origins = {}
+				for i = 1, #teamUnits do
+					local previous = Spring.GetUnitRulesParam(teamUnits[i], originRule)
+					origins[teamUnits[i]] = previous and previous >= 0 and previous or teamID
+				end
 				local unitsTaken = 0
 				for i = 1, #teamUnits do
 					if GetUnitTeam(teamUnits[i]) == teamID then
@@ -181,6 +225,8 @@ if gadgetHandler:IsSyncedCode() then
 				for i = 1, #teamUnits do
 					if GetUnitTeam(teamUnits[i]) == takerID then
 						unitsTaken = unitsTaken + 1
+						Spring.SetUnitRulesParam(teamUnits[i], originRule, origins[teamUnits[i]], { private = true })
+						trackUnit(teamUnits[i], takerID, origins[teamUnits[i]])
 					end
 				end
 				-- Keep slots for units whose transfer was rejected by another gadget.
@@ -210,13 +256,90 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function giveBackTeam(cmd, line, words, playerID)
+		local targetTeam = tonumber(words[1])
+		local _, active, spectator, fromTeam, allyTeam = GetPlayerInfo(playerID, false)
+		if not active or spectator or not CheckPlayerState(playerID) then
+			SendToUnsynced("NotifyError", playerID, "giveBackUnavailable")
+			return
+		end
+		local validTarget = false
+		for _, teamID in ipairs(GetTeamList(allyTeam)) do
+			if teamID == targetTeam and teamID ~= fromTeam and teamID ~= gaiaTeamID then
+				local _, _, dead, isAI = GetTeamInfo(teamID, false)
+				local luaAI = GetTeamLuaAI(teamID)
+				validTarget = not dead
+					and not isAI
+					and (not luaAI or luaAI == "")
+					and (GetTeamRulesParam(teamID, "numActivePlayers") or 0) > 0
+			end
+		end
+		if not validTarget or words[2] then
+			SendToUnsynced("NotifyError", playerID, "giveBackUsage")
+			return
+		end
+		local units = {}
+		for _, unitID in ipairs(GetTeamUnits(fromTeam)) do
+			if Spring.GetUnitRulesParam(unitID, originRule) == targetTeam then
+				units[#units + 1] = unitID
+			end
+		end
+		if #units == 0 then
+			SendToUnsynced("NotifyError", playerID, "nothingToGiveBack")
+			return
+		end
+		table.sort(units)
+		givingBackFrom, givingBackTo = fromTeam, targetTeam
+		local ok, err = pcall(function()
+			for _, unitID in ipairs(units) do
+				if GetUnitTeam(unitID) == fromTeam then
+					GG.ForceUnitTransfer(unitID, targetTeam)
+				end
+			end
+		end)
+		givingBackFrom, givingBackTo = nil, nil
+		if not ok then
+			error(err)
+		end
+		local returned = 0
+		for _, unitID in ipairs(units) do
+			if GetUnitTeam(unitID) == targetTeam then
+				returned = returned + 1
+			end
+		end
+		if returned > 0 then
+			SendToUnsynced("TeamGivenBack", playerID, returned)
+		else
+			SendToUnsynced("NotifyError", playerID, "giveBackBlocked")
+		end
+	end
+
 	function gadget:Initialize()
+		GG.SetTakenUnitOrigin = setTakenUnitOrigin
+		-- Rebuild live availability after a reload; historical takes alone do not offer giveback.
+		trackedUnits, availableUnits = {}, {}
+		local teams = GetTeamList()
+		for _, owner in ipairs(teams) do
+			for _, origin in ipairs(teams) do
+				SetTeamRulesParam(owner, availableRule .. origin, 0, { allied = true })
+			end
+			for _, unitID in ipairs(GetTeamUnits(owner)) do
+				trackUnit(unitID, owner, Spring.GetUnitRulesParam(unitID, originRule))
+			end
+		end
 		gadgetHandler:AddChatAction(takeCommand, takeTeam, "Take control of units and resources from inactive players")
+		gadgetHandler:AddChatAction(
+			giveBackCommand,
+			giveBackTeam,
+			"giveback <teamID>: return previously taken units to an active ally"
+		)
 		updatePlayersInfo()
 	end
 
 	function gadget:Shutdown()
+		GG.SetTakenUnitOrigin = nil
 		gadgetHandler:RemoveChatAction(takeCommand)
+		gadgetHandler:RemoveChatAction(giveBackCommand)
 	end
 
 	function gadget:GameFrame(currentFrame)
@@ -264,8 +387,40 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
+		pendingCaptures[unitID] = capture and { fromTeamID, toTeamID } or nil
+		-- A carrier/factory callback must not give away units produced after the take.
+		if
+			givingBackTo
+			and (
+				fromTeamID ~= givingBackFrom
+				or toTeamID ~= givingBackTo
+				or Spring.GetUnitRulesParam(unitID, originRule) ~= givingBackTo
+			)
+		then
+			return false
+		end
 		-- prevent units to be shared to uncontrolled teams
 		return capture or GetTeamRulesParam(toTeamID, "numActivePlayers") ~= 0 or IsCheatingEnabled()
+	end
+
+	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+		local capture = pendingCaptures[unitID]
+		pendingCaptures[unitID] = nil
+		local origin = Spring.GetUnitRulesParam(unitID, originRule)
+		if givingBackFrom == oldTeam and givingBackTo == newTeam and origin == newTeam then
+			-- Only an actual return unlocks restoration, even if a later transfer fails.
+			SetTeamRulesParam(newTeam, "unitCapRestorePending", 0)
+		end
+		if (capture and capture[1] == oldTeam and capture[2] == newTeam) or origin == newTeam then
+			origin = -1
+			Spring.SetUnitRulesParam(unitID, originRule, origin, { private = true })
+		end
+		trackUnit(unitID, newTeam, origin)
+	end
+
+	function gadget:UnitDestroyed(unitID)
+		pendingCaptures[unitID] = nil
+		trackUnit(unitID, nil, nil)
 	end
 else -- UNSYNCED
 	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
@@ -342,6 +497,15 @@ else -- UNSYNCED
 		end
 	end
 
+	local function teamGivenBack(_, playerID, units)
+		if Script.LuaUI("GadgetMessageProxy") then
+			Spring.SendMessageToPlayer(
+				playerID,
+				Script.LuaUI.GadgetMessageProxy("ui.idlePlayers.givenBack", { units = units })
+			)
+		end
+	end
+
 	local function playerLagging(_, playerName)
 		if Script.LuaUI("GadgetMessageProxy") then
 			Spring.Echo(Script.LuaUI.GadgetMessageProxy("ui.idlePlayers.lagging", { name = playerName }))
@@ -396,6 +560,7 @@ else -- UNSYNCED
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("OnGameStart", onGameStart)
 		gadgetHandler:AddSyncAction("NotifyError", notifyError)
+		gadgetHandler:AddSyncAction("TeamGivenBack", teamGivenBack)
 		gadgetHandler:AddSyncAction("PlayerLagging", playerLagging)
 		gadgetHandler:AddSyncAction("PlayerResumed", playerResumed)
 		gadgetHandler:AddSyncAction("PlayerAFK", playerAFK)
@@ -409,6 +574,7 @@ else -- UNSYNCED
 		gadgetHandler:RemoveChatAction("initialQueueTime")
 		gadgetHandler:RemoveSyncAction("OnGameStart")
 		gadgetHandler:RemoveSyncAction("TeamTaken")
+		gadgetHandler:RemoveSyncAction("TeamGivenBack")
 	end
 
 	function gadget:Update()

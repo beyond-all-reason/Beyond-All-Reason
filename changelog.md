@@ -24,6 +24,7 @@
   - Taking an inactive team also transfers its unused unit capacity, including from empty teams.
   - Taken teams start receiving unit capacity back after the first allied unit share.
   - Sharing units transfers the capacity needed immediately, even above an equal share.
+  - Use /giveback <team ID> to return surviving taken units to a returning player. Capacity redistribution starts only after a unit is successfully shared back. Newly produced units and resources are kept.
   - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
   - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
   - Resigning during a pause would turn players into spectators who could not unpause, and the game would never end.
