@@ -2968,7 +2968,7 @@ function widget:MouseRelease(x, y, button)
 								end
 							end
 						end
-						Spring.GiveOrderToUnit(displayUnitID, CMD.UNLOAD_UNIT, {x,y,z,unitID}, {""})
+						Spring.GiveOrderToUnit(displayUnitID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, { "" })
 						return -1
 					end
 				end
@@ -3085,7 +3085,13 @@ function widget:DrawScreen()
 	end
 
 	-- the cargo unit waiting to be placed with the unload command
-	if WG.UnloadSnap and infoShows and displayMode == "unit" and cellRect and tractorCargo.slotsFor == displayUnitID then
+	if
+		WG.UnloadSnap
+		and infoShows
+		and displayMode == "unit"
+		and cellRect
+		and tractorCargo.slotsFor == displayUnitID
+	then
 		local dropTransport, dropPassenger = WG.UnloadSnap.GetDrop()
 		local units = dropTransport == displayUnitID and Spring.GetUnitIsTransporting(displayUnitID)
 		if units then

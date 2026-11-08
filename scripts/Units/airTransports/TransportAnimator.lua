@@ -1,44 +1,44 @@
 TransportAnimator = {}
 
 -- SPRING API LOCALS
-local spGetGameFrame              = Spring.GetGameFrame
-local spGetUnitPosition           = Spring.GetUnitPosition
-local spGetUnitRotation           = Spring.GetUnitRotation
-local spGetUnitPiecePosDir        = Spring.GetUnitPiecePosDir
-local spSpawnCEG                  = Spring.SpawnCEG
-local spMoveCtrlEnable            = Spring.MoveCtrl.Enable
-local spMoveCtrlDisable           = Spring.MoveCtrl.Disable
-local spMoveCtrlSetPosition       = Spring.MoveCtrl.SetPosition
-local spMoveCtrlSetRotation       = Spring.MoveCtrl.SetRotation
+local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitRotation = Spring.GetUnitRotation
+local spGetUnitPiecePosDir = Spring.GetUnitPiecePosDir
+local spSpawnCEG = Spring.SpawnCEG
+local spMoveCtrlEnable = Spring.MoveCtrl.Enable
+local spMoveCtrlDisable = Spring.MoveCtrl.Disable
+local spMoveCtrlSetPosition = Spring.MoveCtrl.SetPosition
+local spMoveCtrlSetRotation = Spring.MoveCtrl.SetRotation
 local spMoveCtrlSetGunshipMoveTypeData = Spring.MoveCtrl.SetGunshipMoveTypeData
-local spUnitAttach                = Spring.UnitAttach
-local spUnitDetach                = Spring.UnitDetach
-local spValidUnitID               = Spring.ValidUnitID
-local spGetUnitIsDead             = Spring.GetUnitIsDead
-local spGetGroundHeight           = Spring.GetGroundHeight
-local spGetGroundNormal           = Spring.GetGroundNormal
-local spSetUnitRadiusAndHeight    = Spring.SetUnitRadiusAndHeight
-local spGetUnitDefID              = Spring.GetUnitDefID
-local spSetUnitRulesParam         = Spring.SetUnitRulesParam
-local spSetUnitPhysicalStateBit   = Spring.SetUnitPhysicalStateBit
-local spPos2BuildPos              = Spring.Pos2BuildPos
-local spGetUnitCommands           = Spring.GetUnitCommands
-local spUnitScript                = Spring.UnitScript
-local spGetCOBScriptID            = Spring.GetCOBScriptID
-local spCallCOBScript             = Spring.CallCOBScript
-local spSetUnitBlocking           = Spring.SetUnitBlocking
+local spUnitAttach = Spring.UnitAttach
+local spUnitDetach = Spring.UnitDetach
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundNormal = Spring.GetGroundNormal
+local spSetUnitRadiusAndHeight = Spring.SetUnitRadiusAndHeight
+local spGetUnitDefID = Spring.GetUnitDefID
+local spSetUnitRulesParam = Spring.SetUnitRulesParam
+local spSetUnitPhysicalStateBit = Spring.SetUnitPhysicalStateBit
+local spPos2BuildPos = Spring.Pos2BuildPos
+local spGetUnitCommands = Spring.GetUnitCommands
+local spUnitScript = Spring.UnitScript
+local spGetCOBScriptID = Spring.GetCOBScriptID
+local spCallCOBScript = Spring.CallCOBScript
+local spSetUnitBlocking = Spring.SetUnitBlocking
 
 -- CONSTANTS
-local PI              = math.pi
-local ALLIED_READ     = { allied = true } -- rules params readable by allies
-local SIG_WATCH       = 2 -- signal to stop the WatchBeam thread when cargo state changes
-local SIG_LOAD        = 4 -- signal to kill all in-flight Load threads (used by ReorganizeAndLoad)
+local PI = math.pi
+local ALLIED_READ = { allied = true } -- rules params readable by allies
+local SIG_WATCH = 2 -- signal to stop the WatchBeam thread when cargo state changes
+local SIG_LOAD = 4 -- signal to kill all in-flight Load threads (used by ReorganizeAndLoad)
 
 TransportAnimator.SIG_LOAD = SIG_LOAD
 
 -- VARIABLES
 local loadTime, cegScaleFactor, cegName
-local progress         -- set in Init from precomputedProgress[unitDefID]
+local progress -- set in Init from precomputedProgress[unitDefID]
 local beamsBySlotID = {}
 
 local cachedFrame = -1
@@ -58,7 +58,9 @@ local currentTransporterPosX, currentTransporterPosY, currentTransporterPosZ, cu
 -- @return    number  angle in (-pi, pi]
 local function shortAngle(a)
 	a = a % (2 * PI)
-	if a > PI then a = a - 2 * PI end
+	if a > PI then
+		a = a - 2 * PI
+	end
 	return a
 end
 
@@ -70,13 +72,22 @@ local function getTransporterState()
 		currentTransporterRotX, currentTransporterRotY, currentTransporterRotZ = spGetUnitRotation(transporterID)
 		cachedFrame = f
 	end
-	return currentTransporterPosX, currentTransporterPosY, currentTransporterPosZ, currentTransporterRotX, currentTransporterRotY, currentTransporterRotZ
+	return currentTransporterPosX,
+		currentTransporterPosY,
+		currentTransporterPosZ,
+		currentTransporterRotX,
+		currentTransporterRotY,
+		currentTransporterRotZ
 end
 
 -- @param slotID  number  LUS piece ID of the cargo slot
 local function resetSlot(slotID)
-	Move(slotID, 1, 0)  Move(slotID, 2, 0)  Move(slotID, 3, 0)
-	Turn(slotID, 1, 0)  Turn(slotID, 2, 0)  Turn(slotID, 3, 0)
+	Move(slotID, 1, 0)
+	Move(slotID, 2, 0)
+	Move(slotID, 3, 0)
+	Turn(slotID, 1, 0)
+	Turn(slotID, 2, 0)
+	Turn(slotID, 3, 0)
 end
 
 -- Returns true if the unit is no longer a valid live unit.
@@ -145,11 +156,17 @@ end
 
 -- @param setup  table  per-unit anim/slot config loaded from <unitName>/setup.lua
 function TransportAnimator.Init(setup)
-	loadTime       = tonumber(UnitDefs[unitDefID].customParams.loadtime)
+	loadTime = tonumber(UnitDefs[unitDefID].customParams.loadtime)
 	cegScaleFactor = 1.0
-	cegName        = UnitDefs[unitDefID].customParams.transportcegname or "tractorbeam"
-	heightOffsetMult   = cegName == "armada_ion" and 1 or cegName == "cortex_grapple" and 0.5 or cegName == "legion_grav_distort" and 0.2 or 1
-	radiusOffsetMult   = cegName == "armada_ion" and 0 or cegName == "cortex_grapple" and 0.85 or cegName == "legion_grav_distort" and 0 or 1
+	cegName = UnitDefs[unitDefID].customParams.transportcegname or "tractorbeam"
+	heightOffsetMult = cegName == "armada_ion" and 1
+		or cegName == "cortex_grapple" and 0.5
+		or cegName == "legion_grav_distort" and 0.2
+		or 1
+	radiusOffsetMult = cegName == "armada_ion" and 0
+		or cegName == "cortex_grapple" and 0.85
+		or cegName == "legion_grav_distort" and 0
+		or 1
 
 	progress = GG.TransportAPI.precomputedProgress[unitDefID]
 
@@ -194,7 +211,8 @@ function TransportAnimator.WatchBeams()
 		for passengerID, passengerData in pairs(cargo.passengers) do
 			if passengerData.beamPieces then
 				if not passengerData.cachedPosX then
-					passengerData.cachedPosX, passengerData.cachedPosY, passengerData.cachedPosZ = spGetUnitPosition(passengerID)
+					passengerData.cachedPosX, passengerData.cachedPosY, passengerData.cachedPosZ =
+						spGetUnitPosition(passengerID)
 				end
 				for _, beamPiece in ipairs(passengerData.beamPieces) do
 					beamPieceX, beamPieceY, beamPieceZ = spGetUnitPiecePosDir(transporterID, beamPiece)
@@ -215,15 +233,20 @@ function TransportAnimator.WatchBeams()
 						else
 							cegSpawnX, cegSpawnY, cegSpawnZ = cegTopX, cegTopY, cegTopZ
 						end
-						spSpawnCEG(cegName,
-							cegSpawnX, cegSpawnY, cegSpawnZ,
+						spSpawnCEG(
+							cegName,
+							cegSpawnX,
+							cegSpawnY,
+							cegSpawnZ,
 							beamPieceX - cegSpawnX,
 							beamPieceY - cegSpawnY,
 							beamPieceZ - cegSpawnZ,
-						cegScaleFactor, 0)
+							cegScaleFactor,
+							0
+						)
 					end
 				end
-				passengerData.cachedPosX, passengerData.cachedPosY, passengerData.cachedPosZ = nil,nil,nil
+				passengerData.cachedPosX, passengerData.cachedPosY, passengerData.cachedPosZ = nil, nil, nil
 			end
 		end
 		Sleep(66)
@@ -252,7 +275,9 @@ function TransportAnimator.Load(passengerData, doAnim)
 	Move(passengerData.slotID, 2, -passengerData.height)
 
 	local count = CargoHandler.Register(passengerData.id, passengerData, cargo)
-	if count == 1 then TransportAnimator.HasCargo(true) end
+	if count == 1 then
+		TransportAnimator.HasCargo(true)
+	end
 
 	local aborted = false
 	-- reusable local vars to avoid allocations in this hot loop
@@ -282,23 +307,31 @@ function TransportAnimator.Load(passengerData, doAnim)
 			spMoveCtrlSetPosition(passengerData.id, newPassengerPosX, newPassengerPosY, newPassengerPosZ)
 			spMoveCtrlSetRotation(passengerData.id, newPassengerRotX, newPassengerRotY, newPassengerRotZ)
 
-			passengerData.cachedPosX, passengerData.cachedPosY, passengerData.cachedPosZ = newPassengerPosX, newPassengerPosY, newPassengerPosZ
+			passengerData.cachedPosX, passengerData.cachedPosY, passengerData.cachedPosZ =
+				newPassengerPosX, newPassengerPosY, newPassengerPosZ
 
 			Sleep(33)
-			if isDead(passengerData.id) then aborted = true ; break end
+			if isDead(passengerData.id) then
+				aborted = true
+				break
+			end
 		end
-		passengerData.cachedPosX = nil ; passengerData.cachedPosY = nil ; passengerData.cachedPosZ = nil
+		passengerData.cachedPosX = nil
+		passengerData.cachedPosY = nil
+		passengerData.cachedPosZ = nil
 		spMoveCtrlDisable(passengerData.id)
 	end
 
 	if not aborted then
 		passengerData.animProgress = 1
-		spUnitAttach(transporterID,passengerData.id, passengerData.slotID)
+		spUnitAttach(transporterID, passengerData.id, passengerData.slotID)
 		spSetUnitBlocking(passengerData.id, nil, nil, false, false) -- should not collide with projectiles or ray segments while attached
 	else
 		passengerData.animProgress = nil
 		local count = CargoHandler.Unregister(passengerData.id, cargo)
-		if count == 0 then TransportAnimator.HasCargo(false) end
+		if count == 0 then
+			TransportAnimator.HasCargo(false)
+		end
 	end
 	TransportAPI.EnablePassenger(passengerData.id)
 
@@ -314,36 +347,43 @@ end
 -- @param exact          boolean  set down on the goal itself, not at the slot's offset
 -- @param facing         number   build facing of a building set down exactly
 function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, doAnim, exact, facing)
-	if passengerData.unloading then return end
+	if passengerData.unloading then
+		return
+	end
 	TransportAPI.DisablePassenger(passengerData.id)
 	passengerData.unloading = true
 	CargoHandler.BeginUnloading(cargo)
 	spUnitDetach(passengerData.id)
 	spSetUnitBlocking(passengerData.id, nil, nil, true, true) -- restore upon starting the detach process
-	
+
 	if doAnim ~= false then
 		spSetUnitRulesParam(passengerData.id, "inUnloadAnim", 1, ALLIED_READ)
 		local slotPosX, slotPosY, slotPosZ = spGetUnitPiecePosDir(transporterID, passengerData.slotID)
-		local transporterPosX, _, transporterPosZ, startTransporterRotX, startTransporterRotY, startTransporterRotZ = getTransporterState()
+		local transporterPosX, _, transporterPosZ, startTransporterRotX, startTransporterRotY, startTransporterRotZ =
+			getTransporterState()
 		if not exact then
 			goalPosX, goalPosZ = goalPosX + (slotPosX - transporterPosX), goalPosZ + (slotPosZ - transporterPosZ)
 		end
-		goalPosY = math.max(0,spGetGroundHeight(goalPosX, goalPosZ))
+		goalPosY = math.max(0, spGetGroundHeight(goalPosX, goalPosZ))
 		local passengerDefID = spGetUnitDefID(passengerData.id)
 		local startRotX, startRotY, startRotZ = spGetUnitRotation(passengerData.id)
 		local goalRotX, goalRotY, goalRotZ
 		if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].speed == 0 then
-			spSetUnitRadiusAndHeight(passengerData.id, slotPosY - spGetGroundHeight(slotPosX, slotPosZ) + 20, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
+			spSetUnitRadiusAndHeight(
+				passengerData.id,
+				slotPosY - spGetGroundHeight(slotPosX, slotPosZ) + 20,
+				passengerData.height
+			) -- reset radius/height in case we were transporting a building with custom values
 			if facing then
-				goalRotY = -facing * (PI/2) -- build facing 1 (east) is yaw -pi/2
+				goalRotY = -facing * (PI / 2) -- build facing 1 (east) is yaw -pi/2
 			else
-				goalRotY = math.floor(startRotY/(PI/2) + 0.5) *(PI/2) -- cardinal facing
+				goalRotY = math.floor(startRotY / (PI / 2) + 0.5) * (PI / 2) -- cardinal facing
 			end
 			goalPosX, goalPosY, goalPosZ = spPos2BuildPos(passengerDefID, goalPosX, goalPosY, goalPosZ, facing or 0) -- always align buildings on build grid
 		else
 			spSetUnitRadiusAndHeight(passengerData.id, 0, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
 		end
-		
+
 		if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].upright then
 			goalRotX, goalRotY, goalRotZ = 0, (goalRotY or startRotY), 0
 		else
@@ -365,29 +405,36 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 			passengerData.animProgress = 1 - normalizedProgress -- keep track of our progress for Killed() script
 
 			slotPosX, slotPosY, slotPosZ = spGetUnitPiecePosDir(transporterID, passengerData.slotID)
-			_,_,_, transporterRotX, transporterRotY, transporterRotZ = getTransporterState()
+			_, _, _, transporterRotX, transporterRotY, transporterRotZ = getTransporterState()
 
-			newPassengerPosX, newPassengerPosY, newPassengerPosZ = 
+			newPassengerPosX, newPassengerPosY, newPassengerPosZ =
 				normalizedProgress * goalPosX + (1 - normalizedProgress) * slotPosX,
 				normalizedProgress * goalPosY + (1 - normalizedProgress) * slotPosY,
 				normalizedProgress * goalPosZ + (1 - normalizedProgress) * slotPosZ
 
-			newPassengerRotX, newPassengerRotY, newPassengerRotZ = 
-				goalRotX * normalizedProgress + (startRotX + shortAngle(transporterRotX - startTransporterRotX)) * (1 - normalizedProgress),
-				goalRotY * normalizedProgress + (startRotY + shortAngle(transporterRotY - startTransporterRotY)) * (1 - normalizedProgress),
-				goalRotZ * normalizedProgress + (startRotZ + shortAngle(transporterRotZ - startTransporterRotZ)) * (1 - normalizedProgress)
-			
-			spMoveCtrlSetPosition(passengerData.id,
-				 newPassengerPosX, newPassengerPosY, newPassengerPosZ)
-			spMoveCtrlSetRotation(passengerData.id,
-				newPassengerRotX, newPassengerRotY,	newPassengerRotZ)
+			newPassengerRotX, newPassengerRotY, newPassengerRotZ =
+				goalRotX * normalizedProgress
+					+ (startRotX + shortAngle(transporterRotX - startTransporterRotX)) * (1 - normalizedProgress),
+				goalRotY * normalizedProgress
+					+ (startRotY + shortAngle(transporterRotY - startTransporterRotY)) * (1 - normalizedProgress),
+				goalRotZ * normalizedProgress
+					+ (startRotZ + shortAngle(transporterRotZ - startTransporterRotZ)) * (1 - normalizedProgress)
 
-			passengerData.cachedPosX, passengerData.cachedPosY, passengerData.cachedPosZ = newPassengerPosX, newPassengerPosY, newPassengerPosZ
+			spMoveCtrlSetPosition(passengerData.id, newPassengerPosX, newPassengerPosY, newPassengerPosZ)
+			spMoveCtrlSetRotation(passengerData.id, newPassengerRotX, newPassengerRotY, newPassengerRotZ)
+
+			passengerData.cachedPosX, passengerData.cachedPosY, passengerData.cachedPosZ =
+				newPassengerPosX, newPassengerPosY, newPassengerPosZ
 
 			Sleep(33)
-			if isDead(passengerData.id) then aborted = true ; break end
+			if isDead(passengerData.id) then
+				aborted = true
+				break
+			end
 		end
-		passengerData.cachedPosX = nil ; passengerData.cachedPosY = nil ; passengerData.cachedPosZ = nil -- invalidate cache
+		passengerData.cachedPosX = nil
+		passengerData.cachedPosY = nil
+		passengerData.cachedPosZ = nil -- invalidate cache
 		-- Spring.SetUnitRadiusAndHeight(passengerData.id, radius, height) -- reset radius/height in case we were transporting a building with custom values
 
 		if not aborted then -- unload anim completed, ensure unit is at final position/rotation
@@ -407,6 +454,8 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 	spSetUnitRulesParam(passengerData.id, "inUnloadAnim", 0, ALLIED_READ)
 	TransportAPI.EnablePassenger(passengerData.id)
 	spSetUnitRadiusAndHeight(passengerData.id, passengerData.radius, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
-	if count == 0 then TransportAnimator.HasCargo(false) end
+	if count == 0 then
+		TransportAnimator.HasCargo(false)
+	end
 	CargoHandler.EndUnloading(cargo)
 end

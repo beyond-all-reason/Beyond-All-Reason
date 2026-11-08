@@ -14,10 +14,9 @@ function widget:GetInfo()
 		date = "October 16, 2025",
 		license = "GNU GPL, v2 or later",
 		layer = -1, -- Has to be run before Smart Area Reclaim widget
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local TransportAPI = WG.TransportAPI
@@ -123,7 +122,7 @@ end
 local function createEmptyValidTransportsTable()
 	local tab = {}
 	for i = 0, 5 do
-		tab[2^(i)] = {}
+		tab[2 ^ i] = {}
 	end
 	return tab
 end
@@ -146,8 +145,8 @@ local function distributeTargetsToTransports(transports, targets, shifted)
 	for _, transportUnitId in ipairs(transports) do
 		if not TransportAPI.IsTransportFull(transportUnitId, queuedSizePerTransport[transportUnitId]) then
 			for i = 0, 5 do
-				validTransports[2^(i)] = validTransports[2^(i)] or {}
-				local slotSize = 2^(i)
+				validTransports[2 ^ i] = validTransports[2 ^ i] or {}
+				local slotSize = 2 ^ i
 				local rulesParamString = "transporterHasSlotOfSize" .. slotSize
 				if Spring.GetUnitRulesParam(transportUnitId, rulesParamString) then
 					tableInsert(validTransports[slotSize], transportUnitId)
@@ -250,7 +249,10 @@ local function splitTargets(selectedUnits, filteredTargets)
 	for unitIdx, selectedUnitId in ipairs(selectedUnits) do
 		unitTargetsMap[selectedUnitId] = {}
 		for targetIdx, targetUnitId in ipairs(filteredTargets) do
-			if targetIdx % #filteredTargets == unitIdx % #filteredTargets or unitIdx % #selectedUnits == targetIdx % #selectedUnits then
+			if
+				targetIdx % #filteredTargets == unitIdx % #filteredTargets
+				or unitIdx % #selectedUnits == targetIdx % #selectedUnits
+			then
 				tableInsert(unitTargetsMap[selectedUnitId], targetUnitId)
 			end
 		end

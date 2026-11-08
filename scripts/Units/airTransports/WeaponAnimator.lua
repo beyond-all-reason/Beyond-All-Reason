@@ -39,5 +39,4 @@ function WeaponAnimator.QueryWeapon()
 end
 
 ---@param val number  weapon state value passed by the engine
-function WeaponAnimator.FireWeapon(val)
-end
+function WeaponAnimator.FireWeapon(val) end

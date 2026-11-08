@@ -1,20 +1,20 @@
 GenericAnimator = {}
 
 -- SPRING API LOCALS
-local spMoveCtrlDisable         = Spring.MoveCtrl.Disable
-local spValidUnitID             = Spring.ValidUnitID
-local spGetUnitIsDead           = Spring.GetUnitIsDead
-local spSetUnitRadiusAndHeight  = Spring.SetUnitRadiusAndHeight
-local spSetUnitRulesParam       = Spring.SetUnitRulesParam
+local spMoveCtrlDisable = Spring.MoveCtrl.Disable
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spSetUnitRadiusAndHeight = Spring.SetUnitRadiusAndHeight
+local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spSetUnitPhysicalStateBit = Spring.SetUnitPhysicalStateBit
-local spGetUnitDefID            = Spring.GetUnitDefID
-local spAddUnitDamage           = Spring.AddUnitDamage
-local spGetUnitHealth           = Spring.GetUnitHealth
+local spGetUnitDefID = Spring.GetUnitDefID
+local spAddUnitDamage = Spring.AddUnitDamage
+local spGetUnitHealth = Spring.GetUnitHealth
 
 -- CONSTANTS
 local ALLIED_READ = { allied = true } -- rules params readable by allies
-local CARGO_KILL_DAMAGE_RATIO = 2  -- fraction of current HP dealt to each passenger on transporter death, scaled by animProgress
-local CARGO_KILL_WEAPON_ID    = -6 -- -CSolidObject::DAMAGE_EXTSOURCE_KILLED; skipped by engine (releaseHeld=true), applied manually here
+local CARGO_KILL_DAMAGE_RATIO = 2 -- fraction of current HP dealt to each passenger on transporter death, scaled by animProgress
+local CARGO_KILL_WEAPON_ID = -6 -- -CSolidObject::DAMAGE_EXTSOURCE_KILLED; skipped by engine (releaseHeld=true), applied manually here
 
 -- VARIABLES
 local thrusterPieces = {}
@@ -54,12 +54,12 @@ end
 function GenericAnimator.Init(setup)
 	thrusterPieces = {}
 	for _, name in ipairs(setup.thrusters or {}) do
-		thrusterPieces[#thrusterPieces+1] = piece(name)
+		thrusterPieces[#thrusterPieces + 1] = piece(name)
 	end
 
 	jetPieces = {}
 	for _, name in ipairs(setup.jets or {}) do
-		jetPieces[#jetPieces+1] = piece(name)
+		jetPieces[#jetPieces + 1] = piece(name)
 	end
 
 	hoverPiece = piece(setup.idleHover.piece)
@@ -77,32 +77,35 @@ function GenericAnimator.Init(setup)
 		for _, entry in ipairs(tier.pieces) do
 			if entry.useJets then
 				for _, jp in ipairs(jetPieces) do
-					resolvedPieces[#resolvedPieces+1] = { pieceID=jp, sfx=resolveSFX(entry.sfx) }
+					resolvedPieces[#resolvedPieces + 1] = { pieceID = jp, sfx = resolveSFX(entry.sfx) }
 				end
 			else
-				resolvedPieces[#resolvedPieces+1] = { pieceID=piece(entry.name), sfx=resolveSFX(entry.sfx) }
+				resolvedPieces[#resolvedPieces + 1] = { pieceID = piece(entry.name), sfx = resolveSFX(entry.sfx) }
 			end
 		end
-		killedTiers[#killedTiers+1] = { maxSeverity=tier.maxSeverity, wreck=tier.wreck, pieces=resolvedPieces }
+		killedTiers[#killedTiers + 1] = { maxSeverity = tier.maxSeverity, wreck = tier.wreck, pieces = resolvedPieces }
 	end
 end
 
-
 function GenericAnimator.Activate()
-	for _, p in ipairs(thrusterPieces) do Show(p) end
+	for _, p in ipairs(thrusterPieces) do
+		Show(p)
+	end
 	active = true
 end
 
 function GenericAnimator.Deactivate()
-	for _, p in ipairs(thrusterPieces) do Hide(p) end
+	for _, p in ipairs(thrusterPieces) do
+		Hide(p)
+	end
 	active = false
 end
 
-
 function GenericAnimator.HideThrusters()
-	for _, p in ipairs(thrusterPieces) do Hide(p) end
+	for _, p in ipairs(thrusterPieces) do
+		Hide(p)
+	end
 end
-
 
 ---@param val number  move-rate index (e.g. 0=hover, 1=forward flight)
 function GenericAnimator.MoveRate(val)
@@ -112,8 +115,6 @@ function GenericAnimator.MoveRate(val)
 		Turn(jp, 1, angle, speed)
 	end
 end
-
-
 
 ---@param severity number  damage severity value from engine
 ---@return number wreckLevel
@@ -125,15 +126,23 @@ function GenericAnimator.Killed(severity)
 			spSetUnitRulesParam(passengerID, "inUnloadAnim", 0, ALLIED_READ)
 			TransportAPI.EnablePassenger(passengerID) -- re-enable if mid-unload (no-op if mid-load, abilities were never disabled)
 			spSetUnitRadiusAndHeight(passengerID, passengerData.radius, passengerData.height)
-			spSetUnitPhysicalStateBit(passengerID, 128 + 512)  -- PSTATE_BIT_FLYING | PSTATE_BIT_SKIDDING (matches engine ReleasePassengers releaseHeld path)
+			spSetUnitPhysicalStateBit(passengerID, 128 + 512) -- PSTATE_BIT_FLYING | PSTATE_BIT_SKIDDING (matches engine ReleasePassengers releaseHeld path)
 		end
 
 		local passengerDefID = spGetUnitDefID(passengerID)
-		local isParatrooper = passengerDefID and UnitDefs[passengerDefID] and UnitDefs[passengerDefID].customParams.paratrooper
+		local isParatrooper = passengerDefID
+			and UnitDefs[passengerDefID]
+			and UnitDefs[passengerDefID].customParams.paratrooper
 		-- paratroopers survive intact; all other units take damage proportional to how far into the
 		-- load/unload animation they were when the transporter died (animProgress == 1 means fully loaded)
 		if not isParatrooper and passengerData.animProgress and passengerData.animProgress > 0 then
-			spAddUnitDamage(passengerID, spGetUnitHealth(passengerID) * passengerData.animProgress * CARGO_KILL_DAMAGE_RATIO, 0, -1, CARGO_KILL_WEAPON_ID)
+			spAddUnitDamage(
+				passengerID,
+				spGetUnitHealth(passengerID) * passengerData.animProgress * CARGO_KILL_DAMAGE_RATIO,
+				0,
+				-1,
+				CARGO_KILL_WEAPON_ID
+			)
 		end
 	end
 	-- walk severity tiers from least to most severe; use the first tier whose maxSeverity covers this death
@@ -155,10 +164,9 @@ function GenericAnimator.Killed(severity)
 	return 1
 end
 
-
 function GenericAnimator.IdleHover()
 	while true do
-		Move(hoverPiece, 2,  (active and hoverScale) or 0, hoverSpeed)
+		Move(hoverPiece, 2, (active and hoverScale) or 0, hoverSpeed)
 		Sleep(math.random(200, 600))
 		Move(hoverPiece, 2, (active and -hoverScale) or 0, hoverSpeed)
 		Sleep(math.random(200, 600))

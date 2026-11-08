@@ -17,7 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
-	Spring.Echo("Custom transports enabled via modoption, skipping gadget"..gadget:GetInfo().name)
+	Spring.Echo("Custom transports enabled via modoption, skipping gadget" .. gadget:GetInfo().name)
 	return false
 end
 

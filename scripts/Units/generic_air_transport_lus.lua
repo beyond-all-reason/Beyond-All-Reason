@@ -18,23 +18,23 @@ end
 
 -- SPRING API LOCALS
 local spMoveCtrlSetGunshipMoveTypeData = Spring.MoveCtrl.SetGunshipMoveTypeData
-local spGetUnitIsTransporting         = Spring.GetUnitIsTransporting
-local spValidUnitID                   = Spring.ValidUnitID
-local spGetUnitIsDead                 = Spring.GetUnitIsDead
-local spUnitDetach                    = Spring.UnitDetach
-local spEcho                          = Spring.Echo
+local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spUnitDetach = Spring.UnitDetach
+local spEcho = Spring.Echo
 
 -- CUSTOM SETTINGS
 -- (none)
 
 -- CONSTANTS
-local AIR_TRANSPORT_PATH = "scripts/Units/airTransports/"  -- prefix for VFS.Include (from game root)
-local AIR_TRANSPORT_INC  = "Units/airTransports/"          -- prefix for include()    (from scripts/)
+local AIR_TRANSPORT_PATH = "scripts/Units/airTransports/" -- prefix for VFS.Include (from game root)
+local AIR_TRANSPORT_INC = "Units/airTransports/" -- prefix for include()    (from scripts/)
 
 -- VARIABLES
-local unitDef            = UnitDefs[unitDefID]
-local unitName           = unitDef.name
-local UNIT_CONFIG_PATH   = AIR_TRANSPORT_PATH .. unitName .. "/"
+local unitDef = UnitDefs[unitDefID]
+local unitName = unitDef.name
+local UNIT_CONFIG_PATH = AIR_TRANSPORT_PATH .. unitName .. "/"
 transporterID = unitID -- just to keep it consistent with other envs
 
 include(AIR_TRANSPORT_INC .. "CargoHandler.lua")
@@ -42,10 +42,10 @@ include(AIR_TRANSPORT_INC .. "TransportAnimator.lua")
 include(AIR_TRANSPORT_INC .. "GenericAnimator.lua")
 
 -- VARIABLES (post-include)
-local animSetup     = VFS.Include(UNIT_CONFIG_PATH .. "setup.lua")
+local animSetup = VFS.Include(UNIT_CONFIG_PATH .. "setup.lua")
 local transportSetup = VFS.Include(AIR_TRANSPORT_PATH .. "loadpadsdefinitions/loadpaddefs.lua")
-local thisSize      = "size" .. (unitDef.customParams.transporterseats or "0")
-cargo               = nil  -- will be initialized in script.Create
+local thisSize = "size" .. (unitDef.customParams.transporterseats or "0")
+cargo = nil -- will be initialized in script.Create
 
 -- SCRIPT FUNCTIONS
 -- function script.Create()                -- Initialize handlers; restore preexisting passengers; start idle hover thread
@@ -60,48 +60,54 @@ cargo               = nil  -- will be initialized in script.Create
 
 ---@return boolean|nil success
 function script.Create()
-    -- validate and initialize handlers with config; handlers expose functions that the unit script calls
-    -- in response to game events (see PerformLoad, PerformUnload, etc below)
-    if not transportSetup[thisSize] then
-        spEcho("Invalid transporterSeats in unitDef customParams: " .. tostring(unitDef.customParams.transporterseats))
-        return false
-    end
-    cargo = CargoHandler.Init(transportSetup[thisSize].cargo)
-    TransportAnimator.Init(transportSetup[thisSize].loadMethod)
-    GenericAnimator.Init(animSetup.anim)
+	-- validate and initialize handlers with config; handlers expose functions that the unit script calls
+	-- in response to game events (see PerformLoad, PerformUnload, etc below)
+	if not transportSetup[thisSize] then
+		spEcho("Invalid transporterSeats in unitDef customParams: " .. tostring(unitDef.customParams.transporterseats))
+		return false
+	end
+	cargo = CargoHandler.Init(transportSetup[thisSize].cargo)
+	TransportAnimator.Init(transportSetup[thisSize].loadMethod)
+	GenericAnimator.Init(animSetup.anim)
 
-    -- load preexisting cargo (save/load)
-    local existing = spGetUnitIsTransporting(transporterID)
-    table.sort(existing, function(a, b)
-        return TransportAPI.GetPassengerSize(a) > TransportAPI.GetPassengerSize(b) -- largest first for correct slot assignment
-    end)
-    for _, passengerID in ipairs(existing) do
-        local passengerData = CargoHandler.FindSlot(passengerID, cargo)
-        if passengerData then
-            local count = CargoHandler.Register(passengerID, passengerData, cargo)
-            CargoHandler.BeginLoading(cargo)
-            TransportAnimator.Snap(passengerData)
-            CargoHandler.EndLoading(cargo)
-            if count == 1 then TransportAnimator.HasCargo(true) end
-        end
-    end
+	-- load preexisting cargo (save/load)
+	local existing = spGetUnitIsTransporting(transporterID)
+	table.sort(existing, function(a, b)
+		return TransportAPI.GetPassengerSize(a) > TransportAPI.GetPassengerSize(b) -- largest first for correct slot assignment
+	end)
+	for _, passengerID in ipairs(existing) do
+		local passengerData = CargoHandler.FindSlot(passengerID, cargo)
+		if passengerData then
+			local count = CargoHandler.Register(passengerID, passengerData, cargo)
+			CargoHandler.BeginLoading(cargo)
+			TransportAnimator.Snap(passengerData)
+			CargoHandler.EndLoading(cargo)
+			if count == 1 then
+				TransportAnimator.HasCargo(true)
+			end
+		end
+	end
 
-    -- start idleHover thread
-    StartThread(GenericAnimator.IdleHover)
+	-- start idleHover thread
+	StartThread(GenericAnimator.IdleHover)
 end
 
 ---@param passengerID number
 function PerformLoad(passengerID) -- entry point from gadget transport handler: called on load approval, and by ReorganizeAndLoad
-    local passengerData = CargoHandler.FindSlot(passengerID, cargo, true)
-    if not passengerData then return end
-    StartThread(TransportAnimator.Load, passengerData)
+	local passengerData = CargoHandler.FindSlot(passengerID, cargo, true)
+	if not passengerData then
+		return
+	end
+	StartThread(TransportAnimator.Load, passengerData)
 end
 
 ---@param passengerID number
 function PerformLoadInstant(passengerID) -- instant load not used currently
-    local passengerData = CargoHandler.FindSlot(passengerID, cargo)
-    if not passengerData then return end
-    StartThread(TransportAnimator.Load, passengerData, false)
+	local passengerData = CargoHandler.FindSlot(passengerID, cargo)
+	if not passengerData then
+		return
+	end
+	StartThread(TransportAnimator.Load, passengerData, false)
 end
 
 ---@param passengerID number
@@ -111,20 +117,26 @@ end
 ---@param exact boolean|nil set down on the goal itself, not at its slot's offset (a building placed like a build order)
 ---@param facing number|nil build facing for a building set down exactly
 function PerformUnload(passengerID, goalX, goalY, goalZ, exact, facing) -- entry point from gadget transport handler: called once per passenger
-    local passengerData = cargo.passengers[passengerID]
-    if passengerData and spValidUnitID(passengerID) and not spGetUnitIsDead(passengerID) then
-        StartThread(TransportAnimator.Unload, passengerData, goalX, goalY, goalZ, nil, exact, facing)
-    else -- unit invalid/dead: reset slot and unregister without animating
-        if spValidUnitID(passengerID) then -- unit is valid but dead
-            spUnitDetach(passengerID)
-        end
-        if passengerData and passengerData.slotID then
-            Move(passengerData.slotID, 1, 0)  Move(passengerData.slotID, 2, 0)  Move(passengerData.slotID, 3, 0)
-            Turn(passengerData.slotID, 1, 0)  Turn(passengerData.slotID, 2, 0)  Turn(passengerData.slotID, 3, 0)
-        end
-        local count = CargoHandler.Unregister(passengerID, cargo)
-        if count == 0 then TransportAnimator.HasCargo(false) end
-    end
+	local passengerData = cargo.passengers[passengerID]
+	if passengerData and spValidUnitID(passengerID) and not spGetUnitIsDead(passengerID) then
+		StartThread(TransportAnimator.Unload, passengerData, goalX, goalY, goalZ, nil, exact, facing)
+	else -- unit invalid/dead: reset slot and unregister without animating
+		if spValidUnitID(passengerID) then -- unit is valid but dead
+			spUnitDetach(passengerID)
+		end
+		if passengerData and passengerData.slotID then
+			Move(passengerData.slotID, 1, 0)
+			Move(passengerData.slotID, 2, 0)
+			Move(passengerData.slotID, 3, 0)
+			Turn(passengerData.slotID, 1, 0)
+			Turn(passengerData.slotID, 2, 0)
+			Turn(passengerData.slotID, 3, 0)
+		end
+		local count = CargoHandler.Unregister(passengerID, cargo)
+		if count == 0 then
+			TransportAnimator.HasCargo(false)
+		end
+	end
 end
 
 ---@param passengerID number
@@ -132,24 +144,34 @@ end
 ---@param goalY number
 ---@param goalZ number
 function PerformUnloadInstant(passengerID, goalX, goalY, goalZ) -- used by ReorganizeAndLoad
-    local passengerData = cargo.passengers[passengerID]
-    if not passengerData then return end
-    StartThread(TransportAnimator.Unload, passengerData, goalX, goalY, goalZ, false)
+	local passengerData = cargo.passengers[passengerID]
+	if not passengerData then
+		return
+	end
+	StartThread(TransportAnimator.Unload, passengerData, goalX, goalY, goalZ, false)
 end
 
 function RefreshSpeed() -- entry point from gadget transport handler: the speed penalty settings changed
-    if cargo and cargo.loadingCount == 0 and cargo.unloadingCount == 0 then
-        CargoHandler.SetSpeedDamping(TransportAPI.CalculateTransporterSpeed(cargo), cargo, true)
-    end
+	if cargo and cargo.loadingCount == 0 and cargo.unloadingCount == 0 then
+		CargoHandler.SetSpeedDamping(TransportAPI.CalculateTransporterSpeed(cargo), cargo, true)
+	end
 end
 
-function script.Activate()   GenericAnimator.Activate()         end
+function script.Activate()
+	GenericAnimator.Activate()
+end
 
-function script.Deactivate() GenericAnimator.Deactivate()        end
+function script.Deactivate()
+	GenericAnimator.Deactivate()
+end
 
 ---@param v number moveRate
-function script.MoveRate(v)  GenericAnimator.MoveRate(v)         end
+function script.MoveRate(v)
+	GenericAnimator.MoveRate(v)
+end
 
 ---@param s number|nil damageState
 ---@return number|nil restoreState
-function script.Killed(s)    return GenericAnimator.Killed(s)    end
+function script.Killed(s)
+	return GenericAnimator.Killed(s)
+end

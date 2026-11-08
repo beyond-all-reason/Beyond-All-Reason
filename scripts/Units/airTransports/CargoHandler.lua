@@ -1,13 +1,13 @@
 CargoHandler = {}
 
 -- SPRING API LOCALS
-local spGetUnitDefID              = Spring.GetUnitDefID
-local spGetUnitPiecePosDir        = Spring.GetUnitPiecePosDir
-local spGetUnitPosition           = Spring.GetUnitPosition
-local spGetUnitRotation           = Spring.GetUnitRotation
-local spGetUnitHeight             = Spring.GetUnitHeight
-local spGetUnitRadius             = Spring.GetUnitRadius
-local spSetUnitRulesParam         = Spring.SetUnitRulesParam
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitPiecePosDir = Spring.GetUnitPiecePosDir
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitRotation = Spring.GetUnitRotation
+local spGetUnitHeight = Spring.GetUnitHeight
+local spGetUnitRadius = Spring.GetUnitRadius
+local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spMoveCtrlSetGunshipMoveTypeData = Spring.MoveCtrl.SetGunshipMoveTypeData
 
 -- CUSTOM SETTINGS
@@ -43,27 +43,33 @@ function CargoHandler.Init(setup)
 	-- resolve piece name strings from setup into piece IDs
 	local nameToID = {}
 	local function res(name)
-		if not nameToID[name] then nameToID[name] = piece(name) end
+		if not nameToID[name] then
+			nameToID[name] = piece(name)
+		end
 		return nameToID[name]
 	end
 
-	for _, slot in ipairs(setup.slots) do res(slot.name) end
+	for _, slot in ipairs(setup.slots) do
+		res(slot.name)
+	end
 
 	local slots = {}
-	local slotsBySize = {}  -- [size] = array of slotIDs
+	local slotsBySize = {} -- [size] = array of slotIDs
 	for _, slotCfg in ipairs(setup.slots) do
-		local pid  = nameToID[slotCfg.name]
+		local pid = nameToID[slotCfg.name]
 		local reqs = {}
 		for _, reqName in ipairs(slotCfg.requires) do
 			reqs[#reqs + 1] = nameToID[reqName]
 		end
 		slots[pid] = {
-			size        = slotCfg.size,        -- seat cost of a unit that fits this slot (1/4/8/16)
-			cargo       = nil,                  -- passengerID currently occupying this slot, nil if empty
-			requires    = reqs,                 -- list of slotIDs that must be empty for this slot to be usable
-			overlapping = slotCfg.overlapping,  -- true if this slot physically overlaps a non-overlapping slot of the same size
+			size = slotCfg.size, -- seat cost of a unit that fits this slot (1/4/8/16)
+			cargo = nil, -- passengerID currently occupying this slot, nil if empty
+			requires = reqs, -- list of slotIDs that must be empty for this slot to be usable
+			overlapping = slotCfg.overlapping, -- true if this slot physically overlaps a non-overlapping slot of the same size
 		}
-		if not slotsBySize[slotCfg.size] then slotsBySize[slotCfg.size] = {} end
+		if not slotsBySize[slotCfg.size] then
+			slotsBySize[slotCfg.size] = {}
+		end
 		slotsBySize[slotCfg.size][#slotsBySize[slotCfg.size] + 1] = pid
 	end
 
@@ -77,19 +83,19 @@ function CargoHandler.Init(setup)
 	-- but outside of that reload path this is the only authoritative record of what is loaded and where.
 	local uDef = UnitDefs[spGetUnitDefID(transporterID)]
 	local cargo = {
-		transporterID                  = transporterID,                       -- transporter unit ID
-		slots                   = slots,                        -- [slotID] = { size, cargo, requires, overlapping } (see above)
-		slotsBySize             = slotsBySize,                  -- [size] = array of slotIDs of that size
-		passengers              = {},                           -- [passengerID] = passengerData  ({ id, height, slotID, beamPieces, wbX/Y/Z, animProgress })
-		count                   = 0,                            -- number of units currently loaded
-		transporterUsedSeats    = 0,                            -- sum of seat costs of all loaded units
-		transporterSeats        = tonumber(uDef.customParams.transporterseats or 0),       -- total seat capacity of this transporter
-		transporterMaxSpeed		= uDef.speed, -- base max speed of the transporter, used for speed calculations
-		transporterAccRate		= uDef.maxAcc, -- base acceleration of the transporter, used for speed calculations
-		transporterDecRate		= uDef.maxDec, -- base deceleration of the transporter, used for speed calculations
-		transporterTurnRate		= uDef.turnRate, -- base turn rate of the transporter, used for speed calculations
-		loadedCommandersCount	= 0,							-- number of loaded commanders
-		passengersTotalWeight	= 0,                            -- sum of "weights" of all loaded units, used for speed slowing
+		transporterID = transporterID, -- transporter unit ID
+		slots = slots, -- [slotID] = { size, cargo, requires, overlapping } (see above)
+		slotsBySize = slotsBySize, -- [size] = array of slotIDs of that size
+		passengers = {}, -- [passengerID] = passengerData  ({ id, height, slotID, beamPieces, wbX/Y/Z, animProgress })
+		count = 0, -- number of units currently loaded
+		transporterUsedSeats = 0, -- sum of seat costs of all loaded units
+		transporterSeats = tonumber(uDef.customParams.transporterseats or 0), -- total seat capacity of this transporter
+		transporterMaxSpeed = uDef.speed, -- base max speed of the transporter, used for speed calculations
+		transporterAccRate = uDef.maxAcc, -- base acceleration of the transporter, used for speed calculations
+		transporterDecRate = uDef.maxDec, -- base deceleration of the transporter, used for speed calculations
+		transporterTurnRate = uDef.turnRate, -- base turn rate of the transporter, used for speed calculations
+		loadedCommandersCount = 0, -- number of loaded commanders
+		passengersTotalWeight = 0, -- sum of "weights" of all loaded units, used for speed slowing
 		transporterSpeedModMode = tonumber(uDef.customParams.transporterspeedmodmode or 0),
 		-- type of speed modification to apply:
 		-- 0 = no speed modification
@@ -102,34 +108,33 @@ function CargoHandler.Init(setup)
 		transporterComSpeedModStrength = tonumber(uDef.customParams.transportercomspeedmodstrength or 0), -- separate speed mod strength for commanders, used in modes 1 and 3 as an override if it's higher than the regular mod strength
 		-- set to > 0 value to enable; slows down the transporter if it has a loaded commander
 		-- the resultant speedNerf value is then math.max(speedNerf, comSpeedNerf)
-		transporterAltitude		= tonumber(uDef.wantedHeight or 100), -- wanted height of the transporter, used for move type data and can be modified by passengers
-		slotSizes               = slotSizes,                    -- set of slot sizes available, eg { [1]=true, [4]=true }
-		loadingCount            = 0,                            -- number of load animations in progress
-		unloadingCount          = 0,                            -- number of unload animations in progress
+		transporterAltitude = tonumber(uDef.wantedHeight or 100), -- wanted height of the transporter, used for move type data and can be modified by passengers
+		slotSizes = slotSizes, -- set of slot sizes available, eg { [1]=true, [4]=true }
+		loadingCount = 0, -- number of load animations in progress
+		unloadingCount = 0, -- number of unload animations in progress
 	}
 	cargo.currentMaxPassengerHeight = function() -- helper to get the current max passenger height for anim purposes, based on current cargo
-			local maxHeight = 0
-			for _, passengerData in pairs(cargo.passengers) do
-				if passengerData.height and passengerData.height > maxHeight then
-					maxHeight = passengerData.height
-				end
+		local maxHeight = 0
+		for _, passengerData in pairs(cargo.passengers) do
+			if passengerData.height and passengerData.height > maxHeight then
+				maxHeight = passengerData.height
 			end
-			return maxHeight
 		end
+		return maxHeight
+	end
 
 	-- set some initial unit rules params for the gadget to read, and for UI display
-	for size, bool in pairs (slotSizes) do
-		local rulesParamString = "transporterHasSlotOfSize"..size
+	for size, bool in pairs(slotSizes) do
+		local rulesParamString = "transporterHasSlotOfSize" .. size
 		spSetUnitRulesParam(transporterID, rulesParamString, bool, ALLIED_READ)
 	end
 	CargoHandler.SetSpeedDamping(1.0, cargo, true) -- make sure no silent damping stays after a reload, will be reapplied if necessary.
-	spSetUnitRulesParam(transporterID, "transporterSeats",    cargo.transporterSeats, ALLIED_READ) -- used by gadget to determine if a passenger can be loaded, and by anim handler to determine whether to show hover effect
+	spSetUnitRulesParam(transporterID, "transporterSeats", cargo.transporterSeats, ALLIED_READ) -- used by gadget to determine if a passenger can be loaded, and by anim handler to determine whether to show hover effect
 	spSetUnitRulesParam(transporterID, "transporterUsedSeats", 0, ALLIED_READ) -- used by gadget to determine if a passenger can be loaded/unloaded, and by anim handler to determine whether to show hover effect
 	CargoHandler.CanLoad(true)
 	CargoHandler.CanUnload(true)
 	return cargo
 end
-
 
 ---@param cargo table
 function CargoHandler.HideSlots(cargo)
@@ -220,7 +225,9 @@ end
 function CargoHandler.FindSlot(passengerID, cargo, allowReorganize, fromReorganize)
 	local seats = TransportAPI.GetPassengerSize(passengerID)
 	local sizeList = cargo.slotsBySize[seats]
-	if not sizeList then return nil end
+	if not sizeList then
+		return nil
+	end
 
 	local bestSlotID, bestDistSq = nil, math.huge
 	local bestOverlapSlotID, bestOverlapDistSq = nil, math.huge
@@ -246,12 +253,20 @@ function CargoHandler.FindSlot(passengerID, cargo, allowReorganize, fromReorgani
 
 	if bestSlotID then
 		cargo.slots[bestSlotID].cargo = passengerID
-		return { id = passengerID, height = spGetUnitHeight(passengerID), radius = spGetUnitRadius(passengerID), slotID = bestSlotID }
+		return {
+			id = passengerID,
+			height = spGetUnitHeight(passengerID),
+			radius = spGetUnitRadius(passengerID),
+			slotID = bestSlotID,
+		}
 	end
 
 	-- no slot at all: maybe reorganize can make room
-	if allowReorganize and CargoHandler.HasSlotOfSize(seats, cargo)
-		and cargo.transporterUsedSeats + seats <= cargo.transporterSeats then
+	if
+		allowReorganize
+		and CargoHandler.HasSlotOfSize(seats, cargo)
+		and cargo.transporterUsedSeats + seats <= cargo.transporterSeats
+	then
 		CargoHandler.ReorganizeAndLoad(cargo, passengerID)
 	end
 	return nil
@@ -275,10 +290,16 @@ function CargoHandler.ReorganizeAndLoad(cargo, newPassengerID)
 	table.sort(toLoad, function(a, b)
 		local sa = TransportAPI.GetPassengerSize(a)
 		local sb = TransportAPI.GetPassengerSize(b)
-		if sa ~= sb then return sa > sb end
+		if sa ~= sb then
+			return sa > sb
+		end
 		-- keep newPassengerID at front of its size group
-		if a == newPassengerID then return true end
-		if b == newPassengerID then return false end
+		if a == newPassengerID then
+			return true
+		end
+		if b == newPassengerID then
+			return false
+		end
 		return false
 	end)
 
@@ -317,7 +338,11 @@ function CargoHandler.SetSpeedDamping(speedMod, cargo, changeAltitude)
 	spMoveCtrlSetGunshipMoveTypeData(cargo.transporterID, "accRate", speedMod * cargo.transporterAccRate)
 	spMoveCtrlSetGunshipMoveTypeData(cargo.transporterID, "turnRate", speedMod * cargo.transporterTurnRate)
 	if changeAltitude then
-		spMoveCtrlSetGunshipMoveTypeData(cargo.transporterID, "wantedHeight", math.max(cargo.currentMaxPassengerHeight() + 10, speedMod * cargo.transporterAltitude))	
+		spMoveCtrlSetGunshipMoveTypeData(
+			cargo.transporterID,
+			"wantedHeight",
+			math.max(cargo.currentMaxPassengerHeight() + 10, speedMod * cargo.transporterAltitude)
+		)
 	end
 end
 
@@ -327,11 +352,13 @@ end
 ---@return number count  total passengers currently loaded
 function CargoHandler.Register(passengerID, passengerData, cargo)
 	cargo.passengers[passengerID] = passengerData
-	cargo.count     = cargo.count + 1
+	cargo.count = cargo.count + 1
 	cargo.transporterUsedSeats = cargo.transporterUsedSeats + (cargo.slots[passengerData.slotID].size or 0)
 	spSetUnitRulesParam(cargo.transporterID, "transporterUsedSeats", cargo.transporterUsedSeats, ALLIED_READ)
-	cargo.passengersTotalWeight = cargo.passengersTotalWeight + (TransportAPI.GetPassengerWeight(passengerID, cargo) or 0)
-	cargo.loadedCommandersCount = cargo.loadedCommandersCount + (TransportAPI.IsPassengerCommander(passengerID) and 1 or 0)
+	cargo.passengersTotalWeight = cargo.passengersTotalWeight
+		+ (TransportAPI.GetPassengerWeight(passengerID, cargo) or 0)
+	cargo.loadedCommandersCount = cargo.loadedCommandersCount
+		+ (TransportAPI.IsPassengerCommander(passengerID) and 1 or 0)
 	CargoHandler.SetSpeedDamping(0.2, cargo, false)
 	return cargo.count
 end
@@ -342,14 +369,17 @@ end
 function CargoHandler.Unregister(passengerID, cargo) -- marks the end of unloading
 	local passengerData = cargo.passengers[passengerID]
 	if passengerData and passengerData.slotID then
-		cargo.transporterUsedSeats = math.max(0, cargo.transporterUsedSeats - (cargo.slots[passengerData.slotID].size or 0))
+		cargo.transporterUsedSeats =
+			math.max(0, cargo.transporterUsedSeats - (cargo.slots[passengerData.slotID].size or 0))
 		spSetUnitRulesParam(cargo.transporterID, "transporterUsedSeats", cargo.transporterUsedSeats, ALLIED_READ)
 		CargoHandler.ReleaseSlot(passengerData.slotID, cargo)
 	end
 	cargo.passengers[passengerID] = nil
 	cargo.count = math.max(0, cargo.count - 1)
-	cargo.passengersTotalWeight = math.max(0, cargo.passengersTotalWeight - (TransportAPI.GetPassengerWeight(passengerID,cargo) or 0))
-	cargo.loadedCommandersCount = math.max(0, cargo.loadedCommandersCount - (TransportAPI.IsPassengerCommander(passengerID) and 1 or 0))
+	cargo.passengersTotalWeight =
+		math.max(0, cargo.passengersTotalWeight - (TransportAPI.GetPassengerWeight(passengerID, cargo) or 0))
+	cargo.loadedCommandersCount =
+		math.max(0, cargo.loadedCommandersCount - (TransportAPI.IsPassengerCommander(passengerID) and 1 or 0))
 	local speedMod = TransportAPI.CalculateTransporterSpeed(cargo)
 	CargoHandler.SetSpeedDamping(speedMod, cargo, true)
 	return cargo.count
