@@ -692,6 +692,17 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("Gaia's team", function()
+		it("is a team name a loadout entry can use", function()
+			V.missionAPI().Teams = { rebels = 0, [0] = "rebels", gaia = 1, [1] = "gaia" }
+
+			V.assertValid(V.validateAction({
+				type = V.actionTypes.SpawnUnits,
+				parameters = { unitLoadout = { { unitDefName = "armwar", teamName = "gaia", x = 0, z = 0 } } },
+			}))
+		end)
+	end)
+
 	describe("VariableValue", function()
 		local function validateValue(value)
 			return V.validateAction({ type = V.actionTypes.WriteVariable, parameters = { key = "k", value = value } })
