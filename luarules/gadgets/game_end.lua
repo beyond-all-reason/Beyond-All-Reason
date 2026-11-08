@@ -380,6 +380,45 @@ if gadgetHandler:IsSyncedCode() then
 		return winnersCorrectFormatCount
 	end
 
+	local function getWinners()
+		if fixedallies then
+			return CheckSingleAllyVictoryEnd()
+		end
+		return sharedDynamicAllianceVictory and CheckSharedAllyVictoryEnd() or CheckSingleAllyVictoryEnd()
+	end
+
+	local function declareWinners(winners, gf)
+		gadgetHandler:RemoveCallIn("TeamChanged")
+
+		if Spring.GetModOptions().scenariooptions then
+			Spring.Echo("winners", winners[1])
+			SendToUnsynced("scenariogameend", winners[1])
+		end
+
+		-- delay gameover to let everything blow up gradually first
+		local delay = GG.maxDeathFrame or 250
+		gameoverFrame = gf + delay + 70
+		gameoverWinners = winners
+
+		-- make all winner commanders dance!
+		gameoverAnimFrame = gf + 55 -- delay a bit because walking commanders need to stop walking + a delay look nice
+		gameoverAnimUnits = {}
+		if type(winners) == "table" then
+			local winnerSet = {}
+			for u = 1, #winners do
+				winnerSet[winners[u]] = true
+			end
+			local units = Spring.GetAllUnits()
+			for i = 1, #units do
+				local unitID = units[i]
+				if isCommander[Spring.GetUnitDefID(unitID)] and winnerSet[Spring.GetUnitAllyTeam(unitID)] then
+					Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0) -- give stop cmd so commanders can animate in place
+					gameoverAnimUnits[unitID] = true
+				end
+			end
+		end
+	end
+
 	function gadget:GameFrame(gf)
 		if gameoverFrame then
 			if not globalLosGranted then
@@ -409,49 +448,19 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		else
-			local winners
 			if fixedallies then
 				if gf < 30 or gf % 30 == 1 then
 					CheckAllPlayers(gf)
 				end
-				winners = CheckSingleAllyVictoryEnd()
 			else
 				if gf < 30 or gf % 15 == 1 then
 					CheckAllPlayers(gf)
 				end
-				winners = sharedDynamicAllianceVictory and CheckSharedAllyVictoryEnd() or CheckSingleAllyVictoryEnd()
 			end
 
+			local winners = getWinners()
 			if winners then
-				gadgetHandler:RemoveCallIn("TeamChanged")
-
-				if Spring.GetModOptions().scenariooptions then
-					Spring.Echo("winners", winners[1])
-					SendToUnsynced("scenariogameend", winners[1])
-				end
-
-				-- delay gameover to let everything blow up gradually first
-				local delay = GG.maxDeathFrame or 250
-				gameoverFrame = gf + delay + 70
-				gameoverWinners = winners
-
-				-- make all winner commanders dance!
-				gameoverAnimFrame = gf + 55 -- delay a bit because walking commanders need to stop walking + a delay look nice
-				gameoverAnimUnits = {}
-				if type(winners) == "table" then
-					local winnerSet = {}
-					for u = 1, #winners do
-						winnerSet[winners[u]] = true
-					end
-					local units = Spring.GetAllUnits()
-					for i = 1, #units do
-						local unitID = units[i]
-						if isCommander[Spring.GetUnitDefID(unitID)] and winnerSet[Spring.GetUnitAllyTeam(unitID)] then
-							Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0) -- give stop cmd so commanders can animate in place
-							gameoverAnimUnits[unitID] = true
-						end
-					end
-				end
+				declareWinners(winners, gf)
 			end
 		end
 	end
