@@ -7,20 +7,21 @@ local baseValues = { --format: {value, multiplier}
 
 	--health related
 	--autoHeal = { 10 * playerCountScale, 1.15 },
-	health = { math.min(800000 * playerCountScale, 10000000), 1.15 },
+	health = { math.min(240000 * playerCountScale, 3000000), 1.15 },
 
 	--DPS related
 	botCannonProjectiles = { 3 * playerCountScale, 1.15 },
 	disintegratorBurst = { 1, 1.15 }, -- cannot be lower than 1
-	minigunDamage = { 393 * playerCountScale, 1.15 },
-	turboMinigunDamage = { 296 * playerCountScale, 1.15 },
-	missileDamage = { 4500 * playerCountScale, 1.15 },
-	missileGroundDamage = { 1420 * playerCountScale, 1.15 },
-	turboMissileDamage = { 1000 * playerCountScale, 1.15 },
-	shotgunDamage = { 1200 * playerCountScale, 1.15 },
-	napalmDamage = { 200 * playerCountScale, 1.15 },
-	topTurretsDamage = { 2000 * playerCountScale, 1.15 },
-	torpedoDamage = { 7500 * playerCountScale, 1.15 },
+	minigunDamage = { 232 * playerCountScale, 1.15 },
+	turboMinigunDamage = { 135 * playerCountScale, 1.15 },
+	missileDamage = { 2655 * playerCountScale, 1.15 },
+	missileGroundDamage = { 838 * playerCountScale, 1.15 },
+	turboMissileDamage = { 590 * playerCountScale, 1.15 },
+	shotgunDamage = { 708 * playerCountScale, 1.15 },
+	napalmDamage = { 118 * playerCountScale, 1.15 },
+	topTurretsDamage = { 1180 * playerCountScale, 1.15 },
+	turboTopTurretsDamage = { 850 * playerCountScale, 1.15 },
+	torpedoDamage = { 4425 * playerCountScale, 1.15 },
 
 	shotgunProjectiles = { 20, 1.15 },
 	shotgunSprayAnglePercentageMultiplier = { 100, 1.15 },
@@ -441,7 +442,7 @@ local unitsTable = {
 				weaponvelocity = 1400,
 				damage = {
 					commanders = 1200,
-					default = 12000,
+					default = 8280,
 				},
 			},
 			special_disintegratorxl = {
@@ -670,9 +671,9 @@ local unitsTable = {
 				weapontype = "Cannon",
 				weaponvelocity = 800,
 				damage = {
-					default = stats.topTurretsDamage,
-					shields = stats.topTurretsDamage / 2,
-					subs = stats.topTurretsDamage / 4,
+					default = stats.turboTopTurretsDamage,
+					shields = stats.turboTopTurretsDamage / 2,
+					subs = stats.turboTopTurretsDamage / 4,
 				},
 			},
 			special_botcannon = {
