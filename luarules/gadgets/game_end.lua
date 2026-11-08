@@ -83,6 +83,8 @@ if gadgetHandler:IsSyncedCode() then
 	local playerList = GetPlayerList()
 	local killTeamQueue = {}
 	local isFFA = BAR.Utilities.Gametype.IsFFA()
+	local gameIsPaused = false
+	local inResignedPlayerCheck = false
 
 	local gameoverFrame
 	local gameoverWinners
@@ -475,6 +477,31 @@ if gadgetHandler:IsSyncedCode() then
 		allyTeamInfos[allyTeamID].teams[teamID].dead = true
 		UpdateAllyTeamIsDead(allyTeamID, gf)
 		CheckAllPlayers(gf)
+	end
+
+	function gadget:PlayerChanged(playerID)
+		-- KillTeam makes its players spectators, which calls back in here.
+		if not gameIsPaused or gameoverFrame or inResignedPlayerCheck then
+			return
+		end
+		inResignedPlayerCheck = true
+		local gf = GetGameFrame()
+		teamEvalFrame = {}
+		allyTeamEvalFrame = {}
+		CheckAllPlayers(gf)
+		inResignedPlayerCheck = false
+		local winners = getWinners()
+		if winners then
+			declareWinners(winners, gf)
+			GameOver(winners) -- Make sure games can end while paused.
+		end
+	end
+
+	function gadget:GamePaused(playerID, isPaused)
+		gameIsPaused = isPaused
+		if isPaused and gameoverFrame then
+			GameOver(gameoverWinners) -- Make sure games can end while paused.
+		end
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeamID, builderID)
