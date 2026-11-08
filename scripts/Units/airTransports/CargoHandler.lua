@@ -8,14 +8,13 @@ local spGetUnitRotation           = Spring.GetUnitRotation
 local spGetUnitHeight             = Spring.GetUnitHeight
 local spGetUnitRadius             = Spring.GetUnitRadius
 local spSetUnitRulesParam         = Spring.SetUnitRulesParam
-local ALLIED_READ = { allied = true } -- allies and spectators see seats and load states
 local spMoveCtrlSetGunshipMoveTypeData = Spring.MoveCtrl.SetGunshipMoveTypeData
 
 -- CUSTOM SETTINGS
 -- (none)
 
 -- CONSTANTS
--- (none)
+local ALLIED_READ = { allied = true } -- allies and spectators see seats and load states
 
 -- LOCAL HELPERS
 -- local function RequiresMet(...)           -- Returns true if every required slot is currently empty

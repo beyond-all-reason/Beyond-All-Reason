@@ -41,6 +41,12 @@ local gameCommands = {
 	WANT_CLOAK = 37382,
 	HOUND_WEAPON_TOGGLE = 37383, -- unused
 	SMART_TOGGLE = 37384,
+
+	-- tractor beam transports
+	TRANSPORT_AREA_LOAD = 39751,
+	TRANSPORT_LOAD_UNIT = 39752,
+	TRANSPORT_LOAD_WAIT = 39753,
+
 	AREA_ATTACK_GROUND = 39954,
 
 	-- terraform

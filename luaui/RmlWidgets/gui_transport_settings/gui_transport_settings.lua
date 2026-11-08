@@ -13,8 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-local tractorBeamMode = Spring.GetModOptions().beta_tractorbeam
-if not tractorBeamMode or tractorBeamMode == "disabled" then
+if Spring.GetModOptions().beta_tractorbeam == "disabled" then
 	return false
 end
 

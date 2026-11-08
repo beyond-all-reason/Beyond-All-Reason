@@ -20,7 +20,6 @@ local spGetGroundNormal           = Spring.GetGroundNormal
 local spSetUnitRadiusAndHeight    = Spring.SetUnitRadiusAndHeight
 local spGetUnitDefID              = Spring.GetUnitDefID
 local spSetUnitRulesParam         = Spring.SetUnitRulesParam
-local ALLIED_READ = { allied = true } -- allies and spectators see seats and load states
 local spSetUnitPhysicalStateBit   = Spring.SetUnitPhysicalStateBit
 local spPos2BuildPos              = Spring.Pos2BuildPos
 local spGetUnitCommands           = Spring.GetUnitCommands
@@ -31,6 +30,7 @@ local spSetUnitBlocking           = Spring.SetUnitBlocking
 
 -- CONSTANTS
 local PI              = math.pi
+local ALLIED_READ     = { allied = true } -- rules params readable by allies
 local SIG_WATCH       = 2 -- signal to stop the WatchBeam thread when cargo state changes
 local SIG_LOAD        = 4 -- signal to kill all in-flight Load threads (used by ReorganizeAndLoad)
 
@@ -311,6 +311,8 @@ end
 -- @param goalPosY       number   world-space Y hint (actual Y is clamped to ground height)
 -- @param goalPosZ       number   world-space Z of the drop point
 -- @param doAnim         boolean  if false, detach in-place only  (default: true)
+-- @param exact          boolean  set down on the goal itself, not at the slot's offset
+-- @param facing         number   build facing of a building set down exactly
 function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, doAnim, exact, facing)
 	if passengerData.unloading then return end
 	TransportAPI.DisablePassenger(passengerData.id)

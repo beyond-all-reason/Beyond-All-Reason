@@ -14,8 +14,7 @@ function widget:GetInfo()
 end
 
 -- a tractor beam lifts moving units on its own
-local tractorBeamMode = Spring.GetModOptions().beta_tractorbeam
-if tractorBeamMode and tractorBeamMode ~= "disabled" then
+if Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
 	return false
 end
 

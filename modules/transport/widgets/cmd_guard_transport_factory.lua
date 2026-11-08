@@ -339,11 +339,7 @@ local function canTransport(transportID, unitID)
 
 	-- tractor beam transports go by free seats
 	local TransportAPI = WG.TransportAPI
-	if
-		TransportAPI
-		and TransportAPI.GetPendingSeats
-		and (Spring.GetUnitRulesParam(transportID, "transporterSeats") or 0) > 0
-	then
+	if TransportAPI and TransportAPI.IsTractorTransport(transportID) then
 		if uDefObj.cantBeTransported then
 			return false
 		end

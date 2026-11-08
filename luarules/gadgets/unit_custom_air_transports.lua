@@ -84,9 +84,9 @@ local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 -- CUSTOM SETTINGS
 local LOAD_RADIUS = tractorbeamDefs.LOAD_RADIUS or 128    -- elmos XZ; transporter must be within this range to fire PerformLoad
 local UNLOAD_RADIUS = tractorbeamDefs.UNLOAD_RADIUS or 32  -- elmos XZ; transporter must be within this range to fire PerformUnload
-local CMD_AREA_LOAD = 39751 -- custom area-load command; needs to be logged in customcmds
-local CMD_LOAD_UNIT = 39752 -- custom load-unit command; needs to be logged in customcmds
-local CMD_LOAD_WAIT = 39753 -- custom load-wait command; needs to be logged in customcmds
+local CMD_AREA_LOAD = GameCMD.TRANSPORT_AREA_LOAD
+local CMD_LOAD_UNIT = GameCMD.TRANSPORT_LOAD_UNIT
+local CMD_LOAD_WAIT = GameCMD.TRANSPORT_LOAD_WAIT
 local CACHED_CYLINDER_UNITS_LIFESPAN = 1 -- 1 frame
 local CACHED_CYLINDER_UNITS_ROUNDING = 16 -- rounds position and radius to nearest multiple of this to reduce cache misses
 local ALLOW_ENEMY_LOAD_MODE = tractorbeamDefs.ALLOW_ENEMY_LOAD_MODE or 2 -- Enemy loading mode:
@@ -1159,9 +1159,6 @@ function gadget:AllowUnitTransport(transporterID, transporterDefID, transporterT
 	return CanBeTransportedStatic(passengerID, passengerDefID, transporterID) and CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) and CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, GetPassengerSize(passengerID), 0)
 end
 
--- Note: this ends up functionning like CommandFallback as soon as dist to pos is < unitDef.loadingRadius
--- Note2: i should be more careful as, unlike the tractor beam specific logic in CommandFallback,
--- this here is shared with all non tractor beams transports to.
 -- a named unload of a building is placed like a build order: its own footprint, exactly on the spot
 local isImmobileDef = {}
 for defID, ud in pairs(UnitDefs) do
@@ -1172,6 +1169,9 @@ local function buildingUnloadDefID(passengerID)
 	return passengerDefID and isImmobileDef[passengerDefID] and passengerDefID or nil
 end
 
+-- Note: this ends up functionning like CommandFallback as soon as dist to pos is < unitDef.loadingRadius
+-- Note2: i should be more careful as, unlike the tractor beam specific logic in CommandFallback,
+-- this here is shared with all non tractor beams transports to.
 function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transporterTeamID, passengerID, passengerDefID, passengerTeamID, goalX, goalY, goalZ)
 	if isUnderwater(passengerID, goalY) then return false end -- Commands are given with goalY = 0 anyways, so this should no fail unless some hackery happened
 	if not isAirTransport[transporterDefID] then return true end -- only handle air transports here
@@ -1179,6 +1179,7 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
 	local Q = spGetUnitCommands(transporterID, 1)
+	-- passengerID is set for area unloads too; only a named unload carries the unit as its 4th param
 	local buildingDefID = Q and Q[1] and Q[1].id == CMD.UNLOAD_UNIT and buildingUnloadDefID(Q[1].params[4])
 	local facing = buildingDefID and Q[1].params[5] or 0
 	local unloadPadType = buildingDefID or GetUnloadPadType(transporterID)

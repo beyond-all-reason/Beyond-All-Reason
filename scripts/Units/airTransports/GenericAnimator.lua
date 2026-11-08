@@ -6,13 +6,13 @@ local spValidUnitID             = Spring.ValidUnitID
 local spGetUnitIsDead           = Spring.GetUnitIsDead
 local spSetUnitRadiusAndHeight  = Spring.SetUnitRadiusAndHeight
 local spSetUnitRulesParam       = Spring.SetUnitRulesParam
-local ALLIED_READ = { allied = true } -- allies and spectators see seats and load states
 local spSetUnitPhysicalStateBit = Spring.SetUnitPhysicalStateBit
 local spGetUnitDefID            = Spring.GetUnitDefID
 local spAddUnitDamage           = Spring.AddUnitDamage
 local spGetUnitHealth           = Spring.GetUnitHealth
 
 -- CONSTANTS
+local ALLIED_READ = { allied = true } -- rules params readable by allies
 local CARGO_KILL_DAMAGE_RATIO = 2  -- fraction of current HP dealt to each passenger on transporter death, scaled by animProgress
 local CARGO_KILL_WEAPON_ID    = -6 -- -CSolidObject::DAMAGE_EXTSOURCE_KILLED; skipped by engine (releaseHeld=true), applied manually here
 

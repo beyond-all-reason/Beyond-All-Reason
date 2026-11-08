@@ -18,9 +18,7 @@ if gadget and not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local tractorBeamMode = Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam
-if not tractorBeamMode or tractorBeamMode == "disabled" then
-	Spring.Echo("Custom transports disabled via modoption, skipping transport API upget")
+if Spring.GetModOptions().beta_tractorbeam == "disabled" then
 	return false
 end
 
@@ -59,7 +57,7 @@ local SEATS_TO_PAD_SIZE = { -- footprint size of the unload pad to spawn for a g
 	[16] = 10,
 }
 
-local CMD_LOAD_UNIT = 39752 -- successive load, defined by the Transport Handler gadget
+local CMD_LOAD_UNIT = GameCMD.TRANSPORT_LOAD_UNIT
 
 -- VARIABLES
 local cachedUnitSizes = {} -- unitDefID -> size, cached for performance
@@ -93,6 +91,8 @@ end
 -- function TransportAPI.GetUnloadTargets(...)            -- Return filtered list of passengers valid to unload at goal position
 -- function TransportAPI.GetPassengerSize(...)            -- Return seat cost of a unit based on footprint or customParams.nseats
 -- function TransportAPI.GetPassengerSizeForDef(...)      -- Same, for a unit def (build menu, stats)
+-- function TransportAPI.IsTractorTransport(...)          -- Return true if the unit is a tractor beam transport
+-- function TransportAPI.GetExpectedCargo(...)            -- Return carried units plus the single-unit loads still queued
 -- function TransportAPI.GetUnloadPadType(...)            -- Return unload pad defID for a given transporter and optional passenger
 -- function TransportAPI.GetBiggestUnloadPadType(...)     -- Return unload pad defID for the largest transporter in a selection
 -- function TransportAPI.CanPassengerFitInTransporter(...)-- Return true if the passenger can fit in the transporter
@@ -219,6 +219,13 @@ function TransportAPI.GetPassengerSizeForDef(udefID)
 	return cachedUnitSizes[udefID]
 end
 
+---@param unitID number
+---@return boolean
+function TransportAPI.IsTractorTransport(unitID)
+	local seats = spGetUnitRulesParam(unitID, "transporterSeats")
+	return seats ~= nil and seats > 0
+end
+
 ---@param transporterID number
 ---@return table passengerIDs carried units plus the single-unit loads still in the queue
 function TransportAPI.GetExpectedCargo(transporterID)
@@ -266,7 +273,7 @@ end
 
 ---@param transporterID number
 ---@param passengerID number|nil
----@param queued boolean|nil the unload goes behind the current queue: count queued loads as cargo
+---@param queued boolean|nil the unload goes behind the current queue: count queued loads as cargo (ignored with a passengerID)
 ---@return number|nil padTypeDefID
 function TransportAPI.GetUnloadPadType(transporterID, passengerID, queued)
 	local transporterSeats = spGetUnitRulesParam(transporterID, "transporterSeats") -- set by CargoHandler
@@ -396,8 +403,6 @@ function TransportAPI.DisablePassenger(passengerID)
 	end
 end
 
----@param cargo table
----@return number speedMultiplier
 -- live settings from a balance test (see the Transport Handler gadget); below 0 keeps the transport's own
 local function speedSetting(key, own)
 	local value = spGetGameRulesParam("tractorbeam_" .. key)
@@ -407,6 +412,8 @@ local function speedSetting(key, own)
 	return own
 end
 
+---@param cargo table
+---@return number speedMultiplier
 function TransportAPI.CalculateTransporterSpeed(cargo)
 	local speedNerf = 0
 	local transporterSpeedModMode = speedSetting("speedModMode", cargo.transporterSpeedModMode or 0)

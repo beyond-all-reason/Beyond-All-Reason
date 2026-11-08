@@ -296,8 +296,8 @@ local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
 	if #transports == 0 then
 		return
 	end
-	-- leave units another order already has: aboard, being lifted, claimed or queued. A plain order replaces
-	-- the selected transports' own claims and queues, so those units are free again
+	-- skip units already aboard, being lifted, claimed, or queued by these transports;
+	-- a plain order frees the selected transports' own claims
 	local isSelectedTransport, queuedLoad = {}, {}
 	for _, transportId in ipairs(transports) do
 		isSelectedTransport[transportId] = true
@@ -310,11 +310,10 @@ local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
 	local freeTargets = {}
 	for _, targetId in ipairs(filteredTargets) do
 		local owner = spGetUnitRulesParam(targetId, "transportClaimedBy") or 0
-		local taken = spGetUnitTransporter(targetId)
-			or (spGetUnitRulesParam(targetId, "inLoadAnim") or 0) > 0
-			or (owner ~= 0 and (options.shift or not isSelectedTransport[owner]))
-			or queuedLoad[targetId]
-		if not taken then
+		local aboard = spGetUnitTransporter(targetId) ~= nil
+		local lifting = (spGetUnitRulesParam(targetId, "inLoadAnim") or 0) > 0
+		local claimedElsewhere = owner ~= 0 and (options.shift or not isSelectedTransport[owner])
+		if not (aboard or lifting or claimedElsewhere or queuedLoad[targetId]) then
 			freeTargets[#freeTargets + 1] = targetId
 		end
 	end
