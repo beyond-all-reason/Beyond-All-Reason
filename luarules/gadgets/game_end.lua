@@ -21,7 +21,7 @@ end
 ]]
 if gadgetHandler:IsSyncedCode() then
 	local sharedDynamicAllianceVictory = Spring.GetModOptions().shareddynamicalliancevictory
-	local fixedallies = Spring.GetModOptions().fixedallies
+	local fixedallies = Spring.GetModOptions().fixedallies ---@as boolean
 
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
@@ -286,7 +286,7 @@ if gadgetHandler:IsSyncedCode() then
 						teamInfo.players[teamPlayers[p]] = false
 					end
 					-- engine AI
-					teamInfo.isAI = select(4, GetTeamInfo(teamID, false))
+					teamInfo.isAI = select(4, GetTeamInfo(teamID, false)) ---@as boolean
 					if teamInfo.isAI then
 						-- store who hosts that engine AI
 						local AIHostPlayerID = select(3, GetAIInfo(teamID))
