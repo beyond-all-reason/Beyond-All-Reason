@@ -20,6 +20,7 @@
   - Cannons no longer change arc with map gravity: Phobos, Phalanx, Leocampus, Sol Invictus, Cetus, Triton, Keres, Sapper, Enyo, Venator, Chimera, Dragon's Jaw
   - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
 - [Fixed]
+  - Custom widgets now use the same takeover logic as the player list in multiplayer.
   - Taking an inactive team also transfers its unused unit capacity, including from empty teams.
   - Taken teams start receiving unit capacity back after the first allied unit share.
   - Sharing units transfers the capacity needed immediately, even above an equal share.
