@@ -89,6 +89,8 @@
 			}
 		},
 		"playersList": {
+			"giveBackLabel": "GIVE BACK",
+			"giveBackUnits": "Return this player's surviving taken units and resume unit capacity redistribution. Newly produced units and resources stay with you.",
 			"spectators": "Spectators %{amount}",
 			"enemies": "Enemies %{amount}",
 			"allies": "Allies",
