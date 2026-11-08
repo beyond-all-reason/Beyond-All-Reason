@@ -68,7 +68,6 @@ if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	--spEcho("3rd = "..  thirdhighestUnitDef .. ", ".. thirdRate)
 end
 
-include("keysym.h.lua")
 ----v1.7 by Doo changes
 -- Reverted "Added beamtime to oRld value to properly count dps of BeamLaser weapons" because reload starts at the beginning of the beamtime
 -- Reduced the "minimal" reloadTime to properly calculate dps for low reloadtime weapons
