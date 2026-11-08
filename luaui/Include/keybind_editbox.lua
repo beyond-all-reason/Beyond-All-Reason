@@ -20,6 +20,8 @@ local text = require("luaui/Include/keybind_text")
 ---@field onChange any
 ---@field outline any
 ---@field clearable any
+---@field plain any
+---@field keepPlaceholder any
 ---@field rect any
 ---@field fontSize any
 ---@field pad any
@@ -72,6 +74,10 @@ function Editbox.new(opts)
 	self.outline = opts.outline
 	-- Asked for rather than given: a field whose text is not a filter has nothing to clear to.
 	self.clearable = opts.clearable
+	-- On a panel of the host's: no fill or hover light of its own.
+	self.plain = opts.plain
+	-- A field focused from the moment it shows would otherwise never say what it is for.
+	self.keepPlaceholder = opts.keepPlaceholder
 	self.rect = { 0, 0, 0, 0 }
 	self.fontSize = 14
 	self.pad = 6
@@ -464,11 +470,12 @@ function Editbox:draw()
 	local cy = floor((y1 + y2) * 0.5)
 	local ty = text.baseline(font, y1, y2, self.fontSize)
 
-	R(x1, y1, x2, y2, cs, 1, 1, 1, 1, fieldFill)
-
 	local mx, my = Spring.GetMouseState()
-	if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-		WG.FlowUI.Draw.SelectHighlight(x1, y1, x2, y2, cs, hoverOpacity, white)
+	if not self.plain then
+		R(x1, y1, x2, y2, cs, 1, 1, 1, 1, fieldFill)
+		if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+			WG.FlowUI.Draw.SelectHighlight(x1, y1, x2, y2, cs, hoverOpacity, white)
+		end
 	end
 
 	gl.Scissor(floor(x1 + self.pad), floor(y1), floor(math.max(0, room)), floor(y2 - y1))
@@ -483,7 +490,7 @@ function Editbox:draw()
 
 	-- The coloured string is kept until the text changes, not rebuilt every frame.
 	local shown
-	if self.text == "" and not self.focused then
+	if self.text == "" and (not self.focused or self.keepPlaceholder) then
 		shown = self.placeholderShown
 		if not shown then
 			shown = colorDim .. self.placeholder

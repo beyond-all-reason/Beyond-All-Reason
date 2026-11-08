@@ -1,4 +1,5 @@
 # November
+- [Navy units] Matching land units: Mine uncloak distance 8 -> 30. Radar health 110 -> 180. Nuke subs damage and falloff match silos.
 - [Legion]
   - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Advanced Underwater Geothermal Powerplant 32000 -> 49950
   - Snapper buildtime 9260 -> 8000, Fortification Wall buildtime 1000 -> 900
@@ -18,6 +19,11 @@
   - Placeholder mass removed: Incinerator 5001 -> 2300, Inferno 5001 -> 1700, Praetorian 200000 -> 7000
   - Cannons no longer change arc with map gravity: Phobos, Phalanx, Leocampus, Sol Invictus, Cetus, Triton, Keres, Sapper, Enyo, Venator, Chimera, Dragon's Jaw
   - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
+- [Fixed]
+  - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
+  - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
+  - Resigning during a pause would turn players into spectators who could not unpause, and the game would never end.
+  - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
 
 # October
 - [Lava] will now damage unit wrecks, rocks, and other metal containing features.

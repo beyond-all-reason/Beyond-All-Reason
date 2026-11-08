@@ -151,6 +151,10 @@ local function registerValueValidators(parameterValidators, context)
 	--- String validators:
 	local validateString = parameterValidators[Types.String]
 
+	parameterValidators[Types.AiState] = getLookupValidator(validateString, "state", function(state)
+		return enums[Types.AiState][state]
+	end)
+
 	parameterValidators[Types.StageID] = getLookupValidator(validateString, "stageID", function(stageID)
 		return context.Stages[stageID]
 	end)

@@ -1,7 +1,7 @@
 return {
 	corftiger = {
 		maxacc = 0.0362,
-		maxdec = 0.0724,
+		maxdec = 0.1,
 		energycost = 10000,
 		metalcost = 665,
 		buildpic = "CORFTIGER.DDS",
