@@ -232,6 +232,7 @@ describe("take2 capacity accounting", function()
 		local t = setup(0, 2, 2, 2)
 		t.take()
 		assert.same({ [0] = 0, [1] = 4, [2] = 500 }, t.caps)
+		assert.equal(1, t.env.Spring.GetTeamRulesParam(0, "unitCapRestorePending"))
 		assert.same({ "TeamTaken", 0, 0, 0, 0, 0 }, t.notices[#t.notices])
 	end)
 
@@ -241,8 +242,10 @@ describe("take2 capacity accounting", function()
 		-- A unit and two slots were returned; another taker unit was lost before the next take.
 		t.units[1], t.units[4] = 0, nil
 		t.caps[0], t.caps[1] = 2, 2
+		t.env.Spring.SetTeamRulesParam(0, "unitCapRestorePending", 0)
 		t.take()
 		assert.equal(1, t.units[1])
 		assert.same({ [0] = 0, [1] = 4, [2] = 500 }, t.caps)
+		assert.equal(1, t.env.Spring.GetTeamRulesParam(0, "unitCapRestorePending"))
 	end)
 end)

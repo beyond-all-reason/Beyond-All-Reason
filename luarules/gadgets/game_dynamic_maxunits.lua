@@ -148,6 +148,7 @@ local function restoreAllyTeamMaxUnits(teams)
 			needed > 0
 			and not aiTeams[teamID]
 			and spGetTeamRulesParam(teamID, "numActivePlayers") ~= 0
+			and spGetTeamRulesParam(teamID, "unitCapRestorePending") ~= 1
 		then
 			for j = 1, teamCount do
 				local donorID = teams[j]
@@ -431,6 +432,34 @@ function gadget:Shutdown()
 	GG.CanShareUnitCap = nil
 end
 
+local pendingShares = {} ---@type table<UnitID, TeamID[]>
+
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	pendingShares[unitID] = nil
+	if
+		not capture
+		and oldTeam ~= newTeam
+		and Spring.GetTeamRulesParam(newTeam, "unitCapRestorePending") == 1
+		and not (GG.IsTransferForced and GG.IsTransferForced(newTeam))
+		and select(6, Spring.GetTeamInfo(oldTeam, false)) == select(6, Spring.GetTeamInfo(newTeam, false))
+	then
+		pendingShares[unitID] = { oldTeam, newTeam }
+	end
+	return true
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	local pending = pendingShares[unitID]
+	pendingShares[unitID] = nil
+	if pending and pending[1] == oldTeam and pending[2] == newTeam then
+		Spring.SetTeamRulesParam(newTeam, "unitCapRestorePending", 0)
+	end
+end
+
+function gadget:UnitDestroyed(unitID)
+	pendingShares[unitID] = nil
+end
+
 function gadget:GameFrame(frame)
 	if frame % Game.gameSpeed ~= 0 then
 		return
@@ -461,6 +490,7 @@ function gadget:TeamDied(teamID)
 
 	local redistributionAmount = Spring.GetTeamMaxUnits(teamID)
 
+	-- Waiting teams still count as alive, but cannot receive capacity before their first share.
 	-- redistribute to teammates (respecting per-team maxunits limit)
 	local allyID = select(6, Spring.GetTeamInfo(teamID, false))
 	local teams = Spring.GetTeamList(allyID)
@@ -483,6 +513,7 @@ function gadget:TeamDied(teamID)
 				and teams[i] ~= gaiaTeamID
 				and not isScavengerOrRaptor(teams[i])
 				and not select(3, Spring.GetTeamInfo(teams[i], false))
+				and spGetTeamRulesParam(teams[i], "unitCapRestorePending") ~= 1
 			then -- not dead, not gaia, not scav/raptor
 				local targetTeamID = teams[i]
 				local currentMaxUnits = Spring.GetTeamMaxUnits(targetTeamID)
@@ -519,6 +550,7 @@ function gadget:TeamDied(teamID)
 					and teams[i] ~= gaiaTeamID
 					and not isScavengerOrRaptor(teams[i])
 					and not select(3, Spring.GetTeamInfo(teams[i], false))
+					and spGetTeamRulesParam(teams[i], "unitCapRestorePending") ~= 1
 				then -- not dead, not gaia, not scav/raptor
 					local targetTeamID = teams[i]
 					local currentMaxUnits = Spring.GetTeamMaxUnits(targetTeamID)

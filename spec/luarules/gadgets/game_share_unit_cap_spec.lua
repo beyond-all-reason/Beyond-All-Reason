@@ -177,3 +177,112 @@ describe("Capacity needed by a share", function()
 	end)
 end)
 
+describe("Restoring capacity after a take", function()
+	it("waits for the first successful share even while the taken player stays connected", function()
+		local teams, give, env, dynamic = setup()
+		env.Spring.SetTeamRulesParam(2, "unitCapRestorePending", 1)
+		teams[1].count = 2
+		dynamic:GameFrame(30)
+		assert.equal(0, teams[2].cap)
+		assert.is_false(give(10, false, true))
+		dynamic:GameFrame(60)
+		assert.equal(0, teams[2].cap)
+		assert.is_true(give(10))
+		dynamic:GameFrame(90)
+		assert.equal(2, teams[2].cap)
+		assert.equal(2, teams[1].cap)
+	end)
+
+	it("unlocks with a share from a full donor and retries as capacity becomes available", function()
+		local teams, give, env, dynamic = setup()
+		env.Spring.SetTeamRulesParam(2, "unitCapRestorePending", 1)
+		assert.is_true(give(10))
+		assert.equal(0, env.Spring.GetTeamRulesParam(2, "unitCapRestorePending"))
+		dynamic:GameFrame(30)
+		assert.equal(1, teams[2].cap)
+		teams[1].count = 2
+		dynamic:GameFrame(60)
+		assert.equal(2, teams[2].cap)
+	end)
+
+	it("does not unlock on capture or take, and waits again after another take", function()
+		local teams, give, env, dynamic = setup()
+		env.Spring.SetTeamRulesParam(2, "unitCapRestorePending", 1)
+		teams[1].count = 2
+		assert.is_true(give(10, true))
+		dynamic:GameFrame(30)
+		assert.equal(0, teams[2].cap)
+		env.Spring.GetUnitTeam = function()
+			return 1
+		end
+		env.Spring.TransferUnit = function(id)
+			return give(id)
+		end
+		assert.is_true(env.GG.ForceUnitTransfer(11, 2))
+		dynamic:GameFrame(60)
+		assert.equal(1, env.Spring.GetTeamRulesParam(2, "unitCapRestorePending"))
+		teams[2].count = 0
+		teams[1].count = 2
+		assert.is_true(give(12))
+		assert.equal(0, env.Spring.GetTeamRulesParam(2, "unitCapRestorePending"))
+		env.Spring.SetTeamRulesParam(2, "unitCapRestorePending", 1)
+		dynamic:GameFrame(90)
+		assert.equal(2, teams[2].cap)
+	end)
+end)
+
+describe("Team death capacity after a take", function()
+	for _, donorAlly in ipairs({ 1, 2 }) do
+		local scenario = donorAlly == 1 and "allied death" or "enemy death with no surviving allies"
+		local function deathSetup()
+			local teams, give, env, dynamic = setup()
+			teams[1].cap, teams[1].count = 0, 0
+			teams[3] = { cap = 4, count = 0, ally = donorAlly, dead = true }
+			env.Spring.GetTeamList = function(ally)
+				local result = {}
+				for id, team in ipairs(teams) do
+					if ally == nil or team.ally == ally then
+						result[#result + 1] = id
+					end
+				end
+				return result
+			end
+			env.Spring.SetTeamRulesParam(2, "unitCapRestorePending", 1)
+			return teams, give, env, dynamic
+		end
+
+		it("gates pending recipients during " .. scenario, function()
+			local teams, _, env, dynamic = deathSetup()
+			dynamic:TeamDied(3)
+			assert.equal(0, teams[2].cap)
+			assert.equal(1, env.Spring.GetTeamRulesParam(2, "unitCapRestorePending"))
+			assert.equal(2, teams[1].cap) -- eligible recipients retain the existing allocation
+			assert.equal(2, teams[3].cap)
+		end)
+
+		it("allows recipients after a successful share during " .. scenario, function()
+			local teams, give, env, dynamic = deathSetup()
+			teams[1].cap, teams[1].count = 1, 1
+			assert.is_true(give(10))
+			assert.equal(0, env.Spring.GetTeamRulesParam(2, "unitCapRestorePending"))
+			dynamic:TeamDied(3)
+			assert.equal(2, teams[2].cap)
+			assert.equal(2, teams[1].cap)
+			assert.equal(1, teams[3].cap)
+		end)
+	end
+
+	it("does not treat pending allies as dead and donate their capacity to enemies", function()
+		local teams, _, env, dynamic = setup()
+		teams[1].count, teams[1].dead = 0, true
+		teams[3] = { cap = 0, count = 0, ally = 2 }
+		env.Spring.GetTeamList = function(ally)
+			return ally == 1 and { 1, 2 } or { 1, 2, 3 }
+		end
+		env.Spring.SetTeamRulesParam(2, "unitCapRestorePending", 1)
+		dynamic:TeamDied(1)
+		assert.equal(0, teams[2].cap)
+		assert.equal(0, teams[3].cap)
+		assert.equal(4, teams[1].cap)
+	end)
+end)

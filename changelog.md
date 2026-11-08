@@ -21,6 +21,7 @@
   - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
 - [Fixed]
   - Taking an inactive team also transfers its unused unit capacity, including from empty teams.
+  - Taken teams start receiving unit capacity back after the first allied unit share.
   - Sharing units transfers the capacity needed immediately, even above an equal share.
   - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
   - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.

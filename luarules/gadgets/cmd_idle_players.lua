@@ -173,7 +173,9 @@ if gadgetHandler:IsSyncedCode() then
 				local unitsTaken = 0
 				for i = 1, #teamUnits do
 					if GetUnitTeam(teamUnits[i]) == teamID then
-						GG.ForceUnitTransfer(teamUnits[i], takerID)
+						if GG.ForceUnitTransfer(teamUnits[i], takerID) then
+							SetTeamRulesParam(teamID, "unitCapRestorePending", 1)
+						end
 					end
 				end
 				for i = 1, #teamUnits do
@@ -184,6 +186,9 @@ if gadgetHandler:IsSyncedCode() then
 				-- Keep slots for units whose transfer was rejected by another gadget.
 				local remainingCap = Spring.GetTeamMaxUnits(teamID) - assert(Spring.GetTeamUnitCount(teamID)) ---@as integer
 				local capTaken = remainingCap > 0 and Spring.TransferTeamMaxUnits(teamID, takerID, remainingCap)
+				if capTaken then
+					SetTeamRulesParam(teamID, "unitCapRestorePending", 1)
+				end
 				-- send all resources en-block to the taker
 				local taken = {}
 				for _, resourceName in ipairs(resourceList) do
