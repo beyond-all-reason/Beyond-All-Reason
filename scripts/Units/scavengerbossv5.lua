@@ -2265,6 +2265,12 @@ local DGUN = {
 	height = 30,
 }
 local BLAST_WEAPON = WeaponDefNames[UnitDefs[unitDefID].name .. "_eaterblast"].id
+---@type table<string, any>
+local FIRE_RING = {
+	weapon = WeaponDefNames[UnitDefs[unitDefID].name .. "_napalmarm"].id,
+	radius = BLAST_RADIUS * 0.6,
+	points = 30,
+}
 do
 	local def = WeaponDefNames[UnitDefs[unitDefID].name .. "_devourdgun"]
 	DGUN.id, DGUN.speed, DGUN.range = def.id, def.projectilespeed, def.range
@@ -2561,9 +2567,24 @@ local function Snack()
 	StartThread(RestoreAfterDelay)
 end
 
+local function FireRing()
+	local x, _, z = Here()
+	local step = FEED_GRACE * 1000 / FIRE_RING.points
+	for i = 1, FIRE_RING.points do
+		local angle = 2 * math.pi * i / FIRE_RING.points
+		local px, pz = x + math.cos(angle) * FIRE_RING.radius, z + math.sin(angle) * FIRE_RING.radius
+		Spring.SpawnExplosion(px, Spring.GetGroundHeight(px, pz), pz, 0, 1, 0, {
+			weaponDef = FIRE_RING.weapon,
+			owner = unitID,
+		})
+		Sleep(step)
+	end
+end
+
 local function Feed()
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 1)
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", 0)
+	StartThread(FireRing)
 	Sleep(FEED_GRACE * 1000)
 	eating, posed, isAiming = true, true, true
 	fedMetal = 0
