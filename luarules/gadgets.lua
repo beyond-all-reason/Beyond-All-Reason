@@ -250,6 +250,7 @@ local callInLists = {
 	"GameOver",
 	"GameID",
 	"TeamDied",
+	"TeamChanged",
 
 	"PlayerAdded",
 	"PlayerChanged",
