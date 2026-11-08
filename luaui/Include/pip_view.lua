@@ -7,7 +7,8 @@
 --   DrawTrackedName()  DrawTrackedResources()
 --   DrawMinimized(mx, my)  instead of all of those while minimized
 --   UpdateBlur()  RemoveBlur()
---   HitResize(mx, my)  HitMinimize(mx, my)  ButtonIndexAt(mx, my)  what the mouse is on
+--   HitResize(mx, my)  HitMinimize(mx, my)  ButtonIndexAt(mx, my)  what the mouse is on (over the map)
+--   HitResizeOutside(mx, my)  a resize grab past the map: on the frame or the timeline
 --   ReleaseFrame()  ReleaseText()  Release()  drop GL objects: frame, text, everything and the blur
 
 local M = {}
@@ -1308,6 +1309,10 @@ function M.new(ui)
 
 	function view.HitResize(mx, my)
 		return render.dim.r - mx + my - render.dim.b <= render.usedButtonSize
+	end
+
+	function view.HitResizeOutside()
+		return false
 	end
 
 	function view.HitMinimize(mx, my)
