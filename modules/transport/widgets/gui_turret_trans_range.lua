@@ -79,8 +79,7 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	transportWithBuilding[unitID] = nil
 end
 
-local tractorBeamMode = Spring.GetModOptions().beta_tractorbeam
-local tractorBeams = tractorBeamMode and tractorBeamMode ~= "disabled"
+local tractorBeams = Spring.GetModOptions().beta_tractorbeam ~= "disabled"
 
 -- tractor beam transports carry several buildings and set them down on the unload preview's pads
 local function drawTractorRanges()
@@ -89,12 +88,12 @@ local function drawTractorRanges()
 		return
 	end
 	for i = 1, #pads do
-		local spots = pads[i][7] -- { unitDefID, x, y, z, rotation } where each passenger lands
+		local spots = pads[i].spots
 		for j = 1, #spots do
-			local unitDefID = spots[j][1]
-			if isTransportableBuilding[unitDefID] and turretRange[unitDefID] then
-				color = isTurret[unitDefID] and colors.turret or colors.tower
-				DrawNanoRange(spots[j][2], spots[j][3], spots[j][4], turretRange[unitDefID])
+			local spot = spots[j]
+			if isTransportableBuilding[spot.defID] and turretRange[spot.defID] then
+				color = isTurret[spot.defID] and colors.turret or colors.tower
+				DrawNanoRange(spot.x, spot.y, spot.z, turretRange[spot.defID])
 			end
 		end
 	end
