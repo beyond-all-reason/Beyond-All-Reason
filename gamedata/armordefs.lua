@@ -650,6 +650,12 @@ local armorDefs = {
 
 		"legnavydestro",
 		"legnavyartyship",
+		"leganavyaaship",
+		"leganavyartyship",
+		"leganavybattleship",
+		"leganavycruiser",
+		"leganavyflagship",
+		"leganavymissileship",
 	},
 
 	subs = {

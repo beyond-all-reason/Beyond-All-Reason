@@ -23,6 +23,16 @@ local env = SpecEnv.new({
 				}
 			end,
 		},
+		FlowUI = {
+			Scroller = {
+				width = function(scale)
+					return math.floor(11 * scale)
+				end,
+				new = function()
+					return {}
+				end,
+			},
+		},
 	},
 	BAR = {
 		I18N = function(key)
@@ -182,6 +192,14 @@ end)
 describe("the selection builder", function()
 	local function open(action)
 		local builder = Builder.new()
+		builder:setLook({
+			textWidth = function(s)
+				return #s * 0.5
+			end,
+			barWidth = function(scale)
+				return math.floor(11 * scale)
+			end,
+		})
 		builder:setArea(0, 0, 1100, 594, 1)
 		builder:show(action and Select.parse(action), { title = "", acceptLabel = "", cancelLabel = "" })
 

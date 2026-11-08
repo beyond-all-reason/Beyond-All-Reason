@@ -3070,7 +3070,7 @@ function widget:DrawScreen()
 					math_floor(buildersRectYend - backgroundRect.y),
 					{
 						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
+						format = GL.RGBA8,
 						fbo = true,
 					}
 				)
@@ -3088,12 +3088,13 @@ function widget:DrawScreen()
 				end, true)
 			end
 			if not buildmenuTex then
+				local ss = WG.FlowUI.supersample or 2
 				buildmenuTex = gl.CreateTexture(
-					math_floor(backgroundRect.xEnd - backgroundRect.x) * 2,
-					math_floor(buildersRectYend - backgroundRect.y) * 2,
-					{ --*(vsy<1400 and 2 or 2)
+					math_floor(backgroundRect.xEnd - backgroundRect.x) * ss,
+					math_floor(buildersRectYend - backgroundRect.y) * ss,
+					{
 						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
+						format = GL.RGBA8,
 						fbo = true,
 					}
 				)

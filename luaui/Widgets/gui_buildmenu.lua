@@ -1479,16 +1479,16 @@ local function refreshBuildmenuTexture()
 	refreshBuildmenu = false
 	if not buildmenuTex and width > 0.05 and height > 0.05 then
 		tracy.ZoneBeginN("W:BuildMenu:DrawScreen:CreateTextures")
-		buildmenuTex =
-			gl.CreateTexture(math_floor(width * vsx) * 2, math_floor(height * vsy) * 2, { --*(vsy<1400 and 2 or 1)
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
-				fbo = true,
-			})
+		local ss = WG.FlowUI.supersample or 2
+		buildmenuTex = gl.CreateTexture(math_floor(width * vsx) * ss, math_floor(height * vsy) * ss, {
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA8,
+			fbo = true,
+		})
 		buildmenuTexHasContent = false
 		buildmenuBgTex = gl.CreateTexture(math_floor(width * vsx), math_floor(height * vsy), {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		gl.R2tHelper.RenderInRect(

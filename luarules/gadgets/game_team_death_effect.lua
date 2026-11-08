@@ -20,6 +20,7 @@ end
 
 local wavePeriod = 550
 local noCratersWhenGameOver = true -- units of the last losing allyteam leave the terrain alone, craters cost sim time
+local damageDelayFrames = 128 -- the engine lands explosion damage up to 127 frames after the blast
 
 local math_floor = math.floor
 local math_min = math.min
@@ -52,6 +53,21 @@ end
 local wipedoutTeams = {}
 local destroyUnitQueue = {} ---@type table<UnitID, UnitID|false> unitID : attackerID|false
 local destroyByFrame = {} ---@type table<integer, UnitID[]?>
+local deferredDeaths = {}
+local deferredDeathsByFrame = {}
+
+-- The blasts are for show: doomed units take no hits, and once a wipeout decides the game no unit
+-- does until it is over. The engine counts every hit in the team stats (own units included), so
+-- a skipped hit (0, 0) keeps the effect out of damage, kills and losses.
+local harmlessUntil = -1
+local guardingDamage = false
+
+local function guardDamage()
+	if not guardingDamage then
+		guardingDamage = true
+		gadgetHandler:UpdateCallIn("UnitPreDamaged")
+	end
+end
 
 ---Neutralizes a team's units and queues them to explode
 ---@param teamID TeamID
@@ -126,6 +142,7 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult,
 		Spring.GiveOrderToUnitArray(armed, CMD.FIRE_STATE, 0)
 		Spring.GiveOrderToUnitArray(armed, GameCMD.UNIT_CANCEL_TARGET)
 	end
+	guardDamage()
 	wipedoutTeams[teamID] = math_max(wipedoutTeams[teamID] or 0, gameFrame + math_max(maxDeathFrame, 300))
 	GG.maxDeathFrame = GG.maxDeathFrame and math_max(GG.maxDeathFrame, maxDeathFrame) or maxDeathFrame -- storing frame of total unit wipeout
 end
@@ -168,18 +185,55 @@ local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, per
 	end
 	periodMult = (periodMult or 1.0) * math.clamp(totalUnits / 300, 0.33, 1.0) -- make low unitcount blow up faster
 
-	local noCraters = noCratersWhenGameOver and isGameDecidedWithout(allyTeamID)
+	local decided = isGameDecidedWithout(allyTeamID)
+	local noCraters = noCratersWhenGameOver and decided
 
 	-- destroy all teams
 	for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
 		wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult, noCraters)
+		if decided then
+			harmlessUntil = math_max(harmlessUntil, wipedoutTeams[teamID] + damageDelayFrames)
+		end
 	end
 end
 
 GG.wipeoutTeam = wipeoutTeam
 GG.wipeoutAllyTeam = wipeoutAllyTeam
 
+function gadget:Initialize()
+	gadgetHandler:RemoveCallIn("UnitPreDamaged")
+end
+
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage)
+	if destroyUnitQueue[unitID] ~= nil or spGetGameFrame() <= harmlessUntil then
+		return 0, 0
+	end
+	return damage, 1
+end
+
 function gadget:GameFrame(frame)
+	-- UnitCreated/UnitFinished can run inside a factory's build update. Exploding
+	-- the new unit there can kill the factory and invalidate its current build.
+	local deferred = deferredDeathsByFrame[frame]
+	deferredDeathsByFrame[frame] = nil
+	if deferred then
+		for i = 1, #deferred do
+			local death = deferred[i]
+			local unitID = death.unitID
+			if deferredDeaths[unitID] == death then
+				deferredDeaths[unitID] = nil
+				if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
+					spDestroyUnit(unitID, death.selfD, false)
+				end
+			end
+		end
+	end
+
+	if guardingDamage and frame > harmlessUntil and next(destroyUnitQueue) == nil then
+		guardingDamage = false
+		gadgetHandler:RemoveCallIn("UnitPreDamaged")
+	end
+
 	local units = destroyByFrame[frame]
 	if not units then
 		return
@@ -205,11 +259,32 @@ end
 
 local function denyAndDestroyUnit(_, unitID, _, unitTeam)
 	if wipedoutTeams[unitTeam] and wipedoutTeams[unitTeam] >= spGetGameFrame() then
-		spDestroyUnit(unitID, not GG.wipeoutWithWreckage, false)
+		if deferredDeaths[unitID] then
+			return
+		end
+		local death = { unitID = unitID, selfD = not GG.wipeoutWithWreckage }
+		deferredDeaths[unitID] = death
+		local frame = spGetGameFrame() + 1
+		local units = deferredDeathsByFrame[frame]
+		if not units then
+			units = {}
+			deferredDeathsByFrame[frame] = units
+		end
+		units[#units + 1] = death
 	end
 end
-gadget.UnitCreated = denyAndDestroyUnit
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	-- A recycled ID must never inherit a pending destruction.
+	deferredDeaths[unitID] = nil
+	denyAndDestroyUnit(self, unitID, unitDefID, unitTeam)
+end
+
 gadget.UnitFinished = denyAndDestroyUnit
+
+function gadget:UnitDestroyed(unitID)
+	deferredDeaths[unitID] = nil
+end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
 	---@diagnostic disable-next-line -- OK: leaving second return `nil` is better

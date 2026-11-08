@@ -74,6 +74,10 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	return onPreDamaged(damage, weaponDefID, attackerID)
 end
 
+function gadget:Initialize()
+	attributes.Initialize()
+end
+
 function gadget:Shutdown()
 	GG.UnitAttributes = nil
 	-- TODO: full save/load/reload

@@ -27,7 +27,7 @@ return {
 		script = "Units/LEGOTTER.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
-		sightdistance = 260,
+		sightdistance = 330,
 		terraformspeed = 400,
 		trackoffset = 8,
 		trackstrength = 5,

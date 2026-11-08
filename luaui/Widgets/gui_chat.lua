@@ -1843,6 +1843,12 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 		return
 	end
 
+	-- units shared by the Share Unit command (luarules/gadgets/cmd_share_unit.lua) aren't announced
+	-- when used as part of a factory rally. Otherwise, it would spam the chat.
+	if Spring.GetUnitRulesParam(unitID, "isRallyShare") then
+		return
+	end
+
 	if not lastUnitShare then
 		lastUnitShare = {}
 	end
@@ -2107,6 +2113,14 @@ function widget:Update(dt)
 	uiSec = uiSec + dt
 	if uiSec > 1 then
 		uiSec = 0
+
+		-- the top bar can change its bottom after the chat placed itself under it (a top bar laid
+		-- out later, or one taking over from another): follow it
+		local area = WG.topbar and WG.topbar.GetPosition and WG.topbar.GetPosition()
+		local moved = area and (not topbarArea or area[1] ~= topbarArea[1] or area[2] ~= topbarArea[2])
+		if moved and widget.ViewResize then
+			widget:ViewResize(vsx, vsy)
+		end
 
 		-- restore pregame reconnection messages
 		--if prevOrgLines and Spring.GetGameRulesParam("GameID") then
@@ -3851,6 +3865,16 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 		return true
 	end
 
+	-- history view: PGUP/PGDN page through it, HOME/END jump to its oldest/newest line
+	-- (while typing HOME/END move the text cursor, so there it takes CTRL + HOME/END)
+	if historyMode then
+		local page = key == 280 or key == 281
+		if page or ((key == 278 or key == 279) and (ctrl or not showTextInput)) then
+			state.scrollHistory(key == 280 or key == 278, page and maxLinesScroll or math.huge)
+			return true
+		end
+	end
+
 	if not showTextInput then
 		return false
 	end
@@ -4302,57 +4326,50 @@ function widget:MouseRelease(x, y, button)
 	return true
 end
 
-function widget:MouseWheel(up, value)
-	if historyMode and not Spring.IsGUIHidden() then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if historyMode == "chat" then
-			local scrollCount = 0
-			local scrollAmount = (shift and maxLinesScroll or (ctrl and 3 or 1))
-			local i = currentChatLine
-			while i > 0 and i <= #chatLines do
-				i = i + (up and -1 or 1)
-				if chatLines[i] and not chatLines[i].ignore then
-					currentChatLine = i
-					scrollCount = scrollCount + 1
-					if scrollCount == scrollAmount then
-						break
-					end
+-- scrolls the history view by scrollAmount lines (math.huge: to its oldest/newest line)
+function state.scrollHistory(up, scrollAmount)
+	if historyMode == "chat" then
+		local scrollCount = 0
+		local i = currentChatLine
+		while i > 0 and i <= #chatLines do
+			i = i + (up and -1 or 1)
+			if chatLines[i] and not chatLines[i].ignore then
+				currentChatLine = i
+				scrollCount = scrollCount + 1
+				if scrollCount == scrollAmount then
+					break
 				end
 			end
-			if currentChatLine < maxLinesScroll then
-				currentChatLine = maxLinesScroll
-			end
-		else
-			if up then
-				currentConsoleLine = currentConsoleLine - (shift and maxLinesScroll or (ctrl and 3 or 1))
-				if currentConsoleLine < maxLinesScroll then
-					currentConsoleLine = maxLinesScroll
-					if currentConsoleLine > #consoleLines then
-						currentConsoleLine = #consoleLines
-					end
-				end
-			else
-				currentConsoleLine = currentConsoleLine + (shift and maxLinesScroll or (ctrl and 3 or 1))
+		end
+		if currentChatLine < maxLinesScroll then
+			currentChatLine = maxLinesScroll
+		end
+	else
+		if up then
+			currentConsoleLine = currentConsoleLine - scrollAmount
+			if currentConsoleLine < maxLinesScroll then
+				currentConsoleLine = maxLinesScroll
 				if currentConsoleLine > #consoleLines then
 					currentConsoleLine = #consoleLines
 				end
-				currentChatLine = currentChatLine + (shift and maxLinesScroll or (ctrl and 3 or 1))
-				if currentChatLine > #chatLines then
-					currentChatLine = #chatLines
-				end
 			end
-			--if up then
-			--	currentConsoleLine = currentConsoleLine - (shift and maxLinesScroll or (ctrl and 3 or 1))
-			--else
-			--	currentConsoleLine = currentConsoleLine + (shift and maxLinesScroll or (ctrl and 3 or 1))
-			--end
-			--if currentConsoleLine < maxLinesScroll then
-			--	currentConsoleLine = maxLinesScroll
-			--end
-			--if currentConsoleLine > #consoleLines then
-			--	currentConsoleLine = #consoleLines
-			--end
+		else
+			currentConsoleLine = currentConsoleLine + scrollAmount
+			if currentConsoleLine > #consoleLines then
+				currentConsoleLine = #consoleLines
+			end
+			currentChatLine = currentChatLine + scrollAmount
+			if currentChatLine > #chatLines then
+				currentChatLine = #chatLines
+			end
 		end
+	end
+end
+
+function widget:MouseWheel(up, value)
+	if historyMode and not Spring.IsGUIHidden() then
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		state.scrollHistory(up, shift and maxLinesScroll or (ctrl and 3 or 1))
 		return true
 	else
 		return false
@@ -4466,7 +4483,7 @@ function widget:ViewResize()
 
 	local chatPanelWidth = activationArea[3] - activationArea[1]
 	local chatTextStartOffset = maxTimeWidth + maxPlayernameWidth + lineSpaceWidth
-	local chatTextEndMargin = floor(38 * widgetScale)
+	local chatTextEndMargin = floor(48 * widgetScale) -- clear of the history view's scrollbar
 	lineMaxWidth =
 		floor(math.max(120, chatPanelWidth - chatTextStartOffset - chatTextEndMargin - (backgroundPadding * 2)))
 	consoleLineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.88)

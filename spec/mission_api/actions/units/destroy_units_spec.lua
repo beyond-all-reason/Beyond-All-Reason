@@ -1,0 +1,87 @@
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
+
+-- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
+MissionApiBuilder.new():Install()
+
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/units/destroy_units.lua")
+local action = actions[1]
+local summarizeSchema = require("mission_api.schema_spec_helper")
+
+local function seedUnits(name, ...)
+	local builder = MissionApiBuilder.new()
+	for _, unitID in ipairs({ ... }) do
+		builder:WithTrackedUnit(name, unitID)
+	end
+	builder:Install()
+end
+
+describe("mission_api.actions.destroy_units", function()
+
+	---@type table
+	local destroyCalls
+
+	before_each(function()
+		MissionApiBuilder.new():Install()
+		env.Spring = SpringSyncedBuilder.new():Build()
+		destroyCalls = env.Spring.calls.destroyUnit
+	end)
+
+	it("declares its type and parameters", function()
+		assert.are.same({
+			type = "DestroyUnits",
+			unitName = "UnitName!",
+		}, summarizeSchema(action))
+	end)
+
+	describe("actionFunction", function()
+		it("is a no-op for an untracked unit name", function()
+			action.actionFunction("ghost")
+
+			assert.are.equal(0, #destroyCalls)
+		end)
+
+		it("kills the unit normally, leaving a wreck", function()
+			seedUnits("tank", 1)
+
+			action.actionFunction("tank")
+
+			assert.are.equal(1, #destroyCalls)
+			assert.are.equal(1, destroyCalls[1].unitID)
+			assert.is_false(destroyCalls[1].selfd)
+			assert.is_false(destroyCalls[1].reclaimed)
+		end)
+
+		it("destroys every unit tracked under the name", function()
+			seedUnits("squad", 1, 2, 3)
+
+			action.actionFunction("squad")
+
+			assert.are.equal(3, #destroyCalls)
+		end)
+
+		it("skips dead units", function()
+			seedUnits("dead", 5)
+			env.Spring.GetUnitIsDead = function(unitID)
+				return true
+			end
+
+			action.actionFunction("dead")
+
+			assert.are.equal(0, #destroyCalls)
+		end)
+
+		it("only affects units tracked under the given name", function()
+			MissionApiBuilder.new():WithTrackedUnit("tanks", 1):WithTrackedUnit("bots", 2):Install()
+
+			action.actionFunction("tanks")
+
+			assert.are.equal(1, #destroyCalls)
+			assert.are.equal(1, destroyCalls[1].unitID)
+		end)
+	end)
+
+end)

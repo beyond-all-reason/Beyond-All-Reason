@@ -68,6 +68,11 @@ local SNAP_RADIUS = 100
 -- Number of targets that can be assigned. Used to set up the table pools.
 local TARGET_BY_TYPE_COUNT_MAX = 128
 
+local isSetTargetCommand = {
+	[GameCMD.UNIT_SET_TARGET] = true,
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = true,
+}
+
 local gameStarted
 
 for udid, ud in pairs(UnitDefs) do
@@ -195,11 +200,13 @@ end
 
 local commandsToGivePool = table.new(TARGET_BY_TYPE_COUNT_MAX, 0)
 local nextCmdOpts = { "shift" }
-do
-	for i = 1, TARGET_BY_TYPE_COUNT_MAX do
-		commandsToGivePool[i] = { CMD_SET_TARGET, -1, nextCmdOpts }
-	end
+for i = 1, TARGET_BY_TYPE_COUNT_MAX do
+	commandsToGivePool[i] = { CMD_SET_TARGET, -1, nextCmdOpts }
 end
+local commandsToGiveCache = table.new(TARGET_BY_TYPE_COUNT_MAX + 1, 0) ---@type CreateCommand[]
+local commandsToGiveCount = 0
+local sentTargets = {}
+
 local function targetUnitsInRangeWithDef(unitID, targetUnitDefIDTable)
 	local candidateUnits = GetUnitsInAttackRangeWithDef(unitID, targetUnitDefIDTable)
 
@@ -216,8 +223,11 @@ local function targetUnitsInRangeWithDef(unitID, targetUnitDefIDTable)
 	if candidateUnits[1] then
 		local unitTargetID = spGetUnitRulesParam(unitID, "unitTargetID")
 		local commandTarget = { CMD_SET_TARGET, unitTargetID }
-		local commandsToGive = table.new(TARGET_BY_TYPE_COUNT_MAX + 1, 0)
-		commandsToGive[1] = { CMD_SET_TARGET, candidateUnits[1] }
+		local commandsToGive = commandsToGiveCache
+		for index = 1, commandsToGiveCount do
+			commandsToGive[index] = nil
+		end
+		commandsToGive[1] = { CMD_SET_TARGET, candidateUnits[1] } ---@as CreateCommand
 		local candidateCount = #candidateUnits
 		for index = 2, candidateCount do
 			if candidateUnits[index] == unitTargetID then
@@ -230,13 +240,30 @@ local function targetUnitsInRangeWithDef(unitID, targetUnitDefIDTable)
 				commandsToGive[index] = commandTable
 			end
 		end
-		-- We can use a nil boundary to stop iter in ParseCommandTable because we are careful
-		-- not to introduce a new hash part. luaH_next jumps to the hash following the array.
-		if candidateCount < TARGET_BY_TYPE_COUNT_MAX then
-			commandsToGive[candidateCount + 1] = nil
+		-- TODO: change the engine not to luaH_next through arrays; use an array iterator for arrays.
+		commandsToGiveCount = #commandsToGive
+
+		local sent = sentTargets[unitID]
+		if sent == nil then
+			sent = {}
+			sentTargets[unitID] = sent
 		end
-		spGiveOrderArrayToUnit(unitID, commandsToGive)
-	else -- TODO: only give order if unit has a target list:
+		local changed = sent[commandsToGiveCount + 1] ~= nil
+		for index = 1, commandsToGiveCount do
+			local targetID = (commandsToGive[index] --[[@as CreateCommand]])[2]
+			if sent[index] ~= targetID then
+				sent[index] = targetID
+				changed = true
+			end
+		end
+		if changed then
+			for index = commandsToGiveCount + 1, #sent do
+				sent[index] = nil
+			end
+			spGiveOrderArrayToUnit(unitID, commandsToGive)
+		end
+	elseif sentTargets[unitID] ~= nil then
+		sentTargets[unitID] = nil
 		spGiveOrderToUnit(unitID, CMD_UNIT_CANCEL_TARGET)
 	end
 end
@@ -279,7 +306,7 @@ end
 local function handleSelectionLine()
 	local _, cmdID = spGetActiveCommand()
 	local alt, ctrl, meta, _ = spGetModKeyState()
-	local correctCommand = cmdID == CMD_SET_TARGET and alt and not ctrl and not meta
+	local correctCommand = isSetTargetCommand[cmdID] and alt and not ctrl and not meta
 	if not correctCommand then
 		clear()
 		return
@@ -348,6 +375,7 @@ end
 local function cleanupUnitTargeting(unitID)
 	trackedUnitsToTargetedDefs[unitID] = nil
 	trackedUnitsToTargetID[unitID] = nil
+	sentTargets[unitID] = nil
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
@@ -359,12 +387,10 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		shouldCleanupTargeting = true
 	end
 
-	if cmdID == CMD_SET_TARGET and not cmdOpts.alt then
-		shouldCleanupTargeting = true
-	end
-
-	if cmdID == CMD_SET_TARGET and #cmdParams ~= 1 and #cmdParams ~= 4 then
-		shouldCleanupTargeting = true
+	if isSetTargetCommand[cmdID] then
+		if not cmdOpts.alt or (#cmdParams ~= 1 and #cmdParams ~= 4) then
+			shouldCleanupTargeting = true
+		end
 	end
 
 	if #cmdParams == 4 and not shouldCleanupTargeting then
@@ -387,7 +413,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 	end
 
-	if cmdID ~= CMD_SET_TARGET or not cmdOpts.alt or (#cmdParams ~= 1 and #cmdParams ~= 4) then
+	if not isSetTargetCommand[cmdID] or not cmdOpts.alt or (#cmdParams ~= 1 and #cmdParams ~= 4) then
 		return
 	end
 
