@@ -162,7 +162,12 @@ if gadgetHandler:IsSyncedCode() then
 		for _, teamID in ipairs(teamList) do
 			local luaAI = GetTeamLuaAI(teamID)
 			local isAiTeam = select(4, GetTeamInfo(teamID, false))
-			if not isAiTeam and (not luaAI or luaAI == "") and GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
+			if
+				teamID ~= takerID
+				and not isAiTeam
+				and (not luaAI or luaAI == "")
+				and GetTeamRulesParam(teamID, "numActivePlayers") == 0
+			then
 				-- transfer all units
 				local teamUnits = GetTeamUnits(teamID)
 				local unitsTaken = 0
@@ -176,6 +181,9 @@ if gadgetHandler:IsSyncedCode() then
 						unitsTaken = unitsTaken + 1
 					end
 				end
+				-- Keep slots for units whose transfer was rejected by another gadget.
+				local remainingCap = Spring.GetTeamMaxUnits(teamID) - assert(Spring.GetTeamUnitCount(teamID)) ---@as integer
+				local capTaken = remainingCap > 0 and Spring.TransferTeamMaxUnits(teamID, takerID, remainingCap)
 				-- send all resources en-block to the taker
 				local taken = {}
 				for _, resourceName in ipairs(resourceList) do
@@ -186,7 +194,7 @@ if gadgetHandler:IsSyncedCode() then
 					ShareTeamResource(teamID, takerID, resourceName, shareAmount)
 					taken[resourceName] = math.floor(shareAmount)
 				end
-				if unitsTaken > 0 or taken.metal > 0 or taken.energy > 0 then
+				if unitsTaken > 0 or capTaken or taken.metal > 0 or taken.energy > 0 then
 					numTaken = numTaken + 1
 					SendToUnsynced("TeamTaken", playerID, teamID, unitsTaken, taken.energy, taken.metal)
 				end
