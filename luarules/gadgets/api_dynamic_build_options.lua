@@ -63,8 +63,8 @@ if gadgetHandler:IsSyncedCode() then
 	---@type table<number, table<number, table<number, true>?>?>
 	local teamRemovedBuildOptions = {}
 
-	local function teamOptions(byTeam, teamID, builderUnitDefID)
-		local byBuilder = byTeam[teamID]
+	local function teamOptions(changesByTeam, teamID, builderUnitDefID)
+		local byBuilder = changesByTeam[teamID]
 		return byBuilder and byBuilder[builderUnitDefID]
 	end
 
@@ -220,8 +220,8 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
-	local function clearTeamChange(byTeam, teamID, builtUnitDefID, builderUnitDefID)
-		local byBuilder = byTeam[teamID]
+	local function clearTeamChange(changesByTeam, teamID, builtUnitDefID, builderUnitDefID)
+		local byBuilder = changesByTeam[teamID]
 		local options = byBuilder and byBuilder[builderUnitDefID]
 		if not options then
 			return
@@ -230,14 +230,14 @@ if gadgetHandler:IsSyncedCode() then
 		if next(options) == nil then
 			byBuilder[builderUnitDefID] = nil
 			if next(byBuilder) == nil then
-				byTeam[teamID] = nil
+				changesByTeam[teamID] = nil
 			end
 		end
 	end
 
-	local function clearTeamChanges(byTeam, builtUnitDefID, builderUnitDefID)
-		for teamID in pairs(byTeam) do
-			clearTeamChange(byTeam, teamID, builtUnitDefID, builderUnitDefID)
+	local function clearTeamChanges(changesByTeam, builtUnitDefID, builderUnitDefID)
+		for teamID in pairs(changesByTeam) do
+			clearTeamChange(changesByTeam, teamID, builtUnitDefID, builderUnitDefID)
 		end
 	end
 
