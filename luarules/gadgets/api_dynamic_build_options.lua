@@ -386,22 +386,16 @@ if gadgetHandler:IsSyncedCode() then
 		applyBuildOptions(teamOptions(teamAddedBuildOptions, changedTeamID, unitDefID), unitID, unitDefID, unitTeam)
 	end
 
-	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	-- A given or captured unit still carries its old team's changes, and that team is not passed here.
+	function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 		if not staticBuildOptions[unitDefID] then
 			return
 		end
 		applyBuildOptions(removedBuildOptions[unitDefID], unitID, unitDefID, unitTeam)
 		applyBuildOptions(addedBuildOptions[unitDefID], unitID, unitDefID, unitTeam)
-		applyTeamChanges(unitTeam, unitID, unitDefID, unitTeam)
-	end
-
-	-- only the options either team changed for itself can differ
-	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-		if not staticBuildOptions[unitDefID] then
-			return
+		for _, changedTeamID in ipairs(teamsList) do
+			applyTeamChanges(changedTeamID, unitID, unitDefID, unitTeam)
 		end
-		applyTeamChanges(oldTeam, unitID, unitDefID, newTeam)
-		applyTeamChanges(newTeam, unitID, unitDefID, newTeam)
 	end
 
 	function gadget:Initialize()

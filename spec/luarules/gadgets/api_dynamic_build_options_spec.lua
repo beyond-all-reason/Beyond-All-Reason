@@ -206,8 +206,8 @@ describe("api_dynamic_build_options", function()
 			buildOptions.Remove(SOLAR, CON_BOT, 1)
 			world.addUnit(103, CON_BOT, 1)
 			world.addUnit(104, CON_BOT, 0)
-			gadget:UnitCreated(103, CON_BOT, 1)
-			gadget:UnitCreated(104, CON_BOT, 0)
+			gadget:MetaUnitAdded(103, CON_BOT, 1)
+			gadget:MetaUnitAdded(104, CON_BOT, 0)
 
 			assert.is_false(hasOption(world, 103, SOLAR))
 			assert.is_true(hasOption(world, 104, SOLAR))
@@ -216,12 +216,21 @@ describe("api_dynamic_build_options", function()
 		it("follows a unit given to another team", function()
 			buildOptions.Remove(SOLAR, CON_BOT, 1)
 			world.units[101].teamID = 0
-			gadget:UnitGiven(101, CON_BOT, 0, 1)
+			gadget:MetaUnitAdded(101, CON_BOT, 0)
 			world.units[100].teamID = 1
-			gadget:UnitGiven(100, CON_BOT, 1, 0)
+			gadget:MetaUnitAdded(100, CON_BOT, 1)
 
 			assert.is_true(hasOption(world, 101, SOLAR))
 			assert.is_false(hasOption(world, 100, SOLAR))
+		end)
+
+		it("takes from a given unit what only its old team was given", function()
+			buildOptions.Add(SOLAR, BOT_LAB, nil, 1)
+			world.units[102].teamID = 0
+			gadget:MetaUnitAdded(102, BOT_LAB, 0)
+
+			assert.is_false(hasOption(world, 102, SOLAR))
+			assert.is_true(hasOption(world, 102, PAWN))
 		end)
 
 		it("clears the team's rules param when a change for all teams replaces its own", function()
