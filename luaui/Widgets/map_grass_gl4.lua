@@ -251,7 +251,8 @@ local function elasticOut(t)
 	return math.pow(2, -10 * t) * math.sin((t - p / 4) * (2 * math.pi) / p) + 1
 end
 
-include("keysym.h.lua") -- so we can do hacky keypress
+local KEY_LEFTBRACKET = Spring.GetKeyCode("[")
+local KEY_RIGHTBRACKET = Spring.GetKeyCode("]")
 local grassInstanceData = {}
 ---------------------------VAO VBO stuff:---------------------------------------
 
@@ -679,10 +680,10 @@ function widget:KeyPress(key, modifier, isRepeat)
 	if externalBrushActive then
 		return false
 	end
-	if key == KEYSYMS.LEFTBRACKET then
+	if key == KEY_LEFTBRACKET then
 		cursorradius = mathMax(8, cursorradius * 0.8)
 	end
-	if key == KEYSYMS.RIGHTBRACKET then
+	if key == KEY_RIGHTBRACKET then
 		cursorradius = mathMin(512, cursorradius * 1.2)
 	end
 	return false

@@ -318,7 +318,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1800, z = 2200, teamName = 'enemy', unitName = 'bots' },
+				{ unitDefName = 'armllt', position = { x = 1800, z = 2200 }, teamName = 'enemy', unitName = 'bots' },
 			},
 		},
 	},
@@ -327,7 +327,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 1800, z = 1600, teamName = 'player', unitName = 'bots', quantity = 4 },
+				{ unitDefName = 'armpw', position = { x = 1800, z = 1600 }, teamName = 'player', unitName = 'bots', quantity = 4 },
 			},
 		},
 	},
@@ -423,7 +423,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armdecom', x = 1900, z = 2600, teamName = 'player', unitName = 'decoys' },
+				{ unitDefName = 'armdecom', position = { x = 1900, z = 2600 }, teamName = 'player', unitName = 'decoys' },
 			},
 		},
 	},
@@ -432,7 +432,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 1600, z = 2800, teamName = 'enemy' },
+				{ unitDefName = 'armwin', position = { x = 1600, z = 2800 }, teamName = 'enemy' },
 			},
 		},
 	},
@@ -509,7 +509,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 2400, z = 2400, teamName = 'player', unitName = 'canceler' },
+				{ unitDefName = 'armck', position = { x = 2400, z = 2400 }, teamName = 'player', unitName = 'canceler' },
 			},
 		},
 	},
@@ -545,7 +545,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 2520, z = 2480, teamName = 'player', unitName = 'placer' },
+				{ unitDefName = 'armck', position = { x = 2520, z = 2480 }, teamName = 'player', unitName = 'placer' },
 			},
 		},
 	},
@@ -565,7 +565,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 2680, z = 2480, teamName = 'player', unitName = 'assister' },
+				{ unitDefName = 'armck', position = { x = 2680, z = 2480 }, teamName = 'player', unitName = 'assister' },
 			},
 		},
 	},
@@ -605,7 +605,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrad', x = 2400, z = 3000, teamName = 'player', unitName = 'doomedRadar' },
+				{ unitDefName = 'armrad', position = { x = 2400, z = 3000 }, teamName = 'player', unitName = 'doomedRadar' },
 			},
 		},
 	},
@@ -614,7 +614,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 2560, z = 3000, teamName = 'player', unitName = 'reclaimer' },
+				{ unitDefName = 'armck', position = { x = 2560, z = 3000 }, teamName = 'player', unitName = 'reclaimer' },
 			},
 		},
 	},
@@ -655,8 +655,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armlab', x = 2400, z = 3000, teamName = 'player', unitName = 'botlab' },
-				{ unitDefName = 'armvp', x = 2750, z = 3000, teamName = 'player', unitName = 'vehicleplant' },
+				{ unitDefName = 'armlab', position = { x = 2400, z = 3000 }, teamName = 'player', unitName = 'botlab' },
+				{ unitDefName = 'armvp', position = { x = 2750, z = 3000 }, teamName = 'player', unitName = 'vehicleplant' },
 			},
 		},
 	},
@@ -688,7 +688,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrectr', x = 1900, z = 2600, teamName = 'player', unitName = 'res', quantity = 4 },
+				{ unitDefName = 'armrectr', position = { x = 1900, z = 2600 }, teamName = 'player', unitName = 'res', quantity = 4 },
 			},
 		},
 	},

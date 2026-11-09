@@ -28,6 +28,7 @@ utilities = {
 	GetRaptorTeamID = team.GetRaptorTeamID,
 	GetScavTeamID = team.GetScavTeamID,
 	GetRaptorAllyTeamID = team.GetRaptorAllyTeamID,
+	CanTeamReceiveUnits = team.CanTeamReceiveUnits,
 
 	GetHostCommandPlayerID = player.GetHostCommandPlayerID,
 	IsPlayerLagging = player.IsPlayerLagging,

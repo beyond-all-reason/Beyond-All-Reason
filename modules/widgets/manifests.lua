@@ -41,47 +41,55 @@ function WidgetManifests.ReadJson(path, vfsMode)
 	return data, nil
 end
 
-function WidgetManifests.Discover(folders, vfsMode)
+local function discoverIn(folder, vfsMode, widgets, warnings, byId)
+	local dirs = VFS.SubDirs(folder, "*", vfsMode)
+	table.sort(dirs)
+
+	for _, dir in ipairs(dirs) do
+		local widgetDir = withTrailingSlash(dir)
+		local manifestFile = widgetDir .. MANIFEST_FILE
+		local manifest, problem = WidgetManifests.ReadJson(manifestFile, vfsMode)
+
+		if problem then
+			warnings[#warnings + 1] = string.format("%s %s; manifest ignored", manifestFile, problem)
+		elseif manifest then
+			local id = manifest.id
+			if not WidgetManifests.IsValidId(id) then
+				warnings[#warnings + 1] =
+					string.format("%s: id %s is not a valid widget id; manifest ignored", manifestFile, tostring(id))
+			elseif byId[id] then
+				warnings[#warnings + 1] = string.format(
+					"%s: widget id %s is already claimed by %s; manifest ignored",
+					manifestFile,
+					id,
+					byId[id].dir
+				)
+			else
+				local widget = { id = id, dir = widgetDir, manifest = manifest, loaded = false, vfsMode = vfsMode }
+				byId[id] = widget
+				widgets[#widgets + 1] = widget
+			end
+		end
+	end
+end
+
+-- Earlier modes win id clashes.
+function WidgetManifests.Discover(folders, vfsModes)
 	if type(folders) == "string" then
 		folders = { folders }
+	end
+	if type(vfsModes) ~= "table" then
+		vfsModes = { vfsModes }
 	end
 
 	local widgets = {}
 	local warnings = {}
 	local byId = {}
 
-	for _, folder in ipairs(folders) do
-		local dirs = VFS.SubDirs(folder, "*", vfsMode)
-		table.sort(dirs)
-
-		for _, dir in ipairs(dirs) do
-			local widgetDir = withTrailingSlash(dir)
-			local manifestFile = widgetDir .. MANIFEST_FILE
-			local manifest, problem = WidgetManifests.ReadJson(manifestFile, vfsMode)
-
-			if problem then
-				warnings[#warnings + 1] = string.format("%s %s; manifest ignored", manifestFile, problem)
-			elseif manifest then
-				local id = manifest.id
-				if not WidgetManifests.IsValidId(id) then
-					warnings[#warnings + 1] = string.format(
-						"%s: id %s is not a valid widget id; manifest ignored",
-						manifestFile,
-						tostring(id)
-					)
-				elseif byId[id] then
-					warnings[#warnings + 1] = string.format(
-						"%s: widget id %s is already claimed by %s; manifest ignored",
-						manifestFile,
-						id,
-						byId[id].dir
-					)
-				else
-					local widget = { id = id, dir = widgetDir, manifest = manifest, loaded = false }
-					byId[id] = widget
-					widgets[#widgets + 1] = widget
-				end
-			end
+	-- At least once; a nil mode is the engine's default.
+	for i = 1, math.max(#vfsModes, 1) do
+		for _, folder in ipairs(folders) do
+			discoverIn(folder, vfsModes[i], widgets, warnings, byId)
 		end
 	end
 

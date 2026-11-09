@@ -40,6 +40,7 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].Teams = gameSetup.teams
 	GG["MissionAPI"].Alliances = gameSetup.alliances
 	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
+	GG["MissionAPI"].GameSetupErrors = gameSetup.errors
 	GG["MissionAPI"].trackedUnitIDs = {}
 	GG["MissionAPI"].trackedUnitNames = {}
 	GG["MissionAPI"].trackedFeatureIDs = {}

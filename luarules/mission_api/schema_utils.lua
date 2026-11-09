@@ -67,11 +67,14 @@ end
 local function collateSchemas()
 	local missionAPI = GG["MissionAPI"]
 	local parameterTypes = missionAPI.Modules.ParameterTypes
+	local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
 	return {
 		triggers = collateObjectSchemas(missionAPI.TriggerDefinitions),
 		triggerSettings = table.copy(VFS.Include("luarules/mission_api/triggers_schema.lua").Settings),
 		actions = collateObjectSchemas(missionAPI.ActionDefinitions),
 		objectiveSettings = table.copy(VFS.Include("luarules/mission_api/objectives_schema.lua").Settings),
+		unitEntryFields = table.copy(loadoutSchema.UnitEntryFields),
+		featureEntryFields = table.copy(loadoutSchema.FeatureEntryFields),
 		parameterTypes = table.copy(parameterTypes.Types),
 		enums = table.copy(parameterTypes.Enums),
 	}

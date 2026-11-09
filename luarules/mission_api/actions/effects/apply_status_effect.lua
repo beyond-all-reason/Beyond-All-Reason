@@ -9,7 +9,7 @@ return {
 		type = 'ApplyStatusEffect',
 		parameters = {
 			{ name = 'effectType', required = true,  type = ParameterTypes.EffectType },
-			{ name = 'effectName', required = true,  type = ParameterTypes.String },
+			{ name = 'effectName', required = true,  type = ParameterTypes.EffectName },
 			{ name = 'area',       required = false, type = ParameterTypes.Area }, -- default := the whole map
 			{ name = 'duration',   required = false, type = ParameterTypes.Quantity }, -- default := until cleared
 			{ name = 'strength',   required = false, type = ParameterTypes.PositiveInteger }, -- default := 1
