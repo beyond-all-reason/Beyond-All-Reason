@@ -153,9 +153,11 @@ local costOverrides = {}
 --- KEYBIND VALUES
 -------------------------------------------------------------------------------
 
-local KEY_ESCAPE = Spring.GetKeyCode("esc")
-local KEY_LSHIFT = Spring.GetKeyCode("shift")
 local dynamicBuildOptions = require("common/dynamicBuildOptions")
+local KEY = {
+	ESCAPE = Spring.GetKeyCode("esc"),
+	LSHIFT = Spring.GetKeyCode("shift"),
+}
 
 local keyConfig = require("luaui/configs/keyboard_layouts")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -2815,7 +2817,7 @@ end
 -------------------------------------------------------------------------------
 
 function widget:KeyPress(key, modifier, isRepeat)
-	if key == KEY_ESCAPE then
+	if key == KEY.ESCAPE then
 		if currentCategory then
 			clearCategory()
 			return true
@@ -2828,7 +2830,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 end
 
 function widget:KeyRelease(key)
-	if key ~= KEY_LSHIFT then
+	if key ~= KEY.LSHIFT then
 		return
 	end
 
