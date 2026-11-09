@@ -109,7 +109,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 2400, z = 2400, teamName = 'enemy', unitName = 'gift' },
+				{ unitDefName = 'armwin', position = { x = 2400, z = 2400 }, teamName = 'enemy', unitName = 'gift' },
 			},
 		},
 	},
@@ -118,7 +118,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 2600, z = 2400, teamName = 'enemy', unitName = 'spoils' },
+				{ unitDefName = 'armwin', position = { x = 2600, z = 2400 }, teamName = 'enemy', unitName = 'spoils' },
 			},
 		},
 	},
@@ -127,7 +127,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 1600, z = 2800, teamName = 'enemy', unitName = 'prize' },
+				{ unitDefName = 'armwin', position = { x = 1600, z = 2800 }, teamName = 'enemy', unitName = 'prize' },
 			},
 		},
 	},
@@ -136,7 +136,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armdecom', x = 1750, z = 2800, teamName = 'player', unitName = 'decoy', orders = { { CMD.FIRE_STATE, CMD.FIRESTATE_HOLDFIRE } } },
+				{ unitDefName = 'armdecom', position = { x = 1750, z = 2800 }, teamName = 'player', unitName = 'decoy', orders = { { CMD.FIRE_STATE, CMD.FIRESTATE_HOLDFIRE } } },
 			},
 		},
 	},

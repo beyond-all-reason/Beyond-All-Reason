@@ -91,7 +91,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'rocks30_def_01', x = 1800, z = 1800, orientation = 's', featureName = 'theRocks' },
+				{ featureDefName = 'rocks30_def_01', position = { x = 1800, z = 1800 }, orientation = 's', featureName = 'theRocks' },
 			},
 		},
 	},
@@ -100,7 +100,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'rocks30_def_01', x = 1900, z = 1900, orientation = 's', featureName = 'theRocks' },
+				{ featureDefName = 'rocks30_def_01', position = { x = 1900, z = 1900 }, orientation = 's', featureName = 'theRocks' },
 			},
 		},
 	},
@@ -109,7 +109,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'armllt_dead', x = 2000, z = 2100, orientation = 'w', featureName = 'wreck-to-destroy' },
+				{ featureDefName = 'armllt_dead', position = { x = 2000, z = 2100 }, orientation = 'w', featureName = 'wreck-to-destroy' },
 			},
 		},
 	},
@@ -118,7 +118,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'armpw_dead', x = 1900, z = 2000, orientation = 'w', featureName = 'wreck-to-resurrect' },
+				{ featureDefName = 'armpw_dead', position = { x = 1900, z = 2000 }, orientation = 'w', featureName = 'wreck-to-resurrect' },
 			},
 		},
 	},
@@ -127,7 +127,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrectr', x = 1800, z = 1900, teamName = 'player', unitName = 'reclaimer' },
+				{ unitDefName = 'armrectr', position = { x = 1800, z = 1900 }, teamName = 'player', unitName = 'reclaimer' },
 			},
 		},
 	},
@@ -136,7 +136,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armham', x = 1800, z = 2100, teamName = 'player', unitName = 'attacker' },
+				{ unitDefName = 'armham', position = { x = 1800, z = 2100 }, teamName = 'player', unitName = 'attacker' },
 			},
 		},
 	},

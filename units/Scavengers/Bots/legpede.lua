@@ -1,7 +1,7 @@
 return {
 	legpede = {
 		maxacc = 0.03,
-		maxdec = 0.1,
+		maxdec = 0.2,
 		energycost = 80000,
 		metalcost = 5500,
 		buildpic = "LEGPEDE.DDS",

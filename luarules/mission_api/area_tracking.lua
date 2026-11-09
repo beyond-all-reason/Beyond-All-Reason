@@ -2,9 +2,10 @@
 --- Tracks units entering and leaving locations, defined by area parameters.
 --- Adds support for callbacks to act on units as they enter and leave areas.
 ---
---- Provides: onUnitsEntered(unitIDs, trackingID) and onUnitsLeft(unitIDs, trackingID).
---- When a tracker is started, it calls onUnitsEntered on all units within the area.
+--- Provides: onUnitsEntered(unitIDs, owner) and onUnitsLeft(unitIDs, owner).
+--- When a tracker is started, it calls onUnitsEntered on all units within the area, before it returns.
 --- When a tracker is stopped, it calls onUnitsLeft on all units it had been tracking.
+--- Destroyed units also deliver their death events to onUnitsLeft.
 ---
 --- A callback may start or stop trackers, including its own.
 --- When a tracker is stopped mid-callback, it stops hearing enter and leave events.
@@ -17,8 +18,9 @@ local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 ---@class AreaTracker
 ---@field trackedArea TrackedArea
 ---@field unitIDs table<integer, true> the snapshot this tracker was last delivered
----@field onUnitsEntered fun(unitIDs: integer[], trackingID: integer)
----@field onUnitsLeft fun(unitIDs: integer[], trackingID: integer)
+---@field onUnitsEntered fun(unitIDs: integer[], owner: any)
+---@field onUnitsLeft fun(unitIDs: integer[], owner: any)
+---@field owner any
 
 ---@class TrackedArea
 ---@field key string
@@ -82,10 +84,10 @@ local function updateTrackedArea(trackedArea)
 		local tracker = areaTrackers[trackingID]
 		if tracker then
 			if #left > 0 then
-				tracker.onUnitsLeft(left, trackingID)
+				tracker.onUnitsLeft(left, tracker.owner)
 			end
-			if #entered > 0 then
-				tracker.onUnitsEntered(entered, trackingID)
+			if #entered > 0 and areaTrackers[trackingID] then
+				tracker.onUnitsEntered(entered, tracker.owner)
 			end
 			tracker.unitIDs = insideNow
 		end
@@ -94,12 +96,14 @@ end
 
 ---@param area table a rectangle { x1, z1, x2, z2 } or circle { x, z, radius }
 ---@param teamID integer? only this team's units
----@param onUnitsEntered fun(unitIDs: integer[], trackingID: integer)
----@param onUnitsLeft fun(unitIDs: integer[], trackingID: integer)
+---@param onUnitsEntered fun(unitIDs: integer[], owner: any)
+---@param onUnitsLeft fun(unitIDs: integer[], owner: any)
+---@param owner any? passed to both callbacks, which get it even before this returns; defaults to the trackingID
 ---@return integer trackingID
-local function trackUnitsInArea(area, teamID, onUnitsEntered, onUnitsLeft)
+local function trackUnitsInArea(area, teamID, onUnitsEntered, onUnitsLeft, owner)
 	trackerCount = trackerCount + 1
 	local trackingID = trackerCount
+	owner = owner or trackingID
 	local key = getAreaKey(area, teamID)
 	local trackedArea = trackedAreas[key]
 	local isNewArea = trackedArea == nil
@@ -114,6 +118,7 @@ local function trackUnitsInArea(area, teamID, onUnitsEntered, onUnitsLeft)
 		unitIDs = trackedArea.unitIDs,
 		onUnitsEntered = onUnitsEntered,
 		onUnitsLeft = onUnitsLeft,
+		owner = owner,
 	}
 	trackers[trackingID] = tracker
 	trackedArea.trackers[trackingID] = tracker
@@ -122,7 +127,7 @@ local function trackUnitsInArea(area, teamID, onUnitsEntered, onUnitsLeft)
 	if isNewArea then
 		updateTrackedArea(trackedArea)
 	elseif next(trackedArea.unitIDs) ~= nil then
-		onUnitsEntered(table_keys(trackedArea.unitIDs), trackingID)
+		onUnitsEntered(table_keys(trackedArea.unitIDs), owner)
 	end
 	return trackingID
 end
@@ -141,7 +146,7 @@ local function stopTrackingUnits(trackingID)
 	end
 
 	if next(tracker.unitIDs) ~= nil then
-		tracker.onUnitsLeft(table_keys(tracker.unitIDs), trackingID)
+		tracker.onUnitsLeft(table_keys(tracker.unitIDs), tracker.owner)
 	end
 end
 

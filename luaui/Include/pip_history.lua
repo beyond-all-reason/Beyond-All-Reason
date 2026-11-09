@@ -15,6 +15,7 @@ local unpackU16 = VFS.UnpackU16
 local zlibCompress = VFS.ZlibCompress
 local zlibDecompress = VFS.ZlibDecompress
 local mathFloor = math.floor
+local mathCeil = math.ceil
 local mathAbs = math.abs
 local mathMin = math.min
 local mathMax = math.max
@@ -35,6 +36,8 @@ local CUR_STRIDE = 3 -- player, x, z: a broadcast cursor
 -- sel: player, count, unit ids: a player's selection when it changed (keyframes restate everyone)
 local RES_STRIDE = 13 -- team, metal current, storage, pull, income, share, the same for energy, mmLevel, age
 local RES_LOOKBACK = 8 -- ticks searched back for a team's latest resource sample
+local EXPL_BUCKET_SIZE = 16 -- elmos of blast radius per bucket when an over-full tick keeps the biggest
+local EXPL_BUCKETS = 63
 local V_SCALE = 64 -- velocity quantum: 1/64 elmo per frame
 local V_BIAS = 32768
 local V_MAX = 511 -- elmo per frame, ±(32767 / 64)
@@ -197,7 +200,11 @@ end
 ---@field lastTickFrame number
 ---@field tickStart number -- frame the current / last tick's scan began on
 ---@field scanPhase integer? -- phase of the scan in progress, nil between ticks
----@field phaseUnits table<integer, integer>
+---@field phaseLists table<number, table<integer, integer>> -- this tick's units per scan phase
+---@field phaseCounts table<number, number>
+---@field scanPlanned boolean
+---@field scanSpreadNow number -- phases of the current tick's scan
+---@field closing table<string, any>? -- the tick being packed
 ---@field scanAcc number
 ---@field generation number
 ---@field tX table<number, number>
@@ -256,6 +263,18 @@ end
 ---@field pidStamp table<number, number?>
 ---@field scanStamp number
 ---@field projStepNow number
+---@field projList table<integer, integer>? -- ids of the sweep in progress
+---@field projPos integer
+---@field projBudget integer
+---@field projSweepFrame number
+---@field projDoneFrame number -- start frame of the last finished sweep
+---@field projMsAcc number
+---@field projHold table<integer, integer> -- shell records waiting for the next tick, frame in the age slot
+---@field projHoldN integer
+---@field pendHold table<integer, integer> -- shell end markers waiting for the next tick
+---@field pendHoldN integer
+---@field freezeJob table<string, any>?
+---@field freezeFailed boolean?
 ---@field allyOfTeam table<number, integer>
 ---@field toleranceNow number
 ---@field explosionMinRadiusNow number
@@ -289,7 +308,12 @@ local storeDefaults = {
 	projectileStep = 5, -- projectile scan cadence in frames (within a tick)
 	projectileTolerance = 2, -- elmos of course drift before a shell is re-logged
 	commandCap = 600, -- per tick
-	scanSpread = 4, -- a tick's unit scan runs over this many frames (unit id modulo phase)
+	scanSpread = 4, -- a tick's unit scan runs over at least this many frames (unit id modulo phase)
+	scanSpreadMax = 30, -- and at most this many
+	scanUnitsPerFrame = 300, -- sets the spread between those two (keyframes count double)
+	packValuesPerFrame = 20000, -- u16 values packed per frame while a tick closes
+	projectilesPerFrame = 500, -- projectiles handled per frame of a sweep
+	freezeChunkBytes = 16 * 1024, -- zlib input per frame while a cold tick freezes
 	lookaheadTicks = 8, -- playback searches this far ahead for a unit's next record
 	coldTicks = 240, -- ticks older than this are zlib-frozen
 	maxLevel = 5, -- merge rounds before a segment is dropped whole (thinning fallback)
@@ -362,7 +386,9 @@ function Store:Reset()
 	self.lastTickFrame = -1
 	self.tickStart = -1
 	self.scanPhase = nil
-	self.phaseUnits = {}
+	self.phaseLists, self.phaseCounts, self.scanSpreadNow = {}, {}, 1
+	self.closing, self.scanPlanned = nil, false
+	self.explHist, self.dmgHist = {}, {}
 	self.scanAcc = 0
 	self.generation = (self.generation or 0) + 1 -- views drop their caches when this changes
 	-- per-unit tracks
@@ -395,6 +421,10 @@ function Store:Reset()
 	self.pX, self.pZ, self.pVX, self.pVZ, self.pF, self.pW, self.pSeen = {}, {}, {}, {}, {}, {}, {}
 	self.pidDef, self.pidStamp, self.scanStamp, self.projStepNow = {}, {}, 0, self.opts.projectileStep
 	self.pTracked = 0
+	self.projList, self.projPos, self.projBudget = nil, 0, 0
+	self.projSweepFrame, self.projDoneFrame, self.projMsAcc = -1, -1, 0
+	self.projHold, self.projHoldN, self.pendHold, self.pendHoldN = {}, 0, {}, 0
+	self.freezeJob, self.freezeFailed = nil, nil
 	self.allyOfTeam = {}
 	self.toleranceNow = self.opts.tolerance
 	self.explosionMinRadiusNow = self.opts.explosionMinRadius
@@ -464,10 +494,11 @@ local function tickRawBytes(t)
 	return n
 end
 
-function Store:Freeze(t)
-	if t.z or not zlibCompress then
-		return
-	end
+-- A blob of more than one chunk starts with this byte (a zlib stream starts with 0x78), then the
+-- compressed chunk lengths, a newline and the chunks.
+local CHUNKED_BLOB = 1
+
+function Store:BeginFreeze(t)
 	local parts = {}
 	local lens = {}
 	for i = 1, #STREAMS do
@@ -476,18 +507,78 @@ function Store:Freeze(t)
 		lens[i] = #s
 	end
 	local raw = table.concat(lens, " ") .. "\n" .. table.concat(parts)
-	local ok, z = pcall(zlibCompress, raw)
+	return { tick = t, raw = raw, pos = 1, chunks = {}, gen = self.generation }
+end
+
+-- Compresses the job's next chunk; true once the tick holds its blob (or compression failed).
+function Store:FreezeSlice(job)
+	local raw, pos = job.raw, job.pos
+	local size = self.opts.freezeChunkBytes
+	local ok, z = pcall(zlibCompress, raw:sub(pos, pos + size - 1))
 	if not ok or not z then
-		return
+		self.freezeFailed = true
+		return true
 	end
+	local chunks = job.chunks
+	chunks[#chunks + 1] = z
+	job.pos = pos + size
+	if job.pos <= #raw then
+		return false
+	end
+	local blob = chunks[1]
+	if #chunks > 1 then
+		local lens = {}
+		for i = 1, #chunks do
+			lens[i] = #chunks[i]
+		end
+		blob = string.char(CHUNKED_BLOB) .. table.concat(lens, " ") .. "\n" .. table.concat(chunks)
+	end
+	local t = job.tick
 	local before = t.bytes
 	for i = 1, #STREAMS do
 		t[STREAMS[i]] = nil
 	end
-	t.z = z
-	t.bytes = TICK_OVERHEAD + #z
+	t.z = blob
+	t.bytes = TICK_OVERHEAD + #blob
 	self.totalBytes = self.totalBytes + t.bytes - before
 	self.stats.frozen = self.stats.frozen + 1
+	return true
+end
+
+function Store:Freeze(t)
+	if t.z or not zlibCompress then
+		return
+	end
+	local job = self:BeginFreeze(t)
+	while not self:FreezeSlice(job) do
+	end
+end
+
+-- Between ticks: one chunk of the oldest raw tick past the cold line.
+function Store:StepFreeze()
+	if self.freezeFailed or not zlibCompress then
+		return
+	end
+	local job = self.freezeJob
+	if job and job.gen ~= self.generation then
+		job = nil -- the tick list was recomposed under it
+	end
+	if not job then
+		local ticks = self.ticks
+		local i = #ticks - self.opts.coldTicks --[[@as integer]]
+		if i < 1 or ticks[i].z then
+			self.freezeJob = nil
+			return
+		end
+		while i > 1 and not ticks[i - 1].z do
+			i = i - 1
+		end
+		job = self:BeginFreeze(ticks[i])
+	end
+	if self:FreezeSlice(job) then
+		job = nil
+	end
+	self.freezeJob = job
 end
 
 -- The streams of a tick (the tick itself while raw, a cached thaw once frozen)
@@ -500,7 +591,21 @@ function Store:Streams(t)
 	if hit then
 		return hit
 	end
-	local raw = zlibDecompress(t.z) or ""
+	local z = t.z
+	local raw ---@type string
+	if z:byte(1) == CHUNKED_BLOB then
+		local head = z:find("\n", 2, true)
+		local parts = {}
+		local at = head + 1 ---@type number
+		for v in z:sub(2, head - 1):gmatch("%d+") do
+			local n = tonumber(v) or 0
+			parts[#parts + 1] = zlibDecompress(z:sub(at, at + n - 1)) or ""
+			at = at + n
+		end
+		raw = table.concat(parts)
+	else
+		raw = zlibDecompress(z) or ""
+	end
 	local nl = raw:find("\n", 1, true) or 1
 	local lens = {} ---@type number[]
 	for v in raw:sub(1, nl - 1):gmatch("%d+") do
@@ -558,6 +663,7 @@ function Store:OnExplosion(x, z, weaponDefID, flags, frame)
 	local e = self.pendingExpl[n] or {}
 	self.pendingExpl[n] = e
 	e[1], e[2], e[3], e[4], e[5], e[6] = x, z, weaponDefID or 0, flags or 0, frame, radius
+	e[7] = mathMin(mathFloor(radius / EXPL_BUCKET_SIZE), EXPL_BUCKETS)
 end
 
 function Store:OnCommand(unitID, kind, x, z, targetID, queued, frame)
@@ -723,29 +829,28 @@ local function currentDetail(self, unitCount)
 end
 
 local function pushProj(self, pid, wd, x, z, qvx, qvz, frame)
-	local buf = self.bufs.proj
-	local n = self.lens.proj
+	local buf, n = self.projHold, self.projHoldN
 	buf[n + 1] = pid % 65536
 	buf[n + 2] = wd
 	buf[n + 3] = x
 	buf[n + 4] = z
 	buf[n + 5] = qvx
 	buf[n + 6] = qvz
-	buf[n + 7] = frame -- becomes an age at pack time
-	self.lens.proj = n + PROJ_STRIDE
+	buf[n + 7] = frame -- becomes an age at the next tick
+	self.projHoldN = n + PROJ_STRIDE
 end
 
-local function pushProjEnd(self, pid, age)
-	local buf = self.bufs.pend
-	local n = self.lens.pend
+local function pushProjEnd(self, pid, frame)
+	local buf, n = self.pendHold, self.pendHoldN
 	buf[n + 1] = pid % 65536
-	buf[n + 2] = clampU16(age)
-	self.lens.pend = n + PEND_STRIDE
+	buf[n + 2] = frame -- becomes an age at the next tick
+	self.pendHoldN = n + PEND_STRIDE
 end
 
 -- Whitelisted projectiles are dead-reckoned like units: a record at launch and whenever the
--- flight leaves its predicted course, an end marker once the shell is gone (scanned every
--- projectileStep frames); heavy beams are logged once per beam from owner to target.
+-- flight leaves its predicted course, an end marker once the shell is gone; heavy beams are
+-- logged once per beam from owner to target. One id list per sweep (every projectileStep frames),
+-- worked through at projectilesPerFrame.
 function Store:SampleProjectiles(frame)
 	local whitelist = self.projectileWeapon
 	local beamWeapon = self.beamWeapon
@@ -753,20 +858,31 @@ function Store:SampleProjectiles(frame)
 	local spGetProjectilePosition = Spring.GetProjectilePosition
 	local spGetProjectileVelocity = Spring.GetProjectileVelocity
 	local t0 = os.clock()
-	local projectiles = Spring.GetProjectilesInRectangle(0, 0, self.mapSizeX, self.mapSizeZ, false, true) --[[@as table<integer, integer>]]
+	local projectiles = self.projList
+	if not projectiles then
+		projectiles = Spring.GetProjectilesInRectangle(0, 0, self.mapSizeX, self.mapSizeZ, false, true) --[[@as table<integer, integer>]]
+		self.projList, self.projPos, self.projSweepFrame, self.projMsAcc = projectiles, 0, frame, 0
+		self.scanStamp = self.scanStamp + 1
+		-- crowded battles are scanned less often; playback dead-reckons between records anyway
+		local base = self.opts.projectileStep
+		local total = #projectiles
+		local step = total > 3000 and base * 3 or (total > 1200 and base * 2 or base)
+		self.projStepNow = step
+		self.projBudget = mathMax(self.opts.projectilesPerFrame, mathCeil(total / mathMax(step - 1, 1)))
+	end
 	local pX, pZ, pVX, pVZ, pF, pW, pSeen = self.pX, self.pZ, self.pVX, self.pVZ, self.pF, self.pW, self.pSeen
 	local tracked = self.pTracked
 	local cap = self.projectileCapNow
 	local tol = self.opts.projectileTolerance
 	local seenBeam = self.seenBeam
 	-- a projectile keeps its weapon for its whole flight: the def is asked once per id and
-	-- reused while the id stays in consecutive scans (bullets and lasers are the bulk of a
+	-- reused while the id stays in consecutive sweeps (bullets and lasers are the bulk of a
 	-- battle's projectiles, and none of them are on the whitelist)
 	local pidDef, pidStamp = self.pidDef, self.pidStamp
-	local stamp = self.scanStamp + 1
-	self.scanStamp = stamp
+	local stamp = self.scanStamp
 	local count = #projectiles
-	for i = 1, count do
+	local stop = mathMin(count, self.projPos + self.projBudget)
+	for i = self.projPos + 1, stop do
 		local pid = projectiles[i]
 		local wd
 		if pidStamp[pid] == stamp - 1 then
@@ -789,7 +905,7 @@ function Store:SampleProjectiles(frame)
 						drift = err > tol
 						-- the id was recycled onto a new shell: close the old one first
 						if wd ~= pW[pid] or err > 400 then
-							pushProjEnd(self, pid, frame - pSeen[pid])
+							pushProjEnd(self, pid, pSeen[pid])
 						end
 					else
 						tracked = tracked + 1
@@ -834,6 +950,14 @@ function Store:SampleProjectiles(frame)
 		end
 	end
 	self.pTracked = tracked
+	self.projPos = stop
+	self.projMsAcc = self.projMsAcc + (os.clock() - t0) * 1000
+	if stop < count then
+		return
+	end
+	-- sweep finished
+	self.projList = nil
+	self.projDoneFrame = self.projSweepFrame
 	if stamp % 60 == 0 then
 		for pid, st in pairs(pidStamp) do
 			if st ~= stamp then
@@ -842,12 +966,9 @@ function Store:SampleProjectiles(frame)
 			end
 		end
 	end
-	-- crowded battles are scanned less often; playback dead-reckons between records anyway
-	local base = self.opts.projectileStep
-	self.projStepNow = count > 3000 and base * 3 or (count > 1200 and base * 2 or base)
 	local stats = self.stats
 	stats.projSeen = count
-	stats.projMs = stats.projMs + 0.1 * ((os.clock() - t0) * 1000 - stats.projMs)
+	stats.projMs = stats.projMs + 0.1 * (self.projMsAcc - stats.projMs)
 end
 
 -- Resources of every live team the recorder can read (a player only reads its own allyteam's);
@@ -883,35 +1004,70 @@ function Store:SampleResources(frame)
 	self.pendingResN = n
 end
 
+-- This tick's unit list, once, divided into its scan phases; the spread follows the unit count.
+function Store:PlanScan()
+	local o = self.opts
+	local isKey = (self.tickCount % o.keyframeTicks) == 0
+	local allUnits = Spring.GetAllUnits() --[[@as table<integer, integer>]]
+	local total = #allUnits
+	currentDetail(self, total)
+	local wanted = mathCeil(total / (isKey and o.scanUnitsPerFrame * 0.5 or o.scanUnitsPerFrame))
+	local ceiling = mathMax(1, mathMin(o.scanSpreadMax, o.tickFrames - 4))
+	local spread = mathMin(ceiling, mathMax(1, o.scanSpread or 1, wanted))
+	local lists, counts = self.phaseLists, self.phaseCounts
+	for p = 1, spread do
+		lists[p] = lists[p] or {}
+		counts[p] = 0
+	end
+	for i = 1, total do
+		local uid = allUnits[i]
+		local p = uid % spread + 1
+		local c = counts[p] + 1 --[[@as integer]]
+		counts[p] = c
+		lists[p][c] = uid
+	end
+	self.scanSpreadNow = spread
+	self.scanPlanned = true
+end
+
 -- Called every game frame by whichever PIP instance runs first; records at tickFrames cadence.
 function Store:GameFrame(frame)
 	local o = self.opts
-	if o.logProjectiles and self.mapSizeX > 0 and frame % (self.projStepNow or o.projectileStep) == 0 then
+	if
+		o.logProjectiles
+		and self.mapSizeX > 0
+		and (self.projList or frame % (self.projStepNow or o.projectileStep) == 0)
+	then
 		self:SampleProjectiles(frame)
 	end
 	if o.logResources and frame - self.resLast >= o.resourceFrames then
 		self:SampleResources(frame)
 	end
-	-- the unit scan of a tick is spread over scanSpread frames (unit id modulo phase): events
-	-- are written on the first, which is the tick's frame, and the tick is packed on the last;
-	-- a record scanned on phase p holds the unit's position at frame + p
-	local spread = mathMax(1, o.scanSpread or 1)
+	-- the unit scan of a tick is spread over frames (unit id modulo phase): events are written on
+	-- the first, which is the tick's frame, and a record scanned on phase p holds the unit's
+	-- position at frame + p; the frames after the scan close the tick
 	local phase = self.scanPhase
 	if not phase then
-		if frame - self.tickStart < o.tickFrames then
+		local wait = o.tickFrames - (frame - self.tickStart)
+		if wait > 0 then
+			if wait == 1 then
+				self:PlanScan() -- a frame of its own, the tick's first frame carries the events
+			else
+				self:StepFreeze()
+			end
 			return false
 		end
 		self.tickStart = frame
 		self.scanAcc = 0
 		phase = 0
+	elseif phase >= self.scanSpreadNow then
+		return self:CloseTick()
 	end
-	local lastPhase = phase >= spread - 1
 	local t0 = os.clock()
 	local isKey = (self.tickCount % o.keyframeTicks) == 0
 	local tickStamp = self.tickCount + 1
 	local prevStamp = self.tickCount
 
-	local spGetAllUnits = Spring.GetAllUnits
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitTeam = Spring.GetUnitTeam
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
@@ -919,24 +1075,14 @@ function Store:GameFrame(frame)
 	local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
 	local spGetUnitHealth = Spring.GetUnitHealth
 
-	local allUnits = spGetAllUnits() --[[@as table<integer, integer>]]
-	currentDetail(self, #allUnits)
-	if spread > 1 then
-		local sub = self.phaseUnits
-		local n = 0
-		for i = 1, #allUnits do
-			local uid = allUnits[i]
-			if uid % spread == phase then
-				n = n + 1
-				sub[n] = uid
-			end
+	if phase == 0 then
+		if not self.scanPlanned then
+			self:PlanScan()
 		end
-		for i = n + 1, #sub do
-			sub[i] = nil
-		end
-		allUnits = sub
+		self.scanPlanned = false
 	end
-	local unitCount = #allUnits
+	local allUnits = self.phaseLists[phase + 1] --[[@as table<integer, integer>]]
+	local unitCount = self.phaseCounts[phase + 1]
 	local tol = self.toleranceNow
 
 	local myAlly = Spring.GetLocalAllyTeamID()
@@ -995,7 +1141,7 @@ function Store:GameFrame(frame)
 		local isNew = (seen ~= prevStamp)
 		if isNew or not def or uid % 8 == defCheckSlot then
 			local liveDef = spGetUnitDefID(uid)
-			if liveDef ~= def then
+			if liveDef and liveDef ~= def then -- nil: gone or out of sight since the tick's unit list
 				def = liveDef
 				tDef[uid] = def
 				tTeam[uid] = spGetUnitTeam(uid) or 0
@@ -1003,134 +1149,115 @@ function Store:GameFrame(frame)
 			end
 		end
 		if def then
-			local team = tTeam[uid]
-			if not team then
-				team = spGetUnitTeam(uid) or 0
-				tTeam[uid] = team
-			end
 			-- a known structure does not move: its position and sight state are re-read on
 			-- every 8th tick only (the bulk of a late game's units are structures)
 			local bld = isBuilding[def]
 			local quick = bld and not isNew and not isKey and uid % 8 ~= defCheckSlot and tF[uid] ~= nil
-			local x, z
-			if quick then
-				x, z = tX[uid], tZ[uid]
-			else
-				x, _, z = spGetUnitBasePosition(uid)
-			end
-			if x and z then
-				local flags = 0
-				if bld then
-					flags = F_BUILDING
-				end
-				if quick then
-					flags = tFlags[uid] or flags
-				elseif losChecks then
-					local ally = allyOfTeam[team]
-					if ally == nil then
-						ally = spGetTeamAllyTeamID(team) or -1
-						allyOfTeam[team] = ally
-					end
-					if ally ~= myAlly then
-						local bits = spGetUnitLosState(uid, myAlly, true)
-						if bits and bits % 2 == 0 then
-							flags = flags + F_RADAR
-						end
-					end
-				end
-
-				local full = isNew or isKey or flags ~= tFlags[uid]
-				local drift = false
-				local vx, vz = 0.0, 0.0
-				if not isNew and not bld then
-					local pf = tPrevF[uid]
-					local dtp = frame - pf
-					if dtp > 0 then
-						vx = (x - tPrevX[uid]) / dtp
-						vz = (z - tPrevZ[uid]) / dtp
-					end
-					if not full then
-						local dt = frame - (tF[uid] or frame)
-						local px = tX[uid] + tVX[uid] * dt
-						local pz = tZ[uid] + tVZ[uid] * dt
-						if mathAbs(x - px) + mathAbs(z - pz) > (canFly[def] and flyerTol or tol) then
-							drift = true
-						end
-					end
-				end
-				if full or drift then
-					-- store the quantised velocity so prediction matches what playback extrapolates
-					local qvx = (quantV(vx) - V_BIAS) / V_SCALE
-					local qvz = (quantV(vz) - V_BIAS) / V_SCALE
-					if full then
-						pushUnit(self, uid, def, team, flags, x, z, qvx, qvz)
-					else
-						pushMove(self, uid, x, z, qvx, qvz)
-					end
-					tX[uid], tZ[uid], tVX[uid], tVZ[uid], tF[uid] = x, z, qvx, qvz, frame
-					tFlags[uid] = flags
-				end
-				tPrevX[uid], tPrevZ[uid], tPrevF[uid] = x, z, frame
-
-				-- health and build levels, logged when they change (keyframes restate the incomplete);
-				-- polled only for units that were hit, are under construction, or every 8th tick (repairs)
-				local bld = tBld[uid]
-				local hp, maxHP, bp
-				if isNew or isKey or hpDirty[uid] or (bld and bld < hpTop) or uid % 8 == defCheckSlot then
-					hp, maxHP, _, _, bp = spGetUnitHealth(uid)
-					hpDirty[uid] = nil
-				end
-				if bp then
-					local level = mathMin(hpTop, mathMax(0, mathFloor(bp * hpTop + 0.5)))
-					local last = tBld[uid]
-					if level ~= last or (isKey and level < hpTop) then
-						if not (last == nil and level >= hpTop) then
-							pushBld(self, uid, level)
-						end
-						tBld[uid] = level
-					end
-				end
-				if hp and maxHP and maxHP > 0 then
-					local level = mathMin(hpTop, mathMax(0, mathFloor(hp / maxHP * hpTop + 0.5)))
-					local last = tHp[uid]
-					if level ~= last or (isKey and level < hpTop) then
-						if not (last == nil and level >= hpTop) then
-							pushHp(self, uid, level)
-						end
-						tHp[uid] = level
-					end
-				end
-
-				if isNew then
-					liveCount = liveCount + 1
-					liveList[liveCount] = uid
-				end
+			if quick and not hpDirty[uid] and not ((tBld[uid] or hpTop) < hpTop) then
 				tSeen[uid] = tickStamp
-			end
-		end
-	end
+			else
+				local team = tTeam[uid]
+				if not team then
+					team = spGetUnitTeam(uid) or 0
+					tTeam[uid] = team
+				end
+				local x, z
+				if quick then
+					x, z = tX[uid], tZ[uid]
+				else
+					x, _, z = spGetUnitBasePosition(uid)
+				end
+				if x and z then
+					local flags = 0
+					if bld then
+						flags = F_BUILDING
+					end
+					if quick then
+						flags = tFlags[uid] or flags
+					elseif losChecks then
+						local ally = allyOfTeam[team]
+						if ally == nil then
+							ally = spGetTeamAllyTeamID(team) or -1
+							allyOfTeam[team] = ally
+						end
+						if ally ~= myAlly then
+							local bits = spGetUnitLosState(uid, myAlly, true)
+							if bits and bits % 2 == 0 then
+								flags = flags + F_RADAR
+							end
+						end
+					end
 
-	if lastPhase then
-		-- units that were live last tick but are gone now: vanish (or ghost for buildings)
-		local w = 0
-		local pendingDead = self.pendingDead
-		for i = 1, liveCount do
-			local uid = liveList[i]
-			local seen = tSeen[uid]
-			if seen == tickStamp then
-				w = w + 1
-				liveList[w] = uid
-			elseif seen == prevStamp and not pendingDead[uid] then
-				local def = tDef[uid] or 0
-				local flags = isBuilding[def] and (F_GHOST + F_BUILDING) or F_VANISH
-				pushUnit(self, uid, def, tTeam[uid] or 0, flags, tPrevX[uid] or 0, tPrevZ[uid] or 0, 0, 0)
-				removeLive(self, uid)
+					local full = isNew or isKey or flags ~= tFlags[uid]
+					local drift = false
+					local vx, vz = 0.0, 0.0
+					if not isNew and not bld then
+						local pf = tPrevF[uid]
+						local dtp = frame - pf
+						if dtp > 0 then
+							vx = (x - tPrevX[uid]) / dtp
+							vz = (z - tPrevZ[uid]) / dtp
+						end
+						if not full then
+							local dt = frame - (tF[uid] or frame)
+							local px = tX[uid] + tVX[uid] * dt
+							local pz = tZ[uid] + tVZ[uid] * dt
+							if mathAbs(x - px) + mathAbs(z - pz) > (canFly[def] and flyerTol or tol) then
+								drift = true
+							end
+						end
+					end
+					if full or drift then
+						-- store the quantised velocity so prediction matches what playback extrapolates
+						local qvx = (quantV(vx) - V_BIAS) / V_SCALE
+						local qvz = (quantV(vz) - V_BIAS) / V_SCALE
+						if full then
+							pushUnit(self, uid, def, team, flags, x, z, qvx, qvz)
+						else
+							pushMove(self, uid, x, z, qvx, qvz)
+						end
+						tX[uid], tZ[uid], tVX[uid], tVZ[uid], tF[uid] = x, z, qvx, qvz, frame
+						tFlags[uid] = flags
+					end
+					tPrevX[uid], tPrevZ[uid], tPrevF[uid] = x, z, frame
+
+					-- health and build levels, logged when they change (keyframes restate the incomplete);
+					-- polled only for units that were hit, are under construction, or every 8th tick (repairs)
+					local bldLevel = tBld[uid]
+					local hp, maxHP, bp
+					if isNew or isKey or hpDirty[uid] or (bldLevel and bldLevel < hpTop) or uid % 8 == defCheckSlot then
+						hp, maxHP, _, _, bp = spGetUnitHealth(uid)
+						hpDirty[uid] = nil
+					end
+					if bp then
+						local level = mathMin(hpTop, mathMax(0, mathFloor(bp * hpTop + 0.5)))
+						local last = tBld[uid]
+						if level ~= last or (isKey and level < hpTop) then
+							if not (last == nil and level >= hpTop) then
+								pushBld(self, uid, level)
+							end
+							tBld[uid] = level
+						end
+					end
+					if hp and maxHP and maxHP > 0 then
+						local level = mathMin(hpTop, mathMax(0, mathFloor(hp / maxHP * hpTop + 0.5)))
+						local last = tHp[uid]
+						if level ~= last or (isKey and level < hpTop) then
+							if not (last == nil and level >= hpTop) then
+								pushHp(self, uid, level)
+							end
+							tHp[uid] = level
+						end
+					end
+
+					if isNew then
+						liveCount = liveCount + 1
+						liveList[liveCount] = uid
+					end
+					tSeen[uid] = tickStamp
+				end
 			end
 		end
-		for i = w + 1, liveCount do
-			liveList[i] = nil
-		end
-		self.liveCount = w
 	end
 
 	if phase == 0 then
@@ -1138,17 +1265,32 @@ function Store:GameFrame(frame)
 		local en = self.pendingExplN
 		if en > 0 then
 			local list = self.pendingExpl
-			if en > o.explosionCap then
-				local idx = {} ---@type table<integer, integer>
-				for i = 1, en do
-					idx[i] = i
+			local cap = o.explosionCap
+			if en > cap then
+				-- a sort here costs milliseconds in a big battle: bucket counts find the cut radius
+				local hist = self.explHist
+				for b = 0, EXPL_BUCKETS do
+					hist[b] = 0
 				end
-				table.sort(idx, function(a, b)
-					return list[a][6] > list[b][6]
-				end)
-				for k = 1, o.explosionCap do
-					local e = list[idx[k]]
-					pushExpl(self, e[1], e[2], e[3], e[4], frame - e[5])
+				for i = 1, en do
+					local b = list[i][7]
+					hist[b] = hist[b] + 1
+				end
+				local above, cut = 0, EXPL_BUCKETS
+				while cut > 0 and above + hist[cut] < cap do
+					above = above + hist[cut]
+					cut = cut - 1
+				end
+				local room = cap - above
+				for i = 1, en do
+					local e = list[i]
+					local b = e[7]
+					if b > cut or (b == cut and room > 0) then
+						if b == cut then
+							room = room - 1
+						end
+						pushExpl(self, e[1], e[2], e[3], e[4], frame - e[5])
+					end
 				end
 			else
 				for i = 1, en do
@@ -1190,25 +1332,43 @@ function Store:GameFrame(frame)
 		local dn = self.pendingDmgN
 		if dn > 0 then
 			local list, q, f = self.pendingDmgList, self.pendingDmgQ, self.pendingDmgF
-			if dn > o.damageCap then
-				table.sort(list, function(a, b)
-					return (q[a] or 0) > (q[b] or 0)
-				end)
+			local cap = o.damageCap
+			local cut, room = 0, 0 ---@type number, number
+			if dn > cap then
+				-- strengths are 1..100: counting finds the cut without a sort
+				local hist = self.dmgHist
+				for v = 1, 100 do
+					hist[v] = 0
+				end
+				for i = 1, dn do
+					local v = q[list[i]]
+					hist[v] = hist[v] + 1
+				end
+				local above = 0
+				cut = 100
+				while cut > 1 and above + hist[cut] < cap do
+					above = above + hist[cut]
+					cut = cut - 1
+				end
+				room = cap - above
 			end
 			local buf = self.bufs.dmg
 			local n = self.lens.dmg
-			for i = 1, mathMin(dn, o.damageCap) do
-				local uid = list[i]
-				local age = frame - f[uid]
-				buf[n + 1], buf[n + 2], buf[n + 3] = uid, q[uid], clampU16(age)
-				n = n + DMG_STRIDE
-				noteAge(self, age)
-			end
-			self.lens.dmg = n
 			for i = 1, dn do
 				local uid = list[i]
+				local v = q[uid]
+				if v > cut or (v == cut and room > 0) then
+					if v == cut then
+						room = room - 1
+					end
+					local age = frame - f[uid]
+					buf[n + 1], buf[n + 2], buf[n + 3] = uid, v, clampU16(age)
+					n = n + DMG_STRIDE
+					noteAge(self, age)
+				end
 				q[uid], f[uid], list[i] = nil, nil, nil
 			end
+			self.lens.dmg = n
 			self.pendingDmgN = 0
 		end
 
@@ -1299,12 +1459,12 @@ function Store:GameFrame(frame)
 				seenBeam[pid] = nil
 			end
 		end
-		-- shells missing from the latest scan are gone; a keyframe restates the ones in flight
+		-- shells missing from the last finished sweep are gone; a keyframe restates the ones in flight
 		local pF, pSeen = self.pF, self.pSeen
-		local lastScan = frame - frame % (self.projStepNow or o.projectileStep)
+		local lastScan = self.projDoneFrame
 		for pid, f0 in pairs(pF) do
 			if pSeen[pid] < lastScan then
-				pushProjEnd(self, pid, frame - pSeen[pid])
+				pushProjEnd(self, pid, pSeen[pid])
 				pF[pid] = nil
 				self.pTracked = self.pTracked - 1
 			elseif isKey then
@@ -1320,37 +1480,106 @@ function Store:GameFrame(frame)
 				)
 			end
 		end
-		-- projectile records carry their absolute frame until now
-		local pbuf = self.bufs.proj
-		for i = PROJ_STRIDE, self.lens.proj, PROJ_STRIDE do
-			pbuf[i] = mathFloor(mathMax(frame - pbuf[i], 0))
+		-- shell records since the last tick carry their absolute frame until now: sweeps run
+		-- during the scan phases too, and those records belong to the next tick
+		local hold, hn = self.projHold, self.projHoldN
+		local pbuf, pn = self.bufs.proj, self.lens.proj
+		for i = 1, hn do
+			pbuf[pn + i] = hold[i]
 		end
+		for i = PROJ_STRIDE, hn, PROJ_STRIDE do
+			pbuf[pn + i] = clampU16(frame - hold[i])
+		end
+		self.lens.proj = pn + hn
+		self.projHoldN = 0
+		local endHold, en2 = self.pendHold, self.pendHoldN
+		local ebuf, ebn = self.bufs.pend, self.lens.pend
+		for i = 1, en2 do
+			ebuf[ebn + i] = endHold[i]
+		end
+		for i = PEND_STRIDE, en2, PEND_STRIDE do
+			ebuf[ebn + i] = clampU16(frame - endHold[i])
+		end
+		self.lens.pend = ebn + en2
+		self.pendHoldN = 0
 	end
 
-	if not lastPhase then
-		self.liveCount = liveCount -- units this phase added to the live list
-		self.scanPhase = phase + 1
+	self.liveCount = liveCount
+	self.scanPhase = phase + 1
+	self.scanAcc = self.scanAcc + (os.clock() - t0) * 1000
+	return false
+end
+
+-- The frames after a tick's scan: the vanish sweep, then the streams packed in slices, then the
+-- finished tick goes into the log.
+function Store:CloseTick()
+	local t0 = os.clock()
+	local o = self.opts
+	local job = self.closing
+	if not job then
+		-- units that were live last tick but are gone now: vanish (or ghost for buildings)
+		local tickStamp, prevStamp = self.tickCount + 1, self.tickCount
+		local tSeen, tDef, tTeam, tPrevX, tPrevZ = self.tSeen, self.tDef, self.tTeam, self.tPrevX, self.tPrevZ
+		local isBuilding, pendingDead = self.isBuilding, self.pendingDead
+		local liveList, liveCount = self.liveList, self.liveCount
+		local w = 0
+		for i = 1, liveCount do
+			local uid = liveList[i]
+			local seen = tSeen[uid]
+			if seen == tickStamp then
+				w = w + 1
+				liveList[w] = uid
+			elseif seen == prevStamp and not pendingDead[uid] then
+				local def = tDef[uid] or 0
+				local flags = isBuilding[def] and (F_GHOST + F_BUILDING) or F_VANISH
+				pushUnit(self, uid, def, tTeam[uid] or 0, flags, tPrevX[uid] or 0, tPrevZ[uid] or 0, 0, 0)
+				removeLive(self, uid)
+			end
+		end
+		for i = w + 1, liveCount do
+			liveList[i] = nil
+		end
+		self.liveCount = w
+		self.closing = {
+			idx = 1,
+			bytes = TICK_OVERHEAD,
+			tick = {
+				frame = self.tickStart,
+				key = (self.tickCount % o.keyframeTicks) == 0,
+				level = 0,
+				maxAge = self.eventMaxAge,
+				spread = self.scanSpreadNow,
+				ally = self.tickAlly,
+			},
+		}
 		self.scanAcc = self.scanAcc + (os.clock() - t0) * 1000
 		return false
 	end
-	self.scanPhase = nil
-	frame = self.tickStart
 
-	-- pack the tick
-	local tick = { frame = frame, key = isKey, level = 0, maxAge = self.eventMaxAge, spread = spread, ally = self.tickAlly }
-	local bytes = TICK_OVERHEAD
-	local bufs, lens, stats = self.bufs, self.lens, self.stats
-	for i = 1, #STREAMS do
-		local name = STREAMS[i]
+	local tick = job.tick
+	local bufs, lens = self.bufs, self.lens
+	local used = 0
+	while job.idx <= #STREAMS do
+		local name = STREAMS[job.idx] --[[@as string]]
 		local n = lens[name]
 		if n > 0 then
+			if used > 0 and used + n > o.packValuesPerFrame then
+				self.scanAcc = self.scanAcc + (os.clock() - t0) * 1000
+				return false
+			end
 			trim(bufs[name], n)
 			local str = packU16(bufs[name])
 			tick[name] = str
-			bytes = bytes + #str
+			job.bytes = job.bytes + #str
 			lens[name] = 0
+			used = used + n
 		end
+		job.idx = job.idx + 1
 	end
+	self.closing = nil
+	self.scanPhase = nil
+
+	local stats = self.stats
 	stats.unitRecords = stats.unitRecords + (tick.units and #tick.units / (UNIT_STRIDE * 2) or 0)
 	stats.moveRecords = stats.moveRecords + (tick.moves and #tick.moves / (MOVE_STRIDE * 2) or 0)
 	stats.events = stats.events
@@ -1362,28 +1591,20 @@ function Store:GameFrame(frame)
 	stats.dmgRecords = stats.dmgRecords + (tick.dmg and #tick.dmg / (DMG_STRIDE * 2) or 0)
 	stats.featRecords = stats.featRecords + (tick.feat and #tick.feat / (FEAT_STRIDE * 2) or 0)
 	self.eventMaxAge = 0
-	tick.bytes = bytes
+	tick.bytes = job.bytes
 	local ticks = self.ticks
 	ticks[#ticks + 1] = tick
 	if self.hot ~= ticks then
 		self.hot[#self.hot + 1] = tick
 	end
-	if isKey then
+	if tick.key then
 		self.keyTicks[#self.keyTicks + 1] = #ticks
 	end
-	self.totalBytes = self.totalBytes + bytes
-	self.rawBytes = self.rawBytes + bytes
-	self.tickCount = tickStamp
-	self.lastTickFrame = frame
+	self.totalBytes = self.totalBytes + job.bytes
+	self.rawBytes = self.rawBytes + job.bytes
+	self.tickCount = self.tickCount + 1
+	self.lastTickFrame = tick.frame
 	self.savedToFile = false
-
-	-- freeze the raw tail that has gone cold (stops at the first already-frozen tick)
-	for i = #ticks - o.coldTicks, 1, -1 do
-		if ticks[i].z then
-			break
-		end
-		self:Freeze(ticks[i])
-	end
 
 	if self:HotBytes() > o.maxBytes then
 		if self:CanSpill() then
@@ -1857,19 +2078,29 @@ function Store:StepSpill(job)
 		end
 		return
 	end
-	-- finalize: strip the heavy streams from the basic copy, freeze it, swap it in
+	-- strip the heavy streams from the basic copy, then freeze it a chunk per frame
 	local basic = job.basic
-	local basicBytes = 0
-	for i = 1, #basic do
-		local t = basic[i]
-		for k = 1, #BASIC_DROP do
-			t[BASIC_DROP[k]] = nil
+	if not job.freezeIdx then
+		for i = 1, #basic do
+			local t = basic[i]
+			for k = 1, #BASIC_DROP do
+				t[BASIC_DROP[k]] = nil
+			end
+			t.bytes = TICK_OVERHEAD + tickRawBytes(t)
+			t.basic = true
 		end
-		t.bytes = TICK_OVERHEAD + tickRawBytes(t)
-		t.basic = true
-		self:Freeze(t)
-		basicBytes = basicBytes + t.bytes
+		job.freezeIdx = 1
 	end
+	if zlibCompress and not self.freezeFailed and job.freezeIdx <= #basic then
+		local fz = job.freeze or self:BeginFreeze(basic[job.freezeIdx])
+		if self:FreezeSlice(fz) then
+			fz = nil
+			job.freezeIdx = job.freezeIdx + 1
+		end
+		job.freeze = fz
+		return
+	end
+	-- swap it in
 	basic[1].key = true
 	job.file:close()
 	self.useCounter = self.useCounter + 1
@@ -2140,6 +2371,11 @@ end
 ---@field uVX table<number, number>
 ---@field uVZ table<number, number>
 ---@field uF table<number, number>
+---@field bX table<number, number> -- a unit's previous record, for the frames before its scan phase
+---@field bZ table<number, number>
+---@field bVX table<number, number>
+---@field bVZ table<number, number>
+---@field bF table<number, number?>
 ---@field uDef table<number, integer>
 ---@field uTeam table<number, integer>
 ---@field uFlags table<number, integer>
@@ -2231,6 +2467,7 @@ function PipHistory.newView(store)
 	self.keyIdx = nil
 	self.appliedTick = 0
 	self.uX, self.uZ, self.uVX, self.uVZ, self.uF = {}, {}, {}, {}, {}
+	self.bX, self.bZ, self.bVX, self.bVZ, self.bF = {}, {}, {}, {}, {}
 	self.uDef, self.uTeam, self.uFlags = {}, {}, {}
 	self.uHealth = {}
 	self.uBuild = {}
@@ -2339,6 +2576,7 @@ local function applyTick(self, store, tick)
 	local sp = tick.spread or 1
 	self.recAlly = tick.ally
 	local uX, uZ, uVX, uVZ, uF = self.uX, self.uZ, self.uVX, self.uVZ, self.uF
+	local bX, bZ, bVX, bVZ, bF = self.bX, self.bZ, self.bVX, self.bVZ, self.bF
 	local uDef, uTeam, uFlags = self.uDef, self.uTeam, self.uFlags
 	local present, ids = self.present, self.ids
 	local arr = unpackAll(s.units)
@@ -2346,6 +2584,10 @@ local function applyTick(self, store, tick)
 		for i = 1, #arr, UNIT_STRIDE do
 			local uid = arr[i]
 			local tf = arr[i + 2]
+			if sp > 1 then
+				bF[uid] = present[uid] and uF[uid] or nil
+				bX[uid], bZ[uid], bVX[uid], bVZ[uid] = uX[uid], uZ[uid], uVX[uid], uVZ[uid]
+			end
 			uDef[uid] = arr[i + 1]
 			uTeam[uid] = tf % 256
 			uFlags[uid] = mathFloor(tf / 256)
@@ -2366,6 +2608,9 @@ local function applyTick(self, store, tick)
 		for i = 1, #moves, MOVE_STRIDE do
 			local uid = moves[i]
 			if present[uid] then
+				if sp > 1 then
+					bF[uid], bX[uid], bZ[uid], bVX[uid], bVZ[uid] = uF[uid], uX[uid], uZ[uid], uVX[uid], uVZ[uid]
+				end
 				uX[uid] = moves[i + 1]
 				uZ[uid] = moves[i + 2]
 				uVX[uid] = (moves[i + 3] - V_BIAS) / V_SCALE
@@ -2554,6 +2799,8 @@ function View:Materialize(frame)
 	local n = 0
 	local nextFrame = ticks[last + 1] and ticks[last + 1].frame or frame
 	local extrapTo = mathMin(frame, nextFrame)
+	local prevSpan = last > 1 and mathMax(ticks[last].frame - ticks[last - 1].frame, 1) or store.opts.tickFrames
+	local bX, bZ, bVX, bVZ, bF = self.bX, self.bZ, self.bVX, self.bVZ, self.bF
 	for i = 1, self.idCount do
 		local uid = ids[i]
 		local flags = uFlags[uid]
@@ -2564,9 +2811,19 @@ function View:Materialize(frame)
 			local x, z = uX[uid], uZ[uid]
 			local nf = nF[uid]
 			local vx, vz = uVX[uid], uVZ[uid]
-			if nf and nf > f0 and nDef[uid] == def then
+			local nx, nz, nvx, nvz, span ---@type number, number, number, number, number
+			local bf = frame < f0 and bF[uid]
+			if bf and bf <= frame then
+				-- this record's scan phase is still ahead of the viewed frame: blend the previous one into it
+				nf, nx, nz, nvx, nvz, span = f0, x, z, vx, vz, prevSpan
+				f0, x, z, vx, vz = bf, bX[uid], bZ[uid], bVX[uid], bVZ[uid]
+			elseif nf and nf > f0 and nDef[uid] == def then
+				nx, nz, nvx, nvz, span = nX[uid], nZ[uid], nVX[uid], nVZ[uid], nSpan[uid]
+			else
+				nf = nil
+			end
+			if nf then
 				local dt = frame - f0
-				local span = nSpan[uid]
 				local dtn = nf - f0
 				if dtn <= span * 2 then
 					local t = dt / dtn
@@ -2576,9 +2833,10 @@ function View:Materialize(frame)
 					local h10 = (t3 - 2 * t2 + t) * dtn
 					local h01 = 3 * t2 - 2 * t3
 					local h11 = (t3 - t2) * dtn
-					x = h00 * x + h10 * vx + h01 * nX[uid] + h11 * nVX[uid]
-					z = h00 * z + h10 * vz + h01 * nZ[uid] + h11 * nVZ[uid]
+					x = h00 * x + h10 * vx + h01 * nx + h11 * nvx
+					z = h00 * z + h10 * vz + h01 * nz + h11 * nvz
 				else
+					local x0, z0 = x, z
 					x = x + vx * dt
 					z = z + vz * dt
 					local sBlend = (frame - (nf - span)) / span
@@ -2587,8 +2845,8 @@ function View:Materialize(frame)
 							sBlend = 1
 						end
 						sBlend = sBlend * sBlend * (3 - 2 * sBlend)
-						x = x + (nX[uid] - (uX[uid] + vx * dtn)) * sBlend
-						z = z + (nZ[uid] - (uZ[uid] + vz * dtn)) * sBlend
+						x = x + (nx - (x0 + vx * dtn)) * sBlend
+						z = z + (nz - (z0 + vz * dtn)) * sBlend
 					end
 				end
 			else

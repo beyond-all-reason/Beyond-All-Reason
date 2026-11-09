@@ -68,7 +68,7 @@ local loadout = MissionSpecEnv.include(env, "luarules/mission_api/loadout.lua")
 
 local function spawnedHeading(entry)
 	entry.featureDefName = "armwar_dead"
-	entry.x, entry.z = 100, 100
+	entry.position = { x = 100, z = 100 }
 	loadout.SpawnFeatureLoadout({ entry })
 	return createdFeatures[#createdFeatures].heading
 end
@@ -129,7 +129,7 @@ describe("mission_api.loadout unit orientation", function()
 
 	local function spawnUnits(entry)
 		entry.teamName = 0
-		entry.x, entry.z = 100, 100
+		entry.position = { x = 100, z = 100 }
 		loadout.SpawnUnitLoadout({ entry })
 	end
 

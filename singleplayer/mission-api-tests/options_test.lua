@@ -42,13 +42,13 @@ local actions = {
 }
 
 local unitLoadout = {
-	{ unitDefName = 'armck', x = 1780, z = 1850, orientation = 'e', teamName = 'player' },
+	{ unitDefName = 'armck', position = { x = 1780, z = 1850 }, orientation = 'e', teamName = 'player' },
 }
 
 if options.reinforcements then
-	table.insert(unitLoadout, { unitDefName = 'armpw', x = 1850, z = 1800, orientation = 'e', teamName = 'player' })
-	table.insert(unitLoadout, { unitDefName = 'armpw', x = 1850, z = 1850, orientation = 'e', teamName = 'player' })
-	table.insert(unitLoadout, { unitDefName = 'armpw', x = 1850, z = 1900, orientation = 'e', teamName = 'player' })
+	table.insert(unitLoadout, { unitDefName = 'armpw', position = { x = 1850, z = 1800 }, orientation = 'e', teamName = 'player' })
+	table.insert(unitLoadout, { unitDefName = 'armpw', position = { x = 1850, z = 1850 }, orientation = 'e', teamName = 'player' })
+	table.insert(unitLoadout, { unitDefName = 'armpw', position = { x = 1850, z = 1900 }, orientation = 'e', teamName = 'player' })
 end
 
 return {

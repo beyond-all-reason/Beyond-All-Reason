@@ -98,8 +98,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck',   x = 1900, z = 1700, orientation = 'e', teamName = 'player', unitName = 'reinforcement-con' },
-				{ unitDefName = 'armflea', x = 1900, z = 1820, orientation = 'e', teamName = 'player',
+				{ unitDefName = 'armck',   position = { x = 1900, z = 1700 }, orientation = 'e', teamName = 'player', unitName = 'reinforcement-con' },
+				{ unitDefName = 'armflea', position = { x = 1900, z = 1820 }, orientation = 'e', teamName = 'player',
 				  orders = {
 				    { CMD.MOVE, { 2100, 0, 2220 }, {} },
 				  },
@@ -112,8 +112,8 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'corak_dead', x = 1800, z = 1750, orientation = 's', featureName = 'reinforcement-wreck' },
-				{ featureDefName = 'corak_dead', x = 2000, z = 1700, orientation = { x = 1900, z = 1700 } },
+				{ featureDefName = 'corak_dead', position = { x = 1800, z = 1750 }, orientation = 's', featureName = 'reinforcement-wreck' },
+				{ featureDefName = 'corak_dead', position = { x = 2000, z = 1700 }, orientation = { x = 1900, z = 1700 } },
 			},
 		},
 	},
@@ -167,35 +167,38 @@ local actions = {
 
 local unitLoadout    = {
 	-- Player team (team 0).
-	{ unitDefName = 'armck', x = 1780, z = 1850, orientation = 'e', teamName = 'player', unitName = 'player-con' },
-	{ unitDefName = 'corck', x = 1780, z = 1800, orientation = 'e', teamName = 'player',
+	{ unitDefName = 'armck', position = { x = 1780, z = 1850 }, orientation = 'e', teamName = 'player', unitName = 'player-con' },
+	{ unitDefName = 'corck', position = { x = 1780, z = 1800 }, orientation = 'e', teamName = 'player',
 	  orders = {
 	    { CMD.PATROL, { 1780, 0, 1950 }, {} },
 	  },
 	},
 	-- A lab in a ring of dragon's teeth, each tooth 16 elmos clear of the lab, open to the south.
-	{ unitDefName = 'armlab',  x = 1520, z = 1600, orientation = 's', teamName = 'player' },
-	{ unitDefName = 'armdrag', x = 1440, z = 1520, teamName = 'player' },
-	{ unitDefName = 'armdrag', x = 1520, z = 1520, teamName = 'player' },
-	{ unitDefName = 'armdrag', x = 1600, z = 1520, teamName = 'player' },
-	{ unitDefName = 'armdrag', x = 1440, z = 1600, teamName = 'player' },
-	{ unitDefName = 'armdrag', x = 1600, z = 1600, teamName = 'player' },
-	{ unitDefName = 'armdrag', x = 1440, z = 1680, teamName = 'player' },
-	{ unitDefName = 'armdrag', x = 1600, z = 1680, teamName = 'player' },
+	{ unitDefName = 'armlab',  position = { x = 1520, z = 1600 }, orientation = 's', teamName = 'player' },
+	{ unitDefName = 'armdrag', position = { x = 1440, z = 1520 }, teamName = 'player' },
+	{ unitDefName = 'armdrag', position = { x = 1520, z = 1520 }, teamName = 'player' },
+	{ unitDefName = 'armdrag', position = { x = 1600, z = 1520 }, teamName = 'player' },
+	{ unitDefName = 'armdrag', position = { x = 1440, z = 1600 }, teamName = 'player' },
+	{ unitDefName = 'armdrag', position = { x = 1600, z = 1600 }, teamName = 'player' },
+	{ unitDefName = 'armdrag', position = { x = 1440, z = 1680 }, teamName = 'player' },
+	{ unitDefName = 'armdrag', position = { x = 1600, z = 1680 }, teamName = 'player' },
 	-- A unit that moves turns to any angle.
-	{ unitDefName = 'armflash', x = 1680, z = 1850, orientation = { angle = 45 }, teamName = 'player' },
+	{ unitDefName = 'armflash', position = { x = 1680, z = 1850 }, orientation = { angle = 45 }, teamName = 'player' },
 
 	-- Enemy team (team 1)
-	{ unitDefName = 'corsolar', x = 1700, z = 2150, orientation = 'w', teamName = 'enemy' },
-	{ unitDefName = 'corsolar', x = 1800, z = 2150, orientation = 's', teamName = 'enemy' },
+	{ unitDefName = 'corsolar', position = { x = 1700, z = 2150 }, orientation = 'w', teamName = 'enemy' },
+	{ unitDefName = 'corsolar', position = { x = 1800, z = 2150 }, orientation = 's', teamName = 'enemy' },
 	-- A building keeps the nearest of the four facings: angle 100 stands east.
-	{ unitDefName = 'corsolar', x = 1900, z = 2150, orientation = { angle = 100 }, teamName = 'enemy' },
+	{ unitDefName = 'corsolar', position = { x = 2000, z = 2150 }, orientation = { angle = 100 }, teamName = 'enemy' },
+  
+	-- Gaia's team
+	{ unitDefName = 'corsolar', position = { x = 1900, z = 2150 }, orientation = 's', teamName = 'gaia' },
 }
 
 local featureLoadout = {
-	{ featureDefName = 'corak_dead',  x = 1900, z = 1800, orientation = 's', featureName = 'the-wreck' },
-	{ featureDefName = 'corak_dead',  x = 2000, z = 1800, orientation = { angle = 60 } },
-	{ featureDefName = 'armfus_dead', x = 1900, z = 2000, orientation = 'e' },
+	{ featureDefName = 'corak_dead',  position = { x = 1900, z = 1800 }, orientation = 's', featureName = 'the-wreck' },
+	{ featureDefName = 'corak_dead',  position = { x = 2000, z = 1800 }, orientation = { angle = 60 } },
+	{ featureDefName = 'armfus_dead', position = { x = 1900, z = 2000 }, orientation = 'e' },
 }
 
 return {
