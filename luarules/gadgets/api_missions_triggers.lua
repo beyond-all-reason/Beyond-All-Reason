@@ -203,7 +203,7 @@ local inactiveSeismicContacts = {}
 local unitsEnteredAreaHandlers, unitsLeftAreaHandlers ---@type table<string, function?>, table<string, function?>
 
 ---@param triggerID string
-local function onUnitsEnteredArea(unitIDs, _, triggerID)
+local function onUnitsEnteredArea(unitIDs, triggerID)
 	local trigger = triggers[triggerID]
 	local handler = unitsEnteredAreaHandlers[trigger.type]
 	if handler then
@@ -212,7 +212,7 @@ local function onUnitsEnteredArea(unitIDs, _, triggerID)
 end
 
 ---@param triggerID string
-local function onUnitsLeftArea(unitIDs, _, triggerID)
+local function onUnitsLeftArea(unitIDs, triggerID)
 	local trigger = triggers[triggerID]
 	local handler = unitsLeftAreaHandlers[trigger.type]
 	if handler then
