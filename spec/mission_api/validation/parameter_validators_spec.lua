@@ -1097,11 +1097,11 @@ describe("mission_api.validation.parameter_validators", function()
 			local unitLoadout = {}
 			for moveState = 0, 2 do
 				unitLoadout[#unitLoadout + 1] =
-					{ unitDefName = "armwar", teamName = "player", x = 0, z = 0, moveState = moveState }
+					{ unitDefName = "armwar", teamName = "player", position = { x = 0, z = 0 }, moveState = moveState }
 			end
 			for fireState = 0, 3 do
 				unitLoadout[#unitLoadout + 1] =
-					{ unitDefName = "armwar", teamName = "player", x = 0, z = 0, fireState = fireState }
+					{ unitDefName = "armwar", teamName = "player", position = { x = 0, z = 0 }, fireState = fireState }
 			end
 
 			V.assertValid(validateUnitLoadout(unitLoadout))
@@ -1109,7 +1109,13 @@ describe("mission_api.validation.parameter_validators", function()
 
 		it("rejects a state out of range", function()
 			local result = validateUnitLoadout({
-				{ unitDefName = "armwar", teamName = "player", x = 0, z = 0, moveState = 3, fireState = -1 },
+				{
+					unitDefName = "armwar",
+					teamName = "player",
+					position = { x = 0, z = 0 },
+					moveState = 3,
+					fireState = -1,
+				},
 			})
 
 			V.assertMessage(result, "Invalid moveState: 3. Action: a, Parameter: unitLoadout[1].moveState")
@@ -1118,7 +1124,12 @@ describe("mission_api.validation.parameter_validators", function()
 
 		it("rejects a state given as a name", function()
 			local result = validateUnitLoadout({
-				{ unitDefName = "armwar", teamName = "player", x = 0, z = 0, moveState = "HoldPosition" },
+				{
+					unitDefName = "armwar",
+					teamName = "player",
+					position = { x = 0, z = 0 },
+					moveState = "HoldPosition",
+				},
 			})
 
 			V.assertMessage(
