@@ -5,7 +5,7 @@
 local table_keys = table.keys
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
-local UPDATE_INTERVAL_FRAMES = 3
+local UPDATE_INTERVAL_FRAMES = 3 -- matches `updatePeriod` in WaitCommandsAI.cpp
 
 ---@type table<integer, boolean>
 local canGatherByUnitDefID = {}
