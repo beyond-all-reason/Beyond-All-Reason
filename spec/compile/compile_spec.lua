@@ -13,6 +13,7 @@ describe("Lua sources", function()
 		local files = io.popen('git ls-files -- "*.lua"')
 		for path in files:lines() do
 			if not NOT_VALID_LUA[path] then
+				---@cast path string
 				local chunk, message = loadfile(path)
 				if chunk then
 					compiled = compiled + 1
