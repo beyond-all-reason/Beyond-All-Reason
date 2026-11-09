@@ -24,14 +24,12 @@ local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-include("keysym.h.lua")
 local dynamicBuildOptions = require("common/dynamicBuildOptions")
 
 local pairs = pairs
 local ipairs = ipairs
 local tonumber = tonumber
 local string_format = string.format
-local table_invert = table.invert
 local pcall = pcall
 --- CHANGE START ---
 -- Helper function to clear a table without creating garbage, using the standard Lua method.
@@ -41,8 +39,6 @@ local function clearTable(t)
 	end
 end
 --- CHANGE END ---
-
-SYMKEYS = table_invert(KEYSYMS)
 
 local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 

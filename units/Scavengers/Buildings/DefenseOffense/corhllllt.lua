@@ -24,7 +24,7 @@ return {
 		script = "Units/scavbuildings/CORHLLLLT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 475,
+		sightdistance = 500,
 		yardmap = "oooo",
 		customparams = {
 			usebuildinggrounddecal = true,

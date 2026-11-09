@@ -1,7 +1,7 @@
 return {
 	legacv = {
 		maxacc = 0.02547,
-		maxdec = 0.05093,
+		maxdec = 0.1,
 		energycost = 6600,
 		metalcost = 530,
 		builddistance = 136,
@@ -29,7 +29,7 @@ return {
 		script = "Units/legacv.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
-		sightdistance = 295.10001,
+		sightdistance = 330,
 		terraformspeed = 1250,
 		trackstrength = 6,
 		tracktype = "corwidetracks",

@@ -2,8 +2,8 @@ local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local unitLoadout = {
-	{ unitDefName = 'armpw', unitName = 'scout', x = 1700, z = 2200, teamName = 'player' },
-	{ unitDefName = 'armwar', unitName = 'brawler', x = 1800, z = 2200, teamName = 'player' },
+	{ unitDefName = 'armpw', unitName = 'scout', position = { x = 1700, z = 2200 }, teamName = 'player' },
+	{ unitDefName = 'armwar', unitName = 'brawler', position = { x = 1800, z = 2200 }, teamName = 'player' },
 }
 
 local triggers = {

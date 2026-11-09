@@ -2,7 +2,7 @@ return {
 	corsiegebreaker = {
 		maxacc = 0.0206,
 		activatewhenbuilt = false,
-		maxdec = 0.05321,
+		maxdec = 0.1,
 		energycost = 15000,
 		metalcost = 1100,
 		buildpic = "CORSIEGEBREAKER.DDS",
