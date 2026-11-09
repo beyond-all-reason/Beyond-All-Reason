@@ -506,7 +506,6 @@ local function registerSpatialValidators(parameterValidators, context)
 		return angleResult and { angleResult } or nil
 	end
 
-	--- One of the four facings, or a direction for any angle.
 	parameterValidators[Types.FacingOrDirection] = function(value)
 		local valueType = type(value)
 		if valueType == "table" then
