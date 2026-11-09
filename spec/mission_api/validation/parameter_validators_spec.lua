@@ -698,7 +698,9 @@ describe("mission_api.validation.parameter_validators", function()
 
 			V.assertValid(V.validateAction({
 				type = V.actionTypes.SpawnUnits,
-				parameters = { unitLoadout = { { unitDefName = "armwar", teamName = "gaia", x = 0, z = 0 } } },
+				parameters = {
+					unitLoadout = { { unitDefName = "armwar", teamName = "gaia", position = { x = 0, z = 0 } } },
+				},
 			}))
 		end)
 	end)
