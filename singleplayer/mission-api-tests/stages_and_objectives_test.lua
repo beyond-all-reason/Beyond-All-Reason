@@ -2,7 +2,7 @@
 --- Stages and objectives test mission.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local initialStage = 'gate'
