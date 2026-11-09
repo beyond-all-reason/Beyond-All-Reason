@@ -282,6 +282,8 @@ local isSpectating = spGetSpectatingState()
 local cursorTextures = {}
 ---@type table<string, string>
 local actionHotkeys
+local tapHotkeys
+local tapHotkeyLines = {}
 
 local function clearStateLightDisplayLists()
 	for cell, cache in pairs(stateLightDisplayLists) do
@@ -455,6 +457,11 @@ local function refreshCommands()
 
 	-- cancelTargetLastState is kept current by SelectionChanged and by the poll in Update
 	local cancelTargetRelevant = cancelTargetLastState
+
+	-- the blueprint commands, unless the blueprint UI is off (ShowBlueprintUI: settings, dev)
+	local hideBlueprints = Spring.GetConfigInt("ShowBlueprintUI", 1) == 0 or nil
+	hiddenCommands[GameCMD.BLUEPRINT_PLACE] = hideBlueprints
+	hiddenCommands[GameCMD.BLUEPRINT_CREATE] = hideBlueprints
 
 	local activeCmdDescs = spGetActiveCmdDescs()
 	for _, command in ipairs(activeCmdDescs) do
@@ -710,6 +717,66 @@ end
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = require("luaui/Include/action_hotkeys")
+	tapHotkeys = require("luaui/Include/action_tap_hotkeys")
+	tapHotkeyLines = {}
+end
+
+-- "Tap L quickly: 1x Fire at will, 2x Hold fire, 3x Return fire" for a state set by the number of taps;
+-- "Press Z Z for area mex" when it needs the extractor picked first: its key bound to an extractor too
+-- (Legacy presets), or the grid layout's keys (the build menu's WG.gridmenu.getAreaMexKeys)
+local function tapHotkeyLine(cmd)
+	if cmd.action == "areamex" then
+		local keys
+		local key = actionHotkeys.areamex
+		if key then
+			if tapHotkeyLines.areamex == nil then
+				tapHotkeyLines.areamex = false
+				for _, keybinding in ipairs(Spring.GetKeyBindings()) do
+					if keybinding.boundWith == key and keybinding.command:find("buildunit_", 1, true) == 1 then
+						local label = keyConfig.sanitizeKey(key, currentLayout):upper()
+						tapHotkeyLines.areamex = label .. " " .. label
+						break
+					end
+				end
+			end
+			keys = tapHotkeyLines.areamex or nil
+		elseif WG.gridmenu and WG.gridmenu.getAreaMexKeys then
+			local grid = WG.gridmenu.getAreaMexKeys()
+			keys = grid and table.concat(grid, " ")
+		end
+		return keys
+				and getCachedTranslation("ui.orderMenu.areamexHotkey", {
+					keys = keys,
+					highlightColor = "\255\255\215\100",
+					textColor = "\255\240\240\240",
+				})
+			or nil
+	end
+	local line = tapHotkeyLines[cmd.action]
+	if line == nil then
+		line = false
+		local chain = tapHotkeys[cmd.action]
+		if chain then
+			local taps = {}
+			for count = 1, #chain do
+				local state = cmd.params[chain[count] + 2]
+				if state then
+					taps[#taps + 1] = getCachedTranslation("ui.orderMenu.tapCount", {
+						count = count,
+						state = getCachedTranslation("commands." .. state),
+					})
+				end
+			end
+			line = getCachedTranslation("ui.orderMenu.tapHotkeys", {
+				hotkey = keyConfig.sanitizeKey(chain.key, currentLayout):upper(),
+				taps = table.concat(taps, ", "),
+				highlightColor = "\255\255\215\100",
+				textColor = "\255\240\240\240",
+			})
+		end
+		tapHotkeyLines[cmd.action] = line
+	end
+	return line or nil
 end
 
 function widget:Initialize()
@@ -1437,7 +1504,8 @@ function widget:DrawScreen()
 								hotkeyCache[cmd.action] =
 									keyConfig.sanitizeKey(actionHotkeys[cmd.action], currentLayout)
 							end
-							local hotkey = hotkeyCache[cmd.action]
+							local tapLine = tapHotkeyLine(cmd)
+							local hotkey = tapLine and "" or hotkeyCache[cmd.action]
 							local hotkeyApplied = false
 
 							if cmd.id == CMD.FIRE_STATE then
@@ -1473,6 +1541,14 @@ function widget:DrawScreen()
 									textColor = "\255\240\240\240",
 								})
 							end
+							if tapLine then
+								tooltip = tooltip ~= "" and (tooltip .. "\n" .. tapLine) or tapLine
+							end
+							if cmd.action == "stockpile" and cmd.params[1] then
+								local limit =
+									getCachedTranslation("commands.stockpile_limit", { limit = cmd.params[1] })
+								tooltip = tooltip ~= "" and (tooltip .. "\n" .. limit) or limit
+							end
 							if tooltip ~= "" then
 								local title
 								if isStateCommand[cmd.id] then
@@ -1483,7 +1559,7 @@ function widget:DrawScreen()
 										title = getCachedTranslation("commands." .. commandState)
 									end
 								else
-									title = getCachedTranslation("commands." .. cmd.action)
+									title = cmd.cachedText
 								end
 								WG.tooltip.ShowTooltip("ordermenu", tooltip, nil, nil, title)
 							end
@@ -1883,6 +1959,7 @@ end
 function widget:LanguageChanged()
 	commandTextCache = {}
 	translationCache = {}
+	tapHotkeyLines = {}
 	widget:ViewResize()
 end
 

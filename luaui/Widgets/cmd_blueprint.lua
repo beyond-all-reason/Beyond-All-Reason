@@ -680,17 +680,35 @@ local function buildHotkeyText()
 		},
 	}
 
-	local hotkeyText = ""
+	local lines = {}
 	for _, hk in ipairs(hotkeys) do
 		local name, key = hk.name, hk.key
 		if not key or string.len(key) == 0 then
 			key = BAR.I18N("ui.blueprint.hotkey_none")
 		end
-		hotkeyText = hotkeyText .. string.format("\255\255\215\100%s\255\240\240\240 - %s\n", key, name)
+		lines[#lines + 1] = string.format("\255\255\215\100%s\255\240\240\240 - %s", key, name)
 	end
 
-	cachedHotkeyText = hotkeyText
+	cachedHotkeyText = table.concat(lines, "\n")
 	return cachedHotkeyText
+end
+
+-- the tooltip's title: the picked blueprint's name, else its number (kept while it stays the same)
+local cachedTitle = { index = false, name = false, text = nil }
+local function cursorTitle(index)
+	local blueprint = index and blueprints[index]
+	local name = blueprint and type(blueprint.name) == "string" and blueprint.name or ""
+	if cachedTitle.text == nil or cachedTitle.index ~= (index or false) or cachedTitle.name ~= name then
+		cachedTitle.index, cachedTitle.name = index or false, name
+		if name ~= "" then
+			cachedTitle.text = name
+		elseif index then
+			cachedTitle.text = BAR.I18N("ui.blueprint.cursor_active", { index = tostring(index) })
+		else
+			cachedTitle.text = BAR.I18N("ui.blueprint.cursor_none")
+		end
+	end
+	return cachedTitle.text
 end
 
 local function drawCursorTextImpl(index)
@@ -713,6 +731,7 @@ local drawCursorText = setmetatable({}, {
 	__index = {
 		invalidate = function()
 			cachedHotkeyText = nil
+			cachedTitle.text = nil
 		end,
 	},
 })
@@ -734,13 +753,32 @@ function widget:LanguageChanged()
 	drawCursorText.invalidate()
 end
 
+-- the cursor as last drawn (DrawScreenPost): over the world the placement command's, "cursornormal" where
+-- a panel set it over itself in its DrawScreen (or the engine over an IsAbove widget)
+local shownCursor = nil
+
+function widget:DrawScreenPost()
+	if blueprintPlacementActive then
+		shownCursor = Spring.GetMouseCursor()
+	end
+end
+
 function widget:DrawScreenEffects()
 	if not blueprintPlacementActive then
 		return
 	end
 
+	-- none over the interface (user): its own tooltips show there
 	local x, y = SpringGetMouseState()
-	if not x or not y then
+	if not x or not y or widgetHandler:IsAbove(x, y) or shownCursor == "cursornormal" then
+		return
+	end
+
+	-- the tooltip widget's at the cursor (user); shown once per call, so every frame while placing (this
+	-- callin comes before its DrawScreen)
+	local tooltip = WG.tooltip
+	if tooltip and tooltip.ShowTooltip then
+		tooltip.ShowTooltip("blueprint", buildHotkeyText(), nil, nil, cursorTitle(selectedBlueprintIndex))
 		return
 	end
 
@@ -1294,6 +1332,14 @@ function widget:Initialize()
 			end
 			deleteBlueprint(index)
 			Spring.PlaySoundFile(sounds.deleteBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
+			return true
+		end,
+		-- names a saved blueprint (a menu's rename; "" for none); false when there is none at index
+		setBlueprintName = function(index, name)
+			if not blueprints[index] or type(name) ~= "string" then
+				return false
+			end
+			blueprints[index].name = name:match("^%s*(.-)%s*$")
 			return true
 		end,
 	}

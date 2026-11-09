@@ -117,7 +117,7 @@ return {
 				explosiongenerator = "custom:starfire-explosion",
 				gravityaffected = "true",
 				heightboostfactor = 8,
-				impulsefactor = 0.5,
+				impulsefactor = 1.1,
 				leadbonus = 0,
 				model = "legbomb.s3o",
 				name = "Long-Range g2g Heavy Cluster Plasma Cannon",

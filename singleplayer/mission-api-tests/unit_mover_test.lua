@@ -115,8 +115,7 @@ local actions = {
 			unitLoadout = {
 				{
 					unitDefName = 'armstump',
-					x = 2300,
-					z = 1900,
+					position = { x = 2300, z = 1900 },
 					teamName = 'player',
 					unitName = 'tanks',
 					quantity = 1

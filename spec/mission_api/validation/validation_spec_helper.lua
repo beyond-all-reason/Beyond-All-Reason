@@ -52,6 +52,7 @@ function helper.mockEngineGlobals()
 	missionAPI.Teams = { player = 0, [0] = "player" }
 	missionAPI.Alliances = { players = 0, [0] = "players" }
 	missionAPI.Variables = {}
+	missionAPI.GameSetupErrors = nil
 	env.Spring.GetAllyTeamList = function()
 		return { 0 }
 	end

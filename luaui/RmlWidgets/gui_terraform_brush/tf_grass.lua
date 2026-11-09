@@ -1,11 +1,10 @@
--- tf_grass.lua — Grass Brush attach + sync (extracted from gui_terraform_brush.lua)
+-- tf_grass.lua: GRASS brush controls of the terraform brush panel (attach + per-frame sync).
 local M = {}
 
 function M.attach(doc, ctx)
 	local trackSliderDrag = ctx.trackSliderDrag
 
-	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
-	-- Slider change events wired declaratively via onchange= in RML.
+	-- Drag state needs a listener per slider; value changes come from onchange= in the RML.
 	for _, sid in ipairs({
 		"size",
 		"rotation",
@@ -48,7 +47,8 @@ function M.attach(doc, ctx)
 		end
 	end
 
-	-- All data-event-click/change handlers (onGbXxx) are defined in initialModel in gui_terraform_brush.lua.
+	-- The onGbXxx event handlers live in initialModel in gui_terraform_brush.lua:
+	-- Recoil forbids adding or replacing function keys after OpenDataModel.
 end
 
 function M.sync(doc, ctx, gbState, setSummary, sumEl)
@@ -60,9 +60,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 	local WG = ctx.WG
 	local dm = widgetState.dmHandle
 
-	-- btn-grass active state driven by data-class-active="activeTool == 'gb'" in RML.
-
-	-- Grass sub-mode buttons (driven by dm.gbSubMode via data-class-active)
 	if dm then
 		local sm = gbState.subMode or "paint"
 		if dm.gbSubMode ~= sm then
@@ -70,13 +67,13 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		end
 	end
 
-	-- Update clay button: unavailable in grass mode
+	-- Clay mode does not apply to grass.
 	local clayBtnG = doc and getCachedEl(doc, "btn-clay-mode")
 	if clayBtnG then
 		clayBtnG:SetClass("unavailable", true)
 	end
 
-	-- DISPLAY/INSTRUMENTS warn chips + instruments sub-row dm flags (data-if driven)
+	-- Warn chips, plus DISPLAY / INSTRUMENTS flags mirrored from the shared terraform brush state.
 	do
 		local s = WG.TerraformBrush and WG.TerraformBrush.getState and WG.TerraformBrush.getState()
 		if s then
@@ -97,14 +94,8 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 					instActive and true or false
 				)
 			end
-			-- Sync active state on instrument chip buttons so they match TF state
-			-- (driven by dm flags via data-class-active in RML)
 			if dm then
-				local function setDm(f, v)
-					if dm[f] ~= v then
-						dm[f] = v
-					end
-				end
+				local setDm = ctx.setDm
 				setDm("gbGridOverlay", s.gridOverlay and true or false)
 				setDm("gbHeightColormap", s.heightColormap and true or false)
 				setDm("gbGridSnap", s.gridSnap and true or false)
@@ -123,7 +114,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		end
 	end
 
-	-- Grass density slider & label sync
 	if doc then
 		uiState.updatingFromCode = true
 
@@ -139,7 +129,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			syncAndFlash(getCachedEl(doc, "slider-grass-density"), "gb-density", tostring(sv))
 		end
 
-		-- Sync size, rotation, curve, length from grass brush own state
+		-- Size, curve and length are the grass brush's own; rotation is shared.
 		do
 			if widgetState.dmHandle then
 				local s = tostring(gbState.radius or 100)
@@ -150,7 +140,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			syncAndFlash(getCachedEl(doc, "slider-gb-size"), "gb-size", tostring(gbState.radius or 100))
 
 			do
-				-- Rotation is shared with TerraformBrush (applyBrush always reads TB rotation)
+				-- Rotation comes from the terraform brush: the grass stroke reads it from there.
 				local tfSt = WG.TerraformBrush and WG.TerraformBrush.getState()
 				local rotDeg = tfSt and tfSt.rotationDeg or (gbState.rotationDeg or 0)
 				if widgetState.dmHandle then
@@ -187,7 +177,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			)
 		end
 
-		-- Smart filter UI sync
+		-- Smart filters
 		do
 			local smartOn = gbState.smartEnabled
 			local smartToggle = getCachedEl(doc, "btn-gb-smart-toggle")
@@ -198,8 +188,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 						or "/luaui/images/terraform_brush/check_off.png"
 				)
 			end
-			-- gb-smart-options does not exist; warn chips handled above via ctx.syncWarnChip
-
 			local sf = gbState.smartFilters or {}
 			local function syncSmartCheck(id, key)
 				local el = getCachedEl(doc, id)
@@ -211,7 +199,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 					)
 				end
 			end
-			-- Pure toggle chips mirror their filter flag
 			local function syncChipActive(id, key)
 				local el = getCachedEl(doc, id)
 				if el then
@@ -219,13 +206,12 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 				end
 			end
 			syncChipActive("btn-gb-pill-avoid-water", "avoidWater")
-			-- Slope sub-chips mirror avoidCliffs / preferSlopes
 			syncChipActive("gb-slope-mode-avoid", "avoidCliffs")
 			syncChipActive("gb-slope-mode-prefer", "preferSlopes")
 			syncSmartCheck("btn-gb-alt-min-enable", "altMinEnable")
 			syncSmartCheck("btn-gb-alt-max-enable", "altMaxEnable")
 
-			-- gb-smart-slope-max-row/slider-row visibility driven by data-if="gbAvoidCliffs"
+			-- Each filter row is shown by a data-if on its flag (set below).
 			if widgetState.dmHandle then
 				local s = tostring(sf.slopeMax or 45)
 				if widgetState.dmHandle.gbSlopeMaxStr ~= s then
@@ -234,7 +220,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			end
 			syncAndFlash(getCachedEl(doc, "slider-gb-slope-max"), "gb-slope-max", tostring(sf.slopeMax or 45))
 
-			-- gb-smart-slope-min-row/slider-row visibility driven by data-if="gbPreferSlopes"
 			if widgetState.dmHandle then
 				local s = tostring(sf.slopeMin or 10)
 				if widgetState.dmHandle.gbSlopeMinStr ~= s then
@@ -243,7 +228,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			end
 			syncAndFlash(getCachedEl(doc, "slider-gb-slope-min"), "gb-slope-min", tostring(sf.slopeMin or 10))
 
-			-- gb-smart-alt-min-slider-row visibility driven by data-if="gbAltMinEnable"
 			if widgetState.dmHandle then
 				local s = tostring(sf.altMin or 0)
 				if widgetState.dmHandle.gbAltMinStr ~= s then
@@ -252,7 +236,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			end
 			syncAndFlash(getCachedEl(doc, "slider-gb-alt-min"), "gb-alt-min", tostring(sf.altMin or 0))
 
-			-- gb-smart-alt-max-slider-row visibility driven by data-if="gbAltMaxEnable"
 			if widgetState.dmHandle then
 				local s = tostring(sf.altMax or 200)
 				if widgetState.dmHandle.gbAltMaxStr ~= s then
@@ -261,7 +244,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			end
 			syncAndFlash(getCachedEl(doc, "slider-gb-alt-max"), "gb-alt-max", tostring(sf.altMax or 200))
 
-			-- SAMPLE button active state mirrors TerraformBrush heightSamplingMode
+			-- SAMPLE buttons light up while the terraform brush samples height for that bound.
 			local hsm = WG.TerraformBrush and (WG.TerraformBrush.getState() or {}).heightSamplingMode
 			local sampMin = getCachedEl(doc, "btn-gb-alt-min-sample")
 			if sampMin then
@@ -272,7 +255,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 				sampMax:SetClass("active", hsm == "gbAltMax")
 			end
 
-			-- Filter category chip active state mirrors whether any sub-filter is on
+			-- A category chip is active while any of its sub-filters is on.
 			local slopeActive = smartOn and (sf.avoidCliffs or sf.preferSlopes)
 			local altActive = smartOn and (sf.altMinEnable or sf.altMaxEnable)
 			local slopeChip = getCachedEl(doc, "btn-gb-pill-slope")
@@ -283,13 +266,8 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			if altChip then
 				altChip:SetClass("active", altActive and true or false)
 			end
-			-- gb-smart-slope-content / gb-smart-altitude-content visibility driven by data-if
 			if dm then
-				local function setDm(f, v)
-					if dm[f] ~= v then
-						dm[f] = v
-					end
-				end
+				local setDm = ctx.setDm
 				setDm("gbSlopeActive", slopeActive and true or false)
 				setDm("gbAvoidCliffs", sf.avoidCliffs and true or false)
 				setDm("gbPreferSlopes", sf.preferSlopes and true or false)
@@ -299,10 +277,9 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			end
 		end
 
-		-- Color filter UI sync
+		-- Color filter (include and exclude swatches)
 		do
 			local colorOn = gbState.texFilterEnabled
-			-- gb-color-options does not exist; gb-smart-color-content visibility driven by data-if="gbColorOpen"
 			local colorChip = getCachedEl(doc, "btn-gb-pill-color")
 			if colorChip then
 				colorChip:SetClass("active", colorOn)
@@ -371,7 +348,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			end
 		end
 
-		-- History slider sync
+		-- The history slider's max follows the undo depth.
 		do
 			local histIdx = gbState.historyIndex or 0
 			local histMax = gbState.historyMax or 0
@@ -386,7 +363,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			end
 		end
 
-		-- Symmetry count + angle slider sync (labels driven by dm.tbSymCountStr/tbSymAngleStr via syncTBMirrorControls)
+		-- Symmetry sliders only; their labels are set by syncTBMirrorControls.
 		local symStGb = WG.TerraformBrush and WG.TerraformBrush.getState()
 		if symStGb then
 			syncAndFlash(
@@ -403,19 +380,18 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		uiState.updatingFromCode = false
 	end
 
-	-- Shape: grass brush uses shared activeShape dm field
 	if gbState.shape and dm and dm.activeShape ~= gbState.shape then
 		dm.activeShape = gbState.shape
 	end
 
-	-- Gray out ring and unsupported shapes
+	-- Re-enable every shape button except ring: the panel's Update disables ring for this tool every frame.
 	for shape, element in pairs(widgetState.shapeButtons) do
 		if element and shape ~= "ring" then
 			element:SetClass("disabled", false)
 		end
 	end
 
-	-- P3.2 Grass grayouts (per Phase 3 relevance matrix)
+	-- Erase ignores rotation, length, curve and density; a circle ignores rotation.
 	if doc and ctx.setDisabledIds then
 		local sm = gbState.subMode or "paint"
 		local circular = (gbState.shape == "circle")
