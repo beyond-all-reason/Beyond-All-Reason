@@ -3,7 +3,7 @@
 ---
 
 local tracking = GG["MissionAPI"].Modules.Tracking
-local gatherWaits = GG["MissionAPI"].Modules.GatherWaits
+local missionOrders = GG["MissionAPI"].Modules.Orders
 
 local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
 local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
@@ -142,10 +142,7 @@ local function spawnUnitLoadout(unitLoadout)
 			spawnedUnitIDs[spawnUnit(unit, pos)] = true
 		end
 
-		-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
-		GG["MissionAPI"].issuingOrders = true
-		gatherWaits.GiveOrdersWithGatherWaits(spawnedUnitIDs, convertOrdersTargetingNames(unit.orders))
-		GG["MissionAPI"].issuingOrders = nil
+		missionOrders.GiveOrders(spawnedUnitIDs, convertOrdersTargetingNames(unit.orders))
 	end
 end
 

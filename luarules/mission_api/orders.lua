@@ -1,5 +1,5 @@
 ---
---- Lets mission orders use GATHERWAIT, which makes the units given the orders wait for each other.
+--- Gives mission orders. Orders may use GATHERWAIT, which makes the units given the orders wait for each other.
 ---
 
 local table_keys = table.keys
@@ -53,10 +53,14 @@ end
 --- cannot move skip it.
 ---@param unitIDs table<integer, true>
 ---@param orders CreateCommand[]
-local function giveOrdersWithGatherWaits(unitIDs, orders)
+local function giveOrders(unitIDs, orders)
+	-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
+	GG["MissionAPI"].issuingOrders = true
+
 	local gatherOrders, gatherKeys = tagGatherWaits(orders)
 	if #gatherKeys == 0 then
 		Spring.GiveOrderArrayToUnitMap(unitIDs, orders)
+		GG["MissionAPI"].issuingOrders = nil
 		return
 	end
 
@@ -71,13 +75,14 @@ local function giveOrdersWithGatherWaits(unitIDs, orders)
 
 	Spring.GiveOrderArrayToUnitMap(gatheringUnitIDs, gatherOrders)
 	Spring.GiveOrderArrayToUnitMap(otherUnitIDs, orders)
+	GG["MissionAPI"].issuingOrders = nil
 
 	for _, gatherKey in ipairs(gatherKeys) do
 		unitIDsByGatherKey[gatherKey] = table.copy(gatheringUnitIDs)
 	end
 end
 
-local function updateGatherWaits(frameNumber)
+local function updateWaits(frameNumber)
 	if frameNumber % UPDATE_INTERVAL_FRAMES ~= 0 then
 		return
 	end
@@ -108,6 +113,6 @@ local function updateGatherWaits(frameNumber)
 end
 
 return {
-	GiveOrdersWithGatherWaits = giveOrdersWithGatherWaits,
-	UpdateGatherWaits = updateGatherWaits,
+	GiveOrders = giveOrders,
+	UpdateWaits = updateWaits,
 }
