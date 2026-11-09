@@ -1918,6 +1918,10 @@ function widget:SelectionChanged(sel)
 		throttleDelay = 0.015
 	end
 
+	if (SelectedUnitsCount == 0) ~= (selCount == 0) then
+		throttleDelay = 0 -- units picked from none, or all let go: this frame
+	end
+
 	selectionUpdateTime = os_clock() + throttleDelay
 	-- Invalidate cached commands on selection change
 	cachedActiveCmdDescs = nil
