@@ -7,7 +7,7 @@
 //   Create()            start-script COMPAIM1_Controller();
 //   AimWeapon1()        call-script COMPAIM1_Aim(heading); then return (0) if !COMPAIM1ready, else return (1)
 //                       with COMPAIM1_PIECE_X defined the call is COMPAIM1_Aim(heading, pitch)
-//   idle restore        call-script COMPAIM1_StopAiming();
+//   idle return         call-script COMPAIM1_StopAiming();
 //                       the piece returns to COMPAIM1_REST_YAW, or keeps turning when COMPAIM1_IDLE_SPIN is 1
 //   SetStunned(State)   call-script COMPAIM1_SetStunned(State);
 // Several weapons on one turret share the instance, each AimWeapon calls COMPAIM1_Aim the same way.
@@ -52,7 +52,7 @@
 	static-var COMPAIM1restYaw;
 #endif
 
-// Set COMPAIM1_IDLE_SPIN to 1 to keep the yaw piece turning at the restore speed while idle
+// Set COMPAIM1_IDLE_SPIN to 1 to keep the yaw piece turning at the return speed while idle
 #ifndef COMPAIM1_IDLE_SPIN
 	#define COMPAIM1_IDLE_SPIN 0
 #endif
@@ -95,6 +95,9 @@
 #ifndef COMPAIM1_RATE_FRAMES
 	#define COMPAIM1_RATE_FRAMES 6
 #endif
+
+// Half a turn per frame, so the piece always lands on the commanded angle while keeping render interpolation
+#define COMPAIM1_SNAP_SPEED (<180> * 30)
 
 static-var COMPAIM1goalHeading, COMPAIM1belief, COMPAIM1lastHullHeading, COMPAIM1active, COMPAIM1stunned, COMPAIM1ready;
 static-var COMPAIM1goalRate, COMPAIM1lastAimHeading, COMPAIM1lastAimFrame;
@@ -213,7 +216,7 @@ COMPAIM1_Controller()
 					COMPAIM1belief = COMPAIM1goalHeading;
 				}
 			#endif
-			turn COMPAIM1_PIECE_Y to y-axis COMPAIM1belief speed COMPAIM1_YAW_SPEED;
+			turn COMPAIM1_PIECE_Y to y-axis COMPAIM1belief speed COMPAIM1_SNAP_SPEED;
 
 			#ifdef COMPAIM1_PIECE_X
 				if (COMPAIM1active)
@@ -265,7 +268,7 @@ COMPAIM1_Controller()
 						COMPAIM1pitchBelief = COMPAIM1goalPitch;
 					}
 				#endif
-				turn COMPAIM1_PIECE_X to x-axis (0 - COMPAIM1pitchBelief) speed COMPAIM1_PITCH_SPEED;
+				turn COMPAIM1_PIECE_X to x-axis (0 - COMPAIM1pitchBelief) speed COMPAIM1_SNAP_SPEED;
 			#endif
 		}
 		sleep 1;
