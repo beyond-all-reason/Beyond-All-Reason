@@ -9,9 +9,14 @@
 	"definitions": {
 		"profile": {
 			"type": "object",
-			"required": ["name", "binds"],
+			"required": ["id", "name", "binds"],
 			"additionalProperties": false,
 			"properties": {
+				"id": {
+					"type": "string",
+					"pattern": "^[a-z0-9_]+$",
+					"description": "Lowercase id a widget manifest's profileKeysets names this profile by. Unique; unlike the name, it is never shown."
+				},
 				"name": {
 					"type": "string",
 					"minLength": 1,
@@ -60,6 +65,11 @@
 			"type": "array",
 			"items": { "type": "string", "minLength": 1 },
 			"description": "Action prefixes, highest priority first. Two actions on one key are tried in the order they were bound, so bind files are emitted with these actions first; anything unlisted keeps the order it already had."
+		},
+		"movedToWidgets": {
+			"type": "array",
+			"items": { "type": "string", "minLength": 1 },
+			"description": "Actions these profiles used to bind whose defaults now come from a widget's manifest. A player's profile saved before they moved counts them as already offered, so one the player had removed is not bound again."
 		},
 		"profiles": {
 			"type": "array",

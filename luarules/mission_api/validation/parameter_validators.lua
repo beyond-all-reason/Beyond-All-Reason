@@ -151,6 +151,10 @@ local function registerValueValidators(parameterValidators, context)
 	--- String validators:
 	local validateString = parameterValidators[Types.String]
 
+	parameterValidators[Types.AiState] = getLookupValidator(validateString, "state", function(state)
+		return enums[Types.AiState][state]
+	end)
+
 	parameterValidators[Types.StageID] = getLookupValidator(validateString, "stageID", function(stageID)
 		return context.Stages[stageID]
 	end)
@@ -183,7 +187,10 @@ local function registerValueValidators(parameterValidators, context)
 	-- only cross-referenced (see references.lua) and guarded at runtime.
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
-	parameterValidators[Types.CountdownID] = validateString
+	-- IDs starting with __ are the Mission API's own (TimeElapsed's countdowns).
+	parameterValidators[Types.CountdownID] = getLookupValidator(validateString, "countdownID", function(countdownID)
+		return countdownID:sub(1, 2) ~= "__"
+	end)
 	parameterValidators[Types.CutsceneID] = validateString
 	-- TODO: A cutscene-type script has no definition yet.
 	parameterValidators[Types.CutsceneScriptID] = validateString
@@ -805,10 +812,40 @@ local function registerOrderValidators(parameterValidators, context)
 		local results = {}
 		validateCommandAndParams(order, results)
 		validateOrderOptions(order[3], results)
+
+		local params = order[2]
+		if type(params) == "table" and params.unitName ~= nil and params.featureName ~= nil then
+			addResult(results, "Give a unitName or a featureName, not both", "[2]")
+		end
 		return results
 	end
 
-	parameterValidators[Types.Orders] = getListValidator(validateOrder, "Orders table is empty")
+	local validateOrderList = getListValidator(validateOrder, "Orders table is empty")
+
+	-- Orders are given in sequence and stop at the first gap, so an order past one is never given.
+	parameterValidators[Types.Orders] = function(orders)
+		local results = validateOrderList(orders)
+		if type(orders) ~= "table" then
+			return results
+		end
+
+		local reachable = 0
+		while orders[reachable + 1] ~= nil do
+			reachable = reachable + 1
+		end
+		for key in pairs(orders) do
+			if not (type(key) == "number" and key >= 1 and key <= reachable and key % 1 == 0) then
+				results = results or {}
+				addResult(
+					results,
+					"Order is never given: orders stop at the first gap",
+					"[" .. tostring(key) .. "]",
+					true
+				)
+			end
+		end
+		return results
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -825,9 +862,7 @@ local function registerLoadoutValidators(parameterValidators, context)
 				return entryTypeResult
 			end
 
-			-- The entry itself is the position, since x, y and z are fields of the entry.
-			local results = appendResults({}, parameterValidators[Types.Position](entry))
-
+			local results = {}
 			for _, field in ipairs(fields) do
 				local value = entry[field.name]
 				if value == nil then

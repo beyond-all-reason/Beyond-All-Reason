@@ -63,7 +63,7 @@ describe("mission_api.loadout grid", function()
 	end)
 
 	it("spawns a mobile unit exactly on its point, off the build grid", function()
-		spawn({ unitDefName = "bot", x = 1001, z = 1003 })
+		spawn({ unitDefName = "bot", position = { x = 1001, z = 1003 } })
 
 		assert.are.equal(0, #snapped)
 		assert.are.equal(1, #created)
@@ -72,7 +72,7 @@ describe("mission_api.loadout grid", function()
 	end)
 
 	it("centers a larger quantity on the point", function()
-		spawn({ unitDefName = "bot", x = 1000, z = 1000, quantity = 4 })
+		spawn({ unitDefName = "bot", position = { x = 1000, z = 1000 }, quantity = 4 })
 
 		local xs, zs = sortedPositions(created)
 		assert.are.equal(4, #created)
@@ -88,7 +88,7 @@ describe("mission_api.loadout grid", function()
 		{ quantity = 8, xs = { 968, 1000, 1032 }, zs = { 968, 1000, 1032 } },
 	}) do
 		it(("centers the columns %d units fill on the point"):format(case.quantity), function()
-			spawn({ unitDefName = "bot", x = 1000, z = 1000, quantity = case.quantity })
+			spawn({ unitDefName = "bot", position = { x = 1000, z = 1000 }, quantity = case.quantity })
 
 			local xs, zs = sortedPositions(created)
 			assert.are.equal(case.quantity, #created)
@@ -98,13 +98,13 @@ describe("mission_api.loadout grid", function()
 	end
 
 	it("spawns nothing for a quantity of 0", function()
-		spawn({ unitDefName = "bot", x = 1000, z = 1000, quantity = 0 })
+		spawn({ unitDefName = "bot", position = { x = 1000, z = 1000 }, quantity = 0 })
 
 		assert.are.equal(0, #created)
 	end)
 
 	it("creates a building where Pos2BuildPos puts it", function()
-		spawn({ unitDefName = "lab", x = 2050, z = 2070 })
+		spawn({ unitDefName = "lab", position = { x = 2050, z = 2070 } })
 
 		assert.are.same({ { unitDefID = 2, x = 2050, z = 2070, facing = 0 } }, snapped)
 		assert.are.equal(2050 + SNAP_OFFSET, created[1].x)
@@ -112,14 +112,14 @@ describe("mission_api.loadout grid", function()
 	end)
 
 	it("gives Pos2BuildPos the entry's facing", function()
-		spawn({ unitDefName = "wall", x = 2048, z = 2048, facing = "east" })
+		spawn({ unitDefName = "wall", position = { x = 2048, z = 2048 }, facing = "east" })
 
 		assert.are.equal(1, snapped[1].facing)
 	end)
 
 	it("rounds a building's cells up to whole build grid cells", function()
 		-- 48 elmos of footprint plus 4 of spacing take four grid cells of 16.
-		spawn({ unitDefName = "storage", x = 2048, z = 2048, quantity = 4, spacing = 4 })
+		spawn({ unitDefName = "storage", position = { x = 2048, z = 2048 }, quantity = 4, spacing = 4 })
 
 		local xs, zs = sortedPositions(snapped)
 		assert.are.equal(4, #created)
