@@ -60,8 +60,6 @@ local RectRound
 local UiElement
 ---@type FlowUIScroller
 local listScroller
----@type FlowUIScroller
-local sideScroller
 ---@type function
 local Highlight
 ---@type function
@@ -257,11 +255,17 @@ local panelList, windowList, backgroundGuishader, panelSig
 ---@type number, number, number, number, number
 local listTop, listBottom, listX1, listRight, barX1 = 0, 0, 0, 0, 0
 
--- The graphs' entries scroll by whole entries when their card cannot hold them all: `first` is
--- the first of them (nil without the Graphs caption), `scroll` how many are out of sight above,
--- `max` how many can be, `bar` whether they give way to a scrollbar.
+-- The tables' entries and the graphs' each scroll by whole entries when the column cannot hold
+-- them all. A pane runs `first` to `last` under the caption keyed `key` (`first` nil without
+-- that caption); `scroll` is how many are out of sight above, `max` how many can be, `room` the
+-- height it shows them in, `bar` whether they give way to a scrollbar.
 ---@type table<string, any>
-local sidebar = { first = nil, scroll = 0, max = 0, bar = false }
+local sidebar = {
+	panes = {
+		{ key = "newTable", scroll = 0, max = 0, room = 0, bar = false },
+		{ key = "newCategory", scroll = 0, max = 0, room = 0, bar = false },
+	},
+}
 -- The columns the table shows right now, each with the x range it takes, and the group
 -- captions spanning them.
 ---@type table[]
@@ -437,13 +441,28 @@ local function sidebarTop()
 	return metrics.bandTop - metrics.sidebarDrop
 end
 
+local function entryHeight(e)
+	return e.divider and metrics.dividerH or (e.section and metrics.sectionH or metrics.catRowHeight)
+end
+
+local function paneOf(i)
+	for _, pane in ipairs(sidebar.panes) do
+		if pane.first and i >= pane.first and i <= pane.last then
+			return pane
+		end
+	end
+
+	return nil
+end
+
 -- A section after the first starts a card of its own: the card before it ends a lip below its
 -- last entry, then the air between the two, then this one's lip.
--- A graphs' entry scrolled out of sight takes no room: its rect is empty, at the top of theirs.
+-- An entry scrolled out of its pane, above or below, takes no room: its rect is empty, at the
+-- edge of the pane it left by.
 local function entryRect(i)
 	---@type number, number
 	local top, h = sidebarTop(), 0
-	local first = sidebar.first or mathHuge
+	local used, spilled = 0, false
 	for j = 1, i do
 		local e = model.entries[j]
 		---@cast e -?
@@ -451,95 +470,159 @@ local function entryRect(i)
 		if e.section and j > 1 then
 			top = top - metrics.cardLip * 2 - metrics.islandGap
 		end
-		if j >= first and j < first + sidebar.scroll then
-			h = 0
-		else
-			h = e.divider and metrics.dividerH or (e.section and metrics.sectionH or metrics.catRowHeight)
+		h = entryHeight(e)
+		local pane = paneOf(j)
+		if pane then
+			if j == pane.first then
+				used, spilled = 0, false
+			end
+			if j < pane.first + pane.scroll or spilled or used + h > pane.room then
+				spilled = spilled or j >= pane.first + pane.scroll
+				h = 0
+			else
+				used = used + h
+			end
 		end
 	end
 	-- Beside the bar the entries give way to it, as the widget selector's categories do.
 	local right = area.x1 + metrics.sidebarW
-	if sidebar.bar and i >= first then
+	local pane = paneOf(i)
+	if pane and pane.bar then
 		right = right - metrics.catInset - metrics.sideBarW - metrics.catInset
 	end
 
 	return area.x1, top - h, right, top
 end
 
--- The graphs' entries: where they start, how far they can scroll, and the scroll kept inside
--- that. Walked from the end, as the table's rows are, so it does not depend on the scroll now.
+-- Where each pane runs, the room it gets and how far it can scroll. With both over, each keeps
+-- what it needs up to half and the other has the rest. The scroll is walked from the end, as
+-- the table's rows are, so it does not depend on the scroll now.
 function sidebar.fit()
-	sidebar.first = nil
+	local panes = sidebar.panes
+	local open
+	for _, pane in ipairs(panes) do
+		pane.first, pane.last, pane.need, pane.room = nil, nil, 0, mathHuge
+	end
 	for i = 1, #model.entries do
-		if model.entries[i].section and model.entries[i].key == "newCategory" then
-			sidebar.first = i + 1
-		end
-	end
-	local first = sidebar.first
-	sidebar.max = 0
-	if first and model.entries[first] then
-		local _, captionBottom = entryRect(first - 1)
-		local room = captionBottom - metrics.settingsTop
-		local used, i = 0, #model.entries
-		while i >= first do
-			local e = model.entries[i]
-			---@cast e -?
-			local h = e.divider and metrics.dividerH or metrics.catRowHeight
-			if used + h > room then
-				break
+		local e = model.entries[i]
+		if e.section then
+			open = nil
+			for _, pane in ipairs(panes) do
+				if pane.key == e.key then
+					open = pane
+					pane.first, pane.last = i + 1, i
+				end
 			end
-			used = used + h
-			i = i - 1
+		elseif open then
+			open.last = i
+			open.need = open.need + entryHeight(e)
 		end
-		sidebar.max = i - first + 1
 	end
-	sidebar.scroll = mathMax(0, mathMin(sidebar.scroll, sidebar.max))
-	sidebar.bar = sidebar.max > 0
+
+	local scrolls = {}
+	for n, pane in ipairs(panes) do
+		scrolls[n], pane.scroll = pane.scroll, 0
+	end
+	local _, bottom = entryRect(#model.entries)
+	local spill = metrics.settingsTop - bottom
+	if spill > 0 then
+		local a, b = panes[1], panes[2]
+		local avail = mathMax(0, a.need + b.need - spill)
+		local half = mathFloor(avail * 0.5)
+		if a.need <= half then
+			b.room = avail - a.need
+		elseif b.need <= half then
+			a.room = avail - b.need
+		else
+			a.room, b.room = half, avail - half
+		end
+		-- The tables are rows of one height, so whatever is left under the last whole one goes
+		-- to the graphs rather than to a gap.
+		if a.room < mathHuge then
+			local trimmed = mathFloor(a.room / metrics.catRowHeight) * metrics.catRowHeight
+			if b.room < mathHuge then
+				b.room = b.room + a.room - trimmed
+			end
+			a.room = trimmed
+		end
+	end
+
+	for n, pane in ipairs(panes) do
+		pane.max = 0
+		if pane.first and pane.last >= pane.first then
+			local used, i = 0, pane.last
+			while i >= pane.first do
+				local h = entryHeight(model.entries[i])
+				if used + h > pane.room then
+					break
+				end
+				used = used + h
+				i = i - 1
+			end
+			pane.max = i - pane.first + 1
+		end
+		pane.scroll = mathMax(0, mathMin(scrolls[n], pane.max))
+		pane.bar = pane.max > 0
+	end
 end
 
--- Scrolls the graphs' entries just far enough that entry i shows whole.
+-- Scrolls entry i's pane just far enough that it shows whole.
 function sidebar.reveal(i)
-	local first = sidebar.first
-	if not first or i < first then
+	local pane = paneOf(i)
+	if not pane then
 		return
 	end
-	if i < first + sidebar.scroll then
-		sidebar.scroll = i - first
+	if i < pane.first + pane.scroll then
+		pane.scroll = i - pane.first
 	end
-	local _, bottom = entryRect(i)
-	while sidebar.scroll < sidebar.max and bottom < metrics.settingsTop do
-		sidebar.scroll = sidebar.scroll + 1
-		_, bottom = entryRect(i)
+	local _, y1, _, y2 = entryRect(i)
+	while pane.scroll < pane.max and y1 == y2 do
+		pane.scroll = pane.scroll + 1
+		_, y1, _, y2 = entryRect(i)
 	end
 end
 
--- The graphs' entries' own bar, from under their caption down to where they stop. No size at
--- all while they all fit.
-local function sideBarRect()
-	local first = sidebar.first
-	if not (sidebar.bar and first) then
+-- The pane's own bar, from under its caption down to where it stops. No size at all while its
+-- entries all fit.
+local function paneBarRect(pane)
+	if not (pane.bar and pane.first) then
 		return 0, 0, 0, 0
 	end
-	local _, top = entryRect(first - 1)
+	local _, top = entryRect(pane.first - 1)
 	local x2 = area.x1 + metrics.sidebarW - metrics.catInset
 
-	return x2 - metrics.sideBarW, metrics.settingsTop, x2, top
+	return x2 - metrics.sideBarW, top - pane.room, x2, top
 end
 
-function sidebar.measure()
-	local first = sidebar.first
+local function paneMeasure(pane)
 	local total, offset = 0, 0
-	if first then
-		for i = first, #model.entries do
-			local h = model.entries[i].divider and metrics.dividerH or metrics.catRowHeight
+	if pane.first then
+		for i = pane.first, pane.last do
+			local h = entryHeight(model.entries[i])
 			total = total + h
-			if i < first + sidebar.scroll then
+			if i < pane.first + pane.scroll then
 				offset = offset + h
 			end
 		end
 	end
 
-	return total, offset, sidebar.max
+	return total, offset, pane.max
+end
+
+local function paneAt(x, y)
+	if x > area.x1 + metrics.sidebarW then
+		return nil
+	end
+	for _, pane in ipairs(sidebar.panes) do
+		if pane.bar then
+			local _, top = entryRect(pane.first - 1)
+			if y <= top and y > top - pane.room then
+				return pane
+			end
+		end
+	end
+
+	return nil
 end
 
 -- The entry under x,y, or nil. A rule or a section's caption is not one.
@@ -1352,8 +1435,10 @@ local function drawSidebar()
 		end
 	end
 
-	sideScroller:setRect(sideBarRect())
-	sideScroller:draw(hover.sideBar == 1)
+	for n, pane in ipairs(sidebar.panes) do
+		pane.scroller:setRect(paneBarRect(pane))
+		pane.scroller:draw(hover.sideBar == n)
+	end
 end
 
 -- The switches and their captions. The plate goes behind the switch and the switch
@@ -1528,9 +1613,14 @@ local function panelSignature(mx, my)
 	hover.hcol = 0
 	hover.tog = switchAt(mx, my) or 0
 	hover.bar = listScroller:isOverThumb(mx, my) and 1 or 0
-	hover.sideBar = sideScroller:isOverThumb(mx, my) and 1 or 0
-	if math_isInRect(mx, my, sideBarRect()) then
-		hover.sb = 0
+	hover.sideBar = 0
+	for n, pane in ipairs(sidebar.panes) do
+		if pane.scroller:isOverThumb(mx, my) then
+			hover.sideBar = n
+		end
+		if math_isInRect(mx, my, paneBarRect(pane)) then
+			hover.sb = 0
+		end
 	end
 
 	local extra = ""
@@ -1567,7 +1657,9 @@ local function panelSignature(mx, my)
 		.. "|"
 		.. scroll
 		.. "|"
-		.. sidebar.scroll
+		.. sidebar.panes[1].scroll
+		.. "|"
+		.. sidebar.panes[2].scroll
 		.. "|"
 		.. model.rowsGen
 		.. "|"
@@ -1577,7 +1669,7 @@ local function panelSignature(mx, my)
 		.. "|"
 		.. hover.sideBar
 		.. "|"
-		.. (sideScroller:isDragging() and 1 or 0)
+		.. ((sidebar.panes[1].scroller:isDragging() or sidebar.panes[2].scroller:isDragging()) and 1 or 0)
 		.. extra
 end
 
@@ -1602,7 +1694,11 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 	listScroller = WG.FlowUI.Scroller.new(measureBar)
-	sideScroller = WG.FlowUI.Scroller.new(sidebar.measure)
+	for _, pane in ipairs(sidebar.panes) do
+		pane.scroller = WG.FlowUI.Scroller.new(function()
+			return paneMeasure(pane)
+		end)
+	end
 	Highlight = WG.FlowUI.Draw.SelectHighlight
 	UiToggle = WG.FlowUI.Draw.Toggle
 
@@ -1627,9 +1723,11 @@ function widget:DrawScreen()
 	if step then
 		scrollBarTo(step)
 	end
-	local sideStep = sideScroller:drag(my, lmb)
-	if sideStep then
-		sidebar.scroll = sideStep
+	for _, pane in ipairs(sidebar.panes) do
+		local paneStep = pane.scroller:drag(my, lmb)
+		if paneStep then
+			pane.scroll = paneStep
+		end
 	end
 	-- A graph pressed in a category of the player's own, or a table's caption, turns into a
 	-- drag as it travels.
@@ -1783,7 +1881,9 @@ end
 local function closePanel()
 	show = false
 	listScroller:drag(0, false)
-	sideScroller:drag(0, false)
+	for _, pane in ipairs(sidebar.panes) do
+		pane.scroller:drag(0, false)
+	end
 	model.listen(false)
 	-- A name being typed is kept; a card and a drag are put away.
 	graphs.stopNaming(true)
@@ -1867,16 +1967,12 @@ function widget:MouseWheel(up, _value)
 		return false
 	end
 
-	-- Over the graphs' entries while they do not all fit, the wheel scrolls them - not while
-	-- one is being named, which would scroll its field away.
-	local onEntries = false
-	if sidebar.bar and not graphs.naming and x <= area.x1 + metrics.sidebarW and y > metrics.settingsTop then
-		local _, top = entryRect(sidebar.first - 1)
-		onEntries = y <= top
-	end
+	-- Over a pane's entries while they do not all fit, the wheel scrolls them - not while one is
+	-- being named, which would scroll its field away.
+	local pane = not graphs.naming and paneAt(x, y)
 
-	if onEntries then
-		sidebar.scroll = mathMax(0, mathMin(sidebar.max, sidebar.scroll + (up and -1 or 1)))
+	if pane then
+		pane.scroll = mathMax(0, mathMin(pane.max, pane.scroll + (up and -1 or 1)))
 	elseif graphs.open then
 		-- The Graphs page scrolls its grid of charts, or the rows of an open chart that has more
 		-- than fit; the wheel is the panel's either way.
@@ -1911,13 +2007,15 @@ end
 -- the list's bar owns its column in both views, so it is asked before the table's rows and before
 -- the page's charts. The strip between the bar and the panel edge stays grabbable too.
 local function pressScrollers(x, y)
-	if math_isInRect(x, y, sideBarRect()) then
-		local step = sideScroller:press(y)
-		if step then
-			sidebar.scroll = step
-		end
+	for _, pane in ipairs(sidebar.panes) do
+		if math_isInRect(x, y, paneBarRect(pane)) then
+			local step = pane.scroller:press(y)
+			if step then
+				pane.scroll = step
+			end
 
-		return true
+			return true
+		end
 	end
 	if math_isInRect(x, y, barX1, listBottom, area.x2, barTop()) then
 		local step = listScroller:press(y)
