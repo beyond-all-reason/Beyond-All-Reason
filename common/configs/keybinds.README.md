@@ -13,8 +13,8 @@ data or the rules. They hold *data and rules only* - no rendering, no engine cal
 | `keybind_retired_includes.json` | What the deleted `luaui/configs/hotkeys` fragments bound, for migrating a player's own bind file that still keyloads one. | `keybind_retired_includes.schema.json` |
 
 All three are validated in CI by `spec/common/keybind_catalog_spec.lua`: each file against its schema,
-profile names unique across the shipped set, every purely modifier-only action marked
-read-only, and every action command written in lower case.
+profile names unique across the shipped set, no action both hidden and listed, and every
+action command written in lower case.
 
 They are separate because a catalog entry is per action while a binding is per action *and*
 profile. The four shipped profiles share only 207 of the 381 actions they bind between them,
@@ -45,9 +45,9 @@ letting it stand in for what ships.
 
 ## Catalog item kinds
 
-Everything the catalog lists is rebindable. An action a player cannot change - one bound to
-a bare modifier, or handled by a widget that ships disabled - belongs in `hidden` or nowhere,
-not in a category as a row that does nothing.
+Everything the catalog lists is rebindable. An action a player cannot change - one handled
+by a widget that ships disabled - belongs in `hidden` or nowhere, not in a category as a row
+that does nothing.
 
 Each category's `items` entry is one of:
 
@@ -218,11 +218,48 @@ three namespaces above and none of that.
 
 ## Widget-declared actions
 
-A widget from the widget hub can declare bindable actions, their labels and their default keys
-in its `manifest.json`, in the format the hub's manifest schema sets. Each loaded widget gets an
-editor category of its own. A shipped profile adds the defaults it lacks every time it is
-written; a player's profile takes each one once and records it under `seeded`, so one the
+A widget in a folder of its own, shipped with the game or from the widget hub, can declare
+bindable actions, their labels and their default keys in its `manifest.json`, in the format the
+hub's manifest schema sets. A hub widget's labels resolve under `widgets.<id>.` from its
+`localizations.json`. A shipped widget's are full keys in `language/en/`, since Transifex only
+picks up the files there. Each loaded widget gets an editor category of its own under Widgets, and
+its actions are hidden while it is off. A shipped profile adds the defaults it lacks every time
+it is written; a player's profile takes each one once and records it under `seeded`, so one the
 player removes stays removed.
+
+An action whose defaults move out of `keybind_defaults.json` into a manifest is listed in that
+file's `movedToWidgets`, so a player's profile saved before the move does not get back one the
+player had removed.
+
+`defaultKeysets` is the one list every profile gets, and most actions need nothing else. An
+action that wants different keys on one layout can add `profileKeysets`, which goes beyond the
+hub schema:
+
+```json
+{
+	"action": "example_load",
+	"label": "actions.load",
+	"defaultKeysets": ["sc_f5"],
+	"profileKeysets": { "grid": ["meta+1"], "legacy": ["meta+1"] }
+}
+```
+
+Each key is a shipped profile's `id` from `keybind_defaults.json`, in any case. That profile,
+and every player profile made from it, gets the `defaultKeysets` and then its own list on top,
+repeats kept. A profile with no entry gets only the `defaultKeysets`.
+
+A numbered family, like `factory_preset load 0` to `9`, is one entry with `members`, another
+field beyond the hub schema. Each member is appended to `action` as a bind command of its own,
+and `%{n}` in the label and in every keyset is that member:
+
+```json
+{
+	"action": "factory_preset load",
+	"members": ["0", "1", "2"],
+	"label": "actions.loadPreset",
+	"profileKeysets": { "grid": ["meta+%{n}"] }
+}
+```
 
 ## Not covered yet
 

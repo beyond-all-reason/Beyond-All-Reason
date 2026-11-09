@@ -125,7 +125,7 @@ return {
 				tolerance = 364,
 				explosiongenerator = "custom:starfire-explosion",
 				gravityaffected = "true",
-				impulsefactor = 0.5,
+				impulsefactor = 1.1,
 				name = "Very Long-Range High-Trajectory 63-Salvo Plasma Launcher",
 				noselfdamage = true,
 				range = 6100,

@@ -64,4 +64,19 @@ describe("mission_api.schema_utils", function()
 			assert.are.same({}, result)
 		end)
 	end)
+
+	describe("CollateSchemas", function()
+		it("includes the settings every trigger shares", function()
+			GG["MissionAPI"].TriggerDefinitions = triggerDefinitions
+			GG["MissionAPI"].ActionDefinitions = { Types = {}, Parameters = {} }
+
+			local schemas = schemaUtils.CollateSchemas()
+
+			assert.are.same(
+				MissionSpecEnv.include(env, "luarules/mission_api/triggers_schema.lua").Settings,
+				schemas.triggerSettings
+			)
+			assert.is_not_nil(schemas.triggers.UnitKilled)
+		end)
+	end)
 end)

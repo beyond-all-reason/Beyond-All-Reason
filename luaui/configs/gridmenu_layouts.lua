@@ -641,7 +641,7 @@ local labGrids = {
 	},
 
 	leghaap = {
-		"legaca",
+		"leghaca",
 		"legafigdef",
 		"legvenator",
 		"legphoenix", --T2 con, defensive fig, interceptor, phoenix
@@ -1936,7 +1936,7 @@ local unitGrids = {
 			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "legdtr" }, -- LLT, machine gun, HLT, flame turret
+			{ "leglht", "legmg", "leghive", "legdtr" }, -- LLT, machine gun, hive, flame turret
 			{ "legrl", "legrhapsis", "leglupara", "legfrl" }, -- basic AA, SAM, eradicator, floating AA
 			{ "legctl", "legcluster", "legtl", "legfmg" }, -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 			{ "legnavaldefturret", "legfhive", "", "" },
@@ -2009,7 +2009,7 @@ local unitGrids = {
 			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "legdtr" }, -- LLT, machine gun, HLT, flame turret
+			{ "leglht", "legmg", "leghive", "legdtr" }, -- LLT, machine gun, hive, flame turret
 			{ "legrl", "legrhapsis", "leglupara", "legfrl" }, -- basic AA, SAM, eradicator, floating AA
 			{ "legctl", "legcluster", "legtl", "legfmg" }, -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 			{ "legnavaldefturret", "", "", "" },
@@ -2922,14 +2922,14 @@ local unitGrids = {
 			{}, --
 		},
 		{
-			{ "legtl", "leganavaldefturret", "legacluster", "corfhlt" }, -- torp launcher, fl DDM, toaster, fHLT
+			{ "legtl", "leganavaldefturret", "legacluster", "legfmg" }, -- torp launcher, fl DDM, toaster, fHLT
 			{ "leganavalaaturret", "legnavyaaship" }, -- fl flak, searcher
 			{ "legnavyscout", "legnavydestro" }, -- supporter, destroyer
 			{ "legnavaldefturret", "legfhive", "", "" },
 		},
 		{
 			{ "legfrad", "legarad" }, -- fl radar, adv radar
-			{}, --
+			{ "legfdrag" }, -- shark's teeth
 			{ "corfmine3" }, -- naval mine
 		},
 		{

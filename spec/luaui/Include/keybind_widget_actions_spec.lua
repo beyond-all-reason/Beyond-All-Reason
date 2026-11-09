@@ -68,6 +68,19 @@ describe("reading a widget's declared actions", function()
 		}, actions)
 	end)
 
+	it("takes a shipped widget's keys as they are written", function()
+		local widget = widgetEntry("gui_example", {
+			{ action = "zoom", label = "actions.camera.zoom", description = "actions.camera.zoomDescription" },
+		})
+		widget.vfsMode = VFS.ZIP
+
+		local actions = WidgetActions.parse(widget)
+
+		assert.are.same({
+			{ action = "zoom", label = "actions.camera.zoom", description = "actions.camera.zoomDescription" },
+		}, actions)
+	end)
+
 	it("skips an entry it cannot read, naming each", function()
 		local actions, warnings = WidgetActions.parse(widgetEntry("gui_example", {
 			"not an object",
@@ -99,6 +112,55 @@ describe("reading a widget's declared actions", function()
 			assert.is_nil(action.keysets, action.action)
 		end
 		assert.are.same({ 1, 2, 3, 4 }, entriesNamed(warnings))
+	end)
+
+	it("reads per-profile defaults under a lowercase id, dropping only a profile whose list cannot be made", function()
+		local actions, warnings = WidgetActions.parse(widgetEntry("gui_example", {
+			{ action = "fine", label = "a.fine", profileKeysets = { Small = { "sc_q" }, Empty = {} } },
+			{
+				action = "bad",
+				label = "a.bad",
+				defaultKeysets = { "x" },
+				profileKeysets = { Small = { "not a keyset" }, Other = { "sc_w" } },
+			},
+			{ action = "odd", label = "a.odd", profileKeysets = { "x" } },
+		}))
+
+		assert.are.same({ small = { "sc_q" } }, actions[1].profileKeysets)
+		assert.are.same({ "x" }, actions[2].keysets)
+		assert.are.same({ other = { "sc_w" } }, actions[2].profileKeysets)
+		assert.is_nil(actions[3].profileKeysets)
+		assert.are.same({ 2, 3 }, entriesNamed(warnings))
+	end)
+
+	it("reads a family's members", function()
+		local actions, warnings = WidgetActions.parse(widgetEntry("gui_example", {
+			{ action = "load", members = { "0", "1" }, label = "a.load", profileKeysets = { Small = { "meta+%{n}" } } },
+		}))
+
+		assert.are.same({}, warnings)
+		assert.are.same({
+			{
+				action = "load",
+				label = KEYS .. "a.load",
+				members = { "0", "1" },
+				profileKeysets = { small = { "meta+%{n}" } },
+			},
+		}, actions)
+	end)
+
+	it("skips a family it cannot expand, or one repeating an action, its own members included", function()
+		local actions, warnings = WidgetActions.parse(widgetEntry("gui_example", {
+			{ action = "a", label = "a.a", members = {} },
+			{ action = "b", label = "a.b", members = { "two words" } },
+			{ action = "load 1", label = "a.one" },
+			{ action = "load", label = "a.load", members = { "0", "1" } },
+			{ action = "save", label = "a.save", members = { "1", "1" } },
+			{ action = "save 1", label = "a.saveOne" },
+		}))
+
+		assert.are.same({ "load 1", "save 1" }, { actions[1].action, actions[2].action })
+		assert.are.same({ 1, 2, 4, 5 }, entriesNamed(warnings))
 	end)
 end)
 
@@ -155,6 +217,26 @@ describe("what the loaded widgets contribute", function()
 		}, defaults)
 	end)
 
+	it("adds a profile's own defaults after the shared ones, keeping any repeat", function()
+		local widgets = {
+			widgetEntry("gui_example", {
+				{
+					action = "both",
+					label = "a.both",
+					defaultKeysets = { "tab", "sc_q" },
+					profileKeysets = { Small = { "sc_q", "sc_w" } },
+				},
+				{ action = "small_only", label = "a.small", profileKeysets = { Small = { "sc_e" } } },
+			}),
+		}
+
+		assert.are.same({ { action = "both", keysets = { "tab", "sc_q" } } }, WidgetActions.defaults(widgets))
+		assert.are.same({
+			{ action = "both", keysets = { "tab", "sc_q", "sc_q", "sc_w" } },
+			{ action = "small_only", keysets = { "sc_e" } },
+		}, WidgetActions.defaults(widgets, "small"))
+	end)
+
 	it("keeps the actions of widgets that are off out of sight, less any a loaded one declares", function()
 		local hidden = WidgetActions.hiddenActions({
 			widgetEntry("gui_on", { { action = "shared", label = "a.shared" } }),
@@ -172,6 +254,49 @@ describe("what the loaded widgets contribute", function()
 
 		assert.are.same({ "off", "other" }, hidden)
 	end)
+
+	it("lists a family as one prefix row of the members no earlier widget took", function()
+		local groups = WidgetActions.groups({
+			widgetEntry("gui_first", { { action = "load 1", label = "a.one" } }),
+			widgetEntry("gui_second", { { action = "load", label = "a.load", members = { "0", "1", "2" } } }),
+		})
+
+		assert.are.same(
+			{ prefix = "load ", label = "widgets.gui_second.a.load", members = { "0", "2" } },
+			groups[2].items[1]
+		)
+	end)
+
+	it("fills each member into the shared and per-profile defaults alike", function()
+		local widgets = {
+			widgetEntry("gui_example", {
+				{
+					action = "load",
+					members = { "0", "1" },
+					label = "a.load",
+					defaultKeysets = { "sc_f%{n}" },
+					profileKeysets = { Small = { "meta+%{n}" } },
+				},
+			}),
+		}
+
+		assert.are.same({
+			{ action = "load 0", keysets = { "sc_f0" } },
+			{ action = "load 1", keysets = { "sc_f1" } },
+		}, WidgetActions.defaults(widgets))
+		assert.are.same({
+			{ action = "load 0", keysets = { "sc_f0", "meta+0" } },
+			{ action = "load 1", keysets = { "sc_f1", "meta+1" } },
+		}, WidgetActions.defaults(widgets, "small"))
+	end)
+
+	it("hides each member of a family that is off", function()
+		local hidden = WidgetActions.hiddenActions({
+			widgetEntry("gui_off", { { action = "load", label = "a.load", members = { "0", "1" } } }, false),
+		})
+
+		assert.are.same({ "load 0", "load 1" }, hidden)
+	end)
 end)
 
 describe("the manifests of the widgets installed", function()
@@ -182,8 +307,8 @@ describe("the manifests of the widgets installed", function()
 
 		local env = SpecEnv.new({
 			VFS = {
-				SubDirs = function(folder)
-					return folder == FOLDER and { FOLDER .. "gui_example/" } or {}
+				SubDirs = function(folder, _, mode)
+					return (folder == FOLDER and mode == VFS.ZIP) and { FOLDER .. "gui_example/" } or {}
 				end,
 				-- Faked only for the widget manifest; other paths (the module code itself, included
 				-- via `require`) still need to resolve to real files on disk.

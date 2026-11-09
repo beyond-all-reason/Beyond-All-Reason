@@ -42,6 +42,9 @@ local types = {
 	Difficulty = "Difficulty",
 	UnitAttribute = "UnitAttribute",
 	WeaponAttribute = "WeaponAttribute",
+	EffectType = "EffectType",
+	EffectName = "EffectName",
+	AiState = "AiState",
 
 	-- Number Validators:
 	Number = "Number",
@@ -110,6 +113,13 @@ local enums = {
 	},
 
 	[types.WeaponNumber] = attributeDefinitions.EXPLOSIONS,
+
+	[types.AiState] = {
+		PASSIVE = 1,
+		DEFENSIVE = 2,
+		NORMAL = 3,
+		AGGRESSIVE = 4,
+	},
 }
 
 local enumSets = {
