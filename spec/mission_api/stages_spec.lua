@@ -87,4 +87,26 @@ describe("mission_api.stages_loader", function()
 			assert.are.same({}, stagesLoader.ProcessRawStages({}))
 		end)
 	end)
+
+	describe("IndexStagesByObjective", function()
+		it("inverts the stage to objective mapping", function()
+			local index = stagesLoader.IndexStagesByObjective({
+				first = { objectives = { "a", "b" } },
+				second = { objectives = { "b" } },
+			})
+			assert.are.same({ "first" }, index.a)
+			table.sort(index.b)
+			assert.are.same({ "first", "second" }, index.b)
+		end)
+
+		it("omits objectives that appear in no stage", function()
+			local index = stagesLoader.IndexStagesByObjective({ first = { objectives = { "a" } } })
+			assert.is_nil(index.unused)
+		end)
+
+		it("handles missing or malformed stages", function()
+			assert.are.same({}, stagesLoader.IndexStagesByObjective(nil))
+			assert.are.same({}, stagesLoader.IndexStagesByObjective({ bad = "notATable" }))
+		end)
+	end)
 end)

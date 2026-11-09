@@ -14,24 +14,30 @@ local stages = {
 local objectives = {
 	surviveWaves = {
 		textKey = 'survive',
-		amount = {
+		-- No condition type: the surviveTick trigger steps it, and count sets how many steps complete it.
+		count = {
 			difficulties = { Easy = 2, Medium = 3, Hard = 4 },
-		},
-		trigger = {
-			type = eventTypes.TimeElapsed,
-			parameters = {
-				seconds = {
-					difficulties = { Easy = 30, Hard = 20 },
-				},
-				interval = {
-					difficulties = { Easy = 30, Hard = 20 },
-				},
-			},
 		},
 	},
 }
 
 local triggers = {
+	surviveTick = {
+		type = eventTypes.TimeElapsed,
+		settings = {
+			repeating = true,
+		},
+		parameters = {
+			seconds = {
+				difficulties = { Easy = 30, Hard = 20 },
+			},
+			interval = {
+				difficulties = { Easy = 30, Hard = 20 },
+			},
+		},
+		actions = { 'surviveTick' },
+	},
+
 	announceDifficulty = {
 		type = eventTypes.TimeElapsed,
 		parameters = {
@@ -73,6 +79,13 @@ local triggers = {
 }
 
 local actions = {
+	surviveTick = {
+		type = actionTypes.UpdateObjective,
+		parameters = {
+			objectiveID = 'surviveWaves',
+		},
+	},
+
 	announceDifficulty = {
 		type = actionTypes.SendMessage,
 		parameters = {
