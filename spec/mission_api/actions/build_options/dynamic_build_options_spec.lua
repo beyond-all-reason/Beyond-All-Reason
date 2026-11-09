@@ -81,7 +81,6 @@ describe("mission_api.actions.dynamic_build_options", function()
 			builtDefName = "UnitDefName!",
 			builderDefName = "UnitDefName",
 			teamName = "TeamName",
-			requiresOneOf = { "builderDefName", "teamName" },
 		}, summarizeSchema(removeAction))
 	end)
 
@@ -134,6 +133,13 @@ describe("mission_api.actions.dynamic_build_options", function()
 			removeAction.actionFunction("armsolar", nil, 1)
 
 			assert.are.same({ { builtUnitDefID = 42, teamID = 1 } }, calls.remove)
+			assert.are.equal(0, #calls.add)
+		end)
+
+		it("removes the option from every builder type of every team", function()
+			removeAction.actionFunction("armsolar")
+
+			assert.are.same({ { builtUnitDefID = 42 } }, calls.remove)
 			assert.are.equal(0, #calls.add)
 		end)
 	end)

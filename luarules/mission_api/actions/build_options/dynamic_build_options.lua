@@ -31,7 +31,6 @@ return {
 			{ name = 'builtDefName', required = true, type = ParameterTypes.UnitDefName },
 			{ name = 'builderDefName', required = false, type = ParameterTypes.UnitDefName },
 			{ name = 'teamName', required = false, type = ParameterTypes.TeamName },
-			requiresOneOf = { 'builderDefName', 'teamName' },
 		},
 		actionFunction = removeBuildOption,
 	},

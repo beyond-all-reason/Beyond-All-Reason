@@ -240,6 +240,27 @@ describe("api_dynamic_build_options", function()
 		end)
 	end)
 
+	describe("for every team without a builder type", function()
+		it("takes the option off every builder type that has it", function()
+			buildOptions.Remove(SOLAR)
+
+			assert.is_false(hasOption(world, 100, SOLAR))
+			assert.is_false(hasOption(world, 101, SOLAR))
+			assert.is_false(buildOptions.HasBuildOption(SOLAR, CON_BOT))
+			assert.are.equal("7:42:0", world.gameRulesParams.dynamic_build_options)
+			assert.are.same({ { "DynamicBuildOptionsChanged", CON_BOT, SOLAR, false } }, world.sent)
+		end)
+
+		it("takes the option off a builder type that only one team was given", function()
+			buildOptions.Add(SOLAR, BOT_LAB, nil, 1)
+			buildOptions.Remove(SOLAR)
+
+			assert.is_false(hasOption(world, 102, SOLAR))
+			assert.is_false(buildOptions.HasBuildOption(SOLAR, BOT_LAB, 1))
+			assert.is_nil(world.teamRulesParams[1].dynamic_build_options)
+		end)
+	end)
+
 	describe("publishing", function()
 		it("keeps a team's own changes in its team rules param", function()
 			buildOptions.Remove(SOLAR, CON_BOT, 1)

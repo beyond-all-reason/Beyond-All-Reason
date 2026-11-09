@@ -171,6 +171,18 @@ if gadgetHandler:IsSyncedCode() then
 		return added ~= nil and added[builtUnitDefID] ~= nil
 	end
 
+	local function anyTeamHasBuildOption(builtUnitDefID, builderUnitDefID)
+		if hasBuildOption(builtUnitDefID, builderUnitDefID) then
+			return true
+		end
+		for teamID in pairs(teamAddedBuildOptions) do
+			if hasBuildOption(builtUnitDefID, builderUnitDefID, teamID) then
+				return true
+			end
+		end
+		return false
+	end
+
 	local function addedPosition(builtUnitDefID, builderUnitDefID, teamID)
 		local teamAdded = teamID and teamOptions(teamAddedBuildOptions, teamID, builderUnitDefID)
 		if teamAdded and teamAdded[builtUnitDefID] then
@@ -332,19 +344,24 @@ if gadgetHandler:IsSyncedCode() then
 
 	---Takes a build option away from every current and future unit of a builder or factory type, or only
 	---from those of one team. The engine also drops queued orders for it.
-	---With a team and no builder type: every builder type of that team.
 	---@param builtUnitDefID UnitDefID
-	---@param builderUnitDefID UnitDefID? nil only with a teamID
+	---@param builderUnitDefID UnitDefID? nil for every builder type that has it
 	---@param teamID integer? only this team's units; nil for every team
 	---@return boolean applied false when the builder type cannot build
 	function dynamicBuildOptions.Remove(builtUnitDefID, builderUnitDefID, teamID)
-		if builderUnitDefID == nil and teamID then
+		if builderUnitDefID == nil then
 			for builderID in pairs(staticBuildOptions) do
-				if hasBuildOption(builtUnitDefID, builderID, teamID) then
+				local hasIt
+				if teamID then
+					hasIt = hasBuildOption(builtUnitDefID, builderID, teamID)
+				else
+					hasIt = anyTeamHasBuildOption(builtUnitDefID, builderID)
+				end
+				if hasIt then
 					removeFromBuilderType(builtUnitDefID, builderID, teamID)
 				end
 			end
-			publishTeam(teamID)
+			publish(teamID)
 			return true
 		end
 		if not isBuilderDef(builderUnitDefID, "Remove") then
