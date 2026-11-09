@@ -19,6 +19,7 @@ local mathFloor = math.floor
 local spGetViewGeometry = Spring.GetViewGeometry
 
 local keybindEditor = require("luaui/Include/keybind_editor_view")
+local editorModel = keybindEditor.model
 
 local doUpdate
 
@@ -55,14 +56,6 @@ local screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 local math_isInRect = math.isInRect
 
 local keybinds, backgroundGuishader, show, wasShown
--- Input ownership is taken once on open and given back on close, rather than every
--- frame, so chat's handling is restored exactly as it was found.
-local ownsInput = false
-local panelHasInput = false
-local textInputStarted = false
--- Keys already down when the panel opened. Their release has to be let through, or
--- whatever they started stays stuck on once the panel starts swallowing releases.
-local heldAtOpen = {}
 
 -- Panel backdrop, baked into a display list rather than redrawn per frame.
 local function drawWindow()
@@ -228,9 +221,7 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
 	return true
 end
 
--- The engine runs bound actions on release as well as on press, so releases have to be
--- swallowed too. A key already down when the panel opened is let through instead, or
--- whatever it started stays stuck on.
+-- Swallowed like the presses, but for a key that was already down when the panel opened.
 function widget:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	if not show then
 		return false
@@ -238,13 +229,7 @@ function widget:KeyRelease(key, mods, label, unicode, scanCode, actions)
 
 	keybindEditor.keyRelease(key, scanCode)
 
-	if heldAtOpen[key] then
-		heldAtOpen[key] = nil
-
-		return false
-	end
-
-	return true
+	return not editorModel.releaseGoesThrough(key)
 end
 
 function widget:TextInput(utf8char)
@@ -321,6 +306,14 @@ function widget:MouseWheel(up, value)
 	return true
 end
 
+local function ownText()
+	return widgetHandler:OwnText()
+end
+
+local function disownText()
+	widgetHandler:DisownText()
+end
+
 -- Holds input ownership for as long as the panel is open.
 function widget:Update()
 	-- Re-snapshot the live keymap each time the panel opens so bindings made since
@@ -330,55 +323,12 @@ function widget:Update()
 	end
 	wasShown = show
 
-	-- Text ownership is what puts this panel ahead of actionHandler, which otherwise runs
-	-- before every widget and would fire the keybinds being edited. It has to go through
-	-- OwnText: widgetHandler here is a per-widget proxy, so assigning textOwner on it just
-	-- writes a dead field.
-	if show then
-		if not panelHasInput then
-			panelHasInput = true
-			heldAtOpen = Spring.GetPressedKeys and Spring.GetPressedKeys() or {}
-			ownsInput = widgetHandler:OwnText()
-
-			-- Chat has to be asked to let go, and toggling its input flag is the only public
-			-- way to make it cancel. The flag goes straight back because gui_chat persists it,
-			-- and a config save while the panel is open would leave chat input dead next
-			-- launch. isInputActive is the accessor that means chat is holding input;
-			-- getHandleInput is a saved option that reads true whoever the owner is, so poking
-			-- on that cancels the settings search box or the widget selector's filter instead.
-			if not ownsInput and WG.chat and WG.chat.isInputActive and WG.chat.isInputActive() then
-				WG.chat.setHandleInput(false)
-				WG.chat.setHandleInput(true)
-				ownsInput = widgetHandler:OwnText()
-			end
-		elseif not ownsInput then
-			ownsInput = widgetHandler:OwnText()
-		end
-
-		-- Only once it is ours. Starting SDL text input for a field we never took, then
-		-- stopping it again on close, is what kills that field.
-		if ownsInput and not textInputStarted then
-			textInputStarted = true
-			if Spring.SDLStartTextInput then
-				Spring.SDLStartTextInput()
-			end
-		end
-	elseif panelHasInput then
-		panelHasInput = false
-		if ownsInput then
-			ownsInput = false
-			widgetHandler:DisownText()
-		end
-		if textInputStarted then
-			textInputStarted = false
-			if Spring.SDLStopTextInput then
-				Spring.SDLStopTextInput()
-			end
-		end
-	end
+	-- It has to go through OwnText: widgetHandler here is a per-widget proxy, so assigning textOwner on it
+	-- just writes a dead field.
+	editorModel.holdInput(show, ownText, disownText)
 end
 
--- Registers the panel's action, its WG surface and the build-menu hook.
+-- Registers the panel's action and its WG surface.
 function widget:Initialize()
 	refreshText()
 
@@ -400,25 +350,6 @@ function widget:Initialize()
 	widgetHandler:AddAction("keybindprofile", function(_, line)
 		return keybindEditor.applyProfile(line)
 	end, nil, "tp")
-
-	-- Sent as commands because widgetHandler here is a per-widget proxy, which carries no
-	-- Enable/DisableWidget.
-	keybindEditor.setMenuToggle(function(useGrid)
-		if useGrid == nil then
-			return
-		end
-
-		local api = WG.buildmenu
-		if api and api.setLayout then -- a build menu with both layouts (Build Menu FlowUI2)
-			api.setLayout(useGrid and "grid" or "build")
-		elseif useGrid then
-			Spring.SendCommands("luaui disablewidget Build menu")
-			Spring.SendCommands("luaui enablewidget Grid menu")
-		else
-			Spring.SendCommands("luaui disablewidget Grid menu")
-			Spring.SendCommands("luaui enablewidget Build menu")
-		end
-	end)
 
 	-- The panel takes the size its page wants; a page switch lays everything out again.
 	keybindEditor.setPageHook(function(page)
@@ -467,12 +398,7 @@ end
 function widget:Shutdown()
 	keybindEditor.blur()
 	widgetHandler:DisownText()
-	if ownsInput then
-		ownsInput = false
-		if Spring.SDLStopTextInput then
-			Spring.SDLStopTextInput()
-		end
-	end
+	editorModel.releaseInput()
 	if keybinds then
 		glDeleteList(keybinds)
 		keybinds = nil

@@ -1,30 +1,23 @@
 -- common/feature_scatter.lua
 --
--- Brush-layout generation for the feature placer. This used to live in
--- luarules/gadgets/cmd_feature_placer.lua, which meant the widget had no way of
--- knowing what the gadget was about to spawn -- it sent brush parameters and the
--- gadget rolled the dice. That made a truthful placement preview impossible.
+-- Brush-layout generation for the feature placer. The widget builds the layout,
+-- draws it as ghosts and sends the same list of placements to the gadget, so the
+-- preview and the result agree by construction.
 --
--- Now the widget owns generation: it builds the layout, draws it as ghosts, and
--- on click ships the resulting list of concrete placements to the gadget. The
--- preview and the result are the same array, so they agree by construction
--- rather than by two copies of the same algorithm staying in sync.
+-- Two stages:
+--   * generateLocal(): brush-relative layout, deterministic for (seed, params),
+--     so it can be cached while the cursor moves without reshuffling.
+--   * resolve(): moves the layout to a world position and applies the terrain
+--     filters, which need the brush centre. Cheap enough to run per frame.
 --
--- Two-stage on purpose:
---   * generateLocal() produces a brush-relative layout. It is deterministic for
---     a given (seed, params) pair, so it can be cached and reused while the
---     cursor moves -- otherwise the preview would reshuffle every frame.
---   * resolve() translates that layout to a world position and applies the
---     terrain-dependent smart filters, which can only be evaluated once the
---     brush centre is known. Cheap enough to run per frame.
---
--- Containment uses common/brush_shapes.lua, the same module the brush outlines
--- are drawn from, so features land inside the shape the user actually sees. The
--- old gadget-local isInsideShape used an apothem-based polygon convention that
--- did not match the drawn outline.
+-- Containment uses common/brush_shapes.lua, the module the brush outline is drawn
+-- from, so features land inside the shape the user sees. The terrain filters are
+-- common/smart_filter.lua, the test every brush tool's overlay draws.
 
 local BrushShapes = require("common/brush_shapes")
+local SmartFilter = require("common/smart_filter")
 local isInside = BrushShapes.isInside
+local passesSmartFilter = SmartFilter.passes
 
 local max = math.max
 local min = math.min
@@ -41,20 +34,13 @@ local TAU = 2 * pi
 ----------------------------------------------------------------
 -- Deterministic RNG
 ----------------------------------------------------------------
--- Self-contained rather than math.random: the layout has to be reproducible
--- from a seed so the preview stays put while the cursor moves, and getting that
--- by reseeding the shared math.random stream would disturb every other widget.
+-- Own generator rather than math.random: the layout must be reproducible from a
+-- seed, and reseeding the shared math.random stream would disturb other code.
 --
--- Wichmann-Hill specifically, because **Recoil builds Lua with
--- LUA_NUMBER = float** (rts/lib/lua/include/luaconf.h -- the `double` line is
--- commented out). Integers are therefore only exact to 2^24 = 16777216, and any
--- generator whose intermediates exceed that silently disintegrates: the textbook
--- 32-bit LCG this replaced computed 1664525 * state, up to 7.1e15, and collapsed
--- to FIVE distinct outputs in 500 draws -- every scattered feature landing on one
--- of a couple of spots.
---
--- Wichmann-Hill's three multiplies peak at 172 * 30306 = 5212632, comfortably
--- exact, and it still has a period around 7e12.
+-- Recoil builds Lua with LUA_NUMBER = float, so integers are exact only up to
+-- 2^24. A 32-bit LCG overflows that and collapses to a handful of outputs.
+-- Wichmann-Hill's multiplies peak at 172 * 30306 = 5212632 (exact), and its
+-- period is still around 7e12.
 local WH_M1, WH_A1 = 30269, 171
 local WH_M2, WH_A2 = 30307, 172
 local WH_M3, WH_A3 = 30323, 170
@@ -113,16 +99,10 @@ end
 ----------------------------------------------------------------
 -- Helpers
 ----------------------------------------------------------------
--- Orbits a brush-local offset as the brush rotates.
---
--- The sign has to match the heading convention or the layout counter-rotates:
--- brush rotation feeds both this and baseHeading, and a feature with heading h
--- faces (sin h, 0, cos h). Rotating the brush by t must therefore move an offset
--- exactly the way it turns that facing -- i.e. this is Ry_engine(-t), the same
--- rotation the model itself receives. The textbook (x*c - z*s, x*s + z*c) is the
--- mirror of that: a feature due +Z of the centre would swing to -X while turning
--- to face +X, so the group appeared to spin the wrong way about its own axes
--- instead of orbiting the brush centre.
+-- Orbits a brush-local offset as the brush rotates. The sign matches the engine
+-- heading convention (heading h faces (sin h, 0, cos h)), so offsets turn the
+-- same way as the models. The textbook (x*c - z*s, x*s + z*c) is the mirror and
+-- makes the group counter-rotate.
 local function rotatePoint(px, pz, angleDeg)
 	if angleDeg == 0 then
 		return px, pz
@@ -142,9 +122,8 @@ end
 ----------------------------------------------------------------
 -- Scale variation
 ----------------------------------------------------------------
--- Bottom-heavy roll: skewing a uniform draw by t^1.5 lands most features near
--- scaleMin with a thinning tail toward scaleMax, which is the size distribution
--- of a natural stand -- many small trees, few large ones.
+-- Bottom-heavy roll (t^1.5): most features near scaleMin, a thin tail toward
+-- scaleMax, like a natural stand with many small trees and few large ones.
 local function rollScale(rng, smin, smax)
 	smin = smin or 1
 	smax = smax or smin
@@ -159,12 +138,11 @@ end
 ----------------------------------------------------------------
 -- Tilt variation
 ----------------------------------------------------------------
--- A lean of up to maxDeg in a random direction, as the pitch and roll (radians)
--- SetFeatureRotation takes. Squaring the draw keeps most features near upright
--- with a few leaning hard, the way a real stand looks. The direction is split
--- over pitch and roll the same way the placer gadget's landing wobble does.
+-- A lean of up to maxDeg in a random direction, as pitch and roll in radians for
+-- SetFeatureRotation. The squared draw keeps most features near upright. The
+-- direction splits over pitch and roll like the placer gadget's wobble.
 -- Returns 0, 0 without touching the rng when maxDeg is 0, so untilted layouts
--- roll exactly as before.
+-- keep the same random sequence.
 local function rollTilt(rng, maxDeg)
 	if not maxDeg or maxDeg <= 0 then
 		return 0, 0
@@ -179,6 +157,7 @@ end
 -- Distribution: random
 ----------------------------------------------------------------
 local function generateRandom(radius, shape, lengthScale, count, rng)
+	---@type table<integer, table>
 	local positions = {}
 	local attempts = 0
 	local maxAttempts = count * 8
@@ -197,6 +176,7 @@ end
 -- Distribution: regular grids
 ----------------------------------------------------------------
 local function generateFibonacci(radius, count)
+	---@type table<integer, table>
 	local positions = {}
 	for i = 0, count - 1 do
 		local r = radius * sqrt(i / max(1, count - 1))
@@ -207,6 +187,7 @@ local function generateFibonacci(radius, count)
 end
 
 local function generateSquareGrid(radius, count, lengthScale)
+	---@type table<integer, table>
 	local positions = {}
 	local radZ = radius * lengthScale
 	local spacing = sqrt((2 * radius) * (2 * radZ) / max(1, count))
@@ -225,6 +206,7 @@ end
 -- Grid clipped to the shape mask. Used for hexagon and octagon, which have no
 -- natural lattice of their own but tile a square grid acceptably.
 local function generateClippedGrid(radius, shape, count, lengthScale)
+	---@type table<integer, table>
 	local positions = {}
 	local radZ = radius * lengthScale
 	-- Overshoot the spacing estimate: clipping throws points away, so a spacing
@@ -259,23 +241,16 @@ end
 ----------------------------------------------------------------
 -- Distribution: clustered (organic)
 ----------------------------------------------------------------
--- Two tiers: ~75% of features spawn near randomly-chosen cluster nuclei with a
--- Gaussian offset, ~25% scatter freely. A minimum separation derived from the
--- selected defs' own collision radii prevents exact overlaps, so large features
--- naturally space out while small ones pack tightly.
---
--- When a scale range is set, scale is correlated with distance to the nearest
--- nucleus -- large features in the clump core, saplings at the fringe -- and the
--- pair-separation test uses the two candidates' scales, so small features pack
--- tighter than large ones. Both are what makes a scatter read as a grown stand
--- rather than dice rolls.
+-- Most features spawn at a Gaussian offset from random clump centres, the rest
+-- (clump.loose, default 25%) scatter freely. A minimum separation from the
+-- selected defs' radii stops overlaps. With a scale range, features near a clump
+-- centre roll larger, and pair spacing follows both features' scales.
 --
 -- `spacingOverride` replaces the def-derived separation for callers whose names
 -- are not features (the unit placer scatters units, sized by footprint).
 --
--- `clump` (optional) shapes the stand; every field defaults to the original
--- fixed behaviour, so callers that pass nothing get exactly what they used to:
---   count    number of clumps, 0 = auto (sqrt of the feature count, 2..6)
+-- `clump` (optional) shapes the stand; omitted fields give the plain layout:
+--   count    number of clumps, 0 = auto (about 0.7 * sqrt of the count, 2..6)
 --   size     clump spread multiplier (1 = radius / clumps * 1.2)
 --   loose    fraction of features scattered between the clumps (0.25)
 --   variety  0..1, how unlike each other the clumps are: per clump a share of
@@ -300,6 +275,7 @@ local function generateClustered(
 	local clumpSize = max(0.05, tonumber(clump.size) or 1)
 	local looseFrac = max(0, min(1, tonumber(clump.loose) or 0.25))
 	local variety = max(0, min(1, tonumber(clump.variety) or 0))
+	---@type number
 	local minSpacing = 4
 	if spacingOverride then
 		minSpacing = spacingOverride
@@ -350,7 +326,8 @@ local function generateClustered(
 	local sigma = radius / max(1, #clusterCenters) * 1.2 * clumpSize
 
 	-- Per-clump character. Rolled only when variety is on, so a zero-variety
-	-- layout draws the same random sequence it always did.
+	-- layout keeps the same random sequence for a given seed.
+	---@type number
 	local totalWeight = #clusterCenters
 	if variety > 0 then
 		totalWeight = 0
@@ -368,6 +345,7 @@ local function generateClustered(
 	local hasScale = scaleMax > scaleMin
 	local scaleRange = scaleMax - scaleMin
 
+	---@type table<integer, table>
 	local positions = {}
 	local maxAttempts = count * 15
 	local tries = 0
@@ -471,8 +449,8 @@ local function generateLocal(params, seed)
 	if scaleMax < scaleMin then
 		scaleMin, scaleMax = scaleMax, scaleMin
 	end
-	-- Entries only carry a scale when the brush actually varies it, so the wire
-	-- format (and save files) of a never-scaled map stay byte-identical.
+	-- Entries carry a scale only when the brush scale is not 1, so an unscaled
+	-- map's wire traffic and save files stay byte-identical.
 	local hasScale = scaleMin ~= 1 or scaleMax ~= 1
 
 	local positions
@@ -543,13 +521,10 @@ end
 ---@param extraRotDeg number|nil additional rotation for this copy of the brush
 ---@return table placements array of { defName, x, y, z, heading, pitch, roll, scale }
 --
--- `extraRotDeg` exists for symmetry. getSymmetricPositions hands back a per-copy
--- `rot` that differs from the brush's own rotation (radial copies are turned by
--- 360/N, mirrored copies by twice the mirror angle), and the drawn outline and
--- the erase brush both honour it. The layout was rotated once by the base
--- rotation in generateLocal, so each copy needs the difference applied here --
--- otherwise mirrored copies keep the unrotated pattern and land outside the
--- outline the user is aiming with.
+-- `extraRotDeg` is for symmetry copies: each copy's rotation differs from the
+-- brush's own (radial 360/N, mirrored twice the mirror angle), and the layout was
+-- only rotated by the base rotation, so the difference is applied here to keep
+-- each copy inside its drawn outline.
 local function resolve(layout, centerX, centerZ, params, extraRotDeg)
 	local placements = {}
 	if not layout or #layout == 0 then
@@ -562,16 +537,8 @@ local function resolve(layout, centerX, centerZ, params, extraRotDeg)
 
 	local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
 	local GetGroundHeight = Spring.GetGroundHeight
-	local GetGroundNormal = Spring.GetGroundNormal
 
 	local smart = params.smartEnabled and params.smartFilters or nil
-	local nyCliffMin, nySlopeMax, altMin, altMax
-	if smart then
-		nyCliffMin = smart.avoidCliffs and cos((smart.slopeMax or 45) * pi / 180) or nil
-		nySlopeMax = smart.preferSlopes and cos((smart.slopeMin or 10) * pi / 180) or nil
-		altMin = smart.altMinEnable and smart.altMin or nil
-		altMax = smart.altMaxEnable and smart.altMax or nil
-	end
 
 	for i = 1, #layout do
 		local entry = layout[i]
@@ -583,30 +550,7 @@ local function resolve(layout, centerX, centerZ, params, extraRotDeg)
 		local z = max(0, min(mapZ, centerZ + dz))
 		local y = GetGroundHeight(x, z)
 
-		local valid = true
-		if smart then
-			if smart.avoidWater and y < 0 then
-				valid = false
-			end
-			if valid and (nyCliffMin or nySlopeMax) then
-				local _, ny = GetGroundNormal(x, z)
-				ny = ny or 1.0
-				if nyCliffMin and ny < nyCliffMin then
-					valid = false
-				end
-				if valid and nySlopeMax and ny > nySlopeMax then
-					valid = false
-				end
-			end
-			if valid and altMin and y < altMin then
-				valid = false
-			end
-			if valid and altMax and y > altMax then
-				valid = false
-			end
-		end
-
-		if valid then
+		if not smart or passesSmartFilter(x, z, smart, y) then
 			placements[#placements + 1] = {
 				defName = entry.defName,
 				x = x,

@@ -1098,7 +1098,8 @@ function widgetHandler:Initialize()
 	for _, w in ipairs(unsortedWidgets) do
 		local replaces = w.whInfo.replaces
 		for _, name in ipairs(type(replaces) == "table" and replaces or { replaces }) do
-			if name ~= w.whInfo.name then
+			-- (a player's own widget cannot stand in for one only the game may provide)
+			if name ~= w.whInfo.name and (not zipOnly[name] or self.knownWidgets[w.whInfo.name].fromZip) then
 				replacedBy[name] = w.whInfo.name
 				-- remembered, also when it was off already: it comes back if this one goes
 				if self.knownWidgets[name] then
@@ -3086,7 +3087,8 @@ end
 function widgetHandler:RecoverWidgetSelector()
 	for name, ki in pairs(self.knownWidgets) do
 		if ki.basename == "widget_selector.lua" then
-			if ki.active then
+			-- (a widget taking its place answers the same action and WG.widgetselector)
+			if ki.active or replacerOf(name) then
 				return false
 			end
 			if type(self.configData[name]) ~= "table" then

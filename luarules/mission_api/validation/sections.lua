@@ -529,9 +529,22 @@ local function createAttributeActionValidator(context, parameterValidators)
 end
 
 -- Recoil cannot move an AI to another team, so ChangeTeam moves only the players of oldTeamName.
+-- Gaia's team has no players, and no player may join it.
 local function validateChangeTeamAction(context, actionReport, actionID, action)
 	if action.type ~= context.ActionTypes.ChangeTeam or type(action.parameters) ~= "table" then
 		return
+	end
+
+	for _, parameterName in ipairs({ "oldTeamName", "newTeamName" }) do
+		for _, teamName in ipairs(context.PossibleValues(action.parameters[parameterName])) do
+			if teamName == "gaia" then
+				actionReport.Error(
+					actionID,
+					"ChangeTeam cannot move players to or from Gaia's team",
+					"Parameter: " .. parameterName
+				)
+			end
+		end
 	end
 
 	for _, oldTeamName in ipairs(context.PossibleValues(action.parameters.oldTeamName)) do
