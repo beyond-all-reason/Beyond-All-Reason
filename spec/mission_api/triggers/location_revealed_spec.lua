@@ -112,12 +112,12 @@ describe("mission_api.triggers.location_revealed", function()
 		assert.are.equal(1, fired())
 	end)
 
-	it("stops reading LOS once a trigger that does not repeat has fired", function()
+	it("leaves a fired trigger that does not repeat to ActivateTrigger", function()
 		local context, fired = newContext()
 		local t = trigger({ position = position, sensorAllianceName = SENSOR_ALLY })
 		t.triggered = true
+		inLos = true
 		onGameFrame(t, "t", context, CHECK_FRAME)
-		assert.are.equal(0, #losReads)
-		assert.are.equal(0, fired())
+		assert.are.equal(1, fired())
 	end)
 end)

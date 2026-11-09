@@ -18,10 +18,6 @@ return {
 			if frameNumber % CHECK_INTERVAL_FRAMES ~= 0 then
 				return
 			end
-			if trigger.triggered and not trigger.settings.repeating then
-				return
-			end
-
 			local parameters = trigger.parameters
 			local position = parameters.position
 			if not Spring.IsPosInLos(position.x, position.y, position.z, parameters.sensorAllianceName) then
