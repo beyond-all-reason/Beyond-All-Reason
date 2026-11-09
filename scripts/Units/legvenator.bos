@@ -86,6 +86,11 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 QueryPrimary(piecenum)
 {
 	piecenum = flare;

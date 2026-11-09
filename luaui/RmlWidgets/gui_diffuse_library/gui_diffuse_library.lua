@@ -21,6 +21,12 @@ local MODEL_NAME = "diffuse_library_model"
 
 local WG = WG
 
+---@class DiffuseLibraryWidgetState
+---@field rmlContext table?
+---@field document table?
+---@field dmHandle table?
+---@field rootElement table?
+---@field dragHandle table?
 local widgetState = {
 	rmlContext = nil,
 	document = nil,
@@ -29,16 +35,13 @@ local widgetState = {
 }
 
 local initialModel = {
-	-- Root panel visibility (data-class-hidden on #dml-root)
-	hidden = true,
-	-- Two-way-bound search filter (data-value on #material-search)
-	search = "",
+	hidden = true, -- data-class-hidden on #dml-root
+	search = "", -- two-way bound to #material-search
 }
 
 local lastSearchFilter = ""
--- Set of currently-selected category keys. Plain click selects exactly one;
--- Shift+click toggles a category in/out of the set. "all" is mutually
--- exclusive with the specific categories.
+-- Selected categories: a click selects one, Shift+click toggles one in or out.
+-- "all" excludes the specific categories.
 local selectedCategories = { all = true }
 local categoryButtons = {} -- { [catKey] = element }
 local materialElements = {} -- { [matKey] = tile element }
@@ -47,7 +50,9 @@ local thumbMatPath = {} -- { [matKey] = texture path } for selection re-derive
 local manuallyHidden = false
 local lastActive = false
 local userDragged = false
+---@type integer?
 local lastLibrarySig = nil -- detect material-library changes
+---@type string?
 local lastActivePath = nil -- detect active-layer texture changes (re-highlight)
 
 -- Categories, in display order. Derived from the material key by keyword.
@@ -85,18 +90,11 @@ local function categorize(key)
 end
 
 ----------------------------------------------------------------
--- Thumbnail generation (render each diffuse texture to a small GL texture).
--- The source diffuse maps are 8k; baking one is expensive (a full-res JPEG
--- decode + GPU upload), so we NEVER bake the whole library up front -- doing so
--- froze the game for seconds when switching to the diffuse tool. Instead we
--- bake lazily: only tiles currently scrolled into view get a thumbnail, one per
--- frame, rendered into a THUMB_SIZE FBO with the 8k source freed immediately.
---
--- Each fresh bake is also written to a small PNG in a write-dir cache. On every
--- later open we bind that cached 128px file by name (decoded once, trivially)
--- instead of touching the 8k source at all -- so the costly 8k JPEG decode is
--- paid at most ONCE per material across all sessions, not once per session and
--- not once per scroll. Tiles the user never scrolls to still cost nothing.
+-- Thumbnails. A source diffuse is an 8k JPEG and baking the whole library at
+-- once freezes the game for seconds, so tiles bake lazily: only those in view,
+-- one per frame, into a small FBO, freeing the 8k source right away. Each bake
+-- is cached as a PNG in the write dir, so a material is decoded at most once
+-- across all sessions.
 ----------------------------------------------------------------
 local THUMB_SIZE = 128
 local THUMBS_PER_FRAME = 1 -- each bake decodes an 8k JPEG; one at a time
@@ -105,6 +103,7 @@ local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 local THUMB_CACHE_DIR = "Terraform Brush/thumbs" -- write-dir, alongside textures/
 
 local thumbTextures = {} -- { [matKey] = cachePath string } kept for session
+---@type table<string, table?>
 local thumbImgEls = {} -- { [matKey] = <img> RmlUi element }
 local thumbFailed = {} -- { [matKey] = true } bake failed; don't retry it
 local thumbsPending = 0 -- filtered tiles still awaiting a thumbnail
@@ -131,8 +130,7 @@ local function cleanupThumbs()
 	thumbsPending = 0
 end
 
--- Bake one 128px thumbnail from the full-res `path`, render it into an FBO, and
--- write the result to `cachePath` so future sessions skip the 8k decode.
+-- Bake one thumbnail from the full-res `path` and write it to `cachePath`.
 local function renderOneThumb(matKey, path, cachePath)
 	if not path or path == "" then
 		return false
@@ -162,7 +160,6 @@ local function renderOneThumb(matKey, path, cachePath)
 		return false
 	end
 
-	-- Bind the full-res diffuse. If the engine can't load it, bail cleanly.
 	local bound = gl.Texture(0, path)
 	if bound == false then
 		gl.DeleteTexture(colorTex)
@@ -185,8 +182,7 @@ local function renderOneThumb(matKey, path, cachePath)
 		gl.LoadIdentity()
 
 		gl.Color(1, 1, 1, 1)
-		-- Full-screen NDC quad; flip V so the preview reads the same way up as
-		-- the texture appears on the terrain.
+		-- Flip V so the thumbnail reads the same way up as the texture on the terrain.
 		gl.TexRect(-1, -1, 1, 1, 0, 1, 1, 0)
 
 		gl.MatrixMode(GL.PROJECTION)
@@ -194,10 +190,8 @@ local function renderOneThumb(matKey, path, cachePath)
 		gl.MatrixMode(GL.MODELVIEW)
 		gl.PopMatrix()
 
-		-- Persist the baked thumbnail so later sessions never re-decode the 8k.
-		-- yflip=true (default) writes an upright PNG; the overlay draw flips V
-		-- back for file-backed thumbs (see drawThumbnailOverlays). A save failure
-		-- only costs a re-bake next session, so it must not abort the bake.
+		-- The tile <img> shows this PNG directly. A failed save only costs a
+		-- re-bake next session, so it must not abort the bake.
 		if cachePath then
 			pcall(
 				gl.SaveImage,
@@ -214,9 +208,7 @@ local function renderOneThumb(matKey, path, cachePath)
 	end)
 
 	gl.Texture(0, false)
-	-- Free the 8k source now that the thumbnail is baked. DeleteTexture accepts
-	-- a named-texture string, but pcall in case an engine build disagrees --
-	-- failing to free is a VRAM cost, not a crash.
+	-- Free the 8k source. pcall: failing to free costs VRAM, it must not crash.
 	pcall(gl.DeleteTexture, path)
 	gl.Blending(true)
 	gl.DeleteTexture(colorTex) -- free the FBO color tex; thumbnail lives on disk
@@ -228,11 +220,8 @@ local function renderOneThumb(matKey, path, cachePath)
 	return cachePath ~= nil
 end
 
--- Bake thumbnails for tiles currently within the scroll viewport (plus a small
--- prefetch margin), at most THUMBS_PER_FRAME per frame. Self-correcting: as the
--- user scrolls, newly-revealed tiles get baked on the frames they appear, and a
--- filter/category rebuild just re-counts what is left in `thumbsPending`. Reads
--- element layout and renders into an FBO, so it must run in a draw callback.
+-- Bake up to THUMBS_PER_FRAME tiles inside the viewport (plus a prefetch margin).
+-- Reads layout and renders into an FBO, so it must run in a draw callin.
 local function bakeVisibleThumbs()
 	if thumbsPending <= 0 then
 		return
@@ -265,7 +254,6 @@ local function bakeVisibleThumbs()
 			local h = div.offset_height
 			if h > 0 then
 				local top = div.absolute_top
-				-- Vertically within the viewport (or its prefetch margin)?
 				if top < viewBottom + PREFETCH_MARGIN and (top + h) > viewTop - PREFETCH_MARGIN then
 					if renderOneThumb(matKey, thumbMatPath[matKey], thumbCachePath(matKey)) then
 						local imgEl = thumbImgEls[matKey]
@@ -313,6 +301,7 @@ local function onMaterialClick(mat)
 	end
 	local id = API.getActiveLayerId and API.getActiveLayerId()
 	local layers = API.getLayers and API.getLayers() or {}
+	---@type table?
 	local activeLayer
 	if id then
 		for j = 1, #layers do
@@ -322,9 +311,8 @@ local function onMaterialClick(mat)
 			end
 		end
 	end
-	-- Smart routing (matches tf_diffuse.lua): if the active layer has no
-	-- material yet, assign this one to it; otherwise spawn a new layer so any
-	-- existing painted strokes are preserved.
+	-- An empty active layer takes the material; otherwise add a new layer so
+	-- strokes already painted keep their material.
 	if activeLayer and (not activeLayer.texturePath or activeLayer.texturePath == "") then
 		if API.setLayerTexture then
 			API.setLayerTexture(id, mat.path, nil, mat.name)
@@ -343,13 +331,14 @@ local function rebuildMaterialList(filter)
 	if not listEl or not WG.DiffusePainter then
 		return
 	end
+	---@cast doc table
 
 	listEl.inner_rml = ""
 	materialElements = {}
 	thumbDivs = {}
 	thumbImgEls = {}
 	thumbMatPath = {}
-	-- Re-counted below: bakeVisibleThumbs() bakes lazily until this hits zero.
+	-- Re-counted below; bakeVisibleThumbs() works until it reaches zero.
 	thumbsPending = 0
 
 	local library = WG.DiffusePainter.getMaterialLibrary() or {}
@@ -383,7 +372,7 @@ local function rebuildMaterialList(filter)
 			thumbImgEls[mat.key] = imgEl
 
 			if not thumbTextures[mat.key] and not thumbFailed[mat.key] then
-				-- Prefer a previously-baked cache file: load by path is cheap.
+				-- A cached PNG from an earlier session skips the bake.
 				local cp = thumbCachePath(mat.key)
 				if VFS.FileExists(cp, VFS.RAW_FIRST) then
 					thumbTextures[mat.key] = cp
@@ -444,8 +433,7 @@ function widget:OnSearchBlur()
 	Spring.SDLStopTextInput()
 end
 
--- data-value writes dm.search only AFTER the change event fires (RmlUi quirk),
--- so read the input element's value directly here.
+-- RmlUi updates data-value only after the change event fires; read the element.
 function widget:OnSearchChange()
 	local doc = widgetState.document
 	local el = doc and doc:GetElementById("material-search")
@@ -469,7 +457,7 @@ function widget:OnSearchClear()
 end
 
 ----------------------------------------------------------------
--- Attach event listeners (imperative — drag handle + category buttons)
+-- Event listeners: category buttons and the drag handle
 ----------------------------------------------------------------
 local function attachEventListeners()
 	local doc = widgetState.document
@@ -520,8 +508,7 @@ end
 -- Lifecycle
 ----------------------------------------------------------------
 function widget:Initialize()
-	-- Thumbnail cache lives in the write dir next to the texture library.
-	-- SaveImage won't create missing parents, so ensure it exists up front.
+	-- SaveImage does not create missing folders.
 	pcall(Spring.CreateDir, THUMB_CACHE_DIR)
 
 	widgetState.rmlContext = RmlUi.GetContext("shared")
@@ -580,7 +567,6 @@ function widget:Update()
 		return
 	end
 
-	-- Sync two-way-bound search filter back to internal state.
 	if widgetState.dmHandle then
 		local searchVal = widgetState.dmHandle.search or ""
 		if searchVal ~= lastSearchFilter then
@@ -589,7 +575,7 @@ function widget:Update()
 		end
 	end
 
-	-- Position to the right of the main terraform panel (until user drags).
+	-- Dock to the right of the terraform panel until the user drags it.
 	local mainPanel = WG.TerraformerShared
 		and WG.TerraformerShared.getElementRect
 		and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
@@ -601,9 +587,7 @@ function widget:Update()
 		)
 	end
 
-	-- Rebuild on library size change (e.g. a rescan adds materials). The rebuild
-	-- re-counts thumbsPending, so any new materials get baked lazily on the
-	-- frames they scroll into view -- no eager whole-library pass.
+	-- Rebuild when the library size changes (a rescan added materials).
 	local library = (API.getMaterialLibrary and API.getMaterialLibrary()) or {}
 	local librarySig = #library
 	if librarySig ~= lastLibrarySig then
@@ -617,8 +601,6 @@ function widget:Update()
 			el:SetClass("selected", thumbMatPath[key] == activePath)
 		end
 	end
-	-- Thumbnails bake lazily; img.src is set on each tile when its bake
-	-- completes, so no DOM rebuild is needed as they bake in.
 end
 
 function widget:DrawScreen()

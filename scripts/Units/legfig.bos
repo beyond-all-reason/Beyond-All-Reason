@@ -69,6 +69,11 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;

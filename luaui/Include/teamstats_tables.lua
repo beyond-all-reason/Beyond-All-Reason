@@ -114,7 +114,7 @@ function M.new(ctx)
 		local about = t.spec and ctx.i18n("ui.teamStats.tables." .. t.spec.name .. "Desc")
 			or ctx.i18n("ui.teamStats.tables.ownDesc")
 		local hint = ctx.i18n(t.spec and "ui.teamStats.tables.shippedHint" or "ui.teamStats.tables.ownHint")
-		return about .. "\n" .. ctx.colors.dim .. hint
+		return { text = about, note = hint }
 	end
 
 	function tables.columnsOf(key)
@@ -686,7 +686,7 @@ function M.new(ctx)
 		end
 		local tip = ctx.L.desc[key] or ""
 		if not tables.has(tables.card.key, key) and tables.full(tables.card.key) then
-			tip = tip .. "\n" .. ctx.colors.dim .. ctx.i18n("ui.teamStats.tables.full")
+			tip = { text = tip, note = ctx.i18n("ui.teamStats.tables.full") }
 		end
 		return ctx.columnTitle(ctx.COLUMNS[key]), tip
 	end
