@@ -79,6 +79,7 @@ local function createValidationContext(mission, report)
 		-- Trigger definitions:
 		TriggerTypes = triggerDefinitions.Types,
 		TriggerParameters = triggerDefinitions.Parameters,
+		ConditionKinds = triggerDefinitions.Kinds,
 
 		-- Action definitions:
 		ActionTypes = actionDefinitions.Types,

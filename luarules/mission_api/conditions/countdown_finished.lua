@@ -2,6 +2,7 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 return {
 	type = 'CountdownFinished',
+	kind = 'event',
 	parameters = {
 		{ name = 'countdownID', required = true, type = ParameterTypes.CountdownID },
 	},
