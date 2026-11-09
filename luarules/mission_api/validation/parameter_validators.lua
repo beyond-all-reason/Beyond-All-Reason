@@ -187,6 +187,7 @@ local function registerValueValidators(parameterValidators, context)
 	-- only cross-referenced (see references.lua) and guarded at runtime.
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
+	parameterValidators[Types.EffectName] = validateString
 	-- IDs starting with __ are the Mission API's own (TimeElapsed's countdowns).
 	parameterValidators[Types.CountdownID] = getLookupValidator(validateString, "countdownID", function(countdownID)
 		return countdownID:sub(1, 2) ~= "__"
