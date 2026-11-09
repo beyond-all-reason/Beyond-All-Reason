@@ -14,15 +14,6 @@ local env = MissionSpecEnv.new({
 		CreateUnit = function()
 			return 7
 		end,
-		GiveOrderToUnit = function(unitID, commandID, params, options)
-			given[#given + 1] = {
-				unitID = unitID,
-				commandID = commandID,
-				params = params,
-				options = options,
-				fenced = GG["MissionAPI"].issuingOrders,
-			}
-		end,
 		GiveOrderArrayToUnit = function(unitID, orders)
 			given[#given + 1] = { unitID = unitID, orders = orders, fenced = GG["MissionAPI"].issuingOrders }
 		end,
@@ -39,14 +30,13 @@ describe("mission_api.loadout move and fire states", function()
 		given = {}
 	end)
 
-	it("gives the states as the engine's numbers, inside the order fence, before the entry's orders", function()
+	it("gives the states ahead of the entry's orders, in one array inside the order fence", function()
 		local move = { env.CMD.MOVE, { 1, 0, 2 }, {} }
 
 		loadout.SpawnUnitLoadout({
 			{
 				unitDefName = "bot",
-				x = 0,
-				z = 0,
+				position = { x = 0, z = 0 },
 				teamName = 0,
 				moveState = env.CMD.MOVESTATE_HOLDPOS,
 				fireState = env.CMD.FIRESTATE_FIREATNEUTRAL,
@@ -57,30 +47,37 @@ describe("mission_api.loadout move and fire states", function()
 		assert.are.same({
 			{
 				unitID = 7,
-				commandID = env.CMD.MOVE_STATE,
-				params = { 0 },
-				options = 0,
+				orders = {
+					{ env.CMD.MOVE_STATE, { 0 }, 0 },
+					{ env.CMD.FIRE_STATE, { 3 }, 0 },
+					move,
+				},
 				fenced = true,
 			},
-			{
-				unitID = 7,
-				commandID = env.CMD.FIRE_STATE,
-				params = { 3 },
-				options = 0,
-				fenced = true,
-			},
-			{ unitID = 7, orders = { move }, fenced = true },
 		}, given)
 	end)
 
 	it("gives no state the entry leaves out", function()
 		loadout.SpawnUnitLoadout({
-			{ unitDefName = "bot", x = 0, z = 0, teamName = 0, fireState = env.CMD.FIRESTATE_HOLDFIRE },
+			{ unitDefName = "bot", position = { x = 0, z = 0 }, teamName = 0, fireState = env.CMD.FIRESTATE_HOLDFIRE },
 		})
 
-		assert.are.equal(2, #given)
-		assert.are.equal(env.CMD.FIRE_STATE, given[1].commandID)
-		assert.are.same({ 0 }, given[1].params)
-		assert.is_nil(given[2].commandID)
+		assert.are.same({ { unitID = 7, orders = { { env.CMD.FIRE_STATE, { 0 }, 0 } }, fenced = true } }, given)
+	end)
+
+	it("leaves the entry's own orders as written", function()
+		local orders = { { env.CMD.MOVE, { 1, 0, 2 }, {} } }
+
+		loadout.SpawnUnitLoadout({
+			{
+				unitDefName = "bot",
+				position = { x = 0, z = 0 },
+				teamName = 0,
+				moveState = env.CMD.MOVESTATE_ROAM,
+				orders = orders,
+			},
+		})
+
+		assert.are.same({ { env.CMD.MOVE, { 1, 0, 2 }, {} } }, orders)
 	end)
 end)
