@@ -1544,6 +1544,11 @@ function widget:DrawScreen()
 							if tapLine then
 								tooltip = tooltip ~= "" and (tooltip .. "\n" .. tapLine) or tapLine
 							end
+							if cmd.action == "stockpile" and cmd.params[1] then
+								local limit =
+									getCachedTranslation("commands.stockpile_limit", { limit = cmd.params[1] })
+								tooltip = tooltip ~= "" and (tooltip .. "\n" .. limit) or limit
+							end
 							if tooltip ~= "" then
 								local title
 								if isStateCommand[cmd.id] then
@@ -1554,7 +1559,7 @@ function widget:DrawScreen()
 										title = getCachedTranslation("commands." .. commandState)
 									end
 								else
-									title = getCachedTranslation("commands." .. cmd.action)
+									title = cmd.cachedText
 								end
 								WG.tooltip.ShowTooltip("ordermenu", tooltip, nil, nil, title)
 							end
