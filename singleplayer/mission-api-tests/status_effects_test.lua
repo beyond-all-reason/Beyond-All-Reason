@@ -5,6 +5,9 @@
 --- Each tower alone covers a patrol of enemy bots, out of sight, so they show as radar blips.
 --- The western blips go and come back with the effect. The eastern blips never go.
 ---
+--- Then an enemy jammer hides the eastern patrol, and Block Jamming over it brings the blips back.
+--- Removing the eastern tower takes them away again, since Block Jamming can only hide from radar.
+---
 
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
@@ -42,6 +45,30 @@ local triggers = {
 		},
 		actions = { 'applyTimedNoRadar', 'messageApplyTimedNoRadar' },
 	},
+
+	spawnJammer = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 22,
+		},
+		actions = { 'fundJammer', 'spawnJammer', 'messageSpawnJammer' },
+	},
+
+	applyBlockJamming = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 27,
+		},
+		actions = { 'applyBlockJamming', 'messageApplyBlockJamming' },
+	},
+
+	removeEastTower = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 32,
+		},
+		actions = { 'removeEastTower', 'messageRemoveEastTower' },
+	},
 }
 
 local actions = {
@@ -51,7 +78,7 @@ local actions = {
 		parameters = {
 			unitLoadout = {
 				{ unitDefName = 'armrad', position = { x = 1600, z = 1600 }, teamName = 'player' },
-				{ unitDefName = 'armrad', position = { x = 3000, z = 1600 }, teamName = 'player' },
+				{ unitDefName = 'armrad', position = { x = 3000, z = 1600 }, teamName = 'player', unitName = 'eastTower' },
 			},
 		},
 	},
@@ -137,6 +164,60 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "No Radar applied for 5 seconds: the western patrol comes back on radar on its own.",
+		},
+	},
+
+	fundJammer = {
+		type = actionTypes.AddResourcesPerSecond,
+		parameters = {
+			teamName = 'enemy',
+			energy = 50,
+		},
+	},
+
+	spawnJammer = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'corjamt', position = { x = 3620, z = 2915 }, teamName = 'enemy' },
+			},
+		},
+	},
+
+	messageSpawnJammer = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "An enemy jammer hides the eastern patrol from radar.",
+		},
+	},
+
+	applyBlockJamming = {
+		type = actionTypes.ApplyStatusEffect,
+		parameters = {
+			effectType = 'BlockJamming',
+			effectName = 'unjam',
+			area = { x = 3620, z = 2915, radius = 450 },
+		},
+	},
+
+	messageApplyBlockJamming = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Block Jamming applied: the eastern patrol is back on radar inside the jammer.",
+		},
+	},
+
+	removeEastTower = {
+		type = actionTypes.DespawnUnits,
+		parameters = {
+			unitName = 'eastTower',
+		},
+	},
+
+	messageRemoveEastTower = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Eastern tower removed: no radar covers the patrol, so it leaves radar even under Block Jamming.",
 		},
 	},
 }
