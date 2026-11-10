@@ -23,7 +23,7 @@ function widget:GetInfo()
 	}
 end
 
-if Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
 	return false
 end
 
