@@ -282,6 +282,8 @@ return {
   `onCanceled`, `onHidden`, `onShown`) name Event triggers to fire; `nextStage` moves to that stage
   on completion.
 - The `__` prefixes are reserved, so mission scripts do not define IDs that collide.
+- Stage logic lives in `stages.lua` (`ChangeStage`, `ActivateStage`, …) and objective state in
+  `objectives.lua`; the two call each other through `GG['MissionAPI'].Modules`.
 - Stage membership comes from `Stages[stageID].objectives` and is copied onto the objective's
   condition record as `settings.stages`; `stages_loader` is otherwise a pass-through.
 - `objective.textKey` is an I18N key with no LuaUI consumer yet; `objectives.lua` only

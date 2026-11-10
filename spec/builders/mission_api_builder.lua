@@ -54,7 +54,6 @@ end, math.huge)
 ---@field processSoundQueue table
 ---@field activateStage table
 ---@field changeStage table
----@field announceStage table
 ---@field tryAdvanceStage table
 ---@field activateObjective table
 ---@field cancelObjective table
@@ -347,7 +346,6 @@ function MB:Build(installed)
 	local processSoundQueueCalls = {}
 	local activateStageCalls = {}
 	local changeStageCalls = {}
-	local announceStageCalls = {}
 	local tryAdvanceCalls = {}
 	local activateObjectiveCalls = {}
 	local reportProgressCalls = {}
@@ -389,9 +387,6 @@ function MB:Build(installed)
 
 	-- Mirrors stages.lua, keeping CurrentStageID up to date so a spec can read where a change left it.
 	local stages = {
-		Announce = function(stageID)
-			announceStageCalls[#announceStageCalls + 1] = { stageID = stageID }
-		end,
 		GetCurrentStageID = function()
 			return stateTable.CurrentStageID
 		end,
@@ -514,7 +509,6 @@ function MB:Build(installed)
 			processSoundQueue = processSoundQueueCalls,
 			activateStage = activateStageCalls,
 			changeStage = changeStageCalls,
-			announceStage = announceStageCalls,
 			tryAdvanceStage = tryAdvanceCalls,
 			activateObjective = activateObjectiveCalls,
 			cancelObjective = cancelObjectiveCalls,
@@ -538,7 +532,6 @@ function MB:Build(installed)
 				processSoundQueueCalls,
 				activateStageCalls,
 				changeStageCalls,
-				announceStageCalls,
 				tryAdvanceCalls,
 				activateObjectiveCalls,
 				reportProgressCalls,
