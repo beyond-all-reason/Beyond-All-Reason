@@ -10,7 +10,15 @@ on:
   workflow_dispatch:
 
 jobs:
+  pull-request-for-push:
+    if: github.event_name == 'push'
+    permissions:
+      pull-requests: read
+    uses: ./.github/workflows/pull_request_for_push.yml
+
   busted:
+    needs: pull-request-for-push
+    if: ${{ !cancelled() && needs.pull-request-for-push.outputs.has-pull-request != 'true' }}
     # lx needs libgpgme.so.11, which ubuntu-26.04 doesn't have
     runs-on: ubuntu-24.04
     permissions:
@@ -31,7 +39,7 @@ jobs:
         changed=$(git diff --name-only HEAD^1 HEAD)
         if ! grep -qE "$MISSION_SPEC_INPUTS" <<< "$changed"; then
           echo "SPEC_SKIP=mission_api" >> "$GITHUB_ENV"
-          echo "::notice title=Mission specs skipped::No changed file is a mission spec input. Pushes and the nightly run cover them."
+          echo "::notice title=Mission specs skipped::No changed file is a mission spec input. Pushes to master and the nightly run cover them."
         fi
 
     - name: Install Lua 5.1
@@ -68,12 +76,15 @@ jobs:
         SPEC_ORDER: reverse
       run: lx --lua-version 5.1 test
 
-    - name: Report failures from scheduled runs
-      if: failure() && github.event_name == 'schedule'
+    - name: Report failures on master
+      if: >-
+        failure() && !github.event.repository.fork
+        && (github.event_name == 'schedule'
+          || (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch))
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
-        TITLE: Scheduled unit tests failed
+        TITLE: Unit tests failed on master
         RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       run: |
         issue=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty')

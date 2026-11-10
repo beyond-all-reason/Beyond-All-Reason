@@ -193,6 +193,15 @@ function widget:ActiveCommandChanged(cmdid, type)
 	end
 end
 
+function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	if unitID == selectedUnitID then
+		if isVolumeHidden then
+			restoreSelectionVolume(unitID) -- unit hasn't been shared yet so we can restore
+		end
+		selectedUnitID = nil
+	end
+end
+
 -- Godmode and headless testing LOS fixes.
 
 local function unitAccessLost(self, unitID, unitTeam, unitAllyTeam, unitDefID)

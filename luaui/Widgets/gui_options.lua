@@ -1029,6 +1029,20 @@ function draw.sidebar()
 					end
 				end
 			end
+
+			-- the keybinds are a window of their own: this entry switches to it
+			if group.id == "control" and not searching and WG.keybinds and y - metrics.groupHeight >= bottom then
+				local r = { x1, y - metrics.groupHeight, x2, y }
+				font:Print(
+					look.group .. BAR.I18N("ui.keybinds.title"),
+					x1 + metrics.sidePad,
+					math.floor((r[2] + r[4]) * 0.5),
+					metrics.groupFs,
+					"ov"
+				)
+				layout.sidebar[#layout.sidebar + 1] = { rect = r, window = "keybinds" }
+				y = r[2]
+			end
 		end
 	end
 end
@@ -2336,11 +2350,31 @@ local function pressOnHeader(mx, my)
 	return true
 end
 
--- a press in the column: open a tab, or scroll to a section (or a tab's search results)
+-- Toggles another window as the top bar's button for it does: this one closes, as only one is open at a time.
+function view.switchTo(name)
+	local window = WG[name]
+	if not window then
+		return
+	end
+	local wasOpen = window.isvisible()
+	view.pressedInside = nil
+	if WG.topbar and WG.topbar.hideWindows then
+		WG.topbar.hideWindows()
+	else
+		view.close()
+	end
+	if not wasOpen then
+		window.toggle(true)
+	end
+end
+
+-- a press in the column: open a tab or another window, or scroll to a section (or a tab's search results)
 local function pressOnSidebar(mx, my)
 	for _, entry in ipairs(layout.sidebar) do
 		if inRect(entry.rect, mx, my) then
-			if entry.group and not view.searching() then
+			if entry.window then
+				view.switchTo(entry.window)
+			elseif entry.group and not view.searching() then
 				if entry.group.id == currentGroupTab then
 					view.scrollBy(-view.scroll)
 					view.litPin = false

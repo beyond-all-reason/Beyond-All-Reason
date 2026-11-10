@@ -491,7 +491,8 @@ describe("mission_api.validation.sections", function()
 
 		before_each(function()
 			originalGetTeamInfo = V.env.Spring.GetTeamInfo
-			V.missionAPI().Teams = { rebels = 0, [0] = "rebels", loyalists = 1, [1] = "loyalists" }
+			V.missionAPI().Teams =
+				{ rebels = 0, [0] = "rebels", loyalists = 1, [1] = "loyalists", gaia = 2, [2] = "gaia" }
 			V.env.Spring.GetTeamInfo = function(teamID)
 				return teamID, 0, false, teamID == 1
 			end
@@ -531,6 +532,63 @@ describe("mission_api.validation.sections", function()
 					parameters = { oldTeamName = "rebels", newTeamName = "loyalists" },
 				})),
 				"ChangeTeam"
+			)
+		end)
+
+		it("rejects Gaia's team as either team", function()
+			local result = V.validate(V.mission()
+				:WithAction("toGaia", {
+					type = V.actionTypes.ChangeTeam,
+					parameters = { oldTeamName = "rebels", newTeamName = "gaia" },
+				})
+				:WithAction("fromGaia", {
+					type = V.actionTypes.ChangeTeam,
+					parameters = { oldTeamName = "gaia", newTeamName = "rebels" },
+				}))
+
+			assert.are.same({
+				"ChangeTeam cannot move players to or from Gaia's team. Action: fromGaia, Parameter: oldTeamName",
+				"ChangeTeam cannot move players to or from Gaia's team. Action: toGaia, Parameter: newTeamName",
+			}, result.errors)
+		end)
+
+		it("rejects Gaia's team on any difficulty", function()
+			V.assertMessage(
+				V.validate(V.mission():WithAction("defect", {
+					type = V.actionTypes.ChangeTeam,
+					parameters = {
+						oldTeamName = "rebels",
+						newTeamName = { difficulties = { Easy = "loyalists", Hard = "gaia" } },
+					},
+				})),
+				"ChangeTeam cannot move players to or from Gaia's team. Action: defect, Parameter: newTeamName"
+			)
+		end)
+	end)
+
+	describe("build option actions with a team", function()
+		local function validateBuildOption(actionType, parameters)
+			parameters.builtDefName = "armsolar"
+			return V.validateAction({ type = V.actionTypes[actionType], parameters = parameters })
+		end
+
+		it("passes a team without a builder", function()
+			local result = validateBuildOption("RemoveBuildOption", { teamName = "player" })
+			V.assertNoMessageContaining(result, "builderDefName")
+		end)
+
+		it("passes a builder and a team together", function()
+			local result = validateBuildOption(
+				"AddBuildOption",
+				{ builderDefName = "armck", teamName = "player", buildMenuPosition = 2 }
+			)
+			V.assertNoMessageContaining(result, "needs builderDefName")
+		end)
+
+		it("reports a build menu position with a team and no builder", function()
+			V.assertMessage(
+				validateBuildOption("AddBuildOption", { teamName = "player", buildMenuPosition = 2 }),
+				"Parameter 'buildMenuPosition' needs builderDefName. Action: a, Parameter: buildMenuPosition"
 			)
 		end)
 	end)
@@ -727,12 +785,12 @@ describe("mission_api.validation.sections", function()
 	it("validates loadout entries", function()
 		local result = V.validate(
 			V.mission()
-				:WithUnitLoadout({ { unitDefName = "noSuch", x = 0, z = 0, teamName = "player" } })
-				:WithFeatureLoadout({ { featureDefName = "rockdef", z = 0 } })
+				:WithUnitLoadout({ { unitDefName = "noSuch", position = { x = 0, z = 0 }, teamName = "player" } })
+				:WithFeatureLoadout({ { featureDefName = "rockdef", position = { z = 0 } } })
 		)
 
 		V.assertMessage(result, "Invalid unitDefName: noSuch. Loadout: UnitLoadout[1].unitDefName")
-		V.assertMessage(result, "Missing required parameter. Loadout: FeatureLoadout[1].x")
+		V.assertMessage(result, "Missing required parameter. Loadout: FeatureLoadout[1].position.x")
 	end)
 
 	it("reports loadouts that are not tables", function()
