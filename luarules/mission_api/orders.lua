@@ -39,15 +39,15 @@ local function convertOrdersTargetingNames(orders)
 		local params = order[2]
 
 		if commandTargetsNames[commandID] and type(params) == "table" and (params.unitName or params.featureName) then
-			local thingIDs
+			local objectIDs
 			local offset = 0
 			if params.featureName then
-				thingIDs = trackedFeatureIDs[params.featureName]
+				objectIDs = trackedFeatureIDs[params.featureName]
 				if not Engine.FeatureSupport.noOffsetForFeatureID then
 					offset = Game.maxUnits
 				end
 			elseif params.unitName then
-				thingIDs = trackedUnitIDs[params.unitName]
+				objectIDs = trackedUnitIDs[params.unitName]
 			end
 
 			local options = table.copy(order[3] or {})
@@ -56,8 +56,8 @@ local function convertOrdersTargetingNames(orders)
 				queuedOptions[#queuedOptions + 1] = "shift"
 			end
 			local targetOptions = options
-			for thingID in pairs(thingIDs or {}) do
-				newOrders[#newOrders + 1] = { commandID, thingID + offset, targetOptions }
+			for objectID in pairs(objectIDs or {}) do
+				newOrders[#newOrders + 1] = { commandID, objectID + offset, targetOptions }
 				targetOptions = queuedOptions
 			end
 		else
@@ -207,7 +207,7 @@ local function getOrderWaitKey(order, newWaits)
 end
 
 ---@return CreateCommand[] orders
-local function removeUnexecutableWaits(orders, newWaits, unitDefID)
+local function getExecutableOrders(orders, newWaits, unitDefID)
 	local waitOrders = {}
 	for _, order in ipairs(orders) do
 		local key = getOrderWaitKey(order, newWaits)
@@ -288,16 +288,16 @@ local function giveUnitOrders(unitOrders)
 	local orderLists, listUnitIDs, waitLists, factoryLists = {}, {}, {}, {}
 
 	for unitID, orders in pairs(unitOrders) do
-		local list = preparedLists[orders]
-		if list == nil then
-			list = expandWaitOrders(convertOrdersTargetingNames(orders), newWaits, positionWaitKey)
-			preparedLists[orders] = list
+		local orderList = preparedLists[orders]
+		if orderList == nil then
+			orderList = expandWaitOrders(convertOrdersTargetingNames(orders), newWaits, positionWaitKey)
+			preparedLists[orders] = orderList
 		end
 
 		local unitDefID = Spring.GetUnitDefID(unitID) ---@as UnitDefID
 		local unitIsFactory = isFactory[unitDefID]
 		local mayIgnoreWait = false
-		for _, order in ipairs(list) do
+		for _, order in ipairs(orderList) do
 			local key = getOrderWaitKey(order, newWaits)
 			if key and not canExecuteWait(unitDefID, newWaits[key].code) then
 				mayIgnoreWait = true
@@ -309,26 +309,26 @@ local function giveUnitOrders(unitOrders)
 		end
 
 		if unitIsFactory and next(newWaits) ~= nil then
-			local factoryList = factoryLists[list]
+			local factoryList = factoryLists[orderList]
 			if factoryList == nil then
-				factoryList = makeFactoryOrdersList(removeUnexecutableWaits(list, newWaits, unitDefID), newWaits)
-				factoryLists[list] = factoryList
+				factoryList = makeFactoryOrdersList(getExecutableOrders(orderList, newWaits, unitDefID), newWaits)
+				factoryLists[orderList] = factoryList
 			end
-			list = factoryList
+			orderList = factoryList
 		elseif mayIgnoreWait then
-			local waitList = waitLists[list]
+			local waitList = waitLists[orderList]
 			if waitList == nil then
-				waitList = removeUnexecutableWaits(list, newWaits, unitDefID)
-				waitLists[list] = waitList
+				waitList = getExecutableOrders(orderList, newWaits, unitDefID)
+				waitLists[orderList] = waitList
 			end
-			list = waitList
+			orderList = waitList
 		end
 
-		if not listUnitIDs[list] then
-			orderLists[#orderLists + 1] = list
-			listUnitIDs[list] = {}
+		if not listUnitIDs[orderList] then
+			orderLists[#orderLists + 1] = orderList
+			listUnitIDs[orderList] = {}
 		end
-		listUnitIDs[list][unitID] = true
+		listUnitIDs[orderList][unitID] = true
 	end
 
 	GG.MissionAPI.issuingOrders = true
