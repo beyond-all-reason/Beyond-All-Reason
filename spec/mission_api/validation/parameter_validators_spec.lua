@@ -935,6 +935,30 @@ describe("mission_api.validation.parameter_validators", function()
 		assert.is_true(result.ok)
 	end)
 
+	it("keeps a third queued wait, after the first two cancel", function()
+		local result = validateOrders({
+			{ V.env.CMD.GATHERWAIT },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+		})
+
+		V.assertMessage(
+			result,
+			"A queued wait right after another wait will cancel both, so neither is kept. Action: a, Parameter: orders[2]"
+		)
+		V.assertNoMessageContaining(result, "Parameter: orders[3]")
+	end)
+
+	it("keeps a queued wait after a wait that went to the front of the queue", function()
+		local result = validateOrders({
+			{ V.env.CMD.MOVE, { 0, 0, 0 } },
+			{ V.env.CMD.GATHERWAIT },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+		})
+
+		V.assertNoMessageContaining(result, "will cancel both")
+	end)
+
 	it("reports every invalid order, named after its position in the list", function()
 		local result = validateOrders({ { V.env.CMD.MOVE, { 0, 0, 0 } }, { V.env.CMD.MOVE, {} }, { 99999 } })
 
