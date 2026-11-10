@@ -1928,6 +1928,12 @@ function widget:SelectionChanged(sel)
 	clickCountDown = 2
 	clickedCellDesiredState = nil
 
+	-- units picked from none, or all let go: this frame, not after the throttle
+	if (cachedFirstUnit == nil) ~= (sel[1] == nil) then
+		doUpdate = true
+		lastCommandRefreshTime = 0
+	end
+
 	-- Cache first selected unit to avoid spGetSelectedUnits() table allocation later
 	cachedFirstUnit = sel[1] or nil
 
