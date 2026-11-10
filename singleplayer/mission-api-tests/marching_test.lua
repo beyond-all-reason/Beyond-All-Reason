@@ -43,9 +43,9 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', position = { x = 1000, z = 1000 }, teamName = 'player', unitName = 'squad', quantity = 4 },
-				{ unitDefName = 'armham', position = { x = 1000, z = 1150 }, teamName = 'player', unitName = 'squad', quantity = 2 },
-				{ unitDefName = 'armwar', position = { x = 1000, z = 1300 }, teamName = 'player', unitName = 'squad' },
+				{ unitDefName = 'armpw', position = { x = 1750, z = 2600 }, teamName = 'player', unitName = 'squad', quantity = 4 },
+				{ unitDefName = 'armham', position = { x = 1750, z = 2750 }, teamName = 'player', unitName = 'squad', quantity = 2 },
+				{ unitDefName = 'armwar', position = { x = 1750, z = 2900 }, teamName = 'player', unitName = 'squad' },
 			},
 		},
 	},
@@ -54,7 +54,7 @@ local actions = {
 		type = actionTypes.IssueOrders,
 		parameters = {
 			unitName = 'squad',
-			orders = { { CMD.MOVE, { 2400, 0, 1150 } } },
+			orders = { { CMD.MOVE, { 3250, 0, 2750 } } },
 			marching = true,
 		},
 	},
@@ -70,7 +70,7 @@ local actions = {
 		type = actionTypes.IssueOrders,
 		parameters = {
 			unitName = 'squad',
-			orders = { { CMD.MOVE, { 2400, 0, 2400 } } },
+			orders = { { CMD.MOVE, { 3250, 0, 4250 } } },
 			marching = true,
 			direction = { angle = 180 },
 		},
@@ -87,7 +87,7 @@ local actions = {
 		type = actionTypes.IssueOrders,
 		parameters = {
 			unitName = 'squad',
-			orders = { { CMD.MOVE, { 1000, 0, 1800 } } },
+			orders = { { CMD.MOVE, { 2000, 0, 3000 } } },
 			marching = true,
 		},
 	},
@@ -96,9 +96,9 @@ local actions = {
 		type = actionTypes.IssueOrders,
 		parameters = {
 			unitName = 'squad',
-			orders = { { CMD.MOVE, { 2400, 0, 1800 }, { 'shift' } } },
+			orders = { { CMD.MOVE, { 3250, 0, 3000 }, { 'shift' } } },
 			marching = true,
-			direction = { x = 2400, z = 0 },
+			direction = { x = 3250, z = 0 },
 		},
 	},
 
