@@ -5,8 +5,6 @@
 local tracking = GG["MissionAPI"].Modules.Tracking
 local missionOrders = GG["MissionAPI"].Modules.Orders
 
-local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
-
 --- Units
 
 local BUILD_GRID_SIZE = Game.squareSize * Game.footprintScale
