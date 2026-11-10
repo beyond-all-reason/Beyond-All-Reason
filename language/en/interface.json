@@ -1815,6 +1815,8 @@
 			"flows": {
 				"metal": "Metal per second",
 				"energy": "Energy per second",
+				"metalCost": "Metal cost",
+				"energyCost": "Energy cost",
 				"unit": "What it makes, less what it uses right now",
 				"selection": "What the selected units make, less what they use right now",
 				"def": "What it makes, less its upkeep",
