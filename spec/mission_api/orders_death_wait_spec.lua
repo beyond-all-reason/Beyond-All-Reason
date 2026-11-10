@@ -7,6 +7,9 @@ local queues, deadUnitIDs, released = {}, {}, {}
 local env = MissionSpecEnv.new({
 	Game = { gameSpeed = 30 },
 	Spring = {
+		GetUnitAllyTeam = function()
+			return 0
+		end,
 		GetUnitDefID = function()
 			return 1
 		end,

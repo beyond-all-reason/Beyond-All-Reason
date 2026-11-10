@@ -7,6 +7,9 @@ local env = MissionSpecEnv.new({
 	Game = { maxUnits = 32000, squareSize = 8, footprintScale = 2 },
 	Engine = { FeatureSupport = { noOffsetForFeatureID = true } },
 	Spring = {
+		GetUnitAllyTeam = function()
+			return 0
+		end,
 		GetUnitDefID = function() end,
 		GiveOrderArrayToUnitMap = function(_, orders)
 			givenOrders = orders

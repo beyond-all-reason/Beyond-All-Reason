@@ -75,6 +75,7 @@ end
 ---@alias MissionWait MissionTimeWait | MissionDeathWait | MissionSquadWait | MissionGatherWait
 
 ---@class MissionWaitBase
+---@field allyTeam AllyTeamID
 ---@field unitIDs table<UnitID, true>
 ---@field factoryIDs table<UnitID, true>
 
@@ -116,10 +117,11 @@ local commandWaitCode = {
 
 ---@param orders CreateCommand[]
 ---@param newWaits table<number, MissionWait>
----@param positionWaitKey table<integer, number>
+---@param positionWaitKey table<integer, number?>
+---@param allyTeam AllyTeamID
 ---@return CreateCommand[] waitOrders
-local function expandWaitOrders(orders, newWaits, positionWaitKey)
-	local waitOrders, position = {}, 0
+local function expandWaitOrders(orders, newWaits, positionWaitKey, allyTeam)
+	local waitOrders, waitIndex = {}, 0
 
 	for index, order in ipairs(orders) do
 		local commandID, params = order[1], order[2] ---@as table
@@ -134,13 +136,13 @@ local function expandWaitOrders(orders, newWaits, positionWaitKey)
 				end
 			end
 
-			position = position + 1
-			local key = positionWaitKey[position]
+			waitIndex = waitIndex + 1
+			local key = positionWaitKey[waitIndex]
 			if key == nil or newWaits[key].code ~= code then
 				lastWaitKey = lastWaitKey - 1
 				key = lastWaitKey
-				positionWaitKey[position] = positionWaitKey[position] or key
-				local wait = { code = code, unitIDs = {}, factoryIDs = {} } ---@as MissionWait
+				positionWaitKey[waitIndex] = positionWaitKey[waitIndex] or key
+				local wait = { code = code, allyTeam = allyTeam, unitIDs = {}, factoryIDs = {} } ---@as MissionWait
 				if code == CMD.WAITCODE_TIME then
 					wait.duration = (waitParams[1] * Game.gameSpeed) ---@as integer
 					wait.startFrames = {}
@@ -224,19 +226,13 @@ local function getDeathWaitTargets(wait, unitOrders)
 	local rectangle = wait.targetRectangle
 	local x1, z1, x2, z2 = rectangle[1], rectangle[3], rectangle[4], rectangle[6]
 	local unitIDs = Spring.GetUnitsInRectangle(math.min(x1, x2), math.min(z1, z2), math.max(x1, x2), math.max(z1, z2))
-	local orderedAllyTeamIDs = {}
-	for unitID in pairs(unitOrders) do
-		orderedAllyTeamIDs[spGetUnitAllyTeam(unitID)] = true
-	end
+	local allyTeam = wait.allyTeam
 	local targetIDs = {}
 	-- Pick the same targets that a player-issued deathwait would.
 	for _, unitID in ipairs(unitIDs) do
 		if not unitOrders[unitID] then
-			for allyTeamID in pairs(orderedAllyTeamIDs) do
-				if spGetUnitLosState(unitID, allyTeamID, true) % 4 > 0 then
-					targetIDs[unitID] = true
-					break
-				end
+			if spGetUnitLosState(unitID, allyTeam, true) % 4 > 0 then
+				targetIDs[unitID] = true
 			end
 		end
 	end
@@ -292,17 +288,25 @@ end
 
 --- Gives each unit its own orders.
 ---
---- The Nth coded wait in each list is one wait shared by all units in the list.
+--- The Nth coded wait in each list is one wait shared by units per allyteam, to match player orders.
 ---@param unitOrders table<integer, CreateCommand[]> many units may have the same `orders` table
 local function giveUnitOrders(unitOrders)
-	local newWaits, positionWaitKey, preparedLists = {}, {}, {}
+	local newWaits, positionWaitKeys, preparedLists = {}, {}, {}
 	local orderLists, listUnitIDs, waitLists, factoryLists = {}, {}, {}, {}
 
 	for unitID, orders in pairs(unitOrders) do
-		local orderList = preparedLists[orders]
+		local allyTeam = spGetUnitAllyTeam(unitID) ---@as AllyTeamID
+		local allyTeamLists = preparedLists[allyTeam]
+		if allyTeamLists == nil then
+			allyTeamLists = {}
+			preparedLists[allyTeam] = allyTeamLists
+			positionWaitKeys[allyTeam] = {}
+		end
+		local orderList = allyTeamLists[orders]
 		if orderList == nil then
-			orderList = expandWaitOrders(convertOrdersTargetingNames(orders), newWaits, positionWaitKey)
-			preparedLists[orders] = orderList
+			local positionWaitKey = positionWaitKeys[allyTeam] ---@as table<integer, integer>
+			orderList = expandWaitOrders(convertOrdersTargetingNames(orders), newWaits, positionWaitKey, allyTeam)
+			allyTeamLists[orders] = orderList
 		end
 
 		local unitDefID = Spring.GetUnitDefID(unitID) ---@as UnitDefID
