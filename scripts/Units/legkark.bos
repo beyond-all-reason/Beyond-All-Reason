@@ -637,6 +637,8 @@ QueryWeapon2(piecenum)
 	piecenum = lflare1 + gun_1;
 }
 
+// Shotgun
+
 AimWeapon2(heading, pitch)
 {
 	var relativeHeading;
@@ -671,6 +673,8 @@ FireWeapon2()
 	{
 		emit-sfx 1024 + 0 from lflare2;
 	}
+
+	// Shotgun retraction animation
 
 	move lbarrel to z-axis [-2] speed [100];
 	sleep 500;
