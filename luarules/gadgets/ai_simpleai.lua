@@ -102,6 +102,7 @@ end
 -- SimpleCommanderDefs:RandomChoice()
 -- SimpleCommanderDefs.RandomChoice(SimpleCommanderDefs)
 
+local SimpleManualFireDefs = {}
 local SimpleCommanderDefs = { RandomChoice = RandomChoice }
 local SimpleFactoriesDefs = { RandomChoice = RandomChoice }
 local SimpleConstructorDefs = { RandomChoice = RandomChoice }
@@ -131,16 +132,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			break
 		end
 	end
-	-- stockpilers
-	if unitDef.weapons then
-		for i = 1, #unitDef.weapons do
-			local wDef = WeaponDefs[unitDef.weapons[i].weaponDef]
-			if wDef.stockpile and wDef.interceptor == 0 then
-				skip = true
-				break
-			end
-		end
-	end
+
 	-- minelayers
 	if unitDef.customParams.minesweeper then
 		skip = true
@@ -155,6 +147,35 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 
 	if not skip then
+		if unitDef.weapons and #unitDef.weapons > 0 then
+			for i = 1, #unitDef.weapons do
+				local wDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+				
+				if wDef.manualFire then
+					if SimpleManualFireDefs[unitDefID] then
+						SimpleManualFireDefs[unitDefID] = {
+							math.max(wDef.range, SimpleManualFireDefs[unitDefID][1]),
+							math.min(wDef.reload, SimpleManualFireDefs[unitDefID][2]), 
+							SimpleManualFireDefs[unitDefID][3] or unitDef.canManualFire, 
+							SimpleManualFireDefs[unitDefID][4] or wDef.stockpile,
+						}
+					elseif wDef.range and wDef.range > 0 then
+						SimpleManualFireDefs[unitDefID] = {
+							wDef.range, 
+							wDef.reload, 
+							unitDef.canManualFire, 
+							wDef.stockpile,
+						}
+					else
+						skip = true
+						break
+					end
+				end
+			end
+		end
+	end
+
+	if not skip then
 		if unitDef.customParams.iscommander then
 			SimpleCommanderDefs[unitDefID] = 1
 		elseif unitDef.isFactory and #unitDef.buildOptions > 0 then
@@ -164,10 +185,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		elseif unitDef.extractsMetal > 0 or unitDef.customParams.metal_extractor then
 			SimpleExtractorDefs[unitDefID] = 1
 		elseif
+			(not unitDef.canMove) and (
 			(unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10))
 			or (unitDef.windGenerator > 0 and wind > 10)
 			or unitDef.tidalGenerator > 0
-			or unitDef.customParams.solar
+			or unitDef.customParams.solar)
 		then
 			SimpleGeneratorDefs[unitDefID] = 1
 		elseif unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
@@ -209,6 +231,7 @@ local spSetTeamResource = Spring.SetTeamResource
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetTeamLuaAI = Spring.GetTeamLuaAI
 local spDgunCommand = CMD.DGUN
+local spGetUnitStockpile = Spring.GetUnitStockpile
 
 local function SimpleGetClosestMexSpot(x, z)
 	--tracy.ZoneBeginN("SimpleAI:SimpleGetClosestMexSpot")
@@ -563,6 +586,25 @@ if gadgetHandler:IsSyncedCode() then
 
 									if unitposx then
 										--Spring.Echo(UnitDefs[unitDefID].name, "has commands:",unitCommandCount, SimpleConstructorDefs[unitDefID] , SimpleCommanderDefs[unitDefID], SimpleFactoriesDefs[unitDefID] ,SimpleUndefinedUnitDefs[unitDefID] )
+										-- Manual Fire Units
+										if SimpleManualFireDefs[unitDefID] then
+											if (not SimpleManualFireDefs[unitDefID][4]) or SimpleManualFireDefs[unitDefID][4] and Spring.GetUnitStockpile(unitID) > 0 then
+												if math.random(0, math.ceil(SimpleManualFireDefs[unitDefID][2]/(SimpleAITeamIDsCount*2))) then
+													local nearestEnemy = spGetUnitNearestEnemy(unitID, SimpleManualFireDefs[unitDefID][1], true, true, false)
+													if nearestEnemy then
+														local enemyX, enemyY, enemyZ = spGetUnitPosition(nearestEnemy)
+														if enemyX then
+															if SimpleManualFireDefs[unitDefID][3] then -- Use Manual Fire Command
+																spGiveOrderToUnit(unitID, CMD.MANUALFIRE, {enemyX, spGetGroundHeight(enemyX, enemyZ), enemyZ, 0})
+															else -- Use Attack Command
+																spGiveOrderToUnit(unitID, CMD.ATTACK, {enemyX, spGetGroundHeight(enemyX, enemyZ), enemyZ, 0})
+															end
+														end
+													end
+												end
+											end
+										end
+
 										-- Commanders
 										if SimpleCommanderDefs[unitDefID] then
 											local nearestEnemyCloak = spGetUnitNearestEnemy(unitID, 2000, false)
