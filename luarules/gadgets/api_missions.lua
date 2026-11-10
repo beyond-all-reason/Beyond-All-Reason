@@ -229,6 +229,10 @@ function gadget:GameFrame(frameNumber)
 	GG["MissionAPI"].Modules.Orders.UpdateWaits(frameNumber)
 end
 
+function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factoryID)
+	GG["MissionAPI"].Modules.Orders.OnUnitFromFactory(unitID, factoryID)
+end
+
 function gadget:GameOver()
 	if not missionLoaded then
 		return

@@ -49,7 +49,6 @@ end, math.huge)
 ---@class MissionApiMockCalls
 ---@field spawnUnitLoadout table
 ---@field spawnFeatureLoadout table
----@field convertOrdersTargetingNames table
 ---@field giveOrders table
 ---@field playSound table
 ---@field enqueueSound table
@@ -348,7 +347,6 @@ function MB:Build(installed)
 
 	local spawnUnitCalls = {}
 	local spawnFeatureCalls = {}
-	local convertOrdersCalls = {}
 	local giveOrdersCalls = {}
 	local playSoundCalls = {}
 	local enqueueSoundCalls = {}
@@ -368,11 +366,6 @@ function MB:Build(installed)
 	local activateTriggerCalls = {}
 
 	local loadout = {
-		-- Identity by default, matching the no-op conversion case.
-		ConvertOrdersTargetingNames = function(orders)
-			convertOrdersCalls[#convertOrdersCalls + 1] = { orders = orders }
-			return orders
-		end,
 		SpawnUnitLoadout = function(unitLoadout)
 			spawnUnitCalls[#spawnUnitCalls + 1] = { loadout = unitLoadout }
 		end,
@@ -507,7 +500,6 @@ function MB:Build(installed)
 		calls = {
 			spawnUnitLoadout = spawnUnitCalls,
 			spawnFeatureLoadout = spawnFeatureCalls,
-			convertOrdersTargetingNames = convertOrdersCalls,
 			giveOrders = giveOrdersCalls,
 			playSound = playSoundCalls,
 			enqueueSound = enqueueSoundCalls,
@@ -530,7 +522,6 @@ function MB:Build(installed)
 			local tracked = {
 				spawnUnitCalls,
 				spawnFeatureCalls,
-				convertOrdersCalls,
 				playSoundCalls,
 				enqueueSoundCalls,
 				processSoundQueueCalls,

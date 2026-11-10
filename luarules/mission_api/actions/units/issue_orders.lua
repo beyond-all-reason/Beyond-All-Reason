@@ -4,8 +4,7 @@ local function issueOrders(unitName, orders)
 	local tracking = GG['MissionAPI'].Modules.Tracking
 	if tracking.IsUnitNameUntracked(unitName) then return end
 
-	local convertedOrders = GG['MissionAPI'].Modules.Loadout.ConvertOrdersTargetingNames(orders)
-	GG['MissionAPI'].Modules.Orders.GiveOrders(GG['MissionAPI'].trackedUnitIDs[unitName], convertedOrders)
+	GG['MissionAPI'].Modules.Orders.GiveOrders(GG['MissionAPI'].trackedUnitIDs[unitName], orders)
 end
 
 return {

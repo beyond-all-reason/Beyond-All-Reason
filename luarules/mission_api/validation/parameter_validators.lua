@@ -591,20 +591,6 @@ local function validateOnOffParam(params, results)
 	end
 end
 
--- The engine's selected units handler passes these to WaitCommandsAI on the player's client, which
--- gives the selected units WAIT orders. A unit given one with GiveOrderToUnit drops it without waiting.
-local function getUIOnlyValidator(commandName)
-	return function(_, results)
-		addResult(
-			results,
-			"Command "
-				.. commandName
-				.. " is dropped when a mission gives it, it only works for a player's selected units",
-			"[1]"
-		)
-	end
-end
-
 local validateUnitNameParam = getNameValidator("unitName", "{ unitName = 'aUnitName' }")
 local validate3 = getNumberArrayValidator({ 3 }, "3 numbers {x, y, z}")
 local validate3orUnitName = getNumberArrayValidator({ 3 }, "3 numbers {x, y, z}, or a unit name", { "unitName" })
@@ -626,6 +612,22 @@ local validate4orEitherName = getNumberArrayValidator(
 	{ "unitName", "featureName" }
 )
 
+local validate6orUnitName = getNumberArrayValidator(
+	{ 6 },
+	"6 numbers {x1, y1, z1, x2, y2, z2}, two corners of a rectangle, or a unit name",
+	{ "unitName" }
+)
+local validateSeconds = getNumberArrayValidator({ 1 }, "1 number {seconds}")
+local validateSquadSizeArray = getNumberArrayValidator({ 1 }, "1 number {squad size}")
+
+local function validateSquadSize(params, results)
+	local resultCount = #results
+	validateSquadSizeArray(params, results)
+	if #results == resultCount and (params[1] < 2 or params[1] % 1 ~= 0) then
+		addResult(results, "Squad size must be a whole number of at least 2", "[2][1]")
+	end
+end
+
 -- Build commands are unitDefName strings, see https://springrts.com/wiki/Lua_CMDs#CMD.INTERNAL
 local validateBuildOrder =
 	getNumberArrayValidator({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")
@@ -641,10 +643,10 @@ local validatorsByCommandName = {
 	CLOAK = validateOnOffParam,
 	ONOFF = validateOnOffParam,
 	REPEAT = validateOnOffParam,
-	-- UI only:
-	TIMEWAIT = getUIOnlyValidator("TIMEWAIT"),
-	DEATHWAIT = getUIOnlyValidator("DEATHWAIT"),
-	SQUADWAIT = getUIOnlyValidator("SQUADWAIT"),
+	-- Wait parameters:
+	TIMEWAIT = validateSeconds,
+	DEATHWAIT = validate6orUnitName,
+	SQUADWAIT = validateSquadSize,
 	-- Unit name parameter:
 	GUARD = validateUnitNameParam,
 	-- 3 number parameters:
@@ -822,6 +824,13 @@ local function registerOrderValidators(parameterValidators, context)
 
 	local validateOrderList = getListValidator(validateOrder, "Orders table is empty")
 
+	local isWaitCommand = {}
+	for _, commandName in ipairs({ "WAIT", "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
+		if CMD[commandName] then
+			isWaitCommand[CMD[commandName]] = true
+		end
+	end
+
 	-- Orders are given in sequence and stop at the first gap, so an order past one is never given.
 	parameterValidators[Types.Orders] = function(orders)
 		local results = validateOrderList(orders)
@@ -840,6 +849,26 @@ local function registerOrderValidators(parameterValidators, context)
 					results,
 					"Order is never given: orders stop at the first gap",
 					"[" .. tostring(key) .. "]",
+					true
+				)
+			end
+		end
+
+		local isQueuedWait = {}
+		for index = 1, reachable do
+			local order = orders[index]
+			isQueuedWait[index] = type(order) == "table"
+				and isWaitCommand[order[1]]
+				and type(order[3]) == "table"
+				and table.contains(order[3], "shift")
+		end
+		for index = 2, reachable do
+			if isQueuedWait[index] and isQueuedWait[index - 1] then
+				results = results or {}
+				addResult(
+					results,
+					"A queued wait right after another queued wait cancels both, so neither is kept",
+					"[" .. index .. "]",
 					true
 				)
 			end

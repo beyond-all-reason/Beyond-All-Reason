@@ -5,7 +5,6 @@
 local tracking = GG["MissionAPI"].Modules.Tracking
 local missionOrders = GG["MissionAPI"].Modules.Orders
 
-local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
 local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
 
 --- Units
@@ -61,55 +60,6 @@ local function spawnUnit(unit, pos)
 	return unitID
 end
 
-local function convertOrdersTargetingNames(orders)
-	local commandsAcceptingName = {
-		[CMD.GUARD] = true,
-		[CMD.REPAIR] = true,
-		[CMD.CAPTURE] = true,
-		[CMD.ATTACK] = true,
-		[CMD.LOAD_UNITS] = true,
-		[CMD.RECLAIM] = true,
-		[CMD.RESURRECT] = true,
-	}
-
-	-- Replace name param with unitIDs or featureIDs, duplicating order for each unitID.
-	-- A name with nothing behind it gives no order, and the orders around it stay as written.
-	local newOrders = {}
-	for _, order in ipairs(orders or {}) do
-		local commandID = order[1]
-		local params = order[2] or {}
-
-		if commandsAcceptingName[commandID] and type(params) == "table" and (params.unitName or params.featureName) then
-			local thingIDs
-			local offset = 0
-			if params.featureName then
-				thingIDs = trackedFeatureIDs[params.featureName]
-				if not Engine.FeatureSupport.noOffsetForFeatureID then
-					offset = Game.maxUnits
-				end
-			elseif params.unitName then
-				thingIDs = trackedUnitIDs[params.unitName]
-			end
-
-			-- Copies, so the mission's own options table is never handed on or changed.
-			local options = table.copy(order[3] or {})
-			local queuedOptions = table.copy(options)
-			if not table.contains(queuedOptions, "shift") then
-				queuedOptions[#queuedOptions + 1] = "shift"
-			end
-			local targetOptions = options
-			for thingID in pairs(thingIDs or {}) do
-				newOrders[#newOrders + 1] = { commandID, thingID + offset, targetOptions }
-				targetOptions = queuedOptions
-			end
-		else
-			newOrders[#newOrders + 1] = order
-		end
-	end
-
-	return newOrders
-end
-
 local function spawnUnitLoadout(unitLoadout)
 	for _, unit in ipairs(unitLoadout or {}) do
 		local spacing = unit.spacing or 0
@@ -142,7 +92,7 @@ local function spawnUnitLoadout(unitLoadout)
 			spawnedUnitIDs[spawnUnit(unit, pos)] = true
 		end
 
-		missionOrders.GiveOrders(spawnedUnitIDs, convertOrdersTargetingNames(unit.orders))
+		missionOrders.GiveOrders(spawnedUnitIDs, unit.orders)
 	end
 end
 
@@ -177,7 +127,6 @@ local function spawnFeatureLoadout(featureLoadout)
 end
 
 return {
-	ConvertOrdersTargetingNames = convertOrdersTargetingNames,
 	SpawnUnitLoadout = spawnUnitLoadout,
 	SpawnFeatureLoadout = spawnFeatureLoadout,
 }

@@ -1,5 +1,16 @@
 ---@meta
 
+--- A rectangle on the map, given by two opposite corners in world coordinates, as
+--- rectangle commands take it: `{ x1, y1, z1, x2, y2, z2 }`. The corners keep the
+--- order they were dragged in, so neither one is necessarily the minimum/maximum.
+---@class WorldRect
+---@field [1] number First corner X
+---@field [2] number First corner Y (height)
+---@field [3] number First corner Z
+---@field [4] number Second corner X
+---@field [5] number Second corner Y (height)
+---@field [6] number Second corner Z
+
 --- Rectangle shapes used across the UI. Several mutually incompatible four-number
 --- conventions are in play, and nothing distinguishes them at a glance, so they are
 --- collected here to be named at the point of use rather than inferred from the

@@ -42,26 +42,12 @@ describe("mission_api.actions.issue_orders", function()
 			assert.are.equal(0, #mission.calls.giveOrders)
 		end)
 
-		it("gives the tracked unit map the converted orders", function()
+		it("gives the tracked unit map the orders", function()
 			local mission = seedUnits("bots", 101, 102)
 			local orders = { { 10, {}, {} } }
 			action.actionFunction("bots", orders)
 			assert.are.equal(1, #mission.calls.giveOrders)
 			assert.are.same(missionApi.trackedUnitIDs["bots"], mission.calls.giveOrders[1].unitIDs)
-		end)
-
-		it("passes the result of ConvertOrdersTargetingNames as the orders", function()
-			local convertedOrders = { { 999, {}, {} } }
-			local mission = MissionApiBuilder.new()
-				:WithTrackedUnit("scout", 5)
-				:WithModule("Loadout", {
-					ConvertOrdersTargetingNames = function()
-						return convertedOrders
-					end,
-				})
-				:Install()
-			action.actionFunction("scout", {})
-			assert.are.same(convertedOrders, mission.calls.giveOrders[1].orders)
 		end)
 	end)
 
