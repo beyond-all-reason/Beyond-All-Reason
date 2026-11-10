@@ -13,7 +13,8 @@
 
 -- From SDL_keysym.h
 
-KEYSYMS = {
+---@type table<string, integer>
+local KEYSYM_VALUES = {
 
 	UNKNOWN = 0,
 	FIRST = 0,
@@ -273,3 +274,127 @@ KEYSYMS = {
 	-- Add any other keys here
 	LAST = 323,
 }
+
+-- Deprecated in favour of Spring.GetKeyCode(name) (see #2611: these SDL1.2
+-- values can't represent keys like F13-F20). Still fully functional; just warns.
+local warnedKeys = {}
+local warnedSites = {}
+
+-- first frame outside this shim, so the warning points at the offending widget line
+local function callerSite()
+	if not (debug and debug.getinfo) then
+		return nil
+	end
+	for lvl = 2, 8 do
+		local info = debug.getinfo(lvl, "Sl")
+		if not info then
+			return nil
+		end
+		local src = info.short_src or ""
+		if info.currentline and info.currentline > 0 and not src:find("keysym") then
+			return src .. ":" .. info.currentline
+		end
+	end
+	return nil
+end
+
+-- SDL2 folded these keys into another one, so nothing produces their old value
+-- and GetKeySymbol cannot find them; name the surviving key by hand
+local RENAMED_KEYS = {
+	BREAK = "pause",
+	LSUPER = "meta",
+	RSUPER = "rmeta",
+}
+
+-- nil means SDL2 no longer supports this value at all (GetKeySymbol falls back
+-- to a raw "0x.." placeholder when it can't name one)
+---@return string?
+local function resolveKeyName(key, value)
+	local renamed = RENAMED_KEYS[key]
+	if renamed ~= nil then
+		return renamed
+	end
+
+	local symbol = Spring.GetKeySymbol(value)
+	if symbol:sub(1, 2) == "0x" then
+		return nil
+	end
+
+	return symbol
+end
+
+local function warnKeysym(key, value)
+	-- default (empty) section: on release its floor is INFO, so a DEPRECATED
+	-- message gets through; named sections floor at WARNING and would swallow it.
+	if not (Spring and Spring.Log and LOG and LOG.DEPRECATED) then
+		return
+	end
+
+	local name = (key ~= nil) and tostring(key) or "*"
+	if warnedKeys[name] then
+		return
+	end
+	warnedKeys[name] = true
+
+	-- collapse a loop over KEYSYMS to one warning per source line, not one per key
+	local site = callerSite()
+	if site then
+		if warnedSites[site] then
+			return
+		end
+		warnedSites[site] = true
+	end
+
+	-- GetKeySymbol is GetKeyCode's inverse, so it can name the exact replacement
+	local replacement, unsupported
+	if key ~= nil and value ~= nil then
+		local keyName = resolveKeyName(key, value)
+		if keyName then
+			replacement = 'Spring.GetKeyCode("' .. keyName .. '")'
+		else
+			-- nothing names this value, so SDL2 dropped the key rather than renaming it
+			unsupported = true
+		end
+	end
+
+	local msg
+	if key == nil then
+		msg =
+			"pairs(KEYSYMS) is deprecated, use Spring.GetKeySymbol() for a reverse mapping and check https://recoilengine.org/articles/ui-keys-reference/ for a listing of available keys"
+	elseif unsupported then
+		msg = "KEYSYMS."
+			.. name
+			.. " is deprecated and SDL2 no longer supports this key; "
+			.. "move the functionality to a key Spring.GetKeyCode can resolve"
+	else
+		msg = "KEYSYMS."
+			.. name
+			.. " is deprecated, use "
+			.. (replacement or "Spring.GetKeyCode() with the key's name")
+			.. " instead"
+	end
+	if site then
+		msg = msg .. "  [" .. site .. "]"
+	end
+
+	Spring.Log("", LOG.DEPRECATED, msg)
+end
+
+-- proxy: warns on access/iteration, returns the original values (no drift), and
+-- keeps pairs() working via __pairs (backported into this Lua from 5.2)
+---@type table<string, integer>
+KEYSYMS = setmetatable({}, {
+	__index = function(_, key)
+		local value = KEYSYM_VALUES[key]
+		warnKeysym(key, value)
+		return value
+	end,
+	-- without this, a write would land on the proxy table itself and vanish from pairs(KEYSYMS)
+	__newindex = function(_, key, value)
+		KEYSYM_VALUES[key] = value
+	end,
+	__pairs = function()
+		warnKeysym(nil, nil)
+		return next, KEYSYM_VALUES, nil
+	end,
+})

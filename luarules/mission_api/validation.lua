@@ -52,6 +52,7 @@ local function createValidationContext(mission, report)
 		Teams = missionAPI.Teams or {},
 		Alliances = missionAPI.Alliances or {},
 		Variables = missionAPI.Variables or {},
+		GameSetupErrors = missionAPI.GameSetupErrors or {},
 
 		-- Parameter types:
 		Types = parameterTypes.Types,
@@ -90,6 +91,9 @@ local function runValidation(mission, report)
 	local context = createValidationContext(mission, report)
 	local parameterValidators = createParameterValidators(context)
 
+	for _, message in ipairs(context.GameSetupErrors) do
+		report.Error(sections.GameSetup, nil, nil, message)
+	end
 	sectionsValidation.Validate(context, report, parameterValidators)
 	referencesValidation.Validate(context, report)
 end
@@ -111,17 +115,7 @@ local function validateMission(mission)
 	return result
 end
 
---- @param result table as returned by ValidateMission
-local function logResult(result)
-	for _, message in ipairs(result.errors) do
-		Spring.Log("MissionAPI", LOG.ERROR, "[Mission API] " .. message)
-	end
-	for _, message in ipairs(result.warnings) do
-		Spring.Log("MissionAPI", LOG.WARNING, "[Mission API] " .. message)
-	end
-end
-
 return {
 	ValidateMission = validateMission,
-	LogResult = logResult,
+	LogResult = validationReport.Log,
 }

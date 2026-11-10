@@ -8,11 +8,7 @@ body {
 }
 
 /* === Root === */
-/*
- * Width uses `vw` so the panel scales proportionally across 1080p / 1440p
- * / 4k. `min-width: px` keeps it readable on small windows; `max-width: px`
- * caps it on ultrawide / 4k.
- */
+/* Width in vw scales the panel with the window; min-width keeps it readable on small windows. */
 .fp-root {
 	pointer-events: auto;
 	position: absolute;
@@ -145,7 +141,7 @@ body {
 .fp-cat-label {
 }
 
-/* === Feature List (Asset Library) — tile grid === */
+/* === Feature List (Asset Library): tile grid === */
 .fp-feature-list {
 	max-height: 500dp;
 	overflow-y: auto;

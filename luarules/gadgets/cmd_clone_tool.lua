@@ -11,9 +11,9 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	-- Registered as a sync action (table lookup by message name) instead of a
-	-- RecvFromSynced callin, which would be invoked for every SendToUnsynced
-	-- message from every synced gadget. Returning true stops the broadcast.
+	-- A sync action (looked up by name) rather than RecvFromSynced, which would run
+	-- for every SendToUnsynced message of every synced gadget. Returning true stops
+	-- the broadcast.
 	local function onStacks(_, undoCount, redoCount)
 		if Script.LuaUI("CloneToolStackUpdate") then
 			Script.LuaUI.CloneToolStackUpdate(undoCount, redoCount)
@@ -36,13 +36,10 @@ end
 -- ---------------------------------------------------------------------------
 local CHEAT_SIG = "$c$"
 local CHEAT_SIG_LEN = #CHEAT_SIG
--- Spring.IsReplay is a LuaUnsyncedRead call and is nil here, so the old
--- "certified and Spring.IsReplay()" fallback raised a Lua error on any certified
--- packet that arrived with live cheat off. Demos replay the /cheat chat command,
--- so cheat state is reproduced during playback anyway; what the certification is
--- really for is map-editor sessions, where /cheat is a toggle that competing
--- widgets can flip off mid-stream. The mapeditor modoption is synced from the
--- start script and cannot be forged by a client.
+-- Gates the self-asserted $c$ prefix (see isAllowed). Spring.IsReplay is
+-- unsynced-only and nil here; demos replay /cheat anyway. In map-editor sessions
+-- competing widgets can flip /cheat off mid-stream, and the mapeditor modoption
+-- comes from the start script, so a client cannot forge it.
 local MAP_EDITOR_SESSION = false
 do
 	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
@@ -82,21 +79,27 @@ local tonumber = tonumber
 -- ---------------------------------------------------------------------------
 -- Undo / Redo
 -- ---------------------------------------------------------------------------
+---@type table[]
 local undoStack = {}
+---@type table[]
 local redoStack = {}
 local MAX_UNDO = 100
 
 -- ---------------------------------------------------------------------------
--- Height map application (same pattern as terraform brush)
+-- Height map application (same pattern as the terraform brush)
 -- ---------------------------------------------------------------------------
+---@type table
 local pendingFlatData
+---@type number
 local pendingFlatStart
+---@type number
 local pendingFlatEnd
 
 local function heightMapApplyFn()
 	local fd = pendingFlatData
 	for i = pendingFlatStart, pendingFlatEnd - 1 do
 		local base = i * 3
+		---@type number
 		local h = fd[base + 3]
 		if h == h then -- NaN guard
 			spSetHeightMap(fd[base + 1], fd[base + 2], h)
@@ -193,12 +196,25 @@ local function handleCloneMetal(payload)
 		return
 	end
 
+	local minX, minZ, maxX, maxZ = math.huge, math.huge, -math.huge, -math.huge
 	for i = 1, entryCount do
 		local pi = 1 + (i - 1) * 3 + 1
 		local mx = tonumber(parts[pi]) or 0
 		local mz = tonumber(parts[pi + 1]) or 0
 		local val = tonumber(parts[pi + 2]) or 0
 		spSetMetalAmount(mx, mz, val)
+		minX, maxX = math.min(minX, mx), math.max(maxX, mx)
+		minZ, maxZ = math.min(minZ, mz), math.max(maxZ, mz)
+	end
+
+	-- Extractors over the pasted squares and the resource spots catch up through the
+	-- metal brush gadget, the same as after a METAL stroke.
+	local metalBrush = GG.MetalBrush
+	if metalBrush and metalBrush.metalWritten then
+		local sq = Game.metalMapSquareSize or 16
+		local x0, x1 = minX * sq, (maxX + 1) * sq
+		local z0, z1 = minZ * sq, (maxZ + 1) * sq
+		metalBrush.metalWritten((x0 + x1) * 0.5, (z0 + z1) * 0.5, math.max(x1 - x0, z1 - z0) * 0.5)
 	end
 end
 
@@ -248,12 +264,12 @@ local function handleCloneFeatures(payload)
 end
 
 -- ---------------------------------------------------------------------------
--- Grid-based terrain paste (transaction: begin → grid chunks → end)
+-- Grid-based terrain paste (transaction: begin, grid chunks, end)
 -- ---------------------------------------------------------------------------
 local pendingPaste = nil -- { gx0, gz0, srcStep, dstStep, srcCols, srcRows, grid, beforeSnapshot }
 
 local function handleTerrainBegin(payload)
-	-- Safety: clear any stale pending paste from a previous incomplete transaction
+	-- Drop a pending paste left by an incomplete transaction
 	pendingPaste = nil
 
 	local parts = parseParts(payload)
@@ -355,6 +371,7 @@ local function handleTerrainEnd()
 				if or_ % ratio ~= 0 or oc % ratio ~= 0 then
 					local sc = oc / ratio
 					local sr = or_ / ratio
+					---@type number
 					local c0 = floor(sc)
 					if c0 < 0 then
 						c0 = 0
@@ -362,6 +379,7 @@ local function handleTerrainEnd()
 					if c0 > srcCols - 1 then
 						c0 = srcCols - 1
 					end
+					---@type number
 					local r0 = floor(sr)
 					if r0 < 0 then
 						r0 = 0
@@ -410,7 +428,7 @@ local function handleTerrainEnd()
 end
 
 -- ---------------------------------------------------------------------------
--- Undo / Redo handlers (height-only for now)
+-- Undo / Redo handlers (heights only)
 -- ---------------------------------------------------------------------------
 local function handleUndo()
 	if #undoStack == 0 then
@@ -450,6 +468,7 @@ end
 -- ---------------------------------------------------------------------------
 -- RecvLuaMsg dispatch
 -- ---------------------------------------------------------------------------
+---@return boolean?
 function gadget:RecvLuaMsg(msg, playerID)
 	local certified = msg:sub(1, CHEAT_SIG_LEN) == CHEAT_SIG
 	if certified then

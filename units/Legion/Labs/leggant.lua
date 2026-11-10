@@ -22,7 +22,6 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 800,
 		objectname = "Units/LEGGANT.s3o",
-		radardistance = 50,
 		script = "Units/LEGGANT.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",

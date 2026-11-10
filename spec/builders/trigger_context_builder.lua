@@ -22,6 +22,7 @@
 ---@field ConstructionState table
 ---@field StockpileState table
 ---@field DwellingUnitsInAreas table
+---@field GatheredUnitsInAreas table
 ---@field GetReclaimIncomeSnapshot fun(teamID: number): table?
 ---@field calls TriggerContextMockCalls
 ---@field timesFired fun(): number
@@ -110,6 +111,7 @@ function TCB:Build()
 		ConstructionState = {},
 		StockpileState = {},
 		DwellingUnitsInAreas = {},
+		GatheredUnitsInAreas = {},
 		GetReclaimIncomeSnapshot = asFunction(nil),
 
 		--- Recorded context calls, keyed by the function they came from.
