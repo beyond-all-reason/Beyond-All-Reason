@@ -59,6 +59,11 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 FireWeapon1()
 {
 	sleep 1000;

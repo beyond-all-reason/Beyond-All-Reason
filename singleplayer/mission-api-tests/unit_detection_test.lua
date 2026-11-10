@@ -369,8 +369,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsd', x = 1800, z = 1800, teamName = 'player' },
-				{ unitDefName = 'armrad', x = 4700, z = 2000, teamName = 'player' },
+				{ unitDefName = 'armsd', position = { x = 1800, z = 1800 }, teamName = 'player' },
+				{ unitDefName = 'armrad', position = { x = 4700, z = 2000 }, teamName = 'player' },
 			},
 		},
 	},
@@ -379,8 +379,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 1800, z = 1600, teamName = 'player' },
-				{ unitDefName = 'armfus', x = 3900, z = 6000, teamName = 'enemy' },
+				{ unitDefName = 'armfus', position = { x = 1800, z = 1600 }, teamName = 'player' },
+				{ unitDefName = 'armfus', position = { x = 3900, z = 6000 }, teamName = 'enemy' },
 			},
 		},
 	},
@@ -389,12 +389,12 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armspy', x = 1800, z = 4600, teamName = 'enemy', unitName = 'spy' },
-				{ unitDefName = 'corfast', x = 4500, z = 4900, teamName = 'enemy', unitName = 'radarTarget' },
-				{ unitDefName = 'corfast', x = 4900, z = 4900, teamName = 'enemy', unitName = 'visionTarget' },
+				{ unitDefName = 'armspy', position = { x = 1800, z = 4600 }, teamName = 'enemy', unitName = 'spy' },
+				{ unitDefName = 'corfast', position = { x = 4500, z = 4900 }, teamName = 'enemy', unitName = 'radarTarget' },
+				{ unitDefName = 'corfast', position = { x = 4900, z = 4900 }, teamName = 'enemy', unitName = 'visionTarget' },
 				-- 1600 from armrad: inside radar 2100, outside sight 680, and 3400 from
 				-- armsd so it is out of seismic. Detected where it stands, then destroyed.
-				{ unitDefName = 'corak', x = 4700, z = 3600, teamName = 'enemy', unitName = 'deathTarget' },
+				{ unitDefName = 'corak', position = { x = 4700, z = 3600 }, teamName = 'enemy', unitName = 'deathTarget' },
 			},
 		},
 	},

@@ -72,7 +72,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armstump', x = 2400, z = 2400, teamName = 'player', unitName = 'target' },
+				{ unitDefName = 'armstump', position = { x = 2400, z = 2400 }, teamName = 'player', unitName = 'target' },
 			},
 		},
 	},
@@ -81,7 +81,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 2440, z = 2400, teamName = 'player', unitName = 'ally' },
+				{ unitDefName = 'armpw', position = { x = 2440, z = 2400 }, teamName = 'player', unitName = 'ally' },
 			},
 		},
 	},
@@ -90,7 +90,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corak', x = 3300, z = 2400, teamName = 'enemy', unitName = 'enemy' },
+				{ unitDefName = 'corak', position = { x = 3300, z = 2400 }, teamName = 'enemy', unitName = 'enemy' },
 			},
 		},
 	},

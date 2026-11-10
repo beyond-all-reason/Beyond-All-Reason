@@ -154,7 +154,7 @@ return {
 				craterareaofeffect = 1280,
 				craterboost = 2.4,
 				cratermult = 1.2,
-				edgeeffectiveness = 0.45,
+				edgeeffectiveness = 0,
 				energypershot = 125000,
 				explosiongenerator = "custom:newnuke",
 				firestarter = 100,
@@ -181,7 +181,7 @@ return {
 				texture2 = "railguntrail",
 				texture3 = "null",
 				tolerance = 4000,
-				turnrate = 5500,
+				turnrate = 10000,
 				waterweapon = 1,
 				weaponacceleration = 100,
 				weapontimer = 5.5,
@@ -189,7 +189,7 @@ return {
 				weaponvelocity = 1600,
 				customparams = {
 					cruise_and_verticalize = true,
-					cruise_chase_factor = 0.1,
+					cruise_chase_factor = 0.5,
 					uptime_max = 12,
 					place_target_on_ground = "true",
 					scavforcecommandfire = true,
@@ -199,7 +199,7 @@ return {
 				},
 				damage = {
 					commanders = 2500,
-					default = 9500,
+					default = 12500,
 				},
 			},
 			waterballon = {

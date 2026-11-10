@@ -135,7 +135,7 @@ return {
 					carried_unit = "legdrone", --Name of the unit spawned by this carrier unit.
 					engagementrange = 1100,
 					spawns_surface = "SEA", -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 8, --Spawnrate roughly in seconds.
+					spawnrate = 10, --Spawnrate roughly in seconds.
 					maxunits = 6, --Will spawn units until this amount has been reached.
 					startingdronecount = 3,
 					energycost = 500, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.

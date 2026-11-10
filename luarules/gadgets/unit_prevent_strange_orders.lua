@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
----@type fun(builtUnitDefID: UnitDefID, builderUnitDefID: UnitDefID): boolean
+---@type fun(builtUnitDefID: UnitDefID, builderUnitDefID: UnitDefID, teamID: integer?): boolean
 local hasBuildOption
 
 function gadget:Initialize()
@@ -53,7 +53,7 @@ function gadget:AllowCommand(
 	if cmdID < 0 and fromInsert then
 		local buildDefID = -cmdID
 		---@cast buildDefID UnitDefID
-		return hasBuildOption(buildDefID, unitDefID)
+		return hasBuildOption(buildDefID, unitDefID, teamID)
 	end
 
 	return true
