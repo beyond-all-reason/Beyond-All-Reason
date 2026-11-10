@@ -41,7 +41,7 @@ local TOGGLES = { "ghosts", "rings", "claimLines", "rightClickLoad" }
 local settings = { ghosts = true, rings = true, claimLines = true, rightClickLoad = true }
 local open = true
 
-local rmlContext, document, dm
+local rmlContext, document, dm ---@type table?, table?, table?
 
 local function rulesValue(key)
 	return Spring.GetGameRulesParam("tractorbeam_" .. key)
@@ -128,7 +128,7 @@ local function step(_, key, direction)
 end
 
 local function toggle(_, key)
-	if settings[key] == nil then
+	if not dm or settings[key] == nil then
 		return
 	end
 	settings[key] = not settings[key]
@@ -137,8 +137,10 @@ end
 
 local function toggleOpen()
 	open = not open
-	dm.open = open
-	dm.chevron = open and "-" or "+"
+	if dm then
+		dm.open = open
+		dm.chevron = open and "-" or "+"
+	end
 end
 
 function widget:Initialize()

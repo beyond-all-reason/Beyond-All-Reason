@@ -1643,41 +1643,18 @@ function tractorCargo.drawSlots(unitID, units, area, areaWidth, areaHeight)
 
 	for k = 1, seats do
 		local r = slotRect(k)
+		local x1, y1, x2, y2 = r[1] + cellPadding, r[2] + cellPadding, r[3], r[4]
 		local s = slots[k]
 		if s then
 			local uDefID = spGetUnitDefID(s[1])
 			if uDefID then
-				UiUnit(
-					r[1] + cellPadding,
-					r[2] + cellPadding,
-					r[3],
-					r[4],
-					cellPadding * 1.3,
-					1,
-					1,
-					1,
-					1,
-					0.1,
-					nil,
-					nil,
-					"#" .. uDefID,
-					(unitDefInfo[uDefID].icontype and ":l:" .. unitDefInfo[uDefID].icontype or nil),
-					groups[unitGroup[uDefID]],
-					{ unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost }
-				)
+				local iconType = unitDefInfo[uDefID].icontype
+				local icon = iconType and ":l:" .. iconType or nil
+				local cost = { unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost }
+				local pad, group = cellPadding * 1.3, groups[unitGroup[uDefID]]
+				UiUnit(x1, y1, x2, y2, pad, 1, 1, 1, 1, 0.1, nil, nil, "#" .. uDefID, icon, group, cost)
 				if s[3] then
-					RectRound(
-						r[1] + cellPadding,
-						r[2] + cellPadding,
-						r[3],
-						r[4],
-						cornerSize,
-						1,
-						1,
-						1,
-						1,
-						{ 0, 0, 0, 0.6 }
-					)
+					RectRound(x1, y1, x2, y2, cornerSize, 1, 1, 1, 1, { 0, 0, 0, 0.6 })
 				end
 			end
 			if s[2] then
@@ -1686,19 +1663,9 @@ function tractorCargo.drawSlots(unitID, units, area, areaWidth, areaHeight)
 		else
 			-- empty seat, or one still held by a unit just set down (brighter edge)
 			local edge = (k - #slots <= held) and 0.3 or 0.12
-			RectRound(r[1] + cellPadding, r[2] + cellPadding, r[3], r[4], cornerSize, 1, 1, 1, 1, { 1, 1, 1, edge })
-			RectRound(
-				r[1] + cellPadding * 2,
-				r[2] + cellPadding * 2,
-				r[3] - cellPadding,
-				r[4] - cellPadding,
-				cornerSize,
-				1,
-				1,
-				1,
-				1,
-				{ 0, 0, 0, 0.35 }
-			)
+			RectRound(x1, y1, x2, y2, cornerSize, 1, 1, 1, 1, { 1, 1, 1, edge })
+			local inset = cellPadding
+			RectRound(x1 + inset, y1 + inset, x2 - inset, y2 - inset, cornerSize, 1, 1, 1, 1, { 0, 0, 0, 0.35 })
 		end
 	end
 	glTexture(false)
@@ -3096,21 +3063,12 @@ function widget:DrawScreen()
 		local units = dropTransport == displayUnitID and Spring.GetUnitIsTransporting(displayUnitID)
 		if units then
 			for cellID, unitID in pairs(units) do
-				if unitID == dropPassenger and cellRect[cellID] then
+				local r = cellRect[cellID]
+				if unitID == dropPassenger and r then
+					local amber = { 1, 0.85, 0.1, 0.28 }
+					local x1, y1 = r[1] + cellPadding, r[2] + cellPadding
 					glBlending(GL_SRC_ALPHA, GL_ONE)
-					RectRound(
-						cellRect[cellID][1] + cellPadding,
-						cellRect[cellID][2] + cellPadding,
-						cellRect[cellID][3],
-						cellRect[cellID][4],
-						cellPadding * 0.9,
-						1,
-						1,
-						1,
-						1,
-						{ 1, 0.85, 0.1, 0.28 },
-						{ 1, 0.85, 0.1, 0.28 }
-					)
+					RectRound(x1, y1, r[3], r[4], cellPadding * 0.9, 1, 1, 1, 1, amber, amber)
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				end
 			end

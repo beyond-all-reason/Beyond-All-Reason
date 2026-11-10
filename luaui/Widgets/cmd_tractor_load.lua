@@ -17,8 +17,11 @@ if Spring.GetModOptions().beta_tractorbeam == "disabled" then
 	return false
 end
 
+local TransportUI = VFS.Include("luaui/Include/transport_ui.lua")
+
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_LOAD_UNIT = GameCMD.TRANSPORT_LOAD_UNIT
+local LOAD_COMMANDS = { [CMD_LOAD_UNITS] = true }
 
 local PREVIEW_RADIUS = 1200 -- units around the cursor that get a fit ring
 local CLAIM_SCAN_RADIUS = 3000 -- claimed units are looked for this far around each transport
@@ -30,67 +33,51 @@ local LABEL_SIZE = 15
 local FITS_COLOR = "\255\220\255\220"
 local FULL_COLOR = "\255\255\140\120"
 
-local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitBasePosition = Spring.GetUnitBasePosition
-local spGetUnitTransporter = Spring.GetUnitTransporter
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGetUnitCommands = Spring.GetUnitCommands
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetDefaultCommand = Spring.GetDefaultCommand
 local spGetMouseState = Spring.GetMouseState
-local spGetModKeyState = Spring.GetModKeyState
-local spGetInvertQueueKey = Spring.GetInvertQueueKey
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetDrawFrame = Spring.GetDrawFrame
-local spGetSpectatingState = Spring.GetSpectatingState
-local spValidUnitID = Spring.ValidUnitID
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spIsUnitIcon = Spring.IsUnitIcon
-local spIsGUIHidden = Spring.IsGUIHidden
 
-local mathMax = math.max
-local mathSqrt = math.sqrt
+local TransportAPI ---@type table
 
-local TransportAPI
-
-local cantBeTransported, isMobile, footprint = {}, {}, {}
+local cantBeTransported, isMobile, footprint = {}, {}, {} ---@type table<integer, boolean>, table<integer, boolean>, table<integer, number>
 for unitDefID, ud in pairs(UnitDefs) do
 	cantBeTransported[unitDefID] = ud.cantBeTransported
 	isMobile[unitDefID] = ud.speed > 0
-	footprint[unitDefID] = mathMax(ud.xsize, ud.zsize) * Game.squareSize * 0.5
+	footprint[unitDefID] = math.max(ud.xsize, ud.zsize) * Game.squareSize * 0.5
 end
 
 local EMPTY = {}
 
-local transports = {} -- selected tractor beam transports
-local selected = {} -- unitID -> true for the whole selection
-local onlyTransports = false
-local pending = {} -- transportID -> seats claimed or queued, refreshed with the preview
+---@class LoadPick
+---@field transportID integer
+---@field passengerID integer
+---@field claimed boolean? the transport has claimed it, not only queued it
 
-local rings = {} -- { x, y, z, radius, fits }
-local picks = {} -- { transportID, passengerID } predicted for the area being dragged
-local claims = {} -- { transportID, passengerID, claimed } for the selected transports
-local seatsUsed, seatsTotal = 0, 0
-local areaStart -- { x, y, z } of a load drag
+local transports = {} ---@type integer[] selected tractor beam transports
+local selected = {} ---@type table<number, true> the whole selection
+local onlyTransports = false
+local pending = {} ---@type table<integer, number> seats claimed or queued per transport, refreshed with the preview
+
+local rings = {} ---@type { x: number, y: number, z: number, radius: number, fits: boolean }[]
+local picks = {} ---@type LoadPick[] predicted for the area being dragged
+local claims = {} ---@type LoadPick[] of the selected transports
+local seatsUsed, seatsTotal = 0, 0 ---@type number, number
+local areaStart ---@type { [1]: number, [2]: number, [3]: number }? a load drag
 local lastRefresh = -math.huge
-local labelSize = LABEL_SIZE
+local labelSize = LABEL_SIZE ---@type number
 
 local function refreshSelection()
-	transports, selected = {}, {}
-	local units = spGetSelectedUnits()
+	selected = {}
+	local units = Spring.GetSelectedUnits()
 	for i = 1, #units do
 		selected[units[i]] = true
-		if TransportAPI.IsTractorTransport(units[i]) then
-			transports[#transports + 1] = units[i]
-		end
 	end
+	transports = TransportUI.tractorTransports(TransportAPI, units)
 	onlyTransports = #transports > 0 and #transports == #units
 	lastRefresh = -math.huge
 end
@@ -98,7 +85,7 @@ end
 -- the selection list lags a death by a frame or so
 local function dropDeadTransports()
 	for i = #transports, 1, -1 do
-		if not spValidUnitID(transports[i]) then
+		if not Spring.ValidUnitID(transports[i]) then
 			table.remove(transports, i)
 		end
 	end
@@ -112,14 +99,6 @@ local function countPending()
 	return seats
 end
 
-local function shiftHeld()
-	local _, _, _, shift = spGetModKeyState()
-	if spGetInvertQueueKey() then
-		shift = not shift
-	end
-	return shift
-end
-
 -- a plain order replaces the queue, so only a shift order counts what is already pending
 local function owedSeats(shift)
 	return shift and pending or EMPTY
@@ -130,13 +109,14 @@ local function isLoadable(unitID, unitDefID)
 	if not unitDefID or cantBeTransported[unitDefID] or selected[unitID] then
 		return false
 	end
-	if spGetUnitTransporter(unitID) or spGetUnitIsBeingBuilt(unitID) then
+	if Spring.GetUnitTransporter(unitID) or Spring.GetUnitIsBeingBuilt(unitID) then
 		return false
 	end
 	if (spGetUnitRulesParam(unitID, "inLoadAnim") or 0) > 0 or spGetUnitRulesParam(unitID, "inUnloadAnim") == 1 then
 		return false
 	end
-	return spAreTeamsAllied(spGetUnitTeam(unitID), spGetMyTeamID())
+	local teamID = spGetUnitTeam(unitID)
+	return teamID ~= nil and Spring.AreTeamsAllied(teamID, spGetMyTeamID())
 end
 
 -- nearest selected transport with a seat that fits the unit
@@ -146,7 +126,7 @@ local function bestTransportFor(unitID, owed)
 		return nil
 	end
 	local size = TransportAPI.GetPassengerSize(unitID)
-	local best, bestDist
+	local best, bestDist ---@type integer?, number?
 	for i = 1, #transports do
 		local transportID = transports[i]
 		local tx, _, tz = spGetUnitPosition(transportID)
@@ -165,9 +145,9 @@ end
 local MOBILITY_DIST = Game.mapSizeX * Game.mapSizeZ -- the gadget's priority offsets
 local ALLIED_DIST = 2 * MOBILITY_DIST
 
+---@return LoadPick[]
 local function predictAreaLoad(cx, cz, radius, shift)
-	local result = {}
-	local candidates = {}
+	local candidates = {} ---@type { id: integer, x: number, z: number, size: number, offset: number }[]
 	local units = spGetUnitsInCylinder(cx, cz, radius)
 	local myTeam = spGetMyTeamID()
 	for i = 1, #units do
@@ -176,24 +156,19 @@ local function predictAreaLoad(cx, cz, radius, shift)
 		local claimedBy = spGetUnitRulesParam(unitID, "transportClaimedBy") or 0
 		-- a plain order frees the claims of the selected transports
 		local free = claimedBy == 0 or (not shift and selected[claimedBy])
-		if free and isLoadable(unitID, unitDefID) then
-			local x, _, z = spGetUnitPosition(unitID)
-			candidates[#candidates + 1] = {
-				id = unitID,
-				x = x,
-				z = z,
-				size = TransportAPI.GetPassengerSize(unitID),
-				offset = (isMobile[unitDefID] and 0 or MOBILITY_DIST)
-					+ (spGetUnitTeam(unitID) == myTeam and 0 or ALLIED_DIST),
-			}
+		local x, _, z = spGetUnitPosition(unitID)
+		if unitDefID and x and free and isLoadable(unitID, unitDefID) then
+			local offset = (isMobile[unitDefID] and 0 or MOBILITY_DIST)
+				+ (spGetUnitTeam(unitID) == myTeam and 0 or ALLIED_DIST)
+			candidates[#candidates + 1] =
+				{ id = unitID, x = x, z = z, size = TransportAPI.GetPassengerSize(unitID), offset = offset }
 		end
 	end
-	local order = {}
+	local order = {} ---@type { id: integer, x: number, z: number, dist: number }[]
 	for i = 1, #transports do
 		local tx, _, tz = spGetUnitPosition(transports[i])
 		if tx then
-			order[#order + 1] =
-				{ id = transports[i], x = tx, z = tz, dist = (tx - cx) * (tx - cx) + (tz - cz) * (tz - cz) }
+			order[#order + 1] = { id = transports[i], x = tx, z = tz, dist = (tx - cx) ^ 2 + (tz - cz) ^ 2 }
 		end
 	end
 	table.sort(order, function(a, b)
@@ -201,6 +176,7 @@ local function predictAreaLoad(cx, cz, radius, shift)
 	end)
 	local owedByTransport = owedSeats(shift)
 	local taken = {}
+	local result = {}
 	for i = 1, #order do
 		local transport = order[i]
 		local owed = owedByTransport[transport.id] or 0
@@ -208,10 +184,9 @@ local function predictAreaLoad(cx, cz, radius, shift)
 			local best, bestDist
 			for j = 1, #candidates do
 				local candidate = candidates[j]
-				if
-					not taken[candidate.id]
+				local fits = not taken[candidate.id]
 					and TransportAPI.CanPassengerFitInTransporter(transport.id, candidate.id, nil, candidate.size, owed)
-				then
+				if fits then
 					local dx, dz = candidate.x - transport.x, candidate.z - transport.z
 					local dist = dx * dx + dz * dz + candidate.offset
 					if not bestDist or dist < bestDist then
@@ -230,25 +205,35 @@ local function predictAreaLoad(cx, cz, radius, shift)
 	return result
 end
 
+-- units a transport has a single unit load queued for
+---@return integer[]
+local function queuedPassengers(transportID)
+	local list = {}
+	local queue = spGetUnitCommands(transportID, -1) or EMPTY
+	for i = 1, #queue do
+		local params = queue[i].params
+		if queue[i].id == CMD_LOAD_UNIT and params and params[1] then
+			list[#list + 1] = params[1]
+		end
+	end
+	return list
+end
+
+---@return LoadPick[]
 local function collectClaims()
 	local list = {}
 	local listed = {}
+	local function add(transportID, passengerID, claimed)
+		if not listed[passengerID] then
+			listed[passengerID] = true
+			list[#list + 1] = { transportID = transportID, passengerID = passengerID, claimed = claimed }
+		end
+	end
 	for i = 1, #transports do
 		local transportID = transports[i]
-		local queue = spGetUnitCommands(transportID, -1)
-		if queue then
-			for j = 1, #queue do
-				local cmd = queue[j]
-				local passengerID = cmd.id == CMD_LOAD_UNIT and cmd.params[1]
-				if passengerID and not listed[passengerID] then
-					listed[passengerID] = true
-					list[#list + 1] = {
-						transportID = transportID,
-						passengerID = passengerID,
-						claimed = spGetUnitRulesParam(passengerID, "transportClaimedBy") == transportID,
-					}
-				end
-			end
+		local queued = queuedPassengers(transportID)
+		for j = 1, #queued do
+			add(transportID, queued[j], spGetUnitRulesParam(queued[j], "transportClaimedBy") == transportID)
 		end
 	end
 	-- area loads claim without a queue entry per unit
@@ -258,10 +243,8 @@ local function collectClaims()
 		if tx and (spGetUnitRulesParam(transportID, "transporterClaimedSeats") or 0) > 0 then
 			local nearby = spGetUnitsInCylinder(tx, tz, CLAIM_SCAN_RADIUS)
 			for j = 1, #nearby do
-				local unitID = nearby[j]
-				if not listed[unitID] and spGetUnitRulesParam(unitID, "transportClaimedBy") == transportID then
-					listed[unitID] = true
-					list[#list + 1] = { transportID = transportID, passengerID = unitID, claimed = true }
+				if spGetUnitRulesParam(nearby[j], "transportClaimedBy") == transportID then
+					add(transportID, nearby[j], true)
 				end
 			end
 		end
@@ -275,9 +258,9 @@ local function takenBySelection(unitID)
 		return true
 	end
 	for i = 1, #transports do
-		local queue = spGetUnitCommands(transports[i], -1)
-		for j = 1, queue and #queue or 0 do
-			if queue[j].id == CMD_LOAD_UNIT and queue[j].params[1] == unitID then
+		local queued = queuedPassengers(transports[i])
+		for j = 1, #queued do
+			if queued[j] == unitID then
 				return true
 			end
 		end
@@ -285,25 +268,16 @@ local function takenBySelection(unitID)
 	return false
 end
 
--- "active": the load button is armed; "default": a right click would load
 local function loadMode()
-	local _, activeCmdID = spGetActiveCommand()
-	if activeCmdID then
-		return activeCmdID == CMD_LOAD_UNITS and "active" or nil
-	end
-	local _, defaultCmdID = spGetDefaultCommand()
-	return defaultCmdID == CMD_LOAD_UNITS and "default" or nil
+	return TransportUI.commandMode(LOAD_COMMANDS)
 end
 
-local function cursorGround(mx, my)
-	local _, pos = spTraceScreenRay(mx, my, true)
-	if pos and pos[1] then
-		return pos[1], pos[2], pos[3]
-	end
+local function resizeLabel(vsy)
+	labelSize = LABEL_SIZE * (vsy / 1080) * Spring.GetConfigFloat("ui_scale", 1)
 end
 
 function widget:ViewResize(_, vsy)
-	labelSize = LABEL_SIZE * (vsy / 1080) * Spring.GetConfigFloat("ui_scale", 1)
+	resizeLabel(vsy)
 end
 
 function widget:Initialize()
@@ -313,7 +287,8 @@ function widget:Initialize()
 		return
 	end
 	refreshSelection()
-	widget:ViewResize(Spring.GetViewGeometry())
+	local _, vsy = Spring.GetViewGeometry()
+	resizeLabel(vsy)
 	-- test hooks for the smoke harness
 	WG.TractorLoad = {
 		BestTransportFor = function(unitID)
@@ -335,20 +310,14 @@ function widget:SelectionChanged()
 	refreshSelection()
 end
 
--- a preview toggle from Transport Settings; on when that widget is off
-local function settingOn(key)
-	local settings = WG.TransportSettings
-	return not settings or settings[key] ~= false
-end
-
 function widget:DefaultCommand(targetType, targetID)
-	if targetType ~= "unit" or not onlyTransports or not settingOn("rightClickLoad") then
+	if targetType ~= "unit" or not onlyTransports or not TransportUI.settingOn("rightClickLoad") then
 		return
 	end
 	if not isLoadable(targetID, spGetUnitDefID(targetID)) or spGetUnitTeam(targetID) ~= spGetMyTeamID() then
 		return
 	end
-	if bestTransportFor(targetID, owedSeats(shiftHeld())) then
+	if bestTransportFor(targetID, owedSeats(TransportUI.shiftHeld())) then
 		return CMD_LOAD_UNITS
 	end
 end
@@ -365,13 +334,13 @@ function widget:CommandNotify(cmdID, params, options)
 	if not transportID then
 		return false
 	end
-	spGiveOrderToUnit(transportID, CMD_LOAD_UNITS, params, options.coded)
+	Spring.GiveOrderToUnit(transportID, CMD_LOAD_UNITS, params, options.coded)
 	return true
 end
 
 function widget:MousePress(mx, my, button)
 	if button == 1 and loadMode() == "active" then
-		local x, y, z = cursorGround(mx, my)
+		local x, y, z = TransportUI.cursorGround(mx, my)
 		areaStart = x and { x, y, z } or nil
 	end
 	return false
@@ -386,8 +355,35 @@ local function clearPreview()
 	end
 end
 
+local function countSeats(owed)
+	seatsUsed, seatsTotal = 0, 0
+	for i = 1, #transports do
+		local transportID = transports[i]
+		local used = spGetUnitRulesParam(transportID, "transporterUsedSeats") or 0
+		seatsTotal = seatsTotal + (spGetUnitRulesParam(transportID, "transporterSeats") or 0)
+		seatsUsed = seatsUsed + used + (owed[transportID] or 0)
+	end
+end
+
+local function findRings(cx, cz, owed)
+	rings = {}
+	local units = spGetUnitsInCylinder(cx, cz, PREVIEW_RADIUS)
+	for i = 1, #units do
+		local unitID = units[i]
+		local unitDefID = spGetUnitDefID(unitID)
+		if unitDefID and isLoadable(unitID, unitDefID) and not Spring.IsUnitIcon(unitID) then
+			local x, y, z = Spring.GetUnitBasePosition(unitID)
+			if x and y and z then
+				local radius = footprint[unitDefID] + RING_MARGIN
+				rings[#rings + 1] =
+					{ x = x, y = y, z = z, radius = radius, fits = bestTransportFor(unitID, owed) ~= nil }
+			end
+		end
+	end
+end
+
 function widget:Update()
-	if #transports == 0 or spGetSpectatingState() then
+	if #transports == 0 or Spring.GetSpectatingState() then
 		clearPreview()
 		if #claims > 0 then
 			claims = {}
@@ -395,7 +391,7 @@ function widget:Update()
 		return
 	end
 	-- by draw frame: the preview keeps up while paused
-	local frame = spGetDrawFrame()
+	local frame = Spring.GetDrawFrame()
 	if frame - lastRefresh < REFRESH_FRAMES then
 		return
 	end
@@ -403,57 +399,34 @@ function widget:Update()
 
 	dropDeadTransports()
 	pending = countPending()
-	claims = settingOn("claimLines") and collectClaims() or EMPTY
+	claims = TransportUI.settingOn("claimLines") and collectClaims() or EMPTY
 
 	local mx, my, lmb = spGetMouseState()
 	if areaStart and not lmb then
 		areaStart = nil
 	end
-	local mode = loadMode()
-	if not mode then
+	if not loadMode() then
 		clearPreview()
 		return
 	end
 
-	local alt, ctrl, _, shift = spGetModKeyState()
-	if spGetInvertQueueKey() then
-		shift = not shift
-	end
+	local shift = TransportUI.shiftHeld()
 	local owed = owedSeats(shift)
-	seatsUsed, seatsTotal = 0, 0
-	for i = 1, #transports do
-		local transportID = transports[i]
-		seatsTotal = seatsTotal + (spGetUnitRulesParam(transportID, "transporterSeats") or 0)
-		seatsUsed = seatsUsed
-			+ (spGetUnitRulesParam(transportID, "transporterUsedSeats") or 0)
-			+ (owed[transportID] or 0)
-	end
+	countSeats(owed)
 
-	local cx, _, cz = cursorGround(mx, my)
+	local cx, _, cz = TransportUI.cursorGround(mx, my)
 	rings = {}
-	if cx and settingOn("rings") then
-		local units = spGetUnitsInCylinder(cx, cz, PREVIEW_RADIUS)
-		for i = 1, #units do
-			local unitID = units[i]
-			local unitDefID = spGetUnitDefID(unitID)
-			if isLoadable(unitID, unitDefID) and not spIsUnitIcon(unitID) then
-				local x, y, z = spGetUnitBasePosition(unitID)
-				rings[#rings + 1] = {
-					x = x,
-					y = y,
-					z = z,
-					radius = footprint[unitDefID] + RING_MARGIN,
-					fits = bestTransportFor(unitID, owed) ~= nil,
-				}
-			end
-		end
-	end
-
 	picks = {}
+	if not (cx and cz) then
+		return
+	end
+	if TransportUI.settingOn("rings") then
+		findRings(cx, cz, owed)
+	end
 	-- with Alt or Ctrl the area filter turns the drag into its own per-unit loads
-	if areaStart and cx and not alt and not ctrl then
-		local dx, dz = cx - areaStart[1], cz - areaStart[3]
-		local radius = mathSqrt(dx * dx + dz * dz)
+	local alt, ctrl = Spring.GetModKeyState()
+	if areaStart and not alt and not ctrl then
+		local radius = math.sqrt((cx - areaStart[1]) ^ 2 + (cz - areaStart[3]) ^ 2)
 		if radius >= MIN_AREA_RADIUS then
 			picks = predictAreaLoad(areaStart[1], areaStart[3], radius, shift)
 		end
@@ -469,17 +442,18 @@ local function unitLine(fromID, toID)
 	end
 end
 
-local function drawCross(x, y, z, size)
-	gl.BeginEnd(GL.LINES, function()
-		gl.Vertex(x - size, y, z - size)
-		gl.Vertex(x + size, y, z + size)
-		gl.Vertex(x - size, y, z + size)
-		gl.Vertex(x + size, y, z - size)
-	end)
+local function pickLines(list, colored)
+	for i = 1, #list do
+		local pick = list[i]
+		if colored then
+			gl.Color(0.6, 0.6, 1, pick.claimed and 0.7 or 0.25)
+		end
+		unitLine(pick.transportID, pick.passengerID)
+	end
 end
 
 function widget:DrawWorldPreUnit()
-	if spIsGUIHidden() or (#rings == 0 and #picks == 0 and #claims == 0) then
+	if Spring.IsGUIHidden() or (#rings == 0 and #picks == 0 and #claims == 0) then
 		return
 	end
 	gl.DepthTest(false)
@@ -495,7 +469,7 @@ function widget:DrawWorldPreUnit()
 			gl.LineWidth(1)
 			gl.Color(0.75, 0.75, 0.75, 0.45)
 			gl.DrawGroundCircle(ring.x, ring.y, ring.z, ring.radius, 16)
-			drawCross(ring.x, ring.y + 2, ring.z, ring.radius * 0.35)
+			gl.BeginEnd(GL.LINES, TransportUI.crossVertices, ring.x, ring.y + 2, ring.z, ring.radius * 0.35)
 		end
 	end
 
@@ -503,23 +477,13 @@ function widget:DrawWorldPreUnit()
 	if #picks > 0 then
 		gl.LineWidth(2)
 		gl.Color(0.35, 1, 0.45, 0.6)
-		gl.BeginEnd(GL.LINES, function()
-			for i = 1, #picks do
-				unitLine(picks[i].transportID, picks[i].passengerID)
-			end
-		end)
+		gl.BeginEnd(GL.LINES, pickLines, picks, false)
 	end
 
 	-- given orders: solid once the transport has claimed the unit, faint while it waits in the queue
 	if #claims > 0 then
 		gl.LineWidth(1.5)
-		gl.BeginEnd(GL.LINES, function()
-			for i = 1, #claims do
-				local claim = claims[i]
-				gl.Color(0.6, 0.6, 1, claim.claimed and 0.7 or 0.25)
-				unitLine(claim.transportID, claim.passengerID)
-			end
-		end)
+		gl.BeginEnd(GL.LINES, pickLines, claims, true)
 	end
 
 	gl.LineWidth(1)
@@ -528,7 +492,7 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:DrawScreen()
-	if spIsGUIHidden() or seatsTotal == 0 or not loadMode() or not WG.fonts then
+	if Spring.IsGUIHidden() or seatsTotal == 0 or not loadMode() or not WG.fonts then
 		return
 	end
 	local font = WG.fonts.getFont(2)
@@ -536,14 +500,9 @@ function widget:DrawScreen()
 		return
 	end
 	local mx, my = spGetMouseState()
+	local color = seatsUsed >= seatsTotal and FULL_COLOR or FITS_COLOR
 	font:Begin()
 	font:SetOutlineColor(0, 0, 0, 1)
-	font:Print(
-		(seatsUsed >= seatsTotal and FULL_COLOR or FITS_COLOR) .. seatsUsed .. "/" .. seatsTotal,
-		mx + labelSize * 1.2,
-		my - labelSize * 1.6,
-		labelSize,
-		"o"
-	)
+	font:Print(color .. seatsUsed .. "/" .. seatsTotal, mx + labelSize * 1.2, my - labelSize * 1.6, labelSize, "o")
 	font:End()
 end
