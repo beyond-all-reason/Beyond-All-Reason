@@ -8,6 +8,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -99000,
 		enabled = true,
+		modalExempt = true, -- engine keybinds still run under an open window, so the overview guard must too
 	}
 end
 
@@ -17,11 +18,16 @@ end
 		SamplePath(sequence, samplesPerMove, start)   the eye path Play would fly, for drawing it
 		Follow(params)        point at a target and follow it
 		Orbit(params)         circle a target
+		Restore(params)       blend back to a saved camera and hand control back
 		Shake(params)         shake the view; concurrent shakes add up
 		Save(slot)            remember the player's camera under a name ("default")
-		Restore(slot, duration, easing, clock)   blend back to a saved camera and hand control back
 		Stop()                hand control back where the camera is, in the player's camera mode
 		IsActive(), IsShaking(), GetPlayerCameraState()
+
+	Play, Follow, Orbit, Restore and Shake check their params first: they return true when the
+	shot started, else log what is wrong and return false, leaving the camera alone. A shot ends
+	by handing the camera back, except a hold ending and a follow without a duration: those last
+	until Stop or the next shot, and once the game is over they end as a release.
 
 	Units: seconds, elmos, degrees (pitch 0 = level, 90 = straight down; yaw is a compass
 	bearing, 0 = toward the top of the map; roll; vertical fov).
@@ -35,29 +41,36 @@ end
 	           (path shapes the eye's move and, when the previous keyframe has a lookAt too, the
 	            sweep of the point looked at between the two; a hold, and a hold ending, stay on the
 	            keyframe and keep riding and looking at its units)
-	sequence = { keyframes = {...}, onEnd = "release" | "restore" | "hold", restoreSlot?,
-	             restoreDuration?, restoreEasing?, releaseDuration?, releaseEasing? }
-	           (release eases roll and fov back over releaseDuration before the player's camera
-	            mode takes over at the same spot; restore blends back to a saved camera)
-	follow   = { target, distance?, pitch?, yaw?, duration? (0: until stopped), transitionDuration?,
-	             easing?, smoothing?, fov?, onEnd?, restoreSlot?, restoreDuration?, restoreEasing? }
+	sequence = { keyframes = {...}, ending = "release" | "restore" | "hold", restoreSlot?,
+	             restoreDuration?, restoreEasing?, releaseDuration?, releaseEasing?, onKeyframe? }
+	           (release eases roll, fov and whatever the player's camera mode cannot show back
+	            over releaseDuration, then that mode takes over at the same spot; restore blends
+	            back to a saved camera)
+	follow   = { target, distance?, pitch?, yaw?, duration? (none: until stopped), transitionDuration?,
+	             easing?, smoothing?, fov?, ending?, restoreSlot?, restoreDuration?, restoreEasing? }
 	           (easing shapes the lead-in blend only; smoothing is the trailing lag: the gap to the
 	            target halves every `smoothing` seconds, 0 = rigid)
 	orbit    = { target, distance?, pitch?, startYaw?, degrees?, duration?, transitionDuration?,
-	             easing?, fov?, onEnd?, ... }
+	             easing?, fov?, ending?, ... }
 	           (both start moving at once; the first transitionDuration seconds blend the current
-	            view into the moving shot)
+	            view into the moving shot, which lasts at least that long)
+	restore  = { slot?, duration?, easing? }
 	shake    = { magnitude, duration?, rampUp?, falloff?, frequency?, rotationMagnitude? }
-	sequence, follow, orbit and shake also take clock = "real" | "game", as Restore does.
+
+	All of them take clock = "real" | "game". Sequence, follow, orbit and restore take
+	onEnd(reason), called once when the shot is over: "finished" (its ending handed the camera
+	back), "held" (a hold ending began), "replaced" (another shot took over) or "stopped" (Stop).
+	A sequence's onKeyframe(index) is called as the camera reaches each keyframe. Callbacks run
+	once the frame's camera is set, so they may start the next shot.
 
 	The camera is driven every frame as the engine's fps camera with its position clamp lifted
 	(FPSClampPos overlay), since the engine's own transitions cannot be timed in BAR's default
-	transition mode. Timing is real time by default, so sequences also play while the game is
-	paused; an open menu window pauses them where the widget handler can say so (IsAnyWindowOpen,
-	which comes with the player input lock; without it nothing pauses). clock = "game" runs a shot,
-	its ending included, on game time instead: it stops with the game, follows the game speed and
-	stays in step with game-time triggers. Once the game is over, a shot without an end (an
-	endless follow, a hold ending) hands the camera back as a release.
+	transition mode. While it is, unit tracking is off and keys bound to the overview toggle or to
+	tracking are swallowed: either would take the camera from the shot. Timing is real time by
+	default, so sequences also play while the game is paused; an open menu window pauses them where
+	the widget handler can say so (IsAnyWindowOpen, which comes with the player input lock; without
+	it nothing pauses). clock = "game" runs a shot, its ending included, on game time instead: it
+	stops with the game, follows the game speed and stays in step with game-time triggers.
 ]]
 
 local CameraMath = VFS.Include("common/camera_math.lua")
@@ -71,8 +84,11 @@ local spSetCameraOffset = Spring.SetCameraOffset
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitHeading = Spring.GetUnitHeading
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetSmoothMeshHeight = Spring.GetSmoothMeshHeight
 local spGetConfigInt = Spring.GetConfigInt
+local spGetConfigFloat = Spring.GetConfigFloat
 local spSetConfigInt = Spring.SetConfigInt
+local spSendCommands = Spring.SendCommands
 local spGetGameSecondsInterpolated = Spring.GetGameSecondsInterpolated
 
 local Easings = CameraMath.Easings
@@ -86,14 +102,13 @@ local HALFPI = math.pi * 0.5
 
 local FPS_CAMERA_MODE = 0
 local CLAMP_CONFIG = "FPSClampPos"
-local CARDINAL_LOCK_CONFIG = "CamSpringLockCardinalDirections"
 local DEFAULT_SLOT = "default"
 
 local DEFAULTS = {
 	keyframeDuration = 2,
 	pathSamples = 16, -- SamplePath points per move
 	easing = CameraMath.DEFAULT_EASING,
-	onEnd = "release",
+	ending = "release",
 	releaseDuration = 1.5,
 	restoreDuration = 2,
 	distance = 600,
@@ -103,13 +118,20 @@ local DEFAULTS = {
 	smoothing = 0.25,
 	orbitDegrees = 360,
 	orbitDuration = 10,
-	orbitEasing = "inOutCubic",
 	shakeDuration = 1,
 	shakeRampUp = 0.1,
 	shakeFalloff = 0.5,
 	shakeFrequency = 20,
 	shakeRotationFactor = 0.05, -- degrees of tilt per elmo of magnitude
 }
+
+local ENDINGS = { release = true, restore = true, hold = true } ---@type table<string, boolean>
+local CLOCKS = { real = true, game = true } ---@type table<string, boolean>
+
+-- Actions that would take the camera from a shot: the overview toggle (which also stacks the fps
+-- mode the shot runs in, for the player's next toggle to pop them into) and unit tracking (which
+-- moves the camera after every Update).
+local GUARDED_ACTIONS = { toggleoverview = true, track = true } ---@type table<string, boolean>
 
 -- A shake jitters at its frequency plus a faster, fainter overtone, so it reads as a rattle
 -- rather than a slow wobble. The two bands are scaled so their sum stays within the magnitude.
@@ -131,6 +153,11 @@ local SHAKE_BAND_SCALE = 1 / (1 + SHAKE_OVERTONE_WEIGHT)
 ---@field pose CinematicPose the rendered camera then
 ---@field clampPos integer the FPSClampPos setting then
 
+---@class CinematicShot the callbacks of the shot on the timeline
+---@field onEnd fun(reason: string)?
+---@field onKeyframe fun(index: integer)?
+---@field ended boolean?
+
 ---@class CinematicControl a running sequence
 ---@field snapshot CinematicSnapshot
 ---@field segments table[]
@@ -138,6 +165,7 @@ local SHAKE_BAND_SCALE = 1 / (1 + SHAKE_OVERTONE_WEIGHT)
 ---@field elapsed number
 ---@field pose CinematicPose the pose shown last
 ---@field clock string? "game" to run on game time, else real time
+---@field shot CinematicShot?
 
 ---@type CinematicControl?
 local control
@@ -147,6 +175,7 @@ local shakeOffsetApplied = false
 local shakeSeed = 0
 local gameOver = false
 local lastGameSeconds ---@type number?
+local notifications = {} ---@type table<integer, { fn: function, arg: any }>
 
 --------------------------------------------------------------------------------
 -- Poses
@@ -202,6 +231,139 @@ end
 -- widgetHandler:IsAnyWindowOpen() arrives with the player input lock; older handlers never pause.
 local function windowOpen()
 	return widgetHandler.IsAnyWindowOpen ~= nil and widgetHandler:IsAnyWindowOpen() == true
+end
+
+--------------------------------------------------------------------------------
+-- Callbacks: queued while the timeline moves and run once it is settled, so a callback may
+-- start the next shot
+--------------------------------------------------------------------------------
+
+local function notify(fn, arg)
+	if fn then
+		notifications[#notifications + 1] = { fn = fn, arg = arg }
+	end
+end
+
+---@param shot CinematicShot?
+local function endShot(shot, reason)
+	if shot and not shot.ended then
+		shot.ended = true
+		notify(shot.onEnd, reason)
+	end
+end
+
+local function runNotifications()
+	while #notifications > 0 do
+		local entry = table.remove(notifications, 1)
+		local ok, err = pcall(entry.fn, entry.arg)
+		if not ok then
+			Spring.Log(widget:GetInfo().name, LOG.ERROR, "camera callback failed: " .. tostring(err))
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Checks: a shot is checked whole before it takes the camera, so a bad one never holds it
+--------------------------------------------------------------------------------
+
+local function finite(value)
+	return type(value) == "number" and value == value and value > -math.huge and value < math.huge
+end
+
+---What is wrong with the optional numbers `keys` of `params`, or nil.
+local function badNumbers(params, keys, where)
+	for i = 1, #keys do
+		local value = params[keys[i]]
+		if value ~= nil and not finite(value) then
+			return (where or "") .. keys[i] .. " must be a number"
+		end
+	end
+end
+
+---What is wrong with the optional durations `keys` of `params` (seconds, 0 or more), or nil.
+local function badDurations(params, keys, where)
+	for i = 1, #keys do
+		local value = params[keys[i]]
+		if value ~= nil and not (finite(value) and value >= 0) then
+			return (where or "") .. keys[i] .. " must be a number of seconds, 0 or more"
+		end
+	end
+end
+
+local function badTarget(target, where)
+	if type(target) ~= "table" then
+		return where .. " must be a table"
+	elseif target.unitIDs ~= nil then
+		if type(target.unitIDs) ~= "table" then
+			return where .. ".unitIDs must be a list of unit IDs"
+		end
+	elseif not (finite(target.x) and finite(target.y) and finite(target.z)) then
+		return where .. " needs x, y and z, or unitIDs"
+	end
+end
+
+---The fields every shot may take: its clock and callbacks.
+local function badCommon(params)
+	if params.clock ~= nil and not CLOCKS[params.clock] then
+		return 'clock must be "real" or "game"'
+	elseif params.onEnd ~= nil and type(params.onEnd) ~= "function" then
+		return "onEnd must be a function"
+	end
+end
+
+---The fields of a shot that ends: how it hands the camera back.
+local function badEnding(params)
+	if params.ending ~= nil and not ENDINGS[params.ending] then
+		return 'ending must be "release", "restore" or "hold"'
+	end
+	return badDurations(params, { "transitionDuration", "releaseDuration", "restoreDuration" }) or badCommon(params)
+end
+
+local function badSequence(sequence)
+	if type(sequence) ~= "table" then
+		return "expected a sequence table"
+	end
+	local keyframes = sequence.keyframes
+	if type(keyframes) ~= "table" or #keyframes == 0 then
+		return "keyframes must be a list of at least one keyframe"
+	end
+	for i = 1, #keyframes do
+		local keyframe = keyframes[i]
+		local where = "keyframes[" .. i .. "]"
+		if type(keyframe) ~= "table" then
+			return where .. " must be a table"
+		end
+		local problem = keyframe.position ~= nil and badTarget(keyframe.position, where .. ".position")
+			or keyframe.lookAt ~= nil and badTarget(keyframe.lookAt, where .. ".lookAt")
+			or badNumbers(keyframe, { "pitch", "yaw", "roll", "fov" }, where .. ".")
+			or badDurations(keyframe, { "duration", "hold" }, where .. ".")
+		if problem then
+			return problem
+		end
+	end
+	if sequence.onKeyframe ~= nil and type(sequence.onKeyframe) ~= "function" then
+		return "onKeyframe must be a function"
+	end
+	return badEnding(sequence)
+end
+
+---@param numbers string[]
+---@param durations string[]
+local function badShot(params, numbers, durations)
+	if type(params) ~= "table" then
+		return "expected a params table"
+	end
+	return badTarget(params.target, "target")
+		or badNumbers(params, numbers)
+		or badDurations(params, durations)
+		or badEnding(params)
+end
+
+---Logs why `api` left the camera alone.
+---@return false
+local function rejected(api, problem)
+	Spring.Log(widget:GetInfo().name, LOG.WARNING, api .. ": " .. problem .. "; the camera was left alone")
+	return false
 end
 
 --------------------------------------------------------------------------------
@@ -328,7 +490,7 @@ local function keyframeRotation(keyframe, eye, inherited)
 	if keyframe.lookAt then
 		local tx, ty, tz = resolveTarget(keyframe.lookAt)
 		if tx and ty and tz then
-			return LookAtRotation(eye.x, eye.y, eye.z, tx, ty, tz)
+			return LookAtRotation(eye.x, eye.y, eye.z, tx, ty, tz, inherited.ry)
 		end
 	end
 	local rx = keyframe.pitch and pitchRad(keyframe.pitch) or inherited.rx
@@ -336,11 +498,12 @@ local function keyframeRotation(keyframe, eye, inherited)
 	return rx, ry
 end
 
-local function moveSegment(keyframe, previous, beforePrevious, following)
+---The move to keyframe `index`.
+local function moveSegment(index, keyframe, previous, beforePrevious, following)
 	local duration = keyframe.duration or DEFAULTS.keyframeDuration
 	local ease = easingFor(keyframe.easing)
 	local spline = keyframe.path == "spline"
-	local segment = { duration = duration }
+	local segment = { duration = duration, keyframe = index }
 
 	function segment.enter(self, startPose)
 		self.start = copyPose(startPose)
@@ -363,7 +526,7 @@ local function moveSegment(keyframe, previous, beforePrevious, following)
 				u
 			)
 			if lx then
-				rx, ry = LookAtRotation(x, y, z, lx, ly, lz)
+				rx, ry = LookAtRotation(x, y, z, lx, ly, lz, self.ry or start.ry)
 			end
 		end
 		if not rx then
@@ -372,6 +535,7 @@ local function moveSegment(keyframe, previous, beforePrevious, following)
 			rx = start.rx + (toRx - start.rx) * u
 			ry = LerpAngle(start.ry, toRy, u)
 		end
+		self.ry = ry -- the yaw to keep while the pan passes straight above or below the eye
 
 		local roll = rad(keyframe.roll or 0)
 		local fov = keyframe.fov or start.fov
@@ -434,8 +598,6 @@ local function followSegment(params)
 	local pitch = rad(params.pitch or DEFAULTS.pitch)
 	local yaw = rad(params.yaw or DEFAULTS.yaw)
 	local smoothing = params.smoothing or DEFAULTS.smoothing
-	local untilStopped = (params.duration or 0) <= 0
-	local duration = not untilStopped and params.duration or nil
 	local smoothed ---@type { x: number, y: number, z: number }?
 
 	local function shotPose(self, _)
@@ -457,7 +619,8 @@ local function followSegment(params)
 		return { x = ex, y = ey, z = ez, rx = rx, ry = ry, roll = 0, fov = self.fov }
 	end
 
-	return shotSegment(params, duration, shotPose, params.easing), untilStopped
+	-- no duration: until stopped
+	return shotSegment(params, params.duration, shotPose, params.easing)
 end
 
 local function orbitSegment(params)
@@ -466,7 +629,7 @@ local function orbitSegment(params)
 	local pitch = params.pitch or DEFAULTS.pitch
 	local degrees = params.degrees or DEFAULTS.orbitDegrees
 	local duration = params.duration or DEFAULTS.orbitDuration
-	local ease = easingFor(params.easing or DEFAULTS.orbitEasing)
+	local ease = easingFor(params.easing)
 	local startYaw ---@type number?
 
 	local function shotPose(self, t)
@@ -479,7 +642,7 @@ local function orbitSegment(params)
 				startYaw = rad(params.startYaw)
 			else
 				-- the bearing the camera already has toward the target: the orbit starts from here
-				local _, ry = LookAtRotation(self.start.x, self.start.y, self.start.z, tx, ty, tz)
+				local _, ry = LookAtRotation(self.start.x, self.start.y, self.start.z, tx, ty, tz, self.start.ry)
 				startYaw = ry
 			end
 		end
@@ -514,28 +677,69 @@ local function takeControl()
 	control = running
 	-- the engine reads the overlay on its next config flush, so the first frame may still be clamped
 	spSetConfigInt(CLAMP_CONFIG, 0, true)
+	spSendCommands("track off") -- the unit tracker moves the camera after every Update
 	return running
 end
 
----Hands the camera back, in `state` (a Spring.SetCameraState table) when given.
+---Hands the camera back, in `state` (a Spring.SetCameraState table) when given, and ends the
+---shot for `reason` (none: without callbacks).
 ---@param running CinematicControl
 ---@param state table?
-local function releaseControl(running, state)
+---@param reason string?
+local function releaseControl(running, state, reason)
 	control = nil
 	if state then
 		spSetCameraState(state, 0)
 	end
 	spSetConfigInt(CLAMP_CONFIG, running.snapshot.clampPos, true)
+	if reason then
+		endShot(running.shot, reason)
+	end
 end
 
----The player's camera mode, showing what the sequence last showed in the player's own fov.
+---What the player's camera modes clamp to.
 ---@param running CinematicControl
-local function releaseInPlaceState(running)
-	local pose = copyPose(running.pose)
-	pose.fov = running.snapshot.pose.fov
-	local cardinalLock = spGetConfigInt(CARDINAL_LOCK_CONFIG, 1) == 1
-	return CameraMath.StateFromPose(pose, running.snapshot.state, spGetGroundHeight, cardinalLock)
-		or running.snapshot.state
+---@return CameraLimits
+local function cameraLimits(running)
+	local limits = {
+		mapX = Game.mapSizeX,
+		mapZ = Game.mapSizeZ,
+		groundHeight = spGetGroundHeight,
+		cardinalLock = spGetConfigInt("CamSpringLockCardinalDirections", 1) == 1,
+		springMinDistance = spGetConfigFloat("CamSpringMinZoomDistance", 20),
+		taMinHeight = spGetConfigFloat("OverheadMinZoomDistance", 60),
+		taMaxHeightFactor = spGetConfigFloat("OverheadMaxHeightFactor", 1),
+		rotClampToMap = spGetConfigInt("RotOverheadClampMap", 1) == 1,
+		fpsClampPos = running.snapshot.clampPos == 1,
+	}
+	if spGetConfigInt("CamSpringTrackMapHeightMode", 1) == 2 then
+		-- the smooth mesh, faded to the ground at close zoom (CSpringController::GetFocusSurfaceHeight)
+		local near = spGetConfigFloat("CamSpringSmoothMeshBlendMinDist", 150)
+		local far = math.max(spGetConfigFloat("CamSpringSmoothMeshBlendMaxDist", 600), near + 1)
+		limits.springFocusHeight = function(x, z, distance)
+			local ground = spGetGroundHeight(x, z)
+			local t = math.min(1, math.max(0, (distance - near) / (far - near)))
+			return ground + (spGetSmoothMeshHeight(x, z) - ground) * t * t * (3 - 2 * t)
+		end
+	end
+	return limits
+end
+
+---The player's camera mode, in the player's own fov, as near `pose` as that mode can show: the
+---state to hand back in, and the pose it shows. The overview shows no free eye: there it is the
+---camera taken over.
+---@param running CinematicControl
+---@param pose CinematicPose
+---@return table state
+---@return CinematicPose shown
+local function releaseTarget(running, pose)
+	local wanted = copyPose(pose)
+	wanted.fov = running.snapshot.pose.fov
+	local state, shown = CameraMath.StateFromPose(wanted, running.snapshot.state, cameraLimits(running))
+	if state and shown then
+		return state, shown
+	end
+	return running.snapshot.state, copyPose(running.snapshot.pose)
 end
 
 ---The camera saved under `slot`, else the one the running sequence took over.
@@ -560,32 +764,30 @@ local function restoreSegment(saved, duration, easing)
 	function segment.finish()
 		local running = control
 		if running then
-			releaseControl(running, saved.state)
+			releaseControl(running, saved.state, "finished")
 		end
 	end
 	return segment
 end
 
----Hands the camera back where it is. The player's camera has no roll and keeps its own fov, so
----those ease out first; the mode switch at the end then changes only what the mode cannot show
----(the spring camera clamps the pitch, ta the yaw; see CameraMath.StateFromPose).
+---Hands the camera back where it is. The player's camera mode has no roll, its own fov and its
+---own limits (see CameraMath.StateFromPose), so the view first eases into what that mode will
+---show, and the switch at the end changes nothing on screen.
 ---@param running CinematicControl
 local function releaseSegment(running, duration, easing)
 	local ease = easingFor(easing)
 	local segment = { duration = duration or DEFAULTS.releaseDuration }
 	function segment.enter(self, startPose)
 		self.start = copyPose(startPose)
-		self.target = copyPose(startPose)
-		self.target.roll = 0
-		self.target.fov = running.snapshot.pose.fov
+		self.state, self.target = releaseTarget(running, startPose)
 	end
 	function segment.evaluate(self, t)
 		local u = self.duration > 0 and ease(t / self.duration) or 1
 		return blendPoses(self.start, self.target, u)
 	end
-	function segment.finish()
+	function segment.finish(self)
 		if control == running then
-			releaseControl(running, releaseInPlaceState(running))
+			releaseControl(running, self.state, "finished")
 		end
 	end
 	return segment
@@ -595,24 +797,28 @@ end
 ---@param running CinematicControl
 ---@param lastMove table? the last keyframe's move, which a hold ending stays on
 local function appendEnding(running, segments, params, lastMove)
-	local onEnd = params.onEnd or DEFAULTS.onEnd
-	if onEnd == "restore" then
+	local ending = params.ending or DEFAULTS.ending
+	if ending == "restore" then
 		local saved = savedCamera(params.restoreSlot)
 		segments[#segments + 1] = restoreSegment(saved, params.restoreDuration, params.restoreEasing)
-	elseif onEnd == "hold" then
-		segments[#segments + 1] = holdSegment(nil, lastMove)
+	elseif ending == "hold" then
+		local hold = holdSegment(nil, lastMove)
+		hold.held = true -- the shot is over once it holds
+		segments[#segments + 1] = hold
 	else
 		segments[#segments + 1] = releaseSegment(running, params.releaseDuration, params.releaseEasing)
 	end
 end
 
+---Puts a new shot on the timeline; the one it replaces is over.
 ---@param running CinematicControl
----@param clock string? "game" to run on game time, else real time
-local function startTimeline(running, segments, clock)
+local function startTimeline(running, segments, params)
+	endShot(running.shot, "replaced")
+	running.shot = { onEnd = params.onEnd, onKeyframe = params.onKeyframe }
 	running.segments = segments
 	running.index = 1
 	running.elapsed = 0
-	running.clock = clock
+	running.clock = params.clock
 end
 
 --------------------------------------------------------------------------------
@@ -662,20 +868,26 @@ end
 --------------------------------------------------------------------------------
 
 local function play(sequence)
+	local problem = badSequence(sequence)
+	if problem then
+		return rejected("Play", problem)
+	end
 	local running = takeControl()
 	local keyframes = sequence.keyframes
 	local segments = {}
 	local move
 	for i = 1, #keyframes do
 		local keyframe = keyframes[i]
-		move = moveSegment(keyframe, keyframes[i - 1], keyframes[i - 2], keyframes[i + 1])
+		move = moveSegment(i, keyframe, keyframes[i - 1], keyframes[i - 2], keyframes[i + 1])
 		segments[#segments + 1] = move
 		if (keyframe.hold or 0) > 0 then
 			segments[#segments + 1] = holdSegment(keyframe.hold, move)
 		end
 	end
 	appendEnding(running, segments, sequence, move)
-	startTimeline(running, segments, sequence.clock)
+	startTimeline(running, segments, sequence)
+	runNotifications()
+	return true
 end
 
 ---The path a sequence would fly, for drawing it. `points` lie along the eye path, spaced evenly
@@ -684,12 +896,17 @@ end
 ---with its eye, its arrival time, `unit` when it rides a unit and, when it looks at something
 ---that resolves, its `lookAt` point. Unit targets resolve to where the units are now. The first
 ---move starts from `start` ({ x, y, z }, default the rendered camera), as Play starts from the
----player's view. Takes nothing over.
+---player's view. Takes nothing over; nil (and a logged warning) for a sequence Play would refuse.
 ---@param sequence table as for Play
 ---@param samplesPerMove integer? points per move besides its start (default 16)
 ---@param start { x: number, y: number, z: number }?
----@return { points: table[], keyframes: table[] }
+---@return { points: table[], keyframes: table[] }?
 local function samplePath(sequence, samplesPerMove, start)
+	local problem = badSequence(sequence)
+	if problem then
+		rejected("SamplePath", problem)
+		return nil
+	end
 	local keyframes = sequence.keyframes
 	local samples = math.max(1, samplesPerMove or DEFAULTS.pathSamples)
 	local from = start and { x = start.x, y = start.y, z = start.z } or renderedPose()
@@ -744,24 +961,48 @@ local function samplePath(sequence, samplesPerMove, start)
 end
 
 local function follow(params)
+	local problem = badShot(params, { "distance", "pitch", "yaw", "fov" }, { "duration", "smoothing" })
+	if problem then
+		return rejected("Follow", problem)
+	end
 	local running = takeControl()
-	local segment, untilStopped = followSegment(params)
-	local segments = { segment }
-	if not untilStopped then
+	local segments = { followSegment(params) }
+	if params.duration then
 		appendEnding(running, segments, params)
 	end
-	startTimeline(running, segments, params.clock)
+	startTimeline(running, segments, params)
+	runNotifications()
+	return true
 end
 
 local function orbit(params)
+	local problem = badShot(params, { "distance", "pitch", "startYaw", "degrees", "fov" }, { "duration" })
+	if problem then
+		return rejected("Orbit", problem)
+	end
 	local running = takeControl()
 	local segments = { orbitSegment(params) }
 	appendEnding(running, segments, params)
-	startTimeline(running, segments, params.clock)
+	startTimeline(running, segments, params)
+	runNotifications()
+	return true
 end
 
 local function shake(params)
-	local magnitude = params.magnitude or 0
+	local problem
+	if type(params) ~= "table" then
+		problem = "expected a params table"
+	elseif not finite(params.magnitude) then
+		problem = "magnitude must be a number"
+	else
+		problem = badNumbers(params, { "frequency", "rotationMagnitude" })
+			or badDurations(params, { "duration", "rampUp", "falloff" })
+			or badCommon(params)
+	end
+	if problem then
+		return rejected("Shake", problem)
+	end
+	local magnitude = params.magnitude
 	local frequency = params.frequency or DEFAULTS.shakeFrequency
 	local tiltDegrees = params.rotationMagnitude or magnitude * DEFAULTS.shakeRotationFactor
 	local noise = {}
@@ -780,6 +1021,7 @@ local function shake(params)
 		noise = noise,
 		clock = params.clock,
 	}
+	return true
 end
 
 ---Remembers the player's camera: during a sequence that is the camera the sequence took over.
@@ -791,7 +1033,20 @@ local function save(slot)
 	}
 end
 
-local function restore(slot, duration, easing, clock)
+local function restore(params)
+	params = params or {}
+	local problem
+	if type(params) ~= "table" then
+		problem = "expected a params table"
+	elseif params.slot ~= nil and type(params.slot) ~= "string" then
+		problem = "slot must be a string"
+	else
+		problem = badDurations(params, { "duration" }) or badCommon(params)
+	end
+	if problem then
+		return rejected("Restore", problem)
+	end
+	local slot = params.slot
 	local saved = savedCamera(slot)
 	if (slot and not slots[slot]) or not saved then
 		Spring.Log(
@@ -804,22 +1059,26 @@ local function restore(slot, duration, easing, clock)
 		)
 	end
 	if not saved then
-		return
+		return false
 	end
 	local running = takeControl()
-	startTimeline(running, { restoreSegment(saved, duration, easing) }, clock)
+	startTimeline(running, { restoreSegment(saved, params.duration, params.easing) }, params)
+	runNotifications()
+	return true
 end
 
 local function stop()
 	local running = control
 	if running then
-		releaseControl(running, releaseInPlaceState(running))
+		local state = releaseTarget(running, running.pose)
+		releaseControl(running, state, "stopped")
 	end
 	shakes = {}
 	if shakeOffsetApplied then
 		spSetCameraOffset()
 		shakeOffsetApplied = false
 	end
+	runNotifications()
 end
 
 local function isActive()
@@ -868,6 +1127,9 @@ local function advance(running, dt)
 		if not segment.entered then
 			segment.entered = true
 			segment:enter(running.pose)
+			if segment.held then
+				endShot(running.shot, "held")
+			end
 		end
 		segment.dt = dt
 		local t = running.elapsed
@@ -875,8 +1137,11 @@ local function advance(running, dt)
 			running.pose = segment:evaluate(segment.duration)
 			running.elapsed = t - segment.duration
 			running.index = running.index + 1
+			if segment.keyframe and running.shot then
+				notify(running.shot.onKeyframe, segment.keyframe)
+			end
 			if segment.finish then
-				segment.finish() -- may release control
+				segment:finish() -- may release control
 			end
 		else
 			running.pose = segment:evaluate(t)
@@ -893,17 +1158,27 @@ function widget:Update(dt)
 		updateShakes(realDt, gameDt)
 	end
 	local running = control
-	if not running then
-		return
+	if running then
+		local step = running.clock == "game" and gameDt or realDt
+		if step then
+			advance(running, step)
+		end
+		if control == running then
+			applyPose(running.pose)
+		end
 	end
+	runNotifications()
+end
 
-	local step = running.clock == "game" and gameDt or realDt
-	if step then
-		advance(running, step)
+function widget:KeyPress(_, _, _, _, _, _, actions)
+	if control and actions then
+		for i = 1, #actions do
+			if GUARDED_ACTIONS[actions[i].command] then
+				return true
+			end
+		end
 	end
-	if control then
-		applyPose(running.pose)
-	end
+	return false
 end
 
 function widget:GameOver()
@@ -931,6 +1206,7 @@ function widget:Shutdown()
 	if running then
 		releaseControl(running, running.snapshot.state)
 	end
+	notifications = {}
 	if shakeOffsetApplied then
 		spSetCameraOffset()
 	end

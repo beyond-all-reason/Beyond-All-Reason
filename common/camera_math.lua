@@ -17,9 +17,10 @@ local max, min, floor = math.max, math.min, math.floor
 
 --------------------------------------------------------------------------------
 -- Easing: t in [0, 1] -> eased fraction in [0, 1]
--- The mission API's Easing parameter type (mission-api/dev) lists these names; keep both the same.
+-- The mission API's CameraEasing parameter type lists these names; keep both the same.
 --------------------------------------------------------------------------------
 
+---@type table<string, fun(t: number): number>
 CameraMath.Easings = {
 	linear = function(t)
 		return t
@@ -81,16 +82,25 @@ end
 -- Rotation
 --------------------------------------------------------------------------------
 
----Engine CCamera::GetRotFromDir.
+-- Below this share of the length, a direction counts as straight up or down: atan2 of the
+-- leftover x and z is noise, and the yaw would spin.
+local VERTICAL_EPSILON = 1e-4
+
+---Engine CCamera::GetRotFromDir. A straight up or down direction has no yaw of its own and
+---takes `fallbackRy` (default 0).
+---@param fallbackRy number?
 ---@return number rx
 ---@return number ry
-function CameraMath.RotFromDir(dx, dy, dz)
+function CameraMath.RotFromDir(dx, dy, dz, fallbackRy)
 	local length = sqrt(dx * dx + dy * dy + dz * dz)
 	if length == 0 then
-		return HALFPI, 0
+		return HALFPI, fallbackRy or 0
 	end
-	local y = dy / length
-	return acos(max(-1, min(1, y))), atan2(dx, -dz)
+	local rx = acos(max(-1, min(1, dy / length)))
+	if dx * dx + dz * dz <= (length * VERTICAL_EPSILON) ^ 2 then
+		return rx, fallbackRy or 0
+	end
+	return rx, atan2(dx, -dz)
 end
 
 ---Engine CCamera::GetFwdFromRot.
@@ -102,9 +112,11 @@ function CameraMath.FwdFromRot(rx, ry)
 	return sx * sin(ry), cos(rx), -sx * cos(ry)
 end
 
----Rotation that points an eye at a target.
-function CameraMath.LookAtRotation(ex, ey, ez, tx, ty, tz)
-	return CameraMath.RotFromDir(tx - ex, ty - ey, tz - ez)
+---Rotation that points an eye at a target; `fallbackRy` is the yaw when the target is straight
+---above or below.
+---@param fallbackRy number?
+function CameraMath.LookAtRotation(ex, ey, ez, tx, ty, tz, fallbackRy)
+	return CameraMath.RotFromDir(tx - ex, ty - ey, tz - ez, fallbackRy)
 end
 
 ---Eye position and rotation that look at a target from a distance, pitched down by `pitch`
@@ -146,6 +158,9 @@ end
 
 ---@param a { x: number, y: number, z: number }
 ---@param b { x: number, y: number, z: number }
+---@return number x
+---@return number y
+---@return number z
 function CameraMath.Lerp3(a, b, t)
 	return a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t
 end
@@ -157,6 +172,9 @@ local function catmullRom(p0, p1, p2, p3, t)
 end
 
 ---Uniform Catmull-Rom point between p1 (t = 0) and p2 (t = 1), shaped by neighbours p0 and p3.
+---@return number x
+---@return number y
+---@return number z
 function CameraMath.CatmullRom(p0, p1, p2, p3, t)
 	return catmullRom(p0.x, p1.x, p2.x, p3.x, t),
 		catmullRom(p0.y, p1.y, p2.y, p3.y, t),
@@ -166,6 +184,9 @@ end
 ---The eye `u` of the way along a move from `start` to `eye`: a straight line, or when `spline`,
 ---a Catmull-Rom shaped by the neighbouring keyframes' eyes `p0` (before the start) and `p3`
 ---(after the end). The widget flies this; an editor samples it to draw the path.
+---@return number x
+---@return number y
+---@return number z
 function CameraMath.MoveEye(start, eye, p0, p3, spline, u)
 	if spline then
 		return CameraMath.CatmullRom(p0, start, eye, p3, u)
@@ -247,91 +268,182 @@ function CameraMath.GroundIntersection(ex, ey, ez, fx, fy, fz, groundHeightFn, m
 	return x, groundHeightFn(x, z), z
 end
 
+--------------------------------------------------------------------------------
+-- The player's camera modes: what each can show (rts/Game/Camera/*Controller.cpp)
+--------------------------------------------------------------------------------
+
+local MAP_MARGIN = 0.01
+local EYE_CLEARANCE = 5 -- spring, rot and a clamped fps eye stay this far above ground or water
+local MAX_EYE_HEIGHT = 9000 -- rot and a clamped fps eye
 local SPRING_MIN_RX = 0.51 * PI
 local SPRING_MAX_RX = 0.99 * PI
+local SPRING_SWITCH_RX = 0.75 * PI -- what the spring camera tips a level or upward view to
+local SPRING_MAX_DISTANCE = 1.333 -- times the longer map side
+local ROT_MIN_RX = 0.4999 * PI -- the rot camera's mouse look range
+local ROT_MAX_RX = 0.9999 * PI
 local TA_MIN_ANGLE = 0.01
-local FALLBACK_LOOK_DISTANCE = 1000
+local TA_MAX_HEIGHT = 9.5 / 8 -- times the longer map side, in elmos
 
----A camera state table for Spring.SetCameraState that shows `pose` (an eye position, rotation
----and fov) in the camera mode of `previousState`. Nil for modes without a free eye (overview,
----free, dolly): the caller falls back to restoring the previous state as it was.
----@param pose { x: number, y: number, z: number, rx: number, ry: number, fov: number }
----@param previousState table a Spring.GetCameraState() table
----@param groundHeightFn fun(x: number, z: number): number
----@param cardinalLock boolean whether CamSpringLockCardinalDirections is on
----@return table?
-function CameraMath.StateFromPose(pose, previousState, groundHeightFn, cardinalLock)
-	local mode = previousState.mode
-	local fx, fy, fz = CameraMath.FwdFromRot(pose.rx, pose.ry)
+---@class CameraLimits engine settings the player's camera modes clamp to
+---@field mapX number map size in elmos
+---@field mapZ number
+---@field groundHeight fun(x: number, z: number): number
+---@field springFocusHeight (fun(x: number, z: number, distance: number): number)? what the spring camera rests on
+---@field cardinalLock boolean? CamSpringLockCardinalDirections
+---@field springMinDistance number? CamSpringMinZoomDistance
+---@field taMinHeight number? OverheadMinZoomDistance
+---@field taMaxHeightFactor number? OverheadMaxHeightFactor
+---@field rotClampToMap boolean? RotOverheadClampMap
+---@field fpsClampPos boolean? FPSClampPos
 
-	if mode == 0 then -- fps
-		return {
-			name = "fps",
-			mode = 0,
-			px = pose.x,
-			py = pose.y,
-			pz = pose.z,
-			dx = fx,
-			dy = fy,
-			dz = fz,
-			rx = pose.rx,
-			ry = pose.ry,
-			rz = 0, -- the player's cameras have no roll
-			fov = pose.fov,
-		}
-	elseif mode == 3 then -- rot
-		return {
-			name = "rot",
-			mode = 3,
-			px = pose.x,
-			py = pose.y,
-			pz = pose.z,
-			rx = pose.rx,
-			ry = pose.ry,
-			rz = 0, -- the player's cameras have no roll
-			fov = pose.fov,
-		}
-	elseif mode ~= 1 and mode ~= 2 then
-		return nil
-	end
+local function clamp(value, low, high)
+	return max(low, min(high, value))
+end
 
-	-- Ground-point cameras: the state holds the point the view centre rests on.
-	local hx, hy, hz = CameraMath.GroundIntersection(pose.x, pose.y, pose.z, fx, fy, fz, groundHeightFn)
+---CGround::GetHeightAboveWater, with the water at 0.
+local function heightAboveWater(limits, x, z)
+	return max(0.0, limits.groundHeight(x, z))
+end
+
+local function clampToMap(limits, x, z)
+	return clamp(x, MAP_MARGIN, limits.mapX - MAP_MARGIN), clamp(z, MAP_MARGIN, limits.mapZ - MAP_MARGIN)
+end
+
+---Where a ground-point camera looking from the eye along f rests: the first hit on the surface,
+---else `maxDistance` along.
+---@return number x
+---@return number z
+---@return number distance
+local function restingPoint(pose, fx, fy, fz, heightFn, maxDistance)
+	local hx, hy, hz = CameraMath.GroundIntersection(pose.x, pose.y, pose.z, fx, fy, fz, heightFn, maxDistance)
 	if not hx then
-		hx, hz = pose.x + fx * FALLBACK_LOOK_DISTANCE, pose.z + fz * FALLBACK_LOOK_DISTANCE
-		hy = groundHeightFn(hx, hz)
+		return pose.x + fx * maxDistance, pose.z + fz * maxDistance, maxDistance
 	end
 	local dx, dy, dz = pose.x - hx, pose.y - hy, pose.z - hz
-	local distance = sqrt(dx * dx + dy * dy + dz * dz)
+	return hx, hz, sqrt(dx * dx + dy * dy + dz * dz)
+end
 
-	if mode == 2 then -- spring
-		local ry = cardinalLock and CameraMath.RawYawForAzimuth(pose.ry) or pose.ry
-		return {
-			name = "spring",
-			mode = 2,
-			px = hx,
-			py = hy,
-			pz = hz,
-			dist = distance,
-			rx = max(SPRING_MIN_RX, min(SPRING_MAX_RX, pose.rx)),
-			ry = ry,
-			rz = 0,
-			fov = pose.fov,
-		}
+local function shownPose(x, y, z, rx, ry, fov)
+	return { x = x, y = y, z = z, rx = rx, ry = ry, roll = 0, fov = fov }
+end
+
+local function fpsState(pose, limits)
+	local x, y, z = pose.x, pose.y, pose.z
+	if limits.fpsClampPos ~= false then
+		x, z = clampToMap(limits, x, z)
+		y = clamp(y, heightAboveWater(limits, x, z) + EYE_CLEARANCE, MAX_EYE_HEIGHT)
 	end
+	local fx, fy, fz = CameraMath.FwdFromRot(pose.rx, pose.ry)
+	local state = { name = "fps", mode = 0, px = x, py = y, pz = z, dx = fx, dy = fy, dz = fz }
+	state.rx, state.ry, state.rz, state.fov = pose.rx, pose.ry, 0, pose.fov
+	return state, shownPose(x, y, z, pose.rx, pose.ry, pose.fov)
+end
 
-	-- ta: looks along +-z only; angle counts from straight down
-	return {
-		name = "ta",
-		mode = 1,
-		px = hx,
-		py = hy,
-		pz = hz,
-		height = distance,
-		angle = max(TA_MIN_ANGLE, min(HALFPI, PI - pose.rx)),
-		flipped = previousState.flipped or -1,
-		fov = pose.fov,
-	}
+local function rotState(pose, limits)
+	local x, z = pose.x, pose.z
+	if limits.rotClampToMap == false then
+		x = clamp(x, -limits.mapX, 2 * limits.mapX - MAP_MARGIN)
+		z = clamp(z, -limits.mapZ, 2 * limits.mapZ - MAP_MARGIN)
+	else
+		x, z = clampToMap(limits, x, z)
+	end
+	local y = clamp(pose.y, heightAboveWater(limits, x, z) + EYE_CLEARANCE, MAX_EYE_HEIGHT)
+	local rx = clamp(pose.rx, ROT_MIN_RX, ROT_MAX_RX)
+	local state = { name = "rot", mode = 3, px = x, py = y, pz = z, rx = rx, ry = pose.ry, rz = 0, fov = pose.fov }
+	return state, shownPose(x, y, z, rx, pose.ry, pose.fov)
+end
+
+local function springState(pose, limits)
+	-- the spring camera's own switch tips a level or upward view to 45 degrees down
+	local rx = pose.rx <= HALFPI and SPRING_SWITCH_RX or clamp(pose.rx, SPRING_MIN_RX, SPRING_MAX_RX)
+	local fx, fy, fz = CameraMath.FwdFromRot(rx, pose.ry)
+	local maxDistance = max(limits.mapX, limits.mapZ) * SPRING_MAX_DISTANCE
+	local px, pz, distance = restingPoint(pose, fx, fy, fz, limits.groundHeight, maxDistance)
+	px, pz = clampToMap(limits, px, pz)
+	distance = clamp(distance, max(limits.springMinDistance or 20, 0.1), maxDistance)
+	local focusHeight = limits.springFocusHeight
+	local py = focusHeight and focusHeight(px, pz, distance) or limits.groundHeight(px, pz)
+
+	local ex, ez = px - fx * distance, pz - fz * distance
+	local ey = max(py - fy * distance, heightAboveWater(limits, ex, ez) + EYE_CLEARANCE)
+	local ry = limits.cardinalLock and CameraMath.RawYawForAzimuth(pose.ry) or pose.ry
+	local state = { name = "spring", mode = 2, px = px, py = py, pz = pz, dist = distance }
+	state.rx, state.ry, state.rz, state.fov = rx, ry, 0, pose.fov
+	return state, shownPose(ex, ey, ez, rx, pose.ry, pose.fov)
+end
+
+local function overheadState(pose, limits)
+	-- looks along +-z only, with the angle counted from straight down; an upward view is tipped
+	-- down the way the ta camera's own switch does it
+	local rx = pose.rx
+	if rx < HALFPI then
+		local s = sin(rx)
+		rx = acos(-0.5 / sqrt(s * s + 0.25))
+	end
+	local angle = clamp(PI - rx, TA_MIN_ANGLE, HALFPI)
+	local flipped = cos(pose.ry) < 0 -- facing +z, the bottom of the map
+	local fx, fy, fz = 0, -cos(angle), flipped and sin(angle) or -sin(angle)
+	local maxHeight = max(limits.mapX, limits.mapZ) * TA_MAX_HEIGHT * (limits.taMaxHeightFactor or 1)
+	local function surface(x, z)
+		return heightAboveWater(limits, x, z)
+	end
+	local px, pz, height = restingPoint(pose, fx, fy, fz, surface, maxHeight)
+	px, pz = clampToMap(limits, px, pz)
+	height = clamp(height, max(limits.taMinHeight or 60, 0.1), maxHeight)
+	local py = surface(px, pz)
+
+	local state = { name = "ta", mode = 1, px = px, py = py, pz = pz, height = height, angle = angle }
+	state.flipped, state.fov = flipped and 1 or -1, pose.fov
+	local ex, ey, ez = px - fx * height, py - fy * height, pz - fz * height
+	return state, shownPose(ex, ey, ez, PI - angle, flipped and PI or 0, pose.fov)
+end
+
+local function freeState(pose, previousState, limits)
+	local state = {}
+	for key, value in pairs(previousState) do
+		state[key] = value
+	end
+	local y = pose.y
+	local ground = limits.groundHeight(pose.x, pose.z)
+	local offset = previousState.gndOffset or 0
+	if offset < 0 then
+		y = ground - offset
+	elseif (previousState.gndLock or 0) > 0 and (previousState.gravity or 0) >= 0 then
+		y = ground + offset
+	elseif offset > 0 then
+		y = max(y, ground + offset)
+	end
+	local fx, fy, fz = CameraMath.FwdFromRot(pose.rx, pose.ry)
+	state.px, state.py, state.pz, state.dx, state.dy, state.dz = pose.x, y, pose.z, fx, fy, fz
+	state.rx, state.ry, state.rz, state.fov = HALFPI - pose.rx, PI - pose.ry, 0, pose.fov -- the free camera's own angles
+	state.vx, state.vy, state.vz, state.avx, state.avy, state.avz = 0, 0, 0, 0, 0, 0
+	return state, shownPose(pose.x, y, pose.z, pose.rx, pose.ry, pose.fov)
+end
+
+---A Spring.SetCameraState table that shows `pose` in the camera mode of `previousState` as near
+---as that mode can, and the pose that state really shows. Each mode keeps its own limits (pitch
+---range, the spring and ta cameras' zoom range and ground point, height above ground and water),
+---so a hand-over can ease into the second pose first and then switch without a jump. The player's
+---cameras have no roll. Nil for modes without a free eye (overview, dolly).
+---@param pose { x: number, y: number, z: number, rx: number, ry: number, fov: number }
+---@param previousState table a Spring.GetCameraState() table
+---@param limits CameraLimits
+---@return table? state
+---@return { x: number, y: number, z: number, rx: number, ry: number, roll: number, fov: number }? shown
+function CameraMath.StateFromPose(pose, previousState, limits)
+	local mode = previousState.mode
+	if mode == 0 then
+		return fpsState(pose, limits)
+	elseif mode == 1 then
+		return overheadState(pose, limits)
+	elseif mode == 2 then
+		return springState(pose, limits)
+	elseif mode == 3 then
+		return rotState(pose, limits)
+	elseif mode == 4 then
+		return freeState(pose, previousState, limits)
+	end
+	return nil, nil
 end
 
 --------------------------------------------------------------------------------
