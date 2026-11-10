@@ -13,7 +13,7 @@ function gadget:GetInfo()
 end
 
 -- Finished units and frames count for the team that has them. At the cap the type is blocked and
--- new ones refused; spawned, given and captured units are counted, never refused.
+-- new or shared ones refused; spawned and captured units are counted, never refused.
 
 if gadgetHandler:IsSyncedCode() then
 	local REASON_KEY = "mission_limit"
@@ -149,6 +149,11 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
 		-- The second value drops a refused order.
 		return not atCap(builderTeam, unitDefID) or assistsPlacedFrame(unitDefID, builderTeam, x, z), true
+	end
+
+	-- Captures go through so capture objectives still work.
+	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+		return capture or not atCap(newTeam, unitDefID)
 	end
 
 	function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
