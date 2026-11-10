@@ -15,7 +15,7 @@ end
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 
-include("keysym.h.lua")
+local KEY_M = Spring.GetKeyCode("m")
 
 local floor = math.floor
 
@@ -35,7 +35,7 @@ local handle
 
 function widget:KeyPress(key, modifier, isRepeat)
 	if modifier.alt then
-		if key == KEYSYMS.M then
+		if key == KEY_M then
 			enabled = not enabled
 		end
 	end

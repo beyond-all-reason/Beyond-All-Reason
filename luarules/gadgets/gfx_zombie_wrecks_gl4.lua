@@ -48,7 +48,7 @@ if not Spring.GetGameRulesParam(RULESPARAM_ENABLED) then
 	return false
 end
 
-local hasShaders = gl.CreateShader ~= nil
+local drawsWithShaders = Platform.check("gl4")
 
 --------------------------------------------------------------------------------
 -- Configuration
@@ -87,11 +87,13 @@ local THUNDER_SOUNDS = {
 	"sounds/atmos/thunder6.wav",
 }
 local THUNDER_VOLUME = 0.8
+local THUNDER_INTERVAL_FRAMES = gameSpeed * 0.25
 local THUNDER_FULL_VOLUME_WRECK_RADIUS = 40
 local THUNDER_FULL_VOLUME_CAMERA_DISTANCE = 600
 local THUNDER_SILENT_CAMERA_DISTANCE = 3000
 local UPDATE_INTERVAL_FRAMES = 3
 local SETTLED_SPEED_SQUARED = 0.01
+local WRECK_INSTANCE_CAPACITY = 512
 
 local BILLBOARD_SMOKE_SPRITE_COUNT = 3
 local BILLBOARD_CULL_RADIUS = 200
@@ -127,6 +129,7 @@ local wrecks = {} ---@type table<FeatureID, table?>
 
 local shader ---@type LuaShader?
 local spriteVBO ---@type InstanceVBOTable?
+local spriteCornerVBO ---@type VBO?
 local billboardBolts = {} ---@type table[]
 
 local updateWreckSprites ---@type fun(featureID: FeatureID, wreck: table)
@@ -142,6 +145,8 @@ local flashesPerWreck, strikesPerWreck = FLASH_COUNT, STRIKE_COUNT
 
 local vertexShaderSource = [[
 #version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack : require
 #line 10000
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -177,7 +182,7 @@ void main() {
 		float wreckRadius = max(wreck_position.w, 12.0);
 		float phaseRandom = fract(sin(seed * 12.9898 + spriteIndex * 78.233) * 43758.5453);
 		float loopFrames = SMOKE_LIFE_FRAMES + SMOKE_LINGER_FRAMES;
-		float loopIndex = floor((frame - armFrame) / loopFrames + phaseRandom);
+		float loopIndex = mod(floor((frame - armFrame) / loopFrames + phaseRandom), 1024.0);
 		float angleRandom = fract(sin(seed * 39.3468 + spriteIndex * 11.135 + loopIndex * 7.919) * 24634.6345);
 		float distanceRandom = fract(sin(seed * 73.1562 + spriteIndex * 52.931 + loopIndex * 3.571) * 12345.6789);
 		float heightRandom = fract(sin(seed * 5.4321 + spriteIndex * 91.717 + loopIndex * 5.113) * 65432.1234);
@@ -222,6 +227,7 @@ void main() {
 
 local fragmentShaderSource = [[
 #version 420
+#extension GL_ARB_shading_language_420pack : require
 #line 20000
 
 //__DEFINES__
@@ -253,7 +259,10 @@ local function makeSpriteCornerVBO()
 		end
 	end
 	local vertexCount = #corners * (SMOKE_SPRITE_COUNT + PUFF_SPRITE_COUNT)
-	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true) --[[@as VBO]]
+	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
+	if not vbo then
+		return nil, 0
+	end
 	vbo:Define(vertexCount, { { id = 0, name = "corner_index", size = 3 } })
 	vbo:Upload(vertexData)
 	return vbo, vertexCount
@@ -261,11 +270,15 @@ end
 
 local function initGL4()
 	local cornerVBO, vertexCount = makeSpriteCornerVBO()
+	if not cornerVBO then
+		return false
+	end
+	spriteCornerVBO = cornerVBO
 	local instanceTable = InstanceVBOTable.makeInstanceVBOTable({
 		{ id = 1, name = "wreck_position", size = 4 },
 		{ id = 2, name = "frames", size = 4 },
 		{ id = 3, name = "hold_until_frame", size = 4 },
-	}, 64, "gfx_zombie_wrecks_gl4")
+	}, WRECK_INSTANCE_CAPACITY, "gfx_zombie_wrecks_gl4")
 	if not instanceTable then
 		return false
 	end
@@ -299,7 +312,14 @@ local function initGL4()
 		fragment = fragmentSource,
 		uniformInt = { smokeTexture = 0 },
 	}, "gfx_zombie_wrecks_gl4")
-	return shader:Initialize()
+	if not shader:Initialize() then
+		return false
+	end
+	gl.DeleteList(gl.CreateList(function()
+		gl.Texture(0, SMOKE_TEXTURE)
+		gl.Texture(0, false)
+	end))
+	return true
 end
 
 --------------------------------------------------------------------------------
@@ -400,10 +420,16 @@ local function thunderVolumeScale(wreck)
 	return math.min(1, math.max(0, cameraCloseness)) * math.min(1, wreckSizeFraction)
 end
 
-local function strikeWreck(wreck, playsThunder)
+local lastThunderFrame = -math.huge
+
+local function strikeWreck(wreck, playsThunder, frame)
 	spawnStrike(wreck)
+	if not playsThunder or frame - lastThunderFrame < THUNDER_INTERVAL_FRAMES then
+		return
+	end
 	local volumeScale = thunderVolumeScale(wreck)
-	if playsThunder and math.random() < volumeScale then
+	if math.random() < volumeScale then
+		lastThunderFrame = frame
 		local sound = THUNDER_SOUNDS[math.random(#THUNDER_SOUNDS)] --[[@as string]]
 		Spring.PlaySoundFile(sound, THUNDER_VOLUME * volumeScale, wreck.x, wreck.y, wreck.z, 0)
 	end
@@ -437,6 +463,23 @@ local function armWreck(_, featureID, armFrame, riseFrame)
 	wreck.armFrame = armFrame
 	wreck.riseFrame = riseFrame
 	wreck.strikeCount = 0
+	updateWreckSprites(featureID, wreck)
+end
+
+local function restoreWreck(featureID, armFrame, riseFrame, frame)
+	armWreck(nil, featureID, armFrame, riseFrame)
+	local wreck = wrecks[featureID]
+	if not wreck then
+		return
+	end
+	wreck.settleFrame = armFrame
+	local progress = math.min(1, (frame - armFrame) / math.max(riseFrame - armFrame, 1))
+	wreck.flashCount = math.min(flashesPerWreck, math.floor(flashEasing(progress) * (flashesPerWreck + 1)))
+	local firstStrikeFrame = riseFrame - SMOKE_FINISH_FRAMES_BEFORE_RISE
+	if frame >= firstStrikeFrame then
+		wreck.strikeCount =
+			math.min(strikesPerWreck, math.floor((frame - firstStrikeFrame) / STRIKE_INTERVAL_FRAMES) + 1)
+	end
 	updateWreckSprites(featureID, wreck)
 end
 
@@ -492,7 +535,7 @@ local function updateWreck(featureID, wreck, frame)
 		if frame >= nextStrikeFrame then
 			wreck.strikeCount = wreck.strikeCount + 1
 			if isWreckShown(wreck) then
-				strikeWreck(wreck, wreck.strikeCount == 1)
+				strikeWreck(wreck, wreck.strikeCount == 1, frame)
 			end
 		end
 	end
@@ -557,14 +600,15 @@ local function drawBillboardSmoke(wreck, frame)
 		local loopFrames = SMOKE_LIFE_FRAMES + SMOKE_LINGER_FRAMES
 		local loopPosition = (frame - wreck.armFrame) / loopFrames + phaseRandom
 		local loopIndex = math.floor(loopPosition)
+		local loopHash = loopIndex % 1024
 		local loopFrame = (loopPosition - loopIndex) * loopFrames
 		local loopAge = math.min(loopFrame / SMOKE_LIFE_FRAMES, 1.0)
 		local linger = math.max(loopFrame - SMOKE_LIFE_FRAMES, 0) / SMOKE_LINGER_FRAMES
 		local loopEndsBeforeFinish = frame - loopFrame <= finishFrame - loopFrames
 		if spriteIndex < particleCount and frame >= wreck.armFrame and loopEndsBeforeFinish then
-			local angle = hashRandom(wreck.seed + loopIndex * 7.919, spriteIndex + 11) * 6.2832
-			local distanceRandom = hashRandom(wreck.seed + loopIndex * 3.571, spriteIndex + 53)
-			local heightRandom = hashRandom(wreck.seed + loopIndex * 5.113, spriteIndex + 91)
+			local angle = hashRandom(wreck.seed + loopHash * 7.919, spriteIndex + 11) * 6.2832
+			local distanceRandom = hashRandom(wreck.seed + loopHash * 3.571, spriteIndex + 53)
+			local heightRandom = hashRandom(wreck.seed + loopHash * 5.113, spriteIndex + 91)
 			local drawnInFraction = loopAge ^ 1.4
 			local startDistance = (wreckRadius + 30 * distanceRandom) * SMOKE_START_DISTANCE_SCALE * wreckScale
 			local endDistance = wreckRadius * 0.35 * heightRandom
@@ -652,18 +696,14 @@ local function drawWreckSpriteInstances()
 end
 
 function gadget:DrawWorld()
-	if Spring.IsGUIHidden() then
-		return
-	end
 	drawWrecks()
 end
 
 function gadget:Initialize()
-	if hasShaders then
-		if not initGL4() then
-			gadgetHandler:RemoveGadget()
-			return
-		end
+	if drawsWithShaders and not initGL4() then
+		drawsWithShaders = false
+	end
+	if drawsWithShaders then
 		updateWreckSprites = updateWreckSpriteInstance
 		removeWreckSprite = removeWreckSpriteInstance
 		drawWrecks = drawWreckSpriteInstances
@@ -691,7 +731,8 @@ function gadget:Initialize()
 	for _, featureID in ipairs(Spring.GetAllFeatures()) do
 		local riseFrame = spGetFeatureRulesParam(featureID, "zombie_rez_frame")
 		if riseFrame and riseFrame > frame then
-			armWreck(nil, featureID, frame, riseFrame)
+			local armFrame = spGetFeatureRulesParam(featureID, "zombie_rez_arm_frame") or frame
+			restoreWreck(featureID, armFrame, riseFrame, frame)
 		end
 	end
 end
@@ -699,8 +740,11 @@ end
 function gadget:Shutdown()
 	gadgetHandler:RemoveSyncAction("zombieWreckArm")
 	gadgetHandler:RemoveSyncAction("zombieWreckDisarm")
-	if spriteVBO and spriteVBO.VAO then
-		spriteVBO.VAO:Delete()
+	if spriteVBO then
+		spriteVBO:Delete()
+	end
+	if spriteCornerVBO then
+		spriteCornerVBO:Delete()
 	end
 	if shader then
 		shader:Finalize()

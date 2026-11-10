@@ -1,7 +1,7 @@
--- The pick set of the shared unit placer (PtaQ, 2026-09-27: "pick multiple units in the
--- library holding Shift, then it cycles between them on each placement; choose whether the
--- cycling is a b c or random"). Pure: the owner (the mission editor's ROSTER, the terraform
--- brush's UNITS tool) keeps one, asks it what to arm with, and advances it after each drop.
+-- The pick set of the shared unit placer: Shift+click several units in the library and each
+-- placement cycles to the next one, in order or at random. Pure: the owner (the mission
+-- editor's ROSTER, the terraform brush's UNITS tool) keeps one, asks it what to arm with, and
+-- advances it after each drop.
 --
 --     local Cycle = VFS.Include("luaui/Include/unit_placer/cycle.lua")
 --     local set = Cycle.new({ "armpw", "armrock", "armham" }, "abc")
@@ -11,7 +11,7 @@
 -- ORDER ("abc") walks the set in the order it was picked and wraps. RANDOM draws from the
 -- whole set every time, the one just placed included, as a die would. The random source is
 -- handed in (a function returning 1..n) so a spec can pin it; the default seeds math.random
--- from os.clock once, because BAR does not seed it (memory: bar-math-random-not-seeded).
+-- from os.clock once, because BAR does not seed it.
 
 local Cycle = {}
 
@@ -39,9 +39,8 @@ function Cycle.other(mode)
 end
 
 --- A plain click picks one; Shift+click adds a name to the set, or takes it back out if it
---- is in it already. The set keeps the order names were added in. Never empties by a Shift
---- click on its last member: that is a plain pick of it (the set is what gets placed, and an
---- empty one would place nothing while the tile still reads as chosen).
+--- is in it already. The set keeps the order names were added in. Shift+click on the last
+--- member keeps it picked: an empty set would place nothing while the tile still reads as chosen.
 ---@param names string[] the set now
 ---@param name string
 ---@param additive boolean Shift held
@@ -70,7 +69,7 @@ end
 --- Shift+click after a pick: every name from the anchor (the tile clicked last) to `name`,
 --- in `list` (the library's filtered order), joins the set, walking from the anchor so the
 --- set's order follows the run. Names already in the set stay where they are. Nil when the
---- anchor or the name is not in the list (filtered out since): the caller toggles instead.
+--- anchor or the name is not in the list (filtered out): the caller toggles instead.
 ---@param names string[] the set now
 ---@param list string[] the tiles in the order the library shows them
 ---@param anchor string|nil

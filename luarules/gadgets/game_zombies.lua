@@ -185,6 +185,7 @@ local RULES_PARAM = {
 	REZ_POWER_SPEED = "zombie_rez_power_speed",
 	FACTORY_BUILDPOWER_MULTIPLIER = "zombie_factory_buildpower_multiplier",
 	REZ_FRAME = "zombie_rez_frame",
+	REZ_ARM_FRAME = "zombie_rez_arm_frame",
 	WAS_ZOMBIE = "wasZombie",
 	WRAITH_READY_FRAME = "zombie_wraith_ready_frame",
 	WRAITH_EXPIRATION_FRAME = "zombie_wraith_expiration_frame",
@@ -545,6 +546,7 @@ end
 
 local function clearCorpseRezRulesParam(featureID)
 	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME, nil, RULES_PARAM.PUBLIC_ACCESS)
+	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_ARM_FRAME, nil, RULES_PARAM.PUBLIC_ACCESS)
 end
 
 local function wasZombieCorpse(featureID, corpseData)
@@ -559,6 +561,12 @@ local function armCorpseSpawn(featureID, featureData, spawnFrame)
 	spawnFrame = math.max(spawnFrame, gameFrame + 1)
 	featureData.spawnFrame = spawnFrame
 	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME, spawnFrame, RULES_PARAM.PUBLIC_ACCESS)
+	spring.SetFeatureRulesParam(
+		featureID,
+		RULES_PARAM.REZ_ARM_FRAME,
+		featureData.creationFrame,
+		RULES_PARAM.PUBLIC_ACCESS
+	)
 	addToFrameList(corpseCheckFrames, spawnFrame, featureID)
 	if GG.ZombieWreckEffects then
 		GG.ZombieWreckEffects.Arm(featureID, featureData.creationFrame, spawnFrame)
