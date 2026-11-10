@@ -1089,53 +1089,47 @@ describe("mission_api.validation.parameter_validators", function()
 		})
 	end
 
-	describe("MoveState and FireState", function()
-		-- The file-wide before_each swaps in a CMD table without the states; take back the spec helper's.
-		before_each(V.mockEngineGlobals)
+	describe("UnitStates", function()
+		-- The file-wide before_each swaps in a CMD table without the states; take back the spec helper's,
+		-- plus REPEAT, an on/off command.
+		before_each(function()
+			V.mockEngineGlobals()
+			local CMD = { REPEAT = 115 }
+			for name, id in pairs(V.env.CMD) do
+				CMD[name] = id
+			end
+			V.env.CMD = CMD
+		end)
 
-		it("accepts every move and fire state", function()
-			local unitLoadout = {}
+		local function withStates(states)
+			return validateUnitLoadout({
+				{ unitDefName = "armwar", teamName = "player", position = { x = 0, z = 0 }, states = states },
+			})
+		end
+
+		it("accepts every state CMD lists for a state command, and 0 or 1 for an on/off one", function()
+			local CMD = V.env.CMD
 			for moveState = 0, 2 do
-				unitLoadout[#unitLoadout + 1] =
-					{ unitDefName = "armwar", teamName = "player", position = { x = 0, z = 0 }, moveState = moveState }
+				V.assertValid(withStates({ [CMD.MOVE_STATE] = moveState }))
 			end
 			for fireState = 0, 3 do
-				unitLoadout[#unitLoadout + 1] =
-					{ unitDefName = "armwar", teamName = "player", position = { x = 0, z = 0 }, fireState = fireState }
+				V.assertValid(withStates({ [CMD.FIRE_STATE] = fireState, [CMD.REPEAT] = fireState % 2 }))
 			end
-
-			V.assertValid(validateUnitLoadout(unitLoadout))
 		end)
 
-		it("rejects a state out of range", function()
-			local result = validateUnitLoadout({
-				{
-					unitDefName = "armwar",
-					teamName = "player",
-					position = { x = 0, z = 0 },
-					moveState = 3,
-					fireState = -1,
-				},
-			})
+		it("rejects a state CMD does not list", function()
+			local CMD = V.env.CMD
+			local result = withStates({ [CMD.MOVE_STATE] = 3, [CMD.FIRE_STATE] = -1, [CMD.REPEAT] = 2 })
 
-			V.assertMessage(result, "Invalid moveState: 3. Action: a, Parameter: unitLoadout[1].moveState")
-			V.assertMessage(result, "Invalid fireState: -1. Action: a, Parameter: unitLoadout[1].fireState")
+			V.assertMessage(result, "Invalid MOVE_STATE: 3. Action: a, Parameter: unitLoadout[1].states[MOVE_STATE]")
+			V.assertMessage(result, "Invalid FIRE_STATE: -1. Action: a, Parameter: unitLoadout[1].states[FIRE_STATE]")
+			V.assertMessage(result, "Invalid REPEAT: 2. Action: a, Parameter: unitLoadout[1].states[REPEAT]")
 		end)
 
-		it("rejects a state given as a name", function()
-			local result = validateUnitLoadout({
-				{
-					unitDefName = "armwar",
-					teamName = "player",
-					position = { x = 0, z = 0 },
-					moveState = "HoldPosition",
-				},
-			})
+		it("rejects a command that is not a state", function()
+			local result = withStates({ [V.env.CMD.MOVE] = 1 })
 
-			V.assertMessage(
-				result,
-				"Unexpected parameter type, expected number, got string. Action: a, Parameter: unitLoadout[1].moveState"
-			)
+			V.assertMessage(result, "Not a state command: 10. Action: a, Parameter: unitLoadout[1].states[10]")
 		end)
 	end)
 

@@ -25,12 +25,12 @@ MissionApiBuilder.new():Install(env)
 
 local loadout = MissionSpecEnv.include(env, "luarules/mission_api/loadout.lua")
 
-describe("mission_api.loadout move and fire states", function()
+describe("mission_api.loadout states", function()
 	before_each(function()
 		given = {}
 	end)
 
-	it("gives the states ahead of the entry's orders, in one array inside the order fence", function()
+	it("gives the states ahead of the entry's orders, by command ID, in one array inside the order fence", function()
 		local move = { env.CMD.MOVE, { 1, 0, 2 }, {} }
 
 		loadout.SpawnUnitLoadout({
@@ -38,8 +38,10 @@ describe("mission_api.loadout move and fire states", function()
 				unitDefName = "bot",
 				position = { x = 0, z = 0 },
 				teamName = 0,
-				moveState = env.CMD.MOVESTATE_HOLDPOS,
-				fireState = env.CMD.FIRESTATE_FIREATNEUTRAL,
+				states = {
+					[env.CMD.MOVE_STATE] = env.CMD.MOVESTATE_HOLDPOS,
+					[env.CMD.FIRE_STATE] = env.CMD.FIRESTATE_FIREATNEUTRAL,
+				},
 				orders = { move },
 			},
 		})
@@ -48,8 +50,8 @@ describe("mission_api.loadout move and fire states", function()
 			{
 				unitID = 7,
 				orders = {
-					{ env.CMD.MOVE_STATE, { 0 }, 0 },
 					{ env.CMD.FIRE_STATE, { 3 }, 0 },
+					{ env.CMD.MOVE_STATE, { 0 }, 0 },
 					move,
 				},
 				fenced = true,
@@ -59,7 +61,12 @@ describe("mission_api.loadout move and fire states", function()
 
 	it("gives no state the entry leaves out", function()
 		loadout.SpawnUnitLoadout({
-			{ unitDefName = "bot", position = { x = 0, z = 0 }, teamName = 0, fireState = env.CMD.FIRESTATE_HOLDFIRE },
+			{
+				unitDefName = "bot",
+				position = { x = 0, z = 0 },
+				teamName = 0,
+				states = { [env.CMD.FIRE_STATE] = env.CMD.FIRESTATE_HOLDFIRE },
+			},
 		})
 
 		assert.are.same({ { unitID = 7, orders = { { env.CMD.FIRE_STATE, { 0 }, 0 } }, fenced = true } }, given)
@@ -73,7 +80,7 @@ describe("mission_api.loadout move and fire states", function()
 				unitDefName = "bot",
 				position = { x = 0, z = 0 },
 				teamName = 0,
-				moveState = env.CMD.MOVESTATE_ROAM,
+				states = { [env.CMD.MOVE_STATE] = env.CMD.MOVESTATE_ROAM },
 				orders = orders,
 			},
 		})

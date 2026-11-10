@@ -357,20 +357,6 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.VariableValue] = validateVariableValue
 
 	--- Number validators:
-	local validateNumber = parameterValidators[Types.Number]
-
-	parameterValidators[Types.MoveState] = getLookupValidator(validateNumber, "moveState", function(moveState)
-		return moveState == CMD.MOVESTATE_HOLDPOS
-			or moveState == CMD.MOVESTATE_MANEUVER
-			or moveState == CMD.MOVESTATE_ROAM
-	end)
-	parameterValidators[Types.FireState] = getLookupValidator(validateNumber, "fireState", function(fireState)
-		return fireState == CMD.FIRESTATE_HOLDFIRE
-			or fireState == CMD.FIRESTATE_RETURNFIRE
-			or fireState == CMD.FIRESTATE_FIREATWILL
-			or fireState == CMD.FIRESTATE_FIREATNEUTRAL
-	end)
-
 	parameterValidators[Types.Quantity] = function(quantity)
 		local luaTypeResult = parameterValidators[Types.Number](quantity)
 		if luaTypeResult then
@@ -741,6 +727,43 @@ local function registerOrderValidators(parameterValidators, context)
 		if entry.command then
 			consumedInAllowCommand[entry.command] = entry.reason
 		end
+	end
+
+	-- A state command's name and values, read from CMD: X_STATE takes CMD.XSTATE_*, an on/off command 0 or 1.
+	local function getStateValues(commandID)
+		for name, id in pairs(CMD) do
+			if id == commandID and type(name) == "string" then
+				local prefix = name:match("^(%u+)_STATE$")
+				if prefix then
+					local values = {}
+					for valueName, value in pairs(CMD) do
+						if type(valueName) == "string" and valueName:find("^" .. prefix .. "STATE_") then
+							values[value] = true
+						end
+					end
+					return name, values
+				elseif validatorsByCommandName[name] == validateOnOffParam then
+					return name, { [0] = true, [1] = true }
+				end
+			end
+		end
+	end
+
+	parameterValidators[Types.UnitStates] = function(states)
+		local tableResult = validateTableType(states)
+		if tableResult then
+			return tableResult
+		end
+		local results = {}
+		for commandID, value in pairs(states) do
+			local name, values = getStateValues(commandID)
+			if not name then
+				addResult(results, "Not a state command: " .. tostring(commandID), "[" .. tostring(commandID) .. "]")
+			elseif not values[value] then
+				addResult(results, "Invalid " .. name .. ": " .. tostring(value), "[" .. name .. "]")
+			end
+		end
+		return results
 	end
 
 	parameterValidators[Types.Command] = function(command)

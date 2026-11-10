@@ -14,6 +14,7 @@ local types = {
 	ObjectiveIDs = "ObjectiveIDs",
 	Difficulties = "Difficulties",
 	Orders = "Orders",
+	UnitStates = "UnitStates",
 	Area = "Area",
 	Direction = "Direction",
 	UnitLoadout = "UnitLoadout",
@@ -48,8 +49,6 @@ local types = {
 
 	-- Number Validators:
 	Number = "Number",
-	MoveState = "MoveState",
-	FireState = "FireState",
 	Quantity = "Quantity",
 	PositiveInteger = "PositiveInteger",
 	Fraction = "Fraction",
