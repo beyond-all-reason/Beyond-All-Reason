@@ -826,8 +826,9 @@ local function registerOrderValidators(parameterValidators, context)
 
 	local isWaitCommand = {}
 	for _, commandName in ipairs({ "WAIT", "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
-		if CMD[commandName] then
-			isWaitCommand[CMD[commandName]] = true
+		local commandID = CMD[commandName] ---@as any
+		if commandID then
+			isWaitCommand[commandID] = true
 		end
 	end
 
@@ -908,8 +909,9 @@ local function registerLoadoutValidators(parameterValidators, context)
 
 	local isCodedWaitCommand = {}
 	for _, commandName in ipairs({ "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
-		if CMD[commandName] then
-			isCodedWaitCommand[CMD[commandName]] = true
+		local commandID = CMD[commandName] ---@as any
+		if commandID then
+			isCodedWaitCommand[commandID] = true
 		end
 	end
 
@@ -917,11 +919,13 @@ local function registerLoadoutValidators(parameterValidators, context)
 	local validateUnitEntryFields = getEntryValidator(loadoutSchema.UnitEntryFields)
 	local function validateUnitEntry(entry)
 		local results = validateUnitEntryFields(entry)
-		local unitDef = type(entry) == "table"
-			and type(entry.unitDefName) == "string"
-			and UnitDefNames[entry.unitDefName]
-		local firstOrder = unitDef and unitDef.isFactory and type(entry.orders) == "table" and entry.orders[1]
-		if type(firstOrder) == "table" and isCodedWaitCommand[firstOrder[1]] then
+		if type(entry) ~= "table" then
+			return results
+		end
+
+		local unitDef = UnitDefNames[entry.unitDefName]
+		local firstOrder = type(entry.orders) == "table" and entry.orders[1]
+		if unitDef and unitDef.isFactory and type(firstOrder) == "table" and isCodedWaitCommand[firstOrder[1]] then
 			addResult(
 				results,
 				"A factory drops a wait given before its other orders, so the units it builds skip it",

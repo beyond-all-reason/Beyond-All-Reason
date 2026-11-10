@@ -14,7 +14,7 @@ local env = MissionSpecEnv.new({
 			return deadUnitIDs[unitID] == true
 		end,
 		GetUnitCurrentCommand = function(unitID, queueIndex)
-			local command = (queues[unitID] or {})[queueIndex]
+			local command = (queues[unitID] or {})[queueIndex] ---@as table?
 			if command then
 				return command[1], nil, nil, command[2][1], command[2][2]
 			end

@@ -120,7 +120,7 @@ local function expandWaitOrders(orders, newWaits, positionWaitKey)
 	local waitOrders, position = {}, 0
 
 	for index, order in ipairs(orders) do
-		local commandID, params = order[1], order[2]
+		local commandID, params = order[1], order[2] ---@as table
 		local asInsert = commandID == CMD.INSERT and type(params) == "table"
 		local code = commandWaitCode[asInsert and params[2] or commandID] ---@as 1|2|3|4?
 		if code then
@@ -138,14 +138,14 @@ local function expandWaitOrders(orders, newWaits, positionWaitKey)
 				lastWaitKey = lastWaitKey - 1
 				key = lastWaitKey
 				positionWaitKey[position] = positionWaitKey[position] or key
-				local wait = { code = code, unitIDs = {}, factoryIDs = {} } ---@type MissionWait
+				local wait = { code = code, unitIDs = {}, factoryIDs = {} } ---@as MissionWait
 				if code == CMD.WAITCODE_TIME then
 					wait.duration = (waitParams[1] * Game.gameSpeed) ---@as integer
 					wait.startFrames = {}
 				elseif code == CMD.WAITCODE_DEATH and waitParams.unitName then
 					wait.targetUnitName = waitParams.unitName
 				elseif code == CMD.WAITCODE_DEATH then
-					wait.targetRectangle = waitParams
+					wait.targetRectangle = waitParams ---@as WorldRect
 				elseif code == CMD.WAITCODE_SQUAD then
 					wait.squadSize = waitParams[1]
 				end

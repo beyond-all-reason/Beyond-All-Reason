@@ -1,7 +1,7 @@
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
-local givenOrders
+local givenOrders ---@type table
 
 local env = MissionSpecEnv.new({
 	Game = { maxUnits = 32000, squareSize = 8, footprintScale = 2 },
