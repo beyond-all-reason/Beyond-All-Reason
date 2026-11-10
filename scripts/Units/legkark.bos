@@ -670,11 +670,13 @@ FireWeapon2()
 		emit-sfx 1024 + 0 from lflare2;
 	}
 
-	move lbarrel to z-axis [-6] now;
-	sleep 250;
-	move lbarrel to z-axis [0] speed [60];
-	move lbarrel to z-axis [-8] now;
-	
+	move lbarrel to z-axis [-2] speed [100];
+	sleep 500;
+	move lbarrel to z-axis [-5] speed [100];
+	sleep 500;
+	move lbarrel to z-axis [0] speed [20];
+
+
 	gun_1 = !gun_1;
 	
 }
