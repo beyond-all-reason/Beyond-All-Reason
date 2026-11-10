@@ -377,7 +377,12 @@ describe("mission_api.validation.parameter_validators", function()
 				type = V.actionTypes.SpawnUnits,
 				parameters = {
 					unitLoadout = {
-						{ unitDefName = "armwar", teamName = "player", position = { x = 0, z = 0 }, orientation = orientation },
+						{
+							unitDefName = "armwar",
+							teamName = "player",
+							position = { x = 0, z = 0 },
+							orientation = orientation,
+						},
 					},
 				},
 			})
@@ -1152,7 +1157,9 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("validates an orientation table as a Direction", function()
-			local result = validateFeatureLoadout({ { featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = {} } })
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = {} },
+			})
 
 			V.assertMessage(
 				result,
@@ -1161,8 +1168,9 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("validates any other orientation as a Facing", function()
-			local result =
-				validateFeatureLoadout({ { featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = "diagonal" } })
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = "diagonal" },
+			})
 
 			V.assertMessage(
 				result,
@@ -1171,7 +1179,9 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("rejects an orientation that is neither a facing nor a direction", function()
-			local result = validateFeatureLoadout({ { featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = true } })
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = true },
+			})
 
 			V.assertMessage(
 				result,
