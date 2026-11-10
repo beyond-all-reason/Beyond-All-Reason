@@ -1,16 +1,6 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
-local FormationOrders = require("modules/formation_orders")
 
--- A Direction: a compass angle (0 north, clockwise) as a heading, or the point to face.
-local function getFacing(direction)
-	if direction and direction.angle then
-		-- TODO: refactor to call CompassAngleToHeading when it is merged
-		return math.rad(180 - direction.angle)
-	end
-	return direction
-end
-
-local function issueOrders(unitName, orders, formation)
+local function issueOrders(unitName, orders, marching, direction)
 	local tracking = GG['MissionAPI'].Modules.Tracking
 	if tracking.IsUnitNameUntracked(unitName) then return end
 
@@ -19,9 +9,8 @@ local function issueOrders(unitName, orders, formation)
 
 	-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 	GG['MissionAPI'].issuingOrders = true
-	if formation then
-		local options = { facing = getFacing(formation.direction) }
-		FormationOrders.GiveFormationOrders(table.keys(unitIDs), convertedOrders, options)
+	if marching then
+		GG['MissionAPI'].Modules.Marching.GiveMarchingOrders(unitIDs, convertedOrders, direction)
 	else
 		Spring.GiveOrderArrayToUnitMap(unitIDs, convertedOrders)
 	end
@@ -34,7 +23,8 @@ return {
 		parameters = {
 			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
 			{ name = 'orders', required = true, type = ParameterTypes.Orders },
-			{ name = 'formation', required = false, type = ParameterTypes.Formation },
+			{ name = 'marching', required = false, type = ParameterTypes.Boolean },
+			{ name = 'direction', required = false, type = ParameterTypes.Direction },
 		},
 		actionFunction = issueOrders,
 	}

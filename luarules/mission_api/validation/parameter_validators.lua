@@ -505,29 +505,6 @@ local function registerSpatialValidators(parameterValidators, context)
 		local angleResult = validateField(direction.angle, "angle", "number")
 		return angleResult and { angleResult } or nil
 	end
-
-	local formationFields = { direction = Types.Direction }
-
-	parameterValidators[Types.Formation] = function(formation)
-		local luaTypeResult = validateTableType(formation)
-		if luaTypeResult then
-			return luaTypeResult
-		end
-
-		local results = {}
-		for fieldName, value in pairs(formation) do
-			local fieldType = formationFields[fieldName]
-			if fieldType then
-				appendResults(results, parameterValidators[fieldType](value), "." .. fieldName)
-			else
-				results[#results + 1] = {
-					message = "Unknown formation field, expected direction",
-					parameterNameSuffix = "." .. tostring(fieldName),
-				}
-			end
-		end
-		return results
-	end
 end
 
 --------------------------------------------------------------------------------
@@ -631,28 +608,6 @@ end
 
 local validateUnitNameParam = getNameValidator("unitName", "{ unitName = 'aUnitName' }")
 local validate3 = getNumberArrayValidator({ 3 }, "3 numbers {x, y, z}")
-
-local function validatePoints(params, results)
-	local luaTypeResult = validateLuaType(params, "table")
-	if luaTypeResult then
-		return addResult(results, luaTypeResult, "[2]")
-	end
-	params = params or {}
-
-	if #params < 3 or #params % 3 ~= 0 then
-		return addResult(
-			results,
-			"Parameter must be an array of 3 numbers {x, y, z}, or more in threes for a line",
-			"[2]"
-		)
-	end
-	for index, param in ipairs(params) do
-		local paramTypeResult = validateLuaType(param, "number")
-		if paramTypeResult then
-			return addResult(results, paramTypeResult, "[2][" .. index .. "]")
-		end
-	end
-end
 local validate3orUnitName = getNumberArrayValidator({ 3 }, "3 numbers {x, y, z}, or a unit name", { "unitName" })
 local validate3or4 = getNumberArrayValidator({ 3, 4 }, "3 or 4 numbers {x, y, z, optional radius}")
 local validate4 = getNumberArrayValidator({ 4 }, "4 numbers {x, y, z, radius}")
@@ -676,14 +631,6 @@ local validate4orEitherName = getNumberArrayValidator(
 local validateBuildOrder =
 	getNumberArrayValidator({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")
 
-local function isFormationOrder(order)
-	if type(order) ~= "table" or type(order[2]) ~= "table" or #order[2] < 6 then
-		return false
-	end
-	local command = order[1]
-	return command == CMD.MOVE or command == CMD.FIGHT or command == CMD.PATROL
-end
-
 --- Parameter validator per command name.
 local validatorsByCommandName = {
 	-- No parameters:
@@ -703,10 +650,9 @@ local validatorsByCommandName = {
 	GUARD = validateUnitNameParam,
 	-- 3 number parameters:
 	DGUN = validate3,
-	-- 3 number parameters, or more in threes for a line:
-	MOVE = validatePoints,
-	FIGHT = validatePoints,
-	PATROL = validatePoints,
+	MOVE = validate3,
+	FIGHT = validate3,
+	PATROL = validate3,
 	-- 3 or 4 number parameters:
 	UNLOAD_UNITS = validate3or4,
 	-- 4 number parameters:
@@ -927,17 +873,6 @@ local function registerLoadoutValidators(parameterValidators, context)
 					end
 				else
 					appendResults(results, parameterValidators[field.type](value), "." .. field.name)
-				end
-			end
-
-			if type(entry.orders) == "table" then
-				for index, order in ipairs(entry.orders) do
-					if isFormationOrder(order) then
-						results[#results + 1] = {
-							message = "A line of points needs IssueOrders with formation",
-							parameterNameSuffix = ".orders[" .. index .. "][2]",
-						}
-					end
 				end
 			end
 

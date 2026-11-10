@@ -562,31 +562,15 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
-local function isFormationOrder(order)
-	if type(order) ~= "table" or type(order[2]) ~= "table" or #order[2] < 6 then
-		return false
-	end
-	local command = order[1]
-	return command == CMD.MOVE or command == CMD.FIGHT or command == CMD.PATROL
-end
-
+-- direction turns a marching group only
 local function validateIssueOrdersAction(context, actionReport, actionID, action)
 	local parameters = action.parameters
 	if action.type ~= context.ActionTypes.IssueOrders or type(parameters) ~= "table" then
 		return
 	end
-	if type(parameters.orders) ~= "table" or parameters.formation ~= nil then
-		return
-	end
 
-	for index, order in ipairs(parameters.orders) do
-		if isFormationOrder(order) then
-			actionReport.Error(
-				actionID,
-				"An order with more than one point is a line, which needs formation",
-				"Parameter: orders[" .. index .. "][2]"
-			)
-		end
+	if parameters.direction ~= nil and parameters.marching ~= true then
+		actionReport.Error(actionID, "Parameter 'direction' needs marching", "Parameter: direction")
 	end
 end
 

@@ -594,23 +594,21 @@ describe("mission_api.validation.sections", function()
 	end)
 
 	describe("IssueOrders actions", function()
-		local line = { 0, 0, 0, 200, 0, 0 }
-
-		local function validateIssueOrders(orders, formation)
-			return V.validateAction({
-				type = V.actionTypes.IssueOrders,
-				parameters = { unitName = "squad", orders = orders, formation = formation },
-			})
+		local function validateIssueOrders(parameters)
+			parameters.unitName = "squad"
+			parameters.orders = { { V.env.CMD.MOVE, { 0, 0, 0 } } }
+			return V.validateAction({ type = V.actionTypes.IssueOrders, parameters = parameters })
 		end
 
-		it("passes a line with a formation", function()
-			V.assertNoMessageContaining(validateIssueOrders({ { V.env.CMD.FIGHT, line } }, {}), "line")
+		it("passes a direction with marching", function()
+			local result = validateIssueOrders({ marching = true, direction = { angle = 90 } })
+			V.assertNoMessageContaining(result, "needs marching")
 		end)
 
-		it("reports a line without a formation", function()
+		it("reports a direction without marching", function()
 			V.assertMessage(
-				validateIssueOrders({ { V.env.CMD.MOVE, { 0, 0, 0 } }, { V.env.CMD.FIGHT, line } }),
-				"An order with more than one point is a line, which needs formation. Action: a, Parameter: orders[2][2]"
+				validateIssueOrders({ direction = { angle = 90 } }),
+				"Parameter 'direction' needs marching. Action: a, Parameter: direction"
 			)
 		end)
 	end)
