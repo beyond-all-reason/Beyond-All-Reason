@@ -163,18 +163,13 @@ end
 ---@return UnitID[] passengerIDs
 function TransportAPI.GetUnloadTargets(transporterID, passengerID, goalX, goalY, goalZ)
 	local Q = spGetUnitCommands(transporterID, 2)
-	local isAreaUnload = Q
-		and Q[1]
+	local first, second = Q and Q[1], Q and Q[2]
+	-- an UNLOAD_UNIT without a unitID comes from the customFormation/areaUnload widgets
+	local noTargetUnit = first and not (first.params and first.params[4])
+	local isAreaUnload = first
 		and (
-			Q[1].id == CMD.UNLOAD_UNITS
-			or (
-				Q[1].id == CMD.UNLOAD_UNIT
-				and (
-					(#Q > 1 and Q[2] and Q[2].id == CMD.UNLOAD_UNITS)
-					---@diagnostic disable-next-line: need-check-nil
-					or Q[1].params[4] == nil -- no defined unitID: issued by customFormation/areaUnload widgets
-				)
-			)
+			first.id == CMD.UNLOAD_UNITS
+			or (first.id == CMD.UNLOAD_UNIT and ((second and second.id == CMD.UNLOAD_UNITS) or noTargetUnit))
 		)
 	if isAreaUnload then
 		-- multi passengers, filter per unit
