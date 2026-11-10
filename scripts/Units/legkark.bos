@@ -594,6 +594,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	isAiming = TRUE;
+	wait-for-turn torso around y-axis;
 	
 	turn rshoulder to y-axis <5> speed <25>;
 	
@@ -642,6 +643,7 @@ AimWeapon2(heading, pitch)
 
 	signal SIGNAL_AIM2;
 	isAiming = TRUE;
+	wait-for-turn torso around y-axis;
 
 	// Restrict secondary weapons firing angles relative to the primary weapons heading
 	relativeHeading = WRAPDELTA(heading - torsoHeading);
