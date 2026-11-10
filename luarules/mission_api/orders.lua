@@ -100,7 +100,6 @@ end
 
 ---@class MissionGatherWait : MissionWaitBase
 ---@field code 4 CMD.WAITCODE_GATHER
----@field isGathered boolean
 
 local waits = {} ---@type table<number, MissionWait?>
 local factoryWaitKeys = {} ---@type table<UnitID, table<number, true>>
@@ -369,19 +368,15 @@ local function updateWaitingUnits(key, wait, isReleasing)
 end
 
 local function updateGatherWait(key, wait)
-	if not wait.isGathered then
-		local unitIDs = wait.unitIDs
-		for unitID in pairs(unitIDs) do
-			local queueIndex = getWaitQueueIndex(unitID, wait.code, key)
-			if queueIndex == nil then
-				unitIDs[unitID] = nil
-			elseif queueIndex > 1 then
-				return
-			end
+	local unitIDs = wait.unitIDs
+	for unitID in pairs(unitIDs) do
+		local queueIndex = getWaitQueueIndex(unitID, wait.code, key)
+		if queueIndex == nil then
+			unitIDs[unitID] = nil
+		elseif queueIndex > 1 then
+			return
 		end
-		wait.isGathered = true
 	end
-
 	updateWaitingUnits(key, wait, true)
 end
 
