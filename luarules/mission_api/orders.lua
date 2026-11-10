@@ -6,6 +6,8 @@ local table_keys = table.keys
 
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitLosState = Spring.GetUnitLosState
 
 local trackedUnitIDs = GG.MissionAPI.trackedUnitIDs
 local trackedFeatureIDs = GG.MissionAPI.trackedFeatureIDs
@@ -222,11 +224,20 @@ local function getDeathWaitTargets(wait, unitOrders)
 	local rectangle = wait.targetRectangle
 	local x1, z1, x2, z2 = rectangle[1], rectangle[3], rectangle[4], rectangle[6]
 	local unitIDs = Spring.GetUnitsInRectangle(math.min(x1, x2), math.min(z1, z2), math.max(x1, x2), math.max(z1, z2))
+	local orderedAllyTeamIDs = {}
+	for unitID in pairs(unitOrders) do
+		orderedAllyTeamIDs[spGetUnitAllyTeam(unitID)] = true
+	end
 	local targetIDs = {}
-	-- The client picks units so we have to match it.
+	-- Pick the same targets that a player-issued deathwait would.
 	for _, unitID in ipairs(unitIDs) do
 		if not unitOrders[unitID] then
-			targetIDs[unitID] = true
+			for allyTeamID in pairs(orderedAllyTeamIDs) do
+				if spGetUnitLosState(unitID, allyTeamID, true) % 4 > 0 then
+					targetIDs[unitID] = true
+					break
+				end
+			end
 		end
 	end
 	return targetIDs
