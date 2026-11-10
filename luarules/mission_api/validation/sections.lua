@@ -616,7 +616,8 @@ local function validateLoadoutsSection(context, report, parameterValidators)
 
 	for _, loadout in ipairs(loadouts) do
 		for _, result in ipairs(parameterValidators[loadout.type](loadout.value) or {}) do
-			loadoutReport.Error(loadout.name .. (result.parameterNameSuffix or ""), result.message)
+			local reportResult = result.isWarning and loadoutReport.Warn or loadoutReport.Error
+			reportResult(loadout.name .. (result.parameterNameSuffix or ""), result.message)
 		end
 	end
 end

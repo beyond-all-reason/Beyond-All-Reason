@@ -906,7 +906,33 @@ local function registerLoadoutValidators(parameterValidators, context)
 		end
 	end
 
-	parameterValidators[Types.UnitLoadout] = getListValidator(getEntryValidator(loadoutSchema.UnitEntryFields))
+	local isCodedWaitCommand = {}
+	for _, commandName in ipairs({ "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
+		if CMD[commandName] then
+			isCodedWaitCommand[CMD[commandName]] = true
+		end
+	end
+
+	-- Only loadout entries are checked, since only they specify unit defs.
+	local validateUnitEntryFields = getEntryValidator(loadoutSchema.UnitEntryFields)
+	local function validateUnitEntry(entry)
+		local results = validateUnitEntryFields(entry)
+		local unitDef = type(entry) == "table"
+			and type(entry.unitDefName) == "string"
+			and UnitDefNames[entry.unitDefName]
+		local firstOrder = unitDef and unitDef.isFactory and type(entry.orders) == "table" and entry.orders[1]
+		if type(firstOrder) == "table" and isCodedWaitCommand[firstOrder[1]] then
+			addResult(
+				results,
+				"A factory drops a wait given before its other orders, so the units it builds skip it",
+				".orders[1]",
+				true
+			)
+		end
+		return results
+	end
+
+	parameterValidators[Types.UnitLoadout] = getListValidator(validateUnitEntry)
 	parameterValidators[Types.FeatureLoadout] = getListValidator(getEntryValidator(loadoutSchema.FeatureEntryFields))
 end
 
