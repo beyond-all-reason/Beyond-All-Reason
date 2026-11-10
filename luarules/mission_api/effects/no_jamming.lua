@@ -19,7 +19,7 @@ local function onUnitsLeft(unitIDs, trackingID)
 end
 
 local function removeJamming(area)
-	return GG["MissionAPI"].Modules.AreaTracking.TrackUnitsInArea(area, nil, onUnitsEntered, onUnitsLeft)
+	return GG["MissionAPI"].Modules.AreaTracking.TrackUnitsInArea(area, nil, nil, onUnitsEntered, onUnitsLeft)
 end
 
 local function restoreJamming(trackingID)

@@ -76,7 +76,7 @@ local function onUnitsLeft(unitIDs, trackingID)
 end
 
 local function jamArea(area)
-	return GG["MissionAPI"].Modules.AreaTracking.TrackUnitsInArea(area, nil, onUnitsEntered, onUnitsLeft)
+	return GG["MissionAPI"].Modules.AreaTracking.TrackUnitsInArea(area, nil, nil, onUnitsEntered, onUnitsLeft)
 end
 
 local function unjamArea(trackingID)

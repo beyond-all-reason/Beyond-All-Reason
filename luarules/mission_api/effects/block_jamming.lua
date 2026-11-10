@@ -105,9 +105,9 @@ local function unjamArea(area)
 	return GG["MissionAPI"].Modules.AreaTracking.TrackUnitsInArea(
 		area,
 		nil,
+		nil,
 		onUnitsEntered,
 		onUnitsLeft,
-		nil,
 		onUnitsUpdated
 	)
 end
