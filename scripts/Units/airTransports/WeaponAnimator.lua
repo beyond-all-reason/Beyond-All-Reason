@@ -1,9 +1,9 @@
 WeaponAnimator = {}
 
 -- VARIABLES
-local aimPieceNum
-local firePieceNum
-local aimFromPieceNum
+local aimPieceNum ---@type integer
+local firePieceNum ---@type integer
+local aimFromPieceNum ---@type integer
 
 -- MODULE FUNCTIONS
 -- function WeaponAnimator.Init(...)         -- Resolve aim/fire/aimFrom piece names from setup; hide fire piece at startup
@@ -38,5 +38,5 @@ function WeaponAnimator.QueryWeapon()
 	return firePieceNum
 end
 
----@param val number  weapon state value passed by the engine
+---@param val number|nil  weapon state value passed by the engine
 function WeaponAnimator.FireWeapon(val) end

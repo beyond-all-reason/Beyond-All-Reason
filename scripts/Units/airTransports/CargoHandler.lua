@@ -81,7 +81,7 @@ function CargoHandler.Init(setup)
 	-- source of truth for all cargo tracking; all load/unload operations read and write this table.
 	-- on save/load the engine is queried for current passengers and this table is rebuilt from scratch (see script.Create),
 	-- but outside of that reload path this is the only authoritative record of what is loaded and where.
-	local uDef = UnitDefs[spGetUnitDefID(transporterID)]
+	local uDef = UnitDefs[spGetUnitDefID(transporterID)] ---@type table<string, any>
 	local cargo = {
 		transporterID = transporterID, -- transporter unit ID
 		slots = slots, -- [slotID] = { size, cargo, requires, overlapping } (see above)
@@ -207,17 +207,19 @@ local function RequiresMet(slotData, slots)
 	return true
 end
 
----@param passengerID number
----@param slotID number
+---@param passengerID UnitID
+---@param slotID integer
 ---@return number distanceSq
 local function PassengerToSlotDistSq(passengerID, slotID)
 	local px, _, pz = spGetUnitPosition(passengerID)
 	local sx, _, sz = spGetUnitPiecePosDir(transporterID, slotID)
+	---@cast px -?
+	---@cast sx -?
 	local dx, dz = px - sx, pz - sz
 	return dx * dx + dz * dz
 end
 
----@param passengerID number
+---@param passengerID UnitID
 ---@param cargo table
 ---@param allowReorganize boolean|nil
 ---@param fromReorganize boolean|nil
@@ -229,8 +231,8 @@ function CargoHandler.FindSlot(passengerID, cargo, allowReorganize, fromReorgani
 		return nil
 	end
 
-	local bestSlotID, bestDistSq = nil, math.huge
-	local bestOverlapSlotID, bestOverlapDistSq = nil, math.huge
+	local bestSlotID, bestDistSq = nil, math.huge ---@type integer?, number
+	local bestOverlapSlotID, bestOverlapDistSq = nil, math.huge ---@type integer?, number
 
 	-- normal calls take the closest slot regardless of overlap; reorganize prefers non-overlapping
 	-- but still tracks the closest overlapping one as a fallback so a unit is never left stranded
@@ -273,7 +275,7 @@ function CargoHandler.FindSlot(passengerID, cargo, allowReorganize, fromReorgani
 end
 
 ---@param cargo table
----@param newPassengerID number
+---@param newPassengerID UnitID
 function CargoHandler.ReorganizeAndLoad(cargo, newPassengerID)
 	-- kill all in-flight Load threads at once and repair the accounting they left dangling
 	Signal(TransportAnimator.SIG_LOAD)
@@ -346,7 +348,7 @@ function CargoHandler.SetSpeedDamping(speedMod, cargo, changeAltitude)
 	end
 end
 
----@param passengerID number
+---@param passengerID UnitID
 ---@param passengerData table
 ---@param cargo table
 ---@return number count  total passengers currently loaded
@@ -363,7 +365,7 @@ function CargoHandler.Register(passengerID, passengerData, cargo)
 	return cargo.count
 end
 
----@param passengerID number
+---@param passengerID UnitID
 ---@param cargo table
 ---@return number count  total passengers currently loaded
 function CargoHandler.Unregister(passengerID, cargo) -- marks the end of unloading

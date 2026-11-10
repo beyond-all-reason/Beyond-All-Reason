@@ -20,7 +20,8 @@ local CARGO_KILL_WEAPON_ID = -6 -- -CSolidObject::DAMAGE_EXTSOURCE_KILLED; skipp
 local thrusterPieces = {}
 local jetPieces = {}
 local hoverPiece, hoverScale, hoverSpeed
-local moveAngles, moveSpeeds
+local moveAngles ---@type table<number, number>
+local moveSpeeds ---@type table<number, number>
 local killedTiers = {}
 local active
 
@@ -136,9 +137,11 @@ function GenericAnimator.Killed(severity)
 		-- paratroopers survive intact; all other units take damage proportional to how far into the
 		-- load/unload animation they were when the transporter died (animProgress == 1 means fully loaded)
 		if not isParatrooper and passengerData.animProgress and passengerData.animProgress > 0 then
+			local health = spGetUnitHealth(passengerID)
+			---@cast health -?
 			spAddUnitDamage(
 				passengerID,
-				spGetUnitHealth(passengerID) * passengerData.animProgress * CARGO_KILL_DAMAGE_RATIO,
+				health * passengerData.animProgress * CARGO_KILL_DAMAGE_RATIO,
 				0,
 				-1,
 				CARGO_KILL_WEAPON_ID
@@ -154,7 +157,7 @@ function GenericAnimator.Killed(severity)
 			return tier.wreck
 		end
 	end
-	local last = killedTiers[#killedTiers]
+	local last = killedTiers[#killedTiers] ---@type table?
 	if last then
 		for _, entry in ipairs(last.pieces) do
 			Explode(entry.pieceID, entry.sfx)

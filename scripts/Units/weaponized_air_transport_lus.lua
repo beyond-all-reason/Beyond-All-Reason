@@ -38,9 +38,13 @@ local unitName = unitDef.name
 local UNIT_CONFIG_PATH = AIR_TRANSPORT_PATH .. unitName .. "/"
 transporterID = unitID -- just to keep it consistent with other envs
 
+---@diagnostic disable-next-line: unresolved-require
 include(AIR_TRANSPORT_INC .. "CargoHandler.lua")
+---@diagnostic disable-next-line: unresolved-require
 include(AIR_TRANSPORT_INC .. "TransportAnimator.lua")
+---@diagnostic disable-next-line: unresolved-require
 include(AIR_TRANSPORT_INC .. "GenericAnimator.lua")
+---@diagnostic disable-next-line: unresolved-require
 include(AIR_TRANSPORT_INC .. "WeaponAnimator.lua")
 
 -- VARIABLES (post-include)
@@ -82,6 +86,7 @@ function script.Create()
 
 	-- load preexisting cargo (save/load)
 	local existing = spGetUnitIsTransporting(transporterID)
+	---@cast existing -?
 	table.sort(existing, function(a, b)
 		return TransportAPI.GetPassengerSize(a) > TransportAPI.GetPassengerSize(b) -- largest first for correct slot assignment
 	end)
@@ -102,7 +107,7 @@ function script.Create()
 	StartThread(GenericAnimator.IdleHover)
 end
 
----@param passengerID number
+---@param passengerID UnitID
 function PerformLoad(passengerID) -- entry point from gadget transport handler: called on load approval, and by ReorganizeAndLoad
 	local passengerData = CargoHandler.FindSlot(passengerID, cargo, true)
 	if not passengerData then
@@ -111,7 +116,7 @@ function PerformLoad(passengerID) -- entry point from gadget transport handler: 
 	StartThread(TransportAnimator.Load, passengerData)
 end
 
----@param passengerID number
+---@param passengerID UnitID
 function PerformLoadInstant(passengerID) -- instant load not used currently
 	local passengerData = CargoHandler.FindSlot(passengerID, cargo)
 	if not passengerData then
@@ -120,7 +125,7 @@ function PerformLoadInstant(passengerID) -- instant load not used currently
 	StartThread(TransportAnimator.Load, passengerData, false)
 end
 
----@param passengerID number
+---@param passengerID UnitID
 ---@param goalX number
 ---@param goalY number
 ---@param goalZ number
@@ -149,7 +154,7 @@ function PerformUnload(passengerID, goalX, goalY, goalZ, exact, facing) -- entry
 	end
 end
 
----@param passengerID number
+---@param passengerID UnitID
 ---@param goalX number
 ---@param goalY number
 ---@param goalZ number
@@ -180,7 +185,7 @@ function script.MoveRate(v)
 	GenericAnimator.MoveRate(v)
 end
 
----@param s number|nil damageState
+---@param s number damageState
 ---@return number|nil restoreState
 function script.Killed(s)
 	return GenericAnimator.Killed(s)
@@ -194,7 +199,6 @@ function script.AimWeapon(wpnNum, heading, pitch)
 	return WeaponAnimator.AimWeapon(heading, pitch)
 end
 
----@return boolean fireSuccess
 function script.FireWeapon()
 	return WeaponAnimator.FireWeapon()
 end

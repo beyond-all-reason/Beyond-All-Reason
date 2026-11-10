@@ -1,4 +1,4 @@
-local widget = widget ---@type RulesUnsyncedCallins
+local widget = widget ---@type Widget
 
 -- When performing an area command for one of the `allowedCommands` below:
 -- - If enemy unit is targeted then targetAllegiance=ENEMY_UNITS otherwise targetAllegiance=targetTeamId
@@ -97,7 +97,7 @@ end
 -- https://github.com/beyond-all-reason/RecoilEngine/blob/master/rts%2FSim%2FMisc%2FGlobalConstants.h
 local springFootprintScale = Game.footprintScale
 
----@type table<number, TransportDef>
+---@type table<number, TractorTransportDef>
 local transportDefs = {}
 local cantBeTransported = {}
 local unitMass = {}
@@ -105,7 +105,7 @@ local unitXSize = {}
 
 for defId, def in pairs(UnitDefs) do
 	if def.transportSize and def.transportSize > 0 then
-		---@class TransportDef
+		---@class TractorTransportDef
 		transportDefs[defId] = {
 			massLimit = def.transportMass,
 			maxCapacity = def.transportCapacity,
@@ -129,7 +129,7 @@ end
 --> tab[slotSize2] = { transportID2, transportID5,... }
 -- this table holds possible transport IDs per slot size)
 
---- @return table<number,table<number>> Map of transportId -> array of passengerIds
+--- @return table<number, number[]> Map of transportId -> array of passengerIds
 local function distributeTargetsToTransports(transports, targets, shifted)
 	local validTransports = createEmptyValidTransportsTable()
 
@@ -154,7 +154,7 @@ local function distributeTargetsToTransports(transports, targets, shifted)
 		end
 	end
 	-- 3. Match passengers to transport types
-	local passengersData = {}
+	local passengersData = {} ---@type {id: number, size: number, matchingTransports: number[]}[]
 	for _, targetId in ipairs(targets) do
 		local passengerSize = TransportAPI.GetPassengerSize(targetId)
 		local data = {
@@ -200,6 +200,9 @@ end
 --- End of transport logic
 ---------------------------------------------------------------------------------------
 
+---@param selectedUnits number[]
+---@param filteredTargets integer[] unitIDs, or featureIDs offset by Game.maxUnits
+---@param closestFirst boolean
 local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
 	local avgPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
 	tableSort(filteredTargets, function(targetIdA, targetIdB)
@@ -325,24 +328,26 @@ local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
 	end
 end
 
----@class CommandConfig
+---@class TractorCommandConfig
 ---@field handle function
 ---@field allowedTargetTypes table
----@field targetAllegiance number AllUnits = -1, MyUnits = -2, AllyUnits = -3, EnemyUnits = -4
+---@field targetAllegiance integer? AllUnits = -1, MyUnits = -2, AllyUnits = -3, EnemyUnits = -4
 
 local function commandConfig(targetTypes, targetAllegiance, handler)
 	local allowedTargetTypes = {}
 	for _, targetType in ipairs(targetTypes) do
 		allowedTargetTypes[targetType] = true
 	end
-	local config = {} --- @type CommandConfig
-	config.handle = handler or defaultHandler
-	config.allowedTargetTypes = allowedTargetTypes
-	config.targetAllegiance = targetAllegiance
+	---@type TractorCommandConfig
+	local config = {
+		handle = handler or defaultHandler,
+		allowedTargetTypes = allowedTargetTypes,
+		targetAllegiance = targetAllegiance,
+	}
 	return config
 end
 
----@type table<number, CommandConfig>
+---@type table<number, TractorCommandConfig>
 local allowedCommands = {
 	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
@@ -471,13 +476,15 @@ function widget:CommandNotify(cmdId, params, options)
 	-- position (cmdY = ground height) to screen, which at non-overhead camera
 	-- angles gives a shifted screen position that can hit the wrong unit—especially
 	-- in dense fights or under multiplayer frame interpolation.
-	local targetType, targetId
+	local targetType ---@type string?
+	local targetId ---@type integer?
 
 	if currentCommand.allowedTargetTypes[UNIT] then
 		if currentCommand.targetAllegiance == ENEMY_UNITS and WG.FindNearestEnemyUnit then
 			targetId = WG.FindNearestEnemyUnit(cmdX, cmdY, cmdZ, CLICK_SEARCH_RADIUS, spGetMyTeamID())
 		else
 			local nearbyUnits = spGetUnitsInCylinder(cmdX, cmdZ, CLICK_SEARCH_RADIUS, currentCommand.targetAllegiance)
+			---@cast nearbyUnits +?
 			if nearbyUnits then
 				local bestDistSq = math.huge
 				for _, uid in ipairs(nearbyUnits) do
@@ -500,11 +507,13 @@ function widget:CommandNotify(cmdId, params, options)
 
 	if not targetId and currentCommand.allowedTargetTypes[FEATURE] then
 		local nearbyFeatures = spGetFeaturesInCylinder(cmdX, cmdZ, CLICK_SEARCH_RADIUS)
+		---@cast nearbyFeatures +?
 		if nearbyFeatures then
 			local bestDistSq = math.huge
 			for _, fid in ipairs(nearbyFeatures) do
 				local fx, _, fz = spGetFeaturePosition(fid)
 				if fx then
+					---@cast fz -?
 					local dx, dz = fx - cmdX, fz - cmdZ
 					local distSq = dx * dx + dz * dz
 					if distSq < bestDistSq then
@@ -513,6 +522,7 @@ function widget:CommandNotify(cmdId, params, options)
 					end
 				end
 			end
+			---@cast targetId integer?
 			if targetId then
 				targetType = FEATURE
 			end
@@ -528,6 +538,7 @@ function widget:CommandNotify(cmdId, params, options)
 	if targetType == UNIT then
 		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, currentCommand.targetAllegiance)
 	elseif targetType == FEATURE then
+		---@cast targetId -?
 		local unitDefName = spGetFeatureResurrect(targetId)
 		-- filter only wrecks which can be resurrected
 		if unitDefName == nil or unitDefName == "" then

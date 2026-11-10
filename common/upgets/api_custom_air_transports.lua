@@ -116,7 +116,7 @@ end
 -- function TransportAPI.DisablePassenger(...)            -- Remove build range and weapons during transport
 -- function TransportAPI.CalculateTransporterSpeed(...)   -- Return speed multiplier based on cargo weight and mode settings
 
----@param passengers table|nil
+---@param passengers UnitID[]|nil
 ---@return boolean hasAmphibCargo
 function TransportAPI.HasAmphibCargo(passengers)
 	if not passengers or #passengers == 0 then
@@ -125,7 +125,7 @@ function TransportAPI.HasAmphibCargo(passengers)
 	for _, passengerID in ipairs(passengers) do
 		local udefID = spGetUnitDefID(passengerID)
 		if udefID then
-			local def = UnitDefs[udefID]
+			local def = UnitDefs[udefID] ---@type table<string, any>
 			if def.modCategories["canbeuw"] == true or def.modCategories["hover"] == true then
 				return true
 			end
@@ -140,6 +140,7 @@ TransportAPI.precomputedProgress = {}
 for uDefID, def in pairs(UnitDefs) do
 	if def.customParams and def.customParams.loadtime then
 		local loadTime = tonumber(def.customParams.loadtime)
+		---@cast loadTime -?
 		local curve = {}
 		for f = 0, loadTime do
 			local t = f / loadTime
@@ -154,12 +155,12 @@ for uDefID, def in pairs(UnitDefs) do
 	end
 end
 
----@param transporterID number
----@param passengerID number
+---@param transporterID UnitID
+---@param passengerID UnitID
 ---@param goalX number
 ---@param goalY number
 ---@param goalZ number
----@return table passengerIDs
+---@return UnitID[] passengerIDs
 function TransportAPI.GetUnloadTargets(transporterID, passengerID, goalX, goalY, goalZ)
 	local Q = spGetUnitCommands(transporterID, 2)
 	local isAreaUnload = Q
@@ -170,6 +171,7 @@ function TransportAPI.GetUnloadTargets(transporterID, passengerID, goalX, goalY,
 				Q[1].id == CMD.UNLOAD_UNIT
 				and (
 					(#Q > 1 and Q[2] and Q[2].id == CMD.UNLOAD_UNITS)
+					---@diagnostic disable-next-line: need-check-nil
 					or Q[1].params[4] == nil -- no defined unitID: issued by customFormation/areaUnload widgets
 				)
 			)
@@ -189,6 +191,7 @@ function TransportAPI.GetUnloadTargets(transporterID, passengerID, goalX, goalY,
 			else
 				-- land units require valid ground position, exclude from unloadees if this is not the case
 				local uHeight = spGetUnitHeight(uID)
+				---@cast uHeight -?
 				if uHeight + gy > 0 then
 					passengerIDs[writeIndex] = uID
 					writeIndex = writeIndex + 1
@@ -201,7 +204,7 @@ function TransportAPI.GetUnloadTargets(transporterID, passengerID, goalX, goalY,
 	return { passengerID }
 end
 
----@param unitID number
+---@param unitID UnitID
 ---@return number size
 function TransportAPI.GetPassengerSize(unitID)
 	local udefID = spGetUnitDefID(unitID)
@@ -211,13 +214,13 @@ function TransportAPI.GetPassengerSize(unitID)
 	return TransportAPI.GetPassengerSizeForDef(udefID)
 end
 
----@param udefID number
+---@param udefID UnitDefID
 ---@return number size seat cost of any unit of this def
 function TransportAPI.GetPassengerSizeForDef(udefID)
 	if cachedUnitSizes[udefID] then
 		return cachedUnitSizes[udefID]
 	end
-	local def = UnitDefs[udefID]
+	local def = UnitDefs[udefID] ---@type table<string, any>
 	if def.customParams.nseats then
 		cachedUnitSizes[udefID] = tonumber(def.customParams.nseats)
 		return cachedUnitSizes[udefID]
@@ -235,15 +238,15 @@ function TransportAPI.GetPassengerSizeForDef(udefID)
 	return cachedUnitSizes[udefID]
 end
 
----@param unitID number
+---@param unitID UnitID
 ---@return boolean
 function TransportAPI.IsTractorTransport(unitID)
 	local seats = spGetUnitRulesParam(unitID, "transporterSeats")
 	return seats ~= nil and seats > 0
 end
 
----@param transporterID number
----@return table passengerIDs carried units plus the single-unit loads still in the queue
+---@param transporterID UnitID
+---@return UnitID[] passengerIDs carried units plus the single-unit loads still in the queue
 function TransportAPI.GetExpectedCargo(transporterID)
 	local cargo = {}
 	local carried = spGetUnitIsTransporting(transporterID)
@@ -253,26 +256,30 @@ function TransportAPI.GetExpectedCargo(transporterID)
 		end
 	end
 	local Q = spGetUnitCommands(transporterID, -1)
+	---@cast Q +?
 	if Q then
 		for i = 1, #Q do
 			local cmd = Q[i]
-			if cmd.id == CMD_LOAD_UNIT and spValidUnitID(cmd.params[1]) then
-				cargo[#cargo + 1] = cmd.params[1]
+			local passengerID = cmd.id == CMD_LOAD_UNIT and cmd.params and cmd.params[1] ---@as UnitID|false
+			if passengerID and spValidUnitID(passengerID) then
+				cargo[#cargo + 1] = passengerID
 			end
 		end
 	end
 	return cargo
 end
 
----@param transporterID number
+---@param transporterID UnitID
 ---@return number seats the transporter has claimed or still has queued to load, on top of transporterUsedSeats
 function TransportAPI.GetPendingSeats(transporterID)
 	local pending = spGetUnitRulesParam(transporterID, "transporterClaimedSeats") or 0
+	---@cast pending number
 	local Q = spGetUnitCommands(transporterID, -1)
+	---@cast Q +?
 	if Q then
 		for i = 1, #Q do
 			local cmd = Q[i]
-			local passengerID = cmd.id == CMD_LOAD_UNIT and cmd.params[1]
+			local passengerID = cmd.id == CMD_LOAD_UNIT and cmd.params and cmd.params[1] ---@as UnitID|false
 			if
 				passengerID
 				and spValidUnitID(passengerID)
@@ -287,8 +294,8 @@ function TransportAPI.GetPendingSeats(transporterID)
 	return pending
 end
 
----@param transporterID number
----@param passengerID number|nil
+---@param transporterID UnitID
+---@param passengerID UnitID|nil
 ---@param queued boolean|nil the unload goes behind the current queue: count queued loads as cargo (ignored with a passengerID)
 ---@return number|nil padTypeDefID
 function TransportAPI.GetUnloadPadType(transporterID, passengerID, queued)
@@ -311,19 +318,22 @@ function TransportAPI.GetUnloadPadType(transporterID, passengerID, queued)
 		return UnitDefNames[padString].id
 	end
 	-- suffix variant not defined: fall back to land pad of the same size
-	return UnitDefNames["unloadsize" .. tostring(padSize)].id
+	local landPad = UnitDefNames["unloadsize" .. tostring(padSize)]
+	---@cast landPad table
+	return landPad.id
 end
 
----@param units table
+---@param units UnitID[]
 ---@return number|nil padTypeDefID
 function TransportAPI.GetBiggestUnloadPadType(units)
 	if not units or #units == 0 then
 		return nil
 	end
 	-- find the largest seat count across all transporters in the selection
-	local transporterSeats = 0
+	local transporterSeats = 0 ---@type number
 	for i = 1, #units do
 		local thisSeats = spGetUnitRulesParam(units[i], "transporterSeats") or 0 -- set by CargoHandler
+		---@cast thisSeats number
 		if thisSeats > transporterSeats then
 			transporterSeats = thisSeats
 		end
@@ -349,12 +359,14 @@ function TransportAPI.GetBiggestUnloadPadType(units)
 		return UnitDefNames[padString].id
 	end
 	-- suffix variant not defined: fall back to land pad of the same size
-	return UnitDefNames["unloadsize" .. tostring(padSize)].id
+	local landPad = UnitDefNames["unloadsize" .. tostring(padSize)]
+	---@cast landPad table
+	return landPad.id
 end
 
----@param transporterID number
----@param passengerID number
----@param transporterDefID number
+---@param transporterID UnitID
+---@param passengerID UnitID
+---@param transporterDefID UnitDefID
 ---@param passengerSize number
 ---@param queuedSize number
 ---@return boolean canFit
@@ -381,7 +393,7 @@ function TransportAPI.CanPassengerFitInTransporter(
 	return foundSlot
 end
 
----@param transporterID number
+---@param transporterID UnitID
 ---@param queuedSize number
 ---@return boolean isFull
 function TransportAPI.IsTransportFull(transporterID, queuedSize)
@@ -391,7 +403,7 @@ function TransportAPI.IsTransportFull(transporterID, queuedSize)
 	return transporterUsedSeats + queuedSize >= transporterSeats
 end
 
----@param passengerID number
+---@param passengerID UnitID
 ---@param cargo table
 ---@return number weight
 function TransportAPI.GetPassengerWeight(passengerID, cargo)
@@ -402,31 +414,33 @@ function TransportAPI.GetPassengerWeight(passengerID, cargo)
 	return weight
 end
 
----@param passengerID number
+---@param passengerID UnitID
 ---@return boolean isCommander
 function TransportAPI.IsPassengerCommander(passengerID)
 	local isCommander = UnitDefs[spGetUnitDefID(passengerID)].customParams.iscommander
-	return isCommander
+	return isCommander ~= nil
 end
 
----@param passengerID number
+---@param passengerID UnitID
 function TransportAPI.EnablePassenger(passengerID)
-	local defs = UnitDefs[spGetUnitDefID(passengerID)]
+	local defs = UnitDefs[spGetUnitDefID(passengerID)] ---@type table<string, any>
 	if defs.buildSpeed > 0 then
 		spSetUnitBuildParams(passengerID, "buildRange", defs.buildDistance)
 	end
 	if defs.weapons and #defs.weapons > 0 then
+		---@diagnostic disable-next-line: param-type-mismatch
 		spSetUnitUseWeapons(passengerID, false, true)
 	end
 end
 
----@param passengerID number
+---@param passengerID UnitID
 function TransportAPI.DisablePassenger(passengerID)
-	local defs = UnitDefs[spGetUnitDefID(passengerID)]
+	local defs = UnitDefs[spGetUnitDefID(passengerID)] ---@type table<string, any>
 	if defs.buildSpeed > 0 then
 		spSetUnitBuildParams(passengerID, "buildRange", 0)
 	end
 	if defs.weapons and #defs.weapons > 0 then
+		---@diagnostic disable-next-line: param-type-mismatch
 		spSetUnitUseWeapons(passengerID, false, false)
 	end
 end
@@ -443,7 +457,7 @@ end
 ---@param cargo table
 ---@return number speedMultiplier
 function TransportAPI.CalculateTransporterSpeed(cargo)
-	local speedNerf = 0
+	local speedNerf = 0 ---@type number
 	local transporterSpeedModMode = speedSetting("speedModMode", cargo.transporterSpeedModMode or 0)
 	local speedModStrength = speedSetting("speedModStrength", cargo.transporterSpeedModStrength or 0)
 	local comSpeedModStrength = speedSetting("comSpeedModStrength", cargo.transporterComSpeedModStrength or 0)

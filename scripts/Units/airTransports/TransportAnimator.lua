@@ -37,8 +37,13 @@ local SIG_LOAD = 4 -- signal to kill all in-flight Load threads (used by Reorgan
 TransportAnimator.SIG_LOAD = SIG_LOAD
 
 -- VARIABLES
-local loadTime, cegScaleFactor, cegName
-local progress -- set in Init from precomputedProgress[unitDefID]
+local loadTime ---@type number
+local cegScaleFactor ---@type number
+local cegName ---@type string
+local heightOffsetMult ---@type number
+local radiusOffsetMult ---@type number
+-- set in Init from precomputedProgress[unitDefID]
+local progress ---@type table<integer, number>
 local beamsBySlotID = {}
 
 local cachedFrame = -1
@@ -72,6 +77,12 @@ local function getTransporterState()
 		currentTransporterRotX, currentTransporterRotY, currentTransporterRotZ = spGetUnitRotation(transporterID)
 		cachedFrame = f
 	end
+	---@cast currentTransporterPosX -?
+	---@cast currentTransporterPosY -?
+	---@cast currentTransporterPosZ -?
+	---@cast currentTransporterRotX -?
+	---@cast currentTransporterRotY -?
+	---@cast currentTransporterRotZ -?
 	return currentTransporterPosX,
 		currentTransporterPosY,
 		currentTransporterPosZ,
@@ -156,7 +167,7 @@ end
 
 -- @param setup  table  per-unit anim/slot config loaded from <unitName>/setup.lua
 function TransportAnimator.Init(setup)
-	loadTime = tonumber(UnitDefs[unitDefID].customParams.loadtime)
+	loadTime = tonumber(UnitDefs[unitDefID].customParams.loadtime) ---@as number
 	cegScaleFactor = 1.0
 	cegName = UnitDefs[unitDefID].customParams.transportcegname or "tractorbeam"
 	heightOffsetMult = cegName == "armada_ion" and 1
@@ -216,6 +227,7 @@ function TransportAnimator.WatchBeams()
 				end
 				for _, beamPiece in ipairs(passengerData.beamPieces) do
 					beamPieceX, beamPieceY, beamPieceZ = spGetUnitPiecePosDir(transporterID, beamPiece)
+					---@cast beamPieceX -?
 					if passengerData.cachedPosX then
 						-- loading or unloading: beam originates from the unit surface toward the beam piece,
 						-- offset by radius from the top-center so multi-beam pieces spread around the unit
@@ -267,6 +279,7 @@ function TransportAnimator.Load(passengerData, doAnim)
 	spSetUnitRulesParam(passengerData.id, "inLoadAnim", transporterID, ALLIED_READ)
 
 	local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerData.id)
+	---@cast passengerPosX -?
 	local passengerRotX, passengerRotY, passengerRotZ = spGetUnitRotation(passengerData.id)
 	callUnitScriptOnLoad(passengerData.id)
 
@@ -294,6 +307,7 @@ function TransportAnimator.Load(passengerData, doAnim)
 			passengerData.animProgress = normalizedProgress
 
 			slotPosX, slotPosY, slotPosZ = spGetUnitPiecePosDir(transporterID, passengerData.slotID)
+			---@cast slotPosX -?
 			_, _, _, transporterRotX, transporterRotY, transporterRotZ = getTransporterState()
 
 			newPassengerPosX = (1 - normalizedProgress) * passengerPosX + normalizedProgress * slotPosX
@@ -359,6 +373,7 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 	if doAnim ~= false then
 		spSetUnitRulesParam(passengerData.id, "inUnloadAnim", 1, ALLIED_READ)
 		local slotPosX, slotPosY, slotPosZ = spGetUnitPiecePosDir(transporterID, passengerData.slotID)
+		---@cast slotPosX -?
 		local transporterPosX, _, transporterPosZ, startTransporterRotX, startTransporterRotY, startTransporterRotZ =
 			getTransporterState()
 		if not exact then
@@ -379,6 +394,7 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 			else
 				goalRotY = math.floor(startRotY / (PI / 2) + 0.5) * (PI / 2) -- cardinal facing
 			end
+			---@cast passengerDefID -?
 			goalPosX, goalPosY, goalPosZ = spPos2BuildPos(passengerDefID, goalPosX, goalPosY, goalPosZ, facing or 0) -- always align buildings on build grid
 		else
 			spSetUnitRadiusAndHeight(passengerData.id, 0, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
@@ -404,7 +420,9 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 
 			passengerData.animProgress = 1 - normalizedProgress -- keep track of our progress for Killed() script
 
+			---@diagnostic disable-next-line: assign-type-mismatch
 			slotPosX, slotPosY, slotPosZ = spGetUnitPiecePosDir(transporterID, passengerData.slotID)
+			---@cast slotPosX -?
 			_, _, _, transporterRotX, transporterRotY, transporterRotZ = getTransporterState()
 
 			newPassengerPosX, newPassengerPosY, newPassengerPosZ =
