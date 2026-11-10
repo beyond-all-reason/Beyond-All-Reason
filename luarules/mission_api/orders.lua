@@ -189,10 +189,7 @@ end
 local function releaseWaitingUnits(waitTags)
 	GG.MissionAPI.issuingOrders = true
 	for unitID, commandTag in pairs(waitTags) do
-		-- Releasing one unit can fire a trigger that (e.g.) destroys another unit.
-		if spGetUnitIsDead(unitID) == false then
-			Spring.GiveOrderToUnit(unitID, CMD.REMOVE, commandTag)
-		end
+		Spring.GiveOrderToUnit(unitID, CMD.REMOVE, commandTag)
 	end
 	GG.MissionAPI.issuingOrders = nil
 end
