@@ -45,7 +45,19 @@ local function isFacingEW(facing)
 	return facingValue == 1 or facingValue == 3
 end
 
+---Convert a compass angle in degrees (0 north, clockwise) to a heading.
+---@param angle number
+---@param radians boolean? radians, as Spring.GetUnitHeading(unitID, true) returns them, instead of 0-65535
+---@return number heading
+local function compassAngleToHeading(angle, radians)
+	if radians then
+		return math.rad(180 - angle)
+	end
+	return math.floor((angle % 360 - 180) / 360 * -65535)
+end
+
 return {
+	CompassAngleToHeading = compassAngleToHeading,
 	FacingToHeading = facingToHeading,
 	FacingToNumber = facingToNumber,
 	HeadingToFacing = headingToFacing,

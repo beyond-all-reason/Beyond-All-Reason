@@ -60,6 +60,7 @@ utilities = {
 	CustomKeyToUsefulTable = tableFunctions.CustomKeyToUsefulTable,
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
 
+	CompassAngleToHeading = facingFunctions.CompassAngleToHeading,
 	FacingToHeading = facingFunctions.FacingToHeading,
 	FacingToNumber = facingFunctions.FacingToNumber,
 	HeadingToFacing = facingFunctions.HeadingToFacing,
