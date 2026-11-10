@@ -20,7 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local actionsDispatcher
-local triggerTypes, triggers, triggersByType, callins, triggerContext
+local triggerTypes, triggers, triggersByType, callins, triggerContext ---@type table, table<string, table>, table, table, table
 local trackedUnitNames
 local statistics
 local countdowns
@@ -38,6 +38,7 @@ local detectionLevels
 local constructionState = {}
 local stockpileState = {}
 local dwellingUnitsInAreas = {}
+local gatheredUnitsInAreas = {}
 local teamReclaimIncome = {}
 local teamReclaimIncomeSnapshot = {}
 local reclaimedFeatures = {}
@@ -257,22 +258,23 @@ local inactiveSeismicContacts = {}
 
 -- Location triggers are dispatched through area tracking instead of by polling with GameFrame.
 -- Each has its own tracker. Callbacks then act on the units that crossed a tracking boundary.
-local triggersByTrackingID = {} ---@type table<integer, { trigger: table, triggerID: string }>
 local unitsEnteredAreaHandlers, unitsLeftAreaHandlers ---@type table<string, function?>, table<string, function?>
 
-local function onUnitsEnteredArea(unitIDs, trackingID)
-	local tracked = triggersByTrackingID[trackingID]
-	local handler = unitsEnteredAreaHandlers[tracked.trigger.type]
+---@param triggerID string
+local function onUnitsEnteredArea(unitIDs, triggerID)
+	local trigger = triggers[triggerID]
+	local handler = unitsEnteredAreaHandlers[trigger.type]
 	if handler then
-		handler(tracked.trigger, tracked.triggerID, triggerContext, unitIDs)
+		handler(trigger, triggerID, triggerContext, unitIDs)
 	end
 end
 
-local function onUnitsLeftArea(unitIDs, trackingID)
-	local tracked = triggersByTrackingID[trackingID]
-	local handler = unitsLeftAreaHandlers[tracked.trigger.type]
+---@param triggerID string
+local function onUnitsLeftArea(unitIDs, triggerID)
+	local trigger = triggers[triggerID]
+	local handler = unitsLeftAreaHandlers[trigger.type]
 	if handler then
-		handler(tracked.trigger, tracked.triggerID, triggerContext, unitIDs)
+		handler(trigger, triggerID, triggerContext, unitIDs)
 	end
 end
 
@@ -331,6 +333,7 @@ function gadget:Initialize()
 		ConstructionState = constructionState,
 		StockpileState = stockpileState,
 		DwellingUnitsInAreas = dwellingUnitsInAreas,
+		GatheredUnitsInAreas = gatheredUnitsInAreas,
 		GetReclaimIncomeSnapshot = function(teamID)
 			return teamReclaimIncomeSnapshot[teamID]
 		end,
@@ -342,9 +345,13 @@ function gadget:Initialize()
 	for triggerID, trigger in pairs(triggers) do
 		if unitsEnteredAreaHandlers[trigger.type] or unitsLeftAreaHandlers[trigger.type] then
 			local parameters = trigger.parameters
-			local trackingID =
-				areaTracking.TrackUnitsInArea(parameters.area, parameters.teamName, onUnitsEnteredArea, onUnitsLeftArea)
-			triggersByTrackingID[trackingID] = { trigger = trigger, triggerID = triggerID }
+			areaTracking.TrackUnitsInArea(
+				parameters.area,
+				parameters.teamName,
+				onUnitsEnteredArea,
+				onUnitsLeftArea,
+				triggerID
+			)
 		end
 	end
 

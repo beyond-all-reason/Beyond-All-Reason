@@ -58,6 +58,12 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 // Jammed units highlight (gui_jammed_units.lua): how long the tint fades in and out, in seconds
 #define JAMMED_FADE_SECONDS 0.3
 
+// Self-destruct pulse (gfx_selfd_unit_pulse.lua): pulses per second, as the order menu's button, faster at the end
+#define SELFD_PULSE_RATE 1.5
+#define SELFD_PULSE_RATE_FAST 3.0
+#define SELFD_FAST_SECONDS 3.0
+#define SELFD_STRENGTH_START 0.2 // the pulse this strong as the countdown starts, growing to all of it at the end
+
 %%GLOBAL_NAMESPACE%%
 
 %%VERTEX_GLOBAL_NAMESPACE%%
@@ -149,7 +155,7 @@ out Data {
 	//vec3 worldBitangent;
 	vec3 worldNormal_VS;
 
-	vec4 uvCoords; // .z contains unitID, .w the jammed highlight 0-1
+	vec4 uvCoords; // .z contains unitID, .w the jammed highlight 0-1, or 2-3 the self-destruct pulse 0-1
 	flat vec4 teamCol; // .a contains selectedness
 
 	// main light vector(s)
@@ -643,6 +649,19 @@ void main(void)
 		float jammedSince = UNITUNIFORMS.userDefined[1].w;
 		float jammedFade = clamp((timeInfo.y - abs(jammedSince)) * (1.0 / JAMMED_FADE_SECONDS), 0.0, 1.0);
 		uvCoords.w = (jammedSince > 0.0) ? jammedFade : ((jammedSince < 0.0) ? (1.0 - jammedFade) : 0.0);
+
+		// Self-destruct pulse: userDefined[3].y (#13) holds the game frame the countdown ends on, 0 = none, and
+		// userDefined[3].w (#15) its length in seconds. Counted back from the end the rate can change without a jump,
+		// and the pulse peaks as the unit goes off.
+		float selfdEnd = UNITUNIFORMS.userDefined[3].y;
+		if (selfdEnd > 0.0) {
+			float selfdLeft = max(selfdEnd - simFrame, 0.0) / 30.0;
+			float selfdCycles = (selfdLeft < SELFD_FAST_SECONDS)
+				? selfdLeft * SELFD_PULSE_RATE_FAST
+				: SELFD_FAST_SECONDS * SELFD_PULSE_RATE_FAST + (selfdLeft - SELFD_FAST_SECONDS) * SELFD_PULSE_RATE;
+			float selfdDone = clamp(1.0 - selfdLeft / max(UNITUNIFORMS.userDefined[3].w, 0.001), 0.0, 1.0);
+			uvCoords.w = 2.0 + mix(SELFD_STRENGTH_START, 1.0, selfdDone) * (0.5 + 0.5 * cos(selfdCycles * 6.2831853));
+		}
 	#endif
 
 	#if (RENDERING_MODE != 2) //non-shadow pass

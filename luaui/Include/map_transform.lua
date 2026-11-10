@@ -1,33 +1,21 @@
 -- Map transform math, shared by the Terraformer's DIMENSIONS tools.
 --
--- One object describes how the authoring of a source map (srcW x srcH elmos)
--- lands on a destination map (dstW x dstH elmos). Everything that carries a
--- position, a heading or a pixel is put through the SAME object, so the
--- heightmap, the paint masks, the features and the start boxes can never
--- disagree about where the map went.
+-- One object maps a source map (srcW x srcH elmos) onto a destination map
+-- (dstW x dstH elmos). Heightmap, paint masks, features and start boxes all go
+-- through the SAME object, so they can never disagree about where the map went.
 --
--- Order of operations, source -> destination:
---   1. mirror   (mirrorX negates x, mirrorZ negates z)
---   2. rotate   (0/90/180/270, clockwise as seen on the minimap)
---   3. fit      ("stretch" scales the rotated footprint onto the new canvas,
---                "keep" holds 1:1 elmo scale and places it by the anchor)
+-- Order, source -> destination: 1. mirror (mirrorX negates x, mirrorZ negates z),
+-- 2. rotate (0/90/180/270, clockwise on the minimap), 3. fit ("stretch" scales
+-- onto the new canvas, "keep" holds 1:1 scale and places by the anchor).
+-- Rotation is outermost so a screen-space "rotate right" is always +90 on `rot`;
+-- flipScreen turns a screen-space flip into the right internal mirror.
 --
--- Mirror before rotate is what makes the UI honest: the rotation is outermost,
--- so a screen-space "rotate right" is always +90 on `rot` whatever else is set.
--- The panel turns a screen-space flip into the right internal mirror (see
--- flipScreen) rather than exposing this order to the user.
---
--- Conventions this file commits to, and why:
---   * Headings are engine heading units (0..65535; dir = (sin, cos), so 0 = +z
---     = south and 16384 = +x = east). A 90 degree CLOCKWISE map rotation turns
---     a thing facing south into a thing facing west, i.e. heading - 16384.
---   * Mirrors keep the SILHOUETTE, not the chirality: a wreck lying NE-SW comes
---     out lying NW-SE. Mirroring a model properly would need a mirrored mesh,
---     which does not exist, so the long axis is what gets preserved.
---   * Under that convention a mirror flips a model's local sideways axis and
---     keeps its forward axis, so tilt goes roll -> -roll, pitch -> pitch, for
---     EITHER mirror axis. A pure rotation turns heading and lean by the same
---     angle, so it leaves pitch and roll alone. No euler conversion needed.
+-- Conventions:
+--   * Headings are engine units (0..65535, dir = (sin, cos): 0 = south, 16384 =
+--     east). A 90 degree clockwise map rotation is heading - 16384.
+--   * Mirrors keep the silhouette, not the chirality (there is no mirrored mesh),
+--     so for either mirror axis roll -> -roll and pitch stays. A pure rotation
+--     leaves pitch and roll alone.
 
 ---@class MapTransformSpec
 ---@field rot number
@@ -319,23 +307,15 @@ function MapTransform:affine()
 	return ax - ox, bx - ox, az - oz, bz - oz, ox, oz
 end
 
--- WORLD PATTERN FRAME for the tileset shader (patternXZ in
--- dev_tileset_terrain.lua). Where the artist has claimed no texel the shader
--- picks the material from patterns addressed in WORLD XZ - the stagger mask
--- behind the cliff and foothills lerps, the fbm fields behind the intermediate
--- scatter and the macro drift, the anti-tile warp, the automatic deposit's
--- wind. Those are nailed to the world axes, so a map turned under them keeps
--- its terrain and its paint and re-rolls every automatic placement: "some
--- surfaces aren't being rotated, but some are" (CM02, 2026-09-23).
+-- World pattern frame for the tileset shader (patternXZ in dev_tileset_terrain.lua).
+-- Its automatic patterns (stagger mask, fbm scatter, anti-tile warp, deposit wind)
+-- are addressed in world XZ, so a turned map would re-roll them while its paint
+-- moves. The frame maps current world XZ back to the authored XZ; it is stored in
+-- the project's tileset.lua and the shader samples those patterns through it.
 --
--- The frame puts them back. It is an affine from the map's CURRENT world XZ to
--- the XZ it was authored in, carried in the project's tileset.lua and composed
--- afresh on every transform, and the shader samples those patterns through it.
---
--- `frame` is the map's existing frame as a project file carries it: the six
--- numbers in the same order, or nil / short / junk for the map that was never
--- transformed, which reads as identity. The result is that frame applied AFTER
--- this transform's destination -> source map, which is function composition.
+-- `frame` is the existing frame as saved (six numbers, same order); nil, short or
+-- junk reads as identity (a map never transformed). Returns frame after this
+-- transform's destination -> source map.
 ---@param frame number[]|nil
 ---@return number, number, number, number, number, number
 function MapTransform:composeFrame(frame)
@@ -372,15 +352,10 @@ end
 -- Expansion
 ----------------------------------------------------------------
 
--- Doubling the map along one axis. The original keeps its scale and sits on the
--- far side of the growth; the new half is either left alone or filled with a
--- copy of the map. The copy's variants are the four ways a rectangle can be
--- laid beside itself: as it is, mirrored across the seam (the one that makes a
--- symmetric map), flipped along the seam, or both, which is a half turn.
---
--- Both halves are ordinary placements of the SAME source, so everything that
--- can transform a map can expand one: each layer is simply replayed once per
--- placement.
+-- Doubling the map along one axis. The original keeps its scale on the far side
+-- of the growth; the new half is empty or a copy: as is, mirrored across the seam
+-- (a symmetric map), flipped along it, or both (a half turn). Both halves are
+-- placements of the same source, so each layer is replayed once per placement.
 --
 -- dir: "left" | "right" | "up" | "down" (up/down are -z/+z)
 -- copy: nil for an empty half, else "none" | "mirror" | "flip" | "both"

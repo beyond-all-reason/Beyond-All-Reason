@@ -168,7 +168,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corak', x = 1800, z = 1800, teamName = 'player', unitName = 'bots',
+				{ unitDefName = 'corak', position = { x = 1800, z = 1800 }, teamName = 'player', unitName = 'bots',
 					-- Hold position and hold fire: the bots are targets, not combatants,
 					-- so the turrets always win and the mission always completes.
 					orders = {
@@ -188,12 +188,12 @@ local actions = {
 				-- around the centre, which pulled a turret to 208 elmos, inside corak's
 				-- 215 range. At z = 2150 every turret is 350+ away but still inside
 				-- armllt's 430, so they shoot and are not shot at.
-				{ unitDefName = 'armllt', x = 1700, z = 2150, teamName = 'enemy' },
-				{ unitDefName = 'armllt', x = 1800, z = 2150, teamName = 'enemy' },
-				{ unitDefName = 'armllt', x = 1900, z = 2150, teamName = 'enemy' },
+				{ unitDefName = 'armllt', position = { x = 1700, z = 2150 }, teamName = 'enemy' },
+				{ unitDefName = 'armllt', position = { x = 1800, z = 2150 }, teamName = 'enemy' },
+				{ unitDefName = 'armllt', position = { x = 1900, z = 2150 }, teamName = 'enemy' },
 				-- armllt costs 20 energy per shot and the enemy team produces none, so the
 				-- turrets stop firing without this.
-				{ unitDefName = 'armfus', x = 1800, z = 2450, teamName = 'enemy' },
+				{ unitDefName = 'armfus', position = { x = 1800, z = 2450 }, teamName = 'enemy' },
 			},
 		},
 	},

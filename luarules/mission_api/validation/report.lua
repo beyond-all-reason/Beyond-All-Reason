@@ -1,16 +1,18 @@
 ---
---- The validation report: collects validation messages
+--- The validation report: collects validation messages, and Log writes them
 ---
 
 -- The order in the log:
 local sections = {
-	Stages = 1,
-	Objectives = 2,
-	Triggers = 3,
-	Actions = 4,
-	Cutscenes = 5,
-	Loadouts = 6,
-	References = 7,
+	Loading = 0, -- a Lua error while the mission loads, from api_missions.lua
+	GameSetup = 1,
+	Stages = 2,
+	Objectives = 3,
+	Triggers = 4,
+	Actions = 5,
+	Cutscenes = 6,
+	Loadouts = 7,
+	References = 8,
 }
 
 --- A total order, so entries of the same entity keep the order they were reported in.
@@ -78,7 +80,18 @@ local function createReport()
 	}
 end
 
+--- @param result table as returned by GetResult
+local function logResult(result)
+	for _, message in ipairs(result.errors) do
+		Spring.Log("MissionAPI", LOG.ERROR, "[Mission API] " .. message)
+	end
+	for _, message in ipairs(result.warnings) do
+		Spring.Log("MissionAPI", LOG.WARNING, "[Mission API] " .. message)
+	end
+end
+
 return {
 	Create = createReport,
 	Sections = sections,
+	Log = logResult,
 }

@@ -14,10 +14,86 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+-- Included outside the guarded load, so a Lua error in any other Mission API file can still be reported.
+local validationReport = VFS.Include("luarules/mission_api/validation/report.lua")
+local loadReport = validationReport.Create()
+
+local missionLoaded = true
+local missionLoadError
+local missionLoadStep
+
+local function failMission(reason)
+	GG["MissionAPI"] = nil
+	missionLoaded = false
+	missionLoadError = "[Mission API] Mission not loaded: " .. reason .. " (see infolog)"
+end
+
 local objectivesController, stagesController, triggersController, actionsController
 
--- Used in GameFrame.
-local missionValidationFailure
+local function setUpMissionAPI(gameSetup)
+	missionLoadStep = "loading the Mission API"
+
+	GG["MissionAPI"] = {}
+	GG["MissionAPI"].Options = gameSetup.options
+	GG["MissionAPI"].Variables = gameSetup.variables
+	GG["MissionAPI"].PersistentVariables = gameSetup.persistentVariables
+	GG["MissionAPI"].Teams = gameSetup.teams
+	GG["MissionAPI"].Alliances = gameSetup.alliances
+	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
+	GG["MissionAPI"].GameSetupErrors = gameSetup.errors
+	GG["MissionAPI"].trackedUnitIDs = {}
+	GG["MissionAPI"].trackedUnitNames = {}
+	GG["MissionAPI"].trackedFeatureIDs = {}
+	GG["MissionAPI"].trackedFeatureNames = {}
+	GG["MissionAPI"].markerNames = {}
+	GG["MissionAPI"].lineNames = {}
+	GG["MissionAPI"].unitMarkers = {}
+	GG["MissionAPI"].soundFiles = {}
+	GG["MissionAPI"].soundQueue = {}
+	GG["MissionAPI"].effectNames = {}
+	GG["MissionAPI"].ObjectiveTriggers = {}
+	GG["MissionAPI"].ObjectiveStages = {}
+	GG["MissionAPI"].Countdowns = {}
+	GG["MissionAPI"].BattleLogRaw = {}
+	GG["MissionAPI"].Modules = {}
+	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
+	GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variables.lua")
+	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
+	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
+	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
+	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
+	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
+	GG["MissionAPI"].Modules.Stages = VFS.Include("luarules/mission_api/stages.lua")
+	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
+	GG["MissionAPI"].Modules.Countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
+	GG["MissionAPI"].Modules.BattleLog = VFS.Include("luarules/mission_api/battle_log.lua")
+	GG["MissionAPI"].Modules.Cutscenes = VFS.Include("luarules/mission_api/cutscenes.lua")
+	GG["MissionAPI"].Modules.MapLines = VFS.Include("luarules/mission_api/map_lines.lua")
+	GG["MissionAPI"].Modules.UnitMarkers = VFS.Include("luarules/mission_api/unit_markers.lua")
+	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
+	GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
+	GG["MissionAPI"].Modules.AreaTracking = VFS.Include("luarules/mission_api/area_tracking.lua")
+	GG["MissionAPI"].Modules.Effects = VFS.Include("luarules/mission_api/effects.lua")
+
+	objectivesController = VFS.Include("luarules/mission_api/objectives_loader.lua")
+	stagesController = VFS.Include("luarules/mission_api/stages_loader.lua")
+
+	actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
+	GG["MissionAPI"].ActionDefinitions = actionsController.LoadActionDefinitions()
+
+	triggersController = VFS.Include("luarules/mission_api/conditions_loader.lua")
+	GG["MissionAPI"].ConditionDefinitions = triggersController.LoadConditionDefinitions()
+	-- The mission editor writes TriggerDefinitions.Types into every mission it exports, so the old name
+	-- stays for a release or two to keep those missions loading.
+	GG["MissionAPI"].TriggerDefinitions = GG["MissionAPI"].ConditionDefinitions
+
+	GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
+	local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes
+	parameterTypes.Enums[parameterTypes.Types.EffectType] = GG["MissionAPI"].EffectDefinitions.Types
+
+	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
+end
 
 -- Runs on the raw mission data
 local function validateMission(mission)
@@ -29,18 +105,23 @@ local function validateMission(mission)
 end
 
 local function loadMission(gameSetup)
+	missionLoadStep = "loading " .. gameSetup.entryPoint
 	local mission = VFS.Include(gameSetup.entryPoint)
-	local validationResult = validateMission(mission)
-
-	if not validationResult.ok then
-		GG["MissionAPI"] = nil -- stops gadget api_missions_triggers from loading
-		missionValidationFailure = "[Mission API] Mission not loaded: "
-			.. #validationResult.errors
-			.. " validation errors in "
-			.. gameSetup.entryPoint
-			.. " (see infolog)"
+	if not mission then
+		local reason = gameSetup.entryPoint .. " returned no mission table"
+		loadReport.Error(validationReport.Sections.Loading, nil, nil, reason)
+		failMission(reason)
 		return
 	end
+
+	missionLoadStep = "validating " .. gameSetup.entryPoint
+	local validationResult = validateMission(mission)
+	if not validationResult.ok then
+		failMission(#validationResult.errors .. " validation errors in " .. gameSetup.entryPoint)
+		return
+	end
+
+	missionLoadStep = "processing " .. gameSetup.entryPoint
 
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
@@ -86,6 +167,15 @@ local function loadMission(gameSetup)
 	Spring.SetGameRulesParam("inMission", true)
 end
 
+-- Outside dev mode synced Lua's debug table is empty, so there is no traceback. VFS.Include runs each file in its own
+-- pcall, so for an error raised while a file loads the stack ends at the include; the message still names the file.
+local function withTraceback(err)
+	if debug.traceback then
+		return debug.traceback(tostring(err), 2)
+	end
+	return tostring(err)
+end
+
 function gadget:Initialize()
 	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua")
 	if not gameSetup then
@@ -93,68 +183,29 @@ function gadget:Initialize()
 		return
 	end
 
-	GG["MissionAPI"] = {}
-	GG["MissionAPI"].Options = gameSetup.options
-	GG["MissionAPI"].Variables = gameSetup.variables
-	GG["MissionAPI"].PersistentVariables = gameSetup.persistentVariables
-	GG["MissionAPI"].Teams = gameSetup.teams
-	GG["MissionAPI"].Alliances = gameSetup.alliances
-	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
-	GG["MissionAPI"].trackedUnitIDs = {}
-	GG["MissionAPI"].trackedUnitNames = {}
-	GG["MissionAPI"].trackedFeatureIDs = {}
-	GG["MissionAPI"].trackedFeatureNames = {}
-	GG["MissionAPI"].markerNames = {}
-	GG["MissionAPI"].lineNames = {}
-	GG["MissionAPI"].unitMarkers = {}
-	GG["MissionAPI"].soundFiles = {}
-	GG["MissionAPI"].soundQueue = {}
-	GG["MissionAPI"].effectNames = {}
-	GG["MissionAPI"].ObjectiveTriggers = {}
-	GG["MissionAPI"].ObjectiveStages = {}
-	GG["MissionAPI"].Countdowns = {}
-	GG["MissionAPI"].BattleLogRaw = {}
-	GG["MissionAPI"].Modules = {}
-	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
-	GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variables.lua")
-	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
-	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
-	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
-	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
-	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
-	GG["MissionAPI"].Modules.Stages = VFS.Include("luarules/mission_api/stages.lua")
-	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
-	GG["MissionAPI"].Modules.Countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
-	GG["MissionAPI"].Modules.BattleLog = VFS.Include("luarules/mission_api/battle_log.lua")
-	GG["MissionAPI"].Modules.Cutscenes = VFS.Include("luarules/mission_api/cutscenes.lua")
-	GG["MissionAPI"].Modules.MapLines = VFS.Include("luarules/mission_api/map_lines.lua")
-	GG["MissionAPI"].Modules.UnitMarkers = VFS.Include("luarules/mission_api/unit_markers.lua")
-	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
-	GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
-	GG["MissionAPI"].Modules.AreaTracking = VFS.Include("luarules/mission_api/area_tracking.lua")
-	GG["MissionAPI"].Modules.Effects = VFS.Include("luarules/mission_api/effects.lua")
+	-- gadgets.lua calls Initialize unprotected: an error escaping it kills the whole LuaRules handle.
+	local loaded, loadError = xpcall(function()
+		setUpMissionAPI(gameSetup)
+		loadMission(gameSetup)
+	end, withTraceback)
 
-	objectivesController = VFS.Include("luarules/mission_api/objectives_loader.lua")
-	stagesController = VFS.Include("luarules/mission_api/stages_loader.lua")
+	if not loaded then
+		local failedPath
+		for path in tostring(loadError):gmatch("file=(.-) %a+=") do
+			failedPath = path
+		end
+		local step = failedPath and ("loading " .. failedPath) or missionLoadStep
+		local message = "Lua error while " .. step .. ": " .. tostring(loadError)
+		loadReport.Error(validationReport.Sections.Loading, nil, nil, message)
+		failMission(message:match("^[^\n]*"))
+	end
 
-	actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
-	GG["MissionAPI"].ActionDefinitions = actionsController.LoadActionDefinitions()
-
-	triggersController = VFS.Include("luarules/mission_api/conditions_loader.lua")
-	GG["MissionAPI"].ConditionDefinitions = triggersController.LoadConditionDefinitions()
-
-	GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
-	local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes
-	parameterTypes.Enums[parameterTypes.Types.EffectType] = GG["MissionAPI"].EffectDefinitions.Types
-
-	GG["MissionAPI"].CollateSchemas = VFS.Include("luarules/mission_api/schema_utils.lua").CollateSchemas
-
-	loadMission(gameSetup)
+	validationReport.Log(loadReport.GetResult())
+	loadReport = nil
 end
 
 function gadget:GamePreload()
-	if missionValidationFailure then
+	if not missionLoaded then
 		return
 	end
 
@@ -166,10 +217,9 @@ function gadget:GamePreload()
 end
 
 function gadget:GameFrame(frameNumber)
-	-- Invalid mission ends the game
-	if missionValidationFailure then
-		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionValidationFailure after this
-		Spring.Echo(missionValidationFailure)
+	if not missionLoaded then
+		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionLoadError after this
+		Spring.Echo(missionLoadError)
 		gadgetHandler:RemoveGadget()
 		return
 	end
@@ -180,7 +230,7 @@ function gadget:GameFrame(frameNumber)
 end
 
 function gadget:GameOver()
-	if missionValidationFailure then
+	if not missionLoaded then
 		return
 	end
 

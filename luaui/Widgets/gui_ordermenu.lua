@@ -458,6 +458,11 @@ local function refreshCommands()
 	-- cancelTargetLastState is kept current by SelectionChanged and by the poll in Update
 	local cancelTargetRelevant = cancelTargetLastState
 
+	-- the blueprint commands, unless the blueprint UI is off (ShowBlueprintUI: settings, dev)
+	local hideBlueprints = Spring.GetConfigInt("ShowBlueprintUI", 1) == 0 or nil
+	hiddenCommands[GameCMD.BLUEPRINT_PLACE] = hideBlueprints
+	hiddenCommands[GameCMD.BLUEPRINT_CREATE] = hideBlueprints
+
 	local activeCmdDescs = spGetActiveCmdDescs()
 	for _, command in ipairs(activeCmdDescs) do
 		if type(command) == "table" and not disabledCommand[command.name] then
@@ -716,8 +721,37 @@ local function reloadBindings()
 	tapHotkeyLines = {}
 end
 
--- "Tap L quickly: 1x Fire at will, 2x Hold fire, 3x Return fire" for a state set by the number of taps
+-- "Tap L quickly: 1x Fire at will, 2x Hold fire, 3x Return fire" for a state set by the number of taps;
+-- "Press Z Z for area mex" when it needs the extractor picked first: its key bound to an extractor too
+-- (Legacy presets), or the grid layout's keys (the build menu's WG.gridmenu.getAreaMexKeys)
 local function tapHotkeyLine(cmd)
+	if cmd.action == "areamex" then
+		local keys
+		local key = actionHotkeys.areamex
+		if key then
+			if tapHotkeyLines.areamex == nil then
+				tapHotkeyLines.areamex = false
+				for _, keybinding in ipairs(Spring.GetKeyBindings()) do
+					if keybinding.boundWith == key and keybinding.command:find("buildunit_", 1, true) == 1 then
+						local label = keyConfig.sanitizeKey(key, currentLayout):upper()
+						tapHotkeyLines.areamex = label .. " " .. label
+						break
+					end
+				end
+			end
+			keys = tapHotkeyLines.areamex or nil
+		elseif WG.gridmenu and WG.gridmenu.getAreaMexKeys then
+			local grid = WG.gridmenu.getAreaMexKeys()
+			keys = grid and table.concat(grid, " ")
+		end
+		return keys
+				and getCachedTranslation("ui.orderMenu.areamexHotkey", {
+					keys = keys,
+					highlightColor = "\255\255\215\100",
+					textColor = "\255\240\240\240",
+				})
+			or nil
+	end
 	local line = tapHotkeyLines[cmd.action]
 	if line == nil then
 		line = false
@@ -1510,6 +1544,11 @@ function widget:DrawScreen()
 							if tapLine then
 								tooltip = tooltip ~= "" and (tooltip .. "\n" .. tapLine) or tapLine
 							end
+							if cmd.action == "stockpile" and cmd.params[1] then
+								local limit =
+									getCachedTranslation("commands.stockpile_limit", { limit = cmd.params[1] })
+								tooltip = tooltip ~= "" and (tooltip .. "\n" .. limit) or limit
+							end
 							if tooltip ~= "" then
 								local title
 								if isStateCommand[cmd.id] then
@@ -1520,7 +1559,7 @@ function widget:DrawScreen()
 										title = getCachedTranslation("commands." .. commandState)
 									end
 								else
-									title = getCachedTranslation("commands." .. cmd.action)
+									title = cmd.cachedText
 								end
 								WG.tooltip.ShowTooltip("ordermenu", tooltip, nil, nil, title)
 							end
@@ -1888,6 +1927,12 @@ end
 function widget:SelectionChanged(sel)
 	clickCountDown = 2
 	clickedCellDesiredState = nil
+
+	-- units picked from none, or all let go: this frame, not after the throttle
+	if (cachedFirstUnit == nil) ~= (sel[1] == nil) then
+		doUpdate = true
+		lastCommandRefreshTime = 0
+	end
 
 	-- Cache first selected unit to avoid spGetSelectedUnits() table allocation later
 	cachedFirstUnit = sel[1] or nil

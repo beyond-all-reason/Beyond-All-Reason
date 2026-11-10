@@ -159,11 +159,26 @@ describe("mission_api difficulty pipeline", function()
 						unitLoadout = {
 							difficulties = {
 								Easy = {
-									{ unitDefName = "armwar", x = 0, z = 0, teamName = "player", unitName = "bot" },
+									{
+										unitDefName = "armwar",
+										position = { x = 0, z = 0 },
+										teamName = "player",
+										unitName = "bot",
+									},
 								},
 								Hard = {
-									{ unitDefName = "armwar", x = 0, z = 0, teamName = "player", unitName = "bot" },
-									{ unitDefName = "armwar", x = 10, z = 0, teamName = "player", unitName = "bot" },
+									{
+										unitDefName = "armwar",
+										position = { x = 0, z = 0 },
+										teamName = "player",
+										unitName = "bot",
+									},
+									{
+										unitDefName = "armwar",
+										position = { x = 10, z = 0 },
+										teamName = "player",
+										unitName = "bot",
+									},
 								},
 							},
 						},

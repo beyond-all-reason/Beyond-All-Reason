@@ -15,7 +15,7 @@ end
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 
-include("keysym.h.lua")
+local KEY_R = Spring.GetKeyCode("r")
 
 ------------------------------------------------
 -- Press Handling
@@ -24,7 +24,7 @@ local doReload = false
 
 function widget:KeyPress(key, modifier, isRepeat)
 	if modifier.ctrl then
-		if key == KEYSYMS.R then
+		if key == KEY_R then
 			doReload = true
 		end
 	end
