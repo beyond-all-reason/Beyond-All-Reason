@@ -1,10 +1,8 @@
--- tf_guide.lua: extracted tool module for gui_terraform_brush
+-- tf_guide.lua: guide mode and settings window wiring for the gui_terraform_brush panel
 local M = {}
 
--- Capture engine globals as module upvalues. RmlUi-dispatched event closures
--- (AddEventListener bodies) may execute outside the host widget's global env,
--- so referring to bare globals from inside a handler throws nil-index errors.
--- See memory: rmlui_addeventlistener_globals.md.
+-- RmlUi listener closures can run outside the widget env, where bare globals
+-- are nil: capture what they use as upvalues.
 local WG = WG
 local Spring = Spring
 
@@ -24,9 +22,8 @@ function M.attach(doc, ctx)
 		trackSliderDrag(sliderPen, "pen-sensitivity")
 	end
 
-	-- Guide hint mouseover/mouseout listeners (justified: dynamic loop over hints table)
-	-- The hint is looked up at HOVER time, not captured: contextual hints
-	-- (btn-splat under the tileset shader) mutate guideHints entries at runtime.
+	-- Hints are looked up at hover time, not captured: contextual hints (btn-splat
+	-- under the tileset shader) replace guideHints entries at runtime.
 	for elemId, hint in pairs(guideHints) do
 		local el = doc:GetElementById(elemId)
 		if el then
@@ -43,7 +40,7 @@ function M.attach(doc, ctx)
 		end
 	end
 
-	-- G3: Shortcut discovery tips — fire near cursor after 3 interactions (guide mode only)
+	-- Shortcut discovery tips: a toast near the cursor after 3 clicks in a group (guide mode only)
 	for elemId, group in pairs(g3ElemGroup) do
 		local el = doc:GetElementById(elemId)
 		if el then
@@ -62,9 +59,8 @@ function M.attach(doc, ctx)
 		end
 	end
 
-	-- All data-event-click/change handlers (onGuideXxx) are defined in initialModel
-	-- in gui_terraform_brush.lua — Recoil forbids adding or replacing function
-	-- keys in a DataModel after OpenDataModel.
+	-- The onGuideXxx handlers live in initialModel (gui_terraform_brush.lua): Recoil
+	-- forbids adding function keys to a DataModel after OpenDataModel.
 end
 
 return M

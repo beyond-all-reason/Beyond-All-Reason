@@ -153,7 +153,7 @@ return {
 				name = "Dual Heavy Assault Kinetic Shotgun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 10,
+				proximitypriority = 1,
 				range = 501,
 				reloadtime = 1.2,
 				rgbcolor = "1 0.95 0.4",

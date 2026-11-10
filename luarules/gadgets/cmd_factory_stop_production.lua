@@ -25,6 +25,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local spGetRealBuildQueue = Spring.GetRealBuildQueue
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
+	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 
 	local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
@@ -84,7 +85,8 @@ if gadgetHandler:IsSyncedCode() then
 				total = total + count
 			end
 			local keepDefID
-			if total > 1 then
+			-- the first order is kept as it is being built: an unfinished factory builds nothing yet
+			if total > 1 and not spGetUnitIsBeingBuilt(unitID) then
 				local firstCommand = Spring.GetFactoryCommands(unitID, 1)
 				local firstID = firstCommand[1].id
 				if firstID < 0 then

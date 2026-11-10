@@ -11,7 +11,7 @@ layout (location = 1) in vec4 instPosRadius;  // world position xyz, shield radi
 layout (location = 2) in vec4 instRotMargin;  // yaw, margin, shieldFade, overlapScale
 layout (location = 3) in vec4 instColor1;
 layout (location = 4) in vec4 instColor2;
-layout (location = 5) in vec4 instParams;     // effects bitmask, impact base index (vec4s), impact count, unused
+layout (location = 5) in vec4 instParams;     // effects bitmask, impact base index (vec4s), impact count, flags (1 scavenger, 2 band mesh) + (1 - detail) * 0.5
 
 out vec4 modelPos;
 out vec4 worldPos;
@@ -27,6 +27,7 @@ flat out vec2 v_fadeOverlap;  // shieldFade, overlapScale
 flat out ivec4 v_params;      // effects bitmask, impact base index, impact count, flags (1 = scavenger palette)
 flat out vec2 v_arcBreath;    // per-shield idle-field terms: arc burst gate, breathing brightness
 flat out float v_cameraInside; // 1.0 when the camera sits inside this shield sphere
+flat out float v_detail;       // 1 = full shading, 0 = rim only (deep in a stack under load)
 
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
@@ -78,7 +79,8 @@ void main() {
 	v_color1 = instColor1;
 	v_color2 = instColor2;
 	v_fadeOverlap = instRotMargin.zw;
-	v_params = ivec4(effects, int(instParams.y + 0.5), int(instParams.z + 0.5), int(instParams.w + 0.5));
+	v_params = ivec4(effects, int(instParams.y + 0.5), int(instParams.z + 0.5), int(floor(instParams.w)));
+	v_detail = 1.0 - fract(instParams.w) * 2.0;
 
 	// Idle-field terms that are constant across the whole shield: evaluate
 	// them once per vertex instead of once per fragment.
@@ -108,12 +110,24 @@ void main() {
 
 	modelPos = vec4(vertexPos, 1.0);
 
+	// Rim-only shields draw a camera-facing band instead of the whole sphere:
+	// vertexPos is (cos, sin) around the view axis and the position across the band.
+	if ((v_params.w & 2) != 0) {
+		const float BAND_INNER = 0.55; // fraction of the silhouette angle, inside the visible rim
+		vec3 toCamera = cameraPos - instPosRadius.xyz;
+		float cameraDistance = length(toCamera);
+		vec3 axis = RotateY(toCamera / cameraDistance, -instRotMargin.x);
+		vec3 tangent = normalize(cross(axis, abs(axis.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0)));
+		vec3 bitangent = cross(axis, tangent);
+		float polar = acos(instPosRadius.w / cameraDistance) * mix(BAND_INNER, 1.0, vertexPos.z);
+		modelPos.xyz = cos(polar) * axis + sin(polar) * (vertexPos.x * tangent + vertexPos.y * bitangent);
+	}
+
 	if (BITMASK_FIELD(effects, 6)) {
-		float r = length(modelPos.xyz);
-		float theta = acos(modelPos.z / r);
+		// vertexPos is unit length, so the radial wobble is a plain scale
+		float theta = acos(modelPos.z);
 		float phi = atan(modelPos.y, modelPos.x);
-		r += 0.010 * r * SNORM2NORM(sin( (2.0 * theta + instPosRadius.z  * 13.0 + 3.3 * cos(phi + instPosRadius.x * 17.0)) * 8.0 + gameFrame * 0.05));
-		modelPos.xyz = vec3(r * sin(theta) * cos(phi), r * sin(theta) * sin(phi), r * cos(theta));
+		modelPos.xyz *= 1.0 + 0.010 * SNORM2NORM(sin( (2.0 * theta + instPosRadius.z  * 13.0 + 3.3 * cos(phi + instPosRadius.x * 17.0)) * 8.0 + gameFrame * 0.05));
 	}
 
 	worldPos = vec4(instPosRadius.www * modelPos.xyz, 1.0);	//scaling
