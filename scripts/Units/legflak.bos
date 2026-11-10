@@ -3,30 +3,36 @@
 
 piece  base, lflare, rflare, turret, sleeve, lbarrel, rbarrel, radar;
 
-static-var  restore_delay, gun_switch, Stunned;
+static-var  wpn1_lasthead, restore_delay, gun_switch;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_SHOOT1 16
+#define SIGNAL_AIM1				1
+#define SIGNAL_FIRE1			2
 
-#include "../damagedsmoke.h"
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
+
+
+static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-	if (Stunned) {
-		return (1);
-	}
-	turn sleeve to x-axis <-30> speed <25.0>;
-	spin turret around y-axis speed <25.0>;
-
+    if (Stunned) {
+        return (1);
+    }
+    turn sleeve to x-axis <-30> speed <25.00000>;
+    spin turret around y-axis speed <25.0>;
+	
 	sleep restore_delay;
+	wpn1_lasthead = 1000000;
 	set-signal-mask 0;
 }
 
 SetStunned(State)
 {
-	Stunned = State;
+    Stunned = State;
 	if (!Stunned) {
-		start-script ExecuteRestoreAfterDelay();
+	    start-script ExecuteRestoreAfterDelay();
 	}
 }
 
@@ -40,13 +46,15 @@ Create()
 {
 	hide lflare;
 	hide rflare;
+	
 	restore_delay = 6000;
+	
 	gun_switch = 0;
+	
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script DamagedSmoke();
 
-	turn radar to x-axis <-45> speed <25.0>;
-	spin radar around z-axis speed <60.0>;
+    turn radar to x-axis <-45> speed <25.0>;
+    spin radar around z-axis speed <60.0>;
 	start-script ExecuteRestoreAfterDelay();
 }
 
@@ -59,12 +67,14 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-
+	
 	stop-spin turret around y-axis;
 
 	turn turret to y-axis heading speed <240.0>;
 	turn sleeve to x-axis <0.0> - pitch speed <120.0>;
-
+	
+	
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -75,18 +85,21 @@ FireWeapon1()
 	spin rbarrel around z-axis speed <2000.0>;
 	stop-spin lbarrel around z-axis decelerate <12>;
 	stop-spin rbarrel around z-axis decelerate <12>;
+	return (0);
 }
 
-QueryWeapon1(pieceIndex)
+QueryWeapon1(piecenum)
 {
-	pieceIndex = lflare + gun_switch;
+	piecenum = lflare + gun_switch;
+	return (0);
 }
 
-Shot1() //Barrel switcher so each minigun fires at the same time
+Shot1(zero) //Barrel switcher so each minigun fires at the same time
 {
-	signal SIGNAL_SHOOT1;
-	set-signal-mask SIGNAL_SHOOT1;
-
+	signal SIGNAL_FIRE1;
+	set-signal-mask SIGNAL_FIRE1;
+	
+	
 	if(gun_switch == 0)
 	{
 		emit-sfx 1024 + 0 from rflare;
@@ -95,9 +108,17 @@ Shot1() //Barrel switcher so each minigun fires at the same time
 	{
 		emit-sfx 1024 + 0 from lflare;
 	}
-
+	
 	gun_switch = !gun_switch;
+	return(1);
 }
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
 
 Killed(severity, corpsetype)
 {

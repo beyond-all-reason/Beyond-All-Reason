@@ -31,9 +31,9 @@ static-var  gun_1, restore_delay;
 #define MAXTILT 100
 
 #define TB_BASE base
-#define TB_TURNRATE <15.0>
-#define TB_TILT_X <0.1>
-#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#define TB_TURNRATE <10.0>
+#define TB_TILT_X <0.06>
+#define TB_BANK_Z <0.06> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
 

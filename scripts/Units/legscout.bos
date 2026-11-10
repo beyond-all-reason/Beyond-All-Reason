@@ -12,9 +12,9 @@ static-var restore_delay, oldHeading, Stunned;
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 #define TB_BASE body
-#define TB_TURNRATE <15.0>
-#define TB_TILT_X <0.1>
-#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#define TB_TURNRATE <35.0>
+#define TB_TILT_X <-0.4>
+#define TB_BANK_Z <0.2> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
 Create()
@@ -28,13 +28,11 @@ Create()
 
 Steering(heading, steery, currentSpeed)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
 		steery = (heading - oldHeading)*3/2;
-		turn body to y-axis steery speed <120>;
+		//turn body to y-axis steery speed <120>;
 		currentSpeed = <5.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
 		spin rTyre around x-axis speed currentSpeed;
@@ -46,17 +44,24 @@ Steering(heading, steery, currentSpeed)
 
 StopMoving()
 {
-	signal SIGNAL_MOVE;
+	signal SIGNAL_TURNON;
 	stop-spin rTyre around x-axis;
 	stop-spin lTyre around x-axis;
+	
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	STOP_TILTBANK;
 }
 
 StartMoving(reversing)
 {
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	start-script Steering();
+
+
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	start-script Steering();
 	START_TILTBANK;
 }
 

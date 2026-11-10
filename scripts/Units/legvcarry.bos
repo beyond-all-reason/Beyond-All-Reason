@@ -15,9 +15,9 @@ static-var  terrain, restore_delay;
 #define MAXTILT 50
 
 #define TB_BASE chassis 
-#define TB_TURNRATE <15.0> 
+#define TB_TURNRATE <10.0> 
 #define TB_TILT_X <0.1>
-#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#define TB_BANK_Z <0.07> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
 Create()

@@ -22,6 +22,12 @@ static-var open, restore_delay;
 
 #include "../unit_hitbyweaponid_and_smoke.h"
 
+#define TB_BASE base 
+#define TB_TURNRATE <18.0> 
+#define TB_TILT_X <0.12>
+#define TB_BANK_Z <0.10> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 deploy(){
 	signal SIGNAL_DEPLOY;
 	set-signal-mask SIGNAL_DEPLOY;
@@ -72,8 +78,23 @@ Create()
 	turn barrelSleeve to z-axis <30> now;
 	SLEEP_UNTIL_UNITFINISHED;
 	restore_delay = 3000;
+	call-script TB_Init();
 	start-script ExecuteRestoreAfterDelay();
 }
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
+
 
 SetMaxReloadTime(reloadMS)
 {

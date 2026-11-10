@@ -4,10 +4,10 @@
 piece  base, vent, turret, sleeve, barrel1, flare1, barrel2, flare2,
        barrel3, flare3;
 
-static-var reloading_barrel_1, reloading_barrel_2, Stunned;
+static-var reloading_barrel_1, reloading_barrel_2;
 
 // Signal definitions
-#define SIGNAL_AIM1 256
+#define SIGNAL_AIM1_1				2
 #define SIGNAL_AIM2 512
 #define SIGNAL_AIM3 1024
 
@@ -22,23 +22,106 @@ static-var reloading_barrel_1, reloading_barrel_2, Stunned;
 // A high precision requirement can result in overshoots if desired 
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // adjustments by Itanthias
-#define CATT1_PIECE_Y turret
+#define MAX_AIMY1_VELOCITY <1.20>
+#define AIMY1_ACCELERATION <0.10>
+#define AIMY1_SNAP_TOLERANCE <0.5>
+#define AIMY1_PRECISION <0.5>
+#define AIMY1_RESTORE_SPEED <1.0>
 
-#define CATT1_MAX_VELOCITY <1.20>
-#define CATT1_ACCELERATION <0.10>
-#define CATT1_JERK <0.5>
-#define CATT1_PRECISION <0.5>
-#define CATT1_RESTORE_SPEED <1.0>
-#define CATT_DONTRESTORE
+static-var aimy1delta, timetozero, deceleratethreshold;
+static-var aimy1velocity, aimy1target, aimy1position;
+static-var deltaheading, newchassisheading, chassisheading, restore_position;
+static-var  Stunned;
 
-#include "../constant_acceleration_turret_turning.h"
+AimControl()
+{
+	
+	//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+	while( TRUE  ){
+		// only turn when not stunned
+		if (Stunned == 0){
+
+			// apply correction for chassis turning
+			newchassisheading = GET 82; //get heading
+			deltaheading = newchassisheading - chassisheading;
+			chassisheading = newchassisheading;
+			aimy1target = aimy1target - deltaheading;
+
+			// apply aimy1target for neutral, restored, position
+			if (restore_position == 1)
+			{
+				aimy1target = 0;
+			}
+	
+			aimy1delta = aimy1target - aimy1position ; 	
+			//Clamp angles between <-180>;<180>
+			while (aimy1target >  <180>) aimy1target = aimy1target - <360>;
+			while (aimy1target < <-180>) aimy1target = aimy1target + <360>;
+			while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
+			while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
+			while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
+			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
+			
+			// Snap turret exactly to aimy1target if within snap tolerance
+			if (get ABS(aimy1delta) < AIMY1_SNAP_TOLERANCE) {
+				aimy1position = aimy1target;
+				turn turret to y-axis aimy1position now;	
+
+				// velocity match to chassis heading change
+				if ( (restore_position == 0) ){
+					aimy1velocity = (-1)*deltaheading;
+					// clamp velocity to max value
+					aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity); 
+					aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity);
+				}
+				else
+				{
+					aimy1velocity = 0;
+				}
+			}
+			else
+			{
+
+				//number of frames required to decelerate to 0
+				//account for chassis rotation speed
+				timetozero = get ABS(aimy1velocity - deltaheading) / AIMY1_ACCELERATION;
+			
+				//distance from target where we should start decelerating, always 'positive'
+				//pos = t * v - (t*(t-1)*a/2)
+				deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
+			
+				if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
+					if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
+					else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
+			
+				}	
+				else //we need to accelerate
+				{
+					if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
+					else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
+				}
+
+				if (get ABS(aimy1velocity) < (2 * AIMY1_SNAP_TOLERANCE) ){
+					if (get ABS(aimy1delta) < AIMY1_SNAP_TOLERANCE) aimy1velocity = aimy1delta;
+					//if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
+					//if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
+				}
+			
+				aimy1position = aimy1position + aimy1velocity; 
+				turn turret to y-axis aimy1position now;
+			}
+
+		}
+		sleep 30;
+	}
+}
 
 
 SetStunned(State)
 {
-	Stunned = State;
+    Stunned = State;
 	if (!Stunned) {
-		start-script RestoreAfterDelay();
+	    start-script RestoreAfterDelay();
 	}
 }
 
@@ -47,14 +130,15 @@ RestoreAfterDelay()
 	sleep 12000;
 	while (Stunned) {
 		sleep 1;
-	}
+    }
 	turn sleeve to x-axis <0.0> speed <25.0>;
+	//restore_position = 1;
 }
 
 SmokeVents()
 {
-	signal SIGNAL_SHOOT1;
-	set-signal-mask SIGNAL_SHOOT1;
+	signal 16;
+	set-signal-mask 16;
 	while( TRUE )
 	{
 		emit-sfx 257 from vent;
@@ -69,34 +153,50 @@ Create()
 	hide flare2;
 	hide flare3;
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script CATT1_Init();
+	start-script AimControl();
 	start-script SmokeVents();
+	//call-script InitState();
 }
 
 AimWeapon1(heading, pitch)
 {
 
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	signal SIGNAL_AIM1_1;
+	set-signal-mask SIGNAL_AIM1_1;
 
+	//We can do this any time
+	restore_position = 0;
 	turn sleeve to x-axis <0.0> - pitch speed <25.0>;
 	start-script RestoreAfterDelay();
 
-	call-script CATT1_Aim(heading, pitch);
-	return (1);
+	// let AimControl know what to aim at
+	aimy1target = heading;
+	while ( TRUE )
+	{
+		// condition 1, is aim good?
+		aimy1delta = aimy1target - aimy1position ; 	
+		if (get ABS(aimy1delta) < AIMY1_PRECISION) {
+			return (1); 
+		}
+		sleep 1;
+	}
 }
 
 AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	call-script CATT1_Aim(heading, pitch);
+	aimy1target = heading;
 	while ( TRUE )
 	{
-		// condition 2, is barrel 1 reloading?
-		reloading_barrel_1 = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
-		if (reloading_barrel_1) {
-			return (1); 
+		// condition 1, is aim good?
+		aimy1delta = aimy1target - aimy1position ; 	
+		if (get ABS(aimy1delta) < AIMY1_PRECISION) {
+			// condition 2, is barrel 1 reloading?
+			reloading_barrel_1 = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+			if (reloading_barrel_1) {
+				return (1); 
+			}
 		}
 		sleep 2;
 	}
@@ -106,14 +206,18 @@ AimWeapon3(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
-	call-script CATT1_Aim(heading, pitch);
+	aimy1target = heading;
 	while ( TRUE )
 	{
-		// condition 2, are barrels 1 and 2 reloading?
-		reloading_barrel_1 = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
-		reloading_barrel_2 = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
-		if (reloading_barrel_1 AND reloading_barrel_2) {
-			return (1);
+		// condition 1, is aim good?
+		aimy1delta = aimy1target - aimy1position; 	
+		if (get ABS(aimy1delta) < AIMY1_PRECISION) {
+			// condition 2, are barrels 1 and 2 reloading?
+			reloading_barrel_1 = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+			reloading_barrel_2 = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
+			if (reloading_barrel_1 AND reloading_barrel_2) {
+				return (1);
+			}
 		}
 		sleep 3;
 	}

@@ -29,6 +29,8 @@ static-var  restore_delay, wpn1_lasthead;
 
 RockUnit(anglex, anglez)
 {
+	anglex = anglex/3;
+	anglez = anglez/3;
 	turn body to x-axis anglex speed <50.0>;
 	turn body to z-axis <0> - anglez speed <50.0>;
 	wait-for-turn body around z-axis;

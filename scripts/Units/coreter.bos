@@ -12,9 +12,9 @@ static-var recently_damaged, desired_activation;
 
 
 #define TB_BASE base 
-#define TB_TURNRATE <15.0> 
-#define TB_TILT_X <0.18>
-#define TB_BANK_Z <0.18> // Do not define this if you dont want banking
+#define TB_TURNRATE <18.0> 
+#define TB_TILT_X <0.12>
+#define TB_BANK_Z <0.10> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
 

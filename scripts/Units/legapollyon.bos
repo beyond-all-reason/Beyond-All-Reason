@@ -27,9 +27,9 @@ static-var  restore_delay;
 #define MAXTILT 100
 
 #define TB_BASE Hull 
-#define TB_TURNRATE <10.0> 
-#define TB_TILT_X <0.15>
-#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#define TB_TURNRATE <5.0> 
+#define TB_TILT_X <0.05>
+#define TB_BANK_Z <0.05> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
 Create()

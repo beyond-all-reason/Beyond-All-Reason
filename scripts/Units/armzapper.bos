@@ -14,8 +14,8 @@ static-var  restore_delay, oldheading, wpn1_lasthead;
 
 #define TB_BASE base
 #define TB_TURNRATE <30.0>
-#define TB_TILT_X <0.2>
-#define TB_BANK_Z <0.3> // Do not define this if you dont want banking
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
 
