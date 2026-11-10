@@ -11,7 +11,7 @@ local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
 
 local BUILD_GRID_SIZE = Game.squareSize * Game.footprintScale
 
-local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpacing)
+local function generateGridPositions(centerX, centerY, centerZ, quantity, xSpacing, zSpacing)
 	local positions = {}
 	if quantity <= 0 then
 		return positions
@@ -32,7 +32,7 @@ local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpac
 			if count >= quantity then
 				return positions
 			end
-			table.insert(positions, { x = x, y = Spring.GetGroundHeight(x, z), z = z })
+			table.insert(positions, { x = x, y = centerY or Spring.GetGroundHeight(x, z), z = z })
 			count = count + 1
 		end
 	end
@@ -71,15 +71,15 @@ local function convertOrdersTargetingNames(orders)
 		[CMD.RESURRECT] = true,
 	}
 
-	-- Replace name param with unitIDs or featureIDs, duplicating order for each unitID
+	-- Replace name param with unitIDs or featureIDs, duplicating order for each unitID.
+	-- A name with nothing behind it gives no order, and the orders around it stay as written.
 	local newOrders = {}
-	for _, order in pairs(orders or {}) do
+	for _, order in ipairs(orders or {}) do
 		local commandID = order[1]
 		local params = order[2] or {}
-		local options = order[3] or {}
 
 		if commandsAcceptingName[commandID] and type(params) == "table" and (params.unitName or params.featureName) then
-			local thingIDs = {}
+			local thingIDs
 			local offset = 0
 			if params.featureName then
 				thingIDs = trackedFeatureIDs[params.featureName]
@@ -90,13 +90,16 @@ local function convertOrdersTargetingNames(orders)
 				thingIDs = trackedUnitIDs[params.unitName]
 			end
 
-			local isFirstUnitID = true
-			for thingID in pairs(thingIDs) do
-				newOrders[#newOrders + 1] = { commandID, thingID + offset, table.copy(options) }
-				if isFirstUnitID then
-					table.insert(options, "shift")
-					isFirstUnitID = false
-				end
+			-- Copies, so the mission's own options table is never handed on or changed.
+			local options = table.copy(order[3] or {})
+			local queuedOptions = table.copy(options)
+			if not table.contains(queuedOptions, "shift") then
+				queuedOptions[#queuedOptions + 1] = "shift"
+			end
+			local targetOptions = options
+			for thingID in pairs(thingIDs or {}) do
+				newOrders[#newOrders + 1] = { commandID, thingID + offset, targetOptions }
+				targetOptions = queuedOptions
 			end
 		else
 			newOrders[#newOrders + 1] = order
@@ -128,7 +131,8 @@ local function spawnUnitLoadout(unitLoadout)
 			buildFacing = BAR.Utilities.FacingToNumber(unit.facing)
 		end
 
-		local positions = generateGridPositions(unit.x, unit.z, unit.quantity or 1, xsize, zsize)
+		local center = unit.position
+		local positions = generateGridPositions(center.x, center.y, center.z, unit.quantity or 1, xsize, zsize)
 		for _, pos in ipairs(positions) do
 			if snapToBuildGrid then
 				pos.x, pos.y, pos.z = Spring.Pos2BuildPos(unitDef.id, pos.x, pos.y, pos.z, buildFacing)
@@ -153,9 +157,9 @@ for _, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local function spawnFeature(featureDefName, position, facing, featureName)
+local function spawnFeature(featureDefName, x, y, z, facing, featureName)
 	local heading = BAR.Utilities.FacingToHeading(facing or 0)
-	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
+	local featureID = Spring.CreateFeature(featureDefName, x, y, z, heading, gaiaTeamID)
 	local unitDefName = corpseToUnitDefName[featureDefName]
 
 	if featureID and unitDefName then
@@ -166,8 +170,9 @@ end
 
 local function spawnFeatureLoadout(featureLoadout)
 	for _, feature in ipairs(featureLoadout or {}) do
-		feature.y = Spring.GetGroundHeight(feature.x, feature.z)
-		spawnFeature(feature.featureDefName, feature, feature.facing, feature.featureName)
+		local x, y, z = feature.position.x, feature.position.y, feature.position.z
+		y = y or Spring.GetGroundHeight(x, z)
+		spawnFeature(feature.featureDefName, x, y, z, feature.facing, feature.featureName)
 	end
 end
 

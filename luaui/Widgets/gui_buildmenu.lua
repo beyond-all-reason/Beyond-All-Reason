@@ -24,14 +24,12 @@ local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-include("keysym.h.lua")
 local dynamicBuildOptions = require("common/dynamicBuildOptions")
 
 local pairs = pairs
 local ipairs = ipairs
 local tonumber = tonumber
 local string_format = string.format
-local table_invert = table.invert
 local pcall = pcall
 --- CHANGE START ---
 -- Helper function to clear a table without creating garbage, using the standard Lua method.
@@ -41,8 +39,6 @@ local function clearTable(t)
 	end
 end
 --- CHANGE END ---
-
-SYMKEYS = table_invert(KEYSYMS)
 
 local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 
@@ -209,7 +205,7 @@ local function refreshUnitDefs()
 			iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
 		end
 	end
-	dynamicBuildOptions.apply(unitBuildOptions)
+	dynamicBuildOptions.apply(unitBuildOptions, myTeamID)
 	for udid, buildOptions in pairs(unitBuildOptions) do
 		local set = {}
 		for i = 1, #buildOptions do
@@ -431,7 +427,14 @@ end
 
 function widget:PlayerChanged(playerID)
 	isSpec = spGetSpectatingState()
+	local previousTeamID = myTeamID
 	myTeamID = spGetMyTeamID()
+	if myTeamID ~= previousTeamID then
+		-- build options can differ per team
+		refreshUnitDefs()
+		cachedActiveCmdDescs = nil
+		doUpdate = true
+	end
 end
 
 local function UpdateGridGeometry()
@@ -1922,6 +1925,10 @@ function widget:SelectionChanged(sel)
 		throttleDelay = 0.015
 	end
 
+	if (SelectedUnitsCount == 0) ~= (selCount == 0) then
+		throttleDelay = 0 -- units picked from none, or all let go: this frame
+	end
+
 	selectionUpdateTime = os_clock() + throttleDelay
 	-- Invalidate cached commands on selection change
 	cachedActiveCmdDescs = nil
@@ -2478,7 +2485,10 @@ function widget:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	end
 end
 
-function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
+	if teamID and teamID ~= myTeamID then
+		return
+	end
 	local buildOptions = unitBuildOptions[builderUnitDefID]
 	if buildOptions then
 		dynamicBuildOptions.patch(buildOptions, builtUnitDefID, added)

@@ -130,8 +130,12 @@ describe("mission_api.triggers_loader", function()
 			local T = realDefinitions.Types
 			local C = realDefinitions.Callins
 
-			-- GameFrame drives time/resource triggers:
-			assert.is_function(C.GameFrame[T.TimeElapsed])
+			-- TimeElapsed runs on a hidden countdown, added at GameStart:
+			assert.is_function(C.GameStart[T.TimeElapsed])
+			assert.is_function(C.CountdownEnded[T.TimeElapsed])
+			assert.is_nil(C.GameFrame[T.TimeElapsed])
+
+			-- GameFrame drives resource triggers:
 			assert.is_function(C.GameFrame[T.ResourceStored])
 			assert.is_function(C.GameFrame[T.ResourceIncome])
 			assert.is_function(C.GameFrame[T.ResourcePull])
@@ -142,6 +146,12 @@ describe("mission_api.triggers_loader", function()
 			assert.is_function(C.UnitsEnteredArea[T.UnitDwellLocation])
 			assert.is_function(C.UnitsLeftArea[T.UnitDwellLocation])
 			assert.is_function(C.GameFrame[T.UnitDwellLocation])
+			assert.is_function(C.UnitsEnteredArea[T.UnitsGatheredInLocation])
+			assert.is_function(C.UnitsLeftArea[T.UnitsGatheredInLocation])
+			assert.is_function(C.GameFrame[T.UnitsGatheredInLocation])
+			assert.is_function(C.UnitFinished[T.UnitsGatheredInLocation])
+			assert.is_function(C.UnitDestroyed[T.UnitsGatheredInLocation])
+			assert.is_function(C.UnitGiven[T.UnitsGatheredInLocation])
 
 			-- Event-driven triggers:
 			assert.is_function(C.MetaUnitAdded[T.UnitExists])
