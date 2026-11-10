@@ -12,12 +12,14 @@ local trackedFeatureIDs = GG.MissionAPI.trackedFeatureIDs
 
 local UPDATE_INTERVAL_FRAMES = 3 -- matches `updatePeriod` in WaitCommandsAI.cpp
 
-local commandWaitCode = {
-	[CMD.TIMEWAIT] = CMD.WAITCODE_TIME,
-	[CMD.DEATHWAIT] = CMD.WAITCODE_DEATH,
-	[CMD.SQUADWAIT] = CMD.WAITCODE_SQUAD,
-	[CMD.GATHERWAIT] = CMD.WAITCODE_GATHER,
-}
+local canGather = {} ---@type table<UnitDefID, true?>
+local isFactory = {} ---@type table<UnitDefID, true?>
+for unitDefID, unitDef in pairs(UnitDefs) do
+	canGather[unitDefID] = unitDef.canMove and not unitDef.isFactory or nil
+	isFactory[unitDefID] = unitDef.isFactory or nil
+end
+
+-- Name conversions ------------------------------------------------------------
 
 local commandTargetsNames = {
 	[CMD.GUARD] = true,
@@ -28,13 +30,6 @@ local commandTargetsNames = {
 	[CMD.RECLAIM] = true,
 	[CMD.RESURRECT] = true,
 }
-
-local canGather = {} ---@type table<UnitDefID, boolean>
-local isFactory = {} ---@type table<UnitDefID, boolean>
-for unitDefID, unitDef in pairs(UnitDefs) do
-	canGather[unitDefID] = unitDef.canMove and not unitDef.isFactory
-	isFactory[unitDefID] = unitDef.isFactory
-end
 
 local function convertOrdersTargetingNames(orders)
 	local newOrders = {}
@@ -73,6 +68,8 @@ local function convertOrdersTargetingNames(orders)
 	return newOrders
 end
 
+-- Command conversions ---------------------------------------------------------
+
 ---@alias MissionWait MissionTimeWait | MissionDeathWait | MissionSquadWait | MissionGatherWait
 
 ---@class MissionWaitBase
@@ -108,6 +105,13 @@ end
 local waits = {} ---@type table<number, MissionWait?>
 local factoryWaitKeys = {} ---@type table<UnitID, table<number, true>>
 local lastWaitKey = 0 -- Uses negative keys, which never conflict with player-issued wait keys.
+
+local commandWaitCode = {
+	[CMD.TIMEWAIT] = CMD.WAITCODE_TIME,
+	[CMD.DEATHWAIT] = CMD.WAITCODE_DEATH,
+	[CMD.SQUADWAIT] = CMD.WAITCODE_SQUAD,
+	[CMD.GATHERWAIT] = CMD.WAITCODE_GATHER,
+}
 
 ---@param orders CreateCommand[]
 ---@param newWaits table<number, MissionWait>
@@ -270,6 +274,8 @@ local function addFactoryWait(factoryID, key, wait)
 	factoryWaitKeys[factoryID] = keys
 end
 
+-- Issuing orders --------------------------------------------------------------
+
 --- Gives each unit its own orders.
 ---
 --- The Nth coded wait in each list is one wait shared by all units in the list.
@@ -341,6 +347,8 @@ local function giveOrders(unitIDs, orders)
 	end
 	giveUnitOrders(unitOrders)
 end
+
+-- Order state tracking --------------------------------------------------------
 
 local function updateWaitingUnits(key, wait, isReleasing)
 	local unitIDs = wait.unitIDs
@@ -503,6 +511,8 @@ local function updateWaits(frameNumber)
 	end
 end
 
+-- Callins and events ----------------------------------------------------------
+
 local function onUnitFromFactory(unitID, factoryID)
 	local keys = factoryWaitKeys[factoryID]
 	if keys == nil then
@@ -516,6 +526,8 @@ local function onUnitFromFactory(unitID, factoryID)
 		end
 	end
 end
+
+-- Module export ---------------------------------------------------------------
 
 return {
 	GiveUnitOrders = giveUnitOrders,
