@@ -16,7 +16,7 @@ local env = MissionSpecEnv.new({
 		GetUnitCurrentCommand = function(unitID, queueIndex)
 			local command = (queues[unitID] or {})[queueIndex] ---@as table?
 			if command then
-				return command[1], nil, nil, command[2][1], command[2][2]
+				return command[1], nil, queueIndex, command[2][1], command[2][2]
 			end
 		end,
 		GiveOrderArrayToUnitMap = function(unitIDs, orders)
@@ -24,10 +24,8 @@ local env = MissionSpecEnv.new({
 				queues[unitID] = orders
 			end
 		end,
-		GiveOrderToUnitMap = function(unitIDs)
-			for unitID in pairs(unitIDs) do
-				released[#released + 1] = unitID
-			end
+		GiveOrderToUnit = function(unitID)
+			released[#released + 1] = unitID
 		end,
 	},
 })

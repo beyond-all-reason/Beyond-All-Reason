@@ -173,20 +173,27 @@ local function canExecuteWait(unitDefID, code)
 end
 
 ---@return integer? queueIndex nil when the unit is gone or has lost the wait
+---@return integer? commandTag
 local function getWaitQueueIndex(unitID, code, key)
 	local queueIndex = 0
 	repeat
 		queueIndex = queueIndex + 1
-		local commandID, _, _, waitCode, waitKey = spGetUnitCurrentCommand(unitID, queueIndex)
+		local commandID, _, commandTag, waitCode, waitKey = spGetUnitCurrentCommand(unitID, queueIndex)
 		if commandID == CMD.WAIT and waitCode == code and waitKey == key then
-			return queueIndex
+			return queueIndex, commandTag
 		end
 	until commandID == nil
 end
 
-local function releaseWaitingUnits(unitIDs)
+---@param waitTags table<UnitID, integer>
+local function releaseWaitingUnits(waitTags)
 	GG.MissionAPI.issuingOrders = true
-	Spring.GiveOrderToUnitMap(unitIDs, CMD.WAIT)
+	for unitID, commandTag in pairs(waitTags) do
+		-- Releasing one unit can fire a trigger that (e.g.) destroys another unit.
+		if spGetUnitIsDead(unitID) == false then
+			Spring.GiveOrderToUnit(unitID, CMD.REMOVE, commandTag)
+		end
+	end
 	GG.MissionAPI.issuingOrders = nil
 end
 
@@ -351,19 +358,19 @@ end
 
 local function updateWaitingUnits(key, wait, isReleasing)
 	local unitIDs = wait.unitIDs
-	local releasedUnitIDs = {}
+	local releasedWaitTags = {}
 	for unitID in pairs(unitIDs) do
-		local queueIndex = getWaitQueueIndex(unitID, wait.code, key)
+		local queueIndex, commandTag = getWaitQueueIndex(unitID, wait.code, key)
 		if queueIndex == nil then
 			unitIDs[unitID] = nil
 		elseif queueIndex == 1 and isReleasing then
-			releasedUnitIDs[unitID] = true
+			releasedWaitTags[unitID] = commandTag
 			unitIDs[unitID] = nil
 		end
 	end
 
-	if next(releasedUnitIDs) ~= nil then
-		releaseWaitingUnits(releasedUnitIDs)
+	if next(releasedWaitTags) ~= nil then
+		releaseWaitingUnits(releasedWaitTags)
 	end
 end
 
@@ -382,9 +389,9 @@ end
 
 local function updateTimeWait(key, wait, frameNumber)
 	local unitIDs, startFrames = wait.unitIDs, wait.startFrames
-	local releasedUnitIDs = {}
+	local releasedWaitTags = {}
 	for unitID in pairs(unitIDs) do
-		local queueIndex = getWaitQueueIndex(unitID, wait.code, key)
+		local queueIndex, commandTag = getWaitQueueIndex(unitID, wait.code, key)
 		if queueIndex == nil then
 			unitIDs[unitID] = nil
 			startFrames[unitID] = nil
@@ -392,15 +399,15 @@ local function updateTimeWait(key, wait, frameNumber)
 			if not startFrames[unitID] then
 				startFrames[unitID] = frameNumber
 			elseif frameNumber >= startFrames[unitID] + wait.duration then
-				releasedUnitIDs[unitID] = true
+				releasedWaitTags[unitID] = commandTag
 				unitIDs[unitID] = nil
 				startFrames[unitID] = nil
 			end
 		end
 	end
 
-	if next(releasedUnitIDs) ~= nil then
-		releaseWaitingUnits(releasedUnitIDs)
+	if next(releasedWaitTags) ~= nil then
+		releaseWaitingUnits(releasedWaitTags)
 	end
 end
 
@@ -436,15 +443,16 @@ end
 
 local function updateSquadWait(key, wait)
 	local unitIDs = wait.unitIDs
-	local squadList, count = {}, 0
+	local squadList, waitTags, count = {}, {}, 0
 	for unitID in pairs(unitIDs) do
-		local queueIndex = getWaitQueueIndex(unitID, wait.code, key)
+		local queueIndex, tag = getWaitQueueIndex(unitID, wait.code, key)
 		if queueIndex == nil then
 			unitIDs[unitID] = nil
 		else
 			count = count + 1
 			if queueIndex == 1 then
 				squadList[#squadList + 1] = unitID
+				waitTags[unitID] = tag
 			end
 		end
 	end
@@ -459,13 +467,13 @@ local function updateSquadWait(key, wait)
 	if squadCount == 0 then
 		return
 	end
-	local releasedUnitIDs = {}
+	local releasedWaitTags = {}
 	for index = 1, squadCount * wait.squadSize do
 		local unitID = squadList[index]
-		releasedUnitIDs[unitID] = true
+		releasedWaitTags[unitID] = waitTags[unitID]
 		unitIDs[unitID] = nil
 	end
-	releaseWaitingUnits(releasedUnitIDs)
+	releaseWaitingUnits(releasedWaitTags)
 end
 
 local updateWait = {
