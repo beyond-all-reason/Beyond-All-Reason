@@ -542,34 +542,26 @@ describe("mission_api.validation.sections", function()
 		end
 
 		it("warns that a follow without a duration never runs its ending", function()
-			local result = validateFollow({ onEnd = "restore", restoreDuration = 2 })
+			local result = validateFollow({ ending = "restore", restoreDuration = 2 })
 
 			V.assertMessage(
 				result,
 				"FollowCamera without a duration runs until the next camera action, so its ending never runs: "
-					.. "onEnd, restoreDuration. Action: a"
+					.. "ending, restoreDuration. Action: a"
 			)
 			assert.is_true(result.ok)
 		end)
 
-		it("treats a duration of 0 as no duration", function()
-			V.assertMessage(
-				validateFollow({ duration = 0, releaseDuration = 1 }),
-				"FollowCamera without a duration runs until the next camera action, so its ending never runs: "
-					.. "releaseDuration. Action: a"
-			)
-		end)
-
-		it("checks every difficulty's duration", function()
-			V.assertMessage(
-				validateFollow({ duration = { difficulties = { Easy = 5, Hard = 0 } }, onEnd = "hold" }),
-				"FollowCamera without a duration runs until the next camera action, so its ending never runs: "
-					.. "onEnd. Action: a"
+		it("takes a duration of 0 as a follow that ends at once", function()
+			V.assertNoMessageContaining(validateFollow({ duration = 0, releaseDuration = 1 }), "FollowCamera")
+			V.assertNoMessageContaining(
+				validateFollow({ duration = { difficulties = { Easy = 5, Hard = 0 } }, ending = "hold" }),
+				"FollowCamera"
 			)
 		end)
 
 		it("does not warn with a duration, or without ending parameters", function()
-			V.assertNoMessageContaining(validateFollow({ duration = 5, onEnd = "restore" }), "FollowCamera")
+			V.assertNoMessageContaining(validateFollow({ duration = 5, ending = "restore" }), "FollowCamera")
 			V.assertNoMessageContaining(validateFollow({}), "FollowCamera")
 		end)
 	end)

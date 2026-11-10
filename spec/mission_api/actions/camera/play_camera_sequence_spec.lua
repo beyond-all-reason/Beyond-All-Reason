@@ -32,7 +32,7 @@ describe("mission_api.actions.play_camera_sequence", function()
 		assert.are.same({
 			type = "PlayCameraSequence",
 			keyframes = "CameraKeyframes!",
-			onEnd = "CameraSequenceEnd",
+			ending = "CameraSequenceEnd",
 			restoreSlot = "String",
 			restoreDuration = "Quantity",
 			restoreEasing = "CameraEasing",
@@ -51,7 +51,7 @@ describe("mission_api.actions.play_camera_sequence", function()
 				"MissionCameraPlay",
 				{
 					keyframes = { built = keyframes },
-					onEnd = "restore",
+					ending = "restore",
 					restoreSlot = "intro",
 					restoreDuration = 2,
 					restoreEasing = "linear",

@@ -154,7 +154,7 @@ local actions = {
 					fov = 55,
 				},
 			},
-			onEnd = 'hold',
+			ending = 'hold',
 		},
 	},
 
@@ -174,7 +174,7 @@ local actions = {
 			degrees = 180,
 			duration = 8,
 			transitionDuration = 1.5,
-			onEnd = 'hold',
+			ending = 'hold',
 		},
 	},
 

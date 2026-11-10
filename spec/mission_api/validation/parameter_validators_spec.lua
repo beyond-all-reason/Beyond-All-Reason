@@ -1045,8 +1045,8 @@ describe("mission_api.validation.parameter_validators", function()
 
 		it("rejects an unknown sequence end", function()
 			V.assertMessage(
-				validateFollowCamera({ onEnd = "stay" }),
-				"Invalid camera sequence end: 'stay'. Must be one of: 'hold', 'release', 'restore'. Action: a, Parameter: onEnd"
+				validateFollowCamera({ ending = "stay" }),
+				"Invalid camera sequence end: 'stay'. Must be one of: 'hold', 'release', 'restore'. Action: a, Parameter: ending"
 			)
 		end)
 

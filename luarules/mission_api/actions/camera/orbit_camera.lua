@@ -1,7 +1,7 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 -- Circles a unit (the middle of the group when several share the name) or a position.
-local function orbitCamera(unitName, position, distance, pitch, startYaw, degrees, fov, duration, transitionDuration, easing, onEnd, restoreSlot, restoreDuration, restoreEasing, releaseDuration, releaseEasing, clock)
+local function orbitCamera(unitName, position, distance, pitch, startYaw, degrees, fov, duration, transitionDuration, easing, ending, restoreSlot, restoreDuration, restoreEasing, releaseDuration, releaseEasing, clock)
 	SendToUnsynced('MissionCameraOrbit', {
 		target = GG['MissionAPI'].Modules.Camera.BuildTarget(unitName, position),
 		distance = distance,
@@ -12,7 +12,7 @@ local function orbitCamera(unitName, position, distance, pitch, startYaw, degree
 		duration = duration,
 		transitionDuration = transitionDuration,
 		easing = easing,
-		onEnd = onEnd,
+		ending = ending,
 		restoreSlot = restoreSlot,
 		restoreDuration = restoreDuration,
 		restoreEasing = restoreEasing,
@@ -36,11 +36,11 @@ return {
 			{ name = 'duration',           required = false, type = ParameterTypes.Quantity },     -- seconds
 			{ name = 'transitionDuration', required = false, type = ParameterTypes.Quantity },     -- seconds to blend in from the current view
 			{ name = 'easing',             required = false, type = ParameterTypes.CameraEasing }, -- of the turn
-			{ name = 'onEnd',              required = false, type = ParameterTypes.CameraSequenceEnd },
-			{ name = 'restoreSlot',        required = false, type = ParameterTypes.String },       -- SaveCamera slot for onEnd = 'restore'
+			{ name = 'ending',             required = false, type = ParameterTypes.CameraSequenceEnd },
+			{ name = 'restoreSlot',        required = false, type = ParameterTypes.String },       -- SaveCamera slot for ending = 'restore'
 			{ name = 'restoreDuration',    required = false, type = ParameterTypes.Quantity },     -- seconds
 			{ name = 'restoreEasing',      required = false, type = ParameterTypes.CameraEasing },
-			{ name = 'releaseDuration',    required = false, type = ParameterTypes.Quantity },     -- seconds to ease roll and fov back for onEnd = 'release'
+			{ name = 'releaseDuration',    required = false, type = ParameterTypes.Quantity },     -- seconds to ease back into the player's camera for ending = 'release'
 			{ name = 'releaseEasing',      required = false, type = ParameterTypes.CameraEasing },
 			{ name = 'clock',              required = false, type = ParameterTypes.CameraClock },  -- 'real' (default): real seconds, also while paused; 'game': game seconds
 			requiresOneOf = { 'unitName', 'position' },

@@ -550,7 +550,7 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 end
 
 local followEndingParameters =
-	{ "onEnd", "restoreSlot", "restoreDuration", "restoreEasing", "releaseDuration", "releaseEasing" }
+	{ "ending", "restoreSlot", "restoreDuration", "restoreEasing", "releaseDuration", "releaseEasing" }
 
 -- A FollowCamera without a duration runs until the next camera action replaces it, so it never ends.
 local function validateFollowCameraEnding(context, actionReport, actionID, action)
@@ -569,13 +569,7 @@ local function validateFollowCameraEnding(context, actionReport, actionID, actio
 		return
 	end
 
-	local untilReplaced = parameters.duration == nil
-	for _, duration in ipairs(context.PossibleValues(parameters.duration)) do
-		if type(duration) == "number" and duration <= 0 then
-			untilReplaced = true
-		end
-	end
-	if untilReplaced then
+	if parameters.duration == nil then
 		actionReport.Warn(
 			actionID,
 			"FollowCamera without a duration runs until the next camera action, so its ending never runs: "

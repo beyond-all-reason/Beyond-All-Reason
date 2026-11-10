@@ -34,7 +34,7 @@ describe("luaui.Widgets.api_mission_camera", function()
 		local env = loadWidget().env
 		local keyframes = { { position = { x = 0, y = 0, z = 0 } } }
 
-		env.MissionCameraPlay({ keyframes = keyframes, onEnd = "hold" })
+		env.MissionCameraPlay({ keyframes = keyframes, ending = "hold" })
 		env.MissionCameraFollow({ target = { unitIDs = { 1 } } })
 		env.MissionCameraOrbit({ target = { x = 0, y = 0, z = 0 } })
 		env.MissionCameraShake({ magnitude = 10 })
@@ -43,12 +43,12 @@ describe("luaui.Widgets.api_mission_camera", function()
 		env.MissionCameraStop()
 
 		assert.are.same({
-			{ "Play", { keyframes = keyframes, onEnd = "hold" } },
+			{ "Play", { keyframes = keyframes, ending = "hold" } },
 			{ "Follow", { target = { unitIDs = { 1 } } } },
 			{ "Orbit", { target = { x = 0, y = 0, z = 0 } } },
 			{ "Shake", { magnitude = 10 } },
 			{ "Save", "intro" },
-			{ "Restore", "intro", 2, "linear", "game" },
+			{ "Restore", { slot = "intro", duration = 2, easing = "linear", clock = "game" } },
 			{ "Stop" },
 		}, calls)
 	end)
