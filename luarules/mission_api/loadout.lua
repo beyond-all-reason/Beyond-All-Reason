@@ -61,7 +61,8 @@ local function spawnUnit(unit, pos)
 end
 
 local function spawnUnitLoadout(unitLoadout)
-	for _, unit in ipairs(unitLoadout or {}) do
+	local entryUnitIDs = {}
+	for index, unit in ipairs(unitLoadout or {}) do
 		local spacing = unit.spacing or 0
 		---@type table
 		local unitDef = UnitDefNames[unit.unitDefName]
@@ -91,8 +92,12 @@ local function spawnUnitLoadout(unitLoadout)
 			end
 			spawnedUnitIDs[spawnUnit(unit, pos)] = true
 		end
+		entryUnitIDs[index] = spawnedUnitIDs
+	end
 
-		missionOrders.GiveOrders(spawnedUnitIDs, unit.orders)
+	-- Orders can target the units of any entry.
+	for index, unit in ipairs(unitLoadout or {}) do
+		missionOrders.GiveOrders(entryUnitIDs[index], unit.orders)
 	end
 end
 

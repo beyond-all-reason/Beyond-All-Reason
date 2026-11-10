@@ -160,7 +160,7 @@ return {
   a processed value). A dying unit keeps a valid ID until the engine removes it, so skip one only
   when the engine call would refuse it.
 - A skipped order counts as absent, and the next order keeps its own options.
-- Mission code gives orders through `Modules.Orders`, which sets a `issuingOrders` fence and turns
+- Mission code gives orders through `Modules.Orders`, which sets an `issuingOrders` fence and turns
   some commands into encoded ones synced code can give. Effects that a player's client adds from its
   selection (formation moves, group speed) do not happen through this approach.
 

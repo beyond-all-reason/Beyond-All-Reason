@@ -922,15 +922,15 @@ describe("mission_api.validation.parameter_validators", function()
 		assert.is_true(result.ok)
 	end)
 
-	it("warns about a queued wait right after another queued wait, which cancels both", function()
+	it("warns about a queued wait right after another wait, which can cancel both", function()
 		local result = validateOrders({
-			{ V.env.CMD.GATHERWAIT, {}, { "shift" } },
+			{ V.env.CMD.GATHERWAIT },
 			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
 		})
 
 		V.assertMessage(
 			result,
-			"A queued wait right after another queued wait cancels both, so neither is kept. Action: a, Parameter: orders[2]"
+			"A queued wait right after another wait can cancel both, so neither is kept. Action: a, Parameter: orders[2]"
 		)
 		assert.is_true(result.ok)
 	end)

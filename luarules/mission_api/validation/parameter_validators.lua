@@ -854,20 +854,18 @@ local function registerOrderValidators(parameterValidators, context)
 			end
 		end
 
-		local isQueuedWait = {}
+		local isWait, isQueuedWait = {}, {}
 		for index = 1, reachable do
 			local order = orders[index]
-			isQueuedWait[index] = type(order) == "table"
-				and isWaitCommand[order[1]]
-				and type(order[3]) == "table"
-				and table.contains(order[3], "shift")
+			isWait[index] = type(order) == "table" and isWaitCommand[order[1]]
+			isQueuedWait[index] = isWait[index] and type(order[3]) == "table" and table.contains(order[3], "shift")
 		end
 		for index = 2, reachable do
-			if isQueuedWait[index] and isQueuedWait[index - 1] then
+			if isQueuedWait[index] and isWait[index - 1] then
 				results = results or {}
 				addResult(
 					results,
-					"A queued wait right after another queued wait cancels both, so neither is kept",
+					"A queued wait right after another wait can cancel both, so neither is kept",
 					"[" .. index .. "]",
 					true
 				)
