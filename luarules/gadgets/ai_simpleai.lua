@@ -147,10 +147,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 
 	if not skip then
-		if unitDef.weapons and #unitDef.weapons > 0 then
+		if #unitDef.weapons > 0 then
 			for i = 1, #unitDef.weapons do
 				local wDef = WeaponDefs[unitDef.weapons[i].weaponDef]
 
+				---@diagnostic disable
 				if wDef.manualFire then
 					if SimpleManualFireDefs[unitDefID] then
 						SimpleManualFireDefs[unitDefID] = {
@@ -171,6 +172,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 						break
 					end
 				end
+				---@diagnostic enable
 			end
 		end
 	end
@@ -185,7 +187,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		elseif unitDef.extractsMetal > 0 or unitDef.customParams.metal_extractor then
 			SimpleExtractorDefs[unitDefID] = 1
 		elseif
-			not unitDef.canMove
+			unitDef.isImmobile
 			and (
 				(unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10))
 				or (unitDef.windGenerator > 0 and wind > 10)
@@ -198,7 +200,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			SimpleConverterDefs[unitDefID] = 1
 		elseif unitDef.isBuilding and #unitDef.weapons > 0 then
 			SimpleTurretDefs[unitDefID] = 1
-		elseif not unitDef.canMove then
+		elseif unitDef.isImmobile then
 			SimpleUndefinedBuildingDefs[unitDefID] = 1
 		else
 			SimpleUndefinedUnitDefs[unitDefID] = 1
@@ -602,7 +604,7 @@ if gadgetHandler:IsSyncedCode() then
 															SimpleManualFireDefs[unitDefID][2]
 																/ (SimpleAITeamIDsCount * 2)
 														)
-													)
+													) == 0
 												then
 													local nearestEnemy = spGetUnitNearestEnemy(
 														unitID,
@@ -615,27 +617,19 @@ if gadgetHandler:IsSyncedCode() then
 														local enemyX, enemyY, enemyZ = spGetUnitPosition(nearestEnemy)
 														if enemyX then
 															if SimpleManualFireDefs[unitDefID][3] then -- Use Manual Fire Command
-																spGiveOrderToUnit(
-																	unitID,
-																	CMD.MANUALFIRE,
-																	{
-																		enemyX,
-																		spGetGroundHeight(enemyX, enemyZ),
-																		enemyZ,
-																		0,
-																	}
-																)
+																spGiveOrderToUnit(unitID, CMD.MANUALFIRE, {
+																	enemyX,
+																	spGetGroundHeight(enemyX, enemyZ),
+																	enemyZ,
+																	0,
+																})
 															else -- Use Attack Command
-																spGiveOrderToUnit(
-																	unitID,
-																	CMD.ATTACK,
-																	{
-																		enemyX,
-																		spGetGroundHeight(enemyX, enemyZ),
-																		enemyZ,
-																		0,
-																	}
-																)
+																spGiveOrderToUnit(unitID, CMD.ATTACK, {
+																	enemyX,
+																	spGetGroundHeight(enemyX, enemyZ),
+																	enemyZ,
+																	0,
+																})
 															end
 														end
 													end
