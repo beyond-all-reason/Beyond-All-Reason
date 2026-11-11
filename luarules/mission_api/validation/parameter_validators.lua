@@ -861,8 +861,9 @@ local function registerOrderValidators(parameterValidators, context)
 			isWait[index] = type(order) == "table" and isWaitCommand[order[1]]
 			isQueuedWait[index] = isWait[index] and type(order[3]) == "table" and table.contains(order[3], "shift")
 		end
+		local queueEndsInWait = isWait[1]
 		for index = 2, reachable do
-			if isQueuedWait[index] and isWait[index - 1] then
+			if isQueuedWait[index] and queueEndsInWait then
 				results = results or {}
 				addResult(
 					results,
@@ -870,6 +871,9 @@ local function registerOrderValidators(parameterValidators, context)
 					"[" .. index .. "]",
 					true
 				)
+				queueEndsInWait = false
+			else
+				queueEndsInWait = isQueuedWait[index]
 			end
 		end
 		return results

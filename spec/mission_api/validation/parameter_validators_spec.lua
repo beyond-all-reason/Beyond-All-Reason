@@ -944,7 +944,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 		V.assertMessage(
 			result,
-			"A queued wait right after another wait will cancel both, so neither is kept. Action: a, Parameter: orders[2]"
+			"A queued wait right after another wait can cancel both, so neither is kept. Action: a, Parameter: orders[2]"
 		)
 		V.assertNoMessageContaining(result, "Parameter: orders[3]")
 	end)
@@ -956,7 +956,7 @@ describe("mission_api.validation.parameter_validators", function()
 			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
 		})
 
-		V.assertNoMessageContaining(result, "will cancel both")
+		V.assertNoMessageContaining(result, "can cancel both")
 	end)
 
 	it("reports every invalid order, named after its position in the list", function()
