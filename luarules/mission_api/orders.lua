@@ -39,28 +39,41 @@ local function convertOrdersTargetingNames(orders)
 	for _, order in ipairs(orders or {}) do
 		local commandID = order[1]
 		local params = order[2]
+		local asInsert = commandID == CMD.INSERT and type(params) == "table"
+		local target = asInsert and params[4] or params
 
-		if commandTargetsNames[commandID] and type(params) == "table" and (params.unitName or params.featureName) then
+		if
+			commandTargetsNames[asInsert and params[2] or commandID]
+			and type(target) == "table"
+			and (target.unitName or target.featureName)
+		then
 			local objectIDs
 			local offset = 0
-			if params.featureName then
-				objectIDs = trackedFeatureIDs[params.featureName]
+			if target.featureName then
+				objectIDs = trackedFeatureIDs[target.featureName]
 				if not Engine.FeatureSupport.noOffsetForFeatureID then
 					offset = Game.maxUnits
 				end
-			elseif params.unitName then
-				objectIDs = trackedUnitIDs[params.unitName]
+			elseif target.unitName then
+				objectIDs = trackedUnitIDs[target.unitName]
 			end
 
-			local options = table.copy(order[3] or {})
-			local queuedOptions = table.copy(options)
-			if not table.contains(queuedOptions, "shift") then
-				queuedOptions[#queuedOptions + 1] = "shift"
-			end
-			local targetOptions = options
-			for objectID in pairs(objectIDs or {}) do
-				newOrders[#newOrders + 1] = { commandID, objectID + offset, targetOptions }
-				targetOptions = queuedOptions
+			if asInsert then
+				for objectID in pairs(objectIDs or {}) do
+					newOrders[#newOrders + 1] =
+						{ commandID, { params[1], params[2], params[3], objectID + offset }, order[3] }
+				end
+			else
+				local options = table.copy(order[3] or {})
+				local queuedOptions = table.copy(options)
+				if not table.contains(queuedOptions, "shift") then
+					queuedOptions[#queuedOptions + 1] = "shift"
+				end
+				local targetOptions = options
+				for objectID in pairs(objectIDs or {}) do
+					newOrders[#newOrders + 1] = { commandID, objectID + offset, targetOptions }
+					targetOptions = queuedOptions
+				end
 			end
 		else
 			newOrders[#newOrders + 1] = order
@@ -84,12 +97,12 @@ end
 ---@field duration integer frames
 ---@field startFrames table<UnitID, integer>
 
----@alias MissionDeathWait MissionDeathWaitInRectangle | MissionDeathWaitOnUnitName
+---@alias MissionDeathWait MissionDeathWaitInArea | MissionDeathWaitOnUnitName
 
----@class MissionDeathWaitInRectangle : MissionWaitBase
+---@class MissionDeathWaitInArea : MissionWaitBase
 ---@field code 2 CMD.WAITCODE_DEATH
 ---@field targetIDs table<integer, true>
----@field targetRectangle WorldRect
+---@field targetArea table a rectangle { x1, z1, x2, z2 } or circle { x, z, radius }
 
 ---@class MissionDeathWaitOnUnitName : MissionWaitBase
 ---@field code 2 CMD.WAITCODE_DEATH
@@ -129,7 +142,9 @@ local function expandWaitOrders(orders, newWaits, positionWaitKey, allyTeam)
 		local code = commandWaitCode[asInsert and params[2] or commandID] ---@as 1|2|3|4?
 		if code then
 			local waitParams = params
-			if asInsert then
+			if asInsert and type(params[4]) == "table" then
+				waitParams = params[4] ---@as table
+			elseif asInsert then
 				waitParams = {}
 				for paramIndex = 4, #params do
 					waitParams[#waitParams + 1] = params[paramIndex]
@@ -149,7 +164,7 @@ local function expandWaitOrders(orders, newWaits, positionWaitKey, allyTeam)
 				elseif code == CMD.WAITCODE_DEATH and waitParams.unitName then
 					wait.targetUnitName = waitParams.unitName
 				elseif code == CMD.WAITCODE_DEATH then
-					wait.targetRectangle = waitParams ---@as WorldRect
+					wait.targetArea = waitParams
 				elseif code == CMD.WAITCODE_SQUAD then
 					wait.squadSize = waitParams[1]
 				end
@@ -223,9 +238,7 @@ local function getExecutableOrders(orders, newWaits, unitDefID)
 end
 
 local function getDeathWaitTargets(wait, unitOrders)
-	local rectangle = wait.targetRectangle
-	local x1, z1, x2, z2 = rectangle[1], rectangle[3], rectangle[4], rectangle[6]
-	local unitIDs = Spring.GetUnitsInRectangle(math.min(x1, x2), math.min(z1, z2), math.max(x1, x2), math.max(z1, z2))
+	local unitIDs = GG.MissionAPI.Modules.AreaTracking.GetUnitsInArea(wait.targetArea)
 	local allyTeam = wait.allyTeam
 	local targetIDs = {}
 	-- Pick the same targets that a player-issued deathwait would.

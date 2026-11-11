@@ -1135,7 +1135,7 @@ describe("mission_api.validation.parameter_validators", function()
 		V.assertNoMessageContaining(
 			validateOrders({
 				{ V.env.CMD.TIMEWAIT, { 5 } },
-				{ V.env.CMD.DEATHWAIT, { 0, 0, 0, 100, 0, 100 } },
+				{ V.env.CMD.DEATHWAIT, { x1 = 0, z1 = 0, x2 = 100, z2 = 100 } },
 				{ V.env.CMD.DEATHWAIT, { unitName = "bosses" } },
 				{ V.env.CMD.SQUADWAIT, { 2 } },
 				{ V.env.CMD.GATHERWAIT },

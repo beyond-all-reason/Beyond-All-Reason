@@ -4,7 +4,8 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 -- Each unit's queue, as GetUnitCurrentCommand reads it, and the orders given to it.
 local queues, deadUnitIDs, released = {}, {}, {}
 
-local env = MissionSpecEnv.new({
+local env
+env = MissionSpecEnv.new({
 	Game = { gameSpeed = 30 },
 	Spring = {
 		GetUnitAllyTeam = function()
@@ -16,6 +17,9 @@ local env = MissionSpecEnv.new({
 		GetUnitIsDead = function(unitID)
 			return deadUnitIDs[unitID] == true
 		end,
+		GetUnitLosState = function()
+			return 1
+		end,
 		GetUnitCurrentCommand = function(unitID, queueIndex)
 			local command = (queues[unitID] or {})[queueIndex] ---@as table?
 			if command then
@@ -23,8 +27,16 @@ local env = MissionSpecEnv.new({
 			end
 		end,
 		GiveOrderArrayToUnitMap = function(unitIDs, orders)
+			local queue = {}
+			for index, order in ipairs(orders) do
+				if order[1] == env.CMD.INSERT then
+					queue[index] = { order[2][2], { order[2][4], order[2][5] } }
+				else
+					queue[index] = order
+				end
+			end
 			for unitID in pairs(unitIDs) do
-				queues[unitID] = orders
+				queues[unitID] = queue
 			end
 		end,
 		GiveOrderToUnit = function(unitID)
@@ -85,5 +97,47 @@ describe("mission_api.orders DEATHWAIT on a unit name", function()
 		missionOrders.UpdateWaits(9)
 		table.sort(released)
 		assert.are.same({ 1, 2 }, released)
+	end)
+end)
+
+describe("mission_api.orders DEATHWAIT inside an insert", function()
+	before_each(function()
+		queues, deadUnitIDs, released = {}, {}, {}
+	end)
+
+	it("holds the units until every unit with the name has died", function()
+		trackUnits("bosses", 7, 8)
+		missionOrders.GiveOrders(
+			{ [1] = true },
+			{ { env.CMD.INSERT, { 0, env.CMD.DEATHWAIT, 0, { unitName = "bosses" } } } }
+		)
+
+		deadUnitIDs[7] = true
+		missionOrders.UpdateWaits(3)
+		assert.are.same({}, released)
+
+		deadUnitIDs[8] = true
+		missionOrders.UpdateWaits(6)
+		assert.are.same({ 1 }, released)
+	end)
+
+	it("holds the units until every other unit in the area has died", function()
+		local area = { x1 = 0, z1 = 0, x2 = 100, z2 = 100 }
+		MissionApiBuilder.new()
+			:WithModule("AreaTracking", {
+				GetUnitsInArea = function(givenArea)
+					return givenArea == area and { 1, 7, 8 } or {}
+				end,
+			})
+			:Install()
+		missionOrders.GiveOrders({ [1] = true }, { { env.CMD.INSERT, { 0, env.CMD.DEATHWAIT, 0, area } } })
+
+		deadUnitIDs[7] = true
+		missionOrders.UpdateWaits(3)
+		assert.are.same({}, released)
+
+		deadUnitIDs[8] = true
+		missionOrders.UpdateWaits(6)
+		assert.are.same({ 1 }, released)
 	end)
 end)

@@ -130,4 +130,38 @@ describe("mission_api.orders orders targeting names", function()
 
 		assert.are.same({ { env.CMD.ATTACK, 5, {} } }, converted)
 	end)
+
+	it("gives an inserted order once for every unit of the name, each with the order's options", function()
+		trackUnits("pair", 5, 6)
+
+		local converted = convertOrders({
+			{ env.CMD.INSERT, { 0, env.CMD.ATTACK, 0, { unitName = "pair" } }, { "alt" } },
+		})
+
+		table.sort(converted, function(a, b)
+			return a[2][4] < b[2][4]
+		end)
+		assert.are.same({
+			{ env.CMD.INSERT, { 0, env.CMD.ATTACK, 0, 5 }, { "alt" } },
+			{ env.CMD.INSERT, { 0, env.CMD.ATTACK, 0, 6 }, { "alt" } },
+		}, converted)
+	end)
+
+	it("gives an inserted order on the features of a feature name", function()
+		MissionApiBuilder.new():WithTrackedFeature("wreck", 40):Install()
+
+		local converted = convertOrders({
+			{ env.CMD.INSERT, { 0, env.CMD.RECLAIM, 0, { featureName = "wreck" } } },
+		})
+
+		assert.are.same({ { env.CMD.INSERT, { 0, env.CMD.RECLAIM, 0, 40 } } }, converted)
+	end)
+
+	it("gives no inserted order for a name no unit carries", function()
+		local converted = convertOrders({
+			{ env.CMD.INSERT, { 0, env.CMD.ATTACK, 0, { unitName = "squad" } } },
+		})
+
+		assert.are.same({}, converted)
+	end)
 end)

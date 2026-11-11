@@ -676,11 +676,6 @@ local validate4orEitherName = getNumberArrayValidator(
 	{ "unitName", "featureName" }
 )
 
-local validate6orUnitName = getNumberArrayValidator(
-	{ 6 },
-	"6 numbers {x1, y1, z1, x2, y2, z2}, two corners of a rectangle, or a unit name",
-	{ "unitName" }
-)
 local validateSeconds = getNumberArrayValidator({ 1 }, "1 number {seconds}")
 local validateSquadSizeArray = getNumberArrayValidator({ 1 }, "1 number {squad size}")
 
@@ -709,7 +704,6 @@ local validatorsByCommandName = {
 	REPEAT = validateOnOffParam,
 	-- Wait parameters:
 	TIMEWAIT = validateSeconds,
-	DEATHWAIT = validate6orUnitName,
 	SQUADWAIT = validateSquadSize,
 	-- Unit name parameter:
 	GUARD = validateUnitNameParam,
@@ -821,6 +815,16 @@ local function registerOrderValidators(parameterValidators, context)
 			end
 		else
 			return { { message = "Unexpected parameter type, expected number or string, got " .. type(command) } }
+		end
+	end
+
+	-- DEATHWAIT waits on the units in an area, or on the units with a name.
+	local validateArea = parameterValidators[Types.Area]
+	validatorsByCommandName.DEATHWAIT = function(params, results)
+		if params == nil then
+			addResult(results, "Parameter must be an area or a unit name", "[2]")
+		elseif type(params) ~= "table" or params.unitName == nil then
+			appendResults(results, validateArea(params), "[2]")
 		end
 	end
 
