@@ -1,7 +1,8 @@
 local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
---- Covers UnitDetected and UnitUndetected across every sensor level and filter.
+--- Covers UnitDetected and UnitUndetected across every sensor level and filter, and
+--- LocationRevealed for a point that comes into sight and one that never does.
 ---
 --- Detection levels escalate: unseen -> seismic -> radar -> vision, and a unit sits at
 --- exactly one of them per alliance. A trigger without sensorTypes watches all of them,
@@ -358,6 +359,29 @@ local triggers = {
 		},
 		actions = { 'messageWrongSensorExcludes' },
 	},
+
+	----------------------------------------------------------------
+	--- Locations --------------------------------------------------
+
+	-- 400 south of armrad, inside its sight of 680 once it spawns.
+	radarSiteRevealed = {
+		type = eventTypes.LocationRevealed,
+		parameters = {
+			position = { x = 4700, z = 2400 },
+			sensorAllianceName = 'players',
+		},
+		actions = { 'messageRadarSiteRevealed' },
+	},
+
+	-- Canary: where the radar target spawns, outside every sensor of the players' alliance for the whole run.
+	radarTargetSpawnRevealed = {
+		type = eventTypes.LocationRevealed,
+		parameters = {
+			position = { x = 4500, z = 4900 },
+			sensorAllianceName = 'players',
+		},
+		actions = { 'messageRadarTargetSpawnRevealed' },
+	},
 }
 
 local actions = {
@@ -573,6 +597,16 @@ local actions = {
 	messageWrongSensorExcludes = {
 		type = actionTypes.SendMessage,
 		parameters = { messageKey = "BUG: a seismic-only trigger reported a unit held on radar." },
+	},
+
+	messageRadarSiteRevealed = {
+		type = actionTypes.SendMessage,
+		parameters = { messageKey = "Location revealed: the point south of the radar tower came into sight." },
+	},
+
+	messageRadarTargetSpawnRevealed = {
+		type = actionTypes.SendMessage,
+		parameters = { messageKey = "BUG: a point outside every sensor was reported as revealed." },
 	},
 }
 

@@ -263,7 +263,7 @@ local ABILITIES = {
 		end,
 	},
 	{
-		"ui.keybinds.select.filterName.builder",
+		"ui.unitstats.builder",
 		function(ud)
 			return ud.isBuilder and not ud.isFactory
 		end,
@@ -277,7 +277,7 @@ local ABILITIES = {
 		end,
 	},
 	{
-		"ui.unitstats.allterrain",
+		"ui.unitstats.allTerrain",
 		function(ud)
 			local moveName = ud.moveDef and ud.moveDef.name
 			return type(moveName) == "string" and string.find(moveName:lower(), "tbot", 1, true) ~= nil
