@@ -8,7 +8,7 @@ return {
 	{
 		type = 'ClearStatusEffect',
 		parameters = {
-			{ name = 'effectName', required = true, type = ParameterTypes.String },
+			{ name = 'effectName', required = true, type = ParameterTypes.EffectName },
 		},
 		actionFunction = clearStatusEffect,
 	}

@@ -418,10 +418,9 @@ function M.new(widgetState, model, dependencies)
 			dm.libraryStatus = translate("publishQuestion", { source = source, stage = dm.libraryStage })
 		end
 	end
-	-- Fetch everything in the catalogue that is not on this disk yet, one
-	-- project at a time through the same request path a single download uses.
-	-- Projects already here are left alone rather than re-fetched over local
-	-- edits.
+	-- Fetch everything in the catalogue not on this disk yet, one project at a
+	-- time through the single-download path. Local projects are not re-fetched
+	-- over local edits.
 	model.libraryDownloadAll = function()
 		local dm = widgetState.dmHandle
 		local client = library()
@@ -1175,8 +1174,7 @@ function M.newSave(widgetState, model, dependencies)
 			message("saveRejected", nil, true)
 		else
 			-- The window closes either way: progress and the outcome live in
-			-- the editor's status strip, which is where a save has always been
-			-- watched from.
+			-- the editor's status strip.
 			dm.projectSaveOpen = false
 			if upload then
 				-- Never infer completion from a previous lastSave() or an existing file.

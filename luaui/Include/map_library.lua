@@ -151,10 +151,8 @@ function M.new(options)
 				return false, "read_only"
 			end
 		end
-		-- A destination belongs to the two operations that put a project
-		-- somewhere. `remove` names a project and takes it away, so it carries
-		-- no stage -- and checking one against the folder list refused every
-		-- remove before it was ever sent.
+		-- Only publish and move put a project somewhere, so only they carry a stage.
+		-- `remove` sends none; checking it against the folder list would refuse every remove.
 		if operation == "publish" or operation == "move" then
 			local found = false
 			local stages = client.catalog.stages
