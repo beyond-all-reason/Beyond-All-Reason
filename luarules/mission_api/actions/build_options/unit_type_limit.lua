@@ -1,4 +1,4 @@
--- Caps how many units of a type a team may have at once (GG.UnitTypeLimits, api_unit_type_limits.lua).
+-- Limits how many units of a type a team may have at once (GG.UnitTypeLimits, api_unit_type_limits.lua).
 local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 
 local function setUnitTypeLimit(unitDefName, teamID, limit)

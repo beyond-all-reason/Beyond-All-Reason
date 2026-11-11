@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Unit Type Limits API",
-		desc = "Caps how many units of a type a team may have at once (GG.UnitTypeLimits, for missions)",
+		desc = "Limits how many units of a type a team may have at once (GG.UnitTypeLimits, for missions)",
 		author = "PtaQ",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
--- Finished units and frames count for the team that has them. At the cap the type is blocked and
+-- Finished units and frames count for the team that has them. At the limit the type is blocked and
 -- new or shared ones refused; spawned and captured units are counted, never refused.
 
 if gadgetHandler:IsSyncedCode() then
@@ -22,31 +22,28 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitTeam = Spring.GetUnitTeam
+	local spGetUnitPosition = Spring.GetUnitPosition
 	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 	local spGetFeatureResurrect = Spring.GetFeatureResurrect
 
-	---@type table<number, table<number, number>>
-	local limits = {} -- teamID -> unitDefID -> cap
-	---@type table<number, table<number, number>>
-	local counts = {} -- teamID -> unitDefID -> units, capped types only
-	---@type table<number, table<number, boolean>>
-	local blocked = {} -- teamID -> unitDefID -> published
-	---@type table<UnitID, boolean>
-	local overCap = {} -- frames started past the cap, removed next frame
+	local limits = {} ---@type table<TeamID, table<UnitDefID, integer>>
+	local counts = {} ---@type table<TeamID, table<UnitDefID, integer>> limited types only
+	local blocked = {} ---@type table<TeamID, table<UnitDefID, boolean>> published
+	local overLimit = {} ---@type table<UnitID, boolean> frames started past the limit, removed next frame
 	local clearStale = true
 
-	local function capOf(teamID, unitDefID)
+	local function getUnitTypeLimit(teamID, unitDefID)
 		return limits[teamID] and limits[teamID][unitDefID]
 	end
 
-	local function atCap(teamID, unitDefID)
-		local cap = capOf(teamID, unitDefID)
-		return cap ~= nil and counts[teamID][unitDefID] >= cap
+	local function atLimit(teamID, unitDefID)
+		local limit = getUnitTypeLimit(teamID, unitDefID)
+		return limit ~= nil and counts[teamID][unitDefID] >= limit
 	end
 
 	-- Published only when it changes.
 	local function refresh(teamID, unitDefID)
-		local over = atCap(teamID, unitDefID)
+		local over = atLimit(teamID, unitDefID)
 		blocked[teamID] = blocked[teamID] or {}
 		if over == (blocked[teamID][unitDefID] == true) then
 			return
@@ -67,18 +64,24 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- A builder placing the blueprint of a frame already there assists it: no new unit.
-	local function assistsPlacedFrame(unitDefID, teamID, x, z)
+	-- As the engine does: a blueprint on the footprint of a frame of its type assists it, no new unit.
+	local function assistsPlacedFrame(unitDefID, teamID, x, z, facing)
 		if not x then
 			return false
 		end
 		local def = UnitDefs[unitDefID]
-		local radius = def and math.max(def.xsize, def.zsize) * 4 or 16
-		for _, unitID in ipairs(spGetUnitsInCylinder(x, z, radius)) do
+		local width, depth = def.xsize * 8, def.zsize * 8
+		if facing == 1 or facing == 3 then
+			width, depth = depth, width
+		end
+		for _, unitID in ipairs(spGetUnitsInCylinder(x, z, math.max(width, depth))) do
+			local ux, _, uz = spGetUnitPosition(unitID)
 			if
 				spGetUnitDefID(unitID) == unitDefID
 				and spGetUnitTeam(unitID) == teamID
 				and spGetUnitIsBeingBuilt(unitID)
+				and math.abs(ux - x) < width
+				and math.abs(uz - z) < depth
 			then
 				return true
 			end
@@ -86,21 +89,27 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
-	GG.UnitTypeLimits = {
-		--- At most `cap` units of `unitDefID` for `teamID`; nil takes the cap away.
-		Set = function(teamID, unitDefID, cap)
-			limits[teamID] = limits[teamID] or {}
-			counts[teamID] = counts[teamID] or {}
-			limits[teamID][unitDefID] = cap
-			counts[teamID][unitDefID] = cap and spGetTeamUnitDefCount(teamID, unitDefID) or nil
-			refresh(teamID, unitDefID)
-		end,
-		--- The cap and the count of `unitDefID` for `teamID`; nil without a cap.
-		Get = function(teamID, unitDefID)
-			local cap = capOf(teamID, unitDefID)
-			return cap, cap and counts[teamID][unitDefID] or nil
-		end,
-	}
+	function gadget:Initialize()
+		if not Spring.GetGameRulesParam("inMission") then
+			gadgetHandler:RemoveGadget()
+			return
+		end
+		GG.UnitTypeLimits = {
+			--- At most `limit` units of `unitDefID` for `teamID`; nil takes the limit away.
+			Set = function(teamID, unitDefID, limit)
+				limits[teamID] = limits[teamID] or {}
+				counts[teamID] = counts[teamID] or {}
+				limits[teamID][unitDefID] = limit
+				counts[teamID][unitDefID] = limit and spGetTeamUnitDefCount(teamID, unitDefID) or nil
+				refresh(teamID, unitDefID)
+			end,
+			--- The limit and the count of `unitDefID` for `teamID`; nil without a limit.
+			Get = function(teamID, unitDefID)
+				local limit = getUnitTypeLimit(teamID, unitDefID)
+				return limit, limit and counts[teamID][unitDefID] or nil
+			end,
+		}
+	end
 
 	function gadget:Shutdown()
 		GG.UnitTypeLimits = nil
@@ -108,16 +117,16 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 		countUnits(teamID, unitDefID, 1)
-		-- A factory checks the cap when it takes the order and creates the unit when its yard opens,
+		-- A factory checks the limit when it takes the order and creates the unit when its yard opens,
 		-- so two can pass with one slot left.
-		local cap = capOf(teamID, unitDefID)
-		if builderID and cap and counts[teamID][unitDefID] > cap then
-			overCap[unitID] = true
+		local limit = getUnitTypeLimit(teamID, unitDefID)
+		if builderID and limit and counts[teamID][unitDefID] > limit then
+			overLimit[unitID] = true
 		end
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID)
-		overCap[unitID] = nil
+		overLimit[unitID] = nil
 		countUnits(teamID, unitDefID, -1)
 	end
 
@@ -127,33 +136,33 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame()
-		-- A reload forgets the caps, not the blocks they published.
+		-- A reload forgets the limits, not the blocks they published.
 		if clearStale then
 			clearStale = false
 			for _, teamID in ipairs(Spring.GetTeamList() or {}) do
 				for unitDefID in pairs(UnitDefs) do
-					if not atCap(teamID, unitDefID) then
+					if not atLimit(teamID, unitDefID) then
 						GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, REASON_KEY)
 					end
 				end
 			end
 		end
-		for unitID in pairs(overCap) do
-			overCap[unitID] = nil
+		for unitID in pairs(overLimit) do
+			overLimit[unitID] = nil
 			if spGetUnitIsBeingBuilt(unitID) then
 				Spring.DestroyUnit(unitID, false, true)
 			end
 		end
 	end
 
-	function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
+	function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
 		-- The second value drops a refused order.
-		return not atCap(builderTeam, unitDefID) or assistsPlacedFrame(unitDefID, builderTeam, x, z), true
+		return not atLimit(builderTeam, unitDefID) or assistsPlacedFrame(unitDefID, builderTeam, x, z, facing), true
 	end
 
 	-- Captures go through so capture objectives still work.
 	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-		return capture or not atCap(newTeam, unitDefID)
+		return capture or not atLimit(newTeam, unitDefID)
 	end
 
 	function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
@@ -162,6 +171,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local name = spGetFeatureResurrect(featureID)
 		local def = name and name ~= "" and UnitDefNames[name]
-		return not (def and atCap(builderTeam, def.id))
+		return not (def and atLimit(builderTeam, def.id))
 	end
 end
