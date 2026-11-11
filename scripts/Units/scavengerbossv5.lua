@@ -2463,7 +2463,11 @@ local RAISE = {
 	cooldown = 45 + 15 * (math.max(1, math.min(8, #Spring.GetTeamList() - 2)) - 1) / 7,
 	recheck = 2,
 	ready = 0,
-	ramp = { { 0.6, 1 }, { 0.3, 1.6 }, { 0.2, 2 }, { 0.1, 2.5 }, { 0, 3.2 } },
+	boost = 2.2,
+	arcs = 6,
+	arcEvery = 250,
+	arcTtl = 8,
+	arcWeapon = WeaponDefNames[UnitDefs[unitDefID].name .. "_raisearc"].id,
 	poseSpeed = math.rad(20),
 	energy = 1000000,
 }
@@ -2716,20 +2720,38 @@ RAISE.Fuel = function()
 	end
 end
 
-RAISE.Boost = function(health)
-	local ramp = RAISE.ramp
-	for i = 1, #ramp - 1 do
-		local high, low = ramp[i], ramp[i + 1]
-		if health >= low[1] then
-			local t = math.max(0, math.min(1, (high[1] - health) / (high[1] - low[1])))
-			return high[2] + (low[2] - high[2]) * t
+RAISE.Telegraph = function()
+	local x, y, z = Here()
+	local targets = {}
+	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, RAISE.search)) do
+		local rezName = Spring.GetFeatureResurrect(featureID)
+		if rezName and rezName ~= "" then
+			targets[#targets + 1] = featureID
+			if #targets >= RAISE.arcs then
+				break
+			end
 		end
 	end
-	return ramp[#ramp][2]
+	for _ = 1, math.floor(RAISE.grace * 1000 / RAISE.arcEvery) do
+		local sx, sy, sz = Spring.GetUnitPiecePosDir(unitID, P.eaterbeamflare)
+		for _, featureID in ipairs(targets) do
+			local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+			if fx then
+				Spring.SpawnProjectile(RAISE.arcWeapon, {
+					pos = { sx, sy, sz },
+					["end"] = { fx, fy, fz },
+					owner = unitID,
+					team = myTeam,
+					ttl = RAISE.arcTtl,
+				})
+			end
+		end
+		Sleep(RAISE.arcEvery)
+	end
 end
 
 local function Raise()
-	Sleep(RAISE.grace * 1000)
+	RAISE.Telegraph()
 	eating, isAiming = true, true
 	Spring.SetUnitRulesParam(unitID, "scavboss_eating", 1)
 	Signal(SIG_ALL_AIM)
@@ -2739,7 +2761,8 @@ local function Raise()
 		GG.ScavBossFeedingEffect(unitID, unitDefID, 1)
 	end
 	local health, maxHealth = Spring.GetUnitHealth(unitID)
-	local boost = RAISE.Boost((health or 1) / (maxHealth or 1))
+	local missing = math.max(0, 1 - (health or 1) / (maxHealth or 1) / TURBO.raiseHealth)
+	local boost = 1 + RAISE.boost * missing ^ 2
 	Spring.SetUnitBuildSpeed(unitID, RAISE.buildSpeed, nil, nil, RAISE.resurrectSpeed * boost)
 	local deadline = Spring.GetGameFrame() + math.random(RAISE.duration[1], RAISE.duration[2]) * Game.gameSpeed
 	while Spring.GetGameFrame() < deadline and not Spring.GetUnitIsStunned(unitID) do
