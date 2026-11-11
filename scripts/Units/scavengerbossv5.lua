@@ -1262,7 +1262,6 @@ end
 local TORSO_SPEED, RESTORE_SPEED = math.rad(150), math.rad(45)
 local RESTORE_DELAY = 3000
 local eating = false
-local hunting = false
 local myTeam = Spring.GetUnitTeam(unitID)
 local GetPieceRotation = Spring.UnitScript.GetPieceRotation
 
@@ -1375,6 +1374,7 @@ local OWNER_HOLD = 1.5 * Game.gameSpeed
 local PACE = {
 	slow = 0.65,
 	hunt = 1.3,
+	hunting = false,
 	linger = 5,
 	lastAim = -1000,
 	speed = UnitDefs[unitDefID].speed,
@@ -1564,6 +1564,8 @@ local HUNGER = {
 	min = 80,
 	max = 100,
 	missDrop = 0.7,
+	blastFloor = 0.3,
+	idleSeconds = 3,
 	value = 0,
 	trigger = 90,
 	killsAtMeal = 0,
@@ -2236,22 +2238,24 @@ end
 local FEED_GRACE = 3
 local FEED_DURATION = 25
 local FEED_GOAL = 40000
-local PLAYER_FRACTION = math.min(1, (#Spring.GetTeamList() - 2) / 8)
-local PLAYER_SCALE = math.max(0.25, PLAYER_FRACTION)
-HUNGER.fillSeconds = HUNGER.fillSeconds * PLAYER_SCALE
-HUNGER.minSeconds = HUNGER.minSeconds * PLAYER_SCALE
-HUNGER.killsForMin = math.ceil(HUNGER.killsForMin * PLAYER_SCALE)
-FEED_GOAL = FEED_GOAL * math.max(0.15, PLAYER_FRACTION)
-local PLAYER_LERP = (math.max(1, math.min(8, #Spring.GetTeamList() - 2)) - 1) / 7
 ---@type table<string, any>
 local SNACK = {
-	cooldown = 25 + 10 * PLAYER_LERP,
-	metal = 1000 + 3500 * PLAYER_LERP,
 	grace = 2,
 	duration = 10,
 	hungerDrop = 10,
 	ready = 0,
 }
+do
+	local players = math.min(1, (#Spring.GetTeamList() - 2) / 8)
+	local scale = math.max(0.25, players)
+	HUNGER.fillSeconds = HUNGER.fillSeconds * scale
+	HUNGER.minSeconds = HUNGER.minSeconds * scale
+	HUNGER.killsForMin = math.ceil(HUNGER.killsForMin * scale)
+	FEED_GOAL = FEED_GOAL * math.max(0.15, players)
+	local lerp = (math.max(1, math.min(8, #Spring.GetTeamList() - 2)) - 1) / 7
+	SNACK.cooldown = 25 + 10 * lerp
+	SNACK.metal = 1000 + 3500 * lerp
+end
 local EAT_RANGE = 650
 local BLAST_RADIUS, BLAST_DAMAGE, EVAPORATE_HEALTH = 2800, 136000, 0.35
 local BLAST_WAVE_FRAMES = 8
@@ -2274,8 +2278,6 @@ local FIRE_RING = {
 	radius = BLAST_RADIUS * 0.6,
 	points = 30,
 }
-local BLAST_FLOOR = 0.3
-local FEED_IDLE = 3
 ---@type table<string, any>
 local HUNT = {
 	range = 2500,
@@ -2305,7 +2307,7 @@ local function IsPrey(otherID)
 	return def and not def.canFly and def.reclaimable
 end
 
-local function IsScavFood(otherID)
+HUNT.IsScavFood = function(otherID)
 	if otherID == unitID or Spring.GetUnitTeam(otherID) ~= myTeam or Spring.GetUnitIsDead(otherID) then
 		return false
 	end
@@ -2345,7 +2347,7 @@ local function PickMeal()
 	local own
 	local ownCost = 0.0
 	for _, otherID in ipairs(Spring.GetUnitsInSphere(x, y, z, EAT_RANGE)) do
-		if IsScavFood(otherID) then
+		if HUNT.IsScavFood(otherID) then
 			local cost = DEFS.Unit(Spring.GetUnitDefID(otherID)).metalCost
 			if cost > ownCost then
 				own, ownCost = otherID, cost
@@ -2514,7 +2516,7 @@ local function SetRaisePose(on)
 	end
 end
 
-local function SnackMetal()
+SNACK.Metal = function()
 	local x, y, z = Here()
 	local metal = 0
 	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, EAT_RANGE)) do
@@ -2525,7 +2527,7 @@ local function SnackMetal()
 	return metal
 end
 
-local function PickSnack()
+SNACK.Pick = function()
 	local x, y, z = Here()
 	local wreck, wreckMetal = nil, 0
 	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, EAT_RANGE)) do
@@ -2549,7 +2551,7 @@ local function PickSnack()
 	return prey, false
 end
 
-local function Snack()
+SNACK.Run = function()
 	local x, y, z = Here()
 	Spring.SpawnCEG("scavbosssnackring", x, y, z, 0, 1, 0)
 	Sleep(SNACK.grace * 1000)
@@ -2564,7 +2566,7 @@ local function Snack()
 	end
 	local deadline = Spring.GetGameFrame() + SNACK.duration * Game.gameSpeed
 	while Spring.GetGameFrame() < deadline and not Spring.GetUnitIsStunned(unitID) do
-		local target, isFeature = PickSnack()
+		local target, isFeature = SNACK.Pick()
 		if not target then
 			break
 		end
@@ -2588,7 +2590,7 @@ local function Snack()
 	StartThread(RestoreAfterDelay)
 end
 
-local function FireRing()
+FIRE_RING.Spawn = function()
 	local x, _, z = Here()
 	local step = FEED_GRACE * 1000 / FIRE_RING.points
 	for i = 1, FIRE_RING.points do
@@ -2602,18 +2604,18 @@ local function FireRing()
 	end
 end
 
-local function FoodInReach()
+HUNT.InReach = function()
 	local x, y, z = Here()
-	local metal = SnackMetal()
+	local metal = SNACK.Metal()
 	for _, otherID in ipairs(Spring.GetUnitsInSphere(x, y, z, EAT_RANGE)) do
-		if IsPrey(otherID) or IsScavFood(otherID) then
+		if IsPrey(otherID) or HUNT.IsScavFood(otherID) then
 			metal = metal + DEFS.Unit(Spring.GetUnitDefID(otherID)).metalCost
 		end
 	end
 	return metal
 end
 
-local function HuntTarget()
+HUNT.Target = function()
 	local x, y, z = Here()
 	local cells, best, bestMetal = {}, nil, 0
 	local function add(id, isFeature, px, pz, metal)
@@ -2639,27 +2641,27 @@ local function HuntTarget()
 		end
 	end
 	for _, otherID in ipairs(Spring.GetUnitsInSphere(x, y, z, HUNT.range)) do
-		if IsPrey(otherID) or IsScavFood(otherID) then
+		if IsPrey(otherID) or HUNT.IsScavFood(otherID) then
 			local ux, _, uz = Spring.GetUnitPosition(otherID)
 			add(otherID, false, ux, uz, DEFS.Unit(Spring.GetUnitDefID(otherID)).metalCost)
 		end
 	end
-	if best and bestMetal >= FEED_GOAL * BLAST_FLOOR then
+	if best and bestMetal >= FEED_GOAL * HUNGER.blastFloor then
 		return best.top, best.topIsFeature
 	end
 end
 
-local function Hunt()
+HUNT.Run = function()
 	local frame = Spring.GetGameFrame()
 	if frame < HUNT.nextSearch then
 		return false
 	end
 	HUNT.nextSearch = frame + HUNT.retry * Game.gameSpeed
-	local target, isFeature = HuntTarget()
+	local target, isFeature = HUNT.Target()
 	if not target then
 		return false
 	end
-	hunting = true
+	PACE.hunting = true
 	Spring.SetUnitRulesParam(unitID, "scavboss_eating", 1)
 	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { isFeature and (Game.maxUnits + target) or target }, 0)
 	local deadline = frame + HUNT.timeout * Game.gameSpeed
@@ -2667,12 +2669,12 @@ local function Hunt()
 		Spring.GetGameFrame() < deadline
 		and not Spring.GetUnitIsStunned(unitID)
 		and not MealGone(target, isFeature)
-		and FoodInReach() < FEED_GOAL * BLAST_FLOOR
+		and HUNT.InReach() < FEED_GOAL * HUNGER.blastFloor
 	do
 		Sleep(500)
 	end
-	hunting = false
-	if FoodInReach() < FEED_GOAL * BLAST_FLOOR then
+	PACE.hunting = false
+	if HUNT.InReach() < FEED_GOAL * HUNGER.blastFloor then
 		Spring.SetUnitRulesParam(unitID, "scavboss_eating", 0)
 		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 		return false
@@ -2681,12 +2683,12 @@ local function Hunt()
 end
 
 local function Feed()
-	if FoodInReach() < FEED_GOAL * BLAST_FLOOR and not Hunt() then
+	if HUNT.InReach() < FEED_GOAL * HUNGER.blastFloor and not HUNT.Run() then
 		return
 	end
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 1)
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", 0)
-	StartThread(FireRing)
+	StartThread(FIRE_RING.Spawn)
 	Sleep(FEED_GRACE * 1000)
 	eating, posed, isAiming = true, true, true
 	fedMetal = 0
@@ -2731,14 +2733,14 @@ local function Feed()
 			Sleep(FRAME_MS)
 		else
 			idleSince = idleSince or Spring.GetGameFrame()
-			if Spring.GetGameFrame() - idleSince > FEED_IDLE * Game.gameSpeed then
+			if Spring.GetGameFrame() - idleSince > HUNGER.idleSeconds * Game.gameSpeed then
 				break
 			end
 			Sleep(1000)
 		end
 	end
 	local share = math.min(1, (fedMetal + ownEaten) / FEED_GOAL)
-	local blast = share >= BLAST_FLOOR
+	local blast = share >= HUNGER.blastFloor
 	if blast then
 		HUNGER.value = 0
 		HUNGER.killsAtMeal = Spring.GetUnitRulesParam(unitID, "scavboss_bigkills") or 0
@@ -3068,12 +3070,12 @@ local function Director()
 	end
 end
 
-local function Pace()
+PACE.Loop = function()
 	local slowed = false
 	while true do
 		Sleep(500)
 		local engaged = Spring.GetGameFrame() - PACE.lastAim < PACE.linger * Game.gameSpeed
-		local factor = hunting and PACE.hunt or engaged and PACE.slow or 1
+		local factor = PACE.hunting and PACE.hunt or engaged and PACE.slow or 1
 		if factor ~= slowed then
 			slowed = factor
 			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", PACE.speed * factor)
@@ -3099,9 +3101,9 @@ local function FeedWatch()
 			not eating
 			and Spring.GetGameFrame() >= SNACK.ready
 			and not Spring.GetUnitIsStunned(unitID)
-			and SnackMetal() >= SNACK.metal
+			and SNACK.Metal() >= SNACK.metal
 		then
-			Snack()
+			SNACK.Run()
 		end
 		if RAISE.wanted and not eating then
 			Raise()
@@ -3149,7 +3151,7 @@ function script.Create()
 	StartThread(StopWalking)
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_goal", FEED_GOAL)
 	StartThread(FeedWatch)
-	StartThread(Pace)
+	StartThread(PACE.Loop)
 	StartThread(BeamLoop)
 	StartThread(Director)
 	StartThread(TurboLoop)
