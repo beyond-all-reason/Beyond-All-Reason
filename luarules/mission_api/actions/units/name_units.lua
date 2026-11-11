@@ -27,9 +27,15 @@ local function nameUnits(unitName, teamID, unitDefName, area)
 
 	local unitsToName = {}
 	if hasFilterOtherThanTeamID then
-		unitsToName = table.valueIntersection(
-			unpack(table.filterArray({ unitsFromDef, unitsInArea }, function(tbl) return not table.isEmpty(tbl) end))
-		)
+		-- Every given filter narrows, even one that matches nothing.
+		local filters = {}
+		if unitDefName then
+			filters[#filters + 1] = unitsFromDef
+		end
+		if area then
+			filters[#filters + 1] = unitsInArea
+		end
+		unitsToName = table.valueIntersection(unpack(filters))
 	else
 		unitsToName = allUnitsOfTeam
 	end

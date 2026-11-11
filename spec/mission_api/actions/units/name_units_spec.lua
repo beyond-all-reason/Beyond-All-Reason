@@ -165,4 +165,43 @@ describe("mission_api.actions.name_units", function()
 		end)
 	end)
 
+	describe("actionFunction - unitDefName and area together", function()
+		local area = { x1 = 0, z1 = 0, x2 = 10, z2 = 10 }
+
+		before_each(function()
+			env.UnitDefNames = { tank = { id = 3 } }
+		end)
+
+		it("tracks only the units of the type inside the area", function()
+			env.Spring.GetTeamUnitsByDefs = function()
+				return { 100, 101 }
+			end
+			unitsInRectangle = { 101, 200 }
+			action.actionFunction("tanks", 2, "tank", area)
+			assert.are.same({ [101] = true }, trackedUnitIDs["tanks"])
+		end)
+
+		it("tracks nothing when the area holds none of the type", function()
+			env.Spring.GetTeamUnitsByDefs = function()
+				return { 100, 101 }
+			end
+			unitsInRectangle = {}
+			action.actionFunction("tanks", 2, "tank", area)
+			assert.is_nil(trackedUnitIDs["tanks"])
+		end)
+
+		it("tracks nothing when there are no units of the type", function()
+			unitsInRectangle = { 200, 201 }
+			action.actionFunction("tanks", 2, "tank", area)
+			assert.is_nil(trackedUnitIDs["tanks"])
+		end)
+
+		it("tracks nothing when the type is unknown", function()
+			env.UnitDefNames = {}
+			unitsInRectangle = { 200, 201 }
+			action.actionFunction("tanks", nil, "unknown", area)
+			assert.is_nil(trackedUnitIDs["tanks"])
+		end)
+	end)
+
 end)
