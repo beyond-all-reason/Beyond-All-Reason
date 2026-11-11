@@ -14,7 +14,6 @@ local types = {
 	ObjectiveIDs = "ObjectiveIDs",
 	Difficulties = "Difficulties",
 	Orders = "Orders",
-	UnitStates = "UnitStates",
 	Area = "Area",
 	Direction = "Direction",
 	UnitLoadout = "UnitLoadout",

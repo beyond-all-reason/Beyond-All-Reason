@@ -14,7 +14,6 @@ local unitEntryFields = {
 	{ name = "quantity", type = Types.Number },
 	{ name = "spacing", type = Types.Number },
 	{ name = "neutral", type = Types.Boolean },
-	{ name = "states", type = Types.UnitStates },
 	{ name = "orders", type = Types.Orders },
 }
 

@@ -848,7 +848,12 @@ describe("mission_api.validation.parameter_validators", function()
 			V.env.CMD[name] = i
 			V.env.CMD[i] = name
 		end
-		V.env.GameCMD = { AREA_ATTACK_GROUND = 100, [100] = "AREA_ATTACK_GROUND" }
+		V.env.GameCMD = {
+			AREA_ATTACK_GROUND = 100,
+			[100] = "AREA_ATTACK_GROUND",
+			SMART_TOGGLE = 101,
+			[101] = "SMART_TOGGLE",
+		}
 	end)
 
 	after_each(function()
@@ -1003,13 +1008,41 @@ describe("mission_api.validation.parameter_validators", function()
 			for index = 1, 6 do
 				V.assertMessage(
 					result,
-					"Parameter must be 0 (off) or 1 (on), as a number or {0} / {1}. Action: a, Parameter: orders["
-						.. index
-						.. "][2]"
+					"Parameter must be 0 or 1, as a number or {n}. Action: a, Parameter: orders[" .. index .. "][2]"
 				)
 			end
 		end)
 	end
+
+	it("accepts each value of a state command, engine or game", function()
+		local orders = {}
+		for moveState = 0, 2 do
+			orders[#orders + 1] = { V.env.CMD.MOVE_STATE, { moveState } }
+		end
+		for fireState = 0, 3 do
+			orders[#orders + 1] = { V.env.CMD.FIRE_STATE, fireState }
+		end
+		for trajectory = 0, 2 do
+			orders[#orders + 1] = { V.env.GameCMD.SMART_TOGGLE, { trajectory } }
+		end
+
+		V.assertNoMessageContaining(validateOrders(orders), "Parameter: orders")
+	end)
+
+	it("rejects a value a state command does not take", function()
+		local result = validateOrders({
+			{ V.env.CMD.MOVE_STATE, { 3 } },
+			{ V.env.CMD.FIRE_STATE, -1 },
+			{ V.env.GameCMD.SMART_TOGGLE, { 3 } },
+		})
+
+		V.assertMessage(result, "Parameter must be 0, 1 or 2, as a number or {n}. Action: a, Parameter: orders[1][2]")
+		V.assertMessage(
+			result,
+			"Parameter must be 0, 1, 2 or 3, as a number or {n}. Action: a, Parameter: orders[2][2]"
+		)
+		V.assertMessage(result, "Parameter must be 0, 1 or 2, as a number or {n}. Action: a, Parameter: orders[3][2]")
+	end)
 
 	it("rejects AREA_ATTACK without a radius", function()
 		V.assertMessage(
@@ -1088,50 +1121,6 @@ describe("mission_api.validation.parameter_validators", function()
 			parameters = { featureLoadout = featureLoadout },
 		})
 	end
-
-	describe("UnitStates", function()
-		-- The file-wide before_each swaps in a CMD table without the states; take back the spec helper's,
-		-- plus REPEAT, an on/off command.
-		before_each(function()
-			V.mockEngineGlobals()
-			local CMD = { REPEAT = 115 }
-			for name, id in pairs(V.env.CMD) do
-				CMD[name] = id
-			end
-			V.env.CMD = CMD
-		end)
-
-		local function withStates(states)
-			return validateUnitLoadout({
-				{ unitDefName = "armwar", teamName = "player", position = { x = 0, z = 0 }, states = states },
-			})
-		end
-
-		it("accepts every state CMD lists for a state command, and 0 or 1 for an on/off one", function()
-			local CMD = V.env.CMD
-			for moveState = 0, 2 do
-				V.assertValid(withStates({ [CMD.MOVE_STATE] = moveState }))
-			end
-			for fireState = 0, 3 do
-				V.assertValid(withStates({ [CMD.FIRE_STATE] = fireState, [CMD.REPEAT] = fireState % 2 }))
-			end
-		end)
-
-		it("rejects a state CMD does not list", function()
-			local CMD = V.env.CMD
-			local result = withStates({ [CMD.MOVE_STATE] = 3, [CMD.FIRE_STATE] = -1, [CMD.REPEAT] = 2 })
-
-			V.assertMessage(result, "Invalid MOVE_STATE: 3. Action: a, Parameter: unitLoadout[1].states[MOVE_STATE]")
-			V.assertMessage(result, "Invalid FIRE_STATE: -1. Action: a, Parameter: unitLoadout[1].states[FIRE_STATE]")
-			V.assertMessage(result, "Invalid REPEAT: 2. Action: a, Parameter: unitLoadout[1].states[REPEAT]")
-		end)
-
-		it("rejects a command that is not a state", function()
-			local result = withStates({ [V.env.CMD.MOVE] = 1 })
-
-			V.assertMessage(result, "Not a state command: 10. Action: a, Parameter: unitLoadout[1].states[10]")
-		end)
-	end)
 
 	describe("UnitLoadout", function()
 		it("passes for a well-formed entry", function()

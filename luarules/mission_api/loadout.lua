@@ -140,17 +140,7 @@ local function spawnUnitLoadout(unitLoadout)
 			local unitID = spawnUnit(unit, pos)
 			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 			GG["MissionAPI"].issuingOrders = true
-			local orders = convertOrdersTargetingNames(unit.orders)
-			-- States go first, by command ID, so an order of the entry's own can still change them.
-			local stateCommands = {}
-			for commandID in pairs(unit.states or {}) do
-				stateCommands[#stateCommands + 1] = commandID
-			end
-			table.sort(stateCommands)
-			for index, commandID in ipairs(stateCommands) do
-				table.insert(orders, index, { commandID, { unit.states[commandID] }, 0 })
-			end
-			Spring.GiveOrderArrayToUnit(unitID, orders)
+			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
 			GG["MissionAPI"].issuingOrders = nil
 		end
 	end

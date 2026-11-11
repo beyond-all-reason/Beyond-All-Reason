@@ -11,6 +11,7 @@ VFS.Include("common/wav.lua")
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
 local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
+local stateCommands = VFS.Include("common/stateCommands.lua")
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -566,13 +567,6 @@ local function getNameValidator(nameKey, message)
 	end
 end
 
-local function validateNumberParam(params, results)
-	local luaTypeResult = validateLuaType(params, "number")
-	if luaTypeResult then
-		addResult(results, luaTypeResult, "[2]")
-	end
-end
-
 local function validateNoParams(params, results)
 	local luaTypeResult = validateLuaType(params, "table")
 	if luaTypeResult then
@@ -582,13 +576,25 @@ local function validateNoParams(params, results)
 	end
 end
 
-local function validateOnOffParam(params, results)
-	local value = params
-	if type(params) == "table" and #params == 1 then
-		value = params[1]
+-- A state command takes one of its values, bare or as {value}.
+local function getStateValidator(values)
+	local allowed = {}
+	for _, value in ipairs(values) do
+		allowed[value] = true
 	end
-	if value ~= 0 and value ~= 1 then
-		addResult(results, "Parameter must be 0 (off) or 1 (on), as a number or {0} / {1}", "[2]")
+	local message = "Parameter must be "
+		.. table.concat(values, ", ", 1, #values - 1)
+		.. " or "
+		.. values[#values]
+		.. ", as a number or {n}"
+	return function(params, results)
+		local value = params
+		if type(params) == "table" and #params == 1 then
+			value = params[1]
+		end
+		if not allowed[value] then
+			addResult(results, message, "[2]")
+		end
 	end
 end
 
@@ -637,10 +643,6 @@ local validatorsByCommandName = {
 	STOP = validateNoParams,
 	SELFD = validateNoParams, -- a toggle: a second SELFD cancels the first
 	WAIT = validateNoParams, -- a toggle: a second WAIT cancels the first
-	-- 0 (off) or 1 (on):
-	CLOAK = validateOnOffParam,
-	ONOFF = validateOnOffParam,
-	REPEAT = validateOnOffParam,
 	-- UI only:
 	TIMEWAIT = getUIOnlyValidator("TIMEWAIT"),
 	DEATHWAIT = getUIOnlyValidator("DEATHWAIT"),
@@ -671,10 +673,10 @@ local validatorsByCommandName = {
 	RESURRECT = validate4orFeatureName,
 	-- 4 number parameters, or either unit or feature name:
 	RECLAIM = validate4orEitherName,
-	-- Single number parameter:
-	FIRE_STATE = validateNumberParam,
-	MOVE_STATE = validateNumberParam,
 }
+for commandName, values in pairs(stateCommands) do
+	validatorsByCommandName[commandName] = getStateValidator(values)
+end
 
 local function validateOrderOptions(options, results)
 	if not options then
@@ -727,43 +729,6 @@ local function registerOrderValidators(parameterValidators, context)
 		if entry.command then
 			consumedInAllowCommand[entry.command] = entry.reason
 		end
-	end
-
-	-- A state command's name and values, read from CMD: X_STATE takes CMD.XSTATE_*, an on/off command 0 or 1.
-	local function getStateValues(commandID)
-		for name, id in pairs(CMD) do
-			if id == commandID and type(name) == "string" then
-				local prefix = name:match("^(%u+)_STATE$")
-				if prefix then
-					local values = {}
-					for valueName, value in pairs(CMD) do
-						if type(valueName) == "string" and valueName:find("^" .. prefix .. "STATE_") then
-							values[value] = true
-						end
-					end
-					return name, values
-				elseif validatorsByCommandName[name] == validateOnOffParam then
-					return name, { [0] = true, [1] = true }
-				end
-			end
-		end
-	end
-
-	parameterValidators[Types.UnitStates] = function(states)
-		local tableResult = validateTableType(states)
-		if tableResult then
-			return tableResult
-		end
-		local results = {}
-		for commandID, value in pairs(states) do
-			local name, values = getStateValues(commandID)
-			if not name then
-				addResult(results, "Not a state command: " .. tostring(commandID), "[" .. tostring(commandID) .. "]")
-			elseif not values[value] then
-				addResult(results, "Invalid " .. name .. ": " .. tostring(value), "[" .. name .. "]")
-			end
-		end
-		return results
 	end
 
 	parameterValidators[Types.Command] = function(command)
