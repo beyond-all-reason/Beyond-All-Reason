@@ -9,31 +9,10 @@ local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
 
 --- Orientation of unit and feature entries
 
--- A point closer than this is on the entry itself, as in RotateUnits.
-local MIN_DIRECTION_DISTANCE = 0.001
-
-local function compassAngleToHeading(angle)
-	-- TODO: refactor to call CompassAngleToHeading when it is merged
-	return math.floor((angle % 360 - 180) / 360 * -65536)
-end
-
-local function directionToHeading(entry, direction)
-	if direction.angle then
-		return compassAngleToHeading(direction.angle)
-	end
-
-	local dx, dz = direction.x - entry.position.x, direction.z - entry.position.z
-	if math.abs(dx) < MIN_DIRECTION_DISTANCE and math.abs(dz) < MIN_DIRECTION_DISTANCE then
-		return BAR.Utilities.FacingToHeading(0)
-	end
-	-- Not Spring.GetHeadingFromVector: before RecoilEngine #3240 it swaps east and west for dz just above zero.
-	return compassAngleToHeading(math.deg(math.atan2(dx, -dz)))
-end
-
 local function orientationOf(entry)
 	local orientation = entry.orientation
 	if type(orientation) == "table" then
-		local heading = directionToHeading(entry, orientation)
+		local heading = BAR.Utilities.DirectionToHeading(entry.position.x, entry.position.z, orientation)
 		return heading, BAR.Utilities.HeadingToFacing(heading)
 	end
 	local facing = orientation or 0
