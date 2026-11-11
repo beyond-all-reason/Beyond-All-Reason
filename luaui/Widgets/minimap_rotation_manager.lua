@@ -107,7 +107,11 @@ local function minimapRotateHandler(_, _, args)
 			return
 		end
 
-		WG.options.applyOptionValue("minimaprotation", newMode)
+		if WG.options then
+			WG.options.applyOptionValue("minimaprotation", newMode)
+		else
+			WG.minimaprotationmanager.setMode(newMode) -- (no Options widget: kept in this widget's own config)
+		end
 		spEcho("[MinimapManager] Mode set to " .. args[2])
 		return true
 	elseif module == "set" then
@@ -257,7 +261,7 @@ function widget:Initialize()
 		return mode
 	end
 
-	local temp = WG.options.getOptionValue("minimaprotation")
+	local temp = WG.options and WG.options.getOptionValue("minimaprotation") -- (Options can be off)
 	if isValidOption(temp) then -- Sync up when the widget was unloaded
 		mode = temp
 	end
