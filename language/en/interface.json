@@ -189,11 +189,15 @@
 			"windAdvice": "Solar Collectors are better when the average\nwind speed is below 5 (Armada) or 6 (Cortex)"
 		},
 		"tooltip": {
+			"veryLow": "Very low",
 			"low": "Low",
 			"medium": "Medium",
 			"high": "High",
+			"veryHigh": "Very high",
+			"verySlow": "Very slow",
 			"slow": "Slow",
-			"fast": "Fast"
+			"fast": "Fast",
+			"veryFast": "Very fast"
 		},
 		"pip": {
 			"tooltip": "Toggle Picture-in-Picture",
@@ -1593,6 +1597,10 @@
 			"resist": "Resist",
 			"immune": "Immune",
 			"exp": "Exp",
+			"bonusTitle": "Experience bonus",
+			"xpHealthTip": "+%{percent}% maximum health from its %{xp} experience.\nUnits gain experience by damaging and destroying enemies (more for those worth more than them); this bonus grows with it, up to +%{max}%.",
+			"xpDamageTip": "+%{percent}% damage per second from its %{xp} experience: its weapons reload faster.\nUnits gain experience by damaging and destroying enemies (more for those worth more than them); this bonus grows with it, up to +%{max}%.",
+			"bonusOtherTip": "+%{percent}% over its unit type's, from effects on this unit (not experience)",
 			"open": "Open",
 			"closed": "Closed",
 			"maxhp": "max HP",
@@ -1676,6 +1684,8 @@
 			"rangeLabel": "Range",
 			"areaOfEffect": "Area of effect",
 			"edgeEffectiveness": "Edge effectiveness",
+			"alphaDamage": "Alpha damage",
+			"damageFalloff": "Damage fall-off",
 			"paralyzeTime": "Paralyze time",
 			"stockpileTime": "Stockpile time",
 			"interceptRange": "Interception range",
@@ -1833,7 +1843,7 @@
 			"shieldrange": "Shield range",
 			"shieldrechargerate": "Recharge rate",
 			"shieldrechargecost": "Recharge cost",
-			"cellHowto": "Click to select, right click to remove, middle click to view them (with Ctrl: all of this type)",
+			"cellHowto": "Click: select, right click: remove\nMiddle click: view them (Ctrl: all of this type)",
 			"flows": {
 				"metal": "Metal per second",
 				"energy": "Energy per second",
@@ -1868,6 +1878,9 @@
 				"cloak": "Cloaking costs energy per second",
 				"cloakMoving": "Cloaking costs energy per second, standing still / moving",
 				"progress": "Under construction",
+				"conversion": "Converts energy into metal per second (energy : metal)",
+				"xpHealth": "Health gained from experience",
+				"xpDamage": "Damage per second gained from experience (its weapons reload faster)",
 				"stealth": "Stealthy: radar does not show it",
 				"amphib": "Amphibious",
 				"allTerrain": "All-terrain",
