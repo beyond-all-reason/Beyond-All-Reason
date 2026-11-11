@@ -566,6 +566,33 @@ describe("mission_api.validation.sections", function()
 		end)
 	end)
 
+	describe("build option actions with a team", function()
+		local function validateBuildOption(actionType, parameters)
+			parameters.builtDefName = "armsolar"
+			return V.validateAction({ type = V.actionTypes[actionType], parameters = parameters })
+		end
+
+		it("passes a team without a builder", function()
+			local result = validateBuildOption("RemoveBuildOption", { teamName = "player" })
+			V.assertNoMessageContaining(result, "builderDefName")
+		end)
+
+		it("passes a builder and a team together", function()
+			local result = validateBuildOption(
+				"AddBuildOption",
+				{ builderDefName = "armck", teamName = "player", buildMenuPosition = 2 }
+			)
+			V.assertNoMessageContaining(result, "needs builderDefName")
+		end)
+
+		it("reports a build menu position with a team and no builder", function()
+			V.assertMessage(
+				validateBuildOption("AddBuildOption", { teamName = "player", buildMenuPosition = 2 }),
+				"Parameter 'buildMenuPosition' needs builderDefName. Action: a, Parameter: buildMenuPosition"
+			)
+		end)
+	end)
+
 	describe("stockpile triggers", function()
 		local originalWeaponDefs
 

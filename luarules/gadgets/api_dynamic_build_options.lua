@@ -12,8 +12,9 @@ function gadget:GetInfo()
 end
 
 -- Build options are per-unit command descriptions (id = -unitDefID); inserting or removing one also
--- updates what the unit can build. Changes are kept per builder unit def and applied to new units in
--- UnitCreated. LuaUI reads them through common/dynamicBuildOptions.lua and the BuildOptionsChanged callin.
+-- updates what the unit can build. Changes are kept per builder unit def, for all teams or one team, and
+-- applied to new and given units. LuaUI reads them through common/dynamicBuildOptions.lua and the
+-- BuildOptionsChanged callin.
 
 local SYNC_ACTION = "DynamicBuildOptionsChanged"
 
@@ -55,6 +56,17 @@ if gadgetHandler:IsSyncedCode() then
 	-- builderUnitDefID -> { builtUnitDefID = true }
 	---@type table<number, table<number, true>?>
 	local removedBuildOptions = {}
+
+	-- teamID -> the same, for one team on top of the changes for all teams
+	---@type table<number, table<number, table<number, number|false>?>?>
+	local teamAddedBuildOptions = {}
+	---@type table<number, table<number, table<number, true>?>?>
+	local teamRemovedBuildOptions = {}
+
+	local function teamOptions(changesByTeam, teamID, builderUnitDefID)
+		local byBuilder = changesByTeam[teamID]
+		return byBuilder and byBuilder[builderUnitDefID]
+	end
 
 	---@param builtUnitDefID integer
 	---@param isFactory boolean
@@ -112,14 +124,23 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function forEachUnitOfDef(unitDefID, callback, ...)
-		for _, teamID in ipairs(teamsList) do
-			if (spGetTeamUnitDefCount(teamID, unitDefID) or 0) > 0 then
-				local unitIDs = spGetTeamUnitsByDefs(teamID, unitDefID)
-				for i = 1, #unitIDs do
-					callback(unitIDs[i], ...)
-				end
+	local function forEachTeamUnitOfDef(teamID, unitDefID, callback, ...)
+		if (spGetTeamUnitDefCount(teamID, unitDefID) or 0) > 0 then
+			local unitIDs = spGetTeamUnitsByDefs(teamID, unitDefID)
+			for i = 1, #unitIDs do
+				callback(unitIDs[i], ...)
 			end
+		end
+	end
+
+	---@param teamID integer? only this team's units; nil for every team
+	local function forEachUnitOfDef(unitDefID, teamID, callback, ...)
+		if teamID then
+			forEachTeamUnitOfDef(teamID, unitDefID, callback, ...)
+			return
+		end
+		for _, unitTeamID in ipairs(teamsList) do
+			forEachTeamUnitOfDef(unitTeamID, unitDefID, callback, ...)
 		end
 	end
 
@@ -128,9 +149,63 @@ if gadgetHandler:IsSyncedCode() then
 		return options ~= nil and options[builtUnitDefID] == true
 	end
 
-	local function publish(builderUnitDefID, builtUnitDefID, added)
+	local function hasBuildOption(builtUnitDefID, builderUnitDefID, teamID)
+		if teamID then
+			local teamRemoved = teamOptions(teamRemovedBuildOptions, teamID, builderUnitDefID)
+			if teamRemoved and teamRemoved[builtUnitDefID] then
+				return false
+			end
+			local teamAdded = teamOptions(teamAddedBuildOptions, teamID, builderUnitDefID)
+			if teamAdded and teamAdded[builtUnitDefID] ~= nil then
+				return true
+			end
+		end
+		local removed = removedBuildOptions[builderUnitDefID]
+		if removed and removed[builtUnitDefID] then
+			return false
+		end
+		if isStaticOption(builtUnitDefID, builderUnitDefID) then
+			return true
+		end
+		local added = addedBuildOptions[builderUnitDefID]
+		return added ~= nil and added[builtUnitDefID] ~= nil
+	end
+
+	local function anyTeamHasBuildOption(builtUnitDefID, builderUnitDefID)
+		if hasBuildOption(builtUnitDefID, builderUnitDefID) then
+			return true
+		end
+		for teamID in pairs(teamAddedBuildOptions) do
+			if hasBuildOption(builtUnitDefID, builderUnitDefID, teamID) then
+				return true
+			end
+		end
+		return false
+	end
+
+	local function addedPosition(builtUnitDefID, builderUnitDefID, teamID)
+		local teamAdded = teamID and teamOptions(teamAddedBuildOptions, teamID, builderUnitDefID)
+		if teamAdded and teamAdded[builtUnitDefID] then
+			return teamAdded[builtUnitDefID]
+		end
+		local added = addedBuildOptions[builderUnitDefID]
+		return added and added[builtUnitDefID] or nil
+	end
+
+	local function publishTeam(teamID)
+		buildOptionChanges.publish(teamAddedBuildOptions[teamID] or {}, teamRemovedBuildOptions[teamID] or {}, teamID)
+	end
+
+	local function publish(teamID)
+		if teamID then
+			publishTeam(teamID)
+			return
+		end
 		buildOptionChanges.publish(addedBuildOptions, removedBuildOptions)
-		SendToUnsynced(SYNC_ACTION, builderUnitDefID, builtUnitDefID, added)
+		-- a change for all teams can clear the teams' own
+		for _, otherTeamID in ipairs(teamsList) do
+			publishTeam(otherTeamID)
+		end
 	end
 
 	local function isBuilderDef(builderUnitDefID, caller)
@@ -145,7 +220,38 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
-	local function registerAdded(builtUnitDefID, builderUnitDefID, position)
+	local function clearTeamChange(changesByTeam, teamID, builtUnitDefID, builderUnitDefID)
+		local byBuilder = changesByTeam[teamID]
+		local options = byBuilder and byBuilder[builderUnitDefID]
+		if not options then
+			return
+		end
+		options[builtUnitDefID] = nil
+		if next(options) == nil then
+			byBuilder[builderUnitDefID] = nil
+			if next(byBuilder) == nil then
+				changesByTeam[teamID] = nil
+			end
+		end
+	end
+
+	local function clearTeamChanges(changesByTeam, builtUnitDefID, builderUnitDefID)
+		for teamID in pairs(changesByTeam) do
+			clearTeamChange(changesByTeam, teamID, builtUnitDefID, builderUnitDefID)
+		end
+	end
+
+	local function registerAdded(builtUnitDefID, builderUnitDefID, position, teamID)
+		if teamID then
+			clearTeamChange(teamRemovedBuildOptions, teamID, builtUnitDefID, builderUnitDefID)
+			if not hasBuildOption(builtUnitDefID, builderUnitDefID) then
+				local teamAdded = table.ensureTable(teamAddedBuildOptions, teamID)
+				table.ensureTable(teamAdded, builderUnitDefID)[builtUnitDefID] = position or false
+			end
+			return
+		end
+		clearTeamChanges(teamAddedBuildOptions, builtUnitDefID, builderUnitDefID)
+		clearTeamChanges(teamRemovedBuildOptions, builtUnitDefID, builderUnitDefID)
 		local removed = removedBuildOptions[builderUnitDefID]
 		if removed then
 			removed[builtUnitDefID] = nil
@@ -155,7 +261,17 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function registerRemoved(builtUnitDefID, builderUnitDefID)
+	local function registerRemoved(builtUnitDefID, builderUnitDefID, teamID)
+		if teamID then
+			clearTeamChange(teamAddedBuildOptions, teamID, builtUnitDefID, builderUnitDefID)
+			if hasBuildOption(builtUnitDefID, builderUnitDefID) then
+				local teamRemoved = table.ensureTable(teamRemovedBuildOptions, teamID)
+				table.ensureTable(teamRemoved, builderUnitDefID)[builtUnitDefID] = true
+			end
+			return
+		end
+		clearTeamChanges(teamAddedBuildOptions, builtUnitDefID, builderUnitDefID)
+		clearTeamChanges(teamRemovedBuildOptions, builtUnitDefID, builderUnitDefID)
 		local added = addedBuildOptions[builderUnitDefID]
 		if added then
 			added[builtUnitDefID] = nil
@@ -165,66 +281,120 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function applyBuildOption(builtUnitDefID, unitID, unitDefID, teamID)
+		local isFactory = isFactoryDef[unitDefID]
+		if hasBuildOption(builtUnitDefID, unitDefID, teamID) then
+			insertBuildOption(unitID, builtUnitDefID, isFactory, addedPosition(builtUnitDefID, unitDefID, teamID))
+		else
+			removeBuildOption(unitID, builtUnitDefID)
+		end
+	end
+
+	local function applyBuildOptions(options, unitID, unitDefID, teamID)
+		if options then
+			for builtUnitDefID in pairs(options) do
+				applyBuildOption(builtUnitDefID, unitID, unitDefID, teamID)
+			end
+		end
+	end
+
+	local function addToBuilderType(builtUnitDefID, builderUnitDefID, position, teamID)
+		registerAdded(builtUnitDefID, builderUnitDefID, position, teamID)
+		position = position or addedPosition(builtUnitDefID, builderUnitDefID, teamID)
+		local isFactory = isFactoryDef[builderUnitDefID]
+		forEachUnitOfDef(builderUnitDefID, teamID, insertBuildOption, builtUnitDefID, isFactory, position)
+		SendToUnsynced(SYNC_ACTION, builderUnitDefID, builtUnitDefID, true, teamID)
+	end
+
+	local function removeFromBuilderType(builtUnitDefID, builderUnitDefID, teamID)
+		registerRemoved(builtUnitDefID, builderUnitDefID, teamID)
+		forEachUnitOfDef(builderUnitDefID, teamID, removeBuildOption, builtUnitDefID)
+		SendToUnsynced(SYNC_ACTION, builderUnitDefID, builtUnitDefID, false, teamID)
+	end
+
 	local dynamicBuildOptions = {}
 
-	---Gives every current and future unit of a builder or factory type a build option.
+	---Gives every current and future unit of a builder or factory type a build option, or only those of one team.
+	---With a team and no builder type: every builder type that builds it by its unit def or was given it for every team.
 	---@param builtUnitDefID UnitDefID
-	---@param builderUnitDefID UnitDefID
+	---@param builderUnitDefID UnitDefID? nil only with a teamID
 	---@param position integer? Slot among the unit's build options; last when nil. Menus that sort options ignore it.
+	---@param teamID integer? only this team's units; nil for every team
 	---@return boolean applied false when the builder type cannot build
-	function dynamicBuildOptions.Add(builtUnitDefID, builderUnitDefID, position)
+	function dynamicBuildOptions.Add(builtUnitDefID, builderUnitDefID, position, teamID)
+		if builderUnitDefID == nil and teamID then
+			for builderID in pairs(staticBuildOptions) do
+				if
+					(isStaticOption(builtUnitDefID, builderID) or hasBuildOption(builtUnitDefID, builderID))
+					and not hasBuildOption(builtUnitDefID, builderID, teamID)
+				then
+					addToBuilderType(builtUnitDefID, builderID, nil, teamID)
+				end
+			end
+			publishTeam(teamID)
+			return true
+		end
 		if not isBuilderDef(builderUnitDefID, "Add") then
 			return false
 		end
-		registerAdded(builtUnitDefID, builderUnitDefID, position)
-		forEachUnitOfDef(builderUnitDefID, insertBuildOption, builtUnitDefID, isFactoryDef[builderUnitDefID], position)
-		publish(builderUnitDefID, builtUnitDefID, true)
+		addToBuilderType(builtUnitDefID, builderUnitDefID, position, teamID)
+		publish(teamID)
 		return true
 	end
 
-	---Takes a build option away from every current and future unit of a builder or factory type.
-	---The engine also drops queued orders for it.
+	---Takes a build option away from every current and future unit of a builder or factory type, or only
+	---from those of one team. The engine also drops queued orders for it.
 	---@param builtUnitDefID UnitDefID
-	---@param builderUnitDefID UnitDefID
+	---@param builderUnitDefID UnitDefID? nil for every builder type that has it
+	---@param teamID integer? only this team's units; nil for every team
 	---@return boolean applied false when the builder type cannot build
-	function dynamicBuildOptions.Remove(builtUnitDefID, builderUnitDefID)
+	function dynamicBuildOptions.Remove(builtUnitDefID, builderUnitDefID, teamID)
+		if builderUnitDefID == nil then
+			for builderID in pairs(staticBuildOptions) do
+				local hasIt
+				if teamID then
+					hasIt = hasBuildOption(builtUnitDefID, builderID, teamID)
+				else
+					hasIt = anyTeamHasBuildOption(builtUnitDefID, builderID)
+				end
+				if hasIt then
+					removeFromBuilderType(builtUnitDefID, builderID, teamID)
+				end
+			end
+			publish(teamID)
+			return true
+		end
 		if not isBuilderDef(builderUnitDefID, "Remove") then
 			return false
 		end
-		registerRemoved(builtUnitDefID, builderUnitDefID)
-		forEachUnitOfDef(builderUnitDefID, removeBuildOption, builtUnitDefID)
-		publish(builderUnitDefID, builtUnitDefID, false)
+		removeFromBuilderType(builtUnitDefID, builderUnitDefID, teamID)
+		publish(teamID)
 		return true
 	end
 
 	---Whether units of a builder or factory type currently have a build option.
 	---@param builtUnitDefID UnitDefID
 	---@param builderUnitDefID UnitDefID
+	---@param teamID integer? with this team's own changes; nil for the changes for every team only
 	---@return boolean
-	function dynamicBuildOptions.HasBuildOption(builtUnitDefID, builderUnitDefID)
-		local removed = removedBuildOptions[builderUnitDefID]
-		if removed and removed[builtUnitDefID] then
-			return false
-		end
-		if isStaticOption(builtUnitDefID, builderUnitDefID) then
-			return true
-		end
-		local added = addedBuildOptions[builderUnitDefID]
-		return added ~= nil and added[builtUnitDefID] ~= nil
+	function dynamicBuildOptions.HasBuildOption(builtUnitDefID, builderUnitDefID, teamID)
+		return hasBuildOption(builtUnitDefID, builderUnitDefID, teamID)
 	end
 
-	function gadget:UnitCreated(unitID, unitDefID)
-		local removed = removedBuildOptions[unitDefID]
-		if removed then
-			for builtUnitDefID in pairs(removed) do
-				removeBuildOption(unitID, builtUnitDefID)
-			end
+	local function applyTeamChanges(changedTeamID, unitID, unitDefID, unitTeam)
+		applyBuildOptions(teamOptions(teamRemovedBuildOptions, changedTeamID, unitDefID), unitID, unitDefID, unitTeam)
+		applyBuildOptions(teamOptions(teamAddedBuildOptions, changedTeamID, unitDefID), unitID, unitDefID, unitTeam)
+	end
+
+	-- A given or captured unit still carries its old team's changes, and that team is not passed here.
+	function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+		if not staticBuildOptions[unitDefID] then
+			return
 		end
-		local added = addedBuildOptions[unitDefID]
-		if added then
-			for builtUnitDefID, position in pairs(added) do
-				insertBuildOption(unitID, builtUnitDefID, isFactoryDef[unitDefID], position or nil)
-			end
+		applyBuildOptions(removedBuildOptions[unitDefID], unitID, unitDefID, unitTeam)
+		applyBuildOptions(addedBuildOptions[unitDefID], unitID, unitDefID, unitTeam)
+		for _, changedTeamID in ipairs(teamsList) do
+			applyTeamChanges(changedTeamID, unitID, unitDefID, unitTeam)
 		end
 	end
 
@@ -236,9 +406,9 @@ if gadgetHandler:IsSyncedCode() then
 		GG.DynamicBuildOptions = nil
 	end
 else
-	local function handleBuildOptionsChanged(_, builderUnitDefID, builtUnitDefID, added)
+	local function handleBuildOptionsChanged(_, builderUnitDefID, builtUnitDefID, added, teamID)
 		if Script.LuaUI.BuildOptionsChanged then
-			Script.LuaUI.BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+			Script.LuaUI.BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
 		end
 		return true
 	end
