@@ -602,13 +602,15 @@ describe("mission_api.validation.sections", function()
 
 		it("passes a direction with marching", function()
 			local result = validateIssueOrders({ marching = true, direction = { angle = 90 } })
-			V.assertNoMessageContaining(result, "needs marching")
+			V.assertNoMessageContaining(result, "without marching")
 		end)
 
-		it("reports a direction without marching", function()
+		it("warns of a direction without marching, the mission still loads", function()
+			local result = validateIssueOrders({ direction = { angle = 90 } })
+			assert.is_true(result.ok)
 			V.assertMessage(
-				validateIssueOrders({ direction = { angle = 90 } }),
-				"Parameter 'direction' needs marching. Action: a, Parameter: direction"
+				result,
+				"Parameter 'direction' is ignored without marching. Action: a, Parameter: direction"
 			)
 		end)
 	end)
