@@ -53,7 +53,7 @@ local function compassAngleToHeading(angle, radians)
 	if radians then
 		return math.rad(180 - angle)
 	end
-	return math.floor((angle % 360 - 180) / 360 * -65535)
+	return math.floor((angle % 360 - 180) / 360 * -65536)
 end
 
 return {
