@@ -30,7 +30,7 @@ local mathHuge = math.huge
 local mathDistance2dSquared = math.distance2dSquared
 local mathPiHalf = math.pi / 2
 
--- This is an arbitrary value that feels right - basing this on the ever-changing values of mex radius results in a really confusing experience
+-- This is an arbitrary value that feels right - basing this on the ever-changing values of geo radius results in a really confusing experience (the mex radius lives in WG.resource_spot_builder)
 local geoPlacementRadius = 5000
 
 local mexConstructors
