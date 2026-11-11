@@ -183,20 +183,31 @@ jobs:
             /recoil-lua-library
             *.lua
 
+      - name: Cache the emmylua_check binary
+        if: github.event_name != 'pull_request' || steps.describe.outputs.lua == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/emmylua-bin
+          key: emmylua-bin-${{ env.EMMYLUA_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+
       - name: Install emmylua_check
         if: github.event_name != 'pull_request' || steps.describe.outputs.lua == 'true'
         run: |
           set -euo pipefail
-          ARCH=$(uname -m)
-          case "$ARCH" in
-            x86_64)  ASSET=emmylua_check-linux-x64.tar.gz ;;
-            aarch64) ASSET=emmylua_check-linux-aarch64-glibc.2.17.tar.gz ;;
-            *) echo "unsupported arch for emmylua_check: $ARCH" >&2; exit 1 ;;
-          esac
-          URL="https://github.com/EmmyLuaLs/emmylua-analyzer-rust/releases/download/${EMMYLUA_VERSION}/${ASSET}"
-          curl -fsSL --retry 5 --retry-delay 10 -o "$RUNNER_TEMP/emmylua_check.tar.gz" "$URL"
-          sudo tar -xzf "$RUNNER_TEMP/emmylua_check.tar.gz" -C /usr/local/bin
-          sudo chmod +x /usr/local/bin/emmylua_check
+          if [ ! -x ~/.cache/emmylua-bin/emmylua_check ]; then
+            ARCH=$(uname -m)
+            case "$ARCH" in
+              x86_64)  ASSET=emmylua_check-linux-x64.tar.gz ;;
+              aarch64) ASSET=emmylua_check-linux-aarch64-glibc.2.17.tar.gz ;;
+              *) echo "unsupported arch for emmylua_check: $ARCH" >&2; exit 1 ;;
+            esac
+            URL="https://github.com/EmmyLuaLs/emmylua-analyzer-rust/releases/download/${EMMYLUA_VERSION}/${ASSET}"
+            curl -fsSL --retry 5 --retry-delay 10 -o "$RUNNER_TEMP/emmylua_check.tar.gz" "$URL"
+            mkdir -p ~/.cache/emmylua-bin
+            tar -xzf "$RUNNER_TEMP/emmylua_check.tar.gz" -C ~/.cache/emmylua-bin
+            chmod +x ~/.cache/emmylua-bin/emmylua_check
+          fi
+          sudo install -m 755 ~/.cache/emmylua-bin/emmylua_check /usr/local/bin/emmylua_check
           /usr/local/bin/emmylua_check --version
 
       # These runs are shared for both workspace and pull request scopes.
