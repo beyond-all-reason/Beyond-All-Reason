@@ -560,8 +560,10 @@ local function FboTexture(width, height, filter, rawFbo)
 		border = false,
 		min_filter = filter,
 		mag_filter = filter,
-		wrap_s = GL.CLAMP,
-		wrap_t = GL.CLAMP,
+		-- (to the edge texel: GL.CLAMP blends the transparent border into samples past the screen's edge, so the
+		-- blur thinned out there and the sharp screen showed through along it)
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = not rawFbo,
 	})
 end

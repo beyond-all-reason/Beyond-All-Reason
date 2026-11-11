@@ -19,11 +19,12 @@ jobs:
   busted:
     needs: pull-request-for-push
     if: ${{ !cancelled() && needs.pull-request-for-push.outputs.has-pull-request != 'true' }}
-    # lx needs libgpgme.so.11, which ubuntu-26.04 doesn't have
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       issues: write
+    env:
+      LUX_VERSION: '0.54.0'
 
     steps:
     - uses: actions/checkout@v5
@@ -48,15 +49,13 @@ jobs:
         sudo apt-get install -y --no-install-recommends lua5.1 liblua5.1-0-dev
 
     - name: Install Lux
-      env:
-        LUX_VERSION: '0.28.3'
       run: |
         # Fetch the prebuilt `lx` straight from the release page. Resolving
         # it through cargo-binstall (or the lux action) goes via the GitHub
         # API, which sporadically rate-limits unauthenticated runners;
         # release downloads don't count against that limit.
         curl -L --proto '=https' --tlsv1.2 -sSf \
-          "https://github.com/nvim-neorocks/lux/releases/download/v${LUX_VERSION}/lx-x86_64-unknown-linux-gnu.tar.gz" \
+          "https://github.com/lumen-oss/lux/releases/download/v${LUX_VERSION}/lx-x86_64-unknown-linux-gnu.tar.gz" \
           | sudo tar -xz -C /usr/local/bin lx
         lx --version
 
@@ -64,9 +63,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .lux
-        key: lux-5.1-${{ runner.os }}-${{ hashFiles('lux.lock') }}
+        key: lux-${{ env.LUX_VERSION }}-5.1-${{ runner.os }}-${{ hashFiles('lux.lock') }}
         restore-keys: |
-          lux-5.1-${{ runner.os }}-
+          lux-${{ env.LUX_VERSION }}-5.1-${{ runner.os }}-
 
     - name: Run busted
       run: lx --lua-version 5.1 test
