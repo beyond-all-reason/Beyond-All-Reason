@@ -18,10 +18,13 @@ end
 if gadgetHandler:IsSyncedCode() then
 	local REASON_KEY = "mission_limit"
 
+	local unitBlocking = require("common/unitBlocking")
+
 	local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitTeam = Spring.GetUnitTeam
+	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local spGetUnitPosition = Spring.GetUnitPosition
 	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 	local spGetFeatureResurrect = Spring.GetFeatureResurrect
@@ -30,7 +33,7 @@ if gadgetHandler:IsSyncedCode() then
 	local counts = {} ---@type table<TeamID, table<UnitDefID, integer>> limited types only
 	local blocked = {} ---@type table<TeamID, table<UnitDefID, boolean>> published
 	local overLimit = {} ---@type table<UnitID, boolean> frames started past the limit, removed next frame
-	local clearStale = true
+	local clearStale = false
 
 	local function getUnitTypeLimit(teamID, unitDefID)
 		return limits[teamID] and limits[teamID][unitDefID]
@@ -64,7 +67,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- As the engine does: a blueprint on the footprint of a frame of its type assists it, no new unit.
+	-- As the engine does: a blueprint on the footprint of an allied frame of its type assists it, no new unit.
 	local function assistsPlacedFrame(unitDefID, teamID, x, z, facing)
 		if not x then
 			return false
@@ -74,11 +77,11 @@ if gadgetHandler:IsSyncedCode() then
 		if facing == 1 or facing == 3 then
 			width, depth = depth, width
 		end
-		for _, unitID in ipairs(spGetUnitsInCylinder(x, z, math.max(width, depth))) do
+		for _, unitID in ipairs(spGetUnitsInCylinder(x, z, math.diag(width, depth))) do
 			local ux, _, uz = spGetUnitPosition(unitID)
 			if
 				spGetUnitDefID(unitID) == unitDefID
-				and spGetUnitTeam(unitID) == teamID
+				and spAreTeamsAllied(spGetUnitTeam(unitID), teamID)
 				and spGetUnitIsBeingBuilt(unitID)
 				and math.abs(ux - x) < width
 				and math.abs(uz - z) < depth
@@ -94,6 +97,8 @@ if gadgetHandler:IsSyncedCode() then
 			gadgetHandler:RemoveGadget()
 			return
 		end
+		-- A reload forgets the limits, not the blocks they published; a fresh start has none.
+		clearStale = Spring.GetGameFrame() > 0
 		GG.UnitTypeLimits = {
 			--- At most `limit` units of `unitDefID` for `teamID`; nil takes the limit away.
 			Set = function(teamID, unitDefID, limit)
@@ -136,12 +141,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame()
-		-- A reload forgets the limits, not the blocks they published.
 		if clearStale then
 			clearStale = false
 			for _, teamID in ipairs(Spring.GetTeamList() or {}) do
-				for unitDefID in pairs(UnitDefs) do
-					if not atLimit(teamID, unitDefID) then
+				for unitDefID, reasons in pairs(unitBlocking.getBlockedUnitDefs(teamID)) do
+					if reasons[REASON_KEY] and not atLimit(teamID, unitDefID) then
 						GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, REASON_KEY)
 					end
 				end

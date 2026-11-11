@@ -6,9 +6,23 @@ local GADGET_PATH = "luarules/gadgets/api_unit_type_limits.lua"
 local TOWER, SOLAR = 50, 51
 
 -- A world of units { id = { team, def, building, x, z } } and the engine calls the gadget reads.
-local function loadGadget(units, outsideMission)
-	local blocked, destroyed, removed = {}, {}, false
+-- opts: outsideMission, frame at load, published = { [team] = { [def] = reasons } } build blocking holds.
+local function loadGadget(units, opts)
+	opts = opts or {}
+	local blocked, destroyed, removed, lifted = {}, {}, false, {}
 	local env = SpecEnv.new({
+		includes = {
+			["common/unitBlocking.lua"] = {
+				getBlockedUnitDefs = function(teamID)
+					return (opts.published or {})[teamID] or {}
+				end,
+			},
+		},
+		math = {
+			diag = function(x, z)
+				return math.sqrt(x * x + z * z)
+			end,
+		},
 		gadget = {},
 		gadgetHandler = {
 			IsSyncedCode = function()
@@ -29,7 +43,10 @@ local function loadGadget(units, outsideMission)
 				return n
 			end,
 			GetGameRulesParam = function(name)
-				return name == "inMission" and not outsideMission or nil
+				return name == "inMission" and not opts.outsideMission or nil
+			end,
+			GetGameFrame = function()
+				return opts.frame or 0
 			end,
 			GetUnitsInCylinder = function(x, z, radius)
 				local ids = {}
@@ -48,6 +65,10 @@ local function loadGadget(units, outsideMission)
 			end,
 			GetUnitTeam = function(id)
 				return units[id] and units[id].team
+			end,
+			-- Teams 0 and 1 are allies, 2 their enemy.
+			AreTeamsAllied = function(a, b)
+				return (a == 2) == (b == 2)
 			end,
 			GetUnitIsBeingBuilt = function(id)
 				return units[id] ~= nil and units[id].building == true
@@ -70,12 +91,13 @@ local function loadGadget(units, outsideMission)
 			) + 1
 		end,
 		RemoveBlockedUnit = function(unitDefID, teamID, reason)
+			lifted[#lifted + 1] = teamID .. ":" .. unitDefID .. ":" .. reason
 			blocked[teamID .. ":" .. unitDefID .. ":" .. reason] = nil
 		end,
 	}
 	SpecEnv.include(env, GADGET_PATH)
 	env.gadget:Initialize()
-	return env.gadget, env.GG.UnitTypeLimits, blocked, destroyed, removed
+	return env.gadget, env.GG.UnitTypeLimits, blocked, destroyed, removed, lifted
 end
 
 describe("api_unit_type_limits", function()
@@ -91,7 +113,7 @@ describe("api_unit_type_limits", function()
 	end)
 
 	it("removes itself outside a mission", function()
-		local _, outside, _, _, removed = loadGadget(units, true)
+		local _, outside, _, _, removed = loadGadget(units, { outsideMission = true })
 		assert.is_true(removed)
 		assert.is_nil(outside)
 	end)
@@ -128,12 +150,46 @@ describe("api_unit_type_limits", function()
 		assert.is_false(gadget:AllowUnitCreation(TOWER, 9, 1, 100, 0, 100), "a finished unit is no frame")
 	end)
 
+	it("finds a frame overlapping at the corner, past the larger side but inside the diagonal", function()
+		units[1].building, units[1].x, units[1].z = true, 100, 100
+		limits.Set(1, TOWER, 1)
+		assert.is_true(gadget:AllowUnitCreation(TOWER, 9, 1, 114, 0, 114))
+	end)
+
+	it("lets a builder assist an ally's frame at the limit, not an enemy's", function()
+		limits.Set(1, TOWER, 1)
+		units[2] = { team = 0, def = TOWER, building = true, x = 300, z = 300 }
+		units[3] = { team = 2, def = TOWER, building = true, x = 500, z = 500 }
+		assert.is_true(gadget:AllowUnitCreation(TOWER, 9, 1, 300, 0, 300), "the ally's frame")
+		assert.is_false(gadget:AllowUnitCreation(TOWER, 9, 1, 500, 0, 500), "the enemy's frame")
+	end)
+
 	it("removes a frame started past the limit on the next frame", function()
 		limits.Set(1, TOWER, 1)
 		units[2] = { team = 1, def = TOWER, building = true }
 		gadget:UnitCreated(2, TOWER, 1, 9)
 		gadget:GameFrame()
 		assert.are.same({ 2 }, destroyed)
+	end)
+
+	it("lifts nothing at a fresh start", function()
+		local published = { [1] = { [TOWER] = { mission_limit = true } } }
+		local fresh, _, _, _, _, lifted = loadGadget(units, { published = published })
+		fresh:GameFrame()
+		assert.are.same({}, lifted)
+	end)
+
+	it("lifts only the mission_limit blocks a reload left without a limit", function()
+		local published = {
+			[0] = { [SOLAR] = { terrain_water = true } },
+			[1] = { [TOWER] = { mission_limit = true }, [SOLAR] = { mission_limit = true } },
+		}
+		local reloaded, reloadedLimits, _, _, _, lifted = loadGadget(units, { frame = 300, published = published })
+		reloadedLimits.Set(1, TOWER, 1)
+		reloaded:GameFrame()
+		assert.are.same({ "1:51:mission_limit" }, lifted)
+		reloaded:GameFrame()
+		assert.are.same({ "1:51:mission_limit" }, lifted, "once")
 	end)
 
 	it("follows a unit given to another team", function()
