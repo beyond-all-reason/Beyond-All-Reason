@@ -20,7 +20,7 @@ local triggers = {
 		parameters = {
 			seconds = 10,
 		},
-		actions = { "pauseFive", "messageHeld" },
+		actions = { "holdThenPlayOn", "messageHeld" },
 	},
 
 	playedOn = {
@@ -36,7 +36,7 @@ local triggers = {
 		parameters = {
 			seconds = 15,
 		},
-		actions = { "pauseTwo", "unpause", "messageUnpausedEarly" },
+		actions = { "stalePauseTimer", "unpause", "messageUnpausedEarly" },
 	},
 
 	laterHold = {
@@ -44,7 +44,7 @@ local triggers = {
 		parameters = {
 			seconds = 16,
 		},
-		actions = { "pauseThree", "messageLaterHeld" },
+		actions = { "holdAfterStaleTimer", "messageLaterHeld" },
 	},
 
 	laterPlayedOn = {
@@ -60,7 +60,7 @@ local triggers = {
 		parameters = {
 			seconds = 20,
 		},
-		actions = { "pauseEight", "messageLongHeld" },
+		actions = { "longHoldEndedByOrder", "messageLongHeld" },
 	},
 
 	-- Fires while paused: commands are relayed and processed between frames.
@@ -104,28 +104,28 @@ local actions = {
 		},
 	},
 
-	pauseFive = {
+	holdThenPlayOn = {
 		type = actionTypes.Pause,
 		parameters = {
 			seconds = 5,
 		},
 	},
 
-	pauseTwo = {
+	stalePauseTimer = {
 		type = actionTypes.Pause,
 		parameters = {
 			seconds = 2,
 		},
 	},
 
-	pauseThree = {
+	holdAfterStaleTimer = {
 		type = actionTypes.Pause,
 		parameters = {
 			seconds = 3,
 		},
 	},
 
-	pauseEight = {
+	longHoldEndedByOrder = {
 		type = actionTypes.Pause,
 		parameters = {
 			seconds = 8,

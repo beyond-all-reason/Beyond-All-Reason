@@ -30,6 +30,8 @@ end
 
 	Each pause gets a new generation, which widgets send back with an unpause, so a late
 	message can never release a later pause. Any active player can send one.
+	Timed sources take the same release: any active player who knows the generation
+	can end one early, spectators cannot.
 
 	Implementation notes:
 	Only a client can pause, by sending NETMSG_PAUSE through Spring.SendCommands("pause").
@@ -74,7 +76,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function pause(source, publish, seconds)
 		local held = pauseSources[source]
-		if held and seconds == nil and held.seconds == nil then
+		local timed = seconds ~= nil or (held ~= nil and held.seconds ~= nil)
+		if held and not timed then
 			held.publish = publish == true
 		else
 			generation = generation + 1
@@ -86,7 +89,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			pauseSources[source] = { generation = generation, publish = publish == true, seconds = seconds }
 			-- Starts, restarts or cancels the clients' timer; the new generation outdates any old one.
-			if seconds or held then
+			if timed then
 				SendToUnsynced(SYNCACTION_TIMER, source, generation, seconds)
 			end
 		end

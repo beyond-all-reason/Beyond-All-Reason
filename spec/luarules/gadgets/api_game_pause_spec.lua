@@ -201,6 +201,16 @@ describe("api_game_pause", function()
 			assert.equals(0, world.rulesParams.gamePaused)
 		end)
 
+		it("lets an active player who is not the controller end a timed pause early", function()
+			gamePause.Pause("mission", false, 5)
+
+			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:1:mission", SPECTATOR_ID))
+			assert.equals(1, world.rulesParams.gamePaused, "a spectator is still refused")
+
+			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:1:mission", OTHER_PLAYER_ID))
+			assert.equals(0, world.rulesParams.gamePaused)
+		end)
+
 		it("an Unpause ends a timed pause, and its old timer cannot release a later pause", function()
 			gamePause.Pause("mission", false, 5)
 			gamePause.Unpause("mission")
