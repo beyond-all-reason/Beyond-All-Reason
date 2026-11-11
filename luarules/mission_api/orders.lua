@@ -84,12 +84,12 @@ end
 ---@field duration integer frames
 ---@field startFrames table<UnitID, integer>
 
----@alias MissionDeathWait MissionDeathWaitInRectangle | MissionDeathWaitOnUnitName
+---@alias MissionDeathWait MissionDeathWaitInArea | MissionDeathWaitOnUnitName
 
----@class MissionDeathWaitInRectangle : MissionWaitBase
+---@class MissionDeathWaitInArea : MissionWaitBase
 ---@field code 2 CMD.WAITCODE_DEATH
 ---@field targetIDs table<integer, true>
----@field targetRectangle WorldRect
+---@field targetArea table a rectangle { x1, z1, x2, z2 } or circle { x, z, radius }
 
 ---@class MissionDeathWaitOnUnitName : MissionWaitBase
 ---@field code 2 CMD.WAITCODE_DEATH
@@ -149,7 +149,7 @@ local function expandWaitOrders(orders, newWaits, positionWaitKey, allyTeam)
 				elseif code == CMD.WAITCODE_DEATH and waitParams.unitName then
 					wait.targetUnitName = waitParams.unitName
 				elseif code == CMD.WAITCODE_DEATH then
-					wait.targetRectangle = waitParams ---@as WorldRect
+					wait.targetArea = waitParams
 				elseif code == CMD.WAITCODE_SQUAD then
 					wait.squadSize = waitParams[1]
 				end
@@ -223,9 +223,7 @@ local function getExecutableOrders(orders, newWaits, unitDefID)
 end
 
 local function getDeathWaitTargets(wait, unitOrders)
-	local rectangle = wait.targetRectangle
-	local x1, z1, x2, z2 = rectangle[1], rectangle[3], rectangle[4], rectangle[6]
-	local unitIDs = Spring.GetUnitsInRectangle(math.min(x1, x2), math.min(z1, z2), math.max(x1, x2), math.max(z1, z2))
+	local unitIDs = GG.MissionAPI.Modules.AreaTracking.GetUnitsInArea(wait.targetArea)
 	local allyTeam = wait.allyTeam
 	local targetIDs = {}
 	-- Pick the same targets that a player-issued deathwait would.
