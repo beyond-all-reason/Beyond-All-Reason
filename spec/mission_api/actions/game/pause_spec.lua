@@ -1,4 +1,12 @@
-local actions = VFS.Include("luarules/mission_api/actions/game/pause.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
+
+-- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
+MissionApiBuilder.new():Install()
+
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/game/pause.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -10,9 +18,11 @@ describe("mission_api.actions.pause", function()
 	before_each(function()
 		calls = { pause = 0, unpause = 0 }
 		GG["GamePause"] = {
-			Pause = function(source)
+			Pause = function(source, publish, seconds)
 				calls.pause = calls.pause + 1
 				calls.source = source
+				calls.publish = publish
+				calls.seconds = seconds
 			end,
 			Unpause = function(source)
 				calls.unpause = calls.unpause + 1
@@ -25,9 +35,10 @@ describe("mission_api.actions.pause", function()
 		GG["GamePause"] = nil
 	end)
 
-	it("declares its type and no parameters", function()
+	it("declares its type and the optional seconds", function()
 		assert.are.same({
 			type = "Pause",
+			seconds = "Quantity",
 		}, summarizeSchema(action))
 	end)
 
@@ -37,6 +48,15 @@ describe("mission_api.actions.pause", function()
 			assert.are.equal(1, calls.pause)
 			assert.are.equal(0, calls.unpause)
 			assert.are.equal("mission", calls.source)
+			assert.is_false(calls.publish)
+			assert.is_nil(calls.seconds)
+		end)
+
+		it("passes the seconds on, for a pause that ends by itself", function()
+			action.actionFunction(2.5)
+			assert.are.equal(1, calls.pause)
+			assert.are.equal("mission", calls.source)
+			assert.are.equal(2.5, calls.seconds)
 		end)
 	end)
 

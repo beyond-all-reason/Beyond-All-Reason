@@ -14,11 +14,13 @@ end
 
 --[[
 	Provides the synced API:
-		GG.GamePause.Pause(source, publish)
+		GG.GamePause.Pause(source, publish, seconds)
 		GG.GamePause.Unpause(source)
 
 	Pausing twice from one source pauses once. A source added with publish=true
 	can also be unpaused from widgets, with `widgetHandler:Unpause(source)`.
+	A source added with seconds unpauses itself after that much real time, counted
+	once the game is paused. Pausing it again restarts or, without seconds, cancels the timer.
 
 	Game rulesparams (for widgets):
 		"gamePaused"          `1` while any gadget source holds the game, so widgets can tell
@@ -45,6 +47,7 @@ local RULESPARAM_PUBLISH = "gamePausePublished"
 local SYNCACTION = "GamePause"
 local MESSAGE_UNPAUSE = SYNCACTION .. "Unpause:"
 local MESSAGE_WIDGETS_UNPAUSED = SYNCACTION .. "WidgetsUnpaused"
+local SYNCACTION_TIMER = SYNCACTION .. "Timer"
 
 local getPauseControllerID = BAR.Utilities.GetHostCommandPlayerID
 
@@ -52,7 +55,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spSetGameRulesParam = Spring.SetGameRulesParam
 	local spGetPlayerInfo = Spring.GetPlayerInfo
 
-	local pauseSources = {} ---@type table<string, { generation: integer, publish: boolean }>
+	local pauseSources = {} ---@type table<string, { generation: integer, publish: boolean, seconds: number? }>
 	local generation = 0
 	local pausedGeneration = 0 -- first generation that began the current gadget paus
 
@@ -69,9 +72,9 @@ if gadgetHandler:IsSyncedCode() then
 		spSetGameRulesParam(RULESPARAM_PUBLISH, Json.encode(published))
 	end
 
-	local function pause(source, publish)
+	local function pause(source, publish, seconds)
 		local held = pauseSources[source]
-		if held then
+		if held and seconds == nil and held.seconds == nil then
 			held.publish = publish == true
 		else
 			generation = generation + 1
@@ -81,16 +84,24 @@ if gadgetHandler:IsSyncedCode() then
 				spSetGameRulesParam(RULESPARAM_PAUSED, 1)
 				SendToUnsynced(SYNCACTION, true)
 			end
-			pauseSources[source] = { generation = generation, publish = publish == true }
+			pauseSources[source] = { generation = generation, publish = publish == true, seconds = seconds }
+			-- Starts, restarts or cancels the clients' timer; the new generation outdates any old one.
+			if seconds or held then
+				SendToUnsynced(SYNCACTION_TIMER, source, generation, seconds)
+			end
 		end
 		publishSources()
 	end
 
 	local function unpause(source)
-		if pauseSources[source] == nil then
+		local held = pauseSources[source]
+		if held == nil then
 			return
 		end
 		pauseSources[source] = nil
+		if held.seconds then
+			SendToUnsynced(SYNCACTION_TIMER, source)
+		end
 		publishSources()
 		if next(pauseSources) == nil then
 			spSetGameRulesParam(RULESPARAM_PAUSED, 0)
@@ -122,7 +133,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local generationText, source = message:match("^(%d+):(.*)$", #MESSAGE_UNPAUSE + 1)
 		local held = source and pauseSources[source]
-		if held and held.publish and held.generation == tonumber(generationText) and canRelease(playerID) then
+		local releasable = held and (held.publish or held.seconds)
+		if releasable and held.generation == tonumber(generationText) and canRelease(playerID) then
 			unpause(source)
 		end
 		return true -- consume
@@ -144,6 +156,7 @@ else
 	local spGetGameRulesParam = Spring.GetGameRulesParam
 	local spGetMyPlayerID = Spring.GetMyPlayerID
 	local spSendCommands = Spring.SendCommands
+	local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
 
 	local CATCH_UP_FRAMES = 11 * Game.gameSpeed -- same as gui_rejoinprogress.lua
 	local CONTROLLER_CHECK_SECONDS = 1.0
@@ -156,6 +169,7 @@ else
 	local catchingUp = false
 	local controllerID -- as of the last check, to hand pending requests to the next one
 	local controllerCheckTimer = 0.0
+	local timers = {} ---@type table<string, { generation: integer, left: number }> real-time seconds left per timed source
 
 	local function setGamePaused(paused)
 		if catchingUp or getPauseControllerID() ~= spGetMyPlayerID() then
@@ -222,7 +236,27 @@ else
 		applyPendingPause()
 	end
 
+	-- Synced code has no clock while paused, so every client counts and only the controller sends the release.
+	local function onPauseTimer(_, source, timerGeneration, seconds)
+		timers[source] = seconds and { generation = timerGeneration, left = seconds } or nil
+	end
+
+	local function updateTimers(deltaTime)
+		if next(timers) == nil or not select(3, spGetGameSpeed()) then
+			return
+		end
+		local isSender = not catchingUp and getPauseControllerID() == spGetMyPlayerID()
+		for source, timer in pairs(timers) do
+			timer.left = timer.left - deltaTime
+			if timer.left <= 0 and isSender then
+				spSendLuaRulesMsg(MESSAGE_UNPAUSE .. timer.generation .. ":" .. source)
+				timers[source] = nil
+			end
+		end
+	end
+
 	function gadget:Update(deltaTime)
+		updateTimers(deltaTime)
 		-- The host controller changes whenever a client starts/stops lagging, so we poll.
 		controllerCheckTimer = controllerCheckTimer - deltaTime
 		if controllerCheckTimer > 0.0 then
@@ -256,10 +290,12 @@ else
 		controllerID = getPauseControllerID()
 		gadgetHandler:AddSyncAction(SYNCACTION, onGamePause)
 		gadgetHandler:AddSyncAction(MESSAGE_WIDGETS_UNPAUSED, onWidgetsUnpaused)
+		gadgetHandler:AddSyncAction(SYNCACTION_TIMER, onPauseTimer)
 	end
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction(SYNCACTION)
 		gadgetHandler:RemoveSyncAction(MESSAGE_WIDGETS_UNPAUSED)
+		gadgetHandler:RemoveSyncAction(SYNCACTION_TIMER)
 	end
 end
