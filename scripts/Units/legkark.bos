@@ -594,7 +594,6 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	isAiming = TRUE;
-	wait-for-turn torso around y-axis;
 	
 	turn rshoulder to y-axis <5> speed <25>;
 	
