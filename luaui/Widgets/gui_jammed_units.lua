@@ -17,8 +17,9 @@ end
 -- allyteam's jammer map (Spring.GetPositionLosState, 4th return), the same map the jammer preview draws.
 -- Buildings exactly on a cell line also count when a cell on either side is jammed: unit_jammed_fix.lua hides
 -- those from radar and marks them with the "jammed" unit rules param.
--- Every tracked unit is checked once per POLL_FRAMES game frames, spread evenly over those frames, and again over
--- a few draw frames when the highlight toggles or the view changes. A change
+-- Only units a jammer can reach get checked: a coarse grid holds where each allyteam's jammers reach, and every unit
+-- is looked up in it once per VISIT_FRAMES game frames. Buildings in reach are checked on that visit, moving units
+-- in reach once per POLL_FRAMES. A toggle or view change redoes all of it over a few draw frames. A change
 -- writes a time stamp into unit buffer uniform #7 (Spring.GetDrawSeconds, which is the shaders' timeInfo.y):
 -- positive = jammed since then, negative = unjammed since then, 0 = never jammed. The CUS model shaders
 -- (modelmaterials_gl4/templates/cus_gl4.vert/frag.glsl, JAMMED_* tunables) fade a red tint and rim in or out
@@ -30,7 +31,11 @@ end
 ------------------------------------------------------------------------------------------------
 
 -- Tunables
-local POLL_FRAMES = 6 -- game frames between two checks of the same unit (6 = 5 checks per second)
+local POLL_FRAMES = 6 -- game frames between two checks of a moving unit in jammer reach (6 = 5 checks per second)
+local VISIT_FRAMES = 30 -- game frames between two visits of a unit, which also checks a building in jammer reach
+local CELL_SIZE = 256 -- elmos, of the grid that holds where jammers reach
+local RANGE_MARGIN = 192 -- elmos on top of a jammer's range: radar cells round outwards, units move between visits
+local MIN_JAMMER_RANGE = 32 -- a smaller range covers no radar cell, see unit_jammed_fix.lua
 local SWEEP_FRAMES = 8 -- draw frames that a check of all units is spread over
 local SWEEP_MIN_UNITS = 64 -- units such a check handles per draw frame at least
 local UNIFORM_INDEX = 7 -- unit buffer uniform (userDefined[1].w) the CUS shaders read
@@ -47,17 +52,29 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetDrawSeconds = Spring.GetDrawSeconds
 local glSetUnitBufferUniforms = gl.SetUnitBufferUniforms
+local mathAbs = math.abs
 local mathCeil = math.ceil
 local mathFloor = math.floor
 local mathMax = math.max
 local mathMin = math.min
+local mathSqrt = math.sqrt
 
-local hasJammingRule = table.new(#UnitDefs, 0) ---@type table<UnitDefID, true?> see unit_jammed_fix.lua
+local isBuildingDef = table.new(#UnitDefs, 0) ---@type table<UnitDefID, true?> never move, and see unit_jammed_fix.lua
+local jammerDefReach = {} ---@type table<UnitDefID, number?> how far from this jammer a unit counts as in reach
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isImmobile then
-		hasJammingRule[unitDefID] = true
+		isBuildingDef[unitDefID] = true
+	end
+	if unitDef.radarDistanceJam >= MIN_JAMMER_RANGE then
+		-- a jammer's mark in the grid can be two walks over the units old
+		local moved = unitDef.speed * 2 * VISIT_FRAMES / Game.gameSpeed
+		jammerDefReach[unitDefID] = unitDef.radarDistanceJam + RANGE_MARGIN + moved
 	end
 end
+
+local cellsX = mathCeil(Game.mapSizeX / CELL_SIZE) + 1 -- the spare column keeps units just off the map out of other rows
+local cellsZ = mathCeil(Game.mapSizeZ / CELL_SIZE) + 1
+local cellsPerAllyTeam = cellsX * cellsZ
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -67,10 +84,19 @@ local trackedUnits = {} ---@type table<integer, integer?> index -> unitID, check
 local trackedIndex = {} ---@type table<integer, integer?> unitID -> index in trackedUnits
 local trackedCount = 0
 local unitAllyTeam = {} ---@type table<integer, integer?> unitID -> allyteam whose jammers can hide it
-local checkJamming = {} ---@type table<integer, true?> unitID -> special handling by unit_jammed_fix.lua
+local fixedX = {} ---@type table<integer, number?> unitID -> position of a building
+local fixedZ = {} ---@type table<integer, number?>
+local jammerReach = {} ---@type table<integer, number?> unitID -> reach, for jammers
+local nearUnits = {} ---@type table<integer, integer?> index -> unitID of moving units in jammer reach, checked in turn
+local nearIndex = {} ---@type table<integer, integer?> unitID -> index in nearUnits
+local nearCount = 0
 local jammed = {} ---@type table<integer, boolean?> unitID -> highlighted right now
-local cursor = 1 -- next trackedUnits index to check
-local pollBudget = 0 -- unit checks owed, in units * frames: every unit gets checked once per POLL_FRAMES frames
+local cursor = 1 -- next trackedUnits index to visit
+local nearCursor = 1 -- next nearUnits index to check
+local visitBudget = 0 -- visits owed, in units * frames: every unit gets one per VISIT_FRAMES frames
+local pollBudget = 0 -- checks owed, in units * frames: every unit in nearUnits gets one per POLL_FRAMES frames
+local nearCells = {} ---@type table<number, number?> allyteam and cell -> generation that a jammer last reached it
+local generation = 1 -- one per walk over the units; marks last two walks, as a unit can come before its jammer
 local sweepLeft = 0 -- units left to check after a toggle or view change, works while paused too
 local sweepStep = 0 -- of those, how many per draw frame
 
@@ -100,12 +126,12 @@ local function setOutline(unitID, on)
 	end
 end
 
--- Fades the highlight out, also for units this viewer can no longer see (after a spectator view switch), which
--- would stay red otherwise. Unit getters return nil for those, so only a known dead unit is skipped; the write
--- raises an error for a unit that no longer exists.
-local function clearStamp(unitID, now)
+-- Also reaches units this viewer can no longer see (after a spectator view switch), which would stay red otherwise.
+-- Unit getters return nil for those, so only a known dead unit is skipped; the write raises an error for a unit that
+-- no longer exists.
+local function writeStamp(unitID, stamp)
 	if spGetUnitIsDead(unitID) ~= true then
-		pcall(setStamp, unitID, -now)
+		pcall(setStamp, unitID, stamp)
 	end
 end
 
@@ -121,65 +147,168 @@ local function covers(unitID)
 	return true, allyTeam
 end
 
-local function isJammed(unitID)
-	if checkJamming[unitID] and spGetUnitRulesParam(unitID, "jammed") == 1 then
-		return true
-	end
-	local x, y, z = spGetUnitPosition(unitID)
-	if not x then
-		return false
-	end
+local function isJammed(unitID, x, z)
 	-- a full view spectator has to name the allyteam, a player may only read their own
 	local allyTeam = nil
 	if fullview then
 		allyTeam = unitAllyTeam[unitID]
 	end
-	local _, _, _, inJammer = spGetPositionLosState(x, y, z, allyTeam)
-	return inJammer == true
+	-- the jammer map has no height
+	local _, _, _, inJammer = spGetPositionLosState(x, 0, z, allyTeam)
+	if inJammer == true then
+		return true
+	end
+	return fixedX[unitID] ~= nil and spGetUnitRulesParam(unitID, "jammed") == 1
 end
 
-local function checkUnit(unitID, now)
+local function checkUnit(unitID, now, x, z)
 	local was = jammed[unitID] == true
-	local is = shown and isJammed(unitID)
+	local is = shown and x ~= nil and isJammed(unitID, x, z)
 	if is ~= was then
 		jammed[unitID] = is or nil
-		if is then
-			setStamp(unitID, now)
-		else
-			clearStamp(unitID, now)
-		end
+		writeStamp(unitID, is and now or -now)
 		setOutline(unitID, is)
 	end
 end
 
-local function checkNext(count, now)
+local function setNear(unitID, near)
+	local index = nearIndex[unitID]
+	if near == (index ~= nil) then
+		return
+	end
+	if near then
+		nearCount = nearCount + 1
+		nearUnits[nearCount] = unitID
+		nearIndex[unitID] = nearCount
+	else
+		local last = nearUnits[nearCount]
+		nearUnits[index] = last
+		nearIndex[last] = index
+		nearUnits[nearCount] = nil
+		nearCount = nearCount - 1
+		nearIndex[unitID] = nil
+	end
+end
+
+local function markJammer(allyTeam, x, z, reach)
+	local first = allyTeam * cellsPerAllyTeam
+	local lastZ = mathMin(mathFloor((z + reach) / CELL_SIZE), cellsZ - 1)
+	for cellZ = mathMax(mathFloor((z - reach) / CELL_SIZE), 0), lastZ do
+		local rowDistance = mathMax(mathAbs(z - (cellZ + 0.5) * CELL_SIZE) - CELL_SIZE * 0.5, 0)
+		local halfWidth = mathSqrt(mathMax(reach * reach - rowDistance * rowDistance, 0))
+		local row = first + cellZ * cellsX
+		local lastX = mathMin(mathFloor((x + halfWidth) / CELL_SIZE), cellsX - 1)
+		for cellX = mathMax(mathFloor((x - halfWidth) / CELL_SIZE), 0), lastX do
+			nearCells[row + cellX] = generation
+		end
+	end
+end
+
+-- two generations on, so that marks from before the highlight was hidden no longer count
+local function markAllJammers()
+	generation = generation + 2
+	for unitID, reach in pairs(jammerReach) do
+		local x, _, z = spGetUnitPosition(unitID)
+		if x then
+			markJammer(unitAllyTeam[unitID], x, z, reach)
+		end
+	end
+end
+
+local function inJammerReach(allyTeam, x, z)
+	local cellX, cellZ = (x - x % CELL_SIZE) / CELL_SIZE, (z - z % CELL_SIZE) / CELL_SIZE
+	local mark = nearCells[allyTeam * cellsPerAllyTeam + cellZ * cellsX + cellX]
+	return mark ~= nil and mark >= generation - 1
+end
+
+local function visitUnit(unitID, now, isSweep)
+	if not shown then
+		if jammed[unitID] then
+			checkUnit(unitID, now)
+		end
+		return
+	end
+	local x, z = fixedX[unitID], fixedZ[unitID]
+	local isBuilding = x ~= nil
+	if not isBuilding then
+		local _
+		x, _, z = spGetUnitPosition(unitID)
+	end
+	local near = false
+	if x then
+		local allyTeam = unitAllyTeam[unitID]
+		local reach = jammerReach[unitID]
+		if reach then
+			markJammer(allyTeam, x, z, reach)
+		end
+		near = inJammerReach(allyTeam, x, z)
+	end
+	if not isBuilding then
+		setNear(unitID, near)
+	end
+	-- a moving unit in reach waits for its turn in nearUnits, outside of a sweep
+	if near and (isBuilding or isSweep) or (not near and jammed[unitID]) then
+		checkUnit(unitID, now, x, z)
+	end
+end
+
+local function visitNext(count, now, isSweep)
 	for _ = 1, mathMin(count, trackedCount) do
 		if cursor > trackedCount then
 			cursor = 1
+			generation = generation + 1
 		end
-		checkUnit(trackedUnits[cursor], now)
+		visitUnit(trackedUnits[cursor], now, isSweep)
 		cursor = cursor + 1
 	end
 end
 
+local function pollNear(count, now)
+	for _ = 1, mathMin(count, nearCount) do
+		if nearCursor > nearCount then
+			nearCursor = 1
+		end
+		local unitID = nearUnits[nearCursor] ---@as UnitID
+		local x, _, z = spGetUnitPosition(unitID)
+		checkUnit(unitID, now, x, z)
+		nearCursor = nearCursor + 1
+	end
+end
+
 local function startSweep()
+	if shown then
+		markAllJammers()
+	end
 	sweepLeft = trackedCount
 	sweepStep = mathMax(mathCeil(trackedCount / SWEEP_FRAMES), SWEEP_MIN_UNITS)
 end
 
 local function addUnit(unitID)
 	if trackedIndex[unitID] then
-		return
+		return false
 	end
 	local covered, allyTeam = covers(unitID)
 	if not covered then
-		return
+		return false
 	end
 	trackedCount = trackedCount + 1
 	trackedUnits[trackedCount] = unitID
 	trackedIndex[unitID] = trackedCount
 	unitAllyTeam[unitID] = allyTeam
-	checkJamming[unitID] = hasJammingRule[spGetUnitDefID(unitID)]
+	local unitDefID = spGetUnitDefID(unitID)
+	jammerReach[unitID] = jammerDefReach[unitDefID]
+	if isBuildingDef[unitDefID] then
+		local x, _, z = spGetUnitPosition(unitID)
+		fixedX[unitID], fixedZ[unitID] = x, z
+	end
+	return true
+end
+
+-- visits at once, so that a new jammer and the units around it don't wait for their turn
+local function addAndVisit(unitID)
+	if addUnit(unitID) and shown then
+		visitUnit(unitID, drawTime(), true)
+	end
 end
 
 local function removeUnit(unitID, now)
@@ -194,17 +323,19 @@ local function removeUnit(unitID, now)
 	trackedCount = trackedCount - 1
 	trackedIndex[unitID] = nil
 	unitAllyTeam[unitID] = nil
-	checkJamming[unitID] = nil
+	fixedX[unitID], fixedZ[unitID] = nil, nil
+	jammerReach[unitID] = nil
+	setNear(unitID, false)
 	if jammed[unitID] then
 		jammed[unitID] = nil
-		clearStamp(unitID, now)
+		writeStamp(unitID, -now)
 		setOutline(unitID, false)
 	end
 end
 
 local function hideAll(now)
 	for unitID in pairs(jammed) do
-		clearStamp(unitID, now)
+		writeStamp(unitID, -now)
 		setOutline(unitID, false)
 	end
 	jammed = {}
@@ -245,7 +376,7 @@ local function unitChangedTeam(unitID)
 	elseif trackedIndex[unitID] then
 		unitAllyTeam[unitID] = allyTeam
 	else
-		addUnit(unitID)
+		addAndVisit(unitID)
 	end
 end
 
@@ -273,7 +404,7 @@ function widget:Update()
 	if sweepLeft > 0 then
 		local count = mathMin(sweepLeft, sweepStep)
 		sweepLeft = sweepLeft - count
-		checkNext(count, drawTime())
+		visitNext(count, drawTime(), true)
 	end
 end
 
@@ -282,14 +413,18 @@ function widget:GameFrame()
 		return
 	end
 	local now = drawTime()
-	pollBudget = pollBudget + trackedCount
-	local count = mathFloor(pollBudget / POLL_FRAMES)
-	pollBudget = pollBudget - count * POLL_FRAMES
-	checkNext(count, now)
+	visitBudget = visitBudget + trackedCount
+	local visits = mathFloor(visitBudget / VISIT_FRAMES)
+	visitBudget = visitBudget - visits * VISIT_FRAMES
+	visitNext(visits, now, false)
+	pollBudget = pollBudget + nearCount
+	local polls = mathFloor(pollBudget / POLL_FRAMES)
+	pollBudget = pollBudget - polls * POLL_FRAMES
+	pollNear(polls, now)
 end
 
 function widget:VisibleUnitAdded(unitID)
-	addUnit(unitID)
+	addAndVisit(unitID)
 end
 
 function widget:VisibleUnitRemoved(unitID)

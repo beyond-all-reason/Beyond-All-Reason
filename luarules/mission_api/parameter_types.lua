@@ -43,6 +43,7 @@ local types = {
 	UnitAttribute = "UnitAttribute",
 	WeaponAttribute = "WeaponAttribute",
 	EffectType = "EffectType",
+	EffectName = "EffectName",
 	AiState = "AiState",
 
 	-- Number Validators:

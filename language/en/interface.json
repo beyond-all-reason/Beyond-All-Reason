@@ -295,7 +295,28 @@
 			"ctrlclick": "CTRL + Click:   subtract from selection",
 			"rightclick": "Right-Click:   move to and select group",
 			"tooltip": "CTRL + 0-9 sets unit group for selected units.\nCTRL BACKQUOTE (~) remove units.",
-			"autogroupTooltip": "Auto Groups\nALT + 0-9 sets autogroup # for selected unit type(s).\nNewly built units get added to group# equal to their autogroup#.\nALT BACKQUOTE (~) remove units.\nView settings at: Settings/Interface/AutoGroup"
+			"autogroupTooltip": "Auto Groups\nALT + 0-9 sets autogroup # for selected unit type(s).\nNewly built units get added to group# equal to their autogroup#.\nALT BACKQUOTE (~) remove units.\nView settings at: Settings/Interface/AutoGroup",
+			"shortcuts": {
+				"select": "Select the group",
+				"add": "Add it to the selection",
+				"subtract": "Take it out of the selection",
+				"view": "Select it and move the camera there",
+				"set": "Put the selected units in a group",
+				"remove": "Take the selected units out of their group",
+				"autoSet": "Autogroup the selected unit types",
+				"autoRemove": "Stop autogrouping the selected unit types",
+				"autoNote": "New units of an autogrouped type join its group.\nSettings: Interface / AutoGroup"
+			},
+			"keys": {
+				"click": "Click",
+				"shiftClick": "Shift + Click",
+				"ctrlClick": "Ctrl + Click",
+				"rightClick": "Right-click",
+				"ctrlNumber": "Ctrl + 0-9",
+				"ctrlTilde": "Ctrl + ~",
+				"altNumber": "Alt + 0-9",
+				"altTilde": "Alt + ~"
+			}
 		},
 		"changelog": {
 			"title": "Changelog"
@@ -549,6 +570,11 @@
 			"connectionattemptfrom": "%{textColor}Connection attempt from: %{name}",
 			"leftthegamenormal": "%{name} %{textColor}left the game %{textColor2}(normal quit)",
 			"leftthegametimeout": "%{name} %{textColor}left the game %{textColor2}(timeout)",
+			"noConnection": {
+				"mode": "no connection",
+				"prefix": "Not delivered:",
+				"message": "The connection to the game server is closed, so nobody will receive this message."
+			},
 			"moderation": {
 				"prefix": "Moderation:",
 				"blocked": "Words such as \"%{badWord}\" can be against the Code of Conduct if they are being used to abuse other players. Please take a moment to reevaluate your intentions. If your message was blocked in error, then you can send it again to bypass the filter."
@@ -1633,6 +1659,7 @@
 			"shieldCost": "Shield energy use per second",
 			"amphibious": "Amphibious",
 			"allTerrain": "All-terrain",
+			"builder": "Builder",
 			"empResistance": "EMP resistance",
 			"empImmune": "full",
 			"cloakMoving": "Cloak moving",
@@ -1812,6 +1839,8 @@
 			"flows": {
 				"metal": "Metal per second",
 				"energy": "Energy per second",
+				"metalCost": "Metal cost",
+				"energyCost": "Energy cost",
 				"unit": "What it makes, less what it uses right now",
 				"selection": "What the selected units make, less what they use right now",
 				"def": "What it makes, less its upkeep",

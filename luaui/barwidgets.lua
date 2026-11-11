@@ -4209,11 +4209,11 @@ function widgetHandler:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	tracyZoneEnd()
 end
 
----A builder unit type gained or lost a build option (api_dynamic_build_options.lua).
-function widgetHandler:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+---A builder unit type gained or lost a build option (api_dynamic_build_options.lua), for one team when teamID is set.
+function widgetHandler:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
 	tracyZoneBeginN("W:BuildOptionsChanged")
 	for _, w in ipairs(self.BuildOptionsChangedList) do
-		w:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+		w:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
 	end
 	tracyZoneEnd()
 end

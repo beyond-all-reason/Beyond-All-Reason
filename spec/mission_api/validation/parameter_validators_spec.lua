@@ -698,7 +698,9 @@ describe("mission_api.validation.parameter_validators", function()
 
 			V.assertValid(V.validateAction({
 				type = V.actionTypes.SpawnUnits,
-				parameters = { unitLoadout = { { unitDefName = "armwar", teamName = "gaia", x = 0, z = 0 } } },
+				parameters = {
+					unitLoadout = { { unitDefName = "armwar", teamName = "gaia", position = { x = 0, z = 0 } } },
+				},
 			}))
 		end)
 	end)
@@ -906,6 +908,20 @@ describe("mission_api.validation.parameter_validators", function()
 
 	it("accepts a unit name for a command that only takes a unit name", function()
 		V.assertNoMessageContaining(validateOrders({ { V.env.CMD.GUARD, { unitName = "x" } } }), "Parameter must be")
+	end)
+
+	it("rejects an order that names both a unit and a feature", function()
+		V.assertMessage(
+			validateOrders({ { V.env.CMD.RECLAIM, { unitName = "x", featureName = "y" } } }),
+			"Give a unitName or a featureName, not both. Action: a, Parameter: orders[1][2]"
+		)
+	end)
+
+	it("warns about an order past a gap, which is never given", function()
+		local result = validateOrders({ [1] = { V.env.CMD.STOP }, [3] = { V.env.CMD.STOP } })
+
+		V.assertMessage(result, "Order is never given: orders stop at the first gap. Action: a, Parameter: orders[3]")
+		assert.is_true(result.ok)
 	end)
 
 	it("reports every invalid order, named after its position in the list", function()

@@ -40,7 +40,7 @@ if gadgetHandler:IsSyncedCode() then
 	local playerInfoTable = {}
 	local currentGameFrame = 0
 
-	local TransferUnit = Spring.TransferUnit
+	local GetUnitTeam = Spring.GetUnitTeam
 	local GetPlayerList = Spring.GetPlayerList
 	local ShareTeamResource = Spring.ShareTeamResource
 	local GetTeamResources = Spring.GetTeamResources
@@ -167,7 +167,12 @@ if gadgetHandler:IsSyncedCode() then
 				local teamUnits = GetTeamUnits(teamID)
 				local unitsTaken = 0
 				for i = 1, #teamUnits do
-					if TransferUnit(teamUnits[i], takerID) then
+					if GetUnitTeam(teamUnits[i]) == teamID then
+						GG.ForceUnitTransfer(teamUnits[i], takerID)
+					end
+				end
+				for i = 1, #teamUnits do
+					if GetUnitTeam(teamUnits[i]) == takerID then
 						unitsTaken = unitsTaken + 1
 					end
 				end
