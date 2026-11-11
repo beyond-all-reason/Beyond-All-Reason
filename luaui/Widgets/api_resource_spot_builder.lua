@@ -717,8 +717,8 @@ function widget:Initialize()
 
 	-- make interfaces available to other widgets:
 	WG.resource_spot_builder = {
-		-- Squared cursor distance shared by pregame and in-game quick mex placement.
-		QUICK_MEX_RADIUS_SQUARED = 2000,
+		-- Arbitrary squared cursor distance that feels right, shared by pregame and in-game quick mex placement
+		QuickMexRadiusSquared = 2000,
 		ExtractorCanBeBuiltOnSpot = extractorCanBeBuiltOnSpot,
 		ExtractorCanBeUpgraded = extractorCanBeUpgraded,
 		FindNearestValidSpotForExtractor = findNearestValidSpotForExtractor,

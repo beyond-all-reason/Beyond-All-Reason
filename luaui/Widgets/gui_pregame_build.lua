@@ -985,7 +985,7 @@ getQuickMexBuild = function(mx, my)
 		return
 	end
 	local radius = math.sqrt(finder.GetMexPlacementRadiusSquared(spot)) + 16
-	local radiusSquared = math.max(builder.QUICK_MEX_RADIUS_SQUARED, radius * radius)
+	local radiusSquared = math.max(builder.QuickMexRadiusSquared, radius * radius)
 	if (spot.x - pos[1]) ^ 2 + (spot.z - pos[3]) ^ 2 > radiusSquared then
 		return
 	end

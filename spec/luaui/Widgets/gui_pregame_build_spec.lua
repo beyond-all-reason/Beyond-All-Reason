@@ -119,7 +119,7 @@ local function fixture()
 			return self.radiusSquared or 0
 		end
 		env.WG.resource_spot_builder = {
-			QUICK_MEX_RADIUS_SQUARED = 2000,
+			QuickMexRadiusSquared = 2000,
 			SpotHasExtractorQueued = function()
 				return self.occupied
 			end,

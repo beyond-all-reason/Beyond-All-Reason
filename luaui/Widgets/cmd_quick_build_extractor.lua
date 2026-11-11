@@ -30,7 +30,7 @@ local mathHuge = math.huge
 local mathDistance2dSquared = math.distance2dSquared
 local mathPiHalf = math.pi / 2
 
--- Fixed cursor distance for quick geothermal placement (squared).
+-- This is an arbitrary value that feels right - basing this on the ever-changing values of mex radius results in a really confusing experience
 local geoPlacementRadius = 5000
 
 local mexConstructors
@@ -227,7 +227,7 @@ function widget:Update(dt)
 		end
 
 		-- Figure out if mex or geo is in range
-		if mexDist < mathHuge and mexDist < geoDist and mexDist < spotBuilder.QUICK_MEX_RADIUS_SQUARED then
+		if mexDist < mathHuge and mexDist < geoDist and mexDist < spotBuilder.QuickMexRadiusSquared then
 			selectedMex = bestMex
 			extractor = bestMex
 			selectedSpot = nearestMex
