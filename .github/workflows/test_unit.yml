@@ -54,9 +54,9 @@ jobs:
         # it through cargo-binstall (or the lux action) goes via the GitHub
         # API, which sporadically rate-limits unauthenticated runners;
         # release downloads don't count against that limit.
-        curl -L --proto '=https' --tlsv1.2 -sSf \
-          "https://github.com/lumen-oss/lux/releases/download/v${LUX_VERSION}/lx-x86_64-unknown-linux-gnu.tar.gz" \
-          | sudo tar -xz -C /usr/local/bin lx
+        curl -fsSL --proto '=https' --tlsv1.2 --retry 5 --retry-delay 10 -o "$RUNNER_TEMP/lx.tar.gz" \
+          "https://github.com/lumen-oss/lux/releases/download/v${LUX_VERSION}/lx-x86_64-unknown-linux-gnu.tar.gz"
+        sudo tar -xzf "$RUNNER_TEMP/lx.tar.gz" -C /usr/local/bin lx
         lx --version
 
     - name: Cache Lux dependencies

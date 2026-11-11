@@ -194,7 +194,8 @@ jobs:
             *) echo "unsupported arch for emmylua_check: $ARCH" >&2; exit 1 ;;
           esac
           URL="https://github.com/EmmyLuaLs/emmylua-analyzer-rust/releases/download/${EMMYLUA_VERSION}/${ASSET}"
-          curl -fsSL "$URL" | sudo tar xz -C /usr/local/bin
+          curl -fsSL --retry 5 --retry-delay 10 -o "$RUNNER_TEMP/emmylua_check.tar.gz" "$URL"
+          sudo tar -xzf "$RUNNER_TEMP/emmylua_check.tar.gz" -C /usr/local/bin
           sudo chmod +x /usr/local/bin/emmylua_check
           /usr/local/bin/emmylua_check --version
 

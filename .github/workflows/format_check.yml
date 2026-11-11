@@ -31,7 +31,7 @@ jobs:
           # Pinned so previously passing PRs do not become flagged on upgrade.
           STYLUA_VERSION: "2.5.2"
         run: |
-          curl -fsSL -o stylua.zip \
+          curl -fsSL --retry 5 --retry-delay 10 -o stylua.zip \
             "https://github.com/JohnnyMorganz/StyLua/releases/download/v${STYLUA_VERSION}/stylua-linux-x86_64.zip"
           unzip -q stylua.zip stylua
           chmod +x stylua
