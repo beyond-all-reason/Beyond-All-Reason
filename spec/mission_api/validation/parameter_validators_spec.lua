@@ -1063,6 +1063,43 @@ describe("mission_api.validation.parameter_validators", function()
 		assert.is_true(result.ok)
 	end)
 
+	it("warns about a queued wait right after another wait, which can cancel both", function()
+		local result = validateOrders({
+			{ V.env.CMD.GATHERWAIT },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+		})
+
+		V.assertMessage(
+			result,
+			"A queued wait right after another wait can cancel both, so neither is kept. Action: a, Parameter: orders[2]"
+		)
+		assert.is_true(result.ok)
+	end)
+
+	it("keeps a third queued wait, after the first two cancel", function()
+		local result = validateOrders({
+			{ V.env.CMD.GATHERWAIT },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+		})
+
+		V.assertMessage(
+			result,
+			"A queued wait right after another wait can cancel both, so neither is kept. Action: a, Parameter: orders[2]"
+		)
+		V.assertNoMessageContaining(result, "Parameter: orders[3]")
+	end)
+
+	it("keeps a queued wait after a wait that went to the front of the queue", function()
+		local result = validateOrders({
+			{ V.env.CMD.MOVE, { 0, 0, 0 } },
+			{ V.env.CMD.GATHERWAIT },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+		})
+
+		V.assertNoMessageContaining(result, "can cancel both")
+	end)
+
 	it("reports every invalid order, named after its position in the list", function()
 		local result = validateOrders({ { V.env.CMD.MOVE, { 0, 0, 0 } }, { V.env.CMD.MOVE, {} }, { 99999 } })
 
@@ -1094,23 +1131,17 @@ describe("mission_api.validation.parameter_validators", function()
 		)
 	end)
 
-	it("rejects the wait commands that only work for a player's selected units", function()
-		local result = validateOrders({
-			{ V.env.CMD.TIMEWAIT, { 5 } },
-			{ V.env.CMD.DEATHWAIT },
-			{ V.env.CMD.SQUADWAIT, { 2 } },
-			{ V.env.CMD.GATHERWAIT },
-		})
-
-		for index, commandName in ipairs({ "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
-			local message = "Command "
-				.. commandName
-				.. " is dropped when a mission gives it, it only works for a player's selected units."
-				.. " Action: a, Parameter: orders["
-				.. index
-				.. "][1]"
-			assert.is_true(table.contains(result.errors, message), "expected error: " .. message)
-		end
+	it("accepts the coded wait commands with their parameters", function()
+		V.assertNoMessageContaining(
+			validateOrders({
+				{ V.env.CMD.TIMEWAIT, { 5 } },
+				{ V.env.CMD.DEATHWAIT, { 0, 0, 0, 100, 0, 100 } },
+				{ V.env.CMD.DEATHWAIT, { unitName = "bosses" } },
+				{ V.env.CMD.SQUADWAIT, { 2 } },
+				{ V.env.CMD.GATHERWAIT },
+			}),
+			"Parameter: orders"
+		)
 	end)
 
 	for _, commandName in ipairs({ "CLOAK", "ONOFF", "REPEAT" }) do
