@@ -84,21 +84,4 @@ return {
 	["scavbossrail-trail"] = scaled(cannons["railgun-epic"], TRAIL_SCALE),
 	scavbossblast = scaledBlast(nukes.newnukehuge, BLAST_SCALE),
 	scavbossrailhit = dimmed(nukes.newnukecor, RAIL_FLASH),
-	scavbosssnackring = {
-		ring = {
-			class = [[CSimpleGroundFlash]],
-			count = 1,
-			air = true,
-			ground = true,
-			water = true,
-			properties = {
-				alwaysvisible = true,
-				colormap = [[0.8 0.3 1 0.9   0.8 0.3 1 0.7   0.8 0.3 1 0.01]],
-				size = 40,
-				sizegrowth = 10.2,
-				ttl = 60,
-				texture = [[circlefx2]],
-			},
-		},
-	},
 }
