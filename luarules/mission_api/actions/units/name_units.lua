@@ -27,7 +27,6 @@ local function nameUnits(unitName, teamID, unitDefName, area)
 
 	local unitsToName = {}
 	if hasFilterOtherThanTeamID then
-		-- Every given filter narrows, even one that matches nothing.
 		local filters = {}
 		if unitDefName then
 			filters[#filters + 1] = unitsFromDef

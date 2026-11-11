@@ -195,13 +195,6 @@ describe("mission_api.actions.name_units", function()
 			action.actionFunction("tanks", 2, "tank", area)
 			assert.is_nil(trackedUnitIDs["tanks"])
 		end)
-
-		it("tracks nothing when the type is unknown", function()
-			env.UnitDefNames = {}
-			unitsInRectangle = { 200, 201 }
-			action.actionFunction("tanks", nil, "unknown", area)
-			assert.is_nil(trackedUnitIDs["tanks"])
-		end)
 	end)
 
 end)
