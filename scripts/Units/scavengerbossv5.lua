@@ -2281,7 +2281,8 @@ local FIRE_RING = {
 ---@type table<string, any>
 local HUNT = {
 	range = 2500,
-	timeout = 25,
+	arrive = 250,
+	slack = 8,
 	retry = 5,
 	nextSearch = 0,
 }
@@ -2618,17 +2619,14 @@ end
 HUNT.Target = function()
 	local x, y, z = Here()
 	local cells, best, bestMetal = {}, nil, 0
-	local function add(id, isFeature, px, pz, metal)
+	local function add(px, pz, metal)
 		local key = math.floor(px / EAT_RANGE) * 65536 + math.floor(pz / EAT_RANGE)
 		local cell = cells[key]
 		if not cell then
-			cell = { metal = 0, topMetal = 0 }
+			cell = { metal = 0, x = 0, z = 0 }
 			cells[key] = cell
 		end
-		cell.metal = cell.metal + metal
-		if metal > cell.topMetal then
-			cell.top, cell.topIsFeature, cell.topMetal = id, isFeature, metal
-		end
+		cell.metal, cell.x, cell.z = cell.metal + metal, cell.x + px * metal, cell.z + pz * metal
 		if cell.metal > bestMetal then
 			best, bestMetal = cell, cell.metal
 		end
@@ -2637,17 +2635,17 @@ HUNT.Target = function()
 		local metal = Spring.GetFeatureResources(featureID)
 		if metal and metal > 0 and DEFS.Reclaimable(Spring.GetFeatureDefID(featureID)) then
 			local fx, _, fz = Spring.GetFeaturePosition(featureID)
-			add(featureID, true, fx, fz, metal)
+			add(fx, fz, metal)
 		end
 	end
 	for _, otherID in ipairs(Spring.GetUnitsInSphere(x, y, z, HUNT.range)) do
 		if IsPrey(otherID) or HUNT.IsScavFood(otherID) then
 			local ux, _, uz = Spring.GetUnitPosition(otherID)
-			add(otherID, false, ux, uz, DEFS.Unit(Spring.GetUnitDefID(otherID)).metalCost)
+			add(ux, uz, DEFS.Unit(Spring.GetUnitDefID(otherID)).metalCost)
 		end
 	end
 	if best and bestMetal >= FEED_GOAL * HUNGER.blastFloor then
-		return best.top, best.topIsFeature
+		return best.x / bestMetal, best.z / bestMetal
 	end
 end
 
@@ -2657,20 +2655,21 @@ HUNT.Run = function()
 		return false
 	end
 	HUNT.nextSearch = frame + HUNT.retry * Game.gameSpeed
-	local target, isFeature = HUNT.Target()
-	if not target then
+	local goalX, goalZ = HUNT.Target()
+	if not goalX then
 		return false
 	end
+	local x, _, z = Here()
+	local seconds = math.sqrt((goalX - x) ^ 2 + (goalZ - z) ^ 2) / (PACE.speed * PACE.hunt) + HUNT.slack
+	Spring.GiveOrderToUnit(unitID, CMD.MOVE, { goalX, Spring.GetGroundHeight(goalX, goalZ), goalZ }, 0)
 	PACE.hunting = true
 	Spring.SetUnitRulesParam(unitID, "scavboss_eating", 1)
-	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { isFeature and (Game.maxUnits + target) or target }, 0)
-	local deadline = frame + HUNT.timeout * Game.gameSpeed
-	while
-		Spring.GetGameFrame() < deadline
-		and not Spring.GetUnitIsStunned(unitID)
-		and not MealGone(target, isFeature)
-		and HUNT.InReach() < FEED_GOAL * HUNGER.blastFloor
-	do
+	local deadline = frame + seconds * Game.gameSpeed
+	while Spring.GetGameFrame() < deadline and not Spring.GetUnitIsStunned(unitID) do
+		x, _, z = Here()
+		if (goalX - x) ^ 2 + (goalZ - z) ^ 2 <= HUNT.arrive ^ 2 then
+			break
+		end
 		Sleep(500)
 	end
 	PACE.hunting = false
