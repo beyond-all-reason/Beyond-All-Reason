@@ -65,6 +65,11 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 FireWeapon1()
 {
 	
@@ -73,6 +78,11 @@ FireWeapon1()
 AimWeapon2(heading, pitch)
 {
 	return (1);
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
 }
 
 FireWeapon2()

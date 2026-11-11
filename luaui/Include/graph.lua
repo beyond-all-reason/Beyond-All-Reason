@@ -2704,7 +2704,9 @@ function Graph:hitTest(mx, my)
 	})
 end
 
--- A tooltip for a hit: the x, then every series' value in its colour, largest first.
+-- A tooltip for a hit, as WG.tooltip takes it. A marker, span or bar row: its own text or content table, else its name
+-- and value in a row. A point or an axis: every series' value a row in its colour, largest first, the x in the corner
+-- or the axis' name above.
 function Graph:describe(hit)
 	if not hit then
 		return nil
@@ -2713,14 +2715,14 @@ function Graph:describe(hit)
 		return hit.text
 	end
 	if hit.kind == "row" then
-		return hit.text or (self.cfg.look.title .. (hit.placed.row.name or "") .. "  " .. hit.placed.valueText)
+		return hit.text or { rows = { { hit.placed.row.name or "", hit.placed.valueText } } }
 	end
 	-- Worked out once for a hit, which is handed back while the cursor stays on it.
 	if hit.described then
 		return hit.described
 	end
 	local cfg = self.cfg
-	local lines = {}
+	local rows = {}
 	local entries = {}
 	for i = 1, #hit.entries do
 		entries[i] = hit.entries[i]
@@ -2729,10 +2731,9 @@ function Graph:describe(hit)
 		return (a.value or 0) > (b.value or 0)
 	end)
 	if hit.kind == "point" then
-		lines[1] = cfg.look.title .. (self.xFormatter or defaultFormat)(hit.x)
 		local yFormat = cfg.kind == "stacked" and (cfg.yFormat or defaultFormat) or self.yFormatter
 		if hit.total and cfg.totalLabel then
-			lines[2] = cfg.look.text .. cfg.totalLabel .. "  " .. cfg.look.title .. yFormat(hit.total)
+			rows[1] = { cfg.totalLabel, yFormat(hit.total) }
 		end
 		for _, e in ipairs(entries) do
 			local value
@@ -2744,16 +2745,16 @@ function Graph:describe(hit)
 			if e.share then
 				value = value .. cfg.look.text .. stringFormat("  (%d%%)", mathFloor(e.share + 0.5))
 			end
-			lines[#lines + 1] = colorCode(e.color) .. e.name .. "  " .. cfg.look.title .. value
+			rows[#rows + 1] = { colorCode(e.color) .. e.name, value }
 		end
+		hit.described = { corner = (self.xFormatter or defaultFormat)(hit.x), rows = rows }
 	else
-		lines[1] = cfg.look.title .. (hit.label or "")
 		local yFormat = cfg.yFormat or defaultFormat
 		for _, e in ipairs(entries) do
-			lines[#lines + 1] = colorCode(e.color) .. e.name .. "  " .. cfg.look.title .. yFormat(e.value)
+			rows[#rows + 1] = { colorCode(e.color) .. e.name, yFormat(e.value) }
 		end
+		hit.described = { text = hit.label or "", rows = rows }
 	end
-	hit.described = table.concat(lines, "\n")
 	return hit.described
 end
 

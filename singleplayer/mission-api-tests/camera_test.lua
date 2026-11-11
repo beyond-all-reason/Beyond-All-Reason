@@ -90,10 +90,10 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armstump', x = 1800, z = 1600, teamName = 'player', unitName = 'hero' },
-				{ unitDefName = 'armpw', x = 1900, z = 1700, teamName = 'player', unitName = 'raiders' },
-				{ unitDefName = 'armpw', x = 1950, z = 1750, teamName = 'player', unitName = 'raiders' },
-				{ unitDefName = 'armpw', x = 1850, z = 1750, teamName = 'player', unitName = 'raiders' },
+				{ unitDefName = 'armstump', position = { x = 1800, z = 1600 }, teamName = 'player', unitName = 'hero' },
+				{ unitDefName = 'armpw', position = { x = 1900, z = 1700 }, teamName = 'player', unitName = 'raiders' },
+				{ unitDefName = 'armpw', position = { x = 1950, z = 1750 }, teamName = 'player', unitName = 'raiders' },
+				{ unitDefName = 'armpw', position = { x = 1850, z = 1750 }, teamName = 'player', unitName = 'raiders' },
 			},
 		},
 	},

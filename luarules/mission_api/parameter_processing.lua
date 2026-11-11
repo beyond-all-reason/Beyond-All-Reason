@@ -117,6 +117,11 @@ local function processEnumSet(values)
 	return valueSet
 end
 
+-- The engine's {r, g, b}
+local function processColor(color)
+	return { color.r, color.g, color.b }
+end
+
 local processors = {
 	[ParameterTypes.Position] = processPosition,
 	[ParameterTypes.Positions] = processPositions,
@@ -128,6 +133,7 @@ local processors = {
 	[ParameterTypes.AllianceName] = processAllianceName,
 	[ParameterTypes.AllianceNames] = processAllianceNames,
 	[ParameterTypes.UnitLoadout] = processUnitLoadout,
+	[ParameterTypes.Color] = processColor,
 	[ParameterTypes.CameraKeyframes] = processCameraKeyframes,
 }
 for enumSetType in pairs(enumSets) do

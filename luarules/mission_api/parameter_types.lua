@@ -20,6 +20,7 @@ local types = {
 	FeatureLoadout = "FeatureLoadout",
 	ResourceIncomeSources = "ResourceIncomeSources",
 	SensorTypes = "SensorTypes",
+	Color = "Color",
 	CameraKeyframes = "CameraKeyframes",
 
 	-- String Validators:
@@ -40,6 +41,7 @@ local types = {
 	Facing = "Facing",
 	SoundFile = "SoundFile",
 	VideoFile = "VideoFile",
+	SkyboxFile = "SkyboxFile",
 	Difficulty = "Difficulty",
 	CameraEasing = "CameraEasing",
 	CameraSequenceEnd = "CameraSequenceEnd",
@@ -48,12 +50,17 @@ local types = {
 	UnitAttribute = "UnitAttribute",
 	WeaponAttribute = "WeaponAttribute",
 	EffectType = "EffectType",
+	EffectName = "EffectName",
+	AiState = "AiState",
 
 	-- Number Validators:
 	Number = "Number",
 	Quantity = "Quantity",
 	PositiveInteger = "PositiveInteger",
 	Fraction = "Fraction",
+	TimeOfDay = "TimeOfDay",
+	CompassAngle = "CompassAngle",
+	Elevation = "Elevation",
 	MessageType = "MessageType",
 
 	-- Boolean Validators:
@@ -145,7 +152,15 @@ local enums = {
 		real = true,
 		game = true,
 	},
+
 	[types.WeaponNumber] = attributeDefinitions.EXPLOSIONS,
+
+	[types.AiState] = {
+		PASSIVE = 1,
+		DEFENSIVE = 2,
+		NORMAL = 3,
+		AGGRESSIVE = 4,
+	},
 }
 
 local enumSets = {
