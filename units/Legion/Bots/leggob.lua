@@ -34,6 +34,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Odin",
 			normaltex = "unittextures/leg_normal.dds",
+			reaim_spam = true,
 			reaimtime = 2,
 			stompable = true,
 			subfolder = "Legion/Bots",

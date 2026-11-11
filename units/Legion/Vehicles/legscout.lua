@@ -21,7 +21,7 @@ return {
 		speed = 160.0,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
-		--movestate = 0,
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGSCOUT.s3o",
 		script = "Units/LEGSCOUT.cob",
@@ -46,6 +46,9 @@ return {
 			lumamult = "1.3",
 			model_author = "Flaka",
 			normaltex = "unittextures/leg_normal.dds",
+			reaim_spam = true,
+			reaimtime = 3,
+			stompable = true,
 			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {

@@ -41,6 +41,11 @@ AimWeapon1(heading, pitch)
 {
 	return (1);
 }
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = missilea + gun_1;

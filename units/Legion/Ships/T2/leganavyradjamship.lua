@@ -36,6 +36,7 @@ return {
 		waterline = 0,
 		customparams = {
 			deactivate_time = 8,
+			juno_kill = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/leg_normal.dds",
 			off_on_stun = "true",

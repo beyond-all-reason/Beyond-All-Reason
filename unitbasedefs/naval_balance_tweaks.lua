@@ -1,8 +1,4 @@
 local buildOptionReplacements = {
-	armch = { armfhlt = "armnavaldefturret" },
-	corch = { corfhlt = "cornavaldefturret" },
-	legch = { legfmg = "legnavaldefturret" },
-
 	armacsub = { armkraken = "armanavaldefturret" },
 	armmls = {
 		armfhlt = "armnavaldefturret",
@@ -21,14 +17,17 @@ local buildOptionReplacements = {
 
 local buildOptionAdditions = {
 	armcs = "armnavaldefturret",
+	armch = "armnavaldefturret",
 	armbeaver = "armnavaldefturret",
 	armcsa = "armnavaldefturret",
 
 	corcs = "cornavaldefturret",
+	corch = "cornavaldefturret",
 	cormuskrat = "cornavaldefturret",
 	corcsa = "cornavaldefturret",
 
 	legnavyconship = "legnavaldefturret",
+	legch = "legnavaldefturret",
 	legotter = "legnavaldefturret",
 	legspcon = "legnavaldefturret",
 }

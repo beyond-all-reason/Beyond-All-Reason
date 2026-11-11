@@ -68,6 +68,12 @@ local bareModifier = {
 	shift = true,
 }
 
+local function isBareModifier(sym)
+	local key = sym:lower():gsub("^sc_", "")
+
+	return bareModifier[keyNameAlias[key] or key] == true
+end
+
 local function canonicalElement(raw)
 	local rest, held = raw, {}
 	local stripped = true
@@ -363,6 +369,7 @@ return {
 	displayKeyset = displayKeyset,
 	displayWithoutShift = displayWithoutShift,
 	holdsKeys = holdsKeys,
+	isBareModifier = isBareModifier,
 	canonicalKeyset = canonicalKeyset,
 	reachOf = reachOf,
 	collisionIndex = collisionIndex,

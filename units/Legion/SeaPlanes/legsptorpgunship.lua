@@ -26,7 +26,7 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 535,
 		sonardistance = 535,
-		speed = 273,
+		speed = 220,
 		turnrate = 720,
 		customparams = {
 			model_author = "ZephyrSkies",
