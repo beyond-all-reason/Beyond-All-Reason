@@ -1,5 +1,5 @@
 ---
---- No Radar: removes the radar of every unit inside its area. Its strength does nothing.
+--- Disable Radar: removes the radar of every unit inside its area. Its strength does nothing.
 ---
 
 local function setRadarMultiplier(unitIDs, multiplier, trackingID)
@@ -18,7 +18,7 @@ local function onUnitsLeft(unitIDs, trackingID)
 	setRadarMultiplier(unitIDs, nil, trackingID)
 end
 
-local function removeRadar(area)
+local function disableRadar(area)
 	return GG["MissionAPI"].Modules.AreaTracking.TrackUnitsInArea(area, nil, nil, onUnitsEntered, onUnitsLeft)
 end
 
@@ -27,7 +27,7 @@ local function restoreRadar(trackingID)
 end
 
 return {
-	type = "NoRadar",
-	Create = removeRadar,
+	type = "DisableRadar",
+	Create = disableRadar,
 	Remove = restoreRadar,
 }

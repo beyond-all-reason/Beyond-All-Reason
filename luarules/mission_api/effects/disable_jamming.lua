@@ -1,5 +1,5 @@
 ---
---- No Jamming: removes the radar jamming of every unit inside its area. Its strength does nothing.
+--- Disable Jamming: removes the radar jamming of every unit inside its area. Its strength does nothing.
 ---
 
 local function setJammerMultiplier(unitIDs, multiplier, trackingID)
@@ -18,7 +18,7 @@ local function onUnitsLeft(unitIDs, trackingID)
 	setJammerMultiplier(unitIDs, nil, trackingID)
 end
 
-local function removeJamming(area)
+local function disableJamming(area)
 	return GG["MissionAPI"].Modules.AreaTracking.TrackUnitsInArea(area, nil, nil, onUnitsEntered, onUnitsLeft)
 end
 
@@ -27,7 +27,7 @@ local function restoreJamming(trackingID)
 end
 
 return {
-	type = "NoJamming",
-	Create = removeJamming,
+	type = "DisableJamming",
+	Create = disableJamming,
 	Remove = restoreJamming,
 }
