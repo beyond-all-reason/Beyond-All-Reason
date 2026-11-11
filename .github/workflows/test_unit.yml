@@ -48,15 +48,25 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends lua5.1 liblua5.1-0-dev
 
+    - name: Cache the lux binary
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/lx-bin
+        key: lx-bin-${{ env.LUX_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+
     - name: Install Lux
       run: |
         # Fetch the prebuilt `lx` straight from the release page. Resolving
         # it through cargo-binstall (or the lux action) goes via the GitHub
         # API, which sporadically rate-limits unauthenticated runners;
         # release downloads don't count against that limit.
-        curl -L --proto '=https' --tlsv1.2 -sSf \
-          "https://github.com/lumen-oss/lux/releases/download/v${LUX_VERSION}/lx-x86_64-unknown-linux-gnu.tar.gz" \
-          | sudo tar -xz -C /usr/local/bin lx
+        if [ ! -x ~/.cache/lx-bin/lx ]; then
+          curl -fsSL --proto '=https' --tlsv1.2 --retry 5 --retry-delay 10 -o "$RUNNER_TEMP/lx.tar.gz" \
+            "https://github.com/lumen-oss/lux/releases/download/v${LUX_VERSION}/lx-x86_64-unknown-linux-gnu.tar.gz"
+          mkdir -p ~/.cache/lx-bin
+          tar -xzf "$RUNNER_TEMP/lx.tar.gz" -C ~/.cache/lx-bin lx
+        fi
+        sudo install -m 755 ~/.cache/lx-bin/lx /usr/local/bin/lx
         lx --version
 
     - name: Cache Lux dependencies
