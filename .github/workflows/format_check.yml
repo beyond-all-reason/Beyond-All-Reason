@@ -13,6 +13,8 @@ permissions:
 jobs:
   stylua:
     runs-on: ubuntu-latest
+    env:
+      STYLUA_VERSION: "2.5.2"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,15 +28,20 @@ jobs:
             /.gitattributes
             *.lua
 
+      - name: Cache the stylua binary
+        uses: actions/cache@v4
+        with:
+          path: stylua
+          key: stylua-bin-${{ env.STYLUA_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+
       - name: Install stylua
-        env:
-          # Pinned so previously passing PRs do not become flagged on upgrade.
-          STYLUA_VERSION: "2.5.2"
         run: |
-          curl -fsSL -o stylua.zip \
-            "https://github.com/JohnnyMorganz/StyLua/releases/download/v${STYLUA_VERSION}/stylua-linux-x86_64.zip"
-          unzip -q stylua.zip stylua
-          chmod +x stylua
+          if [ ! -x stylua ]; then
+            curl -fsSL --retry 5 --retry-delay 10 -o stylua.zip \
+              "https://github.com/JohnnyMorganz/StyLua/releases/download/v${STYLUA_VERSION}/stylua-linux-x86_64.zip"
+            unzip -q stylua.zip stylua
+            chmod +x stylua
+          fi
           ./stylua --version
 
       - name: Check formatting of changed lines

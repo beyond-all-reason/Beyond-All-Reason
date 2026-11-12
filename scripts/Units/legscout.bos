@@ -1,11 +1,10 @@
 #define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece body, mount, gun, ammo, barrel, lTyre, rTyre, flare;
 
-static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, moveSpeed, wheelSpeed, oldHeading;
+static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, moveSpeed, wheelSpeed, oldHeading, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -79,6 +78,8 @@ ExecuteRestoreAfterDelay()
     }
 	turn mount to y-axis <0> speed <150.000000>;
 	turn gun to x-axis <0> speed <150.000000>;
+	wait-for-turn mount around y-axis;
+	wpn1_lasthead = 0xbadface;
 }
 SetStunned(State)
 {
@@ -99,8 +100,13 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIG_AIM;
 	turn mount to y-axis heading speed <300.000000>;
 	turn gun to x-axis <0.000000> - pitch speed <300.000000>;
-	wait-for-turn mount around y-axis;
-	wait-for-turn gun around x-axis;
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
+	{
+		wpn1_lasthead = 0xbadface;
+		wait-for-turn mount around y-axis;
+		wait-for-turn gun around x-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }

@@ -32,6 +32,12 @@ end
 -- "table index is nil", so the ids specs rely on are filled in here.
 local function commandIDs()
 	return {
+		INSERT = 1,
+		WAIT = 5,
+		TIMEWAIT = 6,
+		DEATHWAIT = 7,
+		SQUADWAIT = 8,
+		GATHERWAIT = 9,
 		MOVE = 10,
 		ATTACK = 20,
 		GUARD = 25,
@@ -40,13 +46,14 @@ local function commandIDs()
 		RECLAIM = 90,
 		RESURRECT = 125,
 		CAPTURE = 130,
+		--
 		OPT_META = 4,
 		OPT_INTERNAL = 8,
 		OPT_RIGHT = 16,
 		OPT_SHIFT = 32,
 		OPT_CTRL = 64,
 		OPT_ALT = 128,
-		-- MOVE_STATE and FIRE_STATE, and the states they take.
+		--
 		MOVE_STATE = 50,
 		FIRE_STATE = 45,
 		MOVESTATE_HOLDPOS = 0,
@@ -56,6 +63,10 @@ local function commandIDs()
 		FIRESTATE_RETURNFIRE = 1,
 		FIRESTATE_FIREATWILL = 2,
 		FIRESTATE_FIREATNEUTRAL = 3,
+		WAITCODE_TIME = 1,
+		WAITCODE_DEATH = 2,
+		WAITCODE_SQUAD = 3,
+		WAITCODE_GATHER = 4,
 	}
 end
 
