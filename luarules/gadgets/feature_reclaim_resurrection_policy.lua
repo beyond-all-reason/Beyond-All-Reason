@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local mode = Spring.GetModOptions().experimental_reclaim_resurrection or "off"
-if mode ~= "first" and mode ~= "reclaim" and mode ~= "resurrect" then
+if mode ~= "first" and mode ~= "reclaim" and mode ~= "resurrect" and mode ~= "last" then
 	return false
 end
 
@@ -91,10 +91,12 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 	local direction = part > 0 and 1 or -1
 	local claim = getClaim(featureID, allyTeam, frame)
 	if claim and claim.direction ~= direction then
-		if direction ~= preferred then
+		if mode ~= "last" and direction ~= preferred then
 			pauseWorker(builderID, featureID, allyTeam, direction)
 			return false
 		end
+		-- In last-arrival mode, only a new work attempt can take over. Paused
+		-- workers retain WAIT until this claim ends, so they cannot take it back.
 		-- A priority takeover must not allow both directions to spend on this frame.
 		for unitID in pairs(claim.workers) do
 			pauseWorker(unitID, featureID, allyTeam, claim.direction)
@@ -127,7 +129,7 @@ function gadget:GameFrame(frame)
 	-- The engine checks targeted resurrection orders before they produce a build
 	-- step. Pause losing orders first, otherwise they can cancel a winning automatic
 	-- reclaim even though AllowFeatureBuildStep would reject their work.
-	if next(claims) then
+	if mode ~= "last" and next(claims) then
 		for unitID in pairs(builders) do
 			local command, _, _, target, p2, _, _, p5 = Spring.GetUnitCurrentCommand(unitID)
 			local direction = command == CMD.RESURRECT and 1 or (command == CMD.RECLAIM and -1 or nil)

@@ -118,7 +118,7 @@ function gadget:GameFrame(f)
 				if not c.enemy and not c.norez then
 					assert(c.repair == 0, c.name .. ": losing rez worked")
 				end
-			elseif mode == "resurrect" and not c.enemy and not c.norez then
+			elseif (mode == "resurrect" or mode == "last") and not c.enemy and not c.norez then
 				assert(c.after == 0 and c.repair > 0, c.name .. ": rez priority failed")
 			end
 		end
