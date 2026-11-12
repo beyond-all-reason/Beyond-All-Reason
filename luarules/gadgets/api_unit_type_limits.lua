@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		author = "PtaQ",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1, -- after the Mission API
 		enabled = true,
 	}
 end
