@@ -7,18 +7,14 @@ local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/misc/h
 local showHint, hideHint = actions[1], actions[2]
 
 describe("mission_api.actions.hints", function()
-	---@type table<string, any>
-	local rulesParams
-	---@type string[]
-	local syncActions
+	local rulesParams, syncActions
 
 	local function published()
 		return rulesParams.missionHint and Json.decode(rulesParams.missionHint)
 	end
 
 	before_each(function()
-		rulesParams = {}
-		syncActions = {}
+		rulesParams, syncActions = {}, {}
 		env.Spring.SetGameRulesParam = function(name, value)
 			rulesParams[name] = value
 		end
@@ -31,12 +27,10 @@ describe("mission_api.actions.hints", function()
 	end)
 
 	it("declares its types and parameters", function()
-		assert.are.same({
-			type = "ShowHint",
-			messageKey = "String!",
-			messageData = "Table",
-			seconds = "Quantity",
-		}, summarizeSchema(showHint))
+		assert.are.same(
+			{ type = "ShowHint", messageKey = "String!", messageData = "Table", seconds = "Quantity" },
+			summarizeSchema(showHint)
+		)
 		assert.are.same({ type = "HideHint" }, summarizeSchema(hideHint))
 	end)
 
@@ -46,12 +40,9 @@ describe("mission_api.actions.hints", function()
 		assert.are.same({ "MissionHintChanged" }, syncActions)
 	end)
 
-	it("ends a timed hint at the frame its seconds run out, and carries its data", function()
+	it("ends a timed hint when its seconds run out, at least one frame on", function()
 		showHint.actionFunction("tutorial.mex", { count = 2 }, 2.5)
 		assert.are.same({ messageKey = "tutorial.mex", messageData = { count = 2 }, untilFrame = 375 }, published())
-	end)
-
-	it("shows a hint of 0 seconds for one frame rather than for good", function()
 		showHint.actionFunction("tutorial.flash", nil, 0)
 		assert.are.equal(301, published().untilFrame)
 	end)

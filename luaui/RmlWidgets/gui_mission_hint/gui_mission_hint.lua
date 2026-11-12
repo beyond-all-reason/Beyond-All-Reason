@@ -12,24 +12,19 @@ function widget:GetInfo()
 	}
 end
 
-local spGetGameRulesParam = Spring.GetGameRulesParam
-
 -- Written by luarules/mission_api/actions/misc/hints.lua.
 local HINT_PARAM = "missionHint"
 local MODEL_NAME = "mission_hint"
-local RML_PATH = "luaui/RmlWidgets/gui_mission_hint/gui_mission_hint.rml"
 
 local context, document, dataModel
 local hint -- the decoded entry on screen, nil when none
 
 local function show()
-	local text = hint and BAR.I18N(hint.messageKey, hint.messageData) or ""
-	dataModel.text = text
-	dataModel.shown = text ~= ""
+	dataModel.text = hint and BAR.I18N(hint.messageKey, hint.messageData) or ""
 end
 
 local function readHint()
-	local encoded = spGetGameRulesParam(HINT_PARAM)
+	local encoded = Spring.GetGameRulesParam(HINT_PARAM)
 	hint = encoded and Json.decode(encoded) or nil
 	show()
 end
@@ -46,19 +41,13 @@ function widget:LanguageChanged()
 end
 
 function widget:Initialize()
-	if not spGetGameRulesParam("inMission") then
+	if not Spring.GetGameRulesParam("inMission") then
 		widgetHandler:RemoveWidget(self)
 		return
 	end
 	context = RmlUi.GetContext("shared")
-	dataModel = context:OpenDataModel(MODEL_NAME, { shown = false, text = "" }, self)
-	document = context:LoadDocument(RML_PATH, self)
-	if not document then
-		context:RemoveDataModel(MODEL_NAME)
-		dataModel = nil
-		widgetHandler:RemoveWidget(self)
-		return
-	end
+	dataModel = context:OpenDataModel(MODEL_NAME, { text = "" }, self)
+	document = context:LoadDocument("luaui/RmlWidgets/gui_mission_hint/gui_mission_hint.rml", self)
 	document:Show()
 	widgetHandler:RegisterGlobal("MissionHintChanged", readHint)
 	readHint()
@@ -68,10 +57,6 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("MissionHintChanged")
 	if document then
 		document:Close()
-		document = nil
-	end
-	if dataModel then
 		context:RemoveDataModel(MODEL_NAME)
-		dataModel = nil
 	end
 end

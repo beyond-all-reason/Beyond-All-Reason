@@ -1,7 +1,4 @@
----
---- Test mission for ShowHint and HideHint: a hint, one that replaces it and times out, one filled
---- from messageData, then one hidden by HideHint.
----
+--- Test mission for ShowHint and HideHint.
 
 local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
 local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
@@ -22,14 +19,9 @@ local triggers = {
 		parameters = { seconds = 8 },
 		actions = { "hintMetalAmount" },
 	},
-	showUntilHidden = {
-		type = triggerTypes.TimeElapsed,
-		parameters = { seconds = 10 },
-		actions = { "hintLast" },
-	},
 	hideLastHint = {
 		type = triggerTypes.TimeElapsed,
-		parameters = { seconds = 13 },
+		parameters = { seconds = 11 },
 		actions = { "hideHint" },
 	},
 }
@@ -41,30 +33,21 @@ local actions = {
 	},
 	hintMex = {
 		type = actionTypes.ShowHint,
-		parameters = {
-			messageKey = "Now a Metal Extractor on a metal spot. This one goes after 3 seconds.",
-			seconds = 3,
-		},
+		parameters = { messageKey = "Now a Metal Extractor. This one goes after 3 seconds.", seconds = 3 },
 	},
 	hintMetalAmount = {
 		type = actionTypes.ShowHint,
 		parameters = { messageKey = "ui.playersList.chat.needMetalAmount", messageData = { amount = 300 } },
-	},
-	hintLast = {
-		type = actionTypes.ShowHint,
-		parameters = { messageKey = "This hint stays until HideHint." },
 	},
 	hideHint = {
 		type = actionTypes.HideHint,
 	},
 }
 
-local unitLoadout = {
-	{ unitDefName = "armcom", position = { x = 1800, z = 1800 }, orientation = "s", teamName = "player" },
-}
-
 return {
 	Triggers = triggers,
 	Actions = actions,
-	UnitLoadout = unitLoadout,
+	UnitLoadout = {
+		{ unitDefName = "armcom", position = { x = 1800, z = 1800 }, orientation = "s", teamName = "player" },
+	},
 }

@@ -6,10 +6,7 @@
 <body data-model="mission_hint">
 	<!-- The body has no size in the shared context, so a full-screen root carries the layout. -->
 	<div class="mh-root">
-		<div id="mh-box" class="mh-box" data-if="shown">
-			<div class="mh-mark"></div>
-			<div class="mh-text">{{text}}</div>
-		</div>
+		<div class="mh-box" data-if="text != ''">{{text}}</div>
 	</div>
 </body>
 </rml>
