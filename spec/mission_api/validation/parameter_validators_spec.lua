@@ -443,25 +443,9 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
-	describe("Facing", function()
-		it("rejects a type that is neither string nor number", function()
-			local result = V.validateAction({
-				type = V.actionTypes.SpawnUnits,
-				parameters = {
-					unitLoadout = {
-						{ unitDefName = "armwar", teamName = "player", position = { x = 0, z = 0 }, facing = {} },
-					},
-				},
-			})
-
-			V.assertMessage(
-				result,
-				"Unexpected parameter type, expected string or number, got table. Action: a, Parameter: unitLoadout[1].facing"
-			)
-		end)
-
-		it("rejects a facing that is not a compass direction", function()
-			local result = V.validateAction({
+	describe("A unit entry's orientation", function()
+		local function validateUnitOrientation(orientation)
+			return V.validateAction({
 				type = V.actionTypes.SpawnUnits,
 				parameters = {
 					unitLoadout = {
@@ -469,15 +453,30 @@ describe("mission_api.validation.parameter_validators", function()
 							unitDefName = "armwar",
 							teamName = "player",
 							position = { x = 0, z = 0 },
-							facing = "diagonal",
+							orientation = orientation,
 						},
 					},
 				},
 			})
+		end
 
+		it("passes for one of the four facings and for a direction", function()
+			V.assertNoMessageContaining(validateUnitOrientation("e"), "unitLoadout")
+			V.assertNoMessageContaining(validateUnitOrientation({ angle = 45 }), "unitLoadout")
+			V.assertNoMessageContaining(validateUnitOrientation({ x = 10, z = 0 }), "unitLoadout")
+		end)
+
+		it("validates a table as a Direction", function()
 			V.assertMessage(
-				result,
-				"Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'. Action: a, Parameter: unitLoadout[1].facing"
+				validateUnitOrientation({}),
+				"Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }. Action: a, Parameter: unitLoadout[1].orientation"
+			)
+		end)
+
+		it("rejects a facing that is not a compass direction", function()
+			V.assertMessage(
+				validateUnitOrientation("diagonal"),
+				"Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'. Action: a, Parameter: unitLoadout[1].orientation"
 			)
 		end)
 	end)
@@ -1349,6 +1348,202 @@ describe("mission_api.validation.parameter_validators", function()
 			local result = validateFeatureLoadout({ { featureDefName = "rockdef", position = { z = 0 } } })
 
 			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: featureLoadout[1].position.x")
+		end)
+
+		it("passes for an orientation that is a direction", function()
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = { angle = 45 } },
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = { x = 10, z = 0 } },
+			})
+
+			V.assertNoMessageContaining(result, "featureLoadout")
+		end)
+
+		it("validates an orientation table as a Direction", function()
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = {} },
+			})
+
+			V.assertMessage(
+				result,
+				"Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }. Action: a, Parameter: featureLoadout[1].orientation"
+			)
+		end)
+
+		it("validates any other orientation as a Facing", function()
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = "diagonal" },
+			})
+
+			V.assertMessage(
+				result,
+				"Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'. Action: a, Parameter: featureLoadout[1].orientation"
+			)
+		end)
+
+		it("rejects an orientation that is neither a facing nor a direction", function()
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = true },
+			})
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected string, number or table, got boolean. Action: a, Parameter: featureLoadout[1].orientation"
+			)
+		end)
+	end)
+
+	local EASINGS = "'cut', 'inCubic', 'inOutCubic', 'inOutQuad', 'inOutSine', 'inQuad', 'inSine', 'linear', "
+		.. "'outCubic', 'outQuad', 'outSine', 'smoothstep'"
+
+	describe("camera enums", function()
+		local function validateFollowCamera(parameters)
+			parameters.position = { x = 0, z = 0 }
+			return V.validateAction({ type = V.actionTypes.FollowCamera, parameters = parameters })
+		end
+
+		it("accepts a known easing", function()
+			V.assertNoMessageContaining(validateFollowCamera({ easing = "inOutSine" }), "easing")
+		end)
+
+		it("lists the choices for an unknown easing", function()
+			V.assertMessage(
+				validateFollowCamera({ easing = "bouncy" }),
+				"Invalid easing: 'bouncy'. Must be one of: " .. EASINGS .. ". Action: a, Parameter: easing"
+			)
+		end)
+
+		it("rejects an easing that is not a string", function()
+			V.assertMessage(
+				validateFollowCamera({ easing = 3 }),
+				"Unexpected parameter type, expected string, got number. Action: a, Parameter: easing"
+			)
+		end)
+
+		it("rejects an unknown sequence end", function()
+			V.assertMessage(
+				validateFollowCamera({ ending = "stay" }),
+				"Invalid camera sequence end: 'stay'. Must be one of: 'hold', 'release', 'restore'. Action: a, Parameter: ending"
+			)
+		end)
+
+		it("accepts the game clock and rejects an unknown one", function()
+			V.assertNoMessageContaining(validateFollowCamera({ clock = "game" }), "clock")
+			V.assertMessage(
+				validateFollowCamera({ clock = "sim" }),
+				"Invalid camera clock: 'sim'. Must be one of: 'game', 'real'. Action: a, Parameter: clock"
+			)
+		end)
+	end)
+
+	describe("CameraKeyframes", function()
+		local function validateKeyframes(keyframes)
+			return V.validateAction({ type = V.actionTypes.PlayCameraSequence, parameters = { keyframes = keyframes } })
+		end
+
+		it("passes well-formed keyframes", function()
+			local hero = { unitDefName = "armwar", position = { x = 0, z = 0 }, teamName = "player", unitName = "hero" }
+			local trigger = { type = V.triggerTypes.TimeElapsed, parameters = { seconds = 1 }, actions = { "a" } }
+			local keyframes = {
+				{ position = { x = 0, z = 0 }, lookAtUnitName = "hero", duration = 0 },
+				{ unitName = "hero", offsetZ = -200, offsetY = 100, relativeToHeading = true, path = "spline" },
+				{ position = { x = 100, y = 50, z = 100 }, pitch = 45, yaw = 90, roll = 5, fov = 60, hold = 2 },
+			}
+			local mission = V.mission():WithUnitLoadout({ hero }):WithTrigger("t", trigger):WithAction(
+				"a",
+				{ type = V.actionTypes.PlayCameraSequence, parameters = { keyframes = keyframes } }
+			)
+
+			V.assertValid(V.validate(mission))
+		end)
+
+		it("rejects the wrong type and an empty list", function()
+			V.assertMessage(
+				validateKeyframes("bad"),
+				"Unexpected parameter type, expected table, got string. Action: a, Parameter: keyframes"
+			)
+			V.assertMessage(validateKeyframes({}), "Keyframes table is empty. Action: a, Parameter: keyframes")
+		end)
+
+		it("rejects a keyframe that is not a table", function()
+			V.assertMessage(
+				validateKeyframes({ "bad" }),
+				"Unexpected parameter type, expected table, got string. Action: a, Parameter: keyframes[1]"
+			)
+		end)
+
+		it("requires a position or a unit to ride along with", function()
+			V.assertMessage(
+				validateKeyframes({ { duration = 1 } }),
+				"Keyframe needs one of: 'position', 'unitName'. Action: a, Parameter: keyframes[1]"
+			)
+		end)
+
+		it("rejects unknown fields", function()
+			V.assertMessage(
+				validateKeyframes({ { position = { x = 0, z = 0 }, speed = 3 } }),
+				"Unknown keyframe field 'speed'. Action: a, Parameter: keyframes[1]"
+			)
+		end)
+
+		it("checks each field against its type, naming the keyframe and field", function()
+			local result = validateKeyframes({
+				{ position = { z = 0 }, path = "curve", lookAtUnitName = 7 },
+				{ position = { x = 0, z = 0 }, easing = "nope", duration = -1 },
+			})
+
+			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: keyframes[1].position.x")
+			V.assertMessage(
+				result,
+				"Invalid camera path: 'curve'. Must be one of: 'linear', 'spline'. Action: a, Parameter: keyframes[1].path"
+			)
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected string, got number. Action: a, Parameter: keyframes[1].lookAtUnitName"
+			)
+			V.assertMessage(
+				result,
+				"Invalid easing: 'nope'. Must be one of: " .. EASINGS .. ". Action: a, Parameter: keyframes[2].easing"
+			)
+			V.assertMessage(result, "Quantity must be >= 0, got -1. Action: a, Parameter: keyframes[2].duration")
+		end)
+
+		it("places the eye once per keyframe", function()
+			V.assertMessage(
+				validateKeyframes({ { position = { x = 0, z = 0 }, unitName = "hero" } }),
+				"Keyframe places the eye twice, use one of: 'position', 'unitName'. Action: a, Parameter: keyframes[1]"
+			)
+		end)
+
+		it("warns when relativeToHeading has no unit to follow", function()
+			local result =
+				validateKeyframes({ { position = { x = 0, z = 0 }, offsetX = 10, relativeToHeading = true } })
+
+			V.assertMessage(
+				result,
+				"Keyframe relativeToHeading needs a unitName to take the heading from. Action: a, Parameter: keyframes[1]"
+			)
+			assert.is_true(result.ok) -- a warning, not an error
+		end)
+
+		it("allows one look-at target per keyframe", function()
+			V.assertMessage(
+				validateKeyframes({
+					{ position = { x = 0, z = 0 }, lookAtUnitName = "hero", lookAtPosition = { x = 1, z = 1 } },
+				}),
+				"Keyframe has more than one look-at target, use one of: 'lookAtPosition', 'lookAtUnitName'. Action: a, Parameter: keyframes[1]"
+			)
+		end)
+
+		it("warns when pitch or yaw accompany a look-at target", function()
+			local result =
+				validateKeyframes({ { position = { x = 0, z = 0 }, lookAtPosition = { x = 1, z = 1 }, pitch = 30 } })
+
+			V.assertMessage(
+				result,
+				"Keyframe pitch and yaw are ignored while it looks at a target. Action: a, Parameter: keyframes[1]"
+			)
+			assert.is_true(result.ok)
 		end)
 	end)
 end)

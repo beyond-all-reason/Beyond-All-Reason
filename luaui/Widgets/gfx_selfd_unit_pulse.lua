@@ -89,11 +89,9 @@ local function stopPulse(unitID)
 end
 
 local function checkUnit(unitID, frame)
+	-- nil when not counting down (engine 2026.09+), gone, or no longer ours to read
 	local left = spGetUnitSelfDTime(unitID)
-	if left == nil then -- gone, or no longer ours to read
-		stopPulse(unitID)
-		watched[unitID] = nil
-	elseif left > 0 then
+	if left and left > 0 then
 		watched[unitID] = true
 		local finish = frame + left * FRAMES_PER_STEP
 		local written = endFrames[unitID]
