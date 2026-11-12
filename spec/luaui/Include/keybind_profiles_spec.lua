@@ -349,6 +349,55 @@ describe("ordering a chain bind against the keyset that is just its tail", funct
 
 		assert.are.same({ "g,g,g", "g,g", "g" }, order)
 	end)
+
+	-- CGuiHandler::KeyPressed cycles targeted orders: each repeat of the key starts one past the
+	-- order the last tap picked, so the nth tap only reaches the nth order with shorter chains first.
+	it("writes targeted orders shortest chain first", function()
+		local order = bindOrder({
+			{ keyset = "sc_a,sc_a,sc_a", action = "manualfire" },
+			{ keyset = "sc_a,sc_a", action = "areaattack" },
+			{ keyset = "sc_a", action = "attack" },
+		})
+
+		assert.are.same({ "sc_a", "sc_a,sc_a", "sc_a,sc_a,sc_a" }, order)
+	end)
+
+	it("counts build orders as targeted", function()
+		local order = bindOrder({
+			{ keyset = "g,g", action = "buildunit_armsolar" },
+			{ keyset = "g", action = "buildunit_armmex" },
+		})
+
+		assert.are.same({ "g", "g,g" }, order)
+	end)
+
+	it("writes a targeted order ahead of any longer chain ending in it", function()
+		local order = bindOrder({
+			{ keyset = "g,g", action = "wait" },
+			{ keyset = "g", action = "attack" },
+		})
+
+		assert.are.same({ "g", "g,g" }, order)
+	end)
+
+	it("keeps the longest chain first when the shorter one is not a targeted order", function()
+		local order = bindOrder({
+			{ keyset = "g", action = "wait" },
+			{ keyset = "g,g", action = "attack" },
+		})
+
+		assert.are.same({ "g,g", "g" }, order)
+	end)
+
+	it("settles a chain mixing targeted and untargeted actions by its shortest bind", function()
+		local order = bindOrder({
+			{ keyset = "g,g", action = "probe_chain" },
+			{ keyset = "g,g,g", action = "manualfire" },
+			{ keyset = "g", action = "attack" },
+		})
+
+		assert.are.same({ "g", "g,g,g", "g,g" }, order)
+	end)
 end)
 
 describe("inferring which shipped profile a keymap came from", function()

@@ -63,6 +63,7 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
 	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
+	GG["MissionAPI"].Modules.Orders = VFS.Include("luarules/mission_api/orders.lua")
 	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
 	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
 	GG["MissionAPI"].Modules.Stages = VFS.Include("luarules/mission_api/stages.lua")
@@ -226,6 +227,11 @@ function gadget:GameFrame(frameNumber)
 	GG["MissionAPI"].Modules.Sounds.ProcessSoundQueue(frameNumber)
 	GG["MissionAPI"].Modules.Effects.ClearExpiredEffects(frameNumber)
 	GG["MissionAPI"].Modules.AreaTracking.UpdateTrackedAreas()
+	GG["MissionAPI"].Modules.Orders.UpdateWaits(frameNumber)
+end
+
+function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factoryID)
+	GG["MissionAPI"].Modules.Orders.OnUnitFromFactory(unitID, factoryID)
 end
 
 function gadget:GameOver()

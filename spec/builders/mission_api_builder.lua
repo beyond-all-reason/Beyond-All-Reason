@@ -49,7 +49,7 @@ end, math.huge)
 ---@class MissionApiMockCalls
 ---@field spawnUnitLoadout table
 ---@field spawnFeatureLoadout table
----@field convertOrdersTargetingNames table
+---@field giveOrders table
 ---@field playSound table
 ---@field enqueueSound table
 ---@field processSoundQueue table
@@ -350,7 +350,7 @@ function MB:Build(installed)
 
 	local spawnUnitCalls = {}
 	local spawnFeatureCalls = {}
-	local convertOrdersCalls = {}
+	local giveOrdersCalls = {}
 	local playSoundCalls = {}
 	local enqueueSoundCalls = {}
 	local processSoundQueueCalls = {}
@@ -370,16 +370,17 @@ function MB:Build(installed)
 	local activateTriggerCalls = {}
 
 	local loadout = {
-		-- Identity by default, matching the no-op conversion case.
-		ConvertOrdersTargetingNames = function(orders)
-			convertOrdersCalls[#convertOrdersCalls + 1] = { orders = orders }
-			return orders
-		end,
 		SpawnUnitLoadout = function(unitLoadout)
 			spawnUnitCalls[#spawnUnitCalls + 1] = { loadout = unitLoadout }
 		end,
 		SpawnFeatureLoadout = function(featureLoadout)
 			spawnFeatureCalls[#spawnFeatureCalls + 1] = { loadout = featureLoadout }
+		end,
+	}
+
+	local missionOrders = {
+		GiveOrders = function(unitIDs, orders)
+			giveOrdersCalls[#giveOrdersCalls + 1] = { unitIDs = unitIDs, orders = orders }
 		end,
 	}
 
@@ -476,6 +477,7 @@ function MB:Build(installed)
 	local modules = {
 		Tracking = tracking,
 		Loadout = loadout,
+		Orders = missionOrders,
 		Sounds = sounds,
 		Stages = stages,
 		Objectives = objectives,
@@ -528,7 +530,7 @@ function MB:Build(installed)
 		calls = {
 			spawnUnitLoadout = spawnUnitCalls,
 			spawnFeatureLoadout = spawnFeatureCalls,
-			convertOrdersTargetingNames = convertOrdersCalls,
+			giveOrders = giveOrdersCalls,
 			playSound = playSoundCalls,
 			enqueueSound = enqueueSoundCalls,
 			processSoundQueue = processSoundQueueCalls,
@@ -551,7 +553,6 @@ function MB:Build(installed)
 			local tracked = {
 				spawnUnitCalls,
 				spawnFeatureCalls,
-				convertOrdersCalls,
 				playSoundCalls,
 				enqueueSoundCalls,
 				processSoundQueueCalls,

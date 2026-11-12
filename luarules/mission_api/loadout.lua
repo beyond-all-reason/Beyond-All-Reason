@@ -3,9 +3,7 @@
 ---
 
 local tracking = GG["MissionAPI"].Modules.Tracking
-
-local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
-local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
+local missionOrders = GG["MissionAPI"].Modules.Orders
 
 --- Units
 
@@ -60,57 +58,9 @@ local function spawnUnit(unit, pos)
 	return unitID
 end
 
-local function convertOrdersTargetingNames(orders)
-	local commandsAcceptingName = {
-		[CMD.GUARD] = true,
-		[CMD.REPAIR] = true,
-		[CMD.CAPTURE] = true,
-		[CMD.ATTACK] = true,
-		[CMD.LOAD_UNITS] = true,
-		[CMD.RECLAIM] = true,
-		[CMD.RESURRECT] = true,
-	}
-
-	-- Replace name param with unitIDs or featureIDs, duplicating order for each unitID.
-	-- A name with nothing behind it gives no order, and the orders around it stay as written.
-	local newOrders = {}
-	for _, order in ipairs(orders or {}) do
-		local commandID = order[1]
-		local params = order[2] or {}
-
-		if commandsAcceptingName[commandID] and type(params) == "table" and (params.unitName or params.featureName) then
-			local thingIDs
-			local offset = 0
-			if params.featureName then
-				thingIDs = trackedFeatureIDs[params.featureName]
-				if not Engine.FeatureSupport.noOffsetForFeatureID then
-					offset = Game.maxUnits
-				end
-			elseif params.unitName then
-				thingIDs = trackedUnitIDs[params.unitName]
-			end
-
-			-- Copies, so the mission's own options table is never handed on or changed.
-			local options = table.copy(order[3] or {})
-			local queuedOptions = table.copy(options)
-			if not table.contains(queuedOptions, "shift") then
-				queuedOptions[#queuedOptions + 1] = "shift"
-			end
-			local targetOptions = options
-			for thingID in pairs(thingIDs or {}) do
-				newOrders[#newOrders + 1] = { commandID, thingID + offset, targetOptions }
-				targetOptions = queuedOptions
-			end
-		else
-			newOrders[#newOrders + 1] = order
-		end
-	end
-
-	return newOrders
-end
-
 local function spawnUnitLoadout(unitLoadout)
-	for _, unit in ipairs(unitLoadout or {}) do
+	local entryUnitIDs = {}
+	for index, unit in ipairs(unitLoadout or {}) do
 		local spacing = unit.spacing or 0
 		---@type table
 		local unitDef = UnitDefNames[unit.unitDefName]
@@ -133,16 +83,19 @@ local function spawnUnitLoadout(unitLoadout)
 
 		local center = unit.position
 		local positions = generateGridPositions(center.x, center.y, center.z, unit.quantity or 1, xsize, zsize)
+		local spawnedUnitIDs = {}
 		for _, pos in ipairs(positions) do
 			if snapToBuildGrid then
 				pos.x, pos.y, pos.z = Spring.Pos2BuildPos(unitDef.id, pos.x, pos.y, pos.z, buildFacing)
 			end
-			local unitID = spawnUnit(unit, pos)
-			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
-			GG["MissionAPI"].issuingOrders = true
-			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
-			GG["MissionAPI"].issuingOrders = nil
+			spawnedUnitIDs[spawnUnit(unit, pos)] = true
 		end
+		entryUnitIDs[index] = spawnedUnitIDs
+	end
+
+	-- Orders can target the units of any entry.
+	for index, unit in ipairs(unitLoadout or {}) do
+		missionOrders.GiveOrders(entryUnitIDs[index], unit.orders)
 	end
 end
 
@@ -177,7 +130,6 @@ local function spawnFeatureLoadout(featureLoadout)
 end
 
 return {
-	ConvertOrdersTargetingNames = convertOrdersTargetingNames,
 	SpawnUnitLoadout = spawnUnitLoadout,
 	SpawnFeatureLoadout = spawnFeatureLoadout,
 }
