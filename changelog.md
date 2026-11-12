@@ -23,6 +23,7 @@
   - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
   - Resigning during a pause would turn players into spectators who could not unpause, and the game would never end.
   - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
+  - Prevented an uncommon crash caused by units being deleted mid-update when a team is wiped out after losing.
 
 # October
 - [Lava] will now damage unit wrecks, rocks, and other metal containing features.
