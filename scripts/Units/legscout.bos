@@ -4,7 +4,7 @@
 
 piece body, mount, gun, ammo, barrel, lTyre, rTyre, flare;
 
-static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, moveSpeed, wheelSpeed, oldHeading, wpn1_lasthead;
+static-var  restore_delay, oldHeading, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
