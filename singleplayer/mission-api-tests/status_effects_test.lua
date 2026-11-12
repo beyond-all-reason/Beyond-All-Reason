@@ -22,28 +22,28 @@ local triggers = {
 		actions = { 'spawnTowers', 'spawnContacts', 'patrolWest', 'patrolEast', 'messageIntro' },
 	},
 
-	applyNoRadar = {
+	applyDisableRadar = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
-		actions = { 'applyNoRadar', 'messageApplyNoRadar' },
+		actions = { 'applyDisableRadar', 'messageApplyDisableRadar' },
 	},
 
-	clearNoRadar = {
+	clearDisableRadar = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 10,
 		},
-		actions = { 'clearNoRadar', 'messageClearNoRadar' },
+		actions = { 'clearDisableRadar', 'messageClearDisableRadar' },
 	},
 
-	applyTimedNoRadar = {
+	applyTimedDisableRadar = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 15,
 		},
-		actions = { 'applyTimedNoRadar', 'messageApplyTimedNoRadar' },
+		actions = { 'applyTimedDisableRadar', 'messageApplyTimedDisableRadar' },
 	},
 
 	spawnJammer = {
@@ -120,50 +120,50 @@ local actions = {
 		},
 	},
 
-	applyNoRadar = {
+	applyDisableRadar = {
 		type = actionTypes.ApplyStatusEffect,
 		parameters = {
-			effectType = 'NoRadar',
+			effectType = 'DisableRadar',
 			effectName = 'fog',
 			area = { x = 1600, z = 1600, radius = 100 },
 		},
 	},
 
-	messageApplyNoRadar = {
+	messageApplyDisableRadar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "No Radar applied: the western patrol drops off radar.",
+			messageKey = "Disable Radar applied: the western patrol drops off radar.",
 		},
 	},
 
-	clearNoRadar = {
+	clearDisableRadar = {
 		type = actionTypes.ClearStatusEffect,
 		parameters = {
 			effectName = 'fog',
 		},
 	},
 
-	messageClearNoRadar = {
+	messageClearDisableRadar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "No Radar cleared: the western patrol is back on radar.",
+			messageKey = "Disable Radar cleared: the western patrol is back on radar.",
 		},
 	},
 
-	applyTimedNoRadar = {
+	applyTimedDisableRadar = {
 		type = actionTypes.ApplyStatusEffect,
 		parameters = {
-			effectType = 'NoRadar',
+			effectType = 'DisableRadar',
 			effectName = 'timedFog',
 			area = { x = 1600, z = 1600, radius = 100 },
 			duration = 5,
 		},
 	},
 
-	messageApplyTimedNoRadar = {
+	messageApplyTimedDisableRadar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "No Radar applied for 5 seconds: the western patrol comes back on radar on its own.",
+			messageKey = "Disable Radar applied for 5 seconds: the western patrol comes back on radar on its own.",
 		},
 	},
 

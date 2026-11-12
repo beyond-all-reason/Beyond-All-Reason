@@ -4,7 +4,7 @@
 
 local function setJammerMultiplier(unitIDs, multiplier, trackingID)
 	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
-	local source = "NoJamming" .. trackingID
+	local source = "DisableJamming" .. trackingID
 	for i = 1, #unitIDs do
 		setUnitModifier(unitIDs[i], "jammerRadius", multiplier, source)
 	end

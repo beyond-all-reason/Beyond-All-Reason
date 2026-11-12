@@ -4,7 +4,7 @@
 
 local function setRadarMultiplier(unitIDs, multiplier, trackingID)
 	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
-	local source = "NoRadar" .. trackingID
+	local source = "DisableRadar" .. trackingID
 	for i = 1, #unitIDs do
 		setUnitModifier(unitIDs[i], "radarRadius", multiplier, source)
 	end

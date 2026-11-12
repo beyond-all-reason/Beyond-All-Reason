@@ -12,9 +12,9 @@ end
 local areaTracking = MissionSpecEnv.include(env, "luarules/mission_api/area_tracking.lua")
 GG["MissionAPI"].Modules.AreaTracking = areaTracking
 
-local effect = MissionSpecEnv.include(env, "luarules/mission_api/effects/no_radar.lua")
+local effect = MissionSpecEnv.include(env, "luarules/mission_api/effects/disable_radar.lua")
 
-describe("mission_api.effects.no_radar", function()
+describe("mission_api.effects.disable_radar", function()
 	local AREA = { x = 100, z = 100, radius = 50 }
 	local multipliers, createdIDs
 
