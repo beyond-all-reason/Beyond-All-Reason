@@ -5,7 +5,7 @@ return {
 		canmanualfire = true,
 		canmove = true,
 		cantbetransported = true,
-		collisionvolumeoffsets = "0 -12.6 0",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "88 35 68",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
