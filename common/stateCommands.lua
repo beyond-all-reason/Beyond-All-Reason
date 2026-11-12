@@ -1,10 +1,19 @@
--- The commands that set a unit state, by their CMD or GameCMD name, and the values each takes.
--- Command descriptions differ per unit and can change, so the engine has no list to read; this one
--- is kept by hand. Add a new state command of the game here.
+-- List of stateful commands and their states, because command descriptions do not exist outside of
+-- a unit existing, and are mutable per unit, thus this data cannot be derived
+-- A state is a CMD constant by name, or its number where CMD names none.
 return {
 	-- Engine
-	FIRE_STATE = { 0, 1, 2, 3 }, -- hold fire, return fire, fire at will, fire at neutral
-	MOVE_STATE = { 0, 1, 2 }, -- hold position, maneuver, roam
+	FIRE_STATE = {
+		"FIRESTATE_HOLDFIRE",
+		"FIRESTATE_RETURNFIRE",
+		"FIRESTATE_FIREATWILL",
+		"FIRESTATE_FIREATNEUTRAL",
+	},
+	MOVE_STATE = {
+		"MOVESTATE_HOLDPOS",
+		"MOVESTATE_MANEUVER",
+		"MOVESTATE_ROAM",
+	},
 	ONOFF = { 0, 1 },
 	REPEAT = { 0, 1 },
 	CLOAK = { 0, 1 },
