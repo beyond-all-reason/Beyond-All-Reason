@@ -1,15 +1,9 @@
 
 #include "../recoil_common_includes.h"
 
-
-// One sixth of the full cycle duration, in millisecond
-// The larger this value the slower the walk animation
-//#define WALK_PERIOD 100
-
-
 piece	flare, base, turret, barrel, leg1a, leg1b, leg2a, leg2b, leg3a, leg3b, leg4a, leg4b, leg5a, leg5b, leg6a, leg6b, aimy1, emplight;
 
-static-var fire_count, firing, notBuilding, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
+static-var restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, Stunned;
 
 #define SIGNAL_AIM1 256
 #define SIGNAL_SHOOT1 16
@@ -18,7 +12,6 @@ static-var fire_count, firing, notBuilding, open, maxreloadtime, restore_delay, 
 #define SMOKEPIECE1 body
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armspid_anim_walk.blend 
-	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn leg1a to x-axis <-3.803232> speed <114.096974> / animSpeed; //delta=3.80 
 			turn leg1a to z-axis <-0.253780> speed <7.613403> / animSpeed; //delta=0.25 
@@ -436,10 +429,9 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 2) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		animSpeed = (maxSpeed * 2) / animSpeed;
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>6) animSpeed = 6;
+		if (animSpeed>6) animSpeed = 6;
 		sleep 98;
 	}
 }
@@ -466,17 +458,12 @@ Create()
 {
 	hide flare;
 	hide emplight;
-	notBuilding = 1;
-	fire_count=4;
 	animSpeed = 3;
-	maxreloadtime=0;
-	open=FALSE;
-	firing=FALSE;
 	SLEEP_UNTIL_UNITFINISHED;
 	restore_delay=2000;
 }
 
-SetMaxReloadTime(t)
+SetMaxReloadTime(reloadMS)
 {
 	restore_delay=5000;
 }
@@ -500,20 +487,19 @@ FireWeapon1()
 	return(1);
 }
 
-StartBuilding(heading, pitch)
+StartBuilding(heading)
 {
 	show flare;
-	signal SIGNAL_BUILD;	
+	signal SIGNAL_BUILD;
 	set INBUILDSTANCE to 1;
 	turn turret to y-axis heading speed <100.0>;
 	wait-for-turn turret around y-axis;
-	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
 	hide flare;
-	signal SIGNAL_BUILD;	
+	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
 	sleep 1000;
 	set INBUILDSTANCE to 0;
@@ -525,25 +511,20 @@ QueryNanoPiece(pieceIndex)
 	pieceIndex=flare;
 }
 
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	turn turret to y-axis <0.0> speed <150.0>;
-	//turn turret to x-axis <0.0> speed <150.0>;
 	wait-for-turn turret around y-axis;
-	//wait-for-turn turret around x-axis;
 	wpn1_lasthead = 0xbadface;
-	open=FALSE;
-	firing=FALSE;
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -555,12 +536,10 @@ RestoreAfterDelay()
 
 Activate()
 {
-	return (0);
 }
 
 Deactivate()
 {
-	return (0);
 }
 
 AimWeapon1(heading, pitch)

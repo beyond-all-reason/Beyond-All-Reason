@@ -1,11 +1,12 @@
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
 #include "../recoil_common_includes.h"
 
 piece  aimy1, rfirept, lfirept, pelvis, rfoot, lfoot, launcher, lthigh,
        rthigh, rleg, lleg, turret,rexhaust,lexhaust,lknee,rknee, aimx1;
 
-static-var  gun_1, notMoving, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead;
-static-var  maxSpeed, animFramesPerKeyframe, isMoving;
+static-var  gun_1, animSpeed, wpn1_lasthead;
+static-var  maxSpeed, animFramesPerKeyframe, isMoving, Stunned;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -16,7 +17,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIGNAL_AIM1 256
 
 
-walk() 	// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+Walk()
 {
 	set-signal-mask SIGNAL_MOVE;	if (isMoving) { //Frame:4
 			turn launcher to x-axis <0.700000> speed <155.999983> / animSpeed; 
@@ -327,16 +328,12 @@ UnitSpeed(){
   animSpeed = (get CURRENT_SPEED);
   if (animSpeed<1) animSpeed=1;
   animSpeed = (maxSpeed * 5) / animSpeed; 
-  //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
   if (animSpeed<2) animSpeed=2;
   if (animspeed>8) animSpeed = 8;
   sleep 131;
  }
 }
 
-
-#define DEBUG
-#include "../debug.h"
 
 #define BASEPIECE pelvis
 #define HITSPEED <45.0>
@@ -350,17 +347,17 @@ StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	isMoving = 1;
+	isMoving = TRUE;
 	start-script UnitSpeed();
-	start-script walk();
+	start-script Walk();
 }
 
 
 StopMoving()
 {
 	signal SIGNAL_MOVE;
-	isMoving = 0;
-	start-script StopWalking();
+	isMoving = FALSE;
+	call-script StopWalking();
 }
 
 Create()
@@ -372,13 +369,7 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	gun_1 = aimy1;
-	notMoving = TRUE;
-	currentSpeed = 100;
-	moveSpeed = get MAX_SPEED;
 	animSpeed = 4;
-	hide lfirept;
-	hide rfirept;
-	//start-script StopMoving(); // This would place it in power stance on build?
 }
 
 
@@ -393,21 +384,20 @@ QueryWeapon1(pieceIndex)
 	pieceIndex = rfirept + gun_1;
 }
 
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	turn aimy1 to y-axis <0.0> speed <90.021978>;
 	turn aimx1 to x-axis <0.0> speed <45.010989>;
 	wpn1_lasthead = 0xbadface;
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()

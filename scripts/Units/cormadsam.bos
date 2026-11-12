@@ -1,15 +1,16 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  body, turret, launcher, flare1, flare2, flare3, flare4, flare5, flare6, flare7, flare8;
 
 static-var  barrel, restore_delay, Stunned;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
+
+#define BASEPIECE body
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 ExecuteRestoreAfterDelay()
@@ -48,51 +49,39 @@ Create()
 	barrel = 1;
 
 	restore_delay = 3000;
-	set-signal-mask SIG_AIM;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	set-signal-mask SIGNAL_AIM1;
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script RestoreAfterDelay();
 }
 
-#define SMOKEPIECE body
-#include "smokeunit_thread_nohit.h"
-
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	stop-spin turret around y-axis;
-	turn turret to y-axis heading speed <200.000000>;
-	turn launcher to x-axis 0 - pitch speed <200.000000>;
+	turn turret to y-axis heading speed <200.0>;
+	turn launcher to x-axis 0 - pitch speed <200.0>;
 	wait-for-turn turret around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	
-	piecenum = 3 + barrel;
+	pieceIndex = flare1 + barrel;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = launcher;
+	pieceIndex = launcher;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = body;
-}
-
-FirePrimary()
+FireWeapon1()
 {
 	//looks like intentionally no visual flares on rocket type AA?
 	barrel = barrel + 1;

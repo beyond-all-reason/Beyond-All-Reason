@@ -153,8 +153,11 @@ local costOverrides = {}
 --- KEYBIND VALUES
 -------------------------------------------------------------------------------
 
-include("keysym.h.lua")
 local dynamicBuildOptions = require("common/dynamicBuildOptions")
+local KEY = {
+	ESCAPE = Spring.GetKeyCode("esc"),
+	LSHIFT = Spring.GetKeyCode("shift"),
+}
 
 local keyConfig = require("luaui/configs/keyboard_layouts")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -395,7 +398,7 @@ local function refreshUnitDefs()
 			iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
 		end
 	end
-	dynamicBuildOptions.apply(unitBuildOptions)
+	dynamicBuildOptions.apply(unitBuildOptions, Spring.GetLocalTeamID())
 end
 
 -------------------------------------------------------------------------------
@@ -1265,17 +1268,17 @@ local function multiQueue(uDefID, quantity, cap, opts)
 end
 
 --- unitDefID currently shown in the grid cell at (row, col), or nil.
---- cellRects are indexed row-major: (row - 1) * columns + col
----@param row integer|string 1..rows
----@param col integer|string 1..columns
+--- Rows and columns are the 3x4 grid the keybinds address, even when docked to the bottom.
+---@param row integer|string 1..3
+---@param col integer|string 1..4
 ---@return integer?
 local function getUnitDefIDByRowCol(row, col)
 	row = tonumber(row)
 	col = tonumber(col)
-	if (not row or row < 1 or row > rows) or (not col or col < 1 or col > columns) then
+	if (not row or row < 1 or row > 3) or (not col or col < 1 or col > 4) then
 		return nil
 	end
-	local cell = cellRects[(row - 1) * columns + col]
+	local cell = cellRects[(row - 1) * 4 + col]
 	return cell and cell.opts and cell.opts.uDefID or nil
 end
 
@@ -2814,7 +2817,7 @@ end
 -------------------------------------------------------------------------------
 
 function widget:KeyPress(key, modifier, isRepeat)
-	if key == KEYSYMS.ESCAPE then
+	if key == KEY.ESCAPE then
 		if currentCategory then
 			clearCategory()
 			return true
@@ -2827,7 +2830,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 end
 
 function widget:KeyRelease(key)
-	if key ~= KEYSYMS.LSHIFT then
+	if key ~= KEY.LSHIFT then
 		return
 	end
 
@@ -3070,7 +3073,7 @@ function widget:DrawScreen()
 					math_floor(buildersRectYend - backgroundRect.y),
 					{
 						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
+						format = GL.RGBA8,
 						fbo = true,
 					}
 				)
@@ -3088,12 +3091,13 @@ function widget:DrawScreen()
 				end, true)
 			end
 			if not buildmenuTex then
+				local ss = WG.FlowUI.supersample or 2
 				buildmenuTex = gl.CreateTexture(
-					math_floor(backgroundRect.xEnd - backgroundRect.x) * 2,
-					math_floor(buildersRectYend - backgroundRect.y) * 2,
-					{ --*(vsy<1400 and 2 or 2)
+					math_floor(backgroundRect.xEnd - backgroundRect.x) * ss,
+					math_floor(buildersRectYend - backgroundRect.y) * ss,
+					{
 						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
+						format = GL.RGBA8,
 						fbo = true,
 					}
 				)
@@ -3302,7 +3306,13 @@ end
 
 function widget:PlayerChanged()
 	isSpec = Spring.GetSpectatingState()
+	local previousTeamID = myTeamID
 	myTeamID = Spring.GetLocalTeamID()
+	if myTeamID ~= previousTeamID then
+		-- build options can differ per team
+		refreshUnitDefs()
+		doUpdate = true
+	end
 end
 
 function widget:GetConfigData()
@@ -3361,7 +3371,10 @@ function widget:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	end
 end
 
-function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
+	if teamID and teamID ~= myTeamID then
+		return
+	end
 	local buildOptions = unitBuildOptions[builderUnitDefID]
 	if buildOptions then
 		dynamicBuildOptions.patch(buildOptions, builtUnitDefID, added)

@@ -1,26 +1,19 @@
 
 #include "../recoil_common_includes.h"
-		
-piece 	base, rgturret, rgturretarm, rgsleeve, rgbarrel, rgflare, sleevedeco2;
 
-static-var  isAiming, shotcount;
+piece  base, rgturret, rgturretarm, rgsleeve, rgbarrel, rgflare, sleevedeco2;
+
+static-var  shotcount;
 
 // Signal definitions
-#define SIGNAL_AIM 1
+#define SIGNAL_AIM1 256
 
 Create()
 {
-	isAiming = 0;
 	shotcount = 0;
 	spin sleevedeco2 around z-axis speed <-360> accelerate <6>;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script ExecuteRestoreAfterDelay();
-	return (0);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
 }
 
 static-var  Stunned;
@@ -33,8 +26,6 @@ ExecuteRestoreAfterDelay()
 	turn rgsleeve to x-axis <-15.0> speed <30.0>;
 	turn rgturretarm to x-axis <-15.0> speed <30.0>;
 	wait-for-turn rgturret around y-axis;
-	
-	isAiming = 0;
 }
 SetStunned(State)
 {
@@ -45,21 +36,19 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 8000;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-QueryWeapon1(piecenum) //railgun
+QueryWeapon1(pieceIndex) //railgun
 {
-	piecenum = rgflare;
-	return (0);
+	pieceIndex = rgflare;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = rgturretarm;
-	return (0);
+	pieceIndex = rgturretarm;
 }
 
 FireWeapon1()
@@ -68,13 +57,12 @@ FireWeapon1()
 	++shotcount;
 	move rgbarrel to z-axis [-8] now;
 	move rgbarrel to z-axis [0] speed [5];
-	return (0);
 }
 
 AimWeapon1(heading, pitch)
 {
-	signal SIGNAL_AIM;
-	set-signal-mask SIGNAL_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	turn rgturret to y-axis heading speed <120.0>;
 	
@@ -85,7 +73,6 @@ AimWeapon1(heading, pitch)
 	wait-for-turn rgturretarm around x-axis;
 	wait-for-turn rgsleeve around x-axis;
 	
-	isAiming = 1;
 	start-script RestoreAfterDelay();
 	
 	return (1);

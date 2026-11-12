@@ -4,8 +4,7 @@
 piece  base, base2, base3, flarer1, flarer2, body1, turretg, boreg, barrelg, flareg, neck,
  turretb, boreb, barrelb, flareb, turretr, borer, barrelr, aimpoint;
 
-static-var  gun_3, restore_delay, Static_Var_3, Static_Var_7, Static_Var_8,
-				aimdir;
+static-var  gun_3, restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -125,14 +124,9 @@ Create()
 	hide aimpoint;
 	hide flarer2;
 	hide flarer1;
-    hide flarer1;
-    hide flarer2;
-    hide flareb;
-    hide flareg;
 	gun_3 = 0;
 	isOpen = TRUE;
 	wantOpen = TRUE;
-	Static_Var_3 = 0;
 	restore_delay = 2000;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script FloatMotion(1);
@@ -159,7 +153,6 @@ Deactivate()
 
 SetMaxReloadTime(reloadMS)
 {
-	restore_delay = reloadMS * 4;
 }
 
 AimWeapon1(heading, pitch)
@@ -168,7 +161,6 @@ AimWeapon1(heading, pitch)
 	{
 		return (0);
 	}	
-	aimDir = heading;
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	//We can do this any time

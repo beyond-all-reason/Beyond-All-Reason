@@ -13,6 +13,8 @@
 
 local MemoryGuard = {}
 
+local debugEcho = false
+
 MemoryGuard.OUT_OF_MEMORY = "not enough memory" -- Lua's message for a failed allocation
 MemoryGuard.TRIP_ERROR = "memory limit exceeded"
 
@@ -885,14 +887,16 @@ function MemoryGuard.new(deps)
 		if newCap ~= cap then
 			cap = newCap
 			deps.setCollectorBudget(cap)
-			log(
-				stringFormat(
-					"LuaUI memory %s %d MB in the last minute, garbage collector budget set to %d ms",
-					growth >= 0 and "grew" or "shrank",
-					mb(math.abs(growth)),
-					cap
+			if debugEcho then
+				log(
+					stringFormat(
+						"LuaUI memory %s %d MB in the last minute, garbage collector budget set to %d ms",
+						growth >= 0 and "grew" or "shrank",
+						mb(math.abs(growth)),
+						cap
+					)
 				)
-			)
+			end
 		end
 	end
 
@@ -910,13 +914,15 @@ function MemoryGuard.new(deps)
 		local poolKB = poolUsage()
 		nextCollectKB = poolKB + 0.1 * limitKB
 		trendFrame, trendKB = deps.gameFrame(), gc("count")
-		log(
-			stringFormat(
-				"Gradual garbage collection done, LuaUI now uses %d MB, Lua memory at %d%% of its limit",
-				mb(gc("count")),
-				floor(poolKB / limitKB * 100)
+		if debugEcho then
+			log(
+				stringFormat(
+					"Gradual garbage collection done, LuaUI now uses %d MB, Lua memory at %d%% of its limit",
+					mb(gc("count")),
+					floor(poolKB / limitKB * 100)
+				)
 			)
-		)
+		end
 	end
 
 	local function checkPool(t)

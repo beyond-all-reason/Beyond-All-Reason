@@ -358,4 +358,60 @@ function M.format(src)
 	return lines
 end
 
+---Colours a snippet as it is written, its own line breaks and spacing kept, where format lays the
+---source out again: for examples already laid out by hand (the FlowUI2 guide's).
+---
+---Same kinds as format; the whitespace between parts comes as parts of kind `space`.
+---@param src string
+---@return table lines One per line of the source, each `{ { s = <text>, k = <kind> }, ... }`
+function M.highlight(src)
+	src = string.gsub(src, "\r\n?", "\n")
+	local toks = tokenize(src)
+	markCalls(toks)
+	local lines = { {} }
+
+	-- A part never spans lines: a long comment or string goes on line by line.
+	local function add(s, kind)
+		local from = 1
+		while true do
+			local nl = string.find(s, "\n", from, true)
+			local piece = string.sub(s, from, nl and (nl - 1) or #s)
+			if piece ~= "" then
+				local line = lines[#lines]
+				line[#line + 1] = { s = piece, k = kind }
+			end
+			if not nl then
+				return
+			end
+			lines[#lines + 1] = {}
+			from = nl + 1
+		end
+	end
+
+	local at = 1
+	for i = 1, #toks do
+		local t = toks[i] ---@type { k: string, s: string, call: boolean? }
+		-- Only whitespace lies between tokens, so the token is the first match from there.
+		local start = string.find(src, t.s, at, true)
+		if start then
+			if start > at then
+				add(string.sub(src, at, start - 1), "space")
+			end
+			local kind = t.k
+			if t.call then
+				kind = "call"
+			elseif kind == "op" and PUNCT[t.s] then
+				kind = "punct"
+			end
+			add(t.s, kind)
+			at = start + #t.s
+		end
+	end
+	if at <= #src then
+		add(string.sub(src, at), "space")
+	end
+
+	return lines
+end
+
 return M

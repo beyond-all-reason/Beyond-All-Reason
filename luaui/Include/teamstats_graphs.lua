@@ -14,7 +14,15 @@
 local Custom = require("luaui/Include/teamstats_custom")
 local Editbox = require("luaui/Include/keybind_editbox")
 local Graph = require("luaui/Include/graph")
-local KEYSYMS = require("luaui/Include/keybind_keysyms")
+local KEYCODE = {
+	RETURN = Spring.GetKeyCode("return"),
+	KP_ENTER = Spring.GetKeyCode("numpad_enter"),
+	ESCAPE = Spring.GetKeyCode("esc"),
+	LEFT = Spring.GetKeyCode("left"),
+	UP = Spring.GetKeyCode("up"),
+	RIGHT = Spring.GetKeyCode("right"),
+	DOWN = Spring.GetKeyCode("down"),
+}
 
 local mathFloor = math.floor
 local mathMax = math.max
@@ -336,6 +344,8 @@ local REPORT_BUILT = { 0.45, 0.45, 0.45 }
 local REPORT_ROWS = 250
 -- How many of its rows a notch of the wheel scrolls the open report card by.
 local REPORT_WHEEL = 3
+-- Seconds a notch of the wheel takes the grid of charts to ease to its next row (in and out).
+local GRID_EASE_TIME = 0.18
 -- How often the report card's records are asked for while it is on the page.
 local UNITS_FRAMES = 150
 -- The charts of one whole in its parts, a band each: what the losses were lost to, where
@@ -622,6 +632,14 @@ function M.new(ctx)
 		perPage = 12,
 		scroll = 0,
 		maxScroll = 0,
+		-- The row the grid shows, eased to `scroll` after the wheel (fractional between rows), its speed (rows a
+		-- second), the row the charts were built from and the rows built past the page (1 while it eases).
+		shown = 0,
+		speed = 0,
+		easing = false,
+		gridBase = 0,
+		gridExtra = 0,
+		gridStep = 0,
 		---@type table[]
 		miniCharts = {},
 		---@type table?
@@ -2445,6 +2463,7 @@ function M.new(ctx)
 			end
 			local whose = (team.nameColor or "") .. team.name
 			local text = whose .. "\n" .. ctx.colors.title .. Graph.frameLabel(m.frame) .. "  " .. label
+			local notes = {}
 			-- What a strike, or a nuke's hit, cost: how many units, what they were worth in
 			-- metal, and what share of the side they were.
 			if m.value and m.share and (STRIKES[kind] or kind == "nuked") then
@@ -2453,14 +2472,11 @@ function M.new(ctx)
 				local units = m.count == 1 and ctx.i18n("ui.teamStats.mark.unitOne")
 					or m.count and ctx.i18n("ui.teamStats.mark.units", { count = m.count })
 					or ctx.i18n("ui.teamStats.mark.unitsSome")
-				text = text
-					.. "\n"
-					.. ctx.colors.dim
-					.. ctx.i18n("ui.teamStats.mark." .. of, {
-						units = units,
-						value = valueText(nil, m.value),
-						share = percentFormat(m.share * 100),
-					})
+				notes[#notes + 1] = ctx.i18n("ui.teamStats.mark." .. of, {
+					units = units,
+					value = valueText(nil, m.value),
+					share = percentFormat(m.share * 100),
+				})
 			end
 			-- The ones its stretch had no room for.
 			if c.hidden then
@@ -2472,10 +2488,8 @@ function M.new(ctx)
 					end
 					shownNames[#shownNames + 1] = labelOf(h.m, h.kind)
 				end
-				text = text
-					.. "\n"
-					.. ctx.colors.dim
-					.. ctx.i18n("ui.teamStats.mark.more", { count = #c.hidden, names = tableConcat(shownNames, ", ") })
+				notes[#notes + 1] =
+					ctx.i18n("ui.teamStats.mark.more", { count = #c.hidden, names = tableConcat(shownNames, ", ") })
 			end
 			local lane = lanes[unit.key]
 			local y = nil
@@ -2501,7 +2515,7 @@ function M.new(ctx)
 				texture = ud and ("#" .. m.unitDefID) or (died and SKULL or nil),
 				zoom = died and 0 or nil,
 				backdrop = died and SKULL_BACKDROP or nil,
-				text = text,
+				text = #notes > 0 and { text = text, note = tableConcat(notes, "\n") } or text,
 				series = indexByKey and indexByKey[unit.key] or nil,
 				frame = { team.accent[1], team.accent[2], team.accent[3] },
 				badge = badgeKey and BADGES[badgeKey] or nil,
@@ -2950,7 +2964,7 @@ function M.new(ctx)
 			return a.defID < b.defID
 		end)
 		local color = #of == 1 and of[1].color or REPORT_COLOR
-		local title, dim = ctx.colors.title, ctx.colors.dim
+		local dim = ctx.colors.dim
 		local rows = {}
 		for i = 1, mathMin(#list, REPORT_ROWS) do
 			local e = list[i]
@@ -2958,23 +2972,20 @@ function M.new(ctx)
 			local s, ud = e.s, e.ud
 			local name = ud.translatedHumanName or ud.humanName or ud.name
 			local valueText = siText(s.killed)
-			local lines = { title .. name }
+			local tip = {}
 			if s.built > 0 then
-				lines[#lines + 1] = dim
-					.. ctx.i18n(
-						"ui.teamStats.report.built",
-						{ count = title .. siText(s.built) .. dim, value = title .. siText(s.builtValue) .. dim }
-					)
+				tip[#tip + 1] = {
+					ctx.i18n("ui.teamStats.report.builtRow"),
+					ctx.i18n("ui.teamStats.report.worth", { count = siText(s.built), value = siText(s.builtValue) }),
+				}
 			end
 			if s.lost > 0 then
-				lines[#lines + 1] = dim
-					.. ctx.i18n(
-						"ui.teamStats.report.lost",
-						{ count = title .. siText(s.lost) .. dim, value = title .. siText(s.lostValue) .. dim }
-					)
+				tip[#tip + 1] = {
+					ctx.i18n("ui.teamStats.report.lostRow"),
+					ctx.i18n("ui.teamStats.report.worth", { count = siText(s.lost), value = siText(s.lostValue) }),
+				}
 			end
-			lines[#lines + 1] = dim
-				.. ctx.i18n("ui.teamStats.report.killed", { value = title .. siText(s.killed) .. dim })
+			tip[#tip + 1] = { ctx.i18n("ui.teamStats.report.killedRow"), siText(s.killed) }
 			-- How many times over it paid for itself, once it destroyed anything.
 			if s.builtValue > 0 and s.killed > 0 then
 				local paid = s.killed / s.builtValue
@@ -2990,11 +3001,10 @@ function M.new(ctx)
 					times = "<0.01"
 				end
 				valueText = valueText .. dim .. "  " .. times .. "\195\151"
-				lines[#lines + 1] = dim .. ctx.i18n("ui.teamStats.report.paid", { times = title .. times .. dim })
+				tip[#tip + 1] = { ctx.i18n("ui.teamStats.report.paidRow"), times .. "\195\151" }
 			end
 			if s.damage > 0 then
-				lines[#lines + 1] = dim
-					.. ctx.i18n("ui.teamStats.report.damage", { value = title .. siText(s.damage) .. dim })
+				tip[#tip + 1] = { ctx.i18n("ui.teamStats.report.damageRow"), siText(s.damage) }
 			end
 			rows[i] = {
 				name = name,
@@ -3003,7 +3013,7 @@ function M.new(ctx)
 				color = color,
 				texture = "#" .. e.defID,
 				valueText = valueText,
-				text = tableConcat(lines, "\n"),
+				text = { text = name, rows = tip },
 			}
 		end
 		return rows, #list - #rows
@@ -3475,8 +3485,9 @@ function M.new(ctx)
 		return chosen
 	end
 
-	-- The grid's cells, left to right and top to bottom over the chart's room.
-	local function gridCells(spec)
+	-- The grid's cells, left to right and top to bottom over the chart's room; `extra` rows more under it
+	-- (the grid easing between rows slides them up into it).
+	local function gridCells(spec, extra)
 		local r = page.rects
 		---@type [number, number, number, number][]
 		local cells = {}
@@ -3487,7 +3498,8 @@ function M.new(ctx)
 		local gap = mathFloor(8 * page.scale)
 		local w = mathFloor(((x2 - x1) - gap * (spec.cols - 1)) / spec.cols)
 		local h = mathFloor(((y2 - y1) - gap * (spec.rows - 1)) / spec.rows)
-		for i = 1, spec.cols * spec.rows do
+		page.gridStep = h + gap
+		for i = 1, spec.cols * (spec.rows + (extra or 0)) do
 			local col = (i - 1) % spec.cols
 			local row = mathFloor((i - 1) / spec.cols)
 			local cx = x1 + col * (w + gap)
@@ -3521,12 +3533,19 @@ function M.new(ctx)
 				list[#list + 1] = entry
 			end
 		end
-		local cells = gridCells(spec)
 		local rows = math.ceil(#list / spec.cols)
 		page.maxScroll = mathMax(0, rows - spec.rows)
 		page.scroll = mathMax(0, mathMin(page.scroll, page.maxScroll))
-		local first = page.scroll * spec.cols + 1
-		local last = mathMin(#list, first + spec.cols * spec.rows - 1)
+		-- easing: the charts from the row it is past, and the one after the page's (drawGrid slides them)
+		local base, extra = page.scroll, 0
+		if page.easing then
+			base = mathMax(0, mathMin(page.maxScroll, mathFloor(page.shown)))
+			extra = base < page.maxScroll and 1 or 0
+		end
+		page.gridBase, page.gridExtra = base, extra
+		local cells = gridCells(spec, extra)
+		local first = base * spec.cols + 1
+		local last = mathMin(#list, first + spec.cols * (spec.rows + extra) - 1)
 		local fs = mathMax(8, mathFloor(ctx.metrics.rowFs * (spec.cols > 3 and 0.8 or 0.9)))
 		page.miniCharts = {}
 		for i = first, last do
@@ -3589,7 +3608,7 @@ function M.new(ctx)
 			return 0, 0, 0
 		end
 		local rowH = (r.chart[4] - r.chart[2]) / spec.rows
-		return (page.maxScroll + spec.rows) * rowH, page.scroll * rowH, rowH
+		return (page.maxScroll + spec.rows) * rowH, page.shown * rowH, rowH
 	end
 
 	-- The bar dragged to an offset in pixels: the nearest row of the grid.
@@ -3600,7 +3619,7 @@ function M.new(ctx)
 		end
 		local to = mathMax(0, mathMin(page.maxScroll, mathFloor(offset / rowH + 0.5)))
 		if to ~= page.scroll then
-			page.scroll = to
+			page.scroll, page.shown, page.speed, page.easing = to, to, 0, false
 			page.dirty = true
 			page.gen = page.gen + 1
 		end
@@ -4363,9 +4382,9 @@ function M.new(ctx)
 		if not naming then
 			return false
 		end
-		if key == KEYSYMS.RETURN or key == KEYSYMS.KP_ENTER then
+		if key == KEYCODE.RETURN or key == KEYCODE.KP_ENTER then
 			page.stopNaming(true)
-		elseif key == KEYSYMS.ESCAPE then
+		elseif key == KEYCODE.ESCAPE then
 			page.stopNaming(false)
 		else
 			naming.box:keyPress(key)
@@ -4626,16 +4645,19 @@ function M.new(ctx)
 			drawMinis(minis)
 			return
 		end
-		if not gridCurrent(minis, x, y, w, h) then
-			if not gridTex.tex or gridTex.w ~= w or gridTex.h ~= h then
+		-- easing between rows: the row under the page's room too, the texture that much taller below it
+		local extend = (page.easing and page.gridExtra > 0) and math.ceil(page.gridStep) or 0
+		local ty, th = y - extend, h + extend
+		if not gridCurrent(minis, x, ty, w, th) then
+			if not gridTex.tex or gridTex.w ~= w or gridTex.h ~= th then
 				page.dropGridTexture()
-				gridTex.tex = gl.CreateTexture(w, h, { target = GL.TEXTURE_2D, format = GL.RGBA, fbo = true })
+				gridTex.tex = gl.CreateTexture(w, th, { target = GL.TEXTURE_2D, format = GL.RGBA8, fbo = true })
 				if not gridTex.tex then
 					drawMinis(minis)
 					return
 				end
 			end
-			helper.RenderInRect(gridTex.tex, x, y, x + w, y + h, function()
+			helper.RenderInRect(gridTex.tex, x, ty, x + w, ty + th, function()
 				drawMinis(minis)
 			end, true)
 			local drawn = gridTex.drawn
@@ -4646,12 +4668,48 @@ function M.new(ctx)
 				local c = minis[i].chart
 				drawn[i * 2 - 1], drawn[i * 2] = c, c.list
 			end
-			gridTex.x, gridTex.y, gridTex.w, gridTex.h, gridTex.valid = x, y, w, h, true
+			gridTex.x, gridTex.y, gridTex.w, gridTex.h, gridTex.valid = x, ty, w, th, true
+		end
+		if extend > 0 then
+			-- the part of it in the grid's room, slid up as far as the rows have eased past the first
+			local off = mathMax(0, mathMin(1, page.shown - page.gridBase)) * extend
+			gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+			gl.Color(1, 1, 1, 1)
+			gl.Texture(gridTex.tex)
+			gl.TexRect(x, y, x + w, y + h, 0, (extend - off) / th, 1, (extend + h - off) / th)
+			gl.Texture(false)
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			return
 		end
 		helper.BlendTexRect(gridTex.tex, x, y, x + w, y + h, true)
 	end
 
+	-- The grid's rows eased to where the wheel scrolled them: a critically damped spring, so a notch eases in
+	-- and out and notches in a row keep its speed; anything else puts them there at once. Its charts are
+	-- built again as it passes a row, and at rest.
+	function page.easeScroll()
+		local now = Spring.GetTimer()
+		local dt = page.clock and mathMin(0.1, Spring.DiffTimers(now, page.clock)) or 0
+		page.clock = now
+		if not page.easing then
+			page.shown, page.speed = page.scroll, 0
+			return
+		end
+		local w = 6.5 / GRID_EASE_TIME
+		local e, v = page.shown - page.scroll, page.speed
+		local c, k = v + w * e, math.exp(-w * dt)
+		e, v = (e + c * dt) * k, (v - w * c * dt) * k
+		page.shown, page.speed = page.scroll + e, v
+		if mathAbs(e) < 0.002 and mathAbs(v) < 0.05 then
+			page.shown, page.speed, page.easing = page.scroll, 0, false
+			page.dirty = true
+		elseif mathMax(0, mathMin(page.maxScroll, mathFloor(page.shown))) ~= page.gridBase then
+			page.dirty = true
+		end
+	end
+
 	function page.drawChart(mx, my)
+		page.easeScroll()
 		if page.dirty then
 			page.build()
 		elseif page.stale then
@@ -4659,8 +4717,9 @@ function M.new(ctx)
 		end
 		local r = page.rects
 		local inside = r and mx >= r.chart[1] and mx <= r.chart[3] and my >= r.chart[2] and my <= r.chart[4]
-		-- The card of kinds lies over the charts: what is under it is not under the cursor.
-		if page.hover.kind > 0 then
+		-- The card of kinds lies over the charts: what is under it is not under the cursor. Nor is anything
+		-- while the grid eases between rows.
+		if page.hover.kind > 0 or page.easing then
 			inside = false
 		end
 		if page.gridded() then
@@ -4748,10 +4807,10 @@ function M.new(ctx)
 		if page.gridded() then
 			return false
 		end
-		if key == KEYSYMS.LEFT or key == KEYSYMS.UP then
+		if key == KEYCODE.LEFT or key == KEYCODE.UP then
 			page.step(-1)
 			return true
-		elseif key == KEYSYMS.RIGHT or key == KEYSYMS.DOWN then
+		elseif key == KEYCODE.RIGHT or key == KEYCODE.DOWN then
 			page.step(1)
 			return true
 		end
@@ -4772,7 +4831,7 @@ function M.new(ctx)
 		if to == page.scroll then
 			return false
 		end
-		page.scroll = to
+		page.scroll, page.easing = to, true -- (eased there: page.easeScroll)
 		page.dirty = true
 		page.gen = page.gen + 1
 		return true
@@ -5089,7 +5148,7 @@ function M.new(ctx)
 			state = composition and "allCounted" or "alike"
 		end
 		local group = #targets > 1
-		local lines = { ctx.colors.title .. ctx.i18n(L .. "state." .. state) }
+		local notes = {}
 		-- Grouped, a team is one line on the bar: its players are picked apart only with the
 		-- grouping off.
 		local several = false
@@ -5097,13 +5156,13 @@ function M.new(ctx)
 			several = several or #u.members > 1
 		end
 		if grouped() and several then
-			lines[#lines + 1] = ctx.colors.dim .. ctx.i18n(L .. "state.grouped")
+			notes[1] = ctx.i18n(L .. "state.grouped")
 		end
 		local suffix = group and "Group" or ""
 		for _, control in ipairs({ "click", "ctrlClick", "rightClick" }) do
-			lines[#lines + 1] = ctx.colors.dim .. ctx.i18n(L .. "control." .. control .. suffix)
+			notes[#notes + 1] = ctx.i18n(L .. "control." .. control .. suffix)
 		end
-		return table.concat(lines, "\n")
+		return { text = ctx.i18n(L .. "state." .. state), note = table.concat(notes, "\n") }
 	end
 
 	-- What a stat's chart shows, in words: its column's description where it is a column's -
@@ -5129,7 +5188,8 @@ function M.new(ctx)
 		if kindRow then
 			local hint = ctx.i18n("ui.teamStats.graph.kindHint")
 			if DESCRIBED[kindRow.key] then
-				hint = ctx.i18n("ui.teamStats.milestoneDesc." .. kindRow.key) .. "\n" .. ctx.colors.dim .. hint
+				return markName(kindRow.key),
+					{ text = ctx.i18n("ui.teamStats.milestoneDesc." .. kindRow.key), note = hint }
 			end
 			return markName(kindRow.key), hint
 		end
@@ -5140,18 +5200,33 @@ function M.new(ctx)
 			local key = page.miniHit and page.miniHit.key or page.zoom or page.stat
 			local column = ctx.COLUMNS[statOf(key)]
 			local idle = settingsOf(key).share and column and column.fmt == "si" and hovered.cfg.kind ~= "stacked"
-			if page.chartHit and idle and page.chartHit.kind ~= "marker" then
-				desc = (desc or "") .. "\n" .. ctx.colors.dim .. ctx.i18n("ui.teamStats.graph.shareOne")
-			end
+			local note = page.chartHit
+					and idle
+					and page.chartHit.kind ~= "marker"
+					and ctx.i18n("ui.teamStats.graph.shareOne")
+				or nil
 			-- A chart of a grid says what it shows, as its name in the list does, over what is
 			-- under the cursor: small, its title alone may not.
-			if page.miniHit then
-				local about = describeStat(statOf(key))
-				if about then
-					desc = desc and (about .. "\n\n" .. desc) or about
-				end
+			local about = page.miniHit and describeStat(statOf(key)) or nil
+			if not (note or about) then
+				return hovered.cfg.title, desc
 			end
-			return hovered.cfg.title, desc
+			-- A copy: the hit keeps its own while the cursor stays on it.
+			local tip = {}
+			if type(desc) == "table" then
+				for k, v in pairs(desc) do
+					tip[k] = v
+				end
+			else
+				tip.text = desc
+			end
+			if note then
+				tip.note = tip.note and (tip.note .. "\n" .. note) or note
+			end
+			if about then
+				tip.text = tip.text and (about .. "\n\n" .. tip.text) or about
+			end
+			return hovered.cfg.title, tip
 		end
 		if page.hover.stat > 0 then
 			local entry = page.statList[page.hover.stat]
@@ -5163,7 +5238,7 @@ function M.new(ctx)
 			-- says it can be moved or removed.
 			local desc = describeStat(entry.stat or entry.key)
 			if entry.graph then
-				desc = (desc and desc .. "\n" or "") .. ctx.colors.dim .. ctx.i18n("ui.teamStats.custom.graphHint")
+				return entry.label, { text = desc, note = ctx.i18n("ui.teamStats.custom.graphHint") }
 			end
 			return entry.label, desc or ""
 		end

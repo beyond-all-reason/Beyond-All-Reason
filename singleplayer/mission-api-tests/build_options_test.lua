@@ -1,0 +1,249 @@
+---
+--- Build option actions test mission.
+---
+--- Disable/EnableBuildOption grey an option out (team-wide, or for one builder type).
+--- Remove/AddBuildOption take an option out of, or put one into, a builder type's menu, or every menu of one team only.
+--- Select the construction bot and the bot lab to watch the menus change every 5 seconds;
+--- the greyed-out options must also refuse build orders given by hotkey.
+---
+
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+
+local triggers = {
+
+	setup = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 1,
+		},
+		actions = { 'spawnBuilders', 'messageIntro' },
+	},
+
+	disableSolar = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 5,
+		},
+		actions = { 'disableSolar', 'messageDisableSolar' },
+	},
+
+	disableWindForBot = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 10,
+		},
+		actions = { 'enableSolar', 'disableWindForBot', 'messageDisableWindForBot' },
+	},
+
+	removeOptions = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 15,
+		},
+		actions = { 'enableWindForBot', 'removeMexFromBot', 'removePeeweeFromLab', 'messageRemoveOptions' },
+	},
+
+	addOptions = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 20,
+		},
+		actions = { 'addMexToBot', 'addFavToLab', 'messageAddOptions' },
+	},
+
+	hideSolar = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 25,
+		},
+		actions = { 'hideSolar', 'messageHideSolar' },
+	},
+
+	giveEnemyBot = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 30,
+		},
+		actions = { 'giveEnemyBot', 'messageGiveEnemyBot' },
+	},
+
+	showSolar = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 35,
+		},
+		actions = { 'showSolar', 'messageShowSolar' },
+	},
+}
+
+local actions = {
+
+	spawnBuilders = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armck', position = { x = 1800, z = 1600 }, teamName = 'player' },
+				{ unitDefName = 'armlab', position = { x = 2000, z = 1800 }, teamName = 'player' },
+				{ unitDefName = 'armck', position = { x = 1800, z = 1400 }, teamName = 'enemy', unitName = 'enemyBot' },
+			},
+		},
+	},
+
+	messageIntro = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Build options test: select the construction bot and the bot lab; their menus change every 5 s.",
+		},
+	},
+
+	-- Team-wide: greyed out for the commander and the construction bot alike.
+	disableSolar = {
+		type = actionTypes.DisableBuildOption,
+		parameters = {
+			builtDefName ='armsolar',
+			teamName = 'player',
+		},
+	},
+
+	enableSolar = {
+		type = actionTypes.EnableBuildOption,
+		parameters = {
+			builtDefName ='armsolar',
+			teamName = 'player',
+		},
+	},
+
+	messageDisableSolar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Solar collector disabled for the whole team: greyed out for every builder.",
+		},
+	},
+
+	-- Per builder type: only the construction bot loses the wind turbine, the commander keeps it.
+	disableWindForBot = {
+		type = actionTypes.DisableBuildOption,
+		parameters = {
+			builtDefName ='armwin',
+			builderDefName ='armck',
+			teamName = 'player',
+		},
+	},
+
+	enableWindForBot = {
+		type = actionTypes.EnableBuildOption,
+		parameters = {
+			builtDefName ='armwin',
+			builderDefName ='armck',
+			teamName = 'player',
+		},
+	},
+
+	messageDisableWindForBot = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Solar re-enabled. Wind turbine disabled for the construction bot only: the commander can still build it.",
+		},
+	},
+
+	removeMexFromBot = {
+		type = actionTypes.RemoveBuildOption,
+		parameters = {
+			builtDefName ='armmex',
+			builderDefName ='armck',
+		},
+	},
+
+	removePeeweeFromLab = {
+		type = actionTypes.RemoveBuildOption,
+		parameters = {
+			builtDefName ='armpw',
+			builderDefName ='armlab',
+		},
+	},
+
+	messageRemoveOptions = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Wind re-enabled. Metal extractor removed from the construction bot, Pawn removed from the bot lab: gone from their menus.",
+		},
+	},
+
+	addMexToBot = {
+		type = actionTypes.AddBuildOption,
+		parameters = {
+			builtDefName ='armmex',
+			builderDefName ='armck',
+			buildMenuPosition = 1,
+		},
+	},
+
+	addFavToLab = {
+		type = actionTypes.AddBuildOption,
+		parameters = {
+			builtDefName ='armfav',
+			builderDefName ='armlab',
+			buildMenuPosition = 1,
+		},
+	},
+
+	messageAddOptions = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Metal extractor back on the construction bot; the bot lab can now build the Rover. New units of both types get the same options.",
+		},
+	},
+
+	-- For one team: gone from every menu of the player's builders, the enemy's construction bot keeps it.
+	hideSolar = {
+		type = actionTypes.RemoveBuildOption,
+		parameters = {
+			builtDefName = 'armsolar',
+			teamName = 'player',
+		},
+	},
+
+	messageHideSolar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Solar collector removed for the player only: gone from every builder's menu, the enemy's construction bot keeps it.",
+		},
+	},
+
+	-- The given unit takes the player's build options.
+	giveEnemyBot = {
+		type = actionTypes.TransferUnits,
+		parameters = {
+			unitName = 'enemyBot',
+			newTeamName = 'player',
+		},
+	},
+
+	messageGiveEnemyBot = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "The enemy's construction bot is yours now: select it, the solar collector is gone from its menu too.",
+		},
+	},
+
+	showSolar = {
+		type = actionTypes.AddBuildOption,
+		parameters = {
+			builtDefName = 'armsolar',
+			teamName = 'player',
+		},
+	},
+
+	messageShowSolar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Solar collector added back for the player: in every menu again, the given construction bot's too.",
+		},
+	},
+}
+
+return {
+	Triggers = triggers,
+	Actions = actions,
+}

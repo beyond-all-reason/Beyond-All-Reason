@@ -7,9 +7,9 @@ piece  turret, sleeve, barrel, torso, rnano,
 
 
 
-#define SIGNAL_AIM1 2
-#define SIGNAL_BUILD 4
-#define SIGNAL_AIM_TRACKER 8
+#define SIGNAL_AIM1 256
+#define SIGNAL_BUILD 2
+#define SIGNAL_AIM_TRACKER 16384
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -321,14 +321,6 @@ StopMoving(){
 #define MAXTILT 100
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-Lights()
-{
-	while (TRUE){
-		emit-sfx 1024 + 1 from head;
-		sleep 2000;
-	}
-}
-
 AimReadyAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM_TRACKER;
@@ -361,10 +353,9 @@ Create()
 	animSpeed = 5;
 	spray = 0;
 	restore_delay = 3000;
-	//start-script Lights();
 }
 
-StartBuilding(torsoing, pitch, heading)
+StartBuilding(heading, pitch)
 {
 	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
@@ -372,18 +363,14 @@ StartBuilding(torsoing, pitch, heading)
 	show lnano;
 	show rnano;
 
-	// Wait for the torso to rotate to the correct heading before moving the arms into position.
+	turn luparm to x-axis <-45> speed <375.0>;
+	turn larm to x-axis <-45> speed <375.0>;
+	turn ruparm to x-axis <-45> speed <375.0>;
+	turn rarm to x-axis <-45> speed <375.0>;
 	wait-for-turn luparm around x-axis;
-	wait-for-turn ruparm around x-axis;
 
-	turn luparm to x-axis <-45> speed <375.000000>;
-	turn larm to x-axis <-45> speed <375.000000>;
-	turn ruparm to x-axis <-45> speed <375.000000>;
-	turn rarm to x-axis <-45> speed <375.000000>;
-
-	torsoRotation = torsoing;
-	wait-for-turn torso around y-axis;
-	turn aimy1 to y-axis torsoing speed <480.0>;
+	torsoRotation = heading;
+	turn aimy1 to y-axis heading speed <480.0>;
 	wait-for-turn aimy1 around y-axis;
 	turn aimx1 to x-axis heading speed <225.0>;
 	wait-for-turn aimx1 around y-axis;
@@ -402,10 +389,10 @@ StopBuilding()
 	set INBUILDSTANCE to 0;
 
 	torsoRotation = 0;
-	turn luparm to x-axis <0> speed <375.000000>;
-	turn larm to x-axis <0> speed <375.000000>;
-	turn ruparm to x-axis <0> speed <375.000000>;
-	turn rarm to x-axis <0> speed <375.000000>;
+	turn luparm to x-axis <0> speed <375.0>;
+	turn larm to x-axis <0> speed <375.0>;
+	turn ruparm to x-axis <0> speed <375.0>;
+	turn rarm to x-axis <0> speed <375.0>;
 	turn aimy1 to y-axis <0.0> speed <320.0>;
 }
 

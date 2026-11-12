@@ -154,6 +154,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
+				gravityaffected = "true",
 				impactonly = 1,
 				impulsefactor = 0.123,
 				name = "Close-quarters g2g gauss-cannon",

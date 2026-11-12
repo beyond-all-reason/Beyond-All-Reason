@@ -1,5 +1,4 @@
 
-
 #include "../recoil_common_includes.h"
 
 piece  base, flare, tube, doorr, doorl, wake, firing,firing1,firing2, prop1, prop2;
@@ -13,34 +12,16 @@ static-var  restore_delay, shotcount, silo_state, timeLeft, missiles_stockpiled,
 
 //I can't see a way around using state switches here? it has to know what it's doing / has just done
 
-#define BASEPIECE base
-#define HITSPEED <25.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 5
-#define MAXTILT 200
-
-//#include "../unit_hitbyweaponid_and_smoke.h"
-
-#define TB_BASE base 
-#define TB_TURNRATE <30.0> 
+#define TB_BASE base
+#define TB_TURNRATE <30.0>
 #define TB_TILT_X <-0.32>
 #define TB_BANK_Z <0.5> // Do not define this if you dont want banking
 #define TB_WAKE_PIECE base
 #define TB_WAKE_FOAM 1024 + 1
 #include "../tilt_bank_submarine.h"
 
-// Signal definitions
-#define SIGNAL_AIM1				2
-#define SIGNAL_MOVE				4
-#define SIGNAL_AIM2			8
-#define SIGNAL_RESTORE			16
-
-
-Create ()
+Create()
 {
-	//spin prop1 around z-axis speed <400>;
-	//spin prop2 around z-axis speed <400>;
-
 	hide flare;
 	hide firing;
 	hide firing1;
@@ -54,27 +35,22 @@ Create ()
 	call-script TB_Init();
 
 	silo_state = 0;
-	return (0);
 }
 
-
-
-
-SetStunned (State)
+SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 }
 
-
-lua_UnitScriptLight (lightIndex, count) 
+lua_UnitScriptLight(lightIndex, count)
 {
 	return 0;
 }
 
 OpenSilo()
 {
-    start-script TimeToRestore ();
-    timeLeft = restore_delay;
+	start-script TimeToRestore();
+	timeLeft = restore_delay;
 
 	is_firing = 1;
 	show firing;
@@ -117,7 +93,7 @@ CloseSiloDoors()
 
 	turn tube to x-axis <0> speed <15>;
 	wait-for-turn tube around x-axis;
-	
+
 	if (missiles_stockpiled==0) {
 		hide firing;
 		hide firing1;
@@ -139,22 +115,19 @@ CloseSilo_Fired()
 	start-script CloseSiloDoors();
 }
 
-
-
-
-TimeToRestore (addTime){
-	signal SIGNAL_RESTORE;
-	set-signal-mask SIGNAL_RESTORE;
-    // This function may not be signal terminated
-    // If it has to be, it _must_ be immediately restarted
-    // PROBLEM: the time that is slept depends on number of aim calls.
-    while((timeLeft > 1) || Stunned){
-		//get PRINT(timeLeft, get GAME_FRAME);
-        addTime = timeLeft;
-        timeLeft = 1;
-        sleep addTime;//can sometimes sleep 6000 but never wake up again?
-    }
-    // The restore section must be atomic :/
+TimeToRestore(addTime)
+{
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
+	// This function may not be signal terminated
+	// If it has to be, it _must_ be immediately restarted
+	// PROBLEM: the time that is slept depends on number of aim calls.
+	while((timeLeft > 1) || Stunned){
+		addTime = timeLeft;
+		timeLeft = 1;
+		sleep addTime;//can sometimes sleep 6000 but never wake up again?
+	}
+	// The restore section must be atomic :/
 
 	sleep restore_delay;
 	if ( NOT (silo_state==3) )
@@ -163,42 +136,27 @@ TimeToRestore (addTime){
 		silo_state = 4;
 		start-script CloseSiloDoors();
 	}
-	return (0);
-
-    timeLeft = 0;
 }
 
-
-
-
-
-
-
-AimWeapon1 (heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	return (1);
 }
 
-FireWeapon1 ()
+FireWeapon1()
 {
 	return (1);
 }
 
-QueryWeapon1 (piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = firing;
+	pieceIndex = firing;
 	return (0);
 }
 
-
-
-
-
-
-
-AimWeapon2 (heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
@@ -210,7 +168,7 @@ AimWeapon2 (heading, pitch)
 	return (0);
 }
 
-FireWeapon2 ()
+FireWeapon2()
 {
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
@@ -219,26 +177,22 @@ FireWeapon2 ()
 	return (0);
 }
 
-QueryWeapon2 (piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-
-
-
-SetStockpile (num_stockpiled)
+SetStockpile(num_stockpiled)
 {
 	if (num_stockpiled == 0)
 	{
-		
 		if (NOT firing) {
 			hide firing;
 			hide firing1;
 			hide firing2;
 		}
-		
+
 		sleep 100;
 		missiles_stockpiled = 0;
 	}
@@ -252,27 +206,23 @@ SetStockpile (num_stockpiled)
 	}
 }
 
-
-
-Propcontrol ()
+Propcontrol()
 {
 	var currentSpeed;
 	while (1)
 	{
-		currentSpeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;	
+		currentSpeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;
 		spin prop1 around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
 		spin prop2 around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
 		sleep 100;
 	}
 }
 
-
-
-StartMoving ()
+StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	start-script Propcontrol ();
+	start-script Propcontrol();
 	while( TRUE )
 	{
 		emit-sfx 1024 + 0 from wake;
@@ -283,15 +233,14 @@ StartMoving ()
 	}
 }
 
-StopMoving ()
+StopMoving()
 {
 	signal SIGNAL_MOVE;
 	stop-spin prop1 around z-axis decelerate <10.0>;
 	stop-spin prop2 around z-axis decelerate <10.0>;
 }
 
-
-Killed (severity, corpsetype)
+Killed(severity, corpsetype)
 {
 	if ( severity <= 25 )
 	{

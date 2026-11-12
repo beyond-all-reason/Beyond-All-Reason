@@ -1475,7 +1475,7 @@ function widget:DrawScreen()
 			if not factoryTex and width > 0 and height > 0 then
 				factoryTex = gl.CreateTexture(width, height, {
 					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
+					format = GL.RGBA8,
 					fbo = true,
 				})
 				factoryTexW = width

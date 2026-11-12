@@ -336,6 +336,7 @@ local function CallAsUnitNoReturn(unitID, fun, ...)
 	sp_CallAsUnit(unitID, fun, ...)
 	PopActiveUnitID()
 end
+Spring.UnitScript.CallAsUnitNoReturn = CallAsUnitNoReturn
 
 -- Helper for WaitForMove and WaitForTurn
 -- Unsafe, because it does not check whether the animation to wait for actually exists.
@@ -379,7 +380,7 @@ function Spring.UnitScript.WaitForScale(piece)
 end
 
 function Spring.UnitScript.Sleep(milliseconds)
-	local n = floor(milliseconds * 0.03030303) -- faster than division by 33
+	local n = floor(milliseconds * 0.030303031206) -- faster than division by 33
 	if n <= 0 then
 		n = 1
 	end
