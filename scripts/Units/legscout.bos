@@ -86,32 +86,28 @@ ExecuteRestoreAfterDelay()
 
 	var done;
 	var delta;
-	var nextHead;
-	var nextPitch;
 
 	while (!done){
 		done = TRUE;
 		delta = WRAPDELTA(0 - curHead1);
 		if (ABSOLUTE_GREATER_THAN(delta,(<150.000000> / 30))) {
-			nextHead = curHead1 + SIGN(delta) * (<150.000000> / 30);
+			curHead1 = curHead1 + SIGN(delta) * (<150.000000> / 30);
 			done = FALSE;
 		}else{
-			nextHead = 0;
+			curHead1 = 0;
 		}
 		delta = WRAPDELTA(0 - curPitch1);
 		if (ABSOLUTE_GREATER_THAN(delta,(<150.000000> / 30))) {
-			nextPitch = curPitch1 + SIGN(delta) * (<150.000000> / 30);
+			curPitch1 = curPitch1 + SIGN(delta) * (<150.000000> / 30);
 			done = FALSE;
 		}else{
-			nextPitch = 0;
+			curPitch1 = 0;
 		}
-		turn mount to y-axis nextHead speed <150.000000>;
-		turn gun to x-axis <0> - nextPitch speed <150.000000>;
+		turn mount to y-axis curHead1 speed <150.000000>;
+		turn gun to x-axis <0> - curPitch1 speed <150.000000>;
 		if (!done) {
 			sleep 1;
 		}
-		curHead1 = nextHead;
-		curPitch1 = nextPitch;
 	}
 }
 SetStunned(State)
