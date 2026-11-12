@@ -1879,9 +1879,26 @@ local options = {
 		def = "off",
 		items = {
 			{ key = "off", name = "Off", desc = "Keep existing behavior." },
-			{ key = "first", name = "A1: First working", desc = "The first activity at the wreck takes priority until abandoned or completed." },
-			{ key = "reclaim", name = "A3: Reclaim priority", desc = "Reclaim takes priority over allied resurrection." },
-			{ key = "resurrect", name = "A4: Resurrection priority", desc = "Resurrection takes priority over allied reclaim." },
+			{
+				key = "first",
+				name = "First arrival has priority",
+				desc = "The first activity at the wreck takes priority until abandoned or completed.",
+			},
+			{
+				key = "reclaim",
+				name = "Reclaim has priority",
+				desc = "Reclaim takes priority over allied resurrection.",
+			},
+			{
+				key = "resurrect",
+				name = "Resurrection has priority",
+				desc = "Resurrection takes priority over allied reclaim.",
+			},
+			{
+				key = "last",
+				name = "Latest arrival has priority",
+				desc = "A newly arriving conflicting worker takes priority. Displaced workers wait until the winning activity ends.",
+			},
 		},
 	},
 
