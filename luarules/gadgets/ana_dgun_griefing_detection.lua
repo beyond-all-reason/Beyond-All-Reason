@@ -624,6 +624,10 @@ function gadget:GameFrame(currentFrame)
 end
 
 function gadget:PlayerChanged(playerID)
+	local _, _, isSpectator = Spring.GetPlayerInfo(playerID)
+	if isSpectator then
+		return
+	end
 	if playerID ~= myPlayerID then
 		return
 	end
