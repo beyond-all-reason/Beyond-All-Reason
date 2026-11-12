@@ -1,20 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-// piece  flare1, flare2, flare3, flare4, base, xturret, barrel1, barrel2, barrel3, barrel4, yturret1, yturret2;
 piece base, turret, strut, barrel, flare, radar, radarSpinEMPTY;
 
-static-var  gun_1;
-
-// Signal definitions
-#define SIG_AIM				2
-
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
-
 static-var  Stunned;
+
+#define SMOKE_PIECE base
+#include "../damagedsmoke.h"
+
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -29,8 +22,8 @@ SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	}
+ 	    start-script ExecuteRestoreAfterDelay();
+ 	}
 }
 RestoreAfterDelay()
 {
@@ -42,21 +35,18 @@ Create()
 {
 	hide flare;
 	turn radarSpinEMPTY to x-axis <31.2> now;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
 	spin radar around y-axis speed <-50.0>;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	turn turret to y-axis heading speed <1200>;
-	// turn barrel to x-axis <0> - pitch speed <950>;
 	turn strut to x-axis <0> - pitch speed <950>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn barrel around x-axis;
@@ -65,26 +55,20 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 	sleep 100;
-	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = barrel;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = barrel;
 }
 
 Killed(severity, corpsetype)

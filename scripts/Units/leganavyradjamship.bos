@@ -1,6 +1,6 @@
 
 #include "../recoil_common_includes.h"
-#include "../unitDefsDeactivateTime.h";
+#include "../unitDefsDeactivateTime.h"
 
 piece
     base,
@@ -42,7 +42,6 @@ piece
     radarBase,
     wake,
     bow;
-static-var  oldHead;
 static-var recently_damaged, desired_activation;
 static-var  Stunned;
 
@@ -59,7 +58,7 @@ static-var  Stunned;
 #define RB_PITCH_ACCELERATION 10
 #define RB_ROLL_ACCELERATION 6
 #define RB_WAKE_PIECE wake
-#define RB_WAKE_PERIOD 6 
+#define RB_WAKE_PERIOD 6
 #define RB_WAKE_CEG 1024 + 1
 #define RB_ONHIT start-script OffOnHit();
 #define RB_BOWSPLASH_PIECE bow
@@ -302,7 +301,6 @@ Activate()
 
 Deactivate()
 {
-	// get PRINT(0, desired_activation,desired_activation,get GAME_FRAME);
 	// no easy way to tell if an on-off action is 
 	// script/gadget controlled or user controlled
 	// assume a deactivate command is a user command 

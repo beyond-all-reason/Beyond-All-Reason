@@ -1,12 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  base, blades, turbine;
 
 static-var  WindSpeed, WindDirection, LastDirection, Built, Stunned;
 
+#define SMOKE_PIECE base
+#include "../../damagedsmoke.h"
 
 Go()
 {
@@ -29,49 +29,21 @@ Go()
 	
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	Built = 1;
-	call-script Go();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
-
 Create()
 {
 	WindSpeed = 800;
 	WindDirection = 0;
 	LastDirection = 0;
 	Built = 0;
-	//call-script InitState();
-	start-script SmokeUnit();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
+	Built = 1;
+	call-script Go();
 }
 
-SetSpeed(windSpd) //called every 450 frames
+SetSpeed(windOrMetal) //called every 450 frames
 {
-	WindSpeed = 0 - windSpd; //invert if desired
+	WindSpeed = 0 - windOrMetal; //invert if desired
 	if (!Stunned) {
 		if(Built)
 		{
@@ -80,7 +52,7 @@ SetSpeed(windSpd) //called every 450 frames
 	}
 }
 
-SetDirection(windDir) //called every 450 frames
+SetDirection(windDir, windStrength) //called every 450 frames
 {
 	LastDirection = WindDirection;
 	WindDirection = windDir + <180>;
@@ -105,62 +77,11 @@ SetStunned(State)
 		call-script Stop();
 		set ACTIVATION to 0;
 	}else{
-		//if (statechg_DesiredState == 0) {
 		call-script Go();
-		
 		set ACTIVATION to 100;
-		//}
 	}
 }
 
-/*
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
-*/
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )

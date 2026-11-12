@@ -26,6 +26,9 @@ local env = MissionSpecEnv.new({
 		GetGroundHeight = function()
 			return 0
 		end,
+		GetHeadingFromFacing = function(facing)
+			return facing * 16384
+		end,
 		CreateUnit = function()
 			lastUnitID = lastUnitID + 1
 			local unitID = lastUnitID

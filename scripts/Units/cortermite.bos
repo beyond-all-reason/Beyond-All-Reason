@@ -1,9 +1,8 @@
-
 #include "../recoil_common_includes.h"
 
 piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy1, centerpoint;
 
-static-var  moving, firing, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead;
+static-var  isMoving, firing, restore_delay, gun_1, WALK_PERIOD, wpn1_lasthead;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -90,7 +89,7 @@ static-var  moving, firing, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PE
 
 #define WAIT_WALK\
 	sleep WALK_PERIOD;\
-	while(!moving)\
+	while(!isMoving)\
 	{\
 		sleep 111;\
 	}
@@ -142,12 +141,8 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		if (moving)
+		if (isMoving)
 		{
-			//currentSpeed = (moveSpeed * 80)/(get CURRENT_SPEED);
-			//if (currentSpeed>300) currentSpeed=300;
-			//WALK_PERIOD=currentSpeed;
-			//get PRINT(1,WALK_PERIOD,moveSpeed);
 			WALK_PERIOD=98;
 		}
 		sleep 50;
@@ -217,13 +212,13 @@ StartMoving(reversing)
 	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script DoTheWalking();
-	moving=TRUE;
+	isMoving=TRUE;
 }
 
 StopMoving()
 {
 	signal SIGNAL_MOVE;
-	moving=FALSE;
+	isMoving=FALSE;
 	set-signal-mask SIGNAL_MOVE;
 	start-script StopWalk();
 }
@@ -242,7 +237,7 @@ Create()
 	hide flare1;
 	hide flare2;
 	hide aimy1;
-	moving = FALSE;
+	isMoving = FALSE;
 	gun_1 = 0;
 	firing = 0;
 	turn body to x-axis <-15.0> speed <55.0>;
@@ -252,10 +247,8 @@ Create()
 	turn leg4a to y-axis <-30> now;
 	turn leg1a to y-axis <-30> now;//2
 	turn leg3a to y-axis <30> now;//5
-	moveSpeed = (get MAX_SPEED);
 	WALK_PERIOD=400;
-	// turn flare1 to z-axis <-35> speed <55.0>;
-	// turn flare2 to z-axis <35> speed <55.0>;
+	wpn1_lasthead = 0xbadface;
 }
 
 
@@ -276,7 +269,6 @@ ExecuteRestoreAfterDelay()
 	turn head to x-axis <0.0> speed <55.0>;
 	wait-for-turn head around y-axis;
 	wpn1_lasthead = 0xbadface;
-	wpn2_lasthead = 0xbadface;
 }
 SetStunned(State)
 {
@@ -315,7 +307,7 @@ FireWeapon1()
 	if( gun_1 == 0 AND firing == 0)
 	{
 		firing = 1;
-		move barrel1 to z-axis [-1.900000] speed [400.0];
+		move barrel1 to z-axis [-1.9] speed [400.0];
 		wait-for-move barrel1 along z-axis;
 		move barrel1 to z-axis [0.0] speed [5.0];
 		wait-for-move barrel1 along z-axis;
@@ -326,7 +318,7 @@ FireWeapon1()
 	if( gun_1 == 1 AND firing == 0)
 	{
 		firing = 1;
-		move barrel2 to z-axis [-1.900000] speed [400.0];
+		move barrel2 to z-axis [-1.9] speed [400.0];
 		wait-for-move barrel2 along z-axis;
 		move barrel2 to z-axis [0.0] speed [5.0];
 		wait-for-move barrel2 along z-axis;
@@ -334,7 +326,6 @@ FireWeapon1()
 		firing = 0;
 		return (0);
 	}
-	return (0);
 }
 
 AimFromWeapon1(pieceIndex)

@@ -47,8 +47,6 @@ SetSpeed(windOrMetal)
 	if (extractionRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
 }
 
-#define SMOKEPIECE base
-
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )

@@ -1,23 +1,20 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  body, turrethead, cannonbarrel, barrel1, rfhip, rfhigh, rfleg, rffoot, lbhip, lbhigh, lbleg,
 		lbfoot, lfhip, lfhigh, lfleg, lffoot, rbhip, rbhigh, rbleg, rbfoot,
 		flare, aimy1, aimx1;
 
-static-var  bMoving, bAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1, wpnheading;
+static-var  isMoving, isAiming, animSpeed, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_WALK		4
-#define SIG_AIM_2		8
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 
 
 Walk() {// For OOO:\Users\nothingtoseehereLOL\BAR screenshots\3d objects blender\cordeye animtion bones working test 1 names fixed.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
-	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:6 
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:6 
 			move body to x-axis [0.974864] speed [29.245924] / animSpeed; 
 			move body to z-axis [-0.565412] speed [16.962363] / animSpeed; 
 			move body to y-axis [-0.527927] speed [15.837822] / animSpeed; 
@@ -69,8 +66,8 @@ Walk() {// For OOO:\Users\nothingtoseehereLOL\BAR screenshots\3d objects blender
 			turn rfleg to z-axis <0.863975> speed <25.919265> / animSpeed;   
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:11
+	while(isMoving) {
+		if (isMoving) { //Frame:11
 			move body to x-axis [0.823689] speed [4.535244] / animSpeed; 
 			move body to z-axis [0.309441] speed [26.245596] / animSpeed; 
 			move body to y-axis [-1.888809] speed [40.826454] / animSpeed; 
@@ -119,7 +116,7 @@ Walk() {// For OOO:\Users\nothingtoseehereLOL\BAR screenshots\3d objects blender
 			turn rfleg to y-axis <0.166499> speed <4.943679> / animSpeed;  
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			move body to x-axis [-0.102179] speed [27.776037] / animSpeed; 
 			move body to z-axis [-0.318365] speed [18.834190] / animSpeed; 
 			move body to y-axis [-0.912222] speed [29.297619] / animSpeed; 
@@ -172,7 +169,7 @@ Walk() {// For OOO:\Users\nothingtoseehereLOL\BAR screenshots\3d objects blender
 			turn rfleg to z-axis <4.532494> speed <258.080772> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:21
+		if (isMoving) { //Frame:21
 			move body to x-axis [-0.931946] speed [24.893019] / animSpeed; 
 			move body to z-axis [-0.642322] speed [9.718712] / animSpeed; 
 			move body to y-axis [-0.408289] speed [15.117989] / animSpeed; 
@@ -225,7 +222,7 @@ Walk() {// For OOO:\Users\nothingtoseehereLOL\BAR screenshots\3d objects blender
 			turn rfleg to y-axis <0.846182> speed <20.777830> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:26
+		if (isMoving) { //Frame:26
 			move body to z-axis [0.269754] speed [27.362298] / animSpeed; 
 			move body to y-axis [-1.827074] speed [42.563553] / animSpeed; 
 			turn lbfoot to x-axis <-2.490419> speed <416.058450> / animSpeed; 
@@ -272,7 +269,7 @@ Walk() {// For OOO:\Users\nothingtoseehereLOL\BAR screenshots\3d objects blender
 			turn rfleg to y-axis <11.221693> speed <311.265340> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:31
+		if (isMoving) { //Frame:31
 			move body to x-axis [-0.005913] speed [26.378720] / animSpeed; 
 			move body to z-axis [-0.206630] speed [14.291537] / animSpeed; 
 			move body to y-axis [-1.086031] speed [22.231293] / animSpeed; 
@@ -324,7 +321,7 @@ Walk() {// For OOO:\Users\nothingtoseehereLOL\BAR screenshots\3d objects blender
 			turn rfleg to y-axis <6.485348> speed <142.090368> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36 
+		if (isMoving) { //Frame:36 
 			move body to x-axis [0.878939] speed [26.545536] / animSpeed; 
 			move body to z-axis [-0.700682] speed [14.821563] / animSpeed; 
 			move body to y-axis [-0.317507] speed [23.055725] / animSpeed; 
@@ -382,81 +379,67 @@ Walk() {// For OOO:\Users\nothingtoseehereLOL\BAR screenshots\3d objects blender
 // Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 5; // tune restore speed here, higher values are slower restore speeds
-	move body to x-axis [0.000000] speed [58.491848] / animSpeed;
-	move body to y-axis [0.000000] speed [85.127106] / animSpeed;
-	move body to z-axis [0.000000] speed [54.724596] / animSpeed;
-	turn lbfoot to x-axis <0.000000> speed <1030.496253> / animSpeed;
-	turn lbfoot to y-axis <0.000000> speed <154.244258> / animSpeed;
-	turn lbfoot to z-axis <0.000000> speed <1054.883922> / animSpeed;
-	turn lbhigh to x-axis <0.000000> speed <1014.158048> / animSpeed;
-	turn lbhigh to y-axis <0.000000> speed <178.428839> / animSpeed;
-	turn lbhigh to z-axis <0.000000> speed <1067.670049> / animSpeed;
-	turn lbhip to x-axis <0.000000> speed <68.736934> / animSpeed;
-	turn lbhip to y-axis <0.000000> speed <1622.376848> / animSpeed;
-	turn lbhip to z-axis <0.000000> speed <19.660632> / animSpeed;
-	turn lbleg to x-axis <0.000000> speed <2246.186256> / animSpeed;
-	turn lbleg to y-axis <0.000000> speed <861.566534> / animSpeed;
-	turn lbleg to z-axis <0.000000> speed <2371.403089> / animSpeed;
-	turn lffoot to x-axis <0.000000> speed <884.093684> / animSpeed;
-	turn lffoot to y-axis <0.000000> speed <219.268679> / animSpeed;
-	turn lffoot to z-axis <0.000000> speed <926.069585> / animSpeed;
-	turn lfhigh to x-axis <0.000000> speed <1006.644375> / animSpeed;
-	turn lfhigh to y-axis <0.000000> speed <127.824930> / animSpeed;
-	turn lfhigh to z-axis <0.000000> speed <1009.112841> / animSpeed;
-	turn lfhip to x-axis <0.000000> speed <7.153068> / animSpeed;
-	turn lfhip to y-axis <0.000000> speed <1516.742953> / animSpeed;
-	turn lfhip to z-axis <0.000000> speed <26.629373> / animSpeed;
-	turn lfleg to x-axis <0.000000> speed <1962.052495> / animSpeed;
-	turn lfleg to y-axis <0.000000> speed <962.909845> / animSpeed;
-	turn lfleg to z-axis <0.000000> speed <2243.153703> / animSpeed;
-	turn rbfoot to x-axis <0.000000> speed <812.284670> / animSpeed;
-	turn rbfoot to y-axis <0.000000> speed <128.964446> / animSpeed;
-	turn rbfoot to z-axis <0.000000> speed <830.673353> / animSpeed;
-	turn rbhigh to x-axis <0.000000> speed <1080.080865> / animSpeed;
-	turn rbhigh to y-axis <0.000000> speed <181.312413> / animSpeed;
-	turn rbhigh to z-axis <0.000000> speed <1134.527377> / animSpeed;
-	turn rbhip to x-axis <0.000000> speed <56.215814> / animSpeed;
-	turn rbhip to y-axis <0.000000> speed <1313.501112> / animSpeed;
-	turn rbhip to z-axis <0.000000> speed <20.560564> / animSpeed;
-	turn rbleg to x-axis <0.000000> speed <2225.916474> / animSpeed;
-	turn rbleg to y-axis <0.000000> speed <837.389790> / animSpeed;
-	turn rbleg to z-axis <0.000000> speed <2347.480966> / animSpeed;
-	turn rffoot to x-axis <0.000000> speed <1605.143257> / animSpeed;
-	turn rffoot to y-axis <0.000000> speed <465.717891> / animSpeed;
-	turn rffoot to z-axis <0.000000> speed <1719.136894> / animSpeed;
-	turn rfhigh to x-axis <0.000000> speed <617.231218> / animSpeed;
-	turn rfhigh to y-axis <0.000000> speed <54.810418> / animSpeed;
-	turn rfhigh to z-axis <0.000000> speed <607.331354> / animSpeed;
-	turn rfhip to x-axis <0.000000> speed <8.292186> / animSpeed;
-	turn rfhip to y-axis <0.000000> speed <1333.994343> / animSpeed;
-	turn rfhip to z-axis <0.000000> speed <23.559817> / animSpeed;
-	turn rfleg to x-axis <0.000000> speed <1555.657505> / animSpeed;
-	turn rfleg to y-axis <0.000000> speed <622.530681> / animSpeed;
-	turn rfleg to z-axis <0.000000> speed <1736.150737> / animSpeed;
+	move body to x-axis [0.0] speed [58.491848] / animSpeed;
+	move body to y-axis [0.0] speed [85.127106] / animSpeed;
+	move body to z-axis [0.0] speed [54.724596] / animSpeed;
+	turn lbfoot to x-axis <0.0> speed <1030.496253> / animSpeed;
+	turn lbfoot to y-axis <0.0> speed <154.244258> / animSpeed;
+	turn lbfoot to z-axis <0.0> speed <1054.883922> / animSpeed;
+	turn lbhigh to x-axis <0.0> speed <1014.158048> / animSpeed;
+	turn lbhigh to y-axis <0.0> speed <178.428839> / animSpeed;
+	turn lbhigh to z-axis <0.0> speed <1067.670049> / animSpeed;
+	turn lbhip to x-axis <0.0> speed <68.736934> / animSpeed;
+	turn lbhip to y-axis <0.0> speed <1622.376848> / animSpeed;
+	turn lbhip to z-axis <0.0> speed <19.660632> / animSpeed;
+	turn lbleg to x-axis <0.0> speed <2246.186256> / animSpeed;
+	turn lbleg to y-axis <0.0> speed <861.566534> / animSpeed;
+	turn lbleg to z-axis <0.0> speed <2371.403089> / animSpeed;
+	turn lffoot to x-axis <0.0> speed <884.093684> / animSpeed;
+	turn lffoot to y-axis <0.0> speed <219.268679> / animSpeed;
+	turn lffoot to z-axis <0.0> speed <926.069585> / animSpeed;
+	turn lfhigh to x-axis <0.0> speed <1006.644375> / animSpeed;
+	turn lfhigh to y-axis <0.0> speed <127.824930> / animSpeed;
+	turn lfhigh to z-axis <0.0> speed <1009.112841> / animSpeed;
+	turn lfhip to x-axis <0.0> speed <7.153068> / animSpeed;
+	turn lfhip to y-axis <0.0> speed <1516.742953> / animSpeed;
+	turn lfhip to z-axis <0.0> speed <26.629373> / animSpeed;
+	turn lfleg to x-axis <0.0> speed <1962.052495> / animSpeed;
+	turn lfleg to y-axis <0.0> speed <962.909845> / animSpeed;
+	turn lfleg to z-axis <0.0> speed <2243.153703> / animSpeed;
+	turn rbfoot to x-axis <0.0> speed <812.284670> / animSpeed;
+	turn rbfoot to y-axis <0.0> speed <128.964446> / animSpeed;
+	turn rbfoot to z-axis <0.0> speed <830.673353> / animSpeed;
+	turn rbhigh to x-axis <0.0> speed <1080.080865> / animSpeed;
+	turn rbhigh to y-axis <0.0> speed <181.312413> / animSpeed;
+	turn rbhigh to z-axis <0.0> speed <1134.527377> / animSpeed;
+	turn rbhip to x-axis <0.0> speed <56.215814> / animSpeed;
+	turn rbhip to y-axis <0.0> speed <1313.501112> / animSpeed;
+	turn rbhip to z-axis <0.0> speed <20.560564> / animSpeed;
+	turn rbleg to x-axis <0.0> speed <2225.916474> / animSpeed;
+	turn rbleg to y-axis <0.0> speed <837.389790> / animSpeed;
+	turn rbleg to z-axis <0.0> speed <2347.480966> / animSpeed;
+	turn rffoot to x-axis <0.0> speed <1605.143257> / animSpeed;
+	turn rffoot to y-axis <0.0> speed <465.717891> / animSpeed;
+	turn rffoot to z-axis <0.0> speed <1719.136894> / animSpeed;
+	turn rfhigh to x-axis <0.0> speed <617.231218> / animSpeed;
+	turn rfhigh to y-axis <0.0> speed <54.810418> / animSpeed;
+	turn rfhigh to z-axis <0.0> speed <607.331354> / animSpeed;
+	turn rfhip to x-axis <0.0> speed <8.292186> / animSpeed;
+	turn rfhip to y-axis <0.0> speed <1333.994343> / animSpeed;
+	turn rfhip to z-axis <0.0> speed <23.559817> / animSpeed;
+	turn rfleg to x-axis <0.0> speed <1555.657505> / animSpeed;
+	turn rfleg to y-axis <0.0> speed <622.530681> / animSpeed;
+	turn rfleg to z-axis <0.0> speed <1736.150737> / animSpeed;
 }
 // REMEMBER TO animspeed = 5 in Create() !!
-UnitSpeed(){
-	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = 5; //we need to calc the frames per keyframe value, from the known animtime
-	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
-	while(TRUE){
-		animSpeed = (get CURRENT_SPEED);
-		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 5) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<2) animSpeed=2;
-		if (animspeed>10) animSpeed = 10;
-		sleep 164;
-	}
-}
-StartMoving(){
-	signal SIG_WALK;
-	bMoving=TRUE;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -467,140 +450,126 @@ StopMoving(){
 #define UNITSIZE 7
 #define MAXTILT 100
 
-
-//#include "unit_hitbyweaponid_and_smoke.h"
-
-
 Create()
 {
 	hide flare;
 	hide aimx1;
 	hide aimy1;
-	gun_1 = 1;
-	bMoving = FALSE;
-	bAiming = FALSE;
+	isMoving = FALSE;
+	isAiming = FALSE;
 	animSpeed = 5;
-	wpnheading  = 0;
-	move body to x-axis [0.000000] speed [58.491848] / animSpeed;
-	move body to y-axis [0.000000] speed [85.127106] / animSpeed;
-	move body to z-axis [0.000000] speed [54.724596] / animSpeed;
-	turn lbfoot to x-axis <0.000000> speed <1030.496253> / animSpeed;
-	turn lbfoot to y-axis <0.000000> speed <154.244258> / animSpeed;
-	turn lbfoot to z-axis <0.000000> speed <1054.883922> / animSpeed;
-	turn lbhigh to x-axis <0.000000> speed <1014.158048> / animSpeed;
-	turn lbhigh to y-axis <0.000000> speed <178.428839> / animSpeed;
-	turn lbhigh to z-axis <0.000000> speed <1067.670049> / animSpeed;
-	turn lbhip to x-axis <0.000000> speed <68.736934> / animSpeed;
-	turn lbhip to y-axis <0.000000> speed <1622.376848> / animSpeed;
-	turn lbhip to z-axis <0.000000> speed <19.660632> / animSpeed;
-	turn lbleg to x-axis <0.000000> speed <2246.186256> / animSpeed;
-	turn lbleg to y-axis <0.000000> speed <861.566534> / animSpeed;
-	turn lbleg to z-axis <0.000000> speed <2371.403089> / animSpeed;
-	turn lffoot to x-axis <0.000000> speed <884.093684> / animSpeed;
-	turn lffoot to y-axis <0.000000> speed <219.268679> / animSpeed;
-	turn lffoot to z-axis <0.000000> speed <926.069585> / animSpeed;
-	turn lfhigh to x-axis <0.000000> speed <1006.644375> / animSpeed;
-	turn lfhigh to y-axis <0.000000> speed <127.824930> / animSpeed;
-	turn lfhigh to z-axis <0.000000> speed <1009.112841> / animSpeed;
-	turn lfhip to x-axis <0.000000> speed <7.153068> / animSpeed;
-	turn lfhip to y-axis <0.000000> speed <1516.742953> / animSpeed;
-	turn lfhip to z-axis <0.000000> speed <26.629373> / animSpeed;
-	turn lfleg to x-axis <0.000000> speed <1962.052495> / animSpeed;
-	turn lfleg to y-axis <0.000000> speed <962.909845> / animSpeed;
-	turn lfleg to z-axis <0.000000> speed <2243.153703> / animSpeed;
-	turn rbfoot to x-axis <0.000000> speed <812.284670> / animSpeed;
-	turn rbfoot to y-axis <0.000000> speed <128.964446> / animSpeed;
-	turn rbfoot to z-axis <0.000000> speed <830.673353> / animSpeed;
-	turn rbhigh to x-axis <0.000000> speed <1080.080865> / animSpeed;
-	turn rbhigh to y-axis <0.000000> speed <181.312413> / animSpeed;
-	turn rbhigh to z-axis <0.000000> speed <1134.527377> / animSpeed;
-	turn rbhip to x-axis <0.000000> speed <56.215814> / animSpeed;
-	turn rbhip to y-axis <0.000000> speed <1313.501112> / animSpeed;
-	turn rbhip to z-axis <0.000000> speed <20.560564> / animSpeed;
-	turn rbleg to x-axis <0.000000> speed <2225.916474> / animSpeed;
-	turn rbleg to y-axis <0.000000> speed <837.389790> / animSpeed;
-	turn rbleg to z-axis <0.000000> speed <2347.480966> / animSpeed;
-	turn rffoot to x-axis <0.000000> speed <1605.143257> / animSpeed;
-	turn rffoot to y-axis <0.000000> speed <465.717891> / animSpeed;
-	turn rffoot to z-axis <0.000000> speed <1719.136894> / animSpeed;
-	turn rfhigh to x-axis <0.000000> speed <617.231218> / animSpeed;
-	turn rfhigh to y-axis <0.000000> speed <54.810418> / animSpeed;
-	turn rfhigh to z-axis <0.000000> speed <607.331354> / animSpeed;
-	turn rfhip to x-axis <0.000000> speed <8.292186> / animSpeed;
-	turn rfhip to y-axis <0.000000> speed <1333.994343> / animSpeed;
-	turn rfhip to z-axis <0.000000> speed <23.559817> / animSpeed;
-	turn rfleg to x-axis <0.000000> speed <1555.657505> / animSpeed;
-	turn rfleg to y-axis <0.000000> speed <622.530681> / animSpeed;
-	turn rfleg to z-axis <0.000000> speed <1736.150737> / animSpeed;
-	return (0);
+	wpn1_lasthead = 0xbadface;
+	move body to x-axis [0.0] speed [58.491848] / animSpeed;
+	move body to y-axis [0.0] speed [85.127106] / animSpeed;
+	move body to z-axis [0.0] speed [54.724596] / animSpeed;
+	turn lbfoot to x-axis <0.0> speed <1030.496253> / animSpeed;
+	turn lbfoot to y-axis <0.0> speed <154.244258> / animSpeed;
+	turn lbfoot to z-axis <0.0> speed <1054.883922> / animSpeed;
+	turn lbhigh to x-axis <0.0> speed <1014.158048> / animSpeed;
+	turn lbhigh to y-axis <0.0> speed <178.428839> / animSpeed;
+	turn lbhigh to z-axis <0.0> speed <1067.670049> / animSpeed;
+	turn lbhip to x-axis <0.0> speed <68.736934> / animSpeed;
+	turn lbhip to y-axis <0.0> speed <1622.376848> / animSpeed;
+	turn lbhip to z-axis <0.0> speed <19.660632> / animSpeed;
+	turn lbleg to x-axis <0.0> speed <2246.186256> / animSpeed;
+	turn lbleg to y-axis <0.0> speed <861.566534> / animSpeed;
+	turn lbleg to z-axis <0.0> speed <2371.403089> / animSpeed;
+	turn lffoot to x-axis <0.0> speed <884.093684> / animSpeed;
+	turn lffoot to y-axis <0.0> speed <219.268679> / animSpeed;
+	turn lffoot to z-axis <0.0> speed <926.069585> / animSpeed;
+	turn lfhigh to x-axis <0.0> speed <1006.644375> / animSpeed;
+	turn lfhigh to y-axis <0.0> speed <127.824930> / animSpeed;
+	turn lfhigh to z-axis <0.0> speed <1009.112841> / animSpeed;
+	turn lfhip to x-axis <0.0> speed <7.153068> / animSpeed;
+	turn lfhip to y-axis <0.0> speed <1516.742953> / animSpeed;
+	turn lfhip to z-axis <0.0> speed <26.629373> / animSpeed;
+	turn lfleg to x-axis <0.0> speed <1962.052495> / animSpeed;
+	turn lfleg to y-axis <0.0> speed <962.909845> / animSpeed;
+	turn lfleg to z-axis <0.0> speed <2243.153703> / animSpeed;
+	turn rbfoot to x-axis <0.0> speed <812.284670> / animSpeed;
+	turn rbfoot to y-axis <0.0> speed <128.964446> / animSpeed;
+	turn rbfoot to z-axis <0.0> speed <830.673353> / animSpeed;
+	turn rbhigh to x-axis <0.0> speed <1080.080865> / animSpeed;
+	turn rbhigh to y-axis <0.0> speed <181.312413> / animSpeed;
+	turn rbhigh to z-axis <0.0> speed <1134.527377> / animSpeed;
+	turn rbhip to x-axis <0.0> speed <56.215814> / animSpeed;
+	turn rbhip to y-axis <0.0> speed <1313.501112> / animSpeed;
+	turn rbhip to z-axis <0.0> speed <20.560564> / animSpeed;
+	turn rbleg to x-axis <0.0> speed <2225.916474> / animSpeed;
+	turn rbleg to y-axis <0.0> speed <837.389790> / animSpeed;
+	turn rbleg to z-axis <0.0> speed <2347.480966> / animSpeed;
+	turn rffoot to x-axis <0.0> speed <1605.143257> / animSpeed;
+	turn rffoot to y-axis <0.0> speed <465.717891> / animSpeed;
+	turn rffoot to z-axis <0.0> speed <1719.136894> / animSpeed;
+	turn rfhigh to x-axis <0.0> speed <617.231218> / animSpeed;
+	turn rfhigh to y-axis <0.0> speed <54.810418> / animSpeed;
+	turn rfhigh to z-axis <0.0> speed <607.331354> / animSpeed;
+	turn rfhip to x-axis <0.0> speed <8.292186> / animSpeed;
+	turn rfhip to y-axis <0.0> speed <1333.994343> / animSpeed;
+	turn rfhip to z-axis <0.0> speed <23.559817> / animSpeed;
+	turn rfleg to x-axis <0.0> speed <1555.657505> / animSpeed;
+	turn rfleg to y-axis <0.0> speed <622.530681> / animSpeed;
+	turn rfleg to z-axis <0.0> speed <1736.150737> / animSpeed;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = body;
-	return (0);
-}
-
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	
-	piecenum = flare;
-	return(piecenum);
+	pieceIndex = flare;
+	return(pieceIndex);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turrethead;
-	return (0);
+	pieceIndex = turrethead;
 }
 
 
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 3000;
 	turn aimx1 to x-axis <0> speed <150>;
 	turn aimy1 to y-axis <0> speed <150>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	bAiming = FALSE;
-	wpnheading  = 0;
+	isAiming = FALSE;
+	wpn1_lasthead = 0xbadface;
 }
 
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	if (bAiming == 1) return;
+	signal SIGNAL_AIM1;
+	if (isAiming == 1) return;
 	turn aimy1 to y-axis heading speed <150>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <150>;
+	turn aimx1 to x-axis <0.0> - pitch speed <150>;
 	//needed for luarules\gadgets\unit_continuous_aim.lua
-	if ((get ABS(wpnheading - heading)) > 2000)
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), 2000))
 	{
-		bAiming = 1;
+		isAiming = 1;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
-		bAiming = 0;
+		isAiming = 0;
 	}
-	wpnheading = heading;
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 	move barrel1 to z-axis [-2] speed [30];
-	sleep(500);
+	sleep 500;
 	emit-sfx 1024 + 0 from flare;
 	move barrel1 to z-axis [-4] speed [30];
-	sleep(500);
+	sleep 500;
 	emit-sfx 1024 + 0 from flare;
 	move barrel1 to z-axis [-6] speed [30];
-	sleep(600);
+	sleep 600;
 	move barrel1 to z-axis [0] speed [0.7];
-	return (1);
 }
 
 

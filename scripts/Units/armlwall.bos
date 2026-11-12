@@ -1,14 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, top, spike1, spike2, spike3, spike4, spike5, spike6, spike7, spike8, spike9, spike10, spike11, spike12, flare;
 
 static-var  restore_delay, animate_speed;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
+#define SIGNAL_TURNON 4
 
 #include "../popup_openclose.h"
 
@@ -59,16 +58,15 @@ Create()
 	restore_delay = 3000;
 	animate_speed = [24];
 
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
+
 	sleep restore_delay;
 	start-script CloseBuildPose();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 OpenAnim()
 {
@@ -112,10 +110,10 @@ OpenAnim()
 	wait-for-move spike2 along x-axis;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script RequestOpen();
 	start-script RestoreAfterDelay();
 	while( !isOpen )
@@ -130,25 +128,22 @@ BlockShot1(targetID, block, userTarget)
 	block = !isOpen;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024+0 from flare;
 	sleep 150;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
-AimFromPrimary(piecenum)
+
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
 Killed(severity, corpsetype)
