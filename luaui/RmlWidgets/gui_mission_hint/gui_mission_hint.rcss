@@ -1,0 +1,46 @@
+/* MISSION HINT: dp for lengths, rem for text (1rem = 10dp), the look of the mission panels. */
+
+body {
+	pointer-events: none;
+}
+
+.mh-root {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100vw;
+	height: 100vh;
+	pointer-events: none;
+}
+
+/* Top centre, under the top bar. */
+.mh-box {
+	position: absolute;
+	top: 110dp;
+	left: 50%;
+	width: 640dp;
+	margin-left: -320dp;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 10dp;
+	padding: 10dp 14dp 10dp 14dp;
+	background-color: #16161ce6;
+	border: 1dp #3e3e4a;
+	border-radius: 6dp;
+	box-shadow: 0dp 3dp 6dp 0dp #00000080;
+	pointer-events: none;
+}
+
+.mh-mark {
+	width: 4dp;
+	height: 28dp;
+	border-radius: 2dp;
+	background-color: #5aa9e6;
+}
+
+.mh-text {
+	flex: 1;
+	font-size: 1.5rem;
+	color: #f4f4f8;
+}
