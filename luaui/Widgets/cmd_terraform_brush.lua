@@ -84,10 +84,8 @@ local MAX_RADIUS = 2000
 local MIN_RADIUS = 8
 local MIN_CURVE = 0.1
 local MAX_CURVE = 5.0
-local DEFAULT_CURVE = 1.0
 local MIN_INTENSITY = 0.1
 local MAX_INTENSITY = 100.0
-local DEFAULT_INTENSITY = 1.0
 local CIRCLE_SEGMENTS = 64
 local ringInnerRatio = 0.6
 local DEFAULT_LENGTH_SCALE = 1.0
@@ -492,13 +490,14 @@ end
 
 ---@type number?
 local activeDirection = nil
-local activeRadius = DEFAULT_RADIUS
+-- The brush starts on the Clay Sculpt preset's settings.
+local activeRadius = 120
 ---@type BrushShape|"ring"|"fill"
-local activeShape = "circle"
+local activeShape = "square"
 ---@type number
 local activeRotation = 0
-local activeCurve = DEFAULT_CURVE
-local activeIntensity = DEFAULT_INTENSITY
+local activeCurve = MIN_CURVE
+local activeIntensity = MIN_INTENSITY
 local activeLengthScale = DEFAULT_LENGTH_SCALE
 ---@type TerraformMode?
 local activeMode = nil
@@ -770,7 +769,7 @@ local extraState = {
 	-- moved far enough); followManualRot parks the manual rotation for the drag,
 	-- since activeRotation itself follows the tangent so every preview does too.
 	---@type boolean
-	followStroke = false,
+	followStroke = true,
 	---@type number?
 	followAngle = nil,
 	---@type number?
@@ -1204,7 +1203,7 @@ local gridShowing = false
 local rightMouseHeld = false
 ---@type TerraformMode?
 local savedModeBeforeRMB = nil
-local clayMode = false
+local clayMode = true
 local stampApplied = false -- stamp mode: true after first apply at current position
 
 -- Noise brush state

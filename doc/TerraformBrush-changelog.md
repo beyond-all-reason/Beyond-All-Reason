@@ -34,6 +34,7 @@ Map export: a saved project becomes a map that plays without the editor, and com
 - Environment settings this build does not know are saved back unchanged.
 - Features whose types this game lacks stay in the project through saves.
 - A WORLDSPACE TINT > RAMP image that cannot load stays in the project (needs tileset shader build 26).
+- The brush starts on the Clay Sculpt preset: square, clay, FOLLOW STROKE, lowest intensity and sharpest falloff.
 
 ### Fixes
 
