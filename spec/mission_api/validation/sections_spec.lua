@@ -593,6 +593,28 @@ describe("mission_api.validation.sections", function()
 		end)
 	end)
 
+	describe("IssueOrders actions", function()
+		local function validateIssueOrders(parameters)
+			parameters.unitName = "squad"
+			parameters.orders = { { V.env.CMD.MOVE, { 0, 0, 0 } } }
+			return V.validateAction({ type = V.actionTypes.IssueOrders, parameters = parameters })
+		end
+
+		it("passes a direction with marching", function()
+			local result = validateIssueOrders({ marching = true, direction = { angle = 90 } })
+			V.assertNoMessageContaining(result, "without marching")
+		end)
+
+		it("warns of a direction without marching, the mission still loads", function()
+			local result = validateIssueOrders({ direction = { angle = 90 } })
+			assert.is_true(result.ok)
+			V.assertMessage(
+				result,
+				"Parameter 'direction' is ignored without marching. Action: a, Parameter: direction"
+			)
+		end)
+	end)
+
 	describe("FollowCamera endings", function()
 		local function validateFollow(parameters)
 			parameters.position = { x = 0, z = 0 }

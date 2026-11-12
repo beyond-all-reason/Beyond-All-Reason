@@ -562,6 +562,18 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
+-- direction turns a marching group only, elsewhere it is ignored
+local function validateIssueOrdersAction(context, actionReport, actionID, action)
+	local parameters = action.parameters
+	if action.type ~= context.ActionTypes.IssueOrders or type(parameters) ~= "table" then
+		return
+	end
+
+	if parameters.direction ~= nil and parameters.marching ~= true then
+		actionReport.Warn(actionID, "Parameter 'direction' is ignored without marching", "Parameter: direction")
+	end
+end
+
 -- a menu slot needs a builder type
 local function validateAddBuildOptionAction(context, actionReport, actionID, action)
 	local parameters = action.parameters
@@ -616,6 +628,7 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 			validateAttributeAction(actionReport, actionID, action)
 			validateChangeTeamAction(context, actionReport, actionID, action)
+			validateIssueOrdersAction(context, actionReport, actionID, action)
 			validateAddBuildOptionAction(context, actionReport, actionID, action)
 			validateFollowCameraEnding(context, actionReport, actionID, action)
 		end
