@@ -29,7 +29,7 @@ describe("mission_api.marching", function()
 		for unitID in pairs(units) do
 			unitMap[unitID] = true
 		end
-		Marching.GiveMarchingOrders(unitMap, orders, direction)
+		given = Marching.GetMarchingOrders(unitMap, orders, direction)
 	end
 
 	before_each(function()
@@ -59,9 +59,6 @@ describe("mission_api.marching", function()
 			end,
 			GetGroundHeight = function()
 				return 0
-			end,
-			GiveOrderArrayToUnit = function(unitID, orders)
-				given[unitID] = orders
 			end,
 		}
 	end)

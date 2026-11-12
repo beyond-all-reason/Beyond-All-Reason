@@ -39,21 +39,22 @@ local function getTurn(direction, heading, x, z)
 	return 0
 end
 
----Gives the units the orders, each march order to each unit's own spot around its point.
+---The orders of each unit, each march order moved to the unit's own spot around its point.
 ---@param unitMap table<integer, boolean>
----@param orders table[] as Spring.GiveOrderArrayToUnit takes them
+---@param orders table[]
 ---@param direction table? a Direction the group faces at each point
-local function giveMarchingOrders(unitMap, orders, direction)
-	local marchers = {}
+---@return table<integer, table[]> unitOrders
+local function getMarchingOrders(unitMap, orders, direction)
+	local marchers, marchingOrders = {}, {}
 	for unitID in pairs(unitMap) do
 		if canMarch(unitID) then
 			marchers[#marchers + 1] = unitID
 		else
-			Spring.GiveOrderArrayToUnit(unitID, orders)
+			marchingOrders[unitID] = orders
 		end
 	end
 	if #marchers == 0 then
-		return
+		return marchingOrders
 	end
 
 	local centerX, _, centerZ = Spring.GetUnitArrayCentroid(marchers)
@@ -88,10 +89,11 @@ local function giveMarchingOrders(unitMap, orders, direction)
 	end
 
 	for i, unitID in ipairs(marchers) do
-		Spring.GiveOrderArrayToUnit(unitID, unitOrders[i])
+		marchingOrders[unitID] = unitOrders[i]
 	end
+	return marchingOrders
 end
 
 return {
-	GiveMarchingOrders = giveMarchingOrders,
+	GetMarchingOrders = getMarchingOrders,
 }

@@ -189,11 +189,15 @@
 			"windAdvice": "Solar Collectors are better when the average\nwind speed is below 5 (Armada) or 6 (Cortex)"
 		},
 		"tooltip": {
+			"veryLow": "Very low",
 			"low": "Low",
 			"medium": "Medium",
 			"high": "High",
+			"veryHigh": "Very high",
+			"verySlow": "Very slow",
 			"slow": "Slow",
-			"fast": "Fast"
+			"fast": "Fast",
+			"veryFast": "Very fast"
 		},
 		"pip": {
 			"tooltip": "Toggle Picture-in-Picture",
@@ -295,7 +299,28 @@
 			"ctrlclick": "CTRL + Click:   subtract from selection",
 			"rightclick": "Right-Click:   move to and select group",
 			"tooltip": "CTRL + 0-9 sets unit group for selected units.\nCTRL BACKQUOTE (~) remove units.",
-			"autogroupTooltip": "Auto Groups\nALT + 0-9 sets autogroup # for selected unit type(s).\nNewly built units get added to group# equal to their autogroup#.\nALT BACKQUOTE (~) remove units.\nView settings at: Settings/Interface/AutoGroup"
+			"autogroupTooltip": "Auto Groups\nALT + 0-9 sets autogroup # for selected unit type(s).\nNewly built units get added to group# equal to their autogroup#.\nALT BACKQUOTE (~) remove units.\nView settings at: Settings/Interface/AutoGroup",
+			"shortcuts": {
+				"select": "Select the group",
+				"add": "Add it to the selection",
+				"subtract": "Take it out of the selection",
+				"view": "Select it and move the camera there",
+				"set": "Put the selected units in a group",
+				"remove": "Take the selected units out of their group",
+				"autoSet": "Autogroup the selected unit types",
+				"autoRemove": "Stop autogrouping the selected unit types",
+				"autoNote": "New units of an autogrouped type join its group.\nSettings: Interface / AutoGroup"
+			},
+			"keys": {
+				"click": "Click",
+				"shiftClick": "Shift + Click",
+				"ctrlClick": "Ctrl + Click",
+				"rightClick": "Right-click",
+				"ctrlNumber": "Ctrl + 0-9",
+				"ctrlTilde": "Ctrl + ~",
+				"altNumber": "Alt + 0-9",
+				"altTilde": "Alt + ~"
+			}
 		},
 		"changelog": {
 			"title": "Changelog"
@@ -1572,6 +1597,10 @@
 			"resist": "Resist",
 			"immune": "Immune",
 			"exp": "Exp",
+			"bonusTitle": "Experience bonus",
+			"xpHealthTip": "+%{percent}% maximum health from its %{xp} experience.\nUnits gain experience by damaging and destroying enemies (more for those worth more than them); this bonus grows with it, up to +%{max}%.",
+			"xpDamageTip": "+%{percent}% damage per second from its %{xp} experience: its weapons reload faster.\nUnits gain experience by damaging and destroying enemies (more for those worth more than them); this bonus grows with it, up to +%{max}%.",
+			"bonusOtherTip": "+%{percent}% over its unit type's, from effects on this unit (not experience)",
 			"open": "Open",
 			"closed": "Closed",
 			"maxhp": "max HP",
@@ -1636,6 +1665,7 @@
 			"shieldCost": "Shield energy use per second",
 			"amphibious": "Amphibious",
 			"allTerrain": "All-terrain",
+			"builder": "Builder",
 			"empResistance": "EMP resistance",
 			"empImmune": "full",
 			"cloakMoving": "Cloak moving",
@@ -1654,6 +1684,8 @@
 			"rangeLabel": "Range",
 			"areaOfEffect": "Area of effect",
 			"edgeEffectiveness": "Edge effectiveness",
+			"alphaDamage": "Alpha damage",
+			"damageFalloff": "Damage fall-off",
 			"paralyzeTime": "Paralyze time",
 			"stockpileTime": "Stockpile time",
 			"interceptRange": "Interception range",
@@ -1811,10 +1843,12 @@
 			"shieldrange": "Shield range",
 			"shieldrechargerate": "Recharge rate",
 			"shieldrechargecost": "Recharge cost",
-			"cellHowto": "Click to select, right click to remove, middle click to view them (with Ctrl: all of this type)",
+			"cellHowto": "Click: select, right click: remove\nMiddle click: view them (Ctrl: all of this type)",
 			"flows": {
 				"metal": "Metal per second",
 				"energy": "Energy per second",
+				"metalCost": "Metal cost",
+				"energyCost": "Energy cost",
 				"unit": "What it makes, less what it uses right now",
 				"selection": "What the selected units make, less what they use right now",
 				"def": "What it makes, less its upkeep",
@@ -1844,6 +1878,9 @@
 				"cloak": "Cloaking costs energy per second",
 				"cloakMoving": "Cloaking costs energy per second, standing still / moving",
 				"progress": "Under construction",
+				"conversion": "Converts energy into metal per second (energy : metal)",
+				"xpHealth": "Health gained from experience",
+				"xpDamage": "Damage per second gained from experience (its weapons reload faster)",
 				"stealth": "Stealthy: radar does not show it",
 				"amphib": "Amphibious",
 				"allTerrain": "All-terrain",
