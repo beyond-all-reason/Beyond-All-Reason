@@ -56,8 +56,29 @@ local function compassAngleToHeading(angle, radians)
 	return math.floor((angle % 360 - 180) / 360 * -65536)
 end
 
+-- A point closer than this is on the start point itself.
+local MIN_DIRECTION_DISTANCE = 0.001
+
+---The heading from a point toward a direction: a compass angle ({ angle }) or a point to face ({ x, z }).
+---@param fromX number
+---@param fromZ number
+---@param direction { angle: number?, x: number?, z: number? }
+---@return number heading south when the point to face is the start point
+local function directionToHeading(fromX, fromZ, direction)
+	if direction.angle then
+		return compassAngleToHeading(direction.angle)
+	end
+	local dx, dz = direction.x - fromX, direction.z - fromZ
+	if math.abs(dx) < MIN_DIRECTION_DISTANCE and math.abs(dz) < MIN_DIRECTION_DISTANCE then
+		return facingToHeading(0)
+	end
+	-- Not Spring.GetHeadingFromVector: before RecoilEngine #3240 it swaps east and west for dz just above zero.
+	return compassAngleToHeading(math.deg(math.atan2(dx, -dz)))
+end
+
 return {
 	CompassAngleToHeading = compassAngleToHeading,
+	DirectionToHeading = directionToHeading,
 	FacingToHeading = facingToHeading,
 	FacingToNumber = facingToNumber,
 	HeadingToFacing = headingToFacing,

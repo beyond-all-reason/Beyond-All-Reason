@@ -61,6 +61,7 @@ utilities = {
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
 
 	CompassAngleToHeading = facingFunctions.CompassAngleToHeading,
+	DirectionToHeading = facingFunctions.DirectionToHeading,
 	FacingToHeading = facingFunctions.FacingToHeading,
 	FacingToNumber = facingFunctions.FacingToNumber,
 	HeadingToFacing = facingFunctions.HeadingToFacing,

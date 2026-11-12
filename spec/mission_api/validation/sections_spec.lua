@@ -615,6 +615,37 @@ describe("mission_api.validation.sections", function()
 		end)
 	end)
 
+	describe("FollowCamera endings", function()
+		local function validateFollow(parameters)
+			parameters.position = { x = 0, z = 0 }
+			return V.validateAction({ type = V.actionTypes.FollowCamera, parameters = parameters })
+		end
+
+		it("warns that a follow without a duration never runs its ending", function()
+			local result = validateFollow({ ending = "restore", restoreDuration = 2 })
+
+			V.assertMessage(
+				result,
+				"FollowCamera without a duration runs until the next camera action, so its ending never runs: "
+					.. "ending, restoreDuration. Action: a"
+			)
+			assert.is_true(result.ok)
+		end)
+
+		it("takes a duration of 0 as a follow that ends at once", function()
+			V.assertNoMessageContaining(validateFollow({ duration = 0, releaseDuration = 1 }), "FollowCamera")
+			V.assertNoMessageContaining(
+				validateFollow({ duration = { difficulties = { Easy = 5, Hard = 0 } }, ending = "hold" }),
+				"FollowCamera"
+			)
+		end)
+
+		it("does not warn with a duration, or without ending parameters", function()
+			V.assertNoMessageContaining(validateFollow({ duration = 5, ending = "restore" }), "FollowCamera")
+			V.assertNoMessageContaining(validateFollow({}), "FollowCamera")
+		end)
+	end)
+
 	describe("stockpile triggers", function()
 		local originalWeaponDefs
 
@@ -884,6 +915,15 @@ describe("mission_api.validation.sections", function()
 				'Action is missing required parameter, at least one of {"'
 					.. table.concat(names, '","')
 					.. '"} is required. Action: a'
+			)
+		end)
+
+		it("requires a camera target", function()
+			local result = V.validateAction({ type = V.actionTypes.FollowCamera, parameters = { distance = 100 } })
+
+			V.assertMessage(
+				result,
+				[[Action is missing required parameter, at least one of {"unitName","position"} is required. Action: a]]
 			)
 		end)
 	end)

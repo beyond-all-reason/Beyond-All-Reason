@@ -590,6 +590,35 @@ local function validateAddBuildOptionAction(context, actionReport, actionID, act
 	end
 end
 
+local followEndingParameters =
+	{ "ending", "restoreSlot", "restoreDuration", "restoreEasing", "releaseDuration", "releaseEasing" }
+
+-- A FollowCamera without a duration runs until the next camera action replaces it, so it never ends.
+local function validateFollowCameraEnding(context, actionReport, actionID, action)
+	local parameters = action.parameters
+	if action.type ~= context.ActionTypes.FollowCamera or type(parameters) ~= "table" then
+		return
+	end
+
+	local endingParameters = {}
+	for _, name in ipairs(followEndingParameters) do
+		if parameters[name] ~= nil then
+			endingParameters[#endingParameters + 1] = name
+		end
+	end
+	if #endingParameters == 0 then
+		return
+	end
+
+	if parameters.duration == nil then
+		actionReport.Warn(
+			actionID,
+			"FollowCamera without a duration runs until the next camera action, so its ending never runs: "
+				.. table.concat(endingParameters, ", ")
+		)
+	end
+end
+
 local function validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
@@ -601,6 +630,7 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateChangeTeamAction(context, actionReport, actionID, action)
 			validateIssueOrdersAction(context, actionReport, actionID, action)
 			validateAddBuildOptionAction(context, actionReport, actionID, action)
+			validateFollowCameraEnding(context, actionReport, actionID, action)
 		end
 	end
 end
