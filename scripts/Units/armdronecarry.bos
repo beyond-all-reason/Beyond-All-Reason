@@ -3,7 +3,6 @@
 
 piece  ground, base, radar, nano1, nano2, nano3, nano4, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, drone11, drone12, drone13, drone14, drone15, drone16, radarfirepoint;
 
-static-var  oldHead;
 static-var  Stunned;
 
 // Signal definitions
@@ -42,13 +41,11 @@ Lights()
 Go()
 {
 	spin radar around y-axis speed <-50.043956> accelerate <2>;
-	return (0);
 }
 
 Stop()
 {
 	spin radar around y-axis speed <0.0>;
-	return (0);
 }
 
 ExecuteRestoreAfterDelay()

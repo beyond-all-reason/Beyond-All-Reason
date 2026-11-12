@@ -14,7 +14,7 @@ barrelFlare2,
 bow,
 wake;
 
-static-var  restore_delay, aimDir1, aimDir2, whichBarrel, wpn1_lasthead, currentAim;
+static-var restore_delay, aimDir1, aimDir2, wpn1_lasthead, currentAim, Stunned;
 
 // Signal definitions
 #define SIGNAL_AIM2 512
@@ -52,12 +52,11 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 }
 
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	set-signal-mask 0;
 	wpn1_lasthead = 1000000;
 	turn turretHeadingPivot1 to y-axis <0.0> speed <25.0>;
@@ -65,19 +64,19 @@ ExecuteRestoreAfterDelay()
 }
 ExecuteRestoreAfterDelay2()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	set-signal-mask 0;
 	turn turretHeadingPivot2 to y-axis <0.0> speed <25.0>;
 	turn turretPitchPivot2 to x-axis <0.0> speed <35.0>;
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-        start-script ExecuteRestoreAfterDelay2();
+		start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay2();
 	}
 }
 RestoreAfterDelay()
@@ -120,12 +119,12 @@ AimWeapon1(heading, pitch)
 }
 
 FireWeapon1()
-{	
-    move barrel1 to z-axis [-10] now;
-    emit-sfx 1024 + 0 from barrelFlare1;
-    sleep 100;
-    move barrel1 to z-axis [0] speed [2.5];
-	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+{
+	move barrel1 to z-axis [-10] now;
+	emit-sfx 1024 + 0 from barrelFlare1;
+	sleep 100;
+	move barrel1 to z-axis [0] speed [2.5];
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1)
 }
 
 
@@ -136,7 +135,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-    pieceIndex = barrelFlare1;
+	pieceIndex = barrelFlare1;
 }
 
 // 2nd turret
@@ -145,16 +144,6 @@ AimWeapon2(heading, pitch)
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
 	aimDir2 = heading;
-
-	// for debugging
-	// var headingAngle;
-	// var currentAngle;
-	// var pitchAngle;
-
-	// headingAngle = (heading*360)/65535;
-	// currentAngle = (currentAim*360)/65535;
-	// pitchAngle = (pitch*360)/65535;
-	// get PRINT(headingAngle, currentAngle,pitchAngle);
 
 	if(heading > <-125> AND heading < <165>){ // check if within allowed arc to fire
 		if(currentAim < <-65> and heading > <55>){ // check if its turned too far to the right, turn to the middle first
@@ -177,7 +166,7 @@ AimWeapon2(heading, pitch)
 		}
 		start-script RestoreAfterDelay2();
 		currentAim = heading;
-		return (1);	
+		return (1);
 	}
 	//if not allowed in arc of firing, as long as pitch is above 30 degrees it's fine
 	else if (pitch > <30>){
@@ -190,7 +179,7 @@ AimWeapon2(heading, pitch)
 		}
 		start-script RestoreAfterDelay2();
 		currentAim = heading;
-		return (1);	
+		return (1);
 	}
 	//otherwise do not allow it to fire
 	else{
@@ -201,11 +190,11 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-    move barrel2 to z-axis [-10] now;
-    emit-sfx 1024 + 0 from barrelFlare2;
-    sleep 100;
-    move barrel2 to z-axis [0] speed [2.5];
-	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+	move barrel2 to z-axis [-10] now;
+	emit-sfx 1024 + 0 from barrelFlare2;
+	sleep 100;
+	move barrel2 to z-axis [0] speed [2.5];
+	RB_RECOILBOAT(aimDir2, RB_RECOIL_ENERGY_2)
 }
 
 AimFromWeapon2(pieceIndex)
@@ -225,40 +214,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode turret type BITMAPONLY | NOHEATCLOUD;
-		// explode sleeve type BITMAPONLY | NOHEATCLOUD;
-		// explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode foreturret type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode turret type FALL | NOHEATCLOUD;
-		// explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrel1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode foreturret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode barrel2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode foreturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -1,8 +1,4 @@
-#define CUSTOMSIGNALS
 #include "../recoil_common_includes.h"
-
-//#define DEBUG
-#include "../debug.h"
 
 piece
 pelvis,
@@ -61,19 +57,12 @@ pile,
 torsofirepoint;
 
 
-static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, restore_delay, stunned, oldHeadingTS, torsofunkyHeading, oldHeadingBunker, oldHeadingRailgun, fuelSaver, isturning;
+static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, restore_delay, Stunned, oldHeadingTS, torsofunkyHeading, oldHeadingBunker, oldHeadingRailgun, fuelSaver, isturning;
 
 #define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 #define MOVESCALE 100
-#define SIG_WALK			2
-#define SIG_AIM_TC			4
-#define SIG_AIM_BUNKER		8
-#define SIG_AIM_GUN			16
-#define SIG_FIRE_BUNKER		32
-#define SIG_FIRE_GUN		64
-#define SIGNAL_RESTORE		128
 
 #define UNITSIZE 			8
 #define MAXTILT				100
@@ -147,16 +136,13 @@ Create(){
 	call-script CATT2_Init();
 	start-script Steering();
 	
-	turn aimxarml to x-axis <0.000000> now;
-	turn aimyarml to y-axis <0.000000> now;
-	turn aimxarmr to x-axis <0.000000> now;
-	turn aimyarmr to y-axis <0.000000> now;
-	turn aimyarmr to z-axis <0.000000> now;	
+	turn aimxarml to x-axis <0.0> now;
+	turn aimyarml to y-axis <0.0> now;
+	turn aimxarmr to x-axis <0.0> now;
+	turn aimyarmr to y-axis <0.0> now;
+	turn aimyarmr to z-axis <0.0> now;	
 
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script StopPushups(); //Needed to make sure the unit rotates back into position if using /reloadcob legbunk
 	call-script StopWalking();
 	spin fingers around z-axis speed <360> accelerate <6>;}
@@ -195,48 +181,42 @@ Create(){
 #include "../constant_acceleration_turret_turning_2.h"
 
 
-SweetSpot(piecenum)
+SetStunned(State)
 {
-	piecenum = torso;
-}
-
-
-Setstunned(State)
-{
-    stunned = State;
-	if (!stunned) {
+    Stunned = State;
+	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
 	} else {
 		stop-spin fingers around z-axis;
 	}
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = torsofirepoint;
+	pieceIndex = torsofirepoint;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = torso;
 }
 
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = aimflarebunker;
+	pieceIndex = aimflarebunker;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = aimflarebunker;
+	pieceIndex = aimflarebunker;
 }
 
 //Targeting System / Responsible for torso rotation and saving that info for the other turrets.
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM_TC;
-	set-signal-mask SIG_AIM_TC;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	call-script StopPushups();
 	var cauaim;
     var cauface;
@@ -246,33 +226,33 @@ AimWeapon1(heading, pitch)
 		{
 			if (isturning == 1)
 			{
-				turn aimy1 to y-axis <179> speed <184.0000> ;
+				turn aimy1 to y-axis <179> speed <184.0> ;
 			}
 			if (isturning == 0)
 			{
-				turn aimy1 to y-axis <179> speed <120.0000> ;
+				turn aimy1 to y-axis <179> speed <120.0> ;
 			}
 		}
 		if ((oldHeadingBunker+oldHeadingRailgun)/2 > 0)
 		{
 			if (isturning == 1)
 			{
-				turn aimy1 to y-axis <-179> speed <184.0000> ;
+				turn aimy1 to y-axis <-179> speed <184.0> ;
 			}
 			if (isturning == 0)
 			{
-				turn aimy1 to y-axis <-179> speed <120.0000> ;
+				turn aimy1 to y-axis <-179> speed <120.0> ;
 			}
 		}
 	}
 	else {
 		if (isturning == 1)
 		{
-			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/4 + heading/2 speed <184.0000> ;
+			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/4 + heading/2 speed <184.0> ;
 		}
 		if (isturning == 0)
 		{
-			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/4 + heading/2 speed <120.0000> ;
+			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/4 + heading/2 speed <120.0> ;
 		}
 	}
 
@@ -329,7 +309,6 @@ AimWeapon1(heading, pitch)
 	oldHeadingTS = heading;
 	isAiming = TRUE;
     start-script RestoreAfterDelay();
-	return (0);
 }
 
 
@@ -343,8 +322,8 @@ AimWeapon2(heading, pitch)
 	if (ANGLE_DIFFERENCE_GREATER_THAN(new_heading,<135>)) {
 		return (0);
 	}
-	signal SIG_AIM_BUNKER;
-	set-signal-mask SIG_AIM_BUNKER;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	isAiming = TRUE;
 	
 	turn piledriver to x-axis <0> - pitch/2 speed <30>;
@@ -356,21 +335,21 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	signal SIG_FIRE_BUNKER;
+	signal SIGNAL_SHOOT2;
 	call-script Attack_bunker();
 	call-script Recoil_Bunker();
 	sleep 100;
 	call-script Retract_bunker();
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = aimflarerailgun;
+	pieceIndex = aimflarerailgun;
 }
 
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = aimflarerailgun;
+	pieceIndex = aimflarerailgun;
 }
 
 //Railgun
@@ -380,8 +359,8 @@ AimWeapon3(heading, pitch) {
 	if (ANGLE_DIFFERENCE_GREATER_THAN(new_heading,<135>)) {
 		return (0);
 	}
-	signal SIG_AIM_GUN;
-	set-signal-mask SIG_AIM_GUN;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	isAiming = TRUE;
 	
 	oldHeadingRailgun = heading;
@@ -405,7 +384,7 @@ dontgetyourlegshotoff(h) {
 }
 
 FireWeapon3(){
-	signal SIG_AIM_GUN;
+	signal SIGNAL_AIM3;
 	call-script Recoil_Gun();
 	return (1);}
 
@@ -443,16 +422,16 @@ RestoreAfterDelay(){
 	start-script ExecuteRestoreAfterDelay();}
 
 ExecuteRestoreAfterDelay() {
-    if (stunned) {
+    if (Stunned) {
         return (1);
     }
-	signal SIGNAL_RESTORE;
-	set-signal-mask SIGNAL_RESTORE;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
 	
 	isAiming = FALSE;
-	turn aimy1 to y-axis <0.000000> speed <60.000000>;
-	turn piledriver to x-axis <25> speed <60.000000>;
-	turn railgun to x-axis <25> speed <60.000000>;
+	turn aimy1 to y-axis <0.0> speed <60.0>;
+	turn piledriver to x-axis <25> speed <60.0>;
+	turn railgun to x-axis <25> speed <60.0>;
 	
 	start-script Retract_bunker();
 	
@@ -584,7 +563,7 @@ Killed(severity, corpsetype) {
 }
 
 Walk() {
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 
 	//"Deactivate" Idle pose before going into the main walk script
 	turn lthigh to y-axis <0> speed <525.118567> / animSpeed;
@@ -1229,17 +1208,17 @@ UnitSpeed(){ // REMEMBER TO animspeed = 2 in Create() !!
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 2) / animSpeed;
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>4) animSpeed = 4;
+		if (animSpeed>4) animSpeed = 4;
 		sleep 65;
 	}
 }
-StartMoving(){
-	signal SIG_WALK;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	call-script StopPushups();
 	start-script Walk();}
 StopMoving(){
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 	if (!isPushing and !isAiming and !isMoving) {
@@ -1249,10 +1228,10 @@ StopMoving(){
 
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {
-	signal SIG_WALK;
-	signal SIG_AIM_TC;
-	signal SIG_AIM_BUNKER;
-	signal SIG_AIM_GUN;
+	signal SIGNAL_MOVE;
+	signal SIGNAL_AIM1;
+	signal SIGNAL_AIM2;
+	signal SIGNAL_AIM3;
 	call-script StopWalking();
 	turn aimy1 to y-axis <0> speed <120>;
 	turn aimxarml to x-axis <0> speed <120>;
@@ -1379,7 +1358,7 @@ DeathAnim() {
 			turn lshin to x-axis <-30.363196> speed <28.053152> ; 
 			turn lshin to y-axis <-2.929878> speed <1.483070> ; 
 			turn lthigh to x-axis <-3.700323> speed <82.225145> ; 
-			turn ltoes to x-axis <-0.000000> speed <126.402492> ; 
+			turn ltoes to x-axis <-0.0> speed <126.402492> ; 
 			move pelvis to y-axis [-18.702309] speed [32.765111] ; 
 			turn pelvis to x-axis <75.834115> speed <29.906989> ; 
 			turn pelvis to z-axis <-33.937625> speed <39.667354> ; 
@@ -1459,7 +1438,7 @@ DeathAnim() {
 }
 Pushup() {
 	if (isPushing) { return (0); };
-	set-signal-mask SIG_WALK | SIG_AIM_TC;
+	set-signal-mask SIGNAL_MOVE | SIGNAL_AIM1;
 	if (RAND(1,100) > 20) return; // reduce probs to only 20%
 	sleep 10000 + 100*RAND(1,200); // 10-30 secs
 	isPushing = TRUE;
@@ -2194,62 +2173,62 @@ Pushup() {
 // Call this when doing literally anything
 StopPushups() {
 	if (isPushing) {		
-		move pelvis to y-axis [0.000000] speed [586.862807] / animSpeed;
-		move pelvis to z-axis [0.000000] speed [46.204146] / animSpeed;
-		turn larm to x-axis <0.000000> speed <1243.324382> / animSpeed;
-		turn larm to y-axis <0.000000> speed <1790.580216> / animSpeed;
-		turn larm to z-axis <0.000000> speed <989.491874> / animSpeed;
-		turn larmorshoulder to x-axis <0.000000> speed <903.114871> / animSpeed;
-		turn larmorshoulder to y-axis <0.000000> speed <1331.977303> / animSpeed;
-		turn larmorshoulder to z-axis <0.000000> speed <827.127435> / animSpeed;
-		turn lfootjoint to x-axis <0.000000> speed <673.011898> / animSpeed;
-		turn lfootjoint to y-axis <0.000000> speed <164.763443> / animSpeed;
-		turn lfootjoint to z-axis <0.000000> speed <316.074036> / animSpeed;
-		turn lforearm to x-axis <0.000000> speed <1002.502936> / animSpeed;
-		turn lforearm to y-axis <0.000000> speed <1460.894028> / animSpeed;
-		turn lforearm to z-axis <0.000000> speed <258.371697> / animSpeed;
-		turn lmidleg to x-axis <0.000000> speed <947.920035> / animSpeed;
-		turn lmidleg to z-axis <0.000000> speed <10.118876> / animSpeed;
-		turn lshin to x-axis <0.000000> speed <1402.197901> / animSpeed;
-		turn lshin to z-axis <0.000000> speed <10.773614> / animSpeed;
-		turn lthigh to x-axis <0.000000> speed <623.868241> / animSpeed;
+		move pelvis to y-axis [0.0] speed [586.862807] / animSpeed;
+		move pelvis to z-axis [0.0] speed [46.204146] / animSpeed;
+		turn larm to x-axis <0.0> speed <1243.324382> / animSpeed;
+		turn larm to y-axis <0.0> speed <1790.580216> / animSpeed;
+		turn larm to z-axis <0.0> speed <989.491874> / animSpeed;
+		turn larmorshoulder to x-axis <0.0> speed <903.114871> / animSpeed;
+		turn larmorshoulder to y-axis <0.0> speed <1331.977303> / animSpeed;
+		turn larmorshoulder to z-axis <0.0> speed <827.127435> / animSpeed;
+		turn lfootjoint to x-axis <0.0> speed <673.011898> / animSpeed;
+		turn lfootjoint to y-axis <0.0> speed <164.763443> / animSpeed;
+		turn lfootjoint to z-axis <0.0> speed <316.074036> / animSpeed;
+		turn lforearm to x-axis <0.0> speed <1002.502936> / animSpeed;
+		turn lforearm to y-axis <0.0> speed <1460.894028> / animSpeed;
+		turn lforearm to z-axis <0.0> speed <258.371697> / animSpeed;
+		turn lmidleg to x-axis <0.0> speed <947.920035> / animSpeed;
+		turn lmidleg to z-axis <0.0> speed <10.118876> / animSpeed;
+		turn lshin to x-axis <0.0> speed <1402.197901> / animSpeed;
+		turn lshin to z-axis <0.0> speed <10.773614> / animSpeed;
+		turn lthigh to x-axis <0.0> speed <623.868241> / animSpeed;
 		turn lthigh to y-axis <19.999998> speed <505.202160> / animSpeed;
-		turn lthigh to z-axis <0.000000> speed <14.255320> / animSpeed;
-		turn ltoes to x-axis <0.000000> speed <1363.217990> / animSpeed;
-		turn ltoes to y-axis <0.000000> speed <10.404367> / animSpeed;
-		turn ltoes to z-axis <0.000000> speed <24.170836> / animSpeed;
-		turn pelvis to x-axis <0.000000> speed <2170.659887> / animSpeed;
+		turn lthigh to z-axis <0.0> speed <14.255320> / animSpeed;
+		turn ltoes to x-axis <0.0> speed <1363.217990> / animSpeed;
+		turn ltoes to y-axis <0.0> speed <10.404367> / animSpeed;
+		turn ltoes to z-axis <0.0> speed <24.170836> / animSpeed;
+		turn pelvis to x-axis <0.0> speed <2170.659887> / animSpeed;
 		turn piledriver to x-axis <25.000002> speed <1214.165830> / animSpeed;
-		turn piledriver to y-axis <0.000000> speed <355.819857> / animSpeed;
-		turn piledriver to z-axis <0.000000> speed <51.383870> / animSpeed;
+		turn piledriver to y-axis <0.0> speed <355.819857> / animSpeed;
+		turn piledriver to z-axis <0.0> speed <51.383870> / animSpeed;
 		turn railgun to x-axis <25.000004> speed <1225.241820> / animSpeed;
-		turn railgun to y-axis <0.000000> speed <357.919244> / animSpeed;
-		turn railgun to z-axis <0.000000> speed <54.922877> / animSpeed;
-		turn rarm to x-axis <0.000000> speed <1271.288500> / animSpeed;
-		turn rarm to y-axis <0.000000> speed <1848.622374> / animSpeed;
-		turn rarm to z-axis <0.000000> speed <1158.859926> / animSpeed;
-		turn rarmorshoulder to x-axis <0.000000> speed <920.900628> / animSpeed;
-		turn rarmorshoulder to y-axis <0.000000> speed <1403.970143> / animSpeed;
-		turn rarmorshoulder to z-axis <0.000000> speed <964.563114> / animSpeed;
-		turn rfootjoint to x-axis <0.000000> speed <673.041982> / animSpeed;
-		turn rfootjoint to y-axis <0.000000> speed <164.517428> / animSpeed;
-		turn rfootjoint to z-axis <0.000000> speed <315.822770> / animSpeed;
-		turn rforearm to x-axis <0.000000> speed <979.847220> / animSpeed;
-		turn rforearm to y-axis <0.000000> speed <1432.725293> / animSpeed;
-		turn rforearm to z-axis <0.000000> speed <221.070396> / animSpeed;
-		turn rmidleg to x-axis <0.000000> speed <947.782876> / animSpeed;
-		turn rmidleg to z-axis <0.000000> speed <10.118126> / animSpeed;
-		turn rshin to x-axis <0.000000> speed <1402.070988> / animSpeed;
-		turn rshin to z-axis <0.000000> speed <10.770863> / animSpeed;
-		turn rthigh to x-axis <0.000000> speed <623.948026> / animSpeed;
+		turn railgun to y-axis <0.0> speed <357.919244> / animSpeed;
+		turn railgun to z-axis <0.0> speed <54.922877> / animSpeed;
+		turn rarm to x-axis <0.0> speed <1271.288500> / animSpeed;
+		turn rarm to y-axis <0.0> speed <1848.622374> / animSpeed;
+		turn rarm to z-axis <0.0> speed <1158.859926> / animSpeed;
+		turn rarmorshoulder to x-axis <0.0> speed <920.900628> / animSpeed;
+		turn rarmorshoulder to y-axis <0.0> speed <1403.970143> / animSpeed;
+		turn rarmorshoulder to z-axis <0.0> speed <964.563114> / animSpeed;
+		turn rfootjoint to x-axis <0.0> speed <673.041982> / animSpeed;
+		turn rfootjoint to y-axis <0.0> speed <164.517428> / animSpeed;
+		turn rfootjoint to z-axis <0.0> speed <315.822770> / animSpeed;
+		turn rforearm to x-axis <0.0> speed <979.847220> / animSpeed;
+		turn rforearm to y-axis <0.0> speed <1432.725293> / animSpeed;
+		turn rforearm to z-axis <0.0> speed <221.070396> / animSpeed;
+		turn rmidleg to x-axis <0.0> speed <947.782876> / animSpeed;
+		turn rmidleg to z-axis <0.0> speed <10.118126> / animSpeed;
+		turn rshin to x-axis <0.0> speed <1402.070988> / animSpeed;
+		turn rshin to z-axis <0.0> speed <10.770863> / animSpeed;
+		turn rthigh to x-axis <0.0> speed <623.948026> / animSpeed;
 		turn rthigh to y-axis <-20.000001> speed <505.209486> / animSpeed;
-		turn rthigh to z-axis <0.000000> speed <14.624485> / animSpeed;
-		turn rtoes to x-axis <0.000000> speed <1363.226093> / animSpeed;
-		turn rtoes to y-axis <0.000000> speed <10.401773> / animSpeed;
-		turn rtoes to z-axis <0.000000> speed <24.169722> / animSpeed;
-		turn torso to x-axis <0.000000> speed <125.242319> / animSpeed;
-		turn torso to y-axis <0.000000> speed <22.516682> / animSpeed;
-		turn torso to z-axis <0.000000> speed <42.749395> / animSpeed;
+		turn rthigh to z-axis <0.0> speed <14.624485> / animSpeed;
+		turn rtoes to x-axis <0.0> speed <1363.226093> / animSpeed;
+		turn rtoes to y-axis <0.0> speed <10.401773> / animSpeed;
+		turn rtoes to z-axis <0.0> speed <24.169722> / animSpeed;
+		turn torso to x-axis <0.0> speed <125.242319> / animSpeed;
+		turn torso to y-axis <0.0> speed <22.516682> / animSpeed;
+		turn torso to z-axis <0.0> speed <42.749395> / animSpeed;
 		
 		start-script ExecuteRestoreAfterDelay();
 		spin fingers around z-axis speed <360> accelerate <6>;

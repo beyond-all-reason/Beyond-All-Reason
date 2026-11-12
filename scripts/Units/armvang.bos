@@ -10,14 +10,10 @@ piece  	base, turret, flare, barrel, sleeve, aimx1, aimy1, turretmidpoint,
 		mrhip, mrthigh, mrleg, mrfoot,
 		brhip, brthigh, brleg, brfoot;
 
-static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult;
+static-var  last_primary_heading, last_primary_pitch;
 
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
-
-#define LOW_TRAJECTORY		0
-#define HIGH_TRAJECTORY		1
-
 
 // Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O
@@ -32,7 +28,6 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
-#define SIGNAL_MOVE 1
 Walk() {// For C:\Users\logst\Downloads\BAR\armvang anim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
 	while(isMoving) {
@@ -573,14 +568,13 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 3) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>6) animSpeed = 6;
 		sleep 98;
 	}
 }
 
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
@@ -590,21 +584,6 @@ StopMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
-}
-
-Steering(heading)
-{
-	while( 1 )
-	{
-		heading = get HEADING;
-
-		if ( heading < oldheading )	bSteering=TRUE;
-		if ( heading > oldheading )	bSteering=TRUE;
-		if (heading == oldheading ) bSteering=FALSE;
-
-		sleep 66;
-		oldheading = heading;
-	}
 }
 
 #define BASEPIECE base
@@ -625,21 +604,16 @@ Create()
 	hide flare;
 	hide aimx1;
 	hide aimy1;
-	hide flare;
 	
 	isMoving = FALSE;
-	bSteering = FALSE;
-	oldHeading = get HEADING;
 	animSpeed = 3;
 	
-	start-script Steering();
 	start-script UnitSpeed();
 	
 	turn flhip to y-axis <30> now;
 	turn frhip to y-axis <-30> now;
 	turn blhip to y-axis <-30> now;
 	turn brhip to y-axis <30> now;
-	speedmult = 70;
 	
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
@@ -649,10 +623,10 @@ Create()
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned)
+	if (Stunned)
 	{
-        return (1);
-    }
+		return (1);
+	}
 	set-signal-mask 0;
 	turn turret to y-axis <0.0> speed <36.0>;
 	turn aimx1 to x-axis <0.0> speed <30.0>;
@@ -661,14 +635,13 @@ ExecuteRestoreAfterDelay()
 	last_primary_pitch = -1000000;
 	wait-for-turn turret around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	wpn1_lasthead = 0xbadface;
 }
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 
@@ -687,20 +660,20 @@ fireCommon()
 	move sleeve to z-axis [-0.5] speed [12];
 	sleep 751;
 	move sleeve to z-axis [0] speed [0.5];
-	move barrel to z-axis [0.000000] speed [4.000000];
+	move barrel to z-axis [0.0] speed [4.0];
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	if (AimingState != AIMING_PRIORITY)
 	{
@@ -712,8 +685,8 @@ AimPrimary(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn turret to y-axis heading speed <30.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <45.000000>;
+	turn turret to y-axis heading speed <30.0>;
+	turn aimx1 to x-axis <0.0> - pitch speed <45.0>;
 	if ( (get ABS(last_primary_heading - heading)>180) OR (get ABS(last_primary_pitch - pitch)>270) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
@@ -735,22 +708,22 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	call-script fireCommon();
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	if (AimingState != AIMING_BACKUP)
 	{
@@ -762,8 +735,8 @@ AimSecondary(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn turret to y-axis heading speed <30.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <45.000000>;
+	turn turret to y-axis heading speed <30.0>;
+	turn aimx1 to x-axis <0.0> - pitch speed <45.0>;
 	if ( (get ABS(last_primary_heading - heading)>180) OR (get ABS(last_primary_pitch - pitch)>270) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
@@ -784,19 +757,24 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {	
 	call-script fireCommon();
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = turretmidpoint;
+	pieceIndex = turretmidpoint;
 }
 
-AimTertiary(piecenum)
+AimWeapon3(pieceIndex)
 {
 	return (0);
+}
+
+AimFromWeapon3(pieceIndex)
+{
+	pieceIndex = turretmidpoint;
 }
 
 

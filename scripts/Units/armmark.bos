@@ -245,7 +245,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 3) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>6) animSpeed = 6;
 		sleep 98;
@@ -253,7 +252,7 @@ UnitSpeed(){
 }
 StartMoving(reversing){
 	signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
@@ -263,13 +262,6 @@ StopMoving(){
 	isMoving=FALSE;
 	call-script StopWalking();
 }
-
-stand()
-{
-	sleep 200;
-	return (0);
-}
-
 
 #define BASEPIECE torso
 #define HITSPEED <55.0>
@@ -283,7 +275,6 @@ Create()
 {
 	isMoving = FALSE;
 	animSpeed = 4;
-	return (0);
 }
 
 Activate()
@@ -295,27 +286,26 @@ Activate()
 	wait-for-turn ldish around z-axis;
 	spin lshoulder around x-axis speed <90>;
 	spin rshoulder around x-axis speed <-90>;
-	while (1==1)
+	while (TRUE)
 	{
-	    if (!Stunned) {
-            turn ldish to z-axis <0> speed <90>;
-            turn rdish to z-axis <0> speed <90>;
-            emit-sfx 1024 + 0 from torso;
+		if (!Stunned) {
+			turn ldish to z-axis <0> speed <90>;
+			turn rdish to z-axis <0> speed <90>;
+			emit-sfx 1024 + 0 from torso;
 			radarcount = radarcount + 1;
 			call-script lua_UnitScriptDistortion(1, radarcount);
-        }
-        sleep 2500;
+		}
+		sleep 2500;
 
-	    if (!Stunned) {
-            turn ldish to z-axis <-179> speed <90>;
-            turn rdish to z-axis <179> speed <90>;
-            emit-sfx 1024 + 0 from torso;
+		if (!Stunned) {
+			turn ldish to z-axis <-179> speed <90>;
+			turn rdish to z-axis <179> speed <90>;
+			emit-sfx 1024 + 0 from torso;
 			radarcount = radarcount + 1;
 			call-script lua_UnitScriptDistortion(1, radarcount);
-        }
-        sleep 2500;
-	} 
-	return (0);
+		}
+		sleep 2500;
+	}
 }
 
 Deactivate()
@@ -326,30 +316,26 @@ Deactivate()
 	turn ldish to z-axis <0.0> speed <-100.021978>;
 	turn lshoulder to x-axis <0> speed <180>;
 	turn rshoulder to x-axis <0> speed <180>;
-	
+
 	wait-for-turn rdish around x-axis;
 	wait-for-turn ldish around x-axis;
-	return (0);
 }
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
-	    stop-spin lshoulder around x-axis decelerate <10>;
-	    stop-spin rshoulder around x-axis decelerate <10>;
-        wait-for-turn rdish around z-axis;
-        wait-for-turn ldish around z-axis;
-        wait-for-turn rdish around x-axis;
-        wait-for-turn ldish around x-axis;
+		stop-spin lshoulder around x-axis decelerate <10>;
+		stop-spin rshoulder around x-axis decelerate <10>;
+		wait-for-turn rdish around z-axis;
+		wait-for-turn ldish around z-axis;
+		wait-for-turn rdish around x-axis;
+		wait-for-turn ldish around x-axis;
 	} else {
-        spin lshoulder around x-axis speed <90>;
-        spin rshoulder around x-axis speed <-90>;
+		spin lshoulder around x-axis speed <90>;
+		spin rshoulder around x-axis speed <-90>;
 	}
 }
-
-
-
 
 Killed(severity, corpsetype)
 {

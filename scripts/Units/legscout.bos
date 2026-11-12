@@ -1,17 +1,12 @@
-#define TA			// This is a TA script
-
 #include "../recoil_common_includes.h"
 
 piece body, mount, gun, ammo, barrel, lTyre, rTyre, flare;
 
-static-var  restore_delay, oldHeading, curHead1, curPitch1;
+static-var  restore_delay, oldHeading, Stunned, curHead1, curPitch1;
 
 #define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
-// Signal definitions
-#define SIG_AIM				2
-#define SIG_MOVE 			4
 
 
 #define BASEPIECE body
@@ -19,179 +14,123 @@ static-var  restore_delay, oldHeading, curHead1, curPitch1;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#define TB_BASE body
+#define TB_TURNRATE <35.0>
+#define TB_TILT_X <-0.4>
+#define TB_BANK_Z <0.2> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 Create()
 {
 	Weapon1TurretX = <300.0>;
 	Weapon1TurretY = <300.0>;
 	hide flare;
-
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-
+	call-script TB_Init();
+	SLEEP_UNTIL_UNITFINISHED;
 	restore_delay = 1500;
 	start-script RestoreAfterDelay();
-
 }
 
 Steering(heading, steery, currentSpeed)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
-		steery = WRAPDELTA(heading - oldheading)*3/2;
-		turn body to y-axis steery speed <120>;
-		turn body to z-axis steery speed <15>;		
+		steery = (heading - oldHeading)*3/2;
+		//turn body to y-axis steery speed <120>;
 		currentSpeed = <5.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
 		spin rTyre around x-axis speed currentSpeed;
 		spin lTyre around x-axis speed currentSpeed;
 		sleep 66;
-		oldheading = heading;
+		oldHeading = heading;
 	}
 }
 
 StopMoving()
 {
-    signal SIG_MOVE;
-	turn body to y-axis <0> speed <120>;
-	turn body to z-axis <0> speed <30>;
-    stop-spin rTyre around x-axis;
-    stop-spin lTyre around x-axis;
-} 
-
-StartMoving()
-{
-    start-script Steering();
+	signal SIGNAL_TURNON;
+	stop-spin rTyre around x-axis;
+	stop-spin lTyre around x-axis;
+	
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
-SetMaxReloadTime(Func_Var_1)
+StartMoving(reversing)
 {
-	restore_delay = Func_Var_1 * 2;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	start-script Steering();
+
+
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 }
 
-static-var  Stunned;
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
+
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
-	set-signal-mask SIG_AIM;
-
-	var done;
-	var delta;
-	var nextHead;
-	var nextPitch;
-
-	while (!done){
-		done = TRUE;
-		delta = WRAPDELTA(0 - curHead1);
-		if (ABSOLUTE_GREATER_THAN(delta,(<150.000000> / 30))) {
-			nextHead = curHead1 + SIGN(delta) * (<150.000000> / 30);
-			done = FALSE;
-		}else{
-			nextHead = 0;
-		}
-		delta = WRAPDELTA(0 - curPitch1);
-		if (ABSOLUTE_GREATER_THAN(delta,(<150.000000> / 30))) {
-			nextPitch = curPitch1 + SIGN(delta) * (<150.000000> / 30);
-			done = FALSE;
-		}else{
-			nextPitch = 0;
-		}
-		turn mount to y-axis nextHead speed <150.000000>;
-		turn gun to x-axis <0> - nextPitch speed <150.000000>;
-		if (!done) {
-			sleep 1;
-		}
-		curHead1 = nextHead;
-		curPitch1 = nextPitch;
+	if (Stunned) {
+		return (1);
 	}
+	turn mount to y-axis <0.0> speed <150.0>;
+	turn gun to x-axis <0.0> speed <150.0>;
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-
-	var canShoot;
-	var delta;
-	var nextHead;
-	var nextPitch;
-
-	while (!canShoot){
-		canShoot = TRUE;
-		delta = WRAPDELTA(heading - curHead1);
-		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretY / 30))) {
-			nextHead = WRAPDELTA(curHead1 + SIGN(delta) * (Weapon1TurretY / 30));
-			canShoot = FALSE;
-		}else{
-			nextHead = heading;
-		}
-		delta = WRAPDELTA(pitch - curPitch1);
-		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretX / 30))) {
-			nextPitch = WRAPDELTA(curPitch1 + SIGN(delta) * (Weapon1TurretX / 30));
-			canShoot = FALSE;
-		}else{
-			nextPitch = pitch;
-		}
-		turn mount to y-axis nextHead speed Weapon1TurretY;
-		turn gun to x-axis <0> - nextPitch speed Weapon1TurretX;
-		if (!canShoot) {
-			sleep 1;
-		}
-		curHead1 = nextHead;
-		curPitch1 = nextPitch;
-	}
-
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn mount to y-axis heading speed <300.0>;
+	turn gun to x-axis <0.0> - pitch speed <300.0>;
+	wait-for-turn mount around y-axis;
+	wait-for-turn gun around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FireWeapon1()
 {
-	move barrel to z-axis [-2.00000] speed [500.000000];
+	move barrel to z-axis [-2.0] speed [500.0];
 	sleep 400;
-	move barrel to z-axis [0.000000] speed [3.000000];
+	move barrel to z-axis [0.0] speed [3.0];
 }
 
-Shot1() 
+Shot1()
 {
 	emit-sfx 1024 + 0 from flare;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = barrel;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = body;
+	pieceIndex = barrel;
 }
 
 Killed(severity, corpsetype)

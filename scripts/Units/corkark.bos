@@ -1,23 +1,14 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  torso, rflare, lflare, pelvis,
        rarm, larm, aimy1, aimx1, leg2a, leg2b, leg3a, leg3b, leg4a, leg4b, leg5a, leg5b,
 	   shield, shldbot, shldout, shldin, shldtop, rhand, rheatray,
 	   backpack, neck, head;
 
-static-var  bMoving, bAiming, ReadyToAim, restore_delay, gun_1, wpn1_lasthead, statechg_DesiredState,
-			statechg_StateChanging, WALK_PERIOD, moveSpeed, tdamage, shieldup;
+static-var  isMoving, isAiming, restore_delay, wpn1_lasthead, WALK_PERIOD, tdamage, shieldup;
 
 #define TURRET_SPEED_WEAPONS 1
-#include "unitDefsTurretSpeeds.h"
-
-// Signal definitions
-#define SIG_AIM				2
-#define SIG_WALK			4
-#define SIG_AIM_2			8
+#include "../unitDefsTurretSpeeds.h"
 
 #define BASEPIECE pelvis
 #define HITSPEED <55.0>
@@ -26,18 +17,16 @@ static-var  bMoving, bAiming, ReadyToAim, restore_delay, gun_1, wpn1_lasthead, s
 #define MAXTILT 100
 HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
 {
-	var amount;//, speedz, speedx;
+	var amount;
 	amount = damage / (100 * UNITSIZE);
 	if (amount < 3  ) return (0);
 	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
 	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
@@ -45,48 +34,25 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	tdamage = dmg + tdamage;
 	if ((tdamage > 30000) AND (shieldup == 1))
 	{
-		explode Shield type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
-		hide Shield;
-		explode Shldbot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
-		hide Shldbot;
-		explode Shldout type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
-		hide Shldout;
-		explode Shldin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
-		hide Shldin;
-		explode Shldtop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
-		hide Shldtop;
+		explode shield type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		hide shield;
+		explode shldbot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		hide shldbot;
+		explode shldout type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		hide shldout;
+		explode shldin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		hide shldin;
+		explode shldtop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		hide shldtop;
 		set ARMORED to 0;
 		shieldup = 0;
 	}
 	return (100); //return damage percent
 }
 
-//#define FRONT_RIGHT_UP\
-//	turn leg6a to y-axis <70> speed <12.5> *1000/(WALK_PERIOD);\
-//	turn leg6a to z-axis <20> speed <20> *1000/(WALK_PERIOD);
+#define SMOKE_PIECE torso
+#include "../damagedsmoke.h"
 
-//#define FRONT_RIGHT_DOWN\
-//	turn leg6a to z-axis <-10> speed <30> *1000/(WALK_PERIOD);\
-//	turn leg6b to z-axis <85> speed <85> *1000/(WALK_PERIOD);
-
-//#define FRONT_RIGHT_BACK\
-//	turn leg6a to y-axis <45> speed <6.25> *1000/(WALK_PERIOD);\
-//	turn leg6a to z-axis <0> speed <7.5> *1000/(WALK_PERIOD);\
-//	turn leg6b to z-axis <0> speed <23.75> *1000/(WALK_PERIOD);
-
-//#define FRONT_LEFT_UP\
-//	turn leg1a to y-axis <-70> speed <12.5> *1000/(WALK_PERIOD);\
-//	turn leg1a to z-axis <-20> speed <20> *1000/(WALK_PERIOD);
-
-//#define FRONT_LEFT_DOWN\
-//	turn leg1a to z-axis <10> speed <30> *1000/(WALK_PERIOD);\
-//	turn leg1b to z-axis <-85> speed <85> *1000/(WALK_PERIOD);
-
-//#define FRONT_LEFT_BACK\
-//	turn leg1a to y-axis <-45> speed <6.25> *1000/(WALK_PERIOD);\
-//	turn leg1a to z-axis <0> speed <7.5> *1000/(WALK_PERIOD);\
-//	turn leg1b to z-axis <0> speed <23.75> *1000/(WALK_PERIOD);
-	
 #define MIDDLE_RIGHT_UP\
 	turn leg5a to y-axis <45> speed <22.5> *1000/(WALK_PERIOD);\
 	turn leg5a to z-axis <20> speed <20> *1000/(WALK_PERIOD);\
@@ -141,7 +107,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 #define WAIT_WALK\
 	sleep WALK_PERIOD;\
-	while(!bMoving)\
+	while(!isMoving)\
 	{\
 		sleep 111;\
 	}
@@ -154,27 +120,27 @@ DoTheWalking()
 		WAIT_WALK
 		MIDDLE_RIGHT_BACK
 		REAR_LEFT_DOWN
-		
+
 		move pelvis to y-axis [0] speed [5.5];
 		WAIT_WALK
 		MIDDLE_LEFT_UP
 		REAR_LEFT_BACK
-		
+
 		move pelvis to y-axis [0.77] speed [5.5];
 		WAIT_WALK
 		MIDDLE_LEFT_DOWN
 		REAR_RIGHT_UP
-		
+
 		move pelvis to y-axis [0] speed [5.5];
 		WAIT_WALK
 		MIDDLE_LEFT_BACK
 		REAR_RIGHT_DOWN
-		
+
 		move pelvis to y-axis [0.77] speed [5.5];
 		WAIT_WALK
 		REAR_RIGHT_BACK
 		MIDDLE_RIGHT_UP
-		
+
 		move pelvis to y-axis [0] speed [5.5];
 		WAIT_WALK
 		MIDDLE_RIGHT_DOWN
@@ -187,33 +153,28 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		if (bMoving)
+		if (isMoving)
 		{
-			//currentSpeed = (moveSpeed * 80)/(get CURRENT_SPEED);
-			//if (currentSpeed>300) currentSpeed=300;
-			//WALK_PERIOD=currentSpeed;
-			//get PRINT(1,WALK_PERIOD,moveSpeed);
 			WALK_PERIOD=120;
 		}
 		sleep 142;
-		//get PRINT(bMoving, currentSpeed,0,0);
 	}
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	isMoving=TRUE;
 }
 
 StopMoving()
 {
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	isMoving=FALSE;
 	sleep 20*(WALK_PERIOD);
-	
+
 	turn leg2a to z-axis <-20> speed <50> *1000/(WALK_PERIOD);
 	turn leg2b to z-axis <0> speed <20> *1000/(WALK_PERIOD);
 	sleep (WALK_PERIOD);
@@ -222,7 +183,7 @@ StopMoving()
 	turn leg2a to z-axis <0> speed <10> *1000/(WALK_PERIOD);
 	turn leg2b to z-axis <20> speed <20> *1000/(WALK_PERIOD);
 	sleep (WALK_PERIOD);
-	
+
 	turn leg4a to z-axis <20> speed <50> *1000/(WALK_PERIOD);
 	turn leg4b to z-axis <0> speed <20> *1000/(WALK_PERIOD);
 	sleep (WALK_PERIOD);
@@ -248,10 +209,12 @@ StopMoving()
 	turn leg3b to z-axis <0> speed <20> *1000/(WALK_PERIOD);
 	sleep (WALK_PERIOD);
 	turn leg3a to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-	
+
 }
 
-ready()
+#include "../opencloseanim.h"
+
+Open()
 {
 	sleep 15;
 	turn neck to x-axis <110> speed <110>;
@@ -278,7 +241,7 @@ ready()
 	sleep 100;
 }
 
-holster()
+Close()
 {
 	sleep 15;
 	turn neck to x-axis <0> speed <90>;
@@ -302,123 +265,44 @@ holster()
 	move shldtop to x-axis [0] speed [3.3];
 	move shldtop to y-axis [0] speed [4.4];
 	move shldtop to z-axis [0] speed [1.1];
-	show Shield;
-	show Shldbot;
-	show Shldout;
-	show Shldin;
-	show Shldtop;
+	show shield;
+	show shldbot;
+	show shldout;
+	show shldin;
+	show shldtop;
 	tdamage = 0;
 	set ARMORED to 1;
 	shieldup = 1;
 	sleep 100;
-	return (0);
-}
-
-Go()
-{
-	call-script ready();
-	ReadyToAim = 1;
-}
-
-Stop()
-{
-	ReadyToAim = 0;
-	call-script holster();
-	bAiming = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script UnitSpeed();
-	start-script DoTheWalking();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
 }
 
 Create()
 {
-	Weapon1TurretX = <200.000000>;
-	Weapon1TurretY = <200.000000>;
+	Weapon1TurretX = <200.0>;
+	Weapon1TurretY = <200.0>;
 	hide rflare;
 	hide lflare;
 	hide aimx1;
 	hide aimy1;
-	hide rflare;
-	hide lflare;
-//	turn leg6a to y-axis <30> now;
 	turn leg4a to y-axis <-30> now;
-//	turn leg1a to y-axis <-30> now;//2
 	turn leg3a to y-axis <30> now;//5
-	moveSpeed = (get MAX_SPEED);
 	WALK_PERIOD=800;
-	bMoving = FALSE;
-	bAiming = FALSE;
-	ReadyToAim = 0;
+	isMoving = FALSE;
+	isAiming = FALSE;
 	restore_delay = 10000;
-	gun_1 = rflare;
 	tdamage = 0;
 	shieldup = 1;
 	set ARMORED to 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	start-script SmokeUnit();
+	wpn1_lasthead = 0xbadface;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
+	start-script UnitSpeed();
+	start-script DoTheWalking();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
 	restore_delay = 10000;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = torso;
 }
 
 static-var  Stunned;
@@ -428,100 +312,100 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
-	turn aimy1 to y-axis <0.000000> speed <90.000000>;
-	turn aimx1 to x-axis <0.000000> speed <45.000000>;
+	start-script OpenCloseAnim(0);
+	turn aimy1 to y-axis <0.0> speed <90.0>;
+	turn aimx1 to x-axis <0.0> speed <45.0>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	wpn1_lasthead = 1000000;
-	bAiming = FALSE;
+	wpn1_lasthead = 0xbadface;
+	isAiming = FALSE;
 }
 
 SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+ 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = rflare;
+	pieceIndex = rflare;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = lflare;
+	pieceIndex = lflare;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = rflare;
+	pieceIndex = rflare;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = lflare;
+	pieceIndex = lflare;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	show rflare;
 	sleep 100;
 	hide rflare;
 }
-FireSecondary()
+FireWeapon2()
 {
 	show lflare;
 	emit-sfx 1024 + 0 from lflare;
-	move shield to z-axis [-0.5500000] speed [1375.000000];
-	move shield to x-axis [-1.210000] speed [1375.000000];
-	move shield to y-axis [0.55000] speed [1375.000000];
+	move shield to z-axis [-0.5500000] speed [1375.0];
+	move shield to x-axis [-1.210000] speed [1375.0];
+	move shield to y-axis [0.55000] speed [1375.0];
 	turn torso to y-axis <30> speed <200>;
 	wait-for-move shield along z-axis;
-	move shield to z-axis [0.000000] speed [1.375000];
+	move shield to z-axis [0.0] speed [1.375000];
 	move shield to x-axis [-1.7600000] speed [1.375000];
-	move shield to y-axis [0.000000] speed [1.375000];
+	move shield to y-axis [0.0] speed [1.375000];
 	turn torso to y-axis <0> speed <10>;
 	hide lflare;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	start-script RequestState(0);
-	bAiming = TRUE;
-	while( !ReadyToAim )
+	signal SIGNAL_AIM1;
+	start-script OpenCloseAnim(1);
+	isAiming = TRUE;
+	if (!IsOpen)
 	{
-		return(0);
+		return (0);
 	}
 	turn aimy1 to y-axis heading speed Weapon1TurretY;
-	turn aimx1 to x-axis <0.000000> - pitch speed Weapon1TurretX;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	turn aimx1 to x-axis <0.0> - pitch speed Weapon1TurretX;
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
-}
+	}
 	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
 	return (1);
 }
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM;
-	bAiming = TRUE;
-	while( !ReadyToAim )
+	signal SIGNAL_AIM1;
+	isAiming = TRUE;
+	if (!IsOpen)
 	{
-		return(0);
+		return (0);
 	}
 	return (1);
 }
@@ -532,57 +416,25 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
-		//explode rthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode rleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode lleg type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		//explode larm type BITMAPONLY | NOHEATCLOUD;
-		//explode lflare type BITMAPONLY | NOHEATCLOUD;
-		//explode rarm type BITMAPONLY | NOHEATCLOUD;
-		//explode rflare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
-		//explode rthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type FALL | NOHEATCLOUD;
-		//explode lthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type FALL | NOHEATCLOUD;
-		//explode larm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rarm type FALL | NOHEATCLOUD;
-		//explode rflare type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode larm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rflare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode larm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

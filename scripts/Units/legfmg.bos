@@ -3,11 +3,10 @@
 
 piece base, turretHeadingPivot, turretPitchPivot, barrel, flare;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
-            Static_Var_6, Static_Var_7, restore_delay, wpn1_lasthead;
+static-var  restore_delay, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 #define WATER_ROCK_UNITSIZE 10
 #include "../floatmotion.h"
@@ -20,7 +19,7 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5
 #define MAXTILT 100
 #define RECOIL_POWER 20000
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
@@ -36,12 +35,6 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	//spin barrel around z-axis speed <600.000000>;
-	//sleep restore_delay;
-	//spin barrel around z-axis speed <300.000000>;
-	//sleep (restore_delay / 2);
-	//spin barrel around z-axis speed <150.000000>;
-	//sleep (restore_delay / 4);
 	stop-spin barrel around z-axis decelerate <15>;
 	wpn1_lasthead = 1000000;
 	set-signal-mask 0;
@@ -61,12 +54,12 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turretHeadingPivot to y-axis heading speed <200.000000>;
-	turn turretPitchPivot to x-axis <0.000000> - pitch speed <100.000000>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turretHeadingPivot to y-axis heading speed <200.0>;
+	turn turretPitchPivot to x-axis <0.0> - pitch speed <100.0>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
@@ -78,30 +71,24 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	spin barrel around z-axis speed <900.000000> accelerate <60>;
+	spin barrel around z-axis speed <900.0> accelerate <60>;
 }
 
-Shot1(zero)
+Shot1()
 {
 	emit-sfx 1024 + 0 from flare;
-	return(1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turretPitchPivot;
+	pieceIndex = turretPitchPivot;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = flare;
 }
 
 Killed(severity, corpsetype)

@@ -7,7 +7,7 @@ piece  torso, pelvis, rleg, rfoot, lleg, lfoot, head, lthigh,
 
 //MAKE SURE FIRE POINTS REMAIN CONSECUTIVE!
 
-static-var  isMoving, isAiming, isReady, gun_1, shotcount;
+static-var  isMoving, isAiming, gun_1, shotcount;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -643,7 +643,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 4) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
 		sleep 131;
@@ -654,12 +653,12 @@ StartMoving(reversing){
 	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
-  start-script Walk();
+	start-script Walk();
 }
 StopMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
-  call-script StopWalking();
+	call-script StopWalking();
 }
 
 
@@ -687,7 +686,6 @@ Create()
 	spin thing around x-axis speed <30> accelerate <1>;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	isReady = 1;
 	gun_1 = 0;
 	animSpeed = 4;
 	turn lexhaust1 to z-axis <180> now;
@@ -696,6 +694,8 @@ Create()
 	
 	turn rexhaust1 to z-axis <180> now;
 	turn rexhaust2 to z-axis <180> now;
+
+	start-script CATT1_Init();
 }
 
 
@@ -724,11 +724,7 @@ Shot1(zero) {
 
 	sleep 32;
 	// sleep frame, to update gun flare frame AFTER it fires
-	++gun_1;
-	if (gun_1 == 4) 
-	{
-	gun_1 = 0;
-	}
+	gun_1 = (gun_1 + 1) % 4;
 	
 }
 
@@ -757,8 +753,6 @@ QueryWeapon1(pieceIndex) {
 #define CATT1_PITCH_SPEED <45>
 
 #include "../constant_acceleration_turret_turning.h"
-
-static-var  Stunned;
 
 AimWeapon1(heading, pitch)
 {

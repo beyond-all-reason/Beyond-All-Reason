@@ -1,11 +1,8 @@
 #include "../recoil_common_includes.h"
 
-#define DEBUG
-#include "../debug.h"
-
 piece  base, heatray, lcheek, ldownbackleg, ldownloeg, lfin1, lfin2, lfin3, lfin4, lfin5, lfoot, lfootback, lheatsinkflap, lupbackleg, lupleg, neck, rcheek, rdownbackleg, rdownleg, rfin1, rfin2, rfin3, rfin4, rfin5, rfoot, rfootback, rheatsinkflap, rupbackleg, rupleg, tail1, tail2, tailbase, tailtip, topcheek, torpedolauncha, torpedotube, torpaimflare, torpaimx, heatrayaimflare, heatray_xy, lvent, rvent;
 
-static-var  isInWater, inWaterForm, isMoving, isAiming, isFiring, restore_delay, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy, gun_deploy, explosions, shieldup, gameframe, lastfired, firetime, aimAdj, oldsteerheading, cooldown, fireTime, reloadTime, adjheading;
+static-var  isInWater, inWaterForm, isMoving, isAiming, isFiring, restore_delay, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy, gun_deploy, explosions, shieldup, lastfired, firetime, aimAdj, oldsteerheading, cooldown, fireTime, reloadTime, adjheading;
 
 static-var  Stunned;
 
@@ -22,16 +19,13 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 	return 0;
 }
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_3			8
-#define SIG_MOVE			16
-#define SIG_RESTORE			32
-#define SIG_LIGHT			64
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_MOVE 1
+#define SIGNAL_IDLE 8
 
 Steering(heading, steery, currentSpeed)
 {
-	//signal SIGNAL_MOVE;
-	//set-signal-mask SIGNAL_MOVE;
 	while(1)
 	{
 		if (isFiring)
@@ -54,7 +48,8 @@ Steering(heading, steery, currentSpeed)
 
 //Very important, keep the turn neck to y-axis while aiming, it counter-rotates the head, so the heatray stays on target. Without, the head would be rotated by the torso and the heatray must constantly retarget.
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+Walk()
+{
 		if (isMoving) { //Frame:21
 			move base to x-axis [-0.083429] speed [13.419025] / animSpeed; 
 			turn base to y-axis <-0.509862> speed <82.007221> / animSpeed; 
@@ -490,7 +485,6 @@ StopWalking() {
 
 swim() {
 		if (isMoving) { //Frame:15
-			//turn base to x-axis <-0.147507> speed <4.425215> / animSpeed; 
 			turn ldownbackleg to x-axis <-34.361165> speed <9.538974> / animSpeed; 
 			turn ldownloeg to x-axis <-34.195089> speed <4.557410> / animSpeed; 
 			turn lfin1 to x-axis <12.274752> speed <368.242546> / animSpeed; 
@@ -532,7 +526,6 @@ swim() {
 		sleep ((33*animSpeed) -1);
 	}
 		if (isMoving) { //Frame:21
-			//turn base to x-axis <3.198514> speed <100.380642> / animSpeed; 
 			turn ldownbackleg to x-axis <-27.008829> speed <220.570099> / animSpeed; 
 			turn ldownloeg to x-axis <-30.671009> speed <105.722415> / animSpeed; 
 			turn lfin1 to x-axis <25.011007> speed <382.087664> / animSpeed; 
@@ -585,7 +578,6 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:27
-			//turn base to x-axis <5.361268> speed <64.882607> / animSpeed; 
 			turn ldownbackleg to x-axis <-22.088181> speed <147.619427> / animSpeed; 
 			turn ldownloeg to x-axis <-28.324574> speed <70.393039> / animSpeed; 
 			turn lfin1 to x-axis <32.696426> speed <230.562581> / animSpeed; 
@@ -636,7 +628,6 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:33
-			//turn base to x-axis <5.540655> speed <5.381630> / animSpeed; 
 			turn ldownbackleg to x-axis <-21.673561> speed <12.438594> / animSpeed; 
 			turn ldownloeg to x-axis <-28.128181> speed <5.891807> / animSpeed; 
 			turn lfin1 to x-axis <31.051351> speed <49.352249> / animSpeed; 
@@ -681,7 +672,6 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:39
-			//turn base to x-axis <3.670320> speed <56.110077> / animSpeed; 
 			turn ldownbackleg to x-axis <-25.947342> speed <128.213425> / animSpeed; 
 			turn ldownloeg to x-axis <-30.162901> speed <61.041606> / animSpeed; 
 			turn lfin1 to x-axis <21.177416> speed <296.218047> / animSpeed; 
@@ -732,7 +722,6 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:45
-			//turn base to x-axis <0.442171> speed <96.844442> / animSpeed; 
 			turn ldownbackleg to x-axis <-33.086775> speed <214.182984> / animSpeed; 
 			turn ldownloeg to x-axis <-33.585679> speed <102.683356> / animSpeed; 
 			turn lfin1 to x-axis <9.567707> speed <348.291290> / animSpeed; 
@@ -785,7 +774,6 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:51
-			//turn base to x-axis <-2.949555> speed <101.751784> / animSpeed; 
 			turn ldownbackleg to x-axis <-40.301934> speed <216.454774> / animSpeed; 
 			turn ldownloeg to x-axis <-37.004466> speed <102.563589> / animSpeed; 
 			turn lfin1 to x-axis <2.735841> speed <204.955967> / animSpeed; 
@@ -840,7 +828,6 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:57
-			//turn base to x-axis <-5.250113> speed <69.016746> / animSpeed; 
 			turn ldownbackleg to x-axis <-45.046720> speed <142.343567> / animSpeed; 
 			turn ldownloeg to x-axis <-39.179997> speed <65.265941> / animSpeed; 
 			turn lfin1 to x-axis <0.432584> speed <69.097711> / animSpeed; 
@@ -895,7 +882,6 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:63
-			//turn base to x-axis <-5.608429> speed <10.749493> / animSpeed; 
 			turn ldownbackleg to x-axis <-45.775593> speed <21.866202> / animSpeed; 
 			turn ldownloeg to x-axis <-39.506186> speed <9.785680> / animSpeed; 
 			turn lfin1 to x-axis <-0.807544> speed <37.203856> / animSpeed; 
@@ -943,7 +929,6 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:69
-			//turn base to x-axis <-3.891944> speed <51.494563> / animSpeed; 
 			turn ldownbackleg to x-axis <-42.259460> speed <105.484007> / animSpeed; 
 			turn ldownloeg to x-axis <-37.911750> speed <47.833078> / animSpeed; 
 			turn lfin1 to x-axis <1.076993> speed <56.536125> / animSpeed; 
@@ -1000,7 +985,6 @@ swim() {
 StopSwim() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	move base to y-axis [-8.999583] speed [-40.907197] / animSpeed;
-	//turn base to x-axis <0.000000> speed <169.586307> / animSpeed;
 	turn ldownbackleg to x-axis <-34.043200> speed <367.616832> / animSpeed;
 	turn ldownbackleg to y-axis <-0.154335> speed <-0.701522> / animSpeed;
 	turn ldownloeg to x-axis <-34.043176> speed <176.204025> / animSpeed;
@@ -1139,7 +1123,6 @@ transform() {
 	turn tailbase to x-axis <0.000000> speed <186.544921> / animSpeed;
 	turn tailtip to x-axis <0.000000> speed <40.299038> / animSpeed;
 	sleep 100;
-	return (0);
 }
 
 reform() {
@@ -1220,7 +1203,6 @@ reform() {
 	turn tailtip to x-axis <-2.159999> speed <-9.818179> / animSpeed;
 	turn tailtip to y-axis <0.000000> speed <28.736963> / animSpeed;
 	sleep 200;
-	return (0);
 }
 
 OpenHeatsinks(){
@@ -1234,19 +1216,19 @@ OpenHeatsinks(){
 }
 
 CloseHeatsinks(){
-	turn lheatsinkflap to x-axis <0.00000> speed <-52.790495> / animSpeed;
-	turn lheatsinkflap to y-axis <0.00000> speed <-156.501012> / animSpeed;
-	turn lheatsinkflap to z-axis <0.00000> speed <-201.598457> / animSpeed;
-	turn rheatsinkflap to x-axis <0.00000> speed <-52.790495> / animSpeed;
-	turn rheatsinkflap to y-axis <0.00000> speed <-156.500985> / animSpeed;
-	turn rheatsinkflap to z-axis <0.00000> speed <-201.598484> / animSpeed;
+	turn lheatsinkflap to x-axis <0.0> speed <-52.790495> / animSpeed;
+	turn lheatsinkflap to y-axis <0.0> speed <-156.501012> / animSpeed;
+	turn lheatsinkflap to z-axis <0.0> speed <-201.598457> / animSpeed;
+	turn rheatsinkflap to x-axis <0.0> speed <-52.790495> / animSpeed;
+	turn rheatsinkflap to y-axis <0.0> speed <-156.500985> / animSpeed;
+	turn rheatsinkflap to z-axis <0.0> speed <-201.598484> / animSpeed;
 	sleep 100;
 }
 
 CloseTorpedoLauncher(){
-	turn torpedolauncha to y-axis <0> speed <25.000000>;
-	turn torpaimx to x-axis <0> speed <25.000000>;
-	turn torpedotube to x-axis [0] speed <25.000000>;
+	turn torpedolauncha to y-axis <0> speed <25.0>;
+	turn torpaimx to x-axis <0> speed <25.0>;
+	turn torpedotube to x-axis [0] speed <25.0>;
 	torp_deploy = FALSE;
 	sleep 100;
 	move torpedolauncha to y-axis [-2.5] speed [-15];
@@ -1276,13 +1258,13 @@ OpenMouth(){
 }
 
 CloseMouth(){
-	turn lcheek to x-axis <-0.000000> speed <36.606742> ; 
-	turn lcheek to z-axis <-0.000000> speed <10.901389> ; 
-	turn lcheek to y-axis <0.000000> speed <49.098607> ; 
-	turn rcheek to x-axis <-0.000000> speed <36.606742> ; 
+	turn lcheek to x-axis <-0.0> speed <36.606742> ; 
+	turn lcheek to z-axis <-0.0> speed <10.901389> ; 
+	turn lcheek to y-axis <0.0> speed <49.098607> ; 
+	turn rcheek to x-axis <-0.0> speed <36.606742> ; 
 	turn rcheek to z-axis <0.000007> speed <10.901383> ; 
-	turn rcheek to y-axis <-0.000000> speed <49.098607> ; 
-	turn topcheek to x-axis <-0.000000> speed <59.999978> ;
+	turn rcheek to y-axis <-0.0> speed <49.098607> ; 
+	turn topcheek to x-axis <-0.0> speed <59.999978> ;
 }
 
 // REMEMBER TO animspeed = 6 in Create() !!
@@ -1294,7 +1276,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 100) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>3) animSpeed=3;
 		sleep 197;
@@ -1321,7 +1302,6 @@ Create()
 	hide lvent;
 	hide rvent;
 	isMoving = FALSE;
-	//isMoving = -1;
 	isAiming = FALSE;
 	oldsteerheading = get HEADING;
 	aimAdj = 0;
@@ -1362,12 +1342,10 @@ SetSweepfireTimeWeapon1(fireTimeValue, reloadTimeValue)
 }
 
 IN_WATER_CUSTOM() {
-	//isInWater = get IN_WATER(0);
 	var groundheight;
 	var unitxz;
 	unitxz = (get UNIT_XZ);
 	groundheight = (get GROUND_WATER_HEIGHT(unitxz)); //Returns negative number if underwater
-	//dbg(groundheight)
 	isInWater = (groundheight < (((-1) * 1020000))); //This value is about neck/shoulder height for this unit
 }
 
@@ -1381,14 +1359,12 @@ Movement() {
 				call-script CloseMouth();
 				call-script CloseHeatsinks();
 				inWaterForm = 1;
-				//start-script StartMoving(0);
 			}
 		} else {
 			if( isInWater == 0 ) {
 				call-script reform();
 				call-script OpenHeatsinks();
 				inWaterForm = 0;
-				//start-script StartMoving(0);
 			}
 		}
 
@@ -1404,28 +1380,26 @@ Movement() {
 		}
 		
 	}
-	return (0);
 }
 
 
-// Call this from StopMoving()!
 #define BASEPIECE base
 #define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 5
 #define MAXTILT 100
 
-//#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 StartMoving(reversing)
 {
 	isMoving = TRUE;
 	if (inWaterForm) {
-		signal SIG_MOVE;
-		set-signal-mask SIG_MOVE;
+		signal SIGNAL_MOVE;
+		set-signal-mask SIGNAL_MOVE;
 		START_TILTBANK; //I don't have a StartSwimming()...
 	} else {
-		signal SIG_MOVE;
+		signal SIGNAL_MOVE;
 		STOP_TILTBANK; //I don't have a StartSwimming()...
 	}
 }
@@ -1435,35 +1409,12 @@ StopMoving()
 	isMoving = FALSE;
 	if(inWaterForm) {
 		call-script StopSwim();
-		signal SIG_MOVE;
+		signal SIGNAL_MOVE;
 		STOP_TILTBANK;
 	}
 	else {
 		call-script StopWalking();
 	}
-}
-
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-
-// Disable armored state when 1500 damage is taken
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
 }
 
 // Set armored state at begin/end of animations
@@ -1576,11 +1527,6 @@ ReactiveArmorRestore6()
 	emit-sfx 1024 + 1 from lfin2;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
-
 SetStunned(State)
 {
     Stunned = State;
@@ -1588,38 +1534,35 @@ SetStunned(State)
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM_3;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script RestoreAfterDelayGun();
 }
 
-RestoreAfterDelayGun(addTime)
+RestoreAfterDelayGun()
 {
-	signal SIG_RESTORE;
-	set-signal-mask SIG_RESTORE;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
 	if (Stunned) {
         return (1);
     }
 	gun_lasthead = -1000000;
 	gun_lastpitch = -1000000;
 	aimAdj = 0;
-	//cooldown = 0;
-	//isFiring = 0;
 	call-script CloseMouth();
 	gun_deploy = FALSE;
-	turn heatray_xy to y-axis <0.000000> speed <90.000000>;
-	turn heatray_xy to x-axis <0.000000> speed <50.000000>;
-	turn neck to x-axis <5.164970> speed <160.000000>;
+	turn heatray_xy to y-axis <0.0> speed <90.0>;
+	turn heatray_xy to x-axis <0.0> speed <50.0>;
+	turn neck to x-axis <5.164970> speed <160.0>;
 	isAiming = FALSE;
 }
 
 //Heatray
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	var pitchSpeed, deltaHeading;
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
-	//gameframe = get(GAME_FRAME);
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	//Heatray mechanics come first
 	if ( inWaterForm )
@@ -1645,16 +1588,16 @@ AimPrimary(heading, pitch)
 	// checks if the mouth is deployed
 	turn neck to x-axis <0> speed <50>; //Fix leftover rotation from walk anim
 	// Turn the pitch and heading together
-	pitchSpeed = <50.000000>;
+	pitchSpeed = <50.0>;
 	deltaHeading = get ABS(gun_lasthead - heading);
 	if ((deltaHeading > <1>) AND (deltaHeading < <20>))
 	{
-		pitchSpeed = <100.000000> * (get ABS(gun_lastpitch - pitch)) / deltaHeading;
-		if (pitchSpeed > <50.000000>) pitchSpeed = <50.000000>;
+		pitchSpeed = <100.0> * (get ABS(gun_lastpitch - pitch)) / deltaHeading;
+		if (pitchSpeed > <50.0>) pitchSpeed = <50.0>;
 		if (pitchSpeed < <5>) pitchSpeed = <5>;
 	}
-	turn heatray_xy to y-axis adjheading - aimAdj speed <100.000000>;
-	turn heatray_xy to x-axis <0.000000> - pitch speed pitchSpeed;
+	turn heatray_xy to y-axis adjheading - aimAdj speed <100.0>;
+	turn heatray_xy to x-axis <0.0> - pitch speed pitchSpeed;
 	start-script RestoreAfterDelay();
 	if (cooldown > fireTime)
 	{
@@ -1673,7 +1616,6 @@ AimPrimary(heading, pitch)
 		gun_lasthead = heading;
 		gun_lastpitch = pitch;
 		// start the restore to neutral script
-		//start-script RestoreAfterDelayGun();
 		return (1);
 	}
 	// if turret needs more than one frame to turn to new heading, wait for the turn
@@ -1683,24 +1625,22 @@ AimPrimary(heading, pitch)
 	gun_lasthead = heading;
 	gun_lastpitch = pitch;
 	// start the restore to neutral script
-	//start-script RestoreAfterDelayGun();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	isFiring = 1;
-	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = heatray;
+	pieceIndex = heatray;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = heatrayaimflare;
+	pieceIndex = heatrayaimflare;
 }
 
 RestoreAfterDelayTorp()
@@ -1710,19 +1650,19 @@ RestoreAfterDelayTorp()
         return (1);
     }
 	torp_lasthead = -1000000;
-	turn torpedolauncha to y-axis <0> speed <25.000000>;
-	turn torpaimx to x-axis <0> speed <25.000000>;
-	turn torpedotube to x-axis [0] speed <25.000000>;
+	turn torpedolauncha to y-axis <0> speed <25.0>;
+	turn torpaimx to x-axis <0> speed <25.0>;
+	turn torpedotube to x-axis [0] speed <25.0>;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	if ( inWaterForm )
     {
     	return (0);
     }	
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	// checks if the torpedo launcher is deployed
 	if (torp_deploy == FALSE)
 	{
@@ -1735,9 +1675,8 @@ AimSecondary(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn torpedolauncha to y-axis heading speed <200.000000>;
-	//turn torpedotube to x-axis pitch speed <200.000000>;
-	turn torpaimx to x-axis pitch - <20> speed <200.000000>;
+	turn torpedolauncha to y-axis heading speed <200.0>;
+	turn torpaimx to x-axis pitch - <20> speed <200.0>;
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
 	if (get ABS(torp_lasthead - heading) < 1200)
 	{
@@ -1756,7 +1695,7 @@ AimSecondary(heading, pitch)
 
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	move torpedotube to z-axis [-4] speed [-50];
 	
@@ -1765,16 +1704,14 @@ FireSecondary()
 	move torpedotube to z-axis [0] speed [-15];
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = torpedotube;
+	pieceIndex = torpedotube;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	
-	piecenum = torpaimflare;
-
+	pieceIndex = torpaimflare;
 }
 
 Killed(severity, corpsetype)
@@ -1833,7 +1770,8 @@ Killed(severity, corpsetype)
 }
 
 //use call-script DeathAnim(); from Killed()
-DeathAnim() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - death anim - baked.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+DeathAnim()
+{
 	signal SIGNAL_MOVE;
 	signal SIGNAL_AIM1;
 	call-script StopWalking();

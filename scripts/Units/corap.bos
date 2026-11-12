@@ -37,8 +37,6 @@ Lights()
 		}
 		sleep 2500;
 	}
-	sleep 50;
-	start-script Lights();
 }
 
 
@@ -48,10 +46,8 @@ SetStunned(State)
 	if (Stunned) {
 		hide blink;
 		call-script DishStopSpin();
-	    //call-script Stop();
 	} else {
 		call-script DishSpin();
-	    //call-script Go();
 	}
 }
 
@@ -68,7 +64,6 @@ Create()
 	spin dish around y-axis speed <150.0>;
 	start-script Lights();
 	call-script DishSpin();
-	return (0);
 	hasOpened = 0;
 }
 
@@ -126,7 +121,6 @@ StopBuilding()
 QueryBuildInfo(pieceIndex)
 {
 	pieceIndex = pad;
-	return (0);
 }
 
 
