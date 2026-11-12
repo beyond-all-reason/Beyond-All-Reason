@@ -114,6 +114,7 @@ SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
+	    set-signal-mask SIG_AIM;
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
