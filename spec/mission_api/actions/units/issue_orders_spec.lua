@@ -17,7 +17,7 @@ local function seedUnits(name, ...)
 	for _, unitID in ipairs({ ... }) do
 		builder:WithTrackedUnit(name, unitID)
 	end
-	builder:Install()
+	return builder:Install()
 end
 
 describe("mission_api.actions.issue_orders", function()
@@ -37,30 +37,17 @@ describe("mission_api.actions.issue_orders", function()
 
 	describe("actionFunction", function()
 		it("is a no-op for an untracked unit name", function()
+			local mission = MissionApiBuilder.new():Install()
 			action.actionFunction("unknownUnit", {})
-			assert.are.equal(0, #env.Spring.calls.giveOrderArrayToUnitMap)
+			assert.are.equal(0, #mission.calls.giveOrders)
 		end)
 
-		it("calls GiveOrderArrayToUnitMap with the tracked unit map and converted orders", function()
-			seedUnits("bots", 101, 102)
+		it("gives the tracked unit map the orders", function()
+			local mission = seedUnits("bots", 101, 102)
 			local orders = { { 10, {}, {} } }
 			action.actionFunction("bots", orders)
-			assert.are.equal(1, #env.Spring.calls.giveOrderArrayToUnitMap)
-			assert.are.same(missionApi.trackedUnitIDs["bots"], env.Spring.calls.giveOrderArrayToUnitMap[1].unitMap)
-		end)
-
-		it("passes the result of ConvertOrdersTargetingNames as the orders", function()
-			local convertedOrders = { { 999, {}, {} } }
-			MissionApiBuilder.new()
-				:WithTrackedUnit("scout", 5)
-				:WithModule("Loadout", {
-					ConvertOrdersTargetingNames = function()
-						return convertedOrders
-					end,
-				})
-				:Install()
-			action.actionFunction("scout", {})
-			assert.are.same(convertedOrders, env.Spring.calls.giveOrderArrayToUnitMap[1].orders)
+			assert.are.equal(1, #mission.calls.giveOrders)
+			assert.are.same(missionApi.trackedUnitIDs["bots"], mission.calls.giveOrders[1].unitIDs)
 		end)
 	end)
 

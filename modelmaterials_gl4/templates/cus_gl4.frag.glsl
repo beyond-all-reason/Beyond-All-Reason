@@ -164,7 +164,7 @@ in Data {
 	//vec3 worldBitangent;
 	vec3 worldNormal_VS; // needs to be normalized due to varying interpolation
 
-	vec4 uvCoords; // .z contains unitID, .w the jammed highlight 0-1
+	vec4 uvCoords; // .z contains unitID, .w the jammed highlight 0-1, or 2-3 the self-destruct pulse 0-1
 	flat vec4 teamCol; //.a contains selectedness
 	// main light vector(s)
 //	vec3 worldCameraDir;
@@ -193,6 +193,11 @@ in Data {
 #define JAMMED_EDGE 0.3 // extra strength right at the silhouette
 #define JAMMED_SHADE_DARK 0.35 // pixels at most this bright (max rgb) get JAMMED_COLOR
 #define JAMMED_SHADE_BRIGHT 0.7 // pixels at least this bright get JAMMED_DARK_COLOR
+
+// Self-destruct pulse (gfx_selfd_unit_pulse.lua): at the pulse's peak
+#define SELFD_COLOR vec3(1.0, 0.2, 0.12)
+#define SELFD_FILL 0.3 // tint strength over the whole unit
+#define SELFD_RIM 0.45 // extra strength at grazing angles
 
 
 /***********************************************************************/
@@ -1321,7 +1326,12 @@ void main(void){
 	// JAMMED UNITS HIGHLIGHT
 	// uvCoords.w is 0-1 (faded in the vertex shader from unit buffer uniforms 1.w, #7, written by gui_jammed_units.lua)
 	// while the unit stands in allied jammer coverage: a faint red tint over the whole unit and a red rim at grazing angles.
-	float jammedness = uvCoords.w;
+	float selfdPulse = (uvCoords.w > 1.5) ? uvCoords.w - 2.0 : 0.0; // (it takes the jammed highlight's place)
+	float jammedness = (uvCoords.w > 1.5) ? 0.0 : uvCoords.w;
+	if (selfdPulse > 0.001) {
+		float selfdRim = clamp(1.0 - dot(worldNormal, V), 0.0, 1.0);
+		outColor.rgb = mix(outColor.rgb, SELFD_COLOR, selfdPulse * min(SELFD_FILL + SELFD_RIM * selfdRim * selfdRim, 1.0));
+	}
 	if (jammedness > 0.001) {
 		float jammedRim = clamp(1.0 - dot(worldNormal, V), 0.0, 1.0);
 		jammedRim *= jammedRim;

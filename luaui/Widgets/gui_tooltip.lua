@@ -56,9 +56,9 @@ local cfg = {
 	-- the build menus' unit tooltips (their hovered unit, WG.buildmenu.hoverID) as a unit's content table: tech level,
 	-- health/DPS/speed and ability tags, cost
 	unitTooltips = false,
-	-- the health, DPS and speed tags say low, medium or high by how a unit ranks among the units of its kind (buildings,
-	-- ground and sea units, aircraft): the fraction of them below it
-	unitClassSplits = { 0.333, 0.667 },
+	-- the health, DPS and speed tags say very low to very high by how a unit ranks among the units of its kind
+	-- (buildings, ground and sea units, aircraft): the fraction of them below it, one level per split and after
+	unitClassSplits = { 0.2, 0.4, 0.6, 0.8 },
 }
 
 local UNIT_TIP = "buildmenu" -- the build menus' tooltip
@@ -239,9 +239,21 @@ end
 
 -- How each tag's level reads, and the abilities a unit type is tagged with: what says so, and the test.
 local CLASS_TAGS = {
-	health = { name = "ui.statusBars.health", color = { 0.51, 0.88, 0.56, 1 }, levels = { "low", "medium", "high" } },
-	dps = { name = "ui.unitstats.dps", color = { 0.92, 0.39, 0.39, 1 }, levels = { "low", "medium", "high" } },
-	speed = { name = "ui.unitstats.speed", color = { 0.42, 0.73, 0.96, 1 }, levels = { "slow", "medium", "fast" } },
+	health = {
+		name = "ui.statusBars.health",
+		color = { 0.51, 0.88, 0.56, 1 },
+		levels = { "veryLow", "low", "medium", "high", "veryHigh" },
+	},
+	dps = {
+		name = "ui.unitstats.dps",
+		color = { 0.92, 0.39, 0.39, 1 },
+		levels = { "veryLow", "low", "medium", "high", "veryHigh" },
+	},
+	speed = {
+		name = "ui.unitstats.speed",
+		color = { 0.42, 0.73, 0.96, 1 },
+		levels = { "verySlow", "slow", "medium", "fast", "veryFast" },
+	},
 }
 local ABILITIES = {
 	{
@@ -263,7 +275,7 @@ local ABILITIES = {
 		end,
 	},
 	{
-		"ui.keybinds.select.filterName.builder",
+		"ui.unitstats.builder",
 		function(ud)
 			return ud.isBuilder and not ud.isFactory
 		end,
@@ -277,7 +289,7 @@ local ABILITIES = {
 		end,
 	},
 	{
-		"ui.unitstats.allterrain",
+		"ui.unitstats.allTerrain",
 		function(ud)
 			local moveName = ud.moveDef and ud.moveDef.name
 			return type(moveName) == "string" and string.find(moveName:lower(), "tbot", 1, true) ~= nil
@@ -394,11 +406,13 @@ local function buildRanks()
 	end
 end
 
--- 1, 2 or 3: where v ranks in a sorted list (the fraction of it below v, ties counting half)
+-- 1 to #cfg.unitClassSplits + 1 (5): where v ranks in a sorted list (the fraction of it below v, ties counting
+-- half)
 local function classOf(sorted, v)
 	local n = #sorted
+	local splits = cfg.unitClassSplits
 	if n == 0 then
-		return 2
+		return mathFloor(#splits * 0.5) + 1
 	end
 	local lo, hi = 1, n + 1
 	while lo < hi do
@@ -420,13 +434,12 @@ local function classOf(sorted, v)
 		end
 	end
 	local below = (first - 1 + (lo - first) * 0.5) / n
-	local splits = cfg.unitClassSplits
-	if below < splits[1] then
-		return 1
-	elseif below < splits[2] then
-		return 2
+	for i = 1, #splits do
+		if below < splits[i] then
+			return i
+		end
 	end
-	return 3
+	return #splits + 1
 end
 
 local function classTag(key, sorted, v)
