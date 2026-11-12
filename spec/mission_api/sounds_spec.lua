@@ -5,7 +5,9 @@ local env = MissionSpecEnv.new()
 
 describe("mission_api.sounds.StopSound", function()
 
+	---@type table, table
 	local sounds, missionApi
+	---@type string[], string[]
 	local played, stopped
 
 	before_each(function()

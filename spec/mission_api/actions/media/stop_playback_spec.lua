@@ -8,6 +8,7 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 
 describe("mission_api.actions.stop_playback", function()
 
+	---@type table
 	local missionApi
 
 	before_each(function()
