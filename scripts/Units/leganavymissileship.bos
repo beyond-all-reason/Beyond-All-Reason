@@ -53,12 +53,11 @@ piece
     platform2barrelextension4firepoint,
     platform2barrelextension3firepoint;
 
-static-var  restore_delay, oldHead, whichPlatform, whichBarrel, isOpen;
+static-var  restore_delay, whichPlatform, whichBarrel, isOpen;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_AIM2 512
-#define SIGNAL_AIM3 1024
 
 
 #define RB_MASS 40
@@ -67,14 +66,12 @@ static-var  restore_delay, oldHead, whichPlatform, whichBarrel, isOpen;
 #define RB_PITCH_ACCELERATION 10
 #define RB_ROLL_ACCELERATION 8
 #define RB_RECOIL_ENERGY_1 100
-#define RB_RECOIL_ENERGY_3 250
 #define RB_WAKE_PIECE wake
 #define RB_WAKE_CEG 1024 + 0
 #define RB_BOWSPLASH_PIECE bow
 #define RB_BOWSPLASH_CEG 1024 + 1
 
 #include "../bar_ships_common.h"
-#include "../opencloseanim.h"
 
 Open(){
 
@@ -176,12 +173,6 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 3;
 }
 
-// abaim()
-// {
-// 	sleep 4000;
-// 	signal SIGNAL_AIM3;
-// }
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -194,22 +185,9 @@ ExecuteRestoreAfterDelay()
 
 }
 
-ExecuteRestoreAfterDelay2()
-{
-    if (Stunned) {
-        return (1);
-    }
-
-    //restore stuff goes here
-
-}
 SetStunned(State)
 {
     Stunned = State;
-	if (!Stunned) {
-	    //start-script ExecuteRestoreAfterDelay();
-        //start-script ExecuteRestoreAfterDelay2();
-	}
 }
 RestoreAfterDelay()
 {
@@ -217,20 +195,12 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-RestoreAfterDelay2()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay2();
-}
-
 Activate()
 {
-	// spin dish around y-axis speed <150.0>;
 }
 
 Deactivate()
 {
-	// spin dish around y-axis speed <0.0>;
 }
 
 
@@ -266,70 +236,12 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	// gun_1 = flare1;
-	// sleep 100;
-	// RB_RECOILBOAT(0, RB_RECOIL_ENERGY_1);
 }
 
-Shot1(zero){
+Shot1(){
     RB_RECOILBOAT(0, RB_RECOIL_ENERGY_1);
-    if(whichPlatform == 0){
-        if(whichBarrel == 0){
-            whichBarrel = 1;
-        }
-        else if(whichBarrel == 1){
-            whichBarrel = 2;
-        }
-        else if(whichBarrel == 2){
-            whichBarrel = 3;
-        }
-        else if(whichBarrel == 3){
-            whichBarrel = 4;
-        }
-        else if(whichBarrel == 4){
-            whichBarrel = 5;
-        }
-        else if(whichBarrel == 5){
-            whichBarrel = 6;
-        }
-        else if(whichBarrel == 6){
-            whichBarrel = 0;
-        }
-        else{
-            whichBarrel = 0;
-        }
-        whichPlatform = 1;
-    }
-    else if(whichPlatform == 1){
-        if(whichBarrel == 0){
-            whichBarrel = 1;
-        }
-        else if(whichBarrel == 1){
-            whichBarrel = 2;
-        }
-        else if(whichBarrel == 2){
-            whichBarrel = 3;
-        }
-        else if(whichBarrel == 3){
-            whichBarrel = 4;
-        }
-        else if(whichBarrel == 4){
-            whichBarrel = 5;
-        }
-        else if(whichBarrel == 5){
-            whichBarrel = 6;
-        }
-        else if(whichBarrel == 6){
-            whichBarrel = 0;
-        }
-        else{
-            whichBarrel = 0;
-        }
-        whichPlatform = 0;
-    }
-    else{
-        whichPlatform = 0;
-    }
+    whichBarrel = (whichBarrel + 1) % 7;
+    whichPlatform = !whichPlatform;
 }
 
 AimFromWeapon1(pieceIndex)
@@ -398,7 +310,6 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	start-script RestoreAfterDelay2();
 	return (1);
 }
 
@@ -428,40 +339,21 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode launcher type BITMAPONLY | NOHEATCLOUD;
-		// explode dish type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode doorl type FALL | NOHEATCLOUD;
-		// explode launcher type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode turret type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode launcher type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode dish type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode launcher type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode dish type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

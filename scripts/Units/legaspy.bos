@@ -13,7 +13,7 @@ piece
     rFoot,
     lFoot;
 
-static-var isMoving, buildDelay, isCloaked, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var isMoving, buildDelay, isCloaked, animSpeed;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
@@ -321,25 +321,10 @@ StopWalking() {
 	turn rUpperLeg to y-axis <0> speed <75.091246> / animSpeed;
 	turn rUpperLeg to z-axis <0> speed <35.793129> / animSpeed;
 }
-// REMEMBER TO animspeed = 5 in Create() !!
-UnitSpeed(){
-	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = 5; //we need to calc the frames per keyframe value, from the known animtime
-	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
-	while(TRUE){
-		animSpeed = (get CURRENT_SPEED);
-		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 5) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<2) animSpeed=2;
-		if (animspeed>11) animSpeed = 11;
-		sleep 193;
-	}
-}
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-    animSpeed = 2;
+	animSpeed = 2;
 	start-script Walk();
 }
 StopMoving(){
@@ -353,7 +338,6 @@ StopMoving(){
 
 Create()
 {
-	// hide aimy1;
 	isMoving = FALSE;
 	buildDelay = 1;
 	animSpeed = 5;
@@ -371,7 +355,6 @@ Activate()
 	}
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	return (0);
 }
 
 QueryNanoPiece(pieceIndex)
@@ -409,7 +392,6 @@ Deactivate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	return (0);
 }
 
 HitByWeapon(anglex, anglez)
@@ -433,7 +415,6 @@ HitByWeapon(anglex, anglez)
 		isCloaked = 0;
 		set ACTIVATION to 100;
 	}
-	return (0);
 }
 
 AimWeapon1()
@@ -446,14 +427,14 @@ FireWeapon1()
 	get KILL_UNIT(get MY_ID,TRUE,FALSE);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = chassis;
+	pieceIndex = chassis;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = chassis;
+	pieceIndex = chassis;
 }
 
 Killed(severity, corpsetype)

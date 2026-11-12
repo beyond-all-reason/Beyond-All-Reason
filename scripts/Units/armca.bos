@@ -2,13 +2,13 @@
 #include "../recoil_common_includes.h"
 
 #define SIGNAL_BUILD 2
-#define SIGNAL_TURNON 4	
+#define SIGNAL_TURNON 4
 
 piece  base, wingbr, wingbl, wingfr, wingfl, arm1, arm2, nano, emit, doorbl, doorbr, doortl, doortr, thrust, nanolight;
 
 #include "../buildeffect_lua.h"
 
-#define SMOKEPIECE base
+#define BASEPIECE base
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 #define IDLEHOVERSCALE 32
@@ -29,7 +29,9 @@ Create()
 
 Activate()
 {
-	//get PRINT(get GAME_FRAME, 111);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+
 	show thrust;
 	turn wingbr to x-axis <-90> speed <90>;
 	turn wingbl to x-axis <-90> speed <90>;
@@ -39,7 +41,9 @@ Activate()
 
 Deactivate()
 {
-	//get PRINT(get GAME_FRAME, 22);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+
 	hide thrust;
 
 	turn wingbr to x-axis <0> speed <90>;
@@ -51,17 +55,15 @@ Deactivate()
 
 StartBuilding(heading, pitch)
 {
-
-	//get PRINT(get GAME_FRAME, 333,0,0);
 	signal SIGNAL_BUILD;
 	show nano;
 	show nanolight;
-	
+
 	turn doorbl to z-axis <-135> speed <270>;
 	turn arm1 to x-axis <-60> speed <60>;
 	turn doorbr to z-axis  <135> speed <270>;
 	turn arm2 to x-axis <-250> speed <-500>;
-	turn nano to x-axis <150> speed <300>; 
+	turn nano to x-axis <150> speed <300>;
 
 	set INBUILDSTANCE to 1;
 	LUASTARTBUILD;
@@ -71,8 +73,7 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
-	//get PRINT(get GAME_FRAME, 444);
-	signal SIGNAL_BUILD;	
+	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
 	hide nanolight;
 	hide nano;
@@ -83,10 +84,9 @@ StopBuilding()
 	turn doorbr to z-axis  <0> speed <270>;
 	turn arm1 to x-axis <0> speed <60>;
 	turn arm2 to x-axis <0> speed <-500>;
-	turn nano to x-axis <0> speed <300>;  
+	turn nano to x-axis <0> speed <300>;
 	LUASTOPBUILD;
 	set INBUILDSTANCE to 0;
-	return (0);
 }
 
 QueryNanoPiece(pieceIndex)

@@ -6,7 +6,7 @@
 piece  torso, pelvis, lleg, lfoot, rleg, rfoot, cagelight1, cagelight2, cagelight1emit, cagelight2emit,
        rthigh, lthigh, cover, gun, nano, aimy1;
 
-static-var  isMoving, moveSpeed, currentSpeed;
+static-var  isMoving;
 
 // Generated for D:\spring\animation\armack_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
@@ -254,9 +254,8 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 4) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
-		if (animspeed>8) animSpeed = 8;
+		if (animSpeed>8) animSpeed = 8;
 		sleep 131;
 	}
 }
@@ -290,7 +289,6 @@ Create()
 	hide aimy1;
 	isMoving = FALSE;
 
-	moveSpeed = get MAX_SPEED;
 	animSpeed = 4;
 }
 
@@ -302,7 +300,7 @@ Deactivate()
 {
 }
 
-StartBuilding(heading, pitch)
+StartBuilding(heading)
 {
 	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;

@@ -26,8 +26,8 @@ Create()
 {
 	hide wake1;
 	hide flare;
-	move plunger to z-axis [0.000000] now;
-    restore_delay = 3000;
+	move plunger to z-axis [0.0] now;
+	restore_delay = 3000;
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script BoatPhysics();
@@ -35,9 +35,9 @@ Create()
 
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	set-signal-mask 0;
 	turn turret to y-axis <0.0> speed <55.0>;
 }
@@ -51,9 +51,9 @@ RestoreAfterDelay()
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 
@@ -73,7 +73,6 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	start-script RestoreAfterDelay();
 	emit-sfx 258 from nano2;
-	return (0);
 }
 
 FireWeapon1()
@@ -83,16 +82,14 @@ FireWeapon1()
 	return (1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = aimfromy;
-	return (0);
+	pieceIndex = aimfromy;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimfromy;
-	return (0);
+	pieceIndex = aimfromy;
 }
 
 
@@ -100,33 +97,29 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn turret to y-axis heading speed <200.000000>;
+	turn turret to y-axis heading speed <200.0>;
 	wait-for-turn turret around y-axis;
 	return (1);
 }
 
 FireWeapon2()
 {
-	move plunger to z-axis [5.000000]  now;
+	move plunger to z-axis [5.0] now;
 	sleep 25;
-	move plunger to z-axis [0.000000] speed [10.000000];
+	move plunger to z-axis [0.0] speed [10.0];
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = turretfirepoint;
+	pieceIndex = turretfirepoint;
 }
 
 //--------------------
-
-
-
-
 
 Killed(severity, corpsetype)
 {

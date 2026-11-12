@@ -5,8 +5,8 @@ piece base, necka, head, neckb, holder, flareaa, flareab, flareac, flaread, flar
 static-var missileIndex, rocketIndex, missilesFired, rocketsFired, missileWindow,
 	lastShotFrame, lastSalvoFrame, gateWaitStart, lastAimFrame;
 
-#define SIG_AIM 2
-#define SIG_RESTORE 4
+// Signal definitions
+#define SIGNAL_AIM1 256
 
 #define MAX_PITCH <30>
 #define YAW_SPEED <25>
@@ -35,8 +35,8 @@ ResetCycle()
 
 RestoreAfterDelay()
 {
-	signal SIG_RESTORE;
-	set-signal-mask SIG_RESTORE | SIG_AIM;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE | SIGNAL_AIM1;
 	sleep RESTORE_DELAY;
 	turn necka to y-axis <0> speed YAW_SPEED;
 	turn head to x-axis <0> speed PITCH_SPEED;
@@ -62,8 +62,8 @@ AimWeapon1(heading, pitch)
 {
 	var p, frame;
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	p = pitch;
 	if (p > MAX_PITCH)
@@ -104,25 +104,25 @@ AimWeapon1(heading, pitch)
 	return (0);
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = head;
+	pieceIndex = head;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flareaa;
+	pieceIndex = flareaa;
 	if (missileIndex == 2)
 	{
-		piecenum = flareab;
+		pieceIndex = flareab;
 	}
 	if (missileIndex == 3)
 	{
-		piecenum = flareac;
+		pieceIndex = flareac;
 	}
 	if (missileIndex == 4)
 	{
-		piecenum = flaread;
+		pieceIndex = flaread;
 	}
 }
 
@@ -147,17 +147,17 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = head;
+	pieceIndex = head;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flareba;
+	pieceIndex = flareba;
 	if (rocketIndex == 2)
 	{
-		piecenum = flarebb;
+		pieceIndex = flarebb;
 	}
 }
 

@@ -9,12 +9,6 @@ piece	pelvis, torso, head, Pack, aaturret, aabarrel, packdecor, lshoulder, larm,
 
 static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime, shotcount, isCloaked;
 
-// Signal definitions
-#define SIGNAL_AIM1 256
-#define SIGNAL_MOVE 512
-#define SIGNAL_AIM2 1024
-#define SIGNAL_BUILD 2048
-
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 Walk() {// For C:\Users\logst\Downloads\BAR\legcom walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
@@ -440,7 +434,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 6) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
 		sleep 131;
@@ -459,8 +452,6 @@ StartMoving(reversing)
 	set-signal-mask SIGNAL_MOVE;
 	isMoving = TRUE;
 	
-	turn ltoes to z-axis <0> speed <2000>;
-	turn rtoes to z-axis <0> speed <2000>;
 	turn ltoes to z-axis <0> speed <2000>;
 	turn rtoes to z-axis <0> speed <2000>;
 	turn lthigh to y-axis <0> speed <600>; 
@@ -516,10 +507,9 @@ Create(){
 	call-script RestoreAfterDelay();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano;
-	return (0);
+	pieceIndex = nano;
 }
 
 static-var  Stunned;
@@ -558,13 +548,13 @@ ExecuteRestoreAfterDelay()
 	turn aabarrel to  x-axis <-30> speed <100.0>;
 	if (!isMoving)
 	{
-	turn larm to x-axis <15> speed <95.0000>; 
-	turn rarm to x-axis <15> speed <95.0000>; 
-	turn lhand to x-axis <30> speed <95.0000>; 
-	turn rhand to x-axis <30> speed <95.0000>; 
+	turn larm to x-axis <15> speed <95.0>; 
+	turn rarm to x-axis <15> speed <95.0>; 
+	turn lhand to x-axis <30> speed <95.0>; 
+	turn rhand to x-axis <30> speed <95.0>; 
 	
-	turn lshoulder to y-axis <10> speed <95.0000>; 
-	turn rshoulder to y-axis <-10> speed <95.0000>;
+	turn lshoulder to y-axis <10> speed <95.0>; 
+	turn rshoulder to y-axis <-10> speed <95.0>;
 	}
 }
 
@@ -624,23 +614,15 @@ StopWalking() {
 //--gun functions
 //-----------------------------------------------------------------------
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-	return (0);
-}
-
 /////////// PRIMARY WEAPON
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
-	return (0);
+	pieceIndex = flare;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = lhand;
-	return (0);
+	pieceIndex = lhand;
 }
 
 AimWeapon1(heading, pitch) //pew pew
@@ -660,11 +642,11 @@ AimWeapon1(heading, pitch) //pew pew
 	
 	torsoRot = heading;
 	
-	turn aimy1 to y-axis heading speed <300.0000>;
+	turn aimy1 to y-axis heading speed <300.0>;
 	
 	turn lshoulder to y-axis <0.0> speed <300.0>;
-	turn larm to x-axis 0-(pitch/2) speed <390.0000>;
-	turn lhand to x-axis 0-(pitch/2) speed <390.0000>;
+	turn larm to x-axis 0-(pitch/2) speed <390.0>;
+	turn lhand to x-axis 0-(pitch/2) speed <390.0>;
 	
 	isAiming = 1;
 	wait-for-turn aimy1 around y-axis;
@@ -684,25 +666,21 @@ FireWeapon1()
 	++shotcount;
 	emit-sfx 1024 + 0 from flare;
 	call-script lua_UnitScriptLight(1, shotcount);
-	return (0);
 }
 
 /////////// Underwater Torpedo
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = misflare;
-	return (0);
+	pieceIndex = misflare;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = aabarrel;
-	return (0);
+	pieceIndex = aabarrel;
 }
 
 AimWeapon2(heading, pitch)
 {
-	//get PRINT(get GROUND_WATER_HEIGHT(get UNIT_XZ));
 	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) > -2500000 )
     {
      return (0);
@@ -718,20 +696,17 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	return (0);
 }
 
 /////////// D-Gun
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = flaredgun;
-	return (0);
+	pieceIndex = flaredgun;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = rhand;
-	return (0);
+	pieceIndex = rhand;
 }
 
 FireWeapon3()
@@ -744,8 +719,6 @@ FireWeapon3()
 	move barreldgun to z-axis [-5] now;
 	
 	move barreldgun to z-axis [0] speed [10];
-	
-	return (0);
 }
 
 AimWeapon3(heading, pitch)
@@ -756,32 +729,29 @@ AimWeapon3(heading, pitch)
 	isAiming = 1;
 	rightArm = 0;
 	
-	turn aimy1 to y-axis heading speed <360.0000> ;
+	turn aimy1 to y-axis heading speed <360.0> ;
 	torsoRot = heading;
 	turn rshoulder to y-axis <0.0> speed <300.0>;
-	turn rarm to x-axis 0-(pitch/2) speed <390.0000>;
-	turn rhand to x-axis 0-(pitch/2) speed <390.0000>;
+	turn rarm to x-axis 0-(pitch/2) speed <390.0>;
+	turn rhand to x-axis 0-(pitch/2) speed <390.0>;
 	
 	wait-for-turn aimy1 around y-axis;
 	
 	return (1);
 }
 
-QueryWeapon4(piecenum) //ferret
+QueryWeapon4(pieceIndex) //ferret
 {
-	piecenum = misflare;
-	return (0);
+	pieceIndex = misflare;
 }
 
-AimFromWeapon4(piecenum)
+AimFromWeapon4(pieceIndex)
 {
-	piecenum = aabarrel;
-	return (0);
+	pieceIndex = aabarrel;
 }
 
 FireWeapon4()
 {
-	return (0);
 }
 
 AimWeapon4(heading, pitch)
@@ -802,22 +772,21 @@ StartBuilding(heading, pitch)
 	show nano;
 	rightArm = 0;
 	
-	turn aimy1 to y-axis heading + <10> speed <360.0000>;
+	turn aimy1 to y-axis heading + <10> speed <360.0>;
 	torsoRot = heading;
 	turn rshoulder to y-axis <0.0> speed <300.0>;
-	turn rarm to x-axis 0-(pitch/2) speed <390.0000>;
-	turn rhand to x-axis 0-(pitch/2) speed <390.0000>;
+	turn rarm to x-axis 0-(pitch/2) speed <390.0>;
+	turn rhand to x-axis 0-(pitch/2) speed <390.0>;
 	wait-for-turn aimy1 around y-axis;
 
 	set INBUILDSTANCE to 1;
 }
 
-TargetCleared(Func_Var_1)
+TargetCleared()
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	call-script RestoreAfterDelay();
-	return (0);
 }
 
 
@@ -830,7 +799,6 @@ StopBuilding()
 	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
 	call-script RestoreAfterDelay();
-	return (0);
 }
 
 Dance() {

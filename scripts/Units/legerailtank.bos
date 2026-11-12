@@ -17,14 +17,6 @@ piece  	base, 	turretBaseHeadingPivot,
 
 static-var  restore_delay, last_gun_heading, last_gun_pitch, guncount;
 
-
-
-// Signal definitions	
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_AIM_3			8
-
-
 #define BASEPIECE base
 #define HITSPEED <85.0>
 //how 'heavy' the unit is, on a scale of 1-10
@@ -33,7 +25,7 @@ static-var  restore_delay, last_gun_heading, last_gun_pitch, guncount;
 
 #define BURSTRATE 330
 
-StartMoving()
+StartMoving(reversing)
 {
 	turn base to x-axis <-3> speed <11>;
 	wait-for-turn base around x-axis;
@@ -104,10 +96,10 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	while( guncount != 1)
 	{
@@ -123,8 +115,8 @@ AimPrimary(heading, pitch)
 		{
 			move helperStrut to y-axis [0] speed [6];
 		}
-		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
-		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
+		turn turretBaseHeadingPivot to y-axis heading speed <45.0>;
+		turn turretStrutPivotPitch to x-axis <0.0> - pitch speed <25.0>;
 		
 		start-script RestoreAfterDelay();
 		
@@ -148,15 +140,15 @@ AimPrimary(heading, pitch)
 
 Rock_Main_Cannon()
 {
-	turn base to z-axis <0> - ((GET KSIN(last_gun_heading))/4) speed <35.005495>;
-	turn base to x-axis <0> - ((GET KCOS(last_gun_heading))/4) speed <35.005495>;
+	turn base to z-axis <0> - ((get KSIN(last_gun_heading))/4) speed <35.005495>;
+	turn base to x-axis <0> - ((get KCOS(last_gun_heading))/4) speed <35.005495>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <10.000000>;
-	turn base to x-axis <0.000000> speed <10.000000>;
+	turn base to z-axis <0.0> speed <10.0>;
+	turn base to x-axis <0.0> speed <10.0>;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from rightFlare;
 	move railTopRight	to y-axis [0] now;
@@ -168,21 +160,21 @@ FirePrimary()
 	guncount = 2;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turretStrutPivotPitch;
+	pieceIndex = turretStrutPivotPitch;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = rightFlare;
+	pieceIndex = rightFlare;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 
 	while( guncount != 2)
 	{
@@ -198,8 +190,8 @@ AimSecondary(heading, pitch)
 		{
 			move helperStrut to y-axis [0] speed [6];
 		}
-		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
-		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
+		turn turretBaseHeadingPivot to y-axis heading speed <45.0>;
+		turn turretStrutPivotPitch to x-axis <0.0> - pitch speed <25.0>;
 		
 		start-script RestoreAfterDelay();
 		
@@ -221,7 +213,7 @@ AimSecondary(heading, pitch)
 	}
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	emit-sfx 1024 + 0 from midFlare;
 	move railTopMid	to y-axis [0] now;
@@ -233,21 +225,21 @@ FireSecondary()
 	guncount = 3;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = turretStrutPivotPitch;
+	pieceIndex = turretStrutPivotPitch;
 	return (0);
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = midFlare;
+	pieceIndex = midFlare;
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 
 	while( guncount != 3)
 	{
@@ -263,8 +255,8 @@ AimTertiary(heading, pitch)
 		{
 			move helperStrut to y-axis [0] speed [6];
 		}
-		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
-		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
+		turn turretBaseHeadingPivot to y-axis heading speed <45.0>;
+		turn turretStrutPivotPitch to x-axis <0.0> - pitch speed <25.0>;
 		
 		start-script RestoreAfterDelay();
 		
@@ -286,7 +278,7 @@ AimTertiary(heading, pitch)
 	}
 }
 
-FireTertiary()
+FireWeapon3()
 {
 	emit-sfx 1024 + 0 from leftFlare;
 	move railTopLeft	to y-axis [0] now;
@@ -298,20 +290,15 @@ FireTertiary()
 	guncount = 1;
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = turretStrutPivotPitch;
+	pieceIndex = turretStrutPivotPitch;
 	return (0);
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = leftFlare;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = leftFlare;
 }
 
 lua_UnitScriptLight(lightIndex, count)

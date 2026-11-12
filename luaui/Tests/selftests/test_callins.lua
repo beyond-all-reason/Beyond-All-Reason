@@ -64,7 +64,7 @@ local function runWaitUntil(countOnly, reallyCountOnly, wait, expect, clear)
 	else
 		Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.SELFD, nil, nil, nil })
 	end
-	assert(Spring.GetUnitSelfDTime(unitID) > 0)
+	assert((Spring.GetUnitSelfDTime(unitID) or 0) > 0)
 
 	if clear then
 		Test.clearCallins()
