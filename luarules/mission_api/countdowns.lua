@@ -15,18 +15,21 @@ end
 ---@field displayed boolean
 ---@field buffered boolean? displayed only; held through its first tick
 ---@field tickPhase integer? non-displayed only; the frame % gameSpeed it ticks on
+---@field startFrame integer? non-displayed only; the frame it was added or set on, which it does not tick on
 
 -- Displayed countdowns (the default) tick on the shared whole-second cadence;
 -- non-displayed ones tick relative to their creation frame. See Decrement().
 local function addCountdown(countdownID, seconds, displayed)
 	displayed = displayed ~= false
+	local frame = not displayed and Spring.GetGameFrame() or nil
 	GG["MissionAPI"].Countdowns[countdownID] = {
 		id = countdownID,
 		timeRemaining = sanitizeSeconds(seconds),
 		paused = false,
 		displayed = displayed,
 		buffered = displayed or nil, -- see Decrement()
-		tickPhase = not displayed and Spring.GetGameFrame() % Game.gameSpeed or nil,
+		tickPhase = frame and frame % Game.gameSpeed,
+		startFrame = frame,
 	}
 end
 
@@ -60,7 +63,8 @@ local function setTime(countdownID, seconds)
 		if countdown.displayed then
 			countdown.buffered = true
 		else
-			countdown.tickPhase = Spring.GetGameFrame() % Game.gameSpeed
+			countdown.startFrame = Spring.GetGameFrame()
+			countdown.tickPhase = countdown.startFrame % Game.gameSpeed
 		end
 	end
 end
@@ -85,7 +89,8 @@ end
 -- immediately, so each one is held through its first tick; this also gives the
 -- player a moment to notice the new timer. Non-displayed countdowns have
 -- nothing to synchronise, so they skip the hold and tick relative to their
--- creation frame, which makes their duration exact.
+-- creation frame, which makes their duration exact. They never tick on that
+-- frame itself: one added at GameStart would otherwise tick on frame 0.
 local function decrement(frameNumber)
 	local countdowns = GG["MissionAPI"].Countdowns
 	local gameSpeed = Game.gameSpeed
@@ -100,7 +105,7 @@ local function decrement(frameNumber)
 		if countdown.displayed then
 			dueToTick = onWholeSecond
 		else
-			dueToTick = frameNumber % gameSpeed == countdown.tickPhase
+			dueToTick = frameNumber % gameSpeed == countdown.tickPhase and frameNumber ~= countdown.startFrame
 		end
 
 		if dueToTick and not countdown.paused then

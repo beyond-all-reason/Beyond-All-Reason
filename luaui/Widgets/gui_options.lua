@@ -102,7 +102,8 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
-local UiScroller, UiScrollerAt
+---@type FlowUIScroller
+local listScroller
 
 local widgetScale = (vsy / 1080)
 
@@ -193,8 +194,6 @@ local view = {
 	startsOpen = {} --[[@as table<table, boolean>]],
 	matches = {},
 	headingOf = {},
-	dragging = false,
-	dragGrab = 0,
 	-- the heading last jumped to from the column, marked there until the list is scrolled otherwise
 	litPin = false --[[@as table|false]],
 	-- the row a click or the arrow keys picked, and the one the strip shows: that or the last hovered
@@ -255,8 +254,9 @@ function view.resize()
 	UiToggle = WG.FlowUI.Draw.Toggle
 	UiSelector = WG.FlowUI.Draw.Selector
 	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
-	UiScroller = WG.FlowUI.Draw.Scroller
-	UiScrollerAt = WG.FlowUI.Draw.ScrollerGeometry
+	listScroller = WG.FlowUI.Scroller.new(function()
+		return layout.totalH, view.offset(), view.maxScroll()
+	end)
 
 	font = WG.fonts.getFont()
 	font2 = WG.fonts.getFont(2)
@@ -324,7 +324,7 @@ function view.close()
 	openSelect = nil
 	draggingSlider = nil
 	view.closePicker()
-	view.dragging = false
+	listScroller:drag(0, false)
 	backgroundGuishader = glDeleteList(backgroundGuishader)
 	if WG.guishader then
 		WG.guishader.RemoveDlist("options")
@@ -435,7 +435,7 @@ function view.setLayout()
 	metrics.titleY = math.floor(17 * s)
 	metrics.titleFs = math.floor(tuning.fontSize * s * 1.55)
 	metrics.sidebarW = math.floor(230 * s)
-	metrics.barW = math.floor(14 * s)
+	metrics.barW = WG.FlowUI.Scroller.width(s)
 	metrics.accentW = math.max(2, math.floor(3 * s))
 	metrics.underlineH = math.max(1, math.floor(2 * s))
 	metrics.indent = math.floor(18 * s)
@@ -1029,6 +1029,20 @@ function draw.sidebar()
 					end
 				end
 			end
+
+			-- the keybinds are a window of their own: this entry switches to it
+			if group.id == "control" and not searching and WG.keybinds and y - metrics.groupHeight >= bottom then
+				local r = { x1, y - metrics.groupHeight, x2, y }
+				font:Print(
+					look.group .. BAR.I18N("ui.keybinds.title"),
+					x1 + metrics.sidePad,
+					math.floor((r[2] + r[4]) * 0.5),
+					metrics.groupFs,
+					"ov"
+				)
+				layout.sidebar[#layout.sidebar + 1] = { rect = r, window = "keybinds" }
+				y = r[2]
+			end
 		end
 	end
 end
@@ -1322,25 +1336,9 @@ function widget:RecvLuaMsg(msg, playerID)
 	return upkeep.recvLuaMsg(msg, playerID)
 end
 
--- the thumb, where it is now; nil when the list fits and no bar is drawn
-function view.thumb()
-	return UiScrollerAt(
-		layout.barX1,
-		layout.listBottom,
-		layout.barX1 + metrics.barW,
-		layout.listTop,
-		layout.totalH,
-		view.offset()
-	)
-end
-
 function draw.scrollbar(mx, my)
-	local top, height = view.thumb()
-	if top then
-		local x1, x2 = layout.barX1, layout.barX1 + metrics.barW
-		local over = mx >= x1 and mx <= x2 and my <= top and my >= top - height
-		UiScroller(x1, layout.listBottom, x2, layout.listTop, layout.totalH, view.offset(), over, view.dragging)
-	end
+	listScroller:setRect(layout.barX1, layout.listBottom, layout.barX1 + metrics.barW, layout.listTop)
+	listScroller:draw(listScroller:isOverThumb(mx, my))
 end
 
 -- a switch with its caption on its left, lit while hovered
@@ -1918,12 +1916,9 @@ function widget:DrawScreen()
 
 		if (show or showOnceMore) and windowList then
 			local mx, my, ml = Spring.GetMouseState()
-			if view.dragging then
-				if ml then
-					view.scrollFromY(my)
-				else
-					view.dragging = false
-				end
+			local step = listScroller:drag(my, ml)
+			if step then
+				view.scrollBy(step - view.scroll)
 			end
 			if inRect(layout.window, mx, my) then
 				Spring.SetMouseCursor("cursornormal")
@@ -2087,32 +2082,6 @@ local function sliderValueAt(option, mx)
 		value = math.floor((value + (option.step / 2)) / option.step) * option.step
 	end
 	return value
-end
-
--- scrolls so the thumb's top sits where the cursor has dragged it
-function view.scrollFromY(y)
-	local _, _, trackTop, travel = view.thumb()
-	if not travel or travel <= 0 then
-		return
-	end
-	local f = math.max(0, math.min(1, (trackTop - (y - view.dragGrab)) / travel))
-	view.scrollBy(math.floor(f * view.maxScroll() + 0.5) - view.scroll)
-end
-
--- Takes hold of the bar: on the thumb that is a grab and the list stays put, on the track the
--- thumb jumps to the cursor first and is dragged from its middle.
-function view.grabScroller(y)
-	local top, height = view.thumb()
-	if not top then
-		return
-	end
-	view.dragging = true
-	if y <= top and y >= top - height then
-		view.dragGrab = y - top
-	else
-		view.dragGrab = -math.floor(height * 0.5)
-		view.scrollFromY(y)
-	end
 end
 
 -- each tab keeps where its list was left
@@ -2336,11 +2305,31 @@ local function pressOnHeader(mx, my)
 	return true
 end
 
--- a press in the column: open a tab, or scroll to a section (or a tab's search results)
+-- Toggles another window as the top bar's button for it does: this one closes, as only one is open at a time.
+function view.switchTo(name)
+	local window = WG[name]
+	if not window then
+		return
+	end
+	local wasOpen = window.isvisible()
+	view.pressedInside = nil
+	if WG.topbar and WG.topbar.hideWindows then
+		WG.topbar.hideWindows()
+	else
+		view.close()
+	end
+	if not wasOpen then
+		window.toggle(true)
+	end
+end
+
+-- a press in the column: open a tab or another window, or scroll to a section (or a tab's search results)
 local function pressOnSidebar(mx, my)
 	for _, entry in ipairs(layout.sidebar) do
 		if inRect(entry.rect, mx, my) then
-			if entry.group and not view.searching() then
+			if entry.window then
+				view.switchTo(entry.window)
+			elseif entry.group and not view.searching() then
 				if entry.group.id == currentGroupTab then
 					view.scrollBy(-view.scroll)
 					view.litPin = false
@@ -2390,8 +2379,8 @@ function mouseEvent(mx, my, button, release)
 
 	if button == 1 then
 		if release then
-			if view.dragging then
-				view.dragging = false
+			if listScroller:isDragging() then
+				listScroller:drag(0, false)
 				return true
 			end
 
@@ -2434,7 +2423,10 @@ function mouseEvent(mx, my, button, release)
 			end
 			if not pressOnHeader(mx, my) and not pressOnSidebar(mx, my) then
 				if mx >= layout.barX1 and my >= layout.listBottom and my <= layout.listTop then
-					view.grabScroller(my)
+					local step = listScroller:press(my)
+					if step then
+						view.scrollBy(step - view.scroll)
+					end
 				elseif layout.stripCommand and inRect(layout.stripCommand, mx, my) then
 					-- the /option command in the strip, to paste in the chat or a key bind
 					Spring.SetClipboard(layout.stripCommand[5])

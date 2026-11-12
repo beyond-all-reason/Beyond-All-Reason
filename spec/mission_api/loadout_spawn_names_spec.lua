@@ -38,7 +38,6 @@ local env = MissionSpecEnv.new({
 			end
 			return unitID
 		end,
-		GiveOrderArrayToUnit = function() end,
 	},
 })
 env.BAR = { Utilities = MissionSpecEnv.include(env, "common/springUtilities/facingFunctions.lua") }
@@ -48,7 +47,7 @@ Builders.MissionApi.new():Install(env)
 local loadout = MissionSpecEnv.include(env, "luarules/mission_api/loadout.lua")
 
 local function bot(fields)
-	local unit = { unitDefName = "armpw", x = 0, z = 0, teamName = 0 }
+	local unit = { unitDefName = "armpw", position = { x = 0, z = 0 }, teamName = 0 }
 	for key, value in pairs(fields) do
 		unit[key] = value
 	end

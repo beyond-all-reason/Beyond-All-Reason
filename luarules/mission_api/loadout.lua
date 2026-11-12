@@ -3,15 +3,13 @@
 ---
 
 local tracking = GG["MissionAPI"].Modules.Tracking
-
-local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
-local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
+local missionOrders = GG["MissionAPI"].Modules.Orders
 
 --- Units
 
 local BUILD_GRID_SIZE = Game.squareSize * Game.footprintScale
 
-local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpacing)
+local function generateGridPositions(centerX, centerY, centerZ, quantity, xSpacing, zSpacing)
 	local positions = {}
 	if quantity <= 0 then
 		return positions
@@ -32,7 +30,7 @@ local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpac
 			if count >= quantity then
 				return positions
 			end
-			table.insert(positions, { x = x, y = Spring.GetGroundHeight(x, z), z = z })
+			table.insert(positions, { x = x, y = centerY or Spring.GetGroundHeight(x, z), z = z })
 			count = count + 1
 		end
 	end
@@ -60,54 +58,9 @@ local function spawnUnit(unit, pos)
 	return unitID
 end
 
-local function convertOrdersTargetingNames(orders)
-	local commandsAcceptingName = {
-		[CMD.GUARD] = true,
-		[CMD.REPAIR] = true,
-		[CMD.CAPTURE] = true,
-		[CMD.ATTACK] = true,
-		[CMD.LOAD_UNITS] = true,
-		[CMD.RECLAIM] = true,
-		[CMD.RESURRECT] = true,
-	}
-
-	-- Replace name param with unitIDs or featureIDs, duplicating order for each unitID
-	local newOrders = {}
-	for _, order in pairs(orders or {}) do
-		local commandID = order[1]
-		local params = order[2] or {}
-		local options = order[3] or {}
-
-		if commandsAcceptingName[commandID] and type(params) == "table" and (params.unitName or params.featureName) then
-			local thingIDs = {}
-			local offset = 0
-			if params.featureName then
-				thingIDs = trackedFeatureIDs[params.featureName]
-				if not Engine.FeatureSupport.noOffsetForFeatureID then
-					offset = Game.maxUnits
-				end
-			elseif params.unitName then
-				thingIDs = trackedUnitIDs[params.unitName]
-			end
-
-			local isFirstUnitID = true
-			for thingID in pairs(thingIDs) do
-				newOrders[#newOrders + 1] = { commandID, thingID + offset, table.copy(options) }
-				if isFirstUnitID then
-					table.insert(options, "shift")
-					isFirstUnitID = false
-				end
-			end
-		else
-			newOrders[#newOrders + 1] = order
-		end
-	end
-
-	return newOrders
-end
-
 local function spawnUnitLoadout(unitLoadout)
-	for _, unit in ipairs(unitLoadout or {}) do
+	local entryUnitIDs = {}
+	for index, unit in ipairs(unitLoadout or {}) do
 		local spacing = unit.spacing or 0
 		---@type table
 		local unitDef = UnitDefNames[unit.unitDefName]
@@ -128,17 +81,21 @@ local function spawnUnitLoadout(unitLoadout)
 			buildFacing = BAR.Utilities.FacingToNumber(unit.facing)
 		end
 
-		local positions = generateGridPositions(unit.x, unit.z, unit.quantity or 1, xsize, zsize)
+		local center = unit.position
+		local positions = generateGridPositions(center.x, center.y, center.z, unit.quantity or 1, xsize, zsize)
+		local spawnedUnitIDs = {}
 		for _, pos in ipairs(positions) do
 			if snapToBuildGrid then
 				pos.x, pos.y, pos.z = Spring.Pos2BuildPos(unitDef.id, pos.x, pos.y, pos.z, buildFacing)
 			end
-			local unitID = spawnUnit(unit, pos)
-			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
-			GG["MissionAPI"].issuingOrders = true
-			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
-			GG["MissionAPI"].issuingOrders = nil
+			spawnedUnitIDs[spawnUnit(unit, pos)] = true
 		end
+		entryUnitIDs[index] = spawnedUnitIDs
+	end
+
+	-- Orders can target the units of any entry.
+	for index, unit in ipairs(unitLoadout or {}) do
+		missionOrders.GiveOrders(entryUnitIDs[index], unit.orders)
 	end
 end
 
@@ -153,9 +110,9 @@ for _, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local function spawnFeature(featureDefName, position, facing, featureName)
+local function spawnFeature(featureDefName, x, y, z, facing, featureName)
 	local heading = BAR.Utilities.FacingToHeading(facing or 0)
-	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
+	local featureID = Spring.CreateFeature(featureDefName, x, y, z, heading, gaiaTeamID)
 	local unitDefName = corpseToUnitDefName[featureDefName]
 
 	if featureID and unitDefName then
@@ -166,13 +123,13 @@ end
 
 local function spawnFeatureLoadout(featureLoadout)
 	for _, feature in ipairs(featureLoadout or {}) do
-		feature.y = Spring.GetGroundHeight(feature.x, feature.z)
-		spawnFeature(feature.featureDefName, feature, feature.facing, feature.featureName)
+		local x, y, z = feature.position.x, feature.position.y, feature.position.z
+		y = y or Spring.GetGroundHeight(x, z)
+		spawnFeature(feature.featureDefName, x, y, z, feature.facing, feature.featureName)
 	end
 end
 
 return {
-	ConvertOrdersTargetingNames = convertOrdersTargetingNames,
 	SpawnUnitLoadout = spawnUnitLoadout,
 	SpawnFeatureLoadout = spawnFeatureLoadout,
 }

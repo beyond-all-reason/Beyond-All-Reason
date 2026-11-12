@@ -529,9 +529,22 @@ local function createAttributeActionValidator(context, parameterValidators)
 end
 
 -- Recoil cannot move an AI to another team, so ChangeTeam moves only the players of oldTeamName.
+-- Gaia's team has no players, and no player may join it.
 local function validateChangeTeamAction(context, actionReport, actionID, action)
 	if action.type ~= context.ActionTypes.ChangeTeam or type(action.parameters) ~= "table" then
 		return
+	end
+
+	for _, parameterName in ipairs({ "oldTeamName", "newTeamName" }) do
+		for _, teamName in ipairs(context.PossibleValues(action.parameters[parameterName])) do
+			if teamName == "gaia" then
+				actionReport.Error(
+					actionID,
+					"ChangeTeam cannot move players to or from Gaia's team",
+					"Parameter: " .. parameterName
+				)
+			end
+		end
 	end
 
 	for _, oldTeamName in ipairs(context.PossibleValues(action.parameters.oldTeamName)) do
@@ -549,6 +562,22 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
+-- a menu slot needs a builder type
+local function validateAddBuildOptionAction(context, actionReport, actionID, action)
+	local parameters = action.parameters
+	if action.type ~= context.ActionTypes.AddBuildOption or type(parameters) ~= "table" then
+		return
+	end
+
+	if parameters.buildMenuPosition ~= nil and parameters.builderDefName == nil then
+		actionReport.Error(
+			actionID,
+			"Parameter 'buildMenuPosition' needs builderDefName",
+			"Parameter: buildMenuPosition"
+		)
+	end
+end
+
 local function validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
@@ -558,6 +587,7 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 			validateAttributeAction(actionReport, actionID, action)
 			validateChangeTeamAction(context, actionReport, actionID, action)
+			validateAddBuildOptionAction(context, actionReport, actionID, action)
 		end
 	end
 end
@@ -603,7 +633,8 @@ local function validateLoadoutsSection(context, report, parameterValidators)
 
 	for _, loadout in ipairs(loadouts) do
 		for _, result in ipairs(parameterValidators[loadout.type](loadout.value) or {}) do
-			loadoutReport.Error(loadout.name .. (result.parameterNameSuffix or ""), result.message)
+			local reportResult = result.isWarning and loadoutReport.Warn or loadoutReport.Error
+			reportResult(loadout.name .. (result.parameterNameSuffix or ""), result.message)
 		end
 	end
 end

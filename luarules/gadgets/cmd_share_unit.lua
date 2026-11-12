@@ -94,13 +94,15 @@ if gadgetHandler:IsSyncedCode() then
 			return cmdParams[2] == IS_RALLY_SHARE
 		end
 
+		-- shares right away, so the unit keeps its queue
+		if not cmdOptions.shift then
+			shareUnit(unitID, cmdParams[1])
+			return false
+		end
+
 		if isFactory[unitDefID] then
-			if cmdOptions.shift then
-				-- rally share commands shouldn't spam the chat
-				spGiveOrderToUnit(unitID, CMD_SHARE_UNIT, { cmdParams[1], IS_RALLY_SHARE }, cmdOptions.coded)
-			else
-				shareUnit(unitID, cmdParams[1])
-			end
+			-- rally share commands shouldn't spam the chat
+			spGiveOrderToUnit(unitID, CMD_SHARE_UNIT, { cmdParams[1], IS_RALLY_SHARE }, cmdOptions.coded)
 			return false
 		end
 

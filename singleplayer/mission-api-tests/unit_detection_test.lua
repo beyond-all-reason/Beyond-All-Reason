@@ -1,7 +1,8 @@
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
---- Covers UnitDetected and UnitUndetected across every sensor level and filter.
+--- Covers UnitDetected and UnitUndetected across every sensor level and filter, and
+--- LocationRevealed for a point that comes into sight and one that never does.
 ---
 --- Detection levels escalate: unseen -> seismic -> radar -> vision, and a unit sits at
 --- exactly one of them per alliance. A trigger without sensorTypes watches all of them,
@@ -358,6 +359,29 @@ local triggers = {
 		},
 		actions = { 'messageWrongSensorExcludes' },
 	},
+
+	----------------------------------------------------------------
+	--- Locations --------------------------------------------------
+
+	-- 400 south of armrad, inside its sight of 680 once it spawns.
+	radarSiteRevealed = {
+		type = triggerTypes.LocationRevealed,
+		parameters = {
+			position = { x = 4700, z = 2400 },
+			sensorAllianceName = 'players',
+		},
+		actions = { 'messageRadarSiteRevealed' },
+	},
+
+	-- Canary: where the radar target spawns, outside every sensor of the players' alliance for the whole run.
+	radarTargetSpawnRevealed = {
+		type = triggerTypes.LocationRevealed,
+		parameters = {
+			position = { x = 4500, z = 4900 },
+			sensorAllianceName = 'players',
+		},
+		actions = { 'messageRadarTargetSpawnRevealed' },
+	},
 }
 
 local actions = {
@@ -369,8 +393,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsd', x = 1800, z = 1800, teamName = 'player' },
-				{ unitDefName = 'armrad', x = 4700, z = 2000, teamName = 'player' },
+				{ unitDefName = 'armsd', position = { x = 1800, z = 1800 }, teamName = 'player' },
+				{ unitDefName = 'armrad', position = { x = 4700, z = 2000 }, teamName = 'player' },
 			},
 		},
 	},
@@ -379,8 +403,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 1800, z = 1600, teamName = 'player' },
-				{ unitDefName = 'armfus', x = 3900, z = 6000, teamName = 'enemy' },
+				{ unitDefName = 'armfus', position = { x = 1800, z = 1600 }, teamName = 'player' },
+				{ unitDefName = 'armfus', position = { x = 3900, z = 6000 }, teamName = 'enemy' },
 			},
 		},
 	},
@@ -389,12 +413,12 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armspy', x = 1800, z = 4600, teamName = 'enemy', unitName = 'spy' },
-				{ unitDefName = 'corfast', x = 4500, z = 4900, teamName = 'enemy', unitName = 'radarTarget' },
-				{ unitDefName = 'corfast', x = 4900, z = 4900, teamName = 'enemy', unitName = 'visionTarget' },
+				{ unitDefName = 'armspy', position = { x = 1800, z = 4600 }, teamName = 'enemy', unitName = 'spy' },
+				{ unitDefName = 'corfast', position = { x = 4500, z = 4900 }, teamName = 'enemy', unitName = 'radarTarget' },
+				{ unitDefName = 'corfast', position = { x = 4900, z = 4900 }, teamName = 'enemy', unitName = 'visionTarget' },
 				-- 1600 from armrad: inside radar 2100, outside sight 680, and 3400 from
 				-- armsd so it is out of seismic. Detected where it stands, then destroyed.
-				{ unitDefName = 'corak', x = 4700, z = 3600, teamName = 'enemy', unitName = 'deathTarget' },
+				{ unitDefName = 'corak', position = { x = 4700, z = 3600 }, teamName = 'enemy', unitName = 'deathTarget' },
 			},
 		},
 	},
@@ -573,6 +597,16 @@ local actions = {
 	messageWrongSensorExcludes = {
 		type = actionTypes.SendMessage,
 		parameters = { messageKey = "BUG: a seismic-only trigger reported a unit held on radar." },
+	},
+
+	messageRadarSiteRevealed = {
+		type = actionTypes.SendMessage,
+		parameters = { messageKey = "Location revealed: the point south of the radar tower came into sight." },
+	},
+
+	messageRadarTargetSpawnRevealed = {
+		type = actionTypes.SendMessage,
+		parameters = { messageKey = "BUG: a point outside every sensor was reported as revealed." },
 	},
 }
 

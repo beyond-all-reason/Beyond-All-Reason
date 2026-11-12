@@ -23,6 +23,8 @@ end
 
 -- Forward-declare config so zoom helpers can reference it (config table defined below)
 local config
+local ui ---@type table what the interface shows (luaui/Include/pip_interface.lua)
+local pipView ---@type table the look drawing it (luaui/Include/pip_view.lua, swapped by setView)
 
 -- Helper function to get effective zoom minimum (accounts for minimap mode)
 
@@ -316,7 +318,7 @@ config = {
 	historyLosFrames = 15, -- Rewind LOS view: frames between rebuilds of the sight circles (also rebuilt when an ally appears or dies)
 	historyLosTerrain = true, -- Rewind LOS view: sight and radar rays are blocked by terrain
 	historyLosTerrainStep = 48, -- Elmos between terrain samples along a sight ray
-	historyScanSpread = 4, -- The recorder's unit scan runs over this many frames per tick
+	historyScanSpread = 4, -- The recorder's unit scan runs over at least this many frames per tick (more with many units)
 	historyExplosions = true, -- Log explosions into the rewind history
 	historyProjectiles = true, -- Log long-flight projectiles (nukes, artillery, bombs)
 	historyCommands = true, -- Log position-targeted orders
@@ -1615,8 +1617,8 @@ local pools = {
 	activeTrails = {}, -- Reused for tracking active missile trails
 	visibleButtons = {}, -- Reused for button visibility computation
 	aliveTeammates = {}, -- Reused for GetAliveTeammates in per-frame UI paths
-	trackingOutlineColor = { 1, 1, 1, 0.22 }, -- Reused for DrawTrackingIndicators default outline color
-	trackingTeamColor = { 1, 1, 1, 0.5 }, -- Reused for DrawTrackingIndicators team outline color
+	trackingOutlineColor = { 1, 1, 1, 0.22 }, -- Reused for the tracking border's default outline color
+	trackingTeamColor = { 1, 1, 1, 0.5 }, -- Reused for the tracking border's team color
 	unitsInRect = {}, -- Reused for tracked-spec filtering in DrawUnitsAndFeatures
 	emptySelectionSet = {}, -- Reused empty selected-set sentinel for tracking mode
 	comHealthBars = {}, -- Reused commander health bar entries
@@ -5507,56 +5509,7 @@ local function RecoverInvalidAnimationState()
 end
 
 function UpdateGuishaderBlur()
-	if WG.guishader and miscState.externalFrame.active then
-		-- the frame blurs behind itself
-		if WG.guishader.RemoveDlist then
-			WG.guishader.RemoveDlist("pip" .. pipNumber)
-		elseif WG.guishader.RemoveRect then
-			WG.guishader.RemoveRect("pip" .. pipNumber)
-		end
-	elseif WG.guishader then
-		-- Determine the correct bounds based on mode
-		local blurL, blurB, blurR, blurT
-		if isMinimapMode and miscState.minimapMinimized then
-			-- Minimap minimized: blur behind the maximize button
-			local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
-			blurL = render.dim.l - render.elementPadding
-			blurB = render.dim.t - buttonSize - render.elementPadding
-			blurR = render.dim.l + buttonSize + render.elementPadding
-			blurT = render.dim.t + render.elementPadding
-		elseif uiState.inMinMode and not uiState.isAnimating then
-			-- Use minimized button position
-			local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
-			blurL = uiState.minModeL - render.elementPadding
-			blurB = uiState.minModeB - render.elementPadding
-			blurR = uiState.minModeL + buttonSize + render.elementPadding
-			blurT = uiState.minModeB + buttonSize + render.elementPadding
-		else
-			-- Use regular PIP dimensions
-			blurL = render.dim.l - render.elementPadding
-			blurB = render.dim.b - miscState.hist.StripH() - render.elementPadding
-			blurR = render.dim.r + render.elementPadding
-			blurT = render.dim.t + render.elementPadding
-		end
-
-		-- Use InsertDlist for rounded corner blur support
-		if WG.guishader.InsertDlist then
-			-- Clean up old dlist ourselves before creating new one
-			if render.guishaderDlist then
-				gl.DeleteList(render.guishaderDlist)
-				render.guishaderDlist = nil
-			end
-			-- Create new dlist with rounded rectangle
-			render.guishaderDlist = gl.CreateList(function()
-				render.RectRound(blurL, blurB, blurR, blurT, render.elementCorner)
-			end)
-			-- Use force=true to ensure immediate stencil texture update
-			WG.guishader.InsertDlist(render.guishaderDlist, "pip" .. pipNumber, true)
-		elseif WG.guishader.InsertRect then
-			-- Fallback to InsertRect if InsertDlist not available
-			WG.guishader.InsertRect(blurL, blurB, blurR, blurT, "pip" .. pipNumber)
-		end
-	end
+	pipView.UpdateBlur()
 end
 
 local function UpdateCentering(mx, my)
@@ -5925,11 +5878,6 @@ local function WorldToPipCoords(wx, wz)
 end
 
 -- Drawing
-local function ResizeHandleVertices()
-	glFunc.Vertex(render.dim.r, render.dim.b)
-	glFunc.Vertex(render.dim.r - render.usedButtonSize, render.dim.b)
-	glFunc.Vertex(render.dim.r, render.dim.b + render.usedButtonSize)
-end
 local function GroundTextureVertices()
 	glFunc.TexCoord(render.ground.coord.l, render.ground.coord.b)
 	glFunc.Vertex(render.ground.view.l, render.ground.view.b)
@@ -5941,26 +5889,28 @@ local function GroundTextureVertices()
 	glFunc.Vertex(render.ground.view.l, render.ground.view.t)
 end
 
--- Helper function to compute chamfered corner params based on screen bounds
--- Returns tl, tr, br, bl (TopLeft, TopRight, BottomRight, BottomLeft)
--- Corners are disabled (0) when the element touches or exceeds screen bounds
-local function GetChamferedCorners(l, b, r, t)
-	local atLeft = l <= 0
-	local atBottom = b <= 0
-	local atRight = r >= render.vsx
-	local atTop = t >= render.vsy
-
-	-- tl (TopLeft) - disabled if at left or top edge
-	local tl = (atLeft or atTop) and 0 or 1
-	-- tr (TopRight) - disabled if at right or top edge
-	local tr = (atRight or atTop) and 0 or 1
-	-- br (BottomRight) - disabled if at right or bottom edge
-	local br = (atRight or atBottom) and 0 or 1
-	-- bl (BottomLeft) - disabled if at left or bottom edge
-	local bl = (atLeft or atBottom) and 0 or 1
-
-	return tl, tr, br, bl
-end
+ui = require("luaui/Include/pip_interface").new({
+	render = render,
+	config = config,
+	state = state,
+	uiState = uiState,
+	pipR2T = pipR2T,
+	interactionState = interactionState,
+	miscState = miscState,
+	cameraState = cameraState,
+	pools = pools,
+	buttons = buttons,
+	glFunc = glFunc,
+	glConst = glConst,
+	spFunc = spFunc,
+	getActionHotkey = getActionHotkey,
+	getAliveTeammates = GetAliveTeammates,
+	pipNumber = pipNumber,
+	isMinimapMode = isMinimapMode,
+	isSinglePlayer = isSinglePlayer,
+})
+ui.NewRegularView = require("luaui/Include/pip_view").new
+pipView = ui.NewRegularView(ui)
 
 local function DrawGroundLine(x1, z1, x2, z2)
 	local dx, dz = x2 - x1, z2 - z1
@@ -8871,34 +8821,7 @@ local function RegisterMinimapWGAPI()
 	-- the buttons it shows on hover, for a frame to draw: { command, texture, active, tooltip }
 	-- (a reused list, rebuilt with its own list of them, at most 4 times a second)
 	WG.minimap.getFrameButtons = function()
-		local list, n = miscState.frameButtons, 0
-		for _, btn in ipairs(pools.visibleButtons) do
-			local c = btn.command
-			local active = (c == "pip_track" and interactionState.areTracking)
-				or (c == "pip_trackplayer" and interactionState.trackingPlayerID)
-				or (c == "pip_view" and state.losViewEnabled)
-				or (c == "pip_activity" and miscState.activityFocusEnabled)
-				or (c == "pip_tv" and miscState.tvEnabled)
-				or (c == "pip_history" and miscState.hist.shown)
-			local key = active and btn.tooltipActiveKey or btn.tooltipKey
-			local tooltip = key and BAR.I18N(key) or ""
-			if c == "pip_help" and config.leftButtonPansCamera then
-				tooltip = tooltip .. BAR.I18N("ui.pip.help_leftclick")
-			end
-			local shortcut = btn.actionName and c ~= "pip_track" and getActionHotkey(btn.actionName)
-			if shortcut and shortcut ~= "" then
-				tooltip = tooltip .. "\n" .. shortcut
-			end
-			n = n + 1
-			local entry = list[n] or {}
-			list[n] = entry
-			entry.command, entry.texture, entry.active, entry.tooltip =
-				c, btn.texture, active and true or false, tooltip
-		end
-		for i = n + 1, #list do
-			list[i] = nil
-		end
-		return list
+		return ui.FrameButtons()
 	end
 	WG.minimap.pressFrameButton = function(command)
 		for _, btn in ipairs(buttons) do
@@ -9892,6 +9815,14 @@ function widget:Initialize()
 	-- Create API for other widgets
 	WG["pip" .. pipNumber] = {}
 	local pipApi = WG["pip" .. pipNumber]
+	-- gives the interface another look: factory(ui) makes the view (pip_view.lua lists its functions), nil for the regular one
+	pipApi.setView = function(factory)
+		pipView.Release()
+		pipView = (factory or ui.NewRegularView)(ui)
+		pipR2T.frameNeedsUpdate = true
+		pipR2T.contentMaskLastWidth = -1
+		UpdateGuishaderBlur()
+	end
 	pipApi.IsAbove = function(mx, my)
 		return widget:IsAbove(mx, my)
 	end
@@ -10104,6 +10035,7 @@ end
 
 function widget:ViewResize()
 	font = WG.fonts.getFont(2)
+	ui.font = font
 
 	local oldVsx, oldVsy = render.vsx, render.vsy
 	local oldWidgetScale = render.widgetScale
@@ -10377,21 +10309,8 @@ function widget:ViewResize()
 	render.RectRoundOutline = WG.FlowUI.Draw.RectRoundOutline
 	elementMargin = WG.FlowUI.elementMargin
 
-	-- Invalidate display lists on resize
-	if render.minModeDlist then
-		gl.DeleteList(render.minModeDlist)
-		render.minModeDlist = nil
-	end
-
-	-- Invalidate frame textures on resize
-	if pipR2T.frameBackgroundTex then
-		gl.DeleteTexture(pipR2T.frameBackgroundTex)
-		pipR2T.frameBackgroundTex = nil
-	end
-	if pipR2T.frameButtonsTex then
-		gl.DeleteTexture(pipR2T.frameButtonsTex)
-		pipR2T.frameButtonsTex = nil
-	end
+	-- Invalidate the frame's textures and lists on resize
+	pipView.ReleaseFrame()
 	pipR2T.frameNeedsUpdate = true
 
 	-- Update minimize button position with screen margin
@@ -10797,16 +10716,6 @@ function widget:Shutdown()
 		pipR2T.contentMaskDlist = nil
 	end
 
-	-- Clean up frame textures
-	if pipR2T.frameBackgroundTex then
-		gl.DeleteTexture(pipR2T.frameBackgroundTex)
-		pipR2T.frameBackgroundTex = nil
-	end
-	if pipR2T.frameButtonsTex then
-		gl.DeleteTexture(pipR2T.frameButtonsTex)
-		pipR2T.frameButtonsTex = nil
-	end
-
 	-- Clean up LOS texture
 	if pipR2T.losTex then
 		gl.DeleteTexture(pipR2T.losTex)
@@ -10819,35 +10728,8 @@ function widget:Shutdown()
 		pipR2T.decalTex = nil
 	end
 
-	-- Clean up minimize mode display list
-	if render.minModeDlist then
-		gl.DeleteList(render.minModeDlist)
-		render.minModeDlist = nil
-	end
-
-	-- Clean up tracked player overlay display lists
-	if pipR2T.resbarTextDlist then
-		gl.DeleteList(pipR2T.resbarTextDlist)
-		pipR2T.resbarTextDlist = nil
-	end
-	if pipR2T.playerNameDlist then
-		gl.DeleteList(pipR2T.playerNameDlist)
-		pipR2T.playerNameDlist = nil
-	end
-
-	-- Remove guishader blur
-	if WG.guishader then
-		if WG.guishader.RemoveDlist then
-			WG.guishader.RemoveDlist("pip" .. pipNumber)
-		elseif WG.guishader.RemoveRect then
-			WG.guishader.RemoveRect("pip" .. pipNumber)
-		end
-	end
-	-- Clean up guishader dlist
-	if render.guishaderDlist then
-		gl.DeleteList(render.guishaderDlist)
-		render.guishaderDlist = nil
-	end
+	-- Clean up the interface's GL objects and blur
+	pipView.Release()
 
 	-- Restore minimap if we were in minimap mode
 	if isMinimapMode then
@@ -16111,160 +15993,6 @@ function miscState.hist.FrameAt(mx)
 	return lay.first + t * (lay.live - lay.first), t
 end
 
-function miscState.hist.DrawTimeline(mx, my)
-	local hist = miscState.hist
-	local lay = hist.ComputeLayout(mx, my)
-	if not lay.visible then
-		return
-	end
-	local inBand = my >= lay.b and my <= lay.t and mx >= lay.l and mx <= lay.r
-	local dark, light = config.panelBorderColorDark, config.panelBorderColorLight
-	local accent = hist.mode and { 1, 0.72, 0.28, 1 } or light
-
-	glFunc.Texture(false)
-	glFunc.Color(dark)
-	-- the strip is the panel's bottom edge: cut its bottom corners like the content mask does
-	local edge = 2
-	local atBottom = lay.b <= edge
-	local br = (lay.r >= render.vsx - edge or atBottom) and 0 or 1
-	local bl = (lay.l <= edge or atBottom) and 0 or 1
-	render.RectRound(lay.l, lay.b, lay.r, lay.t, render.elementCorner * 0.5, 0, 0, br, bl)
-	if lay.empty then
-		-- nothing recorded yet: an empty track
-		glFunc.Color(0, 0, 0, 0.55)
-		gl.Rect(lay.trackL, lay.cy - lay.trackH * 0.5, lay.trackR, lay.cy + lay.trackH * 0.5)
-		glFunc.Color(1, 1, 1, 1)
-		return
-	end
-
-	-- play / pause and skip-to-live: active while rewinding, a faint hint at live
-	local ib = lay.ib
-	local px, cy = lay.playL, lay.cy
-	local hoverPlay = hist.mode and inBand and mx >= lay.playL and mx <= lay.playR
-	local hoverLive = hist.mode and inBand and mx >= lay.liveL and mx <= lay.liveR
-	if hist.mode then
-		glFunc.Color(accent)
-	else
-		glFunc.Color(light[1], light[2], light[3], 0.18)
-	end
-	if hist.mode and hist.playing then
-		local w = ib * 0.22
-		gl.Rect(px + ib * 0.2, cy - ib * 0.32, px + ib * 0.2 + w, cy + ib * 0.32)
-		gl.Rect(px + ib * 0.8 - w, cy - ib * 0.32, px + ib * 0.8, cy + ib * 0.32)
-	else
-		glFunc.BeginEnd(GL.TRIANGLES, function()
-			glFunc.Vertex(px + ib * 0.25, cy - ib * 0.34)
-			glFunc.Vertex(px + ib * 0.25, cy + ib * 0.34)
-			glFunc.Vertex(px + ib * 0.82, cy)
-		end)
-	end
-	-- skip-to-live glyph: a triangle against an end bar
-	local lx = lay.liveL
-	if hist.mode then
-		glFunc.Color(light[1], light[2], light[3], hoverLive and 1 or 0.85)
-	else
-		glFunc.Color(light[1], light[2], light[3], 0.18)
-	end
-	local gh = math.floor(ib * 0.34)
-	local bw = math.max(2, math.floor(ib * 0.12))
-	glFunc.BeginEnd(GL.TRIANGLES, function()
-		glFunc.Vertex(lx + ib * 0.18, cy - gh)
-		glFunc.Vertex(lx + ib * 0.18, cy + gh)
-		glFunc.Vertex(lx + ib * 0.66, cy)
-	end)
-	gl.Rect(lx + ib * 0.7, cy - gh, lx + ib * 0.7 + bw, cy + gh)
-	local fontSize = lay.fontSize
-	font:Begin()
-	font:SetOutlineColor(0, 0, 0, 0.6)
-	local labelY = math.floor(cy - fontSize * 0.36)
-	-- playback speed (left click faster, right click slower)
-	local hoverSpeed = inBand and mx >= lay.speedL and mx <= lay.speedR
-	if hist.mode then
-		font:SetTextColor(accent[1], accent[2], accent[3], hoverSpeed and 1 or 0.85)
-	else
-		font:SetTextColor(light[1], light[2], light[3], hoverSpeed and 0.9 or 0.5)
-	end
-	local speedText = ((hist.direction or 1) < 0 and hist.mode) and ("-x" .. hist.speed) or ("x" .. hist.speed)
-	font:Print(speedText, math.floor((lay.speedL + lay.speedR) * 0.5), labelY, fontSize, "oc")
-	font:End()
-
-	-- track
-	local th = lay.trackH
-	local trackB, trackT = cy - th * 0.5, cy + th * 0.5
-	glFunc.Color(0, 0, 0, 0.55)
-	gl.Rect(lay.trackL, trackB, lay.trackR, trackT)
-	local viewFrame = hist.mode and hist.viewFrame or lay.live
-	local tView = (viewFrame - lay.first) / math.max(1, lay.live - lay.first)
-	tView = math.max(0, math.min(1, tView))
-	local knobX = math.floor(lay.trackL + (lay.trackR - lay.trackL) * tView + 0.5)
-	glFunc.Color(accent[1], accent[2], accent[3], hist.mode and 0.85 or 0.35)
-	gl.Rect(lay.trackL, trackB, knobX, trackT)
-	-- spilled ranges: coarse copy only (dark), loading (pulsing), detailed (nothing)
-	local ranges = hist.store:SegmentRanges()
-	if #ranges > 0 then
-		local span = math.max(1, lay.live - lay.first)
-		local trackW = lay.trackR - lay.trackL
-		local pulse = 0.25 + 0.2 * math.sin(os.clock() * 6)
-		for i = 1, #ranges do
-			local r = ranges[i]
-			if not r.loaded then
-				local x0 = lay.trackL + trackW * math.max(0, (r.first - lay.first) / span)
-				local x1 = lay.trackL + trackW * math.min(1, (r.last - lay.first) / span)
-				if r.loading then
-					glFunc.Color(1, 1, 1, pulse)
-				else
-					glFunc.Color(0, 0, 0, 0.45)
-				end
-				gl.Rect(x0, trackB, x1, trackT)
-			end
-		end
-	end
-	local kw = math.max(2, math.floor(ib * 0.08) * 2)
-	local kh = math.floor(ib * 0.36)
-	glFunc.Color(accent[1], accent[2], accent[3], 1)
-	gl.Rect(knobX - kw * 0.5, cy - kh, knobX + kw * 0.5, cy + kh)
-
-	-- hover preview marker on the track
-	local hoverTrack = inBand and mx >= lay.trackL and mx <= lay.trackR
-	local labelFrame = viewFrame
-	if hoverTrack and not hist.dragging then
-		local hf = hist.FrameAt(mx)
-		glFunc.Color(1, 1, 1, 0.5)
-		local hh = math.floor(ib * 0.3)
-		gl.Rect(math.floor(mx) - 1, cy - hh, math.floor(mx) + 1, cy + hh)
-		labelFrame = hf
-	end
-
-	-- viewed (or hovered) time left of the track, live time right of it
-	font:Begin()
-	font:SetOutlineColor(0, 0, 0, 0.7)
-	local textY = math.floor(cy - fontSize * 0.36)
-	if hist.mode or hoverTrack then
-		font:SetTextColor(accent[1], accent[2], accent[3], 1)
-		font:Print(hist.FormatFrame(labelFrame), lay.timeX, textY, fontSize, "oc")
-	end
-	font:SetTextColor(0.8, 0.8, 0.8, 0.8)
-	font:Print(hist.FormatFrame(lay.live), lay.liveX, textY, fontSize, "oc")
-	font:End()
-
-	if WG.tooltip and inBand then
-		local key
-		if hoverPlay then
-			key = (hist.mode and hist.playing) and "ui.pip.history_pause" or "ui.pip.history_play"
-		elseif hoverLive then
-			key = "ui.pip.history_live"
-		elseif hoverSpeed then
-			key = "ui.pip.history_speed"
-		elseif hoverTrack then
-			key = "ui.pip.history_track"
-		end
-		if key then
-			WG.tooltip.ShowTooltip("pip" .. pipNumber, BAR.I18N(key), nil, nil, nil)
-		end
-	end
-	glFunc.Color(1, 1, 1, 1)
-end
-
 function miscState.hist.CycleSpeed(dir)
 	local hist = miscState.hist
 	local speeds = hist.speeds
@@ -17503,237 +17231,6 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		)
 	end
 	tracy.ZoneEnd()
-end
-
--- Helper function to calculate maximize icon rotation angle based on expansion direction
-local function GetMaximizeIconRotation()
-	-- Determine expansion direction based on current or minimize button position
-	local sw, sh = Spring.GetWindowGeometry()
-	local posL, posB
-
-	-- Use current position when maximized (for minimize button rotation during drag/resize)
-	-- Use minMode position when minimized (for maximize button rotation)
-	if uiState.inMinMode then
-		posL = uiState.minModeL
-		posB = uiState.minModeB
-	else
-		-- When maximized, determine where it would minimize to based on current position
-		local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
-		if render.dim.l < sw * 0.5 then
-			posL = render.dim.l
-		else
-			posL = render.dim.r - buttonSize
-		end
-		if render.dim.b < sh * 0.25 then
-			posB = render.dim.b
-		else
-			posB = render.dim.t - buttonSize
-		end
-	end
-
-	local onLeftSide = (posL and posL < sw * 0.5)
-	local onBottomSide = (posB and posB < sh * 0.25)
-
-	-- Default icon points to bottom-left, rotate to point toward expansion:
-	if onLeftSide and onBottomSide then
-		return 180 -- Bottom-left: expands toward top-right
-	elseif not onLeftSide and onBottomSide then
-		return 270 -- Bottom-right: expands toward top-left
-	elseif not onLeftSide and not onBottomSide then
-		return 0 -- Top-right: expands toward bottom-left
-	else -- onLeftSide and not onBottomSide
-		return 90 -- Top-left: expands toward bottom-right
-	end
-end
-
--- Helper function to render PIP frame buttons without hover effects
-local function RenderFrameButtons()
-	-- In minimap mode, don't render buttons at all (no minimize, no resize handle)
-	if isMinimapMode and config.minimapModeShowButtons == false then
-		return
-	end
-
-	local usedButtonSizeLocal = render.usedButtonSize
-	local pipWidth = render.dim.r - render.dim.l
-	local pipHeight = render.dim.t - render.dim.b
-
-	-- Skip all rendering if showButtonsOnHoverOnly is enabled and mouse is not over PIP
-	if config.showButtonsOnHoverOnly and not interactionState.isMouseOverPip then
-		return
-	end
-
-	-- Resize handle (bottom-right corner) - hide in minimap mode if configured
-	if not (isMinimapMode and config.minimapModeHideMoveResize) then
-		glFunc.Color(config.panelBorderColorDark)
-		glFunc.LineWidth(1.0)
-		glFunc.BeginEnd(glConst.TRIANGLES, function()
-			-- Relative coordinates for resize handle
-			glFunc.Vertex(pipWidth - usedButtonSizeLocal, 0)
-			glFunc.Vertex(pipWidth, 0)
-			glFunc.Vertex(pipWidth, usedButtonSizeLocal)
-		end)
-	end
-
-	-- Minimize button (top-right) - hide in minimap mode
-	if not isMinimapMode then
-		glFunc.Color(config.panelBorderColorDark)
-		glFunc.Texture(false)
-		render.RectRound(
-			pipWidth - usedButtonSizeLocal - render.elementPadding,
-			pipHeight - usedButtonSizeLocal - render.elementPadding,
-			pipWidth,
-			pipHeight,
-			render.elementCorner * 0.65,
-			0,
-			0,
-			0,
-			1
-		)
-		glFunc.Color(config.panelBorderColorLight)
-		glFunc.Texture("LuaUI/Images/pip/PipShrink.png")
-
-		-- Rotate icon to point toward shrink position (opposite of expand direction)
-		local rotation = GetMaximizeIconRotation()
-		local centerX = pipWidth - usedButtonSizeLocal * 0.5
-		local centerY = pipHeight - usedButtonSizeLocal * 0.5
-		glFunc.PushMatrix()
-		glFunc.Translate(centerX, centerY, 0)
-		glFunc.Rotate(rotation, 0, 0, 1)
-		glFunc.Translate(-centerX, -centerY, 0)
-
-		glFunc.TexRect(pipWidth - usedButtonSizeLocal, pipHeight - usedButtonSizeLocal, pipWidth, pipHeight)
-		glFunc.PopMatrix()
-		glFunc.Texture(false)
-	end
-
-	-- Bottom-left buttons
-	local hasSelection = frameSelCount > 0
-	local isTracking = interactionState.areTracking ~= nil
-	local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
-	-- Show player tracking button when tracking, when spectating, or when having alive teammates
-	local spec = Spring.GetSpectatingState()
-	local aliveTeammates = GetAliveTeammates()
-	local showPlayerTrackButton = isTrackingPlayer or spec or (#aliveTeammates > 0)
-	local visibleButtons = pools.visibleButtons
-	for k in pairs(visibleButtons) do
-		visibleButtons[k] = nil
-	end
-	for i = 1, #buttons do
-		local btn = buttons[i]
-		-- In minimap mode, hide move button if configured
-		local skipButton = false
-		if isMinimapMode and config.minimapModeHideMoveResize then
-			-- Skip move button (no command, has PipMove texture)
-			if btn.tooltipKey == "ui.pip.move" then
-				skipButton = true
-			end
-		end
-
-		if not skipButton then
-			-- In minimap mode, skip switch and copy buttons (keep pip_track and pip_trackplayer)
-			-- Allow pip_view for spectators with fullview
-			if isMinimapMode then
-				if btn.command == "pip_switch" or btn.command == "pip_copy" then
-					skipButton = true
-				elseif btn.command == "pip_view" then
-					local _, fullview = Spring.GetSpectatingState()
-					if not fullview then
-						skipButton = true
-					end
-				end
-			end
-		end
-
-		if not skipButton then
-			-- Show pip_track button if has selection or is tracking units (not in minimap mode)
-			if btn.command == "pip_track" then
-				if not isMinimapMode and (hasSelection or isTracking) then
-					visibleButtons[#visibleButtons + 1] = btn
-				end
-			-- Show pip_trackplayer button if lockcamera is available or already tracking (hidden during TV)
-			elseif btn.command == "pip_trackplayer" then
-				if showPlayerTrackButton and not miscState.tvEnabled then
-					visibleButtons[#visibleButtons + 1] = btn
-				end
-			-- Show pip_view button only for spectators
-			elseif btn.command == "pip_view" then
-				if spec then
-					visibleButtons[#visibleButtons + 1] = btn
-				end
-			-- Hide pip_activity in singleplayer, when tracking, or optionally for spectators
-			elseif btn.command == "pip_activity" then
-				if
-					not isSinglePlayer
-					and not interactionState.trackingPlayerID
-					and not miscState.tvEnabled
-					and not (config.activityFocusHideForSpectators and cameraState.mySpecState)
-				then
-					visibleButtons[#visibleButtons + 1] = btn
-				end
-			-- Show pip_tv button for spectators only (or always if not spectator-only)
-			elseif btn.command == "pip_tv" then
-				if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
-					visibleButtons[#visibleButtons + 1] = btn
-				end
-			elseif btn.command == "pip_history" then
-				if config.historyEnabled and miscState.hist.store then
-					visibleButtons[#visibleButtons + 1] = btn
-				end
-			elseif btn.command == "pip_help" then
-				visibleButtons[#visibleButtons + 1] = btn
-			else
-				visibleButtons[#visibleButtons + 1] = btn
-			end
-		end
-	end
-
-	local buttonCount = #visibleButtons
-	glFunc.Color(config.panelBorderColorDark)
-	glFunc.Texture(false)
-	render.RectRound(
-		0,
-		0,
-		(buttonCount * usedButtonSizeLocal) + math.floor(render.elementPadding * 0.75),
-		usedButtonSizeLocal + math.floor(render.elementPadding * 0.75),
-		render.elementCorner * 0.65,
-		0,
-		1,
-		0,
-		0
-	)
-
-	local bx = 0
-	for i = 1, buttonCount do
-		local isActive = (visibleButtons[i].command == "pip_track" and interactionState.areTracking)
-			or (visibleButtons[i].command == "pip_trackplayer" and interactionState.trackingPlayerID)
-			or (visibleButtons[i].command == "pip_view" and state.losViewEnabled)
-			or (visibleButtons[i].command == "pip_activity" and miscState.activityFocusEnabled)
-			or (visibleButtons[i].command == "pip_tv" and miscState.tvEnabled)
-			or (visibleButtons[i].command == "pip_history" and miscState.hist.shown)
-
-		if isActive then
-			glFunc.Color(config.panelBorderColorLight)
-			glFunc.Texture(false)
-			render.RectRound(
-				bx,
-				0,
-				bx + usedButtonSizeLocal,
-				usedButtonSizeLocal,
-				render.elementCorner * 0.4,
-				1,
-				1,
-				1,
-				1
-			)
-			glFunc.Color(config.panelBorderColorDark)
-		else
-			glFunc.Color(config.panelBorderColorLight)
-		end
-		glFunc.Texture(visibleButtons[i].texture)
-		glFunc.TexRect(bx, 0, bx + usedButtonSizeLocal, usedButtonSizeLocal)
-		bx = bx + usedButtonSizeLocal
-	end
-	glFunc.Texture(false)
 end
 
 -- Helper function to render PIP contents (units, features, ground, command queues)
@@ -19822,326 +19319,6 @@ local function DrawAreaCommand()
 	glFunc.Color(1, 1, 1, 1)
 end
 
--- Helper function to draw tracked player name (uses cached display list)
-local function DrawTrackedPlayerName()
-	if not (interactionState.trackingPlayerID and interactionState.isMouseOverPip) then
-		return
-	end
-
-	local playerName, active, isSpec, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
-	if not (playerName and teamID) then
-		return
-	end
-
-	-- Get display name (may be modified by playernames widget)
-	if WG.playernames and WG.playernames.getPlayername then
-		playerName = WG.playernames.getPlayername(interactionState.trackingPlayerID)
-	end
-
-	-- Check if we need to regenerate the display list (player changed or name changed)
-	local needsUpdate = pipR2T.playerNameDlist == nil
-		or pipR2T.playerNameLastPlayerID ~= interactionState.trackingPlayerID
-		or pipR2T.playerNameLastName ~= playerName
-
-	if needsUpdate then
-		-- Clean up old display list
-		if pipR2T.playerNameDlist then
-			gl.DeleteList(pipR2T.playerNameDlist)
-		end
-
-		-- Get team color
-		local r, g, b = Spring.GetTeamColor(teamID)
-		local fontSize = math.floor(20 * render.widgetScale)
-		local padding = math.floor(17 * render.widgetScale)
-		local centerX = (render.dim.l + render.dim.r) / 2
-
-		-- Create new display list
-		pipR2T.playerNameDlist = gl.CreateList(function()
-			font:Begin()
-			font:SetTextColor(r, g, b, 1)
-			font:SetOutlineColor(0, 0, 0, 0.8)
-			font:Print(playerName, centerX, render.dim.t - padding - (fontSize * 1.6), fontSize * 2, "con")
-			font:End()
-		end)
-
-		pipR2T.playerNameLastPlayerID = interactionState.trackingPlayerID
-		pipR2T.playerNameLastName = playerName
-	end
-
-	-- Draw the cached display list
-	if pipR2T.playerNameDlist then
-		gl.CallList(pipR2T.playerNameDlist)
-	end
-end
-
--- Helper function to format resource numbers compactly
-local function shortRes(n)
-	if n >= 10000000 then
-		return string.format("%.1fm", n / 1000000)
-	elseif n >= 10000 then
-		return string.format("%.1fk", n / 1000)
-	elseif n >= 1000 then
-		return string.format("%.0f", n)
-	else
-		return string.format("%.0f", n)
-	end
-end
-
--- Helper function to draw resource bars when tracking a player camera (hidden when PIP is hovered)
--- Bars update every frame, text updates at ~2 FPS via cached display list
-local function DrawTrackedPlayerResourceBars()
-	-- Only show when tracking a player camera AND not hovering the PIP
-	if not interactionState.trackingPlayerID then
-		return
-	end
-	if interactionState.isMouseOverPip then
-		return
-	end
-
-	local playerName, active, isSpec, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
-	if not teamID then
-		return
-	end
-
-	local hist = miscState.hist ---@type PipHistState
-	local metalCur, metalMax, metalPull, metalIncome, metalShare
-	local energyCur, energyMax, energyPull, energyIncome, energyShare, mmLevel
-	if hist.mode then
-		-- Rewinding: the resources recorded at the viewed frame (no bars when the log has none)
-		local r = hist.TeamResources(teamID)
-		if not r then
-			return
-		end
-		metalCur, metalMax, metalPull, metalIncome, metalShare = r[1], r[2], r[3], r[4], r[5]
-		energyCur, energyMax, energyPull, energyIncome, energyShare = r[6], r[7], r[8], r[9], r[10]
-		mmLevel = r[11]
-	else
-		-- Get team resources - this works for spectators viewing any team
-		-- Returns: current, storage, pull, income, expense, share
-		local _
-		metalCur, metalMax, metalPull, metalIncome, _, metalShare = Spring.GetTeamResources(teamID, "metal")
-		energyCur, energyMax, energyPull, energyIncome, _, energyShare = Spring.GetTeamResources(teamID, "energy")
-
-		if not (metalCur and energyCur) then
-			return
-		end
-
-		-- Get energy conversion level (mmLevel)
-		mmLevel = Spring.GetTeamRulesParam(teamID, "mmLevel")
-		if mmLevel == nil then
-			mmLevel = 1
-		end
-	end
-
-	-- Check if player has teammates (for share slider)
-	local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
-	local allyTeamList = Spring.GetTeamList(allyTeamID)
-	local hasTeammates = allyTeamList and #allyTeamList > 1
-
-	-- Calculate bar dimensions - compact version at top of PIP
-	local pipWidth = render.dim.r - render.dim.l
-	local padding = math.floor(20 * render.widgetScale) * math.max(1, (render.vsx / 2700))
-	local barHeight = math.floor(math.max(5, 7 * render.widgetScale)) * math.max(1, (render.vsx / 2400))
-	local totalBarWidth = math.min(math.floor(pipWidth * 0.32), config.minPanelSize * 0.5) -- Each bar is 32% of PIP width
-	local gapBetweenBars = math.floor(totalBarWidth * 0.28)
-
-	-- Position: top of PIP, with padding from edge and corner
-	local topY = render.dim.t - padding - render.elementCorner * 0.5
-	local barY = topY - barHeight
-	local centerX = (render.dim.l + render.dim.r) / 2
-
-	-- Metal bar on left of center
-	local metalBarRight = centerX - gapBetweenBars / 2
-	local metalBarLeft = metalBarRight - totalBarWidth
-
-	-- Energy bar on right of center
-	local energyBarLeft = centerX + gapBetweenBars / 2
-	local energyBarRight = energyBarLeft + totalBarWidth
-
-	-- Calculate fill amounts
-	local metalFill = math.min(1, math.max(0, metalCur / metalMax))
-	local energyFill = math.min(1, math.max(0, energyCur / energyMax))
-
-	-- Draw background boxes
-	local bgAlpha = 0.6
-	local cornerRadius = barHeight * 0.25
-
-	glFunc.Color(0, 0, 0, bgAlpha)
-	render.RectRound(metalBarLeft - 2, barY - 2, metalBarRight + 2, topY + 2, cornerRadius, 1, 1, 1, 1)
-	render.RectRound(energyBarLeft - 2, barY - 2, energyBarRight + 2, topY + 2, cornerRadius, 1, 1, 1, 1)
-
-	-- Draw metal bar fill
-	if metalFill > 0.01 then
-		local fillRight = metalBarLeft + (totalBarWidth * metalFill)
-		glFunc.Color(0.77, 0.77, 0.77, 0.9)
-		render.RectRound(
-			metalBarLeft,
-			barY,
-			fillRight,
-			topY,
-			cornerRadius,
-			1,
-			metalFill >= 0.02 and 1 or 0,
-			metalFill >= 0.02 and 1 or 0,
-			1
-		)
-	end
-
-	-- Draw energy bar fill
-	if energyFill > 0.01 then
-		local fillRight = energyBarLeft + (totalBarWidth * energyFill)
-		glFunc.Color(1, 1, 0, 0.9)
-		render.RectRound(
-			energyBarLeft,
-			barY,
-			fillRight,
-			topY,
-			cornerRadius,
-			1,
-			energyFill >= 0.02 and 1 or 0,
-			energyFill >= 0.02 and 1 or 0,
-			1
-		)
-	end
-
-	-- Draw sliders
-	local sliderRadius = math.floor(barHeight * 0.55)
-	local sliderY = barY + barHeight / 2
-
-	-- Energy conversion slider (yellow, on energy bar only)
-	if mmLevel and mmLevel < 0.745 and mmLevel > 0.755 then
-		local convX = energyBarLeft + (totalBarWidth * mmLevel)
-		glFunc.Color(0.94, 0.94, 0.66, 1)
-		-- Draw slider knob as a circle
-		local steps = 10
-		glFunc.BeginEnd(GL.TRIANGLE_FAN, function()
-			glFunc.Vertex(convX, sliderY, 0)
-			for i = 0, steps do
-				local angle = (i / steps) * 2 * math.pi
-				glFunc.Vertex(convX + math.cos(angle) * sliderRadius, sliderY + math.sin(angle) * sliderRadius, 0)
-			end
-		end)
-		-- Draw outline
-		glFunc.Color(0, 0, 0, 0.6)
-		glFunc.LineWidth(1)
-		glFunc.BeginEnd(GL.LINE_LOOP, function()
-			for i = 0, steps - 1 do
-				local angle = (i / steps) * 2 * math.pi
-				glFunc.Vertex(convX + math.cos(angle) * sliderRadius, sliderY + math.sin(angle) * sliderRadius, 0)
-			end
-		end)
-	end
-
-	-- Share sliders (red, only if player has teammates)
-	if hasTeammates then
-		-- Metal share slider
-		if metalShare and metalShare < 0.98 then -- default metalShare = 0.99
-			local shareX = metalBarLeft + (totalBarWidth * metalShare)
-			glFunc.Color(0.9, 0.2, 0.2, 0.9)
-			local steps = 10
-			glFunc.BeginEnd(GL.TRIANGLE_FAN, function()
-				glFunc.Vertex(shareX, sliderY, 0)
-				for i = 0, steps do
-					local angle = (i / steps) * 2 * math.pi
-					glFunc.Vertex(shareX + math.cos(angle) * sliderRadius, sliderY + math.sin(angle) * sliderRadius, 0)
-				end
-			end)
-			glFunc.Color(0, 0, 0, 0.6)
-			glFunc.LineWidth(1)
-			glFunc.BeginEnd(GL.LINE_LOOP, function()
-				for i = 0, steps - 1 do
-					local angle = (i / steps) * 2 * math.pi
-					glFunc.Vertex(shareX + math.cos(angle) * sliderRadius, sliderY + math.sin(angle) * sliderRadius, 0)
-				end
-			end)
-		end
-
-		-- Energy share slider
-		if energyShare and energyShare < 0.94 or energyShare > 0.96 then -- default energyShare = 0.949999
-			local shareX = energyBarLeft + (totalBarWidth * energyShare)
-			glFunc.Color(0.9, 0.2, 0.2, 0.9)
-			local steps = 10
-			glFunc.BeginEnd(GL.TRIANGLE_FAN, function()
-				glFunc.Vertex(shareX, sliderY, 0)
-				for i = 0, steps do
-					local angle = (i / steps) * 2 * math.pi
-					glFunc.Vertex(shareX + math.cos(angle) * sliderRadius, sliderY + math.sin(angle) * sliderRadius, 0)
-				end
-			end)
-			glFunc.Color(0, 0, 0, 0.6)
-			glFunc.LineWidth(1)
-			glFunc.BeginEnd(GL.LINE_LOOP, function()
-				for i = 0, steps - 1 do
-					local angle = (i / steps) * 2 * math.pi
-					glFunc.Vertex(shareX + math.cos(angle) * sliderRadius, sliderY + math.sin(angle) * sliderRadius, 0)
-				end
-			end)
-		end
-	end
-
-	-- Text rendering - use cached display list, update at ~2 FPS and on each frame a paused or dragged rewind lands on
-	local currentTime = os.clock()
-	local needsTextUpdate = pipR2T.resbarTextDlist == nil
-		or pipR2T.resbarTextLastPlayerID ~= interactionState.trackingPlayerID
-		or pipR2T.resbarTextLastMode ~= hist.mode
-		or (hist.mode and (not hist.playing or hist.dragging) and pipR2T.resbarTextLastFrame ~= hist.viewFrame)
-		or (currentTime - pipR2T.resbarTextLastUpdate) >= pipR2T.resbarTextUpdateRate
-
-	if needsTextUpdate then
-		-- Clean up old display list
-		if pipR2T.resbarTextDlist then
-			gl.DeleteList(pipR2T.resbarTextDlist)
-		end
-
-		-- Create new display list with current resource text
-		local fontSize = math.floor(math.max(12, 20 * render.widgetScale)) * math.max(1, (render.vsx / 2700))
-		local smallFontSize = math.floor(fontSize * 0.8)
-		local textY = barY + (barHeight / 2) + smallFontSize * 0.1
-		local incomeY = barY - smallFontSize * 0.65
-		local metalCenterX = (metalBarLeft + metalBarRight) / 2
-		local energyCenterX = (energyBarLeft + energyBarRight) / 2
-
-		pipR2T.resbarTextDlist = gl.CreateList(function()
-			font:Begin()
-			font:SetOutlineColor(0, 0, 0, 1)
-
-			-- Metal: current amount centered on bar
-			font:SetTextColor(1, 1, 1, 1)
-			font:Print(shortRes(metalCur), metalCenterX, textY, fontSize, "ocn")
-
-			-- Metal: income and pull below bar
-			font:SetTextColor(0.5, 1, 0.5, 1)
-			font:Print("+" .. shortRes(metalIncome), metalCenterX - 4, incomeY, smallFontSize, "orn")
-			font:SetTextColor(1, 0.5, 0.5, 1)
-			font:Print("-" .. shortRes(metalPull), metalCenterX + 4, incomeY, smallFontSize, "oln")
-
-			-- Energy: current amount centered on bar
-			font:SetTextColor(1, 1, 0.7, 1)
-			font:Print(shortRes(energyCur), energyCenterX, textY, fontSize, "ocn")
-
-			-- Energy: income and pull below bar
-			font:SetTextColor(0.5, 1, 0.5, 1)
-			font:Print("+" .. shortRes(energyIncome), energyCenterX - 4, incomeY, smallFontSize, "orn")
-			font:SetTextColor(1, 0.5, 0.5, 1)
-			font:Print("-" .. shortRes(energyPull), energyCenterX + 4, incomeY, smallFontSize, "oln")
-
-			font:End()
-		end)
-
-		pipR2T.resbarTextLastUpdate = currentTime
-		pipR2T.resbarTextLastPlayerID = interactionState.trackingPlayerID
-		pipR2T.resbarTextLastMode = hist.mode
-		pipR2T.resbarTextLastFrame = hist.viewFrame
-	end
-
-	-- Draw the cached text display list
-	if pipR2T.resbarTextDlist then
-		gl.CallList(pipR2T.resbarTextDlist)
-	end
-
-	glFunc.Color(1, 1, 1, 1)
-end
-
 -- Helper function to draw a minimap overlay in PIP corner when tracking a player camera
 -- Shows map with LOS overlay and a rectangle indicating the current PIP view
 -- Also shown for players (not just spectators tracking others) and when hovering
@@ -20482,113 +19659,6 @@ local function DrawTrackedPlayerMinimap()
 end
 
 -- Helper function to update R2T frame textures
-local function UpdateR2TFrame(pipWidth, pipHeight)
-	if not gl.R2tHelper then
-		return
-	end
-	tracy.ZoneBeginN("W:PIP:R2T:Frame")
-
-	local stripH = miscState.hist.StripH()
-	local frameH = pipHeight + stripH
-	-- Check if frame size changed
-	if math.floor(pipWidth) ~= pipR2T.frameLastWidth or math.floor(frameH) ~= pipR2T.frameLastHeight then
-		pipR2T.frameNeedsUpdate = true
-		if pipR2T.frameBackgroundTex then
-			gl.DeleteTexture(pipR2T.frameBackgroundTex)
-			pipR2T.frameBackgroundTex = nil
-		end
-		if pipR2T.frameButtonsTex then
-			gl.DeleteTexture(pipR2T.frameButtonsTex)
-			pipR2T.frameButtonsTex = nil
-		end
-		-- Invalidate text display lists when size changes (positions change)
-		if pipR2T.resbarTextDlist then
-			gl.DeleteList(pipR2T.resbarTextDlist)
-			pipR2T.resbarTextDlist = nil
-		end
-		if pipR2T.playerNameDlist then
-			gl.DeleteList(pipR2T.playerNameDlist)
-			pipR2T.playerNameDlist = nil
-		end
-		pipR2T.frameLastWidth = math.floor(pipWidth)
-		pipR2T.frameLastHeight = math.floor(frameH)
-	end
-
-	-- Update frame textures if needed
-	if pipR2T.frameNeedsUpdate and pipWidth >= 1 and pipHeight >= 1 then
-		tracy.ZoneBeginN("W:PIP:R2T:Frame:Render")
-		-- Create texture large enough to include elementPadding on all sides
-		local bgTexWidth = math.floor(pipWidth + render.elementPadding * 2)
-		local bgTexHeight = math.floor(frameH + render.elementPadding * 2)
-
-		if not pipR2T.frameBackgroundTex then
-			pipR2T.frameBackgroundTex = gl.CreateTexture(bgTexWidth, bgTexHeight, {
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA8,
-				fbo = true,
-			})
-		end
-		if pipR2T.frameBackgroundTex then
-			gl.R2tHelper.RenderToTexture(pipR2T.frameBackgroundTex, function()
-				glFunc.Translate(-1, -1, 0)
-				glFunc.Scale(2 / bgTexWidth, 2 / bgTexHeight, 0)
-				-- Render UiElement using actual screen coordinates for proper shading
-				local padL = render.dim.l - render.elementPadding
-				local padB = render.dim.b - stripH - render.elementPadding
-				local padR = render.dim.r + render.elementPadding
-				local padT = render.dim.t + render.elementPadding
-				-- Translate to origin for texture rendering
-				glFunc.Translate(-padL, -padB, 0)
-				local tl, tr, br, bl = GetChamferedCorners(padL, padB, padR, padT)
-				render.UiElement(padL, padB, padR, padT, tl, tr, br, bl, nil, nil, nil, nil, nil, nil, nil, nil)
-			end, true)
-		end
-
-		if not pipR2T.frameButtonsTex then
-			pipR2T.frameButtonsTex = gl.CreateTexture(math.floor(pipWidth), math.floor(pipHeight), {
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA8,
-				fbo = true,
-			})
-		end
-		if pipR2T.frameButtonsTex then
-			gl.R2tHelper.RenderToTexture(pipR2T.frameButtonsTex, function()
-				glFunc.Translate(-1, -1, 0)
-				glFunc.Scale(2 / pipWidth, 2 / pipHeight, 0)
-				RenderFrameButtons()
-			end, true)
-		end
-
-		pipR2T.frameNeedsUpdate = false
-		tracy.ZoneEnd()
-	end
-
-	if miscState.externalFrame.active then
-		tracy.ZoneEnd()
-		return -- the frame around it draws the background
-	end
-	if pipR2T.frameBackgroundTex then
-		-- Blit the cached UiElement background (includes padding)
-		gl.R2tHelper.BlendTexRect(
-			pipR2T.frameBackgroundTex,
-			render.dim.l - render.elementPadding,
-			render.dim.b - stripH - render.elementPadding,
-			render.dim.r + render.elementPadding,
-			render.dim.t + render.elementPadding,
-			true
-		)
-	else
-		-- Fallback to direct rendering if texture not available
-		local padL = render.dim.l - render.elementPadding
-		local padB = render.dim.b - stripH - render.elementPadding
-		local padR = render.dim.r + render.elementPadding
-		local padT = render.dim.t + render.elementPadding
-		local tl, tr, br, bl = GetChamferedCorners(padL, padB, padR, padT)
-		render.UiElement(padL, padB, padR, padT, tl, tr, br, bl, nil, nil, nil, nil, nil, nil, nil, nil)
-	end
-	tracy.ZoneEnd()
-end
-
 -- Helper function to calculate dynamic update rate
 local function CalculateDynamicUpdateRate()
 	-- Base rate from zoom level
@@ -21776,56 +20846,6 @@ function UpdateLOSTexture(currentTime)
 	tracy.ZoneEnd()
 end
 
--- Helper function to draw tracking indicators
-local function DrawTrackingIndicators()
-	-- inside another widget's frame the map's corners are square
-	local round = miscState.externalFrame.active and 0 or 1
-	if interactionState.areTracking and #interactionState.areTracking > 0 then
-		local lineWidth = math.ceil(2 * (render.vsx / 1920))
-		local outlineColor = pools.trackingOutlineColor
-		glFunc.Color(1, 1, 1, 0.22)
-		render.RectRoundOutline(
-			render.dim.l,
-			render.dim.b,
-			render.dim.r,
-			render.dim.t,
-			render.elementCorner * 0.5,
-			lineWidth,
-			round,
-			round,
-			round,
-			round,
-			outlineColor,
-			outlineColor
-		)
-	end
-
-	if interactionState.trackingPlayerID then
-		local playerName, active, isSpec, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
-		if teamID then
-			local r, g, b = Spring.GetTeamColor(teamID)
-			local lineWidth = math.ceil(3 * (render.vsx / 1920))
-			local teamColor = pools.trackingTeamColor
-			teamColor[1], teamColor[2], teamColor[3], teamColor[4] = r, g, b, 0.5
-			glFunc.Color(r, g, b, 0.5)
-			render.RectRoundOutline(
-				render.dim.l,
-				render.dim.b,
-				render.dim.r,
-				render.dim.t,
-				render.elementCorner * 0.5,
-				lineWidth,
-				round,
-				round,
-				round,
-				round,
-				teamColor,
-				teamColor
-			)
-		end
-	end
-end
-
 -- Helper function to handle hover and cursor updates
 local function HandleHoverAndCursor(mx, my)
 	if interactionState.arePanning then
@@ -21961,268 +20981,6 @@ local function HandleHoverAndCursor(mx, my)
 			end
 		end
 	end
-end
-
--- Helper function to draw interactive overlays (buttons, pip number, etc.)
-local function DrawInteractiveOverlays(mx, my, usedButtonSize)
-	tracy.ZoneBeginN("W:PIP:UI:InteractiveOverlays")
-	-- Draw pipNumber text only when hovering (and only for pip 2+)
-	if pipNumber > 1 and interactionState.isMouseOverPip then
-		glFunc.Color(config.panelBorderColorDark)
-		render.RectRound(
-			render.dim.l,
-			render.dim.t - render.usedButtonSize,
-			render.dim.l + render.usedButtonSize,
-			render.dim.t,
-			render.elementCorner * 0.4,
-			0,
-			0,
-			1,
-			0
-		)
-		local fontSize = 14
-		local padding = 12
-		font:Begin()
-		font:SetTextColor(0.85, 0.85, 0.85, 1)
-		font:SetOutlineColor(0, 0, 0, 0.5)
-		font:Print(pipNumber, render.dim.l + padding, render.dim.t - (fontSize * 1.15) - padding, fontSize * 2, "no")
-		font:End()
-	end
-
-	-- Bottom-left buttons hover
-	tracy.ZoneBeginN("W:PIP:UI:BuildButtonList")
-	local hasSelection = frameSelCount > 0
-	local visibleButtons = pools.visibleButtons
-	-- Rebuild the visible-button list at most 4x/second: it queries player/teammate
-	-- state through engine calls (GetPlayerInfo, GetAliveTeammates over the full player
-	-- list) which is wasted per-frame work. Cheap-to-check inputs force an immediate
-	-- rebuild so buttons appear without delay when selection/tracking state changes.
-	local buttonStateKey = (hasSelection and 1 or 0)
-		+ (interactionState.areTracking and 2 or 0)
-		+ (interactionState.trackingPlayerID and 4 or 0)
-		+ (miscState.tvEnabled and 8 or 0)
-		+ (state.losViewEnabled and 16 or 0)
-		+ (miscState.activityFocusEnabled and 32 or 0)
-	local nowClock = os.clock()
-	local rebuildButtons = nowClock >= (miscState.visibleButtonsNextUpdate or 0)
-		or miscState.visibleButtonsStateKey ~= buttonStateKey
-	if rebuildButtons then
-		miscState.visibleButtonsNextUpdate = nowClock + 0.25
-		miscState.visibleButtonsStateKey = buttonStateKey
-		for k in pairs(visibleButtons) do
-			visibleButtons[k] = nil
-		end
-		for i = 1, #buttons do
-			local btn = buttons[i]
-			-- In minimap mode, hide move button if configured
-			local skipButton = false
-			if isMinimapMode and config.minimapModeHideMoveResize then
-				if btn.tooltipKey == "ui.pip.move" then
-					skipButton = true
-				end
-			end
-			-- In minimap mode, skip switch and copy buttons (keep pip_track and pip_trackplayer)
-			-- Allow pip_view for spectators with fullview
-			if isMinimapMode then
-				if btn.command == "pip_switch" or btn.command == "pip_copy" then
-					skipButton = true
-				elseif btn.command == "pip_view" then
-					local _, fullview = Spring.GetSpectatingState()
-					if not fullview then
-						skipButton = true
-					end
-				end
-			end
-
-			if not skipButton then
-				if btn.command == "pip_track" then
-					if not isMinimapMode and (hasSelection or interactionState.areTracking) then
-						visibleButtons[#visibleButtons + 1] = btn
-					end
-				elseif btn.command == "pip_trackplayer" then
-					local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
-					local aliveTeammates = GetAliveTeammates(pools.aliveTeammates)
-					if
-						(interactionState.trackingPlayerID or spec or (#aliveTeammates > 0))
-						and not miscState.tvEnabled
-					then
-						visibleButtons[#visibleButtons + 1] = btn
-					end
-				elseif btn.command == "pip_view" then
-					local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
-					if spec then
-						visibleButtons[#visibleButtons + 1] = btn
-					end
-				elseif btn.command == "pip_activity" then
-					if
-						not isSinglePlayer
-						and not interactionState.trackingPlayerID
-						and not miscState.tvEnabled
-						and not (config.activityFocusHideForSpectators and cameraState.mySpecState)
-					then
-						visibleButtons[#visibleButtons + 1] = btn
-					end
-				elseif btn.command == "pip_tv" then
-					if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
-						visibleButtons[#visibleButtons + 1] = btn
-					end
-				elseif btn.command == "pip_history" then
-					if config.historyEnabled and miscState.hist.store then
-						visibleButtons[#visibleButtons + 1] = btn
-					end
-				elseif btn.command == "pip_help" then
-					visibleButtons[#visibleButtons + 1] = btn
-				else
-					visibleButtons[#visibleButtons + 1] = btn
-				end
-			end
-		end
-	end
-	tracy.ZoneEnd()
-
-	-- inside another widget's frame the frame draws them (WG.minimap.getFrameButtons)
-	if #visibleButtons > 0 and not miscState.externalFrame.active then
-		-- Draw base buttons when showing on hover
-		if config.showButtonsOnHoverOnly and interactionState.isMouseOverPip then
-			tracy.ZoneBeginN("W:PIP:UI:DrawButtonBase")
-			glFunc.Color(config.panelBorderColorDark)
-			glFunc.Texture(false)
-			render.RectRound(
-				render.dim.l,
-				render.dim.b,
-				render.dim.l + (#visibleButtons * render.usedButtonSize) + math.floor(render.elementPadding * 0.75),
-				render.dim.b + render.usedButtonSize + math.floor(render.elementPadding * 0.75),
-				render.elementCorner,
-				0,
-				1,
-				0,
-				0
-			)
-			local bx = render.dim.l
-			for i = 1, #visibleButtons do
-				if
-					(visibleButtons[i].command == "pip_track" and interactionState.areTracking)
-					or (visibleButtons[i].command == "pip_trackplayer" and interactionState.trackingPlayerID)
-					or (visibleButtons[i].command == "pip_view" and state.losViewEnabled)
-					or (visibleButtons[i].command == "pip_activity" and miscState.activityFocusEnabled)
-					or (visibleButtons[i].command == "pip_tv" and miscState.tvEnabled)
-					or (visibleButtons[i].command == "pip_history" and miscState.hist.shown)
-				then
-					glFunc.Color(config.panelBorderColorLight)
-					glFunc.Texture(false)
-					render.RectRound(
-						bx,
-						render.dim.b,
-						bx + render.usedButtonSize,
-						render.dim.b + render.usedButtonSize,
-						render.elementCorner * 0.4,
-						1,
-						1,
-						1,
-						1
-					)
-					glFunc.Color(config.panelBorderColorDark)
-				else
-					glFunc.Color(config.panelBorderColorLight)
-				end
-				glFunc.Texture(visibleButtons[i].texture)
-				glFunc.TexRect(bx, render.dim.b, bx + render.usedButtonSize, render.dim.b + render.usedButtonSize)
-				bx = bx + render.usedButtonSize
-			end
-			glFunc.Texture(false)
-			tracy.ZoneEnd()
-		end
-
-		-- Button hover interactions (always check for hover, not just when showing on hover)
-		tracy.ZoneBeginN("W:PIP:UI:HoverButtons")
-		local bx = render.dim.l
-		for i = 1, #visibleButtons do
-			if
-				mx >= bx
-				and mx <= bx + render.usedButtonSize
-				and my >= render.dim.b
-				and my <= render.dim.b + render.usedButtonSize
-			then
-				if visibleButtons[i].tooltipKey and WG.tooltip then
-					local tooltipKey = visibleButtons[i].tooltipKey
-					if visibleButtons[i].tooltipActiveKey then
-						if
-							(visibleButtons[i].command == "pip_track" and interactionState.areTracking)
-							or (visibleButtons[i].command == "pip_trackplayer" and interactionState.trackingPlayerID)
-							or (visibleButtons[i].command == "pip_view" and state.losViewEnabled)
-							or (visibleButtons[i].command == "pip_activity" and miscState.activityFocusEnabled)
-							or (visibleButtons[i].command == "pip_tv" and miscState.tvEnabled)
-						then
-							tooltipKey = visibleButtons[i].tooltipActiveKey
-						end
-					end
-					-- Generate tooltip with shortcut key on new line if available
-					local tooltipText = BAR.I18N(tooltipKey)
-					-- For help button: append left-click hint only when leftButtonPansCamera is enabled
-					if visibleButtons[i].command == "pip_help" and config.leftButtonPansCamera then
-						tooltipText = tooltipText .. BAR.I18N("ui.pip.help_leftclick")
-					end
-					-- Use button's shortcut from getActionHotkey
-					-- In minimap mode, don't show shortcut for track units button
-					local shortcut = nil
-					local suppressShortcut = isMinimapMode and visibleButtons[i].command == "pip_track"
-					if not suppressShortcut and visibleButtons[i].actionName then
-						shortcut = getActionHotkey(visibleButtons[i].actionName)
-					end
-					if shortcut and shortcut ~= "" then
-						tooltipText = tooltipText .. "\n" .. shortcut
-					end
-					WG.tooltip.ShowTooltip("pip" .. pipNumber, tooltipText, nil, nil, nil)
-				end
-				glFunc.Color(1, 1, 1, 0.12)
-				glFunc.Texture(false)
-				render.RectRound(
-					bx,
-					render.dim.b,
-					bx + render.usedButtonSize,
-					render.dim.b + render.usedButtonSize,
-					render.elementCorner * 0.4,
-					1,
-					1,
-					1,
-					1
-				)
-				if
-					(visibleButtons[i].command == "pip_track" and interactionState.areTracking)
-					or (visibleButtons[i].command == "pip_trackplayer" and interactionState.trackingPlayerID)
-					or (visibleButtons[i].command == "pip_view" and state.losViewEnabled)
-					or (visibleButtons[i].command == "pip_activity" and miscState.activityFocusEnabled)
-					or (visibleButtons[i].command == "pip_tv" and miscState.tvEnabled)
-					or (visibleButtons[i].command == "pip_history" and miscState.hist.shown)
-				then
-					glFunc.Color(config.panelBorderColorDark)
-				else
-					glFunc.Color(1, 1, 1, 1)
-				end
-				glFunc.Texture(visibleButtons[i].texture)
-				glFunc.TexRect(bx, render.dim.b, bx + render.usedButtonSize, render.dim.b + render.usedButtonSize)
-				-- Draw hover highlight on top for better visibility
-				glFunc.Color(1, 1, 1, 0.2)
-				glFunc.Texture(false)
-				render.RectRound(
-					bx,
-					render.dim.b,
-					bx + render.usedButtonSize,
-					render.dim.b + render.usedButtonSize,
-					render.elementCorner * 0.4,
-					1,
-					1,
-					1,
-					1
-				)
-				glFunc.Texture(false)
-				break
-			end
-			bx = bx + render.usedButtonSize
-		end
-		tracy.ZoneEnd()
-	end
-	tracy.ZoneEnd()
 end
 
 pools.RunDeferredPipMaintenance = function(dt)
@@ -22434,74 +21192,7 @@ function widget:DrawScreen()
 	-- In minimap mode, honour MinimapMinimize to hide the PIP minimap
 	-- Draw a small maximize button so the user can unfold it again
 	if isMinimapMode and miscState.minimapMinimized then
-		local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
-		local btnL = render.dim.l
-		local btnB = render.dim.t - buttonSize
-		local btnR = btnL + buttonSize
-		local btnT = render.dim.t
-
-		-- Background
-		local tl, tr, br, bl = GetChamferedCorners(
-			btnL - render.elementPadding,
-			btnB - render.elementPadding,
-			btnR + render.elementPadding,
-			btnT + render.elementPadding
-		)
-		render.UiElement(
-			btnL - render.elementPadding,
-			btnB - render.elementPadding,
-			btnR + render.elementPadding,
-			btnT + render.elementPadding,
-			tl,
-			tr,
-			br,
-			bl,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil
-		)
-
-		-- Icon with rotation based on expansion direction
-		local sw, sh = Spring.GetWindowGeometry()
-		local onLeftSide = (btnL < sw * 0.5)
-		local onBottomSide = (btnB < sh * 0.25)
-		local rotation
-		if onLeftSide and onBottomSide then
-			rotation = 180
-		elseif not onLeftSide and onBottomSide then
-			rotation = 270
-		elseif not onLeftSide and not onBottomSide then
-			rotation = 0
-		else
-			rotation = 90
-		end
-		local centerX = (btnL + btnR) * 0.5
-		local centerY = (btnB + btnT) * 0.5
-		glFunc.Color(config.panelBorderColorLight)
-		glFunc.Texture("LuaUI/Images/pip/PipExpand.png")
-		glFunc.PushMatrix()
-		glFunc.Translate(centerX, centerY, 0)
-		glFunc.Rotate(rotation, 0, 0, 1)
-		glFunc.Translate(-centerX, -centerY, 0)
-		glFunc.TexRect(btnL, btnB, btnR, btnT)
-		glFunc.PopMatrix()
-		glFunc.Texture(false)
-
-		-- Hover highlight
-		if mx >= btnL and mx <= btnR and my >= btnB and my <= btnT then
-			if WG.tooltip then
-				WG.tooltip.ShowTooltip("pip" .. pipNumber, BAR.I18N("ui.pip.minimap_maximize"), nil, nil, nil)
-			end
-			glFunc.Color(1, 1, 1, 0.12)
-			glFunc.Texture(false)
-			render.RectRound(btnL, btnB, btnR, btnT, render.elementCorner * 0.4, 1, 1, 1, 1)
-		end
-
+		pipView.DrawMinimized(mx, my)
 		tracy.ZoneEnd()
 		return
 	end
@@ -22509,115 +21200,7 @@ function widget:DrawScreen()
 	-- In minimap mode, never show minimized state (skip this whole section)
 	if uiState.inMinMode and not uiState.isAnimating and not isMinimapMode then
 		-- Use display list for minimized mode (static graphics with relative coordinates)
-		local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
-
-		-- Draw render.UiElement background FIRST (with proper screen coordinates)
-		--render.UiElement(uiState.minModeL-render.elementPadding, uiState.minModeB-render.elementPadding, uiState.minModeL+buttonSize+render.elementPadding, uiState.minModeB+buttonSize+render.elementPadding, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
-
-		-- Then draw icon on top using display list
-		local offset = render.elementPadding + 2 -- to prevent touching screen edges and FlowUI Element will remove borders
-
-		-- Check if we need to recreate display list due to position change (affects rotation)
-		local sw, sh = Spring.GetWindowGeometry()
-		local currentQuadrant = (uiState.minModeL < sw * 0.5 and 1 or 2) + (uiState.minModeB < sh * 0.25 and 0 or 2)
-		-- Also track edge state for chamfered corners
-		local actualL = uiState.minModeL - render.elementPadding
-		local actualB = uiState.minModeB - render.elementPadding
-		local actualR = uiState.minModeL + buttonSize + render.elementPadding
-		local actualT = uiState.minModeB + buttonSize + render.elementPadding
-		local currentEdgeState = (actualL <= 0 and 1 or 0)
-			+ (actualB <= 0 and 2 or 0)
-			+ (actualR >= render.vsx and 4 or 0)
-			+ (actualT >= render.vsy and 8 or 0)
-		if
-			(render.minModeQuadrant ~= currentQuadrant or render.minModeEdgeState ~= currentEdgeState)
-			and render.minModeDlist
-		then
-			gl.DeleteList(render.minModeDlist)
-			render.minModeDlist = nil
-		end
-		render.minModeQuadrant = currentQuadrant
-		render.minModeEdgeState = currentEdgeState
-
-		if not render.minModeDlist then
-			render.minModeDlist = gl.CreateList(function()
-				-- Draw render.UiElement background (only borders, no fill to avoid double opacity)
-				-- Compute actual screen coordinates for chamfered corners
-				local actualL = uiState.minModeL - render.elementPadding
-				local actualB = uiState.minModeB - render.elementPadding
-				local actualR = uiState.minModeL + buttonSize + render.elementPadding
-				local actualT = uiState.minModeB + buttonSize + render.elementPadding
-				local tl, tr, br, bl = GetChamferedCorners(actualL, actualB, actualR, actualT)
-				render.UiElement(
-					offset - render.elementPadding,
-					offset - render.elementPadding,
-					offset + buttonSize + render.elementPadding,
-					offset + buttonSize + render.elementPadding,
-					tl,
-					tr,
-					br,
-					bl,
-					nil,
-					nil,
-					nil,
-					nil,
-					nil,
-					nil,
-					nil,
-					nil
-				)
-
-				-- Draw icon at origin (0,0) - will be transformed to actual position
-				glFunc.Color(config.panelBorderColorLight)
-				glFunc.Texture("LuaUI/Images/pip/PipExpand.png")
-
-				-- Rotate icon based on expansion direction
-				local rotation = GetMaximizeIconRotation()
-				local centerX = offset + buttonSize * 0.5
-				local centerY = offset + buttonSize * 0.5
-				glFunc.PushMatrix()
-				glFunc.Translate(centerX, centerY, 0)
-				glFunc.Rotate(rotation, 0, 0, 1)
-				glFunc.Translate(-centerX, -centerY, 0)
-
-				glFunc.TexRect(offset, offset, offset + buttonSize, offset + buttonSize)
-				glFunc.PopMatrix()
-				glFunc.Texture(false)
-			end)
-		end
-
-		-- Apply transform and draw the cached icon at actual position
-		glFunc.PushMatrix()
-		glFunc.Translate(uiState.minModeL - offset, uiState.minModeB - offset, 0)
-		glFunc.CallList(render.minModeDlist)
-		glFunc.PopMatrix()
-
-		-- Draw hover overlay if needed (dynamic)
-		glFunc.Color(config.panelBorderColorDark)
-		glFunc.Texture(false)
-		if
-			mx >= uiState.minModeL - render.elementPadding
-			and mx <= uiState.minModeL + buttonSize + render.elementPadding
-			and my >= uiState.minModeB - render.elementPadding
-			and my <= uiState.minModeB + buttonSize + render.elementPadding
-		then
-			if WG.tooltip then
-				WG.tooltip.ShowTooltip("pip" .. pipNumber, BAR.I18N("ui.pip.tooltip"), nil, nil, nil)
-			end
-			glFunc.Color(1, 1, 1, 0.12)
-			glFunc.Texture(false)
-			render.RectRound(
-				uiState.minModeL,
-				uiState.minModeB,
-				uiState.minModeL + buttonSize,
-				uiState.minModeB + buttonSize,
-				render.elementCorner * 0.4,
-				1,
-				1,
-				1,
-				1
-			)
-		end
+		pipView.DrawMinimized(mx, my)
 		tracy.ZoneEnd()
 		return
 	end
@@ -22634,6 +21217,7 @@ function widget:DrawScreen()
 
 	-- Cache selected units count once per frame (avoids 5+ redundant GetSelectedUnits calls)
 	frameSelCount = spFunc.GetSelectedUnitsCount()
+	ui.selCount = frameSelCount
 	frameSel = nil -- Lazy: full array fetched only when needed
 
 	HandleHoverAndCursor(mx, my)
@@ -22655,7 +21239,7 @@ function widget:DrawScreen()
 	local pipWidth = render.dim.r - render.dim.l
 	local pipHeight = render.dim.t - render.dim.b
 
-	UpdateR2TFrame(pipWidth, pipHeight)
+	pipView.DrawFrame(pipWidth, pipHeight)
 
 	----------------------------------------------------------------------------------------------------
 	-- Engine minimap fallback: when enabled and fully zoomed out with many units, draw engine minimap instead of PIP
@@ -23003,42 +21587,10 @@ function widget:DrawScreen()
 				gl.DeleteList(pipR2T.contentMaskDlist)
 			end
 			pipR2T.contentMaskDlist = gl.CreateList(function()
-				-- Draw rounded rectangle shape for stencil mask
-				-- Use slightly larger corner radius so diagonal border looks same thickness as straight edges
-				-- Disable corner rounding at screen edges
-				local edgeTolerance = 2
-				local atLeft = render.dim.l <= edgeTolerance
-				local atRight = render.dim.r >= render.vsx - edgeTolerance
-				-- the timeline strip below takes the bottom corner cuts
-				local atBottom = render.dim.b <= edgeTolerance or maskStripH > 0
-				local atTop = render.dim.t >= render.vsy - edgeTolerance
-				-- inside another widget's frame the map is a plain rect: the frame gives the look
-				local framed = miscState.externalFrame.active
-				local tl = (framed or atLeft or atTop) and 0 or 1
-				local tr = (framed or atRight or atTop) and 0 or 1
-				local br = (framed or atRight or atBottom) and 0 or 1
-				local bl = (framed or atLeft or atBottom) and 0 or 1
-				render.RectRound(
-					render.dim.l,
-					render.dim.b,
-					render.dim.r,
-					render.dim.t,
-					render.elementCorner * 0.5,
-					tl,
-					tr,
-					br,
-					bl
-				)
+				pipView.DrawMapMask(maskStripH)
 			end)
 			-- Also invalidate text display lists when position changes
-			if pipR2T.resbarTextDlist then
-				gl.DeleteList(pipR2T.resbarTextDlist)
-				pipR2T.resbarTextDlist = nil
-			end
-			if pipR2T.playerNameDlist then
-				gl.DeleteList(pipR2T.playerNameDlist)
-				pipR2T.playerNameDlist = nil
-			end
+			pipView.ReleaseText()
 			pipR2T.contentMaskLastWidth = math.floor(pipWidth)
 			pipR2T.contentMaskLastHeight = math.floor(pipHeight)
 			pipR2T.contentMaskLastL = math.floor(render.dim.l)
@@ -23378,7 +21930,7 @@ function widget:DrawScreen()
 	end
 
 	-- Draw tracking indicators
-	DrawTrackingIndicators()
+	pipView.DrawTrackingBorder()
 	tracy.ZoneEnd()
 
 	----------------------------------------------------------------------------------------------------
@@ -23394,165 +21946,22 @@ function widget:DrawScreen()
 			and my <= render.dim.t
 		)
 
-		-- Blit frame buttons
-		if pipR2T.frameButtonsTex then
-			tracy.ZoneBeginN("W:PIP:UI:FrameButtonsTex")
-			gl.R2tHelper.BlendTexRect(
-				pipR2T.frameButtonsTex,
-				render.dim.l,
-				render.dim.b,
-				render.dim.r,
-				render.dim.t,
-				true
-			)
-			tracy.ZoneEnd()
+		ui.RefreshVisibleButtons()
+		pipView.DrawControls(mx, my, mbl)
+		local timelineLayout = miscState.hist.ComputeLayout(mx, my)
+		if timelineLayout.visible then
+			pipView.DrawTimeline(timelineLayout, mx, my)
 		end
-
-		-- Draw resize handle when showing on hover (hide in minimap mode if configured)
-		tracy.ZoneBeginN("W:PIP:UI:ResizeHover")
-		if
-			config.showButtonsOnHoverOnly
-			and interactionState.isMouseOverPip
-			and not (isMinimapMode and config.minimapModeHideMoveResize)
-		then
-			glFunc.Color(config.panelBorderColorDark)
-			glFunc.LineWidth(1.0)
-			glFunc.BeginEnd(glConst.TRIANGLES, ResizeHandleVertices)
-		end
-
-		-- Draw dynamic hover overlays
-		-- Resize handle hover (skip in minimap mode if configured)
-		local hover = false
-		if not (isMinimapMode and config.minimapModeHideMoveResize) then
-			hover = uiState.areResizing or false
-			if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
-				if render.dim.r - mx + my - render.dim.b <= render.usedButtonSize then
-					hover = true
-					if WG.tooltip then
-						WG.tooltip.ShowTooltip("pip" .. pipNumber, BAR.I18N("ui.pip.resize"), nil, nil, nil)
-					end
-				end
-			end
-			if hover then
-				local mult = mbl and 4.5 or 1.5
-				glFunc.Color(
-					config.panelBorderColorDark[1] * mult,
-					config.panelBorderColorDark[2] * mult,
-					config.panelBorderColorDark[3] * mult,
-					1
-				)
-				glFunc.LineWidth(1.0)
-				glFunc.BeginEnd(glConst.TRIANGLES, ResizeHandleVertices)
-			end
-		end
-		tracy.ZoneEnd()
-
-		-- Minimize button hover (show in minimap mode on hover for MinimapMinimize)
-		tracy.ZoneBeginN("W:PIP:UI:MinimizeHover")
-		hover = false
-		if not isMinimapMode or config.minimapModeShowMinimizeButton then -- In minimap mode, only show if configured
-			if config.showButtonsOnHoverOnly and interactionState.isMouseOverPip then
-				-- Draw minimize button base when showing on hover
-				glFunc.Color(config.panelBorderColorDark)
-				glFunc.Texture(false)
-				render.RectRound(
-					render.dim.r - render.usedButtonSize - render.elementPadding,
-					render.dim.t - render.usedButtonSize - render.elementPadding,
-					render.dim.r,
-					render.dim.t,
-					render.elementCorner,
-					0,
-					0,
-					0,
-					1
-				)
-				glFunc.Color(config.panelBorderColorLight)
-				glFunc.Texture("LuaUI/Images/pip/PipShrink.png")
-
-				-- Rotate icon opposite to maximize direction (points toward shrink position)
-				local rotation = GetMaximizeIconRotation()
-				local centerX = render.dim.r - render.usedButtonSize * 0.5
-				local centerY = render.dim.t - render.usedButtonSize * 0.5
-				glFunc.PushMatrix()
-				glFunc.Translate(centerX, centerY, 0)
-				glFunc.Rotate(rotation, 0, 0, 1)
-				glFunc.Translate(-centerX, -centerY, 0)
-
-				glFunc.TexRect(
-					render.dim.r - render.usedButtonSize,
-					render.dim.t - render.usedButtonSize,
-					render.dim.r,
-					render.dim.t
-				)
-				glFunc.PopMatrix()
-				glFunc.Texture(false)
-			end
-			if
-				mx >= render.dim.r - render.usedButtonSize - render.elementPadding
-				and mx <= render.dim.r - render.elementPadding
-				and my >= render.dim.t - render.usedButtonSize - render.elementPadding
-				and my <= render.dim.t - render.elementPadding
-			then
-				hover = true
-				if WG.tooltip then
-					WG.tooltip.ShowTooltip(
-						"pip" .. pipNumber,
-						BAR.I18N(isMinimapMode and "ui.pip.minimap_minimize" or "ui.pip.minimize"),
-						nil,
-						nil,
-						nil
-					)
-				end
-				glFunc.Color(1, 1, 1, 0.12)
-				glFunc.Texture(false)
-				render.RectRound(
-					render.dim.r - render.usedButtonSize,
-					render.dim.t - render.usedButtonSize,
-					render.dim.r,
-					render.dim.t,
-					render.elementCorner * 0.4,
-					1,
-					1,
-					1,
-					1
-				)
-				glFunc.Color(1, 1, 1, 1)
-				glFunc.Texture("LuaUI/Images/pip/PipShrink.png")
-
-				-- Rotate icon opposite to maximize direction (points toward shrink position)
-				local rotation = GetMaximizeIconRotation()
-				local centerX = render.dim.r - render.usedButtonSize * 0.5
-				local centerY = render.dim.t - render.usedButtonSize * 0.5
-				glFunc.PushMatrix()
-				glFunc.Translate(centerX, centerY, 0)
-				glFunc.Rotate(rotation, 0, 0, 1)
-				glFunc.Translate(-centerX, -centerY, 0)
-
-				glFunc.TexRect(
-					render.dim.r - render.usedButtonSize,
-					render.dim.t - render.usedButtonSize,
-					render.dim.r,
-					render.dim.t
-				)
-				glFunc.PopMatrix()
-				glFunc.Texture(false)
-			end
-		end
-		tracy.ZoneEnd()
-
-		-- Bottom-left buttons hover and pip number
-		DrawInteractiveOverlays(mx, my, render.usedButtonSize)
-		miscState.hist.DrawTimeline(mx, my)
 	end
 	tracy.ZoneEnd()
 
 	tracy.ZoneBeginN("W:PIP:DrawScreen:DynamicOverlays")
 	if not uiState.isAnimating then
 		-- Display tracked player name at top-center of PIP (only when hovering)
-		DrawTrackedPlayerName()
+		pipView.DrawTrackedName()
 
 		-- Display resource bars when tracking a player camera (hidden when PIP is hovered)
-		DrawTrackedPlayerResourceBars()
+		pipView.DrawTrackedResources()
 
 		-- Display minimap overlay when tracking a player camera (hidden when PIP is hovered)
 		DrawTrackedPlayerMinimap()
@@ -24099,13 +22508,7 @@ function widget:Update(dt)
 			Spring.SendCommands("minimap minimize 1")
 			-- Update guishader blur: remove when hidden, re-add when shown
 			if wantMinimized then
-				if WG.guishader then
-					if WG.guishader.RemoveDlist then
-						WG.guishader.RemoveDlist("pip" .. pipNumber)
-					elseif WG.guishader.RemoveRect then
-						WG.guishader.RemoveRect("pip" .. pipNumber)
-					end
-				end
+				pipView.RemoveBlur()
 			else
 				-- Delete stale R2T textures and force full recreation
 				if pipR2T.contentTex then
@@ -24116,14 +22519,7 @@ function widget:Update(dt)
 					gl.DeleteTexture(pipR2T.unitsTex)
 					pipR2T.unitsTex = nil
 				end
-				if pipR2T.frameBackgroundTex then
-					gl.DeleteTexture(pipR2T.frameBackgroundTex)
-					pipR2T.frameBackgroundTex = nil
-				end
-				if pipR2T.frameButtonsTex then
-					gl.DeleteTexture(pipR2T.frameButtonsTex)
-					pipR2T.frameButtonsTex = nil
-				end
+				pipView.ReleaseFrame()
 				pipR2T.contentNeedsUpdate = true
 				pipR2T.unitsNeedsUpdate = true
 				pipR2T.frameNeedsUpdate = true
@@ -26027,6 +24423,18 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 	return false
 end
 
+-- on a resize grab the look has past the map
+local function IsOnOuterResizeGrab(mx, my)
+	if
+		uiState.inMinMode
+		or uiState.isAnimating
+		or (isMinimapMode and (config.minimapModeHideMoveResize or miscState.minimapMinimized))
+	then
+		return false
+	end
+	return pipView.HitResizeOutside(mx, my)
+end
+
 function widget:IsAbove(mx, my)
 	if miscState.apiInteractionLocked then
 		return false
@@ -26042,6 +24450,10 @@ function widget:IsAbove(mx, my)
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then
 		return false
+	end
+
+	if IsOnOuterResizeGrab(mx, my) then
+		return true
 	end
 
 	-- Rewind timeline strip below the map content
@@ -26277,14 +24689,7 @@ function widget:MousePress(mx, my, mButton)
 					gl.DeleteTexture(pipR2T.unitsTex)
 					pipR2T.unitsTex = nil
 				end
-				if pipR2T.frameBackgroundTex then
-					gl.DeleteTexture(pipR2T.frameBackgroundTex)
-					pipR2T.frameBackgroundTex = nil
-				end
-				if pipR2T.frameButtonsTex then
-					gl.DeleteTexture(pipR2T.frameButtonsTex)
-					pipR2T.frameButtonsTex = nil
-				end
+				pipView.ReleaseFrame()
 				pipR2T.contentNeedsUpdate = true
 				pipR2T.unitsNeedsUpdate = true
 				pipR2T.frameNeedsUpdate = true
@@ -26304,6 +24709,12 @@ function widget:MousePress(mx, my, mButton)
 	-- double-click from triggering an accidental minimize (which corrupts savedDimensions)
 	if uiState.isAnimating then
 		return
+	end
+
+	-- (before the timeline: the grab can lie on it)
+	if mButton == 1 and IsOnOuterResizeGrab(mx, my) then
+		uiState.areResizing = true
+		return true
 	end
 
 	-- Rewind timeline strip below the map content
@@ -26484,7 +24895,7 @@ function widget:MousePress(mx, my, mButton)
 
 		-- Check if middle mouse is on the minimize button (to move window instead of pan)
 		if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
-			if mx >= render.dim.r - render.usedButtonSize and my >= render.dim.t - render.usedButtonSize then
+			if pipView.HitMinimize(mx, my) then
 				interactionState.minimizeButtonClickStartX = mx
 				interactionState.minimizeButtonClickStartY = my
 				return true
@@ -26518,7 +24929,7 @@ function widget:MousePress(mx, my, mButton)
 		if mButton == 1 then
 			-- Resize thing (check first - highest priority) - disabled in minimap mode
 			if not (isMinimapMode and config.minimapModeHideMoveResize) then
-				if render.dim.r - mx + my - render.dim.b <= render.usedButtonSize then
+				if pipView.HitResize(mx, my) then
 					uiState.areResizing = true
 					return true
 				end
@@ -26526,12 +24937,7 @@ function widget:MousePress(mx, my, mButton)
 
 			-- Minimizing? (or ALT+drag/middle drag to move window)
 			-- In minimap mode, clicking the minimize button triggers MinimapMinimize (with animation)
-			if
-				isMinimapMode
-				and config.minimapModeShowMinimizeButton
-				and mx >= render.dim.r - render.usedButtonSize
-				and my >= render.dim.t - render.usedButtonSize
-			then
+			if isMinimapMode and config.minimapModeShowMinimizeButton and pipView.HitMinimize(mx, my) then
 				Spring.SetConfigInt("MinimapMinimize", 1)
 				Spring.SendCommands("minimap minimize 1")
 				-- Animate shrink to the maximize button position (top-left corner)
@@ -26559,11 +24965,7 @@ function widget:MousePress(mx, my, mButton)
 				miscState.minimapMinimizeAnimating = true
 				return true
 			end
-			if
-				not isMinimapMode
-				and mx >= render.dim.r - render.usedButtonSize
-				and my >= render.dim.t - render.usedButtonSize
-			then
+			if not isMinimapMode and pipView.HitMinimize(mx, my) then
 				local altKey = Spring.GetModKeyState()
 
 				-- If ALT is held or middle mouse, start tracking for drag (to move window)
@@ -26628,98 +25030,16 @@ function widget:MousePress(mx, my, mButton)
 					gl.DeleteTexture(pipR2T.unitsTex)
 					pipR2T.unitsTex = nil
 				end
-				if pipR2T.frameBackgroundTex then
-					gl.DeleteTexture(pipR2T.frameBackgroundTex)
-					pipR2T.frameBackgroundTex = nil
-				end
-				if pipR2T.frameButtonsTex then
-					gl.DeleteTexture(pipR2T.frameButtonsTex)
-					pipR2T.frameButtonsTex = nil
-				end
+				pipView.ReleaseFrame()
 
 				return true
 			end
 
 			-- Button row (inside another widget's frame the frame has them)
-			if my <= render.dim.b + render.usedButtonSize and not miscState.externalFrame.active then
-				-- Calculate visible buttons
-				local selectedUnits = Spring.GetSelectedUnits()
-				local hasSelection = #selectedUnits > 0
-				local isTracking = interactionState.areTracking ~= nil
-				local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
-				-- Show player tracking button when tracking, when spectating, or when having alive teammates
-				local showPlayerTrackButton = isTrackingPlayer
-				if not showPlayerTrackButton then
-					local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
-					local aliveTeammates = GetAliveTeammates()
-					showPlayerTrackButton = spec or (#aliveTeammates > 0)
-				end
-				local visibleButtons = {}
-				for i = 1, #buttons do
-					local btn = buttons[i]
-					-- In minimap mode, skip move button if configured
-					local skipButton = false
-					if isMinimapMode and config.minimapModeHideMoveResize then
-						if btn.tooltipKey == "ui.pip.move" then
-							skipButton = true
-						end
-					end
-					-- In minimap mode, skip switch and copy buttons (keep pip_track and pip_trackplayer)
-					-- Allow pip_view for spectators with fullview
-					if isMinimapMode then
-						if btn.command == "pip_switch" or btn.command == "pip_copy" then
-							skipButton = true
-						elseif btn.command == "pip_view" then
-							local _, fullview = Spring.GetSpectatingState()
-							if not fullview then
-								skipButton = true
-							end
-						end
-					end
-
-					if not skipButton then
-						-- Show pip_track button if has selection or is tracking units (not in minimap mode)
-						if btn.command == "pip_track" then
-							if not isMinimapMode and (hasSelection or isTracking) then
-								visibleButtons[#visibleButtons + 1] = btn
-							end
-						-- Show pip_trackplayer button if lockcamera is available or already tracking (hidden during TV)
-						elseif btn.command == "pip_trackplayer" then
-							if showPlayerTrackButton and not miscState.tvEnabled then
-								visibleButtons[#visibleButtons + 1] = btn
-							end
-						-- Show pip_view button only for spectators
-						elseif btn.command == "pip_view" then
-							local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
-							if spec then
-								visibleButtons[#visibleButtons + 1] = btn
-							end
-						elseif btn.command == "pip_activity" then
-							if
-								not isSinglePlayer
-								and not interactionState.trackingPlayerID
-								and not miscState.tvEnabled
-								and not (config.activityFocusHideForSpectators and cameraState.mySpecState)
-							then
-								visibleButtons[#visibleButtons + 1] = btn
-							end
-						elseif btn.command == "pip_tv" then
-							if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
-								visibleButtons[#visibleButtons + 1] = btn
-							end
-						elseif btn.command == "pip_history" then
-							if config.historyEnabled and miscState.hist.store then
-								visibleButtons[#visibleButtons + 1] = btn
-							end
-						elseif btn.command == "pip_help" then
-							visibleButtons[#visibleButtons + 1] = btn
-						else
-							visibleButtons[#visibleButtons + 1] = btn
-						end
-					end
-				end
-				local buttonIndex = 1 + math.floor((mx - render.dim.l) / render.usedButtonSize)
-				local pressedButton = visibleButtons[buttonIndex]
+			local buttonIndex = not miscState.externalFrame.active and pipView.ButtonIndexAt(mx, my)
+			if buttonIndex then
+				ui.selCount = spFunc.GetSelectedUnitsCount()
+				local pressedButton = ui.ComputeVisibleButtons({})[buttonIndex]
 				if pressedButton then
 					pressedButton.OnPress()
 					return true
@@ -27648,14 +25968,7 @@ function widget:MouseRelease(mx, my, mButton)
 					gl.DeleteTexture(pipR2T.unitsTex)
 					pipR2T.unitsTex = nil
 				end
-				if pipR2T.frameBackgroundTex then
-					gl.DeleteTexture(pipR2T.frameBackgroundTex)
-					pipR2T.frameBackgroundTex = nil
-				end
-				if pipR2T.frameButtonsTex then
-					gl.DeleteTexture(pipR2T.frameButtonsTex)
-					pipR2T.frameButtonsTex = nil
-				end
+				pipView.ReleaseFrame()
 			end
 		end
 		return -- Don't process further

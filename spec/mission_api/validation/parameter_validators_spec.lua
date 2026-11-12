@@ -136,6 +136,90 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("TimeOfDay", function()
+		local function validateHour(hour)
+			return V.validateAction({ type = V.actionTypes.SetMapTimeOfDay, parameters = { hour = hour } })
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateHour("noon"),
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: hour"
+			)
+		end)
+
+		it("rejects an hour outside 0 to 24", function()
+			V.assertMessage(
+				validateHour(25),
+				"TimeOfDay must be an hour from 0 to 24, got 25. Action: a, Parameter: hour"
+			)
+		end)
+
+		it("accepts midnight as 0 and as 24", function()
+			V.assertNoMessageContaining(validateHour(0), "Parameter: hour")
+			V.assertNoMessageContaining(validateHour(24), "Parameter: hour")
+		end)
+	end)
+
+	describe("CompassAngle", function()
+		local function validateAzimuth(degrees)
+			return V.validateAction({ type = V.actionTypes.SetMapLighting, parameters = { sunAzimuth = degrees } })
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateAzimuth("east"),
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: sunAzimuth"
+			)
+		end)
+
+		it("accepts any number of degrees", function()
+			V.assertNoMessageContaining(validateAzimuth(-90), "Parameter: sunAzimuth")
+			V.assertNoMessageContaining(validateAzimuth(450), "Parameter: sunAzimuth")
+		end)
+	end)
+
+	describe("Elevation", function()
+		local function validateElevation(degrees)
+			return V.validateAction({ type = V.actionTypes.SetMapLighting, parameters = { sunElevation = degrees } })
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateElevation("high"),
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: sunElevation"
+			)
+		end)
+
+		it("rejects an elevation past straight up or down", function()
+			V.assertMessage(
+				validateElevation(91),
+				"Elevation must be between -90 and 90 degrees, got 91. Action: a, Parameter: sunElevation"
+			)
+			V.assertMessage(
+				validateElevation(-91),
+				"Elevation must be between -90 and 90 degrees, got -91. Action: a, Parameter: sunElevation"
+			)
+		end)
+
+		it("accepts straight up and straight down", function()
+			V.assertNoMessageContaining(validateElevation(90), "Parameter: sunElevation")
+			V.assertNoMessageContaining(validateElevation(-90), "Parameter: sunElevation")
+		end)
+	end)
+
+	describe("CountdownID", function()
+		it("rejects an ID starting with __, which the Mission API keeps for its own countdowns", function()
+			V.assertMessage(
+				V.validateAction({
+					type = V.actionTypes.AddCountdown,
+					parameters = { countdownID = "__timeElapsed_t", seconds = 5 },
+				}),
+				"Invalid countdownID: __timeElapsed_t. Action: a, Parameter: countdownID"
+			)
+		end)
+	end)
+
 	describe("PositiveInteger", function()
 		local function validateTimeRemaining(timeRemaining)
 			return V.validateTrigger(
@@ -216,7 +300,9 @@ describe("mission_api.validation.parameter_validators", function()
 		it("rejects the wrong type", function()
 			local result = V.validateAction({
 				type = V.actionTypes.SpawnUnits,
-				parameters = { unitLoadout = { { unitDefName = 123, teamName = "player", x = 0, z = 0 } } },
+				parameters = {
+					unitLoadout = { { unitDefName = 123, teamName = "player", position = { x = 0, z = 0 } } },
+				},
 			})
 
 			V.assertMessage(
@@ -228,7 +314,9 @@ describe("mission_api.validation.parameter_validators", function()
 		it("rejects a unit def that does not exist", function()
 			local result = V.validateAction({
 				type = V.actionTypes.SpawnUnits,
-				parameters = { unitLoadout = { { unitDefName = "noSuch", teamName = "player", x = 0, z = 0 } } },
+				parameters = {
+					unitLoadout = { { unitDefName = "noSuch", teamName = "player", position = { x = 0, z = 0 } } },
+				},
 			})
 
 			V.assertMessage(result, "Invalid unitDefName: noSuch. Action: a, Parameter: unitLoadout[1].unitDefName")
@@ -239,7 +327,7 @@ describe("mission_api.validation.parameter_validators", function()
 		it("rejects the wrong type", function()
 			local result = V.validateAction({
 				type = V.actionTypes.CreateFeatures,
-				parameters = { featureLoadout = { { featureDefName = 123, x = 0, z = 0 } } },
+				parameters = { featureLoadout = { { featureDefName = 123, position = { x = 0, z = 0 } } } },
 			})
 
 			V.assertMessage(
@@ -251,7 +339,7 @@ describe("mission_api.validation.parameter_validators", function()
 		it("rejects a feature def that does not exist", function()
 			local result = V.validateAction({
 				type = V.actionTypes.CreateFeatures,
-				parameters = { featureLoadout = { { featureDefName = "noSuch", x = 0, z = 0 } } },
+				parameters = { featureLoadout = { { featureDefName = "noSuch", position = { x = 0, z = 0 } } } },
 			})
 
 			V.assertMessage(
@@ -360,7 +448,9 @@ describe("mission_api.validation.parameter_validators", function()
 			local result = V.validateAction({
 				type = V.actionTypes.SpawnUnits,
 				parameters = {
-					unitLoadout = { { unitDefName = "armwar", teamName = "player", x = 0, z = 0, facing = {} } },
+					unitLoadout = {
+						{ unitDefName = "armwar", teamName = "player", position = { x = 0, z = 0 }, facing = {} },
+					},
 				},
 			})
 
@@ -374,7 +464,14 @@ describe("mission_api.validation.parameter_validators", function()
 			local result = V.validateAction({
 				type = V.actionTypes.SpawnUnits,
 				parameters = {
-					unitLoadout = { { unitDefName = "armwar", teamName = "player", x = 0, z = 0, facing = "diagonal" } },
+					unitLoadout = {
+						{
+							unitDefName = "armwar",
+							teamName = "player",
+							position = { x = 0, z = 0 },
+							facing = "diagonal",
+						},
+					},
 				},
 			})
 
@@ -427,6 +524,39 @@ describe("mission_api.validation.parameter_validators", function()
 				result,
 				"Invalid soundfile: dummy.wav. File is not a RIFF .wav file. Action: a, Parameter: soundfile"
 			)
+		end)
+	end)
+
+	describe("SkyboxFile", function()
+		local function validateTexture(texture)
+			return V.validateAction({ type = V.actionTypes.SetMapSkybox, parameters = { texture = texture } })
+		end
+
+		it("rejects a file that is not a .dds", function()
+			V.assertMessage(
+				validateTexture("maps/sky.png"),
+				"Invalid skyboxFile: maps/sky.png. Expected a .dds cubemap. Action: a, Parameter: texture"
+			)
+		end)
+
+		it("rejects a file that does not exist", function()
+			V.assertMessage(
+				validateTexture("maps/missing.dds"),
+				"Invalid skyboxFile: maps/missing.dds. File does not exist. Action: a, Parameter: texture"
+			)
+		end)
+
+		it("accepts an existing .dds file", function()
+			local originalFileExists = V.env.VFS.FileExists
+			V.env.VFS.FileExists = function(path)
+				return path == "maps/Sky.DDS"
+			end
+
+			local result = validateTexture("maps/Sky.DDS")
+
+			V.env.VFS.FileExists = originalFileExists
+
+			V.assertNoMessageContaining(result, "Parameter: texture")
 		end)
 	end)
 
@@ -626,6 +756,40 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("Color", function()
+		local function validateLighting(parameters)
+			return V.validateAction({ type = V.actionTypes.SetMapLighting, parameters = parameters })
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateLighting({ tint = "red" }),
+				"Unexpected parameter type, expected table, got string. Action: a, Parameter: tint"
+			)
+		end)
+
+		it("rejects a missing channel", function()
+			V.assertMessage(
+				validateLighting({ tint = { r = 1, g = 1 } }),
+				"Missing required parameter. Action: a, Parameter: tint.b"
+			)
+		end)
+
+		it("rejects a negative channel", function()
+			V.assertMessage(
+				validateLighting({ tint = { r = -1, g = 1, b = 1 } }),
+				"Color channel must be >= 0, got -1. Action: a, Parameter: tint.r"
+			)
+		end)
+
+		it("accepts channels above 1", function()
+			V.assertNoMessageContaining(
+				validateLighting({ groundDiffuseColor = { r = 1.2, g = 1, b = 0 } }),
+				"groundDiffuseColor"
+			)
+		end)
+	end)
+
 	--- Validates the allianceNames parameter of the action under test.
 	local function validateAllianceNames(allianceNames)
 		return V.validateAction({ type = V.actionTypes.Victory, parameters = { allianceNames = allianceNames } })
@@ -664,6 +828,19 @@ describe("mission_api.validation.parameter_validators", function()
 				}),
 				"Invalid teamName: nobody. Action: a, Parameter: newTeamName"
 			)
+		end)
+	end)
+
+	describe("Gaia's team", function()
+		it("is a team name a loadout entry can use", function()
+			V.missionAPI().Teams = { rebels = 0, [0] = "rebels", gaia = 1, [1] = "gaia" }
+
+			V.assertValid(V.validateAction({
+				type = V.actionTypes.SpawnUnits,
+				parameters = {
+					unitLoadout = { { unitDefName = "armwar", teamName = "gaia", position = { x = 0, z = 0 } } },
+				},
+			}))
 		end)
 	end)
 
@@ -872,6 +1049,57 @@ describe("mission_api.validation.parameter_validators", function()
 		V.assertNoMessageContaining(validateOrders({ { V.env.CMD.GUARD, { unitName = "x" } } }), "Parameter must be")
 	end)
 
+	it("rejects an order that names both a unit and a feature", function()
+		V.assertMessage(
+			validateOrders({ { V.env.CMD.RECLAIM, { unitName = "x", featureName = "y" } } }),
+			"Give a unitName or a featureName, not both. Action: a, Parameter: orders[1][2]"
+		)
+	end)
+
+	it("warns about an order past a gap, which is never given", function()
+		local result = validateOrders({ [1] = { V.env.CMD.STOP }, [3] = { V.env.CMD.STOP } })
+
+		V.assertMessage(result, "Order is never given: orders stop at the first gap. Action: a, Parameter: orders[3]")
+		assert.is_true(result.ok)
+	end)
+
+	it("warns about a queued wait right after another wait, which can cancel both", function()
+		local result = validateOrders({
+			{ V.env.CMD.GATHERWAIT },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+		})
+
+		V.assertMessage(
+			result,
+			"A queued wait right after another wait can cancel both, so neither is kept. Action: a, Parameter: orders[2]"
+		)
+		assert.is_true(result.ok)
+	end)
+
+	it("keeps a third queued wait, after the first two cancel", function()
+		local result = validateOrders({
+			{ V.env.CMD.GATHERWAIT },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+		})
+
+		V.assertMessage(
+			result,
+			"A queued wait right after another wait can cancel both, so neither is kept. Action: a, Parameter: orders[2]"
+		)
+		V.assertNoMessageContaining(result, "Parameter: orders[3]")
+	end)
+
+	it("keeps a queued wait after a wait that went to the front of the queue", function()
+		local result = validateOrders({
+			{ V.env.CMD.MOVE, { 0, 0, 0 } },
+			{ V.env.CMD.GATHERWAIT },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+		})
+
+		V.assertNoMessageContaining(result, "can cancel both")
+	end)
+
 	it("reports every invalid order, named after its position in the list", function()
 		local result = validateOrders({ { V.env.CMD.MOVE, { 0, 0, 0 } }, { V.env.CMD.MOVE, {} }, { 99999 } })
 
@@ -903,23 +1131,17 @@ describe("mission_api.validation.parameter_validators", function()
 		)
 	end)
 
-	it("rejects the wait commands that only work for a player's selected units", function()
-		local result = validateOrders({
-			{ V.env.CMD.TIMEWAIT, { 5 } },
-			{ V.env.CMD.DEATHWAIT },
-			{ V.env.CMD.SQUADWAIT, { 2 } },
-			{ V.env.CMD.GATHERWAIT },
-		})
-
-		for index, commandName in ipairs({ "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
-			local message = "Command "
-				.. commandName
-				.. " is dropped when a mission gives it, it only works for a player's selected units."
-				.. " Action: a, Parameter: orders["
-				.. index
-				.. "][1]"
-			assert.is_true(table.contains(result.errors, message), "expected error: " .. message)
-		end
+	it("accepts the coded wait commands with their parameters", function()
+		V.assertNoMessageContaining(
+			validateOrders({
+				{ V.env.CMD.TIMEWAIT, { 5 } },
+				{ V.env.CMD.DEATHWAIT, { x1 = 0, z1 = 0, x2 = 100, z2 = 100 } },
+				{ V.env.CMD.DEATHWAIT, { unitName = "bosses" } },
+				{ V.env.CMD.SQUADWAIT, { 2 } },
+				{ V.env.CMD.GATHERWAIT },
+			}),
+			"Parameter: orders"
+		)
 	end)
 
 	for _, commandName in ipairs({ "CLOAK", "ONOFF", "REPEAT" }) do
@@ -1039,7 +1261,8 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("UnitLoadout", function()
 		it("passes for a well-formed entry", function()
-			local result = validateUnitLoadout({ { unitDefName = "armwar", teamName = "player", x = 0, z = 0 } })
+			local result =
+				validateUnitLoadout({ { unitDefName = "armwar", teamName = "player", position = { x = 0, z = 0 } } })
 
 			V.assertNoMessageContaining(result, "unitLoadout entry")
 		end)
@@ -1052,19 +1275,21 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("reports a missing required field", function()
-			local result = validateUnitLoadout({ { unitDefName = "armwar", x = 0, z = 0 } })
+			local result = validateUnitLoadout({ { unitDefName = "armwar", position = { x = 0, z = 0 } } })
 
 			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: unitLoadout[1].teamName")
 		end)
 
 		it("reports a missing position coordinate", function()
-			local result = validateUnitLoadout({ { unitDefName = "armwar", teamName = "player", x = 0 } })
+			local result =
+				validateUnitLoadout({ { unitDefName = "armwar", teamName = "player", position = { x = 0 } } })
 
-			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: unitLoadout[1].z")
+			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: unitLoadout[1].position.z")
 		end)
 
 		it("reports a field of the wrong type", function()
-			local result = validateUnitLoadout({ { unitDefName = "armwar", teamName = 0, x = 0, z = 0 } })
+			local result =
+				validateUnitLoadout({ { unitDefName = "armwar", teamName = 0, position = { x = 0, z = 0 } } })
 
 			V.assertMessage(
 				result,
@@ -1075,7 +1300,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("FeatureLoadout", function()
 		it("passes for a well-formed entry", function()
-			local result = validateFeatureLoadout({ { featureDefName = "rockdef", x = 0, z = 0 } })
+			local result = validateFeatureLoadout({ { featureDefName = "rockdef", position = { x = 0, z = 0 } } })
 
 			V.assertNoMessageContaining(result, "featureLoadout entry")
 		end)
@@ -1088,9 +1313,9 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("reports a missing position coordinate", function()
-			local result = validateFeatureLoadout({ { featureDefName = "rockdef", z = 0 } })
+			local result = validateFeatureLoadout({ { featureDefName = "rockdef", position = { z = 0 } } })
 
-			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: featureLoadout[1].x")
+			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: featureLoadout[1].position.x")
 		end)
 	end)
 end)

@@ -480,7 +480,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
-		lavaUnits[unitID] = nil
+		-- Runs nested inside the damage loop's AddUnitDamage: a write to an absent key, even nil, breaks its pairs.
+		if lavaUnits[unitID] then
+			lavaUnits[unitID] = nil
+		end
 	end
 else -- UNSYCNED
 	local texturesamplingmode = "" -- ':l:' causes MASSIVE load on zoom out and downsampling textures!

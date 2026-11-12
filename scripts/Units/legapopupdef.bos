@@ -125,23 +125,13 @@ Create()
     turn doorFlare2 to y-axis <120> now;
 
     wpn1_lasthead = -1000000;
-	
-	///close immediately
 
-    move backStruts to y-axis [0] now;
-    turn minigunHousingL to z-axis <45> now;
-    turn minigunHousingR to z-axis <-45> now;
-    
-    turn turretPivotPitch to x-axis <-130> now;
-    turn turretPivotBottom to x-axis <40> now;
-
-    move platform to y-axis [-48] now;
-
-	turn doorA to x-axis <120> now;
-    turn doorB to x-axis <120> now;
-    turn doorC to x-axis <120> now;
+    move backStruts to y-axis [7] now;
+	isOpen = TRUE;
+	wantOpen = TRUE;
 
 	SLEEP_UNTIL_UNITFINISHED;
+	start-script RestoreAfterDelay();
 }
 
 AimWeapon1(heading, pitch)
