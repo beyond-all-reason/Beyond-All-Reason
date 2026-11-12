@@ -1,30 +1,35 @@
 ---
---- Test mission for ShowHint and HideHint: a hint, one that replaces it and times out, then one
---- hidden by HideHint.
+--- Test mission for ShowHint and HideHint: a hint, one that replaces it and times out, one filled
+--- from messageData, then one hidden by HideHint.
 ---
 
 local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
 local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 local triggers = {
-	first = {
+	showBuildSolar = {
 		type = triggerTypes.TimeElapsed,
 		parameters = { seconds = 1 },
 		actions = { "hintSolar" },
 	},
-	second = {
+	replaceWithTimedMex = {
 		type = triggerTypes.TimeElapsed,
 		parameters = { seconds = 4 },
 		actions = { "hintMex" },
 	},
-	third = {
+	showFromData = {
 		type = triggerTypes.TimeElapsed,
-		parameters = { seconds = 9 },
+		parameters = { seconds = 8 },
+		actions = { "hintMetalAmount" },
+	},
+	showUntilHidden = {
+		type = triggerTypes.TimeElapsed,
+		parameters = { seconds = 10 },
 		actions = { "hintLast" },
 	},
-	hide = {
+	hideLastHint = {
 		type = triggerTypes.TimeElapsed,
-		parameters = { seconds = 12 },
+		parameters = { seconds = 13 },
 		actions = { "hideHint" },
 	},
 }
@@ -40,6 +45,10 @@ local actions = {
 			messageKey = "Now a Metal Extractor on a metal spot. This one goes after 3 seconds.",
 			seconds = 3,
 		},
+	},
+	hintMetalAmount = {
+		type = actionTypes.ShowHint,
+		parameters = { messageKey = "ui.playersList.chat.needMetalAmount", messageData = { amount = 300 } },
 	},
 	hintLast = {
 		type = actionTypes.ShowHint,

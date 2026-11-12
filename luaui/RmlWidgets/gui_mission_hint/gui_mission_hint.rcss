@@ -1,5 +1,3 @@
-/* MISSION HINT: dp for lengths, rem for text (1rem = 10dp), the look of the mission panels. */
-
 body {
 	pointer-events: none;
 }
@@ -13,7 +11,7 @@ body {
 	pointer-events: none;
 }
 
-/* Top centre, under the top bar. */
+/* Clear of the top bar and the first console lines; centered by a half-width margin. */
 .mh-box {
 	position: absolute;
 	top: 110dp;
